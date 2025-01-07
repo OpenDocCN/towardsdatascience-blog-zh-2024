@@ -1,485 +1,737 @@
 - en: 'Validating Data in a Production Pipeline: The TFX Way'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在生产管道中验证数据：TFX方式
 - en: 原文：[https://towardsdatascience.com/validating-data-in-a-production-pipeline-the-tfx-way-9770311eb7ce?source=collection_archive---------2-----------------------#2024-06-22](https://towardsdatascience.com/validating-data-in-a-production-pipeline-the-tfx-way-9770311eb7ce?source=collection_archive---------2-----------------------#2024-06-22)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/validating-data-in-a-production-pipeline-the-tfx-way-9770311eb7ce?source=collection_archive---------2-----------------------#2024-06-22](https://towardsdatascience.com/validating-data-in-a-production-pipeline-the-tfx-way-9770311eb7ce?source=collection_archive---------2-----------------------#2024-06-22)
 - en: A deep dive into data validation using Tensorflow Data Validation
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 深入了解使用 TensorFlow 数据验证进行的数据验证
 - en: '[](https://medium.com/@akila29?source=post_page---byline--9770311eb7ce--------------------------------)[![Akila
     Somasundaram](../Images/5f3c58de8057c9c7ef42f6f5729fb395.png)](https://medium.com/@akila29?source=post_page---byline--9770311eb7ce--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9770311eb7ce--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9770311eb7ce--------------------------------)
     [Akila Somasundaram](https://medium.com/@akila29?source=post_page---byline--9770311eb7ce--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@akila29?source=post_page---byline--9770311eb7ce--------------------------------)[![Akila
+    Somasundaram](../Images/5f3c58de8057c9c7ef42f6f5729fb395.png)](https://medium.com/@akila29?source=post_page---byline--9770311eb7ce--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9770311eb7ce--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9770311eb7ce--------------------------------)
+    [Akila Somasundaram](https://medium.com/@akila29?source=post_page---byline--9770311eb7ce--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9770311eb7ce--------------------------------)
     ·9 min read·Jun 22, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9770311eb7ce--------------------------------)
+    ·阅读时间 9 分钟·2024年6月22日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: Imagine this. We have a fully functional machine learning pipeline, and it is
     flawless. So we decide to push it to the production environment. All is well in
     prod, and one day a tiny change happens in one of the components that generates
     input data for our pipeline, and the pipeline breaks. Oops!!!
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 想象一下。我们有一个完全功能的机器学习管道，并且它是完美的。所以我们决定将它推向生产环境。一切在生产环境中都很顺利，直到有一天，我们的管道输入数据生成组件发生了一个小小的变化，导致管道崩溃。糟糕！
 - en: '![](../Images/d53ddb0f90e923a8b1b9f06d777cadb7.png)'
+  id: totrans-7
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d53ddb0f90e923a8b1b9f06d777cadb7.png)'
 - en: Photo by [Sarah Kilian](https://unsplash.com/@rojekilian?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[Sarah Kilian](https://unsplash.com/@rojekilian?utm_source=medium&utm_medium=referral)
+    在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Why did this happen??
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么会发生这种情况？
 - en: Because ML models rely heavily on the data being used, remember the age old
     saying, Garbage In, Garabage Out. Given the right data, the pipeline performs
     well, any change and the pipeline tends to go awry.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于机器学习模型在很大程度上依赖于所使用的数据，请记住那句古老的格言，“垃圾进，垃圾出”。只要数据正确，管道就能正常工作，一旦数据有所变动，管道可能就会出问题。
 - en: Data passed into pipelines are generated mostly through automated systems, thereby
     lowering control in the type of data being generated.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 输入到管道中的数据大多数是通过自动化系统生成的，因此在生成数据的类型上控制较少。
 - en: So, what do we do?
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，我们该怎么做呢？
 - en: Data Validation is the answer.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据验证是解决方案。
 - en: Data Validation is the guardian system that would verify if the data is in appropriate
     format for the pipeline to consume.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据验证是一个监护系统，能够验证数据是否以合适的格式供管道使用。
 - en: Read this article to understand why validation is crucial in an ML pipeline
     and the 5 stages of machine learning validations.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 阅读本文，了解为什么在机器学习管道中验证至关重要，以及机器学习验证的5个阶段。
 - en: '[](/the-5-stages-of-machine-learning-validation-162193f8e5db?source=post_page-----9770311eb7ce--------------------------------)
     [## The 5 Stages of Machine Learning Validation'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](/the-5-stages-of-machine-learning-validation-162193f8e5db?source=post_page-----9770311eb7ce--------------------------------)
+    [## 机器学习验证的5个阶段'
 - en: Ensure high-quality machine learning across the ML lifecycle
+  id: totrans-17
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 确保在整个机器学习生命周期中都能提供高质量的机器学习
 - en: towardsdatascience.com](/the-5-stages-of-machine-learning-validation-162193f8e5db?source=post_page-----9770311eb7ce--------------------------------)
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/the-5-stages-of-machine-learning-validation-162193f8e5db?source=post_page-----9770311eb7ce--------------------------------)
 - en: TensorFlow Data Validation
+  id: totrans-19
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: TensorFlow 数据验证
 - en: TensorFlow Data Validation (TFDV), is a part of the TFX ecosystem, that can
     be used for validating data in an ML pipeline.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: TensorFlow 数据验证（TFDV）是 TFX 生态系统的一部分，可以用于在机器学习管道中验证数据。
 - en: TFDV computes descriptive statistics, schemas and identifies anomalies by comparing
     the training and serving data. This ensures training and serving data are consistent
     and does not break or create unintended predictions in the pipeline.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: TFDV 通过比较训练数据和服务数据来计算描述性统计、模式并识别异常。这确保了训练数据和服务数据的一致性，避免在管道中出现破坏性问题或产生意外预测。
 - en: People at Google wanted TFDV to be used right from the earliest stage in an
     ML process. Hence they ensured TFDV could be used with notebooks. We are going
     to do the same here.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 谷歌的团队希望 TFDV 从机器学习流程的最早阶段就能被使用。因此，他们确保 TFDV 可以与笔记本一起使用。我们将在这里做同样的事。
 - en: To begin, we need to install tensorflow-data-validation library using pip. Preferably
     create a virtual environment and start with your installations.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们需要使用 pip 安装 tensorflow-data-validation 库。最好创建一个虚拟环境并开始安装。
 - en: '**A note of caution**: Prior to installation, ensure version compatibility
     in TFX libraries'
+  id: totrans-24
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**注意事项**：在安装之前，确保 TFX 库的版本兼容性'
 - en: '[PRE0]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'The following are the steps we will follow for the data validation process:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是我们将在数据验证过程中遵循的步骤：
 - en: Generating Statistics from Training Data
+  id: totrans-27
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从训练数据生成统计信息
 - en: Infering Schema from Training Data
+  id: totrans-28
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从训练数据推断模式
 - en: Generating Statistics for Evaluation Data and Comparing it with Training Data
+  id: totrans-29
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 生成评估数据的统计信息并与训练数据进行比较
 - en: Identifying and Fixing Anomalies
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 识别和修复异常
 - en: Checking for Drifts and Data Skew
+  id: totrans-31
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 检查漂移和数据偏斜
 - en: Save the Schema
+  id: totrans-32
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 保存模式
 - en: We will be using 3 types of datasets here; training data, evaluation data and
     serving data, to mimic real-time usage. The ML model is trained using the training
     data. Evaluation data aka test data is a part of the data that is designated to
     test the model as soon as the training phase is completed. Serving data is presented
     to the model in the production environment for making predictions.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在这里使用 3 种类型的数据集；训练数据、评估数据和服务数据，模拟实时使用。机器学习模型使用训练数据进行训练。评估数据，也就是测试数据，是在训练阶段完成后，用来测试模型的一部分数据。服务数据则在生产环境中提供给模型进行预测。
 - en: The entire code discussed in this article is available in my GitHub repo. You
     can download it from [here](https://github.com/akila29/TF_Transform_Demo).
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文讨论的完整代码可以在我的 GitHub 仓库中找到。你可以通过 [这里](https://github.com/akila29/TF_Transform_Demo)
+    下载。
 - en: 'Step 0: Preparations'
+  id: totrans-35
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 步骤 0：准备工作
 - en: We will be using the spaceship titanic dataset from Kaggle. You can learn more
     and download the dataset using this [link](https://www.kaggle.com/competitions/spaceship-titanic).
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将使用来自 Kaggle 的 spaceship titanic 数据集。你可以通过这个 [link](https://www.kaggle.com/competitions/spaceship-titanic)
+    了解更多并下载数据集。
 - en: '![](../Images/ba359827d9aca475e8ef604afc070ae1.png)'
+  id: totrans-37
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ba359827d9aca475e8ef604afc070ae1.png)'
 - en: Sample view of Spaceship Titanic Dataset
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: Spaceship Titanic 数据集的示例视图
 - en: The data is composed of a mixture of numerical and categorical data. It is a
     classification dataset, and the class label is `Transported`. It holds the value
     True or False.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据由数值数据和类别数据的混合组成。它是一个分类数据集，类别标签是 `Transported`，其值为 True 或 False。
 - en: '![](../Images/9b5b6032c887d15e46860375ccd13c44.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9b5b6032c887d15e46860375ccd13c44.png)'
 - en: Data Description
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据描述
 - en: The necessary imports are done, and paths for the csv file is defined. The actual
     dataset contains the training and the test data. I have manually introduced some
     errors and saved the file as ‘titanic_test_anomalies.csv’ (This file is not available
     in Kaggle. You can download it from my GitHub repository [link](https://github.com/akila29/TF_Transform_Demo)).
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 必要的导入已完成，csv 文件的路径已定义。实际数据集包含训练数据和测试数据。我手动引入了一些错误，并将文件保存为‘titanic_test_anomalies.csv’（此文件在
+    Kaggle 上不可用。你可以从我的 GitHub 仓库 [link](https://github.com/akila29/TF_Transform_Demo)
+    下载）。
 - en: Here, we will be using ANOMALOUS_DATA as the evaluation data and TEST_DATA as
     serving data.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们将使用 ANOMALOUS_DATA 作为评估数据，使用 TEST_DATA 作为服务数据。
 - en: '[PRE1]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Step 1: Generating Statistics from Training Data'
+  id: totrans-45
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 步骤 1：从训练数据生成统计信息
 - en: First step is to analyze the training data and identify its statistical properties.
     TFDV has the `generate_statistics_from_csv` function, which directly reads data
     from a csv file. TFDV also has a `generate_statistics_from_tfrecord` function
     if you have the data as a `TFRecord` .
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一步是分析训练数据并识别其统计属性。TFDV 具有 `generate_statistics_from_csv` 函数，可以直接从 csv 文件读取数据。如果你有
+    `TFRecord` 格式的数据，TFDV 还提供了 `generate_statistics_from_tfrecord` 函数。
 - en: The `visualize_statistics` function presents an 8 point summary, along with
     helpful charts that can help us understand the underlying statistics of the data.
     This is called the Facets view. Some critical details that needs our attention
     are highlighted in red. Loads of other features to analyze the data are available
     here. Play around and get to know it better.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '`visualize_statistics`函数展示了一个8点总结，以及一些有助于我们理解数据底层统计的图表。这被称为“Facets视图”。一些需要我们注意的关键细节以红色标出。这里还提供了许多其他用于分析数据的功能。可以多加尝试，进一步了解它。'
 - en: '[PRE2]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '![](../Images/083119251429614e2406c036aeabbae3.png)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/083119251429614e2406c036aeabbae3.png)'
 - en: Statistics generated for the dataset
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 为数据集生成的统计信息
 - en: Here we see missing values in Age and RoomService features that needs to be
     imputed. We also see that RoomService has 65.52% zeros. It is the way this particular
     data is distributed, so we do not consider it an anomaly, and we move ahead.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们看到**Age**和**RoomService**特征中有缺失值，需要进行填充。我们还看到**RoomService**中有65.52%的值为零。这是该数据的分布方式，因此我们不认为这是异常，我们将继续处理。
 - en: 'Step 2: Infering Schema from Training Data'
+  id: totrans-52
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第2步：从训练数据中推断模式
 - en: Once all the issues have been satisfactorily resolved, we infer the schema using
     the `infer_schema` function.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦所有问题都得到满意解决，我们将使用`infer_schema`函数推断模式。
 - en: '[PRE3]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Schema is usually presented in two sections. The first section presents details
     like the data type, presence, valency and its domain. The second section presents
     values that the domain constitutes.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 模式通常分为两个部分。第一部分呈现数据类型、存在性、有效性及其领域等详细信息。第二部分呈现该领域所包含的值。
 - en: '![](../Images/9ab5c3d72692c0ed60ed099f0200770e.png)'
+  id: totrans-56
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9ab5c3d72692c0ed60ed099f0200770e.png)'
 - en: 'Section 1: Details about Features'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一部分：特征的详细信息
 - en: '![](../Images/efd9ef3bd5d36330c2bf8bb9b17010ea.png)'
+  id: totrans-58
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/efd9ef3bd5d36330c2bf8bb9b17010ea.png)'
 - en: 'Section 2: Domain Values'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二部分：领域值
 - en: This is the initial raw schema, we will be refining this in the later steps.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是初始的原始模式，我们将在后续步骤中对其进行完善。
 - en: 'Step 3: Generating Statistics for Evaluation Data and Comparing it with Training
     Data'
+  id: totrans-61
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第3步：生成评估数据的统计信息并与训练数据进行比较
 - en: Now we pick up the evaluation data and generate the statistics. We need to understand
     how anomalies need to be handled, so we are going to use ANOMALOUS_DATA as our
     evaluation data. We have manually introduced anomalies into this data.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们选择评估数据并生成统计信息。我们需要了解如何处理异常，因此我们将使用**ANOMALOUS_DATA**作为我们的评估数据。我们已经手动将异常引入到此数据中。
 - en: After generating the statistics, we visualize the data. Visualization can be
     applied for the evaluation data alone (like we did for the training data), however
     it makes more sense to compare the statistics of evaluation data with the training
     statistics. This way we can understand how different the evaluation data is from
     the training data.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成统计信息后，我们对数据进行可视化。可视化可以仅应用于评估数据（就像我们对训练数据做的那样），但将评估数据的统计信息与训练数据的统计信息进行比较更有意义。这样我们可以了解评估数据与训练数据之间的差异。
 - en: '[PRE4]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '![](../Images/6ac2d32e901e679439959c38c0ca4dbf.png)'
+  id: totrans-65
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6ac2d32e901e679439959c38c0ca4dbf.png)'
 - en: Comparison of Statistics of the Training data and the Evaluation data
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 训练数据和评估数据统计信息的比较
 - en: Here we can see that RoomService feature is absent in the evaluation data (Big
     Red Flag). The other features seem fairly ok, as they exhibit distributions similar
     to the training data.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们可以看到评估数据中缺少**RoomService**特征（大红旗）。其他特征看起来相当正常，因为它们展示的分布与训练数据相似。
 - en: However, eyeballing is not sufficient in a production environment, so we are
     going to ask TFDV to actually analyze and report if everything is OK.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，单靠人工观察在生产环境中是不够的，所以我们将要求TFDV实际分析并报告是否一切正常。
 - en: 'Step 4: Identifying and Fixing Anomalies'
+  id: totrans-69
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第4步：识别并修复异常
 - en: Our next step is to validate the statistics obtained from the evaluation data.
     We are going to compare it with the schema that we had generated with the training
     data. The `display_anomalies` function will give us a tabulated view of the anomalies
     TFDV has identified and a description as well.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的下一步是验证从评估数据中获得的统计信息。我们将其与我们用训练数据生成的模式进行比较。`display_anomalies`函数将为我们提供TFDV已识别的异常的表格视图，并附有说明。
 - en: '[PRE5]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '![](../Images/b76570fc516d2e98687a33433a4ab109.png)'
+  id: totrans-72
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b76570fc516d2e98687a33433a4ab109.png)'
 - en: Anomaly List provided by TFDV
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: TFDV提供的异常列表
 - en: From the table, we see that our evaluation data is missing 2 columns (Transported
     and RoomService), Destination feature has an additional value called ‘Anomaly’
     in its domain (which was not present in the training data), CryoSleep and VIP
     features have values ‘TRUE’ and ‘FALSE’ which is not present in the training data,
     finally, 5 features contain integer values, while the schema expects floating
     point values.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 从表格中，我们可以看到评估数据缺少2列（Transported和RoomService），Destination特征的领域中有一个额外的值“Anomaly”（在训练数据中没有出现），CryoSleep和VIP特征有“TRUE”和“FALSE”值，这些值在训练数据中没有，最后，5个特征包含整数值，而模式期望的是浮动点值。
 - en: That’s a handful. So let’s get to work.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可真是个挑战。让我们开始工作吧。
 - en: There are two ways to fix anomalies; either process the evaluation data (manually)
     to ensure it fits the schema or modify schema to ensure these anomalies are accepted.
     Again a domain expert has to decide on which anomalies are acceptable and which
     mandates data processing.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 修复异常有两种方法；要么手动处理评估数据，以确保它符合模式，要么修改模式以确保这些异常被接受。再次，领域专家必须决定哪些异常是可以接受的，哪些异常需要数据处理。
 - en: Let us start with the ‘Destination’ feature. We found a new value ‘Anomaly’,
     that was missing in the domain list from the training data. Let us add it to the
     domain and say that it is also an acceptable value for the feature.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从“Destination”特征开始。我们发现了一个新值“Anomaly”，它在训练数据的领域列表中缺失。让我们将其添加到领域中，并声明它也是该特征的一个可接受值。
 - en: '[PRE6]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: We have removed this anomaly, and the anomaly list does not show it anymore.
     Let us move to the next one.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经解决了这个异常，异常列表中不再显示它。让我们进入下一个。
 - en: '![](../Images/5af7cb267e286bd12f213f7627219f4d.png)'
+  id: totrans-80
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5af7cb267e286bd12f213f7627219f4d.png)'
 - en: Destination Anomaly has been resolved
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: Destination异常已解决
 - en: Looking at the VIP and CryoSleep domains, we see that the training data has
     lowercase values while the evaluation data has the same values in uppercase. One
     option is to pre-process the data and ensure that all the data is converted to
     lower or uppercase. However, we are going to add these values in the domain. Since,
     VIP and CryoSleep use the same set of values(true and false), we set the domain
     of CryoSleep to use VIP’s domain.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看VIP和CryoSleep领域，我们发现训练数据使用的是小写值，而评估数据则使用相同的值但为大写。一个解决方案是预处理数据，并确保所有数据都转换为小写或大写。然而，我们决定将这些值添加到领域中。由于VIP和CryoSleep使用相同的值集（true和false），我们将CryoSleep的领域设置为使用VIP的领域。
 - en: '[PRE7]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '![](../Images/dd243f90d74ec3b97e25f251f7709010.png)'
+  id: totrans-84
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/dd243f90d74ec3b97e25f251f7709010.png)'
 - en: Resolved anomalies from CryoSleep and VIP
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 已解决来自CryoSleep和VIP的异常
 - en: It is fairly safe to convert integer features to float. So, we ask the evaluation
     data to infer data types from the schema of the training data. This solves the
     issue related to data types.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 将整数特征转换为浮动点特征是相当安全的。因此，我们要求评估数据根据训练数据的模式推断数据类型。这解决了与数据类型相关的问题。
 - en: '[PRE8]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '![](../Images/92c72092ec74cac90fd4ad70c57f5ec0.png)'
+  id: totrans-88
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/92c72092ec74cac90fd4ad70c57f5ec0.png)'
 - en: Resolved datatype issue
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 已解决数据类型问题
 - en: Finally, we end up with the last set of anomalies; 2 columns that are present
     in the Training data are missing in the Evaluation data.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们遇到了最后一组异常：训练数据中存在的2列在评估数据中缺失。
 - en: ‘Transported’ is the class label and it will obviously not be available in the
     Evalutation data. To solve cases where we know that training and evaluation features
     might differ from each other, we can create multiple environments. Here we create
     a Training and a Serving environment. We specify that the ‘Transported’ feature
     will be available in the Training environment but will not be available in the
     Serving environment.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: “Transported”是类别标签，显然在评估数据中无法使用。为了处理训练数据和评估数据特征可能不同的情况，我们可以创建多个环境。在这里，我们创建了一个训练环境和一个服务环境。我们指定“Transported”特征将在训练环境中可用，但在服务环境中不可用。
 - en: '[PRE9]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: ‘RoomService’ is a required feature that is not available in the Serving environment.
     Such cases call for manual interventions by domain experts.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: “RoomService”是一个必需的特征，但在服务环境中不可用。此类情况需要领域专家的手动干预。
 - en: Keep resolving issues until you get this output.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 继续解决问题，直到你得到这个输出。
 - en: '![](../Images/6d1f86bc09f29744bb1e7e7ab96d015c.png)'
+  id: totrans-95
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6d1f86bc09f29744bb1e7e7ab96d015c.png)'
 - en: All Anomalies Resolved
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有异常已解决
 - en: All the anomalies have been resolved
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有异常已经解决
 - en: 'Step 5: Training-Serving Drift and Skew Detection'
+  id: totrans-98
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第5步：训练-服务漂移和偏差检测
 - en: The next step is to check for drifts and skews. Skew occurs due to irregularity
     in the distribution of data. Initially when a model is trained, its predictions
     are usually perfect. However, as time goes by, the data distribution changes and
     misclassification errors start to increase, this is called drift. These issues
     require model retraining.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步是检查漂移和偏差。偏差是由于数据分布的不规则性而发生的。最初，当模型训练完成时，它的预测通常是完美的。然而，随着时间的推移，数据分布发生变化，误分类错误开始增加，这就是漂移。这些问题需要重新训练模型。
 - en: L-infinity distance is used to measure skew and drift. A threshold value is
     set based on the L-infinity distance. If the difference between the analyzed features
     in training and serving environment exceeds the given threshold, the feature is
     considered to have experienced drift. A similar threshold based approach is followed
     for skew. For our example, we have set the threshold level to be 0.01 for both
     drift and skew.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: L-infinity距离用于衡量偏差和漂移。基于L-infinity距离设置一个阈值。如果在训练和服务环境中分析的特征之间的差异超过给定的阈值，则认为该特征经历了漂移。偏差的判断也遵循类似的阈值方法。对于我们的示例，我们已将漂移和偏差的阈值都设置为0.01。
 - en: '[PRE10]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: We can see that the skew level exhibited by ‘Spa’ is acceptable (as it is not
     listed in the anomaly list), however, ‘CryoSleep’ exhibits high drift levels.
     When creating automated pipelines, these anomalies could be used as triggers for
     automated model retraining.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到‘Spa’的偏差水平是可以接受的（因为它没有列在异常列表中），然而，‘CryoSleep’表现出较高的漂移水平。在创建自动化管道时，这些异常可以用作触发自动模型重新训练的条件。
 - en: '![](../Images/74229d1ba539bc27649b3fd74c0a075d.png)'
+  id: totrans-103
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/74229d1ba539bc27649b3fd74c0a075d.png)'
 - en: High Skew in CryoSleep
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: CryoSleep中的高偏差
 - en: 'Step 6: Save the Schema'
+  id: totrans-105
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 步骤6：保存架构
 - en: After resolving all the anomalies, the schema could be saved as an artifact,
     or could be saved in the metadata repository and could be used in the ML pipeline.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 在解决所有异常后，架构可以作为工件保存，或者可以保存在元数据存储库中，并在机器学习管道中使用。
 - en: '[PRE11]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: You can download the notebook and the data files from my GitHub repository using
     this [link](https://github.com/akila29/TF_Transform_Demo)
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过以下[链接](https://github.com/akila29/TF_Transform_Demo)从我的GitHub仓库下载笔记本和数据文件。
 - en: Other options to look into
+  id: totrans-110
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 其他值得关注的选项
 - en: You can read the following articles to know what your choices are and how to
     select the right framework for your ML pipeline project
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以阅读以下文章，了解你的选择，并学习如何为你的机器学习管道项目选择合适的框架。
 - en: '[](https://eitca.org/artificial-intelligence/eitc-ai-gcml-google-cloud-machine-learning/google-cloud-ai-platform/setting-up-ai-platform-pipelines/examination-review-setting-up-ai-platform-pipelines/what-are-the-advantages-and-differences-between-tfx-sdk-and-kubeflow-pipelines-sdk-and-how-should-you-choose-between-them-when-creating-your-own-pipeline/?source=post_page-----9770311eb7ce--------------------------------)
     [## What are the advantages and differences between TFX SDK and Kubeflow Pipelines
     SDK, and how should…'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://eitca.org/artificial-intelligence/eitc-ai-gcml-google-cloud-machine-learning/google-cloud-ai-platform/setting-up-ai-platform-pipelines/examination-review-setting-up-ai-platform-pipelines/what-are-the-advantages-and-differences-between-tfx-sdk-and-kubeflow-pipelines-sdk-and-how-should-you-choose-between-them-when-creating-your-own-pipeline/?source=post_page-----9770311eb7ce--------------------------------)
+    [## TFX SDK和Kubeflow Pipelines SDK之间的优势和差异是什么？在创建自己的管道时，应该如何选择它们？'
 - en: The TFX SDK (TensorFlow Extended Software Development Kit) and Kubeflow Pipelines
     SDK are two powerful tools that can…
+  id: totrans-113
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: TFX SDK（TensorFlow Extended软件开发工具包）和Kubeflow Pipelines SDK是两个强大的工具，可以...
 - en: eitca.org](https://eitca.org/artificial-intelligence/eitc-ai-gcml-google-cloud-machine-learning/google-cloud-ai-platform/setting-up-ai-platform-pipelines/examination-review-setting-up-ai-platform-pipelines/what-are-the-advantages-and-differences-between-tfx-sdk-and-kubeflow-pipelines-sdk-and-how-should-you-choose-between-them-when-creating-your-own-pipeline/?source=post_page-----9770311eb7ce--------------------------------)
     [](https://www.restack.io/docs/mlflow-knowledge-mlflow-vs-tensorflow-extended?source=post_page-----9770311eb7ce--------------------------------)
     [## MLflow vs TensorFlow Extended Comparison
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: eitca.org](https://eitca.org/artificial-intelligence/eitc-ai-gcml-google-cloud-machine-learning/google-cloud-ai-platform/setting-up-ai-platform-pipelines/examination-review-setting-up-ai-platform-pipelines/what-are-the-advantages-and-differences-between-tfx-sdk-and-kubeflow-pipelines-sdk-and-how-should-you-choose-between-them-when-creating-your-own-pipeline/?source=post_page-----9770311eb7ce--------------------------------)
+    [](https://www.restack.io/docs/mlflow-knowledge-mlflow-vs-tensorflow-extended?source=post_page-----9770311eb7ce--------------------------------)
+    [## MLflow与TensorFlow Extended的对比
 - en: Explore the differences between MLflow and TensorFlow Extended for managing
     machine learning workflows.
+  id: totrans-115
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 探索MLflow与TensorFlow Extended在管理机器学习工作流方面的差异。
 - en: www.restack.io](https://www.restack.io/docs/mlflow-knowledge-mlflow-vs-tensorflow-extended?source=post_page-----9770311eb7ce--------------------------------)
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: '[www.restack.io](https://www.restack.io/docs/mlflow-knowledge-mlflow-vs-tensorflow-extended?source=post_page-----9770311eb7ce--------------------------------)'
 - en: Thanks for reading my article. If you like it, please encourage by giving me
     a few claps, and if you are in the other end of the spectrum, let me know what
     can be improved in the comments. Ciao.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢阅读我的文章。如果你喜欢它，请给我一点掌声作为鼓励；如果你有不同的意见，请在评论中告诉我有哪些可以改进的地方。再见。
 - en: Unless otherwise noted, all images are by the author.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 除非另有说明，所有图片均由作者提供。

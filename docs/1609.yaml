@@ -1,55 +1,85 @@
 - en: How to Efficiently Approximate a Function of One or More Variables
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何高效逼近一个或多个变量的函数
 - en: 原文：[https://towardsdatascience.com/how-to-efficiently-approximate-a-function-of-one-or-more-variables-fc702c9c9431?source=collection_archive---------12-----------------------#2024-06-28](https://towardsdatascience.com/how-to-efficiently-approximate-a-function-of-one-or-more-variables-fc702c9c9431?source=collection_archive---------12-----------------------#2024-06-28)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-to-efficiently-approximate-a-function-of-one-or-more-variables-fc702c9c9431?source=collection_archive---------12-----------------------#2024-06-28](https://towardsdatascience.com/how-to-efficiently-approximate-a-function-of-one-or-more-variables-fc702c9c9431?source=collection_archive---------12-----------------------#2024-06-28)
 - en: Use sparse grids and Chebyshev interpolants to build accurate approximations
     to multivariable functions.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用稀疏网格和切比雪夫插值法来构建多变量函数的精确近似。
 - en: '[](https://medium.com/@ryan.burn?source=post_page---byline--fc702c9c9431--------------------------------)[![Ryan
     Burn](../Images/5d45aa3c86bbcd5f30e92f2cb6a484f6.png)](https://medium.com/@ryan.burn?source=post_page---byline--fc702c9c9431--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc702c9c9431--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fc702c9c9431--------------------------------)
     [Ryan Burn](https://medium.com/@ryan.burn?source=post_page---byline--fc702c9c9431--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@ryan.burn?source=post_page---byline--fc702c9c9431--------------------------------)[![Ryan
+    Burn](../Images/5d45aa3c86bbcd5f30e92f2cb6a484f6.png)](https://medium.com/@ryan.burn?source=post_page---byline--fc702c9c9431--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc702c9c9431--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fc702c9c9431--------------------------------)
+    [Ryan Burn](https://medium.com/@ryan.burn?source=post_page---byline--fc702c9c9431--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc702c9c9431--------------------------------)
     ·13 min read·Jun 28, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc702c9c9431--------------------------------)
+    ·阅读时长13分钟·2024年6月28日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/0e3468c2328badb693022bf54ebd9c3e.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0e3468c2328badb693022bf54ebd9c3e.png)'
 - en: An adaptive sparse grid at Chebyshev-Gauss-Lobatto nodes. Figure by author.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 在切比雪夫-高斯-洛巴托节点上的自适应稀疏网格。图由作者提供。
 - en: 'Consider this approximation problem: Suppose you have a function *f(***x***),*
     **x** ∈ [-1, 1]^p, that is expensive to evaluate; and hence, you’d like to build
     a new function *f’* that is cheaper to evaluate but accurate approximates *f*
     on [-1, 1]^p using as few evaluations of *f* as possible.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑这个近似问题：假设你有一个函数 *f(***x***),* **x** ∈ [-1, 1]^p，该函数计算代价昂贵；因此，你希望构建一个新的函数 *f’*，它计算便宜，但能准确地在
+    [-1, 1]^p 上逼近 *f*，并且使用尽可能少的 *f* 评估。
 - en: Approximation like this has many applications across statistics and other fields.
     *f* might, for example, represent a probability density function where evaluation
     requires an expensive integration and efficient approximation gives you a mechanism
     to compute credible sets.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种近似方法在统计学及其他领域有着广泛的应用。例如，*f* 可能表示一个概率密度函数，其中评估需要昂贵的积分运算，而高效的近似方法可以为你提供一种计算可信集的机制。
 - en: 'In this blog post, I’m going to cover two powerful techniques for building
     function approximations: Chebyshev interpolants and adaptive sparse grids.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇博客中，我将介绍两种构建函数近似的强大技术：切比雪夫插值法和自适应稀疏网格。
 - en: Chebyshev interpolants are the basic building block for approximation. If *f*
     is a little bit smooth (e.g. Lipschitz continuous), then the Chebyshev interpolants
     will converge; if *f* is differentiable to a high order or analytic, Chebyshev
     interpolants will converge extremely rapidly (much better than other techniques
     such as cubic splines) [1, 2].
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 切比雪夫插值法是近似的基本构建块。如果 *f* 稍微光滑一点（例如，满足利普希茨连续性），那么切比雪夫插值法将会收敛；如果 *f* 是可高阶微分的或者是解析的，切比雪夫插值法将极其迅速地收敛（比其他技术如三次样条插值要好得多）[1,
+    2]。

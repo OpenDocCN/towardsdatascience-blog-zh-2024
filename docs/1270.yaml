@@ -1,35 +1,55 @@
 - en: PyTorch Native FP8 Data Types
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: PyTorch原生FP8数据类型
 - en: 原文：[https://towardsdatascience.com/pytorch-native-fp8-fedc06f1c9f7?source=collection_archive---------2-----------------------#2024-05-21](https://towardsdatascience.com/pytorch-native-fp8-fedc06f1c9f7?source=collection_archive---------2-----------------------#2024-05-21)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/pytorch-native-fp8-fedc06f1c9f7?source=collection_archive---------2-----------------------#2024-05-21](https://towardsdatascience.com/pytorch-native-fp8-fedc06f1c9f7?source=collection_archive---------2-----------------------#2024-05-21)
 - en: Accelerating PyTorch Training Workloads with FP8 — Part 2
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 加速PyTorch训练工作负载与FP8 — 第二部分
 - en: '[](https://chaimrand.medium.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)[![Chaim
     Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)
     [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://chaimrand.medium.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)
     ·8 min read·May 21, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)
+    ·8分钟阅读·2024年5月21日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/0ae1023a0975006e7a589c7b4963d87b.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0ae1023a0975006e7a589c7b4963d87b.png)'
 - en: Photo by [Alex Lion](https://unsplash.com/@alexandrelion?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 照片由[Alex Lion](https://unsplash.com/@alexandrelion?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: As the presence of AI-based applications becomes more and more ubiquitous in
     our daily lives, the challenge of optimizing their runtime performance increases.
     Reducing the number of bits that are used to represent floating-point types is
@@ -46,56 +66,82 @@
     specifically, we will run our experiments on a Google Cloud [g2-standard-16](https://cloud.google.com/compute/docs/gpus#l4-gpus)
     VM (with a single L4 GPU), a dedicated [deep learning VM image](https://cloud.google.com/deep-learning-vm/docs/release-notes),
     and PyTorch 2.3.0.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着基于AI的应用在我们日常生活中越来越普及，优化这些应用程序的运行时性能的挑战也在增加。减少表示浮点类型所使用的位数是加速AI应用并减少其内存占用的常见技术。事实上，许多现代AI硬件加速器都包括对8位浮点表示的专门支持。在[上一篇文章](/accelerating-pytorch-training-workloads-with-fp8-5a5123aec7d7)中，我们讨论了使用FP8训练的潜力（及其风险），并在基于H100的训练实例上通过PyTorch和[Transformer
+    Engine](https://github.com/NVIDIA/TransformerEngine)（一个专门用于加速NVIDIA GPU上Transformer模型的库）进行了实际演示。自然，PyTorch原生支持FP8数据类型只是时间问题。在这篇文章中，我们将回顾当前的功能，并展示它们在另一款支持FP8的AI芯片——[NVIDIA
+    L4 GPU](https://www.nvidia.com/en-us/data-center/l4/)上的应用。更具体地说，我们将在Google Cloud的[g2-standard-16](https://cloud.google.com/compute/docs/gpus#l4-gpus)虚拟机（配备单个L4
+    GPU）、专用[深度学习虚拟机镜像](https://cloud.google.com/deep-learning-vm/docs/release-notes)和PyTorch
+    2.3.0上运行实验。
 - en: Importantly, as of the time of this writing the PyTorch-native FP8 support is
     *highly* experimental. Its use is *not* recommended for the faint-of-heart or
     *fault-intolerant*. This post is intended primarily for early adopters — anybody
     who (like us) is obsessed with AI model performance optimization and the potential
     goodness of this new technology. Keep in mind that the APIs we refer may undergo
     revision by the time you read this post.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要的是，截止本文撰写时，PyTorch原生FP8支持仍是*高度*实验性的。对于心脏不够强大的用户，或者*容错性差*的用户，强烈不推荐使用。本文主要面向早期采纳者——那些像我们一样，热衷于AI模型性能优化，并对这一新技术的潜在好处充满兴趣的人。请记住，我们提到的API在您阅读本文时可能已经经过修订。
 - en: Our focus will be on the potential impact that using FP8 can have on the runtime
     performance of AI applications. To learn about the algorithmic implications, we
     refer the reader to dedicated tutorials on the topic (such as [here](https://arxiv.org/pdf/2209.05433)
     and [here](https://www.nvidia.com/en-us/on-demand/session/gtcspring23-s52166/)).
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的重点将放在使用FP8对AI应用程序运行时性能可能产生的影响上。关于算法方面的影响，我们推荐读者参考专门的教程（例如，[此处](https://arxiv.org/pdf/2209.05433)和[此处](https://www.nvidia.com/en-us/on-demand/session/gtcspring23-s52166/)）。
 - en: Many thanks to [Yitzhak Levi](https://www.linkedin.com/in/yitzhak-levi-49a217201/)
     for his contributions to this post.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 非常感谢[Yitzhak Levi](https://www.linkedin.com/in/yitzhak-levi-49a217201/)为本文所做的贡献。
 - en: PyTorch Native Float8 Types
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: PyTorch原生Float8类型
 - en: 'As of version 2.2, PyTorch includes “[limited support](https://pytorch.org/docs/stable/tensors.html#id13)”
     for the `torch.float8_e4m3fn` and `torch.float8_e5m2` data types (with 3 and 2
     mantissa bits, respectively) both of which are implementations of types specified
     in the [FP8 Formats for Deep Learning](https://arxiv.org/pdf/2209.05433) paper.
     In the snippet of code below we display the properties and dynamic range of the
     new types compared to the legacy floating bit types:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 从版本2.2开始，PyTorch包括对`torch.float8_e4m3fn`和`torch.float8_e5m2`数据类型的“[有限支持](https://pytorch.org/docs/stable/tensors.html#id13)”（分别具有3个和2个尾数位），这两者都是[FP8格式在深度学习中的应用](https://arxiv.org/pdf/2209.05433)论文中指定的类型。在下面的代码片段中，我们展示了新类型与传统浮点类型相比的属性和动态范围：
 - en: '[PRE0]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'We can create FP8 tensors by specifying the *dtype* in the tensor initialization
     function as demonstrated below:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过在张量初始化函数中指定*dtype*来创建FP8张量，如下所示：
 - en: '[PRE1]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'We can also cast legacy types to FP8\. In the code block below we generate
     a random tensor of floats and compare the results of casting them into four different
     floating-point types:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以将传统类型转换为FP8。以下代码块展示了我们生成一个浮点数的随机张量，并将其转换为四种不同浮点类型的结果：
 - en: '[PRE2]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Although creating FP8 tensors is easy enough, you may quickly find that performing
     some basic arithmetic operations on FP8 tensors is not supported (in PyTorch 2.3.0,
     as of the time of this writing). The one (arguably most important) exception is
@@ -103,16 +149,22 @@
     function. Demonstrated in the code block below, this function receives two FP8
     tensors (of identical type) and their associated scaling factors, as well as an
     optional bias tensor:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管创建FP8张量足够简单，但您可能很快发现，对FP8张量执行一些基本的算术运算在PyTorch 2.3.0（截止本文撰写时）中并不支持。唯一的（可以说是最重要的）例外是FP8矩阵乘法，它通过专用的`torch._scaled_mm`函数得到支持。如下所示的代码块演示了该函数，它接受两个FP8张量（相同类型）及其相关的缩放因子，以及一个可选的偏置张量：
 - en: '[PRE3]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: To get a better feel for the current API capabilities and usage modes, you can
     take a look at the [API test script](https://github.com/pytorch/pytorch/blob/v2.3.0/test/test_matmul_cuda.py)
     in the PyTorch repository.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了更好地了解当前API的能力和使用模式，您可以查看PyTorch仓库中的[API测试脚本](https://github.com/pytorch/pytorch/blob/v2.3.0/test/test_matmul_cuda.py)。
 - en: Contrary to the FP8 support in the [Transformer Engine](https://github.com/NVIDIA/TransformerEngine)
     library that we demonstrated in our [previous post](/accelerating-pytorch-training-workloads-with-fp8-5a5123aec7d7),
     the PyTorch natives enable the explicit definition and use of FP8 data types.
@@ -123,12 +175,20 @@
     and type conversion schemes to their existing AI model training algorithms. While
     not (as of the time of this writing) part of the official PyTorch library, such
     functionality is offered via the [float8_experimental library](https://github.com/pytorch-labs/float8_experimental/tree/cb55df259cfb22a856ca92107a778343edea5fc7).
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 与我们在[上一篇文章](/accelerating-pytorch-training-workloads-with-fp8-5a5123aec7d7)中演示的[Transformer
+    Engine](https://github.com/NVIDIA/TransformerEngine) 库中的 FP8 支持不同，PyTorch 本身支持显式定义和使用
+    FP8 数据类型。这为高级开发者提供了更大的灵活性，以设计和实现自定义的 FP8 算法。然而，正如我们在上一篇文章中讨论的，成功的 FP8 ML 模型训练通常需要一些创造性的技巧；许多用户希望有一个高级
+    API，能够自动应用经过实战验证的缩放和类型转换方案到他们现有的 AI 模型训练算法中。虽然在本文撰写时（截至目前）尚未成为官方 PyTorch 库的一部分，但此类功能通过[float8_experimental
+    库](https://github.com/pytorch-labs/float8_experimental/tree/cb55df259cfb22a856ca92107a778343edea5fc7)提供。
 - en: Training with in Native PyTorch with FP8
+  id: totrans-23
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用原生 PyTorch 进行 FP8 训练
 - en: In this section, we will demonstrate the use of the [float8_experimental library](https://github.com/pytorch-labs/float8_experimental/tree/cb55df259cfb22a856ca92107a778343edea5fc7)
     on a simple [Vision Transformer](https://en.wikipedia.org/wiki/Vision_transformer)
     (ViT-Huge) backed classification model with 632 million parameters (using version
@@ -142,35 +202,55 @@
     on a randomly generated dataset. We include controls for toggling the floating
     point type, using [torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html)
     mode, and setting the batch size.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将演示如何使用[float8_experimental 库](https://github.com/pytorch-labs/float8_experimental/tree/cb55df259cfb22a856ca92107a778343edea5fc7)在一个简单的[视觉
+    Transformer](https://en.wikipedia.org/wiki/Vision_transformer)（ViT-Huge）分类模型上进行训练，该模型具有
+    6.32 亿个参数（使用流行的[timm](https://pypi.org/project/timm/) Python 包的版本 1.0.3）。请参见文档中的[安装说明](https://github.com/pytorch-labs/float8_experimental/tree/cb55df259cfb22a856ca92107a778343edea5fc7?tab=readme-ov-file#installation)以获取有关安装[float8_experimental
+    库](https://github.com/pytorch-labs/float8_experimental/tree/cb55df259cfb22a856ca92107a778343edea5fc7)的详细信息。我们将
+    ViT 骨干网络设置为使用*平均全局池化*，以避免当前实现中的一些问题（例如，参见[这里](https://github.com/pytorch/pytorch/issues/123761)）。在下面的代码块中，我们演示了使用[延迟缩放策略](https://github.com/pytorch-labs/float8_experimental/tree/cb55df259cfb22a856ca92107a778343edea5fc7?tab=readme-ov-file#float8-linear-with-delayed-scaling)在随机生成的数据集上进行
+    FP8 训练。我们包括了控制选项，用于切换浮点类型、使用[torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html)模式，并设置批量大小。
 - en: '[PRE4]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The first thing we note is that the use of the lower precision data type frees
     up GPU memory which enables us to double the batch size. The table below summarizes
     the performance results (as measured by the average step time) when training with
     a variety of configuration settings. As suggested in the documentation, the [torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html)
     FP8 experiment was run using a nightly version of PyTorch (specifically version
     torch-2.4.0.dev20240520+cu121).
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先注意到，使用较低精度的数据类型可以释放 GPU 内存，这使得我们能够将批量大小翻倍。下面的表格总结了在使用不同配置设置进行训练时的性能结果（通过平均步骤时间测量）。如文档中所建议，使用[torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html)的
+    FP8 实验是在 PyTorch 的一个夜间版本上运行的（具体是版本 torch-2.4.0.dev20240520+cu121）。
 - en: '![](../Images/6914ffc764ae0e4cf074631ed38b15d0.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6914ffc764ae0e4cf074631ed38b15d0.png)'
 - en: Experiment Results (By Author)
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 实验结果（作者）
 - en: As the results demonstrate, the use of FP8 linear layers increases the performance
     of our toy model by 47%(!!) over our baseline experiment, but *only* when it is
     combined with the use of [torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html).
     Naturally, the results will vary based on the definition and size of the model.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如结果所示，使用FP8线性层使我们的玩具模型比基准实验提高了47%(!!)的性能，但*仅仅*在与[torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html)结合使用时才有效。当然，结果将根据模型的定义和大小有所不同。
 - en: Comparison to Transformer Engine
+  id: totrans-30
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 与Transformer Engine的比较
 - en: 'For the sake of comparison, we implement the same training sequence using the
     [Transformer Engine (TE)](https://github.com/NVIDIA/TransformerEngine) library
     (version 1.6). Although TE includes its own optimized [TransformerLayer](https://github.com/NVIDIA/TransformerEngine/blob/67bc399d7ba7e49bf540746c1ef6a7e43eaed8f7/transformer_engine/pytorch/transformer.py#L70)
@@ -181,39 +261,57 @@
     In the code block below, we implement a simple linear layer swapping utility (use
     at your own risk!!) and apply it to our ViT model. We also include the training
     step function required for FP8 training using TE:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了便于比较，我们使用[Transformer Engine (TE)](https://github.com/NVIDIA/TransformerEngine)库（版本1.6）实现了相同的训练序列。尽管TE包含了自己优化的[TransformerLayer](https://github.com/NVIDIA/TransformerEngine/blob/67bc399d7ba7e49bf540746c1ef6a7e43eaed8f7/transformer_engine/pytorch/transformer.py#L70)（正如我们[之前的文章](/accelerating-pytorch-training-workloads-with-fp8-5a5123aec7d7)所展示的那样），我们手动将[torch.nn.Linear](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html#linear)层替换为[TE
+    Linear](https://github.com/NVIDIA/TransformerEngine/blob/release_v0.12/transformer_engine/pytorch/module/linear.py#L442)层，以便将我们的比较评估仅限于FP8线性支持。在下面的代码块中，我们实现了一个简单的线性层交换工具（请自担风险！！）并将其应用于我们的ViT模型。我们还包含了使用TE进行FP8训练所需的训练步骤函数：
 - en: '[PRE5]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'The results of the TE experiments are captured below:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是TE实验的结果：
 - en: '![](../Images/d76a672e9da89ed29140d37f80038e24.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d76a672e9da89ed29140d37f80038e24.png)'
 - en: While the uncompiled TE FP8 model performs significantly better than our previous
     FP8 model, the compiled PyTorch FP8 model still provides the best results. Importantly,
     as of the time of this writing, TE FP8 modules do not support [model compilation](https://pytorch.org/docs/stable/generated/torch.compile.html).
     Thus, applying [torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html)
     will result in “partial compilation”, i.e. it will include multiple graph breaks
     (every time FP8 is used).
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然未编译的TE FP8模型的表现明显优于我们之前的FP8模型，但编译后的PyTorch FP8模型仍然提供最佳结果。值得注意的是，截至本文撰写时，TE
+    FP8模块不支持[模型编译](https://pytorch.org/docs/stable/generated/torch.compile.html)。因此，应用[torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html)将导致“部分编译”，即每次使用FP8时都会发生多个图断裂。
 - en: We intentionally limited our tests to just the linear layers of our toy model.
     Unsurprisingly, applying the full power of TE to our model, as demonstrated in
     our [previous post](/accelerating-pytorch-training-workloads-with-fp8-5a5123aec7d7),
     would have resulted in a 72% boost (compared to our baseline experiment).
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们故意将测试限制在我们玩具模型的线性层。毫不奇怪，将TE的全部功能应用到我们的模型中，正如我们[之前的文章](/accelerating-pytorch-training-workloads-with-fp8-5a5123aec7d7)所展示的那样，将使性能提高72%（与我们的基准实验相比）。
 - en: For a more detailed comparison between the TE and PyTorch-native FP8 operators,
     covering a wide range of matrix sizes, we recommend following [this github issue](https://github.com/pytorch/pytorch/issues/123761).
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果要进行更详细的TE与PyTorch原生FP8操作符的比较，涵盖更广泛的矩阵大小，我们建议关注[这个GitHub问题](https://github.com/pytorch/pytorch/issues/123761)。
 - en: Conclusions
+  id: totrans-38
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Although still in its early days with clear room for improvement both in terms
     of API coverage and performance, we have succeeded in demonstrating some of the
     potential advantages of the PyTorch native FP8 support. First, the ability to
@@ -223,27 +321,39 @@
     advantage (not demonstrated here) is the ability to support a greater range of
     FP8-supporting devices. This is contrary to TE which is developed by NVIDIA and
     heavily tailored to their GPUs.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管目前 PyTorch 原生 FP8 支持还处于初期阶段，在 API 覆盖和性能方面仍有明显改进空间，但我们已经成功展示了 PyTorch 原生 FP8
+    支持的一些潜在优势。首先，能够显式声明并操作 FP8 张量，将使开发者在定制基于 FP8 的算法时具有更大的自由度。其次，内置的 JIT 编译支持为运行时优化提供了更大的潜力。第三个优势（此处未展示）是能够支持更多范围的
+    FP8 支持设备。这与由 NVIDIA 开发的 TE 相反，后者高度针对其 GPU 进行了定制。
 - en: Summary
+  id: totrans-40
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: The ever-increasing size of AI models necessitates advanced techniques and algorithms
     for both reducing memory footprint and boosting runtime performance. Using the
     FP8 data type on dedicated HW accelerators offers the ability to achieve both.
     Although our focus has been on model training, the implications are no less important
     on model inference, where the time that it takes to load a large model into memory
     and run it, can have a decisive impact on a user’s experience.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 人工智能模型的规模不断扩大，这需要先进的技术和算法来减少内存占用并提高运行时性能。在专用硬件加速器上使用 FP8 数据类型，能够实现这两者的平衡。尽管我们主要关注的是模型训练，但其在模型推理中的影响同样重要，因为将大模型加载到内存并运行所需的时间，可能会对用户体验产生决定性影响。
 - en: The newly defined PyTorch-native FP8 data types and operators that we experimented
     with in this post, are certain to facilitate and accelerate the adoption of this
     important technology. We look forward to seeing how this native support evolves
     and matures.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在本文中实验过的 PyTorch 原生 FP8 数据类型和运算符，必将有助于加速这一重要技术的应用与推广。我们期待看到这种原生支持如何发展和成熟。
 - en: For more tools and techniques for AI model optimization, be sure to check out
     some of our [other posts](https://chaimrand.medium.com/).
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 欲了解更多关于 AI 模型优化的工具和技术，务必查看我们的[其他文章](https://chaimrand.medium.com/)。

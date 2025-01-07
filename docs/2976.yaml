@@ -1,63 +1,97 @@
 - en: OpenAI Prompt Cache Monitoring
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: OpenAI 提示缓存监控
 - en: 原文：[https://towardsdatascience.com/openai-prompt-cache-monitoring-7cb8df21d0d0?source=collection_archive---------8-----------------------#2024-12-10](https://towardsdatascience.com/openai-prompt-cache-monitoring-7cb8df21d0d0?source=collection_archive---------8-----------------------#2024-12-10)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/openai-prompt-cache-monitoring-7cb8df21d0d0?source=collection_archive---------8-----------------------#2024-12-10](https://towardsdatascience.com/openai-prompt-cache-monitoring-7cb8df21d0d0?source=collection_archive---------8-----------------------#2024-12-10)
 - en: '![](../Images/4346b5c75c12de574747e6ebd1229e71.png)'
+  id: totrans-2
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4346b5c75c12de574747e6ebd1229e71.png)'
 - en: Image by AI (Dalle-3)
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像由 AI（Dalle-3）生成
 - en: A worked example using Python and the chat completion API
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用 Python 和聊天完成 API 的工作示例
 - en: '[](https://medium.com/@thomas_reid?source=post_page---byline--7cb8df21d0d0--------------------------------)[![Thomas
     Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--7cb8df21d0d0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7cb8df21d0d0--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7cb8df21d0d0--------------------------------)
     [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--7cb8df21d0d0--------------------------------)'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@thomas_reid?source=post_page---byline--7cb8df21d0d0--------------------------------)[![Thomas
+    Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--7cb8df21d0d0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7cb8df21d0d0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7cb8df21d0d0--------------------------------)
+    [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--7cb8df21d0d0--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7cb8df21d0d0--------------------------------)
     ·9 min read·Dec 10, 2024
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7cb8df21d0d0--------------------------------)
+    ·阅读时长9分钟·2024年12月10日
 - en: --
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: As part of their recent DEV Day presentation, OpenAI announced that Prompt Caching
     was now available for various models. At the time of writing, those models were:-
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为他们最近 DEV Day 演示的一部分，OpenAI 宣布提示缓存现在已经适用于各种模型。写这篇文章时，这些模型包括：
 - en: GPT-4o, GPT-4o mini, o1-preview and o1-mini, as well as fine-tuned versions
     of those models.
+  id: totrans-9
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: GPT-4o、GPT-4o mini、o1-preview和o1-mini，以及这些模型的微调版本。
 - en: This news shouldn’t be underestimated, as it will allow developers to save on
     costs and reduce application runtime latency.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一消息不容小觑，因为它将帮助开发者节省成本并减少应用程序运行时延迟。
 - en: API calls to supported models will automatically benefit from Prompt Caching
     on prompts longer than 1,024 tokens. The API caches the longest prefix of a prompt
     that has been previously computed, starting at 1,024 tokens and increasing in
     128-token increments. If you reuse prompts with common prefixes, OpenAI will automatically
     apply the Prompt Caching discount without requiring you to change your API integration.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 对支持的模型的 API 调用将在提示超过1,024个令牌时自动受益于提示缓存。API 会缓存已计算过的提示的最长前缀，从1,024个令牌开始，并按128个令牌的增量递增。如果你重用带有共同前缀的提示，OpenAI会自动应用提示缓存折扣，而无需你更改API集成。
 - en: As an OpenAI API developer, the only thing you may have to worry about is how
     to monitor your Prompt Caching use, i.e. check that it’s being applied.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为 OpenAI API 开发者，你唯一可能需要担心的是如何监控你的提示缓存使用情况，即检查它是否已被应用。
 - en: In this article, I’ll show you how to do that using Python, a Jupyter Notebook
     and a chat completion example.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我将向你展示如何使用 Python、Jupyter Notebook 和一个聊天完成示例来实现这一点。
 - en: Install WSL2 Ubuntu
+  id: totrans-14
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 安装 WSL2 Ubuntu

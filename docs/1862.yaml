@@ -1,66 +1,102 @@
 - en: 'Diffusion Loss: Every Step Explained'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 扩散损失：每一步的解释
 - en: 原文：[https://towardsdatascience.com/diffusion-loss-every-step-explained-8c19c5e1349b?source=collection_archive---------5-----------------------#2024-07-31](https://towardsdatascience.com/diffusion-loss-every-step-explained-8c19c5e1349b?source=collection_archive---------5-----------------------#2024-07-31)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/diffusion-loss-every-step-explained-8c19c5e1349b?source=collection_archive---------5-----------------------#2024-07-31](https://towardsdatascience.com/diffusion-loss-every-step-explained-8c19c5e1349b?source=collection_archive---------5-----------------------#2024-07-31)
 - en: 'Paper Review: Denoising Diffusion Probabilistic Model (DDPM)'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 论文回顾：去噪扩散概率模型（DDPM）
 - en: '[](https://saptashwa.medium.com/?source=post_page---byline--8c19c5e1349b--------------------------------)[![Saptashwa
     Bhattacharyya](../Images/b01238113a1f6b91cb6fb0fbfa50303a.png)](https://saptashwa.medium.com/?source=post_page---byline--8c19c5e1349b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8c19c5e1349b--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8c19c5e1349b--------------------------------)
     [Saptashwa Bhattacharyya](https://saptashwa.medium.com/?source=post_page---byline--8c19c5e1349b--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://saptashwa.medium.com/?source=post_page---byline--8c19c5e1349b--------------------------------)[![Saptashwa
+    Bhattacharyya](../Images/b01238113a1f6b91cb6fb0fbfa50303a.png)](https://saptashwa.medium.com/?source=post_page---byline--8c19c5e1349b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8c19c5e1349b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8c19c5e1349b--------------------------------)
+    [Saptashwa Bhattacharyya](https://saptashwa.medium.com/?source=post_page---byline--8c19c5e1349b--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8c19c5e1349b--------------------------------)
     ·15 min read·Jul 31, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8c19c5e1349b--------------------------------)
+    ·15分钟阅读·2024年7月31日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/d07d4e4d4f3eb0992d5884f44b5501e1.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d07d4e4d4f3eb0992d5884f44b5501e1.png)'
 - en: Generated using DALLE-3 (by Author)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用DALLE-3生成（作者提供）
 - en: As we are in the midst of exciting times of image generation with diffusion
     models, in this post, I will focus on the mathematics and the hidden intuition
     behind the stable diffusion model.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们处于图像生成的激动人心的时代，本文将重点介绍稳定扩散模型背后的数学原理和隐含直觉。
 - en: This post aims to decipher how the loss function boils down to a rather simple
     squared difference term between the true and the predicted noise in an image as
     shown in the Denoising Diffusion Probabilistic Model paper¹.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文旨在解读损失函数如何简化为图像中真实噪声和预测噪声之间的简单平方差项，正如《去噪扩散概率模型》论文¹所示。
 - en: If you want to recollect the concept and steps behind Evidence Lower Bound (ELBO)
     in the context of the variational Bayesian method, please check previous detailed
     posts on [Latent Variable Models](/latent-variables-expectation-maximization-algorithm-fb15c4e0f32c)
     and [Probabilistic PCA](/probabilistic-view-of-principal-component-analysis-9c1bbb3f167).
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想回顾在变分贝叶斯方法中证据下界（ELBO）的概念和步骤，请查看之前关于[潜在变量模型](/latent-variables-expectation-maximization-algorithm-fb15c4e0f32c)和[概率主成分分析](https://towardsdatascience.com/probabilistic-view-of-principal-component-analysis-9c1bbb3f167)的详细文章。
 - en: Without any delay, let’s begin!
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 不再耽搁，让我们开始吧！
 - en: 'Notations & Definitions:'
+  id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 符号与定义：
 - en: Let’s start with a few of the notations we will use several times.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从一些将多次使用的符号开始。
 - en: '*x_0*: This would denote an image at time-step 0, i.e. the original image,
     at the start of the process. Sometimes it also refers to the image recovered in
     the final step of the denoising process.'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '*x_0*：这表示在时间步长0时的图像，即原始图像，处于过程的起始阶段。有时也指在去噪过程的最后一步恢复的图像。'
 - en: '*x_T*: This would be the image at the final time step. At this point, the image
     is simply an isotropic Gaussian noise.'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '*x_T*：这是最终时间步长的图像。此时，图像仅仅是各向同性的高斯噪声。'

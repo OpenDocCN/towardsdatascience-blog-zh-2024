@@ -1,68 +1,105 @@
 - en: 'Training CausalLM Models Part 1: What Actually Is CausalLM?'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 训练 CausalLM 模型 第 1 部分：CausalLM 到底是什么？
 - en: 原文：[https://towardsdatascience.com/training-causallm-models-part-1-what-actually-is-causallm-6c3efb2490ec?source=collection_archive---------4-----------------------#2024-03-04](https://towardsdatascience.com/training-causallm-models-part-1-what-actually-is-causallm-6c3efb2490ec?source=collection_archive---------4-----------------------#2024-03-04)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/training-causallm-models-part-1-what-actually-is-causallm-6c3efb2490ec?source=collection_archive---------4-----------------------#2024-03-04](https://towardsdatascience.com/training-causallm-models-part-1-what-actually-is-causallm-6c3efb2490ec?source=collection_archive---------4-----------------------#2024-03-04)
 - en: The first part of a practical guide to using HuggingFace’s CausalLM class
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用 HuggingFace 的 CausalLM 类的实用指南第一部分
 - en: '[](https://tlebryk.medium.com/?source=post_page---byline--6c3efb2490ec--------------------------------)[![Theo
     Lebryk](../Images/c2e0d606f4a99831fad5575f59848544.png)](https://tlebryk.medium.com/?source=post_page---byline--6c3efb2490ec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6c3efb2490ec--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6c3efb2490ec--------------------------------)
     [Theo Lebryk](https://tlebryk.medium.com/?source=post_page---byline--6c3efb2490ec--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://tlebryk.medium.com/?source=post_page---byline--6c3efb2490ec--------------------------------)[![Theo
+    Lebryk](../Images/c2e0d606f4a99831fad5575f59848544.png)](https://tlebryk.medium.com/?source=post_page---byline--6c3efb2490ec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6c3efb2490ec--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6c3efb2490ec--------------------------------)
+    [Theo Lebryk](https://tlebryk.medium.com/?source=post_page---byline--6c3efb2490ec--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6c3efb2490ec--------------------------------)
     ·6 min read·Mar 4, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6c3efb2490ec--------------------------------)
+    ·6 分钟阅读·2024年3月4日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/2a68f7d550af4571fd5c25099893c910.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2a68f7d550af4571fd5c25099893c910.png)'
 - en: 'Causal langauge models model each new word as a function of all previous words.
     Source: [Pexels](https://www.pexels.com/photo/dog-eating-a-carrot-5255204/)'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 因果语言模型将每个新词建模为所有先前词的函数。来源：[Pexels](https://www.pexels.com/photo/dog-eating-a-carrot-5255204/)
 - en: If you’ve played around with recent models on [HuggingFace](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard),
     chances are you encountered a causal language model. When you pull up the documentation
     for a [model](https://huggingface.co/docs/transformers/main/en/model_doc/llama)
     family, you’ll get a page with “tasks” like LlamaForCausalLM or LlamaForSequenceClassification.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你曾在 [HuggingFace](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard)
+    上玩过最近的模型，那么你很可能遇到了因果语言模型。当你打开一个 [模型](https://huggingface.co/docs/transformers/main/en/model_doc/llama)
+    系列的文档时，你会看到一个页面，其中包含诸如 LlamaForCausalLM 或 LlamaForSequenceClassification 等“任务”。
 - en: If you’re like me, going from that documentation to actually finetuning a model
     can be a bit confusing. We’re going to focus on CausalLM, starting by explaining
     what CausalLM is in this post followed by a practical example of how to finetune
     a CausalLM model in a subsequent post.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你像我一样，从文档阅读到实际微调模型，可能会有些困惑。我们将专注于 CausalLM，从解释 CausalLM 是什么开始，并在接下来的文章中给出如何微调
+    CausalLM 模型的实际示例。
 - en: 'Background: Encoders and Decoders'
+  id: totrans-10
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 背景：编码器与解码器
 - en: 'Many of the best models today such as LLAMA-2, GPT-2, or Falcon are “decoder-only”
     models. A decoder-only model:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前许多最优秀的模型，如 LLAMA-2、GPT-2 或 Falcon，都是“仅解码器”模型。仅解码器模型：
 - en: takes a sequence of *previous* tokens (AKA a prompt)
+  id: totrans-12
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 接受一系列*先前*的标记（即提示）
 - en: runs those tokens through the model (often creating embeddings from tokens and
     running them through transformer blocks)
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将这些标记通过模型（通常是从标记生成嵌入并通过变换器块运行它们）
 - en: outputs a single output (usually the probability of the next token).
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 输出单一结果（通常是下一个标记的概率）。
 - en: This is contrasted with models with “encoder-only” or hybrid “encoder-decoder”
     architectures which will input the *entire* sequence, not just *previous* tokens.
     This difference disposes the two architectures towards different tasks. Decoder
@@ -74,76 +111,112 @@
     if you want to dig more into encoders vs decoders. There’s a also a [medium article](/understanding-masked-language-models-mlm-and-causal-language-models-clm-in-nlp-194c15f56a5)
     which goes more in-depth into the differeneces between masked langauge modeling
     and causal langauge modeling.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 这与“仅编码器”或混合“编码器-解码器”架构的模型形成对比，这些模型将输入*整个*序列，而不仅仅是*前面的*标记。这一差异使得两种架构适用于不同的任务。解码器模型设计用于生成新的文本，而编码器模型设计用于需要查看整个序列的任务，如翻译或序列分类。事情变得复杂，因为你可以将一个仅解码器模型用于翻译，或者使用一个仅编码器模型生成新文本。如果你想深入了解编码器与解码器的区别，Sebastian
+    Raschka 写了一篇很好的 [指南](https://magazine.sebastianraschka.com/p/understanding-encoder-and-decoder)，另外还有一篇
+    [medium 文章](/understanding-masked-language-models-mlm-and-causal-language-models-clm-in-nlp-194c15f56a5)，它更深入地探讨了掩码语言建模和因果语言建模之间的区别。
 - en: 'For our purposes, all you need to know is that:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于我们的目的，你只需要知道的是：
 - en: CausalLM models generally are decoder-only models
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: CausalLM 模型通常是仅解码器模型
 - en: Decoder-only models look at past tokens to predict the next token
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 仅解码器模型查看过去的标记来预测下一个标记
 - en: With decoder-only language models, we can think of the next token prediction
     process as “causal language modeling” because the previous tokens “cause” each
     additional token.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于仅解码器的语言模型，我们可以将下一个标记的预测过程视为“因果语言建模”，因为前面的标记“导致”了每一个额外的标记。
 - en: HuggingFace CausalLM
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: HuggingFace CausalLM
 - en: In HuggingFace world, CausalLM (LM stands for language modeling) is a class
     of models which take a prompt and predict new tokens. In reality, we’re predicting
     one token at a time, but the class abstracts away the tediousness of having to
     loop through sequences one token at a time. During inference, CausalLMs will iteratively
     predict individual tokens until some stopping condition at which point the model
     returns the final concatenated tokens.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 HuggingFace 的世界里，CausalLM（LM 代表语言建模）是一类模型，它接受一个提示并预测新的标记。实际上，我们是一次预测一个标记，但这个类抽象掉了需要一次一个标记遍历序列的繁琐过程。在推理过程中，CausalLM
+    会不断预测单个标记，直到满足某些停止条件，此时模型返回最终连接的标记。
 - en: During training, something similar happens where we give the model a sequence
     of tokens we want to learn. We start by predicting the second token given the
     first one, then the third token given the first two tokens and so on.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 在训练过程中，会发生类似的情况，我们给模型输入一串我们希望学习的标记序列。我们从给定第一个标记预测第二个标记开始，然后给定前两个标记预测第三个标记，依此类推。
 - en: 'Thus, if you want to learn how to predict the sentence “the dog likes food,”
     assuming each word is a token, you’re making 3 predictions:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，如果你想学习如何预测句子“the dog likes food”，假设每个单词是一个标记，你将进行 3 次预测：
 - en: “the” → dog,
+  id: totrans-24
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: “the” → dog,
 - en: “the dog” → likes
+  id: totrans-25
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: “the dog” → likes
 - en: “the dog likes” → food
+  id: totrans-26
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: “the dog likes” → food
 - en: During training, you can think about each of the three snapshots of the sentence
     as three observations in your training dataset. Manually splitting long sequences
     into individual rows for each token in a sequence would be tedious, so HuggingFace
     handles it for you.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在训练过程中，您可以将句子的三个快照视为训练数据集中的三条观察数据。手动将长序列拆分为每个标记的单独行会很繁琐，因此 HuggingFace 会为您处理这件事。
 - en: As long as you give it a sequence of tokens, it will break out that sequence
     into individual single token predictions behind the scenes.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 只要你给它一个标记序列，它会在后台将该序列分解成单个标记的预测。
 - en: You can create this ‘sequence of tokens’ by running a regular string through
     the model’s tokenizer. The tokenizer will output a dictionary-like object with
     *input_ids* and an *attention_mask* as keys, like with any ordinary HuggingFace
     model.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过将一个常规字符串传递给模型的分词器来创建这个“标记序列”。分词器会输出一个类似字典的对象，包含 *input_ids* 和 *attention_mask*
+    作为键，就像任何普通的 HuggingFace 模型一样。
 - en: '[PRE0]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: With CausalLM models, there’s one additional step where the model expects a
     *labels* key. During training, we use the “previous” *input_ids* to predict the
     “current” *labels* token. However, you do **not** want to think about labels like
@@ -152,158 +225,238 @@
     the end of the *input_ids*). Rather, you want *labels* and *input_ids* to mirror
     each other with identical shapes. In algebraic notation, to predict *labels* token
     at index k, we use all the *input_ids* through the k-1 index.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于CausalLM模型，还多了一步，模型会期望有一个*labels*键。在训练过程中，我们使用“前一个”的*input_ids*来预测“当前”的*labels*
+    token。然而，你**不**要把labels当作一个问答模型来看待，其中*labels*的第一个索引对应于*input_ids*的答案（也就是说，*labels*应该连接到*input_ids*的末尾）。相反，你希望*labels*和*input_ids*具有相同的形状，互为镜像。在代数符号中，为了预测索引k的*labels*
+    token，我们会使用所有直到k-1的*input_ids*。
 - en: If this is confusing, practically, you can usually just make *labels* an identical
     copy of *input_ids* and call it a day. If you do want to understand what’s going
     on, we’ll walk through an example.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果这让你感到困惑，实际上，你通常可以将*labels*直接复制为*input_ids*，就这么做即可。如果你想理解发生了什么，我们将通过一个例子来讲解。
 - en: A quick worked example
+  id: totrans-33
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个快速的实例
 - en: Let’s go back to “the dog likes food.” For simplicity, let’s leave the words
     as words rather than assigning them to token numbers, but in practice these would
     be numbers which you can map back to their true string representation using the
     tokenizer.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们回到“the dog likes food”。为了简单起见，我们暂时将单词保留为单词，而不是将它们分配给token编号，但实际上这些应该是数字，你可以使用分词器将它们映射回它们的真实字符串表示。
 - en: 'Our input for a single element batch would look like this:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的单元素批次输入如下所示：
 - en: '[PRE1]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: The double brackets denote that technically the shape for the arrays for each
     key is batch_size x sequence_size. To keep things simple, we can ignore batching
     and just treat them like one dimensional vectors.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 双括号表示每个键的数组的形状技术上是batch_size x sequence_size。为了简化，我们可以忽略批处理，直接将它们视为一维向量。
 - en: 'Under the hood, if the model is predicting the kth token in a sequence, it
     will do so kind of like so:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 在后台，如果模型正在预测序列中的第k个token，它将像这样进行：
 - en: '[PRE2]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Note this is pseudocode.
+  id: totrans-40
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 请注意，这是伪代码。
 - en: We can ignore the attention mask for our purposes. For CausalLM models, we usually
     want the attention mask to be all 1s because we want to attend to all previous
     tokens. Also note that [:k] really means we use the 0th index through the k-1
     index because the ending index in slicing is *exclusive*.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了我们的目的，我们可以忽略注意力掩码。对于CausalLM模型，我们通常希望注意力掩码为全1，因为我们希望关注所有前面的tokens。同时注意，[:k]实际上意味着我们使用从第0索引到第k-1索引的元素，因为切片中的结束索引是*排除*的。
 - en: 'With that in mind, we have:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑到这一点，我们得到：
 - en: '[PRE3]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: The loss would be taken by comparing the true value of *labels[k]* with *pred_token_k*.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 损失值通过将*labels[k]*与*pred_token_k*进行比较来计算。
 - en: In reality, both get represented as 1xv vectors where v is the size of the vocabulary.
     Each element represents the probability of that token. For the predictions (*pred_token_k*),
     these are real probabilities the model predicts. For the true label (*labels[k]*),
     we can artificially make it the correct shape by making a vector with 1 for the
     actual true token and 0 for all other tokens in the vocabulary.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，二者都表示为1xv的向量，其中v是词汇表的大小。每个元素表示该token的概率。对于预测结果（*pred_token_k*），这些是真实的概率，由模型预测得出。对于真实标签（*labels[k]*），我们可以通过将实际的真实token设为1，词汇表中所有其他token设为0，来人为地使其具有正确的形状。
 - en: Let’s say we’re predicting the second word of our sample sentence, meaning k=1
     (we’re zero indexing k). The first bullet item is the context we use to generate
     a prediction and the second bullet item is the true label token we’re aiming to
     predict.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们正在预测样本句子的第二个单词，也就是说k=1（我们使用的是零索引k）。第一个要点是我们用来生成预测的上下文，第二个要点是我们要预测的真实标签token。
 - en: 'k=1:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: k=1：
 - en: Input_ids[:1] == [the]
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Input_ids[:1] == [the]
 - en: Labels[1] == dog
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Labels[1] == dog
 - en: 'k=2:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: k=2：
 - en: Input_ids[:2] == [the, dog]
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Input_ids[:2] == [the, dog]
 - en: Labels[2] == likes
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Labels[2] == likes
 - en: 'k =3:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: k=3：
 - en: Input_ids[:3] == [the, dog, likes]
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Input_ids[:3] == [the, dog, likes]
 - en: Labels[3] == food
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Labels[3] == food
 - en: 'Let’s say k=3 and we feed the model “[the, dog, likes]”. The model outputs:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设k=3，我们向模型输入“[the, dog, likes]”。模型的输出是：
 - en: '[PRE4]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: In other words, the model thinks there’s a 10% chance the next token is “dog,”
     60% chance the next token is “food” and 30% chance the next token is “the.”
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，模型认为下一个token是“dog”的概率是10%，下一个token是“food”的概率是60%，下一个token是“the”的概率是30%。
 - en: 'The true label could be represented as:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 真实标签可以表示为：
 - en: '[PRE5]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'In real training, we’d use a loss function like cross-entropy. To keep it as
     intuitive as possible, let’s just use absolute difference to get an approximate
     feel for loss. By absolute difference, I mean the absolute value of the difference
     between the predicted probability and our “true” probability: e.g. *absolute_diff_dog
     = |0.10–0.00| = 0.10*.'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实际训练中，我们会使用像交叉熵这样的损失函数。为了尽量直观，让我们简单使用绝对差异来大致感知损失。所谓绝对差异，我指的是预测概率与我们的“真实”概率之间的绝对差值：例如，*absolute_diff_dog
+    = |0.10–0.00| = 0.10*。
 - en: Even with this crude loss function, you can see that to minimize the loss we
     want to predict a high probability for the actual label (e.g. food) and low probabilities
     for all other tokens in the vocabulary.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使使用这个粗略的损失函数，你也能看出，为了最小化损失，我们希望对实际标签（例如 food）预测出较高的概率，并对词汇表中的其他所有标记预测较低的概率。
 - en: 'For instance, let’s say after training, when we ask our model to predict the
     next token given [the, dog, likes], our outputs look like the following:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 举个例子，假设在训练后，当我们让模型根据[the, dog, likes]预测下一个标记时，输出结果如下：
 - en: Now our loss is smaller now that we’ve learned to predict “food” with high probability
     given those inputs.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们的损失已经变小，因为在给定这些输入后，我们学会了以较高的概率预测“food”。
 - en: Training would just be repeating this process of trying to align the predicted
     probabilities with the true next token for all the tokens in your training sequences.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 训练过程就是不断重复这一过程：尝试将预测的概率与训练序列中所有标记的真实下一个标记对齐。
 - en: Conclusion
+  id: totrans-66
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 结论
 - en: Hopefully you’re getting an intuition about what’s happening under the hood
     to train a CausalLM model using HuggingFace. You might have some questions like
     “why do we need *labels* as a separate array when we could just use the kth index
     of *input_ids* directly at each step? Is there any case when *labels* would be
     different than *input_ids*?”
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 希望你能对如何使用 HuggingFace 训练 CausalLM 模型的过程有一个直观的了解。你可能会有一些问题，比如：“为什么我们需要将 *labels*
+    作为一个单独的数组，而不是直接在每一步使用 *input_ids* 的第 k 个索引？有没有可能 *labels* 与 *input_ids* 不同？”
 - en: I’m going to leave you to think about those questions and stop there for now.
     We’ll pick back up with answers and real code in the next post!
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 我会让你思考这些问题，暂时先停在这里。我们将在下一个帖子中继续解答这些问题并展示实际代码！

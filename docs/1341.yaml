@@ -1,80 +1,124 @@
 - en: 'Flash Attention (Fast and Memory-Efficient Exact Attention with IO-Awareness):
     A Deep Dive'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 闪存注意力（快速且内存高效的精确注意力与 I/O 感知）：深入探讨
 - en: 原文：[https://towardsdatascience.com/flash-attention-fast-and-memory-efficient-exact-attention-with-io-awareness-a-deep-dive-724af489997b?source=collection_archive---------3-----------------------#2024-05-29](https://towardsdatascience.com/flash-attention-fast-and-memory-efficient-exact-attention-with-io-awareness-a-deep-dive-724af489997b?source=collection_archive---------3-----------------------#2024-05-29)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/flash-attention-fast-and-memory-efficient-exact-attention-with-io-awareness-a-deep-dive-724af489997b?source=collection_archive---------3-----------------------#2024-05-29](https://towardsdatascience.com/flash-attention-fast-and-memory-efficient-exact-attention-with-io-awareness-a-deep-dive-724af489997b?source=collection_archive---------3-----------------------#2024-05-29)
 - en: Flash attention is power optimization transformer attention mechanism that provides
     15% efficiency
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 闪存注意力是一种优化能耗的变换器注意力机制，提供了 15% 的效率提升
 - en: '[](https://medium.com/@anishdubey?source=post_page---byline--724af489997b--------------------------------)[![Anish
     Dubey](../Images/f85f17fb79718c819b4bd1c9a16338a7.png)](https://medium.com/@anishdubey?source=post_page---byline--724af489997b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--724af489997b--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--724af489997b--------------------------------)
     [Anish Dubey](https://medium.com/@anishdubey?source=post_page---byline--724af489997b--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@anishdubey?source=post_page---byline--724af489997b--------------------------------)[![Anish
+    Dubey](../Images/f85f17fb79718c819b4bd1c9a16338a7.png)](https://medium.com/@anishdubey?source=post_page---byline--724af489997b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--724af489997b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--724af489997b--------------------------------)
+    [Anish Dubey](https://medium.com/@anishdubey?source=post_page---byline--724af489997b--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--724af489997b--------------------------------)
     ·7 min read·May 29, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--724af489997b--------------------------------)
+    ·阅读时间：7 分钟·2024 年 5 月 29 日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/bcd08ecda3389e4ce550e4a823d5c333.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bcd08ecda3389e4ce550e4a823d5c333.png)'
 - en: Photo by [sander traa](https://unsplash.com/@sandertraa?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
     on [Unsplash](https://unsplash.com/photos/a-field-with-trees-and-mountains-in-the-background-KV2giR3tbX4?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [sander traa](https://unsplash.com/@sandertraa?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    提供，来自 [Unsplash](https://unsplash.com/photos/a-field-with-trees-and-mountains-in-the-background-KV2giR3tbX4?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 - en: Flash attention is a power optimization transformer attention mechanism which
     provides 15% efficiency in terms of wall-clock speed with no approximation.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 闪存注意力是一种优化能耗的变换器注意力机制，在墙钟速度上提供了 15% 的效率提升，且没有任何近似计算。
 - en: Context
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 背景
 - en: Given transformer models are slow and memory hungry on long sequences (time
     and memory complexity is quadratic in nature), flash attention([paper](https://arxiv.org/pdf/2205.14135))
     provides a 15% end-to-end wall-clock speedup on BERT-large, 3x speed on GPT-2.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 鉴于变换器模型在长序列上的速度较慢且内存消耗大（时间和内存复杂度本质上是二次的），闪存注意力（[论文](https://arxiv.org/pdf/2205.14135)）在
+    BERT-large 上提供了 15% 的端到端墙钟加速，在 GPT-2 上提供了 3 倍的速度提升。
 - en: Considering, enormous amount of energy consumed in training these large models,
     Flash attention with software and hardware optimization is able to provide 15%
     efficiency which is a huge win in terms of improvement.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑到训练这些大型模型所消耗的巨大能量，结合软件和硬件优化的闪存注意力能够提供 15% 的效率提升，这是一个巨大的进步。
 - en: Below, discussion helps to explain some of the basic concepts behind flash attention
     and how it is implemented.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下讨论有助于解释闪存注意力的一些基本概念，以及它是如何实现的。
 - en: Basic concepts around compute & memory
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 计算与内存的基本概念
 - en: 'Before we dive deeper into compute and memory, let’s revisit them:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们深入讨论计算与内存之前，让我们先回顾一下它们：
 - en: What is Compute?
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 什么是计算？
 - en: Time spent on your GPU computing actual floating point operations (FLOPS)
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 GPU 上进行实际浮点运算（FLOPS）所花费的时间
 - en: What is Memory?
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 什么是内存？
 - en: Time spent transferring tensors within a GPU
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 GPU 内部传输张量所花费的时间
 - en: Ideally, we want our gCPU to be performing matrix multiplication all the time
     and not restricted by memory. But in reality, compute have made more progress
     as compared to memory and we are in a world where gCPU sits idle waiting for data
@@ -82,380 +126,576 @@
     illustrative diagram depicting this. Matrix multiplication is considered compute
     and memory is storing the data (considering it as a warehouse). Compute need data
     to process and memory bandwidth has to support that operation.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 理想情况下，我们希望 gCPU 始终执行矩阵乘法，而不受内存的限制。但实际上，计算进展比内存更快，我们处在一个 gCPU 静待数据加载的世界。这通常被称为
+    **内存瓶颈** 操作。请参见下面的示意图以说明这一点。矩阵乘法被认为是计算，而内存则负责存储数据（可以将其视为仓库）。计算需要数据来处理，内存带宽必须支持这一操作。
 - en: '![](../Images/fcc27ebfc81919bdb9d016a9290180ed.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fcc27ebfc81919bdb9d016a9290180ed.png)'
 - en: Photo from [https://horace.io/brrr_intro.html](https://horace.io/brrr_intro.html)
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自 [https://horace.io/brrr_intro.html](https://horace.io/brrr_intro.html)
 - en: What is Memory hierarchy ?
+  id: totrans-22
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 什么是内存层次结构？
 - en: The A100 GPU has **40–80GB** of high bandwidth memory with a bandwidth of **1.5–2.0
     TB/s** and **192KB** of on-chip SRAM with each 108 streaming multiprocessors with
     bandwidth estimated around **19TB/s.**
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: A100 GPU 拥有 **40–80GB** 的高带宽内存，带宽为 **1.5–2.0 TB/s**，并且每个 108 个流式多处理器有 **192KB**
+    的片上 SRAM，带宽估计约为 **19TB/s**。
 - en: '![](../Images/9b566bc7147d9ac2cc580a884d4259fc.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9b566bc7147d9ac2cc580a884d4259fc.png)'
 - en: Photo from [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自 [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
 - en: What is the problem with self attention architecture ?
+  id: totrans-26
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 自注意力架构的问题是什么？
 - en: With the above context in mind, self attention architecture is **memory-bound.**
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述背景下，自注意力架构是 **内存瓶颈**。
 - en: '![](../Images/ad69afb8ec7fde9260e39d68b245318e.png)'
+  id: totrans-28
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ad69afb8ec7fde9260e39d68b245318e.png)'
 - en: Photo by the Author
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: Looking at attention math, it is a softmax operation which causes the memory-bound.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看注意力数学，它是一个 softmax 操作，导致了内存瓶颈。
 - en: 'Quantitative evidence: As you can see below, operations like softmax, dropout,
     masking are taking majority of the time as compared to Matrix multiplication (Matmul)'
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 定量证据：如下所示，与矩阵乘法（Matmul）相比，像 softmax、dropout、masking 等操作占用了大部分时间。
 - en: '![](../Images/383bf678304f14ad24715ef6a2c2d324.png)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/383bf678304f14ad24715ef6a2c2d324.png)'
 - en: Photo from [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自 [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
 - en: Why does softmax become a memory bound operation ?
+  id: totrans-34
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为什么 softmax 成为内存瓶颈操作？
 - en: The scale at which it operates is our biggest bottleneck. In the below diagram
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 它操作的规模是我们最大的瓶颈。在下面的图中
 - en: N -> number of tokens
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: N -> 令牌的数量
 - en: d -> number of embedding dimensions
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: d -> 嵌入维度的数量
 - en: 'When Query and Key’ are multiplied, the attention matrix explodes to N * N
     which takes a lot of memory. For reference (d ~128; N ~128k tokens; google gemini:
     ~1 million tokens)'
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '当 Query 和 Key’ 相乘时，注意力矩阵会爆炸到 N * N，这需要大量内存。作为参考（d ~128；N ~128k 令牌；谷歌 Gemini:
+    ~100 万令牌）'
 - en: '![](../Images/14c37c8a0960f8b4efef2858021b8a24.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/14c37c8a0960f8b4efef2858021b8a24.png)'
 - en: 'Photo from [FlashAttention — Tri Dao | Stanford MLSys #67](https://www.youtube.com/watch?v=gMOAud7hZg4&ab_channel=StanfordMLSysSeminars)'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '图片来自 [FlashAttention — Tri Dao | Stanford MLSys #67](https://www.youtube.com/watch?v=gMOAud7hZg4&ab_channel=StanfordMLSysSeminars)'
 - en: '[Algorithm] How is self attention implemented ?'
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[算法] 自注意力是如何实现的？'
 - en: Below is the algorithm of implementing self attention mechanism
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是实现自注意力机制的算法
 - en: '![](../Images/8a4ac1211ce636bae0007eb2f0462a8c.png)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8a4ac1211ce636bae0007eb2f0462a8c.png)'
 - en: Photo from [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自 [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
 - en: As noted in the above section, transferring information to HBM (write S to HBM)
     and then loading back from HBM to gCPU to compute softmax and then writing back
     to HBM is a lot of information traveling making it **memory-bound operation.**
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上节所述，将信息传输到 HBM（将 S 写入 HBM），然后从 HBM 加载回 gCPU 计算 softmax，再写回 HBM，涉及大量信息传输，导致它成为
+    **内存瓶颈操作**。
 - en: '[Matrix multiplication] How is self attention implemented ?'
+  id: totrans-46
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[矩阵乘法] 自注意力是如何实现的？'
 - en: Along with the diagram, below steps help explain how self attention is computed
     through matrix multiplication
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 配合图示，下面的步骤有助于解释自注意力是如何通过矩阵乘法来计算的
 - en: 'Step 1:'
+  id: totrans-48
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '步骤 1:'
 - en: I have simplified this. In practice, each token is added with positional encoding
     to generate embeddings to feed into a linear layer to generate <key, query and
     value>. For illustration I used a dimension of 3 (generally it ranges from 64–128).
     This is standard transformer architecture input.
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我已经简化了这个过程。在实际应用中，每个标记都会加上位置编码以生成嵌入，然后将其输入到一个线性层中生成 <key, query 和 value>。为说明起见，我使用了
+    3 的维度（通常范围为 64 到 128）。这是标准的 Transformer 架构输入。
 - en: Step 2
+  id: totrans-50
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第 2 步
 - en: Key -> Key’ (transpose) is computed, and multiplied with Query to give QK’ which
     is N*N. This contains the attention of each token with the rest of the tokens.
     Below diagram shows the relationship as well. Since these are tokens and we need
     to compute the importance of each token with respect to each other, softmax operation
     is applied row-wise to normalize it from 0 -1.
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Key -> Key'（转置）被计算出来，并与 Query 相乘得到 QK'，其结果是 N*N。这包含了每个标记与其余标记之间的注意力。下图也展示了这种关系。由于这些是标记，我们需要计算每个标记与其他标记之间的重要性，因此将对每一行应用
+    softmax 操作，以将其归一化到 0-1 范围内。
 - en: This step **requires movement to HBM and is the most expensive operation** as
     we discussed. Entire flash attention paper is how to optimize this process.
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这一步 **需要移动到 HBM，并且是最昂贵的操作**，正如我们所讨论的那样。整篇 Flash Attention 论文的核心就是如何优化这个过程。
 - en: Step 3
+  id: totrans-53
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第 3 步
 - en: Softmax(QK’) * V is computed as the final output matrix. Dimension here is same
     as input embeddings of Key, query and value.
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Softmax(QK') * V 被计算为最终的输出矩阵。这里的维度与 Key、Query 和 Value 的输入嵌入相同。
 - en: Final row in the output matrix
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 输出矩阵中的最后一行
 - en: 1*5 means, the embedding of “this” should be changed to incorporate relations
     with other tokens.
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 1*5 的意思是，“this”的嵌入应该被修改，以融入与其他标记的关系。
 - en: 2*5 means, the embedding of “is” should be changed to incorporate relations
     with other tokens.
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 2*5 的意思是，“is”的嵌入应该被修改，以融入与其他标记的关系。
 - en: Same as above for rest of the other rows
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对其余的其他行同样操作
 - en: '![](../Images/eaefc012968e0a6a8cfdc38a808b28e2.png)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/eaefc012968e0a6a8cfdc38a808b28e2.png)'
 - en: 'Photo by the Author: Illustrative diagram of how self attention mechanism works'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的照片：自注意力机制工作原理的示意图
 - en: Basic idea behind the flash attention paper
+  id: totrans-61
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Flash Attention 论文背后的基本思想
 - en: Basic idea is explained through the below diagram where blocks of key, query
     and value are propagated from HBM to SRAM and through some mathematical tricks
     (explained below), the computation done here is not an approximate but actual
     correct answer.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 基本思想通过下面的图示得以解释，其中 key、query 和 value 的块从 HBM 传输到 SRAM，并通过一些数学技巧（在下文中解释），这里完成的计算不是近似值，而是实际的正确答案。
 - en: With this implementation, paper is able to reduce the wall-speed time by accessing
     information in blocks without sacrificing correctness.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过此实现，论文能够通过访问块中的信息来减少壁钟时间，而不会牺牲正确性。
 - en: '![](../Images/9d12c7f05ad017b1df7db1f66667f067.png)'
+  id: totrans-64
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9d12c7f05ad017b1df7db1f66667f067.png)'
 - en: Photo from [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 来自 [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135) 的照片
 - en: 'Algorithm behind the paper: How is Flash attention implemented ?'
+  id: totrans-66
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 论文背后的算法：Flash Attention 是如何实现的？
 - en: This is the most complex part of the paper. Let’s break this problem into sub-aspects
     and dive deeper.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是论文中最复杂的部分。让我们将这个问题分解为子方面并深入探讨。
 - en: Below diagram breaks the matrix into blocks and how each block is used to compute
     partial softmax and then correct softmax.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 下图将矩阵分解为块，展示了每个块如何用于计算部分 softmax，然后计算出正确的 softmax。
 - en: 'Initial input: Token: This is flash attention paper'
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 初始输入：Token：这是 Flash Attention 论文
 - en: 'Key: 4 (tokens) X 3(dimensions), Query: 4 (tokens) X 3(dimensions) and Value:
     4 (tokens) X 3(dimensions)'
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Key：4（标记）X 3（维度），Query：4（标记）X 3（维度）和 Value：4（标记）X 3（维度）
 - en: '![](../Images/bb787277f6cd09c9f7741daa795bc448.png)'
+  id: totrans-71
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bb787277f6cd09c9f7741daa795bc448.png)'
 - en: Image modified by author. Original image from [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者修改。原图来自 [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
 - en: Step 0
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 第 0 步
 - en: Assume memory is 24 bytes
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设内存为 24 字节
 - en: SRAM will be divided into 4 blocks (Query, Key, Value and output matrix)
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: SRAM 将被划分为 4 个块（Query、Key、Value 和输出矩阵）
 - en: Query, Key, Value, Output will get = 6 bytes each to store their info (12 bytes/4)
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Query、Key、Value 和 Output 将各自占用 6 字节存储其信息（12 字节/4）
 - en: Each dimension is 3 since each embedding can not be broken, so
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个维度为 3，因为每个嵌入不能被拆分，因此
 - en: 'Query: 6 bytes/ 3 (dimension) = 2\. Same for value, key and output'
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'Query: 6 字节 / 3（维度） = 2\。Value、Key 和 Output 同理'
 - en: Hence, [M/4d] gives the size of each block. In this case, the block size is
     2\. It means 2 rows can be fetched into SRAM.
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，[M/4d] 给出了每个块的大小。在这种情况下，块的大小是 2\。这意味着可以将 2 行数据提取到 SRAM 中。
 - en: 'In general sense, Block size is [M/4d] and # of blocks is [N*4D/M]'
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一般来说，块大小是 [M/4d]，块的数量是 [N*4D/M]。
 - en: 'Step 1 & 2: Adding a table below which illustrates steps 1 and 2 on how flash
     attention works and compare memory and computation aspect of it.'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一步和第二步：下面添加了一个表格，说明了第一步和第二步，展示了 flash attention 如何工作，并比较了其内存和计算方面的差异。
 - en: '![](../Images/1f3283d51b3061c764359ef361e8e74a.png)'
+  id: totrans-82
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1f3283d51b3061c764359ef361e8e74a.png)'
 - en: 'Photo by the Author: Step by step break-down of memory & computation usage
     in Flash attention'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的照片：一步步拆解 flash attention 中的内存和计算使用。
 - en: Below diagram helps visualize matrix multiplication (block by block) used in
     flash attention.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的图表帮助可视化 flash attention 中逐块使用的矩阵乘法。
 - en: '![](../Images/e22bba7a834d0f89407473bbae1181ef.png)'
+  id: totrans-85
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e22bba7a834d0f89407473bbae1181ef.png)'
 - en: 'Photo by the Author: Illustrative diagram of how flash attention mechanism
     works'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的照片：展示了 flash attention 机制如何工作的示意图。
 - en: What is the mathematical aspect of softmax ?
+  id: totrans-87
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: softmax 的数学方面是什么？
 - en: One of the most critical aspects of the paper on how breaking down matrices
     still results in computing softmax accuracy. Leaving the mathematical example
     below on how to show two different matrices can be clubbed to compute softmax
     again.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 论文中一个最关键的方面是如何通过分解矩阵仍然能够计算 softmax 准确度。下面给出了一个数学示例，展示了如何将两个不同的矩阵合并来重新计算 softmax。
 - en: Intuition
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 直觉
 - en: This is the beautiful property of exponents which is leveraged here.
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这就是指数的美丽性质，在这里得到了应用。
 - en: Each softmax is computed individually but along with this maximum value of the
     row is stored along with the summed exponent value.
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个 softmax 都是单独计算的，但同时存储了该行的最大值和累加的指数值。
 - en: When merging with another matrix , we need to check how much max differs with
     the global max of 2 matrices. And because of the exponent, both numerator and
     denominator are adjusted with e^(current_max — global_max) to incorporate this.
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当与另一个矩阵合并时，我们需要检查最大值与两个矩阵的全局最大值的差异。由于指数的存在，分子和分母都通过 e^(current_max — global_max)
+    来调整，从而考虑到这一点。
 - en: Logic is quite complex and hence leaving an example below to go through. Once
     familiarized with an example, the above intuition will make a lot of sense.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 逻辑相当复杂，因此下面提供了一个示例供大家学习。熟悉该示例后，上述直觉将变得非常有意义。
 - en: '![](../Images/fa60177ed659c487bcb14b653e1919c6.png)'
+  id: totrans-94
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fa60177ed659c487bcb14b653e1919c6.png)'
 - en: 'Photo by the Author: Example to demonstrate how breaking matrix into sub-components
     and eventually combining them to compute softmax'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的照片：示例演示了如何将矩阵分解为子组件，最终将它们组合起来计算 softmax。
 - en: Complexity analysis
+  id: totrans-96
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 复杂度分析
 - en: Let’s look at complexity analysis to get a sense of how things changed
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看复杂度分析，了解事情如何发生变化。
 - en: Self attention
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 自注意力
 - en: While computing S = QK’ it becomes a N*N matrix which needs to be propagated
     back to HRAM and then pulled back from HRAM.
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在计算 S = QK' 时，它变成了一个 N*N 的矩阵，需要传播回 HRAM 然后再从 HRAM 中拉取回来。
 - en: Hence O(N*N + N*N) = O(N*N) is HBM access
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此 O(N*N + N*N) = O(N*N) 就是 HBM 访问。
 - en: Flash attention
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: Flash attention
 - en: 'Outer loop: Key and Query will be accessed O(Nd) times'
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 外部循环：Key 和 Query 将被访问 O(Nd) 次。
 - en: 'Inner loop: Only O(Nd/M) will be needed to load from HBM since operating on
     blocks'
+  id: totrans-103
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 内部循环：只需要 O(Nd/M) 来从 HBM 中加载数据，因为是在操作块。
 - en: 'Overall: O(N*N*d*d/M)'
+  id: totrans-104
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 总体复杂度：O(N*N*d*d/M)
 - en: Practically, d is much smaller than M. d ranges from (64–128) while M ranges
     from 100 KB and hence HBM access is optimized
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 实际上，d 要远小于 M。d 的范围是 (64–128)，而 M 的范围从 100 KB 到 M，因此 HBM 访问得到了优化。
 - en: Conclusion
+  id: totrans-106
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: We started with the objective of optimizing HBM access and with this complexity
     analysis, we see the paper has optimized the **HBM access by (d*d/M) factor with
     no approximation.**
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们的目标是优化 HBM 访问，通过这次复杂度分析，我们看到论文通过 (d*d/M) 因子优化了**HBM 访问，且没有做任何近似**。
 - en: Such a complex paper with huge improvement in efficiency. I hope the above explanation
     gives some intuition on how flash attention optimizes and improves the performance.
     I haven’t covered block sparse flash attention, how does this compare with other
     optimization techniques, forwards pass optimization etc. Hopefully to cover it
     in a future post.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个复杂的论文，带来了巨大的效率提升。希望上述解释能为大家提供一些直觉，帮助理解 flash attention 如何优化并提高性能。我没有涉及块稀疏的
+    flash attention，也没有对比其他优化技术、前向传递优化等内容。希望在未来的文章中能够覆盖这些内容。
 - en: References
+  id: totrans-109
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: 'Paper: [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135)'
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '论文：[FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135)'
 - en: 'Tri Dao’s talk: [FlashAttention — Tri Dao | Stanford MLSys #67](https://www.youtube.com/watch?v=gMOAud7hZg4&ab_channel=StanfordMLSysSeminars)'
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'Tri Dao 的讲座: [FlashAttention — Tri Dao | Stanford MLSys #67](https://www.youtube.com/watch?v=gMOAud7hZg4&ab_channel=StanfordMLSysSeminars)'
 - en: 'Medium article: [https://gordicaleksa.medium.com/eli5-flash-attention-5c44017022ad](https://gordicaleksa.medium.com/eli5-flash-attention-5c44017022ad)'
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'Medium 文章: [https://gordicaleksa.medium.com/eli5-flash-attention-5c44017022ad](https://gordicaleksa.medium.com/eli5-flash-attention-5c44017022ad)'

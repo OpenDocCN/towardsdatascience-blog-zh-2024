@@ -1,57 +1,87 @@
 - en: 'Marlin: Nearly Ideal Inference Speed for 4-bit Large Language Models'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Marlin：接近理想的4位大规模语言模型推理速度
 - en: 原文：[https://towardsdatascience.com/marlin-nearly-ideal-inference-speed-for-4-bit-large-language-models-feb0b610dd8e?source=collection_archive---------3-----------------------#2024-03-30](https://towardsdatascience.com/marlin-nearly-ideal-inference-speed-for-4-bit-large-language-models-feb0b610dd8e?source=collection_archive---------3-----------------------#2024-03-30)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/marlin-nearly-ideal-inference-speed-for-4-bit-large-language-models-feb0b610dd8e?source=collection_archive---------3-----------------------#2024-03-30](https://towardsdatascience.com/marlin-nearly-ideal-inference-speed-for-4-bit-large-language-models-feb0b610dd8e?source=collection_archive---------3-----------------------#2024-03-30)
 - en: Up to 4x faster than inference with fp16 parameters
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 比使用fp16参数的推理速度快多达4倍
 - en: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--feb0b610dd8e--------------------------------)[![Benjamin
     Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--feb0b610dd8e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--feb0b610dd8e--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--feb0b610dd8e--------------------------------)
     [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--feb0b610dd8e--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--feb0b610dd8e--------------------------------)[![Benjamin
+    Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--feb0b610dd8e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--feb0b610dd8e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--feb0b610dd8e--------------------------------)
+    [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--feb0b610dd8e--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--feb0b610dd8e--------------------------------)
     ·6 min read·Mar 30, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--feb0b610dd8e--------------------------------)
+    ·阅读时间：6分钟·2024年3月30日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/c9dfbfd469dab2a651a7a522eb2d344c.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c9dfbfd469dab2a651a7a522eb2d344c.png)'
 - en: Generated with DALL-E
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用DALL-E生成
 - en: Large language models (LLMs) are often too large to be directly used on consumer
     hardware. To reduce their size, various techniques have been proposed to quantize
     LLMs and lower their memory consumption. While recent algorithms for 4-bit quantization
     are often released along with their own optimized CUDA kernels, the inference
     throughput of quantized LLMs remains far from optimal.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 大规模语言模型（LLM）通常过于庞大，无法直接在消费级硬件上使用。为减少它们的大小，已经提出了多种技术来对LLM进行量化并降低其内存消耗。尽管最近关于4位量化的算法通常会发布自己的优化CUDA内核，但量化后的LLM的推理吞吐量仍远未达到理想水平。
 - en: Inference with 4-bit models, for instance using the INT4 data type, involves
     INT4xFP16 operations which are slow even with modern GPUs, hence the need for
     optimized CUDA kernels.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用4位模型进行推理，例如使用INT4数据类型，涉及到INT4xFP16操作，即使在现代GPU上也很慢，因此需要优化的CUDA内核。
 - en: The Institute of Science and Technology Austria (ISTA) proposes **M**ixed **A**uto-**R**egressive
     **Lin**ear kernel (Marlin), an extremely optimized INT4xFP16 matmul kernel that
     can deliver close to ideal (4x) inference speed.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 奥地利科技与研究学院（ISTA）提出了**M**ixed **A**uto-**R**egressive **Lin**ear内核（Marlin），这是一种极为优化的INT4xFP16矩阵乘法内核，可以提供接近理想（4倍）的推理速度。
 - en: In this article, I explain how Marlin achieves this speedup. Then, we will see
     how to convert existing GPTQ models into the Marlin format. I use Mistral 7B for
     demonstration and check the inference speed with vLLM.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我将解释Marlin如何实现这种加速。然后，我们将看到如何将现有的GPTQ模型转换为Marlin格式。我使用Mistral 7B进行演示，并通过vLLM检查推理速度。
 - en: 'Marlin: Maximizing the GPU Usage for INT4 LLMs'
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Marlin：最大化INT4 LLM的GPU使用率

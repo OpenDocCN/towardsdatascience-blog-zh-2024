@@ -1,299 +1,462 @@
 - en: 'Efficient Document Chunking Using LLMs: Unlocking Knowledge One Block at a
     Time'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用LLM进行高效文档分块：一次解锁一个知识块
 - en: 原文：[https://towardsdatascience.com/efficient-document-chunking-using-llms-unlocking-knowledge-one-block-at-a-time-355717a88c5c?source=collection_archive---------0-----------------------#2024-10-21](https://towardsdatascience.com/efficient-document-chunking-using-llms-unlocking-knowledge-one-block-at-a-time-355717a88c5c?source=collection_archive---------0-----------------------#2024-10-21)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/efficient-document-chunking-using-llms-unlocking-knowledge-one-block-at-a-time-355717a88c5c?source=collection_archive---------0-----------------------#2024-10-21](https://towardsdatascience.com/efficient-document-chunking-using-llms-unlocking-knowledge-one-block-at-a-time-355717a88c5c?source=collection_archive---------0-----------------------#2024-10-21)
 - en: '[](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)[![Carlo
     Peron](../Images/e6db9521113aa6a2dd43b0b2aa6687b5.png)](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------)
     [Carlo Peron](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)[![Carlo
+    Peron](../Images/e6db9521113aa6a2dd43b0b2aa6687b5.png)](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------)
+    [Carlo Peron](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------)
     ·8 min read·Oct 21, 2024
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------)
+    ·阅读时长：8分钟·2024年10月21日
 - en: --
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/8d39f802c75bb432d069186938148b8c.png)'
+  id: totrans-5
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8d39f802c75bb432d069186938148b8c.png)'
 - en: The process of splitting two blocks — Image by the author
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 划分两个块的过程——作者插图
 - en: This article explains how to use an LLM (Large Language Model) to perform the
     chunking of a document based on concept of “idea”.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文解释了如何使用LLM（大语言模型）根据“想法”概念对文档进行分块。
 - en: I use OpenAI’s gpt-4o model for this example, but the same approach can be applied
     with any other LLM, such as those from Hugging Face, Mistral, and others.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在这个示例中使用了OpenAI的gpt-4o模型，但同样的方法也可以应用于其他任何LLM，如Hugging Face、Mistral等。
 - en: Everyone can access this [article](https://medium.com/@peronc79/355717a88c5c?sk=1cc4e46c40708d5057d54da391035cfa)
     for free.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个人都可以免费访问这篇[文章](https://medium.com/@peronc79/355717a88c5c?sk=1cc4e46c40708d5057d54da391035cfa)。
 - en: '**Considerations on Document Chunking**'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '**文档分块的考虑事项**'
 - en: In cognitive psychology, a chunk represents a “unit of information.”
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在认知心理学中，块代表一个“信息单元”。
 - en: 'This concept can be applied to computing as well: using an LLM, we can analyze
     a document and produce a set of chunks, typically of variable length, with each
     chunk expressing a complete “idea.”'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一概念也可以应用于计算：使用LLM（大语言模型），我们可以分析文档并生成一组块，通常是可变长度的，每个块表达一个完整的“想法”。
 - en: This means that the system divides a document into “pieces of text” such that
     each expresses a unified concept, without mixing different ideas in the same chunk.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着系统将文档划分为“文本块”，每个块表达一个统一的概念，而不会在同一块中混合不同的想法。
 - en: The goal is to create a knowledge base composed of independent elements that
     can be related to one another without overlapping different concepts within the
     same chunk.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 目标是创建一个由独立元素组成的知识库，这些元素之间可以相互关联，而不会在同一块中重叠不同的概念。
 - en: Of course, during analysis and division, there may be multiple chunks expressing
     the same idea if that idea is repeated in different sections or expressed differently
     within the same document.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，在分析和划分过程中，如果某个想法在不同的部分中重复或在同一文档中以不同的方式表达，可能会有多个块表达相同的想法。
 - en: '**Getting Started**'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '**开始使用**'
 - en: The first step is identifying a document that will be part of our knowledge
     base.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一步是确定一个将成为我们知识库一部分的文档。
 - en: This is typically a PDF or Word document, read either page by page or by paragraphs
     and converted into text.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 这通常是一个PDF或Word文档，可以逐页或逐段阅读并转换为文本。
 - en: 'For simplicity, let’s assume we already have a list of text paragraphs like
     the following, extracted from ***Around the World in Eighty Days***:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 为简单起见，假设我们已经有一个像以下这样的文本段落列表，这些段落是从 ***环游世界八十天*** 中提取的：
 - en: '[PRE0]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Let’s also assume we are using an LLM that accepts a limited number of tokens
     for input and output, which we’ll call *input_token_nr* and *output_token_nr*.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们正在使用一个接受有限 token 数量的 LLM 作为输入和输出，我们将其称为 *input_token_nr* 和 *output_token_nr*。
 - en: For this example, we’ll set *input_token_nr* = 300 and *output_token_nr* = 250.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于此示例，我们将 *input_token_nr* 设置为 300，*output_token_nr* 设置为 250。
 - en: This means that for successful splitting, the number of tokens for both the
     prompt and the document to be analyzed must be less than 300, while the result
     produced by the LLM must consume no more than 250 tokens.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着为了成功分割，提示和要分析的文档的 token 数量必须少于 300，而由 LLM 生成的结果必须消耗不超过 250 个 token。
 - en: Using the [tokenizer](https://platform.openai.com/tokenizer) provided by OpenAI
     we see that our knowledge base documents is composed of 254 tokens.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 [tokenizer](https://platform.openai.com/tokenizer) 工具，我们看到我们的知识库文档由 254 个
+    token 组成。
 - en: Therefore, analyzing the entire document at once isn’t possible, as even though
     the input can be processed in a single call, it can’t fit in the output.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，一次性分析整个文档是不可行的，因为尽管输入可以在一次调用中处理，但它无法适应输出。
 - en: So, as a preparatory step, we need to divide the original document into blocks
     no larger than 250 tokens.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，作为准备步骤，我们需要将原始文档划分为不超过 250 个 token 的块。
 - en: These blocks will then be passed to the LLM, which will further split them into
     chunks.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，这些块将传递给 LLM，LLM 会进一步将其拆分成小块。
 - en: To be cautious, let’s set the maximum block size to 200 tokens.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了谨慎起见，我们将最大块大小设置为 200 个 token。
 - en: '**Generating Blocks**'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '**生成块**'
 - en: 'The process of generating blocks is as follows:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成块的过程如下：
 - en: Consider the first paragraph in the knowledge base (KB), determine the number
     of tokens it requires, and if it’s less than 200, it becomes the first element
     of the block.
+  id: totrans-31
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 考虑知识库（KB）中的第一个段落，确定它所需的 token 数量，如果小于 200，它就成为块的第一个元素。
 - en: Analyze the size of the next paragraph, and if the combined size with the current
     block is less than 200 tokens, add it to the block and continue with the remaining
     paragraphs.
+  id: totrans-32
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 分析下一个段落的大小，如果与当前块的大小合并后少于 200 个 token，就将其添加到块中，并继续处理剩余的段落。
 - en: A block reaches its maximum size when attempting to add another paragraph causes
     the block size to exceed the limit.
+  id: totrans-33
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 当尝试添加另一个段落时，如果导致块的大小超过限制，则该块达到了最大尺寸。
 - en: Repeat from step one until all paragraphs have been processed.
+  id: totrans-34
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从第一步开始，重复执行，直到所有段落都被处理完毕。
 - en: The blocks generation process assumes, for simplicity, that each paragraph is
     smaller than the maximum allowed size (otherwise, the paragraph itself must be
     split into smaller elements).
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 块生成过程假设为了简单起见，每个段落小于最大允许的大小（否则，段落本身必须拆分成更小的元素）。
 - en: To perform this task, we use the *llm_chunkizer.split_document_into_blocks*
     function from the LLMChunkizerLib/chunkizer.py library, which can be found in
     the following repository — [LLMChunkizer](https://github.com/peronc/LLMChunkizer/).
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了执行此任务，我们使用来自 LLMChunkizerLib/chunkizer.py 库的 *llm_chunkizer.split_document_into_blocks*
+    函数，可以在以下仓库中找到该库 — [LLMChunkizer](https://github.com/peronc/LLMChunkizer/)。
 - en: Visually, the result looks like Figure 1.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 从视觉上看，结果如图 1 所示。
 - en: '![](../Images/366d6fb7dc3c658b31fa9d0481492dca.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/366d6fb7dc3c658b31fa9d0481492dca.png)'
 - en: Figure 1 — Split document into blocks of maximum size of 200 tokens — Image
     by the author
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 1 — 将文档拆分成最大为 200 个 token 的块 — 图像由作者提供
 - en: When generating blocks, the only rule to follow is not to exceed the maximum
     allowed size.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 在生成块时，唯一需要遵守的规则是不得超过最大允许的大小。
 - en: No analysis or assumptions are made about the meaning of the text.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 不对文本的含义进行分析或假设。
 - en: '**Generating Chunks**'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '**生成小块**'
 - en: The next step is to split the block into chunks that each express the same idea.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步是将块拆分为每个表达相同思想的块。
 - en: For this task, we use the *llm_chunkizer.chunk_text_with_llm* function from
     the *LLMChunkizerLib/chunkizer.py* library, also found in the same repository.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于此任务，我们使用来自 *LLMChunkizerLib/chunkizer.py* 库的 *llm_chunkizer.chunk_text_with_llm*
+    函数，该库也可以在同一个仓库中找到。
 - en: The result can be seen in Figure 2.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果如图 2 所示。
 - en: '![](../Images/d38ce011f33c722eaeb5e5dea015397a.png)'
+  id: totrans-46
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d38ce011f33c722eaeb5e5dea015397a.png)'
 - en: Figure 2 — Split block into chunks — Image by the author
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2 — 将块拆分成小块 — 图像由作者提供
 - en: This process works linearly, allowing the LLM to freely decide how to form the
     chunks.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个过程是线性进行的，允许LLM自由决定如何形成块。
 - en: '**Handling the Overlap Between Two Blocks**'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '**处理两个块之间的重叠**'
 - en: As previously mentioned, during block splitting, only the length limit is considered,
     with no regard for whether adjacent paragraphs expressing the same idea are split
     across different blocks.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，在块拆分过程中，仅考虑长度限制，而不考虑表达相同想法的相邻段落是否被拆分到不同块中。
 - en: This is evident in Figure 1, where the concept “bla bla bla” (representing a
     unified idea) is split between two adjacent blocks.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 如图1所示，“bla bla bla”概念（代表一个统一的想法）被拆分到两个相邻的块之间。
 - en: As you can see In Figure 2, the chunkizer processes only one block at a time,
     meaning the LLM cannot correlate this information with the following block (it
     doesn’t even know a next block exists), and thus, places it in the last split
     chunk.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 如图2所示，块分割器一次只处理一个块，这意味着LLM无法将此信息与下一个块关联（它甚至不知道存在下一个块），因此，将其放入最后一个拆分的块中。
 - en: This problem occurs frequently during ingestion, particularly when importing
     a long document whose text cannot all fit within a single LLM prompt.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个问题在导入过程中经常发生，特别是在导入一个无法完全放入单个LLM提示中的长文档时。
 - en: 'To address it, *llm_chunkizer.chunk_text_with_llm* works as shown in Figure
     3:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这个问题，*llm_chunkizer.chunk_text_with_llm* 如图3所示：
 - en: The last chunk (or the last N chunks) produced from the previous block is removed
     from the “valid” chunks list, and its content is added to the next block to be
     split.
+  id: totrans-55
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从前一个块生成的最后一个块（或最后N个块）将从“有效”块列表中移除，并将其内容添加到下一个要拆分的块中。
 - en: The *New Block2* is passed to the chunking function again.
+  id: totrans-56
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*New Block2* 再次传递给分块函数。'
 - en: '![](../Images/17201eb773dba1ba31362002dc138ad4.png)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/17201eb773dba1ba31362002dc138ad4.png)'
 - en: Figure 3 — Handling the overlap — Image by the author
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 图3 — 处理重叠 — 图片由作者提供
 - en: As shown in Figure 3, the content of chunk M is split more effectively into
     two chunks, keeping the concept “bla bla bla” together
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 如图3所示，块M的内容被更有效地拆分为两个块，保持了概念“bla bla bla”的连贯性。
 - en: The idea behind this solution is that the last N chunks of the previous block
     represent independent ideas, not just unrelated paragraphs.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个解决方案背后的思想是，前一个块的最后N个块代表独立的想法，而不仅仅是无关的段落。
 - en: Therefore, adding them to the new block allows the LLM to generate similar chunks
     while also creating a new chunk that unites paragraphs that were previously split
     without regard for their meaning.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，将它们添加到新块中，可以让LLM生成类似的块，同时创建一个新块，将之前无视意义而被拆分的段落重新联合。
 - en: '**Result of Chunking**'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '**分块结果**'
 - en: 'At the end, the system produces the following 6 chunks:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，系统生成以下6个块：
 - en: '[PRE1]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '**Considerations on Block Size**'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '**关于块大小的考虑**'
 - en: Let’s see what happens when the original document is split into larger blocks
     with a maximum size of 1000 tokens.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看当原始文档被拆分成最大大小为1000个标记的较大块时会发生什么。
 - en: With larger block sizes, the system generates 4 chunks instead of 6.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用较大的块大小时，系统生成4个块而不是6个。
 - en: This behavior is expected because the LLM could analyzed a larger portion of
     content at once and was able to use more text to represent a single concept.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种行为是预期的，因为LLM可以一次分析更大部分的内容，并能够使用更多的文本来表示一个单一的概念。
 - en: 'Here are the chunks in this case:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是此情况下的块：
 - en: '[PRE2]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '**Conclusions**'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: '**结论**'
 - en: It’s important to attempt multiple chunking runs, varying the block size passed
     to the chunkizer each time.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 进行多次块分割尝试非常重要，每次都改变传递给块分割器的块大小。
 - en: After each attempt, the results should be reviewed to determine which approach
     best fits the desired outcome.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 每次尝试后，应该审查结果，以确定哪种方法最符合预期的结果。
 - en: '**Coming Up**'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '**敬请期待**'
 - en: In the next article, I will show how to use an LLM to retrieve chunks — [LLMRetriever](https://github.com/peronc/LLMRetriever)
     .
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一篇文章中，我将展示如何使用LLM来检索块 — [LLMRetriever](https://github.com/peronc/LLMRetriever)。
 - en: You could find all the code and more example in my repository — [LLMChunkizer](https://github.com/peronc/LLMChunkizer/).
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在我的仓库中找到所有代码和更多示例 — [LLMChunkizer](https://github.com/peronc/LLMChunkizer/)。
 - en: If you’d like to discuss this further, feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/carlo-peron)
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想进一步讨论，欢迎通过[LinkedIn](https://www.linkedin.com/in/carlo-peron)与我联系。

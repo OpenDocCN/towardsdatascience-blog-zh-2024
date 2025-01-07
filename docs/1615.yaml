@@ -1,57 +1,87 @@
 - en: 'AutoRound: Accurate Low-bit Quantization for LLMs'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: AutoRound：LLMs的准确低比特量化
 - en: 原文：[https://towardsdatascience.com/autoround-accurate-low-bit-quantization-for-llms-305ddb38527a?source=collection_archive---------0-----------------------#2024-06-29](https://towardsdatascience.com/autoround-accurate-low-bit-quantization-for-llms-305ddb38527a?source=collection_archive---------0-----------------------#2024-06-29)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/autoround-accurate-low-bit-quantization-for-llms-305ddb38527a?source=collection_archive---------0-----------------------#2024-06-29](https://towardsdatascience.com/autoround-accurate-low-bit-quantization-for-llms-305ddb38527a?source=collection_archive---------0-----------------------#2024-06-29)
 - en: Between quantization-aware training and post-training quantization
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在量化感知训练和后训练量化之间
 - en: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--305ddb38527a--------------------------------)[![Benjamin
     Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--305ddb38527a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--305ddb38527a--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--305ddb38527a--------------------------------)
     [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--305ddb38527a--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--305ddb38527a--------------------------------)[![Benjamin
+    Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--305ddb38527a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--305ddb38527a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--305ddb38527a--------------------------------)
+    [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--305ddb38527a--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--305ddb38527a--------------------------------)
     ·7 min read·Jun 29, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--305ddb38527a--------------------------------)
+    ·7分钟阅读·2024年6月29日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/72daa1eec27a277be9f6d145f7e5d5d9.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/72daa1eec27a277be9f6d145f7e5d5d9.png)'
 - en: Generated with DALL-E
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 由DALL-E生成
 - en: There are many quantization methods to reduce the size of large language models
     (LLM). Recently, better low-bit quantization methods have been proposed. For instance,
     AQLM achieves 2-bit quantization while preserving most of the model’s accuracy.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 有许多量化方法可以减少大型语言模型（LLM）的大小。最近，已经提出了更好的低比特量化方法。例如，AQLM在保留大部分模型准确性的同时实现了2比特量化。
 - en: The main drawback of [AQLM](https://medium.com/towards-artificial-intelligence/fine-tune-mixtral-8x7b-quantized-with-aqlm-2-bit-on-your-gpu-4f8fac86e523)
     is that the quantization of large models is extremely costly. [HQQ](https://github.com/mobiusml/hqq)
     is another good alternative for low-bit quantization but requires further fine-tuning
     to preserve accuracy.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '[AQLM](https://medium.com/towards-artificial-intelligence/fine-tune-mixtral-8x7b-quantized-with-aqlm-2-bit-on-your-gpu-4f8fac86e523)的主要缺点是，量化大型模型的成本非常高。[HQQ](https://github.com/mobiusml/hqq)是另一个低比特量化的良好替代方案，但需要进一步的微调才能保持准确性。'
 - en: Intel is also very active in the research of better quantization algorithms.
     They propose AutoRound, a new quantization method adopting sign gradient descent
     (SignSD). AutoRound is especially accurate for low-bit quantization and quantizes
     faster than most other methods.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 英特尔在更好的量化算法研究方面也非常活跃。他们提出了AutoRound，一种采用符号梯度下降（SignSD）的新量化方法。AutoRound在低比特量化方面特别准确，并且比大多数其他方法量化得更快。
 - en: In this article, I review AutoRound. We will see how it works and how to quantize
     LLMs, such as Llama 3, with minimal accuracy drop. I found AutoRound to be a very
     good alternative to GPTQ and HQQ. It yields more accurate models.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我回顾了AutoRound。我们将了解它的工作原理以及如何以最小的准确性下降量化LLM，例如Llama 3。我发现AutoRound是GPTQ和HQQ的一个非常好的替代方案。它能产生更准确的模型。
 - en: 'I implemented the following notebook showing how to quantize LLMs with AutoRound,
     and evaluate/benchmark the resulting models:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 我实现了以下笔记本，展示了如何使用AutoRound对大型语言模型（LLMs）进行量化，并评估/基准测试结果模型：

@@ -1,56 +1,87 @@
 - en: Real-Time Analytics Solution for Usage-Based API Billing and Metering
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于使用量的API计费和计量的实时分析解决方案
 - en: 原文：[https://towardsdatascience.com/real-time-analytics-solution-for-usage-based-api-billing-and-metering-f9e7a350f707?source=collection_archive---------9-----------------------#2024-05-24](https://towardsdatascience.com/real-time-analytics-solution-for-usage-based-api-billing-and-metering-f9e7a350f707?source=collection_archive---------9-----------------------#2024-05-24)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/real-time-analytics-solution-for-usage-based-api-billing-and-metering-f9e7a350f707?source=collection_archive---------9-----------------------#2024-05-24](https://towardsdatascience.com/real-time-analytics-solution-for-usage-based-api-billing-and-metering-f9e7a350f707?source=collection_archive---------9-----------------------#2024-05-24)
 - en: Design a real-time analytics pipeline for tracking API invocation usage with
     Apache APISIX, Redpanda, and Apache Pinot.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设计一个使用Apache APISIX、Redpanda和Apache Pinot进行API调用使用量跟踪的实时分析管道。
 - en: '[](https://dunith.medium.com/?source=post_page---byline--f9e7a350f707--------------------------------)[![Dunith
     Danushka](../Images/ad8dc098a31c073956d145fd4a0406bf.png)](https://dunith.medium.com/?source=post_page---byline--f9e7a350f707--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f9e7a350f707--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f9e7a350f707--------------------------------)
     [Dunith Danushka](https://dunith.medium.com/?source=post_page---byline--f9e7a350f707--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://dunith.medium.com/?source=post_page---byline--f9e7a350f707--------------------------------)[![Dunith
+    Danushka](../Images/ad8dc098a31c073956d145fd4a0406bf.png)](https://dunith.medium.com/?source=post_page---byline--f9e7a350f707--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f9e7a350f707--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f9e7a350f707--------------------------------)
+    [Dunith Danushka](https://dunith.medium.com/?source=post_page---byline--f9e7a350f707--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f9e7a350f707--------------------------------)
     ·11 min read·May 24, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f9e7a350f707--------------------------------)
+    ·11分钟阅读·2024年5月24日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/f8a4c14e07da6380cbb3d8968aaa3a96.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f8a4c14e07da6380cbb3d8968aaa3a96.png)'
 - en: Photo by [Doris Morgan](https://unsplash.com/@d_morgan?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [Doris Morgan](https://unsplash.com/@d_morgan?utm_source=medium&utm_medium=referral)
+    提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: '**Disclaimer:** *The author of this article is a Developer Advocate at Redpanda,
     which is a critical component of the solution discussed. The author also brings
     prior expertise in API Management and Apache Pinot to the table. Hence, the proposed
     solution is a combination of these technologies aimed at solving a prevalent problem.*'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '**免责声明：** *本文的作者是Redpanda的开发者倡导者，Redpanda是本文所讨论解决方案的关键组成部分。作者还在API管理和Apache
+    Pinot方面拥有丰富的经验。因此，所提出的解决方案是这些技术的结合，旨在解决一个普遍存在的问题。*'
 - en: An API business refers to a company that packages its services or functionalities
     as a set of API (Application Programming Interface) products. These APIs can be
     sold to new and existing customers, who can then integrate these functionalities
     into their own applications. The company can generate revenue by charging these
     customers based on their usage of the APIs.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: API业务指的是将其服务或功能打包为一组API（应用程序编程接口）产品的公司。这些API可以销售给新客户和现有客户，客户可以将这些功能集成到他们自己的应用程序中。公司可以通过根据客户使用API的情况收费来生成收入。
 - en: A company operating an API business needs a data infrastructure component to
     track API call volume and bill consumers accordingly.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 运营API业务的公司需要一个数据基础设施组件来跟踪API调用量并相应地对消费者进行计费。
 - en: In this post, I present a reference architecture for building a real-time API
     usage tracking solution using [Apache APISIX](https://apisix.apache.org/), [Redpanda](http://redpanda.com),
     and [Apache Pinot](https://pinot.apache.org/). This post focuses more on the “why”
     rather than the “how”. Consider this as a solution design…
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我将展示一个使用 [Apache APISIX](https://apisix.apache.org/)、[Redpanda](http://redpanda.com)
+    和 [Apache Pinot](https://pinot.apache.org/) 构建实时API使用跟踪解决方案的参考架构。本文更侧重于“为什么”，而非“如何”。可以将其视为一个解决方案设计……

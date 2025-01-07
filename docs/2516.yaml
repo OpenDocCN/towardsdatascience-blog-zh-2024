@@ -1,770 +1,1142 @@
 - en: Dataflow architecture
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 数据流架构
 - en: 原文：[https://towardsdatascience.com/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=collection_archive---------1-----------------------#2024-10-15](https://towardsdatascience.com/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=collection_archive---------1-----------------------#2024-10-15)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=collection_archive---------1-----------------------#2024-10-15](https://towardsdatascience.com/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=collection_archive---------1-----------------------#2024-10-15)
 - en: 'a (not-so) brief history of a health & fitness data pipeline: part ii'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 健康与健身数据管道的（不那么）简短历史：第二部分
 - en: on derived data views and eventual consistency
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 关于衍生数据视图和最终一致性
 - en: '[](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[![CALEB](../Images/c0f24b30f8dd69352f59b1f7b8124a8c.png)](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------)
     [CALEB](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[![CALEB](../Images/c0f24b30f8dd69352f59b1f7b8124a8c.png)](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------)
+    [CALEB](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------)
     ·19 min read·Oct 15, 2024
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------)
+    ·阅读时长19分钟·2024年10月15日
 - en: --
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '*Welcome to* ***part ii*** *of our coming-of-age trilogy on a public health
     and fitness data pipeline.*'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '*欢迎来到* ***第二部分*** *，我们关于公共健康与健身数据管道的成长三部曲。*'
 - en: '*In this chapter, we reimagine the backend system as a distributed state machine
     and explore the art of achieving consistency — with a functional flavour.*'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '*在本章中，我们将后端系统重新构想为一个分布式状态机，并探索实现一致性的艺术——带有函数式风格。*'
 - en: A quick recap of part i
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第一部分简要回顾
 - en: '[](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189?source=post_page-----e3bc25176cf8--------------------------------)
     [## Event-driven Architecture — Evolution from Servers to Brokers to Queues'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189?source=post_page-----e3bc25176cf8--------------------------------)
+    [## 事件驱动架构——从服务器到代理再到队列'
 - en: 'a (not-so) brief history of a health & fitness data pipeline: part i'
+  id: totrans-11
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 健康与健身数据管道的（不那么）简短历史：第一部分
 - en: medium.com](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189?source=post_page-----e3bc25176cf8--------------------------------)
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: medium.com](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189?source=post_page-----e3bc25176cf8--------------------------------)
 - en: '*The evolution of a data pipeline*'
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '*数据管道的演变*'
 - en: In [part I](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189),
     we watched[*SmartGym*](https://youtu.be/nVVD97pMRiI) grow into (version 2.1),
     an integrated health and fitness platform that **streams**, **processes**, and
     **saves** data from a range of gym equipment sensors and medical devices. These
     data provided insights that empowered users to take more active ownership of their
     personal health and fitness.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[第一部分](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189)中，我们观看了[*SmartGym*](https://youtu.be/nVVD97pMRiI)成长为（2.1版），一个集成的健康与健身平台，**流式传输**、**处理**和**保存**来自一系列健身器材传感器和医疗设备的数据。这些数据提供了洞察力，帮助用户更积极地掌控个人的健康与健身。
 - en: '![](../Images/8d5ff76a69924bde9c62e30669808c3b.png)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8d5ff76a69924bde9c62e30669808c3b.png)'
 - en: SmartGym shoulder press
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: SmartGym肩推
 - en: As our system evolved from merely saving and retrieving data to responding to
     a real-world events, our architecture had to reflect this paradigm shift — from
     a *request-driven* to an *event-driven* one.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着我们的系统从单纯保存和检索数据发展到响应现实世界的事件，我们的架构必须反映这一范式转变——从*请求驱动*到*事件驱动*。
 - en: An event-driven ingestion pipeline
+  id: totrans-18
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个事件驱动的摄取管道
 - en: 'There were two pipelines that kept the lights on:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 有两个管道维持着系统的运行：
 - en: '**Streaming** pipeline: data is continuously streamed from sensors, processed,
     and stored in a buffer.'
+  id: totrans-20
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**流式处理**管道：数据从传感器中持续流式传输，经过处理并存储到缓冲区。'
 - en: '**Saving** pipeline: when the user ends a session, the buffered data is processed
     and saved in the database, as a record that represents the user session (a single
     workout).'
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**保存**管道：当用户结束一个会话时，缓存的数据会被处理并保存到数据库中，作为表示用户会话（一次锻炼）的记录。'
 - en: '![](../Images/43d0ee7433e3a9ed7952ee7c358cc8a4.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/43d0ee7433e3a9ed7952ee7c358cc8a4.png)'
 - en: '**Streaming** and **Saving** pipelines'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '**流式处理**和**保存**管道'
 - en: The event-driven architecture was a double-edged sword, introducing both order
     and chaos. Ultimately, we watched it evolve into a well-oiled machine capable
     of taming its complexities.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 事件驱动架构是把双刃剑，既引入了秩序，也带来了混乱。最终，我们看着它演变成了一台运转良好的机器，能够驯服它的复杂性。
 - en: 'Part ii: the evolution goes on'
+  id: totrans-25
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第二部分：演变继续
 - en: 'In this installment, we’ll explore the next three versions of the system, each
     enhancing a user’s workout experience in a different way:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一部分中，我们将探讨系统的下三个版本，每个版本以不同的方式增强用户的锻炼体验：
 - en: 'v3.0: fitness as a *personalised* experience'
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: v3.0：将健身作为一种*个性化*体验
 - en: 'v4.0: fitness as a *collective* experience'
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: v4.0：将健身作为一种*集体*体验
 - en: 'v5.0: fitness as a *personalised-collective* experience'
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: v5.0：将健身作为一种*个性化-集体*体验
 - en: But first, meet the main character of this article!
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 但首先，让我们认识一下本文的主角！
 - en: '![](../Images/518463b2e778a51c2dac5646d7a7a4ae.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/518463b2e778a51c2dac5646d7a7a4ae.png)'
 - en: The Magic Black Box
+  id: totrans-32
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 神奇的黑盒
 - en: Be it distributed, event-driven, or not, we can think of the SmartGym/SENSEI
     backend system as a magic black box.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 无论是分布式、事件驱动的，还是其他形式的，我们都可以把SmartGym/SENSEI的后台系统看作一个神奇的黑盒。
 - en: '![](../Images/37271edc55adb14a0bacaa0ba254d924.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/37271edc55adb14a0bacaa0ba254d924.png)'
 - en: '**Input**: We feed this black box new information — e.g. users info, sensor
     data'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '**输入**：我们将新信息输入到这个黑盒中——例如：用户信息、传感器数据。'
 - en: '**State Transition**: This new information interacts with its existing state
     based on a certain logic, resulting in a new internal state.'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '**状态转换**：这些新信息根据特定的逻辑与现有状态进行交互，产生新的内部状态。'
 - en: '**Output**: At any time, we can query its internal state to retrieve relevant
     information — e.g. user workout information'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '**输出**：我们可以随时查询其内部状态，以检索相关信息——例如用户的锻炼信息。'
 - en: The Magic Black Box is *deterministic:* if you take two identical black boxes
     with the same state and logic, feed them with the same inputs in the same order,
     both will end up with [identical internal states](https://en.wikipedia.org/wiki/State_machine_replication).
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 神奇的黑盒是*确定性的*：如果你有两个相同的黑盒，状态和逻辑完全相同，按相同的顺序输入相同的内容，两个黑盒最终会得出[相同的内部状态](https://en.wikipedia.org/wiki/State_machine_replication)。
 - en: Inside the black box
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 黑盒内部
 - en: If we tear it apart, we’ll find there’s nothing truly magical — just a **dataflow
     architecture** comprising a bunch of data views and ingestion pipelines.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们把它拆开来看，我们会发现其中没有什么真正神奇的东西——只有一个由一堆数据视图和摄取管道组成的**数据流架构**。
 - en: '![](../Images/34d0c185157512fd546cef19251ba500.png)'
+  id: totrans-41
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/34d0c185157512fd546cef19251ba500.png)'
 - en: '**Sources of truth** (solid), **derived data views** (dotted) and **stream/save
     pipeline** logic (arrows)'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '**事实来源**（实线）、**派生数据视图**（虚线）和**流式/保存管道**逻辑（箭头）'
 - en: 'There are two main types of data views:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据视图主要有两种类型：
 - en: '**1\. Source of truth** (solid line) — e.g. users, sensor stream'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '**1\. 事实来源**（实线）——例如：用户、传感器流'
 - en: New data is first written here. These are original, authoritative data — typically
     represented exactly once in a normalised way.
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 新的数据首先写入这里。这些是原始的、权威的数据——通常以规范化的方式精确表示一次。
 - en: The system’s state is a function of these sources of truth and the state transition
     logic — a reflection of the sequence of events that have transformed it over time.
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 系统的状态是这些事实来源和状态转换逻辑的函数——它反映了随时间推移、改变系统状态的事件序列。
 - en: '**2\. Derived data** (dotted line) — e.g. workouts'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '**2\. 派生数据**（虚线）——例如：锻炼记录'
 - en: This data is processed from existing data in other views, usually involving
     denormalization, aggregation, or transformation. It is precomputed for efficient
     future queries.
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这些数据是从其他视图中的现有数据中处理出来的，通常涉及反规范化、聚合或转换。它是为高效的未来查询而预计算的。
 - en: Derived data is redundant, effectively “duplicating” existing information; if
     it is lost, it can always be re-derived from the original source.
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 派生数据是冗余的，实际上是“复制”了现有的信息；如果丢失，它总是可以从原始数据源重新派生出来。
 - en: The process of deriving data views from sources of truth is known as **materialisation**,
     a deterministic task handled by workers in the ingestion pipeline.
+  id: totrans-50
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 从真实数据源派生数据视图的过程称为 **物化**，这是一个由摄取管道中的工作者处理的确定性任务。
 - en: All internal **state** of the magic box are encapsulated within these *data
     views*, while the *ingestion pipeline* — the machinery behind the materialisation
     process — remains **stateless**.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 魔法黑盒子内部的所有 **状态** 都被封装在这些 *数据视图* 中，而 *摄取管道* — 即物化过程背后的机械运作 — 保持 **无状态**。
 - en: Note that whenever the source of truth changes, the derived data has to be re-derived.
     Else, the state transition is incomplete and the magic black box is left in an
     **inconsistent** state.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，每当真实数据源发生变化时，派生的数据必须重新派生。否则，状态转换不完整，魔法黑盒子将处于 **不一致** 状态。
 - en: '![](../Images/34d0c185157512fd546cef19251ba500.png)'
+  id: totrans-53
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/34d0c185157512fd546cef19251ba500.png)'
 - en: v2.1 dataflow architecture
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: v2.1 数据流架构
 - en: 'In the previous example, we feed the magic black box:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的例子中，我们向魔法黑盒子输入了：
 - en: '*user details* through our CRUD API'
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过我们的 CRUD API 获取 *用户详情*
 - en: '*sensor telemetry* through an event stream (**streaming pipeline**)'
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过事件流传输的 *传感器遥测* （**流式管道**）
 - en: These inputs serve as sources of truth, reflecting real-world entities or events.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些输入作为真实世界实体或事件的来源，反映了实际情况。
 - en: From these two pieces of information, we derive a single *workout* session record
     in the **saving pipeline**.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这两项信息中，我们推导出一个单一的 *锻炼* 会话记录，进入 **保存管道**。
 - en: Now, you might be offended by Mr. Magic Black Box mansplaining what appears
     to be common sense to you. But bear with him because he would prove to be a useful
     abstraction throughout this article.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，你可能会对“魔法黑盒子先生”在向你解释看似常识的东西时感到不悦。但请耐心听他讲，因为他将证明自己在本文中是一个有用的抽象概念。
 - en: 'v3.0 — Metrics, dashboards, insights: fitness as a personalised experience'
+  id: totrans-61
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: v3.0 — 指标、仪表盘、洞察：将健身转变为个性化体验
 - en: With the streaming and saving pipelines working tirelessly to ingest data into
     the system, our database now houses a wealth of user and workout records. We are
     empowered to provide meaningful macro insights by analysing trends, groups, averages,
     and totals for our users and stakeholders.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着流式管道和保存管道不懈地将数据摄取到系统中，我们的数据库现在储存着大量的用户和锻炼记录。我们能够通过分析趋势、分组、平均值和总计，提供有意义的宏观洞察，服务于我们的用户和利益相关者。
 - en: '![](../Images/a8e123fecb7a3beee177273a884dad12.png)'
+  id: totrans-63
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a8e123fecb7a3beee177273a884dad12.png)'
 - en: SmartGym product metrics dashboard prototype
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: SmartGym 产品指标仪表盘原型
 - en: User insights and fitness metrics
+  id: totrans-65
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 用户洞察和健身指标
 - en: 'This is where *SmartGym’s* vision of becoming *“every citizen’s #1 fitness
     companion”* begins to take shape. Beyond giving real-time feedback during my workout,
     recalling my historical performance, and telling me what a great job I’ve done
     — a diligent fitness companion provides tangible metrics to measure my improvement
     in performance over time.'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，*SmartGym* 成为 *“每个公民的首选健身伴侣”* 的愿景开始逐渐成形。除了在我的锻炼过程中提供实时反馈、回顾我的历史表现并告诉我做得多么出色之外，一个勤勉的健身伴侣还会提供可量化的指标，用来衡量我随时间推移的表现提升。
 - en: '![](../Images/8c5d150cd740ad5414c53c9ef5013371.png)'
+  id: totrans-67
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8c5d150cd740ad5414c53c9ef5013371.png)'
 - en: SmartGym user workout insights page
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: SmartGym 用户锻炼洞察页面
 - en: 'By leveraging recent workouts and user information — such as body metrics captured
     by the SmartGym weighing scale — we can estimate various performance metrics,
     including:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过利用最近的锻炼数据和用户信息 —— 比如通过 SmartGym 体重秤捕捉的身体数据 —— 我们可以估算各种表现指标，包括：
 - en: '**1RM (1 Rep Max)** for weight-based workouts (e.g. leg press)'
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**1RM（最大单次重复重量）** 用于基于重量的锻炼（例如腿举）'
 - en: '**Max reps per minute** for bodyweight workouts (e.g. push-ups)'
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**每分钟最大重复次数** 用于体重训练（例如俯卧撑）'
 - en: '**VO2 max** or **MET (Metabolic Equivalent)** for cardio workouts (e.g. treadmill)'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**VO2 最大值** 或 **MET（代谢当量）** 用于有氧运动（例如跑步机）'
 - en: Deriving both product and fitness metrics typically involves denormalization
     and aggregation across records, which can be resource-intensive in terms of memory
     usage, database reads, and network throughput.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 推导产品和健身指标通常涉及去规范化和聚合记录，这在内存使用、数据库读取和网络吞吐量方面可能非常消耗资源。
 - en: Since it doesn’t make sense to run these operations every time a user loads
     the dashboard, we need a precomputed intermediate data representation, ready for
     query and visualisation — another **derived data view** for *user fitness metrics*!
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于每次用户加载仪表盘时都不需要执行这些操作，因此我们需要一个预计算的中间数据表示，准备好进行查询和可视化 —— 另一个 **派生数据视图** 用于 *用户健身指标*！
 - en: The periodic processing pipeline
+  id: totrans-75
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 周期性处理管道
 - en: Let’s return to our magic black box.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们回到我们的魔法黑盒子。
 - en: '![](../Images/4f31648d06e0a552483038b9458011bb.png)'
+  id: totrans-77
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4f31648d06e0a552483038b9458011bb.png)'
 - en: v3.0 dataflow architecture
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: v3.0 数据流架构
 - en: As new users and workout records continuously flow in, *user fitness metrics*
     — a derived data view — require continuous updates in response to changes in the
     upstream data views they rely on.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着新用户和锻炼记录不断流入，*用户健身指标*—一种衍生的数据视图—需要根据其依赖的上游数据视图的变化不断更新。
 - en: To address this, we decided to recompute *user fitness metrics* periodically,
     accepting that these metrics may be a few hours stale.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这个问题，我们决定定期重新计算*用户健身指标*，接受这些指标可能会滞后几个小时的事实。
 - en: Our ingestion pipeline now includes a cronjob service that schedules batch processing
     jobs within the **periodic pipeline** based on a preconfigured schedule, ensuring
     timely updates without overloading the system.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们的摄取管道包括一个定时任务服务，该服务根据预设的时间表在**周期性管道**内安排批量处理作业，从而确保及时更新并避免系统过载。
 - en: '![](../Images/e2eb655a80ae13a1c4ad109df1097701.png)'
+  id: totrans-82
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e2eb655a80ae13a1c4ad109df1097701.png)'
 - en: '**Streaming**, **Saving**, and **Periodic** pipelines'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: '**流式**、**保存**和**周期性**管道'
 - en: 'v4.0 — Gamification: fitness as a collective experience'
+  id: totrans-84
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: v4.0 — 游戏化：将健身作为一种集体体验
 - en: Moving from individuals to community
+  id: totrans-85
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从个人到社区的转变
 - en: Staying fit is difficult work. But with a healthy dose of competition and collective
     suffering, it can be an experience that feels larger than life. Imagine if every
     rep, every set, and every workout session contributed to something greater.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 保持健康是一项艰苦的工作。但通过适当的竞争和集体的艰难时光，这可以成为一种超越生活本身的体验。想象一下，如果每一个重复动作、每一组锻炼、每一节锻炼课程都为更伟大的目标做出贡献，那会是什么样？
 - en: Introducing **exercise leaderboard** and **fitness challenges**.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 推出**运动排行榜**和**健身挑战**。
 - en: Exercise leaderboard
+  id: totrans-88
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 运动排行榜
 - en: The leaderboard showcases users who have logged the most effort over the month
     — measured by distance run, weights lifted, and more.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 排行榜展示了本月努力最多的用户——通过跑步距离、举重重量等数据进行衡量。
 - en: Boy, did this feature stroke some egos! Some of the gym regulars started renaming
     their randomly-generated username with titles like “Beefy” or “Armstrong”. For
     many others, surveying the leaderboard became the first order of business upon
     entering the gym, and the same post-workout ritual before strutting out with newfound
     swagger.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 哇，这个功能可真是让一些人感到自豪！一些常去健身房的人开始把他们随机生成的用户名改成像“Beefy”或“Armstrong”这样的称号。对于很多人来说，查看排行榜成了他们进入健身房后的第一件事，同样也是每次锻炼结束后的仪式，带着新获得的自信昂首离开。
 - en: '![](../Images/9e990cda9ce8378a362aa12c87db72d9.png)'
+  id: totrans-91
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9e990cda9ce8378a362aa12c87db72d9.png)'
 - en: SmartGym leaderboard
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: SmartGym 排行榜
 - en: Similar to how we compute product and user fitness metrics, the leaderboard
     data is updated periodically in batches, derived from user profiles and their
     historical workout data.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似于我们计算产品和用户健身指标的方式，排行榜数据会定期批量更新，数据来源于用户个人资料和他们的历史锻炼记录。
 - en: '![](../Images/f126b45336d44df423ebb94fd7af8d9a.png)'
+  id: totrans-94
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f126b45336d44df423ebb94fd7af8d9a.png)'
 - en: Fitness challenge system
+  id: totrans-95
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 健身挑战系统
 - en: In collaboration with the gym management team, we launched a fitness challenge
     to coincide with periods such as Singapore’s National Day.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 与健身房管理团队合作，我们发起了一项健身挑战，并与新加坡国庆日等特殊时期同步进行。
 - en: '![](../Images/3145c2c83809e7629852a2640ae7fc38.png)'
+  id: totrans-97
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3145c2c83809e7629852a2640ae7fc38.png)'
 - en: SmartGym fitness challenge at Our Tampines Hub
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: SmartGym 健身挑战在我们的 Tampines Hub 举行
 - en: Each day, users received a challenge requiring them to complete a specific number
     of reps on a weighted machine or spend a certain number of minutes on a cardio
     machine, earning rewards for their hard work.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 每天，用户会收到一个挑战，要求他们在加重器械上完成一定次数的重复，或在有氧器械上锻炼一定时间，并因他们的努力获得奖励。
 - en: This kickstarted a series of diverse fitness challenges, each featuring unique
     gameplay variations in terms of duration, workout types, intensity, streaks, and
     more.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 这启动了一系列多样化的健身挑战，每个挑战都有不同的游戏玩法，涉及持续时间、锻炼类型、强度、连续次数等多种变化。
 - en: '![](../Images/b35769de095912a05451c392513c86d4.png)'
+  id: totrans-101
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b35769de095912a05451c392513c86d4.png)'
 - en: SmartGym fitness challenge UI
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: SmartGym 健身挑战用户界面
 - en: 'Configurable rules: rule engines and syntax trees'
+  id: totrans-103
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 可配置的规则：规则引擎和语法树
 - en: At its core, a fitness challenge is a unique set of workout requirements, specified
     by an administrator. By comparing a user’s workout history to these requirements,
     we can assess their progress and completion status for the challenge.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 本质上，健身挑战是由管理员指定的一组独特锻炼要求。通过将用户的锻炼历史与这些要求进行对比，我们可以评估他们在挑战中的进展和完成状态。
 - en: '![](../Images/c5fdce652a422d11a5348edcc9a5f771.png)'
+  id: totrans-105
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c5fdce652a422d11a5348edcc9a5f771.png)'
 - en: '**Rules syntax tree**: representing one set of chest-press/leg-press/treadmill
     workout'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '**规则语法树**：表示一组胸推/腿推/跑步机锻炼'
 - en: Instead of cluttering our codebase with a new bunch of if-else statements for
     each variation of the fitness challenge, we externalised the business logic by
     representing these logical rules in a syntax tree. During runtime, the rule engine
     parses this tree and evaluates it against users’ actual workout histories to track
     their challenge progress.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们并没有用一大堆if-else语句来应对每个健身挑战的变体，而是通过将这些逻辑规则表示为语法树来将业务逻辑外部化。在运行时，规则引擎解析这棵树，并根据用户的实际锻炼历史进行评估，从而追踪他们的挑战进度。
 - en: '![](../Images/5c0ec01c775f100e0abaf8b325f48274.png)'
+  id: totrans-108
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5c0ec01c775f100e0abaf8b325f48274.png)'
 - en: Runtime evaluation of syntax tree
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 语法树的运行时评估
 - en: When the program admin modifies the parameters of a fitness challenge, they
     are directly updating the underlying rules syntax tree. This same data structure
     is shared between the backend rules engine and the frontend rules configuration
     page, ensuring consistency and ease of management.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 当程序管理员修改健身挑战的参数时，他们实际上是在直接更新底层规则语法树。这个相同的数据结构在后台规则引擎和前端规则配置页面之间共享，从而确保了一致性和管理的简便性。
 - en: '![](../Images/8161add68c5de2d49d97e12dd5881b9b.png)'
+  id: totrans-111
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8161add68c5de2d49d97e12dd5881b9b.png)'
 - en: SmartGym fitness challenge configuration page
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: SmartGym 健身挑战配置页面
 - en: The on-demand processing pipeline
+  id: totrans-113
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 按需处理管道
 - en: Lets revisit our magic black box.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们重新审视一下我们的神奇黑箱。
 - en: '![](../Images/91bc947764698241e8f7201ebfac08fc.png)'
+  id: totrans-115
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/91bc947764698241e8f7201ebfac08fc.png)'
 - en: v4.0 dataflow architecture
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: v4.0 数据流架构
 - en: '*User fitness challenge results*, derived from the *workouts* and *user fitness
     challenge* data through the rules engine, need to be recalculated whenever changes
     occur in the upstream data views they depend on — such as each time a user completes
     a workout set.'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过规则引擎从*训练*和*用户健身挑战*数据派生的*用户健身挑战结果*，每当其所依赖的上游数据视图发生变化时——例如每次用户完成一次锻炼时，都需要重新计算。
 - en: Among our enthusiastic users, these fitness challenges are a matter of honour
     and glory. If they don’t see updated challenge results immediately after finishing
     a set, they get confused and frustrated. Therefore, we can’t afford to reprocess
     *user fitness challenge results* in periodic batches; every change in the *workouts*
     data view must be propagated instantly.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们充满热情的用户群体中，这些健身挑战是一种荣耀和荣誉的象征。如果他们在完成一组训练后没有立即看到更新的挑战结果，他们会感到困惑和沮丧。因此，我们不能依赖周期性批量处理*用户健身挑战结果*；*训练*数据视图的每次变化必须立即传播。
 - en: To achieve that, we extend our ingestion pipeline with a Change Data Capture
     mechanism, introducing a service that continuously listens for changes in relevant
     data views, using built-in database triggers or change streams. This **on-demand
     pipeline** triggers a cascade of updates to the downstream derived data views.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现这一点，我们通过引入变更数据捕获机制扩展了摄取管道，添加了一个服务，该服务持续监听相关数据视图中的变化，使用内置数据库触发器或变更流。这一**按需管道**触发了下游派生数据视图的一连串更新。
 - en: In this case, an *on-demand worker* implements the logic of the rules engine
     to evaluate *user fitness challenges results* on the fly.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，一个*按需工作者*实现规则引擎的逻辑，实时评估*用户健身挑战结果*。
 - en: '![](../Images/41e693713abf38051a93dc5749e06afc.png)'
+  id: totrans-121
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/41e693713abf38051a93dc5749e06afc.png)'
 - en: Unveiling our latest inline-four *engine* with **Streaming**, **Saving**, **Periodic**,
     and **On-demand** pipelines
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 揭开我们最新的直列四缸*发动机*，其包含**流处理**、**保存处理**、**定期处理**和**按需**管道
 - en: 'A recap of the different stages of our ingestion pipeline:'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的摄取管道各个阶段的回顾：
 - en: '***Stream processing***: Responsible for ingesting, processing, and storing
     a stream of live sensor data into a buffer'
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***流处理***：负责将实时传感器数据流摄取、处理并存储到缓冲区'
 - en: '***Save processing***: Responsible for consolidating data from the stream buffer,
     processing, and saving it into the database as a record that represents a single
     workout or a user session.'
+  id: totrans-125
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***保存处理***：负责将来自流缓冲区的数据整合、处理，并保存到数据库中，作为代表单次锻炼或用户会话的记录。'
 - en: '***Periodic processing***: Responsible for precomputing derived data views
     periodically'
+  id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***定期处理***：负责定期预计算派生的数据视图'
 - en: '***On-demand processing***: Responsible for propagating updates from upstream
     data views to derived data views immediately'
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***按需处理***：负责立即传播来自上游数据视图的更新到派生数据视图'
 - en: 'v5.0 — Recommendation: fitness as a personalised-collective experience'
+  id: totrans-128
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: v5.0 — 推荐：将健身体验作为个性化-集体的体验
 - en: What if we could give the fitness challenges a personal touch?
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们能为健身挑战增添一些个人化的元素呢？
 - en: NSFIT x SmartGym
+  id: totrans-130
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: NSFIT x SmartGym
 - en: 'In late 2021, a team from the Singapore Army described their predicament: each
     year, servicemen must meet specific fitness benchmarks. If they fall short, they
     are enrolled in a structured training program, known as NSFIT. However, these
     sessions were limited to specific times, required sign-ups, and needed staff to
     facilitate and monitor progress. With the ongoing pandemic and social distancing
     measures then, gathering servicemen for group sessions wasn’t feasible.'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 2021年底，来自新加坡军队的一个团队描述了他们的困境：每年，军人必须达到特定的健身基准。如果达不到标准，他们将被加入一个结构化的训练项目，称为 NSFIT。然而，这些训练课是有限时段的，需提前报名，并且需要工作人员来促进和监控进度。考虑到当时正在进行的疫情和社交距离措施，集结军人进行集体课程变得不可行。
 - en: Using the SmartGym fitness challenge system, servicemen could carry out their
     training on their own schedule — no need for staff to hover over every session.
     All that’s required is for the staff to verify that the training was completed
     and the standards were met.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 SmartGym 健身挑战系统，军人可以根据自己的时间安排进行训练——无需工作人员在每一节课上都跟随。只需要工作人员验证训练是否完成并符合标准即可。
 - en: '![](../Images/cb17d66f7e2f2c54b2a2e8e8e406435b.png)'
+  id: totrans-133
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cb17d66f7e2f2c54b2a2e8e8e406435b.png)'
 - en: Real-time recommendation for treadmill intensity based on fitness profile
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于健身档案的跑步机强度实时推荐
 - en: 'But here’s the twist: servicemen come in all shapes, sizes, and fitness levels.
     A one-size-fits-all fitness challenge just wouldn’t cut it. They need something
     that meets them where they are, in order to push their fitness to new heights.'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 但这里有个转折：军人们的身形、体型和健身水平各不相同。一个适合所有人的健身挑战是行不通的。他们需要的是能够从他们的现有状况出发的东西，才能将他们的健身推向新的高度。
 - en: So, why not add a recommendation step before curating a user fitness challenge?
     By leveraging the fitness metrics we already compute (like in v3.0), we could
     tailor the intensity of their subsequent training sessions.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，为什么不在策划用户健身挑战之前加入推荐步骤呢？通过利用我们已经计算的健身数据（例如在 v3.0 中），我们可以定制他们随后的训练课程强度。
 - en: 'Our personalized fitness challenge now follows three key steps:'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的个性化健身挑战现在遵循三个关键步骤：
 - en: '![](../Images/ad035cc1deb027a042f3c748c1d07d54.png)'
+  id: totrans-138
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ad035cc1deb027a042f3c748c1d07d54.png)'
 - en: '**Step 1 — Profiling** Using historical workout data, we profile each user’s
     fitness level.'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: '**步骤 1 — 个人档案** 使用历史训练数据，我们为每个用户制定健身水平档案。'
 - en: To further optimise this process, we could expand our profiling methods beyond
     simple heuristics, incorporating machine learning methods to extract more sophisticated
     features — resulting in new derived data views.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了进一步优化这一过程，我们可以将我们的个人资料方法扩展到简单的启发式方法之外，结合机器学习方法提取更复杂的特征——从而产生新的派生数据视图。
 - en: '**Step 2 — Recommendation** Starting with a generic challenge template (including
     general information like location, total workouts, participant groups, start/end
     dates, etc), the recommendation engine fleshes out this skeletal template into
     a rules syntax tree tailored to each user’s fitness profile.'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: '**步骤 2 — 推荐** 从一个通用的挑战模板开始（包括诸如地点、总训练次数、参与者组、开始/结束日期等信息），推荐引擎将这个骨架模板扩展成一个适合每个用户健身档案的规则语法树。'
 - en: For even greater personalization, a domain expert could manually fine-tune the
     challenge requirements, offering a professional perspective beyond algorithmic
     deduction.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现更大的个性化，一位领域专家可以手动微调挑战要求，提供一种超越算法推断的专业视角。
 - en: '**Step 3 — Evaluation** Once personalized parameters are embedded into the
     rules syntax tree, evaluations can be triggered on-demand after the workout is
     saved, or even performed in real-time against the sensor stream and displayed
     on the frontend console.'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: '**步骤 3 — 评估** 一旦个性化参数被嵌入到规则语法树中，评估可以在训练保存后按需触发，甚至可以在实时传感器流中进行评估，并显示在前端控制台上。'
 - en: '![](../Images/9a98ce9b3165cccbb3e3815c6cfbac80.png)'
+  id: totrans-144
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9a98ce9b3165cccbb3e3815c6cfbac80.png)'
 - en: Real-time personalised fitness challenge evaluation
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 实时个性化健身挑战评估
 - en: '![](../Images/8e7cd01b789fcce738caffe680c133aa.png)'
+  id: totrans-146
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8e7cd01b789fcce738caffe680c133aa.png)'
 - en: v5.0 dataflow architecture
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: v5.0 数据流架构
 - en: The dataflow paradigm
+  id: totrans-148
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 数据流范式
 - en: The Magic Black Box revisited
+  id: totrans-149
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 魔法黑盒重访
 - en: Earlier in the article, we mentioned that the magic black box is composed of
     data views, where the **state** lives, and a **stateless** ingestion pipeline.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 在文章早些时候，我们提到过魔法黑盒由数据视图组成，其中包含**状态**，以及一个**无状态**的数据摄取管道。
 - en: To get **reliable** outputs from the magic black box, these data views must
     be **consistent**, achieved through a **deterministic** series of materialisation
     in the ingestion pipeline.
+  id: totrans-151
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 为了从魔法黑盒中获得**可靠**的输出，这些数据视图必须是**一致的**，这一点通过在数据摄取管道中的**确定性**物化序列来实现。
 - en: Buckle up and brace yourself, because we will be diving deep into *consistency*
     and *determinism —* the undercurrents of dataflow.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 系好安全带，准备好，因为我们将深入探讨*一致性*和*确定性*——数据流的潜在动力。
 - en: 'The challenge of consistency: a necessary evil'
+  id: totrans-153
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 一致性的挑战：一个必要的恶性问题
 - en: 'At first glance, it might seem simpler to create one massive data view containing
     every bit of detail from the raw data. With only one data source, consistency
     is implied. However, there are several reasons why we need derived data views
     despite the complexity of maintaining consistency:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 乍一看，创建一个包含所有原始数据细节的大型数据视图似乎更简单。只有一个数据源时，一致性是隐含的。然而，尽管维护一致性复杂，我们依然需要衍生数据视图，原因有几个：
 - en: '**Data polymorphism**'
+  id: totrans-155
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**数据多态性**'
 - en: Data can be represented in a myriad of forms — in different combinations and
     at multiple levels of granularity — each serving their own unique purpose.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据可以以多种形式表示——在不同的组合和多个粒度级别上——每种形式都有其独特的用途。
 - en: For example, it turns out that a user is not interested in knowing if the 3rd
     rep of his 2nd set of chest press on September 2020 was fully extended or not
     — after that real-time window of immediacy, low-level raw details become increasingly
     irrelevant, while higher-level derived insights become much more valuable.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，事实证明，用户并不关心他在2020年9月做胸推时，第2组的第3次重复动作是否完全伸展——在这个实时窗口过后，低级别的原始细节变得越来越不相关，而高级别的衍生洞察变得更有价值。
 - en: To avoid having to assume how data will be used and represented in future —
     *raw is better*, a.k.a the Sushi Principle.
+  id: totrans-158
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 为了避免必须假设数据在未来如何使用和表示——*原始数据更好*，即寿司原则。
 - en: '**Read-write performance**'
+  id: totrans-159
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**读写性能**'
 - en: With that, we decouple the write model from the range of potential read models,
     and bridge the gap with a series of materialisation stages. This separation is
     commonly known as Command and Query Responsibility Segregation (CQRS).
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过这种方式，我们将写入模型与潜在的读取模型范围解耦，并通过一系列物化阶段弥合差距。这种分离通常被称为命令和查询责任分离（CQRS）。
 - en: '![](../Images/f59125e22652d9f40f27a2f8289ab5a3.png)'
+  id: totrans-161
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f59125e22652d9f40f27a2f8289ab5a3.png)'
 - en: 'Having a materialisation path gives a piece of data the space and time — to
     morph and discover its different personalities, enabling:'
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 拥有物化路径为一条数据提供了空间和时间——让它演变并发现其不同的面貌，从而实现：
 - en: '**Faster & simpler *writes***: a shortened write path by deferring data processing
     and complex data models to a later stage'
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**更快更简单的*写入***：通过将数据处理和复杂数据模型推迟到后续阶段，从而缩短写入路径。'
 - en: '**Efficient & flexible *reads***: a shortened read path by computing different
     derived views in advance'
+  id: totrans-164
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**高效灵活的*读取***：通过预先计算不同的衍生视图，缩短读取路径。'
 - en: '**Basis of consistency**'
+  id: totrans-165
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**一致性的基础**'
 - en: By designating the write model as the authoritative source of truth to reason
     from, it is easier to achieve consistency — without the complexities of having
     multiple authoritative systems trying to reach a consensus.
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过将写入模型指定为推理的权威真理来源，更容易实现一致性——而无需处理多个权威系统尝试达成共识的复杂性。
 - en: There are instances when the raw data grows too rapidly. E.g. with 1 message/sec
     per treadmill sensor, with multiple gyms, you end up with millions of messages
     in the *sensor stream* in just one day.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时，原始数据增长得过快。例如，每秒1条消息的跑步机传感器，多个健身房的话，一天内*传感器流*就可能积累数百万条消息。
 - en: '![](../Images/f94a46f7c2a5c9cfd1aa80e791ed99fa.png)'
+  id: totrans-168
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f94a46f7c2a5c9cfd1aa80e791ed99fa.png)'
 - en: '**workouts** replacing **sensor stream** as the new authoritative data view'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: '**锻炼记录**取代**传感器流**成为新的权威数据视图'
 - en: When the *sensor stream* grows prohibitively large, we can treat *workouts*
     records as a “lossy compression” of the *sensor stream*, purge the processed *sensor
     stream*, and promote the derived *workouts* records as a new authoritative source
     of truth.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 当*传感器流*增长到难以承受的规模时，我们可以将*锻炼记录*视为*传感器流*的“有损压缩”，清除处理后的*传感器流*，并将衍生出的*锻炼记录*提升为新的权威数据源。
 - en: Since the one-way chain of materialisation still starts from a single source
     of truth, we retain our basis of consistency.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于物化的单向链条仍然始于单一的真理来源，我们保持了我们的一致性基础。
 - en: '**Anti-fragility: fault recovery and application evolution**'
+  id: totrans-172
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**反脆弱性：故障恢复与应用演化**'
 - en: Derived views offers resilience. If a bug corrupts the output, we can roll back
     to previous versions and rerun the materialisation process, ensuring accurate
     data again.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 派生视图提供了弹性。如果出现错误导致输出损坏，我们可以回滚到先前的版本，并重新运行物化过程，从而确保数据的准确性。
 - en: Derived views also enable gradual evolution of application. You can introduce
     new data views without deleting or restructuring the old ones, keeping both as
     independent views of the same data, with the option of falling back if something
     goes wrong.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 派生视图还支持应用的渐进式演变。你可以引入新的数据视图，而不删除或重构旧的视图，保持它们作为同一数据的独立视图，并且如果出现问题，还可以选择回退。
 - en: '![](../Images/af047d09835a13db2b6ade70fbb53d88.png)'
+  id: totrans-175
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/af047d09835a13db2b6ade70fbb53d88.png)'
 - en: '*Non-breaking* evolution of derivation logic'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: '*非破坏性*的推导逻辑演变'
 - en: In [part one](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189#7072)
     of the series, we’ve seen how the publisher-subscriber (pub/sub) pattern (via
     a fanout exchange) of the ingestion pipeline makes it easy to extend system functionality
     in a plug-and-play manner, without disrupting existing pipelines or requiring
     upstream modifications.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[系列第一部分](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189#7072)中，我们看到发布-订阅（pub/sub）模式（通过分发交换机）使得在不干扰现有管道或要求上游修改的情况下，能够轻松扩展系统功能，达到即插即用的效果。
 - en: A key to agile development and building anti-fragile systems — those that improve
     with each bug fix or new feature — is the ease of recovery and evolution. The
     decoupling enabled by the pub/sub pattern and derived views makes this possible.
+  id: totrans-178
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 敏捷开发和构建抗脆弱系统（即那些通过每次修复错误或添加新特性而变得更强）的关键是恢复和演变的便捷性。发布/订阅模式和派生视图所实现的解耦使这一点成为可能。
 - en: The art of consistency and control
+  id: totrans-179
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 一致性和控制的艺术
 - en: Next, let’s dissect the nature of consistency and control flow of the dataflow
     architecture.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，让我们剖析数据流架构的一致性和控制流的本质。
 - en: Broadly speaking, distributed systems can be categorised by two consistency
     levels — **strong** or **eventual**;and two types of control flow — **orchestration**
     (centralised) or **choreography** (decentralised).
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 广义来说，分布式系统可以通过两种一致性级别——**强一致性**或**最终一致性**；以及两种控制流类型——**协调式**（集中式）或**编排式**（分散式）进行分类。
 - en: '![](../Images/5c9ced666ed1acddd4624c3a85c35ea1.png)'
+  id: totrans-182
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5c9ced666ed1acddd4624c3a85c35ea1.png)'
 - en: Relationship between consistency levels and control flow
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 一致性级别与控制流之间的关系
 - en: '**Strong consistency** guarantees that every read reflects the most recent
     write. It ensures that all data views are updated immediately and accurately after
     a change. Strong consistency is typically associated with **orchestration**, since
@@ -772,124 +1144,174 @@
     data views — either updating all at once, or none at all. Such “over-engineering”
     may be required for systems where minor discrepancies can be disastrous, e.g.
     financial transactions, but not in our case.'
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: '**强一致性**保证每次读取都反映最新的写入数据。它确保所有数据视图在更改后立即并准确地更新。强一致性通常与**协调式**相关联，因为它通常依赖于中央协调器来管理跨多个数据视图的原子更新——要么一次性更新所有，要么一个都不更新。这种“过度工程”可能是某些系统所必须的，尤其是在轻微的差异可能带来灾难性后果的情况下，例如金融交易，但在我们的场景中并不需要。'
 - en: '**Eventual consistency** allows for temporary discrepancies between data views,
     but given enough time, all views will converge to the same state. This approach
     typically pairs with **choreography**, where each worker reacts to events independently
     and asynchronously, without needing a central coordinator.'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: '**最终一致性**允许数据视图之间暂时存在差异，但只要给定足够的时间，所有视图最终将收敛到相同的状态。这种方法通常与**编排式**相结合，其中每个工作单元独立且异步地响应事件，而不需要中央协调器。'
 - en: The **asynchronous** and **loosely-coupled** design of the dataflow architecture
     is characterised by **eventual consistency** of data views, achieved through a
     **choreography** of materialisation logic.
+  id: totrans-186
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 数据流架构的**异步**和**松耦合**设计的特点是数据视图的**最终一致性**，通过**编排式**的物化逻辑实现。
 - en: And there are perks to that.
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样做是有好处的。
 - en: '**Perks: at the system level**'
+  id: totrans-188
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**好处：在系统层面**'
 - en: '**Resilience to partial failures**: The asynchrony of choreography is more
     robust against component failures or performance bottlenecks, as disruptions are
     contained locally. In contrast, orchestration can propagate failures across the
     system, amplifying the issue through tight coupling.'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: '**对部分故障的韧性**：编排的异步性对于组件故障或性能瓶颈更加健壮，因为中断被局部控制。相反，协调可能会在系统中传播故障，通过紧耦合放大问题。'
 - en: '**Simplified write path**: Choreography also reduces the responsibility of
     the write path, which reduces the code surface area for bugs to corrupt the source
     of truth. Conversely, orchestration makes the write path more complex, and increasingly
     harder to maintain as the number of different data representations grows.'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: '**简化的写路径**：编排还减少了写路径的责任，从而减少了代码的表面积，减少了错误破坏真相源的可能性。相反，协调将使写路径变得更加复杂，随着不同数据表示的增多，维护难度也会越来越大。'
 - en: '**Perks: at the *human* level**'
+  id: totrans-191
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**优势：在*人类*层面**'
 - en: The decentralised control logic of choreography allows different materialisation
     stages to be developed, specialised, and maintained independently and concurrently.
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 编排的去中心化控制逻辑允许不同的实现阶段独立且并行地开发、专业化和维护。
 - en: 'Determinism: the event-driven work ethic (revisited)'
+  id: totrans-193
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 决定性：事件驱动的工作伦理（重访）
 - en: The spreadsheet ideal
+  id: totrans-194
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 电子表格理想
 - en: 'A reliable dataflow system is akin to a spreadsheet: when one cell changes,
     all related cells update instantly — no manual effort required.'
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个可靠的数据流系统类似于电子表格：当一个单元格发生变化时，所有相关单元格会立即更新——无需手动操作。
 - en: 'In an ideal dataflow system, we want the same effect: when an upstream data
     view changes, all dependent views update seamlessly. Like in a spreadsheet, we
     shouldn’t have to worry about how it works; it just should.'
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 在理想的数据流系统中，我们希望实现相同的效果：当上游数据视图发生变化时，所有相关视图无缝更新。就像电子表格一样，我们不应担心它是如何工作的，它应该自然地完成。
 - en: But ensuring this level of reliability in distributed systems is far from simple.
     Network partitions, service outages, and machine failures are the norm rather
     than the exception, and the concurrency in the ingestion pipeline only adds complexity.
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 但在分布式系统中确保这种级别的可靠性远非易事。网络分区、服务中断和机器故障是常态而非例外，且数据接收管道中的并发性只会增加复杂性。
 - en: 'Since message queues in the ingestion pipeline provide [reliability guarantees](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189#037c),
     **deterministic retries** can make transient faults seem like they never happened.
     To achieve that, our ingestion workers need to adopt the [event-driven work ethic](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189#f36e):'
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于数据接收管道中的消息队列提供了[可靠性保证](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189#037c)，**确定性重试**可以使瞬时故障看起来像是从未发生过。为了实现这一点，我们的数据接收工作者需要采纳[事件驱动的工作伦理](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189#f36e)：
 - en: Pure functions have no free will
+  id: totrans-199
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 纯函数没有自由意志
 - en: In computer science, *pure functions* exhibit determinism, meaning their behaviour
     is entirely predictable and repeatable.
+  id: totrans-200
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 在计算机科学中，*纯函数*表现出决定性，意味着它们的行为是完全可预测和可重复的。
 - en: They are ephemeral — here for a moment and gone the next, retaining no state
     beyond their lifespan. Naked they come, and naked they shall go. And from the
     immutable message inscribed into their birth, their legacy is determined. They
     *always* return the same output for the same input — everything unfolds exactly
     as predestined.
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 它们是短暂的——此时此刻存在，下一刻便消失，生命周期结束后不再保持任何状态。赤裸裸地来，赤裸裸地去。从它们诞生时刻刻画的不可变消息中，它们的遗产就已经注定。它们*总是*为相同的输入返回相同的输出——一切如命中注定般展开。
 - en: And that is exactly what we want our ingestion workers to be.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 这正是我们希望我们的数据接收工作者具备的特性。
 - en: '**Immutable inputs (statelessness)** This immutable message encapsulates all
     necessary information, removing any dependency on external, changeable data. Essentially
     we are passing data to the workers by value rather than by reference, such that
     processing a message tomorrow would yield the same result as it would today.'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: '**不可变输入（无状态性）** 这个不可变的消息封装了所有必要的信息，消除了对外部可变数据的依赖。本质上，我们是通过值而非引用将数据传递给工作者，这样处理一个消息在明天时得到的结果将与今天相同。'
 - en: '**Task isolation**'
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: '**任务隔离**'
 - en: To avoid concurrency issues, workers should not share mutable state.
+  id: totrans-205
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 为了避免并发问题，工作者不应共享可变状态。
 - en: Transitional states within the workers should be isolated, like local variables
     in pure functions — without reliance on shared caches for intermediate computation.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 工作者内部的过渡状态应当被隔离，就像纯函数中的局部变量一样——不依赖共享缓存进行中间计算。
 - en: It’s also crucial to scope tasks independently, ensuring that each worker handles
     tasks without sharing input or output spaces, allowing parallel execution without
     race conditions. E.g. scoping the user fitness profiling task by a particular
     user_id, since inputs (*workouts*) are outputs (*user fitness metrics)* are tied
     to a unique user.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保任务的独立性同样至关重要，确保每个工作者处理的任务不会共享输入或输出空间，从而允许并行执行而不发生竞争条件。例如，通过特定的`user_id`对用户健身分析任务进行作用域限定，因为输入（*锻炼记录*）和输出（*用户健身指标*）与唯一的用户相关联。
 - en: '**Deterministic execution** Non-determinism can sneak in easily: using system
     clocks, depending on external data sources, probabilistic/statistical algorithms
     relying on random numbers, can all lead to unpredictable results. To prevent this,
     we embed all “moving parts” (e.g. random seeds or timestamp) directly in the immutable
     message.'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: '**确定性执行** 非确定性可能轻易潜入：使用系统时钟、依赖外部数据源、基于随机数的概率/统计算法等，都可能导致不可预测的结果。为防止这种情况，我们将所有“动态部分”（例如随机种子或时间戳）直接嵌入不可变的消息中。'
 - en: '**Deterministic ordering** Load balancing with message queues (multiple workers
     per queue) can result in out-of-order message processing when a message is retried
     after the next one is already processed. E.g. Out-of-order evaluation of *user
@@ -897,280 +1319,427 @@
     when it should increase monotonically. For operations that require sequential
     execution, like inserting a record followed by notifying a third-party service,
     out-of-order processing could break such causal dependencies.'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: '**确定性排序** 使用消息队列的负载均衡（每个队列有多个工作者）可能导致消息处理的顺序错误，特别是在消息重试时，若后续消息已处理完毕。比如，*用户健身挑战结果*的评估顺序错误，出现从50%到70%再回到60%的情况，而实际上它应该是单调递增的。对于需要顺序执行的操作，如插入记录后通知第三方服务，顺序错误的处理可能会破坏这种因果依赖关系。'
 - en: At the application level, these sequential operations should either run synchronously
     on a single worker or be split into separate sequential stages of materialisation.
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 在应用层，这些顺序操作应该要么在单个工作者上同步运行，要么拆分成多个独立的顺序物化阶段。
 - en: At the ingestion pipeline level, we could assign only one worker per queue to
     ensure serialised processing that “blocks” until retry is successful. To maintain
     load balancing, you can use multiple queues with a consistent hash exchange that
     routes messages based on the hash of the routing key. This achieves a similar
     effect to Kafka’s hashed partition key approach.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 在数据摄取管道层面，我们可以为每个队列分配一个工作者，以确保串行处理，直到重试成功为止。为了维持负载均衡，你可以使用多个队列，并通过一致性哈希交换来路由消息，路由的依据是路由键的哈希值。这实现了类似于
+    Kafka 的哈希分区键方法的效果。
 - en: '**Idempotent outputs**'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: '**幂等输出**'
 - en: Idempotence is a property where multiple executions of a piece of code should
     always yield the same result, no matter how many times it got executed.
+  id: totrans-213
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 幂等性是一种属性，多次执行同一段代码应该始终产生相同的结果，无论它执行多少次。
 - en: For example, a trivial database “insert” operation is not idempotent while an
     “insert if does not exist” operation is.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，一个简单的数据库“插入”操作不是幂等的，而一个“如果不存在则插入”操作是幂等的。
 - en: This ensures that you get the same outcome as if the worker only executed once,
     regardless of how many retries it actually took.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 这确保了你得到的结果就像工作者只执行了一次一样，无论实际重试了多少次。
 - en: '***Caveat****: Note that unlike pure functions, the worker does not “return”
     an object in the programming sense. Instead, they overwrite a portion of the database.
     While this may look like a side-effect, you can think of this overwrite as similar
     to the immutable output of a pure function: once the worker commits the result,
     it reflects a final, unchangeable state.*'
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: '***警告***：请注意，与纯函数不同，工作者并不会“返回”一个对象（从编程的角度来看）。相反，它们会覆盖数据库的一部分。虽然这看起来像是副作用，但你可以将这种覆盖视为类似于纯函数的不可变输出：一旦工作者提交结果，它就反映了一个最终的、不可更改的状态。'
 - en: Dataflow-ception
+  id: totrans-217
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 数据流递归
 - en: Dataflow in client-side applications
+  id: totrans-218
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 客户端应用中的数据流
 - en: Traditionally, we think of web/mobile apps as stateless clients talking to a
     central database. However, modern “single-page” frameworks have changed the game,
     offering “stateful” client-side interaction and persistent local storage.
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 传统上，我们认为 Web/移动应用是无状态的客户端，它们与中央数据库进行通信。然而，现代的“单页应用”框架改变了这种格局，提供了“有状态”的客户端交互和持久化的本地存储。
 - en: This extends our dataflow architecture beyond the confines of a backend system
     into a multitude of client devices. Think of the on-device state (the “model”
     in model-view-controller) as derived view of server state — the screen displays
     a materialised view of local on-device state, which mirrors the central backend’s
     state.
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将我们的数据流架构扩展到后端系统的范围之外，涵盖了多种客户端设备。可以将设备上的状态（即“模型-视图-控制器”中的“模型”）视为服务器状态的派生视图——屏幕显示的是设备本地状态的物化视图，它反映了中心后端的状态。
 - en: Push-based protocols like server-sent events and WebSockets take this analogy
     further, enabling servers to actively push updates to the client without relying
     on polling — delivering eventual consistency from end to end.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 推送协议，如服务器推送事件和WebSockets，将这个类比进一步扩展，使得服务器可以主动将更新推送到客户端，而不依赖于轮询——实现从端到端的最终一致性。
 - en: '![](../Images/d166c2825d528fbcabfc9999fc3f7123.png)'
+  id: totrans-222
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d166c2825d528fbcabfc9999fc3f7123.png)'
 - en: v5.0 dataflow architecture (extended)
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: v5.0数据流架构（扩展版）
 - en: In fact, this real-time synchronization is exactly how we evaluated personalized
     fitness challenges in the frontend console — as a derived data view residing in
     a client device.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实上，这种实时同步正是我们如何在前端控制台中评估个性化健身挑战的方式——作为驻留在客户端设备上的派生数据视图。
 - en: '![](../Images/9a98ce9b3165cccbb3e3815c6cfbac80.png)'
+  id: totrans-225
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9a98ce9b3165cccbb3e3815c6cfbac80.png)'
 - en: Real-time personalised fitness challenge evaluation
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 实时个性化健身挑战评估
 - en: Dataflow in databases
+  id: totrans-227
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数据库中的数据流
 - en: Even down the stack, we see a semblance of dataflow in databases. Database triggers,
     stored procedures, and materialized view maintenance routines are not very different
     from the on-demand and periodic processing pipelines; B-tree indexes and materialised
     views of a relational database are essentially derived data views— talk about
     dataflows within dataflows!
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使在技术栈的底层，我们也能看到数据库中的数据流的雏形。数据库触发器、存储过程和物化视图维护例程与按需和定期处理管道并无太大不同；B树索引和关系数据库的物化视图本质上是派生的数据视图——谈谈数据流中的数据流！
 - en: Dataflows, dataflows everywhere
+  id: totrans-229
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数据流，数据流，无处不在
 - en: '**“The goal of data integration is to make sure that data ends up in the right
     form, in all the right places.”**'
+  id: totrans-230
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**“数据集成的目标是确保数据以正确的形式出现在所有正确的位置。”**'
 - en: ''
+  id: totrans-231
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: — Designing Data-Intensive Applications (Martin Kleppmann)
+  id: totrans-232
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: —《设计数据密集型应用程序》（马丁·克莱普曼）
 - en: As data systems scale, we should progress beyond seeing them as passive databases
     manipulated by applications like global variables.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着数据系统的扩展，我们应超越将其视为被应用程序操作的被动数据库（如全局变量）的局限。
 - en: Instead, it is useful to reimagine data systems in an organisation as an interplay
     of data views, one derived from another, with state changes rippling out from
     a central source of truth, propagated through functional application code. Dataflows,
     built upon dataflows.
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反，重新构想组织中的数据系统是非常有益的，它们作为数据视图的相互作用，其中一个从另一个派生，状态变化从一个中心真实源传播，通过功能应用代码传播。数据流，基于数据流。
 - en: It’s magic black boxes — *all the way down.*
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是魔法黑盒子——*一直到底。*
 - en: Wrapping up
+  id: totrans-236
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: Congratulations on making it this far!
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 恭喜你坚持到这里！
 - en: In part I, we evolved from a trivial request-response system into an event-driven
     system that **streams**, **processes**, and **saves** data from a range of gym
     equipment sensors and medical devices.
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第一部分中，我们从一个简单的请求-响应系统发展到一个事件驱动系统，**流式传输**、**处理**和**保存**来自各种健身器械传感器和医疗设备的数据。
 - en: In this second instalment, we expanded upon those saved records and processed
     them **periodically** and **on-demand**. This enabled new features that enhance
     a user’s workout experience into a more *collective* yet *personalised* one. As
     our ingestion pipeline evolved, so did our dataflow architecture, scaling to meet
     new demands.
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这第二部分中，我们扩展了那些保存的记录，并对其进行了**定期**和**按需**处理。这使得增强用户运动体验的新功能成为可能，体验变得更加*集体*却又*个性化*。随着我们的摄取管道的发展，我们的数据流架构也在扩展，能够满足新的需求。
 - en: '![](../Images/c844159ae4f7bbe6792c6ba9772df96a.png)'
+  id: totrans-240
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c844159ae4f7bbe6792c6ba9772df96a.png)'
 - en: Summary of SmartGym features built upon the ingestion pipeline
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于数据摄取管道的SmartGym功能总结
 - en: The story of our evolution doesn’t end here.
+  id: totrans-242
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 我们的演变故事并未就此结束。
 - en: In the next and final part, we explore adding and removing functionality in
     a plug-and-play manner, paving the way for an ecosystem to emerge from our platform.
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一部分，也是最后一部分，我们将探讨如何以即插即用的方式添加和移除功能，为我们的平台孕育出一个生态系统。
 - en: Stay tuned…
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 敬请期待……
 - en: '*All images and gifs featured in this article are original works created and
     captured by the author.*'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: '*本文中的所有图片和GIF都是作者原创作品。*'
 - en: '*Shoutout to the data engineering bible, a.k.a Designing Data-Intensive Applications
     — by Martin Kleppmann, for giving me the vocabulary to think about these distributed
     systems with clarity.*'
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: '*感谢数据工程圣经，即《设计数据密集型应用》一书——马丁·克莱普曼（Martin Kleppmann）为我提供了清晰思考这些分布式系统的词汇。*'
 - en: A(not-so) brief history of a health & fitness data pipeline — series
+  id: totrans-247
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个（不那么）简短的健康与健身数据管道历史 — 系列
 - en: '[](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189?source=post_page-----e3bc25176cf8--------------------------------)
     [## Event-driven Architecture — Evolution from Servers to Brokers to Queues'
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189?source=post_page-----e3bc25176cf8--------------------------------)
+    [## 事件驱动架构 — 从服务器到中介到队列的演变]'
 - en: 'a (not-so) brief history of a health & fitness data pipeline: part i'
+  id: totrans-249
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 一个（不那么）简短的健康与健身数据管道历史：第一部分
 - en: medium.com](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189?source=post_page-----e3bc25176cf8--------------------------------)
     [](/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=post_page-----e3bc25176cf8--------------------------------)
     [## Dataflow Architecture-Derived Data Views and Eventual Consistency
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: '[medium.com](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189?source=post_page-----e3bc25176cf8--------------------------------)
+    [](/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=post_page-----e3bc25176cf8--------------------------------)
+    [## 基于数据流架构的衍生数据视图与最终一致性]'
 - en: 'a (not-so) brief history of a health & fitness data pipeline: part ii'
+  id: totrans-251
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 一个（不那么）简短的健康与健身数据管道历史：第二部分
 - en: towardsdatascience.com](/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=post_page-----e3bc25176cf8--------------------------------)
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: '[towardsdatascience.com](/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=post_page-----e3bc25176cf8--------------------------------)'
 - en: Find out more on the feature development from my teammates
+  id: totrans-253
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 了解更多关于我队友们的功能开发内容
 - en: '**User insights dashboard**'
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: '**用户洞察仪表盘**'
 - en: '[](https://medium.com/siot-govtech/fitness-lover-to-developer-building-a-smartgym-vision-592d92989905?source=post_page-----e3bc25176cf8--------------------------------)
     [## Fitness Lover to Developer: Building a SmartGym Vision'
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/siot-govtech/fitness-lover-to-developer-building-a-smartgym-vision-592d92989905?source=post_page-----e3bc25176cf8--------------------------------)
+    [## 从健身爱好者到开发者：构建智能健身房愿景]'
 - en: This is an account of my short yet meaningful internship journey with GovTech’s
     SmartGym team!
+  id: totrans-256
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 这是我与GovTech的SmartGym团队一起度过的短暂而有意义的实习经历！
 - en: medium.com](https://medium.com/siot-govtech/fitness-lover-to-developer-building-a-smartgym-vision-592d92989905?source=post_page-----e3bc25176cf8--------------------------------)
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: '[medium.com](https://medium.com/siot-govtech/fitness-lover-to-developer-building-a-smartgym-vision-592d92989905?source=post_page-----e3bc25176cf8--------------------------------)'
 - en: '**Product metrics dashboard**'
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: '**产品指标仪表盘**'
 - en: '[](https://medium.com/siot-govtech/web-development-with-python-really-87e2e39644c8?source=post_page-----e3bc25176cf8--------------------------------)
     [## Web development with Python, really?'
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/siot-govtech/web-development-with-python-really-87e2e39644c8?source=post_page-----e3bc25176cf8--------------------------------)
+    [## 真正的Python网页开发？]'
 - en: 'My experience working with an unconventional web development framework: Plotly
     Dash'
+  id: totrans-260
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 我与一个非常规的网页开发框架：Plotly Dash的工作经验
 - en: medium.com](https://medium.com/siot-govtech/web-development-with-python-really-87e2e39644c8?source=post_page-----e3bc25176cf8--------------------------------)
     [](https://medium.com/siot-govtech/internship-experience-dont-dash-through-data-analysis-9219e0e15860?source=post_page-----e3bc25176cf8--------------------------------)
     [## Internship Experience — Don’t DASH through data analysis
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: '[medium.com](https://medium.com/siot-govtech/web-development-with-python-really-87e2e39644c8?source=post_page-----e3bc25176cf8--------------------------------)
+    [](https://medium.com/siot-govtech/internship-experience-dont-dash-through-data-analysis-9219e0e15860?source=post_page-----e3bc25176cf8--------------------------------)
+    [## 实习经验 — 不要匆匆完成数据分析]'
 - en: An enriching internship journey with the SmartGym team as a data analyst
+  id: totrans-262
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 作为数据分析师与SmartGym团队一起度过的充实实习之旅
 - en: medium.com](https://medium.com/siot-govtech/internship-experience-dont-dash-through-data-analysis-9219e0e15860?source=post_page-----e3bc25176cf8--------------------------------)
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: '[medium.com](https://medium.com/siot-govtech/internship-experience-dont-dash-through-data-analysis-9219e0e15860?source=post_page-----e3bc25176cf8--------------------------------)'
 - en: '**Leaderboard and fitness challenge analytics dashboard**'
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: '**排行榜和健身挑战分析仪表盘**'
 - en: '[](https://medium.com/ytpo-govtech/internship-blog-7b021006e020?source=post_page-----e3bc25176cf8--------------------------------)
     [## My Internship in the SmartGym team'
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/ytpo-govtech/internship-blog-7b021006e020?source=post_page-----e3bc25176cf8--------------------------------)
+    [## 我在SmartGym团队的实习'
 - en: Introduction
+  id: totrans-266
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 介绍
 - en: medium.com](https://medium.com/ytpo-govtech/internship-blog-7b021006e020?source=post_page-----e3bc25176cf8--------------------------------)
     [](https://medium.com/siot-govtech/dont-throw-darts-in-the-dark-11e3404f8436?source=post_page-----e3bc25176cf8--------------------------------)
     [## Don’t throw darts in the dark
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: medium.com](https://medium.com/ytpo-govtech/internship-blog-7b021006e020?source=post_page-----e3bc25176cf8--------------------------------)
+    [](https://medium.com/siot-govtech/dont-throw-darts-in-the-dark-11e3404f8436?source=post_page-----e3bc25176cf8--------------------------------)
+    [## 不要在黑暗中投掷飞镖
 - en: Introduction
+  id: totrans-268
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 介绍
 - en: medium.com](https://medium.com/siot-govtech/dont-throw-darts-in-the-dark-11e3404f8436?source=post_page-----e3bc25176cf8--------------------------------)
     [](https://medium.com/siot-govtech/my-most-fulfilling-moment-at-smartgym-843819c77432?source=post_page-----e3bc25176cf8--------------------------------)
     [## My Most Fulfilling Moment at SmartGym
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: medium.com](https://medium.com/siot-govtech/dont-throw-darts-in-the-dark-11e3404f8436?source=post_page-----e3bc25176cf8--------------------------------)
+    [](https://medium.com/siot-govtech/my-most-fulfilling-moment-at-smartgym-843819c77432?source=post_page-----e3bc25176cf8--------------------------------)
+    [## 我在SmartGym最有成就感的时刻
 - en: 'Author: https://medium.com/@dharmil.shah_35509'
+  id: totrans-270
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '作者: https://medium.com/@dharmil.shah_35509'
 - en: medium.com](https://medium.com/siot-govtech/my-most-fulfilling-moment-at-smartgym-843819c77432?source=post_page-----e3bc25176cf8--------------------------------)
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: medium.com](https://medium.com/siot-govtech/my-most-fulfilling-moment-at-smartgym-843819c77432?source=post_page-----e3bc25176cf8--------------------------------)
 - en: '**Personalised workout for physiotherapy**'
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: '**为物理治疗定制的个性化锻炼计划**'
 - en: '[](https://medium.com/siot-govtech/designing-an-end-to-end-experience-for-physiotherapist-and-patients-910991042f46?source=post_page-----e3bc25176cf8--------------------------------)
     [## Designing an end to end experience for Physiotherapist and Patients'
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/siot-govtech/designing-an-end-to-end-experience-for-physiotherapist-and-patients-910991042f46?source=post_page-----e3bc25176cf8--------------------------------)
+    [## 为物理治疗师和患者设计端到端的体验'
 - en: Introduction
+  id: totrans-274
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 介绍
 - en: medium.com](https://medium.com/siot-govtech/designing-an-end-to-end-experience-for-physiotherapist-and-patients-910991042f46?source=post_page-----e3bc25176cf8--------------------------------)
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: medium.com](https://medium.com/siot-govtech/designing-an-end-to-end-experience-for-physiotherapist-and-patients-910991042f46?source=post_page-----e3bc25176cf8--------------------------------)

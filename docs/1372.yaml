@@ -1,275 +1,408 @@
 - en: Training Naive Bayes… Really Fast
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 快速训练朴素贝叶斯模型
 - en: 原文：[https://towardsdatascience.com/train-naive-bayes-really-fast-7398a404e342?source=collection_archive---------10-----------------------#2024-05-31](https://towardsdatascience.com/train-naive-bayes-really-fast-7398a404e342?source=collection_archive---------10-----------------------#2024-05-31)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/train-naive-bayes-really-fast-7398a404e342?source=collection_archive---------10-----------------------#2024-05-31](https://towardsdatascience.com/train-naive-bayes-really-fast-7398a404e342?source=collection_archive---------10-----------------------#2024-05-31)
 - en: '![](../Images/5ca58b4de0a8ed93631227f9f6925e2f.png)'
+  id: totrans-2
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5ca58b4de0a8ed93631227f9f6925e2f.png)'
 - en: Photo by [Marc Sendra Martorell](https://unsplash.com/de/@marcsm?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
     on [Unsplash](https://unsplash.com/de/fotos/zeitraffer-von-strassenlaternen--Vqn2WrfxTQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由[Marc Sendra Martorell](https://unsplash.com/de/@marcsm?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源于[Unsplash](https://unsplash.com/de/fotos/zeitraffer-von-strassenlaternen--Vqn2WrfxTQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 - en: Performance tuning in Julia
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在Julia中的性能调优
 - en: '[](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)[![Roland
     Schätzle](../Images/5d03aad32cda174f2fee595a3fc34a17.png)](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------)
     [Roland Schätzle](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)[![Roland
+    Schätzle](../Images/5d03aad32cda174f2fee595a3fc34a17.png)](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------)
+    [Roland Schätzle](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------)
     ·12 min read·May 31, 2024
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------)
+    ·12分钟阅读·2024年5月31日
 - en: --
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: In a recent lecture I demonstrated to my students how a *Multinomial Naive Bayes
     (MNB)* model can be used for document classification. As an example I used the
     [Enron Email Dataset](https://www.cs.cmu.edu/~enron/) in order to create a spam
     filter based on such a model. The version of the dataset used consists of 33,716
     emails, categorised as “spam” or “ham” (i.e. no spam).
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在最近的一堂课上，我向学生展示了如何使用*多项式朴素贝叶斯（MNB）*模型进行文档分类。作为示例，我使用了[Enron电子邮件数据集](https://www.cs.cmu.edu/~enron/)，并基于该模型创建了一个垃圾邮件过滤器。使用的数据集版本包含33,716封电子邮件，分类为“垃圾邮件”或“正常邮件”（即非垃圾邮件）。
 - en: We chose the `MultinomialNBClassifier` from the Julia `[MLJ.jl](https://juliaai.github.io/MLJ.jl/dev/)`-package
     and for data preparation the `CountTransformer` from the same package. I was quite
     surprised that it took more than 30 minutes to train this classifier using the
     whole dataset (on an Apple M3, 16 GB RAM).
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们选择了来自Julia的`MultinomialNBClassifier`，并使用同一包中的`CountTransformer`进行数据准备。我感到相当惊讶的是，使用整个数据集训练这个分类器（在一台Apple
+    M3，16 GB RAM的机器上）竟然花费了超过30分钟。
 - en: Typically only a part of a dataset is used for training as the rest is needed
     for testing. Using just 70% of the dataset for this purpose still took more than
     10 minutes. The 33,716 emails are admittedly more than a simple textbook example,
     but on the other hand NB models are known for low training costs.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，仅使用数据集的一部分进行训练，因为其余部分需要用于测试。即便仅使用数据集的70%进行训练，仍然花费了超过10分钟。33,716封电子邮件无疑超过了简单的教科书示例，但另一方面，朴素贝叶斯模型以低训练成本而著称。
 - en: Therefore I began to investigate why it takes so long and if there are ways
     to make things faster. In the following sections I will present the performance
     tuning measures I’ve applied and the speedup which could be achieved. These measures
     are not very specific to this problem and thus should also be applicable in other
     situations.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我开始调查为什么训练需要这么长时间，以及是否有方法可以加快速度。在接下来的部分，我将介绍我所应用的性能调优措施及所能实现的加速效果。这些措施并非特别针对这个问题，因此也应该适用于其他情况。
 - en: 'Note: All implementations and benchmarks are done using Julia 1.10.3 on a M3
     MacBook Pro with 16 GB RAM. The utilised Julia packages are MLJ 0.20.0, TextAnalysis
     0.7.5, Metal 1.1.0, CategoricalArrays 0.10.8 and BenchmarkTools 1.5.0.'
+  id: totrans-12
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 注意：所有实现和基准测试均使用Julia 1.10.3版本在16 GB RAM的M3 MacBook Pro上完成。所使用的Julia包包括MLJ 0.20.0、TextAnalysis
+    0.7.5、Metal 1.1.0、CategoricalArrays 0.10.8和BenchmarkTools 1.5.0。
 - en: Training a Multinomial Naive Bayes model
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 训练多项式朴素贝叶斯模型
 - en: But first let me introduce the main steps which are necessary to train a MNB
     in order to understand which algorithm has to be optimised. There is
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 但首先让我介绍一下训练MNB所必需的主要步骤，以便理解需要优化的算法。具体包括：
 - en: a **data preparation** step which converts the documents (in our case the emails)
     to an adequate data structure (a so-called *document term matrix; DTM)* and
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个**数据准备**步骤，它将文档（在我们的案例中是电子邮件）转换为合适的数据结构（即所谓的*文档词项矩阵；DTM*）并
 - en: the **actual training** step where the DTM is aggregated into a vector for each
     class (spam or ham)
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**实际训练**步骤，其中将文档词项矩阵（DTM）聚合为每个类别（垃圾邮件或非垃圾邮件）的向量'
 - en: Data Preparation
+  id: totrans-17
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数据准备
 - en: Documents for use with an MNB are represented as “bags of words”. I.e. the order
     of the words within the document is considered irrelevant and only the number
     of occurrences of each word is stored. So the sentence “the cow eats grass” is
     in this representation equivalent to “eats the cow grass” or “grass eats the cow”.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于MNB的文档被表示为“词袋”。也就是说，文档中单词的顺序被认为是无关的，只存储每个单词出现的次数。因此，“the cow eats grass”这个句子在这种表示下等同于“eats
+    the cow grass”或“grass eats the cow”。
 - en: 'In order to convert all documents into this form using a memory efficient representation,
     a *dictionary* of all words that occur in the documents is created (it’s basically
     an array of all words). Let’s say we have the following documents D1, D2 and D3:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使用内存高效的表示形式将所有文档转换为这种形式，我们创建了一个*字典*，其中包含文档中出现的所有单词（它本质上是一个包含所有单词的数组）。假设我们有以下文档D1、D2和D3：
 - en: 'D1: “the grey cat lies on the grass”'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'D1: “灰色的猫躺在草地上”'
 - en: 'D2: “the cow eats grass”'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'D2: “牛吃草”'
 - en: 'D3: “the cat is grey”'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'D3: “猫是灰色的”'
 - en: 'Then the dictionary is as follows: [“the”, “grey”, “cat”, “lies”, “on”, “grass”,
     “cow”, “eats”, “is”] as there are nine different words in the three documents.'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后字典如下：[“the”, “grey”, “cat”, “lies”, “on”, “grass”, “cow”, “eats”, “is”]，因为这三篇文档中有九个不同的单词。
 - en: 'Each document is then represented as an array of the same length as the dictionary
     and each element within this array is the number of occurrences of the corresponding
     word in the dictionary. So D1, D2 and D3 will have the form:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个文档随后表示为一个与字典长度相同的数组，数组中的每个元素是字典中对应单词出现的次数。因此，D1、D2和D3将具有以下形式：
 - en: 'D1: [2, 1, 1, 1, 1, 1, 0, 0, 0] as e.g. the first word in the dictionary (“the”)
     occurs twice, the second word (“grey”) occurs once and so on'
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'D1: [2, 1, 1, 1, 1, 1, 0, 0, 0] 例如，字典中的第一个词（“the”）出现了两次，第二个词（“grey”）出现了一次，依此类推'
 - en: 'D2: [1, 0, 0, 0, 0, 1, 1, 1, 0]'
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'D2: [1, 0, 0, 0, 0, 1, 1, 1, 0]'
 - en: 'D3: [1, 1, 1, 0, 0, 0, 0, 0, 1]'
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'D3: [1, 1, 1, 0, 0, 0, 0, 0, 1]'
 - en: If we combine these arrays into a matrix — one row for each document, we get
     the above mentioned *document term matrix (DTM).* In our case it is a 3 x 9 matrix,
     as we have three documents and a dictionary consisting of nine different words.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们将这些数组合并为一个矩阵——每个文档一行，那么我们就得到了上面提到的*文档词项矩阵（DTM）*。在我们的案例中，它是一个3 x 9的矩阵，因为我们有三篇文档和一个包含九个不同单词的词典。
 - en: Training
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 训练
 - en: The training of the MNB consists basically of adding all the document vectors,
     separated by class. I.e. in our spam-example we have to add all document vectors
     for “spam” and all for “ham” resulting in two vectors, each containing the summarised
     word frequencies for the respective class.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: MNB的训练基本上是通过将所有文档向量按类别分开进行加总。也就是说，在我们的垃圾邮件示例中，我们必须将所有“垃圾邮件”类别的文档向量加起来，所有“非垃圾邮件”类别的文档向量加起来，最终得到两个向量，每个向量包含该类别的单词频率汇总。
 - en: 'If we assume that the documents D1 and D3 are “ham” and D2 is “spam”, we would
     get the following results:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们假设文档D1和D3是“非垃圾邮件”，D2是“垃圾邮件”，我们将得到以下结果：
 - en: '“ham” word frequencies: [3, 2, 2, 1, 1, 1, 0, 0, 1]'
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '“非垃圾邮件”单词频率: [3, 2, 2, 1, 1, 1, 0, 0, 1]'
 - en: '“spam” word frequencies: [1, 0, 0, 0, 0, 1, 1, 1, 0]'
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '“垃圾邮件”单词频率: [1, 0, 0, 0, 0, 1, 1, 1, 0]'
 - en: In a complete training step for a MNB there is some additional post-processing
     of these numbers, but the “expensive” part, which we want to optimise, is the
     aggregation of the DTM as shown here.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在MNB的完整训练步骤中，除了对这些数字进行一些后处理外，真正“耗时”的部分是这里展示的DTM的聚合过程，这是我们需要优化的部分。
 - en: Starting with the Enron dataset
+  id: totrans-35
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 从Enron数据集开始
 - en: Data Preparation
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数据准备
 - en: 'I created the DTM for the Enron dataset using the `CountTransformer`, which
     is part of `MLJ` with the following function:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用 `CountTransformer` 创建了 Enron 数据集的 DTM，该方法是 `MLJ` 中的一部分，具体函数如下：
 - en: '[PRE0]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The input `doc_list` to this function is an array of the tokenised emails. I.e.
     each word within a mail got separated into a single string (using `TextAnalysis.tokenize()`).
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 此函数的输入 `doc_list` 是一个分词后的电子邮件数组。也就是说，每封邮件中的每个词被分离成一个单独的字符串（使用 `TextAnalysis.tokenize()`）。
 - en: This results is a 33,716 x 159,093 matrix as there are 33,716 emails and the
     dictionary consists of 159,093 different words. This is a matrix with more than
     5.3 billion elements. Surprisingly the creation of the DTM took less than a minute.
     So the focus of the performance tuning will be exclusively on the training step.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是一个 33,716 x 159,093 的矩阵，因为有 33,716 封邮件，字典中包含 159,093 个不同的单词。这是一个包含超过 53 亿个元素的矩阵。令人惊讶的是，创建
+    DTM 的时间不到一分钟。因此，性能调优的重点将完全放在训练步骤上。
 - en: As the majority of elements of a DTM are 0, a so-called *sparse matrix* is used
     to store them in a memory efficient way (in Julia this is the `[SparseMatrixCSC](https://docs.julialang.org/en/v1/stdlib/SparseArrays/)`
     type).
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 DTM 中大多数元素为 0，因此使用了所谓的 *稀疏矩阵* 来以内存高效的方式存储它们（在 Julia 中，这种类型是 `[SparseMatrixCSC](https://docs.julialang.org/en/v1/stdlib/SparseArrays/)`）。
 - en: To be exact, the `CountTransformer` produces a data structure of type `LinearAlgebra.Adjoint{Int64,SparseMatrixCSC{Int64,
     Int64}}`. We will come to this special structure later.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 更准确地说，`CountTransformer` 生成的 数据结构是 `LinearAlgebra.Adjoint{Int64,SparseMatrixCSC{Int64,
+    Int64}}` 类型。稍后我们将讨论这个特殊结构。
 - en: Training
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 训练
 - en: 'Training the `MultinomialNBClassifier` is then done as follows with `X` containing
     the DTM and `y` being the array of spam/ham labels (as a `[CategoricalArray](https://github.com/JuliaData/CategoricalArrays.jl?tab=readme-ov-file)`
     since all MLJ models expect this type):'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，训练 `MultinomialNBClassifier` 的方法如下，`X` 包含 DTM，`y` 是垃圾邮件/非垃圾邮件标签的数组（作为一个 `[CategoricalArray](https://github.com/JuliaData/CategoricalArrays.jl?tab=readme-ov-file)`，因为所有
+    MLJ 模型都期望这种类型）：
 - en: '[PRE1]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: The call to `fit!` does the actual training and took more than 30 minutes for
     all Enron mails and more than 10 minutes for a 70%-subset.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 对 `fit!` 的调用进行实际训练，处理所有 Enron 邮件时花费了超过 30 分钟，对于一个 70% 子集则花费了超过 10 分钟。
 - en: In order to focus on the analysis and optimisation of the training step, I’m
     starting with my own implementation of a function that does the above mentioned
     aggregation of all document vectors into two vectors containing the summarised
     word frequencies for “spam” and “ham”. The respective code of the `MultinomialNBCClassifier`
     has too many dependencies which makes it much less feasible to demonstrate the
     following optimisation steps.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了专注于训练步骤的分析和优化，我从自己实现的一个函数开始，该函数执行上述所有文档向量聚合，将其转换为包含“垃圾邮件”和“非垃圾邮件”总结词频的两个向量。`MultinomialNBCClassifier`
+    的相关代码有太多依赖，这使得演示以下优化步骤变得不可行。
 - en: 'A first baseline approach for this function (called `count_words`) looks as
     follows:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 该函数（名为 `count_words`）的第一个基线方法如下所示：
 - en: '[PRE2]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Applied to `X` and `y` it takes **241.076 seconds** to complete.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 应用于 `X` 和 `y` 时，完成需要 **241.076 秒**。
 - en: To reduce the runtime of the test runs and to avoid that memory becomes the
     decisive factor for the runtime, I’ve done all further tests (if not stated otherwise)
     on a part of the DTM (called `Xpart`) limited to the first 10,000 columns (i.e.
     a 33,716 x 10,000 matrix).
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了减少测试运行的时间，并避免内存成为影响运行时间的决定性因素，我将所有进一步的测试（除非另有说明）都限制在 DTM 的一部分（称为 `Xpart`），只包含前
+    10,000 列（即一个 33,716 x 10,000 的矩阵）。
 - en: For this reduced DTM `count_words_base` needs **20.363 seconds** to complete.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这个减少后的 DTM，`count_words_base` 完成需要 **20.363 秒**。
 - en: 'OPT1: Use the right data structures in the right way'
+  id: totrans-53
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: OPT1：以正确的方式使用正确的数据结构
 - en: An important aspect of performance tuning are the data structures used and the
     question if they are used in the most efficient manner.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 性能调优的一个重要方面是所使用的数据结构，以及它们是否以最有效的方式使用。
 - en: Column-first Storage
+  id: totrans-55
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 列优先存储
 - en: In this sense `count_words_base` already uses an optimisation. In Julia a matrix
     is stored in a column-first order. I.e. that the elements of each column are stored
     close to each other in memory. So iterating over all elements in *one* *column*
     is faster than iterating over the elements within a *row*. Therefore the inner
     loop in `count_words_base` iterates over a column in `X`.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这个意义上来说，`count_words_base` 已经使用了一种优化。在 Julia 中，矩阵是按列优先顺序存储的。也就是说，每列的元素在内存中是紧密存储的。因此，遍历
+    *一列* 的所有元素比遍历 *一行* 中的元素更快。因此，`count_words_base` 中的内层循环是遍历 `X` 中的一列。
 - en: Column-first order storage is common practice in Julia. It also holds e.g. for
     a `SparseMatrixCSC` or a `DataFrame`. But it’s always a good idea to check which
     storage order a data structure uses.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Julia中，列优先顺序存储是常见的做法。这对于`SparseMatrixCSC`或`DataFrame`等也适用。但检查数据结构使用的是哪种存储顺序始终是一个好主意。
 - en: CategoricalArrays
+  id: totrans-58
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: CategoricalArrays
 - en: The if-statement in `count_words_base` is executed for each element of the DTM.
     So it surely helps to optimise this part of the function.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '`count_words_base`中的if语句会对DTM的每个元素执行。所以优化这部分函数肯定会有帮助。'
 - en: The parameter `y` is not a “normal” array which would store the words “ham”
     or “spam” 33,716 times. It is a `[CategoricalArray](https://github.com/JuliaData/CategoricalArrays.jl?tab=readme-ov-file)`
     which stores these two words exactly once and uses internally an array of integers
@@ -277,260 +410,385 @@
     the numbers 1 and 2). We can access this numerical representation using the function
     `levelcode`. So `y[1]` results in `"ham"`, whereas `levelcode(y[1])` gives us
     1.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 参数`y`并不是一个“普通的”数组，它不会将单词“ham”或“spam”存储33,716次。它是一个`[CategoricalArray](https://github.com/JuliaData/CategoricalArrays.jl?tab=readme-ov-file)`，它只存储这两个单词一次，并且内部使用一个整数数组来存储33,716个不同的“ham”和“spam”值（这两个值由数字1和2表示）。我们可以使用`levelcode`函数访问这种数值表示。所以`y[1]`返回的是“ham”，而`levelcode(y[1])`则返回1。
 - en: 'Therefore we can replace the whole if-statement by the following single line
     (resulting in the first optimised version `count_words_01`):'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们可以通过以下单行代码替换整个if语句（从而得到第一个优化版本`count_words_01`）：
 - en: '[PRE3]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: This gives us a runtime of **18.006 s** which is an improvement of about 10%.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 这为我们提供了**18.006 s**的运行时间，约提升了10%。
 - en: A more efficient Matrix
+  id: totrans-64
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 更高效的矩阵
 - en: Often memory efficient data structures are less efficient when it comes to accessing
     their elements. So I suspected that a (dense) matrix (i.e. a 2-dimensional `Array`)
     might be more performant than the sparse matrix used for the DTM.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常内存高效的数据结构在访问其元素时效率较低。因此，我怀疑（稠密）矩阵（即二维`Array`）可能比用于DTM的稀疏矩阵更具性能。
 - en: 'As a **point of reference** I created a **dense matrix** `Xref` (filled with
     random numbers) of the same size as `Xpart`: `Xref = rand(0:9, 33716, 10000)`.'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为**参考点**，我创建了一个与`Xpart`相同大小的**稠密矩阵**`Xref`（填充随机数字）：`Xref = rand(0:9, 33716,
+    10000)`。
 - en: 'This matrix has the following runtimes:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 该矩阵具有以下运行时间：
 - en: '`count_words_base`: **2.378 s**'
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`count_words_base`: **2.378 s**'
 - en: '`count_words_01`: **0.942 s**'
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`count_words_01`: **0.942 s**'
 - en: So there must be a real problem with the DTM produced by `CountTransformer`.
     Already the baseline implementation gives us a speedup of more than 8x and the
     optimisation used in `count_words_01` is more effective in this case and reduces
     the runtime to less than half of the baseline number!
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以`CountTransformer`生成的DTM肯定存在实际问题。即使是基线实现也能让我们获得超过8倍的加速，而`count_words_01`中使用的优化在这种情况下更为有效，将运行时间减少到基线数值的一半以下！
 - en: 'As mentioned above, `CountTransfomer` doesn’t produce an actual `SparseMatrixCSC`
     but a `LinearAlgebra.Adjoint{Int64,SparseMatrixCSC{Int64, Int64}}`. I.e. the sparse
     matrix is wrapped in some other structure. This could be a problem. Therefore
     I tried to extract the actual sparse matrix … which proved to be difficult and
     expensive: It takes almost 17 s to do this!'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，`CountTransformer`并没有生成实际的`SparseMatrixCSC`，而是生成了一个`LinearAlgebra.Adjoint{Int64,SparseMatrixCSC{Int64,
+    Int64}}`。也就是说，稀疏矩阵被包装在其他结构中。这可能会成为一个问题。因此，我尝试提取实际的稀疏矩阵……但证明这是困难且昂贵的：提取过程需要将近17秒！
 - en: 'But the resulting **“pure” sparse matrix** is much more efficient:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是最终得到的**“纯”稀疏矩阵**要高效得多：
 - en: '`count_words_base`: **3.22 s**'
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`count_words_base`: **3.22 s**'
 - en: '`count_words_01`: **1.435 s**'
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`count_words_01`: **1.435 s**'
 - en: As we have to add almost 17 s for the extraction to these numbers, this doesn’t
     really improve the process as a whole. So I was looking for alternatives and found
     these within the `[TextAnalysis](https://github.com/JuliaText/TextAnalysis.jl?tab=readme-ov-file)`-package,
     which also has a function to create a DTM. The creation is as performant as with
     `CountTransformer`, but it produces a “pure” sparse matrix directly.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们必须为提取这些数字额外增加将近17秒，这并没有从整体上提升处理速度。因此，我在寻找替代方案时，找到了`[TextAnalysis](https://github.com/JuliaText/TextAnalysis.jl?tab=readme-ov-file)`包，其中也有一个创建DTM的函数。创建过程与`CountTransformer`一样高效，但它直接生成“纯”稀疏矩阵。
 - en: So we get the runtime numbers for the sparse matrix without having to add another
     17 s. This results in a **speedup** at this point of 20.363/1.435 = **14.2.**
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们可以获得稀疏矩阵的运行时数字，而无需额外增加17秒。这在这一点上为我们带来了**加速**，即20.363/1.435 = **14.2**。
 - en: 'OPT2: Multithreading'
+  id: totrans-77
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 'OPT2: 多线程'
 - en: With Julia it is relatively easy to use multithreading. Especially in our case
     where we iterate over a data structure and access in each iteration another part
     of that data structure. So each iteration could potentially be executed within
     another thread without having to care about data access conflicts.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用Julia相对容易实现多线程，尤其是在我们的案例中，我们迭代一个数据结构并在每次迭代中访问该数据结构的不同部分。因此，每次迭代都可以在另一个线程中执行，而不必担心数据访问冲突。
 - en: 'In this setting we just have to put the macro `@threads` in front of the `for`-statement
     and Julia does the rest for us. I.e. it distributes the different iterations to
     the threads which are available on a particular machine. As the M3 chip has eight
     kernels, I’ve set the `JULIA_NUM_THREADS` environment variable to 8 and changed
     the for-loop-part of the `count_words`-function as follows (resulting in the next
     optimised version `count_words_02`):'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种设置下，我们只需要在`for`语句前面加上宏`@threads`，然后Julia会为我们做其余的工作。也就是说，它会将不同的迭代分配到特定机器上可用的线程中。由于M3芯片有八个内核，我将`JULIA_NUM_THREADS`环境变量设置为8，并将`count_words`函数中的for循环部分更改如下（得到下一个优化版本`count_words_02`）：
 - en: '[PRE4]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: This gives us a runtime of **231 ms** which is a **speedup** of 20.363/0.231
     = **88.2.**
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给我们带来了**231 ms**的运行时间，**加速**为20.363/0.231 = **88.2**。
 - en: 'OPT3: GPU and Matrix Operations'
+  id: totrans-82
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: OPT3：GPU与矩阵运算
 - en: Getting even more performance is often achieved by using the GPU. But this can
     only be done, if the algorithm fits the quite special computing structure of a
     GPU. Ideally your algorithm should be made up of vector and matrix operations.
     So let’s explore, if our `count_words` function can be adapted this way.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 获得更高的性能通常通过使用GPU来实现。但这只有在算法能够适应GPU这种非常特殊的计算结构时才能做到。理想情况下，您的算法应该由向量和矩阵运算组成。那么我们来探讨一下，是否可以将我们的`count_words`函数以这种方式进行适配。
 - en: Filtering Rows
+  id: totrans-84
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 过滤行
 - en: 'Our example from above with just three documents D1, D2 and D3 is perhaps a
     good starting point to get a better understanding. `X` and `y` for that simple
     example are as follows:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们上面的例子仅包含三份文档D1、D2和D3，可能是一个不错的起点，帮助我们更好地理解。对于这个简单的例子，`X`和`y`如下所示：
 - en: '[PRE5]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: The function `count_words` adds the numbers in the columns, but only for specific
     rows. In this example, first rows 1 and 3 are added and then we are looking at
     row 2\. I.e. we need sort of a filter for the rows and then we can just sum up
     columns.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数`count_words`会对列中的数字求和，但只针对特定的行。在这个例子中，首先加总第1行和第3行的数据，然后查看第2行。也就是说，我们需要某种过滤器来筛选行，然后我们可以直接对列进行求和。
 - en: 'In Julia it is possible to index an array using a `BitArray`. I.e. `X[[1,0,1],:]`
     will give as rows 1 and 3 of `X` and `X[[0,1,0],:]` gives us row 2\. We can get
     these “filters”, if we replace “ham” and “spam” in `y` by ones and zeros and convert
     it to the following matrix:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Julia中，可以使用`BitArray`对数组进行索引。也就是说，`X[[1,0,1],:]`会返回`X`的第1行和第3行，`X[[0,1,0],:]`则返回第2行。如果我们用1和0替换`y`中的“ham”和“spam”，并将其转换为以下矩阵，我们就可以得到这些“过滤器”：
 - en: '[PRE6]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: So `yb[:,1]` would be the first filter and `yb[:,2]` the second one.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，`yb[:,1]`将是第一个过滤器，`yb[:,2]`将是第二个过滤器。
 - en: 'For the spam model we can convert the `CategoricalArray` `y` to such a bit
     matrix with the following function (`y.refs` is the internal representation using
     just integers):'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于垃圾邮件模型，我们可以使用以下函数将`CategoricalArray`类型的`y`转换为这样的二进制矩阵（`y.refs`是仅使用整数的内部表示）：
 - en: '[PRE7]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Using this representation of `y` we can implement `count_words` as follows:'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这种表示法的`y`，我们可以这样实现`count_words`：
 - en: '[PRE8]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: This variant has a runtime of **652 ms** (on CPU). So not faster than our last
     version above, but we are still exploring.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 该变体的运行时间为**652 ms**（在CPU上）。所以并没有比上面的版本更快，但我们仍在进行探索。
 - en: Dot Product
+  id: totrans-96
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 点积
 - en: 'Let’s go back again to the simple three document example:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次回到简单的三文档示例：
 - en: '[PRE9]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'We can also achieve our goal, if we compute the *dot product* of each column
     in `X` first with the first column of `yb` and then doing the same with the second
     column of `yb`. This leads to `count_words_04`:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们也可以通过计算`X`中每一列与`yb`的第一列的*点积*，然后再与`yb`的第二列做同样的操作来实现我们的目标。这将得到`count_words_04`：
 - en: '[PRE10]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: This results in a runtime of **4.96 ms** (on CPU) which is now a **speedup**
     of 20.363/0.00496 = **4,105.4!**
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 这导致运行时间为**4.96 ms**（在CPU上），现在的**加速**为20.363/0.00496 = **4,105.4!**
 - en: 'This drastic improvement needs perhaps some explanation. Two things go here
     hand in hand:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种剧烈的改进可能需要一些解释。这里有两个因素是相辅相成的：
 - en: Vector operations like the dot product are super optimised in Julia relying
     on proven libraries like [BLAS](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms).
+  id: totrans-103
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 像点积这样的向量运算在Julia中被超级优化，依赖于像[BLAS](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms)这样的经过验证的库。
 - en: The sparse matrix type is very efficient in this context. Our dense reference
     matrix `Xref` has a runtime of only 455.7 ms in this case.
+  id: totrans-104
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 稀疏矩阵类型在此上下文中非常高效。在这种情况下，我们的密集参考矩阵`Xref`的运行时间仅为455.7毫秒。
 - en: Matrix Multiplication
+  id: totrans-105
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 矩阵乘法
 - en: 'Taking the ideas from above a bit further we can represent `yb` in its transposed
     form as follows:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 将上述的思路稍作扩展，我们可以以其转置形式表示`yb`，如下所示：
 - en: '[PRE11]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'This depiction makes the shortest and probably most elegant version of `count_words`
     more or less obvious. It is just a matrix multiplication:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种描述使得`count_words`的最简洁、也许是最优雅的版本几乎显而易见。它只是一个矩阵乘法：
 - en: '[PRE12]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: It is also the fastest version with **1.105 ms** leading to a speedup of 20.363/0.00105
     = **19,393**!
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 它也是最快的版本，**1.105毫秒**，带来20.363/0.00105 = **19,393**倍的加速！
 - en: Multithreading is here implicit as the underlying BLAS library is by default
     multithreaded. The number of threads used can be obtained by `BLAS.get_num_threads()`.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 多线程在这里是隐式的，因为底层的BLAS库默认是多线程的。可以通过`BLAS.get_num_threads()`获取使用的线程数。
 - en: Moreover this solution scales well. Applied to the complete dataset, the matrix
     `X` with 33,716 x 159,093 elements, it takes 13.57 ms to complete. This is a speedup
     of 241.076/0.01357 = **17,765.**
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，这个解决方案具有良好的扩展性。应用于完整数据集，包含33,716 x 159,093个元素的矩阵`X`，需要13.57毫秒才能完成。这是241.076/0.01357
+    = **17,765**倍的加速。
 - en: 'OPT4: GPU'
+  id: totrans-113
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 'OPT4: GPU'
 - en: 'Finally, applying the last variant to the GPU can be done using the `Metal.jl`-package.
     For this purpose the matrices used have only to be converted to their corresponding
     metal array type using the `mtl`-function:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，将最后一个变体应用到GPU上可以通过`Metal.jl`包完成。为此，所使用的矩阵只需通过`mtl`函数转换为相应的金属数组类型：
 - en: '[PRE13]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'The `count_words` variant for the GPU is, apart from the data types, the same
     as above:'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于GPU的`count_words`变体，除了数据类型外，和上面的一样：
 - en: '[PRE14]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Its runtime is only **0.306 ms**. But copying the data to the GPU (using `mtl`)
     takes much longer than the time gained by running the algorithm on the GPU. So
     it’s not really faster.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 它的运行时间仅为**0.306毫秒**。但是将数据复制到GPU（使用`mtl`）所需的时间要远远超过在GPU上运行算法所节省的时间。因此，它并不是真的更快。
 - en: 'Apart from that, the `Metal`-package for Apple silicon GPUs is not quite as
     mature as e.g. `CUDA.jl`. This becomes visible when trying to convert the large
     matrix `X` to a metal array: The conversion stops with an error message.'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 除此之外，适用于Apple Silicon GPU的`Metal`包还不如例如`CUDA.jl`那样成熟。这一点在尝试将大型矩阵`X`转换为金属数组时变得明显：转换会停止并显示错误信息。
 - en: Conclusion
+  id: totrans-120
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Of course not every algorithm can be converted to such a concise variant as
     we have in `count_words_05`. But even the more “classic” implementation `count_words_04`
     is more than 4,000 times faster than our starting point. Many of the performance
@@ -538,5 +796,7 @@
     Apart from this, I would recommend anyone, who wants go get more performance out
     of a Julia program, to follow the “[Performance Tips](https://docs.julialang.org/en/v1/manual/performance-tips/)”
     in the Julia documentation.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，并非每个算法都可以像`count_words_05`那样转换为如此简洁的变体。但即便是更“经典”的实现`count_words_04`也比我们最初的版本快了超过4,000倍。本文中展示的许多性能优化措施也可以应用于其他函数。此外，我还建议任何想要从Julia程序中获得更多性能的人，遵循Julia文档中的“[性能优化提示](https://docs.julialang.org/en/v1/manual/performance-tips/)”。

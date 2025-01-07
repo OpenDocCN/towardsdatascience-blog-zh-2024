@@ -1,311 +1,463 @@
 - en: The Power of Optimization in Designing Experiments Involving Small Samples
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 优化在设计涉及小样本实验中的力量
 - en: 原文：[https://towardsdatascience.com/the-power-of-optimization-in-designing-experiments-involving-small-samples-de87f9783d3b?source=collection_archive---------6-----------------------#2024-10-21](https://towardsdatascience.com/the-power-of-optimization-in-designing-experiments-involving-small-samples-de87f9783d3b?source=collection_archive---------6-----------------------#2024-10-21)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/the-power-of-optimization-in-designing-experiments-involving-small-samples-de87f9783d3b?source=collection_archive---------6-----------------------#2024-10-21](https://towardsdatascience.com/the-power-of-optimization-in-designing-experiments-involving-small-samples-de87f9783d3b?source=collection_archive---------6-----------------------#2024-10-21)
 - en: A step-by-step guide to designing more precise experiments using optimization
     in Python
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用Python中的优化技术设计更精确实验的逐步指南
 - en: '[](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)[![Leandro
     Magga](../Images/75d2b6b31635ac2bd409bfb91d151ac4.png)](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------)
     [Leandro Magga](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)[![Leandro
+    Magga](../Images/75d2b6b31635ac2bd409bfb91d151ac4.png)](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------)
+    [Leandro Magga](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------)
     ·10 min read·Oct 21, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------)
+    ·10分钟阅读·2024年10月21日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: Experimentation is the foundation for testing hypotheses with scientific rigor.In
     medicine, it is used to assess the effect of new treatments on patients, while
     in the digital world, tech giants like [Amazon](https://www.amazon.jobs/en/teams/aeo),
     [Netflix](https://netflixtechblog.com/experimentation-is-a-major-focus-of-data-science-across-netflix-f67923f8e985),
     and [Uber](https://www.uber.com/en-CL/blog/xp/) run thousands of experiments each
     year to optimize and improve their platforms.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 实验是用科学严谨的方法检验假设的基础。在医学领域，实验用于评估新疗法对患者的效果；而在数字世界中，像[Amazon](https://www.amazon.jobs/en/teams/aeo)、[Netflix](https://netflixtechblog.com/experimentation-is-a-major-focus-of-data-science-across-netflix-f67923f8e985)和[Uber](https://www.uber.com/en-CL/blog/xp/)这样的科技巨头每年都会进行成千上万次的实验，以优化和改进他们的平台。
 - en: For large-scale experiments, random assignment is commonly used and its considered
     the “Gold Standard”. With a substantial amount of data, randomness tends to produce
     comparable groups, where important pre-experiment factors are balanced and the
     exchangeability assumption holds.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于大规模实验，通常使用随机分配，并且被认为是“黄金标准”。在数据量充足的情况下，随机性往往能够生成可比较的组，其中重要的实验前因素被平衡，并且交换性假设得以成立。
 - en: However, when the sample for an experiment is very small, random assignment
     often fails to create statistically equivalent groups. So, **how can we split
     units efficiently between treatment and control groups?**
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，当实验的样本非常小的时候，随机分配通常无法创建统计上等效的组。因此，**我们如何高效地在处理组和控制组之间分配单元呢？**
 - en: 'What you will learn:'
+  id: totrans-9
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 你将学到的内容：
 - en: In this post, I’ll explain an optimization-based approach to constructing equivalent
     groups for an experiment which was proposed by Bertsimas et al. in [this article](https://medium.com/r?url=https%3A%2F%2Fpubsonline.informs.org%2Fdoi%2F10.1287%2Fopre.2015.1361).
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我将解释一种基于优化的方法，用于构建等效的实验组，这是Bertsimas等人在[这篇文章](https://medium.com/r?url=https%3A%2F%2Fpubsonline.informs.org%2Fdoi%2F10.1287%2Fopre.2015.1361)中提出的。
 - en: 'With a simple example in Python we’ll learn how to:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过Python中的一个简单示例，我们将学习如何：
 - en: Design an optimization-based experiment.
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设计一个基于优化的实验。
 - en: Perform inference using bootstrap techniques.
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用自助法技术进行推断。
 - en: Implement the code in Python for your own experiments
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在Python中实现代码，以便你自己的实验使用
 - en: The Power of Optimization
+  id: totrans-15
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 优化的力量
 - en: Before diving into our example and Python code, let’s first discuss some insights
     into the benefits of using an optimization-based approach to design experiments.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 在深入研究我们的例子和Python代码之前，首先讨论一下使用基于优化的方法来设计实验的好处。
 - en: Optimization makes statistics more precise, allowing for a more powerful inference.
+  id: totrans-17
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 优化使得统计结果更加精确，从而可以进行更强有力的推断。
 - en: The optimization-based approach **matches the experimental groups to minimize
     the en-masse discrepancies in means and variances**. This makes the statistics
     much more precise, concentrating them tightly around their nominal values while
     still being unbiased estimates. This increased precision allows for more powerful
     inference (using the bootstrap algorithm, which we’ll cover later).
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于优化的方法**将实验组进行匹配，以最小化整体均值和方差的差异**。这样可以使统计结果更加精确，将其紧密集中在名义值周围，同时仍然保持无偏的估计。这种精度的提高使得推断能力更强（我们稍后会介绍使用的自助法算法）。
 - en: This allows researchers to draw statistically valid conclusions with less data,
     reducing experimental costs — an important benefit in disciplines like oncology
     research, where testing chemotherapy agents in mouse cancer models is both laborious
     and expensive. Moreover, compared to other methods for small sample sizes, optimization
     has been shown to outperform them, as we’ll see later with simulated experiments.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 这使得研究人员能够通过更少的数据得出统计上有效的结论，从而减少实验成本——这是肿瘤学研究等学科中的一个重要优势，因为在小鼠癌症模型中测试化疗药物既繁琐又昂贵。此外，与其他适用于小样本量的方法相比，优化方法已经证明在效果上优于其他方法，正如我们稍后通过模拟实验看到的那样。
 - en: Now, let’s dive into an example to see how to apply this approach using Python!
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们深入一个例子，看看如何使用Python应用这种方法！
 - en: Implementing the Algorithm in Python
+  id: totrans-21
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在Python中实现算法
 - en: 'Case Study: A Drug Experiment with 20 Mice'
+  id: totrans-22
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 案例研究：20只小鼠的药物实验
 - en: 'Let’s consider an experiment with 20 mice, where we are interested in studying
     the effect of a drug on tumor growth with varying initial tumor sizes. Suppose
     that the initial tumor sizes are normally distributed with a mean of 200 mg and
     a standard deviation of 300 mg (truncated to ensure non-negative values). We can
     generate the population of mice with the following Python code:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们有一个20只小鼠的实验，研究药物对肿瘤生长的影响，肿瘤大小初始值不同。假设初始肿瘤大小呈正态分布，均值为200 mg，标准差为300 mg（为了确保值为非负数而进行了截断）。我们可以通过以下Python代码生成小鼠种群：
 - en: '[PRE0]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '[PRE1]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Now, we need to divide the 20 rodents into two groups of 10 each — one group
     will receive the treatment, while the other will receive a placebo. We’ll accomplish
     this using optimization.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们需要将20只啮齿动物分成两组，每组10只——一组将接受治疗，另一组将接受安慰剂。我们将通过优化来完成这一任务。
 - en: We will also assume that tumor growth is observed over a one-day period and
     follows the Gompertz model (detailed in [*Mathematical Models in Cancer Research*](https://medium.com/r?url=https%3A%2F%2Fwww.semanticscholar.org%2Fpaper%2FMathematical-models-in-cancer-research-Wheldon%2F9e3176627ff018f369b87b1aa8c97df203020f76)).
     The treatment is assumed to have a deterministic effect of reducing tumor size
     by 250 mg.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还假设肿瘤生长是在一天内观察的，并且遵循Gompertz模型（详见[*《癌症研究中的数学模型》*](https://medium.com/r?url=https%3A%2F%2Fwww.semanticscholar.org%2Fpaper%2FMathematical-models-in-cancer-research-Wheldon%2F9e3176627ff018f369b87b1aa8c97df203020f76)）。假设治疗具有确定性效果，可以减少肿瘤大小250
+    mg。
 - en: Experimental Design
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实验设计
 - en: We aim to formulate the creation of equivalent groups as an optimization problem,
     where the objective is to minimize the discrepancy in both the mean and varianceof
     the initial tumor weight.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的目标是将等效组的创建表述为一个优化问题，其中目标是最小化初始肿瘤重量的均值和方差差异。
 - en: 'To implement this, we need to follow three steps:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现这一目标，我们需要遵循三个步骤：
 - en: 'Paso 1: Normalize the Initial Tumor Weight'
+  id: totrans-31
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第1步：规范化初始肿瘤重量
 - en: 'First, the entire sample must be pre-processed and the metric should be normalized
     so that it has a mean of zero and unit variance:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，整个样本必须进行预处理，并且度量标准应该规范化，使其均值为零，方差为单位：
 - en: '[PRE2]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Paso 2: Create the groups using optimization'
+  id: totrans-34
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第2步：使用优化创建组
 - en: 'Next, we need to implement the general optimization model that construct *m-groups*
     with *k-subjects* each, minimizing the *maximum discrepancy between any two groups*
     (a full description of the model variables can be found in [the article](https://pubsonline.informs.org/doi/10.1287/opre.2015.1361))
     and passing it the normalized metric:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们需要实现一个通用的优化模型，该模型构建具有*k个受试者*的*m组*，并最小化*任意两组之间的最大差异*（有关模型变量的完整描述，请参见[文章](https://pubsonline.informs.org/doi/10.1287/opre.2015.1361)），并传递归一化度量：
 - en: '![](../Images/73f213fb1e811cde82574a44e4a94e8a.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/73f213fb1e811cde82574a44e4a94e8a.png)'
 - en: Optimization model that creates m-groups of k-units each (from [Bertsimas et
     al. 2015](https://pubsonline.informs.org/doi/10.1287/opre.2015.1361)).
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建每个含有k个单位的m组的优化模型（来自[Bertsimas et al. 2015](https://pubsonline.informs.org/doi/10.1287/opre.2015.1361)）。
 - en: 'The mathematical model can be implemented in Python using the ortools library
     with the SCIP solver, as follows:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 该数学模型可以使用Python中的ortools库和SCIP求解器实现，具体如下：
 - en: '[PRE3]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '[PRE4]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '[PRE5]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '***Note:*** *The parameter* rho *controls the trade-off between minimizing
     discrepancies in the first moment and second moment and is chosen by the researcher.
     In our example, we have considered* rho *equals 0.5.*'
+  id: totrans-42
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '***注意：*** *参数* rho *控制最小化一阶矩和二阶矩之间差异的折衷，由研究人员选择。在我们的示例中，我们假设* rho *等于0.5。*'
 - en: 'Paso 3: Randomize which group receives which treatment'
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Paso 3：随机化分配哪组接受哪种治疗
 - en: 'Lastly, we randomly determine which experimental mice group will receive the
     drug, and which will receive the placebo:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们随机决定哪一组实验小鼠将接受药物，哪一组将接受安慰剂：
 - en: '[PRE6]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '[PRE7]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Let’s see the quality of the result by analyzing the mean and variance of the
     initial tumor weights in both groups:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过分析两组初始肿瘤权重的均值和方差来查看结果的质量：
 - en: '[PRE8]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[PRE9]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '**This is the group division with minimal discrepancy** in the mean and variance
     of pre-experimental tumor weights!Now let’s conduct the experiment and analyze
     the results.'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '**这是预实验肿瘤权重均值和方差最小的组分配**！现在让我们进行实验并分析结果。'
 - en: Inference with bootstrap
+  id: totrans-51
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用自助法进行推断
 - en: '**Simulating tumor growth**'
+  id: totrans-52
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**模拟肿瘤生长**'
 - en: 'Given the established treatment assignment, tumor growth is simulated over
     one day using the Gompertz model, assuming an effect of -250 mg for the treated
     group:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据已确定的治疗分配，假设治疗组的效果为-250毫克，肿瘤生长在一天内使用Gompertz模型进行模拟：
 - en: '[PRE10]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '[PRE11]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Now that we have the final tumor weights, we observe that the average final
     tumor weight in the treatment group is 260 mg lower than in the control group.
     However, to determine if this difference is statistically significant, we need
     to apply the following bootstrap mechanism to calculate the p-value.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经得到了最终的肿瘤权重，我们观察到治疗组的平均最终肿瘤重量比对照组低260毫克。然而，为了确定这个差异是否具有统计学意义，我们需要应用以下自助法机制来计算p值。
 - en: '**Bootstrap inference for optimization-based design**'
+  id: totrans-59
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**基于优化设计的自助法推断**'
 - en: “In an optimization-based design, statistics like the average difference between
     groups become more precise but no longer follow the usual distributions. Therefore,
     a bootstrap inference method should be used to draw valid conclusions.”
+  id: totrans-60
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “在基于优化的设计中，诸如组间平均差异之类的统计数据变得更加精确，但不再遵循常规分布。因此，应使用自助法推断方法来得出有效结论。”
 - en: 'The boostrap inference method proposed by [Bertsimas et al. (2015)](https://medium.com/r?url=https%3A%2F%2Fpubsonline.informs.org%2Fdoi%2F10.1287%2Fopre.2015.1361)
     involves using sampling with replacement to construct the baseline distribution
     of our estimator. In each iteration, the group division is performed using optimization,
     and finally the the *p-value* is derived as follows:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Bertsimas et al. (2015)](https://medium.com/r?url=https%3A%2F%2Fpubsonline.informs.org%2Fdoi%2F10.1287%2Fopre.2015.1361)
+    提出的自助法推断方法包括使用带放回的抽样构建估计量的基准分布。在每次迭代中，使用优化进行组分配，最后得出*p值*，具体如下：'
 - en: '[PRE14]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '[PRE15]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '[PRE16]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: The observed difference of -260 mg between the groups is significant at the
     5% significance level (the p-value less than 0.05). Therefore, we reject the null
     hypothesis of equal means and conclude that the treatment had a statistically
     significant effect.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 组间观察到的-260毫克的差异在5%的显著性水平下是显著的（p值小于0.05）。因此，我们拒绝零假设（均值相等），并得出结论：治疗具有统计学显著效应。
 - en: '**Results over 1000 mice experiments**'
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**1000只小鼠实验的结果**'
 - en: We can simulate the experiment multiple times, generating populations of mice
     with different initial tumor weights, drawn from the same normal distribution
     with a mean of 200 mg and a standard deviation of 300 mg.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以多次模拟实验，生成具有不同初始肿瘤重量的小鼠群体，这些小鼠来自相同的正态分布，均值为200 mg，标准差为300 mg。
 - en: 'This allows us to compare the optimization-based design with other experimental
     designs. In the following graph, I compare the optimization approach with simple
     random assignment and stratified random assignment (where the strata were created
     using a k-means algorithm based on initial tumor weight):'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 这使我们能够将基于优化的设计与其他实验设计进行比较。在下图中，我将优化方法与简单随机分配和分层随机分配进行了比较（其中，分层是使用基于初始肿瘤重量的k-means算法创建的）：
 - en: '![](../Images/95504d0add5f8dacff5e62d5f7f6d1e5.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/95504d0add5f8dacff5e62d5f7f6d1e5.png)'
 - en: Results of 1000 simulated experiments to detect an effect of -250 mg (Image
     by author).
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 1000次模拟实验的结果，用于检测-250 mg的效应（图片来源：作者）。
 - en: In their article, the authors also compare the optimization-based approach with
     re-randomization and pairwise matching across different effect sizes and group
     sizes. I highly recommend reading the full article if you’re interested in exploring
     the details further!
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 在他们的文章中，作者还将基于优化的方法与重新随机化和配对匹配在不同效应大小和组大小下进行了比较。如果你有兴趣深入探索细节，我强烈推荐阅读完整的文章！
 - en: Congratulations! You’ve reached the end 🎉 If you found this article interesting,
     consider following me. I often share ideas about optimization and causal inference.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 恭喜！你已经阅读完毕🎉如果你觉得这篇文章有趣，可以考虑关注我。我经常分享关于优化和因果推断的想法。

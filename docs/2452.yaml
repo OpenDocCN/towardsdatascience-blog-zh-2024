@@ -1,59 +1,90 @@
 - en: Evaluating Edge Detection? Don’t Use RMSE, PSNR or SSIM
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 评估边缘检测？不要使用 RMSE、PSNR 或 SSIM
 - en: 原文：[https://towardsdatascience.com/evaluating-edge-detection-dont-use-rmse-psnr-or-ssim-841a0f2a12cb?source=collection_archive---------4-----------------------#2024-10-08](https://towardsdatascience.com/evaluating-edge-detection-dont-use-rmse-psnr-or-ssim-841a0f2a12cb?source=collection_archive---------4-----------------------#2024-10-08)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/evaluating-edge-detection-dont-use-rmse-psnr-or-ssim-841a0f2a12cb?source=collection_archive---------4-----------------------#2024-10-08](https://towardsdatascience.com/evaluating-edge-detection-dont-use-rmse-psnr-or-ssim-841a0f2a12cb?source=collection_archive---------4-----------------------#2024-10-08)
 - en: Empirical and theoretical evidence for why Figure of Merit (FOM) is the best
     edge-detection evaluation metric
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为什么“绩效指标”（Figure of Merit，FOM）是最佳的边缘检测评估指标的经验和理论依据
 - en: '[](https://conorosullyds.medium.com/?source=post_page---byline--841a0f2a12cb--------------------------------)[![Conor
     O''Sullivan](../Images/2dc50a24edb12e843651d01ed48a3c3f.png)](https://conorosullyds.medium.com/?source=post_page---byline--841a0f2a12cb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--841a0f2a12cb--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--841a0f2a12cb--------------------------------)
     [Conor O''Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--841a0f2a12cb--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://conorosullyds.medium.com/?source=post_page---byline--841a0f2a12cb--------------------------------)[![Conor
+    O''Sullivan](../Images/2dc50a24edb12e843651d01ed48a3c3f.png)](https://conorosullyds.medium.com/?source=post_page---byline--841a0f2a12cb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--841a0f2a12cb--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--841a0f2a12cb--------------------------------)
+    [Conor O''Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--841a0f2a12cb--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--841a0f2a12cb--------------------------------)
     ·12 min read·Oct 8, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--841a0f2a12cb--------------------------------)
+    ·阅读时长：12分钟·2024年10月8日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: 'Image segmentation and edge detection are closely related tasks. Take this
     output from a coastal segmentation model for example:'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像分割和边缘检测是密切相关的任务。以一个海岸线分割模型的输出为例：
 - en: '![](../Images/9aec88b76d5b59e4e2d7e80aa58b3054.png)'
+  id: totrans-7
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9aec88b76d5b59e4e2d7e80aa58b3054.png)'
 - en: 'Figure 1: going from segmention mask to edge map (source: author) (dataset:
     [LICS](https://zenodo.org/records/13742222)) (CC BY 4.0)'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 1：从分割掩模到边缘图（来源：作者）（数据集：[LICS](https://zenodo.org/records/13742222)）（CC BY
+    4.0）
 - en: The model will classify every pixel as either land or ocean (segmentation mask).
     Then the coastline is the pixels where this classification changes (edge map).
     In general, edge detection can be done using the boundaries of the output of an
     image segmentation model.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型会将每个像素分类为陆地或海洋（分割掩模）。然后，海岸线就是分类变化的像素（边缘图）。通常，边缘检测可以通过图像分割模型输出的边界来实现。
 - en: I wanted to use this relationship in my research to help evaluate coastal image
     segmentation models. Similar research all use confusion matrix-based metrics like
     accuracy, precision and recall. These compare all pixels in a predicted segmentation
     mask to a ground truth mask.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我希望在我的研究中利用这种关系来帮助评估海岸线图像分割模型。类似的研究都使用基于混淆矩阵的指标，如准确率、精确率和召回率。这些指标将预测的分割掩模中的所有像素与地面真实掩模进行比较。
 - en: The problem is these might overestimate performance in the most important region
     — the coastline.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题在于，这些方法可能高估了在最重要区域——海岸线——的性能。
 - en: The majority of pixels are in the middle of the ocean or completely surrounded
     by land. This makes them easier to classify than those close to the coastline.
     You can see this in Figure 2\. Unfortunately, these errors may be shrouded in
     the sea of correctly classified pixels.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数像素位于海洋的中央或完全被陆地包围。这些像素比靠近海岸线的像素更容易分类。你可以在图 2 中看到这一点。不幸的是，这些错误可能会被大量正确分类的像素所掩盖。

@@ -1,170 +1,248 @@
 - en: Voice and Staff Separation in Symbolic Piano Music with GNNs
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用GNNs进行符号化钢琴音乐中的声部与五线谱分离
 - en: 原文：[https://towardsdatascience.com/voice-and-staff-separation-in-symbolic-piano-music-with-gnns-0cab100629cf?source=collection_archive---------2-----------------------#2024-10-27](https://towardsdatascience.com/voice-and-staff-separation-in-symbolic-piano-music-with-gnns-0cab100629cf?source=collection_archive---------2-----------------------#2024-10-27)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/voice-and-staff-separation-in-symbolic-piano-music-with-gnns-0cab100629cf?source=collection_archive---------2-----------------------#2024-10-27](https://towardsdatascience.com/voice-and-staff-separation-in-symbolic-piano-music-with-gnns-0cab100629cf?source=collection_archive---------2-----------------------#2024-10-27)
 - en: 'This post covers my recent paper ***Cluster and Separate: A GNN Approach to
     Voice and Staff Prediction for Score Engraving*** published at ISMIR 2024'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 本文涵盖了我最近发表的论文***《集群与分离：基于GNN的乐谱雕刻中的声部与五线谱预测方法》***，该论文发表于ISMIR 2024。
 - en: '[](https://manoskary.medium.com/?source=post_page---byline--0cab100629cf--------------------------------)[![Emmanouil
     Karystinaios](../Images/120d889f330aa7b433a0668a1224e1c8.png)](https://manoskary.medium.com/?source=post_page---byline--0cab100629cf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0cab100629cf--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0cab100629cf--------------------------------)
     [Emmanouil Karystinaios](https://manoskary.medium.com/?source=post_page---byline--0cab100629cf--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://manoskary.medium.com/?source=post_page---byline--0cab100629cf--------------------------------)[![Emmanouil
+    Karystinaios](../Images/120d889f330aa7b433a0668a1224e1c8.png)](https://manoskary.medium.com/?source=post_page---byline--0cab100629cf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0cab100629cf--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0cab100629cf--------------------------------)
+    [Emmanouil Karystinaios](https://manoskary.medium.com/?source=post_page---byline--0cab100629cf--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0cab100629cf--------------------------------)
     ·9 min read·Oct 27, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0cab100629cf--------------------------------)
+    ·9分钟阅读·2024年10月27日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/35cb15f4617539ec42c48e0308c27ab2.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/35cb15f4617539ec42c48e0308c27ab2.png)'
 - en: Background image originally created with Dall-E 3
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 背景图像最初由Dall-E 3创建
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: Music encoded in formats like MIDI, even when it includes quantized notes, time
     signatures, or bar information, often lacks important elements for visualization
     such as voice and staff information. This limitation also applies to the output
     from music generation, transcription, or arrangement systems. As a result, such
     music can’t be easily transformed into a readable musical score for human musicians
     to interpret and perform.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 用MIDI等格式编码的音乐，即使包含了量化的音符、节拍签名或小节信息，通常也缺少一些用于可视化的重要元素，比如声部和五线谱信息。这一限制同样适用于音乐生成、转录或编排系统的输出。因此，这种音乐无法轻松地转化为人类音乐家可以解读和演奏的可读乐谱。
 - en: It’s worth noting that voice and staff separation are just two of many aspects
     — others include pitch spelling, rhythmic grouping, and tuplet creation — that
     a score engraving system might address.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得注意的是，声部和五线谱分离只是乐谱雕刻系统可能需要解决的众多问题中的两个——其他问题还包括音高拼写、节奏分组和连音符创建等。
 - en: In musical terms, “voice” often refers to a sequence of non-overlapping notes,
     typically called a monophonic voice. However, this definition falls short when
     dealing with polyphonic instruments. For example, voices can also include chords,
     which are groups of notes played simultaneously, perceived as a single unit. In
     this context, we refer to such a voice, capable of containing chords, as a homophonic
     voice.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在音乐术语中，“声部”通常指的是一系列不重叠的音符，通常称为单声部。然而，当处理多声部乐器时，这一定义就显得不足。例如，声部也可以包括和弦，和弦是同时演奏的音符组，通常被视为一个整体。在这种情况下，我们将能够包含和弦的声部称为和声部。
 - en: The problem
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 问题
 - en: Separating the notes from a quantized symbolic music piece (e.g., a MIDI file)
     into multiple voices and staves is an important and non-trivial task. It is a
     fundamental part of the larger task of music score engraving (or score type-setting),
     which aims to produce readable musical scores for human performers.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 将量化的符号化音乐作品（例如MIDI文件）中的音符分离为多个声部和五线谱是一个重要且非平凡的任务。它是音乐乐谱雕刻（或乐谱排版）这一更大任务的基本部分，旨在为人类演奏者制作可读的乐谱。
 - en: The musical score is an important tool for musicians due to its ability to convey
     musical information in a compact graphical form. Compared to other music representations
     that may be easier to define and process for machines, such as MIDI files, the
     musical score is characterized by how efficiently trained musicians can read it.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 乐谱是音乐家的一项重要工具，因为它能够以紧凑的图形形式传达音乐信息。与其他可能对机器来说更易定义和处理的音乐表示方式（如MIDI文件）相比，乐谱的特点在于训练有素的音乐家能够高效地读取它。
 - en: '![](../Images/2c25e1bd58f924668aa559a33335a7e0.png)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2c25e1bd58f924668aa559a33335a7e0.png)'
 - en: Given a Quantized Midi there are many possibilities for transforming it to a
     readable format, which mostly consists of separating the notes into voices and
     staves.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一个量化的MIDI，有许多将其转换为可读格式的可能性，这通常包括将音符分配到不同的声音和五线谱中。
 - en: See below two of these possibilities. They demonstrate how engraving systems
     usually work.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面展示了其中两种可能性。它们展示了刻印系统通常是如何工作的。
 - en: '![](../Images/49ba13108dc736eaf1b733000412a3bc.png)'
+  id: totrans-18
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/49ba13108dc736eaf1b733000412a3bc.png)'
 - en: The big question is how can we make automatic transcription models better.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 大问题是，我们如何能让自动转录模型变得更好。
 - en: Motivation
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 动机
 - en: To develop a more effective system for separating musical notes into voices
     and staves, particularly for complex piano music, we need to rethink the problem
     from a different perspective. We aim to improve the readability of transcribed
     music starting from a quantized MIDI, which is important for creating good score
     engravings and better performance by musicians.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了开发一个更有效的系统，用于将音乐音符分离为声音和五线谱，特别是对于复杂的钢琴音乐，我们需要从不同的角度重新思考这个问题。我们的目标是改善从量化MIDI开始的转录音乐的可读性，这对于制作良好的乐谱刻印和提高音乐家表演效果至关重要。
 - en: 'For good score readability, two elements are probably the most important:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于良好的乐谱可读性，可能最重要的两个元素是：
 - en: the separation of staves, which organizes the notes between the top and bottom
     staff;
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 五线谱的分离，将音符组织在上下五线谱之间；
 - en: and the separation of voices, highlighted in this picture with lines of different
     colors.
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 和声音的分离，通过不同颜色的线条在这张图片中突显出来。
 - en: '![](../Images/84fcb2362072c70b0251752ed7d2c4e2.png)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/84fcb2362072c70b0251752ed7d2c4e2.png)'
 - en: Voice streams in a piano score
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 钢琴谱中的声音流
 - en: In piano scores, as said before, voices are not strictly monophonic but homophonic,
     which means a single voice can contain one or multiple notes playing at the same
     time. From now on, we call these chords. You can see some examples of chord highlighted
     in purple in the bottom staff of the picture above.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在钢琴谱中，如前所述，声音不是严格的单旋律，而是和声，这意味着单一的声音可以包含一个或多个同时演奏的音符。从现在开始，我们称这些为和弦。你可以在上面图片的底部五线谱中看到一些用紫色标出的和弦示例。
 - en: 'From a **machine-learning perspective**, we have two tasks to solve:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 从**机器学习的角度**来看，我们需要解决两个任务：
 - en: The first is **staff separation**, which is straightforward, we just need to
     predict for each note a binary label, for top or bottom staff specifically for
     piano scores.
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第一个是**五线谱分离**，这是直接的，我们只需要为每个音符预测一个二元标签，指定为上五线谱或下五线谱，特别是对于钢琴谱。
 - en: The **voice separation** task may seem similar, after all, if we can predict
     the voice number for each voice, with a multiclass classifier, and the problem
     would be solved!
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**声音分离**任务看起来可能很相似，毕竟，如果我们能为每个声音预测声音编号，使用多类分类器，那么问题就能解决！'
 - en: However, directly predicting voice labels is problematic. We would need to fix
     the maximum number of voices the system can accept, but this creates a trade-off
     between our system flexibility and the class imbalance within the data.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，直接预测声音标签是有问题的。我们需要固定系统可以接受的最大声音数量，但这会在系统的灵活性和数据中的类别不平衡之间造成权衡。
 - en: For example, if we set the maximum number of voices to 8, to account for 4 in
     each staff as it is commonly done in music notation software, we can expect to
     have very few occurrences of labels 8 and 4 in our dataset.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果我们将最大声音数量设置为8，以便在每个五线谱中容纳4个声音，这正如在音乐符号软件中常见的做法那样，我们可以预期在数据集中标签8和4的出现次数会非常少。
 - en: '![](../Images/f844e660e329245c46607713c6f4f4ec.png)'
+  id: totrans-33
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f844e660e329245c46607713c6f4f4ec.png)'
 - en: Voice Separation with absolute labels
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用绝对标签的声音分离
 - en: Looking specifically at the score excerpt here, voices 3,4, and 8 are completely
     missing. Highly imbalanced data will degrade the performance of a multilabel classifier
     and if we set a lower number of voices, we would lose system flexibility.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 特别是看这段乐谱摘录，声音3、4和8完全缺失。高度不平衡的数据将降低多标签分类器的性能，如果我们设置更低的声音数量，我们就会失去系统的灵活性。
 - en: Methodology
+  id: totrans-36
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 方法论
 - en: The solution to these problems is to be able to translate the knowledge the
     system learned on some voices, to other voices. For this, we abandon the idea
     of the multiclass classifier, and frame the **voice prediction** as a **link prediction**
@@ -173,114 +251,166 @@
     problems where for each pair of notes we predict again a binary label telling
     whether the two notes are linked or not. This approach is also valid for chords,
     as you see in the low voice of this picture.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这些问题的办法是能够将系统在某些声音上学到的知识，迁移到其他声音上。为此，我们放弃了多类分类器的想法，并将**声音预测**框架为**链接预测**问题。如果两音符在同一声音中是连续的，我们希望将其连接。这种方法的优点是将一个复杂的问题分解为一组非常简单的问题，对于每对音符，我们再次预测一个二元标签，指示这两个音符是否链接。这种方法对于和弦也是有效的，如图中低音部分所示。
 - en: This process will create a graph which we call an **output graph**. To find
     the voices we can simply compute the connected components of the output graph!
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个过程将创建一个我们称之为**输出图**的图。为了找到声音，我们可以简单地计算输出图的连接组件！
 - en: To re-iterate, we formulate the problem of voice and staff separation as two
     binary prediction tasks.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了重复一下，我们将声音和五线谱分离问题框架为两个二元预测任务。
 - en: For **staff separation**, we predict the staff number for each note,
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于**五线谱分离**，我们预测每个音符的五线谱编号，
 - en: and to **separate voices** we predict links between each pair of notes.
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了**分离声音**，我们预测每对音符之间的连接。
 - en: 'While not strictly necessary, we found it useful for the performance of our
     system to add an extra task:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管不是绝对必要的，但我们发现为提高系统性能，添加一个额外的任务是有用的：
 - en: '**Chord prediction**, where similar to voice, we link each pair of notes if
     they belong to the same chord.'
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**和弦预测**，类似于声音，我们将每对属于同一和弦的音符连接起来。'
 - en: Let’s recap what our system looks like until now, we have three binary classifiers,
     one that inputs single notes, and two that input pairs of notes. What we need
     now are good input features, so our classifiers can use contextual information
     in their prediction. Using deep learning vocabulary, we need a good **note encoder!**
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们回顾一下到目前为止我们的系统样貌，我们有三个二元分类器，一个输入单个音符，另外两个输入音符对。现在我们需要的是良好的输入特征，这样我们的分类器才能在预测中使用上下文信息。使用深度学习术语，我们需要一个好的**音符编码器！**
 - en: We choose to use a Graph Neural Network (GNN) as a note encoder as it often
     excels in symbolic music processing. Therefore we need to create a graph from
     the musical input.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们选择使用图神经网络（GNN）作为音符编码器，因为它在符号音乐处理方面常常表现出色。因此，我们需要从音乐输入中创建一个图。
 - en: For this, we deterministically build a new graph from the Quantized midi, which
     we call **input graph**.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 为此，我们从量化的MIDI中确定性地构建一个新的图，我们称之为**输入图**。
 - en: '![](../Images/7425955fc727932733d104ab886a7db7.png)'
+  id: totrans-47
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7425955fc727932733d104ab886a7db7.png)'
 - en: Creating these input graph can be done easily with tools such as [GraphMuse](https://github.com/manoskary/graphmuse).
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建这些输入图可以通过像[GraphMuse](https://github.com/manoskary/graphmuse)这样的工具轻松完成。
 - en: 'Now, putting everything together, our model looks something like this:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，将所有部分组合起来，我们的模型看起来像这样：
 - en: '![](../Images/9c99e142a69c0acfa00084ed629d47fe.png)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9c99e142a69c0acfa00084ed629d47fe.png)'
 - en: It starts with some quantized midi which is preprocessed to a graph to create
     the input graph.
+  id: totrans-51
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它从一些量化的MIDI开始，这些MIDI经过预处理后转化为图，生成输入图。
 - en: The input graph goes through a Graph Neural Network (GNN) to create an intermediate
     latent representation for every note. We encode every note therefore we call this
     part, the GNN encoder;
+  id: totrans-52
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 输入图通过图神经网络（GNN）处理，以为每个音符创建一个中间潜在表示。因此我们对每个音符进行编码，这部分我们称之为GNN编码器；
 - en: Then we feed this to a shallow MLP classifier for our three tasks, voice, staff,
     and chord prediction. We can also call this part the decoder;
+  id: totrans-53
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 然后我们将其输入到一个浅层的MLP分类器中，进行我们的三个任务：声音、五线谱和和弦预测。我们也可以称这部分为解码器；
 - en: After the prediction, we obtain an output graph.
+  id: totrans-54
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 预测完成后，我们得到一个输出图。
 - en: The approach until now, can be seen as a graph-to-graph approach, where we start
     from the input graph that we built from the MIDI, to predict the output graph
     containing voice and chord links and staff labels.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 直到现在为止，这种方法可以看作是一种图到图的方法，我们从基于MIDI构建的输入图开始，预测包含声音和和弦链接以及五线谱标签的输出图。
 - en: 5\. For the final step, our output graph goes through a **postprocessing** routine
     to create a beautiful and easy-to-read musical score.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 5. 在最后一步，我们的输出图通过**后处理**程序生成一个美观且易于阅读的乐谱。
 - en: 'The goal of the postprocessing is to remove configurations that could lead
     to an invalid output, such as a voice splitting into two voices. To mitigate these
     issues:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 后处理的目标是去除可能导致无效输出的配置，如将一个声部分裂成两个声部。为了解决这些问题：
 - en: we cluster the notes that belong to the same chord according to the chord prediction
     head
+  id: totrans-58
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们根据和弦预测头将属于同一和弦的音符进行聚类。
 - en: We ensure every node has a maximum of one incoming and outgoing edge by applying
     a linear assignment solution;
+  id: totrans-59
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们通过应用线性分配解决方案，确保每个节点最多有一个输入边和一个输出边；
 - en: And, finally, propagate the information back to the original nodes.
+  id: totrans-60
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 最后，将信息传播回原始节点。
 - en: '![](../Images/e9538545fb724c6f5c6a85d39d6b8fe5.png)'
+  id: totrans-61
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e9538545fb724c6f5c6a85d39d6b8fe5.png)'
 - en: Postprocessing routine of our system
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们系统的后处理例程
 - en: One of the standout features of our system is its ability to outperform other
     existing systems in music analysis and score engraving. Unlike traditional approaches
     that rely on musical heuristics — which can sometimes be unreliable — our system
@@ -291,12 +421,16 @@
     and powerful tool for complex musical works. These advantages highlight the system’s
     robust design and its capacity to tackle challenges in music processing with greater
     precision and efficiency.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们系统的一个突出特点是其在音乐分析和乐谱刻印方面超越了其他现有系统。与依赖于音乐启发式的传统方法不同——这些方法有时可能不可靠——我们的系统通过保持简单但稳健的方法，避免了这些问题。此外，我们的系统能够计算整个作品的全局解，无需因低内存和计算需求而进行分段处理。此外，它还能够处理无限数量的声部，使其成为处理复杂音乐作品的更灵活且强大的工具。这些优势突显了系统稳健的设计及其以更高精度和效率处理音乐问题的能力。
 - en: Datasets
+  id: totrans-64
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数据集
 - en: To train and evaluate our system we used two datasets. The J-pop dataset, which
     contains 811 pop piano scores, and the DCML romantic corpus which contains 393
     romantic music piano scores. Comparatively, the DCML corpus is much more complex,
@@ -304,50 +438,72 @@
     number of voices, voice crossing, and staff crossing. Using a combination of complex
     and simpler data we can train a system that remains robust and flexible to diverse
     types of input.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了训练和评估我们的系统，我们使用了两个数据集。J-pop数据集包含811个流行钢琴乐谱，DCML浪漫语料库包含393个浪漫音乐钢琴乐谱。相比之下，DCML语料库更为复杂，因为它包含了许多具有挑战性的乐谱，如高声部数、声部交叉和五线谱交叉等。通过结合复杂和简易的数据，我们可以训练一个既稳健又灵活，能够适应各种输入类型的系统。
 - en: Visualizing the Predictions
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 可视化预测结果
 - en: To accompany our system, we also developed a web interface where the input and
     output graphs can be visualized and explored, to debug complex cases, or simply
     to have a better understanding of the graph creation process. Check it out [here](https://github.com/fosfrancesco/musgviz/).
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了配合我们的系统，我们还开发了一个Web界面，可以在其中可视化和探索输入输出图形，用于调试复杂的案例，或者仅仅为了更好地理解图形创建过程。点击这里查看：[GitHub链接](https://github.com/fosfrancesco/musgviz/)。
 - en: '![](../Images/9f12d5b97139d5a71e943230a6f60384.png)'
+  id: totrans-68
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9f12d5b97139d5a71e943230a6f60384.png)'
 - en: Our web interface, MusGViz!
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的Web界面，MusGViz！
 - en: In the interest of giving a fair comparison and deeper understanding of how
     our model works and how the predictions can vary, we take a closer look at some.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了公平比较并更深入地理解我们的模型是如何工作的，以及预测结果如何变化，我们仔细观察了其中的一些例子。
 - en: We compare the ground truth edges (links) to our predicted edges for chord and
     voice prediction. Note that in the example you are viewing below the output graph
     is plotted directly on top of the score with the help of our visualization tool.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将地面真值边（链接）与我们的和弦和声部预测的边进行比较。请注意，在您查看的示例中，输出图形是直接绘制在乐谱上的，借助我们的可视化工具。
 - en: '![](../Images/7fe0f94f7b89f379b7c1099bfc6d4fc5.png)'
+  id: totrans-72
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7fe0f94f7b89f379b7c1099bfc6d4fc5.png)'
 - en: The first two bars are done perfectly, however we can see some limitations of
     our system at the third bar. Synchronous notes within a close pitch range but
     with a different voice arrangement can be problematic.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 前两小节处理得非常完美，但我们可以看到在第三小节时系统的一些局限性。在音高范围接近的同步音符中，不同的声部安排可能会造成问题。
 - en: Our model predicts a single chord (instead of splitting across the staff) containing
     all the synchronous syncopated quarter notes and also mispredicts the staff for
     the first D#4 note. A more in-depth study of why this happens is not trivial,
     as neural networks are not directly interpretable.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的模型预测一个包含所有同步切分四分音符的和弦（而不是跨谱表分割），同时也错误预测了第一个D#4音符所在的谱表。要深入研究为什么会发生这种情况并不简单，因为神经网络是不可直接解释的。
 - en: Open Challenges
+  id: totrans-75
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 开放挑战
 - en: Despite the strengths of our system, several challenges remain open for future
     development. Currently, grace notes are not accounted for in this version, and
     overlapping notes must be explicitly duplicated in the input, which can be troublesome.
@@ -356,32 +512,47 @@
     exceptions and complexities found in symbolic scores. Addressing these issues
     will be key to enhancing the system’s versatility and making it more adaptable
     to diverse musical compositions.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们的系统具有优势，但仍存在一些挑战需要未来开发解决。目前，版本中未考虑到装饰音，并且重叠音符必须在输入中明确重复，这可能会造成困扰。此外，尽管我们已经开发了一个初步的MEI导出功能用于可视化结果，但这一功能仍需要进一步更新，以完全支持符号乐谱中遇到的各种例外情况和复杂性。解决这些问题将是提升系统多功能性并使其更适应多样化音乐作品的关键。
 - en: Conclusion
+  id: totrans-77
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: This blog presented a graph-based method for homophonic voice separation and
     staff prediction in symbolic piano music. The new approach performs better than
     existing deep-learning or heuristic-based systems. Finally, it includes a post-processing
     step that can remove problematic predictions from the model that could result
     in incorrect scores.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 本博客介绍了一种基于图的方法，用于同音声音分离和符号钢琴音乐中的谱表预测。这种新方法的表现优于现有的深度学习或启发式系统。最后，它还包括一个后处理步骤，可以去除模型中的问题预测，避免产生错误的乐谱。
 - en: '[](https://github.com/CPJKU/piano_svsep/?source=post_page-----0cab100629cf--------------------------------)
     [## GitHub - CPJKU/piano_svsep: Code for the paper Cluster and Separate: A GNN
     Approach to Voice and…'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://github.com/CPJKU/piano_svsep/?source=post_page-----0cab100629cf--------------------------------)
+    [## GitHub - CPJKU/piano_svsep: 论文《Cluster and Separate: 基于GNN的声音和谱表预测方法》代码]'
 - en: 'Code for the paper Cluster and Separate: A GNN Approach to Voice and Staff
     Prediction for Score Engraving …'
+  id: totrans-80
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: '论文《Cluster and Separate: 基于GNN的声音和谱表预测方法》代码'
 - en: github.com](https://github.com/CPJKU/piano_svsep/?source=post_page-----0cab100629cf--------------------------------)
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: github.com](https://github.com/CPJKU/piano_svsep/?source=post_page-----0cab100629cf--------------------------------)
 - en: '[all images are by the author]'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '[所有图片均由作者提供]'

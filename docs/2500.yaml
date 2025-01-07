@@ -1,857 +1,1281 @@
 - en: Nine Rules for Running Rust on Embedded Systems
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在嵌入式系统上运行Rust的九条规则
 - en: 原文：[https://towardsdatascience.com/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e?source=collection_archive---------0-----------------------#2024-10-13](https://towardsdatascience.com/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e?source=collection_archive---------0-----------------------#2024-10-13)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e?source=collection_archive---------0-----------------------#2024-10-13](https://towardsdatascience.com/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e?source=collection_archive---------0-----------------------#2024-10-13)
 - en: Practical Lessons from Porting `range-set-blaze` to `no_std`
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将`range-set-blaze`移植到`no_std`的实践经验
 - en: '[](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)[![Carl
     M. Kadie](../Images/9dbe27c76e9567136e5a7dc587f1fb15.png)](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------)
     [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)[![Carl
+    M. Kadie](../Images/9dbe27c76e9567136e5a7dc587f1fb15.png)](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------)
+    [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------)
     ·16 min read·Oct 13, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------)
+    ·阅读时长：16分钟·2024年10月13日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/c3cbaa1585fa74c08e577624b2a2e707.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c3cbaa1585fa74c08e577624b2a2e707.png)'
 - en: 'Rust Running on Embedded — Source: [https://openai.com/dall-e-2/](https://openai.com/dall-e-2/).
     All other figures from the author.'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: Rust在嵌入式设备上的运行 — 来源：[https://openai.com/dall-e-2/](https://openai.com/dall-e-2/)。所有其他图示来自作者。
 - en: Do you want your Rust code to run everywhere — from large servers to web pages,
     robots, and even watches? In this final article of a three-part series [[1](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a),
     [2](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1),
     [3](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)],
     we’ll see how to use Rust to run on embedded devices using `no_std`.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 你想让你的Rust代码可以在各种设备上运行——从大型服务器到网页、机器人，甚至是手表吗？在这篇三部分系列文章的最后一篇中[[1](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a),
+    [2](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1),
+    [3](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)]，我们将看到如何使用Rust在嵌入式设备上运行，方法是使用`no_std`。
 - en: 'Porting your Rust project to a `no_std` environment allows you to target microcontrollers
     and deeply embedded systems, creating highly efficient software for constrained
     environments. For example, I used the upcoming version of `range-set-blaze` to
     create an LED animation sequencer and compositor that runs on a Raspberry Pi Pico:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 将你的Rust项目移植到`no_std`环境，可以让你面向微控制器和深度嵌入式系统，从而为资源受限的环境创建高效的软件。例如，我使用即将发布的`range-set-blaze`版本，创建了一个LED动画序列和合成器，该软件在Raspberry
+    Pi Pico上运行：
 - en: 1 minute video showing LED animation on the Pico
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 1分钟的视频展示了在Pico上的LED动画
 - en: Running Rust without the standard library presents unique challenges. Without
     operating system support, features like file I/O, networking, and sometimes even
     dynamic memory allocation are unavailable. In this article, we’ll look at practical
     strategies to overcome these limitations.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在没有标准库的情况下运行Rust会带来独特的挑战。由于没有操作系统的支持，一些功能，如文件I/O、网络连接，甚至有时动态内存分配都不可用。在本文中，我们将探讨一些实用的策略，以克服这些限制。
 - en: 'Porting Rust to `no_std` requires careful steps and choices, and missing any
     step can lead to failure. We’ll simplify the process by following these nine rules,
     which we will examine in detail:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 将Rust移植到`no_std`环境需要仔细的步骤和选择，任何一步遗漏都可能导致失败。我们将通过遵循这九条规则来简化这一过程，接下来我们将详细探讨这些规则：
 - en: Confirm that your project works with WASM WASI and WASM in the Browser.
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 确保你的项目在WASM WASI和浏览器中的WASM环境下能够正常工作。
 - en: Use target `thumbv7m-none-eabi` and `cargo tree` to identify and fix dependencies
     incompatible with `no_std`.
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用目标 `thumbv7m-none-eabi` 和 `cargo tree` 来识别和修复与 `no_std` 不兼容的依赖项。
 - en: Mark main (non-test) code `no_std` and `alloc`. Replace `std::` with `core::`
     and `alloc::`.
+  id: totrans-15
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 标记主（非测试）代码为 `no_std` 和 `alloc`。将 `std::` 替换为 `core::` 和 `alloc::`。
 - en: Use Cargo features to let your main code use `std` optionally for file-related
     (etc.) functions.
+  id: totrans-16
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用Cargo功能使你的主代码能够选择性地使用 `std` 来处理文件相关功能（等）。
 - en: Understand why test code always uses the standard library.
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 了解为什么测试代码总是使用标准库。
 - en: Create a simple embedded test project. Run it with QEMU.
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建一个简单的嵌入式测试项目。通过QEMU运行它。
 - en: In `Cargo.toml`, add keywords and categories for WASM and `no_std`.
+  id: totrans-19
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 `Cargo.toml` 中添加适用于WASM和 `no_std` 的关键字和类别。
 - en: '[Optional] Use preallocated data types to avoid `alloc`.'
+  id: totrans-20
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[可选] 使用预分配数据类型以避免 `alloc`。'
 - en: Add `thumbv7m-none-eabi` and QEMU to your CI (continuous integration) tests.
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将 `thumbv7m-none-eabi` 和 QEMU 添加到你的CI（持续集成）测试中。
 - en: 'Aside: These articles are based on a three-hour workshop that I presented at
     [RustConf24](https://rustconf.com/programs/#755) in Montreal. Thanks to the participants
     of that workshop. A special thanks, also, to the volunteers from the Seattle Rust
     Meetup who helped test this material. These articles replace [an article I wrote
     last year](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-the-web-and-on-embedded-94462ef249a2)
     with updated information.'
+  id: totrans-22
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 附注：这些文章基于我在[RustConf24](https://rustconf.com/programs/#755)上于蒙特利尔主持的一个三小时工作坊。感谢所有参与该工作坊的人员。特别感谢来自西雅图Rust
+    Meetup的志愿者们，他们帮助测试了这份材料。这些文章更新了我去年撰写的[一篇文章](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-the-web-and-on-embedded-94462ef249a2)中的信息。
 - en: As with the [first](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)
     and [second](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)
     articles in this series, before we look at the rules one by one, let’s define
     our terms.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 和本系列中的[第一篇](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)和[第二篇](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)文章一样，在逐条讲解规则之前，我们先来定义一些术语。
 - en: '**Native:** Your home OS (Linux, Windows, macOS)'
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**本地环境：** 你的主操作系统（Linux，Windows，macOS）'
 - en: '**Standard library (std)**: Provides Rust’s core functionality — `Vec`, `String`,
     file input/output, networking, time.'
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**标准库 (std)**：提供Rust的核心功能——`Vec`，`String`，文件输入/输出，网络，时间处理。'
 - en: '**WASM**: WebAssembly (WASM) is a binary instruction format that runs in most
     browsers (and beyond).'
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**WASM**：WebAssembly（WASM）是一种二进制指令格式，能够在大多数浏览器中运行（以及更广泛的环境中）。'
 - en: '**WASI**: WebAssembly System Interface (WASI) allows outside-the-browser WASM
     to access file I/O, networking (not yet), and time handling.'
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**WASI**：WebAssembly系统接口（WASI）允许浏览器外部的WASM访问文件输入/输出、网络（尚未实现）以及时间处理。'
 - en: '**no_std**: Instructs a Rust program not to use the full standard library,
     making it suitable for small, embedded devices or highly resource-constrained
     environments.'
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**no_std**：指示Rust程序不使用完整的标准库，使其适用于小型嵌入式设备或资源极其有限的环境。'
 - en: '**alloc**: Provides heap memory allocation capabilities (`Vec`, `String`, etc.)
     in `no_std` environments, essential for dynamically managing memory.'
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**alloc**：在 `no_std` 环境中提供堆内存分配功能（`Vec`，`String` 等），对于动态管理内存至关重要。'
 - en: Based on my experience with `[range-set-blaze](https://github.com/CarlKCarlK/range-set-blaze)`,
     a data structure project, here are the decisions I recommend, described one at
     a time. To avoid wishy-washiness, I’ll express them as rules.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于我在`[range-set-blaze](https://github.com/CarlKCarlK/range-set-blaze)`数据结构项目中的经验，以下是我推荐的决策，每个决策逐一描述。为了避免模糊不清，我将它们作为规则表达出来。
 - en: 'Rule 1: Confirm that your project works with WASM WASI and WASM in the Browser.'
+  id: totrans-31
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则1：确保你的项目能够与WASM WASI和浏览器中的WASM兼容。
 - en: Before porting your Rust code to an embedded environment, ensure it runs successfully
     in [WASM WASI](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)
     and [WASM in the Browser](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1).
     These environments expose issues related to moving away from the standard library
     and impose constraints like those of embedded systems. By addressing these challenges
     early, you’ll be closer to running your project on embedded devices.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 在将Rust代码移植到嵌入式环境之前，请确保它能够在[WASM WASI](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)和[WASM浏览器](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)中成功运行。这些环境暴露了与标准库的脱离相关的问题，并施加了类似嵌入式系统的约束。通过提前解决这些挑战，你将更接近在嵌入式设备上运行你的项目。
 - en: 'Aside: If you don’t need your project to also run on native and/or WASM, you
     can skip this step. You may, however, find some steps from the previous articles
     useful — for example, running in a 32-bit environment and understanding conditional
     compilation.'
+  id: totrans-33
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 旁白：如果你不需要让你的项目同时在本地和/或WASM上运行，你可以跳过这一步。不过，你可能会发现之前文章中的一些步骤仍然有用——例如，运行在32位环境下和理解条件编译。
 - en: '![](../Images/c13b6ccb5fcff21890cb7aa324a1c097.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c13b6ccb5fcff21890cb7aa324a1c097.png)'
 - en: Environments in which we wish to run our code as a Venn diagram of progressively
     tighter constraints.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望在其中运行代码的环境，可以看作是一个逐步收紧约束的维恩图。
 - en: 'Run the following commands to confirm that your code works in both WASM WASI
     and WASM in the Browser:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行以下命令以确认你的代码在WASM WASI和WASM浏览器中都能正常工作：
 - en: '[PRE0]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'If the tests fail or don’t run, revisit the steps from the earlier articles
     in this series: [WASM WASI](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)
     and [WASM in the Browser](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1).'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果测试失败或无法运行，请重新查看本系列早期文章中的步骤：[WASM WASI](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)和[WASM浏览器](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)。
 - en: The WASM WASI article also provides crucial background on understanding Rust
     targets (Rule 2), conditional compilation (Rule 4), and Cargo features (Rule 6).
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: WASM WASI文章还提供了关于理解Rust目标（规则2）、条件编译（规则4）和Cargo特性（规则6）的关键背景知识。
 - en: Once you’ve fulfilled these prerequisites, the next step is to see how (and
     if) we can get our dependencies working on embedded systems.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦满足这些前提条件，下一步是看看我们是否能让依赖项在嵌入式系统上工作。
 - en: 'Rule 2: Use target `thumbv7m-none-eabi` and `cargo tree` to identify and fix
     dependencies incompatible with `no_std`.'
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则2：使用目标`thumbv7m-none-eabi`和`cargo tree`来识别和修复与`no_std`不兼容的依赖项。
 - en: 'To check if your dependencies are compatible with an embedded environment,
     compile your project for an embedded target. I recommend using the `thumbv7m-none-eabi`
     target:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 要检查你的依赖项是否与嵌入式环境兼容，可以为嵌入式目标编译项目。我建议使用`thumbv7m-none-eabi`目标：
 - en: '`thumbv7m` — Represents the ARM Cortex-M3 microcontroller, a popular family
     of embedded processors.'
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`thumbv7m` — 代表ARM Cortex-M3微控制器，是一种流行的嵌入式处理器系列。'
 - en: '`none` — Indicates that there is no operating system (OS) available. In Rust,
     this typically means we can’t rely on the standard library (`std`), so we use
     `no_std`. Recall that the standard library provides core functionality like `Vec`,
     `String`, file input/output, networking, and time.'
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`none` — 表示没有可用的操作系统（OS）。在Rust中，这通常意味着我们无法依赖标准库（`std`），因此我们使用`no_std`。请记住，标准库提供了诸如`Vec`、`String`、文件输入/输出、网络和时间等核心功能。'
 - en: '`eabi` — Embedded Application Binary Interface, a standard defining calling
     conventions, data types, and binary layout for embedded executables.'
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`eabi` — 嵌入式应用程序二进制接口，一种定义嵌入式可执行文件调用约定、数据类型和二进制布局的标准。'
 - en: Since most embedded processors share the `no_std` constraint, ensuring compatibility
     with this target helps ensure compatibility with other embedded targets.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于大多数嵌入式处理器都共享`no_std`约束，因此确保与此目标的兼容性有助于确保与其他嵌入式目标的兼容性。
 - en: 'Install the target and check your project:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 安装目标并检查你的项目：
 - en: '[PRE1]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'When I did this on `range-set-blaze`, I encountered errors complaining about
     dependencies, such as:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我在`range-set-blaze`上进行此操作时，遇到了一些关于依赖项的错误，例如：
 - en: '![](../Images/78e11b0199b7ae21db407aaaf719595f.png)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/78e11b0199b7ae21db407aaaf719595f.png)'
 - en: This shows that my project depends on `num-traits`, which depends on `either`,
     ultimately depending on `std`.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 这表明我的项目依赖于`num-traits`，而`num-traits`又依赖于`either`，最终依赖于`std`。
 - en: 'The error messages can be confusing. To better understand the situation, run
     this `cargo tree` command:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 错误信息可能会让人困惑。为了更好地理解情况，运行以下 `cargo tree` 命令：
 - en: '[PRE2]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'It displays a recursive list of your project’s dependencies and their active
     Cargo features. For example:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 它显示了你的项目依赖关系及其激活的 Cargo 特性的递归列表。例如：
 - en: '[PRE3]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'We see multiple occurrences of Cargo features named `use_std` and `std`, strongly
     suggesting that:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到多个出现了名为 `use_std` 和 `std` 的 Cargo 特性，这强烈表明：
 - en: These Cargo features require the standard library.
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这些 Cargo 特性需要标准库。
 - en: We can turn these Cargo features off.
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可以关闭这些 Cargo 特性。
 - en: 'Using the techniques explained in the [first article](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a),
     Rule 6, we disable the `use_std` and `std` Cargo features. Recall that Cargo features
     are additive and have defaults. To turn off the default features, we use `default-features
     = false`. We then enable the Cargo features we want to keep by specifying, for
     example, `features = ["use_alloc"]`. The `Cargo.toml` now reads:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用在[第一篇文章](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)中解释的技巧，规则
+    6，我们禁用了 `use_std` 和 `std` Cargo 特性。请记住，Cargo 特性是累加的，并且具有默认值。为了关闭默认特性，我们使用 `default-features
+    = false`。然后，我们通过指定例如 `features = ["use_alloc"]` 来启用我们想要保留的 Cargo 特性。现在，`Cargo.toml`
+    文件内容如下：
 - en: '[PRE4]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Turning off Cargo features will not always be enough to make your dependencies
     `no_std`-compatible.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 关闭 Cargo 特性并不总是足以使你的依赖项兼容 `no_std`。
 - en: For example, the popular `thiserror` crate introduces `std` into your code and
     offers no Cargo feature to disable it. However, the community has created `no_std`
     alternatives. You can find these alternatives by searching, for example, [https://crates.io/search?q=thiserror+no_std](https://crates.io/search?q=thiserror+no_std).
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，流行的 `thiserror` 包将 `std` 引入到你的代码中，并且没有提供禁用它的 Cargo 特性。然而，社区已经创建了 `no_std`
+    替代版本。你可以通过搜索，例如 [https://crates.io/search?q=thiserror+no_std](https://crates.io/search?q=thiserror+no_std)，来找到这些替代版本。
 - en: 'In the case of `range-set-blaze`, a problem remained related to crate `[gen_ops](https://crates.io/crates/gen_ops)`
     — a wonderful crate for conveniently defining operators such as `+` and `&`. The
     crate used `std` but didn’t need to. I identified the required one-line change
     (using the methods we''ll cover in Rule 3) and submitted a pull request. The maintainer
     accepted it, and they released an updated version: `0.4.0`.'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 `range-set-blaze`，仍然存在与包 `[gen_ops](https://crates.io/crates/gen_ops)` 相关的问题——这是一个非常方便的包，用于定义操作符如
+    `+` 和 `&`。该包使用了 `std`，但其实并不需要。我找到了需要的单行更改（使用我们将在规则 3 中讲解的方法）并提交了拉取请求。维护者接受了它，他们发布了更新版本：`0.4.0`。
 - en: Sometimes, our project can’t disable `std` because we need capabilities like
     file access when running on a full operating system. On embedded systems, however,
     we're willing—and indeed must—give up such capabilities. In Rule 4, we'll see
     how to make `std` usage optional by introducing our own Cargo features.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时，我们的项目无法禁用 `std`，因为我们需要像文件访问这样的能力来运行在完整的操作系统上。然而，在嵌入式系统上，我们愿意—事实上必须—放弃这些能力。在规则
+    4 中，我们将看到如何通过引入我们自己的 Cargo 特性使 `std` 使用变为可选。
 - en: Using these methods fixed all the dependency errors in `range-set-blaze`. However,
     resolving **those** errors revealed 281 errors in the main code. Progress!
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这些方法解决了 `range-set-blaze` 中所有的依赖错误。然而，解决**这些**错误暴露出了主代码中的 281 个错误。进展！
 - en: 'Rule 3: Mark main (non-test) code `no_std` and `alloc`. Replace `std::` with
     `core::` and `alloc::`.'
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则 3：将主代码（非测试代码）标记为 `no_std` 和 `alloc`。将 `std::` 替换为 `core::` 和 `alloc::`。
 - en: 'At the top of your project’s `lib.rs` (or `main.rs`) add:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 在项目的 `lib.rs`（或 `main.rs`）顶部添加：
 - en: '[PRE5]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: This means we won’t use the standard library, but we will still allocate memory.
     For `range-set-blaze`, this change reduced the error count from 281 to 52.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着我们不会使用标准库，但仍然会分配内存。对于 `range-set-blaze`，这一变化将错误数量从 281 降低到 52。
 - en: Many of the remaining errors are due to using items in `std` that are available
     in `core` or `alloc`. Since much of `std` is just a re-export of `core` and `alloc`,
     we can resolve many errors by switching `std` references to `core` or `alloc`.
     This allows us to keep the essential functionality without relying on the standard
     library.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多剩余的错误是由于使用了 `std` 中的项，这些项在 `core` 或 `alloc` 中是可用的。由于 `std` 的大部分内容实际上是 `core`
+    和 `alloc` 的重新导出，我们可以通过将 `std` 引用切换到 `core` 或 `alloc` 来解决许多错误。这使我们能够在不依赖标准库的情况下保持必要的功能。
 - en: 'For example, we get an error for each of these lines:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，对于以下每一行，我们都会遇到错误：
 - en: '[PRE6]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Changing `std::` to either `core::` or (if memory related) `alloc::` fixes
     the errors:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 将 `std::` 改为 `core::` 或（如果与内存相关）`alloc::` 可以修复这些错误：
 - en: '[PRE7]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Some capabilities, such as file access, are `std`-only—that is, they are defined
     outside of `core` and `alloc`. Fortunately, for `range-set-blaze`, switching to
     `core` and `alloc` resolved all 52 errors in the main code. However, this fix
     revealed 89 errors in its test code. Again, progress!
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些功能，比如文件访问，仅限于 `std` —— 即它们在 `core` 和 `alloc` 之外定义。幸运的是，对于 `range-set-blaze`，切换到
+    `core` 和 `alloc` 解决了主代码中的 52 个错误。然而，这一修复暴露了测试代码中的 89 个错误。再次进展！
 - en: 'Aside: You can also find places where `std` could be `alloc` or `core` [via
     Clippy rules](https://users.rust-lang.org/t/how-to-libraries-and-no-std/119455/3).'
+  id: totrans-76
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 附注：你还可以通过 [Clippy 规则](https://users.rust-lang.org/t/how-to-libraries-and-no-std/119455/3)
+    找到 `std` 可以替换为 `alloc` 或 `core` 的地方。
 - en: We’ll address errors in the test code in Rule 5, but first, let’s figure out
     what to do if we need capabilities like file access when running on a full operating
     system.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在规则 5 中处理测试代码中的错误，但首先，让我们弄清楚如果在完整操作系统上运行时需要文件访问等功能该怎么做。
 - en: 'Rule 4: Use Cargo features to let your main code use `std` optionally for file-related
     (etc.) functions.'
+  id: totrans-78
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则 4：使用 Cargo 特性让你的主代码在文件相关（等）功能上可选使用 `std`。
 - en: If we need two versions of our code — one for running on a full operating system
     and one for embedded systems — we can use Cargo features (see Rule 6 in the [first
     article](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)).
     For example, let’s define a feature called `foo`, which will be the default. We'll
     include the function `demo_read_ranges_from_file` only when `foo` is enabled.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们需要两种版本的代码——一种用于在完整操作系统上运行，另一种用于嵌入式系统——我们可以使用 Cargo 特性（参见 [第一篇文章](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)
+    中的规则 6）。例如，定义一个名为 `foo` 的特性，它将是默认的。我们只会在启用 `foo` 时包含 `demo_read_ranges_from_file`
+    函数。
 - en: 'In `Cargo.toml` (preliminary):'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 `Cargo.toml`（初步版）中：
 - en: '[PRE8]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'In `lib.rs` (preliminary):'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 `lib.rs`（初步版本）中：
 - en: '[PRE9]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'This says to define function `demo_read_ranges_from_file` only when Cargo feature
     `foo` is enabled. We can now check various versions of our code:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着只有在启用 Cargo 特性 `foo` 时才定义函数 `demo_read_ranges_from_file`。现在我们可以检查代码的不同版本：
 - en: '[PRE10]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Now let’s give our Cargo feature a more meaningful name by renaming `foo` to
     `std`. Our `Cargo.toml` (intermediate) now looks like:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们通过将 `foo` 重命名为 `std`，为我们的 Cargo 特性起一个更有意义的名字。我们的 `Cargo.toml`（中间版）现在看起来是这样的：
 - en: '[PRE11]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'In our `lib.rs`, we add these lines near the top to bring in the `std` library
     when the `std` Cargo feature is enabled:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的 `lib.rs` 中，我们在顶部添加这些行，以便在启用 `std` Cargo 特性时引入 `std` 库：
 - en: '[PRE12]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'So, `lib.rs` (final) looks like this:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，`lib.rs`（最终版）看起来是这样的：
 - en: '[PRE13]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'We’d like to make one more change to our `Cargo.toml`. We want our new Cargo
     feature to control dependencies and their features. Here is the resulting `Cargo.toml`
     (final):'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望对 `Cargo.toml` 做最后一次更改。我们希望新的 Cargo 特性控制依赖和它们的特性。下面是最终版的 `Cargo.toml`：
 - en: '[PRE14]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'Aside: If you’re confused by the `Cargo.toml` format for specifying dependencies
     and features, see my recent article: [*Nine Rust Cargo.toml Wats and Wat Nots:
     Master Cargo.toml formatting rules and avoid frustration*](https://medium.com/towards-data-science/nine-rust-cargo-toml-wats-and-wat-nots-1e5e02e41648)
     *in* Towards Data Science.'
+  id: totrans-94
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 附注：如果你对 `Cargo.toml` 中指定依赖和特性的格式感到困惑，看看我最近的文章：[*九个 Rust Cargo.toml 的陷阱与误区：掌握
+    Cargo.toml 格式规则，避免沮丧*](https://medium.com/towards-data-science/nine-rust-cargo-toml-wats-and-wat-nots-1e5e02e41648)
+    *在* Towards Data Science。
 - en: 'To check that your project compiles both with the standard library (`std`)
     and without, use the following commands:'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 要检查你的项目是否同时能够在标准库（`std`）和无标准库环境下编译，使用以下命令：
 - en: '[PRE15]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: With `cargo check` working, you’d think that `cargo test` would be straight
     forward. Unfortunately, it’s not. We’ll look at that next.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 `cargo check` 已经能正常工作，你可能会认为 `cargo test` 会很直接。遗憾的是，并非如此。我们接下来看看这个问题。
 - en: 'Rule 5: Understand why test code always uses the standard library.'
+  id: totrans-98
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则 5：理解为什么测试代码总是使用标准库。
 - en: When we compile our project with `--no-default-features`, it operates in a `no_std`
     environment. However, Rust's testing framework always includes the standard library,
     even in a `no_std` project. This is because `cargo test` requires `std`; for example,
     the `#[test]` attribute and the test harness itself are defined in the standard
     library.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们使用 `--no-default-features` 编译项目时，它将在 `no_std` 环境中运行。然而，Rust 的测试框架总是包括标准库，即使在
+    `no_std` 项目中也是如此。这是因为 `cargo test` 需要 `std`；例如，`#[test]` 属性和测试框架本身都在标准库中定义。
 - en: 'As a result, running:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是，运行：
 - en: '[PRE16]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'does not actually test the `no_std` version of your code. Functions from `std`
     that are unavailable in a true `no_std` environment will still be accessible during
     testing. For instance, the following test will compile and run successfully with
     `--no-default-features`, even though it uses `std::fs`:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上并不会测试你代码的`no_std`版本。即使在真正的`no_std`环境中，`std`中那些不可用的函数，在测试时仍然可以访问。例如，下面的测试将在使用`--no-default-features`时成功编译和运行，尽管它使用了`std::fs`：
 - en: '[PRE17]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'Additionally, when testing in `std` mode, you may need to add explicit imports
     for features from the standard library. This is because, even though `std` is
     available during testing, your project is still compiled as `#![no_std]`, meaning
     the standard prelude is not automatically in scope. For example, you’ll often
     need the following imports in your test code:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，在`std`模式下进行测试时，你可能需要显式导入标准库中的某些功能。这是因为，即使在测试期间`std`可用，你的项目仍然是以`#![no_std]`编译的，这意味着标准前导并不会自动包含在作用域中。例如，你通常需要在测试代码中包含以下导入：
 - en: '[PRE18]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: These imports bring in the necessary utilities from the standard library so
     that they are available during testing.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些导入将从标准库中引入必要的工具，以便在测试过程中可以使用它们。
 - en: To genuinely test your code without the standard library, you’ll need to use
     alternative methods that do not rely on `cargo test`. We'll explore how to run
     `no_std` tests in the next rule.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 要真正测试没有标准库的代码，你需要使用不依赖于`cargo test`的替代方法。我们将在下一条规则中探讨如何运行`no_std`测试。
 - en: 'Rule 6: Create a simple embedded test project. Run it with QEMU.'
+  id: totrans-108
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则6：创建一个简单的嵌入式测试项目。使用QEMU运行它。
 - en: You can’t run your regular tests in an embedded environment. However, you **can**
     — and should — run at least one embedded test. My philosophy is that even a single
     test is infinitely better than none. Since “if it compiles, it works” is generally
     true for `no_std` projects, one (or a few) well-chosen test can be quite effective.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 你无法在嵌入式环境中运行常规测试。然而，你**可以** — 并且应该 — 至少运行一个嵌入式测试。我的哲学是，即使只有一个测试，也比没有测试要好得多。由于“如果它能编译，它就能工作”通常对`no_std`项目有效，一个（或几个）精心选择的测试可能会非常有效。
 - en: 'Aside: There is hope for embedded running tests in a more normal fashion [[1](https://users.rust-lang.org/t/how-to-implement-unit-tests-for-a-project-with-embedded-rust/99768)][[2](https://www.reddit.com/r/rust/comments/1g3i5uh/comment/lrxith4/)].
     As far as I know, nothing works easily with normal, native tests. If this changes,
     please let me know and I’ll update this section.'
+  id: totrans-110
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 旁注：有希望以更正常的方式运行嵌入式测试[[1](https://users.rust-lang.org/t/how-to-implement-unit-tests-for-a-project-with-embedded-rust/99768)][[2](https://www.reddit.com/r/rust/comments/1g3i5uh/comment/lrxith4/)]。据我所知，正常的本地测试没有简单的方法。如果有变化，请告诉我，我会更新这一部分内容。
 - en: To run this test, we use QEMU (Quick Emulator, pronounced “cue-em-you”), which
     allows us to emulate `thumbv7m-none-eabi` code on our main operating system (Linux,
     Windows, or macOS).
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 要运行这个测试，我们使用QEMU（快速仿真器，发音为“cue-em-you”），它允许我们在主操作系统（Linux、Windows或macOS）上模拟`thumbv7m-none-eabi`代码。
 - en: Install QEMU.
+  id: totrans-112
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 安装QEMU。
 - en: 'See the QEMU [download page](https://www.qemu.org/download/) for full information:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看QEMU的[下载页面](https://www.qemu.org/download/)以获取完整信息：
 - en: '**Linux/WSL**'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Linux/WSL**'
 - en: 'Ubuntu: `sudo apt-get install qemu-system`'
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Ubuntu：`sudo apt-get install qemu-system`
 - en: 'Arch: `sudo pacman -S qemu-system-arm`'
+  id: totrans-116
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Arch：`sudo pacman -S qemu-system-arm`
 - en: 'Fedora: `sudo dnf install qemu-system-arm`'
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Fedora：`sudo dnf install qemu-system-arm`
 - en: '**Windows**'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Windows**'
 - en: 'Method 1: [https://qemu.weilnetz.de/w64](https://qemu.weilnetz.de/w64). Run
     the installer (tell Windows that it is OK). Add `"C:\Program Files\qemu\"` to
     your path.'
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 方法 1：[https://qemu.weilnetz.de/w64](https://qemu.weilnetz.de/w64)。运行安装程序（告诉Windows它是可以的）。将`"C:\Program
+    Files\qemu\"`添加到你的路径中。
 - en: 'Method 2: Install MSYS2 from [https://www.msys2.org/](https://www.msys2.org/).
     Open MSYS2 UCRT64 terminal. `pacman -S mingw-w64-x86_64-qemu`. Add `C:\msys64\mingw64\bin\`
     to your path.'
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 方法 2：从[https://www.msys2.org/](https://www.msys2.org/)安装MSYS2。打开MSYS2 UCRT64终端。`pacman
+    -S mingw-w64-x86_64-qemu`。将`C:\msys64\mingw64\bin\`添加到你的路径中。
 - en: '**Mac**'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Mac**'
 - en: '`brew install qemu` or `sudo port install qemu`'
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`brew install qemu` 或 `sudo port install qemu`'
 - en: 'Test installation with:'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 测试安装：
 - en: '[PRE19]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Create an embedded subproject.
+  id: totrans-125
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 创建一个嵌入式子项目。
 - en: 'Create a subproject for the embedded tests:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 为嵌入式测试创建一个子项目：
 - en: '[PRE20]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: This command generates a new subproject, including the configuration file at
     `tests/embedded/Cargo.toml`.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个命令生成一个新的子项目，包括位于`tests/embedded/Cargo.toml`的配置文件。
 - en: Aside**:** This command also modifies your top-level `Cargo.toml` to add the
     subproject to your workspace. In Rust, a workspace is a collection of related
     packages defined in the `[workspace]` section of the top-level `Cargo.toml`. All
     packages in the workspace share a single `Cargo.lock` file, ensuring consistent
     dependency versions across the entire workspace.
+  id: totrans-129
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 附注**：此命令还会修改您的顶级`Cargo.toml`，将子项目添加到您的工作区。在Rust中，工作区是由顶级`Cargo.toml`中的`[workspace]`部分定义的相关包的集合。工作区中的所有包共享一个`Cargo.lock`文件，确保整个工作区的依赖版本一致。
 - en: 'Edit `tests/embedded/Cargo.toml` to look like this, but replace `"range-set-blaze"`
     with the name of your top-level project:'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 编辑`tests/embedded/Cargo.toml`使其如下所示，但将`"range-set-blaze"`替换为您顶级项目的名称：
 - en: '[PRE21]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: Update the test code.
+  id: totrans-132
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 更新测试代码。
 - en: 'Replace the contents of `tests/embedded/src/main.rs` with:'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 将`tests/embedded/src/main.rs`的内容替换为：
 - en: '[PRE22]'
+  id: totrans-134
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'Most of this `main.rs` code is embedded system boilerplate. The actual test
     code is:'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 这部分`main.rs`代码大部分是嵌入式系统的模板代码。实际的测试代码是：
 - en: '[PRE23]'
+  id: totrans-136
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: If the test fails, it returns `EXIT_FAILURE`; otherwise, it returns `EXIT_SUCCESS`.
     We use the `hprintln!` macro to print messages to the console during emulation.
     Since this is an embedded system, the code ends in an infinite loop to run continuously.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果测试失败，它返回`EXIT_FAILURE`；否则，它返回`EXIT_SUCCESS`。我们使用`hprintln!`宏在仿真过程中将消息打印到控制台。由于这是一个嵌入式系统，代码会以无限循环的方式结束，以便持续运行。
 - en: Add supporting files.
+  id: totrans-138
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 添加支持文件。
 - en: 'Before you can run the test, you must add two files to the subproject: `build.rs`
     and `memory.x` from the Cortex-M [quickstart repository](https://github.com/rust-embedded/cortex-m-quickstart/tree/master):'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 在运行测试之前，您必须将两个文件添加到子项目中：来自Cortex-M [快速入门仓库](https://github.com/rust-embedded/cortex-m-quickstart/tree/master)的`build.rs`和`memory.x`文件。
 - en: '**Linux/WSL/macOS**'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Linux/WSL/macOS**'
 - en: '[PRE24]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '**Windows (Powershell)**'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Windows (Powershell)**'
 - en: '[PRE25]'
+  id: totrans-143
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'Also, create a `tests/embedded/.cargo/config.toml` with the following content:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外，创建一个`tests/embedded/.cargo/config.toml`，并将以下内容添加到其中：
 - en: '[PRE26]'
+  id: totrans-145
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: This configuration instructs Cargo to use QEMU to run the embedded code and
     sets `thumbv7m-none-eabi` as the default target for the subproject.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 此配置指示Cargo使用QEMU运行嵌入式代码，并将`thumbv7m-none-eabi`设置为子项目的默认目标。
 - en: Run the test.
+  id: totrans-147
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 运行测试。
 - en: 'Run the test with `cargo run` (not `cargo test`):'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`cargo run`（而不是`cargo test`）运行测试：
 - en: '[PRE27]'
+  id: totrans-149
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: 'You should see log messages, and the process should exit without error. In
     my case, I see: `"-4..=-3, 100..=103"`.'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 您应该看到日志消息，且进程应该无错误退出。在我的例子中，我看到：`"-4..=-3, 100..=103"`。
 - en: These steps may seem like a significant amount of work just to run one (or a
     few) tests. However, it’s primarily a one-time effort involving mostly copy and
     paste. Additionally, it enables running tests in a CI environment (see Rule 9).
     The alternative — claiming that the code works in a `no_std` environment without
     ever actually running it in `no_std`—risks overlooking critical issues.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些步骤可能看起来需要做很多工作，仅仅是为了运行一个（或几个）测试。然而，这主要是一次性的工作，主要是复制和粘贴。此外，它还使得在CI环境中运行测试成为可能（请参见规则9）。替代方法——声称代码在`no_std`环境中运行良好，而实际上从未在`no_std`中运行过——可能会忽视关键问题。
 - en: The next rule is much simpler.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一个规则要简单得多。
 - en: 'Rule 7: In `Cargo.toml`, add keywords and categories for WASM and `no_std`.'
+  id: totrans-153
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则7：在`Cargo.toml`中，为WASM和`no_std`添加关键字和分类。
 - en: 'Once your package compiles and passes the additional embedded test, you may
     want to publish it to [crates.io](https://crates.io/), Rust’s package registry.
     To let others know that it is compatible with WASM and `no_std`, add the following
     keywords and categories to your `Cargo.toml` file:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦您的包编译并通过了额外的嵌入式测试，您可能希望将其发布到[crates.io](https://crates.io/)，Rust的包注册表。为了让其他人知道它兼容WASM和`no_std`，请将以下关键字和分类添加到您的`Cargo.toml`文件中：
 - en: '[PRE28]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: Note that for categories, we use a hyphen in `no-std`. For keywords, `no_std`
     (with an underscore) is more popular than `no-std`. Your package can have a maximum
     of five keywords and five categories.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，对于分类，我们在`no-std`中使用了连字符。对于关键字，`no_std`（带下划线）比`no-std`更常用。您的包最多可以有五个关键字和五个分类。
 - en: 'Here is a list of [categories](https://crates.io/categories/) and [keywords](https://crates.io/keywords)
     of possible interest, along with the number of crates using each term:'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个[分类](https://crates.io/categories/)和[关键字](https://crates.io/keywords)的列表，可能会对您有兴趣，并附有每个术语使用的crate数量：
 - en: '[Category no-std](https://crates.io/categories/no-std?sort=downloads) (6884)'
+  id: totrans-158
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[分类 no-std](https://crates.io/categories/no-std?sort=downloads)（6884）'
 - en: '[Category embedded](https://crates.io/categories/embedded?sort=downloads) (3455)'
+  id: totrans-159
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[分类嵌入式](https://crates.io/categories/embedded?sort=downloads)（3455）'
 - en: '[Category wasm](https://crates.io/categories/wasm?sort=downloads) (2026)'
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[分类 wasm](https://crates.io/categories/wasm?sort=downloads)（2026）'
 - en: '[Category no-std::no-alloc](https://crates.io/categories/no-std::no-alloc?sort=downloads)
     (581)'
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Category no-std::no-alloc](https://crates.io/categories/no-std::no-alloc?sort=downloads)
+    (581)'
 - en: '[Keyword wasm](https://crates.io/keywords/wasm?sort=downloads) (1686)'
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Keyword wasm](https://crates.io/keywords/wasm?sort=downloads) (1686)'
 - en: '[Keyword no_std](https://crates.io/keywords/no_std?sort=downloads) (1351)'
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Keyword no_std](https://crates.io/keywords/no_std?sort=downloads) (1351)'
 - en: '[Keyword no-std](https://crates.io/keywords/no-std?sort=downloads) (1157)'
+  id: totrans-164
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Keyword no-std](https://crates.io/keywords/no-std?sort=downloads) (1157)'
 - en: '[Keyword embedded](https://crates.io/keywords/embedded?sort=downloads) (925)'
+  id: totrans-165
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Keyword embedded](https://crates.io/keywords/embedded?sort=downloads) (925)'
 - en: '[Keyword webassembly](https://crates.io/keywords/webassembly?sort=downloads)
     (804)'
+  id: totrans-166
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Keyword webassembly](https://crates.io/keywords/webassembly?sort=downloads)
+    (804)'
 - en: Good categories and keywords will help people find your package, but the system
     is informal. There’s no mechanism to check whether your categories and keywords
     are accurate, nor are you required to provide them.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 良好的类别和关键字将帮助人们找到你的包，但该系统是不正式的。没有机制检查你的类别和关键字是否准确，也不要求你提供它们。
 - en: Next, we’ll explore one of the most restricted environments you’re likely to
     encounter.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将探索你可能遇到的最受限的环境之一。
 - en: 'Rule 8: [Optional] Use preallocated data types to avoid `alloc`.'
+  id: totrans-169
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则 8：[可选] 使用预分配的数据类型以避免使用`alloc`。
 - en: My project, `range-set-blaze`, implements a dynamic data structure that requires
     memory allocation from the heap (via `alloc`). But what if your project doesn't
     need dynamic memory allocation? In that case, it can run in even more restricted
     embedded environments—specifically those where all memory is preallocated when
     the program is loaded.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的项目`range-set-blaze`实现了一个动态数据结构，需要从堆中进行内存分配（通过`alloc`）。但是，如果你的项目不需要动态内存分配怎么办？那样的话，它可以运行在更加受限的嵌入式环境中——特别是那些程序加载时就已预分配所有内存的环境。
 - en: 'The reasons to avoid `alloc` if you can:'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果可能的话，避免使用`alloc`的原因：
 - en: Completely deterministic memory usage
+  id: totrans-172
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 完全确定的内存使用
 - en: Reduced risk of runtime failures (often caused by memory fragmentation)
+  id: totrans-173
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 降低运行时故障的风险（通常由内存碎片引起）
 - en: Lower power consumption
+  id: totrans-174
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 降低功耗
 - en: 'There are crates available that can sometimes help you replace dynamic data
     structures like `Vec`, `String`, and `HashMap`. These alternatives generally require
     you to specify a maximum size. The table below shows some popular crates for this
     purpose:'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 有些crate可以帮助你替换像`Vec`、`String`和`HashMap`这样的动态数据结构。这些替代方案通常要求你指定一个最大大小。下表展示了一些常用的crate：
 - en: '![](../Images/4f7714b6900349e2d92b8951535736c8.png)'
+  id: totrans-176
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4f7714b6900349e2d92b8951535736c8.png)'
 - en: I recommend the `heapless` crate because it provides a collection of data structures
     that work well together.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 我推荐使用`heapless` crate，因为它提供了一系列协同工作的数据结构。
 - en: Here is an example of code — using `heapless` — related to an LED display. This
     code creates a mapping from a byte to a list of integers. We limit the number
     of items in the map and the length of the integer list to `DIGIT_COUNT` (in this
     case, 4).
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个与LED显示相关的代码示例——使用`heapless`。这段代码创建了一个从字节到整数列表的映射。我们将映射中条目的数量和整数列表的长度限制为`DIGIT_COUNT`（在此例中为4）。
 - en: '[PRE29]'
+  id: totrans-179
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: 'Full details about creating a `no_alloc` project are beyond my experience.
     However, the first step is to remove this line (added in Rule 3) from your `lib.rs`
     or `main.rs`:'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建一个`no_alloc`项目的完整细节超出了我的经验范围。然而，第一步是从你的`lib.rs`或`main.rs`中删除这一行（在规则3中添加的）：
 - en: '[PRE30]'
+  id: totrans-181
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: 'Rule 9: Add `thumbv7m-none-eabi` and QEMU to your CI (continuous integration)
     tests.'
+  id: totrans-182
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则 9：将`thumbv7m-none-eabi`和QEMU添加到你的CI（持续集成）测试中。
 - en: 'Your project is now compiling to `no_std` and passing at least one embedded-specific
     test. Are you done? Not quite. As I said in the previous two articles:'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 你的项目现在已经编译为`no_std`并通过了至少一个嵌入式特定的测试。你完成了吗？还没有。正如我在前两篇文章中所说：
 - en: If it’s not in CI, it doesn’t exist.
+  id: totrans-184
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 如果它不在CI中，那就不存在。
 - en: 'Recall that continuous integration (CI) is a system that can automatically
     run tests every time you update your code. I use GitHub Actions as my CI platform.
     Here’s the configuration I added to `.github/workflows/ci.yml` to test my project
     on embedded platforms:'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 记住，持续集成（CI）是一个每次更新代码时都能自动运行测试的系统。我使用GitHub Actions作为我的CI平台。以下是我添加到`.github/workflows/ci.yml`中的配置，用于在嵌入式平台上测试我的项目：
 - en: '[PRE31]'
+  id: totrans-186
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: By testing embedded and `no_std` with CI, I can be sure that my code will continue
     to support embedded platforms in the future.
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过在CI中测试嵌入式和`no_std`，我可以确保我的代码将继续支持未来的嵌入式平台。
 - en: So, there you have it — nine rules for porting your Rust code to embedded. To
     see a snapshot of the whole `range-set-blaze` project after applying all nine
     rules, see [this branch on Github](https://github.com/CarlKCarlK/range-set-blaze/tree/rustconf24.nostd).
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，事情就是这样——移植Rust代码到嵌入式的九条规则。要查看应用了这九条规则后整个`range-set-blaze`项目的快照，请参见[这个Github分支](https://github.com/CarlKCarlK/range-set-blaze/tree/rustconf24.nostd)。
 - en: 'Here is what surprised me about porting to embedded:'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是让我在移植到嵌入式时感到惊讶的地方：
 - en: '**The Bad:**'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: '**坏的一面：**'
 - en: We cannot run our existing tests on embedded systems. Instead, we must create
     a new subproject and write (a few) new tests.
+  id: totrans-191
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们无法在嵌入式系统上运行现有的测试。相反，我们必须创建一个新的子项目并编写（一些）新的测试。
 - en: Many popular libraries rely on `std`, so finding or adapting dependencies that
     work with `no_std` can be challenging.
+  id: totrans-192
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 许多流行的库依赖于`std`，因此找到或调整适用于`no_std`的依赖库可能会面临挑战。
 - en: '**The Good:**'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: '**好的一面：**'
 - en: The Rust saying that “if it compiles, it works” holds true for embedded development.
     This gives us confidence in our code’s correctness without requiring extensive
     new tests.
+  id: totrans-194
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Rust中“如果能编译，就能运行”的说法在嵌入式开发中依然成立。这使我们能够在无需大量新测试的情况下，对代码的正确性充满信心。
 - en: Although `no_std` removes our immediate access to the standard library, many
     items continue to be available via `core` and `alloc`.
+  id: totrans-195
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 尽管`no_std`移除了我们对标准库的直接访问，但许多项目仍然可以通过`core`和`alloc`使用。
 - en: Thanks to emulation, you can develop for embedded systems without hardware.
+  id: totrans-196
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 借助仿真，你可以在没有硬件的情况下为嵌入式系统进行开发。
 - en: Thank you for joining me on this journey from WASI to WebAssembly in the browser
     and, finally, to embedded development. Rust has continued to impress me with its
     ability to run efficiently and safely across environments. As you explore these
     different domains, I hope you find Rust’s flexibility and power as compelling
     as I do. Whether you’re working on cloud servers, browsers, or microcontrollers,
     the tools we’ve discussed will help you tackle the challenges ahead with confidence.
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢你加入我从WASI到WebAssembly再到嵌入式开发的旅程。Rust凭借其在不同环境中高效且安全运行的能力，继续让我印象深刻。随着你探索这些不同的领域，我希望你能像我一样，感受到Rust的灵活性和强大。无论你是在处理云服务器、浏览器还是微控制器，我们讨论的工具都将帮助你自信地应对未来的挑战。
 - en: Interested in future articles? Please [follow me on Medium](https://medium.com/@carlmkadie).
     I write about Rust and Python, scientific programming, machine learning, and statistics.
     I tend to write about one article per month.
+  id: totrans-198
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 对未来的文章感兴趣吗？请[在Medium上关注我](https://medium.com/@carlmkadie)。我写关于Rust和Python、科学编程、机器学习以及统计学的文章。我倾向于每月写一篇文章。

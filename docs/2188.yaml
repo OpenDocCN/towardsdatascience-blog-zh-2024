@@ -1,48 +1,73 @@
 - en: Quantizing the Weights of AI Models
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 人工智能模型权重的量化
 - en: 原文：[https://towardsdatascience.com/quantizing-the-weights-of-ai-models-39f489455194?source=collection_archive---------6-----------------------#2024-09-07](https://towardsdatascience.com/quantizing-the-weights-of-ai-models-39f489455194?source=collection_archive---------6-----------------------#2024-09-07)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/quantizing-the-weights-of-ai-models-39f489455194?source=collection_archive---------6-----------------------#2024-09-07](https://towardsdatascience.com/quantizing-the-weights-of-ai-models-39f489455194?source=collection_archive---------6-----------------------#2024-09-07)
 - en: Reducing high-precision floating-point weights to low-precision integer weights
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将高精度浮点权重转换为低精度整数权重
 - en: '[](https://medium.com/@arunnanda?source=post_page---byline--39f489455194--------------------------------)[![Arun
     Nanda](../Images/48836e7e13dbe0821bed6902209f2d25.png)](https://medium.com/@arunnanda?source=post_page---byline--39f489455194--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--39f489455194--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--39f489455194--------------------------------)
     [Arun Nanda](https://medium.com/@arunnanda?source=post_page---byline--39f489455194--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@arunnanda?source=post_page---byline--39f489455194--------------------------------)[![Arun
+    Nanda](../Images/48836e7e13dbe0821bed6902209f2d25.png)](https://medium.com/@arunnanda?source=post_page---byline--39f489455194--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--39f489455194--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--39f489455194--------------------------------)
+    [Arun Nanda](https://medium.com/@arunnanda?source=post_page---byline--39f489455194--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--39f489455194--------------------------------)
     ·12 min read·Sep 7, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--39f489455194--------------------------------)
+    ·12分钟阅读·2024年9月7日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/50ca7965b4f8806bfb9c64b046896779.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/50ca7965b4f8806bfb9c64b046896779.png)'
 - en: Image created by author
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者创作
 - en: To make AI models more affordable and accessible, many developers and researchers
     are working towards making the models smaller but equally powerful. Earlier in
     this series, the article [*Reducing the Size of AI Models*](https://medium.com/@arunnanda/reducing-the-size-of-ai-models-4ab4cfe5887a)
     gives a basic introduction to quantization as a successful technique to reduce
     the size of AI models. Before learning more about the quantization of AI models,
     it is necessary to understand how the quantization operation works.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使人工智能模型更具经济性和可获取性，许多开发人员和研究人员正致力于让模型变得更小，但同样强大。在本系列的前一篇文章中，[ *减少人工智能模型的大小*](https://medium.com/@arunnanda/reducing-the-size-of-ai-models-4ab4cfe5887a)
+    对量化作为一种成功的技术进行了基本介绍，用于减少人工智能模型的大小。在深入了解人工智能模型的量化之前，了解量化操作的原理是很有必要的。
 - en: This article, the second in the series, presents a hands-on introduction to
     the arithmetics of quantization. It starts with a simple example of scaling number
     ranges and progresses to examples with clipping, rounding, and different types
     of scaling factors.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文是系列文章的第二篇，介绍了量化运算的实际操作。文章从数字范围缩放的简单例子开始，逐步讲解了包括裁剪、舍入和不同类型缩放因子的例子。
 - en: There are different ways to represent real numbers in computer systems, such
     as 32-bit floating point numbers, 8-bit integers, and so on. Regardless of the
     representation, computers can only express numbers in a finite range and of a
@@ -50,224 +75,332 @@
     system) have a range from -3.4 * 10³⁸ to +3.4 * 10³⁸. The smallest positive number
     that can be encoded in this format is of the order of 1 * 10^-38\. In contrast,
     signed 8-bit integers range from -128 to +127.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 计算机系统中表示实数的方式有很多种，例如32位浮点数、8位整数等。不管采用哪种表示方式，计算机只能在有限的范围内表示数字，并且精度是有限的。32位浮点数（使用[IEEE
+    754 32位二进制](https://en.wikipedia.org/wiki/IEEE_754)系统）范围从 -3.4 * 10³⁸ 到 +3.4 *
+    10³⁸。该格式中可以编码的最小正数约为 1 * 10^-38。而有符号的8位整数范围是从 -128 到 +127。
 - en: Traditionally, model weights are represented as 32-bit floats (or as 16-bit
     floats, in the case of many large models). When quantized to 8-bit integers (for
     example), the quantizer function maps the entire range of 32-bit floating point
     numbers to integers between -128 and +127.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 传统上，模型权重以32位浮点数表示（在许多大型模型中，采用16位浮点数）。当量化为8位整数时（例如），量化函数将32位浮点数的整个范围映射到 -128
+    到 +127 之间的整数。
 - en: Scaling Number Ranges
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 数字范围的缩放
 - en: 'Consider a rudimentary example: you need to map numbers in the integer range
     A from -1000 to 1000 to the integer range B from -10 to +10\. Intuitively, the
     number 500 in range A maps to the number 5 in range B. The steps below illustrate
     how to do this formulaically:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑一个基础的例子：你需要将整数范围A中的数字从-1000到1000映射到整数范围B中的数字，从-10到+10。直观上，范围A中的数字500映射到范围B中的数字5。以下步骤展示了如何通过公式进行此操作：
 - en: 'To transform a number from one range to another, you need to multiply it by
     the right scaling factor. The number 500 from range A can be expressed in the
     range B as follows:'
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要将一个数字从一个范围转换到另一个范围，你需要乘以合适的缩放因子。范围A中的数字500可以在范围B中表示如下：
 - en: 500 * scaling_factor = Representation of 500 in Range B = 5
+  id: totrans-15
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 500 * 缩放因子 = 范围B中500的表示 = 5
 - en: 'To calculate the scaling factor, take the ratio of the difference between the
     maximum and minimum values of the target range to the original range:'
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要计算缩放因子，需要将目标范围的最大值和最小值之间的差与原始范围的差进行比值计算：
 - en: '![](../Images/014d4744fd61bb9f6832e61bfcaf579c.png)'
+  id: totrans-17
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/014d4744fd61bb9f6832e61bfcaf579c.png)'
 - en: 'To map the number 500, multiply it by the scaling factor:'
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要映射数字500，需要将其乘以缩放因子：
 - en: 500 * (1/100) = 5
+  id: totrans-19
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 500 * (1/100) = 5
 - en: 'Based on the above formulation, try to map the number 510:'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于上述公式，尝试映射数字510：
 - en: 510 * (1/100) = 5.1
+  id: totrans-21
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 510 * (1/100) = 5.1
 - en: 'Since the range B consists only of integers, extend the above formula with
     a rounding function:'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由于范围B只包含整数，因此在上述公式中加入四舍五入函数：
 - en: Round ( 510 * (1/100) ) = 5
+  id: totrans-23
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 四舍五入 ( 510 * (1/100) ) = 5
 - en: Similarly, all the numbers from 500 to 550 in Range A map to the number 5 in
     Range B. Based on this, notice that the mapping function resembles a step function
     with uniform steps.
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 类似地，范围A中从500到550的所有数字都会映射到范围B中的数字5。基于此，请注意映射函数类似于一个阶梯函数，且每一步都是均匀的。
 - en: '![](../Images/d4e43419f9c1b053ac389cfee3cf2ee7.png)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d4e43419f9c1b053ac389cfee3cf2ee7.png)'
 - en: Image created by author
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者创建
 - en: The X-axis in this figure represents the source Range, A (unquantized weights)
     and the Y-axis represents the target Range, B (quantized weights).
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 图中的X轴表示源范围A（未量化权重），Y轴表示目标范围B（量化权重）。
 - en: Simple Integer Quantization
+  id: totrans-28
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 简单的整数量化
 - en: As a more practical example, consider a floating point range -W to +W, which
     you want to quantize to signed N-bit integers. The range of signed N-bit integers
     is -2^(N-1) to +2^(N-1)-1\. But, to simplify things for the sake of illustration,
     assume a range from -2^(N-1) to +2^(N-1). For example, (signed) 8-bit integers
     range from -16 to +15 but here we assume a range from -16 to +16\. This range
     is symmetric around 0 and the technique is called symmetric range mapping.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为一个更实际的例子，考虑一个浮动范围- W到+ W，你希望将其量化为带符号的N位整数。带符号N位整数的范围是-2^(N-1)到+2^(N-1)-1。但为了简化说明，假设范围从-2^(N-1)到+2^(N-1)。例如，带符号的8位整数的范围是-16到+15，但这里我们假设范围是从-16到+16。这个范围围绕0对称，这种技术称为对称范围映射。
 - en: 'The scaling factor, s, is:'
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 缩放因子s为：
 - en: '![](../Images/068239d0b2064c9224cedafa5b55c062.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/068239d0b2064c9224cedafa5b55c062.png)'
 - en: 'The quantized number is the product of the unquantized number and the scaling
     factor. To quantize to integers, we need to round this product to the nearest
     integer:'
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 量化后的数字是未量化数字与缩放因子的乘积。为了量化为整数，我们需要将这个乘积四舍五入到最接近的整数：
 - en: '![](../Images/ee09c59ddd8ae1647bf91d675272749d.png)'
+  id: totrans-33
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ee09c59ddd8ae1647bf91d675272749d.png)'
 - en: To remove the assumption that the target range is symmetric around 0, you also
     account for the zero-point offset, as explained in the next section.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了去除目标范围围绕0对称的假设，你还需要考虑零点偏移量，具体如下一节所述。
 - en: Zero Point Quantization
+  id: totrans-35
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 零点量化
 - en: The number range -2^(N-1) to +2^(N-1), used in the previous example, is symmetric
     around 0\. The range -2^(N-1) to +2^(N-1)-1, represented by N-bit integers, is
     not symmetric.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 在之前的例子中使用的数字范围是-2^(N-1)到+2^(N-1)，它是围绕0对称的。而范围-2^(N-1)到+2^(N-1)-1，由N位整数表示，并不是对称的。
 - en: When the quantization number range is not symmetric, you add a correction, called
     a zero point offset, to the product of the weight and the scaling factor. This
     offset shifts the range such that it is effectively symmetric around zero. Conversely,
     the offset represents the quantized value of the number 0 in the unquantized range.
     The steps below show how to calculate the zero point offset, z.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 当量化数字范围不是对称时，你会向权重和缩放因子的乘积中添加一个修正项，称为零点偏移量。这个偏移量会使得范围有效地围绕零对称。反过来，偏移量表示在未量化范围内数字0的量化值。以下步骤展示了如何计算零点偏移量z。
 - en: 'The quantization relation with the offset is expressed as:'
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 带偏移量的量化关系表达为：
 - en: '![](../Images/66f06ee0cdd5b6771f43382d4ca124de.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/66f06ee0cdd5b6771f43382d4ca124de.png)'
 - en: Map the extreme points of the original and the quantized intervals. In this
     context, W_min and W_max refer to the minimum and maximum weights in the original
     unquantized range.
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将原始区间和量化区间的极值点进行映射。在这个上下文中，W_min和W_max指的是原始未量化范围内的最小值和最大值。
 - en: '![](../Images/7644979bd7e76323e3ec4c823e5253f8.png)![](../Images/02cee12747c02b98131657743af4bff6.png)'
+  id: totrans-41
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7644979bd7e76323e3ec4c823e5253f8.png)![](../Images/02cee12747c02b98131657743af4bff6.png)'
 - en: 'Solving these linear equations for the scaling factor, s, we get:'
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解这些线性方程来求解缩放因子s，我们得到：
 - en: '![](../Images/4ed443bd993e9020a69f8210fc10274c.png)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4ed443bd993e9020a69f8210fc10274c.png)'
 - en: 'Similarly, we can express the offset, z, in terms of scaling factor s, as:'
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 类似地，我们可以通过缩放因子s来表示偏移量z，公式如下：
 - en: '![](../Images/c5e44ff836ce56a73ecb5b60b7dab817.png)'
+  id: totrans-45
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c5e44ff836ce56a73ecb5b60b7dab817.png)'
 - en: 'Substituting for s in the above relation:'
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在上述关系中代入s：
 - en: '![](../Images/85564153797cedc0f357a2af83b7d60b.png)'
+  id: totrans-47
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/85564153797cedc0f357a2af83b7d60b.png)'
 - en: 'Since we are converting from floats to integers, the offset also needs to be
     an integer. Rounding the above expression:'
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由于我们是从浮动数转换为整数，因此偏移量也需要是整数。对上述表达式进行四舍五入：
 - en: '![](../Images/ec0b5d248c7c1b9563b0e617c5093136.png)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ec0b5d248c7c1b9563b0e617c5093136.png)'
 - en: Meaning of Zero-Point
+  id: totrans-50
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 零点的含义
 - en: In the above discussion, the offset value is called the zero-point offset. It
     is called the zero-point because it is the quantized value of the floating point
     weight of 0.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述讨论中，偏移量值被称为零点偏移量。之所以称其为零点，是因为它是浮点权重0的量化值。
 - en: When W = 0 in
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 当W = 0时，在
 - en: '![](../Images/e4534f2ff4111df5a09584514fafa485.png)'
+  id: totrans-53
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e4534f2ff4111df5a09584514fafa485.png)'
 - en: 'You get:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 你得到：
 - en: '![](../Images/ae813a1bc998444a60858c8cd6dfa137.png)'
+  id: totrans-55
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ae813a1bc998444a60858c8cd6dfa137.png)'
 - en: 'The article, [*Zero-point quantization: How do we get those formulas*](https://medium.com/@luis.vasquez.work.log/zero-point-quantization-how-do-we-get-those-formulas-4155b51a60d6),
     by Luis Vasquez, discusses zero-point quantization with many examples and illustrative
     pictures.'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 这篇文章[*零点量化：我们如何得到这些公式*](https://medium.com/@luis.vasquez.work.log/zero-point-quantization-how-do-we-get-those-formulas-4155b51a60d6)由Luis
+    Vasquez撰写，讨论了零点量化的多个示例和说明性图片。
 - en: De-quantization
+  id: totrans-57
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 反量化
 - en: 'The function to obtain an approximation of the original floating point value
     from the quantized value is called the de-quantization function. It is simply
     the inverse of the original quantization relation:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 获取原始浮点值近似值的函数被称为反量化函数。它实际上是原始量化关系的反函数：
 - en: '![](../Images/b92297666cca4e9c43592ade5710a943.png)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b92297666cca4e9c43592ade5710a943.png)'
 - en: Ideally, the de-quantized weight should be equal to the original weight. But,
     because of the rounding operations in the quantization functions, this is not
     the case. Thus, there is a loss of information involved in the de-quantization
     process.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 理想情况下，反量化后的权重应等于原始权重。但由于量化函数中的四舍五入操作，实际上并非如此。因此，反量化过程中会涉及信息的损失。
 - en: Improving the Precision of Quantization
+  id: totrans-61
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 提高量化精度
 - en: The biggest drawback of the above methods is the loss of precision. Bhandare
     et al, in a 2019 paper titled [*Efficient 8-Bit Quantization of Transformer Neural
     Machine Language Translation Model*](https://arxiv.org/pdf/1906.00532), were the
@@ -276,50 +409,71 @@
     descent, or indeed any optimization algorithm, the weights undergo just a slight
     modification in each pass. It is therefore important for the quantization method
     to be able to capture fractional changes in the weights.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述方法的最大缺点是精度损失。Bhandare等人于2019年在题为[*高效的8位量化变换器神经机器翻译模型*](https://arxiv.org/pdf/1906.00532)的论文中首次对Transformer模型进行了量化。他们展示了如前所述的简单量化方法会导致精度的损失。在梯度下降法，或者说任何优化算法中，权重在每次迭代中仅会发生轻微的变化。因此，量化方法必须能够捕捉到权重的微小变化。
 - en: Clipping the Range
+  id: totrans-63
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 裁剪范围
 - en: Quantized intervals have a fixed and limited range of integers. On the other
     hand, unquantized floating points have a very large range. To increase the precision,
     it is helpful to reduce (clip) the range of the floating point interval.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 量化区间有固定且有限的整数范围。而未量化的浮动点数有着非常广泛的范围。为了提高精度，缩小（裁剪）浮动点区间的范围是有帮助的。
 - en: It is observed that the weights in a neural network follow a statistical distribution,
     such as a normal Gaussian distribution. This means, most of the weights fall within
     a narrow interval, say between W_max and W_min. Beyond W_max and W_min, there
     are only a few outliers.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 已观察到，神经网络中的权重遵循一种统计分布，例如正态高斯分布。这意味着，大多数权重落在一个较窄的区间内，例如在 W_max 和 W_min 之间。超过
+    W_max 和 W_min 的部分，只有少数异常值。
 - en: In the following description, the weights are clipped, and W_max and W_min refer
     to the maximum and minimum values of the weights in the clipped range.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下描述中，权重被裁剪，W_max 和 W_min 指的是裁剪范围内权重的最大值和最小值。
 - en: 'Clipping (restricting) the range of the floating point weights to this interval
     means:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 将浮动点权重的范围限制在此区间内意味着：
 - en: Weights which fall in the tails of the distribution are clipped — Weights higher
     than W_max are clipped to W_max. Weights smaller than W_min are clipped to W_min.
     The range between W_min and W_max is the clipping range.
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 落在分布尾部的权重被裁剪——高于 W_max 的权重被裁剪到 W_max。小于 W_min 的权重被裁剪到 W_min。W_min 和 W_max 之间的范围就是裁剪范围。
 - en: Because the range of the floating point weights is reduced, a smaller unquantized
     range maps to the same quantized range. Thus, the quantized range can now account
     for smaller changes in the values of the unquantized weights.
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由于浮动点权重的范围缩小了，较小的未量化范围映射到相同的量化范围。因此，量化范围现在可以更好地反映未量化权重值的微小变化。
 - en: 'The quantization formula shown in the previous section is modified to include
     the clipping:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 上一节中展示的量化公式经过修改，包含了裁剪操作：
 - en: '![](../Images/47b2f90a3267dd360f1f9a72c85aafca.png)'
+  id: totrans-71
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/47b2f90a3267dd360f1f9a72c85aafca.png)'
 - en: The clipping range is customizable. You can choose how narrow you want this
     interval to be. If the clipping is overly aggressive, weights that contribute
     to the model’s accuracy can be lost in the clipping process. Thus, there is a
@@ -327,245 +481,350 @@
     of weights within the interval, but it also reduces the model’s accuracy due to
     loss of information from those weights which were considered as outliers and got
     clipped.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 裁剪范围是可定制的。你可以选择这个区间的宽窄。如果裁剪过于激进，可能会丢失对模型精度有贡献的权重。因此，这是一种权衡——将裁剪区间设得过窄可以提高区间内权重量化的精度，但由于那些被视为异常值并被裁剪掉的权重信息丢失，也会降低模型的准确性。
 - en: Determining the Clipping Parameters
+  id: totrans-73
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 确定裁剪参数
 - en: It has been noted by many researchers that the statistical distribution of model
     weights has a significant effect on the model’s performance. Thus, it is essential
     to quantize weights in such a way that these statistical properties are preserved
     through the quantization. Using statistical methods, such as Kullback Leibler
     Divergence, it is possible to measure the similarity of the distribution of weights
     in the quantized and unquantized distributions.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多研究人员注意到，模型权重的统计分布对模型的性能有显著影响。因此，量化权重时必须以保持这些统计特性为前提。使用统计方法，例如 Kullback-Leibler
+    散度，可以衡量量化和未量化分布之间权重分布的相似性。
 - en: The optimal clipped values of W_max and W_min are chosen by iteratively trying
     different values and measuring the difference between the histograms of the quantized
     and unquantized weights. This is called calibrating the quantization. Other approaches
     include minimizing the mean square error between the quantized weights and the
     full-precision weights.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: W_max 和 W_min 的最优裁剪值是通过反复尝试不同值并测量量化权重和未量化权重的直方图之间的差异来选择的。这被称为量化的校准。其他方法包括最小化量化权重与全精度权重之间的均方误差。
 - en: Different Scaling Factors
+  id: totrans-76
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 不同的缩放因子
 - en: There is more than one way to scale floating point numbers to lower precision
     integers. There are no hard rules on what is the right scaling factor. Researchers
     have experimented with various approaches. A general guideline is to choose a
     scaling factor so that the unquantized and quantized distributions have a similar
     statistical properties.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 有多种方法可以将浮动点数转换为低精度整数。关于什么是正确的缩放因子，并没有硬性规定。研究人员尝试了多种方法。一般的指导方针是选择一个缩放因子，使得未量化和量化的分布具有相似的统计特性。
 - en: '**MinMax Quantization**'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '**MinMax 量化**'
 - en: The examples in the previous sections scale each weight by the difference of
     W_max and W_min (the maximum and minimum weights in the set). This is known as
     minmax quantization.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 前面章节中的示例通过W_max和W_min的差值（即集合中的最大权重和最小权重）来缩放每个权重。这称为最小最大值量化。
 - en: '![](../Images/62fe76ce030770d3a772c5ffab9da9c3.png)'
+  id: totrans-80
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/62fe76ce030770d3a772c5ffab9da9c3.png)'
 - en: This is one of the most common approaches to quantization.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是最常见的量化方法之一。
 - en: '**AbsMax Quantization**'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '**绝对最大值量化**'
 - en: 'It is also possible to scale the weights by the absolute value of the maximum
     weight:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 也可以通过最大权重的绝对值来缩放权重：
 - en: '![](../Images/fd29fb0f4a10fbb088428c8c3c7238b0.png)'
+  id: totrans-84
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fd29fb0f4a10fbb088428c8c3c7238b0.png)'
 - en: 'Wang et al, in their 2023 paper titled [BitNet: Scaling 1-bit Transformers
     for Large Language Models](https://arxiv.org/pdf/2310.11453), use absmax quantization
     to build the 1-bit BitNet Transformer architecture. The BitNet architecture is
     explained later in this series, in [*Understanding 1-bit Large Language Models*](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3).'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Wang等人在其2023年发表的论文《[BitNet: 扩展1位Transformer以适应大型语言模型](https://arxiv.org/pdf/2310.11453)》中，使用绝对最大值量化来构建1位的BitNet
+    Transformer架构。BitNet架构将在本系列后续内容中进行解释，参见[《*理解1位大型语言模型*》](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3)。'
 - en: '**AbsMean Quantization**'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '**绝对均值量化**'
 - en: 'Another approach is to make the scaling factor equal to the average of the
     absolute values of all the unquantized weights:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种方法是将缩放因子设置为所有未量化权重的绝对值的平均值：
 - en: '![](../Images/408a6180e68e94a389c6b7d8d4d1874c.png)'
+  id: totrans-88
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/408a6180e68e94a389c6b7d8d4d1874c.png)'
 - en: 'Ma et al, in the 2024 paper titled [The Era of 1-bit LLMs: All Large Language
     Models are in 1.58 Bits](https://arxiv.org/pdf/2402.17764), use absmean quantization
     to build a 1.58-bit variant of BitNet. To learn more about 1.58-bit language models,
     refer to [*Understanding 1.58-bit Large Language Models*](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a).'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: Ma等人在2024年发表的论文《[1位LLM时代：所有大型语言模型都在1.58位](https://arxiv.org/pdf/2402.17764)》中，使用绝对均值量化来构建1.58位的BitNet变体。欲了解更多关于1.58位语言模型的信息，请参阅[《*理解1.58位大型语言模型*》](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a)。
 - en: Granularity of Quantization
+  id: totrans-90
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 量化粒度
 - en: It is possible to quantize all the weights in a model using the same quantization
     scale. However, for better accuracy, it is also common to calibrate and estimate
     the range and quantization formula separately for each tensor, channel, and layer.
     The article [*Different Approaches to Quantization*](https://medium.com/@arunnanda/different-approaches-to-quantization-e3fac905bd5a)
     discusses the granularity levels at which quantization is applied.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以使用相同的量化尺度来量化模型中的所有权重。然而，为了更好的准确性，通常会分别对每个张量、通道和层进行标定和估算范围与量化公式。文章[《*量化的不同方法*》](https://medium.com/@arunnanda/different-approaches-to-quantization-e3fac905bd5a)讨论了应用量化的粒度级别。
 - en: Extreme Quantization
+  id: totrans-92
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 极端量化
 - en: 'Traditional quantization approaches reduce the precision of model weights to
     16-bit or 8-bit integers. Extreme quantization refers to quantizing weights to
     1-bit and 2-bit integers. Quantization to 1-bit integers ({0, 1}) is called binarization.
     The simple approach to binarize floating point weights is to map positive weights
     to +1 and negative weights to -1:'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 传统的量化方法将模型权重的精度降低到16位或8位整数。极端量化指的是将权重量化为1位或2位整数。将权重量化为1位整数（{0, 1}）称为二值化。将浮动点权重二值化的简单方法是将正权重映射为+1，负权重映射为-1：
 - en: '![](../Images/7a86ce61c5ee49b12d8679bf2f3c9973.png)'
+  id: totrans-94
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7a86ce61c5ee49b12d8679bf2f3c9973.png)'
 - en: 'Similarly, it is also possible to quantize weights to ternary ({-1, 0, +1}):'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，也可以将权重量化为三元制（{-1, 0, +1}）：
 - en: '![](../Images/da4189c9a88e3e11e5870626fa48a3c7.png)'
+  id: totrans-96
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/da4189c9a88e3e11e5870626fa48a3c7.png)'
 - en: 'In the above system, Delta is a threshold value. In a simplistic approach,
     one might quantize to ternary as follows:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述系统中，Delta是一个阈值。在简化方法中，可以按以下方式量化为三元制：
 - en: Normalize the unquantized weights to lie between -1 and +1
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将未量化的权重归一化到-1到+1之间
 - en: Quantize weights below -0.5 to -1
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将权重大于-0.5的权重量化为-1
 - en: Quantize weights between -0.5 and +0.5 to 0
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将权重大于-0.5且小于+0.5的权重量化为0
 - en: Quantize weights above 0.5 to +1.
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将权重大于0.5的权重量化为+1。
 - en: Directly applying binary and ternary quantization leads to poor results. As
     discussed earlier, the quantization process must preserve the statistical properties
     of the distribution of the model weights. In practice, it is common to adjust
     the range of the raw weights before applying the quantization and to experiment
     with different scaling factors.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 直接应用二值化和三值化量化会导致较差的结果。如前所述，量化过程必须保留模型权重分布的统计特性。在实践中，常常在应用量化之前调整原始权重的范围，并尝试不同的缩放因子。
 - en: Later in this series, the articles [*Understanding 1-bit Large Language Models*](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3)
     and [*Understanding 1.58-bit Language Models*](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a)
     discuss practical examples of binarization and ternarization of weights. The 2017
     paper titled [*Trained Ternary Quantization* by Zhu et al](https://arxiv.org/pdf/1612.01064)
     and the [2023 survey paper on ternary quantization](https://arxiv.org/pdf/2303.01505)
     by Liu et al dive deeper into the details of ternary quantization.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本系列的后续文章中，[*理解1位大语言模型*](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3)和[*理解1.58位语言模型*](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a)讨论了权重的二值化和三值化的实际例子。2017年由Zhu等人撰写的论文[*训练三值量化*](https://arxiv.org/pdf/1612.01064)和刘等人于2023年发布的关于三值量化的调查论文[2023
+    survey paper on ternary quantization](https://arxiv.org/pdf/2303.01505)深入探讨了三值量化的细节。
 - en: The premise of binarization is that even though this process (binarization)
     seems to result in a loss of information, using a large number of weights compensates
     for this loss. The statistical distribution of the binarized weights is similar
     to that of the unquantized weights. Thus, deep neural networks are still able
     to demonstrate good performance even with binary weights.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 二值化的前提是，尽管这个过程（二值化）似乎导致了信息丢失，但使用大量的权重弥补了这种损失。二值化权重的统计分布与未量化权重的分布相似。因此，即使使用二进制权重，深度神经网络仍然能够展示良好的性能。
 - en: Non-uniform Quantization
+  id: totrans-105
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 非均匀量化
 - en: 'The quantization methods discussed so far uniformly map the range of unquantized
     weights to quantized weights. They are called “uniform” because the mapping intervals
     are equidistant. To clarify, when you mapped the range -1000 to +1000 to the range
     -10 to +10:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前讨论的量化方法将未量化权重的范围均匀映射到量化后的权重。之所以称之为“均匀”，是因为映射区间是等距离的。为了澄清，当你将范围-1000到+1000映射到范围-10到+10时：
 - en: All the numbers from -1000 to -951 are mapped to -10
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从-1000到-951之间的所有数字都映射到-10
 - en: The interval from -950 to -851 is mapped to -9
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从-950到-851的区间映射到-9
 - en: The interval from -850 to -751 maps to -8
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从-850到-751的区间映射到-8
 - en: and so on…
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 依此类推……
 - en: These intervals are also called bins.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些区间也被称为区间。
 - en: The disadvantage of uniform quantization is that it does not take into consideration
     the statistical distribution of the weights themselves. It works best when the
     weights are equally distributed between W_max and W_min. The range of floating
     point weights can be considered as divided into uniform bins. Each bin maps to
     one quantized weight.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 均匀量化的缺点在于，它没有考虑到权重本身的统计分布。它在权重均匀分布于W_max和W_min之间时效果最佳。浮动点权重的范围可以被视为划分为均匀的区间，每个区间映射到一个量化后的权重。
 - en: In reality, floating point weights are not distributed uniformly. Some bins
     contain a large number of unquantized weights while other bins have very few.
     Non-uniform quantization aims to create these bins in such a way that bins with
     a higher density of weights map to a larger interval of quantized weights.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，浮动点权重并不是均匀分布的。有些区间包含大量未量化的权重，而其他区间则非常少。非均匀量化旨在通过一种方式创建这些区间，使得权重密度较高的区间映射到更大的量化权重区间。
 - en: There are different ways of representing the non-uniform distribution of weights,
     such as K-means clustering. However, these methods are not currently used in practice,
     due to the computational complexity of their implementation. Most practical quantization
     systems are based on uniform quantization.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 表示权重的非均匀分布有不同的方法，比如K-means聚类。然而，这些方法目前在实践中并未得到应用，因为它们实现的计算复杂度较高。大多数实际的量化系统基于均匀量化。
 - en: In the hypothetical graph below, in the chart on the right, unquantized weights
     have a low density of distribution towards the edges and a high density around
     the middle of the range. Thus, the quantized intervals are larger towards the
     edges and compact in the middle.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下图的假设图表中，右侧图表显示了未量化的权重在范围边缘的分布密度较低，而在范围中间的密度较高。因此，量化后的区间在边缘较大，在中间则较为紧凑。
 - en: '![](../Images/6b85f289a7fd0b08c8ae28afa8bbd9d2.png)'
+  id: totrans-116
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6b85f289a7fd0b08c8ae28afa8bbd9d2.png)'
 - en: Image created by author
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者制作
 - en: Quantizing Activations and Biases
+  id: totrans-118
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 激活值与偏置的量化
 - en: The activation is quantized similarly as the weights are, but using a different
     scale. In some cases, the activation is quantized to a higher precision than the
     weights. In models like [BinaryBERT](https://medium.com/@arunnanda/extreme-quantization-1-bit-ai-models-07169ee29d96),
     and the [1-bit Transformer — BitNet](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3),
     the weights are quantized to binary but the activations are in 8-bit.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 激活值的量化方式与权重类似，但使用了不同的比例尺。在某些情况下，激活值的量化精度高于权重。在像[BinaryBERT](https://medium.com/@arunnanda/extreme-quantization-1-bit-ai-models-07169ee29d96)和[1位Transformer——BitNet](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3)这样的模型中，权重被量化为二进制，而激活值则保持8位精度。
 - en: The biases are not always quantized. Since the bias term only undergoes a simple
     addition operation (as opposed to matrix multiplication), the computational advantage
     of quantizing the bias is not significant. Also, the number of bias terms is much
     less than the number of weights.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 偏置项并不总是进行量化。由于偏置项仅进行简单的加法运算（与矩阵乘法不同），因此量化偏置项的计算优势并不显著。此外，偏置项的数量远少于权重项的数量。
 - en: Conclusion
+  id: totrans-121
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: This article explained (with numerical examples) different commonly used ways
     of quantizing floating point model weights. The mathematical relationships discussed
     here form the foundation of [quantization to 1-bit weights](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3)
     and to [1.58-bit weights](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a)
     — these topics are discussed later in the series.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文通过（带有数值示例）解释了几种常用的浮动点模型权重量化方法。这里讨论的数学关系构成了[1位权重量化](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3)和[1.58位权重量化](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a)的基础——这些话题将在本系列后续文章中讨论。
 - en: To learn more about the mathematical principles of quantization, refer to [this
     2023 survey paper by Weng](https://arxiv.org/pdf/2112.06126). [*Quantization for
     Neural Networks*](https://leimao.github.io/article/Neural-Networks-Quantization/)
@@ -574,5 +833,7 @@
     has code samples implementing quantization. The next article in this series, [*Quantizing
     Neural Network Models*](https://medium.com/@arunnanda/quantizing-neural-network-models-8ce49332f1d3),
     presents the high-level processes by which neural network models are quantized.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 若要了解更多关于量化的数学原理，请参阅[Weng在2023年的调查论文](https://arxiv.org/pdf/2112.06126)。Lei Mao的[*神经网络量化*](https://leimao.github.io/article/Neural-Networks-Quantization/)一文更详细地解释了量化神经网络中涉及的数学关系，包括非线性激活函数，如ReLU。文中还提供了实现量化的代码示例。本系列的下一篇文章，[*神经网络模型的量化*](https://medium.com/@arunnanda/quantizing-neural-network-models-8ce49332f1d3)，介绍了神经网络模型量化的高层次过程。

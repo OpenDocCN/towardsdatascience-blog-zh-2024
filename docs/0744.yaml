@@ -1,36 +1,56 @@
 - en: Build a (recipe) recommender chatbot using RAG and hybrid search (Part I)
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 RAG 和混合搜索构建一个（食谱）推荐聊天机器人（第一部分）
 - en: 原文：[https://towardsdatascience.com/build-a-recipe-recommender-chatbot-using-rag-and-hybrid-search-part-i-c4aa07d14dcf?source=collection_archive---------2-----------------------#2024-03-20](https://towardsdatascience.com/build-a-recipe-recommender-chatbot-using-rag-and-hybrid-search-part-i-c4aa07d14dcf?source=collection_archive---------2-----------------------#2024-03-20)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/build-a-recipe-recommender-chatbot-using-rag-and-hybrid-search-part-i-c4aa07d14dcf?source=collection_archive---------2-----------------------#2024-03-20](https://towardsdatascience.com/build-a-recipe-recommender-chatbot-using-rag-and-hybrid-search-part-i-c4aa07d14dcf?source=collection_archive---------2-----------------------#2024-03-20)
 - en: This tutorial will teach you how to create sparse and dense embeddings and build
     a recommender system using hybrid search
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 本教程将教你如何创建稀疏和密集嵌入，并使用混合搜索构建推荐系统。
 - en: '[](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)[![Sebastian
     Bahr](../Images/082ca57697e35575127e71308a613b54.png)](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------)
     [Sebastian Bahr](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)[![Sebastian
+    Bahr](../Images/082ca57697e35575127e71308a613b54.png)](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------)
+    [Sebastian Bahr](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------)
     ·14 min read·Mar 20, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------)
+    ·14分钟阅读·2024年3月20日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/6619ea46b5aacdb61382fdadae8d715d.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6619ea46b5aacdb61382fdadae8d715d.png)'
 - en: Photo by [Katie Smith](https://unsplash.com/@kate5oh3?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
     on [Unsplash](https://unsplash.com/photos/avocado-tomatoes-eggs-mushrooms-spring-onions-and-leaves-uQs1802D0CQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自[Katie Smith](https://unsplash.com/@kate5oh3?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)在[Unsplash](https://unsplash.com/photos/avocado-tomatoes-eggs-mushrooms-spring-onions-and-leaves-uQs1802D0CQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 - en: This tutorial provides a step-by-step guide with code on how to create a chatbot-style
     recommender system. By the end, you will have built a recommender that uses the
     user’s open-text input to find matching items through a hybrid search on sparse
@@ -41,108 +61,160 @@
     them to a vector database, and performing dense vector search and hybrid search.
     In the second part, you will create a chatbot that generates responses based on
     user input and recommendations, and a UI using a Plotly dashboard.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 本教程提供了一个逐步指南，并附有代码，教你如何创建一个聊天机器人风格的推荐系统。完成后，你将构建一个推荐系统，利用用户的开放文本输入通过混合搜索在稀疏和密集向量中找到匹配项。本教程使用的数据集包含食谱，但你可以轻松地将数据集替换为适合你需求的数据集，只需做少量调整。本任务的第一部分将专注于构建推荐系统，包括数据清洗、创建稀疏和密集嵌入、将它们上传到向量数据库，以及执行密集向量搜索和混合搜索。在第二部分，你将创建一个聊天机器人，基于用户输入和推荐生成回应，并使用
+    Plotly 仪表板构建用户界面。
 - en: To follow this tutorial, you will need to set up accounts for paid services
     such as Vertex AI, OpenAI API, and Pinecone. Fortunately, most services offer
     free credits, and the costs associated with this tutorial should not exceed $5\.
     Additionally, you can reduce costs further by using the files and datasets provided
     on my GitHub [repository](https://github.com/sebastianbahr/RecipeRecommender).
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了跟随本教程，你需要为付费服务（如 Vertex AI、OpenAI API 和 Pinecone）设置账户。幸运的是，大多数服务提供免费额度，跟随本教程的费用不应超过
+    $5。除此之外，你可以通过使用我在 GitHub 上提供的[代码库](https://github.com/sebastianbahr/RecipeRecommender)中的文件和数据集进一步降低成本。
 - en: Data preparation
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 数据准备
 - en: For this project, we will use recipes from [Public Domain Recipes](https://publicdomainrecipes.com/).
     All recipes are stored as markdown files in this GitHub [repository.](https://github.com/ronaldlong46/public-domain-recipes)
     For this tutorial, I already did some data cleaning and created features from
     the raw text input. If you are keen on doing the data cleaning part yourself,
     the code is available on my GitHub [repository](https://github.com/sebastianbahr/RecipeRecommender).
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这个项目，我们将使用来自[Public Domain Recipes](https://publicdomainrecipes.com/)的食谱。所有食谱都以Markdown文件格式存储在这个GitHub
+    [仓库](https://github.com/ronaldlong46/public-domain-recipes)中。对于本教程，我已经进行了数据清理，并从原始文本输入中创建了特征。如果你有兴趣自己做数据清理部分，代码可以在我的GitHub
+    [仓库](https://github.com/sebastianbahr/RecipeRecommender)中找到。
 - en: 'The dataset consists of the following columns:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据集包含以下列：
 - en: '*title:* the title of the recipe'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*title:* 食谱的标题'
 - en: '*date:* the date the recipe was added'
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*date:* 食谱添加的日期'
 - en: '*tags:* a list of tags that describe the meal'
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*tags:* 描述菜肴的标签列表'
 - en: '*introduction:* an introduction to the recipe, the content varies strongly
     between records'
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*introduction:* 食谱的介绍，内容在不同记录之间变化很大'
 - en: '*ingredients:* all needed ingredients. Note that I removed the quantity as
     it is not needed for creating embeddings and contrary may lead to undesirable
     recommendations.'
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*ingredients:* 所有所需的食材。请注意，我已移除数量，因为在创建嵌入时不需要它，而且反而可能导致不理想的推荐。'
 - en: '*direction:* all required steps you need to perform to cook the meal'
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*direction:* 烹饪所需执行的所有步骤'
 - en: '*recipe_type:* indicator if the recipe is vegan, vegetarian, or regular'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*recipe_type:* 指示食谱是纯素食、素食还是常规食谱'
 - en: '*output:* contains the *title*, *ingredients,* and *direction* of the recipe
     and will be later provided to the chat model as input.'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*output:* 包含食谱的*title*、*ingredients*和*direction*，并将在后续提供给聊天模型作为输入。'
 - en: Let’s have a look at the distribution of the *recipe_type* feature. We see that
     the majority (60%) of the recipes include fish or meat and aren’t vegetarian-friendly.
     Approximately 35% are vegetarian-friendly and only 5% are vegan-friendly. This
     feature will be used as a hard filter for retrieving matching recipes from the
     vector database.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看看*recipe_type*特征的分布。我们可以看到，大多数（60%）的食谱包含鱼或肉类，不适合素食者。大约35%的食谱适合素食者，只有5%的食谱适合纯素食者。这个特征将作为从向量数据库中检索匹配食谱的硬性筛选条件。
 - en: '[PRE0]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '[PRE1]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '![](../Images/7fe0a3fb021229bc428ebc654abad1a4.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7fe0a3fb021229bc428ebc654abad1a4.png)'
 - en: '[PRE2]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '![](../Images/493e0101786f39c0ad909cc73d765734.png)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/493e0101786f39c0ad909cc73d765734.png)'
 - en: Distribution of recipe types
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 食谱类型的分布
 - en: Hybrid search uses a combination of sparse and dense vectors and a weighting
     factor *alpha,* which allows adjusting the importance of the dense vector in the
     retrieval process. In the following, we will create dense vectors based on the
     *title*, *tags*, and *introduction* and sparse vectors on the *ingredients*. By
     adjusting *alpha* we can therefore later on determine how much “attention” should
     be paid to ingredients the user mentioned in its query.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 混合搜索使用稀疏向量和密集向量的组合，以及加权因子*alpha*，这使得在检索过程中可以调整密集向量的重要性。接下来，我们将基于*title*、*tags*和*introduction*创建密集向量，并基于*ingredients*创建稀疏向量。通过调整*alpha*，我们可以在后续确定在查询中，用户提到的食材应受到多少“关注”。
 - en: Before creating the embeddings a new feature needs to be created that contains
     the combined information of the *title*, the *tags*, and the *introduction*.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在创建嵌入之前，需要创建一个新的特征，包含*title*、*tags*和*introduction*的组合信息。
 - en: '[PRE3]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '![](../Images/7c5589bf23680055144fc3a93bd8e990.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7c5589bf23680055144fc3a93bd8e990.png)'
 - en: Finally, before diving deeper into the generation of the embeddings we’ll have
     a look at the output column. The second part of the tutorial will be all about
     creating a chatbot using OpenAI that is able to answer user questions using knowledge
@@ -150,22 +222,32 @@
     the user query the chat model needs some information it builds its answer on.
     That’s where the *output* is used, as it contains all the needed information for
     an adequate answer
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，在深入生成嵌入之前，我们先来看看*output*列。本教程的第二部分将全程讲解如何使用OpenAI创建一个能够回答用户问题的聊天机器人，并利用我们的食谱数据库中的知识。因此，在找到最匹配用户查询的食谱后，聊天模型需要一些信息来构建其答案。这就是*output*的作用，它包含了构建一个合适答案所需的所有信息。
 - en: '[PRE4]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Further, a unique identifier needs to be added to each recipe, which allows
     retrieving the records of the recommended candidate recipes and their *output*.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，还需要为每个食谱添加一个唯一标识符，以便检索推荐候选食谱及其*output*。
 - en: '[PRE5]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Generate sparse embeddings
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 生成稀疏嵌入
 - en: The next step involves creating sparse embeddings for all 360 observations.
     To calculate these embeddings, a more sophisticated method than the frequently
     used TF-IDF or BM25 approach is used. Instead, the SPLADE **Sp**arse **L**exical
@@ -175,21 +257,33 @@
     input. In contrast, sparse embeddings contain a weight for each unique token in
     the input. The dictionary below represents a sparse vector, where the token ID
     is the key and the assigned weight is the value.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步是为所有 360 条观察生成稀疏嵌入。为了计算这些嵌入，使用了一种比常用的 TF-IDF 或 BM25 方法更为复杂的方法。相反，应用了 SPLADE
+    **Sp**arse **L**exical **a**n**d** **E**xpansion 模型。关于 SPLADE 的详细解释可以在 [这里](https://www.pinecone.io/learn/splade/)找到。密集嵌入对于每个文本输入具有相同的形状，无论输入中的
+    token 数量如何。相反，稀疏嵌入包含输入中每个唯一 token 的权重。下面的字典表示一个稀疏向量，其中 token ID 是键，分配的权重是值。
 - en: '[PRE6]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '![](../Images/69a25dad27f8097f9e1d64df625d39e1.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/69a25dad27f8097f9e1d64df625d39e1.png)'
 - en: sparse embeddings of the first recipe
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一份食谱的稀疏嵌入
 - en: Generating dense embeddings
+  id: totrans-41
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 生成密集嵌入
 - en: At this point of the tutorial, some costs will arise if you use a text embedding
     model from VertexAI (Google) or OpenAI. However, if you use the same dataset,
     the costs will be at most $5\. The cost may vary if you use a dataset with more
@@ -197,32 +291,49 @@
     any costs but still want to follow the tutorial, particularly the second part,
     you can download the pandas DataFrame *recipes_with_vectors.pkl* with pre-generated
     embedding data from my GitHub [repository.](https://github.com/sebastianbahr/RecipeRecommender)
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本教程的这一阶段，如果您使用 VertexAI（谷歌）或 OpenAI 的文本嵌入模型，将会产生一些费用。然而，如果您使用相同的数据集，费用最多为 $5。费用可能会根据数据集记录数或文本长度的不同而有所变化，因为按
+    token 收费。如果您不想产生任何费用，但仍希望继续进行教程，特别是第二部分，您可以从我的 GitHub [仓库](https://github.com/sebastianbahr/RecipeRecommender)
+    下载预生成嵌入数据的 pandas DataFrame *recipes_with_vectors.pkl*。
 - en: You can choose to use either VertexAI or OpenAI to create the embeddings. OpenAI
     has the advantage of being easy to set up with an API key, while VertexAI requires
     logging into Google Console, creating a project, and adding the VertexAI API to
     your project. Additionally, the OpenAI model allows you to specify the number
     of dimensions for the dense vector. Nevertheless, both of them create state-of-the-art
     dense embeddings.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以选择使用 VertexAI 或 OpenAI 来创建嵌入。OpenAI 的优点是设置简单，只需一个 API 密钥，而 VertexAI 需要登录
+    Google 控制台、创建一个项目并将 VertexAI API 添加到您的项目中。此外，OpenAI 模型允许您指定密集向量的维度。然而，这两者都能创建最先进的密集嵌入。
 - en: Using VertexAI API
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 VertexAI API
 - en: '[PRE7]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Using OpenAI API
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 OpenAI API
 - en: '[PRE8]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Upload data to vector database
+  id: totrans-48
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 上传数据到向量数据库
 - en: 'After generating the sparse and dense embeddings, we have all the necessary
     data to upload them to a vector database. In this tutorial, Pinecone will be used
     as they allow performing a hybrid search using sparse and dense vectors and offer
@@ -232,26 +343,41 @@
     similarity metrics: dot product, cosine, and Euclidean distance. More information
     about similarity metrics and how they calculate the similarity between two vectors
     can be found [here](https://www.pinecone.io/learn/vector-similarity/).'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 在生成稀疏和密集嵌入后，我们拥有了上传到向量数据库所需的所有数据。在本教程中，将使用 Pinecone，因为它们支持使用稀疏和密集向量进行混合搜索，并提供
+    $100 免费积分的无服务器定价模式。为了以后执行混合搜索，必须将相似度度量设置为点积。如果我们只进行密集搜索而不是混合搜索，我们将能够选择以下相似度度量之一：点积、余弦相似度和欧几里得距离。关于相似度度量及其如何计算两个向量之间相似度的更多信息，请查看
+    [这里](https://www.pinecone.io/learn/vector-similarity/)。
 - en: '[PRE9]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '![](../Images/164af1e806cbfad149d54caeb0a5d067.png)'
+  id: totrans-51
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/164af1e806cbfad149d54caeb0a5d067.png)'
 - en: Congratulations on creating your first Pinecone index! Now, it’s time to upload
     the embedded data to the vector database. If the embedding model you used creates
     vectors with a different number of dimensions, make sure to adjust the *dimension*
     argument.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 恭喜您创建了第一个 Pinecone 索引！现在是时候将嵌入数据上传到向量数据库了。如果您使用的嵌入模型创建的向量维度不同，请确保调整 *dimension*
+    参数。
 - en: Now it’s time to upload the data to the newly created Pinecone index.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是时候将数据上传到新创建的 Pinecone 索引了。
 - en: '[PRE10]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: If you are curious about what the uploaded data looks like, log in to Pinecone,
     select the newly created index, and have a look at its items. For now, we don’t
     need to pay attention to the score, as it is generated by default and indicates
@@ -261,62 +387,94 @@
     an item ID generated by Pinecone, and the metadata, which consists of the recipe
     *ID* and its *recipe_type*. The dense embeddings are stored in *Values* and the
     sparse embeddings in *Sparse Values.*
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你对上传的数据内容感到好奇，可以登录 Pinecone，选择新创建的索引，查看其中的项目。目前，我们无需关注分数，因为它是默认生成的，表示与 Pinecone
+    随机生成的向量的匹配度。不过，稍后我们将计算嵌入的用户查询与向量数据库中所有条目的相似度，并检索*最相似的 k 个*条目。此外，每个项目都包含一个由 Pinecone
+    生成的项目 ID 和元数据，其中包括食谱*ID*及其*recipe_type*。密集嵌入存储在*Values*中，稀疏嵌入存储在*Sparse Values*中。
 - en: '![](../Images/62c6420c8583f925846f22822a799b95.png)'
+  id: totrans-56
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/62c6420c8583f925846f22822a799b95.png)'
 - en: The first three items of the index (*Image by author*)
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 索引的前三项（*作者提供的图片*）
 - en: We can fetch the information from above using the Pinecone Python SDK. Let’s
     have a look at the stored information of the first item with the index item ID
     50.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用 Pinecone Python SDK 获取上述信息。让我们查看索引项 ID 为 50 的第一个项目存储的信息。
 - en: '[PRE11]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '![](../Images/67424101a92329f08d02ba4bac2b2dfb.png)'
+  id: totrans-60
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/67424101a92329f08d02ba4bac2b2dfb.png)'
 - en: As in the Pinecone dashboard, we get the item ID of the element, its metadata,
     the sparse values, and the dense values, which are stored in the list at the bottom
     of the truncated output.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 与 Pinecone 仪表板中一样，我们获取元素的项目 ID、元数据、稀疏值和密集值，这些信息存储在截断输出底部的列表中。
 - en: Search
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 搜索
 - en: In this section, we will solely use dense vectors to find the best-matching
     entries in our database (*dense search*). In the second step, we will utilize
     the information stored in both the sparse and dense vectors to perform a hybrid
     search.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将仅使用密集向量来查找数据库中最匹配的条目（*密集搜索*）。在第二步中，我们将利用稀疏和密集向量中存储的信息来执行混合搜索。
 - en: Regular search using dense vectors
+  id: totrans-64
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用密集向量的常规搜索
 - en: To test the functionality of our recommender system, we will attempt to obtain
     recommendations for a vegetarian Italian dish. It is important to note that the
     same model must be used to generate the dense embeddings as the one used to embed
     the recipes.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了测试推荐系统的功能，我们将尝试获取素食意大利菜肴的推荐。需要注意的是，必须使用与嵌入食谱时相同的模型来生成密集嵌入。
 - en: '[PRE12]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '[PRE13]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Using OpenAI API
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 OpenAI API
 - en: '[PRE14]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: After embedding the user text, we can query the vector database for the recipes
     that resemble the user query the most. As previously defined Pinecone uses the
     dot product to calculate the similarity score. Further, we specify that Piencone
@@ -326,41 +484,63 @@
     be returned and lastly, we specify with a hard filter to only recommend coffee
     blends that cost equal to or less than the indicated price (10.0). More information
     on how the filtering of metadata works in Pinecone can be found [here](https://docs.pinecone.io/docs/metadata-filtering).
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 在将用户文本嵌入后，我们可以查询向量数据库，获取与用户查询最相似的食谱。如前所述，Pinecone 使用点积来计算相似度分数。此外，我们指定 Pinecone
+    返回推荐项的元数据，因为我们需要食谱的*ID*来筛选食谱数据库并获取相应条目的输出。参数*top_k*允许我们指定应该返回的匹配项数量，最后，我们使用硬筛选仅推荐价格等于或低于指定价格（10.0）的咖啡混合物。有关
+    Pinecone 中如何筛选元数据的更多信息，请查看[此处](https://docs.pinecone.io/docs/metadata-filtering)。
 - en: '[PRE15]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '![](../Images/c10907a654af67b069ab69bcc05a33b7.png)'
+  id: totrans-72
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c10907a654af67b069ab69bcc05a33b7.png)'
 - en: After obtaining the IDs of the recommended recipes we can easily query the *recipes*
     dataset for them and have a look at their *output*. The *output* contains all
     the needed information as the *title*, the *ingredients*, and the *directions*.
     A look at the first recommendations reveals that they are all vegetarian, this
     is not surprising as we applied a “hard” filter, but they are all Italian dishes
     as requested by the user.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 在获取推荐食谱的 ID 后，我们可以轻松查询*食谱*数据集，并查看它们的*输出*。*输出*包含所有所需信息，如*标题*、*食材*和*做法*。查看前几条推荐结果，发现它们都是素食，这并不奇怪，因为我们应用了“硬”筛选，但它们都是用户要求的意大利菜肴。
 - en: '[PRE16]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '![](../Images/d13ce43cfeefe2b52d9d511f9ee2b074.png)'
+  id: totrans-75
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d13ce43cfeefe2b52d9d511f9ee2b074.png)'
 - en: recipes with the highest similarity scores
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 相似度得分最高的食谱
 - en: '[PRE17]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Hybrid Search
+  id: totrans-79
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 混合搜索
 - en: Now it’s time to implement hybrid search. The concept sounds fancier than it
     is and you will realize it when we implement it in just two lines of code. Hybrid
     search weights the values of the dense vector by a factor *alpha* and the values
@@ -368,107 +548,158 @@
     “attention” should be paid to the dense respectively the sparse embeddings of
     the input text. If *alpha=1* we perform a pure dense vector search, *alpha=0.5*
     is a pure hybrid search, and *alpha=0* is a pure sparse vector search.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是时候实现混合搜索了。这个概念听起来比实际要复杂，你会发现我们只需用两行代码就能实现它。混合搜索通过一个因子*alpha*对密集向量的值进行加权，对稀疏向量的值加权系数为*1-alpha*。换句话说，*alpha*决定了输入文本的密集向量与稀疏向量分别应该获得多少“关注”。如果*alpha=1*，我们进行纯密集向量搜索；*alpha=0.5*是纯混合搜索；而*alpha=0*是纯稀疏向量搜索。
 - en: 'As you remember the sparse and dense vectors were created using different information.
     Whereas the sparse vector contains information about the ingredients, the dense
     vector incorporates the title, tags, and introduction. Therefore, by changing
     *alpha* we can tell the query engine to prioritize some features of the recipes
     more than others. Let’s use an alpha of 1 first and run a pure dense search on
     the user query:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你所记得的，稀疏和密集向量是使用不同的信息创建的。稀疏向量包含有关食材的信息，而密集向量包含标题、标签和介绍。因此，通过改变*alpha*，我们可以告诉查询引擎优先考虑食谱的某些特征而非其他特征。让我们首先使用alpha值为1，并在用户查询上进行纯密集搜索：
 - en: What can I cook with potatos, mushrooms, and beef?
+  id: totrans-82
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 我可以用土豆、蘑菇和牛肉做些什么？
 - en: Unfortunately, besides beef, the recommended recipe doesn’t contain any of the
     other mentioned ingredients.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，除了牛肉，推荐的食谱不包含其他提到的食材。
 - en: Generate sparse embeddings
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成稀疏嵌入
 - en: '[PRE19]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Generate dense embeddings
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成密集嵌入
 - en: '[PRE20]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '[PRE21]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'Let’s set alpha to 0.5 and have a look at the ingredients of the recommended
     recipe. This alpha score leads to a much better result and the recommended recipe
     contains all three asked ingredients:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将alpha设置为0.5，看看推荐食谱的食材。这个alpha值得出了一个更好的结果，推荐的食谱包含了要求的所有三种食材：
 - en: 500g beef
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 500克牛肉
 - en: 300–400g potatoes
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 300–400克土豆
 - en: 2–3 champignon mushrooms
+  id: totrans-93
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 2–3 颗香菇
 - en: '[PRE23]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '[PRE24]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: Congratulations, you made it to the end of this tutorial!
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 恭喜你，已经完成了本教程的学习！
 - en: Final remarks
+  id: totrans-97
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 最后的备注
 - en: The implementation of hybrid search is meaningfully different between pod-based
     and serverless indexes. If you switch from one to the other, you may experience
     a regression in accuracy or performance.
+  id: totrans-98
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 混合搜索的实现，在基于pod和无服务器索引之间有所不同。如果你从一种切换到另一种，可能会经历精度或性能上的回退。
 - en: ''
+  id: totrans-99
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: When you query a serverless index, the dense value of the query is used to retrieve
     the initial candidate records, and then the sparse value is considered when returning
     the final results.
+  id: totrans-100
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 当你查询无服务器索引时，查询的密集值用于检索初步的候选记录，然后在返回最终结果时考虑稀疏值。
 - en: Conclusion
+  id: totrans-101
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: In this tutorial, you have learned how to embed a dataset using sparse and dense
     embeddings and use dense and hybrid search to find the closest matching entries
     in a vector database.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本教程中，你学习了如何使用稀疏和密集嵌入来嵌入数据集，并使用密集和混合搜索来查找向量数据库中最匹配的条目。
 - en: In the second part, you will build a chatbot using a GPT 3.5-turbo model with
     function calling and generate a UI using Plotly Dash. Have a look at it if you’re
     curious and enjoyed the first part.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第二部分，你将使用GPT 3.5-turbo模型构建一个带有函数调用的聊天机器人，并使用Plotly Dash生成UI。如果你感兴趣并且喜欢第一部分，可以看看第二部分。
 - en: Please support my work!
+  id: totrans-104
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 请支持我的工作！
 - en: If you liked this blog post, please leave a clap or comment. To stay tuned follow
     me on [Medium](https://medium.com/@sebastianbahr) and [LinkedIn](https://www.linkedin.com/in/sebastian-bahr-61b58b197/).
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你喜欢这篇博客文章，请留下掌声或评论。要保持关注，请在[Medium](https://medium.com/@sebastianbahr)和[LinkedIn](https://www.linkedin.com/in/sebastian-bahr-61b58b197/)上关注我。

@@ -1,29 +1,45 @@
 - en: How to Run Stable Diffusion with ONNX
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何使用ONNX运行Stable Diffusion
 - en: 原文：[https://towardsdatascience.com/how-to-run-stable-diffusion-with-onnx-dafd2d29cd14?source=collection_archive---------4-----------------------#2024-05-13](https://towardsdatascience.com/how-to-run-stable-diffusion-with-onnx-dafd2d29cd14?source=collection_archive---------4-----------------------#2024-05-13)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-to-run-stable-diffusion-with-onnx-dafd2d29cd14?source=collection_archive---------4-----------------------#2024-05-13](https://towardsdatascience.com/how-to-run-stable-diffusion-with-onnx-dafd2d29cd14?source=collection_archive---------4-----------------------#2024-05-13)
 - en: Addressing compatibility issues during installation | ONNX for NVIDIA GPUs |
     Hugging Face’s Optimum library
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 解决安装过程中的兼容性问题 | ONNX用于NVIDIA GPU | Hugging Face的Optimum库
 - en: '[](https://medium.com/@turc.raluca?source=post_page---byline--dafd2d29cd14--------------------------------)[![Julia
     Turc](../Images/1ca27d7db36799dec53b8daf4099f5cb.png)](https://medium.com/@turc.raluca?source=post_page---byline--dafd2d29cd14--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dafd2d29cd14--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dafd2d29cd14--------------------------------)
     [Julia Turc](https://medium.com/@turc.raluca?source=post_page---byline--dafd2d29cd14--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@turc.raluca?source=post_page---byline--dafd2d29cd14--------------------------------)[![Julia
+    Turc](../Images/1ca27d7db36799dec53b8daf4099f5cb.png)](https://medium.com/@turc.raluca?source=post_page---byline--dafd2d29cd14--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dafd2d29cd14--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dafd2d29cd14--------------------------------)
+    [Julia Turc](https://medium.com/@turc.raluca?source=post_page---byline--dafd2d29cd14--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dafd2d29cd14--------------------------------)
     ·12 min read·May 13, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dafd2d29cd14--------------------------------)
+    ·12分钟阅读·2024年5月13日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: This article discusses the [ONNX runtime](https://onnxruntime.ai/), one of the
     most effective ways of speeding up Stable Diffusion inference. On an A100 GPU,
     running SDXL for 30 denoising steps to generate a 1024 x 1024 image can be as
@@ -33,30 +49,43 @@
     I share my struggles in hopes of saving you time. While the specific versions
     and commands might quickly become obsolete, the high-level concepts should remain
     relevant for a longer period of time.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文讨论了[ONNX运行时](https://onnxruntime.ai/)，这是加速Stable Diffusion推理的最有效方法之一。在A100
+    GPU上，运行SDXL进行30个去噪步骤生成1024 x 1024的图像，最快可以达到2秒。然而，ONNX运行时依赖于多个动态组件，安装所有依赖项的正确版本在一个不断发展的生态系统中可能会变得很棘手。请将本文视为一份高级调试指南，我将在其中分享我的经验，希望能节省你的时间。尽管具体的版本和命令可能会很快过时，但高层次的概念应该在较长时间内保持相关性。
 - en: '![](../Images/7ec6eb65d5774713d8de06428cfaae0e.png)'
+  id: totrans-7
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7ec6eb65d5774713d8de06428cfaae0e.png)'
 - en: Image by author
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自作者
 - en: What is ONNX?
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 什么是ONNX？
 - en: 'ONNX can actually refer to two different (but related) parts of the ML stack:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: ONNX实际上可以指机器学习堆栈中的两个不同（但相关）部分：
 - en: '**ONNX is a *format* for storing machine learning models.** It stands for *Open
     Neural Network Exchange* and, as its name suggests, its main goal is interoperability
     across platforms. ONNX is a self-contained format: it stores both the model *weights*
     and *architecture*. This means that a single .*onnx* file contains all the information
     needed to run inference. No need to write any additional code to define or load
     a model; instead, you simply pass it to a *runtime* (more on this below).'
+  id: totrans-11
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**ONNX是一种用于存储机器学习模型的*格式*。** 它代表*开放神经网络交换*，正如其名字所示，它的主要目标是实现跨平台的互操作性。ONNX是一个自包含的格式：它同时存储了模型的*权重*和*架构*。这意味着一个单独的.*onnx*文件包含了运行推理所需的所有信息。无需编写额外的代码来定义或加载模型；你只需将它传递给一个*运行时*（下面将进一步解释）。'
 - en: '**ONNX is also a *runtime* to run model that are in ONNX format**. It literally
     *runs* the model. You can see it as a mediator between the architecture-agnostic
     ONNX format and the actual hardware that runs inference. There is a separate version
@@ -66,9 +95,11 @@
     build their own runtimes that are hyper-optimized for their hardware. For instance,
     [NVIDIA’s TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/quick-start-guide/index.html)
     is an alternative to the ONNX runtime.'
+  id: totrans-12
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**ONNX也是一个*运行时*，用于运行ONNX格式的模型**。它实际上*运行*模型。你可以把它看作是ONNX架构无关格式和实际运行推理的硬件之间的中介。每种受支持的加速器类型都有一个单独版本的运行时（请参见[完整列表](https://onnxruntime.ai/docs/execution-providers/#summary-of-supported-execution-providers)）。然而，请注意，ONNX运行时并不是唯一可以运行ONNX格式模型的推理方法——它只是其中的一种方式。制造商可以选择构建针对其硬件进行超优化的自有运行时。例如，[NVIDIA的TensorRT](https://docs.nvidia.com/deeplearning/tensorrt/quick-start-guide/index.html)是ONNX运行时的替代方案。'
 - en: This article focuses on running Stable Diffusion models using the **ONNX runtime**.
     While the high-level concepts are probably timeless, note that the ML tooling
     ecosystem is in constant change, so the exact workflow or code snippets might
@@ -76,46 +107,61 @@
     implementation in particular, but note that the ONNX runtime can also operate
     in [other languages](https://onnxruntime.ai/docs/tutorials/api-basics) like C++,
     C#, Java or JavaScript.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文聚焦于使用**ONNX运行时**运行Stable Diffusion模型。虽然高层次的概念可能是永恒的，但请注意，机器学习工具生态系统在不断变化，因此确切的工作流或代码片段可能会过时（本文写于2024年5月）。我将特别关注Python实现，但请注意，ONNX运行时也可以在[其他语言](https://onnxruntime.ai/docs/tutorials/api-basics)中运行，如C++、C#、Java或JavaScript。
 - en: Pros of the ONNX Runtime
+  id: totrans-14
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: ONNX运行时的优点
 - en: '**Balance between inference speed and interoperability**. While the ONNX runtime
     will not always be the fastest solution for all types of hardware, it is a *fast
     enough* solution for *most* types of hardware. This is particularly appealing
     if you’re serving your models on a heterogeneous fleet of machines and don’t have
     the resources to micro-optimize for each different accelerator.'
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**推理速度与互操作性的平衡**。虽然ONNX运行时并不总是适用于所有硬件类型的最快解决方案，但它对于*大多数*类型的硬件来说是一个*足够快*的解决方案。如果你在一个异构的机器集群上提供模型，并且没有资源对每个不同的加速器进行微调优化，这一点尤其具有吸引力。'
 - en: '**Wide adoption and reliable authorship.** ONNX was open-sourced by Microsoft,
     who are still maintaining it. It is widely adopted and well integrated into the
     wider ML ecosystem. For instance, Hugging Face’s [Optimum library](https://huggingface.co/docs/optimum/en/index)
     allows you to define and run ONNX model pipelines with a syntax that is reminiscent
     of their popular transformers and diffusers libraries.'
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**广泛的采用和可靠的作者支持**。ONNX是由微软开源的，并且微软仍在维护它。它被广泛采用，并与更广泛的机器学习生态系统紧密集成。例如，Hugging
+    Face的[Optimum库](https://huggingface.co/docs/optimum/en/index)允许你使用类似于其流行的transformers和diffusers库的语法来定义和运行ONNX模型管道。'
 - en: Cons of the ONNX Runtime
+  id: totrans-17
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: ONNX运行时的缺点
 - en: '**Engineering overhead**. Compared to the alternative of running inference
     directly in PyTorch, the ONNX runtime requires compiling your model to the ONNX
     format (which can take 20–30 minutes for a Stable Diffusion model) and installing
     the runtime itself.'
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**工程开销**。与直接在PyTorch中运行推理的替代方案相比，ONNX运行时需要将你的模型编译为ONNX格式（对于Stable Diffusion模型，这可能需要20-30分钟），并安装运行时本身。'
 - en: '**Restricted set of ops.** The ONNX format doesn’t support all PyTorch operations
     (it is even more restrictive than [TorchScript](https://pytorch.org/docs/stable/jit.html)).
     If your model is using an unsupported operation, you will either have to reimplement
     the relevant portion, or drop ONNX altogether.'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**受限的操作集**。ONNX格式不支持所有PyTorch操作（它比[TorchScript](https://pytorch.org/docs/stable/jit.html)还要更具限制性）。如果你的模型使用了不受支持的操作，你将不得不重新实现相关部分，或者完全放弃ONNX。'
 - en: '**Brittle installation and setup**. Since the ONNX runtime makes the translation
     from the ONNX format to architecture-specific instructions, it can be tricky to
     get the right combination of software versions to make it work. For instance,
@@ -124,156 +170,223 @@
     are useful resources like the [CUDA compatibility matrix](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html),
     but you might still end up wasting hours finding the magic combination that works
     at a given point in time.'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**脆弱的安装和设置**。由于ONNX运行时需要将ONNX格式转换为特定架构的指令，因此正确组合软件版本可能会有些棘手。例如，在NVIDIA GPU上运行时，你需要确保（1）操作系统，（2）CUDA版本，（3）cuDNN版本和（4）ONNX运行时版本的兼容性。虽然有像[CUDA兼容矩阵](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html)这样的有用资源，但你仍然可能会浪费几个小时去找到在某个特定时刻有效的“魔法组合”。'
 - en: '**Hardware limitations**. While the ONNX runtime can run on [many architectures](https://onnxruntime.ai/docs/execution-providers/#summary-of-supported-execution-providers),
     it cannot run on *all* architectures like pure PyTorch models can. For instance,
     there is currently (May 2024) no support for [Google Cloud TPUs](https://cloud.google.com/tpu?hl=en)
     or [AWS Inferentia](https://aws.amazon.com/machine-learning/inferentia/) chips
     (see [FAQ](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/faq/onnx-faq.html)).'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**硬件限制**。虽然ONNX运行时可以在[多种架构](https://onnxruntime.ai/docs/execution-providers/#summary-of-supported-execution-providers)上运行，但它不能像纯PyTorch模型那样在*所有*架构上运行。例如，目前（2024年5月）没有对[Google
+    Cloud TPUs](https://cloud.google.com/tpu?hl=en)或[AWS Inferentia](https://aws.amazon.com/machine-learning/inferentia/)芯片的支持（请参见[FAQ](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/faq/onnx-faq.html)）。'
 - en: At first glance, the list of cons looks longer than the list of pros, but don’t
     be discouraged — as shown later on, the improvements in model latency can be significant
     and worth it.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 初看之下，缺点列表似乎比优点列表长，但不要灰心——如后文所示，模型延迟的改进可能会非常显著，值得付出努力。
 - en: How to install the ONNX runtime
+  id: totrans-23
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何安装ONNX运行时
 - en: 'Option #1: Install from [source](https://github.com/microsoft/onnxruntime/tree/main)'
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 选项#1：从[源代码](https://github.com/microsoft/onnxruntime/tree/main)安装
 - en: As mentioned above, the ONNX runtime requires compatibility between many pieces
     of software. If you want to be on the cutting edge, the best way to get the latest
     version is to follow the instructions in the [official Github repository](https://github.com/microsoft/onnxruntime/tree/main).
     For Stable Diffusion in particular, [this folder](https://github.com/microsoft/onnxruntime/tree/main/onnxruntime/python/tools/transformers/models/stable_diffusion)
     contains installation instructions and sample scripts for generating images. Expect
     building from source to take quite a while (around 30 minutes).
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上所述，ONNX运行时要求许多软件组件之间保持兼容。如果你想处于技术前沿，获得最新版本的最好方式是按照[官方Github仓库](https://github.com/microsoft/onnxruntime/tree/main)中的说明进行操作。特别是对于Stable
+    Diffusion，[这个文件夹](https://github.com/microsoft/onnxruntime/tree/main/onnxruntime/python/tools/transformers/models/stable_diffusion)包含了安装说明和生成图像的示例脚本。预计从源代码构建可能需要相当长的时间（大约30分钟）。
 - en: At the time of writing (May 2024), this solution worked seamlessly for me on
     an Amazon EC2 instance (`g5.2xlarge`, which comes with a A10G GPU). It avoids
     compatibility issues discussed below by using a Docker image that comes with the
     right dependencies.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 在撰写本文时（2024年5月），这个解决方案在我的Amazon EC2实例（`g5.2xlarge`，配备A10G GPU）上运行非常顺利。通过使用包含正确依赖项的Docker镜像，它避免了下面讨论的兼容性问题。
 - en: 'Option #2: Install via PyPI'
+  id: totrans-27
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 选项#2：通过PyPI安装
 - en: 'In production, you will most likely want a stable version of the ONNX runtime
     from PyPI, instead of installing the latest version from source. For Python in
     particular, there are two different libraries (one for CPU and one for GPU). Here
     is the command to install it for CPU:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 在生产环境中，你可能更希望从PyPI安装ONNX运行时的稳定版本，而不是从源代码安装最新版本。特别是对于Python，有两个不同的库（一个用于CPU，一个用于GPU）。这是为CPU安装的命令：
 - en: '[PRE0]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'And here is the command to install it for GPU:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是为GPU安装ONNX运行时的命令：
 - en: '[PRE1]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '**You should never install both**. Having them both might lead to error messages
     or behaviors that are not easy to track back to this root cause. The ONNX runtime
     might simply fail to acknowledge the presence of the GPU, which will look surprising
     given that `onnxruntime-gpu` is indeed installed.'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '**你绝不能同时安装两者**。同时安装这两个版本可能会导致错误信息或行为，这些错误或行为不容易追溯到根本原因。ONNX运行时可能根本无法识别GPU的存在，尽管`onnxruntime-gpu`确实已经安装。'
 - en: Addressing compatibility issues
+  id: totrans-33
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 解决兼容性问题
 - en: In an ideal world, `pip install onnxruntime-gpu` would be the end of the story.
     However, in practice, there are strong compatibility requirements between other
     pieces of software on your machine, including the operating system, the hardware-specific
     drivers, and the Python version.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在理想的情况下，`pip install onnxruntime-gpu`应该是整个过程的结束。然而，实际上，你的机器上的其他软件（包括操作系统、硬件特定的驱动程序和Python版本）之间有很强的兼容性要求。
 - en: Say that you want to use the latest version of the ONNX runtime (1.17.1) at
     the time of writing. So what stars do we need to align to make this happen?
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你想使用当前写作时最新的ONNX运行时版本（1.17.1）。那么我们需要对齐哪些关键因素才能实现这一目标？
 - en: Here are some of the most common sources of incompatibility that can help you
     set up your environment. The exact details will quickly become obsolete, but the
     high-level ideas should continue to apply for a while.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是一些最常见的兼容性问题，可以帮助你设置环境。具体细节很快会过时，但高层次的思路应该在一段时间内继续适用。
 - en: CUDA compatibility
+  id: totrans-37
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: CUDA兼容性
 - en: If you are not planning on using an NVIDIA GPU, you can skip this section. CUDA
     is a platform for parallel computing that sits on top of NVIDIA GPUs, and is required
     for machine learning workflows. Each version of the ONNX runtime is compatible
     with only certain CUDA versions, as you can see in [this compatibility matrix](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html).
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你不打算使用NVIDIA GPU，可以跳过这一部分。CUDA是一个并行计算平台，位于NVIDIA GPU之上，机器学习工作流需要它。ONNX运行时的每个版本仅与某些CUDA版本兼容，正如你在[这个兼容性矩阵](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html)中看到的。
 - en: 'According to this matrix, the latest ONNX runtime version (1.17) is compatible
     with both CUDA 11.8 and CUDA 12\. But you need to pay attention to the fine print:
     **by default, ONNX runtime 1.17 expects CUDA 11.8**. However, most VMs today (May
     2024) come with CUDA 12.1 (you can check the version by running `nvcc --version`).
     For this particular setup, you’ll have to replace the usual `pip install onnxruntime-gpu`
     with:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据这个矩阵，最新的ONNX运行时版本（1.17）与CUDA 11.8和CUDA 12兼容。但你需要注意细节：**默认情况下，ONNX运行时1.17期望使用CUDA
+    11.8**。然而，今天的大多数虚拟机（截至2024年5月）都配备了CUDA 12.1（你可以通过运行`nvcc --version`来检查版本）。对于这种特定的设置，你必须用以下命令替换常规的`pip
+    install onnxruntime-gpu`：
 - en: '[PRE2]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Note that, instead of being at the mercy of whatever CUDA version happens to
     be installed on your machine, a cleaner solution is to do your work from within
     a Docker container. You simply choose the image that has your desired version
     of Python and CUDA. For instance:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，与其任由你机器上安装的CUDA版本决定一切，不如在Docker容器内进行工作。你只需选择一个包含所需Python和CUDA版本的镜像。例如：
 - en: '[PRE3]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: OS + Python + pip compatibility
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 操作系统 + Python + pip兼容性
 - en: This section discusses compatibility issues that are architecture-agnostic (i.e.
     you’ll encounter them regardless of the target accelerator). It boils down to
     making sure that your software (operating system, Python installation and `pip`
     installation) are compatible with your desired version of the ONNX runtime library.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 本节讨论的是与架构无关的兼容性问题（即，无论目标加速器是什么，你都会遇到这些问题）。本质上就是确保你的软件（操作系统、Python安装和`pip`安装）与你所需版本的ONNX运行时库兼容。
 - en: '**Pip version:** Unless you are working with legacy code or systems, your safest
     bet is to upgrade `pip` to the latest version:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Pip版本：**除非你正在处理遗留代码或系统，否则最安全的做法是将`pip`升级到最新版本：'
 - en: '[PRE4]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '**Python version:** As of May 2024, the Python version that is least likely
     to give you headaches is 3.10 (this is what most VMs come with by default). Again,
     unless you are working with legacy code, you certainly want at least 3.8 (since
     3.7 was deprecated in June 2023).'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Python版本：**截至2024年5月，最不容易引发问题的Python版本是3.10（这是大多数虚拟机默认配备的版本）。同样，除非你正在处理遗留代码，否则你肯定至少需要3.8（因为3.7已于2023年6月弃用）。'
 - en: '**Operating system**: The fact that the OS version can also hinder your ability
     to install the desired library came as a surprise to me, especially that I was
     using the most standard EC2 instances. And it wasn’t straightforward to figure
     out that the OS version was the culprit.'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '**操作系统：**操作系统版本也可能妨碍你安装所需库的能力，这让我颇为惊讶，尤其是我使用的是最标准的EC2实例。而且，我并没有直接发现是操作系统版本导致的问题。'
 - en: 'Here I will walk you through my debugging process, in the hopes that the workflow
     itself is longer-lived than the specifics of the versions today. First, I installed
     `onnxruntime-gpu` with the following command (since I had CUDA 12.1 installed
     on my machine):'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我将带你了解我的调试过程，希望这个工作流比今天的版本细节更持久。首先，我使用以下命令安装了 `onnxruntime-gpu`（因为我的机器上安装了
+    CUDA 12.1）：
 - en: '[PRE5]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'On the surface, this should install the latest version of the library available
     on PyPI. In reality however, this will install the latest version **compatible
     with your current setup** (OS + Python version + pip version). For me at the time,
@@ -282,156 +395,238 @@
     ONNX runtime being unable to detect the GPU, with no other clues. After somewhat
     accidentally discovering the version is older than expected, I explicitly asked
     for the newer one:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 从表面上看，这应该安装 PyPI 上可用的最新版本。但实际上，这将安装与你当前设置（操作系统 + Python 版本 + pip 版本）兼容的最新版本。对我来说，当时那个版本是
+    `onnxruntime-gpu==1.16.0`（而不是最新的 1.17.1）。无意中安装旧版本最终导致 ONNX 运行时无法检测到 GPU，且没有其他提示。在偶然发现版本较旧后，我明确要求安装更新的版本：
 - en: '[PRE6]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'This resulted in a message from `pip` complaining that the version I requested
     is not actually available (despite being [listed on PyPI](https://pypi.org/project/onnxruntime-gpu/1.17.1/)):'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 这导致了 `pip` 发出一个消息，抱怨我请求的版本实际上不可用（尽管它在[PyPI 上列出](https://pypi.org/project/onnxruntime-gpu/1.17.1/)）：
 - en: '[PRE7]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'To understand why the latest version is not getting installed, you can pass
     a flag that makes `pip` verbose: `pip install ... -vvv`. This reveals all the
     Python wheels that `pip` cycles through in order to find the newest one that is
     compatible to your system. Here is what the output looked like for me:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 要了解为什么最新版本未能安装，你可以传递一个标志来让 `pip` 输出详细信息：`pip install ... -vvv`。这将显示 `pip` 在查找与系统兼容的最新版本时所遍历的所有
+    Python wheel 文件。以下是我看到的输出：
 - en: '[PRE8]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: The tags listed in brackets are *Python platform compatibility tags*, and you
     can read more about them [here](https://packaging.python.org/en/latest/specifications/platform-compatibility-tags/).
     In a nutshell, every Python wheel comes with a tag that indicates what system
     it can run on. For instance, `cp35-cp35m-manylinux1_x86_64` requires CPython 3.5,
     a set of (older) Linux distributions that fall under the `manylinux1` umbrella,
     and a 64-bit x86-compatible processor.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 方括号中的标签是 *Python 平台兼容性标签*，你可以在[这里](https://packaging.python.org/en/latest/specifications/platform-compatibility-tags/)查看更多信息。简而言之，每个
+    Python wheel 都带有一个标签，指示它可以运行的系统。例如，`cp35-cp35m-manylinux1_x86_64` 需要 CPython 3.5，一个包含在
+    `manylinux1` 范围内的（较旧的）Linux 发行版，以及一个 64 位 x86 兼容处理器。
 - en: 'Since I wanted to run Python 3.10 on a Linux machine (hence filtering for `cp310.*manylinux.*`,
     I was left with a single possible wheel for the `onnxruntime-gpu` library, with
     the following tag:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我想在一台 Linux 机器上运行 Python 3.10（因此筛选了 `cp310.*manylinux.*`），我只剩下一个可能的 `onnxruntime-gpu`
+    库的 wheel 文件，其标签如下：
 - en: '[PRE9]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'You can get a list of tags that are compatible with your system by running
     `pip debug --verbose`. Here is what part of my output looked like:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过运行 `pip debug --verbose` 来获取与系统兼容的标签列表。以下是我输出的一部分：
 - en: '[PRE10]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: In other words, my operating system is just a tad too old (the maximum linux
     tag that it supports is `manylinux_2_26`, while the `onnxruntime-gpu` library’s
     only Python 3.10 wheel requires `manylinux_2_28`. Upgrading from Ubuntu 20.04
     to Ubuntu 24.04 solved the problem.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，我的操作系统稍微有些旧（它支持的最大 linux 标签是 `manylinux_2_26`，而 `onnxruntime-gpu` 库的唯一
+    Python 3.10 wheel 需要 `manylinux_2_28`）。从 Ubuntu 20.04 升级到 Ubuntu 24.04 解决了这个问题。
 - en: How to run Stable Diffusion with the ONNX runtime
+  id: totrans-63
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何使用 ONNX 运行时运行 Stable Diffusion
 - en: 'Once the ONNX runtime is (finally) installed, generating images with Stable
     Diffusion requires two following steps:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦 ONNX 运行时（终于）安装完成，使用 Stable Diffusion 生成图像需要以下两个步骤：
 - en: Export the PyTorch model to ONNX (this can take > 30 minutes!)
+  id: totrans-65
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将 PyTorch 模型导出为 ONNX（这可能需要超过 30 分钟！）
 - en: Pass the ONNX model and the inputs (text prompt and other parameters) to the
     ONNX runtime.
+  id: totrans-66
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将 ONNX 模型和输入（文本提示和其他参数）传递给 ONNX 运行时。
 - en: 'Option #1: Using official scripts from Microsoft'
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '选项 #1：使用微软的官方脚本'
 - en: 'As mentioned before, using the [official sample scripts](https://github.com/microsoft/onnxruntime/tree/main/onnxruntime/python/tools/transformers/models/stable_diffusion)
     from the ONNX runtime repository worked out of the box for me. If you follow their
     installation instructions, you won’t even have to deal with the compatibility
     issues mentioned above. After installation, generating an image is a simple as:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，直接使用 ONNX 运行时仓库中的 [官方示例脚本](https://github.com/microsoft/onnxruntime/tree/main/onnxruntime/python/tools/transformers/models/stable_diffusion)
+    对我来说是开箱即用的。如果按照他们的安装说明进行操作，你甚至不需要处理上述提到的兼容性问题。安装完成后，生成图像就像下面这样简单：
 - en: '[PRE11]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Under the hood, this script defines an SDXL model using Hugging Face’s [diffusers](https://huggingface.co/docs/diffusers/en/index)
     library, exports it to ONNX format (which can take up to 30 minutes!), then invokes
     the ONNX runtime.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 在幕后，这个脚本使用 Hugging Face 的 [diffusers](https://huggingface.co/docs/diffusers/en/index)
+    库定义了一个 SDXL 模型，并将其导出为 ONNX 格式（这可能需要多达 30 分钟！），然后调用 ONNX 运行时。
 - en: 'Option #2: Using Hugging Face’s [Optimum](https://huggingface.co/docs/optimum/en/index)
     library'
+  id: totrans-71
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '选项 #2：使用 Hugging Face 的 [Optimum](https://huggingface.co/docs/optimum/en/index)
+    库'
 - en: 'The [Optimum](https://huggingface.co/docs/optimum/en/index) library promises
     a lot of convenience, allowing you to run models on various accelerators while
     using the familiar pipeline APIs from the well-known transformers and diffusers
     libraries. For ONNX in particular, this is what inference code for SDXL looks
     like (more in [this tutorial](https://huggingface.co/docs/optimum/onnxruntime/usage_guides/models#text-to-image)):'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Optimum](https://huggingface.co/docs/optimum/en/index) 库承诺提供很多便利，它允许你在各种加速器上运行模型，同时使用来自知名的
+    transformers 和 diffusers 库的熟悉管道 API。特别是对于 ONNX，以下是 SDXL 推理代码的样子（更多内容请见 [本教程](https://huggingface.co/docs/optimum/onnxruntime/usage_guides/models#text-to-image)）：'
 - en: '[PRE12]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: In practice, however, I struggled a lot with the Optimum library. First, installation
     is non-trivial; naively following the installation instruction in the [README
     file](https://github.com/huggingface/optimum) will run into the incompatibility
     issues explained above. This is not Optimum’s fault per se, but it does add yet
     another layer of abstraction on top of an already brittle setup. The Optimum installation
     might pull a version of `onnxruntime` that is conflicting with your setup.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而在实践中，我在使用 Optimum 库时遇到了很多困难。首先，安装并不简单；如果仅仅按照 [README 文件](https://github.com/huggingface/optimum)中的安装说明操作，就会遇到上述的不兼容问题。这本身不是
+    Optimum 的问题，但它确实为已经脆弱的环境增加了另一个抽象层。Optimum 的安装可能会拉取一个与你当前设置不兼容的 `onnxruntime` 版本。
 - en: 'Even after I won the battle against compatibility issues, I wasn’t able to
     run SDXL inference on GPU using Optimum’s ONNX interface. The code snippet above
     (directly taken from a Hugging Face tutorial) fails with some shape mismatches,
     perhaps due to bugs in the PyTorch → ONNX conversion:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使我在兼容性问题上取得了胜利，我仍然无法通过 Optimum 的 ONNX 接口在 GPU 上运行 SDXL 推理。上面的代码片段（直接来自 Hugging
+    Face 教程）因形状不匹配而失败，这可能是因为 PyTorch → ONNX 转换中的 bug：
 - en: '[PRE13]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: For a brief second I considered getting into the weeds and debugging the Hugging
     Face code (at least it’s open source!), but gave up when I realized that Optimum
     has a backlog of [more than 250 issues](https://github.com/huggingface/optimum/issues),
     with issues going for weeks with no acknowledgement from the Hugging Face team.
     I decided to move on and simply use Microsoft’s official scripts instead.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 有那么一瞬间，我考虑过深入研究并调试 Hugging Face 的代码（至少它是开源的！），但当我意识到 Optimum 存在着 [超过 250 个问题](https://github.com/huggingface/optimum/issues)，且这些问题有时几个星期都没有得到
+    Hugging Face 团队的回应时，我决定放弃，转而直接使用微软的官方脚本。
 - en: Latency Reduction
+  id: totrans-78
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 延迟减少
 - en: As promised, the effort to get the ONNX runtime working is worth it. On an A100
     GPU, the inference time is reduced from 7–8 seconds (when running vanilla PyTorch)
     to ~2 seconds. This is comparable to [TensorRT](https://developer.nvidia.com/tensorrt-getting-started)
     (an NVIDIA-specific alternative to ONNX), and about 1 second faster than [torch.compile](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)
     (PyTorch’s native JIT compilation).
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如承诺的那样，花时间让 ONNX 运行时工作是值得的。在 A100 GPU 上，推理时间从 7-8 秒（运行原版 PyTorch 时）缩短到 ~2 秒。这与
+    [TensorRT](https://developer.nvidia.com/tensorrt-getting-started)（NVIDIA 针对 ONNX
+    的替代方案）相当，并且比 [torch.compile](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)（PyTorch
+    的本地 JIT 编译）快大约 1 秒。
 - en: '![](../Images/7ec6eb65d5774713d8de06428cfaae0e.png)'
+  id: totrans-80
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7ec6eb65d5774713d8de06428cfaae0e.png)'
 - en: Image by author
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片
 - en: '[Reportedly](https://www.baseten.co/blog/sdxl-inference-in-under-2-seconds-the-ultimate-guide-to-stable-diffusion-optimiza/),
     switching to even more performant GPUs (e.g. H100) can lead to even higher gains
     from running your model with a specialized runtime.'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 据报道，切换到更高效的GPU（例如H100）可以通过使用专用的运行时来获得更高的性能提升。[链接](https://www.baseten.co/blog/sdxl-inference-in-under-2-seconds-the-ultimate-guide-to-stable-diffusion-optimiza/)
 - en: Conclusion and further reading
+  id: totrans-83
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论与进一步阅读
 - en: 'The ONNX runtime promises significant latency gains, but it comes with non-trivial
     engineering overhead. It also faces the classic trade-off for static compilation:
     inference is a lot faster, but the graph cannot be dynamically modified (which
@@ -439,42 +634,62 @@
     The ONNX runtime and similar compilation methods are worth adding to your pipeline
     once you’ve passed the experimentation phase, and are ready to invest in efficient
     production code.'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: ONNX运行时承诺显著减少延迟，但也带来了不小的工程开销。它还面临着静态编译的经典权衡：推理速度大幅提升，但图形无法动态修改（这与像[peft](https://huggingface.co/docs/peft/en/index)这样的动态适配器相冲突）。ONNX运行时和类似的编译方法值得在你完成实验阶段并准备投入高效生产代码时加入到你的工作流程中。
 - en: 'If you’re interested in optimizing inference time, here are some articles that
     I found helpful:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你对优化推理时间感兴趣，以下是我认为有帮助的一些文章：
 - en: '[SDXL inference in under 2 seconds: the ultimate guide to Stable Diffusion
     optimization](https://www.baseten.co/blog/sdxl-inference-in-under-2-seconds-the-ultimate-guide-to-stable-diffusion-optimiza/)'
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[SDXL推理不到2秒：Stable Diffusion优化的终极指南](https://www.baseten.co/blog/sdxl-inference-in-under-2-seconds-the-ultimate-guide-to-stable-diffusion-optimiza/)'
 - en: '[40% faster Stable Diffusion XL inference with NVIDIA TensorRT](https://www.baseten.co/blog/40-faster-stable-diffusion-xl-inference-with-nvidia-tensorrt/)'
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[通过NVIDIA TensorRT使Stable Diffusion XL推理速度提升40%](https://www.baseten.co/blog/40-faster-stable-diffusion-xl-inference-with-nvidia-tensorrt/)'
 - en: '[Unlocking the full power of NVIDIA H100 GPUs for ML inference with TensorRT](https://www.baseten.co/blog/unlocking-the-full-power-of-nvidia-h100-gpus-for-ml-inference-with-tensorrt/)'
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[通过TensorRT解锁NVIDIA H100 GPU在机器学习推理中的全部潜力](https://www.baseten.co/blog/unlocking-the-full-power-of-nvidia-h100-gpus-for-ml-inference-with-tensorrt/)'
 - en: '[Making stable diffusion 25% faster using TensorRT](https://www.photoroom.com/inside-photoroom/stable-diffusion-25-percent-faster-and-save-seconds)'
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[通过TensorRT使Stable Diffusion加速25%](https://www.photoroom.com/inside-photoroom/stable-diffusion-25-percent-faster-and-save-seconds)'
 - en: '[Maximize Stable Diffusion performance and lower inference costs with AWS Inferentia2](https://aws.amazon.com/blogs/machine-learning/maximize-stable-diffusion-performance-and-lower-inference-costs-with-aws-inferentia2/)'
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[通过AWS Inferentia2最大化Stable Diffusion性能并降低推理成本](https://aws.amazon.com/blogs/machine-learning/maximize-stable-diffusion-performance-and-lower-inference-costs-with-aws-inferentia2/)'
 - en: '[Generate images with Stable Diffusion models on AWS Inferentia](https://huggingface.co/docs/optimum-neuron/en/tutorials/stable_diffusion)'
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[在AWS Inferentia上使用Stable Diffusion模型生成图像](https://huggingface.co/docs/optimum-neuron/en/tutorials/stable_diffusion)'
 - en: '[Text-to-Image Generation with Stable Diffusion and OpenVINO](https://docs.openvino.ai/2022.3/notebooks/225-stable-diffusion-text-to-image-with-output.html)'
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[使用Stable Diffusion和OpenVINO进行文本到图像生成](https://docs.openvino.ai/2022.3/notebooks/225-stable-diffusion-text-to-image-with-output.html)'
 - en: '[Accelerating Stable Diffusion Inference on Intel CPUs](https://github.com/huggingface/blog/blob/main/stable-diffusion-inference-intel.md)'
+  id: totrans-93
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[加速Intel CPU上的Stable Diffusion推理](https://github.com/huggingface/blog/blob/main/stable-diffusion-inference-intel.md)'

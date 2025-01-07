@@ -1,52 +1,81 @@
 - en: Exploring Music Transcription with Multi-Modal Language Models
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 探索多模态语言模型在音乐转录中的应用
 - en: 原文：[https://towardsdatascience.com/exploring-music-transcription-with-multi-modal-language-models-af352105db56?source=collection_archive---------1-----------------------#2024-11-17](https://towardsdatascience.com/exploring-music-transcription-with-multi-modal-language-models-af352105db56?source=collection_archive---------1-----------------------#2024-11-17)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/exploring-music-transcription-with-multi-modal-language-models-af352105db56?source=collection_archive---------1-----------------------#2024-11-17](https://towardsdatascience.com/exploring-music-transcription-with-multi-modal-language-models-af352105db56?source=collection_archive---------1-----------------------#2024-11-17)
 - en: Using Qwen2-Audio to transcribe music into sheet music
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用Qwen2-Audio将音乐转录为乐谱
 - en: '[](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)[![Jon
     Flynn](../Images/492cef280f4ea0b002e5d00ad2e083a5.png)](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------)
     [Jon Flynn](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)[![Jon
+    Flynn](../Images/492cef280f4ea0b002e5d00ad2e083a5.png)](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------)
+    [Jon Flynn](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------)
     ·17 min read·Nov 17, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------)
+    ·17分钟阅读·2024年11月17日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/1c1e9d05246384c1d3a88590ce3d7033.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1c1e9d05246384c1d3a88590ce3d7033.png)'
 - en: Image by author
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片
 - en: Automatic music transcription is the process of converting audio files like
     MP3 and WAV into sheet music, guitar tablature, and any format a musician may
     want to learn a song on their instrument.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 自动音乐转录是将音频文件（如MP3和WAV）转换为乐谱、吉他谱或任何音乐家希望用来学习歌曲的格式的过程。
 - en: We’ll go over the best current tools for doing this, which happen to be deep
     learning-based, and a novel approach for it.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将介绍目前最好的工具，它们基于深度学习，并且有一种新的方法来处理这个问题。
 - en: Current state of the art
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 当前的最先进技术
 - en: The current state-of-the-art for this task comes from [Magenta](https://magenta.tensorflow.org/),
     an open-source research project developed by the now defunct (as of April 2023)
     Google Brain Team.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 当前这一任务的最先进技术来自于[Magenta](https://magenta.tensorflow.org/)，这是一个由现已解散（截至2023年4月）Google
+    Brain团队开发的开源研究项目。
 - en: 'They released a paper [Sequence-to-Sequence Piano Transcription with Transformers](https://arxiv.org/abs/2107.09142)
     in 2021 which used a T5-inspired transformer model (similar to [“t5-small”](https://huggingface.co/google-t5/t5-small))
     with 54 million parameters and the [Maestro dataset](https://magenta.tensorflow.org/datasets/maestro),
@@ -55,80 +84,116 @@
     frames as input and produces embeddings, while the decoder uses these embeddings
     via cross-attention to autoregressively generate a sequence of MIDI-like tokens.
     Their vocabulary consisted of four types of tokens:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 他们于2021年发布了一篇论文[Sequence-to-Sequence Piano Transcription with Transformers](https://arxiv.org/abs/2107.09142)，使用了一种受T5启发的变换器模型（类似于["t5-small"](https://huggingface.co/google-t5/t5-small)），该模型有5400万个参数，并使用[Maestro数据集](https://magenta.tensorflow.org/datasets/maestro)，取得了很好的成果。该问题被视为一个序列到序列的任务，使用编码器-解码器Transformer架构。编码器处理梅尔频谱图帧作为输入并生成嵌入，解码器则通过交叉注意力使用这些嵌入自回归地生成一系列MIDI样式的标记。他们的词汇表包括四种类型的标记：
 - en: Note tokens (128 values for MIDI pitches)
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 音符标记（128个MIDI音高值）
 - en: Velocity tokens (128 values including zero for note-off)
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 音量标记（128个值，包括零表示音符关闭）
 - en: Time tokens (6,000 values in 10ms bins for absolute timing)
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 时间标记（6,000个值，10毫秒为单位的绝对时间）
 - en: EOS token (to mark sequence end)
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: EOS标记（用于标记序列结束）
 - en: 'See the image below for a visualisation of the architecture and an example
     sequence of their custom MIDI tokens:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 请参见下图，了解架构的可视化以及他们自定义的MIDI标记的示例序列：
 - en: '![](../Images/67b417bfc9720edd402c1c002ca058f8.png)'
+  id: totrans-18
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/67b417bfc9720edd402c1c002ca058f8.png)'
 - en: Figure 1\. from [Sequence-to-Sequence Piano Transcription with Transformers](https://arxiv.org/abs/2107.09142)
     paper
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 1 来自 [基于 Transformer 的序列到序列钢琴转录](https://arxiv.org/abs/2107.09142) 论文
 - en: Our model is a generic encoder-decoder Transformer architecture where each input
     position contains a single spectrogram frame and each output position contains
     an event from our MIDI-like vocabulary. Outputs tokens are autoregressively sampled
     from the decoder, at each step taking the token with maximum probability.
+  id: totrans-20
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 我们的模型是一个通用的编码器-解码器 Transformer 架构，其中每个输入位置包含一个单一的频谱图帧，每个输出位置包含来自 MIDI 类似词汇表的一个事件。输出的标记是通过解码器自回归采样的，在每一步中选择具有最大概率的标记。
 - en: 'In 2022, they released a paper, [MT3: Multi-Task Multitrack Music Transcription](https://arxiv.org/abs/2111.03017).
     This experiment used the same approach as the last one but added additional instrument
     tokens to represent the different instruments. Again, they used a similar T5 model
     and achieved great performance against many of the datasets trained on, notably
     [Slakh](http://www.slakh.com/), Maestro and [MusicNet](https://www.kaggle.com/datasets/imsparsh/musicnet-dataset).'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '在 2022 年，他们发布了一篇论文，[MT3: 多任务多轨音乐转录](https://arxiv.org/abs/2111.03017)。这项实验采用了与之前相同的方法，但增加了额外的乐器标记来表示不同的乐器。同样，他们使用了类似的
+    T5 模型，并在许多训练数据集上取得了出色的表现，特别是在[Slakh](http://www.slakh.com/)、Maestro 和 [MusicNet](https://www.kaggle.com/datasets/imsparsh/musicnet-dataset)等数据集上。'
 - en: '[MR-MT3](https://arxiv.org/abs/2403.10024) was released the following year
     as a slight improvement to MT3.'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '[MR-MT3](https://arxiv.org/abs/2403.10024) 于次年发布，作为对 MT3 的轻微改进。'
 - en: Why use language models and not continue with these SOTA models?
+  id: totrans-23
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为什么要使用语言模型，而不是继续使用这些最先进的模型？
 - en: '**Compute/GPU resources**'
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**计算/GPU 资源**'
 - en: 'Huge resources were needed to train this from scratch, despite being much smaller
     in size compared to even the smallest language models. The 2021 paper noted:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管这些模型相比最小的语言模型规模要小得多，训练这一模型从零开始仍然需要巨大的资源。2021 年的论文中提到：
 - en: “We trained all models on 32 TPUv3 cores, resulting in a per-core batch size
     of 8\. Based on validation set results, overfitting did not seem to be a problem,
     so we allowed training to progress for 400K steps, which took about 2.5 days for
     our baseline models.”
+  id: totrans-26
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “我们在 32 个 TPUv3 核心上训练了所有模型，导致每个核心的批量大小为 8。根据验证集结果，过拟合似乎不是问题，因此我们允许训练进行 400K
+    步，这大约花费了 2.5 天时间来训练我们的基准模型。”
 - en: The MT3 paper doesn’t provide as specific details on training, stating they
     train for 1 million steps.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: MT3 论文没有提供具体的训练细节，仅说明他们训练了 100 万步。
 - en: Other limitations
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 其他局限性
 - en: These models have some inherent limitations in their output flexibility. While
     language models typically have large vocabularies (often 30,000+ tokens) that
     are extensively pre-trained on diverse natural language data, MT3 and similar
@@ -141,21 +206,31 @@
     This differs from large language models which can often describe such musical
     nuances in natural language without modification, as they’ve encountered these
     concepts during their broad pre-training.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些模型在输出灵活性方面有一些固有的局限性。虽然语言模型通常具有庞大的词汇表（通常超过 30,000 个标记），并在多样的自然语言数据上进行了广泛的预训练，但
+    MT3 和类似的音乐转录模型使用的是一个更小、更专业化的标记词汇表（仅有几千个标记），专注于音乐事件。这种专业化意味着添加新标记，例如为新的乐器或弹奏技巧（如吉他的掌中静音或小提琴的拨弦）可能并不容易——它需要大量的再训练，以有效地将这些新标记与现有词汇表结合，通常还需要大量的训练数据来展示这些技巧。这与大型语言模型不同，后者通常可以在不做修改的情况下，用自然语言描述这些音乐细节，因为它们在广泛的预训练过程中已经遇到过这些概念。
 - en: Transfer learning and zero-shot
+  id: totrans-30
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 迁移学习与零样本
 - en: We can leverage transfer learning from large open-source pre-trained audio and
     language models. Examples of music generation models include [OpenAI’s Jukebox](https://openai.com/index/jukebox/)
     and [Meta’s MusicGen](https://audiocraft.metademolab.com/musicgen.html).
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以利用来自大型开源预训练音频和语言模型的迁移学习。音乐生成模型的例子包括 [OpenAI 的 Jukebox](https://openai.com/index/jukebox/)
+    和 [Meta 的 MusicGen](https://audiocraft.metademolab.com/musicgen.html)。
 - en: Modern multi-modal model architecture
+  id: totrans-32
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 现代多模态模型架构
 - en: '[GPT-4o](https://openai.com/index/hello-gpt-4o/) is designed to handle text,
     audio and images “natively”. Although OpenAI has not released the technical details
     on this, it’s assumed that some weights in the network will process all modalities.
@@ -164,8 +239,11 @@
     to a dense representation first. This design allows the model to seamlessly process
     and interpret inputs like text and images together, potentially offering performance
     benefits both computationally and in terms of model understanding.'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '[GPT-4o](https://openai.com/index/hello-gpt-4o/) 设计用于“原生”处理文本、音频和图像。尽管 OpenAI
+    尚未发布相关技术细节，但可以推测，网络中的某些权重会处理所有模态。也有可能该模型使用类似语言 GPT 模型的解码器架构，而不需要编码器组件将不同模态转换为密集表示。这种设计使得模型能够无缝处理和理解文本与图像的输入，从而在计算上和模型理解上可能带来性能提升。'
 - en: 'Many multi-modal models take a simpler approach reminiscent of the encoder-decoder
     architecture: they combine two pre-trained models — an encoder for the specific
     input modality (like [ViT](https://huggingface.co/docs/transformers/main/en/model_doc/vit)
@@ -180,46 +258,70 @@
     Llark](https://research.atspotify.com/2023/10/llark-a-multimodal-foundation-model-for-music/)
     and [Qwen-Audio](https://github.com/QwenLM/Qwen2-Audio) apply the same principle
     using audio encoders instead of vision encoders.'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多多模态模型采取一种更简单的方式，类似于编码器-解码器架构：它们结合了两个预训练模型——一个用于特定输入模态（如视觉的 [ViT](https://huggingface.co/docs/transformers/main/en/model_doc/vit)
+    或音频的音频编码器）的编码器，以及一个大型语言模型（如 LLaMA、Gemma 或 Qwen）。这些模型通过投影层连接起来，投影层将它们的表示对齐到共享的潜在空间中，通常只使用一个线性层。这些投影层学习将编码器的输出转换为与
+    LLM 预期输入维度和特征匹配的格式。投影层从输入模态中创建新的嵌入/标记，然后可以将这些嵌入注入到 LLM 的输入序列中。[LLaVA](https://llava-vl.github.io/)
+    是一个典型的用于视觉-语言任务的架构示例，而 [Spotify的Llark](https://research.atspotify.com/2023/10/llark-a-multimodal-foundation-model-for-music/)
+    和 [Qwen-Audio](https://github.com/QwenLM/Qwen2-Audio) 则使用音频编码器代替视觉编码器，应用相同的原理。
 - en: 'Here’s some pseudocode on how the models are stitched together:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是模型如何结合的伪代码：
 - en: '[PRE0]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Spotify Llark and Qwen2-Audio**'
+  id: totrans-37
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**Spotify Llark 和 Qwen2-Audio**'
 - en: Overview of architecture
+  id: totrans-38
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 架构概述
 - en: Llark uses [OpenAI’s Jukebox](https://research.atspotify.com/2023/10/llark-a-multimodal-foundation-model-for-music/)
     and Qwen2-Audio uses [OpenAI’s Whisper](https://openai.com/index/whisper/) for
     the audio towers. Jukebox is a music generation model but it can also take in
     audio clips as input and outputs a continuation of the audio clip. Whisper is
     used for transcribing voice to text.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: Llark 使用 [OpenAI的Jukebox](https://research.atspotify.com/2023/10/llark-a-multimodal-foundation-model-for-music/)
+    作为音频塔，而 Qwen2-Audio 使用 [OpenAI的Whisper](https://openai.com/index/whisper/) 作为音频塔。Jukebox
+    是一个音乐生成模型，但它也可以接收音频片段作为输入，并输出音频片段的延续。Whisper 用于将语音转录为文本。
 - en: 'Given their purpose, the choice of audio module is clear: Llark specialises
     in music analysis, while Qwen2Audio primarily focuses on responding to voice instructions
     with some basic audio and music analysis capabilities.'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据其用途，音频模块的选择是明确的：Llark 专注于音乐分析，而 Qwen2Audio 主要专注于响应语音指令，并具备一些基本的音频和音乐分析能力。
 - en: Determining the optimal source for extracting embeddings from large pre-trained
     models involves research and experimentation. Additionally, deciding whether to
     fine-tune the entire module or freeze parts of it is a crucial design choice.
     For instance, LlaVa’s training strategy involves freezing the vision tower and
     focusing on fine-tuning the projection layer and language model. We’ll go over
     this aspect of each model below.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 确定从大型预训练模型中提取嵌入的最佳来源需要研究和实验。此外，决定是微调整个模块还是冻结其部分模块是一个至关重要的设计选择。例如，LlaVa的训练策略包括冻结视觉塔，并专注于微调投影层和语言模型。我们将在下面逐一介绍每个模型的这个方面。
 - en: 'Llark: why Jukebox? Are these embeddings the best as of September 2024?'
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 'Llark: 为什么选择 Jukebox？这些嵌入在 2024 年 9 月时是最好的吗？'
 - en: Determining the optimal location to extract embeddings from large models typically
     requires extensive probing. This involves testing various activations or extracted
     layers of the model on different classification tasks through a process of trial
@@ -229,8 +331,11 @@
     models](https://openai.com/index/new-embedding-models-and-api-updates/)) are trained
     specifically for embedding generation with specialised architectures and training
     objectives, rather than being fine-tuned versions of existing language models.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 确定从大型模型中提取嵌入的最佳位置通常需要大量的探测。这包括通过反复试验的过程，在不同的分类任务上测试模型的各种激活或提取层。对于音乐生成模型，这可能包括像流派识别、乐器检测、情感检测、以及和声结构和时间模式的分析等任务。许多商业嵌入模型（例如
+    [OpenAI 的嵌入模型](https://openai.com/index/new-embedding-models-and-api-updates/)）是专门为嵌入生成而训练的，采用了特定的架构和训练目标，而不是现有语言模型的微调版本。
 - en: 'The two largest publicly available music generation and music continuation
     (i.e.: able to take in audio as input) models are Jukebox and MusicGen. MusicGen
     is newer and faster, and therefore seemed like it would be the obvious choice
@@ -238,68 +343,100 @@
     embeddings extracted from Jukebox appear to outperform MusicGen on average in
     classification tasks. The findings from this paper led to the authors of Llark
     using the following approach for extracting embeddings:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个最大公开可用的音乐生成和音乐延续（即：能够接受音频作为输入的）模型是 Jukebox 和 MusicGen。MusicGen 更新且更快，因此我原本认为它是显而易见的选择。然而，根据
+    [这篇关于探测 MusicGen 的论文](https://www.merl.com/publications/docs/TR2024-032.pdf)，从
+    Jukebox 中提取的嵌入在分类任务中的表现似乎普遍优于 MusicGen。该论文的研究结果促使 Llark 的作者采用了以下提取嵌入的方法：
 - en: Embeddings are derived from the output of the 36th layer of the Jukebox encoder
     following the approach described in [Castellon et al. (2021)](https://arxiv.org/abs/2107.05677)
+  id: totrans-45
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 嵌入来自 Jukebox 编码器第 36 层的输出，采用了 [Castellon 等人 (2021)](https://arxiv.org/abs/2107.05677)
+    中描述的方法。
 - en: 'Original Jukebox encoding:'
+  id: totrans-46
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 原始 Jukebox 编码：
 - en: '* 4800-dimensional vectors at 345Hz'
+  id: totrans-47
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '* 4800 维的向量，采样率为 345Hz'
 - en: '* For a 25s clip: over 4.14 * 10⁷ floating-point values'
+  id: totrans-48
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '* 对于一个 25 秒的片段：超过 4.14 * 10⁷ 个浮动点值'
 - en: 'The authors use a downsampling approach: Mean-pooling within 100ms frames,
     resulting in:'
+  id: totrans-49
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 作者使用了下采样方法：在 100 毫秒的帧内进行均值池化，得到：
 - en: '* Downsampled frequency: 10Hz'
+  id: totrans-50
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '* 下采样频率：10Hz'
 - en: '* Embedding size: 1.2 × 10⁶ for a 25s audio clip. That means a 2D array with
     shape [240, 4800].'
+  id: totrans-51
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '* 嵌入大小：对于 25 秒的音频片段为 1.2 × 10⁶。这意味着一个形状为 [240, 4800] 的二维数组。'
 - en: '* Retains temporal information (unlike Castellon et al. who average over the
     time dimension)'
+  id: totrans-52
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '* 保留时间信息（与 Castellon 等人不同，他们在时间维度上进行平均）'
 - en: (The downsampled embedding size is approximately 6x larger than CLIP ViT-L14
     models used in many multimodal vision models)
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: （下采样后的嵌入大小大约是许多多模态视觉模型中使用的 CLIP ViT-L14 模型的 6 倍）
 - en: 'Qwen2Audio: Whisper'
+  id: totrans-54
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 'Qwen2Audio: Whisper'
 - en: The embedding extraction for Qwen2Audio isn’t mentioned in detail in the paper.
     Whisper is an encoder-decoder architecture where the encoder generates deeply
     learned representations of the audio and the decoder decodes the representations
     to text (the transcription). In Qwen2Audio, it appears they extract embeddings
     from the final layer of Whisper’s encoder, although they don’t mention whether
     they freeze it during training.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: Qwen2Audio 的嵌入提取在论文中没有详细提及。Whisper 是一种编码器-解码器架构，其中编码器生成音频的深度学习表示，解码器将这些表示解码为文本（转录）。在
+    Qwen2Audio 中，似乎它们从 Whisper 编码器的最后一层提取嵌入，尽管他们没有提到在训练过程中是否冻结这一层。
 - en: '**Pre-trained weights, training data and datasets**'
+  id: totrans-56
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**预训练权重、训练数据和数据集**'
 - en: 'Unfortunately Spotify has not provided any datasets or their trained model
     weights to the public, noting:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，Spotify 并未向公众提供任何数据集或训练好的模型权重，说明：
 - en: '“With respect to inputs: the inputs to our model are public, open-source, Creative
     Commons-licensed audio and associated annotations. However, each individual audio
     file can have its own, potentially more restrictive license. Many of the audio
@@ -307,271 +444,393 @@
     familiarize themselves with the restrictions of these licenses; in order to honor
     such licenses, we do not release any derivatives from the training data in this
     paper (including query- response pairs or trained model weights).”'
+  id: totrans-58
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “关于输入：我们的模型输入是公共的、开源的、创意共享许可的音频及相关注释。然而，每个单独的音频文件可能有其自己潜在的更严格的许可。许多音频文件包括‘不可修改’的许可。我们鼓励数据集的用户熟悉这些许可的限制；为了遵守这些许可，我们不会在本文中发布任何来自训练数据的衍生作品（包括查询-响应对或训练好的模型权重）。”
 - en: 'They used the following datasets:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 他们使用了以下数据集：
 - en: MusicCaps (Agostinelli et al., 2023)
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: MusicCaps（Agostinelli等，2023）
 - en: YouTube8M-MusicTextClips (McKee et al., 2023)
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: YouTube8M-MusicTextClips（McKee等，2023）
 - en: MusicNet (Thickstun et al., 2017)
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: MusicNet（Thickstun等，2017）
 - en: FMA (Defferrard et al., 2017)
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: FMA（Defferrard等，2017）
 - en: MTG-Jamendo (Bogdanov et al., 2019)
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: MTG-Jamendo（Bogdanov等，2019）
 - en: MagnaTagATune (Law et al., 2009)
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: MagnaTagATune（Law等，2009）
 - en: 'Llark details it’s training data generation process in the following extract:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: Llark在以下摘录中详细说明了其训练数据生成过程：
 - en: '“We use variants of ChatGPT to extract the instruction- tuning data for all
     experiments. However, the exact language model used varies by dataset. We select
     the OpenAI model as follows: We use GPT-4 for all reasoning tasks. We found that
     GPT-4 was much more adept at following the complex instructions in the Reasoning
     task family. For datasets with more than 25k samples, we limit Reasoning data
     to a random subsample of 25k tracks.”'
+  id: totrans-67
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “我们使用ChatGPT的变体来提取所有实验的指令调优数据。然而，使用的具体语言模型根据数据集不同而有所不同。我们选择了OpenAI模型，如下所示：我们在所有推理任务中使用GPT-4。我们发现GPT-4在执行推理任务系列中的复杂指令时更加得心应手。对于样本超过25k的数据集，我们将推理数据限制为25k条随机子样本。”
 - en: 'This results in Q&A data like this:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 这会产生如下的问答数据：
 - en: '![](../Images/aeb50a9a892d9ed3b78415702057fc99.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/aeb50a9a892d9ed3b78415702057fc99.png)'
 - en: '*Example text inputs and outputs from LLark, for the provided audio.*'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '*LLark提供的示例文本输入和输出，针对提供的音频。*'
 - en: 'The datasets used for training Qwen2Audio are not shared either, but the trained
     model is widely available and also is implemented in the `transformers` library:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于训练Qwen2Audio的数据集也没有公开，但训练好的模型广泛可用，并且已在`transformers`库中实现：
 - en: '[Qwen2-Audio official github repo](https://github.com/QwenLM/Qwen2-Audio)'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Qwen2-Audio官方GitHub仓库](https://github.com/QwenLM/Qwen2-Audio)'
 - en: '[Qwen2-Audio transformers docs](https://huggingface.co/docs/transformers/main/en/model_doc/qwen2_audio)'
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Qwen2-Audio变换器文档](https://huggingface.co/docs/transformers/main/en/model_doc/qwen2_audio)'
 - en: For this project, fine-tuning off a pre-trained Llark model would have been
     optimal, given it’s reportedly good performance against the evaluation benchmarks
     Spotify stated in the paper.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这个项目，基于一个预训练的Llark模型进行微调将是最佳选择，因为据报道它在Spotify在论文中提出的评估基准上表现良好。
 - en: 'However, given they didn’t release the weights for it, it’s unfeasible to start
     training a model like this from scratch without a fair bit of expertise and money.
     Spotify trained it on:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，由于它没有公开权重，从零开始训练这样一个模型既不可行，也需要相当的专业知识和资金。Spotify在以下数据集上进行了训练：
 - en: Our model is trained on 4 80GB NVIDIA A100 GPUs. Training takes approximately
     54 hours.
+  id: totrans-76
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 我们的模型在4个80GB的NVIDIA A100 GPU上进行训练。训练大约需要54小时。
 - en: This would cost around $700 using a provider like LambdaLabs.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过像LambdaLabs这样的提供商，这将花费大约700美元。
 - en: 'Because of the above, I went with Qwen. However, Qwen2-Audio doesn’t perform
     that well across basic music tasks like tempo and instrument detection. I detail
     this below in the evaluation section. This means that the model is probably not
     large enough or pre-trained enough to achieve this task, but my hope is I could
     at least set a starting point and framework for fine-tuning on this task in the
     future. As Alibaba state in their Qwen2-Audio [blog post](https://qwenlm.github.io/blog/qwen2-audio/):'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于上述原因，我选择了Qwen。然而，Qwen2-Audio在一些基本的音乐任务（如节奏和乐器检测）上的表现不佳。我在评估部分详细说明了这一点。这意味着模型可能不够大，或者预训练不足以完成该任务，但我的希望是至少能为未来在该任务上的微调设定一个起点和框架。正如阿里巴巴在他们的Qwen2-Audio
+    [博客文章](https://qwenlm.github.io/blog/qwen2-audio/)中所述：
 - en: We also plan to build larger Qwen2-Audio models to explore the scaling laws
     of audio language models.
+  id: totrans-79
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 我们还计划构建更大的Qwen2-Audio模型，以探索音频语言模型的规模定律。
 - en: For my own learning though, I did have a go at re-creating the model using `torch`
     and pre-trained models with the `transformers` library.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，为了我自己的学习，我尝试使用`torch`和`transformers`库中的预训练模型重新创建了这个模型。
 - en: 'I also created datasets for Q&A data and embeddings. I generated short form
     Q&A data for the URMP dataset, e.g.: “What is the tempo of this track”, “What
     instruments are playing in this audio”.'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 我还为问答数据和嵌入创建了数据集。我为 URMP 数据集生成了简短形式的问答数据，例如：“这首曲子的节奏是多少”，“这段音频里有哪些乐器在演奏”。
 - en: '[Here’s a notebook](https://colab.research.google.com/drive/1jdR5w-XlJQFog47ZJ36ckEVMW0F5qIpl)
     for running Jukebox in a Colab environment to take advantage of the cheap T4 GPU’s.
     I uploaded both Q&A and embeddings datasets to HuggingFace [here](https://huggingface.co/jonflynn).'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '[这是一个笔记本](https://colab.research.google.com/drive/1jdR5w-XlJQFog47ZJ36ckEVMW0F5qIpl)
+    用于在 Colab 环境中运行 Jukebox，以利用便宜的 T4 GPU。我将问答数据集和嵌入数据集上传到了 HuggingFace [这里](https://huggingface.co/jonflynn)。'
 - en: '[Here’s a notebook](https://colab.research.google.com/drive/1_V5B9ZrwrKtom-N4r-Om3mqlXKPacUBh#scrollTo=72Gv5raTIPqi)
     with Llark replicated.'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: '[这是一个笔记本](https://colab.research.google.com/drive/1_V5B9ZrwrKtom-N4r-Om3mqlXKPacUBh#scrollTo=72Gv5raTIPqi)
+    其中包含了 Llark 的复现。'
 - en: Training data for music transcription
+  id: totrans-84
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 音乐转录的训练数据
 - en: Transcription format
+  id: totrans-85
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 转录格式
 - en: 'I chose [ABC music notation](https://trillian.mit.edu/~jc/music/doc/ABC.html)
     as the output format that the language model is expected to transcribe the music
     in. Here’s an example of it:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 我选择了 [ABC 音乐符号](https://trillian.mit.edu/~jc/music/doc/ABC.html) 作为语言模型预期将音乐转录成的输出格式。以下是它的一个示例：
 - en: '[PRE1]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'In this notation we have the time signature and tempo defined at the top denoted
     by ‘M’ and ‘Q’. The ‘L’ indicates the default note length of the notation, in
     this case a sixteenth note, which is the norm. We then define each instrument
     and the default octave they should adhere to when writing the notes for each of
     them. Here’s a summary of the key syntactical points for writing notes in ABC
     music notation:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种符号中，我们在顶部定义了拍号和节奏，用 ‘M’ 和 ‘Q’ 表示。‘L’ 表示符号的默认音符长度，在此案例中为十六分音符，这是常规格式。接着，我们定义每个乐器及其在写作音符时应遵循的默认八度。以下是编写
+    ABC 音乐符号时一些关键语法点的总结：
 - en: Notes are represented by letters A-G, with lowercase letters indicating higher
     octaves
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 音符由字母 A-G 表示，小写字母表示更高的八度
 - en: Sharps are denoted by ^ before the note, flats by _
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 升音符在音符前用 ^ 表示，降音符用 _ 表示
 - en: Natural signs are represented by =
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 自然音符用 = 表示
 - en: Note length is indicated by numbers after the note (C2 is twice as long as C)
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 音符的长度用音符后的数字表示（C2 表示 C 的两倍时长）
 - en: Dotted notes use a . after the note (C. is a dotted quarter note)
+  id: totrans-93
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 点音符在音符后使用一个点（C. 是一个点四分音符）
 - en: Rests are represented by z, with numbers for duration (z2 is a half rest)
+  id: totrans-94
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 休止符用 z 表示，持续时间用数字表示（z2 是一个二分休止符）
 - en: Chords are enclosed in square brackets [CEG]
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 和弦用方括号括起来 [CEG]
 - en: Ties are shown with a hyphen -
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 连音符用连字符 - 表示
 - en: Bar lines are represented by |
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 小节线用 | 表示
 - en: Broken rhythms use > or < between notes (C>D means dotted-C eighth note followed
     by D sixteenth note)
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 破节奏使用 > 或 < 来连接音符（C>D 意味着点四分音符 C 后跟十六分音符 D）
 - en: Why ABC?
+  id: totrans-99
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为什么选择 ABC？
 - en: 'The reasons for choosing this notation are:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 选择这种符号格式的原因是：
 - en: It’s a minimalist format for writing music
+  id: totrans-101
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这是一种简约的音乐写作格式
 - en: It’s widely used and popular; language models already have good comprehension
     of ABC notation due to extensive pre-training on it.
+  id: totrans-102
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它广泛使用且受欢迎；语言模型由于在其上进行过广泛的预训练，已经对 ABC 符号有很好的理解。
 - en: It’s flexible and can easily be extended to include tempo changes, time signature
     changes, additional playing styles like mentioned above, etc…
+  id: totrans-103
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它具有灵活性，可以轻松扩展以包含节奏变化、拍号变化、如上所述的额外演奏风格等……
 - en: I converted the MIDI files provided by the datasets to ABC notation using [this
     library](https://github.com/sshlien/abcmidi). A notebook for creating the datasets
     is [here](https://colab.research.google.com/drive/1CdQ_PUjhCvCR2VjGt3ya1hNowPrr0Xun).
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用 [这个库](https://github.com/sshlien/abcmidi) 将数据集提供的 MIDI 文件转换为 ABC 符号。创建数据集的笔记本在[这里](https://colab.research.google.com/drive/1CdQ_PUjhCvCR2VjGt3ya1hNowPrr0Xun)。
 - en: Evaluation
+  id: totrans-105
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 评估
 - en: To evaluate both the original model and each stage of fine-tuning I performed
     thereafter, I randomly selected 30 samples of varying complexity from the URMP
     dataset and ran the model three times on each sample, manually examining all responses.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了评估原始模型和我之后进行的每一阶段微调，我从 URMP 数据集中随机选择了 30 个复杂度不同的样本，并在每个样本上运行了模型三次，手动检查所有响应。
 - en: Through manual testing, I found the optimal decoding parameters to be a temperature
     of 0.7 and a top_p of 1.2\. The maximum number of tokens to return was capped
     at 2048\. Adjusting the max seemed to have little difference on performance.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过手动测试，我发现最优的解码参数是温度为0.7，top_p为1.2。返回的最大标记数量被限制为2048。调整最大值似乎对性能几乎没有影响。
 - en: The original model performed poorly on this evaluation set. While it occasionally
     predicted the tempo and instruments correctly, it mostly failed to do so. A text
     file with the evaluation results is available [here](https://drive.google.com/file/d/1-0XgJDOhnj1kbffeHcQutgZ1td59WQjI/view?usp=drive_link).
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 原始模型在这个评估集上的表现较差。尽管它偶尔能够正确预测节奏和乐器，但大部分时间都未能做到这一点。评估结果的文本文件可以在[这里](https://drive.google.com/file/d/1-0XgJDOhnj1kbffeHcQutgZ1td59WQjI/view?usp=drive_link)查看。
 - en: Given this starting point, it’s unlikely that we’ll see strong results from
     this experiment without a robust pre-trained model. However, the goal is to develop
     strategies that can be applied in the future as more advanced pre-trained models
     become available.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 鉴于这个起点，如果没有一个强大的预训练模型，我们很难在这个实验中获得强劲的结果。然而，目标是制定能够在未来应用的策略，随着更先进的预训练模型的出现，这些策略将变得更加有效。
 - en: Fine-tuning strategies
+  id: totrans-110
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 微调策略
 - en: I first attempted fine-tuning with basic cross-entropy loss. Supervised fine-tuning
     with cross-entropy loss is a quick way to start teaching the model but a basic
     loss function like this has limitations as we will see below. The intuition behind
     this stage of training is that it would nudge the model in the right direction
     and it would pick up any patterns or any customised ABC notation the dataset may
     have which the model may not have seen before.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 我首先尝试了使用基础的交叉熵损失进行微调。使用交叉熵损失进行监督式微调是开始教导模型的快捷方式，但正如我们下面所看到的，这种基本的损失函数有其局限性。这个训练阶段的直觉是，它可以将模型推向正确的方向，让它从数据集中捕捉到任何模式或任何自定义的ABC符号表示，而这些是模型之前可能未曾见过的。
 - en: Cross-entropy loss with teacher forcing
+  id: totrans-112
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用教师强制的交叉熵损失
 - en: 'First, we trained it in a typical supervised fine-tuning manner for language
     models. I used the `SFTtrainer` from the `trl` library for this, which uses cross-entropy
     loss with teacher forcing defined step by step below:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们采用了一种典型的监督式微调方法来训练语言模型。我使用了`trl`库中的`SFTtrainer`，它使用交叉熵损失和教师强制，具体步骤如下所定义：
 - en: The model predicts the next token in the sequence.
+  id: totrans-114
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 模型预测序列中的下一个标记。
 - en: The loss is calculated based on the difference between the predicted probabilities
     (logits) and the actual next token.
+  id: totrans-115
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 损失是基于预测概率（logits）和实际下一个标记之间的差异计算的。
 - en: For the next prediction, the model is given the actual correct token (ground
     truth), rather than its own prediction. This is known as teacher forcing, it helps
     stabilise training and significantly speed it up, especially in the early stages.
+  id: totrans-116
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在下一个预测中，模型被提供了实际的正确标记（真实值），而不是它自己的预测结果。这被称为教师强制，它有助于稳定训练，并显著加速训练，特别是在早期阶段。
 - en: The results from this training phase were poor. It degraded the performance
     of the original model. The model, which previously handled tempo and instrument
     recognition well, now mostly got these wrong. It also began producing garbled
@@ -579,8 +838,10 @@
     rate, applying gradient clipping, and using low LoRA ranks to mitigate large changes
     to the model. Overall, it seemed the model was very sensitive to the training
     applied.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 这次训练阶段的结果较差。它降低了原模型的性能。原本能够很好地处理节奏和乐器识别的模型，现在大多错误地识别这些内容。它还开始输出乱码文本，并出现无休止的重复现象。即使设置了较低的学习率、应用了梯度裁剪，并使用了低的LoRA秩来减少对模型的大幅度调整，这些问题依然存在。总体而言，似乎模型对所应用的训练非常敏感。
 - en: However, while this training phase may offer some improvements, it won’t lead
     to optimal performance due to the limitations of our basic loss function. This
     function struggles to fully capture the model’s performance nuances. For example,
@@ -591,304 +852,445 @@
     such as predicting a tempo of 195 instead of 200 — a small difference that’s reasonably
     accurate but potentially penalised heavily dependent on the distribution of probabilities
     amongst logits. It’s possible that neighbouring numbers also have high probabilities.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，虽然这个训练阶段可能带来一些改进，但由于我们基本的损失函数存在局限性，它不会导致最佳性能。这个函数难以完全捕捉模型性能的细微差别。例如，在使用教师强制时，某些标记部分的乐器预测可能会导致
+    deceptively low loss（表面上较低的损失）。如果一个乐器名称以“V”开头，模型可能会基于我们的数据集自信地预测“Violin”或“Viola”，无论准确性如何。此外，损失函数可能无法准确反映接近错失的情况，例如预测195的节奏而不是200——这个小差异在合理的范围内，但可能会因为logits中概率分布的不同而受到严重惩罚。邻近的数字也可能具有较高的概率。
 - en: RLHF with PPO
+  id: totrans-119
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用PPO的RLHF
 - en: Because of these limitations, we can create our own custom loss function that
     can more accurately score the response from the model. That is, given a predicted
     sequence from the model, the loss function could give it a score between 0 and
     1 on how good it is.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于这些局限性，我们可以创建我们自己的自定义损失函数，更准确地评估模型的响应。也就是说，对于模型预测的序列，损失函数可以根据好坏为其打分，分数在0到1之间。
 - en: 'However, integrating this custom loss function into supervised fine-tuning
     presents a significant challenge. The issue stems from the non-linearity introduced
     by the custom loss function, which prevents the direct calculation of gradients.
     Let’s break this down:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，将这个自定义损失函数集成到监督微调中是一个重大挑战。问题源于自定义损失函数引入的非线性，这使得无法直接计算梯度。让我们来分解一下：
 - en: 'In traditional SFT with cross-entropy loss:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 在传统的SFT与交叉熵损失中：
 - en: The model outputs logits (raw scores) for each token in its vocabulary
+  id: totrans-123
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 模型输出每个标记的logits（原始分数）
 - en: These logits directly represent the model’s prediction probabilities
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这些logits直接表示模型的预测概率
 - en: The loss function compares these probabilities to the ground truth
+  id: totrans-125
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 损失函数将这些概率与真实值进行比较
 - en: Gradients can be computed directly through this comparison
+  id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以通过这种比较直接计算梯度
 - en: The chain rule of calculus allows us to propagate these gradients back through
     the model
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 微积分的链式法则允许我们将这些梯度传播回模型中
 - en: 'With our custom loss function:'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用我们的自定义损失函数：
 - en: The model must first generate complete text output
+  id: totrans-129
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 模型必须首先生成完整的文本输出
 - en: This generation process involves sampling from probability distributions
+  id: totrans-130
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这个生成过程涉及从概率分布中采样
 - en: Our loss function then analyses this text output (checking tempo, notes, etc.)
+  id: totrans-131
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后我们的损失函数分析这个文本输出（检查节奏、音符等）
 - en: This creates a non-differentiable step between the model’s logits and our loss
     calculation
+  id: totrans-132
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这在模型的logits与我们的损失计算之间创建了一个不可微分的步骤
 - en: The sampling and text analysis steps break the gradient chain needed for backpropagation
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 采样和文本分析步骤打破了反向传播所需的梯度链
 - en: To overcome this, reinforcement learning techniques like Proximal Policy Optimisation
     (PPO) can be employed. PPO is specifically designed to handle non-differentiable
     loss functions and can optimise the model by considering the entire policy (the
     model’s output distribution), rather than relying on gradient information from
     logits.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了克服这个问题，可以采用强化学习技术，如近端策略优化（PPO）。PPO专门设计用来处理不可微分的损失函数，并可以通过考虑整个策略（模型的输出分布）来优化模型，而不是依赖于logits的梯度信息。
 - en: '*Note, there’s a* [*lot of great articles*](https://medium.com/search?q=PPO+explained)
     *on here explaining PPO!*'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: '*注意，这里有很多很棒的文章* [*解释了PPO*](https://medium.com/search?q=PPO+explained) *！*'
 - en: 'The key insight of PPO is that instead of trying to directly backpropagate
     through the non-differentiable steps, it:'
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: PPO的关键洞察在于，与其直接通过不可微分步骤反向传播，它：
 - en: Treats the model’s outputs as actions in a reinforcement learning framework
+  id: totrans-137
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将模型的输出视为强化学习框架中的动作
 - en: Uses the custom loss function as a reward signal
+  id: totrans-138
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将自定义损失函数作为奖励信号
 - en: Updates the model’s policy (its probability distributions over tokens) to maximise
     expected reward
+  id: totrans-139
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 更新模型的策略（其在标记上的概率分布），以最大化期望的奖励
 - en: Does this while ensuring the updated policy doesn’t deviate too far from the
     current one
+  id: totrans-140
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在确保更新的策略不会偏离当前策略太远的同时进行此操作
 - en: This approach allows us to effectively train the model with the custom loss
     function, ensuring performance improvements without disrupting the core training
     dynamics. The PPO algorithm’s conservative update strategy helps maintain stability
     during training, which is particularly important when working with large language
     models.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法使我们能够有效地使用自定义损失函数训练模型，确保在不破坏核心训练动态的情况下提高性能。PPO算法的保守更新策略有助于在训练过程中保持稳定性，这在处理大型语言模型时尤为重要。
 - en: Usually, this scoring function would be implemented as a separate LLM in the
     form of a “reward model” commonly used when fine-tuning models via RLHF, which
     was a breakthrough first introduced when ChatGPT came out. Due to the nature of
     this task, we can manually write code to score the responses, which uses fewer
     resources and is quicker.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，这种评分函数会作为一个单独的LLM以“奖励模型”的形式实现，常用于通过RLHF微调模型时，这是在ChatGPT发布时首次引入的突破。由于该任务的性质，我们可以手动编写代码来评分响应，这样可以减少资源使用并加快速度。
 - en: 'For time signature and tempo recognition this is easy to calculate. We extract
     all predicted items with regex, for example extracting the metre:'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于时间签名和节奏识别，这很容易计算。我们通过正则表达式提取所有预测项，例如提取拍子：
 - en: '[PRE2]'
+  id: totrans-144
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The model should learn the syntax and structure we want it to output in the
     SFT stage. If it outputs something that will cause our regex to not find anything
     or error, we can just skip that sample, assuming it’s a small minority of the
     dataset.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型应该在SFT阶段学习我们希望其输出的语法和结构。如果它输出的内容导致我们的正则表达式无法找到任何内容或发生错误，我们可以跳过该样本，假设它只是数据集中的少数情况。
 - en: 'We extract the predicted tempo and write a function that is more forgiving
     for small errors but penalises larger errors more heavily:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们提取预测的节奏并编写一个函数，它对小错误更宽容，但对较大错误惩罚更重：
 - en: For small differences (≤10 BPM), it uses linear scaling.
+  id: totrans-147
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于较小的差异（≤10 BPM），使用线性缩放。
 - en: For larger differences, it switches to exponential scaling.
+  id: totrans-148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于较大的差异，它切换到指数缩放。
 - en: The final loss is capped between 0 and 1.
+  id: totrans-149
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最终的损失值被限制在0和1之间。
 - en: 'Let’s break down the key components of this custom loss:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来分解这个自定义损失的关键组成部分：
 - en: Code for the custom loss is [here](https://colab.research.google.com/drive/1lpPfn9EFE2rBsasIJNv8Cy9qTvtfXzq-#scrollTo=mOs_gWcjrBgv)
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 自定义损失的代码在[这里](https://colab.research.google.com/drive/1lpPfn9EFE2rBsasIJNv8Cy9qTvtfXzq-#scrollTo=mOs_gWcjrBgv)
 - en: '**1\. Metre Loss**'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: '**1\. 拍子损失**'
 - en: The metre loss focuses on the time signature of the piece. It compares the predicted
     metre with the ground truth, considering both the numerator and denominator separately,
     as well as their ratio. This approach allows for a nuanced evaluation that can
     handle various time signatures accurately.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 拍子损失专注于作品的时间签名。它将预测的拍子与真实值进行比较，分别考虑分子和分母，以及它们的比率。这种方法允许进行细致的评估，可以准确处理各种时间签名。
 - en: The metre loss uses a combination of linear and exponential scaling to penalise
     differences. Small discrepancies result in a linear increase in loss, while larger
     differences lead to an exponential increase, capped at a maximum value of 1.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 拍子损失使用线性和指数缩放的组合来惩罚差异。较小的差异会导致损失线性增加，而较大的差异则会导致损失指数增加，最大值为1。
 - en: '**2\. Tempo Loss**'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: '**2\. 节奏损失**'
 - en: Tempo loss evaluates the accuracy of the predicted beats per minute (BPM). Similar
     to the metre loss, it uses a combination of linear and exponential scaling.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 节奏损失评估预测的每分钟节拍数（BPM）的准确性。与拍子损失类似，它使用线性和指数缩放的组合。
 - en: For small tempo differences (≤10 BPM), the function applies linear scaling.
     Larger differences trigger exponential scaling, ensuring that significant tempo
     mismatches are penalised more heavily.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于较小的节奏差异（≤10 BPM），该函数应用线性缩放。较大的差异则触发指数缩放，确保显著的节奏不匹配受到更严厉的惩罚。
 - en: '**3\. Pitch Loss**'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: '**3\. 音高损失**'
 - en: The pitch loss is perhaps the most crucial component, as it assesses the accuracy
     of the transcribed notes. This function uses the Levenshtein distance to compare
     the sequence of notes in each voice.
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 音高损失可能是最关键的组件，因为它评估转录音符的准确性。此函数使用Levenshtein距离比较每个声部中的音符序列。
 - en: The pitch loss calculation accounts for multiple voices, matching each predicted
     voice to the closest ground truth voice. This approach allows for flexibility
     in voice ordering while still maintaining accuracy in the overall pitch content.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 音高损失计算考虑了多个声部，将每个预测声部与最接近的真实声部进行匹配。这种方法允许在保持整体音高内容准确性的同时，对声部的顺序保持灵活性。
 - en: '**4\. Instrument Loss**'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: '**4\. 乐器损失**'
 - en: The instrument loss evaluates the accuracy of instrument selection for each
     voice.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 乐器损失评估每个声部的乐器选择准确性。
 - en: This function considers exact matches, instruments from the same family, and
     uses string similarity for more nuanced comparisons. It provides a comprehensive
     assessment of how well the model identifies and assigns instruments to each voice.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 此函数考虑了精确匹配、同一家族的乐器，并使用字符串相似度进行更细致的比较。它提供了一个全面的评估，衡量模型如何识别并为每个声部分配乐器。
 - en: '**5\. Combining the Losses**'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: '**5\. 综合损失**'
 - en: 'The final loss is a weighted combination of these individual components:'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终损失是这些单独组件的加权组合：
 - en: '[PRE3]'
+  id: totrans-166
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: This weighting scheme prioritises pitch accuracy while still considering other
     important aspects of music transcription.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 该加权方案优先考虑音高准确性，同时仍考虑音乐转录中的其他重要方面。
 - en: Training and hyperparameters
+  id: totrans-168
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 训练与超参数
 - en: 'PPO training generally requires a lot more memory than SFT for a few reasons:'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于几个原因，PPO训练通常需要比SFT更多的内存：
 - en: Multiple policy evaluations — PPO needs to maintain both the current policy
     (model weights) and an “old” policy to compute the probability ratio between them.
     This effectively doubles the model parameters in memory.
+  id: totrans-170
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 多个策略评估——PPO需要同时保持当前策略（模型权重）和“旧”策略，以计算它们之间的概率比。这实际上使得内存中的模型参数翻倍。
 - en: Experience buffer — PPO stores a buffer of experiences (states, actions, rewards,
     etc.) to perform updates in mini-batches. This buffer can be quite large and takes
     significant memory.
+  id: totrans-171
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 经验缓冲区——PPO存储一组经验（状态、动作、奖励等）以进行小批量更新。该缓冲区可能非常大，占用大量内存。
 - en: Advantage estimation — Computing advantages requires keeping track of value
     estimates and returns across trajectories, adding another layer of memory overhead.
+  id: totrans-172
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 优势估计——计算优势需要跟踪整个轨迹中的价值估计和回报，从而增加了额外的内存开销。
 - en: Additional optimisation objectives — PPO tracks multiple loss components (policy
     loss, value loss, entropy bonus) and their gradients, whereas SFT has a single
     loss.
+  id: totrans-173
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 附加优化目标——PPO跟踪多个损失组件（策略损失、价值损失、熵奖励）及其梯度，而SFT只有一个损失。
 - en: Because of the above, we’re more limited than SFT in the size of the models
     we can train and how much it costs. Whereas the above training I could do on an
     A100 40GB in Colab, for the PPO training I needed more memory. I trained on an
     H100 80GB, which could train a LoRA with a rank of 128 and a batch size of 8.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于上述原因，我们在训练模型的大小和成本上比SFT更受限制。虽然上述训练我可以在Colab的A100 40GB上完成，但对于PPO训练，我需要更多内存。我使用H100
+    80GB进行训练，这可以训练一个秩为128、批量大小为8的LoRA。
 - en: My hyperparameter sweep was narrow, I went with what seemed most intuitive using
     batch sizes ranging from 1 to 16 and learning rates from 2e-5 to 2e-4.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的超参数搜索范围较窄，选择了看起来最直观的设置，批量大小从1到16，学习率从2e-5到2e-4。
 - en: The model made no improvements to the task. The text file with the results is
     [here](http://asdf).
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型未对任务做出任何改进。结果的文本文件可以在[这里](http://asdf)找到。
 - en: I tracked various training metrics using Weights & Biases (WandB). Key metrics
     included the policy loss, value loss, total loss, KL divergence, and the reward
     model’s score.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用Weights & Biases（WandB）跟踪了各种训练指标。关键指标包括策略损失、价值损失、总损失、KL散度以及奖励模型的得分。
 - en: For all hyperparameter runs, the logs no improvement in the rewards and loss
     calculated over time. The KL divergence remained within the pre-defined threshold.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 对所有超参数运行，日志显示奖励和损失随时间推移没有改善。KL散度保持在预定义的阈值内。
 - en: '![](../Images/891e605d5da483ab80fff11d72e18d8b.png)![](../Images/de9c931b5e76c6c8b11bbaa5f855d234.png)'
+  id: totrans-179
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/891e605d5da483ab80fff11d72e18d8b.png)![](../Images/de9c931b5e76c6c8b11bbaa5f855d234.png)'
 - en: Conclusion
+  id: totrans-180
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: 'While this initial experiment didn’t achieve the desired performance in music
     transcription, we’ve provided some groundwork for future developments in the space.
     The challenges encountered have provided valuable insights into both the technical
     requirements and potential approaches for tackling this complex task. Future work
     could explore several promising directions:'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管这个初步实验未能在音乐转录中达到预期的表现，我们为未来该领域的发展奠定了基础。所遇到的挑战为我们提供了对技术需求和解决这一复杂任务的潜在方法的宝贵见解。未来的工作可以探索几个有前景的方向：
 - en: Experimenting with larger pre-trained models as they become available
+  id: totrans-182
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 随着更大规模预训练模型的出现，进行实验
 - en: Expanding the training dataset with more diverse musical examples
+  id: totrans-183
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 扩展训练数据集，加入更多样化的音乐示例
 - en: Further refinement of the reward functions to capture more nuanced musical relationships
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 进一步优化奖励函数，以捕捉更微妙的音乐关系
 - en: Exploring hybrid approaches that combine traditional music processing techniques
     with language model capabilities
+  id: totrans-185
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 探索结合传统音乐处理技术与语言模型能力的混合方法
 - en: '[Here’s my notebook](https://colab.research.google.com/drive/1lpPfn9EFE2rBsasIJNv8Cy9qTvtfXzq-)
     for running these experiments with Qwen2-Audio! and here’s a link to [my github](https://github.com/jonflynng)
     with all notebooks.'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: '[这是我的笔记本](https://colab.research.google.com/drive/1lpPfn9EFE2rBsasIJNv8Cy9qTvtfXzq-)
+    用于运行这些与Qwen2-Audio的实验！另外，这是[我的GitHub](https://github.com/jonflynng)链接，里面包含所有的笔记本。'

@@ -1,71 +1,111 @@
 - en: How Does the Segment-Anything Model’s (SAM’s) Encoder Work?
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Segment-Anything 模型（SAM）的编码器是如何工作的？
 - en: 原文：[https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-encoder-work-003a8a6e3f8b?source=collection_archive---------5-----------------------#2024-05-14](https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-encoder-work-003a8a6e3f8b?source=collection_archive---------5-----------------------#2024-05-14)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-encoder-work-003a8a6e3f8b?source=collection_archive---------5-----------------------#2024-05-14](https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-encoder-work-003a8a6e3f8b?source=collection_archive---------5-----------------------#2024-05-14)
 - en: A deep dive into how image content embedding, sine and cosine positional embedding,
     guidance click embedding, and dense mask embedding are produced
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 深入探讨图像内容嵌入、正弦和余弦位置嵌入、引导点击嵌入以及密集掩码嵌入是如何生成的
 - en: '[](https://jasonweiyi.medium.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)[![Wei
     Yi](../Images/24b7a438912082519f24d18e11ac9638.png)](https://jasonweiyi.medium.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)
     [Wei Yi](https://jasonweiyi.medium.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://jasonweiyi.medium.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)[![魏毅](../Images/24b7a438912082519f24d18e11ac9638.png)](https://jasonweiyi.medium.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)
+    [魏毅](https://jasonweiyi.medium.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)
     ·16 min read·May 14, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)
+    ·阅读时间 16 分钟 ·2024年5月14日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/b8fa7cce26e763966c76f98d3a33a940.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b8fa7cce26e763966c76f98d3a33a940.png)'
 - en: Photo by [benjamin lehman](https://unsplash.com/@abject?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 照片由 [benjamin lehman](https://unsplash.com/@abject?utm_source=medium&utm_medium=referral)
+    提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 'This article explains how the Segment-Anything model’s (SAM) encoder works.
     SAM uses a [ImageEncoderViT](https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/image_encoder.py)
     class to produce content embeddings for the input image. It also uses a [PromptEncoder](https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/prompt_encoder.py)
     class to produce embeddings for:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文解释了 Segment-Anything 模型（SAM）的编码器是如何工作的。SAM 使用 [ImageEncoderViT](https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/image_encoder.py)
+    类来生成输入图像的内容嵌入。它还使用 [PromptEncoder](https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/prompt_encoder.py)
+    类来生成以下嵌入：
 - en: guidance clicks, both positive and negative
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 引导点击，包括正面和负面
 - en: bounding boxes
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 边界框
 - en: image positional encoding
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 图像位置编码
 - en: image dense mask encoding
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 图像密集掩码编码
 - en: The ImageEncoderViT is a standard ViT network, so I won’t explain it in detail
     here. This article only focuses on how PromptEncoder produces the above embeddings.
     Those embeddings are passed to SAM’s decoder to generate segmentation mask. Knowing
     how the decoder uses these embeddings will make it easier to understand the encoding.
     You can read more about SAM’s decoding procedure from my other article “[How does
     the Segment-Anything Model’s (SAM’s) decoder work?](https://medium.com/p/0e4ab4732c37)”.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: ImageEncoderViT 是一个标准的 ViT 网络，所以我在这里不会详细解释。本文仅专注于 PromptEncoder 如何生成上述嵌入。那些嵌入会被传递给
+    SAM 的解码器，用于生成分割掩码。了解解码器如何使用这些嵌入会让理解编码过程更加容易。你可以通过阅读我另一篇文章 “[Segment-Anything 模型（SAM）解码器是如何工作的？](https://medium.com/p/0e4ab4732c37)”
+    进一步了解 SAM 的解码过程。
 - en: Encode a guidance click
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 编码引导点击
 - en: In SAM, a guidance click can be of a positive kind, telling the model where
     to segment, and a…
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 SAM 中，引导点击可以是正向的，告诉模型在哪里进行分割，或者是…

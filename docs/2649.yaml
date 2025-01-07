@@ -1,61 +1,93 @@
 - en: Using Objective Bayesian Inference to Interpret Election Polls
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用客观贝叶斯推断解读选举民意调查
 - en: 原文：[https://towardsdatascience.com/using-objective-bayesian-inference-to-interpret-election-polls-3de2d4354989?source=collection_archive---------8-----------------------#2024-10-30](https://towardsdatascience.com/using-objective-bayesian-inference-to-interpret-election-polls-3de2d4354989?source=collection_archive---------8-----------------------#2024-10-30)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/using-objective-bayesian-inference-to-interpret-election-polls-3de2d4354989?source=collection_archive---------8-----------------------#2024-10-30](https://towardsdatascience.com/using-objective-bayesian-inference-to-interpret-election-polls-3de2d4354989?source=collection_archive---------8-----------------------#2024-10-30)
 - en: How to build a polls-only objective Bayesian model that goes from a state polling
     lead to probability of winning the state
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何构建一个仅基于民意调查的客观贝叶斯模型，从州的民意调查领先转化为赢得该州的概率。
 - en: '[](https://medium.com/@ryan.burn?source=post_page---byline--3de2d4354989--------------------------------)[![Ryan
     Burn](../Images/5d45aa3c86bbcd5f30e92f2cb6a484f6.png)](https://medium.com/@ryan.burn?source=post_page---byline--3de2d4354989--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3de2d4354989--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3de2d4354989--------------------------------)
     [Ryan Burn](https://medium.com/@ryan.burn?source=post_page---byline--3de2d4354989--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@ryan.burn?source=post_page---byline--3de2d4354989--------------------------------)[![Ryan
+    Burn](../Images/5d45aa3c86bbcd5f30e92f2cb6a484f6.png)](https://medium.com/@ryan.burn?source=post_page---byline--3de2d4354989--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3de2d4354989--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3de2d4354989--------------------------------)
+    [Ryan Burn](https://medium.com/@ryan.burn?source=post_page---byline--3de2d4354989--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3de2d4354989--------------------------------)
     ·7 min read·Oct 30, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3de2d4354989--------------------------------)
+    ·7分钟阅读·2024年10月30日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: With the presidential election approaching, a question I, and I expect many
     others have, is does a candidate’s polling in a state translates to their probability
     of winning the state.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着总统选举临近，我和许多其他人都有一个问题：候选人在某州的民意调查结果是否能够反映出他们赢得该州的概率。
 - en: In this blog post, I want to explore the question using objective Bayesian inference
     ([3]) and election results from 2016 and 2020\. The goal will be to build a simple
     polls-only model that takes a candidate’s state polling lead and produces a posterior
     distribution for the probability of the candidate winning the state
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇博客文章中，我想通过使用客观贝叶斯推断（[3]）和2016年及2020年的选举结果来探讨这个问题。目标是构建一个简单的仅基于民意调查的模型，该模型以候选人在各州的民意调查领先为基础，生成候选人赢得该州的后验概率分布。
 - en: '![](../Images/e53dc13498959c6a7b2cab3103f928d4.png)'
+  id: totrans-8
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e53dc13498959c6a7b2cab3103f928d4.png)'
 - en: 'Figure 1: An example posterior distribution for predicted win probability using
     FiveThirtyEight polling data from 2016 and 2020 ([1, 2]) and a snapshot of polling
     in Pennsylvania. The figure also shows the 5-th, 50-th, and 95-th percentiles
     of the prediction posterior distribution. Figure by author.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 图1：使用2016年和2020年的FiveThirtyEight民意调查数据（[1, 2]）以及宾夕法尼亚州的民意调查快照，预测的赢得概率的后验分布示例。图中还展示了预测后验分布的5百分位、50百分位和95百分位。图源自作者。
 - en: where the posterior distribution measures our belief in how predictive polls
     are.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中，后验分布衡量我们对民意调查预测准确度的信任程度。
 - en: 'For the model, I’ll use logistic regression with a single unknown weight variable,
     w:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于该模型，我将使用逻辑回归，并且包含一个未知权重变量w：
 - en: Taking the 2020 and 2016 elections as observations and using a suitable prior,
     π, we can then produce a posterior distribution for the unknown weight
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 以2020年和2016年的选举结果为观察数据，并使用适当的先验分布π，我们可以生成一个未知权重的后验分布。
 - en: where
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中

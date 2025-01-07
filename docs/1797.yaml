@@ -1,1130 +1,1712 @@
 - en: A Visual Guide to Quantization
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 量化的视觉指南
 - en: 原文：[https://towardsdatascience.com/a-visual-guide-to-quantization-930ebcd9be94?source=collection_archive---------0-----------------------#2024-07-24](https://towardsdatascience.com/a-visual-guide-to-quantization-930ebcd9be94?source=collection_archive---------0-----------------------#2024-07-24)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/a-visual-guide-to-quantization-930ebcd9be94?source=collection_archive---------0-----------------------#2024-07-24](https://towardsdatascience.com/a-visual-guide-to-quantization-930ebcd9be94?source=collection_archive---------0-----------------------#2024-07-24)
 - en: Demystifying the compression of large language models
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 解密大型语言模型的压缩技术
 - en: '[](https://medium.com/@maartengrootendorst?source=post_page---byline--930ebcd9be94--------------------------------)[![Maarten
     Grootendorst](../Images/58e24b9cf7e10ff1cd5ffd75a32d1a26.png)](https://medium.com/@maartengrootendorst?source=post_page---byline--930ebcd9be94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--930ebcd9be94--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--930ebcd9be94--------------------------------)
     [Maarten Grootendorst](https://medium.com/@maartengrootendorst?source=post_page---byline--930ebcd9be94--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@maartengrootendorst?source=post_page---byline--930ebcd9be94--------------------------------)[![Maarten
+    Grootendorst](../Images/58e24b9cf7e10ff1cd5ffd75a32d1a26.png)](https://medium.com/@maartengrootendorst?source=post_page---byline--930ebcd9be94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--930ebcd9be94--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--930ebcd9be94--------------------------------)
+    [Maarten Grootendorst](https://medium.com/@maartengrootendorst?source=post_page---byline--930ebcd9be94--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--930ebcd9be94--------------------------------)
     ·20 min read·Jul 24, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--930ebcd9be94--------------------------------)
+    ·阅读时间：20分钟·2024年7月24日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: As their name suggests, Large Language Models (LLMs) are often too large to
     run on consumer hardware. These models may exceed billions of parameters and generally
     need GPUs with large amounts of VRAM to speed up inference.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如其名称所示，大型语言模型（LLMs）通常太大，无法在消费者硬件上运行。这些模型的参数可能超过数十亿，并且通常需要具有大量显存的GPU来加速推理。
 - en: As such, more and more research has been focused on making these models smaller
     through improved training, adapters, etc. One major technique in this field is
     called *quantization*.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，越来越多的研究集中于通过改进训练、适配器等手段使这些模型变得更小。这个领域的一个主要技术叫做*量化*。
 - en: '![](../Images/1d5698c50d7a9eef4025fa20af6cf525.png)'
+  id: totrans-8
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1d5698c50d7a9eef4025fa20af6cf525.png)'
 - en: In this post, I will introduce the field of quantization in the context of language
     modeling and explore concepts one by one to develop an intuition about the field.
     We will explore various methodologies, use cases, and the principles behind quantization.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我将介绍在语言建模背景下的量化领域，并逐步探索这些概念，以培养对该领域的直觉。我们将探索各种方法论、使用案例以及量化背后的原理。
 - en: As a visual guide, expect many visualizations to develop an intuition about
     quantization!
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为一份视觉指南，预计会有许多可视化内容，以帮助你形成关于量化的直觉！
 - en: 'Part 1: The “Problem“ with LLMs'
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第1部分：LLMs的“问题”
 - en: LLMs get their name due to the number of parameters they contain. Nowadays,
     these models typically have billions of parameters (mostly *weights*) which can
     be quite expensive to store.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: LLMs 得名于它们所包含的参数数量。如今，这些模型通常拥有数十亿个参数（主要是*权重*），存储这些参数相当昂贵。
 - en: During inference, activations are created as a product of the input and the
     weights, which similarly can be quite large.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 在推理过程中，激活值是输入与权重的乘积，这些值也可能非常大。
 - en: '![](../Images/563c7cc75056061c3d3a9cfb39560079.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/563c7cc75056061c3d3a9cfb39560079.png)'
 - en: As a result, we would like to represent billions of values as efficiently as
     possible, minimizing the amount of space we need to store a given value.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们希望尽可能高效地表示数十亿个值，最小化存储给定值所需的空间。
 - en: Let’s start from the beginning and explore how numerical values are represented
     in the first place before optimizing them.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从头开始，探索在优化数值之前，数值是如何表示的。
 - en: How to Represent Numerical Values
+  id: totrans-17
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何表示数值
 - en: 'A given value is often represented as a floating point number (or *floats*
     in computer science): a positive or negative number with a decimal point.'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定的值通常表示为浮点数（或计算机科学中的*浮动*）：一个带有小数点的正数或负数。
 - en: 'These values are represented by “*bits*”, or binary digits. The [IEEE-754](https://en.wikipedia.org/wiki/IEEE_754)
     standard describes how bits can represent one of three functions to represent
     the value: the *sign*, *exponent*, or *fraction (*or mantissa*)*.'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些值由“*位*”或二进制数字表示。[IEEE-754](https://en.wikipedia.org/wiki/IEEE_754) 标准描述了如何使用位来表示三个函数之一：*符号*、*指数*或*小数部分（或尾数）*。
 - en: '![](../Images/3c93e39aace5e63020679e4f3852edf0.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3c93e39aace5e63020679e4f3852edf0.png)'
 - en: 'Together, these three aspects can be used to calculate a value given a certain
     set of bit values:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 这三方面可以结合起来，用来计算在给定位值的情况下一个值：
 - en: '![](../Images/79a81ec5110972525d2cf5e2871d26ce.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/79a81ec5110972525d2cf5e2871d26ce.png)'
 - en: 'The more bits we use to represent a value, the more precise it generally is:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们用于表示数值的位数越多，通常精度越高：
 - en: '![](../Images/a80df1e4cd1b75723774d3edc4c0b902.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a80df1e4cd1b75723774d3edc4c0b902.png)'
 - en: Memory Constraints
+  id: totrans-25
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 内存限制
 - en: The more bits we have available, the larger the range of values that can be
     represented.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可用的位数越多，可以表示的值的范围就越大。
 - en: '![](../Images/d2e279156746043dbd567d2b092338fc.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d2e279156746043dbd567d2b092338fc.png)'
 - en: The interval of representable numbers a given representation can take is called
     the *dynamic range* whereas the distance between two neighboring values is called
     *precision*.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定表示方法所能表示的数值范围称为 *动态范围*，而两个相邻值之间的距离称为 *精度*。
 - en: '![](../Images/4c2302280fe771745bde748168ea2ebc.png)'
+  id: totrans-29
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4c2302280fe771745bde748168ea2ebc.png)'
 - en: A nifty feature of these bits is that we can calculate how much memory your
     device needs to store a given value. Since there are 8 bits in a byte of memory,
     we can create a basic formula for most forms of floating point representation.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些位数的一个巧妙特点是，我们可以计算设备存储一个给定值所需的内存量。由于 1 字节等于 8 位，我们可以为大多数浮点数表示形式创建一个基本公式。
 - en: '![](../Images/9b8d3210d37f26c8dbb0ad7b529a0bed.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9b8d3210d37f26c8dbb0ad7b529a0bed.png)'
 - en: '**NOTE**: In practice, more things relate to the amount of (V)RAM you need
     during inference, like the context size and architecture.'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意**：实际上，与推理过程中所需的（V）RAM 量相关的因素还包括上下文大小和架构等。'
 - en: Now let’s assume that we have a model with 70 billion parameters. Most models
     are natively represented with float 32-bit (often called *full-precision*), which
     would require **280GB** of memory just to load the model.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们有一个包含 700 亿参数的模型。大多数模型通常使用 32 位浮点数表示（通常称为*全精度*），仅加载该模型就需要 **280GB** 的内存。
 - en: '![](../Images/6e223615a34a4df51c622ead98f7af9f.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6e223615a34a4df51c622ead98f7af9f.png)'
 - en: As such, it is very compelling to minimize the number of bits to represent the
     parameters of your model (as well as during training!). However, as the precision
     decreases the accuracy of the models generally does as well.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，尽可能减少表示模型参数所需的位数（以及在训练过程中）是非常有吸引力的。然而，随着精度的降低，模型的准确度通常也会下降。
 - en: We want to reduce the number of bits representing values while maintaining accuracy…
     This is where *quantization* comes in!
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望在保持准确度的同时减少表示数值所需的位数……这就是 *量化* 的作用！
 - en: 'Part 2: Introduction to Quantization'
+  id: totrans-37
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第二部分：量化简介
 - en: Quantization aims to reduce the precision of a model’s parameter from higher
     bit-widths (like 32-bit floating point) to lower bit-widths (like 8-bit integers).
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 量化旨在将模型参数的精度从较高的位宽（如 32 位浮点数）降低到较低的位宽（如 8 位整数）。
 - en: '![](../Images/800e4ae3fc95e6227e560635a33b176b.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/800e4ae3fc95e6227e560635a33b176b.png)'
 - en: There is often some loss of precision (granularity) when reducing the number
     of bits to represent the original parameters.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 当减少表示原始参数所需的位数时，通常会有一些精度损失（粒度）。
 - en: 'To illustrate this effect, we can take any image and use only 8 colors to represent
     it:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了说明这一效果，我们可以选取任意一张图片，并只使用 8 种颜色来表示它：
 - en: '![](../Images/44c2bfa5a66104dad4b645292dec21fa.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/44c2bfa5a66104dad4b645292dec21fa.png)'
 - en: Image adapted from the original by [Slava Sidorov](https://pixabay.com/users/slava_web-designer-39623293/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=8668140).
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源于 [Slava Sidorov](https://pixabay.com/users/slava_web-designer-39623293/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=8668140)。
 - en: Notice how the zoomed-in part seems more “grainy” than the original since we
     can use fewer colors to represent it.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意到放大部分比原图看起来更“颗粒化”，因为我们只能使用更少的颜色来表示它。
 - en: The main goal of quantization is to reduce the number of bits (colors) needed
     to represent the original parameters while preserving the precision of the original
     parameters as best as possible.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 量化的主要目标是减少表示原始参数所需的位数（颜色），同时尽可能保持原始参数的精度。
 - en: Common Data Types
+  id: totrans-46
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 常见数据类型
 - en: First, let’s look at common data types and the impact of using them rather than
     32-bit (called *full-precision* or *FP32*) representations.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，让我们看看常见的数据类型以及使用它们而不是 32 位（称为 *全精度* 或 *FP32*）表示的影响。
 - en: FP16
+  id: totrans-48
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: FP16
 - en: 'Let’s look at an example of going from 32-bit to 16-bit (called *half precision*
     or *FP16*) floating point:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看一个从 32 位到 16 位（称为 *半精度* 或 *FP16*）浮点数的例子：
 - en: '![](../Images/e7dc0fe11f24c9aa61beeb507ec0c07d.png)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e7dc0fe11f24c9aa61beeb507ec0c07d.png)'
 - en: Notice how the range of values FP16 can take is quite a bit smaller than FP32.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，FP16 可以表示的值范围比 FP32 小得多。
 - en: BF16
+  id: totrans-52
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: BF16
 - en: 'To get a similar range of values as the original FP32, *bfloat 16* was introduced
     as a type of “truncated FP32”:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了获得与原始 FP32 相似的值范围，引入了 *bfloat 16* 作为一种“截断 FP32”的类型：
 - en: '![](../Images/5ecc3dee020b41a16315446bea8d875b.png)'
+  id: totrans-54
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5ecc3dee020b41a16315446bea8d875b.png)'
 - en: BF16 uses the same amount of bits as FP16 but can take a wider range of values
     and is often used in deep learning applications.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: BF16 使用与 FP16 相同数量的位，但可以表示更广泛的值范围，并且通常用于深度学习应用中。
 - en: INT8
+  id: totrans-56
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: INT8
 - en: 'When we reduce the number of bits even further, we approach the realm of *integer-based
     representations* rather than floating-point representations. To illustrate, going
     FP32 to INT8, which has only 8 bits, results in a fourth of the original number
     of bits:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们进一步减少位数时，我们进入了 *基于整数的表示* 领域，而不是浮点表示。为了说明这一点，从 FP32 转到只有 8 位的 INT8，结果是原始位数的四分之一：
 - en: '![](../Images/ddb5e4b4685fe6c463bb4c29cea1d22d.png)'
+  id: totrans-58
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ddb5e4b4685fe6c463bb4c29cea1d22d.png)'
 - en: Depending on the hardware, integer-based calculations might be faster than floating-point
     calculations but this isn’t always the case. However, computations are generally
     faster when using fewer bits.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据硬件的不同，基于整数的计算可能比浮点计算更快，但并不总是如此。然而，使用更少的位数时，计算通常会更快。
 - en: For each reduction in bits, a mapping is performed to “squeeze” the initial
     FP32 representations into lower bits.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每次减少位数，都会执行映射以“压缩”初始的 FP32 表示到较低的位数。
 - en: In practice, we do not need to map the entire FP32 range [-3.4e38, 3.4e38] into
     INT8\. We merely need to find a way to map the range of our data (the model’s
     parameters) into IN8.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，我们不需要将整个 FP32 范围 [-3.4e38, 3.4e38] 映射到 INT8。我们只需要找到一种方法将数据的范围（模型的参数）映射到
+    INT8。
 - en: Common squeezing/mapping methods are *symmetric* and *asymmetric* quantization
     and are forms of *linear mapping*.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 常见的压缩/映射方法是 *对称* 和 *非对称* 量化，并且它们是 *线性映射* 的形式。
 - en: Let’s explore these methods to quantize from FP32 to INT8.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们探索这些方法，将 FP32 量化到 INT8。
 - en: Symmetric Quantization
+  id: totrans-64
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 对称量化
 - en: In symmetric quantization, the range of the original floating-point values is
     mapped to a symmetric range around zero in the quantized space. In the previous
     examples, notice how the ranges before and after quantization remain centered
     around zero.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 在对称量化中，原始浮点值的范围被映射到量化空间中围绕零的对称范围。在之前的例子中，请注意量化前后的范围是如何围绕零对称的。
 - en: This means that the quantized value for zero in the floating-point space is
     exactly zero in the quantized space.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着在浮点空间中量化的零值在量化空间中正好是零。
 - en: '![](../Images/724c7aff658a290a3200d6146c0ebeec.png)'
+  id: totrans-67
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/724c7aff658a290a3200d6146c0ebeec.png)'
 - en: A nice example of a form of symmetric quantization is called absolute maximum
     (*absmax*) quantization.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种对称量化的好例子叫做绝对最大值（*absmax*）量化。
 - en: Given a list of values, we take the *highest* absolute value (**α**) as the
     range to perform the linear mapping.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一个值的列表，我们取 *最高* 的绝对值 (**α**) 作为范围来执行线性映射。
 - en: '![](../Images/e892f689d2be15f0337a0aaca10bb0d6.png)'
+  id: totrans-70
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e892f689d2be15f0337a0aaca10bb0d6.png)'
 - en: Note the [-127, 127] range of values represents the restricted range. The unrestricted
     range is [-128, 127] and depends on the quantization method.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，[-127, 127] 范围的值表示受限范围。无符号范围是 [-128, 127]，并且依赖于量化方法。
 - en: Since it is a linear mapping centered around zero, the formula is straightforward.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于它是一个围绕零的线性映射，公式是直接的。
 - en: 'We first calculate a scale factor (***s***) using:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先使用以下公式计算一个比例因子（***s***）：
 - en: '***b*** is the number of bytes that we want to quantize to (8),'
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***b*** 是我们希望量化到的字节数（8），'
 - en: '**α**is the *highest* absolute value,'
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**α** 是 *最高* 绝对值，'
 - en: 'Then, we use the ***s*** to quantize the input ***x***:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们使用***s***来量化输入***x***：
 - en: '![](../Images/4acaa26b1f84826907c832d05fe26d20.png)'
+  id: totrans-77
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4acaa26b1f84826907c832d05fe26d20.png)'
 - en: 'Filling in the values would then give us the following:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 填入这些数值后，我们将得到以下结果：
 - en: '![](../Images/c1e85a8311f1c11636e62add702385c6.png)'
+  id: totrans-79
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c1e85a8311f1c11636e62add702385c6.png)'
 - en: To retrieve the original FP32 values, we can use the previously calculated *scaling
     factor* (***s***) to *dequantize* the quantized values.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了恢复原始的 FP32 值，我们可以使用之前计算的*缩放因子*（***s***）来*去量化*这些量化后的值。
 - en: '![](../Images/8aa12dab62a9c5dc0684ec985e8767a4.png)'
+  id: totrans-81
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8aa12dab62a9c5dc0684ec985e8767a4.png)'
 - en: 'Applying the quantization and then dequantization process to retrieve the original
     looks as follows:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 应用量化和去量化过程以恢复原始值如下所示：
 - en: '![](../Images/1277ab53f019e59413d6749142350224.png)'
+  id: totrans-83
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1277ab53f019e59413d6749142350224.png)'
 - en: You can see certain values, such as **3.08** and **3.02** being assigned to
     the INT8, namely **36**. When you dequantize the values to return to FP32, they
     lose some precision and are not distinguishable anymore.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到某些值，比如**3.08**和**3.02**，被分配到了 INT8，即**36**。当你将这些值去量化以返回 FP32 时，它们会失去一些精度，变得不可区分。
 - en: This is often referred to as the *quantization error* which we can calculate
     by finding the difference between the original and dequantized values.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 这通常被称为*量化误差*，我们可以通过计算原始值和去量化值之间的差异来确定它。
 - en: '![](../Images/1bf22d8878eb82d368c01509b922d9bf.png)'
+  id: totrans-86
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1bf22d8878eb82d368c01509b922d9bf.png)'
 - en: Generally, the lower the number of bits, the more quantization error we tend
     to have.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，位数越低，我们往往会有更多的量化误差。
 - en: Asymmetric Quantization
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 非对称量化
 - en: Asymmetric quantization, in contrast, is not symmetric around zero. Instead,
     it maps the minimum (**β**) and maximum (**α**) values from the float range to
     the minimum and maximum values of the quantized range.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 非对称量化与对称量化不同，它不是围绕零对称的。相反，它将浮动范围中的最小值（**β**）和最大值（**α**）映射到量化范围的最小值和最大值。
 - en: The method we are going to explore is called *zero-point quantization*.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将要探讨的方法叫做*零点量化*。
 - en: '![](../Images/75eb1a6364b57a9497d80f563e23f6ec.png)'
+  id: totrans-91
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/75eb1a6364b57a9497d80f563e23f6ec.png)'
 - en: Notice how the 0 has shifted positions? That’s why it’s called *asymmetric quantization*.
     The min/max values have different distances to 0 in the range [-7.59, 10.8].
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意 0 已经发生了位置偏移？这就是为什么它被称为*非对称量化*。最小/最大值与 0 之间的距离在范围 [-7.59, 10.8] 内是不相等的。
 - en: Due to its shifted position, we have to calculate the zero-point for the INT8
     range to perform the linear mapping. As before, we also have to calculate a *scale
     factor* (***s***) but use the difference of INT8’s range instead [-128, 127]
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于其位置的偏移，我们必须为 INT8 范围计算零点，以执行线性映射。如之前所述，我们还需要计算*缩放因子*（***s***），但这次要使用 INT8
+    范围的差值 [-128, 127]。
 - en: '![](../Images/a8e96941b8aaf3158cb6a9570e6a89a5.png)'
+  id: totrans-94
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a8e96941b8aaf3158cb6a9570e6a89a5.png)'
 - en: Notice how this is a bit more involved due to the need to calculate the *zeropoint*
     (***z***) in the INT8 range to shift the weights.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，由于需要计算 INT8 范围内的*零点*（***z***）以平移权重，这一过程稍显复杂。
 - en: 'As before, let’s fill in the formula:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，让我们填写公式：
 - en: '![](../Images/0111294f49ba0ed2916c2d3393a968ce.png)'
+  id: totrans-97
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0111294f49ba0ed2916c2d3393a968ce.png)'
 - en: To dequantize the quantized from INT8 back to FP32, we will need to use the
     previously calculated *scale factor* (***s***) and *zeropoint* (***z***).
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 要将从 INT8 量化的数据还原为 FP32，我们需要使用之前计算的*缩放因子*（***s***）和*零点*（***z***）。
 - en: 'Other than that, dequantization is straightforward:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 除此之外，去量化是直接的：
 - en: '![](../Images/d484ec53b8893487c618e793099c23b3.png)'
+  id: totrans-100
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d484ec53b8893487c618e793099c23b3.png)'
 - en: 'When we put symmetric and asymmetric quantization side-by-side, we can quickly
     see the difference between methods:'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们将对称量化和非对称量化并排放置时，我们可以迅速看到两者方法的差异：
 - en: '![](../Images/fd90cb9a22b149c32c5c1e2b3955aeaa.png)'
+  id: totrans-102
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fd90cb9a22b149c32c5c1e2b3955aeaa.png)'
 - en: Note the zero-centered nature of symmetric quantization versus the offset of
     asymmetric quantization.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意对称量化的零中心特性与非对称量化的偏移特性。
 - en: Range Mapping and Clipping
+  id: totrans-104
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 范围映射与裁剪
 - en: In our previous examples, we explored how the range of values in a given vector
     could be mapped to a lower-bit representation. Although this allows for the full
     range of vector values to be mapped, it comes with a major downside, namely *outliers*.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 在之前的例子中，我们探讨了如何将给定向量中数值的范围映射到低位表示。尽管这使得整个向量值范围能够被映射，但也带来了一个重大缺点，即*离群值*。
 - en: 'Imagine that you have a vector with the following values:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 想象你有一个包含以下值的向量：
 - en: '![](../Images/e26dc53821610741f8618258732e7c7d.png)'
+  id: totrans-107
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e26dc53821610741f8618258732e7c7d.png)'
 - en: 'Note how one value is much larger than all others and could be considered an
     outlier. If we were to map the full range of this vector, all small values would
     get mapped to the same lower-bit representation and lose their differentiating
     factor:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，某个值远大于其他所有值，它可能被视为一个异常值。如果我们要映射该向量的整个范围，所有较小的值将会被映射为相同的低位表示，并失去它们的区分性：
 - en: '![](../Images/00ea8f5efc68a537694b1c64caf67148.png)'
+  id: totrans-109
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/00ea8f5efc68a537694b1c64caf67148.png)'
 - en: This is the absmax method we used earlier. Note that the same behavior happens
     with asymmetric quantization if we do not apply clipping.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是我们之前使用的absmax方法。注意，如果我们没有应用裁剪，非对称量化也会表现出相同的行为。
 - en: Instead, we can choose to *clip* certain values. Clipping involves setting a
     different dynamic range of the original values such that all outliers get the
     same value.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反，我们可以选择*裁剪*某些值。裁剪是指设定原始值的不同动态范围，使得所有异常值都得到相同的值。
 - en: 'In the example below, if we were to manually set the dynamic range to [-5,
     5] all values outside that will either be mapped to -127 or to 127 regardless
     of their value:'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的示例中，如果我们手动将动态范围设置为[-5, 5]，所有超出该范围的值将被映射为-127或127，无论它们的实际值是多少：
 - en: '![](../Images/3c5d4d2a1ccead9642fa5af70a20974d.png)'
+  id: totrans-113
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3c5d4d2a1ccead9642fa5af70a20974d.png)'
 - en: The major advantage is that the quantization error of the *non-outliers* is
     reduced significantly. However, the quantization error of *outliers* increases.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 主要的优势在于，*非异常值*的量化误差显著降低。然而，*异常值*的量化误差却增加了。
 - en: Calibration
+  id: totrans-115
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 校准
 - en: In the example, I showed a naive method of choosing an arbitrary range of [-5,
     5]. The process of selecting this range is known as *calibration* which aims to
     find a range that includes as many values as possible while minimizing the quantization
     error.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 在示例中，我展示了选择[-5, 5]这一任意范围的简单方法。选择该范围的过程称为*校准*，其目的是找到一个尽可能包含更多值的范围，同时最小化量化误差。
 - en: Performing this calibration step is not equal for all types of parameters.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行此校准步骤对所有类型的参数并不相同。
 - en: Weights (and Biases)
+  id: totrans-118
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 权重（和偏差）
 - en: We can view the weights and biases of an LLM as *static* values since they are
     known before running the model. For instance, the [~20GB file of Llama 3](https://huggingface.co/meta-llama/Meta-Llama-3-8B/tree/main)
     consists mostly of its weight and biases.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将LLM的权重和偏差视为*静态*值，因为它们在模型运行之前就已知。例如，[Llama 3的约20GB文件](https://huggingface.co/meta-llama/Meta-Llama-3-8B/tree/main)大部分由其权重和偏差构成。
 - en: '![](../Images/6d0fd23498dde269231c7988ebfdf7c3.png)'
+  id: totrans-120
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6d0fd23498dde269231c7988ebfdf7c3.png)'
 - en: Since there are significantly fewer biases (millions) than weights (billions),
     the biases are often kept in higher precision (such as INT16), and the main effort
     of quantization is put towards the weights.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于偏差的数量（百万级）远少于权重的数量（十亿级），偏差通常保持较高的精度（如INT16），而量化的主要工作集中在权重上。
 - en: 'For weights, which are static and known, calibration techniques for choosing
     the range include:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于权重，作为静态且已知的值，选择范围的校准技术包括：
 - en: Manually choosing a *percentile* of the input range
+  id: totrans-123
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 手动选择输入范围的*百分位*。
 - en: Optimize the *mean squared error* (MSE) between the original and quantized weights.
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 优化原始权重和量化权重之间的*均方误差*（MSE）。
 - en: Minimizing *entropy* (KL-divergence) between the original and quantized values
+  id: totrans-125
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最小化*熵*（KL散度）原始值与量化值之间的差异
 - en: '![](../Images/bb30d435cec911f17d435c4a0ad0f34d.png)'
+  id: totrans-126
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bb30d435cec911f17d435c4a0ad0f34d.png)'
 - en: Choosing a percentile, for instance, would lead to similar clipping behavior
     as we have seen before.
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，选择百分位数会导致与之前看到的类似的裁剪行为。
 - en: Activations
+  id: totrans-128
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 激活值
 - en: The input that is continuously updated throughout the LLM is typically referred
     to as “*activations*”.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 在整个LLM中持续更新的输入通常被称为“*激活值*”。
 - en: '![](../Images/62a87756db38fd50c429d4d7118731b1.png)'
+  id: totrans-130
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/62a87756db38fd50c429d4d7118731b1.png)'
 - en: Note that these values are called activations since they often go through some
     activation function, like sigmoid or relu.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，这些值被称为激活值，因为它们通常会经过某些激活函数，如sigmoid或relu。
 - en: Unlike weights, activations vary with each input data fed into the model during
     inference, making it challenging to quantize them accurately.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 与权重不同，激活值会随每次输入数据进入模型时发生变化，这使得精确量化激活值变得具有挑战性。
 - en: Since these values are updated after each hidden layer, we only know what they
     will be during inference as the input data passes through the model.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于这些值在每个隐藏层之后都会更新，因此我们只能在推理过程中随着输入数据通过模型时，才能知道它们的值。
 - en: '![](../Images/c9850f46ac0337b283b8fde060895dc1.png)'
+  id: totrans-134
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c9850f46ac0337b283b8fde060895dc1.png)'
 - en: 'Broadly, there are two methods for calibrating the quantization method of the
     weights and activations:'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 广义上来说，校准权重和激活值量化方法有两种：
 - en: Post-Training Quantization (PTQ) — Quantization ***after*** training
+  id: totrans-136
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 训练后量化（PTQ）— 训练***后***的量化
 - en: Quantization Aware Training (QAT) — Quantization ***during*** training/fine-tuning
+  id: totrans-137
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 量化感知训练（QAT）— 训练/微调***期间***的量化
 - en: 'Part 3: Post-Training Quantization'
+  id: totrans-138
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第3部分：训练后量化
 - en: One of the most popular quantization techniques is post-training quantization
     (PTQ). It involves quantizing a model’s parameters (both weights and activations)
     **after** training the model.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 最流行的量化技术之一是训练后量化（PTQ）。它涉及在训练模型**之后**对模型的参数（包括权重和激活值）进行量化。
 - en: Quantization of the *weights* is performed using either symmetric or asymmetric
     quantization.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: '*权重*的量化是通过对称或非对称量化来执行的。'
 - en: Quantization of the *activations*, however, requires inference of the model
     to get their potential distribution since we do not know their range.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，*激活值*的量化需要推断模型以获取它们的潜在分布，因为我们不知道它们的范围。
 - en: 'There are two forms of quantization of the activations:'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 激活值的量化有两种形式：
 - en: '*Dynamic* Quantization'
+  id: totrans-143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*动态*量化'
 - en: '*Static* Quantization'
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*静态*量化'
 - en: Dynamic Quantization
+  id: totrans-145
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 动态量化
 - en: 'After data passes a hidden layer, its activations are collected:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 当数据通过一个隐藏层时，它的激活值被收集：
 - en: '![](../Images/cb0cbd3a3829bb0cb3d85762e2878201.png)'
+  id: totrans-147
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cb0cbd3a3829bb0cb3d85762e2878201.png)'
 - en: 'This distribution of activations is then used to calculate the *zeropoint*
     (***z***) and *scale factor* (**s**) values needed to quantize the output:'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，使用这个激活值的分布来计算量化输出所需的*零点*（***z***）和*缩放因子*（**s**）值：
 - en: '![](../Images/078163c8a7e46c300281f5968f9dba80.png)'
+  id: totrans-149
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/078163c8a7e46c300281f5968f9dba80.png)'
 - en: The process is repeated each time data passes through a new layer. Therefore,
     each layer has its own separate ***z*** and ***s*** values and therefore different
     quantization schemes.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个过程在每次数据通过新层时都会重复。因此，每一层都有自己独立的***z***和***s***值，因此也有不同的量化方案。
 - en: Static Quantization
+  id: totrans-151
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 静态量化
 - en: In contrast to dynamic quantization, static quantization does not calculate
     the *zeropoint* (***z***) and scale factor (***s***) during inference but beforehand.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 与动态量化相比，静态量化在推断过程中不会计算*零点*（***z***）和缩放因子（***s***），而是提前计算好。
 - en: To find those values, a **calibration dataset** is used and given to the model
     to collect these potential distributions.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了找到这些值，会使用**校准数据集**并提供给模型以收集这些潜在分布。
 - en: '![](../Images/7c6fd75060b58d14d8c58f73f5dd107d.png)'
+  id: totrans-154
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7c6fd75060b58d14d8c58f73f5dd107d.png)'
 - en: After these values have been collected, we can calculate the necessary ***s***
     and ***z*** values to perform quantization during inference.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 收集到这些值之后，我们可以计算出在推断过程中执行量化所需的***s***和***z***值。
 - en: When you are performing actual inference, the ***s*** and ***z*** values are
     not recalculated but are used globally over all activations to quantize them.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你进行实际推断时，***s***和***z***值不会被重新计算，而是全局使用在所有激活值上进行量化。
 - en: In general, dynamic quantization tends to be a bit more accurate since it only
     attempts to calculate the ***s*** and ***z*** values per hidden layer. However,
     it might increase compute time as these values need to be calculated.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，动态量化往往更精确一些，因为它只在每个隐藏层计算***s***和***z***值。然而，它可能会增加计算时间，因为这些值需要被计算出来。
 - en: In contrast, static quantization is less accurate but is faster as it already
     knows the ***s*** and ***z*** values used for quantization.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 相比之下，静态量化虽然精度较低，但速度更快，因为它已经知道了用于量化的***s***和***z***值。
 - en: The Realm of 4-bit Quantization
+  id: totrans-159
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 4位量化的领域
 - en: Going below 8-bit quantization has proved to be a difficult task as the quantization
     error increases with each loss of bit. Fortunately, there are several smart ways
     to reduce the bits to 6, 4, and even 2-bits (although going lower than 4-bits
     using these methods is typically not advised).
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 低于8位量化被证明是一个困难的任务，因为每损失一位，量化误差都会增加。幸运的是，有几种巧妙的方法可以将位数降低到6位、4位，甚至2位（尽管使用这些方法将位数降低到4位以下通常不建议）。
 - en: 'We will explore two methods that are commonly shared on HuggingFace:'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将探讨两种在HuggingFace上常见的共享方法：
 - en: '*GPTQ —* full model on GPU'
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*GPTQ —* 完整模型在GPU上'
 - en: '*GGUF —* potentially offload layers on the CPU'
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*GGUF —* 可能会将层卸载到CPU上'
 - en: GPTQ
+  id: totrans-164
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: GPTQ
 - en: GPTQ is arguably one of the most well-known methods used in practice for quantization
     to 4-bits.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: GPTQ可以说是目前实践中最著名的4位量化方法之一。
 - en: 'It uses asymmetric quantization and does so layer by layer such that each layer
     is processed independently before continuing to the next:'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 它使用非对称量化，并且按层处理，使每一层在继续到下一层之前都能独立处理：
 - en: '![](../Images/5d08178bc862bc52c3084fe65bd078e6.png)'
+  id: totrans-167
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5d08178bc862bc52c3084fe65bd078e6.png)'
 - en: During this layer-wise quantization process, it first converts the layer’s weights
     into the inverse-**Hessian**. It is a second-order derivative of the model’s loss
     function and tells us how sensitive the model’s output is to changes in each weight.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个逐层量化过程中，它首先将层的权重转换为逆**海森矩阵**。它是模型损失函数的二阶导数，告诉我们模型输出对每个权重变化的敏感程度。
 - en: Simplified, it essentially demonstrates the (*inverse*) **importance of each
     weight** in a layer.
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 简化来说，它本质上展示了每个权重在一个层中的（*逆*）**重要性**。
 - en: Weights associated with smaller values in the Hessian matrix are more crucial
     because small changes in these weights can lead to significant changes in the
     model’s performance.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 在海森矩阵中，与较小值相关的权重更为重要，因为这些权重的微小变化可能会导致模型性能的显著变化。
 - en: '![](../Images/4aa81d22bc428d5b5e956e539655bbc0.png)'
+  id: totrans-171
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4aa81d22bc428d5b5e956e539655bbc0.png)'
 - en: In the inverse-Hessian, lower values indicate more “important” weights.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 在逆海森矩阵中，较低的值表示更“重要”的权重。
 - en: 'Next, we quantize and then dequantize the weight of the first row in our weight
     matrix:'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们对权重矩阵中第一行的权重进行量化，然后再解量化：
 - en: '![](../Images/67a39f66598eeecf55587eeea2cc6ca4.png)'
+  id: totrans-174
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/67a39f66598eeecf55587eeea2cc6ca4.png)'
 - en: This process allows us to calculate the **quantization error (*q*)** which we
     can weigh using the inverse-Hessian (***h_1****)* that we calculated beforehand.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个过程允许我们计算**量化误差 (*q*)**，我们可以使用之前计算的逆海森矩阵（***h_1****）加权它。
 - en: 'Essentially, we are creating a weighted-quantization error based on the importance
     of the weight:'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 本质上，我们根据权重的重要性创建一个加权的量化误差：
 - en: '![](../Images/0dab4e2a5c306d26d24ff12bd188b4e4.png)'
+  id: totrans-177
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0dab4e2a5c306d26d24ff12bd188b4e4.png)'
 - en: Next, we redistribute this weighted quantization error over the other weights
     in the row. This allows for maintaining the overall function and output of the
     network.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将这个加权量化误差重新分配到同一行中的其他权重上。这有助于保持网络的整体功能和输出。
 - en: For example, if we were to do this for the second weight, namely .3 (***x_2***),
     we would add the quantization error (***q***) multiplied by the inverse-Hessian
     of the second weight (***h*_2**)
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果我们要对第二个权重（即 .3，***x_2***）执行这个操作，我们将添加量化误差（***q***）乘以第二个权重的逆海森矩阵（***h*_2**）。
 - en: '![](../Images/2771deaf0b7f15ced1e99e6a53828f27.png)'
+  id: totrans-180
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2771deaf0b7f15ced1e99e6a53828f27.png)'
 - en: 'We can do the same process over the third weight in the given row:'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以对给定行中的第三个权重执行相同的过程：
 - en: '![](../Images/c2a779fc041aea05239fe43da6ebbf80.png)'
+  id: totrans-182
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c2a779fc041aea05239fe43da6ebbf80.png)'
 - en: We iterate over this process of redistributing the weighted quantization error
     until all values are quantized.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们不断迭代这一过程，重新分配加权的量化误差，直到所有值都被量化。
 - en: This works so well because weights are typically related to one another. So
     when one weight has a quantization error, related weights are updated accordingly
     (through the inverse-Hessian).
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法非常有效，因为权重通常是相互关联的。所以当一个权重存在量化误差时，相关的权重会相应地更新（通过逆海森矩阵）。
 - en: '***NOTE****:* [*The authors*](https://arxiv.org/pdf/2210.17323) *used several
     tricks to speed up computation and improve performance, such as adding a dampening
     factor to the Hessian, “lazy batching”, and precomputing information using the
     Cholesky method. I would highly advise checking out* [*this YouTube video*](https://www.youtube.com/watch?v=mii-xFaPCrA)
     *on the subject.*'
+  id: totrans-185
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '***注意****:* [*作者们*](https://arxiv.org/pdf/2210.17323) *使用了几种技巧来加速计算和提高性能，比如向海森矩阵添加阻尼因子、“懒批处理”和使用Cholesky方法预计算信息。我强烈建议查看*
+    [*这个YouTube视频*](https://www.youtube.com/watch?v=mii-xFaPCrA) *，了解相关内容。*'
 - en: ''
+  id: totrans-186
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: '***TIP****: Check out* [*EXL2*](https://github.com/turboderp/exllamav2) *if
     you want a quantization method aimed at performance optimizations and improving
     inference speed.*'
+  id: totrans-187
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '***提示****: 如果你想要一种专注于性能优化和提高推理速度的量化方法，可以查看* [*EXL2*](https://github.com/turboderp/exllamav2)
+    *。*'
 - en: GGUF
+  id: totrans-188
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: GGUF
 - en: While GPTQ is a great quantization method to run your full LLM on a GPU, you
     might not always have that capacity. Instead, we can use GGUF to offload any layer
     of the LLM to the CPU.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然GPTQ是一种很好的量化方法，可以在GPU上运行完整的LLM，但你可能并不总是具备这种能力。相反，我们可以使用GGUF将LLM的任何一层转移到CPU上处理。
 - en: This allows you to use both the CPU and GPU when you do not have enough VRAM.
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 这使你在没有足够显存的情况下，仍然可以同时使用CPU和GPU。
 - en: The quantization method GGUF is updated frequently and might depend on the level
     of bit quantization. However, the general principle is as follows.
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: GGUF量化方法会频繁更新，并且可能会依赖于位量化的级别。然而，基本原则如下。
 - en: 'First, the weights of a given layer are split into “super” blocks each containing
     a set of “sub” blocks. From these blocks, we extract the scale factor (***s***)
     and alpha (***α***):'
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，给定层的权重被拆分成“super”块，每个块包含一组“sub”块。从这些块中，我们提取尺度因子(**s**)和alpha(**α**)：
 - en: '![](../Images/b160bf227643b7221cbb561c8335b4cf.png)'
+  id: totrans-193
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b160bf227643b7221cbb561c8335b4cf.png)'
 - en: 'To quantize a given “sub” block, we can use the *absmax* quantization we used
     before. Remember that it multiplies a given weight by the scale factor **(*s*)**:'
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 要对给定的“sub”块进行量化，我们可以使用之前使用过的*absmax*量化方法。记住，它将给定的权重乘以尺度因子**(*s*)**：
 - en: '![](../Images/90491819aebf3ecd21c99cff26ea881d.png)'
+  id: totrans-195
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/90491819aebf3ecd21c99cff26ea881d.png)'
 - en: 'The scale factor is calculated using the information from the “sub” block but
     is quantized using the information from the “super” block which has its own scale
     factor:'
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 尺度因子是使用来自“sub”块的信息计算的，但它是使用来自“super”块的信息进行量化的，后者有自己的尺度因子：
 - en: '![](../Images/674b771ec4778d6014a45f2f9787c3b1.png)'
+  id: totrans-197
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/674b771ec4778d6014a45f2f9787c3b1.png)'
 - en: This block-wise quantization uses the scale factor (**s_super**) from the “super”
     block to quantize the scale factor (**s_sub**) from the “sub” block.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个块级量化使用来自“super”块的尺度因子(**s_super**)来量化来自“sub”块的尺度因子(**s_sub**)。
 - en: The quantization level of each scale factor might differ with the “super” block
     generally having a higher precision than the scale factor of the “sub” block.
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个尺度因子的量化级别可能不同，“super”块的量化精度通常高于“sub”块的尺度因子。
 - en: 'To illustrate, let’s explore a couple of quantization levels (2-bit, 4-bit,
     and 6-bit):'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了说明，我们来探讨几个量化级别（2位、4位和6位）：
 - en: '![](../Images/a715fae8e4bd90416502893d2c72e07a.png)'
+  id: totrans-201
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a715fae8e4bd90416502893d2c72e07a.png)'
 - en: '**NOTE**: Depending on the quantization type, an additional minimum value (***m***)
     is needed to adjust the zero-point. These are quantized the same as the scale
     factor (***s***).'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意**：根据量化类型，可能需要一个额外的最小值(**m**)，用于调整零点。这些值的量化方式与尺度因子(**s**)相同。'
 - en: Check out [the original pull request](https://github.com/ggerganov/llama.cpp/pull/1684)
     for an overview of all quantization levels. Also, see [this pull request](https://github.com/ggerganov/llama.cpp/pull/4861)
     for more information on quantization using importance matrices.
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看[原始拉取请求](https://github.com/ggerganov/llama.cpp/pull/1684)，了解所有量化级别的概述。同时，查看[此拉取请求](https://github.com/ggerganov/llama.cpp/pull/4861)，了解使用重要性矩阵进行量化的更多信息。
 - en: 'Part 4: Quantization Aware Training'
+  id: totrans-204
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第四部分：量化感知训练
 - en: In Part 3, we saw how we could quantize a model ***after*** training. A downside
     to this approach is that this quantization does not consider the actual training
     process.
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第三部分，我们看到如何在训练后对模型进行量化。该方法的一个缺点是，量化过程没有考虑到实际的训练过程。
 - en: This is where Quantization Aware Training (QAT) comes in. Instead of quantizing
     a model ***after*** it was trained with post-training quantization (PTQ), QAT
     aims to learn the quantization procedure ***during*** training.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是量化感知训练(QAT)的作用。QAT的目标是在训练过程中学习量化过程，而不是像后训练量化(PTQ)那样在模型训练完成后进行量化。
 - en: '![](../Images/ef4186f67e2cec1e59556df15191f2cd.png)'
+  id: totrans-207
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ef4186f67e2cec1e59556df15191f2cd.png)'
 - en: 'QAT tends to be more accurate than PTQ since the quantization was already considered
     during training. It works as follows:'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: QAT通常比PTQ更为准确，因为量化已经在训练过程中考虑了。其工作原理如下：
 - en: 'During training, so-called “*fake*” quants are introduced. This is the process
     of first quantizing the weights to, for example, INT4 and then dequantizing back
     to FP32:'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 在训练过程中，引入了所谓的“*伪*”量化。这是将权重先量化为例如INT4，然后再解量化回FP32的过程：
 - en: '![](../Images/f82f9314295ffc5de26231825652cd9b.png)'
+  id: totrans-210
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f82f9314295ffc5de26231825652cd9b.png)'
 - en: This process allows the model to consider the quantization process during training,
     the calculation of loss, and weight updates.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个过程使得模型能够在训练过程中考虑量化过程、损失计算以及权重更新。
 - en: QAT attempts to explore the loss landscape for “*wide*” minima to minimize the
     quantization errors as “*narrow*” minima tend to result in larger quantization
     errors.
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: QAT尝试探索损失景观中“*宽*”极小值，以最小化量化误差，因为“*窄*”极小值往往会导致更大的量化误差。
 - en: '![](../Images/c1c351f258b013ba16e3875f3774f018.png)'
+  id: totrans-213
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c1c351f258b013ba16e3875f3774f018.png)'
 - en: For example, imagine if we did not consider quantization during the backward
     pass. We choose the weight with the smallest loss according to gradient descent.
     However, that would introduce a larger quantization error if it’s in a “*narrow*”
     minima.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，假设我们在反向传播时没有考虑量化。我们根据梯度下降选择具有最小损失的权重。然而，如果它位于一个“*狭窄*”的最小值中，这将引入更大的量化误差。
 - en: In contrast, if we consider quantization, a different updated weight will be
     selected in a “*wide*” minima with a much lower quantization error.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反，如果我们考虑量化，更新后的权重将在一个“*宽阔*”的最小值中被选择，量化误差会更小。
 - en: '![](../Images/c0ec4111a1b509814dcf7c5655f5f389.png)'
+  id: totrans-216
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c0ec4111a1b509814dcf7c5655f5f389.png)'
 - en: As such, although PTQ has a lower loss in high precision (e.g., FP32), QAT results
     in a lower loss in lower precision (e.g., INT4) which is what we aim for.
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，尽管PTQ在高精度下（例如FP32）损失较小，但QAT在低精度下（例如INT4）损失更低，这正是我们追求的目标。
 - en: 'The Era of 1-bit LLMs: BitNet'
+  id: totrans-218
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 1位LLM的时代：BitNet
 - en: Going to 4-bits as we saw before is already quite small but what if we were
     to reduce it even further?
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，4位已经相当小了，但如果我们进一步减少它会怎样呢？
 - en: This is where [BitNet](https://arxiv.org/pdf/2310.11453) comes in, representing
     the weights of a model single 1-bit, using either **-1** or **1** for a given
     weight.[3](https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-quantization#footnote-3-145531349)
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是[BitNet](https://arxiv.org/pdf/2310.11453)的作用，它用单个1位表示模型的权重，使用**-1**或**1**表示给定的权重。[3](https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-quantization#footnote-3-145531349)
 - en: It does so by injecting the quantization process directly into the Transformer
     architecture.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 它通过将量化过程直接注入到Transformer架构中来实现。
 - en: 'Remember that the Transformer architecture is used as the foundation of most
     LLMs and is composed of computations that involve linear layers:'
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记住，Transformer架构是大多数LLM的基础，并由涉及线性层的计算组成：
 - en: '![](../Images/d199e450db63f85fcc96eeae29033c7a.png)'
+  id: totrans-223
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d199e450db63f85fcc96eeae29033c7a.png)'
 - en: These linear layers are generally represented with higher precision, like FP16,
     and are where most of the weights reside.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些线性层通常以较高精度表示，如FP16，并且大多数权重就存储在这里。
 - en: 'BitNet replaces these linear layers with something they call the **BitLlinear**:'
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: BitNet用他们所称的**BitLinear**替换了这些线性层：
 - en: '![](../Images/6974ee25c63c942d077b49cffa35ae6d.png)'
+  id: totrans-226
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6974ee25c63c942d077b49cffa35ae6d.png)'
 - en: A BitLinear layer works the same as a regular linear layer and calculates the
     output based on the weights multiplied by the activation.
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: BitLinear层的工作方式与常规线性层相同，基于权重与激活的乘积来计算输出。
 - en: 'In contrast, a BitLinear layer represents the weights of a model using 1-bit
     and activations using INT8:'
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 相比之下，BitLinear层用1位表示模型的权重，用INT8表示激活：
 - en: '![](../Images/c538a9cc49bf74c2fe445107d8d1abd5.png)'
+  id: totrans-229
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c538a9cc49bf74c2fe445107d8d1abd5.png)'
 - en: 'A BitLinear layer, like Quantization-Aware Training (QAT) performs a form of
     “fake” quantization during training to analyze the effect of quantization of the
     weights and activations:'
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: BitLinear层像量化感知训练（QAT）一样，在训练期间执行一种“伪”量化，以分析权重和激活的量化效果：
 - en: '![](../Images/cc856a73580c93e702d90869ded663e2.png)'
+  id: totrans-231
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cc856a73580c93e702d90869ded663e2.png)'
 - en: '**NOTE**: In the paper they used **γ** instead of **α** but since we used a
     throughout our examples, I’m using that. Also, note that **β** is not the same
     as we used in zero-point quantization but the average absolute value.'
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意**：在论文中他们使用了**γ**代替**α**，但由于我们在示例中使用了**α**，所以我这里也使用它。同时，注意**β**与我们在零点量化中使用的不同，它是平均绝对值。'
 - en: Let’s go through the BitLinear step-by-step.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们一步一步地了解BitLinear。
 - en: Weight Quantization
+  id: totrans-234
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 权重量化
 - en: While training, the weights are stored in INT8 and then quantized to 1-bit using
     a basic strategy, called the *signum function.*
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 在训练过程中，权重以INT8存储，然后使用一种基本策略将其量化为1位，这个策略称为*符号函数*。
 - en: 'In essence, it moves the distribution of weights to be centered around 0 and
     then assigns everything left to 0 to be -1 and everything to the right to be 1:'
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 本质上，它将权重的分布移至围绕0的位置，然后将左边的所有内容分配为-1，右边的所有内容分配为1：
 - en: '![](../Images/a6b74a8a7fb9c3c83e65a527c64cf43a.png)'
+  id: totrans-237
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a6b74a8a7fb9c3c83e65a527c64cf43a.png)'
 - en: Additionally, it tracks a value **β (***average* absolute value**)** that we
     will use later on for dequantization.
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，它还跟踪一个值**β（*平均*绝对值）**，我们将在后续用于反量化。
 - en: Activation Quantization
+  id: totrans-239
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 激活量化
 - en: To quantize the activations, BitLinear makes use of *absmax quantization* to
     convert the activations from FP16 to INT8 as they need to be in higher precision
     for the matrix multiplication (×).
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了量化激活值，BitLinear利用*absmax量化*将激活值从FP16转换为INT8，因为在进行矩阵乘法（×）时需要更高精度。
 - en: '![](../Images/4948bc11cddc3b7fd073818748690587.png)'
+  id: totrans-241
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4948bc11cddc3b7fd073818748690587.png)'
 - en: Additionally, it tracks **α (***highest* absolute value**)** that we will use
     later on for dequantization.
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，它还追踪**α（***最大*绝对值**）**，我们稍后会用到它进行反量化。
 - en: Dequantization
+  id: totrans-243
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**反量化**'
 - en: We tracked **α (***highest absolute value of activations***)** and **β (***average
     absolute value of weights***)** as those values will help us dequantize the activations
     back to FP16.
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们追踪了**α（***激活值的最大绝对值**）**和**β（***权重的平均绝对值**）**，因为这些值有助于我们将激活值反量化回FP16。
 - en: 'The output activations are rescaled with {**α**, γ} to dequantize them to the
     original precision:'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出激活值会使用{**α**，γ}进行重新缩放，以将它们反量化到原始精度：
 - en: '![](../Images/c932398e3fdb6a868f0397ffda3d41ad.png)'
+  id: totrans-246
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c932398e3fdb6a868f0397ffda3d41ad.png)'
 - en: And that’s it! This procedure is relatively straightforward and allows models
     to be represented with only two values, either **-1** or **1**.
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 就是这样！这个过程相对简单，并允许模型仅使用两个值来表示，即**-1**或**1**。
 - en: Using this procedure, the authors observed that as the model size grows, the
     smaller the performance gap between a 1-bit and FP16-trained becomes.
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过这种方法，作者观察到随着模型规模的增长，1位和FP16训练模型之间的性能差距变得越来越小。
 - en: However, this is only for larger models (>30B parameters) and the gab with smaller
     models is still quite large.
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，这仅适用于更大的模型（>30B参数），小模型之间的差距仍然很大。
 - en: All Large Language Models are in 1.58 Bits
+  id: totrans-250
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 所有大型语言模型都在1.58位
 - en: '[BitNet 1.58b](https://arxiv.org/pdf/2402.17764) was introduced to improve
     upon the scaling issue previously mentioned.'
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: '[BitNet 1.58b](https://arxiv.org/pdf/2402.17764)的引入是为了改善之前提到的缩放问题。'
 - en: In this new method, every single weight of the is not just **-1** or **1**,
     but can now also take **0** as a value, making it *ternary*. Interestingly, adding
     just the **0** greatly improves upon BitNet and allows for much faster computation.
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种新方法中，每个权重不仅仅是**-1**或**1**，现在还可以取**0**作为值，使其变为*三元*。有趣的是，仅添加**0**就极大地改进了BitNet，并且可以实现更快的计算。
 - en: The Power of 0
+  id: totrans-253
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**0的力量**'
 - en: So why is adding 0 such a major improvement?
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，为什么加0会是一个如此重大的改进呢？
 - en: It has everything to do with *matrix multiplication*!
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 它与*矩阵乘法*密切相关！
 - en: 'First, let’s explore how matrix multiplication in general works. When calculating
     the output, we multiply a weight matrix by an input vector. Below, the first multiplication
     of the first layer of a weight matrix is visualized:'
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，让我们探讨一下矩阵乘法一般是如何工作的。在计算输出时，我们将权重矩阵与输入向量相乘。下面是第一层权重矩阵的第一次乘法可视化：
 - en: '![](../Images/3623b0a4d8d71d1b141fa998f1d61d7f.png)'
+  id: totrans-257
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3623b0a4d8d71d1b141fa998f1d61d7f.png)'
 - en: Note that this multiplication involves two actions, **multiplying** individual
     weights with the input and then **adding** them all together.
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，这次乘法涉及两个操作，**将**各个权重与输入相乘，然后**将它们加在一起**。
 - en: 'BitNet 1.58b, in contrast, manages to forego the act of multiplication since
     ternary weights essentially tell you the following:'
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 与此相反，BitNet 1.58b成功地避免了乘法操作，因为三元权重本质上告诉你以下内容：
 - en: '**1 —** I want to add this value'
+  id: totrans-260
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**1 —** 我想加上这个值'
 - en: '**0** — I do not want this value'
+  id: totrans-261
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**0** — 我不想要这个值'
 - en: '**-1 —** I want to subtract this value'
+  id: totrans-262
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**-1 —** 我想减去这个值'
 - en: 'As a result, you only need to perform addition if your weights are quantized
     to 1.58 bit:'
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是，如果你的权重被量化为1.58位，你只需要执行加法：
 - en: '![](../Images/ba0776a158064ae21399b74961eefd2c.png)'
+  id: totrans-264
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ba0776a158064ae21399b74961eefd2c.png)'
 - en: Not only can this speed up computation significantly, but it also allows for
     **feature filtering**.
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 这不仅可以显著加快计算速度，而且还允许进行**特征过滤**。
 - en: By setting a given weight to 0 you can now ignore it instead of either adding
     or subtracting the weights as is the case with 1-bit representations.
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过将给定的权重设置为0，你现在可以忽略它，而不是像1位表示那样加或减权重。
 - en: Quantization
+  id: totrans-267
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**量化**'
 - en: To perform weight quantization BitNet 1.58b uses *absmean* quantization which
     is a variation of the absmax quantization that we saw before.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了进行权重量化，BitNet 1.58b使用*absmean量化*，这是一种我们之前看到过的absmax量化的变体。
 - en: 'It simply compresses the distribution of weights and uses the absolute mean
     (**α**) to quantize values. They are then rounded to either -1, 0, or 1:'
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 它只是压缩了权重的分布，并使用绝对均值（**α**）来量化值。然后它们被四舍五入为-1、0或1：
 - en: '![](../Images/051c2bcc456142b4b3600c594232a3eb.png)'
+  id: totrans-270
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/051c2bcc456142b4b3600c594232a3eb.png)'
 - en: Compared to BitNet the activation quantization is the same except for one thing.
     Instead of scaling the activations to range [**0**, **2ᵇ⁻¹**], they are now scaled
     to
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 与BitNet相比，激活量化是相同的，只有一点不同。激活值不再被缩放到[**0**, **2ᵇ⁻¹**]范围，而是现在被缩放到
 - en: '[**-2ᵇ⁻¹**, **2ᵇ⁻¹**] instead using *absmax quantization*.'
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: '[**-2ᵇ⁻¹**, **2ᵇ⁻¹**]改为使用*绝对最大值量化*。'
 - en: 'And that’s it! 1.58-bit quantization required (mostly) two tricks:'
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 就这样！1.58比特量化（大部分）需要两种技巧：
 - en: Adding **0** to create ternary representations [-1, 0, 1]
+  id: totrans-274
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 添加**0**以创建三元表示[-1, 0, 1]
 - en: '*absmean quantization* for weights'
+  id: totrans-275
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*绝对均值量化*用于权重'
 - en: As a result, we get lightweight models due to having only 1.58 computationally
     efficient bits!
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是，我们获得了轻量级模型，因为它们只有1.58个计算高效的比特！
 - en: Thank You For Reading!
+  id: totrans-277
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 感谢阅读！
 - en: This concludes our journey in quantization! Hopefully, this post gives you a
     better understanding of the potential of quantization, GPTQ, GGUF, and BitNet.
     Who knows how small the models will be in the future?!
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 这标志着我们在量化方面的旅程结束！希望这篇文章能帮助你更好地理解量化、GPTQ、GGUF和BitNet的潜力。谁知道未来模型会小到什么程度呢？！
 - en: To see more visualizations related to LLMs and to support this newsletter, check
     out the book I’m writing with Jay Alammar. It will be released soon!
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 若想查看更多与LLM相关的可视化内容并支持本期通讯，敬请关注我与Jay Alammar共同编写的书籍。该书即将发布！
 - en: '![](../Images/ca223b3b0991f513aacab1f56a18c8e9.png)'
+  id: totrans-280
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ca223b3b0991f513aacab1f56a18c8e9.png)'
 - en: You can view the book with a free trial on the [O’Reilly website](https://www.oreilly.com/library/view/hands-on-large-language/9781098150952/)
     or pre-order the book on [Amazon](https://www.amazon.com/Hands-Large-Language-Models-Understanding/dp/1098150961).
     All code will be uploaded to [Github](https://github.com/HandsOnLLM/Hands-On-Large-Language-Models).
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过[O'Reilly 网站](https://www.oreilly.com/library/view/hands-on-large-language/9781098150952/)享受免费试读，或者在[Amazon](https://www.amazon.com/Hands-Large-Language-Models-Understanding/dp/1098150961)上预购本书。所有代码都将上传至[Github](https://github.com/HandsOnLLM/Hands-On-Large-Language-Models)。
 - en: If you are, like me, passionate about *AI* and/or *Psychology*, please feel
     free to add me on [**LinkedIn**](https://www.linkedin.com/in/mgrootendorst/)and
     [**Twitter**](https://twitter.com/MaartenGr), or subscribe to my [**Newsletter**](http://maartengrootendorst.substack.com/).
     You can also find some of my content on my [**Personal Website**](https://maartengrootendorst.com/)**.**
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你像我一样，对*人工智能*和/或*心理学*充满热情，欢迎在[**LinkedIn**](https://www.linkedin.com/in/mgrootendorst/)和[**Twitter**](https://twitter.com/MaartenGr)上加我为好友，或者订阅我的[**通讯**](http://maartengrootendorst.substack.com/)。你也可以在我的[**个人网站**](https://maartengrootendorst.com/)找到一些我的内容**。
 - en: '[](https://newsletter.maartengrootendorst.com/?source=post_page-----930ebcd9be94--------------------------------)
     [## Exploring Language Models | Maarten Grootendorst | Substack'
+  id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://newsletter.maartengrootendorst.com/?source=post_page-----930ebcd9be94--------------------------------)
+    [## 探索语言模型 | Maarten Grootendorst | Substack'
 - en: ML Engineer writing about the intersection of AI, Language Models, and Psychology.
     Open Source Developer (BERTopic…
+  id: totrans-284
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 机器学习工程师，撰写关于人工智能、语言模型和心理学交集的文章。开源开发者（BERTopic…）
 - en: newsletter.maartengrootendorst.com](https://newsletter.maartengrootendorst.com/?source=post_page-----930ebcd9be94--------------------------------)
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: '[newsletter.maartengrootendorst.com](https://newsletter.maartengrootendorst.com/?source=post_page-----930ebcd9be94--------------------------------)'
 - en: '*All images without a source credit were created by the author — Which means
     all of them (except for one!), I like creating my own images ;)*'
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: '*所有没有来源说明的图片均由作者创作——这意味着所有图片（除了一个！）都是我自己做的；)*'

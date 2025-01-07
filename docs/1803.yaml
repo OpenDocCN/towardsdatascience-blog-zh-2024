@@ -1,336 +1,508 @@
 - en: Using LLMs to Query PubMed Knowledge Bases for BioMedical Research
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 LLMs 查询 PubMed 知识库进行生物医学研究
 - en: 原文：[https://towardsdatascience.com/using-llms-to-query-pubmed-knowledge-bases-for-biomedical-research-bc00ead9e540?source=collection_archive---------6-----------------------#2024-07-24](https://towardsdatascience.com/using-llms-to-query-pubmed-knowledge-bases-for-biomedical-research-bc00ead9e540?source=collection_archive---------6-----------------------#2024-07-24)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/using-llms-to-query-pubmed-knowledge-bases-for-biomedical-research-bc00ead9e540?source=collection_archive---------6-----------------------#2024-07-24](https://towardsdatascience.com/using-llms-to-query-pubmed-knowledge-bases-for-biomedical-research-bc00ead9e540?source=collection_archive---------6-----------------------#2024-07-24)
 - en: AI for fun and profit!
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为了乐趣和盈利使用 AI！
 - en: '[](https://medium.com/@jilliandrowe?source=post_page---byline--bc00ead9e540--------------------------------)[![Jillian
     Rowe](../Images/b1445fff6cf2011d270fe36b65123764.png)](https://medium.com/@jilliandrowe?source=post_page---byline--bc00ead9e540--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bc00ead9e540--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bc00ead9e540--------------------------------)
     [Jillian Rowe](https://medium.com/@jilliandrowe?source=post_page---byline--bc00ead9e540--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@jilliandrowe?source=post_page---byline--bc00ead9e540--------------------------------)[![Jillian
+    Rowe](../Images/b1445fff6cf2011d270fe36b65123764.png)](https://medium.com/@jilliandrowe?source=post_page---byline--bc00ead9e540--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bc00ead9e540--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bc00ead9e540--------------------------------)
+    [Jillian Rowe](https://medium.com/@jilliandrowe?source=post_page---byline--bc00ead9e540--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bc00ead9e540--------------------------------)
     ·11 min read·Jul 24, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bc00ead9e540--------------------------------)
+    ·阅读时间：11分钟·2024年7月24日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/162ee2641c1ac9a9bde0687955abfffe.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/162ee2641c1ac9a9bde0687955abfffe.png)'
 - en: Photo by [🇸🇮 Janko Ferlič](https://unsplash.com/@itfeelslikefilm?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [🇸🇮 Janko Ferlič](https://unsplash.com/@itfeelslikefilm?utm_source=medium&utm_medium=referral)
+    提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 'Part 1: Creating the Knowledge base'
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第1部分：创建知识库
 - en: In this article, we’ll explore how to leverage large language models (LLMs)
     to search and scientific papers from [PubMed Open Access](https://www.ncbi.nlm.nih.gov/pmc/tools/openftlist/)
     Subset, a free resource for accessing biomedical and life sciences literature.
     We’ll use Retrieval-Augmented Generation, RAG, to search our digital library.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将探讨如何利用大语言模型（LLMs）来搜索和科学论文，来自 [PubMed Open Access](https://www.ncbi.nlm.nih.gov/pmc/tools/openftlist/)
+    子集，这是一个用于访问生物医学和生命科学文献的免费资源。我们将使用检索增强生成（RAG）技术来搜索我们的数字图书馆。
 - en: AWS Bedrock will act as our AI backend, PostgreSQL as the vector database for
     storing embeddings, and the LangChain library in Python will ingest papers and
     query the knowledge base.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: AWS Bedrock 将作为我们的 AI 后端，PostgreSQL 作为存储嵌入的向量数据库，而 Python 中的 LangChain 库将用于导入论文并查询知识库。
 - en: If you only care about the results generated by querying the knowledge base,
     skip down to the end.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你只关心通过查询知识库生成的结果，可以跳到文章末尾。
 - en: The specific use case we’ll be focusing on is querying papers related to Rheumatoid
     Arthritis, a chronic inflammatory disorder affecting joints. We’ll use the query
     `((rheumatoid arthritis) AND gene) AND cell` to retrieve around 10,000 relevant
     papers from PubMed and then sample that down to approximately 5,000 papers for
     our knowledge base.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将重点关注的具体用例是查询与类风湿性关节炎相关的论文，这是一种影响关节的慢性炎症性疾病。我们将使用查询 `((rheumatoid arthritis)
+    AND gene) AND cell` 从 PubMed 检索大约 10,000 篇相关论文，然后将其缩减到大约 5,000 篇作为我们的知识库。
 - en: Disclaimer
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 免责声明
 - en: Not all research articles or sources have licensing that allows for ingesting
     with AI!
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 不是所有的研究文章或来源都有允许与 AI 一起使用的许可！
 - en: I’m not including all the source code because the AI libraries change so frequently
     and because there are oodles of ways to configure a knowledge base backend, but
     I have included some helper functions so you can follow along.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 我没有包含所有源代码，因为 AI 库更新非常频繁，而且有许多方式可以配置知识库后端，但我提供了一些辅助函数，你可以跟着一起操作。
 - en: 'PGVector: Storing Embeddings in a Vector Database'
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: PGVector：在向量数据库中存储嵌入
 - en: To make it easier for the LLM to process and understand the textual data from
     the research papers, we’ll convert the text into numerical embeddings, which are
     dense vector representations of the text. These embeddings will be stored in a
     PostgreSQL database using the PGVector library. This step essentially simplifies
     the text data into a format that the LLM can more easily work with.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使 LLM 更容易处理和理解来自研究论文的文本数据，我们将把文本转换为数值嵌入，这些嵌入是文本的稠密向量表示。这些嵌入将使用 PGVector 库存储在
+    PostgreSQL 数据库中。这个步骤本质上将文本数据简化为一种 LLM 更容易处理的格式。
 - en: I’m running a local postgresql database, which is fine for my datasets. Hosting
     AWS Bedrock Knowledgebases can get expensive, and I’m not trying to run up my
     AWS bill this month. It’s summer, and I have kids camp to pay for!
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 我正在运行一个本地的 PostgreSQL 数据库，对于我的数据集来说这样就足够了。托管 AWS Bedrock 知识库可能会很昂贵，而且我这个月并不打算让我的
+    AWS 账单飙升。现在是夏天，我得为孩子们的夏令营支付费用！
 - en: 'AWS Bedrock: The AI Backend'
+  id: totrans-19
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: AWS Bedrock：AI 后端
 - en: AWS Bedrock is a managed service provided by Amazon Web Services (AWS), allowing
     you to easily deploy and operate large language models. In our setup, Bedrock
     will host the LLM that we’ll use to query and retrieve relevant information from
     our knowledge base of research papers.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: AWS Bedrock 是亚马逊云服务（AWS）提供的一项托管服务，允许你轻松部署和操作大型语言模型。在我们的设置中，Bedrock 将托管我们用于查询并从研究论文的知识库中检索相关信息的
+    LLM。
 - en: 'LangChain: Loading and Querying the Knowledge Base'
+  id: totrans-21
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: LangChain：加载和查询知识库
 - en: LangChain is a Python library that simplifies building applications with large
     language models. We’ll use [LangChain](https://www.langchain.com/) to load our
     research papers and their associated embeddings into a knowledge base and then
     query this knowledge base using the LLM hosted on AWS Bedrock.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: LangChain 是一个 Python 库，简化了使用大型语言模型构建应用程序的过程。我们将使用 [LangChain](https://www.langchain.com/)
+    将我们的研究论文及其相关的嵌入载入知识库，并通过托管在 AWS Bedrock 上的大型语言模型（LLM）来查询这个知识库。
 - en: Using PubGet for Data Acquisition
+  id: totrans-23
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 PubGet 进行数据获取
 - en: While this setup can work with research papers from any source, we’re using
     PubMed because it’s a convenient source for acquiring a large volume of papers
     based on specific search queries. We’ll use the [PubGet](https://github.com/neuroquery/pubget)
     tool to retrieve the initial set of 10,000 papers matching our query on Rheumatoid
     Arthritis, genes, and cells. Behind the scenes pubget fetches articles from the
     PubMed FTP service.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管这个设置可以处理来自任何来源的研究论文，但我们使用 PubMed 是因为它是一个便捷的来源，可以根据特定的搜索查询获取大量论文。我们将使用 [PubGet](https://github.com/neuroquery/pubget)
+    工具来检索初始的 10,000 篇与类风湿关节炎、基因和细胞相关的论文。PubGet 背后会从 PubMed 的 FTP 服务获取文章。
 - en: '[PRE0]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: This will get us articles in `xml` format.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将为我们获取 `xml` 格式的文章。
 - en: Structuring and Organizing the Dataset
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 数据集的结构化与组织
 - en: Beyond the technical aspects, this article will focus on how to structure and
     organize your dataset of research papers effectively.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了技术方面，本文将重点讨论如何有效地构建和组织你的研究论文数据集。
 - en: '**Dataset**: Managing your datasets on a global level using collections.'
+  id: totrans-29
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**数据集**：通过集合在全球范围内管理你的数据集。'
 - en: '**Metadata Management**: Handling and incorporating metadata associated with
     the papers, such as author information, publication dates, and keywords.'
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**元数据管理**：处理和整合与论文相关的元数据，例如作者信息、出版日期和关键词。'
 - en: You’ll want to think about this upfront. When using LangChain, you query datasets
     based on their collections. Each collection has a name and a unique identifier.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要提前考虑这一点。使用 LangChain 时，你根据集合查询数据集。每个集合都有一个名称和唯一标识符。
 - en: When you load your data, whether it’s pdf papers, xml downloads, markdown files,
     codebases, powerpoint slides, text documents, etc, you can attach additional metadata.
     You can later use this metadata to filter your results. The metadata is an open
     dictionary, and you can add tags, source, phenotype, or anything you think may
     be relevant.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你加载数据时，无论是 pdf 论文、xml 下载、markdown 文件、代码库、PowerPoint 幻灯片、文本文件等，你都可以附加额外的元数据。稍后你可以利用这些元数据来筛选结果。元数据是一个开放的字典，你可以添加标签、来源、表型或任何你认为可能相关的内容。
 - en: Loading and Querying the Knowledge Base
+  id: totrans-33
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 加载和查询知识库
 - en: The article will also cover best practices for loading your preprocessed and
     structured dataset into the knowledge base and provide examples of how to query
     the knowledge base effectively using the LLM hosted on AWS Bedrock.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 文章还将涵盖将你的预处理和结构化数据集加载到知识库中的最佳实践，并提供如何有效查询知识库的示例，使用的 LLM 由 AWS Bedrock 托管。
 - en: By the end of this article, you should have a solid understanding of how to
     leverage LLMs to search and retrieve relevant information from a large corpus
     of research papers, as well as strategies for structuring and organizing your
     dataset to optimize the performance and accuracy of your knowledge base.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 到文章末尾时，你应该能充分理解如何利用LLM搜索并从大量研究论文中提取相关信息，同时掌握如何构建和组织数据集，以优化知识库的性能和准确性。
 - en: '[PRE1]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Set up your database connection
+  id: totrans-37
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置数据库连接
 - en: I’m running a local [Supabase](https://supabase.com/) postgresql database running
     using their `docker-compose` setup. In a production setup, I'd recommend using
     a real database, like AWS AuroraDB or Supabase running someplace besides your
     laptop. Also, change your password to something besides password.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 我正在本地运行一个[SupaBase](https://supabase.com/)的PostgreSQL数据库，通过他们的`docker-compose`设置运行。在生产环境中，我建议使用真正的数据库，比如AWS
+    AuroraDB，或者将Supabase运行在除你的笔记本电脑之外的地方。另外，记得把密码改成其他的，而不是“password”。
 - en: I didn’t notice any difference in performance for smaller datasets between an
     AWS-hosted knowledgebase and my laptop, but your mileage may vary.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 我没有注意到在较小的数据集上，AWS托管的知识库和我的笔记本电脑之间有任何性能差异，但你的体验可能会不同。
 - en: '[PRE2]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Insert AWS BedRock Embeddings into the table using Langchain
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用Langchain将AWS BedRock嵌入插入表格
 - en: We’re using AWS Bedrock as our AI Knowledgebase. Most of the companies I work
     with have some kind of proprietary data, and Bedrock has a guarantee that your
     data will remain private. You could use any of the AI backends here.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们正在使用AWS Bedrock作为我们的AI知识库。我与大多数合作公司的工作中都有某种专有数据，而Bedrock保证你的数据将保持私密。你也可以使用任何其他AI后端。
 - en: '[PRE3]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '[PRE4]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '[PRE5]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '[PRE6]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '[PRE7]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[PRE8]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Load and process Pubmed XML Papers
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 加载和处理Pubmed XML论文
 - en: Most of our data was fetched using the `pubget` tool, and the articles are in
     XML format. We'll use the LangChain XML Loader to process, split and load the
     embeddings.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的大部分数据是通过`pubget`工具获取的，文章格式为XML。我们将使用LangChain XML加载器来处理、拆分和加载嵌入。
 - en: '[PRE9]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Load and Process Pubmed PDF Papers
+  id: totrans-53
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 加载和处理Pubmed PDF论文
 - en: PDFs are easier to read, and I grabbed some for doing QA against the knowledge
     base.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: PDF格式更易于阅读，我抓取了一些用于与知识库进行问答测试。
 - en: '[PRE11]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Part 2 — Query the Knowledge base
+  id: totrans-56
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第二部分 — 查询知识库
 - en: Now that we have our knowledge base setup we can use Retrieval Augmented Generation,
     RAG methods, to use the LLMs to run queries.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经设置好了知识库，可以使用增强型生成检索（RAG）方法，利用LLM运行查询。
 - en: 'Our queries are:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的查询内容是：
 - en: Tell me about T cell–derived cytokines in relation to rheumatoid arthritis and
     provide citations and article titles
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 告诉我关于类风湿性关节炎中的T细胞来源细胞因子的相关信息，并提供引用和文章标题。
 - en: Tell me about single-cell research in rheumatoid arthritis.
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 告诉我关于类风湿性关节炎的单细胞研究。
 - en: Tell me about protein-protein associations in rheumatoid arthritis.
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 告诉我关于类风湿性关节炎中的蛋白质-蛋白质关联。
 - en: Tell me about the findings of GWAS studies in rheumatoid arthritis.
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 告诉我关于类风湿性关节炎的GWAS研究发现。
 - en: '[PRE12]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: I don’t list it here, but I’ll always do some QA against my knowlegebase. Choose
     an article, parse out the summary or findings, and ask the LLM about it. You should
     get your article back.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 我没有在这里列出它，但我总是会对我的知识库进行一些问答测试。选择一篇文章，解析出摘要或结论，然后向大型语言模型（LLM）提问。你应该能得到这篇文章的回复。
 - en: Structuring Your Queries
+  id: totrans-65
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结构化你的查询
 - en: You’ll need to first have the collection name you’re querying along with your
     queries.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 你首先需要知道你要查询的集合名称和查询内容。
 - en: I always recommend running a few QA queries. Ask the obvious questions in several
     different ways.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 我总是推荐先运行几个问答查询。以不同方式提问同样的显而易见的问题。
 - en: You’ll also want to adjust the `MAX_DOCS_RETURNED` based on your time constraints
     and how many articles are in your knowledgebase. The LLM will search until it
     hits that maximum, and then stops. You'll need to increase that number for an
     exhaustive search.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 你还需要根据你的时间限制和知识库中的文章数量调整`MAX_DOCS_RETURNED`。LLM会一直搜索，直到达到最大值，然后停止。如果需要全面搜索，你需要增加这个数值。
 - en: '[PRE13]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '[PRE15]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '[PRE16]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '[PRE17]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'Part 3: Results!'
+  id: totrans-74
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第三部分：结果！
 - en: We’ve built our knowledge base, run some queries, and now we’re ready to look
     at the results the LLM generated for us.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经建立了知识库，运行了一些查询，现在我们准备查看LLM为我们生成的结果。
 - en: Each result is a dictionary with the original query, the response, and the relevant
     snippets of the source document.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个结果都是一个字典，包含原始查询、回应以及相关的源文档片段。
 - en: Tell me about T cell–derived cytokines in relation to rheumatoid arthritis and
     provide citations and article titles
+  id: totrans-77
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 告诉我关于类风湿性关节炎中的T细胞来源细胞因子的相关信息，并提供引用和文章标题。
 - en: 'T cell-derived cytokines play a key role in the pathogenesis of rheumatoid
     arthritis (RA). Some key findings include:'
+  id: totrans-78
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: T细胞衍生的细胞因子在类风湿关节炎（RA）的发病机制中起着关键作用。一些关键发现包括：
 - en: ''
+  id: totrans-79
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -339,30 +511,39 @@
     (FLS) and macrophages to produce inflammatory mediators like VEGF, IL-1, IL-6,
     TNF-α, and prostaglandin E2, and promote osteoclast formation, contributing to
     joint inflammation and destruction (Honorati et al. 2006, Schurgers et al. 2011).
+  id: totrans-80
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 已发现RA患者滑液中IL-17水平升高，IL-17是由Th17细胞产生的细胞因子。IL-17可以刺激成纤维样滑膜细胞（FLS）和巨噬细胞产生炎症介质，如VEGF、IL-1、IL-6、TNF-α和前列腺素E2，并促进破骨细胞形成，从而促进关节炎症和破坏（Honorati等，2006年，Schurgers等，2011年）。
 - en: ''
+  id: totrans-81
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Th1 cells, which produce IFN-γ, are also implicated in RA pathogenesis. IFN-γ
     can induce macrophages to polarize towards a pro-inflammatory M1 phenotype (Schurgers
     et al. 2011, Kebir et al. 2009, Boniface et al. 2010).
+  id: totrans-82
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 产生IFN-γ的Th1细胞也与RA的发病机制相关。IFN-γ可以诱导巨噬细胞极化为促炎的M1表型（Schurgers等，2011年，Kebir等，2009年，Boniface等，2010年）。
 - en: ''
+  id: totrans-83
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: CD161+ Th17 cells, which can produce both IL-17 and IFN-γ, are enriched in the
     synovium of RA patients and may contribute to the inflammatory environment (Afzali
     et al. 2013, Bovenschen et al. 2011, Koenen et al. 2008, Pesenacker et al. 2013).
+  id: totrans-84
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: CD161+ Th17细胞能够同时产生IL-17和IFN-γ，它们在RA患者的滑膜中富集，并可能促进炎症环境的形成（Afzali等，2013年，Bovenschen等，2011年，Koenen等，2008年，Pesenacker等，2013年）。
 - en: ''
+  id: totrans-85
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -370,198 +551,267 @@
     function in RA, potentially contributing to the dysregulated immune response (Moradi
     et al. 2014, Samson et al. 2012, Zhang et al. 2018, Walter et al. 2013, Wang et
     al. 2018, Morita et al. 2016).
+  id: totrans-86
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 通常抑制炎症的调节性T细胞（Tregs）在RA中功能受损，可能导致免疫反应失调（Moradi等，2014年，Samson等，2012年，Zhang等，2018年，Walter等，2013年，Wang等，2018年，Morita等，2016年）。
 - en: ''
+  id: totrans-87
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: In summary, the imbalance between pro-inflammatory T cell subsets (Th1, Th17)
     and anti-inflammatory Tregs is a hallmark of RA pathogenesis, with cytokines like
     IL-17 and IFN-γ playing central roles in driving joint inflammation and destruction.
+  id: totrans-88
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 总结来说，促炎T细胞亚群（Th1，Th17）与抗炎Tregs之间的不平衡是RA发病机制的标志，细胞因子如IL-17和IFN-γ在推动关节炎症和破坏中起着核心作用。
 - en: Tell me about single-cell research in rheumatoid arthritis.
+  id: totrans-89
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 告诉我关于类风湿关节炎中的单细胞研究。
 - en: 'Single-cell research has provided important insights into the pathogenesis
     of rheumatoid arthritis (RA):'
+  id: totrans-90
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 单细胞研究为类风湿关节炎（RA）的发病机制提供了重要的见解：
 - en: ''
+  id: totrans-91
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Single-cell RNA sequencing (scRNA-seq) studies have identified distinct cell
     states and subpopulations within the RA synovium, including pathogenic T cell
     subsets like T peripheral helper (Tph) cells and cytotoxic CD8+ T cells.
+  id: totrans-92
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 单细胞RNA测序（scRNA-seq）研究已经在RA滑膜中识别出不同的细胞状态和亚群，包括病理性T细胞亚群，如T外周辅助（Tph）细胞和细胞毒性CD8+
+    T细胞。
 - en: ''
+  id: totrans-93
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Analyses of the T cell receptor (TCR) repertoire in the RA synovium have revealed
     clonal expansion of CD4+ and CD8+ T cell populations, suggesting antigen-driven
     responses.
+  id: totrans-94
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 对RA滑膜中T细胞受体（TCR）库的分析揭示了CD4+和CD8+ T细胞群体的克隆扩增，表明存在抗原驱动的反应。
 - en: ''
+  id: totrans-95
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: scRNA-seq has also characterized expanded populations of activated B cells,
     plasmablasts, and plasma cells in the RA synovium that demonstrate substantial
     clonal relationships.
+  id: totrans-96
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: scRNA-seq还表征了RA滑膜中扩展的活化B细胞、原始浆细胞和浆细胞群体，这些细胞群体展示了显著的克隆关系。
 - en: ''
+  id: totrans-97
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Receptor-ligand analyses from scRNA-seq data have predicted key cell-cell interactions,
     such as between Tph cells and B cells, that may drive synovial inflammation.
+  id: totrans-98
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 基于scRNA-seq数据的受体-配体分析预测了关键的细胞间相互作用，例如Tph细胞与B细胞之间的相互作用，这可能推动滑膜炎症的发生。
 - en: ''
+  id: totrans-99
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Overall, single-cell studies have uncovered the cellular and molecular heterogeneity
     within the RA synovium, identifying specific immune cell subsets and pathways
     that could serve as targets for more personalized therapeutic approaches.
+  id: totrans-100
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 总体来说，单细胞研究揭示了RA滑膜中的细胞和分子异质性，识别了特定的免疫细胞亚群和可能作为个性化治疗靶点的途径。
 - en: Tell me about protein-protein associations in rheumatoid arthritis.
+  id: totrans-101
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 告诉我关于类风湿关节炎中的蛋白质-蛋白质相互作用。
 - en: 'Based on the information provided in the context, some key protein-protein
     associations in rheumatoid arthritis (RA) include:'
+  id: totrans-102
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 根据提供的背景信息，类风湿关节炎（RA）中一些关键的蛋白质-蛋白质相互作用包括：
 - en: ''
+  id: totrans-103
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: 'Rheumatoid factor (RF) and anti-citrullinated protein antibodies (ACPAs):'
+  id: totrans-104
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 类风湿因子（RF）和抗环瓜氨酸蛋白抗体（ACPAs）：
 - en: ''
+  id: totrans-105
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: RF is found in about 80% of patients in the pre-articular phase of RA.
+  id: totrans-106
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 类风湿关节炎的前关节阶段约80%的患者中发现类风湿因子（RF）。
 - en: ''
+  id: totrans-107
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: ACPAs are highly specific for RA and can be detected years before the onset
     of clinical symptoms.
+  id: totrans-108
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: ACPA对RA具有高度特异性，并且可以在临床症状发作前数年检测到。
 - en: ''
+  id: totrans-109
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: 'Peptidylarginine deiminase (PAD) enzymes and anti-PAD antibodies:'
+  id: totrans-110
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 蛋白精氨酸脱亚氨基酶（PAD）酶和抗PAD抗体：
 - en: ''
+  id: totrans-111
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Anti-PAD2 antibodies are associated with a moderate disease course, while anti-PAD4
     antibodies are linked to more severe and rapidly progressive RA.
+  id: totrans-112
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 抗PAD2抗体与中等病程相关，而抗PAD4抗体与更严重和快速进展的RA相关。
 - en: ''
+  id: totrans-113
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Anti-PAD3/4 antibodies may signal the development of RA-associated interstitial
     lung disease.
+  id: totrans-114
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 抗PAD3/4抗体可能预示着RA相关的间质性肺病的发展。
 - en: ''
+  id: totrans-115
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: 'Anti-carbamylated protein (anti-CarP) antibodies:'
+  id: totrans-116
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 抗碳酰化蛋白（anti-CarP）抗体：
 - en: ''
+  id: totrans-117
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Anti-CarP antibodies are present in 25–50% of RA patients, independent of RF
     or ACPA positivity.
+  id: totrans-118
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 抗CarP抗体存在于25-50%的RA患者中，与RF或ACPA阳性无关。
 - en: ''
+  id: totrans-119
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Anti-CarP antibodies are associated with poor prognosis and increased morbidity,
     including RA-associated interstitial lung disease.
+  id: totrans-120
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 抗CarP抗体与不良预后和增加的发病率相关，包括RA相关的间质性肺病。
 - en: ''
+  id: totrans-121
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: 'Malondialdehyde-acetaldehyde (MAA) adducts and anti-MAA antibodies:'
+  id: totrans-122
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 丙二醛-乙醛（MAA）加合物和抗MAA抗体：
 - en: ''
+  id: totrans-123
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Anti-MAA antibodies are associated with radiological progression in seronegative
     RA.
+  id: totrans-124
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 抗MAA抗体与无血清RA的放射学进展相关。
 - en: ''
+  id: totrans-125
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: 'Protein-protein interactions in signaling pathways:'
+  id: totrans-126
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 信号通路中的蛋白质相互作用：
 - en: ''
+  id: totrans-127
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: The JAK-STAT, MAPK, PI3K-AKT, and SYK signaling pathways are all implicated
     in the pathogenesis of RA and are potential targets for therapeutic intervention.
+  id: totrans-128
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: JAK-STAT、MAPK、PI3K-AKT和SYK信号通路都涉及到RA的发病机制，并且是治疗干预的潜在靶点。
 - en: ''
+  id: totrans-129
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -569,27 +819,37 @@
     in RA, including autoantibodies (RF, ACPAs, anti-PAD, anti-CarP, anti-MAA) and
     signaling pathway components (JAK, STAT, MAPK, PI3K, SYK), which play important
     roles in the pathogenesis and progression of the disease.
+  id: totrans-130
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 总的来说，上下文突出了RA中几个关键的蛋白质相互作用，包括自身抗体（RF、ACPA、抗PAD、抗CarP、抗MAA）和信号通路组分（JAK、STAT、MAPK、PI3K、SYK），这些在疾病的发病和进展中起着重要作用。
 - en: Tell me about the findings of GWAS studies in rheumatoid arthritis.
+  id: totrans-131
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 告诉我关于类风湿性关节炎GWAS研究结果的情况。
 - en: 'Here are some key findings from GWAS studies in rheumatoid arthritis:'
+  id: totrans-132
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 以下是类风湿性关节炎GWAS研究的一些关键发现：
 - en: ''
+  id: totrans-133
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Genome-wide association studies (GWAS) have identified over 100 genetic risk
     loci associated with rheumatoid arthritis susceptibility.
+  id: totrans-134
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 全基因组关联研究（GWAS）已经确定了100多个与类风湿性关节炎易感性相关的遗传风险位点。
 - en: ''
+  id: totrans-135
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -597,75 +857,104 @@
     50% of the genetic component of rheumatoid arthritis. Specific HLA-DRB1 alleles
     containing the “shared epitope” sequence are strongly associated with increased
     RA risk.
+  id: totrans-136
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: HLA-DRB1基因是最强的遗传风险因素，约占类风湿性关节炎遗传成分的50%。含有“共享表位”序列的特定HLA-DRB1等位基因与增加的RA风险密切相关。
 - en: ''
+  id: totrans-137
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Other notable genetic risk factors identified through GWAS include PTPN22, STAT4,
     CCR6, PADI4, CTLA4, and CD40\. These genes are involved in immune regulation and
     inflammation pathways.
+  id: totrans-138
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 通过GWAS识别的其他显著遗传风险因素包括PTPN22、STAT4、CCR6、PADI4、CTLA4和CD40。这些基因参与免疫调节和炎症途径。
 - en: ''
+  id: totrans-139
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Genetic risk factors can differ between seropositive (ACPA-positive) and seronegative
     rheumatoid arthritis. For example, HLA-DRB1 alleles have a stronger association
     with seropositive RA.
+  id: totrans-140
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 遗传风险因素可能在血清阳性（ACPA阳性）和血清阴性类风湿性关节炎之间有所不同。例如，HLA-DRB1等位基因与血清阳性RA有更强的关联。
 - en: ''
+  id: totrans-141
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: GWAS have also identified genetic variants associated with disease severity
     and response to treatment in rheumatoid arthritis. For example, variants in the
     FCGR3A and PTPRC genes have been linked to response to anti-TNF therapy.
+  id: totrans-142
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: GWAS还确定了与类风湿性关节炎疾病严重程度和治疗反应相关的遗传变异。例如，FCGR3A和PTPRC基因的变异已与抗TNF疗法的反应相关联。
 - en: ''
+  id: totrans-143
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Overall, GWAS have provided important insights into the genetic architecture
     and pathogenesis of rheumatoid arthritis, which has implications for developing
     targeted therapies and personalized treatment approaches.
+  id: totrans-144
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 总体而言，GWAS为类风湿性关节炎的遗传结构和发病机制提供了重要见解，这对于开发靶向治疗和个性化治疗方法具有重要意义。
 - en: Investigate the Source Documents
+  id: totrans-145
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 调查源文件
 - en: Querying the Knowledge base will return relevant snippets of the source documents.
     Sometimes the formatting returned by langchain can be a bit off, but you can always
     go back to the source.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 查询知识库将返回与源文件相关的片段。有时，langchain返回的格式可能有些问题，但您可以随时返回源文件。
 - en: '[PRE18]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: '[PRE19]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Wrap Up
+  id: totrans-149
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: There you have it! We created a knowledge base on the cheap, used AWS Bedrock
     to load the embeddings, and then used a Claude LLM to run our queries. Here we
     used PubMed papers, but we also could have used meeting notes, powerpoint slides,
     crawled websites, or in house databases.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 就是这样！我们以低成本创建了一个知识库，使用了 AWS Bedrock 来加载嵌入（embeddings），然后用 Claude LLM 来执行查询。在这里我们使用了
+    PubMed 论文，但我们也可以使用会议记录、PowerPoint 幻灯片、爬取的网站，或是内部数据库。
 - en: If you have any questions, comments, or tutorial requests please don’t hesitate
     to reach out to me by email at jillian@dabbleofdevops.com
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有任何问题、评论或教程请求，请随时通过电子邮件联系我，邮箱地址是 jillian@dabbleofdevops.com。

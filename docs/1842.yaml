@@ -1,58 +1,88 @@
 - en: Stable and fast randomization using hash spaces
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用哈希空间实现稳定且快速的随机化
 - en: 原文：[https://towardsdatascience.com/stable-and-fast-randomization-using-hash-spaces-19000b9f27d3?source=collection_archive---------14-----------------------#2024-07-29](https://towardsdatascience.com/stable-and-fast-randomization-using-hash-spaces-19000b9f27d3?source=collection_archive---------14-----------------------#2024-07-29)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/stable-and-fast-randomization-using-hash-spaces-19000b9f27d3?source=collection_archive---------14-----------------------#2024-07-29](https://towardsdatascience.com/stable-and-fast-randomization-using-hash-spaces-19000b9f27d3?source=collection_archive---------14-----------------------#2024-07-29)
 - en: Generate consistent assignments on the fly across different implementation environments
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在不同的实施环境中动态生成一致的任务分配
 - en: '[](https://medium.com/@davidclarance?source=post_page---byline--19000b9f27d3--------------------------------)[![David
     Clarance](../Images/02cf7cdde9576cdf3af30a79da4db747.png)](https://medium.com/@davidclarance?source=post_page---byline--19000b9f27d3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--19000b9f27d3--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--19000b9f27d3--------------------------------)
     [David Clarance](https://medium.com/@davidclarance?source=post_page---byline--19000b9f27d3--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@davidclarance?source=post_page---byline--19000b9f27d3--------------------------------)[![David
+    Clarance](../Images/02cf7cdde9576cdf3af30a79da4db747.png)](https://medium.com/@davidclarance?source=post_page---byline--19000b9f27d3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--19000b9f27d3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--19000b9f27d3--------------------------------)
+    [David Clarance](https://medium.com/@davidclarance?source=post_page---byline--19000b9f27d3--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--19000b9f27d3--------------------------------)
     ·8 min read·Jul 29, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--19000b9f27d3--------------------------------)
+    ·阅读时间 8 分钟·2024年7月29日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/fb459aab4c75749b21394c14a2ecbd26.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fb459aab4c75749b21394c14a2ecbd26.png)'
 - en: A bird’s eye view
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 鸟瞰图
 - en: 'A core part of running an experiment is to assign an experimental unit (for
     instance a customer) to a specific treatment (payment button variant, marketing
     push notification framing). Often this assignment needs to meet the following
     conditions:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 进行实验的核心部分是将一个实验单位（例如一个客户）分配到特定的处理（支付按钮变体、营销推送通知框架）。通常，这种分配需要满足以下条件：
 - en: It needs to be random.
+  id: totrans-9
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它需要是随机的。
 - en: It needs to be stable. If the customer comes back to the screen, they need to
     be exposed to the same payment button variant.
+  id: totrans-10
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它需要是稳定的。如果客户返回到该页面，他们需要看到相同的支付按钮变体。
 - en: It needs to be retrieved or generated very quickly.
+  id: totrans-11
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它需要在实际分配后能够快速检索或生成，以便在后续分析中使用。
 - en: It needs to be available after the actual assignment so it can be used in downstream
     analysis.
+  id: totrans-12
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它需要在实际分配后仍然可用，以便在后续分析中使用。
 - en: When organizations first start their experimentation journey, a common pattern
     is to pre-generate assignments, store it in a database and then retrieve it at
     the time of assignment. This is a perfectly valid method to use and works great
@@ -61,189 +91,275 @@
     got to (a) manage the complexity of storage, (b) ensure that assignments are actually
     random *within* and *across* experiments, and (c) retrieve the assignment reliably.
     All of these are hard at scale.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 当组织开始进行实验时，一个常见的做法是预先生成分配任务，将其存储在数据库中，然后在分配时提取出来。这是一个完全有效的方法，对于刚开始的实验非常有效。然而，随着客户和实验量的增加，这种方法变得越来越难以维护，并且难以可靠使用。你必须
+    (a) 管理存储的复杂性，(b) 确保任务在实验内和实验间都是随机的，*并且* (c) 确保任务能被可靠地提取。所有这些在大规模实验中都很困难。
 - en: Using *hash spaces* helps solve some of these problems. It’s a simple solution
     but isn’t as widely known as it probably should be. This blog is an attempt to
     explain the technique. There are links to code in different languages at the end.
     However, if you’d like, you can also directly [jump to code here](https://gist.github.com/davidclarance/daeafad5fc3e28e019950a12b0da01f5).
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用*哈希空间*有助于解决这些问题。这是一个简单的解决方案，但可能没有得到应有的关注。这个博客尝试解释这种技术。文末有不同编程语言的代码链接。不过，如果你愿意的话，也可以直接[跳转到代码](https://gist.github.com/davidclarance/daeafad5fc3e28e019950a12b0da01f5)。
 - en: Setting up
+  id: totrans-15
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置
 - en: 'We’re running an experiment to test which variant of a progress bar on our
     customer app drives the most engagement. There are three variants: Control (the
     default experience), Variant A and Variant B.'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们正在进行一个实验，测试我们客户应用中哪种进度条变体能够带来最多的用户参与度。有三个变体：控制组（默认体验）、变体A和变体B。
 - en: We have 10 million customers that use our app every week and we want to ensure
     that these 10 million customers get randomly assigned to one of the three variants.
     Each time the customer comes back to the app they should see the same variant.
     We want control to be assigned with a 50% probability, Variant 1 to be assigned
     with a 30% probability and Variant 2 to be assigned with a 20% probability.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们有1000万客户每周使用我们的应用，并且我们希望确保这1000万客户会随机分配到三个变体中的一个。每次客户回到应用时，他们应该看到相同的变体。我们希望控制组的分配概率为50%，变体1的分配概率为30%，变体2的分配概率为20%。
 - en: '[PRE0]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'To make things simpler, we’ll start with 4 customers. These customers have
     IDs that we use to refer to them. These IDs are generally either GUIDs (something
     like `"b7be65e3-c616-4a56-b90a-e546728a6640"`) or integers (like 1019222, 1028333).
     Any of these ID types would work but to make things easier to follow we’ll simply
     assume that these IDs are: “Customer1”, “Customer2”, “Customer3”, “Customer4”.'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了简化问题，我们从4个客户开始。这些客户有我们用来引用他们的ID。这些ID通常是GUID（类似于“`b7be65e3-c616-4a56-b90a-e546728a6640`”）或整数（如1019222，1028333）。这些ID类型都可以使用，但为了便于理解，我们假设这些ID为：“Customer1”，“Customer2”，“Customer3”，“Customer4”。
 - en: '![](../Images/2c3e1b8d1a9749e82665f0b85b625077.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2c3e1b8d1a9749e82665f0b85b625077.png)'
 - en: Our goal is to map these 4 customers to the three possible variants.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的目标是将这四个客户映射到三种可能的变体上。
 - en: Hashing customer IDs
+  id: totrans-22
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 哈希客户ID
 - en: This method primarily relies on using hash algorithms that come with some very
     desirable properties. Hashing algorithms take a string of arbitrary length and
     map it to a ‘hash’ of a fixed length. The easiest way to understand this is through
     some examples.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 该方法主要依赖于使用具有一些非常理想属性的哈希算法。哈希算法将任意长度的字符串映射到固定长度的“哈希”值。理解这一点最简单的方法是通过一些例子。
 - en: 'A hash function, takes a string and maps it to a constant hash space. In the
     example below, a hash function (in this case [md5](https://en.wikipedia.org/wiki/MD5))
     takes the words: “Hello”, “World”, “Hello World” and “Hello WorLd” (note the capital
     L) and maps it to an alphanumeric string of 32 characters.'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 哈希函数接受一个字符串，并将其映射到一个常量哈希空间中。在下面的示例中，哈希函数（在本例中是[md5](https://en.wikipedia.org/wiki/MD5)）将以下单词：“Hello”，“World”，“Hello
+    World”和“Hello WorLd”（注意大写的L）映射为一个由32个字符组成的字母数字字符串。
 - en: '![](../Images/00d92d992fb4fc78be549a1e6584b213.png)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/00d92d992fb4fc78be549a1e6584b213.png)'
 - en: 'A few important things to note:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 有几点重要的事项需要注意：
 - en: The hashes are all of the same length.
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有的哈希值长度相同。
 - en: A minor difference in the input (capital L instead of small L) changes the hash.
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 输入中的一个小差异（大写的L而不是小写的l）会改变哈希值。
 - en: Hashes are a hexadecimal string. That is, they comprise of the numbers 0 to
     9 and the first six alphabets (a, b, c, d, e and f).
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 哈希值是一个十六进制字符串。也就是说，它由数字0到9以及前六个字母（a、b、c、d、e和f）组成。
 - en: 'We can use this same logic and get hashes for our four customers:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用相同的逻辑来计算四个客户的哈希值：
 - en: '[PRE1]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '![](../Images/ef410f40b4ade02a5f145ea2809b19e5.png)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ef410f40b4ade02a5f145ea2809b19e5.png)'
 - en: Hexadecimal strings are just representations of numbers in base 16\. We can
     [convert them to integers in base 10](https://g.co/gemini/share/83e1757e48f9).
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 十六进制字符串只是数字在16进制表示中的形式。我们可以[将它们转换为十进制整数](https://g.co/gemini/share/83e1757e48f9)。
 - en: '⚠️ One important note here: We rarely need to use the full hash. In practice
     (for instance in the linked code) we use a much smaller part of the hash (first
     10 characters). Here we use the full hash to make explanations a bit easier.'
+  id: totrans-34
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: ⚠️ 这里有一个重要的注意事项：我们很少需要使用完整的哈希值。实际上（例如在链接的代码中），我们只使用哈希的一个较小部分（前10个字符）。这里我们使用完整的哈希值是为了使解释更容易一些。
 - en: '[PRE2]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '![](../Images/0cb07f18fec04b5226a7cda3b7113521.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0cb07f18fec04b5226a7cda3b7113521.png)'
 - en: 'There are two important properties of these integers:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些整数有两个重要的属性：
 - en: 'These integers are **stable**: Given a fixed input (“Customer1”), the hashing
     algorithm will always give the same output.'
+  id: totrans-38
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这些整数是**稳定**的：给定一个固定的输入（“Customer1”），哈希算法总是会产生相同的输出。
 - en: 'These integers are **uniformly distributed**: This one hasn’t been explained
     yet and mostly applies to cryptographic hash functions (such as md5). Uniformity
     is a design requirement for these hash functions. If they were not uniformly distributed,
     the chances of collisions (getting the same output for different inputs) would
     be higher and weaken the security of the hash. There are some [explorations](https://www.rolando.cl/blog/2018/12/how_uniform_is_md5.html)
     of the [uniformity](https://stackoverflow.com/a/9346575/4583536) property.'
+  id: totrans-39
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 这些整数是**均匀分布**的：这个概念还没有解释，主要应用于加密哈希函数（如md5）。均匀性是这些哈希函数的设计要求。如果它们不是均匀分布的，那么碰撞的几率（不同输入得到相同输出的情况）会更高，从而削弱哈希的安全性。有一些[探讨](https://www.rolando.cl/blog/2018/12/how_uniform_is_md5.html)讨论了[均匀性](https://stackoverflow.com/a/9346575/4583536)属性。
 - en: Now that we have an integer representation of each ID that’s stable (always
     has the same value) and [uniformly distributed](https://en.wikipedia.org/wiki/Hash_function#Uniformity),
     we can use it to get to an assignment.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了每个ID的整数表示，它是稳定的（始终具有相同的值）且[均匀分布](https://en.wikipedia.org/wiki/Hash_function#Uniformity)，我们可以使用它来进行分配。
 - en: From integer representations to assignment
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 从整数表示到分配
 - en: 'Going back to our probability assignments, we want to assign customers to variants
     with the following distribution:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 回到我们的概率分配，我们希望将客户分配到变体的分布如下：
 - en: '[PRE3]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: If we had 100 slots, we can divide them into 3 buckets where the number of slots
     represents the probability we want to assign to that bucket. For instance, in
     our example, we divide the integer range 0–99 (100 units), into 0–49 (50 units),
     50–79 (30 units) and 80–99 (20 units).
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们有100个位置，我们可以将它们分成3个桶，每个桶中的位置数量表示我们希望分配给该桶的概率。例如，在我们的例子中，我们将整数范围0–99（100个单位）分为0–49（50个单位）、50–79（30个单位）和80–99（20个单位）。
 - en: '![](../Images/47916521fbf40c2ba86ba2655962d4b7.png)'
+  id: totrans-45
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/47916521fbf40c2ba86ba2655962d4b7.png)'
 - en: '[PRE4]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Now, if we assign a customer to one of the 100 slots randomly, the resultant
     distribution should then be equal to our intended distribution. Another way to
     think about this is, if we choose a number randomly between 0 and 99, there’s
     a 50% chance it’ll be between 0 and 49, 30% chance it’ll be between 50 and 79
     and 20% chance it’ll be between 80 and 99.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，如果我们将一个客户随机分配到100个位置之一，那么最终的分布应该与我们期望的分布相同。另一种思考方式是，如果我们在0到99之间随机选择一个数字，那么有50%的概率它会在0到49之间，30%的概率它会在50到79之间，20%的概率它会在80到99之间。
 - en: The only remaining step is to map the customer integers we generated to one
     of these hundred slots. We do this by extracting the last two digits of the integer
     generated and using that as the assignment. For instance, the last two digits
     for customer 1 are 97 (you can check the diagram below). This falls in the third
     bucket (Variant 2) and hence the customer is assigned to Variant 2.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 唯一剩下的步骤是将我们生成的客户整数映射到这些100个位置之一。我们通过提取生成整数的最后两位数字并将其作为分配来完成此操作。例如，客户1的最后两位数字是97（你可以查看下面的图表）。这属于第三个桶（变体2），因此该客户被分配到变体2。
 - en: 'We repeat this process iteratively for each customer. When we’re done with
     all our customers, we should find that the end distribution will be what we’d
     expect: 50% of customers are in control, 30% in variant 1, 20% in variant 2.'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们对每个客户重复这一过程，直到所有客户处理完毕。完成后，我们应该发现最终的分布符合我们的预期：50%的客户在控制组，30%在变体1组，20%在变体2组。
 - en: '[PRE5]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: The [linked gist](https://gist.github.com/davidclarance/daeafad5fc3e28e019950a12b0da01f5?permalink_comment_id=5136729#gistcomment-5136729)
     has a replication of the above for 1,000,000 customers where we can observe that
     customers are distributed in the expected proportions.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: '[链接的摘要](https://gist.github.com/davidclarance/daeafad5fc3e28e019950a12b0da01f5?permalink_comment_id=5136729#gistcomment-5136729)中有一个针对1,000,000个客户的复现，我们可以观察到客户分布符合预期的比例。'
 - en: '[PRE6]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Practical considerations
+  id: totrans-53
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实际考虑
 - en: Adding ‘salt’ to an experiment
+  id: totrans-54
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在实验中添加“盐”
 - en: 'In practice, when you’re running multiple experiments across different parts
     of your product, it’s common practice to add in a “salt” to the IDs before you
     hash them. This salt can be anything: the experiment name, an experiment id, the
@@ -253,90 +369,132 @@
     instance, you don’t want specific customers to always fall into the control treatment
     if it just happens that the control is allocated the first 50 buckets in all your
     experiments. This is straightforward to implement.'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，当你在不同部分的产品中运行多个实验时，通常会在哈希ID之前添加一个“盐”。这个盐可以是任何东西：实验名称、实验ID、功能名称等。这确保了在实验之间客户到桶的映射始终不同，因为盐值不同。这对于确保客户不会总是落入相同的桶中非常有帮助。例如，你不希望特定客户总是落入对照组处理桶，如果恰好是对照组分配了所有实验中的前50个桶。这个实现起来很简单。
 - en: '[PRE7]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Increasing the partitioned space
+  id: totrans-57
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 增加分区空间
 - en: In this example, we used a space that consisted of 100 possible slots (or partitions).
     If you wanted to assign probabilities that were one or more decimal places, you’d
     just take the last n digits of the integer generated.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，我们使用了一个包含100个可能槽位（或分区）的空间。如果你想分配具有一个或多个小数位的概率，你只需取整数的最后n位数字。
 - en: So for instance if you wanted to assign probabilities that were up to two decimal
     places, you could take the last 4 digits of the integer generated. That is, the
     value of `place_value` below would be 10000.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果你想为概率分配最多两位小数，你可以取整数的最后4位数字。也就是说，下面的`place_value`值将是10000。
 - en: '[PRE8]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Cross environment availability
+  id: totrans-61
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 跨环境可用性
 - en: 'Finally, one reason this method is so powerful and attractive in practice is
     that you can replicate the process identically across different implementation
     environments. The core hashing algorithm will always give you the same hash in
     any environment as long as the input is the same. All you need is the `CustomerId`,
     `SaltId`and the intended probability distribution. You can find different implementations
     here:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，这个方法之所以在实践中如此强大和有吸引力的一个原因是，你可以在不同的实现环境中精确复制这个过程。只要输入相同，核心哈希算法在任何环境中都会给你相同的哈希值。你需要做的只是`CustomerId`、`SaltId`和预期的概率分布。你可以在这里找到不同的实现：
 - en: '[Python](https://gist.github.com/davidclarance/daeafad5fc3e28e019950a12b0da01f5)'
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Python](https://gist.github.com/davidclarance/daeafad5fc3e28e019950a12b0da01f5)'
 - en: '[DuckDB](https://gist.github.com/davidclarance/b69559191e6628d32d8f2adf271e067f)'
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[DuckDB](https://gist.github.com/davidclarance/b69559191e6628d32d8f2adf271e067f)'
 - en: '[TSQL](https://gist.github.com/davidclarance/99a22cc90bd7172fc2a2d00745b62c0e)'
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[TSQL](https://gist.github.com/davidclarance/99a22cc90bd7172fc2a2d00745b62c0e)'
 - en: Wrapping up
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: 'If you want to generate random, fast and stable assignments across different
     implementation environments, you can use the following:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想在不同的实现环境中生成随机、快速且稳定的分配，你可以使用以下方法：
 - en: Use a cryptographic hashing function (such as md5) to generate a hash from a
     unique ID + some ‘salt’.
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用加密哈希函数（如md5）从唯一ID和一些“盐”生成哈希值。
 - en: Convert this into an integer in base 10.
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将其转换为十进制整数。
 - en: Extract the last two digits. You can extract more if you have more fine grained
     requirements.
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提取最后两位数字。如果你有更细粒度的需求，可以提取更多数字。
 - en: Use these digits to assign the ID to one of a set of pre-defined experimental
     buckets.
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用这些数字将ID分配给预定义实验桶中的一个。
 - en: '![](../Images/fb459aab4c75749b21394c14a2ecbd26.png)'
+  id: totrans-72
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fb459aab4c75749b21394c14a2ecbd26.png)'
 - en: An overview of mapping a customer to a bucket
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 客户映射到桶的概览
 - en: Thanks for following along and hope you’ve found this useful. All images in
     the article are mine. Feel free to use them!
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢你的关注，希望你觉得这篇文章有用。文中的所有图片均为我个人所有，欢迎使用！
 - en: Massive thanks to *Deniss Zenkovs* for introducing me to the idea and suggesting
     interesting extensions.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 非常感谢*Deniss Zenkovs*向我介绍这个想法并建议了有趣的扩展。

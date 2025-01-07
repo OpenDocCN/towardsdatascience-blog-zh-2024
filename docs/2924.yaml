@@ -1,53 +1,76 @@
 - en: GPS Interpolation Using Maps and Kinematics
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用地图和运动学进行GPS插值
 - en: 原文：[https://towardsdatascience.com/gps-interpolation-using-maps-and-kinematics-6a56fdf29179?source=collection_archive---------8-----------------------#2024-12-03](https://towardsdatascience.com/gps-interpolation-using-maps-and-kinematics-6a56fdf29179?source=collection_archive---------8-----------------------#2024-12-03)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/gps-interpolation-using-maps-and-kinematics-6a56fdf29179?source=collection_archive---------8-----------------------#2024-12-03](https://towardsdatascience.com/gps-interpolation-using-maps-and-kinematics-6a56fdf29179?source=collection_archive---------8-----------------------#2024-12-03)
 - en: How do you apply dead reckoning to your geospatial dataset?
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何将航位推算应用于你的地理空间数据集？
 - en: '[](https://medium.com/@joao.figueira?source=post_page---byline--6a56fdf29179--------------------------------)[![João
     Paulo Figueira](../Images/54e4176f66e4ab0324d86ec71d8b033d.png)](https://medium.com/@joao.figueira?source=post_page---byline--6a56fdf29179--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a56fdf29179--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6a56fdf29179--------------------------------)
     [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--6a56fdf29179--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@joao.figueira?source=post_page---byline--6a56fdf29179--------------------------------)[![João
+    Paulo Figueira](../Images/54e4176f66e4ab0324d86ec71d8b033d.png)](https://medium.com/@joao.figueira?source=post_page---byline--6a56fdf29179--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a56fdf29179--------------------------------)[![数据科学前沿](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6a56fdf29179--------------------------------)
+    [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--6a56fdf29179--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a56fdf29179--------------------------------)
     ·10 min read·Dec 3, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--6a56fdf29179--------------------------------)
+    ·10分钟阅读·2024年12月3日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/7a5b8092a3b3ab020e63db27f247df36.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7a5b8092a3b3ab020e63db27f247df36.png)'
 - en: The picture above illustrates the GPS interpolation process. The red dots represent
     the known and repeated GPS locations, with more than one location per dot, while
     the blue dots represent the inferred locations of the repeated points along the
     road using the vehicle’s speed. (Image created by the author using OpenStreetMap
     data and imagery.)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的图片展示了GPS插值过程。红点表示已知且重复的GPS位置，每个点上有多个位置，而蓝点表示使用车辆的速度沿道路推测的重复点位置。（图片由作者使用OpenStreetMap数据和影像创建。）
 - en: Modern cars, vans, and trucks are moving generators of [telematics](https://en.wikipedia.org/wiki/Telematics)
     data. Vehicle telematics data streams usually carry various signals, the GPS location
     being one of the most frequent. You can also find signals such as instantaneous
     speed, acceleration, fuel tank or battery capacity, and other exotic signals like
     windshield-wiper status and external temperature.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 现代的汽车、面包车和卡车是[远程信息处理](https://en.wikipedia.org/wiki/Telematics)数据的流动生成器。车辆的远程信息处理数据流通常携带各种信号，其中GPS位置是最常见的信号之一。你还可以找到诸如瞬时速度、加速度、油箱或电池电量以及其他一些特殊信号，如挡风玻璃雨刷状态和外部温度等。
 - en: GPS receivers typically sample data once per second (1 Hz), which is appropriate
     for most applications, but other vehicle sensors may have different signal generation
     frequencies. The signal generation frequency is programmable and generally balances
     telecommunications costs and the information content's usefulness. Some signals
     are sent as they change, while others might get sent only after a given percent
     change to avoid unnecessary costs.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: GPS接收器通常每秒采样一次数据（1 Hz），这适用于大多数应用，但其他车辆传感器可能具有不同的信号生成频率。信号生成频率是可编程的，通常需要平衡电信成本和信息内容的实用性。一些信号会在变化时发送，而其他信号可能只有在变化达到一定百分比后才发送，以避免不必要的费用。
 - en: The telematics data streams have different approaches to packaging the signal
     values when sending them over the wireless connection. The most basic signal packaging
     approach independently sends each signal whenever it is generated or significantly
@@ -57,56 +80,76 @@
     the unchanged values repeat on consecutive messages. We usually find this signal
     packaging approach on the receiving end of the communications link and when the
     sender uses the former approach.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 遥测数据流在通过无线连接发送信号值时采用不同的信号包装方法。最基本的信号包装方法是在每次信号生成或显著变化时独立发送每个信号。每个数据包包含源标识、信号标识和信号值。另一种方法是将所有信号值作为标准记录进行打包，每当每个值发生变化时。没有预设的发射频率，未改变的值会在连续消息中重复。当接收端使用这种信号包装方法时，我们通常会发现这种方式，尤其是在发送方使用前一种方法时。
 - en: The final approach, similar to the previous one, fixes the emission frequency,
     usually synchronized with the GPS, highlighting the importance of this signal
     in the process.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后的方法与前一种方法类似，固定了发射频率，通常与GPS同步，突出了此信号在过程中的重要性。
 - en: The second approach, which is the subject of this article, has some side effects,
     namely, the repetition of the GPS coordinates on all intermediate data packets
     between changes in the GPS signal. The following picture illustrates this effect
     on the [Extended Vehicle Energy Dataset](https://ar5iv.labs.arxiv.org/html/2203.08630)
     (EVED).
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文讨论的第二种方法有一些副作用，即在GPS信号变化的过程中，所有中间数据包都会重复GPS坐标。下图展示了这种效果在[扩展车辆能源数据集](https://ar5iv.labs.arxiv.org/html/2203.08630)（EVED）上的体现。
 - en: '![](../Images/1917c41de824a73411006846bed7a825.png)'
+  id: totrans-13
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1917c41de824a73411006846bed7a825.png)'
 - en: '**Figure 1** — Data from the EVED shows how often the GPS location repeats
     while the vehicle moves. (Image source: Author)'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图1** — 来自EVED的数据展示了车辆移动时GPS位置重复的频率。（图像来源：作者）'
 - en: It is usual to handle data, as depicted in **Figure 1**, using the latitude
     and longitude as keys when removing duplicate rows. This technique keeps an aggregate
     of all the other columns, typically the first-row value. However, it may drastically
     reduce the number of rows in the dataset, rendering the data less valuable, similar
     to the third packaging approach.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，在处理数据时，如**图1**所示，当去除重复行时，会使用纬度和经度作为键。此技巧保留了所有其他列的聚合值，通常是第一行的值。然而，这可能会大幅减少数据集中的行数，从而使数据的价值降低，这类似于第三种包装方法。
 - en: Between changes in the GPS signal (rows 1, 8, and 14), all other records carry
     the original GPS coordinates, even if the vehicle is moving, as demonstrated by
     the speed signal in **Figure 1** above. We can interpolate the geographic locations
     of the interim records, increasing the resolution of the GPS sensor and improving
     the dataset quality.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 在GPS信号变化之间（第1、8和14行），即使车辆在移动，如**图1**所示的速度信号所示，所有其他记录仍然携带原始GPS坐标。我们可以对这些中间记录进行地理位置插值，从而提高GPS传感器的分辨率，改善数据集的质量。
 - en: This article illustrates how to perform the GPS location interpolation mentioned
     above using map information and the speed signal.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文演示了如何使用地图信息和速度信号执行上述GPS位置插值。
 - en: Interpolation
+  id: totrans-18
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 插值
 - en: GPS interpolation is the process of inferring geospatial locations missing from
     our input dataset using auxiliary data. If you like, this is akin to [dead reckoning](https://en.wikipedia.org/wiki/Dead_reckoning),
     a process through which GPS receivers infer the current location when you drive
     through a tunnel. Here, we apply a similar concept to a dataset where vehicle
     signals have higher sampling rates than the GPS receiver.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: GPS插值是指使用辅助数据推断输入数据集中缺失的地理位置。如果你喜欢，这类似于[航迹推算](https://en.wikipedia.org/wiki/Dead_reckoning)，即GPS接收器在你通过隧道时推断当前位置的过程。在这里，我们将类似的概念应用于一个数据集，其中车辆信号的采样率高于GPS接收器。
 - en: Dead reckoning uses a map to determine the road ahead and assumes a constant
     speed throughout the tunnel (or GPS blind spot). Here, we will use a similar approach.
     Knowing the map geometry between two consecutive and distinct GPS samples provides
@@ -114,55 +157,73 @@
     the approximate GPS location of the interim signals using simple kinematic calculations.
     Otherwise, we can assume a constant average speed between two consecutive locations.
     Fortunately, the EVED reports instantaneous speeds.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 死 reckoning（惯性导航）使用地图来确定前方的道路，并假设在隧道（或GPS盲区）内速度保持不变。在这里，我们将使用类似的方法。知道两个连续且不同的GPS样本之间的地图几何信息，可以提供准确的距离信息。如果有速度信号，我们可以通过简单的运动学计算来确定临时信号的近似GPS位置。否则，我们可以假设两个连续位置之间的平均速度是恒定的。幸运的是，EVED报告了瞬时速度。
 - en: The first problem we must solve is measuring the distance between two consecutive
     and distinct GPS locations. We do this by using map information. We must use the
     map to avoid the error of measuring the [geographical distance](https://en.wikipedia.org/wiki/Geographical_distance)
     ([as the crow flies](https://en.wikipedia.org/wiki/As_the_crow_flies)) between
     the locations, as illustrated in **Figure 2** below.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们必须解决的第一个问题是如何测量两个连续且不同的GPS位置之间的距离。我们通过使用地图信息来完成这一点。我们必须利用地图来避免测量位置之间的[地理距离](https://en.wikipedia.org/wiki/Geographical_distance)（[顺风而行的距离](https://en.wikipedia.org/wiki/As_the_crow_flies)），正如下面的**图2**所示。
 - en: '![](../Images/fc0ed168f41697b1096c47128d767663.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fc0ed168f41697b1096c47128d767663.png)'
 - en: '**Figure 2** — Blue dots are map vertexes, while red dots are map-matched GPS
     locations. The interpolated locations will occur along the blue line, and we must
     use the distance between consecutive samples along the red line’s geometry. The
     green line represents the distance between consecutive GPS locations without considering
     the map geometry, while the red line uses the map geometry. In this case, the
     red line is longer than the green one. (Image source: Author)'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图2** — 蓝点是地图顶点，红点是地图匹配的GPS位置。插值位置将出现在蓝色线条上，而我们必须使用沿红色线条几何形状的连续样本之间的距离。绿色线条代表不考虑地图几何的连续GPS位置之间的距离，而红色线条则使用地图几何。在这种情况下，红线比绿线长。（图片来源：作者）'
 - en: The GPS interpolation process requires auxiliary techniques to implement, such
     as map matching, map alignment, speed integration, and map projection. Let's examine
     each one.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: GPS插值过程需要辅助技术来实施，例如地图匹配、地图对齐、速度集成和地图投影。让我们逐一查看这些技术。
 - en: Map Matching
+  id: totrans-25
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 地图匹配
 - en: Map matching projects sequences of sampled GPS locations to the most likely
     trajectory over a digital map. I have already discussed this process in two other
     articles, exploring its applications to [trajectory](https://medium.com/towards-data-science/map-matching-for-trajectory-prediction-be307a1547f0)
     and [speed](https://medium.com/towards-data-science/map-matching-for-speed-prediction-f1a534626368)
     predictions. Please review these two articles and their supporting code as they
     support this material.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 地图匹配将采样的GPS位置序列投影到数字地图上最可能的轨迹。我在另外两篇文章中已经讨论了这一过程，探讨了它在[轨迹](https://medium.com/towards-data-science/map-matching-for-trajectory-prediction-be307a1547f0)和[速度](https://medium.com/towards-data-science/map-matching-for-speed-prediction-f1a534626368)预测中的应用。请查阅这两篇文章及其支持的代码，它们支持本材料的内容。
 - en: After running the map-matching process, we collect the projection of the original
     GPS samples to the map edges and the sequence of map vertexes corresponding to
     the traveled route. **Figure 2** above illustrates this, with the map vertexes
     in blue and the GPS projections in red. Before proceeding, we must compute the
     merged sequence of vertexes and GPS projections in a process that I call "map
     alignment."
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在运行地图匹配过程后，我们收集原始GPS样本在地图边缘上的投影以及与行驶路线对应的地图顶点序列。上面的**图2**展示了这一过程，其中地图顶点以蓝色表示，GPS投影以红色表示。在继续之前，我们必须计算合并的顶点序列和GPS投影，这一过程我称之为“地图对齐”。
 - en: Map Alignment
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 地图对齐
 - en: As previously stated, the map-matching process produces two disjoint sets of
     points, namely the edge-projected GPS locations and the map vertexes, sequenced
     along the route direction. Before further processing, we must merge these location
@@ -170,29 +231,40 @@
     GPS locations do not carry the edge information, so we must find the corresponding
     edge identified by the endpoint vertexes. This process produces a list of map
     edges with the matching GPS location projections.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，地图匹配过程会产生两个不相交的点集，即边缘投影的GPS位置和地图顶点，这些点按照路线方向排列。在进一步处理之前，我们必须合并这些位置集，以确保它们之间的正确排序。不幸的是，边缘投影的GPS位置没有携带边缘信息，因此我们必须通过端点顶点来找到对应的边缘。这个过程会生成一个包含匹配GPS位置投影的地图边缘列表。
 - en: 'Once done, we finish the map alignment process by converting the list of map
     edges to a complementary format: a list of GPS segments. We identify each GPS
     segment with its starting and ending locations and any map vertexes between them.
     **Figure 3** below illustrates these concepts, with the blue bar identifying the
     map edge and the red bar identifying the GPS segment.'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 完成后，我们通过将地图边缘列表转换为互补格式：GPS段列表，来结束地图对齐过程。我们通过起始和结束位置以及它们之间的任何地图顶点来标识每个GPS段。**图3**
+    下方展示了这些概念，蓝色条表示地图边缘，红色条表示GPS段。
 - en: '![](../Images/21bfbbbe6d1479de8fb991fa0676ec76.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/21bfbbbe6d1479de8fb991fa0676ec76.png)'
 - en: '**Figure 3** — The map alignment process correctly sequences the map vertexes
     and the projected GPS locations and splits the resulting list into GPS segments,
     shown in red. Note that each GPS segment contains the projected GPS endpoints
     and all the included map vertexes within. (Image source: Author)'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图3** — 地图对齐过程正确地对地图顶点和投影的GPS位置进行排序，并将结果列表拆分成GPS段，显示为红色。请注意，每个GPS段包含投影的GPS端点和其中的所有地图顶点。（图片来源：作者）'
 - en: Now, we can examine and process each GPS segment separately. To better illustrate
     this concept, the first GPS segment of **Figure 1** above would encompass rows
     *one* to *eight* along any map vertexes detected between them.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以分别检查和处理每个GPS段。为了更好地说明这一概念，**图1** 上的第一个GPS段将包括*第一*到*第八*行，这些行之间包含的任何地图顶点。
 - en: The typical GPS segment illustrated in **Figure 3** above would have a set of
     signal records corresponding to each endpoint. **Figure 1** shows that the first
     two GPS locations have seven and six records, respectively. We aim to project
@@ -200,253 +272,358 @@
     the car's motion. Fortunately, the EVED has both the timestamps and the recorded
     vehicle speed. We can reconstruct the displacements along the segment with some
     kinematics and place the interpolated GPS locations.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图3** 上所示的典型GPS段包含一组与每个端点对应的信号记录。**图1** 显示，前两个GPS位置分别有七个和六个记录。我们的目标是利用收集到的关于车辆运动的信息，将这些记录投影到段的地理位置上。幸运的是，EVED具有时间戳和记录的车辆速度。我们可以利用一些运动学重建段上的位移，并放置插值后的GPS位置。'
 - en: 'If you have ever studied kinematics, you know that:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你曾经学习过运动学，你会知道：
 - en: '[On a velocity-time graph, the area under the curve is the change in position.](https://physics.info/motion-graphs/)'
+  id: totrans-36
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[在速度-时间图中，曲线下的面积表示位置变化。](https://physics.info/motion-graphs/)'
 - en: To recover the estimated distances between consecutive projected GPS locations,
     we need to compute the integral of the time versus speed.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了恢复连续投影的GPS位置之间的估计距离，我们需要计算时间与速度的积分。
 - en: Speed Integration
+  id: totrans-38
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 速度集成
 - en: '**Figure 1** above shows that, for each record, we have values for the timestamp,
     measured in milliseconds since the trip started, and the car velocity, measured
     in kilometers per hour. To reconstruct all the intermediary distances, we compute
     a simple [trapezoidal integral](https://en.wikipedia.org/wiki/Trapezoidal_rule)
     for each step and then adjust for the actual GPS segment length computed along
     the map.'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图1** 上显示，对于每条记录，我们都有时间戳值（从行程开始以来的毫秒数）和车辆速度值（以千米每小时为单位）。为了重建所有中间距离，我们为每一步计算一个简单的[梯形积分](https://en.wikipedia.org/wiki/Trapezoidal_rule)，然后根据地图上计算的实际GPS段长度进行调整。'
 - en: The final adjustment step is needed because the speed signal will have some
     noise, which is assumed to have the same distribution throughout. Therefore, the
     distance computed from the integral will generally differ from the map distance.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于速度信号可能会有噪声，因此需要进行最终调整，因为假设这些噪声在整个过程中分布一致。因此，从积分计算出的距离通常会与地图上的距离有所不同。
 - en: To bridge this difference, we compute a correction factor between both distances,
     which allows us to calculate the adjusted distances between projected GPS locations.
     With this final information, we can now interpolate the repeated GPS locations
     along the segment.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了弥补这个差异，我们计算两个距离之间的修正因子，这使我们能够计算投影GPS位置之间的调整距离。有了这些最终信息，我们现在可以沿着分段对重复的GPS位置进行插值。
 - en: Map Projection
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 地图投影
 - en: The final step of the interpolation process is transferring the extra and repeated
     GPS locations to the map geometry. We compute each position using the previous
     one and move in the segment’s direction according to the previously calculated
     distance. **Figure 4** below illustrates this process.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 插值过程的最后一步是将额外和重复的GPS位置转移到地图几何形状中。我们通过使用前一个位置并根据先前计算的距离沿分段的方向移动来计算每个位置。**图4**下方展示了这一过程。
 - en: '![](../Images/a9595c6220ef433a28b1cb99a8543891.png)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a9595c6220ef433a28b1cb99a8543891.png)'
 - en: '**Figure 4** — The map projection process uses the integrated distances and
     the GPS segment headings to calculate where to place the projected locations.
     From left to right, we use the position of the original GPS locations in red or
     the map vertexes in blue and the corresponding heading and distance to calculate
     the projected green GPS location. (Image source: Author)'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图4** — 地图投影过程使用集成的距离和GPS分段方向来计算投影位置的放置位置。从左到右，我们使用原始GPS位置（红色）或地图顶点（蓝色）的位置信息，以及相应的方向和距离，来计算投影的绿色GPS位置。（图片来源：作者）'
 - en: To respect the map geometry, the algorithm must consider map vertices between
     successive GPS locations during computation. In the case depicted in **Figure
     4** above, the initial GPS location in red had four repetitions that we could
     project to the new green points using both the signal timestamps and the recorded
     speeds. The algorithm must correctly assign the distances even when crossing a
     map vertex, as depicted.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了尊重地图几何形状，算法在计算过程中必须考虑连续GPS位置之间的地图顶点。在上述**图4**中，红色的初始GPS位置有四个重复点，我们可以利用信号时间戳和记录的速度将其投影到新的绿色点上。即使在跨越地图顶点时，算法也必须正确地分配距离，如图所示。
 - en: When projecting the interpolated GPS locations, the algorithm uses the segment
     heading, the previous location, and the interim distance to compute the next point
     using a [well-known formula](https://www.movable-type.co.uk/scripts/latlong.html).
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 在投影插值后的GPS位置时，算法使用分段方向、前一个位置和临时距离，通过一个[著名公式](https://www.movable-type.co.uk/scripts/latlong.html)来计算下一个点的位置。
 - en: The final set of GPS locations, including the sampled and interpolated ones,
     is stored for later use. Let's see how this is done.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终的GPS位置集，包括采样和插值后的位置，将被存储以供以后使用。接下来我们来看看如何做到这一点。
 - en: Implementation
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实现
 - en: Before trying to run this article’s code, read the prerequisite articles and
     run their code. This article’s code requires you to download and generate a database
     containing the EVED data, which is already map-matched, and the projected link
     durations. Please see the reference materials below.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 在尝试运行本文的代码之前，请先阅读前提文章并运行其代码。本文的代码要求你下载并生成一个包含EVED数据的数据库，该数据库已经进行地图匹配，并包含投影的链路时长。请参阅下面的参考资料。
 - en: The Python code that implements the concepts described in this article is available
     in the accompanying [GitHub repository](https://github.com/joaofig/gps-oversample).
     You must execute the main script from the command line to interpolate all trips.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现本文所述概念的Python代码可以在随附的[GitHub 仓库](https://github.com/joaofig/gps-oversample)中找到。你需要从命令行执行主脚本，以便对所有行程进行插值。
 - en: '[PRE0]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: This script iterates through all trips and processes one at a time. The first
     step is to load the map-matched trip polyline, where each point is a map vertex
     (the blue dots in the previous figures). These polylines were generated in earlier
     articles and should be stored in the database as encoded strings.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 该脚本遍历所有行程，并逐一处理。第一步是加载地图匹配的行程折线，其中每个点都是地图顶点（前面图中的蓝点）。这些折线是在之前的文章中生成的，并应作为编码字符串存储在数据库中。
 - en: Polyline Decoding
+  id: totrans-54
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 折线解码
 - en: Decoding the polyline requires a dedicated function adapted from the public
     [Valhalla repositories](https://valhalla.github.io/valhalla/decoding/).
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 解码折线需要一个专门的函数，该函数改编自公开的[Valhalla 仓库](https://valhalla.github.io/valhalla/decoding/)。
 - en: '**Figure 5** — The code above adapts the original Valhalla polyline decoding
     function. One of the improvements is the option to reorder the coordinate pairs
     as (latitude, longitude) instead of the default (longitude, latitude). The original
     code is licensed by its authors under the [MIT license](https://github.com/valhalla/valhalla).
     (Image source: Author)'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 5** — 上面的代码修改了原始的 Valhalla 折线解码函数。改进之一是可以选择重新排列坐标对为（纬度，经度），而不是默认的（经度，纬度）。原始代码由其作者根据
+    [MIT 许可证](https://github.com/valhalla/valhalla)授权。（图片来源：作者）'
 - en: GPS Segment Generation
+  id: totrans-57
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: GPS 段生成
 - en: Next, the script collects and aligns the map-matched trip data (the red dots)
     with the map vertexes. This processing results in a list of GPS segments, structures
     containing the sequential pairs of map-matched GPS locations with any map vertexes
     in between.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，脚本收集并对齐与地图匹配的旅行数据（红点）和地图顶点。此处理结果生成一个 GPS 段列表，结构中包含顺序配对的与地图匹配的 GPS 位置以及其中的任何地图顶点。
 - en: '**Figure 6** — A GPS Segment is a list of points where the first and last are
     guaranteed to be map-matched GPS locations. Any points in between will be map
     vertexes. (Image source: Author)'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6** — 一个 GPS 段是一个点的列表，其中第一个和最后一个点保证是与地图匹配的 GPS 位置。中间的任何点将是地图顶点。（图片来源：作者）'
 - en: We use a function that accepts a Pandas DataFrame containing the original trajectory
     with the unique locations and the map-matched trajectory polyline to compute the
     list of GPS segments.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用一个函数，它接受一个包含原始轨迹的 Pandas DataFrame，该轨迹包含唯一的位置以及与地图匹配的轨迹折线，用于计算 GPS 段的列表。
 - en: '**Figure 7** — The function above converts the map-matched trajectory with
     unique locations and the map-matched polyline into a list of GPS segments. (Image
     source: Author)'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7** — 上面的函数将与地图匹配的轨迹与独特的位置以及与地图匹配的折线转换为 GPS 段的列表。（图片来源：作者）'
 - en: The code then computes the repeated location projections along the segment’s
     geometry for each GPS segment. Note that this only occurs for the repeated locations
     corresponding to the starting GPS point. The end GPS point is repeated as the
     starting point of the next segment in the sequence.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码接着计算沿段几何线的重复位置投影，适用于每个 GPS 段。请注意，这仅适用于与起始 GPS 点对应的重复位置。结束的 GPS 点作为下一个段的起始点被重复。
 - en: We use a dedicated trajectory class to help us calculate GPS segments. As you
     can see from **Figure 7** above, the function initializes the trajectory object
     using the sequence of distinct GPS locations, the corresponding timestamps, and
     the database identifiers for each point. This object then merges itself with the
     decoded polyline to return a …
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用一个专门的轨迹类来帮助我们计算 GPS 段。正如上面**图 7**所示，函数使用一系列独特的 GPS 位置、相应的时间戳和每个点的数据库标识符来初始化轨迹对象。然后，该对象将自己与解码后的折线合并，以返回一个……
 - en: The dead reckoning function projects the repeated locations using the GPS segment,
     the calculated distances, and known durations.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 死 reckoning 函数使用 GPS 段、计算出的距离和已知的持续时间来投影重复位置。
 - en: '**Figure 8** — The function above generates the GPS projections of the initial
     GPS location using the available distance and duration information. (Image source:
     Author)'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 8** — 上面的函数使用可用的距离和持续时间信息生成初始 GPS 位置的 GPS 投影。（图片来源：作者）'
 - en: The function above generates a list of points containing all the projections
     from the first GPS location, annotated with the row identifiers for later database
     insertion. This way, the code that uses these projected locations can refer back
     to the original row of data.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的函数生成一个包含所有从第一个 GPS 位置投影的点的列表，并为每个点添加行标识符，以便后续插入数据库。通过这种方式，使用这些投影位置的代码可以回溯到原始数据行。
 - en: '**Figure 9** — The algorithm stores each location generated through map projection
     in the structure above. Besides the geospatial coordinates, the object stores
     the time offset and the original row identifier. (Image source: Author)'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 9** — 算法将通过地图投影生成的每个位置存储在上面的结构中。除了地理坐标，对象还存储时间偏移和原始行标识符。（图片来源：作者）'
 - en: We use the function below to compute a location based on a source location,
     a bearing, and a distance. The bearing is the angle measured in degrees from true
     North in the clockwise direction, so the East is 90 degrees and the South is 180
     degrees.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用下面的函数来根据源位置、方位角和距离计算位置。方位角是从真北开始顺时针测量的角度，东为 90 度，南为 180 度。
 - en: '**Figure 10** — The function above moves a point along a given distance and
     heading and is the foundation for GPS location interpolation. (Image source: Author)'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 10** — 上述函数将一个点沿给定的距离和航向移动，是 GPS 位置插值的基础。（图片来源：作者）'
 - en: We can now see how the main function loop integrates all these components. It
     is worth noting that the code keeps two copies of the original map-matched trajectory,
     one with the whole data and the second with only the unique locations (see lines
     11–14 below).
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以看到主函数循环如何集成所有这些组件。值得注意的是，代码保留了原始地图匹配轨迹的两个副本，一个包含所有数据，另一个仅包含唯一位置（参见下面第
+    11–14 行）。
 - en: '**Figure 11** — Main loop of the GPS interpolation application. (Image source:
     Author)'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 11** — GPS 插值应用程序的主循环。（图片来源：作者）'
 - en: The last thing the code does is insert the interpolated locations into the database
     in a dedicated table that is 1:1 related to the original signals table.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码的最后一步是将插值后的位置信息插入到数据库中的专用表中，该表与原始信号表有1:1的关系。
 - en: '**Figure 12** — The function above computes the time versus displacement function
     derivatives and stores all the signals in the database. See below for an explanation
     of these calculations. (Image source: Author)'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 12** — 上述函数计算时间与位移函数的导数，并将所有信号存储在数据库中。有关这些计算的解释见下文。（图片来源：作者）'
 - en: The refined data can now be used for an interesting case study, identifying
     road sections subject to the harshest braking and acceleration.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，经过精细处理的数据可以用于一个有趣的案例研究，识别出哪些路段受到了最剧烈的制动和加速。
 - en: 'Case Study: Harsh Braking'
+  id: totrans-75
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 案例研究：剧烈制动
 - en: 'With the added resolution of the interpolated GPS locations, we can gain better
     insights into vehicle behavior and make more precise computations. To illustrate
     how to use the improved location resolution, we study where cars break the harshest
     by computing an interesting movement feature: the [jerk](https://en.wikipedia.org/wiki/Jerk_%28physics%29)
     (or jolt). We can reliably compute this kinematic entity with shorter time intervals
     and corresponding speeds.'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过增加插值后的 GPS 位置信息的精度，我们可以更好地洞察车辆行为并进行更精确的计算。为了说明如何使用改进的位置信息精度，我们研究了车辆在哪些地方制动最剧烈，通过计算一个有趣的运动特征：**[jerk](https://en.wikipedia.org/wiki/Jerk_%28physics%29)**（或突变）。我们可以通过较短的时间间隔和相应的速度来可靠地计算这个运动学量。
 - en: '![](../Images/b9ec47c42fe674c69c560169fa71eebe.png)'
+  id: totrans-77
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b9ec47c42fe674c69c560169fa71eebe.png)'
 - en: '**Figure 13** — The jerk or jolt is the first derivative of the instantaneous
     acceleration. A high positive value means a sharp acceleration, while a significant
     negative value indicates a harsh brake. (Image source: Author using [Wikipedia’s
     notation](https://en.wikipedia.org/wiki/Jerk_(physics)))'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 13** — jerk 或 jolt 是瞬时加速度的导数。较大的正值表示剧烈加速，而显著的负值则表示剧烈制动。（图片来源：作者，使用了 [Wikipedia
+    的符号](https://en.wikipedia.org/wiki/Jerk_(physics))）'
 - en: The zones of the harshest braking can be highlighted on a map using the derived
     interpolated GPS locations to calculate the instantaneous jerk through the third
     derivative of the ***r(t)*** function, where ***r*** is the displacement and ***t***
     is time.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以使用推导出的插值 GPS 位置信息在地图上突出显示最剧烈的制动区域，通过 ***r(t)*** 函数的三阶导数计算瞬时 jerk，其中 ***r***
+    是位移，***t*** 是时间。
 - en: '**Figure 14** below shows the results of plotting the harshest brakes computed
     as values lower than 𝜇-3𝜎 of the jerk distribution. You can interact with this
     map through a dedicated [Jupyter notebook](https://github.com/joaofig/gps-oversample/blob/main/02-jerk.ipynb).'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 下图 **图 14** 显示了将计算出的最剧烈制动绘制成图，制动值低于 jerk 分布的 𝜇-3𝜎。你可以通过专门的 [Jupyter notebook](https://github.com/joaofig/gps-oversample/blob/main/02-jerk.ipynb)
+    与此地图进行交互。
 - en: '![](../Images/dcfdaf21c3291b2b37a1bbe647d30d3f.png)'
+  id: totrans-81
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/dcfdaf21c3291b2b37a1bbe647d30d3f.png)'
 - en: '**Figure 14** — The map above displays a portion of Ann Arbor’s map, with each
     red dot representing a point where the database recorded an exceptionally harsh
     brake. (Image created by the author using OpenStreetMap data and imagery.)'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 14** — 上图显示了安娜堡地图的一部分，每个红点表示数据库中记录的一个异常剧烈的制动点。（图像由作者使用 OpenStreetMap 数据和影像创建。）'
 - en: Conclusion
+  id: totrans-83
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: In this article, we have looked at the problem of interpolating GPS locations
     using maps and intermediate signals, such as time and speed. After map-matching
     the sampled GPS locations, we retrieved the corresponding ma-generated tree containing
@@ -455,52 +632,82 @@
     After interpolating all EVED data, we used it to detect the areas in Ann Harbor
     where we expect to see the harshest braking as a proxy for possibly hazardous
     spots.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们探讨了使用地图和中间信号（如时间和速度）插值GPS位置的问题。在进行地图匹配之后，我们检索了对应的生成树，该树包含了推断出的轨迹路径，并使用这些几何形状通过已知速度和中间时长，将缺失的GPS位置投影到“正确”的位置。通过插值所有EVED数据，我们利用这些数据检测安娜港（Ann
+    Harbor）中预期发生最剧烈刹车的区域，作为可能存在危险点的代理。
 - en: Credits
+  id: totrans-85
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 致谢
 - en: I used [Grammarly](https://app.grammarly.com/) to review the writing and accepted
     several of its rewriting suggestions.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用了 [Grammarly](https://app.grammarly.com/) 来审查写作，并接受了其中一些重写建议。
 - en: '[JetBrains'' AI](https://www.jetbrains.com/ai/) assistant wrote some of the
     code, and it has become a staple of my everyday work with Python.'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '[JetBrains'' AI](https://www.jetbrains.com/ai/) 助手编写了部分代码，并且它已经成为我日常使用Python编程工作的基础工具。'
 - en: Reference
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[](/map-matching-for-trajectory-prediction-be307a1547f0?source=post_page-----6a56fdf29179--------------------------------)
     [## Map-Matching for Trajectory Prediction'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](/map-matching-for-trajectory-prediction-be307a1547f0?source=post_page-----6a56fdf29179--------------------------------)
+    [## 轨迹预测中的地图匹配'
 - en: Where are you going? Should you be going that way?
+  id: totrans-90
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 你要去哪里？你应该走那条路吗？
 - en: towardsdatascience.com](/map-matching-for-trajectory-prediction-be307a1547f0?source=post_page-----6a56fdf29179--------------------------------)
     [](/map-matching-for-speed-prediction-f1a534626368?source=post_page-----6a56fdf29179--------------------------------)
     [## Map-Matching for Speed Prediction
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/map-matching-for-trajectory-prediction-be307a1547f0?source=post_page-----6a56fdf29179--------------------------------)
+    [](/map-matching-for-speed-prediction-f1a534626368?source=post_page-----6a56fdf29179--------------------------------)
+    [## 速度预测中的地图匹配
 - en: How fast will you drive?
+  id: totrans-92
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 你会开多快？
 - en: towardsdatascience.com](/map-matching-for-speed-prediction-f1a534626368?source=post_page-----6a56fdf29179--------------------------------)
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/map-matching-for-speed-prediction-f1a534626368?source=post_page-----6a56fdf29179--------------------------------)
 - en: '[Graphs of Motion — The Physics Hypertextbook](https://physics.info/motion-graphs/)'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: '[运动图表 — 物理超文本书](https://physics.info/motion-graphs/)'
 - en: '[Movable Type Scripts — Calculate distance, bearing, and more between Latitude/Longitude
     points](https://www.movable-type.co.uk/scripts/latlong.html)'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Movable Type Scripts — 计算纬度/经度点之间的距离、方位角等](https://www.movable-type.co.uk/scripts/latlong.html)'
 - en: João Paulo Figueira is a Data Scientist at [tb.lx by Daimler Truck](https://tblx.io/)
     in Lisbon, Portugal.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: João Paulo Figueira 是 [tb.lx by Daimler Truck](https://tblx.io/) 的数据科学家，位于葡萄牙里斯本。

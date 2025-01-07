@@ -1,41 +1,64 @@
 - en: 'Your Documents Are Trying to Tell You What’s Relevant: Better RAG Using Links'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 你的文档正在告诉你什么是相关的：通过链接实现更好的 RAG
 - en: 原文：[https://towardsdatascience.com/your-documents-are-trying-to-tell-you-whats-relevant-better-rag-using-links-386b7433d0f2?source=collection_archive---------3-----------------------#2024-09-21](https://towardsdatascience.com/your-documents-are-trying-to-tell-you-whats-relevant-better-rag-using-links-386b7433d0f2?source=collection_archive---------3-----------------------#2024-09-21)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/your-documents-are-trying-to-tell-you-whats-relevant-better-rag-using-links-386b7433d0f2?source=collection_archive---------3-----------------------#2024-09-21](https://towardsdatascience.com/your-documents-are-trying-to-tell-you-whats-relevant-better-rag-using-links-386b7433d0f2?source=collection_archive---------3-----------------------#2024-09-21)
 - en: Document datasets already have structure. Take advantage of it.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 文档数据集本身已经具有结构，应该加以利用。
 - en: '[](https://medium.com/@briangodsey?source=post_page---byline--386b7433d0f2--------------------------------)[![Brian
     Godsey](../Images/1a657e68741618b79bf470f34f9f3b26.png)](https://medium.com/@briangodsey?source=post_page---byline--386b7433d0f2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--386b7433d0f2--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--386b7433d0f2--------------------------------)
     [Brian Godsey](https://medium.com/@briangodsey?source=post_page---byline--386b7433d0f2--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@briangodsey?source=post_page---byline--386b7433d0f2--------------------------------)[![Brian
+    Godsey](../Images/1a657e68741618b79bf470f34f9f3b26.png)](https://medium.com/@briangodsey?source=post_page---byline--386b7433d0f2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--386b7433d0f2--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--386b7433d0f2--------------------------------)
+    [Brian Godsey](https://medium.com/@briangodsey?source=post_page---byline--386b7433d0f2--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--386b7433d0f2--------------------------------)
     ·13 min read·Sep 21, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--386b7433d0f2--------------------------------)
+    ·13 分钟阅读·2024年9月21日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/bb16a49705e46a551ca67dcf91e7de42.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bb16a49705e46a551ca67dcf91e7de42.png)'
 - en: Photo by [Jayne Harris](https://unsplash.com/@jayneharr33?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [Jayne Harris](https://unsplash.com/@jayneharr33?utm_source=medium&utm_medium=referral)
+    提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: There are layered challenges in building retrieval-augmented generation (RAG)
     applications. Document retrieval, a huge part of the RAG workflow, is itself a
     complex set of steps that can be approached in different ways depending on the
     use case.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 构建增强检索生成（RAG）应用程序存在多层次的挑战。文档检索是 RAG 工作流中的重要部分，它本身就是一个复杂的过程，可以根据具体应用场景采用不同的方法。
 - en: It is difficult for RAG systems to find the best set of documents relevant to
     a nuanced input prompt, especially when relying entirely on vector search to find
     the best candidates. Yet often our documents themselves are telling us where we
@@ -44,19 +67,25 @@
     linked documents — unlocks performance improvements by enabling us to parse and
     preserve these direct references to other texts, making them available for simultaneous
     retrieval — regardless of whether they were overlooked by vector search.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: RAG 系统很难找到与微妙输入提示相关的最佳文档集，特别是在完全依赖向量搜索来寻找最佳候选文档时。然而，往往是文档本身在告诉我们在哪里可以找到更多相关信息——通过引用、交叉引用、脚注、超链接等。在本文中，我们将展示一种新的数据模型——关联文档——如何通过使我们能够解析并保留这些直接指向其他文本的引用，从而解锁性能改进，并使它们可以同时被检索，无论这些引用是否被向量搜索忽视。
 - en: AI captures complexity, but not structure
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: AI 捕捉复杂性，但无法捕捉结构
 - en: When answering complex or nuanced questions requiring supporting details from
     disparate documents, RAG systems often struggle to locate all of the relevant
     documents needed for a well-informed and complete response. Yet we keep relying
     almost exclusively on text embeddings and vector similarity to locate and retrieve
     relevant documents.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在回答需要来自不同文档的支持性细节的复杂或微妙问题时，RAG 系统通常难以找到所有相关的文档，从而无法提供充分且完整的回答。然而，我们仍几乎完全依赖文本嵌入和向量相似度来定位和检索相关文档。
 - en: 'One often-understated fact: there is a lot of document information lost during
     the process of parsing, chunking, and embedding text. Document structure — including
     section hierarchy, headings, footnotes, cross-references, citations, and hyperlinks
@@ -64,26 +93,34 @@
     specific action to preserve them. When the structure and metadata are telling
     us what other documents are directly related to what we are reading, why shouldn’t
     we preserve this information?'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个常被低估的事实：在解析、分块和嵌入文本的过程中，很多文档信息都会丢失。文档结构——包括章节层级、标题、脚注、交叉引用、引文和超链接——几乎在典型的文本到向量工作流程中完全丧失，除非我们采取特定的措施来保留它们。当结构和元数据告诉我们哪些文档与我们正在阅读的内容直接相关时，为什么我们不保留这些信息？
 - en: In particular, links and references are ignored in a typical chunking and embedding
     process, which means they can’t be used by the AI to help answer queries. But,
     links and references are valuable pieces of information that often point to more
     useful documents and text — why wouldn’t we want to check those target documents
     at query time, in case they’re useful?
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 特别地，在典型的分块和嵌入过程中，链接和引用通常会被忽略，这意味着它们无法被AI用来帮助回答查询。但是，链接和引用是有价值的信息片段，通常指向更有用的文档和文本——那么，为什么我们不在查询时检查这些目标文档，以防它们有用呢？
 - en: Parsing and following links and references programmatically is not difficult,
     and in this article we present a simple yet powerful implementation designed for
     RAG systems. We show how to use **document linking** to preserve known connections
     between document chunks, connections which typical vector embedding and retrieval
     might fail to make.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 程序化解析和跟随链接与引用并不困难，在本文中我们展示了一种简单而强大的实现，专为RAG系统设计。我们展示了如何使用**文档链接**来保留文档片段之间已知的连接，而这些连接通常是向量嵌入和检索无法实现的。
 - en: Document connections get lost in vector space
+  id: totrans-15
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 文档连接在向量空间中丢失
 - en: Documents in a vector store are essentially pieces of knowledge embedded into
     a high-dimensional vector space. These vectors are essentially the internal “language”
     of LLMs — given an LLM and all of its internal parameter values, including previous
@@ -93,8 +130,10 @@
     that we then use to search for nearest neighbors in semantic vector space. These
     nearest neighbors correspond to documents that are likely to contain information
     that can address the prompt.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 向量存储中的文档本质上是嵌入到高维向量空间中的知识片段。这些向量本质上是LLM的内部“语言”——给定一个LLM及其所有的内部参数值，包括先前的上下文和状态，一个向量是模型生成文本的起点。因此，向量存储中的所有向量都是LLM可能用来生成响应的嵌入文档，同样，我们也将提示嵌入到向量中，然后用它们在语义向量空间中搜索最近的邻居。这些最近的邻居对应的文档很可能包含能够回答提示的信息。
 - en: In a vector store, the closeness of vectors indicates document similarity in
     a semantic sense, but where there is no real concept of connectedness beyond similarity.
     However, documents that are close to each other (and typically retrieved together)
@@ -105,8 +144,10 @@
     adjusted. So it is not a perfect comparison, but this implicit graph can be helpful
     as a conceptual framework that is useful for thinking about how document retrieval
     works within RAG systems.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 在向量存储中，向量的相似度在语义上表示文档的相似性，但除了相似性之外，并没有真正的连接概念。然而，彼此接近的文档（通常是一起检索的）可以被视为这些知识片段之间的一种连接，形成一个隐式的知识图谱，其中每个文本片段与其最近的邻居相连接。从这个意义上构建的图谱不会像大多数知识图谱那样是静态或僵化的；它会随着新文档的添加或搜索参数的调整而变化。因此，这并不是一个完美的比较，但这个隐式图谱可以作为一个有用的概念框架，帮助我们理解在RAG系统中，文档检索是如何运作的。
 - en: 'In terms of real-world knowledge — in contrast to vector representations —
     semantic similarity is just one of many ways that pieces of text may be related.
     Even before computers and digital representations of data, we’ve been connecting
@@ -116,12 +157,17 @@
     included in vector stores, RAG systems, and other gen AI applications. Our documents
     are telling us what other knowledge is important and relevant; we just need to
     give our knowledge stores the capability to understand and follow the connections.'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 就现实世界的知识而言——与向量表示相比——语义相似性只是文本片段可能相关的许多方式之一。即使在计算机和数字数据表示出现之前，我们也已经将知识连接了几个世纪：词汇表、索引、目录、目录表、字典和交叉引用都是连接知识片段的方式。在软件中实现这些非常简单，但它们通常没有包含在向量存储、RAG
+    系统和其他生成 AI 应用中。我们的文档正在告诉我们其他哪些知识是重要且相关的；我们只需要为我们的知识库提供理解和跟随这些连接的能力。
 - en: Connect knowledge with document linking
+  id: totrans-19
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 通过文档链接连接知识
 - en: 'We’ve developed document linking for cases in which our documents are telling
     us what other knowledge is relevant, but our vector store isn’t capturing that
     and the document retrieval process is falling short. Document linking is a straightforward
@@ -133,12 +179,16 @@
     for filtering or other purposes. Links are not only easy to conceptualize and
     work with but also scale efficiently to large, dynamic datasets, supporting robust
     and efficient retrieval.'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经开发了文档链接，以应对文档告诉我们哪些其他知识相关，但我们的向量存储未能捕捉到这一点，导致文档检索过程出现问题。文档链接是一种简单而强大的方法，用于表示文档之间的定向连接。它概括了我们发现和浏览知识的所有传统方式，无论是通过目录、词汇表、关键字——当然，最容易让程序化解析器跟随的：超链接。这种文档链接的概念允许创建不对称的关系，或者可以用定性元数据标记，供过滤或其他目的使用。链接不仅易于构思和操作，而且能有效扩展到大型动态数据集，支持强大且高效的检索。
 - en: The data model for links
+  id: totrans-21
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 链接的数据模型
 - en: As a data type, document links are quite simple. Link information is stored
     alongside document vectors as metadata. That means that retrieving a given document
     automatically retrieves information about the links that lead from and to the
@@ -148,8 +198,10 @@
     represent other types of connections. Links can also be tagged with further metadata
     that provides qualitative information that can be used for link or document filtering,
     ranking, and graph traversal algorithms.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为一种数据类型，文档链接非常简单。链接信息与文档向量一起作为元数据存储。这意味着，检索给定文档时，自动检索与该文档相关的链接信息。外部链接指向在文档上下文中可能有用的更多信息，内部链接则显示哪些其他文档可能受到给定文档的支持，双向（或无向）链接可以表示其他类型的连接。链接还可以标记附加的元数据，提供定性信息，用于链接或文档的过滤、排名和图遍历算法。
 - en: As described in [more detail in the article “Scaling Knowledge Graphs by Eliminating
     Edges,”](https://thenewstack.io/scaling-knowledge-graphs-by-eliminating-edges/)
     rather than storing every link individually, as in typical graph database implementations,
@@ -157,8 +209,10 @@
     data types that greatly reduce storage and compute needs during graph traversal.
     This implementation has a big advantage when, for example, two groups of documents
     are closely related.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 如在文章《通过消除边缘扩展知识图谱》中[更详细地描述](https://thenewstack.io/scaling-knowledge-graphs-by-eliminating-edges/)，我们并不像典型的图数据库实现那样单独存储每个链接，而是采用链接类型和链接组作为中间数据类型，这大大减少了在图遍历过程中对存储和计算的需求。这种实现方式在例如两个文档组密切相关时具有很大优势。
 - en: Let’s say that we have a group of documents on the topic of the City of Seattle
     (call it Group A) and we have another group of documents that mention Seattle
     (Group B). We would like to make sure that documents mentioning Seattle can find
@@ -170,28 +224,40 @@
     to this `kw:seattle` object as well as links from the `kw:seattle` object to the
     documents in Group A. This results in far fewer links to store with each document
     — there is only one link each — and no information is lost.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们有一组关于西雅图市的文档（称为 A 组），还有另一组提到西雅图的文档（B 组）。我们希望确保提到西雅图的文档能够找到所有关于西雅图市的文档，因此我们希望将它们链接起来。我们可以将
+    B 组中的所有文档链接到 A 组中的所有文档，但除非这两组很小，否则这样做会产生大量的连接！我们处理这个问题的方法是创建一个表示关键词“西雅图”（`kw:seattle`）的链接类型对象，然后创建从
+    B 组中的文档到这个 `kw:seattle` 对象的有向链接，同时创建从 `kw:seattle` 对象到 A 组中文档的链接。这样，每个文档只需要存储一个链接，大大减少了需要存储的链接数，而且没有丢失任何信息。
 - en: Using document links during retrieval
+  id: totrans-25
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在检索过程中使用文档链接
 - en: The main goal of the retrieval process in RAG systems is to find a set of documents
     that is sufficient to answer a given query. Standard vector search and retrieval
     finds documents that are most “relevant” to the query in a semantic sense, but
     might miss some supporting documents if their overall content doesn’t closely
     match the content of the query.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: RAG 系统中检索过程的主要目标是找到一组足够回答给定查询的文档。标准的向量搜索和检索方法会找到与查询在语义上最“相关”的文档，但如果文档的整体内容与查询内容不紧密匹配，可能会遗漏一些支持性文档。
 - en: 'For example, let’s say we have a large document set that includes the documents
     related to Seattle as described above. We have the following prompt about the
     Space Needle, a prominent landmark in Seattle:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，假设我们有一组与西雅图相关的文档集合，如上所述。我们有以下关于太空针塔的问题，这是西雅图的一个著名地标：
 - en: '***“What is close to the Space Needle?”***'
+  id: totrans-28
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '***“太空针塔附近有什么？”***'
 - en: A vector search starting with this prompt would retrieve documents mentioning
     the Space Needle directly, because that is the most prominent feature of the prompt
     text from a semantic content perspective. Documents mentioning the Space Needle
@@ -199,51 +265,74 @@
     linking, a RAG system would have to try to answer the prompt using mainly documents
     mentioning the Space Needle, without any guarantee that other helpful documents
     that don’t mention the Space Needle directly would also be retrieved and used.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这个提示开始的向量搜索将直接检索提到太空针塔的文档，因为从语义内容角度来看，太空针塔是提示文本中最突出的特征。提到太空针塔的文档很可能也会提到它在西雅图的位置。如果不使用任何文档链接，RAG
+    系统将不得不主要使用提到太空针塔的文档来回答该提示，无法保证没有直接提到太空针塔的其他有用文档也会被检索并使用。
 - en: Below, we construct a practical example (with code!) based on this Space Needle
     dataset and query. Keep reading to understand how a RAG system might miss helpful
     documents when links are not used, and then “find” helpful documents again by
     simply following link information contained within the original documents themselves.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们基于这个太空针塔数据集和查询构建一个实际示例（有代码！）。继续阅读以了解在没有使用链接时，RAG 系统如何遗漏有用文档，然后仅通过遵循原始文档中包含的链接信息再次“找到”有用文档。
 - en: Document links in action
+  id: totrans-31
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 文档链接的实际应用
 - en: In order to illustrate how document linking works, and how it can make connections
     between documents and knowledge that might be missed otherwise, let’s look at
     a simple example.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了说明文档链接是如何工作的，以及它如何在其他情况下可能会被遗漏的情况下，建立文档与知识之间的联系，我们来看一个简单的例子。
 - en: 'We’ll start with two related documents containing some text from Wikipedia
     pages: one document from the page for the [Space Needle](https://en.wikipedia.org/wiki/Space_Needle),
     and one for the neighborhood where the Space Needle is located, [Lower Queen Anne](https://en.wikipedia.org/wiki/Lower_Queen_Anne,_Seattle).
     The Space Needle document has an HTML link to the Lower Queen Anne document, but
     not the other way around. The document on the Space needle begins as follows:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从包含维基百科页面文本的两个相关文档开始：一个是[太空针塔](https://en.wikipedia.org/wiki/Space_Needle)页面的文档，另一个是太空针塔所在的[Lower
+    Queen Anne](https://en.wikipedia.org/wiki/Lower_Queen_Anne,_Seattle)社区页面的文档。太空针塔文档中有一个指向Lower
+    Queen Anne文档的HTML链接，但反过来没有链接。太空针塔文档的内容如下：
 - en: '[PRE0]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'In addition to these two documents derived from real, informative sources,
     we have also added four very short, uninformative documents — two that mention
     the Space Needle and two that don’t. These documents (and their fake URLs) are
     designed to be irrelevant or uninformative documents, such as social media posts
     that are merely commenting on the Space Needle and Seattle, such as:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了这两个来自真实、信息丰富的源文档外，我们还添加了四个非常简短、无信息量的文档 —— 两个提到太空针塔，两个没有提到。这些文档（及其虚假的URL）旨在成为无关或不具信息量的文档，例如仅仅评论太空针塔和西雅图的社交媒体帖子，内容如下：
 - en: “The Space Needle is TALL.”
+  id: totrans-36
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “太空针塔很高。”
 - en: and
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 并且
 - en: “Queen Anne was a person.”
+  id: totrans-38
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “Queen Anne是一个人。”
 - en: The full document set is included in [the Colab notebook](https://drive.google.com/file/d/1Fhf92TXCCtj7IUf8Vg4xLxhExN1zcliW/view?usp=sharing).
     They are HTML documents that we then process using [BeautifulSoup4](https://beautiful-soup-4.readthedocs.io/en/latest/)
     as well as the `[HtmlLinkExtractor](https://python.langchain.com/v0.2/api_reference/community/graph_vectorstores/langchain_community.graph_vectorstores.extractors.html_link_extractor.HtmlLinkExtractor.html)`
@@ -253,21 +342,31 @@
     new addition to [the LangChain codebase](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.graph_vectorstores),
     [contributed by my colleagues at DataStax](https://www.datastax.com/blog/now-in-langchain-graph-vector-store-add-structured-data-to-rag-apps).
     All of this is open-source.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 完整的文档集包含在[Colab笔记本](https://drive.google.com/file/d/1Fhf92TXCCtj7IUf8Vg4xLxhExN1zcliW/view?usp=sharing)中。这些是HTML文档，我们使用[BeautifulSoup4](https://beautiful-soup-4.readthedocs.io/en/latest/)以及[LangChain的`HtmlLinkExtractor`](https://python.langchain.com/v0.2/api_reference/community/graph_vectorstores/langchain_community.graph_vectorstores.extractors.html_link_extractor.HtmlLinkExtractor.html)进行处理，将这些链接通过`add_links`函数添加回`Document`对象，专门用于在`GraphVectorStore`中使用它们，这是[LangChain代码库](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.graph_vectorstores)中的相对较新功能，[由我在DataStax的同事们贡献](https://www.datastax.com/blog/now-in-langchain-graph-vector-store-add-structured-data-to-rag-apps)。所有这些都是开源的。
 - en: 'Each document is processed as follows:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个文档的处理流程如下：
 - en: '[PRE1]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '[Using `cassio`](https://cassio.org/), we initialize the `GraphVectorStore`
     as below:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用`cassio`](https://cassio.org/)，我们如下初始化`GraphVectorStore`：'
 - en: '[PRE2]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: We set up the LLM and other helpers for the RAG chain in the standard way —
     [see the notebook for details](https://drive.google.com/file/d/1Fhf92TXCCtj7IUf8Vg4xLxhExN1zcliW/view?usp=sharing).
     Note that, while almost everything used here is open-source, in the notebook we
@@ -275,170 +374,242 @@
     store, respectively — both of which have free usage tiers. See [the LangChain
     documentation](https://python.langchain.com/docs/integrations/text_embedding/)
     for alternatives.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们以标准方式为RAG链设置了LLM和其他助手 — [查看笔记本以了解详细信息](https://drive.google.com/file/d/1Fhf92TXCCtj7IUf8Vg4xLxhExN1zcliW/view?usp=sharing)。请注意，虽然这里使用的几乎所有内容都是开源的，但在笔记本中我们使用了两个SaaS产品，OpenAI和DataStax的*Astra*
+    — 分别是LLM和向量数据存储 — 它们都有免费的使用层级。详情请参考[LangChain文档](https://python.langchain.com/docs/integrations/text_embedding/)以了解替代方案。
 - en: Running RAG With default settings
+  id: totrans-45
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用默认设置运行RAG
 - en: 'We can run the RAG system end-to-end using a graph retriever with `depth=0`—
     which means no graph traversal at all — and other default parameters as below:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用`depth=0`的图形检索器端到端运行RAG系统 —— 这意味着完全不进行图遍历 —— 并使用其他默认参数如下：
 - en: '[PRE3]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'This gives an output such as:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将产生如下输出：
 - en: '[PRE4]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Of course in realistic scenarios, a RAG system would not retrieve the full document
     set, as we are doing here.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，在实际场景中，RAG 系统不会像我们这里一样检索完整的文档集。
 - en: 'A more realistic scenario: We can’t retrieve all documents'
+  id: totrans-51
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 一个更现实的场景：我们无法检索所有文档。
 - en: Retrieving all documents for each query is impractical or even impossible in
     some cases. It also defeats the purpose of using vector search in the first place.
     For all realistic scenarios, only a small fraction of documents can be retrieved
     for each query, which is why it is so important to get the most relevant and helpful
     documents near the top of the list.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 对每个查询检索所有文档在一些情况下既不实际也不可能。这也违背了使用向量搜索的初衷。在所有实际场景中，每次查询只能检索到一小部分文档，这就是为什么将最相关和最有帮助的文档放在列表前面如此重要的原因。
 - en: 'To make things a little more realistic for our example with our tiny dataset,
     let’s change the settings of the retriever so that `k=3`, meaning that a maximum
     of three documents are returned by each vector search. This means that three of
     the six total documents — the least similar or relevant according to vector similarity
     — will be left out of the returned document set. We can change the settings of
     the retriever like this:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了让我们的示例更加贴近现实，我们将检索器的设置更改为`k=3`，这意味着每次向量搜索最多返回三份文档。这意味着在六份文档中——根据向量相似性，最不相似或最不相关的三份文档将被排除在返回的文档集之外。我们可以像这样更改检索器的设置：
 - en: '[PRE5]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Querying the system with these settings gives the output:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这些设置查询系统时，会得到以下输出：
 - en: '[PRE6]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: We can see that this final response is much less informative than the previous
     one, now that we have access to only half of the document set, instead of having
     all six documents available for response generation.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到，这个最终的响应比之前的响应要少得多的信息，因为我们现在只能访问到一半的文档集，而不是能够使用六份文档来生成回应。
 - en: There are some important points to note here.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一些重要的注意点。
 - en: One document that was left out was the document on *Lower Queen Anne*, which
     is the only document that describes some significant places in the neighborhood
     where the Space Needle is located.
+  id: totrans-59
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一份被遗漏的文档是*Lower Queen Anne* 文档，它是唯一一份描述太空针塔所在附近一些重要地点的文档。
 - en: The *Lower Queen Anne* document does not specifically mention the Space Needle,
     whereas three other documents do. So it makes sense that the initial query “What
     is close to the Space Needle?” returns those three.
+  id: totrans-60
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*Lower Queen Anne* 文档并未特别提及太空针塔，而另外三份文档则提到了。因此，最初的查询“太空针塔附近有什么？”返回这三份文档是有道理的。'
 - en: The main document about the Space Needle has an HTML link directly to *Lower
     Queen Anne*, and any curious human would probably click on that link to learn
     about the area.
+  id: totrans-61
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 关于太空针塔的主要文档直接链接到*Lower Queen Anne*，任何好奇的人可能都会点击这个链接来了解该地区。
 - en: Without any sense of linking or graph traversal, this RAG system retrieves the
     most semantically similar documents — including two uninformative ones — and misses
     the one article that has the most information for answering the query.
+  id: totrans-62
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果没有任何链接或图遍历的意识，这个RAG系统会检索最语义相似的文档——包括两份信息量较少的文档——并错过了那篇包含最多信息来回答查询的文章。
 - en: Now, let’s look at how document linking affects results.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们看看文档链接如何影响结果。
 - en: Following links finds the missing information
+  id: totrans-64
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 跟踪链接可以找到缺失的信息。
 - en: A simple change to our retriever setup — setting `depth=1` — enables the retriever
     to follow any document links from the documents that are initially retrieved by
     vector search. (For reference, note that setting `depth=2` would not only follow
     links in the initial document set, but would also follow the next set of links
     in the resulting document set — but we won’t go that far yet.)
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 对我们的检索器设置进行简单的更改——将`depth=1`——使得检索器能够跟踪初步通过向量搜索检索到的文档中的任何链接。（作为参考，设置`depth=2`不仅会跟踪初始文档集中的链接，还会跟踪结果文档集中下一组链接——但我们暂时不往这个方向走。）
 - en: 'We change the retriever `depth` parameter like this:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们像这样更改了检索器的`depth`参数：
 - en: '[PRE7]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'which gives the following output:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将产生以下输出：
 - en: '[PRE8]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: We can see that the first `k` documents retrieved by vector search are the same
     three as before, but setting `depth=1` instructed the system to follow links from
     those three documents and include those linked documents as well. So, the direct
     link from the *Space Needle* document to *Lower Queen Anne* included that document
     as well, giving the LLM access to the neighborhood information that it needed
     to answer the query properly.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到，通过向量搜索检索到的前`k`个文档与之前一样是那三篇文档，但设置`depth=1`指示系统跟踪这三篇文档的链接，并将这些链接的文档也包含进来。因此，从*太空针塔*文档到*Lower
+    Queen Anne*的直接链接也包括了该文档，这使得LLM能够获得其正确回答查询所需的邻近信息。
 - en: Document linking can improve RAG apps
+  id: totrans-71
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 文档链接可以提升RAG应用程序的效果。
 - en: This hybrid approach of vector and graph retrieval can significantly enhance
     the context relevance and diversity of results in RAG applications. It can lead
     to fewer hallucinations and higher-quality outcomes by ensuring that the system
     retrieves the most contextually appropriate and diverse content.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种向量和图检索的混合方法可以显著增强RAG应用程序结果的上下文相关性和多样性。通过确保系统检索到最符合上下文且多样化的内容，能够减少幻觉现象，并提高结果的质量。
 - en: 'Beyond improving the quality of responses of RAG systems, document linking
     has some advantages for implementation in a production system. Some beneficial
     properties of include:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了提高RAG系统的响应质量外，文档链接在生产系统中的实现还具有一些优势。其有利的特性包括：
 - en: '**Lossless** — The original content remains intact within the nodes, ensuring
     that no information is discarded during the graph creation process. This preserves
     the integrity of the data, reducing the need for frequent re-indexing as needs
     evolve and leveraging the LLM’s strength in extracting answers from contextual
     clues.'
+  id: totrans-74
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**无损** — 原始内容在节点中保持完整，确保在图形创建过程中不会丢失任何信息。这保留了数据的完整性，减少了随着需求变化而频繁重新索引的需要，并且利用了LLM从上下文线索中提取答案的优势。'
 - en: '**Hands-off** — This method does not require expert intervention to refine
     knowledge extraction. Instead, adding some edge extraction capabilities based
     on keywords, hyperlinks, or other document properties to the existing vector-search
     pipeline allows for the automatic addition of links.'
+  id: totrans-75
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**无需人工干预** — 该方法不需要专家介入来完善知识提取。相反，通过在现有的向量搜索管道中添加基于关键词、超链接或其他文档属性的边缘提取功能，可以实现自动添加链接。'
 - en: '**Scalable** — The graph creation process involves straightforward operations
     on the content without necessitating the use of an LLM to generate the knowledge
     graph.'
+  id: totrans-76
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**可扩展** — 图形创建过程涉及对内容的直接操作，而无需使用LLM来生成知识图谱。'
 - en: Performance benchmarks and a more detailed analysis of scaling document linking
     is included in the [article mentioned earlier](https://thenewstack.io/scaling-knowledge-graphs-by-eliminating-edges/).
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 性能基准和更详细的文档链接扩展分析可参考[之前提到的文章](https://thenewstack.io/scaling-knowledge-graphs-by-eliminating-edges/)。
 - en: As always, there are some limitations. If your document set truly doesn’t have
     links or other structure, the strategies presented here won’t accomplish much.
     Also, while building and traversing graph connections can be powerful, it also
     adds complexity to the retrieval process that might be challenging to debug and
     optimize — primarily if traversing the graph to depths of 2 or greater.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 一如既往地，这里也存在一些限制。如果您的文档集确实没有链接或其他结构，本文所提出的策略效果会很有限。此外，尽管构建和遍历图形连接可以非常强大，但它也会增加检索过程的复杂性，可能会带来调试和优化上的挑战，尤其是在图形遍历深度达到2层或更多时。
 - en: Overall, incorporating document linking into RAG systems combines the strengths
     of traditional, deterministic software methodologies, graph algorithms, and modern
     AI techniques. By explicitly defining links between documents, we enhance the
@@ -446,12 +617,16 @@
     only retrieval accuracy but also the contextual depth of responses. This approach
     creates more robust, capable systems that align with the complex ways humans seek
     and use knowledge.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 总体而言，将文档链接纳入RAG系统结合了传统的确定性软件方法、图算法和现代AI技术的优势。通过明确地定义文档之间的链接，我们增强了AI像人类研究者一样浏览知识的能力，不仅提高了检索的准确性，还增加了响应的上下文深度。这种方法创造了更为强大、能够更好适应复杂人类求知方式的系统。
 - en: Getting started with document linking
+  id: totrans-80
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 开始使用文档链接
 - en: Complete code from this article can be found in [this Colab notebook](https://drive.google.com/file/d/1Fhf92TXCCtj7IUf8Vg4xLxhExN1zcliW/view?usp=sharing).
     And, check out [this introductory blog post](https://www.datastax.com/blog/now-in-langchain-graph-vector-store-add-structured-data-to-rag-apps?utm_medium=byline&utm_source=tds&utm_campaign=graph&utm_content=doc-linking)
     by my colleague at DataStax, or see [the documentation for](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.graph_vectorstores)
@@ -459,10 +634,15 @@
     in LangChain for detailed API information and how to use document linking to enhance
     your RAG applications and push the boundaries of what your knowledge systems can
     achieve.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文的完整代码可以在[此Colab笔记本](https://drive.google.com/file/d/1Fhf92TXCCtj7IUf8Vg4xLxhExN1zcliW/view?usp=sharing)中找到。另外，查看我在DataStax的同事发布的[这篇介绍性博客文章](https://www.datastax.com/blog/now-in-langchain-graph-vector-store-add-structured-data-to-rag-apps?utm_medium=byline&utm_source=tds&utm_campaign=graph&utm_content=doc-linking)，或者查看LangChain中[GraphVectorStore](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.graph_vectorstores)的[文档](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.graph_vectorstores)，了解详细的API信息以及如何使用文档链接增强你的RAG应用，并推动知识系统的能力边界。
 - en: '*by Brian Godsey, Ph.D. (*[*LinkedIn*](https://bit.ly/4enqFRa)*)— mathematician,
     data scientist and engineer // works on AI products at* [*DataStax*](https://www.datastax.com/)
     *// Wrote the book* [*Think Like a Data Scientist*](https://manning.com/books/think-like-a-data-scientist?a_aid=thinklikeadatascientist&a_bid=eb49dc22)'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '*作者：Brian Godsey，博士（*[*LinkedIn*](https://bit.ly/4enqFRa)*)——数学家、数据科学家和工程师
+    // 在* [*DataStax*](https://www.datastax.com/) *从事人工智能产品工作* // 编写了书籍* [*像数据科学家一样思考*](https://manning.com/books/think-like-a-data-scientist?a_aid=thinklikeadatascientist&a_bid=eb49dc22)'

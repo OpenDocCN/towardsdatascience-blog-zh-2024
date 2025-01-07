@@ -1,122 +1,186 @@
 - en: Setting up a Pypi mirror in an AWS private environment with Terraform
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在 AWS 私有环境中使用 Terraform 设置 Pypi 镜像
 - en: 原文：[https://towardsdatascience.com/set-up-a-pypi-mirror-in-an-aws-private-environment-with-terraform-f0fcc1b67cc0?source=collection_archive---------7-----------------------#2024-03-06](https://towardsdatascience.com/set-up-a-pypi-mirror-in-an-aws-private-environment-with-terraform-f0fcc1b67cc0?source=collection_archive---------7-----------------------#2024-03-06)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/set-up-a-pypi-mirror-in-an-aws-private-environment-with-terraform-f0fcc1b67cc0?source=collection_archive---------7-----------------------#2024-03-06](https://towardsdatascience.com/set-up-a-pypi-mirror-in-an-aws-private-environment-with-terraform-f0fcc1b67cc0?source=collection_archive---------7-----------------------#2024-03-06)
 - en: '[](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)[![Florent
     Pajot](../Images/ff375f53bcfdec60e84a24068431361d.png)](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------)
     [Florent Pajot](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)[![Florent
+    Pajot](../Images/ff375f53bcfdec60e84a24068431361d.png)](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------)
+    [Florent Pajot](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------)
     ·5 min read·Mar 6, 2024
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------)
+    ·5 分钟阅读·2024年3月6日
 - en: --
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: How do you install a Python package in your environment if you don’t have any
     internet access? I recently came across this issue when creating an AWS Sagemaker
     Studio environment for my team on AWS.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果没有互联网访问，如何在环境中安装 Python 包？我最近在为我的团队在 AWS 上创建 AWS Sagemaker Studio 环境时遇到了这个问题。
 - en: Building an AWS private environment for Sagemaker
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为 Sagemaker 构建 AWS 私有环境
 - en: For this particular project, I set up Sagemaker in VPC Only mode with the constraint
     of keeping the architecture private, which means creating a VPC and private subnets,
     but no access to the internet.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这个特定项目，我在仅限 VPC 模式下设置了 Sagemaker，并且有一个保持架构私有的约束，这意味着创建 VPC 和私有子网，但没有互联网访问。
 - en: So all network communications, including application communication with AWS
     APIs, must go through VPC Endpoint interfaces. This allows for keeping connection
     secured as data sent and received will never go through the internet using the
     AWS network backbone instead.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有网络通信，包括与 AWS API 的应用通信，必须通过 VPC Endpoint 接口进行。这可以确保连接安全，因为发送和接收的数据不会通过互联网，而是使用
+    AWS 网络骨干进行传输。
 - en: It is particularly suited for limiting exposure to security risks, more particularly
     when you’re processing personal information, or must comply with some security
     standards.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 这特别适用于限制暴露于安全风险，尤其是在处理个人信息或必须遵守某些安全标准时。
 - en: '![](../Images/980cca82296b30632ecaa6058b1111f4.png)'
+  id: totrans-10
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/980cca82296b30632ecaa6058b1111f4.png)'
 - en: Photo by [Nadir sYzYgY](https://unsplash.com/@nadir_syzygy?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自 [Nadir sYzYgY](https://unsplash.com/@nadir_syzygy?utm_source=medium&utm_medium=referral)
+    通过 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Accessing the Pypi package repository from AWS Sagemaker
+  id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从 AWS Sagemaker 访问 Pypi 包仓库
 - en: In my team, Data Scientists use Python as a primary language and sometimes need
     Python packages that are not provided in [Sagemaker’s pre-built Python images](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers-prebuilt.html),
     so I’ll focus on this use case. Fortunately, the solution is also working for
     other languages and repositories like npm.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我的团队中，数据科学家使用 Python 作为主要语言，有时需要一些[Sagemaker 预构建 Python 镜像中未提供的 Python 包](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers-prebuilt.html)，因此我将重点讨论这个用例。幸运的是，解决方案也适用于其他语言和仓库，例如
+    npm。
 - en: Your users will typically try to install whatever package they need via pip
     command. But, as no internet access is allowed, this command will fail because
     pip won’t be able to contact Pypi.org servers.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 用户通常会尝试通过 pip 命令安装所需的任何包。但是，由于不允许互联网访问，这个命令会失败，因为 pip 无法连接到 Pypi.org 服务器。
 - en: '**Opening internet**'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '**开启互联网**'
 - en: One option is to open access to the internet and allow outbound HTTP connections
     to Fastly CDN IPs used by Pypi.org servers. But, this is not viable in our case
     as we don’t want any internet connection in the architecture.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种选择是开放互联网访问并允许向 Pypi.org 服务器使用的 Fastly CDN IP 地址发出外部 HTTP 连接。但在我们的情况下这是不可行的，因为我们不希望架构中有任何互联网连接。
 - en: '**Using a dedicated Pypi server**'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '**使用专用 Pypi 服务器**'
 - en: '[AWS blog also provides an example of using a Python package named Bandersnatch](https://aws.amazon.com/fr/blogs/machine-learning/hosting-a-private-pypi-server-for-amazon-sagemaker-studio-notebooks-in-a-vpc/).
     This article describes how to set up a server, acting like a bastion host, which
     will mirror Pypi and will be accessible only to your private subnets.'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '[AWS 博客还提供了一个使用名为 Bandersnatch 的 Python 包的示例](https://aws.amazon.com/fr/blogs/machine-learning/hosting-a-private-pypi-server-for-amazon-sagemaker-studio-notebooks-in-a-vpc/)。这篇文章描述了如何设置一个服务器，作为堡垒主机，镜像
+    Pypi，并且只对你的私有子网可访问。'
 - en: This is not a viable option as you’ve to know in advance which Python packages
     you need to provide, and you’ll somehow have to create public subnets and give
     the Pypi server mirror access to the internet.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 这不是一个可行的选项，因为你需要提前知道需要提供哪些 Python 包，并且你还得创建公共子网并为 Pypi 服务器镜像提供互联网访问权限。
 - en: '**Using AWS Cordeartifact**'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: '**使用 AWS Codeartifact**'
 - en: This is ultimately the solution I came up with and which works in my case.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 这最终是我想出的解决方案，并且在我的情况下是有效的。
 - en: '[AWS Codeartifact](https://aws.amazon.com/fr/codeartifact/) is the artifact
     management solution provided by AWS. It is compatible with other AWS services
     like AWS Service Catalog to control access to resources within an organization.'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '[AWS Codeartifact](https://aws.amazon.com/fr/codeartifact/) 是 AWS 提供的工件管理解决方案。它与其他
+    AWS 服务兼容，如 AWS 服务目录，用于控制组织内资源的访问。'
 - en: To use it, you’ll have to create a “domain” which serves as an umbrella to manage
     access and apply policies across your organization. Then, you’ll have to create
     a repository that will serve your artifacts to your different applications.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用它，你必须创建一个“域”，它作为一个总览来管理访问权限并在你的组织内应用政策。然后，你需要创建一个仓库，供不同的应用程序使用你的工件。
 - en: Also, one repository can have upstream repositories. So, if a Python package
     is not available in the target repository, the demand will be transmitted to the
     upstream repository to be fulfilled.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，一个仓库可以拥有上游仓库。因此，如果目标仓库中没有某个 Python 包，需求将传递到上游仓库以进行满足。
 - en: 'More precisely, this workflow takes into account package versions. Official
     documentation provides a detailed workflow:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 更准确地说，这个工作流考虑了包版本。官方文档提供了详细的工作流：
 - en: If `my_repo` contains the requested package version, it is returned to the client.
+  id: totrans-26
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 如果 `my_repo` 包含请求的包版本，它将返回给客户端。
 - en: ''
+  id: totrans-27
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -124,70 +188,107 @@
     for it in `my_repo`'s upstream repositories. If the package version is found,
     a reference to it is copied to `my_repo`, and the package version is returned
     to the client.
+  id: totrans-28
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 如果 `my_repo` 不包含请求的包版本，CodeArtifact 会在 `my_repo` 的上游仓库中查找它。如果找到该版本的包，将其引用复制到
+    `my_repo` 中，并将包版本返回给客户端。
 - en: ''
+  id: totrans-29
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: If neither `my_repo` nor its upstream repositories contain the package version,
     an HTTP 404 `Not Found` response is returned to the client.
+  id: totrans-30
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 如果 `my_repo` 和它的上游仓库都不包含该包版本，客户端将收到 HTTP 404 `未找到` 响应。
 - en: Cool right? It will even cache the package version for future requests.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 酷吧？它甚至会缓存包版本，以便将来的请求使用。
 - en: This is precisely the strategy we are going to use, as AWS Codeartifact allows
     us to define a repository that has an external connection like Pypi as an upstream
     repository.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 这正是我们将使用的策略，因为 AWS Codeartifact 允许我们定义一个具有外部连接（如 Pypi）作为上游仓库的仓库。
 - en: Creating AWS Codeartifact resources with Terraform
+  id: totrans-33
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用 Terraform 创建 AWS Codeartifact 资源
 - en: As AWS Codeartifact is an AWS service, you can easily create a VPC endpoint
     in your environment VPC to connect to it.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 AWS Codeartifact 是 AWS 服务，你可以轻松地在你的环境 VPC 中创建一个 VPC 端点来连接它。
 - en: 'Note: I’m using Terraform v1.6.4 and aws provider v5.38.0'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 注：我正在使用 Terraform v1.6.4 和 AWS 提供程序 v5.38.0
 - en: '[PRE0]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Then, you’ll have to create the different resources needed for Codeartifact
     to handle your requests for new Python packages by mirroring Pypi: a domain, a
     Pypi repository with an external connection, and a repository that defines Pypi
     as an upstream repository.'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，你需要创建不同的资源，以便 Codeartifact 能通过镜像 Pypi 处理你对新 Python 包的请求：一个域名，一个具有外部连接的 Pypi
+    仓库，以及一个将 Pypi 定义为上游仓库的仓库。
 - en: '[PRE1]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Here it is! You can now set up a Pypi mirror for your private environment easily.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 就是这样！你现在可以轻松为你的私有环境设置一个 Pypi 镜像。
 - en: 'To make things usable, you’ll also have to tell pip commands to direct requests
     to a specific index. Fortunately, AWS created an API to do the heavy lifting for
     you. Just add this to your code to make it work:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使其可用，你还需要告诉 pip 命令将请求指向特定的索引。幸运的是，AWS 创建了一个 API 来为你完成繁重的工作。只需将以下代码添加到你的项目中，即可使其工作：
 - en: '[PRE2]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Last but not least, add a VPC Endpoint for AWS Codeartifact in your VPC.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后但同样重要的是，在你的 VPC 中为 AWS Codeartifact 添加一个 VPC 端点。
 - en: '[PRE3]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: If you would like to receive notifications for my upcoming posts regarding AWS
     and more, [please subscribe here](https://medium.com/@florentpajot/subscribe).
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想接收有关 AWS 等方面的最新帖子通知，[请在此订阅](https://medium.com/@florentpajot/subscribe)。
 - en: '*Did you know you can clap multiple times?*'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '*你知道你可以多次拍手吗？*'

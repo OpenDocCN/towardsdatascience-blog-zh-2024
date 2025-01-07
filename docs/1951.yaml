@@ -1,82 +1,128 @@
 - en: How to Use Hybrid Search for Better LLM RAG Retrieval
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何使用混合搜索来优化LLM RAG检索
 - en: 原文：[https://towardsdatascience.com/how-to-use-hybrid-search-for-better-llm-rag-retrieval-032f66810ebe?source=collection_archive---------0-----------------------#2024-08-11](https://towardsdatascience.com/how-to-use-hybrid-search-for-better-llm-rag-retrieval-032f66810ebe?source=collection_archive---------0-----------------------#2024-08-11)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-to-use-hybrid-search-for-better-llm-rag-retrieval-032f66810ebe?source=collection_archive---------0-----------------------#2024-08-11](https://towardsdatascience.com/how-to-use-hybrid-search-for-better-llm-rag-retrieval-032f66810ebe?source=collection_archive---------0-----------------------#2024-08-11)
 - en: Building an advanced local LLM RAG pipeline by combining dense embeddings with
     BM25
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 通过将密集嵌入与BM25结合，构建一个先进的本地LLM RAG管道
 - en: '[](https://medium.com/@leoneversberg?source=post_page---byline--032f66810ebe--------------------------------)[![Dr.
     Leon Eversberg](../Images/56dc3579a29933f7047a9ce60be4697a.png)](https://medium.com/@leoneversberg?source=post_page---byline--032f66810ebe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--032f66810ebe--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--032f66810ebe--------------------------------)
     [Dr. Leon Eversberg](https://medium.com/@leoneversberg?source=post_page---byline--032f66810ebe--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@leoneversberg?source=post_page---byline--032f66810ebe--------------------------------)[![Dr.
+    Leon Eversberg](../Images/56dc3579a29933f7047a9ce60be4697a.png)](https://medium.com/@leoneversberg?source=post_page---byline--032f66810ebe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--032f66810ebe--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--032f66810ebe--------------------------------)
+    [Dr. Leon Eversberg](https://medium.com/@leoneversberg?source=post_page---byline--032f66810ebe--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--032f66810ebe--------------------------------)
     ·11 min read·Aug 11, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--032f66810ebe--------------------------------)
+    ·阅读时长11分钟·2024年8月11日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/b0e92b6cc8bed0f23c34ac183693d3f8.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b0e92b6cc8bed0f23c34ac183693d3f8.png)'
 - en: Code snippet from the hybrid search we are going to implement in this article.
     Image by author
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在本文中实现的混合搜索的代码片段。图像来自作者
 - en: The basic Retrieval-Augmented Generation (RAG) pipeline uses an encoder model
     to search for similar documents when given a query.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 基本的检索增强生成（RAG）管道使用编码器模型，在给定查询时搜索相似的文档。
 - en: This is also called **semantic search** because the encoder transforms text
     into a high-dimensional vector representation (called an embedding) in which semantically
     similar texts are close together.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 这也被称为**语义搜索**，因为编码器将文本转换为高维向量表示（称为嵌入），在该表示中，语义相似的文本会靠得很近。
 - en: Before we had Large Language Models (LLMs) to create these vector embeddings,
     the BM25 algorithm was a very popular search algorithm. BM25 focuses on important
     keywords and looks for exact matches in the available documents. This approach
     is called **keyword search**.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们拥有大型语言模型（LLM）来创建这些向量嵌入之前，BM25算法曾是非常流行的搜索算法。BM25专注于重要的关键词，并在可用文档中寻找精确匹配。这种方法被称为**关键词搜索**。
 - en: If you want to take your RAG pipeline to the next level, you might want to try
     **hybrid search**. Hybrid search combines the benefits of keyword search and semantic
     search to improve search quality.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想将你的RAG管道提升到一个新的层次，你可以尝试**混合搜索**。混合搜索结合了关键词搜索和语义搜索的优点，以提高搜索质量。
 - en: In this article, we will cover the theory and implement all three search approaches
     in Python.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将介绍这三种搜索方法的理论，并在Python中实现它们。
 - en: Table of Contents
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 目录
 - en: · [RAG Retrieval](#ae7a)
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: · [RAG检索](#ae7a)
 - en: ∘ [Keyword Search With BM25](#9f75)
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: ∘ [带有BM25的关键词搜索](#9f75)
 - en: ∘ [Semantic Search With Dense Embeddings](#afec)
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: ∘ [带有密集嵌入的语义搜索](#afec)
 - en: ∘ [Semantic Search or Hybrid Search?](#2a98)
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: ∘ [语义搜索还是混合搜索？](#2a98)
 - en: ∘ [Hybrid Search](#4bfc)
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: ∘ [混合搜索](#4bfc)
 - en: ∘ [Putting It All Together](#919c)
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: ∘ [将一切整合在一起](#919c)
 - en: ·…
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: ·…

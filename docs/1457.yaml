@@ -1,65 +1,101 @@
 - en: Fine-Tune Tiny Adapters for Llama 3 with VeRA
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 微调Llama 3的微型适配器与VeRA
 - en: 原文：[https://towardsdatascience.com/fine-tune-tiny-adapters-for-llama-3-with-vera-7c48f4391d84?source=collection_archive---------8-----------------------#2024-06-11](https://towardsdatascience.com/fine-tune-tiny-adapters-for-llama-3-with-vera-7c48f4391d84?source=collection_archive---------8-----------------------#2024-06-11)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/fine-tune-tiny-adapters-for-llama-3-with-vera-7c48f4391d84?source=collection_archive---------8-----------------------#2024-06-11](https://towardsdatascience.com/fine-tune-tiny-adapters-for-llama-3-with-vera-7c48f4391d84?source=collection_archive---------8-----------------------#2024-06-11)
 - en: LoRA but 100x smaller
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: LoRA，但小巧100倍
 - en: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--7c48f4391d84--------------------------------)[![Benjamin
     Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--7c48f4391d84--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7c48f4391d84--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7c48f4391d84--------------------------------)
     [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--7c48f4391d84--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--7c48f4391d84--------------------------------)[![Benjamin
+    Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--7c48f4391d84--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7c48f4391d84--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7c48f4391d84--------------------------------)
+    [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--7c48f4391d84--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7c48f4391d84--------------------------------)
     ·6 min read·Jun 11, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7c48f4391d84--------------------------------)
+    ·6分钟阅读·2024年6月11日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/6fbba9c193cdb65c717fbb23bbe12ae4.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6fbba9c193cdb65c717fbb23bbe12ae4.png)'
 - en: Generated with DALL-E
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 由DALL-E生成
 - en: LoRA fine-tunes large language models (LLMs) by adding an adapter on top of
     the pre-trained LLM, with only this adapter being trainable while the LLM’s original
     parameters remain frozen. This approach significantly reduces the number of parameters
     that need to be trained, resulting in much smaller optimizer states. Consequently,
     LoRA fine-tuning consumes considerably less memory compared to standard full fine-tuning.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: LoRA通过在预训练的LLM（大语言模型）上添加一个适配器来进行微调，只有这个适配器是可训练的，而LLM的原始参数保持冻结。这种方法显著减少了需要训练的参数数量，从而大大缩小了优化器的状态。因此，与标准的完全微调相比，LoRA微调消耗的内存大大减少。
 - en: Nonetheless, depending on LoRA’s hyperparameters, such as the rank and the number
     of targeted modules, LoRA may still create very large adapters with hundreds of
     millions of parameters that are too large to be fine-tuned on consumer hardware.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，根据LoRA的超参数，如秩和目标模块的数量，LoRA可能仍会创建具有数亿个参数的非常大的适配器，这些适配器太大，无法在消费者硬件上进行微调。
 - en: Many alternatives have been proposed to reduce the size of adapters.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 已经提出了许多替代方案来减少适配器的大小。
 - en: In this article, I review VeRA, an alternative to LoRA producing adapters 100x
     smaller. I fine-tuned Llama 3 with VeRA for demonstration and compared its performance
     with LoRA.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我回顾了VeRA，这是一种将适配器缩小100倍的LoRA替代方案。我使用VeRA对Llama 3进行了微调，并将其性能与LoRA进行了比较。
 - en: 'VeRA: Fine-tuning Vectors on top of Random Matrices'
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: VeRA：基于随机矩阵的向量微调
 - en: 'VeRA is presented in this paper:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: VeRA在本文中提出：
 - en: '[VeRA: Vector-based Random Matrix Adaptation](https://arxiv.org/abs/2310.11454)'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '[VeRA：基于随机矩阵的向量适配](https://arxiv.org/abs/2310.11454)'
 - en: '*Note: This is one of my favorite papers presenting an alternative to LoRA.
     It’s very well-written*…'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '*注意：这是我最喜欢的论文之一，展示了LoRA的替代方案。它写得非常好*…'

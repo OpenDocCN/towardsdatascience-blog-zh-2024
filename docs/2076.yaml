@@ -1,371 +1,529 @@
 - en: How Can We Continually Adapt Vision-Language Models?
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 我们如何持续适应视觉-语言模型？
 - en: 原文：[https://towardsdatascience.com/how-can-we-continually-adapt-vision-language-models-3e7bfa19b34e?source=collection_archive---------6-----------------------#2024-08-26](https://towardsdatascience.com/how-can-we-continually-adapt-vision-language-models-3e7bfa19b34e?source=collection_archive---------6-----------------------#2024-08-26)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-can-we-continually-adapt-vision-language-models-3e7bfa19b34e?source=collection_archive---------6-----------------------#2024-08-26](https://towardsdatascience.com/how-can-we-continually-adapt-vision-language-models-3e7bfa19b34e?source=collection_archive---------6-----------------------#2024-08-26)
 - en: Exploring continual learning strategies for CLIP
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 探索CLIP的持续学习策略
 - en: '[](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)[![Alicja
     Dobrzeniecka](../Images/b731eb2bb8fde56e84273af8050b59e4.png)](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)
     [Alicja Dobrzeniecka](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)[![Alicja
+    Dobrzeniecka](../Images/b731eb2bb8fde56e84273af8050b59e4.png)](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)
+    [Alicja Dobrzeniecka](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)
     ·8 min read·Aug 26, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)
+    ·8分钟阅读·2024年8月26日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/50e5d7820bf844fb40605562495b7cb7.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/50e5d7820bf844fb40605562495b7cb7.png)'
 - en: Image by the author created in Midjourney
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者在Midjourney中创作
 - en: There is currently a growing interest in the study and application of Large
     Language Models. However, these models can only process textual data, which limits
     their usefulness for some applications. Humans are capable of processing information
     across multiple modalities, such as written and spoken language, and visual understanding
     of the reality around us. We would expect models to be capable of similar processing.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前对大语言模型的研究和应用兴趣日益增长。然而，这些模型只能处理文本数据，这限制了它们在某些应用中的实用性。人类能够处理跨多个模态的信息，如书面和口语语言，以及对我们周围现实的视觉理解。我们期望模型能够进行类似的处理。
 - en: '**Vision-Language models** can address both textual and visual data, which
     has a wide range of use cases such as image analysis (e.g. medical images), object
     recognition and better scene understanding (e.g. for self-driving cars), generating
     captions for the images, responding to the visual questions, chatting about images,
     and more…'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '**视觉-语言模型**能够处理文本和视觉数据，这在图像分析（例如医学图像）、物体识别和更好的场景理解（例如自动驾驶汽车）、为图像生成描述、回答视觉问题、与图像进行对话等领域有广泛的应用。'
 - en: Unfortunately, multi-modal models face the same challenges as unimodal ones.
     Once trained, they can become outdated over time as new data samples arrive or
     the data distribution changes.
+  id: totrans-10
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 不幸的是，多模态模型面临着与单模态模型相同的挑战。一旦训练完成，随着新数据样本的到来或数据分布的变化，它们可能会随着时间的推移变得过时。
 - en: In my [last article](https://medium.com/towards-data-science/ai-models-have-expiry-date-9a6e2c9c0a9f)
     I introduced the **Continual Learning (CL)** approach to AI models in general.
     Continual Learning tries to find ways to continually train models, which may be
     a more sustainable solution for the future. In this article, I want to explore
     the possibilities of **applying CL to Vision-Language models (VLMs)** — specifically
     the Contrastive Language-Image Pretraining (CLIP) model.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我的[上一篇文章](https://medium.com/towards-data-science/ai-models-have-expiry-date-9a6e2c9c0a9f)中，我介绍了**持续学习（CL）**方法，适用于AI模型。持续学习试图找到持续训练模型的方法，这可能是未来更可持续的解决方案。在本文中，我想探讨**将CL应用于视觉-语言模型（VLMs）**的可能性——特别是对比语言-图像预训练（CLIP）模型的应用。
 - en: But what is CLIP?
+  id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 但什么是CLIP？
 - en: Contrastive Language-Image Pretraining (CLIP) was introduced by the OpenAI in
     2021 in the *Learning Transferable Visual Models From Natural Language Supervision*
     paper [1].
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 对比语言-图像预训练（CLIP）由 OpenAI 在 2021 年的 *从自然语言监督学习可转移的视觉模型* 论文中提出 [1]。
 - en: The goal of the CLIP model is to **understand the relation between text and
     an image**. If you input it a piece of text it should return the most relevant
     image in a given set of images for it. Likewise if you put in the model an image
     it should give you the most fitting text from a set of available texts.
+  id: totrans-14
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: CLIP 模型的目标是**理解文本与图像之间的关系**。如果你输入一段文本，它应该返回在给定图像集合中最相关的图像。同样，如果你输入一张图像，它应该从可用的文本集合中给出最匹配的文本。
 - en: CLIP was trained on a large dataset of text-image pairs. Contrastive learning
     was used to bring matching text-image pairs closer together in the embedding space
     and to move non-matching pairs away from each other. This learned shared embedding
     space is then used during inference to understand the relationship between text
     and images. If you want to know more about CLIP, I recommend the [following article](https://medium.com/towards-data-science/clip-intuitively-and-exhaustively-explained-1d02c07dbf40),
     which describes it in detail.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: CLIP 是在一个大型的文本-图像对数据集上训练的。通过对比学习，将匹配的文本-图像对拉近到嵌入空间中，并将不匹配的对远离彼此。然后，这个学习到的共享嵌入空间在推理时用于理解文本和图像之间的关系。如果你想了解更多关于
+    CLIP 的信息，我推荐阅读[以下文章](https://medium.com/towards-data-science/clip-intuitively-and-exhaustively-explained-1d02c07dbf40)，它详细描述了
+    CLIP。
 - en: Why do we need Continual Learning for Vision-Language models?
+  id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为什么我们需要为视觉-语言模型进行持续学习？
 - en: Large foundation models can become obsolete over time due to shifts in distribution
     or the arrival of new data samples. Re-training such models is expensive and time
     consuming. The authors of the TiC-CLIP paper [7] show that current evaluation
     practices often fail to capture the difference in performance when considering
     time-evolving data.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 大型基础模型可能会因为分布的变化或新数据样本的到来而变得过时。重新训练这些模型既昂贵又耗时。TiC-CLIP 论文的作者 [7] 显示，当前的评估实践往往未能捕捉到在考虑时间演变数据时性能的差异。
 - en: In Figure 1 you can see that if we compare OpenAI models trained before 2020
     and OpenCLIP models trained before 2022, although there is not much difference
     between their robustness on Imagenet (left image), there is a performance gap
     when compared on retrieval tasks from 2014–2016 and 2021–2022 (right image), indicating
     that OpenAI models have less zero-shot robustness with time-evolving data [7].
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 在图 1 中，你可以看到如果我们比较 2020 年前训练的 OpenAI 模型和 2022 年前训练的 OpenCLIP 模型，尽管它们在 Imagenet
+    上的鲁棒性（左侧图像）差异不大，但在从 2014-2016 年和 2021-2022 年的检索任务上比较时（右侧图像），它们之间存在性能差距，表明 OpenAI
+    模型在时间演变的数据上零-shot 鲁棒性较差 [7]。
 - en: '![](../Images/ce1610a9e1bdb4c9f10f04d6a784a443.png)'
+  id: totrans-19
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ce1610a9e1bdb4c9f10f04d6a784a443.png)'
 - en: 'Fig. 1\. Image from the paper TiC-CLIP: Continual Training of Clip Models [7].'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: '图 1. 来自论文 TiC-CLIP: Continual Training of Clip Models [7] 的图像。'
 - en: In addition, Continual Learning may be a natural choice for some use cases such
     as Online Lifelong Learning (OLL) [8] where data comes from continuous and non-stationary
     data streams and evolves with time.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，持续学习可能是某些使用案例的自然选择，比如在线终身学习（OLL）[8]，其中数据来自于连续和非平稳的数据流，并随着时间变化而演化。
 - en: Finally, as pointed out in [4], CLIP shows remarkable zero-shot capabilities,
     but for some domains it may struggle to achieve good performance due to insufficient
     data for some categories during pre-training.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，正如 [4] 中指出的，CLIP 展示了显著的零-shot 能力，但对于某些领域，由于预训练时某些类别的数据不足，它可能难以实现良好的性能。
 - en: Challenges
+  id: totrans-23
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 挑战
 - en: 'As some of the current state-of-the-art Vision-Language models require more
     and more computational time and resources, finding a way to continually adapt
     them without re-training seems to be crucial. However, there are some challenges
     in continually adapting such models:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着一些当前最先进的视觉-语言模型需要越来越多的计算时间和资源，找到一种不断适应这些模型而无需重新训练的方法似乎变得至关重要。然而，持续适应这些模型也面临一些挑战：
 - en: '**catastrophic forgetting —** learning new tasks can damage the performance
     on the old tasks.'
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**灾难性遗忘——** 学习新任务可能会损害旧任务的性能。'
 - en: '**losing zero-shot capability —** pre-trained models can display zero-shot
     behaviour meaning that they can perform a task for which they have not received
     training data, i.e. classify a class of images without seeing them during training.
     This ability can be lost when training continually.'
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**丧失零-shot能力 —** 预训练模型可以表现出零-shot行为，意味着它们可以执行没有接收过训练数据的任务，即在训练时未见过的图像类别的分类。这个能力在持续训练时可能会丧失。'
 - en: '**misalignment between text and image representations —** as noted by the authors
     of [12], during Continual Learning for CLIP, there may be a deterioration in the
     alignment of the multimodal representation space, which can lead to performance
     degradation in the long run.'
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**文本和图像表示之间的错位 —** 正如[12]的作者所指出的，在CLIP的持续学习过程中，多模态表示空间的对齐可能会退化，这可能导致长期的性能下降。'
 - en: Continual Learning Methods for CLIP
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: CLIP的持续学习方法
 - en: 'There is an ongoing research on improving the continual aspect of multi-modal
     models. Below are some of the existing strategies and use cases:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前正在进行的研究旨在改善多模态模型的持续学习方面。以下是一些现有的策略和应用场景：
 - en: '**Mixture of Experts (MoE)**'
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**专家混合（MoE）**'
 - en: To continually train the CLIP, the authors of [2] propose **MoE** approach using
     task-specific adapters. They build a dynamic extension architecture on top of
     a frozen CLIP model.
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了持续训练CLIP，[2]的作者提出了使用任务特定适配器的**MoE**方法。他们在冻结的CLIP模型上构建了一个动态扩展架构。
 - en: The idea here is to add new adapters as new tasks are trained. At the same time,
     the Distribution Discriminative Auto-Selector is trained so that later, during
     the inference phase, the model can automatically choose whether the test data
     should go to the MoE adapters or to the pre-trained CLIP for zero-shot detection.
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这里的想法是，随着新任务的训练，添加新的适配器。同时，训练分布判别自选器，以便在推理阶段，模型可以自动选择测试数据是否应进入MoE适配器，或进入预训练的CLIP进行零-shot检测。
 - en: 2\. **CoLeCLIP**
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 2\. **CoLeCLIP**
 - en: The authors of [4] focus on the problem of Continual Learning for Vision-Language
     models in open domains — where we may have datasets from diverse seen and unseen
     domains with novel classes.
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[4]的作者关注的是开放领域中视觉-语言模型的持续学习问题——在这些领域中，我们可能拥有来自不同已见和未见领域的包含新类的数据集。'
 - en: Addressing open domain challenges is particularly important for use cases such
     as **AI assistants, autonomous driving systems and robotics,** asthese models
     operate in complex and changing environments [4].
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解决开放领域挑战对于**AI助手、自动驾驶系统和机器人**等应用场景尤为重要，因为这些模型在复杂且变化的环境中运行[4]。
 - en: '**CoLeCLIP** is based on CLIP but adjusted for open-domain problems.'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**CoLeCLIP**基于CLIP，但进行了调整以应对开放领域问题。'
 - en: In CoLeCLIP an external laernable Parameter-Efficient Fine-Tuning (PEFT) module
     per task is attached to the frozen text encoder of CLIP to learn the text embeddings
     of the classes [4].
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在CoLeCLIP中，每个任务都附加了一个外部可学习的参数高效微调（PEFT）模块，连接到CLIP的冻结文本编码器，以学习类的文本嵌入[4]。
 - en: 3\. **Continual Language Learning (CLL)**
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 3\. **持续语言学习（CLL）**
 - en: The authors of [3] noted that current pre-trained Vision-Language models often
     only support English. At the same time popular methods for creating multilingual
     models are expensive and require large amounts of data.
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[3]的作者指出，当前的预训练视觉-语言模型通常只支持英语。同时，创建多语言模型的流行方法成本高昂，并且需要大量数据。'
 - en: In their paper, they propose to extend language capability by using **CLL**,
     where linguistic knowledge is updated incrementally.
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在他们的论文中，提出通过使用**CLL**来扩展语言能力，其中语言知识是增量更新的。
 - en: '**CLL-CLIP** uses an expandable embedding layer to store linguistic differences.
     It trains only token embeddings and is optimised for learning alignment between
     images and multilingual text [3].'
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**CLL-CLIP**使用可扩展的嵌入层来存储语言差异。它仅训练令牌嵌入，并优化图像和多语言文本之间的对齐学习[3]。'
 - en: The authors also propose a novel approach to ensure that the distribution of
     all token embeddings is identical during initialisation and later regularised
     during training. You can see a visualisation of this process in Figure 2 from
     their paper.
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 作者还提出了一种新颖的方法，确保在初始化时，所有令牌嵌入的分布是相同的，并且在训练过程中得到了正则化。你可以在他们的论文中的图2看到这一过程的可视化。
 - en: '![](../Images/532d655751f4c0832b09042cda678768.png)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/532d655751f4c0832b09042cda678768.png)'
 - en: Fig. 2\. Image from the paper Embracing Language Inclusivity and Diversity in
     CLIP through Continual Language Learning [3].
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 图2\. 来自论文《通过持续语言学习拥抱CLIP中的语言包容性和多样性》中的图像[3]。
 - en: 4\. **Symmetric Image-Text tuning strategy (SIT)**
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 4\. **对称图像-文本调优策略（SIT）**
 - en: In [8] the authors observe that there occurs asymetry between text and image
     during Parameter-Efficient Tuning (PET) for their Online Lifelong Learning scenario
     which may lead to catastrophic forgetting.
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在[8]中，作者观察到，在他们的在线终身学习场景中，进行参数高效调优（PET）时，文本与图像之间出现不对称，这可能导致灾难性遗忘。
 - en: They propose to use the SIT strategy to mitigate this problem. This approach
     matches images and class labels within the current batch only during online learning.
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们提出使用SIT策略来缓解这个问题。该方法仅在在线学习期间，在当前批次内匹配图像和类别标签。
 - en: The goal is to preserve the generalisation ability of CLIP while improving its
     performance on a specific downstream task or dataset, without introducing asymmetry
     between the encoders.
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 目标是在不引入编码器之间不对称性的情况下，保持CLIP的泛化能力，同时提高其在特定下游任务或数据集上的表现。
 - en: Evaluation of the Continual Learning models
+  id: totrans-49
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 持续学习模型的评估
 - en: The evaluation standards for CL appear to be still a work in progress. Many
     of the existing benchmarks for evaluating the effectiveness of CL models do not
     take the time factor into account when constructing data sets. As mentioned by
     [7], the performance gap may sometimes only become visible when we recreate the
     time-evolving setup for the test data.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 持续学习（CL）的评估标准似乎仍在完善中。许多现有的评估CL模型有效性的基准在构建数据集时并没有考虑时间因素。正如[7]中提到的，性能差距有时只有在我们重新创建时间演变的测试数据设置时才会显现出来。
 - en: In addition, many of the existing benchmarks for Vision-Language models focus
     only on the single-image input, without measuring multi-image understanding, which
     may be critical in some applications. The authors of [5] develop a benchmark for
     multi-image evaluation that allows a more fine-grained assessment of the limitations
     and capabilities of current state-of-the-art models.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，许多现有的视觉-语言模型基准仅关注单张图像输入，而未衡量多图像理解，这在某些应用中可能至关重要。[5]的作者开发了一个多图像评估基准，可以更细致地评估当前最先进模型的局限性和能力。
 - en: Continual Learning does not solve all the problems…
+  id: totrans-52
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 持续学习并不能解决所有问题…
 - en: Visual-Language models like CLIP have their shortcomings. In [6], the authors
     explored the gap between CLIP’s visual embedding space and purely visual self-supervised
     learning. They investigated false matches in the embedding space, where images
     have similar encoding when they should not.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 像CLIP这样的视觉-语言模型有其不足之处。在[6]中，作者探讨了CLIP的视觉嵌入空间与纯粹的视觉自监督学习之间的差距。他们研究了嵌入空间中的错误匹配，在这些地方，图像的编码相似，尽管它们不应如此。
 - en: From their results it can be concluded that if a pre-trained model has a weakness,
     it can be propagated when the model is adapted. Learning visual representations
     remains an open challenge, and vision models may become a bottleneck in multimodal
     systems, as scaling alone does not solve the built-in limitations of models such
     as CLIP. [6]
+  id: totrans-54
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 根据他们的结果可以得出结论，如果一个预训练模型存在弱点，那么在模型适应过程中，这些弱点可能会被传播。学习视觉表示仍然是一个开放的挑战，视觉模型可能会成为多模态系统的瓶颈，因为仅仅扩展模型规模并不能解决像CLIP这样的模型内在的局限性。[6]
 - en: '**Conclusion**'
+  id: totrans-55
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**结论**'
 - en: This article explores the opportunities and challenges of applying Continual
     Learning to Vision-Language models, focusing on the CLIP model. Hopefully this
     article has given you a first impression of what is possible, and that while Continual
     Learning seems to be a good direction for the future of AI models, there is still
     a lot of work to be done to make it fully usable.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文探讨了将持续学习应用于视觉-语言模型的机遇与挑战，重点介绍了CLIP模型。希望本文能给您提供一个初步印象，表明虽然持续学习似乎是未来AI模型的一个良好方向，但仍有大量工作需要完成，才能使其完全可用。
 - en: '**If you have any questions or comments, please feel free to share them in
     the comments section.**'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '**如果您有任何问题或评论，请随时在评论区分享。**'
 - en: Until next time!
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 下次再见！
 - en: '![](../Images/1fca5a8264874543865ae3508b2a7c78.png)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1fca5a8264874543865ae3508b2a7c78.png)'
 - en: Image by the author generated in Midjourney.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像由作者在Midjourney中生成。
 - en: References
+  id: totrans-61
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[1] Radford, A., Kim, J., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry,
     G., Askell, A., Mishkin, P., Clark, J., Krueger, G., & Sutskever, I. (2021). Learning
     Transferable Visual Models From Natural Language Supervision. In *Proceedings
     of the 38th International Conference on Machine Learning* (pp. 8748–8763). PMLR.'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] Radford, A., Kim, J., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry,
+    G., Askell, A., Mishkin, P., Clark, J., Krueger, G., & Sutskever, I. (2021). 从自然语言监督中学习可转移的视觉模型。载于*第38届国际机器学习会议论文集*（第8748–8763页）。PMLR。'
 - en: '[2] Jiazuo Yu, Yunzhi Zhuge, Lu Zhang, Ping Hu, Dong Wang, Huchuan Lu, & You
     He. (2024). Boosting Continual Learning of Vision-Language Models via Mixture-of-Experts
     Adapters.'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] 余家左, 朱戎智, 张璐, 胡平, 王东, 陆虎川, & 何友. (2024). 通过专家混合适配器提升视觉-语言模型的持续学习。'
 - en: '[3] Bang Yang, Yong Dai, Xuxin Cheng, Yaowei Li, Asif Raza, & Yuexian Zou.
     (2024). Embracing Language Inclusivity and Diversity in CLIP through Continual
     Language Learning.'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] 杨邦, 戴勇, 程旭鑫, 李耀伟, 阿西夫·拉扎, & 邹跃贤. (2024). 通过持续语言学习拥抱CLIP中的语言包容性和多样性。'
 - en: '[4] Yukun Li, Guansong Pang, Wei Suo, Chenchen Jing, Yuling Xi, Lingqiao Liu,
     Hao Chen, Guoqiang Liang, & Peng Wang. (2024). CoLeCLIP: Open-Domain Continual
     Learning via Joint Task Prompt and Vocabulary Learning.'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '[4] 李宇坤, 庞冠松, 苏伟, 景晨晨, 谷凌曦, 刘玲桥, 陈昊, 梁国强, & 王鹏. (2024). CoLeCLIP：通过联合任务提示和词汇学习实现开放域持续学习。'
 - en: '[5] Bingchen Zhao, Yongshuo Zong, Letian Zhang, & Timothy Hospedales. (2024).
     Benchmarking Multi-Image Understanding in Vision and Language Models: Perception,
     Knowledge, Reasoning, and Multi-Hop Reasoning.'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '[5] 赵冰晨, 宗永硕, 张乐天, & 提莫西·霍斯佩达雷斯. (2024). 视觉和语言模型中的多图像理解基准测试：感知、知识、推理和多跳推理。'
 - en: '[6] Shengbang Tong, Zhuang Liu, Yuexiang Zhai, Yi Ma, Yann LeCun, & Saining
     Xie. (2024). Eyes Wide Shut? Exploring the Visual Shortcomings of Multimodal LLMs.'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '[6] 孙胜邦, 刘庄, 斋月翔, 马怡, 扬·勒昆, & 谢赛宁. (2024). 眼睛紧闭？探索多模态LLM的视觉缺陷。'
 - en: '[7] Saurabh Garg, Hadi Pour Ansari, Mehrdad Farajtabar, Sachin Mehta, Raviteja
     Vemulapalli, Oncel Tuzel, Vaishaal Shankar, & Fartash Faghri (2023). TiC-CLIP:
     Continual Training of CLIP Models. In *NeurIPS Workshop*.'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: '[7] 索拉布·加尔格, 哈迪·普尔·安萨里, 梅赫达德·法拉吉塔巴尔, 萨钦·梅塔, 拉维特贾·维穆拉帕利, 恩切尔·图泽尔, 维沙尔·尚卡尔, &
+    法尔塔什·法赫里 (2023). TiC-CLIP：CLIP模型的持续训练. 在*NeurIPS工作坊*中。'
 - en: '[8] Leyuan Wang, Liuyu Xiang, Yujie Wei, Yunlong Wang, & Zhaofeng He. (2024).
     CLIP model is an Efficient Online Lifelong Learner.'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '[8] 王乐源, 向柳玉, 魏宇杰, 王云龙, & 何兆锋. (2024). CLIP模型是一个高效的在线终身学习者。'
 - en: '[9] Vishal Thengane, Salman Khan, Munawar Hayat, & Fahad Khan. (2023). CLIP
     model is an Efficient Continual Learner.'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '[9] 维沙尔·腾甘, 萨尔曼·汗, 穆纳瓦尔·哈亚特, & 法赫德·汗. (2023). CLIP模型是一个高效的持续学习者。'
 - en: '[10] Yuxuan Ding, Lingqiao Liu, Chunna Tian, Jingyuan Yang, & Haoxuan Ding.
     (2022). Don’t Stop Learning: Towards Continual Learning for the CLIP Model.'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: '[10] 丁宇轩, 刘玲桥, 田春娜, 杨景元, & 丁昊轩. (2022). 别停下学习：面向CLIP模型的持续学习。'
 - en: '[11] Akash Ghosh, Arkadeep Acharya, Sriparna Saha, Vinĳa Jain, & Aman Chadha.
     (2024). Exploring the Frontier of Vision-Language Models: A Survey of Current
     Methodologies and Future Directions.'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: '[11] 阿卡什·戈什, 阿尔卡迪普·阿查亚, 斯里帕尔娜·萨哈, 维尼娅·简, & 阿曼·查达. (2024). 探索视觉-语言模型的前沿：当前方法论与未来方向的调查。'
 - en: '[12] Ni, Z., Wei, L., Tang, S., Zhuang, Y., & Tian, Q. (2023). Continual vision-language
     representation learning with off-diagonal information. In *Proceedings of the
     40th International Conference on Machine Learning*. JMLR.org.'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '[12] 倪子, 魏林, 唐爽, 庄煜, & 田琦. (2023). 通过离对角线信息进行持续的视觉-语言表示学习. 在*第40届国际机器学习会议论文集*中。JMLR.org。'

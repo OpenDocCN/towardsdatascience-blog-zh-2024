@@ -1,133 +1,197 @@
 - en: AI Agent Unit Testing in Langfuse
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Langfuse中的AI代理单元测试
 - en: 原文：[https://towardsdatascience.com/ai-agent-unit-testing-in-langfuse-00d21a680ddc?source=collection_archive---------5-----------------------#2024-06-13](https://towardsdatascience.com/ai-agent-unit-testing-in-langfuse-00d21a680ddc?source=collection_archive---------5-----------------------#2024-06-13)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/ai-agent-unit-testing-in-langfuse-00d21a680ddc?source=collection_archive---------5-----------------------#2024-06-13](https://towardsdatascience.com/ai-agent-unit-testing-in-langfuse-00d21a680ddc?source=collection_archive---------5-----------------------#2024-06-13)
 - en: Creating a scalable testing solution for AI agents for operation by non-coders
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为AI代理创建一个可扩展的测试解决方案，供非编码人员使用
 - en: '[](https://jacknotjohn.medium.com/?source=post_page---byline--00d21a680ddc--------------------------------)[![Jack
     Moore](../Images/a2354c65edc7fa01f5fa2bfa22fe6b34.png)](https://jacknotjohn.medium.com/?source=post_page---byline--00d21a680ddc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--00d21a680ddc--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--00d21a680ddc--------------------------------)
     [Jack Moore](https://jacknotjohn.medium.com/?source=post_page---byline--00d21a680ddc--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://jacknotjohn.medium.com/?source=post_page---byline--00d21a680ddc--------------------------------)[![Jack
+    Moore](../Images/a2354c65edc7fa01f5fa2bfa22fe6b34.png)](https://jacknotjohn.medium.com/?source=post_page---byline--00d21a680ddc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--00d21a680ddc--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--00d21a680ddc--------------------------------)
+    [Jack Moore](https://jacknotjohn.medium.com/?source=post_page---byline--00d21a680ddc--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00d21a680ddc--------------------------------)
     ·8 min read·Jun 13, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00d21a680ddc--------------------------------)
+    ·8分钟阅读·2024年6月13日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/bd9c62b0e085d4c850f81382ec1e69cf.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bd9c62b0e085d4c850f81382ec1e69cf.png)'
 - en: Langfuse is a useful tool for flexible testing of AI Agents. Recently, we set
     out to implement a framework for testing chat-based AI Agents. The following is
     an account of our journey to navigate the available tools.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: Langfuse是一个用于灵活测试AI代理的有用工具。最近，我们着手实现一个框架来测试基于聊天的AI代理。以下是我们在探索可用工具过程中所经历的过程。
 - en: We’ll focus mostly on how to accomplish this task now, but at the end we’ll
     address some thoughts on the challenges still facing us, and what the tools at
     hand can do to better support this sort of use case moving forward.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将主要集中讨论如何完成这项任务，但在最后，我们会谈到一些仍然面临的挑战，以及现有工具如何更好地支持这种用例的前景。
 - en: Use Case Overview
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 用例概述
 - en: Before reviewing how we built our system, we’ll quickly go into our goals and
     success criteria.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在回顾我们如何构建系统之前，我们将快速介绍我们的目标和成功标准。
 - en: Generative AI use cases are generally easy to deploy but difficult to control.
     When deploying an agent with a large-context model, upstream changes in model
     prompts, temperature settings, content moderation policy, etc., can drastically
     impact its performance.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成式AI的用例通常容易部署，但难以控制。当部署带有大上下文模型的代理时，模型提示、温度设置、内容审核政策等上游的变化可能会大幅影响其性能。
 - en: The challenge is to create a system that can evaluate an agent’s ability to
     accomplish specific tasks without hallucinating or breaking content policy. We
     equate this to unit testing, ensuring that your agent maintains its ability to
     accomplish a broad list of tasks, even when the team behind may be focusing on
     specific improvements. Doing this sort of testing manually can be imprecise, time-consuming,
     and difficult to track.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 挑战在于创建一个系统，可以评估代理在不产生幻觉或违反内容政策的情况下完成特定任务的能力。我们将其等同于单元测试，确保你的代理即使在团队可能专注于特定改进的情况下，也能保持完成广泛任务的能力。手动进行这种测试可能不准确、耗时且难以追踪。
 - en: So, we set out to create a system that could easily create these tests and monitor
     their results. Importantly, we wanted this system to be operable with a minimum
     frequency of required code changes so that a Product Manager or QA tester might
     contribute to it without having to touch code.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们着手创建一个能够轻松创建这些测试并监控其结果的系统。重要的是，我们希望这个系统能够在最小的代码更改频率下操作，以便产品经理或质量测试人员可以在不接触代码的情况下参与其中。
 - en: Why we chose Langfuse
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为什么选择Langfuse
 - en: 'We set out with a few key parameters for our search:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们为搜索设定了几个关键参数：
 - en: HIPAA Compliance, as both the products we build and many of our consulting partners
     are in the healthcare space.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: HIPAA 合规性，因为我们构建的产品以及许多我们的咨询合作伙伴都涉及医疗行业。
 - en: Low-Cost, both to stand up and to operate, since we operate fairly lean, as
     do our partners.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 低成本，既包括搭建成本，也包括运行成本，因为我们运作得相当精简，我们的合作伙伴也是如此。
 - en: Developmental Momentum. The LLM observability space is rapidly evolving. From
     the outset of our search, we were prepared to be wrong, but we wanted to minimize
     this chance by picking a tool that was likely to evolve with us.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 发展势头。LLM 可观测性领域正在快速发展。从我们搜索的开始，我们就做好了可能会错的准备，但我们希望通过选择一个有可能与我们一起发展的工具来最小化这种机会。
 - en: Custom LLM Evaluation Capability. The ability to stand up & run a custom evaluator
     was surprisingly something we didn’t find easily supported amongst all of the
     options we found, particularly amongst open-source options.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 自定义 LLM 评估能力。能够搭建和运行自定义评估器，这一点令人惊讶地没有在我们找到的所有选项中得到广泛支持，尤其是在开源选项中。
 - en: To simplify our search, we identified the following players in both the enterprise
     & open-source categories which appeared to meet our criteria, listed here in rough
     rank order.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了简化我们的搜索，我们确定了以下几个在企业和开源类别中符合我们标准的工具，按大致排名顺序列出。
 - en: Enterprise
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 企业
 - en: '[LangSmith](https://docs.smith.langchain.com/evaluation/faq/custom-evaluators)'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[LangSmith](https://docs.smith.langchain.com/evaluation/faq/custom-evaluators)'
 - en: '[Galileo](https://www.rungalileo.io/)'
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Galileo](https://www.rungalileo.io/)'
 - en: '[Weave](https://github.com/wandb/weave)'
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Weave](https://github.com/wandb/weave)'
 - en: Open Source
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 开源
 - en: '[Langfuse](https://github.com/langfuse/langfuse)'
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Langfuse](https://github.com/langfuse/langfuse)'
 - en: '[Empirical](https://docs.empirical.run/introduction)'
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Empirical](https://docs.empirical.run/introduction)'
 - en: We chose Langfuse primarily because it is easy to self-deploy without interacting
     with an enterprise sales team and because we believe It has the critical features
     we require. This has, so far, turned out to be correct.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们选择 Langfuse，主要因为它可以轻松自行部署，无需与企业销售团队互动，并且我们相信它具备我们需要的关键功能。到目前为止，这个选择证明是正确的。
 - en: Deployment
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 部署
 - en: 'We found the deployment process, overall, to be relatively simple. Langfuse
     provides an easy-to-use docker image and solid documentation on how to deploy
     locally. Building a YAML file and deploying to EKS was straightforward, and we
@@ -137,81 +201,113 @@
     free-tier PG database on RDS could handle many queries, evals, and prompt management
     for multiple users. The application is very lightweight. A few issues we did run
     into:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们发现部署过程总体上相对简单。Langfuse 提供了一个易于使用的 Docker 镜像，并且有详尽的文档指导如何在本地部署。构建 YAML 文件并部署到
+    EKS 也非常简单，我们在几个小时内就成功启动了一个演示实例。我们没有为 POC 设置 SSO，因此使用的是开箱即用的基本用户管理功能（功能不多），并依赖匿名化数据来满足安全要求。RDS
+    上的免费层 PG 数据库能够处理多个用户的许多查询、评估和提示管理。该应用非常轻量级。我们遇到的一些问题包括：
 - en: There is no way to get a list of prompts in the SDK programmatically. This meant
     that when we were putting together various system prompts or unit testing chats,
     we had to store prompt names in the configs of whatever entry point we used for
     a particular use-case (e.g., a list of unit tests in the system prompt for an
     agent)
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: SDK 中无法编程方式获取提示列表。这意味着当我们组合各种系统提示或单元测试聊天时，我们必须将提示名称存储在我们为特定用例使用的任何入口点的配置文件中（例如，代理的系统提示中的单元测试列表）。
 - en: We didn’t find a way to get a list of variables in prompts for use in compilation.
     We were using different variables for different system prompts we’d pull in and
     had to either hard-code which bits of data would get compiled into each or do
     some trial and error.
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们没有找到一种方法能够获取提示中用于编译的变量列表。我们使用不同的变量用于不同的系统提示，并且不得不硬编码每一部分数据应编译到哪个提示中，或者进行一些试错。
 - en: Observations were not well documented. When logging scores into Langfuse, we
     saw that you could add an observationId, but the generally good docs did not provide
     additional context. We will likely use them in the future once we figure out all
     the possibilities they enable
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 观察记录没有很好地记录。当将分数记录到 Langfuse 时，我们看到可以添加 observationId，但虽然文档整体不错，但并未提供更多的上下文信息。一旦我们弄清楚这些功能的所有可能性后，可能会在未来使用它们。
 - en: A No-Code Unit Testing Framework
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 一个无代码单元测试框架
 - en: '![](../Images/8af623759549191db38e38e8865ccdef.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8af623759549191db38e38e8865ccdef.png)'
 - en: A diagram of how we used System Prompt configs to create a central, no-code
     testing system in Langfuse
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何利用系统提示配置在Langfuse中创建一个中央的、无代码的测试系统的示意图
 - en: With a couple weeks of work, we’ve set up a system of end-to-end testing. Langfuse
     offers more functionality than we’ve utilized thus far, but we’ve focused on using
     prompts, sessions, & traces.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 经过几周的工作，我们建立了一个端到端测试系统。Langfuse提供的功能超出了我们目前的使用范围，但我们重点使用了提示、会话和追踪。
 - en: Chat history as context to testing
+  id: totrans-38
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 将聊天历史作为测试的上下文
 - en: One key requirement we had in performing testing on a chat-based agent was the
     ability to drop an agent into the middle of a chat scenario, using the prior messages
     exchanged as context. Any custom prompt could be made to include chat history,
     but Langfuse makes it particularly easy.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 在对基于聊天的代理进行测试时，我们的一个关键需求是能够将代理插入到聊天场景的中间，使用之前交换的消息作为上下文。任何自定义提示都可以包括聊天历史，但Langfuse特别简便地实现了这一点。
 - en: Furthermore, we built a chat interface for the agent that allows users to test
     and spawn new test prompts in situ for evaluations. This solves one of the
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，我们为代理构建了一个聊天界面，使用户能够实时测试并生成新的测试提示以进行评估。这解决了其中一个问题。
 - en: potential problems with injecting prompts as context, the chats must represent
     actual outputs the model might create.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 注入提示作为上下文的潜在问题是，聊天必须代表模型可能生成的实际输出。
 - en: 'This creates a potential vulnerability: The chat histories we’re using as context
     must be refreshed if the model’s underlying behavior changes. That said, we see
     this method as more controllable and consistent than potential alternatives, such
     as having one agent interact with another — something that we’re going to explore
     as another addition to this sort of system.'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 这带来了一个潜在的漏洞：我们作为上下文使用的聊天历史如果模型的底层行为发生变化，则必须刷新。尽管如此，我们认为这种方法比潜在的替代方案更可控和一致，例如让一个代理与另一个代理交互——我们将探索这一点，作为这种系统的另一个扩展。
 - en: No-code test creation & test run management
+  id: totrans-43
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 无代码的测试创建与测试运行管理
 - en: The other key challenge we addressed was how to create an entire test suite
     without requiring code. First, to define a test set, we created a config object
     in the system prompt for the agent, which defined the list of tests to be run
     against it.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们解决的另一个关键挑战是如何在不需要代码的情况下创建一个完整的测试套件。首先，为了定义测试集，我们在系统提示中为代理创建了一个配置对象，其中定义了要运行的测试列表。
 - en: This also allowed us to pass in the system prompt as a variable when running
     a suite of tests. One of the primary benefits of a system like Langfuse is its
     ability to enable prompt management-as-code in its UI. To that end, follow-up
@@ -219,92 +315,129 @@
     prompt in config, allowing us to force the underlying model into specific states
     during testing while hardening the system against changes to either the primary
     or follow-on system prompts.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 这也使我们能够在运行一套测试时将系统提示作为变量传入。像Langfuse这样的系统的主要好处之一是，它能够在其UI中实现提示管理作为代码。为此，可能会注入系统中的后续系统提示也会与配置中的系统提示关联，从而使我们能够在测试过程中强制底层模型进入特定状态，同时增强系统对主提示和后续提示变化的抵抗力。
 - en: By managing the list of tests to be run as configs in the system prompt, we
     require code change only once per agent. The list of tests to be run can be changed
     and expanded within the Langfuse UI.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过将要运行的测试列表作为系统提示中的配置来管理，我们只需要每个代理一次代码更改。要运行的测试列表可以在Langfuse UI中进行更改和扩展。
 - en: Each test prompt is linked to its evaluator as part of its config. Each test
     prompt has at least 1 custom eval running against it, with prompts that all roughly
     follow this template:a helpful AI evaluator who will provide feedback and scoring
     on the task below.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个测试提示都与其评估者作为配置的一部分相关联。每个测试提示至少有一个自定义评估运行，并且这些提示大致遵循以下模板：一个有用的AI评估者，将提供反馈和评分。
 - en: '[PRE0]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Using this System
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个系统
 - en: We see this tests & eval framework as a reasonable set of compromises to create
     a low-cost, easy-to-operate system. We see its primary applications as part of
     a CI/CD pipeline, ensuring that or as the source of a quick scorecard for someone
     looking to tweak a system’s prompts who wants more thorough input than they can
     get through manual testing.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们认为这个测试与评估框架是一个合理的折衷方案，用于创建一个低成本、易于操作的系统。我们将其主要应用视为持续集成/持续交付（CI/CD）管道的一部分，确保，或者作为快速评分卡的来源，供那些希望调整系统提示并需要比手动测试更多反馈的人使用。
 - en: Based on the models underpinning the agent and your evaluators, token utilization
     can mean that a full test suite run, which in our case can easily contain dozens
     of test prompts & evaluators, can cost in the tens of dollars.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于支撑代理和评估器的模型，令牌的使用可能意味着一个完整的测试套件运行，像我们这样的测试套件通常包含数十个测试提示和评估器，可能需要花费数十美元。
 - en: One way to control the cost of running a system like this as a means of iterating
     on prompts & tools, particularly when making large numbers of changes in an attempt
     to iteratively improve performance, is to start with a smaller model, measuring
     relative performance, and stepping up testing to larger models only when you find
     an encouraging result.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 控制运行此类系统成本的一种方式是，在迭代提示和工具时，尤其是在进行大量更改以迭代提升性能时，首先从一个较小的模型开始，衡量相对性能，只有在找到鼓舞人心的结果时，才逐步增加测试规模，使用更大的模型。
 - en: Langfuse Impressions
+  id: totrans-53
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Langfuse 印象
 - en: Overall, we’re happy with our decision to use Langfuse. With a reasonably small
     amount of work, we could deploy something that fit our needs. The system was flexible
     enough to allow us to customize the system to suit our use case relatively quickly.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 总的来说，我们对使用 Langfuse 的决定感到满意。只需相对较少的工作，我们就能部署出符合需求的系统。该系统足够灵活，让我们能够快速定制，以适应我们的用例。
 - en: 'We have noticed a few shortcomings that we hope will be addressed with future
     development:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经注意到一些不足之处，希望未来的开发能够解决这些问题：
 - en: The Langfuse UX lacks some polish, which would significantly increase the quality
     of life for its users. Examples include the inability to duplicate a prompt and
     the inability to search available prompts by any parameter other than their name.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: Langfuse 的用户体验缺乏一些打磨，若进行改进，将大大提升用户的使用体验。举例来说，目前无法复制提示，并且无法通过除名称以外的其他参数来搜索可用的提示。
 - en: The self-hosted option doesn’t allow you to trigger new test runs from within
     the UI, meaning that someone operating the system needs to do so through the command
     line or another UI developed for this purpose.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 自托管选项不允许你通过 UI 触发新的测试运行，这意味着操作系统的人需要通过命令行或为此目的开发的其他 UI 来执行此操作。
 - en: We understand that this environment is rapidly evolving, but we believe that
     this rough framework is reasonably portable, should we ultimately decide to implement
     it in another system.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们理解这个环境在快速发展，但我们相信这个粗略的框架具有相当好的可移植性，若我们最终决定将其实现到另一个系统中，应该是可行的。
 - en: Future Innovation Potential
+  id: totrans-59
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 未来创新潜力
 - en: AI-generated test prompt variants
+  id: totrans-60
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: AI 生成的测试提示变体
 - en: One way to increase our test coverage would be to create variants of our existing
     test prompts. Tools such as TestGen-LLM are emerging in the space, but overall,
     the space of using GenAI to test GenAI is young. Since these payloads are essentially
     JSON objects, it is certainly possible to instruct an LLM to create variants.
     The question, then, is how to control the quality of those variants so that they
     still represent valid tests.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 增加测试覆盖面的一种方式是创建我们现有测试提示的变体。像 TestGen-LLM 这样的工具正在该领域崭露头角，但总体而言，利用生成式 AI 测试生成式
+    AI 仍是一个相对年轻的领域。由于这些负载本质上是 JSON 对象，因此确实可以指示 LLM 创建变体。那么问题是，如何控制这些变体的质量，以确保它们仍然是有效的测试。
 - en: Using Datasets
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用数据集
 - en: Langfuse datasets are an interesting tool feature, allowing users to link particular
     portions of traces as inputs and expected outputs of a model. While we could have
     used something like this in our unit testing, we found it simpler to create chat
@@ -314,17 +447,27 @@
     code (e.g., did the chatbot return the correct year when asked? Did the chatbot
     return functional JSON?). We may use them in the future for more general testing,
     but we found it faster to spin up new tests by creating the prompts separately.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: Langfuse 数据集是一个有趣的工具功能，允许用户将特定的追踪部分链接为模型的输入和预期输出。虽然我们本可以在单元测试中使用类似的工具，但我们发现创建聊天提示作为输入，并一般描述我们在评估提示中寻找的内容，比制作“预期输出”用于数据集评估要更简单。我们认为数据集是用于代码中可评估的测试（例如，聊天机器人在被问到时是否返回了正确的年份？聊天机器人是否返回了有效的
+    JSON？）的明确方向。我们可能会在未来用于更通用的测试，但我们发现通过分别创建提示来生成新测试会更快。
 - en: '*Thanks for reading! I’m* [*Jack Moore*](https://medium.com/u/266c1c6aac8?source=post_page---user_mention--00d21a680ddc--------------------------------)*,
     Founder and CEO of* [*Auril.ai*](http://auril.ai)*. This post was first published
     on our tech blog, where we’ll be exploring topics relevant to taking Generative
     AI from conceptual intrigue to productionalized value.*'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '*感谢阅读！我是* [*Jack Moore*](https://medium.com/u/266c1c6aac8?source=post_page---user_mention--00d21a680ddc--------------------------------)*，*
+    [*Auril.ai*](http://auril.ai)*的创始人兼CEO。这篇文章最初发布在我们的技术博客上，我们将在这里探讨与将生成式AI从概念性的兴趣带到实际价值应用相关的主题。*'
 - en: '*All views are our own. We have no affiliation or partnership with Langfuse*'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '*所有观点仅代表我们个人。我们与Langfuse没有任何关联或合作关系。*'
 - en: '*Unless otherwise noted, all images are by the author*'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '*除非另有说明，所有图片均由作者提供。*'

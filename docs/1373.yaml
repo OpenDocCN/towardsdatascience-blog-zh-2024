@@ -1,44 +1,68 @@
 - en: 'Mastering GenAI ML System Design Interview (2): Design ChatGPT Memory Feature'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 精通GenAI机器学习系统设计面试（2）：设计ChatGPT记忆功能
 - en: 原文：[https://towardsdatascience.com/mastering-genai-ml-system-design-interview-2-design-chatgpt-memory-feature-fe908517d76c?source=collection_archive---------0-----------------------#2024-06-01](https://towardsdatascience.com/mastering-genai-ml-system-design-interview-2-design-chatgpt-memory-feature-fe908517d76c?source=collection_archive---------0-----------------------#2024-06-01)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/mastering-genai-ml-system-design-interview-2-design-chatgpt-memory-feature-fe908517d76c?source=collection_archive---------0-----------------------#2024-06-01](https://towardsdatascience.com/mastering-genai-ml-system-design-interview-2-design-chatgpt-memory-feature-fe908517d76c?source=collection_archive---------0-----------------------#2024-06-01)
 - en: How to design the cross-conversation memory of ChatGPT
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何设计ChatGPT的跨会话记忆
 - en: '[](https://medium.com/@jacklingenai?source=post_page---byline--fe908517d76c--------------------------------)[![Jack
     Chih-Hsu Lin](../Images/044c46619ba339417278ec485677c945.png)](https://medium.com/@jacklingenai?source=post_page---byline--fe908517d76c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fe908517d76c--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fe908517d76c--------------------------------)
     [Jack Chih-Hsu Lin](https://medium.com/@jacklingenai?source=post_page---byline--fe908517d76c--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@jacklingenai?source=post_page---byline--fe908517d76c--------------------------------)[![Jack
+    Chih-Hsu Lin](../Images/044c46619ba339417278ec485677c945.png)](https://medium.com/@jacklingenai?source=post_page---byline--fe908517d76c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fe908517d76c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fe908517d76c--------------------------------)
+    [Jack Chih-Hsu Lin](https://medium.com/@jacklingenai?source=post_page---byline--fe908517d76c--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fe908517d76c--------------------------------)
     ·16 min read·Jun 1, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fe908517d76c--------------------------------)
+    ·16分钟阅读·2024年6月1日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/7d3e32bdec1b4de8a154d406a5d13b38.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7d3e32bdec1b4de8a154d406a5d13b38.png)'
 - en: AI with memory (image by author using ChatGPT)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 带有记忆的AI（图片由作者使用ChatGPT制作）
 - en: 'Note on 09/21/2024: I’m collaborating with a renowned publisher on the book
     Designing Generative AI Systems. Follow me on [Medium](https://medium.com/@jacklingenai)
     and [LinkedIn](https://www.linkedin.com/in/jacklingenai/) for the latest updates.'
+  id: totrans-8
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 2024年9月21日备注：我正在与一家著名出版商合作编写《设计生成型AI系统》一书。请关注我的[Medium](https://medium.com/@jacklingenai)和[LinkedIn](https://www.linkedin.com/in/jacklingenai/)账号，获取最新更新。
 - en: Background/Context
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 背景/背景信息
 - en: I was thrilled to learn that [the memory feature of ChatGPT](https://openai.com/index/memory-and-new-controls-for-chatgpt/)
     was released on April 29, 2024, as a subscription-only service. Excitedly, I tried
     it out immediately. I couldn’t stop thinking about how this memory feature was
@@ -46,21 +70,31 @@
     By following [the principles and solution outline of GenAI ML system design interviews](/mastering-genai-ml-system-design-interview-principles-solution-outline-71a4664511a7),
     I’ll share my thoughts and considerations as an interview candidate for designing
     the ChatGPT memory feature in this post.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我非常激动地得知，[ChatGPT的记忆功能](https://openai.com/index/memory-and-new-controls-for-chatgpt/)于2024年4月29日发布，且仅限订阅用户使用。我迫不及待地尝试了这一功能。脑海中一直在思考这个记忆功能是如何实现的，以及其中涉及的重要考虑因素和权衡。通过遵循[GenAI机器学习系统设计面试的原则和解决方案概述](/mastering-genai-ml-system-design-interview-principles-solution-outline-71a4664511a7)，我将在这篇文章中分享作为面试候选人设计ChatGPT记忆功能时的思考和考虑因素。
 - en: Can you design the memory function of ChatGPT?
+  id: totrans-11
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 你能设计ChatGPT的记忆功能吗？
 - en: Let’s walk through the functionalities of the memory feature before we try to
     answer the question.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们尝试回答问题之前，让我们先来看看记忆功能的具体功能。
 - en: ChatGPT Memory Feature
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: ChatGPT记忆功能
 - en: How to Manage Memory
+  id: totrans-14
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何管理记忆

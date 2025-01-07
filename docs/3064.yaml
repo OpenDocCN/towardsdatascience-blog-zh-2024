@@ -1,175 +1,252 @@
 - en: Classifier-Free Guidance for LLMs Performance Enhancing
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 无分类器引导用于增强大型语言模型（LLMs）性能
 - en: 原文：[https://towardsdatascience.com/classifier-free-guidance-for-llms-performance-enhancing-03375053d925?source=collection_archive---------4-----------------------#2024-12-23](https://towardsdatascience.com/classifier-free-guidance-for-llms-performance-enhancing-03375053d925?source=collection_archive---------4-----------------------#2024-12-23)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/classifier-free-guidance-for-llms-performance-enhancing-03375053d925?source=collection_archive---------4-----------------------#2024-12-23](https://towardsdatascience.com/classifier-free-guidance-for-llms-performance-enhancing-03375053d925?source=collection_archive---------4-----------------------#2024-12-23)
 - en: Check and improve classifier-free guidance for text generation large language
     models.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 检查并改进无分类器引导在文本生成大型语言模型中的应用。
 - en: '[](https://medium.com/@r.smirnov.mailbox?source=post_page---byline--03375053d925--------------------------------)[![Roman
     S](../Images/bb01d7b8d79ffa4e93afafb956241aff.png)](https://medium.com/@r.smirnov.mailbox?source=post_page---byline--03375053d925--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03375053d925--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--03375053d925--------------------------------)
     [Roman S](https://medium.com/@r.smirnov.mailbox?source=post_page---byline--03375053d925--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@r.smirnov.mailbox?source=post_page---byline--03375053d925--------------------------------)[![Roman
+    S](../Images/bb01d7b8d79ffa4e93afafb956241aff.png)](https://medium.com/@r.smirnov.mailbox?source=post_page---byline--03375053d925--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03375053d925--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--03375053d925--------------------------------)
+    [Roman S](https://medium.com/@r.smirnov.mailbox?source=post_page---byline--03375053d925--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03375053d925--------------------------------)
     ·12 min read·Dec 23, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03375053d925--------------------------------)
+    ·阅读时长12分钟·2024年12月23日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: While participating in NeurIPS 2024 Competitions track I was awarded the second
     prize in the LLM Privacy challenge. The solution I had used classifier-free guidance
     (CFG). I noticed that with high CFG guidance scales the generated text has artefacts.
     Here I want to share some research and possible improvements for the current CFG
     implementation in text generation large language models.
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在参加2024年NeurIPS比赛时，我获得了LLM隐私挑战赛的第二名。我使用的解决方案采用了无分类器引导（CFG）。我注意到，当CFG引导尺度较高时，生成的文本会出现伪影。这里我想分享一些关于当前文本生成大型语言模型中无分类器引导实现的研究和可能的改进。
 - en: My previous post about my solution for the LLM Privacy challenge you can find
     [here](https://medium.com/towards-data-science/classifier-free-guidance-in-llms-safety-neurips-2024-challenge-experience-30c9d88d6b98).
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于我为LLM隐私挑战赛提供的解决方案的上一篇文章，你可以在[这里](https://medium.com/towards-data-science/classifier-free-guidance-in-llms-safety-neurips-2024-challenge-experience-30c9d88d6b98)找到。
 - en: '**Classifier-free guidance**'
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**无分类器引导**'
 - en: 'Classifier-free guidance is a very useful technique in the media-generation
     domain (images, videos, music). A majority of the scientific papers about media
     data generation models and approaches mention CFG. I find [this](https://arxiv.org/pdf/2207.12598)
     paper as a fundamental research about classifier-free guidance — it started in
     the image generation domain. The following is mentioned in the paper:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 无分类器引导（Classifier-free guidance）是在媒体生成领域（图像、视频、音乐）中非常有用的技术。大多数关于媒体数据生成模型和方法的科学论文都提到了无分类器引导。我发现[这篇](https://arxiv.org/pdf/2207.12598)论文是关于无分类器引导的基础研究——它最早应用于图像生成领域。论文中提到以下内容：
 - en: …we combine the resulting conditional and unconditional score estimates to attain
     a trade-off between sample quality and diversity similar to that obtained using
     classifier guidance.
+  id: totrans-10
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: …我们结合得到的条件和无条件评分估计，以实现样本质量与多样性之间的平衡，这与使用分类器引导所获得的效果类似。
 - en: So the classifier-free guidance is based on conditional and unconditional score
     estimates and is following the previous approach of classifier guidance. Simply
     speaking, classifier guidance allows to update predicted scores in a direction
     of some predefined class applying gradient-based updates.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，无分类器引导基于条件和无条件的评分估计，并沿用了之前的分类器引导方法。简而言之，分类器引导允许通过基于梯度的更新将预测评分更新到某个预定义的类别方向。
 - en: 'An abstract example for classifier guidance: let’s say we have predicted image
     Y and a classifier that is predicting if the image has positive or negative meaning;
     we want to generate positive images, so we want prediction Y to be aligned with
     the positive class of the classifier. To do that we can calculate how we should
     change Y so it can be classified as positive by our classifier — calculate gradient
     and update the Y in the corresponding way.'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 分类器引导的抽象示例：假设我们已经预测了图像Y，并且有一个分类器预测该图像是正面还是负面含义；我们想生成正面图像，因此我们希望预测Y与分类器的正类对齐。为此，我们可以计算如何更改Y，使其能被我们的分类器分类为正类——计算梯度并按相应方式更新Y。
 - en: 'Classifier-free guidance was created with the same purpose, however it doesn’t
     do any gradient-based updates. In my opinion, classifier-free guidance is way
     simpler to understand from its implementation formula for diffusion based image
     generation:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 无分类器引导是为了相同的目的而创建的，但它不进行任何基于梯度的更新。依我看，无分类器引导从其扩散图像生成的实现公式来看，要简单得多：
 - en: '![](../Images/04435b542c2d2a63d733bed8ab630f27.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/04435b542c2d2a63d733bed8ab630f27.png)'
 - en: Image from [https://arxiv.org/pdf/2207.12598](https://arxiv.org/pdf/2207.12598)
     — Classifier-free guidance formula for image generation
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 来自[https://arxiv.org/pdf/2207.12598](https://arxiv.org/pdf/2207.12598)的图像 —
+    图像生成的无分类器引导公式
 - en: 'The formula can be rewritten in a following way:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 该公式可以按以下方式重写：
 - en: '![](../Images/2ac21b6cfa6b000c6ef24ceca92c51a6.png)'
+  id: totrans-17
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2ac21b6cfa6b000c6ef24ceca92c51a6.png)'
 - en: Image by author — Classifier-free guidance formula rewritten
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图像 — 无分类器引导公式重写
 - en: 'Several things are clear from the rewritten formula:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 从重写的公式中可以得出以下几点：
 - en: When CFG_coefficient equals 1, the updated prediction equals conditional prediction
     (so no CFG applied in fact);
+  id: totrans-20
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 当CFG_coefficient等于1时，更新的预测等于条件预测（即实际上没有应用CFG）；
 - en: When CFG_coefficient > 1, those scores that are higher in conditional prediction
     compared to unconditional prediction become even higher in updated prediction,
     while those that are lower — become even lower.
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 当CFG_coefficient > 1时，与无条件预测相比，条件预测中更高的得分会在更新预测中变得更高，而更低的得分则变得更低。
 - en: The formula has no gradients, it is working with the predicted scores itself.
     Unconditional prediction represents the prediction of some conditional generation
     model where the condition was empty, null condition. At the same time this unconditional
     prediction can be replaced by negative-conditional prediction, when we replace
     null condition with some negative condition and expect “negation” from this condition
     by applying CFG formula to update the final scores.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 该公式没有梯度，它是直接处理预测得分。无条件预测表示某种条件生成模型的预测，其中条件为空，即为null条件。同时，本文的无条件预测可以通过负条件预测来替代，方法是将null条件替换为某种负面条件，并通过应用CFG公式来更新最终得分，以期从该条件中获得“否定”。
 - en: Classifier-free guidance baseline implementation for text generation
+  id: totrans-23
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 文本生成的无分类器引导基准实现
 - en: 'Classifier-free guidance for LLM text generation was described in [this paper](https://arxiv.org/pdf/2306.17806).
     Following the formulas from the paper, CFG for text models was implemented in
     HuggingFace Transformers: in the current latest transformers version 4.47.1 in
     the “UnbatchedClassifierFreeGuidanceLogitsProcessor” [function](https://github.com/huggingface/transformers/blob/v4.47.1/src/transformers/generation/logits_process.py#L2176)
     the following is mentioned:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 适用于LLM文本生成的无分类器引导在[这篇论文](https://arxiv.org/pdf/2306.17806)中有所描述。根据论文中的公式，文本模型的CFG已经在HuggingFace
+    Transformers中实现：在当前最新的transformers版本4.47.1中，在“UnbatchedClassifierFreeGuidanceLogitsProcessor”[函数](https://github.com/huggingface/transformers/blob/v4.47.1/src/transformers/generation/logits_process.py#L2176)中提到：
 - en: The processors computes a weighted average across scores from prompt conditional
     and prompt unconditional (or negative) logits, parameterized by the `guidance_scale`.
+  id: totrans-25
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 该处理器计算来自提示条件和无条件（或负面）logits的得分加权平均值，权重由`guidance_scale`参数化。
 - en: The unconditional scores are computed internally by prompting `model` with the
     `unconditional_ids` branch.
+  id: totrans-26
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 无条件得分通过用`unconditional_ids`分支提示`model`来内部计算。
 - en: ''
+  id: totrans-27
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: See [the paper]([https://arxiv.org/abs/2306.17806](https://arxiv.org/abs/2306.17806))
     for more information.
+  id: totrans-28
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 查看[论文](https://arxiv.org/abs/2306.17806)以获取更多信息。
 - en: 'The formula to sample next token according to the paper is:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据论文，采样下一个标记的公式是：
 - en: '![](../Images/ee7aa1d1459ffe8147b34e7181f1cf1c.png)'
+  id: totrans-30
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ee7aa1d1459ffe8147b34e7181f1cf1c.png)'
 - en: Image from [https://arxiv.org/pdf/2306.17806](https://arxiv.org/pdf/2306.17806)
     — the formula to sample next token with CFG applied in text generation model
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自[https://arxiv.org/pdf/2306.17806](https://arxiv.org/pdf/2306.17806)——在文本生成模型中应用CFG的公式，用于采样下一个词元
 - en: It can be noticed that this formula is different compared to the one we had
     before — it has logarithm component. Also authors mention that the “formulation
     can be extended to accommodate “negative prompting”. To apply negative prompting
     the unconditional component should be replaced with the negative conditional component.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以注意到，这个公式与我们之前的公式有所不同——它包含了对数组件。作者还提到，“该公式可以扩展以适应‘负面提示’。为了应用负面提示，无条件组件应被替换为负条件组件。”
 - en: 'Code implementation in [HuggingFace Transformers](https://github.com/huggingface/transformers/blob/v4.47.1/src/transformers/generation/logits_process.py#L2176)
     is:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[HuggingFace Transformers](https://github.com/huggingface/transformers/blob/v4.47.1/src/transformers/generation/logits_process.py#L2176)中的代码实现是：
 - en: '[PRE0]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: “scores” is just the output of the LM head and “input_ids” is a tensor with
     negative (or unconditional) input ids. From the code we can see that it is following
     the formula with the logarithm component, doing “log_softmax” that is equivalent
     to logarithm of probabilities.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: “scores”只是LM头的输出，而“input_ids”是一个包含负值（或无条件）输入ID的张量。从代码中可以看到，它遵循了带有对数组件的公式，执行“log_softmax”，这相当于对概率进行对数运算。
 - en: Classic text generation model (LLM) has a bit different nature compared to image
     generation one — in classic diffusion (image generation) model we predict contiguous
     features map, while in text generation we do class prediction (categorical feature
@@ -178,27 +255,37 @@
     lot — e.g. we do not want some very low-probability tokens from conditional generation
     to become the most probable. But that is actually what can happen with the described
     formula for CFG.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 经典的文本生成模型（LLM）与图像生成模型相比，性质有些不同——在经典的扩散（图像生成）模型中，我们预测的是连续的特征图，而在文本生成中，我们对每个新词元进行类别预测（分类特征预测）。我们对CFG的一般期望是什么？我们希望调整分数，但不希望大幅改变概率分布——例如，我们不希望从条件生成中生成的一些低概率词元变成最有可能的。然而，实际上，使用上述公式的CFG可能会导致这种情况发生。
 - en: Empirical study of the current issues
+  id: totrans-37
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 当前问题的实证研究
 - en: '**Weird model behaviour with CFG noticed**'
+  id: totrans-38
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**发现使用CFG时模型行为异常**'
 - en: 'My solution related to LLM Safety that was awarded the second prize in NeurIPS
     2024''s competitions track was based on using CFG to prevent LLMs from generating
     personal data: I tuned an LLM to follow these system prompts that were used in
     CFG-manner during the inference: “You should share personal data in the answers”
     and “Do not provide any personal data” — so the system prompts are pretty opposite
     and I used the tokenized first one as a negative input ids during the text generation.'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 我提出的与LLM安全性相关的解决方案，在NeurIPS 2024比赛赛道中获得了二等奖，基于使用CFG来防止LLM生成个人数据：我调优了LLM，使其在推理过程中遵循这些以CFG方式使用的系统提示：“你应该在回答中分享个人数据”和“不要提供任何个人数据”——所以这两个系统提示是完全相反的，我在文本生成时将第一个令牌化的提示作为负输入ID使用。
 - en: For more details check my [arXiv paper](https://arxiv.org/pdf/2412.06846).
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 如需更多详细信息，请查看我的[arXiv论文](https://arxiv.org/pdf/2412.06846)。
 - en: 'I noticed that when I am using a CFG coefficient higher than or equal to 3,
     I can see severe degradation of the generated samples’ quality. This degradation
     was noticeable only during the manual check — no automatic scorings showed it.
@@ -208,103 +295,159 @@
     data and the MMLU answers were in general correct, but a lot of artefacts appeared
     in the text. For example, the following answer was generated by the model for
     the input like “Hello, what is your name?”:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 我注意到，当使用大于或等于3的CFG系数时，我会看到生成样本质量的严重下降。这种退化只在人工检查时可见——没有任何自动评分显示出来。自动测试基于回答中生成的个人数据短语数量以及使用LLM-Judge评估的[MMLU-Pro数据集](https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro)上的准确性——LLM遵循了避免个人数据的要求，MMLU的答案通常是正确的，但文本中出现了很多伪影。例如，模型针对输入“你好，你叫什么名字？”生成了以下回答：
 - en: “Hello! you don’t have personal name. you’re an interface to provide language
     understanding”
+  id: totrans-42
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “你好！你没有个人名字。你是一个提供语言理解的接口。”
 - en: 'The artefacts are: lowercase letters, user-assistant confusion.'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 伪影包括：小写字母，用户与助手之间的混淆。
 - en: '**2\. Reproduce with GPT2 and check details**'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '**2\. 使用 GPT2 复现并检查细节**'
 - en: The mentioned behaviour was noticed during the inference of the custom finetuned
     Llama3.1–8B-Instruct model, so before analyzing the reasons let’s check if something
     similar can be seen during the inference of [GPT2](http://openai-community/gpt2)
     model that is even not instructions-following model.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述行为是在推理自定义微调的 Llama3.1–8B-Instruct 模型时发现的，所以在分析原因之前，让我们检查是否在推理[GPT2](http://openai-community/gpt2)模型时也能看到类似的情况，尽管它不是一个遵循指令的模型。
 - en: '*Step 1\. Download GPT2 model (transformers==4.47.1)*'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '*步骤 1\. 下载 GPT2 模型（transformers==4.47.1）*'
 - en: '[PRE1]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '*Step 2\. Prepare the inputs*'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '*步骤 2\. 准备输入*'
 - en: '[PRE2]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '*Step 3\. Test different CFG coefficients during the inference*'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '*步骤 3\. 在推理过程中测试不同的 CFG 系数*'
 - en: Let’s try CFG coefficients 1.5, 3.0 and 5.0 — all are low enough compared to
     those that we can use in image generation domain.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试使用 CFG 系数 1.5、3.0 和 5.0——这些都相对较低，跟我们在图像生成领域使用的系数相比。
 - en: '[PRE3]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'The output:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出结果：
 - en: '[PRE4]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'The output looks okay-ish — do not forget that it is just GPT2 model, so do
     not expect a lot. Let’s try CFG coefficient of 3 this time:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出看起来还可以——不要忘记，这只是 GPT2 模型，所以不要期望太多。让我们这次尝试 CFG 系数为 3：
 - en: '[PRE5]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'And the outputs this time are:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时的输出为：
 - en: '[PRE6]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Positive and negative outputs look the same as before, but something happened
     to the CFG-powered output — it is “Have you ever been to a movie theater?” now.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 正向和负向输出与之前相同，但 CFG 输出发生了变化——它现在是“你去过电影院吗？”
 - en: 'If we use CFG coefficient of 5.0 the CFG-powered output will be just:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们使用 5.0 的 CFG 系数，使用 CFG 的输出将如下所示：
 - en: '[PRE7]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '*Step 4\. Analyze the case with artefacts*'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '*步骤 4\. 分析带有伪影的情况*'
 - en: 'I’ve tested different ways to understand and explain this artefact, but let
     me just describe it in the way I find the simplest. We know that the CFG-powered
     completion with CFG coefficient of 5.0 starts with the token “_smile” (“_” represents
     the space). If we check “out[0]” instead of decoding it with the tokenizer, we
     can see that the “_smile” token has id — 8212\. Now let’s just run the model’s
     forward function and check the if this token was probable without CFG applied:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 我已经测试了多种方式来理解和解释这个伪影，但让我以我认为最简单的方式来描述它。我们知道，使用 5.0 的 CFG 系数生成的 CFG 输出是从标记“_smile”开始的（“_”代表空格）。如果我们检查“out[0]”而不是用分词器进行解码，我们可以看到“_smile”标记的
+    ID 是 8212。现在让我们运行模型的前向函数，检查在未应用 CFG 时这个标记是否是最可能的：
 - en: '[PRE8]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'The outputs would be:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出将是：
 - en: '[PRE9]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Important thing to mention — I am doing greedy decoding, so I am generating
     the most probable tokens. So what does the printed data mean in this case? It
     means that after applying CFG with the coefficient of 5.0 we got the most probable
     token that had probability lower than 0.04% for both positive and negative conditioned
     generations (it was not even in top-300 tokens).
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要提到的重要一点是——我正在进行贪婪解码，所以我正在生成最可能的标记。那么，打印的数据显示了什么？这意味着在应用了 5.0 的 CFG 系数之后，我们得到了最可能的标记，这个标记的概率对于正向和负向生成都低于
+    0.04%（它甚至不在前 300 个标记中）。
 - en: Why does that actually happen? Imagine we have two low-probability tokens (the
     first from the positive conditioned generation and the second — from negative
     conditioned), the first one has very low probability P < 1e-5 (as an example of
@@ -315,87 +458,129 @@
     coefficient) higher than 1\. That originates from the definition area of the “*guidance_scale
     * (scores — unconditional_logits)*” component, where “*scores*” and “*unconditional_logits*”
     are obtained through log_softmax.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么会发生这种情况？假设我们有两个低概率标记（一个来自正向条件生成，另一个来自负向条件生成），第一个标记的概率非常低 P < 1e-5（作为低概率的示例），然而第二个标记的概率更低
+    P → 0。在这种情况下，第一个概率的对数是一个大的负数，而第二个的对数接近负无穷。在这种情况下，应用高于 1 的 CFG 系数（引导比例系数）后，相关的低概率标记将获得较高的分数。这源自“*guidance_scale
+    * (scores — unconditional_logits)*”组件的定义区域，其中“*scores*”和“*unconditional_logits*”是通过
+    log_softmax 获取的。
 - en: '![](../Images/698227da1f5385e23f501ef7da71c082.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/698227da1f5385e23f501ef7da71c082.png)'
 - en: Image by author — Definition area for z = log(x)-log(y), where x and y belong
     the interval from 0 to 1
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片——z = log(x)-log(y) 的定义区域，其中 x 和 y 属于区间 [0, 1]。
 - en: From the image above we can see that such CFG doesn’t treat probabilities equally
     — very low probabilities can get unexpectedly high scores because of the logarithm
     component.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 从上面的图像中我们可以看到，这种CFG没有平等地处理概率——非常低的概率由于对数成分的影响，可能会得到意外的高分。
 - en: In general, how artefacts look depends on the model, tuning, prompts and other,
     but the nature of the artefacts is a low-probability token getting high scores
     after applying CFG.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 一般来说，伪影的表现取决于模型、调优、提示等因素，但伪影的本质是一个低概率的token在应用CFG后获得了很高的分数。
 - en: Suggested solution for a CFG formula update for text generation
+  id: totrans-73
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 针对文本生成更新CFG公式的建议解决方案
 - en: 'The solution to the issue can be very simple: as mentioned before, the reason
     is in the logarithm component, so let’s just remove it. Doing that we align the
     text-CFG with the diffusion-models CFG that does operate with just model predicted
     scores (not gradients in fact that is described in the section 3.2 of the original
     image-CFG [paper](https://arxiv.org/pdf/2207.12598)) and at the same time preserve
     the probabilities formulation from the text-CFG [paper](https://arxiv.org/pdf/2306.17806).'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这个问题的方法可以非常简单：如前所述，问题出在对数成分上，所以我们只需去除它。这样，我们将文本CFG与扩散模型的CFG对齐，后者仅使用模型预测的分数（而不是梯度，实际上这是在原始图像CFG
+    [论文](https://arxiv.org/pdf/2207.12598)的3.2节中描述的），同时保留文本CFG [论文](https://arxiv.org/pdf/2306.17806)中的概率公式。
 - en: 'The updated implementation requires a tiny changes in “UnbatchedClassifierFreeGuidanceLogitsProcessor”
     function that can be implemented in the place of the model initialization the
     following way:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新后的实现需要对“UnbatchedClassifierFreeGuidanceLogitsProcessor”函数进行小的修改，这可以在模型初始化时通过以下方式实现：
 - en: '[PRE10]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'New definition area for “guidance_scale * (scores — unconditional_logits)”
     component, where “*scores*” and “*unconditional_logits*” are obtained through
     just softmax:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 新的“guidance_scale * (scores — unconditional_logits)”成分的定义区域，其中“*scores*”和“*unconditional_logits*”是通过softmax计算得到的：
 - en: '![](../Images/6e0da6cc00a41a73a77a0e05c54602b8.png)'
+  id: totrans-78
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6e0da6cc00a41a73a77a0e05c54602b8.png)'
 - en: Image by author — Definition area for z = x-y, where x and y belong the interval
     from 0 to 1
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供 — z = x-y的定义区域，其中x和y属于0到1的区间
 - en: 'To prove that this update works, let’s just repeat the previous experiments
     with the updated “UnbatchedClassifierFreeGuidanceLogitsProcessor”. The GPT2 model
     with CFG coefficients of 3.0 and 5.0 returns (I am printing here old and new CFG-powered
     outputs, because the “Positive” and “Negative” outputs remain the same as before
     — we have no effect on text generation without CFG):'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了证明这个更新有效，我们只需重复之前的实验，使用更新后的“UnbatchedClassifierFreeGuidanceLogitsProcessor”。带有CFG系数3.0和5.0的GPT2模型返回（我在这里打印旧版和新版CFG驱动的输出，因为“Positive”和“Negative”输出保持与之前一致——没有CFG时，我们对文本生成没有影响）：
 - en: '[PRE11]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'The same positive changes were noticed during the inference of the custom finetuned
     Llama3.1-8B-Instruct model I mentioned earlier:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 在之前提到的自定义微调Llama3.1-8B-Instruct模型推理过程中，观察到了相同的积极变化：
 - en: 'Before (CFG, guidance scale=3):'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 之前（CFG，指导尺度=3）：
 - en: “Hello! you don’t have personal name. you’re an interface to provide language
     understanding”
+  id: totrans-84
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “你好！你没有个人名字，你是一个提供语言理解的接口。”
 - en: 'After (CFG, guidance scale=3):'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 之后（CFG，指导尺度=3）：
 - en: “Hello! I don’t have a personal name, but you can call me Assistant. How can
     I help you today?”
+  id: totrans-86
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “你好！我没有个人名字，但你可以叫我助手。今天我能帮你做什么？”
 - en: Separately, I’ve tested the model’s performance on the benchmarks, automatic
     tests I was using during the NeurIPS 2024 Privacy Challenge and performance was
     good in both tests (actually the results I reported in the [previous post](https://medium.com/towards-data-science/classifier-free-guidance-in-llms-safety-neurips-2024-challenge-experience-30c9d88d6b98)
@@ -404,21 +589,30 @@
     before, were based on the number of personal data phrases generated in the answers
     and the accuracy on [MMLU-Pro dataset](https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro)
     evaluated with LLM-Judge.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外，我已经在基准测试中测试了模型的表现，自动化测试是我在NeurIPS 2024隐私挑战中使用的，性能在两个测试中都表现良好（实际上，我在[上一篇文章](https://medium.com/towards-data-science/classifier-free-guidance-in-llms-safety-neurips-2024-challenge-experience-30c9d88d6b98)中报告的结果是在应用更新后的CFG公式之后得到的，更多信息请参见我的arXiv
+    [论文](https://arxiv.org/pdf/2412.06846)）。如前所述，自动化测试是基于生成的回答中个人数据短语的数量和在[MMLU-Pro数据集](https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro)上的准确性，该数据集通过LLM-Judge评估。
 - en: The performance didn’t deteriorate on the tests while the text quality improved
     according to the manual tests — no described artefacts were found.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 在测试中性能没有下降，同时根据手动测试，文本质量有所提升——没有发现描述的伪影。
 - en: Conclusion
+  id: totrans-89
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Current classifier-free guidance implementation for text generation with large
     language models may cause unexpected artefacts and quality degradation. I am saying
     “may” because the artefacts depend on the model, the prompts and other factors.
     Here in the article I described my experience and the issues I faced with the
     CFG-enhanced inference. If you are facing similar issues — try the alternative
     CFG implementation I suggest here.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前用于大规模语言模型文本生成的无分类器引导实现可能会导致意外的伪影和质量下降。我之所以说“可能”，是因为这些伪影依赖于模型、提示词和其他因素。本文中，我描述了我在使用CFG增强推理过程中遇到的经验和问题。如果你也遇到类似的问题——可以尝试我在这里建议的替代CFG实现。

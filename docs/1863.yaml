@@ -1,39 +1,61 @@
 - en: Handling Feedback Loops in Recommender Systems — Deep Bayesian Bandits
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 处理推荐系统中的反馈循环 — 深度贝叶斯赌博算法
 - en: 原文：[https://towardsdatascience.com/handling-feedback-loops-in-recommender-systems-deep-bayesian-bandits-e83f34e2566a?source=collection_archive---------6-----------------------#2024-07-31](https://towardsdatascience.com/handling-feedback-loops-in-recommender-systems-deep-bayesian-bandits-e83f34e2566a?source=collection_archive---------6-----------------------#2024-07-31)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/handling-feedback-loops-in-recommender-systems-deep-bayesian-bandits-e83f34e2566a?source=collection_archive---------6-----------------------#2024-07-31](https://towardsdatascience.com/handling-feedback-loops-in-recommender-systems-deep-bayesian-bandits-e83f34e2566a?source=collection_archive---------6-----------------------#2024-07-31)
 - en: Understanding fundamentals of exploration and Deep Bayesian Bandits to tackle
     feedback loops in recommender systems
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 理解探索基本原理和深度贝叶斯赌博算法，解决推荐系统中的反馈循环问题
 - en: '[](https://medium.com/@sachinhosmani?source=post_page---byline--e83f34e2566a--------------------------------)[![Sachin
     Hosmani](../Images/d32632e6175883b8ffcf8dd7b10f25c3.png)](https://medium.com/@sachinhosmani?source=post_page---byline--e83f34e2566a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e83f34e2566a--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e83f34e2566a--------------------------------)
     [Sachin Hosmani](https://medium.com/@sachinhosmani?source=post_page---byline--e83f34e2566a--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@sachinhosmani?source=post_page---byline--e83f34e2566a--------------------------------)[![Sachin
+    Hosmani](../Images/d32632e6175883b8ffcf8dd7b10f25c3.png)](https://medium.com/@sachinhosmani?source=post_page---byline--e83f34e2566a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e83f34e2566a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e83f34e2566a--------------------------------)
+    [Sachin Hosmani](https://medium.com/@sachinhosmani?source=post_page---byline--e83f34e2566a--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e83f34e2566a--------------------------------)
     ·11 min read·Jul 31, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--e83f34e2566a--------------------------------)
+    ·阅读时长11分钟·2024年7月31日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/1c9bffad3719c1dd1d0b753b0b3477d3.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1c9bffad3719c1dd1d0b753b0b3477d3.png)'
 - en: Image from ChatGPT-4o
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像来源：ChatGPT-4o
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: Recommender system models are typically trained to optimize for user engagement
     like clicks and purchases. The well-meaning intention behind this is to favor
     items that the user has previously engaged with. However, this creates a feedback
@@ -43,97 +65,145 @@
     In this article, I introduce exploration techniques from the basics and ultimately
     explain Deep Bayesian Bandits, a highly-effective algorithm described in a [paper](https://arxiv.org/abs/2008.00727)
     by Guo, Dalin, et al [1].
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 推荐系统模型通常会被训练来优化用户的参与度，如点击和购买。这样做的出发点是希望优先推荐用户以前参与过的项目。然而，这会形成一个反馈循环，随着时间的推移，可能会导致“冷启动问题”。简而言之，用户历史上受欢迎的项目倾向于继续被模型青睐。相比之下，新颖但高度相关的项目却没有得到足够的曝光。在本文中，我将从基础开始介绍探索技术，并最终解释深度贝叶斯赌博算法——这是一种在[论文](https://arxiv.org/abs/2008.00727)中由郭大林等人描述的高效算法[1]。
 - en: An ad recommender system
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 广告推荐系统
 - en: Let us use a simple ad recommender system as an example throughout this article.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们以一个简单的广告推荐系统作为示例，贯穿本文。
 - en: '![](../Images/c41c07cace57419dd1e44597f074e5d9.png)'
+  id: totrans-12
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c41c07cace57419dd1e44597f074e5d9.png)'
 - en: A simple three-component ad recommender system. Image by author
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个简单的三组件广告推荐系统。图像来源：作者
 - en: It is a three-component system
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个三组件系统
 - en: '**Retrieval**: a component to efficiently retrieve candidates for ranking'
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**检索**：一个高效地检索候选广告以供排序的组件'
 - en: '**Ranking**: a deep neural network that predicts the click-through rate (CTR)
     as the score for an ad given a user'
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**排序**：一个深度神经网络，用于预测给定用户的广告点击率（CTR），作为广告的评分'
 - en: '`score = predict_ctr(user features, ad features)`'
+  id: totrans-17
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`score = predict_ctr(user features, ad features)`'
 - en: '**Auction**: a component that'
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**拍卖**：一个组件，负责'
 - en: '- retrieves candidate ads for the user'
+  id: totrans-19
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 为用户检索候选广告'
 - en: '- scores them using the ranking model'
+  id: totrans-20
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 使用排序模型对其进行评分'
 - en: '- selects the highest-scored ad and returns it*'
+  id: totrans-21
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 选择得分最高的广告并返回它*'
 - en: Our focus in this article will be exclusively on the ranking model.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文的重点将专注于排序模型。
 - en: '**real-world auction systems also take the ad’s bid amount into account, but
     we ignore that for simplicity*'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '**真实世界的拍卖系统也会考虑广告的竞标金额，但为了简化问题我们忽略这一点。**'
 - en: Ranking model architecture
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 排名模型架构
 - en: The ranking model is a deep neural network that predicts the click-through rate
     (CTR) of an ad, given the user and ad features. For simplicity, I propose a simple
     fully connected DNN below, but one could very well enrich it with techniques like
     wide-and-deep network, DCN, and DeepFM without any loss of applicability of the
     methods I explain in this article.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 排名模型是一个深度神经网络，给定用户和广告特征后，它可以预测广告的点击率（CTR）。为了简化起见，我在下面提出了一个简单的全连接DNN，但实际上你可以使用诸如宽和深网络（wide-and-deep）、DCN和DeepFM等技术来丰富该模型，而不会影响我在本文中解释的方法的适用性。
 - en: '![](../Images/7337ff75e80fb643aa08375d018d36ae.png)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7337ff75e80fb643aa08375d018d36ae.png)'
 - en: A binary classifier deep neural network that predicts pCTR. Image by author
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个二分类器深度神经网络，预测pCTR。图像由作者提供
 - en: Training data
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 训练数据
 - en: The ranking model is trained on data that comprises clicks as binary labels
     and, concatenation of user and ad features. The exact set of features used is
     unimportant to this article, but I have assumed that some advertiser brand-related
     features are present to help the model learn the user’s affinity towards brands.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 排名模型是基于包含点击数据（二进制标签）和用户与广告特征的拼接数据进行训练的。使用的特征集的具体内容对本文并不重要，但我假设其中包含了一些与广告商品牌相关的特征，以帮助模型学习用户对品牌的偏好。
 - en: '![](../Images/0a80b00a3ecdd55e344fd7c219350e2b.png)'
+  id: totrans-30
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0a80b00a3ecdd55e344fd7c219350e2b.png)'
 - en: Training data with sample features. Image by author
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 包含样本特征的训练数据。图像由作者提供
 - en: The cold-start problem
+  id: totrans-32
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 冷启动问题
 - en: Imagine we successfully trained our ranking model on our ads click dataset,
     and the model has learned that one of our users Jane loves buying bags from the
     bag company “Vogue Voyage”. But there is a new bag company “Radiant Clutch” in
@@ -143,200 +213,298 @@
     that only their ads are shown to her. She sometimes clicks on them and when the
     model is further trained on these new clicks, it only strengthens the model’s
     belief. This becomes a vicious cycle leading to some items remaining in the dark.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 想象一下，我们成功地在广告点击数据集上训练了我们的排名模型，模型学会了我们的用户Jane喜欢购买“Vogue Voyage”品牌的包包。但市场上有一家新的包包公司“Radiant
+    Clutch”，他们也卖着很棒的包包。然而，尽管“Radiant Clutch”进行了广告活动，旨在吸引像Jane这样的用户，Jane从未看到过他们的广告。这是因为我们的排名模型已经深深地学会了Jane喜欢“Vogue
+    Voyage”品牌的包包，只有他们的广告会展示给她。她有时会点击这些广告，而当模型在这些新点击上进一步训练时，只会加深模型的信念。这样就形成了一个恶性循环，导致某些商品一直处于黑暗中。
 - en: '![](../Images/57214dd9d1a58c9b133183f099eb4389.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/57214dd9d1a58c9b133183f099eb4389.png)'
 - en: 'The feedback loop in action, causing the cold-start problem: bags from Radiant
     Clutch don’t stand a chance. Image by author, thumbnails generated with ChatGPT-4o'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 反馈循环的作用，导致冷启动问题：来自Radiant Clutch的包包毫无机会。图像由作者提供，缩略图由ChatGPT-4o生成
 - en: If we ponder about this, we’d realize that the model did not do anything wrong
     by learning that Jane likes bags from “Vogue Voyage”. But the problem is simply
     that the model is not being given a chance to learn about Jane’s interests in
     other companies’ bags.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们深思一下，就会意识到，模型并没有错，它通过学习得出“Jane喜欢‘Vogue Voyage’品牌的包包”这一结论并没有问题。但问题在于，模型没有机会学习Jane对其他公司包包的兴趣。
 - en: Exploration vs exploitation
+  id: totrans-37
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 探索与利用
 - en: This is a great time to introduce the trade-off between exploration vs exploitation.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个引入“探索与利用”权衡的好时机。
 - en: '**Exploitation**: During ad auction, once we get our CTR predictions from our
     ranking model, we simply select the ad with the highest score. This is a 100%
     exploitation strategy because we are completely acting on our current best knowledge
     to achieve the greatest immediate reward.'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '**利用**：在广告拍卖过程中，一旦我们从排名模型中获得了点击率预测（CTR），我们就简单地选择得分最高的广告。这是一种100%的利用策略，因为我们完全基于当前最佳的知识来获取最大的即时奖励。'
 - en: '**Exploration**: What our approach has been lacking is the willingness to take
     some risk and show an ad even if it wasn’t assigned the highest score. If we did
     that, the user might click on it and the ranking model when updated on this data
     would learn something new about it. But if we never take the risk, the model will
     never learn anything new. This is the motivation behind exploration.'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '**探索**：我们的方法缺乏的是愿意冒一些风险，即使广告未被赋予最高得分，也去展示该广告。如果我们这样做，用户可能会点击它，当模型根据这些数据更新时，它会学到一些新的信息。但如果我们从不冒这个险，模型将永远无法学到任何新东西。这就是探索的动机所在。'
 - en: Exploration vs exploitation is a balancing act. Too little exploration would
     leave us with the cold-start problem and too much exploration would risk showing
     highly irrelevant ads to users, thus losing user trust and money.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 探索与开发是一个平衡的过程。探索过少会导致冷启动问题，而探索过多则可能向用户展示高度不相关的广告，从而失去用户信任和收入。
 - en: Exploration techniques
+  id: totrans-42
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 探索技术
 - en: Now that we’ve set the stage for exploration, let us delve into some concrete
     techniques for controlled exploration.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经为探索设定了舞台，接下来让我们深入探讨一些控制探索的具体技术。
 - en: ε-greedy policy
+  id: totrans-44
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: ε-贪婪策略
 - en: The idea here is simple. In our auction service, when we have the scores for
     all the candidate ads, instead of just taking the top-scored ad, we do the following
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的想法很简单。在我们的拍卖服务中，当我们拥有所有候选广告的得分时，除了直接选择得分最高的广告外，我们还会做以下操作：
 - en: select a random number r in [0, 1)
+  id: totrans-46
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在[0, 1)区间内选择一个随机数r
 - en: if r < ε, select a random ad from our candidates (exploration)
+  id: totrans-47
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果r < ε，则从候选广告中随机选择一则广告（探索）
 - en: else, select the top-scored ad (exploitation)
+  id: totrans-48
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 否则，选择得分最高的广告（开发）
 - en: where ε is a constant that we carefully select in [0, 1) knowing that the algorithm
     will explore with ε probability and exploit with 1 — ε probability.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中，ε是一个常量，我们在[0, 1)区间内仔细选择，知道该算法会以ε的概率进行探索，以1 — ε的概率进行开发。
 - en: '![](../Images/3f247a0cc0bcb07442bdfaa118784004.png)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3f247a0cc0bcb07442bdfaa118784004.png)'
 - en: 'Exploration with ε probability: pick any candidate ad at random. Image by author'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 以ε的概率进行探索：随机选择任何候选广告。图片来自作者
 - en: '![](../Images/f2bc4f67231e97099840ba606aba9311.png)'
+  id: totrans-52
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f2bc4f67231e97099840ba606aba9311.png)'
 - en: 'Exploitation with 1 — ε probability: pick the highest CTR ad. Image by author'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 以1 — ε的概率进行开发：选择点击率（CTR）最高的广告。图片来自作者
 - en: This is a very simple yet powerful technique. However, it can be too naive because
     when it explores, it **completely randomly** selects an ad. Even if an ad has
     an absurdly low pCTR prediction that the user has repeatedly disliked in the past,
     we might still show the ad. This can be a bit harsh and can lead to a serious
     loss in revenue and user trust. We can certainly do better.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一种非常简单但强大的技术。然而，它可能过于天真，因为在进行探索时，它**完全随机**地选择广告。即使某个广告的预测点击率（pCTR）极低，且用户过去多次表示不喜欢，我们仍然可能展示该广告。这可能有些严苛，并可能导致收入和用户信任的严重损失。我们当然可以做得更好。
 - en: Upper confidence bound (UCB)
+  id: totrans-55
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 上置信界限（UCB）
 - en: Our motivation for exploration was to ensure that all ad candidates have an
     opportunity to be shown to the user. But as we give some exposure to an ad, if
     the user still doesn’t engage with it, it becomes prudent to cut future exposure
     to it. So, we need a mechanism by which we select the ad based on both its score
     estimate and also the amount of exposure it has already received.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们进行探索的动机是确保所有广告候选项都有机会展示给用户。但随着广告的曝光，如果用户仍然没有与之互动，那么减少未来的曝光将变得明智。因此，我们需要一种机制，依据广告的得分估算以及广告已接收的曝光量来选择广告。
 - en: Imagine our ranking model could produce not just the CTR score but also a confidence
     interval for it*.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们的排名模型不仅能预测点击率（CTR）得分，还能给出该得分的置信区间*。
 - en: '**how this is achieved is explained later in the article*'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '**如何实现这一点将在文章后面进行解释**'
 - en: '![](../Images/249d31ed0d7a5cc98840265412dbd41a.png)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/249d31ed0d7a5cc98840265412dbd41a.png)'
 - en: The model predicts a confidence interval along with the score. Image by author
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型会预测一个置信区间，并给出相应的得分。图片来自作者
 - en: Such a confidence interval is typically inversely proportional to the amount
     of exposure the ad has received because the more an ad is shown to the user, the
     more user feedback we have about it, which reduces the uncertainty interval.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样的置信区间通常与广告接收到的曝光量成反比，因为广告展示给用户的次数越多，我们获得的用户反馈就越多，这减少了不确定性区间。
 - en: '![](../Images/0a420875a92a76fc85f8ebc8ce683e3f.png)'
+  id: totrans-62
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0a420875a92a76fc85f8ebc8ce683e3f.png)'
 - en: Increased exposure to an ad leads to a decrease in the confidence interval in
     the model’s score prediction. Image by author
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 对广告的增加曝光会导致模型得分预测的置信区间减少。图片来自作者
 - en: During auction, instead of selecting the ad with the greatest pCTR, we select
     the ad with the highest upper confidence bound. This approach is called UCB. The
     philosophy here is “Optimism in the face of uncertainty”. This approach effectively
     takes into account both the ad’s score estimate and also the uncertainty around
     it.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 在拍卖过程中，我们并不是选择具有最大 pCTR 的广告，而是选择具有最高上置信界限的广告。这个方法叫做 UCB。其背后的理念是“在不确定面前保持乐观”。这种方法有效地考虑了广告的分数估计以及它的不确定性。
 - en: '![](../Images/37c4d0861398242e13f207fca13acbaf.png)'
+  id: totrans-65
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/37c4d0861398242e13f207fca13acbaf.png)'
 - en: 'UCB in action: Ad-1 wins auction at first on account of its large confidence
     interval, but as the model learns about it, its UCB falls leading to Ad-2 winning
     auction. Image by author'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: UCB 实际应用：Ad-1 最初因其较大的置信区间赢得了拍卖，但随着模型对其的学习，其 UCB 降低，导致 Ad-2 赢得了拍卖。图像来自作者
 - en: Thompson sampling
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 汤普森采样
 - en: The UCB approach went with the philosophy of “(complete) optimism in the face
     of uncertainty”. Thompson sampling softens this optimism a little. Instead of
     using the upper confidence bound as the score of an ad, why not sample a score
     in the posterior distribution?
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: UCB 方法采用了“（完全的）在不确定面前保持乐观”的理念。汤普森采样则在此基础上稍微缓和了这种乐观。与其使用上置信界限作为广告的分数，为什么不在后验分布中抽样一个分数呢？
 - en: For this to be possible, imagine our ranking model could produce not just the
     CTR and the confidence interval but an actual score distribution*.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使这成为可能，假设我们的排名模型不仅能生成 CTR 和置信区间，还能生成一个实际的分数分布。
 - en: '**how this is achieved is explained later in the article*'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '**如何实现这一点将在文章后面解释**'
 - en: '![](../Images/748e502314178c5c76352adf69ca02f2.png)'
+  id: totrans-71
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/748e502314178c5c76352adf69ca02f2.png)'
 - en: The model can predict a distribution of scores for one ad. Image by author
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型可以预测一个广告的分数分布。图像来自作者
 - en: Then, we just sample a score from this distribution and use that as the score
     during auction.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们从这个分布中抽样一个分数，并在拍卖中使用这个分数。
 - en: '![](../Images/423cd452e28b712a0e486725ab767961.png)'
+  id: totrans-74
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/423cd452e28b712a0e486725ab767961.png)'
 - en: Ad-1 wins auction due to a high sampled score from its wide distribution. Image
     by author
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: Ad-1 因从其宽分布中抽样得到一个高分而赢得了拍卖。图像来自作者
 - en: '![](../Images/fa48fcf0ccee3990290847148543babc.png)'
+  id: totrans-76
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fa48fcf0ccee3990290847148543babc.png)'
 - en: Ad-1 has received exposure and the model has lesser uncertainty about it. Ad-2
     wins auction due to its higher score distribution mass. Image by author
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: Ad-1 已经获得曝光，模型对其的不确定性较小。由于 Ad-2 具有更高的分数分布质量，它赢得了拍卖。图像来自作者
 - en: '![](../Images/69793d78a025e54de269b45f81e10635.png)'
+  id: totrans-78
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/69793d78a025e54de269b45f81e10635.png)'
 - en: Ad-2’s score distribution stdev further shrinks as it gets more exposure. Image
     by author
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着 Ad-2 获得更多曝光，其分数分布的标准差进一步缩小。图像来自作者
 - en: Importance of updating the model
+  id: totrans-80
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 更新模型的重要性
 - en: For the UCB and Thompson sampling techniques to work, we must update our models
     as often as possible. Only then will it be able to update its uncertainty estimates
     in response to user feedback. The ideal setup is a **continuous learning** setup
@@ -344,29 +512,42 @@
     weights. However, periodically statefully updating the weights of the model is
     also a viable option if continuous learning infrastructure is too expensive to
     set up.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使 UCB 和汤普森采样技术生效，我们必须尽可能频繁地更新模型。只有这样，它才能根据用户反馈更新其不确定性估计。理想的设置是一个**连续学习**设置，其中用户反馈事件几乎实时地发送给模型，以更新其权重。然而，如果建立连续学习基础设施的成本过高，定期更新模型权重也是一种可行的选择。
 - en: '![](../Images/f9491cf68aa60049e407d3c511c1e949.png)'
+  id: totrans-82
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f9491cf68aa60049e407d3c511c1e949.png)'
 - en: A high-level continuous learning setup utilizing streaming infrastructure. Image
     by author, thumbnail generated by ChatGPT-4o
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个高层次的连续学习设置，利用流媒体基础设施。图像来自作者，缩略图由 ChatGPT-4o 生成
 - en: Posterior approximation techniques
+  id: totrans-84
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 后验近似技术
 - en: In the UCB and Thompson sampling approaches, I explained the idea of our model
     producing not just one score but an uncertainty measure as well (either as a confidence
     interval or a distribution of scores). How can this be possible? Our DNN can produce
     just one output after all! Here are the approaches discussed in the paper.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 UCB 和汤普森采样方法中，我解释了我们的模型不仅产生一个分数，还会产生一个不确定性度量（可以是置信区间或分数分布）。这怎么可能呢？毕竟我们的 DNN
+    只能产生一个输出！下面是论文中讨论的几种方法。
 - en: Bootstrapping
+  id: totrans-86
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 自助法
 - en: Bootstrapping in statistics simply means sampling with replacement. What this
     means for us is that we apply bootstrapping on our training dataset to create
     several closely related but slightly different datasets and train a separate model
@@ -374,182 +555,258 @@
     other. If you have studied decision trees and bagging, you would already be familiar
     with the idea of training multiple related trees that are slight variants of each
     other.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 统计学中的引导法简单来说就是带替换的抽样。这对我们来说意味着，我们在训练数据集上应用引导法，创建多个彼此密切相关但略有不同的数据集，并使用每个数据集训练一个独立的模型。这样学到的模型将会是彼此的轻微变体。如果你学习过决策树和集成法，你就会熟悉训练多个相关的树，这些树是彼此的轻微变体的这一思想。
 - en: '![](../Images/c67da12373ba080f7c7041586f32e942.png)'
+  id: totrans-88
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c67da12373ba080f7c7041586f32e942.png)'
 - en: Bootstrapped datasets are used to train separate models, resulting in a distribution
     of scores. Image by author
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 引导数据集用于训练独立的模型，从而产生一个分数分布。图像由作者提供
 - en: During auction, for each ad, we get one score from each bootstrapped model.
     This gives us a distribution of scores which is exactly what we wanted for Thompson
     sampling. We can also extract a confidence interval from the distribution if we
     choose to use UCB.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 在拍卖中，对于每个广告，我们从每个引导模型中得到一个分数。这为我们提供了一个分数分布，这正是我们所需要的用于汤普森采样。我们还可以从这个分布中提取置信区间，如果我们选择使用上置信边界（UCB）。
 - en: The biggest drawback with this approach is the sheer computational and maintenance
     overhead of training and serving several models.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法的最大缺点是训练和服务多个模型所带来的计算和维护开销。
 - en: Multi-head bootstrapping
+  id: totrans-92
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 多头引导法
 - en: To mitigate the costs of several bootstrapped models, this approach unifies
     the several models into one multi-head model with one head for each output.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了降低多个引导模型的成本，这种方法将多个模型统一成一个多头模型，每个输出对应一个头部。
 - en: '![](../Images/6b2e9aa378f486bbc08c69b03f714da0.png)'
+  id: totrans-94
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6b2e9aa378f486bbc08c69b03f714da0.png)'
 - en: Multi-head model. Image by author
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 多头模型。图像由作者提供
 - en: The key cost reduction comes from the fact that all the layers except the last
     are shared.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 关键的成本减少来自于所有层，除了最后一层，都是共享的这一事实。
 - en: Training is done as usual on bootstrapped subsets of data. While each bootstrapped
     subset of data should be used to update the weights of all the shared layers,
     care must be taken to update the weight of just one output head with a subset
     of data.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 训练仍然在引导数据子集上按常规进行。虽然每个引导数据子集应该用来更新所有共享层的权重，但必须注意仅使用一部分数据来更新一个输出头部的权重。
 - en: '![](../Images/280120ebb90c3e6dd641a1434a0cae09.png)'
+  id: totrans-98
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/280120ebb90c3e6dd641a1434a0cae09.png)'
 - en: Constrained influence of each bootstrapped subset of data on one head during
     backprop. Image by author
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个引导数据子集在反向传播过程中对一个头部的有限影响。图像由作者提供
 - en: Stochastic Gradient descent (SGD)
+  id: totrans-100
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 随机梯度下降法（SGD）
 - en: Instead of using separate bootstrapped datasets to train different models, we
     can just use one dataset, but train each model with SGD with random weight initialization
     thus utilizing the inherent stochasticity offered by SGD. Each model trained thus
     becomes a variant of the other.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以不使用独立的引导数据集来训练不同的模型，而是只使用一个数据集，通过随机初始化权重训练每个模型，从而利用SGD提供的固有随机性。这样训练出的每个模型都会成为其他模型的一个变体。
 - en: Multi-head SGD
+  id: totrans-102
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 多头SGD
 - en: In the same way, using a multi-head architecture brought down the number of
     models trained with bootstrapping to one, we can use a multi-head architecture
     with SGD. We just have to randomly initialize the weights at each head so that
     upon training on the whole dataset, each head is learned to be a slight variant
     of the others.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样地，使用多头架构将使用引导法训练的模型数减少到一个，我们也可以使用多头架构与SGD。我们只需要在每个头部随机初始化权重，这样在整个数据集上训练时，每个头部将学到是其他头部的轻微变体。
 - en: Forward-propagation dropout
+  id: totrans-104
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 前向传播中的丢弃法
 - en: Dropout is a well-known regularization technique where during model training,
     some of the nodes of a layer are randomly dropped to prevent chances of overfitting.
     We borrow the same idea here except that we use it during forward propagation
     to create controlled randomness.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: Dropout（丢弃法）是一种著名的正则化技术，在模型训练过程中，某一层的部分节点会随机丢弃，以防止过拟合。在这里，我们借用了这一思想，只不过我们是在前向传播过程中使用它来创造受控的随机性。
 - en: We modify our ranking model’s last layer to introduce dropout. Then, when we
     want to score an ad, we pass it through the model several times, each time getting
     a slightly different score on account of the randomness introduced by dropout.
     This gives us the distribution and confidence interval that we seek.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们修改了排名模型的最后一层，加入了dropout。然后，当我们想要为一个广告打分时，我们将它通过模型多次，每次得到的分数都会略有不同，这是由于dropout引入的随机性。这为我们提供了我们所需的分布和置信区间。
 - en: '![](../Images/21ed429f2fef679f5290d50fe2bac778.png)'
+  id: totrans-107
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/21ed429f2fef679f5290d50fe2bac778.png)'
 - en: The same model produces a distribution of scores through random dropout. Image
     by author
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 相同的模型通过随机dropout生成分数分布。图片由作者提供
 - en: One significant disadvantage of this approach is that it requires several full
     forward passes through the network which can be quite costly during inference
     time.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法的一个显著缺点是，它需要多次完整的前向传递，这在推理时可能会非常耗时。
 - en: Hybrid
+  id: totrans-110
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 混合方法
 - en: 'In the hybrid approach, we perform a key optimization to give us the advantages
     of dropout and bootstrapping while bringing down the serving and training costs:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 在混合方法中，我们进行了一项关键优化，既能够利用dropout和自助法的优势，又能降低服务和训练成本：
 - en: With dropout applied to just the last-but-one layer, we don’t have to run a
     full forward pass several times to generate our score distribution. We can do
     one forward pass until the dropout layer and then do several invocations of just
     the dropout layer in parallel. This gives us the same effect as the multi-head
     model where each dropout output acts like a multi-head output.
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过将dropout应用于倒数第二层，我们无需多次完整前向传递即可生成分数分布。我们可以执行一次前向传递，直到dropout层，然后并行地执行多个dropout层的调用。这为我们提供了与多头模型相同的效果，其中每个dropout输出像一个多头输出。
 - en: Also, with dropout deactivating one or more nodes randomly, it serves as a Bernoulli
     mask on the higher-order features at its layer, thus producing an effect equivalent
     to bootstrapping with different subsets of the dataset.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，dropout通过随机停用一个或多个节点，充当其层次中高阶特征的伯努利掩码，从而产生类似自助法的效果，使用数据集的不同子集。
 - en: Which approach works best?
+  id: totrans-114
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 哪种方法最有效？
 - en: Unfortunately, there is no easy answer. The best way is to experiment under
     the constraints of your problem and see what works best. But if the findings from
     the authors of the Deep Bayesian Bandits [paper](https://arxiv.org/pdf/2008.00727)
     are anything to go by,
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，没有简单的答案。最好的方法是在你问题的限制下进行实验，看看什么最有效。但如果参考《Deep Bayesian Bandits》[论文](https://arxiv.org/pdf/2008.00727)的作者的发现，
 - en: ε-greedy unsurprisingly gives the lowest CTR improvement due to its unsophisticated
     exploration, however, the simplicity and low-cost nature of it make it very alluring.
+  id: totrans-116
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: ε-贪婪方法由于其简单的探索方式，给出了最低的CTR提升，然而，它的简单性和低成本特性使得它非常有吸引力。
 - en: UCB generally outperformed Thompson sampling.
+  id: totrans-117
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: UCB通常优于汤普森采样。
 - en: Bootstrap UCB gave the highest CTR return but was also the most computationally
     expensive due to the need to work with multiple models.
+  id: totrans-118
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 自助法UCB提供了最高的CTR回报，但由于需要处理多个模型，它也是计算成本最高的。
 - en: The hybrid model which relied on dropout at the penultimate layer needed more
     training epochs to perform well and was on par with SGD UCB’s performance but
     at lower computational cost.
+  id: totrans-119
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 依赖于倒数第二层dropout的混合模型需要更多的训练轮次才能表现良好，并且与SGD UCB的性能相当，但计算成本较低。
 - en: 'The model’s PrAuc measured offline was inversely related to the CTR gain: this
     is an important observation that shows that offline performance can be easily
     attained by giving the model easier training data (for example, data not containing
     significant exploration) but that will not always translate to online CTR uplifts.
     This underscores the significance of robust online tests.'
+  id: totrans-120
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 模型的PrAuc在离线测量时与CTR增益呈反比关系：这是一个重要的观察结果，表明离线表现可以通过提供更容易的训练数据（例如，不包含显著探索的数据）轻松实现，但这并不总能转化为在线CTR的提升。这强调了稳健在线测试的重要性。
 - en: That said, the findings can be quite different for a different dataset and problem.
     Hence, real-world experimentation remains vital.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 也就是说，针对不同的数据集和问题，结果可能会有很大不同。因此，现实世界中的实验仍然至关重要。
 - en: Conclusion
+  id: totrans-122
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: In this article, I introduced the cold-start problem created by feedback loops
     in recommender systems. Following the Deep Bayesian Bandits paper, we framed our
     ad recommender system as a k-arm bandit and saw many practical applications of
     reinforcement learning techniques to mitigate the cold-start problem. We also
     scratched the surface of capturing uncertainty in our neural networks which is
     a good segue into Bayesian networks.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我介绍了推荐系统中由反馈循环引发的冷启动问题。根据《深度贝叶斯赌博机》一文，我们将广告推荐系统框架化为k臂赌博机，并看到了强化学习技术在缓解冷启动问题方面的许多实际应用。我们还初步探讨了在神经网络中捕捉不确定性的问题，这为贝叶斯网络的讨论提供了良好的过渡。
 - en: '[1] Guo, Dalin, et al. “Deep bayesian bandits: Exploring in online personalized
     recommendations.” *Proceedings of the 14th ACM Conference on Recommender Systems*.
     2020.'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] Guo, Dalin, et al. “深度贝叶斯赌博机：探索在线个性化推荐。” *第14届ACM推荐系统会议论文集*。2020年。'

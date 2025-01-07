@@ -1,35 +1,55 @@
 - en: To Index or Not to Index
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 索引与否
 - en: 原文：[https://towardsdatascience.com/to-index-or-not-to-index-8be32ad45cae?source=collection_archive---------4-----------------------#2024-11-08](https://towardsdatascience.com/to-index-or-not-to-index-8be32ad45cae?source=collection_archive---------4-----------------------#2024-11-08)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/to-index-or-not-to-index-8be32ad45cae?source=collection_archive---------4-----------------------#2024-11-08](https://towardsdatascience.com/to-index-or-not-to-index-8be32ad45cae?source=collection_archive---------4-----------------------#2024-11-08)
 - en: Leverage SQL indexing to speed up your queries. Learn when to index, when not
     to, and how indexing works under the hood.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 利用SQL索引加速查询。了解何时使用索引，何时不使用索引，以及索引如何在背后运作。
 - en: '[](https://medium.com/@christopher_karg?source=post_page---byline--8be32ad45cae--------------------------------)[![Christopher
     Karg](../Images/9d163d59e0c3167732f55d497caf9db2.png)](https://medium.com/@christopher_karg?source=post_page---byline--8be32ad45cae--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8be32ad45cae--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8be32ad45cae--------------------------------)
     [Christopher Karg](https://medium.com/@christopher_karg?source=post_page---byline--8be32ad45cae--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@christopher_karg?source=post_page---byline--8be32ad45cae--------------------------------)[![Christopher
+    Karg](../Images/9d163d59e0c3167732f55d497caf9db2.png)](https://medium.com/@christopher_karg?source=post_page---byline--8be32ad45cae--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8be32ad45cae--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8be32ad45cae--------------------------------)
+    [Christopher Karg](https://medium.com/@christopher_karg?source=post_page---byline--8be32ad45cae--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8be32ad45cae--------------------------------)
     ·18 min read·Nov 8, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8be32ad45cae--------------------------------)
+    ·阅读时间 18 分钟 ·2024年11月8日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/7c3d3f91fd3cda8781ac71a41c224ac1.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7c3d3f91fd3cda8781ac71a41c224ac1.png)'
 - en: 'source: [https://www.pexels.com/photo/serene-autumn-morning-landscape-in-misty-meadow-29231560/](https://www.pexels.com/photo/serene-autumn-morning-landscape-in-misty-meadow-29231560/)'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 来源：[https://www.pexels.com/photo/serene-autumn-morning-landscape-in-misty-meadow-29231560/](https://www.pexels.com/photo/serene-autumn-morning-landscape-in-misty-meadow-29231560/)
 - en: SQL indexing is a term often thrown around in data circles — you may have heard
     phrases like “just apply an index”. It is also a question often asked in interviews
     — “what steps can take to improve query times on table X?”. It is something that
@@ -39,17 +59,23 @@
     to implement it, how it works under the hood, along with some considerations of
     when not to use indexes. As with many technologies, even SQL indexes have their
     trade-offs.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: SQL 索引是数据圈中常常提到的一个术语 —— 你可能听过类似“只需应用一个索引”这样的说法。它也是面试中经常被问到的问题 —— “你能采取哪些步骤来提高表X的查询速度？”它是一个语法上容易实现的内容，但我发现很少有人关注实际发生了什么。在这篇文章中，我的目标正是通过使用关系型MySQL数据库（DB）来做这件事。我将涵盖什么是索引、如何实现它、它是如何工作的，以及一些在何时不使用索引的注意事项。像许多技术一样，SQL索引也有其权衡。
 - en: In my examples I use a simple MySQL container from Docker. I do not cover how
     this works but feel free to reach out if you have any questions. I will show the
     code I use to populate the DB in this article for you to adapt for your own use
     case and experiment yourself.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我的示例中，我使用了一个来自Docker的简单MySQL容器。我并没有涵盖其如何工作的内容，但如果你有任何问题，随时可以联系我。我将展示在本文章中用来填充数据库的代码，供你根据自己的使用案例进行适配并自行实验。
 - en: I start off with a high-level overview. The more granular detail is later on
     in the article. As such, I hope I can provide valuable insights to a wide readership
     of varying technical inclinations. If you’re like me you’ll find the visualisations
     in…
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我首先从一个高层次的概述开始。更详细的内容将在文章后续部分介绍。因此，我希望能够为各种技术倾向的广泛读者群体提供有价值的见解。如果你像我一样，你会发现其中的可视化效果在…

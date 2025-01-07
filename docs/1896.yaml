@@ -1,57 +1,86 @@
 - en: Serve Multiple LoRA Adapters with vLLM
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 vLLM 同时服务多个 LoRA 适配器
 - en: 原文：[https://towardsdatascience.com/serve-multiple-lora-adapters-with-vllm-5323b0425b82?source=collection_archive---------6-----------------------#2024-08-03](https://towardsdatascience.com/serve-multiple-lora-adapters-with-vllm-5323b0425b82?source=collection_archive---------6-----------------------#2024-08-03)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/serve-multiple-lora-adapters-with-vllm-5323b0425b82?source=collection_archive---------6-----------------------#2024-08-03](https://towardsdatascience.com/serve-multiple-lora-adapters-with-vllm-5323b0425b82?source=collection_archive---------6-----------------------#2024-08-03)
 - en: Without any increase in latency
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 不增加延迟
 - en: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--5323b0425b82--------------------------------)[![Benjamin
     Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--5323b0425b82--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5323b0425b82--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5323b0425b82--------------------------------)
     [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--5323b0425b82--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--5323b0425b82--------------------------------)[![本杰明·玛丽](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--5323b0425b82--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5323b0425b82--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5323b0425b82--------------------------------)
+    [本杰明·玛丽](https://medium.com/@bnjmn_marie?source=post_page---byline--5323b0425b82--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5323b0425b82--------------------------------)
     ·6 min read·Aug 3, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5323b0425b82--------------------------------)
+    ·阅读时间 6 分钟·2024年8月3日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/49568640e65f99e6f16e6765da72f2a4.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/49568640e65f99e6f16e6765da72f2a4.png)'
 - en: Generated with DALL-E
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 由 DALL-E 生成
 - en: With a LoRA adapter, we can specialize a large language model (LLM) for a task
     or a domain. The adapter must be loaded on top of the LLM to be used for inference.
     For some applications, it might be useful to serve users with multiple adapters.
     For instance, one adapter could perform function calling and another could perform
     a very different task, such as classification, translation, or other language
     generation tasks.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 LoRA 适配器时，我们可以将大语言模型（LLM）专门化为某个任务或领域。适配器必须加载到 LLM 上，才能用于推理。在某些应用中，为用户提供多个适配器可能是有用的。例如，一个适配器可以执行函数调用，另一个适配器可以执行完全不同的任务，如分类、翻译或其他语言生成任务。
 - en: However, to use multiple adapters, a standard inference framework would have
     first to unload the current adapter and then load the new adapter. This unload/load
     sequence can take several seconds which would degrade the user experience.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，要使用多个适配器，一个标准的推理框架首先必须卸载当前适配器，然后加载新适配器。这一卸载/加载过程可能需要几秒钟，可能会影响用户体验。
 - en: Fortunately, there are open source frameworks that can serve multiple adapters
     at the same time without any noticeable time between the use of two different
     adapters. For instance, [vLLM](https://github.com/vllm-project/vllm) (Apache 2.0
     license), one of the most efficient open source inference frameworks, can easily
     run and serve multiple LoRA adapters simultaneously.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，有一些开源框架能够同时服务多个适配器，而不会在使用两个不同适配器之间产生明显的延迟。例如，[vLLM](https://github.com/vllm-project/vllm)（Apache
+    2.0 许可），是最高效的开源推理框架之一，可以轻松地同时运行和服务多个 LoRA 适配器。
 - en: In this article, we will see how to use vLLM with multiple LoRA adapters. I
     explain how to use LoRA adapters with offline inference and how to serve several
     adapters to users for online inference. I use Llama 3 for the examples with adapters
     for function calling and chat.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将展示如何使用 vLLM 配合多个 LoRA 适配器。我将解释如何在离线推理中使用 LoRA 适配器，以及如何为用户提供多个适配器以进行在线推理。我使用
+    Llama 3 作为示例，展示适配器在函数调用和对话中的应用。

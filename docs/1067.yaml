@@ -1,80 +1,119 @@
 - en: Improving the Analysis of Object (or Cell) Counts with Lots of Zeros
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 改善含有大量零值的对象（或细胞）计数分析
 - en: 原文：[https://towardsdatascience.com/improving-the-analysis-of-object-or-cells-counts-with-lots-of-zeros-f343d1430637?source=collection_archive---------6-----------------------#2024-04-27](https://towardsdatascience.com/improving-the-analysis-of-object-or-cells-counts-with-lots-of-zeros-f343d1430637?source=collection_archive---------6-----------------------#2024-04-27)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/improving-the-analysis-of-object-or-cells-counts-with-lots-of-zeros-f343d1430637?source=collection_archive---------6-----------------------#2024-04-27](https://towardsdatascience.com/improving-the-analysis-of-object-or-cells-counts-with-lots-of-zeros-f343d1430637?source=collection_archive---------6-----------------------#2024-04-27)
 - en: An approach using hurdle and zero-inflated models with brms
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用brms的障碍模型和零膨胀模型方法
 - en: '[](https://medium.com/@damanrique?source=post_page---byline--f343d1430637--------------------------------)[![Daniel
     Manrique-Castano](../Images/06f857ae6e82688113f1089c7f03be88.png)](https://medium.com/@damanrique?source=post_page---byline--f343d1430637--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f343d1430637--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f343d1430637--------------------------------)
     [Daniel Manrique-Castano](https://medium.com/@damanrique?source=post_page---byline--f343d1430637--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@damanrique?source=post_page---byline--f343d1430637--------------------------------)[![Daniel
+    Manrique-Castano](../Images/06f857ae6e82688113f1089c7f03be88.png)](https://medium.com/@damanrique?source=post_page---byline--f343d1430637--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f343d1430637--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f343d1430637--------------------------------)
+    [Daniel Manrique-Castano](https://medium.com/@damanrique?source=post_page---byline--f343d1430637--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f343d1430637--------------------------------)
     ·13 min read·Apr 27, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f343d1430637--------------------------------)
+    ·13分钟阅读·2024年4月27日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/7ca3306348a80ac2c32c3bb56be3f0cd.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7ca3306348a80ac2c32c3bb56be3f0cd.png)'
 - en: NeuN and GFAP staining in a mouse brain following cerebral ischemia. [Manrique-Castano
     et al](https://www.biorxiv.org/content/10.1101/2023.10.04.560910v1). (2024) (CC-BY).
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 小鼠大脑中，脑缺血后NeuN和GFAP的染色。[Manrique-Castano et al](https://www.biorxiv.org/content/10.1101/2023.10.04.560910v1)。
+    (2024) (CC-BY)。
 - en: Counting is a fundamental task in biomedical research, particularly when analyzing
     cell populations. Imagine staring at countless cells within a tiny brain region
     — sometimes numbering in the hundreds or thousands. Yet, in other areas, these
     numbers may dwindle to few or even none.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 计数是生物医学研究中的一项基本任务，特别是在分析细胞群体时。试想一下，凝视在一个微小的大脑区域内数不清的细胞——有时其数量达到数百甚至数千。然而，在其他区域，这些数量可能会减少到几乎没有。
 - en: The challenge arises in how we analyze these counts. For large numbers, linear
     models, which assume a normal distribution, often serve as a reasonable approximation.
     Though not optimal, they provide a logical framework for initial analysis. However,
     the scenario shifts dramatically when cell counts are low or predominantly zeros.
     Here, traditional linear models (like those t-tests we run in GraphPad) falter,
     losing their effectiveness and relevance.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 挑战出现在我们如何分析这些计数值上。对于大数值，假设正态分布的线性模型通常可以作为合理的近似。虽然不是最优的，它们为初步分析提供了一个逻辑框架。然而，当细胞计数较低或主要为零时，情况会发生显著变化。在这种情况下，传统的线性模型（例如我们在GraphPad中运行的t检验）会失效，失去其有效性和相关性。
 - en: As researchers, we must strive for better, going beyond t-tests and ANOVAs.
     This post aims to explore alternative statistical methods that more accurately
     reflect the realities of our data, especially when dealing with low or zero counts.
     By embracing more fitted approaches, we can enhance the precision of our findings
     and deepen our understanding of our cell populations.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为研究人员，我们必须追求更好的方法，超越t检验和方差分析（ANOVA）。本文旨在探索更准确反映我们数据现实的替代统计方法，特别是在处理低计数或零计数时。通过采用更适合的方法，我们可以提高研究结果的精确度，深化对细胞群体的理解。
 - en: First, let’s load the necessary libraries and create a visual theme for our
     plots.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，让我们加载必要的库，并为我们的图表创建一个视觉主题。
 - en: '[PRE0]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: What is the issue with counting zeros?
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 计数零值有什么问题？
 - en: In many studies, like the one shown in the graph by ([*1*](#ref-baraibar2020)),
     we encounter the challenge of low cell counts, particularly where one group —
     marked here in black — appears to be dominated by zero counts. This scenario is
     not uncommon in biomedical literature, where straightforward linear models are
     frequently applied to analyze such data.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 在许多研究中，比如图表中显示的（[*1*](#ref-baraibar2020)），我们会遇到低细胞计数的挑战，特别是在其中一个组——这里标为黑色——似乎被零计数所主导。这种情况在生物医学文献中并不罕见，简单的线性模型通常被用来分析这些数据。
 - en: '![](../Images/03b18f75422dabf28c42ebb43ddf279f.png)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/03b18f75422dabf28c42ebb43ddf279f.png)'
 - en: 'Figure 1: CD3+ cells by Baraibar et. al (2020) (CC-BY)'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 图1：CD3+细胞，Baraibar等人（2020）（CC-BY）
 - en: However, the use of these models in cases of low or zero counts can be problematic.
     Without access to the original datasets — which researchers often do not share
     — it’s difficult to evaluate the efficacy of the analysis fully. To better understand
@@ -82,51 +121,77 @@
     ago, I undertook the task of counting BrdU+ cells following an ischemic event
     in a specific brain area called the subventricular zone (SVZ). This particular
     experience inclined me to evaluate more suitable statistical approaches.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，在低计数或零计数的情况下使用这些模型可能会存在问题。如果没有访问原始数据集——这也是研究人员通常不分享的——就很难全面评估分析的有效性。为了更好地理解这个问题，我们来看一下我自己研究中的一个独立数据集。几年前，我承担了在一个名为室管区（SVZ）的特定脑区内进行缺血事件后BrdU+细胞计数的任务。这一经历让我倾向于评估更合适的统计方法。
 - en: 'These are the data:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些是数据：
 - en: '[PRE1]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '![](../Images/fc557806dbde71b37b57f919be9b7ea2.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fc557806dbde71b37b57f919be9b7ea2.png)'
 - en: 'We can visualize that the contralateral hemisphere has a lot of null cell counts.
     We can have a better angle if we use a boxplot:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过可视化看到，对侧半球有大量的零细胞计数。如果我们使用箱型图，可以获得更清晰的角度：
 - en: '[PRE2]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '![](../Images/1f2ef5bb688bbce545181496a6029bc4.png)'
+  id: totrans-23
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1f2ef5bb688bbce545181496a6029bc4.png)'
 - en: 'Figure 2: Cell counts by hemisphere'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 图2：按半球划分的细胞计数
 - en: '[Figure 2](#fig-EDA) vividly illustrates the substantial disparities in cell
     counts across hemispheres. To examine what happens when we apply a typical (and
     horrific) linear model to such data, we’ll proceed with a practical demonstration
     using the `brms`. This will help us understand the effects of these variations
     when analyzed under a traditional framework predicated on normal distribution
     assumptions.'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '[图2](#fig-EDA)生动地展示了半球之间在细胞计数上的显著差异。为了研究当我们将典型（而可怕的）线性模型应用于此类数据时会发生什么，我们将通过使用`brms`进行实践演示。这将帮助我们理解在传统框架下，基于正态分布假设对这些变异进行分析时的影响。'
 - en: 'In this example, I’ll fit a linear model where the factor variable “hemisphere”
     is the sole predictor of the cell counts:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，我将拟合一个线性模型，其中因子变量“hemisphere”是唯一的细胞计数预测变量：
 - en: '[PRE3]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Are you willing to bet on what the results will be? Let’s find out:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 你敢打赌结果会是什么吗？我们来看看：
 - en: '![](../Images/ef819bf385242f34194a1aac4ad0180e.png)'
+  id: totrans-29
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ef819bf385242f34194a1aac4ad0180e.png)'
 - en: If you like, you can fit a frequentist (OLS) model with `lm` and you will certainly
     get the same results. In these results, the intercept represents an estimate of
     cell counts for the contralateral hemisphere, which serves as our reference group.
@@ -137,8 +202,10 @@
     from -1.5 to 3.7\. This prediction is fundamentally flawed because it disregards
     the intrinsic nature of cells as entities that can only assume non-negative integer
     values.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你愿意，你可以使用`lm`拟合一个频率学派（OLS）模型，肯定会得到相同的结果。在这些结果中，截距代表对侧半球的细胞计数估计，作为我们的参考组。然而，当使用正态分布处理包含大量零计数或接近零值的数据时，会出现显著的不一致性。在这种情况下，模型会“不恰当地”预测我们半球的细胞计数可能是负值，例如-1到-2个细胞，并且置信区间范围为-1.5到3.7。这种预测是根本性错误的，因为它忽视了细胞作为只能取非负整数值的实体的固有性质。
 - en: This issue stems from the fact that our model, in its current form, does not
     comprehend the true characteristics of the data it’s handling. Instead, it merely
     follows our directives — albeit incorrectly — to fit the data to a linear model.
@@ -148,31 +215,47 @@
     recognize and harness our capabilities and tools to develop and utilize more appropriate
     and logically sound modeling methods that respect the inherent properties of our
     data.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个问题源于我们的模型在当前形式下无法理解它所处理的数据的真实特征。相反，它仅仅按照我们的指令——尽管是错误的——将数据拟合到线性模型中。这种常见的疏忽常常导致研究人员通过应用t检验和方差分析（ANOVA）进一步加剧问题，从而在一个本质上不合理的模型上叠加额外的分析。作为研究人员，我们必须认识到并利用我们的能力和工具，开发和使用更合适、逻辑上更合理的建模方法，尊重数据的固有特性。
 - en: Let’s plot the results using the great `TidyBayes` package ([*2*](#ref-tidybayes))
     by the great [Matthew Kay](https://www.mjskay.com/)
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们使用伟大的`TidyBayes`包（[*2*](#ref-tidybayes)）绘制结果，作者是伟大的[Matthew Kay](https://www.mjskay.com/)
 - en: '[PRE4]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '![](../Images/c06d291722fd2e60a45af8adc86ee81b.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c06d291722fd2e60a45af8adc86ee81b.png)'
 - en: 'Figure 3: Posterior distribution for cell counts by hemisphere'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 3：按半球划分的细胞计数的后验分布
 - en: 'We can also see this inconsistency if we perform `pp_check` to compare the
     observations with the model predictions:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们执行`pp_check`来比较观测值与模型预测，我们也可以看到这种不一致性：
 - en: '![](../Images/2ba8710d00422226c3c7c6fd1a7278fc.png)'
+  id: totrans-37
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2ba8710d00422226c3c7c6fd1a7278fc.png)'
 - en: 'Figure 4: Posterior predictive checks gaussian model'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4：后验预测检查高斯模型
 - en: Once again, we encounter irrational predictions of cell counts falling below
     zero. As scientists, it’s crucial to reflect on the suitability of our models
     in relation to the data they are intended to explain. This consideration guides
@@ -180,19 +263,25 @@
     plausibly have generated the observed data. Clearly, the linear model currently
     in use falls short of this criterion. It predicts impossible negative values for
     cell counts. Let’s try to find out a better model.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们再次遇到细胞计数预测低于零的非理性结果。作为科学家，反思我们的模型是否适合用来解释它们所要解释的数据至关重要。这个思考引导我们走向**生成模型**，这些模型的建立前提是它们能够合理地生成观察到的数据。显然，目前使用的线性模型未能满足这一标准。它预测了细胞计数不可能出现的负值。让我们尝试找到一个更好的模型。
 - en: Working with lots of zeros
+  id: totrans-40
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 处理大量零值
 - en: 'A zero-inflated model effectively captures the nuances of datasets characterized
     by a preponderance of zeros. It operates by distinguishing between two distinct
     processes: 1) Determining whether the result is zero, and 2) predicting the values
     for non-zero results. This dual approach is particularly apt for asking questions
     like, “Are there any cells present, and if so, how many?”'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 零膨胀模型有效地捕捉了以零为主的数据集的细微差别。它通过区分两个不同的过程来运作：1）确定结果是否为零，2）预测非零结果的值。这种双重方法特别适用于提出类似“是否存在细胞，如果有，多少个？”的问题。
 - en: For handling datasets with an abundance of zeros, we employ models such as `hurdle_poisson()`
     and `Zero_inflated_poisson`, both designed for scenarios where standard count
     models like the Poisson or negative binomial models prove inadequate ([*3*](#ref-feng2021a)).Loosely
@@ -201,78 +290,117 @@
     for zeros, enhancing their ability to handle datasets where zeros are not merely
     common but significant. We’ll see the impact these features have in our modeling
     strategy using `brms`.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于处理具有大量零的数据集，我们采用如`hurdle_poisson()`和`Zero_inflated_poisson`等模型，这些模型专为标准计数模型（如泊松模型或负二项模型）无法有效应用的场景设计（[*3*](#ref-feng2021a)）。宽泛地说，`hurdle_poisson()`和`Zero_inflated_poisson`之间的一个关键区别在于，后者引入了一个额外的概率成分，专门用于处理零值，从而增强了它们处理零不仅仅是常见而且是显著的情况的能力。我们将在使用`brms`的建模策略中看到这些特性带来的影响。
 - en: Fitting a hurdle_poisson model
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 拟合 `hurdle_poisson` 模型
 - en: 'Let’s start by using the `hurdle_poisson()` distribution in our modeling scheme:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们首先在我们的建模方案中使用`hurdle_poisson()`分布：
 - en: '[PRE5]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Let’s see the results using the standard summary function.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们使用标准总结函数来看结果。
 - en: '[PRE6]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '![](../Images/0d23609c27931943a7d384c039567cf6.png)'
+  id: totrans-48
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0d23609c27931943a7d384c039567cf6.png)'
 - en: Given this family distribution, the estimates are shown in the log scale (mu
     = log). In practical terms, this means that the number of cells in the contralateral
     subventricular zone (SVZ) can be expressed as exp(1.11) = 3.03\. Similarly, the
     ipsilateral hemisphere is estimated to have exp(1.07) = 2.91 times the number
     of cells. These results align well with our expectations and offer a coherent
     interpretation of the cell distribution between the two hemispheres.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 鉴于这种家族分布，估计值以对数尺度显示（mu = log）。从实际角度看，这意味着对侧脑室下区（SVZ）的细胞数量可以表示为exp(1.11) = 3.03。同样，同侧半球的细胞数量预计为exp(1.07)
+    = 2.91倍。这些结果与我们的预期非常一致，并为两侧半球之间的细胞分布提供了连贯的解释。
 - en: Additionally, the `hu` parameter within the “Family Specific Parameters” sheds
     light on the likelihood of observing zero cell counts. It indicates a 38% probability
     of zero occurrences. This probability highlights the need for a zero-inflated
     model approach and justifies its use in our analysis.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，“家庭特定参数”中的`hu`参数揭示了观察到零细胞计数的可能性。它表明零发生的概率为38%。这个概率突出了零膨胀模型方法的必要性，并证明了在我们的分析中使用这一方法的合理性。
 - en: To better visualize the implications of these findings, we can leverage the
     `conditional_effects` function. This tool in the `brms` package allows us to plot
     the estimated effects of different predictors on the response variable, providing
     a clear graphical representation of how the predictors influence the expected
     cell counts.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了更好地可视化这些发现的意义，我们可以利用`conditional_effects`函数。`brms`包中的这个工具允许我们绘制不同预测变量对响应变量的估计效应，提供清晰的图形表示，展示预测变量如何影响预期的细胞计数。
 - en: '[PRE7]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '![](../Images/0dc34c66ed8f38f315e0fdf6d7f771f7.png)'
+  id: totrans-53
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0dc34c66ed8f38f315e0fdf6d7f771f7.png)'
 - en: 'Figure 5: Conditional effects for the hurdle fit'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 图5：障碍拟合的条件效应
 - en: 'These plots draw a more logical picture than our first model. The graph on
     the left shows the two parts of the model (“mu” and “hu”). Also, if this model
     is suitable, we should see more aligned predictions when using `pp_check`:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些图表比我们的第一个模型更合乎逻辑。左侧的图展示了模型的两部分（“mu”和“hu”）。此外，如果该模型合适，我们应该能看到在使用`pp_check`时，预测结果更加一致：
 - en: '[PRE8]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '![](../Images/2121effaca5730a4b7207ef53287e026.png)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2121effaca5730a4b7207ef53287e026.png)'
 - en: 'Figure 6: Posterior predictive checks hurdle model'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 图6：后验预测检查障碍模型
 - en: As expected, our model predictions have a lower boundary at 0.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如预期的那样，我们的模型预测在0处有一个下边界。
 - en: Modeling the dispersion of the data
+  id: totrans-60
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 建模数据的离散性
 - en: Observing the data presented in the right graph of [Figure 5](#fig-HurdleCE)
     reveals a discrepancy between our empirical findings and our theoretical understanding
     of the subject. Based on established knowledge, we expect a higher probability
@@ -281,35 +409,51 @@
     becomes a hub of cellular activity, with significant cell proliferation post-injury.
     Our data, indicating prevalent non-zero counts in this region, supports this biological
     expectation.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 从[图5](#fig-HurdleCE)右侧图表中观察数据，揭示了我们的实证发现与我们对该主题的理论理解之间的差异。根据已有的知识，我们期望在同侧大脑半球的脑室下区（SVZ）中，非零细胞计数的概率更高，特别是在受伤后。这是因为同侧SVZ通常会成为细胞活动的中心，受伤后会有显著的细胞增殖。我们的数据表明该区域普遍存在非零计数，支持这一生物学预期。
 - en: However, the current model predictions do not fully align with these insights.
     This divergence underscores the importance of incorporating scientific understanding
     into our statistical modeling. Relying solely on standard tests without contextual
     adaptation can lead to misleading conclusions.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，当前模型的预测并未完全与这些见解相符。这种偏差凸显了在统计建模中融入科学理解的重要性。仅仅依赖标准测试而不进行情境适配，可能会导致误导性的结论。
 - en: 'To address this, we can refine our model by specifically adjusting the `hu`
     parameter, which represents the probability of zero occurrences. This allows us
     to more accurately reflect the expected biological activity in the ipsilateral
     hemisphere’s SVZ. We build then a second hurdle model:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这个问题，我们可以通过专门调整`hu`参数来优化模型，`hu`代表零发生的概率。这样可以更准确地反映同侧大脑半球SVZ（脑室下区）的预期生物学活动。然后我们建立了第二个障碍模型：
 - en: '[PRE9]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'Let’s see first if the results graph aligns with our hypothesis:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先让我们看看结果图是否符合我们的假设：
 - en: '[PRE10]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '![](../Images/1abbbbecb854b57c1c450cfd57e7d50c.png)'
+  id: totrans-67
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1abbbbecb854b57c1c450cfd57e7d50c.png)'
 - en: 'Figure 7: Conditional effects for the hurdle fit 2'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 图7：障碍拟合的条件效应2
 - en: This revised modeling approach seems to be a substantial improvement. By specifically
     accounting for the higher probability of zero counts (~75%) in the contralateral
     hemisphere, the model now aligns more closely with both the observed data and
@@ -320,131 +464,196 @@
     parameters (do not look at the others) to visualize them in a probability scale
     using the `logit2prob` [function](https://sebastiansauer.github.io/convert_logit2prob/)
     we created at the beginning.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种修订后的建模方法似乎是一个实质性的改进。通过专门考虑对侧半球零计数的更高概率（约75%），该模型现在与观测数据和我们的科学知识更为一致。这一调整不仅反映了该区域预期的较低细胞活动，还提高了我们估计的精确度。通过这些变化，模型现在能更细致地解释受伤后细胞动态。让我们查看总结以及`hu`参数的变换（不要看其他的），以便通过我们在开始时创建的`logit2prob`
+    [函数](https://sebastiansauer.github.io/convert_logit2prob/)将其可视化为概率尺度。
 - en: '[PRE11]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '![](../Images/eab8d96043a26084cf01440fb870ea1e.png)'
+  id: totrans-71
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/eab8d96043a26084cf01440fb870ea1e.png)'
 - en: 'Although the estimates for the number of cells are similar, the `hu` parameters
     (in the logit scale) tells us that the probability for seeing zeros in the contralateral
     hemisphere is:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管细胞数量的估计值相似，`hu`参数（在logit尺度上）告诉我们，在对侧半球观察零计数的概率是：
 - en: '![](../Images/64254e6b3d45eb207beacb2df19b24aa.png)'
+  id: totrans-73
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/64254e6b3d45eb207beacb2df19b24aa.png)'
 - en: 'Conversely:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反：
 - en: '![](../Images/835e1ce50dbb7ba0c7e6563d5a4cf441.png)'
+  id: totrans-75
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/835e1ce50dbb7ba0c7e6563d5a4cf441.png)'
 - en: Depicts a drastic reduction to about 0.23% probability of observing zero cell
     counts in the injured (ipsilateral) hemisphere. This is a remarkable change in
     our estimates.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 显示受损（同侧）半球观察到零细胞计数的概率大幅下降至约0.23%。这是我们估计的一个显著变化。
 - en: Now, let’s explore if a `zero_inflated_poisson()` distribution family changes
     these insights.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们探讨一下`zero_inflated_poisson()`分布家族是否改变了这些见解。
 - en: Fitting a zero-inflated Poisson model
+  id: totrans-78
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 拟合零膨胀泊松模型
 - en: As we modeled the broad variations in cell counts between the ipsilateral and
     contralateral hemispheres using the `hu` parameter, we’ll fit as well these two
     parts of the model in our `zero_inflated_poisson()`. Here, the count part of the
     model uses a “log” link, and the excess of zeros is modeled with a “logit” link.
     These are linked functions associated to the distribution family that we’ll not
     discuss here.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们使用`hu`参数建模同侧和对侧半球之间细胞计数的广泛变化，我们也将在`zero_inflated_poisson()`模型中拟合这两个部分。这里，模型的计数部分使用“log”链接，而零膨胀部分则使用“logit”链接。这些是与分布家族相关的链接函数，我们将在此不讨论。
 - en: '[PRE12]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Before we look at the results, let’s do some basic diagnostics to compare the
     observations and the model predictions.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 在查看结果之前，让我们做一些基本的诊断，以比较观测值和模型预测。
 - en: '[PRE13]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '![](../Images/48058f3c848ad77b1ad76deb3726e23a.png)'
+  id: totrans-83
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/48058f3c848ad77b1ad76deb3726e23a.png)'
 - en: 'Figure 8: Model diagnostics for the zero-inflated regression'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 图8：零膨胀回归的模型诊断
 - en: From [Figure 8](#fig-ZeroInflatedDiag1), we can see that the predictions deviate
     from the observed data in a similar way to the hurdle model. So, we have no major
     changes up to this point.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 从[图8](#fig-ZeroInflatedDiag1)中，我们可以看到，预测结果与观测数据的偏差与障碍模型类似。因此，到目前为止，我们没有重大的变化。
 - en: 'Let’s see the numerical results:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们查看数值结果：
 - en: '[PRE14]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'Here, we do see tiny changes in the estimates. The estimate for the number
     of cells is similar with small changes in the credible intervals. Otherwise, the
     parameter for the number of zeros seems to experience a larger shift. Let’s see
     if this has any effect on our conclusions:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们确实看到估计值有微小变化。细胞数量的估计相似，可信区间有小幅变化。否则，零数量的参数似乎经历了更大的变化。让我们看看这是否会影响我们的结论：
 - en: '![](../Images/b0441637655fcc4cf8ea62529c43f93c.png)'
+  id: totrans-89
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b0441637655fcc4cf8ea62529c43f93c.png)'
 - en: 'Indicates that there is approximately a 77% probability of observing zero counts
     in the reference hemisphere. Now, for the injured hemisphere, we have:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 表示在参考半球观察到零计数的概率大约为77%。现在，对于受损半球，我们有：
 - en: '![](../Images/933eaff53d574b13b9cc95a322868a03.png)'
+  id: totrans-91
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/933eaff53d574b13b9cc95a322868a03.png)'
 - en: 'Again, this signals a drastic reduction in observing zero cell counts in the
     injured (ipsilateral) hemisphere. Evaluating the results using scientific knowledge,
     I would say that both models provide similarly sound predictions. The graphical
     results for our `zero_inflated_poisson` model are as follows:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，这表明在受伤（同侧）半球观察到零细胞计数的情况大幅减少。根据科学知识来评估结果，我认为这两个模型提供了类似合理的预测。我们的`zero_inflated_poisson`模型的图形结果如下：
 - en: '[PRE15]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '![](../Images/c63a4acd4ca85e86eed8b6ebb4db3f29.png)'
+  id: totrans-94
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c63a4acd4ca85e86eed8b6ebb4db3f29.png)'
 - en: 'Figure 9: Conditional effects for the Inflated fit'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 图9：膨胀拟合的条件效应
 - en: The results seem analogous to those of the hurdle model. However, we can observe
     that the estimates for the probability of 0 in the contralateral hemisphere is
     more restrictive for the `zero_inflated_poisson`. The reason is, as I explained
     at the beginning, that the zero-inflated model locates a larger probability of
     zeros than the `hurdle_poisson` distribution. Let’s compare the models to finish
     this post.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果似乎与hurdle模型相似。然而，我们可以观察到，对侧半球为零的概率估计在`zero_inflated_poisson`模型中更为严格。原因正如我一开始所解释的，零膨胀模型比`hurdle_poisson`分布定位了更多的零的概率。让我们比较一下这些模型，结束这篇文章。
 - en: Model comparison
+  id: totrans-97
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 模型比较
 - en: We carry out leave-one-out cross-validation using the the `loo` package ([*4*](#ref-loo),
     [*5*](#ref-vehtari2016)). WAIC ([*6*](#ref-gelman2013)) is another approach you
     can explore in [this](https://medium.com/towards-data-science/do-not-over-think-about-outliers-use-a-student-t-distribution-instead-b6c584b91d5c)
     post.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用`loo`包执行留一交叉验证（[*4*](#ref-loo)，[*5*](#ref-vehtari2016)）。WAIC（[*6*](#ref-gelman2013)）是你可以在[这篇文章](https://medium.com/towards-data-science/do-not-over-think-about-outliers-use-a-student-t-distribution-instead-b6c584b91d5c)中探索的另一种方法。
 - en: '[PRE16]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '![](../Images/f76a5e8c28e127995d0b6817b7b7c593.png)'
+  id: totrans-100
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f76a5e8c28e127995d0b6817b7b7c593.png)'
 - en: Even though if our model predictions are alike, the “pareto-k-diagnostic” indicates
     that the `hurdle_poisson` model has 1 `very bad` value, whereas this value shifts
     to `bad` in the `zero_inflated_poisson()`. I judge that this “bad and very bad”
@@ -455,30 +664,42 @@
     a possible bias in the estimates (which should be fully reported). This is a thorough
     and transparent way to interpret the data. I wrote another [post](https://medium.com/towards-data-science/do-not-over-think-about-outliers-use-a-student-t-distribution-instead-b6c584b91d5c)
     concerning extreme values that may be of interest to you.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使我们的模型预测相似，"pareto-k-diagnostic"也表明`hurdle_poisson`模型有一个`非常差`的值，而这个值在`zero_inflated_poisson()`模型中转变为`差`。我判断这个“差和非常差”值可能是我们在[图2](#fig-EDA)中看到的对侧计数的极端观测值所导致的黑点。我们可以拟合另一个不包括该值的模型并重新评估结果。然而，这个程序的目标只是评估这个极端观测值的影响，并告知观众估计结果中可能存在的偏差（应该完全报告）。这是对数据进行透彻且透明解读的方式。我还写了一篇关于极端值的[文章](https://medium.com/towards-data-science/do-not-over-think-about-outliers-use-a-student-t-distribution-instead-b6c584b91d5c)，可能对你有兴趣。
 - en: I conclude that the modeling performed in this post is a more appropriate approach
     than a naive linear model based on a Gaussian distribution. It is an ethical and
     professional responsibility of scientists to use the most appropriate statistical
     modeling tools available. Fortunately, `brms` exists!
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 我得出结论，这篇文章中执行的建模方法比基于高斯分布的简单线性模型更合适。科学家有责任使用最合适的统计建模工具，这是道德和专业的责任。幸运的是，`brms`是存在的！
 - en: I would appreciate your comments or feedback letting me know if this journey
     was useful to you. If you want more quality content on data science and other
     topics, you might consider becoming a [medium member](https://medium.com/membership).
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 我非常感谢你的评论或反馈，告诉我这段旅程是否对你有帮助。如果你想获得更多关于数据科学及其他主题的优质内容，你可以考虑成为[medium会员](https://medium.com/membership)。
 - en: In the future, you can find an updated version of this post on my [GitHub site](https://github.com/daniel-manrique/MediumBlog/blob/main/2024-04-19_CountsZeroInflated.qmd).
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 将来，你可以在我的[GitHub网站](https://github.com/daniel-manrique/MediumBlog/blob/main/2024-04-19_CountsZeroInflated.qmd)找到这篇文章的更新版本。
 - en: All images, unless otherwise stated, were generated using the displayed R code.
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 除非另有说明，否则所有图像均是使用所展示的R代码生成的。
 - en: References
+  id: totrans-106
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: 1.I. Baraibar, M. Roman, M. Rodríguez-Remírez, I. López, A. Vilalta, E. Guruceaga,
     M. Ecay, M. Collantes, T. Lozano, D. Alignani, A. Puyalto, A. Oliver, S. Ortiz-Espinosa,
     H. Moreno, M. Torregrosa, C. Rolfo, C. Caglevic, D. García-Ros, M. Villalba-Esparza,
@@ -486,28 +707,45 @@
     [Id1 and PD-1 Combined Blockade Impairs Tumor Growth and Survival of KRAS-mutant
     Lung Cancer by Stimulating PD-L1 Expression and Tumor Infiltrating CD8+ T Cells](https://doi.org/10.3390/cancers12113169).
     *Cancers*. **12**, 3169 (2020).
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 1.I. Baraibar, M. Roman, M. Rodríguez-Remírez, I. López, A. Vilalta, E. Guruceaga,
+    M. Ecay, M. Collantes, T. Lozano, D. Alignani, A. Puyalto, A. Oliver, S. Ortiz-Espinosa,
+    H. Moreno, M. Torregrosa, C. Rolfo, C. Caglevic, D. García-Ros, M. Villalba-Esparza,
+    C. De Andrea, S. Vicent, R. Pío, J. J. Lasarte, A. Calvo, D. Ajona, I. Gil-Bazo,
+    [Id1与PD-1联合阻断通过刺激PD-L1表达和肿瘤浸润的CD8+ T细胞抑制KRAS突变型肺癌的肿瘤生长和存活](https://doi.org/10.3390/cancers12113169)。*癌症*。**12**，3169（2020）。
 - en: '2\. M. Kay, *tidybayes: Tidy data and geoms for Bayesian models* (2023; [http://mjskay.github.io/tidybayes/](http://mjskay.github.io/tidybayes/)).'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: '2\. M. Kay, *tidybayes: 适用于贝叶斯模型的整洁数据和几何图形*（2023；[http://mjskay.github.io/tidybayes/](http://mjskay.github.io/tidybayes/)）。'
 - en: 3\. C. X. Feng, A comparison of zero-inflated and hurdle models for modeling
     zero-inflated count data. *Journal of Statistical Distributions and Applications*.
     **8** (2021), doi:[10.1186/s40488–021–00121–4](https://doi.org/10.1186/s40488-021-00121-4).
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 3\. C. X. Feng, 零膨胀计数数据建模的零膨胀模型与障碍模型比较。*统计分布与应用杂志*。**8**（2021），doi：[10.1186/s40488–021–00121–4](https://doi.org/10.1186/s40488-021-00121-4)。
 - en: '4\. A. Vehtari, J. Gabry, M. Magnusson, Y. Yao, P.-C. Bürkner, T. Paananen,
     A. Gelman, Loo: Efficient leave-one-out cross-validation and WAIC for bayesian
     models (2022) (available at [https://mc-stan.org/loo/](https://mc-stan.org/loo/)).'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 4\. A. Vehtari, J. Gabry, M. Magnusson, Y. Yao, P.-C. Bürkner, T. Paananen,
+    A. Gelman, Loo：高效的留一法交叉验证和WAIC用于贝叶斯模型（2022）（可在[https://mc-stan.org/loo/](https://mc-stan.org/loo/)获取）。
 - en: 5\. A. Vehtari, A. Gelman, J. Gabry, [Practical Bayesian model evaluation using
     leave-one-out cross-validation and WAIC](https://doi.org/10.1007/s11222-016-9696-4).
     *Statistics and Computing*. **27**, 1413–1432 (2016).
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 5\. A. Vehtari, A. Gelman, J. Gabry, [使用留一法交叉验证和WAIC进行贝叶斯模型的实用评估](https://doi.org/10.1007/s11222-016-9696-4)。*统计与计算*。**27**，1413–1432（2016）。
 - en: 6\. A. Gelman, J. Hwang, A. Vehtari, [Understanding predictive information criteria
     for Bayesian models](https://doi.org/10.1007/s11222-013-9416-2). *Statistics and
     Computing*. **24**, 997–1016 (2013).
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 6\. A. Gelman, J. Hwang, A. Vehtari, [理解贝叶斯模型的预测信息准则](https://doi.org/10.1007/s11222-013-9416-2)。*统计与计算*。**24**，997–1016（2013）。

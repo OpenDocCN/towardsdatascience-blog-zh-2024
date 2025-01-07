@@ -1,241 +1,362 @@
 - en: From Set Transformer to Perceiver Sampler
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 从 Set Transformer 到 Perceiver Sampler
 - en: 原文：[https://towardsdatascience.com/from-set-transformer-to-perceiver-sampler-2f18e741d242?source=collection_archive---------9-----------------------#2024-10-08](https://towardsdatascience.com/from-set-transformer-to-perceiver-sampler-2f18e741d242?source=collection_archive---------9-----------------------#2024-10-08)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/from-set-transformer-to-perceiver-sampler-2f18e741d242?source=collection_archive---------9-----------------------#2024-10-08](https://towardsdatascience.com/from-set-transformer-to-perceiver-sampler-2f18e741d242?source=collection_archive---------9-----------------------#2024-10-08)
 - en: On multi-modal LLM Flamingo’s vision encoder
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 关于多模态 LLM Flamingo 的视觉编码器
 - en: '[](https://mengliuz.medium.com/?source=post_page---byline--2f18e741d242--------------------------------)[![Mengliu
     Zhao](../Images/0b950a0785fa065db3319ed5be4a91de.png)](https://mengliuz.medium.com/?source=post_page---byline--2f18e741d242--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2f18e741d242--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2f18e741d242--------------------------------)
     [Mengliu Zhao](https://mengliuz.medium.com/?source=post_page---byline--2f18e741d242--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://mengliuz.medium.com/?source=post_page---byline--2f18e741d242--------------------------------)[![Mengliu
+    Zhao](../Images/0b950a0785fa065db3319ed5be4a91de.png)](https://mengliuz.medium.com/?source=post_page---byline--2f18e741d242--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2f18e741d242--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2f18e741d242--------------------------------)
+    [赵梦刘](https://mengliuz.medium.com/?source=post_page---byline--2f18e741d242--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2f18e741d242--------------------------------)
     ·5 min read·Oct 8, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2f18e741d242--------------------------------)
+    ·阅读时间 5 分钟·2024年10月8日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: Designing Multi-modal LLM is hard.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 设计多模态 LLM 很难。
 - en: 'The state-of-the-art multi-modal LLMs are primarily based on existing LLM architectures,
     with modifications specifically addressing different sources of input, and that’s
     where the difficulty comes from. The latest [Nvidia paper](https://arxiv.org/abs/2409.11402)
     divides the commonly used multi-modal architectures into two categories:'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前最先进的多模态 LLMs 主要基于现有的 LLM 架构，通过特定的修改来处理不同来源的输入，这也是问题的来源。最新的 [Nvidia 论文](https://arxiv.org/abs/2409.11402)将常用的多模态架构分为两类：
 - en: decoder-based;
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于解码器的；
 - en: cross-attention-based.
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于交叉注意力。
 - en: One of my [previous medium article](https://medium.com/towards-data-science/transformer-diffusion-transfusion-d18d219f2a12)s
     discussed [the latest paper from Meta](https://www.arxiv.org/pdf/2408.11039),
     using **decoder-based architecture**, which converts an input image into a latent
     vector using a VAE encoder to address the issue that the image space is continuous
     and different from the discrete text space.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我之前的 [一篇文章](https://medium.com/towards-data-science/transformer-diffusion-transfusion-d18d219f2a12)讨论了
+    [Meta 的最新论文](https://www.arxiv.org/pdf/2408.11039)，使用 **基于解码器的架构**，通过 VAE 编码器将输入图像转换为潜在向量，解决了图像空间是连续的，且与离散的文本空间不同的问题。
 - en: However, the problem with **cross-attention-based architecture** is different.
     For example, in the multi-modal LLM model [Flamingo](https://arxiv.org/abs/2204.14198),
     the critical issue is converting the vision embedding from a generic vision model
     of varying temporal and spatial dimensions into the cross-attention layer to match
     the language input dimension.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，**基于交叉注意力的架构**问题则不同。例如，在多模态 LLM 模型 [Flamingo](https://arxiv.org/abs/2204.14198)
+    中，关键问题是如何将来自通用视觉模型的视觉嵌入（其时空维度各异）转换到交叉注意力层，以匹配语言输入的维度。
 - en: In this post, I will dive deep into Flamingo’s unique design on top of the vision
     encoder, the Perceiver Resampler, to explain how this issue was solved. Furthermore,
     I will explore the Perceiver Resampler’s origin — the Induced Set Attention Block
     from [Set Transformer](https://arxiv.org/abs/1810.00825), which further inspired
     [DeepMind’s Perceiver model](https://arxiv.org/abs/2103.03206) for learning fixed-length
     latent embeddings from generic input data.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我将深入探讨 Flamingo 在视觉编码器基础上独特的设计——Perceiver Resampler，解释这个问题是如何解决的。此外，我还将探索
+    Perceiver Resampler 的起源——来自 [Set Transformer](https://arxiv.org/abs/1810.00825)
+    的 Induced Set Attention Block，后者进一步启发了 [DeepMind 的 Perceiver 模型](https://arxiv.org/abs/2103.03206)，用于从通用输入数据中学习固定长度的潜在嵌入。
 - en: '![](../Images/089422242834b9a1e1fa9c9fb3c0a5c9.png)'
+  id: totrans-13
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/089422242834b9a1e1fa9c9fb3c0a5c9.png)'
 - en: 'Image source: [https://pxhere.com/en/photo/1399240](https://pxhere.com/en/photo/1399240)'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[https://pxhere.com/en/photo/1399240](https://pxhere.com/en/photo/1399240)
 - en: Set Transformer
+  id: totrans-15
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Set Transformer
 - en: 'Published in 2019, the Set Transformer work extended the [original Transformer
     model](https://arxiv.org/abs/1706.03762.) on sets to solve permutation-invariant
     problems like Set Anomaly Detection, Point Cloud Classification, etc. Inspired
     by the sparse Gaussian process where [a small set of inducing variables could
     adequately approximate the posterior of an input](https://krasserm.github.io/2020/12/12/gaussian-processes-sparse/),
     the Set Transformer uses the Induced Set Attention Blocks (ISAB) defined below:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: Set Transformer工作于2019年发布，扩展了[原始Transformer模型](https://arxiv.org/abs/1706.03762.)，用于处理集合问题，解决了置换不变问题，如集合异常检测、点云分类等。受稀疏高斯过程启发，其中[一小部分诱导变量足以近似输入的后验分布](https://krasserm.github.io/2020/12/12/gaussian-processes-sparse/)，Set
+    Transformer使用如下定义的诱导集合注意力块（ISAB）：
 - en: '![](../Images/4e9bb54ec30707d2a2a4f04209ec5814.png)'
+  id: totrans-17
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4e9bb54ec30707d2a2a4f04209ec5814.png)'
 - en: 'Induced Set Attention Blocks (ISAB). Equantion source: [https://arxiv.org/pdf/1810.00825](https://arxiv.org/pdf/1810.00825)'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 诱导集合注意力块（ISAB）。方程来源：[https://arxiv.org/pdf/1810.00825](https://arxiv.org/pdf/1810.00825)
 - en: MAB(X, Y) is the transformers' original multi-head attention block, where query
     = X, key/value = Y. The ISAB block is almost identical to two stacked multi-head
     attention blocks, except that the input key/value is replaced by the inducing
     matrix I. The original set X is of dimension N*D, and I is of dimension M*D, representing
     M 1*D inducing points. A visualization is shown below.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: MAB(X, Y)是Transformer的原始多头注意力块，其中查询= X，键/值= Y。ISAB块几乎与两个堆叠的多头注意力块相同，唯一的区别是输入的键/值被诱导矩阵I替代。原始集合X的维度为N*D，I的维度为M*D，表示M个1*D的诱导点。下面是一个可视化示意图。
 - en: '![](../Images/a15880a7934d389807800b0eb6cabfb4.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a15880a7934d389807800b0eb6cabfb4.png)'
 - en: 'A visualization of multi-head attention block and induced set attention block.
     Image source: [https://arxiv.org/pdf/1810.00825](https://arxiv.org/pdf/1810.00825)'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 多头注意力块和诱导集合注意力块的可视化。图片来源：[https://arxiv.org/pdf/1810.00825](https://arxiv.org/pdf/1810.00825)
 - en: Note that the design of the ISAB is to save computational cost. The reason is
     that the M could be much smaller than the original N dimension, which makes the
     time complexity of ISAB O(N*d) much smaller than the original self-attention complexity
     O(N**2*d).
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，ISAB的设计目的是节省计算成本。原因是M可能远小于原始的N维度，这使得ISAB的时间复杂度O(N*d)比原始自注意力复杂度O(N**2*d)小得多。
 - en: Perceiver
+  id: totrans-23
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Perceiver
 - en: Inspired by the use of inducing points as query matrix from Set Transformer,
     the Perceiver model, proposed by DeepMind, separated the query matrix as a short
     sequence of learnable latent embeddings (e.g., N=512) while the key and value
     pair to be a byte array that is an ultra-long sequence input (e.g., M=224*224
     pixels).
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 受Set Transformer中使用诱导点作为查询矩阵的启发，DeepMind提出的Perceiver模型将查询矩阵分离为一个可学习的潜在嵌入短序列（例如，N=512），而键和值对则是一个字节数组，作为超长序列输入（例如，M=224*224像素）。
 - en: '![](../Images/ba1ae736683c76b2041e21af8d4031c2.png)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ba1ae736683c76b2041e21af8d4031c2.png)'
 - en: 'Perceiver model architecture. Image source: [https://arxiv.org/abs/2103.03206](https://arxiv.org/abs/2103.03206)'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: Perceiver模型架构。图片来源：[https://arxiv.org/abs/2103.03206](https://arxiv.org/abs/2103.03206)
 - en: 'The **cross attention** is borrowed from the decoder part of the original transformer,
     where the query and key/value come from different sources, and in this case, unlearnable
     representations:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '**交叉注意力**借鉴了原始Transformer解码器部分，其中查询（query）和键/值（key/value）来自不同的来源，在这种情况下，来自不可学习的表示：'
 - en: '![](../Images/35c9299a993440a1f087726092cbb974.png)'
+  id: totrans-28
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/35c9299a993440a1f087726092cbb974.png)'
 - en: Multi-head attention and cross attention. Image by author.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 多头注意力和交叉注意力。图片来自作者。
 - en: Since K and V are input “constants,” the Perceiver transformer layer computational
     complexity becomes only relative to the latent space, which is O(N**2), and is
     also called a **latent transformer.** Decoupled from the input size, the latent
     transformers could quickly scale up to 48 layers, which is a great advantage over
     traditional transformer designs.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于K和V是输入的“常量”，Perceiver Transformer层的计算复杂度仅与潜在空间相关，即O(N**2)，也被称为**潜在Transformer**。与输入大小解耦后，潜在Transformer可以快速扩展到48层，这相比传统的Transformer设计具有巨大的优势。
 - en: Flamingo’s Vision Encoder and Perceiver Resampler
+  id: totrans-31
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Flamingo的视觉编码器和感知重采样器
 - en: Instead of applying the Perceiver directly, Flamingo first uses a pre-trained,
     CNN-based, weight-frozen [Normalizer-Free ResNet](https://arxiv.org/abs/2102.06171)
     (NFNet) to extract image/video features, then adds a learnable temporal positional
     embedding and flattens them to the 1D sequence. The Perceiver Resampler is attached
     to the vision encoder to learn a fixed-size latent embedding before being passed
     into the cross-attention layer of the leading architecture.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: Flamingo 并没有直接应用 Perceiver，而是首先使用预训练的基于 CNN 的权重冻结的 [Normalizer-Free ResNet](https://arxiv.org/abs/2102.06171)（NFNet）来提取图像/视频特征，然后添加一个可学习的时间位置嵌入，并将其展平为
+    1D 序列。Perceiver Resampler 附加在视觉编码器上，以学习一个固定大小的潜在嵌入，然后将其传递到主架构的跨注意力层。
 - en: '![](../Images/89ebd5f6b78de69897120f9f31289ba1.png)'
+  id: totrans-33
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/89ebd5f6b78de69897120f9f31289ba1.png)'
 - en: 'Flamingo architecture. Image source: [https://arxiv.org/pdf/2204.14198](https://arxiv.org/pdf/2204.14198)'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: Flamingo 架构。图像来源：[https://arxiv.org/pdf/2204.14198](https://arxiv.org/pdf/2204.14198)
 - en: Like DeepMind’s Preceiver model, the Percerver Resampler uses constant input
     embeddings as keys/values and the learnable latent vectors as queries. Note that
     no spatial encoding is used here, and the rationale is that the previous vision
     encoder, NFNet, is a convolution-based model with spatial information embedded
     in the channel information. To increase performance, the learnable vectors are
     concatenated to the key/value vectors in the cross-attention computation.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似于 DeepMind 的 Preceiver 模型，Percerver Resampler 使用恒定的输入嵌入作为键/值，学习的潜在向量作为查询。注意，这里没有使用空间编码，理由是之前的视觉编码器
+    NFNet 是一个基于卷积的模型，空间信息已经嵌入在通道信息中。为了提高性能，学习向量被连接到跨注意力计算中的键/值向量。
 - en: '![](../Images/f032a413534acc3fb788e0157f468165.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f032a413534acc3fb788e0157f468165.png)'
 - en: 'Preceiver Resampler architecture. Image source: [https://arxiv.org/abs/2204.14198](https://arxiv.org/abs/2204.14198)'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: Preceiver Resampler 架构。图像来源：[https://arxiv.org/abs/2204.14198](https://arxiv.org/abs/2204.14198)
 - en: 'The detailed algorithm is given below:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面给出了详细的算法：
 - en: '![](../Images/d78e5420e6b40063d9253e8efba05146.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d78e5420e6b40063d9253e8efba05146.png)'
 - en: 'Perceiver Resampler algorithm. Algorithm source: [https://arxiv.org/abs/2204.14198](https://arxiv.org/abs/2204.14198)'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: Perceiver Resampler 算法。算法来源：[https://arxiv.org/abs/2204.14198](https://arxiv.org/abs/2204.14198)
 - en: Summary
+  id: totrans-41
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 摘要
 - en: This article gives a detailed walk-through of the vision encoder part of the
     Flamingo architecture. The vision encoder has a unique design, the Perceiver Resampler,
     which originated from the Set Transformer and the Perceiver model and could minimize
     the cross-attention computation cost while leveraging information from both the
     spatial and temporal domains.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文详细介绍了 Flamingo 架构中的视觉编码器部分。视觉编码器有一个独特的设计——Perceiver Resampler，它起源于 Set Transformer
+    和 Perceiver 模型，能够在利用空间和时间域信息的同时，最小化跨注意力计算的成本。
 - en: References
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: 'Dai et al., NVLM: Open Frontier-Class Multimodal LLMs. arXiv 2024.'
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'Dai 等人，《NVLM: Open Frontier-Class Multimodal LLMs》。arXiv 2024。'
 - en: 'Zhou et al., Transfusion: Predict the Next Token and Diffuse Images with One
     Multi-Modal Model. arXiv 2024.'
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'Zhou 等人，《Transfusion: Predict the Next Token and Diffuse Images with One Multi-Modal
+    Model》。arXiv 2024。'
 - en: 'Alayrac et al., Flamingo: a Visual Language Model for Few-Shot Learning. NeurIPS
     2022.'
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'Alayrac 等人，《Flamingo: a Visual Language Model for Few-Shot Learning》。NeurIPS
+    2022。'
 - en: 'Jaegle et al., Perceiver: General Perception with Iterative Attention. ICML
     2021.'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'Jaegle 等人，《Perceiver: General Perception with Iterative Attention》。ICML 2021。'
 - en: Brock at al., High-Performance Large-Scale Image Recognition Without Normalization.
     arXiv 2021.
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Brock 等人，《高性能大规模图像识别无归一化》。arXiv 2021。
 - en: 'Lee et al., Set Transformer: A Framework for Attention-based Permutation-Invariant
     Neural Networks. ICML 2019\. [Slides](https://icml.cc/media/icml-2019/Slides/4842.pdf)'
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'Lee 等人，《Set Transformer: A Framework for Attention-based Permutation-Invariant
+    Neural Networks》。ICML 2019。[幻灯片](https://icml.cc/media/icml-2019/Slides/4842.pdf)'
 - en: Vaswani et al., Attention Is All You Need. NeurIPS 2017.
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Vaswani 等人，《Attention Is All You Need》。NeurIPS 2017。
 - en: 'Stanford CS25: V1 I DeepMind’s Perceiver and Perceiver IO: new data family
     architecture, [https://www.youtube.com/watch?v=wTZ3o36lXoQ](https://www.youtube.com/watch?v=wTZ3o36lXoQ)'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '斯坦福 CS25: V1 I DeepMind 的 Perceiver 和 Perceiver IO: 新的数据家族架构，[https://www.youtube.com/watch?v=wTZ3o36lXoQ](https://www.youtube.com/watch?v=wTZ3o36lXoQ)'
 - en: HuggingFace, Perceiver Model Doc. [https://huggingface.co/docs/transformers/v4.34.0/en/model_doc/perceiver](https://huggingface.co/docs/transformers/v4.34.0/en/model_doc/perceiver)
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: HuggingFace，Perceiver 模型文档。[https://huggingface.co/docs/transformers/v4.34.0/en/model_doc/perceiver](https://huggingface.co/docs/transformers/v4.34.0/en/model_doc/perceiver)

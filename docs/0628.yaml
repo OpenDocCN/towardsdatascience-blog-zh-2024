@@ -1,309 +1,455 @@
 - en: PyTorch and MLX for Apple Silicon
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: PyTorch和MLX在Apple Silicon上的应用
 - en: 原文：[https://towardsdatascience.com/pytorch-and-mlx-for-apple-silicon-4f35b9f60e39?source=collection_archive---------0-----------------------#2024-03-08](https://towardsdatascience.com/pytorch-and-mlx-for-apple-silicon-4f35b9f60e39?source=collection_archive---------0-----------------------#2024-03-08)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/pytorch-and-mlx-for-apple-silicon-4f35b9f60e39?source=collection_archive---------0-----------------------#2024-03-08](https://towardsdatascience.com/pytorch-and-mlx-for-apple-silicon-4f35b9f60e39?source=collection_archive---------0-----------------------#2024-03-08)
 - en: A side-by-side CNN implementation and comparison
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 并排的CNN实现与比较
 - en: '[](https://mikecvet.medium.com/?source=post_page---byline--4f35b9f60e39--------------------------------)[![Mike
     Cvet](../Images/93545a0c873515a599ba094ad51ee915.png)](https://mikecvet.medium.com/?source=post_page---byline--4f35b9f60e39--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4f35b9f60e39--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4f35b9f60e39--------------------------------)
     [Mike Cvet](https://mikecvet.medium.com/?source=post_page---byline--4f35b9f60e39--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://mikecvet.medium.com/?source=post_page---byline--4f35b9f60e39--------------------------------)[![Mike
+    Cvet](../Images/93545a0c873515a599ba094ad51ee915.png)](https://mikecvet.medium.com/?source=post_page---byline--4f35b9f60e39--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4f35b9f60e39--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4f35b9f60e39--------------------------------)
+    [Mike Cvet](https://mikecvet.medium.com/?source=post_page---byline--4f35b9f60e39--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4f35b9f60e39--------------------------------)
     ·9 min read·Mar 8, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4f35b9f60e39--------------------------------)
+    ·9分钟阅读·2024年3月8日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/8ca713060459ca7ca5b77df6b814fd81.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8ca713060459ca7ca5b77df6b814fd81.png)'
 - en: All images by author
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有图片由作者提供
 - en: A few months ago, [Apple quietly released](https://www.theverge.com/2023/12/6/23990678/apple-foundation-models-generative-ai-mlx)
     the first public version of its [MLX framework](https://ml-explore.github.io/mlx/build/html/index.html),
     which fills a space in between [PyTorch](https://pytorch.org), [NumPy](https://numpy.org/doc/stable/index.html)
     and [Jax](https://github.com/google/jax), but optimized for Apple Silicon. Much
     like those libraries, MLX is a Python-fronted API whose underlying operations
     are largely implemented in C++.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 几个月前，[苹果悄然发布了](https://www.theverge.com/2023/12/6/23990678/apple-foundation-models-generative-ai-mlx)其第一个公开版本的[MLX框架](https://ml-explore.github.io/mlx/build/html/index.html)，该框架填补了[PyTorch](https://pytorch.org)、[NumPy](https://numpy.org/doc/stable/index.html)和[Jax](https://github.com/google/jax)之间的空白，但专为Apple
+    Silicon进行优化。与这些库类似，MLX是一个基于Python的API，其底层操作大部分是用C++实现的。
 - en: Below are some observations of the similarities and differences between MLX
     and PyTorch. I implemented a bespoke convolutional neural network using PyTorch
     and its Apple Silicon GPU hardware support, and tested it on a few different datasets.
     In particular, the [MNIST dataset](http://yann.lecun.com/exdb/mnist/), and the
     [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) and [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html)
     datasets.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是MLX和PyTorch之间的一些相似性和差异的观察。我使用PyTorch及其Apple Silicon GPU硬件支持实现了一个定制的卷积神经网络，并在几个不同的数据集上进行了测试。特别是，[MNIST数据集](http://yann.lecun.com/exdb/mnist/)，以及[CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html)和[CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html)数据集。
 - en: All the code discussed below can be [found here](https://github.com/mikecvet/cnn/).
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 下文讨论的所有代码可以[在此找到](https://github.com/mikecvet/cnn/)。
 - en: '[Approach](#c37c)'
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[方法](#c37c)'
 - en: '[Notes on MLX](#7afa)'
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[关于MLX的笔记](#7afa)'
 - en: '[Performance](#8947)'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[性能](#8947)'
 - en: '[Final Thoughts](#755f)'
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[总结思考](#755f)'
 - en: Approach
+  id: totrans-15
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 方法
 - en: I implemented the model with PyTorch first, since I’m more familiar with the
     framework. The model has a series of convolutional and pooling layers, followed
     by a few linear layers with dropout.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 我首先用PyTorch实现了该模型，因为我对这个框架更为熟悉。该模型包含一系列卷积层和池化层，随后是一些带有dropout的线性层。
 - en: '[PRE0]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: This architecture is overkill for MNIST dataset classification, but I wanted
     something with some complexity to compare the two frameworks. I tested this against
     the CIFAR datasets, which approached around 40% accuracy; not amazing, but I suppose
     decent for something that isn’t a [ResNet](https://en.wikipedia.org/wiki/Residual_neural_network).
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个架构对于MNIST数据集的分类来说有些过于复杂，但我希望能够构建一个具有一定复杂度的模型来对比这两个框架。我将其在CIFAR数据集上进行了测试，达到了约40%的准确率；虽然不是特别出色，但对于一个非[ResNet](https://en.wikipedia.org/wiki/Residual_neural_network)模型来说，应该算是不错的。
 - en: After finishing this implementation, I wrote a parallel implementation leveraging
     MLX. I happily discovered that *most* of the PyTorch implementation could be directly
     re-used, after importing the necessary MLX modules and replacing the PyTorch ones.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 完成这个实现之后，我写了一个利用 MLX 的并行实现。我高兴地发现，在导入必要的 MLX 模块并替换掉 PyTorch 模块后，**大部分**的 PyTorch
+    实现可以直接重用。
 - en: For example, the MLX version of the above code is [here](https://github.com/mikecvet/cnn/blob/main/src/python/mlx/model.py#L42);
     it's identical aside from a couple of differences in named parameters.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，上述代码的 MLX 版本可以[在这里](https://github.com/mikecvet/cnn/blob/main/src/python/mlx/model.py#L42)找到；除了几个命名参数的差异外，它是完全相同的。
 - en: Notes on MLX
+  id: totrans-21
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: MLX的注意事项
 - en: MLX has some interesting properties worth calling out.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: MLX 具有一些值得注意的有趣特性。
 - en: Array
+  id: totrans-23
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数组
 - en: MLX’s `[array](https://ml-explore.github.io/mlx/build/html/python/array.html)`
     class takes the place of `[Tensor](https://pytorch.org/docs/stable/tensors.html)`;
     much of the documentation compares it to NumPy’s `[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray)`,
     however it is also the datatype used and returned by the various [neural network
     layers](https://ml-explore.github.io/mlx/build/html/python/nn.html) available
     in the framework.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: MLX 的 `[array](https://ml-explore.github.io/mlx/build/html/python/array.html)`
+    类代替了 `[Tensor](https://pytorch.org/docs/stable/tensors.html)`；许多文档将其与 NumPy 的
+    `[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray)`
+    进行比较，但它也是该框架中各种[神经网络层](https://ml-explore.github.io/mlx/build/html/python/nn.html)使用和返回的数据类型。
 - en: '`array` works mostly as you’d expect, though I did have a bit of trouble converting
     back and forth between deeply-nested `np.ndarrays` and `mlx.arrays` necessitating
     some [list type shuffling](https://github.com/mikecvet/cnn/blob/main/src/python/imagedata.py#L107)
     to make things work.'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '`array` 的工作方式大致符合预期，尽管我在深度嵌套的 `np.ndarrays` 和 `mlx.arrays` 之间来回转换时遇到了一些问题，这需要一些[列表类型转换](https://github.com/mikecvet/cnn/blob/main/src/python/imagedata.py#L107)才能使其正常工作。'
 - en: Lazy Computation
+  id: totrans-26
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 懒计算
 - en: '[Operations](https://ml-explore.github.io/mlx/build/html/python/ops.html) in
     MLX are [lazily evaluated](https://ml-explore.github.io/mlx/build/html/usage/lazy_evaluation.html);
     meaning that the only computation executed in the lazily-built compute graph is
     that which generates outputs *actually used* by the program.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '[MLX中的操作](https://ml-explore.github.io/mlx/build/html/python/ops.html)是[懒评估](https://ml-explore.github.io/mlx/build/html/usage/lazy_evaluation.html)的；这意味着，在懒加载构建的计算图中，只有程序*实际使用*的输出才会执行计算。'
 - en: 'There are two ways to force evaluation of the results of operations (such as
     inference):'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 有两种方法可以强制评估操作结果（如推理）：
 - en: Calling `mlx.eval()` on the output
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 调用 `mlx.eval()` 进行输出评估
 - en: Referencing the value of a variable for any reason; for example when logging
     or within conditional statements
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 出于任何原因引用变量的值；例如在记录日志或条件语句中
 - en: 'This can be a little tricky when trying to manage the performance of the code,
     since a reference (even an incidental one) to any value triggers an evaluation
     of that variable as well as all intermediate variables within the graph. For example:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 当试图管理代码的性能时，这可能有点棘手，因为对任何值的引用（即使是偶然的）都会触发该变量以及图中所有中间变量的评估。例如：
 - en: '[PRE1]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This behavior also makes a little difficult to build one-to-one benchmarks between
     PyTorch and MLX-based models. Since training loops may not evaluate outputs within
     the loop itself, its computation needs to be forced in order to track the time
     of the actual operations.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种行为也让在 PyTorch 和基于 MLX 的模型之间建立一对一基准测试变得有些困难。由于训练循环可能不会在循环内部评估输出，因此需要强制执行计算，以便跟踪实际操作的时间。
 - en: '[PRE2]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: There’s a tradeoff between accumulating a large implicit computation graph,
     and regularly forcing the evaluation of that graph during training. For example,
     I was able to lazily run through all of this model’s training epochs over the
     dataset in just a few seconds. However, the eventual evaluation of that (presumably
     enormous) implicit graph took roughly the same amount of time as `eval`’ing after
     each batch. This is probably not always the case.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 在积累一个庞大的隐式计算图和在训练过程中定期强制评估该图之间存在权衡。例如，我能够懒加载地遍历所有的训练周期，仅用几秒钟就完成了整个数据集的训练。然而，最终评估（假设非常庞大的）隐式计算图所需的时间与在每个批次后进行
+    `eval` 的时间差不多。这可能并不总是如此。
 - en: Compilation
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 编译
 - en: MLX provides the ability to optimize the execution of pure functions through
     [compilation](https://ml-explore.github.io/mlx/build/html/usage/compile.html).
     These can be either a direct call to `mlx.compile()` or an annotation (`@mlx.compile`)
     on a pure function (without side effects).
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: MLX提供了通过[编译](https://ml-explore.github.io/mlx/build/html/usage/compile.html)优化纯函数执行的能力。可以直接调用`mlx.compile()`，或者在纯函数（没有副作用）上使用注解（`@mlx.compile`）。
 - en: There are a few gotchas related to state mutation when using compiled functions;
     these are discussed [in the docs](https://ml-explore.github.io/mlx/build/html/usage/compile.html#pure-functions).
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用编译函数时有一些与状态变异相关的陷阱；这些内容在[文档中讨论](https://ml-explore.github.io/mlx/build/html/usage/compile.html#pure-functions)。
 - en: '[It seems like](https://ml-explore.github.io/mlx/build/html/dev/extensions.html)
     this results in a compilation of logic into [Metal Shader Language](https://developer.apple.com/documentation/metal)
     to be run on the GPU (I explored MSL earlier [here](/programming-apple-gpus-through-go-and-metal-shading-language-a0e7a60a3dba)).'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '[看起来像](https://ml-explore.github.io/mlx/build/html/dev/extensions.html)这导致了逻辑的编译成[金属着色语言](https://developer.apple.com/documentation/metal)，以便在GPU上运行（我之前在[这里](/programming-apple-gpus-through-go-and-metal-shading-language-a0e7a60a3dba)探索过MSL）。'
 - en: API Compatibility and Code Conventions
+  id: totrans-40
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: API兼容性和代码约定
 - en: 'As mentioned above, it was pretty easy to convert much of my PyTorch code into
     MLX-based equivalents. A few differences though:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上所述，将我的PyTorch代码转换为基于MLX的等价代码相当容易。不过，也有一些区别：
 - en: Some of the neural network layers discretely expect different configurations
     of inputs. For example, `[mlx.nn.Conv2d](https://ml-explore.github.io/mlx/build/html/python/nn/_autosummary/mlx.nn.Conv2d.html#mlx.nn.Conv2d)`
     expects input images in `NHWC` format (with `C` representing the channels dimensionality),
     while `[torch.nn.Conv2d](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html)`
     expects `NCHW` ; there are a few other examples of this. This required some [conditional
     tensor/array shuffling](https://github.com/mikecvet/cnn/blob/main/src/python/imagedata.py#L62).
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一些神经网络层会特别期望不同的输入配置。例如，`[mlx.nn.Conv2d](https://ml-explore.github.io/mlx/build/html/python/nn/_autosummary/mlx.nn.Conv2d.html#mlx.nn.Conv2d)`期望输入图像为`NHWC`格式（其中`C`表示通道维度），而`[torch.nn.Conv2d](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html)`则期望`NCHW`；还有一些其他类似的例子。这需要一些[条件张量/数组重排](https://github.com/mikecvet/cnn/blob/main/src/python/imagedata.py#L62)。
 - en: There is unfortunately no analog to the relative *joy* that are PyTorch [Datasets
     and DataLoaders](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html)
     being currently provided by MLX; instead I had to craft [something resembling
     them](https://github.com/mikecvet/cnn/blob/main/src/python/mlx/dataset.py) by
     hand.
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不幸的是，目前MLX并没有类似于PyTorch的[数据集和数据加载器](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html)那样的相对*乐趣*；相反，我不得不手动构建[一些类似的东西](https://github.com/mikecvet/cnn/blob/main/src/python/mlx/dataset.py)。
 - en: Model implementations, deriving from `nn.Module`, aren’t expected to override
     `forward()` but rather `__call__()` for inference
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从`nn.Module`派生的模型实现不需要重写`forward()`，而是重写`__call__()`进行推理。
 - en: 'I assume because of the potential for function compilation, as well as the
     lazy evaluation support mentioned above, the process of training using MLX optimizers
     is a bit different than with a typical PyTorch model. Working with the latter,
     one is used to the standard format of something like:'
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我推测，由于可能涉及到函数编译，以及上面提到的延迟计算支持，使用MLX优化器进行训练的过程与典型的PyTorch模型有所不同。在后者中，通常习惯于如下的标准格式：
 - en: '[PRE3]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'MLX encourages, and seems to expect, a format resembling the following, taken
     from [the docs](https://ml-explore.github.io/mlx/build/html/examples/mlp.html)
     and [one of the repository examples](https://github.com/ml-explore/mlx-examples/blob/main/mnist/main.py):'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: MLX鼓励并似乎期望采用类似以下格式，这取自[文档](https://ml-explore.github.io/mlx/build/html/examples/mlp.html)和[一个代码库示例](https://github.com/ml-explore/mlx-examples/blob/main/mnist/main.py)：
 - en: '[PRE4]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Which is fine, but a bit more involved than I was expecting. Otherwise, everything
     felt very familiar.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 这没有问题，但比我预期的要复杂一些。否则，一切都显得非常熟悉。
 - en: Performance
+  id: totrans-50
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 性能
 - en: Note that all results below are from my MacBook Air M2.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，以下所有结果均来自我的MacBook Air M2。
 - en: 'This CNN has three configurations: `PyTorch CPU`, `PyTorch GPU`, and `MLX GPU`.
     As a sanity check, over 30 epochs, here’s how the three compare in terms of accuracy
     and loss:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 该CNN有三种配置：`PyTorch CPU`、`PyTorch GPU`和`MLX GPU`。作为一致性检查，在30个训练周期中，三者在准确性和损失方面的对比如下：
 - en: '![](../Images/dfbc12d31193594274e89c2795303e3c.png)'
+  id: totrans-53
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/dfbc12d31193594274e89c2795303e3c.png)'
 - en: Accuracy and Loss over 30 epochs; visualization code available in the linked
     repository
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 30个epoch的准确率和损失；可视化代码可在链接的仓库中找到
 - en: The results here are all in the same ballpark, though it’s interesting that
     the MLX-based model appears to converge more quickly than the PyTorch-based ones.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的结果都大致相同，尽管有趣的是，基于MLX的模型似乎比基于PyTorch的模型更快收敛。
 - en: In addition, it seems like the accuracy of the MLX model is consistently slightly
     below that of the PyTorch-based models. I’m not sure what accounts for that discrepancy.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，似乎MLX模型的准确率始终略低于基于PyTorch的模型。我不确定造成这种差异的原因。
 - en: 'In terms of runtime performance, I had other interesting results:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 在运行时性能方面，我得到了其他一些有趣的结果：
 - en: '![](../Images/9602a40fc15378305f4337bb63c9f5bb.png)'
+  id: totrans-58
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9602a40fc15378305f4337bb63c9f5bb.png)'
 - en: Training epoch runtime variance across the three model configurations
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 三种模型配置的训练epoch运行时间方差
 - en: When training the model, the PyTorch-based model on the CPU unsurprisingly took
     the most time, from a minimum of 36 to a maximum of 45 seconds per epoch. The
     MLX-based model, running on the GPU, had a range of about 21–27 seconds per epoch.
     PyTorch running on the GPU, via the `MPS device` , was the clear winner in this
     regard, with epochs ranging from 10–14 seconds.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 在训练模型时，基于PyTorch的CPU模型毫不意外地花费了最多的时间，每个epoch最少为36秒，最多为45秒。基于MLX的模型，在GPU上运行，时间范围大约为21-27秒每个epoch。基于GPU运行的PyTorch，通过`MPS设备`，在这方面明显更快，epoch时间范围为10-14秒。
 - en: Classification over the test dataset of ten thousand images tells a different
     story.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 对测试数据集的1万张图像进行分类讲述了不同的故事。
 - en: '![](../Images/f823d919de4e496efd43687e2ee17212.png)'
+  id: totrans-62
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f823d919de4e496efd43687e2ee17212.png)'
 - en: Total time taken by each model variant to classify all 10k images in the test
     dataset; batches of 512
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个模型变种分类所有1万张图像所花费的总时间；批次大小为512
 - en: While it took the CPU-based model around 1700ms to classify all 10k images in
     batches of 512, the GPU-based models completed this task in 1100ms for MLX and
     850ms for PyTorch.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 当CPU模型分类所有1万张图像（每批次512张）时，花费了大约1700ms，而基于GPU的模型则分别为MLX为1100ms，PyTorch为850ms。
 - en: 'However, when classifying the images individually rather than in batches:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，当单独分类图像而不是批量分类时：
 - en: '![](../Images/eedcde9e07e536cdae2ad04d5d076ef9.png)'
+  id: totrans-66
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/eedcde9e07e536cdae2ad04d5d076ef9.png)'
 - en: Total time taken by each model variant to classify all 10k images in the test
     dataset; single images at a time over ten thousand.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个模型变种分类所有1万张图像所花费的总时间；每次分类单张图像，总计超过一万张。
 - en: Apple Silicon uses a [unified memory model](https://www.apple.com/newsroom/2021/10/introducing-m1-pro-and-m1-max-the-most-powerful-chips-apple-has-ever-built/),
     which means that when setting the data and model GPU device to `mps` in PyTorch
     via something like `.to(torch.device(“mps”))` , [there is no actual movement of
@@ -313,82 +459,123 @@
     further above, it works great during parallel batch workloads. But for individual
     record classification after training, it was far outperformed by whatever MLX
     is doing under the hood to spin up GPU execution more quickly.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: Apple Silicon使用了一个[统一内存模型](https://www.apple.com/newsroom/2021/10/introducing-m1-pro-and-m1-max-the-most-powerful-chips-apple-has-ever-built/)，这意味着当在PyTorch中将数据和模型的GPU设备设置为`mps`（例如通过`.to(torch.device(“mps”))`）时，[数据并不会真正移到物理GPU专用内存](https://ml-explore.github.io/mlx/build/html/usage/unified_memory.html)。因此，看起来PyTorch在初始化Apple
+    Silicon GPU执行代码时的开销相当大。如上所述，它在并行批量工作负载中运行良好。但在训练后进行单个记录分类时，MLX在后台进行GPU执行启动的处理方式显然要更快。
 - en: Profiling
+  id: totrans-69
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 性能分析
 - en: 'Taking a quick look at some `cProfile` output for the MLX-based model, ordered
     by cumulative execution time:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 快速查看基于MLX的模型的`cProfile`输出，按累计执行时间排序：
 - en: '[PRE5]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: We some time spent here in a few layer functions, with the bulk of time spent
     in `mlx.core.eval()`, which makes sense since it’s at this point in the graph
     that things are actually being computed.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在一些层函数中花了一些时间，其中大部分时间花费在`mlx.core.eval()`上，这也合乎逻辑，因为在图中正是这一点开始进行实际计算。
 - en: 'Using `[asitop](https://github.com/tlkh/asitop)` to visualize the underlying
     timeseries `powertools` data from MacOS:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`[asitop](https://github.com/tlkh/asitop)`可视化来自MacOS的底层时序`powertools`数据：
 - en: '![](../Images/5a312cd1ca69b90f989e437fbd571f67.png)'
+  id: totrans-74
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5a312cd1ca69b90f989e437fbd571f67.png)'
 - en: asitop power history — MLX model run
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: asitop功率历史 — MLX模型运行
 - en: You can see that the GPU is fully saturated during the training of this model,
     at its [maximum clock speed of 1398 MHz](https://www.notebookcheck.net/Apple-MacBook-Air-M2-review-The-faster-10-core-GPU-isn-t-worth-it.640427.0.html).
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到，在训练此模型时，GPU已经完全饱和，达到了其[最大时钟频率1398 MHz](https://www.notebookcheck.net/Apple-MacBook-Air-M2-review-The-faster-10-core-GPU-isn-t-worth-it.640427.0.html)。
 - en: 'Now compare to the PyTorch GPU variant:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在与PyTorch GPU变种进行比较：
 - en: '[PRE6]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Interestingly, the top function appears to be `Tensor.item()`, which is called
     in various places in the code to calculate loss and accuracy, and possibly also
     within some of the layers referenced lower in the stack. Removing the tracking
     of loss and accuracy during training would probably have a noticeable improvement
     on overall training performance.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 有趣的是，最顶层的函数似乎是`Tensor.item()`，它在代码的各个地方被调用，用来计算损失和准确度，可能也在堆栈中更低层的一些层中被引用。在训练过程中移除损失和准确度的追踪，可能会显著提高整体训练性能。
 - en: '![](../Images/fc384f2bf49b488781ec37aa290cc236.png)'
+  id: totrans-80
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fc384f2bf49b488781ec37aa290cc236.png)'
 - en: asitop power history — PyTorch GPU model run
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: asitop功率历史 — PyTorch GPU模型运行
 - en: Compared to the MLX model, the PyTorch variant doesn’t seem to have saturated
     the GPU during training (I didn’t see it breach 95%), and has a higher balance
     of usage on the CPU’s [E cores and P cores](https://developer.apple.com/news/?id=vk3m204o).
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 与MLX模型相比，PyTorch变种似乎在训练过程中没有饱和GPU（我没有看到它超过95%），并且CPU的[E核和P核](https://developer.apple.com/news/?id=vk3m204o)的使用更为均衡。
 - en: It’s interesting that the MLX model makes heavier use of the GPU, but trains
     considerably more slowly.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 有趣的是，MLX模型更依赖GPU，但训练速度明显较慢。
 - en: Neither model (CPU or GPU-based) appears to have engaged the ANE ([Apple Neural
     Engine](https://github.com/hollance/neural-engine)).
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个模型（基于CPU或GPU的）似乎都没有启用ANE（[Apple Neural Engine](https://github.com/hollance/neural-engine)）。
 - en: Final Thoughts
+  id: totrans-85
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 最后的思考
 - en: MLX was easy to pick up, and that should be the case for anyone with experience
     using PyTorch and NumPy. Though some of the [developer documentation](https://ml-explore.github.io/mlx/build/html/usage/quick_start.html)
     is a bit thin, given the intent to provide tools compatible with those frameworks’
     APIs, it’s easy enough to fill in any gaps with the corresponding PyTorch or NumPy
     docs (for example, SGD [[1](https://ml-explore.github.io/mlx/build/html/python/optimizers/_autosummary/mlx.optimizers.SGD.html)]
     [[2](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html)]).
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: MLX很容易上手，对于有使用PyTorch和NumPy经验的人来说应该也没有问题。尽管一些[开发者文档](https://ml-explore.github.io/mlx/build/html/usage/quick_start.html)有点薄弱，考虑到该工具旨在提供与这些框架API兼容的工具，填补任何空白通过相应的PyTorch或NumPy文档（例如，SGD
+    [[1](https://ml-explore.github.io/mlx/build/html/python/optimizers/_autosummary/mlx.optimizers.SGD.html)]
+    [[2](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html)]）应该很容易。
 - en: The overall performance of the MLX model was pretty good; I wasn’t sure whether
     I was expecting it to consistently outperform PyTorch’s `mps` device support,
     or not. While it seemed like training was considerably faster through PyTorch
@@ -396,5 +583,7 @@
     MLX for this model. Whether that’s an effect of of my MLX configuration, or just
     the properties of the framework, its hard to say (and if its the former — feel
     free to leave an issue on GitHub!)
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: MLX模型的整体性能相当不错；我不确定自己是否期望它始终优于PyTorch的`mps`设备支持。虽然通过PyTorch在GPU上训练似乎要快得多，但对于该模型，单个项预测，尤其是在大规模时，MLX的速度要快得多。无论这是否是我的MLX配置的效果，还是框架本身的属性，很难说（如果是前者——欢迎在GitHub上留下问题！）。

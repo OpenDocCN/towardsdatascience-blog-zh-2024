@@ -1,506 +1,741 @@
 - en: Exposing Jailbreak Vulnerabilities in LLM Applications with ARTKIT
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 利用ARTKIT暴露LLM应用程序中的越狱漏洞
 - en: 原文：[https://towardsdatascience.com/exposing-jailbreak-vulnerabilities-in-llm-applications-with-artkit-d2df5f56ece8?source=collection_archive---------5-----------------------#2024-09-25](https://towardsdatascience.com/exposing-jailbreak-vulnerabilities-in-llm-applications-with-artkit-d2df5f56ece8?source=collection_archive---------5-----------------------#2024-09-25)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/exposing-jailbreak-vulnerabilities-in-llm-applications-with-artkit-d2df5f56ece8?source=collection_archive---------5-----------------------#2024-09-25](https://towardsdatascience.com/exposing-jailbreak-vulnerabilities-in-llm-applications-with-artkit-d2df5f56ece8?source=collection_archive---------5-----------------------#2024-09-25)
 - en: Automated prompt-based testing to extract hidden passwords in the popular Gandalf
     challenge
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 自动化基于提示的测试，用于提取流行的甘道夫挑战中的隐藏密码
 - en: '[](https://kennethleungty.medium.com/?source=post_page---byline--d2df5f56ece8--------------------------------)[![Kenneth
     Leung](../Images/2514dffb34529d6d757c0c4ec5f98334.png)](https://kennethleungty.medium.com/?source=post_page---byline--d2df5f56ece8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d2df5f56ece8--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d2df5f56ece8--------------------------------)
     [Kenneth Leung](https://kennethleungty.medium.com/?source=post_page---byline--d2df5f56ece8--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://kennethleungty.medium.com/?source=post_page---byline--d2df5f56ece8--------------------------------)[![Kenneth
+    Leung](../Images/2514dffb34529d6d757c0c4ec5f98334.png)](https://kennethleungty.medium.com/?source=post_page---byline--d2df5f56ece8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d2df5f56ece8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d2df5f56ece8--------------------------------)
+    [Kenneth Leung](https://kennethleungty.medium.com/?source=post_page---byline--d2df5f56ece8--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d2df5f56ece8--------------------------------)
     ·8 min read·Sep 25, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d2df5f56ece8--------------------------------)
+    ·8分钟阅读·2024年9月25日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/230fce087f3a477a98c22383a35031b3.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/230fce087f3a477a98c22383a35031b3.png)'
 - en: Photo by [Matthew Ball](https://unsplash.com/@tex450?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由[Matthew Ball](https://unsplash.com/@tex450?utm_source=medium&utm_medium=referral)提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: As large language models (LLMs) become more widely adopted across different
     industries and domains, significant security risks have emerged and intensified.
     Several of these key concerns include breaches of data privacy, the potential
     for biases, and the risk of information manipulation.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着大型语言模型（LLMs）在不同产业和领域的广泛应用，显著的安全风险也随之出现并加剧。其中一些关键问题包括数据隐私泄露、潜在的偏见以及信息操控的风险。
 - en: 'The Open Worldwide Application Security Project recently published the [ten
     most critical security risks](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
     of LLM applications, as described below:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 开放全球应用安全项目（OWASP）最近发布了[LLM应用程序十大最关键安全风险](https://owasp.org/www-project-top-10-for-large-language-model-applications/)，如下所述：
 - en: 'Source: [OWASP Top 10 for LLM Applications v1.1](https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-2023-slides-v1_1.pdf)'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 来源：[OWASP LLM应用程序十大风险 v1.1](https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-2023-slides-v1_1.pdf)
 - en: Identifying these risks is essential for ensuring that LLM applications continue
     to provide value in real-world situations while maintaining their safety, effectiveness,
     and robustness.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 识别这些风险对于确保LLM应用程序在现实世界中持续提供价值，同时保持其安全性、有效性和稳健性至关重要。
 - en: In this article, we explore how to use the open-source [ARTKIT](https://github.com/BCG-X-Official/artkit)
     framework to automatically evaluate security vulnerabilities of LLM applications
     using the popular Gandalf Challengeas an illustrative example.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文探讨了如何使用开源的[ARTKIT](https://github.com/BCG-X-Official/artkit)框架，通过流行的甘道夫挑战作为示例，自动评估LLM应用程序的安全漏洞。
 - en: Contents
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 目录
 - en: '*(1)* [*About Prompt Injection Vulnerabilities*](#fc75) *(2)* [*Gandalf Challenge*](#cae4)
     *(3)* [*Introducing ARTKIT*](#ec2d) *(4)* [*Approach Overview*](#3d85) *(5)* [*Step-by-Step
     Walkthrough*](#15ac)'
+  id: totrans-14
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*(1)* [*关于提示注入漏洞*](#fc75) *(2)* [*甘道夫挑战*](#cae4) *(3)* [*介绍ARTKIT*](#ec2d)
+    *(4)* [*方法概述*](#3d85) *(5)* [*逐步指南*](#15ac)'
 - en: You can find the codes in the accompanying [GitHub repo of this article](https://github.com/kennethleungty/ARTKIT-Gandalf-Challenge).
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在本文附带的[GitHub 仓库](https://github.com/kennethleungty/ARTKIT-Gandalf-Challenge)中找到相关代码。
 - en: (1) About Prompt Injection Vulnerabilities
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: (1) 关于提示注入漏洞
 - en: A prompt injection vulnerability is a type of cyberattack that arises when attackers
     exploit an LLM with carefully crafted inputs, leading it to execute malicious
     instructions unintentionally.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 提示注入漏洞是一种网络攻击类型，攻击者通过精心设计的输入利用LLM，导致其无意中执行恶意指令。
 - en: Prompt injection attacks can be difficult to detect and can lead to serious
     consequences such as leakage of sensitive information, unauthorized access, and
     manipulation of decision-making processes.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 提示注入攻击可能很难检测，且可能导致严重后果，如敏感信息泄露、未经授权的访问和决策过程的操控。
 - en: 'It can be performed directly or indirectly:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 它可以直接或间接地执行：
 - en: (i) Direct (Jailbreaking)
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: (i) 直接（越狱）
 - en: Attackers directly modify underlying system prompts, thereby convincing the
     LLM system to disregard its safeguards. It allows attackers to generate harmful
     responses or exploit backend systems by interacting with insecure functions and
     data stores.
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 攻击者直接修改底层系统提示，进而说服 LLM 系统忽视其保护措施。这使得攻击者能够生成有害的响应，或通过与不安全的功能和数据存储交互来利用后端系统。
 - en: '**Example**: An attacker crafts prompts instructing the LLM to ignore the instructions
     in the original system prompts and instead return private information like passwords.'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**示例**：攻击者精心设计提示，指示 LLM 忽略原系统提示中的指令，而是返回私人信息，如密码。'
 - en: (ii) Indirect
+  id: totrans-23
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: (ii) 间接
 - en: Attackers manipulate external inputs (e.g., files, websites) that the LLM ingests,
     allowing them to control the LLM’s responses and actions, even if the injected
     text is invisible to users.
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 攻击者操控 LLM 获取的外部输入（例如文件、网站），使其能够控制 LLM 的响应和行为，即使注入的文本对用户是不可见的。
 - en: '**Example**: An attacker uploads a document embedded with prompts—concealed
     in a zero-point font—instructing LLMs to evaluate the user’s resume as that of
     an exceptional job candidate. When the recruiter uses an LLM to assess the resume,
     it inadvertently showcases the candidate as highly qualified, thereby skewing
     the hiring process.'
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**示例**：攻击者上传一份嵌入提示的文档——这些提示隐藏在零点字体中——指示 LLM 将用户的简历评估为一位优秀的候选人。当招聘人员使用 LLM 评估简历时，它无意中将候选人展示为非常合格，从而扭曲了招聘过程。'
 - en: There are different types of prompt injection attacks, such as virtualization,
     obfuscation, and role-playing attacks. Details can be found [here](https://www.lakera.ai/blog/guide-to-prompt-injection#prompt-injection-techniques-attack-types).
+  id: totrans-26
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 提示注入攻击有不同的类型，如虚拟化、混淆和角色扮演攻击。详细信息请见[这里](https://www.lakera.ai/blog/guide-to-prompt-injection#prompt-injection-techniques-attack-types)。
 - en: (2) Gandalf Challenge
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: (2) Gandalf 挑战
 - en: In this project, we attempt to automatically crack the [**Gandalf Challenge**](https://gandalf.lakera.ai/),
     an interactive game that demonstrates the security vulnerabilities of LLM applications
     and highlights mitigation strategies.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个项目中，我们尝试自动破解[**Gandalf 挑战**](https://gandalf.lakera.ai/)，这是一个互动游戏，展示了 LLM
+    应用程序的安全漏洞并强调了缓解策略。
 - en: '![](../Images/3c37ec2b522eb01071335a12740ac61e.png)'
+  id: totrans-29
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3c37ec2b522eb01071335a12740ac61e.png)'
 - en: Screenshot from publicly accessible Gandalf website, utilized under fair use
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 来自公开访问的 Gandalf 网站的截图，按公平使用条款使用
 - en: 'The objective of the game is simple: use prompt engineering techniques to trick
     the LLM behind Gandalf’s interface to reveal a password.'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 游戏的目标很简单：使用提示工程技术欺骗 Gandalf 界面背后的 LLM 透露密码。
 - en: The game consists of ten progressively difficult levels based on various defenses
     employed to prevent password disclosure, such as prompts instructing not to reveal
     the password, input guardrails that filter user prompts, and output guardrails
     that block responses containing passwords.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 该游戏由十个逐渐增加难度的关卡组成，基于各种防御措施来防止密码泄露，例如提示指令不要透露密码、过滤用户提示的输入护栏，以及阻止包含密码的响应的输出护栏。
 - en: (3) Introducing ARTKIT
+  id: totrans-33
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: (3) 介绍 ARTKIT
 - en: As LLM systems become more commonplace, it is important to build user trust
     by ensuring that the models perform reliably even in adversarial conditions. This
     is where **ARTKIT** comes in handy in testing LLM systems for their proficiency,
     equitability, safety, and security.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着大规模语言模型（LLM）系统变得越来越普及，确保模型在对抗性条件下仍能可靠地执行任务，从而建立用户信任变得至关重要。这正是**ARTKIT**在测试LLM系统的能力、公平性、安全性和保障性方面的用途。
 - en: ARTKIT is an open-source framework for developing powerful automated end-to-end
     pipelines to test and evaluate LLM-based applications like chatbots and virtual
     assistants.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: ARTKIT是一个开源框架，用于开发强大的自动化端到端管道，测试和评估基于LLM的应用程序，如聊天机器人和虚拟助手。
 - en: Its simplicity and flexibility in building fit-for-purpose pipelines make it
     an excellent tool for data scientists and engineers to conduct human-in-the-loop
     testing of LLM systems.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 它在构建适合特定目的的管道方面的简洁性和灵活性，使其成为数据科学家和工程师进行LLM系统人机协作测试的优秀工具。
 - en: For example, ARTKIT facilitates the effective use of LLMs to automate critical
     steps in **red-teaming**, such as generating adversarial prompts to exploit LLMs
     and analyzing their responses to uncover potential vulnerabilities.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，ARTKIT促进了LLM的有效使用，自动化红队演练中的关键步骤，例如生成对抗性提示来利用LLM，并分析其响应以发现潜在的漏洞。
 - en: The structured process of simulating attacks on a system to uncover its vulnerabilities
     and improve security is known as **red-teaming**. It allows organizations to strengthen
     their defenses against real-world threats by understanding potential breaches
     from an attacker’s perspective.
+  id: totrans-38
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 模拟攻击系统以发现其漏洞并改进安全性的结构化过程称为**红队演练**。它使组织能够从攻击者的角度理解潜在漏洞，从而加强对现实威胁的防御。
 - en: '![](../Images/7fe0d3eb40497cdea6525577914f96cb.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7fe0d3eb40497cdea6525577914f96cb.png)'
 - en: ARTKIT allows for the clever use of Generative AI (GenAI) models like LLMs as
     part of powerful pipelines to automate testing and evaluation of GenAI systems
     | Image used under [Apache License 2.0](https://github.com/BCG-X-Official/artkit/blob/1.0.x/LICENSE)
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: ARTKIT允许巧妙地使用生成性AI（GenAI）模型，如LLM，作为强大管道的一部分，自动化测试和评估GenAI系统 | 图片使用[Apache许可证2.0](https://github.com/BCG-X-Official/artkit/blob/1.0.x/LICENSE)
 - en: One of ARTKIT’s standout features is its support for automated [multi-turn conversations](https://bcg-x-official.github.io/artkit/user_guide/generating_challenges/multi_turn_personas.html)
     between an attacker system and a target system, which we will explore in this
     article.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: ARTKIT的一个突出特点是它支持自动化的[多轮对话](https://bcg-x-official.github.io/artkit/user_guide/generating_challenges/multi_turn_personas.html)，攻击系统和目标系统之间的对话，我们将在本文中进行探索。
 - en: Given that LLM systems may struggle to maintain context and coherence over prolonged
     chats, the ability to scale the testing of extended, multi-turn interactions is
     crucial in identifying potential vulnerabilities.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于LLM系统可能在长时间对话中难以维持上下文和连贯性，因此能够扩展测试延长的多轮互动对于识别潜在漏洞至关重要。
 - en: (4) Approach Overview
+  id: totrans-43
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: (4) 方法概述
 - en: 'Here is an overview of our approach to demonstrating LLM jailbreaking:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们演示LLM越狱方法的概览：
 - en: Conduct **model-based** **red-teaming**, where we use an LLM model to attack
     a target system (i.e., Gandalf)
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 进行**基于模型**的**红队演练**，我们使用一个LLM模型攻击目标系统（即Gandalf）。
 - en: Utilize ARTKIT and OpenAI’s GPT-4o to create an attacker LLM that employs password
     extraction techniques in its adversarial prompts while engaging in multi-turn
     conversations until the password is divulged.
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 利用ARTKIT和OpenAI的GPT-4o创建一个攻击者LLM，该LLM在其对抗性提示中使用密码提取技术，并在进行多轮对话时直到密码泄露。
 - en: OpenAI API keys can be found on the [API key page](https://platform.openai.com/api-keys).
+  id: totrans-47
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: OpenAI API密钥可以在[API密钥页面](https://platform.openai.com/api-keys)找到。
 - en: (5) Step-by-Step Walkthrough
+  id: totrans-48
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: (5) 步骤说明
 - en: Let’s review the steps for using ARTKIT to extract passwords in the Gandalf
     challenge. You can find the accompanying Jupyter notebook [**here**](https://github.com/kennethleungty/ARTKIT-Gandalf-Challenge/blob/main/gandalf_challenge.ipynb).
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们回顾一下使用ARTKIT提取Gandalf挑战中的密码的步骤。你可以在这里找到相关的Jupyter notebook [**这里**](https://github.com/kennethleungty/ARTKIT-Gandalf-Challenge/blob/main/gandalf_challenge.ipynb)。
 - en: (5.1) Install ARTKIT
+  id: totrans-50
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: (5.1) 安装ARTKIT
 - en: ARTKIT can be installed via either PyPI (`pip install artkit`) or Conda (`conda
     install -c conda-forge artkit`). For this project, I am using **version 1.0.7**.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: ARTKIT可以通过PyPI（`pip install artkit`）或Conda（`conda install -c conda-forge artkit`）安装。对于这个项目，我使用的是**版本1.0.7**。
 - en: Because ARTKIT provides out-of-the-box support for popular model providers like
     OpenAI and Anthropic, there is no need to install those packages separately.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于ARTKIT提供对OpenAI和Anthropic等流行模型提供商的开箱即用支持，因此无需单独安装这些软件包。
 - en: Since we will utilize services from external model providers, it is recommended
     to store the access keys in `.env` files and load them with `python-dotenv`. The
     steps to do so can be found [here](https://github.com/BCG-X-Official/artkit?tab=readme-ov-file#environment-variables).
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们将利用外部模型提供商的服务，建议将访问密钥存储在 `.env` 文件中，并通过 `python-dotenv` 加载它们。执行步骤可以在 [这里](https://github.com/BCG-X-Official/artkit?tab=readme-ov-file#environment-variables)找到。
 - en: (5.2) Load Dependencies
+  id: totrans-54
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: (5.2) 加载依赖项
 - en: 'We load the necessary dependencies and access keys:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们加载必要的依赖项和访问密钥：
 - en: (5.3) Create Class to Access Gandalf
+  id: totrans-56
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: (5.3) 创建类以访问 Gandalf
 - en: To facilitate interaction with the LLM behind Gandalf, we create a class called
     `GandalfChat` to encapsulate the necessary functionality to chat with Gandalf
     and handle message formatting and response processing.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了方便与 Gandalf 背后的 LLM 进行交互，我们创建了一个名为 `GandalfChat` 的类，封装了与 Gandalf 聊天并处理消息格式化和响应处理所需的功能。
 - en: 'Let’s take a closer look at the`GandalfChat` class:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们更详细地看看 `GandalfChat` 类：
 - en: '`GandalfChat` inherits from ARTKIT’s `HTTPXChatConnector` class. Because Gandalf
     serves as a custom HTTP endpoint rather than a standalone LLM object, `HTTPXChatConnector`
     enables us to establish a seamless connection to it'
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`GandalfChat` 继承自 ARTKIT 的 `HTTPXChatConnector` 类。由于 Gandalf 作为自定义 HTTP 端点提供服务，而不是一个独立的
+    LLM 对象，`HTTPXChatConnector` 使我们能够与其建立无缝连接。'
 - en: '`Level` enumeration structures the difficulty levels so that they can be referenced
     using member names like `LEVEL_01`.'
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Level` 枚举结构化了难度级别，以便可以通过成员名称如 `LEVEL_01` 来引用。'
 - en: '`build_request_arguments` formats the request to include arguments such as
     the difficulty level and input prompt.'
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`build_request_arguments` 格式化请求，将难度级别和输入提示等参数包含在内。'
 - en: '`parse_httpx_response` processes the LLM output based on the HTTP response
     object returned by the API.'
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`parse_httpx_response` 根据 API 返回的 HTTP 响应对象处理 LLM 输出。'
 - en: '`get_default_api_key_env`provides the environment variable name where the API
     key for the chat system might be stored.'
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`get_default_api_key_env` 提供了存储聊天系统 API 密钥的环境变量名称。'
 - en: In addition to supporting custom systems like Gandalf, ARTKIT also offers pre-built
     classes for seamless connections to popular LLM platforms like OpenAI and AWS
     Bedrock.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了支持像 Gandalf 这样的自定义系统外，ARTKIT 还提供了预构建的类，能够无缝连接到像 OpenAI 和 AWS Bedrock 这样的流行
+    LLM 平台。
 - en: This integration flexibility is another key strength of ARTKIT, enabling efficient
     red-teaming against mainstream LLMs.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种集成的灵活性是 ARTKIT 另一个关键优势，能够高效地进行针对主流 LLM 的红队攻防。
 - en: Details about `*HTTPXConnector*` can be found in “Calling custom endpoints via
     HTTP”section [of this tutorial](https://github.com/BCG-X-Official/artkit/blob/1.0.x/sphinx/source/user_guide/advanced_tutorials/creating_new_model_classes.ipynb).
+  id: totrans-66
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 有关 `*HTTPXConnector*` 的详细信息可以在本教程的 “[通过 HTTP 调用自定义端点](https://github.com/BCG-X-Official/artkit/blob/1.0.x/sphinx/source/user_guide/advanced_tutorials/creating_new_model_classes.ipynb)”部分找到。
 - en: (5.4) Instantiate Chat Model Instance for Gandalf
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: (5.4) 为 Gandalf 实例化聊天模型
 - en: We create an instance of `GandalfChat` as a model object containing the URL
     of the Gandalf API endpoint and the desired difficulty level. In this example,
     we will be tackling Level 4.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们创建一个 `GandalfChat` 的实例，作为一个模型对象，包含 Gandalf API 端点的 URL 和所需的难度级别。在这个例子中，我们将处理
+    Level 4。
 - en: We also utilize ARTKIT’s `CachedChatModel` as a wrapper around `GandalfChat`
     to enable the caching of responses into an SQLite database (`gandalf_cache.db`).
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还利用 ARTKIT 的 `CachedChatModel` 作为 `GandalfChat` 的包装器，将响应缓存到 SQLite 数据库（`gandalf_cache.db`）中。
 - en: The advantage of storing these chat interactions is that we can minimize redundant
     API calls for repeated queries, which in turn speeds up response time and reduces
     costs.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 存储这些聊天交互的优点在于，我们可以最大程度减少重复查询的冗余 API 调用，从而加快响应时间并降低成本。
 - en: We also set a 10-second cutoff using `Timeout` to limit the wait time for API
     responses, ensuring our requests do not hang indefinitely.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还使用 `Timeout` 设置了 10 秒的截止时间，限制 API 响应的等待时间，确保我们的请求不会无限期挂起。
 - en: (5.5) Setup Attacker LLM
+  id: totrans-72
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: (5.5) 设置攻击者 LLM
 - en: 'We use OpenAI’s GPT-4o model to jailbreak Gandalf, which we instantiate using
     the `OpenAIChat` class designed for OpenAI LLMs:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用 OpenAI 的 GPT-4o 模型来破解 Gandalf，通过为 OpenAI LLM 设计的 `OpenAIChat` 类实例化它：
 - en: Just as we did with the Gandalf chat object, we use `CachedChatModel` to wrap
     the GPT-4o LLM to enable response caching.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像我们在 Gandalf 聊天对象中所做的那样，我们使用 `CachedChatModel` 来包装 GPT-4o LLM，从而启用响应缓存。
 - en: (5.6) Define Attacker LLM Objective and System Prompts
+  id: totrans-75
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: (5.6) 定义攻击者 LLM 目标和系统提示
 - en: With the attacker LLM ready, we proceed with prompt engineering to define the
     objective prompt and the attacker system prompt.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 在攻击者 LLM 准备好后，我们继续进行提示工程，定义目标提示和攻击者系统提示。
 - en: Because we will use ARTKIT’s multi-turn interaction feature, we need to explicitly
     specify a separate prompt to describe the attacker LLM’s objective (i.e., make
     Gandalf reveal its password) so that its responses are well-guided.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为我们将使用ARTKIT的多轮交互功能，所以需要明确指定一个单独的提示，用于描述攻击者 LLM 的目标（即让甘道夫透露其密码），以便使其响应得到良好的引导。
 - en: The objective prompt is saved as a dictionary in a list because we can store
     and use more than one objective for different steps in the pipeline.
+  id: totrans-78
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 目标提示被保存为列表中的字典，因为我们可以存储并使用多个目标，以应对处理流程中不同的步骤。
 - en: Next, we define the system prompt that guides the attacker LLM’s strategy in
     extracting passwords. The prompt is crafted such that the attacker LLM devises
     indirect and creative techniques to mislead Gandalf about the true intent of the
     inquiry, thereby bypassing its guardrails.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们定义系统提示，引导攻击者 LLM 提取密码的策略。提示设计得使攻击者 LLM 能够设计间接和创造性的技巧，误导甘道夫对询问的真正意图，从而绕过其防护措施。
 - en: Notice that the system prompt contains the `{objective}` parameter in which
     the objective prompt will be dynamically injected.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，系统提示中包含了`{objective}`参数，在其中目标提示会被动态注入。
 - en: 'Moreover, we need to include the following two dynamic parameters for multi-turn
     interactions to happen:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，我们还需要包括以下两个动态参数，以便进行多轮交互：
 - en: '`{max_turns}`: Maximum turns allowed for the LLM to accomplish the objective,
     preventing it from engaging in endless conversations.'
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`{max_turns}`：允许 LLM 完成目标的最大轮次，以防止其进行无休止的对话。'
 - en: '`{success_token}`: The token to output when the LLM achieves its objective.
     It serves as a signal to terminate the conversation early.'
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`{success_token}`：当 LLM 达成目标时输出的标记，作为提前终止对话的信号。'
 - en: (5.7) Run Multi-Turn Interactions with Gandalf
+  id: totrans-84
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: (5.7) 与甘道夫进行多轮交互
 - en: We are now one step away from initiating our jailbreaking attempts on Gandalf;
     all that remains is to link the components and execute them.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在距离开始对甘道夫进行越狱尝试只差一步；剩下的就是将各个组件连接起来并执行它们。
 - en: ARTKIT’s `run` function allows us to orchestrate the execution of a sequence
     of steps in a processing pipeline and return the result of the executed flow.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: ARTKIT 的`run`函数允许我们协调执行处理流程中的一系列步骤，并返回执行流的结果。
 - en: 'Here is a look at the parameters of `ak.run`:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是`ak.run`的参数：
 - en: The `input` parameter accepts the `objectives` variable that contains the objective
     defined in the preceding step.
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`input`参数接受`objectives`变量，该变量包含了在前一步中定义的目标。'
 - en: The `steps`parameter accepts a set of steps to execute, where each step is defined
     with the `ak.step` function. In this case, we only have one `ak.step` step to
     run, which is to conduct multi-turn interactions between the attacker LLM (`challenger_llm`)
     and Gandalf (`target_llm`).
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`steps`参数接受一组要执行的步骤，每个步骤都通过`ak.step`函数定义。在这个例子中，我们只有一个`ak.step`步骤要执行，即在攻击者
+    LLM（`challenger_llm`）和甘道夫（`target_llm`）之间进行多轮交互。'
 - en: In the `ak.step` function, we use `ak.multi_turn` to orchestrate multi-turn
     conversations, thereby maintaining the context and conversation history.
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在`ak.step`函数中，我们使用`ak.multi_turn`来协调多轮对话，从而保持上下文和对话历史。
 - en: We also specify the success token (`success_token`), the maximum turns (`max_turns`),
     and the attacker LLM system prompt (`attacker_prompt`).
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们还指定了成功标记（`success_token`）、最大轮次（`max_turns`）和攻击者 LLM 系统提示（`attacker_prompt`）。
 - en: Executing the code above kickstarts the multi-turn interactions aimed at breaking
     through Gandalf’s defenses, with the output saved in `results`.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行上面的代码将启动多轮交互，旨在突破甘道夫的防御，输出结果保存在`results`中。
 - en: (5.8) View Interaction History and Secret Password
+  id: totrans-93
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: (5.8) 查看交互历史和秘密密码
 - en: After executing the jailbreak, it is time for us to review the outcome. We run
     the following helper code to structure the conversation history and output more
     clearly.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行越狱后，是时候回顾结果了。我们运行以下辅助代码以更清晰地结构化对话历史并输出结果。
 - en: 'And now, the moment of truth! Below is an instance of the interactions between
     our attacker LLM and Gandalf:'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，真相时刻到了！下面是我们的攻击者 LLM 和甘道夫之间交互的一个实例：
 - en: Through a series of clever prompt techniques (e.g., generating riddles, extracting
     letters), we successfully extracted the hidden password (i.e., **UNDERGROUND**)
     despite Gandalf’s best efforts to guard it.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过一系列巧妙的提示技术（例如生成谜语、提取字母），我们成功提取了隐藏的密码（即**UNDERGROUND**），尽管甘道夫竭力守护。
 - en: 'Spoiler: Password for every level can be found [here](https://www.lakera.ai/blog/who-is-gandalf).'
+  id: totrans-97
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 剧透：每个等级的密码可以在[这里](https://www.lakera.ai/blog/who-is-gandalf)找到。
 - en: (6) Wrap-up
+  id: totrans-98
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: (6) 总结
 - en: In this article, we demonstrated how ARTKIT can be used for automated prompt-based
     testing of LLM systems to unveil jailbreaking vulnerabilities. Leveraging LLMs’
     capabilities for model-based red-teaming offers a powerful means to scale and
     accelerate the testing of LLM systems.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们展示了如何使用ARTKIT进行基于提示的自动化测试，以揭示LLM系统中的越狱漏洞。利用LLM的能力进行基于模型的红队测试，提供了一个强大的手段来扩展和加速LLM系统的测试。
 - en: While we focused on Level 4 in this showcase, the ARTKIT setup was able to smoothly
     overcome Levels 1 to 6\. Beyond that, human intervention became necessary, involving
     advanced prompt engineering and parameter adjustments.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们在本次展示中聚焦于第4级，但ARTKIT设置能够顺利克服第1到第6级的挑战。更高等级则需要人工干预，涉及到高级提示工程和参数调整。
 - en: This highlights the importance of combining automation with human-led red-teaming,
     where automation saves time by identifying basic vulnerabilities, allowing humans
     to focus on more complex risks.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 这突出了将自动化与人工主导的红队测试结合的重要性，自动化通过识别基本漏洞节省时间，使人类能够集中精力应对更复杂的风险。
 - en: The integration of human oversight can be tailored to different sophistication
     levels, ensuring a balanced and comprehensive testing approach.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 人类监督的整合可以根据不同的复杂性水平进行定制，确保一个平衡且全面的测试方法。
 - en: Before you go
+  id: totrans-103
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在你离开之前
 - en: I welcome you to follow this [Medium](https://kennethleungty.medium.com/) page
     and visit my [GitHub](https://github.com/kennethleungty) to stay updated with
     more engaging and practical content. Meanwhile, have fun red-teaming LLM systems
     with ARTKIT!
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 欢迎关注我的[Medium](https://kennethleungty.medium.com/)页面，并访问我的[GitHub](https://github.com/kennethleungty)，以便及时获取更多有趣和实用的内容。同时，享受使用ARTKIT进行LLM系统红队测试的乐趣吧！
 - en: '[View this project’s GitHub Repo](https://github.com/kennethleungty/ARTKIT-Gandalf-Challenge)'
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[查看该项目的GitHub仓库](https://github.com/kennethleungty/ARTKIT-Gandalf-Challenge)'
 - en: '[Visit ARTKIT GitHub Repo](https://github.com/BCG-X-Official/artkit)'
+  id: totrans-106
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[访问ARTKIT GitHub仓库](https://github.com/BCG-X-Official/artkit)'
 - en: '[Play Gandalf Challenge](https://gandalf.lakera.ai/)'
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[挑战甘道夫](https://gandalf.lakera.ai/)'
 - en: '[](https://levelup.gitconnected.com/inside-the-leaked-system-prompts-of-gpt-4-gemini-1-5-claude-3-and-more-4ecb3d22b447?source=post_page-----d2df5f56ece8--------------------------------)
     [## Inside the Leaked System Prompts of GPT-4, Gemini 1.5, and Claude 3'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://levelup.gitconnected.com/inside-the-leaked-system-prompts-of-gpt-4-gemini-1-5-claude-3-and-more-4ecb3d22b447?source=post_page-----d2df5f56ece8--------------------------------)
+    [## GPT-4、Gemini 1.5和Claude 3泄露的系统提示内幕'
 - en: Unveiling prompts behind the LLMs from OpenAI, Google, and more](https://levelup.gitconnected.com/inside-the-leaked-system-prompts-of-gpt-4-gemini-1-5-claude-3-and-more-4ecb3d22b447?source=post_page-----d2df5f56ece8--------------------------------)
     [](https://betterprogramming.pub/text-to-audio-generation-with-bark-clearly-explained-4ee300a3713a?source=post_page-----d2df5f56ece8--------------------------------)
     [## Text-to-Audio Generation with Bark, Clearly Explained
+  id: totrans-109
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 揭示OpenAI、Google等LLM背后的提示工程](https://levelup.gitconnected.com/inside-the-leaked-system-prompts-of-gpt-4-gemini-1-5-claude-3-and-more-4ecb3d22b447?source=post_page-----d2df5f56ece8--------------------------------)
+    [](https://betterprogramming.pub/text-to-audio-generation-with-bark-clearly-explained-4ee300a3713a?source=post_page-----d2df5f56ece8--------------------------------)
+    [## Bark的文本到音频生成，清晰解释
 - en: Discover capabilities of Bark, the open-source GenAI text-to-speech model](https://betterprogramming.pub/text-to-audio-generation-with-bark-clearly-explained-4ee300a3713a?source=post_page-----d2df5f56ece8--------------------------------)
+  id: totrans-110
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 发现Bark的能力，这是一款开源的GenAI文本到语音模型](https://betterprogramming.pub/text-to-audio-generation-with-bark-clearly-explained-4ee300a3713a?source=post_page-----d2df5f56ece8--------------------------------)

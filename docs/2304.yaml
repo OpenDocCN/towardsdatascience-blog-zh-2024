@@ -1,35 +1,55 @@
 - en: Implementing GraphReader with Neo4j and LangGraph
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Neo4j 和 LangGraph 实现 GraphReader
 - en: 原文：[https://towardsdatascience.com/implementing-graphreader-with-neo4j-and-langgraph-e4c73826a8b7?source=collection_archive---------1-----------------------#2024-09-21](https://towardsdatascience.com/implementing-graphreader-with-neo4j-and-langgraph-e4c73826a8b7?source=collection_archive---------1-----------------------#2024-09-21)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/implementing-graphreader-with-neo4j-and-langgraph-e4c73826a8b7?source=collection_archive---------1-----------------------#2024-09-21](https://towardsdatascience.com/implementing-graphreader-with-neo4j-and-langgraph-e4c73826a8b7?source=collection_archive---------1-----------------------#2024-09-21)
 - en: Elevating RAG accuracy and performance by structuring long documents into explorable
     graphs and implementing graph-based agent systems
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 通过将长文档结构化为可探索的图形，并实现基于图形的智能体系统，提升 RAG 的准确性和性能
 - en: '[](https://bratanic-tomaz.medium.com/?source=post_page---byline--e4c73826a8b7--------------------------------)[![Tomaz
     Bratanic](../Images/d5821aa70918fcb3fc1ff0013497b3d5.png)](https://bratanic-tomaz.medium.com/?source=post_page---byline--e4c73826a8b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e4c73826a8b7--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e4c73826a8b7--------------------------------)
     [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--e4c73826a8b7--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://bratanic-tomaz.medium.com/?source=post_page---byline--e4c73826a8b7--------------------------------)[![Tomaz
+    Bratanic](../Images/d5821aa70918fcb3fc1ff0013497b3d5.png)](https://bratanic-tomaz.medium.com/?source=post_page---byline--e4c73826a8b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e4c73826a8b7--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e4c73826a8b7--------------------------------)
+    [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--e4c73826a8b7--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e4c73826a8b7--------------------------------)
     ·23 min read·Sep 21, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e4c73826a8b7--------------------------------)
+    ·23分钟阅读·2024年9月21日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/fc66a01ca45698bc7ef7f7bcc2dbeed9.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fc66a01ca45698bc7ef7f7bcc2dbeed9.png)'
 - en: An AI agent traversing the graph as imagined by ChatGPT
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个 AI 智能体在图谱中遍历，如 ChatGPT 所想象的那样
 - en: Large Language Models (LLMs) are great at traditional NLP tasks like summarization
     and sentiment analysis but the stronger models also demonstrate promising reasoning
     abilities. LLM reasoning is often understood as the ability to tackle complex
@@ -37,22 +57,31 @@
     Based on this evaluation, they can adapt by revising the plan or taking alternative
     actions. The rise of agents is becoming an increasingly compelling approach to
     answering complex questions in RAG applications.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 大型语言模型（LLMs）在传统的自然语言处理任务中，如摘要和情感分析，表现出色，但更强大的模型也展示了有前景的推理能力。LLM 推理通常被理解为通过制定计划、执行计划并在每个步骤评估进展来解决复杂问题的能力。基于这种评估，它们可以通过修订计划或采取替代行动进行调整。智能体的兴起，正在成为在
+    RAG 应用中回答复杂问题的越来越有说服力的方法。
 - en: In this blog post, we’ll explore the implementation of the [GraphReader agent](https://arxiv.org/abs/2406.14550).
     This agent is designed to retrieve information from a structured knowledge graph
     that follows a predefined schema. Unlike the typical graphs you might see in presentations,
     this one is closer to a document or **lexical graph**, containing documents, their
     chunks, and relevant metadata in the form of atomic facts.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇博客文章中，我们将探索 [GraphReader 智能体](https://arxiv.org/abs/2406.14550)的实现。该智能体旨在从遵循预定义模式的结构化知识图谱中检索信息。与您在演示中可能看到的典型图谱不同，这种图谱更接近于文档或**词汇图谱**，包含文档、它们的片段和以原子事实形式表示的相关元数据。
 - en: '![](../Images/71b960bfb63594c2d88dfcb91c5ccafb.png)'
+  id: totrans-10
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/71b960bfb63594c2d88dfcb91c5ccafb.png)'
 - en: Generated knowledge graph following the GraphReader implementation. Image by
     author.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实现 GraphReader 后生成的知识图谱。图片由作者提供。
 - en: The image above illustrates a knowledge graph, beginning at the top with a document
     node labeled *Joan of Arc*. This document is broken down into text chunks, represented
     by numbered circular nodes (0, 1, 2, 3), which are connected sequentially through
@@ -63,305 +92,454 @@
     topics like *historical icons*, *Dane*, *French nation*, and *France*. These elements
     act as metadata, linking the facts to the broader themes and concepts relevant
     to the document.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的图片展示了一个知识图谱，从顶部开始是一个名为*贞德*的文档节点。这个文档被分解成文本块，以编号的圆形节点（0、1、2、3）表示，并通过*NEXT*关系按顺序连接，表示文本块在文档中的出现顺序。在文本块下方，图谱进一步分解成原子事实，具体内容的陈述通过节点表示。最后，在图谱的底层，我们看到关键元素，这些元素以圆形节点的形式呈现，主题包括*历史人物*、*丹麦*、*法国民族*和*法国*。这些元素充当元数据，将事实与文档相关的更广泛的主题和概念联系起来。
 - en: Once we have constructed the knowledge graph, we will follow the implementation
     provided in the [GraphReader paper](https://arxiv.org/abs/2406.14550).
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦我们构建了知识图谱，就会按照[GraphReader论文](https://arxiv.org/abs/2406.14550)中提供的实现进行操作。
 - en: '![](../Images/fc1f216a8c0999ddf602d0b3abc21211.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fc1f216a8c0999ddf602d0b3abc21211.png)'
 - en: GraphReader agent implementation. Image from the [paper](https://arxiv.org/abs/2406.14550)
     with authors’ permission.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: GraphReader智能体的实现。图片来自[论文](https://arxiv.org/abs/2406.14550)，经作者许可使用。
 - en: The agent exploration process involves initializing the agent with a rational
     plan and selecting initial nodes to start the search in a graph. The agent explores
     these nodes by first gathering atomic facts, then reading relevant text chunks,
     and updating its notebook. The agent can decide to explore more chunks, neighboring
     nodes, or terminate based on gathered information. When the agent decided to terminate,
     the answer reasoning step is executed to generate the final answer.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能体探索过程包括初始化智能体并制定理性计划，然后选择初始节点开始在图中搜索。智能体通过首先收集原子事实、然后读取相关的文本块，并更新其笔记本来探索这些节点。智能体可以决定是否探索更多的块、邻近节点，或根据已收集的信息终止。当智能体决定终止时，会执行答案推理步骤来生成最终的答案。
 - en: In this blog post, we will implement the GraphReader paper using [Neo4j](https://neo4j.com/)
     as the storage layer and [LangChain](https://www.langchain.com/) in combination
     with [LangGraph](https://langchain-ai.github.io/langgraph/) to define the agent
     and its flow.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇博客文章中，我们将使用[Neo4j](https://neo4j.com/)作为存储层，并结合[LangChain](https://www.langchain.com/)和[LangGraph](https://langchain-ai.github.io/langgraph/)来定义智能体及其流程，实现GraphReader论文中的内容。
 - en: The code is available on [GitHub](https://github.com/tomasonjo/blogs/tree/master/graphreader).
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码可以在[GitHub](https://github.com/tomasonjo/blogs/tree/master/graphreader)上找到。
 - en: Environment Setup
+  id: totrans-19
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 环境设置
 - en: You need to setup a Neo4j to follow along with the examples in this blog post.
     The easiest way is to start a free instance on [Neo4j Aura](https://neo4j.com/cloud/platform/aura-graph-database/),
     which offers cloud instances of Neo4j database. Alternatively, you can also setup
     a local instance of the Neo4j database by downloading the [Neo4j Desktop](https://neo4j.com/download/)
     application and creating a local database instance.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要设置一个Neo4j实例，以便跟随本博客文章中的示例。最简单的方法是通过[Neo4j Aura](https://neo4j.com/cloud/platform/aura-graph-database/)启动一个免费的Neo4j云实例，该平台提供Neo4j数据库的云实例。或者，你也可以通过下载[Neo4j
+    Desktop](https://neo4j.com/download/)应用程序并创建本地数据库实例来设置一个本地的Neo4j实例。
 - en: The following code will instantiate a LangChain wrapper to connect to Neo4j
     Database.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下代码将实例化一个LangChain包装器，以连接到Neo4j数据库。
 - en: '[PRE0]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Additionally, we have also added [constraints](https://neo4j.com/docs/cypher-manual/current/constraints/)
     for the node types we will be using. The constraints ensure faster import and
     retrieval performance.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，我们还为将使用的节点类型添加了[约束](https://neo4j.com/docs/cypher-manual/current/constraints/)。这些约束确保了更快的导入和检索性能。
 - en: 'Additionally, you will require an OpenAI api key that you pass in the following
     code:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，你还需要一个OpenAI的API密钥，并在以下代码中传入该密钥：
 - en: '[PRE1]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Graph construction
+  id: totrans-26
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 图谱构建
 - en: We will be using the [Joan of Arc](https://en.wikipedia.org/wiki/Joan_of_Arc)
     Wikipedia page in this example. We will use LangChain built-in utility to retrieve
     the text.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，我们将使用[贞德](https://en.wikipedia.org/wiki/Joan_of_Arc)的维基百科页面。我们将使用LangChain内置的工具来检索文本。
 - en: '[PRE2]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: As mentioned before, the GraphReader agent expects knowledge graph that contains
     chunks, related atomic facts, and key elements.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，GraphReader代理需要包含区块、相关的原子事实和关键元素的知识图谱。
 - en: '![](../Images/ab7091ef9ac06f48d9e80d51b203a06b.png)'
+  id: totrans-30
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ab7091ef9ac06f48d9e80d51b203a06b.png)'
 - en: GraphReader knowledge graph construction. Image from the [paper](https://arxiv.org/abs/2406.14550)
     with authors’ permission.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: GraphReader知识图谱构建。图片来自[论文](https://arxiv.org/abs/2406.14550)，并获得作者的许可。
 - en: First, the document is split into chunks. In the paper they maintained paragraph
     structure while chunking. However, that is hard to do in a generic way. Therefore,
     we will use naive chunking here.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，文档被拆分成区块。在论文中，他们在拆分时保持了段落结构。然而，这在通用方式下很难实现。因此，我们将在此使用简单的区块拆分方法。
 - en: Next, each chunk is processed by the LLM to identify **atomic facts**, which
     are the smallest, indivisible units of information that capture core details.
     For instance, from the sentence “The CEO of Neo4j, which is in Sweden, is Emil
     Eifrem” an atomic fact could be broken down into something like “The CEO of Neo4j
     is Emil Eifrem.” and “Neo4j is in Sweden.” Each atomic fact is focused on one
     clear, standalone piece of information.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，每个区块都由LLM处理，以识别**原子事实**，它们是捕捉核心细节的最小、不可分割的信息单元。例如，从句子“Neo4j的CEO，在瑞典，是Emil
+    Eifrem”中，一个原子事实可以被拆分为“Neo4j的CEO是Emil Eifrem”和“Neo4j位于瑞典”。每个原子事实聚焦于一个清晰、独立的信息单元。
 - en: From these atomic facts, **key elements** are identified. For the first fact,
     “The CEO of Neo4j is Emil Eifrem,” the key elements would be “CEO,” “Neo4j,” and
     “Emil Eifrem.” For the second fact, “Neo4j is in Sweden,” the key elements would
     be “Neo4j” and “Sweden.” These key elements are the essential nouns and proper
     names that capture the core meaning of each atomic fact.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这些原子事实中，**关键元素**被识别出来。对于第一个事实，“Neo4j的CEO是Emil Eifrem”，关键元素是“CEO”、“Neo4j”和“Emil
+    Eifrem”。对于第二个事实，“Neo4j位于瑞典”，关键元素是“Neo4j”和“瑞典”。这些关键元素是能够捕捉每个原子事实核心意义的关键名词和专有名词。
 - en: The prompt used to extract the graph are provided in the appendix of the paper.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 提取图形所用的提示在论文的附录中提供。
 - en: '![](../Images/84336de7edc06097874bf0b875122f95.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/84336de7edc06097874bf0b875122f95.png)'
 - en: The prompt for key element and atomic fact extraction. Taken from the [paper](https://arxiv.org/abs/2406.14550)
     with authors’ permission.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 提取关键元素和原子事实的提示。摘自[论文](https://arxiv.org/abs/2406.14550)，并获得作者的许可。
 - en: The authors used prompt-based extraction, where you instruct the LLM what it
     should output and then implement a function that parses the information in a structured
     manner. My preference for extracting structured information is to use the `with_structured_output`
     method in LangChain, which utilizes the tools feature to extract structured information.
     This way, we can skip defining a custom parsing function.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者们使用了基于提示的提取方法，您指示LLM它应该输出什么，然后实现一个函数，按结构化方式解析信息。我更倾向于使用LangChain中的`with_structured_output`方法来提取结构化信息，该方法利用工具功能来提取结构化信息。这样，我们就可以跳过定义自定义解析函数的步骤。
 - en: Here is the prompt that we can use for extraction.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们可以用于提取的提示。
 - en: '[PRE3]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: We have put the instruction in the system prompt, and then in the user message
     we provide relevant text chunks that need to be processed.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将指令放在系统提示中，然后在用户消息中提供需要处理的相关文本区块。
 - en: To define the desired output, we can use the Pydantic object definition.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 要定义期望的输出，我们可以使用Pydantic对象定义。
 - en: '[PRE4]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: We want to extract a list of atomic facts, where each atomic fact contains a
     string field with the fact, and a list of present key elements. It is important
     to add description to each element to get the best results.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望提取一个原子事实的列表，其中每个原子事实包含一个包含事实的字符串字段和一个包含关键元素的列表。为了获得最佳结果，为每个元素添加描述是很重要的。
 - en: Now we can combine it all in a chain.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以将所有内容组合到一个链中。
 - en: '[PRE5]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: To put it all together, we’ll create a function that takes a single document,
     chunks it, extracts atomic facts and key elements, and stores the results into
     Neo4j.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了将所有内容结合起来，我们将创建一个函数，该函数接受单个文档，将其拆分为区块，提取原子事实和关键元素，并将结果存储到Neo4j中。
 - en: '[PRE6]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'At a high level, this code processes a document by breaking it into chunks,
     extracting information from each chunk using an AI model, and storing the results
     in a graph database. Here’s a summary:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 从高层次来看，这段代码通过将文档拆分为区块、使用AI模型从每个区块提取信息，并将结果存储在图形数据库中来处理文档。以下是总结：
 - en: It splits the document text into chunks of a specified size, allowing for some
     overlap. The chunk size of 2000 tokens is used by the authors in the paper.
+  id: totrans-50
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它将文档文本拆分为指定大小的块，并允许一些重叠。作者在论文中使用了2000个标记的块大小。
 - en: For each chunk, it asynchronously sends the text to an LLM for extraction of
     atomic facts and key elements.
+  id: totrans-51
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对于每个块，它异步地将文本发送给LLM（大语言模型）以提取原子事实和关键元素。
 - en: Each chunk and fact is given a unique identifier using an *md5* encoding function.
+  id: totrans-52
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 每个块和事实都使用*md5*编码函数分配一个唯一的标识符。
 - en: The processed data is imported into a graph database, with relationships established
     between consecutive chunks.
+  id: totrans-53
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 处理过的数据被导入到图数据库中，连续的块之间建立了关系。
 - en: We can now run this function on our Joan of Arc text.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以在我们的贞德文本上运行这个功能。
 - en: '[PRE7]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: We used a smaller chunk size because it’s a small document, and we want to have
     a couple of chunks for demonstration purposes. If you explore the graph in Neo4j
     Browser, you should see a similar visualization.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用了较小的块大小，因为这是一个小文档，而且我们希望有几个块来进行演示。如果你在Neo4j浏览器中探索图表，你应该会看到类似的可视化效果。
 - en: '![](../Images/c7d1df64f44e006c2f1a15fe931a071c.png)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c7d1df64f44e006c2f1a15fe931a071c.png)'
 - en: Visualization of the generated graph. Image by author.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成的图表可视化。图片来自作者。
 - en: At the center of the structure is the document node (blue), which branches out
     to chunk nodes (pink). These chunk nodes, in turn, are linked to atomic facts
     (orange), each of which connects to key elements (green).
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 结构的中心是文档节点（蓝色），它分支到块节点（粉色）。这些块节点又与原子事实（橙色）相连，每个原子事实又连接到关键元素（绿色）。
 - en: Let’s examine the constructed graph a bit. We’ll start of by examining the token
     count distribution of atomic facts.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们稍微检查一下构建的图表。我们将从检查原子事实的标记计数分布开始。
 - en: '[PRE8]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '*Results*'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/f0a07fc6b51842c42a43c28cada39f49.png)'
+  id: totrans-63
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f0a07fc6b51842c42a43c28cada39f49.png)'
 - en: Distribution of token count for atomic facts. Image by author.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 原子事实的标记计数分布。图片来自作者。
 - en: Atomic facts are relatively short, with the longest being only about 50 tokens.
     Let’s examine a couple to get a better idea.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 原子事实相对较短，最长的也只有大约50个标记。让我们检查几个，以更好地理解。
 - en: '[PRE9]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '*Results*'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/54adffdbe7154d75edeaaf6756f05ac0.png)'
+  id: totrans-68
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/54adffdbe7154d75edeaaf6756f05ac0.png)'
 - en: Atomic facts
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 原子事实
 - en: Some of the shortest facts lack context. For example, the original score and
     screenplay don’t directly mention which. Therefore, if we processed multiple documents,
     these atomic facts might be less helpful. This lack of context might be solved
     with additional prompt engineering.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些最短的事实缺乏上下文。例如，原始的评分和剧本并没有直接提到具体的内容。因此，如果我们处理多个文档，这些原子事实可能帮助不大。这种上下文缺失的问题可以通过额外的提示工程来解决。
 - en: Let’s also examine the most frequent keywords.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们也检查一下最频繁的关键词。
 - en: '[PRE10]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '*Results*'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/addf379cd500eae452e4e83e3a21be08.png)'
+  id: totrans-74
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/addf379cd500eae452e4e83e3a21be08.png)'
 - en: Top five most mentioned key elements. Image by author.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 提及次数最多的前五个关键元素。图片来自作者。
 - en: Unsurprisingly, Joan of Arc is the most mentioned keyword or element. Following
     are broad keywords like film, English, and France. I suspect that if we parsed
     many documents, broad keywords would end up having a lot of connections, which
     might lead to some downstream problems that aren’t dealt with in the original
     implementation. Another minor problem is the non-determinism of the extraction,
     as the results will be slight different on every run.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 毋庸置疑，贞德是最常被提及的关键词或元素。接下来是一些广泛的关键词，如电影、英语和法国。我怀疑如果我们解析了许多文档，这些广泛的关键词会有很多连接，这可能导致一些下游问题，而这些问题在原始实现中并未处理。另一个小问题是提取的非确定性，因为每次运行的结果会略有不同。
 - en: Additionally, the authors employ key element normalization as described in [Lu
     et al. (2023)](https://arxiv.org/pdf/2308.07074), specifically using frequency
     filtering, rule, semantic, and association aggregation. In this implementation,
     we skipped this step.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，作者们采用了[Lu等人（2023）](https://arxiv.org/pdf/2308.07074)中描述的关键元素规范化方法，具体使用了频率过滤、规则、语义和关联聚合。在这个实现中，我们跳过了这一步。
 - en: GraphReader Agent
+  id: totrans-78
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: GraphReader 代理
 - en: We’re ready to implement GraphReader, a graph-based agent system. The agent
     starts with a couple of predefined steps, followed by the steps in which it can
     traverse the graph autonomously, meaning the agent decides the following steps
     and how to traverse the graph.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经准备好实现GraphReader，一个基于图的代理系统。代理从几个预定义的步骤开始，随后进入自主遍历图的步骤，意味着代理决定接下来的步骤以及如何遍历图。
 - en: Here is the LangGraph visualization of the agent we will implement.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们将实现的代理的LangGraph可视化。
 - en: '![](../Images/b24f71a840150b0590f2177624343f1c.png)'
+  id: totrans-81
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b24f71a840150b0590f2177624343f1c.png)'
 - en: Agent workflow implementation in LangGraph. Image by author.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: LangGraph 中的代理工作流实现。图片由作者提供。
 - en: The process begins with a rational planning stage, after which the agent makes
     an initial selection of nodes (key elements) to work with. Next, the agent checks
     atomic facts linked to the selected key elements. Since all these steps are predefined,
     they are visualized with a full line.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 该过程从理性规划阶段开始，之后代理会做出初步的节点（关键元素）选择。接下来，代理检查与选定关键元素相关的原子事实。由于所有这些步骤都是预定义的，因此它们通过实线可视化。
 - en: Depending on the outcome of the atomic fact check, the flow proceeds to either
     read relevant text chunks or explore the neighbors of the initial key elements
     in search of more relevant information. Here, the next step is conditional and
     based on the results of an LLM and is, therefore, visualized with a dotted line.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据原子事实检查的结果，流程将继续读取相关文本块，或探索初始关键元素的邻近元素，以寻找更多相关信息。在这里，下一步是有条件的，并且基于 LLM 的结果，因此用虚线表示。
 - en: In the chunk check stage, the LLM reads and evaluates whether the information
     gathered from the current text chunk is sufficient. Based on this evaluation,
     the LLM has a few options. It can decide to read additional text chunks if the
@@ -371,189 +549,278 @@
     that enough relevant information has been gathered, it will proceed directly to
     the answer reasoning step. At this point, the LLM generates the final answer based
     on the collected information.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 在分块检查阶段，LLM 会读取并评估从当前文本块中收集到的信息是否足够。根据这个评估，LLM 有几个选择。如果信息看起来不完整或不清楚，LLM 可以决定读取更多的文本块。或者，LLM
+    可能会选择探索相邻的关键元素，寻找更多的上下文或相关信息，初始选择可能没有捕捉到这些信息。然而，如果 LLM 确定已经收集到足够的相关信息，它将直接进入答案推理步骤。此时，LLM
+    基于收集到的信息生成最终答案。
 - en: Throughout this process, the agent dynamically navigates the flow based on the
     outcomes of the conditional checks, making decisions on whether to repeat steps
     or continue forward depending on the specific situation. This provides flexibility
     in handling different inputs while maintaining a structured progression through
     the steps.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 在整个过程中，代理会根据条件检查的结果动态地导航流程，决定是否重复步骤或根据具体情况继续前进。这提供了在处理不同输入时的灵活性，同时保持步骤的结构化进展。
 - en: Now, we’ll go over the steps and implement them using LangGraph abstraction.
     You can learn more about LangGraph through [LangChain’s academy course](https://academy.langchain.com/courses/intro-to-langgraph).
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们将逐步讲解这些步骤并使用 LangGraph 抽象来实现它们。您可以通过 [LangChain 学院课程](https://academy.langchain.com/courses/intro-to-langgraph)了解更多关于
+    LangGraph 的内容。
 - en: LangGraph state
+  id: totrans-88
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: LangGraph 状态
 - en: To build a LangGraph implementation, we start by defining a state passed along
     the steps in the flow.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了构建 LangGraph 实现，我们首先定义一个在流程步骤之间传递的状态。
 - en: '[PRE11]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: For more advanced use cases, multiple separate states can be used. In our implementation,
     we have separate input and output states, which define the input and output of
     the LangGraph, and a separate overall state, which is passed between steps.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于更高级的用例，可以使用多个独立的状态。在我们的实现中，我们有独立的输入和输出状态，用来定义 LangGraph 的输入和输出，以及一个单独的总体状态，它在步骤之间传递。
 - en: By default, the state is overwritten when returned from a node. However, you
     can define other operations. For example, with the `previous_actions` we define
     that the state is appended or added instead of overwritten.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，状态在从节点返回时会被覆盖。但是，您可以定义其他操作。例如，使用 `previous_actions` 我们定义了状态是附加或添加的，而不是覆盖的。
 - en: The agent begins by maintaining a notebook to record supporting facts, which
     are eventually used to derive the final answer. Other states will be explained
     as we go along.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 代理首先通过维护一本笔记本来记录支持性事实，这些事实最终将用于推导最终答案。其他状态将在后续说明。
 - en: Let’s move on to defining the nodes in the LangGraph.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们定义 LangGraph 中的节点。
 - en: Rational plan
+  id: totrans-95
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 理性规划
 - en: In the rational plan step, the agent breaks the question into smaller steps,
     identifies the key information required, and creates a logical plan. The logical
     plan allows the agent to handle complex multi-step questions.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 在理性规划步骤中，代理将问题分解为更小的步骤，识别所需的关键信息，并创建一个逻辑计划。逻辑计划使得代理能够处理复杂的多步骤问题。
 - en: While the code is unavailable, all the prompts are in the appendix, so we can
     easily copy them.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管代码不可用，但所有的提示都在附录中，因此我们可以轻松地复制它们。
 - en: '![](../Images/e33bbce0019256b2aad5cbb955cecfd0.png)'
+  id: totrans-98
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e33bbce0019256b2aad5cbb955cecfd0.png)'
 - en: The prompt for rational plan. Taken from the [paper](https://arxiv.org/abs/2406.14550)
     with authors’ permission.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 理性计划的提示。取自作者授权的[论文](https://arxiv.org/abs/2406.14550)。
 - en: The authors don’t explicitly state whether the prompt is provided in the system
     or user message. For the most part, I have decided to put the instructions as
     a system message.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者并未明确指出提示是提供在系统消息还是用户消息中。大多数情况下，我决定将指令放在系统消息中。
 - en: The following code shows how to construct a chain using the above rational plan
     as the system message.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下代码展示了如何使用上述理性计划作为系统消息构建链。
 - en: '[PRE12]'
+  id: totrans-102
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Now, we can use this chain to define a rational plan node. A node in LangGraph
     is a function that takes the state as input and updates it as output.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以使用这个链来定义一个理性计划节点。LangGraph中的节点是一个函数，它将状态作为输入并更新为输出。
 - en: '[PRE13]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: The function starts by invoking the LLM chain, which produces the rational plan.
     We do a little printing for debugging and then update the state as the function’s
     output. I like the simplicity of this approach.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 该函数首先调用LLM链，产生理性计划。我们进行一些调试输出，然后将函数的输出作为更新的状态。我喜欢这种方法的简洁性。
 - en: Initial node selection
+  id: totrans-106
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 初始节点选择
 - en: 'In the next step, we select the initial nodes based on the question and rational
     plan. The prompt is the following:'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一步中，我们根据问题和理性计划选择初始节点。提示如下：
 - en: '![](../Images/e1462c0d6a9382ff40e6b394531bd9f7.png)'
+  id: totrans-108
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e1462c0d6a9382ff40e6b394531bd9f7.png)'
 - en: The prompt for initial node selection. Taken from the [paper](https://arxiv.org/abs/2406.14550)
     with authors’ permission.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 初始节点选择的提示。取自作者授权的[论文](https://arxiv.org/abs/2406.14550)。
 - en: The prompt starts by giving the LLM some context about the overall agent system,
     followed by the task instructions. The idea is to have the LLM select the top
     10 most relevant nodes and score them. The authors simply put all the key elements
     from the database in the prompt for an LLM to select from. However, I think that
     approach doesn’t really scale. Therefore, we will create and use a vector index
     to retrieve a list of input nodes for the prompt.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 提示首先给LLM一些关于整体代理系统的上下文，然后是任务指令。目的是让LLM选择最相关的前10个节点并对其进行评分。作者只是将数据库中的所有关键元素放入提示中，供LLM选择。但我认为这种方法并不具备可扩展性。因此，我们将创建并使用一个向量索引来为提示检索输入节点列表。
 - en: '[PRE14]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: The `from_existing_graph` method pulls the defined `text_node_properties` from
     the graph and calculates embeddings where they are missing. Here, we simply embed
     the `id` property of **KeyElement** nodes.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: '`from_existing_graph`方法从图中提取已定义的`text_node_properties`，并计算缺失的嵌入。在这里，我们仅嵌入**KeyElement**节点的`id`属性。'
 - en: Now let’s define the chain. We’ll first copy the prompt.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们定义链。我们首先复制提示。
 - en: '[PRE15]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: Again, we put most of the instructions as the system message. Since we have
     multiple inputs, we can define them in the human message. However, we need a more
     structured output this time. Instead of writing a parsing function that takes
     in text and outputs a JSON, we can simply use the `use_structured_output`method
     to define the desired output structure.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，我们将大部分指令作为系统消息。由于我们有多个输入，可以在用户消息中定义它们。然而，这次我们需要更结构化的输出。我们可以通过简单使用`use_structured_output`方法来定义所需的输出结构，而不是编写一个解析函数来接受文本并输出JSON。
 - en: '[PRE16]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: We want to output a list of nodes containing the key element and the score.
     We can easily define the output using a Pydantic model. Additionally, it is vital
     to add descriptions to each of the field, so we can guide the LLM as much as possible.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望输出一个包含关键元素和得分的节点列表。我们可以使用Pydantic模型轻松定义输出。此外，添加每个字段的描述至关重要，这样我们可以尽可能多地引导LLM。
 - en: The last thing in this step is to define the node as a function.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一步的最后一项是将节点定义为一个函数。
 - en: '[PRE17]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: In the initial node selection, we start by getting a list of potential nodes
     using the vector similarity search based on the input. An option is to use rational
     plan instead. The LLM is prompted to output the 10 most relevant nodes. However,
     the authors say that we should use only 5 initial nodes. Therefore, we simply
     order the nodes by their score and take the top 5 ones. We then update the `check_atomic_facts_queue`
     with the selected initial key elements.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 在初步节点选择中，我们首先通过基于输入的向量相似性搜索来获取潜在节点的列表。一个选项是使用理性规划替代。LLM被提示输出10个最相关的节点。然而，作者表示我们应当只使用5个初步节点。因此，我们只是按分数对节点进行排序，并选择前5个节点。然后，我们通过选定的初始关键元素更新`check_atomic_facts_queue`。
 - en: Atomic fact check
+  id: totrans-121
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 原子事实检查
 - en: 'In this step, we take the initial key elements and inspect the linked atomic
     facts. The prompt is:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一步，我们获取初步的关键元素并检查链接的原子事实。提示如下：
 - en: '![](../Images/b0bf14319eb92e8c735c357ce95cf88f.png)'
+  id: totrans-123
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b0bf14319eb92e8c735c357ce95cf88f.png)'
 - en: The prompt for exploring atomic facts. Taken from the [paper](https://arxiv.org/abs/2406.14550)
     with authors’ permission.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 探索原子事实的提示。取自[论文](https://arxiv.org/abs/2406.14550)，已获得作者许可。
 - en: All prompts start by giving the LLM some context, followed by task instructions.
     The LLM is instructed to read the atomic facts and decide whether to read the
     linked text chunks or if the atomic facts are irrelevant, search for more information
     by exploring the neighbors. The last bit of the prompt is the output instructions.
     We will use the structured output method again to avoid manually parsing and structuring
     the output.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有提示首先为LLM提供一些上下文，然后是任务指令。LLM被指示读取原子事实，并决定是阅读链接的文本块，还是如果原子事实不相关，则通过探索邻居来搜索更多信息。提示的最后部分是输出指令。我们将再次使用结构化输出方法，以避免手动解析和结构化输出。
 - en: Since chains are very similar in their implementation, different only by prompts,
     we’ll avoid showing every definition in this blog post. However, we’ll look at
     the LangGraph node definitions to better understand the flow.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于链条在实现上非常相似，仅通过提示有所不同，我们将避免在这篇博客文章中展示每一个定义。然而，我们将查看LangGraph节点定义，以更好地理解流程。
 - en: '[PRE18]'
+  id: totrans-127
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: The atomic fact check node starts by invoking the LLM to evaluate the atomic
     facts of the selected nodes. Since we are using the `use_structured_output` we
     can parse the updated notebook and the chosen action output in a straightforward
@@ -561,24 +828,34 @@
     the neighbors, we use a function to find those neighbors and append them to the
     `check_atomic_facts_queue`. Otherwise, we append the selected chunks to the `check_chunks_queue`.
     We update the overall state by updating the notebook, queues, and the chosen action.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 原子事实检查节点通过调用LLM来评估所选节点的原子事实。由于我们使用了`use_structured_output`，我们可以直接解析更新后的笔记本和选定的操作输出。如果选定的操作是通过检查邻居来获取更多信息，我们使用一个函数来查找这些邻居，并将其添加到`check_atomic_facts_queue`。否则，我们将选定的文本块添加到`check_chunks_queue`。我们通过更新笔记本、队列和选定操作来更新整体状态。
 - en: Text chunk check
+  id: totrans-129
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 文本块检查
 - en: 'As you might imagine by the name of the LangGraph node, in this step, the LLM
     reads the selected text chunk and decides the best next step based on the provided
     information. The prompt is the following:'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你从LangGraph节点的名称可以想象的那样，在这一步中，LLM读取选定的文本块，并根据提供的信息决定最佳的下一步。提示如下：
 - en: '![](../Images/fad9ce6c214faf445fa5e129744e7154.png)'
+  id: totrans-131
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fad9ce6c214faf445fa5e129744e7154.png)'
 - en: The prompt for exploring chunks. Taken from the [paper](https://arxiv.org/abs/2406.14550)
     with authors’ permission.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 探索文本块的提示。取自[论文](https://arxiv.org/abs/2406.14550)，已获得作者许可。
 - en: The LLM is instructed to read the text chunk and decide on the best approach.
     My gut feeling is that sometimes relevant information is at the start or the end
     of a text chunk, and parts of the information might be missing due to the chunking
@@ -586,14 +863,20 @@
     or next chunk. If the LLM decides it has enough information, it can hop on to
     the final step. Otherwise, it has the option to search for more details using
     the `search_more`function.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: LLM被指示读取文本块并决定最佳处理方法。我的直觉是，有时相关信息可能出现在文本块的开始或结尾，而由于块化过程，部分信息可能缺失。因此，作者决定给LLM一个选项，允许其读取前一个或下一个文本块。如果LLM认为信息足够，它可以跳到最后一步。否则，它可以选择使用`search_more`函数搜索更多细节。
 - en: Again, we’ll just look at the LangGraph node function.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次，我们只查看LangGraph节点函数。
 - en: '[PRE19]'
+  id: totrans-135
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: We start by popping a chunk ID from the queue and retrieving its text from the
     graph. Using the retrieved text and additional information from the overall state
     of the LangGraph system, we invoke the LLM chain. If the LLM decides it wants
@@ -602,132 +885,197 @@
     If there are any other chunks to read in the queue, we move to reading them. Otherwise,
     we can use the vector search to get more relevant key elements and repeat the
     process by reading their atomic facts and so on.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先从队列中弹出一个块 ID，并从图中检索其文本。利用检索到的文本和 LangGraph 系统整体状态的额外信息，我们调用 LLM 链。如果 LLM
+    决定它想要阅读前后的块，我们将它们的 ID 添加到队列中。另一方面，如果 LLM 选择搜索更多信息，我们有两种选择。如果队列中还有其他块待读，我们继续读取它们。否则，我们可以使用向量搜索来获取更多相关的关键元素，并通过读取它们的原子事实等信息来重复这一过程。
 - en: The paper is slightly dubious about the `search_more` function. On the one hand,
     it states that the `search_more` function can only read other chunks in the queue.
     On the other hand, in their example in the appendix, the function clearly explores
     the neighbors.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 论文对 `search_more` 函数有所疑虑。一方面，它指出 `search_more` 函数只能读取队列中的其他块。另一方面，在附录中的示例中，该函数显然探索了邻居。
 - en: '![](../Images/6f7ac4164fc9cba89c57eb2e6ac9d0b2.png)'
+  id: totrans-138
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6f7ac4164fc9cba89c57eb2e6ac9d0b2.png)'
 - en: Example action history. Taken from the [paper](https://arxiv.org/abs/2406.14550)
     with authors’ permission.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例操作历史。来自[论文](https://arxiv.org/abs/2406.14550)，经作者许可。
 - en: To clarify, I emailed the authors, and they confirmed that the `search_more`function
     first tries to go through additional chunks in the queue. If none are present,
     it moves on to exploring the neighbors. Since how to explore the neighbors isn’t
     explicitly defined, we again use the vector similarity search to find potential
     nodes.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了澄清，我给作者发了电子邮件，他们确认 `search_more` 函数首先尝试读取队列中额外的块。如果没有更多块，它会继续探索邻居。由于如何探索邻居并未明确定义，我们再次使用向量相似度搜索来寻找潜在节点。
 - en: Neighbor selection
+  id: totrans-141
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 邻居选择
 - en: 'When the LLM decides to explore the neighbors, we have helper functions to
     find potential key elements to explore. However, we don’t explore all of them.
     Instead, an LLM decides which of them is worth exploring, if any. The prompt is
     the following:'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 当 LLM 决定探索邻居时，我们有辅助函数来寻找潜在的关键元素进行探索。然而，我们并不会探索所有邻居。相反，LLM 会决定哪些是值得探索的（如果有的话）。提示如下：
 - en: '![](../Images/f9aadd49fa519cb33b6f7a786876a749.png)'
+  id: totrans-143
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f9aadd49fa519cb33b6f7a786876a749.png)'
 - en: The prompt for exploring neighbors. Taken from the [paper](https://arxiv.org/abs/2406.14550)
     with authors’ permission.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 探索邻居的提示。来自[论文](https://arxiv.org/abs/2406.14550)，经作者许可。
 - en: Based on the provided potential neighbors, the LLM can decide which to explore.
     If none are worth exploring, it can decide to terminate the flow and move on to
     the answer reasoning step.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据提供的潜在邻居，LLM 可以决定探索哪些。如果没有值得探索的，LLM 可以决定终止流程并进入回答推理步骤。
 - en: 'The code is:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码如下：
 - en: '[PRE20]'
+  id: totrans-147
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: Here, we execute the LLM chain and parse results. If the chosen action is to
     explore any neighbors, we add them to the `check_atomic_facts_queue` .
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们执行 LLM 链并解析结果。如果选择的操作是探索任何邻居，我们将它们添加到 `check_atomic_facts_queue`。
 - en: Answer reasoning
+  id: totrans-149
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 回答推理
 - en: 'The last step in our flow is to ask the LLM to construct the final answer based
     on the collected information in the notebook. The prompt is:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们流程的最后一步是要求 LLM 根据笔记本中收集的信息构建最终答案。提示如下：
 - en: '![](../Images/52228770f9c551cbed8ed9778f3e14f7.png)'
+  id: totrans-151
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/52228770f9c551cbed8ed9778f3e14f7.png)'
 - en: The prompt for answer reasoning. Taken from the [paper](https://arxiv.org/abs/2406.14550)
     with authors’ permission.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 回答推理的提示。来自[论文](https://arxiv.org/abs/2406.14550)，经作者许可。
 - en: 'This node implementation is fairly straightforward as you can see by the code:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个节点实现相当直接，如代码所示：
 - en: '[PRE21]'
+  id: totrans-154
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: We simply input the original question and the notebook with the collected information
     to the chain and ask it to formulate the final answer and provide the explanation
     in the analysis part.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们只是将原始问题和收集到信息的笔记本输入链中，要求它根据这些信息制定最终答案，并在分析部分提供解释。
 - en: LangGraph flow definition
+  id: totrans-156
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: LangGraph 流程定义
 - en: The only thing left is to define the LangGraph flow and how it should traverse
     between the nodes. I am quite fond of the simple approach the LangChain team has
     chosen.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 剩下的唯一任务是定义 LangGraph 流程，以及它如何在节点之间进行遍历。我非常喜欢 LangChain 团队选择的简单方法。
 - en: '[PRE22]'
+  id: totrans-158
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'We begin by defining the state graph object, where we can define the information
     passed along in the LangGraph. Each node is simply added with the `add_node` method.
     Normal edges, where one step always follows the other, can be added with a `add_edge`
     method. On the other hand, if the traversals is dependent on previous actions,
     we can use the `add_conditional_edge` and pass in the function that selects the
     next node. For example, the `atomic_fact_condition` looks like this:'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从定义状态图对象开始，在这个图中我们可以定义LangGraph中传递的信息。每个节点都可以简单地通过`add_node`方法添加。正常的边缘（一个步骤总是跟着另一个步骤）可以通过`add_edge`方法添加。另一方面，如果遍历依赖于之前的动作，我们可以使用`add_conditional_edge`并传入选择下一个节点的函数。例如，`atomic_fact_condition`看起来是这样的：
 - en: '[PRE23]'
+  id: totrans-160
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: As you can see, it’s about as simple as it gets to define the conditional edge.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 如你所见，定义条件边缘简单得不能再简单了。
 - en: Evaluation
+  id: totrans-162
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评估
 - en: Finally we can test our implementation on a couple of questions. Let’s begin
     with a simple one.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们可以在几个问题上测试我们的实现。让我们从一个简单的开始。
 - en: '[PRE24]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '*Results*'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/19397837792c7ab4322659d6ef31586e.png)'
+  id: totrans-166
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/19397837792c7ab4322659d6ef31586e.png)'
 - en: Image by author.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自作者。
 - en: The agent begins by forming a rational plan to identify the battles Joan of
     Arc participated in during her military career and to determine whether any were
     lost. After setting this plan, it moves to an atomic fact check about key battles
@@ -739,23 +1087,35 @@
     without expanding its exploration further. The process concludes with a final
     answer, confirming that Joan did indeed lose some battles, notably at Paris and
     La Charité, based on the evidence gathered.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 代理首先制定一个合理的计划，目的是确定贞德在其军事生涯中参与的战役，并判断是否有战役是失败的。在设定好这个计划后，它会对一些关键战役进行事实核查，比如奥尔良围城战、巴黎围城战和拉沙里特战役。代理没有扩展图形，而是直接确认它所需的事实。它读取了提供贞德失败战役更多细节的文本片段，特别是失败的巴黎围城战和拉沙里特战役。由于这些信息回答了是否贞德输掉过战役的问题，代理在这里停止，不再扩展探索。该过程最终给出了答案，确认贞德确实输过几场战役，尤其是在巴黎和拉沙里特，根据收集到的证据。
 - en: Let’s now throw it a curveball.
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们给它来个难题。
 - en: '[PRE25]'
+  id: totrans-170
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '*Results*'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/00214edcb3f1a075f88bcac01ca2a835.png)'
+  id: totrans-172
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/00214edcb3f1a075f88bcac01ca2a835.png)'
 - en: Image by author.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自作者。
 - en: After the rational plan, the agent selected the initial key elements to explore.
     However, the issue is that none of these key elements exists in the database,
     and the LLM simply hallucinated them. Maybe some prompt engineering could solve
@@ -764,63 +1124,91 @@
     information. Since the agent didn’t get any relevant data, it searched for more
     information. However, none of the neighbors are relevant either, so the process
     is stopped, letting the user know that the information is unavailable.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 在制定合理计划后，代理选择了最初的关键元素进行探索。然而，问题在于，这些关键元素在数据库中并不存在，LLM直接凭空生成了它们。也许一些提示工程可以解决幻觉问题，但我还没有尝试。需要注意的是，这并不算太糟糕，因为这些关键元素确实不存在于数据库中，所以我们无法提取相关信息。由于代理没有获得任何相关数据，它开始搜索更多信息。然而，邻近的节点也都不相关，因此流程被停止，并告知用户信息不可用。
 - en: Now let’s try a multi-hop question.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们尝试一个多跳问题。
 - en: '[PRE26]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: '*Results*'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/1694c03f212a1965a9d92ae832f1a378.png)'
+  id: totrans-178
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1694c03f212a1965a9d92ae832f1a378.png)'
 - en: Image by author.
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自作者。
 - en: It’s a bit too much to copy the whole flow, so I copied only the answer part.
     The flow for this questions is quite non-deterministic and very dependent on the
     model being used. It’s kind of funny, but as I was testing the newer the model,
     the worse it performed. So the GPT-4 was the best (also used in this example),
     followed by GPT-4-turbo, and the last place goes to GPT-4o.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 复制整个流程有点太多了，所以我只复制了答案部分。这个问题的流程非常不确定，并且很依赖所使用的模型。有点好笑的是，当我测试模型越新，性能反而越差。所以GPT-4表现最好（本示例中使用的就是它），其次是GPT-4-turbo，最后一名是GPT-4o。
 - en: Summary
+  id: totrans-181
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 摘要
 - en: I’m very excited about GraphReader and similar approaches, specifically because
     I think such an approach to (Graph)RAG can be pretty generic and applied to any
     domain. Additionally, you can avoid the whole graph modeling part as the graph
     schema is static, allowing the graph agent to traverse it using predefined functions.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 我对GraphReader及类似的方法感到非常兴奋，特别是因为我认为这种方法（Graph）RAG可以相当通用，且能够应用于任何领域。此外，你可以避免整个图形建模部分，因为图形模式是静态的，允许图形代理使用预定义的函数进行遍历。
 - en: We discussed some issues with this implementation along the way. For example,
     the graph construction on many documents might result in broad key elements ending
     up as supernodes, and sometimes, the atomic facts don’t contain the full context.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个实现过程中，我们讨论了一些问题。例如，在许多文档上进行图形构建可能会导致广泛的关键元素最终成为超级节点，有时原子事实没有包含完整的上下文。
 - en: The retriever part is super reliant on extracted and selected key elements.
     In the original implementation, they put all the key elements in the prompt to
     choose from. However, I doubt that that approach scales well. Perhaps we also
     need an additional function to allow the agent to search for more information
     in other ways than just to explore the neighbor key elements.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 检索器部分非常依赖于提取和选择的关键元素。在原始实现中，他们将所有关键元素都放入提示中供选择。然而，我怀疑这种方法能否良好扩展。也许我们还需要一个额外的功能，允许代理以除了探索邻居关键元素以外的方式搜索更多信息。
 - en: Lastly, the agent system is highly dependent on the performance of the LLM.
     Based on my testing, the best model from OpenAI is the original GPT-4, which is
     funny as it’s the oldest. I haven’t tested the o1, though.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，代理系统在很大程度上依赖于LLM的性能。根据我的测试，OpenAI的最佳模型是原始的GPT-4，虽然有趣的是它是最古老的。我还没有测试o1。
 - en: All in all, I am excited to explore more of these document graphs implementations,
     where metadata is extracted from text chunk and used to navigate the information
     better. Let me know if you have any ideas how to improve this implementation or
     have any other you like.
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 总的来说，我很高兴能探索更多的这些文档图实现，其中元数据是从文本块中提取并用于更好地导航信息。如果你有任何改进此实现的想法，或者有其他你喜欢的方法，告诉我。
 - en: As always, the code is available on [GitHub](https://github.com/tomasonjo/blogs/tree/master/graphreader).
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 和往常一样，代码可以在[GitHub](https://github.com/tomasonjo/blogs/tree/master/graphreader)上找到。

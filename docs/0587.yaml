@@ -1,908 +1,1397 @@
 - en: Deploy Long-Running ETL Pipelines to ECS with Fargate
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 将长时间运行的 ETL 流水线部署到 ECS 与 Fargate
 - en: 原文：[https://towardsdatascience.com/deploy-long-running-etl-pipelines-to-ecs-with-fargate-01ab19c6d2a8?source=collection_archive---------4-----------------------#2024-03-03](https://towardsdatascience.com/deploy-long-running-etl-pipelines-to-ecs-with-fargate-01ab19c6d2a8?source=collection_archive---------4-----------------------#2024-03-03)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/deploy-long-running-etl-pipelines-to-ecs-with-fargate-01ab19c6d2a8?source=collection_archive---------4-----------------------#2024-03-03](https://towardsdatascience.com/deploy-long-running-etl-pipelines-to-ecs-with-fargate-01ab19c6d2a8?source=collection_archive---------4-----------------------#2024-03-03)
 - en: Building Backend Applications
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 构建后端应用程序
 - en: To keep things simple and costs to a minimum
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为了保持简单并将成本降到最低
 - en: '[](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)[![Ida
     Silfverskiöld](../Images/a2c0850bc0198688f70a5eca858cf8b5.png)](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------)
     [Ida Silfverskiöld](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)[![Ida
+    Silfverskiöld](../Images/a2c0850bc0198688f70a5eca858cf8b5.png)](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------)
+    [Ida Silfverskiöld](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------)
     ·17 min read·Mar 3, 2024
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------)
+    ·阅读时间 17 分钟·2024 年 3 月 3 日
 - en: --
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/52f9ed67c372c5d6c4c962a6d7fc66e3.png)'
+  id: totrans-7
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/52f9ed67c372c5d6c4c962a6d7fc66e3.png)'
 - en: ETL Pipeline | Image by author
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: ETL 流水线 | 作者提供的图像
 - en: ETL stands for **Extract**, **Transform**, and **Load**. An ETL pipeline is
     essentially just a data transformation process — extracting data from one place,
     doing something with it, and then loading it back to the same or a different place.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: ETL 代表 **提取**、**转换** 和 **加载**。ETL 流水线本质上就是一个数据转换过程——从一个地方提取数据，对其进行处理，然后将其加载回同一位置或不同位置。
 - en: If you are working with natural language processing via APIs, which I’m guessing
     most will start doing, you can easily hit the timeout threshold of AWS Lambda
     when processing your data, especially if at least one function exceeds 15 minutes.
     So, while Lambda is great because it’s quick and really cheap, the timeout can
     be a bother.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你通过 API 从事自然语言处理工作，我猜大多数人都会开始这样做，那么在处理数据时，你很容易遇到 AWS Lambda 的超时限制，尤其是当至少一个函数执行超过
+    15 分钟时。所以，虽然 Lambda 很好，因为它快速且非常便宜，但超时问题可能会带来困扰。
 - en: '**The choice here is to deploy your code as a container** that has the option
     of running as long as it needs to and run it on a schedule. So, instead of spinning
     up a function as you do with Lambda, we can spin up a container to run in an ECS
     cluster using Fargate.'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: '**这里的选择是将代码部署为容器**，该容器可以根据需要运行并按计划执行。因此，与使用 Lambda 启动一个函数不同，我们可以启动一个容器，在 ECS
+    集群中使用 Fargate 运行。'
 - en: '![](../Images/0d9dbc9be8b617e2240b774166b931f7.png)'
+  id: totrans-12
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0d9dbc9be8b617e2240b774166b931f7.png)'
 - en: We can use EventBridge both for Lambda and ECS | Image by author
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将 EventBridge 用于 Lambda 和 ECS | 作者提供的图像
 - en: '*For clarification, Lambda, ECS and EventBridge are all AWS Services.*'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '*为了澄清，Lambda、ECS 和 EventBridge 都是 AWS 服务。*'
 - en: '**Just as with Lambda, the cost** of running **a container** for an hour or
     two is **minimal**. However, it’s a bit **more complicated** than running a serverless
     function. But if you’re reading this, then you’ve probably run into the same issues
     and are wondering what the easiest way to transition is.'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '**与 Lambda 一样，运行 **容器** 一两个小时的成本是 **最小的**。然而，它比运行无服务器函数要 **复杂** 一些。但如果你正在阅读这篇文章，那么你可能已经遇到了相同的问题，并且在思考过渡的最简单方法是什么。'
 - en: I have created a very simple ETL template that uses *Google BigQuery* to extract
     and load data. This [template](https://github.com/ilsilfverskiold/etl-pipeline-fargate)
     will get you up and running within a few minutes if you follow along.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 我创建了一个非常简单的 ETL 模板，使用 *Google BigQuery* 来提取和加载数据。这个 [模板](https://github.com/ilsilfverskiold/etl-pipeline-fargate)
+    如果你跟着做，几分钟内就能运行起来。
 - en: '*Using BigQuery is entirely optional but I usually store my long term data
     there.*'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '*使用 BigQuery 完全是可选的，但我通常会将长期数据存储在那里。*'
 - en: Introduction
+  id: totrans-18
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: Instead of building something complex here, I will show you how to build something
     minimal and keep it really lean.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 与其在这里构建复杂的东西，不如向你展示如何构建最简化的方案，并保持其精简。
 - en: If you don’t need to process data in parallel, you shouldn’t need to include
     something like Airflow. I’ve seen a few articles out there that unnecessarily
     set up complex workflows, which aren’t strictly necessary for straightforward
     data transformation.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你不需要并行处理数据，就不需要包含类似 Airflow 的工具。我看到有些文章不必要地设置了复杂的工作流，而这些对于简单的数据转换并不是严格必要的。
 - en: Besides, if you feel like you want to add on to this later, that option is yours.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，如果你以后想对这个过程进行扩展，随时可以这样做。
 - en: Workflow
+  id: totrans-22
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 工作流
 - en: We’ll build our script in Python as we’re doing data transformation, then bundle
     it up with Docker and push it to an ECR repository.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将使用 Python 编写脚本，因为我们正在进行数据转换，然后将其与 Docker 打包并推送到 ECR 仓库。
 - en: From here, we can create a task definition using AWS Fargate and run it on a
     schedule in an ECS cluster.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这里开始，我们可以使用 AWS Fargate 创建一个任务定义，并在 ECS 集群中按计划运行它。
 - en: '![](../Images/7af5c5507689fd2d1264de7a77474a3d.png)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7af5c5507689fd2d1264de7a77474a3d.png)'
 - en: All the tools we use to deploy our code to AWS | Image by author
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们用来将代码部署到 AWS 的所有工具 | 图片来自作者
 - en: Don’t worry if this feels foreign; you’ll understand all these services and
     what they do as we go along.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果这感觉有些陌生，不用担心；随着我们继续学习，你会理解这些服务以及它们的作用。
 - en: Technology
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 技术
 - en: If you are new to working with containers, then think of ECS (Elastic Container
     Service) as something that helps us set up an environment where we can run one
     or more containers simultaneously.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你是第一次使用容器，那么可以将 ECS（弹性容器服务）看作一个帮助我们设置环境的平台，在这个环境中我们可以同时运行一个或多个容器。
 - en: Fargate, on the other hand, helps us simplify the management and setup of the
     containers themselves using Docker images — which are referred to as tasks in
     AWS.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，Fargate 帮助我们简化了容器的管理和设置，使用 Docker 镜像 —— 在 AWS 中这些被称为任务。
 - en: '![](../Images/6dccf5457f14e0ef24279dabbb9b75e8.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6dccf5457f14e0ef24279dabbb9b75e8.png)'
 - en: A very simplified graph — the infrastructure the tasks run on is managed by
     Fargate | Image by author
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个非常简化的图示 —— 任务运行的基础设施由 Fargate 管理 | 图片来自作者
 - en: There is the option of using EC2 to set up your containers, but you would have
     to do a lot more manual work. Fargate manages the underlying instances for us,
     whereas with EC2, you are required to manage and deploy your own compute instances.
     Hence, Fargate is often referred to as the ‘serverless’ option.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一种选择是使用 EC2 来设置你的容器，但那样你需要做更多的手动工作。Fargate 为我们管理底层实例，而在使用 EC2 时，你需要管理和部署自己的计算实例。因此，Fargate
+    常被称为“无服务器”选项。
 - en: I found a [thread](https://www.reddit.com/r/aws/comments/165wkns/ecs_fargate_vs_ec2/)
     on Reddit discussing this, if you’re keen to read a bit about how users find using
     EC2 versus Fargate. It can give you an idea of how people compare EC2 and Fargate.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在 [Reddit](https://www.reddit.com/r/aws/comments/165wkns/ecs_fargate_vs_ec2/)
+    上找到了一篇讨论这个话题的 [帖子](https://www.reddit.com/r/aws/comments/165wkns/ecs_fargate_vs_ec2/)，如果你有兴趣了解用户如何看待
+    EC2 和 Fargate 的对比，可以阅读一下。这能让你了解人们如何比较 EC2 和 Fargate。
 - en: Not that I’m saying Reddit is the source of truth, but it’s useful for getting
     a sense of user perspectives.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 我并不是说 Reddit 是唯一可信的来源，但它对于了解用户观点非常有用。
 - en: Costs
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 成本
 - en: The primary concern I usually have is to keep the code running efficiently while
     also managing the total cost.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我通常关注的主要问题是如何让代码高效运行，同时管理总成本。
 - en: As we’re only running the container when we need to, we only pay for the amount
     of resources we use. The price we pay is determined by several factors, such as
     the number of tasks running, the execution duration of each task, the number of
     virtual CPUs (vCPUs) used for the task, and memory usage.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们仅在需要时运行容器，因此只需为我们使用的资源付费。我们支付的价格由多个因素决定，例如运行的任务数量、每个任务的执行时长、任务所使用的虚拟 CPU
+    (vCPUs) 数量以及内存使用量。
 - en: But to give you a rough idea, on a high level, the total [cost](https://aws.amazon.com/fargate/pricing/)
     for running one task is around $0.01384 per hour for the EU region, depending
     on the resources you’ve provisioned.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 大致来说，运行一个任务的总 [成本](https://aws.amazon.com/fargate/pricing/) 大约为每小时 $0.01384，具体费用取决于你配置的资源（适用于
+    EU 区域）。
 - en: '![](../Images/d258be4174b91c3966914d2a34913aa1.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d258be4174b91c3966914d2a34913aa1.png)'
 - en: Fargate & ECS pricing per hour for the EU region | Image by author
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: Fargate 和 ECS 的小时定价（EU 区域）| 图片来自作者
 - en: If we were to compare this price with **AWS Glue** we can get a bit of perspective
     if it is good or not.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们将这个价格与 **AWS Glue** 进行比较，就能从中得到一些视角，判断它是否合适。
 - en: If an ETL job requires 4 DPUs (the default number for an AWS Glue job) and runs
     for an hour, it would cost 4 DPUs * $0.44 = $1.76\. This cost is for only one
     hour and is significantly higher than running a simple container.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个 ETL 作业需要 4 个 DPU（AWS Glue 作业的默认数量）并运行一个小时，它的费用将是 4 DPU * $0.44 = $1.76。这个费用仅针对一个小时，比运行一个简单的容器要高得多。
 - en: This is, of course, a simplified calculation, and the actual number of DPUs
     can vary depending on the job. You can check out AWS Glue pricing in more detail
     on their pricing [page](https://aws.amazon.com/glue/pricing/).
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 这当然是一个简化的计算，实际的 DPU 数量可能会根据任务有所不同。你可以在他们的定价 [页面](https://aws.amazon.com/glue/pricing/)
+    上查看 AWS Glue 定价的更多细节。
 - en: Getting Started
+  id: totrans-45
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 开始使用
 - en: To follow this article, I’ve created a simple [ETL template](https://github.com/ilsilfverskiold/etl-pipeline-fargate)
     to help you get up and running quickly.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了跟随这篇文章，我已经创建了一个简单的 [ETL 模板](https://github.com/ilsilfverskiold/etl-pipeline-fargate)，帮助你快速入门。
 - en: This template uses **BigQuery** to extract and load data. It will extract a
     few rows, do something simple and then load it back to BigQuery.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个模板使用 **BigQuery** 来提取和加载数据。它将提取几行数据，做一些简单的操作，然后将数据加载回 BigQuery。
 - en: When I run my pipelines I have other things that transform data — I use APIs
     for natural language processing that runs for a few hours in the morning — but
     that is up to you to add on later. **This is just to give you a template that
     will be easy to work with.**
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我运行管道时，我还会有其他的东西来转换数据——我使用自然语言处理的 API，它会在早上运行几个小时——但这些可以留给你稍后添加。**这只是为了给你一个模板，便于操作。**
 - en: 'To follow along this tutorial, the main steps will be as follows:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 按照这个教程，主要步骤如下：
 - en: Setting up your local code.
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置你的本地代码。
 - en: Setting up an **IAM user** & the **AWS CLI**.
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设置 **IAM 用户** 和 **AWS CLI**。
 - en: '**Build & push Docker image** to AWS.'
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**构建并推送 Docker 镜像** 到 AWS。'
 - en: Create an **ECS task definition**.
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 创建一个 **ECS 任务定义**。
 - en: Create an **ECS cluster**.
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 创建一个 **ECS 集群**。
 - en: '**Schedule** to your tasks.'
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**安排**你的任务。'
 - en: In total it shouldn’t take you longer than 20 minutes to get through this, using
     the code I’ll provide you with. This assumes you have an AWS account ready, and
     if not, add on 5 to 10 minutes.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 总体来说，使用我提供的代码，完成这一切不应该超过 20 分钟。如果你还没有 AWS 账户，可能需要再加 5 到 10 分钟。
 - en: The Code
+  id: totrans-57
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 代码
 - en: First create a new folder locally and locate into it.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先在本地创建一个新文件夹并进入该文件夹。
 - en: '[PRE0]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Make sure you have python installed.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保你已经安装了 Python。
 - en: '[PRE1]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: If not, [install it](https://www.python.org/downloads/) locally.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果没有，[本地安装它](https://www.python.org/downloads/)。
 - en: Once you’re ready, you can go ahead and clone the template I have already set
     up.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦准备好，你可以继续克隆我已经设置好的模板。
 - en: '[PRE2]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: When it has finished fetching the code, open it up in your code editor.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 当它完成获取代码时，打开你的代码编辑器查看。
 - en: First check the ***main.py*** file to look how I’ve structured the code to understand
     what it does.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先查看 ***main.py*** 文件，了解我如何构建代码，以便理解它的功能。
 - en: '![](../Images/63327e5f4b603b37a1228e14e85fe8c1.png)'
+  id: totrans-67
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/63327e5f4b603b37a1228e14e85fe8c1.png)'
 - en: The main.py code in your root folder | Image by author
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 你的根文件夹中的 main.py 代码 | 图片来自作者
 - en: Essentially, it will fetch all names with **“Doe”** in it from a table in BigQuery
     that **you specify,** transform these names and then insert them back into the
     same data table as new rows.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 本质上，它将从 BigQuery 中你指定的表格中提取所有包含 **“Doe”** 的名称，转换这些名称后再将它们作为新行插入回同一个数据表。
 - en: You can go into each helper function to see how we set up the SQL Query job,
     transform the data and then insert it back to the BigQuery table.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以进入每个辅助函数，查看我们是如何设置 SQL 查询作业、转换数据然后再将其插入回 BigQuery 表的。
 - en: The idea is of course that you set up something more complex but this is a simple
     test run to make it easy to tweak the code.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，目的是让你设置一个更复杂的东西，但这是一次简单的测试运行，目的是让你能够轻松调整代码。
 - en: Setting Up BigQuery
+  id: totrans-72
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设置 BigQuery
 - en: If you want to continue with the code I’ve prepared you will need to set up
     a few things in BigQuery. Otherwise you can skip this part.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想继续使用我准备好的代码，你需要在 BigQuery 中设置一些内容。否则，你可以跳过这部分。
 - en: 'Here are the things you will need:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将需要以下几样东西：
 - en: A **BigQuery table** with a field of **‘name’ as a string.**
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个包含 **‘name’ 字段为字符串类型的** **BigQuery 表**。
 - en: A **few rows** in the data table **with the name “Doe” in it**.
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 数据表中 **包含名称为“Doe”** 的 **几行数据**。
 - en: A **service account** that will have access to this dataset.
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个具有访问此数据集权限的 **服务账户**。
 - en: To get a service account you will need to navigate to IAM in the Google Cloud
     Console and then to Service Accounts.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 要获取服务账户，您需要导航到 Google Cloud 控制台中的 IAM，然后进入“服务账户”。
 - en: Once there, create a new service account.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 到了那里，创建一个新的服务账户。
 - en: Once it has been created, you will need to give your service account **BigQuery
     User** access globally via IAM.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建后，您需要通过 IAM 为您的服务账户提供 **BigQuery 用户** 的全局访问权限。
 - en: '![](../Images/8fb3f1783c18352ce18d73aea0b28f4e.png)'
+  id: totrans-81
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8fb3f1783c18352ce18d73aea0b28f4e.png)'
 - en: Granting access to your service account in IAM | Image by author
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 IAM 中授予对服务账户的访问权限 | 图片来源：作者
 - en: You will also have to give this service account access to the dataset itself
     which you do in BigQuery directly via the dataset’s **Share** button and then
     by pressing **Add Principal**.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 您还需要为此服务账户提供对数据集本身的访问权限，您可以直接在 BigQuery 中通过数据集的 **共享** 按钮进行操作，然后按 **添加主体**。
 - en: '![](../Images/b9cb1463a9b5ae89f4777af1c796efc2.png)'
+  id: totrans-84
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b9cb1463a9b5ae89f4777af1c796efc2.png)'
 - en: Adding permission to the dataset in BigQuery for the service account | Image
     by author
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 为 BigQuery 中的数据集添加权限给服务账户 | 图片来源：作者
 - en: After you’ve given the user the appropriate permissions, make sure you go back
     to the Service Accounts and then download a key. This will give you a json file
     that you need to put in your root folder.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 在您给用户适当权限后，确保返回到服务账户并下载一个密钥。这将为您提供一个 json 文件，您需要将其放在根文件夹中。
 - en: '![](../Images/e6f873e95ca6e39f87bbd00517f0ddd4.png)'
+  id: totrans-87
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e6f873e95ca6e39f87bbd00517f0ddd4.png)'
 - en: Getting a key for the service account to authenticate with | Image by author
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 获取服务账户密钥以进行身份验证 | 图片来源：作者
 - en: Now, the most important part is making sure the code has access to the google
     credentials and is using the correct data table.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，最重要的部分是确保代码能够访问 Google 凭证，并使用正确的数据表。
 - en: You’ll want the json file you’ve downloaded with the Google credentials in your
     root folder as *google_credentials.json* and then you want to specify the correct
     table ID.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 您需要将您下载的包含 Google 凭证的 json 文件放在根文件夹中，命名为 *google_credentials.json*，然后指定正确的表
+    ID。
 - en: '![](../Images/2cb5c008b9902b48e0d803ec65159ddd.png)'
+  id: totrans-91
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2cb5c008b9902b48e0d803ec65159ddd.png)'
 - en: Change the table id and service account key json file in your code | Image by
     author
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 更改代码中的表 ID 和服务账户密钥 json 文件 | 图片来源：作者
 - en: Now you might argue that you do not want to store your credentials locally which
     is only right.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在您可能会争辩说不想将凭证存储在本地，这是完全正确的。
 - en: You can add in the option of storing your json file in AWS Secrets Manager later.
     However, to start, this will be easier.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 您以后可以选择将您的 json 文件存储在 AWS Secrets Manager 中。然而，首先这样做会更简单。
 - en: Run ETL Pipeline Locally
+  id: totrans-95
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 本地运行 ETL 流水线
 - en: We’ll run this code locally first, just so we can see that it works.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先在本地运行这段代码，只是为了验证它是否有效。
 - en: So, set up a Python virtual environment and activate it.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，设置一个 Python 虚拟环境并激活它。
 - en: '[PRE3]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Then install dependencies. We only have g*oogle-cloud-bigquery* in there but
     ideally you will have more dependencies.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后安装依赖项。我们这里只有 *google-cloud-bigquery*，但理想情况下，您将有更多依赖项。
 - en: '[PRE4]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Run the main script.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行主脚本。
 - en: '[PRE5]'
+  id: totrans-102
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: This should log *‘New rows have been added’* in your terminal. This will then
     confirm that the code works as we’ve intended.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 这应该会在您的终端中记录 *‘新行已添加’*。这将确认代码按我们预期的方式工作。
 - en: The Docker Image
+  id: totrans-104
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Docker 镜像
 - en: Now to push this code to ECS we will have to bundle it up into a Docker image
     which means that you will need Docker installed locally.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，为了将此代码推送到 ECS，我们需要将其打包成一个 Docker 镜像，这意味着您需要在本地安装 Docker。
 - en: If you do not have Docker installed, you can download it [here](https://www.docker.com/get-started/).
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您没有安装 Docker，可以在[这里](https://www.docker.com/get-started/)下载。
 - en: Docker helps us package an application and its dependencies into an image, which
     can be easily recognized and run on any system. Using ECS, it’s required of us
     to bundle our code into Docker images, which are then referenced by a task definition
     to run as containers.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: Docker 帮助我们将应用程序及其依赖项打包成一个镜像，能够在任何系统上轻松识别并运行。使用 ECS 时，我们需要将代码打包成 Docker 镜像，然后通过任务定义引用这些镜像作为容器运行。
 - en: I have already set up a **Dockerfile** in your folder. You should be able to
     look into it there.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 我已经在您的文件夹中设置了一个 **Dockerfile**。您应该能在那里查看它。
 - en: '[PRE6]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: As you see, I’ve kept this really lean as we’re not connecting web traffic to
     any ports here.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如您所看到的，我已经将其保持得非常精简，因为我们这里并没有将 Web 流量连接到任何端口。
 - en: We’re specifying AMD64 which you may not need if you are not on a Mac with an
     M1 chip but it shouldn’t hurt. This will specify to AWS the architecture of the
     docker image so we don’t run into compatibility issues.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们指定了 AMD64 架构，如果你使用的是非 M1 芯片的 Mac，你可能不需要指定，但指定也不会造成问题。这将向 AWS 指明 Docker 镜像的架构，以避免出现兼容性问题。
 - en: Create an IAM User
+  id: totrans-112
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 创建 IAM 用户
 - en: When working with AWS, access will need to be specified. Most of the issues
     you’ll run into are permission issues. We’ll be working with the CLI locally,
     and for this to work we’ll have to create an IAM user that will need quite broad
     permissions.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 在使用 AWS 时，需要指定访问权限。你遇到的大多数问题都是权限问题。我们将使用本地的 CLI 工具，且为使其正常工作，我们必须创建一个 IAM 用户，并赋予它广泛的权限。
 - en: Go to the [AWS console](https://aws.amazon.com/) and then navigate to IAM. Create
     a new user, add permissions and then create a new policy to attach to it.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 访问 [AWS 控制台](https://aws.amazon.com/)，然后导航到 IAM。创建一个新用户，添加权限，并创建一个新策略并附加到该用户。
 - en: I have specified the permissions needed in your code in the ***aws_iam_user.json***
     file. You’ll see a short snippet below of what this json file looks like.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在 ***aws_iam_user.json*** 文件中指定了代码所需的权限。你可以在下面看到这个 JSON 文件的一个简短片段。
 - en: '[PRE7]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: You’ll need to go into this file to get **all** the permissions you will need
     to set, this is just a short snippet. I’ve set it to quite a few, which you may
     want to tweak to your own preferences later.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要进入这个文件以获取 **所有** 你需要设置的权限，这里只是一个简短的片段。我已经设置了很多权限，你可能想根据自己的需要稍后进行调整。
 - en: Once you’ve created the IAM user and you’ve added the correct permissions to
     it, you will need to generate an access key. Choose *‘Command Line Interface (CLI)’*
     when asked about your use case.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你创建了 IAM 用户并为其添加了正确的权限，你将需要生成一个访问密钥。当询问你的使用案例时，选择 *“命令行接口（CLI）”*。
 - en: Download the credentials. We’ll use these to authenticate in a bit.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 下载凭证。我们稍后将使用这些凭证进行认证。
 - en: Set up the AWS CLI
+  id: totrans-120
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设置 AWS CLI
 - en: Next, we’ll connect our terminal to our AWS account.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将把终端连接到我们的 AWS 账户。
 - en: If you don’t have the CLI set up yet you can follow the instructions [here.](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions)
     It is really easy to set this up.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你还没有设置 CLI，可以按照[这里](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions)的说明进行操作。设置过程非常简单。
 - en: Once you’ve installed the AWS CLI you’ll need to authenticate with the IAM user
     we just created.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 安装 AWS CLI 后，你需要使用我们刚刚创建的 IAM 用户进行认证。
 - en: '[PRE8]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Use the credentials we downloaded from the IAM user in the previous step.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用我们在上一步中从 IAM 用户下载的凭证。
 - en: Create an ECR Repository
+  id: totrans-126
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 创建 ECR 仓库
 - en: Now, we can get started with the DevOps of it all.
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以开始进行 DevOps 操作了。
 - en: We’ll first need to create a repository in Elastic Container Registry. ECR is
     where we can store and manage our docker images. We’ll be able to reference these
     images from ECR when we set up our task definitions.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先需要在 Elastic Container Registry 中创建一个仓库。ECR 是我们存储和管理 Docker 镜像的地方。在设置任务定义时，我们可以从
+    ECR 引用这些镜像。
 - en: To create a new ECR repository run this command in your terminal. This will
     create a repository called *bigquery-etl-pipeline*.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 要创建一个新的 ECR 仓库，请在终端中运行此命令。这将创建一个名为 *bigquery-etl-pipeline* 的仓库。
 - en: '[PRE9]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Note the repository URI you get back.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 记下你获得的仓库 URI。
 - en: From here we have to build the docker image and then push this image to this
     repository.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这里我们需要构建 Docker 镜像，然后将其推送到这个仓库。
 - en: To do this you can technically go into the AWS console and find the ECR repository
     we just created. Here AWS will let us see the entire push commands we need to
     run to authenticate, build and push our docker image to this ECR repository.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 为此，你可以进入 AWS 控制台，找到我们刚刚创建的 ECR 仓库。在这里，AWS 会让我们看到我们需要运行的所有推送命令，用以认证、构建并将 Docker
+    镜像推送到这个 ECR 仓库。
 - en: '![](../Images/638fe2916b5fd5a8136c36a78884b8b7.png)'
+  id: totrans-134
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/638fe2916b5fd5a8136c36a78884b8b7.png)'
 - en: Find the push commands directly in ECR | Image by author
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 ECR 中直接找到推送命令 | 图片来源：作者
 - en: However, if you are on a Mac I would advice you to specify the architecture
     when building the docker image or you may run into issues.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，如果你使用的是 Mac，我建议你在构建 Docker 镜像时指定架构，否则可能会遇到问题。
 - en: If you are following along with me, then start with authenticating your docker
     client like so.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你在跟着我一起操作，那么请先按照如下方式认证你的 Docker 客户端。
 - en: '[PRE10]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Be sure to change the values, region and account ID where applicable.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保根据需要更改区域和账户 ID。
 - en: Build the docker image.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 构建 Docker 镜像。
 - en: '[PRE11]'
+  id: totrans-141
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '*This is where I have tweaked the command to specify the linux/amd64 architecture.*'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: '*这是我调整了命令以指定 linux/amd64 架构的地方。*'
 - en: Tag the docker image.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 为 Docker 镜像打标签。
 - en: '[PRE12]'
+  id: totrans-144
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Push the docker image.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 推送 Docker 镜像。
 - en: '[PRE13]'
+  id: totrans-146
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: If everything worked as planned you’ll see something like this in your terminal.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一切按计划顺利进行，你将在终端中看到类似这样的内容。
 - en: '[PRE14]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Now that we have pushed the docker image to an ECR repository, we can use it
     to set up our task definition using Fargate.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经将 Docker 镜像推送到 ECR 仓库，我们可以使用它来通过 Fargate 设置我们的任务定义。
 - en: '*If you run into EOF issues here it is most likely related to IAM permissions.
     Be sure to give it everything it needs, in this case full access to ECR to tag
     and push the image.*'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: '*如果你在这里遇到 EOF 问题，它很可能与 IAM 权限有关。确保给予它所需的所有权限，在此案例中是对 ECR 的完全访问权限，以便标记和推送镜像。*'
 - en: Roles & Log Groups
+  id: totrans-151
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 角色和日志组
 - en: Remember what I told you before, the biggest issues you’ll run into in AWS pertains
     to roles between different services.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 记住我之前告诉你过的，AWS 中你遇到的最大问题与不同服务之间的角色有关。
 - en: For this to flow neatly we’ll have to make sure we set up a few things before
     we start setting up a task definition and an ECS cluster.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了让这个流程顺利进行，我们需要确保在开始设置任务定义和 ECS 集群之前，先设置好一些必要的东西。
 - en: To do this, we first have to create a task role — this role is the role that
     will need access to services in the AWS ecosystem from our container — and then
     the execution role — so the container will be able to pull the docker image from
     ECR.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了做到这一点，我们首先必须创建一个任务角色——这个角色需要从容器访问 AWS 生态系统中的服务——然后是执行角色——这样容器就能从 ECR 拉取 Docker
+    镜像。
 - en: '[PRE15]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: I have specified a json file called *ecs-tasks-trust-policy.json* in your folder
     locally that it will use to create these roles.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 我已经在你的文件夹中指定了一个名为 *ecs-tasks-trust-policy.json* 的 JSON 文件，它将用于创建这些角色。
 - en: For the script that we are pushing, it won’t need to have permission to access
     other AWS services so for now **there is no need to attach policies to the task
     role.** Nevertheless, you may want to do this later.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于我们正在推动的脚本，它不需要访问其他 AWS 服务的权限，因此目前**不需要为任务角色附加策略**。不过，你可能之后会需要这么做。
 - en: However, for the **execution role** though we will need to give it ECR access
     to pull the docker image.
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，对于**执行角色**，我们需要给予它 ECR 访问权限，以便拉取 Docker 镜像。
 - en: To attach the policy *AmazonECSTaskExecutionRolePolicy* to the execution role
     run this command.
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 要将策略 *AmazonECSTaskExecutionRolePolicy* 附加到执行角色，运行这个命令。
 - en: '[PRE16]'
+  id: totrans-160
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: We also create one last role while we’re at it, a service role. You don’t need
     to create this one if you already have one.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在此过程中还会创建最后一个角色——服务角色。如果你已经有了这个角色，则无需创建。
 - en: '[PRE17]'
+  id: totrans-162
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: If you don’t create the service role at all you may end up with an errors such
     as *‘Unable to assume the service linked role. Please verify that the ECS service
     linked role exists’* when you try to run a task.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你根本没有创建服务角色，当你尝试运行任务时，可能会遇到类似 *“无法假设服务链接角色。请验证 ECS 服务链接角色是否存在”* 的错误。
 - en: The last thing we create a log group. Creating a log group is essential for
     capturing and accessing logs generated by your container.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们创建一个日志组。创建日志组对于捕捉和访问容器生成的日志至关重要。
 - en: To create a log group you can run this command.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 要创建日志组，你可以运行这个命令。
 - en: '[PRE18]'
+  id: totrans-166
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: Once you’ve created the execution role, the task role, the service role and
     then the log group we can continue to set up the ECS task definition.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你创建了执行角色、任务角色、服务角色以及日志组，我们就可以继续设置 ECS 任务定义。
 - en: Create an ECS Task Definition
+  id: totrans-168
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 创建 ECS 任务定义
 - en: A task definition is a blueprint for your tasks, specifying what container image
     to use, how much CPU and memory is needed, and other configurations. We use this
     blueprint to run tasks in our ECS cluster.
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 任务定义是你的任务蓝图，指定使用哪个容器镜像、需要多少 CPU 和内存，以及其他配置。我们使用这个蓝图在 ECS 集群中运行任务。
 - en: I have already set up the task definition in your code at *task-definition.json*.
     However, you need to set your account id as well as region in there to make sure
     it runs as it should.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 我已经在你的代码中设置了任务定义，位于 *task-definition.json* 文件中。不过，你需要在其中设置你的账户 ID 和区域，以确保它按预期运行。
 - en: '[PRE19]'
+  id: totrans-171
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Remember the URI we got back when we created the ECR repository? This is where
     we’ll use it. Remember the execution role, the task role and the log group? We’ll
     use it there as well.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 还记得我们在创建 ECR 仓库时获得的 URI 吗？我们将在这里使用它。记得执行角色、任务角色和日志组吗？我们也将在这里使用它们。
 - en: If you’ve named the ECR repository along with the roles and log group exactly
     what I named mine then you can simply change the account ID and Region in this
     json otherwise make sure the URI is the correct one.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你将 ECR 仓库、角色和日志组的命名与我设置的完全相同，那么你只需更改帐户 ID 和区域在这个 JSON 文件中，或者确保 URI 是正确的。
 - en: You can also set CPU and memory here for what you’ll need to run your task —
     i.e. your code. I’ve set .25 vCPU and 512 mb as memory.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 你也可以在这里设置 CPU 和内存，来满足运行任务 —— 即运行你的代码 —— 的需求。我设置了 .25 vCPU 和 512 MB 的内存。
 - en: Once you’re satisfied you can register the task definition in your terminal.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你满意，可以在终端中注册任务定义。
 - en: '[PRE20]'
+  id: totrans-176
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: Now you should be able to go into [**Amazon Elastic Container Service**](https://eu-north-1.console.aws.amazon.com/ecs/v2/getStarted?region=eu-north-1)and
     then find the task we’ve created under **Task Definitions**.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在你应该能够进入[**Amazon 弹性容器服务**](https://eu-north-1.console.aws.amazon.com/ecs/v2/getStarted?region=eu-north-1)，然后在**任务定义**中找到我们创建的任务。
 - en: '![](../Images/738b981ded54f053375efbd240cd32cd.png)'
+  id: totrans-178
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/738b981ded54f053375efbd240cd32cd.png)'
 - en: Finding your created task definition in ECS | Image by author
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 ECS 中找到你创建的任务定义 | 作者提供的图片
 - en: This task — i.e. blueprint — won’t run on it’s own, we need to invoke it later.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个任务 —— 即蓝图 —— 不会自动运行，我们稍后需要调用它。
 - en: '**Create an ECS Cluster**'
+  id: totrans-181
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**创建一个 ECS 集群**'
 - en: An ECS Cluster serves as a logical grouping of tasks or services. You specify
     this cluster when running tasks or creating services.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: ECS 集群作为任务或服务的逻辑分组。当运行任务或创建服务时，你需要指定这个集群。
 - en: To create a cluster via the CLI run this command.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 要通过 CLI 创建集群，请运行此命令。
 - en: '[PRE21]'
+  id: totrans-184
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: Once you run this command, you’ll be able to see this cluster in ECS in your
     AWS console if you look there.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你运行此命令，你将能够在 AWS 控制台的 ECS 中看到这个集群。
 - en: We’ll attach the **Task Definition** we just created to this cluster when we
     run it for the next part.
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们为下一部分运行任务时，我们会将我们刚刚创建的**任务定义**附加到这个集群。
 - en: Run Task
+  id: totrans-187
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 运行任务
 - en: Before we can run the task we need to get ahold of the subnets that are available
     to us along with a security group id.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们运行任务之前，我们需要获取可用的子网以及安全组 ID。
 - en: We can do this directly in the terminal via the CLI.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过 CLI 在终端中直接执行此操作。
 - en: Run this command in the terminal to get the available subnets.
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 在终端中运行此命令以获取可用的子网。
 - en: '[PRE22]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: You’ll get back an array of objects here, and you’re looking for the *SubnetId*
     for each object.
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将返回一个对象数组，你需要查找每个对象的*SubnetId*。
 - en: If you run into issues here, make sure your IAM has the appropriate permissions.
     See the aws_iam_user.json file in your root folder for the permissions the IAM
     user connected to the CLI will need. I will stress this, because it’s the main
     issues that I always run into.
+  id: totrans-193
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 如果你在这里遇到问题，请确保你的 IAM 拥有适当的权限。请查看根文件夹中的 aws_iam_user.json 文件，了解连接到 CLI 的 IAM
+    用户所需的权限。我强调这一点，因为这是我总是遇到的主要问题。
 - en: To get the security group ID you can run this command.
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 要获取安全组 ID，你可以运行此命令。
 - en: '[PRE23]'
+  id: totrans-195
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: You are looking for *GroupId* here in the terminal.
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 你需要在终端中查找*GroupId*。
 - en: If you got at least one *SubnetId* and then a *GroupId* for a security group,
     we are ready to run the task to test that the blueprint — i.e. task definition
     — works.
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你至少得到了一个*SubnetId*和一个*GroupId*（安全组的 ID），我们就准备好运行任务，测试蓝图 —— 即任务定义 —— 是否有效。
 - en: '[PRE24]'
+  id: totrans-198
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: Do remember to change the names if you’ve named your cluster and task definition
     differently. Remember to also set your subnet ID and security group ID.
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记得，如果你为集群和任务定义命名不同的名称，请更改这些名称。还要记得设置你的子网 ID 和安全组 ID。
 - en: Now you can navigate to the AWS console to see the task running.
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，你可以导航到 AWS 控制台查看正在运行的任务。
 - en: '![](../Images/c900f958079df0c32a1f170e3568613b.png)'
+  id: totrans-201
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c900f958079df0c32a1f170e3568613b.png)'
 - en: Looking into the running task in your ECS cluster | Image by author
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看你 ECS 集群中正在运行的任务 | 作者提供的图片
 - en: If you are having issues you can look into the logs.
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你遇到问题，可以查看日志。
 - en: If successful, you should see a few transformed rows added to BigQuery.
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果成功，你应该能看到一些转换后的行被添加到 BigQuery。
 - en: EventBridge Schedule
+  id: totrans-205
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: EventBridge 计划
 - en: Now, we’ve managed to set up the task to run in an ECS cluster. But what we’re
     interested in is to make it run on a schedule. This is where EventBridge comes
     in.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们已经设置好任务在 ECS 集群中运行。但是我们感兴趣的是让它按计划运行。这就是 EventBridge 发挥作用的地方。
 - en: EventBridge will set up our scheduled events, and we can set this up using the
     CLI as well. However, before we set up the schedule we first need to create a
     new role.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: EventBridge 将设置我们的计划事件，我们也可以使用 CLI 来设置它。然而，在设置计划之前，我们首先需要创建一个新的角色。
 - en: This is life when working with AWS, everything needs to have permission to interact
     with each other.
+  id: totrans-208
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 这就是在使用AWS时的现实，每个服务都需要有相互交互的权限。
 - en: In this case, EventBridge will need permission to call the ECS cluster on our
     behalf.
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，EventBridge需要权限代表我们调用ECS集群。
 - en: In the repository you have a file called *trust-policy-for-eventbridge.json*
     that I have already put there, we’ll use this file to create this EventBridge
     role.
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 在仓库中，你有一个名为*trust-policy-for-eventbridge.json*的文件，我已经放在那里，我们将使用这个文件来创建EventBridge角色。
 - en: Paste this into the terminal and run it.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 将此粘贴到终端并运行。
 - en: '[PRE25]'
+  id: totrans-212
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: We then have to attach a policy to this role.
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们需要将策略附加到这个角色。
 - en: '[PRE26]'
+  id: totrans-214
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: We need it to at least be able to have ***ecs:RunTask*** but we’ve given it
     full access. If you prefer to limit the permissions, you can create a custom policy
     with just the necessary permissions instead.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要至少让它能够执行***ecs:RunTask***，但我们已经赋予它完全访问权限。如果你更喜欢限制权限，你可以创建一个只包含必要权限的自定义策略。
 - en: Now let’s set up the rule to schedule the task to run with the task definition
     every day at 5 am UTC. This is usually the time I’d like for it to process data
     for me so if it fails I can look into it after breakfast.
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们设置规则，安排任务在每个UTC时间上午5点使用任务定义运行。这通常是我希望它为我处理数据的时间，这样如果失败了，我可以在早餐后再查看。
 - en: '[PRE27]'
+  id: totrans-217
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: You should receive back an object with a field called *RuleArn* here. This is
     just to confirm that it worked.
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 你应该会收到一个包含*RuleArn*字段的对象。这只是为了确认它是否成功。
 - en: Next step is now to associate the rule with the ECS task definition.
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步是将规则与ECS任务定义关联。
 - en: '[PRE28]'
+  id: totrans-220
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: Remember to set your own values here for region, account number, subnet and
     security group.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 记得在这里设置你自己的值，包括区域、账户号码、子网和安全组。
 - en: '*Use the subnets and security group that we got earlier. You can set multiple
     subnets.*'
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: '*使用我们之前获得的子网和安全组。你可以设置多个子网。*'
 - en: Once you’ve run the command the task is scheduled for 5 am every day and you’ll
     find it under Scheduled Tasks in the AWS Console.
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你运行了命令，任务将会被安排在每天的UTC时间5点执行，你可以在AWS控制台的“定时任务”中找到它。
 - en: You can also just set up your scheduled tasks directly in the console, this
     is easier as the subnet ids and security group is already set for you.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 你也可以直接在控制台中设置你的定时任务，这样更简单，因为子网ID和安全组已经为你设置好了。
 - en: AWS Secrets Manager (Optional)
+  id: totrans-225
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: AWS Secrets Manager（可选）
 - en: So keeping your Google credentials in the root folder isn’t ideal, even if you’ve
     limited access to your datasets for the Google service account.
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，将你的Google凭证保存在根文件夹中并不是理想的做法，即使你已经限制了Google服务账户对数据集的访问权限。
 - en: Here we can add on the option of moving these credentials to another AWS service
     and then accessing it from our container.
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们可以选择将这些凭证移动到另一个AWS服务，然后从我们的容器中访问它。
 - en: For this to work you’ll have to move the credentials file to Secrets Manager,
     tweak the code so it can fetch it to authenticate and make sure that the task
     role has permissions to access AWS Secrets Manager on your behalf.
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使其工作，你需要将凭证文件移动到Secrets Manager，调整代码以便它能够获取凭证进行身份验证，并确保任务角色有权限代表你访问AWS Secrets
+    Manager。
 - en: When you’re done you can simply push the updated docker image to your ECR repo
     you set up before.
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 完成后，你可以将更新的docker镜像推送到之前设置的ECR仓库。
 - en: The End Result
+  id: totrans-230
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 最终结果
 - en: Now you’ve got a very simple ETL pipeline running in a container on AWS on a
     schedule. The idea is that you add to it to do your own data transformations.
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，你已经在AWS上按计划运行了一个非常简单的ETL管道。目的是你可以在此基础上添加自己的数据转换。
 - en: Hopefully this was a useful piece for anyone that is transitioning to setting
     up their long-running data transformation scripts on ECS in a simple, cost effective
     and straightforward way.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 希望这对任何过渡到简单、成本效益高且直接的方式在ECS上设置长期运行的数据转换脚本的人来说是有帮助的。
 - en: Let me know if you run into any issues in case there is something I missed to
     include.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你遇到任何问题，请告诉我，以防我遗漏了什么。
 - en: ❤
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: ❤

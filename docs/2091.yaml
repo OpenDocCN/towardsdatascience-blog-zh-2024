@@ -1,33 +1,52 @@
 - en: Enforcing JSON Outputs in Commercial LLMs
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 强制执行商业大语言模型中的JSON输出
 - en: 原文：[https://towardsdatascience.com/enforcing-json-outputs-in-commercial-llms-3db590b9b3c8?source=collection_archive---------2-----------------------#2024-08-28](https://towardsdatascience.com/enforcing-json-outputs-in-commercial-llms-3db590b9b3c8?source=collection_archive---------2-----------------------#2024-08-28)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/enforcing-json-outputs-in-commercial-llms-3db590b9b3c8?source=collection_archive---------2-----------------------#2024-08-28](https://towardsdatascience.com/enforcing-json-outputs-in-commercial-llms-3db590b9b3c8?source=collection_archive---------2-----------------------#2024-08-28)
 - en: A comprehensive guide
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一份综合指南
 - en: '[](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)[![Daniel
     Kharitonov](../Images/7d81129c1f88e4a0700462a342137227.png)](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------)
     [Daniel Kharitonov](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)[![Daniel
+    Kharitonov](../Images/7d81129c1f88e4a0700462a342137227.png)](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------)
+    [Daniel Kharitonov](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------)
     ·9 min read·Aug 28, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------)
+    ·9分钟阅读·2024年8月28日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '**TL;DR**'
+  id: totrans-6
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**简短总结**'
 - en: ''
+  id: totrans-7
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -36,423 +55,618 @@
     can generate structured outputs on a scale of thousands of JSON objects. However,
     the API capabilities vary significantly in the effort required to prompt the models
     to produce JSONs and in ability to adhere to the data models.
+  id: totrans-8
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 我们测试了Google Gemini Pro、Anthropic Claude和OpenAI GPT的结构化输出能力。在它们最佳的配置下，三种模型都能够生成数千个JSON对象的结构化输出。然而，在促使模型生成JSON以及遵循数据模型的能力方面，API的能力差异显著。
 - en: More specifically, the only commercial vendor offering consistent structured
     outputs right out of the box appears to be OpenAI, with their latest [Structured
     Outputs API](https://openai.com/index/introducing-structured-outputs-in-the-api/)
     released on August 6th, 2024\. OpenAI’s GPT-4o can directly integrate with Pydantic
     data models, formatting JSONs based on the required fields and field descriptions.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 更具体来说，唯一一个能够直接提供一致结构化输出的商业供应商似乎是OpenAI，他们在2024年8月6日发布了最新的[结构化输出API](https://openai.com/index/introducing-structured-outputs-in-the-api/)。OpenAI的GPT-4o可以直接与Pydantic数据模型集成，根据所需字段和字段描述格式化JSON。
 - en: Anthropic’s Claude Sonnet 3.5 takes second place because it requires a ‘tool
     call’ trick to reliably produce JSONs. While Claude can interpret field descriptions,
     it does not directly support Pydantic models.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: Anthropic的Claude Sonnet 3.5排在第二位，因为它需要使用“工具调用”技巧才能可靠地产生JSON。尽管Claude能够解释字段描述，但它并不直接支持Pydantic模型。
 - en: Finally, Google Gemini 1.5 Pro ranks third due to its cumbersome API, which
     requires the use of the poorly documented *genai.protos.Schema* class as a model
     for reliable JSON production. Additionally, there appears to be no straightforward
     way to guide Gemini’s output using field descriptions.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，Google Gemini 1.5 Pro排在第三位，因为它的API笨重，需要使用文档不完善的*genai.protos.Schema*类作为可靠生成JSON的模型。此外，似乎没有直接的方法可以通过字段描述来引导Gemini的输出。
 - en: 'Here are the test results in a summary table:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是测试结果的汇总表：
 - en: '![](../Images/2eb322369cc005af5499424b8f71545e.png)'
+  id: totrans-13
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2eb322369cc005af5499424b8f71545e.png)'
 - en: 'Approximate rates of structured output errors (data source: author’s Jupyter
     notebook below)'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 结构化输出错误的近似率（数据来源：作者的Jupyter笔记本，见下文）
 - en: 'Here is the link to the testbed notebook:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是测试平台笔记本的链接：
 - en: '[https://github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb](https://github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb)'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb](https://github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb)'
 - en: '**Introduction to the problem**'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题简介**'
 - en: 'The ability to generate structured output from an LLM is not critical when
     it’s used as a generic chatbot. However, structured outputs become indispensable
     in two emerging LLM applications:'
+  id: totrans-18
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 当 LLM 作为通用聊天机器人使用时，生成结构化输出的能力并不是至关重要的。然而，在以下两种新兴的 LLM 应用中，结构化输出变得不可或缺：
 - en: ''
+  id: totrans-19
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: • LLM-based analytics (such as AI-driven judgments and unstructured data analysis)
+  id: totrans-20
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: • 基于 LLM 的分析（如 AI 驱动的判断和非结构化数据分析）
 - en: ''
+  id: totrans-21
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: • Building LLM agents
+  id: totrans-22
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: • 构建 LLM 代理
 - en: In both cases, it’s crucial that the communication from an LLM adheres to a
     well-defined format. Without this consistency, downstream applications risk receiving
     inconsistent inputs, leading to potential errors.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这两种情况下，LLM 的通信必须遵循一个明确定义的格式。这种一致性对于下游应用至关重要，否则将收到不一致的输入，导致潜在的错误。
 - en: 'Unfortunately, while most modern LLMs offer methods designed to produce structured
     outputs (such as JSON), these methods often encounter two significant issues:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，尽管大多数现代 LLM 提供了旨在生成结构化输出（如 JSON）的方法，但这些方法通常会遇到两个重大问题：
 - en: 1\. They periodically fail to produce a valid structured object.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 1\. 它们偶尔无法生成有效的结构化对象。
 - en: 2\. They generate a valid object but cannot adhere to the requested data model.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 2\. 它们生成了一个有效的对象，但无法遵循请求的数据模型。
 - en: In the following text, we document our findings on the structured output capabilities
     of the latest offerings from Anthropic Claude, Google Gemini, and OpenAI’s GPT.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下文本中，我们记录了关于 Anthropic Claude、Google Gemini 和 OpenAI 的 GPT 最新版本在结构化输出能力方面的发现。
 - en: '**Anthropic Claude Sonnet 3.5**'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Anthropic Claude Sonnet 3.5**'
 - en: 'At first glance, Anthropic Claude’s API looks straightforward because it features
     a section titled ‘[Increasing JSON Output Consistency](https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency#example-daily-sales-report),’
     which opens with an example of a moderately complex structured output:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 初看之下，Anthropic Claude 的 API 看起来很直接，因为它有一个名为‘[增加 JSON 输出一致性](https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency#example-daily-sales-report)’的部分，其中开头是一个中等复杂度的结构化输出示例：
 - en: '[PRE0]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'However, if we actually run this code a few times, we will notice that conversion
     to JSON fails because the LLM prepends JSON object with an unwanted text prefix:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，如果我们实际上运行这个代码几次，我们会发现转换为 JSON 失败，因为 LLM 会在 JSON 对象前加上不必要的文本前缀：
 - en: '[PRE1]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'This issue affects approximately 14–20% of requests, making reliance on Claude’s
     ‘structured prompt’ feature questionable. The problem is evidently well-known
     to Anthropic, as their documentation provides two more recommendations:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个问题影响了大约 14%–20% 的请求，使得依赖 Claude 的“结构化提示”功能变得值得怀疑。这个问题显然是 Anthropic 熟知的，因为他们的文档中提供了两条额外的建议：
 - en: 1\. Provide inline examples of valid output.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 1\. 提供有效输出的内联示例。
 - en: 2\. Coerce the LLM to begin its response with a valid preamble.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 2\. 强制 LLM 使其回应以有效的前言开始。
 - en: The second solution is somewhat inelegant, as it requires pre-filling the response
     and then recombining it with the generated output afterward.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二种解决方案有些不优雅，因为它需要预先填写响应，然后再将其与生成的输出重新组合。
 - en: 'Here’s an example of code that implements both techniques and evaluates the
     validity of a resulting JSON string. This prompt was tested across 50 different
     dialogs by [Karlsruhe Institute of Technology](https://radar.kit.edu/radar/en/dataset/FdJmclKpjHzLfExE.ExpBot%2B-%2BA%2Bdataset%2Bof%2B79%2Bdialogs%2Bwith%2Ban%2Bexperimental%2Bcustomer%2Bservice%2Bchatbot)
     using Iterative’s [DataChain library](https://github.com/iterative/datachain):'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是一个实现这两种技术并评估结果 JSON 字符串有效性的代码示例。这个提示通过 [卡尔斯鲁厄理工大学](https://radar.kit.edu/radar/en/dataset/FdJmclKpjHzLfExE.ExpBot%2B-%2BA%2Bdataset%2Bof%2B79%2Bdialogs%2Bwith%2Ban%2Bexperimental%2Bcustomer%2Bservice%2Bchatbot)使用
+    Iterative 的 [DataChain 库](https://github.com/iterative/datachain)在 50 个不同的对话中进行了测试：
 - en: '[PRE2]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'The results have improved, but they are still not perfect. Approximately one
     out of every 50 calls returns an error:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果有所改进，但仍不完美。大约每 50 次调用中就有一次会返回错误：
 - en: '[PRE3]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: This implies that the Sonnet 3.5 model may fail to follow the instructions and
     hallucinate unwanted continuations of the dialogue. As a result, the model is
     still not consistently adhering to desired outputs.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着 Sonnet 3.5 模型可能无法遵循指令，并且会产生不必要的对话延续。因此，模型仍然不能始终如一地达到预期输出。
 - en: 'Fortunately, there’s another approach to explore within the Claude API: utilizing
     function calls. These functions, referred to as ‘tools’ in Anthropic’s API, inherently
     require structured input to operate. To leverage this option, we can create a
     mock function and configure the call signature identical with our desired JSON
     object:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，在Claude API中还有另一种方法可以探索：利用函数调用。这些函数在Anthropic的API中被称为‘工具’，本质上需要结构化的输入才能操作。为了利用这个选项，我们可以创建一个模拟函数，并配置调用签名与我们期望的JSON对象完全一致：
 - en: '[PRE4]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'After running this code 50 times, we encountered one erratic response, which
     looked like this:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 在运行这个代码50次后，我们遇到了一次异常的响应，内容如下：
 - en: '[PRE5]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'In this instance, the model became confused and failed to execute the function
     call, instead only returning a text block and stopping prematurely (with stop_reason
     = ‘end_turn’). Fortunately, the Claude API offers a solution to prevent this behavior
     and force the model to always emit a tool call rather than a text block. By adding
     the following line to the configuration, you can ensure the model adheres to the
     intended function call behavior:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，模型变得困惑，未能执行函数调用，而是仅返回了一个文本块，并提前停止（停止原因 = 'end_turn'）。幸运的是，Claude API提供了一种解决方案来防止这种行为，并强制模型始终发出工具调用，而不是文本块。通过将以下行添加到配置中，你可以确保模型遵循预期的函数调用行为：
 - en: '[PRE6]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'After forcing the tool choice, Claude Sonnet 3.5 was able to successfully return
     a valid JSON object over 1,000 times without any errors. And if you’re not interested
     in building this function call yourself, [LangChain](https://www.langchain.com)
     provides an Anthropic wrapper that simplifies the process with an easy-to-use
     call format:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 在强制选择工具后，Claude Sonnet 3.5能够成功返回超过1,000次有效的JSON对象，没有任何错误。如果你不想自己构建这个函数调用，[LangChain](https://www.langchain.com)提供了一个Anthropic包装器，通过简单易用的调用格式简化了这个过程：
 - en: '[PRE7]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: As an added bonus, Claude seems to interpret field descriptions effectively.
     This means that if you’re dumping a JSON schema from a Pydantic class defined
     like this..
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为额外的好处，Claude似乎能有效地解释字段描述。这意味着如果你从一个像这样的Pydantic类中转储JSON模式……
 - en: '[PRE8]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: …then you might actually receive an object that follows your desired description.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: …然后你可能会收到一个符合你预期描述的对象。
 - en: Reading the field descriptions for a data model is a very useful thing because
     it allows us to specify the nuances of the desired response without touching the
     model prompt.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 阅读数据模型的字段描述是非常有用的，因为它使我们能够在不触及模型提示的情况下指定期望响应的细微差别。
 - en: '**Google Gemini Pro 1.5**'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Google Gemini Pro 1.5**'
 - en: 'Google’s documentation [clearly states that prompt-based methods for generating
     JSON are unreliable](https://ai.google.dev/gemini-api/docs/json-mode?lang=python)
     and restricts more advanced configurations — such as using an OpenAPI schema —
     to the flagship Gemini Pro model family. Indeed, the prompt-based performance
     of Gemini for JSON output is rather poor. When simply asked for a JSON, the model
     routinely wraps the output in a Markdown preamble:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: Google的文档[明确指出基于提示的方法生成JSON是不可靠的](https://ai.google.dev/gemini-api/docs/json-mode?lang=python)，并且将更高级的配置（如使用OpenAPI模式）限制为旗舰版的Gemini
+    Pro系列模型。事实上，Gemini在生成JSON输出时的基于提示的表现相当差。当仅仅要求生成JSON时，模型通常会将输出包装在Markdown的前导部分：
 - en: '[PRE9]json'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE9]json'
 - en: '{'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '{'
 - en: '"sentiment": "negative",'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '"sentiment": "negative",'
 - en: '"key_issues": ['
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '"key_issues": ['
 - en: '"Bot misunderstood user confirmation.",'
+  id: totrans-60
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '"Bot误解了用户的确认。",'
 - en: '"Recommended plan doesn''t meet user needs (more MB, less minutes, price limit)."'
+  id: totrans-61
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '"推荐的计划不符合用户需求（更多MB，较少分钟，价格限制）。"'
 - en: '],'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '],'
 - en: '"action_items": ['
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '"action_items": ['
 - en: '{'
+  id: totrans-64
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '{'
 - en: '"team": "Engineering",'
+  id: totrans-65
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '"team": "Engineering",'
 - en: '"task": "Investigate why bot didn''t understand ''correct'' and ''yes it is''
     confirmations."'
+  id: totrans-66
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '"task": "调查为什么机器人没有理解‘正确’和‘是的，它是’的确认。"'
 - en: '},'
+  id: totrans-67
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '},'
 - en: '{'
+  id: totrans-68
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '{'
 - en: '"team": "Product",'
+  id: totrans-69
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '"team": "Product",'
 - en: '"task": "Review and improve plan matching logic to prioritize user needs and
     constraints."'
+  id: totrans-70
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '"task": "回顾并改进计划匹配逻辑，以优先考虑用户需求和限制。"'
 - en: '}'
+  id: totrans-71
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '}'
 - en: ']'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: ']'
 - en: '}'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '}'
 - en: '[PRE10]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'generation_config={"response_mime_type": "application/json"}'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 'generation_config={"response_mime_type": "application/json"}'
 - en: '[PRE11]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'class ActionItem(BaseModel):'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 'class ActionItem(BaseModel):'
 - en: 'team: str'
+  id: totrans-78
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'team: str'
 - en: 'task: str'
+  id: totrans-79
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'task: str'
 - en: 'class EvalResponse(BaseModel):'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 'class EvalResponse(BaseModel):'
 - en: 'sentiment: str = Field(description="dialog sentiment (positive/negative/neutral)")'
+  id: totrans-81
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'sentiment: str = Field(description="对话情感（正面/负面/中性）")'
 - en: 'key_issues: list[str] = Field(description="list of 3 problems discovered in
     the dialog")'
+  id: totrans-82
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'key_issues: list[str] = Field(description="对话中发现的3个问题列表")'
 - en: 'action_items: list[ActionItem] = Field(description="list of dicts with ''team''
     and ''task''")'
+  id: totrans-83
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'action_items: list[ActionItem] = Field(description="包含‘team’和‘task’字典的列表")'
 - en: g_str = genai.protos.Schema(type=genai.protos.Type.STRING)
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: g_str = genai.protos.Schema(type=genai.protos.Type.STRING)
 - en: g_action_item = genai.protos.Schema(
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: g_action_item = genai.protos.Schema(
 - en: type=genai.protos.Type.OBJECT,
+  id: totrans-86
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: type=genai.protos.Type.OBJECT,
 - en: properties={
+  id: totrans-87
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: properties={
 - en: '''team'':genai.protos.Schema(type=genai.protos.Type.STRING),'
+  id: totrans-88
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '''team'':genai.protos.Schema(type=genai.protos.Type.STRING),'
 - en: '''task'':genai.protos.Schema(type=genai.protos.Type.STRING)'
+  id: totrans-89
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '''task'':genai.protos.Schema(type=genai.protos.Type.STRING)'
 - en: '},'
+  id: totrans-90
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '},'
 - en: required=['team','task']
+  id: totrans-91
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: required=['team','task']
 - en: )
+  id: totrans-92
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: )
 - en: g_evaluation=genai.protos.Schema(
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: g_evaluation=genai.protos.Schema(
 - en: type=genai.protos.Type.OBJECT,
+  id: totrans-94
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: type=genai.protos.Type.OBJECT,
 - en: properties={
+  id: totrans-95
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: properties={
 - en: '''sentiment'':genai.protos.Schema(type=genai.protos.Type.STRING),'
+  id: totrans-96
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '''sentiment'':genai.protos.Schema(type=genai.protos.Type.STRING),'
 - en: '''key_issues'':genai.protos.Schema(type=genai.protos.Type.ARRAY, items=g_str),'
+  id: totrans-97
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '''key_issues'':genai.protos.Schema(type=genai.protos.Type.ARRAY, items=g_str),'
 - en: '''action_items'':genai.protos.Schema(type=genai.protos.Type.ARRAY, items=g_action_item)'
+  id: totrans-98
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '''action_items'':genai.protos.Schema(type=genai.protos.Type.ARRAY, items=g_action_item)'
 - en: '},'
+  id: totrans-99
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '},'
 - en: required=['sentiment','key_issues', 'action_items']
+  id: totrans-100
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: required=['sentiment','key_issues', 'action_items']
 - en: )
+  id: totrans-101
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: )
 - en: 'def gemini_setup():'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 'def gemini_setup():'
 - en: genai.configure(api_key=google_api_key)
+  id: totrans-103
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: genai.configure(api_key=google_api_key)
 - en: return genai.GenerativeModel(model_name='gemini-1.5-pro-latest',
+  id: totrans-104
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: return genai.GenerativeModel(model_name='gemini-1.5-pro-latest',
 - en: system_instruction=PROMPT,
+  id: totrans-105
   prefs:
   - PREF_IND
   - PREF_IND
@@ -463,7 +677,9 @@
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: system_instruction=PROMPT,
 - en: 'generation_config={"response_mime_type": "application/json",'
+  id: totrans-106
   prefs:
   - PREF_IND
   - PREF_IND
@@ -474,7 +690,9 @@
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'generation_config={"response_mime_type": "application/json",'
 - en: '"response_schema": g_evaluation,'
+  id: totrans-107
   prefs:
   - PREF_IND
   - PREF_IND
@@ -490,7 +708,9 @@
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '"response_schema": g_evaluation,'
 - en: '}'
+  id: totrans-108
   prefs:
   - PREF_IND
   - PREF_IND
@@ -505,7 +725,9 @@
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '}'
 - en: )
+  id: totrans-109
   prefs:
   - PREF_IND
   - PREF_IND
@@ -516,225 +738,338 @@
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: )
 - en: '[PRE12]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'class Suggestion(BaseModel):'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 'class Suggestion(BaseModel):'
 - en: 'suggestion: str = Field(description="Suggestion to improve the bot, starting
     with letter K")'
+  id: totrans-112
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'suggestion: str = Field(description="改进聊天机器人的建议，以字母 K 开头")'
 - en: 'class Evaluation(BaseModel):'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 'class Evaluation(BaseModel):'
 - en: 'outcome: str = Field(description="whether a dialog was successful, either Yes
     or No")'
+  id: totrans-114
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'outcome: str = Field(description="对话是否成功，取值为 Yes 或 No")'
 - en: 'explanation: str = Field(description="rationale behind the decision on outcome")'
+  id: totrans-115
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'explanation: str = Field(description="关于结果的决策依据")'
 - en: 'suggestions: list[Suggestion] = Field(description="Six ways to improve a bot")'
+  id: totrans-116
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'suggestions: list[Suggestion] = Field(description="改进聊天机器人的六种方法")'
 - en: '@field_validator("outcome")'
+  id: totrans-117
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '@field_validator("outcome")'
 - en: 'def check_literal(cls, value):'
+  id: totrans-118
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'def check_literal(cls, value):'
 - en: 'if not (value in ["Yes", "No"]):'
+  id: totrans-119
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'if not (value in ["Yes", "No"]):'
 - en: 'print(f"Literal Yes/No not followed: {value}")'
+  id: totrans-120
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'print(f"未遵循 Literal Yes/No: {value}")'
 - en: return value
+  id: totrans-121
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: return value
 - en: '@field_validator("suggestions")'
+  id: totrans-122
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '@field_validator("suggestions")'
 - en: 'def count_suggestions(cls, value):'
+  id: totrans-123
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'def count_suggestions(cls, value):'
 - en: 'if len(value) != 6:'
+  id: totrans-124
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'if len(value) != 6:'
 - en: 'print(f"Array length of 6 not followed: {value}")'
+  id: totrans-125
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'print(f"未遵循数组长度为 6: {value}")'
 - en: count = sum(1 for item in value if item.suggestion.startswith('K'))
+  id: totrans-126
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: count = sum(1 for item in value if item.suggestion.startswith('K'))
 - en: 'if len(value) != count:'
+  id: totrans-127
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 'if len(value) != count:'
 - en: print(f"{len(value)-count} suggestions don't start with K")
+  id: totrans-128
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: print(f"{len(value)-count} 个建议未以 K 开头")
 - en: return value
+  id: totrans-129
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: return value
 - en: 'def eval_dialogue(client, file: File) -> Evaluation:'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 'def eval_dialogue(client, file: File) -> Evaluation:'
 - en: completion = client.beta.chat.completions.parse(
+  id: totrans-131
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: completion = client.beta.chat.completions.parse(
 - en: model="gpt-4o-2024-08-06",
+  id: totrans-132
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: model="gpt-4o-2024-08-06",
 - en: messages=[
+  id: totrans-133
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: messages=[
 - en: '{"role": "system", "content": prompt},'
+  id: totrans-134
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '{"role": "system", "content": prompt},'
 - en: '{"role": "user", "content": file.read()},'
+  id: totrans-135
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '{"role": "user", "content": file.read()},'
 - en: '],'
+  id: totrans-136
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '],'
 - en: response_format=Evaluation,
+  id: totrans-137
   prefs:
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: response_format=Evaluation,
 - en: )
+  id: totrans-138
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: )
 - en: '```'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: '```'
 - en: In terms of robustness, OpenAI documentation references a graph comparing the
     success rates of their ‘Structured Outputs’ API versus prompt-based solutions,
     with the former [achieving a success rate very close to 100%](https://openai.com/index/introducing-structured-outputs-in-the-api/).
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 在健壮性方面，OpenAI 文档引用了一张图表，比较了其“结构化输出”API与基于提示的解决方案的成功率，前者[实现了接近 100% 的成功率](https://openai.com/index/introducing-structured-outputs-in-the-api/)。
 - en: However, the devil is in the details.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，细节决定成败。
 - en: While OpenAI’s JSON performance is ‘close to 100%’, it is not entirely bulletproof.
     Even with a perfectly configured request, we found that a broken JSON still occurs
     in about one out of every few thousand calls — especially if the prompt is not
     carefully crafted, and would warrant a retry.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管 OpenAI 的 JSON 性能接近‘100%’，但它并非完全无懈可击。即使请求配置完全正确，我们也发现大约每几千次请求中，依然会发生一次 JSON
+    错误——尤其是当提示没有精心设计时，这种错误需要重试。
 - en: Despite this limitation, it is fair to say that, as of now, OpenAI offers the
     best solution for structured LLM output applications.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管存在这一限制，但可以公平地说，目前 OpenAI 提供了最佳的结构化 LLM 输出解决方案。
 - en: 'Note: the author is not affiliated with OpenAI, Anthropic or Google, but actively
     contributes to open-source development of LLM orchestration and evaluation tools.'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意：作者与 OpenAI、Anthropic 或 Google 无关，但积极参与开源的 LLM 协同与评估工具的开发。
 - en: '**Links**'
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: '**链接**'
 - en: '**Test Jupyter notebook:**'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: '**测试 Jupyter 笔记本：**'
 - en: '[JSON-outputs.ipynb](https://github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb)'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: '[JSON-outputs.ipynb](https://github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb)'
 - en: '[](https://github.com/iterative/datachain-examples/blob/main/llm/llm_brute_force.ipynb?source=post_page-----3db590b9b3c8--------------------------------)
     [## datachain-examples/llm/llm_brute_force.ipynb at main · iterative/datachain-examples'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://github.com/iterative/datachain-examples/blob/main/llm/llm_brute_force.ipynb?source=post_page-----3db590b9b3c8--------------------------------)
+    [## datachain-examples/llm/llm_brute_force.ipynb at main · iterative/datachain-examples'
 - en: LLM, CV, multimodal at scale. Contribute to iterative/datachain-examples development
     by creating an account on GitHub.
+  id: totrans-149
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: LLM、计算机视觉（CV）、大规模多模态。在GitHub上创建账户，贡献于迭代式/datachain-examples开发。
 - en: github.com](https://github.com/iterative/datachain-examples/blob/main/llm/llm_brute_force.ipynb?source=post_page-----3db590b9b3c8--------------------------------)
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: '[github.com](https://github.com/iterative/datachain-examples/blob/main/llm/llm_brute_force.ipynb?source=post_page-----3db590b9b3c8--------------------------------)'
 - en: '**Anthropic JSON API:**'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Anthropic JSON API：**'
 - en: '[https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency](https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency)'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency](https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency)'
 - en: '**Anthropic function calling:**'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Anthropic 函数调用：**'
 - en: '[https://docs.anthropic.com/en/docs/build-with-claude/tool-use#forcing-tool-use](https://docs.anthropic.com/en/docs/build-with-claude/tool-use#forcing-tool-use)'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://docs.anthropic.com/en/docs/build-with-claude/tool-use#forcing-tool-use](https://docs.anthropic.com/en/docs/build-with-claude/tool-use#forcing-tool-use)'
 - en: '**LangChain Structured Output API:**'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: '**LangChain 结构化输出 API：**'
 - en: '[https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/](https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/)'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/](https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/)'
 - en: '**Google Gemini JSON API:**'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Google Gemini JSON API：**'
 - en: '[https://ai.google.dev/gemini-api/docs/json-mode?lang=python](https://ai.google.dev/gemini-api/docs/json-mode?lang=python)'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://ai.google.dev/gemini-api/docs/json-mode?lang=python](https://ai.google.dev/gemini-api/docs/json-mode?lang=python)'
 - en: '**Google genai.protos.Schema examples:**'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Google genai.protos.Schema 示例：**'
 - en: '[https://ai.google.dev/gemini-api/docs/function-calling/tutorial?lang=python#optional_low_level_access](https://ai.google.dev/gemini-api/docs/function-calling/tutorial?lang=python#optional_low_level_access)'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://ai.google.dev/gemini-api/docs/function-calling/tutorial?lang=python#optional_low_level_access](https://ai.google.dev/gemini-api/docs/function-calling/tutorial?lang=python#optional_low_level_access)'
 - en: '**OpenAI “Structured Outputs” announcement:**'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: '**OpenAI “结构化输出”公告：**'
 - en: '[https://openai.com/index/introducing-structured-outputs-in-the-api/](https://openai.com/index/introducing-structured-outputs-in-the-api/)'
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://openai.com/index/introducing-structured-outputs-in-the-api/](https://openai.com/index/introducing-structured-outputs-in-the-api/)'
 - en: '**OpenAI’s Structured Outputs API:**'
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: '**OpenAI 的结构化输出 API：**'
 - en: '[https://platform.openai.com/docs/guides/structured-outputs/introduction](https://platform.openai.com/docs/guides/structured-outputs/introduction)'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://platform.openai.com/docs/guides/structured-outputs/introduction](https://platform.openai.com/docs/guides/structured-outputs/introduction)'

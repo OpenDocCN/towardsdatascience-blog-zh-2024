@@ -1,38 +1,60 @@
 - en: A Priority Based Scheduler for Amazon SageMaker Training Jobs
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 亚马逊SageMaker训练作业的优先级调度器
 - en: 原文：[https://towardsdatascience.com/a-priority-based-scheduler-for-amazon-sagemaker-training-jobs-a225327e0a94?source=collection_archive---------10-----------------------#2024-03-08](https://towardsdatascience.com/a-priority-based-scheduler-for-amazon-sagemaker-training-jobs-a225327e0a94?source=collection_archive---------10-----------------------#2024-03-08)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/a-priority-based-scheduler-for-amazon-sagemaker-training-jobs-a225327e0a94?source=collection_archive---------10-----------------------#2024-03-08](https://towardsdatascience.com/a-priority-based-scheduler-for-amazon-sagemaker-training-jobs-a225327e0a94?source=collection_archive---------10-----------------------#2024-03-08)
 - en: Optimizing the use of limited AI training accelerators — Part 2
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 优化有限的AI训练加速器的使用——第二部分
 - en: '[](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)[![Chaim
     Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------)
     [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------)
     ·12 min read·Mar 8, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------)
+    ·阅读时间：12分钟·2024年3月8日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/d4dd51c7492c9ad3b406d2ca1d86b429.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d4dd51c7492c9ad3b406d2ca1d86b429.png)'
 - en: Photo by [Adrien Aletti](https://unsplash.com/@ahda_gallery?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 由[Adrien Aletti](https://unsplash.com/@ahda_gallery?utm_source=medium&utm_medium=referral)拍摄，图片来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: This post was created in collaboration with [Max Rabin](https://www.linkedin.com/in/maxrabin/).
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文与[Max Rabin](https://www.linkedin.com/in/maxrabin/)合作创作。
 - en: This is the second part of a series of posts on the topic of maximizing the
     utility of scarce AI resources. In the [first post](/maximizing-the-utility-of-scarce-ai-resources-a-kubernetes-approach-0230ba53965b)
     we noted the increasing limitations on the ability to scale up AI resources at
@@ -52,8 +74,13 @@
     so as to reduce development costs. For example, even in a scenario of abundant
     capacity, you may choose to limit your use to a fixed number of training instances
     so as to cap your training expenditure.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是关于最大化稀缺 AI 资源利用的系列文章的第二部分。在[第一篇文章](/maximizing-the-utility-of-scarce-ai-resources-a-kubernetes-approach-0230ba53965b)中，我们提到，随着
+    AI 资源规模化能力的限制日益增加，AI 开发团队为保证 AI 计算能力，正逐渐倾向于通过构建内部 AI 服务器农场和/或在云中预留专用实例等方式来解决这一问题。AI
+    计算资源的稀缺性促使我们设计专门的调度解决方案，以最大程度地减少空闲时间，并优先处理关键工作负载。请参阅我们[之前的文章](/maximizing-the-utility-of-scarce-ai-resources-a-kubernetes-approach-0230ba53965b)，其中我们提出了此类解决方案的详细需求清单。我们采用的方法是利用现有的基于优先级的[调度器](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/)，该调度器与[Kubernetes](https://kubernetes.io/)一起提供，并使我们的训练开发工作流与其使用保持一致。在本文中，我们探讨了保持现有框架进行
+    AI 模型训练并通过自定义实现优先级调度器来增强该框架的选项。重要的是，这种类型的解决方案的需求通常不仅由 AI 资源的稀缺性驱动，还受到希望增加对训练工作负载的编排和优先级管理控制的推动，从而降低开发成本。例如，即使在容量充足的情况下，你也可能选择将训练实例的数量限制在一个固定范围内，以便控制训练开销。
 - en: For the purposes of this post, we will assume that our training framework of
     choice is AWS’s managed service for AI model training, [Amazon SageMaker](https://aws.amazon.com/sagemaker/).
     The solution we will propose will use additional AWS services such as [Amazon
@@ -63,27 +90,42 @@
     best one for you will depend on the particular details of your project. Similar
     solutions to the one that we will describe can be designed on other cloud-based
     environments and/or using alternative cloud-based services.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文假设我们选择的训练框架是 AWS 的 AI 模型训练托管服务[Amazon SageMaker](https://aws.amazon.com/sagemaker/)。我们将提出的解决方案将使用其他
+    AWS 服务，如[Amazon DynamoDB](https://aws.amazon.com/pm/dynamodb/)和[AWS Lambda](https://aws.amazon.com/pm/lambda/)。选择使用
+    AWS 服务来展示我们的解决方案不应被视为对其的推荐。市面上有许多基于云的服务可供选择，最适合您的解决方案将取决于您项目的具体细节。我们所描述的类似解决方案可以在其他云环境中设计，或使用其他云服务来实现。
 - en: The Traditional Method for Starting Up SageMaker Training Jobs
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 启动 SageMaker 训练任务的传统方法
 - en: Traditionally, we would start up a SageMaker training job using the [Amazon
     SageMaker Python SDK](https://sagemaker.readthedocs.io/en/stable/). In the code
     block below we use the SageMaker SDK (version 2.208) to run a PyTorch training
     workload on a single instance of type [p5.48xlarge](https://aws.amazon.com/ec2/instance-types/p5/).
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 传统上，我们会使用[Amazon SageMaker Python SDK](https://sagemaker.readthedocs.io/en/stable/)启动
+    SageMaker 训练任务。在下面的代码块中，我们使用 SageMaker SDK（版本 2.208）在单个类型为[p5.48xlarge](https://aws.amazon.com/ec2/instance-types/p5/)的实例上运行
+    PyTorch 训练工作负载。
 - en: '[PRE0]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: When the *estimator.fit()* function is called, the SageMaker library uploads
     our code to Amazon S3 and then transforms the request to a boto3 SageMaker client
     [create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html)
     request (see [here](https://github.com/aws/sagemaker-python-sdk/blob/v2.208.0/src/sagemaker/session.py#L976)).
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 当调用 *estimator.fit()* 函数时，SageMaker 库会将我们的代码上传到 Amazon S3，然后将请求转换为一个 boto3 SageMaker
+    客户端的[create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html)请求（请参见[此处](https://github.com/aws/sagemaker-python-sdk/blob/v2.208.0/src/sagemaker/session.py#L976)）。
 - en: This method for starting up training jobs is dependent on the availability of
     the requested resources for its success. In our scenario of scarce AI resources,
     it is likely to fail more often than not. Although this can be partially mitigated
@@ -97,15 +139,21 @@
     instance and would most likely fail due to its limited availability. Even when
     there is instance availability, we may wish to limit our training to just our
     two designated instances to increase our control over the costs of training.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 启动训练作业的这种方法依赖于所请求资源的可用性。对于我们所面临的稀缺 AI 资源场景，成功的可能性往往较低。尽管通过[为连续工作负载保留已配置的计算实例](https://medium.com/@chaimrand/retaining-amazon-sagemaker-instance-capacity-with-sagemaker-managed-warm-pools-f7cfd78fa34c)可以在一定程度上缓解这个问题，但
+    API *不*提供适当的工具来最大化它们的效用。假设我们希望使用恰好两台[p5.48xlarge](https://aws.amazon.com/ec2/instance-types/p5/)实例。为了简化讨论，我们假设每个训练工作负载都在单个实例上运行。通常，在
+    AI 模型开发周期中，会有一些时间段，训练工作负载的数量超过了两台实例的处理能力。现有的 API 会尝试启动第三台[p5.48xlarge](https://aws.amazon.com/ec2/instance-types/p5/)实例，并且很可能因为其可用性有限而失败。即使存在实例可用性，我们也可能希望将训练限制在我们指定的两台实例上，以便更好地控制训练的成本。
 - en: We require a new API for submitting jobs for training, one that does not immediately
     start up a new [p5.48xlarge](https://aws.amazon.com/ec2/instance-types/p5/) instance,
     but rather enters the jobs to a priority queue. And we need an associated job
     scheduler that manages the use of our two resources while prioritizing critical
     workloads.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要一个新的 API 来提交训练作业，它不会立即启动新的[p5.48xlarge](https://aws.amazon.com/ec2/instance-types/p5/)实例，而是将作业放入优先级队列中。我们还需要一个关联的作业调度器来管理这两台资源的使用，同时优先处理关键工作负载。
 - en: Importantly, please note that as of the time of this writing, Amazon SageMaker
     does *not* support the option of training on [reserved Amazon EC2 instances](https://aws.amazon.com/ec2/pricing/reserved-instances/).
     And although [Amazon SageMaker Savings Plans](https://aws.amazon.com/savingsplans/ml-pricing/)
@@ -115,29 +163,45 @@
     as an alternative method for retaining access to provisioned instances. For the
     remainder of the post, we will assume that we are able to attain two instances
     of our choice whether it be through this or some other method.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要特别注意的是，截至本文撰写时，Amazon SageMaker *不*支持在[预留 Amazon EC2 实例](https://aws.amazon.com/ec2/pricing/reserved-instances/)上进行训练。尽管[Amazon
+    SageMaker Savings Plans](https://aws.amazon.com/savingsplans/ml-pricing/)具有与实例预留相似的特性，但它*不*保证实例的容量。在[上一篇文章](https://chaimrand.medium.com/f7cfd78fa34c)中，我们讨论了这一限制，并建议使用[由
+    SageMaker 管理的热池](https://docs.aws.amazon.com/sagemaker/latest/dg/train-warm-pools.html)作为保留已配置实例访问权限的替代方法。在本文的其余部分，我们将假设无论是通过此方法还是其他方式，我们能够获得我们选择的两台实例。
 - en: Priority-Based Scheduling for Amazon SageMaker
+  id: totrans-18
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于优先级的调度对于 Amazon SageMaker
 - en: In this section we will describe the components of our proposed solution. We
     will use the [AWS Serverless Application Model (SAM) specification](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification.html).
     More specifically, we will create an [AWS SAM template YAML file](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy.html)
     and gradually add the AWS resources that we need. Please see the [documentation](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html)
     for details on how to define and deploy serverless solutions using AWS SAM.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将描述我们提出的解决方案的组件。我们将使用[AWS 无服务器应用程序模型 (SAM) 规范](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification.html)。更具体地说，我们将创建一个[AWS
+    SAM 模板 YAML 文件](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy.html)，并逐步添加我们需要的
+    AWS 资源。有关如何使用 AWS SAM 定义和部署无服务器解决方案的详细信息，请参见[文档](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html)。
 - en: '![](../Images/25932c7e09d19a30ed4bb4cffb192a95.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/25932c7e09d19a30ed4bb4cffb192a95.png)'
 - en: AWS Architecture Diagram (by Author)
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: AWS 架构图（作者提供）
 - en: A Private API for Submitting Training Jobs
+  id: totrans-22
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 提交训练作业的私有 API
 - en: We start by using [Amazon API Gateway](https://aws.amazon.com/api-gateway/)
     to define a [private REST API](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-private-apis.html)
     for submitting training job requests. We name the API *training-job-queue*. Later,
@@ -146,126 +210,191 @@
     API. The code block below contains the definition of the private [API resource](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-api.html)
     in SAM. In practice you will likely want to specify access limitations to the
     API and/or a method of authorization.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先使用[Amazon API Gateway](https://aws.amazon.com/api-gateway/)来定义一个[私有 REST
+    API](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-private-apis.html)，用于提交训练作业请求。我们将
+    API 命名为*training-job-queue*。稍后，我们将添加一个名为*add-job*的 POST 方法，并修改我们的训练作业创建代码，以使用该方法，而不是使用
+    SageMaker 客户端的[create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html)
+    API。下面的代码块包含了在 SAM 中定义的私有[API 资源](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-api.html)。实际上，您可能希望为该
+    API 指定访问限制和/或授权方法。
 - en: '[PRE1]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Define an AWS DynamoDB Table for Storing Training Job Requests
+  id: totrans-25
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义一个用于存储训练作业请求的 AWS DynamoDB 表
 - en: 'We will use an [Amazon DynamoDB](https://aws.amazon.com/pm/dynamodb/) table
     named *sagemaker-queue* to store the submitted training workloads. Each entry
     will have the following fields:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将使用一个名为*sagemaker-queue*的[Amazon DynamoDB](https://aws.amazon.com/pm/dynamodb/)表来存储提交的训练工作负载。每个条目将包含以下字段：
 - en: 'jobName: Stores the unique name of the training job.'
+  id: totrans-27
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 'jobName: 存储训练作业的唯一名称。'
 - en: 'entryTime: Stores the date and time that the job was added.'
+  id: totrans-28
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 'entryTime: 存储作业添加的日期和时间。'
 - en: 'jobState: Stores the current state of the training job. The valid values are
     ‘pending’, ‘running’, and ‘preempted’.'
+  id: totrans-29
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 'jobState: 存储训练作业的当前状态。有效值为“pending”、“running”和“preempted”。'
 - en: 'priority: Stores an integer value representing the relative priority of the
     job.'
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 'priority: 存储表示作业相对优先级的整数值。'
 - en: 'jobDetails: Stores the details of the job request.'
+  id: totrans-31
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 'jobDetails: 存储作业请求的详细信息。'
 - en: We define our DynamoDB table in our SAM template YAML file using the [AWS::Serverless::SimpleTable](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-simpletable.html)
     resource.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在 SAM 模板 YAML 文件中使用[AWS::Serverless::SimpleTable](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-simpletable.html)资源定义我们的
+    DynamoDB 表。
 - en: '[PRE2]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: We define a function that creates a table entry from a given training job request.
     We assume that request contains the same contents as the input to the [create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html)
     API in JSON format. We further assume that the *priority* of the workload is entered
     as a key-value [tag](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_Tag.html)
     in the training job definition.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义了一个函数，从给定的训练作业请求创建表项。我们假设请求包含与[create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html)
+    API的输入内容相同的JSON格式数据。我们进一步假设工作负载的*优先级*作为一个键值[标签](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_Tag.html)输入到训练作业定义中。
 - en: '[PRE3]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: The REST API *add-job* method that we will soon define will be programmed to
     call the *add_job_entry* function.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们即将定义的REST API *add-job* 方法将被编程为调用 *add_job_entry* 函数。
 - en: We define a second function that extracts the pending jobs from the database
     and returns them in order of priority. In the case that multiple jobs have the
     same priority, they are ordered according to the amount of time they have been
     waiting in the queue.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义了第二个函数，从数据库中提取待处理作业，并按优先级返回它们。如果多个作业具有相同的优先级，它们将根据在队列中等待的时间长短进行排序。
 - en: '[PRE4]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The following utility functions will come in handy in the next sections.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下实用功能将在接下来的章节中派上用场。
 - en: '[PRE5]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Both our choice of DynamoDB and its usage (e.g., our use of the [Scan](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Scan.html)
     API rather than the [Query](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Query.html)
     API) assume that the overall number of jobs in our queue will be in the dozens,
     at most. For a larger scale solution, you may be better off with a heavier duty
     database (e.g., one that performs the sorting operation for you) or a more sophisticated
     use of DynamoDB (e.g., see [here](https://aws.amazon.com/blogs/database/implementing-priority-queueing-with-amazon-dynamodb/)).
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们选择DynamoDB及其使用（例如，使用[Scan](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Scan.html)
+    API而不是[Query](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Query.html)
+    API）假设队列中的作业总数最多为几十个。对于更大规模的解决方案，您可能需要选择一个更强大的数据库（例如，能够为您执行排序操作的数据库）或更复杂的DynamoDB使用方式（例如，参见[这里](https://aws.amazon.com/blogs/database/implementing-priority-queueing-with-amazon-dynamodb/)）。
 - en: Define the Training Job Queue Manager
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义训练作业队列管理器
 - en: 'The main component of our solution is the training job scheduler. Here we implement
     a rather simple manager that performs the following steps:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们解决方案的主要组件是训练作业调度器。在这里，我们实现了一个相对简单的管理器，执行以下步骤：
 - en: Extract the list of queued jobs, ordered by priority. If none exist, return.
+  id: totrans-44
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 提取按优先级排序的队列中作业列表。如果没有作业，返回。
 - en: Discover unused instance capacity. For each free instance, start one pending
     job on SageMaker. If no jobs remain after that, return.
+  id: totrans-45
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 发现未使用的实例容量。对于每个空闲实例，在SageMaker上启动一个待处理作业。如果没有剩余作业，返回。
 - en: Calculate the number of SageMaker jobs in the *Stopping* state. If greater than
     the number of pending jobs, return.
+  id: totrans-46
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 计算处于*停止*状态的SageMaker作业数量。如果超过待处理作业的数量，返回。
 - en: Assess the need for preemption of running SageMaker jobs by comparing their
     *priorities* to those of our pending jobs.
+  id: totrans-47
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通过将运行中的SageMaker作业的*优先级*与待处理作业的优先级进行比较，评估是否需要抢占正在运行的作业。
 - en: '[PRE6]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Important notes:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要提示：
 - en: Our implementation is highly optimistic in the sense that we assume that all
     the jobs that are inserted are valid and that we will be able to start them up
     on SageMaker without issue. In practice, appropriate error handling should be
     added (e.g., removing faulty jobs from the queue with appropriate logging).
+  id: totrans-50
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们的实现非常乐观，假设所有插入的作业都是有效的，并且我们可以在SageMaker上顺利启动它们。实际上，应该添加适当的错误处理（例如，使用适当的日志记录从队列中移除有问题的作业）。
 - en: In a production environment, we would need to take into consideration the likely
     occurrence of a [race condition](https://en.wikipedia.org/wiki/Race_condition)
     when our *queue_manager* is triggered by multiple concurrent events. There are
@@ -276,109 +405,159 @@
     Here we have taken the approach of what we call “optimistic idempotence”, where
     we rely on appropriate use of the API and on the idempotency of our underlying
     calls to the SageMaker APIs.
+  id: totrans-51
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在生产环境中，我们需要考虑当多个并发事件触发我们的[竞争条件](https://en.wikipedia.org/wiki/Race_condition)时，可能会发生的情况。解决此问题的方法有多种（例如，参见[这里](https://medium.com/@moradiyabhavik/race-condition-understanding-and-solution-926b6d2808cf)），包括强制原子性（例如，通过将我们的[Lambda函数并发](https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html)设置为1）、使用某种形式的锁机制（例如，如[这里](https://aws.amazon.com/blogs/database/implementing-priority-queueing-with-amazon-dynamodb/)所做的），或使我们的函数具有[幂等性](https://en.wikipedia.org/wiki/Idempotence)。在这里，我们采用了我们所称的“乐观幂等性”方法，依赖于API的适当使用以及底层调用SageMaker
+    API的幂等性。
 - en: We emphasize that our implementation is naïve. In practice, we recommend a more
     sophisticated algorithm that 1) accounts for the use of different types of instances
     and jobs that require more than one instance, 2) takes all edge cases into consideration,
     and 3) is tailored towards the specific needs of your project.
+  id: totrans-52
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们强调，我们的实现是初级的。实际上，我们建议使用更复杂的算法，1）考虑使用不同类型的实例和需要多个实例的任务，2）考虑所有边界情况，3）根据项目的具体需求量身定制。
 - en: Define the AWS Lambda Function
+  id: totrans-53
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义AWS Lambda函数
 - en: 'The next component of the solution is the Lambda function. The following code
     block includes the [SAM](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html)
     definition of our serverless function. We program the function to run on two different
     types of events: any call to [*add-job*](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-api.html)
     on our private API gateway and a [change to the state of a SageMaker training
     job](https://docs.aws.amazon.com/sagemaker/latest/dg/automating-sagemaker-with-eventbridge.html).'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决方案的下一个组件是Lambda函数。以下代码块包括我们无服务器函数的[SAM](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html)定义。我们编写该函数以响应两种不同类型的事件：对我们私有API网关上的[*add-job*](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-api.html)的任何调用，以及[SageMaker训练任务状态的变化](https://docs.aws.amazon.com/sagemaker/latest/dg/automating-sagemaker-with-eventbridge.html)。
 - en: '[PRE7]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'The *lambda_handler* function is implemented as follows:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '*lambda_handler*函数实现如下：'
 - en: '[PRE8]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Intercept the Create Training Job Request
+  id: totrans-58
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 拦截创建训练任务请求
 - en: 'The final modification required to make our solution complete is to intercept
     the call to the SageMaker [create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html)
     API and reroute it to our *add-job* method. We do this by overriding the [_intercept_create_request](https://github.com/aws/sagemaker-python-sdk/blob/v2.208.0/src/sagemaker/session.py#L6212)
     function of the [SageMaker Session class](https://sagemaker.readthedocs.io/en/stable/api/utility/session.html):'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了完成我们的解决方案，最后需要修改的部分是拦截对SageMaker的[create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html)
+    API的调用，并将其重新路由到我们的*add-job*方法。我们通过重写[SageMaker会话类](https://sagemaker.readthedocs.io/en/stable/api/utility/session.html)的[_intercept_create_request](https://github.com/aws/sagemaker-python-sdk/blob/v2.208.0/src/sagemaker/session.py#L6212)函数来实现这一点：
 - en: '[PRE9]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Use Case Example
+  id: totrans-61
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 用例示例
 - en: To test our solution we submit the following sequence of jobs. After each call
     we print the status of the queue (using the *print_queue_state* function) and
     sleep for twenty seconds.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了测试我们的解决方案，我们提交以下任务序列。每次调用后，我们打印队列状态（使用*print_queue_state*函数），并暂停20秒。
 - en: Start job1 with priority 1.
+  id: totrans-63
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用优先级1启动job1。
 - en: Start job2 with priority 2.
+  id: totrans-64
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用优先级2启动job2。
 - en: Start job3 with priority 1.
+  id: totrans-65
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用优先级1启动job3。
 - en: Start job4 with priority 3.
+  id: totrans-66
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用优先级3启动job4。
 - en: 'The first two jobs are immediately submitted to SageMaker and updated to the
     *running* state. Since the third job has low priority and we have precisely two
     training instances, it remains in the *pending* state and waits its turn. After
     submitting the first three jobs, the queue state appears as:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 前两个作业会立即提交到 SageMaker，并更新为*运行中*状态。由于第三个作业的优先级较低，并且我们恰好有两个训练实例，它会保持在*待处理*状态，等待轮到它。提交前三个作业后，队列状态如下所示：
 - en: '[PRE10]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'The fourth job we submit has a higher priority than all of the jobs in the
     queue. Consequently, the running job with the lowest priority, *job1*, is preempted.
     The corresponding SageMaker job is stopped and once the instance is released,
     the queue state becomes:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们提交的第四个作业优先级高于队列中所有作业。因此，优先级最低的正在运行作业*job1*会被抢占。相应的 SageMaker 作业被停止，一旦实例释放，队列状态变为：
 - en: '[PRE11]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'The SageMaker job running *job2* is the first to finish, *job2* is removed
     from the queue, and our preempted job is resumed:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 正在运行的 SageMaker 作业*job2*是第一个完成的，*job2*从队列中移除，我们被抢占的作业恢复执行：
 - en: '[PRE12]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Once *job4* is completed, it too is removed from the queue, making room for
     *job3*. The remaining jobs are also run to completion, ultimately leaving our
     queue empty.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦*job4*完成，它也会从队列中移除，为*job3*腾出位置。剩余的作业也会运行到完成，最终使我们的队列为空。
 - en: Summary
+  id: totrans-74
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 摘要
 - en: The increasing difficulty of acquiring AI compute capacity has forced AI development
     teams to reevaluate the processes they use for training AI models. The approach
     we have demonstrated in this post is to augment the traditional APIs for training
@@ -386,5 +565,8 @@
     the proposal we have put forth should be viewed as a general scheme, not as a
     production-worthy solution. Appropriate modifications and enhancements would be
     required to address the specifics needs of your project.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 获取 AI 计算能力的难度不断增加，迫使 AI 开发团队重新评估他们用于训练 AI 模型的流程。我们在这篇文章中展示的方法是通过自定义优先级队列和关联的作业调度器，增强传统的模型训练
+    API。重要的是，我们提出的方案应该被视为一个通用方案，而不是一个生产级解决方案。为了满足您项目的具体需求，需要进行适当的修改和增强。

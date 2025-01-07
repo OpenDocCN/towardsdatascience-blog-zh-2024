@@ -1,663 +1,1046 @@
 - en: Calculating the Previous Value in Power BI
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在 Power BI 中计算前一个值
 - en: 原文：[https://towardsdatascience.com/calculating-the-previous-value-in-power-bi-9ddc062ef2df?source=collection_archive---------8-----------------------#2024-04-19](https://towardsdatascience.com/calculating-the-previous-value-in-power-bi-9ddc062ef2df?source=collection_archive---------8-----------------------#2024-04-19)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/calculating-the-previous-value-in-power-bi-9ddc062ef2df?source=collection_archive---------8-----------------------#2024-04-19](https://towardsdatascience.com/calculating-the-previous-value-in-power-bi-9ddc062ef2df?source=collection_archive---------8-----------------------#2024-04-19)
 - en: Calculating the consumption based on meter data looks easy. However, complex
     situations can be challenging. Let’s see how we can solve this.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 基于仪表数据计算消耗量看起来很简单。然而，复杂的情况可能会带来挑战。让我们看看如何解决这个问题。
 - en: '[](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)[![Salvatore
     Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------)
     [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)[![Salvatore
+    Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------)
+    [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------)
     ·10 min read·Apr 19, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------)
+    ·10 分钟阅读·2024年4月19日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '*When we have Meter data, like we can get from our energy or water meters at
     home, we want to calculate consumption from these values over time. What is very
     simple with one meter can be complicated if we have multiple meters for different
     areas, values, etc. Let’s see how we can solve this in Power BI.*'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: '*当我们拥有仪表数据时，就像我们从家里的能源或水表中获得的数据一样，我们想计算这些值随时间的消耗量。在一个仪表的情况下非常简单，但如果我们有多个仪表，涉及不同区域、值等情况，就可能变得复杂。让我们看看如何在
+    Power BI 中解决这个问题。*'
 - en: '![](../Images/3c6e4c7004e145b72d8aa37563ad2bf9.png)'
+  id: totrans-7
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3c6e4c7004e145b72d8aa37563ad2bf9.png)'
 - en: Photo by [Doris Morgan](https://unsplash.com/@d_morgan?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 照片由 [Doris Morgan](https://unsplash.com/@d_morgan?utm_source=medium&utm_medium=referral)
+    提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Introduction
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 引言
 - en: Most of the time, we work with transactional data.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数时候，我们处理的是事务数据。
 - en: Each row describes one event (or transaction) from the source system.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 每一行描述了来自源系统的一个事件（或交易）。
 - en: Then we have stock data, like the number of units of a specific product in our
     store, which can change over time.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们有库存数据，比如我们商店里某种特定产品的单位数，这些单位数可能随时间变化。
 - en: Or we have meter data, which changes over time, like, for example, the electricity
     meter at home.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者我们有仪表数据，随着时间变化，比如家里的电表。
 - en: When we want to calculate the consumption, we order the data by the date and
     time we got the value from the meter and subtract the current value from the previous
     value. Et voila, we have the consumption.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们想计算消耗量时，我们根据获取仪表值的日期和时间对数据进行排序，然后将当前值减去前一个值。这样，我们就得到了消耗量。
 - en: Now imagine we have multiple houses at different addresses and with multiple
     meters in each home.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，想象一下我们有多个不同地址的房屋，每个房屋里有多个仪表。
 - en: In this case, we must calculate the previous value for each meter and get the
     correct value.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，我们必须为每个仪表计算前一个值，以获得正确的值。
 - en: This poses some challenges when we must do it in Power BI.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们必须在 Power BI 中进行此操作时，这带来了一些挑战。
 - en: By the way, in SQL, we have some techniques to solve this challenge with minimal
     effort. So, when you have your data in a relational Database, do it there. It’s
     much easier.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 顺便说一下，在 SQL 中，我们有一些技术可以以最小的努力解决这个挑战。所以，当你把数据放在关系型数据库中时，就在那里处理它。那样会更容易。
 - en: So, let’s see how we can solve it in Power BI.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，让我们看看如何在 Power BI 中解决这个问题。
 - en: I do it once in Power Query and then with DAX.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我先在 Power Query 中做一次，然后再用 DAX 做一次。
 - en: The Data
+  id: totrans-21
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 数据
 - en: 'I generate the data from my Date table to load the result in a table with the
     following SQL Query:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 我通过我的 Date 表生成数据，并使用以下 SQL 查询将结果加载到一个表中：
 - en: '[PRE0]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: I execute this query multiple times to get the needed data while setting the
     variable @dimId to values between 2 and 6.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 我多次执行此查询，以在将变量 @dimId 设置为 2 到 6 之间的值时获取所需的数据。
 - en: 'The result is a list of changing values over time for each Meter ID:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是每个 Meter ID 随时间变化的值列表：
 - en: '![](../Images/5985f0a4a1189c4861ee7337c03921a8.png)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5985f0a4a1189c4861ee7337c03921a8.png)'
 - en: Figure 1 — Data for my scenario (Figure by the Author)
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 1 — 我的场景数据（图源自作者）
 - en: 'I import this table into Power BI twice and name them:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 我将此表导入 Power BI 两次，并命名为：
 - en: MeterData_PQ → For the Power Query approach
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: MeterData_PQ → 对于 Power Query 方法
 - en: MeterData_DAX → For the DAX approach
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: MeterData_DAX → 对于 DAX 方法
 - en: I need these two tables to compare them side-by-side after completion to analyze
     which approach could be better.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 我需要这两张表，在完成后将它们并排比较，分析哪种方法可能更好。
 - en: Doing it in Power Query
+  id: totrans-32
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在 Power Query 中进行操作
 - en: I found this approach after a little search on the Internet.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在互联网上稍作搜索后找到了这种方法。
 - en: I added a link to the original article in the Reference section below.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在下面的参考部分中添加了指向原始文章的链接。
 - en: 'To ensure that the data is in the right order for the next step, I add a Sorting
     Expression by House, Meter, and DateKey to ensure that all rows are together:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 为确保数据在下一步中按正确顺序排列，我通过 House、Meter 和 DateKey 添加排序表达式，以确保所有行在一起：
 - en: '[PRE1]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'This is the result after sorting the data:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是排序后的数据结果：
 - en: '![](../Images/9e78062f3cb7c7d6315884599e506a86.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9e78062f3cb7c7d6315884599e506a86.png)'
 - en: Figure 2 — Table after sorting operation (Figure by the Author)
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2 — 排序操作后的表格（图源自作者）
 - en: This pattern is repeated automatically for each nested table.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模式会自动为每个嵌套表重复。
 - en: 'Now, I use the Group By transformation in Power Query to group all rows for
     each combination of House and Meter together:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我在 Power Query 中使用 Group By 转换，将每个 House 和 Meter 的组合的所有行分组在一起：
 - en: '![](../Images/deeb6dbcce7b185f1cbb7cb2deac4b43.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/deeb6dbcce7b185f1cbb7cb2deac4b43.png)'
 - en: Figure 3 — Group all Value rows together (Figure by the Author)
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 3 — 将所有的 Value 行组合在一起（图源自作者）
 - en: 'Now the data looks like this:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在数据看起来是这样的：
 - en: '![](../Images/44b1ee9245b7ef3ed438a36444cd8871.png)'
+  id: totrans-45
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/44b1ee9245b7ef3ed438a36444cd8871.png)'
 - en: Figure 4 — Data after grouping (Figure by the Author)
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4 — 分组后的数据（图源自作者）
 - en: 'When I click on a cell for the ValueTable column, I see all rows associated
     with that row as a nested table:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我点击 ValueTable 列的某个单元格时，我看到与该行关联的所有行作为嵌套表呈现：
 - en: '![](../Images/f0f169a45083a598f1429d07338f5a74.png)'
+  id: totrans-48
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f0f169a45083a598f1429d07338f5a74.png)'
 - en: Figure 5 — Nested table for each combination of House and Meter (Figure by the
     Author)
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 5 — 每个 House 和 Meter 组合的嵌套表（图源自作者）
 - en: The subsequent transformations must be applied to the nested tables. The Power
     Query Interface doesn’t support such operations.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 后续的转换必须应用于嵌套表。Power Query 界面不支持这种操作。
 - en: 'Therefore, I must add the successive transformations as manual steps:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我必须将连续的转换作为手动步骤添加：
 - en: '![](../Images/41492a771947706e023b3bb290dffdd6.png)'
+  id: totrans-52
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/41492a771947706e023b3bb290dffdd6.png)'
 - en: Figure 6 — Add a new step to Power Query (Figure by the Author)
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 6 — 向 Power Query 添加新步骤（图源自作者）
 - en: 'I enter the following expression to add an Index column to the data:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 我输入以下表达式来为数据添加一个索引列：
 - en: '[PRE2]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'This is the result inside the nested table:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是嵌套表中的结果：
 - en: '![](../Images/19de2020f63559739873d351d4d3ca84.png)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/19de2020f63559739873d351d4d3ca84.png)'
 - en: Figure 7 — Adding an Index to the nested tables (Figure by the Author)
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 7 — 向嵌套表添加索引（图源自作者）
 - en: The Index column is calculated based on the order of the data. This is why we
     must order the data accordingly before we add this index.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 索引列是根据数据的顺序计算的。这就是为什么在添加索引之前，我们必须按顺序排列数据。
 - en: To make this more readable, I rename this step to “AddIndexColumn”.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使其更易读，我将此步骤重命名为“AddIndexColumn”。
 - en: 'Now, I add another step to get the previous value:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我添加另一个步骤来获取前一个值：
 - en: '[PRE3]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'The result of the new column in the nested table(s) is the following:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 嵌套表中新增列的结果如下：
 - en: '![](../Images/b3b5feae21e9f5649ea202f6ec16a599.png)'
+  id: totrans-64
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b3b5feae21e9f5649ea202f6ec16a599.png)'
 - en: Figure 8 — Nested table with the previous value (Figure by the Author)
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 8 — 带有前一个值的嵌套表（图源自作者）
 - en: 'Next, I use the Drill Down transformation to expand the nested table(s) into
     the original table:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我使用 Drill Down 转换，将嵌套表展开为原始表格：
 - en: '![](../Images/3035522d1db3a924ac7b05912dd631bc.png)'
+  id: totrans-67
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3035522d1db3a924ac7b05912dd631bc.png)'
 - en: Figure 9 — Drill down into the nested table(s) (Figure by the Author)
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 9 — 深入嵌套表格（图由作者提供）
 - en: 'Now I have a List with all nested tables. I add a new step to do it with the
     following expression:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我有一个包含所有嵌套表格的列表。我添加了一个新步骤，使用以下表达式来实现：
 - en: '[PRE4]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The result is the table with all original rows but with the additional column
     “PrevValue”.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是包含所有原始行的表格，但增加了“PrevValue”列。
 - en: 'To complete the task, I can add a new calculated column to detract the column
     “Value” from “PrevValue” to get the needed consumption:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了完成任务，我可以添加一个新的计算列，将“PrevValue”从“Value”中减去，以得到所需的消耗量：
 - en: '![](../Images/60ca6527aa9b504749742dd31b31a5b7.png)'
+  id: totrans-73
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/60ca6527aa9b504749742dd31b31a5b7.png)'
 - en: Figure 10 — Calculate the consumption (Figure by the Author)
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 10 — 计算消耗量（图由作者提供）
 - en: Lastly, I must set the correct data type for the new numeric columns to “Decimal
     Number”.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我必须将新数字列的数据类型设置为“十进制数”。
 - en: 'After loading the result into Power BI, I can create a consumption chart per
     Meter and House:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 在将结果加载到 Power BI 后，我可以为每个仪表和房屋创建一个消耗图表：
 - en: '![](../Images/9d8a80dc192911b8397dbe3c08e17c39.png)'
+  id: totrans-77
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9d8a80dc192911b8397dbe3c08e17c39.png)'
 - en: Figure 11 — Consumption over time for each House and Meter (Figure by the Author)
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 11 — 每个房屋和仪表的时间消耗（图由作者提供）
 - en: This is the expected result, and I can start creating a nice report and useful
     visualizations.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是预期的结果，我可以开始创建一个漂亮的报告和有用的可视化图表。
 - en: But first, I wanted to show you the approach with DAX.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 但首先，我想给你展示一个使用 DAX 的方法。
 - en: Doing it in DAX
+  id: totrans-81
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在 DAX 中实现
 - en: After seeing how to do it in Power Query, let’s do it in DAX.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 在了解如何在 Power Query 中实现之后，让我们在 DAX 中做一下。
 - en: 'Here we have two possible scenarios:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有两种可能的情况：
 - en: Fixed intervals between the readings of the Meters.
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 仪表读取之间的固定间隔。
 - en: Changing interval between the readings.
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 读取之间的间隔变化。
 - en: 'To get the consumption of the first scenario is easy:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 获取第一种情况的消耗量是简单的：
 - en: I must identify the row with the previous day’s value.
+  id: totrans-87
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我必须识别出前一天的值所在的行。
 - en: Get the value from that row.
+  id: totrans-88
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 获取该行的值。
 - en: Calculate the consumption.
+  id: totrans-89
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 计算消耗量。
 - en: 'Let’s do it:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们开始吧：
 - en: 'I do it by creating two Key columns:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 我通过创建两个关键列来实现：
 - en: One for the current reading
+  id: totrans-92
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个是当前读数
 - en: One for the reading of the previous day (This can be the previous day, week,
     month, or whichever interval you have).
+  id: totrans-93
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个是前一天的读取值（这可以是前一天、前一周、前一月，或任何你设置的间隔）。
 - en: Due to how I generated my data, I have one reading for every Meter ID.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于数据生成方式的不同，每个仪表 ID 都有一个读数。
 - en: 'Therefore, to create the first key column, I create a calculated column with
     the following expression (ignoring the House column for now):'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，为了创建第一个关键列，我创建了一个计算列，使用以下表达式（暂时忽略房屋列）：
 - en: '[PRE5]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Note: I use the format “YYYYMMDD” for better readability of the result as it’s
     a general format.'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意：我使用“YYYYMMDD”格式，以便更清晰地展示结果，因为这是一个通用格式。
 - en: I need the date from the date table for the previous day to apply date calculations,
     like [DATEADD()](https://dax.guide/dateadd/).
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 我需要从日期表中获取前一天的日期，以便应用日期计算，例如 [DATEADD()](https://dax.guide/dateadd/)。
 - en: 'Then I can go back by one day:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我可以回到前一天：
 - en: '[PRE6]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Lastly, I can use [LOOKUPVALUE()](https://dax.guide/lookupvalue/) to get the
     previous value:'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我可以使用 [LOOKUPVALUE()](https://dax.guide/lookupvalue/) 来获取前一个值：
 - en: '[PRE7]'
+  id: totrans-102
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Or I can use [CALCULATE()](https://dax.guide/calculate/) to achieve the same
     result:'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者，我可以使用 [CALCULATE()](https://dax.guide/calculate/) 来实现相同的结果：
 - en: '[PRE8]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'This is the result of these three expressions:'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是这三个表达式的结果：
 - en: '![](../Images/cb4137e6b5e1349ad635af58eb5841e8.png)'
+  id: totrans-106
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cb4137e6b5e1349ad635af58eb5841e8.png)'
 - en: Figure 12 — Results for the previous values on day-by-day readings (Figure by
     the Author)
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 12 — 按天读取的前值结果（图由作者提供）
 - en: But this approach doesn’t work with irregular readings.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是这种方法不适用于不规则的读数。
 - en: 'When I look at my data (including the Houses), I see this:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我查看我的数据（包括房屋数据）时，我看到这样的情况：
 - en: '![](../Images/7171389c369957350f0fa35e028c4160.png)'
+  id: totrans-110
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7171389c369957350f0fa35e028c4160.png)'
 - en: Figure 13 — Filtered view of the readings by house and Meter (Figure by the
     Author)
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 13 — 按房屋和仪表筛选的读数视图（图由作者提供）
 - en: As you can see, there are intervals between the readings.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 如你所见，读取之间存在间隔。
 - en: 'To get the correct result, I use an approach with two steps:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了获得正确的结果，我使用了一个包含两步的方案：
 - en: Get the date of the previous readings.
+  id: totrans-114
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 获取前一个读取的日期。
 - en: Get the value for that date.
+  id: totrans-115
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 获取该日期的值。
 - en: 'I create a Measure for the first step:'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 我为第一步创建了一个度量值：
 - en: '[PRE9]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: First, I store the current Date, House, and Meter in variables.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我将当前的日期、房屋和仪表存储到变量中。
 - en: Then, I calculate the highest value for DateKey while removing all Filters from
     the table, adding Filters for the Current House and Meter, and including only
     the DateKey lower than the current DateKey.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我计算 DateKey 的最大值，同时移除表中的所有筛选器，添加当前房屋和表计的筛选器，并仅包含低于当前 DateKey 的 DateKey。
 - en: With a table with more columns, I might have used a slightly different approach
     by not removing all filters from the tables but only for the columns I must, for
     example, only for DateKey, House, and Meter.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于包含更多列的表格，我可能会使用稍微不同的方法，不是移除所有表格中的筛选器，而只是移除必须的列筛选器，例如，仅对 DateKey、House 和 Meter
+    列进行筛选。
 - en: 'But the result is as needed:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 但结果符合需求：
 - en: '![](../Images/7c80c9686a15771fcbcaeb48b5d471ca.png)'
+  id: totrans-122
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7c80c9686a15771fcbcaeb48b5d471ca.png)'
 - en: Figure 14 — Result of the Measure to get the date of the previous reading (Figure
     by the Author)
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 图14 — 用于获取上次读取日期的度量结果（图由作者提供）
 - en: 'By using Context Transition, I can use this Measure to create a new version
     of the Previous Key column (I include the House in the expression for the CurrentKey
     column as well):'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过使用上下文转换，我可以使用这个度量创建一个新的“前键”列版本（我也在当前键列的表达式中包括了房屋）：
 - en: '[PRE10]'
+  id: totrans-125
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Now, I can use the same expression as before to get the previous value based
     on the two Key columns to get the needed result:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我可以使用与之前相同的表达式，根据两个键列获取所需结果：
 - en: '![](../Images/ebc4b0ccf9beab330741d3c60766193e.png)'
+  id: totrans-127
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ebc4b0ccf9beab330741d3c60766193e.png)'
 - en: Figure 15 — Result to calculate the previous value with variable intervals (Figure
     by the Author)
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 图15 — 使用变量间隔计算前值的结果（图由作者提供）
 - en: 'After adding the same line Visual as before, the result is identical to the
     results I get from data manipulated with Power Query:'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 在加入与之前相同的视觉效果后，结果与我通过 Power Query 操作数据得到的结果相同：
 - en: '![](../Images/2a179c0eff88350824620d1e49c07a33.png)'
+  id: totrans-130
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2a179c0eff88350824620d1e49c07a33.png)'
 - en: Figure 16 — Chart for 2024 with the calculation done in DAX (Figure by the Author)
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 图16 — 使用 DAX 计算的2024年图表（图由作者提供）
 - en: 'Lastly, I can get rid of the intermediate Key columns by calculating them directly
     within a compacted and self-contained version of the Previous Value columns:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我可以通过直接在一个压缩且自包含的“前值”列版本中计算它们，从而摆脱中间的键列：
 - en: '[PRE11]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'Here the results, side-by-side, which are identical:'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是结果并排显示，它们是完全相同的：
 - en: '![](../Images/0f8354093ce3feb4ac0dd1c3d1e005ec.png)'
+  id: totrans-135
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0f8354093ce3feb4ac0dd1c3d1e005ec.png)'
 - en: Figure 17 — Result to calculate the previous value with the intermediate Key-columns
     and with the compacted (self-contained) version (Figure by the Author)
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 图17 — 使用中间键列和压缩（自包含）版本计算前值的结果（图由作者提供）
 - en: Now that we have multiple solutions, which one is the better one?
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了多种解决方案，哪个是更好的呢？
 - en: Which one is better
+  id: totrans-138
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 哪个更好？
 - en: How should we decide which approach is the better one?
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们应该如何决定哪种方法更好？
 - en: In my opinion, it comes down to the skills available.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我看来，这归结于可用的技能。
 - en: By this, I mean the skills available in the team of those who must maintain
     the solution. This can be you or a client team.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的意思是，在必须维护该解决方案的团队中可用的技能。这可以是你，或者是客户团队。
 - en: Which is my preferred approach?
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 哪个是我偏好的方法？
 - en: Do I want to prepare all the data as early as possible?
+  id: totrans-143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我是否想尽早准备好所有数据？
 - en: Or do I want to have the simplest solution?
+  id: totrans-144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 或者，我想要最简单的解决方案吗？
 - en: Or do I have a preference for a Language?
+  id: totrans-145
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 或者，我是否更倾向于某种语言？
 - en: In this case, it is about using Power Query or DAX.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，这就是使用 Power Query 或 DAX。
 - en: I prefer to prepare my data as early as possible.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 我更倾向于尽早准备我的数据。
 - en: Therefore, I prefer using Power Query to prepare the data and have it ready
     to use without the need to add calculated columns in Power BI.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我更倾向于使用 Power Query 准备数据，并使其准备好使用，而不需要在 Power BI 中添加计算列。
 - en: However, considering the simplicity, I must confess that the approach with the
     self-contained calculated column with DAX is the best solution.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，考虑到简洁性，我必须承认，使用 DAX 的自包含计算列的方法是最好的解决方案。
 - en: But it’s not that easy to exactly understand what happens and why.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 但要完全理解发生了什么以及为什么发生并不容易。
 - en: 'Now, we can use hard facts to analyze the efficiency of the two approaches:
     Model statistics.'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以通过硬性数据分析这两种方法的效率：模型统计。
 - en: I use DAX Studio to get the Metrics (Advanced Menu and View Metrics).
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用 DAX Studio 获取度量（高级菜单和查看度量）。
 - en: 'I get the following information:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 我得到以下信息：
 - en: '![](../Images/807bf8c298739f4f278c0617b8647399.png)'
+  id: totrans-154
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/807bf8c298739f4f278c0617b8647399.png)'
 - en: Figure 18 — Metrics of the Data model with both tables (Figure by the Author)
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 图18 — 数据模型的度量，包含两张表（图由作者提供）
 - en: I can see that the Approach with the calculated columns in DAX uses much more
     memory than the Power Query approach.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 我可以看到，使用 DAX 中计算列的方法比 Power Query 方法占用更多内存。
 - en: 'But when we detract the size of the two Key columns (Above in red), we get:'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 但当我们减去两个关键列的大小（上方红色部分）时，得到的结果是：
 - en: 930’634–332’745–332’813 = 265’076 bytes
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 930’634–332’745–332’813 = 265’076 字节
 - en: 'Then, I must detract one of the two columns for the Previous Value (Above in
     blue): 265’076–48’248 = 207’828 bytes.'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我必须从两个列中减去前一个值（上方蓝色部分）：265’076–48’248 = 207’828 字节。
 - en: The difference in space compared to the table prepared with Power Query is marginal
     in this case.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 与使用 Power Query 准备的表格相比，空间差异在这种情况下是微不足道的。
 - en: But I have only 6’005 rows. It can make a huge difference when we have hundreds
     of thousands or even millions of rows.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 但我只有 6’005 行数据。当我们处理数十万甚至数百万行时，这个差异可能非常大。
 - en: I already had situations where the client wanted the solution in a specific
     way, as he wasn’t familiar with the other approach, even though it would deliver
     the solution more efficiently.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 我曾经遇到过客户希望以特定方式解决问题的情况，因为他不熟悉另一种方法，尽管后一种方法会更高效地提供解决方案。
 - en: Deciding on the best approach is challenging, as you might have to consider
     different factors.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 决定最佳方法是具有挑战性的，因为你可能需要考虑不同的因素。
 - en: Now that you have the information for two solutions, it’s your turn to choose
     the right one.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在你已经有了两种解决方案的信息，轮到你选择最合适的一个了。
 - en: '![](../Images/c9e479b08dbd0f22ce24e760264d3437.png)'
+  id: totrans-165
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c9e479b08dbd0f22ce24e760264d3437.png)'
 - en: Photo by [Brendan Church](https://unsplash.com/@bdchu614?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由[Brendan Church](https://unsplash.com/@bdchu614?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: References
+  id: totrans-167
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考资料
 - en: As mentioned above, the data is self-generated without relation to the real
     world.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上所述，数据是自生成的，与现实世界无关。
 - en: 'The Approach with Power Query is deduced from this Blog Post and Video:'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Power Query 的方法源自这篇博客文章和视频：
 - en: '[https://gorilla.bi/power-query/get-previous-row-value/#:~:text=The%20earlier%20row%20has%20an,a%20table%20to%20merge%20with](https://gorilla.bi/power-query/get-previous-row-value/#:~:text=The%20earlier%20row%20has%20an,a%20table%20to%20merge%20with).'
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://gorilla.bi/power-query/get-previous-row-value/#:~:text=The%20earlier%20row%20has%20an,a%20table%20to%20merge%20with](https://gorilla.bi/power-query/get-previous-row-value/#:~:text=The%20earlier%20row%20has%20an,a%20table%20to%20merge%20with).'
 - en: 'Here is my article about Context Transition:'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是我关于上下文转换的文章：
 - en: '[](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----9ddc062ef2df--------------------------------)
     [## What’s fancy about context transition in DAX'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----9ddc062ef2df--------------------------------)
+    [## DAX 中的上下文转换有什么特别之处'
 - en: Row and filter context are well-known concepts in DAX. But we can switch between
     these two with context transition.
+  id: totrans-173
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 行上下文和筛选上下文是 DAX 中的常见概念。但我们可以通过上下文转换在这两者之间切换。
 - en: towardsdatascience.com](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----9ddc062ef2df--------------------------------)
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----9ddc062ef2df--------------------------------)
 - en: Other solutions and approaches include using single M-expressions in Power Query.
     I decided to use this one because it is straightforward to implement and easy
     to understand what happens.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他解决方案和方法包括在 Power Query 中使用单一的 M 表达式。我决定使用这个方法，因为它实现起来简单，而且很容易理解发生了什么。
 - en: 'Please consider Following me and Subscribe to get E-Mails as soon as I add
     new content:'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 请考虑关注我并订阅，以便我添加新内容时可以第一时间收到邮件：
 - en: '[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----9ddc062ef2df--------------------------------)
     [## Get an email whenever Salvatore Cagliari publishes.'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----9ddc062ef2df--------------------------------)
+    [## 每当 Salvatore Cagliari 发布新内容时，你都会收到电子邮件。'
 - en: Get an email whenever Salvatore Cagliari publishes. By signing up, you will
     create a Medium account if you don't…
+  id: totrans-178
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 每当 Salvatore Cagliari 发布新内容时，你都会收到电子邮件。通过注册，如果你还没有 Medium 账户，你将创建一个账户...
 - en: medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----9ddc062ef2df--------------------------------)
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----9ddc062ef2df--------------------------------)
 - en: I make my articles accessible to everyone, even though Medium has a paywall.
     This allows me to earn a little for each reader, but I turn it off so you can
     read my pieces without cost.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 我让我的文章对所有人开放，尽管 Medium 有付费墙。这让我能从每个读者那里赚取一些收入，但我关闭了付费墙，所以你可以免费阅读我的文章。
 - en: You can support my work, which I do during my free time, through
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过以下方式支持我在空闲时间进行的工作：
 - en: '[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)'
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)'
 - en: 'Or scan this QR Code:'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 或扫描此二维码：
 - en: '![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)'
+  id: totrans-184
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)'
 - en: Any support is greatly appreciated and helps me find more time to create more
     content for you.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何支持都非常感激，这将帮助我找到更多时间为你创作更多内容。
 - en: Thank you a lot.
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 非常感谢。

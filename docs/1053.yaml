@@ -1,129 +1,193 @@
 - en: Temperature Scaling and Beam Search Text Generation in LLMs, for the ML-Adjacent
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: LLM中的温度缩放与束搜索文本生成，面向机器学习相关领域的人
 - en: 原文：[https://towardsdatascience.com/temperature-scaling-and-beam-search-text-generation-in-llms-for-the-ml-adjacent-21212cc5dddb?source=collection_archive---------1-----------------------#2024-04-26](https://towardsdatascience.com/temperature-scaling-and-beam-search-text-generation-in-llms-for-the-ml-adjacent-21212cc5dddb?source=collection_archive---------1-----------------------#2024-04-26)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/temperature-scaling-and-beam-search-text-generation-in-llms-for-the-ml-adjacent-21212cc5dddb?source=collection_archive---------1-----------------------#2024-04-26](https://towardsdatascience.com/temperature-scaling-and-beam-search-text-generation-in-llms-for-the-ml-adjacent-21212cc5dddb?source=collection_archive---------1-----------------------#2024-04-26)
 - en: What “temperature” is, how it works, its relationship to the beam search heuristic,
     and how LLM output generation can still go haywire
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: “温度”是什么，它如何工作，它与束搜索启发式算法的关系，以及LLM输出生成如何可能出错
 - en: '[](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)[![Mike
     Cvet](../Images/93545a0c873515a599ba094ad51ee915.png)](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------)
     [Mike Cvet](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)[![Mike
+    Cvet](../Images/93545a0c873515a599ba094ad51ee915.png)](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------)
+    [Mike Cvet](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------)
     ·19 min read·Apr 26, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------)
+    ·阅读时长19分钟·2024年4月26日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/48deee7f0c8dc77db834aa1f4a6bc09a.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/48deee7f0c8dc77db834aa1f4a6bc09a.png)'
 - en: Photo by [Paul Green](https://unsplash.com/@pgreen1983?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
     on [Unsplash](https://unsplash.com/photos/photography-of-spot-light-turned-on-mln2ExJIkfc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash);
     all other images by author unless otherwise noted
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 由[Paul Green](https://unsplash.com/@pgreen1983?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)拍摄，图片来源于[Unsplash](https://unsplash.com/photos/photography-of-spot-light-turned-on-mln2ExJIkfc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)；除非另有说明，否则所有其他图片由作者提供
 - en: If you’ve spent any time with APIs for LLMs like those from [OpenAI](https://platform.openai.com/docs/api-reference/chat/create)
     or [Anthropic](https://docs.anthropic.com/claude/reference/messages_post), you’ll
     have seen the `temperature` setting available in the API. How is this parameter
     used, and how does it work?
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你曾使用过[OpenAI](https://platform.openai.com/docs/api-reference/chat/create)或[Anthropic](https://docs.anthropic.com/claude/reference/messages_post)等LLM的API，你会看到API中有一个`temperature`设置。这个参数是如何使用的，如何工作的呢？
 - en: 'From the [Anthropic chat API documentation](https://docs.anthropic.com/claude/reference/messages_post):'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 来自[Anthropic聊天API文档](https://docs.anthropic.com/claude/reference/messages_post)：
 - en: '[PRE0]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Temperature (as is generally implemented) doesn’t really *inject randomness*
     into the response. In this post, I’ll walk through what this setting does, and
     how it’s used in beam search, the most common text generation technique for LLMs,
     as well as demonstrate some output-generation examples (failures and successes)
     using a [reference implementation in Github](https://github.com/mikecvet/beam/tree/main).
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 温度（按通常的实现方式）并不会真正*注入随机性*到响应中。在这篇文章中，我将讲解这个设置的作用，以及它如何在束搜索中使用，束搜索是LLM中最常用的文本生成技术，并通过[GitHub上的参考实现](https://github.com/mikecvet/beam/tree/main)展示一些输出生成的例子（包括失败和成功的案例）。
 - en: 'What you’re getting yourself into:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将要了解的内容：
 - en: '[Revisiting LLM Inference and Token Prediction](#84c0)'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[重新审视LLM推理与Token预测](#84c0)'
 - en: '[Greedy Search](#d2c9)'
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[贪婪搜索](#d2c9)'
 - en: '[Beam Search](#e148)'
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[束搜索](#e148)'
 - en: '[Temperature](#4e6e)'
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[温度](#4e6e)'
 - en: '[Implementation Details](#e9f6)'
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[实现细节](#e9f6)'
 - en: '[Greedy Search and Beam Search Generation Examples](#db73)'
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[贪婪搜索与束搜索生成示例](#db73)'
 - en: '- [Greedy Search](#4100)'
+  id: totrans-19
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- [贪婪搜索](#4100)'
 - en: '- [Beam Search](#45c4)'
+  id: totrans-20
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- [束搜索](#45c4)'
 - en: '- [Beam Search with Temperature](#3289)'
+  id: totrans-21
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- [带温度的束搜索](#3289)'
 - en: '- [Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo and Scoring
     Penalties](#f0e1)'
+  id: totrans-22
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- [水牛水牛水牛水牛水牛水牛水牛水牛与得分处罚](#f0e1)'
 - en: '[Conclusion](#f732)'
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[结论](#f732)'
 - en: Revisiting LLM Inference and Token Prediction
+  id: totrans-24
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 重访LLM推理和标记预测
 - en: If you’re here, you probably have *some* understanding of how LLMs work.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你在这里，你可能对LLM是如何工作的有*一些*了解。
 - en: 'At a high level, LLM text generation involves predicting the next token in
     a sequence, which depends on the cumulative probability of the preceding tokens.
     This process utilizes internal probability distributions that are shaped by:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 从高层次来看，LLM文本生成涉及预测序列中的下一个标记，这取决于前面标记的累积概率。这个过程利用了由以下因素塑造的内部概率分布：
 - en: The model’s internal, learned weights, refined through extensive training on
     vast datasets
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 模型的内部学习权重，通过在庞大的数据集上进行广泛的训练得到了精细化。
 - en: The entire input context (the query and any other augmenting data or documents)
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 整个输入上下文（查询以及任何其他补充数据或文档）
 - en: The set of tokens generated thus far
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 到目前为止生成的标记集
 - en: '[Transformer](https://en.wikipedia.org/wiki/Transformer_(deep_learning_architecture))-based
     generative models build representations of their input contexts through [Self-Attention](/illustrated-self-attention-2d627e33b20a),
     allowing them to dynamically assess and prioritize different parts of the input
@@ -131,38 +195,52 @@
     these models evaluate how *each part* of the input influences the emerging sequence,
     ensuring that each new token reflects an integration of both the input and the
     evolving output (largely through [Cross-Attention](https://vaclavkosar.com/ml/cross-attention-in-transformer-architecture)).'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于[Transformer](https://en.wikipedia.org/wiki/Transformer_(deep_learning_architecture))的生成模型通过[自注意力机制](/illustrated-self-attention-2d627e33b20a)构建输入上下文的表示，从而使它们能够动态评估并优先考虑输入的不同部分，基于这些部分与当前预测点的相关性。在序列解码过程中，这些模型评估*每个部分*如何影响正在生成的序列，确保每一个新的标记都能反映输入和不断演变的输出的整合（主要通过[交叉注意力](https://vaclavkosar.com/ml/cross-attention-in-transformer-architecture)实现）。
 - en: The [Stanford CS224N course materials](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1194/readings/cs224n-2019-notes06-NMT_seq2seq_attention.pdf)
     are a great resource for these concepts.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '[斯坦福CS224N课程资料](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1194/readings/cs224n-2019-notes06-NMT_seq2seq_attention.pdf)是理解这些概念的极好资源。'
 - en: 'The key point I want to make here is that when the model decides on the probabilistically
     best token, it''s generally evaluating the *entire* input context, as well as
     the *entire* generated sequence in-progress. However, the most intuitive process
     for using these predictions to iteratively build text sequences is simplistic:
     a [greedy algorithm](https://en.wikipedia.org/wiki/Greedy_algorithm), where the
     output text is built based on the most-likely token at every step.'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在这里想要强调的关键点是，当模型决定选择概率上最优的标记时，它通常是在评估*整个*输入上下文，以及*整个*正在生成的序列。然而，使用这些预测来迭代构建文本序列的最直观过程是简化的：一个[贪心算法](https://en.wikipedia.org/wiki/Greedy_algorithm)，它在每一步基于最可能的标记构建输出文本。
 - en: Below I’ll discuss how it works, where it fails, and some techniques used to
     adapt to those failures.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我将讨论它是如何工作的、它的不足之处，以及一些用于适应这些不足的技术。
 - en: Greedy Search
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 贪心搜索
 - en: 'The most natural way to use a model to build an output sequence is to gradually
     predict the next best token, append it to a generated sequence, and continue until
     the end of generation. This is called *greedy search*, and is the most simple
     and efficient way to generate text from an LLM (or other model). In its most basic
     form, it looks something like this:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用模型构建输出序列的最自然方法是逐渐预测下一个最佳标记，将其附加到已生成的序列中，并继续直到生成结束。这叫做*贪心搜索*，是从LLM（或其他模型）生成文本的最简单和最高效的方式。在最基本的形式下，它大致如下：
 - en: '[PRE1]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Undergrad Computer Science algorithms classes have a section on [graph traversal](https://en.wikipedia.org/wiki/Graph_traversal)
     algorithms. If you model the universe of potential LLM output sequences as a graph
     of tokens, then the problem of finding the optimal output sequence, given input
@@ -170,428 +248,630 @@
     case, the edge “weights” are probabilities generated from attention scores, and
     the goal of the traversal is to minimize the overall cost (maximize the overall
     probability) from beginning to end.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 本科计算机科学算法课程中有一节关于[图遍历](https://en.wikipedia.org/wiki/Graph_traversal)算法的内容。如果你将潜在的LLM输出序列的宇宙建模为标记的图形，那么在给定输入上下文的情况下寻找最优输出序列的问题，便与遍历加权图的问题相似。在这种情况下，边的“权重”是由注意力分数生成的概率，而遍历的目标是最小化从头到尾的总体成本（最大化总体概率）。
 - en: '![](../Images/e5446cdc7c9cecce5286dafcf4ec74aa.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e5446cdc7c9cecce5286dafcf4ec74aa.png)'
 - en: Greedy best-first search traverses through the conceptual graph tokens by making
     the seemingly best possible decision at every step in a forwards-only direction
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 贪心最佳优先搜索通过在每一步做出看似最佳的决定，以仅向前的方向遍历概念图标记。
 - en: Out of all possible text generation methods, this is the most computationally
     efficient — the number of inferences is 1:1 with the number of output tokens.
     However, there are some problems.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 在所有可能的文本生成方法中，这是最具计算效率的——推理次数与输出标记的数量是1:1的关系。然而，仍然存在一些问题。
 - en: At every step of token generation, the algorithm selects the highest-probability
     token given the output sequence so far, and appends it to that sequence. This
     is the simplicity and flaw of this approach, along with all other greedy algorithms
     — it gets trapped in [local minima](https://en.wikipedia.org/wiki/Maximum_and_minimum).
     Meaning, what appears to be the next best token *right now* may not, in fact,
     be the next best token for the generated output *overall*.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 在每一步的标记生成中，算法会根据目前为止的输出序列选择具有最高概率的标记，并将其附加到该序列中。这就是这种方法的简便之处，也是其缺陷，与所有其他贪心算法一样——它会陷入[局部最小值](https://en.wikipedia.org/wiki/Maximum_and_minimum)。也就是说，看似当前最好的标记*现在*可能实际上不是生成输出*整体*上最好的标记。
 - en: '[PRE2]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Given some input context and the generated string so far, `We can treat it as
     a matter of course` seems like a logical and probable sequence to generate.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一些输入上下文和目前生成的字符串，`We can treat it as a matter of course`似乎是一个逻辑上合理且有可能生成的序列。
 - en: But what if the contextually-accurate sentence is `We can treat it as a matter
     of cause and effect`? Greedy search has no way to backtrack and rewrite the sequence
     token `course` with `cause and effect`. What seemed like the best token at the
     time actually trapped output generation into a suboptimal sequence.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 但如果上下文准确的句子是`We can treat it as a matter of cause and effect`呢？贪心搜索无法回溯并将序列标记`course`替换为`cause
+    and effect`。当时看似最好的标记实际上将输出生成困于一个次优序列中。
 - en: The need to account for lower-probability tokens at each step, in the hope that
     better output sequences are generated later, is where beam search is useful.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 在每一步考虑低概率标记的需要，希望后续能生成更好的输出序列，这正是束搜索（beam search）有用的地方。
 - en: Beam Search
+  id: totrans-46
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 束搜索（Beam Search）
 - en: Returning to the graph-search analogy, in order to generate the optimal text
     for any given query and context, we’d have to fully explore the universe of potential
     token sequences. The solution resembles the [A* search algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
     (more closely than [Dijkstra’s algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm),
     since we don’t necessarily want shortest path, but lowest-cost/highest-likelihood).
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 回到图搜索的类比，为了生成任何给定查询和上下文的最优文本，我们必须完全探索潜在的标记序列的宇宙。这个解决方案类似于[A*搜索算法](https://en.wikipedia.org/wiki/A*_search_algorithm)（比[Dijkstra算法](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)更接近，因为我们不一定要最短路径，而是最低成本/最高可能性）。
 - en: '![](../Images/6fc0bbc1ddd5079610f4145be84f080c.png)'
+  id: totrans-48
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6fc0bbc1ddd5079610f4145be84f080c.png)'
 - en: A* search illustration by [Wgullyn](https://commons.wikimedia.org/w/index.php?title=User%3AWgullyn&action=edit&redlink=1)
     from [https://en.wikipedia.org/wiki/A*_search_algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: A*搜索示意图由[Wgullyn](https://commons.wikimedia.org/w/index.php?title=User%3AWgullyn&action=edit&redlink=1)提供，来源于[https://en.wikipedia.org/wiki/A*_search_algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
 - en: Since we’re working with natural language, the complexity involved is far too
     high to exhaust the search space for every query in most contexts. The solution
     is to trim that search space down to a reasonable number of candidate paths through
     the candidate token graph; maybe just 4, 8, or 12.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们处理的是自然语言，涉及的复杂性太高，以至于在大多数情况下无法穷尽所有查询的搜索空间。解决方案是将搜索空间缩减到一个合理数量的候选路径；比如可能只有
+    4、8 或 12 条。
 - en: '[Beam search](https://en.wikipedia.org/wiki/Beam_search) is the heuristic generally
     used to approximate that ideal A*-like outcome. This technique maintains `k` *candidate
     sequences* which are incrementally built up with the respective *top-k* most likely
     tokens. Each of these tokens contributes to an overall sequence score, and after
     each step, the total set of candidate sequences are pruned down to the best-scoring
     top `k`.'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Beam search](https://en.wikipedia.org/wiki/Beam_search) 是一种通常用于逼近理想 A* 搜索结果的启发式方法。该技术保持
+    `k` 个 *候选序列*，这些序列是通过分别选择 *top-k* 最可能的标记逐步构建的。每个标记都会贡献到整个序列的得分，在每一步后，所有候选序列会被修剪，只保留得分最高的前
+    `k` 个序列。'
 - en: '![](../Images/e81d6f9091c89b995172fb8fb2992900.png)'
+  id: totrans-52
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e81d6f9091c89b995172fb8fb2992900.png)'
 - en: Beam search, similarly to A* search, maintains multiple paths from start to
     end, evaluating the overall score of a limited number of candidate sequences under
     evaluation. The number is referred to as the “beam width”.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 与 A* 搜索类似，Beam search 会保持从开始到结束的多条路径，评估有限数量候选序列的整体得分。这个数量被称为“beam width”。
 - en: 'The “beam” in beam search [borrows the analogy of a flashlight](https://web.stanford.edu/%7Ejurafsky/slp3/ed3book.pdf),
     whose beam can be widened or narrowed. Taking the example of generating *the quick
     brown fox jumps over the lazy dog* with a beam width of `2`, the process looks
     something like this:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: Beam search 中的“beam” [借用了手电筒的类比](https://web.stanford.edu/%7Ejurafsky/slp3/ed3book.pdf)，手电筒的光束可以被加宽或缩小。以生成
+    *the quick brown fox jumps over the lazy dog* 为例，假设 beam width 为 `2`，整个过程大致如下：
 - en: '![](../Images/357234441d2c6f0bc675c925594f8b71.png)'
+  id: totrans-55
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/357234441d2c6f0bc675c925594f8b71.png)'
 - en: 'At this step, two candidate sequences are being maintained: “*the*” and “*a*”.
     Each of these two sequences need to evaluate the top-two most likely tokens to
     follow.'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一阶段，正在维护两个候选序列：“*the*” 和 “*a*”。这两个序列各自需要评估接下来最可能的两个标记。
 - en: '![](../Images/1d20191c70190ef7f97d32413b19b63f.png)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1d20191c70190ef7f97d32413b19b63f.png)'
 - en: After the next step, “*the speedy*” has been eliminated, and “*the quick*” has
     been selected as the first candidate sequence. For the second, “*a lazy*” has
     been eliminated, and “*a quick*” has been selected, as it has a higher cumulative
     probability. Note that if both candidates above the line have a higher likelihood
     that both candidates below the line, then they will represent the two candidate
     sequences after the subsequent step.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步后，“*the speedy*” 被淘汰，“*the quick*” 被选为第一个候选序列。对于第二个候选序列，“*a lazy*” 被淘汰，“*a
+    quick*” 被选中，因为它具有更高的累积概率。需要注意的是，如果线上两个候选的概率高于线下两个候选的概率，它们将代表下一步的两个候选序列。
 - en: '![](../Images/e85a3ab3d02ab9a852646a3c3eaacd42.png)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e85a3ab3d02ab9a852646a3c3eaacd42.png)'
 - en: This process continues until either a maximum token length limit has been reached,
     or all candidate sequences have appended an end-of-sequence token, meaning we’ve
     concluded generating text for that sequence.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个过程会一直继续，直到达到最大标记长度限制，或者所有候选序列都已经添加了结束标记，意味着我们已经完成了该序列的文本生成。
 - en: Increasing the beam width increases the search space, increasing the likelihood
     of a better output, but at a corresponding increase space and computational cost.
     Also note that a beam search with `beam_width=1` is effectively identical to greedy
     search.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 增加 beam width 会增加搜索空间，从而提高输出更优结果的可能性，但也会相应地增加空间和计算成本。还需要注意的是，`beam_width=1`
+    的 beam search 实际上与贪心搜索是等同的。
 - en: Temperature
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Temperature
 - en: 'Now, what does `temperature` have to do with all of this? As I mentioned above,
     this parameter doesn’t really `inject randomness` into the generated text sequence,
     but it does modify the *predictability* of the output sequences. Borrowing from
     [information theory](https://en.wikipedia.org/wiki/Information_theory): temperature
     can increase or decrease the [entropy](https://en.wikipedia.org/wiki/Entropy_(information_theory))
     associated with a token prediction.'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，`temperature` 与这一切有什么关系呢？正如我上面提到的，这个参数并不会真正的 `注入随机性` 到生成的文本序列中，但它确实会修改输出序列的
+    *可预测性*。借用 [信息论](https://en.wikipedia.org/wiki/Information_theory)的概念：temperature
+    可以增加或减少与标记预测相关的 [熵](https://en.wikipedia.org/wiki/Entropy_(information_theory))。
 - en: 'The [softmax](https://en.wikipedia.org/wiki/Softmax_function) [activation function](https://en.wikipedia.org/wiki/Activation_function)
     is typically used to convert the raw outputs (ie, [logits](https://deepai.org/machine-learning-glossary-and-terms/logit))
     of a model’s (including LLMs) prediction into a probability distribution (I walked
     through this a little [here](https://betterprogramming.pub/word2vec-embeddings-from-the-ground-up-for-the-ml-adjacent-8d8c484e7cb5)).
     This function is defined as follows, given a vector `Z` with `n` elements:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Softmax](https://en.wikipedia.org/wiki/Softmax_function) [激活函数](https://en.wikipedia.org/wiki/Activation_function)通常用于将模型（包括LLM）的原始输出（即[logits](https://deepai.org/machine-learning-glossary-and-terms/logit)）转换为概率分布（我稍微讲解了一下[这里](https://betterprogramming.pub/word2vec-embeddings-from-the-ground-up-for-the-ml-adjacent-8d8c484e7cb5)）。该函数定义如下，给定一个包含`n`个元素的向量`Z`：'
 - en: '![](../Images/17663ffca4ce96dfc2648f4c52fa803c.png)'
+  id: totrans-65
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/17663ffca4ce96dfc2648f4c52fa803c.png)'
 - en: Sigma is generally used to refer to the softmax function
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: Sigma通常用于指代softmax函数。
 - en: This function emits a vector (or [tensor](https://en.wikipedia.org/wiki/Tensor))
     of probabilities, which sum to `1.0` and can be used to clearly assess the model’s
     confidence in a class prediction in a human-interpretable way.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 该函数输出一个概率向量（或[张量](https://en.wikipedia.org/wiki/Tensor)），其总和为`1.0`，可以用来清晰地评估模型在类别预测中的信心，且结果是人类可解释的。
 - en: A “temperature” scaling parameter `T` can be introduced which scales the logit
     values prior to the application of softmax.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以引入一个“温度”缩放参数`T`，该参数在应用softmax之前对logit值进行缩放。
 - en: '![](../Images/325914dbd49526f978ec826d353b6761.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/325914dbd49526f978ec826d353b6761.png)'
 - en: The application of the temperature scaling parameter T to the inputs to the
     softmax function
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 温度缩放参数T应用于softmax函数的输入。
 - en: The application of `T > 1.0` has the effect of *scaling down* logit values and
     produces the effect of the muting the largest differences between the probabilities
     of the various classes (it increases entropy within the model’s predictions)
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 应用`T > 1.0`的温度效果是*缩小*logit值，并且产生了减弱不同类别之间概率最大差异的效果（它增加了模型预测中的熵）。
 - en: Using a temperature of `T < 1.0` has the opposite effect; it *magnifies* the
     differences, meaning the most confident predictions will stand out even more compared
     to alternatives. This reduces the entropy within the model’s predictions.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`T < 1.0`的温度会产生相反的效果；它*放大*了差异，这意味着最有信心的预测会比其他预测更加突出。这减少了模型预测中的熵。
 - en: 'In code, it looks like this:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 在代码中，它看起来是这样的：
 - en: '[PRE3]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Take a look at the effect over 8 possible classes, given some hand-written
     logit values:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 看看给定一些手写logit值时，8个可能类别的效果：
 - en: '![](../Images/138299975434200047e05f840538fd66.png)'
+  id: totrans-76
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/138299975434200047e05f840538fd66.png)'
 - en: Generated via the script in my linked repository
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过我链接的仓库中的脚本生成
 - en: 'The above graph was plotted using the following values:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的图是使用以下值绘制的：
 - en: '[PRE4]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The bars represent the logit values (outputs from model prediction), and the
     lines represent the probability distribution over those classes, with probabilities
     defined on the right-side label. The thick red line represents the expected distribution,
     with temperature `T=1.0`, while the other lines demonstrate the change in relative
     likelihood with a temperature range from `0.5` to `8.0`.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 条形图表示logit值（模型预测的输出），而线条表示这些类别的概率分布，概率值定义在右侧标签上。粗红线表示期望的分布，温度为`T=1.0`，而其他线条则演示了在`0.5`到`8.0`的温度范围内，相对可能性变化的情况。
 - en: You can clearly see how `T=0.5` emphasizes the likelihood of the largest-magnitude
     logit index, while `T=8.0` reduces the difference in probabilities between classes
     to almost nothing.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以清楚地看到，`T=0.5`强调了最大幅度logit索引的可能性，而`T=8.0`则将类别之间的概率差异缩小到几乎为零。
 - en: '[PRE5]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Now, this doesn’t necessarily change the *relative likelihood* between any two
     classes (numerical stability issues aside), so how does this have any practical
     effect in sequence generation?
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，这不一定会改变任何两个类别之间的*相对可能性*（除去数值稳定性问题），那么它在序列生成中有什么实际影响呢？
 - en: The answer lies back in the mechanics of beam search. A temperature value greater
     than `1.0` makes it less likely a high-scoring individual token will outweigh
     a series of slightly-less-likely tokens, which in conjunction result in a better-scoring
     output.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 答案在于束搜索的机制。温度值大于`1.0`使得高分的单个标记不太可能超过一系列稍微不太可能的标记，二者结合起来产生一个更高分的输出。
 - en: '[PRE6]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: In summary, a higher temperature setting allows beam search to explore a greater
     variety of candidate sequence paths through the token graph. A lower temperature
     setting makes it increasingly focus on the most likely predictions at each step.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结来说，更高的温度设置允许束搜索在标记图上探索更多样化的候选序列路径。较低的温度设置使其越来越专注于每一步最可能的预测。
 - en: Implementation Details
+  id: totrans-87
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实现细节
 - en: 'Beam search implementations typically work with [log-probabilities](https://en.wikipedia.org/wiki/Log_probability)
     of the softmax probabilities, which is common in the ML domain among many others.
     The reasons include:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 束搜索实现通常使用[对数概率](https://en.wikipedia.org/wiki/Log_probability)来处理softmax概率，这在机器学习领域及其他许多领域中都很常见。其原因包括：
 - en: The probabilities in use are often vanishingly small; using log probs improves
     [numerical stability](https://en.wikipedia.org/wiki/Numerical_stability)
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用的概率通常极其小；使用对数概率可以改善[数值稳定性](https://en.wikipedia.org/wiki/Numerical_stability)。
 - en: We can compute a cumulative probability of outcomes via the addition of logprobs
     versus the multiplication of raw probabilities, which is slightly computationally
     faster as well as more numerically stable. Recall that `p(x) * p(y) == log(p(x))
     + log(p(y))`
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可以通过对数概率的加法来计算结果的累积概率，而不是直接乘以原始概率，这在计算上稍微更快，并且数值上更稳定。回忆一下，`p(x) * p(y) ==
+    log(p(x)) + log(p(y))`
 - en: Optimizers, such as [gradient descent](https://en.wikipedia.org/wiki/Gradient_descent),
     are simpler when working with log probs, which makes derivative calculations more
     simple and loss functions like cross-entropy loss already involve logarithmic
     calculations
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 优化器，如[梯度下降](https://en.wikipedia.org/wiki/Gradient_descent)，在处理对数概率时更为简单，这使得导数计算更加简便，而交叉熵损失等损失函数已经涉及了对数计算。
 - en: 'This also means that the values of the log probs we’re using as scores are
     negative real numbers. Since softmax produces a probability distribution which
     sums to `1.0`, the logarithm of any class probability is thus `≤ 1.0` which results
     in a negative value. This is slightly annoying, however it is consistent with
     the property that higher-valued scores are better, while greatly negative scores
     reflect extremely unlikely outcomes:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 这也意味着我们作为评分使用的对数概率值是负实数。由于softmax产生的概率分布的总和为`1.0`，因此任何类别的概率的对数值都将`≤ 1.0`，从而产生负值。这有些烦人，但它与高评分值更好这一特性一致，而极其负的评分则反映了极不可能的结果：
 - en: '[PRE7]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Here’s most of the example code, highly annotated, also available on [Github](https://github.com/mikecvet/beam/blob/main/src/beam.py#L8).
     Definitions for `GeneratedSequence` and `ScoredToken` can be [found here](https://github.com/mikecvet/beam/blob/main/src/sequence.py);
     these are mostly simple wrappers for tokens and scores.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是大部分示例代码，注释非常详细，代码也可以在[Github](https://github.com/mikecvet/beam/blob/main/src/beam.py#L8)上找到。`GeneratedSequence`和`ScoredToken`的定义可以在[这里找到](https://github.com/mikecvet/beam/blob/main/src/sequence.py)；这些主要是用于包装标记和得分的简单工具。
 - en: '[PRE8]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: In the next section, you can find some results of running this code on a few
     different datasets with different parameters.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一部分，你可以找到在不同数据集上使用不同参数运行此代码的一些结果。
 - en: Greedy Search and Beam Search Generation Examples
+  id: totrans-97
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 贪婪搜索和束搜索生成示例
 - en: As I mentioned, [I’ve published some example code to Github](https://github.com/mikecvet/beam),
     which uses the `t5-small` [transformer model from Hugging Face](https://huggingface.co/docs/transformers/en/model_doc/t5)
     and its corresponding [T5Tokenizer](https://huggingface.co/docs/transformers/v4.40.0/en/model_doc/t5#transformers.T5Tokenizer).
     The examples below were run through the T5 model against the [quick brown fox
     etc](https://en.wikipedia.org/wiki/The_quick_brown_fox_jumps_over_the_lazy_dog)
     Wikipedia page, sanitized through an [extractor script](https://github.com/mikecvet/beam/blob/main/wiki-extract.py).
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我提到的，[我已经将一些示例代码发布到Github](https://github.com/mikecvet/beam)，该代码使用了`t5-small`[Hugging
+    Face的transformer模型](https://huggingface.co/docs/transformers/en/model_doc/t5)及其对应的[T5Tokenizer](https://huggingface.co/docs/transformers/v4.40.0/en/model_doc/t5#transformers.T5Tokenizer)。下面的示例是通过T5模型运行的，使用了[quick
+    brown fox 等](https://en.wikipedia.org/wiki/The_quick_brown_fox_jumps_over_the_lazy_dog)维基百科页面，经过[提取脚本](https://github.com/mikecvet/beam/blob/main/wiki-extract.py)的清洗。
 - en: Greedy Search
+  id: totrans-99
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 贪婪搜索
 - en: 'Running `--greedy` [mode](https://github.com/mikecvet/beam/blob/main/src/greedy.py):'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行`--greedy` [模式](https://github.com/mikecvet/beam/blob/main/src/greedy.py)：
 - en: '[PRE9]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: This output summarizes part of the article well, but overall is not great. It’s
     missing initial context, repeats itself, and doesn’t state what the phrase actually
     is.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 该输出很好地总结了文章的部分内容，但整体效果不佳。它缺乏初始上下文，有重复内容，并且没有明确说明短语的具体含义。
 - en: Beam Search
+  id: totrans-103
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 束搜索
 - en: Let’s try again, this time [using beam search](https://github.com/mikecvet/beam/blob/main/src/beam.py)
     for output generation, using an initial beam width of `4` and the default `temperature`
     of `1.0`
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再试一次，这次使用[波束搜索](https://github.com/mikecvet/beam/blob/main/src/beam.py)进行输出生成，初始波束宽度为`4`，并且使用默认的`temperature`值`1.0`。
 - en: '[PRE10]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: This output is **far** superior to the greedy output above, and the most remarkable
     thing is that we’re *using the same model, prompt and input context to generate
     it*.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个输出**远**优于上述的贪婪输出，最值得注意的是我们*使用相同的模型、提示和输入上下文来生成它*。
 - en: There are still a couple mistakes in it; for example “*typing typewriters”,*
     and perhaps “*keyboards*” is ambiguous.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中仍然有一些错误；例如“*打字打字机*”，并且“*键盘*”可能存在歧义。
 - en: 'The beam search code I shared [will emit](https://github.com/mikecvet/beam/blob/main/src/beam.py)
     its decision-making progress as it progresses through the text generation (full
     output [here](https://github.com/mikecvet/beam/blob/main/example_runs/fox_b_1.out)).
     For example, the first two steps:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 我分享的波束搜索代码[将会输出](https://github.com/mikecvet/beam/blob/main/src/beam.py)其在文本生成过程中逐步决策的进展（完整输出[在这里](https://github.com/mikecvet/beam/blob/main/example_runs/fox_b_1.out)）。例如，前两步：
 - en: '[PRE11]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'Now if we look at the set of candidates in the last step:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，如果我们看看最后一步的候选集合：
 - en: '[PRE12]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: You can see that the top-scoring sentence containing `typing typewriters` outscored
     the sentence containing `testing typewriters` by `-15.39` to `-16.06`, which,
     if we raise to [Euler’s constant](https://en.wikipedia.org/wiki/Euler%27s_constant)
     to convert back into cumulative probabilities, is a probabilistic difference of
     just `0.00001011316%`. There must be a way to overcome this tiny difference!
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到，包含`打字打字机`的得分最高的句子比包含`测试打字机`的句子高出`-15.39`到`-16.06`，如果我们提高到[欧拉常数](https://en.wikipedia.org/wiki/Euler%27s_constant)并转换回累积概率，这是一个仅为`0.00001011316%`的概率差异。必须有办法克服这个微小的差异！
 - en: Beam Search with Temperature
+  id: totrans-113
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 带温度的波束搜索
 - en: Let’s see if this summarization could be improved by applying a temperature
     value to smooth over some of the log probability scores. Again, everything else,
     the model, and the input context, will otherwise be identical to the examples
     above.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看是否通过应用温度值来平滑一些对数概率得分，能够改善这个总结。再次强调，其他一切，模型和输入上下文，将与上述示例完全相同。
 - en: '[PRE13]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: This output correctly emitted “*testing typewriters*” rather than “*typing typewriters*”
     and specified “*computer keyboards*”. It also, interestingly, chose the historical
     fact that this phrase originally started with “**a** quick brown fox” over the
     Zaner-Bloser competition fact above. The full output is also available [here](https://github.com/mikecvet/beam/blob/main/example_runs/fox_b_4.out).
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个输出正确地生成了“*测试打字机*”而不是“*打字打字机*”，并且明确指定了“*计算机键盘*”。有趣的是，它选择了历史事实，即这个短语最初以“**一只**快速的棕色狐狸”开始，而不是上面提到的Zaner-Bloser竞赛事实。完整的输出也可以在[这里](https://github.com/mikecvet/beam/blob/main/example_runs/fox_b_4.out)找到。
 - en: Whether or not this output is better is a subjective matter of opinion. It's
     different in a few nuanced ways, and the usage and setting of temperature values
     will vary by application. I think its better, and again, its interesting because
     no model weights, model architecture, or prompt was changed to obtain this output.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个输出是否更好是一个主观的看法问题。它在一些细微的方面有所不同，温度值的使用和设置会因应用而异。我认为它更好，而且有趣的是，获得这个输出时没有改变任何模型权重、模型架构或提示。
 - en: Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo and Scoring
     Penalties
+  id: totrans-118
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 水牛水牛水牛水牛水牛水牛水牛水牛与评分惩罚
 - en: 'Let’s see if the beam search, with temperature settings used above, works properly
     for my favorite English-language linguistic construct: [Buffalo buffalo Buffalo
     buffalo buffalo buffalo Buffalo buffalo](https://en.wikipedia.org/wiki/Buffalo_buffalo_Buffalo_buffalo_buffalo_buffalo_Buffalo_buffalo).'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看波束搜索，使用上述温度设置，是否能正确处理我最喜欢的英语语言学构造：[水牛水牛水牛水牛水牛水牛水牛水牛](https://en.wikipedia.org/wiki/Buffalo_buffalo_Buffalo_buffalo_buffalo_buffalo_Buffalo_buffalo)。
 - en: '[PRE14]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'Utter disaster, though a predictable one. Given the complexity of this input
     document, we need additional techniques to handle contexts like this. Interestingly,
     the final iteration candidates didn’t include a single rational sequence:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 完全的灾难，尽管这是可以预见的。鉴于这个输入文档的复杂性，我们需要额外的技术来处理像这样的上下文。有趣的是，最后一次迭代的候选并没有包括任何一个合理的序列：
 - en: '[PRE15]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'We can [apply a token-specific score decay](https://github.com/mikecvet/beam/blob/main/src/beam.py#L98)
     (more like a *penalty)* to repeated tokens, which makes them appear less attractive
     (or more accurately, *less likely solutions*) to the beam search algorithm:'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以 [应用特定令牌的得分衰减](https://github.com/mikecvet/beam/blob/main/src/beam.py#L98)（更像是
+    *惩罚*）对重复的令牌进行处理，这使得它们在束搜索算法中显得不那么有吸引力（或者更准确地说，*更不可能的解*）：
 - en: '[PRE16]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Which results in the following, more reasonable output:'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 这导致了以下更合理的输出：
 - en: '[PRE17]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[You can see](https://github.com/mikecvet/beam/blob/main/example_runs/buffalo_b_4_decay.out#L285)
     where where the scoring penalty pulled the *infinite buffalos* sequence below
     the sequence resulting in the above output:'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: '[你可以看到](https://github.com/mikecvet/beam/blob/main/example_runs/buffalo_b_4_decay.out#L285)得分惩罚将
+    *无限水牛* 序列拉低，导致了上述输出结果：'
 - en: '[PRE18]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: So it turns out we need additional hacks (*techniques*) like this, to handle
     special kinds of edge cases.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以事实证明，我们需要像这样的额外技巧（*技术*），来处理一些特殊的边缘情况。
 - en: Conclusion
+  id: totrans-130
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: This turned out to be much longer than what I was planning to write; I hope
     you have a few takeaways. Aside from simply understanding how beam search and
     temperature work, I think the most interesting illustration above is how, even
@@ -600,15 +880,21 @@
     their output. The application of simple undergraduate Computer Science concepts
     to sequence construction can result in dramatically different LLM outputs, even
     with all other input being identical.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 这篇文章比我原本计划写的要长很多；希望你能从中得到一些启示。除了单纯理解束搜索（beam search）和温度（temperature）是如何工作的之外，我认为最有趣的例子是，即使考虑到LLM的巨大复杂性和能力，影响它们预测结果使用方式的实现选择，仍然对输出质量产生了巨大影响。将简单的本科计算机科学概念应用于序列构建，可以导致显著不同的LLM输出，即使其他所有输入完全相同。
 - en: When we encounter hallucinations, errors, or other quirks when working with
     LLMs, its entirely possible (and perhaps likely) that these are quirks with the
     output sequence construction algorithms, rather than any “fault” of the trained
     model itself. To the user of an API, it’s almost impossible to tell the difference.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们在使用LLM时遇到幻觉、错误或其他怪癖时，完全有可能（也许很可能）这些问题是由输出序列构建算法的怪癖引起的，而不是训练模型本身的“故障”。对于API的用户来说，几乎不可能分辨出差异。
 - en: I think this is an interesting example of the complexity of the machinery *around*
     LLMs which make them such powerful tools and products today.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 我认为这是一个有趣的例子，展示了LLM背后复杂的机制，使它们成为今天如此强大的工具和产品。

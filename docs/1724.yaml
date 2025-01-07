@@ -1,59 +1,89 @@
 - en: 'User Action Sequence Modeling: From Attention to Transformers and Beyond'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 用户行为序列建模：从注意力机制到变换器及其发展
 - en: 原文：[https://towardsdatascience.com/user-action-sequence-modeling-from-attention-to-transformers-and-beyond-5f280268b399?source=collection_archive---------5-----------------------#2024-07-15](https://towardsdatascience.com/user-action-sequence-modeling-from-attention-to-transformers-and-beyond-5f280268b399?source=collection_archive---------5-----------------------#2024-07-15)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/user-action-sequence-modeling-from-attention-to-transformers-and-beyond-5f280268b399?source=collection_archive---------5-----------------------#2024-07-15](https://towardsdatascience.com/user-action-sequence-modeling-from-attention-to-transformers-and-beyond-5f280268b399?source=collection_archive---------5-----------------------#2024-07-15)
 - en: The quest to LLM-ify recommender systems
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将推荐系统转变为类似LLM的系统的探索
 - en: '[](https://medium.com/@samuel.flender?source=post_page---byline--5f280268b399--------------------------------)[![Samuel
     Flender](../Images/390d82a673de8a8bb11cef66978269b5.png)](https://medium.com/@samuel.flender?source=post_page---byline--5f280268b399--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5f280268b399--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5f280268b399--------------------------------)
     [Samuel Flender](https://medium.com/@samuel.flender?source=post_page---byline--5f280268b399--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@samuel.flender?source=post_page---byline--5f280268b399--------------------------------)[![Samuel
+    Flender](../Images/390d82a673de8a8bb11cef66978269b5.png)](https://medium.com/@samuel.flender?source=post_page---byline--5f280268b399--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5f280268b399--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5f280268b399--------------------------------)
+    [Samuel Flender](https://medium.com/@samuel.flender?source=post_page---byline--5f280268b399--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5f280268b399--------------------------------)
     ·11 min read·Jul 15, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5f280268b399--------------------------------)
+    ·11分钟阅读·2024年7月15日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/9ea5d8b3f09223e21df594f5dad9876c.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9ea5d8b3f09223e21df594f5dad9876c.png)'
 - en: Image generated using ChatGPT
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用ChatGPT生成的图片
 - en: 'User action sequences are among the most powerful inputs in recommender systems:
     your next click, read, watch, play, or purchase is likely at least somewhat related
     to what you’ve clicked on, read, watched, played, or purchased minutes, hours,
     days, months, or even years ago.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 用户行为序列是推荐系统中最强大的输入之一：你下一次点击、阅读、观看、播放或购买，很可能与几分钟前、几小时、几天、几个月甚至几年前你所点击、阅读、观看、播放或购买的内容至少有某种程度的关联。
 - en: 'Historically, the status quo for modeling such user engagement sequences has
     been pooling: for example, a classic 2016 YouTube [paper](https://storage.googleapis.com/gweb-research2023-media/pubtools/pdf/45530.pdf)
     describes a system that takes the latest 50 watched videos, collects their embeddings
     from an embedding table, and pools these into a single feature vector with sum
     pooling. To save memory, the embedding table for these sequence videos is shared
     with the embedding table for candidate videos themselves.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 历史上，用于建模这类用户互动序列的传统方法是池化：例如，2016年一篇经典的YouTube [论文](https://storage.googleapis.com/gweb-research2023-media/pubtools/pdf/45530.pdf)描述了一个系统，该系统将最近观看的50个视频，收集它们在嵌入表中的表示，并通过求和池化将这些表示合并成一个单一的特征向量。为了节省内存，这些序列视频的嵌入表与候选视频的嵌入表共享。
 - en: '![](../Images/99b5651ad79480206ae75e94ce5f0c74.png)'
+  id: totrans-10
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/99b5651ad79480206ae75e94ce5f0c74.png)'
 - en: YouTube’s recommender system sum-pools the sequence of watched videos for a
     user. [Covinton et al 2016](https://storage.googleapis.com/gweb-research2023-media/pubtools/pdf/45530.pdf)
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: YouTube的推荐系统通过对用户观看的视频序列进行求和池化处理。[Covinton et al 2016](https://storage.googleapis.com/gweb-research2023-media/pubtools/pdf/45530.pdf)
 - en: 'This simplistic approach corresponds roughly to a bag-of-words approach in
     the NLP domain: it works, but it’s far from ideal. Pooling does not take into
     account the sequential nature of inputs, nor the relevance of the item in the
     user history with respect to the candidate item we need to rank, nor any of the
     temporal information: an…'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种简单的方法大致对应于自然语言处理领域的词袋模型：它能工作，但远非理想。池化方法没有考虑输入的顺序性，也没有考虑用户历史中项目与我们需要排序的候选项目的相关性，也没有考虑任何时间信息：一个……

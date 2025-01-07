@@ -1,125 +1,185 @@
 - en: Can Neural Networks Formulate Shock Wave?
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 神经网络能否形成冲击波？
 - en: 原文：[https://towardsdatascience.com/can-neural-networks-formulate-shock-wave-147bb75d0715?source=collection_archive---------4-----------------------#2024-04-04](https://towardsdatascience.com/can-neural-networks-formulate-shock-wave-147bb75d0715?source=collection_archive---------4-----------------------#2024-04-04)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/can-neural-networks-formulate-shock-wave-147bb75d0715?source=collection_archive---------4-----------------------#2024-04-04](https://towardsdatascience.com/can-neural-networks-formulate-shock-wave-147bb75d0715?source=collection_archive---------4-----------------------#2024-04-04)
 - en: How we build a PINN for inviscid Burgers Equation with shock formulation
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 我们如何构建一个具有冲击波形成的无粘性Burgers方程的PINN
 - en: '[](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)[![Shuyang
     Xiang](../Images/36a5fd18fd9b7b88cb41094f09b83882.png)](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------)
     [Shuyang Xiang](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)[![Shuyang
+    Xiang](../Images/36a5fd18fd9b7b88cb41094f09b83882.png)](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------)
+    [Shuyang Xiang](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------)
     ·6 min read·Apr 4, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------)
+    ·6分钟阅读·2024年4月4日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: PINN on Shock Waves
+  id: totrans-6
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 冲击波上的PINN
 - en: '**Physics-informed neural networks** (**PINNs**) are a special type of neural
     networks. They estimate solutions to partial differential equations by incorporating
     the governing physical laws of a given dataset into the learning process.'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '**物理信息神经网络**（**PINNs**）是一种特殊类型的神经网络。它们通过将给定数据集的物理定律纳入学习过程，从而估计偏微分方程的解。'
 - en: An example of such an equation is the inviscid Burgers’ equation, a prototype
     for conservation laws that can develop shock waves.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方程的一个例子是无粘性Burgers方程，它是一个守恒定律的原型，可以形成冲击波。
 - en: '![](../Images/db32daff6b729cd7c952efddb61d7dbc.png)'
+  id: totrans-9
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/db32daff6b729cd7c952efddb61d7dbc.png)'
 - en: 'Image from [wikipedia](https://en.wikipedia.org/wiki/Burgers%27_equation):
     Inviscid Burgers Equation in two space variables up until the time of shock formation.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[维基百科](https://en.wikipedia.org/wiki/Burgers%27_equation)：无粘性Burgers方程，在冲击波形成时的二维空间变量。
 - en: The current literature struggles to effectively tackle this issue. As shock
     waves are not continuous solutions, they only satisfy the equations in a weak
     sense. **Continuous Time Models** that depend solely on training samples, like
     the algorithmic differentiation method, cannot capture shock waves. These methods
     are only applicable to cases of functional regularity.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前的文献难以有效解决这个问题。由于冲击波不是连续解，它们仅在弱意义上满足方程。**连续时间模型**，如依赖于训练样本的算法微分方法，无法捕捉冲击波。这些方法仅适用于函数正则性的情况。
 - en: One could attempt to use **Discrete Time Models** where neural networks and
     time discretization work together to help the model formulate shocks. However,
     this method somewhat diminishes the advantages of Physics-informed Neural Networks
     (PINNs) and reverts to traditional numerical methods. This can be challenging
     for someone who understands equations but is not familiar with numerical solutions.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种方法是尝试使用**离散时间模型**，其中神经网络和时间离散化共同作用，帮助模型形成冲击波。然而，这种方法在一定程度上削弱了物理信息神经网络（PINNs）的优势，并回归到传统的数值方法。这对于那些理解方程但不熟悉数值解法的人来说可能是一个挑战。
 - en: In this article, I will address the limitations of existing Continuous Time
     Models of PINN methods for the Burgers equation. I will introduce calculations
     for discontinuity and weak solutions based on algorithmic differentiation, enabling
     the equation to capture shocks. This article might inspire those who are interested
     in the intersection of neural networks and physics-based modeling, especially
     in domains related to conservation laws.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我将讨论现有连续时间模型（PINN 方法）在 Burgers 方程中的局限性。我将介绍基于算法微分的间断和弱解的计算方法，从而使方程能够捕捉到激波现象。本文可能会激发那些对神经网络与基于物理的建模交叉领域感兴趣的人，特别是在涉及守恒定律的领域。
 - en: However, it should be noted that this method has only shown promising results
     for one of the simplest one-dimensional hyperbolic equations. Whether it can be
     extended to higher dimensions or more complex equations is an aspect that the
     author has not explored, and I invite readers to contribute their own ideas and
     resources on this topic.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，值得注意的是，该方法仅在最简单的一维双曲方程中显示出有希望的结果。是否能扩展到更高维度或更复杂的方程是作者尚未探索的一个方面，我邀请读者就此话题贡献自己的想法和资源。
 - en: 'PINN: Continuous Time Models for Burgers'
+  id: totrans-15
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 'PINN: Burgers 方程的连续时间模型'
 - en: 'According to the original [paper](https://arxiv.org/pdf/1711.10561.pdf): “Physics
     Informed Neural Networks (PINNs) are trained to solve supervised learning tasks
     whilst respecting any given laws of physics, described by general nonlinear partial
     differential equations (PDEs). ”'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据原始[论文](https://arxiv.org/pdf/1711.10561.pdf)：“物理信息神经网络（PINNs）被训练来解决监督学习任务，同时遵守由一般非线性偏微分方程（PDEs）描述的物理规律。”
 - en: 'These PDEs take the following form in general [1]:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些 PDE 通常采用以下形式 [1]：
 - en: ut + N [u] = 0, x ∈ Ω, t ∈ [0, T],
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: ut + N [u] = 0, x ∈ Ω, t ∈ [0, T]，
 - en: where u(t, x) represents the solution, N [·] is a nonlinear differential operator,
     and Ω is a subset of the d-dimensional space.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中 u(t, x) 代表解，N [·] 是一个非线性微分算子，Ω 是 d 维空间的子集。
 - en: Let’s denote by
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 设
 - en: L(u) = ut + N [u].
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: L(u) = ut + N [u]。
 - en: It can be immediately seen that f=0 if u is the solution of the equation. We
     will construct the solution u as a neural network
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 立刻可以看出，如果 u 是方程的解，那么 f=0。我们将构造解 u 作为一个神经网络。
 - en: u = neural_net(t,x;weights)
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: u = neural_net(t,x;weights)
 - en: where the inputs are the time and space variables. We determine the weights
     by minimizing the mean square error of f (as is said before, L(u) should be close
     to 0 if u is the solution of the equation) and certain initial and boundary conditions.
     For more details, please refer to the original paper.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中输入是时间和空间变量。我们通过最小化 f 的均方误差来确定权重（如前所述，如果 u 是方程的解，L(u) 应接近 0），并满足一定的初始条件和边界条件。更多细节，请参阅原始论文。
 - en: 'Now, let’s consider the 1-dimensional inviscid Burgers Equation:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，考虑一维无粘性 Burgers 方程：
 - en: '![](../Images/438341126c6d5a88b69547e4c5d5b42f.png)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/438341126c6d5a88b69547e4c5d5b42f.png)'
 - en: Inviscid burgers equation
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 无粘性 Burgers 方程
 - en: The solution to the equation, adhering to the initial condition, can be constructed
     implicitly using the [method of characteristics](https://en.wikipedia.org/wiki/Method_of_characteristics),
     that is, u=f(x-ut) with the characteristic curve x(t)= x0+f(x0)t. We see from
@@ -127,35 +187,54 @@
     slope, so if there exists two points x1, x2 such that x1+f(x1)t= x2+f(x2)t at
     a finite time t, we will see the intersectfion of two characteristics and the
     wave breaks [2].
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 方程的解在满足初始条件的情况下，可以通过[特征法](https://en.wikipedia.org/wiki/Method_of_characteristics)隐式构造，即
+    u=f(x-ut)，特征曲线为 x(t)= x0+f(x0)t。根据公式可以看出，特征 x(t) 是斜率不同的直线，因此如果存在两个点 x1, x2，使得在有限时间
+    t 内 x1+f(x1)t= x2+f(x2)t，我们将看到两个特征的交点，波将发生破裂 [2]。
 - en: The following code is inspired by the git repository [pinn-burgers](https://github.com/okada39/pinn_burgers).
     Here, a viscous Burgers’ equation is considered for 𝜈>0\. The equation is proven
     to have a globally defined smooth solution, given that the initial condition is
     a smooth function growing like o(|x|) at infinity [3].
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下代码灵感来自 git 仓库 [pinn-burgers](https://github.com/okada39/pinn_burgers)。在这里，考虑一个粘性
+    Burgers 方程，𝜈>0。已证明在初始条件为平滑函数并且在无穷大处增长如 o(|x|) 的情况下，方程具有全局定义的平滑解 [3]。
 - en: '![](../Images/53cc03415a2a21967c67c8870036a817.png)'
+  id: totrans-30
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/53cc03415a2a21967c67c8870036a817.png)'
 - en: viscous Burgers’ equation
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 粘性 Burgers 方程
 - en: 'We will express u(t,x) as neural_net(t,x;weights) with the aim to minimize
     the mean square error of L(u) (in this case, ut+uux) and the initial and boundary
     condition. If the solution to the equation is smooth, TensorFlow can be naturally
     used to write the following code to compute the desired unknowns:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将u(t,x)表示为neural_net(t,x;weights)，目的是最小化L(u)（在本例中是ut + uux）以及初始条件和边界条件的均方误差。如果方程的解是平滑的，可以自然地使用TensorFlow编写以下代码来计算所需的未知数：
 - en: '[PRE0]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'The L(u) (in the code, we call it u_eqn) will be define simply as:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: L(u)（在代码中，我们将其称为u_eqn）将简单地定义为：
 - en: '[PRE1]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: The issue is that the equation ut + uux only holds true in the weak sense. This
     means that it may not be useful to consider the values of ut and ux when shock
     waves form as they will explode. The equation only applies in an integrated form.
@@ -163,75 +242,112 @@
     and differentiation algorithms but don’t offer weak sense solutions. Therefore,
     we need to reconfigure the formula of L(u) to compel the neural network to form
     the shock wave.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题在于方程ut + uux仅在弱意义下成立。这意味着，在冲击波形成时，考虑ut和ux的值可能没有用，因为它们会爆炸。该方程仅适用于积分形式。像TensorFlow或PyTorch这样的常见Python包提供了神经网络和微分算法的API，但不提供弱意义的解。因此，我们需要重新配置L(u)的公式，以强制神经网络形成冲击波。
 - en: Introduction of Shock
+  id: totrans-37
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 冲击波引入
 - en: 'We’re introducing the Rankine–Hugoniot conditions, also known as Rankine–Hugoniot
     jump conditions or relations. These describe the relationship between states on
     either side of a shock wave. For the Burgers equation, the Rankine–Hugoniot condition
     appears as: 1/2[[𝑢²]]=𝑠[[𝑢]]. The brackets [[ ]] represent the difference between
     the right-hand side and left-hand side values, while ‘s’ is the shock propagation
     velocity.'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们引入了Rankine–Hugoniot条件，也叫Rankine–Hugoniot跳跃条件或关系。这些条件描述了冲击波两侧状态之间的关系。对于Burgers方程，Rankine–Hugoniot条件表示为：1/2[[𝑢²]]=𝑠[[𝑢]]。方括号[[
+    ]]表示右侧和左侧值之间的差异，而‘s’是冲击传播速度。
 - en: 'Considering a specific space variable ‘x’, we aim to closely examine the left
     or right limits, i.e., u(x±) in cases of discontinuity. Here’s the relevant code:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑一个特定的空间变量‘x’，我们旨在仔细检查左侧或右侧的极限，即在不连续情况下的u(x±)。以下是相关的代码：
 - en: '[PRE2]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: We define a small delta and calculate the value of the solution on both the
     left and right sides of the space variable x, up to a delta.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们定义一个小的delta，并计算空间变量x左右两侧解的值，直到delta。
 - en: 'Following this, we redefine the function L(u) as :'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们重新定义函数L(u)为：
 - en: '[PRE3]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: We use the regular form of the equation when the value of du_dt is finite (specifically,
     smaller than a sufficiently large value), and we use the Rankine–Hugoniot condition
     when the value of du_dt is infinite.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 当du_dt的值是有限的（具体来说，小于足够大的值）时，我们使用方程的常规形式；当du_dt的值是无限时，我们使用Rankine–Hugoniot条件。
 - en: Experiment
+  id: totrans-45
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实验
 - en: 'Let’s consider the Burgers equation with an initial condition of sin(πx) on
     the interval [-1, 1]. The solution can be expressed as u=sin(π(x-ut)), and a shock
     forms when t=1\. Using formula (1), we derive the following solution:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设Burgers方程的初始条件为sin(πx)，定义区间为[-1, 1]。解可以表示为u=sin(π(x-ut))，并且在t=1时形成冲击波。使用公式（1），我们得出以下解：
 - en: '![](../Images/091063661f41358dd888e4c627d52a52.png)'
+  id: totrans-47
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/091063661f41358dd888e4c627d52a52.png)'
 - en: 'Image by author: Solution of Burgers Equation using formula (1)'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者图像：使用公式（1）求解Burgers方程
 - en: 'The model has struggled to find the correct answer without being informed about
     what a shock is. However, if we switch to formula (2), we obtain the following
     solution:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型在没有了解冲击波的情况下，努力找出正确的答案。然而，如果我们切换到公式（2），则可以得到以下解：
 - en: '![](../Images/ce521d21ba2d9a221ac0677dd8dbf1cc.png)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ce521d21ba2d9a221ac0677dd8dbf1cc.png)'
 - en: 'Image by author: Solution of Burgers Equation using formula (2)'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者图像：使用公式（2）求解Burgers方程
 - en: You can see that the model successfully captures the shock wave at t=1.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到，模型在t=1时成功捕捉到了冲击波。
 - en: Conclusion
+  id: totrans-53
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Physics-informed neural networks (PINNs) can estimate solutions to partial differential
     equations by incorporating physical laws into their learning process. However,
     they often have difficulties with discontinuous solutions such as shock waves.
@@ -239,25 +355,38 @@
     shocks. It’s important to note that while the 1-D Burgers Equation is a simple
     use case, this method may not be applicable to more complex equations without
     deeper consideration.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 物理信息神经网络（PINNs）通过将物理定律融入学习过程，可以估算偏微分方程的解。然而，它们通常在处理如激波等不连续解时遇到困难。我提出了一种计算弱解的方法，允许
+    Burgers 方程捕捉激波。需要注意的是，尽管一维 Burgers 方程是一个简单的应用案例，但如果没有更深的考虑，这种方法可能不适用于更复杂的方程。
 - en: Reference
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[1] M. Raissi, P. Perdikaris, G.E. Karniadakis,'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] M. Raissi, P. Perdikaris, G.E. Karniadakis，'
 - en: 'Physics-informed neural networks: A deep learning framework for solving forward
     and inverse problems involving nonlinear partial differential equations, Journal
     of Computational Physics,Volume 378,2019, Pages 686–707.'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 物理信息神经网络：一种用于求解涉及非线性偏微分方程的正向和反向问题的深度学习框架，《计算物理学杂志》，2019年，第378卷，第686–707页。
 - en: '[2] A. Salih, Inviscid Burgers’ Equation. Lecture notes. Department of Aerospace
     Engineering Indian Institute of Space Science and Technology.'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] A. Salih, 无粘 Burgers 方程。讲义笔记。印度太空科学与技术研究所航空航天工程系。'
 - en: '[3] J Unterberger, Global existence for strong solutions of viscous Burgers
     equation. March 2015\. Control and Cybernetics 46(2).'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] J. Unterberger, 粘性 Burgers 方程强解的全局存在性。2015年3月。《控制与控制论》46(2)。'

@@ -1,64 +1,101 @@
 - en: Calibrating Classification Probabilities the Right Way
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 正确地校准分类概率
 - en: 原文：[https://towardsdatascience.com/calibrating-classification-probabilities-the-right-way-da935caee18d?source=collection_archive---------0-----------------------#2024-09-18](https://towardsdatascience.com/calibrating-classification-probabilities-the-right-way-da935caee18d?source=collection_archive---------0-----------------------#2024-09-18)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/calibrating-classification-probabilities-the-right-way-da935caee18d?source=collection_archive---------0-----------------------#2024-09-18](https://towardsdatascience.com/calibrating-classification-probabilities-the-right-way-da935caee18d?source=collection_archive---------0-----------------------#2024-09-18)
 - en: Or why you should not trust `predict_proba` methods
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 或者为什么你不应该信任`predict_proba`方法
 - en: '[](https://medium.com/@jodancker?source=post_page---byline--da935caee18d--------------------------------)[![Jonte
     Dancker](../Images/29e37a1a1cabc15cfb90a860b2931f03.png)](https://medium.com/@jodancker?source=post_page---byline--da935caee18d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--da935caee18d--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--da935caee18d--------------------------------)
     [Jonte Dancker](https://medium.com/@jodancker?source=post_page---byline--da935caee18d--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@jodancker?source=post_page---byline--da935caee18d--------------------------------)[![Jonte
+    Dancker](../Images/29e37a1a1cabc15cfb90a860b2931f03.png)](https://medium.com/@jodancker?source=post_page---byline--da935caee18d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--da935caee18d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--da935caee18d--------------------------------)
+    [Jonte Dancker](https://medium.com/@jodancker?source=post_page---byline--da935caee18d--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da935caee18d--------------------------------)
     ·8 min read·Sep 18, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da935caee18d--------------------------------)
+    ·阅读时间：8分钟·2024年9月18日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/728cfc9bbdc5554cd2d3e758d88f6994.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/728cfc9bbdc5554cd2d3e758d88f6994.png)'
 - en: Venn-Abers predictors and its output for a Binary classifier (Image by the author).
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: Venn-Abers预测器及其二分类器输出（图片由作者提供）。
 - en: In previous articles, I pointed out the importance of knowing how sure a model
     is about its predictions.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在之前的文章中，我指出了了解模型对其预测有多确定的重要性。
 - en: '[](/uncertainty-quantification-and-why-you-should-care-3f8a651f1956?source=post_page-----da935caee18d--------------------------------)
     [## Uncertainty Quantification and Why You Should Care'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](/uncertainty-quantification-and-why-you-should-care-3f8a651f1956?source=post_page-----da935caee18d--------------------------------)
+    [## 不确定性量化及其重要性'
 - en: How to improve your ML model with three lines of code
+  id: totrans-10
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 如何通过三行代码提升你的机器学习模型
 - en: towardsdatascience.com](/uncertainty-quantification-and-why-you-should-care-3f8a651f1956?source=post_page-----da935caee18d--------------------------------)
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Towards Data Science](https://towardsdatascience.com/uncertainty-quantification-and-why-you-should-care-3f8a651f1956?source=post_page-----da935caee18d--------------------------------)'
 - en: For classification problems, it is not helpful to only know the final class.
     We need more information to make well-informed decisions in downstream processes.
     A classification model that only outputs the final class covers important information.
     We do not know how sure the model is and how much we can trust its prediction.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于分类问题，仅仅知道最终的类别是没有帮助的。我们需要更多的信息来在后续的过程中做出明智的决策。一个仅输出最终类别的分类模型掩盖了重要信息。我们不知道模型有多确定，以及我们能多大程度上信任它的预测。
 - en: How can we achieve more trust in the model?
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何才能更有信心地信任模型？
 - en: Two approaches can give us more insight into classification problems.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 有两种方法可以帮助我们深入了解分类问题。
 - en: We could turn our point prediction into a prediction set. The goal of the prediction
     set is to guarantee that it contains the true class with a given probability.
     The size of the prediction set then tells us how sure our model is about its prediction.
     The fewer classes the prediction set contains, the surer the model is.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将点预测转换为预测集。预测集的目标是保证它以给定的概率包含真实类别。预测集的大小可以告诉我们模型对其预测的信心水平。预测集包含的类别越少，模型就越确定。

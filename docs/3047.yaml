@@ -1,95 +1,139 @@
 - en: Semantically Compress Text to Save On LLM Costs
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 语义压缩文本以节省 LLM 成本
 - en: 原文：[https://towardsdatascience.com/semantically-compress-text-to-save-on-llm-costs-0b3e62b0c43a?source=collection_archive---------2-----------------------#2024-12-20](https://towardsdatascience.com/semantically-compress-text-to-save-on-llm-costs-0b3e62b0c43a?source=collection_archive---------2-----------------------#2024-12-20)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/semantically-compress-text-to-save-on-llm-costs-0b3e62b0c43a?source=collection_archive---------2-----------------------#2024-12-20](https://towardsdatascience.com/semantically-compress-text-to-save-on-llm-costs-0b3e62b0c43a?source=collection_archive---------2-----------------------#2024-12-20)
 - en: LLMs are great… if they can fit all of your data
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: LLM 很棒……前提是它们能容纳你的所有数据
 - en: '[](https://lou-kratz.medium.com/?source=post_page---byline--0b3e62b0c43a--------------------------------)[![Lou
     Kratz](../Images/228ae5454c6875748fda13558196ae6f.png)](https://lou-kratz.medium.com/?source=post_page---byline--0b3e62b0c43a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0b3e62b0c43a--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0b3e62b0c43a--------------------------------)
     [Lou Kratz](https://lou-kratz.medium.com/?source=post_page---byline--0b3e62b0c43a--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://lou-kratz.medium.com/?source=post_page---byline--0b3e62b0c43a--------------------------------)[![Lou
+    Kratz](../Images/228ae5454c6875748fda13558196ae6f.png)](https://lou-kratz.medium.com/?source=post_page---byline--0b3e62b0c43a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0b3e62b0c43a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0b3e62b0c43a--------------------------------)
+    [Lou Kratz](https://lou-kratz.medium.com/?source=post_page---byline--0b3e62b0c43a--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0b3e62b0c43a--------------------------------)
     ·8 min read·Dec 20, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0b3e62b0c43a--------------------------------)
+    ·8分钟阅读·2024年12月20日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/c0e48e95960d168e110cf80d4dcf8a4c.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c0e48e95960d168e110cf80d4dcf8a4c.png)'
 - en: Photo by [Christopher Burns](https://unsplash.com/@christopher__burns?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [Christopher Burns](https://unsplash.com/@christopher__burns?utm_source=medium&utm_medium=referral)
+    提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: '*Originally published at* [*https://blog.developer.bazaarvoice.com*](https://blog.developer.bazaarvoice.com/2024/10/28/semantically-compress-text-to-save-on-llm-costs/)
     *on October 28, 2024.*'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '*最初发布于* [*https://blog.developer.bazaarvoice.com*](https://blog.developer.bazaarvoice.com/2024/10/28/semantically-compress-text-to-save-on-llm-costs/)
+    *2024年10月28日。*'
 - en: Introduction
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 引言
 - en: 'Large language models are fantastic tools for unstructured text, but what if
     your text doesn’t fit in the context window? Bazaarvoice faced exactly this challenge
     when building our AI Review Summaries feature: millions of user reviews simply
     won’t fit into the context window of even newer LLMs and, even if they did, it
     would be prohibitively expensive.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 大型语言模型是处理非结构化文本的绝佳工具，但如果你的文本无法适应上下文窗口该怎么办？Bazaarvoice 在构建我们的 AI 评论摘要功能时正面临着这个挑战：数百万条用户评论根本无法容纳到即使是最新的
+    LLM 的上下文窗口中，即便能够容纳，也会非常昂贵。
 - en: In this post, I share how Bazaarvoice tackled this problem by compressing the
     input text without loss of semantics. Specifically, we use a multi-pass hierarchical
     clustering approach that lets us explicitly adjust the level of detail we want
     to lose in exchange for compression, regardless of the embedding model chosen.
     The final technique made our Review Summaries feature financially feasible and
     set us up to continue to scale our business in the future.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我将分享 Bazaarvoice 如何通过压缩输入文本而不丢失语义来解决这个问题。具体而言，我们使用了一种多次传递的层次聚类方法，使我们能够明确地调整想要在压缩中失去的细节程度，而不管选择的是哪种嵌入模型。最终的技术使我们的评论摘要功能在财务上变得可行，并为我们未来继续扩展业务奠定了基础。
 - en: The Problem
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 问题
 - en: 'Bazaarvoice has been collecting user-generated product reviews for nearly 20
     years so we have *a lot* of data. These product reviews are completely unstructured,
     varying in length and content. Large language models are excellent tools for unstructured
     text: they can handle unstructured data and identify relevant pieces of information
     amongst distractors.'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: Bazaarvoice 已经收集了近 20 年的用户生成产品评论，因此我们拥有 *大量* 的数据。这些产品评论完全是非结构化的，长度和内容各不相同。大型语言模型是处理非结构化文本的优秀工具：它们能够处理非结构化数据，并在干扰信息中识别出相关的信息片段。
 - en: 'LLMs have their limitations, however, and one such limitation is the context
     window: how many tokens (roughly the number of words) can be put into the network
     at once. State-of-the-art large language models, such as Athropic’s Claude version
     3, have extremely large context windows of up to 200,000 tokens. This means you
     can fit small novels into them, but the internet is still a vast, every-growing
     collection of data, and our user-generated product reviews are no different.'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，LLM也有它们的局限性，其中之一就是上下文窗口：即一次可以输入到网络中的标记数量（大致为单词数量）。如 Athropic 的 Claude 3 版本这样的最先进的大型语言模型具有高达
+    200,000 个标记的极大上下文窗口。这意味着你可以将小小说嵌入其中，但互联网仍然是一个庞大且不断增长的数据集合，我们的用户生成的产品评论也不例外。
 - en: We hit the context window limit while building our Review Summaries feature
     that summarizes all of the reviews of a specific product on our clients website.
     Over the past 20 years, however, many products have garnered thousands of reviews
     that quickly overloaded the LLM context window. In fact, we even have products
     with millions of reviews that would require immense re-engineering of LLMs to
     be able to process in one prompt.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 在构建“评论摘要”功能时，我们遇到了上下文窗口的限制，该功能可以总结我们客户网站上某个特定产品的所有评论。然而，在过去的20年里，许多产品积累了成千上万的评论，这些评论迅速超出了LLM的上下文窗口限制。事实上，我们甚至有些产品拥有数百万条评论，这就需要对LLM进行大规模的重新工程，才能够在一次提示中处理这些评论。
 - en: Even if it was technically feasible, the costs would be quite prohibitive. All
     LLM providers charge based on the number of input and output tokens. As you approach
     the context window limits for each product, of which we have millions, we can
     quickly run up cloud hosting bills in excess of six figures.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使从技术上可行，成本也会相当高昂。所有大型语言模型（LLM）提供商都会根据输入和输出的标记数量收费。当我们接近每个产品的上下文窗口限制时，考虑到我们拥有数百万条数据，我们很容易就会产生超过六位数的云托管费用。
 - en: Our Approach
+  id: totrans-17
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 我们的方法
 - en: 'To ship Review Summaries despite these technical, and financial, limitations,
     we focused on a rather simple insight into our data: Many reviews say the same
     thing. In fact, the whole idea of a summary relies on this: review summaries capture
@@ -97,13 +141,17 @@
     we can capitalize on this data duplication to reduce the amount of text we need
     to send to the LLM, saving us from hitting the context window limit *and* reducing
     the operating cost of our system.'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管面临这些技术和财务的限制，我们还是成功地发布了“评论摘要”功能，专注于一个非常简单的见解：许多评论传达的是相同的意思。实际上，摘要的核心理念就是基于这一点：评论摘要捕捉了评论者反复出现的见解、主题和情感。我们意识到可以利用这一数据重复性来减少需要发送到LLM的文本量，从而避免达到上下文窗口限制，*同时*减少我们系统的运营成本。
 - en: 'To achieve this, we needed to identify segments of text that say the same thing.
     Such a task is easier said than done: often people use different words or phrases
     to express the same thing.'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现这一目标，我们需要识别出表达相同意思的文本段落。这类任务说起来容易做起来难：人们常常用不同的词汇或短语来表达相同的意思。
 - en: 'Fortunately, the task of identifying if text is semantically similar has been
     an active area of research in the natural language processing field. The work
     by Agirre et. al. 2013 (*SEM 2013 shared task: Semantic Textual Similarity. In
@@ -113,220 +161,313 @@
     or dissimilar on a scale of 1–5, as illustrated in the table below (from Cer et.
     al., [*SemEval-2017 Task 1: Semantic Textual Similarity Multilingual and Crosslingual
     Focused Evaluation*](https://aclanthology.org/S17-2001/)):'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，识别文本是否语义相似一直是自然语言处理领域的一个活跃研究方向。Agirre 等人在 2013 年的研究（*SEM 2013共享任务：语义文本相似度。在第二届词汇和计算语义联合会议*）中，甚至发布了一个由人类标注的语义相似句子数据集，称为
+    STS Benchmark。在这个数据集中，他们要求人类根据1到5的评分标准，指示文本句子是否语义相似或不同，如下表所示（来自 Cer 等人的[《SemEval-2017任务1：语义文本相似性多语种和跨语种聚焦评估》](https://aclanthology.org/S17-2001/)）：
 - en: '![](../Images/64717a527c3200bf2b67ddd05b7720f1.png)'
+  id: totrans-21
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/64717a527c3200bf2b67ddd05b7720f1.png)'
 - en: The STSBenchmark dataset is often used to evaluate how well a text embedding
     model can associate semantically similar sentences in its high-dimensional space.
     Specifically, Pearson’s correlation is used to measure how well the embedding
     model represents the human judgements.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: STSBenchmark 数据集通常用于评估文本嵌入模型在其高维空间中能多好地关联语义相似的句子。具体来说，使用皮尔逊相关系数来衡量嵌入模型在多大程度上能够代表人类的判断。
 - en: Thus, we can use such an embedding model to identify semantically similar phrases
     from product reviews, and then remove repeated phrases before sending them to
     the LLM.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们可以使用这种嵌入模型从产品评论中识别语义相似的短语，然后在将其发送到LLM之前删除重复的短语。
 - en: 'Our approach is as follows:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的方法如下：
 - en: First, product reviews are segmented the into sentences.
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，产品评论被分割成句子。
 - en: An embedding vector is computed for each sentence using a network that performs
     well on the STS benchmark
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用在STS基准测试上表现良好的网络为每个句子计算嵌入向量。
 - en: Agglomerative clustering is used on all embedding vectors for each product.
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对每个产品的所有嵌入向量使用凝聚聚类。
 - en: An example sentence — the one closest to the cluster centroid — is retained
     from each cluster to send to the LLM, and other sentences within each cluster
     are dropped.
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个聚类中 — 离聚类中心最近的句子 — 会被保留并发送到LLM，聚类中的其他句子会被丢弃。
 - en: Any small clusters are considered outliers, and those are randomly sampled for
     inclusion in the LLM.
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 任何小的聚类被认为是异常值，这些异常值会被随机抽样以供LLM使用。
 - en: The number of sentences each cluster represents is included in the LLM prompt
     to ensure the weight of each sentiment is considered.
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个聚类所代表的句子数量会包含在LLM提示中，以确保每个情感的权重得到考虑。
 - en: This may seem straightforward when written in a bulleted list, but there were
     some devils in the details we had to sort out before we could trust this approach.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 这在以项目符号列出的形式下看起来似乎很简单，但在我们可以信任这种方法之前，还有一些细节问题需要解决。
 - en: Embedding Model Evaluation
+  id: totrans-32
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 嵌入模型评估
 - en: First, we had to ensure the model we used effectively embedded text in a space
     where semantically similar sentences are close, and semantically dissimilar ones
     are far away. To do this, we simply used the STS benchmark dataset and computed
     the Pearson correlation for the models we desired to consider. We use AWS as a
     cloud provider, so naturally we wanted to evaluate their [Titan Text Embedding](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-embedding-models.html)
     models.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们必须确保我们使用的模型能够有效地将文本嵌入到一个空间中，在这个空间里，语义相似的句子靠得很近，而语义不相似的句子远离。为此，我们仅使用了STS基准测试数据集，并为我们想要评估的模型计算了皮尔逊相关性。我们使用AWS作为云服务提供商，因此自然地，我们希望评估他们的[Titan文本嵌入](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-embedding-models.html)模型。
 - en: 'Below is a table showing the Pearson’s correlation on the STS Benchmark for
     different Titan Embedding models:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 下表显示了不同Titan嵌入模型在STS基准测试上的皮尔逊相关性：
 - en: (State of the art is visible [here](https://paperswithcode.com/sota/semantic-textual-similarity-on-sts-benchmark))
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: （最先进的技术可以在[这里](https://paperswithcode.com/sota/semantic-textual-similarity-on-sts-benchmark)查看）
 - en: So AWS’s embedding models are quite good at embedding semantically similar sentences.
     This was great news for us — we can use these models off the shelf and their cost
     is extremely low.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，AWS的嵌入模型在嵌入语义相似句子方面非常出色。这对我们来说是一个好消息 — 我们可以直接使用这些模型，并且它们的成本非常低。
 - en: Semantically Similar Clustering
+  id: totrans-37
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 语义相似聚类
 - en: 'The next challenge we faced was: how can we enforce semantic similarity during
     clustering? Ideally, no cluster would have two sentences whose semantic similarity
     is less than humans can accept — a score of 4 in the table above. Those scores,
     however, do not directly translate to the embedding distances, which is what is
     needed for agglomerative clustering thresholds.'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们面临的下一个挑战是：如何在聚类过程中强制执行语义相似性？理想情况下，任何聚类中都不应有两句话，其语义相似性低于人类可接受的水平 — 上表中的4分。这些分数，然而，并不能直接转换为嵌入距离，而嵌入距离正是凝聚聚类所需要的阈值。
 - en: To deal with this issue, we again turned to the STS benchmark dataset. We computed
     the distances for all pairs in the training dataset, and fit a polynomial from
     the scores to the distance thresholds.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这个问题，我们再次转向了STS基准测试数据集。我们计算了训练数据集中所有对的距离，并从分数到距离阈值拟合了一个多项式。
 - en: '![](../Images/3c0a2a704c1524ddd3c9719b9a9d2e38.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3c0a2a704c1524ddd3c9719b9a9d2e38.png)'
 - en: Image by author
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: This polynomial lets us compute the distance threshold needed to meet any semantic
     similarity target. For Review Summaries, we selected a score of 3.5, so nearly
     all clusters contain sentences that are “roughly” to “mostly” equivalent or more.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个多项式让我们能够计算出满足任何语义相似性目标所需的距离阈值。对于评论摘要，我们选择了3.5分，因此几乎所有聚类都包含“粗略”到“基本上”相等的句子，或者更多。
 - en: It’s worth noting that this can be done on any embedding network. This lets
     us experiment with different embedding networks as they become available, and
     quickly swap them out should we desire without worrying that the clusters will
     have semantically dissimilar sentences.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得注意的是，这可以在任何嵌入网络上进行。这使我们能够在嵌入网络可用时进行实验，并且在需要时快速交换它们，而不必担心聚类会出现语义上不相似的句子。
 - en: Multi-Pass Clustering
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 多次聚类
 - en: Up to this point, we knew we could trust our semantic compression, but it wasn’t
     clear how much compression we could get from our data. As expected, the amount
     of compression varied across different products, clients, and industries.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们知道可以信任我们的语义压缩，但不清楚我们能从数据中获得多少压缩。正如预期的那样，压缩量在不同的产品、客户和行业之间有所不同。
 - en: Without loss of semantic information, i.e., a hard threshold of 4, we only achieved
     a compression ratio of 1.18 (i.e., a space savings of 15%).
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 在没有语义信息丢失的情况下，即设置为硬性阈值为4时，我们仅实现了1.18的压缩比（即节省了15%的空间）。
 - en: Clearly lossless compression wasn’t going to be enough to make this feature
     financially viable.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，无损压缩不足以使这个功能在经济上可行。
 - en: 'Our distance selection approach discussed above, however, provided an interesting
     possibility here: we can slowly increase the amount of information loss by repeatedly
     running the clustering at lower thresholds for remaining data.'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，我们上面讨论的距离选择方法提供了一个有趣的可能性：我们可以通过在较低的阈值下重复进行聚类，逐渐增加信息损失，以处理剩余数据。
 - en: 'The approach is as follows:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 该方法如下：
 - en: Run the clustering with a threshold selected from score = 4\. This is considered
     lossless.
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用分数为4的阈值再次运行聚类。这被认为是无损的。
 - en: Select any outlying clusters, i.e., those with only a few vectors. These are
     considered “not compressed” and used for the next phase. We chose to re-run clustering
     on any clusters with size less than 10.
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 选择任何离群聚类，即那些仅包含少数向量的聚类。这些被视为“未压缩”的，并用于下一阶段。我们选择对任何小于10的聚类重新运行聚类。
 - en: Run clustering again with a threshold selected from score = 3\. This is not
     lossless, but not so bad.
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 再次运行聚类，选择分数为3的阈值。这不是无损的，但也不算太差。
 - en: Select any clusters with size less than 10.
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 选择任何小于10的聚类。
 - en: Repeat as desired, continuously decreasing the score threshold.
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 根据需要重复，持续降低分数阈值。
 - en: So, at each pass of the clustering, we’re sacrificing more information loss,
     but getting more compression and not muddying the lossless representative phrases
     we selected during the first pass.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，在每次聚类过程中，我们牺牲了更多的信息损失，但获得了更多的压缩，并且没有混淆第一次聚类时选择的无损代表性短语。
 - en: In addition, such an approach is extremely useful not only for Review Summaries,
     where we want a high level of semantic similarity at the cost of less compression,
     but for other use cases where we may care less about semantic information loss
     but desire to spend less on prompt inputs.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，这种方法非常有用，不仅适用于评论摘要，我们希望在牺牲一定压缩的情况下保持较高的语义相似度，还适用于其他用例，可能我们不太关心语义信息损失，但希望在提示输入上花费更少。
 - en: In practice, there are still a significantly large number of clusters with only
     a single vector in them even after dropping the score threshold a number of times.
     These are considered outliers, and are randomly sampled for inclusion in the final
     prompt. We select the sample size to ensure the final prompt has 25,000 tokens,
     but no more.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，即使在多次降低分数阈值后，仍然有大量仅包含一个向量的聚类。这些被视为离群值，并被随机抽样以包含在最终的提示中。我们选择样本大小，以确保最终提示包含25,000个标记，但不超过。
 - en: Ensuring Authenticity
+  id: totrans-58
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 确保真实性
 - en: 'The multi-pass clustering and random outlier sampling permits semantic information
     loss in exchange for a smaller context window to send to the LLM. This raises
     the question: how good are our summaries?'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 多次聚类和随机离群值抽样允许在交换较小的上下文窗口（发送给LLM的窗口）时损失语义信息。这引出了一个问题：我们的摘要有多好？
 - en: At Bazaarvoice, we know authenticity is a requirement for consumer trust, and
     our Review Summaries must stay authentic to truly represent all voices captured
     in the reviews. Any lossy compression approach runs the risk of mis-representing
     or excluding the consumers who took time to author a review.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Bazaarvoice，我们知道真实性是消费者信任的必要条件，我们的评论摘要必须保持真实性，才能真正代表评论中所捕获的所有声音。任何有损压缩方法都有可能误表示或排除那些花时间撰写评论的消费者。
 - en: To ensure our compression technique was valid, we measured this directly. Specifically,
     for each product, we sampled a number of reviews, and then used [LLM Evals](https://www.youtube.com/watch?v=WWwYCAIYzQk)
     to identify if the summary was representative of and relevant to each review.
     This gives us a hard metric to evaluate and balance our compression against.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了确保我们的压缩技术有效，我们直接进行了测量。具体来说，对于每个产品，我们采样了一些评论，然后使用[LLM Evals](https://www.youtube.com/watch?v=WWwYCAIYzQk)来判断摘要是否能代表每条评论并与其相关。这为我们提供了一个硬性指标，用于评估和权衡我们的压缩效果。
 - en: Results
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结果
 - en: Over the past 20 years, we have collected nearly a billion user-generated reviews
     and needed to generate summaries for tens of millions of products. Many of these
     products have thousands of reviews, and some up to millions, that would exhaust
     the context windows of LLMs and run the price up considerably.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 在过去的20年里，我们收集了近十亿条用户生成的评论，并需要为数千万个产品生成摘要。许多这些产品有成千上万条评论，有些甚至多达百万条，这会耗尽LLM的上下文窗口，并大幅提高成本。
 - en: Using our approach above, however, we reduced the input text size by **97.7%**
     (a compression ratio of **42**), letting us scale this solution for all products
     and any amount of review volume in the future.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，使用我们上面的方法，我们将输入文本的大小减少了**97.7%**（压缩比为**42**），使我们能够将这一解决方案扩展到所有产品，并应对未来任何数量的评论量。
 - en: In addition, the cost of generating summaries for all of our billion-scale dataset
     reduced **82.4**%. This includes the cost of embedding the sentence data and storing
     them in a database.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，为我们的十亿规模数据集生成摘要的成本减少了**82.4**%。这包括了嵌入句子数据并将其存储在数据库中的成本。

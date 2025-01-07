@@ -1,91 +1,129 @@
 - en: Learn Transformer Fine-Tuning and Segment Anything
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 学习Transformer微调与Segment Anything
 - en: 原文：[https://towardsdatascience.com/learn-transformer-fine-tuning-and-segment-anything-481c6c4ac802?source=collection_archive---------0-----------------------#2024-06-30](https://towardsdatascience.com/learn-transformer-fine-tuning-and-segment-anything-481c6c4ac802?source=collection_archive---------0-----------------------#2024-06-30)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/learn-transformer-fine-tuning-and-segment-anything-481c6c4ac802?source=collection_archive---------0-----------------------#2024-06-30](https://towardsdatascience.com/learn-transformer-fine-tuning-and-segment-anything-481c6c4ac802?source=collection_archive---------0-----------------------#2024-06-30)
 - en: Train Meta’s Segment Anything Model (SAM) to segment high fidelity masks for
     any domain
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 训练Meta的Segment Anything Model（SAM），为任何领域分割高保真掩模
 - en: '[](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)[![Stefan
     Todoran](../Images/37e67b874c85a58d597a6c8c82b1160f.png)](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------)
     [Stefan Todoran](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)[![Stefan
+    Todoran](../Images/37e67b874c85a58d597a6c8c82b1160f.png)](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------)
+    [Stefan Todoran](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------)
     ·11 min read·Jun 30, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------)
+    ·11分钟阅读·2024年6月30日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: The release of several powerful, open-source foundational models coupled with
     advancements in fine-tuning have brought about a new paradigm in machine learning
     and artificial intelligence. At the center of this revolution is the [transformer
     model](https://arxiv.org/pdf/1706.03762).
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 几个强大的开源基础模型的发布以及微调技术的进步，带来了机器学习和人工智能领域的新范式。这场革命的核心是[transformer模型](https://arxiv.org/pdf/1706.03762)。
 - en: While high accuracy domain-specific models were once out of reach for all but
     the most well funded corporations, today the foundational model paradigm allows
     for even the modest resources available to student or independent researchers
     to achieve results rivaling state of the art proprietary models.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管高准确度的领域特定模型曾经只属于资金雄厚的公司，但如今，基础模型的范式使得即使是学生或独立研究者所拥有的有限资源，也能够取得与最先进的专有模型相媲美的成果。
 - en: '![](../Images/79d4f3b808380557b9859fb5d468c3fd.png)'
+  id: totrans-8
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/79d4f3b808380557b9859fb5d468c3fd.png)'
 - en: 'Fine-tuning can greatly improve performance on out-of-distribution tasks (image
     source: by author).'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 微调可以显著提升在分布外任务上的表现（图片来源：作者提供）。
 - en: This article explores the application of Meta’s Segment Anything Model (SAM)
     to the remote sensing task of river pixel segmentation. If you’d like to jump
     right in to the code the source file for this project is available on [GitHub](https://github.com/geo-smart/water-surf/blob/main/book/chapters/masking_distributed.ipynb)
     and the data is on [HuggingFace](https://huggingface.co/datasets/stodoran/elwha-segmentation-v1),
     although reading the full article first is advised.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文探讨了Meta的Segment Anything Model（SAM）在遥感任务中应用于河流像素分割。如果你想直接跳入代码，项目的源文件可以在[GitHub](https://github.com/geo-smart/water-surf/blob/main/book/chapters/masking_distributed.ipynb)上找到，数据也在[HuggingFace](https://huggingface.co/datasets/stodoran/elwha-segmentation-v1)上发布，尽管建议先阅读完整的文章。
 - en: Project Requirements
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 项目要求
 - en: The first step is to either find or create a suitable dataset. Based on existing
     literature, a good fine-tuning dataset for SAM will have at least 200–800 images.
     A key lesson of the past decade of deep learning advancement is that more data
     is always better, so you can’t go wrong with a larger fine-tuning dataset. However,
     the goal behind foundational models is to allow even relatively small datasets
     to be sufficient for strong performance.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一步是找到或创建一个合适的数据集。根据现有文献，适合SAM的微调数据集应该至少包含200到800张图像。过去十年深度学习发展的一个关键经验是，更多的数据总是更好，因此更大的微调数据集是不会错的。然而，基础模型的目标是使得即使是相对较小的数据集也足以获得强劲的表现。
 - en: It will also be necessary to have a HuggingFace account, which can be [created
     here](https://huggingface.co/join). Using HuggingFace we can easily store and
     fetch our dataset at any time from any device, which makes collaboration and reproducibility
     easier.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 还需要一个HuggingFace账户，可以在[此处创建](https://huggingface.co/join)。通过HuggingFace，我们可以轻松地在任何设备上随时存储和获取我们的数据集，这使得协作和可重复性变得更加容易。
 - en: The last requirement is a device with a GPU on which we can run the training
     workflow. An Nvidia T4 GPU, which is available for free through [Google Colab](https://colab.research.google.com/),
     is sufficiently powerful to train the largest SAM model checkpoint (sam-vit-huge)
     on 1000 images for 50 epochs in under 12 hours.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后的要求是有一台配备GPU的设备，我们可以在其上运行训练工作流。Nvidia T4 GPU，通过[Google Colab](https://colab.research.google.com/)免费提供，足够强大，可以在12小时内对1000张图像进行50个epoch的训练，并训练出最大的SAM模型检查点（sam-vit-huge）。
 - en: To avoid losing progress to usage limits on hosted runtimes, you can mount Google
     Drive and save each model checkpoint there. Alternatively, deploy and connect
     to a [GCP virtual machine](https://console.cloud.google.com/marketplace/product/colab-marketplace-image-public/colab)
     to bypass limits altogether. If you’ve never used GCP before you are eligible
     for a free $300 dollar credit, which is enough to train the model at least a dozen
     times.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 为避免因托管运行时的使用限制而丢失进度，您可以挂载Google Drive并将每个模型检查点保存到那里。或者，部署并连接到[GCP虚拟机](https://console.cloud.google.com/marketplace/product/colab-marketplace-image-public/colab)以绕过这些限制。如果您以前从未使用过GCP，您将有资格获得300美元的免费信用，这足以让您至少训练模型十二次。
 - en: Understanding SAM
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 理解SAM
 - en: 'Before we begin training, we need to understand the architecture of SAM. The
     model contains three components: an image encoder from a minimally modified [masked
     autoencoder](https://arxiv.org/pdf/2111.06377), a flexible prompt encoder capable
@@ -93,38 +131,52 @@
     One motivation behind the design is to allow fast, real-time segmentation on edge
     devices (e.g. in the browser) since the image embedding only needs to be computed
     once and the mask decoder can run in ~50ms on CPU.'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们开始训练之前，我们需要了解SAM的架构。该模型包含三个组件：一个经过最小修改的[掩膜自编码器](https://arxiv.org/pdf/2111.06377)作为图像编码器，一个能够处理多种提示类型的灵活提示编码器，以及一个快速轻量的掩膜解码器。设计的一个动机是允许在边缘设备（例如浏览器）上实现快速、实时的分割，因为图像嵌入只需要计算一次，掩膜解码器可以在CPU上约50毫秒内运行。
 - en: '![](../Images/1ca364b41e10eba87510cb407ede1fcf.png)'
+  id: totrans-18
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1ca364b41e10eba87510cb407ede1fcf.png)'
 - en: 'The model architecture of SAM shows us what inputs the model accepts and which
     portions of the model need to be trained (image source: [SAM GitHub](https://github.com/facebookresearch/segment-anything)).'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: SAM的模型架构展示了模型接受的输入以及需要训练的模型部分（图像来源：[SAM GitHub](https://github.com/facebookresearch/segment-anything)）。
 - en: In theory, the image encoder has already learned the optimal way to embed an
     image, identifying shapes, edges and other general visual features. Similarly,
     in theory the prompt encoder is already able to optimally encode prompts. The
     mask decoder is the part of the model architecture which takes these image and
     prompt embeddings and actually creates the mask by operating on the image and
     prompt embeddings.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 理论上，图像编码器已经学会了嵌入图像的最佳方式，能够识别形状、边缘和其他一般视觉特征。类似地，理论上，提示编码器已经能够优化地编码提示。掩膜解码器是模型架构的一部分，它接收这些图像和提示的嵌入，并通过操作图像和提示嵌入来实际创建掩膜。
 - en: As such, one approach is to freeze the model parameters associated with the
     image and prompt encoders during training and to only update the mask decoder
     weights. This approach has the benefit of allowing both supervised and unsupervised
     downstream tasks, since control point and bounding box prompts are both automatable
     and usable by humans.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，一种方法是在训练过程中冻结与图像和提示编码器相关的模型参数，只更新掩膜解码器的权重。这种方法的好处是能够同时支持监督学习和无监督学习的下游任务，因为控制点和边界框提示既可以自动化，也可以由人类使用。
 - en: '![](../Images/9bd06d274db8c4e8c28203001b9df717.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9bd06d274db8c4e8c28203001b9df717.png)'
 - en: 'Diagram showing the frozen SAM image encoder and mask decoder, alongside the
     overloaded prompt encoder, used in the AutoSAM architecture (source: [AutoSAM
     paper](https://arxiv.org/pdf/2306.06370)).'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 展示冻结的SAM图像编码器和掩膜解码器，以及在AutoSAM架构中使用的超载提示编码器的示意图（来源：[AutoSAM论文](https://arxiv.org/pdf/2306.06370)）。
 - en: An alternative approach is to overload the prompt encoder, freezing the image
     encoder and mask decoder and simply not using the original SAM mask encoder. For
     example, the AutoSAM architecture uses a network based on Harmonic Dense Net to
@@ -133,12 +185,17 @@
     only the mask decoder, but code for this alternative approach can be found in
     the AutoSAM [GitHub](https://github.com/talshaharabany/AutoSAM/blob/main/inference.py)
     and [paper](https://arxiv.org/pdf/2306.06370).
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种方法是重载提示编码器，冻结图像编码器和掩膜解码器，并简单地不使用原始SAM掩膜编码器。例如，AutoSAM架构使用基于Harmonic Dense
+    Net的网络来根据图像本身生成提示嵌入。在本教程中，我们将介绍第一种方法，即冻结图像和提示编码器，仅训练掩膜解码器，但关于这种替代方法的代码可以在AutoSAM的[GitHub](https://github.com/talshaharabany/AutoSAM/blob/main/inference.py)和[论文](https://arxiv.org/pdf/2306.06370)中找到。
 - en: Configuring Prompts
+  id: totrans-25
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 配置提示
 - en: The next step is to determine what sorts of prompts the model will receive during
     inference time, so that we can supply that type of prompt at training time. Personally
     I would not advise the use of text prompts for any serious computer vision pipeline,
@@ -146,28 +203,38 @@
     leaves points and bounding boxes, with the choice ultimately being down to the
     particular nature of your specific dataset, although the literature has found
     that bounding boxes outperform control points fairly consistently.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步是确定模型在推理时将收到哪种类型的提示，以便我们在训练时可以提供这种类型的提示。个人而言，我不建议在任何严肃的计算机视觉管道中使用文本提示，因为自然语言处理具有不可预测/不一致的特性。这使得点和边界框成为选择，最终的选择取决于特定数据集的性质，尽管文献表明边界框通常比控制点更有优势。
 - en: 'The reasons for this are not entirely clear, but it could be any of the following
     factors, or some combination of them:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 造成这种情况的原因尚不完全清楚，但可能是以下因素之一，或它们的某种组合：
 - en: Good control points are more difficult to select at inference time (when the
     ground truth mask is unknown) than bounding boxes.
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在推理时（当真实掩膜未知时），选择好的控制点比选择边界框更为困难。
 - en: The space of possible point prompts is orders of magnitude larger than the space
     of possible bounding box prompts, so it has not been as thoroughly trained.
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 点提示的可能空间比边界框提示的可能空间大几个数量级，因此它尚未被充分训练。
 - en: The original SAM authors focused on the model’s zero-shot and few-shot (counted
     in term of human prompt interactions) capabilities, so pretraining may have focused
     more on bounding boxes.
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 原始SAM的作者关注于模型的零-shot和少量-shot（按人类提示交互次数计算）能力，因此预训练可能更侧重于边界框。
 - en: Regardless, river segmentation is actually a rare case in which point prompts
     actually outperform bounding boxes (although only slightly, even with an extremely
     favorable domain). Given that in any image of a river the body of water will stretch
@@ -176,27 +243,37 @@
     portions of river can look extremely similar, in theory meaning that bounding
     boxes provide the model with significantly less information than control points
     and therefore leading to worse performance.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 不管怎样，河流分割实际上是一个特殊案例，其中点提示比边界框更有效（尽管即使在非常有利的领域中，差异也非常小）。鉴于任何一张河流图像中的水域几乎都会从图像的一端延伸到另一端，任何包含的边界框几乎总是会覆盖图像的大部分。因此，河流的不同部分的边界框提示看起来会非常相似，理论上意味着边界框提供给模型的信息远少于控制点，从而导致较差的表现。
 - en: '![](../Images/caef3506b78c144b9dca83f9982381dc.png)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/caef3506b78c144b9dca83f9982381dc.png)'
 - en: 'Control points, bounding box prompts, and the ground truth segmentation overlaid
     on two sample training images (image source: by author).'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 控制点、边界框提示以及在两张样本训练图像上叠加的真实分割掩膜（图片来源：作者提供）。
 - en: Notice how in the illustration above, although the true segmentation masks for
     the two river portions are completely different, their respective bounding boxes
     are nearly identical, while their points prompts differ (comparatively) more.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在上面的插图中，尽管两部分河流的真实分割掩膜完全不同，但它们各自的边界框几乎相同，而它们的点提示（相对来说）差异更大。
 - en: The other important factor to consider is how easily input prompts can be generated
     at inference time. If you expect to have a human in the loop, then both bounding
     boxes and control points are both fairly trivial to acquire at inference time.
     However in the event that you intend to have a completely automated pipeline,
     answering this questions becomes more involved.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个需要考虑的重要因素是如何在推理时轻松生成输入提示。如果你预期在流程中会有人参与，那么无论是边界框还是控制点，在推理时都相对容易获取。然而，如果你打算实现完全自动化的流程，那么回答这个问题就变得更加复杂。
 - en: Whether using control points or bounding boxes, generating the prompt typically
     first involves estimating a rough mask for the object of interest. Bounding boxes
     can then just be the minimum box which wraps the rough mask, whereas control points
@@ -205,16 +282,22 @@
     the object of interest only needs to roughly match the same size and position
     of the true object, whereas for control points the estimated mask would need to
     more closely match the contours of the object.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 无论是使用控制点还是边界框，生成提示通常首先涉及估计目标物体的粗略掩膜。边界框可以只是包裹粗略掩膜的最小矩形框，而控制点需要从粗略掩膜中采样。这意味着当地面真值掩膜未知时，边界框更容易获得，因为目标物体的估计掩膜只需要大致匹配真实物体的大小和位置，而对于控制点，估计的掩膜需要更精确地匹配物体的轮廓。
 - en: '![](../Images/e9b118912df2a60eb5dde9b81600cb6f.png)'
+  id: totrans-37
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e9b118912df2a60eb5dde9b81600cb6f.png)'
 - en: 'When using an estimated mask as opposed to the ground truth, control point
     placement may include mislabeled points, while bounding boxes are generally in
     the right place (image source: by author).'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用估计掩膜而不是地面真值时，控制点的放置可能会包括误标的点，而边界框通常会在正确的位置（图片来源：作者提供）。
 - en: For river segmentation, if we have access to both RGB and NIR, then we can use
     spectral indices thresholding methods to obtain our rough mask. If we only have
     access to RGB, we can convert the image to HSV and threshold all pixels within
@@ -222,58 +305,89 @@
     below a certain size threshold and use `erosion` from `skimage.morphology` to
     make sure the only 1 pixels in our mask are those which were towards the center
     of large blue blobs.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于河流分割，如果我们同时能够访问 RGB 和 NIR 图像，那么可以使用光谱指数阈值方法来获得我们的粗略掩膜。如果我们只能访问 RGB 图像，我们可以将图像转换为
+    HSV 格式，并对特定色相、饱和度和明度范围内的所有像素进行阈值处理。然后，我们可以移除小于某一尺寸阈值的连通组件，并使用 `skimage.morphology`
+    中的 `erosion` 操作，确保掩膜中只有位于大蓝色斑点中心的像素。
 - en: Model Training
+  id: totrans-40
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 模型训练
 - en: To train our model, we need a data loader containing all of our training data
     that we can iterate over for each training epoch. When we load our dataset from
     HuggingFace, it takes the form of a `datasets.Dataset` class. If the dataset is
     private, make sure to first install the HuggingFace CLI and sign in using `!huggingface-cli
     login`.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了训练我们的模型，我们需要一个包含所有训练数据的数据加载器，以便在每个训练周期中进行迭代。当我们从 HuggingFace 加载数据集时，它的形式是一个
+    `datasets.Dataset` 类。如果数据集是私有的，确保首先安装 HuggingFace CLI 并使用 `!huggingface-cli login`
+    登录。
 - en: '[PRE0]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: We then need to code up our own custom dataset class which returns not just
     an image and label for any index, but also the prompt. Below is an implementation
     that can handle both control point and bounding box prompts. To be initialized,
     it takes a HuggingFace `datasets.Dataset` instance and a SAM processor instance.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们需要编写我们自己的自定义数据集类，该类不仅返回任何索引的图像和标签，还返回提示。以下是一个可以处理控制点和边界框提示的实现。要初始化它，需要传入一个
+    HuggingFace `datasets.Dataset` 实例和一个 SAM 处理器实例。
 - en: '[PRE1]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: We also have to define the `SAMDataset._getitem_ctrlpts` and `SAMDataset._getitem_bbox`
     functions, although if you only plan to use one prompt type then you can refactor
     the code to just directly handle that type in `SAMDataset.__getitem__` and remove
     the helper function.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还需要定义 `SAMDataset._getitem_ctrlpts` 和 `SAMDataset._getitem_bbox` 函数，尽管如果你只打算使用一种提示类型，那么可以重构代码，使其直接在
+    `SAMDataset.__getitem__` 中处理该类型并移除辅助函数。
 - en: '[PRE2]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Putting it all together, we can create a function which creates and returns
     a PyTorch dataloader given either split of the HuggingFace dataset. Writing functions
     which return dataloaders rather than just executing cells with the same code is
     not only good practice for writing flexible and maintainable code, but is also
     necessary if you plan to use [HuggingFace Accelerate](https://huggingface.co/docs/accelerate/index)
     to run distributed training.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 将所有内容结合起来，我们可以创建一个函数，该函数接收HuggingFace数据集的任一分割，并生成并返回一个PyTorch数据加载器。编写返回数据加载器的函数，而不是仅仅执行包含相同代码的单元，不仅是编写灵活且可维护代码的好实践，而且如果你计划使用[HuggingFace
+    Accelerate](https://huggingface.co/docs/accelerate/index)进行分布式训练，这也是必须的。
 - en: '[PRE3]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: After this, training is simply a matter of loading the model, freezing the image
     and prompt encoders, and training for the desired number of iterations.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 之后，训练就变得简单了，只需要加载模型、冻结图像和提示编码器，并进行所需次数的训练迭代。
 - en: '[PRE4]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Below is the basic outline of the training loop code. Note that the `forward_pass`,
     `calculate loss`, `evaluate_model`, and `save_model_checkpoint` functions have
     been left out for brevity, but implementations are available on the GitHub. The
@@ -283,76 +397,108 @@
     to get a single mask which can be compared to the ground truth either the predicted
     masks need to be averaged, or the best predicted mask needs to be selected (identified
     based on SAM’s predicted IoU scores).
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是训练循环代码的基本大纲。请注意，`forward_pass`、`calculate loss`、`evaluate_model`和`save_model_checkpoint`函数为了简洁起见没有展示，但实现代码可以在GitHub上找到。前向传播代码会根据提示类型有所不同，损失计算也需要根据提示类型做特殊处理；在使用点提示时，SAM会为每个输入点返回一个预测掩码，因此，为了获得一个可以与真实值进行比较的单一掩码，需要对预测掩码进行平均，或者选择最佳预测掩码（基于SAM预测的IoU分数）。
 - en: '[PRE5]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Tuning Results
+  id: totrans-53
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 微调结果
 - en: For the Elwha river project, the best setup achieved trained the “sam-vit-base”
     model using a dataset of over 1k segmentation masks using a GCP instance in under
     12 hours.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于Elwha河项目，最佳设置使用GCP实例在12小时内训练了“sam-vit-base”模型，数据集包含超过1000个分割掩码。
 - en: Compared with baseline SAM the fine-tuning drastically improved performance,
     with the median mask going from unusable to highly accurate.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 与基线SAM相比，微调显著提高了性能，中位掩码从不可用变为高度准确。
 - en: '![](../Images/2a00107139c1bb22dddf9d3a329fc6cb.png)'
+  id: totrans-56
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2a00107139c1bb22dddf9d3a329fc6cb.png)'
 - en: 'Fine-tuning SAM greatly improves segmentation performance relative to baseline
     SAM with the default prompt (image source: by author).'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 微调SAM大大改善了相对于基线SAM和默认提示的分割性能（图片来源：作者）。
 - en: One important fact to note is that the training dataset of 1k river images was
     imperfect, with segmentation labels varying greatly in the amount of correctly
     classified pixels. As such, the metrics shown above were calculated on a held-out
     pixel perfect dataset of 225 river images.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个需要注意的重要事实是，训练数据集中的1000张河流图像并不完美，分割标签在正确分类像素的数量上差异很大。因此，上面展示的度量是基于一个保留的225张河流图像的像素完美数据集计算得出的。
 - en: An interesting observed behavior was that the model learned to generalize from
     the imperfect training data. When evaluating on datapoints where the training
     example contained obvious misclassifications, we can observe that the models prediction
     avoids the error. Notice how images in the top row which shows training samples
     contains masks which do not fill the river in all the way to the bank, while the
     bottom row showing model predictions more tightly segments river boundaries.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个有趣的观察行为是，模型学会了从不完美的训练数据中进行泛化。当我们在包含明显误分类的训练示例上的数据点上进行评估时，我们可以观察到模型的预测避免了这些错误。请注意，显示训练样本的顶行图片中的掩码并没有完全覆盖河流到达河岸，而底行的模型预测则更紧密地分割了河流的边界。
 - en: '![](../Images/711983a57ffa0c862d13e50b50b1f44b.png)'
+  id: totrans-60
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/711983a57ffa0c862d13e50b50b1f44b.png)'
 - en: Even with imperfect training data, fine-tuning SAM can lead to impressive generalization.
     Notice how the predictions (bottom row) have less misclassifications and fill
     the river more than the training data (top row). *Image by author.*
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使使用不完美的训练数据，微调SAM也能实现令人印象深刻的泛化。请注意，预测结果（底行）相比训练数据（顶行）有更少的误分类，并且更好地填充了河流区域。*图片来源：作者。*
 - en: Conclusion
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Congratulations! If you’ve made it this far you’ve learned everything you need
     to know to fully fine-tune Meta’s Segment Anything Model for any downstream vision
     task!
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 恭喜你！如果你已经走到这里，你已经学到了完全微调Meta的Segment Anything Model以适应任何下游视觉任务所需的所有知识！
 - en: While your fine-tuning workflow will without a doubt differ from the implementation
     presented in this tutorial, the knowledge gained from reading this will transfer
     not only to your segmentation project, but to future your deep learning projects
     and beyond.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管你的微调工作流程无疑会与本文教程中展示的实现有所不同，但从阅读中获得的知识不仅会转移到你的分割项目上，还会对你未来的深度学习项目及其他项目产生帮助。
 - en: Keep exploring the world of machine learning, stay curious, and as always, happy
     coding!
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 继续探索机器学习的世界，保持好奇心，一如既往，祝你编码愉快！
 - en: Appendix
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 附录
 - en: The dataset used in this example is the [Elwha V1 dataset](https://huggingface.co/datasets/stodoran/elwha-segmentation-v1),
     created by the [GeoSMART research lab](https://geo-smart.github.io/) from the
     University of Washington for a research project on the application of fine-tuned
@@ -361,5 +507,8 @@
     paper. At a high level, the Elwha V1 dataset consists of postprocessed model predictions
     from a SAM checkpoint fine-tuned using a subset of the labeled orthoimagery published
     by [Buscombe et al.](https://zenodo.org/records/10155783) and released on Zenodo.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 本示例中使用的数据集是[Elwha V1 数据集](https://huggingface.co/datasets/stodoran/elwha-segmentation-v1)，由华盛顿大学的[GeoSMART研究实验室](https://geo-smart.github.io/)创建，用于一个关于将微调的大型视觉变换器应用于地理空间分割任务的研究项目。本文中的教程代表了即将发布论文的简化和更易接近的版本。总体而言，Elwha
+    V1 数据集由SAM检查点模型的后处理预测组成，该模型使用由[Buscombe等人](https://zenodo.org/records/10155783)发布并在Zenodo上公开的标注正射影像子集进行微调。

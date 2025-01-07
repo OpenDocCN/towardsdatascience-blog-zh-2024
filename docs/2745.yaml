@@ -1,260 +1,394 @@
 - en: Detecting Anomalies in Social Media Volume Time Series
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 检测社交媒体流量时间序列中的异常
 - en: 原文：[https://towardsdatascience.com/detecting-anomalies-in-social-media-volume-time-series-9cae614a11d0?source=collection_archive---------5-----------------------#2024-11-11](https://towardsdatascience.com/detecting-anomalies-in-social-media-volume-time-series-9cae614a11d0?source=collection_archive---------5-----------------------#2024-11-11)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/detecting-anomalies-in-social-media-volume-time-series-9cae614a11d0?source=collection_archive---------5-----------------------#2024-11-11](https://towardsdatascience.com/detecting-anomalies-in-social-media-volume-time-series-9cae614a11d0?source=collection_archive---------5-----------------------#2024-11-11)
 - en: '**How I detect anomalies in social Media volumes: A Residual-Based Approach**'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**我如何检测社交媒体流量中的异常：一种基于残差的方法**'
 - en: '[](https://medium.com/@lorenzo.mezzini?source=post_page---byline--9cae614a11d0--------------------------------)[![Lorenzo
     Mezzini](../Images/e4df2ae1cd2e9bfde4c7fd636781de74.png)](https://medium.com/@lorenzo.mezzini?source=post_page---byline--9cae614a11d0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9cae614a11d0--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9cae614a11d0--------------------------------)
     [Lorenzo Mezzini](https://medium.com/@lorenzo.mezzini?source=post_page---byline--9cae614a11d0--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@lorenzo.mezzini?source=post_page---byline--9cae614a11d0--------------------------------)[![Lorenzo
+    Mezzini](../Images/e4df2ae1cd2e9bfde4c7fd636781de74.png)](https://medium.com/@lorenzo.mezzini?source=post_page---byline--9cae614a11d0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9cae614a11d0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9cae614a11d0--------------------------------)
+    [Lorenzo Mezzini](https://medium.com/@lorenzo.mezzini?source=post_page---byline--9cae614a11d0--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9cae614a11d0--------------------------------)
     ·7 min read·Nov 11, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9cae614a11d0--------------------------------)
+    ·7分钟阅读·2024年11月11日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/aa6c46de491ac7955aced3b1c58d4cf0.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/aa6c46de491ac7955aced3b1c58d4cf0.png)'
 - en: Photo by [Joshua Hoehne](https://unsplash.com/@joshua_hoehne?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [Joshua Hoehne](https://unsplash.com/@joshua_hoehne?utm_source=medium&utm_medium=referral)
+    提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: In the age of social media, analyzing conversation volumes has become crucial
     for understanding user behaviours, detecting trends, and, most importantly, identifying
     anomalies. Knowing when an anomaly is occurring can help management and marketing
     respond in crisis scenarios.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在社交媒体时代，分析对话量对于理解用户行为、检测趋势，以及最重要的是识别异常变得至关重要。知道异常发生的时间可以帮助管理层和营销团队在危机情境中作出回应。
 - en: In this article, we’ll explore a residual-based approach for detecting anomalies
     in social media volume time series data, using a real-world example from Twitter.
     For such a task, I am going to use data from [Numenta Anomaly Benchmark](https://github.com/numenta/NAB),
     which provides volume data from Twitter posts with a 5-minute frame window amongst
     its benchmarks.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我们将探讨一种基于残差的方法，用于检测社交媒体流量时间序列数据中的异常，使用来自Twitter的一个真实世界示例。对于这个任务，我将使用
+    [Numenta Anomaly Benchmark](https://github.com/numenta/NAB) 提供的数据集，其中包含Twitter帖子的流量数据，并且数据窗口为5分钟。
 - en: 'We will analyze the data from two perspectives: as a first exercise we will
     detect anomalies using the full dataset, and then we will detect anomalies in
     a real-time scenario to check how responsive this method is.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从两个角度分析数据：作为第一个练习，我们将使用完整的数据集检测异常，然后我们将在实时场景中检测异常，以检查此方法的响应能力。
 - en: Detecting anomalies with the full dataset
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用完整数据集检测异常
 - en: '**Analyzing a Sample Twitter Volume Dataset**'
+  id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**分析一个示例的Twitter流量数据集**'
 - en: 'Let’s start by loading and visualizing a sample Twitter volume dataset for
     Apple:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从加载和可视化一个关于Apple的示例Twitter流量数据集开始：
 - en: '![](../Images/22c65890ffd6b0b6c1656361831c0dfa.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/22c65890ffd6b0b6c1656361831c0dfa.png)'
 - en: Volume and log-Volume observed for AAPL Twitter volumes
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 观察到的AAPL Twitter流量的体积和对数体积
 - en: Image by Author
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片
 - en: From this plot, we can see that there are several spikes (anomalies) in our
     data. These spikes in volumes are the ones we want to identify.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这个图表中，我们可以看到数据中有几个尖峰（异常）。这些体积尖峰就是我们希望识别的异常。
 - en: Looking at the second plot (log-scale) we can see that the Twitter volume data
     shows a clear daily cycle, with higher activity during the day and lower activity
     at night. This seasonal pattern is common in social media data, as it reflects
     the day-night activity of users. It also presents a weekly seasonality, but we
     will ignore it.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 从第二个图（对数尺度）来看，我们可以看到Twitter成交量数据呈现出明显的日常周期，白天活动较多，夜间活动较少。这种季节性模式在社交媒体数据中很常见，因为它反映了用户的昼夜活动。它还表现出每周的季节性，但我们将忽略这一点。
 - en: Removing Seasonal Trends
+  id: totrans-19
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 去除季节性趋势
 - en: We want to make sure that this cycle does not interfere with our conclusions,
     thus we will remove it. To remove this seasonality, we’ll perform a seasonal decomposition.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望确保这个周期不会干扰我们的结论，因此我们将将其移除。为了去除这种季节性，我们将进行季节性分解。
 - en: First, we’ll calculate the moving average (MA) of the volume, which will capture
     the trend. Then, we’ll compute the ratio of the observed volume to the MA, which
     gives us the multiplicative seasonal effect.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们将计算成交量的移动平均（MA），这将捕捉到趋势。然后，我们将计算观察到的成交量与MA的比率，这为我们提供了乘法季节效应。
 - en: '![](../Images/f501a6697ad6760f04208d3af5c9ae29.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f501a6697ad6760f04208d3af5c9ae29.png)'
 - en: Multiplicative effect of time on volumes
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 时间对成交量的乘法效应
 - en: Image by Author
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: As expected, the seasonal trend follows a day/night cycle with its peak during
     the day hours and its saddle at nighttime.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如预期的那样，季节性趋势遵循昼夜周期，白天时达到高峰，夜间则处于低谷。
 - en: To further proceed with the decomposition we need to calculate the expected
     value of the volume given the multiplicative trend found before.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了进一步进行分解，我们需要根据之前发现的乘法趋势计算成交量的期望值。
 - en: '![](../Images/9c15e62b66dce0ae415eba2189620db1.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9c15e62b66dce0ae415eba2189620db1.png)'
 - en: Volume and log-Volume observed and expected for AAPL Twitter volumes
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: AAPL Twitter成交量的观察值和期望值的成交量及对数成交量
 - en: Image by Author
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: '**Analyzing Residuals and Detecting Anomalies**'
+  id: totrans-30
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**分析残差并检测异常**'
 - en: 'The final component of the decomposition is the error resulting from the subtraction
     between the expected value and the true value. We can consider this measure as
     the de-meaned volume accounting for seasonality:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 分解的最终组成部分是由于期望值和真实值之间的差异所产生的误差。我们可以将这一度量视为去除均值后的考虑季节性的成交量：
 - en: '![](../Images/3b054b29c8ae1dff7458a90e29410cc8.png)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3b054b29c8ae1dff7458a90e29410cc8.png)'
 - en: Absolute Error and log-Error after seasonal decomposition of AAPL Twitter volumes
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: AAPL Twitter成交量季节性分解后的绝对误差和对数误差
 - en: Image by Author
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: Interestingly, the residual distribution closely follows a Pareto distribution.
     This property allows us to use the Pareto distribution to set a threshold for
     detecting anomalies, as we can flag any residuals that fall above a certain percentile
     (e.g., 0.9995) as potential anomalies.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 有趣的是，残差分布紧密地跟随帕累托分布。这一特性使得我们可以使用帕累托分布来设置阈值以检测异常，因为我们可以标记任何高于某一百分位（例如0.9995）的残差为潜在异常。
 - en: '![](../Images/cbf2d33f41a5ccc3349225eb0e711028.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cbf2d33f41a5ccc3349225eb0e711028.png)'
 - en: Absolute Error and log-Error quantiles Vs Pareto quantiles
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 绝对误差和对数误差的分位数与帕累托分位数
 - en: Image by Author
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: 'Now, I have to do a big disclaimer: this property I am talking about is not
     “True” per se. In my experience in social listening, I’ve observed that holds
     true with most social data. Except for some right skewness in a dataset with many
     anomalies.'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我必须做一个重要的声明：我所说的这一特性本身并不“绝对正确”。根据我在社交监听中的经验，我观察到这一点对于大多数社交数据来说是成立的，除了那些异常值较多且右偏的数据集。
 - en: In this specific case, we have well over 15k observations, hence we will set
     the p-value at 0.9995\. Given this threshold, roughly 5 anomalies for every 10.000
     observations will be detected (assuming a perfect Pareto distribution).
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种特定情况下，我们的观察值超过了15k，因此我们将p值设置为0.9995。基于这一阈值，每10,000个观察值大约会检测到5个异常（假设完美的帕累托分布）。
 - en: 'Therefore, if we check which observation in our data has an error whose p-value
     is higher than 0.9995, we get the following signals:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，如果我们检查数据中哪些观察值的误差的p值高于0.9995，我们将得到以下信号：
 - en: '![](../Images/825a02da7c854a300393682312658db1.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/825a02da7c854a300393682312658db1.png)'
 - en: Signals anomalies of AAPL Twitter volumes
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: AAPL Twitter成交量的异常信号
 - en: Image by Author
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: From this graph, we see that the observations with the highest volumes are highlighted
     as anomalies. Of course, if we desire more or fewer signals, we can adjust the
     selected p-value, keeping in mind that, as it decreases, it will increase the
     number of signals.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 从这张图表中，我们看到体积最大的观察值被突出显示为异常。当然，如果我们希望更多或更少的信号，可以调整所选择的p值，记住，随着p值的降低，信号的数量将增加。
 - en: '**Real-Time Anomaly Detection**'
+  id: totrans-46
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**实时异常检测**'
 - en: 'Now let’s switch to a real-time scenario. In this case, we will run the same
     algorithm for every new observation and check both which signals are returned
     and how quickly the signals are returned after the observation takes place:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们切换到一个实时场景。在这种情况下，我们将对每个新观察数据运行相同的算法，检查哪些信号被返回以及信号在观察发生后的返回速度：
 - en: '![](../Images/caf3d10fbb73d8281539f2b18a4b19ae.png)'
+  id: totrans-48
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/caf3d10fbb73d8281539f2b18a4b19ae.png)'
 - en: Live Signals of AAPL Twitter volumes
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: AAPL Twitter交易量的实时信号
 - en: Image by Author
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片
 - en: We can clearly see that this time, we have more signals. This is justified as
     the Pareto curve we fit changes as the data at our disposal changes. The first
     three signals can be considered anomalies if we check the data up to “2015–03–08”
     but these are less important if we consider the entire dataset.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以清楚地看到，这次我们有更多的信号。这是合理的，因为我们拟合的帕累托曲线会随着可用数据的变化而变化。如果我们检查“2015-03-08”之前的数据，前三个信号可以被视为异常，但如果我们考虑整个数据集，它们的重要性就较低。
 - en: 'By construction, the code provided returns with a signal limiting itself to
     the previous 24 hours. However, as we can see below, most of the signals are returned
     as soon as the new observation is considered, with a few exceptions already bolded:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据构建方式，提供的代码返回的信号仅限于过去24小时的数据。然而，正如我们在下面所看到的，大多数信号在考虑到新观察数据时立即被返回，只有少数几个信号已被加粗：
 - en: '[PRE0]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: As we can see, the algorithm is able to detect anomalies in real time, with
     most signals being raised as soon as the new observation is considered. This allows
     organizations to respond quickly to unexpected changes in social media conversation
     volumes.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们所见，算法能够实时检测到异常，大多数信号在考虑到新观察数据时立即被触发。这使得组织能够迅速对社交媒体谈论量的意外变化做出反应。
 - en: Conclusions and Further Improvements
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论与进一步改进
 - en: The residual-based approach presented in this article provides a responsive
     tool for detecting anomalies in social media volume time series. This method can
     help companies and marketers identify important events, trends, and potential
     crises as they happen.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文提出的基于残差的方法提供了一种灵活的工具，用于检测社交媒体量时间序列中的异常。这种方法可以帮助公司和营销人员识别发生中的重要事件、趋势和潜在危机。
 - en: 'While this algorithm is already effective, there are several points that can
     be further developed, such as:'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管该算法已经有效，但仍有几个方面可以进一步发展，例如：
 - en: Dependence on a fixed window for real-time detection, as for now depends on
     all previous data
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 依赖于固定窗口进行实时检测，目前的实现依赖于所有历史数据
 - en: Exploring different time granularities (e.g., hourly instead of 5-minute intervals)
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 探索不同的时间粒度（例如，使用每小时而非5分钟间隔）
 - en: Validating the Pareto distribution assumption using statistical tests
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用统计测试验证帕累托分布假设
 - en: …
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: …
 - en: Please leave some claps if you enjoyed the article and feel free to comment,
     any suggestion and feedback is appreciated!
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你喜欢这篇文章，请留下掌声并随时评论，任何建议和反馈都非常感激！
 - en: '[*Here you can find a notebook with an implementation*](https://github.com/lorenzomezzini/MediumPosts/tree/main/AnomalyDetection)*.*'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*在这里你可以找到实现的笔记本*](https://github.com/lorenzomezzini/MediumPosts/tree/main/AnomalyDetection)*.*'

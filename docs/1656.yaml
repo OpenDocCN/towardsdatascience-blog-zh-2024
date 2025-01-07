@@ -1,35 +1,56 @@
 - en: Understanding and Implementing Medprompt
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 理解与实现Medprompt
 - en: 原文：[https://towardsdatascience.com/understanding-and-implementing-medprompt-77bbd2777c91?source=collection_archive---------0-----------------------#2024-07-06](https://towardsdatascience.com/understanding-and-implementing-medprompt-77bbd2777c91?source=collection_archive---------0-----------------------#2024-07-06)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/understanding-and-implementing-medprompt-77bbd2777c91?source=collection_archive---------0-----------------------#2024-07-06](https://towardsdatascience.com/understanding-and-implementing-medprompt-77bbd2777c91?source=collection_archive---------0-----------------------#2024-07-06)
 - en: Digging into the details behind the prompting framework
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 深入探讨提示框架背后的细节
 - en: '[](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)[![Anand
     Subramanian](../Images/096dc5504d6ada2493e0ac26959e60f0.png)](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------)
     [Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)[![Anand
+    Subramanian](../Images/096dc5504d6ada2493e0ac26959e60f0.png)](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------)
+    [Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------)
     ·14 min read·Jul 6, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------)
+    ·14分钟阅读·2024年7月6日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/17dd8d46598db7fb9ab33ac9280bb740.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/17dd8d46598db7fb9ab33ac9280bb740.png)'
 - en: Illustration of the various components of the Medprompt Strategy (Image taken
     from Fig:6 from the Medprompt paper [1] ([https://arxiv.org/abs/2311.16452](https://arxiv.org/abs/2311.16452))
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: Medprompt策略的各个组成部分示意图（图片来自Medprompt论文中的图6 [1] ([https://arxiv.org/abs/2311.16452](https://arxiv.org/abs/2311.16452)
+    ))
 - en: 'In my [first blog post](https://medium.com/towards-data-science/an-introduction-to-prompting-for-llms-61d36aec2048),
     I explored prompting and its significance in the context of Large Language Models
     (LLMs). Prompting is crucial for obtaining high-quality outputs from LLMs, as
@@ -38,8 +59,11 @@
     solve a use case using LLMs: how far can you push performance with prompting alone,
     and when do you bite the bullet and decide it might be more effective to fine-tune
     a model instead?'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我的 [第一篇博客文章](https://medium.com/towards-data-science/an-introduction-to-prompting-for-llms-61d36aec2048)
+    中，我探讨了提示（prompting）及其在大语言模型（LLMs）中的重要性。提示对于从LLMs获取高质量输出至关重要，因为它指导模型的响应并确保其与当前任务相关。在此基础上，当尝试使用LLMs解决实际问题时，常常会出现两个关键问题：仅凭提示能够将性能推向多远？以及何时需要做出决定，认为微调模型可能更加有效？
 - en: When making design decisions about leveraging prompting, several considerations
     come into play. Techniques like few-shot prompting and Chain-of-Thought (CoT)
     [2] prompting can help in boosting the performance of LLMs for most tasks. Retrieval-Augmented
@@ -48,54 +72,78 @@
     generated outputs while reducing hallucinations. Overall, we have a suite of tools
     to push the needle in terms of LLM performance without explicitly resorting to
     fine-tuning.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在做出关于利用提示的设计决策时，需要考虑多个因素。像少量示例提示和思维链（CoT）[2] 提示等技术可以帮助提高大多数任务的LLM性能。检索增强生成（RAG）管道可以通过适应新领域而无需微调，进一步提升LLM性能，同时提供对生成输出的可控性，减少幻觉现象。总体而言，我们有一套工具可以在不依赖微调的情况下，推动LLM性能的提升。
 - en: Fine-tuning comes with its own set of challenges and complications, in terms
     of labelled data requirements and the costs associated with training of LLMs and
     their deployment. Fine-tuning may also increase the hallucinations of the LLM
     in certain cases [3]. Putting this all together, we can see that there is significant
     value in trying to optimize LLM performance for our task through prompting before
     resorting to fine-tuning.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 微调本身就伴随着一系列挑战和复杂性，包括对标注数据的需求以及与 LLM 训练和部署相关的成本。微调在某些情况下还可能增加 LLM 的幻觉 [3]。将这些因素汇总，我们可以看到，通过提示来优化
+    LLM 性能，在采取微调之前，确实具有重要的价值。
 - en: So, how do we go about this? In this article, we explore Medprompt [1], a sophisticated
     prompting strategy introduced by Microsoft. Medprompt ties together principles
     from few-shot prompting, CoT prompting and RAG to enhance the performance of GPT-4
     in the healthcare domain without any domain-specific fine-tuning.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，我们该如何进行呢？在本文中，我们探讨了 Medprompt [1]，这是一种由微软推出的复杂提示策略。Medprompt 将少量样本提示、思维链提示和
+    RAG 原理结合起来，以提高 GPT-4 在医疗健康领域的表现，而无需任何领域特定的微调。
 - en: 'Table of Contents:'
+  id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 目录：
 - en: '[**MedPrompt Explained**](#90ba)'
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[**MedPrompt 解释**](#90ba)'
 - en: '[**Components of MedPrompt**](#d584)'
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[**MedPrompt 组件**](#d584)'
 - en: '[**Implementing MedPrompt**](#6d10)'
+  id: totrans-15
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[**实现 MedPrompt**](#6d10)'
 - en: '[**Evaluating Performance**](#b207)'
+  id: totrans-16
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[**评估性能**](#b207)'
 - en: '[**Conclusion**](#b79b)'
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[**结论**](#b79b)'
 - en: '[**References**](#2755)'
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[**参考文献**](#2755)'
 - en: MedPrompt Explained
+  id: totrans-19
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: MedPrompt 解释
 - en: LLMs have demonstrated impressive capabilities across various sectors, particularly
     in healthcare. Last year, Google introduced MedPaLM [4] and MedPaLM-2 [5], LLMs
     that not only excel in Medical Multiple-Choice Question Answering (MCQA) datasets
@@ -103,46 +151,69 @@
     question answering . These models have been tailored specifically for the healthcare
     domain through instruction fine-tuning and the use of clinician-written Chain-of-Thought
     templates, significantly enhancing their performance.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: LLMs 在各个领域展示了令人印象深刻的能力，尤其是在医疗健康领域。去年，Google 推出了 MedPaLM [4] 和 MedPaLM-2 [5]，这两款
+    LLM 不仅在医学多项选择题回答（MCQA）数据集上表现出色，还在开放性医学问题回答中具有竞争力，甚至超越了临床医生。这些模型通过指令微调和使用临床医生编写的思维链模板，特别针对医疗健康领域进行了优化，显著提升了它们的表现。
 - en: 'In this context, the paper **“Can Generalist Foundation Models Outcompete Special-Purpose
     Tuning? Case Study in Medicine”** [1]from Microsoft raises a compelling question:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 在此背景下，微软的论文《**通用基础模型能否超越专用调优？医学领域的案例研究**》[1] 提出了一个引人深思的问题：
 - en: Can the performance of a generalist model like GPT-4 be improved for a specific
     domain without relying on domain-specific fine-tuning or expert-crafted resources?
+  id: totrans-22
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 是否可以在不依赖领域特定微调或专家编写资源的情况下，提升像 GPT-4 这样的通用模型在特定领域的表现？
 - en: As part of this study, the paper introduces **Medprompt**, an innovative prompting
     strategy that not only improves the model’s performance but also surpasses specialized
     models such as MedPaLM-2.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为本研究的一部分，论文介绍了**Medprompt**，一种创新的提示策略，不仅能提高模型的性能，还能超越像 MedPaLM-2 这样的专用模型。
 - en: '![](../Images/56bd75bc7bca6dbb22de6d88744d8ff5.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/56bd75bc7bca6dbb22de6d88744d8ff5.png)'
 - en: Comparison of various LLMs on medical knowledge benchmarks. GPT-4 with Medprompt
     outperforms Med-PaLM 2 across all these datasets. (Image of Table 1 from the Medprompt
     paper [1] ([https://arxiv.org/abs/2311.16452](https://arxiv.org/abs/2311.16452)))
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 各种 LLM 在医学知识基准测试中的比较。使用 Medprompt 的 GPT-4 在所有这些数据集上都优于 Med-PaLM 2。（来自 Medprompt
+    论文 [1] 的表格 1 图像 [https://arxiv.org/abs/2311.16452](https://arxiv.org/abs/2311.16452)）
 - en: GPT-4 with Medprompt outperforms Med-PaLM 2 across all medical MCQA benchmarks
     without any **domain-specific fine-tuning.** Let’s explore the components in Medprompt.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Medprompt 的 GPT-4 在所有医学 MCQA 基准测试中都超越了 Med-PaLM 2，而无需任何**领域特定的微调**。让我们来探索一下
+    Medprompt 的组件。
 - en: Components of Medprompt
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Medprompt 组件
 - en: 'Medprompt ties together principles from few-shot prompting, CoT prompting and
     RAG. Specifically there are 3 components in this pipeline:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: Medprompt 将少量样本提示、思维链提示（CoT）和检索增强生成（RAG）原理结合起来。具体来说，这个流程包含三个组件：
 - en: Dynamic Few-shot Selection`
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 动态少量样本选择`
 - en: Few-shot prompting refers to utilizing example input-output pairs as context
     for prompting the LLM. If these few-shot samples are static, the downside is that
     they may not be the most relevant examples for the new input. **Dynamic Few-shot
@@ -152,12 +223,18 @@
     the most similar training set examples to the test input based on cosine similarity
     in an embedding space. This strategy efficiently utilizes the existing training
     dataset to retrieve relevant few-shot examples for prompting the LLM.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 少量示例提示是指利用输入-输出对作为上下文来提示 LLM。如果这些少量示例是静态的，缺点是它们可能不是对新输入最相关的示例。**动态少量示例选择**，即
+    Medprompt 中的第一个组件，通过基于每个新任务输入选择少量示例来克服这一点。该方法通过在训练集上训练一个 K 最近邻（K-NN）算法，基于嵌入空间中的余弦相似度来检索与测试输入最相似的训练集示例。此策略高效地利用现有的训练数据集，为
+    LLM 检索相关的少量示例进行提示。
 - en: Self-Generated CoT
+  id: totrans-31
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 自生成的 CoT
 - en: As noted in the paper [1], CoT traditionally relies on manually crafted few-shot
     exemplars that include detailed reasoning steps, as used with MedPaLM-2, where
     such prompts were written by medical professionals. Medprompt introduces **Self-Generated
@@ -167,12 +244,18 @@
     need for manually crafted exemplars is bypassed. To ensure that only correct predictions
     with reasoning steps are retained and incorrect responses are filtered out, the
     answer generated by GPT-4 is cross-verified against the ground truth.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如论文 [1] 中所指出的，CoT 传统上依赖于手工制作的少量示例，这些示例包括详细的推理步骤，MedPaLM-2 就使用了这种由医学专业人员编写的提示。Medprompt
+    引入了**自生成的 CoT**，作为第二个模块，在该模块中，LLM 用来生成其推理过程的详细逐步解释，最终得出一个答案选择。通过自动生成每个训练数据点的 CoT
+    推理步骤，可以绕过手工制作示例的需求。为了确保仅保留具有推理步骤的正确预测，并过滤掉错误的回答，GPT-4 生成的答案会与真实答案进行交叉验证。
 - en: Choice Shuffling Ensemble
+  id: totrans-33
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 选择混洗集成
 - en: The Choice Shuffling Ensemble technique is the third technique introduced by
     Medprompt. It is designed to combat the inherent biases that may affect the model’s
     decision-making process, particularly position bias in multiple-choice settings.
@@ -180,33 +263,48 @@
     times to create k variants of the same question with shuffled answer choices.
     During inference, each variant is used to generate an answer, and a majority vote
     is performed over all variants to pick the final predicted option.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 选择混洗集成技术是 Medprompt 引入的第三种技术。该技术旨在应对可能影响模型决策过程的固有偏见，特别是在多项选择设置中的位置偏见。答案选项的顺序会被打乱，并且这一过程会重复
+    k 次，以创建 k 个不同版本的相同问题，且每个版本的答案选项顺序不同。在推理过程中，每个版本都会生成一个答案，并对所有版本进行多数投票，以选择最终的预测选项。
 - en: How are these components used in the preprocessing and inference stage?
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 这些组件如何在预处理和推理阶段中使用？
 - en: Let’s now have a look at the preprocessing and inference stages in Medprompt.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们来看看 Medprompt 中的预处理和推理阶段。
 - en: Preprocessing Stage
+  id: totrans-37
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 预处理阶段
 - en: In the preprocessing pipeline, we begin by taking each question from the training
     dataset and incorporating detailed instructions within the prompt to guide the
     generation of both an answer and its associated reasoning steps. The LLM is prompted
     to generate the answer and reasoning steps. After obtaining the generated response,
     we verify its accuracy by comparing the predicted answer to the ground truth for
     that particular question.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 在预处理管道中，我们首先从训练数据集中提取每个问题，并在提示中加入详细的指令，以指导生成答案及其相关推理步骤。大语言模型（LLM）会被提示生成答案和推理步骤。在获取生成的回答后，我们通过将预测的答案与该特定问题的真实答案进行对比，来验证其准确性。
 - en: '![](../Images/c963d79a34de678026ba379c9833720a.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c963d79a34de678026ba379c9833720a.png)'
 - en: Medprompt Preprocessing Pipeline (Image by Author)
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: Medprompt 预处理管道（图片由作者提供）
 - en: If the prediction is incorrect, we exclude this instance from our database of
     relevant questions. If the prediction is correct, we proceed by embedding the
     question using a text embedding model. We then store the question, question embedding,
@@ -215,232 +313,351 @@
     KNN model acts as our retriever in a RAG pipeline, enabling us to efficiently
     query and retrieve the top-k similar data points based on cosine similarity within
     the embedding space.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果预测错误，我们将此实例从相关问题的数据库中排除。如果预测正确，我们将使用文本嵌入模型对问题进行嵌入。然后，我们将问题、问题嵌入、答案和思维链（CoT）推理存储到缓冲区中。一旦所有问题都处理完毕，我们利用这些嵌入来训练
+    KNN 模型。这个训练好的 KNN 模型作为我们 RAG 管道中的检索器，使我们能够高效地基于嵌入空间中的余弦相似度查询并检索 top-k 最相似的数据点。
 - en: '**Inference Pipeline**'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '**推理管道**'
 - en: During the inference stage, each question from our test set is first embedded
     using the text embedding model. We then utilize the KNN model to identify the
     top-k most similar questions. For each retrieved data point, we have access to
     the self-generated Chain of Thought (CoT) reasoning and the predicted answer.
     We format these elements — question, CoT reasoning, and answer — into few-shot
     examples for our eventual prompt.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 在推理阶段，我们首先使用文本嵌入模型对测试集中的每个问题进行嵌入。然后，我们使用 KNN 模型来识别最相似的 top-k 问题。对于每个检索到的数据点，我们可以访问自生成的思维链（CoT）推理和预测答案。我们将这些元素——问题、CoT
+    推理和答案——格式化为最终提示的少量示例。
 - en: '![](../Images/71c38445d50f25f5fca81cb0d6352615.png)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/71c38445d50f25f5fca81cb0d6352615.png)'
 - en: Medprompt Inference Pipline (Image by Author)
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: Medprompt 推理管道（作者插图）
 - en: We now perform **choice shuffling ensembling** by shuffling the order of answer
     choices for each test question, creating multiple variants of the same question.
     The LLM is then prompted with these variants, along with the corresponding few-shot
     exemplars, to generate reasoning steps and an answer for each variant. Finally,
     we perform a majority vote over the predictions from all variants and select the
     final prediction.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在通过洗牌每个测试问题的答案选项顺序，进行 **选择洗牌集成**，从而创建相同问题的多个变体。然后，LLM 会被提示这些变体，以及相应的少量示例，以生成推理步骤和每个变体的答案。最后，我们对所有变体的预测结果进行多数投票，选择最终的预测。
 - en: Implementing Medprompt
+  id: totrans-47
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实现 Medprompt
 - en: The code related to this implementation can be found at this [github repo link](https://github.com/anand-subu/blog_resources/tree/main/medprompt).
+  id: totrans-48
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 与此实现相关的代码可以在这个 [github repo 链接](https://github.com/anand-subu/blog_resources/tree/main/medprompt)
+    中找到。
 - en: We use the MedQA [6] dataset for implementing and evaluating Medprompt. We first
     define helper functions for parsing the jsonl files.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用 MedQA [6] 数据集来实现和评估 Medprompt。我们首先定义帮助函数来解析 jsonl 文件。
 - en: '[PRE0]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Implementing Self-Generated CoT
+  id: totrans-51
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现自生成的 CoT
 - en: For our implementation, we utilize the training set from MedQA. We implement
     a zero-shot CoT prompt and process all the training questions. We use **GPT-4o**
     in our implementation. For each question, we generate the CoT and the corresponding
     answer. We define a prompt which is based on the template provided in the Medprompt
     paper.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的实现中，我们利用了 MedQA 的训练集。我们实现了一个零-shot CoT 提示，并处理了所有的训练问题。我们在实现中使用了 **GPT-4o**。对于每个问题，我们生成
+    CoT 和相应的答案。我们定义了一个基于 Medprompt 论文中提供的模板的提示。
 - en: '[PRE1]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '[PRE2]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: We also define helper functions for parsing the reasoning and the final answer
     option from the LLM response.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还定义了帮助函数，用于解析 LLM 响应中的推理和最终答案选项。
 - en: '[PRE3]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: We now process the questions in the training set of MedQA. We obtain CoT responses
     and answers for all questions and store them to a folder.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在处理 MedQA 训练集中的问题。我们获取所有问题的 CoT 响应和答案，并将它们存储到一个文件夹中。
 - en: '[PRE4]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: We now iterate across all the generated responses to check if they are valid
     and adhere to the prediction format defined in the prompt. We discard responses
     that do not conform to the required format. After that, we check the predicted
     answers against the ground truth for each question and only retain questions for
     which the predicted answers match the ground truth.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在遍历所有生成的响应，以检查它们是否有效并符合提示中定义的预测格式。我们丢弃那些不符合要求格式的响应。之后，我们将每个问题的预测答案与真实答案进行比对，只保留那些预测答案与真实答案匹配的问题。
 - en: '[PRE5]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Implementing the KNN model
+  id: totrans-61
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现 KNN 模型
 - en: Having processed the training set and obtained the CoT response for all these
     questions, we now embed all questions using the **text-embedding-ada-002** from
     OpenAI.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 在处理了训练集并获得了所有这些问题的 CoT 响应后，我们现在使用 OpenAI 的 **text-embedding-ada-002** 嵌入所有问题。
 - en: '[PRE6]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: We now train a KNN model using these question embeddings. This acts as a retriever
     at inference time, as it helps us to retrieve similar datapoints from the training
     set that are most similar to the question from the test set.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在使用这些问题的嵌入训练一个 KNN 模型。该模型在推理时充当检索器，帮助我们从训练集中检索出与测试集中的问题最相似的数据点。
 - en: '[PRE7]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Implementing the Dynamic Few-Shot and Choice Shuffling Ensemble Logic
+  id: totrans-66
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现动态少样本和选项洗牌集成逻辑
 - en: We can now run inference. We subsample 500 questions from the MedQA test set
     for our evaluation. For each question, we retrieve the 5 most similar questions
     from the train set using the KNN module, along with their respective CoT reasoning
     steps and predicted answers. We construct a few-shot prompt using these examples.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以进行推理。我们从 MedQA 测试集中子抽取 500 个问题进行评估。对于每个问题，我们使用 KNN 模块从训练集中检索 5 个最相似的问题，并获取它们各自的
+    CoT 推理步骤和预测答案。然后，我们构建一个少样本提示来使用这些示例。
 - en: For each question, we also shuffle the order of the options 5 times to create
     different variants. We then utilize the constructed few-shot prompt to get the
     predicted answer for each of the variants with shuffled options.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个问题，我们还会将选项的顺序洗牌 5 次，以创建不同的变体。然后，我们利用构造的少样本提示，通过每个变体的洗牌选项获取预测答案。
 - en: '[PRE8]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '[PRE9]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'We now evaluate the results of Medprompt over the test set. For each question,
     we have five predictions generated through the ensemble logic. We take the mode,
     or most frequently occurring prediction, for each question as the final prediction
     and evaluate the performance. Two edge cases are possible here:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在评估 Medprompt 在测试集上的表现。对于每个问题，我们通过集成逻辑生成五个预测。我们取每个问题的众数，即出现频率最高的预测，作为最终预测并进行评估。这里可能出现两个极端情况：
 - en: Two different answer options are predicted two times each, with no clear winner.
+  id: totrans-72
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 两个不同的答案选项被预测了两次，但没有明确的赢家。
 - en: There is an error with the response generated, meaning that we don’t have a
     predicted answer option.
+  id: totrans-73
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 生成的响应存在错误，意味着我们没有预测的答案选项。
 - en: For both of these edge cases, we consider the question to be wrongly answered
     by the LLM.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这两种极端情况，我们认为 LLM 对这些问题的回答是错误的。
 - en: '[PRE10]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Evaluating Performance
+  id: totrans-76
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 性能评估
 - en: We evaluate the performance of Medprompt with GPT-4o in terms of accuracy on
     the MedQA test subset. Additionally, we benchmark the performance of Zero-shot
     prompting, Random Few-Shot prompting, and Random Few-Shot with CoT prompting.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们评估了 Medprompt 在 MedQA 测试子集上与 GPT-4o 相关的准确性表现。此外，我们还基准测试了零样本提示、随机少样本提示和随机少样本
+    CoT 提示的表现。
 - en: '![](../Images/5689439bdcd82036f6539f1e4fbd3b44.png)'
+  id: totrans-78
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5689439bdcd82036f6539f1e4fbd3b44.png)'
 - en: Results of our evaluation (Image by Author)
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的评估结果（图片由作者提供）
 - en: 'We observe that Medprompt and Random Few-Shot CoT prompting outperform the
     Zero and Few-Shot prompting baselines. However, surprisingly, we notice that Random
     Few-Shot CoT outperforms our Medprompt performance. This could be due to a couple
     of reasons:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们观察到，Medprompt 和随机少样本 CoT 提示比零样本和少样本提示基准表现更好。然而，令人惊讶的是，我们注意到随机少样本 CoT 的表现超出了我们的
+    Medprompt 表现。这可能是由于以下几个原因：
 - en: The original Medprompt paper benchmarked the performance of GPT-4\. We observe
     that GPT-4o outperforms GPT-4T and GPT-4 on various text benchmarks significantly
     ([https://openai.com/index/hello-gpt-4o/](https://openai.com/index/hello-gpt-4o/)),
     indicating that Medprompt could have a lesser effect on a stronger model like
     GPT-4o.
+  id: totrans-81
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 原始的 Medprompt 论文基准测试了 GPT-4 的表现。我们观察到，GPT-4o 在各种文本基准测试中显著优于 GPT-4T 和 GPT-4（[https://openai.com/index/hello-gpt-4o/](https://openai.com/index/hello-gpt-4o/)），这表明
+    Medprompt 在像 GPT-4o 这样的更强模型上的影响可能较小。
 - en: We restrict our evaluation to 500 questions subsampled from MedQA. The Medprompt
     paper evaluates other Medical MCQA datasets and the full version of MedQA. Evaluating
     GPT-4o on the complete versions of the datasets could give a better picture of
     the overall performance.
+  id: totrans-82
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将评估限制在从 MedQA 中子抽取的 500 个问题。Medprompt 论文评估了其他医学 MCQA 数据集以及 MedQA 的完整版。对 GPT-4o
+    进行完整版数据集的评估可能能更全面地展示整体表现。
 - en: Conclusion
+  id: totrans-83
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Medprompt is an interesting framework for creating sophisticated prompting pipelines,
     particularly for adapting a generalist LLM to a specific domain without the need
     for fine-tuning. It also highlights the considerations involved in deciding between
     prompting and fine-tuning for various use cases. Exploring how far prompting can
     be pushed to enhance LLM performance is important, as it offers a resource and
     cost-efficient alternative to fine-tuning.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: Medprompt 是一个有趣的框架，用于创建复杂的提示管道，特别是在不需要微调的情况下将通用的 LLM 调整到特定领域。它还突出了在各种使用场景中在提示和微调之间做出选择时需要考虑的因素。探索提示能够推动
+    LLM 性能提升的极限非常重要，因为这为微调提供了一种高效且低成本的替代方案。
 - en: '**References:**'
+  id: totrans-85
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**参考文献：**'
 - en: '[1] Nori, H., Lee, Y. T., Zhang, S., Carignan, D., Edgar, R., Fusi, N., … &
     Horvitz, E. (2023). Can generalist foundation models outcompete special-purpose
     tuning? case study in medicine. *arXiv preprint arXiv:2311.16452*. ([https://arxiv.org/abs/2311.16452](https://arxiv.org/abs/2311.16452))'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] Nori, H., Lee, Y. T., Zhang, S., Carignan, D., Edgar, R., Fusi, N., … &
+    Horvitz, E. (2023). 通用基础模型能否超越专用微调？医学领域的案例研究。*arXiv 预印本 arXiv:2311.16452*。([https://arxiv.org/abs/2311.16452](https://arxiv.org/abs/2311.16452))'
 - en: '[2] Wei, J., Wang, X., Schuurmans, D., Bosma, M., Xia, F., Chi, E., … & Zhou,
     D. (2022). Chain-of-thought prompting elicits reasoning in large language models.
     *Advances in Neural Information Processing Systems*, *35*, 24824–24837\. ([https://openreview.net/pdf?id=_VjQlMeSB_J](https://openreview.net/pdf?id=_VjQlMeSB_J))'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] Wei, J., Wang, X., Schuurmans, D., Bosma, M., Xia, F., Chi, E., … & Zhou,
+    D. (2022). 思维链提示引发大型语言模型的推理。*神经信息处理系统进展*，*35*，24824–24837\. ([https://openreview.net/pdf?id=_VjQlMeSB_J](https://openreview.net/pdf?id=_VjQlMeSB_J))'
 - en: '[3] Gekhman, Z., Yona, G., Aharoni, R., Eyal, M., Feder, A., Reichart, R.,
     & Herzig, J. (2024). Does Fine-Tuning LLMs on New Knowledge Encourage Hallucinations?.
     *arXiv preprint arXiv:2405.05904*. ([https://arxiv.org/abs/2405.05904](https://arxiv.org/abs/2405.05904))'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] Gekhman, Z., Yona, G., Aharoni, R., Eyal, M., Feder, A., Reichart, R.,
+    & Herzig, J. (2024). 在新知识上微调 LLM 是否会鼓励幻觉？*arXiv 预印本 arXiv:2405.05904*。([https://arxiv.org/abs/2405.05904](https://arxiv.org/abs/2405.05904))'
 - en: '[4] Singhal, K., Azizi, S., Tu, T., Mahdavi, S. S., Wei, J., Chung, H. W.,
     … & Natarajan, V. (2023). Large language models encode clinical knowledge. *Nature*,
     *620*(7972), 172–180\. ([https://www.nature.com/articles/s41586-023-06291-2](https://www.nature.com/articles/s41586-023-06291-2))'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: '[4] Singhal, K., Azizi, S., Tu, T., Mahdavi, S. S., Wei, J., Chung, H. W.,
+    … & Natarajan, V. (2023). 大型语言模型编码临床知识。*自然*，*620*(7972)，172–180\. ([https://www.nature.com/articles/s41586-023-06291-2](https://www.nature.com/articles/s41586-023-06291-2))'
 - en: '[5] Singhal, K., Tu, T., Gottweis, J., Sayres, R., Wulczyn, E., Hou, L., …
     & Natarajan, V. (2023). Towards expert-level medical question answering with large
     language models. *arXiv preprint arXiv:2305.09617*. ([https://arxiv.org/abs/2305.09617](https://arxiv.org/abs/2305.09617))'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: '[5] Singhal, K., Tu, T., Gottweis, J., Sayres, R., Wulczyn, E., Hou, L., …
+    & Natarajan, V. (2023). 通过大型语言模型实现专家级医学问答。*arXiv 预印本 arXiv:2305.09617*。([https://arxiv.org/abs/2305.09617](https://arxiv.org/abs/2305.09617))'
 - en: '[6] Jin, D., Pan, E., Oufattole, N., Weng, W. H., Fang, H., & Szolovits, P.
     (2021). What disease does this patient have? a large-scale open domain question
     answering dataset from medical exams. *Applied Sciences*, *11*(14), 6421\. ([https://arxiv.org/abs/2009.13081](https://arxiv.org/abs/2009.13081))
     (Original dataset is released under a MIT License)'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: '[6] Jin, D., Pan, E., Oufattole, N., Weng, W. H., Fang, H., & Szolovits, P.
+    (2021). 这个病人得了什么病？一个来自医学考试的大规模开放领域问答数据集。*应用科学*，*11*(14)，6421\. ([https://arxiv.org/abs/2009.13081](https://arxiv.org/abs/2009.13081))（原始数据集发布在
+    MIT 许可下）'

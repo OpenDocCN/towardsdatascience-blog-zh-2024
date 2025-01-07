@@ -1,110 +1,160 @@
 - en: 'Unveiling the Inner Workings of LLMs: A Singular Value Perspective'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 揭示LLM的内部工作原理：奇异值视角
 - en: 原文：[https://towardsdatascience.com/unveiling-the-inner-workings-of-llms-a-singular-value-perspective-74c0c831e819?source=collection_archive---------5-----------------------#2024-06-14](https://towardsdatascience.com/unveiling-the-inner-workings-of-llms-a-singular-value-perspective-74c0c831e819?source=collection_archive---------5-----------------------#2024-06-14)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/unveiling-the-inner-workings-of-llms-a-singular-value-perspective-74c0c831e819?source=collection_archive---------5-----------------------#2024-06-14](https://towardsdatascience.com/unveiling-the-inner-workings-of-llms-a-singular-value-perspective-74c0c831e819?source=collection_archive---------5-----------------------#2024-06-14)
 - en: A singular values analysis on Llama3–8B projection matrices
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 对Llama3–8B投影矩阵的奇异值分析
 - en: '[](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)[![Louis
     Owen](../Images/88faba8be8c36bf7e62233e7b78fbaae.png)](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------)
     [Louis Owen](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)[![Louis
+    Owen](../Images/88faba8be8c36bf7e62233e7b78fbaae.png)](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------)
+    [Louis Owen](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------)
     ·9 min read·Jun 14, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------)
+    ·9分钟阅读·2024年6月14日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/d185588d8f57d93c7b3f9cd3a737c399.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d185588d8f57d93c7b3f9cd3a737c399.png)'
 - en: Photo by [Afif Ramdhasuma](https://unsplash.com/@javaistan?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 由[Afif Ramdhasuma](https://unsplash.com/@javaistan?utm_source=medium&utm_medium=referral)拍摄，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Have you ever thought of how well-trained an LLM is? Given the huge number of
     parameters, are those parameters capturing the information or knowledge from the
     training data to the maximum capacity? If not, can we remove the not-useful parameters
     from the LLM to make it more efficient?
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 你是否曾经想过，一个大型语言模型（LLM）训练得有多好？考虑到巨大的参数量，这些参数是否最大限度地捕捉了训练数据中的信息或知识？如果没有，我们是否可以从LLM中移除那些无用的参数，使其更高效？
 - en: In this article, we’ll try to answer those questions by doing a deep analysis
     of the Llama-3–8B model from the Singular Values point of view. Without further
     ado, make ourselves comfortable, and be ready to apply SVD on analyzing Llama-3–8B
     matrices quality!
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将尝试通过从奇异值的角度对Llama-3–8B模型进行深入分析，来回答这些问题。现在，让我们舒适地坐好，准备好应用SVD分析Llama-3–8B矩阵的质量！
 - en: SVD Revisited
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: SVD重新审视
 - en: 'In Singular Value Decomposition (SVD), a matrix A is decomposed into three
     other matrices:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在奇异值分解（SVD）中，一个矩阵A被分解为三个其他矩阵：
 - en: A=U Σ V_t
+  id: totrans-12
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: A=U Σ V_t
 - en: 'where:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中：
 - en: A is the original matrix.
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: A是原始矩阵。
 - en: U is a matrix whose columns are the left singular vectors of A.
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: U是一个矩阵，其列是A的左奇异向量。
 - en: Σ is a diagonal matrix containing the singular values of A. These values are
     always non-negative and usually ordered from largest to smallest.
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Σ是一个对角矩阵，包含A的奇异值。这些值始终是非负的，通常按从大到小的顺序排列。
 - en: V_t is the transpose of V, where the columns of V are the right singular vectors
     of A.
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: V_t是V的转置矩阵，其中V的列是A的右奇异向量。
 - en: In simpler terms, SVD breaks down the complex transformation of a matrix into
     simpler, understandable steps involving rotations and scaling. The singular values
     in Σ tell us the scaling factors and the singular vectors in U and V_t tell us
     the directions of these scalings before and after applying the matrix.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 简而言之，SVD将矩阵的复杂变换分解为更简单、易于理解的步骤，这些步骤涉及旋转和缩放。Σ中的奇异值告诉我们缩放因子，而U和V_t中的奇异向量告诉我们应用矩阵前后这些缩放的方向。
 - en: 'We can think of the singular values as a way to measure how much a matrix stretches
     or shrinks in different directions in space. Each singular value corresponds to
     a pair of singular vectors: one right singular vector (direction in the input
     space) and one left singular vector (direction in the output space).'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将奇异值视为衡量矩阵在空间中不同方向上拉伸或收缩程度的方式。每个奇异值对应一对奇异向量：一个右奇异向量（输入空间中的方向）和一个左奇异向量（输出空间中的方向）。
 - en: So, singular values are the scaling factor that represents the “**magnitude**”,
     while the U and V_t matrices represent the “**directions**” in the transformed
     space and original space, respectively.
+  id: totrans-20
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 因此，奇异值是表示“**幅度**”的缩放因子，而 U 和 V_t 矩阵分别表示变换空间和原始空间中的“**方向**”。
 - en: If singular values of matrices exhibit a rapid decay (the largest singular values
     are significantly larger than the smaller ones), then it means the effective rank
     of the matrix (the number of significant singular values) is much smaller than
     the actual dimension of the matrix. This implies that the matrix can be approximated
     well by a lower-rank matrix.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果矩阵的奇异值呈现快速衰减（最大的奇异值明显大于较小的奇异值），则意味着矩阵的有效秩（即显著奇异值的数量）远小于矩阵的实际维度。这表明该矩阵可以通过低秩矩阵进行良好的近似。
 - en: The large singular values capture most of the important information and variability
     in the data, while the smaller singular values contribute less.
+  id: totrans-22
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 大的奇异值捕捉了数据中大部分的重要信息和变异性，而较小的奇异值贡献较少。
 - en: In the context of LLMs, the weight matrices (e.g., those in the attention mechanism
     or feedforward layers) transform input data (such as word embeddings) into output
     representations. The dominant singular values correspond to the directions in
@@ -112,268 +162,396 @@
     directions along which the model is most sensitive or expressive. The smaller
     singular values correspond to directions that are less important or less influential
     in the transformation.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 LLM 的上下文中，权重矩阵（例如注意力机制或前馈层中的矩阵）将输入数据（如词嵌入）转化为输出表示。主导的奇异值对应于输入空间中通过变换最为放大的方向，表示模型在这些方向上最为敏感或最具表达能力。较小的奇异值对应于在变换过程中较不重要或影响较小的方向。
 - en: The distribution of singular values can impact the model’s ability to generalize
     and its robustness. A slow decay (many large singular values) can lead to overfitting,
     while a fast decay (few large singular values) can indicate underfitting or loss
     of information.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 奇异值的分布可以影响模型的泛化能力和鲁棒性。缓慢衰减（许多大奇异值）可能导致过拟合，而快速衰减（少量大奇异值）则可能表明欠拟合或信息丢失。
 - en: Llama-3 Architecture Revisited
+  id: totrans-25
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 重新审视 Llama-3 架构
 - en: The following is the `config.json` file of the `meta-llama/Meta-Llama-3–8B-Instruct`model.
     It is worth noting that this LLM utilizes Grouped Query Attention with `num_key_value_heads`
     of 8, which means the group size is 32/8=4.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是 `meta-llama/Meta-Llama-3–8B-Instruct` 模型的 `config.json` 文件。值得注意的是，这个 LLM
+    使用了分组查询注意力机制，`num_key_value_heads` 为 8，这意味着组大小为 32/8=4。
 - en: '[PRE0]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Singular Values Analysis on (Q, K, V, O) Matrices
+  id: totrans-28
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 对（Q, K, V, O）矩阵的奇异值分析
 - en: Now, let’s jump into the real deal of this article. Analyzing (Q, K, V, O) matrices
     of Llama-3–8B-Instruct model via their singular values!
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们进入本文的重点：通过奇异值分析 Llama-3–8B-Instruct 模型的（Q, K, V, O）矩阵！
 - en: The Code
+  id: totrans-30
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 代码
 - en: Let’s first import all necessary packages needed in this analysis.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，让我们导入所有进行此分析所需的必要包。
 - en: '[PRE1]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Then, let’s download the model and save it into our local `/tmp`directory.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，让我们下载模型并将其保存到本地 `/tmp` 目录中。
 - en: '[PRE2]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: If you’re GPU-rich, the following code might not be relevant for you. However,
     if you’re GPU-poor like me, the following code will be really useful to load only
     specific layers of the LLama-3–8B model.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有强大的 GPU，以下代码可能对你不相关。然而，如果你像我一样 GPU 资源较少，以下代码将非常有用，它可以让你只加载 LLama-3–8B 模型的特定层。
 - en: '[PRE3]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: The reason we do this is because the free tier of Google Colab GPU is not enough
     to load LLama-3–8B even with `fp16` precision. Furthermore, this analysis requires
     us to work on `fp32` precision due to how the `np.linalg.svd` is built. Next,
     we can define the main function to get singular values for a given `matrix_type`
     , `layer_number` , and `head_number`.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们这样做的原因是因为 Google Colab 的免费 GPU 配置即便使用 `fp16` 精度也不足以加载 LLama-3–8B。此外，由于 `np.linalg.svd`
+    的构建方式，这项分析要求我们使用 `fp32` 精度。接下来，我们可以定义主函数，以获取给定 `matrix_type`、`layer_number` 和
+    `head_number` 的奇异值。
 - en: '[PRE4]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: It is worth noting that we can extract the weights for the specified head on
     the K, Q, and V matrices by doing row-wise slicing because of how it is implemented
     by [HuggingFace](https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py#L262-L264).
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得注意的是，由于 [HuggingFace](https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py#L262-L264)
+    的实现方式，我们可以通过行切片提取指定头部的 K、Q 和 V 矩阵的权重。
 - en: '![](../Images/7d918b9dcef2b68bd73db2bbc0666d63.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7d918b9dcef2b68bd73db2bbc0666d63.png)'
 - en: 'Q, K, V Matrices Implementation in HuggingFace. Note that in PyTorch the matrix
     dimension will be in `(d_out,d_in)`. Source: Image by Author.'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: HuggingFace 中的 Q, K, V 矩阵实现。请注意，在 PyTorch 中，矩阵的维度将是 `(d_out,d_in)`。来源：图片由作者提供。
 - en: As for the O matrix, we can do column-wise slicing to extract the weights for
     the specified head on the O weight thanks to linear algebra! Details can be seen
     in the following figure.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 至于 O 矩阵，我们可以通过列切片提取指定头的 O 权重，这要归功于线性代数！详细信息可以参见下图。
 - en: '![](../Images/7b6f2589f4a2b568f84d4478ede921d8.png)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7b6f2589f4a2b568f84d4478ede921d8.png)'
 - en: 'Reasoning on why we can extract the specified head on the O weight matrix by
     doing column-wise slicing. Source: Image by Author.'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么我们可以通过列切片提取指定头的 O 权重矩阵。来源：图片由作者提供。
 - en: The Results
+  id: totrans-45
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 结果
 - en: 'To do the analysis, we need to run the `get_singular_values()` function across
     different heads, layers, and matrix types. And in order to be able to compare
     across all those different combinations, we also need to define several helper
     metrics for our analysis:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了进行分析，我们需要在不同的头、层和矩阵类型之间运行 `get_singular_values()` 函数。为了能够比较所有这些不同的组合，我们还需要为分析定义几个辅助指标：
 - en: '`Top-10 Ratio` : the ratio between the sum of top-10 singular values and sum
     of all singular values'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Top-10 Ratio`：前 10 个奇异值之和与所有奇异值之和的比率'
 - en: '`First/Last Ratio` : the ratio between the highest and lowest singular values.'
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`First/Last Ratio`：最大奇异值与最小奇异值之比。'
 - en: '`Least-10 Ratio` : the ratio between the sum of least-10 singular values and
     sum of all singular values'
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`Least-10 Ratio`：最小 10 个奇异值之和与所有奇异值之和的比率'
 - en: '**(Layer 0, Head 0) Analysis**'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '**(第 0 层，第 0 头) 分析**'
 - en: '![](../Images/ad046ce133b1148b8e7ce45d84f05143.png)'
+  id: totrans-51
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ad046ce133b1148b8e7ce45d84f05143.png)'
 - en: 'Singular Values Distribution at Layer-0 Head-0\. Source: Image by Author.'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 第 0 层第 0 头的奇异值分布。来源：图片由作者提供。
 - en: The Q(query) matrix has the largest initial singular value (~ 10), followed
     by the K(key) matrix (~ 8). These 2 matrices have significantly higher initial
     singular values than the initial singular values for V(value) and O(output) matrices.
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Q（查询）矩阵具有最大的初始奇异值（约 10），其次是 K（键）矩阵（约 8）。这两个矩阵的初始奇异值显著高于 V（值）和 O（输出）矩阵的初始奇异值。
 - en: Not only initial singular value, if we check the `Top-10 Ratio`and `First/Last
     Ratio` for the Q and K matrices, these two have much higher values compared to
     V and O matrices. This suggests that the information captured by Q **and K matrices
     mostly focuses on a few dimensions**, while for v and o matrices, information
     is captured in a more dispersed manner across components.
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不仅是初始奇异值，如果我们检查 Q 和 K 矩阵的 `Top-10 Ratio` 和 `First/Last Ratio`，这两个矩阵的值比 V 和 O
+    矩阵要高得多。这表明 Q **和 K 矩阵主要集中在少数几个维度上**，而 V 和 O 矩阵则以更加分散的方式捕获信息，跨多个成分。
 - en: If we look at the `Least-10 Ratio`metric, we can also see that for Q and K matrices,
     the singular values are near zero and relatively much lower compared to the Vand
     O matrices’. This is one piece of evidence that indicates Q **and K matrices have
     low-rank structure**, which indicates that those dimensions contribute little
     to the overall performance of the model. These weights can **potentially be pruned**
     structurally without significantly impacting the model’s accuracy.
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果我们查看 `Least-10 Ratio` 指标，我们也可以看到，对于 Q 和 K 矩阵，奇异值接近零，并且相较于 V 和 O 矩阵，它们的值要低得多。这是一个证据，表明
+    Q **和 K 矩阵具有低秩结构**，这意味着这些维度对模型整体性能的贡献较小。这些权重可以**潜在地被修剪**，而不会显著影响模型的准确性。
 - en: '**(Layer 0, Multiple heads) Analysis**'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '**(第 0 层，多个头部) 分析**'
 - en: '![](../Images/97770dcd424cc5927921570cbbbb5237.png)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/97770dcd424cc5927921570cbbbb5237.png)'
 - en: 'Singular Values Distribution at Layer-0 for across Different Heads. Source:
     Image by Author.'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 不同头部下第 0 层的奇异值分布。来源：图片由作者提供。
 - en: As the `head_number` increases, the `Top-10 Ratio` for Q and K matrices tends
     to increase at a much higher rate compared to V and O matrices. This insight also
     applies to the `Least-10 Ratio` of Q and K matrices where they are becoming nearer
     to 0 as the `head_number` increases, while not for the V and O matrices.
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 随着 `head_number` 的增加，Q 和 K 矩阵的 `Top-10 比率` 增长的速度通常远高于 V 和 O 矩阵。这一发现同样适用于 Q 和
+    K 矩阵的 `Least-10 比率`，随着 `head_number` 的增加，这些比率趋近于 0，而 V 和 O 矩阵则没有这种变化。
 - en: This indicates that Q and K matrices for **heads with higher** `**head_number**`
     **even have a lower rank structure** compared to heads with lower `head_number`.
     In other words, as the `head_number` increases, the Q and K matrices tend to store
     information in even lesser dimensions.
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这表明，**具有更高** `**head_number**` 的 Q 和 K 矩阵相比于具有较低 `head_number` 的头部，**甚至具有更低的秩结构**。换句话说，随着
+    `head_number` 的增加，Q 和 K 矩阵倾向于在更低的维度中存储信息。
 - en: '**Cross-Layers Analysis**'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '**跨层分析**'
 - en: '![](../Images/f9b3d7c725d1844704e1269635ae0e3d.png)'
+  id: totrans-62
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f9b3d7c725d1844704e1269635ae0e3d.png)'
 - en: 'Singular Values Distribution across Different Layers and Heads. Source: Image
     by Author.'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 不同层次和头部之间的奇异值分布。来源：作者提供的图片。
 - en: As we go to deeper layers, we found that **initial values of the Q and K matrices
     are decreasing**, but still relatively higher compared to the V and O matrices.
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当我们进入更深的层时，我们发现 **Q 和 K 矩阵的初始值在下降**，但与 V 和 O 矩阵相比，仍然相对较高。
 - en: As we go to deeper layers, there is a downtrend pattern found for the `Top-10
     Ratio` and `First/Last Ratio` of the Q and K matrices for a particular head. There
     is also a slight uptrend pattern for the `Least-10 Ratio` metric. This suggests
     that Q **and K matrices in deeper layers are more well-trained compared to lower
     layers**.
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当我们进入更深的层时，Q 和 K 矩阵的 `Top-10 比率` 和 `First/Last 比率` 在某个特定头部出现下降趋势。与此同时，`Least-10
+    比率` 稍微呈上升趋势。这表明，**在更深层的 Q 和 K 矩阵相较于较低层次的矩阵训练得更好**。
 - en: However, there’s an anomaly found in Layer 1 where the `First/Last Ratio`for
     Q and K matrices are incredibly high, not following the downtrend pattern as we
     go to deeper layers.
+  id: totrans-66
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 然而，在第 1 层发现一个异常，Q 和 K 矩阵的 `First/Last 比率` 非常高，没有遵循我们在更深层次中发现的下降趋势。
 - en: '![](../Images/e7e76f1ada578ebe62b7acb6aa3969c2.png)'
+  id: totrans-67
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e7e76f1ada578ebe62b7acb6aa3969c2.png)'
 - en: 'Singular Values Distribution across Different Heads and Layers. Source: Image
     by Author.'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 不同头部和层次之间的奇异值分布。来源：作者提供的图片。
 - en: The pattern across heads within the same layer that we found in the “Layer 0,
     Multiple Heads” section is not clear when we go to deeper layers.
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在同一层内我们在“Layer 0, Multiple Heads”部分发现的头部间模式，在更深的层次中不再明显。
 - en: '**Summing Up**'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '**总结**'
 - en: The K and Q matrices have relatively lower ranks compared to the V and O matrices.
     If we want to perform pruning or dimensionality reduction methods, we can focus
     more on the K and Q matrices.
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: K 和 Q 矩阵的秩通常低于 V 和 O 矩阵。如果我们想进行剪枝或降维方法，可以更多关注 K 和 Q 矩阵。
 - en: The deeper the layers, the more well-trained all (K, Q, V, O) matrices are.
     If we want to perform pruning or dimensionality reduction methods, we can focus
     more on lower layers.
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 层数越深，所有 (K, Q, V, O) 矩阵训练得越好。如果我们想进行剪枝或降维方法，可以更多关注较低的层次。
 - en: Besides pruning, it’s also interesting to experiment by doing full finetuning
     only on several initial layers, or we can even do this with LoRA.
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 除了剪枝，进行仅对几个初始层进行完全微调也是一个有趣的实验，甚至我们可以使用 LoRA 来实现这一点。
 - en: Final Words
+  id: totrans-74
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结语
 - en: '![](../Images/9c5497365494cd53d20f0be96f3f4967.png)'
+  id: totrans-75
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9c5497365494cd53d20f0be96f3f4967.png)'
 - en: Photo by [Quino Al](https://unsplash.com/@quinoal?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 照片由 [Quino Al](https://unsplash.com/@quinoal?utm_source=medium&utm_medium=referral)
+    提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)。
 - en: Congratulations on keeping up to this point! Hopefully, you have learned something
     new from this article. It is indeed interesting to apply old good concepts from
     linear algebra to understand how well-trained an LLM is.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 恭喜你坚持到现在！希望你从本文中学到了一些新东西。将线性代数中的经典概念应用到理解 LLM 的训练效果上，确实很有趣。
 - en: If you love this type of content, please kindly follow my Medium account to
     get notifications for other future posts.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你喜欢这种类型的内容，请关注我的 Medium 账号，获取其他未来文章的通知。
 - en: About the Author
+  id: totrans-79
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 关于作者
 - en: '[Louis Owen](https://louisowen6.github.io/) is a data scientist/AI research
     engineer from Indonesia who is always hungry for new knowledge. Throughout his
     career journey, he has worked in various fields of industry, including NGOs, e-commerce,
     conversational AI, OTA, Smart City, and FinTech. Outside of work, he loves to
     spend his time helping data science enthusiasts to become data scientists, either
     through his articles or through mentoring sessions.'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Louis Owen](https://louisowen6.github.io/)是来自印尼的数据科学家/人工智能研究工程师，他总是渴望获得新知识。在他的职业生涯中，他在多个行业领域工作过，包括非政府组织、电子商务、对话式人工智能、在线旅游代理、智慧城市和金融科技。在工作之外，他喜欢通过自己的文章或辅导课程，帮助数据科学爱好者成为数据科学家。'
 - en: Currently, Louis is an NLP Research Engineer at Yellow.ai*,* the world’s leading
     CX automation platform. Check out [Louis’ website](http://louisowen6.github.io/)
     to learn more about him! Lastly, if you have any queries or any topics to be discussed,
     please reach out to Louis via [LinkedIn](https://www.linkedin.com/in/louisowen/).
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前，Louis 是Yellow.ai*的自然语言处理研究工程师，Yellow.ai*是全球领先的客户体验自动化平台。访问[Louis的个人网站](http://louisowen6.github.io/)以了解更多关于他的信息！最后，如果你有任何问题或需要讨论的话题，请通过[LinkedIn](https://www.linkedin.com/in/louisowen/)联系Louis。

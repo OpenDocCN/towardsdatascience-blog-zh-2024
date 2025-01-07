@@ -1,48 +1,74 @@
 - en: 'How Bend Works: A Parallel Programming Language That “Feels Like Python but
     Scales Like CUDA”'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Bend 如何工作：一种“感觉像 Python，但扩展性像 CUDA”的并行编程语言
 - en: 原文：[https://towardsdatascience.com/how-bend-works-a-parallel-programming-language-that-feels-like-python-but-scales-like-cuda-48be5bf0fc2c?source=collection_archive---------1-----------------------#2024-06-26](https://towardsdatascience.com/how-bend-works-a-parallel-programming-language-that-feels-like-python-but-scales-like-cuda-48be5bf0fc2c?source=collection_archive---------1-----------------------#2024-06-26)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-bend-works-a-parallel-programming-language-that-feels-like-python-but-scales-like-cuda-48be5bf0fc2c?source=collection_archive---------1-----------------------#2024-06-26](https://towardsdatascience.com/how-bend-works-a-parallel-programming-language-that-feels-like-python-but-scales-like-cuda-48be5bf0fc2c?source=collection_archive---------1-----------------------#2024-06-26)
 - en: A brief introduction to Lambda Calculus, Interaction Combinators, and how they
     are used to parallelize operations on Bend / HVM.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Lambda 演算、交互组合子以及它们如何用于在 Bend / HVM 上并行化操作的简要介绍。
 - en: '[](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)[![Lucas
     de Lima Nogueira](../Images/76edd8ee4005d4c0b8bd476261eb06ae.png)](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------)
     [Lucas de Lima Nogueira](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)[![Lucas
+    de Lima Nogueira](../Images/76edd8ee4005d4c0b8bd476261eb06ae.png)](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------)
+    [Lucas de Lima Nogueira](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------)
     ·22 min read·Jun 26, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------)
+    ·阅读时间：22 分钟·2024年6月26日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/398ffec82c1dd32cf300f28b5c5ae933.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/398ffec82c1dd32cf300f28b5c5ae933.png)'
 - en: Image by author
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自作者
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 引言
 - en: If you are reading this article, you probably recently heard about Bend, a new
     programming language that aims to be massively parallel but without you worrying
     about things like threads creation, and other common parallel programming terms.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你正在阅读这篇文章，你可能最近听说过 Bend，一种新的编程语言，旨在实现大规模并行计算，但你无需担心像线程创建等常见的并行编程概念。
 - en: 'If you do not know what I am talking about, watch the video below:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你不知道我在说什么，请观看下面的视频：
 - en: They claim “***it feels like Python, but scales like CUDA”.*** As an enthusiast
     of parallel programming, it caught my attention immediately. After some reading,
     I found that Bend is powered by HVM (Higher-Order Virtual Machine), the runtime
@@ -50,322 +76,507 @@
     into HVM, which does some magic to run this program in an inherently parallel
     manner. In some way, all operations that can be parallelized are automatically
     parallelized by this runtime.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 他们声称“***它感觉像 Python，但扩展性像 CUDA***”。作为并行编程的爱好者，这立刻引起了我的注意。经过一番阅读，我发现 Bend 是由
+    HVM（高级虚拟机）驱动的，这就是所有魔法发生的运行时环境。也就是说，在 Bend 程序中，Bend 代码会被编译成 HVM，HVM 通过一些魔法使得程序以本质上并行的方式运行。从某种意义上说，所有可以并行化的操作都被这个运行时自动并行化了。
 - en: 'Straight away, I wanted to learn how all of the HVM magic happens. How can
     all of this be possible? After some reading, I learned that the magic behind HVM
     is mostly based on Interaction Combinators, which is a model of computation based
     on graphs and graphical rules developed by Yves Lafont in the 1990s. So, I opened
     the Lafont [paper](https://core.ac.uk/download/pdf/81113716.pdf), rolled some
     pages and saw this:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 立刻，我就想了解所有 HVM 魔法是如何发生的。如何才能做到这一切？经过一些阅读，我了解到 HVM 背后的魔法主要基于交互组合子（Interaction
+    Combinators），这是一种基于图形和图形规则的计算模型，由 Yves Lafont 在 1990 年代开发。因此，我打开了 Lafont 的[论文](https://core.ac.uk/download/pdf/81113716.pdf)，翻了几页，看到了这一部分：
 - en: '![](../Images/8dd7792bc5d746abcd3c81f8bbbb06bf.png)'
+  id: totrans-13
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8dd7792bc5d746abcd3c81f8bbbb06bf.png)'
 - en: ???? Interaction Combinators alien code. Image by author, inspired from [Lafont,
     1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: ???? 交互组合子外星代码。图像来源于作者，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: I felt like I was in that movie *Arrival*, where the aliens try to communicate
     with us using a strange symbolic language.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 我感觉就像是在电影 *降临* 中，外星人试图用一种奇怪的符号语言与我们交流。
 - en: That’s when I closed the laptop and gave up on trying to understand that.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 就是在那时，我关闭了笔记本电脑，放弃了理解这个东西的尝试。
 - en: A while later, when I turned on my machine again, those symbols were there,
     staring at me, as if they were asking me to be understood.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 一段时间后，当我再次打开计算机时，那些符号依然在那里，盯着我看，仿佛它们在要求我理解它们。
 - en: After a lot of reading, watching videos and alien help, I somehow started to
     understand this thing.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 经过大量阅读、观看视频和外星人的帮助后，我不知怎的开始理解这一点。
 - en: The purpose of this article is to briefly clarify how all the HVM magic happens
     and facilitate your further understanding by explaining some common terms you
     might find during your learning journey. In order to do that, we need to first
     learn some basic concepts.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文的目的是简要阐明 HVM 魔法是如何发生的，并通过解释一些你在学习过程中可能遇到的常见术语，帮助你进一步理解。为此，我们需要先了解一些基本概念。
 - en: λ-Calculus (Lambda Calculus)
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: λ-计算（Lambda 计算）
 - en: 'The Lambda Calculus is a formal system in mathematical logic created by Alonzo
     Church in the 1930s. Its purpose was to investigate some aspects of logic theory
     from a purely mathematical point of view. Church was aiming to define what is
     computability in mathematical terms (what can be calculated using a set of fundamental
     rules). Let’s start:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: Lambda 计算是由阿隆佐·丘奇（Alonzo Church）在 1930 年代创建的数学逻辑中的一个形式系统。它的目的是从纯数学的角度研究逻辑理论的某些方面。丘奇的目标是用数学术语定义什么是可计算性（即什么可以通过一组基本规则来计算）。让我们开始：
 - en: 'You probably have already used Lambda Calculus before. For example, imagine
     a function to multiply a number by two:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能已经使用过 Lambda 计算了。例如，假设有一个将数字乘以二的函数：
 - en: f(x) = 2 * x
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: f(x) = 2 * x
 - en: 'On Python, you can express a named function for that like this:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Python 中，你可以这样表示一个命名函数：
 - en: '[PRE0]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'But you can also express that using lambdas, which are basically an anonymous
     function:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 但你也可以使用 lambda 来表示，它本质上是一个匿名函数：
 - en: '[PRE1]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: So, let’s go back to mathematics. In Lambda Calculus, you express this same
     function using the notation *λx.2x,* where *x* is the the *parameter* and *2x*
     the *body.*
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，让我们回到数学。在 Lambda 计算中，你可以使用符号 *λx.2x* 来表示相同的函数，其中 *x* 是 *参数*，而 *2x* 是 *主体*。
 - en: '*λ<parameter>.<body>*'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '*λ<parameter>.<body>*'
 - en: This is called an *abstraction.* An abstraction *λx.t* denotes an anonymous
     function that takes a single input variable *x* and returns *t.* For example,
     *λx.(x²+2x)* is an abstraction representing the function f defined by f(x) = x²+2x.
     So, an abstraction basically defines a function but does not invoke it.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 这叫做 *抽象*。一个抽象 *λx.t* 表示一个匿名函数，该函数接受一个输入变量 *x* 并返回 *t*。例如，*λx.(x²+2x)* 是一个抽象，表示由
+    f(x) = x²+2x 定义的函数。所以，抽象基本上定义了一个函数，但并没有调用它。
 - en: You can also have a term like *λx.(x+y)*, which is the definition of f(x) =
     x+y. Here, *y* has not been defined yet. The expression *λx.(x+y)* is a valid
     abstraction and represents a function that adds its input to the yet-unknown *y.*
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 你也可以有一个像 *λx.(x+y)* 这样的项，它是 f(x) = x+y 的定义。在这里，*y* 还没有定义。表达式 *λx.(x+y)* 是一个有效的抽象，表示一个将输入加上尚未知道的
+    *y* 的函数。
 - en: If using *λx.2x* defines a function, *(λx.2x)a “*calls” a function with argument
     “*a”*. That is, we basically substitute the variable “x” with “a”.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果使用 *λx.2x* 定义一个函数，*(λx.2x)a* 就是“调用”一个带有参数“a”的函数。也就是说，我们基本上是将变量“x”替换为“a”。
 - en: f(x) = 2x
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: f(x) = 2x
 - en: f(2) = 4
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: f(2) = 4
 - en: 'This is the same as:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 这与以下等价：
 - en: '*λx.2x*'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '*λx.2x*'
 - en: '*(λx.2x)2 = 4*'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λx.2x)2 = 4*'
 - en: This is called an *application.* We are “applying” the *abstraction (λx.2x)*
     to the number *2.*
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 这叫做 *应用*。我们正在将 *抽象 (λx.2x)* 应用到数字 *2* 上。
 - en: 'You can also apply a lambda expression to another lambda expression, such as
     nested functions:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 你也可以将一个 lambda 表达式应用到另一个 lambda 表达式中，像是嵌套函数：
 - en: Take f(x) = 2x and g(x) = x³
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 设 f(x) = 2x 和 g(x) = x³
 - en: 'And you want g(f(x)):'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后你想要 g(f(x))：
 - en: 'You can express this using lambda expressions:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以使用 Lambda 表达式来表示它：
 - en: '*λx.2x*'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '*λx.2x*'
 - en: '*λx.x³*'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '*λx.x³*'
 - en: '*=> (λx.x³)(λx.2x)*'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '*=> (λx.x³)(λx.2x)*'
 - en: Do not try to solve it for now, first understand the notation, and further I
     will show you how to solve it!
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在不要急着解决它，先理解符号的含义，稍后我会展示如何解决！
 - en: 'It’s important to not confuse the parenthesis. For example:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要的是不要混淆括号。例如：
 - en: '*1 — λx.((λx.x)x)* is an *abstraction* (function definition).'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '*1 — λx.((λx.x)x)* 是一个 *抽象*（函数定义）。'
 - en: '*2 — (λx.(λx.x))x* is an *application* (funtion application)*.*'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '*2 — (λx.(λx.x))x* 是一个 *应用*（函数应用）。'
 - en: On the Example 1, we are defining a function *λx.B*, where B is the expression
     (*λx.x)x,* which is the anonymous function *λx.x* applied to the input x.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 在示例 1 中，我们定义了一个函数 *λx.B*，其中 B 是表达式 (*λx.x)x*，即将匿名函数 *λx.x* 应用于输入 x。
 - en: On Example 2, we are applying the anonymous function *λx.(λx.x)* to the input
     *x.*
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 在示例 2 中，我们将匿名函数 *λx.(λx.x)* 应用到输入 *x*。
 - en: '*Applications* can also be represented as *f* *x* (applying function *f* to
     the variable *x*).'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: '*应用* 也可以表示为 *f* *x*（将函数 *f* 应用到变量 *x*）。'
 - en: 'We can also represent functions with *n* parameters using Lambda Calculus.
     This can be done by using nested functions, each taking a single parameter: *f(x,y,z)
     → λx.*λy.λz'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们也可以使用 Lambda 计算表示具有 *n* 个参数的函数。这可以通过使用嵌套函数来完成，每个函数接受一个单一参数：*f(x,y,z) → λx.*λy.λz
 - en: Thus, *f(x, y, z) = x + y + z* can be expressed by the *abstraction:*
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，*f(x, y, z) = x + y + z* 可以通过 *抽象* 表示为：
 - en: '*λx.*λy.λz.(x + y + z).'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '*λx.*λy.λz.(x + y + z)。'
 - en: 'Using this *abstraction* we can construct *applications*:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个 *抽象* 我们可以构造 *应用*：
 - en: '*(λx.*λy.λz.(x + y + z))1 2 3 => 6'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λx.*λy.λz.(x + y + z))1 2 3 => 6'
 - en: 'When studying Lambda Calculus, there are also two common terms you might find:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 在学习 Lambda 计算时，还有两个常见的术语你可能会遇到：
 - en: Alpha conversion (**α-conversion**) and Beta reduction (**β-reduction)**
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: Alpha 转换（**α-转换**）和 Beta 约简（**β-约简**）
 - en: Alpha conversion
+  id: totrans-60
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Alpha 转换
 - en: 'When evaluating more complex lambda expressions, you may obtain some expression
     like this:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 在评估更复杂的 Lambda 表达式时，你可能会得到这样的表达式：
 - en: '*(λx.(λx.x+x)x)*'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λx.(λx.x+x)x)*'
 - en: 'In this expression, the inner *x* could be mistakenly interpreted as the outer
     *x*. In order to avoid that, we can rename the inner variable x:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个表达式中，内部的 *x* 可能会被错误地解释为外部的 *x*。为了避免这种情况，我们可以重命名内部变量 x：
 - en: '*(λx.(λy.y+y)x)*'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λx.(λy.y+y)x)*'
 - en: This process is what it is called *α-conversion,* the name seems something complex,
     but it is this simple renaming of a variable to avoid mistakes.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个过程就是所谓的 *α-转换*，虽然名字看起来有点复杂，但其实就是这样简单的重命名变量以避免错误。
 - en: '*λx.x → λy.y (α-conversion)*'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '*λx.x → λy.y (α-转换)*'
 - en: Both expressions represents the same function. The *α-conversion* does not change
     the function’s behavior, just the variable name.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个表达式表示相同的函数。*α-转换* 并不会改变函数的行为，只是更改了变量的名称。
 - en: Beta reduction
+  id: totrans-68
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Beta 约简
 - en: '*β-reduction* is simply the process of calculating the result from an application
     of a function to an expression. For instance:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '*β-约简* 仅仅是通过将函数应用于表达式来计算结果的过程。例如：'
 - en: '*(λx.xy)z*'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λx.xy)z*'
 - en: On the output *xy,* substitute every occurrence of x by z
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 在输出 *xy* 时，将每个出现的 x 替换为 z
 - en: = *zy*
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: = *zy*
 - en: 'You also might found the following notation:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 你还可能会看到以下表示法：
 - en: '*(λ param . output)input => output [param := input] => result*'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λ param . output)input => output [param := input] => result*'
 - en: 'This basically means that to get the result, you look at the *output* and substitute
     every occurrence of *param* by the *input.* In the previous expression:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 这基本上意味着要得到结果，你需要查看 *输出*，并将每个出现的 *param* 替换为 *input*。在之前的表达式中：
 - en: '*(λx.xy)z => (xy)[x := z] => zy*'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λx.xy)z => (xy)[x := z] => zy*'
 - en: Example
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 示例
 - en: Going back to our example f(x) = 2x; g(x) = x³ and we want g(f(1)).
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 回到我们的例子 f(x) = 2x；g(x) = x³，我们想计算 g(f(1))。
 - en: 'In order to not mix up terms incorrectly, we can rewrite:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了避免错误混淆术语，我们可以重写：
 - en: f(x) = 2x and g(y) = y³
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: f(x) = 2x 和 g(y) = y³
 - en: 'Then, we substitute f within g:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们将 f 替换到 g 中：
 - en: g(f(1)) = (f(1))³
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: g(f(1)) = (f(1))³
 - en: => g(f(1)) = (2*1)³
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: => g(f(1)) = (2*1)³
 - en: => 8*x = 8.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: => 8*x = 8.
 - en: 'Now with Lambda Calculus:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在使用 Lambda 计算：
 - en: '*λx.2x*'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '*λx.2x*'
 - en: '*λx.x³*'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '*λx.x³*'
 - en: '*=> (λx.x³)((λx.2x)1)*'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '*=> (λx.x³)((λx.2x)1)*'
 - en: 'First, apply *α-conversion* in order to not mix up things:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，应用 *α-转换* 以避免混淆：
 - en: '*(λy.y³)((λx.2x)1)*'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λy.y³)((λx.2x)1)*'
 - en: Then, *β-reduction* on the inner most expression *(λx.2x)1:*
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，对最内层的表达式进行 *β-约简* *(λx.2x)1*：
 - en: '*(λ param . output)input => output [param := input] => result*'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λ param . output)input => output [param := input] => result*'
 - en: '*(λx.2x)1 => 2x [x := 1] => 2*1 = 2.*'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λx.2x)1 => 2x [x := 1] => 2*1 = 2.*'
 - en: Then, *β-reduction* again on the resulting expression *(λy.y³)2:*
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，再次对得到的表达式 *(λy.y³)2* 进行 *β-约简*：
 - en: '*(λ param . output)input => output [param := input] => result*'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λ param . output)input => output [param := input] => result*'
 - en: '*(λy.y³)2 => y³[y := 2] => 2³ => 8.*'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λy.y³)2 => y³[y := 2] => 2³ => 8.*'
 - en: We got the same result! That’s brilliant right?
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们得到了相同的结果！这真是太棒了吧？
 - en: _________________________________________________________________
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: _________________________________________________________________
 - en: ⚠️ If you’re starting to feel confused at this point, please don’t close the
     article!! I understand it can be challenging at first, but I promise you, when
     you sleep today, you will wake up with things more clear! So, keep reading and
     enjoy the rest of the article :)
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: ⚠️ 如果此时你开始感到困惑，请不要关闭文章！！我明白一开始可能会很具挑战性，但我保证你，今天晚上睡觉时，明天醒来时，事情会更加清晰！所以，请继续阅读，享受接下来的内容
+    :)
 - en: _________________________________________________________________
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: _________________________________________________________________
 - en: Some years after the Lambda Calculus, Alan Turing introduced the concept of
     Turing machines, an abstract mathematical model of a computer capable of simulating
     any algorithmic process that can be described mathematically. Building on the
@@ -375,407 +586,638 @@
     machine can also be expressed in Lambda Calculus terms. Thus, we can express any
     computable algorithm using Lambda Calculus!! Let’s understand how this can be
     done.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Lambda 计算之后的几年，艾伦·图灵提出了图灵机的概念，这是一种能够模拟任何可以用数学描述的算法过程的计算机抽象数学模型。在 Church 和
+    Turing 的工作基础上，已确定 Lambda 计算与图灵机之间存在理论等价性。这种等价性意味着，尽管 Lambda 计算没有数字或布尔值，但任何可以由图灵机计算的问题也可以用
+    Lambda 计算的术语表达。因此，我们可以用 Lambda 计算来表达任何可计算的算法！让我们了解一下如何实现这一点。
 - en: Numbers
+  id: totrans-102
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数字
 - en: I mentioned that Lambda Calculus does not have numbers, only lambda expressions.
     But then how could I have written things like *λx.(x+2)* before?
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 我之前提到过 Lambda 计算没有数字，只有 Lambda 表达式。但那么，我怎么能写出像 *λx.(x+2)* 这样的东西呢？
 - en: Well, I lied to you… 😞
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，我骗了你…… 😞
 - en: But don’t get angry, it was only to facilitate understanding 😀
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 但别生气，这只是为了便于理解 😀
 - en: 'Now, let’s understand how Church represented numbers using only lambda expressions:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们了解一下 Church 如何仅通过 Lambda 表达式表示数字：
 - en: The Church representation of numerals is a bit complicated to understand at
     the beginning but it will get clearer further.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: Church 数字表示法一开始可能有点复杂，但随着深入理解，它会变得更清晰。
 - en: The chuch numeral `n` is defined as a function that takes a function `f` and
     returns the application of `f` to its argument `n` times.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: Church 数字 `n` 被定义为一个函数，它接受一个函数 `f` 并返回将 `f` 应用于其参数 `n` 次。
 - en: '0: λf.λx.x (applies `f` to `x` 0 times)'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: '0: λf.λx.x （将 `f` 应用于 `x` 0 次）'
 - en: '1: λf.λx.f x (applies `f` to `x` 1 time)'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: '1: λf.λx.f x （将 `f` 应用于 `x` 1 次）'
 - en: '2: λf.λx.f(f x) (applies `f` to `x` 2 times)'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: '2: λf.λx.f(f x) （将 `f` 应用于 `x` 2 次）'
 - en: '3: λf.λx.f(f(f x)) (applies `f` to `x` 3 times)'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: '3: λf.λx.f(f(f x)) （将 `f` 应用于 `x` 3 次）'
 - en: and so on…
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 依此类推……
 - en: It seems confusing, but after some though, it starts to make sense. The church
     numeral `n` simply means to do anything `n` times.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 这似乎很混乱，但稍微思考一下后，你会开始理解的。Church 数字 `n` 只是意味着做某事 `n` 次。
 - en: 'A good way to illustrate this is to remember that the idea of numbers comes
     from the process of counting. For example, imagine that you have a stair with
     20 steps. When it is said that to climb the stairs you have to go up 20 steps,
     it means that you will climb one step 20 times, right? That’s exactly the same
     idea of Church encoding: You have a function `f` that means ‘go up one step’ and
     if you want to express the idea of 20 steps, you apply `f` `20` times.'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种很好的说明方式是记住数字的概念来源于计数的过程。例如，假设你有一个 20 步的楼梯。当说到爬楼梯时，你需要爬 20 步，这意味着你要爬 20 次，每次爬一步，对吧？这正是
+    Church 编码的概念：你有一个函数 `f`，它表示“爬一步”，如果你想表达 20 步的概念，你就将 `f` 应用 20 次。
 - en: Numerical Operations
+  id: totrans-116
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数值运算
 - en: After defining the Church numerals, we can define the numerical operations.
     The first one is to define a successor function ***s***. It is basically a function
     that increments a Church numeral by 1\. Thus, the successor is a function that
     takes a Church numeral representing the number `n` and returns a Church numerical
     representation of `n+1`.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义了 Church 数字之后，我们可以定义数值运算。第一个是定义一个后继函数 ***s***。它基本上是一个将 Church 数字增加 1 的函数。因此，后继函数是一个接受表示数字
+    `n` 的 Church 数字，并返回表示 `n+1` 的 Church 数字的函数。
 - en: For example, if λf.λx.f(f x) represents the number 2, if we apply the successor
     function **s** to that, we will get λf.λx.f(f(f x)) (Church numerical representation
     of number 3).
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果 λf.λx.f(f x) 表示数字 2，当我们将后继函数 **s** 应用到它时，我们将得到 λf.λx.f(f(f x))（数字 3 的
+    Church 表示法）。
 - en: 'The successor function is defined as follows:'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 后继函数定义如下：
 - en: '*s(n) =λn.λf.λx.f((n f) x),* where `n` is the Church numeral `n`.'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '*s(n) =λn.λf.λx.f((n f) x)，* 其中 `n` 是 Church 数字 `n`。'
 - en: 'Let’s analyze it:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们分析一下：
 - en: '**Input**: `n` (a Church numeral), `f` (a function), and `x` (an argument)'
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**输入**：`n`（一个教堂数字），`f`（一个函数），和 `x`（一个参数）'
 - en: '***Application* of n**: The term `(nf)x` represents the application of the
     function `f` to the argument `x` `n` times.'
+  id: totrans-123
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***n 的应用**：术语 `(nf)x` 表示将函数 `f` 应用到参数 `x` 上 `n` 次。'
 - en: '**Additional Application**: The term `f((nf)x)` applies `f` one more time to
     the result of `(nf)x`.'
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**附加应用**：术语 `f((nf)x)` 将函数 `f` 再应用一次到 `(nf)x` 的结果。'
 - en: If the Church numeral `n` means to do something `n` times, `s n` means do something
     `n+1` times.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果教堂数字 `n` 表示做某事 `n` 次，`s n` 则表示做某事 `n+1` 次。
 - en: 'Let’s for example apply the successor function to the Church numeral for 1:'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，让我们将后继函数应用于数字 1 的教堂数字表示法：
 - en: '**Church numeral for 2**: [*λf.λx.f(f x)*](http://.)'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: '**教堂数字 2**：[*λf.λx.f(f x)*](http://.)'
 - en: '**Applying successor of this expression:**'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: '**应用此表达式的后继：**'
 - en: We know that *s(n) = λn.λf.λx.f((n f) x)*
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们知道 *s(n) = λn.λf.λx.f((n f) x)*
 - en: Our n = 2 = [*λf.λx.f(f x)*](http://.)
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的 n = 2 = [*λf.λx.f(f x)*](http://.)
 - en: 'Thus, we apply the successor function on that:'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们对其应用后继函数：
 - en: s([**λf.λx.f(f x)**](http://.)*) = ( λn.λf.λx.f((n f) x) )(* [**λf.λx.f(f x)**](http://.)
     *)*
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: s([**λf.λx.f(f x)**](http://.)*) = ( λn.λf.λx.f((n f) x) )(* [**λf.λx.f(f x)**](http://.)
+    *)*
 - en: Using the first *β-reduction* on the *application* expression*:*
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 对 *应用* 表达式进行第一次 *β-约简*：
 - en: '*(λ param . output)input => output [param := input] => result*'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λ param . output)input => output [param := input] => result*'
 - en: '*( λn.λf.λx.f((n f) x) )(* [**λf.λx.f(f x)**](http://.) *) => λf.λx.f((n f)
     x) [n :=* [**λf.λx.f(f x)**](http://.)**]**'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: '*( λn.λf.λx.f((n f) x) )(* [**λf.λx.f(f x)**](http://.) *) => λf.λx.f((n f)
+    x) [n :=* [**λf.λx.f(f x)**](http://.)**]**'
 - en: => *λf.λx.f((*[**λf.λx.f(f x)**](http://.)*f x)*
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: => *λf.λx.f((*[**λf.λx.f(f x)**](http://.)*f x)*
 - en: 'Now, let’s analyze the inner *application* expression:'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们分析内部的 *应用* 表达式：
 - en: '*(*[**λf.λx.f(fx)**](http://.)*f x*'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(*[**λf.λx.f(fx)**](http://.)*f x*'
 - en: 'The underlined term is the Church numeral 2, right? And it can be read as:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 下划线部分是教堂数字 2，对吧？它可以解释为：
 - en: Given a function *f*, apply *f* 2 times to its argument, which is *x.*
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一个函数 *f*，将 *f* 应用两次于其参数 *x*。
 - en: '*(*[**λf.λx.f(fx)**](http://.)*f x* turns into *f(f x)*'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(*[**λf.λx.f(fx)**](http://.)*f x* 变成 *f(f x)*'
 - en: 'Substituting on our expression *λf.λx.f((*[**λf.λx.f(fx)**](http://.)*f x),*
     we get:'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 将我们的表达式 *λf.λx.f((*[**λf.λx.f(fx)**](http://.)*f x),* 代入后，我们得到：
 - en: '*λf.λx.f(f(f x)),* which is exactly the Church numerical representation of
     the number 3!'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: '*λf.λx.f(f(f x)),* 这正是数字 3 的教堂数字表示法！'
 - en: 'So, we just defined the successor lambda operation. By using this idea, if
     we define 0 = λf.λx.x, we can obtain the other Church numerals using the successor
     function recursively:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，我们刚刚定义了后继 lambda 操作。通过使用这个概念，如果我们定义 0 = λf.λx.x，我们可以通过递归地应用后继函数来获得其他教堂数字：
 - en: 1 = **s** **0**
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 1 = **s** **0**
 - en: 2 = s(**s** **0**)
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 2 = s(**s** **0**)
 - en: 3 = **s**(**s**(**s** **0**))
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 3 = **s**(**s**(**s** **0**))
 - en: …
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: We can take advantage of this functions to implement other operations such as
     addition and multiplication.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以利用这些函数来实现其他操作，如加法和乘法。
 - en: 'The addition of two numbers m + n is defined as:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个数字 m + n 的加法定义为：
 - en: '*ADD(m, n) = λm.λn.λf.λx.(m f)((n f) x)*'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: '*ADD(m, n) = λm.λn.λf.λx.(m f)((n f) x)*'
 - en: Thus, if we define *m* and *n* as the Church numerical representations of 3
     and 4, respectively, and then apply this ADD function, we will get the Church
     numerical representation of 7.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，如果我们将 *m* 和 *n* 定义为分别表示数字 3 和 4 的教堂数字表示法，然后应用这个加法函数，我们将得到数字 7 的教堂数字表示法。
 - en: 'The same logic applies to multiplication of two numbers m * n:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样的逻辑适用于两个数字 m * n 的乘法：
 - en: '*MUL(m, n) = λm.λn.λf.λx.m (n f)*'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: '*MUL(m, n) = λm.λn.λf.λx.m (n f)*'
 - en: Try to apply yourself anytime!
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何时候都可以尝试应用自己！
 - en: Booleans
+  id: totrans-156
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 布尔值
 - en: Before we get into the Church definitions, let’s think of booleans as some operation
     that we can do for *selection.* Among two options A and B, depending on some condition,
     we select A or B.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 在进入教堂定义之前，让我们先将布尔值视为我们可以用来进行 *选择* 的某种操作。在两个选项 A 和 B 之间，依据某个条件，选择 A 或 B。
 - en: '`IF [CONDITION] THEN [RESULT A] ELSE [RESULT B]`.'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: '`IF [CONDITION] THEN [RESULT A] ELSE [RESULT B]`。'
 - en: 'For example, during some app execution, if we want to use booleans to change
     the background color of the screen:'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，在某个应用程序执行过程中，如果我们想使用布尔值来更改屏幕的背景颜色：
 - en: “red_theme = True”
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: “red_theme = True”
 - en: This will only be useful when at some other part of the program we do some *selection:*
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 这只有在程序的其他部分我们进行某种 *选择* 时才有用：
 - en: background_color = IF red_theme THEN red ELSE white.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: background_color = 如果 red_theme 为真，则为 red，否则为 white。
 - en: Thus, all we need from booleans is some manner of conditionally selecting two
     options.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们从布尔值中需要的只是某种条件选择两个选项的方式。
 - en: 'Based on that, in Lambda Calculus, the Church definition of *true* and *false*
     are defined as functions of two parameters:'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于此，在λ演算中，*true*和*false*的Church定义被定义为两个参数的函数：
 - en: '*true* chooses the first parameter.'
+  id: totrans-165
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*true*选择第一个参数。'
 - en: '*false* chooses the second parameter.'
+  id: totrans-166
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*false*选择第二个参数。'
 - en: '*TRUE* = *λx.λy.x*'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: '*TRUE* = *λx.λy.x*'
 - en: '*FALSE* = *λx.λy.y*'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: '*FALSE* = *λx.λy.y*'
 - en: 'It seems strange, right? But let’s define some boolean operations and see how
     it goes:'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 看起来有点奇怪，对吧？但是让我们定义一些布尔操作，看看会发生什么：
 - en: '**NOT**: Takes a Boolean and returns the opposite.'
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: '**NOT**：接受一个布尔值并返回其相反值。'
 - en: '`NOT = λp. p FALSE TRUE`'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: '`NOT = λp. p FALSE TRUE`'
 - en: 'This means: “Take a Boolean function `p`. Apply `p` to the two parameters `FALSE`
     `TRUE`."'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着：“取一个布尔函数`p`。将`p`应用到两个参数`FALSE`和`TRUE`。”
 - en: 'Remember the definition of booleans on Church enconding? *TRUE* returns the
     first parameter and *FALSE* returns the second parameter? Thus:'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 还记得Church编码中的布尔值定义吗？*TRUE*返回第一个参数，*FALSE*返回第二个参数？因此：
 - en: → If `p` is `TRUE`, it returns `FALSE`.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: → 如果`p`是`TRUE`，则返回`FALSE`。
 - en: → If `p` is `FALSE`, it returns `TRUE`.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: → 如果`p`是`FALSE`，则返回`TRUE`。
 - en: '**AND**: Takes two Booleans and returns *TRUE* if both are *TRUE*, otherwise
     FALSE.'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: '**AND**：接受两个布尔值，如果两个都为*TRUE*，则返回*TRUE*，否则返回*FALSE*。'
 - en: '`AND = λp.λq.p q p`'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: '`AND = λp.λq.p q p`'
 - en: 'This means: “Take two Boolean functions `p` and `q`. Apply `p` to `q` and `p`."'
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着：“取两个布尔函数`p`和`q`。将`p`应用于`q`和`p`。”
 - en: 'Let’s try on practice:'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在实践中尝试：
 - en: '*AND TRUE FALSE* = (*λp.λq.p q p) TRUE FALSE:*'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: '*AND TRUE FALSE* = (*λp.λq.p q p) TRUE FALSE:'
 - en: 'Given *TRUE* and *FALSE*, return *TRUE FALSE TRUE*:'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定*TRUE*和*FALSE*，返回*TRUE FALSE TRUE*：
 - en: => *TRUE* *FALSE* *TRUE* = *λx.λy.x FALSE TRUE*
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: => *TRUE* *FALSE* *TRUE* = *λx.λy.x FALSE TRUE*
 - en: 'Given *FALSE* and *TRUE*, return the first parameter:'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定*FALSE*和*TRUE*，返回第一个参数：
 - en: '*λx.λy.x FALSE TRUE = FALSE*'
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: '*λx.λy.x FALSE TRUE = FALSE*'
 - en: The definitions of the other boolean operations such as OR, XOR and others follow
     the same idea.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他布尔操作如OR、XOR等的定义遵循相同的思路。
 - en: Practice
+  id: totrans-186
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实践
 - en: 'Now, let’s use some Lambda Calculus in practice:'
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们在实践中使用一些λ演算：
 - en: '[PRE2]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: As you can see, we are performing numerical operations using only lambda functions!!
     Also, by extending this with lambda boolean logic, we could implement if/else,
     loops and even an entire programming language solely with lambda functions! Amazing
     right?
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 如你所见，我们只使用λ函数执行数值操作！！此外，通过扩展这个方法并结合λ布尔逻辑，我们甚至可以仅使用λ函数实现if/else、循环，甚至整个编程语言！是不是很神奇？
 - en: Okay, now after this brief introduction to Lambda Calculus, we can go to the
     next topic of our journey.
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，在简要介绍完λ演算之后，我们可以进入我们旅程的下一个话题。
 - en: Interaction Nets
+  id: totrans-191
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 交互网
 - en: 'Before going directly to Interaction Combinators, let’s first learn another
     earlier work by Yves Lafont: Interaction Nets. This foundation will make understanding
     Interaction Combinators easier.'
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 在直接进入交互组合子之前，我们先学习一下Yves Lafont的另一项早期工作：交互网。这一基础将使理解交互组合子变得更加容易。
 - en: Interaction Nets are a model of computation created by Yves Lafont in 1990\.
     They use graph-like structures and a set of interaction rules to represent algorithms.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 交互网是由Yves Lafont在1990年创建的一种计算模型。它们使用类似图形的结构和一组交互规则来表示算法。
 - en: 'The first thing we need to define is a *cell.* A consists of a some symbol
     *e.g. α,* a principal port and n auxiliary ports*,* represented by the image below:'
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要定义的第一件事是一个*单元*。它由某个符号*例如α*，一个主端口和n个辅助端口组成，如下图所示：
 - en: '![](../Images/ba40de956a0e60e58c173fb65fa5a68b.png)'
+  id: totrans-195
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ba40de956a0e60e58c173fb65fa5a68b.png)'
 - en: Cell — Image by author
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 单元 — 图片由作者提供
 - en: 'When a *cell* has n = 0 auxiliary ports, it is represented as follows:'
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 当一个*单元*的辅助端口数n = 0时，它的表示如下：
 - en: '![](../Images/8e7e876645ce29028268c7ee95d7299e.png)'
+  id: totrans-198
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8e7e876645ce29028268c7ee95d7299e.png)'
 - en: Cell of arity n=0 — Image by author
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: arity n=0的单元 — 图片由作者提供
 - en: By connecting a set of *cells* through *wires* on their *ports* we construct
     a *net*. For example, a net with *cells α, β* and *γ,* with [arities](https://en.wikipedia.org/wiki/Arity)
     n = 2, 1 and 0, respectively.
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过将一组*单元*通过它们的*端口*用*电线*连接，我们构造一个*网络*。例如，一个包含*单元α, β*和*γ*的网络，其中[arity](https://en.wikipedia.org/wiki/Arity)分别为n
+    = 2, 1和0。
 - en: '![](../Images/93ad5ba679bdd192864241e7bc4f7d17.png)'
+  id: totrans-201
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/93ad5ba679bdd192864241e7bc4f7d17.png)'
 - en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供，灵感来自[Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: Note that a *wire* can connect two *ports* of the same *cell* and a *net* may
     not be necessarily connected. Also, in this example there are three free ports
     *x*, *y* and *z.*
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，一个*电线*可以连接同一个*单元*的两个*端口*，并且一个*网络*不一定需要完全连接。此外，在这个示例中有三个自由端口*x*、*y*和*z*。
 - en: Whenever a pair of cells is connected through their [***principal***](http://.)
     *ports,* there will be an *interaction.* An *interaction* is a rule that will
     modify the *net.* This pairs connected through their *active* ports and ready
     to interact are called an *active pair (*or *redex).*
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 每当一对单元通过它们的[***主要***](http://.) *端口*连接时，就会发生一次*交互*。*交互*是一条规则，它会修改*网络*。这些通过*活动*端口连接并准备交互的单元对称为*活动对*（或*红雷*）。
 - en: On the previous example, there are two possible *interactions* (*active pairs*)
     on the first *iteration.*
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的例子中，第一轮有两个可能的*交互*（*活动对*）。
 - en: '![](../Images/5c5f9513d5084292e2586a53b4e278a6.png)'
+  id: totrans-206
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5c5f9513d5084292e2586a53b4e278a6.png)'
 - en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者图像，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: After applying these rules, the *net* will be modified. We then repeatdly apply
     these rules again to the resulting *nets* until we reach an irreducible form,
     when no more *interaction* rules can be applied. This process of repeatedly applying
     *interaction* rules is also known as reduction.
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 在应用这些规则后，*网络*将被修改。然后，我们会将这些规则反复应用到结果生成的*网络*上，直到达到一个不可简化的形式，即无法再应用任何*交互*规则时为止。这个反复应用*交互*规则的过程也被称为归约。
 - en: An *interaction system* is constructed with a set of interaction rules that
     can be applied without ambiguity. That is, if we define an *interaction* rule
     for an *active pair (αi, αj)*, it will be the same for all *(αi, αj)* that appear.
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: '*交互系统*是由一组可以毫不含糊地应用的交互规则构成的。也就是说，如果我们为*活动对（αi, αj）*定义了一个*交互*规则，那么对于所有出现的*(αi,
+    αj)*，这个规则都是一样的。'
 - en: After this brief explanation, let’s do some practice.
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个简短的解释之后，让我们做一些练习。
 - en: '*Building an interaction system for arithmetics*'
+  id: totrans-211
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '*构建一个算术交互系统*'
 - en: 'Let’s build an interaction system for doing arithmetics. In order to create
     that, let’s first forget our basic intuition about numbers and try to create a
     system that can model natural numbers. In 1889, Giuseppe Peano introduced five
@@ -783,725 +1225,1146 @@
     for geometry. The Peano’s axioms enable an infinite set to be generated by a finite
     set of symbols and rules. Using these axioms, Peano defined some rules for a finite
     set of symbols to model natural numbers and their arithmetic properties:'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们构建一个用于做算术的交互系统。为了创建它，我们首先要忘记关于数字的基本直觉，尝试创建一个能够建模自然数的系统。在1889年，Giuseppe Peano提出了五条公理来形式化自然数，这类似于欧几里得为几何定义的公理。Peano的公理使得一个有限符号集和规则可以生成一个无限的集合。通过这些公理，Peano为自然数及其算术性质定义了一些规则：
 - en: '***0 → Symbolizes the number zero***'
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: '***0 → 表示数字零***'
 - en: '***s(n) → Represents the successor function. It returns the next natural number.***'
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: '***s(n) → 表示后继函数。它返回下一个自然数。***'
 - en: 'Using **s** and **0** we can define the natural numbers, as we have previously
     seen during lambda calculus studies:'
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用**s**和**0**，我们可以定义自然数，正如我们之前在λ演算学习中所看到的：
 - en: 1 = **s(0)**
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 1 = **s(0)**
 - en: 2 = **s(s(0))**
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 2 = **s(s(0))**
 - en: 3 = **s(s(s(0)))**
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 3 = **s(s(s(0)))**
 - en: and so on…
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 依此类推……
 - en: '***+ → Represents addition. It is a function recursively defined as:***'
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: '***+ → 表示加法。它是一个递归定义的函数，如下所示：***'
 - en: '***Base case:*** 0 + a = a'
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: '***基础情况：*** 0 + a = a'
 - en: '***Recursion:*** a + s(b) = s(a+b)'
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: '***递归：*** a + s(b) = s(a+b)'
 - en: 'For example:'
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如：
 - en: 'a + 3:'
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: a + 3：
 - en: = a + s(2)
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: = a + s(2)
 - en: = s(a+2)
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: = s(a+2)
 - en: = s(a+s(1))
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: = s(a+s(1))
 - en: = s(s(a+1))
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: = s(s(a+1))
 - en: = s(s(a+s(0)))
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: = s(s(a+s(0)))
 - en: = s(s(s(a+0)))
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: = s(s(s(a+0)))
 - en: = s(s(s(a)))
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: = s(s(s(a)))
 - en: '***×: Represents multiplication. It is a function recursively defined as:***'
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: '***×：表示乘法。它是一个递归定义的函数，如下所示：***'
 - en: '***Base case:*** b × **0** = **0**'
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: '***基础情况：*** b × **0** = **0**'
 - en: '***Recursion:*** s(a) × b = (a × b) + b'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: '***递归：*** s(a) × b = (a × b) + b'
 - en: 'Inspired by this, Yves Lafont built a interaction system to model natural numbers
     and arithmetics. Let’s understand:'
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 受此启发，Yves Lafont 构建了一个交互系统，用以建模自然数和算术。让我们来理解：
 - en: 'First, he defined *cells* for the **s** and **0** symbols:'
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，他为**s**和**0**符号定义了*单元*：
 - en: '![](../Images/4ea3ec73a34ccf2d96466542da9acaa7.png)'
+  id: totrans-237
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4ea3ec73a34ccf2d96466542da9acaa7.png)'
 - en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者图像，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: 'Then, the *cell* for the addition operation:'
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，定义加法运算的*单元*：
 - en: '![](../Images/d95bc121072804cd7d37597788eb8880.png)'
+  id: totrans-240
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d95bc121072804cd7d37597788eb8880.png)'
 - en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者图像，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: It seems strange, I know, but I promise will it will further make sense.
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 我知道这看起来很奇怪，但我保证它会变得更加有意义。
 - en: 'If all natural numbers can be expressed using only the symbols **0** and successor
     **s**, for addition we need to define just two *interaction* rules: how an addition
     interacts with successor and with **0\.** Therefore, Lafont introduced the two
     following *interaction* rules:'
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果所有自然数都可以仅使用符号 **0** 和后继 **s** 来表示，那么对于加法，我们只需要定义两个 *交互* 规则：加法如何与后继和 **0**
+    进行交互。因此，Lafont 提出了以下两个 *交互* 规则：
 - en: '![](../Images/889329bea2557cffd9453a2471b0bbfe.png)'
+  id: totrans-244
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/889329bea2557cffd9453a2471b0bbfe.png)'
 - en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: 'Compare these rules with the Peano’s equations for addition, they are extactly
     the same expressions:'
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 将这些规则与皮亚诺加法的方程进行比较，它们正好是相同的表达式：
 - en: s(x) + y = s(x+y)
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: s(x) + y = s(x+y)
 - en: '**0** + y = y'
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: '**0** + y = y'
 - en: 'Now, let’s understand the *interaction* rules for multiplication. The *cell*
     for multiplication is defined as follows:'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们理解乘法的 *交互* 规则。乘法的 *单元格* 定义如下：
 - en: '![](../Images/8fd1125c9726eca7ace99e90589b24b7.png)'
+  id: totrans-250
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8fd1125c9726eca7ace99e90589b24b7.png)'
 - en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: 'Now, take a look at Peano’s equations:'
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，看看皮亚诺的方程：
 - en: y × **0** = **0**
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: y × **0** = **0**
 - en: s(x) × y = (x × y) + y
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: s(x) × y = (x × y) + y
 - en: Note that the first equation “erases” the y variable (y appears on the left
     side of the equation and do not appear on the right side). In the second equation,
     the y is “duplicated” with another multiplication and an addition.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，第一个方程“抹除”了 y 变量（y 出现在方程的左侧，但在右侧没有出现）。在第二个方程中，y 被“复制”了，通过另一个乘法和加法。
 - en: 'Thus, two other symbols are needed: *ε (eraser)* and *δ (duplicator).*'
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，还需要另外两个符号：*ε (抹除器)* 和 *δ (复制器)*。
 - en: '![](../Images/ad52d6c71df9df7fbe0efef5b4b1d0ec.png)'
+  id: totrans-257
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ad52d6c71df9df7fbe0efef5b4b1d0ec.png)'
 - en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: 'The idea of this symbols is that a net representing natural numbers will be
     erased when connected to the principal port of *ε,* and it will be duplicated
     if it is connected to the principal port of *δ.* Now, the multiplication rule
     can be represented as follows:'
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些符号的思想是，表示自然数的网络在连接到 *ε* 的主端口时会被抹除，而连接到 *δ* 的主端口时则会被复制。现在，乘法规则可以表示为：
 - en: '![](../Images/5edbb6983572225d6bf4503b71f98e38.png)'
+  id: totrans-260
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5edbb6983572225d6bf4503b71f98e38.png)'
 - en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: 'Try to reflect on how they are similar to the Peano’s expressions:'
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 尝试反思它们与皮亚诺表达式的相似之处：
 - en: s(x) × y = (x × y) + y
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: s(x) × y = (x × y) + y
 - en: y × **0** = **0**
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: y × **0** = **0**
 - en: 'The *interaction* rules for *duplicator* and *eraser* with *successor* and
     0 are defined as follows:'
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: '*交互* 规则对于 *复制器* 和 *抹除器* 与 *后继* 和 0 的定义如下：'
 - en: '![](../Images/1fee674e8bd92a26f2008a095ee6487f.png)'
+  id: totrans-266
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1fee674e8bd92a26f2008a095ee6487f.png)'
 - en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: 'Thus, we have a set of six symbols **{0, s, +**, ×, *δ, ε*} with the following
     set of eight *interaction* rules: **{(s**, +), **(0, +)**, **(s**, ×), **(0**,
     ×), **(s***, δ*)*,* **(*0****, δ*)*,* **(*s****, ε*)*,* **(*0****, ε*)}. Let’s
     analyze them in practice for the operation 2 × 2.'
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们有一组六个符号 **{0, s, +**, ×, *δ, ε*} 和以下八个 *交互* 规则：**{(s**, +), **(0, +)**,
+    **(s**, ×), **(0**, ×), **(s***, δ*)*,* **(*0****, δ*)*,* **(*s****, ε*)*,* **(*0****,
+    ε*)}。让我们通过操作 2 × 2 来实际分析它们。
 - en: '![](../Images/7761269faea0c99e55e76dd3028a0622.png)'
+  id: totrans-269
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7761269faea0c99e55e76dd3028a0622.png)'
 - en: 2 x 2\. Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: 2 x 2。图像来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: 'If you take a look, there is an active pair (**s**, ×) that we can apply the
     Rule #3.'
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果你仔细看，会发现有一个活跃的对 (**s**, ×)，我们可以应用规则 #3。'
 - en: '![](../Images/4d416f15180cb9da8b6cf32136505daf.png)'
+  id: totrans-272
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4d416f15180cb9da8b6cf32136505daf.png)'
 - en: 'Applying *interaction rule #3\.* Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)'
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 应用*交互规则#3*。图片来源：作者，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: 'Therefore, the operation is solved by applying the *interaction* rules until
     we reach an irreducible form:'
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，运算通过应用*交互*规则来解决，直到我们得到一个不可约的形式：
 - en: '![](../Images/67e138061a4d076406a1a498898e633e.png)'
+  id: totrans-275
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/67e138061a4d076406a1a498898e633e.png)'
 - en: 2x2 = 4\. Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 2x2 = 4。图片来源：作者，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: 'Take a look at the final form that we have reached: **s**(**s**(**s**(**s**
     **0**))).'
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 看看我们已经得到的最终形式：**s**(**s**(**s**(**s** **0**))).
 - en: '![](../Images/5ada222ea12c2d41ccfdf3c448047307.png)'
+  id: totrans-278
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5ada222ea12c2d41ccfdf3c448047307.png)'
 - en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: It is exactly the definition of the numeral 4, the result of 2 × 2! Amazing,
     right? After some manipulation of strange symbols, we could solve an arithmetic
     operation! 😀
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: 这正是数字4的定义，2 × 2的结果！令人惊讶，对吧？经过一些奇怪符号的操作后，我们竟然能解出一个算术运算！😀
 - en: But why do such a complicated thing? What are the advantages of solving problems
     using these manipulations?
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，为什么要做这么复杂的事情呢？使用这些操作来解决问题有什么优势呢？
 - en: 'Lafont’s nets have an interesting property: if a net *μ* can reduce in one
     step to two different possible *nets v* or *v’,* then *v* and *v’* reduce in one
     step to a common net ξ.'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: Lafont的网络有一个有趣的性质：如果一个网络*μ*能在一步内减少到两个不同的可能网络*v*或*v’*，那么*v*和*v’*都能在一步内减少到一个共同的网络ξ。
 - en: '![](../Images/e93f8e38d3ba54b98c86d32876d794d3.png)'
+  id: totrans-283
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e93f8e38d3ba54b98c86d32876d794d3.png)'
 - en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: The consequence of this confluence property is that if a net *μ* reduces to
     *v* in *n* steps, then any sequence of reductions will reach *v* in *n* steps.
     In other words, the order of the application of *interaction* rules does not matter,
     the net will reach the same form with the same amount of steps!
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种汇聚性质的结果是，如果一个网络*μ*在*n*步内减少到*v*，那么任何一系列的减少都会在*n*步内达到*v*。换句话说，*交互*规则的应用顺序并不重要，网络将在相同的步数内达到相同的形式！
 - en: Did you get the power of this property? Basically, if the order of interactions
     doesn’t matter, we can apply them in parallel! 🤯
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 你感受到这种性质的力量了吗？基本上，如果交互的顺序无关紧要，我们就可以并行应用它们！🤯
 - en: 'For instance, on our previous 2 × 2 operation, instead of applying the rules
     one by one, we could parallelize them at moments like this:'
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，在我们之前的2 × 2运算中，我们可以在类似的时刻并行应用这些规则，而不是一条条逐个应用：
 - en: '![](../Images/9025d9f135f76590a34ec27617ad153c.png)'
+  id: totrans-288
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9025d9f135f76590a34ec27617ad153c.png)'
 - en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: In actual execution, both rules could be parallelized by running them in two
     separated threads, without concerns about thread collisions and other common issues
     related to parallelism. And that’s one of the core principles on which HVM/Bend
     is founded! Based on that, all operations that can be parallelized will be inherently
     parallelized!
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实际执行中，这两条规则可以通过在两个独立的线程中并行运行，从而避免线程冲突和其他与并行性相关的常见问题。这也是HVM/Bend所基于的核心原则之一！基于这一点，所有可以并行化的操作都将被本质地并行化！
 - en: Now that we understand interaction nets, let’s take one more step. Earlier in
     this article, I mentioned that HVM was based on Interaction Combinators, so let’s
     understand how these concepts relate.
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经理解了交互网络，让我们再迈进一步。之前在本文中，我提到HVM是基于交互组合子的，那么让我们来理解这些概念之间的关系。
 - en: Interaction Combinators
+  id: totrans-292
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 交互组合子
 - en: Based on his earlier Interaction Nets work, Yves Lafont created the Interaction
     Combinators. The idea was to create a representation of computation using a minimal
     set of primitives, called combinators. While interaction nets use graph rewriting
     to model computation explicitly, interaction combinators refine this by focusing
     on the fundamental combinatory logic. This shift provides a more abstract but
     more powerful framework for expressing computation processes.
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于他早期的交互网工作，Yves Lafont创建了交互组合子。这个思想是使用一个最小的基本符号集（称为组合子）来创建计算的表示。虽然交互网通过图重写显式地建模计算，交互组合子则通过专注于基本的组合逻辑来改进这一点。这一转变提供了一个更加抽象但更强大的框架，用于表达计算过程。
 - en: 'For interaction combinators, Lafont defined three symbols (also called combinators):
     γ (*constructor*), *δ* (*duplicator*)and *ε (eraser).*'
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于交互组合子，Lafont定义了三个符号（也称为组合子）：γ（*构造子*），*δ*（*复制子*）和*ε*（*擦除子*）。
 - en: 'Using these three combinators, a total of only six rules were created. These
     rules are divided into:'
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这三个组合子，总共创建了仅六条规则。这些规则分为：
 - en: '*commutation —* when two cells of different symbols interact (γ*δ,* γ*ε, δε*);'
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: '*交换* — 当两个不同符号的单元互相作用时（γ*δ,* γ*ε, δε*）；'
 - en: '*annihilation —* when two cells of the same symbol interact (γγ, *δδ, εε*).'
+  id: totrans-297
   prefs: []
   type: TYPE_NORMAL
+  zh: '*湮灭* — 当两个相同符号的单元互相作用时（γγ，*δδ，εε*）。'
 - en: 'The rules are defined below:'
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 规则如下所定义：
 - en: '![](../Images/3aa98d277576638e82070613893d2955.png)'
+  id: totrans-299
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3aa98d277576638e82070613893d2955.png)'
 - en: Commutation rules. Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: 交换规则。图片来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: '![](../Images/97e11564dd402b1e26d0184ab2c06034.png)'
+  id: totrans-301
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/97e11564dd402b1e26d0184ab2c06034.png)'
 - en: Annihilation rules. Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 湮灭规则。图片来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 - en: Therefore, using only these six rules you can model any computable algorithm!
     Amazing, right?
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，仅使用这六条规则，你就可以建模任何可计算的算法！惊人吧，对吧？
 - en: 'However, the HVM runtime uses a variant of Lafont’s interaction combinators,
     called [Symmetric Interaction Combinators (SIC) (Mazza, 2007)](https://lipn.univ-paris13.fr/~mazza/papers/CombSem-MSCS.pdf).
     This variant is a simplified version that uses the same rewrite rule for all of
     its symbols:'
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，HVM运行时使用的是Lafont的交互组合子的一个变体，称为[对称交互组合子 (SIC) (Mazza, 2007)](https://lipn.univ-paris13.fr/~mazza/papers/CombSem-MSCS.pdf)。这个变体是一个简化版，它对所有符号使用相同的重写规则：
 - en: '![](../Images/0d41aba45a4959823ee000d41ec2d648.png)'
+  id: totrans-305
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0d41aba45a4959823ee000d41ec2d648.png)'
 - en: Symmetric Interaction Combinators rules. Image by author, inspired from [Mazza,
     2007](https://lipn.univ-paris13.fr/~mazza/papers/CombSem-MSCS.pdf)
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: 对称交互组合子规则。图片来自作者，灵感来源于 [Mazza, 2007](https://lipn.univ-paris13.fr/~mazza/papers/CombSem-MSCS.pdf)
 - en: As you can see, the single difference is that the rules γγ and *δδ* are now
     the similar*.* The crucial confluence property is maintained, preserving its parallelization
     capability.
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: 如你所见，唯一的区别是规则γγ和*δδ*现在是相似的*。* 关键的汇聚性质得以保持，保留了其并行化能力。
 - en: '*For now on, we will be using the SIC rules for our examples, so focus on them.*'
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: '*从现在开始，我们将使用SIC规则进行示例，因此请专注于它们。*'
 - en: Lambda Calculus → Symmetric Interaction Combinators
+  id: totrans-309
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Lambda 演算 → 对称交互组合子
 - en: Now you may be asking “How can I write programs using that? How to transform
     my Python function into interaction combinators drawings?”
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在你可能会问：“我该如何使用这些写程序？如何将我的Python函数转换为交互组合子图形？”
 - en: I mentioned before that you can represent any computable algorithm using lambda
     calculus right?
+  id: totrans-311
   prefs: []
   type: TYPE_NORMAL
+  zh: 我之前提到过，你可以使用λ演算表示任何可计算的算法，对吧？
 - en: 'Now another information: you can transform lambda calculus into interaction
     combinators!'
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在有另外一条信息：你可以将λ演算转换为交互组合子！
 - en: Thus, any program can be transformed into lambda calculus, then transformed
     into interaction combinators, run in parallel and then be transformed back!
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，任何程序都可以转换为λ演算，然后转换为交互组合子，进行并行运行，再转换回来！
 - en: '![](../Images/e076537acd1508b1239640bb52df6823.png)'
+  id: totrans-314
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e076537acd1508b1239640bb52df6823.png)'
 - en: Image by author
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自作者
 - en: So, let’s understand how you can translate lambdas to interaction combinators!
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，让我们理解如何将λ转换为交互组合子！
 - en: 'Lambda *expressions ( λ )* and *applications* ( @ ) can be expressed using
     a constructor γ. For instance, a lambda *expression λx.y* can be expressed as
     follows:'
+  id: totrans-317
   prefs: []
   type: TYPE_NORMAL
+  zh: Lambda *表达式 ( λ )* 和 *应用*（@）可以通过构造子γ表示。例如，lambda *表达式 λx.y* 可以表示为：
 - en: '![](../Images/c58777ecbcf6e4a9491e3330b3b727ff.png)'
+  id: totrans-318
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c58777ecbcf6e4a9491e3330b3b727ff.png)'
 - en: Lambda expression using SIC. Image by author
+  id: totrans-319
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 SIC 的 Lambda 表达式。作者提供的图片
 - en: 'And for a given *application f x,* we can express it as follows:'
+  id: totrans-320
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于给定的 *应用 f x*，我们可以将其表示为：
 - en: '![](../Images/ebe37c5809c0a8c423f30e0b0fd100aa.png)'
+  id: totrans-321
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ebe37c5809c0a8c423f30e0b0fd100aa.png)'
 - en: Lambda application using SIC. Image by author
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 SIC 的 Lambda 应用。作者提供的图片
 - en: Using these representations, we can express the identity *expression λx.x (*given
     *x*, return *x* itself*):*
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这些表示法，我们可以表达恒等式 *表达式 λx.x（*给定 *x*，返回 *x* 本身*）：*
 - en: '![](../Images/e373013cf236a706a208fb551c9163fb.png)'
+  id: totrans-324
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e373013cf236a706a208fb551c9163fb.png)'
 - en: '*λx.x. Image by author*'
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: '*λx.x。作者提供的图片*'
 - en: Now, imagine we want to do the *application* (*λx.x)y:*
+  id: totrans-326
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，假设我们想进行 *应用*（*λx.x)y*：
 - en: '![](../Images/a35facf020a380ffda8f89664bb32938.png)'
+  id: totrans-327
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a35facf020a380ffda8f89664bb32938.png)'
 - en: '*(λx.x)y* Image by author'
+  id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(λx.x)y* 作者提供的图片'
 - en: If we reduce the expression (*λx.x)y,* we will get *y* as result. Let’s analyze
     what can we get using SIC rules?
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们简化表达式 (*λx.x)y，*我们会得到 *y* 作为结果。让我们分析一下使用 SIC 规则可以得到什么？
 - en: Notice that when there is an *application* applied to a lambda *expression,*
     there will be an *active pair* that we can reduce! In this case, we will apply
     the interaction rule γγ. Also, for now on, we will use a circle to identify the
     final calculation result we are interested in.
+  id: totrans-330
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，当一个 *应用* 应用于一个 lambda *表达式* 时，会有一个 *活动对*，我们可以简化它！在这种情况下，我们将应用交互规则 γγ。同时，从现在开始，我们将使用圆圈来标识我们感兴趣的最终计算结果。
 - en: '![](../Images/cc9a7092abf3788fcfe1de34ad230f0f.png)'
+  id: totrans-331
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cc9a7092abf3788fcfe1de34ad230f0f.png)'
 - en: Image bu author
+  id: totrans-332
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片
 - en: As you can notice, (*λx.x)y* was correctly reduced to *y*! Amazing, right?
+  id: totrans-333
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你所看到的，(*λx.x)y* 被正确地简化为 *y*！很神奇，对吧？
 - en: 'Now, imagine we want to express *λf.ff (*given *f,* apply *f* to itself). As
     you can notice, the parameter *f* is *duplicated* on the body. That’s when the
     *duplicator (*δ) comes into action! We can use *duplicators* to copy (duplicate)
     values:'
+  id: totrans-334
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，假设我们想表达 *λf.ff（*给定 *f*，将 *f* 应用到它自身）。正如你所注意到的，参数 *f* 在主体部分是 *重复* 的。这时，*复制器*（*δ）就派上用场了！我们可以使用
+    *复制器* 来复制（重复）值：
 - en: '![](../Images/278b9ee8e57d4cb0d5631b5852fa73f1.png)'
+  id: totrans-335
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/278b9ee8e57d4cb0d5631b5852fa73f1.png)'
 - en: Image by author
+  id: totrans-336
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片
 - en: 'Let’s go back to our expression *λf.ff.* First, identify that this is an *expression*
     that given the input *f,* it outputs the *application f applied to f itself.*
     Therefore, it can be expressed as follows:'
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们回到我们的表达式 *λf.ff*。首先，确认这是一个 *表达式*，它接受输入 *f*，并输出 *f 应用到它自身*。因此，它可以表示为：
 - en: '![](../Images/0ce8478c7bffeffd294cca11cf909fd5.png)'
+  id: totrans-338
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0ce8478c7bffeffd294cca11cf909fd5.png)'
 - en: “Given *f,* output *f* applied to *f”. Image by author*
+  id: totrans-339
   prefs: []
   type: TYPE_NORMAL
+  zh: “给定 *f*，输出 *f* 应用到 *f*”。作者提供的图片*
 - en: 'Beyond duplication, variables can also be vanished. For instance, let’s take
     the Church number **0 :=** *λf.λx.x.* This expression can be read as “given two
     variables *f* and *x,* return *x”.* As you can notice, the variable *f* is not
     used at the output. If we tried to represent using SIC with our current knowledge,
     we would obtain:'
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了复制，变量也可以消失。例如，我们来看看教堂数字 **0 :=** *λf.λx.x*。这个表达式可以解读为“给定两个变量 *f* 和 *x*，返回
+    *x*”。正如你所注意到的，变量 *f* 在输出中没有被使用。如果我们试图用当前的 SIC 知识表示它，我们将得到：
 - en: '![](../Images/9ae939db655d63c9f4ebd1d9413bd566.png)'
+  id: totrans-341
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9ae939db655d63c9f4ebd1d9413bd566.png)'
 - en: Image by author
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片
 - en: 'The *f* wire is floating. Something seems wrong, right? That’s why we have
     the *eraser ε!* In order to represent this variable disappearance we do:'
+  id: totrans-343
   prefs: []
   type: TYPE_NORMAL
+  zh: '*f* 线漂浮着。似乎有点问题，对吧？这就是我们需要 *橡皮擦 ε* 的原因！为了表示这个变量的消失，我们这样做：'
 - en: '![](../Images/6040c5d8fa64b89e2b89de2eb863ec5c.png)'
+  id: totrans-344
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6040c5d8fa64b89e2b89de2eb863ec5c.png)'
 - en: Image by author.
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片。
 - en: 'In summary, we can handle Lambda Calculus with Symmetric Interaction Combinators
     using:'
+  id: totrans-346
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结一下，我们可以通过以下方式使用对称交互组合子处理 Lambda 演算：
 - en: '![](../Images/069a7921a0fe243a1b2ec902d8e22bc4.png)'
+  id: totrans-347
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/069a7921a0fe243a1b2ec902d8e22bc4.png)'
 - en: Image by author. Inspired by [https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/](https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/)
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片。灵感来源于 [https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/](https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/)
 - en: Examples
+  id: totrans-349
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 示例
 - en: Now that we covered these transformations, we are able to perform more complex
     operations.
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们已经覆盖了这些转换，能够执行更复杂的操作了。
 - en: Church numbers
+  id: totrans-351
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 乔治·教堂数字
 - en: Let’s draw some Church numbers!
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们画一些乔治·教堂数字！
 - en: '![](../Images/71ff48be81fb16b7f945787eb7255ece.png)'
+  id: totrans-353
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/71ff48be81fb16b7f945787eb7255ece.png)'
 - en: Image by author
+  id: totrans-354
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片
 - en: 'Before we go further, try to replicate this yourself! Get a paper and start
     drawing! For instance, let’s try to draw together the Church number four: *λf.λx.f(f(f(f
     x))).*'
+  id: totrans-355
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们继续之前，试着自己做一下！拿张纸开始画吧！例如，让我们一起尝试画出教会数 4： *λf.λx.f(f(f(f x)))。*
 - en: The thing that I draw is the outer lambda expression *λf.____*
+  id: totrans-356
   prefs: []
   type: TYPE_NORMAL
+  zh: 我画的东西是外部的 lambda 表达式 *λf.____*
 - en: '![](../Images/4baf00423b2cde5b9974dbf4bd517d25.png)'
+  id: totrans-357
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4baf00423b2cde5b9974dbf4bd517d25.png)'
 - en: Given f, output *λ*x.f(f(f(f x))). Image by author
+  id: totrans-358
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定 f，输出 *λ*x.f(f(f(f x)))。图片由作者提供
 - en: 'Then, the second lambda expression __.*λx.*____:'
+  id: totrans-359
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，第二个 lambda 表达式 __.*λx.*____：
 - en: '![](../Images/888164d02fd47ceb1a2abb3a2ff90029.png)'
+  id: totrans-360
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/888164d02fd47ceb1a2abb3a2ff90029.png)'
 - en: Given x, output f(f(f(f x))). Image by author
+  id: totrans-361
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定 x，输出 f(f(f(f x)))。图片由作者提供
 - en: 'Now, we need to draw the *applications* (@). But first, notice that we have
     *f* repeated four times. Therefore, we need to copy (duplicate) *f* three more
     times (so we need three duplicators in sequence):'
+  id: totrans-362
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们需要绘制 *应用*（@）。但首先，请注意我们有 *f* 重复了四次。因此，我们需要复制（重复） *f* 三次（所以我们需要三个连续的复制器）：
 - en: '![](../Images/35deea54aa6b8d04016bec1d7ed8b016.png)'
+  id: totrans-363
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/35deea54aa6b8d04016bec1d7ed8b016.png)'
 - en: Duplications of f. Image by author
+  id: totrans-364
   prefs: []
   type: TYPE_NORMAL
+  zh: f 的复制。图片由作者提供
 - en: Now that we have four copiesof *f,* we can draw the *applications*of *f* to
     *f* in sequence!
+  id: totrans-365
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了四个 *f* 的副本，我们可以按顺序绘制 *f* 到 *f* 的 *应用*！
 - en: '![](../Images/5669ee7a20e95e2d0fd88ff9ed37c799.png)'
+  id: totrans-366
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5669ee7a20e95e2d0fd88ff9ed37c799.png)'
 - en: Church number 4 with SIC. Image by author
+  id: totrans-367
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 SIC 表示法的教会数 4。图片由作者提供
 - en: Using the same strategy, we can easily construct other expressions.
+  id: totrans-368
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用相同的策略，我们可以轻松构造其他表达式。
 - en: Successor
+  id: totrans-369
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 后继函数
 - en: Let’s implement the successor function. It is given by *λn.λf.λx.f((n f) x).*
+  id: totrans-370
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们实现后继函数。它表示为 *λn.λf.λx.f((n f) x)。*
 - en: '![](../Images/91eb0ac0fbac96178e46ccddbf24a7b5.png)'
+  id: totrans-371
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/91eb0ac0fbac96178e46ccddbf24a7b5.png)'
 - en: Successor. Image by author
+  id: totrans-372
   prefs: []
   type: TYPE_NORMAL
+  zh: 后继函数。图片由作者提供
 - en: Let’s apply SUCC to the number *0* and analyze what we get.
+  id: totrans-373
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将后继函数应用于数字 *0* 并分析得到的结果。
 - en: '![](../Images/73bd398bd363b80c9d6693a543157c27.png)'
+  id: totrans-374
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/73bd398bd363b80c9d6693a543157c27.png)'
 - en: SUCC 0\. Image by author
+  id: totrans-375
   prefs: []
   type: TYPE_NORMAL
+  zh: SUCC 0。图片由作者提供
 - en: 'Let’s apply the interaction rules. In order to facilitate readability, I will
     draw *duplicators* δ as black cells and *constructors* γ as white cells:'
+  id: totrans-376
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们应用交互规则。为了便于阅读，我将 *复制器* δ 画为黑色单元，而 *构造器* γ 画为白色单元：
 - en: '![](../Images/7483476d2c7eba05287c470db99a8219.png)'
+  id: totrans-377
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7483476d2c7eba05287c470db99a8219.png)'
 - en: SUCC 0 reductions. Image by author
+  id: totrans-378
   prefs: []
   type: TYPE_NORMAL
+  zh: SUCC 0 的简化。图片由作者提供
 - en: 'Well, we should have reached the Church numeral 1, right? What went wrong?
     Take a look at the *eraser ε* connected to the auxiliary port of the duplicator
     δ (in black):'
+  id: totrans-379
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，我们应该已经得到了教会数 1，对吧？出了什么问题？看看与复制器 δ（黑色）辅助端口连接的 *橡皮擦 ε*：
 - en: '![](../Images/8cc2c94526e90cb7650bcd2f8a8b940b.png)'
+  id: totrans-380
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8cc2c94526e90cb7650bcd2f8a8b940b.png)'
 - en: Image by author
+  id: totrans-381
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: This *eraser* is making this left auxiliary port to be redundant! All of the
     information passed through this duplicator will be erased. For any *cell* that
     interacts with this *duplicator,* the *left* part will be *erased.*
+  id: totrans-382
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个 *橡皮擦* 让这个左侧辅助端口变得多余！通过这个复制器传递的所有信息都会被擦除。对于任何与这个 *复制器* 交互的 *单元*，其 *左侧* 部分将被
+    *擦除*。
 - en: 'So we can remove this redundant *duplicator* and connect the *wire* directly:'
+  id: totrans-383
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们可以去除这个多余的 *复制器*，并直接连接 *电线*：
 - en: '![](../Images/e662d51b21d3f99a9bf46d1bdad4415a.png)'
+  id: totrans-384
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e662d51b21d3f99a9bf46d1bdad4415a.png)'
 - en: Image by author.
+  id: totrans-385
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供。
 - en: And *voila!* After reducing SUCC(0) we got exactly the Church number 1, as expected!
+  id: totrans-386
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，*瞧！* 在简化 SUCC(0) 后，我们得到了正好是教会数 1，正如预期的那样！
 - en: 'Let’s apply SUCC againt to the number 1 and see if we get the number 2:'
+  id: totrans-387
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次将 SUCC 应用到数字 1 上，看看我们能否得到数字 2：
 - en: '![](../Images/ff417ab383f7dcf4fa7f00fbfc20c8f3.png)'
+  id: totrans-388
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ff417ab383f7dcf4fa7f00fbfc20c8f3.png)'
 - en: SUCC 1\. Image by author
+  id: totrans-389
   prefs: []
   type: TYPE_NORMAL
+  zh: SUCC 1。图片由作者提供
 - en: '![](../Images/1c554d864f027d5ae5fd12834413a298.png)'
+  id: totrans-390
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1c554d864f027d5ae5fd12834413a298.png)'
 - en: SUCC 1 = 2\. Image by author
+  id: totrans-391
   prefs: []
   type: TYPE_NORMAL
+  zh: SUCC 1 = 2。图片由作者提供
 - en: We got exactly the Church number 2! Amazing, right?
+  id: totrans-392
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们正好得到了教会数 2！很神奇，对吧？
 - en: Addition
+  id: totrans-393
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 加法
 - en: 'So far, we have just performed sequential reductions. Let’s do a more complex
     one, such as addition, to visualize the full parallelization potential of interaction
     combinators. Below the SIC representation of addition: *ADD(m, n) = λm.λn.λf.λx.(m
     f)((n f) x).*'
+  id: totrans-394
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们只进行了顺序化简。让我们做一个更复杂的操作，例如加法，来可视化交互组合器的完整并行化潜力。下面是加法的 SIC 表示法： *ADD(m,
+    n) = λm.λn.λf.λx.(m f)((n f) x)。*
 - en: '![](../Images/07cb4ec55cf4a0856b417a91a615ad90.png)'
+  id: totrans-395
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/07cb4ec55cf4a0856b417a91a615ad90.png)'
 - en: Addition. Image by author
+  id: totrans-396
   prefs: []
   type: TYPE_NORMAL
+  zh: 加法。图片由作者提供
 - en: 'Let’s calculate ADD 1 1:'
+  id: totrans-397
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们计算 ADD 1 1：
 - en: '![](../Images/46ca9526345dc51c5260799e471fea3b.png)'
+  id: totrans-398
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/46ca9526345dc51c5260799e471fea3b.png)'
 - en: ADD 1 1\. Image by author
+  id: totrans-399
   prefs: []
   type: TYPE_NORMAL
+  zh: ADD 1 1。图片由作者提供
 - en: 'Executing the reductions:'
+  id: totrans-400
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行简化操作：
 - en: '![](../Images/05ad0dece29ad44eb9b72af6669863e0.png)'
+  id: totrans-401
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/05ad0dece29ad44eb9b72af6669863e0.png)'
 - en: Image by author
+  id: totrans-402
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: Take a look at this step. There are two active pairs! In cases like this we
     can reduce both in parallel. In a real program, we could run them in two different
     threads.
+  id: totrans-403
   prefs: []
   type: TYPE_NORMAL
+  zh: 看一下这一步。这里有两个活跃的配对！像这种情况，我们可以并行地简化这两个。在实际的程序中，我们可以在两个不同的线程中运行它们。
 - en: 'Let’s continue:'
+  id: totrans-404
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们继续：
 - en: '![](../Images/0a3e0763cf67f8158a12daa49fcfac41.png)'
+  id: totrans-405
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0a3e0763cf67f8158a12daa49fcfac41.png)'
 - en: ADD 1 1 = 2\. Image by author
+  id: totrans-406
   prefs: []
   type: TYPE_NORMAL
+  zh: ADD 1 1 = 2\. 图片由作者提供
 - en: After reducing ADD 1 1 we got exactly the representation of the Church number
     2!
+  id: totrans-407
   prefs: []
   type: TYPE_NORMAL
+  zh: 在简化ADD 1 1之后，我们得到了恰好是教堂数字2的表示！
 - en: And that’s how the operations are parallelized using Interaction Combinators.
     At each step, if there are multiples active pairs, all of them run in different
     threads.
+  id: totrans-408
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是如何使用交互组合子并行化操作的过程。在每一步，如果有多个活跃的配对，它们都会在不同的线程中运行。
 - en: Conclusion
+  id: totrans-409
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: In this post we covered basic concepts of lambda calculus, interaction combinators,
     and how they are combined to parallelize operations. I hope I could give you a
     brief explanation on how Bend/HVM works and for more information, please visit
     their [website](https://higherorderco.com/).
+  id: totrans-410
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我们涵盖了λ演算的基本概念、交互组合子以及它们如何结合以并行化操作。我希望我能简要地解释Bend/HVM是如何工作的，更多信息，请访问他们的[网站](https://higherorderco.com/)。
 - en: Also, follow me here and on my [LinkedIn profile](https://www.linkedin.com/in/lucas-de-lima-nogueira/)
     to stay updated on my latest articles!
+  id: totrans-411
   prefs: []
   type: TYPE_NORMAL
+  zh: 同时，关注我在这里和我的[LinkedIn个人资料](https://www.linkedin.com/in/lucas-de-lima-nogueira/)，以便及时了解我的最新文章！
 - en: References
+  id: totrans-412
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[HigherOrderCO website](https://higherorderco.com/)'
+  id: totrans-413
   prefs: []
   type: TYPE_NORMAL
+  zh: '[HigherOrderCO网站](https://higherorderco.com/)'
 - en: '[Lafont’s Interaction Combinators paper](https://core.ac.uk/download/pdf/81113716.pdf)'
+  id: totrans-414
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Lafont的交互组合子论文](https://core.ac.uk/download/pdf/81113716.pdf)'
 - en: '[How HVM works video](https://www.youtube.com/watch?v=sDPuQ-UjhVQ&t=1591s)'
+  id: totrans-415
   prefs: []
   type: TYPE_NORMAL
+  zh: '[HVM工作原理视频](https://www.youtube.com/watch?v=sDPuQ-UjhVQ&t=1591s)'
 - en: '[Interaction combinators tutorial 1](https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/)'
+  id: totrans-416
   prefs: []
   type: TYPE_NORMAL
+  zh: '[交互组合子教程 1](https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/)'
 - en: '[Interaction combinators tutorial 2](https://blog.stevenhuyn.com/succ/)'
+  id: totrans-417
   prefs: []
   type: TYPE_NORMAL
+  zh: '[交互组合子教程 2](https://blog.stevenhuyn.com/succ/)'
 - en: '[Lambda calculus tutorial](https://learnxinyminutes.com/docs/lambda-calculus/)'
+  id: totrans-418
   prefs: []
   type: TYPE_NORMAL
+  zh: '[λ演算教程](https://learnxinyminutes.com/docs/lambda-calculus/)'

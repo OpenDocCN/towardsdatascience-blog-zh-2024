@@ -1,85 +1,125 @@
 - en: Automate Video Chaptering with LLMs and TF-IDF
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用LLM和TF-IDF自动化视频章节划分
 - en: 原文：[https://towardsdatascience.com/automate-video-chaptering-with-llms-and-tf-idf-f6569fd4d32b?source=collection_archive---------3-----------------------#2024-09-09](https://towardsdatascience.com/automate-video-chaptering-with-llms-and-tf-idf-f6569fd4d32b?source=collection_archive---------3-----------------------#2024-09-09)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/automate-video-chaptering-with-llms-and-tf-idf-f6569fd4d32b?source=collection_archive---------3-----------------------#2024-09-09](https://towardsdatascience.com/automate-video-chaptering-with-llms-and-tf-idf-f6569fd4d32b?source=collection_archive---------3-----------------------#2024-09-09)
 - en: Transform raw transcripts into well-structured documents
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将原始转录文本转化为结构良好的文档
 - en: '[](https://ya-lb.medium.com/?source=post_page---byline--f6569fd4d32b--------------------------------)[![Yann-Aël
     Le Borgne](../Images/acc1c8b32373d7f345064b89b51869fd.png)](https://ya-lb.medium.com/?source=post_page---byline--f6569fd4d32b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f6569fd4d32b--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f6569fd4d32b--------------------------------)
     [Yann-Aël Le Borgne](https://ya-lb.medium.com/?source=post_page---byline--f6569fd4d32b--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://ya-lb.medium.com/?source=post_page---byline--f6569fd4d32b--------------------------------)[![Yann-Aël
+    Le Borgne](../Images/acc1c8b32373d7f345064b89b51869fd.png)](https://ya-lb.medium.com/?source=post_page---byline--f6569fd4d32b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f6569fd4d32b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f6569fd4d32b--------------------------------)
+    [Yann-Aël Le Borgne](https://ya-lb.medium.com/?source=post_page---byline--f6569fd4d32b--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f6569fd4d32b--------------------------------)
     ·12 min read·Sep 9, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f6569fd4d32b--------------------------------)
+    ·12分钟阅读·2024年9月9日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/32d60a6f1a504bcb2a692f7a8846cb0e.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/32d60a6f1a504bcb2a692f7a8846cb0e.png)'
 - en: Photo by [Jakob Owens](https://unsplash.com/@jakobowens1?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[Jakob Owens](https://unsplash.com/@jakobowens1?utm_source=medium&utm_medium=referral)来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Video chaptering is the task of segmenting a video into distinct chapters. Besides
     its use as a navigation aid as seen with YouTube chapters, it is also core to
     a series of downstream applications ranging from information retrieval (e.g.,
     RAG semantic chunking), to referencing or [summarization](https://medium.com/p/d2c1e04e7a7b).
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 视频章节划分是将视频分割成不同章节的任务。除了像YouTube章节那样作为导航工具使用外，它还是一系列下游应用的核心，从信息检索（例如RAG语义切分）到引用或[摘要](https://medium.com/p/d2c1e04e7a7b)等。
 - en: In a recent project, I needed to automate this task and was suprised by the
     limited options available, especially in the open-source domain. While some professional
     tools or paid APIs offer such services, I couldn’t find any library or tutorial
     that provided a sufficiently robust and accurate solution. If you know of any,
     please share them in the comment!
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在一个最近的项目中，我需要自动化这个任务，结果发现可用的选择非常有限，尤其是在开源领域。虽然一些专业工具或付费API提供了这样的服务，但我找不到任何提供足够健全和准确解决方案的库或教程。如果你知道有类似的资源，请在评论区分享！
 - en: And in case you wonder why not simply copy and paste the transcript into a large
     language model (LLM) and ask for chapter headings, this won’t be effective for
     two reasons. First, LLMs cannot consistently preserve timestamp information to
     link them back to chapter titles. Second, LLMs often overlook important sections
     when dealing with long transcripts.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你在想，为什么不直接将转录文本复制粘贴到大型语言模型（LLM）中，并要求其生成章节标题，答案是，这样做有两个原因不会有效。首先，LLM无法始终如一地保留时间戳信息，并将其与章节标题关联。其次，LLM在处理长篇转录文本时，往往会忽视重要部分。
 - en: I therefore ended up designing a custom workflow by relying on LLMs for different
     language processing subtasks (text formatting, paragraph structuring, chapter
     segmentation and title generation), and on a [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)
     statistics to add timestamps back after the paragraph structuring.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我最终设计了一个自定义工作流程，依赖LLM来处理不同的语言处理子任务（如文本格式化、段落结构、章节划分和标题生成），并使用[TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)统计方法在段落结构化后将时间戳信息添加回来。
 - en: '![](../Images/780f882c38449694c48c995a6382887c.png)'
+  id: totrans-12
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/780f882c38449694c48c995a6382887c.png)'
 - en: The combination of LLMs and TF-IDF allows to efficiently edit and structure
     a raw transcript while preserving timestamps — See demo on this [HuggingFace space](https://huggingface.co/spaces/Yannael/video-chaptering)
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: LLM和TF-IDF的结合使得能够高效地编辑和结构化原始转录文本，同时保留时间戳——在这个[HuggingFace空间](https://huggingface.co/spaces/Yannael/video-chaptering)查看演示。
 - en: The resulting workflow turns out to work pretty well, often generating chapters
     that replicate or enhance YouTube’s suggested ones. The tool additionally allows
     to export poorly formatted transcripts into well-structured documents, as illustrated
     on this [HuggingFace space](https://huggingface.co/spaces/Yannael/video-chaptering).
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终的工作流程效果很好，通常会生成与YouTube推荐章节相同或增强版的章节。该工具还允许将格式不佳的转录文本导出为结构化文档，如下所示的[HuggingFace空间](https://huggingface.co/spaces/Yannael/video-chaptering)。
 - en: 'This blog post aims at explaining its main steps, which are outlined in the
     diagram below:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文旨在解释其主要步骤，步骤如下图所示：
 - en: '![](../Images/ec059b1795fb2245cf75e684608ae62c.png)'
+  id: totrans-16
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ec059b1795fb2245cf75e684608ae62c.png)'
 - en: Proposed workflow for video chaptering, from raw transcript retrieval to structured
     markdown and Gradio app.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 视频章节化的提议工作流程，从原始转录文本的获取到结构化的Markdown和Gradio应用程序。
 - en: 'The key steps in the workflow lie in structuring the transcript in paragraphs
     (step 2) before grouping the paragraphs into chapters from which a table of contents
     is derived (step 4). Note that these two steps may rely on different LLMs: A fast
@@ -87,368 +127,546 @@
     identification, and a more sophisticated LLM such as GPT-4o-mini for the generation
     of the table of contents. In between, TF-IDF is used to add back timestamp information
     to the structured paragraphs.'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 工作流程的关键步骤在于将转录文本结构化为段落（步骤2），然后将这些段落归类为章节，最终生成目录（步骤4）。请注意，这两个步骤可能依赖于不同的LLM：对于简单的文本编辑和段落识别任务，可以使用快速且便宜的LLM，如LLama
+    3 8B；而生成目录则需要更为复杂的LLM，如GPT-4o-mini。期间，使用TF-IDF将时间戳信息添加回结构化的段落。
 - en: The rest of the post describes each step in more detail.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文的其余部分将更详细地描述每个步骤。
 - en: Check out the accompanying [Github repository and Colab notebook](https://github.com/Yannael/automatic-video-chaptering)
     to explore on your own!
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看随附的[Github仓库和Colab笔记本](https://github.com/Yannael/automatic-video-chaptering)，亲自探索一下吧！
 - en: 1) Get the video/audio transcript
+  id: totrans-21
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 1) 获取视频/音频转录文本
 - en: 'Let us use as an example [the first lecture](https://www.youtube.com/watch?v=ErnWZxJovaM)
     of the course ‘MIT 6.S191: Introduction to Deep Learning’ ([IntroToDeepLearning.com](http://introtodeeplearning.com))
     by Alexander Amini and Ava Amini **(**[licensed under the MIT License](http://introtodeeplearning.com/)).'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 以[课程“MIT 6.S191：深度学习导论”](https://www.youtube.com/watch?v=ErnWZxJovaM)的第一讲为例（[IntroToDeepLearning.com](http://introtodeeplearning.com)），该课程由Alexander
+    Amini和Ava Amini讲授**（[根据MIT许可协议授权](http://introtodeeplearning.com/)）**。
 - en: '![](../Images/5c2f97d5dd2e28cf1b72c2562e1e38cf.png)'
+  id: totrans-23
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5c2f97d5dd2e28cf1b72c2562e1e38cf.png)'
 - en: Screenshot of the course YouTube page. Course material is under an MIT licence.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 课程YouTube页面的截图。课程资料受MIT许可证保护。
 - en: Note that chapters are already provided in the video description.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，视频描述中已提供章节信息。
 - en: '![](../Images/01a6fbed9e9f9dff298272404cc8bd7e.png)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/01a6fbed9e9f9dff298272404cc8bd7e.png)'
 - en: Chaptering made available in the YouTube description
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 章节信息已在YouTube描述中提供
 - en: This provides us with a baseline to qualitatively compare our chaptering later
     in this post.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这为我们提供了一个基准，用于在本文后面对我们的章节化效果进行定性比较。
 - en: '*YouTube transcript API*'
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '*YouTube 转录 API*'
 - en: 'For YouTube videos, an automatically generated transcript is usually made available
     by YouTube. A convenient way to retrieve that transcript is by calling the *get_transcript*
     method of the Python *youtube_transcript_api* library. The method takes the YouTube
     *video_id* library as argument:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于YouTube视频，YouTube通常会自动生成转录文本。检索该转录文本的便捷方法是调用Python *youtube_transcript_api*库中的*get_transcript*方法。该方法将YouTube的*video_id*作为参数：
 - en: '[PRE0]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'This returns the transcript as a list of text and timestamp key-value pairs:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将返回转录文本，内容为文本和时间戳键值对的列表：
 - en: '[PRE1]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'The transcript is however poorly formatted: it lacks punctuation and contains
     typos (‘MIT sus1 191’ instead of ‘MIT 6.S191'', or ‘amini’ instead of ‘Amini’).'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，转录文本的格式较差：缺乏标点符号并且包含拼写错误（如“MIT sus1 191”应为“MIT 6.S191”，或“amini”应为“Amini”）。
 - en: Speech-to-text with Whisper
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用Whisper进行语音转文本
 - en: Alternatively, a speech-to-text library can be used to infer the transcript
     from a video or audio file. We recommend using [*faster-whisper*](https://github.com/SYSTRAN/faster-whisper),
     which is a fast implementation of the state-of-the-art open-source [*whisper*](https://github.com/openai/whisper)
     model.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者，可以使用语音转文本库从视频或音频文件中推断转录内容。我们推荐使用[*faster-whisper*](https://github.com/SYSTRAN/faster-whisper)，它是一个快速实现的最新开源[*whisper*](https://github.com/openai/whisper)模型。
 - en: The models come in different size. The most accurate is the ‘large-v3’, which
     is able to transcribe about 15 minutes of audio per minute on a T4 GPU (available
     for free on Google Colab).
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型有不同的大小，最精确的是‘large-v3’，它能够在T4 GPU上每分钟转录约15分钟的音频（Google Colab提供免费使用）。
 - en: '[PRE2]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The result of the transcription is provided as segments which can be easily
     converted in a list of text and timestamps as with the *youtube_transcript_api*
     library.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 转录的结果以片段形式提供，可以很容易地转换为文本和时间戳的列表，就像使用*youtube_transcript_api*库一样。
 - en: 'Tip: Whisper may sometimes [not include the punctuation](https://github.com/openai/whisper/discussions/194).
     The *initial_prompt* argument can be used to nudge the model to add punctuation
     by providing a small sentence containing punctuation.'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 提示：Whisper有时可能[不包括标点符号](https://github.com/openai/whisper/discussions/194)。可以通过提供包含标点符号的小句子来使用*initial_prompt*参数引导模型添加标点符号。
 - en: 'Below is an excerpt of the transcription of the our video example with whisper
     large-v3:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是使用whisper large-v3转录我们视频示例的一部分摘录：
 - en: '[PRE3]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Note that compared to the YouTube transcription, the punctuation is added. Some
     transcription errors however still remain (‘MIT Success 191’ instead of ‘MIT 6.S191').
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，与YouTube转录相比，标点符号已经添加。然而，某些转录错误仍然存在（例如，‘MIT Success 191’而不是‘MIT 6.S191’）。
 - en: 2) Structure the transcript in paragraphs
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 2）将转录内容结构化为段落
 - en: Once a transcript is available, the second stage consists in editing and structuring
     the transcript in paragraphs.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦转录可用，第二阶段就开始对转录内容进行编辑和段落结构化。
 - en: Transcript editing refers to changes made to improve readability. This involves,
     for example, adding punctuation if it is missing, correcting grammatical errors,
     removing verbal tics, etc.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 转录编辑指的是为了提高可读性所做的修改。例如，添加缺失的标点符号、修正语法错误、去除口头习惯等。
 - en: The structuring in paragraphs also improves readability, and additionnally serves
     as a preprocessing step for identifying chapters in stage 4, since chapters will
     be formed by grouping paragraphs together.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 将内容结构化为段落也有助于提高可读性，另外，这也作为第四阶段识别章节的预处理步骤，因为章节将通过将段落组合在一起形成。
 - en: 'Paragraph editing and structuring can be carried out in a single operation,
     using an LLM. We illustrated below the expected result of this stage:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 段落编辑和结构化可以通过单次操作完成，使用LLM。下面我们演示了该阶段的预期结果：
 - en: '![](../Images/8c5df77d97bd440adef5a65f05b5309f.png)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8c5df77d97bd440adef5a65f05b5309f.png)'
 - en: 'Left: Raw transcript. Right: Edited and structured transcript.'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 左：原始转录。右：编辑和结构化后的转录。
 - en: 'This task does not require a very sophisticated LLM since it mostly consists
     in reformulating content. At the time of writing this article, decent results
     could be obtained with for example GPT-4o-mini or Llama 3 8B, and the following
     system prompt:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个任务并不需要非常复杂的LLM，因为它主要是对内容进行重述。在撰写本文时，使用例如GPT-4o-mini或Llama 3 8B，可以获得不错的结果，配合以下的系统提示：
 - en: You are a helpful assistant.
+  id: totrans-52
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 你是一个有帮助的助手。
 - en: ''
+  id: totrans-53
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: 'Your task is to improve the user input’s readability: add punctuation if needed
     and remove verbal tics, and structure the text in paragraphs separated with ‘\n\n’.'
+  id: totrans-54
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 你的任务是提高用户输入的可读性：如果需要，添加标点符号，去除口头习惯，并将文本结构化为以‘\n\n’分隔的段落。
 - en: ''
+  id: totrans-55
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Keep the wording as faithful as possible to the original text.
+  id: totrans-56
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 尽量保持用词忠实于原文。
 - en: ''
+  id: totrans-57
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Put your answer within <answer></answer> tags.
+  id: totrans-58
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 将你的回答放在<answer></answer>标签内。
 - en: 'We rely on [OpenAI compatible chat completion API](https://platform.openai.com/docs/guides/chat-completions)
     for LLM calling, with messages having the roles of either ‘system’, ‘user’ or
     ‘assistant’. The code below illustrates the instantiation of an LLM client with
     [Groq](https://console.groq.com/docs/text-chat), using LLama 3 8B:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们依赖于[OpenAI兼容的聊天完成API](https://platform.openai.com/docs/guides/chat-completions)来调用LLM，消息的角色可以是‘system’、‘user’或‘assistant’。下面的代码演示了使用[Groq](https://console.groq.com/docs/text-chat)实例化LLM客户端，使用LLama
+    3 8B：
 - en: '[PRE4]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'Given a piece of raw ‘transcript_text’ as input, this returns an edited piece
     of text within <answer> tags:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定一段原始的‘transcript_text’作为输入，它将返回一个包含在<answer>标签中的编辑文本：
 - en: '[PRE5]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Let us then extract the edited text from the <answer> tags, divide it into
     paragraphs, and structure the results as a JSON dictionary consisting of paragraph
     numbers and pieces of text:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们从<answer>标签中提取编辑后的文本，将其划分为段落，并将结果结构化为一个包含段落编号和文本片段的JSON字典：
 - en: '[PRE6]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Note that the input should not be too long as the LLM will otherwise ‘forget’
     part of the text. For long inputs, the transcript must be split in chunks to improve
     reliability. We noticed that GPT-4o-mini handles well up to 5000 characters, while
     Llama 3 8B can only handle up to 1500 characters. The notebook provides the function
     *transcript_to_paragraphs* which takes care of splitting the transcript in chunks.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，输入不应过长，否则大型语言模型（LLM）可能会‘忘记’部分文本。对于较长的输入，转录本必须分块以提高可靠性。我们发现GPT-4o-mini可以处理最多5000个字符，而Llama
+    3 8B只能处理最多1500个字符。该笔记本提供了*transcript_to_paragraphs*函数，它负责将转录本分块。
 - en: 3) Infer paragraph timestamps with TF-IDF
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 3) 使用TF-IDF推断段落时间戳
 - en: The transcript is now structured as a list of edited paragraphs, but the timestamps
     have been lost in the process.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 转录本现在已经被结构化为一个编辑过的段落列表，但时间戳在此过程中丢失了。
 - en: The third stage consists in adding back timestamps, by inferring which segment
     in the raw transcript is the closest to each paragraph.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 第三阶段是通过推断原始转录中哪个片段最接近每个段落，来重新添加时间戳。
 - en: '![](../Images/61fb2633ad48094b726132474c7d221f.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/61fb2633ad48094b726132474c7d221f.png)'
 - en: TF-IDF is used to find which raw transcript segment (right) best matches the
     beginning of the edited pargagraphs (left).
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: TF-IDF用于找到哪个原始转录片段（右侧）最能匹配编辑后的段落开头（左侧）。
 - en: We rely for this task on the [TF-IDF metric](https://en.wikipedia.org/wiki/Tf%E2%80%93idf).
     TF-IDF stands for **term frequency–inverse document frequency** and is a similarity
     measure for comparing two pieces of text. The measure works by computing the number
     of similar words, giving more weight to words which appear less frequently.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这项任务，我们依赖于[TF-IDF度量](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)。TF-IDF代表**词频-逆文档频率**，是一种用于比较两段文本相似度的度量方法。该度量通过计算相似单词的数量来工作，且对出现频率较低的单词给予更高权重。
 - en: As a preprocessing step, we adjust the transcript segments and paragraph beginnings
     so that they contain the same number of words. The text pieces should be long
     enough so that paragraph beginnings can be successfully matched to a unique transcript
     segment. We find that using 50 words works well in practice.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为预处理步骤，我们调整转录片段和段落的起始位置，以使它们包含相同数量的单词。文本片段应足够长，以便段落开头能够成功匹配到一个唯一的转录片段。我们发现，使用50个单词在实际操作中效果较好。
 - en: '[PRE7]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: We then rely on the *sklearn* library and its [TfidfVectorizer](https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html)
     and [cosine_similarity](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html#cosine-similarity)
     function to run TF-IDF and compute similarities between each paragraph beginning
     and transcript segment. below is an example of code for finding the best match
     index in the transcript segments for the first paragraph.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 接着，我们依赖*sklearn*库及其[TfidfVectorizer](https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html)和[cosine_similarity](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html#cosine-similarity)函数来运行TF-IDF，并计算每个段落开头和转录片段之间的相似度。以下是用于找到第一个段落在转录片段中最佳匹配索引的代码示例。
 - en: '[PRE8]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'We wrapped the process in a *add_timestamps_to_paragraphs* function, which
     adds timestamps to paragraphs, together with the matched segment index and text:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将该过程封装在*add_timestamps_to_paragraphs*函数中，该函数为段落添加时间戳，同时添加匹配的片段索引和文本：
 - en: '[PRE9]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: In the example above, the first paragraph (numbered 0) is found to match the
     transcript segment number 1 that starts at time 10 (in seconds).
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面的示例中，第一个段落（编号为0）被发现与从时间10秒（秒为单位）开始的转录片段编号1匹配。
 - en: 4) Generate table of contents
+  id: totrans-79
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 4) 生成目录
 - en: 'The table of contents is then found by grouping consecutive paragraphs into
     chapters and identifying meaningful chapter titles. The task is mostly carried
     out by an LLM, which is instructed to transform an input consisting in a list
     of JSON paragraphs into an output consisting in a list of JSON chapter titles
     with the starting paragraph numbers:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 目录通过将连续的段落分组为章节，并识别有意义的章节标题来生成。此任务主要由LLM执行，LLM被指示将由JSON段落列表组成的输入转换为包含JSON章节标题及其起始段落编号的输出：
 - en: '[PRE10]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: An important element is to specifically ask for a JSON output, which increases
     the chances to get a correctly formatted JSON output that can later be loaded
     back in Python.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个重要的元素是特别要求输出JSON格式，这样可以增加获得正确格式的JSON输出的机会，后续可以在Python中重新加载。
 - en: GPT-4o-mini is used for this task, as it is more cost-effective than OpenAI’s
     GPT-4o and generally provides good results. The instructions are provided through
     the ‘system’ role, and paragraphs are provided in JSON format through the ‘user’
     role.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 本任务使用GPT-4o-mini，因为它比OpenAI的GPT-4o更具成本效益，并且通常能提供良好的结果。指令通过‘system’角色提供，段落则通过‘user’角色以JSON格式提供。
 - en: '[PRE11]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'Et voilà! The call returns the list of chapter titles together with the starting
     paragraph number in JSON format:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 完成！调用返回了包含章节标题及起始段落编号的JSON格式列表：
 - en: '[PRE12]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: As in step 2, the LLM may struggle with long inputs and dismiss part of the
     input. The solution consists again in splitting the input into chunks, which is
     implemented in the notebook with the *paragraphs_to_toc* function and the *chunk_size*
     parameter.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 如同步骤2所示，LLM可能会处理长输入时出现问题，并且忽略输入的一部分。解决方案依然是将输入拆分成多个部分，在笔记本中通过*paragraphs_to_toc*函数和*chunk_size*参数实现。
 - en: 5) Output structured chapters
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5）输出结构化的章节
 - en: This last stage combines the paragraphs and the table of contents to create
     a structured JSON file with chapters, an example of which is provided in the [accompanying
     Github repository](https://github.com/Yannael/automatic-video-chaptering/blob/master/tmp/ErnWZxJovaM/ErnWZxJovaM.json).
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后的阶段将段落和目录结合起来，创建一个结构化的JSON文件，其中包含章节，示例如下所示，见[附带的Github仓库](https://github.com/Yannael/automatic-video-chaptering/blob/master/tmp/ErnWZxJovaM/ErnWZxJovaM.json)。
 - en: 'We illustrate below the resulting chaptering (right), compared to the baseline
     chaptering that was available from the YouTube description (left):'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在下图中展示了最终的章节划分（右）与YouTube描述中提供的基准章节划分（左）的对比：
 - en: '![](../Images/3f23d10c1159cfcf70370ae8be3055be.png)'
+  id: totrans-91
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3f23d10c1159cfcf70370ae8be3055be.png)'
 - en: Side-by-side comparison of baseline chaptering from YouTube (left) and ours
     (right)
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 并排比较YouTube的基准章节划分（左）和我们的划分（右）
 - en: The comparison is mostly qualitative as there is no ‘ground truth’. Overall,
     the approach described in this post identified similar chapters but provides a
     slightly more refined segmentation of the video. A manual check of both chapterings
     revealed that the baseline chaptering is off regarding course information, which
     indeed starts at 9:37 and not at 7:25.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个对比主要是定性的，因为没有‘标准答案’。总体来说，本文中描述的方法识别了相似的章节，但提供了一个稍微更精细的划分。对两种章节划分的手动检查表明，基准章节划分在课程信息上存在偏差，实际上课程是在9:37开始，而不是7:25。
 - en: A couple of other examples of chaptering are given on this [HuggingFace space](https://huggingface.co/spaces/Yannael/video-chaptering).
     The whole workflow is bundled as a Gradio app at the end of the [accompanying
     notebook](https://colab.research.google.com/github/Yannael/automatic-video-chaptering/blob/master/video_chapter_generator.ipynb),
     making it easier to test it on your own videos.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 另有一些章节划分的示例，见这个[HuggingFace空间](https://huggingface.co/spaces/Yannael/video-chaptering)。整个工作流最终作为Gradio应用程序捆绑在[附带的笔记本](https://colab.research.google.com/github/Yannael/automatic-video-chaptering/blob/master/video_chapter_generator.ipynb)中，使得你可以更轻松地在自己的视频上进行测试。
 - en: '![](../Images/780f882c38449694c48c995a6382887c.png)'
+  id: totrans-95
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/780f882c38449694c48c995a6382887c.png)'
 - en: '[Gradio app](https://colab.research.google.com/github/Yannael/automatic-video-chaptering/blob/master/video_chapter_generator.ipynb)
     that bundles the different steps and outputs a well-structured document from a
     raw transcript'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Gradio应用程序](https://colab.research.google.com/github/Yannael/automatic-video-chaptering/blob/master/video_chapter_generator.ipynb)，它将不同的步骤捆绑在一起，并从原始转录文本输出一个结构良好的文档'
 - en: To go further
+  id: totrans-97
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为了进一步深入
 - en: '[From Text Segmentation to Smart Chaptering:'
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[从文本分割到智能章节划分：'
 - en: A Novel Benchmark for Structuring Video Transcriptions](https://arxiv.org/pdf/2402.17633v1)
+  id: totrans-99
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '[用于结构化视频转录的新基准](https://arxiv.org/pdf/2402.17633v1)'
 - en: '[Review of existing solutions for transcript summarizers](https://www.notta.ai/en/blog/transcript-summarizer)'
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[现有转录总结解决方案的评审](https://www.notta.ai/en/blog/transcript-summarizer)'
 - en: '[https://paperswithcode.com/task/text-segmentation](https://paperswithcode.com/task/text-segmentation)'
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://paperswithcode.com/task/text-segmentation](https://paperswithcode.com/task/text-segmentation)'
 - en: '[https://en.wikipedia.org/wiki/Video_chapter](https://en.wikipedia.org/wiki/Video_chapter)'
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://en.wikipedia.org/wiki/Video_chapter](https://en.wikipedia.org/wiki/Video_chapter)'
 - en: 'Note:'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意：
 - en: Unless otherwise noted, all images are by the author
+  id: totrans-104
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 除非另有说明，所有图片均为作者提供
 - en: '*Enjoyed this post? Share your thoughts, give it claps, or* [*connect with
     me on LinkedIn*](https://www.linkedin.com/in/yannaelb/) *.*'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: '*喜欢这篇文章吗？分享你的想法，给予掌声，或* [*在 LinkedIn 上与我联系*](https://www.linkedin.com/in/yannaelb/)
+    *。*'

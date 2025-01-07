@@ -1,36 +1,57 @@
 - en: 'Need for Speed: Streamlit vs Functool Caching'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 速度需求：Streamlit 与 Functool 缓存
 - en: 原文：[https://towardsdatascience.com/need-for-speed-streamlit-vs-functool-caching-eb3b7426f209?source=collection_archive---------4-----------------------#2024-08-28](https://towardsdatascience.com/need-for-speed-streamlit-vs-functool-caching-eb3b7426f209?source=collection_archive---------4-----------------------#2024-08-28)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/need-for-speed-streamlit-vs-functool-caching-eb3b7426f209?source=collection_archive---------4-----------------------#2024-08-28](https://towardsdatascience.com/need-for-speed-streamlit-vs-functool-caching-eb3b7426f209?source=collection_archive---------4-----------------------#2024-08-28)
 - en: Comparing the performance of streamlit and functools caching for pandas and
     polars. The results will surprise you!
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 比较 pandas 和 polars 中 streamlit 缓存与 functools 缓存的性能。结果会让你惊讶！
 - en: '[](https://medium.com/@joparga3?source=post_page---byline--eb3b7426f209--------------------------------)[![Jose
     Parreño](../Images/707d5179926d36fba257f5476494e10e.png)](https://medium.com/@joparga3?source=post_page---byline--eb3b7426f209--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eb3b7426f209--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--eb3b7426f209--------------------------------)
     [Jose Parreño](https://medium.com/@joparga3?source=post_page---byline--eb3b7426f209--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@joparga3?source=post_page---byline--eb3b7426f209--------------------------------)[![Jose
+    Parreño](../Images/707d5179926d36fba257f5476494e10e.png)](https://medium.com/@joparga3?source=post_page---byline--eb3b7426f209--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eb3b7426f209--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--eb3b7426f209--------------------------------)
+    [Jose Parreño](https://medium.com/@joparga3?source=post_page---byline--eb3b7426f209--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eb3b7426f209--------------------------------)
     ·12 min read·Aug 28, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eb3b7426f209--------------------------------)
+    ·12 分钟阅读·2024年8月28日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/97ee58b0ef7f87fbf177d262debc264b.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/97ee58b0ef7f87fbf177d262debc264b.png)'
 - en: Photo by [Oscar Sutton](https://unsplash.com/@o5ky?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
     on [Unsplash](https://unsplash.com/photos/red-car-blowing-turbo-pBrHNFqcX-M?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [Oscar Sutton](https://unsplash.com/@o5ky?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    提供，来源于 [Unsplash](https://unsplash.com/photos/red-car-blowing-turbo-pBrHNFqcX-M?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 - en: '[Streamlit](https://streamlit.io/) is my default framework for building both
     proof-of-concept demos and analytical dashboards. The simplicity of the framework
     allows quick development and easy maintenance. However, the dark side of simplicity
@@ -38,24 +59,37 @@
     as a top grade production tool. We will cover these in detail later, but the result
     of these assumptions is how ***slow*** Streamlit can be when processing and rendering
     your app.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Streamlit](https://streamlit.io/) 是我构建概念验证演示和分析仪表盘的默认框架。该框架的简洁性允许快速开发和容易维护。然而，简洁性的暗面是，它带有内置的设计假设，使其很难作为一款顶级生产工具使用。我们稍后会详细讨论这些问题，但这些假设的结果是，Streamlit
+    在处理和渲染应用时可能会***非常慢***。'
 - en: 'In this post, I want to show you **2 methods to increase the speed of your
     Streamlit apps**: using the built-in **Streamlit caching functions** and using
     the built-in **functools caching functions**. Both methods are anchored on the
     idea of caching, where, if something has already been triggered before, the output
     is saved to re-use later.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我想向你展示**提高 Streamlit 应用速度的 2 种方法**：使用内置的**Streamlit 缓存功能**和使用内置的**functools
+    缓存功能**。这两种方法都基于缓存的概念，即如果某个操作之前已经执行过，那么输出会被保存下来以便之后重用。
 - en: 'Before getting into the results, I feel it is important to understand 3 basic
     pieces of theory: how does Streamlit, Streamlit caching, and functools caching
     work under the hood.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在进入结果之前，我认为理解以下 3 个基本理论是很重要的：Streamlit 是如何工作的，Streamlit 缓存如何工作，以及 functools
+    缓存是如何在后台运行的。
 - en: '*PS: All images are authored by me, unless otherwise specified.*'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: '*附言：所有图片均由我创作，除非另有说明。*'
 - en: Streamlit re-executes everything…
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Streamlit 会重新执行所有内容……

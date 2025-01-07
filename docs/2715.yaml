@@ -1,29 +1,45 @@
 - en: Optimizing the Data Processing Performance in PySpark
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 优化PySpark中的数据处理性能
 - en: 原文：[https://towardsdatascience.com/optimizing-the-data-processing-performance-in-pyspark-4b895857c8aa?source=collection_archive---------3-----------------------#2024-11-07](https://towardsdatascience.com/optimizing-the-data-processing-performance-in-pyspark-4b895857c8aa?source=collection_archive---------3-----------------------#2024-11-07)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/optimizing-the-data-processing-performance-in-pyspark-4b895857c8aa?source=collection_archive---------3-----------------------#2024-11-07](https://towardsdatascience.com/optimizing-the-data-processing-performance-in-pyspark-4b895857c8aa?source=collection_archive---------3-----------------------#2024-11-07)
 - en: 'PySpark techniques and strategies to tackle common performance challenges:
     A practical walkthrough'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: PySpark技术与策略，解决常见的性能挑战：一个实用的操作指南
 - en: '[](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)[![John
     Leung](../Images/ef45063e759e3450fa7f3c32b2f292c3.png)](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------)
     [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)[![John
+    Leung](../Images/ef45063e759e3450fa7f3c32b2f292c3.png)](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------)
+    [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------)
     ·9 min read·Nov 7, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------)
+    ·阅读时间：9分钟·发布日期：2024年11月7日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '[Apache Spark](https://spark.apache.org/) has been one of the leading analytical
     engines in recent years due to its power in distributed data processing. PySpark,
     the Python API for Spark, is often used for personal and enterprise projects to
@@ -33,336 +49,498 @@
     its capacity to handle large datasets, performance bottlenecks can still arise
     under various scenarios such as extreme data distribution and complex data transformation
     workflow.'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Apache Spark](https://spark.apache.org/)由于其强大的分布式数据处理能力，近年来已成为领先的数据分析引擎之一。PySpark是Spark的Python
+    API，常用于个人和企业项目中，以解决数据挑战。例如，我们可以使用PySpark高效地实现[时间序列数据的特征工程](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287)，包括数据摄取、提取和可视化。然而，尽管PySpark能够处理大规模数据集，但在一些特定场景下，如极端数据分布和复杂的数据转换流程，性能瓶颈仍然可能出现。'
 - en: This article will examine different common performance issues in data processing
     with PySpark on [Databricks](https://www.databricks.com/), and walk through various
     strategies for fine-tuning to achieve faster execution.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文将探讨在[Databricks](https://www.databricks.com/)上使用PySpark进行数据处理时常见的性能问题，并介绍各种优化策略，以实现更快的执行速度。
 - en: '![](../Images/7a51dfd6e0bb834e68f2dbd4ac63cace.png)'
+  id: totrans-8
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7a51dfd6e0bb834e68f2dbd4ac63cace.png)'
 - en: Photo by [Veri Ivanova](https://unsplash.com/@veri_ivanova?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[Veri Ivanova](https://unsplash.com/@veri_ivanova?utm_source=medium&utm_medium=referral)
+    来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Imagine you open an online retail shop that offers a variety of products and
     is primarily targeted at U.S. customers. You plan to analyze buying habits from
     current transactions to satisfy more needs of current customers and serve more
     new ones. This motivates you to put much effort into processing the transaction
     records as a preparation step.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你开设了一家在线零售店，提供多种产品，主要面向美国客户。你计划通过分析当前交易的购买习惯来满足现有客户的更多需求，并吸引更多新客户。这促使你投入大量精力处理交易记录，作为准备步骤。
 - en: '#0 Mock data'
+  id: totrans-11
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '#0 模拟数据'
 - en: 'We first simulate 1 million transaction records (surely expected to handle
     much larger datasets in real big data scenarios) in a CSV file. Each record includes
     a customer ID, product purchased, and transaction details such as payment methods
     and total amounts. One note worth mentioning is that a product agent with customer
     ID #100 has a significant customer base, and thus occupies a significant portion
     of purchases in your shop for drop-shipping.'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '我们首先模拟了 100 万条交易记录（在实际的大数据场景中，预计会处理更大的数据集），这些记录包含了客户 ID、购买的产品和交易细节，如支付方式和总金额。值得一提的是，客户
+    ID #100 的产品代理商有着庞大的客户群，因此在你的店铺中占据了大部分代发货的购买。'
 - en: 'Below are the codes demonstrating this scenario:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是演示此场景的代码：
 - en: '[PRE0]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: After mocking the data, we load the CSV file into the PySpark DataFrame using
     Databrick’s Jupyter Notebook.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 在模拟数据之后，我们使用 Databrick 的 Jupyter Notebook 将 CSV 文件加载到 PySpark DataFrame 中。
 - en: '[PRE1]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: We additionally create a reusable decorator utility to measure and compare the
     execution time of different approaches within each function.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还创建了一个可重用的装饰器工具，用于衡量和比较每个函数内不同方法的执行时间。
 - en: '[PRE2]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Okay, all the preparation is completed. Let’s explore different potential challenges
     of execution performance in the following sections.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，所有准备工作已经完成。接下来我们将探讨以下几个章节中执行性能的不同潜在挑战。
 - en: '#1 Storage'
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '#1 存储'
 - en: Spark uses [Resilient Distributed Dataset (RDD)](https://spark.apache.org/docs/latest/rdd-programming-guide.html)
     as its core building blocks, with data typically kept in memory by default. Whether
     executing computations (like joins and aggregations) or storing data across the
     cluster, all operations contribute to memory usage in a unified region.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: Spark 使用[弹性分布式数据集（RDD）](https://spark.apache.org/docs/latest/rdd-programming-guide.html)作为其核心构建块，数据默认通常保存在内存中。无论是执行计算（如连接和聚合）还是在集群中存储数据，所有操作都会在统一区域中贡献内存使用。
 - en: '![](../Images/f7f20c42fa3519fee671c569416280dc.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f7f20c42fa3519fee671c569416280dc.png)'
 - en: A unified region with execution memory and storage memory (Image by author)
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个包含执行内存和存储内存的统一区域（图源：作者）
 - en: If we design improperly, the available memory may become insufficient. This
     causes excess partitions to spill onto the disk, which results in performance
     degradation.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果设计不当，可能导致可用内存不足。这会导致过多的分区溢出到磁盘，从而导致性能下降。
 - en: Caching and persisting intermediate results or frequently accessed datasets
     are common practices. While both cache and persist serve the same purposes, they
     may differ in their storage levels. The resources should be used optimally to
     ensure efficient read and write operations.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 缓存和持久化中间结果或频繁访问的数据集是常见的做法。虽然缓存和持久化具有相同的目的，但它们的存储级别可能有所不同。应当合理利用资源，以确保高效的读写操作。
 - en: For example, if transformed data will be reused repeatedly for computations
     and algorithms across different subsequent stages, it is advisable to cache that
     data.
+  id: totrans-26
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 例如，如果转换后的数据会在不同的后续阶段中重复用于计算和算法，建议对这些数据进行缓存。
 - en: '**Code example:** Assume we want to investigate different subsets of transaction
     records using a digital wallet as the payment method.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '**代码示例：** 假设我们想要调查使用数字钱包作为支付方式的不同交易记录子集。'
 - en: Inefficient — Without caching
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 低效 — 没有缓存
 - en: '[PRE3]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Efficient — Caching on a critical dataset
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 高效 — 缓存关键数据集
 - en: '[PRE4]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: After caching, even if we want to filter the transformed dataset with different
     transaction amount thresholds or other data dimensions, the execution times will
     still be more manageable.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 缓存之后，即使我们想要根据不同的交易金额阈值或其他数据维度来过滤转换后的数据集，执行时间也会更易于控制。
 - en: '#2 Shuffle'
+  id: totrans-33
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '#2 洗牌'
 - en: When we perform operations like joining DataFrames or grouping by data fields,
     shuffling occurs. This is necessary to redistribute all records across the cluster
     and to ensure those with the same key are on the same node. This in turn facilitates
     simultaneous processing and combining of the results.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们执行如连接 DataFrame 或按数据字段分组的操作时，会发生洗牌。这是必要的，目的是将所有记录重新分布到集群中，并确保具有相同键的记录位于同一个节点。这有助于同时处理并合并结果。
 - en: '![](../Images/ab84ce7db5a3682b102879ebcf4c8646.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ab84ce7db5a3682b102879ebcf4c8646.png)'
 - en: Shuffle join (Image by author)
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 洗牌连接（图源：作者）
 - en: However, this shuffle operation is costly — high execution times and additional
     network overhead due to data movement between nodes.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，这种洗牌操作是代价高昂的——由于数据在节点间的移动，执行时间长且额外的网络开销。
 - en: 'To reduce shuffling, there are several strategies:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了减少洗牌操作，有几种策略：
 - en: (1) Use broadcast variables for the small dataset, to send a read-only copy
     to every worker node for local processing
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: (1) 对于小数据集，使用广播变量，将只读副本发送到每个工作节点进行本地处理
 - en: While “small” dataset is often defined by a maximum memory threshold of 8GB
     per executor, the ideal size for broadcasting should be determined through experimentation
     on specific case.
+  id: totrans-40
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 虽然“较小”数据集通常定义为每个执行器最大内存阈值为8GB，但广播的理想大小应通过针对特定案例的实验来确定。
 - en: '![](../Images/23bfddffdcd8abbc41eace540e8e045e.png)'
+  id: totrans-41
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/23bfddffdcd8abbc41eace540e8e045e.png)'
 - en: Broadcast join (Image by author)
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 广播连接（作者图片）
 - en: (2) Early filtering, to minimize the amount of data processed as early as possible;
     and
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: (2) 提前过滤，尽早尽可能减少处理的数据量；
 - en: (3) Control the number of partitions to ensure optimal performance
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: (3) 控制分区数量，以确保最佳性能
 - en: '**Code examples:** Assume we want to return the transaction records that match
     our list of states, along with their full names'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '**代码示例：** 假设我们想返回与我们的州列表匹配的交易记录及其全名'
 - en: Inefficient — shuffle join between a large dataset and a small one
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 低效——大数据集与小数据集之间的shuffle连接
 - en: '[PRE5]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Efficient — join the large dataset with the small one using a broadcast variable
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 高效——使用广播变量将大数据集与小数据集合并
 - en: '[PRE6]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '#3 Skewness'
+  id: totrans-50
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '#3 倾斜性'
 - en: Data can sometimes be unevenly distributed, especially for data fields used
     as the key for processing. This leads to imbalanced partition sizes, in which
     some partitions are significantly larger or smaller than the average.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据有时会分布不均，尤其是用于处理的键字段。这会导致分区大小不平衡，其中某些分区比平均值大或小得多。
 - en: Since the execution performance is limited by the longest-running tasks, it
     is necessary to address the over-burdened nodes.
+  id: totrans-52
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 由于执行性能受到最长运行任务的限制，因此需要解决过载节点的问题。
 - en: One common approach is salting. This works by adding randomized numbers to the
     skewed key so that there is a more uniform distribution across partitions. Let’s
     say when aggregating data based on the skewed key, we will aggregate using the
     salted key and then aggregate with the original key. Another method is re-partitioning,
     which increases the number of partitions to help distribute the data more evenly.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种常见的方法是加盐。其原理是通过向倾斜键添加随机数，使得数据在分区中更加均匀分布。假设在基于倾斜键进行聚合时，我们将使用加盐后的键进行聚合，然后再使用原始键进行聚合。另一种方法是重新分区，它通过增加分区的数量来帮助数据更均匀地分布。
 - en: '![](../Images/119db606882ab6d12a63942cc007751e.png)'
+  id: totrans-54
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/119db606882ab6d12a63942cc007751e.png)'
 - en: Data distribution — Before and after salting (Image by author)
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据分布——加盐前后的情况（作者图片）
 - en: '**Code examples:** We want to aggregate an asymmetric dataset, mainly skewed
     by customer ID #100.'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '**代码示例：** 我们想聚合一个不对称的数据集，主要由客户ID #100引起的倾斜。'
 - en: Inefficient — directly use the skewed key
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 低效——直接使用倾斜键
 - en: '[PRE7]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Efficient — use the salting skewed key for aggregation
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 高效——使用加盐的倾斜键进行聚合
 - en: '[PRE8]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: A random prefix or suffix to the skewed keys will both work. Generally, 5 to
     10 random values are a good starting point to balance between spreading out the
     data and maintaining high complexity.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 向倾斜键添加一个随机的前缀或后缀都可以有效。通常，5到10个随机值是一个很好的起点，可以在扩展数据和保持高复杂性之间取得平衡。
 - en: '#4 Serialization'
+  id: totrans-62
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '#4 序列化'
 - en: People often prefer using [user-defined functions (UDFs)](https://spark.apache.org/docs/3.5.2/sql-ref-functions-udf-scalar.html)
     since it is flexible in customizing the data processing logic. However, UDFs operate
     on a row-by-row basis. The code shall be serialized by the Python interpreter,
     sent to the executor JVM, and then deserialized. This incurs high serialization
     costs and prevents Spark from optimizing and processing the code efficiently.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 人们通常更倾向于使用[用户定义函数（UDFs）](https://spark.apache.org/docs/3.5.2/sql-ref-functions-udf-scalar.html)，因为它在定制数据处理逻辑方面更灵活。然而，UDFs是按行逐一操作的。代码需要被Python解释器序列化，发送到执行器JVM，然后再反序列化。这会产生高昂的序列化开销，且阻碍Spark对代码的优化和高效处理。
 - en: The simple and direct approach is to avoid using UDFs when possible.
+  id: totrans-64
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 简单直接的方法是尽可能避免使用UDFs。
 - en: We should first consider using the [built-in Spark functions](https://spark.apache.org/docs/latest/api/sql/),
     which can handle tasks such as aggregation, arrays/maps operations, date/time
     stamps, and JSON data processing. If the built-in functions do not satisfy your
     desired tasks indeed, we can consider using [pandas *UDFs*](https://databricks.com/blog/2017/10/30/introducing-vectorized-udfs-for-pyspark.html).
     They are built on top of Apache Arrow for lower overhead costs and higher performance,
     compared to UDFs.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们应首先考虑使用[内置 Spark 函数](https://spark.apache.org/docs/latest/api/sql/)，这些函数可以处理聚合、数组/映射操作、日期/时间戳以及
+    JSON 数据处理等任务。如果内置函数无法满足你的需求，确实可以考虑使用[pandas *UDFs*](https://databricks.com/blog/2017/10/30/introducing-vectorized-udfs-for-pyspark.html)。与
+    UDFs 相比，它们建立在 Apache Arrow 基础上，具有更低的开销和更高的性能。
 - en: '**Code examples:** The transaction price is discounted based on the originating
     state.'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '**代码示例：** 交易价格根据来源州进行折扣。'
 - en: Inefficient — using a UDF
+  id: totrans-67
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 低效 — 使用 UDF
 - en: '[PRE9]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Efficient — using build-in PySpark functions
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 高效 — 使用内置的 PySpark 函数
 - en: '[PRE10]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: In this example, we use the built-in PySpark functions “when and otherwise”
     to effectively check multiple conditions in sequence. There are unlimited examples
     based on our familiarity with those functions. For instance, `pyspark.sql.functions.transform`a
     function that aids in applying a transformation to each element in the input array
     has been introduced since PySpark version 3.1.0.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，我们使用内置的 PySpark 函数“when”和“otherwise”来有效地按顺序检查多个条件。基于我们对这些函数的熟悉，示例几乎是无限的。例如，`pyspark.sql.functions.transform`，一个帮助对输入数组中的每个元素应用转换的函数，自
+    PySpark 3.1.0 版本开始引入。
 - en: '#5 Spill'
+  id: totrans-72
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '#5 溢出'
 - en: As discussed in the Storage section, a spill occurs by writing temporary data
     from memory to disk due to insufficient memory to hold all the required data.
     Many performance issues we have covered are related to spills. For example, operations
     that shuffle large amounts of data between partitions can easily lead to memory
     exhaustion and subsequent spill.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 如在存储部分讨论的那样，溢出是由于内存不足以容纳所有所需数据，导致将临时数据从内存写入磁盘。我们提到的许多性能问题都与溢出有关。例如，在分区之间洗牌大量数据的操作，容易导致内存耗尽并随之发生溢出。
 - en: '![](../Images/8e0391d49e71ebd4918378b38ed64fe2.png)'
+  id: totrans-74
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8e0391d49e71ebd4918378b38ed64fe2.png)'
 - en: Different scenarios of spill due to insufficient memory (Image by author)
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于内存不足引起的溢出不同场景（图像由作者提供）
 - en: It is crucial to examine the performance metrics in Spark UI. If we discover
     the statistics for Spill(Memory) and Spill(Disk), the spill is probably the reason
     for long-running tasks. To remediate this, try to instantiate a cluster with more
     memory per worker, e.g. increase the executor process size, by tuning the configuration
     value `spark.executor.memory`; Alternatively, we can configure `spark.memory.fraction`
     to adjust how much memory is allocated for execution and storage.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 审查 Spark UI 中的性能指标至关重要。如果我们发现溢出（内存）和溢出（磁盘）的统计数据，那么溢出可能是长时间运行任务的原因。为了解决这个问题，可以尝试实例化一个每个工作节点有更多内存的集群，例如通过调节配置值`spark.executor.memory`来增加执行进程的内存大小；另外，我们还可以配置`spark.memory.fraction`来调整分配给执行和存储的内存量。
 - en: Wrapping it Up
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 总结
 - en: 'We came across several common factors leading to performance degradation in
     PySpark, and the possible improvement methods:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们遇到了一些常见的导致 PySpark 性能下降的因素，以及可能的改进方法：
 - en: 'Storage: use cache and persist to store the frequently used intermediate results'
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 存储：使用缓存和持久化存储常用的中间结果
 - en: 'Shuffle: use broadcast variables for a small dataset to facilitate Spark’s
     local processing'
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Shuffle：为小数据集使用广播变量，以促进 Spark 的本地处理
 - en: 'Skewness: execute salting or repartitioning to distribute the skewed data more
     uniformly'
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 偏斜：执行加盐或重新分区以更均匀地分布偏斜数据
 - en: 'Serialization: prefer to use built-in Spark functions to optimize the performance'
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 序列化：更倾向于使用内置 Spark 函数以优化性能
 - en: 'Spill: adjust the configuration value to allocate memory wisely'
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 溢出：调整配置值以明智地分配内存
 - en: Recently, [Adaptive Query Execution (AQE)](https://docs.databricks.com/en/optimizations/aqe.html)
     has been newly addressed for dynamic planning and re-planning of queries based
     on runtime stats. This supports different features of query re-optimization that
@@ -370,37 +548,57 @@
     understanding data characteristics during the initial design is still essential,
     as it informs better strategies for writing effective codes and queries while
     using AQE for fine-tuning.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 最近，[自适应查询执行（AQE）](https://docs.databricks.com/en/optimizations/aqe.html)被提出用于基于运行时统计信息对查询进行动态规划和重新规划。这支持查询执行过程中发生的不同查询重新优化特性，从而成为一种出色的优化技术。然而，在初期设计阶段理解数据特征仍然至关重要，因为这有助于制定更好的策略，以编写有效的代码和查询，并利用
+    AQE 进行微调。
 - en: Before you go
+  id: totrans-85
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在你离开之前
 - en: If you enjoy this reading, I invite you tofollow my [Medium page](https://medium.com/@johnleungTJ)
     and [LinkedIn page](https://www.linkedin.com/in/john-leung-639800115/). By doing
     so, you can stay updated with exciting content related to data science side projects,
     Machine Learning Operations (MLOps) demonstrations, and project management methodologies.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你喜欢这篇文章，欢迎关注我的[Medium 页面](https://medium.com/@johnleungTJ)和[LinkedIn 页面](https://www.linkedin.com/in/john-leung-639800115/)。通过这样做，你可以及时获取有关数据科学副项目、机器学习运维（MLOps）示范以及项目管理方法学的精彩内容。
 - en: '[](/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=post_page-----4b895857c8aa--------------------------------)
     [## Simplifying the Python Code for Data Engineering Projects'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=post_page-----4b895857c8aa--------------------------------)
+    [## 简化数据工程项目中的 Python 代码'
 - en: 'Python tricks and techniques for data ingestion, validation, processing, and
     testing: a practical walkthrough'
+  id: totrans-88
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 用于数据摄取、验证、处理和测试的 Python 技巧与技术：实用的操作流程
 - en: towardsdatascience.com](/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=post_page-----4b895857c8aa--------------------------------)
     [](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=post_page-----4b895857c8aa--------------------------------)
     [## Feature Engineering for Time-Series Using PySpark on Databricks
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=post_page-----4b895857c8aa--------------------------------)
+    [](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=post_page-----4b895857c8aa--------------------------------)
+    [## 使用 PySpark 在 Databricks 上进行时间序列特征工程
 - en: 'Discover the potentials of PySpark for time-series data: Ingest, extract, and
     visualize data, accompanied by practical…'
+  id: totrans-90
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 探索 PySpark 在时间序列数据中的潜力：摄取、提取和可视化数据，并附带实践…
 - en: towardsdatascience.com](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=post_page-----4b895857c8aa--------------------------------)
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=post_page-----4b895857c8aa--------------------------------)

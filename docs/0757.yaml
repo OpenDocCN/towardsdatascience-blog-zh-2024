@@ -1,357 +1,538 @@
 - en: How to Fine-Tune a Pretrained Vision Transformer on Satellite Data
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何在卫星数据上微调预训练的视觉变换器
 - en: 原文：[https://towardsdatascience.com/how-to-fine-tune-a-pretrained-vision-transformer-on-satellite-data-d0ddd8359596?source=collection_archive---------7-----------------------#2024-03-21](https://towardsdatascience.com/how-to-fine-tune-a-pretrained-vision-transformer-on-satellite-data-d0ddd8359596?source=collection_archive---------7-----------------------#2024-03-21)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-to-fine-tune-a-pretrained-vision-transformer-on-satellite-data-d0ddd8359596?source=collection_archive---------7-----------------------#2024-03-21](https://towardsdatascience.com/how-to-fine-tune-a-pretrained-vision-transformer-on-satellite-data-d0ddd8359596?source=collection_archive---------7-----------------------#2024-03-21)
 - en: A step-by-step tutorial in PyTorch Lightning
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: PyTorch Lightning中的逐步教程
 - en: '[](https://medium.com/@caroline.arnold_63207?source=post_page---byline--d0ddd8359596--------------------------------)[![Caroline
     Arnold](../Images/fb13ba36e302d8161b67c4888d0601e4.png)](https://medium.com/@caroline.arnold_63207?source=post_page---byline--d0ddd8359596--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d0ddd8359596--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d0ddd8359596--------------------------------)
     [Caroline Arnold](https://medium.com/@caroline.arnold_63207?source=post_page---byline--d0ddd8359596--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@caroline.arnold_63207?source=post_page---byline--d0ddd8359596--------------------------------)[![Caroline
+    Arnold](../Images/fb13ba36e302d8161b67c4888d0601e4.png)](https://medium.com/@caroline.arnold_63207?source=post_page---byline--d0ddd8359596--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d0ddd8359596--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d0ddd8359596--------------------------------)
+    [Caroline Arnold](https://medium.com/@caroline.arnold_63207?source=post_page---byline--d0ddd8359596--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0ddd8359596--------------------------------)
     ·6 min read·Mar 21, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0ddd8359596--------------------------------)
+    ·6分钟阅读·2024年3月21日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/052cfa4a7466bc057f2271ab6f3aaa70.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/052cfa4a7466bc057f2271ab6f3aaa70.png)'
 - en: Image created by the author using [Midjourney](https://www.midjourney.com/jobs/dc3e78a3-9782-4624-82dd-5d4df21bb17d?index=1).
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像由作者使用[Midjourney](https://www.midjourney.com/jobs/dc3e78a3-9782-4624-82dd-5d4df21bb17d?index=1)创建。
 - en: The [Vision Transformer](https://arxiv.org/abs/2010.11929) is a powerful AI
     model for image classification. Released in 2020, it brought the efficient transformer
     architecture to computer vision.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Vision Transformer](https://arxiv.org/abs/2010.11929)是一个强大的图像分类AI模型。它于2020年发布，将高效的变换器架构引入了计算机视觉领域。'
 - en: In pretraining, an AI model ingests large amounts of data and learns common
     patterns. The Vision Transformer was pretrained on [ImageNet-21K](https://arxiv.org/abs/2104.10972),
     a dataset of 14 million images and 21,000 classes.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在预训练阶段，AI模型会摄取大量数据并学习常见的模式。视觉变换器是在[ImageNet-21K](https://arxiv.org/abs/2104.10972)数据集上进行预训练的，该数据集包含1400万张图像和21,000个类别。
 - en: Satellite images are not covered in ImageNet-21K, and the Vision Transformer
     would perform poorly if applied out-of-the-box.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 卫星图像不包含在ImageNet-21K数据集中，如果直接应用，视觉变换器的性能会很差。
 - en: Here, I will show you how to fine-tune a pretrained Vision Transformer on 27,000
     satellite images from the [EuroSat dataset](https://zenodo.org/records/7711810#.ZAm3k-zMKEA).
     We will predict land cover, such as forests, crops, and industrial areas.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我将向您展示如何在来自[EuroSat数据集](https://zenodo.org/records/7711810#.ZAm3k-zMKEA)的27,000张卫星图像上微调一个预训练的视觉变换器。我们将预测土地覆盖类型，如森林、农田和工业区。
 - en: '![](../Images/5dc989f9eba1a2ab016f8d1fb6985575.png)'
+  id: totrans-12
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5dc989f9eba1a2ab016f8d1fb6985575.png)'
 - en: Example images from the [EuroSAT RGB dataset](https://zenodo.org/records/7711810#.ZAm3k-zMKEA).
     Sentinel data is free and open to the public under EU law.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 来自[EuroSAT RGB数据集](https://zenodo.org/records/7711810#.ZAm3k-zMKEA)的示例图像。根据欧盟法律，哨兵数据是免费的并且对公众开放。
 - en: We will work in [PyTorch Lightning](https://lightning.ai), a deep learning library
     that builds on PyTorch. Lightning reduces the amount of code one has to write,
     and lets us focus on modeling.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在[PyTorch Lightning](https://lightning.ai)中进行工作，这是一个基于PyTorch的深度学习库。Lightning减少了需要编写的代码量，让我们可以专注于建模。
 - en: All code is available on [GitHub](https://github.com/crlna16/pretrained-vision-transformer/).
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有代码均可在[GitHub](https://github.com/crlna16/pretrained-vision-transformer/)上找到。
 - en: Setting up the project
+  id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设置项目
 - en: The pretrained Vision Transformer is available on Huggingface. The model architecture
     and weights can be installed from GitHub. We will also need to install PyTorch
     Lightning. I used version 2.2.1 for this tutorial, but any version > 2.0 should
     work.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 预训练的Vision Transformer可以在Huggingface上找到。可以从GitHub安装模型架构和权重。我们还需要安装PyTorch Lightning。我在本教程中使用了版本2.2.1，但任何版本>
+    2.0应该都可以使用。
 - en: '[PRE0]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'We can split our project in four steps, which we will cover in detail:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将我们的项目分为四个步骤，下面我们将详细介绍：
 - en: 'Pretrained Vision Transformer: [Lightning Module](https://lightning.ai/docs/pytorch/stable/common/lightning_module.html)'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 预训练的Vision Transformer：[Lightning模块](https://lightning.ai/docs/pytorch/stable/common/lightning_module.html)
 - en: EuroSAT dataset
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: EuroSAT数据集
 - en: Train the Vision Transformer on the EuroSAT dataset
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在EuroSAT数据集上训练Vision Transformer
 - en: Calculate the accuracy on the test set
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 计算测试集上的准确率
 - en: Adapting the Vision Transformer to our dataset
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将Vision Transformer适应我们的数据集
 - en: The Vision Transformer from Huggingface is optimized for a subset of ImageNet
     with 1,000 classes.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 来自Huggingface的Vision Transformer已针对具有1,000个类别的ImageNet子集进行了优化。
 - en: Our dataset contains only 10 classes for different types of land cover. Therefore,
     we need to modify the output section of the Vision Transformer to a new classification
     head with the correct number of classes.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的数据集只有10个类别，分别代表不同类型的土地覆盖。因此，我们需要修改Vision Transformer的输出部分，换成一个具有正确类别数量的新分类头。
 - en: '![](../Images/69ef618dc1fda224692e94b5a4d2833e.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/69ef618dc1fda224692e94b5a4d2833e.png)'
 - en: Vision Transformer architecture. Adapted by the author from the original paper.
     [[arxiv]](https://arxiv.org/pdf/2010.11929.pdf)
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: Vision Transformer架构。由作者根据原始论文修改。[ [arxiv]](https://arxiv.org/pdf/2010.11929.pdf)
 - en: The code for instantiating a pretrained model from Huggingface makes this straightforward.
     We only need to specify the new number of classes by *num_labels*, and tell the
     model to ignore the fact we changed the output size.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 从Huggingface实例化预训练模型的代码使这变得简单。我们只需通过*num_labels*指定新的类别数量，并告诉模型忽略我们更改输出大小的事实。
 - en: '[PRE1]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'The model reminds us that we now need to re-train:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型提醒我们，现在需要重新训练：
 - en: 'Some weights of ViTForImageClassification were not initialized from the model
     checkpoint at google/vit-base-patch16–224 and are newly initialized because the
     shapes did not match:'
+  id: totrans-32
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: ViTForImageClassification的一些权重未从google/vit-base-patch16–224模型检查点初始化，而是因为形状不匹配而重新初始化：
 - en: …
+  id: totrans-33
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: …
 - en: You should probably TRAIN this model on a down-stream task to be able to use
     it for predictions and inference.
+  id: totrans-34
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 你可能需要在下游任务上**训练**这个模型，以便能够用于预测和推理。
 - en: We can choose different flavours of the Vision Transformer, here we stick with
     *vit-base-patch16–224*, the smallest model that uses *16 x 16* patches from images
     with a size of *224 x 224* pixels. This model has 85.8 million parameters and
     requires 340 MB of memory.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以选择不同版本的Vision Transformer，在这里我们使用的是*vit-base-patch16–224*，这是最小的模型，它使用从大小为*224
+    x 224*像素的图像中提取的*16 x 16*块。该模型有8580万个参数，需要340 MB的内存。
 - en: Vision Transformer as a Lightning Module
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将Vision Transformer作为Lightning模块
 - en: In PyTorch Lightning, a deep learning model is defined as a [Lightning Module](https://lightning.ai/docs/pytorch/stable/common/lightning_module.html).
     We only need to specify
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 在PyTorch Lightning中，深度学习模型被定义为一个[Lightning模块](https://lightning.ai/docs/pytorch/stable/common/lightning_module.html)。我们只需要指定
 - en: 'Setup of the model: Load the pretrained Vision Transformer'
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 模型设置：加载预训练的Vision Transformer
 - en: 'Forward step: Apply the model to a batch of data'
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 前向步骤：将模型应用于一批数据
 - en: Training, validation, and test step
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 训练、验证和测试步骤
 - en: The optimizer to be used in training
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 训练中使用的优化器
 - en: The training step must return the loss, in this case the cross-entropy loss
     to quantify the mismatch between the predicted and the true classes.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 训练步骤必须返回损失，这里是交叉熵损失，用于量化预测类别与真实类别之间的差异。
 - en: Logging is convenient. With calls to *self.log*, we can log training and evaluation
     metrics directly to our preferred logger — in my case, [TensorBoard](https://www.tensorflow.org/tensorboard).
     Here, we log the training loss and the validation accuracy.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 日志记录非常方便。通过调用*self.log*，我们可以直接将训练和评估的指标记录到我们首选的日志记录器中——在我的情况下是[TensorBoard](https://www.tensorflow.org/tensorboard)。在这里，我们记录了训练损失和验证准确率。
 - en: Note that, in order to access the predictions made by Huggingface’s Vision Transformer,
     we need to retrieve them from the model output as *predictions.logits.*
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，为了访问Huggingface的Vision Transformer做出的预测，我们需要从模型输出中提取它们，作为*predictions.logits*。
 - en: Lightning DataModule for the EuroSAT dataset
+  id: totrans-45
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: EuroSAT数据集的Lightning DataModule
 - en: You can download the EuroSAT dataset from [Zenodo](https://zenodo.org/records/7711810#.ZAm3k-zMKEA).
     Make sure to select the RGB version, which has already been converted from the
     original satellite image. We will define the dataset within a [LightningDataModule](https://lightning.ai/docs/pytorch/stable/notebooks/lightning_examples/datamodules.html#Using-DataModules).
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以从[Zenodo](https://zenodo.org/records/7711810#.ZAm3k-zMKEA)下载EuroSAT数据集。确保选择RGB版本，它已经从原始卫星图像转换过来。我们将在[LightningDataModule](https://lightning.ai/docs/pytorch/stable/notebooks/lightning_examples/datamodules.html#Using-DataModules)中定义数据集。
 - en: The setup stage uses [torchvision](https://pytorch.org/vision/0.17/) transform
     functions. In order to comply with the input that is expected by the Vision Transformer,
     we need to upscale the satellite images to 224 x 224 pixels, convert the images
     to torch datatypes and normalize them.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置阶段使用了[torchvision](https://pytorch.org/vision/0.17/)的变换函数。为了符合Vision Transformer期望的输入，我们需要将卫星图像放大到224
+    x 224像素，将图像转换为torch数据类型并进行标准化。
 - en: We split the dataset so that 70% remain for training (fine-tuning), 10% for
     validation, and 20% for testing. By stratifying on the class labels, we ensure
     an equal distribution of classes across all three subsets.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将数据集分割为70%用于训练（微调），10%用于验证，20%用于测试。通过在类标签上进行分层抽样，我们确保三个子集中的类分布相等。
 - en: The functions *train_dataloader* etc. are convenient for setting up the dataloaders
     later in the run script.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '*train_dataloader*等函数对于在后续的运行脚本中设置数据加载器非常方便。'
 - en: 'Putting it all together: the run script'
+  id: totrans-50
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将所有内容整合起来：运行脚本
 - en: Now that we have the building blocks for the dataset and the model, we can write
     a run script that performs the fine tuning.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经有了数据集和模型的构建块，可以编写执行微调的运行脚本了。
 - en: For clarity, I created separate modules for the dataset (*eurosat_module*) and
     the model (*vision_transformer*) that need to be imported.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了清晰起见，我为数据集(*eurosat_module*)和模型(*vision_transformer*)创建了单独的模块，需要在脚本中导入。
 - en: Train the model
+  id: totrans-53
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 训练模型
 - en: 'The [Lightning Trainer](https://lightning.ai/docs/pytorch/stable/common/trainer.html)
     takes a model and dataloaders for training and validation data. It offers a variety
     of flags that can be customized to your needs — here we use only three of them:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Lightning Trainer](https://lightning.ai/docs/pytorch/stable/common/trainer.html)接收一个模型和用于训练及验证的数据加载器。它提供了多种可以自定义的标志—在这里我们仅使用了其中的三个：'
 - en: '*devices*, to use only one GPU for training'
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*devices*，用于仅使用一块GPU进行训练'
 - en: '*early stopping callback*, to stop training if the validation loss does not
     improve for six epochs'
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*early stopping callback*，如果验证损失在六个epoch内没有改善，则停止训练'
 - en: '*logger*, to log the training process to TensorBoard'
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*logger*，用于将训练过程记录到TensorBoard'
 - en: 'The beauty of PyTorch Lightning is that training is now done in one line of
     code:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: PyTorch Lightning的优点是训练现在只需一行代码：
 - en: '[PRE2]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Under the hood, the trainer uses backward propagation and the Adam optimizer
     to update the model weights. It stops training when the validation accuracy has
     not improved for the specified number of epochs.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 在幕后，训练器使用反向传播和Adam优化器来更新模型权重。当验证准确率在指定的epoch数量内没有提高时，训练停止。
 - en: In fact, fine-tuning on EuroSAT is completed within few epochs. The panel shows
     the training loss, as logged by TensorBoard. After two epochs, the model has already
     reached 98.3% validation accuracy.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，在EuroSAT数据集上的微调在几个epoch内就完成了。面板展示了训练损失，这是由TensorBoard记录的。经过两个epoch后，模型已经达到了98.3%的验证准确率。
 - en: '![](../Images/1b58b4a473a4f6791d71481a7d1b4de7.png)'
+  id: totrans-62
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1b58b4a473a4f6791d71481a7d1b4de7.png)'
 - en: Snapshot from TensorBoard created by the author.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者创建的TensorBoard快照。
 - en: Evaluate on the test set
+  id: totrans-64
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在测试集上进行评估
 - en: Our dataset is small and fine-tuning is fast, so we do not need to store the
     trained model separately and can apply it directly to the test set.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的数据集很小，微调速度很快，所以我们不需要单独存储训练好的模型，可以直接将其应用于测试集。
 - en: 'In one line of code, we compute the accuracy on the test set:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 只需一行代码，我们就能计算测试集上的准确率：
 - en: '[PRE3]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: With only one epoch of fine-tuning, I achieved a test set accuracy of 98.4%,
     meaning that the land cover types were correctly classified for almost all satellite
     images.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 只进行了一次微调，我就达到了98.4%的测试集准确率，这意味着几乎所有的卫星图像的地表类型都被正确分类了。
 - en: Even with less samples, we can achieve great accuracy. The panel shows the test
     set accuracy for different numbers of training samples seen only once during fine-tuning.
     With only 320 satellite images, an average of 32 per class, the test set accuracy
     is already 80%.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使样本较少，我们也能获得很高的准确性。面板展示了在微调过程中只看到一次的不同训练样本数量下的测试集准确性。仅使用 320 张卫星图像，每类平均 32
+    张，测试集准确性已经达到 80%。
 - en: '![](../Images/fe1672f643e4eeda9b56bd587156dbaf.png)'
+  id: totrans-70
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fe1672f643e4eeda9b56bd587156dbaf.png)'
 - en: Image created by the author.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者创建。
 - en: Key takeaways
+  id: totrans-72
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 关键要点
 - en: Pretrained models are a great way to reduce your training time. They are already
     good at a general task and just need to be adapted to your specific dataset.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 预训练模型是减少训练时间的一个好方法。它们已经在一般任务上表现得很好，只需要适应你的特定数据集。
 - en: In real-world applications, data is often scarce. The EuroSAT dataset consists
     of only 27,000 images, about 0.5% the magnitude of ImageNet-21K. Pretraining takes
     advantage of larger datasets, and we can efficiently use the application-specific
     dataset for fine-tuning.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 在现实应用中，数据通常稀缺。EuroSAT 数据集仅包含 27,000 张图像，大约是 ImageNet-21K 数据量的 0.5%。预训练利用了更大的数据集，我们可以高效地使用特定应用数据集进行微调。
 - en: Lightning is great for training deep learning models without having to worry
     about all the technical details. The LightningModule and the Trainer API offer
     convenient abstractions and are performant.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: Lightning 非常适合训练深度学习模型，而无需担心所有技术细节。LightningModule 和 Trainer API 提供了方便的抽象，并且具有高性能。
 - en: If you want to stay within the Huggingface ecosystem to fine-tune a Vision Transformer,
     I recommend [this tutorial](https://medium.com/@supersjgk/fine-tuning-vision-transformer-with-hugging-face-and-pytorch-df19839d5396).
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你想在 Huggingface 生态系统内微调视觉变换器，我推荐[这个教程](https://medium.com/@supersjgk/fine-tuning-vision-transformer-with-hugging-face-and-pytorch-df19839d5396)。
 - en: 'The complete code, including configuration files that allow you to add your
     own datasets, is available on GitHub:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 完整代码，包括允许你添加自己数据集的配置文件，已在 GitHub 上发布：
 - en: '[](https://github.com/crlna16/pretrained-vision-transformer?source=post_page-----d0ddd8359596--------------------------------)
     [## GitHub - crlna16/pretrained-vision-transformer: Pretrained Vision Transformer
     with PyTorch…'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://github.com/crlna16/pretrained-vision-transformer?source=post_page-----d0ddd8359596--------------------------------)
+    [## GitHub - crlna16/pretrained-vision-transformer: 使用 PyTorch 的预训练视觉变换器…'
 - en: Pretrained Vision Transformer with PyTorch Lightning - crlna16/pretrained-vision-transformer
+  id: totrans-79
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用 PyTorch Lightning 的预训练视觉变换器 - crlna16/pretrained-vision-transformer
 - en: github.com](https://github.com/crlna16/pretrained-vision-transformer?source=post_page-----d0ddd8359596--------------------------------)
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '[github.com](https://github.com/crlna16/pretrained-vision-transformer?source=post_page-----d0ddd8359596--------------------------------)'
 - en: References
+  id: totrans-81
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: 'EuroSAT Dataset: [10.5281/zenodo.7711096](https://zenodo.org/doi/10.5281/zenodo.7711096)
     ([Copernicus Sentinel Data License](https://sentinel.esa.int/documents/247904/690755/Sentinel_Data_Legal_Notice))'
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: EuroSAT 数据集：[10.5281/zenodo.7711096](https://zenodo.org/doi/10.5281/zenodo.7711096)（[Copernicus
+    Sentinel 数据许可](https://sentinel.esa.int/documents/247904/690755/Sentinel_Data_Legal_Notice)）
 - en: 'Dosovitskiy et al, *An Image is Worth 16x16 Words: Transformers for Image Recognition
     at Scale*, [https://arxiv.org/abs/2010.11929](https://arxiv.org/abs/2010.11929)
     (2020)'
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Dosovitskiy 等人，*图像值 16x16 个单词：用于大规模图像识别的变换器*，[https://arxiv.org/abs/2010.11929](https://arxiv.org/abs/2010.11929)（2020年）
 - en: Vision Transformer on [Huggingface](https://huggingface.co/docs/transformers/model_doc/vit#vision-transformer-vit)
     and [GitHub](https://github.com/huggingface/transformers) (Apache 2.0)
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 视觉变换器在[Huggingface](https://huggingface.co/docs/transformers/model_doc/vit#vision-transformer-vit)和[GitHub](https://github.com/huggingface/transformers)上的资料（Apache
+    2.0）

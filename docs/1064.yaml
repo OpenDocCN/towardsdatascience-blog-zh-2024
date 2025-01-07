@@ -1,62 +1,96 @@
 - en: The Stream Processing Model Behind Google Cloud Dataflow
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Google Cloud Dataflow背后的流式处理模型
 - en: 原文：[https://towardsdatascience.com/the-stream-processing-model-behind-google-cloud-dataflow-0d927c9506a0?source=collection_archive---------3-----------------------#2024-04-27](https://towardsdatascience.com/the-stream-processing-model-behind-google-cloud-dataflow-0d927c9506a0?source=collection_archive---------3-----------------------#2024-04-27)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/the-stream-processing-model-behind-google-cloud-dataflow-0d927c9506a0?source=collection_archive---------3-----------------------#2024-04-27](https://towardsdatascience.com/the-stream-processing-model-behind-google-cloud-dataflow-0d927c9506a0?source=collection_archive---------3-----------------------#2024-04-27)
 - en: Balancing correctness, latency, and cost in unbounded data processing
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在无界数据处理中的正确性、延迟和成本平衡
 - en: '[](https://medium.com/@vutrinh274?source=post_page---byline--0d927c9506a0--------------------------------)[![Vu
     Trinh](../Images/b62e4a2605fcacf679a72787daa2b821.png)](https://medium.com/@vutrinh274?source=post_page---byline--0d927c9506a0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0d927c9506a0--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0d927c9506a0--------------------------------)
     [Vu Trinh](https://medium.com/@vutrinh274?source=post_page---byline--0d927c9506a0--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@vutrinh274?source=post_page---byline--0d927c9506a0--------------------------------)[![Vu
+    Trinh](../Images/b62e4a2605fcacf679a72787daa2b821.png)](https://medium.com/@vutrinh274?source=post_page---byline--0d927c9506a0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0d927c9506a0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0d927c9506a0--------------------------------)
+    [Vu Trinh](https://medium.com/@vutrinh274?source=post_page---byline--0d927c9506a0--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0d927c9506a0--------------------------------)
     ·14 min read·Apr 27, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0d927c9506a0--------------------------------)
+    ·14分钟阅读·2024年4月27日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/7d2d4818f0ca3e0538f82f7b4d3ded71.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7d2d4818f0ca3e0538f82f7b4d3ded71.png)'
 - en: Image created by the author.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者创建。
 - en: '*This was originally published at* [*https://vutr.substack.com*](https://open.substack.com/pub/vutr?utm_source=share&utm_medium=android&r=171vwv)*.*'
+  id: totrans-8
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*本文最初发布于* [*https://vutr.substack.com*](https://open.substack.com/pub/vutr?utm_source=share&utm_medium=android&r=171vwv)*。*'
 - en: Table of contents
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 目录
 - en: '*Before we move on*'
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*在我们继续之前*'
 - en: '*Introduction from the paper.*'
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*论文中的介绍。*'
 - en: '*The details of the Dataflow model.*'
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*Dataflow模型的细节。*'
 - en: '*Implementation and designs of the model.*'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*模型的实现与设计。*'
 - en: Intro
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 简介
 - en: '[Google Dataflow](https://cloud.google.com/dataflow?hl=en) is a fully managed
     data processing service that provides serverless unified stream and batch data
     processing. It is the first choice Google would recommend when dealing with a
@@ -70,50 +104,73 @@
     It contains all the lessons and insights from Google’s introduction of the Dataflow
     model to deal with its global-scale stream processing demand. Despite being written
     in 2015, I believe this paper’s contribution will never be old.'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Google Dataflow](https://cloud.google.com/dataflow?hl=en)是一个完全托管的数据处理服务，提供无服务器统一的流式和批量数据处理。当处理流式数据工作负载时，它是Google推荐的首选服务。该服务承诺无论工作负载多大，都能确保正确性和延迟。为了实现这些特性，Google
+    Dataflow基于一个专用的处理模型——Dataflow，该模型源自Google多年来的研究和开发。本文是我在阅读论文后做的笔记：[The Dataflow
+    Model: A Practical Approach to Balancing Correctness, Latency, and Cost in Massive-Scale,
+    Unbounded, Out-of-Order Data Processing](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/43864.pdf)。如果你想深入了解流式处理，我强烈推荐这篇论文。它包含了Google在引入Dataflow模型以应对其全球规模的流式数据处理需求过程中获得的所有经验和见解。尽管这篇论文写于2015年，但我相信它的贡献永不过时。'
 - en: '**Note**: The paper was published in 2015, so some details may be changed or
     updated now; if you have any feedback or information that can supplement my blog,
     feel free to comment.'
+  id: totrans-16
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**注意**：本文发表于2015年，因此一些细节可能已经发生变化或更新。如果你有任何反馈或能够补充我博客内容的信息，欢迎评论。'
 - en: Before we move on
+  id: totrans-17
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在我们继续之前
 - en: To avoid more confusing
+  id: totrans-18
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 为了避免更多的混淆
 - en: '**Dataflow** is the Google stream processing model.'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Dataflow**是谷歌的流处理模型。'
 - en: '[**Apache Beam**](https://beam.apache.org/) lets users define processing logic
     based on the Dataflow model.'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[**Apache Beam**](https://beam.apache.org/) 允许用户基于Dataflow模型定义处理逻辑。'
 - en: '**Google Cloud Dataflow** is a unified processing service from Google Cloud;
     you can think it’s the destination execution engine for the Apache Beam pipeline.'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Google Cloud Dataflow**是来自Google Cloud的统一处理服务；你可以认为它是Apache Beam管道的目标执行引擎。'
 - en: '**Workflow**: You define the unified processing logic using Apache Beam and
     decide to run the pipeline on the execution engine you want, such as Google Dataflow,
     [Spark](https://spark.apache.org/), [Flink](https://flink.apache.org/), etc.'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '**工作流**：你可以使用Apache Beam定义统一的处理逻辑，并决定将管道运行在你想要的执行引擎上，比如Google Dataflow、[Spark](https://spark.apache.org/)、[Flink](https://flink.apache.org/)等。'
 - en: Before we explore the Dataflow model in depth, the following sections will introduce
     some information, such as context, challenges, and concepts.
+  id: totrans-23
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 在深入探索Dataflow模型之前，以下几节将介绍一些背景信息、挑战和概念。
 - en: Paper’s Introduction
+  id: totrans-24
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 论文简介
 - en: At the time of the paper writing, data processing frameworks like [MapReduce](https://en.wikipedia.org/wiki/MapReduce)
     and its “cousins “ like [Hadoop](https://hadoop.apache.org/), [Pig](https://pig.apache.org/),
     [Hive](https://hive.apache.org/), or [Spark](https://spark.apache.org/) allow
@@ -122,8 +179,11 @@
     [Spark Streaming](https://spark.apache.org/docs/latest/streaming-programming-guide.html),
     or [Storm](https://storm.apache.org/) came to support the user. Still, these existing
     models did not satisfy the requirement in some common use cases.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 在论文撰写时，像[MapReduce](https://en.wikipedia.org/wiki/MapReduce)及其“亲戚”如[Hadoop](https://hadoop.apache.org/)、[Pig](https://pig.apache.org/)、[Hive](https://hive.apache.org/)或[Spark](https://spark.apache.org/)等数据处理框架允许数据消费者大规模处理批量数据。在流处理方面，像[MillWheel](https://research.google/pubs/millwheel-fault-tolerant-stream-processing-at-internet-scale/)、[Spark
+    Streaming](https://spark.apache.org/docs/latest/streaming-programming-guide.html)或[Storm](https://storm.apache.org/)等工具也开始支持用户。然而，这些现有模型在一些常见的用例中并未满足要求。
 - en: 'Consider an example: A streaming video provider’s business revenue comes from
     billing advertisers for the amount of advertising watched on their content. They
     want to know how much to bill each advertiser daily and aggregate statistics about
@@ -136,40 +196,55 @@
     data since the Internet allows companies to reach more customers than ever. Here
     are some observations from people at Google about the state of the data processing
     systems of that time:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑一个例子：一个视频流媒体提供商的商业收入来自于向广告商收费，费用是根据广告观看量来计算的。他们想知道每天应向每个广告商收费多少，并汇总关于视频和广告的统计数据。此外，他们还希望对大量历史数据进行离线实验。他们希望了解他们的视频被观看的频率和时长，以及观看这些视频的内容/广告和观众的群体。所有这些信息都必须快速提供，以便在接近实时的情况下调整他们的业务。处理系统还必须简单且灵活，以适应业务的复杂性。他们还需要一个能够处理全球规模数据的系统，因为互联网使公司能够接触到比以往更多的客户。以下是谷歌一些人关于当时数据处理系统状况的观察：
 - en: '*Batch systems such as* [*MapReduce*](https://en.wikipedia.org/wiki/MapReduce)*,*
     [*FlumeJava*](https://research.google/pubs/flumejava-easy-efficient-data-parallel-pipelines/)
     *(internal Google technology), and Spark fail to ensure the latency SLA since
     they require waiting for all data input to fit into a batch before processing
     it.*'
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*批处理系统如* [*MapReduce*](https://en.wikipedia.org/wiki/MapReduce)*,* [*FlumeJava*](https://research.google/pubs/flumejava-easy-efficient-data-parallel-pipelines/)
+    *(谷歌内部技术)，以及Spark无法确保延迟SLA，因为它们需要等待所有数据输入适配到批处理后才能进行处理。*'
 - en: '*Streaming processing systems that provide scalability and fault tolerance
     fall short of the expressiveness or correctness aspect.*'
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*提供可扩展性和容错性的流处理系统，在表达力或正确性方面有所不足。*'
 - en: '*Many cannot provide exactly once semantics, impacting correctness.*'
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*许多系统无法提供精确一次语义，这会影响正确性。*'
 - en: '*Others lack the primitives necessary for windowing or provide windowing semantics
     that are limited to tuple- or processing-time-based windows (e.g.,* [*Spark Streaming*](https://spark.apache.org/docs/latest/streaming-programming-guide.html)*)*'
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*其他系统缺乏进行窗口处理所需的基本操作，或提供的窗口语义仅限于基于元组或处理时间的窗口（例如，* [*Spark Streaming*](https://spark.apache.org/docs/latest/streaming-programming-guide.html)）*）'
 - en: '*Most that provide event-time-based windowing rely on ordering or have limited
     window triggering.*'
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*大多数基于事件时间窗口的实现依赖于排序或具有有限的窗口触发条件。*'
 - en: '*MillWheel and Spark Streaming are sufficiently scalable, fault-tolerant, and
     low-latency but lack high-level programming models.*'
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*MillWheel 和 Spark Streaming 足够可扩展、容错性强且低延迟，但缺乏高级编程模型。*'
 - en: 'They conclude the major weakness of all the models and systems mentioned above
     is the assumption that the unbounded input data will eventually be complete. This
     approach does not make sense anymore when faced with the realities of today’s
@@ -178,57 +253,82 @@
     the correctness, latency, and cost based on specific use cases. From that perspective,
     the paper has the following conceptual contribution to the unified stream processing
     model:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 他们总结了上述所有模型和系统的主要弱点是假设无界输入数据最终会完成。当面对今天庞大且高度无序的数据时，这种方法已经不再合理。他们还认为，任何解决多样化实时工作负载的方法必须提供简单但强大的接口，以根据特定的使用场景平衡正确性、延迟和成本。从这个角度来看，本文对统一流处理模型做出了以下概念性贡献：
 - en: Allowing for calculating event-time ordered (when the event happened) results
     over an unbounded, unordered data source with configurable combinations of correctness,
     latency, and cost attributes.
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 允许在无界、无序的数据源上计算事件时间顺序（事件发生时）的结果，并提供正确性、延迟和成本属性的可配置组合。
 - en: 'Separating pipeline implementation across four related dimensions:'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在四个相关维度上分离管道实现：
 - en: '- What results are being computed?'
+  id: totrans-36
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '- 正在计算哪些结果？'
 - en: '- Where in event time they are being computed.'
+  id: totrans-37
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '- 它们在事件时间中的计算位置。'
 - en: '- When they are materialized during processing time,'
+  id: totrans-38
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '- 当它们在处理时间期间被具体化时，'
 - en: '- How do earlier results relate to later refinements?'
+  id: totrans-39
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '- 早期结果如何与后续改进相关？'
 - en: Separating the logical abstraction of data processing from the underlying physical
     implementation layer allows users to choose the processing engine.
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将数据处理的逻辑抽象与底层物理实现层分离，允许用户选择处理引擎。
 - en: 'In the rest of this blog, we will see how Google enables this contribution.
     One last thing before we move to the next section: Google noted that there is
     “*nothing magical about this model. “* The model doesn’t make your expensive-computed
     task suddenly run faster; it provides a general framework that allows for the
     simple expression of parallel computation, which is not tied to any specific execution
     engine like Spark or Flink.'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本博客的其余部分，我们将看到 Google 如何促进这一贡献。在我们进入下一部分之前，最后提一点：Google指出，“*这个模型没有什么神奇之处。*”
+    这个模型并不会让你计算量大的任务突然加速；它提供了一个通用框架，允许简单表达并行计算，这并不依赖于像 Spark 或 Flink 这样的特定执行引擎。
 - en: Unbounded/Bounded
+  id: totrans-42
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 无界/有界
 - en: '![](../Images/b600c3a3d1d9b71e57545ed30fd2fe74.png)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b600c3a3d1d9b71e57545ed30fd2fe74.png)'
 - en: Image created by the author.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者创建。
 - en: The paper’s authors use the term unbounded/bounded to define infinite/finite
     data. They avoid using streaming/batch terms because they usually imply using
     a specific execution engine. The term unbound data describes the data that doesn’t
@@ -236,21 +336,29 @@
     application; the data stream only stops when the application is inactive. Whereas
     bounded data refers to data that can be defined by clear start and end boundaries,
     e.g., daily data export from the operation database.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 论文的作者使用“无界/有界”这个术语来定义无限/有限数据。他们避免使用流处理/批处理术语，因为这些术语通常意味着使用特定的执行引擎。无界数据指的是没有预定义边界的数据，例如，活跃电商应用的用户交互事件；数据流只有在应用不活跃时才会停止。而有界数据指的是可以通过明确的开始和结束边界来定义的数据，例如，从操作数据库导出的每日数据。
 - en: To continue with the introduction section, we will review some concepts used
     throughout the paper.
+  id: totrans-46
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 为了继续介绍部分，我们将回顾论文中使用的一些概念。
 - en: Windowing
+  id: totrans-47
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 窗口化
 - en: The organizer
+  id: totrans-48
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 组织者
 - en: 'Windowing divides the data into finite chunks. Usually, the system uses time
     notions to organize data into the window (e.g., all data in the last 1 hour will
     belong to one window). All data in the windows are processed as a group. Users
@@ -260,48 +368,68 @@
     join. Windows may be aligned, e.g., applied across all the data for a given window,
     or unaligned, e.g., applied across only specific subsets of the data in that window.
     There are three major types of windows:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 窗口化将数据划分为有限的块。通常，系统使用时间概念将数据组织到窗口中（例如，过去1小时内的所有数据将属于一个窗口）。窗口中的所有数据作为一个组进行处理。用户需要对窗口抽象进行分组操作：聚合或时间限制操作，以处理无界数据。另一方面，一些对无界数据的操作不需要窗口概念，比如过滤、映射或内连接。窗口可以是对齐的，例如，应用于给定窗口的所有数据，或者是不对齐的，例如，仅应用于该窗口中特定数据子集的操作。窗口有三种主要类型：
 - en: '![](../Images/4e03f22f65b904cf7b97c9f9de7d290b.png)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4e03f22f65b904cf7b97c9f9de7d290b.png)'
 - en: Image created by the author.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者创建的图像。
 - en: '**Fixed**: The windows are defined as static window size, e.g., hourly windows.'
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**固定窗口：** 窗口大小为静态定义，例如，按小时划分的窗口。'
 - en: '**Sliding:** The windows are defined by a window size and slide period, e.g.,
     30-minute windows starting every five minutes.'
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**滑动窗口：** 窗口由窗口大小和滑动周期定义，例如，每5分钟开始的30分钟窗口。'
 - en: '**Sessions:** The windows capture some period of activity over a subset of
     the data, in this case, per key. Typically, they are defined by a timeout gap.'
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**会话：** 窗口捕捉数据子集中的一段活动期，在这种情况下，是按键捕捉。通常，它们通过超时间隔定义。'
 - en: Time Domains
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 时间域
 - en: 'When handling time-related events data, there are two domains of time to consider:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 在处理与时间相关的事件数据时，需要考虑两个时间域：
 - en: '**Event Time**: the time the event itself happened. For example, if the system
     device recorded you purchasing a game item at 11:30, this is considered the event
     time.'
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**事件时间**：事件本身发生的时间。例如，如果系统设备在11:30记录了你购买游戏物品，这个时间就被视为事件时间。'
 - en: '**Processing Time**: The time at which an event is observed at any given point
     during processing. For example, the purchased game item is recorded at 11:30 but
     only arrives at the stream processing system at 11:35; this “11:35“ is the processing
     time.'
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**处理时间**：在处理过程中，事件在任何给定时刻被观察到的时间。例如，购买的游戏物品在11:30被记录，但仅在11:35到达流处理系统；这个“11:35”就是处理时间。'
 - en: 'Given that definition, event time will never change, but processing time changes
     constantly for each event as it flows through the pipeline step. This is a critical
     factor when analyzing events in the context of when they occurred. The difference
@@ -315,107 +443,153 @@
     the skew between time domains but also to monitor the overall system. In a super-ideal
     world, the skew would always be zero; we could always process all events right
     when they happen.'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据这个定义，事件时间永远不会改变，但处理时间会随着每个事件在管道步骤中流动而不断变化。这是在分析事件发生时刻时的一个关键因素。事件时间和处理时间之间的差异被称为时间域偏差。偏差可能由多种潜在原因引起，例如通信延迟或每个管道阶段处理时花费的时间。像水印这样的指标是可视化偏差的好方法。对于本文，作者考虑了管道处理过的事件时间的下水印。这些水印提供了一种概念，告诉系统：***“在这个时间点之前的事件时间不会再出现在管道中。”***
+    水印不仅用于观察时间域之间的偏差，还用于监控整体系统。在一个理想的世界中，偏差始终为零；我们可以在事件发生的第一时间就处理所有事件。
 - en: '![](../Images/4a1327f226be77c03f1911ae75999655.png)'
+  id: totrans-60
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4a1327f226be77c03f1911ae75999655.png)'
 - en: Image created by the author.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者创建的图像。
 - en: In the following sections, we will learn the details of the Dataflow model.
+  id: totrans-62
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 在接下来的章节中，我们将学习数据流模型的细节。
 - en: Core primitives
+  id: totrans-63
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 核心原语
 - en: 'The model has two core transformations that operate on the `(key, value)` pair;
     both transformations can work on bounded and unbounded data:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型有两个核心转换操作，作用于 `(key, value)` 对；这两种转换都可以作用于有界和无界数据：
 - en: '![](../Images/c4485cf3b3b6d6be67d4ab71ab77a2a4.png)'
+  id: totrans-65
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c4485cf3b3b6d6be67d4ab71ab77a2a4.png)'
 - en: Image created by the author.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像由作者创建。
 - en: '`ParDo` is for generic parallel processing. It will process each input element
     with a provided user-defined function (called a `DoFn` in Dataflow), which can
     produce zero or more output per input element. The input doesn’t need to be the
     unbound collections.'
+  id: totrans-67
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ParDo` 用于通用并行处理。它将使用提供的用户定义函数（在 Dataflow 中称为 `DoFn`）处理每个输入元素，该函数可以为每个输入元素生成零个或多个输出。输入不需要是无界集合。'
 - en: '`GroupByKey` for grouping operations based on the defined key.'
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`GroupByKey` 用于基于定义的键进行分组操作。'
 - en: The `ParDo` operates on each element so it can be translated to unbounded data.
     The `GroupByKey` collects all data for a given key before sending it to the downstream
     steps. If the input source is unbounded, it is impossible to define when it will
     end. The standard solution is data windowing.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ParDo` 对每个元素进行操作，因此它可以转换为无界数据。`GroupByKey` 在将数据发送到下游步骤之前，会收集给定键的所有数据。如果输入源是无界的，那么无法定义它何时结束。标准解决方案是数据窗口化。'
 - en: Windowing
+  id: totrans-70
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 窗口化
 - en: 'Systems that support grouping typically redefine their `GroupByKey` operation
     to be `GroupByKeyAndWindow`. The authors'' significant contribution in this aspect
     is the unaligned window. The first is treating all windowing strategies as unaligned
     from the dataflow model and allowing custom adjustments to apply aligned windows
     when needed. The second is any windowing process can be broken apart into two
     related operations:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 支持分组的系统通常会重新定义其 `GroupByKey` 操作为 `GroupByKeyAndWindow`。作者在这方面的重要贡献是未对齐的窗口。第一个是将所有窗口化策略视为来自数据流模型的未对齐，并允许在需要时自定义调整以应用对齐的窗口。第二个是任何窗口化过程都可以分解为两个相关的操作：
 - en: '![](../Images/00c182d4cd7e9b73bb943724146758f5.png)'
+  id: totrans-72
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/00c182d4cd7e9b73bb943724146758f5.png)'
 - en: Image created by the author.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像由作者创建。
 - en: '**AssignWindows** assigns the element to zero or more windows. From the model’s
     view, window assignment creates a new copy of a component in each window.'
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**AssignWindows** 将元素分配到零个或多个窗口。从模型的角度来看，窗口分配在每个窗口中创建组件的新副本。'
 - en: '**MergeWindows** merges windows at grouping time. This allows the construction
     of data-driven windows over time as data arrive and are grouped. Window merging
     occurs as part of the `GroupByKeyAndWindow` operation. We see the example below
     for a better understanding:'
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**MergeWindows** 在分组时合并窗口。这允许在数据到达并被分组时，基于时间构建数据驱动的窗口。窗口合并作为 `GroupByKeyAndWindow`
+    操作的一部分进行。我们可以通过以下示例来更好地理解：'
 - en: Triggers & Incremental Processing
+  id: totrans-76
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 触发器与增量处理
 - en: 'Although there is support for unaligned windows, event-time windows raised
     another challenge: The need to tell the system when to emit the results for a
     window because the data can appear in the pipeline in an unordered way. The initial
     solution of using event-time progress metrics like watermark (which is mentioned
     above) has some shortcomings:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然支持未对齐的窗口，事件时间窗口带来了另一个挑战：需要告诉系统何时发出窗口的结果，因为数据可能以无序的方式出现在管道中。使用事件时间进度指标（如上所述的水印）的初步解决方案存在一些缺点：
 - en: '**A reminder so you don’t have to scroll up**: The watermark is an indicator
     that tells the system that “no more data which have event time sooner this point
     of time will appear in the pipeline.” For example, at the given time, the watermark
     is “11:30”, meaning no events with event_time less than 11:30 will appear anymore.'
+  id: totrans-78
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**提醒一下，免得你滚动回去看**：水印是一个指示器，告诉系统“在这个时间点之前没有更多的事件时间较早的数据会出现在管道中。”例如，在给定时间，水印为“11:30”，这意味着不再会有事件时间早于11:30的数据出现。'
 - en: '**They are sometimes too fast**: this behavior means late data may arrive behind
     the watermark.'
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**它们有时太快**：这种行为意味着延迟数据可能会落后于水印。'
 - en: '**They are sometimes too slow**: this behavior can cause the whole pipeline
     to be held back to wait for a slow data point.'
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**它们有时太慢**：这种行为可能导致整个管道被延迟，等待一个缓慢的数据点。'
 - en: This led to the observation that using only watermarks to decide when to emit
     the window’s result is likely to increase the latency (when the watermark is slow)
     or impact the accuracy of the pipeline (missing some data if the watermark is
@@ -430,91 +604,129 @@
     when to trigger the output results for a given window. Here is an illustration
     to provide you with a similar idea between the trigger and the semantics in Lambda
     Architecture
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 这导致了以下观察：仅使用水印决定何时发出窗口的结果可能会增加延迟（当水印较慢时），或影响管道的准确性（如果水印过快，可能会漏掉一些数据）。作者在Lambda架构中观察到（该架构有两个独立的管道，流式和批处理，两个管道的结果最终会汇聚在一起），该范式并没有通过更快地提供正确答案来解决完整性问题；相反，它提供了来自流式管道的低延迟结果估算，然后承诺通过批处理管道提供正确的结果。他们指出，如果我们希望在单个管道中实现相同的目标，我们需要一种机制，为任何给定的窗口提供多个面板（答案）。这个功能称为触发器，允许用户指定何时触发给定窗口的输出结果。这里有一个插图，帮助你理解触发器和Lambda架构中的语义之间的相似性。
 - en: '![](../Images/eb2b6fb1621bf6cb50d441b19e5f2a76.png)'
+  id: totrans-82
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/eb2b6fb1621bf6cb50d441b19e5f2a76.png)'
 - en: Image created by the author.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 由作者创建的图像。
 - en: 'The system the authors introduce supports the following trigger implementation:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者介绍的系统支持以下触发器实现：
 - en: '![](../Images/a831282ccd30ace2528a98f6dbb9f062.png)'
+  id: totrans-85
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a831282ccd30ace2528a98f6dbb9f062.png)'
 - en: Image created by the author.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 由作者创建的图像。
 - en: Triggering at completion estimates such as watermarks.
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在如水印这样的完成估算时触发。
 - en: Triggering at the point in processing time.
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在处理时间点触发。
 - en: Triggering based on data-arriving characteristics such as counts, bytes, data
     punctuations, pattern matching, etc.
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于数据到达特征（如计数、字节、数据标记、模式匹配等）进行触发。
 - en: Supporting the implementation combination using loops, sequences, or logical
     combinations (AND, OR)
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 支持使用循环、序列或逻辑组合（与、或）实现的组合。
 - en: The users can define their triggers utilizing both the underlying primitives
     of the execution runtime (e.g., watermark timers, processing-time timers) and
     external signals (e.g., data injection requests, external progress metrics)
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户可以利用执行运行时的底层原语（例如，水印计时器、处理时间计时器）和外部信号（例如，数据注入请求、外部进度度量）来定义触发器。
 - en: 'Besides controlling when the system will emit the window’s result, the trigger
     mechanism also provides a way to control how panes (answers) for a given window
     relate to each other via the following refinement modes:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了控制系统何时发出窗口的结果外，触发机制还提供了一种方法，通过以下精细化模式控制给定窗口的面板（答案）之间的关系：
 - en: '![](../Images/1b5901e09ce2e8247d282836691bfb0b.png)'
+  id: totrans-93
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1b5901e09ce2e8247d282836691bfb0b.png)'
 - en: Image created by the author.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 由作者创建的图像。
 - en: '**Discarding:** When triggering, the system discards all content’s window.
     The later results have no relation to previous results. This mode is helpful in
     cases where the downstream consumer needs the values from various triggers to
     be independent. This is also the most efficient option in terms of space for buffering
     data.'
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**丢弃：** 在触发时，系统丢弃所有内容的窗口。后续结果与之前的结果没有关系。此模式在下游消费者需要各个触发器的值独立时非常有用。在数据缓冲的空间效率方面，这也是最有效的选项。'
 - en: '**Accumulating:** When triggering, the system keeps window contents in a persistent
     state; later results are related to previous results. This is useful when the
     downstream consumer expects to overwrite old values with new ones when receiving
     multiple results for the same window. It is also the mode used in Lambda Architecture
     systems, where the streaming pipeline outputs low-latency results, which are then
     overwritten later by the results from the batch pipeline.'
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**累积：** 在触发时，系统将窗口内容保持在持久状态；后续结果与之前的结果相关联。当下游消费者期望在接收同一窗口的多个结果时，用新结果覆盖旧值时，这种模式非常有用。这也是Lambda架构系统中使用的模式，其中流式管道输出低延迟结果，随后被批处理管道的结果覆盖。'
 - en: '**Accumulating & Retracting:** When triggering, in addition to the Accumulating
     semantics, the emitted result’s copy is also stored in a persistent state. When
     the window triggers again in the future, a retraction for the previous value will
     be emitted first, followed by the new value.'
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**积累与撤回：** 在触发时，除了积累语义外，发出的结果副本也会存储在持久状态中。当窗口在未来再次触发时，首先会发出对先前值的撤回，然后才是新值。'
 - en: The following section will describe how Google implements and designs the Dataflow
     model.
+  id: totrans-98
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 下一部分将描述 Google 如何实现和设计 Dataflow 模型。
 - en: Implementation
+  id: totrans-99
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实现
 - en: The paper’s authors say they’ve implemented this model internally using [FlumeJava](https://research.google/pubs/flumejava-easy-efficient-data-parallel-pipelines/),
     a Java library that makes it easy to develop, test, and run efficient data-parallel
     pipelines. MillWheel acts as the beneath stream execution engine. Additionally,
@@ -522,47 +734,69 @@
     the time of the paper’s writing. Interestingly, the core windowing and triggering
     code is quite general, and a significant portion is shared across batch and streaming
     implementations.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 论文的作者表示，他们已经使用 [FlumeJava](https://research.google/pubs/flumejava-easy-efficient-data-parallel-pipelines/)
+    在内部实现了这个模型，这是一个 Java 库，使得开发、测试和运行高效的数据并行管道变得容易。MillWheel 作为底层的流执行引擎。此外，Google
+    Cloud Dataflow 的外部重新实现主要在论文撰写时已经完成。有趣的是，核心的窗口和触发代码相当通用，批处理和流处理实现之间有很大一部分是共享的。
 - en: Design Principles
+  id: totrans-101
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设计原则
 - en: 'The core principles of the Dataflow model:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: Dataflow 模型的核心原则：
 - en: '*Never rely on any notion of completeness.*'
+  id: totrans-103
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*永远不要依赖任何完整性的概念。*'
 - en: '*Be flexible to accommodate the diversity of known use cases and those to come
     in the future.*'
+  id: totrans-104
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*灵活适应已知用例的多样性以及未来可能出现的用例。*'
 - en: '*It not only makes sense but also adds value in the context of each of the
     envisioned execution engines.*'
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*它不仅在每个预期执行引擎的上下文中有意义，而且还增加了价值。*'
 - en: '*Encourage clarity of implementation.*'
+  id: totrans-106
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*鼓励实现的清晰性。*'
 - en: '*Support robust analysis of data in the context in which they occurred.*'
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*支持在数据发生的上下文中进行强有力的数据分析。*'
 - en: Motivating Experiences
+  id: totrans-108
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 激励经验
 - en: 'As they designed the Model, they gained real-world experiences with FlumeJava
     and MillWheel. Things that worked well would be reflected in the model; things
     that were less well would motivate changes in approach. Here are some of their
     experiences that influenced the design choice:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 在设计模型时，他们积累了与 FlumeJava 和 MillWheel 的实际经验。那些运作良好的部分会在模型中得到体现；那些不太理想的部分则会推动方法的改变。以下是一些影响设计选择的经验：
 - en: '***Unified Model:*** *The original motivation for this design choice is that
     one huge pipeline runs in streaming mode on MillWheel by default but with a dedicated
     FlumeJava batch implementation for large-scale backfills. Another motivation came
@@ -570,17 +804,22 @@
     pipeline in MillWheel with a nightly MapReduce (batch) to generate truth. They
     found that customers stopped trusting the weakly consistent results between pipelines
     over time.*'
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***统一模型：*** *这个设计选择的最初动机是，默认情况下一个巨大的管道以流模式在 MillWheel 上运行，但对于大规模回填有一个专门的 FlumeJava
+    批处理实现。另一个动机来自 Lambda 架构的经验，其中一个客户在 MillWheel 中运行流管道，并使用夜间的 MapReduce（批处理）生成真值。他们发现，随着时间的推移，客户逐渐不再信任管道之间弱一致性的结果。*'
 - en: '***Sessions*** *are a critical use case within Google. This mechanism is used
     in many cases, including search, ads, analytics, social media, and YouTube. Any
     users who care about correlating bursts of user activity over a period of time
     would leverage sessions. Thus, support for sessions became an indispensable part
     of the model’s design.*'
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***会话*** *是 Google 内部一个关键的使用案例。这个机制在许多场景中都得到了应用，包括搜索、广告、分析、社交媒体和 YouTube。任何关心在一段时间内关联用户活动波动的用户都会利用会话。因此，支持会话成为模型设计中不可或缺的一部分。*'
 - en: '***Triggers, Accumulation, & Retraction:*** *Two teams with billing pipelines
     running on MillWheel had problems that motivated parts of the model. The best
     practice at the time was to use the watermark as a completion metric, with extra
@@ -592,26 +831,32 @@
     focus from targeting completeness to adaptability over time. This results in two
     decisions: triggers, which allow the flexible specification of when results are
     materialized, and incremental processing support via accumulation.*'
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***触发器、累积与撤回:*** *两个在 MillWheel 上运行账单管道的团队遇到了问题，这些问题促使了模型的部分设计。那时的最佳实践是将水印作为完成度度量，并针对延迟数据使用额外的临时逻辑。由于缺乏更新和撤回系统，处理资源利用率统计的团队决定自行构建解决方案。另一个账单团队则遇到了由慢速数据处理单元引起的水印滞后问题（慢速单元影响整体作业完成性能）。这些不足成为了设计的重要推动因素，并使设计重点从追求完整性转向随时间适应性。这导致了两个决策：触发器，允许灵活指定何时生成结果，以及通过累积支持增量处理。*'
 - en: '***Watermark Triggers:*** *Many MillWheel pipelines calculate aggregate statistics.
     Most do not require 100% accuracy; they care about having a mostly complete view
     of their data in a reasonable amount of time. Given the high level of accuracy
     that they achieve with watermarks for structured input sources like log files,
     customers find watermarks very effective in triggering a single, highly accurate
     aggregate per window.*'
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***水印触发器:*** *许多 MillWheel 管道计算聚合统计信息。大多数情况下，它们并不要求 100% 的准确性；它们关心的是在合理的时间内能够获得大致完整的数据视图。由于通过水印处理结构化输入源（如日志文件）时能够实现较高的准确性，客户发现水印在每个窗口触发单一、精确的聚合结果方面非常有效。*'
 - en: '***Processing Time Triggers:*** *The recommendation pipelines emit their output
     using processing-time timers. These systems, having regularly updated, partial
     views of the data, were much more valuable than waiting until mostly complete
     views were ready based on the watermark. This also meant that the notion of a
     watermark would not affect the timeliness of output for the rest of the data.*'
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***处理时间触发器:*** *推荐管道使用处理时间定时器发出其输出。这些系统定期更新部分数据视图，比起等到基于水印的大致完整视图准备好，它们更具价值。这也意味着水印的概念不会影响其余数据输出的及时性。*'
 - en: '***Data-Driven & Composite Triggers:*** *The different detection systems in
     the anomaly detection pipeline used to track trends in Google web search motivated
     the data-driven triggers. These differences observe the stream of queries and
@@ -620,13 +865,17 @@
     they emit a stop. It was also a motivating case for trigger composition because,
     in reality, the system runs multiple differs simultaneously, multiplexing the
     output according to a set of logic.*'
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***数据驱动和复合触发器:*** *用于追踪 Google 网页搜索趋势的异常检测管道中的不同检测系统促使了数据驱动触发器的设计。这些系统观察查询流并计算统计估计，以检查是否存在异常波动。当它们认为波动正在发生时，会发出开始记录；当它们认为波动已经停止时，会发出停止记录。这也成为了触发器组合的推动因素，因为实际上系统同时运行多个差异检测器，并根据一组逻辑多路复用输出。*'
 - en: Outro
+  id: totrans-116
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Outro
 - en: 'In this week’s blog, we’ve discussed the design principle and implementation
     of the Dataflow model, the backbone behind the famous Google Cloud Dataflow service.
     If you want to dive deeper into the model, I highly recommend the book [Streaming
@@ -635,24 +884,38 @@
     and [Streaming 102](https://www.oreilly.com/radar/the-world-beyond-batch-streaming-102/).
     I hope my work brings some value, especially to someone who wants to learn more
     about the stream processing world.'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本周的博客中，我们讨论了数据流模型的设计原则和实现，该模型是著名的 Google Cloud Dataflow 服务背后的核心。如果你想深入了解该模型，我强烈推荐阅读这本书：[流处理系统：大规模数据处理的“什么”、“哪里”、“何时”和“如何”](https://www.amazon.com/Streaming-Systems-Where-Large-Scale-Processing/dp/1491983876)，或者阅读论文作者之一的两篇博客：[流处理
+    101](https://www.oreilly.com/radar/the-world-beyond-batch-streaming-101/) 和 [流处理
+    102](https://www.oreilly.com/radar/the-world-beyond-batch-streaming-102/)。希望我的工作能为那些想了解流处理世界的人带来一些价值。
 - en: See you next blog!
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 下次博客见！
 - en: References
+  id: totrans-119
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[1] Google, [The Dataflow Model: A Practical Approach to Balancing Correctness,
     Latency, and Cost in Massive-Scale, Unbounded, Out-of-Order Dat](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/43864.pdf)a
     (2015).'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] Google，[数据流模型：在大规模、无界、无序数据中平衡正确性、延迟和成本的实用方法](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/43864.pdf)（2015年）。'
 - en: '*My newsletter is a weekly blog-style email in which I note things I learn
     from people smarter than me.*'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: '*我的通讯是一封每周发布的博客风格邮件，在其中我记录我从比我聪明的人那里学到的东西。*'
 - en: '*So, if you want to learn and grow with me, subscribe here:* [*https://vutr.substack.com*](https://open.substack.com/pub/vutr?utm_source=share&utm_medium=android&r=171vwv)*.*'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: '*所以，如果你想和我一起学习和成长，请在这里订阅：* [*https://vutr.substack.com*](https://open.substack.com/pub/vutr?utm_source=share&utm_medium=android&r=171vwv)*.*'

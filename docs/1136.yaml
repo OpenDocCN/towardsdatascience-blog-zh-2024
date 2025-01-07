@@ -1,138 +1,216 @@
 - en: How does temperature impact next token prediction in LLMs?
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 温度如何影响LLMs中的下一个标记预测？
 - en: 原文：[https://towardsdatascience.com/how-does-temperature-impact-next-token-prediction-in-llms-779bd908f2cf?source=collection_archive---------1-----------------------#2024-05-06](https://towardsdatascience.com/how-does-temperature-impact-next-token-prediction-in-llms-779bd908f2cf?source=collection_archive---------1-----------------------#2024-05-06)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-does-temperature-impact-next-token-prediction-in-llms-779bd908f2cf?source=collection_archive---------1-----------------------#2024-05-06](https://towardsdatascience.com/how-does-temperature-impact-next-token-prediction-in-llms-779bd908f2cf?source=collection_archive---------1-----------------------#2024-05-06)
 - en: '[](https://ankur-m.medium.com/?source=post_page---byline--779bd908f2cf--------------------------------)[![Ankur
     Manikandan](../Images/3b84353a1979a484a46ee443c0a5bfb6.png)](https://ankur-m.medium.com/?source=post_page---byline--779bd908f2cf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--779bd908f2cf--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--779bd908f2cf--------------------------------)
     [Ankur Manikandan](https://ankur-m.medium.com/?source=post_page---byline--779bd908f2cf--------------------------------)'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://ankur-m.medium.com/?source=post_page---byline--779bd908f2cf--------------------------------)[![Ankur
+    Manikandan](../Images/3b84353a1979a484a46ee443c0a5bfb6.png)](https://ankur-m.medium.com/?source=post_page---byline--779bd908f2cf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--779bd908f2cf--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--779bd908f2cf--------------------------------)
+    [Ankur Manikandan](https://ankur-m.medium.com/?source=post_page---byline--779bd908f2cf--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--779bd908f2cf--------------------------------)
     ·4 min read·May 6, 2024
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--779bd908f2cf--------------------------------)
+    ·阅读时间4分钟·2024年5月6日
 - en: --
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '**TLDR**'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '**简而言之**'
 - en: 1\. At a temperature of 1, the probability values are the same as those derived
     from the standard softmax function.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 1\. 在温度为1时，概率值与标准softmax函数得出的概率值相同。
 - en: 2\. Raising the temperature inflates the probabilities of the less likely tokens,
     thereby broadening the range of potential candidates (or diversity) for the model’s
     next token prediction.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 2\. 提高温度会增加较不可能的标记的概率，从而扩展模型预测下一个标记的潜在候选范围（或多样性）。
 - en: 3\. Lowering the temperature, on the other hand, makes the probability of the
     most likely token approach 1.0, boosting the model’s confidence. Decreasing the
     temperature effectively eliminates the uncertainty within the model.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 3\. 降低温度则会使最可能标记的概率接近1.0，从而增强模型的信心。减少温度有效地消除了模型中的不确定性。
 - en: '[**Google colab notebook**](https://colab.research.google.com/drive/1G6XZ_0DsHTZQBppjlgVM-ICdR6yz4g7m?usp=sharing)**.**'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '[**Google Colab笔记本**](https://colab.research.google.com/drive/1G6XZ_0DsHTZQBppjlgVM-ICdR6yz4g7m?usp=sharing)**.**'
 - en: '**Introduction**'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '**介绍**'
 - en: Large Language Models (LLMs) are versatile generative models suited for a wide
     array of tasks. They can produce consistent, repeatable outputs or generate creative
     content by placing unlikely words together. The “temperature” setting allows users
     to fine-tune the model’s output, controlling the degree of predictability.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 大型语言模型（LLMs）是多功能的生成模型，适用于广泛的任务。它们可以生成一致、可重复的输出，也可以通过将不太可能的单词组合在一起生成创造性内容。温度设置允许用户微调模型的输出，控制预测的可预见性程度。
 - en: Let’s take a hypothetical example to understand the impact of temperature on
     the next token prediction.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过一个假设的例子来理解温度对下一个标记预测的影响。
 - en: 'We asked an LLM to complete the sentence, **“This is a wonderful _____.”**
     Let’s assume the potential candidate tokens are:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们让一个大型语言模型（LLM）完成句子**“这是一个美妙的_____。”** 假设潜在的候选标记是：
 - en: '[PRE0]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The logits are passed through a softmax function so that the sum of the values
     is equal to one. Essentially, the softmax function generates probability estimates
     for each token.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 对数值通过softmax函数处理，使得值的总和等于1。实际上，softmax函数为每个标记生成概率估计。
 - en: '![](../Images/d581b23a99b01e18aef8ec99d1dabb2b.png)'
+  id: totrans-16
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d581b23a99b01e18aef8ec99d1dabb2b.png)'
 - en: Standard softmax function
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 标准softmax函数
 - en: Let’s calculate the probability estimates in Python.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在Python中计算概率估计值。
 - en: '[PRE1]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '[PRE2]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '[PRE3]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '![](../Images/ed3c4b8677cc0f1065ceb18f6e73ccc1.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ed3c4b8677cc0f1065ceb18f6e73ccc1.png)'
 - en: 'The **softmax function with temperature** is defined as follows:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '**带温度的softmax函数**定义如下：'
 - en: '![](../Images/0805fb3b6ec66ae8072b0ecacbd3fdd0.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0805fb3b6ec66ae8072b0ecacbd3fdd0.png)'
 - en: where (T) is the temperature, (x_i) is the (i)-th component of the input vector
     (logits), and (n) is the number of components in the vector.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中 (T) 是温度，(x_i) 是输入向量 (logits) 的第 (i) 个分量，(n) 是向量中分量的数量。
 - en: '[PRE4]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: At T = 1,
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 当 T = 1 时，
 - en: '![](../Images/4250d9a5ebcd02c95d879ccd132cc5a3.png)'
+  id: totrans-28
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4250d9a5ebcd02c95d879ccd132cc5a3.png)'
 - en: At a temperature of 1, the probability values are the same as those derived
     from the standard softmax function.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在温度为 1 时，概率值与标准 softmax 函数推导出的概率值相同。
 - en: At T > 1,
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 当 T > 1 时，
 - en: '![](../Images/28a0ff2d89cddc0ce05b88819422a3b3.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/28a0ff2d89cddc0ce05b88819422a3b3.png)'
 - en: Raising the temperature inflates the probabilities of the less likely tokens,
     thereby broadening the range of potential candidates (or diversity) for the model’s
     next token prediction.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 提高温度会膨胀不太可能出现的标记的概率，从而扩大模型下一个标记预测的潜在候选范围（或多样性）。
 - en: At T < 1,
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 当 T < 1 时，
 - en: '![](../Images/0803db21504f8d41d771b1ed63ea7350.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0803db21504f8d41d771b1ed63ea7350.png)'
 - en: Lowering the temperature, on the other hand, makes the probability of the most
     likely token approach 1.0, boosting the model’s confidence. Decreasing the temperature
     effectively eliminates the uncertainty within the model.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 降低温度则会使最可能的标记的概率接近 1.0，从而提高模型的信心。降低温度有效地消除了模型中的不确定性。
 - en: '**Conclusion**'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '**结论**'
 - en: LLMs leverage the temperature parameter to offer flexibility in their predictions.
     The model behaves predictably at a temperature of 1, closely following the original
     softmax distribution. Increasing the temperature introduces greater diversity,
@@ -141,8 +219,12 @@
     token by reducing uncertainty. This adaptability allows users to tailor LLM outputs
     to a wide array of tasks, striking a balance between creative exploration and
     deterministic output.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 大型语言模型（LLMs）利用温度参数为其预测提供灵活性。模型在温度为 1 时表现得可预测，紧跟原始的 softmax 分布。提高温度会引入更多的多样性，放大不太可能的标记。相反，降低温度则使预测更加集中，通过减少不确定性来增强模型对最可能标记的信心。这种适应性使得用户可以根据不同任务调整大型语言模型的输出，在创意探索和确定性输出之间找到平衡。
 - en: '*Unless otherwise noted, all images are by the author.*'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '*除非另有说明，所有图片均为作者提供。*'

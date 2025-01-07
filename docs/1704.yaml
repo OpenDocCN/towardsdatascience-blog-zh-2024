@@ -1,64 +1,97 @@
 - en: Multi-Headed Self Attention — By Hand
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 多头自注意力 — 手动实现
 - en: 原文：[https://towardsdatascience.com/multi-headed-self-attention-by-hand-d2ce1ae031db?source=collection_archive---------4-----------------------#2024-07-12](https://towardsdatascience.com/multi-headed-self-attention-by-hand-d2ce1ae031db?source=collection_archive---------4-----------------------#2024-07-12)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/multi-headed-self-attention-by-hand-d2ce1ae031db?source=collection_archive---------4-----------------------#2024-07-12](https://towardsdatascience.com/multi-headed-self-attention-by-hand-d2ce1ae031db?source=collection_archive---------4-----------------------#2024-07-12)
 - en: Hand computing the cornerstone of modern AI
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 手动计算：现代人工智能的基石
 - en: '[](https://medium.com/@danielwarfield1?source=post_page---byline--d2ce1ae031db--------------------------------)[![Daniel
     Warfield](../Images/c1c8b4dd514f6813e08e401401324bca.png)](https://medium.com/@danielwarfield1?source=post_page---byline--d2ce1ae031db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d2ce1ae031db--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d2ce1ae031db--------------------------------)
     [Daniel Warfield](https://medium.com/@danielwarfield1?source=post_page---byline--d2ce1ae031db--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@danielwarfield1?source=post_page---byline--d2ce1ae031db--------------------------------)[![Daniel
+    Warfield](../Images/c1c8b4dd514f6813e08e401401324bca.png)](https://medium.com/@danielwarfield1?source=post_page---byline--d2ce1ae031db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d2ce1ae031db--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d2ce1ae031db--------------------------------)
+    [Daniel Warfield](https://medium.com/@danielwarfield1?source=post_page---byline--d2ce1ae031db--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d2ce1ae031db--------------------------------)
     ·6 min read·Jul 12, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d2ce1ae031db--------------------------------)
+    ·6分钟阅读·2024年7月12日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/659a613f94c1461109fe6e7b1e884c8e.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/659a613f94c1461109fe6e7b1e884c8e.png)'
 - en: “Focus” By Daniel Warfield using MidJourney. All images by the author unless
     otherwise specified. Article originally made available on [Intuitively and Exhaustively
     Explained](https://iaee.substack.com/).
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: “焦点”由Daniel Warfield使用MidJourney创作。所有图片除非另有说明，否则均为作者提供。文章最初发布于[直观且详尽的解析](https://iaee.substack.com/)。
 - en: Multi-Headed Attention is likely the most important architectural paradigm in
     machine learning. This summary goes over all critical mathematical operations
     within multi-headed self attention, allowing you to understand its inner workings
     at a fundamental level. If you’d like to learn more about the intuition behind
     this topic, check out the IAEE article.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 多头自注意力可能是机器学习中最重要的架构范式。本总结介绍了多头自注意力中的所有关键数学运算，使您能够在基础层面理解其内部工作原理。如果您想深入了解该主题背后的直觉，可以查看IAEE文章。
 - en: '[](/transformers-intuitively-and-exhaustively-explained-58a5c5df8dbb?source=post_page-----d2ce1ae031db--------------------------------)
     [## Transformers — Intuitively and Exhaustively Explained'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](/transformers-intuitively-and-exhaustively-explained-58a5c5df8dbb?source=post_page-----d2ce1ae031db--------------------------------)
+    [## Transformer — 直观且详尽的解析'
 - en: 'Exploring the modern wave of machine learning: taking apart the transformer
     step by step'
+  id: totrans-10
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 探索现代机器学习浪潮：一步步拆解Transformer
 - en: towardsdatascience.com](/transformers-intuitively-and-exhaustively-explained-58a5c5df8dbb?source=post_page-----d2ce1ae031db--------------------------------)
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/transformers-intuitively-and-exhaustively-explained-58a5c5df8dbb?source=post_page-----d2ce1ae031db--------------------------------)
 - en: 'Step 1: Defining the Input'
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第一步：定义输入
 - en: Multi-headed self attention (MHSA) is used in a variety of contexts, each of
     which might format the input differently. In a natural language processing context
     one would likely use a word to vector embedding, paired with positional encoding,
     to calculate a vector that represents each word. Generally, regardless of the
     type of data, multi-headed self attention expects of sequence of vectors, where
     each vector represents something.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 多头自注意力（MHSA）在多种上下文中都有应用，每种应用可能会以不同的方式格式化输入。在自然语言处理的背景下，通常会使用词向量嵌入，并配以位置编码，来计算一个表示每个单词的向量。通常，无论数据类型如何，多头自注意力都会期望一系列向量，其中每个向量代表某种含义。

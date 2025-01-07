@@ -1,240 +1,361 @@
 - en: How To Log Databricks Workflows with the Elastic (ELK) Stack
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何使用 Elastic (ELK) Stack 记录 Databricks 工作流
 - en: 原文：[https://towardsdatascience.com/how-to-log-databricks-workflows-with-the-elastic-elk-stack-a03f940cbc88?source=collection_archive---------7-----------------------#2024-07-30](https://towardsdatascience.com/how-to-log-databricks-workflows-with-the-elastic-elk-stack-a03f940cbc88?source=collection_archive---------7-----------------------#2024-07-30)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-to-log-databricks-workflows-with-the-elastic-elk-stack-a03f940cbc88?source=collection_archive---------7-----------------------#2024-07-30](https://towardsdatascience.com/how-to-log-databricks-workflows-with-the-elastic-elk-stack-a03f940cbc88?source=collection_archive---------7-----------------------#2024-07-30)
 - en: A practical example of setting up observability for a data pipeline using best
     practices from SWE world
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个使用软件工程世界最佳实践来设置数据管道可观察性的实际示例
 - en: '[](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)[![Yury
     Kalbaska](../Images/d07ddfd82b958b22fba3cbda925d1cb0.png)](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------)
     [Yury Kalbaska](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)[![Yury
+    Kalbaska](../Images/d07ddfd82b958b22fba3cbda925d1cb0.png)](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------)
+    [Yury Kalbaska](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------)
     ·8 min read·Jul 30, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------)
+    ·阅读时间：8分钟 ·2024年7月30日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/4152c7a9407ea80e056dfcd8ed7c1a1d.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4152c7a9407ea80e056dfcd8ed7c1a1d.png)'
 - en: Photo by [ThisisEngineering](https://unsplash.com/@thisisengineering?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [ThisisEngineering](https://unsplash.com/@thisisengineering?utm_source=medium&utm_medium=referral)
+    提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: At the time of this writing (July 2024) Databricks has become a standard platform
     for data engineering in the cloud, this rise to prominence highlights the importance
     of features that support robust data operations (DataOps). Among these features,
     observability capabilities — logging, monitoring, and alerting — are essential
     for a mature and production-ready data engineering tool.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文撰写时（2024年7月），Databricks 已成为云端数据工程的标准平台，这一崛起突显了支持强大数据操作（DataOps）功能的重要性。在这些功能中，可观察性能力——日志记录、监控和警报——对一个成熟且适用于生产环境的数据工程工具至关重要。
 - en: There are many tools to log, monitor, and alert the Databricks workflows including
     built-in native Databricks Dashboards, Azure Monitor, DataDog among others.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 有许多工具可以记录、监控和警报 Databricks 工作流，包括内建的原生 Databricks 仪表板、Azure Monitor、DataDog
+    等。
 - en: However, one common scenario that is not obviously covered by the above is the
     need to integrate with an existing enterprise monitoring and alerting stack rather
     than using the dedicated tools mentioned above. More often than not, this will
     be Elastic stack (aka ELK) — a de-facto standard for logging and monitoring in
     the software development world.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，上述内容没有明显涵盖的一个常见场景是需要与现有的企业监控和警报系统进行集成，而不是使用上述提到的专用工具。通常，这将是 Elastic Stack（也称为
+    ELK）——在软件开发世界中，作为日志记录和监控的事实标准。
 - en: Components of the ELK stack?
+  id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: ELK Stack 的组成部分是什么？
 - en: 'ELK stands for Elasticsearch, Logstash, and Kibana — three products from Elastic
     that offer end-to-end observability solution:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: ELK 代表 Elasticsearch、Logstash 和 Kibana —— 这是 Elastic 提供的三种产品，提供端到端的可观察性解决方案：
 - en: Elasticsearch — for log storage and retrieval
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Elasticsearch — 用于日志存储和检索
 - en: Logstash — for log ingestion
+  id: totrans-15
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Logstash — 用于日志摄取
 - en: Kibana — for visualizations and alerting
+  id: totrans-16
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Kibana — 用于可视化和警报
 - en: The following sections will present a practical example of how to integrate
     the ELK Stack with Databricks to achieve a robust end-to-end observability solution.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下部分将展示如何将 ELK Stack 与 Databricks 集成，以实现强大的端到端可观察性解决方案的实际示例。
 - en: A practical example
+  id: totrans-18
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 一个实际示例
 - en: Prerequisites
+  id: totrans-19
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 前提条件
 - en: 'Before we move on to implementation, ensure the following is in place:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 在继续实施之前，请确保以下内容已准备好：
 - en: '**Elastic cluster** — A running Elastic cluster is required. For simpler use
     cases, this can be a single-node setup. However, one of the key advantages of
     the ELK is that it is fully distributed so in a larger organization you’ll probably
     deal with a cluster running in Kubernetes. Alternatively, an instance of Elastic
     Cloud can be used, which is equivalent for the purposes of this example.'
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**弹性集群** — 需要一个运行中的弹性集群。对于简单的使用场景，这可以是一个单节点的设置。然而，ELK 的一个关键优势是它是完全分布式的，因此在大型组织中，你可能会处理一个在
+    Kubernetes 中运行的集群。或者，可以使用 Elastic Cloud 的实例，这对于本例来说是等效的。'
 - en: If you are experimenting, refer to the [excellent guide by DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-install-elasticsearch-logstash-and-kibana-elastic-stack-on-ubuntu-22-04)
     on how to deploy an Elastic cluster to a local (or cloud) VM.
+  id: totrans-22
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如果你正在进行实验，参考 [DigitalOcean 的优秀指南](https://www.digitalocean.com/community/tutorials/how-to-install-elasticsearch-logstash-and-kibana-elastic-stack-on-ubuntu-22-04)，了解如何将
+    Elastic 集群部署到本地（或云）虚拟机。
 - en: '**Databricks workspace** — ensure you have permissions to configure cluster-scoped
     init scripts. Administrator rights are required if you intend to set up global
     init scripts.'
+  id: totrans-23
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**Databricks 工作区** — 确保你有权限配置集群范围的初始化脚本。如果你打算设置全局初始化脚本，则需要管理员权限。'
 - en: Storage
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 存储
 - en: 'For log storage, we will use Elasticsearch’s own storage capabilities. We start
     by setting up. In Elasticsearch data is organized in indices. Each index contains
     multiple documents, which are JSON-formatted data structures. Before storing logs,
     an index must be created. This task is sometimes handled by an organization’s
     infrastructure or operations team, but if not, it can be accomplished with the
     following command:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于日志存储，我们将使用 Elasticsearch 自己的存储能力。我们首先进行设置。在 Elasticsearch 中，数据是按索引组织的。每个索引包含多个文档，这些文档是
+    JSON 格式的数据结构。在存储日志之前，必须创建一个索引。这个任务有时由组织的基础设施或运维团队来处理，但如果没有，也可以通过以下命令来完成：
 - en: '[PRE0]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Further customization of the index can be done as needed. For detailed configuration
     options, refer to the REST API Reference: [https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html)'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以根据需要进一步自定义索引。有关详细的配置选项，请参考 REST API 参考文档：[https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html)
 - en: 'Once the index is set up documents can be added with:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦索引设置完毕，可以通过以下命令添加文档：
 - en: '[PRE1]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'To retrieve documents, use:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 要检索文档，请使用：
 - en: '[PRE2]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: This covers the essential functionality of Elasticsearch for our purposes. Next,
     we will set up the log ingestion process.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 这涵盖了 Elasticsearch 在我们场景中的基本功能。接下来，我们将设置日志摄取过程。
 - en: Transport / Ingestion
+  id: totrans-33
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 传输 / 摄取
 - en: In the ELK stack, Logstash is the component that is responsible for ingesting
     logs into Elasticsearch.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 ELK 堆栈中，Logstash 是负责将日志摄取到 Elasticsearch 的组件。
 - en: The functionality of Logstash is organized into *pipelines*, which manage the
     flow of data from ingestion to output.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: Logstash 的功能被组织为 *管道*，这些管道管理从数据摄取到输出的整个流程。
 - en: 'Each pipeline can consist of three main stages:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个管道可以由三个主要阶段组成：
 - en: '**Input**: Logstash can ingest data from various sources. In this example,
     we will use Filebeat, a lightweight shipper, as our input source to collect and
     forward log data — more on this later.'
+  id: totrans-37
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**输入**：Logstash 可以从多个来源摄取数据。在本例中，我们将使用 Filebeat，这是一种轻量级的数据传输工具，作为我们的输入源来收集并转发日志数据——稍后会详细介绍。'
 - en: '**Filter**: This stage processes the incoming data. While Logstash supports
     various filters for parsing and transforming logs, we will not be implementing
     any filters in this scenario.'
+  id: totrans-38
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**过滤器**：这一阶段处理传入的数据。虽然 Logstash 支持多种过滤器用于解析和转换日志，但在这个场景中我们不会实现任何过滤器。'
 - en: '**Output**: The final stage sends the processed data to one or more destinations.
     Here, the output destination will be an Elasticsearch cluster.'
+  id: totrans-39
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**输出**：最后阶段将处理过的数据发送到一个或多个目标。在这里，输出目标将是 Elasticsearch 集群。'
 - en: Pipeline configurations are defined in YAML files and stored in the `/etc/logstash/conf.d/`
     directory. Upon starting the Logstash service, these configuration files are automatically
     loaded and executed.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 管道配置在 YAML 文件中定义，并存储在 `/etc/logstash/conf.d/` 目录下。在启动 Logstash 服务时，这些配置文件会自动加载并执行。
 - en: 'You can refer to [Logstash documentation](https://www.elastic.co/guide/en/logstash/current/configuration.html)
     on how to set up one. An example of a minimal pipeline configuration is provided
     below:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以参考[Logstash 文档](https://www.elastic.co/guide/en/logstash/current/configuration.html)了解如何设置。下面提供了一个最小的管道配置示例：
 - en: '[PRE3]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Finally, ensure the configuration is correct:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，确保配置正确：
 - en: '[PRE4]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Collecting application logs
+  id: totrans-45
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 收集应用日志
 - en: There is one more component in ELK — Beats. Beats are lightweight agents (shippers)
     that are used to deliver log (and other) data into either Logstash or Elasticsearch
     directly. There’s a number of Beats — each for its individual use case but we’ll
     concentrate on **Filebeat** — by far the most popular one — which is used to collect
     log *files*, process them, and push to Logstash or Elasticsearch directly.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: ELK 中还有一个组件——Beats。Beats 是轻量级代理（发送器），用于将日志（和其他）数据直接传送到 Logstash 或 Elasticsearch。Beats
+    有很多种——每种用于不同的场景，但我们将集中讨论**Filebeat**——目前最流行的，它用于收集日志*文件*，处理它们，并直接推送到 Logstash
+    或 Elasticsearch。
 - en: 'Beats must be installed on the machines where logs are generated. In Databricks
     we’ll need to setup Filebeat on every cluster that we want to log from — either
     All-Purpose (for prototyping, debugging in notebooks and similar) or Job (for
     actual workloads). Installing Filebeat involves three steps:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: Beats 必须安装在生成日志的机器上。在 Databricks 中，我们需要在每个我们希望采集日志的集群上设置 Filebeat——无论是 All-Purpose（用于原型设计、在笔记本中调试等）还是
+    Job（用于实际工作负载）。安装 Filebeat 包括三个步骤：
 - en: Installation itself — download and execute distributable package for your operating
     system (Databricks clusters are running Ubuntu — so a Debian package should be
     used)
+  id: totrans-48
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 安装本身——下载并执行适用于你的操作系统的分发包（Databricks 集群运行的是 Ubuntu——因此应该使用 Debian 包）
 - en: Configure the installed instance
+  id: totrans-49
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 配置已安装的实例
 - en: Starting the service via system.d and asserting it’s active status
+  id: totrans-50
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通过 system.d 启动服务并验证其活动状态
 - en: 'This can be achieved with the help of Init scripts. A minimal example Init
     script is suggested below:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以通过 Init 脚本来实现。下面建议了一个最小的 Init 脚本示例：
 - en: '[PRE5]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Timestamp Issue
+  id: totrans-53
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 时间戳问题
 - en: Notice how in the configuration above we set up a processor to extract timestamps.
     This is done to address a common problem with Filebeat — by default it will populate
     logs @timestamp field with a timestamp when logs were harvested from the designated
@@ -242,148 +363,220 @@
     is rarely more than 2–3 seconds for a lot of applications, this can mess up the
     logs real bad — more specifically, it can mess up the order of records as they
     are coming in.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意到在上面的配置中，我们设置了一个处理器来提取时间戳。这是为了解决 Filebeat 的一个常见问题——默认情况下，它会用日志从指定目录采集时的时间戳填充
+    @timestamp 字段，而不是实际事件的时间戳。虽然对于很多应用程序来说，时间差通常不会超过 2–3 秒，但这会严重影响日志的顺序——更具体地说，它会扰乱日志记录的顺序。
 - en: To address this, we will overwrite the default @timestamp field with values
     from log themselves.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这个问题，我们将用日志本身的值覆盖默认的 @timestamp 字段。
 - en: Logging
+  id: totrans-56
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 日志记录
 - en: Once Filebeat is installed and running, it will automatically collect all logs
     output to the designated directory, forwarding them to Logstash and subsequently
     down the pipeline.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦 Filebeat 安装并运行，它将自动收集输出到指定目录的所有日志，并将其转发到 Logstash，然后进入后续管道。
 - en: Before this can occur, we need to configure the Python logging library.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 在此之前，我们需要配置 Python 日志库。
 - en: The first necessary modification would be to set up FileHandler to output logs
     as files to the designated directory. Default logging FileHandler will work just
     fine.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个必要的修改是设置 FileHandler，将日志输出为文件并存放到指定目录。默认的日志 FileHandler 将能正常工作。
 - en: Then we need to format the logs into NDJSON, which is required for proper parsing
     by Filebeat. Since this format is not natively supported by the standard Python
     library, we will need to implement a custom `Formatter`.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们需要将日志格式化为 NDJSON，这对于 Filebeat 正确解析是必需的。由于标准 Python 库不原生支持此格式，我们需要实现一个自定义的
+    `Formatter`。
 - en: '[PRE6]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: We will also use the custom Formatter to address the timestamp issue we discussed
     earlier. In the configuration above a new field *timestamp* is added to the `LogRecord`
     object that will conatain a copy of the event timestamp. This field may be used
     in timestamp processor in Filebeat to replace the actual @timestamp field in the
     published logs.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还将使用自定义的 Formatter 来解决我们之前讨论的时间戳问题。在上面的配置中，向 `LogRecord` 对象添加了一个新的字段 *timestamp*，该字段将包含事件时间戳的副本。这个字段可以在
+    Filebeat 中的时间戳处理器中使用，用来替换发布日志中的实际 @timestamp 字段。
 - en: We can also use the Formatter to add extra fields — which may be useful for
     distinguishing logs if your organization uses one index to collect logs from multiple
     applications.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以使用格式化器添加额外的字段——如果您的组织使用一个索引来收集多个应用程序的日志，这可能有助于区分日志。
 - en: Additional modifications can be made as per your requirements. Once the Logger
     has been set up we can use the standard Python logging API — `.info()` and `.debug()`,
     to write logs to the log file and they will automatically propagate to Filebeat,
     then to Logstash, then to Elasticsearch and finally we will be able to access
     those in Kibana (or any other client of our choice).
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据需要可以进行额外修改。一旦设置好 Logger，我们可以使用标准的 Python 日志 API —— `.info()` 和 `.debug()`，将日志写入日志文件，它们会自动传播到
+    Filebeat，再到 Logstash，接着到 Elasticsearch，最后我们就能在 Kibana（或任何其他我们选择的客户端）中访问这些日志。
 - en: Visualization
+  id: totrans-65
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 可视化
 - en: In the ELK stack, Kibana is a component responsible for visualizing the logs
     (or any other). For the purpose of this example, we’ll just use it as a glorified
     search client for Elasticsearch. It can however (and is intended to) be set up
     as a full-featured monitoring and alerting solution given its rich data presentation
     toolset.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 ELK 堆栈中，Kibana 是一个负责可视化日志（或任何其他数据）的组件。为了本示例的目的，我们将其仅作为一个强化版的 Elasticsearch
+    搜索客户端使用。然而，它也可以（并且旨在）被设置为一个功能完善的监控和告警解决方案，鉴于其丰富的数据展示工具集。
 - en: 'In order to finally see our log data in Kibana, we need to set up Index Patterns:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了最终在 Kibana 中查看我们的日志数据，我们需要设置索引模式：
 - en: Navigate to Kibana.
+  id: totrans-68
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 导航到 Kibana。
 - en: Open the “Burger Menu” (≡).
+  id: totrans-69
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 打开“汉堡菜单”（≡）。
 - en: Go to **Management** -> **Stack Management** -> **Kibana** -> **Index Patterns**.
+  id: totrans-70
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 转到**管理** -> **堆栈管理** -> **Kibana** -> **索引模式**。
 - en: Click on **Create Index Pattern**.
+  id: totrans-71
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 点击**创建索引模式**。
 - en: '![](../Images/26cdd8d0af5b3c2eef5a551b8b5ce17d.png)'
+  id: totrans-72
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/26cdd8d0af5b3c2eef5a551b8b5ce17d.png)'
 - en: Kibana index pattern creation interfact
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: Kibana 索引模式创建界面
 - en: Kibana will helpfully suggest names of the available sources for the Index Patterns.
     Type out a name that will capture the names of the sources. In this example it
     can be e.g. `*filebeat**`, then click **Create index pattern**.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: Kibana 会智能地建议索引模式的可用数据源名称。输入一个能够捕捉源名称的名称。在本示例中，可以是例如`*filebeat**`，然后点击**创建索引模式**。
 - en: Once selected, proceed to Discover menu, select the newly created index pattern
     on the left drop-down menu, adjust time interval (a common pitfall — it is set
     up to last 15 minutes by default) and start with your own first KQL query to retrieve
     the logs.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 选择后，进入 Discover 菜单，选择左侧下拉菜单中的新建索引模式，调整时间间隔（一个常见的陷阱——默认设置为 15 分钟），然后开始输入你自己的第一个
+    KQL 查询以检索日志。
 - en: '![](../Images/4bfda8d3fb470c7a06ffb5a585baa0cb.png)'
+  id: totrans-76
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4bfda8d3fb470c7a06ffb5a585baa0cb.png)'
 - en: Log stream visualized in Kibana
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Kibana 中可视化的日志流
 - en: We have now successfully completed the multi-step journey from generating a
     log entry in a Python application hosted on Databricks to to visualizing and monitoring
     this data using a client interface.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在已经成功完成了从在 Databricks 上托管的 Python 应用程序中生成日志条目，到使用客户端接口可视化和监控这些数据的多步骤过程。
 - en: Conclusion
+  id: totrans-79
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: 'While this article has covered the introductory aspects of setting up a robust
     logging and monitoring solution using the ELK Stack in conjunction with Databricks,
     there are additional considerations and advanced topics that suggest further exploration:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文已经介绍了使用 ELK 堆栈与 Databricks 配合设置强大日志记录和监控解决方案的入门知识，然而，还有其他需要考虑的事项和高级主题，建议进一步探索：
 - en: '**Choosing Between Logstash and Direct Ingestion**: Evaluating whether to use
     Logstash for additional data processing capabilities versus directly forwarding
     logs from Filebeat to Elasticsearch.'
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**选择 Logstash 还是直接摄取**：评估是否使用 Logstash 来处理额外的数据处理功能，还是直接将日志从 Filebeat 转发到 Elasticsearch。'
 - en: '**Schema Considerations**: Deciding on the adoption of the Elastic Common Schema
     (ECS) versus implementing custom field structures for log data.'
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**架构考虑**：决定是否采用 Elastic Common Schema (ECS)，或者为日志数据实现自定义字段结构。'
 - en: '**Exploring Alternative Solutions**: Investigating other tools such as Azure
     EventHubs and other potential log shippers that may better fit specific use cases.'
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**探索替代解决方案**：调查其他工具，如 Azure EventHubs 和其他可能更适合特定用例的日志收集工具。'
 - en: '**Broadening the Scope**: Extending these practices to encompass other data
     engineering tools and platforms, ensuring comprehensive observability across the
     entire data pipeline.'
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**扩展范围**：将这些实践扩展到其他数据工程工具和平台，确保整个数据管道的全面可观察性。'
 - en: These topics will be explored in further articles.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些主题将在后续文章中进一步探讨。
 - en: '*Unless otherwise noted, all images are by the author.*'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '*除非另有注明，所有图片均由作者提供。*'

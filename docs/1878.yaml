@@ -1,131 +1,192 @@
 - en: How We Optimized The Problem Of Global Containers Distribution
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 我们如何优化全球集装箱分配问题
 - en: 原文：[https://towardsdatascience.com/how-we-optimized-the-problem-of-global-containers-distribution-ea6201d4513e?source=collection_archive---------5-----------------------#2024-08-01](https://towardsdatascience.com/how-we-optimized-the-problem-of-global-containers-distribution-ea6201d4513e?source=collection_archive---------5-----------------------#2024-08-01)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-we-optimized-the-problem-of-global-containers-distribution-ea6201d4513e?source=collection_archive---------5-----------------------#2024-08-01](https://towardsdatascience.com/how-we-optimized-the-problem-of-global-containers-distribution-ea6201d4513e?source=collection_archive---------5-----------------------#2024-08-01)
 - en: Using Linear Programming to optimize a complete container-based supply chain
     operation across the globe
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用线性规划优化全球范围内的集装箱供应链操作。
 - en: '[](https://willian-fuks.medium.com/?source=post_page---byline--ea6201d4513e--------------------------------)[![Will
     Fuks](../Images/8c7227ad8677f34792058dfd45083c0b.png)](https://willian-fuks.medium.com/?source=post_page---byline--ea6201d4513e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ea6201d4513e--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ea6201d4513e--------------------------------)
     [Will Fuks](https://willian-fuks.medium.com/?source=post_page---byline--ea6201d4513e--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://willian-fuks.medium.com/?source=post_page---byline--ea6201d4513e--------------------------------)[![Will
+    Fuks](../Images/8c7227ad8677f34792058dfd45083c0b.png)](https://willian-fuks.medium.com/?source=post_page---byline--ea6201d4513e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ea6201d4513e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ea6201d4513e--------------------------------)
+    [Will Fuks](https://willian-fuks.medium.com/?source=post_page---byline--ea6201d4513e--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ea6201d4513e--------------------------------)
     ·18 min read·Aug 1, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ea6201d4513e--------------------------------)
+    ·阅读时间18分钟·2024年8月1日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: Recently I was invited by a coworker to join a project for a big company in
     Brazil that sells goods and services on a global scale.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 最近，我被一位同事邀请加入一个位于巴西的大型公司的项目，该公司在全球范围内销售商品和服务。
 - en: The project involved transport optimization and was quite interesting — and
     challenging — so I’d like to write about it and how we solved the problem using
     the library [cvxpy](https://www.cvxpy.org/) (also used to solve optimization problems
     at companies like *Tesla*, *Netflix* and *Two Sigma*).
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 该项目涉及运输优化，非常有趣——也很具挑战性——所以我想写一下这个项目，以及我们如何使用[cvxpy](https://www.cvxpy.org/)库解决问题（该库也被像*Tesla*、*Netflix*和*Two
+    Sigma*等公司用来解决优化问题）。
 - en: 'Specifically, this post covers:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文具体内容包括：
 - en: The challenge of transporting containers globally with a set of several constraints.
+  id: totrans-9
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在多项约束条件下，全球运输集装箱的挑战。
 - en: How we managed the company’s data and described it as a set of linear transformations.
+  id: totrans-10
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们如何管理公司的数据，并将其描述为一组线性变换。
 - en: How we adapted the variables and constraints to fit the Linear Programming formulation.
+  id: totrans-11
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们如何调整变量和约束，以适应线性规划的公式。
 - en: Techniques used to guarantee the objective function and constraints were convex
     — cvxpy’s main restriction.
+  id: totrans-12
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 用来保证目标函数和约束条件是凸的技术——cvxpy的主要限制。
 - en: With no further ado, let’s dive into it.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 事不宜迟，让我们开始吧。
 - en: 1\. The Challenge
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 1. 挑战
 - en: When the project started, the company revealed us that they already had a solution
     implemented on top of *Microsoft Excel Solver* to optimize how to best manage
     the containers. The Solver aimed to reduce costs of transportation, freight, storage,
     and operation while following a set of constraints.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 当项目启动时，公司向我们透露，他们已经在*Microsoft Excel Solver*上实现了解决方案，以优化如何最好地管理集装箱。该Solver旨在减少运输、货运、存储和操作的成本，同时遵循一系列约束条件。
 - en: The solution worked fine but as operations expanded the process began to halt
     and suffer with some bottlenecks, as the company explained. At times, they had
     so many containers to allocate that it would take the Solver a few days to process
     the whole dataset and come up with an answer.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 该解决方案运行良好，但随着业务扩展，过程开始停滞，并遭遇一些瓶颈，正如公司所解释的那样。 有时，他们需要分配的集装箱太多，以至于Solver处理整个数据集并给出答案可能需要几天时间。
 - en: They requested us to develop something new that could handle the workload of
     the system while also being flexible enough so that the system would accept new
     constraints on demand.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 他们要求我们开发一种新系统，能够在处理工作负载的同时，还要足够灵活，以便系统能够根据需求接受新的约束条件。
 - en: 'To begin with, the company has factories located across the country and containers
     are prepared by demand on each factory:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，公司在全国各地都有工厂，集装箱根据各工厂的需求进行准备：
 - en: '![](../Images/001c29d34f438addc891bce6c9dbdac9.png)'
+  id: totrans-19
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/001c29d34f438addc891bce6c9dbdac9.png)'
 - en: Factories located across the country and its containers. Image by author.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 分布在全国各地的工厂及其集装箱。图像来自作者。
 - en: Each factory produces containers weekly according to its own demands, which
     means some factories will produce more containers than others. Each container
     carries its own goods so the sales price changes as well (this variable will be
     important soon).
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个工厂根据自己的需求每周生产集装箱，这意味着某些工厂会生产比其他工厂更多的集装箱。每个集装箱携带自己的货物，因此销售价格也会发生变化（这个变量很快会变得重要）。
 - en: The destiny of each container also varies; some will be transported to nearby
     countries whereas others have to cross the globe. Therefore, the company needs
     to send the containers to appropriate docks or it risks not succeeding with the
     delivery (due the lack of connection between the docks of each country).
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个集装箱的命运也各不相同；有些将被运输到邻近国家，而其他的则需要跨越全球。因此，公司需要将集装箱送到适当的码头，否则将面临无法成功交付的风险（因为各国码头之间缺乏连接）。
 - en: 'Several new variables shows up when trying to connect factories to the appropriate
     docks. First, each factory may choose how to transport the containers: either
     by using trains — and, in doing so, there are various types of contracts to choose
     from — or by trucks (again, multiple types of contracts as well):'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 在试图将工厂与适当的码头连接时，几个新的变量会出现。首先，每个工厂可以选择如何运输集装箱：要么使用火车——并且在这样做时，可以选择不同类型的合同——要么使用卡车（同样，也有多种合同类型）：
 - en: '![](../Images/fdbfee15861f3e4967091c415c6c6177.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fdbfee15861f3e4967091c415c6c6177.png)'
 - en: Factories may choose how to transport containers to dock, according to availability
     of options. Image by author.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 工厂可以根据可用选项选择如何将集装箱运输到码头。图像来自作者。
 - en: 'Now another challenge arises: each container has a specific destination and
     so does the ships available on each dock. Destinations must, therefore, match!
     If a container that should go to Hong Kong is transported to a dock where no ships
     will be going to Asia then we just sacrificed an entire container.'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，另一个挑战出现了：每个集装箱都有特定的目的地，而每个码头上也有相应的船只。因此，目的地必须匹配！如果一个应当运往香港的集装箱被运输到一个没有前往亚洲的船只的码头，那么我们就浪费了一个集装箱。
 - en: The matching problem means that, at times, factories may need to transport a
     container to a more distant dock (and expend more money) simply because it’s the
     only remaining option for making the connection between Brazil and the rest of
     the world. Shippers will be another variable and they should be accounted for
     availability in terms of spaces on each ship and also the ship’s destination.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 匹配问题意味着，有时工厂可能需要将集装箱运输到更远的码头（并支付更多费用），仅仅因为这是将巴西与世界其他地方连接起来的唯一选项。托运人将是另一个变量，他们需要考虑每艘船上的空间可用性以及船只的目的地。
 - en: 'Shippers may also allow for what is known as “*overbooking spaces*”, that is,
     just like the concept applies to airline flights, it also applies to ships but
     here the concepts is a bit less restrictive: for a given week, shippers can inform
@@ -133,55 +194,75 @@
     be added on each ship above the threshold capacity — with a higher freight, as
     expected. The optimizer can use this factor to allocate remaining containers and
     take advantage of cheaper transportation, for instance.'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 托运人也可能允许所谓的“*超额预定空间*”，也就是说，正如这一概念应用于航空航班，它同样适用于船只，但这里的概念稍微宽松些：对于某一周，托运人可以告知一个“超额预定因子”，这会给我们一个关于每艘船可以额外添加多少个集装箱的概念，超过了该船的最大容量——并且按预期，运费会更高。优化器可以利用这个因子来分配剩余的集装箱，并利用更便宜的运输方式，例如。
 - en: '![](../Images/d4b2327f58c1a5ca015aaba46d9191ed.png)'
+  id: totrans-29
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d4b2327f58c1a5ca015aaba46d9191ed.png)'
 - en: Adding shippers to the whole challenge. Image by author.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 增加了托运人这一挑战。图像来自作者。
 - en: 'The optimizer must consider as well a set of rules to follow. Here’s a brief
     list of requirements:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 优化器还必须考虑一套需要遵循的规则。以下是一些简要的要求：
 - en: '**Ships have a maximum capacity**: each ship attends specific regions through
     what is called “trades”. Each shipper have a maximum capacity of containers for
     each trade — this rule can be broken at times through *overbooking*.'
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**船只有最大容量**：每艘船通过所谓的“贸易”服务特定区域。每个发货人对于每个贸易有一个最大集装箱容量——这项规则有时可以通过*超额预定*来打破。'
 - en: '**Connect factory and dock**: factories can only send containers to docks with
     valid and available transportation — if a factory does not have a train station
     connection to a given dock then the optimizer must choose another transport.'
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**连接工厂和码头**：工厂只能将集装箱发送到具有有效且可用运输方式的码头——如果工厂没有与某个码头的火车站连接，则优化器必须选择其他运输方式。'
 - en: '**Transportation Limits**: the company made clear that contracts and slots
     available for transportation can vary; they have agreements and licenses to use
     certain slots from trains monthly, which adds an upper cap on number of containers.'
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**运输限制**：公司明确表示，运输合同和可用时段可能会有所不同；他们与火车公司有协议和许可证，可以每月使用特定的时段，这为可运输的集装箱数量设定了上限。'
 - en: '**Connect departure dock and shipper**: the optimizer must send containers
     from factories to docks that contains shippers with spaces on ships and attend
     the *trade* where the container is going.'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**连接出发码头和发货人**：优化器必须将集装箱从工厂发送到包含有空间的发货人所在的码头，并且服务该集装箱的*贸易*目的地。'
 - en: '**Overbooking**: overbooking can happen — like an extra trick at our disposal.
     Each shipper have a factor of how many slots may be used above the max cap. Containers
     under overbooking are much more expensive and it should happen only if all prior
     available spaces have already been consumed.'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**超额预定**：超额预定是可能发生的——就像是我们手中额外的“招数”。每个发货人都有一个可以超过最大上限的预定槽位的系数。超额预定的集装箱成本更高，只有在所有先前可用的空间已经被占用的情况下才应使用。'
 - en: '**Transport Or Not Transport**: The optimizer may conclude that it’s better
     to store a given container in the factory than transporting it, which affects
     the total costs expectation.'
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**运输与否**：优化器可能会得出结论，认为将某个集装箱存放在工厂中比运输它更为合适，这会影响到总成本的预期。'
 - en: Are we there yet? Well, not really. In practice, the challenge is a bit more
     evolved as it should contain the time that factories take to transport each container
     and connect it to when shippers will be available at the docks. If we end up choosing
@@ -189,711 +270,1058 @@
     hope that there is another ship going to the same destination or we basically
     just lose the container. This post does not consider the time variables as it
     makes development much more complex.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们到了吗？嗯，还没有。实际上，挑战要复杂一些，因为它应当包括工厂运输每个集装箱所需的时间，并与发货人何时能在码头可用进行连接。如果我们选择了一个太慢的运输方式，可能会错过船只，随后可能要等待并希望有另一艘船前往相同的目的地，或者我们可能会直接失去这个集装箱。本文没有考虑时间变量，因为这会使得开发过程更为复杂。
 - en: We have the challenge, now, let’s see how we solved it 🥷!
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经有了挑战，让我们看看我们是如何解决它的 🥷！
 - en: 3\. Linear Programming
+  id: totrans-40
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 3\. 线性规划
 - en: '[Linear Programming](https://www.britannica.com/science/linear-programming-mathematics)
     (LP) is an optimization technique that also accepts a set of constraints represented
     as linear transformations.'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '[线性规划](https://www.britannica.com/science/linear-programming-mathematics)（LP）是一种优化技术，也接受作为线性变换表示的一组约束。'
 - en: 'Mathematically, we have something like the following:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 在数学上，我们有如下的内容：
 - en: '![](../Images/70d4a1a86c13c0f4e06e37a43132f0a3.png)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/70d4a1a86c13c0f4e06e37a43132f0a3.png)'
 - en: '***f***is the **objective function** (or cost function) and for our challenge
     it represents the costs associated to each transportation, ship, whether containers
     were stored on overbooking status and the trade-offs between leaving the containers
     in the factories or not.'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '***f***是**目标函数**（或成本函数），在我们的挑战中，它表示与每个运输、船只相关的成本，以及集装箱是否处于超额预定状态以及将集装箱留在工厂与否的权衡。'
 - en: The values ***x*** represent the variables the optimizer must manipulate in
     order to minimize the objective. In our case, it’ll be which transport, ship,
     dock and overbooking status to choose.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得注意的是，***x***代表优化器必须操作的变量，以便最小化目标函数。在我们的案例中，它将决定选择哪种运输、船只、码头和超额预定状态。
 - en: To make the concept more tangible and connected with the main challenge in this
     post, let’s begin with a very simple implementation on top of cvxpy.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了让这个概念更具实用性，并与本文的主要挑战关联起来，让我们从一个非常简单的cvxpy实现开始。
 - en: 3.1 Simple Example
+  id: totrans-47
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.1 简单示例
 - en: 'Suppose the following setting:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设以下设定：
 - en: 'The company produced 4 containers in a given week, all in the same factory.
     Their values is: [$200, $300, $400, $500].'
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 公司在某一周生产了4个集装箱，所有集装箱都来自同一个工厂。它们的价值为：[$200, $300, $400, $500]。
 - en: The factory can use only one type of transportation.
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 工厂只能使用一种类型的运输方式。
 - en: The factory is connected to just one dock.
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 工厂仅连接到一个码头。
 - en: In this supposed week, two shippers will have ships available at the dock. Shippers
     charges $100 and $130 per container respectively.
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在这一假设的周内，两个发货人将在码头上有船可用。发货人分别收取每个集装箱$100和$130的费用。
 - en: First shipper has 2 remaining slots available; the second has just 1.
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第一个发货人有2个剩余空位；第二个发货人只有1个。
 - en: The main goal of the optimizer is to distribute the 4 containers on the available
     spaces on ships while minimizing total costs of transportation.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 优化器的主要目标是将4个集装箱分配到可用的船只空间上，同时最小化运输的总成本。
 - en: 'How do we implement it in cvxpy? Well, it’s quite simple actually. First we
     need a variable **x** that represents the choices that the optimizer can make.
     Best way to represent **x** in this case is as a **boolean** array with shape
     (4, 2) — each row corresponds to a given container, and 2 columns as there are
     2 shippers available:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何在cvxpy中实现这个呢？其实很简单。首先我们需要一个变量**x**，表示优化器可以做出的选择。在这种情况下，表示**x**的最佳方式是使用形状为(4,
+    2)的**布尔**数组——每行对应一个集装箱，2列表示有两个发货人可供选择：
 - en: '![](../Images/4684be83ca2133aa3fc0f31123427229.png)'
+  id: totrans-56
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4684be83ca2133aa3fc0f31123427229.png)'
 - en: An example of one possible value of **x** that represents choices the optimizer
     can make to minimize costs. Image by author.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '**x**的一个可能值的示例，表示优化器可以做出的选择以最小化成本。图片来自作者。'
 - en: A value of “1” on a row means the optimizer allocated the corresponding container
     to the respective shipper at that column. In this example, the first and second
     containers go to the first shipper and the third and fourth containers go to the
     second shipper. Notice that each row can contain only one value expressed as “1”
     and the other must be “0” as otherwise it would mean that a given container was
     allocated to both shippers at the same time, which is invalid.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 行中“1”的值表示优化器将对应的集装箱分配给该列的相应发货人。在此示例中，第一个和第二个集装箱分配给第一个发货人，第三个和第四个集装箱分配给第二个发货人。请注意，每行只能包含一个“1”的值，其他必须是“0”，否则就意味着某个集装箱被同时分配给了两个发货人，这是无效的。
 - en: The challenge of the optimizer will be, therefore, to keep changing this array
     until it finds a minimal value of total costs, while still respecting the requirements.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，优化器的挑战将是不断调整这个数组，直到找到总成本的最小值，同时仍然满足要求。
 - en: 'Costs will have two components: one associated to the shippers and another
     to the container itself. If a given container is not allocated to any ship then
     its value should be added to the final costs — it’s better, therefore, to prioritize
     allocation of the $500 container instead of the $200 one.'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 成本将包括两个部分：一部分与发货人相关，另一部分与集装箱本身相关。如果某个集装箱没有分配给任何船只，那么它的价值应当加入到最终成本中——因此，优先分配$500的集装箱而不是$200的集装箱会更好。
 - en: 'As for the code implementation, this is one possibility:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 至于代码实现，这是一个可能的实现方式：
 - en: 'Key points to consider:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要考虑的关键点：
 - en: cvxpy requires the set of **variables**, **constraints** and finally the **cost
     expression**.
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: cvxpy需要**变量**、**约束条件**和最终的**成本表达式**。
 - en: The line `constraint0 = cx.sum(x_shippers, axis=1) <= 1` is a constraint that
     *cvxpy* must obey when optimizing **x**. As a general rule, they must keep the
     optimization process convex (which guarantees convergence) and can either be an
     equality expression or an upper bound equality. In this case, the `sum` operator
     happens on *axis=1* which means “sum through columns”.
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 代码行`constraint0 = cx.sum(x_shippers, axis=1) <= 1`是一个*cvxpy*必须遵守的约束条件，用于优化**x**。作为一般规则，约束条件必须保持优化过程的凸性（这保证了收敛性），并且可以是等式表达式或上界等式。在此案例中，`sum`运算符作用于*axis=1*，意味着“按列求和”。
 - en: The rule imples that the summation of each row of **x_shippers** can be at maximum
     equal to 1, which guarantees that a given container won’t be assigned to multiple
     shippers at the same time.
+  id: totrans-65
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 该规则意味着每行**x_shippers**的和最多等于1，这保证了某个集装箱不会同时分配给多个发货人。
 - en: As the summation constraint follows the `<=` rule, then a given row can be of
     just 0’s, which means a given container may not be assigned to any ship at all
     (this may happen due lack of available spaces on ships, for instance).
+  id: totrans-66
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 由于求和约束遵循`<=`规则，因此某行可以全是0，这意味着某个集装箱可能完全没有被分配给任何船只（例如，可能由于船只上没有空余空间）。
 - en: '`constraint1 = cx.sum(x_shippers, axis=0) <= shippers_spaces` works similarly
     to *constraint0*. It basically translates that all containers assigned for each
     ship cannot surpass their maximum capacity.'
+  id: totrans-67
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`constraint1 = cx.sum(x_shippers, axis=0) <= shippers_spaces` 的作用与*constraint0*相似。它基本上表达的是每个船只分配的所有容器不能超过其最大容量。'
 - en: 'Then we arrive at the heart of the problem: the cost function, given by: `cost
     = cx.sum(x_shippers @ shippers_cost.T) + container_costs @ (1 — cx.sum(x_shippers,
     axis=1))` . The first component `cx.sum(x_shippers @ shippers_cost.T)` basically
     express all costs for allocating each container to each shipper. “**@**”represents
     the dot product so the result of the operation is already the cost associated
     to each container, which has to be summed for the total cost.'
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后，我们来到了问题的核心：成本函数，定义为：`cost = cx.sum(x_shippers @ shippers_cost.T) + container_costs
+    @ (1 — cx.sum(x_shippers, axis=1))`。第一个部分 `cx.sum(x_shippers @ shippers_cost.T)`
+    基本上表达了为每个船只分配每个容器的所有成本。 "**@**" 表示点积，因此该操作的结果已经是与每个容器相关的成本，必须对其进行求和得到总成本。
 - en: Second component `container_costs @ (1 — cx.sum(x_shippers, axis=1))` is arguably
     more interesting as here we start to see the strategies we can use to express
     our problems in *cvxpy*. By using the **1** matrix minus the row values expressed
     as `cx.sum(x_shippers, axis=1)` , we essentially get a (4, 1) matrix where each
     row indicates whether the container was ever assigned to some shipper or not.
+  id: totrans-69
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 第二部分 `container_costs @ (1 — cx.sum(x_shippers, axis=1))` 可以说更有趣，因为在这里我们开始看到可以用来在
+    *cvxpy* 中表达问题的策略。通过使用 **1** 矩阵减去按行求和的 `cx.sum(x_shippers, axis=1)`，我们实际上得到了一个
+    (4, 1) 矩阵，其中每行表示容器是否曾经被分配给某个船只。
 - en: The dot `container_costs @ not chosen containers` tracks which containers were
     not routed and sum their cost value.
+  id: totrans-70
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 点积 `container_costs @ 未选择的容器` 跟踪哪些容器没有被分配，并求和它们的成本值。
 - en: 'This is an example of the result:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是结果的一个示例：
 - en: '[PRE0]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Container 0 was not assigned to any ship (as it’s the cheapest so it was not
     prioritized).
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 容器 0 没有被分配给任何船只（因为它是最便宜的，所以没有被优先考虑）。
 - en: 'Some tips before we move on:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们继续之前，给出一些提示：
 - en: You can run experiments with cvxpy using [Colab](https://colab.research.google.com/).
     Just run `!pip install cvxpy` and you are pretty much ready to go.
+  id: totrans-75
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你可以通过 [Colab](https://colab.research.google.com/) 运行 cvxpy 的实验。只需运行 `!pip install
+    cvxpy`，然后你就可以开始了。
 - en: You can run some checks to confirm you are on the right track when implementing
     your models. One technique I like to use is to, for instance, set the variables
     with an initial value, such as `x_shippers = cx.Variable((2, 2), value=[[1, 0],
     [0, 1]]`. Then, after running operations (such as `r=A @ x_shippers` ), you can
     print the result `r.value` attribute to check if everything is working as expected.
+  id: totrans-76
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在实现模型时，你可以运行一些检查来确认你走在正确的道路上。我喜欢使用的一种技巧是，例如，先给变量设置一个初始值，比如 `x_shippers = cx.Variable((2,
+    2), value=[[1, 0], [0, 1]])`。然后，运行操作（例如 `r=A @ x_shippers`）后，你可以打印结果的 `r.value`
+    属性，以检查一切是否按预期工作。
 - en: 'When working with cvxpy, at times you’ll get some errors when running the optimization.
     One common problem is the error message:'
+  id: totrans-77
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在使用 cvxpy 时，有时你会在运行优化时遇到一些错误。一个常见的问题是错误信息：
 - en: '![](../Images/495c23a75b2347bb0018533dd00b4ab7.png)'
+  id: totrans-78
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/495c23a75b2347bb0018533dd00b4ab7.png)'
 - en: This is the infamous Disciplined Convex Problem ([DCP](http://cvxr.com/cvx/doc/dcp.html)
     for short) which consists of a set of rules that must be followed to guarantee
     that restrictions and objective will be convex. For instance, if instead of the
     `sum` operator we used `max` , we’d get the exact same result but when trying
     to run it we’d get`DCPError` . DCP means then that all operations used to express
     the cost and constraints must follow the rules of convexity.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是臭名昭著的规范凸优化问题（简称[DCP](http://cvxr.com/cvx/doc/dcp.html)），它由一组规则组成，这些规则必须遵守，以保证约束和目标是凸的。例如，如果我们用
+    `max` 操作符代替 `sum`，我们仍然会得到相同的结果，但在尝试运行时，我们会遇到`DCPError`。因此，DCP 意味着所有用于表达成本和约束的操作必须遵循凸性的规则。
 - en: The previous example works well for a gentle introduction to the *cvxpy* API.
     Let’s now consider a bit more evolved problem on the same theme.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的示例对于温和地介绍 *cvxpy* API 很有帮助。现在让我们考虑一个主题相同但稍微复杂的例子。
 - en: 3.2 Medium Example
+  id: totrans-81
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.2 中等示例
 - en: 'Let’s consider again the same 4 containers with same costs and conditions.
     This time, the first and third container are going to destination “0” whereas
     second and fourth containers must go to destine “1” and available spaces are the
     same as before ([2, 1]). The input we’d get for this problem is something like
     this:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次考虑相同的 4 个容器，费用和条件相同。这次，第一和第三个容器将运往目的地 “0”，而第二和第四个容器必须运往目的地 “1”，并且可用空间与之前相同（[2,
+    1]）。我们为此问题得到的输入大致如下：
 - en: '![](../Images/0f2cdb29fbc489646b636f49b2111817.png)'
+  id: totrans-83
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0f2cdb29fbc489646b636f49b2111817.png)'
 - en: Containers in rows, cost and destination in columns. Image by author.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 行中的容器，列中的成本和目的地。图片由作者提供。
 - en: 'All containers are produced on the same factory but this time there are 2 options
     to choose from for transportation: train and trucks, with respective costs [$50,
     $70]. For this considered week, we’ll be able to allocate at maximum 2 containers
     on train.'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有容器都是在同一家工厂生产的，但这次有 2 种运输方式可供选择：火车和卡车，分别对应的费用是 [$50, $70]。对于这一周，我们最多只能将 2 个容器分配到火车上。
 - en: 'Before moving on, think about how you would solve this one. Remember the essential
     steps recommended for working with Linear Programming:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 在继续之前，思考一下你将如何解决这个问题。记住，使用线性规划时推荐的基本步骤：
 - en: What are the variables required to describe the problem? `x_shippers = ...`
+  id: totrans-87
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 描述这个问题需要哪些变量？`x_shippers = ...`
 - en: How to express the cost function? `cost = ...`
+  id: totrans-88
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如何表达成本函数？`cost = ...`
 - en: How to use constraints expressed through matrices and mathematical operations
     (that follows DCP) to formulate the whole problem? `destines <= x_shippers...`
+  id: totrans-89
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如何使用通过矩阵和数学运算（符合 DCP）的约束来构建整个问题？`destines <= x_shippers...`
 - en: (you can also use Colab for trying it out)
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: （你也可以使用 Colab 进行尝试）
 - en: …
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: 'Here’s one possible solution:'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个可能的解决方案：
 - en: 'Overall it follows the same structure as before. Some notes about the code:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 总体上，它遵循与之前相同的结构。关于代码的一些说明：
 - en: Now we are optimizing two variables, `x_shippers` and `x_transport`.
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 现在我们正在优化两个变量，`x_shippers` 和 `x_transport`。
 - en: We use mappers for trains and for linking shippers to their destination. The
     name of the mappers variables start, by our convention, as the name of the variable
     in the rows space and then the columns one. For instance, `destine_shippers` means
     that rows represents destines and columns the shippers.
+  id: totrans-106
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们使用映射器来处理火车和将承运人链接到其目的地。根据我们的约定，映射器变量的名称通常从行空间中的变量名开始，然后是列空间。例如，`destine_shippers`
+    表示行代表目的地，列代表承运人。
 - en: 'In specific, the result of the line `dest_ships_arr = destine_shippers_map[containers[:,
     1]]` is a matrix with 4 rows whose lines contains the ships that attend the destinations
     of the respective containers. To make it more clear:'
+  id: totrans-107
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 具体来说，`dest_ships_arr = destine_shippers_map[containers[:, 1]]` 这一行的结果是一个包含 4
+    行的矩阵，每一行包含负责运送相应容器目的地的船只。为了更清楚地说明：
 - en: '![](../Images/21da9318f47e715e0fee80b97c4aff47.png)'
+  id: totrans-108
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/21da9318f47e715e0fee80b97c4aff47.png)'
 - en: destine_shippers_map matrix transforms the input containers into an array indicating
     for each container which shippers are appropriate for the transportation. Image
     by author.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: '`destine_shippers_map` 矩阵将输入容器转换为一个数组，表示每个容器适合的承运人。图片由作者提供。'
 - en: 'Mappers allows input data to be used on constraints and the cost function.
     In the previous example, the optimizer is restricted to only assign shipper 0
     to the first container and shipper 1 to the second, for instance. This is implemented
     as: `constraint02 = x_shippers <= dest_ships_arr` .'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 映射器允许将输入数据应用于约束和成本函数。在前面的例子中，优化器被限制只能将承运人 0 分配给第一个容器，将承运人 1 分配给第二个容器，例如。这是通过以下代码实现的：`constraint02
+    = x_shippers <= dest_ships_arr`。
 - en: 'Similar technique is used in: `constraint11 = cx.sum(x_transports @ train_map.T)
     <= 2)`, the dot matrix operation tracks all transports associated to trains. Final
     summation is equivalent to all containers that were assigned to trains, which
     must be lower or equal to 2.'
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用类似技术的地方有：`constraint11 = cx.sum(x_transports @ train_map.T) <= 2)`，矩阵点积操作跟踪所有与火车相关的运输。最终的总和等同于分配给火车的所有容器，必须小于或等于
+    2。
 - en: Constraints receive two numbers (“00” or “10”) for instance. This is to group
     all constraints for a particular theme. In this example, the first 0 relates to
     all constraints regarding ships and 1 relates to transport. We do so because if
     later on we need to increase the number of constraints then we can just add new
     numbers after “0” and extends the final array.
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 约束条件会接收两个数字（例如：“00” 或 “10”）。这是为了将所有约束按特定主题进行分组。在这个示例中，第一个 0 代表所有关于船只的约束，1 代表运输。我们这样做是因为，如果以后需要增加约束的数量，只需在“0”后添加新数字，并扩展最终的数组。
 - en: 'Final solution is: `x_shippers = [[1, 0], [0, 0], [1, 0], [0, 1]` and `x_transport
     = [[1, 0], [0, 0], [1, 0], [0, 1]` (both equal by coincidence). The optimizer
     didn’t route the second container as there’s only 3 total spaces on ships. First
     container goes to shipper 0 by train so does the third and last container goes
     to shipper 1 by truck.'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终解是：`x_shippers = [[1, 0], [0, 0], [1, 0], [0, 1]]` 和 `x_transport = [[1, 0],
+    [0, 0], [1, 0], [0, 1]]`（两个结果巧合相等）。优化器没有为第二个集装箱分配航运商，因为船上总共只有 3 个位置。第一个集装箱通过火车运送到航运商
+    0，第三个集装箱也是如此，最后一个集装箱通过卡车运送到航运商 1。
 - en: Let’s now step it up a notch a bit and increase the challenge now.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们稍微提升难度，增加一些挑战。
 - en: 3.3 Complete Example
+  id: totrans-115
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.3 完整示例
 - en: 'Let’s use the same example as before but now add another variable: the docks.
     Now, the factory can transport the containers to two possible available docks.
     Trains and trucks can reach *Dock 0* with costs [$50, $70] and *Dock 1* can be
     reached only by trucks with cost $60\. Both shippers attend both docks with same
     costs.'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们使用之前的示例，但现在增加一个新变量：码头。现在，工厂可以将集装箱运输到两个可用的码头。火车和卡车可以到达*码头 0*，费用分别为[$50, $70]，而*码头
+    1* 只能通过卡车到达，费用为$60。两个航运商都能以相同费用到达两个码头。
 - en: How would you solve this problem?
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 你会如何解决这个问题？
 - en: You’ll probably realize that this simple addition of the docks variables make
     things more challenging. Many attempts to connect docks and transportation leas
     to *DCPErrors*. See if you can find strategies to guarantee their modeling as
     expected.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会意识到，添加码头变量使得问题变得更加复杂。许多连接码头和运输的尝试会导致*DCPErrors*。看看你是否能找到策略，确保它们的建模按预期进行。
 - en: …
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: …
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: ….
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: ….
 - en: ….
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: ….
 - en: ….
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: ….
 - en: ….
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: ….
 - en: ….
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: ….
 - en: ….
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: ….
 - en: ….
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: ….
 - en: 'Did you succeed? Here’s one possible solution:'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 你成功了吗？这是一个可能的解决方案：
 - en: It’s equivalent to the previous example for the most part. But notice now that
     we have the AND variables which links the variables docks and transports.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 这在大多数情况下与之前的示例相等。但请注意，现在我们引入了 AND 变量，它将码头和运输变量连接起来。
 - en: 'Main point is: when the optimizer selects a value for `x_transport` it ends
     up affecting the choices available for `x_docks`. But when it chooses the dock
     **it also affects the transport in return!** In order to solve this problem, we
     implement AND variables such that the optimizer discerns the impact of its decisions
     at the same time.'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 关键点是：当优化器为 `x_transport` 选择一个值时，最终会影响 `x_docks` 的选择。然而，当它选择了码头**它也会反过来影响运输！**
+    为了解决这个问题，我们引入了 AND 变量，使优化器能够同时辨别其决策的影响。
 - en: 'This is implemented first with the y variable: `y_docks_and_transp = cx.Variable((4,
     4), boolean=True, name="docks AND transportations")`. This variable will be also
     updated by the optimizer but we’ll force it to be the `AND` combination between
     two other data sources, as we’ll see soon. The technique we used creates a template
     on columns as a reference, i.e., it combines, in this case, docks and transports:'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一实现首先通过 y 变量完成：`y_docks_and_transp = cx.Variable((4, 4), boolean=True, name="docks
+    AND transportations")`。这个变量也会被优化器更新，但我们将强制它成为两个其他数据源的 `AND` 组合，正如我们接下来会看到的那样。我们使用的技术通过列模板作为参考，将码头和运输相结合：
 - en: '![](../Images/b69fc16b735bed79ebcd1dddbc187c46.png)'
+  id: totrans-135
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b69fc16b735bed79ebcd1dddbc187c46.png)'
 - en: The AND variables used combine two variables, in this case, docks and transports.
     Image by author.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用的 AND 变量将两个变量结合起来，在本例中是码头和运输。图像由作者提供。
 - en: The columns will be a tree like structure. As in the variable name `"y_docks_and_transp”`
     the first name to appear is `"docks”` then it means that docks will be the first
     reference and then transports will follow, as shown above. Taking the second row
     as an example, there’s a value “1” at the second column. This means that it selects
     Dock 0 and Transport 1 (truck).
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些列将呈现树形结构。正如变量名称 `"y_docks_and_transp"` 所示，首先出现的名称是 `"docks"`，这意味着码头将是第一个参考，然后运输会随之跟进，如上所示。以第二行为例，第二列的值是“1”。这意味着它选择了码头
+    0 和运输方式 1（卡车）。
 - en: 'With this template we can create other data and constraints that work on both
     dock and transport variables at the same time. For instance, here’s how we specify
     costs: `transport_and_dock_costs = np.array([[50, 70, 0, 60]])` , which means
     Dock 0 and Transport 0 (train) costs $50 for instance.'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个模板，我们可以创建其他同时作用于码头和运输变量的数据和约束。例如，这里是我们如何指定费用的：`transport_and_dock_costs
+    = np.array([[50, 70, 0, 60]])`，这意味着码头 0 和运输工具 0（火车）的费用为 $50。
 - en: 'The optimizer can use the template to transpose each x variable to the docks
     and transportation setting. For doing so, we used the mappers as follows:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 优化器可以使用模板将每个 `x` 变量转置到码头和运输设置中。为此，我们使用了如下的映射器：
 - en: '![](../Images/8874df58b7448fd7c66dc8a8cc12d71e.png)'
+  id: totrans-140
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8874df58b7448fd7c66dc8a8cc12d71e.png)'
 - en: Left image is the mapping that takes x_transport variable to dock_AND_transp
     map. On the right, it maps x_docks to docks_AND_transp as well. Image by author.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 左图是将 `x_transport` 变量映射到 `dock_AND_transp` 映射的过程。右图则是将 `x_docks` 映射到 `docks_AND_transp`。图片由作者提供。
 - en: 'If the optimizer chooses transport 0 then it’s mapped to the first row of the
     left image. Remember that trains do not attend Dock 1 so that’s why it’s a “0”
     at the third column. Also, notice that the name of the variables also follows
     a pattern: `transp_dock_transp_map` means that rows represent the transports and
     it maps to the AND conjunction between docks and transports, where docks comes
     first.'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果优化器选择运输方式 0，那么它会映射到左图的第一行。请记住，火车不会前往码头 1，这就是为什么在第三列中是“0”的原因。此外，注意变量的名称也遵循一种模式：`transp_dock_transp_map`
+    表示行代表运输工具，并且它映射到码头和运输工具之间的 AND 连接，其中码头排在前面。
 - en: 'This is where we use `y_docks_and_transp` . When the optimizer changes the
     `x` variables we map it to the domain of docks and transports. But then we need
     to combine both mappings to know exactly which point corresponds the dock AND
     the transport variables:'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们使用 `y_docks_and_transp` 的地方。当优化器更改 `x` 变量时，我们将其映射到码头和运输领域。但随后，我们需要将两个映射结合起来，以准确知道哪个点对应码头和运输变量的
+    AND：
 - en: '![](../Images/df1fd6f7697ef3aa218d18c7eb98f17d.png)'
+  id: totrans-144
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/df1fd6f7697ef3aa218d18c7eb98f17d.png)'
 - en: The image may seen daunting but it’s quite simple. First we have the x variables
     and the dot operation (“@”) which maps x to docks and transports domain. We then
     force an AND operation to find y_docks_and_transps. Image by author.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 这张图看起来可能很吓人，但其实相当简单。首先，我们有 `x` 变量和点操作符（“@”），它将 `x` 映射到码头和运输领域。然后，我们强制执行 AND
+    操作来找出 `y_docks_and_transps`。图片由作者提供。
 - en: 'As the image above shows, first we transpose the x variables to the dock and
     transport domain. We then take the results and apply an AND operation to find
     specifically, for each container, which docker AND transport were chosen:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上图所示，首先我们将 `x` 变量转置到码头和运输领域。然后，我们获取结果并应用 AND 操作，专门找出每个容器的码头和运输工具选择：
 - en: '![](../Images/daa3a7baecd3d0d7526eeac54c141b83.png)'
+  id: totrans-147
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/daa3a7baecd3d0d7526eeac54c141b83.png)'
 - en: Result of the AND operation. Image by author.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: AND 操作的结果。图片由作者提供。
 - en: First row means the optimizer chose Dock 0 and Train. Second row means it chose
     Dock 1 and Truck. Notice that as Dock 1 is not connected with Train then third
     column will never be “1” so this solves the problem of valid connections as well.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一行意味着优化器选择了码头 0 和火车。第二行意味着它选择了码头 1 和卡车。请注意，由于码头 1 不与火车连接，因此第三列永远不会是“1”，这也解决了有效连接的问题。
 - en: 'Well, but this is not that simple actually as most attempts to implement this
     AND operation raises *DCPError*. To solve it, we used helper constraints:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，实际上这并不像看起来那么简单，因为大多数尝试实现这个 AND 操作都会引发 *DCPError*。为了解决这个问题，我们使用了辅助约束：
 - en: '[PRE1]'
+  id: totrans-151
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: By doing so, `y_docks_and_transp` is forced to be “1” only at points where `x1`
     AND `x2` are “1” as well. This technique can be used when an AND operation is
     required.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过这样做，`y_docks_and_transp` 被强制在 `x1` 和 `x2` 都是“1”的时候才是“1”。当需要进行 AND 操作时，可以使用此技术。
 - en: '`constraint15` is a safety clause to guarantee that only routed containers
     will remain.'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: '`constraint15` 是一个安全条款，保证只有已路由的容器会被保留。'
 - en: 'Here’s the final values of x and y:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是 `x` 和 `y` 的最终值：
 - en: '[PRE2]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: First container goes to first shipper by train on Dock 0 and second container
     remained at the factory.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个容器通过火车送到码头 0 的第一个托运人，第二个容器则留在了工厂。
 - en: With all the examples and the ideas discussed, we can finally solve the challenge
     the company offered us. Let’s tackle it down now!
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过所有的示例和讨论的思路，我们最终可以解决公司提出的挑战。让我们现在来解决它吧！
 - en: 4\. Final Challenge
+  id: totrans-158
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 4. 最终挑战
 - en: 4.1 Input Data
+  id: totrans-159
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 4.1 输入数据
 - en: 'We received information about shippers, transportation and their respective
     freights:'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们收到了有关托运人、运输方式及其各自货运的信息：
 - en: From the first table, we obtain that transporting a container from F*actory
     0* to the dock located at *Santos* by R*oad* (truck)using T*hird Party* contract
     costs *$6000*. Also, *Shipper 0* can take the container to *Hong Kong* through
     the *Far East* trade charging *$8000* per container.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 从第一个表格中，我们可以得出，使用**公路**（卡车）将一个集装箱从**工厂 0**运送到位于**桑托斯**的码头，通过**第三方**合同的运输费用为**$6000**。此外，**Shipper
+    0**可以通过**远东**贸易将集装箱运送到**香港**，每个集装箱收费**$8000**。
 - en: 'As for spaces on shippers, we got something like this:'
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于发货人空间，我们得到了如下数据：
 - en: Each shipper can attend certain trades (and therefore a group of countries)
     and the spaces they have on the ship varies on a weekly basis, as depicted by
     the numbers from 1 to 52.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个发货人可以参与特定的贸易（因此，涉及一组国家），并且他们在船上的空间每周都会变化，数字从1到52表示。
 - en: 'And finally, the list of containers, the factory they were made, its destination
     and net worth:'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后是集装箱的列表，包括它们的制造工厂、目的地和净值：
 - en: Notice that the last columns are basically the final result we are looking for.
     The goal of the algorithm is to find the set of shippers and their transportation
     minimizing freight costs while following some restrictions.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，最后几列基本上就是我们所寻找的最终结果。算法的目标是找到一组发货人及其运输方式，最小化运费成本，同时遵循一些限制条件。
 - en: We also received another table related to the timings associated to each transportation
     and shipper but as discussed before it won’t be used in this post.
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还收到了一张与每个运输和发货人相关的时间表，但正如之前所讨论的，这篇文章中不会使用它。
 - en: 'This data needs to turn into matrices that we can use later on. This is actually
     quite simple. Let’s take shippers as an example: when reading the file containing
     data about shippers, we associate each new shipper to a counter value that keeps
     increasing as more ships are added in:'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些数据需要转换成矩阵，供后续使用。这其实非常简单。以发货人为例：当读取包含发货人数据的文件时，我们将每个新发货人与一个计数值关联，随着更多的船只加入，计数值会不断增加：
 - en: '![](../Images/90a883b77ed8cd7d84dab80e3c7e522e.png)'
+  id: totrans-168
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/90a883b77ed8cd7d84dab80e3c7e522e.png)'
 - en: Example of how shippers files is read. As new shippers are processed, the counter
     keeps increasing such that index “0” means shipper 0 and so on. Image by author.
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 读取发货人文件的示例。随着新发货人的处理，计数器不断增加，索引“0”代表发货人0，依此类推。图像来源：作者。
 - en: Now we know that on any matrix associated to shipper, if the result is “0” index
     then it means it refers to “Shipper 0” and so on. Every component in our model
     (ports, transportation, factories) follows the same idea.
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们知道，任何与发货人相关的矩阵，如果结果是“0”索引，则意味着它指的是“Shipper 0”，依此类推。我们模型中的每个组件（港口、运输、工厂）都遵循相同的思路。
 - en: Given the data, let’s see the final solution.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定数据，让我们看看最终的解决方案。
 - en: 4.2 Solution
+  id: totrans-172
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 4.2 解决方案
 - en: 'We already have the input data. The challenge now, specifically, is: how to
     route each container by choosing transportation, docks and shippers such that
     costs are minimized while following the constraints already discussed in this
     post?'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经有了输入数据。现在的挑战，特别是，如何为每个集装箱选择合适的运输方式、码头和发货人，以便在遵循本文已经讨论的约束条件下最小化成本？
 - en: 'The ideas presented on previous examples were a prelude of what the final solution
     looks like. Here’s how we solved this problem:'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 前面例子中呈现的思路是最终解决方案的序幕。以下是我们解决该问题的方法：
 - en: 'The function `optimize` receives as first parameter `data_models` where all
     data input from the company is processed and transformed into matrices that can
     be used by *cvxpy*. Specifically, the data input `containers` is a bit different
     from previous examples:'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数`optimize`接收第一个参数`data_models`，其中包含来自公司所有的输入数据，这些数据被处理并转换成可以被*cvxpy*使用的矩阵。具体而言，输入数据`containers`与之前的例子略有不同：
 - en: '![](../Images/3f8b642078389e35f315f02a01d75a48.png)'
+  id: totrans-176
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3f8b642078389e35f315f02a01d75a48.png)'
 - en: Variable containers, first column represents factories, second represents destine
     and third the value of containers. Image by author.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 变量容器，第一列代表工厂，第二列代表目的地，第三列代表容器的数量。图像来源：作者。
 - en: 'The overall idea though is exactly the same. Points to consider:'
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 整体思路其实是完全相同的。需要考虑的要点：
 - en: At line 72 the code `shipper_shipper_trade_arr = x_shippers @ shipper_shipper_and_trade_map.matrix`
     transforms the shippers choices to the domain of shippers and trades. By doing
     we can sum up the total containers allocated for each trade and shipper.
+  id: totrans-179
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在第72行，代码`shipper_shipper_trade_arr = x_shippers @ shipper_shipper_and_trade_map.matrix`将发货人的选择转换到发货人和贸易的领域。通过这样做，我们可以汇总每个贸易和发货人分配的集装箱总数。
 - en: '`constr23` is designed to force overbooking if and only if the optimizer already
     consumed all spaces from shippers before. This is done by translating `x_ob_shippers`
     (“ob” means overbooking) into the shippers and trades domain:'
+  id: totrans-180
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`constr23` 旨在强制过度预订，前提是优化器已经消耗了所有货运商的空间。通过将 `x_ob_shippers`（"ob" 表示过度预订）转化为货运商和交易领域来实现：'
 - en: '![](../Images/198432af76932f202378d54f6ad9b9f5.png)'
+  id: totrans-181
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/198432af76932f202378d54f6ad9b9f5.png)'
 - en: The x variable is translated into shippers and trades domain through the “@”
     (dot) operation. Then the `max` operation is carried over the columns which results
     in a mapping of which points corresponds to overbooking. Image by author.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: x 变量通过“@” （点）操作符转化为货运商和交易领域。然后，`max` 操作被应用到各列上，结果是生成一个映射，显示哪些点对应于过度预订。图像由作者提供。
 - en: '`shipper_ob_trade_indices` works as a mapping for which points are overbooked.
     We then use this information to install `constr23` by saying that shippers at
     those points must be at maximum capacity. By doing so, we force the rule that
     overbooking should happen if and only if all regular spaces were already consumed.'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shipper_ob_trade_indices` 作为一个映射，用于显示哪些点被过度预订。然后，我们使用这些信息通过 `constr23` 强制执行规则，要求这些点上的货运商必须达到最大容量。通过这种方式，我们强制执行过度预订的规则：如果所有常规空间已经被占用，才允许过度预订。'
 - en: Constraints 3- use the AND technique as discussed on previous examples. This
     allows us to combine which shipper and dock the optimizer selected so far and
     use this information to install other constraints and costs.
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 约束条件 3 - 使用前面示例中讨论的 AND 技术。这允许我们结合优化器迄今为止选择的货运商和码头信息，并利用这些信息安装其他约束和成本。
 - en: '`constr55` combines information about docks and transportation linked to factories.
     It forces the optimizer, through `y_origin_and_transp` to choose a dock and transport
     that connects to the corresponding factory where the container is located.'
+  id: totrans-185
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`constr55` 结合了与工厂相关的码头和运输信息。通过 `y_origin_and_transp` 强制优化器选择一个连接到相应工厂的码头和运输方式，确保集装箱位置的正确连接。'
 - en: Cost function is equivalent to what was discussed on previous examples.
+  id: totrans-186
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 成本函数等同于前面示例中讨论的内容。
 - en: And there we have it. The whole system capable of optimizing distribution of
     containers throughout the globe. Before delivering the code to the company, we
     wanted to add a layer of security to have some guarantees it was working as intended.
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 就这样，我们完成了这个系统，它能够优化全球范围内集装箱的分配。在将代码交付给公司之前，我们希望添加一层安全保障，以确保它按预期工作。
 - en: 4.3 Is It Working?!
+  id: totrans-188
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 4.3 它是否有效？！
 - en: 'To guarantee the code is working, we decided to implement some unit tests by
     simulating some scenarios. Here’s an example:'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了保证代码正常运行，我们决定通过模拟一些场景来实现单元测试。以下是一个示例：
 - en: It uses Django as the backend of the system was built on top of it. In the example
     above, the test creates an input data that forces the optimizer to overbook a
     ship. We then compare results to what is expected to confirm it’s working.
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 它使用了 Django 作为系统的后端，系统是在其基础上构建的。在上面的示例中，测试创建了一个输入数据，强制优化器过度预订一艘船。然后，我们将结果与预期进行比较，以确认它是否正常工作。
 - en: Several tests were implemented to increase the chances that everything is working
     properly.
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现了多个测试，以提高所有功能正常工作的机会。
 - en: 5\. Conclusion
+  id: totrans-192
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5\. 结论
 - en: This challenge was quite exciting. At first it wasn’t that straightforward to
     implement this solution on top of *cvxpy.* We probably saw hundreds of times the
     error *DCPError* and it took a while until figuring out the workarounds to the
     issue.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个挑战相当令人兴奋。刚开始时，在 *cvxpy* 上实现这个解决方案并不是那么直接。我们可能已经看到无数次 *DCPError* 错误，并且直到找到解决问题的变通方法才解决了它。
 - en: As for results, I guess probably we could say that there’s not even how to compare
     the previous Solver as implemented in *Excel* to the new one built. Even testing
     the algorithm with thousands of containers the whole processing took a few seconds
     on a *i5 CPU @ 2.20GHz*. On top of that, the solution implemented is already more
     in-depth than the current solution as cost function and constraints have more
     items.
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 至于结果，我想我们可以说，之前在 *Excel* 中实现的求解器与新构建的求解器根本无法进行比较。即使将算法应用于数千个集装箱，整个处理过程也只需几秒钟，且是在
+    *i5 CPU @ 2.20GHz* 上运行的。此外，已实现的解决方案比当前的解决方案更为深入，因为成本函数和约束条件的项数更多。
 - en: Possible downsides is that implementation is also more complex (much more) and
     to add new constraints the whole code may need changing, which means it’s not
     that flexible as probably the company would like it to be. Given the advantages
     still, that was a good trade-off to make.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 可能的缺点是实现起来也更复杂（复杂得多），而且要添加新的约束条件时，整个代码可能需要修改，这意味着它可能不像公司期望的那样灵活。尽管如此，考虑到其优势，这仍然是一个值得做出的权衡。
 - en: Well, that was a great experience. Hopefully you learned and enjoyed it as much
     as we did. It was tough but worth it.
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 嗯，那真是一次很棒的经历。希望你能像我们一样从中学到东西并享受其中。虽然过程很艰难，但值得。
 - en: And, as always, see you [next mission](https://open.spotify.com/playlist/6DDVtTmNRo32PUGy3vsRCC)
     ;)!
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，一如既往，期待在[下一个任务](https://open.spotify.com/playlist/6DDVtTmNRo32PUGy3vsRCC)中再见
+    ;)！

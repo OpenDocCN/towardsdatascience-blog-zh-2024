@@ -1,577 +1,856 @@
 - en: Deep Dive into Multithreading, Multiprocessing, and Asyncio
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 深入探讨多线程、多进程和 Asyncio
 - en: 原文：[https://towardsdatascience.com/deep-dive-into-multithreading-multiprocessing-and-asyncio-94fdbe0c91f0?source=collection_archive---------0-----------------------#2024-12-28](https://towardsdatascience.com/deep-dive-into-multithreading-multiprocessing-and-asyncio-94fdbe0c91f0?source=collection_archive---------0-----------------------#2024-12-28)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/deep-dive-into-multithreading-multiprocessing-and-asyncio-94fdbe0c91f0?source=collection_archive---------0-----------------------#2024-12-28](https://towardsdatascience.com/deep-dive-into-multithreading-multiprocessing-and-asyncio-94fdbe0c91f0?source=collection_archive---------0-----------------------#2024-12-28)
 - en: How to choose the right concurrency model
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何选择正确的并发模型
 - en: '[](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)[![Clara
     Chong](../Images/94c482bc7e35135f104fbfd08a45eef1.png)](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------)
     [Clara Chong](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)[![Clara
+    Chong](../Images/94c482bc7e35135f104fbfd08a45eef1.png)](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------)
+    [Clara Chong](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------)
     ·8 min read·Dec 28, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------)
+    ·8 分钟阅读·2024年12月28日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/7c7943e9ffec1c0fd533c4ffcb697285.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7c7943e9ffec1c0fd533c4ffcb697285.png)'
 - en: Image by [Paul Esch-Laurent](https://unsplash.com/@pinjasaur) from [Unsplash](https://unsplash.com/)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [Paul Esch-Laurent](https://unsplash.com/@pinjasaur) 提供，来源于 [Unsplash](https://unsplash.com/)
 - en: 'Python provides three main approaches to handle multiple tasks simultaneously:
     multithreading, multiprocessing, and asyncio.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: Python 提供了三种主要的方式来同时处理多个任务：多线程、多进程和 asyncio。
 - en: Choosing the right model is crucial for maximising your program’s performance
     and efficiently using system resources. (P.S. It is also a common interview question!)
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 选择正确的模型对于最大化程序性能和高效使用系统资源至关重要。（顺便说一句，这也是一个常见的面试问题！）
 - en: Without concurrency, a program processes only one task at a time. During operations
     like file loading, network requests, or user input, it stays idle, wasting valuable
     CPU cycles. Concurrency solves this by enabling multiple tasks to run efficiently.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果没有并发，一个程序每次只能处理一个任务。在诸如文件加载、网络请求或用户输入等操作过程中，它会处于空闲状态，浪费宝贵的 CPU 周期。并发通过允许多个任务高效运行来解决这个问题。
 - en: But which model should you use? Let’s dive in!
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，我应该使用哪种模型呢？让我们深入了解！
 - en: Contents
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 目录
 - en: Fundamentals of concurrency
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 并发的基础
 - en: '- Concurrency vs parallelism'
+  id: totrans-14
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 并发与并行'
 - en: '- Programs'
+  id: totrans-15
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 程序'
 - en: '- Processes'
+  id: totrans-16
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 进程'
 - en: '- Threads'
+  id: totrans-17
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 线程'
 - en: '- How does the OS manage threads and processes?'
+  id: totrans-18
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 操作系统如何管理线程和进程？'
 - en: Python’s concurrency models
+  id: totrans-19
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Python 的并发模型
 - en: '- Multithreading'
+  id: totrans-20
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 多线程'
 - en: '- Python’s Global Interpreter Lock (GIL)'
+  id: totrans-21
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- Python 的全局解释器锁（GIL）'
 - en: '- Multiprocessing'
+  id: totrans-22
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 多进程'
 - en: '- Asyncio'
+  id: totrans-23
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- Asyncio'
 - en: When should I use which concurrency model?
+  id: totrans-24
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我应该在什么时候使用哪种并发模型？
 - en: Fundamentals of concurrency
+  id: totrans-25
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 并发的基础
 - en: Before jumping into Python’s concurrency models, let’s recap some foundational
     concepts.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 在深入 Python 的并发模型之前，让我们回顾一下几个基础概念。
 - en: 1\. Concurrency vs Parallelism
+  id: totrans-27
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 1\. 并发与并行
 - en: '![](../Images/c82f7d13c46396775ef98ce15aa559c7.png)'
+  id: totrans-28
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c82f7d13c46396775ef98ce15aa559c7.png)'
 - en: Visual representation of concurrency vs parallelism (drawn by me)
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 并发与并行的视觉表现（由我绘制）
 - en: Concurrency is all about managing multiple tasks at the same time, not necessarily
     simultaneously. Tasks may take turns, creating the illusion of multitasking.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 并发就是同时管理多个任务，而不一定是同时进行。任务可能会轮流进行，从而产生多任务的假象。
 - en: Parallelism is about running multiple tasks simultaneously, typically by leveraging
     multiple CPU cores.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 并行是指通过利用多个 CPU 核心同时运行多个任务。
 - en: 2\. Programs
+  id: totrans-32
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2\. 程序
 - en: Now let’s move on to some fundamental OS concepts — programs, processes and
     threads.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们继续探讨一些基础的操作系统概念——程序、进程和线程。
 - en: '![](../Images/c3aa191a728825dae828926b5c384a45.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c3aa191a728825dae828926b5c384a45.png)'
 - en: Multiple threads can exist simultaneously within the a single process — known
     as multithreading (drawn by me)
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 在单一进程内可以同时存在多个线程——这就是多线程（由我绘制）。
 - en: A program is simply a static file, like a Python script or an executable.
+  id: totrans-36
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 程序只是一个静态文件，例如 Python 脚本或可执行文件。
 - en: A program sits on disk, and is passive until the operating system (OS) loads
     it into memory to run. Once this happens, the program becomes a **process**.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 程序存储在磁盘上，在操作系统（OS）将其加载到内存中运行之前是被动的。一旦发生这种情况，程序就变成了**进程**。
 - en: 3\. Processes
+  id: totrans-38
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3. 进程
 - en: A process is an independent instance of a running program.
+  id: totrans-39
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 进程是运行程序的独立实例。
 - en: A process has its own memory space, resources, and execution state. Processes
     are isolated from each other, meaning one process cannot interfere with another
     unless explicitly designed to do so via mechanisms like ***inter-process communication
     (IPC)***.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 进程有自己的内存空间、资源和执行状态。进程彼此隔离，这意味着一个进程不能干扰另一个进程，除非通过如***进程间通信（IPC）***等机制显式设计来实现。
 - en: 'Processes can generally be categorised into two types:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 进程通常可以分为两种类型：
 - en: '**I/O-bound processes:**'
+  id: totrans-42
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**I/O 密集型进程：**'
 - en: Spend most of it’s time ***waiting*** for input/output operations to complete,
     such as file access, network communication, or user input. While waiting, the
     CPU sits idle.
+  id: totrans-43
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 大部分时间***等待***输入/输出操作完成，如文件访问、网络通信或用户输入。在等待时，CPU 处于空闲状态。
 - en: '**CPU-bound processes:**'
+  id: totrans-44
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**CPU 密集型进程：**'
 - en: Spend most of their time ***doing computations*** (e.g video encoding, numerical
     analysis). These tasks require a lot of CPU time.
+  id: totrans-45
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 大部分时间***进行计算***（例如视频编码、数值分析）。这些任务需要大量的 CPU 时间。
 - en: '**Lifecycle of a process:**'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '**进程的生命周期：**'
 - en: A process starts in a *new* state when created.
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 进程在创建时处于*新建*状态。
 - en: It moves to the *ready* state, waiting for CPU time.
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它进入*就绪*状态，等待 CPU 时间。
 - en: If the process waits for an event like I/O, it enters the *waiting* state.
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果进程等待某个事件（如 I/O），它会进入*等待*状态。
 - en: Finally, it *terminates* after completing its task.
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，进程在完成任务后*终止*。
 - en: 4\. Threads
+  id: totrans-51
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 4. 线程
 - en: A thread is the smallest unit of execution within a process.
+  id: totrans-52
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 线程是进程中最小的执行单元。
 - en: A process acts as a “container” for threads, and multiple threads can be created
     and destroyed over the process’s lifetime.
+  id: totrans-53
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 进程充当线程的“容器”，在进程的生命周期内，可以创建和销毁多个线程。
 - en: Every process has at least one thread — the ***main thread***— but it can also
     create additional threads.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个进程至少有一个线程——***主线程***，但它也可以创建额外的线程。
 - en: Threads share memory and resources within the same process, enabling efficient
     communication. However, this sharing can lead to synchronisation issues like race
     conditions or deadlocks if not managed carefully. Unlike processes, multiple threads
     in a single process are not isolated — one misbehaving thread can crash the entire
     process.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 线程在同一进程内共享内存和资源，从而实现高效的通信。然而，这种共享可能导致同步问题，如竞争条件或死锁，如果管理不当。与进程不同，单一进程中的多个线程并不是隔离的——一个不正常的线程可能会导致整个进程崩溃。
 - en: 5\. How does the OS manage threads and processes?
+  id: totrans-56
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 5. 操作系统如何管理线程和进程？
 - en: The CPU can execute ***only one task per core at a time***. To handle multiple
     tasks, the operating system uses ***preemptive context switching***.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: CPU 每次只能执行***一个核心上的任务***。为了处理多个任务，操作系统使用***抢占式上下文切换***。
 - en: During a context switch, the OS pauses the current task, saves its state and
     loads the state of the next task to be executed.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上下文切换过程中，操作系统暂停当前任务，保存其状态并加载下一个任务的状态以执行。
 - en: This rapid switching creates the illusion of simultaneous execution on a single
     CPU core.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种快速的切换创造了在单一 CPU 核心上同时执行的错觉。
 - en: For processes, context switching is more resource-intensive because the OS must
     save and load separate memory spaces. For threads, switching is faster because
     threads share the same memory within a process. However, frequent switching introduces
     overhead, which can slow down performance.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于进程，上下文切换更为资源密集，因为操作系统必须保存并加载独立的内存空间。对于线程，切换较快，因为线程在同一进程内共享相同的内存。然而，频繁的切换会带来开销，从而可能降低性能。
 - en: True parallel execution of processes can only occur if there are multiple CPU
     cores available. Each core handles a separate process simultaneously.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 进程的真正并行执行只有在有多个 CPU 核心可用时才能发生。每个核心同时处理一个独立的进程。
 - en: Python’s concurrency models
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Python 的并发模型
 - en: Let’s now explore Python’s specific concurrency models.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们探讨 Python 特定的并发模型。
 - en: '![](../Images/4aa327a57c30f849fea84547f3f53fb9.png)'
+  id: totrans-64
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4aa327a57c30f849fea84547f3f53fb9.png)'
 - en: Summary of the different concurrency models (drawn by me)
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 不同并发模型的总结（由我绘制）
 - en: 1\. Multithreading
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 1\. 多线程
 - en: Multithreading allows a process to execute multiple threads concurrently, with
     threads sharing the same memory and resources (see diagrams 2 and 4).
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 多线程允许一个进程同时执行多个线程，这些线程共享相同的内存和资源（见图示 2 和 4）。
 - en: However, Python’s Global Interpreter Lock (GIL) limits multithreading’s effectiveness
     for CPU-bound tasks.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，Python 的全局解释器锁（GIL）限制了多线程在 CPU 密集型任务中的效果。
 - en: Python’s Global Interpreter Lock (GIL)
+  id: totrans-69
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Python 的全局解释器锁（GIL）
 - en: The GIL is a lock that allows only one thread to hold control of the Python
     interpreter at any time, meaning only one thread can execute Python bytecode at
     once.
+  id: totrans-70
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: GIL 是一个锁，允许在任何时候只有一个线程控制 Python 解释器，这意味着一次只能有一个线程执行 Python 字节码。
 - en: The GIL was introduced to simplify memory management in Python as many internal
     operations, such as object creation, are not thread safe by default. Without a
     GIL, multiple threads trying to access the shared resources will require complex
     locks or synchronisation mechanisms to prevent race conditions and data corruption.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: GIL 的引入是为了简化 Python 中的内存管理，因为许多内部操作（如对象创建）默认情况下不是线程安全的。如果没有 GIL，多个线程试图访问共享资源时将需要复杂的锁或同步机制来防止竞争条件和数据损坏。
 - en: '***When is GIL a bottleneck?***'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: '***何时 GIL 成为瓶颈？***'
 - en: For single threaded programs, the GIL is irrelevant as the thread has exclusive
     access to the Python interpreter.
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于单线程程序，GIL 无关紧要，因为该线程对 Python 解释器拥有独占访问权。
 - en: For multithreaded I/O-bound programs, the GIL is less problematic as threads
     release the GIL when waiting for I/O operations.
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于多线程 I/O 密集型程序，GIL 的问题较小，因为线程在等待 I/O 操作时会释放 GIL。
 - en: For multithreaded CPU-bound operations, the GIL becomes a significant bottleneck.
     Multiple threads competing for the GIL must take turns executing Python bytecode.
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于多线程的 CPU 密集型操作，GIL 成为一个显著的瓶颈。多个线程争夺 GIL，必须轮流执行 Python 字节码。
 - en: An interesting case worth noting is the use of `time.sleep`, which Python effectively
     treats as an I/O operation. The `time.sleep` function is not CPU-bound because
     it does not involve active computation or the execution of Python bytecode during
     the sleep period. Instead, the responsibility of tracking the elapsed time is
     delegated to the OS. During this time, the thread releases the GIL, allowing other
     threads to run and utilise the interpreter.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个值得注意的有趣情况是 `time.sleep` 的使用，Python 实际上将其视为一个 I/O 操作。`time.sleep` 函数不是 CPU
+    密集型的，因为它在休眠期间不涉及主动计算或 Python 字节码的执行。相反，跟踪经过的时间的责任委托给了操作系统。在此期间，线程释放 GIL，允许其他线程运行并利用解释器。
 - en: 2\. Multiprocessing
+  id: totrans-77
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 2\. 多进程
 - en: Multiprocessing enables a system to run multiple processes in parallel, each
     with its own memory, GIL and resources. Within each process, there may be one
     or more threads (see diagrams 3 and 4).
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 多进程使得系统能够并行运行多个进程，每个进程拥有独立的内存、全局解释器锁（GIL）和资源。在每个进程中，可能有一个或多个线程（见图示 3 和 4）。
 - en: Multiprocessing bypasses the limitations of the GIL. This makes it suitable
     for CPU bound tasks that require heavy computation.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 多进程绕过了 GIL 的限制，这使其适用于需要大量计算的 CPU 密集型任务。
 - en: However, multiprocessing is more resource intensive due to separate memory and
     process overheads.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，由于独立的内存和进程开销，多进程比单进程更加消耗资源。
 - en: 3\. Asyncio
+  id: totrans-81
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 3\. Asyncio
 - en: Unlike threads or processes, asyncio uses a single thread to handle multiple
     tasks.
+  id: totrans-82
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 与线程或进程不同，asyncio 使用单个线程处理多个任务。
 - en: When writing asynchronous code with the `asyncio` library, you'll use the `async/await`
     keywords to manage tasks.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 当使用 `asyncio` 库编写异步代码时，你将使用 `async/await` 关键字来管理任务。
 - en: '***Key concepts***'
+  id: totrans-84
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '***关键概念***'
 - en: '**Coroutines:** These are functions defined with `async def` . They are the
     core of asyncio and represent tasks that can be paused and resumed later.'
+  id: totrans-85
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**协程：** 这些是使用 `async def` 定义的函数。它们是 asyncio 的核心，表示可以暂停并稍后恢复的任务。'
 - en: '**Event loop:** It manages the execution of tasks.'
+  id: totrans-86
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**事件循环：** 它管理任务的执行。'
 - en: '**Tasks:** Wrappers around coroutines. When you want a coroutine to actually
     start running, you turn it into a task — eg. using `asyncio.create_task()`'
+  id: totrans-87
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**任务：** 协程的封装。当你希望一个协程真正开始执行时，你将其转换为任务——例如，使用 `asyncio.create_task()`。'
 - en: '`**await**` : Pauses execution of a coroutine, giving control back to the event
     loop.'
+  id: totrans-88
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`**await**` ：暂停协程的执行，将控制权交还给事件循环。'
 - en: '***How it works***'
+  id: totrans-89
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '***它是如何工作的***'
 - en: Asyncio runs an event loop that schedules tasks. Tasks voluntarily “pause” themselves
     when waiting for something, like a network response or a file read. While the
     task is paused, the event loop switches to another task, ensuring no time is wasted
     waiting.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: Asyncio运行一个事件循环，调度任务。当任务在等待某些东西时，如网络响应或文件读取，它会自愿“暂停”。当任务暂停时，事件循环会切换到另一个任务，确保不会浪费等待的时间。
 - en: This makes asyncio ideal for scenarios involving **many small tasks that spend
     a lot of time waiting**, such as handling thousands of web requests or managing
     database queries. Since everything runs on a single thread, asyncio avoids the
     overhead and complexity of thread switching.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 这使得asyncio非常适用于**需要等待大量时间的小任务**的场景，如处理成千上万的Web请求或管理数据库查询。由于所有操作都在一个线程上运行，asyncio避免了线程切换的开销和复杂性。
 - en: '**The key difference between asyncio and multithreading lies in how they handle
     waiting tasks.**'
+  id: totrans-92
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**asyncio和多线程的关键区别在于它们如何处理等待任务。**'
 - en: Multithreading relies on the OS to switch between threads when one thread is
     waiting (***preemptive context switching***).
+  id: totrans-93
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 多线程依赖操作系统在一个线程等待时切换线程（***抢占式上下文切换***）。
 - en: When a thread is waiting, the OS switches to another thread automatically.
+  id: totrans-94
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 当一个线程在等待时，操作系统会自动切换到另一个线程。
 - en: Asyncio uses a single thread and depends on tasks to “cooperate” by pausing
     when they need to wait (***cooperative multitasking***).
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Asyncio使用单个线程，并依赖任务通过在需要等待时“合作”来暂停（***协作式多任务处理***）。
 - en: '2 ways to write async code:'
+  id: totrans-96
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 编写async代码的两种方式：
 - en: '`**method 1: await coroutine**`'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: '`**方法1：await协程**`'
 - en: When you directly `await` a coroutine, the execution of the ***current coroutine
     pauses*** at the `await` statement until the awaited coroutine finishes. Tasks
     are executed ***sequentially*** within the current coroutine***.***
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你直接`await`一个协程时，***当前协程会在`await`语句处暂停***，直到被`await`的协程执行完毕。任务在当前协程内是***按顺序执行的***。
 - en: Use this approach when you need the result of the coroutine***immediately***
     to proceed with the next steps.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你需要协程的结果***立即***以继续下一步时，使用这种方法。
 - en: Although this might sound like synchronous code, it’s not. In synchronous code,
     the entire program would block during a pause.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然这听起来像是同步代码，但其实不是。在同步代码中，整个程序会在暂停期间被阻塞。
 - en: With asyncio, only the current coroutine pauses, while the rest of the program
     can continue running. This makes asyncio non-blocking at the program level.
+  id: totrans-101
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 使用asyncio时，只有当前协程会暂停，而程序的其余部分可以继续运行。这使得asyncio在程序级别上是非阻塞的。
 - en: '**Example:**'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: '**示例：**'
 - en: The event loop pauses the current coroutine until `fetch_data` is complete.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 事件循环会暂停当前协程，直到`fetch_data`完成。
 - en: '[PRE0]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '`**method 2: asyncio.create_task(coroutine)**`'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: '`**方法2：asyncio.create_task(协程)**`'
 - en: The coroutine is scheduled to ***run concurrently in the background***. Unlike
     `await`, the current coroutine continues executing immediately without waiting
     for the scheduled task to finish.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 协程被安排在后台***并发运行***。与`await`不同，当前协程会立即继续执行，而无需等待已调度的任务完成。
 - en: '***The scheduled coroutine starts running as soon as the event loop finds an
     opportunity***, without needing to wait for an explicit `await`.'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: '***已调度的协程一旦事件循环找到机会就开始运行***，无需等待显式的`await`。'
 - en: No new threads are created; instead, the coroutine runs within the same thread
     as the event loop, which manages when each task gets execution time.
+  id: totrans-108
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 不会创建新的线程；相反，协程会在与事件循环相同的线程内运行，事件循环管理每个任务的执行时间。
 - en: This approach enables concurrency within the program, allowing multiple tasks
     to overlap their execution efficiently. You will later need to `await` the task
     to get it’s result and ensure it’s done.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法实现了程序内的并发，使多个任务能够高效地重叠执行。稍后你需要`await`任务来获取其结果并确保任务完成。
 - en: Use this approach when you want to run tasks concurrently and don’t need the
     results immediately.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你希望并发地运行任务而不需要立即获取结果时，使用这种方法。
 - en: '**Example:**'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: '**示例：**'
 - en: When the line `asyncio.create_task()` is reached, the coroutine `fetch_data()`
     is scheduled to start running ***immediately when the event loop is available***.
     This can happen even ***before*** you explicitly `await` the task. In contrast,
     in the first `await` method, the coroutine only starts executing when the `await`
     statement is reached.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 当执行到`asyncio.create_task()`这一行时，协程`fetch_data()`会被安排在***事件循环可用时立即***开始运行。这可以发生在你显式`await`任务之前，甚至***在此之前***。相比之下，在第一个`await`方法中，协程只有在到达`await`语句时才会开始执行。
 - en: Overall, this makes the program more efficient by overlapping the execution
     of multiple tasks.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 总的来说，这通过重叠执行多个任务使得程序更高效。
 - en: '[PRE1]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Other important points
+  id: totrans-115
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 其他重要的点
 - en: '**You can mix synchronous and asynchronous code.**'
+  id: totrans-116
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**你可以混合同步和异步代码。**'
 - en: Since synchronous code is blocking, it can be offloaded to a separate thread
     using `asyncio.to_thread()`. This makes your program effectively multithreaded.
+  id: totrans-117
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 由于同步代码是阻塞的，它可以通过`asyncio.to_thread()`分配到一个单独的线程中。这样可以使你的程序实现多线程。
 - en: In the example below, the asyncio event loop runs on the main thread, while
     a separate background thread is used to execute the `sync_task`.
+  id: totrans-118
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 在下面的示例中，`asyncio`事件循环运行在主线程中，而一个单独的后台线程用于执行`sync_task`。
 - en: '[PRE2]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: You should offload CPU-bound tasks which are computationally intensive to a
     separate process.
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你应该将计算密集型的CPU绑定任务分配到一个单独的进程中。
 - en: When should I use which concurrency model?
+  id: totrans-121
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 我应该在什么时候使用哪种并发模型？
 - en: This flow is a good way to decide when to use what.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个流程是一个很好的决策方式，帮助你决定何时使用哪种方法。
 - en: '![](../Images/1cbf5604feb451093217df351ec93878.png)'
+  id: totrans-123
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1cbf5604feb451093217df351ec93878.png)'
 - en: Flowchart (drawn by me), referencing this [stackoverflow](https://stackoverflow.com/questions/27435284/multiprocessing-vs-multithreading-vs-asyncio/52498068#52498068)
     discussion
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 流程图（由我绘制），参考了这个[stackoverflow](https://stackoverflow.com/questions/27435284/multiprocessing-vs-multithreading-vs-asyncio/52498068#52498068)讨论
 - en: '**Multiprocessing**'
+  id: totrans-125
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**多进程**'
 - en: '- Best for CPU-bound tasks which are computationally intensive.'
+  id: totrans-126
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 最适合计算密集型的CPU绑定任务。'
 - en: '- When you need to bypass the GIL — Each process has it’s own Python interpreter,
     allowing for true parallelism.'
+  id: totrans-127
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 当你需要绕过GIL时——每个进程都有自己的Python解释器，允许真正的并行处理。'
 - en: '**Multithreading**'
+  id: totrans-128
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**多线程**'
 - en: '- Best for fast I/O-bound tasks as the frequency of context switching is reduced
     and the Python interpreter sticks to a single thread for longer'
+  id: totrans-129
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 最适合快速I/O绑定任务，因为减少了上下文切换的频率，Python解释器会长时间保持在一个线程中。'
 - en: '- Not ideal for CPU-bound tasks due to GIL.'
+  id: totrans-130
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 由于全局解释器锁（GIL），不适合CPU绑定任务。'
 - en: '**Asyncio**'
+  id: totrans-131
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**异步编程（Asyncio）**'
 - en: '- Ideal for slow I/O-bound tasks such as long network requests or database
     queries because it efficiently handles waiting, making it scalable.'
+  id: totrans-132
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 适用于慢速I/O绑定任务，例如长时间的网络请求或数据库查询，因为它高效地处理等待，使得程序具有可扩展性。'
 - en: '- Not suitable for CPU-bound tasks without offloading work to other processes.'
+  id: totrans-133
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 如果不将工作分配到其他进程，不适合CPU绑定任务。'
 - en: Wrapping up
+  id: totrans-134
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: That’s it folks. There’s a lot more that this topic has to cover but I hope
     I’ve introduced to you the various concepts, and when to use each method.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 就这些了，大家。这一话题还有很多内容要讨论，但我希望我已经向你介绍了各种概念，以及何时使用每种方法。
 - en: Thanks for reading! I write regularly on Python, software development and the
     projects I build, so give me a follow to not miss out. See you in the next article
     :)
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢阅读！我定期写关于Python、软件开发和我构建的项目的文章，所以关注我，不要错过。下篇文章见 :)

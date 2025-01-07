@@ -1,111 +1,163 @@
 - en: Quantizing Neural Network Models
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 量化神经网络模型
 - en: 原文：[https://towardsdatascience.com/quantizing-neural-network-models-8ce49332f1d3?source=collection_archive---------7-----------------------#2024-09-07](https://towardsdatascience.com/quantizing-neural-network-models-8ce49332f1d3?source=collection_archive---------7-----------------------#2024-09-07)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/quantizing-neural-network-models-8ce49332f1d3?source=collection_archive---------7-----------------------#2024-09-07](https://towardsdatascience.com/quantizing-neural-network-models-8ce49332f1d3?source=collection_archive---------7-----------------------#2024-09-07)
 - en: Understanding post-training quantization, quantization-aware training, and the
     straight through estimator
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 理解后训练量化、量化感知训练和直通估算器
 - en: '[](https://medium.com/@arunnanda?source=post_page---byline--8ce49332f1d3--------------------------------)[![Arun
     Nanda](../Images/48836e7e13dbe0821bed6902209f2d25.png)](https://medium.com/@arunnanda?source=post_page---byline--8ce49332f1d3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8ce49332f1d3--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8ce49332f1d3--------------------------------)
     [Arun Nanda](https://medium.com/@arunnanda?source=post_page---byline--8ce49332f1d3--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@arunnanda?source=post_page---byline--8ce49332f1d3--------------------------------)[![Arun
+    Nanda](../Images/48836e7e13dbe0821bed6902209f2d25.png)](https://medium.com/@arunnanda?source=post_page---byline--8ce49332f1d3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8ce49332f1d3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8ce49332f1d3--------------------------------)
+    [Arun Nanda](https://medium.com/@arunnanda?source=post_page---byline--8ce49332f1d3--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8ce49332f1d3--------------------------------)
     ·10 min read·Sep 7, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8ce49332f1d3--------------------------------)
+    ·10分钟阅读·2024年9月7日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/6db4148a239d387bc1be88110a5f676c.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6db4148a239d387bc1be88110a5f676c.png)'
 - en: Image created by author
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者制作
 - en: Large AI models are resource-intensive. This makes them expensive to use and
     very expensive to train. A current area of active research, therefore, is about
     reducing the size of these models while retaining their accuracy. Quantization
     has emerged as one of the most promising approaches to achieve this goal.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 大型AI模型资源消耗巨大。这使得它们的使用成本很高，训练成本也非常昂贵。因此，当前一个活跃的研究领域是如何在保持精度的同时减小这些模型的规模。量化已成为实现这一目标的最有前景的方法之一。
 - en: The previous article, [*Quantizing the Weights of AI Models*](/quantizing-the-weights-of-ai-models-39f489455194),
     illustrated the arithmetics of quantization with numerical examples. It also discussed
     different types and levels of quantization. This article discusses the next logical
     step — how to get a quantized model starting from a standard model.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 前一篇文章，[*量化AI模型的权重*](/quantizing-the-weights-of-ai-models-39f489455194)通过数值示例展示了量化的算术运算。它还讨论了不同类型和层次的量化。本文讨论了下一个逻辑步骤——如何从标准模型开始获得一个量化模型。
 - en: 'Broadly, there are two approaches to quantizing models:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 广泛来说，量化模型有两种方法：
 - en: Train the model with higher-precision weights and quantize the weights of the
     trained model. This is post-training quantization (PTQ).
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用高精度权重训练模型，并对训练好的模型的权重进行量化。这就是后训练量化（PTQ）。
 - en: Start with a quantized model and train it while taking the quantization into
     account. This is called Quantization Aware Training (QAT).
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从一个量化模型开始，并在训练过程中考虑量化。这叫做量化感知训练（QAT）。
 - en: Since quantization involves replacing high-precision 32-bit floating point weights
     with 8-bit, 4-bit, or even binary weights, it inevitably results in a loss of
     model accuracy. The challenge, therefore, is how to quantize models, while minimizing
     the drop in accuracy.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于量化涉及将高精度的32位浮点权重替换为8位、4位甚至二进制权重，因此不可避免地会导致模型精度的损失。因此，挑战在于如何量化模型，同时尽量减少精度的下降。
 - en: 'Because it is an evolving field, researchers and developers often adopt new
     and innovative approaches. In this article, we discuss two broad techniques:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于这是一个不断发展的领域，研究人员和开发者经常采用新的创新方法。本文讨论了两种广泛的技术：
 - en: Quantizing a Trained Model — Post-Training Quantization (PTQ)
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 量化训练模型——后训练量化（PTQ）
 - en: Training a Quantized Model — Quantization Aware Training (QAT)
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 训练量化模型——量化感知训练（QAT）
 - en: Quantizing a Trained Model — Post-Training Quantization (PTQ)
+  id: totrans-17
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 量化训练模型——后训练量化（PTQ）
 - en: Conventionally, AI models have been trained using 32-bit floating point weights.
     There is already a large library of pre-trained models. These trained models can
     be quantized to lower precision. After quantizing the trained model, one can choose
     to further fine-tune it using additional data, calibrate the model’s parameters
     using a small dataset, or just use the quantized model as-is. This is called Post-Training
     Quantization (PTQ).
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，AI模型使用32位浮动点权重进行训练。目前已经有大量的预训练模型库。这些已训练好的模型可以被量化为较低的精度。在量化完已训练好的模型后，可以选择使用额外的数据对模型进行微调，使用小数据集校准模型的参数，或直接使用量化后的模型。这被称为训练后量化（PTQ）。
 - en: 'There are two broad categories of PTQ:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: PTQ大致可以分为两类：
 - en: Quantizing only the weights
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只量化权重
 - en: Quantizing both weights and activations.
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 同时量化权重和激活值
 - en: Weights-only quantization
+  id: totrans-22
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 仅量化权重
 - en: In this approach, the activations remain in high precision. Only the weights
     of the trained model are quantized. Weights can be quantized at different granularity
     levels (per layer, per tensor, etc.). The article [*Different Approaches to Quantization*](https://medium.com/@arunnanda/different-approaches-to-quantization-e3fac905bd5a)
     explains granularity levels.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种方法中，激活值保持高精度。只有经过训练的模型的权重会被量化。权重可以在不同的粒度级别进行量化（如按层、按张量等）。文章[*不同的量化方法*](https://medium.com/@arunnanda/different-approaches-to-quantization-e3fac905bd5a)解释了粒度级别。
 - en: After quantizing the weights, it is also common to have additional steps like
     cross-layer equalization. In neural networks, often the weights of different layers
     and channels can have very different ranges (W_max and W_min). This can cause
@@ -117,31 +169,41 @@
     property of the activation function. Nagel et al., in their paper [*Data-Free
     Quantization Through Weight Equalization and Bias Correction*](https://arxiv.org/pdf/1906.04721),
     discuss cross-layer equalization (Section 4) in detail.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 在量化完权重后，通常还会有一些额外步骤，如跨层均衡。在神经网络中，不同层和通道的权重通常具有非常不同的范围（W_max 和 W_min）。当这些权重使用相同的量化参数进行量化时，可能会导致信息丢失。为了解决这个问题，通常会修改权重，使得不同的层具有相似的权重范围。修改方式确保激活层（权重输入的层）的输出不受影响。这种技术被称为跨层均衡。它利用了激活函数的尺度等变性属性。Nagel等人在他们的论文[*无数据量化通过权重均衡和偏置修正*](https://arxiv.org/pdf/1906.04721)中详细讨论了跨层均衡（第4节）。
 - en: Weights and Activation quantization
+  id: totrans-25
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 权重和激活量化
 - en: In addition to quantizing the weights as before, for higher accuracy, some methods
     also quantize the activations. Activations are less sensitive to quantization
     than weights are. It is empirically observed that activations can be quantized
     down to 8 bits while retaining almost the same accuracy as 32 bits. However, when
     the activations are quantized, it is necessary to use additional training data
     to calibrate the quantization range of the activations.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了像以前一样量化权重外，为了提高精度，一些方法还量化了激活值。激活值比权重对量化的敏感度要低。经验表明，激活值可以量化到8位，同时几乎保持与32位相同的精度。然而，当激活值被量化时，需要使用额外的训练数据来校准激活值的量化范围。
 - en: Advantages and disadvantages of PTQ
+  id: totrans-27
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: PTQ的优缺点
 - en: The advantage is that the training process remains the same and the model doesn’t
     need to be re-trained. It is thus faster to have a quantized model. There are
     also many trained 32-bit models to choose from. You start with a trained model
     and quantize the weights (of the trained model) to any precision — such as 16-bit,
     8-bit, or even 1-bit.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 优势在于训练过程保持不变，模型不需要重新训练。因此，量化后的模型更快。也有许多训练好的32位模型可以选择。你可以从一个已训练的模型开始，将该模型的权重（即已训练模型的权重）量化为任何精度——例如16位、8位，甚至1位。
 - en: The disadvantage is loss of accuracy. The training process optimized the model’s
     performance based on high-precision weights. So when the weights are quantized
     to a lower precision, the model is no longer optimized for the new set of quantized
@@ -150,58 +212,82 @@
     perform as well as the high-precision model. It is also often observed that the
     PTQ model shows acceptable performance on the training dataset but fails to on
     new previously unseen data.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 缺点是准确性损失。训练过程是基于高精度权重来优化模型性能的。因此，当权重被量化为较低精度时，模型不再针对新的量化权重集进行优化。因此，其推理性能会受到影响。尽管应用了各种量化和优化技术，量化模型的表现仍不如高精度模型。通常还会观察到，PTQ模型在训练数据集上表现良好，但在新的未见过的数据上却无法保持相同的性能。
 - en: To tackle the disadvantages of PTQ, many developers prefer to train the quantized
     model, sometimes from scratch.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了应对PTQ的缺点，许多开发者更倾向于训练量化后的模型，有时甚至是从零开始训练。
 - en: Training a Quantized Model — Quantization Aware Training (QAT)
+  id: totrans-31
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 训练量化模型 — 量化感知训练（QAT）
 - en: 'The alternative to PTQ is to train the quantized model. To train a model with
     low-precision weights, it is necessary to modify the training process to account
     for the fact that most of the model is now quantized. This is called quantization-aware
     training (QAT). There are two approaches to doing this:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: PTQ的替代方法是训练量化模型。为了训练一个具有低精度权重的模型，必须修改训练过程，以适应模型大部分现在已经量化的事实。这就是量化感知训练（QAT）。有两种方法可以实现这一点：
 - en: Quantize the untrained model and train it from scratch
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对未训练的模型进行量化并从零开始训练
 - en: Quantize a trained model and then re-train the quantized model. This is often
     considered a hybrid approach.
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对已训练的模型进行量化，然后重新训练量化后的模型。这通常被认为是一种混合方法。
 - en: 'In many cases, the starting point for QAT is not an untrained model with random
     weights but rather a pre-trained model. Such approaches are often adopted in extreme
     quantization situations. The BinaryBERT model discussed later in this series in
     the article [*Extreme Quantization: 1-bit AI Models*](https://medium.com/@arunnanda/extreme-quantization-1-bit-ai-models-07169ee29d96)
     applies a similar approach.'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 在许多情况下，QAT的起点并不是一个未训练的随机权重模型，而是一个预训练的模型。这种方法通常用于极端量化的情况。本文稍后讨论的BinaryBERT模型，在文章
+    [*极限量化：1位AI模型*](https://medium.com/@arunnanda/extreme-quantization-1-bit-ai-models-07169ee29d96)
+    中应用了类似的方法。
 - en: Advantages and disadvantages of QAT
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: QAT的优缺点
 - en: The advantage of QAT is the model performs better because the inference process
     uses weights of the same precision as was used during the forward pass of the
     training. The model is trained to perform well on the quantized weights.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: QAT的优势在于模型的表现更好，因为推理过程使用的权重与训练过程中正向传播时使用的权重具有相同的精度。模型经过训练，能够在量化后的权重上表现良好。
 - en: The disadvantage is that most models are currently trained using higher precision
     weights and need to be retrained. This is resource-intensive. It remains to be
     established if they can match the performance of older higher-precision models
     in real-world usage. It also remains to be validated if quantized models can be
     successfully scaled.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 缺点是，目前大多数模型使用的是更高精度的权重，需要重新训练。这是资源密集型的。是否能在实际使用中达到旧版高精度模型的性能仍待验证。同时，也有待验证量化模型是否能够成功扩展。
 - en: Historical background of QAT
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: QAT的历史背景
 - en: 'QAT, as a practice, has been around for at least a few years. Courbariaux et
     al, in their [2015 paper titled *BinaryConnect: Training Deep Neural Networks
     with binary weights during propagations*](https://arxiv.org/pdf/1511.00363), discuss
@@ -212,166 +298,245 @@
     Networks for Efficient Integer-Arithmetic-Only Inference](https://arxiv.org/pdf/1712.05877)
     (section 3). They do not explicitly use the phrase Quantization Aware Training
     but call it simulated quantization instead.'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 'QAT 作为一种实践，至少已经存在几年了。Courbariaux 等人在他们的[2015年论文 *BinaryConnect: 使用二进制权重训练深度神经网络*](https://arxiv.org/pdf/1511.00363)中讨论了他们将计算机视觉神经网络量化为二进制权重的方法。他们在前向传播过程中量化权重，在反向传播过程中使用未量化的权重（第2.3节）。当时在
+    Google 的 Jacob 等人，在他们2017年发表的论文[《神经网络的量化与训练，用于高效的整数算术推理》](https://arxiv.org/pdf/1712.05877)（第3节）中解释了
+    QAT 的理念。他们没有明确使用“量化感知训练”这一术语，而是称其为“模拟量化”。'
 - en: Overview of the QAT process
+  id: totrans-41
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: QAT 过程概述
 - en: The steps below present the important parts of the QAT process, based on the
     papers referenced earlier. Note that other researchers and developers have adopted
     variations of these steps, but the overall principle remains the same.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下步骤展示了基于前述文献的 QAT 过程中的重要部分。请注意，其他研究人员和开发者可能采用了这些步骤的变体，但整体原则保持不变。
 - en: Maintain an unquantized copy of the weights throughout the process. This copy
     is sometimes called the latent weights or shadow weights.
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在整个过程中保持未量化的权重副本。这个副本有时被称为潜在权重或阴影权重。
 - en: 'Run the forward pass (inference) based on a quantized version of the latest
     shadow weights. This simulates the working of the quantized model. The steps in
     the forward pass are:'
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于最新的阴影权重的量化版本运行前向传播（推理）。这模拟了量化模型的工作过程。前向传播中的步骤如下：
 - en: '- Quantize the weights and the inputs before matrix-multiplying them.'
+  id: totrans-45
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 在矩阵相乘之前，对权重和输入进行量化。'
 - en: '- Dequantize the output of the convolution (matrix multiplication).'
+  id: totrans-46
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 对卷积的输出（矩阵乘法）进行反量化。'
 - en: '- Add (accumulate) the biases (unquantized) to the output of the convolution.'
+  id: totrans-47
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 将偏置（未量化）加到卷积的输出中。'
 - en: '- Pass the result of the accumulation through the activation function to get
     the output.'
+  id: totrans-48
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 将累加结果通过激活函数得到输出。'
 - en: '- Compare the model’s output with the expected output and compute the loss
     of the model.'
+  id: totrans-49
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 将模型的输出与预期输出进行比较，并计算模型的损失。'
 - en: 'Backpropagation happens in full precision. This allows for small changes to
     the model parameters. To perform the backpropagation:'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 反向传播在全精度下进行。这允许模型参数进行微小的调整。要执行反向传播：
 - en: '- Compute the gradients in full precision'
+  id: totrans-51
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 以全精度计算梯度'
 - en: '- Update via gradient descent the full-precision copy of all weights and biases'
+  id: totrans-52
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 通过梯度下降更新所有权重和偏置的全精度副本'
 - en: After training the model, the final quantized version of the weights is exported
     to use for inference.
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 训练完成模型后，将最终量化的权重版本导出，用于推理。
 - en: QAT is sometimes referred to as “fake quantization” — it just means that the
     model training happens using the unquantized weights and the quantized weights
     are used only for the forward pass. The (latest version of the) unquantized weights
     are quantized during the forward pass.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: QAT 有时被称为“伪量化”——这意味着模型训练使用的是未量化的权重，而量化的权重仅用于前向传播。未量化的权重（最新版本）在前向传播过程中被量化。
 - en: The flowchart below gives an overview of the QAT process. The dotted green arrow
     represents the backpropagation path for updating the model weights while training.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的流程图概述了 QAT 过程。虚线绿色箭头表示更新模型权重的反向传播路径。
 - en: '![](../Images/f034c7467ede7b6428127806b59a68ee.png)'
+  id: totrans-56
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f034c7467ede7b6428127806b59a68ee.png)'
 - en: Image created by author
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 由作者创建的图片
 - en: The next section explains some of the finer points involved in backpropagating
     quantized weights.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一节解释了反向传播量化权重时的一些细节。
 - en: BackPropagation in Quantization Aware Training
+  id: totrans-59
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 量化感知训练中的反向传播
 - en: It is important to understand how the gradient computation works when using
     quantized weights. When the forward pass is modified to include the quantizer
     function, the backward pass must also be modified to include the gradient of this
     quantizer function. To refresh neural networks and backprop concepts, refer to
     [*Understanding Weight Update in Neural Networks*](https://medium.com/@simon.palma/understanding-weight-update-in-neural-networks-a9f6e23ce984)
     by Simon Palma.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 在使用量化权重时，理解梯度计算的工作原理非常重要。当前向传播被修改以包含量化函数时，反向传播也必须相应修改，以包含该量化函数的梯度。为了回顾神经网络和反向传播的概念，请参考[*理解神经网络中的权重更新*](https://medium.com/@simon.palma/understanding-weight-update-in-neural-networks-a9f6e23ce984)
+    by Simon Palma。
 - en: 'In a regular neural network, given inputs X, weights W, and bias B, the result
     of the convolution accumulation operation is:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 在一个常规神经网络中，给定输入X、权重W和偏置B，卷积累加操作的结果是：
 - en: '![](../Images/cf65bdd802af4f64c54e0009d3d37ecb.png)'
+  id: totrans-62
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cf65bdd802af4f64c54e0009d3d37ecb.png)'
 - en: 'Applying the sigmoid activation function on the convolution gives the model’s
     output. This is expressed as:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 在卷积上应用sigmoid激活函数后，得到模型的输出。表达式为：
 - en: '![](../Images/4ee3a91289babcfff84958a560a08e78.png)'
+  id: totrans-64
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4ee3a91289babcfff84958a560a08e78.png)'
 - en: 'The Cost, C, is a function of the difference between the expected and the actual
     output. The standard backpropagation process estimates the partial derivative
     of the cost function, C, with respect to the weights, using the chain rule:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 成本C是期望输出与实际输出之间差异的函数。标准的反向传播过程使用链式法则估计成本函数C相对于权重的偏导数：
 - en: '![](../Images/3fbb7db6212854269a1c3501cfa90837.png)'
+  id: totrans-66
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3fbb7db6212854269a1c3501cfa90837.png)'
 - en: 'When quantization is involved, the above equation changes to reflect the quantized
     weight:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 当涉及量化时，上述方程会更改，以反映量化权重：
 - en: '![](../Images/03916c9a0da0cedc48bf32f3c29f3d34.png)'
+  id: totrans-68
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/03916c9a0da0cedc48bf32f3c29f3d34.png)'
 - en: Notice that there is an additional term — which is the partial derivative of
     the quantized weights with respect to the unquantized weights. Look closely at
     this (last) partial derivative.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，公式中有一个额外的项——即量化权重相对于未量化权重的偏导数。仔细观察这个（最后的）偏导数。
 - en: Partial derivative of the quantized weights
+  id: totrans-70
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 量化权重的偏导数
 - en: 'The quantizer function can simplistically be represented as:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 量化函数可以简单地表示为：
 - en: '![](../Images/928225e1329720c988f81d467a0ed432.png)'
+  id: totrans-72
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/928225e1329720c988f81d467a0ed432.png)'
 - en: 'In the expression above, w is the original (unquantized, full-precision) weight,
     and s is the scaling factor. Recall from [Quantizing the Weights of AI Models](https://medium.com/@arunnanda/quantizing-the-weights-of-ai-models-39f489455194)
     (or from basic maths) that the graph of the function mapping the floating point
     weights to the binary weights is a step function, as shown below:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面的表达式中，w是原始（未量化、全精度）权重，s是缩放因子。回顾一下[量化AI模型的权重](https://medium.com/@arunnanda/quantizing-the-weights-of-ai-models-39f489455194)（或者基本的数学知识），将浮点权重映射到二进制权重的函数图是一个阶跃函数，如下所示：
 - en: '![](../Images/d4e43419f9c1b053ac389cfee3cf2ee7.png)'
+  id: totrans-74
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d4e43419f9c1b053ac389cfee3cf2ee7.png)'
 - en: Image by author
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像由作者提供
 - en: This is the function for which we need the partial derivative. The derivative
     of the step function is either 0 or undefined — it is undefined at the boundaries
     between the intervals and 0 everywhere else. To work around this, it is common
     to use a “Straight-Through Estimator(STE)” for the backprop.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们需要计算偏导数的函数。阶跃函数的导数要么为0，要么是未定义的——在区间的边界处未定义，其他地方为0。为了解决这个问题，通常使用“直通估计器（STE）”来处理反向传播。
 - en: The Straight Through Estimator (STE)
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 直通估计器（STE）
 - en: 'Bengio et al, in their 2013 paper [*Estimating or Propagating Gradients Through
     Stochastic Neurons for Conditional Computation*](https://arxiv.org/abs/1308.3432),
     propose the concept of the STE. Huh et al, in their 2023 paper [Straightening
@@ -379,61 +544,89 @@
     Quantized Networks](https://arxiv.org/abs/2305.08842), explain the application
     of the STE to the derivative of the loss function using the chain rule (Section
     2, Equation 7).'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: Bengio等人在他们2013年的论文中[*估计或传播通过随机神经元的梯度以进行条件计算*](https://arxiv.org/abs/1308.3432)提出了STE的概念。Huh等人在他们2023年的论文[*理顺直通估计器：克服向量量化网络中的优化挑战*](https://arxiv.org/abs/2305.08842)中，解释了STE在使用链式法则对损失函数求导中的应用（第2节，第7个方程）。
 - en: The STE assumes that the gradient with respect to the unquantized weight is
     essentially equal to the gradient with respect to the quantized weight. In other
     words, it assumes that within the intervals of the Clip function,
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: STE 假设相对于未量化权重的梯度本质上等于相对于量化权重的梯度。换句话说，它假设在 Clip 函数的区间内，
 - en: '![](../Images/2170673a04eedad7d62f9c832d4ec110.png)'
+  id: totrans-80
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2170673a04eedad7d62f9c832d4ec110.png)'
 - en: Hence, the derivative of the cost function, C, with respect to the unquantized
     weights is assumed to be equal to the derivative based on the quantized weights.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，成本函数 C 对未量化权重的导数假设与基于量化权重的导数相等。
 - en: '![](../Images/6a86087c7afa96cc7912722aa320f00d.png)'
+  id: totrans-82
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6a86087c7afa96cc7912722aa320f00d.png)'
 - en: 'Thus, the gradient of the Cost is expressed as:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，成本的梯度表示为：
 - en: '![](../Images/b72df6b5f039aa908f36b128b581e139.png)'
+  id: totrans-84
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b72df6b5f039aa908f36b128b581e139.png)'
 - en: 'This is how the Straight Through Estimator enables the gradient computation
     in the backward pass using quantized weights. After estimating the gradients.
     The weights for the next iteration are updated as usual (alpha in the expression
     below refers to the learning rate):'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是直通估计器（STE）如何在反向传递中使用量化权重进行梯度计算的方式。在估算梯度后，下一个迭代的权重像往常一样更新（下式中的 alpha 表示学习率）：
 - en: '![](../Images/0461f0f9f7b8110f309b35d30dfa6a05.png)'
+  id: totrans-86
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0461f0f9f7b8110f309b35d30dfa6a05.png)'
 - en: The clip function above is to ensure that the updated (unquantized) weights
     remain within the boundaries, W_min, and W_max.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述的 Clip 函数确保更新后的（未量化）权重保持在边界 W_min 和 W_max 之内。
 - en: Conclusion
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: 'Quantizing neural network models makes them accessible enough to run on smaller
     servers and possibly even edge devices. There are two broad approaches to quantizing
     models, each with its advantages and disadvantages:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 量化神经网络模型使它们能够在较小的服务器甚至边缘设备上运行。量化模型有两种广泛的方法，每种方法都有其优缺点：
 - en: 'Post-Training Quantization (PTQ): Starting with a high-precision trained model
     and quantizing it (post-training quantization) to lower-precision.'
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 后训练量化 (PTQ)：从高精度训练模型开始，将其量化（后训练量化）为低精度。
 - en: 'Quantization Aware Training (QAT): Applying the quantization during the forward
     pass of training a model so that the optimization accounts for quantized inference'
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 量化感知训练 (QAT)：在训练模型的前向传递过程中应用量化，以便优化考虑量化推理。
 - en: This article discusses both these approaches but focuses on QAT, which is more
     effective, especially for modern 1-bit quantized LLMs like [BitNet](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3)
     and [BitNet b1.58](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a).
@@ -442,8 +635,14 @@
     For a more in-depth discussion of the principles of quantizing neural networks,
     refer to the 2018 whitepaper [*Quantizing deep convolutional networks for efficient
     inference*](https://arxiv.org/pdf/1806.08342), by Krishnamoorthi.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文讨论了这两种方法，但重点关注 QAT，尤其是对于现代的 1 位量化大语言模型，如 [BitNet](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3)
+    和 [BitNet b1.58](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a)。自
+    2021 年起，[NVIDIA 的 TensorRT 已包含一个量化工具包，用于执行 QAT 和量化推理，支持 8 位模型权重](https://developer.nvidia.com/blog/achieving-fp32-accuracy-for-int8-inference-using-quantization-aware-training-with-tensorrt/)。有关量化神经网络原理的更深入讨论，请参阅
+    Krishnamoorthi 2018 年的白皮书 [*Quantizing deep convolutional networks for efficient
+    inference*](https://arxiv.org/pdf/1806.08342)。
 - en: Quantization encompasses a broad range of techniques that can be applied at
     different levels of precision, different granularities within a network, and in
     different ways during the training process. The next article,[*Different Approaches
@@ -452,5 +651,8 @@
     like [BinaryBERT](https://medium.com/@arunnanda/extreme-quantization-1-bit-ai-models-07169ee29d96),
     [BitNet](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3),
     and [BitNet b1.58](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a).
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 量化涵盖了一系列可以应用于不同精度级别、网络中不同粒度以及训练过程中不同方式的技术。下一篇文章，[*量化的不同方法*](https://medium.com/@arunnanda/different-approaches-to-quantization-e3fac905bd5a)，讨论了这些多样化的方法，这些方法应用于现代实现，如[BinaryBERT](https://medium.com/@arunnanda/extreme-quantization-1-bit-ai-models-07169ee29d96)、[BitNet](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3)和[BitNet
+    b1.58](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a)。

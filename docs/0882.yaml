@@ -1,165 +1,244 @@
 - en: Tips for Getting the Generation Part Right in Retrieval Augmented Generation
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在检索增强生成（RAG）中正确处理生成部分的技巧
 - en: 原文：[https://towardsdatascience.com/tips-for-getting-the-generation-part-right-in-retrieval-augmented-generation-7deaa26f28dc?source=collection_archive---------2-----------------------#2024-04-06](https://towardsdatascience.com/tips-for-getting-the-generation-part-right-in-retrieval-augmented-generation-7deaa26f28dc?source=collection_archive---------2-----------------------#2024-04-06)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/tips-for-getting-the-generation-part-right-in-retrieval-augmented-generation-7deaa26f28dc?source=collection_archive---------2-----------------------#2024-04-06](https://towardsdatascience.com/tips-for-getting-the-generation-part-right-in-retrieval-augmented-generation-7deaa26f28dc?source=collection_archive---------2-----------------------#2024-04-06)
 - en: '![](../Images/0b1cd357c6cc8229b1a1bdc4fc421ba1.png)'
+  id: totrans-2
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0b1cd357c6cc8229b1a1bdc4fc421ba1.png)'
 - en: Image created by author using Dall-E 3
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像由作者使用 Dall-E 3 创建
 - en: Results from experiments to evaluate and compare GPT-4, Claude 2.1, and Claude
     3.0 Opus
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 用于评估和比较 GPT-4、Claude 2.1 和 Claude 3.0 Opus 的实验结果
 - en: '[](https://aparnadhinak.medium.com/?source=post_page---byline--7deaa26f28dc--------------------------------)[![Aparna
     Dhinakaran](../Images/e431ee69563ecb27c86f3428ba53574c.png)](https://aparnadhinak.medium.com/?source=post_page---byline--7deaa26f28dc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7deaa26f28dc--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7deaa26f28dc--------------------------------)
     [Aparna Dhinakaran](https://aparnadhinak.medium.com/?source=post_page---byline--7deaa26f28dc--------------------------------)'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://aparnadhinak.medium.com/?source=post_page---byline--7deaa26f28dc--------------------------------)[![Aparna
+    Dhinakaran](../Images/e431ee69563ecb27c86f3428ba53574c.png)](https://aparnadhinak.medium.com/?source=post_page---byline--7deaa26f28dc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7deaa26f28dc--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7deaa26f28dc--------------------------------)
+    [Aparna Dhinakaran](https://aparnadhinak.medium.com/?source=post_page---byline--7deaa26f28dc--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7deaa26f28dc--------------------------------)
     ·6 min read·Apr 6, 2024
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7deaa26f28dc--------------------------------)
+    ·6分钟阅读·2024年4月6日
 - en: --
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '*My thanks to* [*Evan Jolley*](https://www.linkedin.com/in/evanjolley/) *for
     his contributions to this piece*'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '*感谢* [*Evan Jolley*](https://www.linkedin.com/in/evanjolley/) *对本文的贡献*'
 - en: New evaluations of RAG systems are published seemingly every day, and many of
     them focus on the retrieval stage of the framework. However, the generation aspect
     — how a model synthesizes and articulates this retrieved information — may hold
     equal if not greater significance in practice. Many use cases in production are
     not simply returning a fact from the context, but also require synthesizing the
     fact into a more complicated response.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: RAG 系统的新评估似乎每天都有发布，许多评估都集中在框架的检索阶段。然而，生成部分——模型如何合成并表达检索到的信息——在实践中可能同样，甚至更为重要。许多生产中的用例不仅仅是返回一个来自上下文的事实，还需要将这些事实综合成更复杂的回应。
 - en: We ran several experiments to evaluate and compare GPT-4, Claude 2.1 and [Claude
     3](https://www.anthropic.com/news/claude-3-family) Opus’ generation capabilities.
     This article details our research methodology, results, and model nuances encountered
     along the way as well as why this matters to people building with generative AI.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们进行了几项实验，以评估和比较 GPT-4、Claude 2.1 和 [Claude 3](https://www.anthropic.com/news/claude-3-family)
+    Opus 的生成能力。本文详细介绍了我们的研究方法、结果以及在过程中遇到的模型细节，并探讨了这些内容对构建生成式 AI 的人们有何意义。
 - en: Everything needed to reproduce the results can be found in this [GitHub repository](https://github.com/Arize-ai/LLMTest_NeedleInAHaystack).
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有重现实验结果所需的内容都可以在此 [GitHub 仓库](https://github.com/Arize-ai/LLMTest_NeedleInAHaystack)
+    中找到。
 - en: Takeaways
+  id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 主要收获
 - en: Although initial findings indicate that Claude outperforms GPT-4, subsequent
     tests reveal that with strategic prompt engineering GPT-4 demonstrated superior
     performance across a broader range of evaluations. Inherent model behaviors and
     prompt engineering matter A LOT in RAG systems.
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 尽管初步发现表明 Claude 在性能上超越了 GPT-4，但随后的测试表明，通过战略性的提示工程，GPT-4 在更广泛的评估中表现出了更优的性能。模型的固有行为和提示工程在
+    RAG 系统中至关重要。
 - en: Simply adding “Please explain yourself then answer the question” to a prompt
     template significantly improves (more than 2X) GPT-4’s performance. It’s clear
     that when an LLM talks answers out, it seems to help in unfolding ideas. It’s
     possible that by explaining, a model is re-enforcing the right answer in embedding/attention
     space.
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 仅仅在提示模板中添加“请先解释自己然后回答问题”，就显著提升了（超过2倍）GPT-4的表现。显然，当大型语言模型解释自己的答案时，似乎有助于展开思路。通过解释，模型可能在嵌入/注意力空间中加强了正确的答案。
 - en: Phases of RAG and Why Generation is Important
+  id: totrans-15
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: RAG阶段及生成为何重要
 - en: '![](../Images/b85c5041b6dc28b4a086b9796ec04480.png)'
+  id: totrans-16
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b85c5041b6dc28b4a086b9796ec04480.png)'
 - en: 'Figure 1: Diagram created by author'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 1：作者制作的图表
 - en: While retrieval is responsible for identifying and retrieving the most pertinent
     information, it is the generation phase that takes this raw data and transforms
     it into a coherent, meaningful, and contextually appropriate response. The generative
     step is tasked with synthesizing the retrieved information, filling in gaps, and
     presenting it in a manner that is easily understandable and relevant to the user’s
     query.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然检索负责识别和提取最相关的信息，但生成阶段则负责将这些原始数据转化为连贯、有意义且符合上下文的响应。生成步骤的任务是综合所检索到的信息，填补空白，并以一种易于理解且与用户查询相关的方式呈现。
 - en: In many real-world applications, the value of RAG systems lies not just in their
     ability to locate a specific fact or piece of information but also in their capacity
     to integrate and contextualize that information within a broader framework. The
     generation phase is what enables RAG systems to move beyond simple fact retrieval
     and deliver truly intelligent and adaptive responses.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 在许多实际应用中，RAG系统的价值不仅在于它们能够定位特定的事实或信息，还在于它们能够将这些信息整合并在更广泛的框架中进行上下文化处理。生成阶段使得RAG系统能够超越简单的事实检索，提供真正智能和适应性的响应。
 - en: 'Test #1: Date Mapping'
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '测试 #1：日期映射'
 - en: 'The initial test we ran involved generating a date string from two randomly
     retrieved numbers: one representing the month and the other the day. The models
     were tasked with:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们进行的初步测试涉及从两个随机检索的数字中生成日期字符串：一个代表月份，另一个代表日期。模型的任务是：
 - en: '*Retrieving Random Number #1*'
+  id: totrans-22
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*检索随机数字 #1*'
 - en: '*Isolating the last digit and incrementing by 1*'
+  id: totrans-23
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*隔离最后一位数字并加1*'
 - en: '*Generating a month for our date string from the result*'
+  id: totrans-24
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*从结果中生成我们的日期字符串中的月份*'
 - en: '*Retrieving Random Number #2*'
+  id: totrans-25
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*检索随机数字 #2*'
 - en: '*Generating the day for our date string from Random Number 2*'
+  id: totrans-26
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '*从随机数字2生成我们的日期字符串中的月份*'
 - en: For example, random numbers 4827143 and 17 would represent April 17th.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，随机数字4827143和17将代表4月17日。
 - en: These numbers were placed at varying depths within contexts of varying length.
     The models initially had quite a difficult time with this task.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些数字被置于不同深度的上下文中，且上下文长度各异。模型最初在这个任务上表现得相当困难。
 - en: '![](../Images/1169b511246aaad65af5519ac3416916.png)'
+  id: totrans-29
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1169b511246aaad65af5519ac3416916.png)'
 - en: 'Figure 2: Initial test results (image by author)'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2：初步测试结果（图片来源：作者）
 - en: While neither model performed great, Claude 2.1 significantly outperformed GPT-4
     in our initial test, almost quadrupling its success rate. It was here that Claude’s
     verbose nature — providing detailed, explanatory responses — seemed to give it
     a distinct advantage, resulting in more accurate outcomes compared to GPT-4’s
     initially concise replies.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然两个模型的表现都不算优秀，但在我们的初步测试中，Claude 2.1显著优于GPT-4，几乎将其成功率提高了四倍。正是在这一点上，Claude的冗长特性——提供详细、解释性的回答——似乎给它带来了明显的优势，使得结果比GPT-4最初简洁的回答更为准确。
 - en: Prompted by these unexpected results, we introduced a new variable to the experiment.
     We instructed GPT-4 to “explain yourself then answer the question,” a prompt that
     encouraged a more verbose response akin to Claude’s natural output. The impact
     of this minor adjustment was profound.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 受到这些意外结果的启发，我们在实验中引入了一个新变量。我们指示GPT-4“先解释自己然后再回答问题”，这一提示鼓励它提供更冗长的回答，类似于Claude的自然输出。这一小小的调整产生了深远的影响。
 - en: '![](../Images/5dc3161bdfb87275c02bb1900769007e.png)'
+  id: totrans-33
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5dc3161bdfb87275c02bb1900769007e.png)'
 - en: 'Figure 3: Initial test with targeted prompt results (image by author)'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 3：初步测试与目标提示结果（图片来源：作者）
 - en: GPT-4’s performance improved dramatically, achieving flawless results in subsequent
     tests. Claude’s results also improved to a lesser extent.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: GPT-4的表现显著提升，在随后的测试中取得了完美的结果。Claude的结果也有所改善，但幅度较小。
 - en: This experiment not only highlights the differences in how language models approach
     generation tasks but also showcases the potential impact of prompt engineering
     on their performance. The verbosity that appeared to be Claude’s advantage turned
@@ -167,78 +246,113 @@
     and presents its reasoning can significantly influence its accuracy in generation
     tasks. Overall, including the seemingly minute “explain yourself” line to our
     prompt played a role in improving the models’ performance across all of our experiments.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 该实验不仅突出了语言模型在处理生成任务时的差异，还展示了提示工程对其性能的潜在影响。看似是 Claude 的优势的冗长提示，实际上也成为 GPT-4 可以复制的策略，这表明模型处理和呈现推理的方式可以显著影响其在生成任务中的准确性。总体而言，向我们的提示中加入看似微不足道的“解释一下”这一行，确实在提高所有实验中模型的表现上起到了作用。
 - en: Further Testing and Results
+  id: totrans-37
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 进一步测试与结果
 - en: '![](../Images/e644fb91beeb1871e295b10ecc286e1f.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e644fb91beeb1871e295b10ecc286e1f.png)'
 - en: 'Figure 4: Four further tests used to evaluate generation (image by author)'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4：用于评估生成的四个进一步测试（图像由作者提供）
 - en: 'We conducted four more tests to assess prevailing models’ ability to synthesize
     and transform retrieved information into various formats:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们进行了四个额外的测试，以评估现有模型将检索到的信息合成并转化为不同格式的能力：
 - en: '***String Concatenation***: Combining pieces of text to form coherent strings,
     testing the models’ basic text manipulation skills.'
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***字符串连接***：将文本片段组合成连贯的字符串，测试模型的基本文本处理能力。'
 - en: '***Money Formatting***: Formatting numbers as currency, rounding them, and
     calculating percentage changes to evaluate the models’ precision and ability to
     handle numerical data.'
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***货币格式化***：将数字格式化为货币，进行四舍五入，并计算百分比变化，以评估模型的精度和处理数字数据的能力。'
 - en: '***Date Mapping***: Converting a numerical representation into a month name
     and date, requiring a blend of retrieval and contextual understanding.'
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***日期映射***：将数字表示转换为月份名称和日期，需要结合检索和上下文理解。'
 - en: '***Modulo Arithmetic***: Performing complex number operations to test the models’
     mathematical generation capabilities.'
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***模运算***：执行复杂的数字运算，测试模型的数学生成能力。'
 - en: Unsurprisingly, each model exhibited strong performance in string concatenation,
     reaffirming previous understanding that text manipulation is a fundamental strength
     of language models.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 毫不奇怪，每个模型在字符串连接测试中都表现出色，进一步确认了文本处理是语言模型的基本优势。
 - en: '![](../Images/9f3758466dd21ade4fd7d72b365f556e.png)'
+  id: totrans-46
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9f3758466dd21ade4fd7d72b365f556e.png)'
 - en: 'Figure 5: Money formatting test results (image by author)'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 5：货币格式化测试结果（图像由作者提供）
 - en: As for the money formatting test, Claude 3 and GPT-4 performed almost flawlessly.
     Claude 2.1’s performance was generally poorer overall. Accuracy did not vary considerably
     across token length, but was generally lower when the needle was closer to the
     beginning of the context window.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 至于货币格式化测试，Claude 3 和 GPT-4 几乎表现完美。Claude 2.1 的表现总体较差。准确性在不同的标记长度上没有显著差异，但当针头接近上下文窗口的开头时，准确性普遍较低。
 - en: '![](../Images/91f0318ea917c7bc7eeb3b603296b9c5.png)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/91f0318ea917c7bc7eeb3b603296b9c5.png)'
 - en: 'Figure 6: Normal haystack test results (image by author)'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 6：正常大针测试结果（图像由作者提供）
 - en: Despite stellar results in the generation tests, Claude 3’s accuracy declined
     in a retrieval-only experiment. Theoretically, simply retrieving numbers should
     be an easier task than manipulating them as well — making this decrease in performance
     surprising and an area where we’re planning further testing to examine. If anything,
     this counterintuitive dip only further confirms the notion that both retrieval
     and generation should be tested when developing with RAG.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管在生成测试中取得了出色的结果，Claude 3 在仅检索实验中的准确性却有所下降。从理论上讲，单纯检索数字应该比处理数字更容易——因此这一表现下降令人惊讶，也成为我们计划进一步测试的一个方向。如果有什么值得注意的，这一反直觉的下降只进一步证实了在使用
+    RAG 开发时，既要测试检索，也要测试生成。
 - en: Conclusion
+  id: totrans-52
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: By testing various generation tasks, we observed that while both models excel
     in menial tasks like string manipulation, their strengths and weaknesses [become
     apparent](https://arize.com/blog-course/research-techniques-for-better-retrieved-generation-rag/)
@@ -246,8 +360,10 @@
     was that the introduction of the “explain yourself” prompt notably enhanced GPT-4’s
     performance, underscoring the importance of how models are prompted and how they
     articulate their reasoning in achieving accurate results.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过测试各种生成任务，我们观察到，虽然这两种模型在字符串处理等琐碎任务中表现出色，但它们的优缺点在更复杂的场景中[变得明显](https://arize.com/blog-course/research-techniques-for-better-retrieved-generation-rag/)。大型语言模型（LLMs）在数学方面仍然不够出色！另一个关键结果是，“解释你自己”提示的引入显著提升了GPT-4的表现，强调了模型如何被提示以及它们如何表达推理过程在实现准确结果中的重要性。
 - en: These findings have broader implications for the evaluation of LLMs. When comparing
     models like the verbose Claude and the initially less verbose GPT-4, it becomes
     evident that the [RAG evaluation](https://arize.com/blog-course/rag-evaluation/)
@@ -256,5 +372,7 @@
     This nuance may suggest that future model evaluations should consider the average
     length of responses as a noted factor, providing a better understanding of a model’s
     capabilities and ensuring a fairer comparison.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些发现对LLMs的评估具有更广泛的意义。在比较像冗长的Claude和最初较为简洁的GPT-4这样的模型时，显而易见，[RAG评估](https://arize.com/blog-course/rag-evaluation/)标准必须超越单纯的正确性。模型回答的冗长性引入了一个变量，这可能会显著影响其感知表现。这个细微差别可能表明，未来的模型评估应考虑回答的平均长度作为一个重要因素，以便更好地理解模型的能力，并确保更公平的比较。

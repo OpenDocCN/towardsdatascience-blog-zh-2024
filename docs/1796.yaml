@@ -1,35 +1,55 @@
 - en: Temperature Reconstruction Through Geospatial Interpolation
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 通过地理空间插值进行温度重建
 - en: 原文：[https://towardsdatascience.com/temperature-reconstruction-through-geospatial-interpolation-aea34c359207?source=collection_archive---------13-----------------------#2024-07-23](https://towardsdatascience.com/temperature-reconstruction-through-geospatial-interpolation-aea34c359207?source=collection_archive---------13-----------------------#2024-07-23)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/temperature-reconstruction-through-geospatial-interpolation-aea34c359207?source=collection_archive---------13-----------------------#2024-07-23](https://towardsdatascience.com/temperature-reconstruction-through-geospatial-interpolation-aea34c359207?source=collection_archive---------13-----------------------#2024-07-23)
 - en: Was your EV that cold?
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 你的电动汽车那么冷吗？
 - en: '[](https://medium.com/@joao.figueira?source=post_page---byline--aea34c359207--------------------------------)[![João
     Paulo Figueira](../Images/54e4176f66e4ab0324d86ec71d8b033d.png)](https://medium.com/@joao.figueira?source=post_page---byline--aea34c359207--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aea34c359207--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--aea34c359207--------------------------------)
     [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--aea34c359207--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@joao.figueira?source=post_page---byline--aea34c359207--------------------------------)[![João
+    Paulo Figueira](../Images/54e4176f66e4ab0324d86ec71d8b033d.png)](https://medium.com/@joao.figueira?source=post_page---byline--aea34c359207--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aea34c359207--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--aea34c359207--------------------------------)
+    [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--aea34c359207--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aea34c359207--------------------------------)
     ·7 min read·Jul 23, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aea34c359207--------------------------------)
+    ·阅读时长7分钟·2024年7月23日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/86cf9647553a21a2b962b5dbc38b4adb.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/86cf9647553a21a2b962b5dbc38b4adb.png)'
 - en: Photo by [Mason Wildfang](https://unsplash.com/@masonwildfang?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由[马森·怀尔德芬](https://unsplash.com/@masonwildfang?utm_source=medium&utm_medium=referral)拍摄，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Atmospheric temperature is not just a weather condition but a crucial determinant
     of EV battery performance. Recent events have underscored the severe impact of
     extremely low temperatures on EV battery performance, reducing vehicle ranges
@@ -37,49 +57,65 @@
     in post-mortem analyses of electric fleet performance is not just a theoretical
     concept but a practical tool that can significantly enhance our understanding
     and improve EV battery performance, a key concern in the EV industry.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 大气温度不仅仅是天气条件，它是电动汽车电池性能的重要决定因素。近期的事件突显了极低温度对电动汽车电池性能的严重影响，减少了车辆的续航里程，并可能导致充电问题。温度重建在电动汽车车队性能的事后分析中的作用不仅仅是一个理论概念，而是一个实际工具，可以显著提高我们对电动汽车电池性能的理解，并改善电动汽车电池性能，这是电动汽车行业的关键问题。
 - en: In this article, I present a practical method for historic temperature reconstruction.
     This method, which uses spatiotemporal interpolation and a reduced set of measurement
     points, can be applied to enhance and improve our understanding of EV battery
     performance.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我将介绍一种用于历史温度重建的实用方法。该方法利用时空插值和减少的测量点集，可应用于增强和改善我们对电动汽车（EV）电池性能的理解。
 - en: The Problem
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 问题
 - en: We want to reconstruct the historic atmospheric temperature of over twenty-two
     million timestamped locations without issuing the same amount of queries to the
     [data provider](https://open-meteo.com/) [1]. The Open-Meteo provider limits the
     number of daily requests for its free access tier, so it is in our best interest
     to devise a solution to limit the number of data queries while retaining good
     precision.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望重建超过2200万个带时间戳的位置的历史大气温度，而不向[数据提供者](https://open-meteo.com/)发出相同数量的查询请求[1]。Open-Meteo提供者对其免费访问层的每日请求数量进行限制，因此我们最好的选择是设计一个解决方案，以在保持良好精度的同时限制数据查询次数。
 - en: This article uses the [Extended Vehicle Energy Dataset](https://github.com/zhangsl2013/eVED)
     [2] in its raw CSV format. The dataset contains vehicle telematics collected around
     Ann Arbor, Michigan, between November 2017 and November 2018\. The dataset includes
     samples of the outside temperature measured by the vehicles, but as we will see,
     they are noisy and inadequate for calibration.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文使用了[扩展车辆能量数据集](https://github.com/zhangsl2013/eVED)的原始CSV格式[2]。该数据集包含了2017年11月到2018年11月间在密歇根州安娜堡附近收集的车辆遥测数据。数据集包含了车辆测量的外部温度样本，但正如我们将看到的，这些数据有噪声，且不足以用于校准。
 - en: Our problem is to devise an interpolation model that uses a reduced set of ground-truth
     temperatures from the data provider and derive high-accuracy predictions over
     the target data.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的问题是设计一个插值模型，该模型使用来自数据提供方的减少版本的真实温度集，并在目标数据上推导出高精度的预测。
 - en: The Solution
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 解决方案
 - en: Due to the limited data we can source from the meteorological provider, we will
     collect the historic temperatures from nine locations in the geo-fenced area where
     telematics were sampled. We collect a year-long time series of temperatures sampled
     hourly for each of the nine locations and use them as the interpolation ground
     truth.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们能从气象提供方获取的数据有限，我们将从遥测数据采样区域内的九个位置收集历史温度数据。我们收集了这九个位置全年每小时采样的温度时间序列，并将其作为插值的真实数据。
 - en: 'The interpolation occurs in three dimensions: two in the map plane and the
     third in time. The time interpolation is the simplest as we assume a linear temperature
     progression between each hourly sample. A sinusoid might be a better model, but
@@ -88,84 +124,120 @@
     [3,4] algorithm for geospatial interpolation, which estimates the target temperature
     using the inverted distance between each temperature source and the target point.
     The IDW formula is depicted below in **Figure 1**.'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 插值发生在三个维度中：两个是地图平面上的维度，第三个是时间维度。时间插值是最简单的，因为我们假设每小时样本之间的温度线性变化。正弦波可能是一个更好的模型，但可能代价太高，无法提高边际精度。我们使用[反距离加权（IDW）](https://www.geodose.com/2019/03/spatial-interpolation-inverse-distance-weighting-idw.html)[3,4]算法进行地理空间插值，利用每个温度源与目标点之间的反距离来估算目标温度。IDW公式如下图**图1**所示。
 - en: '![](../Images/8bfc898f6f92aab483cdc1ed83fc5421.png)'
+  id: totrans-17
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8bfc898f6f92aab483cdc1ed83fc5421.png)'
 - en: '**Figure 1** — The IDW temperature estimator requires the linearly interpolated
     temperatures from each of the n locations (t), the distance between each temperature
     source and the target location (d), and the power (p), a tunable parameter. (Image
     generated by the author.)'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图1** — IDW温度估算器需要来自每个n个位置的线性插值温度(t)，每个温度源与目标位置之间的距离(d)，以及功率(p)，这是一个可调参数。（图像由作者生成。）'
 - en: As depicted below in **Figure 2**, this solution uses nine temperature sources.
     We collect a year-long hourly-sampled time series of temperatures reported by
     the data provider for each location. The time-interpolated values of these nine
     sources will feed the geospatial interpolator for the final value of the estimated
     temperature at the target location.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 如下图**图2**所示，本解决方案使用了九个温度源。我们收集了数据提供方为每个位置报告的全年每小时的温度时间序列。这九个温度源的时间插值值将输入到地理空间插值器中，得到目标位置的估计温度的最终值。
 - en: '![](../Images/f22e3f9e13026a6040b88029eb88c33b.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f22e3f9e13026a6040b88029eb88c33b.png)'
 - en: '**Figure 2** - The map above shows the nine locations where we collected the
     ground-truth data. (Image created by the author using OpenStreetMap data and imagery.)'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图2** - 上图显示了我们收集真实数据的九个位置。（图像由作者使用OpenStreetMap数据和影像创建。）'
 - en: To test the interpolation’s accuracy, we also collected a sample of the source
     data to create a validation data set by directly calling the meteorological provider
     at these sampled locations. We selected these samples from records with valid
     Outside Air Temperature (OAT) signals to test the quality of the vehicle’s reported
     temperature.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了测试插值的准确性，我们还收集了源数据样本，直接调用气象提供方在这些采样位置获取数据，创建了一个验证数据集。我们从具有有效外部空气温度（OAT）信号的记录中选择了这些样本，以测试车辆报告的温度质量。
 - en: Setting Up
+  id: totrans-23
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设置
 - en: 'Start by cloning the article’s [GitHub repository](https://github.com/joaofig/eved-geo-interp)
     to your local machine. To install all the prerequisites (Python environment and
     required packages), run the installer with the following command from the project
     root:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，将文章的[GitHub 仓库](https://github.com/joaofig/eved-geo-interp)克隆到本地机器。要安装所有必要的依赖（Python
+    环境和所需的包），请从项目根目录运行安装程序，使用以下命令：
 - en: '[PRE0]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'If you have access to a UNIX-based shell, you can just run the following command
     line (please make sure that you have write access to the parent directory as this
     script will try to create a sibling folder) to download the original CSV data
     files:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有访问 UNIX 系统的权限，可以直接运行以下命令行（请确保你对父目录具有写入权限，因为此脚本将尝试创建一个同级文件夹）来下载原始的 CSV 数据文件：
 - en: '[PRE1]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: If you are running on a Windows machine, please read the instructions in the
     [README](https://github.com/joaofig/eved-geo-interp/blob/main/README.md) file.
     These require manually downloading the data from the source repository and expanding
     the compressed file into the appropriate data folder. After expansion, a data
     file also requires special handling due to a CSV encoding error.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您在 Windows 系统上运行，请阅读[README](https://github.com/joaofig/eved-geo-interp/blob/main/README.md)文件中的说明。这些说明要求手动从源仓库下载数据并将压缩文件解压到适当的数据文件夹中。解压后，由于
+    CSV 编码错误，某些数据文件还需要特殊处理。
 - en: Running The Code
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 运行代码
 - en: The code consists of three Python scripts and shared common code. The running
     instructions are in the [README](https://github.com/joaofig/eved-geo-interp/blob/main/README.md)
     file.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 该代码由三个 Python 脚本和共享的公共代码组成。运行说明请参见[README](https://github.com/joaofig/eved-geo-interp/blob/main/README.md)文件。
 - en: By running the code, you will be taken from the initial source dataset to an
     updated version where all twenty-two million plus rows are annotated with an outside
     temperature value that closely matches the ground truth values.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过运行此代码，您将从初始源数据集过渡到更新版，其中所有超过二千二百万行的数据都已标注上与地面真实值匹配的外部温度值。
 - en: '[PRE2]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: We start with a [script](https://github.com/joaofig/eved-geo-interp/blob/main/collect-samples.py)
     that establishes where to collect the ground-truth temperature data for the year
     and stores it in a file cache for later reuse (see **Figure 2** above). It then
@@ -175,139 +247,203 @@
     reports accurate data for the given location and date. The script ends by saving
     the sampled rows with the ground-truth temperature data to a CSV file for reuse
     in the second step.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从一个[脚本](https://github.com/joaofig/eved-geo-interp/blob/main/collect-samples.py)开始，该脚本确定在哪里收集年度的真实温度数据，并将其存储在文件缓存中以供后续使用（见**图
+    2**）。然后，它逐个 CSV 文件采样原始数据集，收集验证集以帮助调整 IDW 算法的幂参数。该脚本收集每一行采样的地面真实温度，假设 Open-Meteo
+    提供者报告了给定位置和日期的准确数据。脚本最后将包含地面真实温度数据的采样行保存为 CSV 文件，以便在第二步中重复使用。
 - en: '[PRE3]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Next, we run the [script](https://github.com/joaofig/eved-geo-interp/blob/main/tune-idw-power.py)
     that tunes the IDW algorithm’s power parameter by computing the interpolation
     over the sampled dataset, varying the parameter’s value from one to ten. By plotting
     the power value versus the computed RMSE, we find a minimum of five (see **Figure
     3** below), which we will use in the final script.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们运行[脚本](https://github.com/joaofig/eved-geo-interp/blob/main/tune-idw-power.py)，该脚本通过计算采样数据集的插值来调整
+    IDW 算法的幂参数，将参数值从一变到十。通过绘制幂值与计算出的 RMSE 之间的关系，我们找到了一个最小值为五（见**图 3**），我们将在最终脚本中使用该值。
 - en: '![](../Images/6ab68ce87537d865b4ab018492e8b180.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6ab68ce87537d865b4ab018492e8b180.png)'
 - en: '**Figure 2**— The chart above shows a plot of the RMSE computed between the
     ground-truth temperatures and those interpolated by the IDW algorithm as a function
     of the value of the power parameter. There is a clear minimum when the value of
     the power parameter is five. (Image generated by the author.)'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 2** — 上图展示了计算出的 RMSE 图表，RMSE 是地面真实温度和 IDW 算法插值结果之间的差值，随着幂参数值的变化，RMSE 值出现明显的最小值，当幂参数值为五时最小。（图像由作者生成。）'
 - en: The RMSE value above is computed using the sampled temperatures as the ground
     truth and the interpolated ones. This script computes these RMSE values and also
     computes the Outside Air Temperature (OAT) signal RMSE when compared against the
     ground-truth temperatures. Using the same dataset that generated the chart above,
     we get a value of 7.11, a full order of magnitude above, confirming the inadequacy
     of the OAT signal as a ground truth measurement.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的RMSE值是通过将采样的温度作为真实值与插值后的温度进行比较计算得出的。该脚本计算了这些RMSE值，并且在与真实温度对比时，也计算了外部空气温度（OAT）信号的RMSE。使用与上面图表相同的数据集，我们得到的值为7.11，足足高出一个数量级，确认了OAT信号作为真实测量值的不足。
 - en: '[PRE4]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The final [script](https://github.com/joaofig/eved-geo-interp/blob/main/update-temperatures.py)
     iterates through the CSV input files, estimates the outside temperatures through
     interpolation, and saves the results to a new set of CSV files. The new files
     are the same as the input ones, with an added temperature column, and are ready
     for use.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终的[脚本](https://github.com/joaofig/eved-geo-interp/blob/main/update-temperatures.py)会遍历CSV输入文件，通过插值估算外部温度，并将结果保存到一组新的CSV文件中。新文件与输入文件相同，只是新增了一个温度列，并且已经准备好可以使用。
 - en: Please note that this script takes a long time to run. If you decide to interrupt
     it, it will resume after the last generated file.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，这个脚本运行时间较长。如果你决定中断它，它会在上次生成的文件之后恢复执行。
 - en: Date and Time Handling
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 日期和时间处理
 - en: 'The dataset has a very peculiar way of handling dates. According to the [original
     paper’s GitHub repository documentation](https://github.com/gsoh/VED), each datapoint
     encodes date and time in two columns. The first column, `DayNum`, encodes the
     number of days since the beginning of data collection, where the value of one
     corresponds to the first day:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 该数据集在处理日期时有一种非常特殊的方式。根据[原始论文的GitHub仓库文档](https://github.com/gsoh/VED)，每个数据点在两列中编码日期和时间。第一列`DayNum`编码自数据收集开始以来的天数，其中值1对应第一天：
 - en: '[PRE5]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'The second column, `Timestamp(ms)`, encodes the millisecond offset into the
     beginning of the trip (please see the repository and paper for more information
     on this). To get the effective date from these two columns, one must add the base
     date to the two offsets, like so:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二列`Timestamp(ms)`编码了从旅行开始的毫秒偏移量（更多信息请参考仓库和论文）。要从这两列中获得有效日期，必须将基准日期与这两个偏移量相加，方式如下：
 - en: '[PRE6]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: You will see this date and time handling throughout the code whenever we need
     to convert from the original data format to the standard Python date and time
     format with explicit time zones.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 每当我们需要将原始数据格式转换为标准的Python日期时间格式并明确指定时区时，你都会在代码中看到这种日期和时间的处理方式。
 - en: When collecting temperature information from the meteorological data provider,
     we explicitly request that all dates and times be expressed in the local time
     zone.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 在从气象数据提供商收集温度信息时，我们明确要求所有的日期和时间都以当地时区表示。
 - en: Closing Remarks
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结语
 - en: Why did I choose [Polars](https://pola.rs/) when implementing the code for this
     article? Pandas would have been an equally valid option, but I wanted my first
     go at this new technology. While I found it quite easy to learn, it felt like
     it was not a direct drop-in replacement for Pandas. Polars has some new and very
     interesting concepts, such as lazy processing, which helped a lot when parsing
     all the CSV files in parallel to extract the geospatial boundaries.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么在为本文编写代码时选择了[Polars](https://pola.rs/)? Pandas同样是一个有效的选择，但我想先试试这项新技术。尽管我发现它很容易上手，但它感觉不像是Pandas的直接替代品。Polars有一些新的非常有趣的概念，比如懒处理，它在并行解析所有CSV文件并提取地理边界时非常有帮助。
 - en: The lazy execution API of Polars feels like programming Spark, which was a nice
     throwback. I miss some of Pandas's shortcuts, but the speed improvements and the
     apparent better API structure easily offset that.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: Polars的懒执行API让我想起了编程Spark，这让我感到很怀念。我也想念Pandas的一些快捷方式，但它的速度提升和显然更好的API结构轻松弥补了这一点。
 - en: Credits
+  id: totrans-52
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 致谢
 - en: I used [Grammarly](https://app.grammarly.com/) to review the writing and accepted
     several of its rewriting suggestions.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用了[Grammarly](https://app.grammarly.com/)来审阅文章，并接受了它的一些重写建议。
 - en: '[JetBrains’ AI](https://www.jetbrains.com/ai/) assistant wrote some of the
     code, and I also used it to learn Polars. It has become a staple of my everyday
     work.'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '[JetBrains的AI](https://www.jetbrains.com/ai/)助手编写了部分代码，我还用它学习了Polars。它已成为我日常工作的重要工具。'
 - en: Licensing Information
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 许可信息
 - en: The Extended Vehicle Energy Dataset is licensed under Apache 2.0, like its originator,
     the [Vehicle Energy Dataset](https://github.com/gsoh/VED).
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 扩展车辆能量数据集在Apache 2.0许可下发布，类似于其原始数据集 [车辆能量数据集](https://github.com/gsoh/VED)。
 - en: References
+  id: totrans-57
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[1] [Open-Meteo](https://open-meteo.com/)'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] [Open-Meteo](https://open-meteo.com/)'
 - en: '[2] Zhang, S., Fatih, D., Abdulqadir, F., Schwarz, T., & Ma, X. (2022). **Extended
     vehicle energy dataset (eVED): An enhanced large-scale dataset for deep learning
     on vehicle trip energy consumption.** *ArXiv*. /abs/2203.08630'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] Zhang, S., Fatih, D., Abdulqadir, F., Schwarz, T., & Ma, X. (2022). **扩展的车辆能量数据集
+    (eVED)：一个用于深度学习的增强版大规模车辆行程能耗数据集。** *ArXiv*. /abs/2203.08630'
 - en: '[3] [**Spatial Interpolation with Inverse Distance Weighting (IDW) Method Explained**](https://www.geodose.com/2019/03/spatial-interpolation-inverse-distance-weighting-idw.html)'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] [**使用逆距离加权（IDW）方法的空间插值解释**](https://www.geodose.com/2019/03/spatial-interpolation-inverse-distance-weighting-idw.html)'
 - en: '[4] **Inverse distance weighting**. (2024, June 7). In *Wikipedia*. [https://en.wikipedia.org/wiki/Inverse_distance_weighting](https://en.wikipedia.org/wiki/Inverse_distance_weighting)'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '[4] **逆距离加权**. (2024年6月7日). 载于 *维基百科*. [https://en.wikipedia.org/wiki/Inverse_distance_weighting](https://en.wikipedia.org/wiki/Inverse_distance_weighting)'
 - en: João Paulo Figueira is a Data Scientist at [tb.lx by Daimler Truck](https://tblx.io/)
     in Lisbon, Portugal.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: João Paulo Figueira 是 [tb.lx by Daimler Truck](https://tblx.io/) 的数据科学家，位于葡萄牙里斯本。

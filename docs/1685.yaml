@@ -1,35 +1,55 @@
 - en: Exploring Medusa and Multi-Token Prediction
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 探索Medusa与多token预测
 - en: 原文：[https://towardsdatascience.com/exploring-medusa-and-multi-token-prediction-de7f8312e4a7?source=collection_archive---------5-----------------------#2024-07-10](https://towardsdatascience.com/exploring-medusa-and-multi-token-prediction-de7f8312e4a7?source=collection_archive---------5-----------------------#2024-07-10)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/exploring-medusa-and-multi-token-prediction-de7f8312e4a7?source=collection_archive---------5-----------------------#2024-07-10](https://towardsdatascience.com/exploring-medusa-and-multi-token-prediction-de7f8312e4a7?source=collection_archive---------5-----------------------#2024-07-10)
 - en: 'This blog post will go into detail on the “MEDUSA: Simple LLM Inference Acceleration
     Framework with Multiple Decoding Heads” paper'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 本文将详细介绍“MEDUSA：一种简单的LLM推理加速框架，具有多个解码头”这篇论文。
 - en: '[](https://medium.com/@mgunton7?source=post_page---byline--de7f8312e4a7--------------------------------)[![Matthew
     Gunton](../Images/6f5a9530ad5252aa3f2fae87b3f272b1.png)](https://medium.com/@mgunton7?source=post_page---byline--de7f8312e4a7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--de7f8312e4a7--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--de7f8312e4a7--------------------------------)
     [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--de7f8312e4a7--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@mgunton7?source=post_page---byline--de7f8312e4a7--------------------------------)[![Matthew
+    Gunton](../Images/6f5a9530ad5252aa3f2fae87b3f272b1.png)](https://medium.com/@mgunton7?source=post_page---byline--de7f8312e4a7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--de7f8312e4a7--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--de7f8312e4a7--------------------------------)
+    [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--de7f8312e4a7--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--de7f8312e4a7--------------------------------)
     ·11 min read·Jul 10, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--de7f8312e4a7--------------------------------)
+    ·阅读时长11分钟·2024年7月10日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/e02e454ed5ba0a04be55227f7cacff07.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e02e454ed5ba0a04be55227f7cacff07.png)'
 - en: Image by Author — SDXL
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者 — SDXL
 - en: The internet is an incredibly competitive place. Studies show that customers
     leave webpages if it takes longer than 5 seconds for the webpage to load [2][3].
     This poses a challenge for most Large Language Models (LLMs), as they are without
@@ -37,20 +57,28 @@
     speed up your LLM, running on this hardware is currently expensive. If we can
     find ways to make the most of standard hardware, we will be able to dramatically
     increase the customer experience for LLMs.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 互联网是一个竞争异常激烈的地方。研究表明，如果网页加载时间超过5秒，用户就会离开网页[2][3]。这对大多数大型语言模型（LLM）来说是一个挑战，因为它们无疑是目前最慢的程序之一。虽然定制硬件可以显著加速LLM，但运行在这种硬件上目前仍然非常昂贵。如果我们能找到充分利用标准硬件的方法，将能显著提高LLM的客户体验。
 - en: 'The authors of the [“MEDUSA: Simple LLM Inference Acceleration Framework with
     Multiple Decoding Heads”](https://arxiv.org/pdf/2401.10774) paper have an architectural
     change that when run on existing hardware achieves a 2x–3x speed up.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '[“MEDUSA：一种简单的LLM推理加速框架，具有多个解码头”](https://arxiv.org/pdf/2401.10774) 论文的作者提出了一种架构变更，当在现有硬件上运行时，可以实现2倍到3倍的加速。'
 - en: Let’s dive in!
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们深入探讨吧！
 - en: Speculative Decoding
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 推测解码
 - en: Speculative Decoding was introduced as a way to speed up inferencing for an
     LLM. You see, LLMs are autoregressive, meaning we take the output token that we
     just predicted and use it to help predict the next token we want. Typically we
@@ -58,46 +86,66 @@
     network). However, because the attention pattern for the next token is very similar
     to the attention pattern from the previous one, we are repeating most of the same
     calculations and not gaining much new information.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 推测解码被引入作为加速LLM推理的一种方法。你看，LLM是自回归的，这意味着我们使用刚刚预测出的输出token，来帮助预测下一个我们想要的token。通常我们是一次预测一个token（或者每次进行一次神经网络前向传播时预测一个token）。然而，由于下一个token的注意力模式与前一个token的注意力模式非常相似，我们重复了大部分相同的计算，实际上并没有获得太多新的信息。
 - en: 'Speculative decoding means that rather than doing one forward pass for one
     token, instead after one forward pass we try to find as many tokens as we can.
     In general there are three steps for this:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 推测解码意味着，和传统的每次前向推理一个token不同，在进行一次前向推理后，我们尝试尽可能多地找到多个token。一般来说，这个过程有三个步骤：
 - en: (1) Generate the candidates
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: (1) 生成候选项
 - en: (2) Process the candidates
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: (2) 处理候选项
 - en: (3) Accept certain candidates
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: (3) 接受某些候选项
 - en: Medusa is a type of speculative decoding, and so its steps map directly onto
     these. Medusa appends decoding heads to the final layer of the model as its implementation
     of (1). Tree attention is how it processes the candidates for (2). Finally, Medusa
     uses either rejection sampling or a typical acceptance scheme to accomplish (3).
     Let’s go through each of these in detail.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 美杜莎是一种推测性解码，因此其步骤直接映射到这些步骤。美杜莎将解码头附加到模型的最终层，这是它实现(1)的方式。树形注意力是它如何处理候选项的方式（2）。最后，美杜莎使用拒绝采样或典型的接受方案来完成(3)。让我们详细了解每一步。
 - en: Decoding Heads & Medusa
+  id: totrans-18
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 解码头与美杜莎
 - en: A decoding head takes the internal representation of the hidden state produced
     by a forward pass of the model and then creates the probabilities that correspond
     to different tokens in the vocabulary. In essence, it is converting the things
     the model has learned into probabilities that will determine what the next token
     is.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 解码头接收模型正向传播所产生的隐藏状态的内部表示，然后生成对应于词汇表中不同标记的概率。本质上，它是在将模型学到的内容转化为概率，从而决定下一个标记是什么。
 - en: '![](../Images/511e7f7d6cf360ccbacb72a1f608ff3d.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/511e7f7d6cf360ccbacb72a1f608ff3d.png)'
 - en: Figure 1 [from the paper](https://arxiv.org/pdf/2401.10774)
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 1 [来自论文](https://arxiv.org/pdf/2401.10774)
 - en: Medusa adjusts the architecture of a typical Transformer by appending multiple
     decoding heads to the last hidden layer of the model. By doing so, it can predict
     more than just one token given a forward pass. Each additional head that we add
@@ -105,18 +153,26 @@
     the first token from the forward pass, and then 3 more tokens after that with
     the Medusa heads. In the paper, the authors recommend using 5, as they saw this
     gave the best balance between speed-up and quality.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 美杜莎通过将多个解码头附加到模型最后一个隐藏层来调整典型的Transformer架构。这样，它可以在一次正向传播中预测多个标记。每增加一个解码头，就可以预测一个额外的标记。因此，如果你有3个美杜莎解码头，你将从正向传播中预测第一个标记，然后再用美杜莎解码头预测接下来的3个标记。在论文中，作者建议使用5个解码头，因为他们发现这在加速和质量之间提供了最佳平衡。
 - en: 'To accomplish this, the authors of the paper proposed the below decoder head
     for Medusa:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现这一点，论文的作者提出了下面的美杜莎解码头：
 - en: '![](../Images/5ad84dc2b1aa122e7b19d8186a6cc665.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5ad84dc2b1aa122e7b19d8186a6cc665.png)'
 - en: Definition of the k-th head [from the paper](https://arxiv.org/pdf/2401.10774)
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 第*k*个解码头的定义 [来自论文](https://arxiv.org/pdf/2401.10774)
 - en: This equation gives us the probability of token *t* from the *k*-th head. We
     start off by using the weights we’ve found through training the Medusa head, *W1,*
     and multiplying them by our internal state for token *t*. We use the `SiLU` activation
@@ -126,63 +182,90 @@
     the linear activation of the `SiLU`. We then multiply the sum by the second set
     of weights we’ve trained for the head, *W2*, and run that product through a `softmax`
     to get our probability.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 该方程给出了来自*k*个解码头的标记*t*的概率。我们首先使用通过训练美杜莎解码头所得到的权重*W1*，并将其与标记*t*的内部状态相乘。我们使用`SiLU`激活函数仅传递选择性信息（`SiLU
+    = x * sigmoid(x)`）。我们将内部状态第二次添加为跳跃连接的一部分，这使得模型能够在`SiLU`的线性激活过程中不丢失信息，从而提高性能。然后，我们将和与训练得到的第二组权重*W2*相乘，并将该乘积通过`softmax`得到概率。
 - en: Tree Attention
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 树形注意力
 - en: The first Medusa heads give the model probabilities they should consider based
     off the forward pass, but the subsequent Medusa heads need to figure out what
     token they should pick based off what the prior Medusa heads chose.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个美杜莎解码头基于正向传播给出模型应考虑的概率，但后续的美杜莎解码头需要根据前面解码头选择的内容来确定应该选择哪个标记。
 - en: Naturally, the more options the earlier Medusa heads put forward (hyperparameter
     *sk*), the more options future heads need to consider. For example, when we consider
     just the top two candidates from head 1 (s1=2) and the top three from head 2 (s2=3),
     we wind up with 6 different situations we need to compute.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 自然地，早期美杜莎解码头提出的选项越多（超参数*sk*），未来的解码头需要考虑的选项也越多。例如，当我们仅考虑来自解码头1的前两个候选项（s1=2）和来自解码头2的前三个候选项（s2=3）时，我们最终需要计算6种不同的情况。
 - en: Due to this expansion, we would like to generate and verify these candidates
     as concurrently as possible.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于这一扩展，我们希望尽可能并行地生成并验证这些候选项。
 - en: '![](../Images/185f85e016eb50d22de132284bf2480c.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/185f85e016eb50d22de132284bf2480c.png)'
 - en: Figure 2 [from the paper](https://arxiv.org/pdf/2401.10774)
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 图2 [来自论文](https://arxiv.org/pdf/2401.10774)
 - en: The above matrix shows how we can run all of these calculations within the same
     batch via tree attention. Unlike typical causal self-attention, only the tokens
     from the same continuation are considered relevant for the attention pattern.
     As the matrix illustrates with this limited space, we can fit our candidates all
     into one batch and run attention on them concurrently.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的矩阵展示了我们如何通过树注意力在同一个批次中运行所有这些计算。与典型的因果自注意力不同，只有来自同一延续的标记才被认为与注意力模式相关。正如矩阵所示，利用这有限的空间，我们可以将所有候选项都放入一个批次，并同时对它们运行注意力。
 - en: The challenge here is that each prediction needs to consider only the candidate
     tokens that would be directly behind it. In other words, if we choose “It” from
     head 1, and we are evaluating which token should come next, we do not want to
     have the attention pattern for “I” being used for the tokens.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的挑战是，每个预测只需要考虑紧跟其后的候选标记。换句话说，如果我们从头1选择了“它”，而且我们正在评估下一个应该出现的标记，我们就不希望“我”的注意力模式影响到接下来的标记。
 - en: The authors avoid this kind of interference by using a mask to avoid passing
     data about irrelevant tokens into the attention calculation. By using this mask,
     they can be memory efficient while they calculate the attention pattern & then
     use that information in the decoding head to generate the subsequent token candidates.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者通过使用掩码来避免将与当前计算无关的标记数据传递到注意力计算中，从而避免了这种干扰。通过使用这个掩码，他们在计算注意力模式时可以节省内存，并将这些信息用于解码头，生成后续的标记候选项。
 - en: While the above matrix shows us considering every prediction the same, if we
     have a probability for each prediction, we can treat these differently based on
     how likely they are to be the best choice. The below tree visualizes just that.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然上面的矩阵展示了我们将每个预测视为相同，但如果我们为每个预测提供了概率，我们可以根据它们成为最佳选择的可能性来区分对待。这下面的树状图直观地展示了这一点。
 - en: '![](../Images/912064c61e8ae73612d140145fd743d7.png)'
+  id: totrans-37
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/912064c61e8ae73612d140145fd743d7.png)'
 - en: Figure 6 [from the paper](https://arxiv.org/pdf/2401.10774)
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 图6 [来自论文](https://arxiv.org/pdf/2401.10774)
 - en: In the above, there are 4 Medusa heads each giving multiple candidates. However,
     not every prediction gets calculated. We add nodes onto our tree based off the
     probability of them being right. Here, the tree is heavily weighted towards the
@@ -190,24 +273,32 @@
     it is shown. In short, what we are doing here is only loading in predictions to
     the tree attention that we feel have a reasonable likelihood of being the best
     choice.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面，有4个美杜莎头部，每个头部给出多个候选者。然而，并不是每个预测都会被计算。我们根据预测正确的概率在树上添加节点。在这里，树的权重偏向左侧，显示出预测的概率越高，显示的可能性越多。简而言之，我们在这里所做的只是将那些我们认为有合理可能性成为最佳选择的预测加载到树的注意力中。
 - en: Using probability to determine which calculations to continue with is a mindset
     we’ll see again with the candidate acceptance criteria we’re about to discuss.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用概率来决定继续进行哪些计算是一种思维方式，我们将在接下来的候选接受标准中再次看到这种方法。
 - en: Typical Acceptance Scheme vs Rejection Sampling
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 典型的接受方案与拒绝采样
 - en: Now we reach the final stage, determining which predictions to use (if any).
     As we said from the start, models are auto-regressive, so if we predict the next
     5 tokens from the forward-pass, we can simply put in those next 5 into the model
     for the next go around and enjoy the inference speed increase. However, we only
     want to do so if the predictions we are getting are high quality. How do we determine
     this?
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们进入最后阶段，决定使用哪些预测（如果有的话）。正如我们一开始所说，模型是自回归的，所以如果我们从前向传递中预测下一个5个标记，我们可以简单地将这5个标记输入模型进行下一次迭代，从而享受推理速度的提升。然而，我们只有在预测的质量足够高时才会这么做。我们怎么判断这一点呢？
 - en: One method is Rejection Sampling where we have a separate model that can determine
     if the next token is good enough (this was used by Meta in their Ghost Attention
     fine-tuning, [learn more here](/understanding-ghost-attention-in-llama-2-dba624901586)).
@@ -215,20 +306,29 @@
     If it is good enough, then this works great! Note, however, that to maintain low
     latency, you’ll want this other model to run quite fast, a difficult thing to
     balance with high quality.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种方法是拒绝采样（Rejection Sampling），其中我们有一个独立的模型来判断下一个 token 是否足够好（这一方法在 Meta 的 Ghost
+    Attention 微调中使用过，[在此了解更多](/understanding-ghost-attention-in-llama-2-dba624901586)）。自然，这种方法完全依赖于你其他模型的质量。如果其他模型足够好，那么这种方法效果非常好！不过需要注意的是，为了保持低延迟，你需要确保这个其他模型运行非常快速，这与保持高质量之间的平衡是一个难题。
 - en: 'As a consequence of that difficulty, the authors came up with the typical acceptance
     scheme to make the determination. As all of the predictions are probabilities,
     we can use them to set a threshold above which we accept a token. The below equation
     shows how we do so:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于这一困难，作者提出了典型的接受机制来做出判断。由于所有的预测都是概率，我们可以使用这些概率来设定一个阈值，超过该阈值的 token 将被接受。下面的方程展示了我们如何做到这一点：
 - en: '![](../Images/e2032bdb68e3b0421624f270b3822eb6.png)'
+  id: totrans-45
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e2032bdb68e3b0421624f270b3822eb6.png)'
 - en: Equation showing Typical Acceptance Scheme [from the paper](https://arxiv.org/pdf/2401.10774)
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 显示典型接受机制的方程 [来自论文](https://arxiv.org/pdf/2401.10774)
 - en: The key here is that we are going to use the probabilities generated by the
     original model on these tokens to determine if the predictions are valid. We have
     tokens *X1* through *Xn* as the context for our model to determine the probability
@@ -238,8 +338,12 @@
     that high probability tokens will flow through, but so will tokens that have lower
     probabilities yet come from a probability distribution where most of the probabilities
     are low.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的关键是，我们将使用原始模型在这些 token 上生成的概率来判断预测是否有效。我们有从 *X1* 到 *Xn* 的 token 作为上下文，让模型为
+    *Xn+k* 的 token 计算概率。*p* 代表我们原始模型的概率分布，而 ϵ 和 δ 是设定的阈值，用于判断何时概率足够高，可以纳入模型的响应。整体来看，高概率的
+    token 会通过，但低概率的 token 也会通过，前提是它们来自一个大多数概率较低的概率分布。
 - en: Moreover, this function leads to important behavior when we adjust temperature.
     In general, users increase temperature on an LLM to give more creative responses.
     Thus, when the temperature is set at zero, typical acceptance ensures that only
@@ -248,106 +352,150 @@
     of the LLM changes, leaving us with more predictions that could reach the threshold
     to be accepted. This leads to both faster results but often times more creative
     ones as well.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，这个函数在我们调整温度时会导致重要的行为变化。通常，用户通过提高温度来让 LLM 给出更具创意的回答。因此，当温度设置为零时，典型的接受机制确保只有从前向传播中预测出的第一个
+    token 被通过，从而产生最一致的结果。然而，随着温度的提高，LLM 的概率分布会发生变化，产生更多的预测，这些预测可能会达到被接受的阈值。这不仅导致结果更快，有时也更加富有创意。
 - en: Self-Distillation
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 自蒸馏
 - en: The authors propose that to create Medusa models we don’t train from scratch
     but rather take high-quality foundation models (we’ll call this the backbone part
     of the model) and add the Medusa heads on top of these. Once we’ve fine-tuned
     them to understand the new heads, the speed will increase without major performance
     loss.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提议，在创建 Medusa 模型时，我们不从头开始训练，而是使用高质量的基础模型（我们称之为模型的主干部分），然后在其上添加 Medusa 的头部。微调后，它们能够理解这些新头部，并且速度会提高，同时不会带来显著的性能损失。
 - en: Nevertheless fine-tuning requires quality data. The authors were kind enough
     to explain how they created the data corpus needed to train Medusa.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，微调需要高质量的数据。作者很友好地解释了他们是如何创建用于训练 Medusa 所需的数据语料库的。
 - en: First, they used the [ShareGPT dataset](https://sharegpt.com/) to find high-quality
     interactions that people expect to have with their LLM. They took all the prompts
     from the dataset and then ran these through the backbone model to get the ground-truth
     to fine-tune on.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，他们使用了 [ShareGPT 数据集](https://sharegpt.com/) 来寻找人们期望与其大型语言模型（LLM）进行的高质量交互。他们从数据集中提取了所有提示，然后通过主干模型运行这些提示，以获取真实的基础数据来进行微调。
 - en: While this worked well for fine-tuning the Medusa heads (Medusa-1 which we’ll
     go into below more), this did not work well when fine-tuning the entire new model.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然这种方法在微调Medusa头部（我们将在下文详细介绍Medusa-1）时效果很好，但在微调整个新模型时效果不佳。
 - en: This degradation implied that the ground-truth was not enough information to
     retrain the model with and still retain high performance. Instead, they rewrote
     the loss function so that it used the probability distributions as the ground-truth.
     This required reformulating their loss function like the below.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种退化意味着地面真值信息不足以重新训练模型并保持高性能。相反，他们重新编写了损失函数，使其使用概率分布作为地面真值。这要求他们像下面这样重新制定损失函数。
 - en: '![](../Images/5ef892782a996461022896502732195a.png)'
+  id: totrans-55
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5ef892782a996461022896502732195a.png)'
 - en: Loss Equation for the new model [from the paper](https://arxiv.org/pdf/2401.10774)
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 新模型的损失方程 [来自论文](https://arxiv.org/pdf/2401.10774)
 - en: To briefly explain, we’re using Kullback–Leibler divergence (KL) to measure
     the difference between the original probability distribution for a token and the
     new probability distribution (t[o learn more about KL, there is a wonderful post
     by Aparna Dhinakaran on the topic](/understanding-kl-divergence-f3ddc8dff254)).
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 简单来说，我们使用Kullback–Leibler散度（KL）来衡量一个标记的原始概率分布与新的概率分布之间的差异（想了解更多关于KL的信息，可以阅读[Aparna
+    Dhinakaran关于该主题的精彩文章](/understanding-kl-divergence-f3ddc8dff254)）。
 - en: This formulation, however, requires that we maintain the probabilities of both
     the original and the new model — which is both storage and memory intensive. To
     reduce our consumption, the authors recommend using LoRA to fine-tune, as this
     naturally maintains the original weights and the additional weights [(to learn
     more about LoRA check out my blog post on the topic)](/understanding-low-rank-adaptation-lora-in-fine-tuning-llms-d3dd283f1f0a).
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，这种形式化要求我们同时保持原始模型和新模型的概率分布——这既占用存储空间又消耗内存。为了减少我们的消耗，作者建议使用LoRA进行微调，因为它自然地保持了原始权重和额外的权重[(想了解更多关于LoRA的信息，可以查看我关于该主题的博客文章)](/understanding-low-rank-adaptation-lora-in-fine-tuning-llms-d3dd283f1f0a)。
 - en: Training Medusa
+  id: totrans-59
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 训练Medusa
 - en: Now that we have the data, we can begin to fine-tune!
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了数据，可以开始微调了！
 - en: 'As we’ve seen, Medusa requires adding additional parameters to the model to
     allow this to work, which we’ll have to train. To reduce the amount of computations
     (and thus training cost) required, the authors introduced two forms of fine-tuning
     for Medusa: Medusa-1 and Medusa-2.'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们所看到的，Medusa需要向模型中添加额外的参数以使其生效，而这些参数是需要我们训练的。为了减少所需的计算量（从而减少训练成本），作者提出了两种Medusa微调方法：Medusa-1和Medusa-2。
 - en: Medusa-1
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Medusa-1
 - en: Medusa-1 involves freezing all of the weights in the model except for the ones
     in the Medusa heads. By only running the gradient through the Medusa heads we
     don’t worry about reducing the performance of the original model (it remains the
     same), and we can increase the performance of the Medusa heads. The loss function
     below shows how they match the correct ground-truth token to the correct Medusa
     head.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: Medusa-1涉及冻结模型中除了Medusa头部以外的所有权重。通过仅将梯度传递通过Medusa头部，我们不必担心降低原始模型的性能（它保持不变），并且可以提高Medusa头部的性能。下面的损失函数展示了他们如何将正确的地面真值标记与正确的Medusa头部匹配。
 - en: '![](../Images/53112499061ce92bc706b1a07397b449.png)'
+  id: totrans-64
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/53112499061ce92bc706b1a07397b449.png)'
 - en: Equation 1 [from the paper](https://arxiv.org/pdf/2401.10774)
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 方程1 [来自论文](https://arxiv.org/pdf/2401.10774)
 - en: Medusa-1’s focus on only the additional Medusa weights means that it is more
     cost-effective than Medusa-2 (which we’ll dive into in a moment). For people who
     are price-sensitive with training, the authors recommend using a quantized backbone
     model to further reduce memory requirements along with using the Quantized Low
     Rank Adaptation (QLoRA) fine-tuning methodology to further reduce costs.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: Medusa-1专注于仅调整额外的Medusa权重，这意味着它比Medusa-2更具成本效益（我们稍后将详细讨论）。对于对训练成本敏感的人，作者建议使用量化的骨干模型进一步减少内存需求，并结合使用量化低秩适应（QLoRA）微调方法进一步降低成本。
 - en: Medusa-2
+  id: totrans-67
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Medusa-2
 - en: While Medusa-1 is more cost-effective, the best performance still comes when
     we update all of the weights in the model to account for the new Medusa heads
     we’ve added. Interestingly, this was not as straight-forward as simply doing LoRA
     with the gradient passing to all of the weights (rather than just the Medusa weights).
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管Medusa-1更具成本效益，但最佳性能仍然来自于更新模型中的所有权重，以考虑我们添加的新Medusa头部。有趣的是，这并不像简单地进行LoRA微调那样直接，因为梯度需要传递到所有权重（而不仅仅是Medusa权重）。
 - en: Instead, the authors first ran Medusa-1 to get the Medusa weights to a reasonable
     performance. Then they chose separate learning rates for the Medusa weights and
     the backbone model weights. Logically, this was done because the backbone weights
@@ -356,29 +504,43 @@
     (denoted *Llm*) with the Medusa-1 loss function scaled by a value *λ0*. This lambda
     is done to balance the loss so that we do not compute an overly large loss value
     on account of the Medusa heads alone.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实上，作者首先运行了Medusa-1，以使Medusa权重达到合理的性能。然后，他们为Medusa权重和骨干模型权重选择了不同的学习率。从逻辑上讲，之所以这么做，是因为骨干模型的权重可能已经接近所需的位置，而Medusa的权重应该发生更多变化。最后，他们为骨干模型添加了损失函数（表示为*Llm*），同时Medusa-1的损失函数按*λ0*值进行缩放。引入这个lambda值是为了平衡损失，以避免仅因为Medusa头部的缘故而计算出过大的损失值。
 - en: '![](../Images/ae042130c976c1d6ba8103a33fd622c2.png)'
+  id: totrans-70
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ae042130c976c1d6ba8103a33fd622c2.png)'
 - en: Equation 2 [from the paper](https://arxiv.org/pdf/2401.10774)
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 公式2 [来自论文](https://arxiv.org/pdf/2401.10774)
 - en: Closing
+  id: totrans-72
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结语
 - en: '![](../Images/c8a8036c81a9b78d45870e10e64f3d22.png)'
+  id: totrans-73
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c8a8036c81a9b78d45870e10e64f3d22.png)'
 - en: Figure 3 [from the paper](https://arxiv.org/pdf/2401.10774)
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 图3 [来自论文](https://arxiv.org/pdf/2401.10774)
 - en: Using Medusa leads to fairly radical improvements in speed. From the graph above,
     we see that the authors attained between a two to three times speedup for Vicuna
     — a popular open-source LLM.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用Medusa能显著提升速度。从上图可以看出，作者为Vicuna（一款流行的开源LLM）获得了两到三倍的加速。
 - en: Speed is critically important, both on the internet and also on device. As we’ve
     seen more companies push to create local LLMs, methods like Medusa seem critical
     to getting great speed on limited hardware. It would be very interesting to see
@@ -388,26 +550,42 @@
     For developers, this may open the door to running many different kinds of open-source
     models locally — even if they weren’t initially designed for fast inference like
     Phi-3.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 速度在互联网上以及设备上都至关重要。正如我们所看到的，越来越多的公司推动创建本地LLM，像Medusa这样的技术似乎对于在有限硬件上获得优异的速度至关重要。看到像Phi-3这样的小型模型会加速多少将非常有趣（在发布时，Phi-3在A16
+    Bionic iPhone芯片上运行速度为每秒12个token — [更多信息请见我的博客文章](/phi-3-and-the-beginning-of-highly-performant-iphone-models-d413d8ea0714)）。对于开发者来说，这可能为在本地运行各种开源模型打开了大门——即使这些模型最初并未设计为快速推理模型，例如Phi-3。
 - en: Moreover, it would be interesting to run experiments on how much of the forward
     pass’ attention pattern Medusa heads need to increase performance. Right now they
     have very little context but still perform well. With more context, perhaps the
     number of Medusa heads could be increased to achieve even better speed up.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，进行实验来研究Medusa头部在前向传播中的注意力模式对性能提升的影响将是很有趣的。目前它们的上下文非常少，但仍然表现良好。如果有更多的上下文，或许可以增加Medusa头部的数量，从而实现更快的速度提升。
 - en: It’s an exciting time to be building.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是构建的激动人心时刻。
 - en: '[1] Cai, T., et al, [“MEDUSA: Simple LLM Inference Acceleration Framework with
     Multiple Decoding Heads”](https://arxiv.org/pdf/2401.10774) (2024), arXiv'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] Cai, T., 等, [“MEDUSA: 简单的LLM推理加速框架，带有多个解码头”](https://arxiv.org/pdf/2401.10774)
+    (2024), arXiv'
 - en: '[2] Clabaugh, J., [“How long do you wait for a webpage to load?”](https://wtop.com/business-finance/2022/02/how-long-do-you-wait-for-a-web-page-to-load/)
     (2022), wtop'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] Clabaugh, J., [“你会等待多长时间一个网页加载完？”](https://wtop.com/business-finance/2022/02/how-long-do-you-wait-for-a-web-page-to-load/)
+    (2022), wtop'
 - en: '[3] Das, S., [“How fast should a website load in 2023?”](https://www.browserstack.com/guide/how-fast-should-a-website-load)
     (2023), BrowserStack'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] Das, S., [“2023年，一个网站应该多久加载完成？”](https://www.browserstack.com/guide/how-fast-should-a-website-load)
+    (2023), BrowserStack'

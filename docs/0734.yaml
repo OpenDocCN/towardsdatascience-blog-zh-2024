@@ -1,34 +1,54 @@
 - en: Building a Biomedical Entity Linker with LLMs
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 LLM 构建生物医学实体链接器
 - en: 原文：[https://towardsdatascience.com/building-a-biomedical-entity-linker-with-llms-d385cb85c15a?source=collection_archive---------1-----------------------#2024-03-19](https://towardsdatascience.com/building-a-biomedical-entity-linker-with-llms-d385cb85c15a?source=collection_archive---------1-----------------------#2024-03-19)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/building-a-biomedical-entity-linker-with-llms-d385cb85c15a?source=collection_archive---------1-----------------------#2024-03-19](https://towardsdatascience.com/building-a-biomedical-entity-linker-with-llms-d385cb85c15a?source=collection_archive---------1-----------------------#2024-03-19)
 - en: How can an LLM be applied effectively for biomedical entity linking?
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何有效地将 LLM 应用于生物医学实体链接？
 - en: '[](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)[![Anand
     Subramanian](../Images/096dc5504d6ada2493e0ac26959e60f0.png)](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------)
     [Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)[![Anand
+    Subramanian](../Images/096dc5504d6ada2493e0ac26959e60f0.png)](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------)
+    [Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------)
     ·26 min read·Mar 19, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------)
+    ·阅读时长 26 分钟·2024年3月19日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/0d4e8f951e2ffc6a22bf4f64e0b63818.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0d4e8f951e2ffc6a22bf4f64e0b63818.png)'
 - en: Photo by [Alina Grubnyak](https://unsplash.com/@alinnnaaaa) on [Unsplash](https://unsplash.com/photos/low-angle-photography-of-metal-structure-ZiQkhI7417A)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[Alina Grubnyak](https://unsplash.com/@alinnnaaaa) 于 [Unsplash](https://unsplash.com/photos/low-angle-photography-of-metal-structure-ZiQkhI7417A)
 - en: Biomedical text is a catch-all term that broadly encompasses documents such
     as research articles, clinical trial reports, and patient records, serving as
     rich repositories of information about various biological, medical, and scientific
@@ -38,8 +58,10 @@
     of new medications or treatments. Meanwhile, patient records contain comprehensive
     medical histories, diagnoses, treatment plans, and outcomes recorded by physicians
     and healthcare professionals.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 生物医学文本是一个广泛的术语，通常包括如研究文章、临床试验报告和病人记录等文档，作为关于各种生物学、医学和科学概念的丰富信息库。生物医学领域的研究论文展示了药物发现、药物副作用和新疾病治疗等领域的突破性进展。临床试验报告提供了有关新药物或治疗方法的安全性、有效性和副作用的详细信息。同时，病历记录包含医生和医疗专业人员记录的全面的病史、诊断、治疗方案和治疗结果。
 - en: Mining these texts allows practitioners to extract valuable insights, which
     can be beneficial for various downstream tasks. You could mine text to identify
     adverse drug reactions, build automated medical coding algorithms or implement
@@ -56,64 +78,94 @@
     concept, these variations make it difficult for a layman or a text-processing
     algorithm to determine whether they refer to the same concept. Thus, **Entity
     Linking** becomes crucial in this situation.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 对这些文本进行挖掘可以帮助实践者提取有价值的见解，这些见解可以应用于各种下游任务。你可以挖掘文本来识别不良药物反应、构建自动化医学编码算法，或者实现信息检索或问答系统，从庞大的研究文献库中提取信息。然而，影响生物医学文档处理的一个问题是文本通常是非结构化的。例如，研究人员可能使用不同的术语来指代相同的概念。例如，一个研究人员可能称之为**“心脏病发作”**，而另一个研究人员则称之为**“心肌梗死”**。类似地，在与药物相关的文献中，技术名称和常用名称可能会互换使用。例如，**“对乙酰氨基酚”**是某种药物的技术名称，而**“扑热息痛”**则是其更常用的名称。缩写的普遍使用也增加了复杂性；例如，**“一氧化氮”**可能在另一种情况下被称为**“NO”**。尽管这些不同的术语指代相同的概念，但这些变化使得普通人或文本处理算法很难判断它们是否指的是同一个概念。因此，**实体链接**在这种情况下变得尤为重要。
 - en: 'Table of Contents:'
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 目录：
 - en: '[What is Entity Linking?](#558f)'
+  id: totrans-11
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[什么是实体链接？](#558f)'
 - en: '[Where do LLMs come in here?](#9285)'
+  id: totrans-12
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[LLM在这里有什么作用？](#9285)'
 - en: '[Experimental Setup](#5023)'
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[实验设置](#5023)'
 - en: '[Processing the Dataset](#29ad)'
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[处理数据集](#29ad)'
 - en: '[Zero-Shot Entity Linking using the LLM](#5925)'
+  id: totrans-15
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[使用LLM进行零样本实体链接](#5925)'
 - en: '[LLM with Retrieval Augmented Generation for Entity Linking](#1299)'
+  id: totrans-16
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[使用带有检索增强生成的LLM进行实体链接](#1299)'
 - en: '[Zero-Shot Entity Extraction with the LLM and an External KB Linker](#8d3c)'
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[使用LLM和外部知识库链接器进行零样本实体提取](#8d3c)'
 - en: '[Fine-tuned Entity Extraction with the LLM and an External KB Linker](#274a)'
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[使用LLM和外部知识库链接器进行微调实体提取](#274a)'
 - en: '[Benchmarking Scispacy](#63d3)'
+  id: totrans-19
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[Scispacy基准测试](#63d3)'
 - en: '[Takeaways](#7e94)'
+  id: totrans-20
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[关键要点](#7e94)'
 - en: '[Limitations](#8e52)'
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[局限性](#8e52)'
 - en: '[References](#fb75)'
+  id: totrans-22
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[参考文献](#fb75)'
 - en: What is Entity Linking?
+  id: totrans-23
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 什么是实体链接？
 - en: When text is unstructured, accurately identifying and standardizing medical
     concepts becomes crucial. To achieve this, medical terminology systems such as
     **Unified Medical Language System (UMLS)** [1], **Systematized Medical Nomenclature
@@ -121,8 +173,10 @@
     (MeSH)** [3] play an essential role. These systems provide a comprehensive and
     standardized set of medical concepts, each uniquely identified by an alphanumeric
     code.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 当文本是非结构化时，准确识别和标准化医学概念变得至关重要。为了实现这一点，医学术语系统，如**统一医学语言系统（UMLS）**[1]、**医学临床术语系统化命名（SNOMED-CT）**[2]和**医学主题词表（MeSH）**[3]，在其中扮演着重要角色。这些系统提供了一套全面且标准化的医学概念，每个概念都由一个字母数字代码唯一标识。
 - en: Entity linking involves recognizing and extracting entities within the text
     and mapping them to standardized concepts in a large terminology. In this context,
     a **Knowledge Base (KB)** refers to a detailed database containing standardized
@@ -130,18 +184,25 @@
     and drugs. Typically, a KB is expert-curated and designed, containing detailed
     information about the concepts, including variations of the terms that could be
     used to refer to the concept, or how it is related to other concepts.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 实体链接涉及在文本中识别和提取实体，并将它们映射到大型术语库中的标准化概念。在此上下文中，**知识库（KB）**指的是一个详细的数据库，包含与术语库相关的标准化信息和概念，如医学术语、疾病和药物。通常，知识库由专家策划和设计，包含关于概念的详细信息，包括可能用来指代该概念的术语变体，或该概念与其他概念的关系。
 - en: '![](../Images/2d49dc0785ee698265fce0c8c4a29456.png)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2d49dc0785ee698265fce0c8c4a29456.png)'
 - en: An overview of the Entity Recognition and Linking Pipeline. The entities are
     first parsed from the text, and then each entity is linked to a Knowledge Base
     to obtain their corresponding identifiers. The knowledge base considered in this
     example is MeSH Terminology. The example text is taken from the BioCreative V
     CDR Corpus [4,5,6,7,8] (Image by Author)
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 实体识别与链接管道概述。实体首先从文本中解析出来，然后将每个实体链接到知识库，以获取它们对应的标识符。本例中考虑的知识库是MeSH术语。示例文本来自BioCreative
+    V CDR语料库[4,5,6,7,8]（图像来自作者）。
 - en: Entity recognition entails extracting words or phrases that are significant
     in the context of our task. In this context, it usually refers to extraction of
     biomedical terms such as drugs, diseases etc. Typically, lookup-based methods
@@ -151,77 +212,107 @@
     likely identifiers from the KB. The retriever here is also an abstraction, which
     may be sparse (BM-25), dense (embedding-based), or even a generative system (like
     a Large Language Model, (LLM)) that has encoded the KB in its parameters.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 实体识别涉及提取在我们任务上下文中重要的单词或短语。在这个上下文中，通常指的是提取生物医学术语，如药物、疾病等。通常，基于查找的方法或基于机器学习/深度学习的系统常用于实体识别。将实体链接到知识库通常需要一个检索系统，该系统对知识库进行索引。该系统从前一步中提取每个实体，并从知识库中检索可能的标识符。这里的检索器也是一种抽象，可能是稀疏的（BM-25）、密集的（基于嵌入的）或甚至是生成性的系统（如大型语言模型（LLM）），它将知识库编码在其参数中。
 - en: Where do LLMs come in here?
+  id: totrans-29
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: LLM在这里的作用是什么？
 - en: 'I’ve been curious for a while about the best ways to integrate LLMs into biomedical
     and clinical text-processing pipelines. Given that Entity Linking is an important
     part of such pipelines, I decided to explore how best LLMs can be utilized for
     this task. Specifically I investigated the following setups:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 我一直很好奇如何将LLM集成到生物医学和临床文本处理管道中。鉴于实体链接是这类管道的重要组成部分，我决定探索LLM如何最好地应用于这个任务。具体来说，我研究了以下几种设置：
 - en: '**Zero-Shot Entity Linking with an LLM:** Leveraging an LLM to directly identify
     all entities and concept IDs from input biomedical texts without any fine-tuning.'
+  id: totrans-31
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**零-shot实体链接与LLM：** 利用LLM直接从输入的生物医学文本中识别所有实体和概念ID，而无需任何微调。'
 - en: '**LLM with Retrieval Augmented Generation (RAG)**: Utilizing the LLM within
     a RAG framework by injecting information about relevant concept IDs in the prompt
     for entity linking.'
+  id: totrans-32
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**LLM与检索增强生成（RAG）：** 在RAG框架中使用LLM，通过在提示中注入有关相关概念ID的信息来进行实体链接。'
 - en: '**Zero-Shot Entity Extraction with LLM with an External KB Linker**: Employing
     the LLM for zero-shot entity extraction from biomedical texts, with an external
     linker/retriever for mapping the entities to concept IDs.'
+  id: totrans-33
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**使用外部知识库链接器的零-shot实体提取：** 利用LLM从生物医学文本中进行零-shot实体提取，并使用外部链接器/检索器将实体映射到概念ID。'
 - en: '**Fine-tuned Entity Extraction with an External KB Linker:** Finetuning the
     LLM first on the entity extraction task, and using it as an entity extractor with
     an external linker/retriever for mapping the entities to concept IDs.'
+  id: totrans-34
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**与外部知识库链接器的微调实体提取：** 首先对LLM进行实体提取任务的微调，并将其用作实体提取器，与外部链接器/检索器结合，将实体映射到概念ID。'
 - en: '**Comparison with an existing pipeline:** How do these methods fare comparted
     to Scispacy, a commonly used library for biomedical text processing?'
+  id: totrans-35
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**与现有管道的比较：** 与用于生物医学文本处理的常用库Scispacy相比，这些方法表现如何？'
 - en: Experimental Setup
+  id: totrans-36
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实验设置
 - en: All code and resources related to this article are made available at [this Github
     repository](https://github.com/anand-subu/blog_resources), under the entity_linking
     folder. Feel free to pull the repository and run the notebooks directly to run
     these experiments. Please let me know if you have any feedback or observations
     or if you notice any mistakes!
+  id: totrans-37
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 与本文相关的所有代码和资源都可以在[此Github仓库](https://github.com/anand-subu/blog_resources)的entity_linking文件夹中找到。欢迎拉取仓库并直接运行笔记本，以进行这些实验。如果您有任何反馈或观察，或者发现任何错误，请告诉我！
 - en: 'To conduct these experiments, we utilize the [Mistral-7B Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)
     [9] as our LLM. For the medical terminology to link entities against, we utilize
     the MeSH terminology. To quote the [National Library of Medicine website](https://www.nlm.nih.gov/mesh/meshhome.html):'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了进行这些实验，我们利用 [Mistral-7B Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)
+    [9] 作为我们的 LLM。为了将医学术语与实体进行链接，我们使用 MeSH 术语。引用 [美国国家医学图书馆网站](https://www.nlm.nih.gov/mesh/meshhome.html)
+    的话：
 - en: “The Medical Subject Headings (MeSH) thesaurus is a controlled and hierarchically-organized
     vocabulary produced by the National Library of Medicine. It is used for indexing,
     cataloging, and searching of biomedical and health-related information.”
+  id: totrans-39
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “医学主题词表（MeSH）是由美国国家医学图书馆（National Library of Medicine）制作的一个受控且层级组织的词汇表，用于对生物医学和健康相关信息进行索引、目录编制和检索。”
 - en: We utilize the BioCreative-V-CDR-Corpus [4,5,6,7,8] for evaluation. This dataset
     contains annotations of disease and chemical entities, along with their corresponding
     MeSH IDs. For evaluation purposes, we randomly sample 100 data points from the
     test set. We used a version of the MeSH KB provided by Scispacy [10,11], which
     contains information about the MeSH identifiers, such as definitions and entities
     corresponding to each ID.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用 BioCreative-V-CDR-Corpus [4,5,6,7,8] 进行评估。该数据集包含了疾病和化学实体的标注，以及它们对应的 MeSH
+    ID。为了评估的目的，我们从测试集中随机抽取了 100 个数据点。我们使用了 Scispacy [10,11] 提供的 MeSH 知识库版本，其中包含了 MeSH
+    标识符的信息，例如定义和与每个 ID 对应的实体。
 - en: For performance evaluation, we calculate two metrics. The first metric relates
     to the entity extraction performance. The original dataset contains all mentions
     of entities in the text, annotated at the substring level. A strict evaluation
@@ -229,47 +320,72 @@
     we simplify this process for easier evaluation; we lower-case and de-duplicate
     the entities in the ground truth. We then calculated the Precision, Recall and
     F1 score for each instance and calculate the macro-average for each metric.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了评估性能，我们计算两个指标。第一个指标与实体提取性能相关。原始数据集包含文本中所有实体的提及，并在子字符串级别进行标注。严格的评估会检查算法是否输出了所有实体的所有出现。然而，我们简化了这个过程以便于评估；我们将实体在真实标签中的大小写转换为小写并去重。然后，我们为每个实例计算精确度、召回率和
+    F1 得分，并计算每个指标的宏平均值。
 - en: Suppose you have a set of actual entities, `ground_truth`, and a set of entities
     predicted by a model, `pred` for each input text. The **true positives** `TP`
     can be determined by identifying the common elements between `pred` and `ground_truth`,
     essentially by calculating the intersection of these two sets.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你有一组实际实体，`ground_truth`，以及一个模型为每个输入文本预测的实体集，`pred`。**真正例** `TP` 可以通过识别 `pred`
+    和 `ground_truth` 之间的共同元素来确定，实际上就是计算这两个集合的交集。
 - en: 'For each input, we can then calculate:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个输入，我们可以计算：
 - en: '`precision = len(TP)/ len(pred)` ,'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '`precision = len(TP)/ len(pred)`，'
 - en: '`recall = len(TP) / len(ground_truth)` and'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '`recall = len(TP) / len(ground_truth)` 和'
 - en: '`f1 = 2 * precision * recall / (precision + recall)`'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '`f1 = 2 * precision * recall / (precision + recall)`'
 - en: and finally calculate the macro-average for each metric by summing them all
     up and dividing by the number of datapoints in our test set.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，通过将所有指标加总并除以测试集中的数据点数，我们可以计算每个指标的宏平均值。
 - en: For evaluating the overall entity linking performance, we again calculate the
     same metrics. In this case, for each input datapoint, we have a set of tuples,
     where each tuple is a `(entity, mesh_id)` pair. The metrics are otherwise calculated
     the same way.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了评估整体实体链接性能，我们再次计算相同的指标。在这种情况下，对于每个输入数据点，我们有一组元组，其中每个元组是一个 `(entity, mesh_id)`
+    对。其他指标的计算方式相同。
 - en: Processing the Dataset
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 处理数据集
 - en: Right, let’s kick off things by first defining some helper functions for processing
     our dataset.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，让我们先从定义一些用于处理数据集的辅助函数开始。
 - en: '[PRE0]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: We first parse the dataset from the text files provided in the original dataset.
     The original dataset includes the title, abstract, and all entities annotated
     with their entity type (Disease or Chemical), their substring indices indicating
@@ -279,12 +395,17 @@
     entity name and MeSH ID. At this stage, we only de-duplicate in a case-sensitive
     manner, meaning if the same entity appears in both lower and upper case across
     the document, we retain both instances in our processing so far.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先解析原始数据集中提供的文本文件中的数据集。原始数据集包括标题、摘要，以及所有标注的实体和它们的实体类型（疾病或化学物质）、它们在文本中的准确位置的子字符串索引，以及它们的MeSH
+    ID。在处理我们的数据集时，我们进行了一些简化。我们忽略了子字符串索引和实体类型。此外，我们去重了具有相同实体名称和MeSH ID的标注。在这一阶段，我们仅进行区分大小写的去重处理，这意味着如果同一实体在文档中同时以大小写不同的形式出现，我们目前的处理方式会保留这两个实例。
 - en: '**Zero-Shot Entity Linking using the LLM**'
+  id: totrans-53
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**使用LLM进行零-shot实体链接**'
 - en: First, we aim to determine whether the LLM already possesses an understanding
     of MeSH terminology due to its pre-training, and if it can function as a zero-shot
     entity linker. By zero-shot, we mean the LLM’s capability to directly link entities
@@ -296,8 +417,11 @@
     it is unlikely that this alone would enable the model to perform zero-shot entity
     linking effectively, due to the complexity of biomedical terminology and the precision
     required for accurate entity linking.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们旨在确定LLM是否由于其预训练而已经具备了MeSH术语的理解，以及它是否能够作为零-shot实体链接器。所谓零-shot，指的是LLM基于其内在知识，在没有依赖外部知识库链接器的情况下，直接将实体链接到其MeSH
+    ID。这个假设并不完全不现实，因为MeSH相关的信息在网上是可以找到的，这意味着模型在预训练阶段可能接触过MeSH相关的信息。然而，即使LLM在训练时包含了这些信息，仅凭这些信息也不太可能使模型有效地执行零-shot实体链接，因为生物医学术语的复杂性和进行准确实体链接所需的精确性都非常高。
 - en: 'To evaluate this, we provide the input text to the LLM and directly prompt
     it to predict the entities and corresponding MeSH IDs. Additionally, we create
     a few-shot prompt by sampling three data points from the training dataset. It
@@ -305,40 +429,61 @@
     here: “zero-shot” refers to the LLM as a whole performing entity linking without
     prior specific training on this task, while “few-shot” refers to the prompting
     strategy employed in this context.'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了评估这一点，我们将输入文本提供给LLM，并直接提示它预测实体及其对应的MeSH ID。此外，我们通过从训练数据集中抽取三个数据点来创建一个few-shot提示。需要澄清的是，这里“zero-shot”和“few-shot”的使用有所区别：“zero-shot”指的是LLM在没有针对这一任务的特定训练的情况下进行实体链接，而“few-shot”指的是在该上下文中采用的提示策略。
 - en: '![](../Images/fd42fe12a7a1f7a02ab36a6869cb6304.png)'
+  id: totrans-56
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fd42fe12a7a1f7a02ab36a6869cb6304.png)'
 - en: LLM as a Zero-Shot Entity Linker (Image by Author)
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: LLM作为零-shot实体链接器（图像由作者提供）
 - en: 'To calculate our metrics, we define functions for evaluating the performance:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了计算我们的指标，我们定义了评估性能的函数：
 - en: '[PRE1]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Let’s now run the model and get our predictions:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们运行模型并获取预测结果：
 - en: '[PRE2]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: At the entity extraction level, the LLM performs quite well, considering it
     has not been explicitly fine-tuned for this task. However, its performance as
     a zero-shot linker is quite poor, with an overall performance of less than 1%.
     This outcome is intuitive, though, because the output space for MeSH labels is
     vast, and it is a hard task to exactly map entities to a specific MeSH ID.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实体提取层面，考虑到LLM并未专门为此任务进行显式微调，其表现相当不错。然而，作为零-shot链接器，它的表现非常差，整体表现低于1%。这个结果是直观的，因为MeSH标签的输出空间非常庞大，将实体精确映射到特定的MeSH
+    ID是一项艰巨的任务。
 - en: Zero-Shot Entity Extraction and Entity Linking Scores
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 零-shot实体提取与实体链接得分
 - en: '**LLM with Retrieval Augmented Generation for Entity Linking**'
+  id: totrans-64
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**使用检索增强生成的LLM进行实体链接**'
 - en: Retrieval Augmented Generation (RAG) [12] refers to a framework that combines
     LLMs with an external KB equipped with a querying function, such as a retriever/linker.
     For each incoming query, the system first retrieves knowledge relevant to the
@@ -347,77 +492,115 @@
     the task. This approach is based on the understanding that LLMs may not have all
     the necessary knowledge or information to answer an incoming query effectively.
     Thus, knowledge is injected into the model by querying an external knowledge source.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 检索增强生成（RAG）[12] 指的是一种将 LLM 与外部知识库（KB）结合的框架，该知识库配备了查询功能，如检索器/链接器。对于每个输入查询，系统首先使用查询功能从
+    KB 中检索与查询相关的知识。然后，系统将检索到的知识与查询结合，将这个合并后的提示提供给 LLM 来执行任务。这种方法基于这样一个理解：LLM 可能没有所有必要的知识或信息来有效地回答输入查询。因此，知识通过查询外部知识源注入到模型中。
 - en: 'Using a RAG framework can offer several advantages:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 RAG 框架可以提供几个优势：
 - en: An existing LLM can be utilized for a new domain or task **without the need
     for domain-specific fine-tuning**, as the relevant information can be queried
     and provided to the model through a prompt.
+  id: totrans-67
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现有的 LLM 可以用于新的领域或任务**而无需领域特定的微调**，因为相关信息可以通过提示查询并提供给模型。
 - en: LLMs can sometimes provide **incorrect answers (hallucinate)** when responding
     to queries. Employing RAG with LLMs can significantly reduce such hallucinations,
     as the answers provided by the LLM **are more likely to be grounded in facts**
     due to the knowledge supplied to it.
+  id: totrans-68
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: LLM 有时在回答查询时可能会提供**不正确的答案（幻想）**。使用 RAG 与 LLM 结合可以显著减少这种幻想，因为 LLM 提供的答案**更有可能基于事实**，这是由于有外部知识的支持。
 - en: Considering that the LLM lacks specific knowledge of MeSH terminologies, we
     investigate whether a RAG setup could enhance performance. In this approach, for
     each input paragraph, we utilize a BM-25 retriever to query the KB. For each MeSH
     ID, we have access to a general description of the ID and the entity names associated
     with it. After retrieval, we inject this information to the model through the
     prompt for entity linking.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑到 LLM 对 MeSH 术语缺乏特定的知识，我们研究 RAG 设置是否能提高性能。在这种方法中，对于每个输入段落，我们使用 BM-25 检索器查询知识库（KB）。对于每个
+    MeSH ID，我们可以访问该 ID 的一般描述和与之相关的实体名称。检索后，我们通过提示将这些信息注入模型，以进行实体链接。
 - en: To investigate the effect of the number of retrieved IDs provided as context
     to the model on the entity linking process, we run this setup by providing top
     10, 30 and 50 documents to the model and quantify its performance on entity extraction
     and MeSH concept identification.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了研究提供给模型的检索到的 ID 数量对实体链接过程的影响，我们运行此设置，提供前 10、30 和 50 个文档给模型，并量化其在实体提取和 MeSH
+    概念识别上的表现。
 - en: '![](../Images/d148dffe6caaa1a993320d088efbe29e.png)'
+  id: totrans-71
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d148dffe6caaa1a993320d088efbe29e.png)'
 - en: LLM with RAG as an Entity Linker (Image by Author)
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 具有 RAG 的 LLM 作为实体链接器（图示由作者提供）
 - en: 'Let’s first define our BM-25 Retriever:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们定义我们的 BM-25 检索器：
 - en: '[PRE3]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: We now process our KB file and create a BM-25 retriever instance that indexes
     it. While indexing the KB, we index each ID using a concatenation of their description,
     aliases and canonical name.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在处理我们的 KB 文件，并创建一个索引它的 BM-25 检索器实例。在索引 KB 时，我们通过将描述、别名和规范名称连接在一起，对每个 ID 进行索引。
 - en: '[PRE4]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '[PRE5]'
+  id: totrans-77
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '[PRE6]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: In general, the RAG setup improves the overall MeSH Identification process,
     compared to the original zero-shot setup. But what is the impact of the number
     of documents provided as information to the model? We plot the scores as a function
     of the number of retrieved IDs provided to the model as context.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，与原始的零-shot 设置相比，RAG 设置改进了整体的 MeSH 标识过程。但提供给模型的信息文档数量有何影响呢？我们绘制了得分与提供给模型作为上下文的检索到的
+    ID 数量的关系。
 - en: '![](../Images/6ae236d2474983aadfbb5d1e563cb577.png)![](../Images/b3d3431fb1870acf1eb3e99153a7c978.png)'
+  id: totrans-80
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6ae236d2474983aadfbb5d1e563cb577.png)![](../Images/b3d3431fb1870acf1eb3e99153a7c978.png)'
 - en: Plots of Entity Extraction and Entity Linking performance metrics as a function
     of the number of retrieved documents in the RAG setting (Image by Author)
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 RAG 设置中，实体提取和实体链接性能指标随着检索文档数量变化的图表（图示由作者提供）
 - en: We observe interesting trends while investigating the plots. For entity extraction,
     an increase in the number of retrieved documents correlates with a sharp increase
     in macro-precision, reaching a score of slightly higher than 50%. This is nearly
@@ -427,38 +610,53 @@
     documents provided to the model as context improves all metrics significantly
     in the MeSH Identification setting, but has mixed gains in the entity extraction
     setting.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 在研究图表时，我们观察到了一些有趣的趋势。对于实体提取，检索到的文档数量增加与宏观精度的急剧提高相关，宏观精度得分略高于50%。这比模型的零-shot实体提取性能高出近10%。然而，宏观召回率的影响是任务相关的；对于实体提取任务，它保持不变，但对于实体链接任务则有所提高。总体而言，增加提供给模型的文档数量作为上下文，在MeSH标识设置中显著改善了所有指标，但在实体提取设置中效果不一。
 - en: An important limitation to consider in this experiment is the performance of
     the upstream retriever. If the retriever fails to retrieve relevant documents,
     the performance of the LLM will suffer as a consequence because the actual answer
     is not present in the knowledge provided to the model.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个实验中需要考虑的一个重要限制是上游检索器的性能。如果检索器无法检索到相关文档，那么LLM的性能将受到影响，因为模型所提供的知识中并没有实际答案。
 - en: '![](../Images/7295ffa080576fa90975f690981e945d.png)'
+  id: totrans-84
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7295ffa080576fa90975f690981e945d.png)'
 - en: '% of ground truth MeSH IDs present in the MeSH IDs fetched by the retriever
     per input text as a function of total retrieved IDs (Image by Author)'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为输入文本每个MeSH ID被检索器检索到的MeSH ID中的地面真值百分比，作为检索到的ID总数的函数（图片由作者提供）
 - en: To investigate this, we calculated the average % of ground truth MeSH IDs present
     in the MeSH IDs fetched by the retriever per input text. Our findings show that
     the BM-25 retriever manages to retrieve only about 12.6% to 17.7% of the relevant
     MeSH IDs for each input data point on average. The choice of retriever and the
     way we retrieve is therefore a significant performance bottleneck for the RAG
     setup and can potentially be optimized for better performance.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了调查这一点，我们计算了每个输入文本中，检索器所提取的MeSH ID中包含的地面真值MeSH ID的平均百分比。我们的发现表明，BM-25检索器平均只能检索到约12.6%到17.7%的相关MeSH
+    ID。检索器的选择和我们检索的方式因此成为RAG设置中的一个重要性能瓶颈，可能需要优化以提升性能。
 - en: '**Zero-Shot Entity Extraction with the LLM and an External KB Linker**'
+  id: totrans-87
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**LLM与外部知识库连接器的零-shot实体提取**'
 - en: So far, we’ve examined how the LLM performs as a zero-shot entity linker and
     to what extent RAG can enhance its performance. Though RAG improves performance
     compared to the zero-shot setup, there are limitations to this approach.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们已经考察了LLM作为零-shot实体链接器的表现，以及RAG如何提升其性能。尽管与零-shot设置相比，RAG提高了性能，但这种方法也有其局限性。
 - en: 'When using LLMs in a RAG setup, we have kept the knowledge component (KB +
     retriever) **upstream** of the model until now. The retrieval of knowledge in
     the RAG setup is **coarse**, in that we retrieve possible MeSH IDs by querying
@@ -468,73 +666,102 @@
     to be **precise**. This may not seem like a problem at first, because you can
     mitigate this to a certain degree by providing more relevant results as context
     to the model in the RAG setting. However, this has two drawbacks:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 在RAG设置中使用LLM时，我们一直将知识组件（KB + 检索器）**置于模型的上游**。RAG设置中的知识检索是**粗糙的**，即通过查询检索器使用整个生物医学文本来检索可能的MeSH
+    ID。这在一定程度上保证了检索结果的**多样性**，因为获取的结果很可能对应文本中的不同实体，但这些结果的**精确度**较低。起初这似乎并不是问题，因为你可以通过在RAG设置中为模型提供更多相关结果作为上下文来在一定程度上缓解这个问题。然而，这有两个缺点：
 - en: LLMs generally have an upper bound on the context length for processing text.
     The context length of an LLM roughly refers to the maximum number of tokens the
     LLM can take into account (the number of tokens in the prompt) before generating
     new text. This can restrict the amount of knowledge we can provide to the LLM.
+  id: totrans-90
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: LLM通常在处理文本时有一个上下文长度的上限。LLM的上下文长度大致指的是LLM在生成新文本之前，可以考虑的最大标记数量（提示中的标记数）。这可能限制我们能提供给LLM的知识量。
 - en: Let’s assume we have an LLM capable of processing long context lengths. We can
     now retrieve and append more context to the model. Great! However, a longer context
     length may not necessarily correlate with enhanced RAG abilities for the LLM [13].
     Even if you pass a lot of relevant knowledge to the LLM by retrieving more results,
     this does not guarantee that the LLM will accurately extract the correct answer.
+  id: totrans-91
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 假设我们有一个能够处理长上下文长度的LLM。我们现在可以检索并附加更多的上下文到模型中。太棒了！然而，更长的上下文长度不一定与LLM的增强RAG能力相关联[13]。即使你通过检索更多结果将大量相关知识传递给LLM，也不能保证LLM会准确地提取出正确的答案。
 - en: This brings us back to the **traditional pipeline** of entity linking as described
     initially. In this setting, the knowledge component is kept **downstream** to
     the model, where after entity extraction, the entities are provided to an external
     retriever for obtaining the relevant MeSH ID. Provided you have a good entity
     extractor, you can retrieve more precise MeSH IDs.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将我们带回最初描述的**传统管道**的实体链接。在这种设置中，知识组件被保持在模型的**下游**，在实体提取后，实体被提供给外部检索器以获取相关的MeSH
+    ID。只要你有一个好的实体提取器，你就可以检索到更精确的MeSH ID。
 - en: Earlier, we observed in the fully zero-shot setting that, while the LLM was
     poor at predicting the MeSH ID, its entity extraction performance was quite decent.
     We now extract the entities using the Mistral model and provide them to an external
     retriever for fetching the MeSH IDs.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 早些时候，我们在完全零-shot的设置下观察到，虽然LLM在预测MeSH ID时表现较差，但它的实体提取表现相当不错。我们现在使用Mistral模型提取实体，并将其提供给外部检索器以获取MeSH
+    ID。
 - en: '![](../Images/fd74260b6f485d82ec964f16ec94c936.png)'
+  id: totrans-94
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fd74260b6f485d82ec964f16ec94c936.png)'
 - en: Entity Linking with LLM as Entity Extractor and External Retriever (Image by
     Author)
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用LLM作为实体提取器和外部检索器的实体链接（作者提供的图像）
 - en: 'For retrieval here, we again use a BM-25 retriever as our KB linker. However,
     a small change we make here is to index our IDs based on concatenating their canonical
     name and aliases. We re-use the entities extracted from the first zero-shot setup
     for our experiment here. Let’s now evaluate how well this setup performs:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 在此检索中，我们再次使用BM-25检索器作为我们的知识库链接器。然而，我们在这里做的一个小调整是将我们的ID索引基于连接它们的标准名称和别名。我们重新使用在第一次零-shot设置中提取的实体进行本次实验。现在让我们评估一下这个设置的表现如何：
 - en: '[PRE7]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: The performance in this setting significantly improves over the RAG setting
     across all the metrics. We achieve more than 12% improvement in Macro-Precision,
     20% improvement in Macro-Recall and 16% improvement in Macro-F1 scores compared
     to the best RAG setting (retrieval at 50 documents). To **stress the point again**,
     this is more akin to the traditional pipeline of entity extraction where you have
     entity extraction and linking as separate components.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种设置下，性能在所有指标上都明显优于RAG设置。与最佳RAG设置（在50个文档进行检索）相比，我们在宏精度上提高了超过12%，在宏召回率上提高了20%，在宏F1得分上提高了16%。**再次强调**，这更类似于传统的实体提取管道，其中实体提取和链接是分开的组件。
 - en: Zero-Shot LLM Entity Extraction and External Retriever Scores
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: Zero-Shot LLM 实体提取与外部检索器得分
 - en: '**Fine-tuned Entity Extraction with the LLM and an External KB Linker**'
+  id: totrans-100
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**使用LLM和外部知识库链接器的微调实体提取**'
 - en: Until now, we got the best performance by using the LLM as an entity extractor
     within a larger pipeline. However, we did the entity extraction in a zero-shot
     manner. Could we achieve further performance gains by fine-tuning the LLM specifically
     for entity extraction?
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们通过将LLM作为实体提取器放入更大的管道中获得了最佳性能。然而，我们是在零-shot的方式下进行实体提取的。我们是否可以通过特别为实体提取微调LLM来进一步提升性能？
 - en: For fine-tuning, we utilize the training set from the BioCreative V dataset,
     which consists of 500 data points. We employ Q-Lora [14] for fine-tuning our LLM,
     a process that involves quantizing our LLM to 4-bit and freezing it, while fine-tuning
@@ -543,167 +770,239 @@
     LLM, meaning we are fine-tuning significantly fewer weights than if we were to
     fine-tune the entire LLM. It also enables us to fine-tune our model on a single
     GPU.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于微调，我们使用来自BioCreative V数据集的训练集，该数据集包含500个数据点。我们采用Q-Lora [14]来微调我们的LLM，这一过程包括将LLM量化为4位并冻结，同时微调低秩适配器。这种方法通常在参数和内存方面效率较高，因为适配器的权重仅占原始LLM的极小一部分，意味着我们微调的权重要远少于微调整个LLM的情况。它还使我们能够在单个GPU上微调模型。
 - en: Let’s implement the fine-tuning component. For this part, I referred to and
     modified [Niels Rogge’s notebook on fine-tuning a Mistral Model with Q-Lora](https://github.com/NielsRogge/Transformers-Tutorials/blob/master/Mistral/Supervised_fine_tuning_(SFT)_of_an_LLM_using_Hugging_Face_tooling.ipynb),
     with the modifications mostly around correctly preparing and processing the dataset.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们实现微调组件。对于这部分，我参考并修改了[Niels Rogge关于使用Q-Lora微调Mistral模型的笔记本](https://github.com/NielsRogge/Transformers-Tutorials/blob/master/Mistral/Supervised_fine_tuning_(SFT)_of_an_LLM_using_Hugging_Face_tooling.ipynb)，修改内容主要集中在正确准备和处理数据集。
 - en: '[PRE8]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'We now load the tokenizer and set the appropriate parameters:'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们加载分词器并设置适当的参数：
 - en: '[PRE9]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Let’s now prepare and format our dataset properly. We define the prompts for
     our model and format our datasets in the expected chat template.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们准备并正确格式化我们的数据集。我们为模型定义提示，并将数据集格式化为预期的聊天模板。
 - en: '[PRE10]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Let’s now define the appropriate configs for fine-tuning our model. We define
     the configuration for quantizing the LLM:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们为微调模型定义适当的配置。我们为量化LLM定义配置：
 - en: '[PRE11]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'Now, we are all-set to finetune our model:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们已经准备好微调我们的模型：
 - en: '[PRE12]'
+  id: totrans-112
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'Now that we’ve completed the fine-tuning process, let’s now utilize the model
     for inference and obtain the performance metrics:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 微调过程完成后，我们现在利用模型进行推理并获得性能指标：
 - en: '[PRE13]'
+  id: totrans-114
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: This setup is exactly similar to the previous setup in that we continue to use
     the LLM as an entity extractor, and an external retriever for linking each entity
     to the MeSH ID. Fine-tuning the model leads to significant improvements across
     entity extraction and linking.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个设置与之前的设置完全相同，仍然使用LLM作为实体提取器，外部检索器用于将每个实体链接到MeSH ID。微调模型带来了实体提取和链接方面的显著改进。
 - en: Compared to zero-shot entity extraction, fine-tuning improves all metrics by
     a factor of upto or more than 20%. Similarly, entity linking is also improved
     by a factor of around 12–14% across all metrics compared to the previous setting.
     These are not surprising takeaways though, as a task-specific model is expected
     to perform much better than the zero-shot setup. Still it’s nice to quantify these
     improvements concretely!
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 与零-shot实体提取相比，微调在所有指标上提高了最多或超过20%。类似地，与之前的设置相比，实体链接也在所有指标上提高了约12%至14%。这些结果并不令人惊讶，因为任务特定的模型预计会比零-shot设置表现更好。尽管如此，将这些改进量化出来仍然令人高兴！
 - en: Fine-tuned LLM as Entity Extractor and External Retriever Scores
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 微调的LLM作为实体提取器和外部检索器得分
 - en: Benchmarking Scispacy
+  id: totrans-119
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Scispacy基准测试
 - en: How does this implementation compare with an existing tool that can perform
     entity linking? Scispacy is a common work-horse for biomedical and clinical text
     processing, and provides features for entity extraction and entity linking. Specifically,
     Scispacy also provides a functionality to link entities to the MeSH KB, which
     is the file we also use as the KB originally for our LLM experiments. Let’s benchmark
     the performance of Scispacy on our test set for comparison with our LLM experiments.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个实现与现有的可以执行实体链接的工具相比如何？Scispacy是生物医学和临床文本处理中常用的工具，提供了实体提取和实体链接功能。特别地，Scispacy还提供了一种将实体链接到MeSH知识库的功能，而这个文件也是我们原始LLM实验中使用的知识库。让我们在我们的测试集上基准测试Scispacy的性能，并与我们的LLM实验进行比较。
 - en: 'We use the “**en_ner_bc5cdr_md**” [15] in Scispacy as the entity extraction
     module, as this model has been specifically trained on the BioCreative V dataset.
     Let’s evaluate the performance:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用Scispacy中的“**en_ner_bc5cdr_md**” [15]作为实体提取模块，因为该模型是专门在BioCreative V数据集上训练的。让我们评估其性能：
 - en: '[PRE15]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '[PRE16]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Scispacy evaluation scores
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: Scispacy评估得分
 - en: Scispacy outperforms the fine-tuned LLM on entity extraction by a factor of
     10% across all metrics, and by a factor of 14–20% on entity linking! For the task
     of biomedical entity extraction and linking, Scispacy remains a robust tool.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: Scispacy在实体提取方面比微调后的LLM提高了10%的得分，实体链接方面提高了14%到20%！对于生物医学实体提取和链接任务，Scispacy仍然是一个强大的工具。
 - en: Takeaways
+  id: totrans-126
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 重点总结
 - en: '![](../Images/c719dd37db7371d0764e5c9e4843dc01.png)'
+  id: totrans-127
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c719dd37db7371d0764e5c9e4843dc01.png)'
 - en: Macro-F1 Scores of Entity Extraction and Entity Linking across all setups
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 在所有设置下，实体提取和实体链接的宏F1得分
 - en: Having come to the end of our experiments, what are the concrete takeaways from
     them?
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 实验结束时，我们可以从中得到哪些具体的收获？
 - en: '**Strengths in Zero-Shot Entity Extraction:** Mistral-Instruct is a decent
     zero-shot entity extractor for biomedical text. While its parametric knowledge
     is not sufficient for performing zero-shot MeSH entity linking, we leverage it
     as an entity extractor in conjunction with an external KB retriever in our experiments
     to get much better performance.'
+  id: totrans-130
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**零-shot实体提取的优势：** Mistral-Instruct是一个不错的生物医学文本零-shot实体提取器。尽管它的参数化知识不足以进行零-shot的MeSH实体链接，但我们在实验中将其与外部KB检索器结合使用，作为实体提取器，从而获得了更好的性能。'
 - en: '**RAG’s Improvement over Zero-Shot Prediction:** The LLM in a RAG setup demonstrates
     an improvement over a purely zero-shot approach for entity linking. However, the
     retriever component within a RAG setup can be a significant bottleneck, as in
     our case, the BM-25 retriever only manages to retrieve around 12–17% of relevant
     IDs per data point. This suggests a need for more effective retrieval methods.'
+  id: totrans-131
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**RAG在零-shot预测上的改进：** 在RAG设置中，LLM在实体链接方面相比纯粹的零-shot方法表现出了一定的改进。然而，RAG设置中的检索器组件可能是一个显著的瓶颈，正如我们在案例中所看到的，BM-25检索器每个数据点只能检索到大约12-17%的相关ID。这表明需要更有效的检索方法。'
 - en: '**Pipelined extraction provides the best performance:** Given the capabilities
     of the LLM as an entity extractor, the best performance is achieved when leveraging
     these capabilities within a larger pipeline that includes an external retriever
     to link entities to the MeSH knowledge base (KB). This is identical to the traditional
     setting, where entity extraction and KB-linking are kept as separate modules.'
+  id: totrans-132
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**流水线提取提供最佳性能：** 鉴于LLM作为实体提取器的能力，当将这些能力与包含外部检索器以将实体链接到MeSH知识库（KB）的更大管道结合时，可以实现最佳性能。这与传统设置相同，其中实体提取和KB链接保持为独立模块。'
 - en: '**Benefits of Fine-Tuning:** Fine-tuning the LLM using QLora for the entity
     extraction task leads to significant performance improvements on entity extraction
     and entity linking when used in tandem with an external retriever.'
+  id: totrans-133
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**微调的好处：** 使用QLora对LLM进行微调以进行实体提取任务，可以显著提高实体提取和实体链接的性能，尤其是与外部检索器一起使用时。'
 - en: '**Scispacy performs the best**: Scispacy outperforms all LLM-based methods
     for entity linking tasks in our experiments. For biomedical text processing, Scispacy
     remains a robust tool. It also requires less computational power for running compared
     to an LLM, which needs a good GPU for fast inference. In contrast, Scispacy only
     requires a good CPU.'
+  id: totrans-134
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**Scispacy表现最佳：** 在我们的实验中，Scispacy在实体链接任务上优于所有基于LLM的方法。在生物医学文本处理方面，Scispacy依然是一款强大的工具。与需要良好GPU进行快速推理的LLM相比，它还需要较少的计算资源。相比之下，Scispacy只需要一台好的CPU。'
 - en: '**Opportunities for Optimization:** Our current implementations of LLM-based
     pipelines for entity linking are quite naive with substantial room for improvement.
     Some areas that could benefit from optimization include the choice of retrieval
     and the retrieval logic itself. Fine-tuning the LLM with more data could also
     further boost its entity extraction performance.'
+  id: totrans-135
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**优化机会：** 我们目前基于LLM的实体链接管道实现相当基础，存在较大的改进空间。一些可以优化的领域包括检索的选择以及检索逻辑本身。使用更多数据对LLM进行微调也能进一步提升其实体提取性能。'
 - en: Limitations
+  id: totrans-136
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 局限性
 - en: There are some limitations to our experiments so far.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们的实验存在一些局限性。
 - en: '**Multiple MeSH IDs for an entity:** In our dataset, a few entities in each
     document could be linked to multiple MeSH IDs. Out of a total of 968 entities
     across 100 documents in our test set, this occurs in 15 cases (1.54%). In the
@@ -713,95 +1012,149 @@
     MeSH ID per entity, we opt not to use this feature to ensure a fair comparison
     with our LLM experiments. Extending the functionality to support linking to more
     than one concept would also be an interesting addition.'
+  id: totrans-138
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**一个实体对应多个MeSH ID：** 在我们的数据集中，每个文档中的一些实体可能会与多个MeSH ID关联。在我们测试集中的100个文档中，共有968个实体，其中有15个案例（1.54%）存在这种情况。在Scispacy评估中，以及在所有我们使用外部知识库链接器（BM-25检索器）进行实体提取的LLM实验中，我们每个实体只链接一个MeSH概念。尽管Scispacy提供了为每个实体链接多个MeSH
+    ID的可能性，但我们选择不使用这个功能，以确保与LLM实验的公平比较。扩展功能以支持链接多个概念也是一个有趣的补充。'
 - en: '**MeSH IDs not in the Knowledge Base:** In the test dataset, there are MeSH
     IDs for entities that are not included in KB. Specifically, 64 entities (6.6%
     of cases) possess a MeSH ID that is absent from our KB. This limitation lies on
     the retriever side and can be addressed by updating the KB.'
+  id: totrans-139
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**不在知识库中的MeSH ID：** 在测试数据集中，有一些实体的MeSH ID不在我们的知识库中。具体而言，64个实体（占6.6%）拥有一个不在我们知识库中的MeSH
+    ID。这个限制出在检索器端，可以通过更新知识库来解决。'
 - en: '**Entities lacking a MeSH ID:** Similarly, another 1.65% of entities (16 out
     of 968) cannot be mapped to a MeSH ID. In all LLM experiments where we use the
     external KB linker after entity extraction, we currently lack the ability to determine
     whether an entity has no MeSH ID.'
+  id: totrans-140
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**缺乏MeSH ID的实体：** 同样，另有1.65%的实体（968个中的16个）无法映射到MeSH ID。在所有使用外部KB链接器进行实体提取的LLM实验中，我们目前无法确定一个实体是否没有MeSH
+    ID。'
 - en: '**References**'
+  id: totrans-141
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**参考文献**'
 - en: I’ve included all papers and resources referred in this article here. Please
     let me know if I missed out on anything, and I will add them!
+  id: totrans-142
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 我已经将本文中提到的所有论文和资源汇总在此。如果我遗漏了什么，请告诉我，我将添加它们！
 - en: '[1] Bodenreider O. (2004). The Unified Medical Language System (UMLS): integrating
     biomedical terminology. *Nucleic acids research*, *32*(Database issue), D267–D270\.
     [https://doi.org/10.1093/nar/gkh061](https://doi.org/10.1093/nar/gkh061)'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] Bodenreider O. (2004). 统一医学语言系统(UMLS)：整合生物医学术语。*核酸研究*, *32*(数据库专刊)，D267–D270\.
+    [https://doi.org/10.1093/nar/gkh061](https://doi.org/10.1093/nar/gkh061)'
 - en: '[2] [https://www.nlm.nih.gov/healthit/snomedct/index.html](https://www.nlm.nih.gov/healthit/snomedct/index.html)'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] [https://www.nlm.nih.gov/healthit/snomedct/index.html](https://www.nlm.nih.gov/healthit/snomedct/index.html)'
 - en: '[3] [https://www.nlm.nih.gov/mesh/meshhome.html](https://www.nlm.nih.gov/mesh/meshhome.html)'
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] [https://www.nlm.nih.gov/mesh/meshhome.html](https://www.nlm.nih.gov/mesh/meshhome.html)'
 - en: '[4] Wei CH, Peng Y, Leaman R, Davis AP, Mattingly CJ, Li J, Wiegers TC, Lu
     Z. Overview of the BioCreative V Chemical Disease Relation (CDR) Task, Proceedings
     of the Fifth BioCreative Challenge Evaluation Workshop, p154–166, 2015'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: '[4] Wei CH, Peng Y, Leaman R, Davis AP, Mattingly CJ, Li J, Wiegers TC, Lu
+    Z. BioCreative V化学-疾病关系(CDR)任务概述，发表于《第五届BioCreative挑战评估工作坊论文集》，第154–166页，2015年'
 - en: '[5] Li J, Sun Y, Johnson RJ, Sciaky D, Wei CH, Leaman R, Davis AP, Mattingly
     CJ, Wiegers TC, Lu Z. Anotating chemicals, diseases and their interactions in
     biomedical literature, Proceedings of the Fifth BioCreative Challenge Evaluation
     Workshop, p173–182, 2015'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: '[5] Li J, Sun Y, Johnson RJ, Sciaky D, Wei CH, Leaman R, Davis AP, Mattingly
+    CJ, Wiegers TC, Lu Z. 在生物医学文献中注释化学品、疾病及其相互作用，发表于《第五届BioCreative挑战评估工作坊论文集》，第173–182页，2015年'
 - en: '[6] Leaman R, Dogan RI, Lu Z. DNorm: disease name normalization with pairwise
     learning to rank, Bioinformatics 29(22):2909–17, 2013'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: '[6] Leaman R, Dogan RI, Lu Z. DNorm：通过成对学习排序进行疾病名称规范化，生物信息学 29(22):2909–17，2013年'
 - en: '[7] Leaman R, Wei CH, Lu Z. tmChem: a high performance approach for chemical
     named entity recognition and normalization. J Cheminform, 7:S3, 2015'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: '[7] Leaman R, Wei CH, Lu Z. tmChem：一种高效的化学命名实体识别与规范化方法。J Cheminform, 7:S3,
+    2015年'
 - en: '[8] Li, J., Sun, Y., Johnson, R. J., Sciaky, D., Wei, C. H., Leaman, R., Davis,
     A. P., Mattingly, C. J., Wiegers, T. C., & Lu, Z. (2016). BioCreative V CDR task
     corpus: a resource for chemical disease relation extraction. *Database : the journal
     of biological databases and curation*, *2016*, baw068\. [https://doi.org/10.1093/database/baw068](https://doi.org/10.1093/database/baw068)'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: '[8] Li, J., Sun, Y., Johnson, R. J., Sciaky, D., Wei, C. H., Leaman, R., Davis,
+    A. P., Mattingly, C. J., Wiegers, T. C., & Lu, Z. (2016). BioCreative V CDR任务语料库：化学-疾病关系抽取资源。*数据库：生物数据库与注释期刊*,
+    *2016*, baw068\. [https://doi.org/10.1093/database/baw068](https://doi.org/10.1093/database/baw068)'
 - en: '[9] Jiang, A. Q., Sablayrolles, A., Mensch, A., Bamford, C., Chaplot, D. S.,
     Casas, D. D. L., … & Sayed, W. E. (2023). Mistral 7B. *arXiv preprint arXiv:2310.06825*.'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: '[9] Jiang, A. Q., Sablayrolles, A., Mensch, A., Bamford, C., Chaplot, D. S.,
+    Casas, D. D. L., … & Sayed, W. E. (2023). Mistral 7B. *arXiv预印本arXiv:2310.06825*。'
 - en: '[10] Neumann, M., King, D., Beltagy, I., & Ammar, W. (2019, August). ScispaCy:
     Fast and Robust Models for Biomedical Natural Language Processing. In *Proceedings
     of the 18th BioNLP Workshop and Shared Task* (pp. 319–327).'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: '[10] Neumann, M., King, D., Beltagy, I., & Ammar, W. (2019年8月). ScispaCy：生物医学自然语言处理的快速且稳健的模型。发表于《第18届BioNLP研讨会及共享任务论文集》
+    (第319–327页)。'
 - en: '[11] [https://ai2-s2-scispacy.s3-us-west-2.amazonaws.com/data/kbs/2020-10-09/mesh_2020.jsonl](https://ai2-s2-scispacy.s3-us-west-2.amazonaws.com/data/kbs/2020-10-09/mesh_2020.jsonl)'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: '[11] [https://ai2-s2-scispacy.s3-us-west-2.amazonaws.com/data/kbs/2020-10-09/mesh_2020.jsonl](https://ai2-s2-scispacy.s3-us-west-2.amazonaws.com/data/kbs/2020-10-09/mesh_2020.jsonl)'
 - en: '[12] Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N.,
     … & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive nlp
     tasks. *Advances in Neural Information Processing Systems*, *33*, 9459–9474.'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: '[12] Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N.,
+    … & Kiela, D. (2020). 用于知识密集型自然语言处理任务的检索增强生成。*神经信息处理系统进展*，*33*，9459–9474。'
 - en: '[13] Liu, N. F., Lin, K., Hewitt, J., Paranjape, A., Bevilacqua, M., Petroni,
     F., & Liang, P. (2024). Lost in the Middle: How Language Models Use Long Contexts.
     *Transactions of the Association for Computational Linguistics*, *12*.'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: '[13] Liu, N. F., Lin, K., Hewitt, J., Paranjape, A., Bevilacqua, M., Petroni,
+    F., & Liang, P. (2024). 迷失在其中：语言模型如何使用长上下文。*计算语言学协会会刊*，*12*。'
 - en: '[14] Dettmers, T., Pagnoni, A., Holtzman, A., & Zettlemoyer, L. (2024). Qlora:
     Efficient finetuning of quantized llms. *Advances in Neural Information Processing
     Systems*, *36*.'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: '[14] Dettmers, T., Pagnoni, A., Holtzman, A., & Zettlemoyer, L. (2024). Qlora:
+    高效的量化大语言模型微调。*神经信息处理系统进展*，*36*。'
 - en: '[15] [https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_ner_bc5cdr_md-0.4.0.tar.gz](https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz)'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: '[15] [https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_ner_bc5cdr_md-0.4.0.tar.gz](https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz)'

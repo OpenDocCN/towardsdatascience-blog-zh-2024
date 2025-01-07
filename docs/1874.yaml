@@ -1,474 +1,721 @@
 - en: How to Implement a GenAI Agent using Autogen or LangGraph
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何使用 Autogen 或 LangGraph 实现 GenAI 代理
 - en: 原文：[https://towardsdatascience.com/how-to-implement-a-genai-agent-using-autogen-or-langgraph-929135afd34d?source=collection_archive---------1-----------------------#2024-08-01](https://towardsdatascience.com/how-to-implement-a-genai-agent-using-autogen-or-langgraph-929135afd34d?source=collection_archive---------1-----------------------#2024-08-01)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-to-implement-a-genai-agent-using-autogen-or-langgraph-929135afd34d?source=collection_archive---------1-----------------------#2024-08-01](https://towardsdatascience.com/how-to-implement-a-genai-agent-using-autogen-or-langgraph-929135afd34d?source=collection_archive---------1-----------------------#2024-08-01)
 - en: Comparing Autogen and LangGraph from a developer standpoint
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从开发者角度比较 Autogen 和 LangGraph
 - en: '[](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)[![Lak
     Lakshmanan](../Images/9faaaf72d600f592cbaf3e9089cbb913.png)](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------)
     [Lak Lakshmanan](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)[![Lak
+    Lakshmanan](../Images/9faaaf72d600f592cbaf3e9089cbb913.png)](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------)
+    [Lak Lakshmanan](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------)
     ·10 min read·Aug 1, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------)
+    ·10 分钟阅读·2024 年 8 月 1 日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: GenAI models are good at a handful of tasks such as text summarization, question
     answering, and code generation. If you have a business process which can be broken
     down into a set of steps, and one or more those steps involves one of these GenAI
     superpowers, then you will be able to partially automate your business process
     using GenAI. We call the software application that automates such a step an *agent*.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: GenAI 模型擅长一些特定任务，如文本总结、问题回答和代码生成。如果你有一个可以分解为一系列步骤的业务流程，而其中一个或多个步骤涉及这些 GenAI
+    超能力之一，那么你将能够使用 GenAI 部分自动化你的业务流程。我们称这种自动化步骤的软件应用程序为*代理*。
 - en: While agents use LLMs just to process text and generate responses, this basic
     capability can provide quite advanced behavior such as the ability to invoke backend
     services autonomously.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然代理仅使用 LLM 来处理文本并生成响应，但这一基本功能可以提供相当高级的行为，例如能够自动调用后端服务。
 - en: Current weather at a location
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 当前某地的天气
 - en: Let’s say that you want to build an agent that is able to answer questions such
     as “Is it raining in Chicago?”. You cannot answer a question like this using just
     an LLM because it is not a task that can be performed by memorizing patterns from
     large volumes of text. Instead, to answer this question, you’ll need to reach
     out to real-time sources of weather information.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你想构建一个能够回答类似“芝加哥下雨吗？”的问题的代理。你不能仅使用 LLM 来回答这样的问题，因为这是一个不能通过记忆大量文本中的模式来完成的任务。相反，要回答这个问题，你需要访问实时的天气信息来源。
 - en: 'There is an open and [free API](https://weather-gov.github.io/api/general-faqs)
     from the US National Weather Service (NWS) that provides the short-term weather
     forecast for a location. However, using this API to answer a question like “Is
     it raining in Chicago?” requires several additional steps (see Figure 1):'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 美国国家气象局（NWS）提供了一个开放且[免费的 API](https://weather-gov.github.io/api/general-faqs)，用于提供某一地点的短期天气预报。然而，要使用这个
+    API 来回答类似“芝加哥下雨吗？”这样的问题，涉及几个额外步骤（见图 1）：
 - en: '![](../Images/0f71eccdecb13d6971c6c65ff33327e3.png)'
+  id: totrans-11
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0f71eccdecb13d6971c6c65ff33327e3.png)'
 - en: Figure 1\. Agentic application to answer questions about current weather built
     around conversational agents
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 1. 用于回答关于当前天气问题的代理应用程序，围绕对话代理构建
 - en: We will need to set up an agentic framework to coordinate the rest of these
     steps.
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们需要设置一个代理框架来协调接下来的步骤。
 - en: What location is the user interested in? The answer in our example sentence
     is “Chicago”. It is not as simple as just extracting the last word of the sentence
     — if the user were to ask “Is Orca Island hot today?”, the location of interest
     would be “Orca Island”. Because extracting the location from a question requires
     being able to understand natural language, you can prompt an LLM to identify the
     location the user is interested in.
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 用户感兴趣的地点是哪里？在我们示例句子中的答案是“芝加哥”。这并不只是简单地提取句子的最后一个词——如果用户问“Orca Island今天热吗？”，那么感兴趣的地点就是“Orca
+    Island”。因为从问题中提取地点需要能够理解自然语言，所以你可以提示LLM来识别用户感兴趣的地点。
 - en: The NWS API operates on latitudes and longitudes. If you want the weather in
     Chicago, you’ll have to convert the string “Chicago” into a point latitude and
     longitude and then invoke the API. This is called *geocoding*. Google Maps has
     a Geocoder API that, given a place name such as “Chicago”, will respond with the
     latitude and longitude. Tell the agent to use this tool to get the coordinates
     of the location.
+  id: totrans-15
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: NWS API基于纬度和经度。如果你想获取芝加哥的天气，你需要将字符串“芝加哥”转换为一个点的纬度和经度，然后调用API。这被称为*地理编码*。Google
+    Maps提供了一个地理编码API，给定一个地名，例如“芝加哥”，它将返回相应的纬度和经度。告诉代理使用这个工具来获取地点的坐标。
 - en: Send the location coordinates to the NWS weather API. You’ll get back a JSON
     object containing weather data.
+  id: totrans-16
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将地点坐标发送到NWS天气API。你将收到一个包含天气数据的JSON对象。
 - en: Tell the LLM to extract the corresponding weather forecast (for example, if
     the question is about now, tonight, or next Monday) and add it to the context
     of the question.
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 告诉LLM提取相应的天气预报（例如，如果问题是关于现在、今晚或下周一），并将其添加到问题的上下文中。
 - en: Based on this enriched context, the agent is able to finally answer the user’s
     question.
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 基于这个丰富的上下文，代理最终能够回答用户的问题。
 - en: Let’s go through these steps one by one.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们逐步进行这些操作。
 - en: 'Step 1: Setting up Autogen'
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第一步：设置Autogen
 - en: First, we will use [Autogen](https://microsoft.github.io/autogen/), an open-source
     agentic framework created by Microsoft. To follow along, clone [my Git repository](https://github.com/lakshmanok/lakblogs/),
     get API keys following the directions provided [by Google Cloud](https://cloud.google.com/api-keys/docs/overview)
     and [OpenAI](https://openai.com/index/openai-api/). Switch to the genai_agents
     folder, and update the [keys.env](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/keys.env)
     file with your keys.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们将使用[Autogen](https://microsoft.github.io/autogen/)，这是微软创建的开源代理框架。为了跟随教程，请克隆[我的Git仓库](https://github.com/lakshmanok/lakblogs/)，根据[Google
+    Cloud](https://cloud.google.com/api-keys/docs/overview)和[OpenAI](https://openai.com/index/openai-api/)提供的说明获取API密钥。切换到genai_agents文件夹，并用你的密钥更新[keys.env](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/keys.env)文件。
 - en: '[PRE0]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Next, install the required Python modules using pip:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，使用pip安装所需的Python模块：
 - en: '[PRE1]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This will install the autogen module and client libraries for Google Maps and
     OpenAI.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将安装Google Maps和OpenAI的autogen模块和客户端库。
 - en: Follow the discussion below by looking at [ag_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py).
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过查看[ag_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py)来跟踪下面的讨论。
 - en: 'Autogen treats agentic tasks as a conversation between agents. So, the first
     step in Autogen is to create the agents that will perform the individual steps.
     One will be the proxy for the end-user. It will initiate chats with the AI agent
     that we will refer to as the Assistant:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: Autogen将代理任务视为代理之间的对话。所以，Autogen的第一步是创建将执行各个步骤的代理。一个将是终端用户的代理，它将与我们称之为助手的AI代理进行对话：
 - en: '[PRE2]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'There are three things to note about the user proxy above:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述关于用户代理有三点需要注意：
 - en: If the Assistant responds with code, the user proxy is capable of executing
     that code in a sandbox.
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果助手回复包含代码，用户代理可以在沙箱中执行该代码。
 - en: The user proxy terminates the conversation if the Assistant response contains
     the word TERMINATE. This is how the LLM tells us that the user question has been
     fully answered. Making the LLM do this is part of the hidden system prompt that
     Autogen sends to the LLM.
+  id: totrans-31
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果助手的回复包含“TERMINATE”这个词，用户代理将终止对话。这是LLM告诉我们用户的问题已经得到完全回答的方式。让LLM执行此操作是Autogen发送给LLM的隐藏系统提示的一部分。
 - en: The user proxy never asks the end-user any follow-up questions. If there were
     follow-ups, we’d specify the condition under which the human is asked for more
     input.
+  id: totrans-32
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 用户代理永远不会向终端用户提问后续问题。如果有后续问题，我们会指定在什么条件下向用户询问更多信息。
 - en: 'Even though Autogen is from Microsoft, it is not limited to Azure OpenAI. The
     AI assistant can use OpenAI:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管 Autogen 来自微软，但它并不限于 Azure OpenAI。AI 助手可以使用 OpenAI：
 - en: '[PRE3]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'or Gemini:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者 Gemini：
 - en: '[PRE4]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Anthropic and Ollama are supported as well.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: Anthropic 和 Ollama 也受到支持。
 - en: 'Supply the appropriate LLM configuration to create the Assistant:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 提供适当的 LLM 配置以创建助手：
 - en: '[PRE5]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Before we wire the rest of the agentic framework, let’s ask the Assistant to
     answer our sample query.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们接入其余的智能框架之前，让我们让助手回答我们的示例查询。
 - en: '[PRE6]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'The Assistant responds with this code to reach out an existing Google web service
     and scrape the response:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 助手通过这段代码响应，调用现有的 Google 网络服务并抓取响应：
 - en: '[PRE7]python'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '[PRE7]python'
 - en: 'filename: weather.py'
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 文件名：weather.py
 - en: import requests
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: import requests
 - en: from bs4 import BeautifulSoup
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 从 bs4 导入 BeautifulSoup
 - en: url = "https://www.google.com/search?q=weather+chicago"
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: url = "https://www.google.com/search?q=weather+chicago"
 - en: response = requests.get(url)
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: response = requests.get(url)
 - en: soup = BeautifulSoup(response.text, 'html.parser')
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: soup = BeautifulSoup(response.text, 'html.parser')
 - en: 'weather_info = soup.find(''div'', {''id'': ''wob_tm''})'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 'weather_info = soup.find(''div'', {''id'': ''wob_tm''})'
 - en: print(weather_info.text)
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: print(weather_info.text)
 - en: '[PRE8]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: This gets at the power of an agentic framework when powered by a frontier foundational
     model — the Assistant has autonomously figured out a web service that provides
     the desired functionality and is using its code generation and execution capability
     to provide something akin to the desired functionality! However, it’s not quite
     what we wanted — we asked whether it was raining, and we got back the full website
     instead of the desired answer.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 这展示了由前沿基础模型驱动的智能框架的强大功能——助手已经自动找到了一个提供所需功能的网络服务，并利用其代码生成和执行能力提供类似所需功能的内容！然而，这并不是我们想要的——我们问的是是否下雨，而我们却得到了整个网站，而不是我们想要的答案。
 - en: Secondly, the autonomous capability doesn’t really meet our pedagogical needs.
     We are using this example as illustrative of enterprise use cases, and it is unlikely
     that the LLM will know about your internal APIs and tools to be able to use them
     autonomously. So, let’s proceed to build out the framework shown in Figure 1 to
     invoke the specific APIs we want to use.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 其次，自动化能力并没有真正满足我们的教学需求。我们使用这个示例来说明企业使用场景，而 LLM 很可能不了解你的内部 API 和工具，因此无法自动使用它们。所以，让我们继续构建图
+    1 所示的框架，来调用我们想要使用的特定 API。
 - en: 'Step 2: Extracting the location'
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第二步：提取位置
 - en: 'Because extracting the location from the question is just text processing,
     you can simply prompt the LLM. Let’s do this with a single-shot example:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 因为从问题中提取位置只是文本处理，你可以简单地提示 LLM。让我们通过一个单次示例来做这件事：
 - en: '[PRE9]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'Now, when we initiate the chat by asking whether it is raining in Chicago:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，当我们通过询问芝加哥是否在下雨来启动聊天时：
 - en: '[PRE10]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'we get back:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们得到的结果是：
 - en: '[PRE11]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: So, step 2 of Figure 1 is complete.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，图 1 的第二步已经完成。
 - en: 'Step 3: Geocoding the location'
+  id: totrans-63
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第三步：地理编码位置
 - en: 'Step 3 is to get the latitude and longitude coordinates of the location that
     the user is interested in. Write a Python function that will called the Google
     Maps API and extract the required coordinates:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 第三步是获取用户感兴趣地点的纬度和经度坐标。编写一个 Python 函数，调用 Google Maps API 并提取所需的坐标：
 - en: '[PRE12]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'Next, register this function so that the Assistant can call it in its generated
     code, and the user proxy can execute it in its sandbox:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，注册此函数，以便助手可以在生成的代码中调用它，用户代理可以在其沙箱中执行它：
 - en: '[PRE13]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Note that, at the time of writing, function calling is supported by Autogen
     only for GPT-4 models.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在撰写本文时，Autogen 仅对 GPT-4 模型支持函数调用。
 - en: 'We now expand the example in the prompt to include the geocoding step:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在扩展提示中的示例，加入地理编码步骤：
 - en: '[PRE14]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'Now, when we initiate the chat by asking whether it is raining in Chicago:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，当我们通过询问芝加哥是否在下雨来启动聊天时：
 - en: '[PRE15]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'we get back:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们得到的结果是：
 - en: '[PRE16]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Steps 4–6: Obtaining the final answer'
+  id: totrans-75
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第四至六步：获取最终答案
 - en: Now that we have the latitude and longitude coordinates, we are ready to invoke
     the NWS API to get the weather data. Step 4, to get the weather data, is similar
     to geocoding, except that we are invoking a different API and extracting a different
     object from the web service response. Please look at the code on GitHub to see
     the full details.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经有了纬度和经度坐标，可以调用 NWS API 获取天气数据。第四步，获取天气数据，类似于地理编码，只不过我们调用的是不同的 API，并从网络服务响应中提取不同的对象。请查看
+    GitHub 上的代码，了解完整细节。
 - en: 'The upshot is that the system prompt expands to encompass all the steps in
     the agentic application:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是，系统提示扩展到涵盖智能应用中的所有步骤：
 - en: '[PRE17]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: Based on this prompt, the response to the question about Chicago weather extracts
     the right information and answers the question correctly.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于这个提示，关于芝加哥天气的问题回答能够提取正确的信息并给出正确的答案。
 - en: 'In this example, we allowed Autogen to select the next agent in the conversation
     autonomously. We can also specify a different [next speaker selection strategy](https://microsoft.github.io/autogen/docs/tutorial/conversation-patterns/#group-chat):
     in particular, setting this to be “manual” inserts a human in the loop, and allows
     the human to select the next agent in the workflow.'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，我们允许 Autogen 自动选择对话中的下一个代理。我们还可以指定不同的[下一发言人选择策略](https://microsoft.github.io/autogen/docs/tutorial/conversation-patterns/#group-chat)：特别地，将其设置为“手动”会插入一个人为环节，并允许人类选择工作流中的下一个代理。
 - en: Agentic workflow in LangGraph
+  id: totrans-81
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: LangGraph 中的代理工作流
 - en: Where Autogen treats agentic workflows as conversations, [LangGraph](https://langchain-ai.github.io/langgraph/)
     is an open source framework that allows you to build agents by treating a workflow
     as a graph. This is inspired by the long history of representing data processing
     pipelines as directed acyclic graphs (DAGs).
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Autogen 将代理工作流视为对话时，[LangGraph](https://langchain-ai.github.io/langgraph/)
+    是一个开源框架，允许通过将工作流视为图来构建代理。这一思路受到长期以来将数据处理管道表示为有向无环图（DAG）的启发。
 - en: In the graph paradigm, our weather agent would look as shown in Figure 2.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 在图的范式中，我们的天气代理如图 2 所示。
 - en: '![](../Images/6f107ffe2c1cf3165b5cc34df992874d.png)'
+  id: totrans-84
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6f107ffe2c1cf3165b5cc34df992874d.png)'
 - en: Figure 2\. Agentic application to answer questions about current weather built
     around language model graphs.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2\. 基于语言模型图构建的回答当前天气问题的智能应用。
 - en: 'There are a few key differences between Figures 1 (Autogen) and 2 (LangGraph):'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 1（Autogen）和图 2（LangGraph）之间有一些关键的区别：
 - en: In Autogen, each of the agents is a conversational agent. Workflows are treated
     as conversations between agents that talk to each other. Agents jump into the
     conversation when they believe it is “their turn”. In LangGraph, workflows are
     treated as a graph whose nodes the workflow cycles through based on rules that
     we specify.
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 Autogen 中，每个代理都是一个对话代理。工作流被视为代理之间的对话，代理在认为是“轮到自己”的时候跳入对话中。在 LangGraph 中，工作流被视为一个图，工作流根据我们指定的规则循环遍历图中的节点。
 - en: In Autogen, the AI assistant is not capable of executing code; instead the Assistant
     generates code, and it is the user proxy that executes the code. In LangGraph,
     there is a special ToolsNode that consists of capabilities made available to the
     Assistant.
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 Autogen 中，AI 助手不能执行代码；相反，助手生成代码，由用户代理执行代码。在 LangGraph 中，有一个特殊的工具节点，其中包含提供给助手的功能。
 - en: You can follow along this section by referring to the file [lg_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py)
     in my GitHub repository.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以通过参考我 GitHub 仓库中的文件 [lg_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py)
+    来跟进本节内容。
 - en: 'We set up LangGraph by creating the workflow graph. Our graph consists of two
     nodes: the Assistant Node and a ToolsNode. Communication within the workflow happens
     via a shared state.'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们通过创建工作流图表来设置 LangGraph。我们的图表由两个节点组成：助手节点和工具节点。工作流内的通信通过共享状态进行。
 - en: '[PRE18]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'The tools are Python functions:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些工具是 Python 函数：
 - en: '[PRE19]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'The Assistant calls the language model:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 助手调用语言模型：
 - en: '[PRE20]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'LangGraph uses langchain, and so changing the model provider is straightforward.
     To use Gemini, you can create the model using:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: LangGraph 使用 langchain，因此更换模型提供者非常简单。要使用 Gemini，您可以通过以下方式创建模型：
 - en: '[PRE21]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'Next, we define the graph’s edges:'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们定义图表的边：
 - en: '[PRE22]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'The first and last lines above are self-explanatory: the workflow starts with
     a question being sent to the Assistant. Anytime a tool is called, the next node
     in the workflow is the Assistant which will use the result of the tool. The middle
     line sets up a conditional edge in the workflow, since the next node after the
     Assistant is not fixed. Instead, the Assistant calls a tool or ends the workflow
     based on the contents of the last message:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面第一行和最后一行是显而易见的：工作流以将问题发送给助手开始。每当调用工具时，工作流中的下一个节点是助手，它将使用工具的结果。中间的那行设置了工作流中的条件边，因为助手之后的下一个节点并不是固定的。相反，助手根据最后一条消息的内容调用工具或结束工作流：
 - en: '[PRE23]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'Once the workflow has been created, compile the graph and then run it by passing
     in questions:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦工作流创建完成，编译图表并通过传入问题来运行：
 - en: '[PRE24]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: 'The system message and question are exactly what we employed in Autogen:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 系统消息和问题正是我们在 Autogen 中使用的：
 - en: '[PRE25]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: 'The result is that the agent framework uses the steps to come up with an answer
     to our question:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是代理框架使用这些步骤来得出我们问题的答案：
 - en: '[PRE26]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: Choosing between Autogen and LangGraph
+  id: totrans-108
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在 Autogen 和 LangGraph 之间选择
 - en: 'Between Autogen and LangGraph, which one should you choose? A few considerations:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Autogen 和 LangGraph 之间，你应该选择哪一个？以下是一些考虑因素：
 - en: '![](../Images/7daad164e11286b6e415c82f1e5c271b.png)'
+  id: totrans-110
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7daad164e11286b6e415c82f1e5c271b.png)'
 - en: Of course, the level of Autogen support for non-OpenAI models and other tooling
     could improve by the time you are reading this. LangGraph could add autonomous
     capabilities, and Autogen could provide you more fine-grained control. The agent
     space is moving fast!
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，随着你阅读本文时的进展，Autogen 对非 OpenAI 模型和其他工具的支持水平可能会有所提高。LangGraph 可能会增加自主能力，而 Autogen
+    则可能提供更精细的控制。代理领域正在快速发展！
 - en: Resources
+  id: totrans-112
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 资源
 - en: 'ag_weather_agent.py: [https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py)'
+  id: totrans-113
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 'ag_weather_agent.py: [https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py)'
 - en: 'lg_weather_agent.py: [https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py)'
+  id: totrans-114
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 'lg_weather_agent.py: [https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py)'
 - en: '*This article is an excerpt from a forthcoming O’Reilly book “Visualizing Generative
     AI” that I’m writing with* [*Priyanka Vergadia*](https://www.linkedin.com/in/pvergadia/)*.
     All diagrams in this post were created by the author.*'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: '*本文摘自我正在撰写的 O''Reilly 即将出版的书籍《可视化生成型 AI》，与* [*Priyanka Vergadia*](https://www.linkedin.com/in/pvergadia/)*
+    合作编写。文中的所有图表均由作者制作。*'

@@ -1,59 +1,90 @@
 - en: 'LoRA: Revolutionizing Large Language Model Adaptation without Fine-Tuning'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: LoRA：通过不进行微调，彻底改变大型语言模型的适配方式
 - en: 原文：[https://towardsdatascience.com/lora-revolutionizing-large-language-model-adaptation-without-fine-tuning-3279d909f5af?source=collection_archive---------8-----------------------#2024-04-23](https://towardsdatascience.com/lora-revolutionizing-large-language-model-adaptation-without-fine-tuning-3279d909f5af?source=collection_archive---------8-----------------------#2024-04-23)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/lora-revolutionizing-large-language-model-adaptation-without-fine-tuning-3279d909f5af?source=collection_archive---------8-----------------------#2024-04-23](https://towardsdatascience.com/lora-revolutionizing-large-language-model-adaptation-without-fine-tuning-3279d909f5af?source=collection_archive---------8-----------------------#2024-04-23)
 - en: Exploiting the low-rank nature of weight updates during fine-tuning results
     in orders of magnitude reduction in learnable parameters
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 利用微调过程中权重更新的低秩特性，可以将可学习参数的数量减少数量级。
 - en: '[](https://medium.com/@samuel.flender?source=post_page---byline--3279d909f5af--------------------------------)[![Samuel
     Flender](../Images/390d82a673de8a8bb11cef66978269b5.png)](https://medium.com/@samuel.flender?source=post_page---byline--3279d909f5af--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3279d909f5af--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3279d909f5af--------------------------------)
     [Samuel Flender](https://medium.com/@samuel.flender?source=post_page---byline--3279d909f5af--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@samuel.flender?source=post_page---byline--3279d909f5af--------------------------------)[![Samuel
+    Flender](../Images/390d82a673de8a8bb11cef66978269b5.png)](https://medium.com/@samuel.flender?source=post_page---byline--3279d909f5af--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3279d909f5af--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3279d909f5af--------------------------------)
+    [Samuel Flender](https://medium.com/@samuel.flender?source=post_page---byline--3279d909f5af--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3279d909f5af--------------------------------)
     ·8 min read·Apr 23, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3279d909f5af--------------------------------)
+    ·阅读时间：8分钟·2024年4月23日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/0fdea0772d1307bd66eb057e35a2c984.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0fdea0772d1307bd66eb057e35a2c984.png)'
 - en: Image generated with ChatGPT
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由ChatGPT生成
 - en: Ever since the introduction of BERT in 2019, [fine-tuning](https://mlfrontiers.substack.com/p/what-exactly-happens-when-we-fine)
     has been the standard approach to adapt large language models (LLMs) to downstream
     tasks. This changed with the introduction of LoRA ([Hu et al 2021](https://arxiv.org/abs/2106.09685))
     which showed for the first time that the weight update matrix during fine-tuning
     can be drastically simplified using low-rank factorization, often with orders
     of magnitude fewer trainable parameters!
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 自从2019年引入BERT以来，[微调](https://mlfrontiers.substack.com/p/what-exactly-happens-when-we-fine)一直是将大型语言模型（LLM）适配到下游任务的标准方法。随着LoRA的引入，这一情况发生了变化（[Hu等人
+    2021](https://arxiv.org/abs/2106.09685)），它首次展示了通过低秩分解，可以大幅简化微调过程中权重更新矩阵，通常会减少数量级的可训练参数！
 - en: LoRA has become very popular in the NLP community because it allows us to adapt
     LLMs to downstream tasks faster, more robustly, and with smaller model footprints
     than ever before.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: LoRA在NLP社区中非常受欢迎，因为它使我们能够比以往更快、更稳定地将LLM适配到下游任务，并且模型的占用空间更小。
 - en: Let’s take a look at how it works.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看看它是如何工作的。
 - en: The problem with fine-tuning
+  id: totrans-11
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 微调的问题
 - en: 'Google’s BERT ([Devlin et al 2019](https://arxiv.org/pdf/1810.04805.pdf)) was
     a paradigm shift in NLP, in particular because of its introduction of the pre-training
     / fine-tuning paradigm: after unsupervised pre-training on a massive amount of
     text data, the model can be rapidly fine-tuned on a specific downstream task with
     relatively few labels because generic linguistic patterns have…'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 谷歌的BERT（[Devlin等人 2019](https://arxiv.org/pdf/1810.04805.pdf)）在NLP领域掀起了范式的变革，特别是因为它引入了预训练/微调的范式：在大量文本数据上进行无监督的预训练后，模型可以在特定的下游任务上快速进行微调，且所需标签相对较少，因为它已经捕捉到了通用的语言模式……

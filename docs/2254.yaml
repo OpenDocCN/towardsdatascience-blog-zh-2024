@@ -1,150 +1,223 @@
 - en: Build a Tokenizer for the Thai Language from Scratch
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 从零开始构建泰语分词器
 - en: 原文：[https://towardsdatascience.com/build-a-tokenizer-for-the-thai-language-from-scratch-0e4ea5f2a8b3?source=collection_archive---------6-----------------------#2024-09-14](https://towardsdatascience.com/build-a-tokenizer-for-the-thai-language-from-scratch-0e4ea5f2a8b3?source=collection_archive---------6-----------------------#2024-09-14)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/build-a-tokenizer-for-the-thai-language-from-scratch-0e4ea5f2a8b3?source=collection_archive---------6-----------------------#2024-09-14](https://towardsdatascience.com/build-a-tokenizer-for-the-thai-language-from-scratch-0e4ea5f2a8b3?source=collection_archive---------6-----------------------#2024-09-14)
 - en: A step-by-step guide to building a Thai multilingual sub-word tokenizer based
     on a BPE algorithm trained on Thai and English datasets using only Python
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 基于 BPE 算法，使用 Python 训练泰语和英语数据集，构建一个泰语多语言子词分词器的逐步指南
 - en: '[](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[![Milan
     Tamang](../Images/18e8be296bcef18e8792bfc18240469a.png)](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------)
     [Milan Tamang](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[![Milan
+    Tamang](../Images/18e8be296bcef18e8792bfc18240469a.png)](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------)
+    [Milan Tamang](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------)
     ·14 min read·Sep 14, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------)
+    ·14分钟阅读·2024年9月14日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/a876522a3058062625e355547ef07b75.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a876522a3058062625e355547ef07b75.png)'
 - en: '**[Image by writer]: Thai Tokenizer encode and decode Thai text to Token Ids
     and vice versa**'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '**[图片来源：作者]**：泰语分词器将泰语文本编码和解码为 Token ID，并反向操作。'
 - en: The primary task of the **Tokenizer** is to translate the raw input texts (Thai
     in our case but can be in any foreign language) into numbers and pass them to
     the model’s transformers. The model’s transformer then generates output as numbers.
     Again, **Tokenizer** translates these numbers back to texts which is understandable
     to end users. The high level diagram below describes the flow explained above.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '**分词器**的主要任务是将原始输入文本（在我们的例子中是泰语，但也可以是任何外语）转换为数字，并将其传递给模型的 Transformer。模型的 Transformer
+    然后生成输出数字。再次，**分词器**将这些数字转回为用户可以理解的文本。下方的高层次图示描述了上述过程。'
 - en: '![](../Images/9fc0dc22dc54e54c85fdbc1377f4f4a3.png)'
+  id: totrans-9
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9fc0dc22dc54e54c85fdbc1377f4f4a3.png)'
 - en: '[Image by writer]: Diagram showing tokenizers role in LLM’s input and output
     flow.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '[图片来源：作者]: 图示展示了分词器在大型语言模型（LLM）输入和输出流中的作用。'
 - en: Generally, many of us are only interested in learning how the model’s transformer
     architecture works under the hood. We often overlook learning some important components
     such as tokenizers in detail. Understanding how tokenizer works under the hood
     and having good control of its functionalities gives us good leverage to improve
     our model’s accuracy and performance.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 一般来说，我们中的许多人只对学习模型的 Transformer 架构如何在后台工作感兴趣。我们往往忽视了详细学习一些重要的组件，如分词器。理解分词器如何在后台工作，并能够很好地控制其功能，可以为我们提高模型的准确性和性能提供很好的杠杆作用。
 - en: Similar to Tokenizer, some of the most important components of LLM implementation
     pipelines are Data preprocessing, Evaluation, Guardrails/Security, and Testing/Monitoring.
     I would highly recommend you study more details on these topics. I realized the
     importance of these components only after I was working on the actual implementation
     of my foundational multilingual model ThaiLLM in production.
+  id: totrans-12
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 类似于分词器，一些在大型语言模型（LLM）实现管道中的重要组件包括数据预处理、评估、保护措施/安全性以及测试/监控。我强烈建议你深入学习这些主题。我是在实际实现我的基础多语言模型
+    ThaiLLM 并投入生产后，才意识到这些组件的重要性。
 - en: Why do you need a Thai tokenizer or any other foreign language tokenizer?
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为什么你需要一个泰语分词器或任何其他外语分词器？
 - en: Suppose you are using generic English-based tokenizers to pre-train a multilingual
     large language model such as Thai, Hindi, Indonesian, Arabic, Chinese, etc. In
     that case, your model might not likely give a suitable output that makes good
     sense for your specific domain or use cases. Hence, building your own tokenizer
     in your choice of language certainly helps make your model’s output much more
     coherent and understandable.
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设你正在使用通用的基于英语的分词器来预训练一个多语言的大型语言模型，如泰语、印地语、印尼语、阿拉伯语、中文等。在这种情况下，你的模型可能不会给出适合你特定领域或用例的合理输出。因此，构建你自己的分词器，选择自己喜欢的语言，肯定会帮助使模型输出更加连贯和易于理解。
 - en: Building your own tokenizer also gives you full control over how comprehensive
     and inclusive vocabulary you want to build. During the attention mechanism, because
     of comprehensive vocabulary, the token can attend and learn from more tokens within
     the limited context length of the sequence. Hence it makes learning more coherent
     which eventually helps in better model inference.
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 构建自己的分词器还可以让你完全控制词汇的全面性和包容性。在注意力机制中，由于词汇的全面性，token 可以在序列的有限上下文长度内关注并从更多的 tokens
+    中学习。因此，它使学习更加连贯，最终有助于更好的模型推理。
 - en: The good news is that after you finish building Thai Tokenizer, you can easily
     build a tokenizer in any other language. All the building steps are the same except
     that you’ll have to train on the dataset of your choice of language.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 好消息是，在构建泰语分词器完成后，你可以轻松地构建任何其他语言的分词器。所有构建步骤都是相同的，唯一不同的是你需要在你选择的语言的数据集上进行训练。
 - en: '**Now that we’ve all the good reason to build our own tokenizer. Below are
     steps to building our tokenizer in the Thai language.**'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '**现在我们已经有了所有构建我们自己分词器的充分理由。以下是构建我们泰语分词器的步骤。**'
 - en: Build our own BPE algorithm
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 构建我们自己的 BPE 算法
 - en: Train the tokenizer
+  id: totrans-19
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 训练分词器
 - en: Tokenizer encode and decode function
+  id: totrans-20
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 分词器的编码和解码功能
 - en: Load and test the tokenizer
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 加载并测试分词器
 - en: '**Step 1: Build our own BPE (Byte Pair Encoding) algorithm:**'
+  id: totrans-22
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**步骤 1：构建我们自己的 BPE（字节对编码）算法：**'
 - en: The BPE algorithm is used in many popular LLMs such as Llama, GPT, and others
     to build their tokenizer. We can choose one of these LLM tokenizers if our model
     is based on the English language. Since we’re building the Thai Tokenizer, the
     best option is to create our own BPE algorithm from scratch and use it to build
     our tokenizer. Let’s first understand how the BPE algorithm works with the help
     of the simple flow diagram below and then we’ll start building it accordingly.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: BPE 算法在许多流行的 LLM（大型语言模型）中都有应用，如 Llama、GPT 等，用于构建它们的分词器。如果我们的模型是基于英语的，我们可以选择这些
+    LLM 分词器之一。由于我们正在构建泰语分词器，最佳选择是从零开始创建我们自己的 BPE 算法，并用它来构建我们的分词器。让我们首先通过下面简单的流程图理解
+    BPE 算法是如何工作的，然后我们就可以根据它开始构建。
 - en: '![](../Images/bdc0fe33fb3088b9db81b36efeeed005.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bdc0fe33fb3088b9db81b36efeeed005.png)'
 - en: '[Image by writer]: BPE flow diagram. Example reference from a wiki page ([https://en.wikipedia.org/wiki/Byte_pair_encoding](https://en.wikipedia.org/wiki/Byte_pair_encoding))'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '[图像来自作者]：BPE 流程图。示例引用自维基百科页面（[https://en.wikipedia.org/wiki/Byte_pair_encoding](https://en.wikipedia.org/wiki/Byte_pair_encoding)）'
 - en: The examples in the flow diagram are shown in English to make it easier to understand.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 流程图中的示例以英语展示，目的是为了让理解更加简便。
 - en: '**Let’s write code to implement the BPE algorithm for our Thai Tokenizer.**'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '**让我们写代码来实现我们泰语分词器的 BPE 算法。**'
 - en: '[PRE0]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '[PRE1]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: The two functions ***get_stats***and ***merge***defined above in the code block
     are the implementation of the BPE algorithm for our Thai Tokenizer. Now that the
     algorithm is ready. Let’s write code to train our tokenizer.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面代码块中定义的两个函数***get_stats***和***merge***是我们泰语分词器的 BPE 算法实现。现在算法已经准备好。让我们写代码来训练我们的分词器。
 - en: 'Step 2: Train the tokenizer:'
+  id: totrans-31
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 步骤 2：训练分词器：
 - en: Training tokenizer involves generating a vocabulary which is a database of unique
     tokens (word and sub-words) along with a unique index number assigned to each
     token. We’ll be using **the Thai Wiki dataset** from the Hugging Face to train
@@ -153,85 +226,127 @@
     dataset to train the LLM as well as tokenizer though not mandatory. For a multilingual
     LLM, it is advisable to use both the English and Thai datasets in the ratio of
     2:1 which is a standard approach many practitioners follow.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 训练分词器涉及生成一个词汇表，这是一个包含唯一标记（单词和子单词）及其唯一索引编号的数据库。我们将使用**泰语维基数据集**从Hugging Face来训练我们的泰语分词器。就像训练LLM需要大量数据一样，你也需要大量数据来训练分词器。你也可以使用相同的数据集来同时训练LLM和分词器，虽然这不是必须的。对于多语言LLM，建议以2:1的比例使用英语和泰语数据集，这是许多从业者遵循的标准做法。
 - en: '**Let’s begin writing the training code.**'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '**让我们开始编写训练代码。**'
 - en: '[PRE2]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Step 3: Tokenizer encode and decode function:'
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第3步：分词器的编码和解码功能：
 - en: '**Tokenizer Encode:** The tokenizer encoding function looks into vocabulary
     and translates the given input texts or prompts into the list of integer IDs.
     These IDs are then fed into the transformer blocks.'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**分词器编码：** 分词器的编码功能查找词汇表，将给定的输入文本或提示转换为整数ID列表。这些ID随后被输入到转换器块中。'
 - en: '**Tokenizer Decode:** The tokenizer decoding function looks into vocabulary
     and translates the list of IDs generated from the transformer’s classifier block
     into output texts.'
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**分词器解码：** 分词器的解码功能查找词汇表，将来自转换器分类块生成的ID列表转换为输出文本。'
 - en: Let’s take a look at the diagram below to have further clarity.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看一下下面的图表，以便更清楚地理解。
 - en: '![](../Images/8d677b110b92dc2cb9ac0c4822965467.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8d677b110b92dc2cb9ac0c4822965467.png)'
 - en: '[Image by writer]: Thai tokenizer encode and decode function'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '[图片来源：作者]：泰语分词器的编码和解码功能'
 - en: '**Let’s write code to implement the tokenizer’s encode and decode function.**'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '**让我们编写代码来实现分词器的编码和解码功能。**'
 - en: '[PRE3]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Step 4: Load and test the tokenizer:'
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第4步：加载并测试分词器：
 - en: Finally, here comes the best part of this article. In this section, we’ll perform
     two interesting tasks.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，来到了本文的精彩部分。在这一部分，我们将进行两个有趣的任务。
 - en: First, train our tokenizer with the Thai Wiki Dataset from the Hugging Face.
     We have chosen a small dataset size (2.2 MB) to make training faster. However,
     for real-world implementation, you should choose a much larger dataset for better
     results. After the training is complete, we’ll save the model.
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，用Hugging Face的泰语维基数据集训练我们的分词器。我们选择了一个较小的数据集（2.2 MB），以便加快训练速度。然而，实际应用中，你应该选择一个更大的数据集以获得更好的结果。训练完成后，我们将保存模型。
 - en: Second, we’ll load the saved tokenizer model and perform testing the tokenizer’s
     encode and decode function.
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其次，我们将加载保存的分词器模型，并测试分词器的编码和解码功能。
 - en: '**Let’s dive in.**'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '**让我们深入了解。**'
 - en: '[PRE4]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '[PRE5]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '![](../Images/935f6773b6e220ece558ac08625cfef3.png)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/935f6773b6e220ece558ac08625cfef3.png)'
 - en: '**[Thai Tokenizer]: Encoding and decoding output for the texts in Thai and
     English language.**'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: '**[泰语分词器]：泰语和英语文本的编码与解码输出。**'
 - en: Perfect. Our Thai Tokenizer can now successfully and accurately encode and decode
     texts in both Thai and English languages.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 完美。我们的泰语分词器现在可以成功且准确地对泰语和英语文本进行编码和解码。
 - en: Have you noticed that the encoded IDs for English texts are longer than Thai
     encoded IDs? This is because we’ve only trained our tokenizer with the Thai dataset.
     Hence the tokenizer is only able to build a comprehensive vocabulary for the Thai
@@ -240,23 +355,35 @@
     I have mentioned before, for multilingual LLM, you should train both the English
     and Thai datasets with a ratio of 2:1\. This will give you balanced and quality
     results.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 你有没有注意到，英文文本的编码ID比泰语编码ID要长？这是因为我们仅使用泰语数据集来训练我们的分词器。因此，分词器只能为泰语构建一个全面的词汇表。由于我们没有使用英文数据集进行训练，分词器必须从字符级别开始编码，这就导致了更长的编码ID。正如我之前提到的，对于多语言LLM，你应该以2:1的比例训练英语和泰语数据集。这样可以获得平衡且高质量的结果。
 - en: '**And that is it!** We have now successfully created our own Thai Tokenizer
     from scratch only using Python. And, I think that was pretty cool. With this,
     you can easily build a tokenizer for any foreign language. This will give you
     a lot of leverage while implementing your Multilingual LLM.'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '**就这样！** 我们现在已经成功地从零开始仅使用 Python 创建了我们自己的泰语分词器。而且，我觉得这真的很酷。有了这个，你可以轻松地为任何外语构建分词器。这将在实现你的多语言大语言模型时为你提供很大的帮助。'
 - en: '**Thanks a lot for reading!**'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '**非常感谢阅读！**'
 - en: '[Link to Google Colab notebook](https://github.com/tamangmilan/thai_tokenizer/blob/main/build_thai_tokenizer.ipynb)'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '[链接到 Google Colab 笔记本](https://github.com/tamangmilan/thai_tokenizer/blob/main/build_thai_tokenizer.ipynb)'
 - en: '**References**'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '**参考文献**'
 - en: '[1] Andrej Karpathy, Git Hub: [Karpthy/minbpe](https://github.com/karpathy/minbpe?tab=readme-ov-file)'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] Andrej Karpathy, Git Hub: [Karpthy/minbpe](https://github.com/karpathy/minbpe?tab=readme-ov-file)'

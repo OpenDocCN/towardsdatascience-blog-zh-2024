@@ -1,43 +1,65 @@
 - en: Training LLM, from Scratch, in Rust
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在Rust中从零开始训练LLM
 - en: 原文：[https://towardsdatascience.com/training-llm-from-scratch-in-rust-03381bbd7204?source=collection_archive---------2-----------------------#2024-12-26](https://towardsdatascience.com/training-llm-from-scratch-in-rust-03381bbd7204?source=collection_archive---------2-----------------------#2024-12-26)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/training-llm-from-scratch-in-rust-03381bbd7204?source=collection_archive---------2-----------------------#2024-12-26](https://towardsdatascience.com/training-llm-from-scratch-in-rust-03381bbd7204?source=collection_archive---------2-----------------------#2024-12-26)
 - en: In this companion article, I’ll show my implementation for training from scratch
     a GPT-like model, in Rust. No GPUs, only CPUs, with a performance 30 times better
     than the native C code.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在这篇配套文章中，我将展示我在Rust中从零开始训练一个类似GPT的模型的实现。没有GPU，只有CPU，且性能比本地C代码提高了30倍。
 - en: '[](https://stefanobosisio1.medium.com/?source=post_page---byline--03381bbd7204--------------------------------)[![Stefano
     Bosisio](../Images/450d904024a4cbf1adf8a625886d852e.png)](https://stefanobosisio1.medium.com/?source=post_page---byline--03381bbd7204--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03381bbd7204--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--03381bbd7204--------------------------------)
     [Stefano Bosisio](https://stefanobosisio1.medium.com/?source=post_page---byline--03381bbd7204--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://stefanobosisio1.medium.com/?source=post_page---byline--03381bbd7204--------------------------------)[![Stefano
+    Bosisio](../Images/450d904024a4cbf1adf8a625886d852e.png)](https://stefanobosisio1.medium.com/?source=post_page---byline--03381bbd7204--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03381bbd7204--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--03381bbd7204--------------------------------)
+    [Stefano Bosisio](https://stefanobosisio1.medium.com/?source=post_page---byline--03381bbd7204--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03381bbd7204--------------------------------)
     ·14 min read·Dec 26, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03381bbd7204--------------------------------)
+    ·阅读时长14分钟·2024年12月26日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/b2d10b30f55a0cd780f399191ce3b8e9.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b2d10b30f55a0cd780f399191ce3b8e9.png)'
 - en: Image by [GoogleDeepMind](https://unsplash.com/@googledeepmind) on [Unsplash](https://unsplash.com/photos/a-close-up-of-a-metal-object-on-a-white-surface-yyl3iDuS3s8)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[GoogleDeepMind](https://unsplash.com/@googledeepmind) via [Unsplash](https://unsplash.com/photos/a-close-up-of-a-metal-object-on-a-white-surface-yyl3iDuS3s8)
 - en: In my last [article](https://medium.com/towards-data-science/writing-llms-in-rust-looking-for-an-efficient-matrix-multiplication-e9539b0cb9d3),
     I introduced the problem of matrix multiplication, how the attention algorithm
     uses matrix multiplication to perform an averaging process, and how to efficiently
     implement — or at least, for me — a matrix multiplication function in Rust with
     [Blas](https://docs.rs/blas/latest/blas/).
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我上一篇[文章](https://medium.com/towards-data-science/writing-llms-in-rust-looking-for-an-efficient-matrix-multiplication-e9539b0cb9d3)中，我介绍了矩阵乘法的问题，注意力算法如何使用矩阵乘法来执行平均处理，以及如何在Rust中高效实现——或者至少对我而言——矩阵乘法函数，并使用[Blas](https://docs.rs/blas/latest/blas/)。
 - en: In this new article, I want to show my first building block for implementing
     [llm.c](https://github.com/karpathy/llm.c) in Rust, namely, training a GPT-like
     model from scratch using Rust. This has been my way of learning more and more
@@ -47,8 +69,12 @@
     push these models on simple laptops, and how much the Rust ecosystem can be used
     for this. **Eventually, this code may also be useful to fine-tune GPT models with
     a given input corpus**.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇新文章中，我想展示我在用Rust实现[llm.c](https://github.com/karpathy/llm.c)的第一个构建块，即从零开始使用Rust训练一个类似GPT的模型。这是我了解Rust生态系统并理解它与C语言的可比性的方式。特别是，**我希望我的代码能够在仅使用CPU的情况下，从GPT权重开始训练一个类似GPT的模型**——也就是不使用GPU或TPU。我的目标是理解我们在简单笔记本电脑上能够推多大这些模型，以及Rust生态系统在这方面能发挥多大作用。**最终，这段代码也可能对基于给定输入语料库微调GPT模型有所帮助**。
 - en: All the relevant pieces of code can be found [here](https://github.com/Steboss/llm.rust).
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有相关的代码片段可以在[这里](https://github.com/Steboss/llm.rust)找到。

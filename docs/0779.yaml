@@ -1,62 +1,96 @@
 - en: How does the Segment-Anything Model’s (SAM’s) decoder work?
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Segment-Anything 模型（SAM）的解码器是如何工作的？
 - en: 原文：[https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-decoder-work-0e4ab4732c37?source=collection_archive---------5-----------------------#2024-03-24](https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-decoder-work-0e4ab4732c37?source=collection_archive---------5-----------------------#2024-03-24)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-decoder-work-0e4ab4732c37?source=collection_archive---------5-----------------------#2024-03-24](https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-decoder-work-0e4ab4732c37?source=collection_archive---------5-----------------------#2024-03-24)
 - en: '[](https://jasonweiyi.medium.com/?source=post_page---byline--0e4ab4732c37--------------------------------)[![Wei
     Yi](../Images/24b7a438912082519f24d18e11ac9638.png)](https://jasonweiyi.medium.com/?source=post_page---byline--0e4ab4732c37--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e4ab4732c37--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0e4ab4732c37--------------------------------)
     [Wei Yi](https://jasonweiyi.medium.com/?source=post_page---byline--0e4ab4732c37--------------------------------)'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://jasonweiyi.medium.com/?source=post_page---byline--0e4ab4732c37--------------------------------)[![Wei
+    Yi](../Images/24b7a438912082519f24d18e11ac9638.png)](https://jasonweiyi.medium.com/?source=post_page---byline--0e4ab4732c37--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e4ab4732c37--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0e4ab4732c37--------------------------------)
+    [Wei Yi](https://jasonweiyi.medium.com/?source=post_page---byline--0e4ab4732c37--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e4ab4732c37--------------------------------)
     ·18 min read·Mar 24, 2024
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e4ab4732c37--------------------------------)
+    ·18分钟阅读·2024年3月24日
 - en: --
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/b352f48ee952208b5f82ab47be181458.png)'
+  id: totrans-5
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b352f48ee952208b5f82ab47be181458.png)'
 - en: Photo by [dylan nolte](https://unsplash.com/@dylan_nolte?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自 [dylan nolte](https://unsplash.com/@dylan_nolte?utm_source=medium&utm_medium=referral)
+    在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: A deep dive into how the Segment-Anything model’s decoding procedure, with a
     focus on how its self-attention and cross-attention mechanism works.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 深入探讨 Segment-Anything 模型的解码过程，重点讲解其自注意力和交叉注意力机制是如何工作的。
 - en: This article only focuses on SAM’s decoder. For people interested in SAM’s encoder,
     please see my other article “[How Does the Segment-Anything Model’s (SAM’s) encoder
     work?](https://medium.com/towards-data-science/how-does-the-segment-anything-models-sam-s-encoder-work-003a8a6e3f8b)”.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文只关注 SAM 的解码器。如果你对 SAM 的编码器感兴趣，请参考我的另一篇文章 “[Segment-Anything 模型（SAM）的编码器是如何工作的？](https://medium.com/towards-data-science/how-does-the-segment-anything-models-sam-s-encoder-work-003a8a6e3f8b)”。
 - en: The Segment-Anything (SAM) model is a 2D interactive segmentation model, or
     guided model. SAM requires user prompts to segment an image. These prompts tell
     the model where to segment. The output of the model is a set of segmentation masks
     at different levels and a confidence score associated with each mask.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: Segment-Anything (SAM) 模型是一个 2D 交互式分割模型，或者说是引导模型。SAM 需要用户提示来分割图像。这些提示告诉模型应该在哪个位置进行分割。模型的输出是不同层级的分割掩码集合，并且每个掩码都有一个对应的置信度分数。
 - en: A segmentation mask is a 2D binary array with the same size as the input image.
     In this 2D array, an entry at location *(x, y)* has a value 1 if the model thinks
     that the pixel at location *(x, y)* belongs to the segmented area. Otherwise,
     the entry is 0\. Those confidence scores indicate model’s belief on the quality
     of each segmentation, higher score means higher quality.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 分割掩码是一个与输入图像大小相同的 2D 二进制数组。在这个 2D 数组中，位于 *(x, y)* 位置的条目如果模型认为该像素属于分割区域，则其值为
+    1，否则为 0。那些置信度分数表示模型对每个分割质量的信任程度，分数越高，质量越高。
 - en: 'The network architecture of SAM consists of an encoder and a decoder:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: SAM 的网络架构由编码器和解码器组成：
 - en: The encoder takes in the image and user prompt inputs to produce image embedding,
     image positional embedding and user prompt embeddings.
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 编码器接收图像和用户提示输入，生成图像嵌入、图像位置嵌入和用户提示嵌入。
 - en: The decoder takes in the…
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解码器接收……

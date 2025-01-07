@@ -1,45 +1,69 @@
 - en: How to Use Structured Generation for LLM-as-a-Judge Evaluations
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何使用结构化生成进行LLM作为裁判的评估
 - en: 原文：[https://towardsdatascience.com/how-to-use-structured-generation-for-llm-as-a-judge-evaluations-c6018cdab8be?source=collection_archive---------10-----------------------#2024-11-27](https://towardsdatascience.com/how-to-use-structured-generation-for-llm-as-a-judge-evaluations-c6018cdab8be?source=collection_archive---------10-----------------------#2024-11-27)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-to-use-structured-generation-for-llm-as-a-judge-evaluations-c6018cdab8be?source=collection_archive---------10-----------------------#2024-11-27](https://towardsdatascience.com/how-to-use-structured-generation-for-llm-as-a-judge-evaluations-c6018cdab8be?source=collection_archive---------10-----------------------#2024-11-27)
 - en: Structured generation is fundamental to building complex, multi-step reasoning
     agents in LLM evaluations — especially for open source models
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 结构化生成是构建复杂的多步骤推理代理的基础，尤其是在LLM评估中——尤其是对于开源模型
 - en: '[](https://medium.com/@calebkaiser?source=post_page---byline--c6018cdab8be--------------------------------)[![Caleb
     Kaiser](../Images/c33ef43df24242501cb9e797e8d67a6c.png)](https://medium.com/@calebkaiser?source=post_page---byline--c6018cdab8be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6018cdab8be--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c6018cdab8be--------------------------------)
     [Caleb Kaiser](https://medium.com/@calebkaiser?source=post_page---byline--c6018cdab8be--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@calebkaiser?source=post_page---byline--c6018cdab8be--------------------------------)[![Caleb
+    Kaiser](../Images/c33ef43df24242501cb9e797e8d67a6c.png)](https://medium.com/@calebkaiser?source=post_page---byline--c6018cdab8be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6018cdab8be--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c6018cdab8be--------------------------------)
+    [Caleb Kaiser](https://medium.com/@calebkaiser?source=post_page---byline--c6018cdab8be--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6018cdab8be--------------------------------)
     ·20 min read·Nov 27, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6018cdab8be--------------------------------)
+    ·阅读时间 20分钟·2024年11月27日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/f8849a88a2dfb9c66defaadbb3f70dbb.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f8849a88a2dfb9c66defaadbb3f70dbb.png)'
 - en: 'Source: [Generated with SDXL 1.0](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 来源：[通过SDXL 1.0生成](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)
 - en: '*Disclosure: I am a maintainer of* [*Opik*](https://github.com/comet-ml/opik)*,
     one of the open source projects used later in this article.*'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '*声明：我是* [*Opik*](https://github.com/comet-ml/opik)*的维护者之一，该项目是本文后面提到的开源项目。*'
 - en: For the past few months, I’ve been working on LLM-based evaluations (“LLM-as-a-Judge”
     metrics) for language models. The results have so far been extremely encouraging,
     particularly for evaluations like hallucination detection or content moderation,
     which are hard to quantify with heuristic methods.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在过去的几个月里，我一直在致力于基于大型语言模型（LLM）的评估（“LLM作为裁判”指标）。到目前为止，结果非常令人鼓舞，特别是在一些难以通过启发式方法量化的评估中，比如幻觉检测或内容审核。
 - en: Engineering LLM-based metrics, however, has been surprisingly challenging. Evaluations
     and unit tests, especially those with more complex logic, require you to know
     the structure of your data. And with LLMs and their probabilistic outputs, it’s
@@ -47,58 +71,80 @@
     providers now offer `structured outputs` modes, but these still come with limitations,
     and if you're using open source or local models, those modes won't do you much
     good.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，基于LLM的度量工程一直出奇地具有挑战性。评估和单元测试，特别是那些包含更复杂逻辑的测试，要求你了解数据的结构。而对于LLM及其概率输出，可靠地输出特定格式和结构是非常困难的。一些托管模型提供商现在提供`结构化输出`模式，但这些模式仍然存在限制，并且如果你使用的是开源或本地模型，这些模式对你帮助不大。
 - en: The solution to this problem is to use **structured generation**. Beyond its
     ability to make LLM-based evaluations more reliable, it also unlocks an entirely
     new category of complex, powerful multi-stage evaluations.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个问题的解决方案是使用**结构化生成**。除了使基于LLM的评估更可靠之外，它还解锁了一个全新的复杂且强大的多阶段评估类别。
 - en: In this piece, I want to introduce structured generation and some of the big
     ideas behind it, before diving into specific examples of hallucination detection
     with an LLM judge. All of the code samples below can be run from within this [Colab
     notebook](https://colab.research.google.com/drive/1-lQn0qvJMN1BBuDjRuCzySA7gLhpcdBo#scrollTo=8QOySg8J5AcT),
     so feel free to run the samples as you follow along.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一部分，我想介绍一下结构化生成及其背后的一些大思想，然后再深入探讨使用LLM评判器进行幻觉检测的具体示例。下面所有的代码示例都可以在这个[Colab笔记本](https://colab.research.google.com/drive/1-lQn0qvJMN1BBuDjRuCzySA7gLhpcdBo#scrollTo=8QOySg8J5AcT)中运行，因此在跟随的过程中，欢迎你运行这些示例。
 - en: A Brief Introduction to Structured Generation with Context-Free Grammars
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用上下文无关文法（CFG）进行结构化生成简要介绍
 - en: Structured generation is a subfield of machine learning focused on guiding the
     outputs of generative models by constraining the outputs to fit some particular
     schema. As an example, instead of fine-tuning a model to output valid JSON, you
     might constrain a more generalized model’s output to only match valid JSON schemas.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 结构化生成是机器学习的一个子领域，专注于通过将输出限制为符合某个特定模式来引导生成模型的输出。举个例子，与其微调一个模型使其输出有效的JSON，你可能会限制一个更通用模型的输出，只匹配有效的JSON模式。
 - en: You can constrain the outputs of a model through different strategies, but the
     most common is to interfere directly in the sampling phase, using some external
     schema to prevent “incorrect” tokens from being sampled.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过不同的策略来限制模型的输出，但最常见的方法是在采样阶段直接干预，使用某些外部模式来防止采样到“不正确”的标记。
 - en: At this point, structured generation has become a fairly common feature in LLM
     servers. vLLM, NVIDIA NIM, llama.cpp, and Ollama all support it. If you’re not
     working with a model server, libraries like [Outlines](https://github.com/dottxt-ai/outlines)
     make it trivial to implement for any model. OpenAI also provides a “Structured
     Output” mode, which similarly allows you to specify a response schema from their
     API.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时，结构化生成已经成为LLM服务器中相当常见的特性。vLLM、NVIDIA NIM、llama.cpp和Ollama都支持它。如果你没有在使用模型服务器，像[Outlines](https://github.com/dottxt-ai/outlines)这样的库使得对任何模型的实现变得非常简单。OpenAI也提供了一种“结构化输出”模式，类似地，允许你从他们的API中指定响应模式。
 - en: But, I find it helps me develop my intuition for a concept to try a simple implementation
     from scratch, and so that’s what we’re going to do here.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 不过，我发现尝试从零开始做一个简单的实现有助于我对概念的直观理解，所以我们将从这里开始。
 - en: 'There are two main components to structured generation:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 结构化生成有两个主要组成部分：
 - en: Defining a schema
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 定义模式
 - en: Parsing the output
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 解析输出
 - en: For the schema, I’m going to use a context-free grammar (CFG). If you’re unfamiliar,
     a grammar is a schema for parsing a language. Loosely, it defines what is and
     isn’t considered “valid” in a language. If you’re in the mood for an *excellent*
@@ -106,15 +152,22 @@
     The amazing Kay Lack has [a fantastic introductory video to grammars and parsing
     here](https://www.youtube.com/watch?v=ENKT0Z3gldE), if you’re interested in learning
     more.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于模式，我将使用上下文无关文法（CFG）。如果你不熟悉，文法是解析语言的一种模式。简单地说，它定义了在语言中什么是“有效”的，什么不是。如果你有兴趣深入了解，*极好的*兔子洞是，上下文无关语言是乔姆斯基语言层级的一部分。令人惊叹的Kay
+    Lack在[这里](https://www.youtube.com/watch?v=ENKT0Z3gldE)有一段关于文法和解析的精彩入门视频，感兴趣的话可以观看。
 - en: 'The most popular library for parsing and constructing CFGs is Lark. In the
     below code, I’ve written out a simple JSON grammar using the library:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于解析和构建上下文无关文法（CFG）的最流行的库是Lark。在下面的代码中，我使用该库编写了一个简单的JSON语法：
 - en: '[PRE0]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: If you’re not familiar with CFGs or Lark, the above might seem a little intimidating,
     but it’s actually pretty straightforward. The `?start` line indicates that we
     begin with a `value`. We then define a `value` to be either an object, an array,
@@ -126,372 +179,549 @@
     parts, until we reach such a low level of abstraction that we can no longer expand.
     In the parlance of grammars, these "too low level to be expanded" symbols are
     called "terminals."
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你不熟悉 CFG 或 Lark，以上内容可能会让你觉得有点让人畏惧，但其实它非常直接。`?start` 行表示我们从一个 `value` 开始。接着，我们定义
+    `value` 为一个对象、一个数组、一个转义字符串、一个带符号的数字、一个布尔值或一个 null 值。`->` 符号表示我们将这些字符串值映射到字面值。接下来，我们进一步指定了
+    `array`、`object` 和 `pair` 的含义，然后最后指示我们的解析器忽略内联空格。你可以把它看作是我们不断地“扩展”每个高级概念，如 `start`
+    或 `value`，直到达到如此低的抽象级别，以至于无法再扩展。在语法学的术语中，这些“无法再扩展的低级符号”被称为“终结符”。
 - en: 'One immediate issue you’ll run into with this above code is that it only determines
     if a string is valid or invalid JSON. Since we’re using a language model and generating
     one token at a time, we’re going to have a lot of intermediary strings that are
     technically invalid. There are more elegant ways of handling this, but for the
     sake of speed, I’m just going to define a simple function to check if we’re in
     the middle of generating a string or not:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 你会立即遇到的一个问题是，上面的代码只能确定字符串是否是有效的或无效的 JSON。由于我们使用的是语言模型并且一次生成一个标记，我们将会有很多技术上无效的中间字符串。有更优雅的处理方法，但为了提高速度，我只是定义了一个简单的函数来检查我们是否正在生成一个字符串：
 - en: '[PRE1]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'With all of this defined, let’s run a little test to see if our parser can
     accurately differentiate between valid, invalid, and incomplete JSON strings:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义好这一切之后，让我们进行一个小测试，看看我们的解析器是否能够准确地区分有效、无效和不完整的 JSON 字符串：
 - en: '[PRE2]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '[PRE3]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: And it works!
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 它有效！
 - en: 'As a final test, let’s use this `try_and_recover()` function to guide our decoding
     process with a relatively smaller model. In the below code, we''ll use an instruction-tuned
     Qwen 2.5 model with 3 billion parameters, and we''ll ask it a simple question.
     First, let''s initialize the model and tokenizer:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为最后的测试，让我们使用 `try_and_recover()` 函数来引导我们使用相对较小模型的解码过程。在下面的代码中，我们将使用一个经过指令调优的
+    Qwen 2.5 模型，参数为 30 亿，我们将问它一个简单的问题。首先，让我们初始化模型和分词器：
 - en: '[PRE4]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'Now, we want to define a function to recursively sample from the model, using
     our `try_and_recover()` function to constrain the outputs. Below, I''ve defined
     the function, which works by recursively sampling the top 20 most likely next
     tokens, and selecting the first one which satisfies a valid or incomplete JSON
     string:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们想定义一个函数来递归地从模型中采样，使用我们的 `try_and_recover()` 函数来约束输出。下面，我定义了这个函数，它通过递归地从最可能的前
+    20 个下一个标记中采样，并选择第一个满足有效或不完整 JSON 字符串的标记：
 - en: '[PRE5]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: This isn’t the most performant or robust approach, but it works well enough
     for our purposes. If you want a better look at more optimal approaches, you can
     see how [llama.cpp implements structured generation](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md),
     or how a library like [Outlines handles things](https://github.com/dottxt-ai/outlines).
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 这不是最具性能或最稳健的方法，但对于我们的目的来说已经足够好。如果你想更好地了解更优化的方法，可以看看 [llama.cpp 如何实现结构化生成](https://github.com/ggerganov/llama.cpp/blob/master/grammars/README.md)，或者像
+    [Outlines 这样的库是如何处理的](https://github.com/dottxt-ai/outlines)。
 - en: 'With the following code, we can test the performance of this structured generation
     function:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用以下代码，我们可以测试这个结构化生成函数的性能：
 - en: '[PRE6]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '[PRE7]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'This particular approach will obviously add some computational overhead to
     your code, but some of the more optimized implementations are actually capable
     of structuring the output of a model with minimal latency impact. Below is a side-by-side
     comparison of unstructured generation versus structured generation using llama.cpp’s
     grammar-structured generation feature:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法显然会给你的代码增加一些计算开销，但一些更优化的实现实际上能够在最小的延迟影响下结构化模型的输出。下面是使用 llama.cpp 的语法结构化生成功能进行非结构化生成与结构化生成的并排对比：
 - en: '![](../Images/ef64ac9c814a3975332ad0bd4f4f6ac3.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ef64ac9c814a3975332ad0bd4f4f6ac3.png)'
 - en: 'Source: [How Fast Can Grammar-Structured Generation Be?](https://blog.dottxt.co/how-fast-cfg.html)'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 来源：[语法结构化生成的速度有多快？](https://blog.dottxt.co/how-fast-cfg.html)
 - en: This comparison was recorded by Brandon Willard from .txt (the company behind
     Outlines), as part of [his fantastic article on latency in structured generation](https://blog.dottxt.co/how-fast-cfg.html).
     I’d highly recommend giving it a read, if you’re interested in diving deeper into
     the field.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个对比是由Brandon Willard从.txt（Outlines背后的公司）记录的，作为[他关于结构化生成延迟的精彩文章的一部分](https://blog.dottxt.co/how-fast-cfg.html)。如果你有兴趣深入了解这个领域，我强烈推荐阅读这篇文章。
 - en: Alright, with that bit of introduction out of the way, let’s look at applying
     structured generation to an LLM-as-a-judge metric, like hallucination.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，在这个简单介绍之后，让我们来看看如何将结构化生成应用于LLM作为评判标准的度量，比如幻觉检测。
 - en: How to detect hallucinations with structured generation
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何通过结构化生成来检测幻觉
 - en: 'Hallucination detection is one of the “classic” applications of LLM-based evaluation.
     Traditional heuristic methods struggle with the subtlety of hallucination-in no
     small part due to the fact that there is no universally agreed upon definition
     of “hallucination.” For the purposes of this article, we’re going to use a definition
     from a [recent paper out of the University of Illinois Champagne-Urbana](https://arxiv.org/html/2403.16527v1),
     which I find to be descriptive and usable:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 幻觉检测是基于LLM评估的“经典”应用之一。传统的启发式方法在幻觉的细微差别上存在困难，这在很大程度上是因为“幻觉”并没有一个普遍公认的定义。为了本文的目的，我们将采用[伊利诺伊大学香槟分校最近发表的一篇论文中的定义](https://arxiv.org/html/2403.16527v1)，我认为它既具描述性又具有可用性：
 - en: '*A hallucination is a generated output from a model that conflicts with constraints
     or deviates from desired behavior in actual deployment, or is completely irrelevant
     to the task at hand, but could be deemed syntactically plausible under the circumstances.*'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '*幻觉是模型生成的输出，与实际部署中的约束冲突，或偏离期望行为，或者与当前任务完全无关，但在特定情况下可能被认为在语法上是可行的。*'
 - en: In other words, a hallucination is an output that seems plausible. It is grammatically
     correct, it makes reference to its surrounding context, and it seems to fit the
     “flow” of the task. It also, however, contradicts some basic instruction of the
     task. This could mean drawing incorrect conclusions, citing nonexistent data,
     or completely ignoring the actual instructions of the task.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，幻觉是一个看起来似乎合理的输出。它语法正确，参考了周围的上下文，看起来符合任务的“流程”。然而，它也与任务的一些基本指令相矛盾。这可能意味着得出错误的结论，引用不存在的数据，或者完全忽视任务的实际指令。
 - en: Obviously, encoding a discrete system of rules to parse outputs for something
     as ambiguous as hallucinations is a challenge. LLMs, however, are very well suited
     towards this kind of complex task.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，为了分析像幻觉这样模糊的概念，需要编码一个离散的规则系统，这本身就是一个挑战。然而，LLM非常适合这种复杂的任务。
 - en: 'Using an LLM to perform hallucination analysis isn’t too difficult to setup.
     All we need to do is prompt the model to analyze the output text for hallucinations.
     In [Opik’s built-in Hallucination() metric](https://github.com/comet-ml/opik),
     we use the following prompt:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用LLM来执行幻觉分析并不难设置。我们需要做的只是提示模型分析输出文本中的幻觉。在[Opik内置的Hallucination()度量](https://github.com/comet-ml/opik)中，我们使用了以下提示：
 - en: '[PRE8]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: The difficult part, however, is performing this analysis programatically. In
     a real world setting, we’ll want to automatically parse the output of our model
     and collect the hallucination scores, either as part of our model evaluation or
     as part of our inference pipeline. Doing this will require us to write code that
     acts on the model outputs, and if the LLM responds with incorrectly formatted
     output, the evaluation will break.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，困难的部分是如何通过程序化的方式进行分析。在实际应用中，我们希望能够自动解析模型的输出，并收集幻觉得分，无论是作为模型评估的一部分，还是作为推理管道的一部分。做到这一点将需要我们编写针对模型输出的代码，而如果LLM的输出格式不正确，评估过程将会中断。
 - en: This is a problem even for state of the art foundation models, but it is greatly
     exaggerated when working with smaller language models. Their outputs are probabilistic,
     and no matter how thorough you are in your prompt, there is no guarantee that
     they will always respond with the correct structure.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个即使对于最先进的基础模型来说也存在的问题，但在使用较小的语言模型时，这个问题会被大大夸大。它们的输出是概率性的，无论你在提示中多么细致，都不能保证它们总是以正确的结构做出回应。
 - en: '*Unless*, of course, you use structured generation.'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '*除非*，当然，你使用的是结构化生成。'
 - en: Let’s run through a simple example using Outlines and Opik. First, we want to
     initialize our model using Outlines. In this example, we’ll be using the 0.5 billion
     parameter version of Qwen2.5\. While this model is impressive for its size, and
     small enough for us to run quickly in a Colab notebook, you will likely want to
     use a larger model for more accurate results.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过一个简单的例子来使用Outlines和Opik。首先，我们希望使用Outlines初始化我们的模型。在这个示例中，我们将使用Qwen2.5的5亿参数版本。虽然这个模型的规模令人印象深刻，且足够小，可以在Colab笔记本中快速运行，但为了更准确的结果，你可能希望使用更大的模型。
 - en: '[PRE9]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'When your model finishes downloading, you can then create a `generator`. In
     Outlines, a `generator` is an inference pipeline that combines an output schema
     with a model. In the below code, we''ll define a schema in Pydantic and initialize
     our generator:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你的模型下载完成后，你可以创建一个`generator`。在Outlines中，`generator`是一个推理管道，它将输出模式与模型结合。在下面的代码中，我们将使用Pydantic定义一个模式，并初始化我们的生成器：
 - en: '[PRE10]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Now, if we pass a string into the generator, it will output a properly formatted
     object.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，如果我们将一个字符串传递给生成器，它将输出一个格式正确的对象。
 - en: 'Next, let’s setup our Hallucination metric in Opik. It’s pretty straightforward
     to create a metric using Opik’s baseMetric class:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，让我们在Opik中设置我们的幻觉度量。使用Opik的baseMetric类创建度量非常简单：
 - en: '[PRE11]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: All we really do in the above is generate our prompt using the previously defined
     template string, and then pass it into our generator.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在上面所做的实际上只是使用先前定义的模板字符串生成我们的提示，然后将其传递给生成器。
 - en: 'Now, let’s try out our metric on an actual hallucination dataset, to get a
     sense of how it works. We’ll use a split from the HaluEval dataset, which is freely
     available via HuggingFace and permissively licensed, and we’ll upload it as an
     Opik Dataset for our experiments. We’ll use a little extra logic to make sure
     the dataset is balanced between hallucinated and non-hallucinated samples:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们在一个实际的幻觉数据集上试试我们的度量，了解它是如何工作的。我们将使用HaluEval数据集中的一个拆分，这个数据集可以通过HuggingFace免费下载并具有宽松的许可，我们将把它上传为Opik数据集用于实验。我们会使用一些额外的逻辑，确保数据集在幻觉和非幻觉样本之间保持平衡：
 - en: '[PRE12]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'And now, we simply define an evaluation task using our HallucinationWithOutlines()
     metric, and run it against our dataset:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们只需使用我们的HallucinationWithOutlines()度量定义一个评估任务，并将其应用于我们的数据集：
 - en: '[PRE13]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'And that’s all it takes! Notice that none of our samples failed because of
     improperly structured outputs. Let’s try running this same evaluation, but without
     structured generation. To achieve this, we can switch our generator type:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 就是这么简单！请注意，没有任何样本因为输出结构不正确而失败。现在让我们尝试运行相同的评估，但不使用结构化生成。为了实现这一点，我们可以更改生成器类型：
 - en: '[PRE15]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'And modify our metric to parse JSON from the model output:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 并修改我们的度量来解析模型输出中的JSON：
 - en: '[PRE16]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Keeping the rest of the code the same and running this now results in:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 保持代码其余部分不变，现在运行结果为：
 - en: '[PRE17]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: Nearly every string fails to parse correctly. The inference time is also increased
     dramatically because of the variable length of responses, whereas the structured
     output helps keep the responses terse.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 几乎每个字符串都未能正确解析。推理时间也大大增加，因为响应的长度是可变的，而结构化输出有助于保持响应简洁。
 - en: Without structured generation, it just isn’t feasible to run this kind of evaluation,
     especially with a model this small. As an experiment, try running this same code
     with a bigger model and see how the average accuracy score improves.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 没有结构化生成，这种评估就无法实现，尤其是在一个这么小的模型上。作为实验，尝试用更大的模型运行这段代码，看看平均准确度分数是如何提高的。
 - en: Can we build more complex LLM judges with structured generation?
+  id: totrans-75
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 我们能否通过结构化生成构建更复杂的LLM法官？
 - en: The above example of hallucination detection is pretty straightforward. The
     real value that structured generation brings to LLM judges, however, is that it
     enables us to build more complex, multi-turn evaluations.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的幻觉检测示例非常直接。然而，结构化生成给LLM法官带来的真正价值在于，它使我们能够构建更复杂的多轮评估。
 - en: 'To give an extreme example of what a multi-step evaluation might look like,
     one recent paper found success in LLM evals by constructing multiple “personas”
     for different LLM agents, and having the [agents debate in an actual courtroom
     structure](https://arxiv.org/html/2405.20267v4):'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了给出一个极端的多步骤评估示例，最近有一篇论文通过为不同的LLM代理构建多个“人格”，并让[代理在实际法庭结构中辩论](https://arxiv.org/html/2405.20267v4)，在LLM评估中取得了成功：
 - en: '![](../Images/dde936a55ce3335b4578f945199af6f4.png)'
+  id: totrans-78
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/dde936a55ce3335b4578f945199af6f4.png)'
 - en: '[Source: Auto-Arena: Automating LLM Evaluations with Agent Peer Battles and
     Committee Discussions](https://arxiv.org/html/2405.20267v4)'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '[来源：Auto-Arena: 用代理对抗战和委员会讨论自动化LLM评估](https://arxiv.org/html/2405.20267v4)'
 - en: Forcing different agents to advocate for different positions and examine each
     other’s arguments, all while having yet another agent act as a “judge” to emit
     a final decision, significantly increased the accuracy of evaluations.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 强制不同的代理支持不同的立场并审查彼此的论点，同时让另一个代理充当“法官”做出最终决定，显著提高了评估的准确性。
 - en: In order for such a system to work, the handoffs between different agents must
     go smoothly. If an agent needs to pick between 5 possible actions, we need to
     be 100% sure that the model will only output one of those 5 valid actions. With
     structured generation, we can achieve that level of reliability.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使这种系统正常工作，不同代理之间的交接必须顺利。如果一个代理需要在5个可能的行动中做出选择，我们必须100%确信模型只会输出这5个有效行动中的一个。通过结构化生成，我们可以实现这种可靠性。
 - en: 'Let’s try a worked example, extending our hallucination metric from earlier.
     We’ll try the following improvement:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试一个实际示例，扩展我们之前的幻觉度量方法。我们将尝试以下改进：
 - en: On first pass, the model will generate 3 candidate hallucinations, with reasoning
     for each.
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在第一次运行时，模型将生成3个候选的幻觉，并为每个幻觉提供推理过程。
 - en: For each candidate, the model will evaluate them individually and assess if
     they are a hallucination, with expanded reasoning.
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于每个候选项，模型将单独评估它们，并判断它们是否为幻觉，同时提供扩展的推理过程。
 - en: If the model finds any candidate to be a hallucination, it will return 1.0 for
     the entire sample.
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果模型发现任何候选项是幻觉，它将为整个样本返回1.0。
 - en: By giving the model the ability to generate longer chains of context, we give
     it space for more “intermediary computation,” and hopefully, a more accurate final
     output.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过赋予模型生成更长上下文链的能力，我们为它提供了更多的“中介计算”空间，并希望能得到更准确的最终输出。
 - en: 'First, let’s define a series of prompts for this task:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，让我们为这个任务定义一系列提示：
 - en: '[PRE18]'
+  id: totrans-88
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'And now, we can define some Pydantic models for our different model outputs:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以为不同的模型输出定义一些Pydantic模型：
 - en: '[PRE19]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: 'With all of this, we can put together two generators, one for generating candidate
     hallucinations, and one for scoring individual candidates:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这一切，我们可以组合两个生成器，一个用于生成候选幻觉，另一个用于为单个候选项打分：
 - en: '[PRE20]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: 'Finally, we can construct an Opik metric. We’ll keep the code for this simple:'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们可以构建一个Opik度量方法。我们将使其代码保持简洁：
 - en: '[PRE21]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: All we do here is generate the first prompt, which should produce several hallucination
     candidates when fed to the candidate generator. Then, we pass each candidate (formatted
     with the candidate evaluation prompt) into the candidate evaluation generator.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们这里所做的只是生成第一个提示，当它传递给候选生成器时，应产生几个幻觉候选项。然后，我们将每个候选项（按照候选评估提示格式化）传入候选评估生成器。
 - en: 'If we run it using the same code as before, with slight modifications to use
     the new metric:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们使用与之前相同的代码运行它，并对新度量进行些微修改：
 - en: '[PRE22]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: '[PRE23]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: We see a great improvement. Remember that running this same model, with a very
     similar initial prompt, on this same dataset, resulted in a score of 0.46\. By
     simply adding this additional candidate evaluation step, we immediately increased
     the score to 0.52\. For such a small model, this is great!
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到了很大的改进。记住，在相同数据集上运行这个相同的模型，并使用非常相似的初始提示，得到了0.46的评分。通过简单地添加这个额外的候选评估步骤，我们立即将评分提高到了0.52。对于这么小的模型，这是非常好的！
 - en: Structured generation’s role in the future of LLM evaluations
+  id: totrans-100
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结构化生成在LLM评估未来中的作用
 - en: Most foundation model providers, like OpenAI and Anthropic, offer some kind
     of `structured output` mode which will respond to your queries with a predefined
     schema. However, the world of LLM evaluations extends well beyond the closed ecosystems
     of these providers' APIs.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数基础模型提供商，如OpenAI和Anthropic，提供某种类型的`结构化输出`模式，通过预定义的模式响应您的查询。然而，LLM评估的领域远远超出了这些提供商API的封闭生态系统。
 - en: 'For example:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如：
 - en: So-called “white box” evaluations, which incorporate models’ internal states
     into the evaluation, are impossible with hosted models like GPT-4o.
+  id: totrans-103
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所谓的“白盒”评估，通过将模型的内部状态纳入评估，是不可能在像GPT-4o这样的托管模型中实现的。
 - en: Fine-tuning a model for your specific evaluation use-case requires you to use
     open source models.
+  id: totrans-104
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 针对您的特定评估用例对模型进行微调，要求您使用开源模型。
 - en: If you need to run your evaluation pipeline locally, you obviously cannot use
     a hosted API.
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果您需要在本地运行评估管道，显然不能使用托管API。
 - en: And that’s without getting into comparisons of particular open source models
     against popular foundation models.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 这还不包括对特定开源模型与流行基础模型的比较。
 - en: The future of LLM evaluations involves more complex evaluation suites, combining
     white box metrics, classic heuristic methods, and LLM judges into robust, multi-turn
     systems. Open source, or at the very least, locally-available LLMs are a major
     part of that future—and structured generation is a fundamental part of the infrastructure
     that is enabling that future.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: LLM评估的未来将涉及更复杂的评估套件，将白盒指标、经典启发式方法和LLM评审结合成强大的多回合系统。开源，或者至少是本地可用的LLM，是这一未来的重要组成部分——而结构化生成是实现这一未来的基础设施的关键部分。
 - en: '*Originally published at* [*https://www.comet.com*](https://www.comet.com/site/blog/structured-generation-llm-as-a-judge/)
     *on November 27, 2024.*'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: '*最初发表于* [*https://www.comet.com*](https://www.comet.com/site/blog/structured-generation-llm-as-a-judge/)
+    *2024年11月27日。*'

@@ -1,345 +1,516 @@
 - en: Building a Fantasy Football Research Agent with LangGraph
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 LangGraph 构建幻想足球研究代理
 - en: 原文：[https://towardsdatascience.com/building-a-fantasy-football-research-agent-with-langgraph-ad8deb0126f1?source=collection_archive---------7-----------------------#2024-12-05](https://towardsdatascience.com/building-a-fantasy-football-research-agent-with-langgraph-ad8deb0126f1?source=collection_archive---------7-----------------------#2024-12-05)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/building-a-fantasy-football-research-agent-with-langgraph-ad8deb0126f1?source=collection_archive---------7-----------------------#2024-12-05](https://towardsdatascience.com/building-a-fantasy-football-research-agent-with-langgraph-ad8deb0126f1?source=collection_archive---------7-----------------------#2024-12-05)
 - en: An end-to-end guide covering integration with the Sleeper API, creation of a
     Streamlit UI, and deployment via AWS CDK
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一份全面的指南，涵盖了与 Sleeper API 的集成、Streamlit 用户界面的创建以及通过 AWS CDK 的部署。
 - en: '[](https://evandiewald.medium.com/?source=post_page---byline--ad8deb0126f1--------------------------------)[![Evan
     Diewald](../Images/207d5c48363d21c0d9fb5ae3428f6363.png)](https://evandiewald.medium.com/?source=post_page---byline--ad8deb0126f1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ad8deb0126f1--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ad8deb0126f1--------------------------------)
     [Evan Diewald](https://evandiewald.medium.com/?source=post_page---byline--ad8deb0126f1--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://evandiewald.medium.com/?source=post_page---byline--ad8deb0126f1--------------------------------)[![Evan
+    Diewald](../Images/207d5c48363d21c0d9fb5ae3428f6363.png)](https://evandiewald.medium.com/?source=post_page---byline--ad8deb0126f1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ad8deb0126f1--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ad8deb0126f1--------------------------------)
+    [Evan Diewald](https://evandiewald.medium.com/?source=post_page---byline--ad8deb0126f1--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ad8deb0126f1--------------------------------)
     ·9 min read·Dec 5, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ad8deb0126f1--------------------------------)
+    ·阅读时长 9 分钟·2024年12月5日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/6164ac579dfc394bf298bcb623544676.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6164ac579dfc394bf298bcb623544676.png)'
 - en: Photo by [Dmitriy Demidov](https://unsplash.com/@fotograw?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 照片由 [Dmitriy Demidov](https://unsplash.com/@fotograw?utm_source=medium&utm_medium=referral)
+    提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: It’s embarrassing how much time I spend thinking about my fantasy football team.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 我花费如此多时间思考我的幻想足球队，真是令人尴尬。
 - en: Managing a squad means processing a firehose of information — injury reports,
     expert projections, upcoming bye weeks, and favorable matchups. And it’s not just
     the volume of data, but the ephermerality— if your star RB tweaks a hamstring
     during Wednesday practice, you better not be basing lineup decisions off of Tuesday’s
     report.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 管理一个队伍意味着要处理海量的信息——伤病报告、专家预测、即将到来的休赛周和有利的对阵情况。而且这不仅仅是数据量的问题，更是数据的短暂性——如果你的明星跑卫在周三的训练中拉伤了大腿筋，你最好不要根据周二的报告做出阵容决策。
 - en: This is why general-purpose chatbots like Anthropic’s Claude and OpenAI’s ChatGPT
     are essentially useless for fantasy football recommendations, as they are limited
     to a static training corpus that cuts off months, even years ago.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是为什么像 Anthropic 的 Claude 和 OpenAI 的 ChatGPT 这样的通用聊天机器人在幻想足球推荐中基本上无用的原因，因为它们仅限于一个静态的训练语料库，该语料库早在几个月甚至几年前就已经停止更新。
 - en: For instance, if we ask Claude Sonnet 3.5 who the current best running back
     is, we see names like Christian McCaffrey, Breece Hall, and Travis Etienne, who
     have had injury-ridden or otherwise disappointing seasons thus far in 2024\. There
     is no mention of Saquon Barkley or Derrick Henry, the obvious frontrunners at
     this stage. (Though to Claude’s credit, it discloses its limitations.)
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果我们询问 Claude Sonnet 3.5 谁是当前最好的跑卫，我们会看到像 Christian McCaffrey、Breece Hall
+    和 Travis Etienne 这样的名字，这些球员在 2024 年的赛季中都受到伤病困扰或表现令人失望。此时没有提到 Saquon Barkley 或
+    Derrick Henry——这两位明显的领跑者。（不过值得一提的是，Claude 会披露其局限性。）
 - en: '![](../Images/6700132629c292799231a2c0c0f1580b.png)'
+  id: totrans-12
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6700132629c292799231a2c0c0f1580b.png)'
 - en: Apps like [Perplexity](https://www.perplexity.ai/) are more accurate because
     they do access a search engine with up-to-date information. However, it of course
     has no knowledge of my entire roster situation, the state of our league’s playoff
     picture, or the nuances of our keeper rules.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 像 [Perplexity](https://www.perplexity.ai/) 这样的应用程序更为准确，因为它们确实访问了一个拥有最新信息的搜索引擎。然而，它当然不了解我的整个阵容情况、我们联盟的季后赛局势或我们守护规则的细微差别。
 - en: There is an opportunity to tailor a fantasy football-focused **Agent** with
     tools and personalized context for each user.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 有机会为每个用户定制一个以幻想足球为主题的**代理**，提供工具和个性化的上下文。
 - en: Let’s dig into the implementation.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们深入探讨实现过程。
 - en: Architecture Overview
+  id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 架构概览
 - en: The heart of the chatbot will be a [LangGraph](https://www.langchain.com/langgraph)
     Agent based on the [ReAct](https://arxiv.org/abs/2210.03629) framework. We’ll
     give it access to tools that integrate with the [Sleeper API](https://docs.sleeper.com/)
     for common operations like checking the league standings, rosters, player stats,
     expert analysis, and more.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 聊天机器人的核心将是一个基于[ReAct](https://arxiv.org/abs/2210.03629)框架的[LangGraph](https://www.langchain.com/langgraph)代理。我们将让它访问与[Sleeper
+    API](https://docs.sleeper.com/)集成的工具，用于常见操作，如查看联盟排名、名单、球员统计、专家分析等。
 - en: In addition to the LangGraph API server, our backend will include a small Postgres
     database and Redis cache, which are used to manage state and route requests. We’ll
     use [Streamlit](https://streamlit.io/) for a simple, but effective UI.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了LangGraph API服务器，我们的后端还将包括一个小型Postgres数据库和Redis缓存，用于管理状态和路由请求。我们将使用[Streamlit](https://streamlit.io/)来构建一个简单但有效的用户界面。
 - en: For development, we can run all of these components locally via [Docker Compose](https://docs.docker.com/compose/),
     but I’ll also show the infrastructure-as-code (IaC) to deploy a scalable stack
     with [AWS CDK](https://docs.aws.amazon.com/cdk/api/v2/).
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 在开发过程中，我们可以通过[Docker Compose](https://docs.docker.com/compose/)在本地运行所有这些组件，但我也将展示基础设施即代码（IaC）来部署一个可扩展的堆栈，使用[AWS
+    CDK](https://docs.aws.amazon.com/cdk/api/v2/)。
 - en: Sleeper API Integration
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Sleeper API集成
 - en: '[Sleeper](https://sleeper.com) graciously exposes a public, read-only API that
     we can tap into for user & league details, including a full list of players, rosters,
     and draft information. Though it’s not documented explicitly, I also found some
     GraphQL endpoints that provide critical statistics, projections, and — perhaps
     most valuable of all — recent expert analysis by NFL reporters.'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Sleeper](https://sleeper.com) 慷慨地提供了一个公开的只读API，我们可以利用它获取用户和联盟的详细信息，包括完整的球员名单、名单和选秀信息。尽管没有明确文档化，但我还发现了一些GraphQL端点，提供关键的统计数据、预测以及——也许最有价值的——NFL记者的最新专家分析。'
 - en: I created a simple API client to access the various methods, which you can find
     [here](https://github.com/evandiewald/fantasy-football-agent/blob/main/fantasy_chatbot/sleeper.py).
     The one trick that I wanted to highlight is the `requests-cache` [library](https://requests-cache.readthedocs.io/en/stable/index.html).
     I don’t want to be a greedy client of Sleeper’s freely-available datasets, so
     I cache responses in a local Sqlite database with a basic TTL mechanism.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 我创建了一个简单的API客户端来访问各种方法，你可以在[这里](https://github.com/evandiewald/fantasy-football-agent/blob/main/fantasy_chatbot/sleeper.py)找到它。我想要强调的一个技巧是`requests-cache`
+    [库](https://requests-cache.readthedocs.io/en/stable/index.html)。我不想成为Sleeper免费数据集的贪婪客户端，所以我将响应缓存到本地的Sqlite数据库，并使用基本的TTL机制。
 - en: Not only does this lessen the amount redundant API traffic bombarding Sleeper’s
     servers (reducing the chance that they blacklist my IP address), but it significantly
     reduces latency for my clients, making for a better UX.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样不仅减少了重复的API流量对Sleeper服务器的压力（降低了他们将我的IP地址列入黑名单的机会），而且大大降低了我的客户端的延迟，提供更好的用户体验。
 - en: Setting up and using the cache is dead simple, as you can see in this snippet
     —
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 设置和使用缓存非常简单，正如你在这个代码片段中看到的那样——
 - en: '[PRE0]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: So running something like
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以运行类似的命令
 - en: '`self.session.get(url)`'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '`self.session.get(url)`'
 - en: first checks the local Sqlite cache for an unexpired response that particular
     request. If it’s found, we can skip the API call and just read from the database.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先检查本地Sqlite缓存中是否有未过期的响应。如果找到，我们可以跳过API调用，直接从数据库中读取。
 - en: Defining the Tools
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义工具
 - en: I want to turn the Sleeper API client into a handful of key functions that the
     Agent can use to inform its responses. Because these functions will effectively
     be invoked by the LLM, I find it important to annotate them clearly and ask for
     simple, flexible arguments.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 我想把Sleeper API客户端转化为一组关键功能，供代理使用以提供响应。因为这些功能将由LLM有效地调用，所以我认为为它们做清晰的注解并要求简单、灵活的参数是很重要的。
 - en: For example, Sleeper’s API’s generally ask for numeric player id’s, which makes
     sense for a programmatic interface. However, I want to abstract that concept away
     from the LLM and just have it input player names for these functions. To ensure
     some additional flexibility and allow for things like typos, I implemented a basic
     “[fuzzy search](https://github.com/rapidfuzz/RapidFuzz)” method to map player
     name searches to their associated player id.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，Sleeper的API通常要求提供数字化的球员ID，这对于编程接口是有意义的。然而，我希望将这个概念从LLM中抽象出来，让它仅仅输入球员的名字进行这些功能。为了确保额外的灵活性，并允许像拼写错误这样的情况，我实现了一种基本的“[模糊搜索](https://github.com/rapidfuzz/RapidFuzz)”方法，将球员名字的搜索映射到他们对应的球员ID。
 - en: '[PRE1]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This is better than a simple map of name to player id because it allows for
     misspellings and other typos, e.g. `saquon` → `Saquon Barkley`
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 这比简单的名称到球员ID的映射更好，因为它允许拼写错误和其他打字错误，例如`saquon` → `Saquon Barkley`
 - en: '![](../Images/091f3735f1f8c100a869129af236093f.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/091f3735f1f8c100a869129af236093f.png)'
 - en: 'I created a number of useful tools based on these principles:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 我基于这些原则创建了一些有用的工具：
 - en: Get League Status (standings, current week, no. playoff teams, etc.)
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取联盟状态（排名、当前周数、季后赛球队数等）
 - en: Get Roster for Team Owner
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取队伍拥有者的名单
 - en: Get Player News (up-to-date articles / analysis about the player)
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取球员新闻（关于球员的最新文章/分析）
 - en: Get Player Stats (weekly points scored this season with matchups)
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取球员数据（本赛季每周得分以及对阵情况）
 - en: Get Player Current Owner (critical for proposing trades)
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取球员当前拥有者（对于提出交易至关重要）
 - en: Get Best Available at Position (the waiver wire)
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取每个位置上的最佳可用球员（自由球员市场）
 - en: Get Player Rankings (performance so far, broken down by position)
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 获取球员排名（到目前为止的表现，按位置分类）
 - en: You can probably think of a few more functions that would be useful to add,
     like details about recent transactions, league head-to-heads, and draft information.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能还能想到一些有用的功能可以添加，比如关于最近交易、联盟对战情况和选秀信息的详细数据。
 - en: LangGraph Agent
+  id: totrans-44
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: LangGraph代理
 - en: The impetus for this entire project was an opportunity to learn the LangGraph
     ecosystem, which may be becoming the de facto standard for constructing agentic
     workflows.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 整个项目的推动力来源于一个学习LangGraph生态系统的机会，这可能正在成为构建智能工作流的事实标准。
 - en: I’ve hacked together agents from scratch in the past, and I wish I had known
     about LangGraph at the time. It’s not just a thin wrapper around the various LLM
     providers, it provides immense utility for building, deploying, & monitoring complex
     workflows. I’d encourage you to check out the [Introduction to LangGraph](https://academy.langchain.com/courses/intro-to-langgraph)
     course by LangChain Academy if you’re interested in diving deeper.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 我过去曾从零开始构建代理，如果当时我知道LangGraph就好了。它不仅仅是一个薄的封装层，围绕着各种LLM提供者，它为构建、部署和监控复杂工作流提供了巨大的实用性。如果你有兴趣深入了解，可以查看LangChain
+    Academy的[LangGraph简介](https://academy.langchain.com/courses/intro-to-langgraph)课程。
 - en: As mentioned before, the graph itself is based on the ReAct framework, which
     is a popular and effective way to get LLM’s to interact with external tools like
     those defined above.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，图形本身基于ReAct框架，这是一种流行且有效的方法，可以使大语言模型（LLM）与外部工具进行交互，例如上述定义的工具。
 - en: 'I’ve also added a node to persist long-term memories about each user, so that
     information can be persisted across sessions. I want our agent to “remember” things
     like users’ concerns, preferences, and previously-recommended trades, as this
     is not a feature that is implemented particularly well in the chatbots I’ve seen.
     In graph form, it looks like this:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 我还添加了一个节点，用于持久化每个用户的长期记忆，以便信息可以跨会话保存。我希望我们的代理能够“记住”用户的关注点、偏好和之前推荐的交易，因为这是我在见过的聊天机器人中并没有特别好实现的功能。以图形的形式，它看起来是这样的：
 - en: '![](../Images/436f6bbcdcdf128744ef4cb4a3d1ecaa.png)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/436f6bbcdcdf128744ef4cb4a3d1ecaa.png)'
 - en: Pretty simple right? Again, you can checkout the full graph definition in the
     [code](https://github.com/evandiewald/fantasy-football-agent/blob/main/fantasy_chatbot/chatbot.py),
     but I’ll highlight the `write_memory` node, which is responsible for writing &
     updating a profile for each user. This allows us to track key interactions while
     being efficient about token use.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 很简单吧？再说一次，你可以查看完整的图定义在[代码](https://github.com/evandiewald/fantasy-football-agent/blob/main/fantasy_chatbot/chatbot.py)中，但我会重点介绍`write_memory`节点，它负责为每个用户写入和更新个人资料。这使我们能够在有效利用令牌的同时，跟踪关键的交互。
 - en: '[PRE2]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: These memories are surfaced in the [system prompt](https://github.com/evandiewald/fantasy-football-agent/blob/main/fantasy_chatbot/prompts.py),
     where I also gave the LLM basic details about our league and how I want it to
     handle common user requests.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些记忆被展示在[系统提示](https://github.com/evandiewald/fantasy-football-agent/blob/main/fantasy_chatbot/prompts.py)中，我在其中还向
+    LLM 提供了有关我们联盟的基本信息，以及我希望它如何处理常见的用户请求。
 - en: Streamlit UI and Demo
+  id: totrans-53
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Streamlit 用户界面和演示
 - en: I’m not a frontend developer, so the UI leans heavily on Streamlit’s components
     and familiar chatbot patterns. Users input their Sleeper username, which is used
     to lookup their available leagues and persist memories across threads.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 我不是前端开发人员，因此用户界面 heavily 依赖于 Streamlit 的组件和常见的聊天机器人模式。用户输入他们的 Sleeper 用户名，用于查找可用的联赛并在不同的线程间持久化记忆。
 - en: I also added a couple of bells and whistles, like implementing token streaming
     so that users get instant feedback from the LLM. The other important piece is
     a “research pane”, which surfaces the results of the Agent’s tool calls so that
     user can inspect the raw data that informs each response.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 我还添加了一些附加功能，比如实现了令牌流式传输，以便用户能够从 LLM 中获得即时反馈。另一个重要部分是“研究面板”，它展示了代理工具调用的结果，用户可以检查每个回应背后的原始数据。
 - en: Here’s a quick demo.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个快速演示。
 - en: Deployment
+  id: totrans-57
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 部署
 - en: For development, I recommend deploying the components locally via the provided
     `docker-compose.yml` file. This will expose the API locally at `http://localhost:8123`
     , so you can rapidly test changes and connect to it from a local Streamlit app.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于开发，我建议通过提供的 `docker-compose.yml` 文件将组件本地部署。这将在 `http://localhost:8123` 上本地暴露
+    API，因此您可以快速测试更改并从本地 Streamlit 应用程序连接。
 - en: '![](../Images/5afeba0c67645f244863f81be5d72e78.png)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5afeba0c67645f244863f81be5d72e78.png)'
 - en: 'I have also included IaC for an AWS CDK-based deployment that I use to host
     the app on the internet. Most of the resources are defined [here](https://github.com/evandiewald/fantasy-football-agent/blob/main/deploy/lib/fantasy-football-agent-stack.ts).
     Notice the parallels between the `docker-compose.yml` and the CDK code related
     to the ECS setup:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 我还包含了一个基于 AWS CDK 的 IaC，用于将应用程序托管到互联网。大多数资源定义见[此处](https://github.com/evandiewald/fantasy-football-agent/blob/main/deploy/lib/fantasy-football-agent-stack.ts)。请注意
+    `docker-compose.yml` 和与 ECS 设置相关的 CDK 代码之间的相似之处：
 - en: 'Snippet from `docker-compose.yml` for the LangGraph API container:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '`docker-compose.yml` 中的 LangGraph API 容器片段：'
 - en: '[PRE3]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'And here is the analogous setup in the CDK stack:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是 CDK 堆栈中类似的设置：
 - en: '[PRE4]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Aside from some subtle differences, it’s effectively a 1:1 translation, which
     is always something I look for when comparing local environments to “prod” deployments.
     The `DockerImageAsset` is a particularly useful resource, as it handles building
     and deploying (to ECR) the Docker image during synthesis.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了一些微妙的差异，它实际上是 1:1 的翻译，这也是我在比较本地环境与“生产”部署时总是关注的地方。`DockerImageAsset` 是一个特别有用的资源，因为它在合成期间处理构建和部署（到
+    ECR）Docker 镜像的工作。
 - en: '**Note:** Deploying the stack to your AWS account via `npm run cdk deploy`
     WILL incur charges. In this demo code I have not included any password protection
     on the Streamlit app, meaning anyone who has the URL can use the chatbot! I highly
     recommend adding some additional security if you plan to deploy it yourself.'
+  id: totrans-66
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**注意：**通过`npm run cdk deploy`将堆栈部署到您的 AWS 账户将会产生费用。在这个演示代码中，我没有为 Streamlit
+    应用程序添加任何密码保护，这意味着任何拥有 URL 的人都可以使用聊天机器人！如果您计划自己部署，强烈建议添加一些额外的安全措施。'
 - en: Takeaways
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 重点
 - en: '**You want to keep your tools simple**. This app does a lot, but is still missing
     some key functionality, and it will start to break down if I simply add more tools.
     In the future, I want to break up the graph into task-specific sub-components,
     e.g. a “News Analyst” Agent and a “Statistician” Agent.'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: '**你需要保持工具的简洁性**。这个应用做了很多事情，但仍然缺少一些关键功能，如果我只是添加更多工具，它会开始崩溃。未来，我希望将图形拆分成任务特定的子组件，例如“新闻分析师”代理和“统计学家”代理。'
 - en: '**Traceability and debugging are more important with Agent-based apps than
     traditional software**. Despite significant advancements in models’ ability to
     produce structured outputs, LLM-based function calling is still inherently less
     reliable than conventional programs. I used LangSmith extensively for debugging.'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '**可追溯性和调试在基于代理的应用程序中比传统软件更为重要**。尽管模型在生成结构化输出方面取得了显著进展，但基于 LLM 的函数调用仍然本质上不如传统程序可靠。我在调试过程中广泛使用了
+    LangSmith。'
 - en: '**In an age of commoditized language models, there is no replacement for reliable
     reporters.** We’re at a point where you can put together a reasonable chatbot
     in a weekend, so how do products differentiate themselves and build moats? This
     app (or any other like it) would be useless without access to high-quality reporting
     from analysts and experts. In other words, the Ian Rapaport’s and Matthew Berry’s
     of the world are more valuable than ever.'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '**在语言模型商品化的时代，可靠的记者无可替代。** 我们正处于这样一个阶段，任何人都能在一个周末内制作出一个合理的聊天机器人，那么产品如何区分自己并建立护城河呢？没有分析师和专家提供的高质量报道，这个应用程序（或任何类似的应用程序）将毫无用处。换句话说，伊恩·拉帕波特（Ian
+    Rapaport）和马修·贝里（Matthew Berry）这样的专家比以往任何时候都更加珍贵。'
 - en: Repo
+  id: totrans-71
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Repo
 - en: '[](https://github.com/evandiewald/fantasy-football-agent/tree/main?source=post_page-----ad8deb0126f1--------------------------------)
     [## GitHub - evandiewald/fantasy-football-agent'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://github.com/evandiewald/fantasy-football-agent/tree/main?source=post_page-----ad8deb0126f1--------------------------------)
+    [## GitHub - evandiewald/fantasy-football-agent'
 - en: Contribute to evandiewald/fantasy-football-agent development by creating an
     account on GitHub.
+  id: totrans-73
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 在 GitHub 上创建帐户，为 evandiewald/fantasy-football-agent 开发做出贡献。
 - en: github.com](https://github.com/evandiewald/fantasy-football-agent/tree/main?source=post_page-----ad8deb0126f1--------------------------------)
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '[github.com](https://github.com/evandiewald/fantasy-football-agent/tree/main?source=post_page-----ad8deb0126f1--------------------------------)'
 - en: '*All images, unless otherwise noted, are by the author.*'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: '*所有图片，除非另有说明，均为作者提供。*'

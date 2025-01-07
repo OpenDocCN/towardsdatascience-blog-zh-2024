@@ -1,29 +1,45 @@
 - en: The MMD-Critic Method, Explained
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: MMD-Critic 方法解析
 - en: 原文：[https://towardsdatascience.com/the-mmd-critic-method-explained-c6a77f2dbf18?source=collection_archive---------7-----------------------#2024-08-27](https://towardsdatascience.com/the-mmd-critic-method-explained-c6a77f2dbf18?source=collection_archive---------7-----------------------#2024-08-27)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/the-mmd-critic-method-explained-c6a77f2dbf18?source=collection_archive---------7-----------------------#2024-08-27](https://towardsdatascience.com/the-mmd-critic-method-explained-c6a77f2dbf18?source=collection_archive---------7-----------------------#2024-08-27)
 - en: A powerful yet under-the-radar method for data summarization and explainable
     AI
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一种强大但鲜为人知的数据总结和可解释性 AI 方法
 - en: '[](https://medium.com/@physboom?source=post_page---byline--c6a77f2dbf18--------------------------------)[![Matthew
     Chak](../Images/88881eb5a7c8f08c15555bc8c3c613d3.png)](https://medium.com/@physboom?source=post_page---byline--c6a77f2dbf18--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6a77f2dbf18--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c6a77f2dbf18--------------------------------)
     [Matthew Chak](https://medium.com/@physboom?source=post_page---byline--c6a77f2dbf18--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@physboom?source=post_page---byline--c6a77f2dbf18--------------------------------)[![Matthew
+    Chak](../Images/88881eb5a7c8f08c15555bc8c3c613d3.png)](https://medium.com/@physboom?source=post_page---byline--c6a77f2dbf18--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6a77f2dbf18--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c6a77f2dbf18--------------------------------)
+    [Matthew Chak](https://medium.com/@physboom?source=post_page---byline--c6a77f2dbf18--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6a77f2dbf18--------------------------------)
     ·11 min read·Aug 27, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6a77f2dbf18--------------------------------)
+    ·11 分钟阅读·2024年8月27日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: Despite being a powerful tool for data summarization, the MMD-Critic method
     has a surprising lack of both usage and “coverage”. Perhaps this is because simpler
     and more established methods for data summarization exist (e.g. K-medoids, see
@@ -34,271 +50,408 @@
     MMD-Critic method here with as much clarity as possible. I’ve also published an
     [open-source Python package](https://pypi.org/project/mmd-critic/) with an implementation
     of the technique so you can use it easily.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管 MMD-Critic 方法是一个强大的数据总结工具，但它的使用和“覆盖面”却出奇地少。也许这是因为存在一些更简单且更成熟的数据总结方法（例如 K-medoids，参见
+    [1] 或更简单地，查看 [维基百科页面](https://en.wikipedia.org/wiki/K-medoids)），又或者是因为在此之前并没有
+    Python 包支持该方法（直到现在）。无论如何，[原始论文](https://papers.nips.cc/paper_files/paper/2016/hash/5680522b8e2bb01943234bce7bf84534-Abstract.html)
+    [2] 中展示的结果比 MMD-Critic 当前的应用更值得广泛使用。因此，我将在这里尽可能清晰地解释 MMD-Critic 方法。我还发布了一个 [开源
+    Python 包](https://pypi.org/project/mmd-critic/)，其中实现了该技术，方便你轻松使用。
 - en: Prototypes and Criticisms
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 原型和批评
 - en: Before jumping into the MMD-Critic method itself, it’s worth discussing what
     exactly we’re trying to accomplish. Ultimately, we wish to take a dataset and
     find examples that are representative of the data (**prototypes**), as well as
     edge-case examples that may confound our machine learning models (**criticisms**).
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在深入探讨 MMD-Critic 方法之前，值得讨论一下我们究竟想要实现什么目标。最终，我们希望通过一个数据集，找到代表性的数据示例（**原型**），以及可能干扰我们机器学习模型的边缘案例（**批评**）。
 - en: '![](../Images/71c22de7c81736578e26d81da3a21ce2.png)'
+  id: totrans-9
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/71c22de7c81736578e26d81da3a21ce2.png)'
 - en: Prototypes and criticisms for the MNIST dataset, taken from [2].
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 来自 [2] 的 MNIST 数据集的原型和批评示例。
 - en: 'There are many reasons why this may be useful:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法可能有很多有用的地方：
 - en: We can get a very nice summarized view of our dataset by seeing both stereotypical
     and atypical examples
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过查看典型和非典型的示例，我们可以获得对数据集的一个非常好的总结视图
 - en: We can test models on the criticisms to see how they handle edge cases (this
     is, for obvious reasons, very important)
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可以通过测试模型在批评样本上的表现，来了解它们如何处理边缘案例（显而易见，这是非常重要的）
 - en: Though perhaps not as useful, we can use prototypes to create a naturally explainable
     K-means-esque algorithm wherein the closest prototype to the new data point is
     used to label it. Then explanations are simple since we just show the user the
     most similar data point.
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 虽然可能没有那么实用，我们可以使用原型来创建一个类似K-means的自然可解释算法，其中最接近新数据点的原型被用来标记该数据点。然后解释就很简单，因为我们只需要向用户展示最相似的数据点。
 - en: More
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更多
 - en: You can see section 6.3 in [this book](https://f0nzie.github.io/interpretable_ml-rsuite/proto.html#examples-5)
     for more info on the applications of this (and for a decent explanation of MMD-Critic
     as well), but it suffices to say that finding these examples is useful for a wide
     variety of reasons. MMD-Critic allows us to do this.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在[这本书](https://f0nzie.github.io/interpretable_ml-rsuite/proto.html#examples-5)的第6.3节中找到更多关于该应用的信息（以及关于MMD-Critic的一个不错的解释），但可以简单地说，找到这些例子在很多方面都是有用的。MMD-Critic使我们能够做到这一点。
 - en: Maximal Mean Discrepancy
+  id: totrans-17
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 最大均值差异
 - en: I unfortunately cannot claim to have a hyper-rigorous understanding of Maximal
     Mean Discrepancy (MMD), as such an understanding would require a strong background
     in functional analysis. If you have such a background, you can find the paper
     that introduced the measure [here](https://jmlr.csail.mit.edu/papers/volume13/gretton12a/gretton12a.pdf).
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，我不能声称对最大均值差异（MMD）有超严格的理解，因为这种理解需要有较强的泛函分析背景。如果你有这样的背景，你可以在[这里](https://jmlr.csail.mit.edu/papers/volume13/gretton12a/gretton12a.pdf)找到介绍该度量的论文。
 - en: In simple terms though, MMD is a way to determine the difference between two
     probability distributions. Formally, for two probability distributions *P* and
     *Q*, we define the MMD of the two as
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 简单来说，MMD是一种确定两个概率分布之间差异的方法。正式地，对于两个概率分布*P*和*Q*，我们定义它们的MMD为
 - en: '![](../Images/806f69f4f5fb7bdfddc1e2b7e198f203.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/806f69f4f5fb7bdfddc1e2b7e198f203.png)'
 - en: The formula for the MMD of two distributions P, Q
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个分布P，Q的MMD公式
 - en: Here, *F* is any **function space** — that is, any set of functions with the
     same domain and codomain. Note also that the notation *x~P* means that we are
     treating *x* as if it’s a random variable drawn from the distribution *P* — that
     is, *x* is **described by** *P*. This formula thus finds the highest difference
     in the expected values of *X* and *Y* when they are transformed by some function
     from our space *F*.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里，*F*是任何**函数空间**——即，具有相同定义域和陪域的函数集合。还要注意，符号*x~P*意味着我们将*x*视为从分布*P*中抽取的随机变量——即，*x*是**由**
+    *P*描述的。因此，这个公式找到当*X*和*Y*通过我们空间*F*中的某个函数变换时，它们期望值之间的最大差异。
 - en: 'This may be a little hard to wrap your head around, but here’s an example.
     Suppose that *X* is `Uniform(0, 1)` (i.e. a distribution that is equivalent to
     picking a random number from 0 to 1), and *Y* is `Uniform(-1, 1)` . Let’s also
     let *F* be a fairly simple family containing three functions — *f(x) = 0*, *f(x)
     = x*, and *f(x) = x²*. Iterating over each function in our space, we get:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可能有点难以理解，但这是一个例子。假设*X*是`Uniform(0, 1)`（即从0到1随机选择一个数的分布），而*Y*是`Uniform(-1, 1)`。我们还假设*F*是一个包含三个函数的简单函数族——*f(x)
+    = 0*，*f(x) = x*，和*f(x) = x²*。在我们的空间中对每个函数进行迭代，得到：
 - en: In the *f(x)* *= 0* case, E[f(x)] when *x ~ P* is 0 since no matter what *x*
     we choose, *f(x)* will be 0\. The same holds for when *x ~ Q*. Thus, we get a
     mean discrepancy of 0
+  id: totrans-24
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在*f(x)* = 0的情况下，当*x ~ P*时，E[f(x)]为0，因为无论选择什么*x*，*f(x)*都会是0。对于*x ~ Q*的情况也一样。因此，我们得到一个均值差异为0。
 - en: In the *f(x) = x* case, we have E[f(x)] = 0.5 for the *P* case and 0 for the
     *Q* case, so our mean discrepancy is 0.5
+  id: totrans-25
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在*f(x) = x*的情况下，我们有E[f(x)] = 0.5（对于P的情况）和0（对于Q的情况），因此我们的均值差异为0.5。
 - en: In the *f(x) = x²* case, we note that
+  id: totrans-26
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在*f(x) = x²*的情况下，我们注意到
 - en: '![](../Images/ea72888c6295343ec4a233c883265a0a.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ea72888c6295343ec4a233c883265a0a.png)'
 - en: Formula for the expected value of a random variable *x* transformed by a function
     f
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 变换函数f作用下随机变量*x*的期望值公式
 - en: thus in the P case, we get
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此在P的情况下，我们得到
 - en: '![](../Images/f96988df2e03471d79f8585d36fc3596.png)'
+  id: totrans-30
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f96988df2e03471d79f8585d36fc3596.png)'
 - en: Expected value of f(x) under the distribution P
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 在分布P下，f(x)的期望值
 - en: and in the Q case, we get
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Q的情况下，我们得到
 - en: '![](../Images/25a4e021d3c2c5b36bcaaa3c774de110.png)'
+  id: totrans-33
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/25a4e021d3c2c5b36bcaaa3c774de110.png)'
 - en: Expected value of f(x) under the distribution Q
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在分布Q下，f(x)的期望值
 - en: thus our discrepancy in this case is also 0\. The supremum over our function
     space is thus 0.5, so that’s our MMD.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，在这种情况下我们的差异也是0。我们函数空间上的上确界为0.5，所以这就是我们的MMD。
 - en: You may now notice a few problems with our MMD. It seems highly dependent on
     our choice of function space and also appears highly expensive (or even impossible)
     to compute for a large or infinite function space. Not only that, but it also
     requires us to know our distributions *P* and *Q*, which is not realistic.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在你可能会注意到我们MMD的一些问题。它似乎高度依赖于我们选择的函数空间，并且在大型或无限函数空间中计算起来也显得非常昂贵（甚至是不可能的）。不仅如此，它还要求我们知道分布*P*和*Q*，这是不现实的。
 - en: 'The latter problem is easily solvable, as we can rewrite our MMD metric to
     use estimates of P and Q based on our dataset:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 后一个问题很容易解决，因为我们可以重写我们的MMD度量，利用基于数据集的P和Q的估计：
 - en: '![](../Images/2140a40093f3dd0d76850321ceb07100.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2140a40093f3dd0d76850321ceb07100.png)'
 - en: MMD using estimates of P and Q
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用P和Q的估计的MMD
 - en: Here, our *x*’s are our samples from the dataset drawing from *P*, and the *y*’s
     are the samples drawn from *Q*.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里，我们的*x*是从数据集中抽样得到的*P*的样本，而*y*是从*Q*中抽取的样本。
 - en: 'The first two problems are solvable with a bit of extra math. Without going
     into too much detail, it turns out that if *F* is something called a **Reproducing
     Kernel Hilbert Space** (RKHS), we know what function is going to give us our MMD
     in advance. Namely, it’s the following function, called the **witness function**:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 前两个问题可以通过一些额外的数学手段来解决。无需过多细节，事实证明，如果*F*是一个叫做**再生核希尔伯特空间**（RKHS）的东西，我们就能预先知道哪个函数将给我们提供MMD。即，它是下面这个函数，称为**见证函数**：
 - en: '![](../Images/e46b5d340b5f3db6a69efe75e2b8cc47.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e46b5d340b5f3db6a69efe75e2b8cc47.png)'
 - en: Our optimal f(x) in an RKHS
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在RKHS中的最优f(x)
 - en: where *k* is the **kernel** (inner product) associated with the RKHS***¹***.
     Intuitively, this function “witnesses” the discrepancy between *P* and *Q* at
     the point *x*.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中*k*是与RKHS相关的**核函数**（内积）***¹***。直观地说，这个函数在点*x*处“见证”了*P*和*Q*之间的差异。
 - en: We thus only need to choose a sufficiently expressive RKHS/kernel — usually,
     the RBF kernel is used which has the kernel function
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们只需要选择一个足够具表现力的RKHS/核函数——通常使用RBF核，其核函数为：
 - en: '![](../Images/f5ea568dd5266a59359ef3961d188f9c.png)'
+  id: totrans-46
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f5ea568dd5266a59359ef3961d188f9c.png)'
 - en: The RBF kernel, where sigma is a hyperparameter
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: RBF核，其中sigma是一个超参数
 - en: 'This generally gets fairly intuitive results. Here, for instance, is the plot
     of the witness function with the RBF kernel when estimated (in the same way as
     mentioned before — that is, replacing expectations with a sum) on two datasets
     drawn from `Uniform(-0.5, 0.5)` and `Uniform(-1, 1)` :'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 这通常能得到相当直观的结果。例如，这里是使用RBF核估计的见证函数的图（以与之前相同的方式进行估计——即用求和替代期望）在从`Uniform(-0.5,
+    0.5)`和`Uniform(-1, 1)`两个数据集抽样时的图示：
 - en: '![](../Images/fd302a4cc896b43064206d874d7409da.png)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fd302a4cc896b43064206d874d7409da.png)'
 - en: Values of the witness function at different points for two uniform distributions
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 在不同点上，见证函数对于两个均匀分布的值
 - en: 'The code for generating the above graph is here:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成上述图形的代码如下：
 - en: '[PRE0]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The MMD-Critic Method, Finally
+  id: totrans-53
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 最后的MMD-Critic方法
 - en: The idea behind MMD-Critic is now fairly simple — if we want to find *k* prototypes,
     we need to find the set of prototypes that best matches the distribution of the
     original dataset given by their squared MMD. In other words, we wish to find a
     subset *P* of cardinality *k* of our dataset that minimizes *MMD²(F, X, P)*. Without
     going into too much detail about why, the square MMD is given by
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: MMD-Critic背后的思路现在相当简单——如果我们想找到*k*个原型，我们需要找到最能匹配原始数据集分布的原型集，通过它们的平方MMD。换句话说，我们希望找到一个子集*P*，它的基数是*k*，并且最小化*MMD²(F,
+    X, P)*。无需过多细节，平方MMD由以下公式给出：
 - en: '![](../Images/0dff52d10b914ee9e6082e9b47cb6292.png)'
+  id: totrans-55
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0dff52d10b914ee9e6082e9b47cb6292.png)'
 - en: The square MMD metric, with X ~ P, Y ~ Q, and k the kernel for our RKHS F
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 平方MMD度量，假设X ~ P，Y ~ Q，k是我们RKHS F的核函数
 - en: After finding these prototypes, we then select the points where the hypothetical
     distribution of our prototypes is most different from our dataset distribution
     as criticisms. As we’ve seen before, the difference between two distributions
     at a point can be measured by our witness function, so we just find points that
     maximize its absolute value in the context of *X* and *P*. In other words, we
     define our criticism “score” as
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 在找到这些原型之后，我们接着选择那些假设原型分布与数据集分布在最不同的点作为批评点。正如我们之前所见，两个分布在某一点的差异可以通过我们的见证函数来衡量，所以我们只需要在*X*和*P*的上下文中找到最大化其绝对值的点。换句话说，我们将批评“得分”定义为：
 - en: '![](../Images/d19b02d21f693952776695457da054ee.png)'
+  id: totrans-58
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d19b02d21f693952776695457da054ee.png)'
 - en: The “score” for a criticism c
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个批评c的“得分”
 - en: Or, in the more usable approximate form,
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者，以更易用的近似形式，
 - en: '![](../Images/2a763ae077e95c0041dba13b5c4fab86.png)'
+  id: totrans-61
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2a763ae077e95c0041dba13b5c4fab86.png)'
 - en: The approximated S(c) for a criticism c
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于批评c的近似S(c)
 - en: Then, to find our desired amount of criticisms, say *m* of them, we simply wish
     to find the set *C* of size *m* that maximizes
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，为了找到我们想要的*批评*数量，假设是*m*个，我们只需要找到大小为*m*的集合*C*，使得它能够最大化
 - en: '![](../Images/8eacec3442f5cc088cb6704f587a7190.png)'
+  id: totrans-64
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8eacec3442f5cc088cb6704f587a7190.png)'
 - en: To promote picking more varied criticisms, the paper also suggests adding a
     regularizer term that encourages selected criticisms to be as far apart as possible.
     The suggested regularizer in the paper is the log determinant regularizer, though
     this is not required. I won’t go into much detail here since it’s not critical,
     but the paper suggests reading [6]***²***.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了促进选择更多样化的批评，论文还建议添加一个正则化项，鼓励选中的批评尽可能分开。论文中建议的正则化项是对数行列式正则化项，尽管这不是必须的。我在这里不会详细讲解，因为它不是关键内容，但论文建议参考[6]***²***。
 - en: 'We can thus implement an ***extremely* naive** MMD-Critic without criticism
     regularization as follows (**do NOT use this**):'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们可以实现一个***极其*天真的**MMD-Critic，没有批评正则化，如下所示（**不要使用这个**）：
 - en: '[PRE1]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Optimizing MMD-Critic
+  id: totrans-68
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 优化MMD-Critic
 - en: The above implementation is so impractical that, when I ran it, I failed to
     find 5 prototypes in a dataset with 25 points in a reasonable time. This is because
     our MMD calculation is *O(max(|X|, |Y|)²)*, and iterating over every length-n
     subset is *O(C(|X|, n))* (where C is the choose function), which gives us a horrendous
     runtime complexity.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的实现如此不实用，以至于当我运行时，未能在一个包含25个数据点的数据集中，在合理的时间内找到5个原型。这是因为我们的MMD计算是*O(max(|X|,
+    |Y|)²)*，并且遍历每个长度为n的子集的时间复杂度是*O(C(|X|, n))*（其中C是组合函数），这导致了非常可怕的运行时复杂度。
 - en: Disregarding using more efficient computation methods (e.g. using pure numpy/numexpr/matrix
     calculations instead of loops/whatever) and caching repeated calculations, there
     are a few optimizations we can make on the theoretical level. Firstly, the most
@@ -306,139 +459,214 @@
     and criticism methods. Instead of that, we can use an approximation that loops
     *n* times, greedily selecting the best prototype each time. This allows us to
     change our prototype selection code to
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 忽略使用更高效的计算方法（例如，使用纯numpy/numexpr/矩阵计算而不是循环/其他）以及缓存重复计算，我们在理论层面上可以进行一些优化。首先，最明显的性能瓶颈是我们在原型和批评方法中对*C(|X|,
+    n)*子集的循环。我们可以用一个近似方法来代替，循环*n*次，每次贪婪地选择最优原型。这样，我们可以将原型选择代码更改为
 - en: '[PRE2]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: and similar for the criticisms.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 批评的情况也是类似的。
 - en: There’s one other important lemma that makes this problem much more optimizable.
     It turns out that by changing our prototype selection into a minimization problem
     and adding a regularization term to the cost, we can compute the cost function
     very efficiently with matrix operations. I won’t go into much detail here, but
     you can check out the original paper for details.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有一个重要的引理，使得这个问题更易于优化。事实证明，通过将原型选择问题转化为最小化问题，并向成本中添加一个正则化项，我们可以通过矩阵运算高效地计算成本函数。我不会在这里详细讨论，但你可以查看原始论文了解详情。
 - en: Playing With the `MMD-Critic` Package
+  id: totrans-74
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用`MMD-Critic`包进行实验
 - en: Now that we understand the MMD-Critic method, we can finally play with it! You
     can install it by running
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经理解了MMD-Critic方法，终于可以开始试验它了！你可以通过运行以下命令来安装它
 - en: '[PRE3]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: The implementation in the package itself is much faster than the one presented
     here, so don’t worry.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 包中的实现比这里展示的要快得多，所以不必担心。
 - en: 'We can run a fairly simple example using blobs as such:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用如下方式运行一个简单的示例，使用斑点数据：
 - en: '[PRE4]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Then plotting the points and criticisms gets us
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后绘制点和批评结果得到
 - en: '![](../Images/ad6879f3f0b021cff94f57e71b28503f.png)'
+  id: totrans-81
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ad6879f3f0b021cff94f57e71b28503f.png)'
 - en: Plotting the found prototypes (green) and criticisms (red)
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 绘制找到的原型（绿色）和批评（红色）
 - en: You’ll notice that I provided the option to use a separate kernel for prototype
     and criticism selection. This is because I’ve found that results for criticisms
     especially can be *extremely* sensitive to the sigma hyperparameter. This is an
     unfortunate limitation of the MMD Critic method and kernel methods in general.
     Overall, I’ve found good results using a large sigma for prototypes and a smaller
     one for criticisms.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 你会注意到我提供了使用单独内核进行原型和批评选择的选项。这是因为我发现，批评的结果尤其对sigma超参数*极其*敏感。这是MMD Critic方法以及核方法的一项不幸限制。总体而言，我发现使用较大的sigma值选择原型，较小的sigma值选择批评，效果较好。
 - en: 'We can also, of course, use a more complicated dataset. Here, for instance,
     is the method used on MNIST***³***:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们当然也可以使用更复杂的数据集。例如，这里是该方法在MNIST上的应用***³***：
 - en: '[PRE5]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: which gets us the following prototypes
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 这为我们提供了以下原型
 - en: '![](../Images/6b5e036ce193ebc12d8db963cca7fcfb.png)'
+  id: totrans-87
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6b5e036ce193ebc12d8db963cca7fcfb.png)'
 - en: Prototypes found by MMD critic for MNIST. MNIST is free for commercial use under
     the GPL-3.0 License.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: MMD Critic方法为MNIST找到的原型。MNIST在GPL-3.0许可协议下可以免费用于商业用途。
 - en: and criticisms
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 以及批评意见
 - en: '![](../Images/37ca1ea60129a1dc22e293b08e4442e7.png)'
+  id: totrans-90
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/37ca1ea60129a1dc22e293b08e4442e7.png)'
 - en: Criticisms found by the MMD Critic method
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 由MMD Critic方法发现的批评意见
 - en: Pretty neat, huh?
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 相当不错吧？
 - en: Conclusions
+  id: totrans-93
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: And that’s about it for the MMD-Critic method. It is quite simple at the core,
     and it is nice to use save for having to fiddle with the Sigma hyperparameter.
     I hope that the newly released Python package gives it more use.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是MMD-Critic方法的全部内容。核心非常简单，使用起来不错，除了需要调整Sigma超参数。我希望新发布的Python包能带来更多的应用。
 - en: '*Please contact mchak@calpoly.edu for any inquiries. All images by author unless
     stated otherwise.*'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: '*如有任何疑问，请联系mchak@calpoly.edu。所有图片均由作者提供，除非另有说明。*'
 - en: Footnotes
+  id: totrans-96
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 脚注
 - en: '[1] You may be familiar with RKHSs and kernels if you’ve ever studied SVMs
     and the kernel trick — the kernels used there are just inner products in *some*
     RKHS. The most common is the RBF kernel, for which the associated RKHS of functions
     is an infinite-dimensional set of smooth functions.'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] 如果你曾经学习过SVM和核技巧，你可能会熟悉RKHS和核——在这些方法中使用的核实际上只是*某些*RKHS中的内积。最常见的是RBF核，其相关的RKHS函数是一个无限维的平滑函数集。'
 - en: '[2] I have not read this source beyond a brief skim. It seems mostly irrelevant,
     and the log determinant regularizer is fairly simple to implement. If you want
     to read it though, go for it.'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] 我没有详细阅读此来源，只是简单浏览了一下。它似乎大部分无关紧要，而且对数行列式正则化项的实现相对简单。不过，如果你想阅读它，尽管去看。'
 - en: '[3] For legal reasons, you can find a repository with the MNIST dataset [here](https://github.com/sharmaroshan/MNIST-Dataset/tree/master).
     It is free for commercial use under the GPL-3.0 License.'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] 出于法律原因，你可以在[这里](https://github.com/sharmaroshan/MNIST-Dataset/tree/master)找到包含MNIST数据集的代码库。该数据集在GPL-3.0许可协议下可以免费用于商业用途。'
 - en: References
+  id: totrans-100
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[1] [https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801)'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] [https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801)'
 - en: '[2][https://proceedings.neurips.cc/paper_files/paper/2016/file/5680522b8e2bb01943234bce7bf84534-Paper.pdf](https://papers.nips.cc/paper_files/paper/2016/hash/5680522b8e2bb01943234bce7bf84534-Abstract.html)'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2][https://proceedings.neurips.cc/paper_files/paper/2016/file/5680522b8e2bb01943234bce7bf84534-Paper.pdf](https://papers.nips.cc/paper_files/paper/2016/hash/5680522b8e2bb01943234bce7bf84534-Abstract.html)'
 - en: '[3] [https://f0nzie.github.io/interpretable_ml-rsuite/proto.html#examples-5](https://f0nzie.github.io/interpretable_ml-rsuite/proto.html#examples-5)'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] [https://f0nzie.github.io/interpretable_ml-rsuite/proto.html#examples-5](https://f0nzie.github.io/interpretable_ml-rsuite/proto.html#examples-5)'
 - en: '[4] [https://jmlr.csail.mit.edu/papers/volume13/gretton12a/gretton12a.pdf](https://jmlr.csail.mit.edu/papers/volume13/gretton12a/gretton12a.pdf)'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: '[4] [https://jmlr.csail.mit.edu/papers/volume13/gretton12a/gretton12a.pdf](https://jmlr.csail.mit.edu/papers/volume13/gretton12a/gretton12a.pdf)'
 - en: '[5] [https://www.stat.cmu.edu/~ryantibs/journalclub/mmd.pdf](https://www.stat.cmu.edu/~ryantibs/journalclub/mmd.pdf)'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: '[5] [https://www.stat.cmu.edu/~ryantibs/journalclub/mmd.pdf](https://www.stat.cmu.edu/~ryantibs/journalclub/mmd.pdf)'
 - en: '[6] [https://jmlr.org/papers/volume9/krause08a/krause08a.pdf](https://jmlr.org/papers/volume9/krause08a/krause08a.pdf)'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '[6] [https://jmlr.org/papers/volume9/krause08a/krause08a.pdf](https://jmlr.org/papers/volume9/krause08a/krause08a.pdf)'

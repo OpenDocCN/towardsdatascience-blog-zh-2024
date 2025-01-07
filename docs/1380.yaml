@@ -1,28 +1,44 @@
 - en: PRISM-Rules in Python
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Python 中的 PRISM 规则
 - en: 原文：[https://towardsdatascience.com/prism-rules-in-python-14d2cfd801a3?source=collection_archive---------3-----------------------#2024-06-02](https://towardsdatascience.com/prism-rules-in-python-14d2cfd801a3?source=collection_archive---------3-----------------------#2024-06-02)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/prism-rules-in-python-14d2cfd801a3?source=collection_archive---------3-----------------------#2024-06-02](https://towardsdatascience.com/prism-rules-in-python-14d2cfd801a3?source=collection_archive---------3-----------------------#2024-06-02)
 - en: A simple python rules-induction system
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个简单的 Python 规则归纳系统
 - en: '[](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)[![W
     Brett Kennedy](../Images/b3ce55ffd028167326c117d47c64c467.png)](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------)
     [W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)[![W
+    Brett Kennedy](../Images/b3ce55ffd028167326c117d47c64c467.png)](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------)
+    [W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------)
     ·12 min read·Jun 2, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------)
+    ·12分钟阅读·2024年6月2日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: This article is part of a series covering interpretable predictive models. Previous
     articles covered [ikNN](/interpretable-knn-iknn-33d38402b8fc) and [Additive Decision
     Trees](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223).
@@ -31,179 +47,259 @@
     enough to warrant it’s own article as well. Although it is an old idea, I’ve found
     it to be competitive with most other interpretable models for classification and
     have used it quite a number of times.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 这篇文章是关于可解释预测模型系列的一部分。之前的文章涵盖了 [ikNN](/interpretable-knn-iknn-33d38402b8fc) 和
+    [加法决策树](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223)。PRISM
+    是一个现有的算法（虽然我确实创建了一个 Python 实现），而这个系列的重点是原创算法，但我觉得它足够有用，值得单独写一篇文章。尽管这是一个老想法，但我发现它与大多数其他可解释模型在分类任务中具有竞争力，并且我已经使用过很多次。
 - en: PRISM is relatively simple, but in machine learning, sometimes the most complicated
     solutions work best and sometimes the simplest. Where we wish for interpretable
     models, though, there is a strong benefit to simplicity.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: PRISM 相对简单，但在机器学习中，有时最复杂的解决方案效果最好，有时最简单的解决方案效果最佳。然而，当我们希望有可解释的模型时，简单性带来的好处是显而易见的。
 - en: PRISM is a rules-induction tool. That is, it creates a set of rules to predict
     the target feature from the other features.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: PRISM 是一个规则归纳工具。也就是说，它创建一组规则，从其他特征预测目标特征。
 - en: Rules have at least a couple very important purposes in machine learning. One
     is prediction. Similar to Decision Trees, linear regression, GAMs, [ikNN](/interpretable-knn-iknn-33d38402b8fc),
     [Additive Decision Trees](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223),
     Decision Tables, and small number of other tools, they can provide interpretable
     classification models.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 规则在机器学习中至少有两个非常重要的目的。一个是预测。类似于决策树、线性回归、GAMs、[ikNN](/interpretable-knn-iknn-33d38402b8fc)、[加法决策树](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223)、决策表以及其他少数工具，它们可以提供可解释的分类模型。
 - en: Rules can also be used simply as a technique to understand the data. In fact,
     even without labels, they can be used in an unsupervised manner, creating a set
     of rules to predict each feature from the others (treating each feature in the
     table in turns as a target column), which can highlight any strong patterns in
     the data.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 规则也可以仅作为理解数据的一种技术。事实上，即使没有标签，它们也可以以无监督的方式使用，通过创建一组规则从其他特征预测每个特征（轮流将表中的每个特征视为目标列），这可以突出数据中的任何强烈模式。
 - en: 'There are other tools for creating rules in python, including the very strong
     [imodels library](https://github.com/csinva/imodels). However, it can still be
     challenging to create a set of rules that are both accurate and comprehensible.
     Often rules induction systems are unable to create reasonably accurate models,
     or, if they are able, only by creating many rules and rules with many terms. For
     example, rules such as:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Python 中，还有其他用于创建规则的工具，包括非常强大的[imodels库](https://github.com/csinva/imodels)。然而，创建既准确又易于理解的规则集仍然具有挑战性。通常，规则归纳系统无法创建合理准确的模型，或者即使能够创建，也只能通过生成大量规则和包含许多术语的规则来实现。例如，像这样的规则：
 - en: IF color=’blue’ AND height < 3.4 AND width > 3.2 AND length > 33.21 AND temperature
     > 33.2 AND temperature < 44.2 AND width < 5.1 AND weight > 554.0 AND … THEN…
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 color = ‘blue’ 且 height < 3.4 且 width > 3.2 且 length > 33.21 且 temperature
+    > 33.2 且 temperature < 44.2 且 width < 5.1 且 weight > 554.0 且 … 那么…
 - en: Where rules have more than about five or ten terms, they can become difficult
     to follow. Given enough terms, rules can eventually become effectively uninterpretable.
     And where the set of rules includes more than a moderate number of rules, the
     rule set as a whole becomes difficult to follow (more so if each rule has many
     terms).
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 当规则包含五个或十个以上的术语时，它们可能变得难以理解。如果术语足够多，规则最终可能变得无法解释。而且，如果规则集包含超过一定数量的规则，那么整个规则集就变得难以跟随（如果每个规则包含许多术语，则更是如此）。
 - en: PRISM Rules
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: PRISM 规则
 - en: PRISM is a rules-induction system first proposed by Chendrowska [[1]](https://github.com/Brett-Kennedy/PRISM-Rules#references)
     [[2]](https://github.com/Brett-Kennedy/PRISM-Rules#references) and described in
     Principles of Data Mining [[3]](https://github.com/Brett-Kennedy/PRISM-Rules#references).
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: PRISM 是一个规则归纳系统，最早由 Chendrowska 提出 [[1]](https://github.com/Brett-Kennedy/PRISM-Rules#references)
+    [[2]](https://github.com/Brett-Kennedy/PRISM-Rules#references)，并在《数据挖掘原理》一书中进行了描述
+    [[3]](https://github.com/Brett-Kennedy/PRISM-Rules#references)。
 - en: 'I was unable to find a python implementation and so created one. The main page
     for PRISM rules is: [https://github.com/Brett-Kennedy/PRISM-Rules](https://github.com/Brett-Kennedy/PRISM-Rules).'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 我未能找到 Python 实现，因此我创建了一个。PRISM 规则的主页面是：[https://github.com/Brett-Kennedy/PRISM-Rules](https://github.com/Brett-Kennedy/PRISM-Rules)。
 - en: 'PRISM supports generating rules both as a descriptive model: to describe patterns
     within a table (in the form of associations between the features); and as a predictive
     model. It very often produces a very concise, clean set of interpretable rules.'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: PRISM 支持生成规则，既可以作为描述性模型：用于描述表中的模式（以特征之间的关联形式）；也可以作为预测性模型。它通常生成一组非常简洁、干净且可解释的规则。
 - en: As a predictive model, it provides both what are called *global* and *local*
     explanations (in the terminology used in Explainable AI (XAI)). That is, it is
     fully-interpretable and allows both understanding the model as a whole and the
     individual predictions.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为一个预测性模型，它提供了所谓的*全局*和*局部*解释（在可解释 AI (XAI) 的术语中）。也就是说，它是完全可解释的，既可以理解整体模型，也可以理解单个预测。
 - en: Testing multiple rules-induction systems, I very often find PRISM produces the
     cleanest set of rules. Though, no one system works consistently the best, and
     it’s usually necessary to try a few rules induction tools.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 在测试多个规则归纳系统时，我发现 PRISM 经常生成最简洁的规则集。尽管没有一个系统始终表现最好，通常需要尝试几个规则归纳工具。
 - en: 'The rules produced are in disjunctive normal form (an OR of ANDs), with each
     individual rule being the AND of one or more terms, with each term of the form
     Feature = Value, for some Value within the set of values for that feature. For
     example: the rules produced may be of the form:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成的规则是析取范式（即 OR 形式的 AND），每个规则都是一个或多个术语的 AND，其中每个术语的形式为 Feature = Value，该值来自该特征的值集合。例如：生成的规则可能是这样的形式：
 - en: 'Rules for target value: ‘blue’:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 目标值为：‘blue’ 的规则：
 - en: IF feat_A = ‘hot’ AND feat_C = ‘round’ THEN ‘blue’
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 feat_A = ‘hot’ 且 feat_C = ‘round’ 那么 ‘blue’
 - en: IF feat_A = ‘warm’ AND feat_C = ‘square’ THEN ‘blue’
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 feat_A = ‘warm’ 且 feat_C = ‘square’ 那么 ‘blue’
 - en: 'Rules for target value: ‘red’:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 目标值为：‘red’ 的规则：
 - en: IF feat_A = ‘cold’ AND feat_C = ‘triangular’ THEN ‘red’
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 feat_A = ‘cold’ 且 feat_C = ‘triangular’ 那么 ‘red’
 - en: IF feat_A = ‘cool’ AND feat_C = ‘triangular’ THEN ‘red’
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果 feat_A = ‘cool’ 且 feat_C = ‘triangular’ 那么 ‘red’
 - en: The algorithm works strictly with categorical features, in both the X and Y
     columns. This implementation will, therefore, automatically bin any numeric columns
     to support the algorithm. By default, three equal-count bins (representing low,
     medium, and high values for the feature) are used, but this is configurable through
     the nbins parameter (more or less bins may be used).
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 该算法严格处理分类特征，无论是在 X 列还是 Y 列。因此，该实现会自动将任何数值型列进行分箱，以支持该算法。默认情况下，会使用三个等量的箱子（表示特征的低、中、高值），但这可以通过
+    nbins 参数进行配置（可以使用更多或更少的箱子）。
 - en: PRISM Algorithm
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: PRISM 算法
 - en: For this section, we assume we are using PRISM as a predictive model, specifically
     as a classifier.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于本节内容，我们假设我们将 PRISM 用作预测模型，特别是作为分类器。
 - en: The algorithm works by creating a set of rules for each class in the target
     column. For example, if executing on the Iris dataset, where there are three values
     in the target column (Setosa, Versicolour, and Virginica), there would be a set
     of rules related to Setosa, a set related to Versicolour, and a set related to
     Virginica.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 该算法通过为目标列中的每个类创建一组规则来工作。例如，如果在 Iris 数据集上执行，其中目标列有三个值（Setosa、Versicolour 和 Virginica），则会分别有与
+    Setosa、Versicolour 和 Virginica 相关的规则集。
 - en: The generated rules should be read in a first-rule-to-fire manner, and so all
     rules are generated and presented in a sensible order (from most to least relevant
     for each target class). For example, examining the set of rules related to Setosa,
     we would have a set of rules that predict when an iris is Setosa, and these would
     be ordered from most to least predictive. Similarly for the sets of rules for
     the other two classes.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成的规则应该按照“最先触发的规则”的方式进行读取，因此所有规则都按合理的顺序生成和呈现（对于每个目标类，从最相关到最不相关的顺序）。例如，在检查与 Setosa
+    相关的规则集时，我们将有一组预测何时鸢尾花是 Setosa 的规则，这些规则将按从最具预测力到最不具预测力的顺序排列。同样地，其他两个类的规则集也会这样排列。
 - en: Generating the Rules
+  id: totrans-32
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 生成规则
 - en: We’ll describe here the algorithm PRISM uses to generate a set of rules for
     one class. With the Iris dataset, lets say we’re about to generate the rules for
     the Setosa class.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们将描述 PRISM 用来为一个类生成规则的算法。以 Iris 数据集为例，假设我们即将为 Setosa 类生成规则。
 - en: To start, PRISM finds the best rule available to predict that target value.
     This first rule for Setosa would predict as many of the Setosa records as possible.
     That is, we find the unique set of values in some subset of the other features
     that best predicts when a record will be Setosa. This is the first rule for Setosa.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，PRISM 找到最佳规则来预测目标值。对于 Setosa 类，第一条规则会尽可能地预测出 Setosa 的记录。也就是说，我们在其他特征的某个子集里找到一组唯一的值，这些值最能预测一条记录是否为
+    Setosa。这就是 Setosa 的第一条规则。
 - en: The first rule will, however, not cover all Setosa records, so we create additional
     rules to cover the remaining rows for Setosa (or as many as we can).
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，第一条规则并不能覆盖所有的 Setosa 记录，因此我们会创建额外的规则来覆盖剩余的 Setosa 行（或尽可能多的行）。
 - en: As each rule is discovered, the rows matching that rule are removed, and the
     next rule is found to best describe the remaining rows for that target value.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 每当发现一条规则时，匹配该规则的行会被移除，然后寻找下一条最佳规则来描述剩余的目标值行。
 - en: The rules may each have any number of terms.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 每条规则可以包含任意数量的项。
 - en: For each other value in the target column, we start again with the full dataset,
     removing rows as rules are discovered, and generating additional rules to explain
     the remaining rows for this target class value. So, after finding the rules for
     Setosa, PRISM would generate the rules for Versicolour, and then for Virginica.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于目标列中的每个其他值，我们从完整数据集开始，随着规则的发现逐步移除行，并生成其他规则来解释剩余的行。因此，在找到 Setosa 的规则后，PRISM
+    会生成 Versicolour 的规则，然后是 Virginica 的规则。
 - en: Coverage and Support
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 覆盖率和支持度
 - en: This implementation enhances the algorithm as described in Principles of Data
     Mining by outputting statistics related to each rule, as many induced rules can
     be much more relevant or, the opposite, of substantially lower significance than
     other rules induced.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 该实现通过输出与每条规则相关的统计信息，增强了《数据挖掘原理》一书中描述的算法，因为许多生成的规则可能比其他规则更为相关，或者恰恰相反，具有显著较低的意义。
 - en: As well, tracking simple statistics about each rule allows providing parameters
     to specify the minimum *coverage* for each rule (the minimum number of rows in
     the training data for which it applies); and the minimum *support* (the minimum
@@ -212,211 +308,312 @@
     or predictive power of the model), though can result in some target classes having
     few or no rules, potentially not covering all rows for one or more target column
     values. In these cases, users may wish to adjust these parameters.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 同时，跟踪每条规则的简单统计信息可以提供参数，指定每条规则的最小*覆盖度*（规则适用的训练数据中的最小行数）；以及最小*支持度*（规则匹配的行中，目标类别与期望值匹配的最小概率）。这些有助于减少噪音（仅对模型的描述性或预测性能力贡献较小的额外规则），尽管这可能导致某些目标类别没有规则，或者规则覆盖的行数很少，可能没有涵盖一个或多个目标列值的所有行。在这种情况下，用户可能希望调整这些参数。
 - en: Comparison to Decision Trees
+  id: totrans-42
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 与决策树的比较
 - en: Decision trees are among the most common interpretable models, quite possibly
     the most common. When sufficiently small, they can be reasonably interpretable,
     perhaps as interpretable as any model type, and they can be reasonably accurate
     for many problems (though certainly not all). They do, though, have limitations
     as interpretable models, which PRISM was designed to address.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 决策树是最常见的可解释模型之一，可能是最常见的。当足够小的时候，它们可以是合理的可解释的，也许与任何模型类型一样可解释，并且对于许多问题（尽管肯定不是所有问题）都能达到相当准确的结果。然而，它们作为可解释模型有其局限性，而
+    PRISM 就是为了解决这个问题而设计的。
 - en: Decision trees were not specifically designed to be interpretable; it is a convenient
     property of decision trees that they are as interpretable as they are. They, for
     example, often grow much larger than is easily comprehensible, often with repeated
     sub-trees as relationships to features have to be repeated many times within the
     trees to be properly captured.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 决策树并非专门设计为可解释的；它们具备可解释性的属性仅仅是决策树的一个便利特性。例如，它们常常长得比容易理解的程度要大，通常会重复很多子树，因为特征之间的关系必须在树内重复多次才能被正确捕捉。
 - en: As well, the decision paths for individual predictions may include nodes that
     are irrelevant, or even misleading, to the final predictions, further reducing
     compressibility.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，单个预测的决策路径可能包括一些与最终预测无关，甚至误导性的节点，从而进一步减少了压缩性。
 - en: 'The Cendrowska paper provides examples of simple sets of rules that cannot
     be represented easily by trees. For example:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: Cendrowska 论文提供了无法通过树轻松表示的简单规则集的示例。例如：
 - en: 'Rule 1: IF a = 1 AND b = 1 THEN class = 1'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 规则 1：如果 a = 1 且 b = 1，则 class = 1
 - en: 'Rule 2: IF c = 1 AND d = 1 THEN class = 1'
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 规则 2：如果 c = 1 且 d = 1，则 class = 1
 - en: 'These lead to a surprisingly complex tree. In fact, this is a common pattern
     that results in overly-complex decision trees: “where there are two (underlying)
     rules with no attribute in common, a situation that is likely to occur frequently
     in practice” [[3]](https://github.com/Brett-Kennedy/PRISM-Rules#references)'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 这会导致一个意外复杂的树。事实上，这是一个导致决策树过于复杂的常见模式：“当两个（潜在的）规则没有任何共同的属性时，这种情况在实际中很可能会频繁发生”
+    [[3]](https://github.com/Brett-Kennedy/PRISM-Rules#references)
 - en: Rules can often generate more interpretable models than can decision trees (though
     the opposite is also often true) and are useful to try with any project where
     interpretable models are beneficial. And, where the goal is not building a predictive
     model, but understanding the data, using multiple models may be advantageous to
     capture different elements of the data.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 规则通常可以生成比决策树更易于解释的模型（尽管反过来也常常如此），并且在任何需要可解释模型的项目中都非常有用。而且，当目标不是构建预测模型，而是理解数据时，使用多个模型可能会有助于捕捉数据的不同元素。
 - en: Installation
+  id: totrans-51
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 安装
 - en: 'The project consists of a single [python file](https://github.com/Brett-Kennedy/PRISM-Rules/blob/main/prism_rules.py)
     which may be downloaded and included in any project using:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 该项目由一个单一的[python 文件](https://github.com/Brett-Kennedy/PRISM-Rules/blob/main/prism_rules.py)组成，可以通过以下方式下载并包含到任何项目中：
 - en: '[PRE0]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Example using the Wine dataset from sklearn
+  id: totrans-54
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 sklearn 的 Wine 数据集的示例
 - en: 'The github page provides two example notebooks that provide simple, but thorough
     examples of using the tool. The tool is, though, quite straight-forward. To use
     the tool to generate rules, simply create a PrismRules object and call get_prism_rules()
     with a dataset, specifying the target column:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: GitHub 页面提供了两个示例笔记本，提供了使用该工具的简单但全面的示例。该工具本身非常直观。要使用该工具生成规则，只需创建一个 PrismRules
+    对象，并通过数据集调用 get_prism_rules() 方法，指定目标列：
 - en: '[PRE1]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Results
+  id: totrans-57
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 结果
 - en: 'This dataset has three values in the target column, so will generate three
     sets of rules:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 该数据集的目标列有三个值，因此会生成三组规则：
 - en: '[PRE2]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: For each rule, we see both the support and the coverage.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每条规则，我们可以看到支持度和覆盖度。
 - en: 'The support indicates how many rows support the rule; that is: of the rows
     where the rule can be applied, in how many is it true. The first rule here is:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 支持度表示有多少行支持该规则；也就是说，在规则适用的行中，有多少行是符合的。这里的第一条规则是：
 - en: '[PRE3]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: This indicates that of the 39 rows where proline = High (the feature proline
     has a high numeric value) and alcohol is High (the features alcohol has a high
     numeric value), for 100% of them, the target it 0.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 这表明，在39行数据中，其中proline = High（特征proline具有高数值）和alcohol = High（特征alcohol具有高数值），在100%的情况下，目标值为0。
 - en: 'The coverage indicates how many rows the rule covers. For the first rule, this
     is:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 覆盖度表示规则覆盖了多少行。对于第一条规则，这是：
 - en: '[PRE4]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: This indicates the coverage both in terms of row count and as a percent of the
     rows in the data.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 这表示覆盖度，包括行数和数据中行数的百分比。
 - en: Example Generating Predictions
+  id: totrans-67
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 生成预测示例
 - en: To create predictions, we simply call predict() passing a dataframe with the
     same features as the dataframe used to fit the model (though the target column
     may optionally be omitted, as in this example).
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 要生成预测，我们只需调用`predict()`，并传入一个具有与拟合模型时相同特征的数据框（尽管目标列可以选择省略，如本示例所示）。
 - en: '[PRE5]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: In this way, PRISM rules may be used equivalently to any other predictive model,
     such as Decision Trees, Random Forests, XGBoost, and so on.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样，PRISM规则可以与任何其他预测模型等效使用，如决策树、随机森林、XGBoost等。
 - en: However, while generating predictions, some rows may match no rules. In this
     case, by default, the most common value in the target column during training (which
     can be seen accessing prism.default_target) will be used. The predict() method
     also supports a parameter, leave_unknown. If this is set to True, then any records
     not matching any rules will be set to “NO PREDICTION”. In this case, the predictions
     will be returned as a string type, even if the original target column was numeric.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，在生成预测时，一些行可能不匹配任何规则。在这种情况下，默认情况下将使用训练过程中目标列中最常见的值（可以通过访问prism.default_target查看）。`predict()`方法还支持一个参数leave_unknown。如果将其设置为True，则任何不匹配规则的记录将被标记为“无预测”。在这种情况下，即使原始目标列是数值型的，预测结果也将以字符串类型返回。
 - en: Further examples are provided in the sample notebooks.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 更多示例可在示例笔记本中查看。
 - en: Example with Numeric Data
+  id: totrans-73
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 带有数值数据的示例
 - en: In this example, we use sklearn’s make_classification() method to create numeric
     data (other than the target column), which is then binned. This uses the default
     of three bins per numeric feature.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 在此示例中，我们使用sklearn的`make_classification()`方法来创建数值数据（目标列除外），然后将其进行分箱。默认情况下，每个数值特征会分为三个箱。
 - en: '[PRE6]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Results
+  id: totrans-76
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 结果
 - en: The data is binned into low, medium, and high values for each column. The results
     are a set of rules per target class.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据被按每列的低、中、高值进行分箱。结果是每个目标类别一组规则。
 - en: '[PRE7]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Example from the book Principles of Data Mining
+  id: totrans-79
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 《数据挖掘原理》书中的示例
 - en: This example is provided in one of the sample notebooks on the github page.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个示例可以在github页面的其中一个示例笔记本中找到。
 - en: '![](../Images/dc7522d6dae2c461205a8af9a8c2fb61.png)'
+  id: totrans-81
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/dc7522d6dae2c461205a8af9a8c2fb61.png)'
 - en: 'PRISM generated three rules:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: PRISM生成了三条规则：
 - en: IF tears = 1 THEN Target=3
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果tears = 1，那么目标 = 3
 - en: IF astig = 1 AND tears = 2 and specRX = 2 THEN Target=2
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果astig = 1并且tears = 2并且specRX = 2，那么目标 = 2
 - en: If astig = 2 and tears = 2 AND specRX =1 THEN Target =1
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果astig = 2并且tears = 2并且specRX = 1，那么目标 = 1
 - en: Execution Time
+  id: totrans-86
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 执行时间
 - en: The algorithm is generally able to produce a set of rules in seconds or minutes,
     but if it is necessary to decrease the execution time of the algorithm, a sample
     of the data may be used in lieu of the full dataset. The algorithm generally works
     quite well on samples of the data, as the model is looking for general patterns
     as opposed to exceptions, and the patterns will be present in any sufficiently
     large sample.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 该算法通常能够在几秒钟或几分钟内生成一组规则，但如果需要减少算法的执行时间，可以使用数据的一个样本来代替完整的数据集。该算法在数据样本上通常表现得非常好，因为模型在寻找的是一般性的模式，而不是例外，这些模式在任何足够大的样本中都会出现。
 - en: Further notes on tuning the model are provided on the github page.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于模型调优的更多说明可以在github页面上找到。
 - en: Conclusions
+  id: totrans-89
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Unfortunately, there are relatively few options available today for interpretable
     predictive models. As well, no one interpretable model will be sufficiently accurate
     or sufficiently interpretable for all datasets. Consequently, where interpretability
@@ -424,25 +621,37 @@
     Decision Trees, other rules-induction tools, GAMs, [ikNN](/interpretable-knn-iknn-33d38402b8fc),
     [Additive Decision Trees](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223),
     and PRISM rules.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，目前可用的可解释预测模型选项相对较少。此外，没有任何一个可解释的模型能够对所有数据集既足够准确又足够可解释。因此，在可解释性很重要的情况下，测试多个可解释模型可能是值得的，包括决策树、其他规则诱导工具、广义加性模型（GAMs）、[ikNN](/interpretable-knn-iknn-33d38402b8fc)、[加性决策树](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223)和PRISM规则。
 - en: PRISM Rules very often generates clean, interpretable rules, and often a high
     level of accuracy, though this will vary from project to project. Some tuning
     is necessary, though similar to other predictive models.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: PRISM规则经常生成简洁、可解释的规则，并且通常具有较高的准确性，尽管这会因项目而异。虽然与其他预测模型类似，仍然需要进行一定的调整。
 - en: References
+  id: totrans-92
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[1] Chendrowska, J. (1987) PRISM: An Algorithm for Inducing Modular Rules.
     International Journal of Man-Machine Studies, vol 27, pp. 349–370.'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] Chendrowska, J. (1987) PRISM：一种诱导模块化规则的算法。《国际人机研究杂志》，第27卷，349–370页。'
 - en: '[2] Chendrowska, J. (1990) Knowledge Acquisition for Expert Systems: Inducing
     Modular Rules from Examples. PhD Thesis, The Open University.'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] Chendrowska, J. (1990) 《专家系统的知识获取：从示例中诱导模块化规则》。博士论文，开放大学。'
 - en: '[3] Bramer, M. (2007) Principles of Data Mining, Springer Press.'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] Bramer, M. (2007) 《数据挖掘原理》，Springer出版社。'

@@ -1,65 +1,101 @@
 - en: 'Torch Compile: 2x Faster Llama 3.2 with Low Effort'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Torch 编译：以低努力实现 2 倍更快的 Llama 3.2
 - en: 原文：[https://towardsdatascience.com/torch-compile-2x-faster-llama-3-2-with-low-effort-d17c102ac405?source=collection_archive---------2-----------------------#2024-11-13](https://towardsdatascience.com/torch-compile-2x-faster-llama-3-2-with-low-effort-d17c102ac405?source=collection_archive---------2-----------------------#2024-11-13)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/torch-compile-2x-faster-llama-3-2-with-low-effort-d17c102ac405?source=collection_archive---------2-----------------------#2024-11-13](https://towardsdatascience.com/torch-compile-2x-faster-llama-3-2-with-low-effort-d17c102ac405?source=collection_archive---------2-----------------------#2024-11-13)
 - en: But it will depend on your GPU
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 但这将取决于你的 GPU。
 - en: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--d17c102ac405--------------------------------)[![Benjamin
     Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--d17c102ac405--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d17c102ac405--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d17c102ac405--------------------------------)
     [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--d17c102ac405--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--d17c102ac405--------------------------------)[![Benjamin
+    Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--d17c102ac405--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d17c102ac405--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d17c102ac405--------------------------------)
+    [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--d17c102ac405--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d17c102ac405--------------------------------)
     ·5 min read·Nov 13, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d17c102ac405--------------------------------)
+    ·阅读时间 5 分钟·2024年11月13日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/8149a5a73c8bea9de7489e3fb32fb911.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8149a5a73c8bea9de7489e3fb32fb911.png)'
 - en: Image generated with ChatGPT
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像由 ChatGPT 生成。
 - en: Torch Compile (`torch.compile`) was first introduced with PyTorch 2.0, but it
     took several updates and optimizations before it could reliably support most large
     language models (LLMs).
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: Torch 编译（`torch.compile`）首次在 PyTorch 2.0 中引入，但在经历了几次更新和优化之后，才可以稳定地支持大多数大型语言模型（LLM）。
 - en: when it comes to inference, `torch.compile` can genuinely speed up decoding
     with only a small increase in memory usage.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在推理时，`torch.compile` 可以通过仅小幅增加内存使用量来显著加速解码过程。
 - en: 'In this article, we’ll go over how `torch.compile` works and measure its impact
     on inference performance with LLMs. To use `torch.compile` in your code, you only
     need to add a single line. For this article, I tested it with Llama 3.2 and also
     tried it with `bitsandbytes` quantization, using two different GPUs: Google Colab’s
     L4 and A100.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将探讨 `torch.compile` 的工作原理，并衡量它对 LLM 推理性能的影响。要在代码中使用 `torch.compile`，你只需添加一行代码。对于本文，我用
+    Llama 3.2 进行了测试，并尝试了 `bitsandbytes` 量化，使用了两种不同的 GPU：Google Colab 的 L4 和 A100。
 - en: 'I’ve also created a notebook demonstrating how to use `torch.compile` and benchmarking
     its performance here:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 我还创建了一个笔记本，演示如何使用`torch.compile`并对其性能进行基准测试，点击这里查看：
 - en: '[Get the notebook (#120)](https://newsletter.kaitchup.com/p/notebooks)'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '[获取笔记本 (#120)](https://newsletter.kaitchup.com/p/notebooks)'
 - en: 'Torch Compile: How Does It Make Models Faster?'
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Torch 编译：它如何让模型更快？
 - en: '`torch.compile` provides a way to accelerate models by converting standard
     PyTorch code into optimized machine code. This approach, called JIT (Just-In-Time)
     compilation, makes the code run more efficiently on specific hardware, i.e., faster
     than normal Python code. It''s particularly good for complex models where even
     small speed…'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '`torch.compile` 提供了一种通过将标准 PyTorch 代码转换为优化过的机器码来加速模型的方法。这种方法称为 JIT（即时）编译，使代码能够在特定硬件上更高效地运行，即比普通
+    Python 代码更快。它对于复杂模型尤其有效，即便是微小的速度提升也能产生显著效果……'

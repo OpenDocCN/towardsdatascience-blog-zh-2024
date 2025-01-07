@@ -1,53 +1,83 @@
 - en: LOESS in Rust
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Rust中的LOESS
 - en: 原文：[https://towardsdatascience.com/loess-in-rust-2e22f58c81d4?source=collection_archive---------7-----------------------#2024-08-12](https://towardsdatascience.com/loess-in-rust-2e22f58c81d4?source=collection_archive---------7-----------------------#2024-08-12)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/loess-in-rust-2e22f58c81d4?source=collection_archive---------7-----------------------#2024-08-12](https://towardsdatascience.com/loess-in-rust-2e22f58c81d4?source=collection_archive---------7-----------------------#2024-08-12)
 - en: It’s time to port the Python LOESS code to Rust.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 是时候将Python中的LOESS代码移植到Rust了。
 - en: '[](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)[![João
     Paulo Figueira](../Images/54e4176f66e4ab0324d86ec71d8b033d.png)](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------)
     [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)[![João
+    Paulo Figueira](../Images/54e4176f66e4ab0324d86ec71d8b033d.png)](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------)
+    [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------)
     ·5 min read·Aug 12, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------)
+    ·阅读时长5分钟·2024年8月12日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/199267c891b0dc1dd794f992bbc5a653.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/199267c891b0dc1dd794f992bbc5a653.png)'
 - en: Photo by [Matt Foxx](https://unsplash.com/@foxxmd?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 摄影：[Matt Foxx](https://unsplash.com/@foxxmd?utm_source=medium&utm_medium=referral)
+    于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Over five years ago, counting from this writing, I published my most successful
     article here on Medium. That article grew from the need to filter a particularly
     noisy sensor’s data from a telematics data stream. Concretely, it was a torque
     sensor connected to a truck’s drive shaft and the noise needed to go. LOESS was
     the answer, hence that article.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 五年前，从本文写作之时算起，我在Medium上发布了我最成功的文章。那篇文章源于一个需求：从车载远程信息处理数据流中过滤一个特别嘈杂的传感器数据。具体来说，它是连接到卡车传动轴的扭矩传感器，需要去除噪声。LOESS是解决方案，因此写了那篇文章。
 - en: '[](/loess-373d43b03564?source=post_page-----2e22f58c81d4--------------------------------)
     [## LOESS'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](/loess-373d43b03564?source=post_page-----2e22f58c81d4--------------------------------)
+    [## LOESS'
 - en: Smoothing data using local regression
+  id: totrans-10
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 使用局部回归平滑数据
 - en: towardsdatascience.com](/loess-373d43b03564?source=post_page-----2e22f58c81d4--------------------------------)
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/loess-373d43b03564?source=post_page-----2e22f58c81d4--------------------------------)
 - en: By then, I was neck-deep in Python, and the project required Spark, so implementing
     the algorithm in Python was a no-brainer. Times change, though, and now I use
     Rust more frequently and decided to have a go at translating the old code. This
@@ -56,38 +86,53 @@
     about the algorithm. Here, we will focus on the intricacies of writing matrix
     code in Rust, replacing the earlier [NumPy](https://numpy.org/) implementation
     as closely as possible.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 到那时，我已经深陷于Python的世界，并且该项目需要使用Spark，因此在Python中实现算法是毫不犹豫的选择。然而，随着时间的推移，我现在更多使用Rust，并决定尝试将旧代码移植过来。本文描述了移植过程以及我在重写代码时的选择。你应该阅读原始文章和参考材料，进一步了解算法。这里，我们将重点讨论在Rust中编写矩阵代码的细节，尽可能地替代之前的[NumPy](https://numpy.org/)实现。
 - en: Rust Numerical Computing
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Rust数值计算
 - en: Being a firm believer in not reinventing the wheel, I searched for the recommended
     Rust crates to replace my use of [NumPy](https://numpy.org/) in the original Python
     code, and it didn’t take long to find [**nalgebra**](https://nalgebra.org/).
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为一个坚定的反对重复造轮子的人，我寻找了推荐的Rust包来替代我在原始Python代码中使用的[NumPy](https://numpy.org/)，很快就找到了[**nalgebra**](https://nalgebra.org/)。
 - en: '**nalgebra** is meant to be a general-purpose, low-dimensional, linear algebra
     library, with an optimized set of tools for computer graphics and physics.'
+  id: totrans-15
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**nalgebra** 旨在成为一个通用的低维线性代数库，提供一套针对计算机图形学和物理学优化的工具集。'
 - en: Although we will not do any physics or computer graphics, we fit the low dimensionality
     requirement like a glove.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们不会做任何物理学或计算机图形学相关的工作，但我们符合低维度的要求，简直是量体裁衣。
 - en: Differences
+  id: totrans-17
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 差异
 - en: When converting the Python code to Rust, I met some difficulties that took me
     a while to sort out. When using NumPy in Python, we use all the features that
     both language and library provide to improve the code’s expressiveness and readability.
     Rust is more verbose than Python, and, at the time of this writing (version 0.33.0),
     the **nalgebra** crate still misses some features that help improve its expressiveness.
     Terseness is a challenge.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 当将 Python 代码转换为 Rust 时，我遇到了一些困难，花了一些时间才理清楚。在 Python 中使用 NumPy 时，我们可以利用语言和库提供的所有特性来提高代码的表达性和可读性。Rust
+    比 Python 更冗长，而且在撰写本文时（版本 0.33.0），**nalgebra** crate 仍然缺少一些有助于提高表达性的特性。简洁性是一个挑战。
 - en: My first hurdle was indexing arrays using other arrays. With NumPy, you can
     index an array using another array of integers or booleans. In the first case,
     each element of the indexing array is an index into the source array, and the
@@ -95,129 +140,196 @@
     of boolean indexing, the indexer must have the same size as the data, and each
     element must state whether to include the corresponding data element. This feature
     is handy when using boolean expressions to select data.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的第一个障碍是使用其他数组对数组进行索引。使用 NumPy 时，我们可以用另一个整数或布尔值数组对数组进行索引。在第一种情况下，索引数组的每个元素都是源数组的索引，索引数组的维度可以等于或小于数据数组。在布尔索引的情况下，索引数组的大小必须与数据数组相同，每个元素必须表示是否包含对应的数据元素。在使用布尔表达式选择数据时，这个特性非常方便。
 - en: 'Handy as it is, I used this feature throughout the Python code:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管如此，我在整个 Python 代码中都使用了这个特性：
 - en: '[PRE0]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Here, the `min_range` variable in an integer array containing the subset of
     indices to retrieve from the `self.n_xx` array.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，`min_range` 变量是一个整数数组，包含了从 `self.n_xx` 数组中检索的索引子集。
 - en: Try as I might, I could not find a solution in the Rust crate that mimics the
     NumPy indexing, so I had to implement one. After a couple of tries and benchmarks,
     I reached the final version. This solution was straightforward and effective.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我尽力而为，但我未能在 Rust crate 中找到模仿 NumPy 索引的方法，因此我不得不自己实现一个。在尝试和基准测试几次之后，我得到了最终的版本。这个解决方案直接而有效。
 - en: '[PRE1]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'The map expression is quite simple, but using the function name is more expressive,
     so I replaced the Python code above with the corresponding Rust one:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: map 表达式非常简单，但使用函数名更具表达性，因此我将上面的 Python 代码替换为相应的 Rust 代码：
 - en: '[PRE2]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'There is also no built-in method to create a vector from a range of integers.
     Although easy to do with **nalgebra**, the code becomes a bit long:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外，也没有内置方法从整数范围创建向量。虽然使用 **nalgebra** 很容易做到，但代码会稍微长一些：
 - en: '[PRE3]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'We can avoid much of this ceremony if we fix the vector and array sizes during
     compilation, but we have no such luck here as the dimensions are unknown. The
     corresponding Python code is more terse:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们在编译期间固定了向量和数组的大小，可以避免很多这种繁琐的操作，但由于维度未知，这里我们无法做到。对应的 Python 代码要简洁得多：
 - en: '[PRE4]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'This terseness also extends to other areas, such as when filling a matrix row-wise.
     In Python, we can do something like this:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种简洁性也延伸到其他领域，例如按行填充矩阵。在 Python 中，我们可以这样做：
 - en: '[PRE5]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'As of this writing, I found no better way of doing the same thing with **nalgebra**
     than this:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 在撰写本文时，我发现用 **nalgebra** 做同样的事情，没有比这个更好的方法了：
 - en: '[PRE6]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Maybe something hidden in the package is waiting to be discovered that will
     help here in terms of conciseness.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 也许包中隐藏着某些东西，等待被发现，从而帮助我们提高简洁性。
 - en: Finally, I found the **nalgebra** documentation relatively sparse. We can expect
     this from a relatively young Rust crate that holds much promise for the future.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我发现 **nalgebra** 的文档相对稀少。我们可以理解这一点，因为这是一个相对年轻的 Rust crate，未来充满了潜力。
 - en: The Upside
+  id: totrans-37
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 优势
 - en: The best comes at the end—the raw performance. I invite you to try running both
     versions of the same code (the GitHub repository links are below) and compare
     their performances. On my 2019 MacBook Pro 2.6 GHz 6-Core Intel Core i7, the *release*
     version of the Rust code runs in under 200 *microseconds*, while the Python code
     runs in under 5 *milliseconds*.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 最精彩的部分在最后——原始性能。我邀请你尝试运行两种版本的相同代码（GitHub 仓库链接见下方），并比较它们的性能。在我的 2019 年款 2.6 GHz
+    6 核 Intel Core i7 MacBook Pro 上，Rust 代码的 *release* 版本运行时间不到 200 *微秒*，而 Python
+    代码的运行时间不到 5 *毫秒*。
 - en: Conclusion
+  id: totrans-39
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: This project was another exciting and educative Python-to-Rust port of my old
     code. While converting from the well-known Python control structures to Rust gets
     more accessible by the day, the **NumPy** conversion to **nalgebra** was more
     of a challenge. The Rust package shows much promise but needs more documentation
     and online support. I would warmly welcome a more thorough user guide.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个项目是我将旧代码从 Python 转移到 Rust 的另一个令人兴奋且富有教育意义的过程。尽管从著名的 Python 控制结构转换到 Rust 正变得越来越容易，但从
+    **NumPy** 转换到 **nalgebra** 的过程更加具有挑战性。Rust 包展现了很大的潜力，但仍需要更多的文档和在线支持。我热烈欢迎更为详细的用户指南。
 - en: Rust is more ceremonious than Python but performs much better when properly
     used. I will keep using Python for my daily work when building prototypes and
     in discovery mode, but I will turn to Rust for performance and memory safety when
     moving to production. We can even mix and match both using crates like [PyO3](https://pyo3.rs/v0.15.1/),
     so this is a win-win scenario.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: Rust 比 Python 更加正式，但在适当使用时性能更好。在构建原型和发现阶段，我将继续使用 Python 进行日常工作，但在进入生产阶段时，我会转向
+    Rust 以获得更好的性能和内存安全性。我们甚至可以通过像[PyO3](https://pyo3.rs/v0.15.1/)这样的 crate 混合使用两者，所以这是一个双赢的局面。
 - en: '*Rust rocks!*'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Rust 真棒！*'
 - en: References
+  id: totrans-43
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[joaofig/loess-rs: An implementation of the LOESS / LOWESS algorithm in Rust.
     (github.com)](https://github.com/joaofig/loess-rs)'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '[joaofig/loess-rs: 一个在 Rust 中实现的 LOESS / LOWESS 算法](https://github.com/joaofig/loess-rs)'
 - en: '[joaofig/pyloess: A simple implementation of the LOESS algorithm using numpy
     (github.com)](https://github.com/joaofig/pyloess)'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '[joaofig/pyloess: 使用 numpy 实现的简单 LOESS 算法](https://github.com/joaofig/pyloess)'
 - en: Credits
+  id: totrans-46
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 赞扬
 - en: I used [Grammarly](https://app.grammarly.com/) to review the writing and accepted
     several of its rewriting suggestions.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用了[Grammarly](https://app.grammarly.com/)来审查写作，并接受了它的一些重写建议。
 - en: '[JetBrains’ AI](https://www.jetbrains.com/ai/) assistant helped me write some
     of the code, and I also used it to learn Rust. It has become a staple of my everyday
     work with both Rust and Python. Unfortunately, support for **nalgebra** is still
     short.'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '[JetBrains 的 AI](https://www.jetbrains.com/ai/) 助手帮助我编写了一部分代码，我也用它来学习 Rust。它已经成为我日常工作中处理
+    Rust 和 Python 的重要工具。不幸的是，对 **nalgebra** 的支持仍然不足。'
 - en: João Paulo Figueira is a Data Scientist at [tb.lx by Daimler Truck](https://tblx.io/)
     in Lisbon, Portugal.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: João Paulo Figueira 是位于葡萄牙里斯本的 [tb.lx by Daimler Truck](https://tblx.io/) 的数据科学家。

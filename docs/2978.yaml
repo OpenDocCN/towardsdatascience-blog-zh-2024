@@ -1,63 +1,95 @@
 - en: Transformers Key-Value (KV) Caching Explained
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Transformer键值（KV）缓存解释
 - en: 原文：[https://towardsdatascience.com/transformers-key-value-kv-caching-explained-4d71de62d22d?source=collection_archive---------0-----------------------#2024-12-11](https://towardsdatascience.com/transformers-key-value-kv-caching-explained-4d71de62d22d?source=collection_archive---------0-----------------------#2024-12-11)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/transformers-key-value-kv-caching-explained-4d71de62d22d?source=collection_archive---------0-----------------------#2024-12-11](https://towardsdatascience.com/transformers-key-value-kv-caching-explained-4d71de62d22d?source=collection_archive---------0-----------------------#2024-12-11)
 - en: LLMOps
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: LLMOps
 - en: Speed up your LLM inference
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 加速你的LLM推理
 - en: '[](https://michaloleszak.medium.com/?source=post_page---byline--4d71de62d22d--------------------------------)[![Michał
     Oleszak](../Images/61b32e70cec4ba54612a8ca22e977176.png)](https://michaloleszak.medium.com/?source=post_page---byline--4d71de62d22d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4d71de62d22d--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4d71de62d22d--------------------------------)
     [Michał Oleszak](https://michaloleszak.medium.com/?source=post_page---byline--4d71de62d22d--------------------------------)'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://michaloleszak.medium.com/?source=post_page---byline--4d71de62d22d--------------------------------)[![Michał
+    Oleszak](../Images/61b32e70cec4ba54612a8ca22e977176.png)](https://michaloleszak.medium.com/?source=post_page---byline--4d71de62d22d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4d71de62d22d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4d71de62d22d--------------------------------)
+    [Michał Oleszak](https://michaloleszak.medium.com/?source=post_page---byline--4d71de62d22d--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4d71de62d22d--------------------------------)
     ·14 min read·Dec 11, 2024
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4d71de62d22d--------------------------------)
+    ·14分钟阅读·2024年12月11日
 - en: --
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/b8e43dcc06296939da333306fa6544dd.png)'
+  id: totrans-7
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b8e43dcc06296939da333306fa6544dd.png)'
 - en: The transformer architecture is arguably one of the most impactful innovations
     in modern deep learning. Proposed in the famous [2017 paper “Attention Is All
     You Need](https://arxiv.org/abs/1706.03762),” it has become the go-to approach
     for most language-related modeling, including all Large Language Models (LLMs),
     such as the [GPT family](https://en.wikipedia.org/wiki/Generative_pre-trained_transformer),
     as well as many computer vision tasks.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: Transformer架构可以说是现代深度学习中最具影响力的创新之一。它在著名的 [2017年论文《Attention Is All You Need》](https://arxiv.org/abs/1706.03762)中提出，已经成为大多数与语言相关的建模方法，包括所有大型语言模型（LLMs），如
+    [GPT系列](https://en.wikipedia.org/wiki/Generative_pre-trained_transformer)，以及许多计算机视觉任务。
 - en: As the complexity and size of these models grow, so does the need to optimize
     their inference speed, especially in chat applications where the users expect
     immediate replies. Key-value (KV) caching is a clever trick to do just that —
     let’s see how it works and when to use it.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着这些模型的复杂性和规模的增长，它们推理速度优化的需求也在增加，尤其是在聊天应用中，用户期望即时回复。键值（KV）缓存是实现这一目标的一个巧妙技巧——让我们看看它是如何工作的，以及何时使用它。
 - en: Transformer architecture overview
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Transformer架构概述
 - en: Before we dive into KV caching, we will need to take a short detour to the attention
     mechanism used in transformers. Understanding how it works is required to spot
     and appreciate how KV caching optimizes transformer inference.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在深入了解KV缓存之前，我们需要稍作绕道，了解一下transformers中的注意力机制。理解其工作原理是发现和理解KV缓存如何优化transformer推理的关键。
 - en: 'We will focus on autoregressive models used to generate text. These so-called
     decoder models include the [GPT family](https://platform.openai.com/docs/models),
     [Gemini](https://gemini.google.com/), [Claude](https://www.anthropic.com/claude),
     or [GitHub Copilot](https://github.com/features/copilot). They are trained on
     a simple task: predicting the next token in sequence. During inference, the model
     is provided with some text, and its task is…'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将重点关注用于生成文本的自回归模型。这些所谓的解码器模型包括 [GPT系列](https://platform.openai.com/docs/models)、[Gemini](https://gemini.google.com/)、[Claude](https://www.anthropic.com/claude)
+    或 [GitHub Copilot](https://github.com/features/copilot)。它们的训练任务很简单：预测序列中的下一个标记。在推理过程中，模型会收到一些文本，其任务是…

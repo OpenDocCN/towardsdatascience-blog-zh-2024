@@ -1,121 +1,178 @@
 - en: From Masked Image Modeling to Autoregressive Image Modeling
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 从遮蔽图像建模到自回归图像建模
 - en: 原文：[https://towardsdatascience.com/from-masked-image-modeling-to-autoregressive-image-modeling-d9a3cadf72a1?source=collection_archive---------6-----------------------#2024-06-10](https://towardsdatascience.com/from-masked-image-modeling-to-autoregressive-image-modeling-d9a3cadf72a1?source=collection_archive---------6-----------------------#2024-06-10)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/from-masked-image-modeling-to-autoregressive-image-modeling-d9a3cadf72a1?source=collection_archive---------6-----------------------#2024-06-10](https://towardsdatascience.com/from-masked-image-modeling-to-autoregressive-image-modeling-d9a3cadf72a1?source=collection_archive---------6-----------------------#2024-06-10)
 - en: A brief review of the image foundation model pre-training objectives
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 图像基础模型预训练目标的简要回顾
 - en: '[](https://mengliuz.medium.com/?source=post_page---byline--d9a3cadf72a1--------------------------------)[![Mengliu
     Zhao](../Images/0b950a0785fa065db3319ed5be4a91de.png)](https://mengliuz.medium.com/?source=post_page---byline--d9a3cadf72a1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d9a3cadf72a1--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d9a3cadf72a1--------------------------------)
     [Mengliu Zhao](https://mengliuz.medium.com/?source=post_page---byline--d9a3cadf72a1--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://mengliuz.medium.com/?source=post_page---byline--d9a3cadf72a1--------------------------------)[![孟柳赵](../Images/0b950a0785fa065db3319ed5be4a91de.png)](https://mengliuz.medium.com/?source=post_page---byline--d9a3cadf72a1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d9a3cadf72a1--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d9a3cadf72a1--------------------------------)
+    [孟柳赵](https://mengliuz.medium.com/?source=post_page---byline--d9a3cadf72a1--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d9a3cadf72a1--------------------------------)
     ·6 min read·Jun 10, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d9a3cadf72a1--------------------------------)
+    ·阅读时间6分钟·2024年6月10日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: We crave large models, don’t we?
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们渴望大型模型，不是吗？
 - en: The GPT series has proved its ability to revolutionize the NLP world, and everyone
     is excited to see the same transformation in the computer vision domain. The most
     popular image foundation models in recent years include [SegmentAnything](https://ai.meta.com/research/publications/segment-anything/),
     [DINOv2](https://dinov2.metademolab.com/), and many others. *The natural question
     is, what are the key differences between the pre-training stage of these foundation
     models?*
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: GPT系列已经证明了它在革命化自然语言处理（NLP）领域的能力，大家都期待着在计算机视觉领域看到同样的转变。近年来，最流行的图像基础模型包括[SegmentAnything](https://ai.meta.com/research/publications/segment-anything/)、[DINOv2](https://dinov2.metademolab.com/)等。*一个自然的问题是，这些基础模型的预训练阶段有何关键区别？*
 - en: Instead of answering this question directly, we will gently review the image
     foundation model pre-training objectives using Masked Image Modeling in this blog
     article. We will also discuss a paper (to be) published in ICML’24, applying the
     A**utoregression Modeling** to foundation model pre-training.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文将不会直接回答这个问题，而是通过回顾使用**遮蔽图像建模**的图像基础模型预训练目标来间接讨论。我们还将讨论一篇将在ICML’24上发表的论文，应用**自回归建模**到基础模型的预训练中。
 - en: '![](../Images/ed3dac3e22d71ab2da2225ce80d73cef.png)'
+  id: totrans-9
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ed3dac3e22d71ab2da2225ce80d73cef.png)'
 - en: 'Image source: [https://pxhere.com/en/photo/1025277](https://pxhere.com/en/photo/1025277)'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[https://pxhere.com/en/photo/1025277](https://pxhere.com/en/photo/1025277)
 - en: '**What is model pre-training in LLM?**'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: '**LLM中的模型预训练是什么？**'
 - en: Model pre-training is a terminology used in general large models (LLM, image
     foundation models) to describe the stage where no label is given to the model,
     but training the model purely using a self-supervised manner.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型预训练是一个术语，用于描述在没有标签的情况下对模型进行训练的阶段，这一阶段模型完全通过自监督的方式进行训练，通常用于大模型（LLM、图像基础模型）。
 - en: Common pre-training techniques mostly originated from LLMs. For example, the
     BERT model used Masked Language Modeling, which inspired Masked Image Modeling
     such as BEiT, MAE-ViT, and SimMM. The GPT series used Autoregressive Language
     Modeling, and a recently accepted ICML publication extended this idea to Autoregressive
     Image Modeling.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 常见的预训练技术大多起源于LLM。例如，BERT模型使用了遮蔽语言建模，启发了像BEiT、MAE-ViT和SimMM这样的遮蔽图像建模方法。GPT系列使用了自回归语言建模，最近一篇被接受的ICML论文将这一思想扩展到自回归图像建模。
 - en: So, what are Masked Language Modeling and Autoregressive Language Modeling?
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，什么是遮蔽语言建模和自回归语言建模呢？
 - en: '**The Masked Language Modeling** was first proposed in the BERT paper in 2018\.
     The approach was described as “simply masking some percentage of the input tokens
     randomly and then predicting those masked tokens.” It’s a bi-directional representation
     approach, as the model will try to predict back and forth at the masked token.'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Masked Language Modeling**最早是在2018年BERT论文中提出的。该方法被描述为“简单地随机遮掩输入token的一部分，然后预测这些被遮掩的token。”这是一种双向表示方法，因为模型会尝试在被遮掩的token上前后预测。'
 - en: '![](../Images/efb412706aa74332a895e837f63bf5e9.png)'
+  id: totrans-16
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/efb412706aa74332a895e837f63bf5e9.png)'
 - en: 'Masked LM pre-training. Image source: [https://arxiv.org/abs/1810.04805](https://arxiv.org/abs/1810.04805)'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: Masked LM预训练。图像来源：[https://arxiv.org/abs/1810.04805](https://arxiv.org/abs/1810.04805)
 - en: 'The Autoregressive Language Modeling was famously known from the GPT3 paper.
     It has a clearer definition in the XLNet paper as follows, and we can see the
     model is unidirectional. The reason the GPT series uses a unidirectional language
     model is that the architecture is decoder-based, which only needs self-attention
     on the prompt and the completion:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 自回归语言建模在GPT3论文中广为人知。它在XLNet论文中有更清晰的定义，我们可以看到该模型是单向的。GPT系列使用单向语言模型的原因是其架构基于解码器，仅需要在提示和完成部分使用自注意力：
 - en: '![](../Images/1f066d218758e91005f465051652db05.png)'
+  id: totrans-19
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1f066d218758e91005f465051652db05.png)'
 - en: 'AR — Autoregression. Source: [https://arxiv.org/abs/1906.08237](https://arxiv.org/abs/1906.08237)'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: AR — 自回归。来源：[https://arxiv.org/abs/1906.08237](https://arxiv.org/abs/1906.08237)
 - en: '**Pre-training in Image Domain**'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图像领域的预训练**'
 - en: When moving into the image domain, the immediate question is how we form the
     image “token sequence.” The natural thinking is just to use the ViT architecture,
     breaking an image into a grid of image patches (visual tokens).
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 当进入图像领域时，第一个问题是我们如何形成图像“token序列”。自然的想法是使用ViT架构，将图像分解成一个图像补丁（视觉token）的网格。
 - en: '**BEiT.** Published as an arXiv preprint in 2022, the idea of BEiT is straightforward.
     After tokenizing an image into a sequence of 14*14 visual tokens, 40% of the tokens
     are randomly masked, replaced by learnable embeddings, and fed into the transformer.
     The pre-training objective is to maximize the log-likelihood of the correct visual
     tokens, and no decoder is needed for this stage. The pipeline is shown in the
     figure below.'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '**BEiT.** 该论文于2022年作为arXiv预印本发布，BEiT的思路很简单。将图像切分成14*14的视觉token序列后，随机遮掩40%的token，用可学习的嵌入代替，并输入到transformer中。预训练的目标是最大化正确视觉token的对数似然，这一阶段无需解码器。流程如图所示。'
 - en: '![](../Images/0239c16d6d3c0f7182d41b3d43b024bb.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0239c16d6d3c0f7182d41b3d43b024bb.png)'
 - en: 'BEiT pre-training pipeline. Image source: [https://arxiv.org/abs/2106.08254](https://arxiv.org/abs/2106.08254)'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: BEiT预训练流程。图像来源：[https://arxiv.org/abs/2106.08254](https://arxiv.org/abs/2106.08254)
 - en: In the original paper, the authors also provided a theoretical link between
     the BEiT and the Variational Autoencoder. So the natural question is, can an Autoencoder
     be used for pre-training purposes?
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 在原始论文中，作者还提供了BEiT与变分自编码器之间的理论联系。所以自然的问题是，自编码器能否用于预训练目的？
 - en: '**MAE-ViT.** This paper answered the question above by designing a masked autoencoder
     architecture. Using the same ViT formulation and random masking, the authors proposed
     to “discard” the masked patches during training and only use unmasked patches
@@ -124,38 +181,56 @@
     could be flexible, ranging from 1–12 transformer blocks with dimensionality between
     128 and 1024\. More detailed architectural information could be found in the original
     paper.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '**MAE-ViT.** 本文通过设计一个遮掩自编码器架构回答了上面的问题。采用相同的ViT公式和随机遮掩，作者提出在训练过程中“丢弃”被遮掩的补丁，并仅使用未遮掩的补丁作为输入传入编码器。遮掩的token将在预训练阶段的解码过程中用于重建。解码器可以是灵活的，范围从1到12个transformer块，维度在128到1024之间。更多详细的架构信息可在原始论文中找到。'
 - en: '![](../Images/8580b8bdd3dc485d19cded136b935276.png)'
+  id: totrans-28
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8580b8bdd3dc485d19cded136b935276.png)'
 - en: 'Masked Autoencoder architecture. Image source: [https://arxiv.org/abs/2111.06377](https://arxiv.org/abs/2111.06377)'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: Masked Autoencoder架构。图像来源：[https://arxiv.org/abs/2111.06377](https://arxiv.org/abs/2111.06377)
 - en: '**SimMIM**. Slightly different from BEiT and MAE-ViT, the paper proposes using
     a flexible backbone such as Swin Transformer for encoding purposes. The proposed
     prediction head is extremely lightweight—a single linear layer of a 2-layer MLP
     to regress the masked pixels.'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '**SimMIM**。与BEiT和MAE-ViT略有不同，论文提出使用灵活的主干网络，如Swin变换器，用于编码目的。所提出的预测头非常轻量——仅使用一个线性层的2层MLP回归掩蔽像素。'
 - en: '![](../Images/9448a4de2f7470c0ab555a5b915789ed.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9448a4de2f7470c0ab555a5b915789ed.png)'
 - en: 'SimMIM pipeline. Image source: [https://arxiv.org/abs/2111.09886](https://arxiv.org/abs/2111.09886)'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: SimMIM流程。图片来源：[https://arxiv.org/abs/2111.09886](https://arxiv.org/abs/2111.09886)
 - en: '**AIM.** A recent paper accepted by ICML’24 proposed using the Autoregressive
     model (or causal model) for pre-training purposes. Instead of using a masked sequence,
     the model takes the full sequence to a causal transformer, using prefixed self-attention
     with causal masks.'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '**AIM**。一篇最近被ICML’24接受的论文提出了使用自回归模型（或因果模型）进行预训练的方法。与使用掩蔽序列不同，该模型将完整序列输入到因果变换器中，使用带有因果掩蔽的前缀自注意力。'
 - en: '![](../Images/5e44758b0fbc559cf32ecebdd018f9f2.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5e44758b0fbc559cf32ecebdd018f9f2.png)'
 - en: 'AIM with Causal Transformer. Image source: [https://arxiv.org/abs/2401.08541](https://arxiv.org/abs/2401.08541)'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: AIM与因果变换器。图片来源：[https://arxiv.org/abs/2401.08541](https://arxiv.org/abs/2401.08541)
 - en: What is prefixed causal attention? There are detailed tutorials on causal attention
     masking on [Kaggle](https://www.kaggle.com/code/aisuko/causal-self-attention),
     and [here](https://magazine.sebastianraschka.com/p/understanding-and-coding-self-attention),
@@ -164,90 +239,130 @@
     self-attention would lead to a performance issue. The solution is to use partial
     causal masking or prefixed causal attention. In the prefix sequence, bidirectional
     self-attention is used, and causal attention is applied for the rest of the sequence.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 什么是前缀因果注意力？在[Kaggle](https://www.kaggle.com/code/aisuko/causal-self-attention)上有关于因果注意力掩蔽的详细教程，另外，[这里](https://magazine.sebastianraschka.com/p/understanding-and-coding-self-attention)也有相关内容，它是对自注意力中的“未来”标记进行掩蔽。然而，在这篇论文中，作者指出因果掩蔽和下游双向自注意力之间的差异可能会导致性能问题。解决方案是使用部分因果掩蔽或前缀因果注意力。在前缀序列中，使用双向自注意力，而对其余序列应用因果注意力。
 - en: '![](../Images/3eb89c34ff50ee6a78b6f565bd0a6c24.png)'
+  id: totrans-37
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3eb89c34ff50ee6a78b6f565bd0a6c24.png)'
 - en: 'Causal attention during pre-training. Image source: [https://arxiv.org/abs/2401.08541](https://arxiv.org/abs/2401.08541)'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 预训练期间的因果注意力。图片来源：[https://arxiv.org/abs/2401.08541](https://arxiv.org/abs/2401.08541)
 - en: '**What is the advantage of Autoregressive Image Masking**? The answer lies
     in the scaling, of both the model and data sizes. The paper claims that the model
     scale directly correlates with the pre-training loss and the downstream task performance
     (the following left subplot). The uncurated pre-training data scale is also directly
     linked to the downstream task performance (the following right subplot).'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '**自回归图像掩蔽的优势是什么**？答案在于模型和数据规模的扩展。论文声称，模型规模与预训练损失和下游任务性能直接相关（见左侧子图）。未经筛选的预训练数据规模也与下游任务性能直接相关（见右侧子图）。'
 - en: '![](../Images/bc10a0a3305f5400190f0c76d29b8d73.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bc10a0a3305f5400190f0c76d29b8d73.png)'
 - en: 'Scaling effect of the AIM. Image source: [https://arxiv.org/abs/2401.08541](https://arxiv.org/abs/2401.08541)'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: AIM的规模效应。图片来源：[https://arxiv.org/abs/2401.08541](https://arxiv.org/abs/2401.08541)
 - en: Compared to a 50% masking ratio, the AIM achieved an astonishing 8% performance
     increase over Masked Image Modeling.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 与50%的掩蔽比率相比，AIM在掩蔽图像建模上取得了惊人的8%的性能提升。
 - en: '![](../Images/98963eaadfb259adbee7cbd30c5fa630.png)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/98963eaadfb259adbee7cbd30c5fa630.png)'
 - en: 'Table source: [https://arxiv.org/abs/2401.08541](https://arxiv.org/abs/2401.08541)'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 表格来源：[https://arxiv.org/abs/2401.08541](https://arxiv.org/abs/2401.08541)
 - en: So, what is the big takeaway here? The AIM paper discussed different trade-offs
     between the state-of-the-art pre-training methods, and we won’t repeat them here.
     A shallower but more intuitive lesson is that there is likely still much work
     left to **improve the vision foundation models using existing experience from
     the LLM domain, especially on scalability**. Hopefully, we’ll see those improvements
     in the coming years.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，最大的收获是什么？AIM论文讨论了不同的预训练方法之间的权衡，我们在这里不会重复讨论。一个更浅显但更直观的教训是，**利用现有的LLM领域经验来改进视觉基础模型，尤其是在可扩展性方面，仍然可能有很多工作要做**。希望我们能在未来几年看到这些改进。
 - en: '**References**'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '**参考文献**'
 - en: 'El-Nouby et al., Scalable Pre-training of Large Autoregressive Image Models.
     ICML 2024\. Github: [https://github.com/apple/ml-aim](https://github.com/apple/ml-aim)'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: El-Nouby 等人，大规模自回归图像模型的可扩展预训练。ICML 2024\. Github：[https://github.com/apple/ml-aim](https://github.com/apple/ml-aim)
 - en: 'Xie et al., SimMIM: a Simple Framework for Masked Image Modeling. CVPR 2022\.
     Github: [https://github.com/microsoft/SimMIM](https://github.com/microsoft/SimMIM)'
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Xie 等人，SimMIM：一种简单的 Masked 图像建模框架。CVPR 2022\. Github：[https://github.com/microsoft/SimMIM](https://github.com/microsoft/SimMIM)
 - en: 'Bao et al., BEiT: BERT Pre-Training of Image Transformers. *arXiv preprint
     2022\.* Github: [https://github.com/microsoft/unilm/tree/master/beit](https://github.com/microsoft/unilm/tree/master/beit)'
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Bao 等人，BEiT：BERT 预训练图像 Transformer。*arXiv 预印本 2022\.* Github：[https://github.com/microsoft/unilm/tree/master/beit](https://github.com/microsoft/unilm/tree/master/beit)
 - en: 'He et al., Masked autoencoders are scalable vision learners. CVPR 2022\. HuggingFace
     Official: [https://huggingface.co/docs/transformers/en/model_doc/vit_mae](https://huggingface.co/docs/transformers/en/model_doc/vit_mae)'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: He 等人，Masked autoencoders 是可扩展的视觉学习器。CVPR 2022\. HuggingFace 官方：[https://huggingface.co/docs/transformers/en/model_doc/vit_mae](https://huggingface.co/docs/transformers/en/model_doc/vit_mae)
 - en: 'Caron et al., Emerging Properties in Self-Supervised Vision Transformers. ICCV
     2021\. Github: [https://github.com/facebookresearch/dino?tab=readme-ov-file](https://github.com/facebookresearch/dino?tab=readme-ov-file)'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Caron 等人，自监督视觉 Transformer 中的涌现特性。ICCV 2021\. Github：[https://github.com/facebookresearch/dino?tab=readme-ov-file](https://github.com/facebookresearch/dino?tab=readme-ov-file)
 - en: 'Liu et al., Swin transformer: Hierarchical vision transformer using shifted
     windows. ICCV 2021\. Github: [https://github.com/microsoft/Swin-Transformer](https://github.com/microsoft/Swin-Transformer)'
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Liu 等人，Swin Transformer：使用平移窗口的分层视觉 Transformer。ICCV 2021\. Github：[https://github.com/microsoft/Swin-Transformer](https://github.com/microsoft/Swin-Transformer)
 - en: 'Brown et al., Language Models are Few-Shot Learners. NeurIPS 2020\. Github:
     [https://github.com/openai/gpt-3](https://github.com/openai/gpt-3)'
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Brown 等人，语言模型是少样本学习者。NeurIPS 2020\. Github：[https://github.com/openai/gpt-3](https://github.com/openai/gpt-3)
 - en: 'Yang et al., Xlnet: Generalized autoregressive pretraining for language understanding.
     NeurIPS 2019\. Github: [https://github.com/zihangdai/xlnet](https://github.com/zihangdai/xlnet)'
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Yang 等人，Xlnet：用于语言理解的广义自回归预训练。NeurIPS 2019\. Github：[https://github.com/zihangdai/xlnet](https://github.com/zihangdai/xlnet)
 - en: 'Devlin et al., BERT: Pre-training of Deep Bidirectional Transformers for Language
     Understanding. *arXiv preprint 2018*. HuggingFace Official: [https://huggingface.co/docs/transformers/en/model_doc/bert](https://huggingface.co/docs/transformers/en/model_doc/bert)'
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Devlin 等人，BERT：用于语言理解的深度双向 Transformer 预训练。*arXiv 预印本 2018*。HuggingFace 官方：[https://huggingface.co/docs/transformers/en/model_doc/bert](https://huggingface.co/docs/transformers/en/model_doc/bert)

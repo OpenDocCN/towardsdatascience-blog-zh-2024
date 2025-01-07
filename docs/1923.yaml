@@ -1,44 +1,66 @@
 - en: Stop Wasting LLM Tokens
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 停止浪费LLM令牌
 - en: 原文：[https://towardsdatascience.com/stop-wasting-llm-tokens-a5b581fb3e6e?source=collection_archive---------5-----------------------#2024-08-07](https://towardsdatascience.com/stop-wasting-llm-tokens-a5b581fb3e6e?source=collection_archive---------5-----------------------#2024-08-07)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/stop-wasting-llm-tokens-a5b581fb3e6e?source=collection_archive---------5-----------------------#2024-08-07](https://towardsdatascience.com/stop-wasting-llm-tokens-a5b581fb3e6e?source=collection_archive---------5-----------------------#2024-08-07)
 - en: Batching your inputs together can lead to substantial savings without compromising
     on performance
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将输入批量处理可以在不影响性能的情况下带来显著的节省
 - en: '[](https://medium.com/@toschnab?source=post_page---byline--a5b581fb3e6e--------------------------------)[![Tobias
     Schnabel](../Images/92a6c1addc602dae8e8d54fec5116385.png)](https://medium.com/@toschnab?source=post_page---byline--a5b581fb3e6e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a5b581fb3e6e--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a5b581fb3e6e--------------------------------)
     [Tobias Schnabel](https://medium.com/@toschnab?source=post_page---byline--a5b581fb3e6e--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@toschnab?source=post_page---byline--a5b581fb3e6e--------------------------------)[![Tobias
+    Schnabel](../Images/92a6c1addc602dae8e8d54fec5116385.png)](https://medium.com/@toschnab?source=post_page---byline--a5b581fb3e6e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a5b581fb3e6e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a5b581fb3e6e--------------------------------)
+    [Tobias Schnabel](https://medium.com/@toschnab?source=post_page---byline--a5b581fb3e6e--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5b581fb3e6e--------------------------------)
     ·5 min read·Aug 7, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5b581fb3e6e--------------------------------)
+    ·阅读时间：5分钟·2024年8月7日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/ef7ee72d335ca3384877e59bbc877f89.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ef7ee72d335ca3384877e59bbc877f89.png)'
 - en: Photo by [Orgalux](https://unsplash.com/@orgalux?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由[Orgalux](https://unsplash.com/@orgalux?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: If you use LLMs to annotate or process larger datasets, chances are that you’re
     not even realizing that you are wasting a lot of input tokens. As you repeatedly
     call an LLM to process text snippets or entire documents, your task instructions
     and static few-shot examples are repeated for *every* input example. Just like
     neatly stacking dishes saves space, batching inputs together can result in substantial
     savings.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你使用LLM来标注或处理更大的数据集，很可能你并没有意识到自己浪费了大量的输入令牌。当你反复调用LLM处理文本片段或整个文档时，你的任务指令和静态的少样本示例会在*每个*输入示例中重复出现。就像将盘子整齐地堆叠能节省空间一样，将输入批量处理可以带来显著的节省。
 - en: Assume you want to tag a smaller document corpus of 1000 single-page documents
     with instructions and few-shot examples that are about half a page long. Annotating
     each document separately would cost you about 1M input tokens. However, if you
@@ -46,115 +68,168 @@
     (or 30%) because we don’t have to repeat instructions! As we’ll show in the example
     below, this can often happen with minimal performance loss (or even performance
     gain), especially when you optimize your prompt alongside.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设你想要标注一个较小的文档库，包含1000个单页文档，并且每个文档的指令和少样本示例约为半页长。分别标注每个文档将花费大约100万个输入令牌。然而，如果你在同一次调用中标注十个文档，你将节省大约**30万个****输入令牌**（即节省30%），因为我们不需要重复指令！正如下面的示例所示，这通常在性能损失最小（甚至可能获得性能提升）的情况下发生，特别是当你同时优化提示时。
 - en: Saving tokens with minibatching
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 通过小批量处理来节省令牌
 - en: 'Below I have plotted the savings assuming that our average document length
     is *D* tokens and our instructions and few-shot examples have *r*D* tokens. The
     example scenario from the previous paragraph where the instructions are half the
     length of the document (*r* = 0.5) appears in blue below. For longer shared instructions,
     our savings can be even higher:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的图中，我假设我们平均文档长度为*D*个令牌，指令和少样本示例的长度为*r*D*个令牌。我在前一段中提到的示例场景，即指令长度为文档的一半（*r*
+    = 0.5），出现在下方的蓝色曲线中。对于更长的共享指令，我们的节省可能会更高：
 - en: '![](../Images/64d532489c7951a7ac87012d7fc726cf.png)'
+  id: totrans-12
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/64d532489c7951a7ac87012d7fc726cf.png)'
 - en: 'The main takeaways are:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 主要的收获是：
 - en: Even with relatively short instructions (blue line), there is value in minibatching
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 即使是相对简短的指令（蓝线），小批量处理依然具有价值
 - en: It’s not necessary to use really large minibatch sizes. Most savings can be
     obtained with even moderate minibatch sizes (*B* ≤ 10).
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 并不一定需要使用非常大的小批量大小。大多数节省可以通过适中的小批量大小（*B* ≤ 10）获得。
 - en: Minibatching in practice
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实际操作中的小批量
 - en: Let’s turn practical with a task where we want to categorize pieces of text
     for further analysis. We’ll use a fun task from the [Natural-Instructions benchmark](https://instructions.apps.allenai.org/)
     where we need to annotate sentences in debates with one of four categories (value,
     fact, testimony or policy).
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们实际操作一个任务，我们希望对文本片段进行分类，以便进行进一步分析。我们将使用来自[自然指令基准](https://instructions.apps.allenai.org/)的一个有趣任务，在该任务中，我们需要将辩论中的句子标注为四个类别之一（价值、事实、证词或政策）。
 - en: Looking at an example, we see that we get the current topic for context and
     then need to categorize the sentence in question.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 看一个示例，我们看到我们首先获取当前主题作为上下文，然后需要对相关句子进行分类。
 - en: '[PRE0]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'One question we haven’t answered yet:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们尚未回答的一个问题是：
 - en: '**How do we pick the right minibatch size?**'
+  id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**我们如何选择正确的小批量大小？**'
 - en: '[Previous work](https://arxiv.org/pdf/2301.08721.pdf) has shown that the best
     minibatch size depends on the task as well as the model. We essentially have two
     options:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '[之前的工作](https://arxiv.org/pdf/2301.08721.pdf)表明，最佳的小批量大小取决于任务和模型。我们实际上有两个选择：'
 - en: We pick a reasonable minibatch size, let’s say 5 and hope that we don’t see
     any drops.
+  id: totrans-23
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们选择一个合理的小批量大小，比如5，并希望我们不会看到任何下降。
 - en: We optimize the minibatch size along with other choices, e.g., the number of
     few-shot examples.
+  id: totrans-24
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们优化小批量大小以及其他选择，例如少量示例的数量。
 - en: As you might have guessed, we’ll pursue option 2 here. To run our experiments,
     we’ll use [SAMMO](https://github.com/microsoft/sammo), an open-source framework
     for LLM calling and prompt optimization.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你可能已经猜到的那样，我们将在这里选择第二种方案。为了运行我们的实验，我们将使用开源框架[SAMMO](https://github.com/microsoft/sammo)，这是一个用于LLM调用和提示优化的框架。
 - en: Prompts are coded up in SAMMO as prompt programs (which are simply nested Python
     classes that’ll be called with input data). We’ll structure our task into three
     sections and format our minibatches in JSON format.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 在SAMMO中，提示被编码为提示程序（这些程序只是嵌套的Python类，接收输入数据后被调用）。我们将任务分成三个部分，并以JSON格式组织小批量。
 - en: '[PRE1]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Running this without minibatching and using five few-shot examples, we get an
     **accuracy of 0.76** and have to pay **58255 input tokens**.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果不使用小批量，并且使用五个少量示例，我们得到的**准确率为0.76**，并且需要支付**58255个输入令牌**。
 - en: 'Let’s now explore how minibatching affects costs and performance. Since minibatching
     reduces the total input costs, we can now use some of those savings to add more
     few-shot examples! We can study those trade-offs by setting up a search space
     in SAMMO:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们探索小批量如何影响成本和性能。由于小批量减少了总输入成本，我们现在可以使用这些节省的成本来添加更多的少量示例！我们可以通过在SAMMO中设置搜索空间来研究这些权衡：
 - en: '[PRE2]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Running this shows us the full gamut of trade-offs:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行这个实验向我们展示了完整的权衡：
 - en: '[PRE3]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: So, even with 20 few-shot examples, we save nearly **70 % input costs** ([58255–17438]/58255)
     all while **maintaining overall accuracy!** As an exercise, you can implement
     your own objective to automatically factor in costs or include different ways
     of formatting the data in the search space.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，即使使用20个少量示例，我们仍然节省了近**70%的输入成本**（[58255–17438]/58255），并且**保持了整体准确性！**作为练习，你可以实现自己的目标，自动考虑成本，或在搜索空间中包括不同的数据格式化方式。
 - en: Caveats
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 注意事项
 - en: Implicit in all of this is that (i) we have enough input examples that use the
     shared instructions and (ii) we have some flexibility regarding latency. The first
     assumption is met in many annotation scenarios, but obviously doesn’t hold in
@@ -162,42 +237,59 @@
     not super critical as throughput matters most. However, if your task is to provide
     a user with the answer as quickly as possible, it might make more sense to issue
     *B* parallel calls than one call with *B* input examples*.*
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些背后的隐含前提是：（i）我们有足够的输入示例使用共享的指令，（ii）我们在延迟方面有一定的灵活性。第一个假设在许多标注场景中是成立的，但显然在一次性查询中不成立。在标注或其他离线处理任务中，延迟并不是特别关键，因为吞吐量最为重要。然而，如果你的任务是尽可能快地给用户提供答案，那么发出*B*个并行调用可能比一次调用*B*个输入示例更有意义。
 - en: Conclusions
+  id: totrans-36
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: As illustrated in this quick and practical example, prompting LLMs with multiple
     inputs at the same time can greatly reduce costs under better or comparable accuracy.
     The good news is also that even with moderate minibatch sizes (e.g., 5 or 10),
     savings can be substantial. With SAMMO, you can automatically see how performance
     behaves under different choices to make an optimal choice.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如这个快速且实用的示例所示，同时对LLM进行多个输入提示可以在更好或相当的准确度下大大降低成本。好消息是，即使在适中的小批量大小下（例如5或10），节省的成本也可能相当可观。借助SAMMO，你可以自动查看在不同选择下性能的表现，从而做出最佳选择。
 - en: An open research question is how to integrate this with Retrieval Augmented
     Generation (RAG) — one can form the union over all retrieved examples or rank
     them in some fashion. SAMMO lets you explore some of these strategies along with
     a lot of other choices during prompt construction, for example how to format your
     input data. Please leave a comment if you would like to see more on this topic
     or anything else.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个开放的研究问题是如何将此与检索增强生成（RAG）结合——可以通过对所有检索的示例取并集，或以某种方式对其进行排名。SAMMO让你在构建提示时探索这些策略中的一些，同时还有很多其他选择，例如如何格式化输入数据。如果你希望查看更多关于这个话题或其他任何内容，请留下评论。
 - en: '*Disclaimer:**I am the author of SAMMO, an open-source MIT licensed framework
     for prompt optimization.*'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '*免责声明：**我是SAMMO的作者，这是一个开源的MIT许可证框架，用于提示优化。*'
 - en: Resources
+  id: totrans-40
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 资源
 - en: '**Code for this example:** [Notebook file](https://github.com/microsoft/sammo/blob/main/examples/blog/stop_wasting_tokens.ipynb)
     or [live on MyBinder](https://mybinder.org/v2/gh/microsoft/sammo/main?urlpath=tree%2Fexamples%2Fblog%2Fstop_wasting_tokens.ipynb)'
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**此示例的代码：** [Notebook文件](https://github.com/microsoft/sammo/blob/main/examples/blog/stop_wasting_tokens.ipynb)
+    或 [在MyBinder上实时运行](https://mybinder.org/v2/gh/microsoft/sammo/main?urlpath=tree%2Fexamples%2Fblog%2Fstop_wasting_tokens.ipynb)'
 - en: '**Reading:** [SAMMO user guide](https://microsoft.github.io/sammo/) and [paper
     on arXiv](https://arxiv.org/abs/2404.02319) with more details'
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**阅读：** [SAMMO用户指南](https://microsoft.github.io/sammo/) 和 [arXiv上的论文](https://arxiv.org/abs/2404.02319)，其中有更多细节'

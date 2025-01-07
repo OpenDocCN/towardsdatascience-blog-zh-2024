@@ -1,36 +1,57 @@
 - en: 'CausalLM Part 2: Fine-Tuning a Model'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: CausalLM 第2部分：微调模型
 - en: 原文：[https://towardsdatascience.com/causallm-part-2-finetuning-a-model-3fdb4d9bd936?source=collection_archive---------13-----------------------#2024-03-14](https://towardsdatascience.com/causallm-part-2-finetuning-a-model-3fdb4d9bd936?source=collection_archive---------13-----------------------#2024-03-14)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/causallm-part-2-finetuning-a-model-3fdb4d9bd936?source=collection_archive---------13-----------------------#2024-03-14](https://towardsdatascience.com/causallm-part-2-finetuning-a-model-3fdb4d9bd936?source=collection_archive---------13-----------------------#2024-03-14)
 - en: 3 ways to fine-tune a CausalLM model on chat data
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 微调CausalLM模型的三种方式：用于聊天数据
 - en: '[](https://tlebryk.medium.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)[![Theo
     Lebryk](../Images/c2e0d606f4a99831fad5575f59848544.png)](https://tlebryk.medium.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)
     [Theo Lebryk](https://tlebryk.medium.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://tlebryk.medium.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)[![Theo
+    Lebryk](../Images/c2e0d606f4a99831fad5575f59848544.png)](https://tlebryk.medium.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)
+    [Theo Lebryk](https://tlebryk.medium.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)
     ·7 min read·Mar 14, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)
+    ·7分钟阅读·2024年3月14日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/e96c0450be2b342ca68c996282211eae.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e96c0450be2b342ca68c996282211eae.png)'
 - en: In this tutorial, we’ll be fine-tuning a CausalLM model to do simple translation.
     Photo by [Rob Wilson](https://unsplash.com/@ventanamedia?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本教程中，我们将对一个CausalLM模型进行微调，以实现简单的翻译功能。图片来自 [Rob Wilson](https://unsplash.com/@ventanamedia?utm_source=medium&utm_medium=referral)
+    于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: In the [last post](/training-causallm-models-part-1-what-actually-is-causallm-6c3efb2490ec),
     we talked about what CausalLM is and how Hugging Face expects data to be formatted.
     In this post, we’re going to walk through an abridged notebook with three ways
@@ -39,74 +60,112 @@
     labels. The second approach utilizes masking to learn select parts of the text.
     The third approach uses a separate library, [TRL](https://huggingface.co/docs/trl/main/en/index),
     so that we don’t have to manually mask the data.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 [上一篇文章](/training-causallm-models-part-1-what-actually-is-causallm-6c3efb2490ec)
+    中，我们讨论了CausalLM是什么，以及Hugging Face期望数据如何格式化。在本篇文章中，我们将通过一个简化的笔记本，介绍三种格式化数据以微调模型的方法。第一种方法是在上一篇文章的直觉基础上构建的，只需将input_ids复制到labels。第二种方法使用了掩码技术，学习文本的特定部分。第三种方法使用了一个独立的库，[TRL](https://huggingface.co/docs/trl/main/en/index)，这样我们就不需要手动掩盖数据。
 - en: I’ll leave out some function definitions to keep it readable, so it’s best to
     reference [the full noteboo](https://github.com/tlebryk/CausalLM/blob/main/finetune_casuallm.ipynb)k
     to get all the code.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 我将省略一些函数定义以保持可读性，因此最好参考 [完整的笔记本](https://github.com/tlebryk/CausalLM/blob/main/finetune_casuallm.ipynb)
+    来获取所有代码。
 - en: Fine-tuning with labels copied from input ids
+  id: totrans-10
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用从input_ids复制的labels进行微调
 - en: We’re going to be using [Bloom-560m](https://huggingface.co/bigscience/bloom-560m),
     a multilingual model which is small enough that we can fine-tune it on a standard
     laptop.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将使用 [Bloom-560m](https://huggingface.co/bigscience/bloom-560m)，这是一款多语言模型，足够小巧，可以在标准笔记本电脑上进行微调。
 - en: '[PRE0]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Let’s start by doing some preprocessing. We’re going to add some special tokens,
     namely “end of sequence” (eos) and “beginning of sequence“ (bos). These special
     tokens can be helpful for the model to know when it’s supposed to start and stop
     generating text.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们首先进行一些预处理。我们将添加一些特殊的标记，分别是“序列结束”（eos）和“序列开始”（bos）。这些特殊标记可以帮助模型知道何时开始和停止生成文本。
 - en: '[PRE1]'
+  id: totrans-14
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Now, we’re going to do what we learned last session: create an input with a
     labels key copied from input_ids.'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们将进行上次学习的内容：创建一个带有从input_ids复制过来的labels键的输入。
 - en: '[PRE2]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: To start, labels and input_ids are identical. Let’s see what happens when we
     train a model like that.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，labels和input_ids是相同的。让我们看看训练一个这样的模型会发生什么。
 - en: '[PRE3]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: After 15 epochs, we’re still kind of confused. We output ‘</s>’ which is close
     but we really want to output “bueno</s>”. Let’s learn another 15 epochs.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 经过15个epoch后，我们仍然有些困惑。我们输出了‘</s>’，这虽然接近，但我们真正想输出的是“bueno</s>”。让我们再学习15个epoch。
 - en: '[PRE4]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: After 30 epochs we learned what we were supposed to!
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 经过30个epoch后，我们学到了应该学到的内容！
 - en: Let’s simulate what happens in training by iteratively predicting the prompt
     one token at a time, based on the previous tokens.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过迭代地根据前面的标记逐个预测提示，来模拟训练中发生的情况。
 - en: '[PRE5]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: That’s pretty close to the actual prompt, as we expected. But the task is translation,
     so we don’t really care about being able to predict the user prompt. Is there
     a way to learn just the response part?
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 这与实际的提示非常接近，正如我们预期的那样。但任务是翻译，所以我们并不真正关心是否能预测用户的提示。有办法只学习回应部分吗？
 - en: Masked approach
+  id: totrans-25
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 掩蔽方法
 - en: 'Hugging Face allows you to only learn to predict certain tokens by “masking”
     the tokens you don’t care about in “labels.” This is different from the attention
     mask, which hides *previous* tokens we use to generate a new token. Masking the
@@ -115,79 +174,117 @@
     we still generate predictions for that masked token. However, because we hide
     the true label to compare the predictions with, we don’t directly learn how to
     improve on that prediction.'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: Hugging Face允许你通过“掩蔽”你不关心的标记来只学习预测特定的标记。这与注意力掩蔽不同，后者隐藏的是我们用来生成新标记的*先前*标记。掩蔽标签会将你应该在特定位置输出的标记从损失函数中隐藏。请注意措辞：Hugging
+    Face的实现是这样的，在训练过程中，我们仍然会为被掩蔽的标记生成预测。然而，由于我们隐藏了真实标签以与预测进行比较，因此我们不会直接学习如何改进该预测。
 - en: We create the “mask” by flipping those tokens to -100 in the labels key.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们通过将那些标记在labels键中翻转为-100来创建“掩蔽”。
 - en: '[PRE6]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '[PRE7]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: First off, we were faster this time by more than 10%. Presumably, the fact that
     we have fewer loss calculations makes things a bit quicker.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，这次我们的速度提高了超过10%。可以推测，标记计算量较少使得训练速度变得更快。
 - en: I wouldn’t bank on the speed up being this large — our example is pretty lopsided
     with much more human text than generated text. But when training times are in
     the hours, every little percentage is helpful.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 我不会指望速度提升这么大——我们的示例在很多方面偏向人工文本而不是生成文本。但当训练时间达到小时级时，每一个小百分比都非常有用。
 - en: 'The big question: did we learn the task?'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 最大的问题是：我们学到了任务吗？
 - en: '[PRE8]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: This time we only need 15 epochs to learn the task. Let’s go back to how things
     are under the hood during training
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 这次我们只需要15个epoch来学习任务。让我们回过头看看训练过程中背后的实际情况。
 - en: '[PRE9]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'Iteratively predicting the prompt leads to non-sense compared with our first
     training approach. This checks out: we masked the prompt during training and therefore
     don’t learn how to predict anything up until our real target: the assistant response.'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 与我们最初的训练方法相比，迭代地预测提示会导致无意义的结果。这是合理的：在训练过程中我们对提示进行了掩蔽，因此在真正的目标——助手的回应到来之前，我们没有学会如何预测任何东西。
 - en: Using TRL’s supervised fine-tuning trainer
+  id: totrans-37
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用TRL的监督微调训练器
 - en: Hugging Face semi-recently rolled out a TRL (transformer reinforcement learning)
     library to add end-to-end support for the LLM training process. One feature is
     supervised fine-tuning. Using the DataCollatorForCompletionOnlyLM and SFTTrainer
     classes, we can create the labels like we did with *create_special_mask* with
     just a few configs.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: Hugging Face最近推出了一个TRL（变换器强化学习）库，以为LLM训练过程提供端到端的支持。一个特点是监督微调。通过使用DataCollatorForCompletionOnlyLM和SFTTrainer类，我们可以像使用*create_special_mask*一样，仅通过少量配置就创建标签。
 - en: '[PRE10]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Success! If you dig deeper, training actually took longer using SFT. This might
     be credited to the fact that we have to tokenize at training time rather than
     as a preprocessing step in the masked approach. However, this approach gives us
     free batching (you’d need to tweak the tokenization process to use the masked
     approach to batch properly), which should make things faster in the long run.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 成功了！如果深入挖掘，实际上使用SFT的训练时间更长。这可能归因于我们必须在训练时进行标记化，而不是像掩蔽方法那样在预处理步骤中进行。然而，这种方法为我们提供了免费的批处理（如果使用掩蔽方法来正确批处理，你需要调整标记化过程），这在长远来看应该能加速训练。
 - en: The full notebook explores a few other things like training off multi-turn chats
     and using special_tokens to indicate human vs chat text.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 完整的笔记本还探讨了其他一些内容，比如从多轮对话中进行训练，以及使用special_tokens来区分人类和聊天文本。
 - en: 'Obviously, this example is a bit basic. However, hopefully you can start to
     see the power of using CausalLM: You can imagine taking interactions from a large,
     reliable model, and using the techniques above to fine-tune a smaller model on
     the large model’s outputs. This is called knowledge distillation.'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 很明显，这个例子有些基础。然而，希望你能开始看到使用因果语言模型（CausalLM）的强大之处：你可以想象通过一个大型、可靠的模型进行交互，然后使用上述技巧在大型模型的输出上微调一个较小的模型。这就是所谓的知识蒸馏。
 - en: If we’ve learned anything over the last couple years of LLMs, it’s that we can
     do some surprisingly intelligent things just by training on next token prediction.
     Causal language models are designed to do just that. Even if the Hugging Face
     class is a bit confusing at first, once you’re used to it, you have a very powerful
     interface to train your own generative models.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们从过去几年关于大型语言模型（LLM）的研究中学到了一些东西，那就是通过训练预测下一个词，我们可以做出一些令人惊讶的智能行为。因果语言模型就是为了实现这一点而设计的。即使最初Hugging
+    Face的类有些令人困惑，一旦你习惯了它，你就能拥有一个非常强大的接口来训练你自己的生成模型。

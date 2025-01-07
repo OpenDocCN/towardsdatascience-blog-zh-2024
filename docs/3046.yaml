@@ -1,45 +1,69 @@
 - en: Introducing Layer Enhanced Classification (LEC)
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍层增强分类（LEC）
 - en: 原文：[https://towardsdatascience.com/introducing-layer-enhanced-classification-lec-4972f4f1c79f?source=collection_archive---------1-----------------------#2024-12-20](https://towardsdatascience.com/introducing-layer-enhanced-classification-lec-4972f4f1c79f?source=collection_archive---------1-----------------------#2024-12-20)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/introducing-layer-enhanced-classification-lec-4972f4f1c79f?source=collection_archive---------1-----------------------#2024-12-20](https://towardsdatascience.com/introducing-layer-enhanced-classification-lec-4972f4f1c79f?source=collection_archive---------1-----------------------#2024-12-20)
 - en: A novel approach for lightweight safety classification using pruned language
     models
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一种使用剪枝语言模型的轻量级安全分类新方法
 - en: '[](https://medium.com/@tula.masterman?source=post_page---byline--4972f4f1c79f--------------------------------)[![Tula
     Masterman](../Images/c36b3740befd5dfdb8719dc6596f1a99.png)](https://medium.com/@tula.masterman?source=post_page---byline--4972f4f1c79f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4972f4f1c79f--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4972f4f1c79f--------------------------------)
     [Tula Masterman](https://medium.com/@tula.masterman?source=post_page---byline--4972f4f1c79f--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@tula.masterman?source=post_page---byline--4972f4f1c79f--------------------------------)[![Tula
+    Masterman](../Images/c36b3740befd5dfdb8719dc6596f1a99.png)](https://medium.com/@tula.masterman?source=post_page---byline--4972f4f1c79f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4972f4f1c79f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4972f4f1c79f--------------------------------)
+    [Tula Masterman](https://medium.com/@tula.masterman?source=post_page---byline--4972f4f1c79f--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4972f4f1c79f--------------------------------)
     ·10 min read·Dec 20, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4972f4f1c79f--------------------------------)
+    ·阅读时间：10分钟·2024年12月20日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '*Leveraging the hidden state from an intermediate Transformer layer for efficient
     and robust content safety and prompt injection classification*'
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '*利用来自中间Transformer层的隐藏状态进行高效且强大的内容安全和提示注入分类*'
 - en: '![](../Images/4bb3515dfd12cfedace3177f602676ce.png)'
+  id: totrans-7
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4bb3515dfd12cfedace3177f602676ce.png)'
 - en: Image by author and GPT-4o meant to represent the robust language understanding
     provided by Large Language Models.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者和GPT-4o的图片，旨在表示大型语言模型提供的强大语言理解能力。
 - en: Introduction
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: As the adoption of Language Models (LMs) grows, it’s more and more important
     to detect inappropriate content in both the user’s input and the generated outputs
     of the language model. With each new model release from any major model provider,
@@ -53,8 +77,10 @@
     these instances is extremely important for businesses so that they don’t end up
     with a system that can be easily manipulated by their users, especially if they
     deploy their chat systems publicly.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着语言模型（LM）的广泛应用，检测用户输入和语言模型生成输出中的不当内容变得越来越重要。每当主要模型提供商发布新模型时，人们首先尝试做的事情之一就是寻找方法来“越狱”或以其他方式操控模型，使其做出不该做出的回应。通过Google或X快速搜索，可以看到许多人找到绕过模型对齐调优的方法，使得模型回应不当的请求。此外，许多公司已经公开发布了基于生成性AI的聊天机器人，用于客户服务等任务，这些机器人经常遭受提示注入攻击，并回应不合适的任务，甚至远远超出其预期的使用范围。检测和分类这些实例对于企业来说至关重要，以防它们部署的系统被用户轻易操控，尤其是在将聊天系统公开部署时。
 - en: My team, [Mason Sawtell](https://www.linkedin.com/in/mason-sawtell/), [Sandi
     Besen](https://www.linkedin.com/in/sandibesen/), [Jim Brown](https://www.linkedin.com/in/jim-brown-71427356/),
     and [I](https://www.linkedin.com/in/tula-masterman/) recently published our paper
@@ -67,8 +93,12 @@
     (769 on the low end) and a small number of training examples, often fewer than
     100\. This approach combines the computational efficiency of a simple classification
     model with the robust language understanding of a Language Model.**
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的团队，[Mason Sawtell](https://www.linkedin.com/in/mason-sawtell/)、[Sandi Besen](https://www.linkedin.com/in/sandibesen/)、[Jim
+    Brown](https://www.linkedin.com/in/jim-brown-71427356/)和[我](https://www.linkedin.com/in/tula-masterman/)最近发布了我们的论文[*使用剪枝语言模型的轻量级安全分类*](https://arxiv.org/abs/2412.13435)，作为
+    ArXiv 预印本。我们的工作介绍了一种新方法——层增强分类（LEC），并证明使用 LEC 可以**通过利用语言模型中间变换层的隐藏状态来训练一个带有极少可训练参数（最低为769个）和少量训练示例（通常少于100个）的带惩罚的逻辑回归分类器，有效地分类内容安全违规和提示注入攻击。这种方法将简单分类模型的计算效率与语言模型的强大语言理解相结合。**
 - en: '**All of the models trained using our approach, LEC, outperform special-purpose
     models designed for each task as well as GPT-4o.** We find that there are optimal
     intermediate transformer layers that produce the necessary features for both content
@@ -79,8 +109,10 @@
     use the outputs from this layer as the features for the classification task. This
     would allow for an **incredibly compute efficient and lightweight classifier that
     integrates well with an existing LM inference pipeline**.'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '**所有使用我们的方法 LEC 训练的模型，都比为每个任务专门设计的特殊模型以及 GPT-4o 更具优势。**我们发现，存在一些最优的中间变换层，可以为内容安全和提示注入分类任务提供必要的特征。这一点很重要，因为**它表明你可以使用同一个模型同时进行内容安全违规、提示注入分类，并生成输出标记**。另外，你也可以使用一个非常小的语言模型，将其剪枝至最优的中间层，并使用该层的输出作为分类任务的特征。这将允许实现一个**极为计算高效且轻量的分类器，能够与现有的语言模型推理流水线很好地集成**。'
 - en: This is the first of several articles I plan to share on this topic. In this
     article I will summarize the goals, approach, key results, and implications of
     our research. In a future article, I plan to share how we applied our approach
@@ -90,12 +122,18 @@
     feel free to [check out the full paper](https://arxiv.org/abs/2412.13435), read
     my colleague [Sandi Besen’s article](https://medium.com/@sandibesen/56141aa0f6be),
     or reach out with questions.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我计划分享的关于此主题的几篇文章中的第一篇。在本文中，我将总结我们研究的目标、方法、主要结果和意义。在未来的文章中，我计划分享我们如何将这种方法应用到
+    IBM 的 Granite-8B 模型和一个没有任何保护措施的开源模型上，从而使两个模型能够在一次通过模型的过程中同时检测内容安全和提示注入违规行为，并生成输出标记。有关我们研究的更多细节，欢迎[查看完整论文](https://arxiv.org/abs/2412.13435)，阅读我同事[Sandi
+    Besen的文章](https://medium.com/@sandibesen/56141aa0f6be)，或随时联系我们提问。
 - en: Goals & Approach
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 目标与方法
 - en: '**Overview:** Our research focuses on understanding how well the hidden states
     of intermediate transformer layers perform when used as the input features for
     classification tasks. We wanted to understand if small general-purpose models
@@ -107,8 +145,10 @@
     has shown that different layers of the model focus on different characteristics
     of any given prompt input, our work finds that the intermediate layers tend to
     best capture the features that are most important for these classification tasks.'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '**概述：** 我们的研究重点是理解在作为分类任务输入特征时，中间Transformer层的隐藏状态表现如何。我们希望了解，如果我们能够为任务识别出最优的层，而不是使用整个模型/最后一层进行分类，那么小型通用模型和专用模型在内容安全和提示注入分类任务上是否会表现得更好。我们还希望理解，在任务的起始点上，模型的总参数量最小能达到什么程度。其他研究表明，模型的不同层专注于任何给定提示输入的不同特征，我们的研究发现，中间层通常能够最准确地捕捉对这些分类任务最重要的特征。'
 - en: '**Datasets**: For both content safety and prompt injection classification tasks
     we compare the performance of models trained using our approach to baseline models
     on task-specific datasets. [Previous work](https://arxiv.org/abs/2408.03414) indicated
@@ -124,8 +164,10 @@
     but they ask the model to respond outside of the system’s intended use as defined
     in the system prompt (e.g. “You are a helpful AI assistant for Company X, you
     only respond to questions about our company”).'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '**数据集：** 对于内容安全和提示注入分类任务，我们比较了使用我们的方法训练的模型与基准模型在特定任务数据集上的表现。[先前的研究](https://arxiv.org/abs/2408.03414)表明，在几百个样本后，我们的分类器仅会看到小幅的性能提升，因此在两个分类任务中，我们使用了一个包含5000个随机抽样样本的任务特定数据集，这样可以在最大限度降低计算和训练时间的同时，确保数据的多样性。对于内容安全数据集，我们使用了来自OpenSafetyLab的[SALAD数据](https://huggingface.co/datasets/OpenSafetyLab/Salad-Data)和来自LMSYS的[LMSYS-Chat-1M](https://huggingface.co/datasets/lmsys/lmsys-chat-1m/tree/main)数据集的组合。对于提示注入数据集，我们使用了[SPML](https://arxiv.org/abs/2402.11755)数据集，因为它包含了系统和用户提示对。这一点至关重要，因为一些用户请求可能看起来“安全”（例如，“帮我解这个数学题”），但实际上它们要求模型做出超出系统提示定义的意图范围的回答（例如，“你是公司X的智能助手，只能回答关于我们公司的问题”）。'
 - en: '**Model Selection:** We use GPT-4o as a baseline model for both tasks since
     it is widely considered one of the most capable LLMs and in some cases outperformed
     the baseline special-purpose model(s). For content safety classification we use
@@ -136,30 +178,45 @@
     v3 Base Prompt Injection) and general-purpose models. For general-purpose models
     we selected Qwen 2.5 Instruct in sizes 0.5B, 1.5B, and 3B since these models are
     relatively close in size to the special-purpose models.'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '**模型选择：** 我们使用GPT-4o作为两个任务的基准模型，因为它被广泛认为是最强大的LLM之一，并且在某些情况下，超越了基准的专用模型。对于内容安全分类任务，我们使用Llama
+    Guard 3 1B和8B模型；而对于提示注入分类任务，我们使用Protect AI的DeBERTA v3 Base Prompt Injection v2模型，因为这些模型被认为在各自领域中处于领先地位。我们将我们的方法LEC应用于基准专用模型（Llama
+    Guard 3 1B、Llama Guard 3 8B和DeBERTa v3 Base Prompt Injection）和通用模型。对于通用模型，我们选择了Qwen
+    2.5 Instruct，尺寸为0.5B、1.5B和3B，因为这些模型的规模与专用模型较为接近。'
 - en: '**This setup allows us to compare 3 key things:**'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '**该设置使我们能够比较三个关键内容：**'
 - en: How well our approach performs when applied to a small general-purpose model
     compared to both baseline models (GPT-4o and the special-purpose model).
+  id: totrans-19
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们的方法在应用于小型通用模型时的表现如何，相较于基线模型（GPT-4o和特殊用途模型）。
 - en: How much applying our approach improves the performance of the special-purpose
     model relative to its own baseline performance on that task.
+  id: totrans-20
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 应用我们的方法相对于特殊用途模型自身基线性能对任务的改善程度。
 - en: How well our approach generalizes across model architectures, by evaluating
     its performance on both general-purpose and
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们的方法如何在不同模型架构中泛化，通过评估其在通用模型和
 - en: special-purpose models.
+  id: totrans-22
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 特殊用途模型。
 - en: '**Important Implementation Details:** For both Qwen 2.5 Instruct models and
     task-specific special-purpose models we prune individual layers and capture the
     hidden state of the transformer layer to train a Penalized Logistic Regression
@@ -172,84 +229,115 @@
     to surpass the baseline models’ performance or achieve optimal performance in
     terms of F1 score. We run our entire test set through the baseline models to establish
     their performance on each task.'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: '**重要的实现细节：** 对于Qwen 2.5 Instruct模型和任务特定的特殊用途模型，我们修剪了各个层并捕获了变换器层的隐藏状态，以训练带有L2正则化的惩罚逻辑回归（PLR）模型。PLR模型的可训练参数数量与模型隐藏状态的大小相同，再加上二元分类任务中的偏差项，这一数值从最小模型（Protect
+    AI的DeBERTa）的769个，到最大模型（Llama Guard 3 8B）的4097个。我们使用不同数量的样本训练分类器，以帮助我们理解各个层对任务的影响，以及需要多少样本才能超越基线模型的性能或在F1分数上达到最佳表现。我们将整个测试集通过基线模型，以确定它们在每个任务上的表现。'
 - en: '![](../Images/87ae633e67a7e7050754bc76d9963a20.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/87ae633e67a7e7050754bc76d9963a20.png)'
 - en: Image by author and team demonstrating the LEC training process at a high level.
     Training examples are independently passed through a model and the hidden state
     at each transformer layer is captured. These hidden states are then used to train
     classifiers. Each classifier is trained with a varying number of examples. The
     results allow us to determine which layers produce the most task-relevant features
     and how many examples are needed to achieve the best performance.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者和团队展示的高层次LEC训练过程的图像。训练样本独立地通过模型，捕获每个变换器层的隐藏状态。这些隐藏状态随后用于训练分类器。每个分类器都使用不同数量的样本进行训练。结果使我们能够确定哪些层产生了与任务相关的特征，以及为了实现最佳性能需要多少样本。
 - en: Key Results
+  id: totrans-26
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 关键结果
 - en: In this section I’ll cover the important results across both tasks and for each
     task, content safety classification and prompt injection classification, individually.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我将分别介绍两项任务——内容安全分类和提示注入分类——的重要结果。
 - en: '**Key findings across both tasks:**'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '**两项任务的主要发现：**'
 - en: Overall, our approach results in a higher F1 score across all evaluated tasks,
     models, and number of of training examples, typically surpassing baseline model
     performance within 20–100 examples.
+  id: totrans-29
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 总体而言，我们的方法在所有评估的任务、模型和训练样本数量中，通常能在20到100个样本之间超越基线模型，获得更高的F1分数。
 - en: The intermediate layers tend to show the largest improvement in F1 score compared
     to the final layer when trained on fewer examples. These layers also tend to have
     the best performance relative to the baseline models. This indicates that local
     features important to both classification tasks are represented early on in the
     transformer network and suggests that use cases with fewer training examples can
     especially benefit from our approach.
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 当在较少的样本上进行训练时，中间层相比于最终层在F1分数上通常会显示出最大的提升。这些层也通常在相对于基线模型的性能上表现最好。这表明，重要的局部特征在变换器网络的早期就被表示出来，并且表明，样本较少的应用场景尤其能从我们的方法中受益。
 - en: Furthermore, we found that applying our approach to the special-purpose models
     outperforms the models own baseline performance, typically within 20 examples,
     by identifying and using the most task-relevant layer.
+  id: totrans-31
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 此外，我们发现将我们的方法应用于特殊用途模型，能够超越模型自身的基线性能，通常在20个样本内，通过识别并利用最相关的任务层。
 - en: Both general-purpose Qwen 2.5 Instruct models and task-specific special-purpose
     models achieve higher F1 scores within fewer examples with our approach. This
     suggests that our approach generalizes across architectures and domains.
+  id: totrans-32
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用我们的方法，通用的Qwen 2.5 Instruct模型和任务特定的专用模型在较少示例下都能获得更高的F1分数。这表明，我们的方法能够跨架构和领域进行推广。
 - en: In the Qwen 2.5 Instruct models, we find that the intermediate model layers
     attain higher F1 scores with fewer examples for both content safety and prompt
     injection classification tasks. This suggests that it’s feasible to use one model
     for both classification tasks and generate the outputs in one pass. The additional
     compute time for these extra classification steps would be almost negligible given
     the small size of the classifiers.
+  id: totrans-33
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在Qwen 2.5 Instruct模型中，我们发现中间模型层在较少的示例下能获得更高的F1分数，无论是内容安全分类任务还是提示注入分类任务。这表明，使用一个模型同时处理这两类分类任务并一次性生成输出是可行的。考虑到分类器的体积较小，这些额外的分类步骤所需的计算时间几乎可以忽略不计。
 - en: '**Content safety classification results:**'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '**内容安全分类结果：**'
 - en: '![](../Images/aed5092b54a2f761f6fd87118d173cfa.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/aed5092b54a2f761f6fd87118d173cfa.png)'
 - en: Image by author and team demonstrating LEC performance at select layers on the
     binary content safety classification task for Qwen 2.5 Instruct 0.5B, Llama Guard
     3 1B, and Llama Guard 3 8b. The x-axis shows the number of training examples,
     and the Y-axis reflects the weighted F1-score.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 由作者和团队提供的图片展示了LEC在Qwen 2.5 Instruct 0.5B、Llama Guard 3 1B和Llama Guard 3 8B模型中，针对二分类内容安全任务在选定层的表现。x轴显示训练示例数量，y轴反映加权F1分数。
 - en: For both binary and multi-class classification, the general and special purpose
     models trained using our approach typically outperform the baseline Llama Guard
     3 models within 20 examples and GPT-4o in fewer than 100 examples.
+  id: totrans-37
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对于二分类和多分类任务，使用我们的方法训练的通用和专用模型通常在20个示例内超越基准的Llama Guard 3模型，在不到100个示例内超越GPT-4o模型。
 - en: For both binary and multi-class classification, the general and special purpose
     LEC models typically surpass all baseline models performance for the intermediate
     layers if not all layers. Our results on binary content safety classification
@@ -257,85 +345,116 @@
     or 0.96 for both Qwen 2.5 Instruct and Llama Guard LEC models. In comparison,
     GPT-4o’s baseline F1 score is 0.82, Llama Guard 3 1B’s is 0.65 , and Llama Guard
     3 8B’s is 0.71.
+  id: totrans-38
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对于二分类和多分类任务，通用和专用的LEC模型通常在中间层的表现超过所有基准模型，甚至可能在所有层上都优于基准模型。我们在二分类内容安全任务中的结果，超越了基准模型，取得了最大F1分数0.95或0.96，适用于Qwen
+    2.5 Instruct和Llama Guard LEC模型。相比之下，GPT-4o的基准F1分数为0.82，Llama Guard 3 1B为0.65，Llama
+    Guard 3 8B为0.71。
 - en: For binary classification our approach performs comparably when applied to Qwen
     2.5 Instruct 0.5B, Llama Guard 3 1B, and Llama Guard 3 8B. The models attain a
     maximum F1 score of 0.95, 0.96, and 0.96 respectively. Interestingly, Qwen 2.5
     Instruct 0.5B surpasses GPT-4o’s baseline performance in 15 examples for the middle
     layers while it takes both Llama Guard 3 models 55 examples to do so.
+  id: totrans-39
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对于二分类任务，我们的方法在应用于Qwen 2.5 Instruct 0.5B、Llama Guard 3 1B和Llama Guard 3 8B时，表现相当。模型分别达到了最大F1分数0.95、0.96和0.96。有趣的是，Qwen
+    2.5 Instruct 0.5B在15个示例内超越了GPT-4o的基准性能，而Llama Guard 3的两个模型则需要55个示例才能做到这一点。
 - en: For multi-class classification, a very small LEC model using the hidden state
     from the middle layers of Qwen 2.5 Instruct 0.5B surpasses GPT-4o’s baseline performance
     within 35 training examples for all three difficulty levels of the multi-class
     classification task.
+  id: totrans-40
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 对于多分类任务，使用Qwen 2.5 Instruct 0.5B中间层的隐藏状态训练的一个非常小的LEC模型，在35个训练示例内就超越了GPT-4o的基准性能，适用于多分类任务的所有三个难度级别。
 - en: '**Prompt injection classification results:**'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '**提示注入分类结果：**'
 - en: '![](../Images/5925d5c7e265493e96c54e887a0df889.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5925d5c7e265493e96c54e887a0df889.png)'
 - en: Image by author and team demonstrating LEC performance at select layers on the
     prompt injection classification task for Qwen 2.5 Instruct 0.5B and DeBERTa v3
     Prompt Injection v2 models. The x-axis shows the number of training examples,
     and the Y-axis reflects the weighted F1-score. These graphs demonstrate how both
     LEC models outperform the baselines for the intermediate model layers with minimal
     training examples.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 由作者和团队提供的图片展示了LEC在Qwen 2.5 Instruct 0.5B和DeBERTa v3 Prompt Injection v2模型中，针对提示注入分类任务在选定层的表现。x轴显示训练示例数量，y轴反映加权F1分数。这些图表展示了两种LEC模型在中间模型层上，如何在最少的训练示例下超越基准模型。
 - en: Applying our approach to both general-purpose Qwen 2.5 Instruct models and special-purpose
     DeBERTa v3 Prompt Injection v2 results in both models intermediate layers outperforming
     the baseline models in fewer than 100 training examples. This again indicates
     that our approach generalizes across model architectures and domains.
+  id: totrans-44
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将我们的方法应用于通用Qwen 2.5 Instruct模型和专用DeBERTa v3 Prompt Injection v2，结果显示，两个模型的中间层在不到100个训练示例的情况下超过了基准模型的表现。这再次表明我们的方法可以跨模型架构和领域进行推广。
 - en: All three Qwen 2.5 Instruct model sizes surpass the baseline DeBERTa v3 Prompt
     Injection v2 model’s F1 score of 0.73 within 5 training examples for all model
     layers.
+  id: totrans-45
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 所有三种Qwen 2.5 Instruct模型在5个训练示例内，超过了基准DeBERTa v3 Prompt Injection v2模型的F1得分0.73。
 - en: Qwen 2.5 Instruct 0.5B surpasses GPT-4o’s performance for the middle layer,
     layer 12 in 55 examples. Similar, but slightly better performance is observed
     for the larger Qwen 2.5 Instruct models.
+  id: totrans-46
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Qwen 2.5 Instruct 0.5B在55个示例中超过了GPT-4o的中间层（第12层）表现。对于更大的Qwen 2.5 Instruct模型，观察到类似但略有更好的表现。
 - en: Applying our approach to the DeBERTa v3 Prompt Injection v2 model results in
     a maximum F1 score of 0.98, significantly surpassing the model’s baseline performance
     F1 score of 0.73 on this task.
+  id: totrans-47
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将我们的方法应用于DeBERTa v3 Prompt Injection v2模型，结果达到了最高的F1得分0.98，显著超过了该模型在此任务中的基准F1得分0.73。
 - en: The intermediate layers achieve the highest weighted F1 scores for both the
     DeBERTa model and across Qwen 2.5 Instruct model sizes.
+  id: totrans-48
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 中间层在DeBERTa模型和所有Qwen 2.5 Instruct模型尺寸中实现了最高的加权F1得分。
 - en: Conclusion
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: In our research we focused on two responsible AI related classification tasks
     but expect this approach to work for other classification tasks provided that
     the important features for the task can be detected by the intermediate layers
     of the model.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的研究中，我们集中研究了两个与负责任的AI相关的分类任务，但我们预计此方法也适用于其他分类任务，前提是任务的关键特征可以通过模型的中间层检测到。
 - en: We demonstrated that our approach of training a classification model on the
     hidden state from an intermediate transformer layer creates effective content
     safety and prompt injection classification models with minimal parameters and
     training examples. Furthermore, we illustrated how our approach improves the performance
     of existing special-purpose models compared to their own baseline results.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们证明了通过在中间Transformer层的隐藏状态上训练分类模型，可以创建有效的内容安全和提示注入分类模型，且具有最少的参数和训练示例。此外，我们还展示了我们的方法如何提高现有专用模型的性能，相较于它们自身的基准结果。
 - en: Our results suggest two promising options for integrating top-performing content
     safety and prompt injection classifiers into existing LLM inference workflows.
     One option is to take a lightweight small model like the ones explored in our
@@ -352,61 +471,90 @@
     output generation, otherwise if there are no violations, the model can continue
     generating it’s response. Either of these options could be extended to apply to
     AI-agent based scenarios depending on the model used for each agent.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的结果表明，集成顶级内容安全性和提示注入分类器到现有LLM推理工作流中有两个有前景的选项。一个选项是采用像我们论文中探讨的轻量级小型模型，修剪到最优层，并将其用作分类任务的特征提取器。然后，可以使用该分类模型在处理用户输入之前，利用像GPT-4o这样的闭源模型，识别任何内容安全违规或提示注入。相同的分类模型还可以在将生成的响应发送给用户之前，验证其有效性。第二个选项是将我们的方法应用于一个开源的通用模型，如IBM的Granite或Meta的Llama模型，识别哪些层对分类任务最相关，然后更新推理管道，以在生成输出响应的同时同时进行内容安全性和提示注入分类。如果检测到内容安全或提示注入违规，可以轻松停止输出生成；否则，如果没有违规，模型可以继续生成响应。这两种选项都可以扩展到基于AI代理的场景，具体取决于每个代理所使用的模型。
 - en: In summary, LEC provides a new promising and practical solution to safeguarding
     Generative AI based systems by identifying content safety and prompt injection
     attacks with better performance and fewer training examples compared to existing
     approaches. This is critical for any person or business building with Generative
     AI today to ensure their systems are operating both responsibly and as intended.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结来说，LEC 提供了一种新的、有前景的实际解决方案，通过识别内容安全性和提示注入攻击，以比现有方法更好的性能和更少的训练样本来保障基于生成式 AI
+    的系统。这对任何今天在使用生成式 AI 构建系统的个人或企业来说至关重要，以确保他们的系统既负责任地运行，又能按预期工作。
 - en: '*Note: The opinions expressed both in this article and the research paper are
     solely those of the authors and do not necessarily reflect the views or policies
     of their respective employers.*'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '*注意：本文和研究论文中表达的观点仅代表作者个人意见，并不一定反映其所属雇主的观点或政策。*'
 - en: '*Interested in discussing further or collaborating? Reach out on* [*LinkedIn*](https://www.linkedin.com/in/tula-masterman/)*!*'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '*有兴趣进一步讨论或合作吗？请通过* [*LinkedIn*](https://www.linkedin.com/in/tula-masterman/)*联系我们！*'
 - en: '**Additional References:**'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '**附加参考资料：**'
 - en: '[Lightweight Safety Classification Using Pruned Language Models](https://arxiv.org/abs/2412.13435)
     (see full references section in our paper on ArXiv)'
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[使用剪枝语言模型的轻量级安全分类](https://arxiv.org/abs/2412.13435)（请参见我们在 ArXiv 上的论文中的完整参考部分）'
 - en: '[OpenSafetyLab’s SALAD Dataset](https://huggingface.co/OpenSafetyLab)'
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[OpenSafetyLab 的 SALAD 数据集](https://huggingface.co/OpenSafetyLab)'
 - en: '[LMSYS’ LMSYS-Chat-1M Dataset](https://huggingface.co/datasets/lmsys/lmsys-chat-1m/tree/main)'
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[LMSYS’ LMSYS-Chat-1M 数据集](https://huggingface.co/datasets/lmsys/lmsys-chat-1m/tree/main)'
 - en: '[SPML: A DSL for Defending Language Models Against Prompt Injection Attacks](https://arxiv.org/abs/2402.11755)'
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[SPML：一种用于防御语言模型免受提示注入攻击的领域特定语言](https://arxiv.org/abs/2402.11755)'
 - en: '[Qwen 2.5 0.5B Instruct on HuggingFace](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct)'
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[HuggingFace 上的 Qwen 2.5 0.5B Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct)'
 - en: '[Llama Guard 3 Model Cards on Meta](https://www.llama.com/docs/model-cards-and-prompt-formats/llama-guard-3/)'
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Meta 上的 Llama Guard 3 模型卡](https://www.llama.com/docs/model-cards-and-prompt-formats/llama-guard-3/)'
 - en: '[ProtectAI’s DeBERTa v3 Prompt Injection v2 on HuggingFace](https://huggingface.co/protectai/deberta-v3-base-prompt-injection-v2)'
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[ProtectAI 的 DeBERTa v3 提示注入 v2 在 HuggingFace 上](https://huggingface.co/protectai/deberta-v3-base-prompt-injection-v2)'
 - en: '[Large Language Models are Overparameterized Text Encoders](https://arxiv.org/abs/2410.14578)'
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[大型语言模型是过度参数化的文本编码器](https://arxiv.org/abs/2410.14578)'
 - en: '[Logistic Regression makes small LLMs strong and explainable “tens-of-shot”
     classifiers](https://arxiv.org/abs/2408.03414)'
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[逻辑回归使小型 LLM 成为强大且可解释的“少量示例”分类器](https://arxiv.org/abs/2408.03414)'

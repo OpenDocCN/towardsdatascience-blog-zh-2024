@@ -1,66 +1,102 @@
 - en: How to Train a Decision Tree Classifier… In SQL
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何在 SQL 中训练决策树分类器…
 - en: 原文：[https://towardsdatascience.com/how-to-train-a-decision-tree-classifier-in-sql-e29f37835f18?source=collection_archive---------2-----------------------#2024-04-11](https://towardsdatascience.com/how-to-train-a-decision-tree-classifier-in-sql-e29f37835f18?source=collection_archive---------2-----------------------#2024-04-11)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-to-train-a-decision-tree-classifier-in-sql-e29f37835f18?source=collection_archive---------2-----------------------#2024-04-11](https://towardsdatascience.com/how-to-train-a-decision-tree-classifier-in-sql-e29f37835f18?source=collection_archive---------2-----------------------#2024-04-11)
 - en: SQL can now replace Python for most supervised ML tasks. Should you make the
     switch?
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: SQL 现在可以替代 Python 完成大部分监督式机器学习任务。你是否应该做出这个切换？
 - en: '[](https://medium.com/@radecicdario?source=post_page---byline--e29f37835f18--------------------------------)[![Dario
     Radečić](../Images/41882a3b30bab9da43d66a59f1df366b.png)](https://medium.com/@radecicdario?source=post_page---byline--e29f37835f18--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e29f37835f18--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e29f37835f18--------------------------------)
     [Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--e29f37835f18--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@radecicdario?source=post_page---byline--e29f37835f18--------------------------------)[![Dario
+    Radečić](../Images/41882a3b30bab9da43d66a59f1df366b.png)](https://medium.com/@radecicdario?source=post_page---byline--e29f37835f18--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e29f37835f18--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e29f37835f18--------------------------------)
+    [Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--e29f37835f18--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e29f37835f18--------------------------------)
     ·8 min read·Apr 11, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e29f37835f18--------------------------------)
+    ·8分钟阅读·2024年4月11日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/bce1aa30e358ab9ddfa19caa8fd0452b.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bce1aa30e358ab9ddfa19caa8fd0452b.png)'
 - en: Photo by [Resource Database](https://unsplash.com/@resourcedatabase?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
     on [Unsplash](https://unsplash.com/photos/a-black-and-white-photo-of-a-circular-object-FNuryNf-8-g?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 由[Resource Database](https://unsplash.com/@resourcedatabase?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)拍摄，照片来源于[Unsplash](https://unsplash.com/photos/a-black-and-white-photo-of-a-circular-object-FNuryNf-8-g?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 - en: When it comes to machine learning, I’m an avid fan of attacking data where it
     lives. 90%+ of the time, that’s going to be a **relational database**, assuming
     we’re talking about supervised machine learning.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 说到机器学习，我是一个热衷于在数据原地进行处理的粉丝。90%以上的情况，这将是一个**关系型数据库**，假设我们谈论的是监督式机器学习。
 - en: Python is amazing, but pulling dozens of GB of data whenever you want to train
     a model is a huge **bottleneck**, especially if you need to retrain them frequently.
     Eliminating data movement makes a lot of sense. SQL is your friend.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: Python 非常强大，但每次训练模型时都需要拉取数十 GB 的数据，这对于训练频繁的模型来说是一个巨大的**瓶颈**。消除数据迁移非常有意义。SQL
+    是你的好帮手。
 - en: For this article, I’ll use an always-free Oracle Database 21c provisioned on
     [Oracle Cloud](https://www.oracle.com/cloud/). I’m not sure if you can translate
     the logic to other database vendors. Oracle works like a charm, and the database
     you provision won’t cost you a dime — ever.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于本文，我将使用一个始终免费的 Oracle Database 21c，部署在[Oracle Cloud](https://www.oracle.com/cloud/)上。我不确定是否能将逻辑迁移到其他数据库供应商，但
+    Oracle 工作得非常顺畅，而且你部署的数据库永远不会收费。
 - en: Dataset Loading and Preprocessing
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 数据集加载与预处理
 - en: I’ll leave the Python vs. Oracle for machine learning on huge dataset comparison
     for some other time. Today, it’s all about getting back to basics.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 我会把 Python 与 Oracle 在大数据集上的机器学习对比留到以后再说。今天，我们回归基础。
 - en: 'I’ll use the following dataset today:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 今天我将使用以下数据集：
 - en: '**Fisher, R.A. (1936)**. The use of multiple measurements in taxonomic problems.
     University of California, Irvine, School of Information and Computer Sciences.
     Retrieved…'
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**Fisher, R.A. (1936)**. 在分类学问题中使用多重测量。加利福尼亚大学欧文分校信息与计算机科学学院。检索自…'

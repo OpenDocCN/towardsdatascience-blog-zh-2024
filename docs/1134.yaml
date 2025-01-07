@@ -1,79 +1,119 @@
 - en: Sparsifying Knowledge-Graph Using Target Information
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用目标信息稀疏化知识图谱
 - en: 原文：[https://towardsdatascience.com/sparsifying-knowledge-graph-using-target-information-8fb1014cbb0f?source=collection_archive---------4-----------------------#2024-05-05](https://towardsdatascience.com/sparsifying-knowledge-graph-using-target-information-8fb1014cbb0f?source=collection_archive---------4-----------------------#2024-05-05)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/sparsifying-knowledge-graph-using-target-information-8fb1014cbb0f?source=collection_archive---------4-----------------------#2024-05-05](https://towardsdatascience.com/sparsifying-knowledge-graph-using-target-information-8fb1014cbb0f?source=collection_archive---------4-----------------------#2024-05-05)
 - en: Sparsifying knowledge graphs for supervised tasks, using PMI to remove irrelevant
     edges; with concrete example using medical data
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为监督任务稀疏化知识图谱，使用PMI去除无关的边；并通过医学数据的具体示例来说明
 - en: '[](https://medium.com/@sria.louis?source=post_page---byline--8fb1014cbb0f--------------------------------)[![Sria
     Louis](../Images/d65b17e9d4ace7e0222118abc70f3954.png)](https://medium.com/@sria.louis?source=post_page---byline--8fb1014cbb0f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8fb1014cbb0f--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8fb1014cbb0f--------------------------------)
     [Sria Louis](https://medium.com/@sria.louis?source=post_page---byline--8fb1014cbb0f--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@sria.louis?source=post_page---byline--8fb1014cbb0f--------------------------------)[![Sria
+    Louis](../Images/d65b17e9d4ace7e0222118abc70f3954.png)](https://medium.com/@sria.louis?source=post_page---byline--8fb1014cbb0f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8fb1014cbb0f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8fb1014cbb0f--------------------------------)
+    [Sria Louis](https://medium.com/@sria.louis?source=post_page---byline--8fb1014cbb0f--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8fb1014cbb0f--------------------------------)
     ·9 min read·May 5, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8fb1014cbb0f--------------------------------)
+    ·阅读时间：9分钟·2024年5月5日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/a430bc1553d17b8fb14bf3bc2602599b.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a430bc1553d17b8fb14bf3bc2602599b.png)'
 - en: “Medical Knowledge Graph” — generated at deepai.org
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: “医学知识图谱” — 由deepai.org生成
 - en: The following is a simplified snippet from a research project I conducted while
     working at Microsoft Research, under the guidance of Professor Elad Yom-Tov.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是我在微软研究院工作时，在Elad Yom-Tov教授指导下进行的一项研究项目的简化片段。
 - en: '**Prerequisites**: Familiarity with supervised machine learning and a basic
     grasp of Knowledge Graphs, including their utilization in Feature Engineering.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '**前提要求**：熟悉监督学习和对知识图谱有基本了解，包括其在特征工程中的应用。'
 - en: TL;DR
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: TL;DR
 - en: You have a Supervised ML task, predicting a target variable *y* from high-dimension
     binary feature-space, and you want to utilise a knowledge graph where each node
     represents one feature.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 你有一个监督学习任务，从高维二进制特征空间中预测目标变量*y*，并且你想利用一个知识图谱，其中每个节点代表一个特征。
 - en: 'The problem is that the knowledge graph is dense. Specifically, there are many
     irrelevant edges (anecdote: [Wikipedia overlink crisis](https://en.wikipedia.org/wiki/Wikipedia:Overlink_crisis)).'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 问题在于知识图谱很密集。具体来说，有许多无关的边（插曲：[维基百科过度链接危机](https://en.wikipedia.org/wiki/Wikipedia:Overlink_crisis)）。
 - en: '**The trick**: Assess the relevance of each edge by measuring Pointwise Mutual
     Information (PMI) between its occurrence and the target variable. Eliminate edges
     with low relevance. Voilà!'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '**窍门**：通过测量每条边的出现与目标变量之间的点互信息（PMI），评估每条边的相关性。去除相关性较低的边。完成！'
 - en: Now, let’s move into the details.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们进入具体细节。
 - en: 'First off, in the first chapter we will explore the need of graph sparsification.
     In Chapter 2 we’ll make it concrete using an example from the medical domain.
     Then, in the final chapter, we’ll delve into the core topic: graph sparsification
     using PMI. Enjoy!'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，在第一章中，我们将探讨图稀疏化的需求。在第二章中，我们将通过医学领域的一个例子来具体说明。然后，在最后一章中，我们将深入讨论核心主题：使用PMI进行图稀疏化。祝阅读愉快！
 - en: 'First Chapter: The Need'
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第一章：需求
 - en: Graphs and specifically Knowledge Graphs (KG) are ubiquitous. The technology
     is ripening with the advances in both Graph DB infrastructure and with the theoretical
     ML tools (e.g. Node Embeddings).
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 图和特别是知识图谱（KG）无处不在。随着图数据库基础设施的发展以及理论机器学习工具（如节点嵌入）的进步，这项技术正在成熟。
 - en: A critical challenge when working on Knowledge Graph in the real world is —
     and in my humble opinion forever will be — [**density**](https://en.wikipedia.org/wiki/Dense_graph)**.**
     Even algorithms with polynomial complexity might fail on dense graphs. Looking
@@ -81,15 +121,20 @@
     increase both in number of nodes and in number of edges. [Moreover, I predict
     and hope that in this arms race we will gradationally see hierarchical hypergraphs
     and other monstrosities joining the game.]
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 在现实世界中处理知识图谱时的一个关键挑战是——在我看来，这个挑战永远都存在——[**密度**](https://en.wikipedia.org/wiki/Dense_graph)**。**
+    即使是具有多项式复杂度的算法，也可能在密集图上失败。展望未来，如果硬件进步——未来的知识图谱将会在节点数量和边的数量上都有所增加。[此外，我预测并希望，在这场军备竞赛中，我们将逐步看到层次化的超图和其他怪异结构加入其中。]
 - en: The **strength** of KGs is the fact that they hold complex connections in large
     domain of knowledge, e.g. all the medical knowledge or all the known astronomical
     objects, and therefore you can use them to enrich simpler features, for instance,
     if your features are very sparse, e.g., very rare medical conditions, they can
     be enriched by “neighboring” pieces of information from the graph.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 知识图谱的**优势**在于它们能够在广泛的知识领域中持有复杂的连接，例如，所有医学知识或所有已知的天文物体，因此你可以利用它们来丰富更简单的特征，例如，如果你的特征非常稀疏，例如非常罕见的医学病症，它们可以通过图谱中的“邻接”信息进行丰富。
 - en: 'The enormity comes with a drawback: Knowledge Graphs are often too large. In
     addition to computational complexity, there is another essential issue here. KGs
     cover everything in the domain and therefore most of the information is irrelevant
@@ -104,52 +149,72 @@
     reduces the distance between most nodes in the graph and therefore takes any signal
     in the graph and rapidly diffuse it all over the graph, muting any subtler piece
     of information that might be relevant to your specific objective.'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种庞大规模带来了一个缺点：知识图谱通常过于庞大。除了计算复杂性外，这里还有另一个核心问题。知识图谱覆盖了领域中的一切，因此大部分信息与你的特定目标无关。换句话说，它们具有过度敏感性（即覆盖率/召回率）——因此特异性较低（即精确度）。你可能会说这是机器学习中的常见权衡；那么，图谱中的特殊性是什么呢？答案是，在典型的真实世界知识网络中，度分布是重尾的，存在巨大的“枢纽”，即具有极高度的节点，也就是拥有许多边的节点。你可能熟悉这种枢纽在[社交网络和物理学](https://en.wikipedia.org/wiki/Six_degrees_of_separation)中的效果（“六度分隔”）以及图论视角下的效果（随机图的直径）——在我们的上下文中，这意味着少数几个枢纽会显著减少图中大多数节点之间的距离，从而将图中的任何信号迅速扩散到整个图谱，抑制了任何可能与特定目标相关的更微妙的信息。
 - en: To be concrete, in the next chapter, we will describe the a use-case we worked
     on and then, in chapter 3, we will describe a method overcoming the density problem
     for supervised tasks by removing irrelevant edges. Feel free to jump to the 3rd
     chapter.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了具体化，在下一章中，我们将描述我们处理的一个用例，然后，在第三章中，我们将描述一种通过删除无关边来克服密度问题的监督任务方法。可以直接跳到第三章。
 - en: 'Second Chapter: Concrete example'
+  id: totrans-22
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第二章：具体示例
 - en: Let’s consider the following supervised task. We’ve simplified the details to
     focus on the interesting part — the PMI.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们考虑以下的监督任务。我们已简化细节，以专注于有趣的部分——PMI。
 - en: The Research Hypothesis
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 研究假设
 - en: we can forecast potential medical conditions based on a person’s reading history
     on medical Wikipedia. For example, if an individual has browsed articles on Headache,
     Smoking, Coughing, and Tooth Discoloration, they may be at increased risk of a
     particular lung disease. Once more, this is a simplified research scenario and
     a toy hypothesis.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以根据一个人的医学维基百科浏览历史预测潜在的医学病症。例如，如果一个人浏览过有关头痛、吸烟、咳嗽和牙齿变色的文章，他们可能面临某种肺病的较高风险。再一次，这是一个简化的研究场景和一个假设性情境。
 - en: The Data
+  id: totrans-26
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数据
 - en: The independent variables are given in a tabular data, in a design matrix X.
     Each entry has binary values, 0/1.
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 自变量以表格数据的形式给出，存储在设计矩阵 X 中。每个条目都有二进制值，0/1。
 - en: Each row represents one patient — i.e. the wipiedia reading history of one patient,
     as binary variables — one variable for each medical wikipedia article (this is
     similar to NLP’s bag-of-words encoding).
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每一行代表一个患者——即一个患者的维基百科阅读历史，作为二元变量——每个医学维基百科文章对应一个变量（这类似于NLP中的词袋编码）。
 - en: Each column represent a medical term from wikipedia.
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每一列代表维基百科中的一个医学术语。
 - en: 'for instance, for patient *p* and for a wikipedia article *f* (eg Pneumonia),
     *X[i, f] = 1* means that patient *p* had visited article *f*. namely, “The patient
     read the Pneumonia article”. Clearly, patients are not checking the exact wikipedia
@@ -158,39 +223,53 @@
     And this exactly where the knowledge graph becomes handy: “the person read about
     symptoms that are related to a neighborhood in the graph that is related to specific
     medical condition”.'
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 例如，对于患者*p*和维基百科文章*f*（例如肺炎），*X[i, f] = 1*表示患者*p*曾访问过文章*f*。也就是说，“患者阅读了关于肺炎的文章”。显然，患者并不会查看与他们病情相关的具体维基百科文章，但我们从以往的研究中了解到，在某些情况下，他们会在线搜索与真实病情相关的症状。而这正是知识图谱变得非常有用的地方：“此人阅读了与图谱中某个与特定医学病症相关的邻域的症状信息”。
 - en: We will denote the number of rows (patients) and the number of columns (binary
     features) — *m* and *n*, respectively.
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们将分别用*m*和*n*表示行数（患者数）和列数（二元特征数）。
 - en: The target (dependent variable) *y* is future existence of a medical condition,
     e.g., severe COVID-19.
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 目标（因变量）*y*是未来某医学病症的存在，例如严重的COVID-19。
 - en: In addition, we have a knowledge graph (KG), the complete medical wikipedia,
     where nodes are the wikipedia articles of the medical terms and edges are hyperlinks.
     Note that this is a directed graph.
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 此外，我们还拥有一个知识图谱（KG），即完整的医学维基百科，其中节点是医学术语的维基百科文章，边是超链接。请注意，这是一张有向图。
 - en: For simplicity, assume that there is every feature (column) is represented in
     the graph as single node.
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 为了简化起见，假设每个特征（列）在图谱中都表示为一个单一的节点。
 - en: Using the Knowledge Graph to enrich features is a broad topic, so we won't go
     into detail here. However, one method worth noting is node embedding, where binary
     features are transformed into a continuous, lower-dimensional vector space.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用知识图谱来丰富特征是一个广泛的话题，因此我们在这里不会详细讨论。然而，有一种值得注意的方法是节点嵌入，其中二元特征被转化为一个连续的、低维的向量空间。
 - en: 'Now we can use the medical example scenario in order to get a better intuition
     for the **need** of sparsification:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以利用这个医学示例场景来更好地理解**稀疏化**的需求：
 - en: Remember the hubs we mentioned above? While some hubs may hold significance
     for our target, many consist of irrelevant high-degree nodes, such as “[List of
     medical specialities](https://en.wikipedia.org/wiki/Medical_specialty)” or “[List
@@ -198,9 +277,11 @@
     such a node will amplify noise in the graph muting important information about
     a specific rare symptom. But how can we effectively discern these hubs and identify
     which of their edges are irrelevant and safe to remove from the graph?
+  id: totrans-37
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 还记得我们之前提到的中心节点吗？虽然一些中心节点对我们的目标可能有意义，但许多节点由与目标无关的高阶节点组成，比如“[医学专业列表](https://en.wikipedia.org/wiki/Medical_specialty)”或“[医学症状列表](https://en.wikipedia.org/wiki/List_of_medical_symptoms)”，这样的节点会在图谱中放大噪声，从而抑制关于某些特定稀有症状的重要信息。那么我们如何有效地识别这些中心节点，并找出它们的哪些边是无关的、可以安全移除的呢？
 - en: Furthermore, there could be a need to utilize the same database for predicting
     two distinct target variables, such as Female Breast Cancer and Prostate Cancer
     in men, which exhibit different behaviors. In such cases, employing the entire
@@ -208,99 +289,141 @@
     our specific target label. Therefore, it might be necessary to exclude edges associated
     with the opposite gender. But how do we systematically remove edges that are irrelevant
     to a specific target variable?
+  id: totrans-38
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 此外，可能需要利用相同的数据库来预测两个不同的目标变量，例如女性乳腺癌和男性前列腺癌，它们表现出不同的行为。在这种情况下，使用整个知识图谱可能并不具有优势，因为某些边与我们特定的目标标签可能无关。因此，可能需要排除与异性相关的边。那么我们如何系统地移除与特定目标变量无关的边呢？
 - en: '3rd Chapter: The PMI Trick'
+  id: totrans-39
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第三章：PMI技巧
 - en: 'Our goal is clear: we seek to remove edges within the knowledge graph that
     lack relevance to our target variable. While multiple mathematical definitions
     of relevance are available, we have opted to employ Pointwise Mutual Information
     (PMI) for its simplicity and intuitiveness.'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的目标很明确：我们希望从知识图谱中去除那些与目标变量无关的边。虽然有多种数学定义可以描述相关性，但我们选择使用点互信息（PMI），因为它既简单又直观。
 - en: 'PMI is a fundamental tool from Information Theory, so let’s talk about it:
     What exactly is PMI? We’ll begin by outlining its definition and then aim to develop
     a better intuition.'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: PMI是信息论中的一个基本工具，接下来我们来讨论它：PMI到底是什么？我们将首先概述其定义，然后力求建立更好的直观理解。
 - en: PMI has been described as “one of the most important concepts in NLP” [[see
     6.6](https://web.stanford.edu/~jurafsky/slp3/6.pdf)]
+  id: totrans-42
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: PMI被描述为“自然语言处理（NLP）中最重要的概念之一”[[参见6.6](https://web.stanford.edu/~jurafsky/slp3/6.pdf)]
 - en: '**PMI: Pointwise Mutual Information**'
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**PMI：点互信息**'
 - en: 'PMI serves as a point-estimator for the well-known Mutual Information between
     two discrete random variables. Given observed outcomes x and y for two random
     variables *X* and *Y*, we define:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: PMI作为两个离散随机变量之间著名的互信息的点估计。给定两个随机变量*X*和*Y*的观察结果x和y，我们定义：
 - en: '![](../Images/5ec0b206c17dbed562b8d107b630e626.png)'
+  id: totrans-45
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5ec0b206c17dbed562b8d107b630e626.png)'
 - en: Pointwise Mutual Information (from wikipedia)
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 点互信息（来自维基百科）
 - en: 'The equalities are immediate results of Bayes’ theorem, providing us with distinct
     perspectives and, ideally, intuition regarding PMI:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 等式是贝叶斯定理的直接结果，为我们提供了关于PMI的不同视角，并且理想情况下，可以帮助我们建立直观理解：
 - en: 'If X and Y are independent, then p(x,y)=p(x)p(y). So, the first term might
     be understood as the ratio between:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果X和Y是独立的，那么p(x,y)=p(x)p(y)。因此，第一个项可以理解为以下两者之间的比率：
 - en: '*p(x, y)* = point-estimate of the actual joint distribution with dependency,
     and'
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*p(x, y)* = 实际联合分布的点估计，带有依赖性，'
 - en: '*p(x)p(y)* = the joint distribution, assuming independence between the two
     variables.'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*p(x)p(y)* = 假设两个变量独立时的联合分布。'
 - en: Looking on the last term you might recognize that the PMI is quantifying “how
     does the probability of x changes, given knowledge of y”, and vice versa.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 看看最后一项，你可能会意识到PMI是在量化“在知道y的情况下，x的概率如何变化”，反之亦然。
 - en: 'Let’s do a small exercise, to get more intuition into PMI:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们做一个小练习，以便更好地理解PMI：
 - en: assume 1% of all patients had severe covid, p(covid) = .01
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 假设1%的患者患有重症新冠，p(covid) = .01
 - en: Among patients who had pneumonia in the past, 4% got severe covid. p(covid|pneumonia)
     = .04
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在曾经患有肺炎的患者中，有4%的人患上了重症新冠。p(covid|pneumonia) = .04
 - en: then the probability of covid given pneumonia is higher than without information
     about pneumonia, and as a result the PMI is high. PMI(covid;pneumonia) = log(.04/.01)
     = 2\. Very intuitive, right?
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 那么，给定肺炎的情况下，新冠的概率高于没有肺炎信息的情况，因此PMI很高。PMI(covid;pneumonia) = log(.04/.01) = 2。非常直观，对吧？
 - en: PMI is beautiful in its simplicity, yet there’s much more to explore about its
     features, variations, and applications. One noteworthy variant is the normalized
     PMI, which ranges between -1 and 1\. This feature enables comparison and filtering
     across numerous pairs of random variables. Keep this in mind — it will prove valuable
     shortly.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: PMI在其简单性中非常优美，但关于其特性、变化和应用还有许多可以探索的内容。一个值得注意的变体是归一化PMI，它的范围在-1到1之间。这个特性使得可以在多个随机变量对之间进行比较和筛选。请记住这一点——它稍后会变得非常有价值。
 - en: Back to our task
+  id: totrans-57
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 回到我们的任务
 - en: We have a large dense graph presenting links between out binary features and
     we have a target variable. How can we sparsify the graph intelligently?
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们有一个大型稠密图，表示我们的二元特征之间的链接，并且我们有一个目标变量。我们如何智能地稀疏化这个图？
 - en: 'For an edge e between two features v1 and v2, we define an indicator random
     variable x_e to be 1 if and only if both features have the value 1 (True), meaning
     the two medical terms coincide for a patient. Now, look on the edge and the target
@@ -308,32 +431,46 @@
     can answer simply with the PMI! if PMI[x_e,y] is very close to zero, this edge
     hold no information relevant to our target, otherwise **there is some relevant
     information** in this edge.'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于两个特征v1和v2之间的边e，我们定义一个指示随机变量x_e，当且仅当两个特征的值都是1（True）时，x_e的值为1，表示这两个医学术语在患者中同时出现。现在，观察这条边和目标变量y。我们提出了一个简单的问题：这条边与y相关吗？现在我们可以简单地通过PMI来回答！如果PMI[x_e,y]接近零，则这条边与我们的目标无关，否则**这条边包含一些相关信息**。
 - en: 'So, to conclude, we remove all edges with:'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，最后总结，我们移除所有带有：
 - en: '![](../Images/c88fdc9a475e66ef5074002c8f6456a1.png)'
+  id: totrans-61
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c88fdc9a475e66ef5074002c8f6456a1.png)'
 - en: Where alpha is a hyper-parameter, by tuning it you can control the sparsity
     of the graph (trading-off with generalization-error, aka risk of over-fit).
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中 alpha 是一个超参数，通过调节它，你可以控制图的稀疏性（与泛化误差之间的权衡，也就是过拟合的风险）。
 - en: '**Three Caveats — and potential improvements**'
+  id: totrans-63
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**三个警告 — 以及潜在的改进**'
 - en: '**Caveat 1)** The feature space often exhibits sparsity, resulting in zero
     values for both the numerator and denominator of the PMI, and we better not remove
     such edges as we have no information about them whatsoever.'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '**警告 1)** 特征空间通常表现出稀疏性，导致PMI的分子和分母都为零，因此我们最好不要删除这些边，因为我们对它们没有任何信息。'
 - en: 'You might ask: if we are usually not removing edges, are we really “sparsifying”
     the graph? the answer is in the hubs. Remember those hubs? they will actually
     usually NOT be zeros BECAUSE they are hubs.'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会问：如果我们通常不删除边，难道我们真的在“稀疏化”图吗？答案在于枢纽节点。记得那些枢纽节点吗？它们实际上通常不会是零，因为它们是枢纽节点。
 - en: '**Caveat 2)** Another good question is: why define the edge-variable as “both
     features have a value of 1”? Alternatively, we could check if either of the features
     has a value of 1\. Thus, instead of y = x1 and x2, we could consider y = x1 or
@@ -341,39 +478,58 @@
     different narratives about your understanding of the domain and may be suitable
     for different datasets. I suggest exploring various versions for your specific
     use cases.'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '**警告 2)** 另一个值得思考的问题是：为什么要将边变量定义为“两个特征的值都是1”？或者，我们也可以检查任一特征是否具有值为1。因此，代替 y
+    = x1 和 x2，我们可以考虑 y = x1 或 x2。这是一个有效的观点。这些不同的实现方式传达了你对领域理解的略微不同的叙述，并且可能适用于不同的数据集。我建议根据你的具体使用场景探索不同的版本。'
 - en: '**Caveat 3)** Even if the probabilities are not zero, in the medical domain
     they are usually very-very small, so in order to add stability we can define conditional
     PMI:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '**警告 3)** 即使概率不为零，在医学领域它们通常是非常非常小的，因此为了增加稳定性，我们可以定义条件PMI：'
 - en: '![](../Images/ab3b3dc3871f8b0884ed680d7f40091b.png)'
+  id: totrans-68
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ab3b3dc3871f8b0884ed680d7f40091b.png)'
 - en: Conditional PMI
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 条件PMI
 - en: 'In plain English: we calculate the PMI in a probability subspace, where third
     event occurs.'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 用通俗的语言说：我们在一个概率子空间中计算PMI，其中第三个事件发生。
 - en: Specifically, in the Knowledge Graph, remember that the graph is directed. We
     will use the cPMI to check if an edge between two features e=(v1,v2) is relevant,
     **given** that the the first feature is positive.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 具体而言，在知识图谱中，请记住图是有向的。我们将使用cPMI来检查两个特征之间的边 e=(v1,v2) 是否相关，**前提**是第一个特征为正。
 - en: In other words, if v1 never occur, we claim that we don’t have enough information
     about the edge even in order to remove it.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，如果 v1 从未出现，我们可以声明我们没有足够的信息来删除这条边，即使是为了删除它。
 - en: Conclusion
+  id: totrans-73
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Now, when we know what’s PMI, we understand that in order to remove irrelevant
     edges in a knowledge graph we can check the pointwise mutual information between
     occurrences of each edge and the target variable and remove all irrelevant edges.
     Boom! 🎤
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，当我们知道什么是PMI时，我们就明白了，为了在知识图谱中删除不相关的边，我们可以检查每条边和目标变量之间的逐点互信息，并删除所有不相关的边。砰！🎤

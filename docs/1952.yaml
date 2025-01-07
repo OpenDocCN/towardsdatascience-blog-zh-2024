@@ -1,36 +1,56 @@
 - en: Accelerating AI/ML Model Training with Custom Operators
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 加速AI/ML模型训练的自定义操作符
 - en: 原文：[https://towardsdatascience.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12?source=collection_archive---------1-----------------------#2024-08-11](https://towardsdatascience.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12?source=collection_archive---------1-----------------------#2024-08-11)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12?source=collection_archive---------1-----------------------#2024-08-11](https://towardsdatascience.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12?source=collection_archive---------1-----------------------#2024-08-11)
 - en: On the potential benefits of creating model-specific GPU kernels and their application
     to optimizing the use of dynamically shaped tensors
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 关于创建特定模型GPU内核的潜在好处及其在优化动态形状张量使用中的应用
 - en: '[](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)[![Chaim
     Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------)
     [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------)
     ·15 min read·Aug 11, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------)
+    ·阅读时长15分钟·2024年8月11日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/85652d4b9d9dc933840a03993bb7ae6b.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/85652d4b9d9dc933840a03993bb7ae6b.png)'
 - en: Photo by [David Marioni](https://unsplash.com/@dgeneva68?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由[David Marioni](https://unsplash.com/@dgeneva68?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: This post continues a long [series of posts](/pytorch-model-performance-analysis-and-optimization-10c3c5822869)
     on the topic of analyzing and optimizing the runtime performance of training AI/ML
     models. The post could easily have been titled “PyTorch Model Performance Analysis
@@ -43,8 +63,10 @@
     many of these in practice. In this post we will discuss one of the more advanced
     optimization techniques — one that sets apart the true rock stars from the simple
     amateurs — creating a custom PyTorch operator in C++ and CUDA.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文是关于分析和优化AI/ML模型训练运行时性能的长篇[系列文章](/pytorch-model-performance-analysis-and-optimization-10c3c5822869)的延续。文章本可以标题为“PyTorch模型性能分析与优化——第七部分”，但考虑到当前主题的重要性，我们认为需要为此专门撰写一篇（或多篇）文章。在我们之前的文章中，我们详细讨论了分析和优化AI/ML工作负载的重要性，以及它对AI/ML模型开发的速度和成本可能产生的重大影响。我们提倡使用多种工具和技术来分析和优化训练性能，并且已经展示了许多实际应用。本文将讨论一种更为先进的优化技术——这项技术能够将真正的高手与普通业余者区分开来——在C++和CUDA中创建自定义的PyTorch操作符。
 - en: Popular ML frameworks, such as PyTorch, TensorFlow, and JAX are typically built
     using SW components that are optimized for the underlying hardware that the AI/ML
     workload is run on, be it a CPU, a GPU, or an AI-specific ASIC such as a Google
@@ -66,8 +88,16 @@
     [APIs](https://pytorch.org/docs/stable/cpp_extension.html#torch.utils.cpp_extension.CUDAExtension)
     and [tutorials](https://pytorch.org/tutorials/advanced/cpp_custom_ops.html#cpp-custom-ops-tutorial)
     for exposing this functionality and integrating it into the design of your model.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '流行的机器学习框架，如 PyTorch、TensorFlow 和 JAX，通常使用为底层硬件（无论是 CPU、GPU，还是像 Google TPU 这样的
+    AI 专用 ASIC）优化的软硬件组件构建。然而，不可避免地，你可能会发现组成模型的某些计算模块的性能不尽如人意或不够优化。通常，调整低级代码模块——通常被称为
+    *内核（kernels）*——以满足 AI/ML 模型的特定需求，能够显著加速模型训练和推理的运行时性能。这样的加速可以通过实现之前不支持的功能（例如，先进的注意力模块）、将独立操作融合在一起（例如，参见[PyTorch
+    的乘加融合教程](https://pytorch.org/tutorials/advanced/cpp_custom_ops.html#cpp-custom-ops-tutorial)），和/或根据当前模型的特定属性优化现有内核来实现。重要的是，执行此类定制的能力依赖于
+    AI 硬件和 ML 框架的支持。尽管我们在本文中的重点是 NVIDIA GPU 和 PyTorch 框架，但应该注意，其他 AI 专用 ASIC 和 ML
+    框架也提供类似的定制内核功能。NVIDIA 通过其[CUDA 工具包](https://developer.nvidia.com/cuda-toolkit)支持开发自定义内核。PyTorch
+    也提供了专用的[API](https://pytorch.org/docs/stable/cpp_extension.html#torch.utils.cpp_extension.CUDAExtension)和[教程](https://pytorch.org/tutorials/advanced/cpp_custom_ops.html#cpp-custom-ops-tutorial)，用于公开这一功能并将其集成到模型设计中。  '
 - en: Our intention in this post is to draw attention to the power and potential of
     kernel customization and demonstrate its application to the unique challenge of
     training models with dynamically shaped tensors. Our intention is not — by any
@@ -77,12 +107,17 @@
     or accuracy. If, based on this post, you choose to invest in AI/ML optimization
     via custom CUDA kernel development, you should be sure to undergo the appropriate
     training.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文的目的是引起大家对内核定制的强大功能和潜力的关注，并展示其在训练动态形状张量模型这一独特挑战中的应用。我们并非——绝对不是——要替代有关开发自定义操作的官方文档。此外，我们分享的示例仅供演示目的使用。我们没有对这些示例进行优化，也没有验证它们的稳健性、耐久性或准确性。如果你决定基于本文投资于
+    AI/ML 优化，通过自定义 CUDA 内核开发，你应该确保接受适当的培训。
 - en: Toy Model — The Challenge of Dynamically Shaped Tensors
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '玩具模型 — 动态形状张量的挑战  '
 - en: The prevalence of tensors with dynamic shapes in AI models can pose unique and
     exciting challenges with regards to performance optimization. We have already
     seen one example of this in a [previous post](/pytorch-model-performance-analysis-and-optimization-part-3-1c5876d78fe2)
@@ -92,8 +127,10 @@
     does it simplify the management of memory resources, but it also enables greater
     opportunity for performance optimization (e.g., using [torch.compile](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)).
     The toy example that follows demonstrates this challenge.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: AI模型中动态形状张量的普遍存在可能会在性能优化方面带来独特且令人兴奋的挑战。我们已经在[上一篇文章](/pytorch-model-performance-analysis-and-optimization-part-3-1c5876d78fe2)中看到过一个例子，展示了如何使用布尔掩码触发不希望发生的CPU-GPU同步事件，并且我们提倡避免使用它们。一般来说，AI加速器倾向于偏好固定形状的张量，而不是动态形状的张量。这不仅简化了内存资源的管理，还能为性能优化提供更大的空间（例如，使用[torch.compile](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)）。下面的玩具示例展示了这一挑战。
 - en: Suppose we are tasked with creating a face detection model for a next-generation
     digital camera. To train this model we are provided with a dataset of one million
     *256*x*256* grayscale images and associated ground-truth bounding boxes for each
@@ -102,8 +139,11 @@
     dozens or even hundreds. The requirement from our model is to support all variations.
     Specifically, our model needs to support the detection of up to *256* faces in
     an image.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们的任务是为下一代数码相机创建一个人脸检测模型。为了训练这个模型，我们提供了一个包含一百万张 *256*×*256* 灰度图像的训练集，以及每张图像的对应地面真实框。自然，每张图像中的人脸数量可能会有很大差异，大多数图像包含五个或更少的人脸，只有少数图像包含数十个甚至数百个。我们的模型要求支持所有这些变化。具体来说，我们的模型需要支持在图像中检测最多
+    *256* 张人脸。
 - en: To address this challenge, we define the following naïve model that generates
     bounding boxes and an accompanying loss function. In particular, we naïvely truncate
     the model outputs based on the number of target boxes rather than perform some
@@ -112,150 +152,224 @@
     (somewhat arbitrarily) choose the [Generalized Intersection Over Union (GIOU)](https://giou.stanford.edu/)
     loss. A real-world solution would likely be far more sophisticated (e.g., it would
     include a loss component that includes a penalty for false positives).
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这个挑战，我们定义了以下简单的模型，该模型生成边界框并附带一个损失函数。具体来说，我们简单地基于目标框的数量截断模型输出，而不是执行某种[匹配算法](https://en.wikipedia.org/wiki/Hungarian_algorithm)来匹配边界框预测与地面真实目标之间的关系。我们（有些随意地）选择了[广义交并比（GIOU）](https://giou.stanford.edu/)损失函数。现实世界的解决方案可能会更加复杂（例如，它可能包括一个损失组件，针对假阳性进行惩罚）。
 - en: '[PRE0]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Due to the varying number of faces per image, the loss is calculated separately
     for each individual sample rather than a single time (for the entire batch). In
     particular, the CPU will launch each of the GPU kernels associated with the loss
     function *B* times, where *B* is the chosen batch size. Depending on the size
     of the batch, this could entail a significant overhead, as we will see below.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于每个图像中面部的数量不同，损失是针对每个单独样本分别计算的，而不是一次性（针对整个批次）计算。具体来说，CPU将启动与损失函数相关的每个GPU内核，*B*次，其中
+    *B* 是选择的批量大小。根据批次的大小，这可能会带来显著的开销，正如我们下面所看到的那样。
 - en: 'In the following block we define a dataset that generates random images and
     associated bounding boxes. Since the number of faces varies per image, we require
     a [custom collate function](https://pytorch.org/docs/stable/data.html#working-with-collate-fn)
     for grouping samples into batches:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的代码块中，我们定义了一个生成随机图像和相关边界框的数据集。由于每张图像中人脸的数量不同，我们需要一个[自定义聚合函数](https://pytorch.org/docs/stable/data.html#working-with-collate-fn)来将样本分组为批次：
 - en: '[PRE1]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Typically, each training step starts with copying the training batch from the
     host (CPU) to the device (GPU). When our data samples are of fixed size, they
     are copied in batches. However, one of the implications of the varying number
     of faces per image is that the bounding box targets of each sample is copied separately
     requiring many more individual copy operations.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，每个训练步骤以将训练批次从主机（CPU）复制到设备（GPU）开始。当我们的数据样本大小固定时，它们会批量复制。然而，图像中每个图样的面部数量变化的一个影响是，每个样本的边界框目标需要单独复制，这需要进行更多的单独复制操作。
 - en: '[PRE2]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Lastly, we define our training/evaluation loop. For the purposes of our discussion,
     we have chosen to focus just on the forward pass of our training loop. Note the
     inclusion of a [PyTorch profiler](https://pytorch.org/tutorials/recipes/recipes/profiler_recipe.html)
     object and our use of explicit [synchronization events](https://pytorch.org/docs/stable/generated/torch.cuda.synchronize.html)
     (to facilitate performance evaluation of different portions of the forward pass).
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们定义了训练/评估循环。为了便于讨论，我们选择仅关注训练循环的前向传递。注意，我们包含了一个 [PyTorch profiler](https://pytorch.org/tutorials/recipes/recipes/profiler_recipe.html)
+    对象，并且使用了显式的 [同步事件](https://pytorch.org/docs/stable/generated/torch.cuda.synchronize.html)（以便评估前向传递不同部分的性能）。
 - en: '[PRE3]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Performance Analysis
+  id: totrans-23
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 性能分析
 - en: Running our script on a Google Cloud [g2-standard-16](https://cloud.google.com/compute/docs/gpus#l4-gpus)
     VM (with a single L4 GPU), a dedicated [deep learning VM image](https://cloud.google.com/deep-learning-vm/docs/release-notes),
     and PyTorch 2.4.0, generates the output below (which we trimmed for readability).
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 在一台 Google Cloud [g2-standard-16](https://cloud.google.com/compute/docs/gpus#l4-gpus)
+    虚拟机（配备单个 L4 GPU）、一个专用的 [深度学习虚拟机镜像](https://cloud.google.com/deep-learning-vm/docs/release-notes)
+    和 PyTorch 2.4.0 上运行我们的脚本，生成了以下输出（我们已将其裁剪以提高可读性）。
 - en: '[PRE4]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'Despite the fact that the loss function contains far fewer operations, it completely
     dominates the overall step time. The overhead of the repeated invocations of the
     underlying GPU kernels (for each sample in the batch) is clearly evident in the
     *Trace* view in [TensorBoard](https://pytorch.org/tutorials/intermediate/tensorboard_profiler_tutorial.html#use-tensorboard-to-view-results-and-analyze-model-performance):'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管损失函数的操作要少得多，但它完全主导了整体步骤时间。每个批次中样本的底层 GPU 核心反复调用的开销在 [TensorBoard](https://pytorch.org/tutorials/intermediate/tensorboard_profiler_tutorial.html#use-tensorboard-to-view-results-and-analyze-model-performance)
+    的*Trace*视图中非常明显：
 - en: '![](../Images/adbbc45d08a2f4f6b3d425b40a66e026.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/adbbc45d08a2f4f6b3d425b40a66e026.png)'
 - en: The Impact of Individual Invocations of the Loss Function Per Batch Sample as
     Seen in TensorBoard (by Author)
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个批次样本调用损失函数的影响，如在 TensorBoard 中所见（作者）
 - en: Optimization Through Concatenation
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 通过串联优化
 - en: One way to reduce the number of calls to the *loss* function is to combine together
     all of the valid boxes each batch using [concatenation](https://pytorch.org/docs/stable/generated/torch.concatenate.html),
     as shown in the following block.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 减少调用*损失*函数的次数的一种方法是使用 [串联](https://pytorch.org/docs/stable/generated/torch.concatenate.html)
+    将每个批次中所有有效的框组合在一起，如下代码块所示。
 - en: '[PRE5]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: The results of this optimization are captured below.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个优化的结果如下所示。
 - en: '[PRE6]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'The concatenation optimization resulted in a 37X (!!) speed-up of the loss
     function. Note, however, that it did not address the overhead of the individual
     host-to-device copies of the sample ground-truth data. This overhead is captured
     in the screenshot below from TensorBoard’s *Trace* view:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 串联优化使得损失函数的速度提高了37倍（！！）。然而，请注意，它并没有解决每个主机到设备的样本真值数据拷贝的开销。这个开销可以在下面的TensorBoard的*Trace*视图截图中看到：
 - en: '![](../Images/f360f4261cdc01a8d47bd17bf7273872.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f360f4261cdc01a8d47bd17bf7273872.png)'
 - en: The Impact of Individual Host to Device Copies of the Batch Samples as Seen
     in TensorBoard (by Author)
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 如 TensorBoard 中所见的每个批次样本的主机到设备拷贝的影响（作者）
 - en: Optimization Through Padding
+  id: totrans-37
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 通过填充优化
 - en: A common approach to avoiding the use of dynamically shaped tensors is padding.
     In the following code block, we modify the collate function to pad (with zeros)
     the ground-truth bounding-boxes of each data sample to the maximum number of supported
     boxes, 256\. (Note that the padding could also have been performed in the Dataset
     class.)
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 避免使用动态形状张量的一种常见方法是填充。在以下代码块中，我们修改了合并函数，将每个数据样本的真值边界框用零填充，直到最大支持的框数，即256个。（请注意，填充也可以在
+    Dataset 类中完成。）
 - en: '[PRE7]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Padding the samples to fixed sized tensors enables us to copy the ground truth
     of the batch with a single call. It also allows us to compute the loss with a
     single invocation of the loss function. Note, that this method requires masking
     the resultant loss, as shown below, so that only the valid boxes are taken into
     consideration.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 将样本填充为固定大小的张量使我们能够通过一次调用复制批次的真实标签。这也使我们能够通过一次调用损失函数来计算损失。请注意，这种方法需要屏蔽结果损失，如下所示，以便只考虑有效的框。
 - en: '[PRE8]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'The resultant runtime performance is captured below:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果的运行时性能如下所示：
 - en: '[PRE9]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Note the nearly 10X boost in the data copy and the additional 14X boost in the
     loss function performance. Keep in mind that padding may increase the use of the
     GPU memory. In our case, this increase is less than 1%.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意到数据复制的性能提升近 10 倍，损失函数性能提升额外的 14 倍。请记住，填充可能会增加 GPU 内存的使用。在我们的案例中，这种增加不到 1%。
 - en: While the runtime of our loss function has improved dramatically, we note that
     the vast majority of the calculations that are performed in the loss functions
     are immediately masked away. We can’t help but wonder whether there is a way to
     further improve the performance by avoiding these redundant operations. In the
     next section, we will explore the opportunities provided by using custom CUDA
     kernels.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们的损失函数的运行时间显著提高，但我们注意到，损失函数中执行的大多数计算被立即屏蔽掉了。我们不禁想知道，是否有办法通过避免这些冗余操作进一步提高性能。在下一节中，我们将探讨使用自定义
+    CUDA 核心所提供的机会。
 - en: Creating a Custom CUDA Kernel
+  id: totrans-46
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 创建自定义 CUDA 核心
 - en: 'Many tutorials will highlight the difficulty of creating CUDA kernels and the
     high entrance barrier. While mastering CUDA development and tuning kernels to
     maximize the utilization of the GPU could indeed require years of experience as
@@ -267,8 +381,12 @@
     naïvely carry over all of the GIOU logic to C++/CUDA to assess the performance
     impact of *kernel fusion.* Then, we will take advantage of our new-found low-level
     control to add conditional logic and reduce unneeded arithmetic operations.'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 许多教程会强调创建 CUDA 核心的难度以及高门槛。虽然掌握 CUDA 开发并调优核心以最大化 GPU 的利用率确实可能需要多年的经验以及对 GPU 架构的深入理解，但我们坚信即使是一个初学者（但雄心勃勃的）CUDA
+    爱好者/机器学习开发者，也能在构建自定义 CUDA 核心时取得成功并从中获益。在本节中，我们将以 PyTorch（相对简单）的 C++/CUDA 扩展为例，并用
+    GIOU 核心进行增强。我们将分两个阶段进行：首先，我们将天真地将所有 GIOU 逻辑转移到 C++/CUDA，以评估*内核融合*对性能的影响。然后，我们将利用我们新获得的低级控制，添加条件逻辑并减少不必要的算术运算。
 - en: Developing CUDA kernels allows you to determine the core logic that is performed
     in each of the GPU threads and how these are distributed onto the underlying GPU
     *streaming multiprocessors* (SMs). Doing this in the most optimal manner requires
@@ -278,40 +396,58 @@
     and much much more. What makes things even more complicated is that these properties
     can vary between GPU generations and flavors. See [this blog](https://developer.nvidia.com/blog/even-easier-introduction-cuda)
     for a very basic, but very easy, introduction to CUDA.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 开发 CUDA 核心允许你确定每个 GPU 线程执行的核心逻辑，以及这些线程如何分配到底层的 GPU *流式多处理器*（SMs）上。以最优化的方式进行此操作需要对
+    GPU 架构有专家级的理解，包括 GPU 内存的不同层次、内存带宽、片上加速引擎（例如 TensorCores）、每个 SM 支持的并发线程数以及它们的调度方式，等等。更复杂的是，这些属性在不同的
+    GPU 代际和型号之间可能有所不同。请参见[这篇博客](https://developer.nvidia.com/blog/even-easier-introduction-cuda)，它提供了一个非常基础，但又非常简单的
+    CUDA 入门介绍。
 - en: Step 1 — Kernel Fusion
+  id: totrans-49
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 步骤 1 — 内核融合
 - en: 'Looking back at the Trace view of our last experiment, you may notice that
     the forward pass of our loss calculation includes roughly thirty independent arithmetic
     operations which translate to launching and running an independent CUDA kernel
     (as can be seen by simply counting the number of *cudaLaunchKernel* events). This
     can negatively impact performance in a number of ways. For example:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 回顾我们上次实验的跟踪视图，您可能会注意到，我们的损失计算的前向传播包括大约三十个独立的算术操作，这些操作会导致启动和运行一个独立的 CUDA 内核（可以通过简单地数一下
+    *cudaLaunchKernel* 事件的数量看出）。这可能会通过多种方式对性能产生负面影响。例如：
 - en: Each kernel launch requires dedicated communication between the CPU and GPU
     — something we always try to minimize.
+  id: totrans-51
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 每个内核的启动都需要 CPU 和 GPU 之间的专门通信——这是我们始终尽量减少的。
 - en: Each kernel needs to wait for the previous kernel to be completed before running.
     Sometimes, this can’t be avoided, but in some cases, such as ours — where most
     of the operations are performed “per-pixel”, it can.
+  id: totrans-52
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 每个内核都需要等到前一个内核完成后才能运行。有时，这是无法避免的，但在某些情况下，比如我们的情况——大多数操作是“逐像素”进行的——是可以避免的。
 - en: The use of many independent kernels can have implications on how the GPU memory
     is used.
+  id: totrans-53
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用许多独立内核可能会影响 GPU 内存的使用方式。
 - en: Optimization through *kernel fusion* attempts to reduce this overhead by combining
     these operations into a lower number of kernels so as to reduce the overhead of
     multiple kernels.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过 *内核融合* 优化旨在通过将这些操作合并成较少的内核来减少这种开销，从而减少多个内核的开销。
 - en: In the code block below, we define a kernel that performs our GIOU on a single
     bounding-box prediction-target pair. We use a 1-D grid to allocate thread blocks
     of size *256* each where each block corresponds to one sample in the training
@@ -322,60 +458,93 @@
     the “validity” of the bounding box is controlled by the value of the target boxes.
     In particular, the GIOU is explicitly zeroed wherever the corresponding box is
     invalid.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的代码块中，我们定义了一个内核，它对单个边界框预测-目标对执行 GIOU 计算。我们使用一个 1-D 网格来分配大小为 *256* 的线程块，其中每个块对应训练批次中的一个样本，每个线程对应样本中的一个边界框。因此，每个线程
+    — 通过 *block* 和 *thread* ID 的组合唯一标识 — 接收预测值 (*boxes1*) 和目标值 (*boxes2*)，并对由 ID 确定的单个边界框执行
+    GIOU 计算。如前所述，边界框的“有效性”由目标框的值控制。特别地，当对应的框无效时，GIOU 会显式置为零。
 - en: '[PRE10]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: To complete the kernel creation, we need to add the appropriate C++ and Python
     operator definitions (see [muladd.cpp](https://github.com/pytorch/extension-cpp/blob/master/extension_cpp/csrc/muladd.cpp#L68)
     and [ops.py](https://github.com/pytorch/extension-cpp/blob/master/extension_cpp/ops.py#L7))
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 要完成内核创建，我们需要添加适当的 C++ 和 Python 运算符定义（请参见 [muladd.cpp](https://github.com/pytorch/extension-cpp/blob/master/extension_cpp/csrc/muladd.cpp#L68)
+    和 [ops.py](https://github.com/pytorch/extension-cpp/blob/master/extension_cpp/ops.py#L7)）
 - en: '[PRE11]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: To compile our kernel, run the installation script (`pip install .`) from the
     base directory.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 要编译我们的内核，请在根目录下运行安装脚本（`pip install .`）。
 - en: 'The following block uses our newly defined GIOU CUDA kernel:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下代码块使用了我们新定义的 GIOU CUDA 内核：
 - en: '[PRE13]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: Note the explicit casting to *torch.float32*. This is a rather expensive operation
     that could be easily avoided by enhancing our CUDA kernel support. We leave this
     as an exercise to the reader :).
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意显式转换为 *torch.float32*。这是一个相当昂贵的操作，通过增强我们的 CUDA 内核支持，可以轻松避免。我们将此留给读者作为练习 :）。
 - en: The results of running our script with our custom kernel are displayed below.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行我们自定义内核的脚本结果如下所示。
 - en: '[PRE14]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Despite the naïveté of our kernel (and our inexperience at CUDA), we have boosted
     the loss function performance by an additional ~3X over our previous experiment
     (628 microseconds compare to 1.8 milliseconds). As noted above, this can be improved
     even further without much effort.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们的内核（以及我们在 CUDA 上的经验不足）非常简单，我们还是将损失函数的性能提高了大约 3 倍（628 微秒与 1.8 毫秒相比）。如上所述，这在不费太多力气的情况下还可以进一步改善。
 - en: Step 2 — Conditional Execution
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第2步 — 条件执行
 - en: 'The thread-level control that CUDA provides us allows us to add a conditional
     statement that avoids computation on the invalid bounding boxes:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: CUDA 提供的线程级控制使我们能够添加一个条件语句，避免在无效的边界框上进行计算：
 - en: '[PRE15]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: In the case of our kernel, the impact on runtime performance is negligible.
     The reason for this (presumably) is that our kernel is relatively small to the
     point that its runtime is negligible compared to the time required to load and
@@ -387,54 +556,78 @@
     on CUDA’s [SIMT architecture](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#simt-architecture),
     particularly, the potential performance penalty when threads belonging to the
     same *warp* diverge.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 就我们的内核而言，它对运行时性能的影响可以忽略不计。其原因（推测）是我们的内核相对较小，以至于其运行时间与加载和实例化所需的时间相比，可以忽略不计。我们的条件执行的影响可能只有在更大的内核中才会显现。（作为一个练习，评估内核大小对影响的函数，可以通过让我们的GIOU输出依赖于我们为固定步数运行的*for*循环来进行。这一点我们也留给你作为练习：)。）同样重要的是要考虑在CUDA的[SIMT架构](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#simt-architecture)上，条件执行流的表现，特别是当属于同一*warp*的线程发生分歧时，可能会带来的性能损失。
 - en: '[PRE16]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: Results and Next Steps
+  id: totrans-72
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结果与下一步
 - en: We summarize the results of our experiments in the table below.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在下表中总结了实验结果。
 - en: '![](../Images/705347a88876ca779d62ab6e9af3704e.png)'
+  id: totrans-74
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/705347a88876ca779d62ab6e9af3704e.png)'
 - en: Summary of Average of Loss Runtimes (by Author)
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 损失运行时的平均总结（按作者）
 - en: 'Importantly, our work is not done. Admittedly, we have taken some shortcuts
     in the example we have shared:'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要的是，我们的工作并未结束。诚然，在我们分享的示例中，我们采取了一些捷径：
 - en: In order to use our custom kernel for training, we would need to implement the
     backward pass. Typically, this can be a bit more complicated than the forward
     pass.
+  id: totrans-77
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 为了在训练中使用我们的自定义内核，我们需要实现反向传播。通常，这可能比正向传播稍微复杂一些。
 - en: We have fixed both the tensor types (to float32) and tensor shapes (to 256 boxes
     per sample). Ideally, a more robust solution is desired that supports varying
     input types and shapes.
+  id: totrans-78
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们已将张量类型固定为float32，并将张量形状固定为每个样本256个框。理想情况下，我们希望有一个更健壮的解决方案，支持不同的输入类型和形状。
 - en: We limited our experiments to a single GPU type. In reality, we would want our
     implementation to support (and be tested on) multiple GPUs.
+  id: totrans-79
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将实验限制在了一种GPU类型上。实际上，我们希望我们的实现能够支持（并且在）多种GPU上进行测试。
 - en: We have completely neglected opportunities for kernel optimization — some of
     which may require greater CUDA expertise than we have demonstrated here.
+  id: totrans-80
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们完全忽视了内核优化的机会——其中一些可能需要比我们在此所展示的更高深的CUDA专业知识。
 - en: Summary
+  id: totrans-81
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this post we demonstrated the potential of the use of a custom CUDA kernel
     on the runtime performance of AI/ML applications. We attempted, in particular,
     to utilize the low-level control enabled by CUDA to introduce a conditional flow
@@ -442,21 +635,27 @@
     shaped inputs. While the performance boost resulting from the fusion of multiple
     kernel operations was significant, we found the size of our kernel to be too small
     to benefit from the conditional execution flow.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我们展示了自定义CUDA内核在AI/ML应用程序运行时性能中的潜力。我们特别尝试利用CUDA提供的低级控制，介绍条件流，以限制动态形状输入情况下冗余算术操作的数量。尽管通过融合多个内核操作带来的性能提升显著，但我们发现内核的大小太小，无法从条件执行流中获益。
 - en: Throughout many of our posts we have emphasized the importance of having multiple
     tools and techniques for optimizing ML and reducing its costs. Custom kernel development
     is one of the most powerful techniques at our disposal. However, for many AI/ML
     engineers, it is also one of the most intimidating techniques. We hope that we
     have succeeded in convincing you that this opportunity is within reach of any
     ML developer and that it does not require major specialization in CUDA.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们许多的文章中，我们一直强调拥有多种工具和技术来优化机器学习（ML）并降低其成本的重要性。自定义内核开发是我们可用的最强大技术之一。然而，对于许多AI/ML工程师来说，它也是最具挑战性的技术之一。我们希望已经成功地说服你，这个机会对于任何ML开发者来说都是触手可及的，并且它并不需要对CUDA有深度的专业化理解。
 - en: In recent years, new frameworks have been introduced with the goal of making
     custom kernel development and optimization more accessible to AI/ML developers.
     One of the most popular of these frameworks is [Triton](https://triton-lang.org/main/index.html).
     In our [next post](https://chaimrand.medium.com/unleashing-the-power-of-triton-mastering-gpu-kernel-optimization-in-python-160a3f52701e)
     we will continue our exploration of the topic of custom kernel development by
     assessing the capabilities and potential impact of developing Triton kernels.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 近年来，引入了新的框架，旨在使AI/ML开发人员更容易进行自定义内核开发和优化。其中最受欢迎的框架之一是[Triton](https://triton-lang.org/main/index.html)。在我们的[下一篇文章](https://chaimrand.medium.com/unleashing-the-power-of-triton-mastering-gpu-kernel-optimization-in-python-160a3f52701e)中，我们将继续探讨自定义内核开发的主题，评估开发Triton内核的能力和潜在影响。

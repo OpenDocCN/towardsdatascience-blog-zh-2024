@@ -1,109 +1,168 @@
 - en: Aggregating Real-time Sensor Data with Python and Redpanda
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Python 和 Redpanda 聚合实时传感器数据
 - en: 原文：[https://towardsdatascience.com/aggregating-real-time-sensor-data-with-python-and-redpanda-30a139d59702?source=collection_archive---------0-----------------------#2024-05-20](https://towardsdatascience.com/aggregating-real-time-sensor-data-with-python-and-redpanda-30a139d59702?source=collection_archive---------0-----------------------#2024-05-20)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/aggregating-real-time-sensor-data-with-python-and-redpanda-30a139d59702?source=collection_archive---------0-----------------------#2024-05-20](https://towardsdatascience.com/aggregating-real-time-sensor-data-with-python-and-redpanda-30a139d59702?source=collection_archive---------0-----------------------#2024-05-20)
 - en: Simple stream processing using Python and tumbling windows
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用 Python 和翻转窗口进行简单流处理
 - en: '[](https://medium.com/@tomasatquix?source=post_page---byline--30a139d59702--------------------------------)[![Tomáš
     Neubauer](../Images/5eb14b73cfe100ef9a43148db6abd3a9.png)](https://medium.com/@tomasatquix?source=post_page---byline--30a139d59702--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--30a139d59702--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--30a139d59702--------------------------------)
     [Tomáš Neubauer](https://medium.com/@tomasatquix?source=post_page---byline--30a139d59702--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@tomasatquix?source=post_page---byline--30a139d59702--------------------------------)[![Tomáš
+    Neubauer](../Images/5eb14b73cfe100ef9a43148db6abd3a9.png)](https://medium.com/@tomasatquix?source=post_page---byline--30a139d59702--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--30a139d59702--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--30a139d59702--------------------------------)
+    [Tomáš Neubauer](https://medium.com/@tomasatquix?source=post_page---byline--30a139d59702--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--30a139d59702--------------------------------)
     ·12 min read·May 20, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--30a139d59702--------------------------------)
+    ·12 分钟阅读·2024年5月20日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/d2873ac220cc6d905be3b31e86a270c8.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d2873ac220cc6d905be3b31e86a270c8.png)'
 - en: Image by author
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: In this tutorial, I want to show you how to downsample a stream of sensor data
     using only Python (and Redpanda as a message broker). The goal is to show you
     how simple stream processing can be, and that you don’t need a heavy-duty stream
     processing framework to get started.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本教程中，我想向你展示如何仅使用 Python（以及 Redpanda 作为消息代理）对传感器数据流进行降采样。目标是向你展示流处理的简单性，并证明你不需要一个高负载的流处理框架就能开始。
 - en: Until recently, stream processing was a complex task that usually required some
     Java expertise. But gradually, the Python stream processing ecosystem has matured
     and there are a few more options available to Python developers — such as [Faust](https://faust-streaming.github.io/faust/introduction.html),
     [Bytewax](https://bytewax.io/) and [Quix](https://quix.io/docs/quix-streams/quickstart.html).
     Later, I’ll provide a bit more background on why these libraries have emerged
     to compete with the existing Java-centric options.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 直到最近，流处理一直是一个复杂的任务，通常需要一定的 Java 专业知识。然而，随着 Python 流处理生态系统的逐渐成熟，Python 开发者现在有了更多的选择——例如
+    [Faust](https://faust-streaming.github.io/faust/introduction.html)、[Bytewax](https://bytewax.io/)
+    和 [Quix](https://quix.io/docs/quix-streams/quickstart.html)。稍后，我将提供更多背景，解释为什么这些库会与现有的
+    Java 为中心的选项竞争。
 - en: But first let’s get to the task at hand. We will use a Python libary called
     Quix Streams as our stream processor. Quix Streams is very similar to Faust, but
     it has been optimized to be more concise in its syntax and uses a Pandas like
     API called StreamingDataframes.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 但首先让我们来处理当前的任务。我们将使用一个名为 Quix Streams 的 Python 库作为我们的流处理器。Quix Streams 与 Faust
+    非常相似，但它在语法上进行了优化，使其更加简洁，并使用了一个类似 Pandas 的 API，叫做 StreamingDataframes。
 - en: 'You can install the Quix Streams library with the following command:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以使用以下命令安装 Quix Streams 库：
 - en: '[PRE0]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**What you’ll build**'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '**你将构建的内容**'
 - en: You’ll build a simple application that will calculate the rolling aggregations
     of temperature readings coming from various sensors. The temperature readings
     will come in at a relatively high frequency and this application will aggregate
     the readings and output them at a lower time resolution (every 10 seconds). You
     can think of this as a form of compression since we don’t want to work on data
     at an unnecessarily high resolution.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将构建一个简单的应用程序，用来计算来自各种传感器的温度读数的滚动聚合。温度读数将以较高的频率进入，而这个应用程序将对读数进行聚合，并以较低的时间分辨率输出（每
+    10 秒一次）。你可以将其视为一种压缩形式，因为我们不希望在不必要的高分辨率数据上进行处理。
 - en: You can access the complete code [in this GitHub repository](https://github.com/quixio/template-windowing-reduce.git).
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在[这个GitHub仓库](https://github.com/quixio/template-windowing-reduce.git)中访问完整代码。
 - en: This application includes code that generates synthetic sensor data, but in
     a real-world scenario this data could come from many kinds of sensors, such as
     sensors installed in a fleet of vehicles or a warehouse full of machines.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个应用包含生成合成传感器数据的代码，但在实际场景中，这些数据可能来自多种传感器，例如安装在车队中的传感器或满载机器的仓库。
 - en: 'Here’s an illustration of the basic architecture:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是基本架构的示意图：
 - en: '![](../Images/c31694705376dcfea8141f0d9341bf62.png)'
+  id: totrans-18
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c31694705376dcfea8141f0d9341bf62.png)'
 - en: Diagram by author
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者绘制的图
 - en: Components of a stream processing pipeline
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 流处理管道的组件
 - en: 'The previous diagram reflects the main components of a stream processing pipeline:
     You have the sensors which are the **data producers**, Redpanda as the **streaming
     data platform**, and Quix as the **stream processor**.'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 上图展示了流处理管道的主要组件：传感器是**数据生产者**，Redpanda是**流数据平台**，Quix是**流处理器**。
 - en: '**Data producers**'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '**数据生产者**'
 - en: These are bits of code that are attached to systems that generate data such
     as firmware on ECUs (Engine Control Units), monitoring modules for cloud platforms,
     or web servers that log user activity. They take that raw data and send it to
     the streaming data platform in a format that that platform can understand.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些是附加到生成数据的系统上的代码片段，例如ECU（发动机控制单元）上的固件、云平台的监控模块，或者记录用户活动的Web服务器。它们将原始数据以该平台能够理解的格式发送到流数据平台。
 - en: '**Streaming data platform**'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '**流数据平台**'
 - en: This is where you put your streaming data. It plays more or less the same role
     as a database does for static data. But instead of tables, you use topics. Otherwise,
     it has similar features to a static database. You’ll want to manage who can consume
@@ -115,11 +174,16 @@
     that are triggered by patterns in streaming data (such as recommendation engines),
     this isn’t an ideal solution. In this case, you definitely want to use a dedicated
     stream processor.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是你存放流数据的地方。它在功能上与数据库处理静态数据类似。但与数据库的表不同，流数据使用主题（topics）。否则，它的特性与静态数据库相似。你需要管理谁可以消费和生成数据，数据应该遵循什么样的模式。不同于数据库的是，流数据是不断变化的，所以它并不设计为可以查询。你通常会使用流处理器来转换数据，并将其放到其他地方供数据科学家探索，或者将原始数据存入一个优化过的查询系统，如RisingWave或Apache
+    Pinot，以便进行查询。然而，对于那些由流数据模式触发的自动化系统（如推荐引擎），这并不是理想的解决方案。在这种情况下，你肯定会使用专用的流处理器。
 - en: '**Stream processors**'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '**流处理器**'
 - en: These are engines that perform continuous operations on the data as it arrives.
     They could be compared to just regular old microservices that process data in
     any application back end, but there’s one big difference. For microservices, data
@@ -127,8 +191,10 @@
     Even if it “rains” heavily, it’s not too hard for the service to keep up with
     the “drops” without overflowing (think of a filtration system that filters out
     impurities in the water).
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些是对数据执行持续操作的引擎，数据到达时会立即处理。它们可以比作处理任何应用程序后端数据的普通微服务，但有一个很大的不同。对于微服务来说，数据像雨滴一样一滴一滴地到达，每个“滴”都被独立处理。即使“下雨”很大，服务也能轻松跟上“滴”的速度而不至于溢出（可以类比为过滤系统，过滤掉水中的杂质）。
 - en: For a stream processor, the data arrives as a continuous, wide gush of water.
     A filtration system would be quickly overwhelmed unless you change the design.
     I.e. break the stream up and route smaller streams to a battery of filtration
@@ -138,290 +204,439 @@
     which acts as a kind of reservoir for streaming data. To make things more complicated,
     stream processors often need to keep track of data that was received previously,
     such as in the windowing example you’ll try out here.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于流处理器，数据以连续、广泛的水流形式到达。除非你改变设计，否则过滤系统会很快被压垮。也就是说，将数据流分开，并将较小的数据流路由到一系列过滤系统。这就是流处理器的工作原理。它们被设计为水平扩展并以并行的方式工作，像一个电池一样。而且它们从不停歇，持续处理数据，将过滤后的数据输出到流数据平台，后者充当流数据的蓄水池。为了让事情更复杂一些，流处理器通常需要跟踪先前接收到的数据，比如你将在这里尝试的窗口化示例。
 - en: Note that there are also “data consumers” and “data sinks” — systems that consume
     the processed data (such as front end applications and mobile apps) or store it
     for offline analysis (data warehouses like Snowflake or AWS Redshift). Since we
     won’t be covering those in this tutorial, I’ll skip over them for now.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，还有“数据消费者”和“数据接收器”——这些系统消费处理后的数据（例如前端应用程序和移动应用）或将其存储用于离线分析（如数据仓库 Snowflake
+    或 AWS Redshift）。由于本教程不会涉及这些内容，我现在会跳过它们。
 - en: Setting up a local streaming data cluster
+  id: totrans-30
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设置本地流数据集群
 - en: In this tutorial, I’ll show you how to use a local installation of Redpanda
     for managing your streaming data. I’ve chosen Redpanda because it’s very easy
     to run locally.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本教程中，我将向你展示如何使用 Redpanda 的本地安装来管理流数据。我选择 Redpanda 是因为它非常容易在本地运行。
 - en: You’ll use Docker compose to quickly spin up a cluster, including the Redpanda
     console, so make sure you have Docker installed first.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将使用 Docker Compose 快速启动一个集群，其中包括 Redpanda 控制台，因此请确保你已先安装 Docker。
 - en: Creating the streaming applications
+  id: totrans-33
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 创建流式应用程序
 - en: 'First, you’ll create separate files to produce and process your streaming data.
     This makes it easier to manage the running processes independently. I.e. you can
     stop the producer without stopping the stream processor too. Here’s an overview
     of the two files that you’ll create:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，你将创建单独的文件来生成和处理你的流数据。这使得管理运行中的进程变得更容易。例如，你可以在不停止流处理器的情况下停止生产者。以下是你将创建的两个文件的概述：
 - en: '**The stream producer:** `sensor_stream_producer.py` Generates synthetic temperature
     data and produces (i.e. writes) that data to a “raw data” source topic in Redpanda.
     Just like the Faust example, it produces the data at a resolution of approximately
     20 readings every 5 seconds, or around 4 readings a second.'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**流数据生产者：** `sensor_stream_producer.py` 生成合成的温度数据，并将数据生产（即写入）到 Redpanda 中的“原始数据”源主题中。就像
+    Faust 示例一样，它以大约每5秒20次读取的分辨率生成数据，或者每秒大约4次读取。'
 - en: '**The stream processor:** `sensor_stream_processor.py` Consumes (reads) the
     raw temperature data from the “source” topic, performs a tumbling window calculation
     to decrease the resolution of the data. It calculates the average of the data
     received in 10-second windows so you get a reading for every 10 seconds. It then
     produces these aggregated readings to the `agg-temperatures` topic in Redpanda.'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**流处理器：** `sensor_stream_processor.py` 从“源”主题中消费（读取）原始温度数据，执行滚动窗口计算以降低数据的分辨率。它计算每10秒窗口中接收到数据的平均值，以便每10秒获得一次读取。然后，它将这些聚合后的读数生成到
+    Redpanda 中的 `agg-temperatures` 主题。'
 - en: As you can see the stream processor does most of the heavy lifting and is the
     core of this tutorial. The stream producer is a stand-in for a proper data ingestion
     process. For example, in a production scenario, you might use something like this
     [MQTT connector](https://github.com/quixio/quix-samples/tree/main/python/sources/MQTT)
     to get data from your sensors and produce it to a topic.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 如你所见，流处理器完成了大部分繁重的工作，是本教程的核心。流数据生产者是一个用于模拟数据摄取过程的替代品。例如，在生产环境中，你可能会使用像这样的 [MQTT
+    连接器](https://github.com/quixio/quix-samples/tree/main/python/sources/MQTT) 从传感器获取数据并将其生产到主题中。
 - en: For a tutorial, it’s simpler to simulate the data, so let’s get that set up
     first.
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于本教程，模拟数据更简单，因此让我们首先设置这些内容。
 - en: Creating the stream producer
+  id: totrans-39
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 创建流数据生产者
 - en: You’ll start by creating a new file called `sensor_stream_producer.py` and define
     the main Quix application. (This example has been developed on Python 3.10, but
     different versions of Python 3 should work as well, as long as you are able to
     run pip install quixstreams.)
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将从创建一个名为`sensor_stream_producer.py`的新文件并定义主要的 Quix 应用程序开始。（此示例已在 Python 3.10
+    上开发，但应该也可以在不同版本的 Python 3 上运行，只要你能够执行 `pip install quixstreams`）。
 - en: Create the file `sensor_stream_producer.py` and add all the required dependencies
     (including Quix Streams)
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建文件 `sensor_stream_producer.py` 并添加所有必要的依赖项（包括 Quix Streams）。
 - en: '[PRE1]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Then, define a Quix application and destination topic to send the data.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，定义一个 Quix 应用程序和目标主题来发送数据。
 - en: '[PRE2]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The *value_serializer* parameter defines the format of the expected source data
     (to be serialized into bytes). In this case, you’ll be sending JSON.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '*value_serializer* 参数定义了预期源数据的格式（将被序列化为字节）。在这种情况下，你将发送 JSON。'
 - en: Let’s use the dataclass module to define a very basic schema for the temperature
     data and add a function to serialize it to JSON.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们使用 dataclass 模块为温度数据定义一个非常基础的模式，并添加一个函数将其序列化为 JSON。
 - en: '[PRE3]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Next, add the code that will be responsible for sending the mock temperature
     sensor data into our Redpanda source topic.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，添加将负责将模拟温度传感器数据发送到我们的 Redpanda 源主题的代码。
 - en: '[PRE4]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: This generates 1000 records separated by random time intervals between 0 and
     1 second. It also randomly selects a sensor name from a list of 5 options.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 这会生成 1000 条记录，记录之间的时间间隔是随机的，范围在 0 到 1 秒之间。它还会从 5 个选项中随机选择一个传感器名称。
 - en: Now, try out the producer by running the following in the command line
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，通过在命令行中运行以下命令来尝试生产者：
 - en: '[PRE5]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'You should see data being logged to the console like this:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 你应该能看到类似以下的日志数据输出到控制台：
 - en: '[PRE6]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Once you’ve confirmed that it works, stop the process for now (you’ll run it
     alongside the stream processing process later).
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦确认它能正常工作，暂时停止进程（稍后你将在流处理过程中与其一起运行）。
 - en: Creating the stream processor
+  id: totrans-56
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 创建流处理器
 - en: 'The stream processor performs three main tasks: 1) consume the raw temperature
     readings from the source topic, 2) continuously aggregate the data, and 3) produce
     the aggregated results to a sink topic.'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 流处理器执行三项主要任务：1）从源主题消费原始温度读数，2）持续聚合数据，3）将聚合结果生成到汇聚主题。
 - en: Let’s add the code for each of these tasks. In your IDE, create a new file called
     `sensor_stream_processor.py`.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们为这些任务的每个部分添加代码。在你的 IDE 中，创建一个名为 `sensor_stream_processor.py` 的新文件。
 - en: 'First, add the dependencies as before:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，像之前一样添加依赖项：
 - en: '[PRE7]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Let’s also set some variables that our stream processing application needs:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们还设置一些我们的流处理应用程序所需的变量：
 - en: '[PRE8]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: We’ll go into more detail on what the window variables mean a bit later, but
     for now, let’s crack on with defining the main Quix application.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们稍后将更详细地解释窗口变量的含义，但现在让我们继续定义主要的 Quix 应用程序。
 - en: '[PRE9]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'Note that there are a few more application variables this time around, namely
     `consumer_group` and `auto_offset_reset`. To learn more about the interplay between
     these settings, check out the article “[Understanding Kafka’s auto offset reset
     configuration: Use cases and pitfalls](https://quix.io/blog/kafka-auto-offset-reset-use-cases-and-pitfalls)“'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，这次有一些新的应用变量，分别是`consumer_group`和`auto_offset_reset`。要了解这些设置之间的相互作用，可以查看文章“[理解
+    Kafka 的自动偏移重置配置：使用案例和陷阱](https://quix.io/blog/kafka-auto-offset-reset-use-cases-and-pitfalls)”。
 - en: Next, define the input and output topics on either side of the core stream processing
     function and add a function to put the incoming data into a DataFrame.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，在核心流处理函数的两侧定义输入和输出主题，并添加一个函数，将传入的数据放入 DataFrame 中。
 - en: '[PRE10]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: We’ve also added a logging line to make sure the incoming data is intact.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还添加了一行日志记录，以确保传入的数据是完整的。
 - en: Next, let’s add a custom timestamp extractor to use the timestamp from the message
     payload instead of Kafka timestamp. For your aggregations, this basically means
     that you want to use the time that the reading was generated rather than the time
     that it was received by Redpanda. Or in even simpler terms “Use the sensor’s definition
     of time rather than Redpanda’s”.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，添加一个自定义时间戳提取器，以便使用消息负载中的时间戳，而不是 Kafka 的时间戳。对于你的聚合操作，这基本上意味着你想使用生成读数的时间，而不是它被
+    Redpanda 接收的时间。或者更简单地说，“使用传感器的时间定义，而不是 Redpanda 的”。
 - en: '[PRE11]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Why are we doing this? Well, we could get into a philosophical rabbit hole about
     which kind of time to use for processing, but that’s a subject for another article.
     With the custom timestamp, I just wanted to illustrate that there are many ways
     to interpret time in stream processing, and you don’t necessarily have to use
     the time of data arrival.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们为什么这么做呢？嗯，我们可以深入探讨在处理时使用哪种时间类型，但那是另一个话题。在自定义时间戳的情况下，我只是想说明，在流处理中有许多种时间解释方式，并且您不一定需要使用数据到达的时间。
 - en: Next, initialize the state for the aggregation when a new window starts. It
     will prime the aggregation when the first record arrives in the window.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，在新窗口开始时初始化聚合的状态。当第一个记录到达窗口时，它将启动聚合。
 - en: '[PRE12]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: This sets the initial values for the window. In the case of min, max, and mean,
     they are all identical because you’re just taking the first sensor reading as
     the starting point.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 这设置了窗口的初始值。对于最小值、最大值和均值，它们都是相同的，因为您只是将第一个传感器读数作为起点。
 - en: Now, let’s add the aggregation logic in the form of a “reducer” function.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们以“reducer”函数的形式添加聚合逻辑。
 - en: '[PRE13]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: This function is only necessary when you’re performing multiple aggregations
     on a window. In our case, we’re creating count, min, max, and mean values for
     each window, so we need to define these in advance.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个函数只有在对一个窗口执行多个聚合时才是必要的。在我们的例子中，我们为每个窗口创建计数、最小值、最大值和均值，因此我们需要预先定义这些值。
 - en: 'Next up, the juicy part — adding the tumbling window functionality:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来是精彩的部分——添加滑动窗口功能：
 - en: '[PRE14]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: This defines the Streaming DataFrame as a set of aggregations based on a tumbling
     window — a set of aggregations performed on 10-second non-overlapping segments
     of time.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 这定义了 Streaming DataFrame，作为基于滑动窗口的一组聚合——在 10 秒钟不重叠的时间段内进行的一组聚合。
 - en: '**Tip**: If you need a refresher on the different types of windowed calculations,
     check out this article: [“A guide to windowing in stream processing](https://quix.io/blog/windowing-stream-processing-guide)”.'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: '**提示**：如果您需要复习不同类型的窗口计算，请查看这篇文章：[“流处理中的窗口化指南](https://quix.io/blog/windowing-stream-processing-guide)”。'
 - en: 'Finally, produce the results to the downstream output topic:'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，将结果输出到下游的输出主题：
 - en: '[PRE15]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '**Note**: You might wonder why the producer code looks very different to the
     producer code used to send the synthetic temperature data (the part that uses
     `with app.get_producer() as producer()`). This is because Quix uses a different
     producer function for transformation tasks (i.e. a task that sits between input
     and output topics).'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意**：您可能会想知道，为什么生产者代码与用于发送合成温度数据的生产者代码看起来差异很大（即使用 `with app.get_producer()
+    as producer()` 的部分）。这是因为 Quix 使用了不同的生产者函数来处理转换任务（即在输入和输出主题之间的任务）。'
 - en: As you might notice when following along, we iteratively change the Streaming
     DataFrame (the `sdf` variable) until it is the final form that we want to send
     downstream. Thus, the `sdf.to_topic` function simply streams the final state of
     the Streaming DataFrame back to the output topic, row-by-row.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如您在跟随过程中可能会注意到的，我们会反复修改 Streaming DataFrame（`sdf` 变量），直到它变成我们希望下游接收的最终形式。因此，`sdf.to_topic`
+    函数只是将 Streaming DataFrame 的最终状态逐行流式传输到输出主题。
 - en: The `producer` function on the other hand, is used to ingest data from an external
     source such as a CSV file, an MQTT broker, or in our case, a generator function.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '`producer` 函数则用于从外部源获取数据，如 CSV 文件、MQTT 经纪人，或在我们的案例中，一个生成器函数。'
 - en: Run the streaming applications
+  id: totrans-87
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 运行流应用程序
 - en: Finally, you get to run our streaming applications and see if all the moving
     parts work in harmony.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，您可以运行我们的流应用程序，看看所有的组件是否协调工作。
 - en: 'First, in a terminal window, start the producer again:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，在终端窗口中重新启动生产者：
 - en: '[PRE16]'
+  id: totrans-90
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Then, in a second terminal window, start the stream processor:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，在第二个终端窗口中，启动流处理器：
 - en: '[PRE17]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: Pay attention to the log output in each window, to make sure everything is running
     smoothly.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意每个窗口中的日志输出，以确保一切运行顺利。
 - en: 'You can also check the Redpanda console to make sure that the aggregated data
     is being streamed to the sink topic correctly (you’ll fine the topic browser at:
     [http://localhost:8080/topics](http://localhost:8080/topics)).'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 您还可以检查 Redpanda 控制台，以确保聚合数据正确地流式传输到目标主题（您可以在这里找到主题浏览器：[http://localhost:8080/topics](http://localhost:8080/topics)）。
 - en: '![](../Images/46c639a04de0e311f01229b2061fdb4a.png)'
+  id: totrans-95
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/46c639a04de0e311f01229b2061fdb4a.png)'
 - en: Screenshot by author
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者截图
 - en: Wrapping up
+  id: totrans-97
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 总结
 - en: What you’ve tried out here is just one way to do stream processing. Naturally,
     there are heavy duty tools such Apache Flink and Apache Spark Streaming which
     are have also been covered extensively online. But — those are predominantly Java-based
@@ -429,28 +644,41 @@
     still be debugging Java errors rather than Python errors. And Java skills aren’t
     exactly ubiquitous among data folks who are increasingly working alongside software
     engineers to tune stream processing algorithms.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 你在这里尝试的只是流处理的一种方式。当然，还有像 Apache Flink 和 Apache Spark Streaming 这样的重型工具，它们也已在网上广泛介绍。但——这些主要是基于
+    Java 的工具。当然，你可以使用它们的 Python 封装，但当问题出现时，你还是会调试 Java 错误，而不是 Python 错误。而且，Java 技能在数据领域的从业者中并不普遍，尤其是随着数据工程师越来越多地与软件工程师共同调优流处理算法。
 - en: In this tutorial, we ran a simple aggregation as our stream processing algorithm,
     but in reality, these algorithms often employ machine learning models to transform
     that data — and the software ecosystem for machine learning is heavily dominated
     by Python.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本教程中，我们进行了一个简单的聚合作为我们的流处理算法，但实际上，这些算法通常会使用机器学习模型来转换数据——而机器学习的软件生态系统则被 Python
+    主导。
 - en: An oft overlooked fact is that Python is the lingua franca for data specialists,
     ML engineers, and software engineers to work together. It’s even better than SQL
     because you can use it to do non-data-related things like make API calls and trigger
     webhooks. That’s one of the reasons why libraries like Faust, Bytewax and Quix
     evolved — to bridge the so-called [impedance gap](https://quix.io/blog/bridging-the-impedance-gap)
     between these different disciplines.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个常被忽视的事实是，Python 是数据专家、机器学习工程师和软件工程师协作的通用语言。它甚至比 SQL 更好，因为你可以用它做一些与数据无关的事情，比如进行
+    API 调用和触发 Webhooks。这也是为什么像 Faust、Bytewax 和 Quix 这样的库不断发展的原因之一——它们旨在弥合这些不同学科之间的[阻抗差距](https://quix.io/blog/bridging-the-impedance-gap)。
 - en: Hopefully, I’ve managed to show you that Python is a viable language for stream
     processing, and that the Python ecosystem for stream processing is maturing at
     a steady rate and can hold its own against the older Java-based ecosystem.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 希望我已经向你展示了，Python 是流处理的可行语言，而且 Python 在流处理领域的生态系统正在稳步成熟，能够与老旧的基于 Java 的生态系统一较高下。
 - en: As a reminder, all the code for this tutorial is available in [this GitHub repository](https://github.com/quixio/template-windowing-reduce).
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提醒一下，本教程的所有代码都可以在[这个 GitHub 仓库](https://github.com/quixio/template-windowing-reduce)中找到。

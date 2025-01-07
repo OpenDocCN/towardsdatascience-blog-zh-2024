@@ -1,39 +1,62 @@
 - en: Understanding K-Fold Target Encoding to Handle High Cardinality
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 理解 K-Fold 目标编码以应对高基数问题
 - en: 原文：[https://towardsdatascience.com/understanding-k-fold-target-encoding-to-handle-high-cardinality-296387753e3f?source=collection_archive---------6-----------------------#2024-10-26](https://towardsdatascience.com/understanding-k-fold-target-encoding-to-handle-high-cardinality-296387753e3f?source=collection_archive---------6-----------------------#2024-10-26)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/understanding-k-fold-target-encoding-to-handle-high-cardinality-296387753e3f?source=collection_archive---------6-----------------------#2024-10-26](https://towardsdatascience.com/understanding-k-fold-target-encoding-to-handle-high-cardinality-296387753e3f?source=collection_archive---------6-----------------------#2024-10-26)
 - en: 'Balancing complexity and performance: An in-depth look at K-fold target encoding'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 平衡复杂性与性能：深入探讨 K-fold 目标编码
 - en: '[](https://medium.com/@fhlpmah?source=post_page---byline--296387753e3f--------------------------------)[![Fhilipus
     Mahendra](../Images/84e51da9cca72313e627a8dd380ab40b.png)](https://medium.com/@fhlpmah?source=post_page---byline--296387753e3f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--296387753e3f--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--296387753e3f--------------------------------)
     [Fhilipus Mahendra](https://medium.com/@fhlpmah?source=post_page---byline--296387753e3f--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@fhlpmah?source=post_page---byline--296387753e3f--------------------------------)[![Fhilipus
+    Mahendra](../Images/84e51da9cca72313e627a8dd380ab40b.png)](https://medium.com/@fhlpmah?source=post_page---byline--296387753e3f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--296387753e3f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--296387753e3f--------------------------------)
+    [Fhilipus Mahendra](https://medium.com/@fhlpmah?source=post_page---byline--296387753e3f--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--296387753e3f--------------------------------)
     ·7 min read·Oct 26, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--296387753e3f--------------------------------)
+    ·阅读时间 7 分钟·2024年10月26日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/b01cfdfe1508b5c3c7adb5366bd3429f.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b01cfdfe1508b5c3c7adb5366bd3429f.png)'
 - en: Photo by [Mika Baumeister](https://unsplash.com/@kommumikation?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
     on [Unsplash](https://unsplash.com/photos/white-printing-paper-with-numbers-Wpnoqo2plFA?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [Mika Baumeister](https://unsplash.com/@kommumikation?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    提供，来源于 [Unsplash](https://unsplash.com/photos/white-printing-paper-with-numbers-Wpnoqo2plFA?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 引言
 - en: Data science practitioners encounter numerous challenges when handling diverse
     data types across various projects, each demanding unique processing methods.
     A common obstacle is working with data formats that traditional machine learning
@@ -43,8 +66,10 @@
     complex categorical relationships, especially when the feature have high cardinality
     — meaning a large number of unique values — which complicates processing and impedes
     model accuracy.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据科学从业人员在处理不同项目中的多种数据类型时，常常会遇到许多挑战，每种数据类型都需要独特的处理方法。一个常见的障碍是处理传统机器学习模型难以有效处理的数据格式，导致模型性能不佳。由于大多数机器学习算法都是为数值数据优化的，因此将类别数据转换为数值形式至关重要。然而，这种转换往往会简化复杂的类别关系，特别是当特征具有高基数——即有大量独特的值时——这会使处理变得复杂，并影响模型的准确性。
 - en: High cardinality refers to the number of unique elements within a feature, specifically
     addressing the distinct count of categorical labels in a machine learning context.
     When a feature has many unique categorical labels, it has high cardinality, which
@@ -55,41 +80,56 @@
     Encoding can dramatically increase dimensionality, leading to complex, high-dimensional
     datasets that require significant computational capacity for model training and
     potentially slow down performance.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 高基数（High cardinality）指的是特征中唯一元素的数量，具体来说是机器学习中类别标签的不同计数。当一个特征拥有许多独特的类别标签时，它具有高基数，这可能会使模型处理变得复杂。为了使类别数据在机器学习中可用，这些标签通常会使用基于数据复杂性的编码方法转换为数值形式。一种常见的方法是独热编码（One-Hot
+    Encoding），它为每个唯一标签分配一个独特的二进制向量。然而，面对高基数数据时，独热编码可能会显著增加数据的维度，导致复杂的高维数据集，这需要大量的计算能力来训练模型，并可能导致性能变慢。
 - en: Consider a dataset with 2,000 unique IDs, each ID linked to one of only three
     countries. In this case, while the ID feature has a cardinality of 2,000 (since
     each ID is unique), the country feature has a cardinality of just 3\. Now, imagine
     a feature with 100,000 categorical labels that must be encoded using One-Hot Encoding.
     This would create an extremely high-dimensional dataset, leading to inefficiency
     and significant resource consumption.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑一个包含2,000个唯一ID的数据集，每个ID与仅三个国家中的一个相关联。在这种情况下，虽然ID特征的基数是2,000（因为每个ID都是唯一的），但国家特征的基数只有3。现在，假设有一个包含100,000个类别标签的特征，必须使用独热编码进行编码。这将创建一个极其高维的数据集，导致低效并消耗大量资源。
 - en: A widely adopted solution among data scientists is **K-Fold Target Encoding**.
     This encoding method helps reduce feature cardinality by replacing categorical
     labels with target-mean values, based on K-Fold cross-validation. By focusing
     on individual data patterns, K-Fold Target Encoding lowers the risk of overfitting,
     helping the model learn specific relationships within the data rather than overly
     general patterns that can harm model performance.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据科学家广泛采用的解决方案是**K折目标编码**。这种编码方法通过用基于K折交叉验证的目标均值替换类别标签，帮助减少特征的基数。通过聚焦于个别数据模式，K折目标编码降低了过拟合的风险，帮助模型学习数据中的特定关系，而不是那些可能影响模型性能的过于一般化的模式。
 - en: How it works
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 它是如何工作的
 - en: K-Fold Target Encoding involves dividing the dataset into several equally-sized
     subsets, known as “folds,” with “K” representing the number of these subsets.
     By folding the dataset into multiple groups, this method calculates the cross-subset
     weighted mean for each categorical label, enhancing the encoding’s robustness
     and reducing overfitting risks.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: K折目标编码（K-Fold Target Encoding）涉及将数据集划分为几个大小相等的子集，称为“折叠”（folds），其中“K”表示这些子集的数量。通过将数据集折叠成多个组，这种方法为每个类别标签计算跨子集的加权平均值，从而增强编码的鲁棒性并减少过拟合的风险。
 - en: '![](../Images/c004e10d4c2c0c7e0ffcbbe240651a8f.png)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c004e10d4c2c0c7e0ffcbbe240651a8f.png)'
 - en: Fig 1\. Indonesian Domestic Flights Dataset [1]
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 图1\. 印尼国内航班数据集 [1]
 - en: Using an example from **Fig 1**. of a sample dataset of Indonesian domestic
     flights emissions for each flight cycle, we can put this technique into practice.
     The base question to ask with this dataset is “What is the weighted mean for each
@@ -97,11 +137,15 @@
     you might come with the same question people been asking me about. “But, if you
     just calculated them using the targeted feature, couldn’t it result as another
     high cardinality feature?”. The simple answer is “Yes, it could”.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用**图1**中的一个示例，考虑一个印尼国内航班排放数据集，该数据集包含每个航班周期的排放数据，我们可以将这种技术付诸实践。这个数据集需要问的基本问题是：“通过观察特征‘HC排放’，每个‘航空公司’的类别标签的加权平均值是多少？”然而，你可能会提出和许多人一样的问题：“但是，如果你只是使用目标特征来计算它们，这是不是会导致另一个高基数特征？”简单的回答是：“是的，可能会。”
 - en: Why?
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么？
 - en: In cases where a large dataset has a highly random target feature without identifiable
     patterns, K-Fold Target Encoding might produce a wide variety of mean values for
     each categorical label, potentially preserving high cardinality rather than reducing
@@ -109,126 +153,189 @@
     not necessarily to reduce it drastically. This method works best when there is
     a meaningful correlation between the target feature and segments of the data within
     each categorical label.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 在某些情况下，当数据集非常大且目标特征高度随机且没有明显的模式时，K折目标编码可能会为每个类别标签生成各种均值，可能会保留高基数，而不是减少它。然而，K折目标编码的主要目的是解决高基数问题，而不是必然大幅度地减少它。此方法最适用于目标特征与每个类别标签中数据片段之间存在有意义的相关性时。
 - en: How does K-Fold Target Encoding operate? The simplest way to explain this is
     that, in each fold, you calculate the mean of the target feature from the other
     folds. This approach provides each categorical label with a unique weight, represented
     as a numerical value, making it more informative. Let’s look at an example calculation
     using our dataset for a clearer understanding.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: K折目标编码是如何操作的？最简单的解释方法是，在每个折叠中，你都计算来自其他折叠的目标特征均值。这种方法为每个类别标签提供一个独特的权重，以数字值表示，使其更具信息量。让我们通过使用我们的数据集进行一个示例计算，来更清楚地理解这一点。
 - en: '![](../Images/eab2ff1f3d35d8a892639110151687f8.png)'
+  id: totrans-21
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/eab2ff1f3d35d8a892639110151687f8.png)'
 - en: Fig 2\. Indonesian Domestic Flights Dataset After K-Fold Assigned [1]
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 图2\. 印尼国内航班数据集经过K折分配后的结果。[1]
 - en: 'To calculate the weight of the ‘AirAsia’ label for the first observation, start
     by splitting the data into multiple folds, as shown in **Fig 2**. You can assign
     folds manually to ensure equal distribution, or automate this process using the
     following sample code:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 计算‘AirAsia’标签在第一次观测中的权重时，首先按照**图2**所示将数据拆分为多个折叠。你可以手动分配折叠以确保均匀分布，或者使用以下示例代码自动化此过程：
 - en: '[PRE0]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '![](../Images/8336953e4307378b5f5c17677b7ecba4.png)![](../Images/6434adc4235962e6f83cd02c49fdd233.png)![](../Images/c7509a7f71f2fbcbb706e1bb0ff39ede.png)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8336953e4307378b5f5c17677b7ecba4.png)![](../Images/6434adc4235962e6f83cd02c49fdd233.png)![](../Images/c7509a7f71f2fbcbb706e1bb0ff39ede.png)'
 - en: Fig 3\. Category-Specific Mean Calculation Process [1]
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 图3\. 类别特定均值计算过程[1]
 - en: With your dataset now split into folds, the next step is to calculate the mean
     of the same label across other folds. For example, ‘AirAsia’ in Fold 1 would use
     the mean from Folds 2, 3, 4, 5, 6, and so on, resulting in a mean of 11.3\. This
     process continues across all folds, so Fold 2 would incorporate the mean from
     Folds 1, 3, 4, 5, 6, etc. The final results of these calculations are illustrated
     in **Fig 4.**
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在数据集已经分割成多个折叠，下一步是计算同一标签在其他折叠中的均值。例如，‘AirAsia’在折叠1中的值会使用折叠2、3、4、5、6等的均值，得到一个均值为11.3。这一过程会在所有折叠中继续进行，因此折叠2将会融合折叠1、3、4、5、6等的均值。所有这些计算的最终结果在**图4**中有所展示。
 - en: '![](../Images/c3a3b50c783d067bc55689d27078d34f.png)'
+  id: totrans-28
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c3a3b50c783d067bc55689d27078d34f.png)'
 - en: Fig 4\. K-Fold Target Encoding (only category-specific mean) Results [1]
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 图4\. K折目标编码（仅类别特定均值）结果[1]
 - en: This calculation is known as the “category-specific mean,” which defines the
     average value for each categorical label based on similar label instances. Another
     essential calculation is the “global mean,” which defines the average intensity
     of your categorical label based on a user-defined global mean weight. The global
     mean serves as a baseline or “neutral” encoding, especially valuable for rare
     categories where the category-specific mean may rely on limited data points.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 该计算被称为“类别特定均值”，它定义了基于相似标签实例的每个类别标签的平均值。另一个重要的计算是“全局均值”，它定义了基于用户定义的全局均值权重的类别标签的平均强度。全局均值作为基准或“中立”编码，尤其对那些稀有类别有重要意义，因为这些类别的类别特定均值可能依赖于有限的数据点。
 - en: In K-Fold Target Encoding, both the category-specific and global means are typically
     combined to create a more robust and comprehensive representation. For a detailed
     illustration, refer to **Fig 5.**
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 在K折目标编码中，类别特定均值和全局均值通常会结合在一起，以创建一个更加稳健和全面的表示。欲了解详细说明，请参见**图5**。
 - en: '![](../Images/eb730016418393663ac4f2e45b17e95c.png)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/eb730016418393663ac4f2e45b17e95c.png)'
 - en: Fig 5\. Mathematical Form of K-Fold Target Encoder. [1]
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 图5\. K折目标编码的数学形式。[1]
 - en: The mathematical formula makes it easier to understand how this calculation
     works. Here, *m* represents a user-defined weight, allowing control over the influence
     of the global mean in the final calculation. Now, we can apply this formula to
     the dataset from **Fig 2** and implement it using the code below.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 数学公式使得理解这个计算过程变得更加容易。在这里，*m* 代表一个用户定义的权重，用于控制全局均值在最终计算中的影响。现在，我们可以将这个公式应用到**图
+    2**中的数据集，并使用以下代码实现它。
 - en: '![](../Images/1e94835c575331036b4660a6ad6f1b6f.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1e94835c575331036b4660a6ad6f1b6f.png)'
 - en: Fig 6\. K-Fold Target Encoding Process Using Both Means. [1]
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 6\. K-Fold 目标编码过程（使用两种均值）。[1]
 - en: '[PRE1]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Now with plotting the same formula into each of the categorical labels, the
     outcome would look like Fig 7.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，将相同的公式绘制到每个类别标签中，结果将类似于图 7。
 - en: '![](../Images/caa8f4225cb974b9f4c5cf1c46d4c84e.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/caa8f4225cb974b9f4c5cf1c46d4c84e.png)'
 - en: Fig 7\. K-Fold Target Encoding Final Result (Both Means). [1]
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 7\. K-Fold 目标编码最终结果（两种均值）。[1]
 - en: It’s important to remember that this method can be risky if there is a significant
     difference between your training and test datasets. For example, if AirAsia consistently
     produces high volumes of HC emissions in your training data, but in your test
     data, Garuda has the highest HC emissions distributed evenly, the model may overfit
     to the training pattern, leading to lower accuracy on new data.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要记住的是，如果你的训练数据集和测试数据集之间存在显著差异，这种方法可能会有风险。例如，如果在训练数据中，亚航（AirAsia）始终产生大量的HC排放，而在测试数据中，鹰航（Garuda）排放的HC较高并且分布均匀，那么模型可能会过拟合训练数据的模式，从而在新数据上的准确性较低。
 - en: 'Thanks for reading this article, hope you can get a better view of what is
     K-Fold Target Encoding and when to use it. Go check out my social media here and
     help me grow a better community for future data talents!!!:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢阅读本文，希望你能更好地了解什么是K-Fold目标编码以及何时使用它。去查看我的社交媒体，帮助我为未来的数据人才建设更好的社区！！！：
 - en: 'Linkedin: [https://www.linkedin.com/in/fhlpmah/](https://www.linkedin.com/in/fhlpmah/)'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Linkedin: [https://www.linkedin.com/in/fhlpmah/](https://www.linkedin.com/in/fhlpmah/)'
 - en: 'Dev.to: [https://dev.to/fhlpmah](https://dev.to/fhlpmah)'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Dev.to: [https://dev.to/fhlpmah](https://dev.to/fhlpmah)'
 - en: 'Instagram: [https://www.instagram.com/fmasmoro/](https://www.instagram.com/fmasmoro/)'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Instagram: [https://www.instagram.com/fmasmoro/](https://www.instagram.com/fmasmoro/)'
 - en: Resources
+  id: totrans-46
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 资源
 - en: '[1] Image Made by The Author.'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] 图片由作者制作。'
 - en: '[2] Datasets are Artificially Simulated by The Author. Inspired by: Organization
     ICA, 2023, *ICAO Aircraft Engine Emissions Databank* [https://www.easa.europa.eu/en/domains/environment/icao-aircraft-engine-emissions-databank](https://www.easa.europa.eu/en/domains/environment/icao-aircraft-engine-emissions-databank).'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] 数据集由作者人工模拟。灵感来源：ICA组织，2023，*ICAO 航空器发动机排放数据集* [https://www.easa.europa.eu/en/domains/environment/icao-aircraft-engine-emissions-databank](https://www.easa.europa.eu/en/domains/environment/icao-aircraft-engine-emissions-databank)。'
 - en: '[3] All Codes is written by The Author.'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] 所有代码均由作者编写。'

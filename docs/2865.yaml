@@ -1,315 +1,458 @@
 - en: 'Introducing ft-Q: Improving Vector Compression with Feature-Level Quantization'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍ft-Q：通过特征级量化提升向量压缩
 - en: 原文：[https://towardsdatascience.com/introducing-ft-q-improving-vector-compression-with-feature-level-quantization-3c18470ed2ee?source=collection_archive---------6-----------------------#2024-11-26](https://towardsdatascience.com/introducing-ft-q-improving-vector-compression-with-feature-level-quantization-3c18470ed2ee?source=collection_archive---------6-----------------------#2024-11-26)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/introducing-ft-q-improving-vector-compression-with-feature-level-quantization-3c18470ed2ee?source=collection_archive---------6-----------------------#2024-11-26](https://towardsdatascience.com/introducing-ft-q-improving-vector-compression-with-feature-level-quantization-3c18470ed2ee?source=collection_archive---------6-----------------------#2024-11-26)
 - en: Quantization
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 量化
 - en: Pushing quantization to its limits by performing it at the feature level with
     ft-Quantization (ft-Q)
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 通过特征级量化（ft-Q）推动量化的极限
 - en: '[](https://medium.com/@ardito.bryan?source=post_page---byline--3c18470ed2ee--------------------------------)[![Michelangiolo
     Mazzeschi](../Images/9211748ac638d2ed07679ac73ea17296.png)](https://medium.com/@ardito.bryan?source=post_page---byline--3c18470ed2ee--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3c18470ed2ee--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3c18470ed2ee--------------------------------)
     [Michelangiolo Mazzeschi](https://medium.com/@ardito.bryan?source=post_page---byline--3c18470ed2ee--------------------------------)'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@ardito.bryan?source=post_page---byline--3c18470ed2ee--------------------------------)[![Michelangiolo
+    Mazzeschi](../Images/9211748ac638d2ed07679ac73ea17296.png)](https://medium.com/@ardito.bryan?source=post_page---byline--3c18470ed2ee--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3c18470ed2ee--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3c18470ed2ee--------------------------------)
+    [Michelangiolo Mazzeschi](https://medium.com/@ardito.bryan?source=post_page---byline--3c18470ed2ee--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3c18470ed2ee--------------------------------)
     ·10 min read·Nov 26, 2024
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3c18470ed2ee--------------------------------)
+    ·阅读时间：10分钟·2024年11月26日
 - en: --
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '****To understand this article, knowledge of* ***embeddings*** *and* ***basic
     quantization*** *is required. The implementation of this algorithm has been released
     on* [*GitHub*](https://github.com/atlantis-nova/ft-Q) *and is fully open-source.*'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '****要理解本文，需具备* ***嵌入*** *和* ***基本量化*** *的知识。该算法的实现已在* [*GitHub*](https://github.com/atlantis-nova/ft-Q)
+    *发布，并且完全开源。*'
 - en: '***UPDATE 24–20–12:*** *it has come to my attention that a similar approach
     already exists and is available in the sentence-transformers library under the
     parameters of* [*calibration embeddings*](https://sbert.net/docs/package_reference/sentence_transformer/quantization.html)
     *(please cite the correct authors). However, when applied to binary quantization
     it is still wrong, as the* ***median*** *should be utilized to split the distribution
     in two perfect halves*'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '***更新 24–20–12:*** *我注意到一种类似的方法已经存在，并且可以在句子转换器库中通过* [*标定嵌入*](https://sbert.net/docs/package_reference/sentence_transformer/quantization.html)
+    *（请引用正确的作者）。然而，当应用于二值量化时，依然是错误的，因为应该使用* ***中位数*** *来将分布分为两个完全相等的部分*'
 - en: Since the dawn of LLMs, quantization has become one of the most popular memory-saving
     techniques for production-ready applications. Not long after, it has been popularized
     across vector databases, which have started using the same technology for compressing
     not only models but also vectors for retrieval purposes.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 自从大规模语言模型（LLM）问世以来，量化已成为生产环境中节省内存的最流行技术之一。很快，它也在向量数据库中得到普及，向量数据库开始使用相同的技术压缩不仅是模型，还有用于检索目的的向量。
 - en: In this article, I will showcase the limitations of the current quantization
     algorithms and propose a **new quantization approach (ft-Q)** to address them.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我将展示当前量化算法的局限性，并提出一种**新的量化方法（ft-Q）**来解决这些问题。
 - en: What is Quantization and how does it work?
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 什么是量化，它是如何工作的？
 - en: 'Quantization is a **memory-saving algorithm** that lets us store numbers (both
     in-memory and in-disk) using a lower amount of bits. By default, when we store
     any number in memory, we use float32: this means that this number is stored using
     a combination of 32-bits (binary elements).'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 量化是一种**节省内存的算法**，允许我们使用更少的位数存储数字（无论是内存中还是磁盘上）。默认情况下，当我们在内存中存储任何数字时，我们使用float32：这意味着该数字是通过32位（二进制元素）组合存储的。
 - en: 'For example, the integer 40 is stored as follows in a 32-bit object:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，整数40在32位对象中的存储方式如下：
 - en: '![](../Images/3de0fab2d22fc79957fb8000d8d713e9.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3de0fab2d22fc79957fb8000d8d713e9.png)'
 - en: storing the number 40 in a 32-bit object, **image by Author**
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 将数字40存储在32位对象中，**图像来源：作者**
 - en: 'However, we could decide to store the same number using fewer bits (cutting
     by half the memory usage), with a 16-bit object:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，我们可以决定使用更少的位来存储相同的数字（将内存使用量减少一半），例如使用16位对象：
 - en: '![](../Images/bd0c31063855a84aa94e254701938943.png)'
+  id: totrans-17
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bd0c31063855a84aa94e254701938943.png)'
 - en: storing the number 40 in a 16-bit object, **image by Author**
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 将数字40存储在16位对象中，**图像来源：作者**
 - en: By quantization, we mean to store data using a lower number of bits (ex. 32
     -> 16, or 32 -> 4), this is also known as casting. If we were to store 1GB of
     numbers (by default stored as 32-bit objects), if we decided to store them using
     16-bit objects (hence, applying a quantization), the size of our data would be
     halved, resulting in 0.5GB.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过量化，我们指的是使用较少的位数存储数据（例如，32 -> 16，或32 -> 4），这也称为转换。如果我们存储1GB的数字（默认存储为32位对象），如果我们决定使用16位对象来存储它们（从而应用量化），我们的数据大小将减半，结果是0.5GB。
 - en: Is there a catch to quantization?
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 量化是否存在某些陷阱？
 - en: 'Saving this amount of storage looks incredible (as you understood, we could
     keep cutting until we reach the minimum amount of bits: 1-bit, also known as binary
     quantization. Our database size will be reduced by 32 times, **from 1GB to 31.25MB!**),
     but as you might have already understood, there is a catch.'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 节省如此多的存储空间看起来令人难以置信（正如你所理解的，我们可以不断减少，直到达到最小的位数：1位，也就是二进制量化。我们的数据库大小将减少32倍，**从1GB减少到31.25MB！**），但是，正如你可能已经理解的那样，这其中有一个陷阱。
 - en: 'Any number can be stored up to the limits allowed by all the possible combinations
     of bits. With a 32-bit quantization, you can store a maximum of 2³² numbers. There
     are so many possible combinations that we decided to include decimals when using
     32-bits. For example, if we were to add a decimal to our initial number and store
     40.12 in 32-bits, it would be using this combination of 1 and 0:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何数字都可以存储在所有可能组合的位数允许的范围内。使用32位量化时，你可以存储最多2³²个数字。有这么多可能的组合，以至于我们决定在使用32位时包括小数。例如，如果我们在初始数字中添加一个小数并将40.12存储在32位中，它将使用这种1和0的组合：
 - en: '[PRE0]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: We have understood that with a 32-bit storage (given its large combination of
     possible values) we can pretty much encode each number, including its decimal
     points (to clarify, if you are new to quantization, the real number and decimal
     are not separated, 40.12 is converted as a whole into a combination of 32 binary
     numbers).
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经理解，在32位存储下（由于它的巨大组合可能性），我们几乎可以编码每个数字，包括其小数点（为了澄清，如果你对量化不熟悉，实数和小数点是没有分开的，40.12作为一个整体会被转换成32个二进制数的组合）。
 - en: 'If we keep diminishing the number of bits, all the possible combinations diminish
     exponentially. For example, 4-bit storage has a limit of 2⁴ combinations: we can
     only store 16 numbers (this does not leave much room to store decimals). With
     1-bit storage, we can only store a single number, either a 1 or a 0.'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们不断减少位数，所有可能的组合会呈指数级减少。例如，4位存储的组合数限制为2⁴：我们只能存储16个数字（这没有太多空间来存储小数）。在1位存储中，我们只能存储一个数字，要么是1，要么是0。
 - en: To put this into context, storing our initials 32-bit numbers into binary code
     would force us to convert all our numbers, such as 40.12 into either 0 or 1\.
     In this scenario, this compression does not look very good.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了让这一点更具实际意义，将我们的初始32位数字存储为二进制代码将迫使我们将所有数字（例如40.12）转换为0或1。在这种情况下，这种压缩方式看起来并不理想。
 - en: How to make the best out of Quantization
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何最大化量化的效果
 - en: We have seen how quantization results in an information loss. So, how can we
     make use of it, after all? When you look at the quantization of a single number
     (40.12 converted into 1), it seems there is no value that can derive from such
     an extreme level of quantization, there is simply too much loss.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经看到了量化如何导致信息丢失。那么，究竟如何利用它呢？当你看一个单一数字的量化（例如将40.12转换为1），似乎从如此极端的量化中没有任何价值可言，因为损失实在是太大了。
 - en: However, when we apply this technique to a set of data such as vectors, the
     information loss is not as drastic as when applied to a single number. Vector
     search is a perfect example of where to apply quantization in a useful manner.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，当我们将这一技术应用于一组数据（例如向量）时，信息丢失并不像应用于单一数字时那么剧烈。向量搜索是一个非常适合以有用方式应用量化的例子。
 - en: 'When we use an encoder, such as **all-MiniLM-L6-v2**, we store each sample
     (which was originally in the form of raw text) as a vector: a sequence of 384
     numbers. The storage of millions of similar sequences, as you might have understood,
     is prohibitive, and we can use quantization to substantially diminish the size
     of the original vectors by a huge margin.'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们使用编码器，例如**all-MiniLM-L6-v2**时，我们将每个样本（原本是文本形式）存储为一个向量：一个由384个数字组成的序列。正如你可能已经理解的那样，存储数百万个相似的序列是非常昂贵的，我们可以通过量化大幅减少原始向量的大小。
 - en: Perhaps, quantizing our vectors from 32-bit to 16-bit is not this big of a loss.
     But how about 4-bit or even binary quantization? Because our sets are relatively
     large (384 numbers each), this considerable complexity lets us reach a higher
     level of compression without resulting in excessive retrieval loss.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 也许，将我们的向量从32位量化到16位并不会带来太大的损失。但如果是4位甚至二进制量化呢？由于我们的数据集相对较大（每个有384个数字），这种复杂性使我们能够在不造成过多检索损失的情况下达到更高的压缩水平。
 - en: '**4-bit quantization**'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '**4位量化**'
 - en: 'The way we execute quantization is by looking at the data distribution of our
     flattened vector and choosing to map an equivalent interval with a lower number
     of bits. My favorite example is 4-bit quantization. With this degree of complexity,
     we can store 2⁴ = 16 numbers. But, as explained, all the numbers in our vectors
     are complex, each with several decimal points:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们执行量化的方式是观察我们展平后的向量的数据分布，并选择映射到一个具有更少位数的等效区间。我最喜欢的例子是4位量化。在这种复杂度下，我们可以存储2⁴
+    = 16个数字。但是，正如所解释的那样，我们向量中的所有数字都是复杂的，每个数字都有多个小数点：
 - en: '[PRE1]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: What we can do is map each of our numbers in the distribution into an interval
     that spans between [-8, 7] (16 possible numbers). To define the extreme of the
     interval, we can use the minimum and maximum values of the distribution we are
     quantizing.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以做的是将分布中的每个数字映射到一个区间，该区间的范围是[-8, 7]（16个可能的数字）。为了定义区间的极端值，我们可以使用我们正在量化的分布的最小值和最大值。
 - en: '![](../Images/20c08512fbff9dde9fecc9fdfd93b941.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/20c08512fbff9dde9fecc9fdfd93b941.png)'
 - en: '4-bit quantization: the grey area is an interval of integers between [-8, 7],
     don’t confuse it with bits. Any number of this interval will be later converted
     into a 4-bit object, **image by Author**'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 4位量化：灰色区域是整数区间[-8, 7]，不要将其与位数混淆。该区间中的任何数字将会被转换成一个4位的对象，**图片来源：作者**
 - en: For example, the minimum/maximum of the distribution is [-0.2, 0.2]. This means
     that -0.2 will be converted to -8, and 0.2 to 7\. Each number in the distribution
     will have a quantized equivalent in the interval (ex. the first number in our
     example array (0.02436554) will be quantized to 0, as shown in the picture above).
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，分布的最小值/最大值为[-0.2, 0.2]。这意味着-0.2将被转换为-8，0.2将被转换为7。分布中的每个数字都会有一个量化后的等效值（例如，示例数组中的第一个数字（0.02436554）将被量化为0，如上图所示）。
 - en: '[PRE2]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '**1-bit quantization**'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '**1位量化**'
 - en: 'The same principle applies to binary quantization but is much simpler. The
     rule is the following: each number of the distribution < 0 becomes 0, and each
     number > 0 becomes 1.'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 相同的原理也适用于二进制量化，但它要简单得多。规则如下：分布中小于0的每个数字变为0，大于0的每个数字变为1。
 - en: '![](../Images/47ee5e68eaecf27187bc19d0f422e850.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/47ee5e68eaecf27187bc19d0f422e850.png)'
 - en: 1-bit quantization, **image by Author**
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 1位量化，**图片来源：作者**
 - en: Not all embeddings are built the same
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 不是所有的嵌入（embeddings）都是一样构建的
 - en: The principal issue with current quantization techniques is that they live on
     the assumption that all our values **are based on a single distribution**. That
     is why, when we use thresholds to define intervals (ex. minimum and maximum),
     we only use a single set derived from the totality of our data (which is modeled
     on a single distribution).
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 当前量化技术的主要问题是，它们假设我们所有的值**基于单一的分布**。因此，当我们使用阈值来定义区间（例如最小值和最大值）时，我们只使用从数据总集派生出来的单一集合（这个集合是基于单一分布建模的）。
 - en: '![](../Images/a6b19bc9727ad03a669bc57815c9d314.png)'
+  id: totrans-46
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a6b19bc9727ad03a669bc57815c9d314.png)'
 - en: distribution of all individual samples from a flattened encoded dataset, **image
     by Author**
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 展平编码数据集的所有单个样本的分布，**图片来源：作者**
 - en: 'In an experiment, I have encoded 41.963 game descriptions into vectors**.**
     By looking at the data distributions of each feature, we can see that despite
     the efforts, there is no feature which is perfectly normalized: its mean could
     deviate from the target 0.'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 在一项实验中，我将41,963个游戏描述编码成了向量**。**通过观察每个特征的数据分布，我们可以看到尽管作出了努力，仍然没有任何一个特征是完全标准化的：其均值可能偏离目标值0。
 - en: '![](../Images/c11a41a92ae510cee2c12f27f3c166fe.png)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c11a41a92ae510cee2c12f27f3c166fe.png)'
 - en: distributions of 20 random features of the encoded dataset, **image by Author**
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 编码数据集中20个随机特征的分布，**图像来自作者**
 - en: In a few words, each feature can be modeled **with a dedicated distribution**.
     Because the data **does not follow** a single giant distribution, we can leverage
     the many ways this is organized by applying a quantization at the feature level.
     In addition, embeddings tend to encode each feature using similar values (otherwise,
     the mean will constantly be 0), which means there is a **minimal chance of drift**
     when encoding additional data.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 简而言之，每个特征都可以用**专用分布**来建模。因为数据**不遵循**单一的巨大分布，我们可以通过在特征层应用量化，利用这种组织方式。此外，嵌入通常会使用相似的值来编码每个特征（否则均值将始终为0），这意味着编码额外数据时**漂移的可能性最小**。
 - en: 'To better explain the math, let us define two sets of values:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了更好地解释数学内容，先定义两组值：
 - en: '**S** = all the individual samples from the encoded dataset (41936 * 384)'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '**S** = 编码数据集中的所有独立样本（41936 * 384）'
 - en: '**Fₙ** = all the individual samples from the encoded dataset belonging to a
     single feature (41936 * 1)'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Fₙ** = 编码数据集中属于单一特征的所有独立样本（41936 * 1）'
 - en: 'Feature 29: The Ugly Duckling'
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 特征29：丑小鸭
 - en: 'In our sample dataset, each vector counts 384 features. However, by exploring
     the data one feature at a time, we can notice that some are not perfectly normalized
     but substantially skewed. Let us take **F**₂₉as an example: the following plot
     shows the distribution of **F**₂₉ **(**41936**)** across our entire encoded dataset.'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的样本数据集中，每个向量包含384个特征。然而，通过逐一查看数据，我们可以注意到某些特征并未完美标准化，而是有显著偏斜。以**F**₂₉为例：下图展示了**F**₂₉（41936）在整个编码数据集中的分布。
 - en: '![](../Images/ab7ea6349f4adddc04c942c09c331cfc.png)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ab7ea6349f4adddc04c942c09c331cfc.png)'
 - en: '**F**₂₉ distribution, **image by Author**'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '**F**₂₉分布，**图像来自作者**'
 - en: As we can see from the plot, its distribution mean is around -0.07, and its
     edges are (-0.2, 0.1). I am confident, knowing how encoders behave, that no matter
     the amount of extra data we are going to feed the model, **F**₂₉ will always remain
     an Ugly Duckling, with its distribution untouched. The distribution only counts
     a few positive values.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 从图中可以看到，它的分布均值约为-0.07，边缘值为（-0.2, 0.1）。我确信，基于对编码器行为的了解，无论我们输入多少额外数据，**F**₂₉始终会保持一个“丑小鸭”，其分布不会改变。该分布只包含少量正值。
 - en: Regular Quantization
+  id: totrans-60
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 常规量化
 - en: Now, let us apply **binary quantization to the book,** but only to **F**₂₉.
     I am choosing a binary approach because most of the information is lost, meaning
     there can be room for improvement using a different approach.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们对**书本**应用**二进制量化**，但仅对**F**₂₉进行。之所以选择二进制方法，是因为大部分信息会丢失，意味着可以通过不同的方法进行改进。
 - en: To quantize values in a binary fashion we need to pick a single value that will
     work as a threshold when converting values to either 0 or 1\. The easiest way
     is to pick 0 (~ the distribution mean of **S**). When working on the values of
     **F**₂₉, because most of them are negative, the majority will be quantized to
     0, and only a few will be quantized to 1.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 要以二进制方式量化值，我们需要选择一个值作为阈值，将值转换为0或1。最简单的方法是选择0（约为**S**的分布均值）。在处理**F**₂₉的值时，由于大多数值为负数，大多数值会被量化为0，只有少数会被量化为1。
 - en: '![](../Images/c06df47c158bea08f795a089f742a2e3.png)'
+  id: totrans-63
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c06df47c158bea08f795a089f742a2e3.png)'
 - en: 'samples whose quantized value should be 1, but quantized as 0: 44% of **F**₂₉,
     **image by Author**'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 应该量化为1但量化为0的样本：**F**₂₉的44%，**图像来自作者**
 - en: 'Let us explore the data further: 94% of the **F**₂₉ have been converted to
     0, while our target in a perfectly normalized distribution is 50%. This means
     that 44% of **F**₂₉ (red area of the density distribution) has not been properly
     quantized.'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们进一步探索数据：94%的**F**₂₉已转换为0，而在一个完美标准化的分布中，我们的目标是50%。这意味着**F**₂₉的44%（密度分布的红色区域）没有被正确量化。
 - en: '[PRE3]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: ft-Quantization
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: ft-量化
 - en: 'What if, instead of using 0 as a threshold (extracted from **S**) we were to
     use the **F**₂₉ distribution as a benchmark? Looking at **F**₂₉ distribution again,
     instead of 0, we would be using its mean ~ -0.07 and its extremes as the minimum/maximum
@@ -317,108 +460,157 @@
     for the image inaccuracy, the extremes are quite there, though). In simple words,
     ft-Q shifts the position of the **reference quantization interval** to better
     fit the real distribution of the data.'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们不使用0作为阈值（从**S**中提取），而是将**F**₂₉分布作为基准呢？再次查看**F**₂₉分布，除了0，我们将使用其均值~ -0.07，并将其极值作为区间的最小/最大值~
+    [-0.20, 0.10]（请参见下方图像：对图像不准确表示歉意，极值还是有的）。简单来说，ft-Q将**参考量化区间**的位置进行调整，以更好地适应数据的真实分布。
 - en: '![](../Images/9972f8207b07902d3986059f72446860.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9972f8207b07902d3986059f72446860.png)'
 - en: visualization of ft-Q, the interval is adapted to the feature distribution,
     **image by Author**
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: ft-Q的可视化，区间已调整以适应特征分布，**图片来源：作者**
 - en: '***Through the following article I am trying to introduce a new algorithm that,
     to the extent of my knowledge, I have been unable to find elsewhere. Note that
     the algorithm is different from FQ (feature quantization) that is used for training
     neural networks, this is algorithm is supposed to be used post-training.'
+  id: totrans-71
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '***通过以下文章，我试图介绍一种新算法，据我所知，至今没有在其他地方找到类似的算法。请注意，该算法不同于用于训练神经网络的FQ（特征量化），这是一种在训练后使用的算法。***'
 - en: '**I am open to criticism** and **welcome any feedback.**'
+  id: totrans-72
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '**我欢迎批评**并**期待任何反馈**。'
 - en: After applying binary quantization to **F**₂₉, because the threshold has been
     updated, we can see how half the times the data will be quantized to 0, and the
     other half to 1, resulting in a more realistic representation of the data. By
     comparing the quantization results, ft-Q has converted 47% of the **F**₂₉ into
     0, resulting in only 3% of values not being properly quantized.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 在对**F**₂₉应用二进制量化后，由于阈值已更新，我们可以看到数据有一半会被量化为0，另一半为1，从而更真实地表示数据。通过比较量化结果，ft-Q将**F**₂₉的47%转换为0，只有3%的值未被正确量化。
 - en: '[PRE4]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: To summarize, **ft-Q** (or ft-Quantization) encodes each feature individually,
     minimizing errors that can occur from non-normalized distributions.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结来说，**ft-Q**（或ft-量化）将每个特征单独编码，从而最小化由于非标准化分布所可能产生的错误。
 - en: When to use ft-Quantization
+  id: totrans-76
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 何时使用ft-量化
 - en: Realistically, no embedding is perfectly normalized, and there is a variance
     (despite it being minimal) across the feature distribution. However, now that
     we have identified the misplaced values, we can adjust them using
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 从实际情况来看，没有任何嵌入是完全标准化的，特征分布中会存在一些变异（尽管是微小的）。然而，现在我们已经识别出错误的位置，我们可以使用以下方法进行调整。
 - en: '**ft-Q**.'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '**ft-Q**。'
 - en: Can ft-Q be applied to regular embeddings?
+  id: totrans-79
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: ft-Q可以应用于常规嵌入吗？
 - en: When ft-Q is applied to regular embeddings we are not looking at a substantial
     enhancement.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 当ft-Q应用于常规嵌入时，我们不会看到显著的增强效果。
 - en: '[PRE5]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: In the case of **all-MiniLM-L6-v2** we have reached a **1.2% improvement** (not
     remarkable, but still an upgrade).
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 在**all-MiniLM-L6-v2**的情况下，我们取得了**1.2%的提升**（虽然不显著，但仍然是一次升级）。
 - en: 'Where ft-Q shines: processed embeddings'
+  id: totrans-83
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: ft-Q的亮点：处理过的嵌入
 - en: 'However, embeddings are not always used in their normalized form. Sometimes,
     there are use cases where encoding requires the embedding to be processed (ex.
     in the case of [covariate encoding](https://github.com/atlantis-nova/simtag)).
     We can use the following theoretical diagram as a way to understand **in which
     cases** ft-Q can be better utilized:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，嵌入并不总是以标准化形式使用。有时，在某些应用场景中，需要对嵌入进行处理（例如，在[covariate encoding](https://github.com/atlantis-nova/simtag)的情况下）。我们可以使用以下理论图表来理解**在哪些情况下**ft-Q能够更好地发挥作用：
 - en: '![](../Images/0f1ce97a5812a6558b64afc4c9167d7f.png)'
+  id: totrans-85
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0f1ce97a5812a6558b64afc4c9167d7f.png)'
 - en: the more the feature skew from a perfect normalisation, the more ft-Q is effective,
     **image by Author**
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 特征的偏斜程度越大，ft-Q的效果越明显，**图片来源：作者**
 - en: 'The vectors that are the result of an extra processing step are not necessarily
     normalized: we could **normalize** them again and only then apply **quantization**,
     but we can cast two birds with one stone by using ft-Q as a single operation (in
     addition to its small improvement even after a non-perfect normalization).'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 经过额外处理步骤得到的向量不一定是标准化的：我们可以**重新标准化**它们，然后再应用**量化**，但通过使用ft-Q作为单一操作（即使在标准化不完美的情况下仍有小幅提升），我们可以一举两得。
 - en: Conclusion
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: In conclusion, this article attempts to propose a more granular approach to
     quantization. Originally, the reason for developing this algorithm was to solve
     performance issues of processed embeddings, but after proper experimentation,
     it has proved useful even in a regular scenario.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 总之，本文试图提出一种更细致的量化方法。最初，开发该算法的目的是解决处理后的嵌入向量的性能问题，但经过适当的实验后，它在常规场景中也证明了其有效性。
 - en: After the popularization of LLM and more complex vector databases, memory management
     and performance improvements are becoming increasingly relevant in the space of
     information retrieval, hence it is our responsibility to familiarize ourselves
     with them and propose new and better solutions.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着大型语言模型（LLM）和更复杂的向量数据库的普及，内存管理和性能优化在信息检索领域变得越来越重要，因此我们有责任熟悉这些内容，并提出新的、更好的解决方案。
 - en: Time will tell if new and smarter data compression approaches will join the
     scene. For now, you can make the best use of this algorithm.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 时间将证明，是否会有新的、更智能的数据压缩方法加入其中。至于现在，你可以充分利用该算法。

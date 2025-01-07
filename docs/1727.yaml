@@ -1,199 +1,293 @@
 - en: 'Introducing zeroCPR: An Approach to Finding Complementary Products'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍 zeroCPR：寻找互补产品的一种方法
 - en: 原文：[https://towardsdatascience.com/introducing-zerocpr-an-approach-to-finding-complementary-products-20f2b98c5d03?source=collection_archive---------8-----------------------#2024-07-15](https://towardsdatascience.com/introducing-zerocpr-an-approach-to-finding-complementary-products-20f2b98c5d03?source=collection_archive---------8-----------------------#2024-07-15)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/introducing-zerocpr-an-approach-to-finding-complementary-products-20f2b98c5d03?source=collection_archive---------8-----------------------#2024-07-15](https://towardsdatascience.com/introducing-zerocpr-an-approach-to-finding-complementary-products-20f2b98c5d03?source=collection_archive---------8-----------------------#2024-07-15)
 - en: Recommendation Systems
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 推荐系统
 - en: Current ML models can recommend similar products, but how about complementary?
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 当前的机器学习模型可以推荐相似产品，但互补产品呢？
 - en: '[](https://medium.com/@ardito.bryan?source=post_page---byline--20f2b98c5d03--------------------------------)[![Michelangiolo
     Mazzeschi](../Images/9211748ac638d2ed07679ac73ea17296.png)](https://medium.com/@ardito.bryan?source=post_page---byline--20f2b98c5d03--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--20f2b98c5d03--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--20f2b98c5d03--------------------------------)
     [Michelangiolo Mazzeschi](https://medium.com/@ardito.bryan?source=post_page---byline--20f2b98c5d03--------------------------------)'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@ardito.bryan?source=post_page---byline--20f2b98c5d03--------------------------------)[![Michelangiolo
+    Mazzeschi](../Images/9211748ac638d2ed07679ac73ea17296.png)](https://medium.com/@ardito.bryan?source=post_page---byline--20f2b98c5d03--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--20f2b98c5d03--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--20f2b98c5d03--------------------------------)
+    [Michelangiolo Mazzeschi](https://medium.com/@ardito.bryan?source=post_page---byline--20f2b98c5d03--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--20f2b98c5d03--------------------------------)
     ·9 min read·Jul 15, 2024
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--20f2b98c5d03--------------------------------)
+    ·9分钟阅读·2024年7月15日
 - en: --
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '*Full zeroCPR code is open-source and available at my* [*Github repo*](https://github.com/atlantis-nova/zeroCPR)'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '*完整的 zeroCPR 代码是开源的，可以在我的* [*Github 仓库*](https://github.com/atlantis-nova/zeroCPR)
+    上找到。'
 - en: In the domain of **AI Recommendation Systems**, Machine Learning models have
     been heavily used to recommend **similar samples**, whether products, content
     or even suggesting similar contacts. Most of these pre-trained models are open-source
     and can be used without training a model from scratch. However, with the lack
     of Big Data, there is no open-source technology we can rely on for the recommendation
     of complementary products.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在**AI 推荐系统**领域，机器学习模型已广泛应用于推荐**相似样本**，无论是产品、内容，甚至是推荐相似的联系人。这些预训练模型大多数是开源的，可以直接使用，而无需从头开始训练模型。然而，由于缺乏大数据，我们没有任何可以依赖的开源技术来推荐互补产品。
 - en: In the following article, I am proposing a framework (with code in the form
     of a **user-friendly library**) that exploits LLM for the discovery of complementary
     products in a non-expensive way.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下文章中，我提出了一个框架（以**用户友好型库**的形式提供代码），利用大语言模型（LLM）以一种不昂贵的方式发现互补产品。
 - en: 'My goal for introducing this framework is for it to be:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我介绍这个框架的目标是：
 - en: '**Scalable**'
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**可扩展**'
 - en: It is a framework that should not require supervision when running, that does
     not risk breaking, and the output should be easily structured to be used in combination
     with additional tools.
+  id: totrans-12
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 这是一个框架，运行时不需要监督，不容易出错，输出应易于结构化，以便与其他工具结合使用。
 - en: '**Affordable**'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**经济实惠**'
 - en: It should be affordable to find the complementary of thousands of products with
     **minimum spending (approx. 1 USD per 1000 computed products — using groq pricing)**,
     in addition, without requiring any fine-tuning (this means that it could even
     be tested on a single product).
+  id: totrans-14
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 它应该足够经济实惠，可以以**最低花费（大约 1 美元每 1000 个计算产品——使用 Groq 定价）**找到成千上万产品的互补品，此外，不需要任何微调（这意味着它甚至可以在单一产品上进行测试）。
 - en: '****Feel free to contact me for support or feature requests. In this article,
     I am introducing both the framework (and its respective library)* ***zeroCPR***
     *and a new prompting technique that I call* ***Chain-of-DataFrame*** *for list
     reasoning.*'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '****如需支持或功能请求，请随时与我联系。在本文中，我介绍了框架（及其相应的库）* ***zeroCPR*** *以及一种新的提示技术，我称之为*
+    ***Chain-of-DataFrame*** *，用于列表推理。*'
 - en: Understanding the problem
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 理解问题
 - en: 'Before digging into the theory of the zeroCPR framework, let us understand
     why current technology is limited in this very domain:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 在深入研究zeroCPR框架的理论之前，让我们先理解一下为什么当前的技术在这一领域受到限制：
 - en: Why do neural networks excel at recommending similar products?
+  id: totrans-18
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为什么神经网络在推荐相似产品方面表现突出？
 - en: These models excel at this task because neural networks innately group samples
     with common features in the same space region. To simplify, if, for example, a
     neural network is trained on top of the human language, it will allocate in the
     same space region words or sentences that have **similar meanings**. Following
     the same principle, if trained on top of customer behavior, customers sharing
     similar behavior will be arranged in similar space regions.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些模型在这一任务中表现出色，因为神经网络天生会将具有相似特征的样本分组到同一个空间区域。简而言之，举例来说，如果一个神经网络在人的语言上进行训练，它会将具有**相似意义**的单词或句子分配到同一个空间区域。按照同样的原理，如果在客户行为上进行训练，具有相似行为的客户将被安排到相似的空间区域。
 - en: '![](../Images/bc7435d04a61d724196aaefd4203328a.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bc7435d04a61d724196aaefd4203328a.png)'
 - en: 'visualization of an embedding, Image from source: [https://projector.tensorflow.org/](https://projector.tensorflow.org/)'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 嵌入可视化，图片来源：[https://projector.tensorflow.org/](https://projector.tensorflow.org/)
 - en: The models capable of recommending similar sentences are called semantic models,
     and they are both **light and accessible**, allowing the creation of recommendation
     systems that **rely on language similarity** rather than customer behavior.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 能够推荐相似句子的模型被称为语义模型，它们既**轻便又易于使用**，可以创建基于**语言相似性**而非客户行为的推荐系统。
 - en: A retail company that lacks customer data can easily recommend similar products
     by exploiting the capabilities of a semantic model.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 缺乏客户数据的零售公司可以通过利用语义模型的能力轻松推荐相似产品。
 - en: What about complementary products?
+  id: totrans-24
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 那么，互补产品呢？
 - en: However, recommending **complementary products** is a totally different task.
     To my knowledge, **no open-source model is** capable of performing such an enterprise.
     Retail companies train their custom complementary recommender systems based on
     their data, resulting in models that are difficult to generalize, and that are
     industry-specific.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，推荐**互补产品**是一个完全不同的任务。据我所知，**没有开源模型**能够完成这样的任务。零售公司基于自己的数据训练定制的互补推荐系统，导致这些模型难以泛化，并且是行业特定的。
 - en: The zeroCPR framework
+  id: totrans-26
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: zeroCPR框架
 - en: '**zeroCPR** stands for **zero-shot complementary product recommender**. The
     functioning is simple. By receiving a **list of your available products** and
     **reference products**, it tried to find if in your list there are complementary
     products that can be recommended.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '**zeroCPR**代表**零-shot互补产品推荐系统**。其工作原理很简单。通过接收**可用产品列表**和**参考产品**，它试图找出在你的列表中是否有可以推荐的互补产品。'
 - en: Large Language Models can easily recommend complementary products. You can ask
     ChatGPT to output what products can be paired with a toothbrush, and it will likely
     recommend **dental floss** and **toothpaste**.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 大型语言模型（LLM）可以轻松推荐互补产品。你可以要求ChatGPT输出哪些产品可以与牙刷搭配，它很可能会推荐**牙线**和**牙膏**。
 - en: However, my goal is to create an **enterprise-grade tool** that can work with
     our custom data. ChatGPT may be correct, but it is generating an unstructured
     output that cannot be integrated with our list of products.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，我的目标是创建一个**企业级工具**，能够与我们的自定义数据协作。ChatGPT可能是正确的，但它生成的是一个无法与我们的产品列表集成的非结构化输出。
 - en: 'The **zeroCPR framework** can be outlined as follows, where we apply the following
     3 steps for each product in our product list:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '**zeroCPR框架**可以概述如下，我们对每个产品应用以下3个步骤：'
 - en: '![](../Images/e3ec98c4fe0f08e574e41a46ee8a1df5.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e3ec98c4fe0f08e574e41a46ee8a1df5.png)'
 - en: zeroCPR framework, Image by author
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: zeroCPR框架，图片由作者提供
 - en: 1\. List complementary products
+  id: totrans-33
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 1\. 列出互补产品
 - en: As explained, the first bottleneck to solve is finding actual complementary
     products. Because similarity models are out of the question, we need to use a
     LLM. The execution of the first step is quite simple. Given an **input product
     (ex. Coca-Cola)**, produce a list of valid complementary products a user may purchase
     with it.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，首先需要解决的瓶颈是找到实际的互补产品。由于相似性模型不可行，我们需要使用LLM。第一步的执行非常简单。给定一个**输入产品（例如可口可乐）**，生成一个用户可能购买的有效互补产品列表。
 - en: 'I have asked the LLM to output a perfectly parsable list using Python: once
     parsed, we can visualize the output.'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 我已经要求LLM使用Python输出一个完全可解析的列表：一旦解析完成，我们就可以可视化输出结果。
 - en: '![](../Images/e9eb66118a65fcdb9167d5f8879bd8d7.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e9eb66118a65fcdb9167d5f8879bd8d7.png)'
 - en: list of valid complementary products, Image by author
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 有效补充产品列表，图片来源：作者
 - en: 'The results are not bad at all: these are all products that are likely to be
     purchased **in pairs with Coca-Cola**. There is, however, a small issue: THESE
     PRODUCTS MAY NOT BE IN OUR DATA.'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果其实并不差：这些都是很可能与**可口可乐（Coca-Cola）**一起购买的产品。然而，有一个小问题：这些产品**可能不在我们的数据中**。
 - en: 2\. Matching the available products in our data
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2\. 匹配我们数据中的可用产品
 - en: The next step is trying to match every complementary product suggested by the
     LLM with a corresponding product in our dataset. For example, we want to match
     “Nachos” with the closest possible product in our dataset.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步是尝试将LLM建议的每个补充产品与我们数据集中的相应产品匹配。例如，我们想将“玉米片（Nachos）”与我们数据集中最接近的产品进行匹配。
 - en: We can perform this matching using vector search. For each LLM product, we will
     match it with the most semantically similar in our dataset.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用向量搜索来执行这种匹配。对于每个LLM产品，我们将与数据集中语义上最相似的产品进行匹配。
 - en: '![](../Images/c24f77f37759972448a8d7bb6d3b8a87.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c24f77f37759972448a8d7bb6d3b8a87.png)'
 - en: similarity matching, Image by author
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 相似度匹配，图片来源：作者
 - en: As we can see, the results are far from accurate. **“Nachos”** will be matched
     with **“SET OF SALT AND PEPPER TOADSTOOLS”**, while the closest match with **“Burgers”**
     is **“S/2 BEACH HUT STOOLS”**.Some of the matches are valid (we can look at Napkins),
@@ -201,194 +295,290 @@
     irrelevant candidate. Using a **cosine similarity threshold** is, by experience,
     a terrible method for selecting valid choices. Instead, I will use an LLM again
     to validate the data.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 如我们所见，结果远非准确。**“玉米片（Nachos）”**将与**“盐和胡椒蘑菇套装（SET OF SALT AND PEPPER TOADSTOOLS）”**匹配，而与**“汉堡（Burgers）”**最接近的匹配是**“沙滩小屋凳子（S/2
+    BEACH HUT STOOLS）”**。其中一些匹配是有效的（例如餐巾纸），但如果没有有效的匹配，语义搜索仍然会将其与一个无关的候选项匹配。根据经验，使用**余弦相似度阈值**来选择有效的匹配是一种糟糕的方法。相反，我将再次使用LLM来验证数据。
 - en: 3\. Select correct complements using Chain-of-DataFrame
+  id: totrans-45
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3\. 使用数据框链（Chain-of-DataFrame）选择正确的补充产品
 - en: The goal is now to validate the matching of the previous step. My first attempts
     to match the products recommended by an LLM were frustrated by the lack of coherence
     in the output. Though being a 70B model, when I was passing in the prompt a list
     of products to match, the output was less than desirable (with combinations of
     errors in the formatting and highly unrealistic output).
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在的目标是验证上一步的匹配结果。我第一次尝试将LLM推荐的产品进行匹配时，由于输出缺乏一致性，我感到非常沮丧。尽管是一个70B的模型，当我传入一个待匹配的产品列表时，输出结果却不尽如人意（格式上有错误，并且输出非常不现实）。
 - en: 'However, I have noticed that by inputting a list of products and asking the
     model to **reason on each sample** and **output a score (0 or 1)**: (following
     the format of a pandas dataframe and applying a transformation to a single column),
     the model is much more reliable (in terms of format and output). I call this prompting
     paradigm Chain-of-Dataframe, in reference to the well-known pandas data structure:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，我注意到，通过输入一系列产品并要求模型对每个样本进行**推理**并**输出一个分数（0或1）**：（遵循pandas数据框的格式，并对单列应用转换），模型在格式和输出上要可靠得多。我称这种提示方法为数据框链（Chain-of-Dataframe），这是对广为人知的pandas数据结构的参考：
 - en: '![](../Images/f8d446fb66c0b5aec8834c30ca220621.png)'
+  id: totrans-48
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f8d446fb66c0b5aec8834c30ca220621.png)'
 - en: Chain-of-DataFrame, Image by author
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据框链（Chain-of-DataFrame），图片来源：作者
 - en: 'To give you an idea of the Chain-of-Dataframe prompting. In the following example,
     the **{product_name}** is coca-cola, while the **{complementary_list}** is the
     **column called recommended_product** we can see in the image below:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了给你展示数据框链提示的思路。在下面的示例中，**{product_name}** 是可口可乐（Coca-Cola），而**{complementary_list}**
+    则是下图中我们可以看到的名为“recommended_product”的**列**：
 - en: '[PRE0]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The output is a multidimensional list that can be parsed easily and immediately
     converted again into a **pandas dataframe**.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出是一个多维列表，可以轻松解析，并立即转换回**pandas数据框**。
 - en: '![](../Images/95385a6ee7acf88510883bae38ad20e7.png)'
+  id: totrans-53
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/95385a6ee7acf88510883bae38ad20e7.png)'
 - en: 'Chain-of-Dataframe output, Image by author: Michelangiolo Mazzeschi'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据框链输出（Chain-of-Dataframe），图片来源：作者：Michelangiolo Mazzeschi
 - en: Notice the **reasoning** and **score** columns generated by the model to find
     the **best complementary products**. With this last step, we have been able to
     filter out most of the irrelevant matches.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意模型生成的**推理**和**分数**列，用于找到**最佳补充产品**。通过这一步骤，我们能够筛选出大多数无关的匹配项。
 - en: '***The algorithm may look similar to [CHAIN-OF-TABLE: EVOLVING TABLES IN THE
     REASONING CHAIN FOR TABLE UNDERSTANDING](https://arxiv.org/pdf/2401.04398), but
     I deem the one proposed above is much simpler and uses a different structure.
     Feel free to comment if you think otherwise.'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '***该算法可能看起来与[CHAIN-OF-TABLE: EVOLVING TABLES IN THE REASONING CHAIN FOR TABLE
+    UNDERSTANDING](https://arxiv.org/pdf/2401.04398)相似，但我认为上面提出的算法要简单得多，并使用了不同的结构。如果你有不同的看法，欢迎评论。'
 - en: '4\. Dealing with little data: Nearest Substitute Filling'
+  id: totrans-57
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 4\. 处理少量数据：最近替代品填充
 - en: There is **one last issue we need to address**. It is likely that, due to the
     lack of data, the number of recommended products is minimal. In the example above,
     we can recommend 6 complementary products, but there might be cases where we can
     only recommend 2 or 3\. How can we improve the user experience, and expand the
     number of valid recommendations, given the limitations imposed by our data?
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 有**一个最后需要解决的问题**。由于数据不足，推荐的产品数量可能非常少。在上面的示例中，我们可以推荐 6 个互补产品，但可能会出现只推荐 2 或 3
+    个的情况。在数据受限的情况下，我们如何改善用户体验，并扩展有效推荐的数量呢？
 - en: '![](../Images/c5c2160c9515207737bd2e2a01c2f5bf.png)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c5c2160c9515207737bd2e2a01c2f5bf.png)'
 - en: Nearest Substitute Filling, Image by author
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 最近替代品填充，图片来源：作者
 - en: One solution that came to mind is, as usual, a simple one. The output from zeroCPR
     are all complementary products (the first row of the image you can see above).
     To fill in missing recommendations, we can find k substitutes of each complementary
     product through semantic similarity.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 我想到的一个解决方案，像往常一样，十分简单。zeroCPR 的输出是所有互补产品（如上图中的第一行所示）。为了填补缺失的推荐项，我们可以通过语义相似性找到每个互补产品的
+    k 个替代品。
 - en: Running the zeroCPR engine
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 运行 zeroCPR 引擎
 - en: 'You can refer to the following [EXAMPLE NOTEBOOK](https://github.com/atlantis-nova/zeroCPR/blob/main/notebooks/example_notebook.ipynb)
     to run the code smoothly: clone the full repository maintain the file structure,
     and the notebook should run adjusting to the correct path.'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以参考以下[示例笔记本](https://github.com/atlantis-nova/zeroCPR/blob/main/notebooks/example_notebook.ipynb)来顺利运行代码：克隆整个代码库并保持文件结构，笔记本应当自动调整至正确路径并运行。
 - en: In the repository, I am using the product list obtained from the [following
     Kaggle dataset](https://www.kaggle.com/datasets/ramzanzdemir/online-retail-gift-products).
     The more products there are in your list, the more the search will have a chance
     to be accurate. For now, the library only supports [GroqCloud](https://groq.com/).
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个代码库中，我使用了来自[以下 Kaggle 数据集](https://www.kaggle.com/datasets/ramzanzdemir/online-retail-gift-products)的产品列表。列表中的产品越多，搜索准确的机会就越大。目前，库仅支持[GroqCloud](https://groq.com/)。
 - en: Also, do recall that the framework performs well with a 70B model, and has not
     been designed or tested to match in performance with small language models (ex.
     llama3-8B).
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 同时，请记住，框架在 70B 模型上表现良好，并没有设计或测试以与小型语言模型（例如 llama3-8B）在性能上匹配。
 - en: '[PRE1]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: The next step is preparing a list of products (in the format of a python list).
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步是准备一个产品列表（以 Python 列表格式）。
 - en: '[PRE2]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'The library utilizes [sentence-transformers](https://sbert.net/) to encode
     the list into vectors, so you won’t have to implement this feature yourself:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 该库利用了[sentence-transformers](https://sbert.net/)来将列表编码为向量，因此您无需自己实现此功能：
 - en: '[PRE3]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Finding complementaries of a single product
+  id: totrans-71
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 查找单个产品的互补项
 - en: This function has been built to test the performance of the engine on a single
     product (a very inexpensive test, but with impressive results,
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个功能是为了测试引擎在单个产品上的表现（这是一个非常廉价的测试，但结果令人印象深刻）。
 - en: '[PRE4]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '![](../Images/95385a6ee7acf88510883bae38ad20e7.png)'
+  id: totrans-74
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/95385a6ee7acf88510883bae38ad20e7.png)'
 - en: complementary products of a single item, Image by author
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 单个商品的互补产品，图片来源：作者
 - en: Finding complementaries of a list
+  id: totrans-76
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 查找列表的互补项
 - en: The core of the entire library is contained in this function. The code runs
     the previous function on a list (it could be 10, or even 1000 products), and builds
     a dataframe with all complementaries. The reason this function differs from the
     previous one is not only that it can take a list as input (otherwise we could
     have simply used a for cycle on the previous library).
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 整个库的核心包含在这个函数中。该代码对一个列表运行前述的功能（它可以包含 10 个，甚至 1000 个产品），并构建一个包含所有互补产品的数据框。之所以这个函数与前一个不同，不仅因为它可以接受列表作为输入（否则我们可以简单地在前一个库中使用一个
+    for 循环）。
 - en: '[PRE5]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Because we are dealing with a LLM, the process sometimes can fail: we cannot
     let this inconvenience break the code. The function is designed to run an iterative
     process of trial and error for each sample. As you can see from the output, when
     trying to find complementaries for BLACK GEMSTONE BRACELET, the first iteration
     was a fail (may have been because of **a wrong parsing**, or maybe **a HTTPS request
     failure**).'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们在处理大型语言模型（LLM），这个过程有时可能会失败：我们不能让这个不便打破代码。这个函数被设计为对每个样本进行反复试验和错误的迭代过程。正如你从输出中看到的，当尝试为“黑色宝石手链”寻找互补产品时，第一次迭代失败了（可能是因为**解析错误**，或者可能是**HTTPS请求失败**）。
 - en: The pipeline is designed to try a maximum of 5 times before giving up on a product
     and proceeding to the next one.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 该管道被设计为在放弃一个产品并继续下一个之前，最多尝试5次。
 - en: '![](../Images/3668b347f4bdd5d07bc505ff3f5094ea.png)'
+  id: totrans-81
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3668b347f4bdd5d07bc505ff3f5094ea.png)'
 - en: 'Final output: complementary list of inputted products, Image by author'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终输出：输入产品的互补列表，图片来自作者
 - en: Immediately at the end of this process, I am saving the output dataframe into
     a file.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个过程的结束时，我将输出的数据框保存到一个文件中。
 - en: '[PRE6]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Enjoy!
+  id: totrans-85
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 享受吧！
 - en: This library is an attempt to allow for the search for complementary products
     with a lack of data, which is a common problem in emerging businesses. In combination
     with its main goal, it also shows how Large Language Models can be used on structured
     data without resulting in tedious prompt tuning.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个库旨在解决在缺乏数据的情况下寻找互补产品的问题，这是新兴企业中常见的难题。结合其主要目标，它还展示了如何在结构化数据上使用大型语言模型，而不需要繁琐的提示调优。
 - en: There is a huge disparity separating the businesses that own data from the ones
     that just started. The goal of this class of algorithms is to ameliorate this
     discrepancy, allowing even the small startup to access enterprise-tier technology.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 拥有数据的企业与刚刚起步的企业之间存在巨大的差距。这类算法的目标是缓解这种差异，甚至让小型初创公司也能访问到企业级技术。
 - en: This is one of my first open-source libraries based on one of my latest experiments.
     With some luck, this library can grow to reach a bigger audience and grow accordingly.
     I hope you enjoy the article, and that the code provided will serve you well.
     Godspeed!
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我基于最新实验之一开发的第一个开源库之一。带着一些好运，这个库有可能成长为一个更大的项目，吸引更多用户。我希望你喜欢这篇文章，且提供的代码能为你提供帮助。祝你好运！

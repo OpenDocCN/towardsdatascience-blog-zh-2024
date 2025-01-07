@@ -1,189 +1,288 @@
 - en: Better A/B Testing with Survival Analysis
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用生存分析改善 A/B 测试
 - en: 原文：[https://towardsdatascience.com/better-a-b-testing-with-survival-analysis-6205c3a2dc51?source=collection_archive---------12-----------------------#2024-07-31](https://towardsdatascience.com/better-a-b-testing-with-survival-analysis-6205c3a2dc51?source=collection_archive---------12-----------------------#2024-07-31)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/better-a-b-testing-with-survival-analysis-6205c3a2dc51?source=collection_archive---------12-----------------------#2024-07-31](https://towardsdatascience.com/better-a-b-testing-with-survival-analysis-6205c3a2dc51?source=collection_archive---------12-----------------------#2024-07-31)
 - en: '*When running experiments — don’t forget to bring your survival kit*'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '*进行实验时——别忘了带上你的生存工具包*'
 - en: '[](https://iyarlin.medium.com/?source=post_page---byline--6205c3a2dc51--------------------------------)[![Iyar
     Lin](../Images/8d27b185b273b7ea035250cdbd3eddbf.png)](https://iyarlin.medium.com/?source=post_page---byline--6205c3a2dc51--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6205c3a2dc51--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6205c3a2dc51--------------------------------)
     [Iyar Lin](https://iyarlin.medium.com/?source=post_page---byline--6205c3a2dc51--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://iyarlin.medium.com/?source=post_page---byline--6205c3a2dc51--------------------------------)[![Iyar
+    Lin](../Images/8d27b185b273b7ea035250cdbd3eddbf.png)](https://iyarlin.medium.com/?source=post_page---byline--6205c3a2dc51--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6205c3a2dc51--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6205c3a2dc51--------------------------------)
+    [Iyar Lin](https://iyarlin.medium.com/?source=post_page---byline--6205c3a2dc51--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6205c3a2dc51--------------------------------)
     ·5 min read·Jul 31, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6205c3a2dc51--------------------------------)
+    ·阅读时间：5分钟·2024年7月31日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/56414e53785ef2532485fc1ca1f6cf4b.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/56414e53785ef2532485fc1ca1f6cf4b.png)'
 - en: Image by author, using DALL-E 3
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者，使用 DALL-E 3
 - en: I’ve already made the case in several blog posts ([Here](https://iyarlin.github.io/2022/06/08/better_churn_modeling/),
     [here](https://iyarlin.github.io/2022/10/31/better_churn_modeling_part_2/) and
     [here](https://www.linkedin.com/pulse/better-churn-prediction-part-3-iyar-lin-ov5af/))
     that using survival analysis can improve churn prediction.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在几篇博客中已经阐述过这个观点（[这里](https://iyarlin.github.io/2022/06/08/better_churn_modeling/)、[这里](https://iyarlin.github.io/2022/10/31/better_churn_modeling_part_2/)
+    和 [这里](https://www.linkedin.com/pulse/better-churn-prediction-part-3-iyar-lin-ov5af/)），即使用生存分析可以改善流失预测。
 - en: 'In this blog post I’ll show another use case where survival analysis can improve
     on common practices: A/B testing!'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇博客中，我将展示生存分析如何在常见的实践中发挥作用的另一个案例：A/B 测试！
 - en: The problems with common A/B testing practices
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 常见 A/B 测试实践中的问题
 - en: Usually when running an A/B test analysts assign users randomly to variants
     over time and measure conversion rate as the ratio between the number of conversions
     and the number of users in each variant. Users who just entered the test and those
     who are in the test for 2 weeks get the same weight.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常在进行 A/B 测试时，分析师会将用户随机分配到不同的变体，并根据每个变体中的转化数量与用户数量的比例来衡量转化率。刚进入测试的用户和在测试中已有两周的用户会被赋予相同的权重。
 - en: This can be enough for cases where a conversion either happens or not within
     a short time frame after assignment to a variant (e.g. Finishing an on-boarding
     flow).
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法对于那些在分配到变体后短时间内发生转化或不发生转化的情况（例如完成入职流程）是足够的。
 - en: There are however many instances where conversions are spread over a longer
     time frame. One example would be first order after visiting a site landing page.
     Such conversions may happen within minutes, but a large portion could still happen
     days after the first visit.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，很多时候转化是分布在较长的时间框架内。例如，第一次访问网站着陆页后的首次订单。这样的转化可能在几分钟内发生，但很大一部分可能会在首次访问后几天发生。
 - en: In such cases the business KPIs are usually “bounded” to a certain period —
     e.g. “conversion within 7 days” or “churn within 1 month”.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，业务 KPI 通常会被“限定”在某个特定的时间段内——例如，“7天内的转化”或“1个月内的流失”。
 - en: 'In those instances measuring conversions without considering their timing has
     2 major flaws:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这些情况下，不考虑时间因素地衡量转化率有两个主要缺陷：
 - en: It makes the statistic we’re measuring unintelligible — Average conversions
     at any point in time does not translate to any bounded metric. In fact as the
     test keeps running — conversion rates will increase just because users get more
     time to convert. The experiment results will be thus hard to relate to the business
     KPIs.
+  id: totrans-16
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它使我们所测量的统计量变得难以理解——任何时间点的平均转换率无法转换为任何有界的度量。事实上，随着测试的继续，转换率将会增加，仅仅是因为用户有更多的时间进行转换。因此，实验结果将难以与业务KPI关联。
 - en: It discards the timing information which could lead to reduced power compared
     with methods that do take conversion timing into account.
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 它丢弃了可能影响结果的时间信息，相比于考虑了转换时间的其他方法，这可能导致功效降低。
 - en: 'To demonstrate point #2 we’ll run a small simulation study'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了展示第2点，我们将运行一个小的模拟研究
 - en: We’ll have users join the experiment randomly over a 30 day period. Users’ time
     to convert will be simulated from a Weibull distribution with scale 𝜎=30,000,
     𝛼_ctrl=0.18 for the control group and 𝛼_trt=0.157 for the treatment group.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将让用户在30天内随机加入实验。用户的转换时间将从Weibull分布中模拟，规模参数𝜎=30,000，控制组的𝛼_ctrl=0.18，处理组的𝛼_trt=0.157。
 - en: 'Below are the corresponding survival curves:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是对应的生存曲线：
 - en: '[PRE0]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '![](../Images/5692debc5db3f2bcc1739bf3a5e29f62.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5692debc5db3f2bcc1739bf3a5e29f62.png)'
 - en: Image by author
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: Assuming we’re interested with conversions within 7 days, the true (unknown)
     conversion rate in the control group is 19.9% and in the treatment is 23.6%.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们关注的是7天内的转换，控制组的真实（未知）转换率为19.9%，而处理组的转换率为23.6%。
 - en: 'Below is the function which will generate the simulation data:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是生成模拟数据的函数：
 - en: '[PRE1]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'To demonstrate the benefits of using survival in A/B testing we’ll compare
     the power of 3 test statistics:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了展示在A/B测试中使用生存分析的好处，我们将比较3种检验统计量的功效：
 - en: T-test on conversions (the common procedure)
+  id: totrans-28
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 转换的T检验（常见程序）
 - en: T-test on 7 day conversion (estimated using a Kaplan-Meier curve)
+  id: totrans-29
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 基于7天转换的T检验（使用Kaplan-Meier曲线估算）
 - en: Peto & Peto modification of the Gehan-Wilcoxon test
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Peto & Peto修改版的Gehan-Wilcoxon检验
 - en: 'Below is the code that implements the above:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是实现上述内容的代码：
 - en: '[PRE2]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Before measuring power let’s verify our statistics satisfy the desired false
     positive rate 𝛼=0.05 (5%) when both variants have the same conversion rates:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 在衡量功效之前，我们需要验证我们的统计量在两个变体转换率相同的情况下，是否满足期望的假阳性率𝛼=0.05（5%）：
 - en: '[PRE3]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '![](../Images/3a3df2b9074fe78e55a53f0f51b9f3fe.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3a3df2b9074fe78e55a53f0f51b9f3fe.png)'
 - en: Image by author
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: 'Next, let’s examine power:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们来检查功效：
 - en: '[PRE4]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '![](../Images/c43d8ca5d22569d3687844f0b084d3e2.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c43d8ca5d22569d3687844f0b084d3e2.png)'
 - en: Image by author
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: While the T-test on KM 7 day conversion relates better to business KPIs than
     the T-test on conversions (the common procedure), it is only marginally more powerful.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然基于Kaplan-Meier曲线的7天转换T检验比常规的转换T检验（常见程序）更能与业务KPI相关，但其功效提升仅为边际性。
 - en: The modified Gehan-Wilcoxon statistic on the other hand yields a substantial
     uplift in power, while only weakly relating to the business KPIs like the regular
     conversions T-test.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，修改版的Gehan-Wilcoxon统计量显著提升了功效，同时仅与业务KPI（如常规的转换T检验）有较弱的相关性。
 - en: It should be noted that the power gains vary somewhat according to the point
     compared on the survival curve, the actual survival curve shape, experiment duration
     etc.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要注意的是，功效提升的程度会根据在生存曲线上比较的点、实际的生存曲线形状、实验持续时间等因素有所不同。
 - en: In a future post I hope to further explore this topic over a wider set of scenarios
     and test statistics (The R [ComparisonSurv](https://cran.r-project.org/web/packages/ComparisonSurv/index.html?trk=article-ssr-frontend-pulse_little-text-block)
     package looks promising).
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 在未来的文章中，我希望在更广泛的场景和测试统计量下进一步探讨这个话题（R的[ComparisonSurv](https://cran.r-project.org/web/packages/ComparisonSurv/index.html?trk=article-ssr-frontend-pulse_little-text-block)包看起来很有前景）。
 - en: When doing A/B testing in scenarios where time to convert varies — it’s often
     useful to apply survival analysis to take advantage of the time dimension. Either
     compare a point of interest on the survival curve to make the result relate directly
     to the business KPIs, or use the modified Gehan-Wilcoxon statistic statistic for
     improved power.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 在进行A/B测试时，如果转换时间有所不同——通常应用生存分析以利用时间维度是非常有用的。可以比较生存曲线上的某个兴趣点，使结果能够直接与业务KPI相关，或者使用修改版的Gehan-Wilcoxon统计量以提高功效。
 - en: '*Originally published at* [*https://www.linkedin.com*](https://www.linkedin.com/pulse/better-ab-testing-survival-analysis-iyar-lin-o5cpf/?trackingId=fH3Lxwa%2FSEGg4WIp6DBomQ%3D%3D)*.*'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '*最初发布于* [*https://www.linkedin.com*](https://www.linkedin.com/pulse/better-ab-testing-survival-analysis-iyar-lin-o5cpf/?trackingId=fH3Lxwa%2FSEGg4WIp6DBomQ%3D%3D)*.*'

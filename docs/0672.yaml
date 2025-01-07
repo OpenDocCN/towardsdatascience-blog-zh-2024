@@ -1,65 +1,99 @@
 - en: 'System Design: Consistent Hashing'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 系统设计：一致性哈希
 - en: 原文：[https://towardsdatascience.com/system-design-consistent-hashing-43ddf48d2d32?source=collection_archive---------1-----------------------#2024-03-13](https://towardsdatascience.com/system-design-consistent-hashing-43ddf48d2d32?source=collection_archive---------1-----------------------#2024-03-13)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/system-design-consistent-hashing-43ddf48d2d32?source=collection_archive---------1-----------------------#2024-03-13](https://towardsdatascience.com/system-design-consistent-hashing-43ddf48d2d32?source=collection_archive---------1-----------------------#2024-03-13)
 - en: Unlocking the power of efficient data partitioning in distributed databases
     like Cassandra and Dynamo DB.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 解锁分布式数据库中高效数据分区的力量，如Cassandra和Dynamo DB。
 - en: '[](https://medium.com/@slavahead?source=post_page---byline--43ddf48d2d32--------------------------------)[![Vyacheslav
     Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--43ddf48d2d32--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--43ddf48d2d32--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--43ddf48d2d32--------------------------------)
     [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--43ddf48d2d32--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@slavahead?source=post_page---byline--43ddf48d2d32--------------------------------)[![Vyacheslav
+    Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--43ddf48d2d32--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--43ddf48d2d32--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--43ddf48d2d32--------------------------------)
+    [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--43ddf48d2d32--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43ddf48d2d32--------------------------------)
     ·7 min read·Mar 13, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43ddf48d2d32--------------------------------)
+    ·7分钟阅读·2024年3月13日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/8c8018c09601a9fce07a351aebeee8eb.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8c8018c09601a9fce07a351aebeee8eb.png)'
 - en: Introduction
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍
 - en: We are living in a world where data is massively generated every day. In large
     corporations, it is practically impossible to store all the data on a single server.
     That is why we need **horizontal scaling** where every data part is stored on
     a separate server.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们生活在一个每天大量生成数据的世界。在大型企业中，几乎不可能将所有数据存储在一台服务器上。这就是为什么我们需要**水平扩展**，即将每部分数据存储在不同的服务器上。
 - en: Contrary to **vertical scaling** where we can simply store all the data in a
     single place, with horizontal scaling, it is crucial to organise storage in a
     manner that would result in rapid access to the data on different servers. By
     understanding the performance disadvantages of the naive system implementation,
     we will then design a resilient system that will alleviate the mentioned problems.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 与**垂直扩展**（vertical scaling）不同，垂直扩展只需将所有数据存储在单一位置，而在水平扩展（horizontal scaling）中，必须以一种能够在不同服务器上快速访问数据的方式组织存储。通过理解简单系统实现的性能缺陷，我们将设计一个具有弹性的系统，以缓解这些问题。
 - en: In system design, the principle we will be using is known as **consistent hashing**.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在系统设计中，我们将使用的原则称为**一致性哈希**（consistent hashing）。
 - en: Problem
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 问题
 - en: 'Imagine we have n data objects that need to be stored across k different servers.
     The configuration of servers can change over time:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们有n个数据对象需要存储在k台不同的服务器上。服务器的配置可能会随着时间的推移发生变化：
 - en: Any server can be shut down;
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 任何服务器都可以关闭；
 - en: A new server can be added to the system.
+  id: totrans-14
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可以向系统中添加一台新服务器。

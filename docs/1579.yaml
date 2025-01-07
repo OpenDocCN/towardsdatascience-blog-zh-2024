@@ -1,62 +1,95 @@
 - en: Improving RAG Performance Using Rerankers
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用重排序器提升 RAG 性能
 - en: 原文：[https://towardsdatascience.com/improving-rag-performance-using-rerankers-6adda61b966d?source=collection_archive---------9-----------------------#2024-06-25](https://towardsdatascience.com/improving-rag-performance-using-rerankers-6adda61b966d?source=collection_archive---------9-----------------------#2024-06-25)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/improving-rag-performance-using-rerankers-6adda61b966d?source=collection_archive---------9-----------------------#2024-06-25](https://towardsdatascience.com/improving-rag-performance-using-rerankers-6adda61b966d?source=collection_archive---------9-----------------------#2024-06-25)
 - en: A tutorial on using rerankers to improve your RAG pipeline
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 关于如何使用重排序器来改善您的 RAG 流水线的教程
 - en: '[](https://medium.com/@het.trivedi05?source=post_page---byline--6adda61b966d--------------------------------)[![Het
     Trivedi](../Images/f6f11a66f60cacc6b553c7d1682b2fc6.png)](https://medium.com/@het.trivedi05?source=post_page---byline--6adda61b966d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6adda61b966d--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6adda61b966d--------------------------------)
     [Het Trivedi](https://medium.com/@het.trivedi05?source=post_page---byline--6adda61b966d--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@het.trivedi05?source=post_page---byline--6adda61b966d--------------------------------)[![Het
+    Trivedi](../Images/f6f11a66f60cacc6b553c7d1682b2fc6.png)](https://medium.com/@het.trivedi05?source=post_page---byline--6adda61b966d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6adda61b966d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6adda61b966d--------------------------------)
+    [Het Trivedi](https://medium.com/@het.trivedi05?source=post_page---byline--6adda61b966d--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6adda61b966d--------------------------------)
     ·10 min read·Jun 25, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6adda61b966d--------------------------------)
+    ·10分钟阅读·2024年6月25日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/768d657abb899c5596fa24028e1a7b70.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/768d657abb899c5596fa24028e1a7b70.png)'
 - en: Created by author using Stable Diffusion XL
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者使用 Stable Diffusion XL 创建
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 介绍
 - en: RAG is one of the first tools an engineer will try out when building an LLM
     application. It’s easy enough to understand and simple to use. The primary motive
     when using vector search is to gather enough relevant context so that the output
     of the LLM is of higher quality.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: RAG 是工程师在构建 LLM 应用程序时最早尝试的工具之一。它足够易于理解且简单易用。使用向量搜索的主要动机是收集足够相关的上下文，以便 LLM 的输出质量更高。
 - en: Although vector search can perform quite well out of the box, there are still
     many cases where the results don’t hit the mark. For example, with vector embedding
     the `top k` results might not contain all the relevant information. To compensate
     for this, `top k` can be set to a larger value. However, this comes with a new
     set of problems.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管向量搜索开箱即用时表现相当不错，但仍然存在许多结果不尽如人意的情况。例如，在向量嵌入中，`top k` 的结果可能并不包含所有相关信息。为了解决这个问题，可以将
+    `top k` 设置为更大的值。然而，这也带来了新的问题。
 - en: '![](../Images/a86a8eea58ba77bf1ab019498c6156ce.png)'
+  id: totrans-11
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a86a8eea58ba77bf1ab019498c6156ce.png)'
 - en: The number of documents exceeds the size of the LLM context window
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 文档数量超过了 LLM 上下文窗口的大小
 - en: Even though LLMs support larger context windows, there is only so much information
     you can fit. The higher the `top k` value, the more difficult it becomes to fit
     everything into the context. Although the embeddings are sorted by cosine similarity,
     this doesn’t guarantee that the most pertinent content will be at the top. This
     is partly because vector search typically relies on pre-computed embeddings, which
     may not…
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管 LLM 支持更大的上下文窗口，但仍然有信息量的限制。`top k` 值越高，将所有信息适配到上下文中的难度就越大。尽管嵌入是按余弦相似度排序的，但这并不能保证最相关的内容排在最前面。这部分是因为向量搜索通常依赖预先计算的嵌入，而这些嵌入可能并不…

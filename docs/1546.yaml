@@ -1,281 +1,418 @@
 - en: Optimizing Sigma Rules in Spark with the Aho-Corasick Algorithm
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用Aho-Corasick算法优化Spark中的Sigma规则
 - en: 原文：[https://towardsdatascience.com/optimizing-sigma-rules-in-spark-with-the-aho-corasick-algorithm-52ebd5d8105e?source=collection_archive---------9-----------------------#2024-06-20](https://towardsdatascience.com/optimizing-sigma-rules-in-spark-with-the-aho-corasick-algorithm-52ebd5d8105e?source=collection_archive---------9-----------------------#2024-06-20)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/optimizing-sigma-rules-in-spark-with-the-aho-corasick-algorithm-52ebd5d8105e?source=collection_archive---------9-----------------------#2024-06-20](https://towardsdatascience.com/optimizing-sigma-rules-in-spark-with-the-aho-corasick-algorithm-52ebd5d8105e?source=collection_archive---------9-----------------------#2024-06-20)
 - en: Extending Spark for improved performance in handling multiple search terms
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 扩展Spark以提高处理多个搜索词的性能
 - en: '[](https://medium.com/@jean-claude.cote?source=post_page---byline--52ebd5d8105e--------------------------------)[![Jean-Claude
     Cote](../Images/aea2df9c7b95fc85cc336f64d64b0a76.png)](https://medium.com/@jean-claude.cote?source=post_page---byline--52ebd5d8105e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--52ebd5d8105e--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--52ebd5d8105e--------------------------------)
     [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--52ebd5d8105e--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@jean-claude.cote?source=post_page---byline--52ebd5d8105e--------------------------------)[![Jean-Claude
+    Cote](../Images/aea2df9c7b95fc85cc336f64d64b0a76.png)](https://medium.com/@jean-claude.cote?source=post_page---byline--52ebd5d8105e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--52ebd5d8105e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--52ebd5d8105e--------------------------------)
+    [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--52ebd5d8105e--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--52ebd5d8105e--------------------------------)
     ·8 min read·Jun 20, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--52ebd5d8105e--------------------------------)
+    ·8分钟阅读·2024年6月20日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/98074b60c52576606b11663ca7212313.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/98074b60c52576606b11663ca7212313.png)'
 - en: Photo by Aditya Chinchure on Unsplash
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自Unsplash上的Aditya Chinchure
 - en: During the process of deploying our intrusion detection system into production
     at [CCCS](https://www.cyber.gc.ca/en), we observed that many of the SigmaHQ rules
     use very sizable lists of search patterns. These lists are used to test if a `CommandLine`contains
     a given string or if the `CommandLine`starts-with or ends-with a given substring.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在将我们的入侵检测系统部署到[CCCS](https://www.cyber.gc.ca/en)的生产环境时，我们观察到许多SigmaHQ规则使用了非常庞大的搜索模式列表。这些列表用于测试`CommandLine`是否包含特定字符串，或者`CommandLine`是否以某个子字符串开始或结束。
 - en: 'We were particularly interested in investigating the rules involving “contains”
     conditions, as we suspected that these conditions might be time-consuming for
     Spark to evaluate. Here is an example of a typical Sigma rule:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们特别感兴趣的是研究涉及“包含”条件的规则，因为我们怀疑这些条件可能会让Spark的评估变得耗时。以下是一个典型的Sigma规则示例：
 - en: '[PRE0]'
+  id: totrans-10
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The complete Suspicious Program Names rule can be found here
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 完整的可疑程序名称规则可以在这里找到
 - en: '[https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_susp_progname.yml](https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_susp_progname.yml)'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_susp_progname.yml](https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_susp_progname.yml)'
 - en: The rule illustrates the use of `CommandLine|contains` and of `Image|endswith`.
     Some Sigma rules have hundreds of search terms under a `<field>|contains`condition.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 该规则说明了如何使用`CommandLine|contains`和`Image|endswith`。一些Sigma规则在`<field>|contains`条件下有成百上千的搜索词。
 - en: Applying Sigma Rules with Spark SQL
+  id: totrans-14
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在Spark SQL中应用Sigma规则
 - en: 'At [CCCS](https://www.cyber.gc.ca/en), we translate Sigma rules into executable
     Spark SQL statements. To do so we have extended the SQL Sigma compiler with a
     custom backend. It translates the above rule into a statement like this:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[CCCS](https://www.cyber.gc.ca/en)我们将Sigma规则转换为可执行的Spark SQL语句。为此，我们扩展了SQL
+    Sigma编译器，并加入了一个自定义后端。它将上述规则转换成如下语句：
 - en: '[PRE1]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: We run the above statement in a Spark Structured streaming job. In a single
     pass over the events Spark evaluates multiple (hundreds) of Sigma rules. The `sigma_rules_map`
     column holds the evaluation results of all these rules. Using this map we can
     determine which rule is a hit and which one is not.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在一个Spark结构化流处理作业中运行上述语句。在对事件进行单次扫描时，Spark评估了多个（数百个）Sigma规则。`sigma_rules_map`列保存了所有这些规则的评估结果。通过这个映射，我们可以确定哪些规则是命中的，哪些不是。
 - en: As we can see, the rules often involve comparing event’s attribute, such as
     `CommandLine`, to multiple string patterns.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们所看到的，这些规则通常涉及将事件的属性（如`CommandLine`）与多个字符串模式进行比较。
 - en: Some of these tests are exact matches, such as `CommandLine = ‘something’`.
     Others use `startswith`and are rendered as `Imagepath LIKE ‘%\\poc.exe’`.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中一些测试是精确匹配的，如`CommandLine = ‘something’`。其他则使用`startswith`，并呈现为`Imagepath LIKE
+    ‘%\\poc.exe’`。
 - en: '`Equals`, `startswith`, and `endswith` are executed very rapidly since these
     conditions are all anchored at a particular position in the event’s attribute.'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Equals`、`startswith`和`endswith`执行得非常快，因为这些条件都在事件的某个特定位置上锚定。'
 - en: However, tests like `contains` are rendered as `CommandLine LIKE ‘%hound.ps1%’`
     which requires Spark to scan the entire attribute to find a possible starting
     position for the letter ‘h’ and then check if it is followed by the letter ‘o’,
     ‘u’ etc.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，像`contains`这样的测试呈现为`CommandLine LIKE ‘%hound.ps1%’`，这需要Spark扫描整个属性，以找到字母‘h’的可能起始位置，然后检查它后面是否跟着字母‘o’、‘u’等。
 - en: Internally, Spark uses a `UTF8String` which grabs the first character, scans
     the buffer, and if it finds a match, goes on to compare the remaining bytes using
     the `matchAt` function. Here is the implementation of the `UTF8String.contains`
     function.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 在内部，Spark使用`UTF8String`，它抓取第一个字符，扫描缓冲区，如果找到匹配项，就继续使用`matchAt`函数比较剩余的字节。以下是`UTF8String.contains`函数的实现。
 - en: '[PRE2]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The `equals`, `startswith`, and `endswith` conditions also use the `matchAt`
     function but contrary to `contains` these conditions know where to start the comparison
     and thus execute very rapidly.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '`equals`、`startswith`和`endswith`条件也使用`matchAt`函数，但与`contains`不同，这些条件知道从哪里开始比较，因此执行速度非常快。'
 - en: To validate our assumption that `contains` condition is costly to execute we
     conducted a quick and simple experiment. We removed all the `contains` conditions
     for the Sigma rules to see how it would impact the overall execution time. The
     difference was significant and encouraged us to pursue the idea of implementing
     a custom Spark Catalyst function to handle `contains` operations involving large
     number of search terms.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了验证我们关于`contains`条件执行成本高的假设，我们进行了一个快速且简单的实验。我们删除了所有Sigma规则中的`contains`条件，看看这会如何影响整体执行时间。结果差异显著，这鼓励我们继续推进实现自定义Spark
+    Catalyst函数来处理涉及大量搜索词的`contains`操作的想法。
 - en: The Aho-Corasick Algorithm
+  id: totrans-26
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Aho-Corasick算法
 - en: A bit of research led us to the [Aho-Corasick algorithm](https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm)
     which seemed to be a good fit for this use case. The Aho-Corasick algorithm builds
     a prefix tree (a trie) and can evaluate many `contains` expressions in a single
     pass over the text to be tested.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些研究使我们找到了[Aho-Corasick算法](https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm)，它似乎非常适合这个用例。Aho-Corasick算法构建一个前缀树（字典树），并且可以在一次扫描要测试的文本时评估多个`contains`表达式。
 - en: Here is how to use the Aho-Corasick Java implementation from Robert Bor available
     on github here [https://github.com/robert-bor/aho-corasick](https://github.com/robert-bor/aho-corasick)
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是如何使用Robert Bor在GitHub上提供的Aho-Corasick Java实现：[https://github.com/robert-bor/aho-corasick](https://github.com/robert-bor/aho-corasick)
 - en: '[PRE3]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Designing a `aho_corasick_in` Spark Function
+  id: totrans-30
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设计一个`aho_corasick_in` Spark函数
 - en: 'Our function will need two things: the column to be tested and the search patterns
     to look for. We will implement a function with the following signature:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的函数需要两样东西：要测试的列和要查找的搜索模式。我们将实现一个具有以下签名的函数：
 - en: '[PRE4]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'We modified our CCCS Sigma compiler to produce SQL statements which use the
     `aho_corasick_in`function rather than producing multiple ORed LIKE predicates.
     In the output below, you will notice the use of the `aho_corasick_in` function.
     We pass in the field to be tested and an array of strings to search for. Here
     is the output of our custom compiler handling multiple `contains` conditions:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们修改了CCCS Sigma编译器，使其生成使用`aho_corasick_in`函数的SQL语句，而不是生成多个OR连接的LIKE谓词。在下面的输出中，您会注意到使用了`aho_corasick_in`函数。我们传递了要测试的字段和一个包含搜索词的字符串数组。以下是我们自定义编译器处理多个`contains`条件的输出：
 - en: '[PRE5]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Notice how the `aho_corasick_in` function receives two arguments: the first
     is a column, and the second is a string array. Let’s now actually implement the
     `aho_corasick_in`function.'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，`aho_corasick_in`函数接受两个参数：第一个是列，第二个是字符串数组。现在，让我们实际实现`aho_corasick_in`函数。
 - en: Implementing the Catalyst Function
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实现Catalyst函数
 - en: We did not find much documentation on how to implement Catalyst functions, so
     instead, we used the source code of existing functions as a reference. We took
     the [regexp(str, regexp)](https://spark.apache.org/docs/3.3.1/api/sql/index.html#regexp)
     function as an example because it pre-compiles it’s regexp pattern and then uses
     it when processing rows. This is similar to pre-building a Aho-Corasick trie and
     then applying it to every row.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们没有找到很多关于如何实现Catalyst函数的文档，因此，我们使用了现有函数的源代码作为参考。我们以[regexp(str, regexp)](https://spark.apache.org/docs/3.3.1/api/sql/index.html#regexp)函数为例，因为它会预编译其正则表达式模式，然后在处理行时使用该模式。这类似于预构建Aho-Corasick字典树，然后将其应用于每一行。
 - en: Our custom catalyst expression takes two arguments. It’s thus a `BinaryExpression`
     which has two fields which Spark named `left` and `right`. Our AhoCorasickIn constructor
     assigns the `text` column argument to `left` field and the `searches` string array
     to `right` field.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的自定义Catalyst表达式接受两个参数。因此，它是一个`BinaryExpression`，有两个字段，Spark将其命名为`left`和`right`。我们的AhoCorasickIn构造函数将`text`列参数赋值给`left`字段，将`searches`字符串数组赋值给`right`字段。
 - en: The other thing we do during the initialization of AhoCorasickIn is to evaluate
     the `cacheTrie` field. The evaluation tests if the `searches` argument is a foldable
     expression, i.e., a constant expression. If so, it evaluates it and expects it
     to be a string array, which it uses to call `createTrie(searches)`.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 在初始化AhoCorasickIn时，我们还会评估`cacheTrie`字段。该评估测试`searches`参数是否为可折叠表达式，即常量表达式。如果是，它会进行求值，并期望得到一个字符串数组，然后使用该数组调用`createTrie(searches)`。
 - en: The `createTrie` function iterates over the searches and adds them to the `trieBuilder`
     and finally builds an Aho-Corasick Trie.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '`createTrie`函数遍历搜索词并将它们添加到`trieBuilder`，最终构建出一个Aho-Corasick字典树。'
 - en: '[PRE6]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: The `nullSafeEval` method is the heart of the AhoCorasickIn. Spark calls the
     eval function for every row in the dataset. In `nullSafeEval`, we retrieve the
     `cacheTrie` and use it to test the `text` string argument.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '`nullSafeEval`方法是AhoCorasickIn的核心。Spark会为数据集中的每一行调用eval函数。在`nullSafeEval`中，我们检索`cacheTrie`并使用它来测试`text`字符串参数。'
 - en: Evaluating the Performance
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评估性能
 - en: To compare the performance of the `aho_corasick_in` function we wrote a small
     benchmarking script. We compared the performance of doing multiple `LIKE` operations
     versus a single `aho_corasick_in` call.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了比较`aho_corasick_in`函数的性能，我们编写了一个小型基准测试脚本。我们比较了执行多个`LIKE`操作与单个`aho_corasick_in`调用的性能。
 - en: '[PRE7]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Same experiment using `aho_corasick_in`:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`aho_corasick_in`的相同实验：
 - en: '[PRE8]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: We ran these two experiments (like vs aho_corasick_in) with a `text` column
     of 200 characters and varied the number of search terms. Here is a logarithmic
     plot comparing both queries.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们进行了这两个实验（like与aho_corasick_in），在一个包含200个字符的`text`列上，变化了搜索词的数量。下面是一个对数图，比较了这两个查询。
 - en: '![](../Images/94880875e041e434766c3b0228141742.png)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/94880875e041e434766c3b0228141742.png)'
 - en: Image by author
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片
 - en: This plot shows how performance degrades as we add more search terms to the
     “LIKE” query, while the query using `aho_corasick_in` function remains relatively
     constant as the number of search terms increases. At 100 search terms, the `aho_corasick_in`
     function runs five times faster than multiple LIKE statements.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 该图显示了随着我们向“LIKE”查询中添加更多搜索词，性能如何下降，而使用`aho_corasick_in`函数的查询在搜索词数量增加时保持相对稳定。在100个搜索词时，`aho_corasick_in`函数的运行速度比多个LIKE语句快五倍。
 - en: We find that using Aho-Corasick is only beneficial past 20 searches. This can
     be explained by the initial cost of building the trie. However, as the number
     of search terms increases, that up-front cost pays off. This contrasts with the
     LIKE expressions, where the more LIKE expressions we add, the more costly the
     query becomes.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们发现，使用Aho-Corasick只有在超过20个搜索时才有利。这可以通过构建字典树的初始成本来解释。然而，随着搜索词数量的增加，前期成本逐渐得到回报。这与LIKE表达式相反，增加更多LIKE表达式会使查询的成本变得更高。
 - en: Next, we set the number of search terms to 20 and varied the length of the `text`
     string. We observed that both the LIKE and `aho_corasick_in` function take about
     the same time across various string lengths. In both experiments the execution
     time is dependent on the length of the `text` string.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将搜索词的数量设置为 20，并改变 `text` 字符串的长度。我们观察到，在不同的字符串长度下，LIKE 函数和 `aho_corasick_in`
+    函数的耗时大致相同。在这两个实验中，执行时间取决于 `text` 字符串的长度。
 - en: '![](../Images/0b7c3144a9b0768d338cb65b0bdfaf48.png)'
+  id: totrans-54
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0b7c3144a9b0768d338cb65b0bdfaf48.png)'
 - en: Image by author
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: 'It’s important to note that the cost incurred to build the trie will depend
     on the number of Spark tasks in the query execution plan. Spark instantiates expressions
     (i.e.: instantiates new AhoCorasickIn objects) for every task in the execution
     plan. In other words, if your query uses 200 tasks, the AhoCorasickIn constructor
     will be called 200 times.'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要注意的是，构建字典树所产生的开销将取决于查询执行计划中的 Spark 任务数量。Spark 会为执行计划中的每个任务实例化表达式（即：为每个任务实例化新的
+    AhoCorasickIn 对象）。换句话说，如果你的查询使用了 200 个任务，那么 AhoCorasickIn 构造函数将被调用 200 次。
 - en: To summarize, the strategy to use will depend on the number of terms. We built
     this optimization into our Sigma compiler. Under a given threshold (say 20 terms)
     it renders LIKE statements and above this threshold it renders a query that uses
     the `aho_corasick_in` function.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结来说，使用的策略将取决于搜索词的数量。我们将这一优化集成到我们的 Sigma 编译器中。在给定的阈值下（例如 20 个词），它会使用 LIKE 语句；而超过这个阈值时，它则会使用
+    `aho_corasick_in` 函数进行查询。
 - en: Of course this threshold will be dependent on your actual data and on the number
     of tasks in your Spark execution plan.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，这个阈值将取决于你的实际数据以及 Spark 执行计划中的任务数量。
 - en: Our initial results, conducted on production data and real SigmaHQ rules, show
     that applying the `aho_corasick_in` function increases our processing rate (events
     per second) by a factor of 1.4x.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在生产数据和真实的 SigmaHQ 规则上进行的初步实验结果表明，应用 `aho_corasick_in` 函数可以将我们的处理速率（每秒事件数）提高
+    1.4 倍。
 - en: '![](../Images/1a337aa4c3759b640b8597dfd7a047af.png)'
+  id: totrans-60
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1a337aa4c3759b640b8597dfd7a047af.png)'
 - en: Image by author
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: Conclusion
+  id: totrans-62
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 结论
 - en: In this article, we demonstrated how to implement a native Spark function. This
     Catalyst expression leverages the Aho-Corasick algorithm, which can test many
     search terms simultaneously. However, as with any approach, there are trade-offs.
@@ -283,5 +420,8 @@
     when only a few search terms are used. Our compiler uses a threshold (number of
     search terms) to choose the optimal strategy, ensuring the most efficient query
     execution.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们展示了如何实现一个原生的 Spark 函数。这个 Catalyst 表达式利用了 Aho-Corasick 算法，可以同时测试多个搜索词。然而，和任何方法一样，它也有其权衡。使用
+    Aho-Corasick 需要构建一个字典树（前缀树），当仅使用少量搜索词时，这可能会导致性能下降。我们的编译器使用一个阈值（即搜索词的数量）来选择最优策略，从而确保查询执行的最高效率。

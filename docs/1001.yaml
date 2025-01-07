@@ -1,53 +1,81 @@
 - en: Merging tokens to accelerate LLM inference with SLERP
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 SLERP 合并标记以加速 LLM 推理
 - en: 原文：[https://towardsdatascience.com/merging-tokens-to-accelerate-llm-inference-with-slerp-38a32bf7f194?source=collection_archive---------9-----------------------#2024-04-19](https://towardsdatascience.com/merging-tokens-to-accelerate-llm-inference-with-slerp-38a32bf7f194?source=collection_archive---------9-----------------------#2024-04-19)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/merging-tokens-to-accelerate-llm-inference-with-slerp-38a32bf7f194?source=collection_archive---------9-----------------------#2024-04-19](https://towardsdatascience.com/merging-tokens-to-accelerate-llm-inference-with-slerp-38a32bf7f194?source=collection_archive---------9-----------------------#2024-04-19)
 - en: We can significantly accelerate LLMs next token generation by merging consecutive
     pairs of tokens using SLERP, reducing the computing power needed to perform the
     full prediction.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 我们可以通过使用 SLERP 合并连续的标记对，显著加速 LLM 下一标记的生成，从而减少进行完整预测所需的计算能力。
 - en: '[](https://medium.com/@sam.chaineau?source=post_page---byline--38a32bf7f194--------------------------------)[![Samuel
     Chaineau](../Images/9fcc6bac98b3089dc984c4e337083f07.png)](https://medium.com/@sam.chaineau?source=post_page---byline--38a32bf7f194--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--38a32bf7f194--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--38a32bf7f194--------------------------------)
     [Samuel Chaineau](https://medium.com/@sam.chaineau?source=post_page---byline--38a32bf7f194--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@sam.chaineau?source=post_page---byline--38a32bf7f194--------------------------------)[![Samuel
+    Chaineau](../Images/9fcc6bac98b3089dc984c4e337083f07.png)](https://medium.com/@sam.chaineau?source=post_page---byline--38a32bf7f194--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--38a32bf7f194--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--38a32bf7f194--------------------------------)
+    [Samuel Chaineau](https://medium.com/@sam.chaineau?source=post_page---byline--38a32bf7f194--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--38a32bf7f194--------------------------------)
     ·6 min read·Apr 19, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--38a32bf7f194--------------------------------)
+    ·6 分钟阅读·2024 年 4 月 19 日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/1d20ac9c439c47bb8dac7cc59881664d.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1d20ac9c439c47bb8dac7cc59881664d.png)'
 - en: Photo by [Martin Martz](https://unsplash.com/@martz90?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [Martin Martz](https://unsplash.com/@martz90?utm_source=medium&utm_medium=referral)
+    提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 'TL;DR:'
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: TL;DR：
 - en: This article presents a novel approach to accelerating Large Language Models
     (LLMs) inference by merging tokens using Spherical Linear Interpolation (SLERP).
     By reducing the sequence length while maintaining quality, this technique offers
     significant speed-ups in LLM inference, addressing the computational challenges
     posed by longer sequences. The method is still raw but highlights a dual world
     for LLM with one set up for training and one for predicting.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文介绍了一种通过使用球面线性插值（SLERP）合并标记来加速大型语言模型（LLM）推理的新方法。通过减少序列长度而保持质量，这项技术在 LLM 推理中提供了显著的速度提升，解决了较长序列带来的计算挑战。该方法仍然处于初步阶段，但揭示了
+    LLM 的双重世界：一个用于训练，另一个用于预测。
 - en: 'Background:'
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 背景：
 - en: LLMs have revolutionized natural language processing tasks by exhibiting remarkable
     generative abilities. However, their effectiveness comes at a cost — computational
     resources. As LLMs process longer sequences, the quadratic scaling of transformer
@@ -55,8 +83,11 @@
     this, such as caching and quantization, have limitations. Therefore, there is
     a need for innovative approaches to speed up LLM inference without compromising
     too much quality.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: LLM 已经通过展现出卓越的生成能力，彻底改变了自然语言处理任务。然而，它们的有效性是有代价的——计算资源。随着 LLM 处理更长的序列，变换器计算的二次扩展变得越来越难以承受。传统的缓解方法，如缓存和量化，存在一定的局限性。因此，迫切需要创新的方法来加速
+    LLM 推理，而不至于过多损害质量。
 - en: The current method to generate a token during inference is a brute force approach,
     essentially a transposition of the training methodology. While this methodology
     has proven effective for training, it may not be the most efficient for inference
@@ -65,129 +96,186 @@
     and further enhance the efficiency of LLMs. This highlights the importance of
     exploring alternative techniques to address the computational challenges faced
     by LLM inference.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 当前在推理过程中生成token的方法是一种蛮力法，本质上是训练方法的转置。虽然这种方法在训练中已被证明有效，但在推理任务中可能并不是最有效的。因此，有必要开发一种专门用于推理过程中生成token的新方法，从而优化过程并进一步提高大语言模型（LLM）的效率。这突显了探索替代技术以应对LLM推理所面临的计算挑战的重要性。
 - en: Recently, the mergekit library proposed to merge networks’ weights using the
     SLERP methods which tends to yield better results. Inspired by this work, I decided
     to see if could merge the tokens inside a sequence to produce a smaller sequence
     to process while predicting the next token.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 最近，mergekit库提出了使用SLERP方法合并网络权重，这通常能得到更好的结果。受到这一工作的启发，我决定尝试是否可以在一个序列中合并token，从而生成一个更小的序列，以便在预测下一个token时处理。
 - en: '![](../Images/1fcde1ba09eb3d7862d2b002b155125e.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1fcde1ba09eb3d7862d2b002b155125e.png)'
 - en: Vanilla generation vs merged one
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 普通生成与合并生成的对比
 - en: 'Merging Sequence with SLERP:'
+  id: totrans-16
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用SLERP合并序列：
 - en: 'The proposed method involves modifying the forward pass of LLMs to merge tokens
     using Spherical Linear Interpolation (SLERP), a technique borrowed from computer
     graphics and animation. Unlike simple averaging techniques, SLERP preserves the
     spherical aspects of token dimensions, offering a more nuanced interpolation.
     The merging procedure entails several steps to efficiently condense the input
     sequence:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 提出的这种方法涉及修改LLM的前向传播过程，通过球面线性插值（SLERP）合并token，这一技术借鉴自计算机图形学和动画制作。与简单的平均化技术不同，SLERP保留了token维度的球面特性，提供了更为精细的插值。合并过程包括几个步骤，用于高效地压缩输入序列：
 - en: '**Sequence Length Adjustment**:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '**序列长度调整**：'
 - en: 'Initially, the input sequence undergoes adjustments based on its length:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 最初，输入序列会根据其长度进行调整：
 - en: Sequences with a length less than 3 remain unchanged.
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 长度小于3的序列保持不变。
 - en: For odd-length sequences, two null tokens are added, one at the beginning and
     one at the end
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于奇数长度的序列，添加两个空token，一个放在开头，一个放在结尾
 - en: Even-length sequences receive an additional null token, positioned at the penultimate
     position.
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 偶数长度的序列会在倒数第二个位置添加一个空token。
 - en: By doing so, we ensure that the first and last token in the context are preserved.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样做的目的是确保上下文中的第一个和最后一个token能够得到保留。
 - en: '**Pair Formation:**'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '**对形成：**'
 - en: The adjusted sequence is then formatted into pairs of consecutive tokens. This
     process prepares the data for aggregation.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 调整后的序列将被格式化为一对对连续的token。这一过程为聚合做好准备。
 - en: '**Aggregation with SLERP:**'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '**使用SLERP进行聚合：**'
 - en: Each pair of tokens undergoes aggregation using SLERP, effectively reducing
     the sequence length by half (not exactly as we add and preserve some extra tokens).
     SLERP interpolates between the two vectors representing consecutive tokens. This
     creates a new vector.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 每对token都会通过SLERP进行聚合，实际上将序列长度减半（并不是完全减半，因为我们会添加并保留一些额外的token）。SLERP对代表连续token的两个向量进行插值，从而创建一个新的向量。
 - en: To do so efficiently, I recreated all the SLERP functions in native pytorch.
     However, the code might be under optimized.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了高效地完成这一任务，我重新创建了所有SLERP函数，并使用原生PyTorch实现。然而，代码可能尚未经过优化。
 - en: '**Layer Cutoff and Prompt Preservation:**'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '**层次切割和提示保留：**'
 - en: The merging process can occur at different levels of the model architecture,
     referred to as “layer cutoff.” Additionally, to preserve the integrity of prompts,
     a portion of the sequence at the beginning and/or end can be designated to remain
     unchanged. This is particularly useful for Instruct-based Models where the starting
     part of the prompt should always be remembered.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 合并过程可以在模型架构的不同层次上进行，这被称为“层次切割”。此外，为了保留提示的完整性，可以指定序列的开始部分和/或结束部分保持不变。这在基于指令的模型中尤为有用，因为提示的开始部分应该始终被记住。
 - en: This innovative approach offers a nuanced solution to the computational challenges
     associated with LLM inference, promising significant speed-ups without sacrificing
     quality or accuracy.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种创新方法为解决LLM推理中相关的计算挑战提供了一种微妙的解决方案，承诺在不牺牲质量或准确性的情况下大幅提高速度。
 - en: '![](../Images/6934167f27afc797fc61f04a0cba74aa.png)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6934167f27afc797fc61f04a0cba74aa.png)'
 - en: Simple illustrative exemple of how to merge a sequence
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 合并序列的简单示例
 - en: '**What it means ?**'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '**这意味着什么？**'
 - en: Concretely, in a LLM, the forward call takes as input a sequence of token of
     shape (batch_size, sequence length). The embedding layer creates a sequence of
     shape (batch size, sequence length, dimension). Each attention module takes this
     sequence as input. At a given attention layer, you can merge the tokens creating
     a sequence of shape (batch size, k, dimension) where k is the compressed sequence
     length. The choice of the layer where to apply this is the “layer cutoff”.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 具体来说，在LLM中，前向调用的输入是一个形状为（batch_size，序列长度）的令牌序列。嵌入层生成一个形状为（batch size，序列长度，维度）的序列。每个注意力模块将这个序列作为输入。在给定的注意力层中，你可以合并令牌，生成一个形状为（batch
+    size，k，维度）的序列，其中k是压缩后的序列长度。选择在哪一层应用此操作就是“层级截止”。
 - en: The next attention modules will no longer need to compute a (sequence length,
     sequence length) attention matrix but a smaller one as k is strictly inferior
     to the original sequence length.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来的注意力模块将不再需要计算一个（序列长度，序列长度）的注意力矩阵，而是一个更小的矩阵，因为k严格小于原始序列长度。
 - en: Hence, the merging could occur at different level of the model architecture.
     This parameter is referred as “layer cutoff”. Also, to ensure that a prompt is
     not completely merged, you can define a part of the sequence at the beginning
     and/or at the end to be kept unchanged. It is more efficient for Instruct-based
     Models where the starting part of the prompt should be always reminded.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，合并可以发生在模型架构的不同层级。这个参数被称为“层级截止”。此外，为了确保提示语不会完全合并，你可以定义序列的部分部分在开始和/或结束时保持不变。对于基于Instruct的模型，这种方式更加高效，因为提示的起始部分应该始终被记住。
 - en: One downside of this methodology is that it strongly relies on the underlying
     forward pass of the used model, requiring you to carefully rewrite the “merged”
     process depending on the chosen model. Another downside is the necessity of recomputing
     attention masks and possibly positional embeddings at each step.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法论的一个缺点是它严重依赖于所使用模型的前向传播过程，这要求你根据所选择的模型仔细重写“合并”过程。另一个缺点是每一步都需要重新计算注意力掩码，并可能需要重新计算位置嵌入。
 - en: 'Results:'
+  id: totrans-39
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结果：
 - en: Experiments conducted on a Mistral 7B Instruct V0.2 model demonstrate promising
     outcomes. By comparing predictions between the base model and various merged models
     at different layer cutoffs, it was observed that merging tokens did not significantly
@@ -195,94 +283,143 @@
     in inference time, particularly at shallower layers. The technique also showcased
     its effectiveness in handling longer sequences, making it applicable across a
     wide range of use cases.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 对Mistral 7B Instruct V0.2模型进行的实验展示了有前景的结果。通过比较基础模型与不同层级截止的各种合并模型之间的预测，可以观察到，合并令牌对预测质量的影响不大。此外，合并模型在推理时间上表现出了显著的加速，特别是在较浅的层级上。该技术还展示了其在处理更长序列时的有效性，使其适用于各种应用场景。
 - en: '![](../Images/31775627fd11cb17bd858d233710c1dc.png)'
+  id: totrans-41
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/31775627fd11cb17bd858d233710c1dc.png)'
 - en: Accuracy between the merged inference model predicted token and the base one
     for different layer cut and sequence lengths
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 在不同层级截止和序列长度下，合并推理模型的预测令牌与基础模型的准确性对比
 - en: '![](../Images/68a9ee0c7d5e691ed29b3d5bdd142300.png)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/68a9ee0c7d5e691ed29b3d5bdd142300.png)'
 - en: How many time faster is the merged inference model vs the base one for different
     sequence length and layer cut
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于不同的序列长度和层级截止，合并推理模型相比基础模型的加速倍数
 - en: One downside is that I did not succeed at making the forward call the most optimized.
     Hence, there are probably many optimizations to find by rethinking the process.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个缺点是我未能成功使前向调用达到最优。因此，可能通过重新思考过程，能找到许多优化的空间。
 - en: I also tested a merged version of Mistral Instruct v0.2 on the AlpacaEval dataset.
     I apply the merging at the 20th attention module. The results are really encouraging
     as the models outperforms Falcon 7B, Gemma 7B and nous-hermes-13b. It shows that
     merging without rethinking the positional encodings returns a model that speaks
     more with an increase of 600 tokens generated on average. I tried to reimplement
     the positional encoding procedure but failed.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 我还在AlpacaEval数据集上测试了Mistral Instruct v0.2的合并版本。我在第20个注意力模块上进行合并。结果非常令人鼓舞，因为该模型超过了Falcon
+    7B、Gemma 7B和nous-hermes-13b。它表明，未重新思考位置编码的合并模型生成的平均令牌数增加了600个，说明该模型的表现更好，*更具表现力*。我尝试重新实现位置编码过程，但没有成功。
 - en: '![](../Images/e8f72feb762d2920456495788e6525e9.png)'
+  id: totrans-47
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e8f72feb762d2920456495788e6525e9.png)'
 - en: Extract from the leaderboard
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 从排行榜中提取
 - en: In summary, merging tokens with SLERP is a strong candidate solution to the
     computational challenges associated with LLM inference. By striking a balance
     between speed and quality, this approach is just about rewriting the forward loop.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结来说，使用SLERP合并tokens是应对LLM推理计算挑战的一个强有力的解决方案。通过在速度和质量之间找到平衡，这种方法几乎只是重写了前向循环。
 - en: 'Using it:'
+  id: totrans-50
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用方法：
 - en: 'I prepared a repo with a simple notebook to play with it here : [https://github.com/samchaineau/llm_slerp_generation](https://github.com/samchaineau/llm_slerp_generation)'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 我准备了一个仓库，包含一个简单的笔记本，供大家体验：[https://github.com/samchaineau/llm_slerp_generation](https://github.com/samchaineau/llm_slerp_generation)
 - en: Using a new class where the foraward call is adapted, you can easily pass the
     LLM to a generation pipeline and use it on your dataset. So far my experiments
     are limited to a Mistral 7B model but I would like to extend it to other architectures
     to see whether the performances maintain.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用一个新类，适配了前向调用，你可以轻松地将LLM传递到生成管道，并在你的数据集上使用它。到目前为止，我的实验仅限于Mistral 7B模型，但我希望将其扩展到其他架构，看看性能是否能保持。
 - en: All of the resources are in and you can reach out to me if you would like to
     test it on another LLM.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有资源都已经上传，如果你希望在其他LLM上进行测试，可以随时联系我。
 - en: 'Conclusion:'
+  id: totrans-54
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论：
 - en: The merging tokens with SLERP technique should be explored for accelerating
     LLM inference. With further optimization and exploration, it holds the potential
     to improve the efficiency and scalability of natural language processing tasks.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用SLERP技术合并tokens应该被探索用于加速LLM推理。随着进一步优化和探索，它有潜力提高自然语言处理任务的效率和可扩展性。
 - en: 'If you work in the AI field and are willing to bring this to the next level
     : reach out to me !'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你从事AI领域工作并希望将其提升到下一个水平：欢迎联系我！
 - en: 'Github link : [https://github.com/samchaineau/llm_slerp_generation](https://github.com/samchaineau/llm_slerp_generation)'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: Github链接：[https://github.com/samchaineau/llm_slerp_generation](https://github.com/samchaineau/llm_slerp_generation)
 - en: 'HuggingFace profile : [https://huggingface.co/samchain](https://huggingface.co/samchain)'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: HuggingFace个人主页：[https://huggingface.co/samchain](https://huggingface.co/samchain)
 - en: 'Works that are related and inspiring :'
+  id: totrans-59
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 相关且启发性的作品：
 - en: '- Token Merging Stable Diffusion (paper) : [https://arxiv.org/abs/2303.17604](https://arxiv.org/abs/2303.17604)'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '- Token Merging Stable Diffusion（论文）：[https://arxiv.org/abs/2303.17604](https://arxiv.org/abs/2303.17604)'
 - en: '- Token Merging Stable Diffusion (library) : [https://huggingface.co/docs/diffusers/optimization/tome](https://huggingface.co/docs/diffusers/optimization/tome)'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '- Token Merging Stable Diffusion（库）：[https://huggingface.co/docs/diffusers/optimization/tome](https://huggingface.co/docs/diffusers/optimization/tome)'
 - en: '- Token Merging NLP (paper) : [https://llm-random.github.io/posts/mixture_of_tokens/](https://llm-random.github.io/posts/mixture_of_tokens/)'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '- Token Merging NLP（论文）：[https://llm-random.github.io/posts/mixture_of_tokens/](https://llm-random.github.io/posts/mixture_of_tokens/)'
 - en: Unless otherwise noted, all images are by the author.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 除非另有说明，所有图片均由作者提供。

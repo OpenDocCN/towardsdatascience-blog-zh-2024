@@ -1,34 +1,54 @@
 - en: Fine-Tuning LLMs with 32-bit, 8-bit, and Paged AdamW Optimizers
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用32位、8位和分页AdamW优化器微调LLM
 - en: 原文：[https://towardsdatascience.com/fine-tuning-llms-with-32-bit-8-bit-and-paged-adamw-optimizers-1034e3105634?source=collection_archive---------9-----------------------#2024-10-10](https://towardsdatascience.com/fine-tuning-llms-with-32-bit-8-bit-and-paged-adamw-optimizers-1034e3105634?source=collection_archive---------9-----------------------#2024-10-10)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/fine-tuning-llms-with-32-bit-8-bit-and-paged-adamw-optimizers-1034e3105634?source=collection_archive---------9-----------------------#2024-10-10](https://towardsdatascience.com/fine-tuning-llms-with-32-bit-8-bit-and-paged-adamw-optimizers-1034e3105634?source=collection_archive---------9-----------------------#2024-10-10)
 - en: Finding the right trade-off between memory efficiency, accuracy, and speed
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 寻找内存效率、准确性和速度之间的最佳权衡
 - en: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--1034e3105634--------------------------------)[![Benjamin
     Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--1034e3105634--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1034e3105634--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1034e3105634--------------------------------)
     [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--1034e3105634--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--1034e3105634--------------------------------)[![Benjamin
+    Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--1034e3105634--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1034e3105634--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1034e3105634--------------------------------)
+    [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--1034e3105634--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1034e3105634--------------------------------)
     ·7 min read·Oct 10, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1034e3105634--------------------------------)
+    ·7分钟阅读·2024年10月10日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/812b382ba4f0564091b02974dfb093d7.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/812b382ba4f0564091b02974dfb093d7.png)'
 - en: Generated with Grok
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Grok 生成
 - en: Fine-tuning large language models (LLMs) has become an essential yet resource-intensive
     task, demanding considerable GPU memory — especially when using the AdamW optimizer,
     which can quickly consume available resources. For each model parameter, AdamW
@@ -36,18 +56,26 @@
     in float32 format. This translates to an extra 8 bytes per parameter, meaning
     that for a model with 8 billion parameters, such as Llama 3.1, roughly 64 GB of
     memory goes solely toward managing optimizer states.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 微调大型语言模型（LLM）已经成为一项必要但资源密集型的任务，尤其是在使用AdamW优化器时，因为它会迅速消耗可用的资源。对于每个模型参数，AdamW需要在内存中存储两个额外的优化器状态，每个状态通常采用float32格式。这意味着每个参数需要额外的8字节内存，对于像Llama
+    3.1这样拥有80亿个参数的模型，仅用于管理优化器状态的内存就大约需要64GB。
 - en: The use of quantized and paged optimizers can significantly reduce memory overhead.
     Libraries like bitsandbytes have facilitated these memory-efficient approaches,
     making them increasingly popular.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用量化和分页优化器可以显著减少内存开销。像 bitsandbytes 这样的库促进了这些内存高效的做法，使其越来越受欢迎。
 - en: In this article, we will make a comparative analysis of AdamW-32bit, its 8-bit
     counterpart, and paged AdamW optimizers, examining their impact on memory consumption,
     learning curves, and training time. Our goal is to identify when memory-efficient
     optimizers are essential and evaluate their trade-offs in training speed and model
     accuracy. In the first section, we will review AdamW 8-bit and its paged variant.
     Then, we will benchmark…
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将对AdamW-32位、其8位对应物和分页AdamW优化器进行比较分析，研究它们对内存消耗、学习曲线和训练时间的影响。我们的目标是识别何时需要内存高效的优化器，并评估它们在训练速度和模型准确性之间的权衡。在第一部分，我们将回顾AdamW
+    8位及其分页变体。然后，我们将进行基准测试……

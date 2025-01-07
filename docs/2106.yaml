@@ -1,75 +1,118 @@
 - en: 'PySpark Explained: Delta Table Time Travel Queries'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: PySpark 解释：Delta 表的时间旅行查询
 - en: 原文：[https://towardsdatascience.com/pyspark-explained-delta-table-time-travel-queries-84d074c9db35?source=collection_archive---------9-----------------------#2024-08-29](https://towardsdatascience.com/pyspark-explained-delta-table-time-travel-queries-84d074c9db35?source=collection_archive---------9-----------------------#2024-08-29)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/pyspark-explained-delta-table-time-travel-queries-84d074c9db35?source=collection_archive---------9-----------------------#2024-08-29](https://towardsdatascience.com/pyspark-explained-delta-table-time-travel-queries-84d074c9db35?source=collection_archive---------9-----------------------#2024-08-29)
 - en: '![](../Images/ed2161ceca5356eb6e6ccf6b25398bc0.png)'
+  id: totrans-2
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ed2161ceca5356eb6e6ccf6b25398bc0.png)'
 - en: Image by AI (Dalle-3)
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：AI（Dalle-3）
 - en: Revisit the past faster than a time lord.
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 比时间领主还快地回顾过去。
 - en: Delete, recover, and replay historical data transactions
+  id: totrans-5
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 删除、恢复和重放历史数据事务
 - en: '[](https://medium.com/@thomas_reid?source=post_page---byline--84d074c9db35--------------------------------)[![Thomas
     Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--84d074c9db35--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--84d074c9db35--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--84d074c9db35--------------------------------)
     [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--84d074c9db35--------------------------------)'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@thomas_reid?source=post_page---byline--84d074c9db35--------------------------------)[![Thomas
+    Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--84d074c9db35--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--84d074c9db35--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--84d074c9db35--------------------------------)
+    [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--84d074c9db35--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--84d074c9db35--------------------------------)
     ·15 min read·Aug 29, 2024
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--84d074c9db35--------------------------------)
+    ·15分钟阅读·2024年8月29日
 - en: --
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: In a previous article, I did a deep dive into Databricks Delta tables, what
     they are, and how you use them. Check it out below,
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在之前的文章中，我深入探讨了 Databricks Delta 表，它们是什么以及如何使用它们。可以查看下面的链接，
 - en: '[](/pyspark-explained-delta-tables-dc20916f9422?source=post_page-----84d074c9db35--------------------------------)
     [## PySpark Explained: Delta Tables'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](/pyspark-explained-delta-tables-dc20916f9422?source=post_page-----84d074c9db35--------------------------------)
+    [## PySpark 解释：Delta 表'
 - en: Learn how to use the building blocks of Delta Lakes.
+  id: totrans-11
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 学习如何使用 Delta Lake 的基本构件。
 - en: towardsdatascience.com](/pyspark-explained-delta-tables-dc20916f9422?source=post_page-----84d074c9db35--------------------------------)
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/pyspark-explained-delta-tables-dc20916f9422?source=post_page-----84d074c9db35--------------------------------)
 - en: One of the advantages I mentioned in that article was the ability to do time-travel
     queries on Delta tables. In other words, you can go back and see what data was
     in a particular table at any time in the past.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在那篇文章中提到的一个优势是可以对 Delta 表进行时间旅行查询。换句话说，你可以回溯并查看过去任何时间点某个特定表中的数据。
 - en: Why might this be useful? I can think of a few advantages and one BIG one in
     particular.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 为什么这可能有用呢？我能想到一些优势，尤其是一个非常重要的。
 - en: '**1\. Data Auditing and Compliance**'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '**1\. 数据审计和合规性**'
 - en: '**Historical Data Inspection.** Time travel allows you to access historical
     versions of your data, which is useful for auditing purposes. You can inspect
     past states of your data to ensure compliance with regulatory requirements.'
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**历史数据检查** 时间旅行允许你访问数据的历史版本，这对于审计非常有用。你可以检查数据的过去状态，以确保符合监管要求。'
 - en: '**2\. Debugging and Development**'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '**2\. 调试和开发**'
 - en: '**Debugging Data Issues.** By querying previous versions of…'
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**调试数据问题** 通过查询以前的版本来解决……'

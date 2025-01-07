@@ -1,61 +1,94 @@
 - en: Upgrading to Prefect Push Workers on AWS ECS
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 升级到 AWS ECS 上的 Prefect 推送工作者
 - en: 原文：[https://towardsdatascience.com/upgrading-to-prefect-push-workers-on-aws-ecs-64c5b5c11d0c?source=collection_archive---------7-----------------------#2024-10-12](https://towardsdatascience.com/upgrading-to-prefect-push-workers-on-aws-ecs-64c5b5c11d0c?source=collection_archive---------7-----------------------#2024-10-12)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/upgrading-to-prefect-push-workers-on-aws-ecs-64c5b5c11d0c?source=collection_archive---------7-----------------------#2024-10-12](https://towardsdatascience.com/upgrading-to-prefect-push-workers-on-aws-ecs-64c5b5c11d0c?source=collection_archive---------7-----------------------#2024-10-12)
 - en: Upgrade from Prefect 2.0 to 3.0 and use the new Push Work Pools that greatly
     simplify infrastructure management and reduce cost.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从 Prefect 2.0 升级到 3.0，并使用新的推送工作池，大大简化基础设施管理并降低成本。
 - en: '[](https://medium.com/@broepke?source=post_page---byline--64c5b5c11d0c--------------------------------)[![Brian
     Roepke](../Images/0b7ef72cbfc9acda69fde14127d65dcf.png)](https://medium.com/@broepke?source=post_page---byline--64c5b5c11d0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--64c5b5c11d0c--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--64c5b5c11d0c--------------------------------)
     [Brian Roepke](https://medium.com/@broepke?source=post_page---byline--64c5b5c11d0c--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@broepke?source=post_page---byline--64c5b5c11d0c--------------------------------)[![Brian
+    Roepke](../Images/0b7ef72cbfc9acda69fde14127d65dcf.png)](https://medium.com/@broepke?source=post_page---byline--64c5b5c11d0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--64c5b5c11d0c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--64c5b5c11d0c--------------------------------)
+    [Brian Roepke](https://medium.com/@broepke?source=post_page---byline--64c5b5c11d0c--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--64c5b5c11d0c--------------------------------)
     ·6 min read·Oct 12, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--64c5b5c11d0c--------------------------------)·6
+    分钟阅读·2024 年 10 月 12 日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/e31c44bdde96250c4464aa6a0f992c5c.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e31c44bdde96250c4464aa6a0f992c5c.png)'
 - en: Photo by [Techivation](https://unsplash.com/@techivation?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 照片由[Techivation](https://unsplash.com/@techivation?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Overview
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 概述
 - en: '[Prefect](https://www.prefect.io/) is an open-source **orchestration** tool
     for data engineering. The Python-based tool allows you to **define**, **schedule**,
     and **monitor** your data pipelines. Prefect is a great tool for data engineers
     and scientists who want to automate their **data pipelines**.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Prefect](https://www.prefect.io/)是一个用于数据工程的开源**编排**工具。这个基于 Python 的工具允许你**定义**、**调度**和**监控**你的数据管道。Prefect
+    是一个适用于希望自动化他们的**数据管道**的数据工程师和科学家的绝佳工具。'
 - en: 'In an article titled [Getting Started with Prefect: Powerful Orchestration
     for Your Data](https://medium.com/@broepke/getting-started-with-prefect-powerful-orchestration-for-your-data-20ef827b20d5),
     I wrote about deploying Prefect to AWS EC2 to run what they called an Agent, which
     essentially ran a job after it was kicked off.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '在一篇名为[Getting Started with Prefect: Powerful Orchestration for Your Data](https://medium.com/@broepke/getting-started-with-prefect-powerful-orchestration-for-your-data-20ef827b20d5)的文章中，我写到部署
+    Prefect 到 AWS EC2 来运行他们所谓的代理，本质上是在启动后运行作业。'
 - en: With the upgrade to [Version 3.0](https://www.prefect.io/blog/introducing-prefect-3-0),
     Prefect is retiring the longstanding Agent model in favor of a new architecture
     called Workers. The upgrade from v2 to v3 instantly broke my deployments, leaving
     me needing to figure out an alternative.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 升级到[版本 3.0](https://www.prefect.io/blog/introducing-prefect-3-0)，Prefect正在淘汰长期存在的代理模型，转而采用一种称为工作者的新架构。从
+    v2 升级到 v3 立即破坏了我的部署，让我不得不想出一个替代方案。
 - en: Workers are tighter integrated with the infrastructure they run on. This is
     a fabulous improvement because, in the past, you needed to figure out how to host
     the Agent on your computer. It was like installing software on a classic hosted
     server and maintaining it to OS updates.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 工作者与他们运行的基础设施更紧密地集成在一起。这是一个了不起的改进，因为在过去，你需要弄清楚如何在你的计算机上托管代理。这就像在经典托管服务器上安装软件并维护操作系统更新一样。

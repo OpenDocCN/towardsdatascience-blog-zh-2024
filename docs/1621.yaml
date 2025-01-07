@@ -1,484 +1,736 @@
 - en: 3 Essential Questions to Address When Building an API-Involved Incremental Data
     Loading Script
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 构建涉及 API 的增量数据加载脚本时需要解决的 3 个关键问题
 - en: 原文：[https://towardsdatascience.com/3-essential-questions-to-address-when-building-an-api-involved-incremental-data-loading-script-03723cad3411?source=collection_archive---------3-----------------------#2024-06-30](https://towardsdatascience.com/3-essential-questions-to-address-when-building-an-api-involved-incremental-data-loading-script-03723cad3411?source=collection_archive---------3-----------------------#2024-06-30)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/3-essential-questions-to-address-when-building-an-api-involved-incremental-data-loading-script-03723cad3411?source=collection_archive---------3-----------------------#2024-06-30](https://towardsdatascience.com/3-essential-questions-to-address-when-building-an-api-involved-incremental-data-loading-script-03723cad3411?source=collection_archive---------3-----------------------#2024-06-30)
 - en: '[](https://medium.com/@khoadaniel?source=post_page---byline--03723cad3411--------------------------------)[![Daniel
     Khoa Le](../Images/5c01c760dc1e92b3048cfae005838ef1.png)](https://medium.com/@khoadaniel?source=post_page---byline--03723cad3411--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03723cad3411--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--03723cad3411--------------------------------)
     [Daniel Khoa Le](https://medium.com/@khoadaniel?source=post_page---byline--03723cad3411--------------------------------)'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@khoadaniel?source=post_page---byline--03723cad3411--------------------------------)[![Daniel
+    Khoa Le](../Images/5c01c760dc1e92b3048cfae005838ef1.png)](https://medium.com/@khoadaniel?source=post_page---byline--03723cad3411--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03723cad3411--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--03723cad3411--------------------------------)
+    [Daniel Khoa Le](https://medium.com/@khoadaniel?source=post_page---byline--03723cad3411--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03723cad3411--------------------------------)
     ·8 min read·Jun 30, 2024
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03723cad3411--------------------------------)
+    ·阅读时长 8 分钟·2024年6月30日
 - en: --
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '**TLDR**'
+  id: totrans-5
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**简短说明**'
 - en: This article explains both the conceptual framework and practical code implementation
     for syncing data from API endpoints to your database using dlt (a Python library).
+  id: totrans-6
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 本文解释了使用 dlt（一个 Python 库）从 API 端点到数据库同步数据的概念框架和实际代码实现。
 - en: At the end of this tutorial, you will understand (and know how to implement)
     the sync behavior in the following illustration where we extract data **incrementally**
     and write to the destination table with the merge (dedup) strategy.
+  id: totrans-7
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 在本教程结束时，你将理解（并知道如何实现）以下示意图中的同步行为，在此示意图中，我们通过增量方式提取数据，并使用合并（去重）策略将数据写入目标表。
 - en: '![](../Images/e80987236bba43864b69abbfaef3cadd.png)'
+  id: totrans-8
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e80987236bba43864b69abbfaef3cadd.png)'
 - en: Image by Author
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者图片
 - en: The context
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 背景
 - en: You want to sync data from an application (e.g., ads performance, sales figures,
     etc.) to your database.
+  id: totrans-11
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你希望将数据从一个应用程序（例如，广告效果、销售数据等）同步到你的数据库。
 - en: Your application provides API endpoints to retrieve its data.
+  id: totrans-12
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你的应用程序提供 API 端点来检索其数据。
 - en: The data needs to be synced daily to your database.
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 数据需要每天同步到你的数据库。
 - en: You want to load only the ❗***“new” data (or the changes)***❗ into your database.
     You do not want to load the entire set of data all over again every time you sync.
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 你希望仅将 ❗***“新”数据（或更改部分）***❗ 加载到数据库中。你不希望每次同步时都重新加载整个数据集。
 - en: How would you do it in Python?
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 你如何在 Python 中实现这一点？
 - en: I will walk you through the solution by addressing the following 3 questions.
+  id: totrans-16
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 我将通过回答以下三个问题，带你了解解决方案。
 - en: '💥 Question 1: What do I need from an API to sync data incrementally?'
+  id: totrans-17
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 💥 问题 1：我需要从 API 获取哪些信息以进行增量数据同步？
 - en: Before developing an incremental loading script, we need to understand the behavior
     of the API endpoints we are working with.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 在开发增量加载脚本之前，我们需要了解我们正在使用的 API 端点的行为。
 - en: ❗Not all APIs can facilitate incremental loading.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: ❗并不是所有的 API 都支持增量加载。
 - en: '👉 Answer: Query params that support incremental loading'
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 👉 答案：支持增量加载的查询参数
 - en: Let’s look at an example of an application (or “source” application) that tracks
     your sales performance. In this application, each record represents a product
     along with its sales volume. The fields `created_at` and `updated_at` indicate
     when the record was created and updated.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看一个应用程序的示例（或称为“源”应用程序），它跟踪你的销售业绩。在这个应用程序中，每条记录代表一个产品及其销售量。字段 `created_at`
+    和 `updated_at` 表示记录的创建和更新时间。
 - en: 'Changes in the sales data typically occur in two main ways:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 销售数据的变化通常有两种主要方式：
 - en: New products are added to the list.
+  id: totrans-23
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 新产品已被添加到列表中。
 - en: Updates are made to the sales figures of existing records, **which results in
     a new value for** `**updated_at**`. This helps us to track the new changes; without
     it, we cannot know which records have been modified.
+  id: totrans-24
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 更新会应用到现有记录的销售数据，**这会导致** `**updated_at**` 的新值。这样可以帮助我们追踪新的变化；如果没有它，我们就无法知道哪些记录已被修改。
 - en: 👁️👁️ Below is the example sales table in the source application’s database.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 👁️👁️ 下面是源应用数据库中的示例销售表。
 - en: '↪️ **Yesterday''s data: 2 records**'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: ↪️ **昨天的数据：2条记录**
 - en: '![](../Images/fcf8c37fb8ec51718382ef2cb9d09a8b.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fcf8c37fb8ec51718382ef2cb9d09a8b.png)'
 - en: Image by Author
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: '↪️ **Today''s data: a new record added and a change made to an existing record**'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: ↪️ **今天的数据：新增了一条记录，并且修改了现有记录**
 - en: '![](../Images/a7b45d06827f32925d53d8bf2cf1043d.png)'
+  id: totrans-30
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a7b45d06827f32925d53d8bf2cf1043d.png)'
 - en: Image by Author
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: 🟢 **Takeaways:** If the API endpoint allows queries based on the`updated_at`
     parameter, you can implement incremental loading by making requests to retrieve
     only records that have an `updated_at` value later than the most recent `updated_at`
     value saved from the previous sync. In this context, `updated_at` is referred
     to as the incremental cursor, and its value, which persists through to the next
     sync, is known as the state.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 🟢 **要点：** 如果API端点允许基于 `updated_at` 参数进行查询，你可以通过发起请求来只检索那些 `updated_at` 值晚于上次同步保存的
+    `updated_at` 的记录，从而实现增量加载。在这种情况下，`updated_at` 被称为增量游标，其值会持续到下次同步，这个值称为状态。
 - en: The `updated_at` field is a common choice for an incremental cursor. Other query
     params, such as **id** or **sales,** cannot help us to request data incrementally
     as they cannot tell us which records have been added or updated since the last
     sync.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '`updated_at` 字段是增量游标的常见选择。其他查询参数，如 **id** 或 **sales**，无法帮助我们增量请求数据，因为它们无法告诉我们自上次同步以来，哪些记录已被添加或更新。'
 - en: '**Which query param do you need to load data incrementally?**'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '**你需要哪个查询参数来增量加载数据？**'
 - en: '![](../Images/7301b30bfbf0c3f33879ec2791bd4802.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7301b30bfbf0c3f33879ec2791bd4802.png)'
 - en: Image by Author
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: 'Since we’re developing a data loading script that works with API, I’ll introduce
     two other important aspects of APIs for the code implementation: **pagination
     and path parameters**. They have nothing to do with incremental loading though.'
+  id: totrans-37
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 由于我们正在开发一个与API配合使用的数据加载脚本，我将介绍两个API的其他重要方面，以便代码实现：**分页和路径参数**。不过，它们与增量加载无关。
 - en: 🤷 Pagination mechanism
+  id: totrans-38
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 🤷 分页机制
 - en: APIs often return results in small chunks to enhance performance. For instance,
     instead of returning 10,000 records at once, an API might limit the response to
     a maximum of 100 records per request, requiring you to iterate through subsequent
     batches.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: API通常会分批返回结果，以提高性能。例如，API可能不会一次性返回10,000条记录，而是将响应限制为每次最多100条记录，要求你迭代处理后续批次。
 - en: 'To manage this, you typically (not always) need to use two query parameters:
     `limit` and `skip` (or offset).'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了管理这个，你通常（但并非总是）需要使用两个查询参数：`limit` 和 `skip`（或 `offset`）。
 - en: 'Here’s a simple example to illustrate:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个简单的例子来说明：
 - en: 'For the first request:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于第一个请求：
 - en: '`limit`=100'
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`limit`=100'
 - en: '`skip`=0'
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`skip`=0'
 - en: 'For the second request, to skip the first 100 records we’ve already synced:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于第二个请求，要跳过我们已经同步的前100条记录：
 - en: '`limit`=100'
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`limit`=100'
 - en: '`skip`=100'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`skip`=100'
 - en: This pattern continues, incrementing the `skip` value by the `limit` after each
     batch until all records are retrieved.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一模式将持续进行，每批次后，`skip` 值会按 `limit` 增加，直到所有记录都被检索。
 - en: 🟢 **Takeaways:** You need to understand how APIs return responses so that you
     won’t miss any records while extracting. There are many approaches an API can
     use to manage pagination, beyond the commonly used methods of skip and offset.
     But that’s a story for another day.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 🟢 **要点：** 你需要理解API如何返回响应，以免在提取数据时漏掉任何记录。API有很多管理分页的方法，超出了常用的 `skip` 和 `offset`
+    方法。这是另一个话题，留待以后再说。
 - en: 🤷 Path param
+  id: totrans-50
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 🤷 路径参数
 - en: Path parameters are included directly in the URL of an API and are typically
     used to distinguish between different segments (partitions) of data. For example,
     they might specify different campaigns within your marketing account or different
     sub-accounts managed in the source application.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 路径参数直接包含在API的URL中，通常用于区分数据的不同部分（分区）。例如，它们可能指定你营销账户中的不同活动或源应用中管理的不同子账户。
 - en: 'In the example below: the path params are `applicationId` and `campaignId`.'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的例子中：路径参数是 `applicationId` 和 `campaignId`。
 - en: '`[https://yourbaseurl.myapp/v1/applications/{applicationId}/campaigns/{campaignId}/](https://yourbaseurl.talon.one/v1/applications/%7BapplicationId%7D/campaigns/%7BcampaignId%7D/coupons/no_total)sales`'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '`[https://yourbaseurl.myapp/v1/applications/{applicationId}/campaigns/{campaignId}/](https://yourbaseurl.talon.one/v1/applications/%7BapplicationId%7D/campaigns/%7BcampaignId%7D/coupons/no_total)sales`'
 - en: 🟢 **Takeaways:** You need to decide whether you will sync data from the same
     API but with different path params to a single table or different tables (sales_campaign_1,
     sales_campaign_2, etc.).
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 🟢 **总结：**你需要决定是将来自同一API但具有不同路径参数的数据同步到同一张表，还是同步到不同的表（如 sales_campaign_1, sales_campaign_2
+    等）。
 - en: '💥 Question 2: How do I want to write the extracted records to the destination
     table?'
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 💥 问题 2：我如何将提取的记录写入目标表？
 - en: Now let’s say you already extracted a bunch of records by making API requests
     with the above-mentioned params, it’s time for you to decide how you want to write
     them to the destination table.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，假设你已经通过上述参数提取了一批记录，是时候决定如何将这些记录写入目标表了。
 - en: '👉 Answer: Merge/Dedup mode (recommended)'
+  id: totrans-57
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 👉 答案：合并/去重模式（推荐）
 - en: This question concerns the choice of **Write disposition** or **Sync mode**.
     The immediate answer is that, given you are looking to load your data incrementally,
     you will likely opt to write your extracted data in either append mode or merge
     mode (also known as deduplication mode).
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个问题涉及到**写入方式（Write disposition）**或**同步模式（Sync mode）**的选择。直接的答案是，如果你希望增量加载数据，你可能会选择以追加模式或合并模式（也叫去重模式）将提取的数据写入。
 - en: However, let’s step back to examine our options more closely and determine which
     method is best suited for incremental loading.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，让我们退后一步，更仔细地审视我们的选择，并确定哪种方法最适合增量加载。
 - en: Here are the popular write dispositions.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是常见的写入方式。
 - en: 🟪 **overwrite/replace:** drop all existing records in the destination tables
     and then insert the extracted records.
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 🟪 **覆盖/替换（overwrite/replace）**：删除目标表中所有现有记录，然后插入提取的记录。
 - en: 🟪 **append:** simply append extracted records to the destination tables.
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 🟪 **追加（append）**：简单地将提取的记录追加到目标表中。
 - en: 🟪 **merge / dedup:** insert new(*) records and update(**) existing records.
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 🟪 **合并 / 去重（merge / dedup）**：插入新(*)记录并更新(**)现有记录。
 - en: '(*) How do we know which records are new?: Usually, we will use a primary key
     to determine that. If you use dlt, their merging strategy can be more sophisticated
     than that, including the distinction between `merge_key` and `primary_key` *(one
     is used for merging and one is used for dedupication before merging)* or `dedup_sort`
     *(which records are to be deleted with the same key in the dedup process)*. I
     will leave that part for another tutorial.'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: (*) 我们怎么知道哪些记录是新的？：通常，我们会使用主键来确定。如果使用 dlt，它的合并策略可以比这更复杂，包括区分`merge_key`和`primary_key`
+    *(一个用于合并，一个用于去重后再合并)*，或者`dedup_sort` *(在去重过程中，哪些记录会被删除)*。这一部分我将留到另一个教程讲解。
 - en: (**) This is a simple explanation, if you want to find out more about how dlt
     handles this merging strategy, read more [here](https://dlthub.com/docs/general-usage/incremental-loading#merge-incremental-loading).
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: (**) 这是一个简单的解释，如果你想了解更多关于 dlt 如何处理这种合并策略的信息，可以[点击这里](https://dlthub.com/docs/general-usage/incremental-loading#merge-incremental-loading)阅读更多。
 - en: 👁️👁️ Here is an example to help us understand the results of different write
     dispositions.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 👁️👁️ 这里有一个例子帮助我们理解不同写入方式的结果。
 - en: '↪️ **On 2024.06.19: We make the first sync.**'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: ↪️ **2024年6月19日：我们进行了第一次同步。**
 - en: 🅰️ **Data in** `**source application**`️️
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 🅰️ **数据在** `**源应用程序**`️️
 - en: '![](../Images/74b8a8cbec32ac881ce296f257ab9913.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/74b8a8cbec32ac881ce296f257ab9913.png)'
 - en: Image by Author
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: 🅱️ ️**Data loaded to our** `**destination database**`
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 🅱️ **数据已加载到我们的** `**目标数据库**`
 - en: No matter what sync strategy you choose, the table at the destination is **literally
     a copy** of the source table.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 无论选择哪种同步策略，目标表中的数据**严格来说是源表的副本**。
 - en: '![](../Images/74b8a8cbec32ac881ce296f257ab9913.png)'
+  id: totrans-73
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/74b8a8cbec32ac881ce296f257ab9913.png)'
 - en: Image by Author
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: Saved state of `updated_at`= 2024–06–03, which is the latest `updated_at` mong
     the 2 records we synced.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 已保存的 `updated_at` 状态 = 2024-06-03，这是我们同步的两条记录中最新的 `updated_at`。
 - en: '↪️ **On 2024.06.2: We make the second sync.**'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: ↪️ **2024年6月2日：我们进行了第二次同步。**
 - en: '**🅰️ ️️️️️️️Data in** `**source application**`'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: '**🅰️ ️️️️️️️数据在** `**源应用程序**`'
 - en: '![](../Images/43dd22288ef2069f3129fa81154bed22.png)'
+  id: totrans-78
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/43dd22288ef2069f3129fa81154bed22.png)'
 - en: Image by Author
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: '✍️ Changes in the source table:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: ✍️ 源表中的更改：
 - en: Record id=1 was updated (sales figure).
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 记录 ID=1 已更新（销售数据）。
 - en: Record id=2 was dropped.
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 记录 ID=2 已删除。
 - en: Record id=3 was inserted.
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 记录 ID=3 已插入。
 - en: At this sync, we ONLY extract records with the `updated_at`> 2024–06–03 (state
     saved from last sync). Therefore, we will extracted only record id=1 and id=3\.
     Since record id=2 was removed from the source data, there is no way for us to
     recognize this change.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这次同步中，我们仅提取 `updated_at` > 2024–06–03（上次同步时保存的状态）之后的记录。因此，我们只会提取记录 id=1 和 id=3。由于记录
+    id=2 已从源数据中删除，我们无法识别此变动。
 - en: With the second sync, you now will see the difference among the write strategies.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第二次同步后，你将能够看到不同的写入策略之间的差异。
 - en: 🅱️ **Data loaded to our** `**destination database**`
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 🅱️ **数据已加载到我们的** `**目标数据库**`
 - en: '❗ **Scenario 1: Overwrite**'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: ❗ **场景 1：覆盖**
 - en: '![](../Images/19496a1ddb57a9f1e1107c691ddf441d.png)'
+  id: totrans-88
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/19496a1ddb57a9f1e1107c691ddf441d.png)'
 - en: Image by Author
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: The destination table will be overwritten by the 2 records extracted this time.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 目标表将被这次提取的两条记录覆盖。
 - en: '❗ **Scenario 2: Append**'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: ❗ **场景 2：追加**
 - en: '![](../Images/c30e26065a3f3bf15be9590181267768.png)'
+  id: totrans-92
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c30e26065a3f3bf15be9590181267768.png)'
 - en: Image by Author
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: The 2 extracted records will be appended to the destination table, the existing
     records are not affected.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两条提取的记录将被追加到目标表中，现有的记录不会受到影响。
 - en: '❗ **Scenario 3: Merge or dedup**'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: ❗ **场景 3：合并或去重**
 - en: '![](../Images/380959de013398c27bd89d42b83d8da6.png)'
+  id: totrans-96
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/380959de013398c27bd89d42b83d8da6.png)'
 - en: Image by Author
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: The 2 extracted records with id=1 and 3 will replace the existing records at
     destination. This processing is so called merging or deduplicating. Record id=2
     in the destination table remains intact.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 提取的两条记录，id=1 和 id=3，将替换目标中的现有记录。这一处理过程被称为合并或去重。目标表中的记录 id=2 将保持不变。
 - en: 🟢 **Takeaways:** The merge (dedup) strategy can be effective in the incremental
     data loading pipeline, but if your table is very large, this dedup process might
     take a considerable amount of time.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 🟢 **总结：** 合并（去重）策略在增量数据加载管道中可能非常有效，但如果你的表非常大，去重过程可能需要相当长的时间。
 - en: '💥 Question 3: How do I implement it in code?'
+  id: totrans-100
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 💥 问题 3：我如何在代码中实现它？
 - en: '👉 Answer: dlt — as it is lightweight, well-documented, and has an active community
     for support.'
+  id: totrans-101
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 👉 答案：dlt —— 因为它轻量、文档齐全，并且有活跃的社区支持。
 - en: '[dlt](https://dlthub.com/) is an excellent choice because it provides you with
     the right level of abstraction. In fact, you can choose how much abstraction you
     want. As you can see in my example code below, I have taken the liberty of writing
     my own request loop, but dlt offers helper functions that can do this for you
     with much fewer lines of code. This flexibility makes dlt stand out compared to
     other solutions.'
+  id: totrans-102
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[dlt](https://dlthub.com/) 是一个非常不错的选择，因为它提供了适当的抽象层次。事实上，你可以选择你需要的抽象程度。如你在我下面的示例代码中看到的，我主动编写了自己的请求循环，但
+    dlt 提供了可以用更少代码行完成的辅助函数。这种灵活性使得 dlt 相较于其他解决方案脱颖而出。'
 - en: You can refer to the diagram for a high-level view and then drill down to the
     code with detailed remarks below.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以参考这个图表来获得高层次的视图，然后再深入到带有详细备注的代码中。
 - en: 'Quick note: dlt uses the terms **source** and **resources** in its structuring.
     A resource typically corresponds to an API endpoint and writes data to a table
     in the destination database. A source is a collection of resources.'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 小提示：dlt 在其结构中使用了 **源** 和 **资源** 这两个术语。资源通常对应一个 API 端点，并将数据写入目标数据库中的表。源是资源的集合。
 - en: 'In the illustration below, you can see the answers to the two questions we
     discussed:'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下面的插图中，你可以看到我们讨论的两个问题的答案：
 - en: 'Answer to Question 1: Make requests to an API endpoint using a date cursor
     to get data incrementally (and persist the cursor value, also known as state,
     for subsequent runs).'
+  id: totrans-106
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 问题 1 的答案：使用日期游标向 API 端点发送请求，逐步获取数据（并持久化游标值，也就是状态，以便后续执行）。
 - en: 'Answer to Question 2: Write data to the destination table using the merge strategy.'
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 问题 2 的答案：使用合并策略将数据写入目标表。
 - en: '![](../Images/0d48e7a8399a7ac757f7be442cb17cd2.png)'
+  id: totrans-108
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0d48e7a8399a7ac757f7be442cb17cd2.png)'
 - en: Now, you might wonder how to run this Python script? I suggest you to go to
     [this repository](https://github.com/khoadaniel/incremental-data-loading-guide)
     and try out yourself. This repository also provides you with a mock API that you
     can deploy locally for testing purposes. Check out the README for the detailed
     execution guide.
+  id: totrans-109
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 现在，你可能想知道如何运行这个 Python 脚本？我建议你访问[这个代码库](https://github.com/khoadaniel/incremental-data-loading-guide)，并亲自尝试一下。这个代码库还为你提供了一个模拟
+    API，你可以在本地部署进行测试。查看 README 获取详细的执行指南。
 - en: 💥 Here is a snippet of the dlt implementation with my remarks 💥
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 💥 这里是我附带备注的 dlt 实现片段 💥
 - en: 🟣️ **Full code can be seen at the repository** [**here**](https://github.com/khoadaniel/incremental-data-loading-guide)🟣
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 🟣️ **完整代码可以在仓库中查看** [**点击这里**](https://github.com/khoadaniel/incremental-data-loading-guide)🟣
 - en: ✅ This concludes the tutorial. I hope you have learned about the different components
     that make up an incremental loading script, as well as the code implementation.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: ✅ 本教程到此结束。希望您已经了解了构成增量加载脚本的不同组件，以及代码的实现方法。
 - en: If you’re interested in finding out more about how to build an incremental loading
     script with dlt, check out their documentation [here](https://dlthub.com/docs/general-usage/incremental-loading).
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您有兴趣了解如何使用dlt构建增量加载脚本，请查看他们的文档[点击这里](https://dlthub.com/docs/general-usage/incremental-loading)。
 - en: About me
+  id: totrans-114
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 关于我
 - en: I am Daniel Le, based in Berlin. I currently work in the fields of Data Engineering
     and Machine Learning.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 我是Daniel Le，居住在柏林，目前从事数据工程和机器学习领域的工作。
 - en: I am interested in new technologies and how they can be implemented to solve
     real-world problems.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 我对新技术充满兴趣，尤其是它们如何应用于解决现实世界中的问题。
 - en: Should you have any inquiries or wish to discuss these interests further, please
     do not hesitate to connect with me on [LinkedIn](https://www.linkedin.com/in/khoadaniel/).
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您有任何疑问或希望进一步讨论这些兴趣，欢迎通过[LinkedIn](https://www.linkedin.com/in/khoadaniel/)与我联系。
 - en: Reference
+  id: totrans-118
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[https://dlthub.com/docs/general-usage/incremental-loading](https://dlthub.com/docs/general-usage/incremental-loading)'
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://dlthub.com/docs/general-usage/incremental-loading](https://dlthub.com/docs/general-usage/incremental-loading)'

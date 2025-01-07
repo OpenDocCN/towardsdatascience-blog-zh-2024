@@ -1,446 +1,701 @@
 - en: On Handling Precalculated Hierarchical Data in Power BI
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在Power BI中处理预计算层次数据
 - en: 原文：[https://towardsdatascience.com/on-handling-precalculated-hierarchical-data-in-power-bi-4a215b96b99c?source=collection_archive---------12-----------------------#2024-05-03](https://towardsdatascience.com/on-handling-precalculated-hierarchical-data-in-power-bi-4a215b96b99c?source=collection_archive---------12-----------------------#2024-05-03)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/on-handling-precalculated-hierarchical-data-in-power-bi-4a215b96b99c?source=collection_archive---------12-----------------------#2024-05-03](https://towardsdatascience.com/on-handling-precalculated-hierarchical-data-in-power-bi-4a215b96b99c?source=collection_archive---------12-----------------------#2024-05-03)
 - en: '**While hierarchies are a familiar concept with data, some sources deliver
     their data in an unusual format. Usually, we get our values at the lowest level.
     But what happens when we get pre-aggregated values? Here, I will dive into this
     topic.**'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**虽然层次结构是数据中的常见概念，但一些来源以不寻常的格式提供数据。通常，我们在最低层级获取值。但当我们得到预先聚合的值时，会发生什么呢？在这里，我将深入探讨这个话题。**'
 - en: '[](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)[![Salvatore
     Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------)
     [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)[![Salvatore
+    Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------)
+    [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------)
     ·8 min read·May 3, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------)
+    ·8分钟阅读·2024年5月3日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/45a1401ef7a0f5ec3fdf498000e02d6b.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/45a1401ef7a0f5ec3fdf498000e02d6b.png)'
 - en: Photo by [ThisisEngineering](https://unsplash.com/@thisisengineering?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 照片由[ThisisEngineering](https://unsplash.com/@thisisengineering?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Introduction and the Data
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 介绍和数据
 - en: 'Let’s set the scenario: We have an organization with administrative expenses.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们设定一个场景：我们有一个包含行政费用的组织。
 - en: The expenses can happen at the country, state, and store level.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 费用可以发生在国家、州和商店级别。
 - en: 'Look at the following table:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 请看以下表格：
 - en: '![](../Images/dce67aeea8c01e4ae3050904b2f33e34.png)'
+  id: totrans-12
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/dce67aeea8c01e4ae3050904b2f33e34.png)'
 - en: Figure 1 — Data with the value in the expected place (Figure by the Author)
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 图1 — 数据在预期位置的值（图源：作者）
 - en: We see two rows for expenses for the two Stores and one for the organizational
     expenses for the State of South Carolina.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们看到两行分别是两家商店的费用，一行是南卡罗来纳州的组织费用。
 - en: I can use this data to calculate the sum of the expenses and get the total expenses
     for all stores in South Carolina.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 我可以使用这些数据来计算费用的总和，并得出南卡罗来纳州所有商店的总费用。
 - en: But what when the source system delivers the data in a different form?
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，当源系统以不同的形式提供数据时，怎么办？
 - en: 'For example, like this:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，像这样：
 - en: '![](../Images/ddddf77439bedfee5575a5da2680a495.png)'
+  id: totrans-18
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ddddf77439bedfee5575a5da2680a495.png)'
 - en: Figure 2 — Data with pre-aggregated values for South Carolina (Figure by the
     Author)
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 图2 — 南卡罗来纳州预先聚合的值数据（图源：作者）
 - en: The third row contains the pre-aggregated sum for the two stores in South Carolina
     plus the organizational expenses for the State of South Carolina.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 第三行包含了南卡罗来纳州两家商店的预先聚合的总和，以及南卡罗来纳州的组织费用。
 - en: 'A simple sum of these three rows would return a wrong result, as the result
     would contain the expenses for the two stores twice:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 简单地将这三行相加会得到错误的结果，因为结果中会重复计算这两家商店的费用：
 - en: '![](../Images/134946f9f906a1cabb2f97d570761f53.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/134946f9f906a1cabb2f97d570761f53.png)'
 - en: Figure 3 — Wrong result when aggregating the data with the pre-aggregated values
     (Figure by the Author)
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 图3 — 聚合包含预先聚合值的数据时的错误结果（图源：作者）
 - en: 'The challenge is: How can I calculate the correct result for each level in
     the hierarchy?'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 挑战是：如何计算每个层级中的正确结果？
 - en: 'My approach to the solution must consider the following:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的解决方案方法必须考虑以下几点：
 - en: I cannot change the data at the source.
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我不能更改数据源中的数据。
 - en: I must add some calculations in the data model to correct the result.
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我必须在数据模型中添加一些计算以纠正结果。
 - en: I must perform different calculations at each level of the hierarchy.
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我必须在层级的每个级别执行不同的计算。
 - en: But where and how can I do it?
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是我在哪里以及如何进行操作呢？
 - en: 'I have three possibilities to solve this issue:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 我有三种方法可以解决这个问题：
 - en: Add a calculated column to get the correct result.
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 添加一个计算列来获得正确的结果。
 - en: Add a Measure that calculates the correct result.
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 添加一个度量值来计算正确的结果。
 - en: Use Visual calculations.
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用可视化计算。
 - en: Calculated columns
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 计算列
 - en: OK, let’s start adding some calculated columns.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的，让我们开始添加一些计算列。
 - en: First, I need to know at which level each row is within the hierarchy. For this,
     I need a column named “Path Length”. Such a column is usually used when handling
     Parent-Child hierarchies.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我需要知道每一行在层级中的级别。为此，我需要一个名为“路径长度”的列。这样的列通常用于处理父子层级。
 - en: 'Therefore, I add two new columns to be able to navigate the hierarchy better:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我添加了两列新列，以便更好地导航层级：
 - en: '![](../Images/b632fd803b5bd49043bcd3f945b5a8c1.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b632fd803b5bd49043bcd3f945b5a8c1.png)'
 - en: Figure 4 — Additional calculated column for hierarchy navigation (Figure by
     the Author)
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4 — 用于层级导航的额外计算列（作者提供的图）
 - en: 'I used the following expression to calculate the HierachyPath column:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用了以下表达式来计算 HierachyPath 列：
 - en: '[PRE0]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Then, I used the [PATHLENGHTH()](https://dax.guide/pathlength/) function to
     calculate the “Path Length” column:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我使用了[PATHLENGHTH()](https://dax.guide/pathlength/)函数来计算“路径长度”列：
 - en: '[PRE1]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Next, I can write an expression to perform the following steps for each row
     in the table:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我可以编写一个表达式，执行以下步骤来处理表中的每一行：
 - en: Get the value for the current position.
+  id: totrans-45
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 获取当前职位的值。
 - en: Get the sum of values below the current position in the hierarchy.
+  id: totrans-46
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 获取当前职位在层级中下方的值的总和。
 - en: Detract the sum from step 2 from the value in the current row.
+  id: totrans-47
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从第 2 步的总和中扣除当前行中的值。
 - en: The result is a column containing the values in the first picture above.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是一个包含上面第一张图片中值的列。
 - en: '[PRE2]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: The key here is the expression for the variable “ChildExpenses”. This expression
     calculates the sum of all rows below the current position but with the same parent.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 关键在于“ChildExpenses”变量的表达式。该表达式计算了当前职位下、同一父级下的所有行的总和。
 - en: Be aware that calling [CALCULATE()](https://dax.guide/calculate/) for a calculated
     column in Power BI triggers a Context Transition.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在 Power BI 中调用[CALCULATE()](https://dax.guide/calculate/)函数计算一个计算列时，会触发上下文转换。
 - en: 'If you are not familiar with the concept of Context Transition, make sure to
     read the article where I explain it:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你不熟悉上下文转换的概念，确保阅读我解释它的文章：
 - en: '[](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----4a215b96b99c--------------------------------)
     [## What’s fancy about context transition in DAX'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----4a215b96b99c--------------------------------)
+    [## DAX 中上下文转换的精彩之处'
 - en: Row and filter context are well-known concepts in DAX. But we can switch between
     these two with context transition.
+  id: totrans-54
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 行上下文和筛选上下文是 DAX 中的常见概念。但我们可以通过上下文转换在这两者之间切换。
 - en: towardsdatascience.com](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----4a215b96b99c--------------------------------)
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----4a215b96b99c--------------------------------)
 - en: 'This is the result for the column:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是该列的结果：
 - en: '![](../Images/27ec7282310a6d995e3c4357a76feb3a.png)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/27ec7282310a6d995e3c4357a76feb3a.png)'
 - en: Figure 5 — Result of calculated column to get the correct result (Figure by
     the Author)
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 5 — 计算列的结果以获得正确的结果（作者提供的图）
 - en: This column replaces the original Expenses column.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 这列替代了原始的 Expenses 列。
 - en: I will rename the original Expenses column “Expense_Original” and the calculated
     column “Expenses”. The column Expense_Original is hidden in the Data model, as
     it is useless for the report.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 我将原始的 Expenses 列重命名为“Expense_Original”，并将计算列重命名为“Expenses”。由于 Expense_Original
+    列对报告没有用处，因此它在数据模型中是隐藏的。
 - en: 'Now, I can create the report intuitively:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我可以直观地创建报告了：
 - en: '![](../Images/e76f5adc863aa25672ceb98b9dcdfcd4.png)'
+  id: totrans-62
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e76f5adc863aa25672ceb98b9dcdfcd4.png)'
 - en: Figure 6 -The renamed Original Expenses and the calculated column side-by-side
     in Power BI (Figure by the Author)
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 6 — Power BI 中重命名的原始 Expenses 列和计算列并排显示（作者提供的图）
 - en: This is the needed result.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是所需的结果。
 - en: But let’s see if I can create a measure to calculate the correct result.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 但让我们看看我是否能创建一个度量值来计算正确的结果。
 - en: Measures
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 度量值
 - en: To write a Measure, I must handle each hierarchy level separately.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 要编写一个度量值，我必须分别处理每个层级。
 - en: I cannot use the same method as with the calculated column, as there are multiple
     rows at the Store level for each level above (Country or State).
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 我不能使用与计算列相同的方法，因为在每个上层级（如国家或州）下，商店级别有多行数据。
 - en: 'The result is the following DAX Code:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果是以下的 DAX 代码：
 - en: '[PRE3]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: I have added extensive comments within the code.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在代码中添加了大量的注释。
 - en: Therefore, I refrain from explaining each step of the Measure.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我不会详细解释度量值的每一步。
 - en: However, this approach is very complicated and is no match to the simplicity
     of the approach with the calculated column.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，这种方法非常复杂，无法与使用计算列的方法的简便性相比。
 - en: Visual calculations
+  id: totrans-74
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 可视化计算
 - en: 'Lastly, I can use one of the latest features in Power BI: [Visual Calculations](https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-visual-calculations-overview).'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我可以使用 Power BI 中的最新功能之一：[可视化计算](https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-visual-calculations-overview)。
 - en: Visual calculations can be used to add calculations directly to a Visual without
     adding a Measure to the Data model.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 可视化计算可以直接在视觉效果中添加计算，而无需将度量值添加到数据模型中。
 - en: This opens up some exciting possibilities and removes the need for Measures
     written to fulfill the requirements of one specific visual.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 这为我们提供了一些激动人心的可能性，并且消除了为满足特定视觉效果需求而编写度量值的必要。
 - en: I have added some links to this topic in the References section below.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在下面的参考部分添加了一些关于这个话题的链接。
 - en: Here, I tried using the new feature to implement a simple solution.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我尝试使用这个新功能来实现一个简单的解决方案。
 - en: However, I couldn’t find a working solution after much research and trial and
     error.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，在进行了大量的研究和反复试验后，我仍然没有找到一个有效的解决方案。
 - en: 'I found a solution to calculate the correct result for each Store but not for
     the States and the Countries:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 我找到了解决方案来计算每个商店的正确结果，但对于州和国家的计算则没有成功：
 - en: '[PRE4]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'This is the result of this formula:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是这个公式的结果：
 - en: '![](../Images/07e9815be2b0f5a70546481d7198baa0.png)'
+  id: totrans-84
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/07e9815be2b0f5a70546481d7198baa0.png)'
 - en: Figure 7 — Result of the Visual calculation (Figure by the Author)
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 7 — 可视化计算的结果（图由作者提供）
 - en: I tried to find a solution to calculate the State and Country results. But I
     wasn’t successful.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 我尝试找出计算州和国家结果的解决方案，但没有成功。
 - en: One crucial detail is that we don’t get a grand total with this approach. It
     might be an artifact of the incomplete formula. But it’s an important detail.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个关键细节是，我们使用这种方法时不会得到总计。这可能是由于公式未完成的原因，但这是一个重要的细节。
 - en: Regardless of the lack of success with this specific scenario, I would include
     this new feature in my skill set.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管在这个特定场景中没有成功，我还是会将这个新功能纳入我的技能范围。
 - en: And I encourage you to look at this new, exciting feature. It offers new possibilities
     for finding solutions to calculate results specific to one Visual that will not
     be reused otherwise.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 我鼓励你关注这个新的激动人心的功能。它为找到计算特定于某个视觉效果的结果提供了新的可能性，这些结果不会在其他地方重用。
 - en: '[Amit Chandak](https://medium.com/u/fff358c001e0?source=post_page---user_mention--4a215b96b99c--------------------------------)
     has written an introduction to this topic:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Amit Chandak](https://medium.com/u/fff358c001e0?source=post_page---user_mention--4a215b96b99c--------------------------------)
+    写了关于这个话题的介绍：'
 - en: '[](https://medium.com/microsoft-power-bi/understanding-visual-calculations-in-power-bi-revolutionizing-data-analysis-1c15c943243e?source=post_page-----4a215b96b99c--------------------------------)
     [## Understanding Visual Calculations in Power BI: Revolutionizing Data Analysis'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/microsoft-power-bi/understanding-visual-calculations-in-power-bi-revolutionizing-data-analysis-1c15c943243e?source=post_page-----4a215b96b99c--------------------------------)
+    [## 在 Power BI 中理解可视化计算：数据分析的革命'
 - en: 'In February 2024, Power BI introduced a game-changing feature currently in
     preview: Visual Calculations. This…'
+  id: totrans-92
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 在 2024 年 2 月，Power BI 推出了一个正在预览中的具有颠覆性意义的功能：可视化计算。这个…
 - en: medium.com](https://medium.com/microsoft-power-bi/understanding-visual-calculations-in-power-bi-revolutionizing-data-analysis-1c15c943243e?source=post_page-----4a215b96b99c--------------------------------)
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: medium.com](https://medium.com/microsoft-power-bi/understanding-visual-calculations-in-power-bi-revolutionizing-data-analysis-1c15c943243e?source=post_page-----4a215b96b99c--------------------------------)
 - en: Conclusion
+  id: totrans-94
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: When I started writing this piece, I intended to provide you with three working
     solutions for the problem.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我开始写这篇文章时，我打算为你提供三个有效的解决方案来解决这个问题。
 - en: I found two working solutions. The first is the most straightforward and efficient,
     while the second is a good exercise in working with hierarchies.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 我找到了两种可行的解决方案。第一种是最直接且高效的，而第二种则是一个很好的操作层次结构的练习。
 - en: 'Some time ago, I have written a short piece about why pre-aggregated data is
     bad for us:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 一段时间前，我写了一篇简短的文章，讲解了为什么预聚合数据对我们不利：
 - en: '[](/pre-calculated-aggregations-for-power-bi-why-should-you-avoid-them-371abdec5bb4?source=post_page-----4a215b96b99c--------------------------------)
     [## Pre-calculated aggregations for Power BI — Why should you avoid them'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](/pre-calculated-aggregations-for-power-bi-why-should-you-avoid-them-371abdec5bb4?source=post_page-----4a215b96b99c--------------------------------)
+    [## Power BI 的预计算聚合—为什么你应该避免它们'
 - en: One of my clients always wants to pre-calculate aggregation in his Excel filesfor
     his reports. Here’s why we should…
+  id: totrans-99
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 我的一个客户总是希望在他的 Excel 文件中为报告预计算聚合。以下是我们应该避免的原因...
 - en: towardsdatascience.com](/pre-calculated-aggregations-for-power-bi-why-should-you-avoid-them-371abdec5bb4?source=post_page-----4a215b96b99c--------------------------------)
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/pre-calculated-aggregations-for-power-bi-why-should-you-avoid-them-371abdec5bb4?source=post_page-----4a215b96b99c--------------------------------)
 - en: Now, I have one more example of why I was right when I wrote that.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我有一个更多的例子，证明我之前写的那句话是对的。
 - en: One important takeaway is that preparing and formatting the data to support
     easy solutions is essential, even when this means going the extra mile to find
     the solution.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个重要的收获是，准备和格式化数据以支持简易的解决方案至关重要，即使这意味着要额外付出努力去寻找解决方案。
 - en: References
+  id: totrans-103
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: 'Here are some references about the new Visual calculations feature:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是一些关于新可视化计算功能的参考资料：
 - en: '[Visual calculations (preview) on the MS Power Blog (February 2024)](https://powerbi.microsoft.com/en-us/blog/visual-calculations-preview/)'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: '[MS Power 博客上的可视化计算（预览）（2024年2月）](https://powerbi.microsoft.com/en-us/blog/visual-calculations-preview/)'
 - en: '[Using visual calculations (preview)](https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-visual-calculations-overview)'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '[使用可视化计算（预览）](https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-visual-calculations-overview)'
 - en: '[SQLBI Articles page (Contains several articles on this topic with more to
     come)](https://www.sqlbi.com/articles/)'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: '[SQLBI 文章页面（包含多个相关主题的文章，更多内容敬请期待）](https://www.sqlbi.com/articles/)'
 - en: I use the Contoso sample dataset, as I did in my previous articles. You can
     download the ContosoRetailDW Dataset for free from Microsoft [here](https://www.microsoft.com/en-us/download/details.aspx?id=18279).
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用了 Contoso 示例数据集，就像在我之前的文章中一样。你可以从微软[这里](https://www.microsoft.com/en-us/download/details.aspx?id=18279)免费下载
+    ContosoRetailDW 数据集。
 - en: The Contoso Data can be freely used under the MIT License, as described [here](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo).
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: Contoso 数据可以在 MIT 许可证下自由使用，具体请参见[这里](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo)。
 - en: I extracted a subset of the data and manipulated it to get the needed data.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 我提取了数据的一个子集，并进行了处理，以获得所需的数据。
 - en: 'Please consider Following me and Subscribe to get E-Mails as soon as I add
     new content:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 请考虑关注我并订阅，以便在我添加新内容时立即收到电子邮件：
 - en: '[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----4a215b96b99c--------------------------------)
     [## Get an email whenever Salvatore Cagliari publishes.'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----4a215b96b99c--------------------------------)
+    [## 每当 Salvatore Cagliari 发布新内容时，收到电子邮件通知。'
 - en: Get an email whenever Salvatore Cagliari publishes. By signing up, you will
     create a Medium account if you don't…
+  id: totrans-113
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 每当 Salvatore Cagliari 发布新内容时，收到电子邮件通知。通过注册，你将创建一个 Medium 账户，如果你还没有的话...
 - en: medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----4a215b96b99c--------------------------------)
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----4a215b96b99c--------------------------------)
 - en: I make my articles accessible to everyone, even though Medium has a paywall.
     This allows me to earn a little for each reader, but I turn it off so you can
     read my pieces without cost.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 我将我的文章免费开放给每个人，尽管 Medium 有付费墙。这允许我从每个读者那里赚取一点收入，但我关闭了付费墙，以便你能免费阅读我的文章。
 - en: You can support my work, which I do during my free time, through
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过以下方式支持我的工作，这是我在空闲时间进行的工作：
 - en: '[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)'
 - en: 'Or scan this QR Code:'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 或扫描此二维码：
 - en: '![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)'
+  id: totrans-119
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)'
 - en: Any support is greatly appreciated and helps me find more time to create more
     content for you.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何支持都非常感谢，这能帮助我腾出更多时间为你创造更多内容。
 - en: Thank you a lot.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 非常感谢。

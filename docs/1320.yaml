@@ -1,199 +1,292 @@
 - en: Dask DataFrame Is Fast Now
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Dask DataFrame 现在非常快速
 - en: 原文：[https://towardsdatascience.com/dask-dataframe-is-fast-now-ec930181c97a?source=collection_archive---------4-----------------------#2024-05-27](https://towardsdatascience.com/dask-dataframe-is-fast-now-ec930181c97a?source=collection_archive---------4-----------------------#2024-05-27)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/dask-dataframe-is-fast-now-ec930181c97a?source=collection_archive---------4-----------------------#2024-05-27](https://towardsdatascience.com/dask-dataframe-is-fast-now-ec930181c97a?source=collection_archive---------4-----------------------#2024-05-27)
 - en: How Dask enables processing data at terabyte scale efficiently
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Dask 如何高效地在 TB 级别处理数据
 - en: '[](https://medium.com/@patrick_hoefler?source=post_page---byline--ec930181c97a--------------------------------)[![Patrick
     Hoefler](../Images/35ca9ef1100d8c93dbadd374f0569fe1.png)](https://medium.com/@patrick_hoefler?source=post_page---byline--ec930181c97a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ec930181c97a--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ec930181c97a--------------------------------)
     [Patrick Hoefler](https://medium.com/@patrick_hoefler?source=post_page---byline--ec930181c97a--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@patrick_hoefler?source=post_page---byline--ec930181c97a--------------------------------)[![Patrick
+    Hoefler](../Images/35ca9ef1100d8c93dbadd374f0569fe1.png)](https://medium.com/@patrick_hoefler?source=post_page---byline--ec930181c97a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ec930181c97a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ec930181c97a--------------------------------)
+    [Patrick Hoefler](https://medium.com/@patrick_hoefler?source=post_page---byline--ec930181c97a--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ec930181c97a--------------------------------)
     ·9 min read·May 27, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ec930181c97a--------------------------------)
+    ·阅读时间 9 分钟·2024年5月27日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/308b0407b24987f46372d5b56e3cf07d.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/308b0407b24987f46372d5b56e3cf07d.png)'
 - en: '`Performance Improvements for Dask DataFrames — All Images created by the Author`'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Performance Improvements for Dask DataFrames — 所有图片由作者创建`'
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 介绍
 - en: Dask DataFrame scales out pandas DataFrames to operate at the 100GB-100TB scale.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: Dask DataFrame 将 pandas DataFrame 扩展到 100GB-100TB 的规模进行操作。
 - en: Historically, Dask was pretty slow compared to other tools in this space (like
     Spark). Due to a number of improvements focused on performance, it’s now pretty
     fast (about 20x faster than before). The new implementation moved Dask from getting
     destroyed by Spark on every benchmark to regularly outperforming Spark on TPC-H
     queries by a significant margin.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 从历史上看，Dask 相比于该领域的其他工具（如 Spark）要慢得多。通过专注于性能的多项改进，它现在非常快速（比以前快大约 20 倍）。新的实现使
+    Dask 从在每个基准测试中都被 Spark 完全碾压，变成了在 TPC-H 查询中经常大幅超越 Spark。
 - en: Dask DataFrame workloads struggled with many things. Performance and memory
     usage were commonly seen pain points, shuffling was unstable for bigger datasets,
     making scaling out hard. Writing efficient code required understanding too much
     of the internals of Dask.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: Dask DataFrame 的工作负载面临许多挑战。性能和内存使用常常是主要的痛点，数据集较大时洗牌操作不稳定，导致扩展变得困难。编写高效代码需要了解
+    Dask 的很多内部细节。
 - en: The new implementation changed all of this. Things that didn’t work were completely
     rewritten from scratch and existing implementations were improved upon. This puts
     Dask DataFrames on a solid foundation that allows faster iteration cycles in the
     future.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 新的实现改变了这一切。那些无法正常工作的部分被完全从头重写，现有的实现也得到了改进。这为 Dask DataFrame 打下了坚实的基础，未来可以进行更快速的迭代。
 - en: We’ll go through the three most prominent changes, covering how they impact
     performance and make it easier to use Dask efficiently, even for users that are
     new to distributed computing. We’ll also discuss plans for future improvements.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将讨论三项最显著的变化，介绍它们如何提升性能并使 Dask 更易于使用，即使是对分布式计算较为陌生的用户。我们还将讨论未来改进的计划。
 - en: I am part of the core team of Dask. I am an open source engineer for [Coiled](https://www.coiled.io)
     and was involved in implementing some of the improvements discussed in this post.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 我是 Dask 核心团队的一员，还是[Coiled](https://www.coiled.io)的开源工程师，参与了本文中讨论的一些改进的实现。
 - en: '1\. Apache Arrow Support: Efficient String Datatype'
+  id: totrans-15
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 1\. Apache Arrow 支持：高效的字符串数据类型
 - en: A Dask DataFrame consists of many pandas DataFrames. Historically, pandas used
     NumPy for numeric data, but Python objects for text data, which are inefficient
     and blow up memory usage. Operations on object data also hold the GIL, which doesn’t
     matter much for pandas, but is a catastrophy for performance with a parallel system
     like Dask.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: Dask DataFrame 由多个 pandas DataFrame 组成。历史上，pandas 使用 NumPy 处理数值数据，但对文本数据使用 Python
+    对象，这样做效率低下，并且会极大增加内存使用。对对象数据的操作也会占用 GIL（全局解释器锁），这对于 pandas 影响不大，但对于像 Dask 这样的并行系统来说，性能将受到灾难性的影响。
 - en: The pandas 2.0 release introduced support for general-purpose Arrow datatypes,
     so Dask now uses PyArrow-backed strings by default. These are *much* better. PyArrow
     strings reduce memory usage by up to 80% and unlock multi-threading for string
     operations. Workloads that previously struggled with available memory now fit
     comfortably in much less space, and are a lot faster because they no longer constantly
     spill excess data to disk.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: pandas 2.0 发布时引入了对通用 Arrow 数据类型的支持，因此 Dask 现在默认使用 PyArrow 支持的字符串。这些字符串*要好得多*。PyArrow
+    字符串将内存使用量减少了多达 80%，并且解锁了字符串操作的多线程功能。以前因内存不足而遇到问题的工作负载，现在能够在更少的内存中顺利运行，而且速度更快，因为它们不再不断将多余的数据溢写到磁盘。
 - en: '![](../Images/d84c32d3800a76ea017400b5c0439f0a.png)'
+  id: totrans-18
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d84c32d3800a76ea017400b5c0439f0a.png)'
 - en: '`Memory Usage of the Legacy DataFrames compared with Arrow Strings`'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: '`与 Arrow 字符串相比，传统 DataFrame 的内存使用`'
 - en: I wrote a post about this that [investigates Arrow integrations](https://docs.coiled.io/blog/pyarrow-in-pandas-and-dask.html)
     in more detail if you want to learn more.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我写了一篇关于此内容的文章，详细[探讨了 Arrow 集成](https://docs.coiled.io/blog/pyarrow-in-pandas-and-dask.html)，如果你想了解更多，可以阅读。
 - en: 2\. Faster Joins with a New Shuffle Algorithm
+  id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2\. 使用新洗牌算法加速连接操作
 - en: Shuffling is an essential component of distributed systems to enable sorting,
     joins, and complex group by operations. It is an all-to-all, network-intensive
     operation that’s often the most expensive component in a workflow. We rewrote
     Dask’s shuffling system, which greatly impacts overall performance, especially
     on complex, data-intensive workloads.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 洗牌是分布式系统中的一个关键组件，用于实现排序、连接和复杂的分组操作。它是一种全对全、网络密集型的操作，通常是工作流中最昂贵的部分。我们重写了 Dask
+    的洗牌系统，这对整体性能产生了巨大影响，尤其是在复杂的数据密集型工作负载下。
 - en: A shuffle operation is intrinsically an all-to-all communication operation where
     every input partition has to provide a tiny slice of data to every output partition.
     Dask was already using it’s own task-based algorithm that managed to reduce the
     `O(n * n)` task complexity to `O(log(n) * n)` where `n` is the number of partitions.
     This was a drastic reduction in the number of tasks, but the non-linear scaling
     ultimately did not allow Dask to process arbitrarily large datasets.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 洗牌操作本质上是一种全对全的通信操作，其中每个输入分区必须将一小部分数据提供给每个输出分区。Dask 最初使用了自己的基于任务的算法，成功地将 `O(n
+    * n)` 的任务复杂度减少到了 `O(log(n) * n)`，其中 `n` 是分区数量。这大大减少了任务数量，但非线性扩展性最终使得 Dask 无法处理任意大的数据集。
 - en: Dask introduced a new P2P (peer-to-peer) shuffle method that reduced the task
     complexity to `O(n)` which scales linearly with the size of the dataset and the
     size of the cluster. It also incorporates an efficient disk integration which
     allows easily shuffling datasets which are much larger than memory. The new system
     is extremely stable and "just works" across any scale of data.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: Dask 引入了一种新的 P2P（点对点）洗牌方法，将任务复杂度降低到了 `O(n)`，并且随着数据集大小和集群规模的增长呈线性扩展。它还集成了高效的磁盘功能，使得可以轻松地洗牌大于内存的数据集。新系统极其稳定，并且在任何规模的数据上都能“正常工作”。
 - en: '![](../Images/06eeae42ba346f26d229371a3f1d9e2c.png)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/06eeae42ba346f26d229371a3f1d9e2c.png)'
 - en: '`Memory Usage of the Legacy Shuffle compared with P2P`'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '`与 P2P 相比，传统洗牌的内存使用`'
 - en: One of my colleagues wrote [a post about this](https://docs.coiled.io/blog/shuffling-large-data-at-constant-memory.html)
     that includes a more extensive explanation and a lot of technical details.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 我的一个同事写了[关于此内容的文章](https://docs.coiled.io/blog/shuffling-large-data-at-constant-memory.html)，其中包含了更为详细的解释和大量技术细节。
 - en: 3\. Optimizer
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3\. 优化器
 - en: Dask itself is lazy, which means that it registers your whole query before doing
     any actual work. This is a powerful concept that enables a lot of optimizations,
     but historically Dask wasn’t taking advantage of this knowledge in the past. Dask
     also did a bad job of hiding internal complexities and left users on their own
     while navigating the difficulties of distributed computing and running large scale
     queries. It made writing efficient code painful for non-experts.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: Dask 本身是惰性计算的，这意味着它会在执行任何实际工作之前注册整个查询。这是一个强大的概念，使得许多优化成为可能，但历史上 Dask 并没有充分利用这一知识。Dask
+    在隐藏内部复杂性方面做得不好，用户在应对分布式计算和执行大规模查询的困难时只能靠自己。这使得非专家编写高效代码变得非常痛苦。
 - en: '[The Dask release in March](https://docs.dask.org/en/stable/changelog.html#query-planning)
     includes a complete re-implementation of the DataFrame API to support query optimization.
     This is a big deal. The new engine centers around a query optimizer that rewrites
     our code to make it more efficient and better tailored to Dask’s strengths. Let’s
     dive into some optimization strategies, how they make our code run faster and
     scale better.'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3 月发布的 Dask 版本](https://docs.dask.org/en/stable/changelog.html#query-planning)包含了
+    DataFrame API 的完全重新实现，以支持查询优化。这是一个大事件。新的引擎围绕查询优化器展开，优化器会重写我们的代码，使其更加高效，更好地发挥 Dask
+    的优势。让我们深入了解一些优化策略，它们如何使我们的代码运行得更快，并更好地扩展。'
 - en: We will start with a couple of general purpose optimizations that are useful
     for every DataFrame-like tool before we dive into more specific techniques that
     are tailored to distributed systems generally and Dask more specifically.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 在深入探讨一些针对分布式系统和 Dask 更具体的技术之前，我们将从一些对每个类似 DataFrame 的工具都有用的通用优化开始。
 - en: 3.1 Column Projection
+  id: totrans-32
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.1 列投影
 - en: Most datasets have more columns than what we actually need. Dropping them requires
     foresight (“What columns will I need for this query? 🤔”) so most people don’t
     think about this when loading data. This is bad for performance because we carry
     around lots of data that we don’t need, slowing everything down. Column Projection
     drops columns as soon as they aren’t needed anymore. It’s a straightforward optimization,
     but highly beneficial.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数数据集的列数超过我们实际需要的列数。去除不必要的列需要前瞻性思维（“我在这个查询中需要哪些列？🤔”），因此大多数人在加载数据时不会考虑这一点。这对性能不好，因为我们携带了许多不需要的数据，导致一切变得更慢。列投影在不再需要列时立即去除它们。这是一个简单的优化，但却非常有益。
 - en: The legacy implementation always reads all columns from storage and only drops
     columns if we actively ask for it. Simply operating on less data is a big win
     for performance and memory usage.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 传统实现总是从存储中读取所有列，只有在我们主动要求时才去除列。仅仅减少操作的数据量就能大幅提升性能和内存使用效率。
 - en: The optimizer looks at the query and figures out which columns are needed for
     each operation. We can imagine this as looking at the final step of our query
     and then working backwards step by step to the data source and injecting drop
     operations to get rid of unnecessary columns.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 优化器查看查询并确定每个操作所需的列。我们可以将其想象成从查询的最终步骤开始，然后一步步回溯到数据源，并注入丢弃操作以去除不必要的列。
 - en: '![](../Images/a84cc99cdcd2f59bd804a4137b77b521.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a84cc99cdcd2f59bd804a4137b77b521.png)'
 - en: '`We only require a subset of columns in the end. Replace doesn''t need access
     to all columns, so we can drop unnecessary columns directly in the IO step.`'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '`最终我们只需要一个子集的列。替换操作不需要访问所有列，因此我们可以在 IO 步骤中直接丢弃不必要的列。`'
 - en: 3.2 Filter Pushdown
+  id: totrans-38
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.2 过滤下推
 - en: 'Filter pushdown is another general-purpose optimization with the same goal
     as column projection: operate on less data. The legacy implementation just keeps
     filters where we put them. The new implementation executes filter operations as
     early as possible while maintaining the same results.'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 过滤下推是另一种通用优化，其目标与列投影相同：操作较少的数据。传统实现只是将过滤器保留在我们放置的位置。新的实现尽可能早地执行过滤操作，同时保持相同的结果。
 - en: The optimizer identifies every filter in our query and looks at the previous
     operation to see if we can move the filter closer to the data source. It will
     repeat this until it finds an operation that can’t be switched with a filter.
@@ -202,197 +295,283 @@
     a filter and a merge operation is fine (values don’t change), but switching a
     filter and a replace operation is invalid, because our values might change and
     rows that would previously have been filtered out now won’t be, or vice versa.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 优化器识别我们查询中的每个过滤器，并查看之前的操作，判断是否可以将过滤器移得更靠近数据源。它会重复这一过程，直到找到一个不能与过滤器交换的操作。这比列投影要难一些，因为我们需要确保这些操作不会改变数据框的值。例如，交换过滤器和合并操作是可以的（值不变），但交换过滤器和替换操作是无效的，因为我们的值可能会改变，原本会被过滤掉的行现在可能不会被过滤掉，反之亦然。
 - en: '![](../Images/cf3fab96fed4a7b19ba76286970b9b3c.png)'
+  id: totrans-41
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cf3fab96fed4a7b19ba76286970b9b3c.png)'
 - en: '`Initially, the filter happens after the Dropna, but we can execute the filter
     before Dropna without changing the result. This allows us to push the filter into
     the IO step.`'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: '`最初，过滤操作发生在Dropna之后，但我们可以在不改变结果的情况下，在Dropna之前执行过滤操作。这允许我们将过滤器推送到IO步骤中。`'
 - en: Additionally, if our filter is strong enough then we can potentially drop complete
     files in the IO step. This is a best-case scenario, where an earlier filter brings
     a huge performance improvement and even requires reading less data from remote
     storage.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，如果我们的过滤器足够强大，那么我们可能在IO步骤中直接丢弃完整的文件。这是最佳情况，其中早期的过滤操作带来了巨大的性能提升，甚至需要从远程存储读取更少的数据。
 - en: 3.3 Automatically Resizing Partitions
+  id: totrans-44
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.3 自动调整分区大小
 - en: 'In addition to implementing the common optimization techniques described above,
     we’ve also improved a common pain point specific to distributed systems genereally
     and Dask users specifically: optimal partition sizes.'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了实现上述常见的优化技术外，我们还改进了一个普遍存在的痛点，特别是对于分布式系统和Dask用户：最佳分区大小。
 - en: Dask DataFrames consist of many small pandas DataFrames called *partitions*.
     Often, the number of partitions is decided for you and Dask users are advised
     to manually “repartition” after reducing or expanding their data (for example
     by dropping columns, filtering data, or expanding with joins) (see the [Dask docs](https://docs.dask.org/en/stable/dataframe-best-practices.html#repartition-to-reduce-overhead)).
     Without this extra step, the (usually small) overhead from Dask can become a bottleneck
     if the pandas DataFrames become too small, making Dask workflows painfully slow.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: Dask DataFrame由许多称为*分区*的小型pandas DataFrame组成。通常，分区的数量是由系统决定的，Dask用户被建议在减少或扩展数据后手动“重新分区”（例如通过删除列、过滤数据或通过连接操作进行扩展）（参见[Dask文档](https://docs.dask.org/en/stable/dataframe-best-practices.html#repartition-to-reduce-overhead)）。如果没有这一步，Dask的（通常很小的）开销可能会成为瓶颈，特别是当pandas
+    DataFrame变得过小时，这会使Dask的工作流变得非常缓慢。
 - en: 'Manually controlling the partition size is a difficult task that we, as Dask
     users, shouldn’t have to worry about. It is also slow because it requires network
     transfer of some partitions. Dask DataFrame now automatically does two things
     to help when the partitions get too small:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 手动控制分区大小是一项困难的任务，我们作为Dask用户不应该为此担忧。这也很慢，因为它需要通过网络传输一些分区。现在，Dask DataFrame会自动做两件事来帮助处理当分区变得过小的情况：
 - en: Keeps the size of each partition constant, based on the ratio of data you want
     to compute vs. the original file size. If, for example, you filter out 80% of
     the original dataset, Dask will automatically combine the resulting smaller partitions
     into fewer, larger partitions.
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 保持每个分区的大小恒定，基于你想要计算的数据与原始文件大小的比例。例如，如果你筛选掉原始数据集的80%，Dask会自动将结果中较小的分区合并成更少、更大的分区。
 - en: Combines too-small partitions into larger partitions, based on an absolute minimum
     (default is 75 MB). If, for example, your original dataset is split into many
     tiny files, Dask will automatically combine them.
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 基于绝对最小值（默认为75MB），将过小的分区合并为更大的分区。例如，如果你的原始数据集被拆分成许多很小的文件，Dask会自动将它们合并。
 - en: '![](../Images/29a069b1cef38c8590db87fd8c1d8acc.png)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/29a069b1cef38c8590db87fd8c1d8acc.png)'
 - en: '`We select two columns that take up 40 MB of memory out of the 200 MB from
     the whole file.`'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: '`我们从整个文件的200MB中选择了两个占用40MB内存的列。`'
 - en: The optimizer will look at the number of columns and the size of the data within
     those. It calculates a ratio that is used to combine multiple files into one partition.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 优化器会查看列的数量以及这些列中的数据大小。它会计算一个比率，用于将多个文件合并为一个分区。
 - en: '![](../Images/34dd0149f27adf9b8b3dc472e87ba4a2.png)'
+  id: totrans-53
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/34dd0149f27adf9b8b3dc472e87ba4a2.png)'
 - en: '`The ratio of 40/200 results in combining five files into a single partition.`'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '`40/200的比率导致将五个文件合并为一个分区。`'
 - en: This step is currently limited to IO operations (like reading in a Parquet dataset),
     but we plan to extend it to other operations that allow cheaply combining partitions.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前，这一步骤仅限于IO操作（如读取Parquet数据集），但我们计划将其扩展到其他允许廉价合并分区的操作。
 - en: 3.4 Trivial Merge and Join Operations
+  id: totrans-56
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.4 简单的合并和连接操作
 - en: Merge and join operations are typically cheap on a single machine with pandas
     but expensive in a distributed setting. Merging data in shared memory is cheap,
     while merging data across a network is quite slow, due to the shuffle operations
     explained earlier.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 在单机上使用Pandas时，合并和连接操作通常是便宜的，但在分布式环境中则很昂贵。在共享内存中合并数据是便宜的，而通过网络合并数据则非常慢，因为前面提到的洗牌操作。
 - en: This is one of the most expensive operations in a distributed system. The legacy
     implementation triggered a network transfer of both input DataFrames for every
     merge operation. This is sometimes necessary, but very expensive.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是分布式系统中最昂贵的操作之一。传统实现每次合并操作都会触发输入DataFrame的网络传输。这在某些情况下是必要的，但代价高昂。
 - en: '![](../Images/a51a432975c2076cfb5712349c8db866.png)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a51a432975c2076cfb5712349c8db866.png)'
 - en: '`Both joins are performed on the same column. The left DataFrame is already
     properly partitioned after the first join, so we can avoid shuffling again with
     the new implementation.`'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '`两个连接操作都是在同一列上进行的。左侧的DataFrame在第一次连接后已经正确分区，因此我们可以避免在新实现中再次进行洗牌操作。`'
 - en: The optimizer will determine when shuffling is necessary versus when a trivial
     join is sufficient because the data is already aligned properly. This can make
     individual merges an order of magnitude faster. This also applies to other operations
     that normally require a shuffle like `groupby().apply()`.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 优化器将判断何时需要洗牌，何时仅仅是简单的连接足够，因为数据已经对齐。这可以使个别合并操作变得更快。这个原则同样适用于其他通常需要洗牌的操作，如`groupby().apply()`。
 - en: Dask merges used to be inefficient, which caused long runtimes. The optimizer
     fixes this for the trivial case where these operations happen after each other,
     but the technique isn’t very advanced yet. There is still a lot of potential for
     improvement.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: Dask的合并操作曾经效率低下，导致运行时间过长。优化器解决了这些操作在彼此之后发生时的简单情况，但该技术目前还不够先进。仍然有很大的改进空间。
 - en: '![](../Images/cc5ea176270a4da971f228de933a3f7a.png)'
+  id: totrans-63
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cc5ea176270a4da971f228de933a3f7a.png)'
 - en: '`The current implementation shuffles both branches that originate from the
     same table. Injecting a shuffle node further up avoids one of the expensive operations.`'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '`当前的实现会对来自同一表的两个分支进行洗牌。通过在更高层次插入一个洗牌节点，可以避免其中一个昂贵的操作。`'
 - en: The optimizer will look at the expression and inject shuffle nodes where necessary
     to avoid unnecessary shuffles.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 优化器会查看表达式，并在必要时插入洗牌节点，以避免不必要的洗牌操作。
 - en: How do the improvements stack up compared to the legacy implementation?
+  id: totrans-66
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 相较于传统实现，这些改进的效果如何？
 - en: Dask is now 20x faster than before. This improvement applies to the entire DataFrame
     API (not just isolated components), with no known performance regressions. Dask
     now runs workloads that were impossible to complete in an acceptable timeframe
     before. This performance boost is due to many improvements all layered on top
     of each other. It’s not about doing one thing especially well, but about doing
     nothing especially poorly.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: Dask现在比以前快了20倍。这个改进适用于整个DataFrame API（不仅仅是某些独立的组件），且没有已知的性能回归。Dask现在能够运行以前无法在可接受的时间内完成的工作负载。这个性能提升是由于多个改进的叠加。它不是做一件事情特别好，而是避免做任何事情特别差。
 - en: '![](../Images/308b0407b24987f46372d5b56e3cf07d.png)'
+  id: totrans-68
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/308b0407b24987f46372d5b56e3cf07d.png)'
 - en: '`Performance improvements on Query 3 of the TPC-H Benchmarks from [https://github.com/coiled/benchmarks/tree/main/tests/tpch](https://github.com/coiled/benchmarks/tree/main/tests/tpch_)`'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '`TPC-H基准测试中的查询3性能提升，来自[https://github.com/coiled/benchmarks/tree/main/tests/tpch](https://github.com/coiled/benchmarks/tree/main/tests/tpch_)`'
 - en: Performance, while the most enticing improvement, is not the only thing that
     got better. The optimizer hides a lot of complexity from the user and makes the
     transition from pandas to Dask a lot easier because it’s now much more difficult
     to write poorly performing code. The whole system is more robust.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 性能虽然是最吸引人的改进，但并不是唯一得到改善的地方。优化器隐藏了很多复杂性，使得用户从pandas迁移到Dask变得更加容易，因为现在写出性能差的代码变得更加困难。整个系统变得更加健壮。
 - en: The new architecture of the API is a lot easier to work with as well. The legacy
     implementation leaked a lot of internal complexities into high-level API implementations,
     making changes cumbersome. Improvements are almost trivial to add now.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 新的API架构也更容易使用。旧版实现将许多内部复杂性泄露到高层API中，导致更改变得繁琐。现在，改进几乎是轻松易行的。
 - en: What’s to come?
+  id: totrans-72
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 接下来会发生什么？
 - en: Dask DataFrame changed a lot over the last 18 months. The legacy API was often
     difficult to work with and struggled with scaling out. The new implementation
     dropped things that didn’t work and improved existing implementations. The heavy
     lifting is finished now, which allows for faster iteration cycles to improve upon
     the status quo. Incremental improvements are now trivial to add.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 在过去18个月中，Dask DataFrame发生了很大变化。旧版API通常难以使用，且在扩展性方面表现较差。新的实现去除了不奏效的部分，并改进了现有实现。现在，繁重的工作已经完成，这使得加快迭代周期、改进现状成为可能。增量改进现在变得轻而易举。
 - en: 'A few things that are on the immediate roadmap:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些即将实施的事项：
 - en: '**Auto repartitioning:** this is partially implemented, but there is more potential
     to choose a more efficient partition size during optimization.'
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**自动重新分区：** 这部分已经实现，但在优化过程中仍有更多潜力选择更高效的分区大小。'
 - en: '**Faster Joins:** there’s still lots of fine-tuning to be done here. For example,
     we have a PR in flight with a 30–40% improvement.'
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**更快的连接：** 这里仍有很多精细调整的空间。例如，我们有一个PR正在进行，其中带来了30-40%的性能提升。'
 - en: '**Join Reordering:** we don’t do this yet, but it’s on the immediate roadmap'
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**连接重排序：** 我们还没有做到这一点，但它在即将实施的事项中。'
 - en: '**Learn More**'
+  id: totrans-78
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**了解更多**'
 - en: 'This article focuses on a number of improvements to Dask DataFrame and how
     much faster and more reliable it is as a result. If you’re choosing between Dask
     and other popular DataFrame tools, you might also consider:'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文重点介绍了对Dask DataFrame的多个改进，以及这些改进带来了更快、更可靠的表现。如果你在选择Dask和其他流行的DataFrame工具时，可能还需要考虑：
 - en: '[**DataFrames at Scale Comparison:** TPC-H](https://docs.coiled.io/blog/tpch.html)
     which compares Dask, Spark, Polars, and DuckDB performance on datasets ranging
     from 10 GB to 10 TB both locally and on the cloud.'
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[**大规模数据框比较：** TPC-H](https://docs.coiled.io/blog/tpch.html)，该报告比较了Dask、Spark、Polars和DuckDB在从10
+    GB到10 TB的数据集上的性能，涵盖本地和云端。'
 - en: Thank you for reading. Feel free to reach out to share your thoughts and feedback.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢阅读。欢迎随时联系我们，分享您的想法和反馈。

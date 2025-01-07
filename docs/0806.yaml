@@ -1,266 +1,407 @@
 - en: Intersect Multiple 3D Lines (Closest Point)
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 相交多个 3D 线段（最近点）
 - en: 原文：[https://towardsdatascience.com/intersect-multiple-3d-lines-closest-point-93e06b296f15?source=collection_archive---------11-----------------------#2024-03-27](https://towardsdatascience.com/intersect-multiple-3d-lines-closest-point-93e06b296f15?source=collection_archive---------11-----------------------#2024-03-27)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/intersect-multiple-3d-lines-closest-point-93e06b296f15?source=collection_archive---------11-----------------------#2024-03-27](https://towardsdatascience.com/intersect-multiple-3d-lines-closest-point-93e06b296f15?source=collection_archive---------11-----------------------#2024-03-27)
 - en: Seeking intersection of a batch of 3D lines is more of a minimization problem
     than an actual intersection test, as usually done with 2 rays
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 寻找一批 3D 线段的交点，更像是一个最小化问题，而不是一个实际的交点测试，正如通常与两条光线做的那样。
 - en: '[](https://medium.com/@thom01.rouch?source=post_page---byline--93e06b296f15--------------------------------)[![Thomas
     Rouch](../Images/a8440bbed59cd8d9cdd752cf1fea2831.png)](https://medium.com/@thom01.rouch?source=post_page---byline--93e06b296f15--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--93e06b296f15--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--93e06b296f15--------------------------------)
     [Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--93e06b296f15--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@thom01.rouch?source=post_page---byline--93e06b296f15--------------------------------)[![Thomas
+    Rouch](../Images/a8440bbed59cd8d9cdd752cf1fea2831.png)](https://medium.com/@thom01.rouch?source=post_page---byline--93e06b296f15--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--93e06b296f15--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--93e06b296f15--------------------------------)
+    [Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--93e06b296f15--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--93e06b296f15--------------------------------)
     ·5 min read·Mar 27, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--93e06b296f15--------------------------------)
+    ·阅读时间：5 分钟·2024年3月27日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/23b99afae4ea83fbbf90d039e7880ddd.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/23b99afae4ea83fbbf90d039e7880ddd.png)'
 - en: Photo by [Baudouin Wisselmann](https://unsplash.com/@baud_wisselmann?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 摄影师：[Baudouin Wisselmann](https://unsplash.com/@baud_wisselmann?utm_source=medium&utm_medium=referral)
+    来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 1\. Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 1\. 引言
 - en: Motivation
+  id: totrans-9
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 动机
 - en: Figuring out where several 3D lines meet is really useful in fields like 3D
     Reconstruction or Augmented Reality. For instance, it helps us triangulate a 3D
     point from its multi-view 2D image detections or find the main 3D center of attention
     of a camera rotating around an object.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 了解多个 3D 线段相交的位置在 3D 重建或增强现实等领域非常有用。例如，它帮助我们通过多视角的 2D 图像检测来三角化一个 3D 点，或者找到相机围绕物体旋转时的主要
+    3D 关注点。
 - en: Even though each line may contain some noise, having many of them helps reducing
     the variability, much like when we calculate the average of several samples.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管每一行可能包含一些噪音，但拥有更多的行有助于减少变异性，就像我们计算多个样本的平均值一样。
 - en: Two rays VS multiple rays
+  id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 两条光线 VS 多条光线
 - en: In a previous article called [***Intersect 3D Rays (Closest Point)***](https://medium.com/towards-data-science/3d-ray-intersection-closest-point-dc8c72122224)I
     explained how to intersect a pair of 3D rays. But, what if we want to intersect
     `n` rays? As we’ll see in this article, moving from 2 to `n` rays isn’t just a
     generalization, it’s fundamentally different.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 在之前的一篇文章中，[***相交 3D 光线（最近点）***](https://medium.com/towards-data-science/3d-ray-intersection-closest-point-dc8c72122224)，我解释了如何使一对
+    3D 光线相交。但是，如果我们想让 `n` 条光线相交呢？正如我们在本文中所看到的，从两条光线到 `n` 条光线不仅仅是一个推广，它在本质上是不同的。
 - en: '![](../Images/1b07c39a95a5ac807f401cb8542537f5.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1b07c39a95a5ac807f401cb8542537f5.png)'
 - en: Intersecting two rays VS intersecting multiple rays — Figure by the author
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 两条光线相交 VS 多条光线相交 — 图由作者提供
 - en: The simple fact of asking a question implies that the question is worth asking.
     Thus, seeking the intersection of a group of 3D rays inherently suggests the existence
     of such a common point of convergence, even if there’s some noise.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 提出一个问题本身就意味着这个问题值得被问。因此，寻找一组 3D 光线的交点，本质上暗示着这样一个共同的汇聚点的存在，即使有一些噪音。
 - en: 'Quick reminder: Mathematically, a ray is defined by its origin `*o*` and direction
     `*d*`. Since it’s a 1D space, any point along the ray is parametrized by its positive
     distance (or time) `*t*` with respect to the origin.'
+  id: totrans-17
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 快速提醒：从数学角度看，射线由其原点`*o*`和方向`*d*`定义。由于它是1维空间，射线上的任何点都可以通过与原点的正距离（或时间）`*t*`来进行参数化。
 - en: '![](../Images/b203aab18b69d9958f77df43a81e9975.png)'
+  id: totrans-18
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b203aab18b69d9958f77df43a81e9975.png)'
 - en: In the case of two rays, we solve for the parametrization `t1` and `t2` along
     each ray near the closest point, then determine from this whether the rays intersect
     or not, i.e. if `t1>0` and `t2>0`. Since optimal `t1` and `t2`can be computed
     independently, this method also allows early stopping, e.g. skip computation of
     `t2` if `t1<0`.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 在两条射线的情况下，我们求解每条射线在最接近的点处的参数化`t1`和`t2`，然后从中判断射线是否相交，即`t1>0`且`t2>0`。由于最优的`t1`和`t2`可以独立计算，这种方法也允许提前停止，例如如果`t1<0`，则跳过`t2`的计算。
 - en: In the case of `n` rays, we can assume that the rays are intersecting and directly
     solve for the 3D intersection point, instead of solving for the `n` optimal parametrizations
     along each ray. Hence, it’s more of a minimization problem than an actual intersection
     test.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 在`n`条射线的情况下，我们可以假设射线相交，并直接求解3D交点，而不是求解每条射线上的`n`个最优参数化。因此，这更像是一个最小化问题，而不是一个实际的交点测试。
 - en: Ray or Line ?
+  id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 射线还是直线？
 - en: Since we’re not checking the parametrization along each ray, it’s more accurate
     to talk about lines instead of rays; hence the title of the article. A line is
     just a ray without the constraint on `t`.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们没有检查每条射线上的参数化，更准确地说，应该讨论直线而非射线；因此，文章的标题为直线。直线就是没有`t`约束的射线。
 - en: '![](../Images/cf400ffcbad1d9aadc8070d6c7e1efc5.png)'
+  id: totrans-23
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cf400ffcbad1d9aadc8070d6c7e1efc5.png)'
 - en: Photo by [Ben Wicks](https://unsplash.com/@profwicks?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由[Ben Wicks](https://unsplash.com/@profwicks?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 2\. Analytical Solution
+  id: totrans-25
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 2. 解析解
 - en: Useful vector trick
+  id: totrans-26
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 有用的向量技巧
 - en: Before diving into the main topic, I’d like to quickly discuss a vector trick
     that will be very useful to us later on.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在深入讨论主题之前，我想快速讨论一个对我们之后非常有用的向量技巧。
 - en: Scaling a vector by a dot product can also be seen as a matrix-vector product.
     Terms can indeed be re-arranged thanks to the associative property of the product
     operator.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过点积来缩放向量也可以看作是矩阵-向量乘积。由于乘积运算符的结合性，项确实可以重新排列。
 - en: This will help us factorize an equation by highlighting its linearity in variable
     `c`.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将帮助我们通过突出变量`c`的线性关系来因式分解方程。
 - en: '![](../Images/c1d4319308900121a6598c77f4ebe650.png)'
+  id: totrans-30
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c1d4319308900121a6598c77f4ebe650.png)'
 - en: Minimization Problem
+  id: totrans-31
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 最小化问题
 - en: The intersection point can be defined as the 3D point `x` that minimizes the
     sum of squared distances with respect to each input ray.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 交点可以定义为3D点`x`，它最小化与每条输入射线的平方距离之和。
 - en: '![](../Images/d403e6a27a2ff2bcc0d3e96325c0e595.png)'
+  id: totrans-33
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d403e6a27a2ff2bcc0d3e96325c0e595.png)'
 - en: Orthogonal Projection of a point onto a line
+  id: totrans-34
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 点到直线的正交投影
 - en: The vector going from the ray origin `o` to the point `x` can be expressed as
     the sum of two orthogonal vectors. As illustrated in the diagram below, the first
     one goes from `o` to `p` along the line, whereas the second one goes from `p`
     to `x`.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 从射线原点`o`到点`x`的向量可以表示为两个正交向量的和。如下面的图所示，第一个向量沿着直线从`o`到`p`，而第二个向量从`p`到`x`。
 - en: Once we know the coordinates of this point `p`, i.e. the projection of `x`,
     we can deduce the distance from the point `x` to the line by computing the norm
     of the vector `x-p`.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦我们知道这个点`p`的坐标，即`x`的投影，我们就可以通过计算向量`x-p`的范数来推导出点`x`到直线的距离。
 - en: '![](../Images/64f27de9b05c63410518f2bef96796a2.png)'
+  id: totrans-37
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/64f27de9b05c63410518f2bef96796a2.png)'
 - en: Point-Line distance — Figure by the author
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 点-直线距离 — 作者插图
 - en: Let’s compute `p`.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们计算`p`。
 - en: 'As illustrated in the system of equations below, the point `p` is defined by
     two key properties: it belongs to the line (with unknown ray parameter `tp`) and
     is such as `x-p` is orthogonal to the line.'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 如下面的方程组所示，点`p`由两个关键属性定义：它属于直线（具有未知射线参数`tp`），并且`x-p`与直线正交。
 - en: '![](../Images/0fb7bb8ad8a1414552434596ea33ed5c.png)'
+  id: totrans-41
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0fb7bb8ad8a1414552434596ea33ed5c.png)'
 - en: Introducing the ray parametrization into the second equation yields the value
     of `tp`, which is the dot product between `x-o` and `d`.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 将射线参数化引入第二个方程中，可以得到`tp`的值，它是`x-o`和`d`的点积。
 - en: N.B. We assume that the ray direction `d` has been normalized.
+  id: totrans-43
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 注意：我们假设射线方向`d`已经被归一化。
 - en: '![](../Images/1c44f02776cff66034693bcfb45907a9.png)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1c44f02776cff66034693bcfb45907a9.png)'
 - en: We can now put it back into the ray parametrization to retrieve point `p`.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以将其代回射线参数化，来恢复点`p`。
 - en: '![](../Images/06e5b5e3e9e225349ed2706a4bd4dffd.png)'
+  id: totrans-46
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/06e5b5e3e9e225349ed2706a4bd4dffd.png)'
 - en: The vector trick mentioned previously is helpful here to emphasize the linearity
     with respect to `x-o`, which will help the factorization.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 前面提到的向量技巧在这里很有用，可以强调关于`x-o`的线性关系，这将有助于因式分解。
 - en: '![](../Images/7b04856deed4550341f6d8420785b00a.png)'
+  id: totrans-48
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7b04856deed4550341f6d8420785b00a.png)'
 - en: Point-Line Distance
+  id: totrans-49
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 点-线距离
 - en: As explained previously, the point-line distance can now be computed from the
     norm of `x-p`. Note the nice factorization in `x-o`.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，点-线距离现在可以通过计算`x-p`的范数来得到。注意到`x-o`中的优美因式分解。
 - en: '![](../Images/027e5ab503c42eef4076e4784444edd0.png)'
+  id: totrans-51
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/027e5ab503c42eef4076e4784444edd0.png)'
 - en: Loss Function
+  id: totrans-52
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 损失函数
 - en: The point-line distance formula gives us the loss function `L` we seek to minimize.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 点-线距离公式为我们提供了我们想要最小化的损失函数`L`。
 - en: '![](../Images/c9728f659328ff17ac5550964f64766e.png)'
+  id: totrans-54
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c9728f659328ff17ac5550964f64766e.png)'
 - en: The factorization in `x-o` makes it straightforward to derive its gradient with
     respect to `x`.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '`x-o`中的因式分解使得我们可以很容易地推导出它相对于`x`的梯度。'
 - en: '![](../Images/a7e5da2ad869b81e396dbaad7c533648.png)'
+  id: totrans-56
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a7e5da2ad869b81e396dbaad7c533648.png)'
 - en: The minimum value of this convex loss function can now be obtained by identifying
     the point where its gradient equals zero.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在可以通过确定梯度为零的点来获得这个凸损失函数的最小值。
 - en: '![](../Images/e9a31697717faecae4cc637d755618af.png)'
+  id: totrans-58
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e9a31697717faecae4cc637d755618af.png)'
 - en: 'We end up with a linear `3x3` system of equations `Ax=b`, where the matrix
     `A` and vector `b` are defined as follows:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终我们得到一个线性`3x3`方程组`Ax=b`，其中矩阵`A`和向量`b`的定义如下：
 - en: '![](../Images/184740c7a3c7faa5ffe524f5425ef3dd.png)'
+  id: totrans-60
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/184740c7a3c7faa5ffe524f5425ef3dd.png)'
 - en: The 3D point closest to all the lines is thus obtained by inverting `A`.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，最接近所有射线的3D点可以通过求逆`A`来获得。
 - en: '![](../Images/472bb130b9bc6c9d2050a35ad7d6d48f.png)'
+  id: totrans-62
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/472bb130b9bc6c9d2050a35ad7d6d48f.png)'
 - en: Conclusion
+  id: totrans-63
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Least-Squares minimization can often be reduced to a plain normal equation,
     where the pseudo-inverse matrix is used to aggregate the `n` observations into
     a square invertible matrix.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 最小二乘法最小化通常可以简化为一个普通的正态方程，其中伪逆矩阵用于将`n`个观测值聚合成一个方阵可逆矩阵。
 - en: It’s worth mentioning that we don’t require the pseudo-inverse here, as the
     square shape naturally arises from the sum of outer products of the ray directions.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得一提的是，我们在这里并不需要伪逆，因为矩阵的平方形状自然地来源于射线方向外积的和。
 - en: I hope you enjoyed reading this article and that it gave you more insights on
     how to intersect multiple 3D lines!
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 希望你喜欢阅读这篇文章，并且它能为你提供更多关于如何求交多条3D射线的见解！

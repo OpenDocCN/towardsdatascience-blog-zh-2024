@@ -1,59 +1,91 @@
 - en: Graph RAG into Production — Step-by-Step
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 将 Graph RAG 投入生产——逐步指南
 - en: 原文：[https://towardsdatascience.com/graph-rag-into-production-step-by-step-3fe71fb4a98e?source=collection_archive---------0-----------------------#2024-09-23](https://towardsdatascience.com/graph-rag-into-production-step-by-step-3fe71fb4a98e?source=collection_archive---------0-----------------------#2024-09-23)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/graph-rag-into-production-step-by-step-3fe71fb4a98e?source=collection_archive---------0-----------------------#2024-09-23](https://towardsdatascience.com/graph-rag-into-production-step-by-step-3fe71fb4a98e?source=collection_archive---------0-----------------------#2024-09-23)
 - en: '![](../Images/203dbf1037dad17615e4716e4782dc37.png)'
+  id: totrans-2
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/203dbf1037dad17615e4716e4782dc37.png)'
 - en: Photo by [JJ Ying](https://unsplash.com/@jjying?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由[JJ Ying](https://unsplash.com/@jjying?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: A GCP native, fully serverless implementation that you will replicate in minutes
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一个原生于 GCP、完全无服务器的实现，你只需几分钟即可复制
 - en: '[](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[![Jakob
     Pörschmann](../Images/b130445bf9ac471b70070eb4a2dc6b64.png)](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)
     [Jakob Pörschmann](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[![Jakob
+    Pörschmann](../Images/b130445bf9ac471b70070eb4a2dc6b64.png)](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)
+    [Jakob Pörschmann](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)
     ·14 min read·Sep 23, 2024
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)
+    ·阅读时长 14 分钟·2024年9月23日
 - en: --
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: 'After [discussing Graph RAG conceptually](/graph-rag-a-conceptual-introduction-41cd0d431375),
     let’s bring it into production. This is how to productionize GraphRAG: completely
     serverless, fully parallelized to minimize inference and indexing times, and without
     ever touching a graph database (promise!).'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[概述 Graph RAG 概念](/graph-rag-a-conceptual-introduction-41cd0d431375)后，让我们将其投入生产。这就是如何将
+    GraphRAG 投入生产：完全无服务器、完全并行化，以最小化推理和索引时间，而且完全不涉及图数据库（保证！）。
 - en: In this article, I will introduce you to [graphrag-lite](https://github.com/jakobap/graphrag-light),
     an end-to-end Graph RAG ingestion and query implementation. I published graphrag-lite
     as an OSS project to make your life easier when deploying graphrag on GCP. Graphrag-lite
     is Google Cloud-native and ready to use off the shelf. The code is designed in
     a modular manner, adjustable for your platform of choice.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我将向您介绍[graphrag-lite](https://github.com/jakobap/graphrag-light)，这是一个端到端的
+    Graph RAG 数据摄取和查询实现。我将 graphrag-lite 作为开源项目发布，旨在让您在 GCP 上部署 graphrag 时更加轻松。graphrag-lite
+    是 Google Cloud 原生的，可以直接使用。代码以模块化方式设计，可以根据您选择的平台进行调整。
 - en: 'Recap:'
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 回顾：
 - en: Retrieval Augmented Generation itself does not yet describe any specific architecture
     or method. It only depicts the augmentation of a given generation task with an
     arbitrary retrieval method. The original RAG paper ([Retrieval-Augmented Generation
     for Knowledge-Intensive NLP Tasks by Lewis et. al.](https://arxiv.org/abs/2005.11401))
     compares a two-tower embedding approach with bag-of-words retrieval.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 检索增强生成（Retrieval Augmented Generation）本身并未描述任何特定的架构或方法。它仅展示了如何通过任意的检索方法增强给定的生成任务。原始的
+    RAG 论文（[《面向知识密集型 NLP 任务的检索增强生成》](https://arxiv.org/abs/2005.11401)，作者：Lewis 等）比较了两塔嵌入方法与词袋检索方法。
 - en: Modern Q&A systems differentiate between local and global questions. A local
     (extractive) question on an unstructured sample knowledge base might be “Who won
     the Nobel Peace Prize in 2023?”. A global (aggregative) question might be “Who
@@ -62,109 +94,158 @@
     these gaps and it does that well! Via an abstraction layer, it learns the semantics
     of the knowledge graph communities. That builds a more “global” understanding
     of the indexed dataset. [Here is a conceptual intro to Graph RAG to read up on.](/graph-rag-a-conceptual-introduction-41cd0d431375)
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 现代问答系统区分局部问题和全局问题。一个局部（提取性）问题可能是“2023年谁获得了诺贝尔和平奖？”，针对一个非结构化的样本知识库。一个全局（聚合性）问题可能是“你知道的最近诺贝尔奖得主是谁？”。Text2embedding
+    RAG在处理全局和结构化问题时存在明显的缺口。Graph RAG能够弥补这些缺口，并且做得很好！通过一个抽象层，它学习知识图谱社区的语义，从而构建对索引数据集的更“全球化”的理解。[这里是Graph
+    RAG的概念介绍，供你阅读。](/graph-rag-a-conceptual-introduction-41cd0d431375)
 - en: The Graph RAG pipeline
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Graph RAG管道
 - en: 'A Graph RAG pipeline will usually follows the following steps:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个Graph RAG管道通常遵循以下步骤：
 - en: Graph Extraction
+  id: totrans-15
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 图谱提取
 - en: This is the main ingestion step. Your LLM scans every incoming document with
     a prompt to extract relevant nodes and edges for our knowledge graph. You iterate
     multiple times over this prompt to assure you catch all relevant pieces of information.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是主要的摄取步骤。你的LLM扫描每一个传入的文档，使用提示来提取与我们知识图谱相关的节点和边。你会多次执行此提示，确保捕捉到所有相关的信息。
 - en: Graph Storage
+  id: totrans-17
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 图谱存储
 - en: You store the extracted nodes and edges in your data store of choice. Dedicated
     Graph DBs are one option, but they are often tedious. Graph2nosql is a Python-based
     interface to store and manage knowledge graphs in Firestore or any other NoSQL
     DB. I open sourced this project becase I did not find any other comparable, knowledge
     graph native option on the market.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将提取的节点和边存储在你选择的数据存储中。专用图数据库（Graph DB）是一个选项，但它们通常比较繁琐。Graph2nosql是一个基于Python的接口，用于在Firestore或任何其他NoSQL数据库中存储和管理知识图谱。我开源了这个项目，因为我没有找到任何市场上可比的、原生支持知识图谱的选项。
 - en: Community detection
+  id: totrans-19
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 社区检测
 - en: Once you store your knowledge graph data you will use a community detection
     algorithm to identify groups of nodes that are more densely connected within each
     other than they are to the rest of the graph. In the context of a knowledge graph,
     the assumption is that dense communities cover common topics.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你存储了知识图谱数据，你将使用社区检测算法来识别节点群体，这些节点在彼此之间的连接比与图谱其他部分的连接更加密集。在知识图谱的上下文中，假设是密集的社区覆盖了共同的主题。
 - en: Community report generation
+  id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 社区报告生成
 - en: You then instruct your LLM to generate a report for each graph community. These
     community reports help abstract across single topics to grasp wider, global concepts
     across your dataset. Community reports are stored along with your knowledge graph.
     This concludes the ingestion layer of the pipeline.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，你指示你的大型语言模型（LLM）为每个图谱社区生成报告。这些社区报告有助于在单一主题之间进行抽象，以便掌握数据集中更广泛的全球概念。社区报告与知识图谱一起存储。这标志着管道的摄取层部分完成。
 - en: Map-Reduce for final context building.
+  id: totrans-23
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 用于最终上下文构建的映射-归约（Map-Reduce）模式
 - en: At query time you follow a map-reduce pattern to generate an intermediate response
     to the user query for every community report in your knowledge graph. You have
     the LLM also rate the relevance of each intermediate query response. Finally,
     you rank the intermediate responses by relevance and select the top n as context
     for your final response to the user.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 在查询时，你遵循映射-归约（map-reduce）模式，为知识图谱中的每个社区报告生成一个中间响应。你还让LLM评估每个中间查询响应的相关性。最后，你根据相关性对中间响应进行排名，并选择前n个作为最终响应的上下文，回复用户。
 - en: '![](../Images/00aa36eaa8a8bf508304c06feae85d4e.png)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/00aa36eaa8a8bf508304c06feae85d4e.png)'
 - en: Graph RAG step-by-step logic — Image by author
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: Graph RAG逐步逻辑 — 图像由作者提供
 - en: Graph Extraction
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 图谱提取
 - en: 'In the initial ingestion step, you instruct your LLM to encode your input document(s)
     as a graph. An extensive prompt instructs your LLM to first identify nodes of
     given types, and secondly edges between the nodes you identified. Just like with
     any LLM prompt, there is not one solution for this challenge. Here is the core
     of my graph extraction prompt, which I based on [Microsoft’s OSS implementation](https://github.com/microsoft/graphrag):'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 在初始摄取步骤中，你需要指示你的LLM将输入文档编码为图形。一个详细的提示会指示你的LLM首先识别给定类型的节点，其次识别你所识别节点之间的边。就像任何LLM提示一样，这个挑战没有唯一的解决方案。以下是我基于[微软的开源实现](https://github.com/microsoft/graphrag)的图形提取提示核心部分：
 - en: '[PRE0]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'The extraction step is responsible for which information will be reflected
     in your knowledge base. Thus you should use a rather powerful model such as Gemini
     1.5 Pro. You can further increase the result robustness, use the multi-turn version
     Gemini 1.5 Pro, and query the model to improve its results n times. Here is how
     I implemented the graph extraction loop in graphrag-lite:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 提取步骤决定了哪些信息将反映在你的知识库中。因此，你应该使用一个相对强大的模型，比如 Gemini 1.5 Pro。你还可以进一步增加结果的鲁棒性，使用多轮版本的
+    Gemini 1.5 Pro，并查询模型多次改进其结果。以下是我在 graphrag-lite 中实现图形提取循环的方式：
 - en: '[PRE1]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: First I make an initial call to the multi-turn model to extract nodes and edges.
     Second I ask the model to improve the previous extraction results several times.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我调用多轮模型提取节点和边。然后，我要求模型多次改进先前的提取结果。
 - en: In the graphrag-lite implementation, the extraction model calls are made by
     the front-end client. If you want to reduce client load you could outsource the
     extraction queries to a microservice.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 graphrag-lite 的实现中，提取模型的调用由前端客户端发出。如果你想减少客户端的负载，可以将提取查询外包给微服务。
 - en: Graph Storage
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 图形存储
 - en: Once you extract the nodes and edges from a document you need to store them
     in an accessible format. Graph Databases are one way to go, but they can also
     be cumbersome. For your knowledge graph, you might be looking for something a
@@ -173,8 +254,12 @@
     graph native Python interface](https://github.com/jakobap/graph2nosql). It helps
     store and manage your knowledge graph in any NoSQL DB. All that without blowing
     up your tech stack with a graph db or needing to learn Cypher.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你从文档中提取了节点和边，你需要以可访问的格式存储它们。图形数据库是一个选择，但它们也可能比较繁琐。对于你的知识图谱，你可能更倾向于寻找一些更轻量级的解决方案。我也有同样的想法，因为我没有找到任何开源的知识图谱本地库，于是我开源了
+    graph2nosql。[Graph2nosql 是一个简单的知识图谱本地 Python 接口](https://github.com/jakobap/graph2nosql)，它帮助你在任何
+    NoSQL 数据库中存储和管理知识图谱。所有这一切都无需通过图形数据库来扩展你的技术栈，或学习 Cypher。
 - en: 'Graph2nosql is designed for knowledge graph retrieval with graph rag in mind.
     The library is designed around three major datatypes: EdgeData, NodeData, and
     CommunityData. Nodes are identified by an uid. Edges are identified by source
@@ -182,32 +267,47 @@
     the graph2nosql data model leaves space for any size of the knowledge graph. You
     can even add text or graph embeddings. That allows embedding-based analytics,
     edge prediction, and additional text embedding retrieval (thinking hybrid RAG).'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: Graph2nosql 是为知识图谱检索而设计的，考虑到了图形RAG的需求。该库围绕三种主要数据类型进行设计：EdgeData（边数据）、NodeData（节点数据）和CommunityData（社区数据）。节点通过唯一标识符（uid）识别。边通过源节点和目标节点的uid以及边的uid识别。由于uid可以自由设计，graph2nosql的数据模型为任何规模的知识图谱留出了空间。你甚至可以添加文本或图形嵌入。这使得基于嵌入的分析、边预测和额外的文本嵌入检索成为可能（考虑到混合RAG）。
 - en: '[Graph2nosql](https://github.com/jakobap/graph2nosql) is natively designed
     around Firestore.'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Graph2nosql](https://github.com/jakobap/graph2nosql) 本地设计时围绕 Firestore。'
 - en: '[PRE2]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: To store your graph data via graph2nosql simply run the following code when
     parsing the results from your extraction step. Here is the graphrag-lite implementation.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 要通过 graph2nosql 存储你的图形数据，只需在解析提取步骤的结果时运行以下代码。这是 graphrag-lite 的实现。
 - en: '[PRE3]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Community detection
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 社区检测
 - en: With all relevant nodes and edges stored in your Graph DB, you can start building
     the abstraction layer. One way of doing that is finding nodes that describe similar
     concepts and describe how they are connected semantically. Graph2nosql offers
     inbuilt community detection, for example, based on Louvain communities.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 将所有相关的节点和边存储在你的图形数据库中后，你可以开始构建抽象层。实现这一点的一种方式是查找描述相似概念的节点，并描述它们是如何在语义上连接的。例如，Graph2nosql
+    提供了内建的社区检测，基于Louvain社区。
 - en: Depending on your extraction result quality you will find zero-degree nodes
     in your knowledge graph. From experience, zero-degree nodes are often duplicates.
     Graphrag-lite uses graph communities as a major abstraction layer thus you should
@@ -215,18 +315,26 @@
     duplicate/merge step and/or a node prediction step based on description and graph
     embeddings to add edges that might have been missed in the extraction step. In
     graphrag-lite I currently simply drop all zero-degree nodes.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据您的提取结果质量，您可能会在知识图谱中发现零度节点。从经验来看，零度节点通常是重复的。graphrag-lite使用图社区作为主要的抽象层，因此您应该删除没有任何边的节点。因此，考虑进行另一个去重/合并步骤和/或基于描述和图嵌入的节点预测步骤，以添加在提取步骤中可能遗漏的边是有意义的。在graphrag-lite中，我目前简单地删除所有零度节点。
 - en: '[PRE4]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Here is the [graphrag-lite implementation of community detection](https://github.com/jakobap/graphrag-light/blob/39d7ed73fe23509951a8c93cc4806499110e1433/graphrag_lite/GraphExtractor.py#L508C1-L509C1).
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是[graphrag-lite社区检测的实现](https://github.com/jakobap/graphrag-light/blob/39d7ed73fe23509951a8c93cc4806499110e1433/graphrag_lite/GraphExtractor.py#L508C1-L509C1)。
 - en: Optimizing throughput latency in LLM applications
+  id: totrans-46
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 优化LLM应用中的吞吐量延迟
 - en: The GraphRAG pipeline mentioned above takes numerous LLM calls per document
     ingestion and user query. For example, to generate multiple community reports
     for every newly indexed document, or to generate intermediate responses for multiple
@@ -238,35 +346,49 @@
     they are easy to implement as serverless infastructure. Combined with a parallelized
     and serverless architecture maximizes your throughput scalability and minimizes
     your cost for idle cluster setups.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述提到的GraphRAG管道在每个文档摄取和用户查询时都会进行多个LLM调用。例如，为每个新索引的文档生成多个社区报告，或者在查询时为多个社区生成中间响应。如果并发处理，结果将导致糟糕的用户体验。特别是在大规模应用时，用户可能需要等待几分钟到几小时才能收到查询的响应。幸运的是，如果您正确构建LLM提示，您可以将其设计为“无状态工作者”。无状态处理架构的优势是双重的。首先，它们易于并行化。其次，它们易于实现为无服务器基础设施。结合并行化和无服务器架构，可以最大化吞吐量可扩展性，并最小化空闲集群设置的成本。
 - en: In the graphrag-lite architecture I host both the community report generation
     and the intermediate query generation as serverless Cloud Run microservice workers.
     These are fed with messages via GCP’s serverless messaging queue PubSub.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 在graphrag-lite架构中，我将社区报告生成和中间查询生成作为无服务器的Cloud Run微服务工作者进行托管。这些工作者通过GCP的无服务器消息队列PubSub接收消息。
 - en: '![](../Images/c49303b5e6ca48937ad3fc3115f7eb01.png)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c49303b5e6ca48937ad3fc3115f7eb01.png)'
 - en: graphrag-lite’s serverless and distributed ingestion & query pipeline — Image
     by author
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: graphrag-lite的无服务器分布式摄取和查询管道 — 图片由作者提供
 - en: Community report generation
+  id: totrans-51
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 社区报告生成
 - en: After running the community detection you now know multiple sets of community
     member nodes. Each of these sets represents a semantic topic within your knowledge
     graph. The community reporting step needs to abstract across these concepts that
     originated in different documents within your knowledge base. I again built on
     the Microsoft implementation and added a function call for easily parsable structured
     output.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行社区检测后，您现在知道了多个社区成员节点集。每个集合代表您的知识图谱中的一个语义主题。社区报告步骤需要在这些源自不同文档的概念之间进行抽象处理。我再次基于微软的实现，并添加了一个函数调用，以便轻松解析结构化输出。
 - en: '[PRE5]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: The community report generation also demonstrated the biggest challenge around
     knowledge graph retrieval. Theoretically, any document could add a new node to
     every existing community in the graph. In the worst-case scenario, you re-generate
@@ -274,8 +396,10 @@
     practice it is crucial to include a detection step that identifies which communities
     have changed after a document upload, resulting in new report generation for only
     the adjusted communities.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 社区报告生成还展示了知识图谱检索中的最大挑战。从理论上讲，任何文档都可能向图中的每个现有社区添加一个新节点。在最坏的情况下，您需要在每次添加新文档时重新生成知识库中的每个社区报告。实际上，关键是要包含一个检测步骤，识别在文档上传后发生变化的社区，从而仅为已调整的社区生成新报告。
 - en: As you need to re-generate multiple community reports for every document upload
     we are also facing significant latency challenges if running these requests concurrently.
     Thus you should outsource and parallelize this work to asynchronous workers. As
@@ -283,21 +407,32 @@
     use PubSub as a message queue to manage work items and ensure processing. Cloud
     Run comes on top as a compute platform hosting stateless workers calling the LLM.
     For generation, they use the prompt as shown above.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于您需要为每次文档上传重新生成多个社区报告，如果同时运行这些请求，我们也面临显著的延迟挑战。因此，您应该将这项工作外包并将其并行化到异步工作者中。如前所述，graphrag-lite通过使用无服务器架构解决了这一问题。我使用PubSub作为消息队列来管理工作项并确保处理。Cloud
+    Run作为计算平台，托管调用LLM的无状态工作者。在生成过程中，它们使用如上所示的提示。
 - en: '[Here is the code that runs in the stateless worker for community report generation](https://github.com/jakobap/graphrag-light/blob/main/stateless-comm-reporter/main.py):'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '[这是运行在无状态工作者中的社区报告生成代码](https://github.com/jakobap/graphrag-light/blob/main/stateless-comm-reporter/main.py)：'
 - en: '[PRE6]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: This completes the ingestion pipeline.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 这完成了数据摄取流程。
 - en: Map-step for intermediate responses
+  id: totrans-59
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 中间响应的映射步骤
 - en: Finally, you reached query time. To generate your final response to the user,
     you generate a set of intermediate responses (one per community report). Each
     intermediate response takes the user query and one community report as input.
@@ -309,24 +444,36 @@
     (map-step) across serverless microservices. In the future, you could significantly
     improve efficiency by adding a filter layer to pre-determine the relevance of
     a community report for a user query.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，您已进入查询时间。为了生成最终的用户响应，您需要生成一组中间响应（每个社区报告一个）。每个中间响应都将用户查询和一个社区报告作为输入。然后，您按相关性对这些中间查询进行评分。最终，您使用最相关的社区报告以及额外的信息（如相关成员节点的节点描述）作为最终的查询上下文。鉴于大规模社区报告的数量较高，这再次带来了延迟和成本的挑战。和之前一样，您还应将中间响应生成（映射步骤）并行化到无服务器微服务中。在未来，您可以通过增加一个过滤层来显著提高效率，以预先确定社区报告对用户查询的相关性。
 - en: '[The map-step microservice looks as follows](https://github.com/jakobap/graphrag-light/blob/main/stateless-context-processor/main.py):'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '[映射步骤微服务如下所示](https://github.com/jakobap/graphrag-light/blob/main/stateless-context-processor/main.py)：'
 - en: '[PRE7]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'The map-step microservice uses the following prompt:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 映射步骤微服务使用以下提示：
 - en: '[PRE8]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Reduce-step for final user response
+  id: totrans-65
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 最终用户响应的归约步骤
 - en: For a successful reduce-step, you need to store the intermediate response for
     access at query time. With graphrag-lite, I use Firestore as a shared state across
     microservices. After triggering the intermediate response generations, the client
@@ -336,33 +483,47 @@
     to check whether all intermediate responses have been processed. Finally, the
     end response towards the user is generated using the top-scoring community reports
     as context to respond to the user query.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了成功完成归约步骤，您需要存储中间响应以便在查询时访问。在graphrag-lite中，我使用Firestore作为微服务之间的共享状态。在触发中间响应生成后，客户端还会定期检查共享状态中是否存在所有预期的条目。以下是来自graphrag-lite的代码片段，展示了我如何将每个社区报告提交到PubSub队列中。之后，我定期查询共享状态，以检查是否所有中间响应都已处理。最后，针对用户的最终响应将使用得分最高的社区报告作为上下文来回应用户查询。
 - en: '[PRE9]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Once all entries are found the client triggers the final user response generation
     given the selected community context.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦找到所有条目，客户端将触发基于选定社区上下文的最终用户响应生成。
 - en: Final Thoughts
+  id: totrans-69
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 最终思考
 - en: Graph RAG is a powerful technique every ML Engineer should add to their toolbox.
     Every Q&A type of application will eventually arrive at the point that purely
     extractive, “local” queries don’t cut it anymore. With graphrag-lite, you now
     have a lightweight, cloud-native, and serverless implementation that you can rapidly
     replicate.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 图谱 RAG 是一种强大的技术，每个 ML 工程师都应该将其添加到自己的工具箱中。每个问答类型的应用最终都会遇到这样一个问题：纯粹的提取式、“局部”查询再也无法满足需求了。通过
+    graphrag-lite，你现在拥有了一种轻量级、云原生、无服务器的实现，可以快速复制。
 - en: Despite these strengths, please note that in the current state Graph RAG still
     consumes significantly more LLM input tokens than in the text2emb RAG. That usually
     comes with considerably higher latency and cost for queries and document indexing.
     Nevertheless, after experiencing the improvement in result quality I am convinced
     that in the right use cases, Graph RAG is worth the time and money.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管具有这些优势，请注意，在当前状态下，Graph RAG 消耗的 LLM 输入 token 数量明显高于 text2emb RAG。这通常会导致查询和文档索引的延迟和成本显著增加。然而，在体验了结果质量的提升后，我相信在适当的应用场景中，Graph
+    RAG 是值得花时间和金钱的。
 - en: RAG applications will ultimately move in a hybrid direction. Extractive queries
     can be handled efficiently and correctly by text2emb RAG. Global abstractive queries
     might need a knowledge graph as an alternative retrieval layer. Finally, both
@@ -371,9 +532,14 @@
     could initially be classified between the three retrieval methods. Like this,
     every query could be grounded most efficiently with the right amount and depth
     of information.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: RAG 应用最终会朝着混合方向发展。提取式查询可以通过 text2emb RAG 高效且准确地处理。全局抽象查询可能需要知识图谱作为替代的检索层。最后，两种方法在处理定量和分析性查询时表现不佳。因此，第三种
+    text2sql 检索层将大大增加价值。为了完善这一框架，用户查询最初可以在三种检索方法之间进行分类。这样，每个查询都能以最有效的方式获取适量和深度的信息。
 - en: I cannot wait to see where else this is going. **Which alternative retrieval
     methods have you been working with?**
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 我迫不及待想看看这个技术还会走向何方。**你目前在使用哪些替代的检索方法？**

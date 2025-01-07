@@ -1,35 +1,55 @@
 - en: Integrating Microsoft GraphRAG into Neo4j
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 将微软的 GraphRAG 集成到 Neo4j 中
 - en: 原文：[https://towardsdatascience.com/integrating-microsoft-graphrag-into-neo4j-e0d4fa00714c?source=collection_archive---------0-----------------------#2024-07-31](https://towardsdatascience.com/integrating-microsoft-graphrag-into-neo4j-e0d4fa00714c?source=collection_archive---------0-----------------------#2024-07-31)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/integrating-microsoft-graphrag-into-neo4j-e0d4fa00714c?source=collection_archive---------0-----------------------#2024-07-31](https://towardsdatascience.com/integrating-microsoft-graphrag-into-neo4j-e0d4fa00714c?source=collection_archive---------0-----------------------#2024-07-31)
 - en: Store the MSFT GraphRAG output into Neo4j and implement local and global retrievers
     with LangChain or LlamaIndex
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将 MSFT GraphRAG 输出存储到 Neo4j 中，并使用 LangChain 或 LlamaIndex 实现本地和全局检索器
 - en: '[](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[![Tomaz
     Bratanic](../Images/d5821aa70918fcb3fc1ff0013497b3d5.png)](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------)
     [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[![Tomaz
+    Bratanic](../Images/d5821aa70918fcb3fc1ff0013497b3d5.png)](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------)
+    [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------)
     ·16 min read·Jul 31, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------)
+    ·16分钟阅读·2024年7月31日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/b8dfacae208dd7c0c5efcd6495e436c2.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b8dfacae208dd7c0c5efcd6495e436c2.png)'
 - en: Image created with ChatGPT.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像由 ChatGPT 创建。
 - en: '[Microsoft’s GraphRAG implementation](https://microsoft.github.io/graphrag/)
     has gained significant attention lately. In my [last blog post](https://medium.com/neo4j/implementing-from-local-to-global-graphrag-with-neo4j-and-langchain-constructing-the-graph-73924cc5bab4),
     I discussed how the graph is constructed and explored some of the innovative aspects
@@ -39,149 +59,222 @@
     extract structured information about entities appearing in the documents along
     with their relationships. This extracted structured information is then used to
     construct a knowledge graph.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '[微软的 GraphRAG 实现](https://microsoft.github.io/graphrag/)最近引起了广泛关注。在我的[上一篇博客文章](https://medium.com/neo4j/implementing-from-local-to-global-graphrag-with-neo4j-and-langchain-constructing-the-graph-73924cc5bab4)中，我讨论了图谱的构建过程，并探讨了在[研究论文](https://arxiv.org/abs/2404.16130)中突出的一些创新方面。总体来看，GraphRAG
+    库的输入是包含各种信息的源文档。通过大型语言模型（LLM）处理这些文档，从中提取关于文档中出现的实体及其关系的结构化信息。然后，这些提取的结构化信息被用于构建知识图谱。'
 - en: '![](../Images/24791b4cf2a113c9a490245cdae794f6.png)'
+  id: totrans-9
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/24791b4cf2a113c9a490245cdae794f6.png)'
 - en: High-level indexing pipeline as implemented in the GraphRAG paper by Microsoft
     — Image by author
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 如微软在 GraphRAG 论文中实现的高层次索引管道 — 图片由作者提供
 - en: After the knowledge graph has been constructed, the GraphRAG library uses a
     combination of graph algorithms, specifically Leiden community detection algorithm,
     and LLM prompting to generate natural language summaries of communities of entities
     and relationships found in the knowledge graph.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在构建知识图谱后，GraphRAG 库结合了图算法，特别是 Leiden 社区检测算法和 LLM 提示，生成关于知识图谱中实体和关系社区的自然语言摘要。
 - en: In this post, we’ll take the output from the [GraphRAG library](https://github.com/microsoft/graphrag),
     store it in Neo4j, and then set up retrievers directly from Neo4j using LangChain
     and LlamaIndex orchestration frameworks.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我们将使用来自[GraphRAG 库](https://github.com/microsoft/graphrag)的输出，将其存储在 Neo4j
+    中，然后使用 LangChain 和 LlamaIndex 协同框架直接从 Neo4j 设置检索器。
 - en: The code and GraphRAG output are accessible on [GitHub](https://github.com/tomasonjo/blogs/tree/master/msft_graphrag),
     allowing you to skip the GraphRAG extraction process.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码和GraphRAG输出可以在[GitHub](https://github.com/tomasonjo/blogs/tree/master/msft_graphrag)上访问，让你跳过GraphRAG提取过程。
 - en: Dataset
+  id: totrans-14
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 数据集
 - en: The dataset featured in this blog post is “A Christmas Carol” by Charles Dickens,
     which is freely accessible via the Gutenberg Project.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 本博客文章中使用的数据集是查理斯·狄更斯的《圣诞颂歌》，该书可以通过古腾堡计划免费访问。
 - en: '[](https://www.gutenberg.org/ebooks/19337?source=post_page-----e0d4fa00714c--------------------------------)
     [## A Christmas Carol by Charles Dickens'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://www.gutenberg.org/ebooks/19337?source=post_page-----e0d4fa00714c--------------------------------)
+    [## 查理斯·狄更斯的《圣诞颂歌》'
 - en: Free kindle book and epub digitized and proofread by volunteers.
+  id: totrans-17
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 免费的Kindle电子书和EPUB格式由志愿者进行数字化和校对。
 - en: www.gutenberg.org](https://www.gutenberg.org/ebooks/19337?source=post_page-----e0d4fa00714c--------------------------------)
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: '[www.gutenberg.org](https://www.gutenberg.org/ebooks/19337?source=post_page-----e0d4fa00714c--------------------------------)'
 - en: We selected this book as the source document because it is highlighted in the
     [introductory documentation](https://microsoft.github.io/graphrag/posts/get_started/),
     allowing us to perform the extraction effortlessly.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们选择这本书作为源文档，因为它在[入门文档](https://microsoft.github.io/graphrag/posts/get_started/)中有所突出，允许我们轻松进行提取。
 - en: Graph construction
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 图谱构建
 - en: Even though you can skip the graph extraction part, we’ll talk about a couple
     of configuration options I think are the most important. For example, graph extraction
     can be very token-intensive and costly. Therefore, testing the extraction with
     a relatively cheap but good-performing LLM like gpt-4o-mini makes sense. The cost
     reduction from gpt-4-turbo can be significant while retaining good accuracy, as
     described in this [blog post](https://blog.cubed.run/graphrag-gpt-4o-mini-building-an-ai-knowledge-graph-at-low-cost-a4282440d92e).
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管你可以跳过图谱提取部分，但我们还是会谈论几个我认为最重要的配置选项。例如，图谱提取可能非常依赖令牌且成本较高。因此，使用一个相对便宜但表现良好的LLM（如gpt-4o-mini）进行提取测试是有意义的。通过使用gpt-4-turbo可以显著降低成本，同时保持良好的准确性，正如这篇[博客文章](https://blog.cubed.run/graphrag-gpt-4o-mini-building-an-ai-knowledge-graph-at-low-cost-a4282440d92e)中所描述的那样。
 - en: '[PRE0]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The most important configuration is the type of entities we want to extract.
     By default, organizations, people, events, and geo are extracted.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 最重要的配置项是我们想要提取的实体类型。默认情况下，会提取组织、人物、事件和地理信息。
 - en: '[PRE1]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: These default entity types might work well for a book, but make sure to change
     them accordingly to the domain of the documents you are looking at processing
     for a given use case.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些默认的实体类型可能适用于一本书，但请确保根据你正在处理的文档的领域以及具体用例进行相应的更改。
 - en: Another important configuration is the max gleanings value. The authors identified,
     and we also validated separately, that an LLM doesn’t extract all the available
     information in a single extraction pass.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个重要的配置项是最大提取值。作者们已经识别并且我们也单独验证了，LLM在一次提取过程中并不会提取所有可用信息。
 - en: '![](../Images/9538bdd012d48b26296e1a04445c33f7.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9538bdd012d48b26296e1a04445c33f7.png)'
 - en: Number of extract entities given the size of text chunks — Image from the [GraphRAG
     paper](https://arxiv.org/abs/2404.16130), licensed under CC BY 4.0
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据文本块的大小提取的实体数量 — 来自[GraphRAG论文](https://arxiv.org/abs/2404.16130)的图像，遵循CC BY
+    4.0许可协议
 - en: The gleaning configuration allows the LLM to perform multiple extraction passes.
     In the above image, we can clearly see that we extract more information when performing
     multiple passes (gleanings). Multiple passes are token-intensive, so a cheaper
     model like gpt-4o-mini helps to keep the cost low.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 提取配置允许LLM执行多次提取。通过上述图像，我们可以清楚地看到，当进行多次提取（gleanings）时，我们提取的信息更多。多次提取需要大量令牌，因此像gpt-4o-mini这样的便宜模型有助于保持成本低廉。
 - en: '[PRE2]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Additionally, the claims or covariate information is not extracted by default.
     You can enable it by setting the `GRAPHRAG_CLAIM_EXTRACTION_ENABLED` configuration.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，声明或协变量信息默认不会提取。你可以通过设置`GRAPHRAG_CLAIM_EXTRACTION_ENABLED`配置来启用它。
 - en: '[PRE3]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: It seems that it’s a recurring theme that not all structured information is
     extracted in a single pass. Hence, we have the gleaning configuration option here
     as well.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 看起来，不是所有的结构化信息都能在一次提取中提取出来似乎是一个反复出现的主题。因此，我们也在这里有了提取配置选项。
 - en: What’s also interesting, but I haven’t had time to dig deeper is the prompt
     tuning section. Prompt tuning is optional, but highly encouraged as it can improve
     accuracy.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外有趣的是，尽管我没有时间深入挖掘的是提示调整部分。提示调整是可选的，但强烈建议使用，因为它能提高准确性。
 - en: '[## Prompt Tuning ⚙️'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: '[## 提示调整 ⚙️'
 - en: GraphRAG provides the ability to create domain adaptive templates for the generation
     of the knowledge graph. This step…
+  id: totrans-36
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: GraphRAG 提供了创建领域适应模板以生成知识图谱的功能。这个步骤……
 - en: microsoft.github.io](https://microsoft.github.io/graphrag/posts/prompt_tuning/auto_prompt_tuning/?source=post_page-----e0d4fa00714c--------------------------------)
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '[microsoft.github.io](https://microsoft.github.io/graphrag/posts/prompt_tuning/auto_prompt_tuning/?source=post_page-----e0d4fa00714c--------------------------------)'
 - en: After the configuration has been set, we can follow the [instructions to run
     the graph extraction pipeline](https://microsoft.github.io/graphrag/posts/get_started/),
     which consists of the following steps.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 配置完成后，我们可以按照[说明运行图形提取管道](https://microsoft.github.io/graphrag/posts/get_started/)，该管道包括以下步骤。
 - en: '![](../Images/58d946343c0b8c5ffbc8daef9b5b6a68.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/58d946343c0b8c5ffbc8daef9b5b6a68.png)'
 - en: Steps in the pipeline — Image from the [GraphRAG paper](https://arxiv.org/abs/2404.16130),
     licensed under CC BY 4.0
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 流程中的步骤 — 图片来自[GraphRAG 论文](https://arxiv.org/abs/2404.16130)，根据 CC BY 4.0 许可证使用
 - en: The extraction pipeline executes all the blue steps in the above image. Review
     my [previous blog post](https://medium.com/neo4j/implementing-from-local-to-global-graphrag-with-neo4j-and-langchain-constructing-the-graph-73924cc5bab4)
     to learn more about graph construction and community summarization. The output
     of the graph extraction pipeline of the MSFT GraphRAG library is a set of parquet
     files, as shown in the [Operation Dulce example](https://github.com/microsoft/graphrag/tree/main/examples_notebooks/inputs/operation%20dulce).
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 提取管道执行上述图片中的所有蓝色步骤。查看我的[上一篇博客文章](https://medium.com/neo4j/implementing-from-local-to-global-graphrag-with-neo4j-and-langchain-constructing-the-graph-73924cc5bab4)了解更多关于图谱构建和社区总结的信息。MSFT
+    GraphRAG 库的图形提取管道输出是一个 Parquet 文件集，如[Operation Dulce 示例](https://github.com/microsoft/graphrag/tree/main/examples_notebooks/inputs/operation%20dulce)所示。
 - en: These parquet files can be easily imported into the Neo4j graph database for
     downstream analysis, visualization, and retrieval. We can [use a free cloud Aura
     instance or set up a local Neo4j environment](https://neo4j.com/docs/operations-manual/current/installation/).
@@ -190,209 +283,328 @@
     explanation in this blog post, but it consists of importing and constructing a
     knowledge graph from five or six CSV files. If you want to learn more about CSV
     importing, you can check the [Neo4j Graph Academy course](https://graphacademy.neo4j.com/courses/importing-cypher/).
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些 Parquet 文件可以轻松导入到 Neo4j 图数据库中，用于后续分析、可视化和检索。我们可以[使用免费的云 Aura 实例或设置本地 Neo4j
+    环境](https://neo4j.com/docs/operations-manual/current/installation/)。我的朋友[Michael
+    Hunger](https://medium.com/u/3865848842f9?source=post_page---user_mention--e0d4fa00714c--------------------------------)完成了大部分工作，将
+    Parquet 文件导入到 Neo4j 中。在这篇博客中，我们跳过了导入的解释，但它包括从五六个 CSV 文件导入并构建知识图谱。如果你想了解更多关于 CSV
+    导入的内容，可以查看[Neo4j Graph Academy 课程](https://graphacademy.neo4j.com/courses/importing-cypher/)。
 - en: The import code is available as a [Jupyter notebook on GitHub](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_import.ipynb)
     along with the example GraphRAG output.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 导入代码作为[Jupyter notebook 在 GitHub 上提供](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_import.ipynb)，并附带示例
+    GraphRAG 输出。
 - en: '[](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_import.ipynb?source=post_page-----e0d4fa00714c--------------------------------)
     [## blogs/msft_graphrag/ms_graphrag_import.ipynb at master · tomasonjo/blogs'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_import.ipynb?source=post_page-----e0d4fa00714c--------------------------------)
+    [## blogs/msft_graphrag/ms_graphrag_import.ipynb at master · tomasonjo/blogs'
 - en: Jupyter notebooks that support my graph data science blog posts at https://bratanic-tomaz.medium.com/
     …
+  id: totrans-45
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 支持我的图数据科学博客文章的 Jupyter Notebook，网址：[https://bratanic-tomaz.medium.com/](https://bratanic-tomaz.medium.com/)
 - en: github.com](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_import.ipynb?source=post_page-----e0d4fa00714c--------------------------------)
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '[github.com](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_import.ipynb?source=post_page-----e0d4fa00714c--------------------------------)'
 - en: After the import is completed, we can open the Neo4j Browser to validate and
     visualize parts of the imported graph.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 导入完成后，我们可以打开 Neo4j 浏览器来验证和可视化部分导入的图形数据。
 - en: '![](../Images/92899dd2b556af48c66fd7870c915e0d.png)'
+  id: totrans-48
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/92899dd2b556af48c66fd7870c915e0d.png)'
 - en: Part of the imported graph. Image by the author.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 导入的部分图形。图片由作者提供。
 - en: Graph analysis
+  id: totrans-50
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 图形分析
 - en: Before moving onto retriever implementation, we’ll perform a simple graph analysis
     to familiarize ourselves with the extracted data. We start by defining the database
     connection and a function that executes a Cypher statement (graph database query
     language) and outputs a Pandas DataFrame.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 在进行检索器实现之前，我们将执行一个简单的图分析，以便熟悉提取的数据。我们首先定义数据库连接和一个执行Cypher语句（图数据库查询语言）并输出Pandas
+    DataFrame的函数。
 - en: '[PRE4]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: When performing the graph extraction, we used a chunk size of 300\. Since then,
     the authors have changed the default chunk size to 1200\. We can validate the
     chunk sizes using the following Cypher statement.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 在执行图提取时，我们使用了300的块大小。从那时起，作者已将默认块大小更改为1200。我们可以使用以下Cypher语句验证块大小。
 - en: '[PRE5]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 230 chunks have 300 tokens, while the last one has only 155 tokens. Let’s now
     check an example entity and its description.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 230个块有300个标记，而最后一个只有155个标记。现在让我们检查一个示例实体及其描述。
 - en: '[PRE6]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '*Results*'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/35f18f3cc25aac41a57272e234289a80.png)'
+  id: totrans-58
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/35f18f3cc25aac41a57272e234289a80.png)'
 - en: Example entity name and description. Image by author.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例实体名称和描述。图片来自作者。
 - en: It seems that the project Gutenberg is described in the book somewhere, probably
     at the beginning. We can observe how a description can capture more detailed and
     intricate information than just an entity name, which the MSFT GraphRAG paper
     introduced to retain more sophisticated and nuanced data from text.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 看起来项目Gutenberg在书中某处有所描述，可能是在开头。我们可以观察到描述如何捕获比仅仅是实体名称更详细、更复杂的信息，这也是MSFT GraphRAG论文提出的，目的是从文本中保留更复杂和更细致的数据。
 - en: Let’s check example relationships as well.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们也检查一下示例关系。
 - en: '[PRE7]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '*Results*'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/6f893ad3537c258ca75ad42e7879b6af.png)'
+  id: totrans-64
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6f893ad3537c258ca75ad42e7879b6af.png)'
 - en: Example relationship descriptions. Image by author.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例关系描述。图片来自作者。
 - en: The MSFT GraphRAG goes beyond merely extracting simple relationship types between
     entities by capturing detailed relationship descriptions. This capability allows
     it to capture more nuanced information than straightforward relationship types.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: MSFT GraphRAG不仅仅是提取实体之间简单的关系类型，它通过捕获详细的关系描述超越了这一点。这一能力使其能够捕获比简单关系类型更细致的信息。
 - en: We can also examine a single community and its generated descriptions.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以检查单个社区及其生成的描述。
 - en: '[PRE8]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '*Results*'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/a91072cfd28f72bcf4f76e20c8929c04.png)'
+  id: totrans-70
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a91072cfd28f72bcf4f76e20c8929c04.png)'
 - en: Example community description. Image by author.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 示例社区描述。图片来自作者。
 - en: A community has a title, summary, and full content generated using an LLM. I
     haven’t seen if the authors use the full context or just the summary during retrieval,
     but we can choose between the two. We can observe citations in the full_content,
     which point to entities and relationships from which the information came. It’s
     funny that an LLM sometimes trims the citations if they are too long, like in
     the following example.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个社区有标题、摘要和使用LLM生成的完整内容。我还没有看到作者在检索时是否使用完整的上下文或只是使用摘要，但我们可以在两者之间选择。我们可以在full_content中观察到引用，它指向实体和关系，这些是信息的来源。很有趣的是，如果引用太长，LLM有时会删减它们，就像以下示例一样。
 - en: '[PRE9]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: There is no way to expand the `+more` sign, so this is a funny way of dealing
     with long citations by an LLM.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于无法展开`+more`标志，这是LLM处理长引用的一种有趣方式。
 - en: Let’s now evaluate some distributions. We’ll start by inspecting the distribution
     of the count of extracted entities from text chunks.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们评估一些分布。我们将首先检查从文本块中提取的实体数量的分布。
 - en: '[PRE10]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '*Results*'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/31d7f4dc8a8dd0eb2cced392fb6494e4.png)'
+  id: totrans-78
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/31d7f4dc8a8dd0eb2cced392fb6494e4.png)'
 - en: Distribution of the count of extracted entities from text chunks. Image by author.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 从文本块中提取的实体数量分布。图片来自作者。
 - en: Remember, text chunks have 300 tokens. Therefore, the number of extracted entities
     is relatively small, with an average of around three entities per text chunk.
     The extraction was done without any gleanings (a single extraction pass). It would
     be interesting to see the distribution if we increased the gleaning count.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 记住，文本块有300个标记。因此，提取的实体数量相对较小，每个文本块平均大约有三个实体。提取是一次性完成的（没有进行任何额外提取）。如果我们增加提取次数，观察分布可能会更有趣。
 - en: Next, we will evaluate the node degree distribution. A node degree is the number
     of relationships a node has.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将评估节点度数分布。节点度数是一个节点所拥有的关系数量。
 - en: '[PRE11]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '*Results*'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/202d970f10bd278b5aee8974cf48ae0f.png)'
+  id: totrans-84
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/202d970f10bd278b5aee8974cf48ae0f.png)'
 - en: Node degree distribution. Image by author.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 节点度数分布。图片来自作者。
 - en: Most real-world networks follow a power-law node degree distribution, with most
     nodes having relatively small degrees and some important nodes having a lot. While
     our graph is small, the node degree follows the power law. It would be interesting
     to identify which entity has 120 relationships (connected to 43% of entities).
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数现实世界的网络遵循幂律节点度分布，大多数节点的度数较小，而一些重要节点的度数较大。尽管我们的图较小，但节点度数依然符合幂律分布。找出哪个实体拥有120个关系（与43%的实体相连）将是很有趣的。
 - en: '[PRE12]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '*Results*'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/68f4527199ac6daafeca1cc648fb7fe1.png)'
+  id: totrans-89
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/68f4527199ac6daafeca1cc648fb7fe1.png)'
 - en: Entities with the most relationships. Image by author.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 拥有最多关系的实体。图片由作者提供。
 - en: Without any hesitation, we can assume that Scrooge is the book’s main character.
     I would also venture a guess that **Ebenezer Scrooge** and **Scrooge** are actually
     the same entity, but as the MSFT GraphRAG lacks an entity resolution step, they
     weren’t merged.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 毫不犹豫地，我们可以假设斯克鲁奇是这本书的主角。我还会大胆猜测，**埃比尼泽·斯克鲁奇**和**斯克鲁奇**实际上是同一个实体，但由于MSFT GraphRAG缺少实体解析步骤，它们没有被合并。
 - en: It also shows that analyzing and cleaning the data is a vital step to reducing
     noise information, as Project Gutenberg has 13 relationships, even though they
     are not part of the book story.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 这也表明，分析和清理数据是减少噪音信息的一个重要步骤，因为项目古腾堡有13个关系，尽管它们并不属于书本的故事情节。
 - en: Lastly, we’ll inspect the distribution of community size per hierarchical level.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们将检查每个层级的社区大小分布。
 - en: '[PRE13]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '*Results*'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: '![](../Images/2eba2f21b06f75caa3302f3a3ce41067.png)'
+  id: totrans-96
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2eba2f21b06f75caa3302f3a3ce41067.png)'
 - en: Community size distribution per level. Image by author.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个层级的社区大小分布。图片由作者提供。
 - en: The Leiden algorithm identified three levels of communities, where the communities
     on higher levels are larger on average. However, there are some technical details
     that I’m not aware of because if you check the all_members count, and you can
@@ -400,31 +612,45 @@
     be the same in theory. Also, if communities merge at higher levels, why do we
     have 19 communities on level 0 and 22 on level 1? The authors have done some optimizations
     and tricks here, which I haven’t had a time to explore in detail yet.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: Leiden算法识别了三层社区，其中高层社区的平均规模较大。然而，有一些技术细节我不太了解，因为如果你检查所有成员的数量，你会发现每一层的所有节点数量不同，尽管理论上应该是相同的。此外，如果社区在更高层级合并，为什么第0层有19个社区，第1层有22个社区呢？作者在这里做了一些优化和技巧，我还没有时间深入探索。
 - en: Implementing retrievers
+  id: totrans-99
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实现检索器
 - en: In the last part of this blog post, we will discuss the local and global retrievers
     as specified in the MSFT GraphRAG. The retrievers will be implemented and integrated
     with LangChain and LlamaIndex.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本博客的最后部分，我们将讨论MSFT GraphRAG中指定的本地和全局检索器。这些检索器将与LangChain和LlamaIndex一起实现和集成。
 - en: Local retriever
+  id: totrans-101
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 本地检索器
 - en: The local retriever starts by using vector search to identify relevant nodes,
     and then collects linked information and injects it into the LLM prompt.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 本地检索器首先使用向量搜索来识别相关节点，然后收集链接信息并将其注入到LLM提示中。
 - en: '![](../Images/3526b6401fd23d76effcaf0a4022a12c.png)'
+  id: totrans-103
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3526b6401fd23d76effcaf0a4022a12c.png)'
 - en: Local retriever architecture. Image from [https://microsoft.github.io/graphrag/posts/query/1-local_search/](https://microsoft.github.io/graphrag/posts/query/1-local_search/)
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 本地检索器架构。图片来源：[https://microsoft.github.io/graphrag/posts/query/1-local_search/](https://microsoft.github.io/graphrag/posts/query/1-local_search/)
 - en: While this diagram might look complex, it can be easily implemented. We start
     by identifying relevant entities using a vector similarity search based on text
     embeddings of entity descriptions. Once the relevant entities are identified,
@@ -432,138 +658,203 @@
     so on. The pattern of using vector similarity search and then traversing throughout
     the graph can easily be implemented using a `retrieval_query` feature in both
     LangChain and LlamaIndex.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然这个图表看起来可能很复杂，但其实很容易实现。我们首先通过基于实体描述文本嵌入的向量相似度搜索来识别相关实体。一旦识别出相关实体，我们就可以遍历与之相关的文本块、关系、社区摘要等。使用向量相似度搜索，然后在图中遍历的模式可以很容易地通过LangChain和LlamaIndex中的`retrieval_query`功能来实现。
 - en: First, we need to configure the vector index.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们需要配置向量索引。
 - en: '[PRE14]'
+  id: totrans-107
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: We’ll also calculate and store the community weight, which is defined as the
     number of distinct text chunks the entities in the community appear.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还将计算并存储社区权重，社区权重定义为社区中实体出现的不同文本块的数量。
 - en: '[PRE15]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: The number of candidates (text units, community reports, …) from each section
     is [configurable](https://microsoft.github.io/graphrag/posts/query/notebooks/local_search_nb/).
     While the original implementation has slightly more involved filtering based on
     token counts, we’ll simplify it here. I developed the following simplified top
     candidate filter values based on the default configuration values.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个部分的候选数量（文本单元、社区报告等）是[可配置的](https://microsoft.github.io/graphrag/posts/query/notebooks/local_search_nb/)。虽然原始实现基于标记计数进行了略微复杂的过滤，但我们在这里进行简化。我根据默认配置值开发了以下简化的顶级候选过滤值。
 - en: '[PRE16]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: We will start with LangChain implementation. The only thing we need to define
     is the `retrieval_query` , which is more involved.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从 LangChain 实现开始。我们需要定义的唯一内容是 `retrieval_query`，这是一个较为复杂的部分。
 - en: '[PRE17]'
+  id: totrans-113
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'This Cypher query performs multiple analytical operations on a set of nodes
     to extract and organize related text data:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个 Cypher 查询对一组节点执行多个分析操作，以提取和组织相关的文本数据：
 - en: '1\. **Entity-Text Unit Mapping**: For each node, the query identifies linked
     text chunks (`__Chunk__`), aggregates them by the number of distinct nodes associated
     with each chunk, and orders them by frequency. The top chunks are returned as
     `text_mapping`.'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 1\. **实体-文本单元映射**：对于每个节点，查询会识别链接的文本块（`__Chunk__`），根据与每个文本块关联的不同节点的数量进行聚合，并按频率排序。排名靠前的文本块将作为
+    `text_mapping` 返回。
 - en: '2\. **Entity-Report Mapping**: For each node, the query finds the associated
     community (`__Community__`), and returns the summary of the top-ranked communities
     based on rank and weight.'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 2\. **实体-报告映射**：对于每个节点，查询会查找相关的社区（`__Community__`），并返回按排名和权重排序的排名靠前的社区的摘要。
 - en: '3\. **Outside Relationships**: This section extracts descriptions of relationships
     (`RELATED`) where the related entity (`m`) is not part of the initial node set.
     The relationships are ranked and limited to the top external relationships.'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 3\. **外部关系**：本节提取描述关系的部分（`RELATED`），其中相关实体（`m`）不属于初始节点集。关系按排名排序，并限制为最顶端的外部关系。
 - en: '4\. **Inside Relationships**: Similarly to outside relationships, but this
     time it considers only relationships where both entities are within the initial
     set of nodes.'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 4\. **内部关系**：与外部关系类似，但这次仅考虑两个实体都属于初始节点集的关系。
 - en: '5\. **Entities Description**: Simply collects descriptions of each node in
     the initial set.'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 5\. **实体描述**：简单地收集初始节点集中每个节点的描述。
 - en: Finally, the query combines the collected data into a structured result comprising
     of chunks, reports, internal and external relationships, and entity descriptions,
     along with a default score and an empty metadata object. You have the option to
     remove some of the retrieval parts to test how they affect the results.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，查询将收集的数据合并成一个结构化结果，包括文本块、报告、内部和外部关系，以及实体描述，并附带默认评分和空的元数据对象。您可以选择移除某些检索部分，以测试它们对结果的影响。
 - en: 'And now you can run the retriever using the following code:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，您可以使用以下代码运行检索器：
 - en: '[PRE18]'
+  id: totrans-122
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: The same retrieval pattern can be implemented with LlamaIndex. For LlamaIndex,
     we first need to add metadata to nodes so that the vector index will work. *If
     the default metadata is not added to the relevant nodes, the vector index will
     return an error*.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 相同的检索模式可以使用 LlamaIndex 实现。对于 LlamaIndex，我们首先需要为节点添加元数据，以便向量索引能够正常工作。*如果未将默认元数据添加到相关节点，向量索引将返回错误*。
 - en: '[PRE19]'
+  id: totrans-124
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Again, we can use the `retrieval_query` feature in LlamaIndex to define the
     retriever. Unlike with LangChain, we will use the f-string instead of query parameters
     to pass the top candidate filter parameters.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，我们可以在 LlamaIndex 中使用 `retrieval_query` 功能来定义检索器。与 LangChain 不同的是，我们将使用 f-string，而不是查询参数来传递顶级候选过滤参数。
 - en: '[PRE20]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: Additionally, the return is slightly different. We need to return the node type
     and content as metadata; otherwise, the retriever will break. Now we just instantiate
     the Neo4j vector store and use it as a query engine.
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，返回结果略有不同。我们需要将节点类型和内容作为元数据返回；否则，检索器将无法正常工作。现在，我们只需实例化 Neo4j 向量存储，并将其用作查询引擎。
 - en: '[PRE21]'
+  id: totrans-128
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: We can now test the GraphRAG local retriever.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以测试 GraphRAG 本地检索器。
 - en: '[PRE22]'
+  id: totrans-130
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: One thing that immediately sparks to mind is that we can improve the local retrieval
     by using a hybrid approach (vector + keyword) to find relevant entities instead
     of vector search only.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一点立刻想到的是，我们可以通过使用混合方法（向量 + 关键字）来改进本地检索，而不是仅仅使用向量搜索来查找相关实体。
 - en: Global retriever
+  id: totrans-132
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 全局检索器
 - en: The [global retriever architecture](https://microsoft.github.io/graphrag/posts/query/notebooks/global_search_nb/)
     is slightly more straightforward. It seems to iterate over all the community summaries
     on a specified hierarchical level, producing intermediate summaries and then generating
     a final response based on the intermediate summaries.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: '[全局检索器架构](https://microsoft.github.io/graphrag/posts/query/notebooks/global_search_nb/)稍微更直接一些。它似乎遍历了指定层级的所有社区摘要，生成中间摘要，然后基于这些中间摘要生成最终响应。'
 - en: '![](../Images/69405ee5c3fd2d9bedc89f5b463fb816.png)'
+  id: totrans-134
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/69405ee5c3fd2d9bedc89f5b463fb816.png)'
 - en: Global retriever architecture. Image from [https://microsoft.github.io/graphrag/posts/query/0-global_search/](https://microsoft.github.io/graphrag/posts/query/0-global_search/)
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 全局检索器架构。图片来自[https://microsoft.github.io/graphrag/posts/query/0-global_search/](https://microsoft.github.io/graphrag/posts/query/0-global_search/)
 - en: We have to decide which define in advance which hierarchical level we want to
     iterate over, which is a not a simple decision as we have no idea which one would
     work better. The higher up you go the hierarchical level, the larger the communities
     get, but there are fewer of them. This is the only information we have without
     inspecting summaries manually.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们必须提前决定要迭代哪个层次级别，这是一个不简单的决定，因为我们无法预知哪个级别会更有效。你越往上走，层级越高，社区越大，但数量越少。这是我们在没有手动检查摘要的情况下能获得的唯一信息。
 - en: Other parameters allow us to ignore communities below a rank or weight threshold,
     which we won’t use here. We’ll implement the global retriever using LangChain
     as use the same [map](https://github.com/microsoft/graphrag/blob/main/graphrag/query/structured_search/global_search/map_system_prompt.py)
@@ -571,20 +862,30 @@
     as in the GraphRAG paper. Since the system prompts are very long, we will not
     include them here or the chain construction. However, all the code is available
     in the [notebook](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_retriever.ipynb).
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他参数允许我们忽略低于排名或权重阈值的社区，但我们在这里不使用这些参数。我们将使用 LangChain 实现全局检索器，并使用与 GraphRAG 论文中相同的[映射](https://github.com/microsoft/graphrag/blob/main/graphrag/query/structured_search/global_search/map_system_prompt.py)和[归约提示](https://github.com/microsoft/graphrag/blob/main/graphrag/query/structured_search/global_search/reduce_system_prompt.py)。由于系统提示非常长，我们在此不包括它们或链式构建过程。不过，所有代码可以在[笔记本](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_retriever.ipynb)中找到。
 - en: '[PRE23]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: Let’s now test it.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们来测试一下。
 - en: '[PRE24]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: '*Results*'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结果*'
 - en: 'The story primarily revolves around Ebenezer Scrooge, a miserly man who initially
     embodies a cynical outlook towards life and despises Christmas. His transformation
     begins when he is visited by the ghost of his deceased business partner, Jacob
@@ -593,19 +894,26 @@
     and the consequences of his actions, ultimately leading him to embrace the Christmas
     spirit and undergo significant personal growth [Data: Reports (32, 17, 99, 86,
     +more)].'
+  id: totrans-142
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 故事主要围绕 Ebenezer Scrooge 展开，他是一个吝啬鬼，最初对生活持愤世嫉俗的态度，且厌恶圣诞节。当他的已故商业伙伴 Jacob Marley
+    的幽灵造访时，他的转变开始了，随后三位幽灵的出现——代表着过去、现在和未来的圣诞节。这些遭遇促使 Scrooge 反思自己的生活和行为的后果，最终使他接受了圣诞精神，并经历了显著的个人成长。[数据：报告（32，17，99，86，+更多）]
 - en: ''
+  id: totrans-143
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: The Role of Jacob Marley and the Spirits
+  id: totrans-144
   prefs:
   - PREF_BQ
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Jacob Marley 和三位幽灵的角色
 - en: ''
+  id: totrans-145
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -615,19 +923,26 @@
     the importance of compassion. The spirits reveal to Scrooge how his actions have
     affected not only his own life but also the lives of others, particularly highlighting
     the themes of redemption and interconnectedness [Data: Reports (86, 17, 99, +more)].'
+  id: totrans-146
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: Jacob Marley 的幽灵作为超自然的催化剂，警告 Scrooge 即将到来的三位幽灵的造访。每个幽灵都引导 Scrooge 进行一次自我发现之旅，展示他选择的影响和同情心的重要性。这些幽灵向
+    Scrooge 显示了他的行为如何影响到不仅仅是他自己的人生，还包括他人的生活，特别突出了救赎和相互联系的主题。[数据：报告（86，17，99，+更多）]
 - en: ''
+  id: totrans-147
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Scrooge's Relationships and Transformation
+  id: totrans-148
   prefs:
   - PREF_BQ
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Scrooge 的人际关系和转变
 - en: ''
+  id: totrans-149
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -638,19 +953,26 @@
     that individual actions can have a profound impact on society, as Scrooge''s newfound
     generosity fosters compassion and social responsibility within his community [Data:
     Reports (25, 158, 159, +more)].'
+  id: totrans-150
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 斯克鲁奇与克雷奇特一家，特别是与鲍勃·克雷奇特及其儿子小蒂姆的关系，对于他的转变至关重要。通过鬼魂们展示的幻象，斯克鲁奇逐渐培养了同情心，这激发了他采取切实行动，改善克雷奇特一家的生活条件。故事强调了个人行为对社会的深远影响，斯克鲁奇新获得的慷慨心态在社区中激发了同情和社会责任感。[数据：报告（25,
+    158, 159，+更多）]
 - en: ''
+  id: totrans-151
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Themes of Redemption and Hope
+  id: totrans-152
   prefs:
   - PREF_BQ
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 救赎与希望的主题
 - en: ''
+  id: totrans-153
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
@@ -660,28 +982,38 @@
     to change; small acts of kindness can lead to significant positive effects on
     individuals and the broader community [Data: Reports (32, 102, 126, 148, 158,
     159, +more)].'
+  id: totrans-154
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 总体而言，这个故事是希望的永恒象征，强调了同情心、内省以及个人改变的潜力等主题。斯克鲁奇从一个孤独的吝啬鬼转变为一个仁慈的形象，说明了改变永远不晚；小小的善举可以对个人和更广泛的社区产生深远的积极影响。[数据：报告（32,
+    102, 126, 148, 158, 159，+更多）]
 - en: ''
+  id: totrans-155
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: In summary, the story encapsulates the transformative power of Christmas and
     the importance of human connections, making it a poignant narrative about redemption
     and the impact one individual can have on others during the holiday season.
+  id: totrans-156
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 总结来说，这个故事浓缩了圣诞节的转变力量和人际关系的重要性，是一个关于救赎的感人叙事，讲述了一个人在假期期间对他人产生的影响。
 - en: The response is quite long and exhaustive as it fits a global retriever that
     iterates over all the communities on a specified level. You can test how the response
     changes if you change the community hierarchical level.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个回答非常长且详尽，因为它适用于全局检索器，该检索器会遍历指定级别上的所有社区。如果你改变社区的层级水平，可以测试回答如何变化。
 - en: Summary
+  id: totrans-158
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 总结
 - en: In this blog post we demonstrated how to integrate Microsoft’s GraphRAG into
     Neo4j and implement retrievers using LangChain and LlamaIndex. This should allows
     you to integrate GraphRAG with other retrievers or agents seamlessly. The local
@@ -691,8 +1023,12 @@
     with language models for enhanced information retrieval and question answering.
     It’s important to note that there is room for customization and experimentation
     with such a knowledge graph, which we will look into in the next blog post.
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇博客文章中，我们展示了如何将微软的GraphRAG集成到Neo4j中，并使用LangChain和LlamaIndex实现检索器。这将允许你无缝地将GraphRAG与其他检索器或代理集成。局部检索器结合了向量相似性搜索和图遍历，而全局检索器则通过遍历社区摘要来生成全面的回答。这种实现展示了将结构化知识图与语言模型相结合的力量，从而增强了信息检索和问答能力。值得注意的是，这样的知识图还有定制和实验的空间，我们将在下一篇博客文章中进一步探讨。
 - en: As always, the code is available on [GitHub](https://github.com/tomasonjo/blogs/tree/master/msft_graphrag).
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 和往常一样，代码可以在[GitHub](https://github.com/tomasonjo/blogs/tree/master/msft_graphrag)上找到。

@@ -1,222 +1,324 @@
 - en: Estimating Individualized Treatment Rules Using Outcome Weighted Learning
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用结果加权学习估算个性化治疗规则
 - en: 原文：[https://towardsdatascience.com/estimating-individualized-treatment-rules-using-outcome-weighted-learning-1095b3c2d6e9?source=collection_archive---------8-----------------------#2024-03-31](https://towardsdatascience.com/estimating-individualized-treatment-rules-using-outcome-weighted-learning-1095b3c2d6e9?source=collection_archive---------8-----------------------#2024-03-31)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/estimating-individualized-treatment-rules-using-outcome-weighted-learning-1095b3c2d6e9?source=collection_archive---------8-----------------------#2024-03-31](https://towardsdatascience.com/estimating-individualized-treatment-rules-using-outcome-weighted-learning-1095b3c2d6e9?source=collection_archive---------8-----------------------#2024-03-31)
 - en: A non-parametric approach for fitting personalized treatments to patients
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一种用于为患者制定个性化治疗的非参数方法
 - en: '[](https://medium.com/@nadavgoo?source=post_page---byline--1095b3c2d6e9--------------------------------)[![Nadav
     Har-Tuv](../Images/981fadd23cdfb60cfe0fa02dbb8edca6.png)](https://medium.com/@nadavgoo?source=post_page---byline--1095b3c2d6e9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1095b3c2d6e9--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1095b3c2d6e9--------------------------------)
     [Nadav Har-Tuv](https://medium.com/@nadavgoo?source=post_page---byline--1095b3c2d6e9--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@nadavgoo?source=post_page---byline--1095b3c2d6e9--------------------------------)[![Nadav
+    Har-Tuv](../Images/981fadd23cdfb60cfe0fa02dbb8edca6.png)](https://medium.com/@nadavgoo?source=post_page---byline--1095b3c2d6e9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1095b3c2d6e9--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1095b3c2d6e9--------------------------------)
+    [Nadav Har-Tuv](https://medium.com/@nadavgoo?source=post_page---byline--1095b3c2d6e9--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1095b3c2d6e9--------------------------------)
     ·6 min read·Mar 31, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1095b3c2d6e9--------------------------------)
+    ·阅读时间6分钟·2024年3月31日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: In many diseases, different patients will react differently to different treatments.
     A drug that is beneficial for some patients may not work for other patients with
     different characteristics. Therefore, healthcare can significantly improve by
     treating patients based on their characteristics, rather than treating all patients
     with the same treatment.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 在许多疾病中，不同的患者对不同的治疗反应不同。对一些患者有效的药物可能对其他具有不同特征的患者无效。因此，通过根据患者的特征进行治疗，而不是对所有患者采用相同治疗，可以显著提高医疗效果。
 - en: In this article, I will try to show you how we can train a machine-learning
     model to learn the optimal personalized treatment.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我将尝试向你展示如何训练一个机器学习模型来学习最优的个性化治疗。
 - en: 'This article is about the field of personalized health care, but the results
     can be used in any field. For example: Different people will react differently
     to different ads on social media, so, in cases where there are multiple ads for
     the same product, how do you choose which ad to show to which viewers?'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文讨论的是个性化医疗领域，但其结果可以应用于任何领域。例如：不同的人对社交媒体上的不同广告反应不同，因此，在同一产品有多个广告的情况下，如何选择向哪些观众展示哪个广告？
 - en: This method is useful in any case where you have to give a treatment but you
     can only give one treatment to every individual in the sample and therefore you
     have no way of knowing how that individual would respond to the other treatments.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 该方法在任何必须给出治疗但每个样本个体只能接受一种治疗的情况下非常有用，因此你无法知道该个体如果接受其他治疗会有怎样的反应。
 - en: Let’s formalize the problem
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 让我们形式化这个问题
 - en: An experiment was performed to compare two (or more) treatments. We’ll name
     them T = 1,2… A vector of covariates X represents every patient. Every patient
     *i* with a covariates vector Xᵢ, that was given a treatment Tᵢ has a recorded
     response to the treatment, Rᵢ.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 进行了一项实验，比较了两种（或更多）治疗方法。我们将它们命名为T = 1,2……一个协变量向量X表示每个患者。每个患者*i*具有一个协变量向量Xᵢ，接受了治疗Tᵢ，并且有一个记录的治疗反应Rᵢ。
 - en: For example, let’s assume that you want to test 3 different drugs for diabetes,
     we’ll name these drugs “1”, “2”, “3”.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，假设你想测试三种不同的糖尿病药物，我们将这些药物命名为“1”、“2”、“3”。
 - en: We have a patient named Esther, she is 64 years old, she’s been diagnosed with
     diabetes 8 years ago, she weighs 65 kilos and her height is 1.54 meters. Esther
     has received drug “1” and her blood sugar was reduced by 10 points after being
     given the new drug.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们有一个名为Esther的患者，她64岁，8年前被诊断为糖尿病，体重65公斤，身高1.54米。Esther接受了药物“1”，并且在服用新药后，她的血糖下降了10个点。
 - en: In our example, the data point we have on Esther is X = {Female, 64 years old,
     8 years since diagnosis, 65 kg, 1.54 meters}, T = “1”, R = 10.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的例子中，我们对Esther的数据点是X = {女性，64岁，诊断8年，65公斤，1.54米}，T = “1”，R = 10。
 - en: In this setting, we would like to learn an optimal decision rule D(x), that
     assigns a treatment “1”, “2”, or “3” to every patient to optimize the outcome
     for that patient.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种设定下，我们希望学习一个最优的决策规则D(x)，它为每个患者分配治疗“1”、“2”或“3”，以优化该患者的治疗效果。
 - en: 'The old way of solving this problem was to model the outcome as a function
     of the data and the treatment and denote the predicted outcome as *f*(X,T). Once
     we have a model we can create a decision rule D(x): we compute *f*(X,1), *f*(X,2),
     and *f*(X,3) and give the patient the drug that maximizes their expected outcome.'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这个问题的旧方法是将结果建模为数据和治疗的函数，并将预测结果表示为*f*(X,T)。一旦我们有了模型，我们就可以创建一个决策规则D(x)：我们计算*f*(X,1)，*f*(X,2)，和*f*(X,3)，并给予患者能够最大化其期望结果的药物。
 - en: This solution can work when we have a fairly good understanding of the underlying
     model that created the data. In this case, all we need is some finetuning to find
     the best parameters for our case.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们对生成数据的基础模型有相当好的理解时，这个解决方案是有效的。在这种情况下，我们只需要一些微调来找到适合我们案例的最佳参数。
 - en: However, if the model is bad then our results will be bad, regardless of the
     amount of data at hand.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，如果模型不好，那么我们的结果也会不好，无论手头的数据有多少。
 - en: Can we come up with a decision rule that is not parametric and does not assume
     any prior knowledge of the relationship between the data and the treatment result?
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们能否提出一个不带参数的决策规则，并且不假设数据与治疗结果之间有任何先验关系？
 - en: The answer is yes, we can use machine learning to find a decision rule that
     does not make any assumptions about the relationship between the response and
     the treatment!
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 答案是肯定的，我们可以使用机器学习找到一个不假设反应和治疗之间关系的决策规则！
 - en: Solving with a non-parametric approach using Outcome Weighted Learning
+  id: totrans-21
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用Outcome Weighted Learning（OWL）方法解决非参数问题
 - en: The way to solve this problem is to solve a classification problem where the
     labels are the treatments given in the experiment and every data point *i* is
     weighted by Rᵢ/π(Tᵢ|Xᵢ), where π(Tᵢ|Xᵢ) is the propensity of getting treatment
     Tᵢ, given that you have the characteristics Xᵢ, which can be computed from the
     data.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这个问题的方法是解决一个分类问题，其中标签是实验中给予的治疗，每个数据点*i*的权重为Rᵢ/π(Tᵢ|Xᵢ)，其中π(Tᵢ|Xᵢ)是给定你有特征Xᵢ的情况下，获得治疗Tᵢ的倾向性，这可以从数据中计算出来。
 - en: This makes sense because we try to follow the experiment’s results, but only
     where it worked best. The reason we divide by the propensities is to correct the
     category size bias. If you’ve learned some reinforced learning then this whole
     process should look familiar to you.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 这有道理，因为我们试图遵循实验的结果，但仅仅是最有效的地方。我们通过倾向性进行除法，是为了修正类别大小的偏差。如果你学过强化学习，那么这个整个过程对你来说应该是熟悉的。
 - en: Here is an example of an owl classifier using SVM. You can feel free to use
     any classifier you like.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一个使用支持向量机（SVM）的猫头鹰分类器的例子。你可以自由选择任何你喜欢的分类器。
 - en: '[PRE0]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Simulation to test the OWL method
+  id: totrans-26
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 用于测试OWL方法的仿真
 - en: Simulating data can test the owl method. We create the reward function so that
     we know what the optimal treatment is for every patient. We can then train the
     OWL classifier on the data and check how well it fits the optimal classifier.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 模拟数据可以用来测试猫头鹰方法。我们创建奖励函数，以便知道每个患者的最佳治疗方案。然后，我们可以在数据上训练OWL分类器，并检查其与最佳分类器的契合程度。
 - en: 'For example:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如：
 - en: I created 50 features that are all sampled from a U([-1,1]) distribution. I
     gave the patients one of three treatments {1,2,3} at random, uniformly.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 我创建了50个特征，它们都是从U([-1,1])分布中采样的。我随机均匀地给予患者三种治疗方案之一{1,2,3}。
 - en: The response function is sampled from a N(μ, 1) distribution, where μ = (X₁
     + X₂)*I(T=1) + (X₁ — X₂)*I(T=2) + (X₂-X₁)*I(T=3)
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 响应函数是从N(μ, 1)分布中采样的，其中μ = (X₁ + X₂)*I(T=1) + (X₁ — X₂)*I(T=2) + (X₂-X₁)*I(T=3)
 - en: '[PRE1]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: It is not hard to see that the optimal treatment regime is to give treatment
     1 if both X₁ and X₂ are positive. If they are both negative, give treatment 2
     if X₂<X₁ and give treatment 3 if X₁<X₂. If X₁ is positive and X₂ is negative,
     give treatment 2\. If X₂ is positive and X₁ is negative, give treatment 3.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 不难看出，最佳治疗方案是在X₁和X₂都为正时给治疗1。如果它们都为负，则当X₂ < X₁时给予治疗2，当X₁ < X₂时给予治疗3。如果X₁为正且X₂为负，则给予治疗2。如果X₂为正且X₁为负，则给予治疗3。
 - en: 'Or we can show this with an image. These are the different ranges of the optimal
     treatment, shown for ranges of X₁, X₂:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者我们可以通过图像展示这个内容。这些是最佳治疗的不同范围，针对X₁和X₂的范围展示：
 - en: '![](../Images/ae2b6be38b81bf4c36916484382a510e.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ae2b6be38b81bf4c36916484382a510e.png)'
 - en: Optimal treatment ranges for combinations of X₁, X₂
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: X₁、X₂组合的最佳治疗范围
 - en: 'I sampled 500 data points with 50 features and the reward function that I described
     above. I fit an OWL classifier with a Gaussian (‘rbf’) kernel and got the following
     classifications, which I visualized for values of X₁, X₂:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 我采样了500个数据点，包含50个特征，并使用我上面描述的奖励函数。我用高斯（‘rbf’）核函数拟合了一个OWL分类器，并得到了以下分类结果，我将其可视化以展示X₁和X₂的值：
 - en: '![](../Images/77bcf965453c276e5caa43f081138e22.png)'
+  id: totrans-37
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/77bcf965453c276e5caa43f081138e22.png)'
 - en: Classification of treatment groups visualized for values of X₁, X₂
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 针对X₁、X₂值的治疗组分类可视化
 - en: '[PRE2]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'In case you missed what happened here: The data was composed of 2 features
     that affected the response and 48 features of noise. The model managed to learn
     the effect of the two important features without us modeling this relationship
     in any way!'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你没有注意到这里发生了什么：数据由两个影响反应的特征和48个噪声特征组成。模型成功地学习到了这两个重要特征的影响，而我们并没有以任何方式对这个关系进行建模！
 - en: This is just one simple example, I made the reward function depend on X₁ and
     X₂ so that it’s easy to understand and visualize but you can feel free to use
     other examples and try out different classifiers.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 这只是一个简单的例子，我让奖励函数依赖于X₁和X₂，以便易于理解和可视化，但你可以自由使用其他例子并尝试不同的分类器。
 - en: Conclusion
+  id: totrans-42
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Outcome-weighted learning can be used to learn an optimal treatment in cases
     where we only see one treatment per patient in the training data, without having
     to model the response as a function of the features and the treatment.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: Outcome-weighted learning 可以用来学习最佳治疗方案，适用于我们在训练数据中每个病人只看到一个治疗方法的情况，而不需要将反应建模为特征和治疗方法的函数。
 - en: There is some math that I dropped out from this article that justifies this
     whole process, I did not just make this up from the top of my head.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一些数学内容我从本文中省略了，这些内容证明了整个过程的合理性，我并不是凭空编造的。
 - en: 'Future research on this topic should include:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 未来对此主题的研究应包括：
 - en: 'Exploitation vs. exploration: Even after we learned a treatment rule, it’s
     still beneficial to sometimes explore options that are considered not optimal
     according to our model. The model can be wrong.'
+  id: totrans-46
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 开发与探索：即使我们已经学到了治疗规则，有时探索那些模型认为不是最佳的选项仍然是有益的。模型可能是错误的。
 - en: 'Sequential treatment: when there is a sequence of treatments, each one of them
     changes the state of the patient. The solution for the whole sequence should be
     found via dynamic programming.'
+  id: totrans-47
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 序列治疗：当存在一系列治疗时，每一次治疗都会改变病人的状态。整个序列的解决方案应通过动态规划来求解。
 - en: 'Design: in this article, I just assumed the treatments were given according
     to a given rule. Perhaps we can find some design that can improve the learning
     process.'
+  id: totrans-48
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 设计：在本文中，我只是假设治疗是按照给定规则提供的。也许我们可以找到一些设计来改进学习过程。

@@ -1,770 +1,1152 @@
 - en: Unit Disk Uniform Sampling
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 单位圆盘均匀采样
 - en: 原文：[https://towardsdatascience.com/unit-disk-uniform-sampling-91880f3740fa?source=collection_archive---------11-----------------------#2024-09-16](https://towardsdatascience.com/unit-disk-uniform-sampling-91880f3740fa?source=collection_archive---------11-----------------------#2024-09-16)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/unit-disk-uniform-sampling-91880f3740fa?source=collection_archive---------11-----------------------#2024-09-16](https://towardsdatascience.com/unit-disk-uniform-sampling-91880f3740fa?source=collection_archive---------11-----------------------#2024-09-16)
 - en: Discover the optimal transformations to apply on the standard [0,1] uniform
     random generator for uniformly sampling a 2D disk
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 发现适用于标准[0,1]均匀随机生成器的最佳变换，以均匀采样二维圆盘
 - en: '[](https://medium.com/@thom01.rouch?source=post_page---byline--91880f3740fa--------------------------------)[![Thomas
     Rouch](../Images/a8440bbed59cd8d9cdd752cf1fea2831.png)](https://medium.com/@thom01.rouch?source=post_page---byline--91880f3740fa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--91880f3740fa--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--91880f3740fa--------------------------------)
     [Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--91880f3740fa--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@thom01.rouch?source=post_page---byline--91880f3740fa--------------------------------)[![Thomas
+    Rouch](../Images/a8440bbed59cd8d9cdd752cf1fea2831.png)](https://medium.com/@thom01.rouch?source=post_page---byline--91880f3740fa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--91880f3740fa--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--91880f3740fa--------------------------------)
+    [Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--91880f3740fa--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--91880f3740fa--------------------------------)
     ·13 min read·Sep 16, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--91880f3740fa--------------------------------)
+    ·13分钟阅读·2024年9月16日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/a5274695921aab399278b1c4885a9e40.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a5274695921aab399278b1c4885a9e40.png)'
 - en: Photo by [Vitolda Klein](https://unsplash.com/@little_klein?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[Vitolda Klein](https://unsplash.com/@little_klein?utm_source=medium&utm_medium=referral)
+    通过[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 0\. Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 0\. 引言
 - en: In my previous article on [*Unit Disk and 2D Bounded KDE*](/unit-disk-and-2d-bounded-kde-2cb5c3544f1c),
     I discussed the importance of being able to sample arbitrary distributions. This
     is especially relevant for applications like Monte Carlo integration, which is
     used to solve complex integrals, such as light scattering in [*Physically Based
     Rendering* (PBRT)](https://pbrt.org/).
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我之前的文章[*单位圆盘和二维有界KDE*](/unit-disk-and-2d-bounded-kde-2cb5c3544f1c)中，我讨论了能够采样任意分布的重要性。这对于像蒙特卡罗积分这样的应用尤为重要，蒙特卡罗积分用于解决复杂的积分问题，例如在[*物理基础渲染*
+    (PBRT)](https://pbrt.org/)中计算光散射。
 - en: Sampling in 2D introduces new challenges compared to 1D. This article focuses
     on uniformly sampling the 2D unit disk and visualizing how transformations applied
     to a standard [0,1] uniform random generator create different distributions.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 与一维采样相比，二维采样引入了新的挑战。本文重点讨论如何均匀地采样二维单位圆盘，并可视化标准[0,1]均匀随机生成器应用变换后所产生的不同分布。
 - en: We’ll also explore how these transformations, though yielding the same distribution,
     affect Monte Carlo integration by introducing distortion, leading to increased
     variance.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还将探讨这些变换虽然产生相同的分布，但如何通过引入畸变影响蒙特卡罗积分，导致方差增加。
 - en: 1\. How to sample a disk uniformly?
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 1\. 如何均匀采样一个圆盘？
 - en: Introduction
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 引言
 - en: Random number generators often offer many predefined sampling distributions.
     However, for highly specific distributions, you’ll likely need to create your
     own. This involves combining and transforming basic distributions to achieve the
     desired outcome.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 随机数生成器通常提供许多预定义的采样分布。然而，对于高度特定的分布，你可能需要创建自己的分布。这涉及到组合和变换基本分布，以实现所需的结果。
 - en: For instance, to uniformly sample the interval between `a` and `b`, you can
     apply an affine transform on the standard uniform sampling from `[0,1]`.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，要均匀采样`a`和`b`之间的区间，可以对标准[0,1]均匀采样应用一个仿射变换。
 - en: '![](../Images/516b44fb76ab4312ef169c2eddd881ed.png)'
+  id: totrans-16
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/516b44fb76ab4312ef169c2eddd881ed.png)'
 - en: In this article, we’ll explore how to uniformly sample points within the 2D
     unit disk by building on the basic [0,1] uniform sampling.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将探讨如何通过基于基本的[0,1]均匀采样来均匀地在二维单位圆盘内采样点。
 - en: For readability, I’ve intentionally used the adjective “unit” in two different
     contexts in this article. The “unit square” refers to the [0,1]² domain, reflecting
     the range of the basic random generator. Conversely, the “unit disk” is described
     within [-1,1]² for convenience in polar coordinates. In practice, we can easily
     map between these using an affine transformation. We’ll denote `*u*` and `*v*`
     as samples drawn from the standard [0,1] or [-1,1] uniform distribution.
+  id: totrans-18
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 为了提高可读性，我故意在本文中使用了“单位”一词的两种不同语境。“单位方形”指的是[0,1]²区域，反映了基础随机生成器的范围。相对地，“单位圆盘”则是在[-1,1]²内描述的，方便使用极坐标。在实践中，我们可以通过仿射变换轻松地在这两者之间映射。我们将`*u*`和`*v*`表示为从标准[0,1]或[-1,1]均匀分布中抽取的样本。
 - en: Rejection Sampling
+  id: totrans-19
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 拒绝采样
 - en: Using the [0,1] uniform sampling twice allows us to uniformly sample the unit
     square [0,1]².
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用[0,1]区间的均匀采样两次，可以均匀地采样单位方形区域[0,1]²。
 - en: A very simple approach known as “Rejection Sampling” consists in sampling the
     unit square and rejecting any sample falling outside the disk.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种非常简单的方法称为“拒绝采样”，其原理是在单位方形区域内进行采样，并拒绝所有落在圆盘外的样本。
 - en: '![](../Images/b57ec900cb99f629ec666feb67555de2.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b57ec900cb99f629ec666feb67555de2.png)'
 - en: Rejection sampling of the inner disk inside the unit square. Valid (green) and
     invalid (red) samples - Figure by the author
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 单位方形内的圆盘拒绝采样。有效样本（绿色）和无效样本（红色）——图由作者提供
 - en: This results in points that follow a uniform 2D distribution within the disk
     contained in the unit square, as illustrated in the figure below.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 这导致了在单位方形内的圆盘区域内，点遵循均匀的二维分布，如下图所示。
 - en: The density maps in this article are generated by sampling many points from
     the specified distribution and then applying a Kernel Density Estimator. Methods
     for addressing boundary bias in the density are detailed in the previous article
     [**“Unit Disk and 2D Bounded KDE”**](https://medium.com/towards-data-science/unit-disk-and-2d-bounded-kde-2cb5c3544f1c)**.**
+  id: totrans-25
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 本文中的密度图是通过从指定分布中采样多个点，并应用核密度估计器生成的。解决密度边界偏差的方法详细介绍在上一篇文章[**“单位圆盘和二维有界KDE”**](https://medium.com/towards-data-science/unit-disk-and-2d-bounded-kde-2cb5c3544f1c)**中**。
 - en: '![](../Images/8c919f93803088a39ebc292a4867d14a.png)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8c919f93803088a39ebc292a4867d14a.png)'
 - en: 'Left: Density of the 2D Disk Rejection Sampling estimated by Kernel Density
     Estimation on 10000 samples. Right: Corresponding 1D density profile along the
     diagonal of the density map — Figure by the author'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 左：通过核密度估计对10000个样本估算的二维圆盘拒绝采样密度。右：对应的沿密度图对角线的1D密度轮廓——图由作者提供
 - en: A major drawback is that rejection sampling can require many points to get the
     desired number of valid samples, with no upper limit on the total number, leading
     to inefficiencies and higher computational costs.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个主要的缺点是，拒绝采样可能需要大量的点才能获得所需数量的有效样本，并且没有总数的上限，导致低效和更高的计算成本。
 - en: Intuitive Polar Sampling
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 直观的极坐标采样
 - en: 'An intuitive approach is to use polar coordinates for uniform sampling: draw
     a radius within [0,1] and an angle within [0, 2π].'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种直观的方法是使用极坐标进行均匀采样：在[0,1]范围内画出半径，并在[0, 2π]范围内画出角度。
 - en: '![](../Images/9fde3aeb830972d63181fc0952465bc6.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9fde3aeb830972d63181fc0952465bc6.png)'
 - en: Both the radius and angle are uniform, what could possibly go wrong?However,
     this method leads to an infinite density singularity at the origin, as illustrated
     by the empirical density map below.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 半径和角度都是均匀分布的，可能出什么问题呢？然而，这种方法会导致原点处的密度奇点无限大，如下图所示的经验密度图所示。
 - en: To ensure the linear colormap remains readable, the density map has been capped
     at an arbitrary maximum value of 10\. Without this cap, the map would display
     a single red dot at the center of a blue disk.
+  id: totrans-33
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 为了确保线性色图保持可读性，密度图的值被限制在一个任意的最大值10。没有这个限制，地图将只在蓝色圆盘的中心显示一个红点。
 - en: '![](../Images/703362cd37e51f257f4e683ecbe0bafb.png)'
+  id: totrans-34
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/703362cd37e51f257f4e683ecbe0bafb.png)'
 - en: 'Left: Density of the 2D Disk Polar Sampling estimated by Kernel Density Estimation
     on 10000 samples. Right: Corresponding 1D density profile along the diagonal of
     the density map — Figure by the author'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 左：通过核密度估计对10000个样本估算的二维圆盘极坐标采样密度。右：对应的沿密度图对角线的1D密度轮廓——图由作者提供
 - en: 'The figure below uses color to show how the unit square, sampled with (u,v),
     maps to the unit disk with (x,y) using the polar transform defined above. The
     colored areas in the square are equal, but this equality does not hold once mapped
     to the disk. This visually illustrates the density map: large radii exhibit much
     lower density, as they are distributed across a wider ring farther from the origin.'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 下图使用颜色展示了如何将采样点(u,v)的单位方形映射到使用上述极坐标变换定义的单位圆盘(x,y)。方形中的有色区域是相等的，但一旦映射到圆盘后，这种相等性就不再成立。这直观地展示了密度图：大半径的密度显著较低，因为它们分布在离原点更远的更宽的环形区域。
 - en: '![](../Images/2a382094b8d35583d98252686f0411b0.png)'
+  id: totrans-37
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2a382094b8d35583d98252686f0411b0.png)'
 - en: 'Left: Unit Square with colored columns. Right: Corresponding Polar mapping
     to the unit Disk — Figure by the author'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 左：带有彩色列的单位方形。右：对应的极坐标映射到单位圆盘 — 图由作者提供
 - en: Let’s explore the mathematical details. When applying a transform T to a multi-dimensional
     random variable A, the resulting density is found by dividing by the absolute
     value of the determinant of the Jacobian of T.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来探索数学细节。当对一个多维随机变量A应用变换T时，得到的密度是通过除以T的雅可比矩阵行列式的绝对值来计算的。
 - en: '![](../Images/a8abf9f098f02118f970822f08eb3f9a.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a8abf9f098f02118f970822f08eb3f9a.png)'
 - en: The polar transform is given by the equation below.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 极坐标变换由以下方程给出。
 - en: '![](../Images/41afde5c216d7426b06161afcf45a0e8.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/41afde5c216d7426b06161afcf45a0e8.png)'
 - en: We can compute the determinant of its jacobian.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以计算它的雅可比矩阵行列式。
 - en: '![](../Images/7956a7c947454501ea73e841f646e328.png)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7956a7c947454501ea73e841f646e328.png)'
 - en: Thus, the polar transformation results in a density that is inversely proportional
     to the radius, explaining the observed singularity.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，极坐标变换导致密度与半径成反比，从而解释了观察到的奇异性。
 - en: '![](../Images/541ef3e656fd05b05971494499aedab8.png)'
+  id: totrans-46
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/541ef3e656fd05b05971494499aedab8.png)'
 - en: The 1D density profile along the diagonal shown above corresponds to the absolute
     value of the inverse function, which is then set to zero outside [-1, 1]. At first
     glance, this might seem counterintuitive, given that the 1D inverse function isn’t
     integrable over [-1, 1]! However, it’s essential to remember that the integration
     is performed in 2D using polar coordinates, not in 1D.
+  id: totrans-47
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 上面显示的沿对角线的1D密度曲线对应于逆函数的绝对值，之后在区间[-1, 1]之外被设为零。乍一看，这似乎有些反直觉，因为1D逆函数在[-1, 1]上并不可积！然而，重要的是要记住，积分是在二维空间中使用极坐标进行的，而不是在一维空间中。
 - en: Uniform Polar Sampling — Differential Equation
+  id: totrans-48
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 均匀极坐标采样 — 微分方程
 - en: There are two ways to find the correct polar transform that results in an uniform
     distribution. Either by solving a differential equation or by using the inversion
     method. Let’s explore both approaches.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 有两种方法可以找到正确的极坐标变换，从而得到均匀分布。可以通过解微分方程或使用反演方法来实现。让我们来探索这两种方法。
 - en: 'To address the heterogeneity in the radius, we introduce a function `f` to
     adjust it: `r=f(u)`. The angle, however, is kept uniform due to the symmetry of
     the disk. We can then solve the differential equation that ensures the determinant
     of the corresponding Jacobian remains constant, to keep the same density.'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决半径的异质性，我们引入一个函数`f`来进行调整：`r=f(u)`。然而，由于圆盘的对称性，角度保持一致。然后，我们可以解这个微分方程，确保相应雅可比矩阵的行列式保持常数，以保持相同的密度。
 - en: '![](../Images/ee411bd3612c9bde862c2440a846ebd7.png)'
+  id: totrans-51
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ee411bd3612c9bde862c2440a846ebd7.png)'
 - en: We get `ff'=c`, which has a unique solution given the boundary conditions `f(0)=0`
     and `f(1)=1`. We end up with the following transform.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们得到`ff'=c`，在边界条件`f(0)=0`和`f(1)=1`下，这有唯一解。最终我们得到了以下变换。
 - en: '![](../Images/41f3a71c921a9a3e5a7cd576b78dfb69.png)'
+  id: totrans-53
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/41f3a71c921a9a3e5a7cd576b78dfb69.png)'
 - en: Uniform Polar Sampling — Inversion Method
+  id: totrans-54
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 均匀极坐标采样 — 反演方法
 - en: The inversion method is easier to grasp in the discrete case. Consider three
     possible values A, B and C with probabilities of 60%, 10%, and 30%, respectively.
     As shown in the figure below, we can stack these probabilities to reach a total
     height of 100%. By uniformly drawing a percentage U between 0% and 100% and mapping
     it to the corresponding value A, B or C on the stack, we can transform a uniform
     sampling into our discrete non‑uniform distribution.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 在离散情况下，反演方法更容易理解。考虑三个可能的值A、B和C，它们的概率分别为60%、10%和30%。如下面的图所示，我们可以将这些概率叠加起来，得到总高度为100%。通过在0%到100%之间均匀地抽取一个百分比U，并将其映射到堆叠中的对应值A、B或C，我们可以将均匀采样转化为离散的非均匀分布。
 - en: '![](../Images/c50128307bf4c521f590cac4c091e850.png)'
+  id: totrans-56
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c50128307bf4c521f590cac4c091e850.png)'
 - en: 'Inversion Method in the discrete case. Left: Histogram. Right: Cumulative Distribution
     Function — Figure by the author'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 离散情况下的反演法。左图：直方图。右图：累积分布函数——图源：作者
 - en: This is very similar in the continuous case. The inversion method begins by
     integrating the probability distribution function (PDF) `p` of a 1D variable `X`
     to obtain the cumulative distribution function (CDF) `P(X<x)`, which increases
     from 0 to 1\. Then, by sampling a uniform variable `U` from [0,1] and applying
     the inverse CDF to `U`, we can obtain a sample `x` that follows the desired distribution
     `p`.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 在连续情况下，这非常类似。反演法通过对1D变量`X`的概率分布函数（PDF）`p`进行积分，得到累积分布函数（CDF）`P(X<x)`，该函数从0增加到1。然后，通过从[0,1]区间抽取一个均匀变量`U`并将其代入反CDF，我们可以得到一个符合所需分布`p`的样本`x`。
 - en: Assuming a uniform disk distribution p(x,y), we can deduce the corresponding
     polar distribution p(r,θ) to enforce.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设一个均匀圆盘分布p(x,y)，我们可以推导出相应的极坐标分布p(r,θ)。
 - en: '![](../Images/158a480f82f7d2357573594d66f5e7d8.png)'
+  id: totrans-60
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/158a480f82f7d2357573594d66f5e7d8.png)'
 - en: It turns out that this density p(r,θ) is separable, and we can independently
     sample r and θ from their respective expected 1D marginal densities using the
     inversion method.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实证明，该密度p(r,θ)是可分离的，我们可以使用反演法独立地从它们各自的期望1D边缘密度中抽取r和θ。
 - en: '![](../Images/c8998592f5d477f8a6bf68efb89c300b.png)'
+  id: totrans-62
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c8998592f5d477f8a6bf68efb89c300b.png)'
 - en: When the joint density isn’t separable, we first sample a variable from its
     marginal density and then draw the second variable from its conditional density
     given the first variable.
+  id: totrans-63
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 当联合密度不可分时，我们首先从其边缘密度中抽取一个变量，然后根据第一个变量的条件密度抽取第二个变量。
 - en: We integrate these marginal densities into CDFs.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将这些边缘密度整合为CDF。
 - en: '![](../Images/1593123dc07477176a02e805fdf61785.png)'
+  id: totrans-65
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1593123dc07477176a02e805fdf61785.png)'
 - en: Sampling uniform (u,v) within [0,1] and applying the inverse CDFs gives us the
     following transform, which is the same as the one obtained above using the differential
     equation.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[0,1]区间内均匀采样(u,v)，并应用反CDF，可以得到以下变换，这与上面使用微分方程得到的结果相同。
 - en: '![](../Images/41f3a71c921a9a3e5a7cd576b78dfb69.png)'
+  id: totrans-67
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/41f3a71c921a9a3e5a7cd576b78dfb69.png)'
 - en: The resulting distribution is effectively uniform, as confirmed by the empirical
     density map shown below.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果分布有效地是均匀的，如下所示的经验密度图所确认。
 - en: '![](../Images/01ae07e8d0830d602305ff7df78d08ea.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/01ae07e8d0830d602305ff7df78d08ea.png)'
 - en: 'Left: Density of the 2D Disk correct Polar Sampling estimated by Kernel Density
     Estimation on 10000 samples. Right: Corresponding 1D density profile along the
     diagonal of the density map — Figure by the author'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 左图：通过核密度估计在10000个样本上估算的2D圆盘正确极坐标采样的密度。右图：对应的沿密度图对角线的1D密度曲线——图源：作者
 - en: The square root function effectively adjusts the colored columns to preserve
     their relative areas when mapped to the disk.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 平方根函数有效地调整了彩色柱，以在映射到圆盘时保持它们的相对面积。
 - en: '![](../Images/a79f57174d1044604cd5d22745c3cc43.png)'
+  id: totrans-72
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a79f57174d1044604cd5d22745c3cc43.png)'
 - en: 'Left: Unit Square with colored columns. Right: Corresponding Polar and Uniform
     Polar mappings to the unit Disk — Figure by the author'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 左图：带有彩色柱的单位正方形。右图：单位圆盘的极坐标映射和均匀极坐标映射——图源：作者
 - en: '![](../Images/5974c2eb8ff4287c6aa830c034e5c49a.png)'
+  id: totrans-74
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5974c2eb8ff4287c6aa830c034e5c49a.png)'
 - en: Photo by [Tim Johnson](https://unsplash.com/@mangofantasy?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由[Tim Johnson](https://unsplash.com/@mangofantasy?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 2\. How to sample a disk uniformly, but with less distortion?
+  id: totrans-76
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 2\. 如何均匀地采样一个圆盘，但减少畸变？
 - en: Introduction
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 介绍
 - en: 'In applications like Physically Based Rendering (See [*PBRT (Physically Based
     Rendering: From Theory To Implementation*](https://pbrt.org/)), integral equations
     describing light scattering are solved numerically using Monte-Carlo Integration
     (MC).'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 在诸如基于物理的渲染（参见[*PBRT (基于物理的渲染：从理论到实现)*](https://pbrt.org/)）等应用中，描述光散射的积分方程通过蒙特卡罗积分（MC）方法进行数值求解。
 - en: MC Integration estimates the integral by a weighted mean of the operand evaluated
     at samples drawn from a given distribution. With `n` samples, it converges to
     the correct result at a rate of `O(1/sqrt(n))`. To halve the error, you need four
     times as many samples. Therefore, optimizing the sampling process to make the
     most of each sample is crucial.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 蒙特卡罗（MC）积分通过对样本所评估的算子值进行加权平均来估算积分。对于`n`个样本，它以`O(1/sqrt(n))`的速率收敛到正确的结果。为了将误差减半，需要四倍的样本。因此，优化采样过程，使每个样本的利用最大化是至关重要的。
 - en: Techniques like stratified sampling helps ensuring that all regions of the integrand
     are equally likely to be sampled, avoiding the redundancy of closely spaced samples
     that provide little additional information.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 像分层抽样（stratified sampling）这样的技术有助于确保被积函数的所有区域都有相同的采样概率，从而避免了紧密间隔的样本冗余，这些样本几乎不会提供额外的信息。
 - en: Distortion
+  id: totrans-81
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 失真
 - en: The mapping we discussed earlier is valid as it uniformly samples the unit disk.
     However, it distorts areas on the disk, particularly near the outer edge. Square
     regions of the unit square can be mapped to very thin and stretched areas on the
     disk.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们之前讨论的映射是有效的，因为它均匀地对单位圆盘进行了采样。然而，它会在圆盘的某些区域造成失真，特别是在圆盘的外缘附近。单位方形的方形区域可能会映射到圆盘上非常细长和拉伸的区域。
 - en: '![](../Images/82158f67d2132e1c07e5ff9a66a269a4.png)'
+  id: totrans-83
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/82158f67d2132e1c07e5ff9a66a269a4.png)'
 - en: 'Left: Unit Square with colored cells. Right: Corresponding Uniform Polar mapping
     to the unit Disk — Figure by the author'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 左：带有彩色单元的单位方形。右：对应的均匀极坐标映射到单位圆盘 — 图示由作者提供
 - en: This distortion is problematic because the sampling on the square loses its
     homogeneous distribution property. Close (u,v) samples can result in widely separated
     points on the disk, leading to increased variance. As a result, more samples are
     needed in the Monte Carlo integration to offset this variance.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种失真是有问题的，因为在方形上的采样失去了均匀分布的特性。靠近的(u,v)样本可能会导致圆盘上点的间距过大，从而导致方差增加。因此，在蒙特卡罗积分中需要更多样本来抵消这种方差。
 - en: In this section, we’ll introduce another uniform sampling technique that reduces
     distortion, thereby preventing unnecessary increases in variance.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将介绍另一种均匀采样技术，它可以减少失真，从而防止方差不必要的增加。
 - en: Shirley’s Concentric Mapping
+  id: totrans-87
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Shirley的同心映射
 - en: In 1997, Peter Shirley published [“*A Low Distortion Map Between Disk and Square”*](https://www.semanticscholar.org/paper/A-Low-Distortion-Map-Between-Disk-and-Square-Shirley-Chiu/43226a3916a85025acbb3a58c17f6dc0756b35ac).
     Instead of treating the uniform unit square as a plain parameter space with no
     spatial meaning, as we did with the radius and angle, he suggests to slightly
     distort the unit square into the unit disk.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 1997年，彼得·谢尔利（Peter Shirley）发表了[“*圆盘与方形之间的低失真映射*”](https://www.semanticscholar.org/paper/A-Low-Distortion-Map-Between-Disk-and-Square-Shirley-Chiu/43226a3916a85025acbb3a58c17f6dc0756b35ac)一文。他没有像我们通过半径和角度那样将均匀的单位方形视为一个没有空间含义的简单参数空间，而是建议将单位方形略微失真成单位圆盘。
 - en: The idea is to map concentric squares within the unit square into concentric
     circles within the unit disk, as if pinching the corners to round out the square.
     In the figure below, this approach appears much more natural compared to uniform
     polar sampling.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个方法的思想是将单位方形内的同心方形映射到单位圆盘内的同心圆，就像将方形的角拉紧，变圆一样。在下面的图中，与均匀极坐标采样相比，这种方法看起来更自然。
 - en: '![](../Images/cddf737f5d3641453e7e8a258dc846a3.png)'
+  id: totrans-90
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cddf737f5d3641453e7e8a258dc846a3.png)'
 - en: 'Left: Unit Square with colored concentric squares. Right: Corresponding Uniform
     Polar and Shirley mappings to the unit Disk — Figure by the author'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 左：带有彩色同心方形的单位方形。右：对应的均匀极坐标和Shirley映射到单位圆盘 — 图示由作者提供
 - en: The unit square is divided into eight triangles, with the mapping defined for
     one triangle and the others inferred by symmetry.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 单位方形被分为八个三角形，对其中一个三角形定义映射，其他三角形则通过对称性推导出来。
 - en: '![](../Images/e4c223e45ef55662010df39806c290cb.png)'
+  id: totrans-93
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e4c223e45ef55662010df39806c290cb.png)'
 - en: 'Left: Reference Triangle in the Unit Square with colored concentric squares.
     Right: Corresponding Shirley mapping to the unit Disk — Figure by the author'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 左：单位方形中的参考三角形，带有彩色同心方形。右：对应的Shirley映射到单位圆盘 — 图示由作者提供
 - en: As mentioned at the beginning of the article, it is more convenient to switch
     between the [0,1]² and [-1,1]² definitions of the unit square rather than using
     cumbersome affine transformations in the equations. Thus, we will use the [-1,1]²
     unit square to align with the [-1,1]² unit disk definition.
+  id: totrans-95
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 正如文章开头所提到的，切换[0,1]²和[-1,1]²单位方形的定义比在方程中使用繁琐的仿射变换更为方便。因此，我们将使用[-1,1]²单位方形来与[-1,1]²单位圆盘的定义对齐。
 - en: 'As illustrated in the figure above, the reference triangle is defined by:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 如上图所示，参考三角形由以下内容定义：
 - en: '![](../Images/b996c37f5a4a3d88a8553664bef6d03e.png)'
+  id: totrans-97
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b996c37f5a4a3d88a8553664bef6d03e.png)'
 - en: Mapping the vertical edges of concentric squares to concentric arc segments
     means that each point at a given abscissa `u` is mapped to the radius `r=u`. Next,
     we need to determine the angular mapping `f` that results in a uniform distribution
     across the unit disk.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 将同心正方形的垂直边映射到同心弧段意味着，每个给定横坐标 `u` 的点都会映射到半径 `r=u`。接下来，我们需要确定角度映射 `f`，以使单位圆盘内的分布均匀。
 - en: '![](../Images/4c5db9e8566caa81a5ea52cd10e165c0.png)'
+  id: totrans-99
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4c5db9e8566caa81a5ea52cd10e165c0.png)'
 - en: We can deduce the determinant of the corresponding Jacobian.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以推导出相应雅可比矩阵的行列式。
 - en: '![](../Images/bed11fe119615ebdf17837f0eda51781.png)'
+  id: totrans-101
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bed11fe119615ebdf17837f0eda51781.png)'
 - en: For a uniform disk distribution, the density within the eighth sector of the
     disk (corresponding to the reference triangle) is as follows.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于均匀的圆盘分布，圆盘的第八扇区（对应参考三角形）内的密度如下所示。
 - en: '![](../Images/492f63827e6293b91c6c704af7be127a.png)'
+  id: totrans-103
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/492f63827e6293b91c6c704af7be127a.png)'
 - en: 'On the other side, we have:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，我们有：
 - en: '![](../Images/01b3b0777767ae1fa0929d312e565d0d.png)'
+  id: totrans-105
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/01b3b0777767ae1fa0929d312e565d0d.png)'
 - en: 'By combining the three previous equations and `r=u` , we get:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过将前三个方程与 `r=u` 结合，我们得到：
 - en: '![](../Images/032e21092ceda6139af757e40f234303.png)'
+  id: totrans-107
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/032e21092ceda6139af757e40f234303.png)'
 - en: Integrating the previous equations with a zero constant to satisfy θ=0 when
     v=0 gives the angle mapping. Finally, we get the following mapping.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 将之前的方程与零常数积分，以满足当 v=0 时 θ=0，得到角度映射。最终，我们得到以下映射。
 - en: '![](../Images/bf67419f24d3d8420c292192350c503f.png)'
+  id: totrans-109
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bf67419f24d3d8420c292192350c503f.png)'
 - en: The seven others triangles are deduced by symmetry. The resulting distribution
     is effectively uniform, as confirmed by the empirical density map shown below.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 其余七个三角形通过对称性推导得到。最终的分布实际上是均匀的，这一点可以通过下面显示的经验密度图得到验证。
 - en: '![](../Images/9bd1339804169df6bc47d3ff4bf8a554.png)'
+  id: totrans-111
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9bd1339804169df6bc47d3ff4bf8a554.png)'
 - en: 'Left: Density of the 2D Disk Shirley Sampling estimated by Kernel Density Estimation
     on 10000 samples. Right: Corresponding 1D density profile along the diagonal of
     the density map — Figure by the author'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 左图：通过核密度估计在 10000 个样本上估计的 2D 圆盘 Shirley 采样密度。右图：对应的沿密度图对角线的 1D 密度轮廓 — 作者图
 - en: As expected, Shirley’s mapping, when applied to the colored grid, significantly
     reduces cell stretching and distortion compared to the polar mapping.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如预期的那样，应用于彩色网格的 Shirley 映射与极坐标映射相比，显著减少了单元格的拉伸和畸变。
 - en: '![](../Images/0e92c99d7f3f6c564172df9633aa8b8f.png)'
+  id: totrans-114
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0e92c99d7f3f6c564172df9633aa8b8f.png)'
 - en: 'Left: Unit Square with colored cells. Right: Corresponding Uniform Polar and
     Shirley mappings to the unit Disk — Figure by the author'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 左图：带有彩色单元格的单位正方形。右图：对应的均匀极坐标和 Shirley 映射到单位圆盘 — 作者图
 - en: Variant of Shirley’s Mapping
+  id: totrans-116
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Shirley 映射的变种
 - en: The θ mapping in Shirley’s method isn’t very intuitive. Thus, as seen in the
     figure below, it’s tempting to view it simply as a consequence of the more natural
     constraint that `y` depends solely on `v`, ensuring that horizontal lines remain
     horizontal.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: Shirley 方法中的 θ 映射并不直观。因此，正如下图所示，直觉上我们会认为它仅仅是 `y` 仅依赖于 `v` 这一更自然约束的结果，从而确保水平线保持水平。
 - en: '![](../Images/6d1442ee91a6927586b21ab1d317478f.png)'
+  id: totrans-118
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6d1442ee91a6927586b21ab1d317478f.png)'
 - en: 'Left: Reference Triangle in the Unit Square with colored cells. Right: Corresponding
     Shirley mapping to the unit Disk — Figure by the author'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 左图：带有彩色单元格的单位正方形参考三角形。右图：对应的 Shirley 映射到单位圆盘 — 作者图
 - en: However, this intuition is incorrect since the horizontal lines are actually
     slightly curved. The Shirley mapping presented above, i.e. the only uniform mapping
     respecting the `r=u` constraint, enforces the following y value, which subtly
     varies with u.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，这一直觉是错误的，因为水平线实际上是稍微弯曲的。上面展示的 Shirley 映射，即唯一符合 `r=u` 限制的均匀映射，强制执行了以下 y 值，随着
+    u 的变化而微妙地变化。
 - en: '![](../Images/7f96b47fcacf7b8ced28541b6b43f2ac.png)'
+  id: totrans-121
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7f96b47fcacf7b8ced28541b6b43f2ac.png)'
 - en: Although we know it won’t result in a uniform distribution, let’s explore a
     variant that uses a linear mapping between y and v, just for the sake of experimentation.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们知道它不会导致均匀分布，但为了实验目的，让我们探索一个变种，它使用 y 和 v 之间的线性映射。
 - en: The Shirley variant shown here is intended solely for educational purposes,
     to illustrate how the Shirley mapping alters the horizontal lines by bending them.
+  id: totrans-123
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 这里展示的 Shirley 变种仅用于教学目的，旨在说明 Shirley 映射如何通过弯曲水平线进行改变。
 - en: We obtain `y` by scaling `v` by the length of the half-diagonal, which maps
     the top-right corner of the square to the edge of the disk. The value of `x` can
     then be deduced from `y` by using the radius constraint `r=u`.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们通过将`v`按半对角线的长度进行缩放，获得`y`，这将正方形的右上角映射到磁盘的边缘。然后，可以通过使用半径约束`r=u`，从`y`推导出`x`的值。
 - en: '![](../Images/c120441217f0189132319f540427ec9e.png)'
+  id: totrans-125
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c120441217f0189132319f540427ec9e.png)'
 - en: The figure below shows a side-by-side comparison of the original Shirley mapping
     and its variant. While both images appear almost identical, it’s worth noting
     that the variant preserves the horizontality of the lines.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的图显示了原始Shirley映射与其变体的并排对比。虽然这两幅图几乎相同，但值得注意的是，变体保持了线条的水平性。
 - en: '![](../Images/174e884b9de575a3af855e40da3a29ba.png)'
+  id: totrans-127
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/174e884b9de575a3af855e40da3a29ba.png)'
 - en: 'Left: Reference Triangle in the Unit Square with colored cells. Right: Corresponding
     Shirley and Shirley Variant mappings to the unit Disk — Figure by the author'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 左图：单位正方形中的参考三角形，带有彩色单元格。右图：映射到单位磁盘的Shirley和Shirley变体 —— 图由作者提供
 - en: As expected, the empirical density map shows notable deviations from uniformity,
     oscillating between 0.8 and 1.1 rather than maintaining a constant value of 1.0.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如预期的那样，经验密度图显示出明显的偏离均匀性，在0.8到1.1之间波动，而不是维持恒定值1.0。
 - en: Keep in mind that the density shown below depends on the angle, so the 1D density
     profile would vary if extracted from a different orientation.
+  id: totrans-130
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 请记住，下面显示的密度取决于角度，因此，如果从不同的方向提取，1D密度轮廓会有所不同。
 - en: '![](../Images/2eea5aa6c1ce94ba855402bc95addb02.png)'
+  id: totrans-131
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2eea5aa6c1ce94ba855402bc95addb02.png)'
 - en: 'Left: Density of the 2D Disk Shirley Variant Sampling estimated by Kernel Density
     Estimation on 10000 samples. Right: Corresponding 1D density profile along the
     diagonal of the density map — Figure by the author'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 左图：通过核密度估计法在10000个样本上估算的2D磁盘Shirley变体采样密度。右图：沿密度图对角线的对应1D密度轮廓 —— 图由作者提供
 - en: '![](../Images/f44cbee23cddba4efa6d43b357688059.png)'
+  id: totrans-133
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f44cbee23cddba4efa6d43b357688059.png)'
 - en: Photo by [Antenna](https://unsplash.com/@antenna?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 摄影作品来自[Antenna](https://unsplash.com/@antenna?utm_source=medium&utm_medium=referral)，发布于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 3\. Visual Comparison of the sampling methods
+  id: totrans-135
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 3. 采样方法的视觉对比
 - en: Apply the mapping on an image
+  id: totrans-136
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在图像上应用映射
 - en: In the second section of this article, visualizing how a square image is mapped
     to a disk proved helpful in understanding the distortion caused by the mappings.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文的第二部分，展示正方形图像如何映射到磁盘有助于理解映射所导致的扭曲。
 - en: To achieve that, we could naively project each colored pixel from the square
     onto its corresponding location on the disk. However, this approach is flawed,
     as it doesn’t ensure that every pixel on the disk will be assigned a color. Additionally,
     some disk pixels may receive multiple colors, resulting in them being overwritten
     and causing inaccuracies.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现这一点，我们可以天真地将每个彩色像素从正方形投影到其对应的磁盘位置。然而，这种方法有缺陷，因为它不能确保磁盘上的每个像素都会被分配颜色。此外，某些磁盘像素可能会接收到多个颜色，从而导致颜色覆盖并产生不准确的结果。
 - en: 'The correct approach is to reverse the process: iterate over the disk pixels,
     apply the inverse mapping to find the corresponding floating-point pixel in the
     square, and then estimate its color through interpolation. This can be done using
     `cv2.remap` from OpenCV.'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 正确的方法是反向操作：遍历磁盘像素，应用逆映射找到正方形中对应的浮动点像素，然后通过插值估算其颜色。这可以通过OpenCV的`cv2.remap`函数完成。
 - en: Thus, the current mapping formulas only allow us to convert disk to square images.
     To map from square to disk, we need to reverse these formulas.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，当前的映射公式仅允许我们将磁盘转换为正方形图像。要从正方形映射到磁盘，我们需要反转这些公式。
 - en: The inverse formulas are not detailed here for the sake of brevity.
+  id: totrans-141
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 为了简洁起见，这里不详细讨论逆公式。
 - en: Each of the following subsections will illustrate both the square-to-disk and
     disk-to-square mappings using a specific pattern image. Enjoy the exploration!
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下每个子章节将使用特定的模式图像，展示正方形到磁盘和磁盘到正方形的映射。尽情探索吧！
 - en: Colored Checkerboard
+  id: totrans-143
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 彩色棋盘格
 - en: '![](../Images/6e68bb7c4d07ae39811ba501cdda1843.png)'
+  id: totrans-144
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/6e68bb7c4d07ae39811ba501cdda1843.png)'
 - en: 'Top: Unit Square with colored checkerboard . Bottom: Mappings to the unit Disk
     — Figure by the author'
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 上图：带有彩色棋盘格的单位正方形。下图：映射到单位磁盘 —— 图由作者提供
 - en: '![](../Images/951dbd261f847974177fc87e6ee1c648.png)'
+  id: totrans-146
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/951dbd261f847974177fc87e6ee1c648.png)'
 - en: 'Top: Unit Disk with colored checkerboard . Bottom: Mappings to the unit Square
     — Figure by the author'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有彩色棋盘格的单位圆盘。底部：映射到单位正方形 — 图示作者
 - en: Part of colored Checkerboard
+  id: totrans-148
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 部分彩色棋盘格
 - en: '![](../Images/06793fd8131368fea303db7cf59ca355.png)'
+  id: totrans-149
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/06793fd8131368fea303db7cf59ca355.png)'
 - en: 'Top: Unit Square with partial colored checkerboard . Bottom: Mappings to the
     unit Disk — Figure by the author'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有部分彩色棋盘格的单位正方形。底部：映射到单位圆盘 — 图示作者
 - en: '![](../Images/27f3a5984d5c3d3517a6a24754e067fd.png)'
+  id: totrans-151
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/27f3a5984d5c3d3517a6a24754e067fd.png)'
 - en: 'Top: Unit Disk with partial colored checkerboard . Bottom: Mappings to the
     unit Square — Figure by the author'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有部分彩色棋盘格的单位圆盘。底部：映射到单位正方形 — 图示作者
 - en: Concentric Squares
+  id: totrans-153
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 同心正方形
 - en: '![](../Images/c17bb1039b68847dae28c2928354263d.png)'
+  id: totrans-154
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c17bb1039b68847dae28c2928354263d.png)'
 - en: 'Top: Unit Square with concentric squares . Bottom: Mappings to the unit Disk
     — Figure by the author'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有同心正方形的单位正方形。底部：映射到单位圆盘 — 图示作者
 - en: '![](../Images/c5da3217970f81f3c89d1288c61ae1b6.png)'
+  id: totrans-156
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c5da3217970f81f3c89d1288c61ae1b6.png)'
 - en: 'Top: Unit Disk with concentric squares . Bottom: Mappings to the unit Square
     — Figure by the author'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有同心正方形的单位圆盘。底部：映射到单位正方形 — 图示作者
 - en: Columns
+  id: totrans-158
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 列
 - en: '![](../Images/ca4a873964a6c98dc02c4ac61abc42cd.png)'
+  id: totrans-159
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ca4a873964a6c98dc02c4ac61abc42cd.png)'
 - en: 'Top: Unit Square with colored columns . Bottom: Mappings to the unit Disk —
     Figure by the author'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有彩色列的单位正方形。底部：映射到单位圆盘 — 图示作者
 - en: '![](../Images/5dd29f107f8ec747fdf03d614929260b.png)'
+  id: totrans-161
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5dd29f107f8ec747fdf03d614929260b.png)'
 - en: 'Top: Unit Disk with colored columns. Bottom: Mappings to the unit Square —
     Figure by the author'
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有彩色列的单位圆盘。底部：映射到单位正方形 — 图示作者
 - en: Concentric Circles
+  id: totrans-163
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 同心圆
 - en: '![](../Images/a48c6bf470dcb4accd909f44db0d7a13.png)'
+  id: totrans-164
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a48c6bf470dcb4accd909f44db0d7a13.png)'
 - en: 'Top: Unit Square with concentric circles . Bottom: Mappings to the unit Disk
     — Figure by the author'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有同心圆的单位正方形。底部：映射到单位圆盘 — 图示作者
 - en: '![](../Images/ce17dc7a8e7938d8bfc327c1c1de3e4b.png)'
+  id: totrans-166
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ce17dc7a8e7938d8bfc327c1c1de3e4b.png)'
 - en: 'Top: Unit Disk with concentric circles . Bottom: Mappings to the unit Square
     — Figure by the author'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有同心圆的单位圆盘。底部：映射到单位正方形 — 图示作者
 - en: Quadrants
+  id: totrans-168
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 象限
 - en: '![](../Images/9a3f70f53f7540640d99a0b303e657c6.png)'
+  id: totrans-169
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9a3f70f53f7540640d99a0b303e657c6.png)'
 - en: 'Top: Unit Square with quadrants . Bottom: Mappings to the unit Disk — Figure
     by the author'
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有象限的单位正方形。底部：映射到单位圆盘 — 图示作者
 - en: '![](../Images/3a9a1579aa6f16a2f9c62620eedd6dbd.png)'
+  id: totrans-171
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3a9a1579aa6f16a2f9c62620eedd6dbd.png)'
 - en: 'Top: Unit Disk with quadrants . Bottom: Mappings to the unit Square — Figure
     by the author'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有象限的单位圆盘。底部：映射到单位正方形 — 图示作者
 - en: Face
+  id: totrans-173
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 面
 - en: '![](../Images/e1b6a122869cb18b8fbd7a8cb4fd0569.png)'
+  id: totrans-174
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e1b6a122869cb18b8fbd7a8cb4fd0569.png)'
 - en: 'Top: Unit Square with the author’s profile picture . Bottom: Mappings to the
     unit Disk — Figure by the author'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有作者头像的单位正方形。底部：映射到单位圆盘 — 图示作者
 - en: '![](../Images/17567825230a5c82cbcb2134b6ad26f1.png)'
+  id: totrans-176
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/17567825230a5c82cbcb2134b6ad26f1.png)'
 - en: 'Top: Unit Disk with the author’s profile picture . Bottom: Mappings to the
     unit Square — Figure by the author'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 顶部：带有作者头像的单位圆盘。底部：映射到单位正方形 — 图示作者
 - en: '![](../Images/ff489646beee84ef91cbaea2c528c868.png)'
+  id: totrans-178
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ff489646beee84ef91cbaea2c528c868.png)'
 - en: Photo by [and machines](https://unsplash.com/@and_machines?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[and machines](https://unsplash.com/@and_machines?utm_source=medium&utm_medium=referral)
+    由 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral) 提供
 - en: Conclusion
+  id: totrans-180
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Uniform Sampling
+  id: totrans-181
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 均匀采样
 - en: The naive disk sampling approach using uniform polar coordinates is a good example
     for understanding how transforming variables can affect their distribution.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用均匀极坐标的简单圆盘采样方法是一个很好的示例，帮助理解变量变换如何影响其分布。
 - en: Using the inversion method you can now turn a uniform sampling on [0,1] into
     any 1D distribution, by using its inverse Cumulative Distribution Function (CDF).
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过使用反演方法，你现在可以通过使用其逆累积分布函数（CDF），将[0,1]上的均匀采样转换为任何一维分布。
 - en: To sample any 2D distribution, we first sample a variable from its marginal
     density and then draw the second variable from its conditional density given the
     first variable.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 要对任何二维分布进行采样，我们首先从其边际密度中采样一个变量，然后根据第一个变量的条件密度绘制第二个变量。
 - en: Distortion and Variance
+  id: totrans-185
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 变形与方差
 - en: Depending on your use-case, you might want to guarantee that nearby (u,v) samples
     will remain close when mapped onto the disk. In such cases, the Shirley transformation
     is preferable to uniform polar sampling, as it introduces less variance.
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据你的使用场景，你可能希望确保附近的 (u,v) 样本在映射到圆盘时保持接近。在这种情况下，Shirley 变换比均匀极坐标采样更为可取，因为它引入的方差更小。

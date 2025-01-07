@@ -1,34 +1,54 @@
 - en: Create Mixtures of Experts with MergeKit
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用MergeKit创建专家混合
 - en: 原文：[https://towardsdatascience.com/create-mixtures-of-experts-with-mergekit-11b318c99562?source=collection_archive---------2-----------------------#2024-03-27](https://towardsdatascience.com/create-mixtures-of-experts-with-mergekit-11b318c99562?source=collection_archive---------2-----------------------#2024-03-27)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/create-mixtures-of-experts-with-mergekit-11b318c99562?source=collection_archive---------2-----------------------#2024-03-27](https://towardsdatascience.com/create-mixtures-of-experts-with-mergekit-11b318c99562?source=collection_archive---------2-----------------------#2024-03-27)
 - en: '*Combine multiple models into a single MoE*'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '*将多个模型组合成一个MoE*'
 - en: '[](https://medium.com/@mlabonne?source=post_page---byline--11b318c99562--------------------------------)[![Maxime
     Labonne](../Images/a7efdd305e3cc77d5509bbb1076d57d8.png)](https://medium.com/@mlabonne?source=post_page---byline--11b318c99562--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--11b318c99562--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--11b318c99562--------------------------------)
     [Maxime Labonne](https://medium.com/@mlabonne?source=post_page---byline--11b318c99562--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@mlabonne?source=post_page---byline--11b318c99562--------------------------------)[![Maxime
+    Labonne](../Images/a7efdd305e3cc77d5509bbb1076d57d8.png)](https://medium.com/@mlabonne?source=post_page---byline--11b318c99562--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--11b318c99562--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--11b318c99562--------------------------------)
+    [Maxime Labonne](https://medium.com/@mlabonne?source=post_page---byline--11b318c99562--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--11b318c99562--------------------------------)
     ·9 min read·Mar 27, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--11b318c99562--------------------------------)
+    ·9分钟阅读·2024年3月27日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/aa74b784e835c9760158fe939603501a.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/aa74b784e835c9760158fe939603501a.png)'
 - en: Image by author
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: 'Thanks to the release of Mixtral, the **Mixture of Experts** (MoE) architecture
     has become popular in recent months. This architecture offers an interesting tradeoff:
     higher performance at the cost of increased VRAM usage. While Mixtral and other
@@ -37,56 +57,80 @@
     library, we now have a new way of creating MoEs by ensembling several pre-trained
     models. These are often referred to as **frankenMoEs** or **MoErges** to distinguish
     them from the pre-trained MoEs.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 得益于Mixtral的发布，**专家混合**（MoE）架构在最近几个月变得非常流行。这种架构提供了一种有趣的权衡：以增加VRAM使用量为代价，获得更高的性能。虽然Mixtral和其他MoE架构是从头开始预训练的，但最近出现了一种创建MoE的另一种方法。借助Arcee的[MergeKit](https://github.com/arcee-ai/mergekit)库，我们现在可以通过集成多个预训练模型来创建MoE。这些通常被称为**frankenMoE**或**MoErge**，以区别于预训练的MoE。
 - en: In this article, we will detail how the MoE architecture works and how frankenMoEs
     are created. Finally, we will make our [own frankenMoE](https://huggingface.co/mlabonne/Beyonder-4x7B-v3)
     with MergeKit and evaluate it on several benchmarks. The code is available on
     Google Colab in a wrapper called [LazyMergeKit](https://colab.research.google.com/drive/1obulZ1ROXHjYLn6PPZJwRR6GzgQogxxb#scrollTo=d5mYzDo1q96y).
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将详细介绍MoE架构的工作原理以及如何创建frankenMoE。最后，我们将使用MergeKit创建我们自己的[frankenMoE](https://huggingface.co/mlabonne/Beyonder-4x7B-v3)并在多个基准上评估它。代码可以通过Google
+    Colab中的一个封装程序[LazyMergeKit](https://colab.research.google.com/drive/1obulZ1ROXHjYLn6PPZJwRR6GzgQogxxb#scrollTo=d5mYzDo1q96y)获取。
 - en: Special thanks to [Charles Goddard](https://github.com/cg123), the creator of
     MergeKit, for proofreading this article.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 特别感谢[Charles Goddard](https://github.com/cg123)，MergeKit的创建者，感谢他对本文的校对。
 - en: 🔀 Introduction to MoEs
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 🔀 MoE简介
 - en: A Mixture of Experts is an architecture designed for improved efficiency and
     performance. It uses multiple specialized subnetworks, known as “**experts**.”
     Unlike dense models, where the entire network is activated, MoEs only activate
     relevant experts based on the input. This results in faster training and more
     efficient inference.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 专家混合（MoE）是一种旨在提高效率和性能的架构。它使用多个专门的子网络，称为“**专家**”。与密集型模型不同，后者会激活整个网络，MoE只会根据输入激活相关的专家。这使得训练速度更快，推理更加高效。
 - en: 'There are two components at the core of an MoE model:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: MoE模型的核心有两个组成部分：
 - en: '**Sparse MoE Layers**: These replace the dense feed-forward network layers
     in the transformer architecture. Each MoE layer contains several experts, and
     only a subset of these experts are engaged for a given input.'
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**稀疏MoE层**: 这些层替代了变换器架构中的密集前馈网络层。每个MoE层包含多个专家，而每次输入仅会激活其中的一部分专家。'
 - en: '**Gate Network or Router**: This component determines which tokens are processed
     by which experts, ensuring that each part of the input is handled by the most
     suitable expert(s).'
+  id: totrans-15
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**门控网络或路由器**: 该组件决定哪些标记由哪些专家处理，确保输入的每个部分都由最合适的专家处理。'
 - en: In the following example, we show how a Mistral-7B block is transformed into
     an MoE block with a sparse MoE layer (feedforward network 1, 2, and 3) and a router.
     This example represents an MoE with three experts, where two are currently engaged
     (FFN 1 and FFN 3).
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下示例中，我们展示了如何将一个Mistral-7B模块转化为带有稀疏MoE层（前馈网络1、2、3）和路由器的MoE模块。这个示例代表了一个拥有三个专家的MoE，其中两个专家正在参与（FFN
+    1和FFN 3）。
 - en: '![](../Images/5ec46b2d6081bda34c1822c37edc0420.png)'
+  id: totrans-17
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5ec46b2d6081bda34c1822c37edc0420.png)'
 - en: Image by author
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供
 - en: MoEs also come with their own set of challenges, especially in terms of fine-tuning
     and memory requirements. The fine-tuning process can be difficult due to the model’s
     complexity, with the need to **balance expert usage** during training to properly
@@ -94,24 +138,32 @@
     even though only a fraction of the total parameters are used during inference,
     the entire model, including all experts, needs to be **loaded into memory**, which
     requires high VRAM capacity.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: MoE模型也有自己的一套挑战，特别是在微调和内存需求方面。由于模型的复杂性，微调过程可能会变得困难，需要在训练过程中**平衡专家的使用**，以便正确训练门控权重，从而选择最相关的专家。在内存方面，尽管在推理过程中仅使用了总参数的一部分，但整个模型，包括所有专家，都需要**加载到内存中**，这需要高显存容量。
 - en: 'More specifically, there are two essential parameters when it comes to MoEs:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 更具体地说，MoE有两个关键参数：
 - en: '**Number of experts** (`num_local_experts`): This determines the total number
     of experts in the architecture (e.g., 8 for Mixtral). The higher the number of
     experts, the higher the VRAM usage.'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**专家数量** (`num_local_experts`): 该参数决定架构中专家的总数（例如，Mixtral为8）。专家数量越多，显存使用越高。'
 - en: '**Number of experts/token** (`num_experts_per_tok`): This determines the number
     of experts that are engaged for each token and each layer (e.g., 2 for Mixtral).
     There is a tradeoff between a high number of experts per token for accuracy (but
     diminishing returns) vs. a low number for fast training and inference.'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**每个标记的专家数量** (`num_experts_per_tok`): 该参数决定每个标记和每个层激活的专家数量（例如，Mixtral为2）。在准确性和训练、推理速度之间存在权衡：更多专家可以提高准确性（但回报递减），而较少的专家则有助于快速训练和推理。'
 - en: 'Historically, MoEs have underperformed dense models. However, the release of
     [Mixtral-8x7B](https://arxiv.org/abs/2401.04088) in December 2023 shook things
     up and showed impressive performance for its size. Additionally, GPT-4 is also
@@ -119,186 +171,263 @@
     and train for OpenAI compared to a dense model. In addition to these recent excellent
     MoEs, we now have a new way of creating MoEs with MergeKit: frankenMoEs, also
     called MoErges.'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 历史上，MoE（专家混合模型）表现不如密集模型。然而，2023年12月发布的[Mixtral-8x7B](https://arxiv.org/abs/2401.04088)震动了这一领域，并展示了其在规模上的惊人表现。此外，GPT-4也被传闻为一种MoE模型，这也有其道理，因为与密集模型相比，这种模型在OpenAI运行和训练时会更便宜。除了这些近期表现出色的MoE模型外，我们现在还可以通过MergeKit创建一种新的MoE方式：frankenMoE，也被称为MoErges。
 - en: 🧟‍♂️ True MoEs vs. frankenMoEs
+  id: totrans-24
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 🧟‍♂️ 真正的MoE与frankenMoE
 - en: The main difference between true MoEs and frankenMoEs is how they’re trained.
     In the case of true MoEs, the experts and the router are trained jointly. In the
     case of frankenMoEs, we upcycle existing models and initialize the router afterward.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 真正的MoE与frankenMoE之间的主要区别在于它们的训练方式。在真正的MoE中，专家和路由器是共同训练的。而在frankenMoE中，我们重新利用现有模型，并在之后初始化路由器。
 - en: In other words, we copy the weights of the layer norm and self-attention layers
     from a base model, and then copy the weights of the FFN layers found in each expert.
     This means that besides the FFNs, all the other parameters are shared. This explains
     why Mixtral-8x7B with eight experts doesn’t have 8*7 = 56B parameters, but about
     45B. This is also why using two experts per token gives the inference speed (FLOPs)
     of a 12B dense model instead of 14B.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，我们从基础模型中复制层归一化和自注意力层的权重，然后复制每个专家中找到的FFN层的权重。这意味着除了FFN之外，所有其他参数都是共享的。这也解释了为什么带有八个专家的Mixtral-8x7B没有8*7
+    = 56B的参数，而是大约45B。这也是为什么每个token使用两个专家时，推理速度（FLOPs）相当于一个12B的密集模型，而不是14B的原因。
 - en: 'FrankenMoEs are about selecting the most relevant experts and initializing
     them properly. MergeKit currently implements three ways of initializing the routers:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: FrankenMoE的核心是选择最相关的专家并正确初始化它们。MergeKit目前实现了三种初始化路由器的方法：
 - en: '[**Random**](https://github.com/arcee-ai/mergekit/blob/9c691527f7192b5a2fc388555bfd3105e0898480/mergekit/scripts/mixtral_moe.py#L139-L142):
     Random weights. Be careful when using it as the same experts might be selected
     every time (it requires further fine-tuning or `num_local_experts = num_experts_per_tok`,
     which means you don''t need any routing).'
+  id: totrans-28
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[**随机**](https://github.com/arcee-ai/mergekit/blob/9c691527f7192b5a2fc388555bfd3105e0898480/mergekit/scripts/mixtral_moe.py#L139-L142)：随机权重。在使用时要小心，因为每次可能选择相同的专家（这需要进一步的微调或`num_local_experts
+    = num_experts_per_tok`，这意味着你不需要任何路由）。'
 - en: '[**Cheap embed**](https://github.com/arcee-ai/mergekit/blob/9c691527f7192b5a2fc388555bfd3105e0898480/mergekit/scripts/mixtral_moe.py#L91C1-L109C37):
     It uses the raw embeddings of the input tokens directly and applies the same transformation
     across all layers. This method is computationally inexpensive and suitable for
     execution on less powerful hardware.'
+  id: totrans-29
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[**廉价嵌入**](https://github.com/arcee-ai/mergekit/blob/9c691527f7192b5a2fc388555bfd3105e0898480/mergekit/scripts/mixtral_moe.py#L91C1-L109C37)：直接使用输入token的原始嵌入，并对所有层应用相同的变换。该方法计算开销小，适合在较弱的硬件上执行。'
 - en: '[**Hidden**](https://github.com/arcee-ai/mergekit/blob/9c691527f7192b5a2fc388555bfd3105e0898480/mergekit/scripts/mixtral_moe.py#L70-L88):
     It creates hidden representations of a list of positive and negative prompts by
     extracting them from the last layer of the LLM. They are averaged and normalized
     to initialize the gates. More information about it is available on [Charles Goddard’s
     blog](https://goddard.blog/posts/clown-moe/).'
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[**隐藏**](https://github.com/arcee-ai/mergekit/blob/9c691527f7192b5a2fc388555bfd3105e0898480/mergekit/scripts/mixtral_moe.py#L70-L88)：通过从LLM的最后一层提取一组正向和负向提示，创建它们的隐藏表示。这些表示会被平均并归一化以初始化门控。更多信息请参考[Charles
+    Goddard的博客](https://goddard.blog/posts/clown-moe/)。'
 - en: As you can guess, the “hidden” initialization is the most efficient to correctly
     route the tokens to the most relevant experts. In the next section, we will create
     our own frankenMoE using this technique.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 如你所猜测，“隐藏”初始化是最有效的，它能够正确地将token路由到最相关的专家。在接下来的部分中，我们将使用这一技术创建自己的frankenMoE。
 - en: 💻 Creating a frankenMoE
+  id: totrans-32
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 💻 创建一个frankenMoE
 - en: To create our frankenMoE, we need to select `n` experts. In this case, we will
     rely on Mistral-7B thanks to its popularity and relatively small size. However,
     eight experts like in Mixtral is quite a lot, as we need to fit all of them in
     memory. For efficiency, I'll only use four experts in this example, with two of
     them engaged for each token and each layer. In this case, we will end up with
     a model with 24.2B parameters instead of 4*7 = 28B parameters.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 要创建我们的frankenMoE，我们需要选择`n`个专家。在这种情况下，我们将依靠Mistral-7B，因为它非常流行且相对较小。然而，像Mixtral中的八个专家实际上有点多，因为我们需要将它们全部装入内存。为了提高效率，本例中我将只使用四个专家，其中每个token和每层使用两个专家。这样，我们最终会得到一个具有24.2B参数的模型，而不是4*7
+    = 28B的参数。
 - en: 'Here, our goal is to create a well-rounded model that can do pretty much everything:
     write stories, explain articles, code in Python, etc. We can decompose this requirement
     into four tasks and select the best expert for each of them. This is how I decomposed
     it:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们的目标是创建一个全能模型，可以完成几乎所有任务：写故事、解释文章、编写Python代码等。我们可以将这个需求分解成四个任务，并为每个任务选择最佳的专家。以下是我如何进行分解的：
 - en: '**Chat model**: a general-purpose model that is used in most interactions.
     I used [mlabonne/AlphaMonarch-7B](https://huggingface.co/mlabonne/AlphaMonarch-7B),
     which perfectly satisfies the requirements.'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**聊天模型**：一种用于大多数交互的通用模型。我使用了[mlabonne/AlphaMonarch-7B](https://huggingface.co/mlabonne/AlphaMonarch-7B)，它完美满足了需求。'
 - en: '**Code model**: a model capable of generating good code. I don’t have a lot
     of experience with Mistral-7B-based code models, but I found [beowolx/CodeNinja-1.0-OpenChat-7B](https://huggingface.co/beowolx/CodeNinja-1.0-OpenChat-7B)
     particularly good compared to others.'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**代码模型**：一个能够生成良好代码的模型。我没有太多关于基于Mistral-7B的代码模型的经验，但相比其他模型，我发现[beowolx/CodeNinja-1.0-OpenChat-7B](https://huggingface.co/beowolx/CodeNinja-1.0-OpenChat-7B)特别出色。'
 - en: '**Math model**: math is tricky for LLMs, which is why we want a model specialized
     in math. Thanks to its high MMLU and GMS8K scores, I chose [mlabonne/NeuralDaredevil-7B](https://huggingface.co/mlabonne/NeuralDaredevil-7B)
     for this purpose.'
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**数学模型**：数学对于大语言模型（LLMs）来说很棘手，这也是为什么我们需要一个专门处理数学的模型。由于其高 MMLU 和 GMS8K 分数，我选择了[mlabonne/NeuralDaredevil-7B](https://huggingface.co/mlabonne/NeuralDaredevil-7B)作为这个目的的模型。'
 - en: '**Role-play model**: The goal of this model is to write high-quality stories
     and conversations. I selected [SanjiWatsuki/Kunoichi-DPO-v2–7B](https://huggingface.co/SanjiWatsuki/Kunoichi-DPO-v2-7B)
     because of its good reputation and high MT-Bench score (8.51 vs. 8.30 for Mixtral).'
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**角色扮演模型**：这个模型的目标是编写高质量的故事和对话。我选择了[SanjiWatsuki/Kunoichi-DPO-v2–7B](https://huggingface.co/SanjiWatsuki/Kunoichi-DPO-v2-7B)，因为它有良好的声誉和高MT-Bench分数（8.51
+    vs. Mixtral的8.30）。'
 - en: 'Now that we’ve identified the experts we want to use, we can create the YAML
     configuration that MergeKit will use to create our frankenMoE. This uses the mixtral
     branch of MergeKit. You can find more information about how to write the configuration
     [on this page](https://github.com/arcee-ai/mergekit/blob/mixtral/docs/moe.md).
     Here is our version:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经确定了要使用的专家，我们可以创建MergeKit将用来创建frankenMoE的YAML配置文件。这使用了MergeKit的mixtral分支。你可以在[这个页面](https://github.com/arcee-ai/mergekit/blob/mixtral/docs/moe.md)上找到有关如何编写配置的更多信息。以下是我们的版本：
 - en: '[PRE0]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: For each expert, I provide five basic positive prompts. You can be a bit fancier
     and write entire sentences if you want. The best strategy consists of using real
     prompts that should trigger a particular expert. You can also add negative prompts
     to do the opposite.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个专家，我提供了五个基本的正向提示。如果你愿意，也可以写完整的句子。最好的策略是使用能够触发特定专家的真实提示。你也可以添加负向提示以达到相反效果。
 - en: Once this is ready, you can save your configuration as `config.yaml`. In the
     same folder, we will download and install the [mergekit](https://github.com/arcee-ai/mergekit)
     library (mixtral branch).
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦准备好，你可以将配置保存为`config.yaml`。在同一个文件夹中，我们将下载并安装[mergekit](https://github.com/arcee-ai/mergekit)库（mixtral分支）。
 - en: '[PRE1]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'If your computer has enough RAM (roughly 24–32 GB of RAM), you can run the
     following command:'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你的计算机有足够的RAM（大约24–32 GB的RAM），你可以运行以下命令：
 - en: '[PRE2]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'If you don’t have enough RAM, you can shard the models instead as follows (it
     will take longer):'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你没有足够的RAM，你可以尝试将模型分片，方法如下（这会花费更长时间）：
 - en: '[PRE3]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: This command automatically downloads the experts and creates the frankenMoE
     in the `merge` directory. For the `hidden` gate mode, you can also use the `--load-in-4bit`
     and `--load-in-8bit` options to compute hidden states with lower precision.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个命令会自动下载专家模型，并在`merge`目录中创建frankenMoE。对于`hidden`门模式，你还可以使用`--load-in-4bit`和`--load-in-8bit`选项，以更低的精度计算隐藏状态。
 - en: Alternatively, you can copy your configuration into [LazyMergekit](https://colab.research.google.com/drive/1obulZ1ROXHjYLn6PPZJwRR6GzgQogxxb#scrollTo=d5mYzDo1q96y),
     a wrapper I made to simplify model merging. In this Colab notebook, you can input
     your model name, select the `mixtral` branch, specify your Hugging Face username/token,
     and run the cells. After creating your frankenMoE, it will also upload it to the
     Hugging Face Hub with a nicely formatted model card.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外，你可以将你的配置复制到[LazyMergekit](https://colab.research.google.com/drive/1obulZ1ROXHjYLn6PPZJwRR6GzgQogxxb#scrollTo=d5mYzDo1q96y)中，这是我为简化模型合并而制作的一个包装工具。在这个Colab笔记本中，你可以输入模型名称，选择`mixtral`分支，指定你的
+    Hugging Face 用户名/令牌，并运行相应的单元格。在创建完frankenMoE后，它还会将模型上传到 Hugging Face Hub，并附带一个格式化良好的模型卡。
 - en: I called my model [Beyonder-4x7B-v3](https://huggingface.co/mlabonne/Beyonder-4x7B-v3)
     and created [GGUF versions](https://huggingface.co/mlabonne/Beyonder-4x7B-v3-GGUF)
     of it using [AutoGGUF](https://colab.research.google.com/drive/1P646NEg33BZy4BfLDNpTz0V0lwIU3CHu#scrollTo=fD24jJxq7t3k).
     If you can’t run GGUF versions on your local machine, you can also perform inference
     using this [Colab notebook](https://colab.research.google.com/drive/1SIfwhpLttmoZxT604LGVXDOI9UKZ_1Aq?usp=sharing).
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 我将我的模型命名为[Beyonder-4x7B-v3](https://huggingface.co/mlabonne/Beyonder-4x7B-v3)，并使用[AutoGGUF](https://colab.research.google.com/drive/1P646NEg33BZy4BfLDNpTz0V0lwIU3CHu#scrollTo=fD24jJxq7t3k)创建了[GGUF版本](https://huggingface.co/mlabonne/Beyonder-4x7B-v3-GGUF)。如果你无法在本地机器上运行GGUF版本，你也可以使用这个[Colab笔记本](https://colab.research.google.com/drive/1SIfwhpLttmoZxT604LGVXDOI9UKZ_1Aq?usp=sharing)进行推理。
 - en: 'To get a good overview of its capabilities, it has been evaluated on three
     different benchmarks: Nous’ benchmark suite, EQ-Bench, and the Open LLM Leaderboard.
     This model is not designed to excel in traditional benchmarks, as the code and
     role-playing models generally do not apply to those contexts. Nonetheless, it
     performs remarkably well thanks to strong general-purpose experts.'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了全面了解其能力，该模型已经在三个不同的基准测试上进行了评估：Nous的基准套件、EQ-Bench和Open LLM排行榜。这个模型并不是为了在传统基准测试中表现突出而设计的，因为代码和角色扮演模型通常不适用于这些上下文。尽管如此，凭借强大的通用专家，它的表现依然非常出色。
 - en: '**Nous**: Beyonder-4x7B-v3 is one of the best models on Nous’ benchmark suite
     (evaluation performed using [LLM AutoEval](https://github.com/mlabonne/llm-autoeval))
     and significantly outperforms the v2\. See the entire leaderboard [here](https://huggingface.co/spaces/mlabonne/Yet_Another_LLM_Leaderboard).'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Nous**：Beyonder-4x7B-v3是Nous基准套件中最好的模型之一（评估使用[LLM AutoEval](https://github.com/mlabonne/llm-autoeval)进行），并且明显超越了v2版本。查看完整的排行榜[这里](https://huggingface.co/spaces/mlabonne/Yet_Another_LLM_Leaderboard)。'
 - en: '![](../Images/cc0510c87454a244bd0866f260429868.png)'
+  id: totrans-53
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cc0510c87454a244bd0866f260429868.png)'
 - en: '**EQ-Bench**: It’s also the best 4x7B model on the [EQ-Bench leaderboard](https://eqbench.com/),
     outperforming older versions of ChatGPT and Llama-2–70b-chat. Beyonder is very
     close to Mixtral-8x7B-Instruct-v0.1 and Gemini Pro, which are (supposedly) much
     bigger models.'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '**EQ-Bench**：它还是[EQ-Bench排行榜](https://eqbench.com/)上表现最好的4x7B模型，超越了旧版本的ChatGPT和Llama-2–70b-chat。Beyonder与Mixtral-8x7B-Instruct-v0.1和Gemini
+    Pro非常接近，后者（据说）是更大的模型。'
 - en: '![](../Images/f42a3581a0111fe7994dc95948f26e92.png)'
+  id: totrans-55
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f42a3581a0111fe7994dc95948f26e92.png)'
 - en: '**Open LLM Leaderboard**: Finally, it’s also a strong performer on the Open
     LLM Leaderboard, significantly outperforming the v2 model.'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Open LLM排行榜**：最后，它在Open LLM排行榜上也是一个强有力的表现者，明显超越了v2模型。'
 - en: '![](../Images/1a42d6294c40a6fc7f7467facc3c08fa.png)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1a42d6294c40a6fc7f7467facc3c08fa.png)'
 - en: On top of these quantitative evaluations, I recommend checking the model’s outputs
     in a more qualitative way using a GGUF version on [LM Studio](https://lmstudio.ai/).
     A common way of testing these models is to gather a private set of questions and
@@ -306,8 +435,10 @@
     robust to changes in the user and system prompts compared to other models, including
     AlphaMonarch-7B. This is pretty cool as it improves the usefulness of the model
     in general.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了这些定量评估，我建议使用[LM Studio](https://lmstudio.ai/)上的GGUF版本，以更定性的方式检查模型的输出。测试这些模型的常见方法是收集一组私人问题并检查其输出。通过这种策略，我发现Beyonder-4x7B-v3相比其他模型，包括AlphaMonarch-7B，对于用户和系统提示的变化表现得相当稳健。这非常棒，因为它提升了模型的一般实用性。
 - en: FrankenMoEs are a promising but still experimental approach. The trade-offs,
     like higher VRAM demand and slower inference speeds, can make it challenging to
     see their advantage over simpler merging techniques like SLERP or DARE TIES. Especially,
@@ -315,68 +446,98 @@
     as if you had simply merged the two models. However, frankenMoEs excel in preserving
     knowledge, which can result in stronger models, as demonstrated by Beyonder-4x7B-v3\.
     With the right hardware, these drawbacks can be effectively mitigated.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: FrankenMoE是一个有前景但仍处于实验阶段的方法。它的权衡，如更高的显存需求和更慢的推理速度，可能会使得它在与像SLERP或DARE TIES这样的简单融合技术相比时难以显现优势。尤其是当你仅使用两个专家时，它们的表现可能不如直接将这两个模型融合。然而，frankenMoEs在保持知识方面表现出色，这可以使得模型更强大，正如Beyonder-4x7B-v3所展示的那样。只要有合适的硬件，这些缺点可以有效地缓解。
 - en: Conclusion
+  id: totrans-60
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: In this article, we introduced the Mixture of Experts architecture. Unlike traditional
     MoEs that are trained from scratch, MergeKit facilitates the creation of MoEs
     by ensembling experts, offering an innovative approach to improving model performance
     and efficiency. We detailed the process of creating a frankenMoE with MergeKit,
     highlighting the practical steps involved in selecting and combining different
     experts to produce a high-quality MoE.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我们介绍了专家混合架构（Mixture of Experts）。与从零开始训练的传统MoE不同，MergeKit通过集合专家来促进MoE的创建，提供了一种创新的方法来提升模型的性能和效率。我们详细讲解了使用MergeKit创建frankenMoE的过程，强调了选择和组合不同专家以生成高质量MoE的实际步骤。
 - en: 'Thanks for reading this article. I encourage you to try to make your own FrankenMoEs
     using [LazyMergeKit](https://colab.research.google.com/drive/1obulZ1ROXHjYLn6PPZJwRR6GzgQogxxb#scrollTo=d5mYzDo1q96y):
     select a few models, create your config based Beyonder’s, and run the notebook
     to create your own models! If you liked this article, please follow me on [Hugging
     Face](https://huggingface.co/mlabonne) and X/Twitter [@maximelabonne](https://twitter.com/maximelabonne).'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢阅读本文。我鼓励你尝试使用[LazyMergeKit](https://colab.research.google.com/drive/1obulZ1ROXHjYLn6PPZJwRR6GzgQogxxb#scrollTo=d5mYzDo1q96y)：选择几个模型，创建基于Beyonder的配置，并运行笔记本来创建你自己的模型！如果你喜欢这篇文章，请在[Hugging
+    Face](https://huggingface.co/mlabonne)上关注我，并在X/Twitter上关注[@maximelabonne](https://twitter.com/maximelabonne)。
 - en: References
+  id: totrans-63
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[Mixtral of Experts](https://arxiv.org/abs/2401.04088) by Jiang et al. (2023)'
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Mixtral专家混合模型](https://arxiv.org/abs/2401.04088) 由Jiang等人（2023年）撰写'
 - en: '[Mixture of Experts for Clowns](https://goddard.blog/posts/clown-moe/) by Charles
     Goddard (2023)'
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[小丑的专家混合模型](https://goddard.blog/posts/clown-moe/) 由Charles Goddard（2023年）撰写'
 - en: '[Mixture of Experts Explained](https://huggingface.co/blog/moe) by Sanseviero
     et al. (2023)'
+  id: totrans-66
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[专家混合模型解析](https://huggingface.co/blog/moe) 由Sanseviero等人（2023年）撰写'
 - en: '[Adaptive Mixture of Local Experts](https://www.cs.toronto.edu/~hinton/absps/jjnh91.pdf)
     by Jacobs et al. (1991)'
+  id: totrans-67
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[局部专家的自适应混合模型](https://www.cs.toronto.edu/~hinton/absps/jjnh91.pdf) 由Jacobs等人（1991年）撰写'
 - en: '[Sparse Upcycling: Training Mixture-of-Experts from Dense Checkpoints](https://arxiv.org/abs/2212.05055)
     by Komatsuzaki et al. (2022)'
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[稀疏上采样：从密集检查点训练专家混合模型](https://arxiv.org/abs/2212.05055) 由Komatsuzaki等人（2022年）撰写'
 - en: '*Learn more about machine learning and support my work with one click — become
     a Medium member here:*'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '*点击此处了解更多关于机器学习的内容并支持我的工作——成为Medium会员：*'
 - en: '[](https://medium.com/@mlabonne/membership?source=post_page-----11b318c99562--------------------------------)
     [## Join Medium with my referral link — Maxime Labonne'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@mlabonne/membership?source=post_page-----11b318c99562--------------------------------)
+    [## 使用我的推荐链接加入Medium — Maxime Labonne'
 - en: As a Medium member, a portion of your membership fee goes to writers you read,
     and you get full access to every story…
+  id: totrans-71
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 作为Medium会员，你的部分会员费用将用于支持你阅读的作者，并且你将可以完全访问每一篇故事…
 - en: medium.com](https://medium.com/@mlabonne/membership?source=post_page-----11b318c99562--------------------------------)
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: medium.com](https://medium.com/@mlabonne/membership?source=post_page-----11b318c99562--------------------------------)

@@ -1,33 +1,50 @@
 - en: An Introduction to Using PCA for Outlier Detection
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用PCA进行异常值检测简介
 - en: 原文：[https://towardsdatascience.com/using-pca-for-outlier-detection-afecab4d2b78?source=collection_archive---------1-----------------------#2024-10-22](https://towardsdatascience.com/using-pca-for-outlier-detection-afecab4d2b78?source=collection_archive---------1-----------------------#2024-10-22)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/using-pca-for-outlier-detection-afecab4d2b78?source=collection_archive---------1-----------------------#2024-10-22](https://towardsdatascience.com/using-pca-for-outlier-detection-afecab4d2b78?source=collection_archive---------1-----------------------#2024-10-22)
 - en: A surprisingly effective means to identify outliers in numeric data
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一种出乎意料的有效方法，用于识别数值数据中的异常值
 - en: '[](https://medium.com/@wkennedy934?source=post_page---byline--afecab4d2b78--------------------------------)[![W
     Brett Kennedy](../Images/b3ce55ffd028167326c117d47c64c467.png)](https://medium.com/@wkennedy934?source=post_page---byline--afecab4d2b78--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--afecab4d2b78--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--afecab4d2b78--------------------------------)
     [W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--afecab4d2b78--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@wkennedy934?source=post_page---byline--afecab4d2b78--------------------------------)[![W·布雷特·肯尼迪](../Images/b3ce55ffd028167326c117d47c64c467.png)](https://medium.com/@wkennedy934?source=post_page---byline--afecab4d2b78--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--afecab4d2b78--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--afecab4d2b78--------------------------------)
+    [W·布雷特·肯尼迪](https://medium.com/@wkennedy934?source=post_page---byline--afecab4d2b78--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--afecab4d2b78--------------------------------)
     ·14 min read·Oct 22, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--afecab4d2b78--------------------------------)
+    ·14分钟阅读·2024年10月22日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: PCA (principal component analysis) is commonly used in data science, generally
     for dimensionality reduction (and often for visualization), but it is actually
     also very useful for outlier detection, which I’ll describe in this article.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: PCA（主成分分析）在数据科学中广泛应用，通常用于降维（并且经常用于可视化），但实际上它对于异常值检测也非常有用，我将在本文中描述这一点。
 - en: This articles continues my series in outlier detection, which also includes
     articles on [FPOF](/interpretable-outlier-detection-frequent-patterns-outlier-factor-fpof-0d9cbf51b17a),
     [Counts Outlier Detector](/counts-outlier-detector-interpretable-outlier-detection-ead0d469557a),
@@ -35,8 +52,11 @@
     [Shared Nearest Neighbors](/shared-nearest-neighbors-a-more-robust-distance-metric-064d7f99ffb7),
     and [Doping](/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4). This
     also includes another excerpt from my book [Outlier Detection in Python](https://www.manning.com/books/outlier-detection-in-python).
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文是我关于异常值检测系列的继续，系列中还包括关于[FPOF](/interpretable-outlier-detection-frequent-patterns-outlier-factor-fpof-0d9cbf51b17a)、[计数异常值检测器](/counts-outlier-detector-interpretable-outlier-detection-ead0d469557a)、[距离度量学习](/distance-metric-learning-for-outlier-detection-5b4840d01246)、[共享最近邻](/shared-nearest-neighbors-a-more-robust-distance-metric-064d7f99ffb7)和[掺杂](/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4)的相关文章。此外，还包括我书中的另一个摘录——《Python中的异常值检测》[Outlier
+    Detection in Python](https://www.manning.com/books/outlier-detection-in-python)。
 - en: 'The idea behind PCA is that most datasets have much more variance in some columns
     than others, and also have correlations between the features. An implication of
     this is: to represent the data, it’s often not necessary to use as many features
@@ -44,12 +64,16 @@
     — sometimes far fewer. For example, with a table of numeric data with, say, 100
     features, we may be able to represent the data reasonably well using perhaps 30
     or 40 features, possibly less, and possibly much less.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: PCA背后的思想是，大多数数据集在某些列中具有比其他列更大的方差，并且特征之间通常存在相关性。由此可得的一个含义是：为了表示数据，我们通常不需要使用所有的特征；我们可以使用更少的特征来很好地近似数据——有时甚至是远远少于原始特征数量。举个例子，假设我们有一张包含100个特征的数值数据表，我们可能能够用30或40个特征（甚至更少）来合理地表示这些数据，可能会远远少于原特征数量。
 - en: To allow for this, PCA transforms the data into a different coordinate system,
     where the dimensions are known as *components*.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现这一点，PCA将数据转换到一个不同的坐标系统中，其中的维度被称为*主成分*。
 - en: Given the issues we often face with outlier detection due to the curse of dimensionality,
     working with fewer features can be very beneficial. As described in [Shared Nearest
     Neighbors](/shared-nearest-neighbors-a-more-robust-distance-metric-064d7f99ffb7)
@@ -58,46 +82,64 @@
     with high-dimensional data is that it leads to unreliable distance calculations
     between points (which many outlier detectors rely on). PCA can mitigate these
     effects.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 鉴于我们常常面临由于维度灾难导致的异常值检测问题，处理更少的特征可能非常有利。如在[共享最近邻](https://example.org/shared-nearest-neighbors-a-more-robust-distance-metric-064d7f99ffb7)和[距离度量学习用于异常值检测](https://example.org/distance-metric-learning-for-outlier-detection-5b4840d01246)中所述，处理大量特征会使得异常值检测变得不可靠；高维数据的一个问题是，它会导致点与点之间的距离计算不准确（许多异常值检测器依赖此计算）。PCA可以减轻这些影响。
 - en: As well, and surprisingly, using PCA can often create a situation where outliers
     are actually easier to detect. The PCA transformations often reshape the data
     so that any unusual points are are more easily identified.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 同时，令人惊讶的是，使用PCA通常会创造出一个异常值更容易被检测的情况。PCA转换往往会重新塑造数据，使得任何异常点更容易被识别。
 - en: An example is shown here.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里展示了一个示例。
 - en: '[PRE0]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: This first creates the original data, as shown in the left pane. It then transforms
     it using PCA. Once this is done, we have the data in the new space, shown in the
     right pane.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 这首先创建了原始数据，如左侧窗格所示。然后，它使用PCA进行转换。一旦完成，我们就得到了新的数据空间，如右侧窗格所示。
 - en: '![](../Images/d784e46464ba9adcfd31f1d0105b9277.png)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d784e46464ba9adcfd31f1d0105b9277.png)'
 - en: Here I created a simple synthetic dataset, with the data highly correlated.
     There are two outliers, one following the general pattern, but extreme (Point
     A) and one with typical values in each dimension, but not following the general
     pattern (Point B).
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里我创建了一个简单的合成数据集，数据高度相关。数据中有两个异常值，一个遵循一般模式，但极端（点A），另一个在每个维度上有典型值，但不遵循一般模式（点B）。
 - en: We then use scikit-learn’s PCA class to transform the data. The output of this
     is placed in another pandas dataframe, which can then be plotted (as shown), or
     examined for outliers.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们使用scikit-learn的PCA类来转换数据。其输出被放入另一个pandas数据框中，之后可以进行绘图（如所示），或者检查异常值。
 - en: Looking at the original data, the data tends to appear along a diagonal. Drawing
     a line from the bottom-left to the top-right (the blue line in the plot), we can
     create a new, single dimension that represents the data very well. In fact, executing
     PCA, this will be the first component, with the line orthogonal to this (the orange
     line, also shown in the left pane) as the second component, which represents the
     remaining variance.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看原始数据时，数据倾向于沿对角线分布。从左下角到右上角画一条线（图中的蓝线），我们可以创建一个新的单一维度，很好地表示数据。事实上，执行PCA时，这将是第一个主成分，与其正交的线（橙色线，也显示在左侧窗格中）则是第二个主成分，表示剩余的方差。
 - en: With more realistic data, we will not have such strong linear relationships,
     but we do almost always have some associations between the features — it’s rare
     for the features to be completely independent. And given this, PCA can usually
@@ -105,25 +147,33 @@
     it’s usually necessary to use all components to completely describe each item,
     using only a fraction of the components can often describe every record (or almost
     every record) sufficiently well.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于更现实的数据，我们通常不会有如此强的线性关系，但几乎总会有一些特征之间的关联——特征完全独立是很少见的。鉴于此，PCA通常是减少数据集维度的有效方法。也就是说，虽然通常需要使用所有主成分来完全描述每个项目，但仅使用一部分主成分通常就能充分描述每条记录（或几乎每条记录）。
 - en: The right pane shows the data in the new space created by the PCA transformation,
     with the first component (which captures most of the variance) on the x-axis and
     the second (which captures the remaining variance) on the y-axis. In the case
     of 2D data, a PCA transformation will simply rotate and stretch the data. The
     transformation is harder to visualize in higher dimensions, but works similarly.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 右侧窗格显示了PCA转换后新空间中的数据，第一个主成分（捕捉了大部分方差）位于x轴上，第二个主成分（捕捉剩余方差）位于y轴上。在二维数据的情况下，PCA转换将只是旋转并拉伸数据。对于更高维度的数据，转换较难可视化，但工作原理类似。
 - en: Printing the explained variance (the code above included a print statement to
     display this) indicates component 0 contains 0.99 of the variance and component
     1 contains 0.01, which matches the plot well.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 打印解释方差（上面的代码中包括一个打印语句来显示这一点）表明组件0包含了0.99的方差，而组件1包含了0.01，这与图表非常匹配。
 - en: Often the components would be examined one at a time (for example, as histograms),
     but in this example, we use a scatter plot, which saves space as we can view two
     components at a time. The outliers stand out as extreme values in the two components.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常会逐个检查每个组件（例如作为直方图），但在这个例子中，我们使用散点图，这样可以一次查看两个组件，节省空间。异常值在这两个组件中作为极端值明显突出。
 - en: Looking a little closer at the details of how PCA works, it first finds the
     line through the data that best describes the data. This is the line where the
     squared distances to the line, for all points, is minimized. This is, then, the
@@ -131,47 +181,65 @@
     the remaining variance. This dataset contains only two dimensions, and so there
     is only one choice for direction of the second component, at right angles with
     the first component.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 更仔细地看一下PCA的工作细节，它首先找到一条最能描述数据的直线。这是所有点到该直线的平方距离最小的直线。这就是第一个组件。然后，过程会找到一条与这条直线正交的直线，最好地捕捉剩余的方差。这个数据集只有两个维度，因此第二个组件的方向只有一个选择，即与第一个组件垂直。
 - en: 'Where there are more dimensions in the original data, this process will continue
     some number of extra steps: the process continues until all variance in the data
     is captured, which will create as many components as the original data had dimensions.
     Given this, PCA has three properties:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 当原始数据中有更多维度时，这个过程将继续若干额外的步骤：直到数据中的所有方差被捕捉为止，这将创建与原始数据维度数量相同的组件。鉴于此，PCA具有三个特性：
 - en: All components are uncorrelated.
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有组件都是不相关的。
 - en: The first component has the most variation, then the second, and so on.
+  id: totrans-26
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第一个组件具有最多的变异性，第二个组件次之，依此类推。
 - en: The total variance of the components equals the variance in the original features.
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 组件的总方差等于原始特征的方差。
 - en: PCA also has some nice properties that lend themselves well to outlier detection.
     As we can see in the figure, the outliers become separated well within the components,
     which allows simple tests to identify them.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: PCA还有一些有助于异常值检测的良好特性。正如我们在图中看到的，异常值在组件内被很好地分离开来，这使得简单的测试可以识别它们。
 - en: 'We can also see another interesting result of PCA transformation: points that
     are in keeping with the general pattern tend to fall along the early components,
     but can be extreme in these (such as Point A), while points that do not follow
     the general patterns of the data tend to not fall along the main components, and
     will be extreme values in the later components (such as Point B).'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以看到PCA转换的另一个有趣结果：符合一般模式的点往往会落在早期的组件上，但可能在这些组件中表现为极端值（如点A），而不符合数据一般模式的点则往往不会落在主要组件上，而是在后续组件中成为极端值（如点B）。
 - en: 'There are two common ways to identify outliers using PCA:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用PCA识别异常值有两种常见方法：
 - en: We can transform the data using PCA and then use a set of tests (conveniently,
     these can generally be very simple tests), on each component to score each row.
     This is quite straightforward to code.
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可以使用PCA转换数据，然后使用一组测试（方便的是，这些测试通常非常简单）对每个组件进行评分，逐行评估。这非常简单，容易编码实现。
 - en: We can look at the reconstruction error. In the figure, we can see that using
     only the first component describes the majority of the data quite well. The second
     component is necessary to fully describe all the data, but by simply projecting
@@ -182,16 +250,20 @@
     In general, the more components necessary to describe a point’s location well
     (or the higher the error given a fixed number of components), the stronger of
     an outlier a point is.
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可以查看重建误差。在图中，我们可以看到仅使用第一个主成分就能很好地描述大多数数据。第二个主成分对于完整描述所有数据是必要的，但通过仅将数据投影到第一个主成分上，我们可以合理地描述大部分数据的位置。例外的是点B；它在第一个主成分上的位置并不能很好地描述它的完整位置，若仅使用单一主成分来描述该点，会出现较大的重建误差，尽管其他点没有这个问题。一般来说，需要更多主成分来描述一个点的位置较好（或者在固定数量主成分的情况下，误差较大），则该点是一个离群点的可能性越强。
 - en: Another method is possible where we remove rows one at a time and identify which
     rows affect the final PCA calculations the most significantly. Although this can
     work well, it is often slow and not commonly used. I may cover this in future
     articles, but for this article will look at reconstruction error, and in the next
     article at running simple tests on the PCA components.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种方法是逐行删除数据，找出哪些行对最终PCA计算影响最大。虽然这种方法效果不错，但通常较慢，且不常使用。我可能会在未来的文章中讨论这个方法，但本文将关注重建误差，下一篇文章将讨论如何对PCA主成分进行简单测试。
 - en: Reconstruction error is an example of a common general approach in outlier detection.
     We model the data one way or another to capture the major patterns in the data
     (for example, using frequent item sets, clustering, creating predictive models
@@ -202,12 +274,16 @@
     clusters, or where the values cannot be predicted well from the other values in
     the record. In this case, the outliers are the records that aren’t represented
     well by the major (the first) PCA components.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 重建误差是离群点检测中常见的一种通用方法示例。我们以某种方式对数据进行建模，以捕捉数据中的主要模式（例如，使用频繁项集、聚类、创建预测模型来预测各列的值等）。这些模型通常能很好地拟合大多数数据，但往往无法很好地拟合离群点。离群点通常是那些无法很好地融入模型的记录。它们可能是没有被频繁项集很好表示的记录，无法融入任何一个聚类，或是无法通过其他列的值很好地预测的记录。在这种情况下，离群点是那些没有被主要（第一个）PCA主成分很好表示的记录。
 - en: Assumptions behind PCA for outlier detection
+  id: totrans-35
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: PCA在离群点检测中的假设
 - en: PCA does assume there are correlations between the features. The data above
     is possible to transform such that the first component captures much more variance
     than the second because the data is correlated. PCA provides little value for
@@ -215,15 +291,19 @@
     have significant correlation, it is very often applicable. And given this, we
     can usually find a reasonably small number of components that capture the bulk
     of the variance in a dataset.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: PCA假设特征之间存在相关性。上述数据可以通过转换，使得第一主成分比第二主成分捕捉到更多的方差，因为数据是相关的。对于特征之间没有关联的离群点检测，PCA提供的价值较小，但考虑到大多数数据集之间具有显著的相关性，PCA通常适用。基于此，我们通常可以找到一个合理的小数量的主成分，捕捉数据集中大部分的方差。
 - en: As with some other common techniques for outlier detection, including Elliptic
     Envelope methods, Gaussian mixture models, and Mahalanobis distance calculations,
     PCA works by creating a covariance matrix representing the general shape of the
     data, which is then used to transform the space. In fact, there is a strong correspondence
     between elliptic envelope methods, the Mahalanobis distance, and PCA.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 与其他常见的离群点检测技术相似，包括椭圆包络方法、高斯混合模型和马氏距离计算，PCA通过创建一个协方差矩阵来工作，该矩阵表示数据的一般形状，然后用于转换空间。事实上，椭圆包络方法、马氏距离和PCA之间有很强的对应关系。
 - en: The covariance matrix is a d x d matrix (where d is the number of features,
     or dimensions, in the data), that stores the covariance between each pair of features,
     with the variance of each feature stored on the main diagonal (that is, the covariance
@@ -231,24 +311,34 @@
     is a concise description of the data — that is, the variance of each feature and
     the covariances between the features are very often a very good description of
     the data.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 协方差矩阵是一个d x d的矩阵（其中d是数据中特征或维度的数量），它存储了每对特征之间的协方差，每个特征的方差存储在主对角线上（即每个特征与自身的协方差）。协方差矩阵与数据中心一起，提供了数据的简明描述——也就是说，每个特征的方差以及特征之间的协方差，通常是数据的一个非常好的描述。
 - en: 'A covariance matrix for a dataset with three features may look like:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个具有三个特征的数据集的协方差矩阵可能如下所示：
 - en: '![](../Images/a0a61daa773d7c93d03df9b0db1078dd.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a0a61daa773d7c93d03df9b0db1078dd.png)'
 - en: Example covariance matrix for a dataset with three features
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 三个特征的数据集的示例协方差矩阵
 - en: 'Here the variance of the three features are shown on the main diagonal: 1.57,
     2.33, and 6.98\. We also have the covariance between each feature. For example,
     the covariance between the 1st & 2nd features is 1.50\. The matrix is symmetrical
     across the main diagonal, as the covariance between the 1st and 2nd features is
     the same as between the 2nd & 1st features, and so on.'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里显示的是三个特征的方差，位于主对角线：1.57、2.33和6.98。我们还可以看到每个特征之间的协方差。例如，第1个和第2个特征之间的协方差是1.50。矩阵在主对角线对称，因为第1个和第2个特征之间的协方差与第2个和第1个特征之间的协方差相同，依此类推。
 - en: Scikit-learn (and other packages) provide tools that can calculate the covariance
     matrix for any given numeric dataset, but this is unnecessary to do directly using
     the techniques described in this and the next article. In this article, we look
@@ -256,101 +346,142 @@
     (probably the most complete and well-used tool for outlier detection on tabular
     data available in Python today). These tools handle the PCA transformations, as
     well as the outlier detection, for us.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: Scikit-learn（以及其他包）提供了可以计算任意给定数值数据集的协方差矩阵的工具，但使用本文及下一篇文章中描述的技术，直接计算协方差矩阵并不是必须的。在本文中，我们将查看一个名为[PyOD](https://github.com/yzhao062/pyod)的流行异常值检测包所提供的工具（它可能是目前Python中最完整、最常用的表格数据异常值检测工具）。这些工具为我们处理了PCA变换以及异常值检测。
 - en: Limitations of PCA for outlier detection
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: PCA在异常值检测中的局限性
 - en: One limitation of PCA is, it is sensitive to outliers. It’s based on minimizing
     squared distances of the points to the components, so it can be heavily affected
     by outliers (remote points can have very large squared distances). To address
     this, *robust PCA* is often used, where the extreme values in each dimension are
     removed before performing the transformation. The example below includes this.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: PCA的一个局限性是，它对异常值敏感。PCA基于最小化点到主成分的平方距离，因此会受到异常值的强烈影响（远离点的平方距离可能非常大）。为了解决这个问题，*稳健PCA*通常会被使用，在执行变换之前，会先移除每个维度中的极值。下面的示例包括了这一点。
 - en: Another limitation of PCA (as well as Mahalanobis distances and similar methods),
     is it can break down if the correlations are in only certain regions of the data,
     which is frequently true if the data is clustered. Where data is well-clustered,
     it may be necessary to cluster (or segment) the data first, and then perform PCA
     on each subset of the data.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: PCA的另一个局限性（以及马哈拉诺比斯距离和类似方法）是，如果相关性仅存在于数据的某些区域，当数据呈簇状分布时，这种情况往往会发生。在数据聚类良好的情况下，可能需要先对数据进行聚类（或分段），然后再对每个数据子集执行PCA。
 - en: PCA-based tests for outliers in PyOD
+  id: totrans-47
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于PCA的异常值检测测试
 - en: Now that we’ve gone over how PCA works and, at a high level, how it can be applied
     to outlier detection, we can look at the detectors provided by PyOD.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经了解了PCA的工作原理，并大致了解了它如何应用于异常值检测，我们可以看看PyOD提供的检测器。
 - en: 'PyOD actually provides three classes based on PCA: PyODKernelPCA, PCA, and
     KPCA. We’ll look at each of these.'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: PyOD实际上提供了三种基于PCA的类：PyODKernelPCA、PCA和KPCA。我们将逐一了解这些类。
 - en: PyODKernelPCA
+  id: totrans-50
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: PyODKernelPCA
 - en: PyOD provides a class called PyODKernelPCA, which is simply a wrapper around
     scikit-learn’s KernelPCA class. Either may be more convenient in different circumstances.
     This is not an outlier detector in itself and provides only PCA transformation
     (and inverse transformation), similar to scikit-learn’s PCA class, which was used
     in the previous example.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: PyOD 提供了一个名为 PyODKernelPCA 的类，它实际上是 scikit-learn 的 KernelPCA 类的封装。在不同情况下，使用这两者中的任何一个都可能更方便。它本身并不是一个离群点检测器，仅提供
+    PCA 变换（及其逆变换），类似于在前面示例中使用的 scikit-learn 的 PCA 类。
 - en: 'The KernelPCA class, though, is different than the PCA class, in that KernelPCA
     allows for nonlinear transformations of the data and can better model some more
     complex relationships. Kernels work similarly in this context as with SVM models:
     they transform the space (in a very efficient manner) in a way that allows outliers
     to be separated more easily.'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: KernelPCA 类与 PCA 类不同，KernelPCA 允许对数据进行非线性转换，并且可以更好地建模一些更复杂的关系。在这种情况下，核函数的作用与
+    SVM 模型中的作用相似：它们以一种非常高效的方式变换空间，使得离群点能够更容易地被分离。
 - en: Scikit-learn provides several kernels. These are beyond the scope of this article,
     but can improve the PCA process where there are complex, nonlinear relationships
     between the features. If used, outlier detection works, otherwise, the same as
     with using the PCA class. That is, we can either directly run outlier detection
     tests on the transformed space, or measure the reconstruction error.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: Scikit-learn 提供了几种核函数。虽然这些超出了本文的范围，但在特征之间存在复杂的非线性关系时，它们可以改进 PCA 过程。如果使用这些核函数，离群点检测将有效，否则，与使用
+    PCA 类时相同。也就是说，我们可以直接在变换后的空间上运行离群点检测测试，或者测量重建误差。
 - en: The former method, running tests on the transformed space is quite straightforward
     and effective. We look at this in more detail in the next article. The latter
     method, checking for reconstruction error, is a bit more difficult. It’s not unmanageable
     at all, but the two detectors provided by PyOD we look at next handle the heavy
     lifting for us.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 前一种方法，在变换后的空间上进行测试，是相当直接且有效的。我们将在下一篇文章中更详细地讨论这一点。后一种方法，检查重建误差，则稍显复杂。它并不是完全无法处理，但我们接下来要讨论的
+    PyOD 提供的两个检测器可以为我们处理大部分工作。
 - en: The PCA detector
+  id: totrans-55
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: PCA 检测器
 - en: 'PyOD provides two PCA-based outlier detectors: the PCA class and KPCA. The
     latter, as with PyODKernelPCA, allows kernels to handle more complex data. PyOD
     recommends using the PCA class where the data contains linear relationships, and
     KPCA otherwise.'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: PyOD 提供了两种基于 PCA 的离群点检测器：PCA 类和 KPCA。后者与 PyODKernelPCA 类似，允许核函数处理更复杂的数据。PyOD
+    推荐在数据包含线性关系时使用 PCA 类，而在数据包含非线性关系时使用 KPCA。
 - en: Both classes use the reconstruction error of the data, using the Euclidean distance
     of points to the hyperplane that’s created using the first k components. The idea,
     again, is that the first k components capture the main patterns of the data well,
     and any points not well modeled by these are outliers.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两个类使用数据的重建误差，利用点到超平面的欧几里得距离，这个超平面是用前 k 个组件构建的。这个想法再次是，前 k 个组件能够很好地捕捉数据的主要模式，而任何没有被这些组件很好建模的点就是离群点。
 - en: In the plot above, this would not capture Point A, but would capture Point B.
     If we set k to 1, we’d use only one component (the first component), and would
     measure the distance of every point from its actual location to its location on
     this component. Point B would have a large distance, and so can be flagged as
     an outlier.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面的图中，这种方法不能捕捉到 A 点，但可以捕捉到 B 点。如果我们将 k 设置为 1，我们只会使用一个组件（第一个组件），并且会测量每个点从其实际位置到该组件上位置的距离。B
+    点的距离会很大，因此可以标记为离群点。
 - en: As with PCA generally, it’s best to remove any obvious outliers before fitting
     the data. In the example below, we use another detector provided by PyOD called
     ECOD (Empirical Cumulative Distribution Functions) for this purpose. ECOD is a
     detector you may not be familiar with, but is a quite strong tool. In fact PyOD
     recommends, when looking at detectors for a project, to start with Isolation Forest
     and ECOD.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 与一般的 PCA 一样，最好在拟合数据之前去除任何明显的离群点。在下面的例子中，我们使用了 PyOD 提供的另一种检测器，叫做 ECOD（经验累积分布函数）。ECOD
+    是一个你可能不太熟悉的检测器，但它是一个非常强大的工具。事实上，PyOD 建议在为项目选择检测器时，从 Isolation Forest 和 ECOD 开始。
 - en: 'ECOD is beyond the scope of this article. It’s covered in [Outlier Detection
     in Python](https://www.manning.com/books/outlier-detection-in-python), and PyOD
     also provides a link to the original journal paper. But, as a quick sketch: ECOD
@@ -360,8 +491,10 @@
     to find all outliers, but it is quite fast, and quite capable of finding outliers
     of this type. In this case, we remove the top 1% of rows identified by ECOD before
     fitting a PCA detector.'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: ECOD超出了本文的范围，相关内容可以在[《Python中的异常值检测》](https://www.manning.com/books/outlier-detection-in-python)一书中找到，PyOD也提供了原始期刊论文的链接。不过，简单概括：ECOD基于经验累积分布，旨在找到数值列中的极端（非常小和非常大）值。它不会检查值的稀有组合，只检测极端值。因此，它无法找到所有的异常值，但它速度较快，并且非常擅长找到这种类型的异常值。在此案例中，我们在拟合PCA检测器之前，移除了ECOD标识的前1%行。
 - en: In general when performing outlier detection (not just when using PCA), it’s
     useful to first clean the data, which in the context of outlier detection often
     refers to removing any strong outliers. This allows the outlier detector to be
@@ -369,33 +502,47 @@
     in the data (so that it is then better able to identify exceptions to these strong
     patterns). In this case, cleaning the data allows the PCA calculations to be performed
     on more typical data, so as to capture better the main distribution of the data.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 一般来说，在执行异常值检测时（不仅仅是使用PCA时），最好先清理数据，在异常值检测的上下文中，通常指的是移除任何强异常值。这可以让异常值检测器在更典型的数据上进行训练，从而更好地捕捉数据中的强模式（这样它就能更好地识别这些强模式的例外情况）。在这个案例中，清理数据允许在更典型的数据上进行PCA计算，从而更好地捕捉数据的主要分布。
 - en: 'Before executing, it’s necessary to install PyOD, which may be done with:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 在执行之前，必须安装PyOD，可以使用以下命令进行安装：
 - en: '[PRE1]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: The code here uses the [speech](https://www.openml.org/search?type=data&sort=version&status=any&order=asc&exact_name=Speech&id=40910)
     dataset (Public license) from OpenML, which has 400 numeric features. Any numeric
     dataset, though, may be used (any categorical columns will need to be encoded).
     As well, generally, any numeric features will need to be scaled, to be on the
     same scale as each other (skipped for brevity here, as all features here use the
     same encoding).
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的代码使用了来自OpenML的[speech](https://www.openml.org/search?type=data&sort=version&status=any&order=asc&exact_name=Speech&id=40910)数据集（公共许可），该数据集包含400个数值特征。任何数值数据集都可以使用（任何类别列需要进行编码）。此外，一般来说，所有数值特征都需要进行缩放，以便它们处于相同的量纲下（此处为了简洁省略了，因为所有特征使用了相同的编码）。
 - en: '[PRE2]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Running this, the pred variable will contain the outlier score for each record
     in the the data.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行此操作后，pred变量将包含数据中每条记录的异常值得分。
 - en: The KPCA detector
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: KPCA检测器
 - en: 'The KPCA detector works very much the same as the PCA detector, with the exception
     that a specified kernel is applied to the data. This can transform the data quite
     significantly. The two detectors can flag very different records, and, as both
@@ -405,34 +552,48 @@
     be useful to use both. Likely this can best be determined (along with the best
     parameters to use) using doping, as described in [Doping: A Technique to Test
     Outlier Detectors](https://medium.com/towards-data-science/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4).'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: KPCA检测器的工作方式与PCA检测器非常相似，不同之处在于对数据应用了指定的核。这可以显著地改变数据。两个检测器可能标记非常不同的记录，而且由于两者的可解释性较差，可能很难确定原因。像异常值检测一样，可能需要一些实验来确定哪个检测器和参数最适合你的数据。由于两者都是强大的检测器，使用两者结合可能也会很有用。最好的检测器和参数（以及如何使用它们）可能可以通过[《Doping：一种测试异常值检测器的技术》](https://medium.com/towards-data-science/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4)中的方法来确定。
 - en: 'To create a KPCA detector using a linear kernel, we use code such as:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 要创建一个使用线性核的KPCA检测器，我们可以使用如下代码：
 - en: '[PRE3]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: KPCA also supports polynomial, radial basis function, sigmoidal, and cosine
     kernels.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: KPCA还支持多项式、径向基函数、Sigmoid和余弦核。
 - en: Conclusions
+  id: totrans-72
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: In this article we went over the ideas behind PCA and how it can aid outlier
     detection, particularly looking at standard outlier detection tests on PCA-transformed
     data and at reconstruction error. We also looked at two outlier detectors provided
     by PyOD for outlier detection based on PCA (both using reconstruction error),
     PCA and KPCA, and provided an example using the former.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们讨论了PCA背后的理念以及它如何帮助异常值检测，特别是查看PCA转换数据上的标准异常值检测测试和重构误差。我们还查看了PyOD提供的两个基于PCA的异常值检测器（都使用重构误差），PCA和KPCA，并提供了使用前者的示例。
 - en: PCA-based outlier detection can be very effective, but does suffer from low
     interpretability. The PCA and KPCA detectors produce outliers that are very difficult
     to understand.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于PCA的异常值检测可以非常有效，但确实存在可解释性差的问题。PCA和KPCA检测器产生的异常值非常难以理解。
 - en: In fact, even when using interpretable outlier detectors (such as Counts Outlier
     Detector, or tests based on z-score or interquartile range), on the PCA-transformed
     data (as we’ll look at in the next article), the outliers can be difficult to
@@ -442,29 +603,41 @@
     Outlier Factor (LOF), k Nearest Neighbors (KNN), and most others are also essentially
     black boxes (their algorithms are easily understandable — but the specific scores
     given to individual records can be difficult to understand).
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，即使使用可解释的异常值检测器（例如计数异常值检测器，或者基于z-score或四分位距的检测方法），在PCA转换后的数据上（正如我们将在下一篇文章中看到的那样），异常值也可能难以理解，因为PCA转换本身（以及它生成的主成分）几乎是无法解释的。不幸的是，这是异常值检测中的一个常见主题。用于异常值检测的其他主要工具，包括隔离森林、局部异常因子（LOF）、k近邻（KNN）等，基本上也是黑箱（它们的算法容易理解——但给每个记录分配的具体分数可能很难理解）。
 - en: In the 2d example above, when viewing the PCA-transformed space, it can be easy
     to see how Point A and Point B are outliers, but it is difficult to understand
     the two components that are the axes.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面的二维示例中，当查看PCA转换后的空间时，可以很容易看出点A和点B是异常值，但很难理解作为坐标轴的两个主成分。
 - en: '![](../Images/99fef5ac716ec3db381ae1c517fbaefd.png)'
+  id: totrans-77
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/99fef5ac716ec3db381ae1c517fbaefd.png)'
 - en: Where interpretability is necessary, it may be impossible to use PCA-based methods.
     Where this is not necessary, though, PCA-based methods can be extremely effective.
     And again, PCA has no lower interpretability than most outlier detectors; unfortunately,
     only a handful of outlier detectors provide a high level of interpretability.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 在需要可解释性的情况下，可能无法使用基于PCA的方法。然而，在不需要可解释性的情况下，基于PCA的方法可以非常有效。而且，PCA的可解释性并不低于大多数异常值检测器；不幸的是，只有少数异常值检测器提供了较高的可解释性。
 - en: In the next article, we will look further at performing tests on the PCA-transformed
     space. This includes simple univariate tests, as well as other standard outlier
     detectors, considering the time required (for PCA transformation, model fitting,
     and prediction), and the accuracy. Using PCA can very often improve outlier detection
     in terms of speed, memory usage, and accuracy.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一篇文章中，我们将进一步探讨如何在PCA转换后的空间上进行测试。这包括简单的单变量测试，以及其他标准的异常值检测器，考虑到所需的时间（包括PCA转换、模型拟合和预测）以及准确性。使用PCA通常可以提高异常值检测的速度、内存使用效率和准确性。
 - en: All images are by the author
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有图片均由作者提供

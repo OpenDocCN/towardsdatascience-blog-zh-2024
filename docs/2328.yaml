@@ -1,54 +1,83 @@
 - en: Zero-Shot Localization with CLIP-Style Encoders
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基于CLIP风格编码器的零-shot定位
 - en: 原文：[https://towardsdatascience.com/zero-shot-localization-with-clip-style-encoders-2ac3cea172a8?source=collection_archive---------4-----------------------#2024-09-24](https://towardsdatascience.com/zero-shot-localization-with-clip-style-encoders-2ac3cea172a8?source=collection_archive---------4-----------------------#2024-09-24)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/zero-shot-localization-with-clip-style-encoders-2ac3cea172a8?source=collection_archive---------4-----------------------#2024-09-24](https://towardsdatascience.com/zero-shot-localization-with-clip-style-encoders-2ac3cea172a8?source=collection_archive---------4-----------------------#2024-09-24)
 - en: How can we see what a vision encoder sees?
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 我们如何看到视觉编码器所看到的内容？
 - en: '[](https://medium.com/@crastoru?source=post_page---byline--2ac3cea172a8--------------------------------)[![Ruth
     Crasto](../Images/5deaf13d4a79273e3f2986793aecc123.png)](https://medium.com/@crastoru?source=post_page---byline--2ac3cea172a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2ac3cea172a8--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2ac3cea172a8--------------------------------)
     [Ruth Crasto](https://medium.com/@crastoru?source=post_page---byline--2ac3cea172a8--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@crastoru?source=post_page---byline--2ac3cea172a8--------------------------------)[![Ruth
+    Crasto](../Images/5deaf13d4a79273e3f2986793aecc123.png)](https://medium.com/@crastoru?source=post_page---byline--2ac3cea172a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2ac3cea172a8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2ac3cea172a8--------------------------------)
+    [Ruth Crasto](https://medium.com/@crastoru?source=post_page---byline--2ac3cea172a8--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2ac3cea172a8--------------------------------)
     ·10 min read·Sep 24, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2ac3cea172a8--------------------------------)
+    ·10分钟阅读·2024年9月24日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/ec11c62f25220cd3fb76b066efdea539.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ec11c62f25220cd3fb76b066efdea539.png)'
 - en: Photo by [Stephan Widua](https://unsplash.com/@stewi?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由[Stephan Widua](https://unsplash.com/@stewi?utm_source=medium&utm_medium=referral)拍摄，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 'Think of your favorite pre-trained vision encoder. I’m going to assume you’ve
     chosen some variant of a CNN (Convolutional Neural Network) or a ViT (Visual Transformer).
     The encoder is a function that maps an image into a *d*-dimensional vector space.
     In the process, the image is transformed into a sequence of feature maps:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 想象一下你最喜欢的预训练视觉编码器。我假设你选择的是某种CNN（卷积神经网络）或ViT（视觉Transformer）的变体。编码器是一个将图像映射到*d*维向量空间的函数。在这个过程中，图像被转换为一系列特征图：
 - en: '![](../Images/e0865ef81e4b29d31b81d3e6eb3450e7.png)'
+  id: totrans-9
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e0865ef81e4b29d31b81d3e6eb3450e7.png)'
 - en: Image by author.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片。
 - en: A feature map (*w* × *h* × *k*) can be thought of as a collected 2D array of
     *k*-dimensional patch embeddings, or, equivalently, a coarse image (*w* × *h*)
     with *k* channels *f*₁, … *fₖ*. Both CNNs and ViTs, in their respective ways,
     are in the business of transforming an input image into a sequence of feature
     maps.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 特征图（*w* × *h* × *k*）可以被看作是一个由*k*维度的patch嵌入组成的2D数组，或者等价地说，它是一个具有*k*个通道*f*₁, …
+    *f*ₖ*的粗略图像（*w* × *h*）。无论是CNN还是ViT，它们都以各自的方式将输入图像转换为一系列特征图。
 - en: How can we see what a vision encoder sees as an image make its way through its
     layers? Zero-shot localization methods are designed to generate human-interpretable
     visualizations from an encoder’s feature maps. These visualizations, which can
@@ -57,97 +86,143 @@
     the model has not explicitly been trained on mask annotations for the semantic
     categories of interest. A vision encoder like CLIP, for instance, has only been
     trained on image-level text captions.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们如何看到一个图像在经过视觉编码器的各层时，编码器所看到的内容？零-shot定位方法旨在从编码器的特征图中生成可供人类解读的可视化效果。这些可视化效果，看起来像热图或粗略的分割掩码，能够区分输入图像中语义相关的区域。术语“零-shot”指的是模型没有明确地在感兴趣的语义类别的掩码注释上进行训练。例如，像CLIP这样的视觉编码器，仅仅在图像级的文本描述上进行了训练。
 - en: In this article, we begin with an overview of some early techniques for generating
     interpretable heatmaps from supervised CNN classifiers, with no additional training
     required. We then explore the challenges around achieving zero-shot localization
     with CLIP-style encoders. Finally, we touch on the key ideas behindGEM (Grounding
     Everything Module) [[1](https://arxiv.org/pdf/2312.00878)], a recently proposed
     approach to training-free, open-vocabulary localization for the CLIP ViT.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们首先概述了一些早期的技术，用于从监督学习的CNN分类器生成可解释的热图，无需额外训练。然后，我们探讨了使用CLIP风格编码器实现零-shot定位的挑战。最后，我们简要介绍了GEM（Grounding
+    Everything Module）[[1](https://arxiv.org/pdf/2312.00878)]背后的关键思想，GEM是一种最近提出的用于CLIP
+    ViT的无训练、开放词汇定位的方法。
 - en: 1\. Localization with supervised CNN classifiers
+  id: totrans-14
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 1. 使用监督CNN分类器进行定位
 - en: Class Activation Maps (2016)
+  id: totrans-15
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 类激活图（2016）
 - en: 'Let’s build some intuition around the concept of localization by considering
     a simple vision encoder trained for image classification in a supervised way.
     Assume the CNN uses:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们通过考虑一个简单的图像分类监督训练的视觉编码器，来构建关于定位概念的直觉。假设CNN使用：
 - en: Global average pooling (GAP) to transform the final feature map channels *f*₁(*x,
     y*), …, *fₖ*(*x, y*) into a *k*-dimensional vector. In other words, each *fᵢ*
     is averaged along the width and height dimensions.
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 全局平均池化（GAP）将最终特征图通道 *f*₁(*x, y*), …, *f*ₖ(*x, y*) 转换为一个 *k* 维向量。换句话说，每个 *fᵢ*
+    在宽度和高度维度上进行平均。
 - en: A single linear layer **W** to map this *k*-dimensional vector into a vector
     of class logits.
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一个单一的线性层 **W** 将这个 *k* 维向量映射到一个类别logit的向量。
 - en: 'The logit for a given class *c* can then be written as:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定类别 *c* 的logit可以写为：
 - en: '![](../Images/f40f675941444b85ed95749c9132fb10.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f40f675941444b85ed95749c9132fb10.png)'
 - en: where **W***ᵢ*(*c*) denotes the (scalar) weight of feature channel *i* on logit
     *c*, and *Zᵢ* is a normalizing constant for the average pooling.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中 **W***ᵢ*(*c*) 表示特征通道 *i* 在logit *c* 上的（标量）权重，*Zᵢ* 是用于平均池化的归一化常数。
 - en: 'The key observation behind Class Activation Maps [[2](https://arxiv.org/pdf/1512.04150)]
     is that the above summation can be re-written as:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 类激活图背后的关键观察是[[2](https://arxiv.org/pdf/1512.04150)]，上述求和可以重新写为：
 - en: '![](../Images/99c7fef57ecefc509f6a762a83c2ca45.png)'
+  id: totrans-23
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/99c7fef57ecefc509f6a762a83c2ca45.png)'
 - en: In other words, the logit can be expressed as a weighted average of the final
     feature channelswhich is then averaged across the width and height dimensions.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，logit可以表示为最终特征通道的加权平均，然后在宽度和高度维度上进行平均。
 - en: 'It turns out that the weighted average of the *fᵢ* ’s alone gives an interpretable
     heatmap for class *c*, where larger values match regions in the image that are
     more semantically related to the class. This coarse heatmap, which can be up-sampled
     to match the dimensions of the input image, is called a Class Activation Map (CAM):'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果表明，仅仅对 *fᵢ* 的加权平均就能为类别 *c* 提供一个可解释的热图，其中较大的值对应于图像中与该类别语义相关的区域。这个粗略的热图可以上采样以匹配输入图像的维度，它被称为类激活图（CAM）：
 - en: '![](../Images/291205da76a8b62c9575f789a23843bc.png)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/291205da76a8b62c9575f789a23843bc.png)'
 - en: Intuitively, each *f*ᵢ is already a heatmap for some latent concept (or “feature”)
     in the image — though these do not necessarily discriminate between human-interpretable
     classes in any obvious way. The weight **W***ᵢ*(*c*) captures the importance of
     *f*ᵢ in predicting class *c.* The weighted average thus highlights which image
     features are most relevant to class *c.* In this way, we can achieve discriminative
     localization of the class *c* without any additional training.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 直观地，每个 *f*ᵢ 本身已经是图像中某个潜在概念（或“特征”）的热图——尽管这些特征不一定以任何明显的方式区分人类可解释的类别。权重 **W***ᵢ*(*c*)
+    捕获了 *f*ᵢ 在预测类别 *c* 时的重要性。因此，加权平均值突出了与类别 *c* 最相关的图像特征。通过这种方式，我们可以在没有额外训练的情况下实现类别
+    *c* 的区分性定位。
 - en: Grad-CAM (2017)
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Grad-CAM（2017）
 - en: The challenge with class activation maps is that they are only meaningful under
     certain assumptions about the architecture of the CNN encoder. Grad-CAM [[3](https://arxiv.org/pdf/1610.02391)],
     proposed in 2019, is an elegant generalization of class activation maps that can
     be applied to any CNN architecture, as long as the mapping of the final feature
     map channels *f*₁, …, *fₖ* to the logit vector is differentiable.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 类激活图的挑战在于，它们只有在假设CNN编码器架构满足某些条件下才有意义。2019年提出的Grad-CAM [[3](https://arxiv.org/pdf/1610.02391)]
+    是类激活图的一种优雅推广，可以应用于任何CNN架构，只要最终特征图通道 *f*₁, …, *f*ₖ 到logit向量的映射是可微分的。
 - en: 'As in the CAM approach, Grad-CAM computes a weighted sum of feature channels
     *fᵢ* to generate an interpretable heatmap for a class *c*, but the weight for
     each *fᵢ* is computed as:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 与 CAM 方法类似，Grad-CAM 计算特征通道 *fᵢ* 的加权和，以生成类别 *c* 的可解释热图，但每个 *fᵢ* 的权重是通过以下方式计算的：
 - en: '![](../Images/07b0b6d315294ed46d76e77744efebf1.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/07b0b6d315294ed46d76e77744efebf1.png)'
 - en: Grad-CAM generalizes the idea of weighing each *f*ᵢproportionally to its importance
     for predicting the logit for class *c,* asmeasured by the average-pooled gradients
     of the logit with respect to elements *fᵢ*(*x*, *y*). Indeed, it can be shown
@@ -155,56 +230,83 @@
     the previous section results in the same expression for CAM(*c*) we saw earlier,
     up to a normalizing constant (see [[3](https://arxiv.org/pdf/1610.02391)] for
     a proof).
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: Grad-CAM 将每个 *f*ᵢ 的重要性与预测类别 *c* 的 logit 进行成比例加权的思想进行了推广，这个重要性由 logit 相对于元素 *fᵢ*
+    (*x*, *y*) 的平均池化梯度来衡量。实际上，可以证明，对于一个符合前一节假设 1–2 的卷积神经网络（CNN），计算 Grad-CAM 权重将得到与我们之前看到的
+    CAM(*c*) 表达式相同，直到一个归一化常数（证明见 [[3](https://arxiv.org/pdf/1610.02391)]）。
 - en: Grad-CAM also goes a step further by applying ReLU on top of the weighted average
     of the feature channels *fᵢ.* The idea is to only visualize features which would
     strengthen the confidence in the prediction of class *c* should their intensity
     be *increased*.Once again, the output can then be up-sampled to give a heatmap
     that matches the dimensions of the original input image.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: Grad-CAM 进一步通过在加权特征通道 *fᵢ* 的平均值上应用 ReLU 来进一步改进。其理念是，仅可视化那些若其强度 *增加*，会增强对类别 *c*
+    预测信心的特征。再次地，输出结果可以上采样，以生成与原始输入图像尺寸匹配的热图。
 - en: 2\. Localization with CLIP
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 2\. 使用 CLIP 进行定位
 - en: 'Do these early approaches generalize to CLIP-style encoders? There are two
     additional complexities to consider with CLIP:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些早期的方法能推广到 CLIP 风格的编码器吗？考虑 CLIP 时需要考虑两个额外的复杂因素：
 - en: CLIP is trained on a large, open vocabulary using contrastive learning, so there
     is no fixed set of classes.
+  id: totrans-36
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: CLIP 采用对比学习在一个大规模的开放词汇集上进行训练，因此没有固定的类别集。
 - en: The CLIP image encoder can be a ViT or a CNN.
+  id: totrans-37
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: CLIP 图像编码器可以是 ViT 或 CNN。
 - en: 'That said, if we could somehow achieve zero-shot localization with CLIP, then
     we would unlock the ability to perform zero-shot, *open-vocabulary* localization:
     in other words, we could generate heatmaps for arbitrary semantic classes. This
     is the motivation for developing localization methods for CLIP-style encoders.'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 也就是说，如果我们能够通过 CLIP 实现零-shot 定位，那么我们就能解锁执行零-shot、*开放词汇* 定位的能力：换句话说，我们可以为任意语义类别生成热图。这也是为
+    CLIP 风格编码器开发定位方法的动机。
 - en: Let’s first attempt some seemingly reasonable approaches to this problem given
     our knowledge of localization using supervised CNNs.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们首先尝试一些看似合理的方法来解决这个问题，基于我们使用监督式 CNN 进行定位的知识。
 - en: For a given input image, the logit for a class *c* can be computed as the cosine
     similarity between the CLIP text embedding of the class name and the CLIP image
     embedding. The gradient of this logit with respect to the image encoder’s final
     feature map is tractable. Hence, one possible approach would be to directly apply
     Grad-CAM — and this could work regardless of whether the image encoder is a ViT
     or a CNN.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于给定的输入图像，类别 *c* 的 logit 可以通过计算类别名称的 CLIP 文本嵌入与 CLIP 图像嵌入之间的余弦相似度来获得。该 logit
+    相对于图像编码器最终特征图的梯度是可处理的。因此，一种可能的方法是直接应用 Grad-CAM —— 不论图像编码器是 ViT 还是 CNN，这种方法都可以有效。
 - en: '![](../Images/2502927c39417050b99117901b386821.png)'
+  id: totrans-41
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2502927c39417050b99117901b386821.png)'
 - en: Image by author.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自作者。
 - en: 'Another seemingly reasonable approach might be to consider alignment between
     image patch embeddings and class text embeddings. Recall that CLIP is trained
     to maximize alignment between an *image-level* embedding (specifically, the CLS
@@ -213,18 +315,27 @@
     that is more relevant to it? If this were the case, we could expect to generate
     a discriminative heatmap for a given class by simply visualizing the similarity
     between its text embedding and each patch embedding:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种看似合理的方法可能是考虑图像补丁嵌入与类别文本嵌入之间的对齐。回想一下，CLIP 是通过最大化 *图像级* 嵌入（特别是 CLS token 嵌入）与相应文本嵌入之间的对齐进行训练的。那么，是否有可能该目标在嵌入空间中隐式地将
+    *图像补丁* 与与其相关的文本对齐得更紧密呢？如果是这种情况，我们可以通过简单地可视化类别文本嵌入与每个图像补丁嵌入之间的相似度，来生成一个判别性热图。
 - en: '![](../Images/212b8da8618bb833a460a62643eab683.png)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/212b8da8618bb833a460a62643eab683.png)'
 - en: Image by author.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由作者提供。
 - en: Opposite Visualizations
+  id: totrans-46
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 对立的可视化
 - en: Interestingly, not only do both these approaches fail, but the resulting heatmaps
     turn out to be the *opposite* of what we would expect. This phenomenon, first
     described in the paper “Exploring Visual Explanations for Contrastive Language-Image
@@ -235,34 +346,49 @@
     Contrastive Language-Image Pre-training” [[5](https://arxiv.org/pdf/2304.05653)].
     As of today, there is no single, complete explanation for this phenomenon, though
     some partial hypotheses have been proposed.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 有趣的是，这两种方法不仅都失败了，而且生成的热力图与我们的预期完全*相反*。这一现象首次在论文“Exploring Visual Explanations
+    for Contrastive Language-Image Pre-training”[[4](https://arxiv.org/pdf/2209.07046)]中描述，并且在不同的CLIP架构和不同的类别中被一致观察到。要查看这些“对立可视化”的示例，包括图像块-文本相似度图和Grad-CAM，可参考预印本《A
+    Closer Look at the Explainability of Contrastive Language-Image Pre-training》[[5](https://arxiv.org/pdf/2304.05653)]的第19页。截至目前，尚未有完整的解释这一现象的单一理论，尽管已经提出了一些部分假设。
 - en: Self-Attention Maps
+  id: totrans-48
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 自注意力图
 - en: 'One such hypothesis is detailed in the aforementioned paper [[5](https://arxiv.org/pdf/2304.05653)].
     This work restricts its scope to the ViT architecture and examines attention maps
     in the final self-attention block of the CLIP ViT. For a given input image and
     text class, these attention maps (*w* × *h*) are computed as follows:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中一个假设在前述论文[[5](https://arxiv.org/pdf/2304.05653)]中有详细描述。该研究将范围限定在ViT架构，并检查CLIP
+    ViT最后一个自注意力模块中的注意力图。对于给定的输入图像和文本类别，这些注意力图（*w* × *h*）的计算方式如下：
 - en: The patch embedding (a *d-*dimensional vector — the same as the output dimension
     of the image-level embedding) with highest cosine similarity to the class text
     embedding is selected as an anchor patch.
+  id: totrans-50
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 具有最高余弦相似度的图像块嵌入（一个*d*维向量——与图像级嵌入的输出维度相同）被选为锚点图像块。
 - en: 'The attention map is obtained by computing the query-key attention weights
     for the anchor patch query embedding *Q* and all key embeddings *K*, which can
     be reshaped into a heatmap of size *w* × *h*. The attention weights are computed
     as:'
+  id: totrans-51
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 注意力图通过计算锚点图像块查询嵌入*Q*和所有键嵌入*K*的查询-键注意力权重来获得，这些权重可以被重塑为一个* w * × * h *大小的热力图。注意力权重计算公式如下：
 - en: '![](../Images/d3bbfbdaa14c1da4849a24c3f66e530e.png)'
+  id: totrans-52
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d3bbfbdaa14c1da4849a24c3f66e530e.png)'
 - en: You might expect the anchor patch to be attending mostly to other patches in
     the image that are semantically related to the class of interest. Instead, these
     query-key attention maps reveal that anchor patches consistently attend to unrelated
@@ -270,19 +396,26 @@
     to interpret (see the paper [[5](https://arxiv.org/pdf/2304.05653)] for some examples).
     This, the authors suggest, could explain the noisy patch-text similarity maps
     observed in the CLIP ViT.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能会期望锚点图像块主要关注与感兴趣类别语义相关的图像块。然而，这些查询-键注意力图表明，锚点图像块与其他无关图像块的关注程度相同。因此，查询-键注意力图呈现斑驳状，难以解释（有关示例，请参见论文[[5](https://arxiv.org/pdf/2304.05653)]）。作者提出，这或许能够解释在CLIP
+    ViT中观察到的噪声图像块-文本相似度图。
 - en: On the other hand, the authors find that value-value attention maps are more
     promising. Empirically, they show that value-value attention weights are larger
     exclusively for patches near the anchor that are semantically related to it. Value-value
     attention maps are not complete discriminative heatmaps, but they are a more promising
     starting point.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，作者发现值-值注意力图更有前景。通过实验证明，值-值注意力权重仅在与锚点语义相关的图像块附近较大。值-值注意力图并不是完整的判别性热力图，但它们是一个更有前景的起点。
 - en: 3\. Grounding Everything Module (2024)
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 3\. 基础一切模块（2024）
 - en: Hopefully, you can now see why training-free localization is not as straightforward
     for CLIP as it was for supervised CNNs — and it is not well-understood why. That
     said, a recent localization method for the CLIP ViT called the Grounding Everything
@@ -291,93 +424,136 @@
     query-key attention maps we saw in the previous section. In doing so, the GEM-modified
     CLIP encoder can be used for zero-shot, open-vocabulary localization. Let’s explore
     how it works.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 希望你现在能明白为什么对于CLIP，训练无关的定位不像在有监督的CNN中那样直观——而且目前还不完全理解为什么。也就是说，2024年提出的CLIP ViT的新定位方法，称为万物定位模块（GEM）[[1](https://arxiv.org/pdf/2312.00878)]，取得了显著的成功。GEM本质上是一种无训练的方法，用于修正我们在前一节中看到的噪声查询-键注意力图。通过这种方式，GEM修改后的CLIP编码器可以用于零-shot、开放词汇的定位。让我们来看看它是如何工作的。
 - en: Self-Self Attention
+  id: totrans-57
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 自我自我注意力
 - en: The main idea behind GEM is called self-self attention, which is a generalization
     of the concept of value-value attention.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: GEM背后的主要思想称为自我自我注意力，它是值-值注意力概念的推广。
 - en: 'Given queries *Q,* keys *K* and values *V,* the output of a self-self attention
     block is computed by applying query-query, key-key, and value-value attention
     iteratively for *t =* 0, …, *n*:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 给定查询 *Q*、键 *K* 和值 *V*，自我自我注意力模块的输出是通过对 *t =* 0, …, *n* 进行查询-查询、键-键和值-值的注意力迭代计算得到的：
 - en: '![](../Images/39e3eeaea6227469e246e01cfdbec605.png)![](../Images/1d2241c878e20601914dac52e9ab1e07.png)'
+  id: totrans-60
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/39e3eeaea6227469e246e01cfdbec605.png)![](../Images/1d2241c878e20601914dac52e9ab1e07.png)'
 - en: where *p*₀ ∈{*Q, K, V*} and *n,* the number of iterations, is a hyperparameter.
     This iterative process can be thought of as clustering the initial tokens *p*₀
     based on dot-product similarity. By the end of this process, the resulting tokens
     *p*ₙ is a set of cluster “centers” for the initial tokens *p*₀.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中 *p*₀ ∈{*Q, K, V*} 和 *n*，迭代次数，是一个超参数。这个迭代过程可以被认为是基于点积相似性对初始tokens *p*₀进行聚类。在这个过程的末尾，生成的tokens
+    *p*ₙ 是初始tokens *p*₀的“中心”集。
 - en: 'The resulting self-self attention weights are then ensembled to produce the
     output of the self-self attention block:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成的自我自我注意力权重然后被集合起来，以产生自我自我注意力模块的输出：
 - en: '![](../Images/a3a9473d07b39d28e2c141d7a21c0a40.png)'
+  id: totrans-63
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a3a9473d07b39d28e2c141d7a21c0a40.png)'
 - en: 'where:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中：
 - en: '![](../Images/e44978fb7a38a21850a87e279f513d58.png)'
+  id: totrans-65
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e44978fb7a38a21850a87e279f513d58.png)'
 - en: 'This is in contrast to a traditional query-key attention block, whose output
     is computed simply as:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 这与传统的查询-键注意力模块不同，后者的输出仅通过以下方式计算：
 - en: '![](../Images/c7651c136a2ebe3e25e43b2f7211d498.png)'
+  id: totrans-67
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c7651c136a2ebe3e25e43b2f7211d498.png)'
 - en: Grounding Everything Module
+  id: totrans-68
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 万物定位模块
 - en: 'Now consider our method for generating value-value attention maps in the previous
     section, where we first chose an anchor patch based on similarity to a class text
     embedding, then computed value-value attention map. GEM can be thought of as the
     reverse of this process, where:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在考虑我们在前一节中生成值-值注意力图的方法，首先我们根据与类文本嵌入的相似性选择了一个锚点补丁，然后计算了值-值注意力图。GEM可以看作是这个过程的逆过程，其中：
 - en: The first step is to apply *qkv-*ensembled self self-attention instead of regular
     attention for the last *m* attention blocks in the ViT (*m* is another hyperparameter).
     Intuitively, this is a way to compute ensembled cluster assignments for value
     embeddings *V*, thereby correcting the original query-key attention maps.
+  id: totrans-70
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 第一步是对ViT中最后 *m* 个注意力块应用 *qkv-* 集成的自我自我注意力，而不是常规的注意力（*m* 是另一个超参数）。直观地说，这是一种计算值嵌入
+    *V* 的集成聚类分配的方法，从而修正原始的查询-键注意力图。
 - en: The second step is to generate a heatmap by computing the cosine similarity
     between patch embeddings output from the modified ViT and the class text embedding.
     This effectively gives a class logit for each cluster.
+  id: totrans-71
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 第二步是通过计算从修改后的ViT输出的补丁嵌入与类文本嵌入之间的余弦相似性来生成热图。这实际上为每个集群提供了一个类别logit。
 - en: 'This set of logits can then be reshaped to produce a discriminative heatmap
     for the chosen class, which can take the form of any arbitrary text! Below are
     some examples of GEM heatmaps for various class prompts (red indicates higher
     similarity to the class prompt):'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 这组logits可以被重新形状化，以生成所选类别的判别热图，该热图可以采用任何任意文本的形式！以下是针对不同类别提示的GEM热图示例（红色表示与类别提示的相似性较高）：
 - en: '![](../Images/94bc567abf160a4af31f1dd654ceadfd.png)'
+  id: totrans-73
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/94bc567abf160a4af31f1dd654ceadfd.png)'
 - en: GEM heatmaps for different text classes generated by the author | (**Top**)
     Photo by [Nirzar Pangarkar](https://unsplash.com/@nirzar) on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
     | (**Bottom**) Photo by [Arnav Das](https://unsplash.com/@arnavdas) on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者生成的不同文本类别的GEM热图 | (**顶部**) 图片由[Nirzar Pangarkar](https://unsplash.com/@nirzar)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+    | (**底部**) 图片由[Arnav Das](https://unsplash.com/@arnavdas)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Discriminative localization can transform an image-level encoder into a model
     that can be used for semantic segmentation, without the need for notoriously expensive
     mask annotations. Moreover, training-free localization is a powerful approach
     to making vision encoders more explainable, allowing us to see what they see.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 区分性定位可以将图像级编码器转变为一种可以用于语义分割的模型，无需昂贵的标注掩膜。此外，无需训练的定位是一种强大的方法，使得视觉编码器更具可解释性，允许我们看到它们所看到的内容。
 - en: 'For supervised vision models, zero-shot localization began with class activation
     maps, a technique for a specific kind of CNN architecture. Later, a generalization
     of this approach, applicable to any supervised CNN architecture, was proposed.
@@ -386,38 +562,58 @@
     and exists across different CLIP encoder architectures. As of today, some localization
     techniques for the CLIP ViT such as GEM have proven successful. Is there a more
     generalized approach waiting to be discovered?'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于监督式视觉模型，零-shot定位最早是通过类激活图（class activation maps）这一针对特定类型CNN架构的技术开始的。随后，提出了这一方法的推广，使其适用于任何监督式CNN架构。然而，对于CLIP风格的编码器，训练-free定位则不那么直接：相反的可视化现象仍然未被充分解释，并且在不同的CLIP编码器架构中普遍存在。到今天为止，像GEM这样的CLIP
+    ViT定位技术已取得成功。是否有一种更广泛的技术等待被发现？
 - en: References
+  id: totrans-77
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: 'W. Bousselham, F. Petersen, V. Ferrari, H. Kuehne, [Grounding Everything: Emerging
     Localization Properties in Vision-Language Transformers](https://arxiv.org/pdf/2312.00878)
     (2024), 2024 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)'
+  id: totrans-78
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: W. Bousselham, F. Petersen, V. Ferrari, H. Kuehne, [全面定位：视觉-语言变换器中的新兴定位特性](https://arxiv.org/pdf/2312.00878)
+    (2024)，2024年IEEE计算机视觉与模式识别大会（CVPR）
 - en: B. Zhou, A. Khosla, A. Lapedriza, A. Oliva, A. Torralba, [Learning Deep Features
     for Discriminative Localization](https://arxiv.org/pdf/1512.04150) (2016), 2016
     IEEE Conference on Computer Vision and Pattern Recognition (CVPR)
+  id: totrans-79
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: B. Zhou, A. Khosla, A. Lapedriza, A. Oliva, A. Torralba, [学习深度特征用于区分性定位](https://arxiv.org/pdf/1512.04150)
+    (2016)，2016年IEEE计算机视觉与模式识别大会（CVPR）
 - en: 'R. R. Selvaraju, M. Cogswell, A. Das, R. Vedantam, D. Parikh, D. Batra, [Grad-CAM:
     Visual Explanations from Deep Networks via Gradient-based Localization](https://arxiv.org/pdf/1610.02391)
     (2017), 2017 IEEE International Conference on Computer Vision (ICCV)'
+  id: totrans-80
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: R. R. Selvaraju, M. Cogswell, A. Das, R. Vedantam, D. Parikh, D. Batra, [Grad-CAM：通过基于梯度的定位从深度网络获得视觉解释](https://arxiv.org/pdf/1610.02391)
+    (2017)，2017年IEEE国际计算机视觉大会（ICCV）
 - en: Y. Li, H. Wang, Y. Duan, H. Xu, X. Li, [Exploring Visual Explanations for Contrastive
     Language-Image Pre-training](https://arxiv.org/pdf/2209.07046) (2022)
+  id: totrans-81
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Y. Li, H. Wang, Y. Duan, H. Xu, X. Li, [探索对比语言-图像预训练的视觉解释](https://arxiv.org/pdf/2209.07046)
+    (2022)
 - en: Y. Li, H. Wang, Y. Duan, J. Zhang, X. Li, [A Closer Look at the Explainability
     of Contrastive Language-Image Pre-training](https://arxiv.org/pdf/2304.05653)
     (2024)
+  id: totrans-82
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: Y. Li, H. Wang, Y. Duan, J. Zhang, X. Li, [更深入地探讨对比语言-图像预训练的可解释性](https://arxiv.org/pdf/2304.05653)
+    (2024)

@@ -1,55 +1,84 @@
 - en: GGUF Quantization with Imatrix and K-Quantization to Run LLMs on Your CPU
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用Imatrix和K-量化进行GGUF量化，以便在您的CPU上运行LLM
 - en: 原文：[https://towardsdatascience.com/gguf-quantization-with-imatrix-and-k-quantization-to-run-llms-on-your-cpu-02356b531926?source=collection_archive---------2-----------------------#2024-09-13](https://towardsdatascience.com/gguf-quantization-with-imatrix-and-k-quantization-to-run-llms-on-your-cpu-02356b531926?source=collection_archive---------2-----------------------#2024-09-13)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/gguf-quantization-with-imatrix-and-k-quantization-to-run-llms-on-your-cpu-02356b531926?source=collection_archive---------2-----------------------#2024-09-13](https://towardsdatascience.com/gguf-quantization-with-imatrix-and-k-quantization-to-run-llms-on-your-cpu-02356b531926?source=collection_archive---------2-----------------------#2024-09-13)
 - en: Fast and accurate GGUF models for your CPU
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为您的CPU提供快速且精准的GGUF模型
 - en: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--02356b531926--------------------------------)[![Benjamin
     Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--02356b531926--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--02356b531926--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--02356b531926--------------------------------)
     [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--02356b531926--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--02356b531926--------------------------------)[![Benjamin
+    Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--02356b531926--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--02356b531926--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--02356b531926--------------------------------)
+    [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--02356b531926--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02356b531926--------------------------------)
     ·7 min read·Sep 13, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02356b531926--------------------------------)
+    ·7分钟阅读·2024年9月13日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/453132ddbe32fc254b97a076581313bd.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/453132ddbe32fc254b97a076581313bd.png)'
 - en: Generated with DALL-E
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 由DALL-E生成
 - en: GGUF is a binary file format designed for efficient storage and fast large language
     model (LLM) loading with GGML, a C-based tensor library for machine learning.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: GGUF是一种二进制文件格式，旨在通过GGML（一种基于C的机器学习张量库）实现高效的存储和快速的大型语言模型（LLM）加载。
 - en: GGUF encapsulates all necessary components for inference, including the tokenizer
     and code, within a single file. It supports the conversion of various language
     models, such as Llama 3, Phi, and Qwen2\. Additionally, it facilitates model quantization
     to lower precisions to improve speed and memory efficiency on CPUs.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: GGUF将推理所需的所有组件（包括分词器和代码）封装在一个文件中。它支持将各种语言模型转换为GGUF格式，例如Llama 3、Phi和Qwen2。此外，它还支持将模型量化为较低的精度，以提高在CPU上的速度和内存效率。
 - en: We often write “GGUF quantization” but GGUF itself is only a file format, not
     a quantization method. There are several quantization algorithms implemented in
     llama.cpp to reduce the model size and serialize the resulting model in the GGUF
     format.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们常常写“GGUF量化”，但GGUF本身只是一个文件格式，并不是一种量化方法。llama.cpp中实现了几种量化算法，用于减少模型大小并将生成的模型序列化为GGUF格式。
 - en: 'In this article, we will see how to accurately quantize an LLM and convert
     it to GGUF, using an importance matrix (imatrix) and the K-Quantization method.
     I provide the GGUF conversion code for Gemma 2 Instruct, using an imatrix. It
     works the same with other models supported by llama.cpp: Qwen2, Llama 3, Phi-3,
     etc. We will also see how to evaluate the accuracy of the quantization and inference
     throughput of the resulting models.'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将展示如何准确地量化一个LLM并将其转换为GGUF，使用重要性矩阵（imatrix）和K-量化方法。我将提供Gemma 2 Instruct的GGUF转换代码，使用了imatrix。它与其他由llama.cpp支持的模型一样有效：Qwen2、Llama
+    3、Phi-3等。我们还将讨论如何评估量化的准确性以及生成模型的推理吞吐量。

@@ -1,60 +1,90 @@
 - en: A Forensic Analysis of the Claude Sonnet 3.5 System Prompt
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Claude Sonnet 3.5 系统提示的法医分析
 - en: 原文：[https://towardsdatascience.com/a-forensic-analysis-of-the-claude-sonnet-3-5-system-prompt-leak-1d2e7170e2fa?source=collection_archive---------3-----------------------#2024-06-24](https://towardsdatascience.com/a-forensic-analysis-of-the-claude-sonnet-3-5-system-prompt-leak-1d2e7170e2fa?source=collection_archive---------3-----------------------#2024-06-24)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/a-forensic-analysis-of-the-claude-sonnet-3-5-system-prompt-leak-1d2e7170e2fa?source=collection_archive---------3-----------------------#2024-06-24](https://towardsdatascience.com/a-forensic-analysis-of-the-claude-sonnet-3-5-system-prompt-leak-1d2e7170e2fa?source=collection_archive---------3-----------------------#2024-06-24)
 - en: Claude 3.5 Sonnet artifacts are to structured output, such as code generation,
     what vector retrieval is to RAG
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Claude 3.5 Sonnet 伪造物对于结构化输出（如代码生成）就像向量检索对于RAG一样。
 - en: '[](https://ed-burton.medium.com/?source=post_page---byline--1d2e7170e2fa--------------------------------)[![Edward
     Burton](../Images/75418d9af27ffa72778eeb76bb1642fa.png)](https://ed-burton.medium.com/?source=post_page---byline--1d2e7170e2fa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1d2e7170e2fa--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1d2e7170e2fa--------------------------------)
     [Edward Burton](https://ed-burton.medium.com/?source=post_page---byline--1d2e7170e2fa--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://ed-burton.medium.com/?source=post_page---byline--1d2e7170e2fa--------------------------------)[![Edward
+    Burton](../Images/75418d9af27ffa72778eeb76bb1642fa.png)](https://ed-burton.medium.com/?source=post_page---byline--1d2e7170e2fa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1d2e7170e2fa--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1d2e7170e2fa--------------------------------)
+    [Edward Burton](https://ed-burton.medium.com/?source=post_page---byline--1d2e7170e2fa--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1d2e7170e2fa--------------------------------)
     ·7 min read·Jun 24, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1d2e7170e2fa--------------------------------)
+    ·7分钟阅读·2024年6月24日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/68cda1865a3749423251418747c26e97.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/68cda1865a3749423251418747c26e97.png)'
 - en: Introducing Artifacts
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 引入伪造物
 - en: '*A step forward in structured output generation.*'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '*结构化输出生成的一大进步。*'
 - en: This is an analysis of the system prompt generation for [Claude 3.5 Sonnet.](https://www.anthropic.com/news/claude-3-5-sonnet)
     The link to the code for this analysis is available at the end of this article
     published alongside the source. The main part of this analysis regards the introduction
     of artifacts, and how this might work as part of Anthropic’s categorization and
     retrieval system that is currently beating all LLM benchmarks for code generation
     and other tasks.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 这篇文章分析了[Claude 3.5 Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet)系统提示的生成。本文末尾提供了该分析代码的链接，文章与源代码一同发布。该分析的主要部分涉及伪造物的引入，以及这一过程如何作为Anthropic目前在代码生成和其他任务中超越所有LLM基准的分类与检索系统的一部分。
 - en: “Artifacts are for substantial, self-contained content that users might modify
     or reuse.
+  id: totrans-10
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: “伪造物用于包含大量、可独立使用且用户可能修改或重用的内容。”
 - en: 'An artifact is a paradigm change because it formalizes a new concept: The concept
     of persistent data. An artifact is a base object or example for each task the
     LLM is going to complete. By persisting data, we are able to iterate and remember
     changes.'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 伪造物是一种范式转变，因为它正式化了一个新概念：持久数据的概念。伪造物是LLM将要完成的每项任务的基础对象或示例。通过持久化数据，我们能够进行迭代并记住变化。
 - en: By providing fixed references, we unblock the ability to incrementally improve
     and refine output. This is a step towards controlling the ephemeral nature of
     verbose LLM output and generating standarized…
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过提供固定的参考，我们解锁了逐步改进和精炼输出的能力。这是朝着控制冗长LLM输出的短暂性质并生成标准化输出的一步。

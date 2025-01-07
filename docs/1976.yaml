@@ -1,35 +1,56 @@
 - en: VAE for Time Series
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 时间序列的VAE
 - en: 原文：[https://towardsdatascience.com/vae-for-time-series-1dc0fef4bffa?source=collection_archive---------0-----------------------#2024-08-14](https://towardsdatascience.com/vae-for-time-series-1dc0fef4bffa?source=collection_archive---------0-----------------------#2024-08-14)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/vae-for-time-series-1dc0fef4bffa?source=collection_archive---------0-----------------------#2024-08-14](https://towardsdatascience.com/vae-for-time-series-1dc0fef4bffa?source=collection_archive---------0-----------------------#2024-08-14)
 - en: Generate realistic sequential data with this easy-to-train model
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用这个易于训练的模型生成逼真的序列数据
 - en: '[](https://medium.com/@david.kyle_13073?source=post_page---byline--1dc0fef4bffa--------------------------------)[![David
     Kyle](../Images/536175491ed7f89d03a4e528a986bf8a.png)](https://medium.com/@david.kyle_13073?source=post_page---byline--1dc0fef4bffa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1dc0fef4bffa--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1dc0fef4bffa--------------------------------)
     [David Kyle](https://medium.com/@david.kyle_13073?source=post_page---byline--1dc0fef4bffa--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@david.kyle_13073?source=post_page---byline--1dc0fef4bffa--------------------------------)[![David
+    Kyle](../Images/536175491ed7f89d03a4e528a986bf8a.png)](https://medium.com/@david.kyle_13073?source=post_page---byline--1dc0fef4bffa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1dc0fef4bffa--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1dc0fef4bffa--------------------------------)
+    [David Kyle](https://medium.com/@david.kyle_13073?source=post_page---byline--1dc0fef4bffa--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1dc0fef4bffa--------------------------------)
     ·10 min read·Aug 14, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1dc0fef4bffa--------------------------------)
+    ·10分钟阅读·2024年8月14日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/654bce73be38748a0dc9b8a9e5f22919.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/654bce73be38748a0dc9b8a9e5f22919.png)'
 - en: Photo by [Joe Cook](https://unsplash.com/@joecook?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[Joe Cook](https://unsplash.com/@joecook?utm_source=medium&utm_medium=referral)
+    在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Variational autoencoders (VAEs) are a form of generative AI that came into the
     spotlight for their ability to create realistic images, but they can also create
     compelling time series. The standard VAE can be adapted to capture periodic and
@@ -37,40 +58,58 @@
     simulations. The model I built simulates temperature data using **1-D convolution
     layers**, a **strategic choice of strides**,a **flexible time dimension**, anda
     **seasonally dependent prior**.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 变分自编码器（VAEs）是一种生成性人工智能，因其能够创建逼真的图像而引起了广泛关注，但它们同样可以生成引人入胜的时间序列数据。标准的VAE可以调整以捕捉时间序列数据的周期性和顺序模式，然后用于生成合理的模拟数据。我所建立的模型使用**1-D卷积层**、**步幅的战略选择**、**灵活的时间维度**以及**季节性相关的先验**来模拟温度数据。
 - en: Objective
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 目标
 - en: 'I trained a model on 50 years of [hourly ERA5 temperature data](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels?tab=overview)
     from Phoenix, Arizona [1]. To have useful generated data, it must capture a few
     characteristics of the original data:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我基于来自美国亚利桑那州凤凰城的50年[每小时ERA5温度数据](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels?tab=overview)训练了一个模型[1]。为了生成有用的数据，模型必须捕捉到原始数据的一些特征：
 - en: '**seasonal profile** — summers should be warmer than winters'
+  id: totrans-11
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**季节性概况** — 夏季应该比冬季温暖'
 - en: '**diurnal profile** — days should be warmer than nights'
+  id: totrans-12
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**昼夜变化概况** — 白天应该比夜晚温暖'
 - en: '**autocorrelation**—the data should be smooth, and consecutive days should
     have similar temperatures'
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**自相关** — 数据应该平滑，连续的几天应该有相似的温度'
 - en: '![](../Images/4f4d9547ddb427d0c48942bc2882c522.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4f4d9547ddb427d0c48942bc2882c522.png)'
 - en: Contains modified Copernicus Climate Change Service information [2024]
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 包含修改后的哥白尼气候变化服务信息 [2024]
 - en: Impact of Climate Change
+  id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 气候变化的影响
 - en: The model performs best if the training data is stationary, without a long-term
     trend. However, due to climate change, the temperature trends upward by about
     0.7 °F per decade — a value derived from the observed data which is consistent
@@ -80,363 +119,536 @@
     erase the upward trend. This adjusted dataset represents what historical temperatures
     may have looked like if we assume 2024’s climate conditions. Interpretations of
     the the generated data should keep this in mind.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果训练数据是平稳的，没有长期趋势，模型的表现最佳。然而，由于气候变化，温度每十年大约上升 0.7°F——这一数值是从观察数据中得出的，且与[已发布的地图](https://www.climate.gov/news-features/understanding-climate/climate-change-global-temperature)一致，显示了按区域划分的近期升温趋势[2]。为了考虑到温度的上升，我对原始观测数据应用了每十年-0.7°F的线性变换，以消除向上的趋势。这个调整后的数据集代表了如果假设
+    2024 年的气候条件，历史温度可能的样貌。对生成数据的解释应考虑这一点。
 - en: '![](../Images/9cba606b7e33d9ea45d3afbfafeb93a2.png)'
+  id: totrans-18
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9cba606b7e33d9ea45d3afbfafeb93a2.png)'
 - en: Contains modified Copernicus Climate Change Service information [2024]
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 包含修改后的哥白尼气候变化服务信息 [2024]
 - en: What is a VAE?
+  id: totrans-20
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 什么是 VAE？
 - en: Variational autoencoders reduce the dimensions of the input data into a smaller
     subspace. VAEs define an encoder to transform observed inputs into a compressed
     form called the latent variable. Then, a distinct, mirroring decoder attempts
     to recreate the original data. The encoder and decoder are co-optimized to make
     an encoding that loses as little information as possible.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 变分自编码器将输入数据的维度减少到一个较小的子空间。VAE 定义了一个编码器，将观察到的输入转换为称为潜变量的压缩形式。然后，一个独立的、镜像的解码器尝试重建原始数据。编码器和解码器共同优化，以便生成一个尽可能少丢失信息的编码。
 - en: '![](../Images/e819814451e6e1156d1f0f13591f3e8c.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e819814451e6e1156d1f0f13591f3e8c.png)'
 - en: 'The full loss function used in training includes:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 训练中使用的完整损失函数包括：
 - en: 'a **reconstruction loss**: measuring how closely the round-trip, transformed
     data matches the original inputs'
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 **重建损失**：衡量往返变换的数据与原始输入的匹配程度
 - en: 'a **regularization term**: measuring how closely the encoded distribution for
     the latent variable matches the prior distribution.'
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 **正则化项**：衡量潜变量的编码分布与先验分布的匹配程度。
 - en: These two loss terms are derived using variational inference by trying to maximize
     the evidence lower bound (ELBO) of the observed data. Check out [this video](https://www.youtube.com/watch?v=IXsA5Rpp25w)
     for the mathematical derivation [3].
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两个损失项是通过变分推理得出的，试图最大化观察数据的证据下界（ELBO）。查看[这个视频](https://www.youtube.com/watch?v=IXsA5Rpp25w)以获取数学推导
+    [3]。
 - en: '![](../Images/2b621fccf954d7fbab21c415f6b3003c.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2b621fccf954d7fbab21c415f6b3003c.png)'
 - en: Intuitively, VAEs perform feature extraction on the training data in such a
     way that the most important features, represented by the latent variable, follow
     the defined prior distribution. New data is generated by sampling the latent distribution
     and then decoding it to the form of the original inputs.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 直观上，VAE 在训练数据上进行特征提取，使得由潜变量表示的最重要特征符合定义的先验分布。新数据是通过从潜在分布中采样并解码为原始输入的形式生成的。
 - en: Check out Joseph Rocca’s article, [Understanding Variational Autoencoders](/understanding-variational-autoencoders-vaes-f70510919f73),
     for a more thorough explanation of how VAEs work [4].
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 查看 Joseph Rocca 的文章，[理解变分自编码器](/understanding-variational-autoencoders-vaes-f70510919f73)，以获取关于
+    VAE 工作原理的更深入解释 [4]。
 - en: 1-D convolutional layers
+  id: totrans-30
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 1-D 卷积层
 - en: For modeling Phoenix temperature data, I made my encoder a neural network with
     one-dimensional convolutional layers. Each convolution layer applies a kernel
     — a matrix of weights — to shifted intervals of the inputs. Since the same kernel
     is used across the entire input, convolutional layers are considered shift invariant
     and are well suited for time series which have repeating patterns of sequences.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 在建模凤凰城温度数据时，我将我的编码器设计为一个具有一维卷积层的神经网络。每个卷积层将一个核——一个权重矩阵——应用于输入的平移区间。由于整个输入中使用的是相同的核，卷积层被认为是平移不变的，非常适合处理具有重复序列模式的时间序列数据。
 - en: '![](../Images/97561b8dc42f31c4936adde6831b5c84.png)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/97561b8dc42f31c4936adde6831b5c84.png)'
 - en: 'left: convolution layer as a matrix operation | right: graphical representation
     | Usually, the input and output have several feature variables. For simplicity,
     the matrix operation shows convolution between an input and output with only one
     feature.'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 左：卷积层作为矩阵操作 | 右：图形表示 | 通常，输入和输出具有多个特征变量。为了简化，矩阵操作显示了仅包含一个特征的输入和输出之间的卷积。
 - en: The decoder performs the opposite task of the encoder with transposed 1-D convolutional
     layers, also called deconvolution layers. Latent features are projected into overlapping
     sequences to create an output time series that closely matches the inputs.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 解码器执行与编码器相反的任务，使用转置的1维卷积层，也称为反卷积层。潜在特征被投射到重叠的序列中，以创建一个与输入紧密匹配的输出时间序列。
 - en: '![](../Images/2581d06146923b5daa7279ab2a98a37a.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2581d06146923b5daa7279ab2a98a37a.png)'
 - en: The weight matrix for a deconvolution layer is the transpose of a convolution
     matrix.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 反卷积层的权重矩阵是卷积矩阵的转置。
 - en: The full model stacks several convolution and deconvolution layers together.
     Each intermediate, hidden layer extends the range of the latent variables allowing
     the model to capture long-range effects in the data.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 完整的模型将多个卷积层和反卷积层堆叠在一起。每一层中间的隐藏层扩展了潜在变量的范围，使模型能够捕捉数据中的长远效应。
 - en: '![](../Images/36508f0ad297abbc4a4f35c2abe84280.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/36508f0ad297abbc4a4f35c2abe84280.png)'
 - en: Strategic Strides
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 战略性步幅
 - en: The stride — the jump between shifts — determines the size of the next layer.
     Convolution layers use strides to shrink the inputs down, and deconvolution layers
     use strides to expand the latent variables back to the input size. However, they
     also serve a secondary purpose — to capture periodic trends in the time series.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 步幅——即位移之间的跳跃——决定了下一层的大小。卷积层使用步幅来缩小输入，反卷积层使用步幅将潜在变量扩展回输入大小。然而，它们还有一个辅助功能——捕捉时间序列中的周期性趋势。
 - en: You can strategically select the strides of the convolution layers to replicate
     the periodic patterns in the data.
+  id: totrans-41
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 你可以战略性地选择卷积层的步幅，以复制数据中的周期性模式。
 - en: Convolutions apply the kernel cyclically, repeating the same weights with a
     period equal to its stride. This gives the training process the freedom to customize
     the weights based on the input’s position in the cycle.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 卷积周期性地应用内核，重复相同的权重，周期等于其步幅。这使得训练过程能够根据输入在周期中的位置自定义权重。
 - en: Stacking multiple layers together results in a larger effective period made
     of nested sub-convolutions.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 将多个层堆叠在一起，会形成一个由嵌套子卷积组成的更大有效周期。
 - en: Consider a convolutional network that distills hourly time series data into
     a features space with four variables per day representing morning, afternoon,
     evening, and night. A layer with a stride of 4 will have weights uniquely assigned
     to each time of day that captures the diurnal profile in the hidden layer. During
     training, the encoder and decoder learn weights that replicate the daily cycles
     found in the data.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑一个卷积网络，它将每小时的时间序列数据提炼成一个特征空间，每天有四个变量，分别表示早晨、下午、傍晚和夜晚。步幅为4的层会为一天中的每个时间点分配独特的权重，这些权重捕捉了隐藏层中的昼夜模式。在训练过程中，编码器和解码器学习到的权重能够复制数据中的每日周期。
 - en: '![](../Images/8b8ea8c33a7e8ffd17471b647509357f.png)'
+  id: totrans-45
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8b8ea8c33a7e8ffd17471b647509357f.png)'
 - en: Convolutions exploit the cyclical nature of the inputs to build better latent
     features. Deconvolutions convert latent features into overlapping, repeating sequences
     to generate data with periodic patterns.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 卷积利用输入的周期性特性来构建更好的潜在特征。反卷积将潜在特征转换为重叠、重复的序列，以生成具有周期性模式的数据。
 - en: Flexible Time Dimension
+  id: totrans-47
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 灵活的时间维度
 - en: Image-generating VAEs usually have thousands of images pre-processed to have
     a fixed width and height. The generated images will match the width and height
     of the training data.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 图像生成变分自编码器（VAE）通常会预处理成千上万张图像，使其具有固定的宽度和高度。生成的图像将匹配训练数据的宽度和高度。
 - en: For the Phoenix dataset, I only have one 50 year time series. To improve the
     training, I broke the data up into sequences, ultimately settling on assigning
     a latent variable to each 96 hour period. However, I may want to generate time
     series that are longer than 4 days, and, ideally, the output is smooth rather
     than having discrete 96 hour chunks in the simulations.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于凤凰数据集，我只有一个50年的时间序列。为了提高训练效果，我将数据分割成多个序列，最终决定将每个96小时的周期分配一个潜在变量。然而，我可能希望生成比4天更长的时间序列，并且理想情况下，输出应当是平滑的，而不是在模拟中具有离散的96小时块。
 - en: Fortunately, Tensorflow allows you to specify unconstrained dimensions in your
     neural network. In the same way that neural networks can handle any batch size,
     you can build your model to handle an arbitrary number of time steps. As a result,
     my latent variable also includes a time dimension which can vary. In my model,
     there is one time step in the latent space for every 96 hours in the inputs.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，Tensorflow允许你在神经网络中指定不受约束的维度。就像神经网络可以处理任何批次大小一样，你也可以构建模型来处理任意数量的时间步。因此，我的潜在变量也包括一个可以变化的时间维度。在我的模型中，对于输入中的每96小时，就会有一个时间步在潜在空间中。
 - en: '![](../Images/8e3f8ac50ebaba9a177179fe1067a780.png)'
+  id: totrans-51
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8e3f8ac50ebaba9a177179fe1067a780.png)'
 - en: Generating new data is as simple as sampling latent variables from the prior
     where you select the number of steps you want to include in the time dimension.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成新数据就像从先验中采样潜在变量一样简单，你只需选择你希望在时间维度中包含的步数。
 - en: VAEs with an unconstrained time dimension can generate data to any length.
+  id: totrans-53
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 具有不受约束时间维度的VAE可以生成任意长度的数据。
 - en: The simulated output will have 4 days for each time step you sampled, and the
     results will appear smooth since convolution layers allow input layers to spill
     into neighboring time periods.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 模拟的输出将在你采样的每个时间步上有4天，结果会显得平滑，因为卷积层允许输入层溢出到相邻的时间段。
 - en: Seasonally dependent prior
+  id: totrans-55
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 季节性依赖先验
 - en: In most VAEs, each component of the latent variable is assumed to follow a standard
     normal distribution. This distribution, sometimes called the prior, is sampled,
     then decoded, to generate new data. In this case, I chose a slightly more complex
     prior that depends on the time of year.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 在大多数VAE中，潜在变量的每个组件假定遵循标准正态分布。这个分布，有时称为先验，经过采样后解码，以生成新数据。在这种情况下，我选择了一个稍微复杂一点的先验，它依赖于年份的时间。
 - en: Latent variables sampled from a seasonal prior will generate data with characteristics
     that vary by the time of year.
+  id: totrans-57
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 从季节性先验中采样的潜在变量将生成具有随年份时间变化特征的数据。
 - en: Under this prior, generated January data will look very different than July
     data, and generated data from the same month will share many of the same features.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个先验下，生成的1月数据与7月数据看起来非常不同，而来自同一个月的数据会共享许多相同的特征。
 - en: I represented the time of year as an angle, *θ,* where 0° is January 1st, 180°
     is the beginning of July, and 360° is back to January again. The prior is a normal
     distribution whose mean and log-variance is a third degree trigonometric polynomial
     of *θ* where the coefficients of the polynomial are parameters learned during
     training in conjunction with the encoder and decoder.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 我将年份的时间表示为一个角度，*θ*，其中0°代表1月1日，180°代表7月初，360°则回到1月。先验是一个正态分布，其均值和对数方差是*θ*的三次三角多项式，其中多项式的系数是在训练过程中与编码器和解码器共同学习的参数。
 - en: The prior distribution parameters are a periodic function of *θ*, and well-behaved
     periodic functions can be approximated to any level of accuracy given a trigonometric
     polynomial of sufficiently high degree. [5]
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 先验分布参数是*θ*的周期函数，且良好的周期函数可以通过足够高阶的三角多项式逼近到任意精度。[5]
 - en: '![](../Images/54ffaaeed1f9291348f6854a5c563292.png)'
+  id: totrans-61
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/54ffaaeed1f9291348f6854a5c563292.png)'
 - en: 'left: visualization of *θ | right: prior distribution of Z in terms of parameters
     m and s*'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 'left: *θ*的可视化 | right: Z的先验分布，表示为参数m和s'
 - en: The seasonal data is only used in the prior and doesn’t influence the encoder
     or decoder. The full set of probabilistic dependencies is shown here graphically.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 季节性数据仅用于先验分布，并不影响编码器或解码器。完整的概率依赖关系在这里以图形方式展示。
 - en: '![](../Images/43d413f652ced272f112d7dd076e9f99.png)'
+  id: totrans-64
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/43d413f652ced272f112d7dd076e9f99.png)'
 - en: Probabilistic graphical model including the prior
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 包括先验的概率图模型
 - en: Implementation
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实现
 - en: I trained the model using Tensorflow in Python.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用Python中的Tensorflow训练了这个模型。
 - en: '[PRE0]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Encoder
+  id: totrans-69
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 编码器
 - en: The input is defined with a flexible time dimension. In Keras, you specify an
     unconstrained dimension using `None` .
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 输入定义了一个灵活的时间维度。在Keras中，你可以使用`None`来指定一个不受约束的维度。
 - en: Using the `'same'` padding will append zeros to the input layer such that the
     output size matches the input size divided by the stride.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用`'same'`填充会将零附加到输入层，以便输出大小与输入大小除以步幅后的大小相匹配。
 - en: '[PRE1]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '`Sampling()` is a custom layer that samples data from a normal distribution
     with the given mean and log variance.'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Sampling()`是一个自定义层，用于从给定的均值和对数方差的正态分布中采样数据。'
 - en: Decoder
+  id: totrans-74
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 解码器
 - en: Deconvolution is performed with `Conv1DTranspose` .
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 反卷积通过`Conv1DTranspose`进行。
 - en: '[PRE2]'
+  id: totrans-76
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Prior
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 先验
 - en: The prior expects inputs already in the form [sin(*θ*), cos(*θ*), sin(2*θ*),
     cos(2*θ*), sin(3*θ*), cos(3*θ*)].
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 先验期望输入已经是[sin(*θ*), cos(*θ*), sin(2*θ*), cos(2*θ*), sin(3*θ*), cos(3*θ*)]的形式。
 - en: The `Dense` layer has no bias term as a way of preventing the prior distribution
     from drifting too far from zero or having an overall variance that was too high
     or too small.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Dense` 层没有偏置项，这是为了防止先验分布偏离零过远，或其整体方差过高或过小。'
 - en: '[PRE3]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Full Model
+  id: totrans-81
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 完整模型
 - en: The loss function contains a reconstruction term and a latent regularization
     term.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 损失函数包含重建项和潜在正则化项。
 - en: Function `log_lik_normal_sum` is a custom function for calculating the normal
     log likelihood of the observed data given the reconstructed output. Calculating
     the log-likelihood requires noise distribution around the decoded output which
     is assumed to be normal with log variance given by `self.noise_log_var`, learned
     during training.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数`log_lik_normal_sum`是一个自定义函数，用于计算在给定重建输出的情况下，观察数据的正态对数似然值。计算对数似然需要围绕解码输出的噪声分布，假设其为正态分布，且对数方差由`self.noise_log_var`表示，在训练过程中学习得到。
 - en: For the regularization term, `kl_divergence_sum` calculates the Kullback–Leibler
     divergence between two gaussians — in this case, the latent encoded and prior
     distributions.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于正则化项，`kl_divergence_sum`计算两个高斯分布之间的Kullback–Leibler散度——在这种情况下，是潜在编码分布与先验分布之间的散度。
 - en: '[PRE4]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: For the full implementation, visit my [Github repository](https://github.com/davidthemathman/vae_for_time_series).
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 要查看完整实现，请访问我的[Github 仓库](https://github.com/davidthemathman/vae_for_time_series)。
 - en: Results
+  id: totrans-87
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结果
 - en: After training the model, the generated data matches the seasonal/diurnal profiles
     and autocorrelation of the original temperature data.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 在训练模型后，生成的数据与原始温度数据的季节性/日变化轮廓以及自相关性匹配。
 - en: '![](../Images/4ec4ea8c396e9259e84135058e06d4d4.png)'
+  id: totrans-89
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4ec4ea8c396e9259e84135058e06d4d4.png)'
 - en: Contains modified Copernicus Climate Change Service information [2024]
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 包含修改后的哥白尼气候变化服务信息[2024]
 - en: Conclusion
+  id: totrans-91
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Building techniques for generative time series modeling is a crucial field with
     applications beyond just simulating data. The methods I shared could be adapted
     for applications in data imputation, anomaly detection, and forecasting.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 构建生成时间序列建模技术是一个关键领域，其应用不仅仅限于数据模拟。我分享的方法可以适应于数据插补、异常检测和预测等应用。
 - en: By using 1-D convolutional layers, strategic strides, flexible time inputs,
     and seasonal priors, you can build a VAE that replicates complex patterns in your
     time series. Let’s collaborate to refine best practices for time series modeling.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过使用1维卷积层、战略性步幅、灵活的时间输入和季节性先验，你可以构建一个VAE，复制时间序列中的复杂模式。让我们共同努力，优化时间序列建模的最佳实践。
 - en: Share in the comments any experience, questions, or insights you have with VAEs
     and/or generative AI for time series.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 在评论中分享你在使用VAE和/或生成AI进行时间序列建模方面的经验、问题或见解。
 - en: All images have been created by the author unless otherwise stated.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有图像均由作者创作，除非另有说明。
 - en: '[1] Hersbach, H., Bell, B., Berrisford, P., Biavati, G., Horányi, A., Muñoz
     Sabater, J., Nicolas, J., Peubey, C., Radu, R., Rozum, I., Schepers, D., Simmons,
     A., Soci, C., Dee, D., Thépaut, J-N. (2023): ERA5 hourly data on single levels
     from 1940 to present. Copernicus Climate Change Service (C3S) Climate Data Store
     (CDS), DOI: [10.24381/cds.adbb2d47](https://cds.climate.copernicus.eu/cdsapp#!/dataset/10.24381/cds.adbb2d47?tab=overview)
     (Accessed on 01-Aug-2024)'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] Hersbach, H., Bell, B., Berrisford, P., Biavati, G., Horányi, A., Muñoz
+    Sabater, J., Nicolas, J., Peubey, C., Radu, R., Rozum, I., Schepers, D., Simmons,
+    A., Soci, C., Dee, D., Thépaut, J-N. (2023): ERA5每小时数据（单一层级，从1940年至今）。哥白尼气候变化服务（C3S）气候数据存储（CDS），DOI：[10.24381/cds.adbb2d47](https://cds.climate.copernicus.eu/cdsapp#!/dataset/10.24381/cds.adbb2d47?tab=overview)（访问日期：2024年8月1日）'
 - en: '[2] Lindsey, R., & Dahlman, L. (2024, January 18). *Climate change: Global
     temperature*. Climate.gov. [https://www.climate.gov/news-features/understanding-climate/climate-change-global-temperature](https://www.climate.gov/news-features/understanding-climate/climate-change-global-temperature)'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] Lindsey, R., & Dahlman, L. (2024年1月18日). *气候变化：全球气温*. Climate.gov. [https://www.climate.gov/news-features/understanding-climate/climate-change-global-temperature](https://www.climate.gov/news-features/understanding-climate/climate-change-global-temperature)'
 - en: '[3] Sachdeva, K. (2021, January 26). *Evidence lower bound (ELBO) — Clearly
     explained!* [Video]. YouTube. [https://www.youtube.com/watch?v=IXsA5Rpp25w](https://www.youtube.com/watch?v=IXsA5Rpp25w)'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] Sachdeva, K. (2021年1月26日). *证据下界（ELBO）——清晰解释！* [视频]. YouTube. [https://www.youtube.com/watch?v=IXsA5Rpp25w](https://www.youtube.com/watch?v=IXsA5Rpp25w)'
 - en: '[4] Rocca, J. (2019, September 23). *Understanding variational autoencoders
     (VAEs)*. Towards Data Science. [https://towardsdatascience.com/understanding-variational-autoencoders-vaes-f70510919f73](/understanding-variational-autoencoders-vaes-f70510919f73)'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: '[4] Rocca, J. (2019年9月23日). *理解变分自编码器 (VAEs)*. Towards Data Science. [https://towardsdatascience.com/understanding-variational-autoencoders-vaes-f70510919f73](/understanding-variational-autoencoders-vaes-f70510919f73)'
 - en: '[5] Baidoo, F. A. (2015, August 28). *Uniform convergence of Fourier series*
     (REU Report). University of Chicago. [https://math.uchicago.edu/~may/REU2015/REUPapers/Baidoo.pdf](https://math.uchicago.edu/~may/REU2015/REUPapers/Baidoo.pdf)'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: '[5] Baidoo, F. A. (2015年8月28日). *傅里叶级数的统一收敛性* (REU报告). 芝加哥大学. [https://math.uchicago.edu/~may/REU2015/REUPapers/Baidoo.pdf](https://math.uchicago.edu/~may/REU2015/REUPapers/Baidoo.pdf)'

@@ -1,60 +1,92 @@
 - en: An Introduction to Quantile Loss, a.k.a. the Pinball Loss
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 分位损失简介，亦称为弹球损失
 - en: 原文：[https://towardsdatascience.com/an-introduction-to-quantile-loss-a-k-a-the-pinball-loss-33cccac378a9?source=collection_archive---------1-----------------------#2024-08-04](https://towardsdatascience.com/an-introduction-to-quantile-loss-a-k-a-the-pinball-loss-33cccac378a9?source=collection_archive---------1-----------------------#2024-08-04)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/an-introduction-to-quantile-loss-a-k-a-the-pinball-loss-33cccac378a9?source=collection_archive---------1-----------------------#2024-08-04](https://towardsdatascience.com/an-introduction-to-quantile-loss-a-k-a-the-pinball-loss-33cccac378a9?source=collection_archive---------1-----------------------#2024-08-04)
 - en: '![](../Images/774ca01180d5c0b5d2ef302ea5ec1859.png)'
+  id: totrans-2
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/774ca01180d5c0b5d2ef302ea5ec1859.png)'
 - en: Image generated with Midjourney
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用Midjourney生成的图像
 - en: Learn the intuition behind the metric used to evaluate probabilistic forecasts
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 了解用于评估概率预测的指标背后的直觉
 - en: '[](https://eryk-lewinson.medium.com/?source=post_page---byline--33cccac378a9--------------------------------)[![Eryk
     Lewinson](../Images/56e09e19c0bbfecc582da58761d15078.png)](https://eryk-lewinson.medium.com/?source=post_page---byline--33cccac378a9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--33cccac378a9--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--33cccac378a9--------------------------------)
     [Eryk Lewinson](https://eryk-lewinson.medium.com/?source=post_page---byline--33cccac378a9--------------------------------)'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://eryk-lewinson.medium.com/?source=post_page---byline--33cccac378a9--------------------------------)[![Eryk
+    Lewinson](../Images/56e09e19c0bbfecc582da58761d15078.png)](https://eryk-lewinson.medium.com/?source=post_page---byline--33cccac378a9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--33cccac378a9--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--33cccac378a9--------------------------------)
+    [Eryk Lewinson](https://eryk-lewinson.medium.com/?source=post_page---byline--33cccac378a9--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--33cccac378a9--------------------------------)
     ·7 min read·Aug 4, 2024
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--33cccac378a9--------------------------------)
+    ·7分钟阅读·2024年8月4日
 - en: --
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: There are many articles on [regression evaluation metrics](https://medium.com/towards-data-science/a-comprehensive-overview-of-regression-evaluation-metrics-6264af0926db),
     such as MSE, MAE, RMSE, etc. These metrics are very important when we care about
     the mean or median prediction. However, when we want to train our models to focus
     on other locations in the distribution, we have to use a different metric, which
     is not so frequently described in data science blog posts.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 有很多关于[回归评估指标](https://medium.com/towards-data-science/a-comprehensive-overview-of-regression-evaluation-metrics-6264af0926db)的文章，如MSE、MAE、RMSE等。这些指标在我们关注均值或中位数预测时非常重要。然而，当我们希望训练模型以关注分布中的其他位置时，我们必须使用一种不同的指标，这种指标在数据科学博客文章中并不常见。
 - en: In this article, we will explore the quantile loss, also known as the pinball
     loss, which is the go-to metric in quantile regression.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将探讨分位损失，也称为弹球损失，这是分位回归中的首选指标。
 - en: A few definitions to get us started
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 几个定义，帮助我们入门
 - en: Before explaining the quantile loss, let’s quickly go through a few definitions
     to make sure we are on the same page.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在解释分位损失之前，让我们快速浏览几个定义，以确保我们在同一页上。
 - en: Let’s start with a simple one. Algorithms that belong to the **regression**
     type predict a continuous variable, for example, they predict the temperature,
     the price of a stock, the demand for the latest iPhone, etc.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从一个简单的例子开始。属于**回归**类型的算法预测一个连续变量，例如，它们预测温度、股票价格、最新iPhone的需求等。
 - en: Now it is a time for a refresher from statistics. An **α quantile** is a value
     that divides a given set of numbers such that α × 100% of the numbers are less
     than or equal to this value, while the remaining (1 − α) × 100% of the…
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是时候进行统计学回顾了。**α分位数**是一个值，它将给定的一组数字分开，使得α × 100%的数字小于或等于此值，而剩余的(1 − α) × 100%的数字大于该值…

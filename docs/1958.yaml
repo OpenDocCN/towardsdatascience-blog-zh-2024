@@ -1,31 +1,49 @@
 - en: The Poisson Bootstrap
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 泊松自助法
 - en: 原文：[https://towardsdatascience.com/the-poisson-bootstrap-d0fd045e28c3?source=collection_archive---------4-----------------------#2024-08-12](https://towardsdatascience.com/the-poisson-bootstrap-d0fd045e28c3?source=collection_archive---------4-----------------------#2024-08-12)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/the-poisson-bootstrap-d0fd045e28c3?source=collection_archive---------4-----------------------#2024-08-12](https://towardsdatascience.com/the-poisson-bootstrap-d0fd045e28c3?source=collection_archive---------4-----------------------#2024-08-12)
 - en: Bootstrapping over large datasets
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在大数据集上的自助法
 - en: '[](https://medium.com/@davidclarance?source=post_page---byline--d0fd045e28c3--------------------------------)[![David
     Clarance](../Images/02cf7cdde9576cdf3af30a79da4db747.png)](https://medium.com/@davidclarance?source=post_page---byline--d0fd045e28c3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d0fd045e28c3--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d0fd045e28c3--------------------------------)
     [David Clarance](https://medium.com/@davidclarance?source=post_page---byline--d0fd045e28c3--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@davidclarance?source=post_page---byline--d0fd045e28c3--------------------------------)[![David
+    Clarance](../Images/02cf7cdde9576cdf3af30a79da4db747.png)](https://medium.com/@davidclarance?source=post_page---byline--d0fd045e28c3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d0fd045e28c3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d0fd045e28c3--------------------------------)
+    [David Clarance](https://medium.com/@davidclarance?source=post_page---byline--d0fd045e28c3--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0fd045e28c3--------------------------------)
     ·10 min read·Aug 12, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0fd045e28c3--------------------------------)
+    ·阅读时间10分钟·2024年8月12日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/362b9f899eae79f29c0c2de80db3e201.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/362b9f899eae79f29c0c2de80db3e201.png)'
 - en: Bootstrapping is a useful technique to infer statistical features (think mean,
     decile, confidence intervals) of a population based on a sample collected. Implementing
     it at scale can be hard and in use cases with streaming data, very complicated.
@@ -36,379 +54,565 @@
     I’ve understood the logic well enough to explain it to someone else. We’ll start
     with a description of classical bootstrapping first to motivate why Poisson bootstrapping
     is neat.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 自助法是一个有用的技术，可以基于收集到的样本推断总体的统计特征（比如均值、十分位数、置信区间等）。在大规模实现时，它可能很困难，尤其是在处理流数据的场景下，尤为复杂。在学习如何大规模应用自助法时，我[遇到了一篇谷歌博客](https://www.unofficialgoogledatascience.com/2015/08/an-introduction-to-poisson-bootstrap26.html)（几乎已有十年历史），介绍了泊松自助法。从那时起，我发现了一篇更早的论文，[Hanley
+    和 MacGibbon（2006）](http://www.med.mcgill.ca/epidemiology/Hanley/Reprints/bootstrap-hanley-macgibbon2006.pdf)，阐述了这一技术的一个版本。本文的目的是确保我已经充分理解了这个逻辑，并能向别人解释清楚。我们将首先介绍经典的自助法，以激发对泊松自助法的兴趣。
 - en: Classical bootstrapping
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 经典自助法
 - en: Suppose we wanted to calculate the mean age of students in a school. We could
     repeatedly draw samples of 100 students, calculate the means and store them. Then
     we could take a final mean of those sample means. This final mean is an estimate
     of the population mean.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们想计算一所学校学生的平均年龄。我们可以反复抽取100个学生的样本，计算它们的均值并进行存储。然后，我们可以计算这些样本均值的最终均值。这个最终均值就是对总体均值的估计。
 - en: In practice, it’s often not possible to draw repeated samples from a population.
     This is where bootstrapping comes in. Bootstrapping sort of mimics this process.
     Instead of drawing samples from the population we draw samples (with replacement)
     from the one sample we collected. The psuedo-samples are referred to as resamples.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实际操作中，通常无法从一个总体中多次抽样。这就是引入自助法（Bootstrapping）的原因。自助法在某种程度上模拟了这一过程。我们不是从总体中抽样，而是从我们收集的一个样本中进行有放回抽样。这些伪样本被称为重抽样（resamples）。
 - en: '![](../Images/b44df36fb0cc158f61146e63ccec36a4.png)'
+  id: totrans-11
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b44df36fb0cc158f61146e63ccec36a4.png)'
 - en: Turns out this is extremely effective. It’s more computationally expensive than
     a closed form solution but does not make strong assumptions about the distribution
     of the population. Additionally, it’s cheaper than repeating sample collections.
     In practice, it’s used a lot in industry because in many cases either closed form
     solutions don’t exist or are hard to get right—for instance, when inferring deciles
     of a population.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果证明，这非常有效。它比闭式解法计算代价高，但不需要对总体分布做出强假设。而且，它比重复收集样本便宜。在实际应用中，它在工业界使用非常广泛，因为在许多情况下，要么闭式解法不存在，要么很难得出正确结果——例如，在推断总体的分位数时。
 - en: '**Why does bootstrapping work?**'
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '**为什么自助法有效？**'
 - en: Bootstrapping feels wrong. Or at least the first time I learned about it, it
     didn’t feel right. Why should one sample contain so much information?
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 自助法给人的感觉是错的。或者至少当我第一次学习它时，我并不觉得它是对的。为什么一个样本能包含这么多信息呢？
 - en: Sampling with replacement from the original sample you drew is just a way for
     you to mimic drawing from the population. The original sample you drew, on average,
     looks like your population. So when you resample from it, you’re essentially drawing
     samples from the same probability distribution.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 从你抽取的原始样本中进行有放回的抽样，只是让你模拟从总体中抽样的一种方式。你抽取的原始样本，平均来看，像是你总体的一个代表。所以当你从中重新抽样时，本质上是在从同一个概率分布中抽取样本。
 - en: What if you just happen to draw a weird sample? That’s possible and that’s why
     we resample. Resampling helps us learn about the distribution of the sample itself.
     What if you original sample is too small? As the number of observations in the
     sample grow, bootstrapping estimates converge to population values. However, there
     are no guarantees over finite samples.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果恰好抽到一个奇怪的样本呢？这种情况是可能发生的，这也是我们进行重采样的原因。重采样帮助我们了解样本本身的分布。如果原始样本太小怎么办？随着样本中观察值的增加，自助法估计会趋近于总体值。然而，有限样本无法保证结果的准确性。
 - en: There are problems but given the constraints we operate in, it is the best possible
     information we have on the population. We don’t have to assume the population
     has a specific shape. Given that computation is fairly cheap, bootstrapping becomes
     a very powerful tool to use.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管存在一些问题，但考虑到我们所处的限制环境，它仍然是我们对总体最好的信息。我们不需要假设总体具有特定的分布形态。鉴于计算成本相对较低，自助法成为了一种非常强大的工具。
 - en: Demonstrating classical bootstrapping
+  id: totrans-18
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 演示经典的自助法
 - en: We’ll explain bootstrapping with two examples. The first is a tiny dataset where
     the idea is that you can do the math in your head. The second is a larger dataset
     for which I’ll write down code.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将通过两个例子来解释自助法。第一个是一个小数据集，目的是让你能够心算。第二个是一个更大的数据集，我会写下代码来说明。
 - en: 'Example 1: Determining the mean age of students in a school'
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 示例1：确定一所学校学生的平均年龄
 - en: We’re tasked to determine the mean age of students in a school. We sample 5
     students randomly. The idea is to use those 5 students to infer the average age
     of all the students in the school. This is silly (and statistically improper)
     but bear with me.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的任务是确定一所学校学生的平均年龄。我们随机抽取了5名学生。这个想法是利用这5名学生来推断全校学生的平均年龄。这听起来很荒谬（而且在统计学上不规范），但请耐心听我解释。
 - en: '[PRE0]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: We now sample from this list with replacement.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在从这个列表中进行有放回的抽样。
 - en: '[PRE1]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: For each resample, calculate the mean.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 对每个重采样，计算均值。
 - en: '[PRE2]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Take a mean of those means.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 取这些均值的平均值。
 - en: '[PRE3]'
+  id: totrans-28
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'This mean then becomes your estimate of the population mean. You can do the
     same thing over any statistical property: Confidence intervals, deviations etc.'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个均值就成为了你对总体均值的估计。你可以对任何统计属性做同样的事情：置信区间、偏差等。
 - en: 'Example 2: Determining the 95th percentile for ‘time to process payment’'
+  id: totrans-30
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 示例2：确定“支付处理时间”的第95百分位数
 - en: Customers on a food delivery app make payments on the app. After a payment is
     successful, an order is placed with the restaurant. The **time to process payment**
     calculated as the time between when a customer presses the ‘Make Payment’ button
     and when feedback is delivered (payment successful, payment failed) is a critical
     metric that reflects platform reliability. Millions of customers make payments
     on the app every day.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 食品配送应用上的客户进行支付。在支付成功后，订单会传送到餐厅。计算**支付处理时间**（即从客户点击“支付”按钮到反馈（支付成功或支付失败）交付的时间）是一个关键指标，反映了平台的可靠性。每天都有数百万客户在应用上进行支付。
 - en: We’re tasked to estimate the 95% percentile of the distribution to be able to
     rapidly detect issues.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的任务是估算分布的95%百分位数，以便能够快速检测问题。
 - en: '![](../Images/697e2ed7307420edafbc50ae8501324a.png)'
+  id: totrans-33
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/697e2ed7307420edafbc50ae8501324a.png)'
 - en: 'We illustrate classical bootstrapping in the following way:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们通过以下方式演示经典的自助法：
 - en: We assume that there’s some population that has a million observations. In the
     real world, we never observe this data.
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们假设有一个包含一百万个观察值的总体。在现实世界中，我们从未观察到这样的数据。
 - en: We randomly sample 1/10th of this population. So we take 10,000 observations.
     In reality this is the only data we observe.
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们随机抽取这部分总体的 1/10。也就是说，我们取 10,000 个观察值。实际上，这就是我们观察到的唯一数据。
 - en: We then apply the same procedure we discussed above. We resample observations
     from our observed data with replacement. We do this many, many times.
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后我们应用上面讨论过的相同程序。我们从我们观察到的数据中进行带替换的重采样。我们这样做很多次。
 - en: Each time when we resample, we calculate the 95th percentile of that distribution.
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每次我们重新采样时，我们计算该分布的 95th 百分位。
 - en: Finally we take the mean of the 95th percentile values and find confidence intervals
     around it.
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，我们取 95th 百分位值的均值，并计算其置信区间。
 - en: We get the graph below. Magically, we find that the confidence intervals we
     just generated contain the true 95th percentile (from our population).
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们得到了下面的图表。神奇的是，我们发现刚刚生成的置信区间包含了真实的 95th 百分位（来自我们的总体）。
 - en: '![](../Images/02a0e7d6d65ce0ea23924ba32c7af027.png)'
+  id: totrans-41
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/02a0e7d6d65ce0ea23924ba32c7af027.png)'
 - en: We can see the same data at the level of the bootstrapped statistic.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以在自助统计量的层次上看到相同的数据。
 - en: '![](../Images/98883bf48ba626d1ad7b8883b440e252.png)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/98883bf48ba626d1ad7b8883b440e252.png)'
 - en: The code to generate the above is below, give it a try yourself!
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成上述内容的代码如下，自己试试看！
 - en: This all works great, what’s next?
+  id: totrans-45
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 这一切都很顺利，接下来是什么呢？
 - en: Now that we’ve established that classical bootstrapping actually works we’ll
     try and establish what’s happening from a mathematical perspective. Usually texts
     will just tell you to skip this part if you’re not interested. I’ll encourage
     you to stick around though because this is where the real fun is.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经确定经典的自助法实际上是有效的，我们将尝试从数学角度建立正在发生的事情。通常书籍会告诉你如果不感兴趣就跳过这一部分。但我鼓励你坚持下来，因为这里才是最有趣的地方。
 - en: Take a break
+  id: totrans-47
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 休息一下
 - en: 'Let’s think through a game now. Imagine you had a bag filled with 5 balls:
     A red, blue, yellow, green and purple ball. You need to draw 5 balls from the
     bag, one at a time. After you draw a ball, you put it back into the bag and then
     draw again. So each time you choose a ball, you have 5 differently coloured balls
     to choose from. After each round you record the ball that was chosen in a empty
     slot (as shown below).'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们想象一个游戏。假设你有一个装满了 5 个球的袋子：一个红球、一个蓝球、一个黄球、一个绿球和一个紫球。你需要从袋子中抽取 5 个球，每次抽一个。每次抽球后，你会把它放回袋子里，然后再抽一次。所以每次选择一个球时，你有
+    5 个不同颜色的球可以选择。每一轮过后，你会在空白槽中记录所选择的球（如下所示）。
 - en: '![](../Images/d478a2b8c87df6bed4de1028d26ed8d1.png)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d478a2b8c87df6bed4de1028d26ed8d1.png)'
 - en: Now, if I were to ask you, what’s the probability of each ball being chosen
     for a each slot that we have to fill?
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，如果我问你，每个球被选择进入我们需要填充的每个槽的概率是多少，你会怎么回答？
 - en: For slot 1,
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于槽 1，
 - en: The red ball can be chosen with probability 1/5
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 红球可以以 1/5 的概率被选择。
 - en: The purple ball can be chosen with probability 1/5
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 紫球可以以 1/5 的概率被选择。
 - en: The green ball can be chosen with probability 1/5
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 绿球可以以 1/5 的概率被选择。
 - en: The blue ball can be chosen with probability 1/5
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 蓝球可以以 1/5 的概率被选择。
 - en: The yellow ball can be chosen with probability 1/5
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 黄球可以以 1/5 的概率被选择。
 - en: The same case extends to slot 2, 3, 4 and 5
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样的情况适用于槽 2、3、4 和 5。
 - en: '![](../Images/2569fd8533d3132b4165839df65e2463.png)'
+  id: totrans-58
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2569fd8533d3132b4165839df65e2463.png)'
 - en: 'Lets focus on the red ball for a bit. It can be chosen a minimum of zero times
     (it isn’t chosen at all) and a maximum of 5 times. The probability distribution
     of the occurrence of the red ball is the following:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们暂时专注于红球。它至少可以被选择 0 次（根本没有被选择）和最多被选择 5 次。红球发生的概率分布如下：
 - en: 'Red ball chosen 0 times: This can only happen in 1 way.'
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 红球被选择 0 次：这只能以 1 种方式发生。
 - en: 'Red ball chosen 1 time: This can happen in 5 ways. Red ball is chosen for slot
     1, Red ball is chosen for slot 2 … (you get the drift).'
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 红球被选择 1 次：这可以以 5 种方式发生。红球被选择进入槽 1，红球被选择进入槽 2 ……（你懂的）。
 - en: 'Red ball chosen 2 times: This can happen in 10 ways. Fix the red ball on slot
     1, there are 4 options. Fix the red ball on slot 2, there are 3 new options, …'
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 红球被选择 2 次：这可以以 10 种方式发生。将红球固定在槽 1，有 4 种选择。将红球固定在槽 2，有 3 种新的选择，……
 - en: 'Red ball chosen 3 times: This can happen in 10 ways. This is exactly similar
     to the logic above.'
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 红球被选择 3 次：这可以有 10 种方式。这与上面的逻辑完全相同。
 - en: 'Red ball chosen 4 times: The can happen in 5 ways. Similar to being chosen
     once.'
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 红球被选择 4 次：这可以有 5 种方式。类似于只被选择一次的情况。
 - en: Red ball is chosen 5 times. This can happen in 1 way.
+  id: totrans-65
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 红球被选择 5 次。这可以有 1 种方式。
 - en: This is just *5 choose k,* where *k = {0, 1, 2, 3, 4, 5}*
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 这只是 *5 选 k*，其中 *k = {0, 1, 2, 3, 4, 5}*
 - en: '![](../Images/3f44799433b3904d01972724bb36abbb.png)'
+  id: totrans-67
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3f44799433b3904d01972724bb36abbb.png)'
 - en: Let’s put these two facts together just for the red balls
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们把这两个事实结合起来，专门讨论红球的情况
 - en: '![](../Images/0cf7c18b2bf40366a2c329c5a7dc5fc6.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0cf7c18b2bf40366a2c329c5a7dc5fc6.png)'
 - en: What we just described is the binomial distribution where *n = 5* and *p = 1/5*
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们刚刚描述的是二项分布，其中 *n = 5* 且 *p = 1/5*
 - en: '![](../Images/7a58cafe59eb24671a885b95498ec906.png)'
+  id: totrans-71
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7a58cafe59eb24671a885b95498ec906.png)'
 - en: Or more generally,
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 或者更一般地，
 - en: '![](../Images/bd4e71c21265967e5c1ce12381eac823.png)'
+  id: totrans-73
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bd4e71c21265967e5c1ce12381eac823.png)'
 - en: Now just substitute balls for observations.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在只需将球替换为观测值。
 - en: '![](../Images/d7ff38abd29b853d514634a901f828f1.png)'
+  id: totrans-75
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d7ff38abd29b853d514634a901f828f1.png)'
 - en: So when we bootstrap, we essentially are drawing each observation from a binomial
     distribution.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，当我们进行自助法时，本质上是从二项分布中抽取每个观测值。
 - en: In classical bootstrapping, when we resample, **each observation follows the
     binomial distribution with n = n, k = {0, …, n} and p = 1/n.** This is also expressed
     as Binomial(n , 1/n).
+  id: totrans-77
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 在经典自助法中，当我们进行重采样时，**每个观测值都遵循二项分布，其中 n = n，k = {0, …, n} 和 p = 1/n。** 这也可以表示为
+    Binomial(n , 1/n)。
 - en: Now, a very interesting property of the binomial distribution is that as n turns
     larger and larger, and p turns smaller and smaller, the binomial distribution
     converges to a Poisson distribution with *Poisson(n/p).* Some day I’ll write an
     intuitive explanation of why this happens but for now if you’re interested, you
     can read [this very well written piece](https://medium.com/@andrew.chamberlain/deriving-the-poisson-distribution-from-the-binomial-distribution-840cc1668239).
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，二项分布有一个非常有趣的性质：当 n 越来越大，p 越来越小，二项分布会收敛到一个 Poisson 分布，且为 *Poisson(n/p)*。某一天我会写一篇直观的解释，为什么会发生这种情况，但如果你现在感兴趣，可以阅读
+    [这篇写得非常好的文章](https://medium.com/@andrew.chamberlain/deriving-the-poisson-distribution-from-the-binomial-distribution-840cc1668239)。
 - en: '![](../Images/28c914ca657495fc27919637fb2ead76.png)'
+  id: totrans-79
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/28c914ca657495fc27919637fb2ead76.png)'
 - en: This works for any n and p such that n/p is constant. In the gif below we show
     this for lambda (n/p) = 5.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 这适用于任何 n 和 p，使得 n/p 是常数。在下面的 gif 中，我们展示了 lambda (n/p) = 5 的情况。
 - en: '![](../Images/66d28ee9af5fe78fc9a31d4be7b77a90.png)'
+  id: totrans-81
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/66d28ee9af5fe78fc9a31d4be7b77a90.png)'
 - en: In our special case, we’ll just converge to *Poisson(1)* as p is just 1/n.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的特殊情况下，由于 p 仅为 1/n，因此我们将收敛到 *Poisson(1)*。
 - en: '![](../Images/63f7b13b66d69f61400258f46ffa639c.png)![](../Images/a74eae72db90e67f5e234adff9898efe.png)'
+  id: totrans-83
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/63f7b13b66d69f61400258f46ffa639c.png)![](../Images/a74eae72db90e67f5e234adff9898efe.png)'
 - en: Then it follow that another way to resample would be to draw each observation
     from a Poisson(1) distribution.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 由此可以得出，另一种重采样方法是从 Poisson(1) 分布中抽取每个观测值。
 - en: Poisson bootstrapping means that we use a Poisson(1) process to generate resamples
     for bootstrapping a statistic.
+  id: totrans-85
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 泊松自助法意味着我们使用 Poisson(1) 过程来生成用于自助统计的重采样。
 - en: '![](../Images/54d8d6426197e99a039058d8cd9b486f.png)'
+  id: totrans-86
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/54d8d6426197e99a039058d8cd9b486f.png)'
 - en: Big deal, why is this useful?
+  id: totrans-87
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 有什么大不了的，这为什么有用？
 - en: There are two stages of bootstrapping a statistic of interest. The first stage
     is to create resamples, the second stage is to calculate the statistic on each
     resample. Classical and Poisson bootstrapping are identical on the second stage
     but different on the first stage.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 自助法有两个阶段：第一个阶段是创建重采样，第二个阶段是在每个重采样上计算统计量。经典自助法和泊松自助法在第二个阶段是相同的，但在第一个阶段是不同的。
 - en: 'There are two ways in which this is useful:'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 这在两种情况下是有用的：
 - en: Poisson bootstrapping reduces the number of passes we need to make over data.
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 泊松自助法减少了我们需要遍历数据的次数。
 - en: Poisson bootstrapping works in cases where we don’t have a fixed n. For instance,
     when we’re streaming data in.
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 泊松自助法适用于我们没有固定 n 的情况。例如，当我们在流式处理数据时。
 - en: Reducing the number of passes while resampling
+  id: totrans-92
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在重采样时减少遍历次数
 - en: The Poisson bootstrap allows for significant computation gains while creating
     resamples. The best way to look at this is in code.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 泊松自助法在创建重采样时可以显著提高计算效率。查看代码是理解这一点的最佳方式。
 - en: 'Compare line (8) above, with the equivalent line in the classical bootstrap:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 比较上面第（8）行与经典自助法中相应的行：
 - en: '[PRE4]'
+  id: totrans-95
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: In the classical bootstrap, you need to know *data*, while in the Poisson bootstrap
     you don’t.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 在经典自助法中，你需要知道*数据*，而在泊松自助法中则不需要。
 - en: The implications for this are very significant for cases where data is very
     large (think 100s of millions of observations). This is because mathematically,
     generating resamples reduces to generating counts for each observation.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 这对于数据非常庞大的情况（比如数亿条观测数据）具有非常重要的意义。这是因为从数学上讲，生成重抽样归结为为每个观测值生成计数。
 - en: In classical bootstrapping, the counts for each observation follow a *Binomial(n,
     1/n)*. Together they [follow a *Multinomial(n, 1/n, 1/n, …, 1/n)*](https://en.wikipedia.org/wiki/Multinomial_distribution).
     This means when you generate a count for an observation, this impacts the count
@@ -416,58 +620,83 @@
     the count for a red ball, this has a direct impact on the counts for the other
     balls. For instance, if the count for the red ball is 2, then we know that we
     only have 3 more balls we can choose.
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在经典自助法中，每个观测值的计数遵循*Binomial(n, 1/n)*分布。它们共同遵循*[Multinomial(n, 1/n, 1/n, …, 1/n)](https://en.wikipedia.org/wiki/Multinomial_distribution)*分布。这意味着当你为一个观测值生成计数时，这会影响其他观测值的计数。例如，在我们的球的例子中，一旦你为一个红球生成了计数，这就会直接影响其他球的计数。例如，如果红球的计数是2，那么我们知道剩下只有3个球可以选择。
 - en: In Poisson bootstrapping, the counts for each observation are independent on
     each other. So if you need 1000 resamples, you just generate 1000 Poisson(1) draws
     for the red ball. Then you’re done and you can move on to the next observation.
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在泊松自助法中，每个观测值的计数彼此独立。因此，如果你需要1000个重抽样，只需为红球生成1000个*Poisson(1)*抽样。然后就完成了，你可以继续处理下一个观测值。
 - en: Resampling when n is unknown
+  id: totrans-100
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 当n未知时进行重抽样
 - en: There are cases where n is effectively unknown. For instance, in cases where
     you’re streaming in payment data or where data is so large that is lives across
     multiple storage instances.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 有些情况下，n实际上是未知的。例如，在流式支付数据或数据量大到跨多个存储实例的情况下。
 - en: '![](../Images/a3d05c7d86d1e5c06ab5be4649278069.png)'
+  id: totrans-102
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a3d05c7d86d1e5c06ab5be4649278069.png)'
 - en: In classical bootstrapping every time we observe an increased n, we have to
     redo the resampling process again (as we sample with replacement). This renders
     this method quite computationally expensive and wasteful. In the Poisson bootstrap
     we can just save our *Poisson(1)* draws for each instance. Every time a new instance
     is added all we need to do is to generate the *Poisson(1)* draws for this new
     instance.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 在经典自助法中，每次观察到n的增加时，我们必须重新进行重抽样过程（因为我们是有放回地抽样）。这使得该方法在计算上非常昂贵且浪费。在泊松自助法中，我们只需为每个实例保存我们的*Poisson(1)*抽样。每次新增一个实例时，我们只需要为这个新实例生成*Poisson(1)*抽样。
 - en: Conclusion
+  id: totrans-104
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: '![](../Images/362b9f899eae79f29c0c2de80db3e201.png)'
+  id: totrans-105
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/362b9f899eae79f29c0c2de80db3e201.png)'
 - en: 'Classical bootstrapping is a very effective technique for learning the distribution
     of a statistic from a sample collected. In practice, it can be prohibitively expensive
     for very large datasets. Poisson bootstrapping is a version of bootstrapping that
     enables efficient parallel computation of resamples. This is because of two reasons:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 经典自助法（bootstrapping）是一种非常有效的技术，用于从收集到的样本中学习统计量的分布。在实际操作中，对于非常大的数据集，它可能会非常昂贵。泊松自助法（Poisson
+    bootstrapping）是自助法的一种变体，能够高效地并行计算重抽样。这是由于两个原因：
 - en: Resampling under Poisson bootstraps means we only make one pass over each observation.
+  id: totrans-107
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在泊松自助法下的重抽样意味着我们只对每个观测值进行一次遍历。
 - en: In streaming data cases, Poisson bootstraps allow us to process new resamples
     incrementally rather than having to resample over the entire dataset in one go.
+  id: totrans-108
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在流数据的情况下，泊松自助法允许我们增量地处理新的重抽样，而不必一次性对整个数据集进行重抽样。
 - en: '*I hope you’ve found this useful. I’m always open to feedback and corrections.
     The images in this post are mine. Feel free to use them!*'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: '*希望你觉得这有用。我始终欢迎反馈和修正。这篇文章中的图片是我自己的。欢迎自由使用！*'

@@ -1,94 +1,143 @@
 - en: Create Synthetic Dataset Using Llama 3.1 to Fine-Tune Your LLM
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 Llama 3.1 创建合成数据集，以微调你的 LLM
 - en: 原文：[https://towardsdatascience.com/create-a-synthetic-dataset-using-llama-3-1-405b-for-instruction-fine-tuning-9afc22fb6eef?source=collection_archive---------2-----------------------#2024-08-07](https://towardsdatascience.com/create-a-synthetic-dataset-using-llama-3-1-405b-for-instruction-fine-tuning-9afc22fb6eef?source=collection_archive---------2-----------------------#2024-08-07)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/create-a-synthetic-dataset-using-llama-3-1-405b-for-instruction-fine-tuning-9afc22fb6eef?source=collection_archive---------2-----------------------#2024-08-07](https://towardsdatascience.com/create-a-synthetic-dataset-using-llama-3-1-405b-for-instruction-fine-tuning-9afc22fb6eef?source=collection_archive---------2-----------------------#2024-08-07)
 - en: Using the giant Llama 3.1 405B and Nvidia Nemotron 4 reward model to create
     a synthetic dataset for instruction fine-tuning.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用庞大的 Llama 3.1 405B 和 Nvidia Nemotron 4 奖励模型来创建用于指令微调的合成数据集。
 - en: '[](https://medium.com/@itshesamsheikh?source=post_page---byline--9afc22fb6eef--------------------------------)[![Hesam
     Sheikh](../Images/b8d5f4f285eef77634e4c1d4321580ed.png)](https://medium.com/@itshesamsheikh?source=post_page---byline--9afc22fb6eef--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9afc22fb6eef--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9afc22fb6eef--------------------------------)
     [Hesam Sheikh](https://medium.com/@itshesamsheikh?source=post_page---byline--9afc22fb6eef--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@itshesamsheikh?source=post_page---byline--9afc22fb6eef--------------------------------)[![Hesam
+    Sheikh](../Images/b8d5f4f285eef77634e4c1d4321580ed.png)](https://medium.com/@itshesamsheikh?source=post_page---byline--9afc22fb6eef--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9afc22fb6eef--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9afc22fb6eef--------------------------------)
+    [Hesam Sheikh](https://medium.com/@itshesamsheikh?source=post_page---byline--9afc22fb6eef--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9afc22fb6eef--------------------------------)
     ·9 min read·Aug 7, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9afc22fb6eef--------------------------------)
+    ·9 分钟阅读·2024年8月7日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/d59b24212f7745714c66c7591192d4a8.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d59b24212f7745714c66c7591192d4a8.png)'
 - en: Created by AI using Leonardo.AI
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 由 AI 使用 Leonardo.AI 创建
 - en: Data is the heart of AI and while it is a valuable asset, we know how challenging
     and costly it is to develop high-quality datasets. A well-curated and filtered
     dataset can make up for a lack of complexity in a model. This is also the case
     with Large Language Models where smaller-sized models have shown to outperform
     bigger LLMs by leveraging good data.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据是 AI 的核心，尽管它是宝贵的资产，但我们知道开发高质量数据集是多么具有挑战性和成本高昂。一个精心策划和过滤的数据集可以弥补模型复杂度的不足。对于大型语言模型来说也是如此，较小的模型通过利用良好的数据往往能优于更大的
+    LLM。
 - en: In this article, we will explore how to use **Llama 3.1 405B** to create a synthetic
     dataset of **git commands in natural language**. I will show how you can use this
     405B beast without running tens of GPUs in parallel. After having an initial dataset
     of instructions and responses, we will use **Nvidia’s Nemotron 4** as a reward
     model to filter out any bad prompt/response pairs. Finally, we will push this
     dataset to HuggingFace for later fine-tuning of our LLM.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将探讨如何使用**Llama 3.1 405B**来创建一个**自然语言中的 git 命令**合成数据集。我将展示如何在不需要并行运行数十个
+    GPU 的情况下，使用这款405B巨兽。拥有初步的指令和响应数据集后，我们将使用**Nvidia 的 Nemotron 4**作为奖励模型，过滤掉任何不良的提示/响应对。最后，我们将把这个数据集推送到
+    HuggingFace，以便稍后对我们的 LLM 进行微调。
 - en: This will be fast, free, and will leave you much in control.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将是快速、免费的，并且让你掌握更多的控制权。
 - en: I will keep this post concise and knowledge-packed, so make sure to **read through
     the end** and familiarize yourself with this essential skill.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 我将保持这篇文章简洁且充满干货，因此请确保**阅读到最后**，并熟悉这一重要技能。
 - en: 🦙 Why Llama 3.1
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 🦙 为什么选择 Llama 3.1
 - en: Meta has gained a firm foothold with the release of their latest family of LLMs,
     [Llama 3.1](https://huggingface.co/collections/meta-llama/llama-31-669fc079a0c406a149a5738f).
     The new family includes an upgraded version of the previous 8B and 70B models
     with increased reasoning abilities and a giant 405B model.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: Meta 在发布最新一代 LLM 家族后，牢牢占据了市场的份额，[Llama 3.1](https://huggingface.co/collections/meta-llama/llama-31-669fc079a0c406a149a5738f)。这个新家族包括了升级版的
+    8B 和 70B 模型，具有更强的推理能力，并推出了庞大的 405B 模型。
 - en: '![](../Images/cbadf588e2561f45221657f93c764fa2.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cbadf588e2561f45221657f93c764fa2.png)'
 - en: Llama 3.1 405 has been successful in reaching nearly the benchmark of the best
     closed-source models. (diagram by [Maxime Labonne](https://medium.com/u/dc89da634938?source=post_page---user_mention--9afc22fb6eef--------------------------------),
     with permission)
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: Llama 3.1 405 在成功接近最佳闭源模型的基准方面取得了显著成就。（图表由 [Maxime Labonne](https://medium.com/u/dc89da634938?source=post_page---user_mention--9afc22fb6eef--------------------------------)
+    提供，已获许可）
 - en: Llama 3.1 405B isn’t just impressive in terms of the sheer scale, but also by
     closing the gap between closed-source and open-source models, more than ever before
     (above figure).
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: Llama 3.1 405B 不仅在规模上令人印象深刻，而且通过缩小闭源和开源模型之间的差距，比以往任何时候都更加出色（见上图）。
 - en: This capability of the 405B model makes it ideal for some of the most important
     and nuanced workflows, such as Retrieval-Augmented Generation (RAG), supervised
     fine-tuning (SFT), and most importantly **synthetic data generation**.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 405B 模型的这一能力使其非常适合一些最重要且最微妙的工作流，例如检索增强生成（RAG）、监督微调（SFT），以及最重要的**合成数据生成**。
 - en: Why Synthetic Data?
+  id: totrans-18
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为什么选择合成数据？
 - en: Synthetic data is created using an artificial model by reproducing the characteristics
     and features of real-world data. At some point, you will need to work with it
     *when you need more data than you have*.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 合成数据是通过使用人工模型再现真实世界数据的特征和特性来创建的。在某些时候，当你需要的数据超过你现有的数据时，你将需要使用它*。
 - en: Our example of a dataset of git commands in natural language can show this perfectly.
     If we want to create an application that takes as input, what the user needs and
     then suggests the right git command for it, then at the heart of this application
@@ -96,231 +145,353 @@
     get good results. But there is the problem of the cost. So the alternative would
     be to **fine-tune** a Small Language Model (SML) such as Llama 3.1 8B or Gemma
     2 2B (which I will get to in a later post).
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的自然语言中 Git 命令数据集的示例可以完美地展示这一点。如果我们想要创建一个应用程序，它以用户需求为输入，然后为其建议正确的 git 命令，那么在这个应用程序的核心，我们需要一个专家级的
+    LLM。我们可以使用 GPT-4o 或 Claude，并且很可能会获得不错的结果。但问题在于成本。因此，另一种选择是**微调**一个小型语言模型（SML），例如
+    Llama 3.1 8B 或 Gemma 2 2B（我将在后续帖子中详细介绍）。
 - en: And guess what we need for fine-tuning… Data!
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 你猜我们为微调需要什么吗……数据！
 - en: 'Since I didn’t find the right dataset for this task, we are left with only
     one solution: to create our dataset **synthetically** using Llama 3.1 405B.'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我没有找到适合此任务的数据集，我们只有一个解决方案：使用 Llama 3.1 405B 合成创建我们的数据集。
 - en: 🛠️Building the Dataset
+  id: totrans-23
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 🛠️ 构建数据集
 - en: To build a synthetic dataset using AI, we will use the following outline. You
     can choose any other LLMs from what I have chosen.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使用 AI 构建一个合成数据集，我们将使用以下大纲。你可以选择任何我所选择的其他 LLM。
 - en: '![](../Images/07a1f36079f8e08fdc8b2bb76c584e37.png)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/07a1f36079f8e08fdc8b2bb76c584e37.png)'
 - en: Our outline of creating a synthetic dataset. (by author)
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们创建合成数据集的大纲。（作者提供）
 - en: Setting Up the API Key
+  id: totrans-27
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 设置 API 密钥
 - en: We will use the **Nvidia NIM API** to leverage these big LLMs without the hassle
     of running them locally. Running a model like Llama 3.1 405B on the device would
     normally require multiple H100 GPUs and unless you work in an organization with
     such resources, you need to use external APIs.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将使用**Nvidia NIM API**来利用这些大型 LLM，而无需在本地运行它们。像 Llama 3.1 405B 这样的模型在设备上运行通常需要多个
+    H100 GPU，除非你在拥有这些资源的组织中工作，否则你需要使用外部 API。
 - en: To access your free Nvidia credits, go to [Llama 3.1 on Nvidia NIM](https://build.nvidia.com/explore/discover#llama-3_1-405b-instruct),
     and click on **Get API Key**. This is what we will use in our code or a `.env`
     file. Once we have the API, we can set up our connection to the Nvidia server
     to use the models remotely.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 要访问你的免费 Nvidia 积分，请访问 [Llama 3.1 on Nvidia NIM](https://build.nvidia.com/explore/discover#llama-3_1-405b-instruct)，然后点击**获取
+    API 密钥**。这将是我们在代码中或 `.env` 文件中使用的内容。一旦我们获得 API 密钥，就可以设置与 Nvidia 服务器的连接，以远程使用这些模型。
 - en: '[PRE0]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Generate Subtopics
+  id: totrans-31
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 生成子主题
 - en: Ideally, we like our dataset to cover various scenarios and situations as much
     as possible. One way to ensure this is to define **subtopics** and ask Llama 3.1
     to provide instructions/response pairs for each of the subtopics. We can choose
     these subtopics ourselves or leave it to the LLM to decide. I took the second
     approach in the following code snippet.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 理想情况下，我们希望我们的数据集能够尽可能涵盖各种场景和情况。一种确保这一点的方法是定义**子主题**，并要求 Llama 3.1 为每个子主题提供指令/响应对。我们可以自己选择这些子主题，也可以让
+    LLM 来决定。我在以下代码片段中采用了第二种方法。
 - en: '[PRE1]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'The LLM suggests five topics: Branching, Merging, Committing, Remote repositories,
     and Resolving conflicts. It seems like a fair selection of subjects to cover.'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: LLM建议了五个主题：分支、合并、提交、远程仓库和解决冲突。似乎这是一个合理的主题选择。
 - en: Generate Instructions
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 生成指令
 - en: Having five subtopics of working with Git, we need Llama 3.1 to generate a set
     of instructions (or prompts) regarding each of the subtopics. I have asked for
     one hundred instructions per topic, so ideally, I should get 500 prompts.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 在有五个子主题关于Git的工作时，我们需要Llama 3.1生成一组关于每个子主题的指令（或提示）。我要求每个主题生成一百条指令，因此理想情况下，我应该得到500条提示。
 - en: 'One thing to keep in mind is that when asking for *N* number of instructions:
     it is rare that the model would return exactly as many as you want, even a big
     model like this.'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要记住的一点是，当要求生成*N*条指令时：即使是这样一个大型模型，也很少会返回正好等于你想要的数量。
 - en: Eventually, I got a total of 335 instructions for 5 subtopics, which is very
     different from 500\. There are methods to ensure this doesn’t happen but for the
     sake of simplicity, we won’t dwell on this.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终，我为五个子主题得到了总共335条指令，这与500条有很大差距。虽然有方法可以确保这种情况不发生，但为了简化起见，我们就不再深入讨论了。
 - en: '[PRE2]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Here are some examples of the generated instructions:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是一些生成的指令示例：
 - en: '[PRE3]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Response Generation
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 响应生成
 - en: For each of the provided instructions, we will also ask for a response. As you
     can see in the following code snippet, I have specifically asked my responses
     to be *on-topic, informative, and concise*. By the end, I will have a list of
     `instruction` and `response` pairs.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每一条提供的指令，我们还将要求给出响应。正如下面的代码片段所示，我特别要求我的响应是*切题、有信息量且简洁的*。到最后，我将得到一对`指令`和`响应`的列表。
 - en: '[PRE4]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '[PRE5]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: Filtering Responses with Nemotron 4
+  id: totrans-46
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用Nemotron 4筛选响应
 - en: Even though we have our instruction/response pairs, not all of the responses
     are high-quality. They may be verbose, complex, or false. This is where Nvidia’s
     [**Nemotron 4 340B Reward**](https://huggingface.co/nvidia/Nemotron-4-340B-Reward)model
     comes into play. It is made exactly for our use case, as according to Nvidia,
     it *“can be used as part of a synthetic data generation pipeline to create training
     data that helps researchers and developers build their own LLMs.”*
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 即使我们拥有了指令/响应对，并不是所有的响应都是高质量的。它们可能冗长、复杂或者是错误的。这时，Nvidia的[**Nemotron 4 340B奖励**](https://huggingface.co/nvidia/Nemotron-4-340B-Reward)模型就派上用场了。它正是为我们的用例设计的，因为据Nvidia所说，它*“可以作为合成数据生成管道的一部分，用于生成训练数据，帮助研究人员和开发者构建自己的大型语言模型（LLMs）。”*
 - en: '![](../Images/68716e2a3af1320dfe4da92f01e82d06.png)'
+  id: totrans-48
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/68716e2a3af1320dfe4da92f01e82d06.png)'
 - en: Example use of Nemotron 4\. (by author)
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: Nemotron 4的示例使用（由作者提供）
 - en: We will give each one of our instruction/response pairs to Nemotron 4, and receive
     five scores ranging from 0 to 4\. These five scores are *helpfulness, correctness,
     coherence, complexity, and verbosity*. To use the model, I will first define a
     simple function to feed an instruction and a response to the model and receive
     the five scores in the shape of a dict.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将把每一对指令/响应交给Nemotron 4，并获得五个分数，范围从0到4。这五个分数是*有用性、正确性、一致性、复杂性和冗长性*。为了使用该模型，我将首先定义一个简单的函数，将指令和响应传递给模型，并以字典的形式接收五个分数。
 - en: '[PRE6]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: After we have a score for each of the rows in our dataset, we can filter the
     dataset using each of the five provided criteria. I will filter out bad responses
     based on **helpfulness** and **verbosity**, as I want to keep my responses concise
     and informative.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦我们为数据集中的每一行得到了分数，就可以根据提供的五个标准对数据集进行筛选。我将根据**有用性**和**冗长性**筛选出不良响应，因为我希望我的回答简洁且富有信息。
 - en: '[PRE7]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Push the Dataset to HuggingFace
+  id: totrans-54
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将数据集推送到HuggingFace
 - en: Finally, once you have the finished dataset, it’s a good practice to push it
     to HuggingFace to use it later or to share it with other developers. To do this,
     first log in to HuggingFace and provide a **token**, following the provided link
     on the login page.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，一旦你拥有了完成的数据集，最好将其推送到HuggingFace，以便以后使用或与其他开发者分享。为此，首先登录HuggingFace并提供一个**令牌**，具体步骤可参考登录页面提供的链接。
 - en: '[PRE8]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Then you can load the saved dataset and upload it on your HuggingFace page.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，你可以加载保存的数据集并将其上传到你的HuggingFace页面。
 - en: '[PRE9]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Congrats 🏆! So far you have been able to use Llama 3.1 to create a dataset of
     instructions and responses, and Nemotron 4 to refine the dataset and filter out
     bad responses. In the end, we saw how easy it is to push the dataset to HuggingFace
     with no effort. [Create Synthetic Dataset from 1 TOPIC for Instruction Finetuning](https://www.youtube.com/watch?v=FAdRMVAWiak)
     is also a great inspiration for this article and I would suggest you watch it
     if you like this topic.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 恭喜 🏆！到目前为止，你已经能够使用 Llama 3.1 创建一个指令和回答的数据集，并且使用 Nemotron 4 对数据集进行优化并过滤掉不好的回答。最后，我们看到将数据集推送到
+    HuggingFace 是如此轻松。[从一个主题创建合成数据集用于指令微调](https://www.youtube.com/watch?v=FAdRMVAWiak)
+    也是本文的一个重要灵感来源，如果你喜欢这个主题，我建议你观看它。
 - en: Here is also the **repository** where you can find the complete code I have
     used. Don’t forget to **star** ⭐the repo if you check it out.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里还有**代码仓库**，你可以在其中找到我使用的完整代码。如果你查看了它，别忘了**给仓库加星**⭐。
 - en: '[***Creating Synthetic Dataset Using Llama 3.1 405B and Nemotron 4***](https://github.com/hesamsheikh/dataset_git_commands)'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '[***使用 Llama 3.1 405B 和 Nemotron 4 创建合成数据集***](https://github.com/hesamsheikh/dataset_git_commands)'
 - en: T***hank you*** *for reading through the article!* Please share your opinions
     and suggestions if you think any modifications are required.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: T***感谢你*** *阅读本文！* 如果你认为需要任何修改，请分享你的意见和建议。
 - en: Let’s Connect!
+  id: totrans-63
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 让我们保持联系！
 - en: '*Subscribe for FREE to be notified of new articles! You can also find me on*
     [*LinkedIn*](https://www.linkedin.com/in/hesamsheikh/) *and* [*Twitter*](https://x.com/itsHesamSheikh)*.*'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '*免费订阅以获取新文章的通知！你也可以在* [*LinkedIn*](https://www.linkedin.com/in/hesamsheikh/)
+    *和* [*Twitter*](https://x.com/itsHesamSheikh)*找到我。*'
 - en: '[](https://medium.com/@itshesamsheikh/subscribe?source=post_page-----9afc22fb6eef--------------------------------)
     [## Get an email whenever Hesam Sheikh publishes.'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@itshesamsheikh/subscribe?source=post_page-----9afc22fb6eef--------------------------------)
+    [## 每当 Hesam Sheikh 发布新文章时，您将收到电子邮件通知。'
 - en: Get an email whenever Hesam Sheikh publishes. By signing up, you will create
     a Medium account if you don't already have not…
+  id: totrans-66
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 每当 Hesam Sheikh 发布新文章时，你将收到电子邮件通知。通过注册，如果你还没有 Medium 账户，你将创建一个账户……
 - en: medium.com](https://medium.com/@itshesamsheikh/subscribe?source=post_page-----9afc22fb6eef--------------------------------)
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: medium.com](https://medium.com/@itshesamsheikh/subscribe?source=post_page-----9afc22fb6eef--------------------------------)
 - en: Further Reads
+  id: totrans-68
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 深入阅读
 - en: 'If you have reached so far, you might also find these articles interesting:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你已经阅读到这里，你可能会对以下文章感兴趣：
 - en: '[](/what-we-still-dont-understand-about-machine-learning-699e0002a057?source=post_page-----9afc22fb6eef--------------------------------)
     [## What We Still Don’t Understand About Machine Learning'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](/what-we-still-dont-understand-about-machine-learning-699e0002a057?source=post_page-----9afc22fb6eef--------------------------------)
+    [## 我们仍然不理解的机器学习'
 - en: Machine Learning unknowns that researchers struggle to understand — from Batch
     Norm to what SGD hides
+  id: totrans-71
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 机器学习中的未知问题，研究人员一直在努力理解——从批量归一化到 SGD 隐藏的内容
 - en: towardsdatascience.com](/what-we-still-dont-understand-about-machine-learning-699e0002a057?source=post_page-----9afc22fb6eef--------------------------------)
     [](/a-comprehensive-guide-to-collaborative-ai-agents-in-practice-1f4048947d9c?source=post_page-----9afc22fb6eef--------------------------------)
     [## A Comprehensive Guide to Collaborative AI Agents in Practice
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/what-we-still-dont-understand-about-machine-learning-699e0002a057?source=post_page-----9afc22fb6eef--------------------------------)
+    [](/a-comprehensive-guide-to-collaborative-ai-agents-in-practice-1f4048947d9c?source=post_page-----9afc22fb6eef--------------------------------)
+    [## 实践中的协作 AI 代理全面指南
 - en: the definition, and building a team of agents that refine your CV and Cover
     Letter for job applications
+  id: totrans-73
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 定义，并建立一个能够优化你简历和求职信的代理团队
 - en: towardsdatascience.com](/a-comprehensive-guide-to-collaborative-ai-agents-in-practice-1f4048947d9c?source=post_page-----9afc22fb6eef--------------------------------)
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: towardsdatascience.com](/a-comprehensive-guide-to-collaborative-ai-agents-in-practice-1f4048947d9c?source=post_page-----9afc22fb6eef--------------------------------)

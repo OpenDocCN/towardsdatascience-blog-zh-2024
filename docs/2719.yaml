@@ -1,35 +1,55 @@
 - en: Adopting Spark Connect
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 采用 Spark Connect
 - en: 原文：[https://towardsdatascience.com/adopting-spark-connect-cdd6de69fa98?source=collection_archive---------7-----------------------#2024-11-07](https://towardsdatascience.com/adopting-spark-connect-cdd6de69fa98?source=collection_archive---------7-----------------------#2024-11-07)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/adopting-spark-connect-cdd6de69fa98?source=collection_archive---------7-----------------------#2024-11-07](https://towardsdatascience.com/adopting-spark-connect-cdd6de69fa98?source=collection_archive---------7-----------------------#2024-11-07)
 - en: How we use a shared Spark server to make our Spark infrastructure more efficient
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 我们如何使用共享的 Spark 服务器来提高 Spark 基础设施的效率
 - en: '[](https://medium.com/@sergey.kotlov?source=post_page---byline--cdd6de69fa98--------------------------------)[![Sergey
     Kotlov](../Images/63dd13c266505832b4cd6242b75f4968.png)](https://medium.com/@sergey.kotlov?source=post_page---byline--cdd6de69fa98--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cdd6de69fa98--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cdd6de69fa98--------------------------------)
     [Sergey Kotlov](https://medium.com/@sergey.kotlov?source=post_page---byline--cdd6de69fa98--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@sergey.kotlov?source=post_page---byline--cdd6de69fa98--------------------------------)[![Sergey
+    Kotlov](../Images/63dd13c266505832b4cd6242b75f4968.png)](https://medium.com/@sergey.kotlov?source=post_page---byline--cdd6de69fa98--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cdd6de69fa98--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cdd6de69fa98--------------------------------)
+    [Sergey Kotlov](https://medium.com/@sergey.kotlov?source=post_page---byline--cdd6de69fa98--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdd6de69fa98--------------------------------)
     ·15 min read·Nov 7, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdd6de69fa98--------------------------------)
+    ·15 分钟阅读·2024年11月7日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/80211dfce51f1158143441e6eba80f48.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/80211dfce51f1158143441e6eba80f48.png)'
 - en: Image by [Kanenori](https://pixabay.com/users/kanenori-4749850/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=5313115)
     from [Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=5313115)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由[Kanenori](https://pixabay.com/users/kanenori-4749850/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=5313115)提供，来自[Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=5313115)
 - en: '[Spark Connect](https://spark.apache.org/docs/latest/spark-connect-overview.html)
     is a relatively new component in the [Spark ecosystem](https://spark.apache.org/)
     that allows thin clients to run Spark applications on a remote Spark cluster.
@@ -37,18 +57,28 @@
     API. Spark has long allowed to run SQL queries on a remote Thrift JDBC server.
     However, this ability to remotely run client applications written in any supported
     language (Scala, Python) appeared only in Spark 3.4.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Spark Connect](https://spark.apache.org/docs/latest/spark-connect-overview.html)是[Spark
+    生态系统](https://spark.apache.org/)中一个相对较新的组件，它允许轻量级客户端在远程 Spark 集群上运行 Spark 应用程序。这项技术可以为使用
+    DataFrame API 的 Spark 应用程序提供一些好处。Spark 长期以来就允许在远程 Thrift JDBC 服务器上运行 SQL 查询。然而，能够远程运行用任何支持的语言（如
+    Scala、Python）编写的客户端应用程序的能力，直到 Spark 3.4 版本才出现。'
 - en: In this article, I will share our experience using Spark Connect (version 3.5).
     I will talk about the benefits we gained, technical details related to running
     Spark client applications, and some tips on how to make your Spark Connect setup
     more efficient and stable.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我将分享我们使用 Spark Connect（版本 3.5）的经验。我将讨论我们获得的好处、与运行 Spark 客户端应用程序相关的技术细节，以及一些关于如何使您的
+    Spark Connect 设置更加高效和稳定的建议。
 - en: Motivation for use
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用动机
 - en: Spark is one of the key components of the analytics platform at Joom. We have
     a large number of internal users and over 1000 custom Spark applications. These
     applications run at different times of day, have different complexity, and require
@@ -60,27 +90,43 @@
     of Spark Connect, it is now possible to set up a shared Spark Connect server and
     run many Spark client applications on it. Technically, the Spark Connect server
     is a Spark application with an embedded Spark Connect endpoint.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: Spark 是 Joom 分析平台的关键组成部分之一。我们有大量的内部用户和超过 1000 个自定义的 Spark 应用程序。这些应用程序在不同的时间运行，具有不同的复杂性，并且需要非常不同的计算资源（从几核几分钟到多达
+    250 核几个小时不等）。之前，所有应用程序都是作为独立的 Spark 应用程序执行的（每个应用程序都有自己的 driver 和 executor），这对于小型和中型应用程序（我们历史上有很多此类应用程序）来说，会导致明显的开销。引入
+    Spark Connect 后，现在可以设置一个共享的 Spark Connect 服务器，并在其上运行多个 Spark 客户端应用程序。从技术上讲，Spark
+    Connect 服务器是一个包含 Spark Connect 端点的 Spark 应用程序。
 - en: '![](../Images/0e9180f1354e8349d8b2b09848867414.png)'
+  id: totrans-12
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0e9180f1354e8349d8b2b09848867414.png)'
 - en: Image by author
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者图片
 - en: 'Here are the benefits we were able to get from this:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是我们从中获得的好处：
 - en: Resource savings
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 资源节省
 - en: '- When running via Spark Connect, client applications do not require their
     own Spark driver (which typically uses over 1.5 GB of memory). Instead, they use
     a thin client with a typical memory consumption of 200 MB.'
+  id: totrans-16
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 通过 Spark Connect 运行时，客户端应用程序不需要自己的 Spark driver（通常使用超过 1.5 GB 的内存）。相反，它们使用的是一个轻量级客户端，典型的内存消耗为
+    200 MB。'
 - en: '- Executor utilization improves since any executor can run the tasks of multiple
     client applications. For example, suppose some Spark application, at some point
     in its execution, starts using significantly fewer cores and memory than initially
@@ -89,22 +135,30 @@
     dynamic allocation often does not provide efficient scale-down. However, with
     the Spark Connect server, the freed-up cores and memory can immediately be used
     to run tasks of other client applications.'
+  id: totrans-17
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 执行器利用率得到了改善，因为任何执行器都可以运行多个客户端应用程序的任务。例如，假设某个 Spark 应用程序在执行过程中，使用的核心数和内存显著少于最初请求的资源。出现这种情况的原因有很多。然后，在独立的
+    Spark 应用程序中，当前未使用的资源往往会被浪费，因为动态资源分配通常无法高效地缩减资源。然而，在 Spark Connect 服务器的情况下，释放的核心和内存可以立即用来运行其他客户端应用程序的任务。'
 - en: Reduced startup wait time
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 启动等待时间减少
 - en: '- For various reasons, we have to limit the number of simultaneously running
     separate Spark applications, and they may wait in the queue for quite a long time
     if all slots are currently occupied. It can negatively affect data readiness time
     and user experience. In the case of the Spark Connect server, we have so far been
     able to avoid such limitations, and all Spark Connect client applications start
     running immediately after launch.'
+  id: totrans-19
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 出于各种原因，我们必须限制同时运行的独立 Spark 应用程序的数量，如果所有插槽都被占用，它们可能会在队列中等待相当长时间。这可能会对数据准备时间和用户体验产生负面影响。在
+    Spark Connect 服务器的情况下，我们目前能够避免这种限制，所有 Spark Connect 客户端应用程序在启动后都会立即开始运行。'
 - en: '- For ad-hoc executions, it is desirable to minimize the time to get results
     as much as possible and avoid keeping people waiting. In the case of separate
     Spark applications, launching a client application often requires provisioning
@@ -114,46 +168,67 @@
     accept requests, so it is only a matter of waiting for additional executors, and
     often executors are already available. This may significantly reduce the wait
     time for ad-hoc applications to be ready.'
+  id: totrans-20
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 对于临时执行，最好尽可能减少获得结果的时间，避免让用户等待。在独立的 Spark 应用程序的情况下，启动客户端应用程序通常需要为其 driver
+    和 executor 配置额外的 EC2 节点，并初始化 driver 和 executor。所有这些加起来可能需要超过 4 分钟。而在 Spark Connect
+    服务器的情况下，至少其 driver 始终处于运行状态并准备接受请求，因此只需等待额外的执行器，且执行器通常已经可用。这可能大大减少临时应用程序准备就绪的等待时间。'
 - en: Our constraints
+  id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 我们的约束条件
 - en: 'At the moment, we do not run long-running heavy applications on Spark Connect
     for the following reasons:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前，我们没有在 Spark Connect 上运行长时间运行的重型应用程序，原因如下：
 - en: They may cause failure or unstable behavior of the Spark Connect server (e.g.,
     by overflowing disks on executor nodes). It can lead to large-scale problems for
     the entire platform.
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它们可能会导致 Spark Connect 服务器的故障或不稳定行为（例如，通过溢出执行器节点上的磁盘）。这可能会导致整个平台的大规模问题。
 - en: They often require unique memory settings and use specific optimization techniques
     (e.g., custom extraStrategies).
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它们通常需要独特的内存设置，并使用特定的优化技术（例如，自定义的 extraStrategies）。
 - en: We currently have a problem with giving the Spark Connect server a lot of executors
     to handle a very large simultaneous load (this is related to the behavior of Spark
     Task Scheduler and is beyond the scope of this article).
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们目前面临一个问题，即给 Spark Connect 服务器分配大量执行器以处理非常大的并发负载（这与 Spark 任务调度器的行为相关，超出了本文的讨论范围）。
 - en: Therefore, heavy applications still run as separate Spark applications.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，重型应用程序仍然作为单独的 Spark 应用程序运行。
 - en: Launching client applications
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 启动客户端应用程序
 - en: '*We use* [*Spark on Kubernetes/EKS*](https://spark.apache.org/docs/latest/running-on-kubernetes.html)
     *and* [*Airflow*](https://airflow.apache.org/)*. Some code examples will be specific
     to this environment.*'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: '*我们使用* [*Spark on Kubernetes/EKS*](https://spark.apache.org/docs/latest/running-on-kubernetes.html)
+    *和* [*Airflow*](https://airflow.apache.org/)*。一些代码示例将特定于这个环境。*'
 - en: We have too many different, constantly changing Spark applications, and it would
     take too much time to manually determine for each one whether it should run on
     Spark Connect according to our criteria or not. Furthermore, the list of applications
@@ -162,8 +237,12 @@
     But tomorrow, its developers may add several large joins, making it quite heavy.
     Then, it will be preferable to run it as a separate Spark application. The reverse
     situation is also possible.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们有太多不同且不断变化的 Spark 应用程序，需要花费太多时间手动确定每个应用程序是否应该根据我们的标准在 Spark Connect 上运行。此外，运行在
+    Spark Connect 上的应用程序列表需要定期更新。例如，假设今天某个应用程序足够轻，我们决定在 Spark Connect 上运行它。但明天，它的开发者可能会添加几个大的连接操作，使得它变得非常重。此时，最好将其作为单独的
+    Spark 应用程序来运行。反之的情况也是可能的。
 - en: Eventually, we created a service to automatically determine how to launch each
     specific client application. This service analyzes the history of previous runs
     for each application, evaluating such metrics as `Total Task Time`, `Shuffle Write`,
@@ -173,8 +252,13 @@
     automatically determines for each application whether it should be run this time
     on the Spark Connect server or as a separate Spark application. Thus, all our
     applications should be ready to run in either of the two ways.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终，我们创建了一个服务来自动确定如何启动每个特定的客户端应用程序。该服务分析每个应用程序以前运行的历史记录，评估诸如`总任务时间`、`Shuffle
+    写入`、`磁盘溢出`等指标（这些数据是通过 [SparkListener](https://github.com/joomcode/spark-platform/blob/main/lib/src/main/scala/com/joom/spark/monitoring/StatsReportingSparkListener.scala)
+    收集的）。开发者为应用程序设置的自定义参数（例如，驱动程序和执行器的内存设置）也会被考虑在内。根据这些数据，服务会自动确定每个应用程序此次是否应该在 Spark
+    Connect 服务器上运行，或作为单独的 Spark 应用程序运行。因此，我们所有的应用程序都应该准备好以这两种方式之一运行。
 - en: In our environment, each client application is built independently of the others
     and has its own JAR file containing the application code, as well as specific
     dependencies (for example, ML applications often use third-party libraries like
@@ -185,8 +269,14 @@
     will run via Spark Connect or not. But we do not know that. The following describes
     our approach to launching client applications, which eliminates the need to build
     and manage two versions of JAR artifact for the same application.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的环境中，每个客户端应用程序都是独立构建的，并拥有包含应用程序代码以及特定依赖项的 JAR 文件（例如，ML 应用程序通常会使用像 CatBoost
+    等第三方库）。问题在于，Spark Connect 的 SparkSession API 与独立 Spark 应用程序所使用的 SparkSession API
+    略有不同（Spark Connect 客户端使用 `spark-connect-client-jvm` 组件）。因此，我们必须在每个客户端应用程序的构建阶段确定它是否会通过
+    Spark Connect 运行。然而，我们并不知道这一点。以下将描述我们启动客户端应用程序的方法，该方法避免了为同一个应用程序构建和管理两个版本的 JAR
+    工件。
 - en: 'For each Spark client application, we build only one JAR file containing the
     application code and specific dependencies. This JAR is used both when running
     on Spark Connect and when running as a separate Spark application. Therefore,
@@ -198,11 +288,19 @@
     the regular Spark API. So, in the part of the code intended for Spark Connect
     clients, the `SparkSession` methods specific to the Spark Connect API (`remote`,
     `addArtifact`) are called via reflection:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个 Spark 客户端应用程序，我们只构建一个 JAR 文件，其中包含应用程序代码和特定的依赖项。这个 JAR 文件既用于 Spark Connect
+    运行模式，也用于作为独立的 Spark 应用程序运行。因此，这些客户端 JAR 文件不包含特定的 Spark 依赖项。适当的 Spark 依赖项（如 `spark-core`/`spark-sql`
+    或 `spark-connect-client-jvm`）会在后续通过 Java 类路径提供，具体取决于运行模式。无论如何，所有客户端应用程序都使用相同的
+    Scala 代码来初始化 SparkSession，这一操作会根据运行模式进行调整。所有客户端应用程序的 JAR 文件都针对常规的 Spark API 进行构建。因此，在面向
+    Spark Connect 客户端的代码部分，`SparkSession` 方法（如 `remote`、`addArtifact`）会通过反射来调用：
 - en: '[PRE0]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: In the case of Spark Connect mode, this client code can be run as a regular
     Java application anywhere. Since we use Kubernetes, this runs in a Docker container.
     All dependencies specific to Spark Connect are packed into a Docker image used
@@ -210,11 +308,18 @@
     The image contains not only the `spark-connect-client-jvm` artifact but also other
     common dependencies used by almost all client applications (e.g., `hadoop-aws`
     since we almost always have interaction with S3 storage on the client side).
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Spark Connect 模式下，这段客户端代码可以作为常规的 Java 应用程序在任何地方运行。由于我们使用 Kubernetes，这段代码会在
+    Docker 容器中运行。所有与 Spark Connect 相关的依赖都打包进一个 Docker 镜像，用来运行客户端应用程序（该镜像的一个简化示例可以在[这里](https://github.com/kotlovs/spark-connect-examples/tree/main/spark-connect-client-image)找到）。该镜像不仅包含
+    `spark-connect-client-jvm` 组件，还包括几乎所有客户端应用程序常用的其他依赖（例如，`hadoop-aws`，因为我们几乎总是在客户端与
+    S3 存储进行交互）。
 - en: '[PRE1]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'This common Docker image is used to run all our client applications when it
     comes to running them via Spark Connect. At the same time, it does not contain
     client JARs with the code of particular applications and their dependencies because
@@ -222,16 +327,24 @@
     any third-party libraries. Instead, when a particular client application is launched,
     the location of its JAR file is passed using an environment variable, and that
     JAR is downloaded during initialization in `entrypoint.sh`:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个通用 Docker 镜像用于通过 Spark Connect 运行我们的所有客户端应用程序。同时，它不包含特定应用程序的客户端 JAR 文件及其依赖项，因为有许多此类应用程序，它们不断更新，并可能依赖任何第三方库。相反，当启动某个特定的客户端应用程序时，会通过环境变量传递该应用程序
+    JAR 文件的位置，在初始化过程中（在 `entrypoint.sh` 中）下载该 JAR 文件：
 - en: '[PRE2]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Finally, when it comes time to launch the application, our custom SparkAirflowOperator
     automatically determines the execution mode (Spark Connect or separate) based
     on the statistics of previous runs of this application.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，当启动应用程序时，我们的自定义 SparkAirflowOperator 会根据此应用程序先前运行的统计数据自动确定执行模式（Spark Connect
+    或单独的模式）。
 - en: 'In the case of Spark Connect, we use [KubernetesPodOperator](https://airflow.apache.org/docs/apache-airflow-providers-cncf-kubernetes/stable/operators.html)
     to launch the client Pod of the application. `KubernetesPodOperator` takes as
     parameters the previously described Docker image, as well as the environment variables
@@ -239,72 +352,111 @@
     `entrypoint.sh` and the application code. There is no need to allocate many resources
     to the client Pod (for example, its typical consumption in our environment: memory
     — 200 MB, vCPU — 0.15).'
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在 Spark Connect 的情况下，我们使用 [KubernetesPodOperator](https://airflow.apache.org/docs/apache-airflow-providers-cncf-kubernetes/stable/operators.html)
+    来启动应用程序的客户端 Pod。`KubernetesPodOperator` 需要作为参数提供前面描述的 Docker 镜像，以及环境变量（`MAIN_CLASS`、`JAR_PATH`
+    等），这些变量将在 `entrypoint.sh` 和应用程序代码中使用。无需为客户端 Pod 分配过多资源（例如，在我们的环境中，它的典型消耗：内存 —
+    200 MB，vCPU — 0.15）。
 - en: In the case of a separate Spark application, we use our custom AirflowOperator,
     which runs Spark applications using [spark-on-k8s-operator](https://github.com/kubeflow/spark-operator)
     and the official [Spark Docker image](https://spark.apache.org/docs/latest/running-on-kubernetes.html#docker-images).
     Let’s skip the details about our Spark AirflowOperator for now, as it is a large
     topic deserving a separate article.
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在单独的 Spark 应用程序中，我们使用自定义的 AirflowOperator，通过 [spark-on-k8s-operator](https://github.com/kubeflow/spark-operator)
+    和官方的 [Spark Docker 镜像](https://spark.apache.org/docs/latest/running-on-kubernetes.html#docker-images)
+    运行 Spark 应用程序。我们暂时跳过有关 Spark AirflowOperator 的详细内容，因为它是一个庞大的话题，值得单独撰写一篇文章。
 - en: Compatibility issues with regular Spark applications
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 与常规 Spark 应用程序的兼容性问题
 - en: Not all existing Spark applications can be successfully executed on Spark Connect
     since its SparkSession API is different from the SparkSession API used for separate
     Spark applications. For example, if your code uses `sparkSession.sparkContext`
     or `sparkSession.sessionState`, it will fail in the Spark Connect client because
     the Spark Connect version of SparkSession does not have these properties.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 不是所有现有的 Spark 应用程序都可以在 Spark Connect 上成功执行，因为其 SparkSession API 与用于单独 Spark
+    应用程序的 SparkSession API 不同。例如，如果你的代码使用了 `sparkSession.sparkContext` 或 `sparkSession.sessionState`，它将在
+    Spark Connect 客户端中失败，因为 Spark Connect 版本的 SparkSession 不具备这些属性。
 - en: 'In our case, the most common cause of problems was using `sparkSession.sessionState.catalog`
     and `sparkSession.sparkContext.hadoopConfiguration`. In some cases, `sparkSession.sessionState.catalog`
     can be replaced with `sparkSession.catalog`, but not always. `sparkSession.sparkContext.hadoopConfiguration`
     may be needed if the code executed on the client side contains operations on your
     data storage, such as this:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的案例中，最常见的问题原因是使用了 `sparkSession.sessionState.catalog` 和 `sparkSession.sparkContext.hadoopConfiguration`。在某些情况下，`sparkSession.sessionState.catalog`
+    可以替换为 `sparkSession.catalog`，但并非总是如此。如果客户端执行的代码涉及对数据存储的操作，则可能需要 `sparkSession.sparkContext.hadoopConfiguration`，例如：
 - en: '[PRE3]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Fortunately, it is possible to create a standalone `SessionCatalog` for use
     within the Spark Connect client. In this case, the class path of the Spark Connect
     client must also include `org.apache.spark:spark-hive_2.12`, as well as libraries
     for interacting with your storage (since we use S3, so in our case, it is `org.apache.hadoop:hadoop-aws`).
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，可以为 Spark Connect 客户端创建一个独立的 `SessionCatalog`。在这种情况下，Spark Connect 客户端的类路径还必须包含
+    `org.apache.spark:spark-hive_2.12`，以及与存储交互的库（因为我们使用 S3，所以在我们的案例中是 `org.apache.hadoop:hadoop-aws`）。
 - en: '[PRE4]'
+  id: totrans-46
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'You also need to create a wrapper for `HiveExternalCatalog` accessible in your
     code (because the `HiveExternalCatalog` class is private to the `org.apache.spark`
     package):'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 你还需要为 `HiveExternalCatalog` 创建一个封装器，使其可以在代码中访问（因为 `HiveExternalCatalog` 类是 `org.apache.spark`
+    包私有的）：
 - en: '[PRE5]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Additionally, it is often possible to replace code that does not work on Spark
     Connect with an alternative, for example:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，通常可以用替代代码来替换 Spark Connect 上无法运行的代码，例如：
 - en: '`sparkSession.createDataFrame(sparkSession.sparkContext.parallelize(data),
     schema)` ==> `sparkSession.createDataFrame(data.toList.asJava, schema)`'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`sparkSession.createDataFrame(sparkSession.sparkContext.parallelize(data),
+    schema)` ==> `sparkSession.createDataFrame(data.toList.asJava, schema)`'
 - en: '`sparkSession.sparkContext.getConf.get(“some_property”)` ==> `sparkSession.conf.get(“some_property”)`'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`sparkSession.sparkContext.getConf.get(“some_property”)` ==> `sparkSession.conf.get(“some_property”)`'
 - en: Fallback to a separate Spark application
+  id: totrans-52
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 回退到独立的 Spark 应用程序
 - en: 'Unfortunately, it is not always easy to fix a particular Spark application
     to make it work as a Spark Connect client. For example, third-party Spark components
     used in the project pose a significant risk, as they are often written without
@@ -312,171 +464,251 @@
     application can be automatically launched on Spark Connect, we found it reasonable
     to implement a fallback to a separate Spark application in case of failure. Simplified,
     the logic is as follows:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，修复特定的 Spark 应用程序使其作为 Spark Connect 客户端工作并不总是容易。例如，项目中使用的第三方 Spark 组件存在很大风险，因为它们通常在编写时没有考虑与
+    Spark Connect 的兼容性。由于在我们的环境中，任何 Spark 应用程序都可以自动启动在 Spark Connect 上，因此我们认为在失败时实现回退为独立的
+    Spark 应用程序是合理的。简化后的逻辑如下：
 - en: If some application fails on Spark Connect, we immediately try to rerun it as
     a separate Spark application. At the same time, we increment the counter of failures
     that occurred during execution on Spark Connect (each client application has its
     own counter).
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果某个应用程序在 Spark Connect 上失败，我们会立即尝试将其重新作为独立的 Spark 应用程序运行。同时，我们会增加在 Spark Connect
+    上执行过程中发生的失败次数计数器（每个客户端应用程序都有自己的计数器）。
 - en: 'The next time this application is launched, we check the failure counter of
     this application:'
+  id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 下次启动此应用程序时，我们检查该应用程序的失败计数器：
 - en: '- If there are fewer than 3 failures, we assume that the last time, the application
     may have failed not because of incompatibility with Spark Connect but due to any
     other possible temporary reasons. So, we try to run it on Spark Connect again.
     If it completes successfully this time, the failure counter of this client application
     is reset to zero.'
+  id: totrans-56
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 如果失败次数少于 3 次，我们假设上次应用程序失败并非由于与 Spark Connect 不兼容，而是由于其他任何可能的临时原因。因此，我们会尝试再次在
+    Spark Connect 上运行它。如果这次成功完成，则该客户端应用程序的失败计数器会被重置为零。'
 - en: '- If there are already 3 failures, we assume that the application cannot work
     on Spark Connect and stop attempting to run it there for now. Further, it will
     be launched only as a separate Spark application.'
+  id: totrans-57
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '- 如果已经发生了 3 次失败，我们假设该应用程序无法在 Spark Connect 上工作，并且暂时停止在 Spark Connect 上运行它。之后，它将只作为独立的
+    Spark 应用程序启动。'
 - en: If the application has 3 failures on Spark Connect, but the last one was more
     than 2 months ago, we try to run it on Spark Connect again (in case something
     has changed in it during that time, making it compatible with Spark Connect).
     If it succeeds this time, we reset the failure counter to zero again. If unsuccessful
     again, the next attempt will be in another 2 months.
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果应用程序在 Spark Connect 上出现了 3 次失败，但最后一次失败发生在 2 个月以上之前，我们会尝试再次在 Spark Connect
+    上运行它（以防在此期间发生了变化，使其与 Spark Connect 兼容）。如果这次成功，我们会再次将失败计数器重置为零。如果再次失败，下次尝试将在 2
+    个月后进行。
 - en: This approach is somewhat simpler than maintaining code that identifies the
     reasons for failures from logs, and it works well in most cases. Attempts to run
     incompatible applications on Spark Connect usually do not have any significant
     negative impact because, in the vast majority of cases, if an application is incompatible
     with Spark Connect, it fails immediately after launch without wasting time and
     resources. However, it is important to mention that all our applications are idempotent.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法比维护一段代码来识别失败原因（从日志中获取）要简单一些，并且在大多数情况下效果很好。尝试在 Spark Connect 上运行不兼容的应用程序通常不会带来显著的负面影响，因为在绝大多数情况下，如果应用程序与
+    Spark Connect 不兼容，它会在启动后立即失败，且不会浪费时间和资源。然而，值得一提的是，我们所有的应用程序都是幂等的。
 - en: Statistics gathering
+  id: totrans-60
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 统计数据收集
 - en: As I already mentioned, we collect Spark statistics for each Spark application
     (most of our platform optimizations and alerts depend on it). This is easy when
     the application runs as a separate Spark application. In the case of Spark Connect,
     the stages and tasks of each client application need to be separated from the
     stages and tasks of all other client applications that run simultaneously within
     the shared Spark Connect server.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我之前提到的，我们会收集每个 Spark 应用程序的统计数据（我们平台的大多数优化和警报都依赖于这些数据）。当应用程序作为独立的 Spark 应用程序运行时，这很容易实现。而在
+    Spark Connect 的情况下，每个客户端应用程序的阶段和任务需要与所有其他在共享 Spark Connect 服务器中同时运行的客户端应用程序的阶段和任务区分开。
 - en: 'You can pass any identifiers to the Spark Connect server by setting custom
     properties for the client `SparkSession`:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过为客户端 `SparkSession` 设置自定义属性，将任何标识符传递给 Spark Connect 服务器：
 - en: '[PRE6]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Then, in the `SparkListener` on the Spark Connect server side, you can retrieve
     all the passed information and associate each stage/task with the particular client
     application.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，在 Spark Connect 服务器端的 `SparkListener` 中，你可以检索所有传递的信息，并将每个阶段/任务与特定的客户端应用程序关联起来。
 - en: '[PRE7]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[Here, you can find the code](https://github.com/joomcode/spark-platform/blob/main/lib/src/main/scala/com/joom/spark/monitoring/StatsReportingSparkListener.scala)
     for the `StatsReportingSparkListener` we use to collect statistics. You might
     also be interested in [this free tool](https://cloud.joom.ai/) for finding performance
     issues in your Spark applications.'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '[在这里，你可以找到我们用来收集统计数据的 `StatsReportingSparkListener` 代码](https://github.com/joomcode/spark-platform/blob/main/lib/src/main/scala/com/joom/spark/monitoring/StatsReportingSparkListener.scala)。你也许对
+    [这个免费的工具](https://cloud.joom.ai/) 感兴趣，它可以帮助你发现 Spark 应用程序中的性能问题。'
 - en: Optimization and stability improvement
+  id: totrans-67
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 优化与稳定性提升
 - en: 'The Spark Connect server is a permanently running Spark application where a
     large number of clients can run their Jobs. Therefore, it can be worthwhile to
     customize its [properties](https://spark.apache.org/docs/latest/configuration.html),
     which can make it more reliable and prevent waste of resources. Here are some
     settings that turned out to be useful in our case:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: Spark Connect 服务器是一个持续运行的 Spark 应用程序，多个客户端可以在其上运行作业。因此，定制其 [属性](https://spark.apache.org/docs/latest/configuration.html)
+    使其更可靠并防止资源浪费可能是值得的。以下是我们案例中证明有效的一些设置：
 - en: '[PRE8]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'For example, after we adjusted the `idle timeout` properties, the resource
     utilization changed as follows:'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，在我们调整了 `idle timeout` 属性后，资源利用率发生了如下变化：
 - en: '![](../Images/ea2bebad36ec8b519bfb5cfc004c4e11.png)'
+  id: totrans-71
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ea2bebad36ec8b519bfb5cfc004c4e11.png)'
 - en: Image by author
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: Preventive restart
+  id: totrans-73
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 预防性重启
 - en: In our environment, the Spark Connect server (version 3.5) may become unstable
     after a few days of continuous operation. Most often, we face randomly hanging
     client application jobs for an infinite amount of time, but there may be other
     problems as well. Also, over time, the probability of a random failure of the
     entire Spark Connect server increases dramatically, and this can happen at the
     wrong moment.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的环境中，Spark Connect 服务器（版本 3.5）在连续运行几天后可能会变得不稳定。最常见的情况是，我们面临客户端应用程序任务随机挂起且时间无限，但也可能会遇到其他问题。此外，随着时间的推移，整个
+    Spark Connect 服务器随机失败的概率会急剧增加，这可能发生在不合适的时刻。
 - en: As this component evolves, it will likely become more stable (or we will find
     out that we have done something wrong in our Spark Connect setup). But currently,
     the simplest solution has turned out to be a daily preventive restart of the Spark
     Connect server at a suitable moment (i.e., when no client applications are running
     on it). An example of what the restart code might look like [can be found here](https://gist.github.com/kotlovs/437809684d7ebe3b7a93a1af804def8c).
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着该组件的发展，它可能会变得更加稳定（或者我们会发现我们的 Spark Connect 设置中存在问题）。但目前，最简单的解决方案是每天在合适的时刻（即没有客户端应用程序在运行时）对
+    Spark Connect 服务器进行预防性重启。重启代码的示例 [可以在这里找到](https://gist.github.com/kotlovs/437809684d7ebe3b7a93a1af804def8c)。
 - en: Conclusion
+  id: totrans-76
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: In this article, I described our experience using Spark Connect to run a large
     number of diverse Spark applications.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我描述了我们使用 Spark Connect 运行大量不同类型 Spark 应用程序的经验。
 - en: 'To summarize the above:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结上述内容：
 - en: This component can help save resources and reduce the wait time for the execution
     of Spark client applications.
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 该组件有助于节省资源并减少 Spark 客户端应用程序执行的等待时间。
 - en: It is better to be careful about which applications should be run on the shared
     Spark Connect server, as resource-intensive applications may cause problems for
     the entire system.
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在共享 Spark Connect 服务器上运行哪些应用程序需要谨慎，因为资源密集型应用程序可能会对整个系统造成问题。
 - en: You can create an infrastructure for launching client applications so that the
     decision on how to run any application (either as a separate Spark application
     or as a Spark Connect client) can be made automatically at the moment of launch.
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 你可以创建一个用于启动客户端应用程序的基础设施，以便在启动时自动决定如何运行任何应用程序（是作为独立的 Spark 应用程序还是作为 Spark Connect
+    客户端）。
 - en: It is important to note that not all applications will be able to run on Spark
     Connect, but the number of such cases can be significantly reduced. If there is
     a possibility of running applications that have not been tested for compatibility
     with the Spark Connect version of SparkSession API, it is worth implementing a
     fallback to separate Spark applications.
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 需要注意的是，并非所有应用程序都能够在 Spark Connect 上运行，但此类情况的数量可以显著减少。如果有可能运行未经过 Spark Connect
+    版本 SparkSession API 兼容性测试的应用程序，建议实现回退机制以运行独立的 Spark 应用程序。
 - en: It is worth paying attention to the Spark properties that can improve resource
     utilization and increase the overall stability of the Spark Connect server. It
     may also be reasonable to set up a periodic preventive restart of the Spark Connect
     server to reduce the probability of accidental failure and unwanted behavior.
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 值得注意的是，有一些 Spark 属性可以提高资源利用率并增加 Spark Connect 服务器的整体稳定性。可能还需要合理设置 Spark Connect
+    服务器的定期预防性重启，以减少意外故障和不希望出现的行为的发生概率。
 - en: Overall, we have had a positive experience using Spark Connect in our company.
     We will continue to watch the development of this technology with great interest,
     and there is a plan to expand its use.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 总的来说，我们在公司使用 Spark Connect 的体验是积极的。我们将继续密切关注这项技术的发展，并计划扩大其使用范围。
