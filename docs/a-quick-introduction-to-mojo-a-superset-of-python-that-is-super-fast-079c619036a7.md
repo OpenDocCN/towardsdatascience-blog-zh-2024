@@ -1,16 +1,16 @@
 # Mojo 快速介绍 —— 一个超快速的 Python 超集
 
-> 原文：[https://towardsdatascience.com/a-quick-introduction-to-mojo-a-superset-of-python-that-is-super-fast-079c619036a7?source=collection_archive---------1-----------------------#2024-01-22](https://towardsdatascience.com/a-quick-introduction-to-mojo-a-superset-of-python-that-is-super-fast-079c619036a7?source=collection_archive---------1-----------------------#2024-01-22)
+> 原文：[`towardsdatascience.com/a-quick-introduction-to-mojo-a-superset-of-python-that-is-super-fast-079c619036a7?source=collection_archive---------1-----------------------#2024-01-22`](https://towardsdatascience.com/a-quick-introduction-to-mojo-a-superset-of-python-that-is-super-fast-079c619036a7?source=collection_archive---------1-----------------------#2024-01-22)
 
 ## 为人工智能学习 Python 的新兄弟语言
 
-[](https://lynn-kwong.medium.com/?source=post_page---byline--079c619036a7--------------------------------)[![Lynn G. Kwong](../Images/253fd9755da04beb974f234898f8d2dd.png)](https://lynn-kwong.medium.com/?source=post_page---byline--079c619036a7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--079c619036a7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--079c619036a7--------------------------------) [Lynn G. Kwong](https://lynn-kwong.medium.com/?source=post_page---byline--079c619036a7--------------------------------)
+[](https://lynn-kwong.medium.com/?source=post_page---byline--079c619036a7--------------------------------)![Lynn G. Kwong](https://lynn-kwong.medium.com/?source=post_page---byline--079c619036a7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--079c619036a7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--079c619036a7--------------------------------) [Lynn G. Kwong](https://lynn-kwong.medium.com/?source=post_page---byline--079c619036a7--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--079c619036a7--------------------------------) ·阅读时长 8 分钟·2024 年 1 月 22 日
 
 --
 
-![](../Images/9b2d78f15373e812c9c135b5fb036563.png)
+![](img/9b2d78f15373e812c9c135b5fb036563.png)
 
 图片来源：51581，Pixabay
 

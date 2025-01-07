@@ -1,16 +1,16 @@
 # 在检索增强生成（RAG）中正确处理生成部分的技巧
 
-> 原文：[https://towardsdatascience.com/tips-for-getting-the-generation-part-right-in-retrieval-augmented-generation-7deaa26f28dc?source=collection_archive---------2-----------------------#2024-04-06](https://towardsdatascience.com/tips-for-getting-the-generation-part-right-in-retrieval-augmented-generation-7deaa26f28dc?source=collection_archive---------2-----------------------#2024-04-06)
+> 原文：[`towardsdatascience.com/tips-for-getting-the-generation-part-right-in-retrieval-augmented-generation-7deaa26f28dc?source=collection_archive---------2-----------------------#2024-04-06`](https://towardsdatascience.com/tips-for-getting-the-generation-part-right-in-retrieval-augmented-generation-7deaa26f28dc?source=collection_archive---------2-----------------------#2024-04-06)
 
-![](../Images/0b1cd357c6cc8229b1a1bdc4fc421ba1.png)
+![](img/0b1cd357c6cc8229b1a1bdc4fc421ba1.png)
 
 图像由作者使用 Dall-E 3 创建
 
 ## 用于评估和比较 GPT-4、Claude 2.1 和 Claude 3.0 Opus 的实验结果
 
-[](https://aparnadhinak.medium.com/?source=post_page---byline--7deaa26f28dc--------------------------------)[![Aparna Dhinakaran](../Images/e431ee69563ecb27c86f3428ba53574c.png)](https://aparnadhinak.medium.com/?source=post_page---byline--7deaa26f28dc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7deaa26f28dc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7deaa26f28dc--------------------------------) [Aparna Dhinakaran](https://aparnadhinak.medium.com/?source=post_page---byline--7deaa26f28dc--------------------------------)
+[](https://aparnadhinak.medium.com/?source=post_page---byline--7deaa26f28dc--------------------------------)![Aparna Dhinakaran](https://aparnadhinak.medium.com/?source=post_page---byline--7deaa26f28dc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7deaa26f28dc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7deaa26f28dc--------------------------------) [Aparna Dhinakaran](https://aparnadhinak.medium.com/?source=post_page---byline--7deaa26f28dc--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7deaa26f28dc--------------------------------) ·6分钟阅读·2024年4月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7deaa26f28dc--------------------------------) ·6 分钟阅读·2024 年 4 月 6 日
 
 --
 
@@ -26,17 +26,17 @@ RAG 系统的新评估似乎每天都有发布，许多评估都集中在框架�
 
 +   尽管初步发现表明 Claude 在性能上超越了 GPT-4，但随后的测试表明，通过战略性的提示工程，GPT-4 在更广泛的评估中表现出了更优的性能。模型的固有行为和提示工程在 RAG 系统中至关重要。
 
-+   仅仅在提示模板中添加“请先解释自己然后回答问题”，就显著提升了（超过2倍）GPT-4的表现。显然，当大型语言模型解释自己的答案时，似乎有助于展开思路。通过解释，模型可能在嵌入/注意力空间中加强了正确的答案。
++   仅仅在提示模板中添加“请先解释自己然后回答问题”，就显著提升了（超过 2 倍）GPT-4 的表现。显然，当大型语言模型解释自己的答案时，似乎有助于展开思路。通过解释，模型可能在嵌入/注意力空间中加强了正确的答案。
 
-# RAG阶段及生成为何重要
+# RAG 阶段及生成为何重要
 
-![](../Images/b85c5041b6dc28b4a086b9796ec04480.png)
+![](img/b85c5041b6dc28b4a086b9796ec04480.png)
 
 图 1：作者制作的图表
 
 虽然检索负责识别和提取最相关的信息，但生成阶段则负责将这些原始数据转化为连贯、有意义且符合上下文的响应。生成步骤的任务是综合所检索到的信息，填补空白，并以一种易于理解且与用户查询相关的方式呈现。
 
-在许多实际应用中，RAG系统的价值不仅在于它们能够定位特定的事实或信息，还在于它们能够将这些信息整合并在更广泛的框架中进行上下文化处理。生成阶段使得RAG系统能够超越简单的事实检索，提供真正智能和适应性的响应。
+在许多实际应用中，RAG 系统的价值不仅在于它们能够定位特定的事实或信息，还在于它们能够将这些信息整合并在更广泛的框架中进行上下文化处理。生成阶段使得 RAG 系统能够超越简单的事实检索，提供真正智能和适应性的响应。
 
 # 测试 #1：日期映射
 
@@ -44,37 +44,37 @@ RAG 系统的新评估似乎每天都有发布，许多评估都集中在框架�
 
 1.  *检索随机数字 #1*
 
-1.  *隔离最后一位数字并加1*
+1.  *隔离最后一位数字并加 1*
 
 1.  *从结果中生成我们的日期字符串中的月份*
 
 1.  *检索随机数字 #2*
 
-1.  *从随机数字2生成我们的日期字符串中的月份*
+1.  *从随机数字 2 生成我们的日期字符串中的月份*
 
-例如，随机数字4827143和17将代表4月17日。
+例如，随机数字 4827143 和 17 将代表 4 月 17 日。
 
 这些数字被置于不同深度的上下文中，且上下文长度各异。模型最初在这个任务上表现得相当困难。
 
-![](../Images/1169b511246aaad65af5519ac3416916.png)
+![](img/1169b511246aaad65af5519ac3416916.png)
 
 图 2：初步测试结果（图片来源：作者）
 
-虽然两个模型的表现都不算优秀，但在我们的初步测试中，Claude 2.1显著优于GPT-4，几乎将其成功率提高了四倍。正是在这一点上，Claude的冗长特性——提供详细、解释性的回答——似乎给它带来了明显的优势，使得结果比GPT-4最初简洁的回答更为准确。
+虽然两个模型的表现都不算优秀，但在我们的初步测试中，Claude 2.1 显著优于 GPT-4，几乎将其成功率提高了四倍。正是在这一点上，Claude 的冗长特性——提供详细、解释性的回答——似乎给它带来了明显的优势，使得结果比 GPT-4 最初简洁的回答更为准确。
 
-受到这些意外结果的启发，我们在实验中引入了一个新变量。我们指示GPT-4“先解释自己然后再回答问题”，这一提示鼓励它提供更冗长的回答，类似于Claude的自然输出。这一小小的调整产生了深远的影响。
+受到这些意外结果的启发，我们在实验中引入了一个新变量。我们指示 GPT-4“先解释自己然后再回答问题”，这一提示鼓励它提供更冗长的回答，类似于 Claude 的自然输出。这一小小的调整产生了深远的影响。
 
-![](../Images/5dc3161bdfb87275c02bb1900769007e.png)
+![](img/5dc3161bdfb87275c02bb1900769007e.png)
 
 图 3：初步测试与目标提示结果（图片来源：作者）
 
-GPT-4的表现显著提升，在随后的测试中取得了完美的结果。Claude的结果也有所改善，但幅度较小。
+GPT-4 的表现显著提升，在随后的测试中取得了完美的结果。Claude 的结果也有所改善，但幅度较小。
 
 该实验不仅突出了语言模型在处理生成任务时的差异，还展示了提示工程对其性能的潜在影响。看似是 Claude 的优势的冗长提示，实际上也成为 GPT-4 可以复制的策略，这表明模型处理和呈现推理的方式可以显著影响其在生成任务中的准确性。总体而言，向我们的提示中加入看似微不足道的“解释一下”这一行，确实在提高所有实验中模型的表现上起到了作用。
 
 # 进一步测试与结果
 
-![](../Images/e644fb91beeb1871e295b10ecc286e1f.png)
+![](img/e644fb91beeb1871e295b10ecc286e1f.png)
 
 图 4：用于评估生成的四个进一步测试（图像由作者提供）
 
@@ -90,13 +90,13 @@ GPT-4的表现显著提升，在随后的测试中取得了完美的结果。Cla
 
 毫不奇怪，每个模型在字符串连接测试中都表现出色，进一步确认了文本处理是语言模型的基本优势。
 
-![](../Images/9f3758466dd21ade4fd7d72b365f556e.png)
+![](img/9f3758466dd21ade4fd7d72b365f556e.png)
 
 图 5：货币格式化测试结果（图像由作者提供）
 
 至于货币格式化测试，Claude 3 和 GPT-4 几乎表现完美。Claude 2.1 的表现总体较差。准确性在不同的标记长度上没有显著差异，但当针头接近上下文窗口的开头时，准确性普遍较低。
 
-![](../Images/91f0318ea917c7bc7eeb3b603296b9c5.png)
+![](img/91f0318ea917c7bc7eeb3b603296b9c5.png)
 
 图 6：正常大针测试结果（图像由作者提供）
 
@@ -104,6 +104,6 @@ GPT-4的表现显著提升，在随后的测试中取得了完美的结果。Cla
 
 # 结论
 
-通过测试各种生成任务，我们观察到，虽然这两种模型在字符串处理等琐碎任务中表现出色，但它们的优缺点在更复杂的场景中[变得明显](https://arize.com/blog-course/research-techniques-for-better-retrieved-generation-rag/)。大型语言模型（LLMs）在数学方面仍然不够出色！另一个关键结果是，“解释你自己”提示的引入显著提升了GPT-4的表现，强调了模型如何被提示以及它们如何表达推理过程在实现准确结果中的重要性。
+通过测试各种生成任务，我们观察到，虽然这两种模型在字符串处理等琐碎任务中表现出色，但它们的优缺点在更复杂的场景中[变得明显](https://arize.com/blog-course/research-techniques-for-better-retrieved-generation-rag/)。大型语言模型（LLMs）在数学方面仍然不够出色！另一个关键结果是，“解释你自己”提示的引入显著提升了 GPT-4 的表现，强调了模型如何被提示以及它们如何表达推理过程在实现准确结果中的重要性。
 
-这些发现对LLMs的评估具有更广泛的意义。在比较像冗长的Claude和最初较为简洁的GPT-4这样的模型时，显而易见，[RAG评估](https://arize.com/blog-course/rag-evaluation/)标准必须超越单纯的正确性。模型回答的冗长性引入了一个变量，这可能会显著影响其感知表现。这个细微差别可能表明，未来的模型评估应考虑回答的平均长度作为一个重要因素，以便更好地理解模型的能力，并确保更公平的比较。
+这些发现对 LLMs 的评估具有更广泛的意义。在比较像冗长的 Claude 和最初较为简洁的 GPT-4 这样的模型时，显而易见，[RAG 评估](https://arize.com/blog-course/rag-evaluation/)标准必须超越单纯的正确性。模型回答的冗长性引入了一个变量，这可能会显著影响其感知表现。这个细微差别可能表明，未来的模型评估应考虑回答的平均长度作为一个重要因素，以便更好地理解模型的能力，并确保更公平的比较。

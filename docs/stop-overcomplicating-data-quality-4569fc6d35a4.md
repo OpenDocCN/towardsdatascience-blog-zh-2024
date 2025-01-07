@@ -1,16 +1,16 @@
 # 数据质量不需要复杂
 
-> 原文：[https://towardsdatascience.com/stop-overcomplicating-data-quality-4569fc6d35a4?source=collection_archive---------1-----------------------#2024-12-10](https://towardsdatascience.com/stop-overcomplicating-data-quality-4569fc6d35a4?source=collection_archive---------1-----------------------#2024-12-10)
+> 原文：[`towardsdatascience.com/stop-overcomplicating-data-quality-4569fc6d35a4?source=collection_archive---------1-----------------------#2024-12-10`](https://towardsdatascience.com/stop-overcomplicating-data-quality-4569fc6d35a4?source=collection_archive---------1-----------------------#2024-12-10)
 
 ## 三种零成本解决方案，只需几个小时，而非几个月
 
-[](https://medium.com/@caiparryjones96?source=post_page---byline--4569fc6d35a4--------------------------------)[![Cai Parry-Jones](../Images/60b83f5167651f9621a3e73b8d72ccae.png)](https://medium.com/@caiparryjones96?source=post_page---byline--4569fc6d35a4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4569fc6d35a4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4569fc6d35a4--------------------------------) [Cai Parry-Jones](https://medium.com/@caiparryjones96?source=post_page---byline--4569fc6d35a4--------------------------------)
+[](https://medium.com/@caiparryjones96?source=post_page---byline--4569fc6d35a4--------------------------------)![Cai Parry-Jones](https://medium.com/@caiparryjones96?source=post_page---byline--4569fc6d35a4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4569fc6d35a4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4569fc6d35a4--------------------------------) [Cai Parry-Jones](https://medium.com/@caiparryjones96?source=post_page---byline--4569fc6d35a4--------------------------------)
 
-·发布在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4569fc6d35a4--------------------------------) ·阅读时长 8 分钟 ·2024年12月10日
+·发布在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4569fc6d35a4--------------------------------) ·阅读时长 8 分钟 ·2024 年 12 月 10 日
 
 --
 
-![](../Images/4b570b710780faeea2899cb85facde86.png)
+![](img/4b570b710780faeea2899cb85facde86.png)
 
 一个“数据质量”认证的管道。来源：[unsplash.com](https://unsplash.com/)
 
@@ -18,7 +18,7 @@
 
 更重要的是，使用这种方式修复数据质量问题通常会导致新问题。更复杂、更高的成本、更慢的数据项目发布……
 
-![](../Images/3713bea14e131ad68e6fde839cda4e8f.png)
+![](img/3713bea14e131ad68e6fde839cda4e8f.png)
 
 由作者使用 [Google Sheets](https://workspace.google.com/intl/en_uk/products/sheets/) 创建
 
@@ -50,7 +50,7 @@
 
 Dbt 会首先运行整个数据转换管道，只有在所有新数据就位后，才会检查数据是否合格。当然，在许多情况下，这可能是最佳解决方案。例如，如果业务愿意为速度而牺牲质量，或者如果在生产表之前有一个 QA 表（Netflix 称之为[写入-审计-发布](https://lakefs.io/blog/data-engineering-patterns-write-audit-publish/)）的话。然而，仅使用这种数据质量方法的工程师可能错失了对其组织的巨大收益。
 
-![](../Images/46fe0562178bfdf861d61c21943b513c.png)
+![](img/46fe0562178bfdf861d61c21943b513c.png)
 
 生成表格前后进行测试。由作者使用[draw.io](https://app.diagrams.net/)创建。
 
@@ -62,7 +62,7 @@ Dbt 会首先运行整个数据转换管道，只有在所有新数据就位后�
 
 当然，测试后再构建并不能完全解决这种焦虑问题。故事的转变从需要匆忙修复问题以避免下游用户看到不良数据，变成了匆忙修复问题以避免下游用户看到过时数据。然而，工程师的工作就是权衡不同解决方案的利弊。在这种情况下，我知道，对于业务和我的理智来说，旧数据是两种恶性选择中的最佳方案。
 
-测试-然后构建的第二个好处是，它通常比设置一个完整的QA区域更容易实现，尤其是与为解决大多数数据质量问题而准备的“火箭筒打兔子”解决方案相比。你需要做的就是在创建表时包含数据质量标准。看看下面的PostgreSQL查询：
+测试-然后构建的第二个好处是，它通常比设置一个完整的 QA 区域更容易实现，尤其是与为解决大多数数据质量问题而准备的“火箭筒打兔子”解决方案相比。你需要做的就是在创建表时包含数据质量标准。看看下面的 PostgreSQL 查询：
 
 ```py
 CREATE TYPE currency_code_type AS ENUM (
@@ -105,7 +105,7 @@ CREATE TABLE daily_revenue (
 ); 
 ```
 
-这14行代码将确保daily_revenue表强制执行以下标准：
+这 14 行代码将确保 daily_revenue 表强制执行以下标准：
 
 `id`
 
@@ -113,51 +113,51 @@ CREATE TABLE daily_revenue (
 
 `date`
 
-+   不能是未来日期（通过CHECK约束）。
++   不能是未来日期（通过 CHECK 约束）。
 
-+   是与revenue_source的唯一约束的一部分。
++   是与 revenue_source 的唯一约束的一部分。
 
 `revenue_source`
 
-+   不能为NULL。
++   不能为 NULL。
 
-+   是与date的唯一约束的一部分。
++   是与 date 的唯一约束的一部分。
 
-+   必须是revenue_source_type枚举中的有效值。
++   必须是 revenue_source_type 枚举中的有效值。
 
 `gross_amount`
 
-+   不能为NULL。
++   不能为 NULL。
 
-+   必须大于或等于0。
++   必须大于或等于 0。
 
-+   必须大于或等于processing_fees + tax_amount。
++   必须大于或等于 processing_fees + tax_amount。
 
-+   必须大于或等于net_amount。
++   必须大于或等于 net_amount。
 
 +   精确的小数处理。
 
 `net_amount`
 
-+   不能为NULL。
++   不能为 NULL。
 
-+   必须大于或等于0。
++   必须大于或等于 0。
 
-+   必须小于或等于gross_amount。
++   必须小于或等于 gross_amount。
 
 +   精确的小数处理。
 
 `currency`
 
-+   必须是currency_code_type枚举中的有效值。
++   必须是 currency_code_type 枚举中的有效值。
 
 `transaction_count`
 
-+   不能为NULL。
++   不能为 NULL。
 
-+   必须大于或等于0。
++   必须大于或等于 0。
 
-这很简单，可靠。你能相信这些功能自PostgreSQL 6.5发布以来就已经可用吗……它发布于1999年！
+这很简单，可靠。你能相信这些功能自 PostgreSQL 6.5 发布以来就已经可用吗……它发布于 1999 年！
 
 当然，没有免费的午餐。通过这种方式强制执行约束确实有其缺点。例如，它使得表格的灵活性大大降低，并且在更新表格时会降低性能。像往常一样，在深入使用任何工具/技术/方法之前，你需要像工程师一样思考。
 
@@ -167,15 +167,15 @@ CREATE TABLE daily_revenue (
 
 我当时真傻。
 
-事实证明，如果有效地执行并有明确的目的，它们可以非常有价值。此外，大多数BI工具使得创建仪表板变得非常简单和快速，而且不需要（太多）时间来学习该工具。
+事实证明，如果有效地执行并有明确的目的，它们可以非常有价值。此外，大多数 BI 工具使得创建仪表板变得非常简单和快速，而且不需要（太多）时间来学习该工具。
 
-回到我个人的管道经验。我曾经管理一个包含所有业务收入来源的每日汇总表。每个来源来自不同的收入提供者，因此来自不同的系统。有些是通过API调用，有些通过电子邮件，还有些通过共享的S3桶。正如任何工程师所预期的那样，这些来源有时会出现问题，而由于它们来自第三方，我无法在源头解决问题（只能请求，成功的机会非常有限）。
+回到我个人的管道经验。我曾经管理一个包含所有业务收入来源的每日汇总表。每个来源来自不同的收入提供者，因此来自不同的系统。有些是通过 API 调用，有些通过电子邮件，还有些通过共享的 S3 桶。正如任何工程师所预期的那样，这些来源有时会出现问题，而由于它们来自第三方，我无法在源头解决问题（只能请求，成功的机会非常有限）。
 
 起初，我只使用故障日志来确定需要修复的地方。问题在于优先级。一些故障需要迅速修复，而另一些则不够重要，不能因此打乱所有工作（我们有些收入来源每天报告的收入只有几分钱）。因此，出现了一些小的数据质量问题的积累，变得难以追踪。
 
-引入Tableau。
+引入 Tableau。
 
-我创建了一个非常基础的仪表盘，展示了过去14天按收入来源和日期的元数据。三个指标就是我所需要的：
+我创建了一个非常基础的仪表盘，展示了过去 14 天按收入来源和日期的元数据。三个指标就是我所需要的：
 
 1.  一个绿色或红色的标记，表示数据是否存在或缺失。
 
@@ -183,7 +183,7 @@ CREATE TABLE daily_revenue (
 
 1.  数据的收入总和。
 
-![](../Images/c52b8496ecc6364ad902401ced5c886e.png)
+![](img/c52b8496ecc6364ad902401ced5c886e.png)
 
 一个简单但有效的仪表盘。由作者使用[Tableau](https://www.tableau.com/en-gb)创建
 
@@ -199,13 +199,13 @@ CREATE TABLE daily_revenue (
 
 然而，实施起来也可能是一项庞大的任务。
 
-在我看来，造成这一问题的首要原因是dbt。这个开源工具的一个关键卖点就是它的数据血缘功能。但为了实现这一点，您必须屈服于dbt的框架。这包括但不限于：
+在我看来，造成这一问题的首要原因是 dbt。这个开源工具的一个关键卖点就是它的数据血缘功能。但为了实现这一点，您必须屈服于 dbt 的框架。这包括但不限于：
 
-+   在所有SQL文件中实现[Jinja3](https://jinja.palletsprojects.com/en/stable/)。
++   在所有 SQL 文件中实现[Jinja3](https://jinja.palletsprojects.com/en/stable/)。
 
-+   为每个数据模型创建一个YAML文件。
++   为每个数据模型创建一个 YAML 文件。
 
-+   通过YAML文件添加源数据配置。
++   通过 YAML 文件添加源数据配置。
 
 +   设置开发和测试流程，例如开发环境、版本控制、CI/CD。
 
@@ -213,17 +213,17 @@ CREATE TABLE daily_revenue (
 
 是的，确实很多。
 
-但它不一定非得是这样。归根结底，实现动态数据血缘图所需的就是一台扫描您的SQL文件的机器，以及输出用户友好的血缘图的工具。得益于Python，这可以通过一个仅有100行代码的脚本来实现。
+但它不一定非得是这样。归根结底，实现动态数据血缘图所需的就是一台扫描您的 SQL 文件的机器，以及输出用户友好的血缘图的工具。得益于 Python，这可以通过一个仅有 100 行代码的脚本来实现。
 
-如果你了解一些Python和LLM提示，你应该能在一个小时内修改代码。或者，已经有一个轻量级的开源Python工具叫做[SQL-WatchPup](https://github.com/caitpj/SQL-WatchPup)，它已经包含了代码。
+如果你了解一些 Python 和 LLM 提示，你应该能在一个小时内修改代码。或者，已经有一个轻量级的开源 Python 工具叫做[SQL-WatchPup](https://github.com/caitpj/SQL-WatchPup)，它已经包含了代码。
 
-只要您拥有所有的SQL文件，在15分钟的设置之后，您就应该能够生成像这样的动态数据血缘图：
+只要您拥有所有的 SQL 文件，在 15 分钟的设置之后，您就应该能够生成像这样的动态数据血缘图：
 
-![](../Images/2ce584894fa4dbecf310e22749ba9487.png)
+![](img/2ce584894fa4dbecf310e22749ba9487.png)
 
 示例数据血缘图输出。由作者使用[SQL-WatchPup](https://github.com/caitpj/SQL-WatchPup)创建
 
-就这样。没有服务器托管费用。无需学习额外的编程语言。无需重构文件。只需在本地运行一个简单的Python脚本。
+就这样。没有服务器托管费用。无需学习额外的编程语言。无需重构文件。只需在本地运行一个简单的 Python 脚本。
 
 # 结论
 

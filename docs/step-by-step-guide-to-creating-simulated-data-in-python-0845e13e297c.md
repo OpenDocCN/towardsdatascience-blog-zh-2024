@@ -1,16 +1,16 @@
-# Python中创建模拟数据的分步指南
+# Python 中创建模拟数据的分步指南
 
-> 原文：[https://towardsdatascience.com/step-by-step-guide-to-creating-simulated-data-in-python-0845e13e297c?source=collection_archive---------2-----------------------#2024-07-10](https://towardsdatascience.com/step-by-step-guide-to-creating-simulated-data-in-python-0845e13e297c?source=collection_archive---------2-----------------------#2024-07-10)
+> 原文：[`towardsdatascience.com/step-by-step-guide-to-creating-simulated-data-in-python-0845e13e297c?source=collection_archive---------2-----------------------#2024-07-10`](https://towardsdatascience.com/step-by-step-guide-to-creating-simulated-data-in-python-0845e13e297c?source=collection_archive---------2-----------------------#2024-07-10)
 
 ## 一份适合初学者的教程，教你生成自己的数据以便进行分析和测试
 
-[](https://marcusmvls-vinicius.medium.com/?source=post_page---byline--0845e13e297c--------------------------------)[![Marcus Sena](../Images/ff594ec7029e6259f0be6dc031d8a6cd.png)](https://marcusmvls-vinicius.medium.com/?source=post_page---byline--0845e13e297c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0845e13e297c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0845e13e297c--------------------------------) [Marcus Sena](https://marcusmvls-vinicius.medium.com/?source=post_page---byline--0845e13e297c--------------------------------)
+[](https://marcusmvls-vinicius.medium.com/?source=post_page---byline--0845e13e297c--------------------------------)![Marcus Sena](https://marcusmvls-vinicius.medium.com/?source=post_page---byline--0845e13e297c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0845e13e297c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0845e13e297c--------------------------------) [Marcus Sena](https://marcusmvls-vinicius.medium.com/?source=post_page---byline--0845e13e297c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0845e13e297c--------------------------------) ·7分钟阅读·2024年7月10日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0845e13e297c--------------------------------) ·7 分钟阅读·2024 年 7 月 10 日
 
 --
 
-![](../Images/6bcf22a841c978218fcf4b88da3132db.png)
+![](img/6bcf22a841c978218fcf4b88da3132db.png)
 
 图片来源：[Alexandru-Bogdan Ghita](https://unsplash.com/@bogzilla?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -18,27 +18,27 @@
 
 所有这些情况，以及更多情境，都可以从使用模拟数据中获益。通常，真实世界的数据并不容易获得，价格昂贵，或者具有隐私限制。因此，创建合成数据是数据科学从业者和专业人士的一项有用技能。
 
-在本文中，我介绍了几种创建模拟数据、玩具数据集和“虚拟”值的方法和技巧，这些都是使用Python从零开始创建的。一些解决方案使用了Python库中的方法，另一些则是使用Python内置函数的技术。
+在本文中，我介绍了几种创建模拟数据、玩具数据集和“虚拟”值的方法和技巧，这些都是使用 Python 从零开始创建的。一些解决方案使用了 Python 库中的方法，另一些则是使用 Python 内置函数的技术。
 
 接下来的各个方法在我进行研究任务、学术论文撰写、模型训练或测试时都曾对我非常有帮助。希望读者能在文章结尾探索这个笔记本，并将其作为指南，或者作为未来项目的参考。
 
 > 目录
 > 
-> [1\. 使用NumPy](#0751)
+> 1\. 使用 NumPy
 > 
-> [2\. 使用Scikit-learn](#d80b)
+> 2\. 使用 Scikit-learn
 > 
-> [3\. 使用SciPy](#5cfb)
+> 3\. 使用 SciPy
 > 
-> [4\. 使用Faker](#855f)
+> 4\. 使用 Faker
 > 
-> [5\. 使用合成数据库 (SDV)](#1937)
+> 5\. 使用合成数据库 (SDV)
 > 
-> [结论与下一步](#29f3)
+> 结论与下一步
 
-# 1\. 使用NumPy
+# 1\. 使用 NumPy
 
-最著名的Python库之一，专注于线性代数和数值计算的SciPy，同样也有助于数据生成。
+最著名的 Python 库之一，专注于线性代数和数值计算的 SciPy，同样也有助于数据生成。
 
 +   **线性数据生成**
 
@@ -72,13 +72,13 @@ plt.scatter(X, y)
 plt.show()
 ```
 
-![](../Images/95b874c7e5687dcb196b28ba4312da16.png)
+![](img/95b874c7e5687dcb196b28ba4312da16.png)
 
 模拟线性数据（图片由作者提供）。
 
 +   **时间序列数据**
 
-在这个示例中，我将使用NumPy生成具有线性趋势和季节性成分的合成时间序列数据。这个示例对金融建模和股市预测非常有用。
+在这个示例中，我将使用 NumPy 生成具有线性趋势和季节性成分的合成时间序列数据。这个示例对金融建模和股市预测非常有用。
 
 ```py
 def create_time_series(N, w):
@@ -111,7 +111,7 @@ plt.plot(time, y)
 plt.show()
 ```
 
-![](../Images/71c35febf35269780dbb75f742d81401.png)
+![](img/71c35febf35269780dbb75f742d81401.png)
 
 +   **自定义数据**
 
@@ -136,11 +136,11 @@ data_with_noise = high_dim_data + noise
 X = data_with_noise
 ```
 
-上面的代码片段创建了一个包含100个观察值和6个特征的数据集，基于一个仅有3个维度的低维数组。
+上面的代码片段创建了一个包含 100 个观察值和 6 个特征的数据集，基于一个仅有 3 个维度的低维数组。
 
-# 2\. 使用Scikit-learn
+# 2\. 使用 Scikit-learn
 
-除了机器学习模型，Scikit-learn还有一些数据生成器，用于构建具有可控大小和复杂度的人工数据集。
+除了机器学习模型，Scikit-learn 还有一些数据生成器，用于构建具有可控大小和复杂度的人工数据集。
 
 +   **制作分类数据集**
 
@@ -158,7 +158,7 @@ df['target'] = y
 df.head()
 ```
 
-![](../Images/98d2c98069f8ddb2bca5fb1e96c1fe54.png)
+![](img/98d2c98069f8ddb2bca5fb1e96c1fe54.png)
 
 数据集的前几行（图片由作者提供）。
 
@@ -179,7 +179,7 @@ X,y, coef = make_regression(n_samples=100, # number of observations
                             )
 ```
 
-![](../Images/5a975196aa5fb709579f692b45283083.png)
+![](img/5a975196aa5fb709579f692b45283083.png)
 
 使用*make_regression*生成的模拟数据（图片由作者提供）。
 
@@ -197,13 +197,13 @@ X,y = make_blobs(n_samples=300, # number of observations
                 random_state=0)
 ```
 
-![](../Images/5df7a4743c1a21b323178106b0755e4e.png)
+![](img/5df7a4743c1a21b323178106b0755e4e.png)
 
 聚类中的模拟数据（图片由作者提供）。
 
-# 3\. 使用SciPy
+# 3\. 使用 SciPy
 
-SciPy（科学Python）库与NumPy一起，是处理数值计算、优化、统计分析和许多其他数学任务的最佳库之一。SciPy的stats模型可以根据多种统计分布（如正态分布、二项分布和指数分布）创建模拟数据。
+SciPy（科学 Python）库与 NumPy 一起，是处理数值计算、优化、统计分析和许多其他数学任务的最佳库之一。SciPy 的 stats 模型可以根据多种统计分布（如正态分布、二项分布和指数分布）创建模拟数据。
 
 ```py
 from scipy.stats import norm, binom, expon
@@ -214,7 +214,7 @@ from scipy.stats import norm, binom, expon
 norm_data = norm.rvs(size=1000)
 ```
 
-![](../Images/752f226fbcac411c23456b8dbed63f3e.png)
+![](img/752f226fbcac411c23456b8dbed63f3e.png)
 
 图片由作者提供。
 
@@ -223,7 +223,7 @@ norm_data = norm.rvs(size=1000)
 binom_data = binom.rvs(n=50, p=0.8, size=1000)
 ```
 
-![](../Images/08bb072cfa22c15fcc2a1b3fbebefc1d.png)
+![](img/08bb072cfa22c15fcc2a1b3fbebefc1d.png)
 
 图片由作者提供。
 
@@ -232,15 +232,15 @@ binom_data = binom.rvs(n=50, p=0.8, size=1000)
 exp_data = expon.rvs(scale=.2, size=10000)
 ```
 
-![](../Images/0454620f63b59f62107d16ea92a5e27d.png)
+![](img/0454620f63b59f62107d16ea92a5e27d.png)
 
 图片由作者提供。
 
-# 4\. 使用Faker
+# 4\. 使用 Faker
 
-那么，非数值数据呢？我们通常需要对非数值或用户数据（如姓名、地址和电子邮件）进行训练。一个创建与用户信息相似的现实数据的解决方案是使用Faker Python库。
+那么，非数值数据呢？我们通常需要对非数值或用户数据（如姓名、地址和电子邮件）进行训练。一个创建与用户信息相似的现实数据的解决方案是使用 Faker Python 库。
 
-Faker库可以生成逼真的数据，用于测试应用程序和机器学习分类器。在下面的示例中，我展示了如何创建一个包含姓名、地址、电话号码和电子邮件信息的假数据集。
+Faker 库可以生成逼真的数据，用于测试应用程序和机器学习分类器。在下面的示例中，我展示了如何创建一个包含姓名、地址、电话号码和电子邮件信息的假数据集。
 
 ```py
 from faker import Faker
@@ -262,15 +262,15 @@ fake_users = create_fake_data(100)
 fake_users.head()
 ```
 
-![](../Images/333c512f49172854f7cae1b36f3f3c46.png)
+![](img/333c512f49172854f7cae1b36f3f3c46.png)
 
-使用Faker生成的假用户数据（作者提供的图片）。
+使用 Faker 生成的假用户数据（作者提供的图片）。
 
-# 5\. 使用Synthetic Data Vault（SDV）
+# 5\. 使用 Synthetic Data Vault（SDV）
 
-如果你有一个数据集，其中的观测数据不足，或者你需要更多与现有数据集相似的数据来补充机器学习模型的训练步骤，该怎么办？Synthetic Data Vault（SDV）是一个Python库，它通过统计模型创建合成数据集。
+如果你有一个数据集，其中的观测数据不足，或者你需要更多与现有数据集相似的数据来补充机器学习模型的训练步骤，该怎么办？Synthetic Data Vault（SDV）是一个 Python 库，它通过统计模型创建合成数据集。
 
-在下面的示例中，我们将使用SDV扩展一个演示数据集：
+在下面的示例中，我们将使用 SDV 扩展一个演示数据集：
 
 ```py
 from sdv.datasets.demo import download_demo
@@ -280,7 +280,7 @@ adult_data, metadata = download_demo(dataset_name='adult', modality='single_tabl
 adult_data.head()
 ```
 
-![](../Images/929606b4f0f2e46c3484fbee6aedcd8c.png)
+![](img/929606b4f0f2e46c3484fbee6aedcd8c.png)
 
 成人演示数据集。
 
@@ -295,7 +295,7 @@ simulated_data = model.sample(100)
 simulated_data.head()
 ```
 
-![](../Images/2716d3930d21bcb642c7b2721b84b1e5.png)
+![](img/2716d3930d21bcb642c7b2721b84b1e5.png)
 
 模拟样本（作者提供的图片）。
 
@@ -303,7 +303,7 @@ simulated_data.head()
 
 # 结论与下一步
 
-文章展示了创建模拟和合成数据集的5种方法，这些数据集可以用于机器学习项目、统计建模以及其他涉及数据的任务。文中展示的示例易于跟随，因此我建议你深入探索代码，阅读相关文档，并开发出更适合每个需求的数据生成方法。
+文章展示了创建模拟和合成数据集的 5 种方法，这些数据集可以用于机器学习项目、统计建模以及其他涉及数据的任务。文中展示的示例易于跟随，因此我建议你深入探索代码，阅读相关文档，并开发出更适合每个需求的数据生成方法。
 
 如前所述，数据科学家、机器学习专家和开发人员可以通过使用合成数据集来提高模型性能，降低生产和应用测试的成本。
 
@@ -317,10 +317,10 @@ github.com](https://github.com/Marcussena/Synthetic-data-generation?source=post_
 
 # 参考资料
 
-[1] DataCamp. “使用Python和Faker创建合成数据。” DataCamp, [https://www.datacamp.com/tutorial/creating-synthetic-data-with-python-faker-tutorial](https://www.datacamp.com/tutorial/creating-synthetic-data-with-python-faker-tutorial). 访问日期：2024年7月4日。
+[1] DataCamp. “使用 Python 和 Faker 创建合成数据。” DataCamp, [`www.datacamp.com/tutorial/creating-synthetic-data-with-python-faker-tutorial`](https://www.datacamp.com/tutorial/creating-synthetic-data-with-python-faker-tutorial). 访问日期：2024 年 7 月 4 日。
 
-[2] Scikit-learn. “生成的数据集。”Scikit-learn, [https://scikit-learn.org/stable/datasets/sample_generators.html#sample-generators](https://scikit-learn.org/stable/datasets/sample_generators.html#sample-generators). 访问日期：2024年7月4日。
+[2] Scikit-learn. “生成的数据集。”Scikit-learn, [`scikit-learn.org/stable/datasets/sample_generators.html#sample-generators`](https://scikit-learn.org/stable/datasets/sample_generators.html#sample-generators). 访问日期：2024 年 7 月 4 日。
 
-[3] SDV 用户指南。“高斯 Copula 用户指南。” SDV, [https://sdv.dev/SDV/user_guides/single_table/gaussian_copula.html](https://sdv.dev/SDV/user_guides/single_table/gaussian_copula.html)。访问时间：2024年7月4日。
+[3] SDV 用户指南。“高斯 Copula 用户指南。” SDV, [`sdv.dev/SDV/user_guides/single_table/gaussian_copula.html`](https://sdv.dev/SDV/user_guides/single_table/gaussian_copula.html)。访问时间：2024 年 7 月 4 日。
 
-[4] SciPy 用户指南。“SciPy 教程。” SciPy 文档, [https://docs.scipy.org/doc/scipy/tutorial/index.html](https://docs.scipy.org/doc/scipy/tutorial/index.html)。访问时间：2024年7月4日。
+[4] SciPy 用户指南。“SciPy 教程。” SciPy 文档, [`docs.scipy.org/doc/scipy/tutorial/index.html`](https://docs.scipy.org/doc/scipy/tutorial/index.html)。访问时间：2024 年 7 月 4 日。

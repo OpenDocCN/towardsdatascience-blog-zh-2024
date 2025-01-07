@@ -1,24 +1,24 @@
 # 学习排序 — 针对用户对的情境项目推荐
 
-> 原文：[https://towardsdatascience.com/learning-to-rank-contextual-item-recommendations-for-user-pairs-dc4f56e24d94?source=collection_archive---------6-----------------------#2024-03-26](https://towardsdatascience.com/learning-to-rank-contextual-item-recommendations-for-user-pairs-dc4f56e24d94?source=collection_archive---------6-----------------------#2024-03-26)
+> 原文：[`towardsdatascience.com/learning-to-rank-contextual-item-recommendations-for-user-pairs-dc4f56e24d94?source=collection_archive---------6-----------------------#2024-03-26`](https://towardsdatascience.com/learning-to-rank-contextual-item-recommendations-for-user-pairs-dc4f56e24d94?source=collection_archive---------6-----------------------#2024-03-26)
 
 ## 训练一个机器学习推荐引擎，学习一群人共同的偏好
 
-[](https://medium.com/@franckjay?source=post_page---byline--dc4f56e24d94--------------------------------)[![Jay Franck](../Images/8a8bd2265c46453036916ebda2adf119.png)](https://medium.com/@franckjay?source=post_page---byline--dc4f56e24d94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dc4f56e24d94--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dc4f56e24d94--------------------------------) [Jay Franck](https://medium.com/@franckjay?source=post_page---byline--dc4f56e24d94--------------------------------)
+[](https://medium.com/@franckjay?source=post_page---byline--dc4f56e24d94--------------------------------)![Jay Franck](https://medium.com/@franckjay?source=post_page---byline--dc4f56e24d94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dc4f56e24d94--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc4f56e24d94--------------------------------) [Jay Franck](https://medium.com/@franckjay?source=post_page---byline--dc4f56e24d94--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc4f56e24d94--------------------------------) ·阅读时长6分钟·2024年3月26日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc4f56e24d94--------------------------------) ·阅读时长 6 分钟·2024 年 3 月 26 日
 
 --
 
-![](../Images/10746b4c52d60313deafae632ae91b48.png)
+![](img/10746b4c52d60313deafae632ae91b48.png)
 
 图片来自[Lucrezia Carnelos](https://unsplash.com/@ciabattespugnose?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 本文教程适合…
 
-1.  任何对DIY推荐感兴趣的人
+1.  任何对 DIY 推荐感兴趣的人
 
-1.  对基本的PyTorch排序模型感兴趣的工程师
+1.  对基本的 PyTorch 排序模型感兴趣的工程师
 
 1.  咖啡迷
 
@@ -26,13 +26,13 @@
 
 1.  想要将代码复制粘贴到生产系统中的人
 
-1.  想要一个TensorFlow模型的人
+1.  想要一个 TensorFlow 模型的人
 
 # 动机
 
 想象一下，你正坐在沙发上，朋友或家人陪伴在侧。你打开了自己喜爱的游戏主机/流媒体服务/音乐应用，每一项都像是闪闪发光的可能性之宝，为你量身定制。但这些个性化的结果可能只是你独自一人的版本，并不能反映你在这群人中时的样子。
 
-这个项目真的是从咖啡开始的。我迷恋自己烘焙来自Sweet Maria's（无任何关联）的绿咖啡豆，因为它有各种美味的可能性。[哥伦比亚](https://www.sweetmarias.com/colombia-honey-aponte-hugo-agreda-7759.html)? [爪哇豆](https://www.sweetmarias.com/java-dry-process-kuningan-robusta-7286.html)? [肯尼亚圆粒](https://www.sweetmarias.com/kenya-kiambu-ngaita-peaberry-7241.html)? 每一种描述都比上一种更加诱人。即使是我自己作为个人，也很难做出选择。如果你是为家人或客人购买绿咖啡豆，情况会怎样呢？
+这个项目真的是从咖啡开始的。我迷恋自己烘焙来自 Sweet Maria's（无任何关联）的绿咖啡豆，因为它有各种美味的可能性。[哥伦比亚](https://www.sweetmarias.com/colombia-honey-aponte-hugo-agreda-7759.html)? [爪哇豆](https://www.sweetmarias.com/java-dry-process-kuningan-robusta-7286.html)? [肯尼亚圆粒](https://www.sweetmarias.com/kenya-kiambu-ngaita-peaberry-7241.html)? 每一种描述都比上一种更加诱人。即使是我自己作为个人，也很难做出选择。如果你是为家人或客人购买绿咖啡豆，情况会怎样呢？
 
 我想创建一个“学习排名”（LTR）模型，可能解决这个咖啡难题。对于这个项目，我首先构建了一个简单的 [TensorFlow Ranking](https://www.tensorflow.org/ranking) 项目，来预测不同咖啡的用户对偶排名。我对 TFR 有一些经验，因此它似乎是一个自然的选择。
 
@@ -40,7 +40,7 @@
 
 # 数据
 
-![](../Images/c39e6fe51959571e8377a161bee7b3cb.png)
+![](img/c39e6fe51959571e8377a161bee7b3cb.png)
 
 照片由 [Pritesh Sudra](https://unsplash.com/@pritesh557?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -78,9 +78,9 @@ TensorFlow Ranking 模型通常在 [ELWC](https://www.tensorflow.org/ranking/tut
 
 # 特征直觉
 
-在这个玩具示例中，我们拥有一个相当丰富的数据集。从上下文角度来看，我们明显知道用户的年龄，并能学习到他们各自的偏好嵌入。通过LTR模型内部的后续层，这些上下文特征可以进行比较和对比。例如，是否一对用户中，一个喜欢浓郁的水果味，而另一个则喜欢杯中清新的柑橘和水果味呢？
+在这个玩具示例中，我们拥有一个相当丰富的数据集。从上下文角度来看，我们明显知道用户的年龄，并能学习到他们各自的偏好嵌入。通过 LTR 模型内部的后续层，这些上下文特征可以进行比较和对比。例如，是否一对用户中，一个喜欢浓郁的水果味，而另一个则喜欢杯中清新的柑橘和水果味呢？
 
-![](../Images/bd27ef43ea5e42371aedad3d073eac48.png)
+![](img/bd27ef43ea5e42371aedad3d073eac48.png)
 
 图片由[Nathan Dumlao](https://unsplash.com/@nate_dumlao?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -88,13 +88,13 @@ TensorFlow Ranking 模型通常在 [ELWC](https://www.tensorflow.org/ranking/tut
 
 # 数据预处理
 
-自从我刚开始从事机器学习行业以来，文本嵌入技术发生了惊人的变化。那些我曾用来尝试捕捉词语或短语语义的 GLOVE 和 Word2Vec 模型早已不再使用。如果你访问[https://huggingface.co/blog/mteb](https://huggingface.co/blog/mteb)，你可以轻松比较最新最强的嵌入模型，用于各种目的。
+自从我刚开始从事机器学习行业以来，文本嵌入技术发生了惊人的变化。那些我曾用来尝试捕捉词语或短语语义的 GLOVE 和 Word2Vec 模型早已不再使用。如果你访问[`huggingface.co/blog/mteb`](https://huggingface.co/blog/mteb)，你可以轻松比较最新最强的嵌入模型，用于各种目的。
 
-为了简化和熟悉，我们将使用[https://huggingface.co/BAAI/bge-base-en-v1.5](https://huggingface.co/BAAI/bge-base-en-v1.5)的嵌入模型，帮助我们将文本特征投射到LTR模型能够理解的格式。具体来说，我们将使用这个模型来处理Sweet Marias提供的产品描述和产品名称。
+为了简化和熟悉，我们将使用[`huggingface.co/BAAI/bge-base-en-v1.5`](https://huggingface.co/BAAI/bge-base-en-v1.5)的嵌入模型，帮助我们将文本特征投射到 LTR 模型能够理解的格式。具体来说，我们将使用这个模型来处理 Sweet Marias 提供的产品描述和产品名称。
 
 我们还需要将所有用户和商品的 ID 值转换为嵌入空间。PyTorch 通过[Embedding](https://pytorch.org/docs/stable/generated/torch.nn.Embedding.html)层很好地处理了这一点。
 
-最后，我们对浮动特征进行简单的[RobustScaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html)缩放。所有这些都可以在我们的Torch数据集类内部完成，然后将其输入到用于训练的DataLoader中。关键在于分离出不同的标识符，这些标识符将在PyTorch的`forward()`调用中传递。[Offir Inbar](https://www.linkedin.com/in/offir-inbar/)的这篇[文章](/deep-learning-using-pytorch-for-tabular-data-c68017d8b480)真的是帮我节省了不少时间！
+最后，我们对浮动特征进行简单的[RobustScaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html)缩放。所有这些都可以在我们的 Torch 数据集类内部完成，然后将其输入到用于训练的 DataLoader 中。关键在于分离出不同的标识符，这些标识符将在 PyTorch 的`forward()`调用中传递。[Offir Inbar](https://www.linkedin.com/in/offir-inbar/)的这篇文章真的是帮我节省了不少时间！
 
 # 模型构建与训练
 

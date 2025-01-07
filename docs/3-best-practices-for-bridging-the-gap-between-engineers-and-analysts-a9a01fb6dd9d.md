@@ -1,16 +1,16 @@
-# 弥合工程与分析之间鸿沟的3个最佳实践
+# 弥合工程与分析之间鸿沟的 3 个最佳实践
 
-> 原文：[https://towardsdatascience.com/3-best-practices-for-bridging-the-gap-between-engineers-and-analysts-a9a01fb6dd9d?source=collection_archive---------10-----------------------#2024-04-19](https://towardsdatascience.com/3-best-practices-for-bridging-the-gap-between-engineers-and-analysts-a9a01fb6dd9d?source=collection_archive---------10-----------------------#2024-04-19)
+> 原文：[`towardsdatascience.com/3-best-practices-for-bridging-the-gap-between-engineers-and-analysts-a9a01fb6dd9d?source=collection_archive---------10-----------------------#2024-04-19`](https://towardsdatascience.com/3-best-practices-for-bridging-the-gap-between-engineers-and-analysts-a9a01fb6dd9d?source=collection_archive---------10-----------------------#2024-04-19)
 
 ## 分配代码所有者、聘请分析工程师并创建飞轮效应
 
-[](https://madison-schott.medium.com/?source=post_page---byline--a9a01fb6dd9d--------------------------------)[![Madison Schott](../Images/0b82d0dd48629641abb439cef23ebe04.png)](https://madison-schott.medium.com/?source=post_page---byline--a9a01fb6dd9d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a9a01fb6dd9d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a9a01fb6dd9d--------------------------------) [Madison Schott](https://madison-schott.medium.com/?source=post_page---byline--a9a01fb6dd9d--------------------------------)
+[](https://madison-schott.medium.com/?source=post_page---byline--a9a01fb6dd9d--------------------------------)![Madison Schott](https://madison-schott.medium.com/?source=post_page---byline--a9a01fb6dd9d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a9a01fb6dd9d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a9a01fb6dd9d--------------------------------) [Madison Schott](https://madison-schott.medium.com/?source=post_page---byline--a9a01fb6dd9d--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a9a01fb6dd9d--------------------------------) ·6分钟阅读·2024年4月19日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a9a01fb6dd9d--------------------------------) ·6 分钟阅读·2024 年 4 月 19 日
 
 --
 
-![](../Images/e9f8ff2e18160a89baf4aaee12c56d9a.png)
+![](img/e9f8ff2e18160a89baf4aaee12c56d9a.png)
 
 图片来自[Alex Radelich](https://unsplash.com/@alexradelich?utm_source=medium&utm_medium=referral)在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)上的分享
 

@@ -1,26 +1,26 @@
-# 残疾、无障碍性与AI
+# 残疾、无障碍性与 AI
 
-> 原文：[https://towardsdatascience.com/disability-accessibility-and-ai-0d5ab06ec140?source=collection_archive---------7-----------------------#2024-09-16](https://towardsdatascience.com/disability-accessibility-and-ai-0d5ab06ec140?source=collection_archive---------7-----------------------#2024-09-16)
+> 原文：[`towardsdatascience.com/disability-accessibility-and-ai-0d5ab06ec140?source=collection_archive---------7-----------------------#2024-09-16`](https://towardsdatascience.com/disability-accessibility-and-ai-0d5ab06ec140?source=collection_archive---------7-----------------------#2024-09-16)
 
-## 一场关于AI如何帮助和伤害残疾人的讨论
+## 一场关于 AI 如何帮助和伤害残疾人的讨论
 
-[](https://medium.com/@s.kirmer?source=post_page---byline--0d5ab06ec140--------------------------------)[![Stephanie Kirmer](../Images/f9d9ef9167febde974c223dd4d8d6293.png)](https://medium.com/@s.kirmer?source=post_page---byline--0d5ab06ec140--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0d5ab06ec140--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0d5ab06ec140--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--0d5ab06ec140--------------------------------)
+[](https://medium.com/@s.kirmer?source=post_page---byline--0d5ab06ec140--------------------------------)![Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--0d5ab06ec140--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0d5ab06ec140--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0d5ab06ec140--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--0d5ab06ec140--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0d5ab06ec140--------------------------------) ·9分钟阅读·2024年9月16日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0d5ab06ec140--------------------------------) ·9 分钟阅读·2024 年 9 月 16 日
 
 --
 
-![](../Images/a9bce1629a093e02f32f06eacf5af422.png)
+![](img/a9bce1629a093e02f32f06eacf5af422.png)
 
 图片由[Thought Catalog](https://unsplash.com/@thoughtcatalog?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-我最近读了[9月4日的一篇帖子](https://bsky.app/profile/shengokai.bsky.social/post/3l3evxm4zly2l)，作者是[美国大学的Johnathan Flowers博士](https://www.american.edu/cas/faculty/jflowers.cfm)，讲述了当[NaNoWriMo](https://en.wikipedia.org/wiki/National_Novel_Writing_Month)的组织者发布声明，表示支持参与者使用生成型AI（如大型语言模型聊天机器人）作为今年活动的一部分时，所引发的争议。
+我最近读了[9 月 4 日的一篇帖子](https://bsky.app/profile/shengokai.bsky.social/post/3l3evxm4zly2l)，作者是[美国大学的 Johnathan Flowers 博士](https://www.american.edu/cas/faculty/jflowers.cfm)，讲述了当[NaNoWriMo](https://en.wikipedia.org/wiki/National_Novel_Writing_Month)的组织者发布声明，表示支持参与者使用生成型 AI（如大型语言模型聊天机器人）作为今年活动的一部分时，所引发的争议。
 
-> “比如，艺术往往是唯一一个可以在不依赖健全人慷慨或强迫亲密的情况下，克服残疾身体与世界之间不契合的地方。说我们需要AI的帮助，其实是忽视了这一切。” -[Johnathan Flowers博士，2024年9月4日](https://bsky.app/profile/shengokai.bsky.social/post/3l3evxm4zly2l)
+> “比如，艺术往往是唯一一个可以在不依赖健全人慷慨或强迫亲密的情况下，克服残疾身体与世界之间不契合的地方。说我们需要 AI 的帮助，其实是忽视了这一切。” -[Johnathan Flowers 博士，2024 年 9 月 4 日](https://bsky.app/profile/shengokai.bsky.social/post/3l3evxm4zly2l)
 
-Flowers博士认为，通过特别强调这一决定是为了让残疾人和边缘化群体能够参与，组织者实际上是在轻视这些群体的创造力和艺术参与能力。作为一名残疾人，他指出，艺术是社会中少数几个残疾不构成参与障碍的领域之一，这一点在其他不太容易接触的空间中并不常见。
+Flowers 博士认为，通过特别强调这一决定是为了让残疾人和边缘化群体能够参与，组织者实际上是在轻视这些群体的创造力和艺术参与能力。作为一名残疾人，他指出，艺术是社会中少数几个残疾不构成参与障碍的领域之一，这一点在其他不太容易接触的空间中并不常见。
 
-自从最初的声明以及这次和其他许多批评之后，NaNoWriMo的组织者已经软化或撤回了一些他们的表态，[最近的帖子](https://nanowrimo.org/a-note-to-our-community-about-our-comments-on-ai-september-2024/)似乎是本周早些时候的更新。不幸的是，正如常常发生的那样，社交媒体上的许多讨论变成了无效的争论。
+自从最初的声明以及这次和其他许多批评之后，NaNoWriMo 的组织者已经软化或撤回了一些他们的表态，[最近的帖子](https://nanowrimo.org/a-note-to-our-community-about-our-comments-on-ai-september-2024/)似乎是本周早些时候的更新。不幸的是，正如常常发生的那样，社交媒体上的许多讨论变成了无效的争论。
 
 我之前在这里讨论过，当生成性人工智能参与艺术创作时，评估其真正含义的难度，我依然坚持我的观点：作为艺术的消费者，我寻求的是与他人视角和世界观的连接，因此，人工智能生成的作品在这一点上并不引起我的兴趣。然而，我之前并没有花太多时间思考人工智能作为辅助工具的角色，而今天我想讨论的正是这个话题。
 
@@ -52,25 +52,25 @@ Flowers博士认为，通过特别强调这一决定是为了让残疾人和边�
 
 这还没有涉及到人工智能如何帮助听力障碍者！助听器可以使用模型来识别并隔离用户希望专注的声音，减少干扰或背景噪音。任何使用过主动噪声取消技术的人，都在受益于这种技术，这也是一个很好的例子，说明这些技术对有无障碍的人都有帮助。
 
-+   [利用深度学习的语音识别：最新进展的系统评审（2024年3月）](https://www.researchgate.net/profile/Adi-Maaita/publication/378042331_Speech_Recognition_Utilizing_Deep_Learning_A_Systematic_Review_of_the_Latest_Developments/links/65cb6678790074549783aa83/Speech-Recognition-Utilizing-Deep-Learning-A-Systematic-Review-of-the-Latest-Developments.pdf)
++   [利用深度学习的语音识别：最新进展的系统评审（2024 年 3 月）](https://www.researchgate.net/profile/Adi-Maaita/publication/378042331_Speech_Recognition_Utilizing_Deep_Learning_A_Systematic_Review_of_the_Latest_Developments/links/65cb6678790074549783aa83/Speech-Recognition-Utilizing-Deep-Learning-A-Systematic-Review-of-the-Latest-Developments.pdf)
 
 ## 视觉与图像
 
 对于视力障碍人士来说，数字化参与可能存在障碍，包括一些设计不当的网页无法与屏幕阅读器兼容，或图像内容缺乏描述性替代文本等。模型在识别图像中的物体或特征方面越来越熟练，如果能够广泛普及，这可能是一个极具价值的人工智能应用，屏幕阅读软件可以生成自己的替代文本或图像描述。
 
-+   [https://tink.uk/thoughts-on-screen-readers-and-image-recognition/](https://tink.uk/thoughts-on-screen-readers-and-image-recognition/)
++   [`tink.uk/thoughts-on-screen-readers-and-image-recognition/`](https://tink.uk/thoughts-on-screen-readers-and-image-recognition/)
 
-+   [https://www.theverge.com/2022/3/18/22984474/microsoft-edge-automatic-image-labels-accessibility-feature](https://www.theverge.com/2022/3/18/22984474/microsoft-edge-automatic-image-labels-accessibility-feature)
++   [`www.theverge.com/2022/3/18/22984474/microsoft-edge-automatic-image-labels-accessibility-feature`](https://www.theverge.com/2022/3/18/22984474/microsoft-edge-automatic-image-labels-accessibility-feature)
 
-+   [人工智能计算机视觉和图像识别的应用](https://www.researchgate.net/publication/376510799_Application_of_AI_Computer_Vision_and_Image_Recognition)（2022年1月）
++   [人工智能计算机视觉和图像识别的应用](https://www.researchgate.net/publication/376510799_Application_of_AI_Computer_Vision_and_Image_Recognition)（2022 年 1 月）
 
 ## 物理义肢
 
 还有一些形式的人工智能，能够帮助义肢和身体辅助工具更好地工作。我并不是指使用神经植入物的技术，虽然这类技术正在研究中，但有许多模型通过学习人体运动的物理学，帮助计算机驱动的义肢更好地为人们服务。这些模型可以与肌肉和神经末梢相结合，或者它们可以巧妙地自动化某些动作，帮助上肢义肢改善诸如精细运动技能等问题。下肢义肢则可以利用人工智能更好地理解和生成步幅、流畅度等动作。
 
-+   [人工智能在义肢中的应用](https://www.researchgate.net/publication/378907593_Application_of_Artificial_Intelligence_in_Prosthetics_A_Review)（2024年3月）
++   [人工智能在义肢中的应用](https://www.researchgate.net/publication/378907593_Application_of_Artificial_Intelligence_in_Prosthetics_A_Review)（2024 年 3 月）
 
-+   [人工智能如何帮助推动下一代义肢的发展（2023年1月）](https://www.wevolver.com/article/how-ai-is-helping-power-next-generation-prosthetic-limbs)
++   [人工智能如何帮助推动下一代义肢的发展（2023 年 1 月）](https://www.wevolver.com/article/how-ai-is-helping-power-next-generation-prosthetic-limbs)
 
 # 否定
 
@@ -94,7 +94,7 @@ Flowers博士认为，通过特别强调这一决定是为了让残疾人和边�
 
 ## 医疗治疗中的偏见
 
-当医疗界开始在工作中使用人工智能时，我们应密切关注这对边缘群体，包括残障人士的副作用。与大型语言模型（LLM）使用可能导致残障人士的真实声音在重要决策中被忽视类似，如果医疗专业人员使用LLM来建议残障的诊断或治疗方案，这些建议将受到这些模型所带有的社会和文化负面偏见的影响。
+当医疗界开始在工作中使用人工智能时，我们应密切关注这对边缘群体，包括残障人士的副作用。与大型语言模型（LLM）使用可能导致残障人士的真实声音在重要决策中被忽视类似，如果医疗专业人员使用 LLM 来建议残障的诊断或治疗方案，这些建议将受到这些模型所带有的社会和文化负面偏见的影响。
 
 这可能意味着非刻板印象或不常见的残障表现可能会被忽视或忽略，因为模型在理解异常和特殊情况时必然存在困难。这也可能意味着，当患者的实际经历与模型的预期或预测相反时，患者可能很难说服医疗提供者接受其经历。正如我在其他工作中讨论过的那样，人们可能对机器学习模型的准确性过于自信，而人类的观点可能会因此被视为不那么可信，尽管这并非一个可以证明的断言。
 
@@ -108,9 +108,9 @@ Flowers博士认为，通过特别强调这一决定是为了让残疾人和边�
 
 # 进一步阅读
 
-[https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2020.571955/full?ref=blog.mondato.com](https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2020.571955/full?ref=blog.mondato.com)
+[`www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2020.571955/full?ref=blog.mondato.com`](https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2020.571955/full?ref=blog.mondato.com)
 
-[https://slate.com/technology/2024/09/national-novel-writing-month-ai-bots-controversy.html](https://slate.com/technology/2024/09/national-novel-writing-month-ai-bots-controversy.html)
+[`slate.com/technology/2024/09/national-novel-writing-month-ai-bots-controversy.html`](https://slate.com/technology/2024/09/national-novel-writing-month-ai-bots-controversy.html)
 
 [](https://www.american.edu/cas/faculty/jflowers.cfm?source=post_page-----0d5ab06ec140--------------------------------) [## 教授讲师
 

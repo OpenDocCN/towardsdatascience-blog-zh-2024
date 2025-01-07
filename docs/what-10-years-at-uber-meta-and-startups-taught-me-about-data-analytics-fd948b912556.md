@@ -1,20 +1,20 @@
-# 《我在Uber、Meta和初创公司工作的10年，教会了我关于数据分析的经验》
+# 《我在 Uber、Meta 和初创公司工作的 10 年，教会了我关于数据分析的经验》
 
-> 原文：[https://towardsdatascience.com/what-10-years-at-uber-meta-and-startups-taught-me-about-data-analytics-fd948b912556?source=collection_archive---------0-----------------------#2024-05-30](https://towardsdatascience.com/what-10-years-at-uber-meta-and-startups-taught-me-about-data-analytics-fd948b912556?source=collection_archive---------0-----------------------#2024-05-30)
+> 原文：[`towardsdatascience.com/what-10-years-at-uber-meta-and-startups-taught-me-about-data-analytics-fd948b912556?source=collection_archive---------0-----------------------#2024-05-30`](https://towardsdatascience.com/what-10-years-at-uber-meta-and-startups-taught-me-about-data-analytics-fd948b912556?source=collection_archive---------0-----------------------#2024-05-30)
 
 ## 给数据科学家和经理的建议
 
-[](https://medium.com/@twalbaum?source=post_page---byline--fd948b912556--------------------------------)[![Torsten Walbaum](../Images/27964d8095af45642f152a0ce4fa2681.png)](https://medium.com/@twalbaum?source=post_page---byline--fd948b912556--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fd948b912556--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fd948b912556--------------------------------) [Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--fd948b912556--------------------------------)
+[](https://medium.com/@twalbaum?source=post_page---byline--fd948b912556--------------------------------)![Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--fd948b912556--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fd948b912556--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fd948b912556--------------------------------) [Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--fd948b912556--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fd948b912556--------------------------------) ·9分钟阅读·2024年5月30日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fd948b912556--------------------------------) ·9 分钟阅读·2024 年 5 月 30 日
 
 --
 
-![](../Images/0131b157f2aed416db334b8d5cab365b.png)
+![](img/0131b157f2aed416db334b8d5cab365b.png)
 
-图片由作者提供（通过Midjourney生成）
+图片由作者提供（通过 Midjourney 生成）
 
-在过去的10年里，我在多个公司担任分析岗位，从德国的一家小型金融科技初创公司到快速增长的IPO前规模公司（Rippling）以及大型科技公司（Uber, Meta）。
+在过去的 10 年里，我在多个公司担任分析岗位，从德国的一家小型金融科技初创公司到快速增长的 IPO 前规模公司（Rippling）以及大型科技公司（Uber, Meta）。
 
 每家公司都有独特的数据文化，每个职位都有自己面临的挑战和一套艰苦获得的经验教训。以下是我在过去十年中的十大关键经验，其中许多经验无论公司处于哪个阶段、产品或商业模式，依然适用。
 
@@ -26,7 +26,7 @@
 
 但如果你的听众是非技术性的业务团队或高管，你就需要确保你专注于关键洞察，而不是陷入技术细节，并且将你的工作与它所要影响的商业决策相联系。如果你过多地关注分析的技术细节，你会失去听众；职场沟通的重点不是你觉得有趣的内容，而是听众需要听到的内容。
 
-这种基于洞察力、从上而下的沟通方式最著名的做法是麦肯锡顾问Barbara Minto提出的金字塔原理。可以参考[这篇最新的TDS文章](/how-to-better-communicate-as-a-data-scientist-6fc5428d3143)，了解如何作为数据科学家更好地进行沟通。
+这种基于洞察力、从上而下的沟通方式最著名的做法是麦肯锡顾问 Barbara Minto 提出的金字塔原理。可以参考这篇最新的 TDS 文章，了解如何作为数据科学家更好地进行沟通。
 
 # 2\. 强大的商业洞察力是优秀和卓越数据科学家的最大区别。
 
@@ -46,7 +46,7 @@
 
 1.  当你在做分析时，始终问自己“那又怎么样？”。只有在你能回答这个问题并阐明为什么别人应该关心它时，数据点或见解才变得相关和有影响力。基于这些数据，他们应该做出什么不同的行为？
 
-最终目标是从接受请求和处理进入的JIRA工单，转变为成为利益相关者的***思想合作伙伴***，与他们共同塑造分析路线图。
+最终目标是从接受请求和处理进入的 JIRA 工单，转变为成为利益相关者的***思想合作伙伴***，与他们共同塑造分析路线图。
 
 # **3\. 成为客观的真理探索者**
 
@@ -56,9 +56,9 @@
 
 利益相关者有时会施压要求你找到支持他们已经提前构建的叙事的数据。虽然迎合这一点可能会在短期内为你加分，但从长远来看，帮助你的是成为一个真理的探索者，并推动数据真正支持的叙事。
 
-![](../Images/75c49a8736f18d1405201f803fa6a96e.png)
+![](img/75c49a8736f18d1405201f803fa6a96e.png)
 
-图片来源：作者（通过Midjourney创作）
+图片来源：作者（通过 Midjourney 创作）
 
 即使这在当下可能让人感到不舒服（因为你可能在推销一些大家不想听到的说法），这将帮助你脱颖而出，并将你定位为当高管需要了解真实情况时，他们会寻求的那种不加过滤、不偏不倚的观点。
 
@@ -70,7 +70,7 @@
 
 深入研究关闭失败的交易记录、与客户交谈、阅读支持票等，有时是揭示某些问题（或真正理解根本原因）唯一的方式。
 
-**例如，** 假设你在一家B2B SaaS公司工作。你可能会在数据中看到，你们的企业级交易的胜率正在下降，也许你甚至能把问题归结为某一类客户。
+**例如，** 假设你在一家 B2B SaaS 公司工作。你可能会在数据中看到，你们的企业级交易的胜率正在下降，也许你甚至能把问题归结为某一类客户。
 
 但要真正理解发生了什么，你必须与销售代表交谈，深入了解他们的交易记录，与潜在客户沟通等。在开始时，这可能看起来像是随机的轶事和杂音，但过一段时间后，一个模式将开始显现；而这个模式很可能并没有出现在你追踪的任何标准化指标中。
 
@@ -82,7 +82,7 @@
 
 +   最近时期的数据不完整，一旦所有数据点都齐全，指标会趋于平稳。
 
-+   有一个一次性的顺风因素，不会持续（例如，你看到在1月初销售有所增长；但这并不是销售业绩的持续改善，而只是节假日期间积压订单的清理）。
++   有一个一次性的顺风因素，不会持续（例如，你看到在 1 月初销售有所增长；但这并不是销售业绩的持续改善，而只是节假日期间积压订单的清理）。
 
 不要因为指标的上升而感到过度兴奋。你需要保持健康的怀疑态度、好奇心和经验，以避免陷阱并生成有力的洞察。
 
@@ -118,27 +118,27 @@
 
 许多公司，尤其是高速成长的初创公司，都不愿意聘请专门从事指标调查和仪表板构建的 数据分析师 或商业智能人员。人员名额有限，经理们希望团队能够灵活应对各种任务，因此他们雇佣全面的 数据科学家，并计划偶尔给他们安排仪表板任务或指标调查请求。
 
-然而，实际上，这种情况往往会失控，数据科学家会在这些任务上花费过多的时间。他们被Slack消息打断，脱离了专注的工作，而那些“快速请求”（实际上从来没有看起来那么快）积累起来，占据了整整一天，使得他们很难在并行的大型战略项目上取得进展。
+然而，实际上，这种情况往往会失控，数据科学家会在这些任务上花费过多的时间。他们被 Slack 消息打断，脱离了专注的工作，而那些“快速请求”（实际上从来没有看起来那么快）积累起来，占据了整整一天，使得他们很难在并行的大型战略项目上取得进展。
 
 幸运的是，解决方案是存在的：
 
-1.  实施一个AI聊天机器人，能够处理简单的数据问题。
+1.  实施一个 AI 聊天机器人，能够处理简单的数据问题。
 
-1.  培训相关团队掌握基础的SQL（每个团队至少1-2名分析师），让他们更独立。借助[Snowflake SQL AI 助手](https://www.snowflake.com/blog/copilot-ai-powered-sql-assistant/)或[BigQuery中的Gemini助手](https://cloud.google.com/bigquery/docs/write-sql-gemini)，如今不再需要深入的SQL语法知识即可提取数据并生成洞察。
+1.  培训相关团队掌握基础的 SQL（每个团队至少 1-2 名分析师），让他们更独立。借助[Snowflake SQL AI 助手](https://www.snowflake.com/blog/copilot-ai-powered-sql-assistant/)或[BigQuery 中的 Gemini 助手](https://cloud.google.com/bigquery/docs/write-sql-gemini)，如今不再需要深入的 SQL 语法知识即可提取数据并生成洞察。
 
-1.  使用自助式BI工具，赋予用户自主权和灵活性，让他们能够获得所需的洞察力。近年来，这方面取得了大量进展，像Omni这样的工具让我们更接近一个自助分析成为现实的世界。
+1.  使用自助式 BI 工具，赋予用户自主权和灵活性，让他们能够获得所需的洞察力。近年来，这方面取得了大量进展，像 Omni 这样的工具让我们更接近一个自助分析成为现实的世界。
 
-# 9. 并非所有东西都需要一个精美的Tableau仪表盘。
+# 9. 并非所有东西都需要一个精美的 Tableau 仪表盘。
 
-公司通常会认为，数据从电子表格转移到BI解决方案中是一个成熟且强大的数据文化的标志。
+公司通常会认为，数据从电子表格转移到 BI 解决方案中是一个成熟且强大的数据文化的标志。
 
-虽然组织内由多个利益相关者广泛使用并作为基础做出关键且难以逆转决策的仪表盘应该放在受管控的BI工具中（例如Tableau），但也有许多情况下，Google Sheets就能满足需求，而且比起花费数天或数周构建强大仪表盘，这样做可以更快地达成目标。
+虽然组织内由多个利益相关者广泛使用并作为基础做出关键且难以逆转决策的仪表盘应该放在受管控的 BI 工具中（例如 Tableau），但也有许多情况下，Google Sheets 就能满足需求，而且比起花费数天或数周构建强大仪表盘，这样做可以更快地达成目标。
 
-事实上，团队将始终依赖他们日常使用的软件的分析功能（例如Salesforce）以及电子表格，因为他们需要快速行动。鼓励这种灵活的、去中心化的分析方式，而不是强行通过BI工具的瓶颈来操作，可以帮助你保留数据科学团队的资源（参见上面第8点），并为团队提供他们成功所需的工具（基本的SQL培训、数据建模和可视化最佳实践等）。
+事实上，团队将始终依赖他们日常使用的软件的分析功能（例如 Salesforce）以及电子表格，因为他们需要快速行动。鼓励这种灵活的、去中心化的分析方式，而不是强行通过 BI 工具的瓶颈来操作，可以帮助你保留数据科学团队的资源（参见上面第 8 点），并为团队提供他们成功所需的工具（基本的 SQL 培训、数据建模和可视化最佳实践等）。
 
 # 10. 在整个公司中实现完美标准化的指标是一种空想。
 
-如上面第9点所述，跨公司团队始终通过在BI工具之外进行快速的分析来解决问题，这使得强制执行共享数据模型变得困难。特别是在快速发展的初创公司中，如果你希望确保团队能够快速行动并完成工作，那么实施完美的治理几乎是不可能的。
+如上面第 9 点所述，跨公司团队始终通过在 BI 工具之外进行快速的分析来解决问题，这使得强制执行共享数据模型变得困难。特别是在快速发展的初创公司中，如果你希望确保团队能够快速行动并完成工作，那么实施完美的治理几乎是不可能的。
 
 虽然当指标定义不匹配时会让许多数据科学家感到头疼，但实际上，这并不意味着世界末日。通常情况下，数字之间的差异足够小，不会改变整体叙事或最终的推荐结果。
 
@@ -148,4 +148,4 @@
 
 上面提到的一些观点刚开始可能会让你感到不适（例如反驳挑选出来的叙事、采取务实的方法而不是追求完美等）。但从长远来看，你会发现，这将帮助你脱颖而出，并确立自己作为真正的思想伙伴的地位。
 
-如果你想获取更多实用的分析建议，可以在Medium上关注我，或者在[LinkedIn](http://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=torsten-walbaum)和[Substack](https://www.operatorshandbook.com/)上关注我。
+如果你想获取更多实用的分析建议，可以在 Medium 上关注我，或者在[LinkedIn](http://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=torsten-walbaum)和[Substack](https://www.operatorshandbook.com/)上关注我。

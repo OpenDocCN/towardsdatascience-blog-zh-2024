@@ -1,16 +1,16 @@
 # 使因果发现能够在现实世界的商业环境中应用
 
-> 原文：[https://towardsdatascience.com/making-causal-discovery-work-in-real-world-business-settings-80e80c5f66b8?source=collection_archive---------1-----------------------#2024-03-04](https://towardsdatascience.com/making-causal-discovery-work-in-real-world-business-settings-80e80c5f66b8?source=collection_archive---------1-----------------------#2024-03-04)
+> 原文：[`towardsdatascience.com/making-causal-discovery-work-in-real-world-business-settings-80e80c5f66b8?source=collection_archive---------1-----------------------#2024-03-04`](https://towardsdatascience.com/making-causal-discovery-work-in-real-world-business-settings-80e80c5f66b8?source=collection_archive---------1-----------------------#2024-03-04)
 
 ## 因果 AI，探索因果推理与机器学习的结合
 
-[](https://medium.com/@raz1470?source=post_page---byline--80e80c5f66b8--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--80e80c5f66b8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--80e80c5f66b8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--80e80c5f66b8--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--80e80c5f66b8--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--80e80c5f66b8--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--80e80c5f66b8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--80e80c5f66b8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--80e80c5f66b8--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--80e80c5f66b8--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--80e80c5f66b8--------------------------------) ·阅读时长10分钟·2024年3月4日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--80e80c5f66b8--------------------------------) ·阅读时长 10 分钟·2024 年 3 月 4 日
 
 --
 
-![](../Images/f05a4aa4db90cf22a2acbe769fe06153.png)
+![](img/f05a4aa4db90cf22a2acbe769fe06153.png)
 
 照片由[N.](https://unsplash.com/@ellladee?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -72,7 +72,7 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/making%20ca
 
 目前的研究尚不清楚哪种方法最好。回答这个问题的一个挑战是缺乏现实的基准数据集来验证真相。
 
-![](../Images/3a67ca0bfe5871399e38649c64eb6e00.png)
+![](img/3a67ca0bfe5871399e38649c64eb6e00.png)
 
 图片由作者提供
 
@@ -92,17 +92,17 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/making%20ca
 
 在实践中，虽然这些假设对因果发现是必要的，但它们通常被视为假设，而不是直接进行检验。
 
-即使做出了这些假设，我们仍然可能得到一个Markov等价类。当我们有多个因果图，每个图的可能性相同，就形成了Markov等价类。
+即使做出了这些假设，我们仍然可能得到一个 Markov 等价类。当我们有多个因果图，每个图的可能性相同，就形成了 Markov 等价类。
 
 # 条件独立性检验
 
-条件独立性检验是因果发现的构建块，并被PC算法使用（我们稍后会讲解该算法）。
+条件独立性检验是因果发现的构建块，并被 PC 算法使用（我们稍后会讲解该算法）。
 
 让我们先理解独立性。两个变量的独立性意味着，知道一个变量的值不会提供关于另一个变量值的任何信息。在这种情况下，可以较为安全地假设它们之间没有直接的因果关系。然而，如果两个变量不独立，那么盲目地假设因果关系就是错误的。
 
 条件独立性检验可以用来判断在给定一个或多个其他变量的情况下，两个变量是否相互独立。如果两个变量是条件独立的，那么我们可以推断它们没有因果关系。
 
-Fisher精确检验可以用来判断在控制了一个或多个额外变量的影响后，两个变量之间是否存在显著的关联（使用额外的变量将数据分割成子集，然后对每个子集应用检验）。零假设假定这两个感兴趣的变量之间没有关联。然后可以计算p值，如果p值低于0.05，则拒绝零假设，表明这两个变量之间存在显著关联。
+Fisher 精确检验可以用来判断在控制了一个或多个额外变量的影响后，两个变量之间是否存在显著的关联（使用额外的变量将数据分割成子集，然后对每个子集应用检验）。零假设假定这两个感兴趣的变量之间没有关联。然后可以计算 p 值，如果 p 值低于 0.05，则拒绝零假设，表明这两个变量之间存在显著关联。
 
 # 识别虚假相关性
 
@@ -123,7 +123,7 @@ df_spurious = pd.DataFrame(data=dict(temperature=temperature, ice_cream_sales=ic
 sns.pairplot(df_spurious, corner=True)
 ```
 
-![](../Images/f544381e6bb7d26d0958df2b2aee2515.png)
+![](img/f544381e6bb7d26d0958df2b2aee2515.png)
 
 图片来源：作者
 
@@ -146,7 +146,7 @@ graph_actual[0, 2] = 1.0 # Temperature -> Shark attacks
 plot_graph(input_graph=graph_actual, node_lookup=node_lookup)
 ```
 
-![](../Images/8012d363828cd7ea22e2d474b5c29f9b.png)
+![](img/8012d363828cd7ea22e2d474b5c29f9b.png)
 
 图片来源：作者
 
@@ -163,15 +163,15 @@ test_id_2 = round(gcm.independence_test(ice_cream_sales, temperature, conditione
 test_id_3 = round(gcm.independence_test(shark_attacks, temperature, conditioned_on=ice_cream_sales), 2)
 ```
 
-![](../Images/a85b275df7ee00a835fef623cdb5687f.png)
+![](img/a85b275df7ee00a835fef623cdb5687f.png)
 
 图片来源：作者
 
 尽管我们不知道关系的方向，但我们可以正确推断温度与冰淇淋销量和鲨鱼攻击之间存在因果关系。
 
-# PC算法
+# PC 算法
 
-PC算法（以其发明者Peter和Clark命名）是一种基于约束的因果发现算法，它使用条件独立性检验。
+PC 算法（以其发明者 Peter 和 Clark 命名）是一种基于约束的因果发现算法，它使用条件独立性检验。
 
 它可以总结为两个主要步骤：
 
@@ -195,7 +195,7 @@ PC算法（以其发明者Peter和Clark命名）是一种基于约束的因果�
 
 有几种评估因果发现算法的指标：
 
-![](../Images/f5865fe263ed76a07bffd2b393348ee6.png)
+![](img/f5865fe263ed76a07bffd2b393348ee6.png)
 
 图片来源：作者
 
@@ -247,7 +247,7 @@ graph_actual[4, 5] = 1.0 # Discount sent -> Churn
 plot_graph(input_graph=graph_actual, node_lookup=node_lookup)
 ```
 
-![](../Images/7f87d73da2c5be5e5e94137445c52f12.png)
+![](img/7f87d73da2c5be5e5e94137445c52f12.png)
 
 图片来源：作者
 
@@ -284,7 +284,7 @@ df = data_generator(max_call_waiting=600, inbound_calls=10000, call_reduction=1.
 sns.pairplot(df, corner=True)
 ```
 
-![](../Images/c1a355767929b4851297ba48e8f2fb1d.png)
+![](img/c1a355767929b4851297ba48e8f2fb1d.png)
 
 图片来源：作者
 
@@ -309,7 +309,7 @@ graph_pred = pc.causal_matrix
 graph_pred
 ```
 
-![](../Images/05a6f4f3f1d28011a50f0e7f11811d18.png)
+![](img/05a6f4f3f1d28011a50f0e7f11811d18.png)
 
 图片来源：作者
 
@@ -323,7 +323,7 @@ metrics = MetricsDAG(
 metrics.metrics['gscore']
 ```
 
-![](../Images/cff9208e806a15803a1eb51b797ab5d9.png)
+![](img/cff9208e806a15803a1eb51b797ab5d9.png)
 
 图片来源：作者
 
@@ -333,7 +333,7 @@ metrics.metrics['gscore']
 plot_graph(input_graph=graph_pred, node_lookup=node_lookup)
 ```
 
-![](../Images/fab02cea93344a2bae808a12a80c12e1.png)
+![](img/fab02cea93344a2bae808a12a80c12e1.png)
 
 图片由作者提供
 
@@ -348,11 +348,11 @@ skeleton_pred, sep_set = find_skeleton(df.to_numpy(), 0.05, 'fisherz')
 skeleton_pred
 ```
 
-![](../Images/c062b2429c96d525e3003542879584f0.png)
+![](img/c062b2429c96d525e3003542879584f0.png)
 
 图片由作者提供
 
-如果我们将我们的真实图转换为无向邻接矩阵，我们就可以用它来计算无向图的Gscore。
+如果我们将我们的真实图转换为无向邻接矩阵，我们就可以用它来计算无向图的 Gscore。
 
 ```py
 # Transform the ground truth graph into an undirected adjacency matrix
@@ -370,7 +370,7 @@ metrics = MetricsDAG(
 metrics.metrics['gscore']
 ```
 
-![](../Images/d21aa0f78e089638117ec5e5ef87362a.png)
+![](img/d21aa0f78e089638117ec5e5ef87362a.png)
 
 图片由作者提供
 
@@ -380,7 +380,7 @@ metrics.metrics['gscore']
 plot_graph(input_graph=skeleton_pred, node_lookup=node_lookup)
 ```
 
-![](../Images/8f7cc6d5bee46dbbbec62b82a6aa8c2f.png)
+![](img/8f7cc6d5bee46dbbbec62b82a6aa8c2f.png)
 
 图片由作者提供
 

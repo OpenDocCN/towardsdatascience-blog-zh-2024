@@ -1,16 +1,16 @@
 # AutoGluon-TimeSeries：一个库包含所有时间序列预测模型
 
-> 原文：[https://towardsdatascience.com/autogluon-timeseries-every-time-series-forecasting-model-in-one-library-29a3bf6879db?source=collection_archive---------3-----------------------#2024-01-05](https://towardsdatascience.com/autogluon-timeseries-every-time-series-forecasting-model-in-one-library-29a3bf6879db?source=collection_archive---------3-----------------------#2024-01-05)
+> 原文：[`towardsdatascience.com/autogluon-timeseries-every-time-series-forecasting-model-in-one-library-29a3bf6879db?source=collection_archive---------3-----------------------#2024-01-05`](https://towardsdatascience.com/autogluon-timeseries-every-time-series-forecasting-model-in-one-library-29a3bf6879db?source=collection_archive---------3-----------------------#2024-01-05)
 
 ## 由亚马逊推出的强大库——包括编码示例
 
-[](https://medium.com/@nikoskafritsas?source=post_page---byline--29a3bf6879db--------------------------------)[![Nikos Kafritsas](../Images/de965cfcd8fbd8e1baf849017d365cbb.png)](https://medium.com/@nikoskafritsas?source=post_page---byline--29a3bf6879db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--29a3bf6879db--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--29a3bf6879db--------------------------------) [Nikos Kafritsas](https://medium.com/@nikoskafritsas?source=post_page---byline--29a3bf6879db--------------------------------)
+[](https://medium.com/@nikoskafritsas?source=post_page---byline--29a3bf6879db--------------------------------)![Nikos Kafritsas](https://medium.com/@nikoskafritsas?source=post_page---byline--29a3bf6879db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--29a3bf6879db--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29a3bf6879db--------------------------------) [Nikos Kafritsas](https://medium.com/@nikoskafritsas?source=post_page---byline--29a3bf6879db--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29a3bf6879db--------------------------------) ·阅读时间 8 分钟·2024年1月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29a3bf6879db--------------------------------) ·阅读时间 8 分钟·2024 年 1 月 5 日
 
 --
 
-![](../Images/9f3b2178013b967460ce499a11e7fd86.png)
+![](img/9f3b2178013b967460ce499a11e7fd86.png)
 
 图像由作者使用 Stable Diffusion 创建
 

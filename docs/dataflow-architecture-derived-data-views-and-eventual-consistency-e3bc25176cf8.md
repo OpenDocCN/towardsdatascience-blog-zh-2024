@@ -1,14 +1,14 @@
 # 数据流架构
 
-> 原文：[https://towardsdatascience.com/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=collection_archive---------1-----------------------#2024-10-15](https://towardsdatascience.com/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=collection_archive---------1-----------------------#2024-10-15)
+> 原文：[`towardsdatascience.com/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=collection_archive---------1-----------------------#2024-10-15`](https://towardsdatascience.com/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=collection_archive---------1-----------------------#2024-10-15)
 
 ## 健康与健身数据管道的（不那么）简短历史：第二部分
 
 ## 关于衍生数据视图和最终一致性
 
-[](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[![CALEB](../Images/c0f24b30f8dd69352f59b1f7b8124a8c.png)](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------) [CALEB](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)
+[](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)![CALEB](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------) [CALEB](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------) ·阅读时长19分钟·2024年10月15日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------) ·阅读时长 19 分钟·2024 年 10 月 15 日
 
 --
 
@@ -26,11 +26,11 @@ medium.com](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-f
 
 ## *数据管道的演变*
 
-在[第一部分](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189)中，我们观看了[*SmartGym*](https://youtu.be/nVVD97pMRiI)成长为（2.1版），一个集成的健康与健身平台，**流式传输**、**处理**和**保存**来自一系列健身器材传感器和医疗设备的数据。这些数据提供了洞察力，帮助用户更积极地掌控个人的健康与健身。
+在[第一部分](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189)中，我们观看了[*SmartGym*](https://youtu.be/nVVD97pMRiI)成长为（2.1 版），一个集成的健康与健身平台，**流式传输**、**处理**和**保存**来自一系列健身器材传感器和医疗设备的数据。这些数据提供了洞察力，帮助用户更积极地掌控个人的健康与健身。
 
-![](../Images/8d5ff76a69924bde9c62e30669808c3b.png)
+![](img/8d5ff76a69924bde9c62e30669808c3b.png)
 
-SmartGym肩推
+SmartGym 肩推
 
 随着我们的系统从单纯保存和检索数据发展到响应现实世界的事件，我们的架构必须反映这一范式转变——从*请求驱动*到*事件驱动*。
 
@@ -42,7 +42,7 @@ SmartGym肩推
 
 1.  **保存**管道：当用户结束一个会话时，缓存的数据会被处理并保存到数据库中，作为表示用户会话（一次锻炼）的记录。
 
-![](../Images/43d0ee7433e3a9ed7952ee7c358cc8a4.png)
+![](img/43d0ee7433e3a9ed7952ee7c358cc8a4.png)
 
 **流式处理**和**保存**管道
 
@@ -60,13 +60,13 @@ SmartGym肩推
 
 但首先，让我们认识一下本文的主角！
 
-![](../Images/518463b2e778a51c2dac5646d7a7a4ae.png)
+![](img/518463b2e778a51c2dac5646d7a7a4ae.png)
 
 # 神奇的黑盒
 
-无论是分布式、事件驱动的，还是其他形式的，我们都可以把SmartGym/SENSEI的后台系统看作一个神奇的黑盒。
+无论是分布式、事件驱动的，还是其他形式的，我们都可以把 SmartGym/SENSEI 的后台系统看作一个神奇的黑盒。
 
-![](../Images/37271edc55adb14a0bacaa0ba254d924.png)
+![](img/37271edc55adb14a0bacaa0ba254d924.png)
 
 **输入**：我们将新信息输入到这个黑盒中——例如：用户信息、传感器数据。
 
@@ -80,7 +80,7 @@ SmartGym肩推
 
 如果我们把它拆开来看，我们会发现其中没有什么真正神奇的东西——只有一个由一堆数据视图和摄取管道组成的**数据流架构**。
 
-![](../Images/34d0c185157512fd546cef19251ba500.png)
+![](img/34d0c185157512fd546cef19251ba500.png)
 
 **事实来源**（实线）、**派生数据视图**（虚线）和**流式/保存管道**逻辑（箭头）
 
@@ -104,7 +104,7 @@ SmartGym肩推
 
 请注意，每当真实数据源发生变化时，派生的数据必须重新派生。否则，状态转换不完整，魔法黑盒子将处于 **不一致** 状态。
 
-![](../Images/34d0c185157512fd546cef19251ba500.png)
+![](img/34d0c185157512fd546cef19251ba500.png)
 
 v2.1 数据流架构
 
@@ -124,7 +124,7 @@ v2.1 数据流架构
 
 随着流式管道和保存管道不懈地将数据摄取到系统中，我们的数据库现在储存着大量的用户和锻炼记录。我们能够通过分析趋势、分组、平均值和总计，提供有意义的宏观洞察，服务于我们的用户和利益相关者。
 
-![](../Images/a8e123fecb7a3beee177273a884dad12.png)
+![](img/a8e123fecb7a3beee177273a884dad12.png)
 
 SmartGym 产品指标仪表盘原型
 
@@ -132,7 +132,7 @@ SmartGym 产品指标仪表盘原型
 
 在这里，*SmartGym* 成为 *“每个公民的首选健身伴侣”* 的愿景开始逐渐成形。除了在我的锻炼过程中提供实时反馈、回顾我的历史表现并告诉我做得多么出色之外，一个勤勉的健身伴侣还会提供可量化的指标，用来衡量我随时间推移的表现提升。
 
-![](../Images/8c5d150cd740ad5414c53c9ef5013371.png)
+![](img/8c5d150cd740ad5414c53c9ef5013371.png)
 
 SmartGym 用户锻炼洞察页面
 
@@ -152,7 +152,7 @@ SmartGym 用户锻炼洞察页面
 
 让我们回到我们的魔法黑盒子。
 
-![](../Images/4f31648d06e0a552483038b9458011bb.png)
+![](img/4f31648d06e0a552483038b9458011bb.png)
 
 v3.0 数据流架构
 
@@ -162,7 +162,7 @@ v3.0 数据流架构
 
 现在，我们的摄取管道包括一个定时任务服务，该服务根据预设的时间表在**周期性管道**内安排批量处理作业，从而确保及时更新并避免系统过载。
 
-![](../Images/e2eb655a80ae13a1c4ad109df1097701.png)
+![](img/e2eb655a80ae13a1c4ad109df1097701.png)
 
 **流式**、**保存**和**周期性**管道
 
@@ -180,19 +180,19 @@ v3.0 数据流架构
 
 哇，这个功能可真是让一些人感到自豪！一些常去健身房的人开始把他们随机生成的用户名改成像“Beefy”或“Armstrong”这样的称号。对于很多人来说，查看排行榜成了他们进入健身房后的第一件事，同样也是每次锻炼结束后的仪式，带着新获得的自信昂首离开。
 
-![](../Images/9e990cda9ce8378a362aa12c87db72d9.png)
+![](img/9e990cda9ce8378a362aa12c87db72d9.png)
 
 SmartGym 排行榜
 
 类似于我们计算产品和用户健身指标的方式，排行榜数据会定期批量更新，数据来源于用户个人资料和他们的历史锻炼记录。
 
-![](../Images/f126b45336d44df423ebb94fd7af8d9a.png)
+![](img/f126b45336d44df423ebb94fd7af8d9a.png)
 
 ## 健身挑战系统
 
 与健身房管理团队合作，我们发起了一项健身挑战，并与新加坡国庆日等特殊时期同步进行。
 
-![](../Images/3145c2c83809e7629852a2640ae7fc38.png)
+![](img/3145c2c83809e7629852a2640ae7fc38.png)
 
 SmartGym 健身挑战在我们的 Tampines Hub 举行
 
@@ -200,7 +200,7 @@ SmartGym 健身挑战在我们的 Tampines Hub 举行
 
 这启动了一系列多样化的健身挑战，每个挑战都有不同的游戏玩法，涉及持续时间、锻炼类型、强度、连续次数等多种变化。
 
-![](../Images/b35769de095912a05451c392513c86d4.png)
+![](img/b35769de095912a05451c392513c86d4.png)
 
 SmartGym 健身挑战用户界面
 
@@ -208,19 +208,19 @@ SmartGym 健身挑战用户界面
 
 本质上，健身挑战是由管理员指定的一组独特锻炼要求。通过将用户的锻炼历史与这些要求进行对比，我们可以评估他们在挑战中的进展和完成状态。
 
-![](../Images/c5fdce652a422d11a5348edcc9a5f771.png)
+![](img/c5fdce652a422d11a5348edcc9a5f771.png)
 
 **规则语法树**：表示一组胸推/腿推/跑步机锻炼
 
-我们并没有用一大堆if-else语句来应对每个健身挑战的变体，而是通过将这些逻辑规则表示为语法树来将业务逻辑外部化。在运行时，规则引擎解析这棵树，并根据用户的实际锻炼历史进行评估，从而追踪他们的挑战进度。
+我们并没有用一大堆 if-else 语句来应对每个健身挑战的变体，而是通过将这些逻辑规则表示为语法树来将业务逻辑外部化。在运行时，规则引擎解析这棵树，并根据用户的实际锻炼历史进行评估，从而追踪他们的挑战进度。
 
-![](../Images/5c0ec01c775f100e0abaf8b325f48274.png)
+![](img/5c0ec01c775f100e0abaf8b325f48274.png)
 
 语法树的运行时评估
 
 当程序管理员修改健身挑战的参数时，他们实际上是在直接更新底层规则语法树。这个相同的数据结构在后台规则引擎和前端规则配置页面之间共享，从而确保了一致性和管理的简便性。
 
-![](../Images/8161add68c5de2d49d97e12dd5881b9b.png)
+![](img/8161add68c5de2d49d97e12dd5881b9b.png)
 
 SmartGym 健身挑战配置页面
 
@@ -228,7 +228,7 @@ SmartGym 健身挑战配置页面
 
 让我们重新审视一下我们的神奇黑箱。
 
-![](../Images/91bc947764698241e8f7201ebfac08fc.png)
+![](img/91bc947764698241e8f7201ebfac08fc.png)
 
 v4.0 数据流架构
 
@@ -240,7 +240,7 @@ v4.0 数据流架构
 
 在这种情况下，一个*按需工作者*实现规则引擎的逻辑，实时评估*用户健身挑战结果*。
 
-![](../Images/41e693713abf38051a93dc5749e06afc.png)
+![](img/41e693713abf38051a93dc5749e06afc.png)
 
 揭开我们最新的直列四缸*发动机*，其包含**流处理**、**保存处理**、**定期处理**和**按需**管道
 
@@ -260,11 +260,11 @@ v4.0 数据流架构
 
 ## NSFIT x SmartGym
 
-2021年底，来自新加坡军队的一个团队描述了他们的困境：每年，军人必须达到特定的健身基准。如果达不到标准，他们将被加入一个结构化的训练项目，称为 NSFIT。然而，这些训练课是有限时段的，需提前报名，并且需要工作人员来促进和监控进度。考虑到当时正在进行的疫情和社交距离措施，集结军人进行集体课程变得不可行。
+2021 年底，来自新加坡军队的一个团队描述了他们的困境：每年，军人必须达到特定的健身基准。如果达不到标准，他们将被加入一个结构化的训练项目，称为 NSFIT。然而，这些训练课是有限时段的，需提前报名，并且需要工作人员来促进和监控进度。考虑到当时正在进行的疫情和社交距离措施，集结军人进行集体课程变得不可行。
 
 使用 SmartGym 健身挑战系统，军人可以根据自己的时间安排进行训练——无需工作人员在每一节课上都跟随。只需要工作人员验证训练是否完成并符合标准即可。
 
-![](../Images/cb17d66f7e2f2c54b2a2e8e8e406435b.png)
+![](img/cb17d66f7e2f2c54b2a2e8e8e406435b.png)
 
 基于健身档案的跑步机强度实时推荐
 
@@ -274,7 +274,7 @@ v4.0 数据流架构
 
 我们的个性化健身挑战现在遵循三个关键步骤：
 
-![](../Images/ad035cc1deb027a042f3c748c1d07d54.png)
+![](img/ad035cc1deb027a042f3c748c1d07d54.png)
 
 **步骤 1 — 个人档案** 使用历史训练数据，我们为每个用户制定健身水平档案。
 
@@ -286,11 +286,11 @@ v4.0 数据流架构
 
 **步骤 3 — 评估** 一旦个性化参数被嵌入到规则语法树中，评估可以在训练保存后按需触发，甚至可以在实时传感器流中进行评估，并显示在前端控制台上。
 
-![](../Images/9a98ce9b3165cccbb3e3815c6cfbac80.png)
+![](img/9a98ce9b3165cccbb3e3815c6cfbac80.png)
 
 实时个性化健身挑战评估
 
-![](../Images/8e7cd01b789fcce738caffe680c133aa.png)
+![](img/8e7cd01b789fcce738caffe680c133aa.png)
 
 v5.0 数据流架构
 
@@ -312,7 +312,7 @@ v5.0 数据流架构
 
 数据可以以多种形式表示——在不同的组合和多个粒度级别上——每种形式都有其独特的用途。
 
-例如，事实证明，用户并不关心他在2020年9月做胸推时，第2组的第3次重复动作是否完全伸展——在这个实时窗口过后，低级别的原始细节变得越来越不相关，而高级别的衍生洞察变得更有价值。
+例如，事实证明，用户并不关心他在 2020 年 9 月做胸推时，第 2 组的第 3 次重复动作是否完全伸展——在这个实时窗口过后，低级别的原始细节变得越来越不相关，而高级别的衍生洞察变得更有价值。
 
 > 为了避免必须假设数据在未来如何使用和表示——*原始数据更好*，即寿司原则。
 
@@ -320,7 +320,7 @@ v5.0 数据流架构
 
 通过这种方式，我们将写入模型与潜在的读取模型范围解耦，并通过一系列物化阶段弥合差距。这种分离通常被称为命令和查询责任分离（CQRS）。
 
-![](../Images/f59125e22652d9f40f27a2f8289ab5a3.png)
+![](img/f59125e22652d9f40f27a2f8289ab5a3.png)
 
 拥有物化路径为一条数据提供了空间和时间——让它演变并发现其不同的面貌，从而实现：
 
@@ -332,9 +332,9 @@ v5.0 数据流架构
 
 通过将写入模型指定为推理的权威真理来源，更容易实现一致性——而无需处理多个权威系统尝试达成共识的复杂性。
 
-有时，原始数据增长得过快。例如，每秒1条消息的跑步机传感器，多个健身房的话，一天内*传感器流*就可能积累数百万条消息。
+有时，原始数据增长得过快。例如，每秒 1 条消息的跑步机传感器，多个健身房的话，一天内*传感器流*就可能积累数百万条消息。
 
-![](../Images/f94a46f7c2a5c9cfd1aa80e791ed99fa.png)
+![](img/f94a46f7c2a5c9cfd1aa80e791ed99fa.png)
 
 **锻炼记录**取代**传感器流**成为新的权威数据视图
 
@@ -348,7 +348,7 @@ v5.0 数据流架构
 
 派生视图还支持应用的渐进式演变。你可以引入新的数据视图，而不删除或重构旧的视图，保持它们作为同一数据的独立视图，并且如果出现问题，还可以选择回退。
 
-![](../Images/af047d09835a13db2b6ade70fbb53d88.png)
+![](img/af047d09835a13db2b6ade70fbb53d88.png)
 
 *非破坏性*的推导逻辑演变
 
@@ -362,7 +362,7 @@ v5.0 数据流架构
 
 广义来说，分布式系统可以通过两种一致性级别——**强一致性**或**最终一致性**；以及两种控制流类型——**协调式**（集中式）或**编排式**（分散式）进行分类。
 
-![](../Images/5c9ced666ed1acddd4624c3a85c35ea1.png)
+![](img/5c9ced666ed1acddd4624c3a85c35ea1.png)
 
 一致性级别与控制流之间的关系
 
@@ -416,7 +416,7 @@ v5.0 数据流架构
 
 **确定性执行** 非确定性可能轻易潜入：使用系统时钟、依赖外部数据源、基于随机数的概率/统计算法等，都可能导致不可预测的结果。为防止这种情况，我们将所有“动态部分”（例如随机种子或时间戳）直接嵌入不可变的消息中。
 
-**确定性排序** 使用消息队列的负载均衡（每个队列有多个工作者）可能导致消息处理的顺序错误，特别是在消息重试时，若后续消息已处理完毕。比如，*用户健身挑战结果*的评估顺序错误，出现从50%到70%再回到60%的情况，而实际上它应该是单调递增的。对于需要顺序执行的操作，如插入记录后通知第三方服务，顺序错误的处理可能会破坏这种因果依赖关系。
+**确定性排序** 使用消息队列的负载均衡（每个队列有多个工作者）可能导致消息处理的顺序错误，特别是在消息重试时，若后续消息已处理完毕。比如，*用户健身挑战结果*的评估顺序错误，出现从 50%到 70%再回到 60%的情况，而实际上它应该是单调递增的。对于需要顺序执行的操作，如插入记录后通知第三方服务，顺序错误的处理可能会破坏这种因果依赖关系。
 
 在应用层，这些顺序操作应该要么在单个工作者上同步运行，要么拆分成多个独立的顺序物化阶段。
 
@@ -440,21 +440,21 @@ v5.0 数据流架构
 
 这将我们的数据流架构扩展到后端系统的范围之外，涵盖了多种客户端设备。可以将设备上的状态（即“模型-视图-控制器”中的“模型”）视为服务器状态的派生视图——屏幕显示的是设备本地状态的物化视图，它反映了中心后端的状态。
 
-推送协议，如服务器推送事件和WebSockets，将这个类比进一步扩展，使得服务器可以主动将更新推送到客户端，而不依赖于轮询——实现从端到端的最终一致性。
+推送协议，如服务器推送事件和 WebSockets，将这个类比进一步扩展，使得服务器可以主动将更新推送到客户端，而不依赖于轮询——实现从端到端的最终一致性。
 
-![](../Images/d166c2825d528fbcabfc9999fc3f7123.png)
+![](img/d166c2825d528fbcabfc9999fc3f7123.png)
 
-v5.0数据流架构（扩展版）
+v5.0 数据流架构（扩展版）
 
 事实上，这种实时同步正是我们如何在前端控制台中评估个性化健身挑战的方式——作为驻留在客户端设备上的派生数据视图。
 
-![](../Images/9a98ce9b3165cccbb3e3815c6cfbac80.png)
+![](img/9a98ce9b3165cccbb3e3815c6cfbac80.png)
 
 实时个性化健身挑战评估
 
 ## 数据库中的数据流
 
-即使在技术栈的底层，我们也能看到数据库中的数据流的雏形。数据库触发器、存储过程和物化视图维护例程与按需和定期处理管道并无太大不同；B树索引和关系数据库的物化视图本质上是派生的数据视图——谈谈数据流中的数据流！
+即使在技术栈的底层，我们也能看到数据库中的数据流的雏形。数据库触发器、存储过程和物化视图维护例程与按需和定期处理管道并无太大不同；B 树索引和关系数据库的物化视图本质上是派生的数据视图——谈谈数据流中的数据流！
 
 ## 数据流，数据流，无处不在
 
@@ -476,9 +476,9 @@ v5.0数据流架构（扩展版）
 
 在这第二部分中，我们扩展了那些保存的记录，并对其进行了**定期**和**按需**处理。这使得增强用户运动体验的新功能成为可能，体验变得更加*集体*却又*个性化*。随着我们的摄取管道的发展，我们的数据流架构也在扩展，能够满足新的需求。
 
-![](../Images/c844159ae4f7bbe6792c6ba9772df96a.png)
+![](img/c844159ae4f7bbe6792c6ba9772df96a.png)
 
-基于数据摄取管道的SmartGym功能总结
+基于数据摄取管道的 SmartGym 功能总结
 
 > 我们的演变故事并未就此结束。
 
@@ -486,7 +486,7 @@ v5.0数据流架构（扩展版）
 
 敬请期待……
 
-*本文中的所有图片和GIF都是作者原创作品。*
+*本文中的所有图片和 GIF 都是作者原创作品。*
 
 *感谢数据工程圣经，即《设计数据密集型应用》一书——马丁·克莱普曼（Martin Kleppmann）为我提供了清晰思考这些分布式系统的词汇。*
 
@@ -500,7 +500,7 @@ v5.0数据流架构（扩展版）
 
 ### 一个（不那么）简短的健康与健身数据管道历史：第二部分
 
-[towardsdatascience.com](/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=post_page-----e3bc25176cf8--------------------------------)
+towardsdatascience.com
 
 ## 了解更多关于我队友们的功能开发内容
 
@@ -508,25 +508,25 @@ v5.0数据流架构（扩展版）
 
 [](https://medium.com/siot-govtech/fitness-lover-to-developer-building-a-smartgym-vision-592d92989905?source=post_page-----e3bc25176cf8--------------------------------) [## 从健身爱好者到开发者：构建智能健身房愿景]
 
-### 这是我与GovTech的SmartGym团队一起度过的短暂而有意义的实习经历！
+### 这是我与 GovTech 的 SmartGym 团队一起度过的短暂而有意义的实习经历！
 
 [medium.com](https://medium.com/siot-govtech/fitness-lover-to-developer-building-a-smartgym-vision-592d92989905?source=post_page-----e3bc25176cf8--------------------------------)
 
 **产品指标仪表盘**
 
-[](https://medium.com/siot-govtech/web-development-with-python-really-87e2e39644c8?source=post_page-----e3bc25176cf8--------------------------------) [## 真正的Python网页开发？]
+[](https://medium.com/siot-govtech/web-development-with-python-really-87e2e39644c8?source=post_page-----e3bc25176cf8--------------------------------) [## 真正的 Python 网页开发？]
 
-### 我与一个非常规的网页开发框架：Plotly Dash的工作经验
+### 我与一个非常规的网页开发框架：Plotly Dash 的工作经验
 
 [medium.com](https://medium.com/siot-govtech/web-development-with-python-really-87e2e39644c8?source=post_page-----e3bc25176cf8--------------------------------) [](https://medium.com/siot-govtech/internship-experience-dont-dash-through-data-analysis-9219e0e15860?source=post_page-----e3bc25176cf8--------------------------------) [## 实习经验 — 不要匆匆完成数据分析]
 
-### 作为数据分析师与SmartGym团队一起度过的充实实习之旅
+### 作为数据分析师与 SmartGym 团队一起度过的充实实习之旅
 
 [medium.com](https://medium.com/siot-govtech/internship-experience-dont-dash-through-data-analysis-9219e0e15860?source=post_page-----e3bc25176cf8--------------------------------)
 
 **排行榜和健身挑战分析仪表盘**
 
-[](https://medium.com/ytpo-govtech/internship-blog-7b021006e020?source=post_page-----e3bc25176cf8--------------------------------) [## 我在SmartGym团队的实习
+[](https://medium.com/ytpo-govtech/internship-blog-7b021006e020?source=post_page-----e3bc25176cf8--------------------------------) [## 我在 SmartGym 团队的实习
 
 ### 介绍
 
@@ -534,7 +534,7 @@ medium.com](https://medium.com/ytpo-govtech/internship-blog-7b021006e020?source=
 
 ### 介绍
 
-medium.com](https://medium.com/siot-govtech/dont-throw-darts-in-the-dark-11e3404f8436?source=post_page-----e3bc25176cf8--------------------------------) [](https://medium.com/siot-govtech/my-most-fulfilling-moment-at-smartgym-843819c77432?source=post_page-----e3bc25176cf8--------------------------------) [## 我在SmartGym最有成就感的时刻
+medium.com](https://medium.com/siot-govtech/dont-throw-darts-in-the-dark-11e3404f8436?source=post_page-----e3bc25176cf8--------------------------------) [](https://medium.com/siot-govtech/my-most-fulfilling-moment-at-smartgym-843819c77432?source=post_page-----e3bc25176cf8--------------------------------) [## 我在 SmartGym 最有成就感的时刻
 
 ### 作者: https://medium.com/@dharmil.shah_35509
 

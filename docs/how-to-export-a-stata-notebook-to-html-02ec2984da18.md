@@ -1,12 +1,12 @@
 # 如何将 Stata “笔记本” 导出为 HTML
 
-> 原文：[https://towardsdatascience.com/how-to-export-a-stata-notebook-to-html-02ec2984da18?source=collection_archive---------11-----------------------#2024-10-17](https://towardsdatascience.com/how-to-export-a-stata-notebook-to-html-02ec2984da18?source=collection_archive---------11-----------------------#2024-10-17)
+> 原文：[`towardsdatascience.com/how-to-export-a-stata-notebook-to-html-02ec2984da18?source=collection_archive---------11-----------------------#2024-10-17`](https://towardsdatascience.com/how-to-export-a-stata-notebook-to-html-02ec2984da18?source=collection_archive---------11-----------------------#2024-10-17)
 
 ## 创建一个可以分享的 HTML 文档，其中包含你的代码、输出结果和图表
 
-[](https://medium.com/@brbaracancino?source=post_page---byline--02ec2984da18--------------------------------)[![Bárbara A. Cancino](../Images/075cc42c1455bd56773b39129966b1d5.png)](https://medium.com/@brbaracancino?source=post_page---byline--02ec2984da18--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--02ec2984da18--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--02ec2984da18--------------------------------) [Bárbara A. Cancino](https://medium.com/@brbaracancino?source=post_page---byline--02ec2984da18--------------------------------)
+[](https://medium.com/@brbaracancino?source=post_page---byline--02ec2984da18--------------------------------)![Bárbara A. Cancino](https://medium.com/@brbaracancino?source=post_page---byline--02ec2984da18--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--02ec2984da18--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02ec2984da18--------------------------------) [Bárbara A. Cancino](https://medium.com/@brbaracancino?source=post_page---byline--02ec2984da18--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02ec2984da18--------------------------------) ·阅读时长8分钟·2024年10月17日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02ec2984da18--------------------------------) ·阅读时长 8 分钟·2024 年 10 月 17 日
 
 --
 

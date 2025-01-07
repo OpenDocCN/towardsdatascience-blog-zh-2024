@@ -1,20 +1,20 @@
 # 使用符号回归区分嘈杂的时间序列数据
 
-> 原文：[https://towardsdatascience.com/differentiate-noisy-time-series-data-with-symbolic-regression-2e27db2392c8?source=collection_archive---------5-----------------------#2024-09-13](https://towardsdatascience.com/differentiate-noisy-time-series-data-with-symbolic-regression-2e27db2392c8?source=collection_archive---------5-----------------------#2024-09-13)
+> 原文：[`towardsdatascience.com/differentiate-noisy-time-series-data-with-symbolic-regression-2e27db2392c8?source=collection_archive---------5-----------------------#2024-09-13`](https://towardsdatascience.com/differentiate-noisy-time-series-data-with-symbolic-regression-2e27db2392c8?source=collection_archive---------5-----------------------#2024-09-13)
 
 ## **一个逐步示例，展示如何在数据稀缺的情况下推导出嘈杂的时间序列轮廓**
 
-[](https://medium.com/@mit.forster?source=post_page---byline--2e27db2392c8--------------------------------)[![Tim Forster](../Images/0159a256b7fa28c674a1d5e1489e0df6.png)](https://medium.com/@mit.forster?source=post_page---byline--2e27db2392c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e27db2392c8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2e27db2392c8--------------------------------) [Tim Forster](https://medium.com/@mit.forster?source=post_page---byline--2e27db2392c8--------------------------------)
+[](https://medium.com/@mit.forster?source=post_page---byline--2e27db2392c8--------------------------------)![Tim Forster](https://medium.com/@mit.forster?source=post_page---byline--2e27db2392c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e27db2392c8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e27db2392c8--------------------------------) [Tim Forster](https://medium.com/@mit.forster?source=post_page---byline--2e27db2392c8--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e27db2392c8--------------------------------) ·14 分钟阅读 ·2024年9月13日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e27db2392c8--------------------------------) ·14 分钟阅读 ·2024 年 9 月 13 日
 
 --
 
-![](../Images/3b79e03bb57499d6f4d4b1fc4a407c58.png)
+![](img/3b79e03bb57499d6f4d4b1fc4a407c58.png)
 
 图片来源：Jake Hills，来自 Unsplash
 
-> 注意：如果您没有 Medium 订阅，可以在 [这里](/differentiate-noisy-time-series-data-with-symbolic-regression-2e27db2392c8?sk=7337e43aa26b862ea834f67e9fa8e151) 免费阅读本文！
+> 注意：如果您没有 Medium 订阅，可以在 这里 免费阅读本文！
 
 时间序列轮廓在我们的日常生活中无处不在。也有许多专门的研究工作在探讨这一主题。
 

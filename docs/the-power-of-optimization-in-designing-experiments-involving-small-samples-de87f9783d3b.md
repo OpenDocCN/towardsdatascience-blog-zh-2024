@@ -1,12 +1,12 @@
 # 优化在设计涉及小样本实验中的力量
 
-> 原文：[https://towardsdatascience.com/the-power-of-optimization-in-designing-experiments-involving-small-samples-de87f9783d3b?source=collection_archive---------6-----------------------#2024-10-21](https://towardsdatascience.com/the-power-of-optimization-in-designing-experiments-involving-small-samples-de87f9783d3b?source=collection_archive---------6-----------------------#2024-10-21)
+> 原文：[`towardsdatascience.com/the-power-of-optimization-in-designing-experiments-involving-small-samples-de87f9783d3b?source=collection_archive---------6-----------------------#2024-10-21`](https://towardsdatascience.com/the-power-of-optimization-in-designing-experiments-involving-small-samples-de87f9783d3b?source=collection_archive---------6-----------------------#2024-10-21)
 
-## 使用Python中的优化技术设计更精确实验的逐步指南
+## 使用 Python 中的优化技术设计更精确实验的逐步指南
 
-[](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)[![Leandro Magga](../Images/75d2b6b31635ac2bd409bfb91d151ac4.png)](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------) [Leandro Magga](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)
+[](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)![Leandro Magga](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------) [Leandro Magga](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------) ·10分钟阅读·2024年10月21日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------) ·10 分钟阅读·2024 年 10 月 21 日
 
 --
 
@@ -18,19 +18,19 @@
 
 ## 你将学到的内容：
 
-在这篇文章中，我将解释一种基于优化的方法，用于构建等效的实验组，这是Bertsimas等人在[这篇文章](https://medium.com/r?url=https%3A%2F%2Fpubsonline.informs.org%2Fdoi%2F10.1287%2Fopre.2015.1361)中提出的。
+在这篇文章中，我将解释一种基于优化的方法，用于构建等效的实验组，这是 Bertsimas 等人在[这篇文章](https://medium.com/r?url=https%3A%2F%2Fpubsonline.informs.org%2Fdoi%2F10.1287%2Fopre.2015.1361)中提出的。
 
-通过Python中的一个简单示例，我们将学习如何：
+通过 Python 中的一个简单示例，我们将学习如何：
 
 +   设计一个基于优化的实验。
 
 +   使用自助法技术进行推断。
 
-+   在Python中实现代码，以便你自己的实验使用
++   在 Python 中实现代码，以便你自己的实验使用
 
 # 优化的力量
 
-在深入研究我们的例子和Python代码之前，首先讨论一下使用基于优化的方法来设计实验的好处。
+在深入研究我们的例子和 Python 代码之前，首先讨论一下使用基于优化的方法来设计实验的好处。
 
 > 优化使得统计结果更加精确，从而可以进行更强有力的推断。
 
@@ -38,13 +38,13 @@
 
 这使得研究人员能够通过更少的数据得出统计上有效的结论，从而减少实验成本——这是肿瘤学研究等学科中的一个重要优势，因为在小鼠癌症模型中测试化疗药物既繁琐又昂贵。此外，与其他适用于小样本量的方法相比，优化方法已经证明在效果上优于其他方法，正如我们稍后通过模拟实验看到的那样。
 
-现在，让我们深入一个例子，看看如何使用Python应用这种方法！
+现在，让我们深入一个例子，看看如何使用 Python 应用这种方法！
 
-# 在Python中实现算法
+# 在 Python 中实现算法
 
-## 案例研究：20只小鼠的药物实验
+## 案例研究：20 只小鼠的药物实验
 
-假设我们有一个20只小鼠的实验，研究药物对肿瘤生长的影响，肿瘤大小初始值不同。假设初始肿瘤大小呈正态分布，均值为200 mg，标准差为300 mg（为了确保值为非负数而进行了截断）。我们可以通过以下Python代码生成小鼠种群：
+假设我们有一个 20 只小鼠的实验，研究药物对肿瘤生长的影响，肿瘤大小初始值不同。假设初始肿瘤大小呈正态分布，均值为 200 mg，标准差为 300 mg（为了确保值为非负数而进行了截断）。我们可以通过以下 Python 代码生成小鼠种群：
 
 ```py
 import numpy as np
@@ -77,9 +77,9 @@ print(tumor_data.head())
 4     5      442.239789
 ```
 
-现在，我们需要将20只啮齿动物分成两组，每组10只——一组将接受治疗，另一组将接受安慰剂。我们将通过优化来完成这一任务。
+现在，我们需要将 20 只啮齿动物分成两组，每组 10 只——一组将接受治疗，另一组将接受安慰剂。我们将通过优化来完成这一任务。
 
-我们还假设肿瘤生长是在一天内观察的，并且遵循Gompertz模型（详见[*《癌症研究中的数学模型》*](https://medium.com/r?url=https%3A%2F%2Fwww.semanticscholar.org%2Fpaper%2FMathematical-models-in-cancer-research-Wheldon%2F9e3176627ff018f369b87b1aa8c97df203020f76)）。假设治疗具有确定性效果，可以减少肿瘤大小250 mg。
+我们还假设肿瘤生长是在一天内观察的，并且遵循 Gompertz 模型（详见[*《癌症研究中的数学模型》*](https://medium.com/r?url=https%3A%2F%2Fwww.semanticscholar.org%2Fpaper%2FMathematical-models-in-cancer-research-Wheldon%2F9e3176627ff018f369b87b1aa8c97df203020f76)）。假设治疗具有确定性效果，可以减少肿瘤大小 250 mg。
 
 ## 实验设计
 
@@ -87,7 +87,7 @@ print(tumor_data.head())
 
 为了实现这一目标，我们需要遵循三个步骤：
 
-## 第1步：规范化初始肿瘤重量
+## 第 1 步：规范化初始肿瘤重量
 
 首先，整个样本必须进行预处理，并且度量标准应该规范化，使其均值为零，方差为单位：
 
@@ -98,15 +98,15 @@ std = tumor_data['initial_weight'].std()
 tumor_data['norm_initial_weight'] = (tumor_data['initial_weight'] - mean) / std
 ```
 
-## 第2步：使用优化创建组
+## 第 2 步：使用优化创建组
 
-接下来，我们需要实现一个通用的优化模型，该模型构建具有*k个受试者*的*m组*，并最小化*任意两组之间的最大差异*（有关模型变量的完整描述，请参见[文章](https://pubsonline.informs.org/doi/10.1287/opre.2015.1361)），并传递归一化度量：
+接下来，我们需要实现一个通用的优化模型，该模型构建具有*k 个受试者*的*m 组*，并最小化*任意两组之间的最大差异*（有关模型变量的完整描述，请参见[文章](https://pubsonline.informs.org/doi/10.1287/opre.2015.1361)），并传递归一化度量：
 
-![](../Images/73f213fb1e811cde82574a44e4a94e8a.png)
+![](img/73f213fb1e811cde82574a44e4a94e8a.png)
 
-创建每个含有k个单位的m组的优化模型（来自[Bertsimas et al. 2015](https://pubsonline.informs.org/doi/10.1287/opre.2015.1361)）。
+创建每个含有 k 个单位的 m 组的优化模型（来自[Bertsimas et al. 2015](https://pubsonline.informs.org/doi/10.1287/opre.2015.1361)）。
 
-该数学模型可以使用Python中的ortools库和SCIP求解器实现，具体如下：
+该数学模型可以使用 Python 中的 ortools 库和 SCIP 求解器实现，具体如下：
 
 ```py
 from ortools.linear_solver import pywraplp
@@ -287,7 +287,7 @@ print(f"The optimized mice groups are: {optimized_groups}")
   ]
 ```
 
-> ***注意：*** *参数* rho *控制最小化一阶矩和二阶矩之间差异的折衷，由研究人员选择。在我们的示例中，我们假设* rho *等于0.5。*
+> ***注意：*** *参数* rho *控制最小化一阶矩和二阶矩之间差异的折衷，由研究人员选择。在我们的示例中，我们假设* rho *等于 0.5。*
 
 ## Paso 3：随机化分配哪组接受哪种治疗
 
@@ -339,7 +339,7 @@ Treatment              303.61              162.12
 
 ## **模拟肿瘤生长**
 
-根据已确定的治疗分配，假设治疗组的效果为-250毫克，肿瘤生长在一天内使用Gompertz模型进行模拟：
+根据已确定的治疗分配，假设治疗组的效果为-250 毫克，肿瘤生长在一天内使用 Gompertz 模型进行模拟：
 
 ```py
 import numpy as np
@@ -409,13 +409,13 @@ print(f"Mean difference between treatment and control: {round(mean_tr - mean_co)
 > Mean difference between treatment and control: -260 mg
 ```
 
-现在我们已经得到了最终的肿瘤权重，我们观察到治疗组的平均最终肿瘤重量比对照组低260毫克。然而，为了确定这个差异是否具有统计学意义，我们需要应用以下自助法机制来计算p值。
+现在我们已经得到了最终的肿瘤权重，我们观察到治疗组的平均最终肿瘤重量比对照组低 260 毫克。然而，为了确定这个差异是否具有统计学意义，我们需要应用以下自助法机制来计算 p 值。
 
 ## **基于优化设计的自助法推断**
 
 > “在基于优化的设计中，诸如组间平均差异之类的统计数据变得更加精确，但不再遵循常规分布。因此，应使用自助法推断方法来得出有效结论。”
 
-[Bertsimas et al. (2015)](https://medium.com/r?url=https%3A%2F%2Fpubsonline.informs.org%2Fdoi%2F10.1287%2Fopre.2015.1361) 提出的自助法推断方法包括使用带放回的抽样构建估计量的基准分布。在每次迭代中，使用优化进行组分配，最后得出*p值*，具体如下：
+[Bertsimas et al. (2015)](https://medium.com/r?url=https%3A%2F%2Fpubsonline.informs.org%2Fdoi%2F10.1287%2Fopre.2015.1361) 提出的自助法推断方法包括使用带放回的抽样构建估计量的基准分布。在每次迭代中，使用优化进行组分配，最后得出*p 值*，具体如下：
 
 ```py
 from tqdm import tqdm
@@ -539,17 +539,17 @@ print(infer_result)
 0 -260.183  0.001998         1000                 2.02               112.61
 ```
 
-组间观察到的-260毫克的差异在5%的显著性水平下是显著的（p值小于0.05）。因此，我们拒绝零假设（均值相等），并得出结论：治疗具有统计学显著效应。
+组间观察到的-260 毫克的差异在 5%的显著性水平下是显著的（p 值小于 0.05）。因此，我们拒绝零假设（均值相等），并得出结论：治疗具有统计学显著效应。
 
-# **1000只小鼠实验的结果**
+# **1000 只小鼠实验的结果**
 
-我们可以多次模拟实验，生成具有不同初始肿瘤重量的小鼠群体，这些小鼠来自相同的正态分布，均值为200 mg，标准差为300 mg。
+我们可以多次模拟实验，生成具有不同初始肿瘤重量的小鼠群体，这些小鼠来自相同的正态分布，均值为 200 mg，标准差为 300 mg。
 
-这使我们能够将基于优化的设计与其他实验设计进行比较。在下图中，我将优化方法与简单随机分配和分层随机分配进行了比较（其中，分层是使用基于初始肿瘤重量的k-means算法创建的）：
+这使我们能够将基于优化的设计与其他实验设计进行比较。在下图中，我将优化方法与简单随机分配和分层随机分配进行了比较（其中，分层是使用基于初始肿瘤重量的 k-means 算法创建的）：
 
-![](../Images/95504d0add5f8dacff5e62d5f7f6d1e5.png)
+![](img/95504d0add5f8dacff5e62d5f7f6d1e5.png)
 
-1000次模拟实验的结果，用于检测-250 mg的效应（图片来源：作者）。
+1000 次模拟实验的结果，用于检测-250 mg 的效应（图片来源：作者）。
 
 在他们的文章中，作者还将基于优化的方法与重新随机化和配对匹配在不同效应大小和组大小下进行了比较。如果你有兴趣深入探索细节，我强烈推荐阅读完整的文章！
 

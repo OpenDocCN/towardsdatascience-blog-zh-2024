@@ -1,18 +1,18 @@
 # 如何将 Apache Flink、Kafka 和 PostgreSQL Docker 化，实现实时数据流处理
 
-> 原文：[https://towardsdatascience.com/how-i-dockerized-apache-flink-kafka-and-postgresql-for-real-time-data-streaming-c4ce38598336?source=collection_archive---------1-----------------------#2024-06-19](https://towardsdatascience.com/how-i-dockerized-apache-flink-kafka-and-postgresql-for-real-time-data-streaming-c4ce38598336?source=collection_archive---------1-----------------------#2024-06-19)
+> 原文：[`towardsdatascience.com/how-i-dockerized-apache-flink-kafka-and-postgresql-for-real-time-data-streaming-c4ce38598336?source=collection_archive---------1-----------------------#2024-06-19`](https://towardsdatascience.com/how-i-dockerized-apache-flink-kafka-and-postgresql-for-real-time-data-streaming-c4ce38598336?source=collection_archive---------1-----------------------#2024-06-19)
 
 ## 使用 Docker 集成 pyFlink、Kafka 和 PostgreSQL
 
-[](https://adenevreze.medium.com/?source=post_page---byline--c4ce38598336--------------------------------)[![Augusto de Nevrezé](../Images/bd7d6509149ddb447dd7e5af9f09e4b1.png)](https://adenevreze.medium.com/?source=post_page---byline--c4ce38598336--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4ce38598336--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c4ce38598336--------------------------------) [Augusto de Nevrezé](https://adenevreze.medium.com/?source=post_page---byline--c4ce38598336--------------------------------)
+[](https://adenevreze.medium.com/?source=post_page---byline--c4ce38598336--------------------------------)![Augusto de Nevrezé](https://adenevreze.medium.com/?source=post_page---byline--c4ce38598336--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4ce38598336--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4ce38598336--------------------------------) [Augusto de Nevrezé](https://adenevreze.medium.com/?source=post_page---byline--c4ce38598336--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4ce38598336--------------------------------) ·阅读时间：10分钟·2024年6月19日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4ce38598336--------------------------------) ·阅读时间：10 分钟·2024 年 6 月 19 日
 
 --
 
-![](../Images/11d218990f84e7153933c512352bd704.png)
+![](img/11d218990f84e7153933c512352bd704.png)
 
-使用 Docker 准备你的 pyFlink 应用程序 — 作者使用 [https://www.dall-efree.com/](https://www.dall-efree.com/) 生成的图片
+使用 Docker 准备你的 pyFlink 应用程序 — 作者使用 [`www.dall-efree.com/`](https://www.dall-efree.com/) 生成的图片
 
 # 为什么要阅读这篇文章？
 
@@ -26,11 +26,11 @@
 
 我开始了一个任务，旨在使用 Docker 集成 Apache Flink、Kafka 和 PostgreSQL。这项工作尤其令人兴奋，因为我使用了 pyFlink —— Flink 的 Python 版本 —— 它既强大又相对罕见。这个设置的目标是高效地处理和存储实时数据。在接下来的部分，我将展示我是如何实现这一目标的，讨论我遇到的挑战以及如何克服它们。最后，我将提供一个逐步指南，帮助你自己搭建并实验这个数据流管道。  
 
-我们将要构建的基础设施如下所示。从外部来看，有一个发布者模块，用于模拟物联网传感器消息，类似于[之前的文章](https://medium.com/dev-genius/detecting-iot-alerts-with-apache-flink-7a2be19ad9dd)中讨论的内容。在 Docker 容器内部，我们将创建两个 Kafka 主题。第一个主题 *sensors* 用于实时存储来自物联网设备的消息。Flink 应用程序将从该主题消费消息，过滤出温度高于30°C的消息，并将其发布到第二个主题 *alerts*。此外，Flink 应用程序还将把消费的消息插入到专门为此目的创建的 PostgreSQL 表中。这个设置使我们能够以结构化的表格格式持久化传感器数据，提供进一步转化和分析的机会。像 Tableau 或 Power BI 这样的可视化工具可以连接到这些数据，用于实时绘图和仪表盘展示。
+我们将要构建的基础设施如下所示。从外部来看，有一个发布者模块，用于模拟物联网传感器消息，类似于[之前的文章](https://medium.com/dev-genius/detecting-iot-alerts-with-apache-flink-7a2be19ad9dd)中讨论的内容。在 Docker 容器内部，我们将创建两个 Kafka 主题。第一个主题 *sensors* 用于实时存储来自物联网设备的消息。Flink 应用程序将从该主题消费消息，过滤出温度高于 30°C 的消息，并将其发布到第二个主题 *alerts*。此外，Flink 应用程序还将把消费的消息插入到专门为此目的创建的 PostgreSQL 表中。这个设置使我们能够以结构化的表格格式持久化传感器数据，提供进一步转化和分析的机会。像 Tableau 或 Power BI 这样的可视化工具可以连接到这些数据，用于实时绘图和仪表盘展示。
 
 此外，alerts 主题可以被其他客户端消费，以根据其包含的消息启动相应的动作，例如启用空调系统或触发消防安全协议。
 
-![](../Images/a1ad055bc5105bf1c170c1d526b9702c.png)
+![](img/a1ad055bc5105bf1c170c1d526b9702c.png)
 
 docker 容器中包含的服务 —— 图片由作者提供
 
@@ -40,7 +40,7 @@ docker 容器中包含的服务 —— 图片由作者提供
 
 最初，在使用 confluentinc Kafka Docker 镜像时，我遇到了 Kafka 端口配置的问题，这是这种设置的常见选择。通过日志可以明显看到这个问题，突显出在初始设置和故障排除阶段，不应该以分离模式（-d）运行 docker-compose up 的重要性。
 
-失败的原因是内部和外部主机使用了相同的端口，导致了连接问题。我通过将内部端口更改为19092来解决了这个问题。我发现[这篇](https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/)博客文章对问题的解释相当清晰。
+失败的原因是内部和外部主机使用了相同的端口，导致了连接问题。我通过将内部端口更改为 19092 来解决了这个问题。我发现[这篇](https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/)博客文章对问题的解释相当清晰。
 
 ```py
 KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:19092,PLAINTEXT_HOST://localhost:9092
@@ -101,7 +101,7 @@ env.add_jars(
 
 这个 Docker 配置的一个最大优点是，你可以在本地或容器内部以托管任务的方式运行 Flink。下图展示了本地 Flink 设置，你可以看到我们的 Flink 应用程序与 Docker 容器是分离的。这有助于排查 Flink 的问题，因为 Flink 本身并没有很好的本地可观察工具。实际上，我们想尝试一下[datorios](https://datorios.com/)提供的 Flink 工具，它们在监控方面非常有前景。
 
-![](../Images/6d8993906980fe9862badc9ecdcad799.png)
+![](img/6d8993906980fe9862badc9ecdcad799.png)
 
 在本地运行 Flink 应用程序，并且容器内部还运行着其他服务 — 图像来自作者
 
@@ -121,19 +121,19 @@ KAFKA_HOST = "localhost:9092"
 POSTGRES_HOST = "localhost:5432"
 ```
 
-默认情况下，仓库设置Flink应用程序在容器内运行。你可以通过Web UI监控正在运行的作业，访问[http://localhost:8081](http://localhost:8081)。如果你选择在本地运行作业，则无法查看。
+默认情况下，仓库设置 Flink 应用程序在容器内运行。你可以通过 Web UI 监控正在运行的作业，访问[`localhost:8081`](http://localhost:8081)。如果你选择在本地运行作业，则无法查看。
 
-![](../Images/add4733c451e9d50906584d638693caf.png)
+![](img/add4733c451e9d50906584d638693caf.png)
 
-显示Flink Web UI中运行作业的截图——作者提供的图片
+显示 Flink Web UI 中运行作业的截图——作者提供的图片
 
-**注意**：如果在本地运行作业，则需要安装位于requirements.txt中的Flink依赖项。如果你想使用poetry设置环境，还提供了一个pyproject.toml文件。
+**注意**：如果在本地运行作业，则需要安装位于 requirements.txt 中的 Flink 依赖项。如果你想使用 poetry 设置环境，还提供了一个 pyproject.toml 文件。
 
 # 分步指南：运行流处理管道
 
-## 第1步：启动多容器应用程序
+## 第 1 步：启动多容器应用程序
 
-通过运行docker-compose启动容器。我更倾向于不使用分离模式，以便在容器启动并运行时查看日志。
+通过运行 docker-compose 启动容器。我更倾向于不使用分离模式，以便在容器启动并运行时查看日志。
 
 ```py
 docker-compose up
@@ -141,9 +141,9 @@ docker-compose up
 
 检查日志以查看服务是否正常运行。
 
-## 第2步：创建Kafka主题
+## 第 2 步：创建 Kafka 主题
 
-接下来，我们将创建主题以接收来自IoT传感器的数据，并存储Flink应用程序过滤后的警报。
+接下来，我们将创建主题以接收来自 IoT 传感器的数据，并存储 Flink 应用程序过滤后的警报。
 
 ```py
 docker-compose exec kafka kafka-topics \
@@ -167,15 +167,15 @@ docker-compose exec kafka kafka-topics \
  -- list
 ```
 
-## 第3步：创建Postgres表
+## 第 3 步：创建 Postgres 表
 
-登录到Postgres控制台
+登录到 Postgres 控制台
 
 ```py
 psql -h localhost -U flinkuser -d flinkdb
 ```
 
-输入密码flinkpassword登录到Postgres控制台，请记住这是本地配置，因此默认访问权限已在docker-compose.yml中配置。然后创建表格
+输入密码 flinkpassword 登录到 Postgres 控制台，请记住这是本地配置，因此默认访问权限已在 docker-compose.yml 中配置。然后创建表格
 
 ```py
 CREATE TABLE raw_sensors_data (
@@ -194,17 +194,17 @@ flinkdb=# \d raw_sensors_data
 
 这将显示类似以下的结果：
 
-![](../Images/d60419e34e6e3d6595fb7dabb57d16ff.png)
+![](img/d60419e34e6e3d6595fb7dabb57d16ff.png)
 
-## 第4步：启动Kafka生产者
+## 第 4 步：启动 Kafka 生产者
 
-使用conda或poetry创建一个本地环境并安装python kafka包：
+使用 conda 或 poetry 创建一个本地环境并安装 python kafka 包：
 
 ```py
 pip install kafka-python
 ```
 
-然后执行Kafka生产者，它模拟IoT传感器消息并将消息发布到传感器主题。
+然后执行 Kafka 生产者，它模拟 IoT 传感器消息并将消息发布到传感器主题。
 
 ```py
 python pyflink/usr_jobs/kafka_producer.py
@@ -212,28 +212,28 @@ python pyflink/usr_jobs/kafka_producer.py
 
 让它在接下来的教程中一直运行。
 
-## 第5步：初始化Flink任务
+## 第 5 步：初始化 Flink 任务
 
-我们将从容器内启动Flink应用程序，因此你可以通过Web UI通过localhost:8081监控它。从仓库根目录运行以下命令：
+我们将从容器内启动 Flink 应用程序，因此你可以通过 Web UI 通过 localhost:8081 监控它。从仓库根目录运行以下命令：
 
 ```py
 docker-compose exec flink-jobmanager flink run \
   -py /opt/flink/usr_jobs/postgres_sink.py
 ```
 
-你将看到一些日志信息，此外，警报也会显示在flink-jobmanager容器的日志中。同时，你可以从Flink Web UI [http://localhost:8081/#/job/running](http://localhost:8081/#/job/running)检查作业是否正在运行。
+你将看到一些日志信息，此外，警报也会显示在 flink-jobmanager 容器的日志中。同时，你可以从 Flink Web UI [`localhost:8081/#/job/running`](http://localhost:8081/#/job/running)检查作业是否正在运行。
 
-![](../Images/61e46067d510dfa78e078de834b3ad0a.png)
+![](img/61e46067d510dfa78e078de834b3ad0a.png)
 
 运行作业的详细信息——作者提供的图片
 
-显然，监控显示Flink作业中没有消息流动，但这不是真的，因为可以在docker日志中看到警报。
+显然，监控显示 Flink 作业中没有消息流动，但这不是真的，因为可以在 docker 日志中看到警报。
 
-![](../Images/a76525be2f6b2ec01ef7e1d6d89b2518.png)
+![](img/a76525be2f6b2ec01ef7e1d6d89b2518.png)
 
-我们将通过Postgres表检查消息，并读取为此目的创建的警报主题。
+我们将通过 Postgres 表检查消息，并读取为此目的创建的警报主题。
 
-## 第6步：读取Kafka主题中的警报
+## 第 6 步：读取 Kafka 主题中的警报
 
 要读取警报主题中的数据，可以执行以下命令：
 
@@ -246,7 +246,7 @@ docker-compose exec kafka kafka-console-consumer \
 
 这将展示到目前为止该主题接收到的所有消息。
 
-## 第7步：从Postgres表读取原始数据
+## 第 7 步：从 Postgres 表读取原始数据
 
 此外，你还可以查询 IoT 传感器的原始消息，甚至在 PostgreSQL 中解析 JSON 数据：
 
@@ -322,14 +322,14 @@ LIMIT 10;
 
 # 参考资料
 
-[https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/](https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/)
+[`www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/`](https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/)
 
-[https://mvnrepository.com/](https://mvnrepository.com/)
+[`mvnrepository.com/`](https://mvnrepository.com/)
 
-[https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/datastream/jdbc/](https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/datastream/jdbc/)
+[`nightlies.apache.org/flink/flink-docs-master/docs/connectors/datastream/jdbc/`](https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/datastream/jdbc/)
 
-[https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/overview/#session-mode](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/overview/#session-mode)
+[`nightlies.apache.org/flink/flink-docs-master/docs/deployment/overview/#session-mode`](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/overview/#session-mode)
 
-[https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/docker/#using-flink-python-on-docker](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/docker/#using-flink-python-on-docker)
+[`nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/docker/#using-flink-python-on-docker`](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/docker/#using-flink-python-on-docker)
 
-[https://medium.com/@sant1/flink-docker-kafka-faee9c0f1580](https://medium.com/@sant1/flink-docker-kafka-faee9c0f1580)
+[`medium.com/@sant1/flink-docker-kafka-faee9c0f1580`](https://medium.com/@sant1/flink-docker-kafka-faee9c0f1580)

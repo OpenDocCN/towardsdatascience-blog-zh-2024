@@ -1,16 +1,16 @@
 # 大语言模型消耗多少能源？
 
-> 原文：[https://towardsdatascience.com/how-much-energy-do-llms-consume-23c09fe3f545?source=collection_archive---------4-----------------------#2024-07-02](https://towardsdatascience.com/how-much-energy-do-llms-consume-23c09fe3f545?source=collection_archive---------4-----------------------#2024-07-02)
+> 原文：[`towardsdatascience.com/how-much-energy-do-llms-consume-23c09fe3f545?source=collection_archive---------4-----------------------#2024-07-02`](https://towardsdatascience.com/how-much-energy-do-llms-consume-23c09fe3f545?source=collection_archive---------4-----------------------#2024-07-02)
 
 ## 我们使用 EnergyMeter 这一 Python 工具来测量不同 LLM（大语言模型）的能耗，包括 Llama、Dolly 和 BLOOM。
 
-[](https://medium.com/@mauriciofadelargerich?source=post_page---byline--23c09fe3f545--------------------------------)[![Mauricio Fadel Argerich](../Images/0e84f1a168a436821894c0e13b4e0c53.png)](https://medium.com/@mauriciofadelargerich?source=post_page---byline--23c09fe3f545--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--23c09fe3f545--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--23c09fe3f545--------------------------------) [Mauricio Fadel Argerich](https://medium.com/@mauriciofadelargerich?source=post_page---byline--23c09fe3f545--------------------------------)
+[](https://medium.com/@mauriciofadelargerich?source=post_page---byline--23c09fe3f545--------------------------------)![Mauricio Fadel Argerich](https://medium.com/@mauriciofadelargerich?source=post_page---byline--23c09fe3f545--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--23c09fe3f545--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--23c09fe3f545--------------------------------) [Mauricio Fadel Argerich](https://medium.com/@mauriciofadelargerich?source=post_page---byline--23c09fe3f545--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--23c09fe3f545--------------------------------) ·12 分钟阅读·2024 年 7 月 2 日
 
 --
 
-![](../Images/5630ac576e53b591e0392028054cfb64.png)
+![](img/5630ac576e53b591e0392028054cfb64.png)
 
 回答所有这些问题需要大量的能源！[由 AI 制作 [Designer](https://www.bing.com/images/create?form=SBCATT)。]
 

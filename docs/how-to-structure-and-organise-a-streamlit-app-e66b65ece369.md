@@ -1,16 +1,16 @@
 # 如何构建和组织一个 Streamlit 应用
 
-> 原文：[https://towardsdatascience.com/how-to-structure-and-organise-a-streamlit-app-e66b65ece369?source=collection_archive---------1-----------------------#2024-02-10](https://towardsdatascience.com/how-to-structure-and-organise-a-streamlit-app-e66b65ece369?source=collection_archive---------1-----------------------#2024-02-10)
+> 原文：[`towardsdatascience.com/how-to-structure-and-organise-a-streamlit-app-e66b65ece369?source=collection_archive---------1-----------------------#2024-02-10`](https://towardsdatascience.com/how-to-structure-and-organise-a-streamlit-app-e66b65ece369?source=collection_archive---------1-----------------------#2024-02-10)
 
 ## 通过有序的项目文件夹结构为 Python Streamlit 应用带来秩序
 
-[](https://andymcdonaldgeo.medium.com/?source=post_page---byline--e66b65ece369--------------------------------)[![Andy McDonald](../Images/df11d647be032aeb3d31852affb33a64.png)](https://andymcdonaldgeo.medium.com/?source=post_page---byline--e66b65ece369--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e66b65ece369--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e66b65ece369--------------------------------) [Andy McDonald](https://andymcdonaldgeo.medium.com/?source=post_page---byline--e66b65ece369--------------------------------)
+[](https://andymcdonaldgeo.medium.com/?source=post_page---byline--e66b65ece369--------------------------------)![Andy McDonald](https://andymcdonaldgeo.medium.com/?source=post_page---byline--e66b65ece369--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e66b65ece369--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e66b65ece369--------------------------------) [Andy McDonald](https://andymcdonaldgeo.medium.com/?source=post_page---byline--e66b65ece369--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e66b65ece369--------------------------------) ·7分钟阅读·2024年2月10日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e66b65ece369--------------------------------) ·7 分钟阅读·2024 年 2 月 10 日
 
 --
 
-![](../Images/3a3bfe204638e632bfd8bc8a51e594e9.png)
+![](img/3a3bfe204638e632bfd8bc8a51e594e9.png)
 
 由 DALLE 3 生成的图像，作者提供。它展示了从左侧的混乱到右侧的有序。
 

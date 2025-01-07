@@ -1,16 +1,16 @@
 # 偏差-方差权衡及其如何塑造今天的 LLM
 
-> 原文：[https://towardsdatascience.com/the-bias-variance-tradeoff-and-how-it-shapes-the-llms-of-today-40e2c355f8a2?source=collection_archive---------4-----------------------#2024-11-02](https://towardsdatascience.com/the-bias-variance-tradeoff-and-how-it-shapes-the-llms-of-today-40e2c355f8a2?source=collection_archive---------4-----------------------#2024-11-02)
+> 原文：[`towardsdatascience.com/the-bias-variance-tradeoff-and-how-it-shapes-the-llms-of-today-40e2c355f8a2?source=collection_archive---------4-----------------------#2024-11-02`](https://towardsdatascience.com/the-bias-variance-tradeoff-and-how-it-shapes-the-llms-of-today-40e2c355f8a2?source=collection_archive---------4-----------------------#2024-11-02)
 
 ## 低归纳偏差对于构建通用人工智能至关重要吗？
 
-[](https://medium.com/@zakharymg?source=post_page---byline--40e2c355f8a2--------------------------------)[![Michael Zakhary](../Images/8657f728dd52de4094b71635b1c17087.png)](https://medium.com/@zakharymg?source=post_page---byline--40e2c355f8a2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--40e2c355f8a2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--40e2c355f8a2--------------------------------) [Michael Zakhary](https://medium.com/@zakharymg?source=post_page---byline--40e2c355f8a2--------------------------------)
+[](https://medium.com/@zakharymg?source=post_page---byline--40e2c355f8a2--------------------------------)![Michael Zakhary](https://medium.com/@zakharymg?source=post_page---byline--40e2c355f8a2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--40e2c355f8a2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40e2c355f8a2--------------------------------) [Michael Zakhary](https://medium.com/@zakharymg?source=post_page---byline--40e2c355f8a2--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40e2c355f8a2--------------------------------) ·阅读时长 6 分钟·2024年11月2日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40e2c355f8a2--------------------------------) ·阅读时长 6 分钟·2024 年 11 月 2 日
 
 --
 
-![](../Images/eb32a758ce0d5d1409030ca8d576fe66.png)
+![](img/eb32a758ce0d5d1409030ca8d576fe66.png)
 
 图片由 [BoliviaInteligente](https://unsplash.com/@boliviainteligente?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

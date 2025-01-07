@@ -1,20 +1,20 @@
-# 作为一名数据科学家的7个收入来源
+# 作为一名数据科学家的 7 个收入来源
 
-> 原文：[https://towardsdatascience.com/my-7-sources-of-income-as-a-data-scientist-aef6b6a41388?source=collection_archive---------0-----------------------#2024-10-01](https://towardsdatascience.com/my-7-sources-of-income-as-a-data-scientist-aef6b6a41388?source=collection_archive---------0-----------------------#2024-10-01)
+> 原文：[`towardsdatascience.com/my-7-sources-of-income-as-a-data-scientist-aef6b6a41388?source=collection_archive---------0-----------------------#2024-10-01`](https://towardsdatascience.com/my-7-sources-of-income-as-a-data-scientist-aef6b6a41388?source=collection_archive---------0-----------------------#2024-10-01)
 
 ## 作为一名实践中的数据科学家，我的所有赚钱方式
 
-[](https://medium.com/@egorhowell?source=post_page---byline--aef6b6a41388--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--aef6b6a41388--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aef6b6a41388--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--aef6b6a41388--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--aef6b6a41388--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--aef6b6a41388--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--aef6b6a41388--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aef6b6a41388--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aef6b6a41388--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--aef6b6a41388--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aef6b6a41388--------------------------------) ·阅读时间7分钟·2024年10月1日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aef6b6a41388--------------------------------) ·阅读时间 7 分钟·2024 年 10 月 1 日
 
 --
 
-![](../Images/fb6bd3e9774878c560ed9145b1e6729c.png)
+![](img/fb6bd3e9774878c560ed9145b1e6729c.png)
 
 图片来源：[Alexander Grey](https://unsplash.com/@sharonmccutcheon?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-作为一名数据科学家，你有很多机会创造多个收入来源。在这篇文章中，我想分解一下我自己的7个收入来源，希望能给你一些可以尝试的思路。
+作为一名数据科学家，你有很多机会创造多个收入来源。在这篇文章中，我想分解一下我自己的 7 个收入来源，希望能给你一些可以尝试的思路。
 
 > 这里的内容不构成财务建议。
 

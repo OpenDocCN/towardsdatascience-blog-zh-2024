@@ -1,22 +1,22 @@
 # 将微软的 GraphRAG 集成到 Neo4j 中
 
-> 原文：[https://towardsdatascience.com/integrating-microsoft-graphrag-into-neo4j-e0d4fa00714c?source=collection_archive---------0-----------------------#2024-07-31](https://towardsdatascience.com/integrating-microsoft-graphrag-into-neo4j-e0d4fa00714c?source=collection_archive---------0-----------------------#2024-07-31)
+> 原文：[`towardsdatascience.com/integrating-microsoft-graphrag-into-neo4j-e0d4fa00714c?source=collection_archive---------0-----------------------#2024-07-31`](https://towardsdatascience.com/integrating-microsoft-graphrag-into-neo4j-e0d4fa00714c?source=collection_archive---------0-----------------------#2024-07-31)
 
 ## 将 MSFT GraphRAG 输出存储到 Neo4j 中，并使用 LangChain 或 LlamaIndex 实现本地和全局检索器
 
-[](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[![Tomaz Bratanic](../Images/d5821aa70918fcb3fc1ff0013497b3d5.png)](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------) [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)
+[](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)![Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------) [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------) ·16分钟阅读·2024年7月31日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------) ·16 分钟阅读·2024 年 7 月 31 日
 
 --
 
-![](../Images/b8dfacae208dd7c0c5efcd6495e436c2.png)
+![](img/b8dfacae208dd7c0c5efcd6495e436c2.png)
 
 图像由 ChatGPT 创建。
 
 [微软的 GraphRAG 实现](https://microsoft.github.io/graphrag/)最近引起了广泛关注。在我的[上一篇博客文章](https://medium.com/neo4j/implementing-from-local-to-global-graphrag-with-neo4j-and-langchain-constructing-the-graph-73924cc5bab4)中，我讨论了图谱的构建过程，并探讨了在[研究论文](https://arxiv.org/abs/2404.16130)中突出的一些创新方面。总体来看，GraphRAG 库的输入是包含各种信息的源文档。通过大型语言模型（LLM）处理这些文档，从中提取关于文档中出现的实体及其关系的结构化信息。然后，这些提取的结构化信息被用于构建知识图谱。
 
-![](../Images/24791b4cf2a113c9a490245cdae794f6.png)
+![](img/24791b4cf2a113c9a490245cdae794f6.png)
 
 如微软在 GraphRAG 论文中实现的高层次索引管道 — 图片由作者提供
 
@@ -24,7 +24,7 @@
 
 在这篇文章中，我们将使用来自[GraphRAG 库](https://github.com/microsoft/graphrag)的输出，将其存储在 Neo4j 中，然后使用 LangChain 和 LlamaIndex 协同框架直接从 Neo4j 设置检索器。
 
-代码和GraphRAG输出可以在[GitHub](https://github.com/tomasonjo/blogs/tree/master/msft_graphrag)上访问，让你跳过GraphRAG提取过程。
+代码和 GraphRAG 输出可以在[GitHub](https://github.com/tomasonjo/blogs/tree/master/msft_graphrag)上访问，让你跳过 GraphRAG 提取过程。
 
 ## 数据集
 
@@ -32,7 +32,7 @@
 
 [](https://www.gutenberg.org/ebooks/19337?source=post_page-----e0d4fa00714c--------------------------------) [## 查理斯·狄更斯的《圣诞颂歌》
 
-### 免费的Kindle电子书和EPUB格式由志愿者进行数字化和校对。
+### 免费的 Kindle 电子书和 EPUB 格式由志愿者进行数字化和校对。
 
 [www.gutenberg.org](https://www.gutenberg.org/ebooks/19337?source=post_page-----e0d4fa00714c--------------------------------)
 
@@ -40,7 +40,7 @@
 
 ## 图谱构建
 
-尽管你可以跳过图谱提取部分，但我们还是会谈论几个我认为最重要的配置选项。例如，图谱提取可能非常依赖令牌且成本较高。因此，使用一个相对便宜但表现良好的LLM（如gpt-4o-mini）进行提取测试是有意义的。通过使用gpt-4-turbo可以显著降低成本，同时保持良好的准确性，正如这篇[博客文章](https://blog.cubed.run/graphrag-gpt-4o-mini-building-an-ai-knowledge-graph-at-low-cost-a4282440d92e)中所描述的那样。
+尽管你可以跳过图谱提取部分，但我们还是会谈论几个我认为最重要的配置选项。例如，图谱提取可能非常依赖令牌且成本较高。因此，使用一个相对便宜但表现良好的 LLM（如 gpt-4o-mini）进行提取测试是有意义的。通过使用 gpt-4-turbo 可以显著降低成本，同时保持良好的准确性，正如这篇[博客文章](https://blog.cubed.run/graphrag-gpt-4o-mini-building-an-ai-knowledge-graph-at-low-cost-a4282440d92e)中所描述的那样。
 
 ```py
 GRAPHRAG_LLM_MODEL=gpt-4o-mini
@@ -54,13 +54,13 @@ GRAPHRAG_ENTITY_EXTRACTION_ENTITY_TYPES=organization,person,event,geo
 
 这些默认的实体类型可能适用于一本书，但请确保根据你正在处理的文档的领域以及具体用例进行相应的更改。
 
-另一个重要的配置项是最大提取值。作者们已经识别并且我们也单独验证了，LLM在一次提取过程中并不会提取所有可用信息。
+另一个重要的配置项是最大提取值。作者们已经识别并且我们也单独验证了，LLM 在一次提取过程中并不会提取所有可用信息。
 
-![](../Images/9538bdd012d48b26296e1a04445c33f7.png)
+![](img/9538bdd012d48b26296e1a04445c33f7.png)
 
-根据文本块的大小提取的实体数量 — 来自[GraphRAG论文](https://arxiv.org/abs/2404.16130)的图像，遵循CC BY 4.0许可协议
+根据文本块的大小提取的实体数量 — 来自[GraphRAG 论文](https://arxiv.org/abs/2404.16130)的图像，遵循 CC BY 4.0 许可协议
 
-提取配置允许LLM执行多次提取。通过上述图像，我们可以清楚地看到，当进行多次提取（gleanings）时，我们提取的信息更多。多次提取需要大量令牌，因此像gpt-4o-mini这样的便宜模型有助于保持成本低廉。
+提取配置允许 LLM 执行多次提取。通过上述图像，我们可以清楚地看到，当进行多次提取（gleanings）时，我们提取的信息更多。多次提取需要大量令牌，因此像 gpt-4o-mini 这样的便宜模型有助于保持成本低廉。
 
 ```py
 GRAPHRAG_ENTITY_EXTRACTION_MAX_GLEANINGS=1
@@ -85,7 +85,7 @@ GRAPHRAG_CLAIM_EXTRACTION_MAX_GLEANINGS=1
 
 配置完成后，我们可以按照[说明运行图形提取管道](https://microsoft.github.io/graphrag/posts/get_started/)，该管道包括以下步骤。
 
-![](../Images/58d946343c0b8c5ffbc8daef9b5b6a68.png)
+![](img/58d946343c0b8c5ffbc8daef9b5b6a68.png)
 
 流程中的步骤 — 图片来自[GraphRAG 论文](https://arxiv.org/abs/2404.16130)，根据 CC BY 4.0 许可证使用
 
@@ -97,19 +97,19 @@ GRAPHRAG_CLAIM_EXTRACTION_MAX_GLEANINGS=1
 
 [](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_import.ipynb?source=post_page-----e0d4fa00714c--------------------------------) [## blogs/msft_graphrag/ms_graphrag_import.ipynb at master · tomasonjo/blogs
 
-### 支持我的图数据科学博客文章的 Jupyter Notebook，网址：[https://bratanic-tomaz.medium.com/](https://bratanic-tomaz.medium.com/)
+### 支持我的图数据科学博客文章的 Jupyter Notebook，网址：[`bratanic-tomaz.medium.com/`](https://bratanic-tomaz.medium.com/)
 
 [github.com](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_import.ipynb?source=post_page-----e0d4fa00714c--------------------------------)
 
 导入完成后，我们可以打开 Neo4j 浏览器来验证和可视化部分导入的图形数据。
 
-![](../Images/92899dd2b556af48c66fd7870c915e0d.png)
+![](img/92899dd2b556af48c66fd7870c915e0d.png)
 
 导入的部分图形。图片由作者提供。
 
 ## 图形分析
 
-在进行检索器实现之前，我们将执行一个简单的图分析，以便熟悉提取的数据。我们首先定义数据库连接和一个执行Cypher语句（图数据库查询语言）并输出Pandas DataFrame的函数。
+在进行检索器实现之前，我们将执行一个简单的图分析，以便熟悉提取的数据。我们首先定义数据库连接和一个执行 Cypher 语句（图数据库查询语言）并输出 Pandas DataFrame 的函数。
 
 ```py
 NEO4J_URI="bolt://localhost"
@@ -125,7 +125,7 @@ def db_query(cypher: str, params: Dict[str, Any] = {}) -> pd.DataFrame:
     )
 ```
 
-在执行图提取时，我们使用了300的块大小。从那时起，作者已将默认块大小更改为1200。我们可以使用以下Cypher语句验证块大小。
+在执行图提取时，我们使用了 300 的块大小。从那时起，作者已将默认块大小更改为 1200。我们可以使用以下 Cypher 语句验证块大小。
 
 ```py
 db_query(
@@ -136,7 +136,7 @@ db_query(
 # 155         1
 ```
 
-230个块有300个标记，而最后一个只有155个标记。现在让我们检查一个示例实体及其描述。
+230 个块有 300 个标记，而最后一个只有 155 个标记。现在让我们检查一个示例实体及其描述。
 
 ```py
 db_query(
@@ -146,11 +146,11 @@ db_query(
 
 *结果*
 
-![](../Images/35f18f3cc25aac41a57272e234289a80.png)
+![](img/35f18f3cc25aac41a57272e234289a80.png)
 
 示例实体名称和描述。图片来自作者。
 
-看起来项目Gutenberg在书中某处有所描述，可能是在开头。我们可以观察到描述如何捕获比仅仅是实体名称更详细、更复杂的信息，这也是MSFT GraphRAG论文提出的，目的是从文本中保留更复杂和更细致的数据。
+看起来项目 Gutenberg 在书中某处有所描述，可能是在开头。我们可以观察到描述如何捕获比仅仅是实体名称更详细、更复杂的信息，这也是 MSFT GraphRAG 论文提出的，目的是从文本中保留更复杂和更细致的数据。
 
 让我们也检查一下示例关系。
 
@@ -162,11 +162,11 @@ db_query(
 
 *结果*
 
-![](../Images/6f893ad3537c258ca75ad42e7879b6af.png)
+![](img/6f893ad3537c258ca75ad42e7879b6af.png)
 
 示例关系描述。图片来自作者。
 
-MSFT GraphRAG不仅仅是提取实体之间简单的关系类型，它通过捕获详细的关系描述超越了这一点。这一能力使其能够捕获比简单关系类型更细致的信息。
+MSFT GraphRAG 不仅仅是提取实体之间简单的关系类型，它通过捕获详细的关系描述超越了这一点。这一能力使其能够捕获比简单关系类型更细致的信息。
 
 我们还可以检查单个社区及其生成的描述。
 
@@ -179,17 +179,17 @@ db_query("""
 
 *结果*
 
-![](../Images/a91072cfd28f72bcf4f76e20c8929c04.png)
+![](img/a91072cfd28f72bcf4f76e20c8929c04.png)
 
 示例社区描述。图片来自作者。
 
-一个社区有标题、摘要和使用LLM生成的完整内容。我还没有看到作者在检索时是否使用完整的上下文或只是使用摘要，但我们可以在两者之间选择。我们可以在full_content中观察到引用，它指向实体和关系，这些是信息的来源。很有趣的是，如果引用太长，LLM有时会删减它们，就像以下示例一样。
+一个社区有标题、摘要和使用 LLM 生成的完整内容。我还没有看到作者在检索时是否使用完整的上下文或只是使用摘要，但我们可以在两者之间选择。我们可以在 full_content 中观察到引用，它指向实体和关系，这些是信息的来源。很有趣的是，如果引用太长，LLM 有时会删减它们，就像以下示例一样。
 
 ```py
 [Data: Entities (11, 177); Relationships (25, 159, 20, 29, +more)]
 ```
 
-由于无法展开`+more`标志，这是LLM处理长引用的一种有趣方式。
+由于无法展开`+more`标志，这是 LLM 处理长引用的一种有趣方式。
 
 现在让我们评估一些分布。我们将首先检查从文本块中提取的实体数量的分布。
 
@@ -214,11 +214,11 @@ plt.show()
 
 *结果*
 
-![](../Images/31d7f4dc8a8dd0eb2cced392fb6494e4.png)
+![](img/31d7f4dc8a8dd0eb2cced392fb6494e4.png)
 
 从文本块中提取的实体数量分布。图片来自作者。
 
-记住，文本块有300个标记。因此，提取的实体数量相对较小，每个文本块平均大约有三个实体。提取是一次性完成的（没有进行任何额外提取）。如果我们增加提取次数，观察分布可能会更有趣。
+记住，文本块有 300 个标记。因此，提取的实体数量相对较小，每个文本块平均大约有三个实体。提取是一次性完成的（没有进行任何额外提取）。如果我们增加提取次数，观察分布可能会更有趣。
 
 接下来，我们将评估节点度数分布。节点度数是一个节点所拥有的关系数量。
 
@@ -255,11 +255,11 @@ plt.show()
 
 *结果*
 
-![](../Images/202d970f10bd278b5aee8974cf48ae0f.png)
+![](img/202d970f10bd278b5aee8974cf48ae0f.png)
 
 节点度数分布。图片来自作者。
 
-大多数现实世界的网络遵循幂律节点度分布，大多数节点的度数较小，而一些重要节点的度数较大。尽管我们的图较小，但节点度数依然符合幂律分布。找出哪个实体拥有120个关系（与43%的实体相连）将是很有趣的。
+大多数现实世界的网络遵循幂律节点度分布，大多数节点的度数较小，而一些重要节点的度数较大。尽管我们的图较小，但节点度数依然符合幂律分布。找出哪个实体拥有 120 个关系（与 43%的实体相连）将是很有趣的。
 
 ```py
 db_query("""
@@ -270,13 +270,13 @@ db_query("""
 
 *结果*
 
-![](../Images/68f4527199ac6daafeca1cc648fb7fe1.png)
+![](img/68f4527199ac6daafeca1cc648fb7fe1.png)
 
 拥有最多关系的实体。图片由作者提供。
 
-毫不犹豫地，我们可以假设斯克鲁奇是这本书的主角。我还会大胆猜测，**埃比尼泽·斯克鲁奇**和**斯克鲁奇**实际上是同一个实体，但由于MSFT GraphRAG缺少实体解析步骤，它们没有被合并。
+毫不犹豫地，我们可以假设斯克鲁奇是这本书的主角。我还会大胆猜测，**埃比尼泽·斯克鲁奇**和**斯克鲁奇**实际上是同一个实体，但由于 MSFT GraphRAG 缺少实体解析步骤，它们没有被合并。
 
-这也表明，分析和清理数据是减少噪音信息的一个重要步骤，因为项目古腾堡有13个关系，尽管它们并不属于书本的故事情节。
+这也表明，分析和清理数据是减少噪音信息的一个重要步骤，因为项目古腾堡有 13 个关系，尽管它们并不属于书本的故事情节。
 
 最后，我们将检查每个层级的社区大小分布。
 
@@ -318,25 +318,25 @@ plt.show()
 
 *结果*
 
-![](../Images/2eba2f21b06f75caa3302f3a3ce41067.png)
+![](img/2eba2f21b06f75caa3302f3a3ce41067.png)
 
 每个层级的社区大小分布。图片由作者提供。
 
-Leiden算法识别了三层社区，其中高层社区的平均规模较大。然而，有一些技术细节我不太了解，因为如果你检查所有成员的数量，你会发现每一层的所有节点数量不同，尽管理论上应该是相同的。此外，如果社区在更高层级合并，为什么第0层有19个社区，第1层有22个社区呢？作者在这里做了一些优化和技巧，我还没有时间深入探索。
+Leiden 算法识别了三层社区，其中高层社区的平均规模较大。然而，有一些技术细节我不太了解，因为如果你检查所有成员的数量，你会发现每一层的所有节点数量不同，尽管理论上应该是相同的。此外，如果社区在更高层级合并，为什么第 0 层有 19 个社区，第 1 层有 22 个社区呢？作者在这里做了一些优化和技巧，我还没有时间深入探索。
 
 # 实现检索器
 
-在本博客的最后部分，我们将讨论MSFT GraphRAG中指定的本地和全局检索器。这些检索器将与LangChain和LlamaIndex一起实现和集成。
+在本博客的最后部分，我们将讨论 MSFT GraphRAG 中指定的本地和全局检索器。这些检索器将与 LangChain 和 LlamaIndex 一起实现和集成。
 
 ## 本地检索器
 
-本地检索器首先使用向量搜索来识别相关节点，然后收集链接信息并将其注入到LLM提示中。
+本地检索器首先使用向量搜索来识别相关节点，然后收集链接信息并将其注入到 LLM 提示中。
 
-![](../Images/3526b6401fd23d76effcaf0a4022a12c.png)
+![](img/3526b6401fd23d76effcaf0a4022a12c.png)
 
-本地检索器架构。图片来源：[https://microsoft.github.io/graphrag/posts/query/1-local_search/](https://microsoft.github.io/graphrag/posts/query/1-local_search/)
+本地检索器架构。图片来源：[`microsoft.github.io/graphrag/posts/query/1-local_search/`](https://microsoft.github.io/graphrag/posts/query/1-local_search/)
 
-虽然这个图表看起来可能很复杂，但其实很容易实现。我们首先通过基于实体描述文本嵌入的向量相似度搜索来识别相关实体。一旦识别出相关实体，我们就可以遍历与之相关的文本块、关系、社区摘要等。使用向量相似度搜索，然后在图中遍历的模式可以很容易地通过LangChain和LlamaIndex中的`retrieval_query`功能来实现。
+虽然这个图表看起来可能很复杂，但其实很容易实现。我们首先通过基于实体描述文本嵌入的向量相似度搜索来识别相关实体。一旦识别出相关实体，我们就可以遍历与之相关的文本块、关系、社区摘要等。使用向量相似度搜索，然后在图中遍历的模式可以很容易地通过 LangChain 和 LlamaIndex 中的`retrieval_query`功能来实现。
 
 首先，我们需要配置向量索引。
 
@@ -577,9 +577,9 @@ print(response.response)
 
 [全局检索器架构](https://microsoft.github.io/graphrag/posts/query/notebooks/global_search_nb/)稍微更直接一些。它似乎遍历了指定层级的所有社区摘要，生成中间摘要，然后基于这些中间摘要生成最终响应。
 
-![](../Images/69405ee5c3fd2d9bedc89f5b463fb816.png)
+![](img/69405ee5c3fd2d9bedc89f5b463fb816.png)
 
-全局检索器架构。图片来自[https://microsoft.github.io/graphrag/posts/query/0-global_search/](https://microsoft.github.io/graphrag/posts/query/0-global_search/)
+全局检索器架构。图片来自[`microsoft.github.io/graphrag/posts/query/0-global_search/`](https://microsoft.github.io/graphrag/posts/query/0-global_search/)
 
 我们必须提前决定要迭代哪个层次级别，这是一个不简单的决定，因为我们无法预知哪个级别会更有效。你越往上走，层级越高，社区越大，但数量越少。这是我们在没有手动检查摘要的情况下能获得的唯一信息。
 
@@ -639,6 +639,6 @@ print(global_retriever("What is the story about?", 2))
 
 ## 总结
 
-在这篇博客文章中，我们展示了如何将微软的GraphRAG集成到Neo4j中，并使用LangChain和LlamaIndex实现检索器。这将允许你无缝地将GraphRAG与其他检索器或代理集成。局部检索器结合了向量相似性搜索和图遍历，而全局检索器则通过遍历社区摘要来生成全面的回答。这种实现展示了将结构化知识图与语言模型相结合的力量，从而增强了信息检索和问答能力。值得注意的是，这样的知识图还有定制和实验的空间，我们将在下一篇博客文章中进一步探讨。
+在这篇博客文章中，我们展示了如何将微软的 GraphRAG 集成到 Neo4j 中，并使用 LangChain 和 LlamaIndex 实现检索器。这将允许你无缝地将 GraphRAG 与其他检索器或代理集成。局部检索器结合了向量相似性搜索和图遍历，而全局检索器则通过遍历社区摘要来生成全面的回答。这种实现展示了将结构化知识图与语言模型相结合的力量，从而增强了信息检索和问答能力。值得注意的是，这样的知识图还有定制和实验的空间，我们将在下一篇博客文章中进一步探讨。
 
 和往常一样，代码可以在[GitHub](https://github.com/tomasonjo/blogs/tree/master/msft_graphrag)上找到。

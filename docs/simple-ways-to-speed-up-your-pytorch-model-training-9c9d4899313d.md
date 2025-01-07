@@ -1,16 +1,16 @@
 # 加速你的 PyTorch 模型训练的简单方法
 
-> 原文：[https://towardsdatascience.com/simple-ways-to-speed-up-your-pytorch-model-training-9c9d4899313d?source=collection_archive---------3-----------------------#2024-05-28](https://towardsdatascience.com/simple-ways-to-speed-up-your-pytorch-model-training-9c9d4899313d?source=collection_archive---------3-----------------------#2024-05-28)
+> 原文：[`towardsdatascience.com/simple-ways-to-speed-up-your-pytorch-model-training-9c9d4899313d?source=collection_archive---------3-----------------------#2024-05-28`](https://towardsdatascience.com/simple-ways-to-speed-up-your-pytorch-model-training-9c9d4899313d?source=collection_archive---------3-----------------------#2024-05-28)
 
 ## 如果所有机器学习工程师都希望得到一个东西，那就是 **更快的模型训练** —— 也许在获得良好的测试指标之后。 
 
-[](https://alexdremov.medium.com/?source=post_page---byline--9c9d4899313d--------------------------------)[![Alex Dremov](../Images/8afeaa6bae03d3b6c436d81127c75a0c.png)](https://alexdremov.medium.com/?source=post_page---byline--9c9d4899313d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9c9d4899313d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9c9d4899313d--------------------------------) [Alex Dremov](https://alexdremov.medium.com/?source=post_page---byline--9c9d4899313d--------------------------------)
+[](https://alexdremov.medium.com/?source=post_page---byline--9c9d4899313d--------------------------------)![Alex Dremov](https://alexdremov.medium.com/?source=post_page---byline--9c9d4899313d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9c9d4899313d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9c9d4899313d--------------------------------) [Alex Dremov](https://alexdremov.medium.com/?source=post_page---byline--9c9d4899313d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9c9d4899313d--------------------------------) ·11 分钟阅读 ·2024年5月28日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9c9d4899313d--------------------------------) ·11 分钟阅读 ·2024 年 5 月 28 日
 
 --
 
-![](../Images/eb75109bbcb6622409f76f7e507791cd.png)
+![](img/eb75109bbcb6622409f76f7e507791cd.png)
 
 图片来源：[Julian Hochgesang](https://unsplash.com/@julianhochgesang?utm_source=ghost&utm_medium=referral&utm_campaign=api-credit) / [Unsplash](https://unsplash.com/?utm_source=ghost&utm_medium=referral&utm_campaign=api-credit)
 
@@ -98,9 +98,9 @@ with profiler.record_function("transformer_layer:encoder_attention"):
 
 收集轨迹后，在 tensorboard 中打开它们。这就是 CPU + CUDA 分析的样子：
 
-![](../Images/b207f5f91e4560da06402145f3cfb486.png)
+![](img/b207f5f91e4560da06402145f3cfb486.png)
 
-© 版权 2024，PyTorch | [https://pytorch.org/tutorials/intermediate/tensorboard_profiler_tutorial.html](https://pytorch.org/tutorials/intermediate/tensorboard_profiler_tutorial.html?ref=alexdremov.me)
+© 版权 2024，PyTorch | [`pytorch.org/tutorials/intermediate/tensorboard_profiler_tutorial.html`](https://pytorch.org/tutorials/intermediate/tensorboard_profiler_tutorial.html?ref=alexdremov.me)
 
 立刻找到任何训练的核心部分：
 
@@ -146,7 +146,7 @@ with profiler.record_function("transformer_layer:encoder_attention"):
 
 > 💡 你也可以在跟踪记录中发现这个问题。它将以对 `cudaMalloc` 和 `cudaFree` 的调用形式显示出来
 
-![](../Images/414070253ac9c94f59f8f522399d7fb4.png)
+![](img/414070253ac9c94f59f8f522399d7fb4.png)
 
 PyTorch 分配器崩溃 | 图片来自作者
 
@@ -154,7 +154,7 @@ PyTorch 分配器崩溃 | 图片来自作者
 
 当分配操作不再让分配器崩溃时，红线完全是直的
 
-![](../Images/e8e801553645665ba7dff138173a00cd.png)
+![](img/e8e801553645665ba7dff138173a00cd.png)
 
 PyTorch 分配器按预期工作 | 图片来自作者
 
@@ -168,9 +168,9 @@ PyTorch 分配器按预期工作 | 图片来自作者
 PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
 ```
 
-> *如果设置为* `*True*`*，此设置指示分配器创建可以在以后扩展的CUDA分配，以更好地处理工作负载频繁更改分配大小的情况，例如批量大小变化的情况。*
+> *如果设置为* `*True*`*，此设置指示分配器创建可以在以后扩展的 CUDA 分配，以更好地处理工作负载频繁更改分配大小的情况，例如批量大小变化的情况。*
 
-所以，这告诉PyTorch分配器分配将来可能会扩展的块，这正是我们的情况。尽管如此，如果大小变化过大，仍然可能无法解决问题。在这种情况下，转到下一个选项。
+所以，这告诉 PyTorch 分配器分配将来可能会扩展的块，这正是我们的情况。尽管如此，如果大小变化过大，仍然可能无法解决问题。在这种情况下，转到下一个选项。
 
 ## **使分配的变化更少**
 
@@ -178,19 +178,19 @@ PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
 
 为了实现这一点，你可以将数据填充到相同的大小。或者你可以通过运行一个具有最大输入大小的模型来预热分配器。
 
-你可以在以下文章中了解更多关于PyTorch分配器修改的信息。
+你可以在以下文章中了解更多关于 PyTorch 分配器修改的信息。
 
-[## CUDA语义 - PyTorch 2.3 文档
+[## CUDA 语义 - PyTorch 2.3 文档
 
-### torch.cuda 的指南，PyTorch模块用于执行CUDA操作
+### torch.cuda 的指南，PyTorch 模块用于执行 CUDA 操作
 
 pytorch.org](https://pytorch.org/docs/stable/notes/cuda.html?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------)
 
 # 整理分配历史
 
-我们希望使用所有可用的GPU内存——这使我们能够运行更大的批次并更快地处理数据。然而，在某个时刻，当增加批量大小时，你将遇到*CUDA内存不足*错误。是什么导致了这个错误？
+我们希望使用所有可用的 GPU 内存——这使我们能够运行更大的批次并更快地处理数据。然而，在某个时刻，当增加批量大小时，你将遇到*CUDA 内存不足*错误。是什么导致了这个错误？
 
-为了调试这个问题，我们可以查看分配器的内存历史。它可以通过PyTorch记录，然后在[https://pytorch.org/memory_viz](https://pytorch.org/memory_viz?ref=alexdremov.me)上进行可视化。
+为了调试这个问题，我们可以查看分配器的内存历史。它可以通过 PyTorch 记录，然后在[`pytorch.org/memory_viz`](https://pytorch.org/memory_viz?ref=alexdremov.me)上进行可视化。
 
 +   **开始：** `torch.cuda.memory._record_memory_history(max_entries=100000)`
 
@@ -200,25 +200,25 @@ pytorch.org](https://pytorch.org/docs/stable/notes/cuda.html?ref=alexdremov.me&s
 
 可视化将显示如下内容：
 
-![](../Images/270f72428251b625a672af134cf2f454.png)
+![](img/270f72428251b625a672af134cf2f454.png)
 
-© 版权 2024, PyTorch | [https://pytorch.org/blog/understanding-gpu-memory-1/](https://pytorch.org/blog/understanding-gpu-memory-1/?ref=alexdremov.me)
+© 版权 2024, PyTorch | [`pytorch.org/blog/understanding-gpu-memory-1/`](https://pytorch.org/blog/understanding-gpu-memory-1/?ref=alexdremov.me)
 
-x轴表示时间，y轴表示总使用内存，彩色块表示张量。因此，它显示了张量何时被分配以及何时被释放。
+x 轴表示时间，y 轴表示总使用内存，彩色块表示张量。因此，它显示了张量何时被分配以及何时被释放。
 
 你可能会注意到窄尖峰——这些是占用大量空间的短暂张量。通过点击张量，你可以获得该张量分配的位置。我们希望尽量减少这些尖峰，因为它们限制了内存的高效使用。检查一下是什么导致了这个尖峰，并考虑其他计算方式。
 
 除了尖峰外，检测内存泄漏也很容易：
 
-![](../Images/d257a3b5af410d7d0bb7b3e46ecda12d.png)
+![](img/d257a3b5af410d7d0bb7b3e46ecda12d.png)
 
-© 版权 2024, PyTorch | [https://pytorch.org/blog/understanding-gpu-memory-1/](https://pytorch.org/blog/understanding-gpu-memory-1/?ref=alexdremov.me)
+© 版权 2024, PyTorch | [`pytorch.org/blog/understanding-gpu-memory-1/`](https://pytorch.org/blog/understanding-gpu-memory-1/?ref=alexdremov.me)
 
 正如你所看到的，第一次前向传播后一些数据并没有被清除。通过点击这些模块，你可以大致了解这些张量来自何处。图中显示的是训练步骤后梯度未被清除的情况，这导致它们在前向传播过程中仍然存在，限制了增加批量大小以适应更多数据的能力。
 
-[](https://pytorch.org/blog/understanding-gpu-memory-1/?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------) [## 理解GPU内存1：可视化所有分配随时间变化
+[](https://pytorch.org/blog/understanding-gpu-memory-1/?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------) [## 理解 GPU 内存 1：可视化所有分配随时间变化
 
-### 在你使用PyTorch进行GPU计算的过程中，你可能已经熟悉这个常见的错误信息：
+### 在你使用 PyTorch 进行 GPU 计算的过程中，你可能已经熟悉这个常见的错误信息：
 
 [pytorch.org](https://pytorch.org/blog/understanding-gpu-memory-1/?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------)
 
@@ -228,31 +228,31 @@ x轴表示时间，y轴表示总使用内存，彩色块表示张量。因此，
 
 [](https://github.com/Dao-AILab/flash-attention?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------) [## GitHub - Dao-AILab/flash-attention：快速且内存高效的精确注意力
 
-### 快速且内存高效的精确注意力。通过创建一个账户，为Dao-AILab/flash-attention的开发做出贡献…
+### 快速且内存高效的精确注意力。通过创建一个账户，为 Dao-AILab/flash-attention 的开发做出贡献…
 
 [github.com](https://github.com/Dao-AILab/flash-attention?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------)
 
-如果你还没有听说过，它是一种计算精确点积注意力的方法，无需显式构造注意力矩阵。它优化了GPU的输入输出操作，从而提高了速度，并且**大幅度**减少了内存消耗。简直没有理由不使用它。
+如果你还没有听说过，它是一种计算精确点积注意力的方法，无需显式构造注意力矩阵。它优化了 GPU 的输入输出操作，从而提高了速度，并且**大幅度**减少了内存消耗。简直没有理由不使用它。
 
 > 😡 不幸的是，有一个理由不能使用它——硬件。
 > 
-> Flash attention仅在兼容硬件上使用`fp16`和`bf16`精度。这包括NVIDIA Ampere、Hooper等架构。
+> Flash attention 仅在兼容硬件上使用`fp16`和`bf16`精度。这包括 NVIDIA Ampere、Hooper 等架构。
 
-其他库在底层使用了flash attention，因此你可以考虑使用其他更适合你代码库的变种。
+其他库在底层使用了 flash attention，因此你可以考虑使用其他更适合你代码库的变种。
 
 ## **XFormers**
 
-[](https://github.com/facebookresearch/xformers?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------) [## GitHub - facebookresearch/xformers：可操作且优化过的Transformer构建模块，支持…
+[](https://github.com/facebookresearch/xformers?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------) [## GitHub - facebookresearch/xformers：可操作且优化过的 Transformer 构建模块，支持…
 
-### 可操作且优化过的Transformer构建模块，支持可组合构建。 - facebookresearch/xformers
+### 可操作且优化过的 Transformer 构建模块，支持可组合构建。 - facebookresearch/xformers
 
 [github.com](https://github.com/facebookresearch/xformers?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------)
 
 ## **Transformer Engine**
 
-[](https://github.com/NVIDIA/TransformerEngine?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------) [## GitHub - NVIDIA/TransformerEngine：一个加速Transformer模型在NVIDIA GPU上的运行的库…
+[](https://github.com/NVIDIA/TransformerEngine?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------) [## GitHub - NVIDIA/TransformerEngine：一个加速 Transformer 模型在 NVIDIA GPU 上的运行的库…
 
-### 一个加速Transformer模型在NVIDIA GPU上运行的库，包括使用8位浮点（FP8）精度…
+### 一个加速 Transformer 模型在 NVIDIA GPU 上运行的库，包括使用 8 位浮点（FP8）精度…
 
 [github.com](https://github.com/NVIDIA/TransformerEngine?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------)
 
@@ -274,7 +274,7 @@ x轴表示时间，y轴表示总使用内存，彩色块表示张量。因此，
 
 问题在于，当我们启动相同的进程时，每个 GPU 上都有相同的模型和优化器状态，这造成了冗余。解决方案是将数据分片。我们可以使用完全分片数据并行的 PyTorch 封装来实现这一点。
 
-![](../Images/b542604a9a173f89aed4bc0375e2e515.png)
+![](img/b542604a9a173f89aed4bc0375e2e515.png)
 
 © 版权 2024，PyTorch | https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html
 
@@ -304,13 +304,13 @@ x轴表示时间，y轴表示总使用内存，彩色块表示张量。因此，
 
 这将是史诗级的。
 
-为什么我们需要在每个rank上存储模型的完整副本？让我们在所有rank之间分片模型参数。然后，我们将在前向和反向传播过程中按需即时获取所需的参数。
+为什么我们需要在每个 rank 上存储模型的完整副本？让我们在所有 rank 之间分片模型参数。然后，我们将在前向和反向传播过程中按需即时获取所需的参数。
 
 > 💡 对于大模型，这些优化可以显著减少内存消耗。
 
-## 如何使用FSDP？
+## 如何使用 FSDP？
 
-其实非常简单。我们只需要用FSDP包装模型：
+其实非常简单。我们只需要用 FSDP 包装模型：
 
 ```py
 import torch
@@ -328,31 +328,31 @@ optimizer = optim.Adam(model.parameters())
 train(model, optimizer)
 ```
 
-你还可以指定FSDP的分片策略。例如，我们可以选择`SHARD_GRAD_OP`策略，以实现类似ZeRO2的行为。你可以在这里了解其他策略：
+你还可以指定 FSDP 的分片策略。例如，我们可以选择`SHARD_GRAD_OP`策略，以实现类似 ZeRO2 的行为。你可以在这里了解其他策略：
 
 [## FullyShardedDataParallel - PyTorch 2.3 文档](https://pytorch.org/docs/stable/fsdp.html?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------)
 
-### 用于在数据并行工作者之间分配分片模块参数的包装器。这个灵感来自于Xu等人以及……
+### 用于在数据并行工作者之间分配分片模块参数的包装器。这个灵感来自于 Xu 等人以及……
 
 [pytorch.org](https://pytorch.org/docs/stable/fsdp.html?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------#torch.distributed.fsdp.ShardingStrategy)
 
-此外，你还可以使用FSDP包装子模块。在上面的示例中，只使用了一个FSDP模块，这样会降低计算效率和内存效率。它的工作原理是，假设你的模型包含100个Linear层。如果你执行FSDP(model)，那么将只有一个FSDP单元包装整个模型。在这种情况下，allgather会收集所有100个Linear层的完整参数，因此不会为参数分片节省CUDA内存。
+此外，你还可以使用 FSDP 包装子模块。在上面的示例中，只使用了一个 FSDP 模块，这样会降低计算效率和内存效率。它的工作原理是，假设你的模型包含 100 个 Linear 层。如果你执行 FSDP(model)，那么将只有一个 FSDP 单元包装整个模型。在这种情况下，allgather 会收集所有 100 个 Linear 层的完整参数，因此不会为参数分片节省 CUDA 内存。
 
-你可以显式地包装子模块或定义自动包装策略。要了解更多关于FSDP的信息，请阅读PyTorch指南：
+你可以显式地包装子模块或定义自动包装策略。要了解更多关于 FSDP 的信息，请阅读 PyTorch 指南：
 
-[](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------) [## 入门：完全分片数据并行(FSDP) - PyTorch教程 2.3.0+cu121…
+[](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------) [## 入门：完全分片数据并行(FSDP) - PyTorch 教程 2.3.0+cu121…
 
-### 注意：在GitHub上查看和编辑本教程。大规模训练AI模型是一项具有挑战性的任务，要求……
+### 注意：在 GitHub 上查看和编辑本教程。大规模训练 AI 模型是一项具有挑战性的任务，要求……
 
 [pytorch.org](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------)
 
 # 使用`torch.compile`的神奇加速
 
-也就是说，torch compile只需启用它，就可以让你的代码加速几个百分点。
+也就是说，torch compile 只需启用它，就可以让你的代码加速几个百分点。
 
-Torch会跟踪你的执行图，并尝试将其编译为高效的格式，以便模型几乎可以在没有Python调用的情况下执行。
+Torch 会跟踪你的执行图，并尝试将其编译为高效的格式，以便模型几乎可以在没有 Python 调用的情况下执行。
 
-基本使用方法是将模型与compile一起包装：
+基本使用方法是将模型与 compile 一起包装：
 
 ```py
 import torch
@@ -366,15 +366,15 @@ model = torch.compile(model)
 
 [## torch.compile - PyTorch 2.3 文档](https://pytorch.org/docs/stable/generated/torch.compile.html?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------#torch.compile)
 
-### 使用TorchDynamo和指定的后端优化给定的模型/函数。具体来说，对于在……
+### 使用 TorchDynamo 和指定的后端优化给定的模型/函数。具体来说，对于在……
 
 [pytorch.org](https://pytorch.org/docs/stable/generated/torch.compile.html?ref=alexdremov.me&source=post_page-----9c9d4899313d--------------------------------#torch.compile)
 
-> 💡 Torch编译器是一个重要特性，将在后续的帖子中讲解！
+> 💡 Torch 编译器是一个重要特性，将在后续的帖子中讲解！
 > 
 > 敬请期待
 
-在这里了解更多关于torch compile的信息：
+在这里了解更多关于 torch compile 的信息：
 
 [## Introduction to torch.compile - PyTorch Tutorials 2.3.0+cu121 documentation
 

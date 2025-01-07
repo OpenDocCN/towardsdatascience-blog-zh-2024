@@ -1,16 +1,16 @@
 # 主成分分析 — 实操教程
 
-> 原文：[https://towardsdatascience.com/principal-component-analysis-hands-on-tutorial-3a451ff3d5db?source=collection_archive---------1-----------------------#2024-09-18](https://towardsdatascience.com/principal-component-analysis-hands-on-tutorial-3a451ff3d5db?source=collection_archive---------1-----------------------#2024-09-18)
+> 原文：[`towardsdatascience.com/principal-component-analysis-hands-on-tutorial-3a451ff3d5db?source=collection_archive---------1-----------------------#2024-09-18`](https://towardsdatascience.com/principal-component-analysis-hands-on-tutorial-3a451ff3d5db?source=collection_archive---------1-----------------------#2024-09-18)
 
 ## 通过主成分分析（PCA）进行降维。
 
-[](https://medium.com/@fmnobar?source=post_page---byline--3a451ff3d5db--------------------------------)[![Farzad Nobar](../Images/2d75209693b712300e6f0796bd2487d0.png)](https://medium.com/@fmnobar?source=post_page---byline--3a451ff3d5db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3a451ff3d5db--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3a451ff3d5db--------------------------------) [Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--3a451ff3d5db--------------------------------)
+[](https://medium.com/@fmnobar?source=post_page---byline--3a451ff3d5db--------------------------------)![Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--3a451ff3d5db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3a451ff3d5db--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a451ff3d5db--------------------------------) [Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--3a451ff3d5db--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a451ff3d5db--------------------------------) ·12分钟阅读·2024年9月18日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a451ff3d5db--------------------------------) ·12 分钟阅读·2024 年 9 月 18 日
 
 --
 
-![](../Images/ad93d4b5615b1c2eeae8d1facf80c77d.png)
+![](img/ad93d4b5615b1c2eeae8d1facf80c77d.png)
 
 图片由 [carlos lugo](https://unsplash.com/@carlos95lugo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源于 [Unsplash](https://unsplash.com/photos/two-scoops-of-ice-cream-in-a-glass-on-a-marble-table-cZEL2nI-R7I?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

@@ -1,16 +1,16 @@
 # 创建一个 AI 驱动的电影问答游戏，使用 Gemini LLM、Python、FastAPI、Pydantic、RAG 等
 
-> 原文：[https://towardsdatascience.com/create-an-ai-driven-movie-quiz-with-gemini-llm-python-fastapi-pydantic-rag-and-more-e15322be4f66?source=collection_archive---------0-----------------------#2024-04-18](https://towardsdatascience.com/create-an-ai-driven-movie-quiz-with-gemini-llm-python-fastapi-pydantic-rag-and-more-e15322be4f66?source=collection_archive---------0-----------------------#2024-04-18)
+> 原文：[`towardsdatascience.com/create-an-ai-driven-movie-quiz-with-gemini-llm-python-fastapi-pydantic-rag-and-more-e15322be4f66?source=collection_archive---------0-----------------------#2024-04-18`](https://towardsdatascience.com/create-an-ai-driven-movie-quiz-with-gemini-llm-python-fastapi-pydantic-rag-and-more-e15322be4f66?source=collection_archive---------0-----------------------#2024-04-18)
 
 ## 了解如何通过 VertexAI 使用 Gemini 与 Python，使用 FastAPI 创建 API，使用 Pydantic 进行数据验证，以及检索增强生成（RAG）的基本原理
 
-[](https://vojay.medium.com/?source=post_page---byline--e15322be4f66--------------------------------)[![Volker Janz](../Images/0825160d6d521f4152948f0187cf354b.png)](https://vojay.medium.com/?source=post_page---byline--e15322be4f66--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e15322be4f66--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e15322be4f66--------------------------------) [Volker Janz](https://vojay.medium.com/?source=post_page---byline--e15322be4f66--------------------------------)
+[](https://vojay.medium.com/?source=post_page---byline--e15322be4f66--------------------------------)![Volker Janz](https://vojay.medium.com/?source=post_page---byline--e15322be4f66--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e15322be4f66--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e15322be4f66--------------------------------) [Volker Janz](https://vojay.medium.com/?source=post_page---byline--e15322be4f66--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e15322be4f66--------------------------------) ·21分钟阅读·2024年4月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e15322be4f66--------------------------------) ·21 分钟阅读·2024 年 4 月 18 日
 
 --
 
-![](../Images/50e962ece900e09fb6fcb997adafede4.png)
+![](img/50e962ece900e09fb6fcb997adafede4.png)
 
 图片由 [Kenny Eliason](https://unsplash.com/@neonbrand?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,49 +22,49 @@
 
 # 目录
 
-– [灵感来源](#bf8e)
+– 灵感来源
 
-– [系统架构](#a588)
+– 系统架构
 
-– [理解检索增强生成（RAG）](#d0b3)
+– 理解检索增强生成（RAG）
 
-– [使用 Poetry 进行 Python 项目管理](#4cfd)
+– 使用 Poetry 进行 Python 项目管理
 
-– [使用 FastAPI 创建 API](#ca13)
+– 使用 FastAPI 创建 API
 
-– [使用 Pydantic 进行数据验证和质量控制](#103f)
+– 使用 Pydantic 进行数据验证和质量控制
 
-– [使用 httpx 的 TMDB 客户端](#fe62)
+– 使用 httpx 的 TMDB 客户端
 
-– [Gemini LLM 客户端与 VertexAI](#040c)
+– Gemini LLM 客户端与 VertexAI
 
-– [使用 Jinja 的模块化提示生成器](#2bf6)
+– 使用 Jinja 的模块化提示生成器
 
-– [前端](#f4be)
+– 前端
 
-– [API 示例](#809a)
+– API 示例
 
-– [结论](#165c)
+– 结论
 
-分享这些知识的最佳方式是通过一个实际的例子。因此，我将使用我的项目**Gemini电影侦探**来涵盖各个方面。该项目是作为[Google AI Hackathon 2024](https://googleai.devpost.com/)的一部分创建的，而我写这篇文章时，该比赛仍在进行中。
+分享这些知识的最佳方式是通过一个实际的例子。因此，我将使用我的项目**Gemini 电影侦探**来涵盖各个方面。该项目是作为[Google AI Hackathon 2024](https://googleai.devpost.com/)的一部分创建的，而我写这篇文章时，该比赛仍在进行中。
 
-![](../Images/3d44844866ab4bb81b2e6b5acaf52bf1.png)
+![](img/3d44844866ab4bb81b2e6b5acaf52bf1.png)
 
-Gemini电影侦探（作者）
+Gemini 电影侦探（作者）
 
-Gemini电影侦探是一个旨在利用Gemini Pro模型的强大功能通过VertexAI创建一个引人入胜的问答游戏，使用来自[电影数据库（TMDB）](https://www.themoviedb.org/)的最新电影数据。
+Gemini 电影侦探是一个旨在利用 Gemini Pro 模型的强大功能通过 VertexAI 创建一个引人入胜的问答游戏，使用来自[电影数据库（TMDB）](https://www.themoviedb.org/)的最新电影数据。
 
-项目的一部分还是使其可以使用Docker部署并创建一个在线版本。自己试试吧：[movie-detectives.com](https://movie-detectives.com/)。请记住，这只是一个简单的原型，所以可能会出现意外问题。此外，为了控制使用GCP和VertexAI可能产生的成本，我不得不添加一些限制。
+项目的一部分还是使其可以使用 Docker 部署并创建一个在线版本。自己试试吧：[movie-detectives.com](https://movie-detectives.com/)。请记住，这只是一个简单的原型，所以可能会出现意外问题。此外，为了控制使用 GCP 和 VertexAI 可能产生的成本，我不得不添加一些限制。
 
-![](../Images/f949342e71bc028936d5836525e42f0d.png)
+![](img/f949342e71bc028936d5836525e42f0d.png)
 
-Gemini电影侦探（作者）
+Gemini 电影侦探（作者）
 
 该项目是**完全开源**的，分为两个独立的仓库：
 
-+   **🚀 后端的Github仓库**: [https://github.com/vojay-dev/gemini-movie-detectives-api](https://github.com/vojay-dev/gemini-movie-detectives-api)
++   **🚀 后端的 Github 仓库**: [`github.com/vojay-dev/gemini-movie-detectives-api`](https://github.com/vojay-dev/gemini-movie-detectives-api)
 
-+   **🖥️ 前端的Github仓库**: [https://github.com/vojay-dev/gemini-movie-detectives-ui](https://github.com/vojay-dev/gemini-movie-detectives-ui)
++   **🖥️ 前端的 Github 仓库**: [`github.com/vojay-dev/gemini-movie-detectives-ui`](https://github.com/vojay-dev/gemini-movie-detectives-ui)
 
 本文的重点是后端项目和基本概念。因此，它将简要解释前端及其组件。
 
@@ -72,11 +72,11 @@ Gemini电影侦探（作者）
 
 # 灵感
 
-作为一个热衷于游戏的玩家，现在作为数据工程师工作，我一直被游戏和数据的交汇所吸引。通过这个项目，我结合了我最大的两个热情：游戏和数据。在90年代，我总是喜欢《你不知道杰克》系列视频游戏，这是一个有趣的知识问答和喜剧融合，不仅娱乐了我，还教会了我一些东西。通常，我对将游戏用于教育目的的概念也很着迷。
+作为一个热衷于游戏的玩家，现在作为数据工程师工作，我一直被游戏和数据的交汇所吸引。通过这个项目，我结合了我最大的两个热情：游戏和数据。在 90 年代，我总是喜欢《你不知道杰克》系列视频游戏，这是一个有趣的知识问答和喜剧融合，不仅娱乐了我，还教会了我一些东西。通常，我对将游戏用于教育目的的概念也很着迷。
 
-2023年，我组织了一个研讨会，教孩子和年轻人游戏开发。他们了解了碰撞检测背后的数学概念，但他们玩得很开心，因为一切都是在游戏的背景下展开的。令人大开眼界的是，游戏不仅是一个巨大的市场，而且还具有巨大的知识分享潜力。
+2023 年，我组织了一个研讨会，教孩子和年轻人游戏开发。他们了解了碰撞检测背后的数学概念，但他们玩得很开心，因为一切都是在游戏的背景下展开的。令人大开眼界的是，游戏不仅是一个巨大的市场，而且还具有巨大的知识分享潜力。
 
-通过这个名为电影侦探的项目，我旨在展示Gemini以及AI在打造引人入胜的知识问答和教育游戏方面的魔力，以及游戏设计如何从这些技术中受益。
+通过这个名为电影侦探的项目，我旨在展示 Gemini 以及 AI 在打造引人入胜的知识问答和教育游戏方面的魔力，以及游戏设计如何从这些技术中受益。
 
 通过将准确且最新的电影元数据提供给 Gemini LLM，我可以确保来自 Gemini 的问题准确无误。这一点非常重要，因为如果没有这种基于实时元数据的检索增强生成（RAG）方法来丰富查询，就有可能传播错误信息——这是使用 AI 进行此类任务时常见的陷阱。
 
@@ -86,7 +86,7 @@ Gemini电影侦探（作者）
 
 从商业角度来看，这种模块化为更广泛的客户群打开了大门，轻松跨越语言障碍。此外，个人来说，我亲身体验了这些模块的变革力量。从默认的问答主持人切换到“老爸笑话问答主持人”简直太有趣了——这不仅是对《你不知道杰克》黄金时代的怀念，也是这个项目多功能性的见证。
 
-![](../Images/44ed0a40a77f059c48e616639864e51e.png)
+![](img/44ed0a40a77f059c48e616639864e51e.png)
 
 电影侦探——示例：圣诞老人性格（作者提供）
 
@@ -130,7 +130,7 @@ Gemini电影侦探（作者）
 
 在《电影侦探》中，测验答案会再次由语言模型（LLM）进行解释，从而实现动态评分和个性化响应。这展示了将 LLM 与 RAG 集成在游戏设计和开发中的潜力，为真正个性化的游戏体验铺平了道路。此外，它还展示了通过引入 LLM 创建引人入胜的问答或教育类游戏的潜力。添加和更改个性或语言就像添加更多 Jinja 模板模块一样简单。通过非常少的工作，就可以改变整个游戏体验，减少开发人员的工作量。
 
-![](../Images/b33ff35fa8348020b98001d766fc0b0f.png)
+![](img/b33ff35fa8348020b98001d766fc0b0f.png)
 
 系统概述（作者提供）
 
@@ -154,7 +154,7 @@ Gemini电影侦探（作者）
 
 +   **生成输出**：通过将 LLM 和检索到的上下文的知识结合，系统生成的文本不仅连贯，而且在上下文上相关，这得益于增强的数据。
 
-![](../Images/256066ba8bd31d76d97009fb106ed7d4.png)
+![](img/256066ba8bd31d76d97009fb106ed7d4.png)
 
 RAG 架构（作者提供）
 
@@ -180,19 +180,19 @@ RAG 架构（作者提供）
 
 现在主要概念已经清晰，我们来仔细看看这个项目是如何创建的，以及依赖关系是如何管理的。
 
-Poetry可以帮助你完成的三个主要任务是：构建、发布和跟踪。其理念是以一种确定性的方式管理依赖关系，分享你的项目，并跟踪依赖状态。
+Poetry 可以帮助你完成的三个主要任务是：构建、发布和跟踪。其理念是以一种确定性的方式管理依赖关系，分享你的项目，并跟踪依赖状态。
 
-![](../Images/989ff4a10f32ee19b1a7a4fcd1be4171.png)
+![](img/989ff4a10f32ee19b1a7a4fcd1be4171.png)
 
 图片来源：[Kat von Wood](https://unsplash.com/@kat_von_wood?utm_source=medium&utm_medium=referral) 于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-Poetry还会为你处理虚拟环境的创建。默认情况下，它们位于你系统中的一个集中文件夹内。不过，如果你更喜欢将项目的虚拟环境放在项目文件夹中，像我一样，只需进行简单的配置更改：
+Poetry 还会为你处理虚拟环境的创建。默认情况下，它们位于你系统中的一个集中文件夹内。不过，如果你更喜欢将项目的虚拟环境放在项目文件夹中，像我一样，只需进行简单的配置更改：
 
 ```py
 poetry config virtualenvs.in-project true
 ```
 
-使用`poetry new`，你可以创建一个新的Python项目。它会创建一个虚拟环境，并链接到系统默认的Python。如果你将此与[pyenv](https://github.com/pyenv/pyenv)结合使用，你可以灵活地使用特定版本创建项目。或者，你也可以直接告诉Poetry使用哪个Python版本：`poetry env use /full/path/to/python`。
+使用`poetry new`，你可以创建一个新的 Python 项目。它会创建一个虚拟环境，并链接到系统默认的 Python。如果你将此与[pyenv](https://github.com/pyenv/pyenv)结合使用，你可以灵活地使用特定版本创建项目。或者，你也可以直接告诉 Poetry 使用哪个 Python 版本：`poetry env use /full/path/to/python`。
 
 一旦你有了一个新项目，可以使用`poetry add`命令将依赖项添加到其中。
 
@@ -223,31 +223,31 @@ authors = ["Volker Janz <volker@janz.sh>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
-fastapi = "^0.110.1"
-uvicorn = {extras = ["standard"], version = "^0.29.0"}
-python-dotenv = "^1.0.1"
-httpx = "^0.27.0"
-pydantic-settings = "^2.2.1"
+python = "³.12"
+fastapi = "⁰.110.1"
+uvicorn = {extras = ["standard"], version = "⁰.29.0"}
+python-dotenv = "¹.0.1"
+httpx = "⁰.27.0"
+pydantic-settings = "².2.1"
 google-cloud-aiplatform = ">=1.38"
-jinja2 = "^3.1.3"
-ruff = "^0.3.5"
-pre-commit = "^3.7.0"
+jinja2 = "³.1.3"
+ruff = "⁰.3.5"
+pre-commit = "³.7.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 ```
 
-# 使用FastAPI创建API
+# 使用 FastAPI 创建 API
 
-FastAPI是一个Python框架，可以快速开发API。它建立在开放标准之上，提供无缝的体验，无需学习新的语法。通过自动生成文档、强大的验证功能和集成的安全性，FastAPI简化了开发过程，同时确保了卓越的性能。
+FastAPI 是一个 Python 框架，可以快速开发 API。它建立在开放标准之上，提供无缝的体验，无需学习新的语法。通过自动生成文档、强大的验证功能和集成的安全性，FastAPI 简化了开发过程，同时确保了卓越的性能。
 
-![](../Images/65d620d2f1c52e0d1241ecb8e0fbd0b8.png)
+![](img/65d620d2f1c52e0d1241ecb8e0fbd0b8.png)
 
 图片来源：[Florian Steciuk](https://unsplash.com/@flo_stk?utm_source=medium&utm_medium=referral) 于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-实现“双子座电影侦探”项目的API时，我从一个Hello World应用程序开始，并从那里扩展。下面是如何开始的：
+实现“双子座电影侦探”项目的 API 时，我从一个 Hello World 应用程序开始，并从那里扩展。下面是如何开始的：
 
 ```py
 from fastapi import FastAPI
@@ -259,7 +259,7 @@ def read_root():
     return {"Hello": "World"}
 ```
 
-假设你也将虚拟环境保存在项目文件夹中，路径为`.venv/`，并使用uvicorn，以下是如何启动API并启用自动重载功能，以便在不需要重启的情况下测试代码更改：
+假设你也将虚拟环境保存在项目文件夹中，路径为`.venv/`，并使用 uvicorn，以下是如何启动 API 并启用自动重载功能，以便在不需要重启的情况下测试代码更改：
 
 ```py
 source .venv/bin/activate
@@ -267,13 +267,13 @@ uvicorn gemini_movie_detectives_api.main:app --reload
 curl -s localhost:8000 | jq .
 ```
 
-如果你还没有安装[jq](https://jqlang.github.io/jq/)，我强烈推荐你现在安装。我可能会在未来的文章中介绍这个神奇的JSON瑞士军刀。以下是响应的样子：
+如果你还没有安装[jq](https://jqlang.github.io/jq/)，我强烈推荐你现在安装。我可能会在未来的文章中介绍这个神奇的 JSON 瑞士军刀。以下是响应的样子：
 
-![](../Images/154da389d897c5178844dd5d3a349398.png)
+![](img/154da389d897c5178844dd5d3a349398.png)
 
 Hello FastAPI（作者）
 
-从这里开始，你可以根据需要开发API端点。例如，以下是实现启动电影问答的API端点的样子：
+从这里开始，你可以根据需要开发 API 端点。例如，以下是实现启动电影问答的 API 端点的样子：
 
 ```py
 @app.post('/quiz')
@@ -476,41 +476,41 @@ def get_movie_details(self, movie_id: int):
 
 在使用通过 VertexAI 的 Gemini 之前，你需要一个启用了 VertexAI 的 Google Cloud 项目和一个具有足够权限的服务账户，以及其 JSON 密钥文件。
 
-![](../Images/45142cdb2203e3f44a702c25a5395b06.png)
+![](img/45142cdb2203e3f44a702c25a5395b06.png)
 
 创建 GCP 项目（由作者）
 
 创建新项目后，导航到 *APIs & Services* –> *Enable APIs and service* –> 搜索 *VertexAI API* –> *Enable*。
 
-![](../Images/67fec39048c6afd73eb41b485431904b.png)
+![](img/67fec39048c6afd73eb41b485431904b.png)
 
 启用 VertexAI（由作者）
 
 要创建服务账户，请导航到 *IAM & Admin* –> *Service Accounts* –> *Create service account*。选择一个合适的名称并进入下一步。
 
-![](../Images/fc8a142ea8bcd0bd9da74ed24cd518e6.png)
+![](img/fc8a142ea8bcd0bd9da74ed24cd518e6.png)
 
 创建服务账户（由作者）
 
 现在，确保将账户分配给预定义角色 *Vertex AI User*。
 
-![](../Images/3cfa198c9646a12a29bac51e718d2dba.png)
+![](img/3cfa198c9646a12a29bac51e718d2dba.png)
 
 分配正确的角色（由作者提供）
 
-最后，你可以通过点击新用户 –> *密钥* –> *添加密钥* –> *创建新密钥* –> *JSON* 来生成并下载JSON密钥文件。拥有这个文件后，你就可以开始使用了。
+最后，你可以通过点击新用户 –> *密钥* –> *添加密钥* –> *创建新密钥* –> *JSON* 来生成并下载 JSON 密钥文件。拥有这个文件后，你就可以开始使用了。
 
-![](../Images/7e3e4f8e583b623603de57bb4a372e75.png)
+![](img/7e3e4f8e583b623603de57bb4a372e75.png)
 
-创建JSON密钥文件（由作者提供）
+创建 JSON 密钥文件（由作者提供）
 
-通过VertexAI使用Google的Gemini与Python集成，首先需要将必要的依赖项添加到项目中：
+通过 VertexAI 使用 Google 的 Gemini 与 Python 集成，首先需要将必要的依赖项添加到项目中：
 
 ```py
 poetry add 'google-cloud-aiplatform>=1.38'
 ```
 
-有了这个，你可以使用你的JSON密钥文件导入并初始化`vertexai`。你还可以加载一个模型，比如新发布的Gemini 1.5 Pro模型，并像这样开始一个聊天会话：
+有了这个，你可以使用你的 JSON 密钥文件导入并初始化`vertexai`。你还可以加载一个模型，比如新发布的 Gemini 1.5 Pro 模型，并像这样开始一个聊天会话：
 
 ```py
 import vertexai
@@ -572,13 +572,13 @@ response = get_chat_response(
 print(response)
 ```
 
-运行此代码后，Gemini给出了以下回复：
+运行此代码后，Gemini 给出了以下回复：
 
-![](../Images/cda38295b73a2e42d444a20a344055f2.png)
+![](img/cda38295b73a2e42d444a20a344055f2.png)
 
 你真棒（由作者提供）
 
-我同意Gemini的看法：
+我同意 Gemini 的看法：
 
 > ***你真了不起***
 
@@ -596,15 +596,15 @@ responses = chat.send_message(
 )
 ```
 
-我在Gemini电影侦探中使用此方法将`temperature`设置为0.5，这给了我最佳的结果。在这个上下文中，`temperature`的意思是：Gemini生成的回复有多具创意。这个值必须介于0.0和1.0之间，值越接近1.0，表示创意越多。
+我在 Gemini 电影侦探中使用此方法将`temperature`设置为 0.5，这给了我最佳的结果。在这个上下文中，`temperature`的意思是：Gemini 生成的回复有多具创意。这个值必须介于 0.0 和 1.0 之间，值越接近 1.0，表示创意越多。
 
-除了发送提示并从Gemini接收回复之外，主要的挑战之一是解析回复以提取相关信息。
+除了发送提示并从 Gemini 接收回复之外，主要的挑战之一是解析回复以提取相关信息。
 
 从这个项目中学到的一点是：
 
-> ***为Gemini指定一种格式，不依赖于精确的词语，而是使用关键符号来分隔信息元素***
+> ***为 Gemini 指定一种格式，不依赖于精确的词语，而是使用关键符号来分隔信息元素***
 
-例如，Gemini的提问提示包含以下指令：
+例如，Gemini 的提问提示包含以下指令：
 
 ```py
 Your reply must only consist of three lines! You must only reply strictly using the following template for the three lines:
@@ -617,7 +617,7 @@ Hint 2: <The second hint to get the title more easily>
 
 相反，要关注结构和关键符号。像这样阅读回复：
 
-+   它有3行
++   它有 3 行
 
 +   第一行是问题
 
@@ -645,7 +645,7 @@ def parse_gemini_question(gemini_reply: str) -> GeminiQuestion:
     return GeminiQuestion(question=question, hint1=hint1, hint2=hint2)
 ```
 
-未来，回复的解析将变得更加简单。在2024年Google Cloud Next会议期间，Google宣布Gemini 1.5 Pro现已公开发布，并宣布了一些新特性，包括支持JSON模式，以便回复以JSON格式返回。有关更多细节，请查看[这篇文章](https://developers.googleblog.com/2024/04/gemini-15-pro-in-public-preview-with-new-features.html)。
+未来，回复的解析将变得更加简单。在 2024 年 Google Cloud Next 会议期间，Google 宣布 Gemini 1.5 Pro 现已公开发布，并宣布了一些新特性，包括支持 JSON 模式，以便回复以 JSON 格式返回。有关更多细节，请查看[这篇文章](https://developers.googleblog.com/2024/04/gemini-15-pro-in-public-preview-with-new-features.html)。
 
 除此之外，我将 Gemini 客户端封装成了一个可配置的类。你可以在 [Github 上查看完整的开源实现](https://github.com/vojay-dev/gemini-movie-detectives-api/blob/main/gemini_movie_detectives_api/gemini.py)。
 
@@ -655,7 +655,7 @@ def parse_gemini_question(gemini_reply: str) -> GeminiQuestion:
 
 有两个基本模板：一个用于生成问题，一个用于评估答案。除此之外，还有一个元数据模板，用于通过最新的电影数据丰富提示。进一步地，还有语言和个性模板，这些模板被组织在不同的文件夹中，每个选项都有一个模板文件。
 
-![](../Images/1ca5d024d4a77205380c152045e2a02e.png)
+![](img/1ca5d024d4a77205380c152045e2a02e.png)
 
 提示生成器（作者）
 
@@ -677,7 +677,7 @@ Home 组件简单地显示欢迎信息。
 
 该组件展示了服务的统计信息。然而，到目前为止，只有一种类别的数据被展示，即测验限制。为了限制 VertexAI 和 GCP 使用的成本，测验会话有一个每日限制，次日的第一个测验将重置该限制。数据通过`api/limit`端点获取。
 
-![](../Images/260549abb360ab6e866e64b9ae1cd851.png)
+![](img/260549abb360ab6e866e64b9ae1cd851.png)
 
 Vue 组件（作者）
 
@@ -705,7 +705,7 @@ curl -s -X POST https://movie-detectives.com/api/quiz \
 }
 ```
 
-![](../Images/44ed0a40a77f059c48e616639864e51e.png)
+![](img/44ed0a40a77f059c48e616639864e51e.png)
 
 电影侦探 — 示例：圣诞老人个性（作者）
 
@@ -754,14 +754,14 @@ curl -s -X POST https://movie-detectives.com/api/quiz/84c19425-c179-4198-9773-a8
 
 在我完成基本项目后，通过模块化提示方法轻松添加更多个性和语言，我对游戏设计和开发的可能性感到印象深刻。通过添加另一个个性，我可以在一分钟内将这个游戏从一个关于电影的纯教育游戏变成一个喜剧问答类似于“You Don’t Know Jack”的游戏。
 
-此外，将最新的Python功能与Pydantic等验证库结合起来非常强大，可用于确保LLM输入的数据质量良好。
+此外，将最新的 Python 功能与 Pydantic 等验证库结合起来非常强大，可用于确保 LLM 输入的数据质量良好。
 
-以上就是，朋友们！现在你已经具备了打造自己的LLM驱动网络应用的能力。
+以上就是，朋友们！现在你已经具备了打造自己的 LLM 驱动网络应用的能力。
 
-感到灵感迸发但需要一个起点吗？查看Gemini Movie Detectives项目的开源代码：
+感到灵感迸发但需要一个起点吗？查看 Gemini Movie Detectives 项目的开源代码：
 
-+   **🚀 后端Github仓库**: [https://github.com/vojay-dev/gemini-movie-detectives-api](https://github.com/vojay-dev/gemini-movie-detectives-api)
++   **🚀 后端 Github 仓库**: [`github.com/vojay-dev/gemini-movie-detectives-api`](https://github.com/vojay-dev/gemini-movie-detectives-api)
 
-+   **🖥️ 前端Github仓库**: [https://github.com/vojay-dev/gemini-movie-detectives-ui](https://github.com/vojay-dev/gemini-movie-detectives-ui)
++   **🖥️ 前端 Github 仓库**: [`github.com/vojay-dev/gemini-movie-detectives-ui`](https://github.com/vojay-dev/gemini-movie-detectives-ui)
 
-人工智能驱动应用的未来光明无限，而你就是那位拿着画笔的人！让我们一起创造一些非凡的东西。如果你需要休息，可以尝试一下[https://movie-detectives.com/](https://movie-detectives.com/)。
+人工智能驱动应用的未来光明无限，而你就是那位拿着画笔的人！让我们一起创造一些非凡的东西。如果你需要休息，可以尝试一下[`movie-detectives.com/`](https://movie-detectives.com/)。

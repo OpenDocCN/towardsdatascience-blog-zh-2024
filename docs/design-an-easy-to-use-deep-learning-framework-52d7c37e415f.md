@@ -1,16 +1,16 @@
 # 设计一个易于使用的深度学习框架
 
-> 原文：[https://towardsdatascience.com/design-an-easy-to-use-deep-learning-framework-52d7c37e415f?source=collection_archive---------6-----------------------#2024-04-10](https://towardsdatascience.com/design-an-easy-to-use-deep-learning-framework-52d7c37e415f?source=collection_archive---------6-----------------------#2024-04-10)
+> 原文：[`towardsdatascience.com/design-an-easy-to-use-deep-learning-framework-52d7c37e415f?source=collection_archive---------6-----------------------#2024-04-10`](https://towardsdatascience.com/design-an-easy-to-use-deep-learning-framework-52d7c37e415f?source=collection_archive---------6-----------------------#2024-04-10)
 
 ## 作为开源贡献者，我学到的三条软件设计原则
 
-[](https://haifeng-jin.medium.com/?source=post_page---byline--52d7c37e415f--------------------------------)[![Haifeng Jin](../Images/705d6ecaed975b6376fac19087f2c02c.png)](https://haifeng-jin.medium.com/?source=post_page---byline--52d7c37e415f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--52d7c37e415f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--52d7c37e415f--------------------------------) [Haifeng Jin](https://haifeng-jin.medium.com/?source=post_page---byline--52d7c37e415f--------------------------------)
+[](https://haifeng-jin.medium.com/?source=post_page---byline--52d7c37e415f--------------------------------)![Haifeng Jin](https://haifeng-jin.medium.com/?source=post_page---byline--52d7c37e415f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--52d7c37e415f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--52d7c37e415f--------------------------------) [Haifeng Jin](https://haifeng-jin.medium.com/?source=post_page---byline--52d7c37e415f--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--52d7c37e415f--------------------------------) ·9分钟阅读·2024年4月10日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--52d7c37e415f--------------------------------) ·9 分钟阅读·2024 年 4 月 10 日
 
 --
 
-![](../Images/f0f2539047f9ad89bd753971d4f517d5.png)
+![](img/f0f2539047f9ad89bd753971d4f517d5.png)
 
 图片来自[Sheldon](https://unsplash.com/@hfestudio?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -24,19 +24,19 @@
 
 在深入讨论主要内容之前，让我们快速讨论一下为什么用户体验如此重要。我们可以通过 PyTorch 与 TensorFlow 的案例来了解这一点。
 
-这些框架由两家科技巨头Meta和Google开发，它们具有截然不同的文化优势。Meta擅长产品，而Google擅长工程。因此，Google的框架如TensorFlow和JAX运行速度最快，技术上也优于PyTorch，因为它们在稀疏张量和分布式训练方面做得很好。然而，PyTorch仍然从TensorFlow手中夺走了半壁江山，因为它优先考虑用户体验，而不是软件的其他方面。
+这些框架由两家科技巨头 Meta 和 Google 开发，它们具有截然不同的文化优势。Meta 擅长产品，而 Google 擅长工程。因此，Google 的框架如 TensorFlow 和 JAX 运行速度最快，技术上也优于 PyTorch，因为它们在稀疏张量和分布式训练方面做得很好。然而，PyTorch 仍然从 TensorFlow 手中夺走了半壁江山，因为它优先考虑用户体验，而不是软件的其他方面。
 
-更好的用户体验对于构建模型并将其传播给工程师的研究人员来说至关重要，因为工程师们不总是愿意将他们从研究人员那里获得的模型转换为另一个框架。他们会围绕PyTorch构建新的软件，以简化他们的工作流程，这样就会在PyTorch周围建立一个软件生态系统。
+更好的用户体验对于构建模型并将其传播给工程师的研究人员来说至关重要，因为工程师们不总是愿意将他们从研究人员那里获得的模型转换为另一个框架。他们会围绕 PyTorch 构建新的软件，以简化他们的工作流程，这样就会在 PyTorch 周围建立一个软件生态系统。
 
-TensorFlow也犯了一些错误，导致其用户流失。TensorFlow的整体用户体验良好。然而，其GPU支持的安装指南多年来一直存在问题，直到2022年才得以修复。TensorFlow 2破坏了向后兼容性，导致用户在迁移过程中损失了数百万美元。
+TensorFlow 也犯了一些错误，导致其用户流失。TensorFlow 的整体用户体验良好。然而，其 GPU 支持的安装指南多年来一直存在问题，直到 2022 年才得以修复。TensorFlow 2 破坏了向后兼容性，导致用户在迁移过程中损失了数百万美元。
 
 所以，我们从这里学到的教训是，尽管技术上具有优势，用户体验决定了开源用户会选择哪款软件。
 
 ## 所有深度学习框架都在用户体验上投入了大量资金
 
-所有深度学习框架——TensorFlow、PyTorch和JAX——都在用户体验上投入了大量资金。一个很好的证据是，它们的代码库中Python的比例相对较高。
+所有深度学习框架——TensorFlow、PyTorch 和 JAX——都在用户体验上投入了大量资金。一个很好的证据是，它们的代码库中 Python 的比例相对较高。
 
-深度学习框架的所有核心逻辑，包括张量操作、自动微分、编译和分布式处理，都是用C++实现的。为什么他们要向用户暴露一套Python API？这仅仅是因为用户喜欢Python，并且他们想要打磨用户体验。
+深度学习框架的所有核心逻辑，包括张量操作、自动微分、编译和分布式处理，都是用 C++实现的。为什么他们要向用户暴露一套 Python API？这仅仅是因为用户喜欢 Python，并且他们想要打磨用户体验。
 
 ## 投资用户体验的回报率很高
 
@@ -46,11 +46,11 @@ TensorFlow也犯了一些错误，导致其用户流失。TensorFlow的整体用
 
 ## 这三条原则
 
-我将分享我在为Keras贡献代码过程中学到的三条重要软件设计原则，并附上来自不同框架的好坏代码示例。
+我将分享我在为 Keras 贡献代码过程中学到的三条重要软件设计原则，并附上来自不同框架的好坏代码示例。
 
 ## 原则 1：设计端到端工作流
 
-当我们考虑设计一款软件的API时，可能会像这样。
+当我们考虑设计一款软件的 API 时，可能会像这样。
 
 ```py
 class Model:
@@ -172,9 +172,9 @@ class MyModel(keras.Model):
         )
 ```
 
-这教会用户学习一种新的操作，而不是使用他们熟悉的if-else语句，这样做并不好。作为补偿，它在训练速度上带来了显著的提升。
+这教会用户学习一种新的操作，而不是使用他们熟悉的 if-else 语句，这样做并不好。作为补偿，它在训练速度上带来了显著的提升。
 
-这就是PyTorch灵活性的陷阱。如果你曾经需要优化模型的内存和速度，你将不得不自己使用以下API和新概念来实现，包括操作的inplace参数、并行操作API和显式设备分配。这为用户引入了相当高的学习曲线。
+这就是 PyTorch 灵活性的陷阱。如果你曾经需要优化模型的内存和速度，你将不得不自己使用以下 API 和新概念来实现，包括操作的 inplace 参数、并行操作 API 和显式设备分配。这为用户引入了相当高的学习曲线。
 
 ```py
 torch.relu(x, inplace=True)
@@ -183,11 +183,11 @@ torch._foreach_add_(x, y)
 x = x.cuda()
 ```
 
-其他一些好的例子包括`keras.ops`、`tensorflow.numpy`、`jax.numpy`。它们只是numpy API的重新实现。当引入一定的认知负担时，只需重用人们已经熟悉的内容。每个框架都必须在这些框架中提供一些低级操作。与其让人们学习一套全新的API（可能有上百个函数），不如直接使用最流行的现有API。numpy的API文档详尽，并且有大量相关的Stack Overflow问题和答案。
+其他一些好的例子包括`keras.ops`、`tensorflow.numpy`、`jax.numpy`。它们只是 numpy API 的重新实现。当引入一定的认知负担时，只需重用人们已经熟悉的内容。每个框架都必须在这些框架中提供一些低级操作。与其让人们学习一套全新的 API（可能有上百个函数），不如直接使用最流行的现有 API。numpy 的 API 文档详尽，并且有大量相关的 Stack Overflow 问题和答案。
 
-你在用户体验中能做的最糟糕的事情就是欺骗用户。让用户相信你的API是他们熟悉的，但实际上不是。我将给出两个例子，一个是PyTorch的，另一个是TensorFlow的。
+你在用户体验中能做的最糟糕的事情就是欺骗用户。让用户相信你的 API 是他们熟悉的，但实际上不是。我将给出两个例子，一个是 PyTorch 的，另一个是 TensorFlow 的。
 
-如果你想将形状为`(100, 3, 32, 32)`的输入张量填充到`(100, 3, 1+32+1, 2+32+2)`或`(100, 3, 34, 36)`，那么在`F.pad()`函数中应该传递什么作为pad参数？
+如果你想将形状为`(100, 3, 32, 32)`的输入张量填充到`(100, 3, 1+32+1, 2+32+2)`或`(100, 3, 34, 36)`，那么在`F.pad()`函数中应该传递什么作为 pad 参数？
 
 ```py
 import torch.nn.functional as F
@@ -199,11 +199,11 @@ out = F.pad(
 )
 ```
 
-我的第一直觉是它应该是`((0, 0), (0, 0), (1, 1), (2, 2))`，其中每个子元组对应四个维度中的一个，两个数字是现有值之前和之后的填充值。我的猜测来源于numpy API。
+我的第一直觉是它应该是`((0, 0), (0, 0), (1, 1), (2, 2))`，其中每个子元组对应四个维度中的一个，两个数字是现有值之前和之后的填充值。我的猜测来源于 numpy API。
 
 然而，正确的答案是(2, 2, 1, 1)。没有子元组，只有一个普通的元组。此外，维度是反转的，最后一个维度变成了第一个。
 
-以下是TensorFlow的一个坏例子。你能猜出以下代码片段的输出是什么吗？
+以下是 TensorFlow 的一个坏例子。你能猜出以下代码片段的输出是什么吗？
 
 ```py
 value = True
@@ -216,11 +216,11 @@ value = False
 print(get_value())
 ```
 
-如果没有`tf.function`装饰器，输出应该是False，这个很简单。然而，使用了装饰器后，输出变为True。这是因为TensorFlow会编译函数，任何Python变量都会被编译成一个新的常量。修改旧变量的值不会影响已创建的常量。
+如果没有`tf.function`装饰器，输出应该是 False，这个很简单。然而，使用了装饰器后，输出变为 True。这是因为 TensorFlow 会编译函数，任何 Python 变量都会被编译成一个新的常量。修改旧变量的值不会影响已创建的常量。
 
-它让用户相信这是他们熟悉的Python代码，但实际上并不是。
+它让用户相信这是他们熟悉的 Python 代码，但实际上并不是。
 
-## 原则3：互动优于文档
+## 原则 3：互动优于文档
 
 如果用户能通过运行一些示例代码并自己调试就能搞明白问题，那么没有人愿意阅读冗长的文档。所以，我们尽量让软件的用户工作流遵循相同的逻辑。
 

@@ -1,16 +1,16 @@
-# 模型选择：类别平衡 第1部分
+# 模型选择：类别平衡 第一部分
 
-> 原文：[https://towardsdatascience.com/model-selection-a-guide-to-class-balancing-part-i-14b17003186f?source=collection_archive---------7-----------------------#2024-10-10](https://towardsdatascience.com/model-selection-a-guide-to-class-balancing-part-i-14b17003186f?source=collection_archive---------7-----------------------#2024-10-10)
+> 原文：[`towardsdatascience.com/model-selection-a-guide-to-class-balancing-part-i-14b17003186f?source=collection_archive---------7-----------------------#2024-10-10`](https://towardsdatascience.com/model-selection-a-guide-to-class-balancing-part-i-14b17003186f?source=collection_archive---------7-----------------------#2024-10-10)
 
 ## 关于匿名化数据类别平衡的教程。
 
-[](https://medium.com/@panData?source=post_page---byline--14b17003186f--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--14b17003186f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--14b17003186f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--14b17003186f--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--14b17003186f--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--14b17003186f--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--14b17003186f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--14b17003186f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--14b17003186f--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--14b17003186f--------------------------------)
 
-·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--14b17003186f--------------------------------) ·阅读时间22分钟·2024年10月10日
+·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--14b17003186f--------------------------------) ·阅读时间 22 分钟·2024 年 10 月 10 日
 
 --
 
-![](../Images/eafda58e4862c6ca81681b8e40ac8439.png)
+![](img/eafda58e4862c6ca81681b8e40ac8439.png)
 
 图片由[Dave Lowe](https://unsplash.com/@davelowephoto?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,36 +1,36 @@
-# 理解LLaMa 2中的幽灵注意力
+# 理解 LLaMa 2 中的幽灵注意力
 
-> 原文：[https://towardsdatascience.com/understanding-ghost-attention-in-llama-2-dba624901586?source=collection_archive---------7-----------------------#2024-01-23](https://towardsdatascience.com/understanding-ghost-attention-in-llama-2-dba624901586?source=collection_archive---------7-----------------------#2024-01-23)
+> 原文：[`towardsdatascience.com/understanding-ghost-attention-in-llama-2-dba624901586?source=collection_archive---------7-----------------------#2024-01-23`](https://towardsdatascience.com/understanding-ghost-attention-in-llama-2-dba624901586?source=collection_archive---------7-----------------------#2024-01-23)
 
-## 本文解释了LLaMa 2论文中介绍的幽灵注意力微调方法。
+## 本文解释了 LLaMa 2 论文中介绍的幽灵注意力微调方法。
 
-[](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)[![Matthew Gunton](../Images/6f5a9530ad5252aa3f2fae87b3f272b1.png)](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------) [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)
+[](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)![Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------) [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------) ·阅读时间6分钟·2024年1月23日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------) ·阅读时间 6 分钟·2024 年 1 月 23 日
 
 --
 
-![](../Images/92079d14f31ee22d6208bf88a6085700.png)
+![](img/92079d14f31ee22d6208bf88a6085700.png)
 
-DALL-E生成的幽灵骆驼图像
+DALL-E 生成的幽灵骆驼图像
 
 # 问题
 
-很多时候，我们希望LLM在接收到指令后能够一直遵循，直到另有指示。然而，如下面的例子所示，LLM在几轮对话后可能会迅速忘记指令。
+很多时候，我们希望 LLM 在接收到指令后能够一直遵循，直到另有指示。然而，如下面的例子所示，LLM 在几轮对话后可能会迅速忘记指令。
 
-![](../Images/c6567cf2486a8f3ad6430d77dd67300b.png)
+![](img/c6567cf2486a8f3ad6430d77dd67300b.png)
 
-[LLaMa 2论文](https://arxiv.org/pdf/2307.09288.pdf)中的图9，展示了在几轮对话后指令是如何被忽略的
+[LLaMa 2 论文](https://arxiv.org/pdf/2307.09288.pdf)中的图 9，展示了在几轮对话后指令是如何被忽略的
 
-让模型持续关注的一种方法是将指令附加到每个用户消息中。虽然这样可以有效，但也带来了更多的tokens进入上下文，从而限制了你的LLM可以进行的对话轮次。我们如何绕过这个问题？通过微调！幽灵注意力旨在让LLM在更多对话轮次中遵循指令。
+让模型持续关注的一种方法是将指令附加到每个用户消息中。虽然这样可以有效，但也带来了更多的 tokens 进入上下文，从而限制了你的 LLM 可以进行的对话轮次。我们如何绕过这个问题？通过微调！幽灵注意力旨在让 LLM 在更多对话轮次中遵循指令。
 
 # 方法论总结
 
-让我们从将对话想象成一个数据数组开始。我们有一个用户消息，接着是一个助手消息，然后两者交替进行。当数据数组中的最后一项是用户消息时，我们期望LLM生成一条助手消息。
+让我们从将对话想象成一个数据数组开始。我们有一个用户消息，接着是一个助手消息，然后两者交替进行。当数据数组中的最后一项是用户消息时，我们期望 LLM 生成一条助手消息。
 
 重要的是，我们确保指令只出现在第一次的用户消息中，因为在现实世界中，这可能是用户唯一一次自然地引入指令。
 
-![](../Images/a3b52797085918892ba91dd8e5f6d763.png)
+![](img/a3b52797085918892ba91dd8e5f6d763.png)
 
 作者提供的图像：展示交替的用户和助手消息的数据数组
 
@@ -38,7 +38,7 @@ DALL-E生成的幽灵骆驼图像
 
 在我们的样本和对话中，我们执行拒绝采样——让 LLM 生成任意数量的不同响应，然后使用 RLHF 模型对它们进行评分。我们保存排名最高的响应，并使用这些最高质量的响应来微调模型。
 
-![](../Images/a9043cfe3b7e5fe6290874cb1d6f6723.png)
+![](img/a9043cfe3b7e5fe6290874cb1d6f6723.png)
 
 作者提供的图片：一张图示，展示了我们如何创建微调数据，以使模型能够在多轮对话中专注于指令。
 
@@ -54,40 +54,40 @@ LLaMa 2 论文重点介绍了他们测试的三种特定类型的指令：（1�
 
 那么，这种新方法对 LLM 的影响是什么呢？
 
-![](../Images/880996860c94ab89e19cb9e590717415.png)
+![](img/880996860c94ab89e19cb9e590717415.png)
 
 [LLaMa 2 论文中的图 28](https://arxiv.org/pdf/2307.09288.pdf)，展示了幽灵注意力对新指令的效果。
 
 在论文中，他们附上了上面的图片，展示了模型如何对那些在其微调数据集中找不到的指令做出反应。左边是测试“始终以俳句回答”这一指令，右边是测试“在可能的情况下建议与建筑相关的活动”这一指令。虽然随着进展，俳句回答似乎漏掉了一些音节，但毫无疑问，模型在每次回答时都尽力保持一般格式。建筑相关的指令特别有趣，因为你可以看到模型在第一次消息中并未提及这一点，因为当时它并不相关，但后来却提出了这一话题。
 
-你可以在lmsys.org的llama-2界面上亲自试试。你会发现，虽然它不像论文中的屏幕截图那样完美，但仍然比LLaMa 1版本好得多。
+你可以在 lmsys.org 的 llama-2 界面上亲自试试。你会发现，虽然它不像论文中的屏幕截图那样完美，但仍然比 LLaMa 1 版本好得多。
 
-![](../Images/56397c860ace11b97085e57e4c320492.png)
+![](img/56397c860ace11b97085e57e4c320492.png)
 
-作者提供的图像：在chat.lmsys.org上截取的llama-2–70b-chat模型屏幕截图，展示了“用表情符号回应”的指令
+作者提供的图像：在 chat.lmsys.org 上截取的 llama-2–70b-chat 模型屏幕截图，展示了“用表情符号回应”的指令
 
 重要的是，我们还看到这种方法对模型的注意力产生了影响。下图是模型对每个标记（token）所给予的注意力的热力图。图表的左侧和底部展示了输入到模型中的标记。我们看不到图表的右上部分，因为那部分生成的是剩余的内容，因此超出当前标记的部分对模型来说是不可见的。随着我们生成更多文本，可以看到更多标记变得可用。热力图通过较深的颜色表示更高的值，因此这里颜色越深，表示对这些标记的注意力越强。我们可以看到，“Act as Oscar Wilde”这些标记随着更多标记的生成，变得越来越深，表明它们得到了越来越多的关注。
 
-![](../Images/06756787026f40bb4afdb6b2d321f0a7.png)
+![](img/06756787026f40bb4afdb6b2d321f0a7.png)
 
-[LLaMa2论文中的图10](https://arxiv.org/pdf/2307.09288.pdf)，展示了在应用Ghost Attention前后注意力的热力图
+[LLaMa2 论文中的图 10](https://arxiv.org/pdf/2307.09288.pdf)，展示了在应用 Ghost Attention 前后注意力的热力图
 
-论文告诉我们，在超过20轮之后，语境往往会被填充，从而导致注意力问题。有趣的是，他们在附录中提供的图表也显示，随着他们不断微调模型，RLHF模型分配给它的分数不断下降。若能进一步探讨这个现象，可能是因为指令变得更长了，每一批次的复杂度增加，还是与他们用来训练模型的数据的某些限制有关。如果是后者，那么随着更多训练数据的加入，你可能会经历更多批次，才会看到分数下降。无论如何，利用Ghost Attention进行微调可能会出现边际效益递减的情况。
+论文告诉我们，在超过 20 轮之后，语境往往会被填充，从而导致注意力问题。有趣的是，他们在附录中提供的图表也显示，随着他们不断微调模型，RLHF 模型分配给它的分数不断下降。若能进一步探讨这个现象，可能是因为指令变得更长了，每一批次的复杂度增加，还是与他们用来训练模型的数据的某些限制有关。如果是后者，那么随着更多训练数据的加入，你可能会经历更多批次，才会看到分数下降。无论如何，利用 Ghost Attention 进行微调可能会出现边际效益递减的情况。
 
-![](../Images/70291ed31a98a5d7b502fdd9ddd24b2f.png)
+![](img/70291ed31a98a5d7b502fdd9ddd24b2f.png)
 
-[LLaMa 2论文中的图26](https://arxiv.org/pdf/2307.09288.pdf)，展示了奖励模型在每个批次后如何对提示样本进行评分
+[LLaMa 2 论文中的图 26](https://arxiv.org/pdf/2307.09288.pdf)，展示了奖励模型在每个批次后如何对提示样本进行评分
 
 # 结束语
 
-总的来说，LLaMa2论文介绍了许多有趣的训练技巧，尤其是在大型语言模型(LLM)的领域内。随着这个领域每天都有突破性的研究成果发布，回顾这篇关键论文和Ghost Attention，提出了一些有趣的问题。
+总的来说，LLaMa2 论文介绍了许多有趣的训练技巧，尤其是在大型语言模型(LLM)的领域内。随着这个领域每天都有突破性的研究成果发布，回顾这篇关键论文和 Ghost Attention，提出了一些有趣的问题。
 
-由于Ghost Attention是一种使用近端策略优化（PPO）技术来微调模型的方法，关键问题之一是当我们使用直接偏好优化（DPO）时，这种方法的表现如何。DPO不需要训练单独的RLHF模型然后进行采样以生成良好的微调数据，因此Ghost Attention中设置的损失可能变得不必要，从而可能大大提升该技术的效果。
+由于 Ghost Attention 是一种使用近端策略优化（PPO）技术来微调模型的方法，关键问题之一是当我们使用直接偏好优化（DPO）时，这种方法的表现如何。DPO 不需要训练单独的 RLHF 模型然后进行采样以生成良好的微调数据，因此 Ghost Attention 中设置的损失可能变得不必要，从而可能大大提升该技术的效果。
 
-随着大型语言模型（LLMs）在更多消费应用中的使用，保持LLM专注于指令的需求只会增加。Ghost Attention在训练LLM通过多轮对话保持专注方面表现出了极大的潜力。时间将证明LLM在对话中能保持多长时间对指令的关注。
+随着大型语言模型（LLMs）在更多消费应用中的使用，保持 LLM 专注于指令的需求只会增加。Ghost Attention 在训练 LLM 通过多轮对话保持专注方面表现出了极大的潜力。时间将证明 LLM 在对话中能保持多长时间对指令的关注。
 
 感谢阅读！
 
-[1] H. Touvron等人，[Llama 2: Open Foundation and Fine-Tuned Chat Models (2023)](https://arxiv.org/abs/2307.09288)，arXiv
+[1] H. Touvron 等人，[Llama 2: Open Foundation and Fine-Tuned Chat Models (2023)](https://arxiv.org/abs/2307.09288)，arXiv
 
-[2] R. Rafailov等人，[Direct Preference Optimization: Your Language Model is Secretly a Reward Model (2023)](https://arxiv.org/abs/2305.18290)，arXiv
+[2] R. Rafailov 等人，[Direct Preference Optimization: Your Language Model is Secretly a Reward Model (2023)](https://arxiv.org/abs/2305.18290)，arXiv

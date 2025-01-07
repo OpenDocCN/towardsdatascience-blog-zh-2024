@@ -1,12 +1,12 @@
 # 仍在手动审查所有用户与 AI 解决方案的互动吗？
 
-> 原文：[https://towardsdatascience.com/still-manually-reviewing-all-user-interactions-for-your-ai-solutions-4aad72a33ca7?source=collection_archive---------12-----------------------#2024-10-08](https://towardsdatascience.com/still-manually-reviewing-all-user-interactions-for-your-ai-solutions-4aad72a33ca7?source=collection_archive---------12-----------------------#2024-10-08)
+> 原文：[`towardsdatascience.com/still-manually-reviewing-all-user-interactions-for-your-ai-solutions-4aad72a33ca7?source=collection_archive---------12-----------------------#2024-10-08`](https://towardsdatascience.com/still-manually-reviewing-all-user-interactions-for-your-ai-solutions-4aad72a33ca7?source=collection_archive---------12-----------------------#2024-10-08)
 
 ## 发现如何利用余弦相似度来节省时间并简化你的 AI 系统
 
-[](https://medium.com/@marcosss?source=post_page---byline--4aad72a33ca7--------------------------------)[![Marcos Santiago](../Images/570c90fc27b75cbc22786ffcc4a38e6d.png)](https://medium.com/@marcosss?source=post_page---byline--4aad72a33ca7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4aad72a33ca7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4aad72a33ca7--------------------------------) [Marcos Santiago](https://medium.com/@marcosss?source=post_page---byline--4aad72a33ca7--------------------------------)
+[](https://medium.com/@marcosss?source=post_page---byline--4aad72a33ca7--------------------------------)![Marcos Santiago](https://medium.com/@marcosss?source=post_page---byline--4aad72a33ca7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4aad72a33ca7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4aad72a33ca7--------------------------------) [Marcos Santiago](https://medium.com/@marcosss?source=post_page---byline--4aad72a33ca7--------------------------------)
 
-·发表于[数据科学之路](https://towardsdatascience.com/?source=post_page---byline--4aad72a33ca7--------------------------------) ·阅读时间：7分钟·2024年10月8日
+·发表于[数据科学之路](https://towardsdatascience.com/?source=post_page---byline--4aad72a33ca7--------------------------------) ·阅读时间：7 分钟·2024 年 10 月 8 日
 
 --
 
@@ -18,7 +18,7 @@
 
 随着查询越来越多，判断哪些是重复的变得更加困难，耗费了你更多的时间。
 
-![](../Images/25b26eaabfbc733c414aa3ae4afc73eb.png)
+![](img/25b26eaabfbc733c414aa3ae4afc73eb.png)
 
 图像由作者使用 Dall-E 创建
 

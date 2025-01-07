@@ -1,18 +1,18 @@
 # 冲刺的陷阱：不要像斯嘉丽·奥哈拉那样，今天就思考！
 
-> 原文：[https://towardsdatascience.com/the-trap-of-sprints-dont-be-like-scarlett-o-hara-think-today-0e08258262f3?source=collection_archive---------4-----------------------#2024-06-03](https://towardsdatascience.com/the-trap-of-sprints-dont-be-like-scarlett-o-hara-think-today-0e08258262f3?source=collection_archive---------4-----------------------#2024-06-03)
+> 原文：[`towardsdatascience.com/the-trap-of-sprints-dont-be-like-scarlett-o-hara-think-today-0e08258262f3?source=collection_archive---------4-----------------------#2024-06-03`](https://towardsdatascience.com/the-trap-of-sprints-dont-be-like-scarlett-o-hara-think-today-0e08258262f3?source=collection_archive---------4-----------------------#2024-06-03)
 
 ## 数据科学
 
 ## 为什么数据科学家在敏捷项目中应优先考虑沟通和灵活性
 
-[](https://medium.com/@nyggus?source=post_page---byline--0e08258262f3--------------------------------)[![Marcin Kozak](../Images/d7faf62e48ed81dab5d8ad92819fff54.png)](https://medium.com/@nyggus?source=post_page---byline--0e08258262f3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e08258262f3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0e08258262f3--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--0e08258262f3--------------------------------)
+[](https://medium.com/@nyggus?source=post_page---byline--0e08258262f3--------------------------------)![Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--0e08258262f3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e08258262f3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e08258262f3--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--0e08258262f3--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e08258262f3--------------------------------) ·阅读时长8分钟·2024年6月3日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e08258262f3--------------------------------) ·阅读时长 8 分钟·2024 年 6 月 3 日
 
 --
 
-![](../Images/64b248d55e22c6d97b4d9dbaaf5724e1.png)
+![](img/64b248d55e22c6d97b4d9dbaaf5724e1.png)
 
 图片由[Saad Chaudhry](https://unsplash.com/@saadchdhry?utm_source=medium&utm_medium=referral)提供，发布于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

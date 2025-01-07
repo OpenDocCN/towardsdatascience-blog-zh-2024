@@ -1,18 +1,18 @@
-# 前5大地理空间数据 API 用于高级分析
+# 前 5 大地理空间数据 API 用于高级分析
 
-> 原文：[https://towardsdatascience.com/top-5-geospatial-data-apis-for-advanced-analysis-79349605c86d?source=collection_archive---------2-----------------------#2024-10-06](https://towardsdatascience.com/top-5-geospatial-data-apis-for-advanced-analysis-79349605c86d?source=collection_archive---------2-----------------------#2024-10-06)
+> 原文：[`towardsdatascience.com/top-5-geospatial-data-apis-for-advanced-analysis-79349605c86d?source=collection_archive---------2-----------------------#2024-10-06`](https://towardsdatascience.com/top-5-geospatial-data-apis-for-advanced-analysis-79349605c86d?source=collection_archive---------2-----------------------#2024-10-06)
 
 ## 探索 Overpass、Geoapify、Distancematrix.ai、Amadeus 和 Mapillary，用于高级映射和位置数据
 
-[](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--79349605c86d--------------------------------)[![Amanda Iglesias Moreno](../Images/9cff03d0c0caaa9a8aa53c4c34c90cac.png)](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--79349605c86d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--79349605c86d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--79349605c86d--------------------------------) [Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--79349605c86d--------------------------------)
+[](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--79349605c86d--------------------------------)![Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--79349605c86d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--79349605c86d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79349605c86d--------------------------------) [Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--79349605c86d--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79349605c86d--------------------------------) ·阅读时长 18 分钟 ·2024年10月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79349605c86d--------------------------------) ·阅读时长 18 分钟 ·2024 年 10 月 6 日
 
 --
 
-![](../Images/c41e646d7daac1e325667ab1790b9f5b.png)
+![](img/c41e646d7daac1e325667ab1790b9f5b.png)
 
-Kyle Glenn 在 Unsplash（来源：[https://unsplash.com/es/@kylejglenn](https://unsplash.com/es/@kylejglenn)）
+Kyle Glenn 在 Unsplash（来源：[`unsplash.com/es/@kylejglenn`](https://unsplash.com/es/@kylejglenn)）
 
 **地理数据在许多分析中至关重要，使我们能够根据位置和空间模式做出决策**。地理数据在一些项目中的应用示例包括预测房价、交通路线优化，或为企业制定市场营销策略。
 

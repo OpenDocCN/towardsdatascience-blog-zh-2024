@@ -1,16 +1,16 @@
 # 一口大小的数据科学：异方差性稳健误差
 
-> 原文：[https://towardsdatascience.com/bite-size-data-science-heteroscedastic-robust-errors-7e5998d31988?source=collection_archive---------6-----------------------#2024-05-29](https://towardsdatascience.com/bite-size-data-science-heteroscedastic-robust-errors-7e5998d31988?source=collection_archive---------6-----------------------#2024-05-29)
+> 原文：[`towardsdatascience.com/bite-size-data-science-heteroscedastic-robust-errors-7e5998d31988?source=collection_archive---------6-----------------------#2024-05-29`](https://towardsdatascience.com/bite-size-data-science-heteroscedastic-robust-errors-7e5998d31988?source=collection_archive---------6-----------------------#2024-05-29)
 
 ## 如何调整标准误差以适应异方差性以及其原理
 
-[](https://medium.com/@jarom.hulet?source=post_page---byline--7e5998d31988--------------------------------)[![Jarom Hulet](../Images/0fdeb1a2df90cccdd8f2f4b84d5e54eb.png)](https://medium.com/@jarom.hulet?source=post_page---byline--7e5998d31988--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7e5998d31988--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7e5998d31988--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--7e5998d31988--------------------------------)
+[](https://medium.com/@jarom.hulet?source=post_page---byline--7e5998d31988--------------------------------)![Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--7e5998d31988--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7e5998d31988--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e5998d31988--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--7e5998d31988--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e5998d31988--------------------------------) ·阅读时长6分钟·2024年5月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e5998d31988--------------------------------) ·阅读时长 6 分钟·2024 年 5 月 29 日
 
 --
 
-![](../Images/d45b1d7dcd374da78f606854622eb845.png)
+![](img/d45b1d7dcd374da78f606854622eb845.png)
 
 基于同方差性假设可以进行的代数操作——图片由作者提供
 

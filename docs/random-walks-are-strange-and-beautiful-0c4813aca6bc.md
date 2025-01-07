@@ -1,16 +1,16 @@
 # 随机漫步是奇异且美丽的
 
-> 原文：[https://towardsdatascience.com/random-walks-are-strange-and-beautiful-0c4813aca6bc?source=collection_archive---------7-----------------------#2024-03-27](https://towardsdatascience.com/random-walks-are-strange-and-beautiful-0c4813aca6bc?source=collection_archive---------7-----------------------#2024-03-27)
+> 原文：[`towardsdatascience.com/random-walks-are-strange-and-beautiful-0c4813aca6bc?source=collection_archive---------7-----------------------#2024-03-27`](https://towardsdatascience.com/random-walks-are-strange-and-beautiful-0c4813aca6bc?source=collection_archive---------7-----------------------#2024-03-27)
 
 ## 一场穿越维度和生活的旅程
 
-[](https://medium.com/@mmsbrggr?source=post_page---byline--0c4813aca6bc--------------------------------)[![Marcel Moosbrugger](../Images/c814f809a274dfc8191264d33c73817e.png)](https://medium.com/@mmsbrggr?source=post_page---byline--0c4813aca6bc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0c4813aca6bc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0c4813aca6bc--------------------------------) [Marcel Moosbrugger](https://medium.com/@mmsbrggr?source=post_page---byline--0c4813aca6bc--------------------------------)
+[](https://medium.com/@mmsbrggr?source=post_page---byline--0c4813aca6bc--------------------------------)![Marcel Moosbrugger](https://medium.com/@mmsbrggr?source=post_page---byline--0c4813aca6bc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0c4813aca6bc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0c4813aca6bc--------------------------------) [Marcel Moosbrugger](https://medium.com/@mmsbrggr?source=post_page---byline--0c4813aca6bc--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0c4813aca6bc--------------------------------) ·阅读时长9分钟·2024年3月27日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0c4813aca6bc--------------------------------) ·阅读时长 9 分钟·2024 年 3 月 27 日
 
 --
 
-![](../Images/ac5463ceec6fb9d923da537361c10016.png)
+![](img/ac5463ceec6fb9d923da537361c10016.png)
 
 图片由[Jezael Melgoza](https://unsplash.com/de/@jezar)提供，来源于[Unsplash](https://unsplash.com/de/fotos/menschen-die-auf-der-strasse-in-der-nahe-von-gut-beleuchteten-gebauden-gehen-layMbSJ3YOE)
 

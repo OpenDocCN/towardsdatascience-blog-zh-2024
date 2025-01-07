@@ -1,12 +1,12 @@
 # 在招聘过程中使用大型语言模型（LLM）会让你成为候选人中的骗子吗？
 
-> 原文：[https://towardsdatascience.com/does-using-an-llm-during-the-hiring-process-make-you-a-fraud-as-a-candidate-99a05678536b?source=collection_archive---------7-----------------------#2024-01-06](https://towardsdatascience.com/does-using-an-llm-during-the-hiring-process-make-you-a-fraud-as-a-candidate-99a05678536b?source=collection_archive---------7-----------------------#2024-01-06)
+> 原文：[`towardsdatascience.com/does-using-an-llm-during-the-hiring-process-make-you-a-fraud-as-a-candidate-99a05678536b?source=collection_archive---------7-----------------------#2024-01-06`](https://towardsdatascience.com/does-using-an-llm-during-the-hiring-process-make-you-a-fraud-as-a-candidate-99a05678536b?source=collection_archive---------7-----------------------#2024-01-06)
 
 ## 雇主们，放弃 AI 检测工具，改问一个重要的问题。
 
-[](https://christineegan42.medium.com/?source=post_page---byline--99a05678536b--------------------------------)[![Christine Egan](../Images/d0a11bde52ceaa53d7162f2dd77c8041.png)](https://christineegan42.medium.com/?source=post_page---byline--99a05678536b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--99a05678536b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--99a05678536b--------------------------------) [Christine Egan](https://christineegan42.medium.com/?source=post_page---byline--99a05678536b--------------------------------)
+[](https://christineegan42.medium.com/?source=post_page---byline--99a05678536b--------------------------------)![Christine Egan](https://christineegan42.medium.com/?source=post_page---byline--99a05678536b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--99a05678536b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99a05678536b--------------------------------) [Christine Egan](https://christineegan42.medium.com/?source=post_page---byline--99a05678536b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99a05678536b--------------------------------) ·12分钟阅读·2024年1月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99a05678536b--------------------------------) ·12 分钟阅读·2024 年 1 月 6 日
 
 --
 

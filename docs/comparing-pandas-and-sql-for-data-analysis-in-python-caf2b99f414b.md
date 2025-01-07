@@ -1,16 +1,16 @@
 # 比较 Pandas 和 (%%SQL) 在 Python 中的数据分析
 
-> 原文：[https://towardsdatascience.com/comparing-pandas-and-sql-for-data-analysis-in-python-caf2b99f414b?source=collection_archive---------2-----------------------#2024-10-28](https://towardsdatascience.com/comparing-pandas-and-sql-for-data-analysis-in-python-caf2b99f414b?source=collection_archive---------2-----------------------#2024-10-28)
+> 原文：[`towardsdatascience.com/comparing-pandas-and-sql-for-data-analysis-in-python-caf2b99f414b?source=collection_archive---------2-----------------------#2024-10-28`](https://towardsdatascience.com/comparing-pandas-and-sql-for-data-analysis-in-python-caf2b99f414b?source=collection_archive---------2-----------------------#2024-10-28)
 
 ## 利用 SQL 和 Pandas 从糖尿病患者记录中提取洞察
 
-[](https://medium.com/@panData?source=post_page---byline--caf2b99f414b--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--caf2b99f414b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--caf2b99f414b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--caf2b99f414b--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--caf2b99f414b--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--caf2b99f414b--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--caf2b99f414b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--caf2b99f414b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--caf2b99f414b--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--caf2b99f414b--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--caf2b99f414b--------------------------------) ·阅读时间 30 分钟·2024年10月28日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--caf2b99f414b--------------------------------) ·阅读时间 30 分钟·2024 年 10 月 28 日
 
 --
 
-![](../Images/76be343274aeb917103bfe8f2e51af0b.png)
+![](img/76be343274aeb917103bfe8f2e51af0b.png)
 
 图片由 [Stone Wang](https://unsplash.com/@stonewyq?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

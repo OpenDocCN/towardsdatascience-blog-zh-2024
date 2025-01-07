@@ -1,38 +1,38 @@
-# 利用小型LLMs增强检索增强生成（RAG）
+# 利用小型 LLMs 增强检索增强生成（RAG）
 
-> 原文：[https://towardsdatascience.com/leveraging-smaller-llms-for-enhanced-retrieval-augmented-generation-rag-bc320e71223d?source=collection_archive---------1-----------------------#2024-10-18](https://towardsdatascience.com/leveraging-smaller-llms-for-enhanced-retrieval-augmented-generation-rag-bc320e71223d?source=collection_archive---------1-----------------------#2024-10-18)
+> 原文：[`towardsdatascience.com/leveraging-smaller-llms-for-enhanced-retrieval-augmented-generation-rag-bc320e71223d?source=collection_archive---------1-----------------------#2024-10-18`](https://towardsdatascience.com/leveraging-smaller-llms-for-enhanced-retrieval-augmented-generation-rag-bc320e71223d?source=collection_archive---------1-----------------------#2024-10-18)
 
-## Llama-3.2–1 B-Instruct与LanceDB
+## Llama-3.2–1 B-Instruct 与 LanceDB
 
-[](https://alexcpn.medium.com/?source=post_page---byline--bc320e71223d--------------------------------)[![Alex Punnen](../Images/296f165c293200adfa39482cb1388264.png)](https://alexcpn.medium.com/?source=post_page---byline--bc320e71223d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bc320e71223d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bc320e71223d--------------------------------) [Alex Punnen](https://alexcpn.medium.com/?source=post_page---byline--bc320e71223d--------------------------------)
+[](https://alexcpn.medium.com/?source=post_page---byline--bc320e71223d--------------------------------)![Alex Punnen](https://alexcpn.medium.com/?source=post_page---byline--bc320e71223d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bc320e71223d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bc320e71223d--------------------------------) [Alex Punnen](https://alexcpn.medium.com/?source=post_page---byline--bc320e71223d--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bc320e71223d--------------------------------) ·阅读时间：12分钟·2024年10月18日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bc320e71223d--------------------------------) ·阅读时间：12 分钟·2024 年 10 月 18 日
 
 --
 
-**摘要**：检索增强生成（RAG）结合了大型语言模型与外部知识源，以生成更加准确和符合上下文的回答。本文探讨了如何有效利用小型语言模型（如最近开源的Meta 10亿模型）来总结和索引大型文档，从而提高RAG系统的效率和可扩展性。我们提供了一个详细的指南，附有代码片段，展示如何从产品文档PDF中提取文本摘要，并将其存储在LanceDB数据库中以便高效检索。
+**摘要**：检索增强生成（RAG）结合了大型语言模型与外部知识源，以生成更加准确和符合上下文的回答。本文探讨了如何有效利用小型语言模型（如最近开源的 Meta 10 亿模型）来总结和索引大型文档，从而提高 RAG 系统的效率和可扩展性。我们提供了一个详细的指南，附有代码片段，展示如何从产品文档 PDF 中提取文本摘要，并将其存储在 LanceDB 数据库中以便高效检索。
 
 # 引言
 
-检索增强生成（Retrieval-Augmented Generation，RAG）是一种通过将语言模型与外部知识库集成来增强其能力的范式。虽然像GPT-4这样的巨大语言模型（LLMs）已经展示了显著的能力，但它们也伴随着较高的计算成本。小型LLMs则提供了更为高效的资源使用替代方案，尤其适用于诸如文本摘要和关键词提取等任务，这些任务在RAG系统中的索引和检索过程中至关重要。
+检索增强生成（Retrieval-Augmented Generation，RAG）是一种通过将语言模型与外部知识库集成来增强其能力的范式。虽然像 GPT-4 这样的巨大语言模型（LLMs）已经展示了显著的能力，但它们也伴随着较高的计算成本。小型 LLMs 则提供了更为高效的资源使用替代方案，尤其适用于诸如文本摘要和关键词提取等任务，这些任务在 RAG 系统中的索引和检索过程中至关重要。
 
-在本文中，我们将演示如何使用小型LLM：
+在本文中，我们将演示如何使用小型 LLM：
 
-1.  **从PDF文档中提取并总结文本**。
+1.  **从 PDF 文档中提取并总结文本**。
 
 1.  **为摘要和关键词生成嵌入向量**。
 
-1.  **高效地将数据存储在LanceDB数据库中**。
+1.  **高效地将数据存储在 LanceDB 数据库中**。
 
-1.  **用于有效的RAG**
+1.  **用于有效的 RAG**
 
-1.  **也可以为自我纠正LLM错误提供一个代理工作流**
+1.  **也可以为自我纠正 LLM 错误提供一个代理工作流**
 
-使用小型LLM大大降低了对大规模数据集进行这些类型转换的成本，并且在处理简单任务时，可以获得与大型参数LLMs相似的效果，同时可以轻松地在企业环境或云端托管，且成本最小。
+使用小型 LLM 大大降低了对大规模数据集进行这些类型转换的成本，并且在处理简单任务时，可以获得与大型参数 LLMs 相似的效果，同时可以轻松地在企业环境或云端托管，且成本最小。
 
-我们将使用[LLAMA 3.2 10亿参数](https://ai.meta.com/blog/llama-3-2-connect-2024-vision-edge-mobile-devices/)模型，它是目前最小的先进大型语言模型（LLM）。
+我们将使用[LLAMA 3.2 10 亿参数](https://ai.meta.com/blog/llama-3-2-connect-2024-vision-edge-mobile-devices/)模型，它是目前最小的先进大型语言模型（LLM）。
 
-![](../Images/d1e06fb0bf3f7cac0d4f247f2977944d.png)
+![](img/d1e06fb0bf3f7cac0d4f247f2977944d.png)
 
 LLM 增强的 RAG（作者图像）
 
@@ -148,7 +148,7 @@ def process_prompt(prompt, model, tokenizer, device, max_length=500):
 
 # 步骤 3：加载模型
 
-我们使用 LLAMA 3.2 10亿指令模型进行总结。我们以 bfloat16 加载模型以减少内存，并在 NVIDIA 笔记本 GPU（NVIDIA GeForce RTX 3060 6 GB / 驱动程序 NVIDIA-SMI 555.58.02 / Cuda 编译工具，版本 12.5，V12.5.40）下运行 Linux 操作系统。
+我们使用 LLAMA 3.2 10 亿指令模型进行总结。我们以 bfloat16 加载模型以减少内存，并在 NVIDIA 笔记本 GPU（NVIDIA GeForce RTX 3060 6 GB / 驱动程序 NVIDIA-SMI 555.58.02 / Cuda 编译工具，版本 12.5，V12.5.40）下运行 Linux 操作系统。
 
 更好的做法是通过 vLLM 或更好的[exLLamaV2](https://github.com/turboderp/exllamav2)进行托管
 
@@ -194,7 +194,7 @@ with fitz.open(file_path) as pdf_document:
 
 # 步骤 5：设置 LanceDB 和 SentenceTransformer
 
-我们初始化了SentenceTransformer模型以生成嵌入，并设置了LanceDB来存储数据。我们使用基于PyArrow的Schema来构建LanceDB表。
+我们初始化了 SentenceTransformer 模型以生成嵌入，并设置了 LanceDB 来存储数据。我们使用基于 PyArrow 的 Schema 来构建 LanceDB 表。
 
 请注意，当前关键词未被使用，但如果需要，可以用于混合搜索，即矢量相似度搜索和文本搜索。
 
@@ -216,7 +216,7 @@ schema = pa.schema([
 table = db.create_table('summaries', schema=schema, mode='overwrite')
 ```
 
-# 第6步：总结和存储数据
+# 第 6 步：总结和存储数据
 
 我们遍历每一页，生成摘要和关键词，并将它们与嵌入一起存储到数据库中。
 
@@ -270,11 +270,11 @@ Passage: {text}"""
     print(f"Data for page {page_number} stored successfully.")
 ```
 
-# 使用LLM来修正它们的输出
+# 使用 LLM 来修正它们的输出
 
-在生成摘要和提取关键词时，LLM有时会生成格式不符合预期的输出，比如格式错误的JSON。
+在生成摘要和提取关键词时，LLM 有时会生成格式不符合预期的输出，比如格式错误的 JSON。
 
-我们可以利用LLM本身来修正这些输出，通过提示它修复错误。如上面的代码所示。
+我们可以利用 LLM 本身来修正这些输出，通过提示它修复错误。如上面的代码所示。
 
 ```py
 # Use the Small LLAMA 3.2 1B model to create summary
@@ -312,9 +312,9 @@ for page_number, text in dict_pages.items():
             continue
 ```
 
-在这段代码中，如果LLM的初始输出无法解析为JSON，我们会再次提示LLM修正JSON格式。这个自我修正模式提高了我们管道的健壮性。
+在这段代码中，如果 LLM 的初始输出无法解析为 JSON，我们会再次提示 LLM 修正 JSON 格式。这个自我修正模式提高了我们管道的健壮性。
 
-假设LLM生成了以下格式错误的JSON：
+假设 LLM 生成了以下格式错误的 JSON：
 
 ```py
 {
@@ -323,14 +323,14 @@ for page_number, text in dict_pages.items():
 }
 ```
 
-尝试解析这个JSON时，由于使用了单引号而不是双引号，结果会出现错误。我们捕获这个错误并提示LLM进行修正：
+尝试解析这个 JSON 时，由于使用了单引号而不是双引号，结果会出现错误。我们捕获这个错误并提示 LLM 进行修正：
 
 ```py
 exception_msg = "Expecting property name enclosed in double quotes"
 question = f"""Correct the following JSON {response} which has {exception_msg} to proper JSON format. Output only the corrected JSON."""
 ```
 
-然后，LLM提供修正后的JSON：
+然后，LLM 提供修正后的 JSON：
 
 ```py
 {
@@ -339,11 +339,11 @@ question = f"""Correct the following JSON {response} which has {exception_msg} t
 }
 ```
 
-通过使用LLM修正它自己的输出，我们确保数据格式正确，便于后续处理。
+通过使用 LLM 修正它自己的输出，我们确保数据格式正确，便于后续处理。
 
-# 通过LLM代理扩展自我修正
+# 通过 LLM 代理扩展自我修正
 
-使用LLM来修正其输出的模式可以通过**LLM代理**来扩展和自动化。LLM代理可以：
+使用 LLM 来修正其输出的模式可以通过**LLM 代理**来扩展和自动化。LLM 代理可以：
 
 +   **自动化错误处理**：检测错误并自主决定如何修正它们，无需明确的指示。
 
@@ -351,17 +351,17 @@ question = f"""Correct the following JSON {response} which has {exception_msg} t
 
 +   **增强健壮性**：从错误中持续学习，改进未来的输出。
 
-**LLM代理**充当中介，管理信息流并智能地处理异常。它们可以被设计成：
+**LLM 代理**充当中介，管理信息流并智能地处理异常。它们可以被设计成：
 
 +   解析输出并验证格式。
 
-+   遇到错误时，重新提示LLM并提供精炼的指令。
++   遇到错误时，重新提示 LLM 并提供精炼的指令。
 
 +   记录错误和修正，以便未来参考和模型微调。
 
 **近似实现**：
 
-不需要手动捕获异常并重新提示，LLM代理可以封装这些逻辑：
+不需要手动捕获异常并重新提示，LLM 代理可以封装这些逻辑：
 
 ```py
 def generate_summary_with_agent(text):
@@ -374,7 +374,7 @@ def generate_summary_with_agent(text):
 
 `LLMAgent`类将处理初始处理、错误检测、重新提示和内部修正。
 
-现在，让我们看看如何使用嵌入来有效地使用RAG模式，再次利用LLM帮助进行排序。
+现在，让我们看看如何使用嵌入来有效地使用 RAG 模式，再次利用 LLM 帮助进行排序。
 
 # 检索和生成：处理用户查询
 

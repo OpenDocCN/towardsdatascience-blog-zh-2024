@@ -1,16 +1,16 @@
 # 精通 K-Means 聚类
 
-> 原文：[https://towardsdatascience.com/mastering-k-means-clustering-065bc42637e4?source=collection_archive---------0-----------------------#2024-05-22](https://towardsdatascience.com/mastering-k-means-clustering-065bc42637e4?source=collection_archive---------0-----------------------#2024-05-22)
+> 原文：[`towardsdatascience.com/mastering-k-means-clustering-065bc42637e4?source=collection_archive---------0-----------------------#2024-05-22`](https://towardsdatascience.com/mastering-k-means-clustering-065bc42637e4?source=collection_archive---------0-----------------------#2024-05-22)
 
 ## 通过这个逐步 Python 教程，从头开始实现 K-Means 算法
 
-[](https://marcusmvls-vinicius.medium.com/?source=post_page---byline--065bc42637e4--------------------------------)[![Marcus Sena](../Images/ff594ec7029e6259f0be6dc031d8a6cd.png)](https://marcusmvls-vinicius.medium.com/?source=post_page---byline--065bc42637e4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--065bc42637e4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--065bc42637e4--------------------------------) [Marcus Sena](https://marcusmvls-vinicius.medium.com/?source=post_page---byline--065bc42637e4--------------------------------)
+[](https://marcusmvls-vinicius.medium.com/?source=post_page---byline--065bc42637e4--------------------------------)![Marcus Sena](https://marcusmvls-vinicius.medium.com/?source=post_page---byline--065bc42637e4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--065bc42637e4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--065bc42637e4--------------------------------) [Marcus Sena](https://marcusmvls-vinicius.medium.com/?source=post_page---byline--065bc42637e4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--065bc42637e4--------------------------------) ·阅读时间 8 分钟·2024年5月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--065bc42637e4--------------------------------) ·阅读时间 8 分钟·2024 年 5 月 22 日
 
 --
 
-![](../Images/5c7adde7e4e88ee31689443db5e31e44.png)
+![](img/5c7adde7e4e88ee31689443db5e31e44.png)
 
 图片由作者使用 DALL-E 创建。
 
@@ -20,15 +20,15 @@
 
 > 目录
 > 
-> [1\. 介绍](#4970)
+> 1\. 介绍
 > 
-> [2\. K-Means 算法做什么？](#7e98)
+> 2\. K-Means 算法做什么？
 > 
-> [3\. Python 实现](#60a5)
+> 3\. Python 实现
 > 
-> [4\. 评估与解释](#2e89)
+> 4\. 评估与解释
 > 
-> [5\. 结论与下一步](#655b)
+> 5\. 结论与下一步
 
 # 1\. 介绍
 
@@ -46,7 +46,7 @@
 
 在下图中，我们可以清楚地看到 3 个不同的组。因此，我们可以确定每个组的中心，并且每个点将与最接近的中心关联。
 
-![](../Images/0ec2067871637ccf83430558df44cfbf.png)
+![](img/0ec2067871637ccf83430558df44cfbf.png)
 
 带有 200 个观测值的模拟数据集（图片由作者提供）。
 
@@ -58,7 +58,7 @@
 
 我们需要为算法提供初始中心向量，这些向量可以从数据中随机选择，或者生成与原始数据相同维度的随机向量。请参见下图中的白色菱形。
 
-![](../Images/33dd2f443181dc5507406b8ec38c9077.png)
+![](img/33dd2f443181dc5507406b8ec38c9077.png)
 
 初始中心是随机选择的（图片由作者提供）。
 
@@ -68,7 +68,7 @@
 
 给定一个包含 *N* 条数据和 *M* 个特征的数据集，可以通过以下公式计算到中心 *c* 的距离：
 
-![](../Images/01b720e1312e5eea301af0f6dfa65c36.png)
+![](img/01b720e1312e5eea301af0f6dfa65c36.png)
 
 欧几里得距离（图像通过 codecogs.com 生成）。
 
@@ -84,7 +84,7 @@
 
 因此，对于每个数据点 *n*，我们将得到 K 个距离，然后我们需要将该向量标记为与最小距离的中心关联：
 
-![](../Images/6c1fb0e5d6b3deeba9e459fef5ca022c.png)
+![](img/6c1fb0e5d6b3deeba9e459fef5ca022c.png)
 
 （图像通过 codecogs.com 生成）
 
@@ -96,15 +96,15 @@
 
 检查质心是否发生了显著变化。这可以通过将当前迭代中的质心位置与上一迭代中的质心位置进行比较来完成。
 
-如果质心发生了显著变化，请返回第2步。如果没有，算法已收敛，过程停止。见下图。
+如果质心发生了显著变化，请返回第 2 步。如果没有，算法已收敛，过程停止。见下图。
 
-![](../Images/0c157b01ce3cb851db9481f3b53f5786.png)
+![](img/0c157b01ce3cb851db9481f3b53f5786.png)
 
 质心的收敛（作者提供的图片）。
 
-# 3\. 在Python中的实现
+# 3\. 在 Python 中的实现
 
-现在我们已经了解了K-Means算法的基本概念，是时候实现一个Python类了。所使用的包包括Numpy进行数学计算、Matplotlib进行可视化，以及Sklearn中的Make_blobs包用于生成模拟数据。
+现在我们已经了解了 K-Means 算法的基本概念，是时候实现一个 Python 类了。所使用的包包括 Numpy 进行数学计算、Matplotlib 进行可视化，以及 Sklearn 中的 Make_blobs 包用于生成模拟数据。
 
 ```py
 # import required packages
@@ -125,7 +125,7 @@ from sklearn.datasets import make_blobs
 
 +   **拟合与预测方法**
 
-如前所述，K-Means算法是一种无监督学习技术，这意味着它在训练过程中不需要标签数据。这样，需要一种单一的方法来拟合数据并预测每个数据点所属的聚类。
+如前所述，K-Means 算法是一种无监督学习技术，这意味着它在训练过程中不需要标签数据。这样，需要一种单一的方法来拟合数据并预测每个数据点所属的聚类。
 
 +   **总误差方法**
 
@@ -207,7 +207,7 @@ class Kmeans:
 
 # 4\. 评估与解释
 
-现在我们将使用K-Means类对模拟数据进行聚类。为此，将使用Sklearn库中的make_blobs包。数据由500个二维点组成，具有4个固定的中心。
+现在我们将使用 K-Means 类对模拟数据进行聚类。为此，将使用 Sklearn 库中的 make_blobs 包。数据由 500 个二维点组成，具有 4 个固定的中心。
 
 ```py
 # create simulated data for examples
@@ -215,7 +215,7 @@ X, _ = make_blobs(n_samples=500, n_features=2, centers=4,
                   shuffle=False, random_state=0)
 ```
 
-![](../Images/0c6ff01bc9de6ffa2c0a4b553b15d86e.png)
+![](img/0c6ff01bc9de6ffa2c0a4b553b15d86e.png)
 
 模拟数据（作者提供的图片）。
 
@@ -229,17 +229,17 @@ centroids =model.centroids
 plot_clusters(X, labels, centroids)
 ```
 
-![](../Images/2beea78e39fb0e4730512b9c829df0ad.png)
+![](img/2beea78e39fb0e4730512b9c829df0ad.png)
 
-k=4的聚类（作者提供的图片）。
+k=4 的聚类（作者提供的图片）。
 
-在这种情况下，算法成功地通过18次迭代计算出了聚类。然而，我们必须记住，模拟数据已经知道了最优的聚类数。在实际应用中，我们通常不知道这个值。
+在这种情况下，算法成功地通过 18 次迭代计算出了聚类。然而，我们必须记住，模拟数据已经知道了最优的聚类数。在实际应用中，我们通常不知道这个值。
 
-如前所述，K-Means算法的目标是尽量减小*类内方差*。用于计算该方差的度量是*总平方欧几里得距离*，计算公式为：
+如前所述，K-Means 算法的目标是尽量减小*类内方差*。用于计算该方差的度量是*总平方欧几里得距离*，计算公式为：
 
-![](../Images/72661e266df6e85c3b4301407fe58c8c.png)
+![](img/72661e266df6e85c3b4301407fe58c8c.png)
 
-总平方欧几里得距离公式（作者通过codecogs.com提供的图片）。
+总平方欧几里得距离公式（作者通过 codecogs.com 提供的图片）。
 
 其中：
 
@@ -249,29 +249,29 @@ c_i 是一个簇的质心向量；
 
 K 是簇的数量。
 
-换句话说，上面的公式将数据点到最近质心的距离相加。随着K值的增加，误差会减小。
+换句话说，上面的公式将数据点到最近质心的距离相加。随着 K 值的增加，误差会减小。
 
-> 在极端情况下，当K = N时，你会为每个数据点创建一个簇，此时误差将为零。
+> 在极端情况下，当 K = N 时，你会为每个数据点创建一个簇，此时误差将为零。
 > 
 > Willmott, Paul (2019)。
 
 如果我们将误差与簇的数量绘制出来，并观察图形“弯曲”的位置，我们就能找到最佳簇数。
 
-![](../Images/cb9e6cb88d7dfb252a6602ef6d826078.png)
+![](img/cb9e6cb88d7dfb252a6602ef6d826078.png)
 
 屏幕图（作者提供的图像）。
 
-如我们所见，图形呈现“肘部形状”，并在K = 4时弯曲，这意味着对于更大的K值，误差的减少将不再显著。
+如我们所见，图形呈现“肘部形状”，并在 K = 4 时弯曲，这意味着对于更大的 K 值，误差的减少将不再显著。
 
 # 5\. 结论和下一步
 
-在本文中，我们介绍了K-Means算法背后的基本概念、用途和应用。此外，通过这些概念，我们能够从零开始实现一个Python类，执行模拟数据的聚类，并展示如何通过屏幕图找到K的最佳值。
+在本文中，我们介绍了 K-Means 算法背后的基本概念、用途和应用。此外，通过这些概念，我们能够从零开始实现一个 Python 类，执行模拟数据的聚类，并展示如何通过屏幕图找到 K 的最佳值。
 
 然而，由于我们使用的是无监督技术，还有一个额外的步骤。算法可以成功地为簇分配标签，但每个标签的含义是数据科学家或机器学习工程师通过分析每个簇的数据来完成的任务。
 
 此外，我还将留下一些供进一步探索的要点：
 
-+   我们的模拟数据使用了二维点。尝试将该算法应用于其他数据集，并找到K的最佳值。
++   我们的模拟数据使用了二维点。尝试将该算法应用于其他数据集，并找到 K 的最佳值。
 
 +   还有其他广泛使用的无监督学习算法，如*层次聚类*。
 
@@ -289,7 +289,7 @@ github.com](https://github.com/Marcussena/ML-and-Ai-from-scratch/tree/main/K-Mea
 
 # 参考文献
 
-[1] Sebastian Raschka (2015), 《Python机器学习》。
+[1] Sebastian Raschka (2015), 《Python 机器学习》。
 
 [2] Willmott, Paul. (2019). *机器学习：应用数学导论*。Panda Ohana 出版社。
 

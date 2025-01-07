@@ -1,16 +1,16 @@
 # 未来可持续的机器学习项目的 7 个建议
 
-> 原文：[https://towardsdatascience.com/7-tips-to-future-proof-machine-learning-projects-582397875edc?source=collection_archive---------13-----------------------#2024-02-24](https://towardsdatascience.com/7-tips-to-future-proof-machine-learning-projects-582397875edc?source=collection_archive---------13-----------------------#2024-02-24)
+> 原文：[`towardsdatascience.com/7-tips-to-future-proof-machine-learning-projects-582397875edc?source=collection_archive---------13-----------------------#2024-02-24`](https://towardsdatascience.com/7-tips-to-future-proof-machine-learning-projects-582397875edc?source=collection_archive---------13-----------------------#2024-02-24)
 
 ## 开发更具协作性、可复现性和可重用性的机器学习代码简介
 
-[](https://destingong.medium.com/?source=post_page---byline--582397875edc--------------------------------)[![Destin Gong](../Images/c93d4341a928c36bc47031f02e23ebbf.png)](https://destingong.medium.com/?source=post_page---byline--582397875edc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--582397875edc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--582397875edc--------------------------------) [Destin Gong](https://destingong.medium.com/?source=post_page---byline--582397875edc--------------------------------)
+[](https://destingong.medium.com/?source=post_page---byline--582397875edc--------------------------------)![Destin Gong](https://destingong.medium.com/?source=post_page---byline--582397875edc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--582397875edc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--582397875edc--------------------------------) [Destin Gong](https://destingong.medium.com/?source=post_page---byline--582397875edc--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--582397875edc--------------------------------) ·8 分钟阅读·2024年2月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--582397875edc--------------------------------) ·8 分钟阅读·2024 年 2 月 24 日
 
 --
 
-![](../Images/4fc99203f129fd425c8893e1ccff4ff1.png)
+![](img/4fc99203f129fd425c8893e1ccff4ff1.png)
 
 7 个建议确保机器学习项目的未来可持续性（作者图片）
 

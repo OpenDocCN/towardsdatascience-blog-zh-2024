@@ -1,18 +1,18 @@
 # 在工具类中组织 Python 函数
 
-> 原文：[https://towardsdatascience.com/organizing-python-functions-in-utility-classes-ec76eb82f895?source=collection_archive---------0-----------------------#2024-04-24](https://towardsdatascience.com/organizing-python-functions-in-utility-classes-ec76eb82f895?source=collection_archive---------0-----------------------#2024-04-24)
+> 原文：[`towardsdatascience.com/organizing-python-functions-in-utility-classes-ec76eb82f895?source=collection_archive---------0-----------------------#2024-04-24`](https://towardsdatascience.com/organizing-python-functions-in-utility-classes-ec76eb82f895?source=collection_archive---------0-----------------------#2024-04-24)
 
 ## PYTHON 编程
 
 ## 探索工具类如何提供增强的命名空间来组织相关函数。
 
-[](https://medium.com/@nyggus?source=post_page---byline--ec76eb82f895--------------------------------)[![Marcin Kozak](../Images/d7faf62e48ed81dab5d8ad92819fff54.png)](https://medium.com/@nyggus?source=post_page---byline--ec76eb82f895--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ec76eb82f895--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ec76eb82f895--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--ec76eb82f895--------------------------------)
+[](https://medium.com/@nyggus?source=post_page---byline--ec76eb82f895--------------------------------)![Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--ec76eb82f895--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ec76eb82f895--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ec76eb82f895--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--ec76eb82f895--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ec76eb82f895--------------------------------) ·13 分钟阅读 ·2024年4月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ec76eb82f895--------------------------------) ·13 分钟阅读 ·2024 年 4 月 24 日
 
 --
 
-![](../Images/6eed7ce6069222cb6ebff029579acde8.png)
+![](img/6eed7ce6069222cb6ebff029579acde8.png)
 
 图片来源：[Matteo Grassi](https://unsplash.com/@matteo_grassi?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

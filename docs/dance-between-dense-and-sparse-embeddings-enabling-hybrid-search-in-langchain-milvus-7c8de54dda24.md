@@ -1,12 +1,12 @@
 # 稠密和稀疏嵌入之间的舞蹈：启用 LangChain-Milvus 中的混合搜索
 
-> 原文：[https://towardsdatascience.com/dance-between-dense-and-sparse-embeddings-enabling-hybrid-search-in-langchain-milvus-7c8de54dda24?source=collection_archive---------8-----------------------#2024-11-19](https://towardsdatascience.com/dance-between-dense-and-sparse-embeddings-enabling-hybrid-search-in-langchain-milvus-7c8de54dda24?source=collection_archive---------8-----------------------#2024-11-19)
+> 原文：[`towardsdatascience.com/dance-between-dense-and-sparse-embeddings-enabling-hybrid-search-in-langchain-milvus-7c8de54dda24?source=collection_archive---------8-----------------------#2024-11-19`](https://towardsdatascience.com/dance-between-dense-and-sparse-embeddings-enabling-hybrid-search-in-langchain-milvus-7c8de54dda24?source=collection_archive---------8-----------------------#2024-11-19)
 
 ## 如何在 langchain-milvus 中创建和搜索多向量存储
 
-[](https://ohadeytan.medium.com/?source=post_page---byline--7c8de54dda24--------------------------------)[![Ohad Eytan](../Images/46074702c9543b68bf761d51d6a6ac2c.png)](https://ohadeytan.medium.com/?source=post_page---byline--7c8de54dda24--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7c8de54dda24--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7c8de54dda24--------------------------------) [Ohad Eytan](https://ohadeytan.medium.com/?source=post_page---byline--7c8de54dda24--------------------------------)
+[](https://ohadeytan.medium.com/?source=post_page---byline--7c8de54dda24--------------------------------)![Ohad Eytan](https://ohadeytan.medium.com/?source=post_page---byline--7c8de54dda24--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7c8de54dda24--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7c8de54dda24--------------------------------) [Ohad Eytan](https://ohadeytan.medium.com/?source=post_page---byline--7c8de54dda24--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7c8de54dda24--------------------------------) ·6 分钟阅读·2024年11月19日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7c8de54dda24--------------------------------) ·6 分钟阅读·2024 年 11 月 19 日
 
 --
 
@@ -14,7 +14,7 @@
 
 # 简介
 
-最近，我们——IBM研究院——需要在[*Milvus*](https://milvus.io/)向量存储中使用混合搜索。由于我们已经在使用[*LangChain*](https://www.langchain.com/)框架，因此我们决定动手贡献所需的功能，以便在[*langchain-milvus*](https://github.com/langchain-ai/langchain-milvus)中启用它。我们添加了对**稀疏嵌入**的支持（[PR](https://github.com/langchain-ai/langchain/pull/25284)）和通过*langchain*接口进行**多向量搜索**（[PR](https://github.com/langchain-ai/langchain-milvus/pull/11)）。
+最近，我们——IBM 研究院——需要在[*Milvus*](https://milvus.io/)向量存储中使用混合搜索。由于我们已经在使用[*LangChain*](https://www.langchain.com/)框架，因此我们决定动手贡献所需的功能，以便在[*langchain-milvus*](https://github.com/langchain-ai/langchain-milvus)中启用它。我们添加了对**稀疏嵌入**的支持（[PR](https://github.com/langchain-ai/langchain/pull/25284)）和通过*langchain*接口进行**多向量搜索**（[PR](https://github.com/langchain-ai/langchain-milvus/pull/11)）。
 
 在这篇博客中，我们将简要介绍稠密嵌入和稀疏嵌入之间的区别，以及如何利用混合搜索来同时使用这两者。我们还将提供一段代码演示，展示如何在*langchain-milvus*中使用这些新功能。
 
@@ -42,7 +42,7 @@ from langchain_milvus.vectorstores import Milvus
 
 使用向量存储的最常见方式是稠密嵌入。在这里，我们使用一个预训练模型将数据（通常是文本，但也可以是其他媒体如图片等）嵌入到高维向量中，并将其存储在向量数据库中。这些向量有几百个（甚至几千个）维度，每个条目是一个浮动点数。通常，向量中的所有条目都被非零值占据，因此称为“稠密”。给定查询，我们使用相同的模型将其嵌入，向量存储根据向量相似性检索相关的相似数据。使用*langchain-milvus*，只需要几行代码。让我们看看是如何完成的。
 
-首先，我们使用[来自HuggingFace的模型](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)来定义向量存储：
+首先，我们使用[来自 HuggingFace 的模型](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)来定义向量存储：
 
 ```py
 dense_embedding = HuggingFaceEmbeddings(model_name=
@@ -102,11 +102,11 @@ print(f"Sparse embeddings results:\n{sparse_output[0].page_content}\n")
 #         In Israel, Hot is a TV provider that broadcast 7 days a week
 ```
 
-BM25在精确的关键词匹配中非常有效，对于缺乏明确语义意义的术语或名称非常有用。然而，它无法捕捉查询的意图，并且在许多需要语义理解的情况下会产生不好的结果。
+BM25 在精确的关键词匹配中非常有效，对于缺乏明确语义意义的术语或名称非常有用。然而，它无法捕捉查询的意图，并且在许多需要语义理解的情况下会产生不好的结果。
 
 > 注意：“稀疏嵌入”一词还指代像 SPLADE 或 Elastic Elser 这样的先进方法。这些方法也可以与 Milvus 一起使用，并且可以集成到混合搜索中！
 
-![](../Images/1ae4c985d8d5a4981502aa1df9fbc7e6.png)
+![](img/1ae4c985d8d5a4981502aa1df9fbc7e6.png)
 
 图片来源：作者
 
@@ -160,7 +160,7 @@ print(f"Hybrid search results:\n{hybrid_output[0].page_content}")
 #         Today was very warm during the day but cold at night
 ```
 
-在稠密和稀疏之间找到正确的平衡并非一项简单的任务，可以看作是更广泛的超参数优化问题的一部分。当前在这一领域有正在进行的研究和工具，试图解决这类问题，例如[IBM的AutoAI for RAG](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/autoai-programming-rag.html?context=wx&audience=wdp#autorag-implement)。
+在稠密和稀疏之间找到正确的平衡并非一项简单的任务，可以看作是更广泛的超参数优化问题的一部分。当前在这一领域有正在进行的研究和工具，试图解决这类问题，例如[IBM 的 AutoAI for RAG](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/autoai-programming-rag.html?context=wx&audience=wdp#autorag-implement)。
 
 你可以通过多种方式适应并使用混合搜索方法。例如，如果每个文档都有一个相关的标题，你可以使用两个稠密嵌入函数（可能使用不同的模型）——一个用于标题，另一个用于文档内容——并在两个索引上执行混合搜索。Milvus 目前支持最多 10 个不同的向量字段，为复杂的应用提供了灵活性。还提供了用于索引和重新排序方法的额外配置。你可以查看[Milvus 文档](https://milvus.io/docs/multi-vector-search.md)，了解可用的参数和选项。
 
@@ -168,4 +168,4 @@ print(f"Hybrid search results:\n{hybrid_output[0].page_content}")
 
 现在通过 LangChain 可以轻松访问 Milvus 的多向量搜索功能，你可以轻松地将混合搜索集成到你的应用程序中。这为你在应用中应用不同的搜索策略打开了新的可能性，使得根据具体用例定制搜索逻辑变得更加容易。对我们来说，这是一个为开源项目做贡献的好机会。我们日常使用的许多库和工具都是开源的，能够回馈社区感到非常高兴。希望它能对其他人有所帮助。
 
-最后，特别感谢[Erick Friis](https://github.com/efriis)和[Cheng Zi](https://github.com/zc277584121)在*langchain-milvus*项目中的所有努力，特别是在这些PR中。如果没有他们的付出，这项工作是无法完成的。
+最后，特别感谢[Erick Friis](https://github.com/efriis)和[Cheng Zi](https://github.com/zc277584121)在*langchain-milvus*项目中的所有努力，特别是在这些 PR 中。如果没有他们的付出，这项工作是无法完成的。

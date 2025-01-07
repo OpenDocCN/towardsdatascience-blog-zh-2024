@@ -1,16 +1,16 @@
 # 如何在 Tableau 中创建网络图
 
-> 原文：[https://towardsdatascience.com/how-to-create-a-network-chart-in-tableau-145563ec3861?source=collection_archive---------12-----------------------#2024-11-05](https://towardsdatascience.com/how-to-create-a-network-chart-in-tableau-145563ec3861?source=collection_archive---------12-----------------------#2024-11-05)
+> 原文：[`towardsdatascience.com/how-to-create-a-network-chart-in-tableau-145563ec3861?source=collection_archive---------12-----------------------#2024-11-05`](https://towardsdatascience.com/how-to-create-a-network-chart-in-tableau-145563ec3861?source=collection_archive---------12-----------------------#2024-11-05)
 
 ## 《在 Tableau 中创建网络图的逐步指南》
 
-[](https://medium.com/@robinvm?source=post_page---byline--145563ec3861--------------------------------)[![Robin von Malottki](../Images/f5724e8eecb4925706a83f353caa303a.png)](https://medium.com/@robinvm?source=post_page---byline--145563ec3861--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--145563ec3861--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--145563ec3861--------------------------------) [Robin von Malottki](https://medium.com/@robinvm?source=post_page---byline--145563ec3861--------------------------------)
+[](https://medium.com/@robinvm?source=post_page---byline--145563ec3861--------------------------------)![Robin von Malottki](https://medium.com/@robinvm?source=post_page---byline--145563ec3861--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--145563ec3861--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--145563ec3861--------------------------------) [Robin von Malottki](https://medium.com/@robinvm?source=post_page---byline--145563ec3861--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--145563ec3861--------------------------------) ·阅读时间8分钟·2024年11月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--145563ec3861--------------------------------) ·阅读时间 8 分钟·2024 年 11 月 5 日
 
 --
 
-![](../Images/c05d7a5a3deceb5f49fbc79420099c9b.png)
+![](img/c05d7a5a3deceb5f49fbc79420099c9b.png)
 
 图片由[Radoslaw Sikorski](https://www.pexels.com/de-de/foto/luftaufnahme-von-brucken-und-gleisen-im-herbst-29097273/)提供
 

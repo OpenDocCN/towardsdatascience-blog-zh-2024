@@ -1,30 +1,30 @@
-# 校准Python中的市场营销组合模型
+# 校准 Python 中的市场营销组合模型
 
-> 原文：[https://towardsdatascience.com/calibrating-marketing-mix-models-in-python-49dce1a5b33d?source=collection_archive---------3-----------------------#2024-11-11](https://towardsdatascience.com/calibrating-marketing-mix-models-in-python-49dce1a5b33d?source=collection_archive---------3-----------------------#2024-11-11)
+> 原文：[`towardsdatascience.com/calibrating-marketing-mix-models-in-python-49dce1a5b33d?source=collection_archive---------3-----------------------#2024-11-11`](https://towardsdatascience.com/calibrating-marketing-mix-models-in-python-49dce1a5b33d?source=collection_archive---------3-----------------------#2024-11-11)
 
-## 本系列教程的第二部分，帮助你掌握如何在pymc中应用市场营销组合模型（MMM）
+## 本系列教程的第二部分，帮助你掌握如何在 pymc 中应用市场营销组合模型（MMM）
 
-[](https://medium.com/@raz1470?source=post_page---byline--49dce1a5b33d--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--49dce1a5b33d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--49dce1a5b33d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--49dce1a5b33d--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--49dce1a5b33d--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--49dce1a5b33d--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--49dce1a5b33d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--49dce1a5b33d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--49dce1a5b33d--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--49dce1a5b33d--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--49dce1a5b33d--------------------------------) ·阅读时间：11分钟·2024年11月11日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--49dce1a5b33d--------------------------------) ·阅读时间：11 分钟·2024 年 11 月 11 日
 
 --
 
-![](../Images/a0f58172d399a875389bad12c2003712.png)
+![](img/a0f58172d399a875389bad12c2003712.png)
 
 用户生成的图像
 
 # 本系列内容是什么？
 
-欢迎来到我的市场营销组合建模（MMM）系列教程的第二部分，这是一个实践指南，帮助你掌握MMM。在本系列中，我们将覆盖模型训练、验证、校准和预算优化等关键主题，所有这些都使用强大的**pymc-marketing** Python包。无论你是MMM的新手，还是希望提升技能的用户，本系列将为你提供实践工具和见解，以改进你的市场营销策略。
+欢迎来到我的市场营销组合建模（MMM）系列教程的第二部分，这是一个实践指南，帮助你掌握 MMM。在本系列中，我们将覆盖模型训练、验证、校准和预算优化等关键主题，所有这些都使用强大的**pymc-marketing** Python 包。无论你是 MMM 的新手，还是希望提升技能的用户，本系列将为你提供实践工具和见解，以改进你的市场营销策略。
 
 如果你错过了第一部分，请在这里查看：
 
-[](/mastering-marketing-mix-modelling-in-python-7bbfe31360f9?source=post_page-----49dce1a5b33d--------------------------------) [## 掌握Python中的市场营销组合建模
+[](/mastering-marketing-mix-modelling-in-python-7bbfe31360f9?source=post_page-----49dce1a5b33d--------------------------------) ## 掌握 Python 中的市场营销组合建模
 
-### 本系列教程的第一部分，帮助你掌握如何在pymc中应用市场营销组合模型（MMM）
+### 本系列教程的第一部分，帮助你掌握如何在 pymc 中应用市场营销组合模型（MMM）
 
-towardsdatascience.com](/mastering-marketing-mix-modelling-in-python-7bbfe31360f9?source=post_page-----49dce1a5b33d--------------------------------)
+towardsdatascience.com
 
 # 介绍
 
@@ -36,31 +36,31 @@ towardsdatascience.com](/mastering-marketing-mix-modelling-in-python-7bbfe31360f
 
 +   我们可以进行哪些实验来为我们的贝叶斯先验提供信息？
 
-然后，我们将通过使用**pymc-marketing**包在Python中进行操作，来完成我们在第一篇文章中构建的模型的校准。
+然后，我们将通过使用**pymc-marketing**包在 Python 中进行操作，来完成我们在第一篇文章中构建的模型的校准。
 
 完整的笔记本可以在这里找到：
 
 [](https://github.com/raz1470/pymc_marketing/blob/main/notebooks/2.%20calibrating%20marketing%20mix%20models%20%28MMM%29%20in%20python.ipynb?source=post_page-----49dce1a5b33d--------------------------------) [## pymc_marketing/notebooks/2\. calibrating marketing mix models (MMM) in python.ipynb at main ·…
 
-### MMM包的演示：pymc_marketing。通过在…创建帐户来贡献raz1470/pymc_marketing的开发。
+### MMM 包的演示：pymc_marketing。通过在…创建帐户来贡献 raz1470/pymc_marketing 的开发。
 
 [github.com](https://github.com/raz1470/pymc_marketing/blob/main/notebooks/2.%20calibrating%20marketing%20mix%20models%20%28MMM%29%20in%20python.ipynb?source=post_page-----49dce1a5b33d--------------------------------)
 
 # 1.0 校准营销组合模型
 
-营销组合建模（MMM）是一种统计技术，用于估算各种营销渠道（如电视、社交媒体、付费搜索）对销售的影响。MMM的目标是了解每个渠道的投资回报率（ROI），并优化未来的营销支出。
+营销组合建模（MMM）是一种统计技术，用于估算各种营销渠道（如电视、社交媒体、付费搜索）对销售的影响。MMM 的目标是了解每个渠道的投资回报率（ROI），并优化未来的营销支出。
 
-我们需要校准模型的原因有很多。在开始Python操作之前，让我们先稍微探讨一下这些原因！
+我们需要校准模型的原因有很多。在开始 Python 操作之前，让我们先稍微探讨一下这些原因！
 
 ## 1.1 为什么校准营销组合模型很重要？
 
-校准MMM至关重要，因为虽然它们提供了有价值的洞察，但常常受限于几个因素：
+校准 MMM 至关重要，因为虽然它们提供了有价值的洞察，但常常受限于几个因素：
 
 +   **多重共线性：**当不同的营销渠道高度相关时，就会发生这种情况，这使得很难区分它们各自的影响。例如，电视和社交媒体可能同时运行，导致它们的影响重叠。校准通过结合额外的数据或约束来帮助解开这些渠道的影响。
 
-+   **未观察到的混杂因素：**MMM模型依赖于观察到的数据，但可能会忽略一些也影响营销和销售的重要变量，例如季节性或市场需求的变化。校准可以帮助调整这些未观察到的混杂因素。
++   **未观察到的混杂因素：**MMM 模型依赖于观察到的数据，但可能会忽略一些也影响营销和销售的重要变量，例如季节性或市场需求的变化。校准可以帮助调整这些未观察到的混杂因素。
 
-![](../Images/68daffe027c9c869f3578b756419d9d3.png)
+![](img/68daffe027c9c869f3578b756419d9d3.png)
 
 用户生成的图像（excalidraw）
 
@@ -72,7 +72,7 @@ towardsdatascience.com](/mastering-marketing-mix-modelling-in-python-7bbfe31360f
 
 在上一篇文章中，我们讨论了贝叶斯先验如何表示我们对模型中参数的初步信念，例如电视支出对销售的影响。我们还讨论了**pymc-marketing**中的默认参数是合理的选择，但信息量较弱。根据实验提供有信息的先验可以帮助校准我们的模型，并解决上一节中提出的问题。
 
-![](../Images/09be29c95962045bad0dd42d193c19b4.png)
+![](img/09be29c95962045bad0dd42d193c19b4.png)
 
 用户生成的图像（excalidraw）
 
@@ -101,7 +101,7 @@ mmm_with_priors = MMM(
 )
 ```
 
-+   使用`add_lift_test_measurements`方法，该方法为模型添加一个新的似然项，帮助校准饱和度曲线（不用担心，我们将在Python教程中详细讲解）：
++   使用`add_lift_test_measurements`方法，该方法为模型添加一个新的似然项，帮助校准饱和度曲线（不用担心，我们将在 Python 教程中详细讲解）：
 
 [## lift_test - 开源营销分析解决方案
 
@@ -109,7 +109,7 @@ mmm_with_priors = MMM(
 
 [www.pymc-marketing.io](https://www.pymc-marketing.io/en/stable/api/generated/pymc_marketing.mmm.lift_test.html?source=post_page-----49dce1a5b33d--------------------------------)
 
-如果你不熟悉贝叶斯分析怎么办？你可以选择使用像cvxpy这样的包运行约束回归。以下是如何通过为变量的系数设置上下限来实现的示例：
+如果你不熟悉贝叶斯分析怎么办？你可以选择使用像 cvxpy 这样的包运行约束回归。以下是如何通过为变量的系数设置上下限来实现的示例：
 
 ```py
 import cvxpy as cp
@@ -164,17 +164,17 @@ def train_model(X, y, reg_alpha, lower_bounds, upper_bounds):
 
 ## 1.3 我们可以进行哪些实验来为我们的贝叶斯先验提供依据？
 
-实验可以提供强有力的证据，帮助确定MMM中使用的先验。一些常见的实验包括：
+实验可以提供强有力的证据，帮助确定 MMM 中使用的先验。一些常见的实验包括：
 
-![](../Images/d28e5030229ad7f14f05a6b055c9363d.png)
+![](img/d28e5030229ad7f14f05a6b055c9363d.png)
 
 用户生成的图像（excalidraw）
 
-+   **转化提升测试 —** 这些测试通常在Facebook、YouTube、Snapchat、TikTok和DV360等平台上进行，用户被随机分为测试组和控制组。测试组会接触到营销活动，而控制组则没有。两组之间的转化率差异可以揭示渠道实际带来的提升效果。
++   **转化提升测试 —** 这些测试通常在 Facebook、YouTube、Snapchat、TikTok 和 DV360 等平台上进行，用户被随机分为测试组和控制组。测试组会接触到营销活动，而控制组则没有。两组之间的转化率差异可以揭示渠道实际带来的提升效果。
 
-+   **Geo-Lift测试 —** 在Geo-Lift测试中，某些地理区域的营销活动会被关闭，而其他区域则继续进行。通过比较测试区和控制区的表现，你可以衡量每个区域营销活动的增量影响。CausalPy Python包提供了一个易于使用的实现，值得一试：
++   **Geo-Lift 测试 —** 在 Geo-Lift 测试中，某些地理区域的营销活动会被关闭，而其他区域则继续进行。通过比较测试区和控制区的表现，你可以衡量每个区域营销活动的增量影响。CausalPy Python 包提供了一个易于使用的实现，值得一试：
 
-[](https://causalpy.readthedocs.io/en/stable/notebooks/geolift1.html?source=post_page-----49dce1a5b33d--------------------------------) [## 使用CausalPy进行贝叶斯GeoLift - CausalPy 0.4.0文档
+[](https://causalpy.readthedocs.io/en/stable/notebooks/geolift1.html?source=post_page-----49dce1a5b33d--------------------------------) [## 使用 CausalPy 进行贝叶斯 GeoLift - CausalPy 0.4.0 文档
 
 ### 本笔记本介绍了如何使用贝叶斯合成控制功能来评估“GeoLift”。我们的假设…
 
@@ -184,7 +184,7 @@ def train_model(X, y, reg_alpha, lower_bounds, upper_bounds):
 
 通过这些实验，你可以收集强有力的实证数据来为你的贝叶斯先验提供依据，并进一步提高营销组合模型的准确性和校准度。
 
-# 2.0 Python教程
+# 2.0 Python 教程
 
 现在我们理解了为什么需要校准我们的模型，接下来我们就来校准第一篇文章中的模型！在本次操作指南中，我们将涵盖：
 
@@ -202,11 +202,11 @@ def train_model(X, y, reg_alpha, lower_bounds, upper_bounds):
 
 我们将从模拟第一篇文章中使用的数据开始。如果你想了解更多关于数据生成过程的内容，请查看第一篇文章，我们在那里进行了详细的操作演示：
 
-[](/mastering-marketing-mix-modelling-in-python-7bbfe31360f9?source=post_page-----49dce1a5b33d--------------------------------) [## 在 Python 中掌握市场营销组合建模
+[](/mastering-marketing-mix-modelling-in-python-7bbfe31360f9?source=post_page-----49dce1a5b33d--------------------------------) ## 在 Python 中掌握市场营销组合建模
 
 ### 一本帮助你掌握 pymc 中 MMM 的实践指南 第一部分
 
-towardsdatascience.com](/mastering-marketing-mix-modelling-in-python-7bbfe31360f9?source=post_page-----49dce1a5b33d--------------------------------)
+towardsdatascience.com
 
 当我们在第一篇文章中训练模型时，电视、社交和搜索的贡献都被高估了。这似乎是由于需求代理没有像真实需求那样做出贡献。因此，让我们从停下的地方继续，考虑运行实验来解决这个问题！
 
@@ -311,7 +311,7 @@ df_exp_tv = exp_generator(start_date, periods, channel, adstock_alpha, saturatio
 df_exp_tv
 ```
 
-![](../Images/82ca31f7bb5e906574175cff8124b1c4.png)
+![](img/82ca31f7bb5e906574175cff8124b1c4.png)
 
 用户生成的图像
 
@@ -323,7 +323,7 @@ weekly_sales = df_exp_tv["tv_sales"].mean()
 weekly_sales
 ```
 
-![](../Images/b87fa975b77daba3d51a287bcb99f5a1.png)
+![](img/b87fa975b77daba3d51a287bcb99f5a1.png)
 
 用户生成的图像
 
@@ -356,7 +356,7 @@ df_lift_test = pd.DataFrame({
 df_lift_test
 ```
 
-![](../Images/31c7f7ff61f7e48e2004d04e86bcda7c.png)
+![](img/31c7f7ff61f7e48e2004d04e86bcda7c.png)
 
 用户生成的图像
 
@@ -421,17 +421,17 @@ true_contributions = true_contributions.style.bar(subset=['Contributions'], colo
 true_contributions
 ```
 
-![](../Images/775f5cc4b1d5e6bd935488919049ea2b.png)
+![](img/775f5cc4b1d5e6bd935488919049ea2b.png)
 
 用户生成的图片
 
-当我们比较新模型的真实贡献时，我们看到电视的贡献现在非常接近（比我们第一篇文章中的模型更接近，那时电视贡献为24%！）。
+当我们比较新模型的真实贡献时，我们看到电视的贡献现在非常接近（比我们第一篇文章中的模型更接近，那时电视贡献为 24%！）。
 
 ```py
 mmm_default.plot_waterfall_components_decomposition(figsize=(10,6));
 ```
 
-![](../Images/2b659394dc0db5dcd50d4458f33da52e.png)
+![](img/2b659394dc0db5dcd50d4458f33da52e.png)
 
 用户生成的图片
 
@@ -453,4 +453,4 @@ mmm_default.plot_waterfall_components_decomposition(figsize=(10,6));
 
 值得考虑的一件事是进行一次完整的营销暂停，并将结果作为先验信息来指导需求/基础销售。这有助于解决后勤挑战，同时也提升了实验的效力（因为效应大小增加）。
 
-希望你喜欢第二篇文章！如果你想继续朝着掌握MMM的方向前进，可以关注我——在下一篇文章中，我们将开始思考如何优化营销预算！
+希望你喜欢第二篇文章！如果你想继续朝着掌握 MMM 的方向前进，可以关注我——在下一篇文章中，我们将开始思考如何优化营销预算！

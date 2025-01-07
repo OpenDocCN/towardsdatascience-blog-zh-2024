@@ -1,20 +1,20 @@
 # 一种真实世界中的新颖方法，用于增强推荐系统中的多样性
 
-> 原文：[https://towardsdatascience.com/a-real-world-novel-approach-to-enhance-diversity-in-recommender-systems-7968655d4581?source=collection_archive---------10-----------------------#2024-03-01](https://towardsdatascience.com/a-real-world-novel-approach-to-enhance-diversity-in-recommender-systems-7968655d4581?source=collection_archive---------10-----------------------#2024-03-01)
+> 原文：[`towardsdatascience.com/a-real-world-novel-approach-to-enhance-diversity-in-recommender-systems-7968655d4581?source=collection_archive---------10-----------------------#2024-03-01`](https://towardsdatascience.com/a-real-world-novel-approach-to-enhance-diversity-in-recommender-systems-7968655d4581?source=collection_archive---------10-----------------------#2024-03-01)
 
 ## 推荐系统
 
-## 解决长尾问题并提升Headspace应用中的用户推荐体验
+## 解决长尾问题并提升 Headspace 应用中的用户推荐体验
 
-[](https://medium.com/@christabellecp?source=post_page---byline--7968655d4581--------------------------------)[![Christabelle Pabalan](../Images/24187865b6e9d03ae1aabf873ce1e67c.png)](https://medium.com/@christabellecp?source=post_page---byline--7968655d4581--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7968655d4581--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7968655d4581--------------------------------) [Christabelle Pabalan](https://medium.com/@christabellecp?source=post_page---byline--7968655d4581--------------------------------)
+[](https://medium.com/@christabellecp?source=post_page---byline--7968655d4581--------------------------------)![Christabelle Pabalan](https://medium.com/@christabellecp?source=post_page---byline--7968655d4581--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7968655d4581--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7968655d4581--------------------------------) [Christabelle Pabalan](https://medium.com/@christabellecp?source=post_page---byline--7968655d4581--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7968655d4581--------------------------------) ·阅读时间：6分钟·2024年3月1日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7968655d4581--------------------------------) ·阅读时间：6 分钟·2024 年 3 月 1 日
 
 --
 
-![](../Images/a121f47f6d8f0130622fc81be4a485ce.png)
+![](img/a121f47f6d8f0130622fc81be4a485ce.png)
 
-作者生成的DALLE图像
+作者生成的 DALLE 图像
 
 ## 两种推荐系统的选择
 

@@ -1,16 +1,16 @@
 # 数据科学领导者的终极生产力系统
 
-> 原文：[https://towardsdatascience.com/the-ultimate-productivity-system-for-data-science-leaders-81941be86308?source=collection_archive---------7-----------------------#2024-10-28](https://towardsdatascience.com/the-ultimate-productivity-system-for-data-science-leaders-81941be86308?source=collection_archive---------7-----------------------#2024-10-28)
+> 原文：[`towardsdatascience.com/the-ultimate-productivity-system-for-data-science-leaders-81941be86308?source=collection_archive---------7-----------------------#2024-10-28`](https://towardsdatascience.com/the-ultimate-productivity-system-for-data-science-leaders-81941be86308?source=collection_archive---------7-----------------------#2024-10-28)
 
 ## 一个优化数据科学领导者所能传递价值的框架。
 
-[](https://rebeccalvickery.medium.com/?source=post_page---byline--81941be86308--------------------------------)[![Rebecca Vickery](../Images/89fbce6868afc6c0309f0ebf722034dd.png)](https://rebeccalvickery.medium.com/?source=post_page---byline--81941be86308--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--81941be86308--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--81941be86308--------------------------------) [Rebecca Vickery](https://rebeccalvickery.medium.com/?source=post_page---byline--81941be86308--------------------------------)
+[](https://rebeccalvickery.medium.com/?source=post_page---byline--81941be86308--------------------------------)![Rebecca Vickery](https://rebeccalvickery.medium.com/?source=post_page---byline--81941be86308--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--81941be86308--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--81941be86308--------------------------------) [Rebecca Vickery](https://rebeccalvickery.medium.com/?source=post_page---byline--81941be86308--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--81941be86308--------------------------------) ·9分钟阅读·2024年10月28日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--81941be86308--------------------------------) ·9 分钟阅读·2024 年 10 月 28 日
 
 --
 
-![](../Images/5db9364916e54939edd57069db25008f.png)
+![](img/5db9364916e54939edd57069db25008f.png)
 
 图片来自[Andrik Langfield](https://unsplash.com/@andriklangfield?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在[Unsplash](https://unsplash.com/photos/pocket-watch-at-355-0rTCXZM7Xfo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)上的分享
 

@@ -1,16 +1,16 @@
 # 用 Python 构建美丽堆叠面积图的 5 个步骤
 
-> 原文：[https://towardsdatascience.com/5-steps-to-build-beautiful-stacked-area-charts-with-python-601041964328?source=collection_archive---------6-----------------------#2024-01-13](https://towardsdatascience.com/5-steps-to-build-beautiful-stacked-area-charts-with-python-601041964328?source=collection_archive---------6-----------------------#2024-01-13)
+> 原文：[`towardsdatascience.com/5-steps-to-build-beautiful-stacked-area-charts-with-python-601041964328?source=collection_archive---------6-----------------------#2024-01-13`](https://towardsdatascience.com/5-steps-to-build-beautiful-stacked-area-charts-with-python-601041964328?source=collection_archive---------6-----------------------#2024-01-13)
 
 ## 如何充分利用 Matplotlib 的全部功能讲述一个更具吸引力的故事
 
-[](https://guillaume-weingertner.medium.com/?source=post_page---byline--601041964328--------------------------------)[![Guillaume Weingertner](../Images/fbfb34af986a7788394b6033c6954d57.png)](https://guillaume-weingertner.medium.com/?source=post_page---byline--601041964328--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--601041964328--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--601041964328--------------------------------) [Guillaume Weingertner](https://guillaume-weingertner.medium.com/?source=post_page---byline--601041964328--------------------------------)
+[](https://guillaume-weingertner.medium.com/?source=post_page---byline--601041964328--------------------------------)![Guillaume Weingertner](https://guillaume-weingertner.medium.com/?source=post_page---byline--601041964328--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--601041964328--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--601041964328--------------------------------) [Guillaume Weingertner](https://guillaume-weingertner.medium.com/?source=post_page---byline--601041964328--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--601041964328--------------------------------) ·阅读时间 7 分钟·2024年1月13日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--601041964328--------------------------------) ·阅读时间 7 分钟·2024 年 1 月 13 日
 
 --
 
-![](../Images/db5af579ae224b6085072963c9ffbb1a.png)
+![](img/db5af579ae224b6085072963c9ffbb1a.png)
 
 美国按来源分类的电力生产 — 图片由作者提供
 

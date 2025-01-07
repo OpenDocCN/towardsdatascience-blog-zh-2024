@@ -1,12 +1,12 @@
 # 探索递归艺术：使用 Context Free 绘制分形图案
 
-> 原文：[https://towardsdatascience.com/exploring-recursive-art-fractals-with-context-free-58a9f045d0f3?source=collection_archive---------8-----------------------#2024-11-04](https://towardsdatascience.com/exploring-recursive-art-fractals-with-context-free-58a9f045d0f3?source=collection_archive---------8-----------------------#2024-11-04)
+> 原文：[`towardsdatascience.com/exploring-recursive-art-fractals-with-context-free-58a9f045d0f3?source=collection_archive---------8-----------------------#2024-11-04`](https://towardsdatascience.com/exploring-recursive-art-fractals-with-context-free-58a9f045d0f3?source=collection_archive---------8-----------------------#2024-11-04)
 
 ## 通过简单的规则和形状生成复杂的图像
 
-[](https://medium.com/@technologger?source=post_page---byline--58a9f045d0f3--------------------------------)[![Diego Penilla](../Images/aa69a740a3b915e5548219fe762dd2ae.png)](https://medium.com/@technologger?source=post_page---byline--58a9f045d0f3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--58a9f045d0f3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--58a9f045d0f3--------------------------------) [Diego Penilla](https://medium.com/@technologger?source=post_page---byline--58a9f045d0f3--------------------------------)
+[](https://medium.com/@technologger?source=post_page---byline--58a9f045d0f3--------------------------------)![Diego Penilla](https://medium.com/@technologger?source=post_page---byline--58a9f045d0f3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--58a9f045d0f3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--58a9f045d0f3--------------------------------) [Diego Penilla](https://medium.com/@technologger?source=post_page---byline--58a9f045d0f3--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--58a9f045d0f3--------------------------------) ·阅读时间 7 分钟·2024年11月4日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--58a9f045d0f3--------------------------------) ·阅读时间 7 分钟·2024 年 11 月 4 日
 
 --
 
@@ -14,7 +14,7 @@
 
 Context Free 艺术非常适合生成分形、树木和其他图案，且几乎不需要编码。
 
-![](../Images/c96a87e2ceb3115da9a8fd960939fa3a.png)
+![](img/c96a87e2ceb3115da9a8fd960939fa3a.png)
 
 *这件生成艺术作品由作者使用 Context Free 创建。*
 

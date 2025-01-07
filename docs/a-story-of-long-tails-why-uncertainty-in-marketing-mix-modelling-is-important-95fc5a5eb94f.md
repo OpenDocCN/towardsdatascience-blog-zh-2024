@@ -1,16 +1,16 @@
 # 长尾的故事：为何营销组合模型中的不确定性很重要
 
-> 原文：[https://towardsdatascience.com/a-story-of-long-tails-why-uncertainty-in-marketing-mix-modelling-is-important-95fc5a5eb94f?source=collection_archive---------7-----------------------#2024-11-27](https://towardsdatascience.com/a-story-of-long-tails-why-uncertainty-in-marketing-mix-modelling-is-important-95fc5a5eb94f?source=collection_archive---------7-----------------------#2024-11-27)
+> 原文：[`towardsdatascience.com/a-story-of-long-tails-why-uncertainty-in-marketing-mix-modelling-is-important-95fc5a5eb94f?source=collection_archive---------7-----------------------#2024-11-27`](https://towardsdatascience.com/a-story-of-long-tails-why-uncertainty-in-marketing-mix-modelling-is-important-95fc5a5eb94f?source=collection_archive---------7-----------------------#2024-11-27)
 
 ## “细节决定成败。值得等待，直到做对为止。” — 史蒂夫·乔布斯
 
-[](https://javier-marin.medium.com/?source=post_page---byline--95fc5a5eb94f--------------------------------)[![Javier Marin](../Images/31800b2fbfd1f7c841c9f6a2579d5681.png)](https://javier-marin.medium.com/?source=post_page---byline--95fc5a5eb94f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95fc5a5eb94f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--95fc5a5eb94f--------------------------------) [Javier Marin](https://javier-marin.medium.com/?source=post_page---byline--95fc5a5eb94f--------------------------------)
+[](https://javier-marin.medium.com/?source=post_page---byline--95fc5a5eb94f--------------------------------)![Javier Marin](https://javier-marin.medium.com/?source=post_page---byline--95fc5a5eb94f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95fc5a5eb94f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95fc5a5eb94f--------------------------------) [Javier Marin](https://javier-marin.medium.com/?source=post_page---byline--95fc5a5eb94f--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95fc5a5eb94f--------------------------------) ·阅读时间 23 分钟·2024年11月27日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95fc5a5eb94f--------------------------------) ·阅读时间 23 分钟·2024 年 11 月 27 日
 
 --
 
-![](../Images/e7c3cf42fd5629cbad2534f8e5c70ac8.png)
+![](img/e7c3cf42fd5629cbad2534f8e5c70ac8.png)
 
 图片由作者使用 DALL-E 生成
 

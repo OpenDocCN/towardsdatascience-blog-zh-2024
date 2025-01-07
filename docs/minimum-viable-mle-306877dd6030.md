@@ -1,16 +1,16 @@
 # 最小可行机器学习模型（MLE）
 
-> 原文：[https://towardsdatascience.com/minimum-viable-mle-306877dd6030?source=collection_archive---------9-----------------------#2024-10-31](https://towardsdatascience.com/minimum-viable-mle-306877dd6030?source=collection_archive---------9-----------------------#2024-10-31)
+> 原文：[`towardsdatascience.com/minimum-viable-mle-306877dd6030?source=collection_archive---------9-----------------------#2024-10-31`](https://towardsdatascience.com/minimum-viable-mle-306877dd6030?source=collection_archive---------9-----------------------#2024-10-31)
 
 ## 构建一个最小化的生产就绪情感分析模型
 
-[](https://medium.com/@lenixc210?source=post_page---byline--306877dd6030--------------------------------)[![Lenix Carter](../Images/d25c86c00d6b2ee64b70cae8297fd761.png)](https://medium.com/@lenixc210?source=post_page---byline--306877dd6030--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--306877dd6030--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--306877dd6030--------------------------------) [Lenix Carter](https://medium.com/@lenixc210?source=post_page---byline--306877dd6030--------------------------------)
+[](https://medium.com/@lenixc210?source=post_page---byline--306877dd6030--------------------------------)![Lenix Carter](https://medium.com/@lenixc210?source=post_page---byline--306877dd6030--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--306877dd6030--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--306877dd6030--------------------------------) [Lenix Carter](https://medium.com/@lenixc210?source=post_page---byline--306877dd6030--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--306877dd6030--------------------------------) ·阅读时长7分钟·2024年10月31日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--306877dd6030--------------------------------) ·阅读时长 7 分钟·2024 年 10 月 31 日
 
 --
 
-![](../Images/27789732b7a4449b4ff94b4e82876275.png)
+![](img/27789732b7a4449b4ff94b4e82876275.png)
 
 图片由[Stephen Dawson](https://unsplash.com/@dawson2406?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -32,7 +32,7 @@
 
 构建生产就绪机器学习模型最重要的部分是能够访问它。
 
-为此，我们构建了一个FastAPI客户端，用于提供情感分析的响应。我们利用Pydantic来确保输入和输出的结构化。我们使用的模型是来自Huggingface的Transformers库中的基本情感分析管道，这使我们能够使用预训练模型开始进行测试。
+为此，我们构建了一个 FastAPI 客户端，用于提供情感分析的响应。我们利用 Pydantic 来确保输入和输出的结构化。我们使用的模型是来自 Huggingface 的 Transformers 库中的基本情感分析管道，这使我们能够使用预训练模型开始进行测试。
 
 ```py
 # Filename: main.py
@@ -61,7 +61,7 @@ async def predict_sentiment(input_data: TextInput):
     )
 ```
 
-为了确保我们的工作是可复现的，我们可以使用requirements.txt文件和pip。
+为了确保我们的工作是可复现的，我们可以使用 requirements.txt 文件和 pip。
 
 ```py
 # Filename: requirements.txt
@@ -78,11 +78,11 @@ protobuf==3.20.3
 prometheus-client==0.17.1
 ```
 
-要安装此项，请初始化[您的文件中的venv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/)并运行：`pip install -r requirements.txt`。
+要安装此项，请初始化[您的文件中的 venv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/)并运行：`pip install -r requirements.txt`。
 
-要托管此API，只需运行：`uvicorn main:app --reload`。
+要托管此 API，只需运行：`uvicorn main:app --reload`。
 
-现在您拥有一个可以通过以下方式查询的API：
+现在您拥有一个可以通过以下方式查询的 API：
 
 ```py
 curl -X POST "http://localhost:8000/predict" \
@@ -90,7 +90,7 @@ curl -X POST "http://localhost:8000/predict" \
   -d '{"text": "I love using FastAPI!"}'
 ```
 
-或者您想要的任何API工具（即[Postman](https://www.postman.com/)）。您应该能收到一个返回结果，其中包括文本查询、预测的情感以及预测的置信度。
+或者您想要的任何 API 工具（即[Postman](https://www.postman.com/)）。您应该能收到一个返回结果，其中包括文本查询、预测的情感以及预测的置信度。
 
 我们稍后将使用 GitHub 进行 CI/CD，因此我建议在此目录中[初始化并使用 git](https://git-scm.com/docs/gittutorial)。
 

@@ -1,12 +1,12 @@
-# 结合大型和小型LLM以提升推理时间和质量
+# 结合大型和小型 LLM 以提升推理时间和质量
 
-> 原文：[https://towardsdatascience.com/combining-large-and-small-llms-for-inference-time-and-quality-boosts-1779b6b5100b?source=collection_archive---------9-----------------------#2024-12-05](https://towardsdatascience.com/combining-large-and-small-llms-for-inference-time-and-quality-boosts-1779b6b5100b?source=collection_archive---------9-----------------------#2024-12-05)
+> 原文：[`towardsdatascience.com/combining-large-and-small-llms-for-inference-time-and-quality-boosts-1779b6b5100b?source=collection_archive---------9-----------------------#2024-12-05`](https://towardsdatascience.com/combining-large-and-small-llms-for-inference-time-and-quality-boosts-1779b6b5100b?source=collection_archive---------9-----------------------#2024-12-05)
 
 ## 实现推测性解码和对比性解码
 
-[](https://mlsys.medium.com/?source=post_page---byline--1779b6b5100b--------------------------------)[![Richa Gadgil](../Images/c39ace5df0438240647ea751e8f6ba9e.png)](https://mlsys.medium.com/?source=post_page---byline--1779b6b5100b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1779b6b5100b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1779b6b5100b--------------------------------) [Richa Gadgil](https://mlsys.medium.com/?source=post_page---byline--1779b6b5100b--------------------------------)
+[](https://mlsys.medium.com/?source=post_page---byline--1779b6b5100b--------------------------------)![Richa Gadgil](https://mlsys.medium.com/?source=post_page---byline--1779b6b5100b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1779b6b5100b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1779b6b5100b--------------------------------) [Richa Gadgil](https://mlsys.medium.com/?source=post_page---byline--1779b6b5100b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1779b6b5100b--------------------------------) ·阅读时间8分钟·2024年12月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1779b6b5100b--------------------------------) ·阅读时间 8 分钟·2024 年 12 月 5 日
 
 --
 
@@ -30,9 +30,9 @@
 
 +   **业余/小型模型：** 主语言模型的较小版本，具有较少的参数（例如，OPT-125M）
 
-**推测性**和**对比性**解码利用大型和小型LLM实现可靠和高效的文本生成。
+**推测性**和**对比性**解码利用大型和小型 LLM 实现可靠和高效的文本生成。
 
-![](../Images/0108a15ac5b5abb54cf65b964db6f0d5.png)
+![](img/0108a15ac5b5abb54cf65b964db6f0d5.png)
 
 # 高质量推理的对比性解码
 
@@ -40,17 +40,17 @@
 
 对于单次预测，对比解码生成两个概率分布：
 
-+   *q =* 业余模型的logit概率
++   *q =* 业余模型的 logit 概率
 
-+   *p =* 专家模型的logit概率
++   *p =* 专家模型的 logit 概率
 
 下一词元的选择依据以下标准：
 
 +   丢弃所有在专家模型下概率不够高的词元（丢弃*p(x) < alpha * max(p)*）。
 
-+   从剩余的词元中，选择与大模型和小模型log概率差异最大的那个，*max(p(x) - q(x))。*
++   从剩余的词元中，选择与大模型和小模型 log 概率差异最大的那个，*max(p(x) - q(x))。*
 
-![](../Images/4e99947389dc73464dbe732a72555688.png)
+![](img/4e99947389dc73464dbe732a72555688.png)
 
 ## 实现对比解码
 
@@ -108,9 +108,9 @@ print(generated_text)
 
 这会为每个模型生成一个缓存，每个缓存中包含**n**个概率分布。
 
-+   *q =* 业余模型的logit概率
++   *q =* 业余模型的 logit 概率
 
-+   *p =* 专家模型的logit概率
++   *p =* 专家模型的 logit 概率
 
 接下来，基于以下条件，业余模型采样的词元会被接受或拒绝：
 
@@ -120,7 +120,7 @@ print(generated_text)
 
 如果一个词元被拒绝，下一个词元会从专家分布或调整后的分布中采样。此外，业余和专家模型会重置缓存并重新生成**n**个猜测和概率分布*p*与*q*。
 
-![](../Images/460e2c2954e742063edb26a642582e2d.png)
+![](img/460e2c2954e742063edb26a642582e2d.png)
 
 这里，蓝色表示被接受的词元，红色/绿色表示被拒绝的词元，随后从专家或调整后的分布中重新采样。
 
@@ -246,9 +246,9 @@ def sequential_sampling(prompt, max_length=50):
 
 为了评估对比解码，我们可以使用以下词汇丰富度的指标。
 
-+   **n-gram 熵**：衡量生成文本中n-gram的不可预测性或多样性。高熵表明文本更具多样性，而低熵则表明文本有重复性或可预测性。
++   **n-gram 熵**：衡量生成文本中 n-gram 的不可预测性或多样性。高熵表明文本更具多样性，而低熵则表明文本有重复性或可预测性。
 
-+   **distinct-n**：衡量生成文本中唯一n-gram的比例。较高的distinct-n值表示更多的词汇多样性。
++   **distinct-n**：衡量生成文本中唯一 n-gram 的比例。较高的 distinct-n 值表示更多的词汇多样性。
 
 ```py
 from collections import Counter
@@ -354,9 +354,9 @@ for n in range(1, 3):
 > 
 > 平均熵（n=3）：5.14373124004409
 > 
-> 平均Distinct-1：0.8949694135740648
+> 平均 Distinct-1：0.8949694135740648
 > 
-> 平均Distinct-2：0.9951219512195122
+> 平均 Distinct-2：0.9951219512195122
 > 
 > **对比解码：**
 > 
@@ -366,9 +366,9 @@ for n in range(1, 3):
 > 
 > 平均熵（n=3）：5.313720275712986
 > 
-> 平均Distinct-1：0.9028425204970866
+> 平均 Distinct-1：0.9028425204970866
 > 
-> 平均Distinct-2：1.0
+> 平均 Distinct-2：1.0
 
 为了评估推测解码，我们可以查看一组提示的平均运行时间，针对不同的**n**值。
 
@@ -426,9 +426,9 @@ plt.savefig("plot.png")
 
 我们可以看到，朴素解码的平均运行时间远高于在不同**n**值下的推测解码。
 
-![](../Images/475bc024a1d7d059c360c87cc8293ad3.png)
+![](img/475bc024a1d7d059c360c87cc8293ad3.png)
 
-将大语言模型和小语言模型结合进行解码，在质量和效率之间达到了平衡。尽管这些方法在系统设计和资源管理中增加了额外的复杂性，但它们的好处适用于对话AI、实时翻译和内容创作。
+将大语言模型和小语言模型结合进行解码，在质量和效率之间达到了平衡。尽管这些方法在系统设计和资源管理中增加了额外的复杂性，但它们的好处适用于对话 AI、实时翻译和内容创作。
 
 这些方法需要仔细考虑部署约束。例如，运行双模型所需的额外内存和计算需求可能会限制在边缘设备上的可行性，尽管可以通过诸如模型量化等技术来缓解这一问题。
 

@@ -1,18 +1,18 @@
 # 概率数据结构解码：提升现代计算性能
 
-> 原文：[https://towardsdatascience.com/probabilistic-data-structures-decoded-enhancing-performance-in-modern-computing-17f700e6ea47?source=collection_archive---------5-----------------------#2024-01-09](https://towardsdatascience.com/probabilistic-data-structures-decoded-enhancing-performance-in-modern-computing-17f700e6ea47?source=collection_archive---------5-----------------------#2024-01-09)
+> 原文：[`towardsdatascience.com/probabilistic-data-structures-decoded-enhancing-performance-in-modern-computing-17f700e6ea47?source=collection_archive---------5-----------------------#2024-01-09`](https://towardsdatascience.com/probabilistic-data-structures-decoded-enhancing-performance-in-modern-computing-17f700e6ea47?source=collection_archive---------5-----------------------#2024-01-09)
 
-## 布隆过滤器与Count Min Sketch在Python中的实现与理解终极指南
+## 布隆过滤器与 Count Min Sketch 在 Python 中的实现与理解终极指南
 
-[](https://namanagr03.medium.com/?source=post_page---byline--17f700e6ea47--------------------------------)[![Naman Agrawal](../Images/6bb885397aec17f5029cfac7f01edad9.png)](https://namanagr03.medium.com/?source=post_page---byline--17f700e6ea47--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--17f700e6ea47--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--17f700e6ea47--------------------------------) [Naman Agrawal](https://namanagr03.medium.com/?source=post_page---byline--17f700e6ea47--------------------------------)
+[](https://namanagr03.medium.com/?source=post_page---byline--17f700e6ea47--------------------------------)![Naman Agrawal](https://namanagr03.medium.com/?source=post_page---byline--17f700e6ea47--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--17f700e6ea47--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--17f700e6ea47--------------------------------) [Naman Agrawal](https://namanagr03.medium.com/?source=post_page---byline--17f700e6ea47--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--17f700e6ea47--------------------------------) ·阅读时间：26分钟·2024年1月9日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--17f700e6ea47--------------------------------) ·阅读时间：26 分钟·2024 年 1 月 9 日
 
 --
 
-![](../Images/4192b4e13217e5e16700e6354b81f9c6.png)
+![](img/4192b4e13217e5e16700e6354b81f9c6.png)
 
-图片来自 Google DeepMind：[https://www.pexels.com/photo/an-artist-s-illustration-of-artificial-intelligence-ai-this-image-visualises-the-input-and-output-of-neural-networks-and-how-ai-systems-perceive-data-it-was-created-by-rose-pilkington-17485706/](https://www.pexels.com/photo/an-artist-s-illustration-of-artificial-intelligence-ai-this-image-visualises-the-input-and-output-of-neural-networks-and-how-ai-systems-perceive-data-it-was-created-by-rose-pilkington-17485706/)
+图片来自 Google DeepMind：[`www.pexels.com/photo/an-artist-s-illustration-of-artificial-intelligence-ai-this-image-visualises-the-input-and-output-of-neural-networks-and-how-ai-systems-perceive-data-it-was-created-by-rose-pilkington-17485706/`](https://www.pexels.com/photo/an-artist-s-illustration-of-artificial-intelligence-ai-this-image-visualises-the-input-and-output-of-neural-networks-and-how-ai-systems-perceive-data-it-was-created-by-rose-pilkington-17485706/)
 
 # 目录
 
@@ -24,7 +24,7 @@
 
     3.1 它们是如何工作的
 
-    3.2 用Python实现布隆过滤器
+    3.2 用 Python 实现布隆过滤器
 
     3.3 布隆过滤器：时间与空间复杂度分析
 
@@ -34,7 +34,7 @@
 
     3.1 它们是如何工作的
 
-    3.2 用Python实现Count Min Sketch
+    3.2 用 Python 实现 Count Min Sketch
 
     3.3 Count Min Sketch：时间与空间复杂度分析
 
@@ -44,13 +44,13 @@
 
 1.  参考文献
 
-> **注意：** 本文中使用的完整代码文件可以在以下仓库中找到：[https://github.com/namanlab/Probabilistic_Data_Structures](https://github.com/namanlab/Probabilistic_Data_Structures)
+> **注意：** 本文中使用的完整代码文件可以在以下仓库中找到：[`github.com/namanlab/Probabilistic_Data_Structures`](https://github.com/namanlab/Probabilistic_Data_Structures)
 
 # 介绍
 
 计算机科学爱好者常常被算法的微妙魅力所吸引——这些默默无闻的工作马简化了我们的数字交互。编程的核心就是通过高效的算法与最佳数据结构的同步使用来完成任务。这也是为什么计算机科学中有一个专门的领域致力于算法的设计与分析，因为它们作为数字时代的建筑师，默默地塑造着我们的技术体验，融合了逻辑与精确。
 
-传统的数据结构与算法课程通常会让学生接触一些基本的确定性数据结构，例如数组、链表、栈和队列、二叉搜索树、AVL树、堆、哈希映射，当然还有图。事实上，学习这些数据结构及相关算法构成了开发更复杂程序的基础，这些程序旨在解决各种任务。在本文中，我将介绍概率数据结构，如布隆过滤器和计数最小草图，这些较为鲜为人知的数据结构。虽然一些入门课程简要提到过这些，但它们只是通常被忽视的数据结构中的一部分，然而它们却在各种学术讨论中展现出重要性。在本文中，我们将描述什么是概率数据结构，它们的重要性，示例及其实现，并通过一些所需的数学知识来更好地评估它们的性能。让我们开始吧！
+传统的数据结构与算法课程通常会让学生接触一些基本的确定性数据结构，例如数组、链表、栈和队列、二叉搜索树、AVL 树、堆、哈希映射，当然还有图。事实上，学习这些数据结构及相关算法构成了开发更复杂程序的基础，这些程序旨在解决各种任务。在本文中，我将介绍概率数据结构，如布隆过滤器和计数最小草图，这些较为鲜为人知的数据结构。虽然一些入门课程简要提到过这些，但它们只是通常被忽视的数据结构中的一部分，然而它们却在各种学术讨论中展现出重要性。在本文中，我们将描述什么是概率数据结构，它们的重要性，示例及其实现，并通过一些所需的数学知识来更好地评估它们的性能。让我们开始吧！
 
 # 什么是概率数据结构？
 
@@ -78,7 +78,7 @@
 
 假设我们有一个 m = 5 位大小的数组，最初填充为 0，且有 k = 2 个哈希函数。通常，我们使用的哈希函数必须满足两个关键特性：i) 它们应该计算快速，ii) 输出应该大致均匀分布，以尽量减少假阳性的风险（别担心，细节稍后会讨论）。接下来，我们将元素 64 和 78 添加到数组中。
 
-![](../Images/bcefca769e3234baab4a582897714f1f.png)
+![](img/bcefca769e3234baab4a582897714f1f.png)
 
 Bloom Filter 示例 [图片由作者提供]
 
@@ -182,45 +182,45 @@ BloomFilter 类通过指定的大小（表示内部位数组的位数）和使�
 
 首先，假设我们有一个大小为 m 的位数组以及 k 个哈希函数。此外，我们假设哈希函数是均匀工作的，即对于任何给定的输入，它们选择位数组中任意 m 个位置的概率是相等的。那么，某个特定索引 i 被选中的概率是：
 
-![](../Images/e80200507ce7dad84a05d8863c43a2f4.png)
+![](img/e80200507ce7dad84a05d8863c43a2f4.png)
 
 因此，位数组中第 i 个索引未被选中的概率是：
 
-![](../Images/e8ed8d08a2fc10072ddbf1a69f602c6a.png)
+![](img/e8ed8d08a2fc10072ddbf1a69f602c6a.png)
 
-现在，我们引入k个哈希函数。我们假设它们每个都独立工作并产生一个输出。此外，假设n个元素已经插入到数组中。这意味着，哈希函数总共已独立使用了nk次。因此，第i个索引仍为空的概率为：
+现在，我们引入 k 个哈希函数。我们假设它们每个都独立工作并产生一个输出。此外，假设 n 个元素已经插入到数组中。这意味着，哈希函数总共已独立使用了 nk 次。因此，第 i 个索引仍为空的概率为：
 
-![](../Images/33e2cfe401208c6572672d72e75267c7.png)
+![](img/33e2cfe401208c6572672d72e75267c7.png)
 
-因此，第i个索引被占用的概率现在是：
+因此，第 i 个索引被占用的概率现在是：
 
-![](../Images/7e9c2161cbccc6035cd98e945f5346e7.png)
+![](img/7e9c2161cbccc6035cd98e945f5346e7.png)
 
-什么时候会出现假阳性？当所有元素返回的索引值都是1，即使该元素并不在集合中时，就会发生假阳性。当所有k个哈希函数生成的索引都被占用时，就会发生这种情况。再次根据哈希函数独立性的假设，这就变成了以下概率：
+什么时候会出现假阳性？当所有元素返回的索引值都是 1，即使该元素并不在集合中时，就会发生假阳性。当所有 k 个哈希函数生成的索引都被占用时，就会发生这种情况。再次根据哈希函数独立性的假设，这就变成了以下概率：
 
-![](../Images/89250e768d46d0986904e7c3603fd322.png)
+![](img/89250e768d46d0986904e7c3603fd322.png)
 
-对于足够大的m值，我们可以将上述概率近似为一个更简单的表达式：
+对于足够大的 m 值，我们可以将上述概率近似为一个更简单的表达式：
 
-![](../Images/6c5c50cc8ccef57b8a0c48625db778fd.png)
+![](img/6c5c50cc8ccef57b8a0c48625db778fd.png)
 
-我们能否用这个方法找到最小化ε的最优k值？当然，这是一个简单的微积分练习。我们只需要对上述函数关于k求导并令其为0。但在此之前，我们可以通过对两边取对数来简化该函数，
+我们能否用这个方法找到最小化ε的最优 k 值？当然，这是一个简单的微积分练习。我们只需要对上述函数关于 k 求导并令其为 0。但在此之前，我们可以通过对两边取对数来简化该函数，
 
-![](../Images/1ce2d350910f32f4293ac3c38f071448.png)
+![](img/1ce2d350910f32f4293ac3c38f071448.png)
 
-这给出了最小化假阳性率的k值。为了确保这是误差函数的最小值，我们理想情况下需要计算f(k)的二阶导数并验证我们的计算。为了简化起见，我们在这里省略了证明，但通过简单的微积分可以很容易地展示。接下来，使用k的最优值，我们可以找到误差函数的最小值：
+这给出了最小化假阳性率的 k 值。为了确保这是误差函数的最小值，我们理想情况下需要计算 f(k)的二阶导数并验证我们的计算。为了简化起见，我们在这里省略了证明，但通过简单的微积分可以很容易地展示。接下来，使用 k 的最优值，我们可以找到误差函数的最小值：
 
-![](../Images/652c08b0ad3c78c713fc89639bdc0a7b.png)
+![](img/652c08b0ad3c78c713fc89639bdc0a7b.png)
 
-使用上述表达式，我们还可以求出m的最优值：
+使用上述表达式，我们还可以求出 m 的最优值：
 
-![](../Images/18611cdcf57b590e8ccf447ee95def6d.png)
+![](img/18611cdcf57b590e8ccf447ee95def6d.png)
 
-好吧，这涉及了很多数学内容。让我们试着理解我们做了什么以及为什么这么做。首先，我们只是使用了一些简单的概率表达式，找出了在插入n个元素并使用k个哈希函数后，第i个索引位置仍然为空的概率。通过这个，我们得到了假阳性误差的概率，它是n、k和m的函数。然后，我们对k进行了最小化处理。使用这个最优的k值，我们找到了误差函数的最小值。求解这个值对于m来说，让我们能够确定位数组的最小大小，从而容忍给定的误差值。
+好吧，这涉及了很多数学内容。让我们试着理解我们做了什么以及为什么这么做。首先，我们只是使用了一些简单的概率表达式，找出了在插入 n 个元素并使用 k 个哈希函数后，第 i 个索引位置仍然为空的概率。通过这个，我们得到了假阳性误差的概率，它是 n、k 和 m 的函数。然后，我们对 k 进行了最小化处理。使用这个最优的 k 值，我们找到了误差函数的最小值。求解这个值对于 m 来说，让我们能够确定位数组的最小大小，从而容忍给定的误差值。
 
-让我们举一个例子来更好地理解这些结果。假设我们要实现一个布隆过滤器，并需要找到m和k的合适值。我们预计大约会插入200,000个元素，即n = 200000，而我们可以容忍的最大假阳性误差约为1%，即ε ̄ = 0.01。那么，m和k的最优值可以通过以下方式找到：
+让我们举一个例子来更好地理解这些结果。假设我们要实现一个布隆过滤器，并需要找到 m 和 k 的合适值。我们预计大约会插入 200,000 个元素，即 n = 200000，而我们可以容忍的最大假阳性误差约为 1%，即ε ̄ = 0.01。那么，m 和 k 的最优值可以通过以下方式找到：
 
-![](../Images/452b4f6caf8198282ecbb033bb760d25.png)
+![](img/452b4f6caf8198282ecbb033bb760d25.png)
 
 利用这些计算，我们可以优化原始的布隆过滤器实现：
 
@@ -310,7 +310,7 @@ print(optimized_bloom_filter.contains("apple"))    # True
 print(optimized_bloom_filter.contains("grape"))    # False (not added)
 ```
 
-在此实现中，`OptimizedBloomFilter`类根据提供的期望元素数量（n）和可接受的假阳性率（p）动态计算m和k的最佳值。`calculate parameters`方法负责执行此计算。其余实现与之前版本类似，优化后的参数提高了空间效率并最小化了假阳性的概率。
+在此实现中，`OptimizedBloomFilter`类根据提供的期望元素数量（n）和可接受的假阳性率（p）动态计算 m 和 k 的最佳值。`calculate parameters`方法负责执行此计算。其余实现与之前版本类似，优化后的参数提高了空间效率并最小化了假阳性的概率。
 
 这就是我们关于布隆过滤器的讨论。希望你到目前为止阅读愉快！在下一节中，我们将讨论另一种重要的概率数据结构：计数最小草图（Count Min Sketch）。
 
@@ -318,23 +318,23 @@ print(optimized_bloom_filter.contains("grape"))    # False (not added)
 
 在本节中，我们将讨论另一种有趣的概率数据结构：计数最小草图。计数最小草图在某种程度上是布隆过滤器的扩展。就像哈希集合的概率对应物是布隆过滤器一样，多重集合的对应物就是计数最小草图。
 
-多重集合本质上是一个集合，它还记录了元素在输入数据流中出现的频率或次数。例如，如果输入数据是[2, 3, 3, 4, 1, 1, 0, 1, 0]，则一个集合仅仅是唯一元素的集合，即{0, 1, 2, 3, 4}。但是，一个多重集合还会记录频率，即{0: 2, 1: 3, 2: 1, 3: 3, 4: 1}，可以根据需求进行查询。传统的哈希表使用与哈希集合相同的数据结构，但也记录了每个元素的频率计数。虽然它非常高效并且可以在O(1)时间内查询，但存储所有元素可能会有较大的内存开销，同时处理冲突时还会有额外的开销。
+多重集合本质上是一个集合，它还记录了元素在输入数据流中出现的频率或次数。例如，如果输入数据是[2, 3, 3, 4, 1, 1, 0, 1, 0]，则一个集合仅仅是唯一元素的集合，即{0, 1, 2, 3, 4}。但是，一个多重集合还会记录频率，即{0: 2, 1: 3, 2: 1, 3: 3, 4: 1}，可以根据需求进行查询。传统的哈希表使用与哈希集合相同的数据结构，但也记录了每个元素的频率计数。虽然它非常高效并且可以在 O(1)时间内查询，但存储所有元素可能会有较大的内存开销，同时处理冲突时还会有额外的开销。
 
-和以前一样，计数最小草图通过显著减少内存需求并去除处理冲突时的不必要计算开销，通常比确定性的哈希表更高效。但是，它必须付出准确性的代价，幸运的是，可以通过像以前一样调整m和k的值来解决这个问题。让我们更仔细地了解计数最小草图是如何工作的。
+和以前一样，计数最小草图通过显著减少内存需求并去除处理冲突时的不必要计算开销，通常比确定性的哈希表更高效。但是，它必须付出准确性的代价，幸运的是，可以通过像以前一样调整 m 和 k 的值来解决这个问题。让我们更仔细地了解计数最小草图是如何工作的。
 
 ## 它们是如何工作的？
 
-计数最小草图的核心思想是使用多个哈希函数将输入元素映射到一个计数器数组。该数组被组织为一个二维矩阵，包含m列和k行，每行对应一个哈希函数，列代表计数器。当数据流中遇到一个元素时，它会使用每个哈希函数进行哈希处理，并相应地增加矩阵中的计数器。由于哈希函数的性质，冲突是不可避免的。然而，使用多个哈希函数和二维矩阵可以使计数最小草图将冲突分布到不同的计数器中。这种分布有助于减少冲突对计数准确性的影响。
+计数最小草图的核心思想是使用多个哈希函数将输入元素映射到一个计数器数组。该数组被组织为一个二维矩阵，包含 m 列和 k 行，每行对应一个哈希函数，列代表计数器。当数据流中遇到一个元素时，它会使用每个哈希函数进行哈希处理，并相应地增加矩阵中的计数器。由于哈希函数的性质，冲突是不可避免的。然而，使用多个哈希函数和二维矩阵可以使计数最小草图将冲突分布到不同的计数器中。这种分布有助于减少冲突对计数准确性的影响。
 
 假设我们有 m = 5（列数）和 k = 2（行数）个哈希函数。这意味着我们只需要一个大小为 m×k = 5×2 的数组。最初，该数组的所有元素都是 0。接下来，我们将元素 2、3、2、2 和 1 添加到集合中。这个过程与布隆过滤器类似。我们对输入数据（待添加的元素）应用 k 个哈希函数，得到 k 个索引。假设 ji 是第 i 个哈希函数的输出。然后，我们将第 i 行的 jith 索引值加 1。下图展示了这个过程的具体操作：
 
-![](../Images/e2f74d630ade158add500c26316a616f.png)
+![](img/e2f74d630ade158add500c26316a616f.png)
 
 Count Min Sketch 示例 [作者提供的图片]
 
 要估计一个元素的频率，需要查找与其哈希值对应的计数器，并选择其中的最小计数。这个最小计数提供了对真实频率的近似值。通过对多个元素重复这一过程并取最小计数，可以获得数据流中各个项的近似频率估计。例如，如果我们查询集合中数字 2 的频率，我们查看 3 和 4 的最小值，即 3，这实际上就是输入流中 2 的频率。类似地，数字 1 的频率是 1 和 4 的最小值，即 1，仍然是正确的输出。需要注意的是，Count Min Sketch 仅提供元素频率的最大边界。这个边界是通过算法如何将计数分配到不同计数器的方式得出的。可能会发生这样的情况：所有 k 个哈希函数对输入数据的输出对应的索引可能都会被递增，这并不是因为该元素本身的加入，而是由于该集合中的其他所有元素的影响。下方是一个示例，当我们向集合中添加 4 时的情况。
 
-![](../Images/de2dd71a25353c509686e5b9429e3913.png)
+![](img/de2dd71a25353c509686e5b9429e3913.png)
 
 Count Min Sketch 示例（假阳性）[作者提供的图片]
 
@@ -415,83 +415,83 @@ print(count_min_sketch.estimate("apple"))    # Estimated count for "apple"
 print(count_min_sketch.estimate("grape"))    # Estimated count for "grape" (not updated)
 ```
 
-在上面的代码中，CountMinSketch类使用指定的m和k参数进行初始化，分别表示每个哈希函数数组中的计数器数目和哈希函数的数量。草图通过更新项目出现的次数来进行更新，估计的项目计数可以被获取。哈希函数方法负责生成哈希值，示例使用部分展示了如何使用计数最小草图以流式方式估算特定项目的计数。与布隆过滤器相似，哈希使用了SHA-256算法，因为它已知能够产生均匀分布的输出。
+在上面的代码中，CountMinSketch 类使用指定的 m 和 k 参数进行初始化，分别表示每个哈希函数数组中的计数器数目和哈希函数的数量。草图通过更新项目出现的次数来进行更新，估计的项目计数可以被获取。哈希函数方法负责生成哈希值，示例使用部分展示了如何使用计数最小草图以流式方式估算特定项目的计数。与布隆过滤器相似，哈希使用了 SHA-256 算法，因为它已知能够产生均匀分布的输出。
 
 ## 计数最小草图：时间与空间复杂度分析
 
 让我们也快速分析一下计数最小草图的时间与空间复杂度。在时间复杂度方面，计数最小草图中元素的添加（递增计数器）和它们频率的估计都是常数时间操作：O(k)。常数因子受哈希函数数量（'k'）和矩阵大小（'m'）的影响。然而，假设哈希函数的评估可以在常数时间内完成，整体复杂度仍然是常数。操作涉及多个哈希函数，每个哈希函数对整体过程贡献一个常数时间。
 
-关于空间复杂度，计数最小草图由于使用了紧凑的矩阵结构，具有较高的内存效率。所需的空间与行数（'m'）和每行计数器数（'k'）的乘积成正比。因此，空间复杂度可以表示为O(m * k)。我们可以调整'm'和'k'的值，以在空间效率和估计精度之间找到平衡。较小的值可以减少内存使用，但可能导致更多的估计误差，而较大的值则提高精度，但会增加内存需求。这种可调性使得计数最小草图成为一种在内存受限且可接受近似频率计数的场景下非常灵活的解决方案。
+关于空间复杂度，计数最小草图由于使用了紧凑的矩阵结构，具有较高的内存效率。所需的空间与行数（'m'）和每行计数器数（'k'）的乘积成正比。因此，空间复杂度可以表示为 O(m * k)。我们可以调整'm'和'k'的值，以在空间效率和估计精度之间找到平衡。较小的值可以减少内存使用，但可能导致更多的估计误差，而较大的值则提高精度，但会增加内存需求。这种可调性使得计数最小草图成为一种在内存受限且可接受近似频率计数的场景下非常灵活的解决方案。
 
 ## 计数最小草图：数学原理
 
-如前所述，利用我们对概率论的知识，我们可以优化计数最小草图，即找到最小化错误可能性的m和k的值。首先，让我们正式化符号。令hat-fₓ表示元素x的频率估计值，fₓ表示该元素的实际频率。根据我们之前的讨论，我们必须满足：
+如前所述，利用我们对概率论的知识，我们可以优化计数最小草图，即找到最小化错误可能性的 m 和 k 的值。首先，让我们正式化符号。令 hat-fₓ表示元素 x 的频率估计值，fₓ表示该元素的实际频率。根据我们之前的讨论，我们必须满足：
 
-![](../Images/930919c0257cbf1e2b2f1b63d93ff125.png)
+![](img/930919c0257cbf1e2b2f1b63d93ff125.png)
 
-即，我们始终可以确信我们的估计值至少等于实际的频率计数。但仅此足够吗？一个始终输出非常大数字的愚蠢算法也可以实现这一点。使计数最小草图如此特别的是，我们不仅可以对实际频率fₓ进行上界限制，还可以对估计频率hat-fₓ与实际频率之间的偏差进行上界限制（当然是概率性的）。通过使用最优的m和k值，我们可以保证以下几点：
+即，我们始终可以确信我们的估计值至少等于实际的频率计数。但仅此足够吗？一个始终输出非常大数字的愚蠢算法也可以实现这一点。使计数最小草图如此特别的是，我们不仅可以对实际频率 fₓ进行上界限制，还可以对估计频率 hat-fₓ与实际频率之间的偏差进行上界限制（当然是概率性的）。通过使用最优的 m 和 k 值，我们可以保证以下几点：
 
-![](../Images/137f0ee281a9576a8c9fb6a9d348f661.png)
+![](img/137f0ee281a9576a8c9fb6a9d348f661.png)
 
-即，估计频率超过实际频率超过或等于εn（n是输入流的大小）的概率至少为(1 − δ)，其中ε和δ可以按需取足够小。满足此条件的m和k的值如下：
+即，估计频率超过实际频率超过或等于εn（n 是输入流的大小）的概率至少为(1 − δ)，其中ε和δ可以按需取足够小。满足此条件的 m 和 k 的值如下：
 
-![](../Images/cd4813fc28efb1f0a71352535e2f74cb.png)
+![](img/cd4813fc28efb1f0a71352535e2f74cb.png)
 
-如我们所见，列数（m）控制最大偏差值（hat-fₓ − fₓ），而行数/哈希函数数（k）则控制概率保证1 − δ。这个证明相当复杂，需要一些中间的概率理论知识，如随机变量和马尔科夫不等式。我将在接下来的段落中详细讲解这个证明。如果你感兴趣并且具备必要的前置知识，可以继续阅读。
+如我们所见，列数（m）控制最大偏差值（hat-fₓ − fₓ），而行数/哈希函数数（k）则控制概率保证 1 − δ。这个证明相当复杂，需要一些中间的概率理论知识，如随机变量和马尔科夫不等式。我将在接下来的段落中详细讲解这个证明。如果你感兴趣并且具备必要的前置知识，可以继续阅读。
 
-所以，让我们从证明开始。首先，我们定义一些量：令αᵢ, ₕᵢ₍ₓ₎表示第i行中的值，hᵢ(x)表示计数最小草图数组的列。这仅仅是根据第i行/第i个哈希函数对x的频率估计。这意味着估计频率只是所有行中该值的最小值：
+所以，让我们从证明开始。首先，我们定义一些量：令αᵢ, ₕᵢ₍ₓ₎表示第 i 行中的值，hᵢ(x)表示计数最小草图数组的列。这仅仅是根据第 i 行/第 i 个哈希函数对 x 的频率估计。这意味着估计频率只是所有行中该值的最小值：
 
-![](../Images/816700ab8f3054b96763e00135ada35f.png)
+![](img/816700ab8f3054b96763e00135ada35f.png)
 
-我们现在定义随机变量Zᵢ（称为超计数）如下：
+我们现在定义随机变量 Zᵢ（称为超计数）如下：
 
-![](../Images/cfda04f9b26574ad76ebbc97c8d645e9.png)
+![](img/cfda04f9b26574ad76ebbc97c8d645e9.png)
 
-接下来，我们定义一个指示随机变量Xᵢ,ᵧ，检查在第i行中是否与其他元素y ≠ x发生碰撞。形式上，
+接下来，我们定义一个指示随机变量 Xᵢ,ᵧ，检查在第 i 行中是否与其他元素 y ≠ x 发生碰撞。形式上，
 
-![](../Images/4dae31722d2ff1cdf4c9f193755fe928.png)
+![](img/4dae31722d2ff1cdf4c9f193755fe928.png)
 
-现在，让我们思考Zᵢ和Xᵢ,ᵧ之间的关系。回想一下，Zᵢ是超计数，即αᵢ, ₕᵢ₍ₓ₎超过实际频率fₓ的值。这什么时候发生呢？当与元素y ≠ x发生碰撞时，就会发生这种情况。这让我们能够定义以下关系：
+现在，让我们思考 Zᵢ和 Xᵢ,ᵧ之间的关系。回想一下，Zᵢ是超计数，即αᵢ, ₕᵢ₍ₓ₎超过实际频率 fₓ的值。这什么时候发生呢？当与元素 y ≠ x 发生碰撞时，就会发生这种情况。这让我们能够定义以下关系：
 
-![](../Images/4a7c559b4e11d039caec84d056d2d5b1.png)
+![](img/4a7c559b4e11d039caec84d056d2d5b1.png)
 
-请注意，由于元素可能多次出现，每次都会导致超计数增加，我们已经用y的实际频率估计对总和进行了加权。下一步涉及使用期望的性质来找到Zᵢ或超计数的期望值：
+请注意，由于元素可能多次出现，每次都会导致超计数增加，我们已经用 y 的实际频率估计对总和进行了加权。下一步涉及使用期望的性质来找到 Zᵢ或超计数的期望值：
 
-![](../Images/61c49c4da41ce40dc16335d536be62d7.png)
+![](img/61c49c4da41ce40dc16335d536be62d7.png)
 
-其中n表示输入流的预期长度，它大于或等于所有其他元素频率之和。最后，我们使用马尔科夫不等式来找到Zᵢ超过其期望值并乘以常数的概率：
+其中 n 表示输入流的预期长度，它大于或等于所有其他元素频率之和。最后，我们使用马尔科夫不等式来找到 Zᵢ超过其期望值并乘以常数的概率：
 
-![](../Images/3d80bdbe1caa09ee8ccd0a529425515a.png)
+![](img/3d80bdbe1caa09ee8ccd0a529425515a.png)
 
-上述只是直接使用了马尔科夫不等式。现在我们可以利用E [Zᵢ] ≤ n/m的事实得到：
+上述只是直接使用了马尔科夫不等式。现在我们可以利用 E [Zᵢ] ≤ n/m 的事实得到：
 
-![](../Images/44fa4d57df89fc32e9bffee19a71aa86.png)
+![](img/44fa4d57df89fc32e9bffee19a71aa86.png)
 
-回想一下我们想要证明的表达式。我们只希望在不等式右侧的概率项中出现εn。目前我们有a/m。取a = mε可以得到这一项。因此，
+回想一下我们想要证明的表达式。我们只希望在不等式右侧的概率项中出现εn。目前我们有 a/m。取 a = mε可以得到这一项。因此，
 
-![](../Images/3aa530c03256b0ee476535a955e98415.png)
+![](img/3aa530c03256b0ee476535a955e98415.png)
 
-现在我们代入m = e/ε来得到：
+现在我们代入 m = e/ε来得到：
 
-![](../Images/070aab6abb8b36d25b182ad432ef9cb3.png)
+![](img/070aab6abb8b36d25b182ad432ef9cb3.png)
 
-上述内容对所有Zᵢ（i = 1到i = k）都必须成立。因此，我们可以写出：
+上述内容对所有 Zᵢ（i = 1 到 i = k）都必须成立。因此，我们可以写出：
 
-![](../Images/bdc29310badf3cceb511d254432eba55.png)
+![](img/bdc29310badf3cceb511d254432eba55.png)
 
-由于上述表达式对所有i成立，因此它也必须对最小值成立：
+由于上述表达式对所有 i 成立，因此它也必须对最小值成立：
 
-![](../Images/878f45a3df2d2327e196d2935615c338.png)
+![](img/878f45a3df2d2327e196d2935615c338.png)
 
-最后，我们取上述概率的补集并代入k的值：
+最后，我们取上述概率的补集并代入 k 的值：
 
-![](../Images/8038942a83fefb97db26aaada0973176.png)
+![](img/8038942a83fefb97db26aaada0973176.png)
 
-这完成了证明。从中我们可以得出结论，为了在概率保证1 − δ下实现最大偏差为εn，我们需要以下条件：
+这完成了证明。从中我们可以得出结论，为了在概率保证 1 − δ下实现最大偏差为εn，我们需要以下条件：
 
-![](../Images/576644e30b9173c9941a9d03ea1af174.png)
+![](img/576644e30b9173c9941a9d03ea1af174.png)
 
-使用这些计算方法，我们可以优化我们原始的count min sketch实现：
+使用这些计算方法，我们可以优化我们原始的 count min sketch 实现：
 
 ```py
 import hashlib
@@ -577,9 +577,9 @@ print(count_min_sketch.estimate("apple"))    # Estimated count for "apple"
 print(count_min_sketch.estimate("grape"))    # Estimated count for "grape" (not updated)
 ```
 
-在这个实现中，OptimizedCountMinSketch类根据提供的最大偏差容忍度（epsilon）和概率要求（delta）动态计算m和k的最优值。calculate parameters方法处理这个计算。其余实现与之前版本相似，优化后的参数实现了所需的保证。
+在这个实现中，OptimizedCountMinSketch 类根据提供的最大偏差容忍度（epsilon）和概率要求（delta）动态计算 m 和 k 的最优值。calculate parameters 方法处理这个计算。其余实现与之前版本相似，优化后的参数实现了所需的保证。
 
-这就结束了我们关于Count Min Sketch的讨论。
+这就结束了我们关于 Count Min Sketch 的讨论。
 
 # 结论
 
@@ -589,7 +589,7 @@ print(count_min_sketch.estimate("grape"))    # Estimated count for "grape" (not 
 
 事实上，理解一个算法的能力不仅来源于使用它，还来源于理解它如何工作以及为什么能工作。在本文中，我尝试描述了两个重要的概率数据结构及其算法的内部工作原理。我们讨论了它们相对于确定性算法的性能和实现，并使用一些数学方法量化了它们的误差边界。尽管这些数据结构在文献中非常重要，但它们仅仅构成了其他概率数据结构（如跳表、超对数哈希、treap、商数滤波器、最小哈希等）海洋的表面。许多这些数据结构非常有趣，并在计算机科学领域有着广泛的潜在应用。我希望在后续的文章中进一步详细探讨其中的一些。
 
-希望你喜欢阅读这篇文章！如果你有任何疑问或建议，请在评论框中回复。也可以通过[邮件](mailto:naman.agr03@gmail.com)与我联系。
+希望你喜欢阅读这篇文章！如果你有任何疑问或建议，请在评论框中回复。也可以通过邮件与我联系。
 
 如果你喜欢我的文章并想阅读更多，请关注我。
 
@@ -597,14 +597,14 @@ print(count_min_sketch.estimate("grape"))    # Estimated count for "grape" (not 
 
 # 参考文献
 
-1.  Bloom filter — Wikipedia — en.wikipedia.org. [https://en.wikipedia.org/wiki/Bloom_filter.](https://en.wikipedia.org/wiki/Bloom_filter.) [访问日期：2024年1月7日]。
+1.  Bloom filter — Wikipedia — en.wikipedia.org. [`en.wikipedia.org/wiki/Bloom_filter.`](https://en.wikipedia.org/wiki/Bloom_filter.) [访问日期：2024 年 1 月 7 日]。
 
-1.  Bloom Filters — Introduction and Implementation — GeeksforGeeks — geeksforgeeks.org. [https://www.](https://www.) geeksforgeeks.org/bloom-filters-introduction-and-python-implementation/. [访问日期：2024年1月7日]。
+1.  Bloom Filters — Introduction and Implementation — GeeksforGeeks — geeksforgeeks.org. [`www.`](https://www.) geeksforgeeks.org/bloom-filters-introduction-and-python-implementation/. [访问日期：2024 年 1 月 7 日]。
 
-1.  Count-Min Sketch 数据结构与实现 — GeeksforGeeks — geeksforgeeks.org. [https://www.](https://www.) geeksforgeeks.org/count-min-sketch-in-java-with-examples/. [访问日期 2024年1月7日]。
+1.  Count-Min Sketch 数据结构与实现 — GeeksforGeeks — geeksforgeeks.org. [`www.`](https://www.) geeksforgeeks.org/count-min-sketch-in-java-with-examples/. [访问日期 2024 年 1 月 7 日]。
 
-1.  Counting Bloom Filters — 介绍与实现 — GeeksforGeeks — geeksforgeeks.org. [https://www.](https://www.) geeksforgeeks.org/counting-bloom-filters-introduction-and-implementation/. [访问日期 2024年1月7日]。
+1.  Counting Bloom Filters — 介绍与实现 — GeeksforGeeks — geeksforgeeks.org. [`www.`](https://www.) geeksforgeeks.org/counting-bloom-filters-introduction-and-implementation/. [访问日期 2024 年 1 月 7 日]。
 
-1.  Count–min sketch — 维基百科 — en.wikipedia.org. [https://en.wikipedia.org/wiki/Count%E2%80%93min_sketch.](https://en.wikipedia.org/wiki/Count%E2%80%93min_sketch.) [访问日期 2024年1月7日]。
+1.  Count–min sketch — 维基百科 — en.wikipedia.org. [`en.wikipedia.org/wiki/Count%E2%80%93min_sketch.`](https://en.wikipedia.org/wiki/Count%E2%80%93min_sketch.) [访问日期 2024 年 1 月 7 日]。
 
-1.  Humberto Villalta. Bloom Filter 数学证明 — humberto521336\. [https://medium.com/@humberto521336/](https://medium.com/@humberto521336/) bloom-filters-mathematical-proof-8aa2e5d7b06b. [访问日期 2024年1月7日]。
+1.  Humberto Villalta. Bloom Filter 数学证明 — humberto521336\. [`medium.com/@humberto521336/`](https://medium.com/@humberto521336/) bloom-filters-mathematical-proof-8aa2e5d7b06b. [访问日期 2024 年 1 月 7 日]。

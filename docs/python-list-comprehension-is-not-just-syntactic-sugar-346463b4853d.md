@@ -1,14 +1,14 @@
 # Python 列表推导式不仅仅是语法糖
 
-> 原文：[https://towardsdatascience.com/python-list-comprehension-is-not-just-syntactic-sugar-346463b4853d?source=collection_archive---------2-----------------------#2024-04-08](https://towardsdatascience.com/python-list-comprehension-is-not-just-syntactic-sugar-346463b4853d?source=collection_archive---------2-----------------------#2024-04-08)
+> 原文：[`towardsdatascience.com/python-list-comprehension-is-not-just-syntactic-sugar-346463b4853d?source=collection_archive---------2-----------------------#2024-04-08`](https://towardsdatascience.com/python-list-comprehension-is-not-just-syntactic-sugar-346463b4853d?source=collection_archive---------2-----------------------#2024-04-08)
 
-![](../Images/1a0aa5b120483ab0b9b795e6d943d3d0.png)
+![](img/1a0aa5b120483ab0b9b795e6d943d3d0.png)
 
 作者创作的图片
 
 ## “Pythonic” 不是一个好的理由。为什么性能更好？什么时候不该使用它？
 
-[](https://christophertao.medium.com/?source=post_page---byline--346463b4853d--------------------------------)[![Christopher Tao](../Images/bea1e3c81cc62eb28bdba9275d6b326f.png)](https://christophertao.medium.com/?source=post_page---byline--346463b4853d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--346463b4853d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--346463b4853d--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--346463b4853d--------------------------------)
+[](https://christophertao.medium.com/?source=post_page---byline--346463b4853d--------------------------------)![Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--346463b4853d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--346463b4853d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--346463b4853d--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--346463b4853d--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--346463b4853d--------------------------------) ·阅读时间：8 分钟·2024 年 4 月 8 日
 
@@ -28,6 +28,6 @@
 
 # 1\. 简单的性能比较
 
-![](../Images/2d532fdd4e3d92a296d79078bab966c2.png)
+![](img/2d532fdd4e3d92a296d79078bab966c2.png)
 
 作者创作的图片

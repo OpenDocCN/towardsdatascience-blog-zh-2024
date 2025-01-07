@@ -1,34 +1,34 @@
 # 在 Python 中开始使用 SQLite3，创建表格并获取行
 
-> 原文：[https://towardsdatascience.com/get-started-with-sqlite3-in-python-creating-tables-fetching-rows-a52bdf41e52a?source=collection_archive---------9-----------------------#2024-06-18](https://towardsdatascience.com/get-started-with-sqlite3-in-python-creating-tables-fetching-rows-a52bdf41e52a?source=collection_archive---------9-----------------------#2024-06-18)
+> 原文：[`towardsdatascience.com/get-started-with-sqlite3-in-python-creating-tables-fetching-rows-a52bdf41e52a?source=collection_archive---------9-----------------------#2024-06-18`](https://towardsdatascience.com/get-started-with-sqlite3-in-python-creating-tables-fetching-rows-a52bdf41e52a?source=collection_archive---------9-----------------------#2024-06-18)
 
 ## 学习使用 SQLite — 世界上使用最广泛的数据库管理系统
 
-[](https://medium.com/@ebbeberge?source=post_page---byline--a52bdf41e52a--------------------------------)[![Eirik Berge, 博士](../Images/7507374e75980fd0c1056af3cd299eaa.png)](https://medium.com/@ebbeberge?source=post_page---byline--a52bdf41e52a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a52bdf41e52a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a52bdf41e52a--------------------------------) [Eirik Berge, 博士](https://medium.com/@ebbeberge?source=post_page---byline--a52bdf41e52a--------------------------------)
+[](https://medium.com/@ebbeberge?source=post_page---byline--a52bdf41e52a--------------------------------)![Eirik Berge, 博士](https://medium.com/@ebbeberge?source=post_page---byline--a52bdf41e52a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a52bdf41e52a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a52bdf41e52a--------------------------------) [Eirik Berge, 博士](https://medium.com/@ebbeberge?source=post_page---byline--a52bdf41e52a--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a52bdf41e52a--------------------------------) ·10分钟阅读·2024年6月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a52bdf41e52a--------------------------------) ·10 分钟阅读·2024 年 6 月 18 日
 
 --
 
-![](../Images/0ca4ed3faec8f1e0e5af24f16eaa7cb4.png)
+![](img/0ca4ed3faec8f1e0e5af24f16eaa7cb4.png)
 
 照片由 [Sunder Muthukumaran](https://unsplash.com/@sunder_2k25?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 概述
 
-1.  [介绍 — 什么是 SQLite 和 SQLite3？](#a6cb)
+1.  介绍 — 什么是 SQLite 和 SQLite3？
 
-1.  [创建我们的第一个 SQLite 数据库](#649c)
+1.  创建我们的第一个 SQLite 数据库
 
-1.  [连接器和游标](#05d1)
+1.  连接器和游标
 
-1.  [创建表格](#d2a4)
+1.  创建表格
 
-1.  [向数据库插入行](#e777)
+1.  向数据库插入行
 
-1.  [从数据库中获取行](#7e8e)
+1.  从数据库中获取行
 
-1.  [总结](#c801)
+1.  总结
 
 # 介绍 — 什么是 SQLite 和 SQLite3？
 

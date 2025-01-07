@@ -1,16 +1,16 @@
 # 使用 Python 进行数据管道测试指南
 
-> 原文：[https://towardsdatascience.com/a-guide-to-data-pipeline-testing-with-python-a85e3d37d361?source=collection_archive---------4-----------------------#2024-03-09](https://towardsdatascience.com/a-guide-to-data-pipeline-testing-with-python-a85e3d37d361?source=collection_archive---------4-----------------------#2024-03-09)
+> 原文：[`towardsdatascience.com/a-guide-to-data-pipeline-testing-with-python-a85e3d37d361?source=collection_archive---------4-----------------------#2024-03-09`](https://towardsdatascience.com/a-guide-to-data-pipeline-testing-with-python-a85e3d37d361?source=collection_archive---------4-----------------------#2024-03-09)
 
 ## 面向初学者的单元测试、模拟和打补丁的温和介绍
 
-[](https://mshakhomirov.medium.com/?source=post_page---byline--a85e3d37d361--------------------------------)[![💡Mike Shakhomirov](../Images/bc6895c7face3244d488feb97ba0f68e.png)](https://mshakhomirov.medium.com/?source=post_page---byline--a85e3d37d361--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a85e3d37d361--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a85e3d37d361--------------------------------) [💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--a85e3d37d361--------------------------------)
+[](https://mshakhomirov.medium.com/?source=post_page---byline--a85e3d37d361--------------------------------)![💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--a85e3d37d361--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a85e3d37d361--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a85e3d37d361--------------------------------) [💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--a85e3d37d361--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a85e3d37d361--------------------------------) ·9 分钟阅读 ·2024年3月9日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a85e3d37d361--------------------------------) ·9 分钟阅读 ·2024 年 3 月 9 日
 
 --
 
-![](../Images/21d8fe0c8c057dcbd1d76fd9bcb90f9e.png)
+![](img/21d8fe0c8c057dcbd1d76fd9bcb90f9e.png)
 
 使用 [Kandinsky](https://github.com/ai-forever/Kandinsky-2) 生成的 AI 图像
 

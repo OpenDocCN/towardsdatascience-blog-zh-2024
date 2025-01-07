@@ -1,16 +1,16 @@
 # 从 Pandas 到 PySpark
 
-> 原文：[https://towardsdatascience.com/make-your-way-from-pandas-to-pyspark-c50d5928f6c3?source=collection_archive---------9-----------------------#2024-09-26](https://towardsdatascience.com/make-your-way-from-pandas-to-pyspark-c50d5928f6c3?source=collection_archive---------9-----------------------#2024-09-26)
+> 原文：[`towardsdatascience.com/make-your-way-from-pandas-to-pyspark-c50d5928f6c3?source=collection_archive---------9-----------------------#2024-09-26`](https://towardsdatascience.com/make-your-way-from-pandas-to-pyspark-c50d5928f6c3?source=collection_archive---------9-----------------------#2024-09-26)
 
 ## 学习一些基本的命令，开始从 Pandas 转向 PySpark
 
-[](https://gustavorsantos.medium.com/?source=post_page---byline--c50d5928f6c3--------------------------------)[![Gustavo R Santos](../Images/a19a9f4525cdeb6e7a76cd05246aa622.png)](https://gustavorsantos.medium.com/?source=post_page---byline--c50d5928f6c3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c50d5928f6c3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c50d5928f6c3--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--c50d5928f6c3--------------------------------)
+[](https://gustavorsantos.medium.com/?source=post_page---byline--c50d5928f6c3--------------------------------)![Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--c50d5928f6c3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c50d5928f6c3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c50d5928f6c3--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--c50d5928f6c3--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c50d5928f6c3--------------------------------) ·阅读时长9分钟·2024年9月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c50d5928f6c3--------------------------------) ·阅读时长 9 分钟·2024 年 9 月 26 日
 
 --
 
-![](../Images/ebaf1b15ab1ec28e2db93416cd0480b5.png)
+![](img/ebaf1b15ab1ec28e2db93416cd0480b5.png)
 
 图片来自 [Karsten Würth](https://unsplash.com/@karsten_wuerth?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在 [Unsplash](https://unsplash.com/photos/pathway-between-fence-and-grasses-HiE1bIIoRqQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

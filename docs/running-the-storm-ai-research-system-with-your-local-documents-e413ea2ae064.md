@@ -1,52 +1,52 @@
-# 使用本地文档运行STORM AI研究系统
+# 使用本地文档运行 STORM AI 研究系统
 
-> 原文：[https://towardsdatascience.com/running-the-storm-ai-research-system-with-your-local-documents-e413ea2ae064?source=collection_archive---------3-----------------------#2024-10-28](https://towardsdatascience.com/running-the-storm-ai-research-system-with-your-local-documents-e413ea2ae064?source=collection_archive---------3-----------------------#2024-10-28)
+> 原文：[`towardsdatascience.com/running-the-storm-ai-research-system-with-your-local-documents-e413ea2ae064?source=collection_archive---------3-----------------------#2024-10-28`](https://towardsdatascience.com/running-the-storm-ai-research-system-with-your-local-documents-e413ea2ae064?source=collection_archive---------3-----------------------#2024-10-28)
 
-## 使用AI辅助研究FEMA灾难响应文档
+## 使用 AI 辅助研究 FEMA 灾难响应文档
 
-[](https://medium.com/@astrobagel?source=post_page---byline--e413ea2ae064--------------------------------)[![Matthew Harris](../Images/4fa3264bb8a028633cd8d37093c16214.png)](https://medium.com/@astrobagel?source=post_page---byline--e413ea2ae064--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e413ea2ae064--------------------------------)[![数据科学前沿](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e413ea2ae064--------------------------------) [Matthew Harris](https://medium.com/@astrobagel?source=post_page---byline--e413ea2ae064--------------------------------)
+[](https://medium.com/@astrobagel?source=post_page---byline--e413ea2ae064--------------------------------)![Matthew Harris](https://medium.com/@astrobagel?source=post_page---byline--e413ea2ae064--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e413ea2ae064--------------------------------)![数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--e413ea2ae064--------------------------------) [Matthew Harris](https://medium.com/@astrobagel?source=post_page---byline--e413ea2ae064--------------------------------)
 
-·发布于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--e413ea2ae064--------------------------------) ·16分钟阅读·2024年10月28日
+·发布于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--e413ea2ae064--------------------------------) ·16 分钟阅读·2024 年 10 月 28 日
 
 --
 
-![](../Images/451f325bbb6fd2a154c72081210f8eb8.png)
+![](img/451f325bbb6fd2a154c72081210f8eb8.png)
 
-STORM通过视角引导的问题提问在模拟对话中研究主题。[来源](https://arxiv.org/abs/2402.14207)
+STORM 通过视角引导的问题提问在模拟对话中研究主题。[来源](https://arxiv.org/abs/2402.14207)
 
 TL;DR
 
-*LLM代理的使用在处理多步骤、长上下文的研究任务时变得越来越普遍，因为传统的RAG直接提示方法有时会遇到困难。在本文中，我们将探讨由斯坦福大学开发的一种新型且有前景的技术* ***S****ynthesis of* ***T****opic* ***O****utlines through* ***R****etrieval and* ***M****ulti-perspective Question Asking (*[*STORM*](https://arxiv.org/abs/2402.14207)*), 它使用LLM代理模拟“视角引导的对话”以实现复杂的研究目标，并生成丰富的研究文章，供人们在写作前研究使用。STORM最初是为了从网络资源中收集信息而开发的，但也支持搜索本地文档向量存储。在本文中，我们将展示如何实现STORM以支持基于AI的本地PDF研究，使用美国FEMA灾难准备和援助文档。*
+*LLM 代理的使用在处理多步骤、长上下文的研究任务时变得越来越普遍，因为传统的 RAG 直接提示方法有时会遇到困难。在本文中，我们将探讨由斯坦福大学开发的一种新型且有前景的技术* ***S****ynthesis of* ***T****opic* ***O****utlines through* ***R****etrieval and* ***M****ulti-perspective Question Asking (*[*STORM*](https://arxiv.org/abs/2402.14207)*), 它使用 LLM 代理模拟“视角引导的对话”以实现复杂的研究目标，并生成丰富的研究文章，供人们在写作前研究使用。STORM 最初是为了从网络资源中收集信息而开发的，但也支持搜索本地文档向量存储。在本文中，我们将展示如何实现 STORM 以支持基于 AI 的本地 PDF 研究，使用美国 FEMA 灾难准备和援助文档。*
 
-看到利用大语言模型（LLM）进行知识检索在相对较短的时间内取得的进展，真是令人惊叹。自从2020年发布的[首次关于检索增强生成（RAG）论文](https://arxiv.org/abs/2005.11401)以来，我们见证了这个生态系统的发展，现已涵盖了[一系列可用的技术](https://arxiv.org/html/2312.10997v5#S2)。其中更先进的技术之一是代理RAG，LLM代理通过迭代和优化文档检索来解决更复杂的研究任务。这类似于人类进行研究的方式，通过探索多种不同的搜索查询来建立更清晰的背景，有时还会与其他人讨论这一主题，并将所有信息整合成最终的结果。而单回合RAG，即便采用了查询扩展和重新排序等技术，在应对像这样的复杂多跳研究任务时，仍然存在困难。
+看到利用大语言模型（LLM）进行知识检索在相对较短的时间内取得的进展，真是令人惊叹。自从 2020 年发布的[首次关于检索增强生成（RAG）论文](https://arxiv.org/abs/2005.11401)以来，我们见证了这个生态系统的发展，现已涵盖了[一系列可用的技术](https://arxiv.org/html/2312.10997v5#S2)。其中更先进的技术之一是代理 RAG，LLM 代理通过迭代和优化文档检索来解决更复杂的研究任务。这类似于人类进行研究的方式，通过探索多种不同的搜索查询来建立更清晰的背景，有时还会与其他人讨论这一主题，并将所有信息整合成最终的结果。而单回合 RAG，即便采用了查询扩展和重新排序等技术，在应对像这样的复杂多跳研究任务时，仍然存在困难。
 
-使用代理框架（如[Autogen](https://microsoft.github.io/autogen/0.2/)、[CrewAI](https://www.crewai.com)和[LangGraph](https://www.langchain.com/langgraph)）以及特定的AI研究助手（如[GPT Researcher](https://github.com/assafelovic/gpt-researcher)）进行知识检索的模式有很多。在本文中，我们将探讨斯坦福大学开发的一个由LLM驱动的研究写作系统，名为**S**ynthesis of **T**opic **O**utlines through **R**etrieval and **M**ulti-perspective Question Asking（[STORM](https://arxiv.org/abs/2402.14207)）。
+使用代理框架（如[Autogen](https://microsoft.github.io/autogen/0.2/)、[CrewAI](https://www.crewai.com)和[LangGraph](https://www.langchain.com/langgraph)）以及特定的 AI 研究助手（如[GPT Researcher](https://github.com/assafelovic/gpt-researcher)）进行知识检索的模式有很多。在本文中，我们将探讨斯坦福大学开发的一个由 LLM 驱动的研究写作系统，名为**S**ynthesis of **T**opic **O**utlines through **R**etrieval and **M**ulti-perspective Question Asking（[STORM](https://arxiv.org/abs/2402.14207)）。
 
-# STORM AI研究写作系统
+# STORM AI 研究写作系统
 
-STORM应用了一种巧妙的技术，其中LLM代理模拟“视角引导对话”以达成研究目标，并扩展了“基于大纲的RAG”，以生成更丰富的文章内容。
+STORM 应用了一种巧妙的技术，其中 LLM 代理模拟“视角引导对话”以达成研究目标，并扩展了“基于大纲的 RAG”，以生成更丰富的文章内容。
 
-该系统配置为生成类似维基百科风格的文章，并在一组10名经验丰富的维基百科编辑者中进行了测试。
+该系统配置为生成类似维基百科风格的文章，并在一组 10 名经验丰富的维基百科编辑者中进行了测试。
 
-![](../Images/0e52360332e7847eb9aa2237a73652ac.png)
+![](img/0e52360332e7847eb9aa2237a73652ac.png)
 
-10名经验丰富的维基百科编辑者对STORM在实际使用中的感知有用性的调查结果。[来源](https://arxiv.org/abs/2402.14207)。
+10 名经验丰富的维基百科编辑者对 STORM 在实际使用中的感知有用性的调查结果。[来源](https://arxiv.org/abs/2402.14207)。
 
-总体反响积极，70%的编辑认为该工具在他们的*写作前*阶段研究一个主题时会非常有用。希望未来的调查能够包括超过10名编辑，但需要注意的是，作者也通过使用FreshWiki（一组近期高质量的维基百科文章数据集）对传统文章生成方法进行了基准测试，其中STORM被发现优于以往的方法。
+总体反响积极，70%的编辑认为该工具在他们的*写作前*阶段研究一个主题时会非常有用。希望未来的调查能够包括超过 10 名编辑，但需要注意的是，作者也通过使用 FreshWiki（一组近期高质量的维基百科文章数据集）对传统文章生成方法进行了基准测试，其中 STORM 被发现优于以往的方法。
 
-![](../Images/4076dab0bb937a746d51e0eb93b03985.png)
+![](img/4076dab0bb937a746d51e0eb93b03985.png)
 
-由10名经验丰富的维基百科编辑者对STORM和*oRAG*生成的20对文章进行人工评估。每对文章由两名维基百科编辑者评估。[来源](https://arxiv.org/abs/2402.14207)。
+由 10 名经验丰富的维基百科编辑者对 STORM 和*oRAG*生成的 20 对文章进行人工评估。每对文章由两名维基百科编辑者评估。[来源](https://arxiv.org/abs/2402.14207)。
 
-STORM是[开源的](https://github.com/stanford-oval/storm/tree/main)，并作为一个[Python包](https://pypi.org/project/knowledge-storm/)提供，另外还支持使用如[LangGraph](https://langchain-ai.github.io/langgraph/tutorials/storm/storm/)等框架的实现。最近，STORM已被增强以支持一种名为[Co-STORM](https://www.arxiv.org/abs/2408.15232)的人类-AI协作知识策划方法，将人类置于AI辅助研究环路的中心。
+STORM 是[开源的](https://github.com/stanford-oval/storm/tree/main)，并作为一个[Python 包](https://pypi.org/project/knowledge-storm/)提供，另外还支持使用如[LangGraph](https://langchain-ai.github.io/langgraph/tutorials/storm/storm/)等框架的实现。最近，STORM 已被增强以支持一种名为[Co-STORM](https://www.arxiv.org/abs/2408.15232)的人类-AI 协作知识策划方法，将人类置于 AI 辅助研究环路的中心。
 
 尽管它在自动化和人工评估中都显著优于基准方法，但作者也承认存在一些局限性。目前它还不是多模态的，生成的内容也未达到经验丰富的人工质量——我觉得它目前还不适合这一点，更多的是针对*写作前*的研究，而非最终文章——另外，参考文献方面也存在一些需要进一步改进的细节。话虽如此，如果你有一个深入的研究任务，值得一试。
 
-你可以在[网上](https://storm.genie.stanford.edu/)试用STORM——它非常有趣！——并配置为使用网络信息进行研究。
+你可以在[网上](https://storm.genie.stanford.edu/)试用 STORM——它非常有趣！——并配置为使用网络信息进行研究。
 
-# **但如果用自己的数据运行STORM呢？**
+# **但如果用自己的数据运行 STORM 呢？**
 
-许多组织希望将AI研究工具与他们自己的内部数据结合使用。STORM的作者们做得很好，记录了如何将STORM与不同的LLM提供者以及本地向量数据库结合使用，这意味着你可以在自己的文档上运行STORM。
+许多组织希望将 AI 研究工具与他们自己的内部数据结合使用。STORM 的作者们做得很好，记录了如何将 STORM 与不同的 LLM 提供者以及本地向量数据库结合使用，这意味着你可以在自己的文档上运行 STORM。
 
 那么，让我们来试试吧！
 
@@ -54,17 +54,17 @@ STORM是[开源的](https://github.com/stanford-oval/storm/tree/main)，并作�
 
 你可以在[这里](https://github.com/dividor/storm-with-local-docs)找到本文的代码，包含了环境设置说明以及如何收集一些示例文档来进行演示。
 
-# FEMA灾难准备和援助文档
+# FEMA 灾难准备和援助文档
 
-我们将使用34份由美国联邦应急管理局（[FEMA](https://www.fema.gov)）创建的PDF文档，帮助人们为灾难做准备并进行响应。这些文档可能通常不是人们用来撰写深入研究文章的内容，但我很想看看AI如何帮助人们为灾难做好准备。
+我们将使用 34 份由美国联邦应急管理局（[FEMA](https://www.fema.gov)）创建的 PDF 文档，帮助人们为灾难做准备并进行响应。这些文档可能通常不是人们用来撰写深入研究文章的内容，但我很想看看 AI 如何帮助人们为灾难做好准备。
 
-……我已经编写了处理FEMA报告的代码，这些代码来自之前的一些博客文章，已经包含在上面链接的代码库中。😊
+……我已经编写了处理 FEMA 报告的代码，这些代码来自之前的一些博客文章，已经包含在上面链接的代码库中。😊
 
 # 解析与切分
 
-一旦我们有了文档，就需要将其拆分成更小的文档，以便STORM能够在语料库中查找特定的主题。由于STORM最初旨在生成类似维基百科的文章，我选择尝试两种方法：（i）简单地通过[LangChain的PyPDFLoader](https://python.langchain.com/docs/integrations/document_loaders/pypdfloader/)按页将文档拆分为子文档，从而粗略模拟一个包含多个子主题的维基百科页面。许多FEMA的PDF是单页文档，看起来与维基百科文章相差不大；（ii）进一步将文档切分为更小的部分，更可能涵盖一个离散的子主题。
+一旦我们有了文档，就需要将其拆分成更小的文档，以便 STORM 能够在语料库中查找特定的主题。由于 STORM 最初旨在生成类似维基百科的文章，我选择尝试两种方法：（i）简单地通过[LangChain 的 PyPDFLoader](https://python.langchain.com/docs/integrations/document_loaders/pypdfloader/)按页将文档拆分为子文档，从而粗略模拟一个包含多个子主题的维基百科页面。许多 FEMA 的 PDF 是单页文档，看起来与维基百科文章相差不大；（ii）进一步将文档切分为更小的部分，更可能涵盖一个离散的子主题。
 
-这些当然是*非常*基础的解析方法，但我想看看这两种技术在结果上的差异。任何对STORM在本地文档中的严肃使用都应该投入所有常见的配对优化工作。
+这些当然是*非常*基础的解析方法，但我想看看这两种技术在结果上的差异。任何对 STORM 在本地文档中的严肃使用都应该投入所有常见的配对优化工作。
 
 ```py
 def parse_pdfs():
@@ -100,9 +100,9 @@ chunks = text_splitter.split_documents(docs)
 
 # 元数据增强
 
-[STORM的示例文档](https://github.com/stanford-oval/storm/blob/main/examples/storm_examples/README.md)要求文档具有元数据字段‘URL’，‘title’，和‘description’，其中‘URL’应该是唯一的。由于我们正在拆分PDF文档，因此没有单独页面和块的标题和描述，因此我选择使用简单的LLM调用来生成这些内容。
+[STORM 的示例文档](https://github.com/stanford-oval/storm/blob/main/examples/storm_examples/README.md)要求文档具有元数据字段‘URL’，‘title’，和‘description’，其中‘URL’应该是唯一的。由于我们正在拆分 PDF 文档，因此没有单独页面和块的标题和描述，因此我选择使用简单的 LLM 调用来生成这些内容。
 
-对于URLs，我们有每个PDF页面的链接，但对于页面内的块，复杂的知识检索系统可以通过布局检测模型生成元数据，这样文本块区域就可以在相应的PDF中高亮显示，但对于这个演示，我只是简单地在URL中添加了一个‘_id’查询参数，这个参数不会做任何事情，只是确保它们对于不同的块是唯一的。
+对于 URLs，我们有每个 PDF 页面的链接，但对于页面内的块，复杂的知识检索系统可以通过布局检测模型生成元数据，这样文本块区域就可以在相应的 PDF 中高亮显示，但对于这个演示，我只是简单地在 URL 中添加了一个‘_id’查询参数，这个参数不会做任何事情，只是确保它们对于不同的块是唯一的。
 
 ```py
 def summarize_text(text, prompt):
@@ -179,7 +179,7 @@ chunks = enrich_metadata(chunks)
 
 # 构建向量数据库
 
-STORM已经支持[Qdrant向量存储](https://www.google.com/url?sa=t&rct=j&opi=89978449&url=https%3A%2F%2Fqdrant.tech%2F&ved=2ahUKEwiHuK-_766JAxXutokEHbnUMhwQFnoECAgQAQ&usg=AOvVaw1SKthNlGkmNDis3BK1WPSq)。我喜欢在可能的情况下使用像LangChain和Llama Index这样的框架，这样可以在将来更容易地更换提供商，因此我选择使用LangChain构建一个[持久化到本地文件系统的本地Qdrant向量数据库](https://python.langchain.com/docs/integrations/vectorstores/qdrant/#local-mode)，而不是STORM的自动向量数据库管理。我认为这提供了更多的控制，并且对于那些已经有填充文档向量存储的管道的人来说更具可识别性。
+STORM 已经支持[Qdrant 向量存储](https://www.google.com/url?sa=t&rct=j&opi=89978449&url=https%3A%2F%2Fqdrant.tech%2F&ved=2ahUKEwiHuK-_766JAxXutokEHbnUMhwQFnoECAgQAQ&usg=AOvVaw1SKthNlGkmNDis3BK1WPSq)。我喜欢在可能的情况下使用像 LangChain 和 Llama Index 这样的框架，这样可以在将来更容易地更换提供商，因此我选择使用 LangChain 构建一个[持久化到本地文件系统的本地 Qdrant 向量数据库](https://python.langchain.com/docs/integrations/vectorstores/qdrant/#local-mode)，而不是 STORM 的自动向量数据库管理。我认为这提供了更多的控制，并且对于那些已经有填充文档向量存储的管道的人来说更具可识别性。
 
 ```py
 def build_vector_store(doc_type, docs):
@@ -226,17 +226,17 @@ build_vector_store("pages", docs)
 build_vector_store("chunks", docs)
 ```
 
-# 运行STORM
+# 运行 STORM
 
-STORM的代码库有[一些很棒的示例](https://github.com/stanford-oval/storm/blob/main/examples/storm_examples/README.md)，包括不同的搜索引擎和LLM的使用，以及如何使用Qdrant向量存储。我决定结合这些示例中的各种功能，并添加一些额外的后处理，如下所示：
+STORM 的代码库有[一些很棒的示例](https://github.com/stanford-oval/storm/blob/main/examples/storm_examples/README.md)，包括不同的搜索引擎和 LLM 的使用，以及如何使用 Qdrant 向量存储。我决定结合这些示例中的各种功能，并添加一些额外的后处理，如下所示：
 
-1.  增加了与OpenAI或Ollama一起运行的功能
+1.  增加了与 OpenAI 或 Ollama 一起运行的功能
 
 1.  增加了支持传入向量数据库目录的功能
 
-1.  增加了一个功能来解析参考文献元数据文件，将参考文献添加到生成的精炼文章中。STORM将这些参考文献生成在一个JSON文件中，但没有自动将它们添加到输出文章中。我不确定这是不是由于我错过了某个设置，但参考文献对于评估任何AI研究技术都至关重要，因此我增加了这个自定义后处理步骤。
+1.  增加了一个功能来解析参考文献元数据文件，将参考文献添加到生成的精炼文章中。STORM 将这些参考文献生成在一个 JSON 文件中，但没有自动将它们添加到输出文章中。我不确定这是不是由于我错过了某个设置，但参考文献对于评估任何 AI 研究技术都至关重要，因此我增加了这个自定义后处理步骤。
 
-1.  最后，我注意到开放模型在模板和角色设定方面提供了更多的指导，因为它们执行指令的准确度不如商业模型。我喜欢这些控制的透明性，并将其保留在OpenAI中，以便将来在工作中进行调整。
+1.  最后，我注意到开放模型在模板和角色设定方面提供了更多的指导，因为它们执行指令的准确度不如商业模型。我喜欢这些控制的透明性，并将其保留在 OpenAI 中，以便将来在工作中进行调整。
 
 这里是所有内容（查看[repo notebook](https://github.com/dividor/storm-with-local-docs/blob/main/storm-local-docs.ipynb)以获取完整代码）…
 
@@ -356,7 +356,7 @@ def generate_footnotes(folder):
     for rec in data["url_to_unified_index"]:
         val = data["url_to_unified_index"][rec]
         title = data["url_to_info"][rec]["title"].replace('"', "")
-        refs[val] = f"- {val} [{title}]({rec})"
+        refs[val] = f"- {val} {title}"
 
     keys = list(refs.keys())
     keys.sort()
@@ -397,7 +397,7 @@ def generate_markdown_article(output_dir):
     for ref in refs:
         print(f"Ref: {ref}, Ref_num: {refs[ref]}")
         url = refs[ref].split("(")[1].split(")")[0]
-        text = text.replace(f"[{ref}]", f"\[[{ref}]({url})\]")
+        text = text.replace(f"[{ref}]", f"\[{ref}\]")
 
     text += f"\n\n## References\n\n{footnotes}"
 
@@ -561,9 +561,9 @@ def run_storm(topic, model_type, db_dir):
     generate_markdown_article(output_dir)
 ```
 
-我们准备好运行STORM了！
+我们准备好运行 STORM 了！
 
-对于研究课题，我选择了一个典型的RAG系统难以回答的主题，且在PDF数据中没有很好覆盖的内容，这样我们可以看到归因效果如何……
+对于研究课题，我选择了一个典型的 RAG 系统难以回答的主题，且在 PDF 数据中没有很好覆盖的内容，这样我们可以看到归因效果如何……
 
 “***比较不同类型灾害的财务影响及其对社区的影响***”
 
@@ -577,15 +577,15 @@ for doc_type in ["pages", "chunks"]:
     run_storm(query=query, model_type="openai", db_dir=db_dir)
 ```
 
-使用OpenAI时，这个过程在我的Macbook Pro M2（16GB内存）上大约花费了6分钟。我需要指出的是，其他一些简单查询，尤其是底层文档中有更多支持内容的查询，要快得多（有些情况下不到30秒）。
+使用 OpenAI 时，这个过程在我的 Macbook Pro M2（16GB 内存）上大约花费了 6 分钟。我需要指出的是，其他一些简单查询，尤其是底层文档中有更多支持内容的查询，要快得多（有些情况下不到 30 秒）。
 
-# STORM结果
+# STORM 结果
 
-STORM生成了一组输出文件……
+STORM 生成了一组输出文件……
 
-![](../Images/9352963a2332997ba080d259b2f9151b.png)
+![](img/9352963a2332997ba080d259b2f9151b.png)
 
-由STORM生成的文件，其中一个Markdown文件结合了润色后的文章和参考脚注。
+由 STORM 生成的文件，其中一个 Markdown 文件结合了润色后的文章和参考脚注。
 
 审视**conversation_log.json**和**llm_call_history.json**文件，查看以视角引导的对话组件，十分有趣。
 
@@ -595,19 +595,19 @@ STORM生成了一组输出文件……
 
 你可以在这里找到生成的文章……
 
-+   [STORM生成的文章 — 使用按页面拆分的文本](https://github.com/dividor/storm-with-local-docs/blob/main/data/storm_output/pages/Compare_the_financial_impact_of_different_types_of_disasters_and_how_those_impact_communities/storm_gen_article_polished.md)
++   [STORM 生成的文章 — 使用按页面拆分的文本](https://github.com/dividor/storm-with-local-docs/blob/main/data/storm_output/pages/Compare_the_financial_impact_of_different_types_of_disasters_and_how_those_impact_communities/storm_gen_article_polished.md)
 
-+   [STORM生成的文章 — 使用递归文本拆分器进一步拆分的文本](https://github.com/dividor/storm-with-local-docs/blob/main/data/storm_output/chunks/Compare_the_financial_impact_of_different_types_of_disasters_and_how_those_impact_communities/storm_gen_article_polished.md)
++   [STORM 生成的文章 — 使用递归文本拆分器进一步拆分的文本](https://github.com/dividor/storm-with-local-docs/blob/main/data/storm_output/chunks/Compare_the_financial_impact_of_different_types_of_disasters_and_how_those_impact_communities/storm_gen_article_polished.md)
 
 **一些快速观察**
 
-这个演示没有进行正式的评估 — 这可能比单跳RAG系统[更为复杂](https://arxiv.org/abs/2401.15391) — 但这里有一些可能有用的主观观察……
+这个演示没有进行正式的评估 — 这可能比单跳 RAG 系统[更为复杂](https://arxiv.org/abs/2401.15391) — 但这里有一些可能有用的主观观察……
 
 1.  按页面或较小块拆分的解析会生成合理的预读报告，人类可以用来研究与灾害财务影响相关的领域
 
 1.  两种配对方法都在整个过程中提供了引用，但使用更小的文本块似乎产生了更少的引用。请参见上述两篇文章中的总结部分。更多的引用可以为分析提供更坚实的基础！
 
-1.  按较小块拆分的解析有时会产生不相关的引用，这是STORM论文中提到的引用问题之一。请参见[总结部分](https://github.com/dividor/storm-with-local-docs/blob/main/data/storm_output/chunks/Compare_the_financial_impact_of_different_types_of_disasters_and_how_those_impact_communities/storm_gen_article_polished.md)中源‘10’的引用，该引用与参考句子不符。
+1.  按较小块拆分的解析有时会产生不相关的引用，这是 STORM 论文中提到的引用问题之一。请参见[总结部分](https://github.com/dividor/storm-with-local-docs/blob/main/data/storm_output/chunks/Compare_the_financial_impact_of_different_types_of_disasters_and_how_those_impact_communities/storm_gen_article_polished.md)中源‘10’的引用，该引用与参考句子不符。
 
 1.  总体来说，正如我预期的那样，基于 Wiki 文章开发的算法，按 PDF 分割文本似乎能生成一篇[更具凝聚力和基础性的文章](https://github.com/dividor/storm-with-local-docs/blob/main/data/storm_output/pages/Compare_the_financial_impact_of_different_types_of_disasters_and_how_those_impact_communities/storm_gen_article_polished.md)（对我来说！）
 
@@ -619,7 +619,7 @@ STORM生成了一组输出文件……
 
 未来的工作还可以考虑将系统提示和人物角色调整到具体的商业案例中。目前，这些提示是为类似维基百科的过程设计的……
 
-![](../Images/41fbcc46e187420f6725280d4e787d88.png)
+![](img/41fbcc46e187420f6725280d4e787d88.png)
 
 STORM 系统提示，展示了如何强调创建维基百科风格的文章。[来源](https://arxiv.org/abs/2402.14207)
 
@@ -635,9 +635,9 @@ STORM 系统提示，展示了如何强调创建维基百科风格的文章。[�
 
 # 参考文献
 
-[知识密集型 NLP 任务的检索增强生成](https://arxiv.org/abs/2005.11401)，Lewis 等人，2020年
+[知识密集型 NLP 任务的检索增强生成](https://arxiv.org/abs/2005.11401)，Lewis 等人，2020 年
 
-[大规模语言模型的检索增强生成：综述](https://arxiv.org/html/2312.10997v5#S2)，Yunfan 等人，2024年
+[大规模语言模型的检索增强生成：综述](https://arxiv.org/html/2312.10997v5#S2)，Yunfan 等人，2024 年
 
 [从零开始利用大型语言模型协助撰写类似 Wikipedia 的文章](https://arxiv.org/abs/2402.14207)，Shao 等，2024
 
@@ -647,4 +647,4 @@ STORM 系统提示，展示了如何强调创建维基百科风格的文章。[�
 
 你可以在[这里](https://github.com/dividor/storm-with-local-docs)找到本文的代码
 
-***如果喜欢这篇文章，请点赞，如果你能关注我，我将非常高兴！你可以在*** [***这里***](/@astrobagel) ***找到更多文章***，***或者在*** [***LinkedIn***](https://www.linkedin.com/in/matthew-harris-4018865/) ***上联系我。***
+***如果喜欢这篇文章，请点赞，如果你能关注我，我将非常高兴！你可以在*** ***这里*** ***找到更多文章***，***或者在*** [***LinkedIn***](https://www.linkedin.com/in/matthew-harris-4018865/) ***上联系我。***

@@ -1,18 +1,18 @@
 # 从代码到洞察：数据分析师的软件工程最佳实践
 
-> 原文：[https://towardsdatascience.com/from-code-to-insights-software-engineering-best-practices-for-data-analysts-0dd6a2aaadfc?source=collection_archive---------0-----------------------#2024-06-06](https://towardsdatascience.com/from-code-to-insights-software-engineering-best-practices-for-data-analysts-0dd6a2aaadfc?source=collection_archive---------0-----------------------#2024-06-06)
+> 原文：[`towardsdatascience.com/from-code-to-insights-software-engineering-best-practices-for-data-analysts-0dd6a2aaadfc?source=collection_archive---------0-----------------------#2024-06-06`](https://towardsdatascience.com/from-code-to-insights-software-engineering-best-practices-for-data-analysts-0dd6a2aaadfc?source=collection_archive---------0-----------------------#2024-06-06)
 
 ## 每个数据分析师都应该知道的十大工程经验
 
-[](https://miptgirl.medium.com/?source=post_page---byline--0dd6a2aaadfc--------------------------------)[![Mariya Mansurova](../Images/b1dd377b0a1887db900cc5108bca8ea8.png)](https://miptgirl.medium.com/?source=post_page---byline--0dd6a2aaadfc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0dd6a2aaadfc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0dd6a2aaadfc--------------------------------) [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--0dd6a2aaadfc--------------------------------)
+[](https://miptgirl.medium.com/?source=post_page---byline--0dd6a2aaadfc--------------------------------)![Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--0dd6a2aaadfc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0dd6a2aaadfc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0dd6a2aaadfc--------------------------------) [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--0dd6a2aaadfc--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0dd6a2aaadfc--------------------------------) ·16分钟阅读·2024年6月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0dd6a2aaadfc--------------------------------) ·16 分钟阅读·2024 年 6 月 6 日
 
 --
 
-![](../Images/15e5c47b0612e64f57a5f84bcccc137a.png)
+![](img/15e5c47b0612e64f57a5f84bcccc137a.png)
 
-图片由DALL-E 3生成
+图片由 DALL-E 3 生成
 
 数据分析师的工作结合了不同领域的技能：
 
@@ -24,13 +24,13 @@
 
 +   最后但同样重要的是，计算机科学和软件工程的基础是提高效率的关键。
 
-在大学时，我学到了很多关于计算机科学的知识。我尝试过至少十种编程语言（从低级汇编语言和CUDA到高级Java和Scala）以及无数工具。我的第一个工作邀请是担任后端工程师。我决定不走这条路，但所有这些知识和原则对我的分析师职业生涯都非常有益。因此，我希望在这篇文章中与大家分享这些主要的原则。
+在大学时，我学到了很多关于计算机科学的知识。我尝试过至少十种编程语言（从低级汇编语言和 CUDA 到高级 Java 和 Scala）以及无数工具。我的第一个工作邀请是担任后端工程师。我决定不走这条路，但所有这些知识和原则对我的分析师职业生涯都非常有益。因此，我希望在这篇文章中与大家分享这些主要的原则。
 
 # 代码不是为计算机而写的。它是为人类而写的
 
 我从很多软件工程师那里听过这句口头禅。这在一本编程圣经《Clean Code》中得到了很好的解释。
 
-> 确实，阅读与写作所花的时间比例远远超过10比1。我们在编写新代码时，往往需要不断阅读旧代码。
+> 确实，阅读与写作所花的时间比例远远超过 10 比 1。我们在编写新代码时，往往需要不断阅读旧代码。
 
 在大多数情况下，工程师更倾向于选择容易理解的冗长代码，而不是简洁的惯用一行代码。
 
@@ -73,7 +73,7 @@ monthly_df.pivot(index = 'month', columns = 'feature', values = 'users_share')
 
 如果仪表板不可用，还有其他自动化方式。我曾经每周制作报告，并通过电子邮件发送给利益相关者。过了一段时间，这变得非常繁琐，我开始考虑自动化。那时，我使用了一个基础工具——[cron](https://en.wikipedia.org/wiki/Cron) 在虚拟机上。我安排了一个 Python 脚本，计算最新的数字并发送电子邮件。
 
-当你有一个脚本时，你只需要在 cron 文件中添加一行。例如，下面的这一行将在每周一上午9:10执行`analytical_script.py`。
+当你有一个脚本时，你只需要在 cron 文件中添加一行。例如，下面的这一行将在每周一上午 9:10 执行`analytical_script.py`。
 
 ```py
 10 9 * * 1 python analytical_script.py
@@ -81,7 +81,7 @@ monthly_df.pivot(index = 'month', columns = 'feature', values = 'users_share')
 
 Cron 是一种基础但仍然可持续的解决方案。其他可以用来调度脚本的工具有 Airflow、DBT 和 Jenkins。你可能知道 Jenkins 是一种工程师常用的 CI/CD（持续集成和持续交付）工具。这可能会让你感到惊讶，它也足够可定制，可以执行分析脚本。
 
-如果你需要更大的灵活性，是时候考虑Web应用程序了。在我的第一个团队中，我们没有A/B测试工具，因此很长一段时间，分析师必须手动分析每次更新。最终，我们编写了一个[Flask](https://flask.palletsprojects.com/en/3.0.x/) Web 应用程序，让工程师能够自助服务。现在，像[Gradio](https://www.gradio.app/)或[Streamlit](https://streamlit.io/)这样的轻量级Web应用程序解决方案，可以在几天内学会。
+如果你需要更大的灵活性，是时候考虑 Web 应用程序了。在我的第一个团队中，我们没有 A/B 测试工具，因此很长一段时间，分析师必须手动分析每次更新。最终，我们编写了一个[Flask](https://flask.palletsprojects.com/en/3.0.x/) Web 应用程序，让工程师能够自助服务。现在，像[Gradio](https://www.gradio.app/)或[Streamlit](https://streamlit.io/)这样的轻量级 Web 应用程序解决方案，可以在几天内学会。
 
 > 你可以在[我以前的一篇文章](https://medium.com/towards-data-science/understanding-retention-with-gradio-c288b48918af)中找到 Gradio 的详细指南。
 
@@ -89,31 +89,31 @@ Cron 是一种基础但仍然可持续的解决方案。其他可以用来调度
 
 你每天在工作中使用的工具在效率和最终结果中扮演着重要角色。所以值得掌握它们。
 
-当然，你可以使用默认的文本编辑器编写代码，但大多数人使用IDE（集成开发环境）。你将花费大量时间在这个应用程序上，因此值得评估你的选择。
+当然，你可以使用默认的文本编辑器编写代码，但大多数人使用 IDE（集成开发环境）。你将花费大量时间在这个应用程序上，因此值得评估你的选择。
 
-你可以从[JetBrains 2021年调查](https://lp.jetbrains.com/python-developers-survey-2021/)中找到最流行的Python IDE。
+你可以从[JetBrains 2021 年调查](https://lp.jetbrains.com/python-developers-survey-2021/)中找到最流行的 Python IDE。
 
-![](../Images/1d83d2a2333a32649533aec8f00f0f17.png)
+![](img/1d83d2a2333a32649533aec8f00f0f17.png)
 
-图表由作者制作，数据来自[JetBrains调查](https://lp.jetbrains.com/python-developers-survey-2021/)
+图表由作者制作，数据来自[JetBrains 调查](https://lp.jetbrains.com/python-developers-survey-2021/)
 
-我通常使用Python和Jupyter Notebooks进行日常工作。在我看来，最适合这种任务的IDE是JupyterLab。然而，我现在正在尝试其他选择，以便能够使用AI助手。自动补全的好处——它能消除大量的样板代码——对我来说是无价的，因此我愿意承担切换成本。我鼓励你去研究不同的选项，看看哪个最适合你的工作。
+我通常使用 Python 和 Jupyter Notebooks 进行日常工作。在我看来，最适合这种任务的 IDE 是 JupyterLab。然而，我现在正在尝试其他选择，以便能够使用 AI 助手。自动补全的好处——它能消除大量的样板代码——对我来说是无价的，因此我愿意承担切换成本。我鼓励你去研究不同的选项，看看哪个最适合你的工作。
 
-另一个有用的技巧是快捷键。你可以通过快捷键比使用鼠标更快地完成任务，而且看起来也很酷。我建议从谷歌搜索你的IDE快捷键开始，因为你通常使用这个工具最多。根据我的经验，最有价值的命令是：在Notebook中创建一个新单元格、运行该单元格、删除它以及将单元格转换为markdown。
+另一个有用的技巧是快捷键。你可以通过快捷键比使用鼠标更快地完成任务，而且看起来也很酷。我建议从谷歌搜索你的 IDE 快捷键开始，因为你通常使用这个工具最多。根据我的经验，最有价值的命令是：在 Notebook 中创建一个新单元格、运行该单元格、删除它以及将单元格转换为 markdown。
 
-如果你有其他经常使用的工具（比如Google Sheets或Slack），你也可以学习它们的命令。
+如果你有其他经常使用的工具（比如 Google Sheets 或 Slack），你也可以学习它们的命令。
 
-学习快捷键的主要窍门是“练习，练习，再练习”——你需要重复一百次才能开始自动化操作。甚至有一些插件可以促使你更多地使用快捷键（例如，[这个插件](https://plugins.jetbrains.com/plugin/9792-key-promoter-x)来自JetBrains）。
+学习快捷键的主要窍门是“练习，练习，再练习”——你需要重复一百次才能开始自动化操作。甚至有一些插件可以促使你更多地使用快捷键（例如，[这个插件](https://plugins.jetbrains.com/plugin/9792-key-promoter-x)来自 JetBrains）。
 
-最后但同样重要的是CLI（命令行界面）。刚开始它可能看起来令人生畏，但基本的CLI知识通常是值得的。我甚至用CLI来操作GitHub，因为它让我清楚地了解发生了什么。
+最后但同样重要的是 CLI（命令行界面）。刚开始它可能看起来令人生畏，但基本的 CLI 知识通常是值得的。我甚至用 CLI 来操作 GitHub，因为它让我清楚地了解发生了什么。
 
-然而，有些情况下几乎无法避免使用CLI，比如在远程服务器上工作。要自信地与服务器交互，你需要学习不到十个命令。[这篇文章](/command-line-interface-cli-tutorial-how-advanced-users-interact-with-computers-28cf88f81ce)可以帮助你掌握CLI的基本知识。
+然而，有些情况下几乎无法避免使用 CLI，比如在远程服务器上工作。要自信地与服务器交互，你需要学习不到十个命令。这篇文章可以帮助你掌握 CLI 的基本知识。
 
 # 管理你的环境
 
-继续讨论工具，设置你的环境总是个好主意。我有一个[Python虚拟环境](https://docs.python.org/3/library/venv.html)，用来日常工作并包含我通常使用的所有库。
+继续讨论工具，设置你的环境总是个好主意。我有一个[Python 虚拟环境](https://docs.python.org/3/library/venv.html)，用来日常工作并包含我通常使用的所有库。
 
-创建一个新的虚拟环境就像在终端中输入几行代码一样简单（*这是开始使用CLI的绝佳机会*）。
+创建一个新的虚拟环境就像在终端中输入几行代码一样简单（*这是开始使用 CLI 的绝佳机会*）。
 
 ```py
 # creating venv
@@ -129,39 +129,39 @@ pip install pandas plotly
 jupyter notebook
 ```
 
-你可以从这个环境启动Jupyter，或者在你的IDE中使用它。
+你可以从这个环境启动 Jupyter，或者在你的 IDE 中使用它。
 
-对于大型项目，最好有一个独立的环境。我通常只有在需要使用不常见的技术栈（比如PyTorch或其他新的LLM框架）或遇到库兼容性问题时才会这么做。
+对于大型项目，最好有一个独立的环境。我通常只有在需要使用不常见的技术栈（比如 PyTorch 或其他新的 LLM 框架）或遇到库兼容性问题时才会这么做。
 
-另一种节省环境资源的方式是使用[Docker容器](https://www.docker.com/)。我用它来处理一些更像生产环境的任务，比如在服务器上运行的Web应用。
+另一种节省环境资源的方式是使用[Docker 容器](https://www.docker.com/)。我用它来处理一些更像生产环境的任务，比如在服务器上运行的 Web 应用。
 
 # 思考程序性能
 
-说实话，分析师通常不需要过多考虑性能。当我在数据分析领域获得第一份工作时，我的领导分享了有关性能优化的实际方法（从那时起我一直在使用它）。当你考虑性能时，要考虑总时间与努力的关系。假设我有一个运行4小时的MapReduce脚本。我需要优化它吗？这取决于情况。
+说实话，分析师通常不需要过多考虑性能。当我在数据分析领域获得第一份工作时，我的领导分享了有关性能优化的实际方法（从那时起我一直在使用它）。当你考虑性能时，要考虑总时间与努力的关系。假设我有一个运行 4 小时的 MapReduce 脚本。我需要优化它吗？这取决于情况。
 
-+   如果我只需要运行一两次，那么花费1小时来优化这个脚本以便在1小时内计算结果是没有太大意义的。
++   如果我只需要运行一两次，那么花费 1 小时来优化这个脚本以便在 1 小时内计算结果是没有太大意义的。
 
 +   如果我计划每天运行它，那么花时间让它更高效，避免浪费计算资源（和金钱）是值得的。
 
 由于我的大多数任务是一次性研究工作，在大多数情况下，我不需要优化代码。然而，遵循一些基本规则以避免等待数小时是值得的。小技巧可以带来巨大的效果。我们来讨论一个这样的例子。
 
-从基础开始，性能的基石是[大O表示法](https://en.wikipedia.org/wiki/Big_O_notation)。简而言之，大O表示法展示了执行时间与处理元素数量之间的关系。所以，如果我的程序是O(n)，这意味着如果我将数据量增加10倍，执行时间大约会增加10倍。
+从基础开始，性能的基石是[大 O 表示法](https://en.wikipedia.org/wiki/Big_O_notation)。简而言之，大 O 表示法展示了执行时间与处理元素数量之间的关系。所以，如果我的程序是 O(n)，这意味着如果我将数据量增加 10 倍，执行时间大约会增加 10 倍。
 
-在编写代码时，了解算法的复杂度和主要数据结构是值得的。例如，检查一个元素是否在列表中需要O(n)的时间，但在集合中只需要O(1)的时间。让我们看看这如何影响我们的代码。
+在编写代码时，了解算法的复杂度和主要数据结构是值得的。例如，检查一个元素是否在列表中需要 O(n)的时间，但在集合中只需要 O(1)的时间。让我们看看这如何影响我们的代码。
 
-我有两个数据框，分别包含Q1和Q2用户的交易记录，对于Q1数据框中的每一笔交易，我想了解该客户是否被保留。我们的数据框相对较小，大约有30万到40万行。
+我有两个数据框，分别包含 Q1 和 Q2 用户的交易记录，对于 Q1 数据框中的每一笔交易，我想了解该客户是否被保留。我们的数据框相对较小，大约有 30 万到 40 万行。
 
-![](../Images/e738815b89ff2ce540c1db67f5825e78.png)
+![](img/e738815b89ff2ce540c1db67f5825e78.png)
 
 如你所见，性能差异非常大。
 
-+   第一种方法是最差的，因为在每次迭代时（对于Q1数据集中的每一行），我们都要计算唯一的user_ids列表。然后，我们以O(n)的复杂度在列表中查找元素。这个操作需要13分钟。
++   第一种方法是最差的，因为在每次迭代时（对于 Q1 数据集中的每一行），我们都要计算唯一的 user_ids 列表。然后，我们以 O(n)的复杂度在列表中查找元素。这个操作需要 13 分钟。
 
-+   第二种方法，即先计算列表，稍微好一些，但仍然需要将近6分钟。
++   第二种方法，即先计算列表，稍微好一些，但仍然需要将近 6 分钟。
 
-+   如果我们预先计算一个user_ids列表并将其转换为集合，我们将瞬间获得结果。
++   如果我们预先计算一个 user_ids 列表并将其转换为集合，我们将瞬间获得结果。
 
-如你所见，凭借基本的知识，我们可以让代码的运行速度提高超过10K倍。这是一个游戏规则的改变者。
+如你所见，凭借基本的知识，我们可以让代码的运行速度提高超过 10K 倍。这是一个游戏规则的改变者。
 
 另一个普遍的建议是避免使用普通的 Python，而是优先使用性能更高的数据结构，如 `pandas` 或 `numpy`。这些库之所以更快，是因为它们对数组进行了向量化操作，而这些操作是用 C 实现的。通常，`numpy` 的性能会稍好一些，因为 `pandas` 是建立在 `numpy` 之上的，但由于一些附加功能，它的速度稍慢。
 
@@ -201,23 +201,23 @@ assert last_record_time >= datetime.date(2023, 5, 31)
 
 最棘手且最有帮助的测试是常识检查。让我们讨论一些可能的方法。
 
-+   首先，我会检查结果是否在总体上合理。例如，如果一个月的留存率为99%，或者我在欧洲获得了10亿客户，那代码很可能存在BUG。
++   首先，我会检查结果是否在总体上合理。例如，如果一个月的留存率为 99%，或者我在欧洲获得了 10 亿客户，那代码很可能存在 BUG。
 
 +   其次，我会寻找其他数据来源或该主题的先前研究，以验证我的结果是否可行。
 
-+   如果你没有其他类似的研究（例如，你在估算在新市场推出产品后的潜在收入），我建议你将你的数字与其他现有细分市场的数据进行对比。例如，如果你在另一个市场推出产品后，对收入的增量效应为当前收入的5倍，我会说这有点过于乐观，值得重新审视假设。
++   如果你没有其他类似的研究（例如，你在估算在新市场推出产品后的潜在收入），我建议你将你的数字与其他现有细分市场的数据进行对比。例如，如果你在另一个市场推出产品后，对收入的增量效应为当前收入的 5 倍，我会说这有点过于乐观，值得重新审视假设。
 
 我希望这种思维方式能够帮助你获得更可行的结果。
 
 # 鼓励团队使用版本控制系统
 
-工程师们即使是在独立工作的小项目中，也会使用版本控制系统。同时，我常常看到分析师使用Google Sheets来存储他们的查询。由于我是强烈支持并倡导将所有代码存储在仓库中的人，所以我不能错过与大家分享我的想法的机会。
+工程师们即使是在独立工作的小项目中，也会使用版本控制系统。同时，我常常看到分析师使用 Google Sheets 来存储他们的查询。由于我是强烈支持并倡导将所有代码存储在仓库中的人，所以我不能错过与大家分享我的想法的机会。
 
-为什么在我的数据职业生涯中使用了超过10年的仓库？以下是主要的好处：
+为什么在我的数据职业生涯中使用了超过 10 年的仓库？以下是主要的好处：
 
 +   **可重复性**。我们经常需要调整先前的研究（例如，增加一个维度或将研究范围缩小到特定的细分市场），或者仅仅重复早期的计算。如果你以结构化的方式存储所有代码，你可以快速再现你的先前工作。这通常可以节省大量时间。
 
-+   **透明性**。将代码与研究结果关联，可以让你的同事深入了解方法论的每个细节，这带来更多的信任，自然也能帮助发现BUG或潜在的改进之处。
++   **透明性**。将代码与研究结果关联，可以让你的同事深入了解方法论的每个细节，这带来更多的信任，自然也能帮助发现 BUG 或潜在的改进之处。
 
 +   **知识共享**。如果你有一个易于浏览的目录（或者你将代码链接到任务跟踪器），那么你的同事能够轻松找到你的代码，而无需从头开始调查。
 
@@ -248,11 +248,11 @@ pio.renderers.default = "jpeg"
 
 最后但同样重要的是，Jupyter Notebooks 的差异通常很棘手。你经常会想了解代码的两个版本之间的差异。然而，默认的 GitHub 视图不会提供太多有用的信息，因为由于 notebook 元数据的变化，杂乱无章的内容太多（如下例所示）。
 
-![](../Images/21628c600bc0cf4b7eed721c5d871342.png)
+![](img/21628c600bc0cf4b7eed721c5d871342.png)
 
 实际上，GitHub 几乎已经解决了这个问题。一个[丰富的差异功能](https://github.blog/changelog/2023-03-01-feature-preview-rich-jupyter-notebook-diffs/)处于预览阶段，可以让你的生活变得更轻松——你只需要在设置中开启它。
 
-![](../Images/49953dcc47c5e4f0ba121118baefeaa3.png)
+![](img/49953dcc47c5e4f0ba121118baefeaa3.png)
 
 有了这个功能，我们可以轻松看到只是做了几个小的改动。我更改了默认渲染器和保留曲线的参数（所以图表也进行了更新）。
 
@@ -260,11 +260,11 @@ pio.renderers.default = "jpeg"
 
 工程师会对（几乎）所有代码变更进行同行评审。这个过程能让我们及早发现 bug，防止不良行为者或有效地共享团队中的知识。
 
-当然，这不是万能的：审查员可能会错过bug，或者恶意行为者可能会在流行的开源项目中引入漏洞。例如，有一个[相当可怕的故事](https://arstechnica.com/security/2024/03/backdoor-found-in-widely-used-linux-utility-breaks-encrypted-ssh-connections/)讲述了一个如何在广泛使用于流行Linux发行版的压缩工具中植入后门的事件。
+当然，这不是万能的：审查员可能会错过 bug，或者恶意行为者可能会在流行的开源项目中引入漏洞。例如，有一个[相当可怕的故事](https://arstechnica.com/security/2024/03/backdoor-found-in-widely-used-linux-utility-breaks-encrypted-ssh-connections/)讲述了一个如何在广泛使用于流行 Linux 发行版的压缩工具中植入后门的事件。
 
 然而，有证据表明，代码审查确实有帮助。麦康奈尔在他的经典书籍[《代码大全》](https://www.amazon.co.uk/Code-Complete-Practical-Handbook-Construction/dp/0735619670)中分享了以下统计数据。
 
-> … 软件测试单独进行时效果有限 —— 单元测试的平均缺陷检测率只有25%，功能测试为35%，集成测试为45%。相比之下，设计和代码检查的平均有效性分别为55%和60%。
+> … 软件测试单独进行时效果有限 —— 单元测试的平均缺陷检测率只有 25%，功能测试为 35%，集成测试为 45%。相比之下，设计和代码检查的平均有效性分别为 55%和 60%。
 
 尽管有这些好处，分析师们通常根本不进行代码审查。我能理解为什么这可能是一个挑战：
 
@@ -294,9 +294,9 @@ pio.renderers.default = "jpeg"
 
 现在有这么多的信息来源，根本不难找到：
 
-+   每周来自Towards Data Science和其他一些订阅的电子邮件，
++   每周来自 Towards Data Science 和其他一些订阅的电子邮件，
 
-+   在LinkedIn和X（前Twitter）上关注专家，
++   在 LinkedIn 和 X（前 Twitter）上关注专家，
 
 +   订阅我使用的工具和库的电子邮件更新，
 
@@ -318,7 +318,7 @@ pio.renderers.default = "jpeg"
 
 +   考虑程序性能。
 
-+   不要忘记DRY原则。
++   不要忘记 DRY 原则。
 
 +   利用测试。
 

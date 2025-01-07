@@ -1,18 +1,18 @@
 # 数据可视化技术，医疗数据分析 — 第三部分。
 
-> 原文：[https://towardsdatascience.com/data-visualization-techniques-for-healthcare-data-analysis-part-iii-7133581ba160?source=collection_archive---------4-----------------------#2024-11-22](https://towardsdatascience.com/data-visualization-techniques-for-healthcare-data-analysis-part-iii-7133581ba160?source=collection_archive---------4-----------------------#2024-11-22)
+> 原文：[`towardsdatascience.com/data-visualization-techniques-for-healthcare-data-analysis-part-iii-7133581ba160?source=collection_archive---------4-----------------------#2024-11-22`](https://towardsdatascience.com/data-visualization-techniques-for-healthcare-data-analysis-part-iii-7133581ba160?source=collection_archive---------4-----------------------#2024-11-22)
 
-## 从有效的条形图到像3D可视化这样的陷阱。
+## 从有效的条形图到像 3D 可视化这样的陷阱。
 
-[](https://medium.com/@panData?source=post_page---byline--7133581ba160--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--7133581ba160--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7133581ba160--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7133581ba160--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--7133581ba160--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--7133581ba160--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--7133581ba160--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7133581ba160--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7133581ba160--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--7133581ba160--------------------------------)
 
-·发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7133581ba160--------------------------------) ·阅读32分钟·2024年11月22日
+·发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7133581ba160--------------------------------) ·阅读 32 分钟·2024 年 11 月 22 日
 
 --
 
-![](../Images/60a493f005f449947c14e51c5292add0.png)
+![](img/60a493f005f449947c14e51c5292add0.png)
 
-**比较3D和2D散点图** by [**Leo Anello**](https://medium.com/u/1c040843e458?source=post_page---user_mention--7133581ba160--------------------------------)
+**比较 3D 和 2D 散点图** by [**Leo Anello**](https://medium.com/u/1c040843e458?source=post_page---user_mention--7133581ba160--------------------------------)
 
 # **概览**
 
@@ -24,7 +24,7 @@
 
 [](https://github.com/Anello92/feature-engineering-techniques-python?source=post_page-----7133581ba160--------------------------------) [## GitHub - Anello92/feature-engineering-techniques-python
 
-### 通过在GitHub上创建帐户为Anello92/feature-engineering-techniques-python项目做出贡献。
+### 通过在 GitHub 上创建帐户为 Anello92/feature-engineering-techniques-python 项目做出贡献。
 
 github.com](https://github.com/Anello92/feature-engineering-techniques-python?source=post_page-----7133581ba160--------------------------------)
 

@@ -1,18 +1,18 @@
 # 数据科学需要学习的统计学知识
 
-> 原文：[https://towardsdatascience.com/what-statistics-to-learn-for-data-science-1b8087660d49?source=collection_archive---------0-----------------------#2024-04-06](https://towardsdatascience.com/what-statistics-to-learn-for-data-science-1b8087660d49?source=collection_archive---------0-----------------------#2024-04-06)
+> 原文：[`towardsdatascience.com/what-statistics-to-learn-for-data-science-1b8087660d49?source=collection_archive---------0-----------------------#2024-04-06`](https://towardsdatascience.com/what-statistics-to-learn-for-data-science-1b8087660d49?source=collection_archive---------0-----------------------#2024-04-06)
 
 ## 这篇文章详细列出了你作为初级数据科学家应掌握的统计学领域，并附有有用的学习资源。
 
-[](https://medium.com/@egorhowell?source=post_page---byline--1b8087660d49--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--1b8087660d49--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1b8087660d49--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1b8087660d49--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--1b8087660d49--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--1b8087660d49--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--1b8087660d49--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1b8087660d49--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1b8087660d49--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--1b8087660d49--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1b8087660d49--------------------------------) ·阅读时长：8分钟·2024年4月6日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1b8087660d49--------------------------------) ·阅读时长：8 分钟·2024 年 4 月 6 日
 
 --
 
-![](../Images/81f80a1e8bdaf7c243ed05ed20b80580.png)
+![](img/81f80a1e8bdaf7c243ed05ed20b80580.png)
 
-图片来源：Lukas：[https://www.pexels.com/photo/two-white-printer-papers-near-macbook-on-brown-surface-590016/](https://www.pexels.com/photo/two-white-printer-papers-near-macbook-on-brown-surface-590016/)
+图片来源：Lukas：[`www.pexels.com/photo/two-white-printer-papers-near-macbook-on-brown-surface-590016/`](https://www.pexels.com/photo/two-white-printer-papers-near-macbook-on-brown-surface-590016/)
 
 说实话，数学，特别是统计学，确实让人有些害怕。
 

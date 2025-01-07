@@ -1,32 +1,32 @@
 # 快速训练朴素贝叶斯模型
 
-> 原文：[https://towardsdatascience.com/train-naive-bayes-really-fast-7398a404e342?source=collection_archive---------10-----------------------#2024-05-31](https://towardsdatascience.com/train-naive-bayes-really-fast-7398a404e342?source=collection_archive---------10-----------------------#2024-05-31)
+> 原文：[`towardsdatascience.com/train-naive-bayes-really-fast-7398a404e342?source=collection_archive---------10-----------------------#2024-05-31`](https://towardsdatascience.com/train-naive-bayes-really-fast-7398a404e342?source=collection_archive---------10-----------------------#2024-05-31)
 
-![](../Images/5ca58b4de0a8ed93631227f9f6925e2f.png)
+![](img/5ca58b4de0a8ed93631227f9f6925e2f.png)
 
 图片由[Marc Sendra Martorell](https://unsplash.com/de/@marcsm?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源于[Unsplash](https://unsplash.com/de/fotos/zeitraffer-von-strassenlaternen--Vqn2WrfxTQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
-## 在Julia中的性能调优
+## 在 Julia 中的性能调优
 
-[](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)[![Roland Schätzle](../Images/5d03aad32cda174f2fee595a3fc34a17.png)](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------) [Roland Schätzle](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)
+[](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)![Roland Schätzle](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------) [Roland Schätzle](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------) ·12分钟阅读·2024年5月31日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------) ·12 分钟阅读·2024 年 5 月 31 日
 
 --
 
-在最近的一堂课上，我向学生展示了如何使用*多项式朴素贝叶斯（MNB）*模型进行文档分类。作为示例，我使用了[Enron电子邮件数据集](https://www.cs.cmu.edu/~enron/)，并基于该模型创建了一个垃圾邮件过滤器。使用的数据集版本包含33,716封电子邮件，分类为“垃圾邮件”或“正常邮件”（即非垃圾邮件）。
+在最近的一堂课上，我向学生展示了如何使用*多项式朴素贝叶斯（MNB）*模型进行文档分类。作为示例，我使用了[Enron 电子邮件数据集](https://www.cs.cmu.edu/~enron/)，并基于该模型创建了一个垃圾邮件过滤器。使用的数据集版本包含 33,716 封电子邮件，分类为“垃圾邮件”或“正常邮件”（即非垃圾邮件）。
 
-我们选择了来自Julia的`MultinomialNBClassifier`，并使用同一包中的`CountTransformer`进行数据准备。我感到相当惊讶的是，使用整个数据集训练这个分类器（在一台Apple M3，16 GB RAM的机器上）竟然花费了超过30分钟。
+我们选择了来自 Julia 的`MultinomialNBClassifier`，并使用同一包中的`CountTransformer`进行数据准备。我感到相当惊讶的是，使用整个数据集训练这个分类器（在一台 Apple M3，16 GB RAM 的机器上）竟然花费了超过 30 分钟。
 
-通常，仅使用数据集的一部分进行训练，因为其余部分需要用于测试。即便仅使用数据集的70%进行训练，仍然花费了超过10分钟。33,716封电子邮件无疑超过了简单的教科书示例，但另一方面，朴素贝叶斯模型以低训练成本而著称。
+通常，仅使用数据集的一部分进行训练，因为其余部分需要用于测试。即便仅使用数据集的 70%进行训练，仍然花费了超过 10 分钟。33,716 封电子邮件无疑超过了简单的教科书示例，但另一方面，朴素贝叶斯模型以低训练成本而著称。
 
 因此，我开始调查为什么训练需要这么长时间，以及是否有方法可以加快速度。在接下来的部分，我将介绍我所应用的性能调优措施及所能实现的加速效果。这些措施并非特别针对这个问题，因此也应该适用于其他情况。
 
-> 注意：所有实现和基准测试均使用Julia 1.10.3版本在16 GB RAM的M3 MacBook Pro上完成。所使用的Julia包包括MLJ 0.20.0、TextAnalysis 0.7.5、Metal 1.1.0、CategoricalArrays 0.10.8和BenchmarkTools 1.5.0。
+> 注意：所有实现和基准测试均使用 Julia 1.10.3 版本在 16 GB RAM 的 M3 MacBook Pro 上完成。所使用的 Julia 包包括 MLJ 0.20.0、TextAnalysis 0.7.5、Metal 1.1.0、CategoricalArrays 0.10.8 和 BenchmarkTools 1.5.0。
 
 # 训练多项式朴素贝叶斯模型
 
-但首先让我介绍一下训练MNB所必需的主要步骤，以便理解需要优化的算法。具体包括：
+但首先让我介绍一下训练 MNB 所必需的主要步骤，以便理解需要优化的算法。具体包括：
 
 +   一个**数据准备**步骤，它将文档（在我们的案例中是电子邮件）转换为合适的数据结构（即所谓的*文档词项矩阵；DTM*）并
 
@@ -34,9 +34,9 @@
 
 ## 数据准备
 
-用于MNB的文档被表示为“词袋”。也就是说，文档中单词的顺序被认为是无关的，只存储每个单词出现的次数。因此，“the cow eats grass”这个句子在这种表示下等同于“eats the cow grass”或“grass eats the cow”。
+用于 MNB 的文档被表示为“词袋”。也就是说，文档中单词的顺序被认为是无关的，只存储每个单词出现的次数。因此，“the cow eats grass”这个句子在这种表示下等同于“eats the cow grass”或“grass eats the cow”。
 
-为了使用内存高效的表示形式将所有文档转换为这种形式，我们创建了一个*字典*，其中包含文档中出现的所有单词（它本质上是一个包含所有单词的数组）。假设我们有以下文档D1、D2和D3：
+为了使用内存高效的表示形式将所有文档转换为这种形式，我们创建了一个*字典*，其中包含文档中出现的所有单词（它本质上是一个包含所有单词的数组）。假设我们有以下文档 D1、D2 和 D3：
 
 +   D1: “灰色的猫躺在草地上”
 
@@ -46,7 +46,7 @@
 
 然后字典如下：[“the”, “grey”, “cat”, “lies”, “on”, “grass”, “cow”, “eats”, “is”]，因为这三篇文档中有九个不同的单词。
 
-每个文档随后表示为一个与字典长度相同的数组，数组中的每个元素是字典中对应单词出现的次数。因此，D1、D2和D3将具有以下形式：
+每个文档随后表示为一个与字典长度相同的数组，数组中的每个元素是字典中对应单词出现的次数。因此，D1、D2 和 D3 将具有以下形式：
 
 +   D1: [2, 1, 1, 1, 1, 1, 0, 0, 0] 例如，字典中的第一个词（“the”）出现了两次，第二个词（“grey”）出现了一次，依此类推
 
@@ -54,21 +54,21 @@
 
 +   D3: [1, 1, 1, 0, 0, 0, 0, 0, 1]
 
-如果我们将这些数组合并为一个矩阵——每个文档一行，那么我们就得到了上面提到的*文档词项矩阵（DTM）*。在我们的案例中，它是一个3 x 9的矩阵，因为我们有三篇文档和一个包含九个不同单词的词典。
+如果我们将这些数组合并为一个矩阵——每个文档一行，那么我们就得到了上面提到的*文档词项矩阵（DTM）*。在我们的案例中，它是一个 3 x 9 的矩阵，因为我们有三篇文档和一个包含九个不同单词的词典。
 
 ## 训练
 
-MNB的训练基本上是通过将所有文档向量按类别分开进行加总。也就是说，在我们的垃圾邮件示例中，我们必须将所有“垃圾邮件”类别的文档向量加起来，所有“非垃圾邮件”类别的文档向量加起来，最终得到两个向量，每个向量包含该类别的单词频率汇总。
+MNB 的训练基本上是通过将所有文档向量按类别分开进行加总。也就是说，在我们的垃圾邮件示例中，我们必须将所有“垃圾邮件”类别的文档向量加起来，所有“非垃圾邮件”类别的文档向量加起来，最终得到两个向量，每个向量包含该类别的单词频率汇总。
 
-如果我们假设文档D1和D3是“非垃圾邮件”，D2是“垃圾邮件”，我们将得到以下结果：
+如果我们假设文档 D1 和 D3 是“非垃圾邮件”，D2 是“垃圾邮件”，我们将得到以下结果：
 
 +   “非垃圾邮件”单词频率: [3, 2, 2, 1, 1, 1, 0, 0, 1]
 
 +   “垃圾邮件”单词频率: [1, 0, 0, 0, 0, 1, 1, 1, 0]
 
-在MNB的完整训练步骤中，除了对这些数字进行一些后处理外，真正“耗时”的部分是这里展示的DTM的聚合过程，这是我们需要优化的部分。
+在 MNB 的完整训练步骤中，除了对这些数字进行一些后处理外，真正“耗时”的部分是这里展示的 DTM 的聚合过程，这是我们需要优化的部分。
 
-# 从Enron数据集开始
+# 从 Enron 数据集开始
 
 ## 数据准备
 
@@ -141,25 +141,25 @@ end
 
 从这个意义上来说，`count_words_base` 已经使用了一种优化。在 Julia 中，矩阵是按列优先顺序存储的。也就是说，每列的元素在内存中是紧密存储的。因此，遍历 *一列* 的所有元素比遍历 *一行* 中的元素更快。因此，`count_words_base` 中的内层循环是遍历 `X` 中的一列。
 
-在Julia中，列优先顺序存储是常见的做法。这对于`SparseMatrixCSC`或`DataFrame`等也适用。但检查数据结构使用的是哪种存储顺序始终是一个好主意。
+在 Julia 中，列优先顺序存储是常见的做法。这对于`SparseMatrixCSC`或`DataFrame`等也适用。但检查数据结构使用的是哪种存储顺序始终是一个好主意。
 
 ## CategoricalArrays
 
-`count_words_base`中的if语句会对DTM的每个元素执行。所以优化这部分函数肯定会有帮助。
+`count_words_base`中的 if 语句会对 DTM 的每个元素执行。所以优化这部分函数肯定会有帮助。
 
-参数`y`并不是一个“普通的”数组，它不会将单词`"ham"`或“spam”存储33,716次。它是一个`[CategoricalArray](https://github.com/JuliaData/CategoricalArrays.jl?tab=readme-ov-file)`，它只存储这两个单词一次，并且内部使用一个整数数组来存储33,716个不同的`"ham"`和“spam”值（这两个值由数字1和2表示）。我们可以使用`levelcode`函数访问这种数值表示。所以`y[1]`返回的是`"ham"`，而`levelcode(y[1])`则返回1。
+参数`y`并不是一个“普通的”数组，它不会将单词`"ham"`或“spam”存储 33,716 次。它是一个`[CategoricalArray](https://github.com/JuliaData/CategoricalArrays.jl?tab=readme-ov-file)`，它只存储这两个单词一次，并且内部使用一个整数数组来存储 33,716 个不同的`"ham"`和“spam”值（这两个值由数字 1 和 2 表示）。我们可以使用`levelcode`函数访问这种数值表示。所以`y[1]`返回的是`"ham"`，而`levelcode(y[1])`则返回 1。
 
-因此，我们可以通过以下单行代码替换整个if语句（从而得到第一个优化版本`count_words_01`）：
+因此，我们可以通过以下单行代码替换整个 if 语句（从而得到第一个优化版本`count_words_01`）：
 
 ```py
 wcounts[levelcode(y[doc]),col] += X[doc, col]
 ```
 
-这为我们提供了**18.006 s**的运行时间，约提升了10%。
+这为我们提供了**18.006 s**的运行时间，约提升了 10%。
 
 ## 更高效的矩阵
 
-通常内存高效的数据结构在访问其元素时效率较低。因此，我怀疑（稠密）矩阵（即二维`Array`）可能比用于DTM的稀疏矩阵更具性能。
+通常内存高效的数据结构在访问其元素时效率较低。因此，我怀疑（稠密）矩阵（即二维`Array`）可能比用于 DTM 的稀疏矩阵更具性能。
 
 作为**参考点**，我创建了一个与`Xpart`相同大小的**稠密矩阵**`Xref`（填充随机数字）：`Xref = rand(0:9, 33716, 10000)`。
 
@@ -169,9 +169,9 @@ wcounts[levelcode(y[doc]),col] += X[doc, col]
 
 +   `count_words_01`: **0.942 s**
 
-所以`CountTransformer`生成的DTM肯定存在实际问题。即使是基线实现也能让我们获得超过8倍的加速，而`count_words_01`中使用的优化在这种情况下更为有效，将运行时间减少到基线数值的一半以下！
+所以`CountTransformer`生成的 DTM 肯定存在实际问题。即使是基线实现也能让我们获得超过 8 倍的加速，而`count_words_01`中使用的优化在这种情况下更为有效，将运行时间减少到基线数值的一半以下！
 
-如前所述，`CountTransformer`并没有生成实际的`SparseMatrixCSC`，而是生成了一个`LinearAlgebra.Adjoint{Int64,SparseMatrixCSC{Int64, Int64}}`。也就是说，稀疏矩阵被包装在其他结构中。这可能会成为一个问题。因此，我尝试提取实际的稀疏矩阵……但证明这是困难且昂贵的：提取过程需要将近17秒！
+如前所述，`CountTransformer`并没有生成实际的`SparseMatrixCSC`，而是生成了一个`LinearAlgebra.Adjoint{Int64,SparseMatrixCSC{Int64, Int64}}`。也就是说，稀疏矩阵被包装在其他结构中。这可能会成为一个问题。因此，我尝试提取实际的稀疏矩阵……但证明这是困难且昂贵的：提取过程需要将近 17 秒！
 
 但是最终得到的**“纯”稀疏矩阵**要高效得多：
 
@@ -179,15 +179,15 @@ wcounts[levelcode(y[doc]),col] += X[doc, col]
 
 +   `count_words_01`: **1.435 s**
 
-由于我们必须为提取这些数字额外增加将近17秒，这并没有从整体上提升处理速度。因此，我在寻找替代方案时，找到了`[TextAnalysis](https://github.com/JuliaText/TextAnalysis.jl?tab=readme-ov-file)`包，其中也有一个创建DTM的函数。创建过程与`CountTransformer`一样高效，但它直接生成“纯”稀疏矩阵。
+由于我们必须为提取这些数字额外增加将近 17 秒，这并没有从整体上提升处理速度。因此，我在寻找替代方案时，找到了`[TextAnalysis](https://github.com/JuliaText/TextAnalysis.jl?tab=readme-ov-file)`包，其中也有一个创建 DTM 的函数。创建过程与`CountTransformer`一样高效，但它直接生成“纯”稀疏矩阵。
 
-因此，我们可以获得稀疏矩阵的运行时数字，而无需额外增加17秒。这在这一点上为我们带来了**加速**，即20.363/1.435 = **14.2**。
+因此，我们可以获得稀疏矩阵的运行时数字，而无需额外增加 17 秒。这在这一点上为我们带来了**加速**，即 20.363/1.435 = **14.2**。
 
 # OPT2: 多线程
 
-使用Julia相对容易实现多线程，尤其是在我们的案例中，我们迭代一个数据结构并在每次迭代中访问该数据结构的不同部分。因此，每次迭代都可以在另一个线程中执行，而不必担心数据访问冲突。
+使用 Julia 相对容易实现多线程，尤其是在我们的案例中，我们迭代一个数据结构并在每次迭代中访问该数据结构的不同部分。因此，每次迭代都可以在另一个线程中执行，而不必担心数据访问冲突。
 
-在这种设置下，我们只需要在`for`语句前面加上宏`@threads`，然后Julia会为我们做其余的工作。也就是说，它会将不同的迭代分配到特定机器上可用的线程中。由于M3芯片有八个内核，我将`JULIA_NUM_THREADS`环境变量设置为8，并将`count_words`函数中的for循环部分更改如下（得到下一个优化版本`count_words_02`）：
+在这种设置下，我们只需要在`for`语句前面加上宏`@threads`，然后 Julia 会为我们做其余的工作。也就是说，它会将不同的迭代分配到特定机器上可用的线程中。由于 M3 芯片有八个内核，我将`JULIA_NUM_THREADS`环境变量设置为 8，并将`count_words`函数中的 for 循环部分更改如下（得到下一个优化版本`count_words_02`）：
 
 ```py
 @threads for col in 1:nwords
@@ -197,15 +197,15 @@ wcounts[levelcode(y[doc]),col] += X[doc, col]
 end
 ```
 
-这给我们带来了**231 ms**的运行时间，**加速**为20.363/0.231 = **88.2**。
+这给我们带来了**231 ms**的运行时间，**加速**为 20.363/0.231 = **88.2**。
 
-# OPT3：GPU与矩阵运算
+# OPT3：GPU 与矩阵运算
 
-获得更高的性能通常通过使用GPU来实现。但这只有在算法能够适应GPU这种非常特殊的计算结构时才能做到。理想情况下，您的算法应该由向量和矩阵运算组成。那么我们来探讨一下，是否可以将我们的`count_words`函数以这种方式进行适配。
+获得更高的性能通常通过使用 GPU 来实现。但这只有在算法能够适应 GPU 这种非常特殊的计算结构时才能做到。理想情况下，您的算法应该由向量和矩阵运算组成。那么我们来探讨一下，是否可以将我们的`count_words`函数以这种方式进行适配。
 
 ## 过滤行
 
-我们上面的例子仅包含三份文档D1、D2和D3，可能是一个不错的起点，帮助我们更好地理解。对于这个简单的例子，`X`和`y`如下所示：
+我们上面的例子仅包含三份文档 D1、D2 和 D3，可能是一个不错的起点，帮助我们更好地理解。对于这个简单的例子，`X`和`y`如下所示：
 
 ```py
 X = [2 1 1 1 1 1 0 0 0;               y = ["ham", "spam", "ham"]
@@ -213,9 +213,9 @@ X = [2 1 1 1 1 1 0 0 0;               y = ["ham", "spam", "ham"]
      1 1 1 0 0 0 0 0 1]
 ```
 
-函数`count_words`会对列中的数字求和，但只针对特定的行。在这个例子中，首先加总第1行和第3行的数据，然后查看第2行。也就是说，我们需要某种过滤器来筛选行，然后我们可以直接对列进行求和。
+函数`count_words`会对列中的数字求和，但只针对特定的行。在这个例子中，首先加总第 1 行和第 3 行的数据，然后查看第 2 行。也就是说，我们需要某种过滤器来筛选行，然后我们可以直接对列进行求和。
 
-在Julia中，可以使用`BitArray`对数组进行索引。也就是说，`X[[1,0,1],:]`会返回`X`的第1行和第3行，`X[[0,1,0],:]`则返回第2行。如果我们用1和0替换`y`中的“ham”和“spam”，并将其转换为以下矩阵，我们就可以得到这些“过滤器”：
+在 Julia 中，可以使用`BitArray`对数组进行索引。也就是说，`X[[1,0,1],:]`会返回`X`的第 1 行和第 3 行，`X[[0,1,0],:]`则返回第 2 行。如果我们用 1 和 0 替换`y`中的“ham”和“spam”，并将其转换为以下矩阵，我们就可以得到这些“过滤器”：
 
 ```py
 yb = [1 0;
@@ -251,7 +251,7 @@ function count_words_03(X::AbstractMatrix{Int64},y::BitMatrix)
 end
 ```
 
-该变体的运行时间为**652 ms**（在CPU上）。所以并没有比上面的版本更快，但我们仍在进行探索。
+该变体的运行时间为**652 ms**（在 CPU 上）。所以并没有比上面的版本更快，但我们仍在进行探索。
 
 ## 点积
 
@@ -279,13 +279,13 @@ function count_words_04(X::AbstractMatrix{Int64},y::BitMatrix)
 end
 ```
 
-这导致运行时间为**4.96 ms**（在CPU上），现在的**加速**为20.363/0.00496 = **4,105.4!**
+这导致运行时间为**4.96 ms**（在 CPU 上），现在的**加速**为 20.363/0.00496 = **4,105.4!**
 
 这种剧烈的改进可能需要一些解释。这里有两个因素是相辅相成的：
 
-+   像点积这样的向量运算在Julia中被超级优化，依赖于像[BLAS](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms)这样的经过验证的库。
++   像点积这样的向量运算在 Julia 中被超级优化，依赖于像[BLAS](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms)这样的经过验证的库。
 
-+   稀疏矩阵类型在此上下文中非常高效。在这种情况下，我们的密集参考矩阵`Xref`的运行时间仅为455.7毫秒。
++   稀疏矩阵类型在此上下文中非常高效。在这种情况下，我们的密集参考矩阵`Xref`的运行时间仅为 455.7 毫秒。
 
 ## 矩阵乘法
 
@@ -305,22 +305,22 @@ function count_words_05(X::AbstractMatrix{Int64},y::BitMatrix)
 end
 ```
 
-它也是最快的版本，**1.105毫秒**，带来20.363/0.00105 = **19,393**倍的加速！
+它也是最快的版本，**1.105 毫秒**，带来 20.363/0.00105 = **19,393**倍的加速！
 
-多线程在这里是隐式的，因为底层的BLAS库默认是多线程的。可以通过`BLAS.get_num_threads()`获取使用的线程数。
+多线程在这里是隐式的，因为底层的 BLAS 库默认是多线程的。可以通过`BLAS.get_num_threads()`获取使用的线程数。
 
-此外，这个解决方案具有良好的扩展性。应用于完整数据集，包含33,716 x 159,093个元素的矩阵`X`，需要13.57毫秒才能完成。这是241.076/0.01357 = **17,765**倍的加速。
+此外，这个解决方案具有良好的扩展性。应用于完整数据集，包含 33,716 x 159,093 个元素的矩阵`X`，需要 13.57 毫秒才能完成。这是 241.076/0.01357 = **17,765**倍的加速。
 
 # OPT4: GPU
 
-最后，将最后一个变体应用到GPU上可以通过`Metal.jl`包完成。为此，所使用的矩阵只需通过`mtl`函数转换为相应的金属数组类型：
+最后，将最后一个变体应用到 GPU 上可以通过`Metal.jl`包完成。为此，所使用的矩阵只需通过`mtl`函数转换为相应的金属数组类型：
 
 ```py
 const mtl_Xpart = mtl(Xpart)
 const mtl_yb = mtl(yb)
 ```
 
-用于GPU的`count_words`变体，除了数据类型外，和上面的一样：
+用于 GPU 的`count_words`变体，除了数据类型外，和上面的一样：
 
 ```py
 function count_words_06(X::MtlMatrix,y::MtlMatrix)
@@ -328,10 +328,10 @@ function count_words_06(X::MtlMatrix,y::MtlMatrix)
 end
 ```
 
-它的运行时间仅为**0.306毫秒**。但是将数据复制到GPU（使用`mtl`）所需的时间要远远超过在GPU上运行算法所节省的时间。因此，它并不是真的更快。
+它的运行时间仅为**0.306 毫秒**。但是将数据复制到 GPU（使用`mtl`）所需的时间要远远超过在 GPU 上运行算法所节省的时间。因此，它并不是真的更快。
 
-除此之外，适用于Apple Silicon GPU的`Metal`包还不如例如`CUDA.jl`那样成熟。这一点在尝试将大型矩阵`X`转换为金属数组时变得明显：转换会停止并显示错误信息。
+除此之外，适用于 Apple Silicon GPU 的`Metal`包还不如例如`CUDA.jl`那样成熟。这一点在尝试将大型矩阵`X`转换为金属数组时变得明显：转换会停止并显示错误信息。
 
 # 结论
 
-当然，并非每个算法都可以像`count_words_05`那样转换为如此简洁的变体。但即便是更“经典”的实现`count_words_04`也比我们最初的版本快了超过4,000倍。本文中展示的许多性能优化措施也可以应用于其他函数。此外，我还建议任何想要从Julia程序中获得更多性能的人，遵循Julia文档中的“[性能优化提示](https://docs.julialang.org/en/v1/manual/performance-tips/)”。
+当然，并非每个算法都可以像`count_words_05`那样转换为如此简洁的变体。但即便是更“经典”的实现`count_words_04`也比我们最初的版本快了超过 4,000 倍。本文中展示的许多性能优化措施也可以应用于其他函数。此外，我还建议任何想要从 Julia 程序中获得更多性能的人，遵循 Julia 文档中的“[性能优化提示](https://docs.julialang.org/en/v1/manual/performance-tips/)”。

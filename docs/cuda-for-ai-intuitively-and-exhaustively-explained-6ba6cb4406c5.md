@@ -1,18 +1,18 @@
 # AI 的 CUDA —— 直观且详尽的解释
 
-> 原文：[https://towardsdatascience.com/cuda-for-ai-intuitively-and-exhaustively-explained-6ba6cb4406c5?source=collection_archive---------0-----------------------#2024-06-14](https://towardsdatascience.com/cuda-for-ai-intuitively-and-exhaustively-explained-6ba6cb4406c5?source=collection_archive---------0-----------------------#2024-06-14)
+> 原文：[`towardsdatascience.com/cuda-for-ai-intuitively-and-exhaustively-explained-6ba6cb4406c5?source=collection_archive---------0-----------------------#2024-06-14`](https://towardsdatascience.com/cuda-for-ai-intuitively-and-exhaustively-explained-6ba6cb4406c5?source=collection_archive---------0-----------------------#2024-06-14)
 
 ## 人工智能 | GPU 编程 | AI 理论
 
 ## 从零开始的并行化 AI
 
-[](https://medium.com/@danielwarfield1?source=post_page---byline--6ba6cb4406c5--------------------------------)[![Daniel Warfield](../Images/c1c8b4dd514f6813e08e401401324bca.png)](https://medium.com/@danielwarfield1?source=post_page---byline--6ba6cb4406c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6ba6cb4406c5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6ba6cb4406c5--------------------------------) [Daniel Warfield](https://medium.com/@danielwarfield1?source=post_page---byline--6ba6cb4406c5--------------------------------)
+[](https://medium.com/@danielwarfield1?source=post_page---byline--6ba6cb4406c5--------------------------------)![Daniel Warfield](https://medium.com/@danielwarfield1?source=post_page---byline--6ba6cb4406c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6ba6cb4406c5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6ba6cb4406c5--------------------------------) [Daniel Warfield](https://medium.com/@danielwarfield1?source=post_page---byline--6ba6cb4406c5--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6ba6cb4406c5--------------------------------) ·47 分钟阅读·2024年6月14日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6ba6cb4406c5--------------------------------) ·47 分钟阅读·2024 年 6 月 14 日
 
 --
 
-![](../Images/bf4b3333a98af836a0e396e8fdc92ed4.png)
+![](img/bf4b3333a98af836a0e396e8fdc92ed4.png)
 
 “Thread Master”由 Daniel Warfield 使用 Midjourney 创建。除非另有说明，所有图片均由作者提供。文章最初发布于 [Intuitively and Exhaustively Explained](https://iaee.substack.com/)。
 

@@ -1,12 +1,12 @@
 # 利用纬度和经度进行特征工程
 
-> 原文：[https://towardsdatascience.com/feature-engineering-with-latitude-and-longitude-2577b7ad7a45?source=collection_archive---------4-----------------------#2024-03-26](https://towardsdatascience.com/feature-engineering-with-latitude-and-longitude-2577b7ad7a45?source=collection_archive---------4-----------------------#2024-03-26)
+> 原文：[`towardsdatascience.com/feature-engineering-with-latitude-and-longitude-2577b7ad7a45?source=collection_archive---------4-----------------------#2024-03-26`](https://towardsdatascience.com/feature-engineering-with-latitude-and-longitude-2577b7ad7a45?source=collection_archive---------4-----------------------#2024-03-26)
 
 ## 利用你的地理空间数据的力量 —— 使用代码！
 
-[](https://medium.com/@benfeifke?source=post_page---byline--2577b7ad7a45--------------------------------)[![Ben Feifke](../Images/dd4eb09e404dbd3a478ea1049cf17c90.png)](https://medium.com/@benfeifke?source=post_page---byline--2577b7ad7a45--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2577b7ad7a45--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2577b7ad7a45--------------------------------) [Ben Feifke](https://medium.com/@benfeifke?source=post_page---byline--2577b7ad7a45--------------------------------)
+[](https://medium.com/@benfeifke?source=post_page---byline--2577b7ad7a45--------------------------------)![Ben Feifke](https://medium.com/@benfeifke?source=post_page---byline--2577b7ad7a45--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2577b7ad7a45--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2577b7ad7a45--------------------------------) [Ben Feifke](https://medium.com/@benfeifke?source=post_page---byline--2577b7ad7a45--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2577b7ad7a45--------------------------------) ·阅读时间 9 分钟·2024年3月26日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2577b7ad7a45--------------------------------) ·阅读时间 9 分钟·2024 年 3 月 26 日
 
 --
 

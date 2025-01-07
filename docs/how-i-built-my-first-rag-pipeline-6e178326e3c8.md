@@ -1,12 +1,12 @@
 # 如何构建我的第一个 RAG 流水线
 
-> 原文：[https://towardsdatascience.com/how-i-built-my-first-rag-pipeline-6e178326e3c8?source=collection_archive---------4-----------------------#2024-08-02](https://towardsdatascience.com/how-i-built-my-first-rag-pipeline-6e178326e3c8?source=collection_archive---------4-----------------------#2024-08-02)
+> 原文：[`towardsdatascience.com/how-i-built-my-first-rag-pipeline-6e178326e3c8?source=collection_archive---------4-----------------------#2024-08-02`](https://towardsdatascience.com/how-i-built-my-first-rag-pipeline-6e178326e3c8?source=collection_archive---------4-----------------------#2024-08-02)
 
 ## 一个 RAG 流水线来回答你所有招聘人员的问题！
 
-[](https://datascidiana.medium.com/?source=post_page---byline--6e178326e3c8--------------------------------)[![Diana Morales](../Images/89786d139fbc8aa20199353a022b3381.png)](https://datascidiana.medium.com/?source=post_page---byline--6e178326e3c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6e178326e3c8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6e178326e3c8--------------------------------) [Diana Morales](https://datascidiana.medium.com/?source=post_page---byline--6e178326e3c8--------------------------------)
+[](https://datascidiana.medium.com/?source=post_page---byline--6e178326e3c8--------------------------------)![Diana Morales](https://datascidiana.medium.com/?source=post_page---byline--6e178326e3c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6e178326e3c8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e178326e3c8--------------------------------) [Diana Morales](https://datascidiana.medium.com/?source=post_page---byline--6e178326e3c8--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e178326e3c8--------------------------------) ·阅读时长 5 分钟·2024年8月2日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e178326e3c8--------------------------------) ·阅读时长 5 分钟·2024 年 8 月 2 日
 
 --
 

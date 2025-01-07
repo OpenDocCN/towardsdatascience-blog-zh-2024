@@ -1,38 +1,38 @@
 # Transformer：它们如何转化你的数据？
 
-> 原文：[https://towardsdatascience.com/transformers-how-do-they-transform-your-data-72d69e383e0d?source=collection_archive---------0-----------------------#2024-03-28](https://towardsdatascience.com/transformers-how-do-they-transform-your-data-72d69e383e0d?source=collection_archive---------0-----------------------#2024-03-28)
+> 原文：[`towardsdatascience.com/transformers-how-do-they-transform-your-data-72d69e383e0d?source=collection_archive---------0-----------------------#2024-03-28`](https://towardsdatascience.com/transformers-how-do-they-transform-your-data-72d69e383e0d?source=collection_archive---------0-----------------------#2024-03-28)
 
-## 深入探索Transformer架构及其在语言任务中无敌的原因
+## 深入探索 Transformer 架构及其在语言任务中无敌的原因
 
-[](https://medium.com/@maxwolf34?source=post_page---byline--72d69e383e0d--------------------------------)[![Maxime Wolf](../Images/259b3659d0e6dd1d0f0eec4ae92d02e9.png)](https://medium.com/@maxwolf34?source=post_page---byline--72d69e383e0d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--72d69e383e0d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--72d69e383e0d--------------------------------) [Maxime Wolf](https://medium.com/@maxwolf34?source=post_page---byline--72d69e383e0d--------------------------------)
+[](https://medium.com/@maxwolf34?source=post_page---byline--72d69e383e0d--------------------------------)![Maxime Wolf](https://medium.com/@maxwolf34?source=post_page---byline--72d69e383e0d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--72d69e383e0d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--72d69e383e0d--------------------------------) [Maxime Wolf](https://medium.com/@maxwolf34?source=post_page---byline--72d69e383e0d--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--72d69e383e0d--------------------------------) ·阅读时间11分钟·2024年3月28日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--72d69e383e0d--------------------------------) ·阅读时间 11 分钟·2024 年 3 月 28 日
 
 --
 
-![](../Images/4dd0f4cd464558d94b73f8274580ac94.png)
+![](img/4dd0f4cd464558d94b73f8274580ac94.png)
 
 作者提供的图片
 
-在人工智能和机器学习飞速发展的今天，有一种创新脱颖而出，对我们处理、理解和生成数据的方式产生了深远影响：**Transformer**。Transformer彻底改变了自然语言处理（NLP）及其他领域，为今天一些最先进的AI应用提供了动力。但究竟什么是Transformer，它们又是如何以如此突破性的方式转换数据的呢？本文将揭秘Transformer模型的内部工作原理，重点讲解**编码器架构**。我们将从Python中Transformer编码器的实现入手，逐步解析其主要组件。然后，我们将可视化Transformer如何在训练过程中处理并适应输入数据。
+在人工智能和机器学习飞速发展的今天，有一种创新脱颖而出，对我们处理、理解和生成数据的方式产生了深远影响：**Transformer**。Transformer 彻底改变了自然语言处理（NLP）及其他领域，为今天一些最先进的 AI 应用提供了动力。但究竟什么是 Transformer，它们又是如何以如此突破性的方式转换数据的呢？本文将揭秘 Transformer 模型的内部工作原理，重点讲解**编码器架构**。我们将从 Python 中 Transformer 编码器的实现入手，逐步解析其主要组件。然后，我们将可视化 Transformer 如何在训练过程中处理并适应输入数据。
 
-虽然本博客并未涵盖所有架构细节，但它提供了一个实现并帮助你全面理解Transformer的变革性力量。想深入了解Transformer的工作原理，我建议你参考斯坦福大学的优秀CS224-n课程。
+虽然本博客并未涵盖所有架构细节，但它提供了一个实现并帮助你全面理解 Transformer 的变革性力量。想深入了解 Transformer 的工作原理，我建议你参考斯坦福大学的优秀 CS224-n 课程。
 
 我还建议关注与本文相关的[GitHub 仓库](https://github.com/maxime7770/Transformers-Insights)以获取更多细节。😊
 
-# 什么是Transformer编码器架构？
+# 什么是 Transformer 编码器架构？
 
-![](../Images/df39c5bc0e96c04388b637bb391a7fed.png)
+![](img/df39c5bc0e96c04388b637bb391a7fed.png)
 
-来自[Attention Is All You Need](https://arxiv.org/pdf/1706.03762.pdf)的Transformer模型
+来自[Attention Is All You Need](https://arxiv.org/pdf/1706.03762.pdf)的 Transformer 模型
 
-这张图片展示了原始Transformer架构，将编码器和解码器结合用于序列到序列的语言任务。
+这张图片展示了原始 Transformer 架构，将编码器和解码器结合用于序列到序列的语言任务。
 
-在本文中，我们将重点介绍编码器架构（图中的红色块）。这正是流行的BERT模型在后台使用的架构：其主要关注的是**理解和表示数据**，而不是生成序列。它可以用于多种应用：文本分类、命名实体识别（NER）、抽取式问答等。
+在本文中，我们将重点介绍编码器架构（图中的红色块）。这正是流行的 BERT 模型在后台使用的架构：其主要关注的是**理解和表示数据**，而不是生成序列。它可以用于多种应用：文本分类、命名实体识别（NER）、抽取式问答等。
 
 那么，这些数据究竟是如何通过该架构进行转换的呢？我们将详细解释每个组件，但这里是过程的概述。
 
-+   输入文本被**标记化**：Python字符串被转换成标记（数字）列表。
++   输入文本被**标记化**：Python 字符串被转换成标记（数字）列表。
 
 +   每个标记都通过一个**嵌入层**，该层输出每个标记的向量表示。
 
@@ -42,19 +42,19 @@
 
 +   可以添加一个**任务特定的头**。例如，我们稍后将使用一个分类头，将电影评论分类为正面或负面。
 
-重要的是要理解，Transformer架构通过将嵌入向量从高维空间中的一个表示映射到同一空间中的另一个表示，应用一系列复杂的变换来转换这些嵌入。
+重要的是要理解，Transformer 架构通过将嵌入向量从高维空间中的一个表示映射到同一空间中的另一个表示，应用一系列复杂的变换来转换这些嵌入。
 
-# 在Python中实现编码器架构
+# 在 Python 中实现编码器架构
 
 ## 位置编码器层
 
-与RNN模型不同，自注意力机制不利用输入序列的顺序。PositionalEncoder类通过使用两种数学函数：余弦和正弦，向输入嵌入添加位置编码。
+与 RNN 模型不同，自注意力机制不利用输入序列的顺序。PositionalEncoder 类通过使用两种数学函数：余弦和正弦，向输入嵌入添加位置编码。
 
-![](../Images/578ef5784eef3551c213f00d3bfdbdd4.png)
+![](img/578ef5784eef3551c213f00d3bfdbdd4.png)
 
 位置编码矩阵定义来自[Attention Is All You Need](https://arxiv.org/pdf/1706.03762.pdf)
 
-注意，位置编码不包含可训练的参数：它们是确定性计算的结果，这使得该方法非常可处理。此外，正弦和余弦函数的值介于-1和1之间，并具有有助于模型学习**单词相对位置**的有用周期性特性。
+注意，位置编码不包含可训练的参数：它们是确定性计算的结果，这使得该方法非常可处理。此外，正弦和余弦函数的值介于-1 和 1 之间，并具有有助于模型学习**单词相对位置**的有用周期性特性。
 
 ```py
 class PositionalEncoder(nn.Module):
@@ -83,13 +83,13 @@ class PositionalEncoder(nn.Module):
 
 自注意力机制是编码器架构的关键组件。我们暂时忽略“多头”部分。注意力是一种方法，用来确定每个标记（即每个嵌入）与**所有其他嵌入与该标记的相关性**，从而获得更精细和与上下文相关的编码。
 
-![](../Images/cd6d84be3aae29b2a4108ac244d7dd6b.png)
+![](img/cd6d84be3aae29b2a4108ac244d7dd6b.png)
 
 “它”是如何关注序列中其他单词的？([The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/))
 
 自注意力机制有三个步骤。
 
-+   使用矩阵Q、K和V分别转换输入的“**查询**”、“**键**”和“**值**”。请注意，对于自注意力机制，查询、键和值都是等于我们的输入嵌入。
++   使用矩阵 Q、K 和 V 分别转换输入的“**查询**”、“**键**”和“**值**”。请注意，对于自注意力机制，查询、键和值都是等于我们的输入嵌入。
 
 +   通过余弦相似度（点积）计算**查询**和**键**之间的注意力得分。得分会通过嵌入维度的平方根进行缩放，以稳定训练过程中的梯度。
 
@@ -99,7 +99,7 @@ class PositionalEncoder(nn.Module):
 
 从数学角度来看，这对应于以下公式。
 
-![](../Images/c5773d753ad9db7bab34c7e7739de18c.png)
+![](img/c5773d753ad9db7bab34c7e7739de18c.png)
 
 [注意力机制来自《Attention Is All You Need》](https://arxiv.org/pdf/1706.03762.pdf)
 
@@ -238,7 +238,7 @@ class ClassifierHead(nn.Module):
 
 注意：包含[CLS]标记的概念源自 BERT，BERT 最初是在类似下一句预测任务上进行训练的。[CLS]标记被插入以预测句子 B 是否跟随句子 A，而[SEP]标记则分隔这两个句子。对于我们的模型，[SEP]标记只是标记输入句子的结束，如下所示。
 
-![](../Images/d3feb19e839643803e928bfc05828ad2.png)
+![](img/d3feb19e839643803e928bfc05828ad2.png)
 
 BERT 架构中的[CLS]标记 ([All About AI](https://seunghan96.github.io/dl/nlp/28.-nlp-BERT-%EC%9D%B4%EB%A1%A0/))
 
@@ -331,17 +331,17 @@ def train(dataloader, encoder, classifier, optimizer, loss_function, num_epochs)
 
 让我们来可视化结果。
 
-![](../Images/23987d3afe279c76504d4c31a47e8066.png)
+![](img/23987d3afe279c76504d4c31a47e8066.png)
 
 每个训练点的投影[CLS]嵌入（蓝色代表正向句子，红色代表负向句子）
 
-通过观察每个训练点的[CLS]嵌入的投影图，我们可以看到经过若干轮训练后，正向（蓝色）和负向（红色）句子之间的明显区别。这一可视化展示了Transformer架构随着时间推移调整嵌入的显著能力，突出了自注意力机制的强大功能。数据以一种方式进行转化，使得每个类别的嵌入得到了良好的分离，从而大大简化了分类器头的任务。
+通过观察每个训练点的[CLS]嵌入的投影图，我们可以看到经过若干轮训练后，正向（蓝色）和负向（红色）句子之间的明显区别。这一可视化展示了 Transformer 架构随着时间推移调整嵌入的显著能力，突出了自注意力机制的强大功能。数据以一种方式进行转化，使得每个类别的嵌入得到了良好的分离，从而大大简化了分类器头的任务。
 
 # 结论
 
-随着我们对Transformer架构的探索的结束，显然这些模型擅长将数据定制化以适应特定任务。通过使用位置编码和多头自注意力机制，Transformer不仅仅是处理数据：它们以一种前所未见的复杂程度来解释和理解信息。能够动态地权衡输入数据不同部分的相关性，使得对输入文本的理解和表示更加细致。这提升了在各种下游任务中的表现，包括文本分类、问答、命名实体识别等。
+随着我们对 Transformer 架构的探索的结束，显然这些模型擅长将数据定制化以适应特定任务。通过使用位置编码和多头自注意力机制，Transformer 不仅仅是处理数据：它们以一种前所未见的复杂程度来解释和理解信息。能够动态地权衡输入数据不同部分的相关性，使得对输入文本的理解和表示更加细致。这提升了在各种下游任务中的表现，包括文本分类、问答、命名实体识别等。
 
-现在你已经更好地理解了编码器架构，你可以深入探讨解码器和编码器-解码器模型，这些模型与我们刚刚探讨的非常相似。解码器在生成任务中起着至关重要的作用，是流行的GPT模型的核心部分。
+现在你已经更好地理解了编码器架构，你可以深入探讨解码器和编码器-解码器模型，这些模型与我们刚刚探讨的非常相似。解码器在生成任务中起着至关重要的作用，是流行的 GPT 模型的核心部分。
 
 +   随时在[LinkedIn](https://www.linkedin.com/in/maxime-wolf/)上与我联系
 
@@ -351,10 +351,10 @@ def train(dataloader, encoder, classifier, optimizer, loss_function, num_epochs)
 
 **参考文献**
 
-[1] Vaswani, Ashish, 等人. “Attention Is All You Need.” *第31届神经信息处理系统会议（NIPS 2017）*, 美国加利福尼亚州长滩.
+[1] Vaswani, Ashish, 等人. “Attention Is All You Need.” *第 31 届神经信息处理系统会议（NIPS 2017）*, 美国加利福尼亚州长滩.
 
-[2] “The Illustrated Transformer.” *Jay Alammar的博客*, 2018年6月, [http://jalammar.github.io/illustrated-transformer/](http://jalammar.github.io/illustrated-transformer/)
+[2] “The Illustrated Transformer.” *Jay Alammar 的博客*, 2018 年 6 月, [`jalammar.github.io/illustrated-transformer/`](http://jalammar.github.io/illustrated-transformer/)
 
-[3] Transformer架构的官方PyTorch实现. *GitHub代码库*, PyTorch, [https://github.com/pytorch/pytorch/blob/master/torch/nn/modules/transformer.py](https://github.com/pytorch/pytorch/blob/master/torch/nn/modules/transformer.py)
+[3] Transformer 架构的官方 PyTorch 实现. *GitHub 代码库*, PyTorch, [`github.com/pytorch/pytorch/blob/master/torch/nn/modules/transformer.py`](https://github.com/pytorch/pytorch/blob/master/torch/nn/modules/transformer.py)
 
-[4] Manning, Christopher, 等人. “CS224n: 使用深度学习进行自然语言处理.” *斯坦福大学*, 斯坦福CS224N NLP课程, [http://web.stanford.edu/class/cs224n/](http://web.stanford.edu/class/cs224n/)
+[4] Manning, Christopher, 等人. “CS224n: 使用深度学习进行自然语言处理.” *斯坦福大学*, 斯坦福 CS224N NLP 课程, [`web.stanford.edu/class/cs224n/`](http://web.stanford.edu/class/cs224n/)

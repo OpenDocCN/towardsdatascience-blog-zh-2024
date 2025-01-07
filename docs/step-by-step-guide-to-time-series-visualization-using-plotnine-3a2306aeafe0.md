@@ -1,22 +1,22 @@
-# 使用Plotnine进行时间序列可视化的逐步指南
+# 使用 Plotnine 进行时间序列可视化的逐步指南
 
-> 原文：[https://towardsdatascience.com/step-by-step-guide-to-time-series-visualization-using-plotnine-3a2306aeafe0?source=collection_archive---------6-----------------------#2024-03-27](https://towardsdatascience.com/step-by-step-guide-to-time-series-visualization-using-plotnine-3a2306aeafe0?source=collection_archive---------6-----------------------#2024-03-27)
+> 原文：[`towardsdatascience.com/step-by-step-guide-to-time-series-visualization-using-plotnine-3a2306aeafe0?source=collection_archive---------6-----------------------#2024-03-27`](https://towardsdatascience.com/step-by-step-guide-to-time-series-visualization-using-plotnine-3a2306aeafe0?source=collection_archive---------6-----------------------#2024-03-27)
 
-## 探索时间序列的6种图形
+## 探索时间序列的 6 种图形
 
-[](https://vcerq.medium.com/?source=post_page---byline--3a2306aeafe0--------------------------------)[![Vitor Cerqueira](../Images/9e52f462c6bc20453d3ea273eb52114b.png)](https://vcerq.medium.com/?source=post_page---byline--3a2306aeafe0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3a2306aeafe0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3a2306aeafe0--------------------------------) [Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--3a2306aeafe0--------------------------------)
+[](https://vcerq.medium.com/?source=post_page---byline--3a2306aeafe0--------------------------------)![Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--3a2306aeafe0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3a2306aeafe0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a2306aeafe0--------------------------------) [Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--3a2306aeafe0--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a2306aeafe0--------------------------------) ·7分钟阅读·2024年3月27日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a2306aeafe0--------------------------------) ·7 分钟阅读·2024 年 3 月 27 日
 
 --
 
-![](../Images/aa7da83e1867f62b7212e819dc08092f.png)
+![](img/aa7da83e1867f62b7212e819dc08092f.png)
 
 由[Alex Litvin](https://unsplash.com/@alexlitvin?utm_source=medium&utm_medium=referral)拍摄，[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 可视化是一种快速且有效的方式，从数据中获取洞察。本文提供了一个逐步指南，用于使用图形探索时间序列。
 
-我们将使用6种不同的图表来揭示时间序列的不同方面。我们将重点介绍Python的plotnine，这是一个图形语法类型的库。
+我们将使用 6 种不同的图表来揭示时间序列的不同方面。我们将重点介绍 Python 的 plotnine，这是一个图形语法类型的库。
 
 # 介绍
 
@@ -30,8 +30,8 @@
 
 +   检测分布的变化
 
-在本文的其余部分，您将学习如何构建6种图形来探索时间序列。
+在本文的其余部分，您将学习如何构建 6 种图形来探索时间序列。
 
 # 探索时间序列
 
-让我们从加载一个时间序列开始。在本指南中，我们将使用M3数据集[2]中的一个月度时间序列。我们…
+让我们从加载一个时间序列开始。在本指南中，我们将使用 M3 数据集[2]中的一个月度时间序列。我们…

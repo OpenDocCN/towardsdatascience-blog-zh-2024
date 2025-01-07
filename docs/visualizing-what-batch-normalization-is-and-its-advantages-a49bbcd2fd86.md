@@ -1,16 +1,16 @@
 # 可视化批量归一化及其优点
 
-> 原文：[https://towardsdatascience.com/visualizing-what-batch-normalization-is-and-its-advantages-a49bbcd2fd86?source=collection_archive---------8-----------------------#2024-02-03](https://towardsdatascience.com/visualizing-what-batch-normalization-is-and-its-advantages-a49bbcd2fd86?source=collection_archive---------8-----------------------#2024-02-03)
+> 原文：[`towardsdatascience.com/visualizing-what-batch-normalization-is-and-its-advantages-a49bbcd2fd86?source=collection_archive---------8-----------------------#2024-02-03`](https://towardsdatascience.com/visualizing-what-batch-normalization-is-and-its-advantages-a49bbcd2fd86?source=collection_archive---------8-----------------------#2024-02-03)
 
 ## 优化神经网络训练中的批量归一化
 
-[](https://qtalen.medium.com/?source=post_page---byline--a49bbcd2fd86--------------------------------)[![Peng Qian](../Images/9ce9aeb381ec6b017c1ee5d4714937e2.png)](https://qtalen.medium.com/?source=post_page---byline--a49bbcd2fd86--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a49bbcd2fd86--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a49bbcd2fd86--------------------------------) [Peng Qian](https://qtalen.medium.com/?source=post_page---byline--a49bbcd2fd86--------------------------------)  
+[](https://qtalen.medium.com/?source=post_page---byline--a49bbcd2fd86--------------------------------)![Peng Qian](https://qtalen.medium.com/?source=post_page---byline--a49bbcd2fd86--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a49bbcd2fd86--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a49bbcd2fd86--------------------------------) [Peng Qian](https://qtalen.medium.com/?source=post_page---byline--a49bbcd2fd86--------------------------------)  
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a49bbcd2fd86--------------------------------) ·阅读时间 5 分钟·2024年2月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a49bbcd2fd86--------------------------------) ·阅读时间 5 分钟·2024 年 2 月 3 日
 
 --
 
-![](../Images/8cc4a86665dbb2044eadc71bc16939b9.png)
+![](img/8cc4a86665dbb2044eadc71bc16939b9.png)
 
 可视化批量归一化及其优点。图片来源：作者
 

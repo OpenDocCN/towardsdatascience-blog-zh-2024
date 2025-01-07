@@ -1,26 +1,26 @@
 # 数据科学在家：用蒙特卡罗与遗传算法解决保姆日程难题
 
-> 原文：[https://towardsdatascience.com/data-science-at-home-solving-the-nanny-schedule-puzzle-with-monte-carlo-and-genetic-algorithms-eb4b63ada9fe?source=collection_archive---------8-----------------------#2024-09-06](https://towardsdatascience.com/data-science-at-home-solving-the-nanny-schedule-puzzle-with-monte-carlo-and-genetic-algorithms-eb4b63ada9fe?source=collection_archive---------8-----------------------#2024-09-06)
+> 原文：[`towardsdatascience.com/data-science-at-home-solving-the-nanny-schedule-puzzle-with-monte-carlo-and-genetic-algorithms-eb4b63ada9fe?source=collection_archive---------8-----------------------#2024-09-06`](https://towardsdatascience.com/data-science-at-home-solving-the-nanny-schedule-puzzle-with-monte-carlo-and-genetic-algorithms-eb4b63ada9fe?source=collection_archive---------8-----------------------#2024-09-06)
 
 ## 在为我们的育儿寻找完美保姆的过程中，带来秩序与简化我们的搜索
 
-[](https://courtney-perigo.medium.com/?source=post_page---byline--eb4b63ada9fe--------------------------------)[![Courtney Perigo](../Images/883923640d601a1160ca6d49c4c7c50b.png)](https://courtney-perigo.medium.com/?source=post_page---byline--eb4b63ada9fe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eb4b63ada9fe--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--eb4b63ada9fe--------------------------------) [Courtney Perigo](https://courtney-perigo.medium.com/?source=post_page---byline--eb4b63ada9fe--------------------------------)
+[](https://courtney-perigo.medium.com/?source=post_page---byline--eb4b63ada9fe--------------------------------)![Courtney Perigo](https://courtney-perigo.medium.com/?source=post_page---byline--eb4b63ada9fe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eb4b63ada9fe--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eb4b63ada9fe--------------------------------) [Courtney Perigo](https://courtney-perigo.medium.com/?source=post_page---byline--eb4b63ada9fe--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eb4b63ada9fe--------------------------------)·12分钟阅读·2024年9月6日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eb4b63ada9fe--------------------------------)·12 分钟阅读·2024 年 9 月 6 日
 
 --
 
 作为一名数据科学领域的领导者，我习惯了带领团队将混乱转化为清晰。但当混乱发生在自己家庭的保姆日程上时，即使是最精心安排的计划也可能出错。工作会议、午休时间以及不可预测的班次让我们的思绪不停地打转——直到我意识到，我可以用那些解决商业问题的算法来解决一个非常私人的问题。凭借蒙特卡罗模拟、遗传算法和一丝父母的智慧，我开始了将我们混乱的日程一项项通过算法调整的旅程。结果呢？好吧，可以说我们的保姆新日程看起来简直是完美契合。
 
-![](../Images/2a59f180e3abe545d9fcbc065578c1fc.png)
+![](img/2a59f180e3abe545d9fcbc065578c1fc.png)
 
 图片来自[Markus Spiske](https://unsplash.com/@markusspiske?utm_source=medium&utm_medium=referral)在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 设置舞台：伟大的日程难题
 
-我们的家庭日程就像是闯入瓷器店的公牛之后的残局。父母1的工作时间是标准的朝九晚五，算是这个难题中的简单部分。但接着，父母2出现了，他在芝加哥一家医院的急诊科值班，时间完全无法预测。有些天是黎明破晓开始，有些则一直延续到深夜，完全没有规律可循。突然之间，原本简单的日程变成了一个没有解决方案的魔方。
+我们的家庭日程就像是闯入瓷器店的公牛之后的残局。父母 1 的工作时间是标准的朝九晚五，算是这个难题中的简单部分。但接着，父母 2 出现了，他在芝加哥一家医院的急诊科值班，时间完全无法预测。有些天是黎明破晓开始，有些则一直延续到深夜，完全没有规律可循。突然之间，原本简单的日程变成了一个没有解决方案的魔方。
 
-![](../Images/3f286767a7ee06f76d50a61aa944a7af.png)
+![](img/3f286767a7ee06f76d50a61aa944a7af.png)
 
 图片由[Nick Fewings](https://unsplash.com/@jannerboy62?utm_source=medium&utm_medium=referral)拍摄，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -32,13 +32,13 @@
 
 由于我们的家庭时间表像被公牛闯入的瓷器店一样凌乱不堪，显然我们需要的不仅仅是一个日历和一份祈祷。这时，我转向了蒙特卡洛模拟——数据科学家版的水晶球。这个想法很简单：如果我们不能准确预测混乱何时降临，为什么不模拟所有可能出错的情况呢？
 
-*蒙特卡洛模拟是一种通过随机抽样来建模系统行为的技术。在这个案例中，我们将使用它随机生成父母2的可能工作时间表，从而模拟他们班次的不确定性，经过多次迭代。*
+*蒙特卡洛模拟是一种通过随机抽样来建模系统行为的技术。在这个案例中，我们将使用它随机生成父母 2 的可能工作时间表，从而模拟他们班次的不确定性，经过多次迭代。*
 
-想象一下运行数千个“如果”的场景：如果父母2被叫去做早班怎么办？如果紧急情况让他们在医院耽搁了怎么办？如果不幸的是，两个父母的时间表在最糟糕的时刻重叠怎么办？蒙特卡洛方法的魅力在于，它不仅仅给你一个答案——它给你数千个答案，每一个都是对未来的不同展望。
+想象一下运行数千个“如果”的场景：如果父母 2 被叫去做早班怎么办？如果紧急情况让他们在医院耽搁了怎么办？如果不幸的是，两个父母的时间表在最糟糕的时刻重叠怎么办？蒙特卡洛方法的魅力在于，它不仅仅给你一个答案——它给你数千个答案，每一个都是对未来的不同展望。
 
-这不仅仅是预测父母2何时可能被叫去参与抢救；它关乎确保我们的保姆准备好应对急诊室可能抛向我们的每一个变化。无论是早班还是深夜的紧急情况，模拟帮助我们看到所有可能性，以便我们能为最可能发生的情况——以及最糟糕的情况——做好规划。可以把它看作是一种混乱保险，并且附带一点心安。
+这不仅仅是预测父母 2 何时可能被叫去参与抢救；它关乎确保我们的保姆准备好应对急诊室可能抛向我们的每一个变化。无论是早班还是深夜的紧急情况，模拟帮助我们看到所有可能性，以便我们能为最可能发生的情况——以及最糟糕的情况——做好规划。可以把它看作是一种混乱保险，并且附带一点心安。
 
-在以下代码块中，模拟生成了父母2的五天工作周（周一至周五）的工作时间表。每天，父母2被叫去工作的概率是固定的，如果被叫去工作，就会根据这些概率从一组预定义的班次中随机选择一个班次。我们还增加了一个功能，考虑到周三下午1点的固定会议，并据此调整父母2的时间表。
+在以下代码块中，模拟生成了父母 2 的五天工作周（周一至周五）的工作时间表。每天，父母 2 被叫去工作的概率是固定的，如果被叫去工作，就会根据这些概率从一组预定义的班次中随机选择一个班次。我们还增加了一个功能，考虑到周三下午 1 点的固定会议，并据此调整父母 2 的时间表。
 
 ```py
 import numpy as np
@@ -82,9 +82,9 @@ def simulate_parent_2_schedule(num_days=5):
     return parent_2_daily_schedule
 ```
 
-我们可以使用 simulate_parent_2_schedule 函数来模拟父母2的工作周排班，并将其与父母1更为固定的 9 到 5 的排班相结合。通过重复这一过程 52 周，我们可以模拟一个典型的年份，并识别父母照看空档。这使我们能够计划在最需要保姆的时候。下图总结了在模拟的 52 周期间父母的不可用时间，帮助我们可视化在哪些时段需要额外的育儿支持。
+我们可以使用 simulate_parent_2_schedule 函数来模拟父母 2 的工作周排班，并将其与父母 1 更为固定的 9 到 5 的排班相结合。通过重复这一过程 52 周，我们可以模拟一个典型的年份，并识别父母照看空档。这使我们能够计划在最需要保姆的时候。下图总结了在模拟的 52 周期间父母的不可用时间，帮助我们可视化在哪些时段需要额外的育儿支持。
 
-![](../Images/1560f29f544f90c5affe21f43a86fe69.png)
+![](img/1560f29f544f90c5affe21f43a86fe69.png)
 
 作者特别提供的图片
 
@@ -92,7 +92,7 @@ def simulate_parent_2_schedule(num_days=5):
 
 拥有了模拟我们排班可能遇到的各种变数，我知道是时候引入一些强力的优化技术了。于是，基因算法登场——这是一种受自然选择启发的优化方法，通过迭代进化候选解的种群来找到最佳解决方案。
 
-![](../Images/feedfe4a0fe11f0ffb240c165927d58c.png)
+![](img/feedfe4a0fe11f0ffb240c165927d58c.png)
 
 图片来自 [Sangharsh Lohakare](https://unsplash.com/@sangharsh_l?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -131,7 +131,7 @@ def calculate_nanny_schedule(characteristics, num_days=5):
     return shifts  # Return the generated weekly schedule
 ```
 
-该函数根据保姆的灵活性和工作时间构建保姆的时间表。灵活的保姆可以在早上6点到中午12点之间开始工作，而其他保姆则有固定的时间表，工作时间从固定时间开始和结束。这使得算法能够评估一系列可能的每周时间表。
+该函数根据保姆的灵活性和工作时间构建保姆的时间表。灵活的保姆可以在早上 6 点到中午 12 点之间开始工作，而其他保姆则有固定的时间表，工作时间从固定时间开始和结束。这使得算法能够评估一系列可能的每周时间表。
 
 ## 选择最佳候选人
 
@@ -226,11 +226,11 @@ def evolve_nanny_characteristics(all_childcare_weeks, population_size=1000, num_
 
 下图描述了保姆适应度分数随时间的变化过程。算法在经过几个代后，能够迅速收敛到最佳保姆染色体。
 
-![](../Images/c63c6cf7389714c269f4c5689608ff85.png)
+![](img/c63c6cf7389714c269f4c5689608ff85.png)
 
 作者特别插图
 
-![](../Images/76012a7fd850e3c7b79f6eb8510e8481.png)
+![](img/76012a7fd850e3c7b79f6eb8510e8481.png)
 
 作者特别插图
 
@@ -242,7 +242,7 @@ def evolve_nanny_characteristics(all_childcare_weeks, population_size=1000, num_
 
 热力图提供了一抹美丽的色彩，将抽象的内容转化为可触及的东西。颜色越深，表示需要的保姆覆盖时间越多；颜色越浅，表示我们需要的保姆覆盖时间越少。这使得我们可以一眼就发现潜在的问题。星期五需要更多的覆盖吗？查看热力图。星期三保姆的工作时长是否过长？（是的，这很可能。）热力图会告诉你。它让我们迅速理清思路，帮助我们在需要的地方调整排班，并在一切都完美匹配时带来平静的心态。
 
-![](../Images/fb27cbfe60d85ac5094792641f114841.png)
+![](img/fb27cbfe60d85ac5094792641f114841.png)
 
 作者特别插图
 
@@ -260,7 +260,7 @@ def evolve_nanny_characteristics(all_childcare_weeks, population_size=1000, num_
 
 我们往往认为数据科学是为职场而存在的东西，帮助企业优化流程或做出更聪明的决策。但正如我在保姆排班项目中所学到的那样，数据科学的力量并不必局限于办公室的门外。它是一个可以解决日常挑战、简化混乱局面，甚至给家庭生活带来更多平静的工具包。
 
-![](../Images/f3a78985207a9ba22adf08187b3dbd2e.png)
+![](img/f3a78985207a9ba22adf08187b3dbd2e.png)
 
 图片由[Kenny Eliason](https://unsplash.com/@neonbrand?utm_source=medium&utm_medium=referral)拍摄，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -270,6 +270,6 @@ def evolve_nanny_characteristics(all_childcare_weeks, population_size=1000, num_
 
 随着我们不断前进，我认为数据科学将成为我们个人生活中更加重要的一部分——不仅仅是我们工作中使用的工具，更是帮助我们管理日常挑战的工具。最终，关键是利用数据的力量让我们的生活变得更加轻松。
 
-Nanny调度问题的代码和数据可以在Github上找到：[https://github.com/agentdanger/nanny-simulation](https://github.com/agentdanger/nanny-simulation)
+Nanny 调度问题的代码和数据可以在 Github 上找到：[`github.com/agentdanger/nanny-simulation`](https://github.com/agentdanger/nanny-simulation)
 
-关于我的专业信息可以在我的网站上找到：[https://courtneyperigo.com](https://courtneyperigo.com)
+关于我的专业信息可以在我的网站上找到：[`courtneyperigo.com`](https://courtneyperigo.com)

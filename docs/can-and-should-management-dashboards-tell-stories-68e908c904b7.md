@@ -1,18 +1,18 @@
 # 管理仪表盘能（也应该）讲故事吗？
 
-> 原文：[https://towardsdatascience.com/can-and-should-management-dashboards-tell-stories-68e908c904b7?source=collection_archive---------10-----------------------#2024-05-14](https://towardsdatascience.com/can-and-should-management-dashboards-tell-stories-68e908c904b7?source=collection_archive---------10-----------------------#2024-05-14)
+> 原文：[`towardsdatascience.com/can-and-should-management-dashboards-tell-stories-68e908c904b7?source=collection_archive---------10-----------------------#2024-05-14`](https://towardsdatascience.com/can-and-should-management-dashboards-tell-stories-68e908c904b7?source=collection_archive---------10-----------------------#2024-05-14)
 
 ## **运用数据讲故事来提高用户参与度和管理仪表盘的信息传递力**
 
-[](https://medium.com/@michalszudejko?source=post_page---byline--68e908c904b7--------------------------------)[![Michal Szudejko](../Images/d4c303d02a79ad29df193ed3b25910d9.png)](https://medium.com/@michalszudejko?source=post_page---byline--68e908c904b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--68e908c904b7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--68e908c904b7--------------------------------) [Michal Szudejko](https://medium.com/@michalszudejko?source=post_page---byline--68e908c904b7--------------------------------)
+[](https://medium.com/@michalszudejko?source=post_page---byline--68e908c904b7--------------------------------)![Michal Szudejko](https://medium.com/@michalszudejko?source=post_page---byline--68e908c904b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--68e908c904b7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--68e908c904b7--------------------------------) [Michal Szudejko](https://medium.com/@michalszudejko?source=post_page---byline--68e908c904b7--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--68e908c904b7--------------------------------) ·14分钟阅读·2024年5月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--68e908c904b7--------------------------------) ·14 分钟阅读·2024 年 5 月 14 日
 
 --
 
-![](../Images/6971849b60ccbbf9b9deea1856f71b87.png)
+![](img/6971849b60ccbbf9b9deea1856f71b87.png)
 
-**我马上就会解释这一点：）。** 来源：图像由作者在ChatGPT中生成。
+**我马上就会解释这一点：）。** 来源：图像由作者在 ChatGPT 中生成。
 
 在进一步讨论之前，让我澄清一件事：
 

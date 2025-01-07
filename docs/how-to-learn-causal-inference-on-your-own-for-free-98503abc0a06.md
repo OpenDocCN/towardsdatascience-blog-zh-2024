@@ -1,16 +1,16 @@
 # 如何免费自学因果推理
 
-> 原文：[https://towardsdatascience.com/how-to-learn-causal-inference-on-your-own-for-free-98503abc0a06?source=collection_archive---------0-----------------------#2024-02-20](https://towardsdatascience.com/how-to-learn-causal-inference-on-your-own-for-free-98503abc0a06?source=collection_archive---------0-----------------------#2024-02-20)
+> 原文：[`towardsdatascience.com/how-to-learn-causal-inference-on-your-own-for-free-98503abc0a06?source=collection_archive---------0-----------------------#2024-02-20`](https://towardsdatascience.com/how-to-learn-causal-inference-on-your-own-for-free-98503abc0a06?source=collection_archive---------0-----------------------#2024-02-20)
 
 ## 适用于所有水平的终极自学指南
 
-[](https://medium.com/@quentin.gallea?source=post_page---byline--98503abc0a06--------------------------------)[![Quentin Gallea, PhD](../Images/457af55dd9c6121da7ec97f8e2991c43.png)](https://medium.com/@quentin.gallea?source=post_page---byline--98503abc0a06--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--98503abc0a06--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--98503abc0a06--------------------------------) [Quentin Gallea, PhD](https://medium.com/@quentin.gallea?source=post_page---byline--98503abc0a06--------------------------------)
+[](https://medium.com/@quentin.gallea?source=post_page---byline--98503abc0a06--------------------------------)![Quentin Gallea, PhD](https://medium.com/@quentin.gallea?source=post_page---byline--98503abc0a06--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--98503abc0a06--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--98503abc0a06--------------------------------) [Quentin Gallea, PhD](https://medium.com/@quentin.gallea?source=post_page---byline--98503abc0a06--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--98503abc0a06--------------------------------) ·阅读时长12分钟·2024年2月20日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--98503abc0a06--------------------------------) ·阅读时长 12 分钟·2024 年 2 月 20 日
 
 --
 
-![](../Images/8a049a435a54acfdc9eae6ae66276ef0.png)
+![](img/8a049a435a54acfdc9eae6ae66276ef0.png)
 
 作者提供的图片
 
@@ -20,7 +20,7 @@
 
 预测推理与因果推理之间的区别是深刻的，后者经常被忽视，导致代价高昂的错误。这两种方法的逻辑和模型差异巨大，本指南旨在帮助你掌握辨别因果关系的知识，做到自信应对。
 
-![](../Images/7de3e7b123ce96d402fcc70bf3cb749c.png)
+![](img/7de3e7b123ce96d402fcc70bf3cb749c.png)
 
 来自谷歌趋势的“因果推理”结果，揭示了最近快速增长的兴趣以及与机器学习的关联。图片由作者提供
 
@@ -64,13 +64,13 @@
 
 +   我们广告活动的投资回报率是多少？
 
-在接下来的内容中，我将主要引用两本免费的电子书，这些书中包含Python代码和可以进行实验的数据。第一本电子书提供快速概览，而第二本则允许更深入地探讨内容。
+在接下来的内容中，我将主要引用两本免费的电子书，这些书中包含 Python 代码和可以进行实验的数据。第一本电子书提供快速概览，而第二本则允许更深入地探讨内容。
 
 1.  [勇敢与真实的因果推理](https://matheusfacure.github.io/python-causality-handbook/landing-page.html) *作者：Matheus Facure*
 
 2\. [因果推理：混音带](https://mixtape.scunning.com/) *作者：Scott Cuningham*
 
-![](../Images/b0a732ae531b63c5685ffb03178ffa90.png)
+![](img/b0a732ae531b63c5685ffb03178ffa90.png)
 
 图片来源：Timo Elliott
 
@@ -92,7 +92,7 @@
 
 ## 📚资源：
 
-[因果关系的科学与艺术（第一部分）](/the-science-and-art-of-causality-part-1-5d6fb55b7a7c)
+因果关系的科学与艺术（第一部分）
 
 ## 1.2 一些形式化：潜在结果
 
@@ -104,7 +104,7 @@
 
 1.  Yᵢ(1) 代表个体 *i* 在接受处理时的潜在结果。
 
-请注意，使用了不同的符号。处理（1 或 0）的引用可能出现在括号中（如上所用），也可能以上标或下标形式出现。字母“Y”表示关注的结果，例如一个二元变量，当出现头痛时值为1，否则为0。下标“i”表示观察到的实体（例如，一个人、一只实验鼠、一座城市等）。最后，术语“处理”指的是你关心的“原因”（例如，一颗药丸、一则广告、一项政策等）。
+请注意，使用了不同的符号。处理（1 或 0）的引用可能出现在括号中（如上所用），也可能以上标或下标形式出现。字母“Y”表示关注的结果，例如一个二元变量，当出现头痛时值为 1，否则为 0。下标“i”表示观察到的实体（例如，一个人、一只实验鼠、一座城市等）。最后，术语“处理”指的是你关心的“原因”（例如，一颗药丸、一则广告、一项政策等）。
 
 使用这个符号，我们可以通过陈述因果推断的基本问题来指出：不可能同时观察到 Yᵢ(0) 和 Yᵢ(1)。换句话说，你永远无法在同一时刻观察到同一人接受和未接受处理后的结果。
 
@@ -122,7 +122,7 @@
 
 可视化表示是减少认知负担、澄清假设并促进沟通的强大工具。在因果推断中，我们使用有向图。顾名思义，这些图描绘了各种元素（如头痛、药丸、茶）作为节点，通过单向箭头连接，显示因果关系的方向。（注：我故意没有提到与这些图相关的常见假设“无环性”，因为它超出了本概述的范围，但在本小节末尾的第二篇参考文献中有讨论。）
 
-![](../Images/106b492182f63d0802f0c8049146bc1b.png)
+![](img/106b492182f63d0802f0c8049146bc1b.png)
 
 有向图示例，图像来自作者
 
@@ -156,9 +156,9 @@
 
 ## 📚资源：
 
-+   [你应该控制哪些变量？（Scott Cuningham的substack）](https://causalinf.substack.com/p/which-variables-do-i-need-to-control)
++   [你应该控制哪些变量？（Scott Cuningham 的 substack）](https://causalinf.substack.com/p/which-variables-do-i-need-to-control)
 
-+   [好控制与坏控制速成课程（Cinelli等，2022）](https://ftp.cs.ucla.edu/pub/stat_ser/r493.pdf)
++   [好控制与坏控制速成课程（Cinelli 等，2022）](https://ftp.cs.ucla.edu/pub/stat_ser/r493.pdf)
 
 最后，理解固定效应回归对因果推断至关重要。这种回归方法允许我们考虑那些可能无法测量的（例如文化）或根本没有数据的混杂因素。
 
@@ -170,23 +170,23 @@
 
 ## 2.2 统计工具
 
-有许多工具可以帮助我们进行因果推断和统计分析，在我看来，最好的工具是STATA、Python和R。
+有许多工具可以帮助我们进行因果推断和统计分析，在我看来，最好的工具是 STATA、Python 和 R。
 
-STATA专为统计学设计，尤其是计量经济学，使其成为一个极其强大的工具。它提供了来自前沿研究的最新包。然而，它价格昂贵且不够多功能。
+STATA 专为统计学设计，尤其是计量经济学，使其成为一个极其强大的工具。它提供了来自前沿研究的最新包。然而，它价格昂贵且不够多功能。
 
-另一方面，Python是当今领先的编程语言。它是开源的，功能非常多样化，这些都是它成为我首选的关键原因。此外，ChatGPT在处理Python相关问题时表现非常出色，这在这个人工智能时代是一个重要的优势。
+另一方面，Python 是当今领先的编程语言。它是开源的，功能非常多样化，这些都是它成为我首选的关键原因。此外，ChatGPT 在处理 Python 相关问题时表现非常出色，这在这个人工智能时代是一个重要的优势。
 
-R在统计学方面非常强大。R与Python之间的辩论仍在进行中，我将这个判断留给你。需要注意的是，R的多功能性不如Python，而且似乎ChatGPT在R上的熟练度不如Python。此外，我参考的两本主要书籍都包含了Python代码（《勇敢与真实的因果推断》；《因果推断：混音带》）。这进一步支持了将重点放在Python上的观点。
+R 在统计学方面非常强大。R 与 Python 之间的辩论仍在进行中，我将这个判断留给你。需要注意的是，R 的多功能性不如 Python，而且似乎 ChatGPT 在 R 上的熟练度不如 Python。此外，我参考的两本主要书籍都包含了 Python 代码（《勇敢与真实的因果推断》；《因果推断：混音带》）。这进一步支持了将重点放在 Python 上的观点。
 
-有成千上万的免费资源可以从零开始学习Python（如果你有更好的建议，请评论）。但如果你从零开始（完全没有编码经验），以下是我通常会推荐的资源：
+有成千上万的免费资源可以从零开始学习 Python（如果你有更好的建议，请评论）。但如果你从零开始（完全没有编码经验），以下是我通常会推荐的资源：
 
 ## 📚资源：
 
-+   [Python编程入门（Udemy）](https://www.udemy.com/course/pythonforbeginnersintro/)
++   [Python 编程入门（Udemy）](https://www.udemy.com/course/pythonforbeginnersintro/)
 
-+   [Python中的线性回归（Real Python）](https://realpython.com/linear-regression-in-python/)
++   [Python 中的线性回归（Real Python）](https://realpython.com/linear-regression-in-python/)
 
-# 3\. 随机实验（A/B测试）
+# 3\. 随机实验（A/B 测试）
 
 在本指南的第一部分，我们发现了因果推断的基本问题。这个问题突显了评估因果关系的困难。那么我们能做什么呢？
 
@@ -198,7 +198,7 @@ R在统计学方面非常强大。R与Python之间的辩论仍在进行中，我
 
 > “我们采取一个样本，希望它能代表一个更大的群体，并随机将受试者分配到两个组（治疗组和对照组）或更多组。受试者通常不知道自己是否接受治疗（这一过程称为盲法）。因此，这两个组可以说是可比的。由于唯一的区别是治疗，如果我们观察到一个效应，那么它可能是因果关系，前提是没有其他偏差存在。”
 
-![](../Images/7c315c63ec7c96a8c206ccad2c64424a.png)
+![](img/7c315c63ec7c96a8c206ccad2c64424a.png)
 
 随机实验的简单表示。图片来源：作者。
 
@@ -214,7 +214,7 @@ R在统计学方面非常强大。R与Python之间的辩论仍在进行中，我
 
 此外，随机化实验往往具有非常强的内部效度，但外部效度较弱。内部效度意味着在研究范围内能够精确地衡量因果关系，而外部效度则指的是将结果推广到研究范围之外的能力。
 
-![](../Images/e9dce9018761941f16b6b949e2ea35da.png)
+![](img/e9dce9018761941f16b6b949e2ea35da.png)
 
 控制实验的主要限制之一是外部效度。图片来源：作者。
 
@@ -230,13 +230,13 @@ R在统计学方面非常强大。R与Python之间的辩论仍在进行中，我
 
 回归不连续设计（RDD）的理念是利用治疗分配中的不连续性（例如，地理边界、与年龄相关的行政法律等），在这些情况下，相似的个体或地点根据某一截止点接受不同的治疗。
 
-例如，在Carpenter 和 Dobkin（2009）的研究《*饮酒对死亡率的影响*》中，作者利用法定最低饮酒年龄的分界点，研究饮酒对死亡率的即时影响。
+例如，在 Carpenter 和 Dobkin（2009）的研究《*饮酒对死亡率的影响*》中，作者利用法定最低饮酒年龄的分界点，研究饮酒对死亡率的即时影响。
 
-![](../Images/da2603e8976b80bdbe6021bec83b13bb.png)
+![](img/da2603e8976b80bdbe6021bec83b13bb.png)
 
-与移动交通事故相关的死亡率在21岁时突然上升，可以说是由于饮酒引起的。复现（Carpenter 和 Dobkin (2009)）的主要结果。图片由作者提供。
+与移动交通事故相关的死亡率在 21 岁时突然上升，可以说是由于饮酒引起的。复现（Carpenter 和 Dobkin (2009)）的主要结果。图片由作者提供。
 
-本研究的理论是，饮酒的人与不饮酒的人通常无法直接比较，因为存在许多其他系统性差异（例如年龄、社会经济状况、各种疾病的风险等）。然而，通过比较刚刚低于21岁和刚刚超过21岁的个体，可以认为他们非常相似，假设在那个年龄没有其他显著变化。这种方法可以更清楚地将死亡率变化归因于饮酒行为。这个例子，连同数据和代码，也包含在下一个子节4.2 方法末尾提供的第一个参考中。
+本研究的理论是，饮酒的人与不饮酒的人通常无法直接比较，因为存在许多其他系统性差异（例如年龄、社会经济状况、各种疾病的风险等）。然而，通过比较刚刚低于 21 岁和刚刚超过 21 岁的个体，可以认为他们非常相似，假设在那个年龄没有其他显著变化。这种方法可以更清楚地将死亡率变化归因于饮酒行为。这个例子，连同数据和代码，也包含在下一个子节 4.2 方法末尾提供的第一个参考中。
 
 ## 4.2 方法
 
@@ -260,7 +260,7 @@ R在统计学方面非常强大。R与Python之间的辩论仍在进行中，我
 
 +   深入了解：[差分中的差分（因果推断：混音带）](https://mixtape.scunning.com/09-difference_in_differences)
 
-+   差分法示例：[ChatGPT对Stack Overflow的影响](/how-ai-is-changing-the-way-we-code-36ff30262e65)
++   差分法示例：ChatGPT 对 Stack Overflow 的影响
 
 +   简介：[工具变量（勇敢与真实的因果推断）](https://matheusfacure.github.io/python-causality-handbook/08-Instrumental-Variables.html)
 
@@ -284,11 +284,11 @@ R在统计学方面非常强大。R与Python之间的辩论仍在进行中，我
 
 +   [因果机器学习：调查与开放问题（Kaddour 等，2022）](https://arxiv.org/abs/2206.15475)
 
-+   !收费！[因果分析：影响评估与因果机器学习在R中的应用](https://mitpress.mit.edu/9780262545914/causal-analysis/)（马丁·胡贝尔）
++   !收费！[因果分析：影响评估与因果机器学习在 R 中的应用](https://mitpress.mit.edu/9780262545914/causal-analysis/)（马丁·胡贝尔）
 
 ## 📚 因果发现
 
-+   !收费！[Python中的因果推断与发现](https://www.packtpub.com/product/causal-inference-and-discovery-in-python/9781804612989)
++   !收费！[Python 中的因果推断与发现](https://www.packtpub.com/product/causal-inference-and-discovery-in-python/9781804612989)
 
 # 6\. 结论
 

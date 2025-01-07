@@ -1,16 +1,16 @@
 # TimesFM：基础模型在时间序列预测中的兴起
 
-> 原文：[https://towardsdatascience.com/timesfm-the-boom-of-foundation-models-in-time-series-forecasting-29701e0b20b5?source=collection_archive---------2-----------------------#2024-09-20](https://towardsdatascience.com/timesfm-the-boom-of-foundation-models-in-time-series-forecasting-29701e0b20b5?source=collection_archive---------2-----------------------#2024-09-20)
+> 原文：[`towardsdatascience.com/timesfm-the-boom-of-foundation-models-in-time-series-forecasting-29701e0b20b5?source=collection_archive---------2-----------------------#2024-09-20`](https://towardsdatascience.com/timesfm-the-boom-of-foundation-models-in-time-series-forecasting-29701e0b20b5?source=collection_archive---------2-----------------------#2024-09-20)
 
-## 探索谷歌最新的人工智能模型如何利用超过3070亿个数据点实现零样本预测精度
+## 探索谷歌最新的人工智能模型如何利用超过 3070 亿个数据点实现零样本预测精度
 
-[](https://medium.com/@luisroque?source=post_page---byline--29701e0b20b5--------------------------------)[![Luís Roque](../Images/e281d470b403375ba3c6f521b1ccf915.png)](https://medium.com/@luisroque?source=post_page---byline--29701e0b20b5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--29701e0b20b5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--29701e0b20b5--------------------------------) [Luís Roque](https://medium.com/@luisroque?source=post_page---byline--29701e0b20b5--------------------------------)
+[](https://medium.com/@luisroque?source=post_page---byline--29701e0b20b5--------------------------------)![Luís Roque](https://medium.com/@luisroque?source=post_page---byline--29701e0b20b5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--29701e0b20b5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29701e0b20b5--------------------------------) [Luís Roque](https://medium.com/@luisroque?source=post_page---byline--29701e0b20b5--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29701e0b20b5--------------------------------) ·阅读时长12分钟·2024年9月20日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29701e0b20b5--------------------------------) ·阅读时长 12 分钟·2024 年 9 月 20 日
 
 --
 
-*本文由Rafael Guedes共同撰写。*
+*本文由 Rafael Guedes 共同撰写。*
 
 # 引言
 

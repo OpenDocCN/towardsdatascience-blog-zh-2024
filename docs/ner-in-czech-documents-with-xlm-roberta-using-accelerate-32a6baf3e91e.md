@@ -1,52 +1,52 @@
-# 使用 🤗 Accelerate 进行捷克文档中的NER任务，基于XLM-RoBERTa模型
+# 使用 🤗 Accelerate 进行捷克文档中的 NER 任务，基于 XLM-RoBERTa 模型
 
-> 原文：[https://towardsdatascience.com/ner-in-czech-documents-with-xlm-roberta-using-accelerate-32a6baf3e91e?source=collection_archive---------9-----------------------#2024-11-12](https://towardsdatascience.com/ner-in-czech-documents-with-xlm-roberta-using-accelerate-32a6baf3e91e?source=collection_archive---------9-----------------------#2024-11-12)
+> 原文：[`towardsdatascience.com/ner-in-czech-documents-with-xlm-roberta-using-accelerate-32a6baf3e91e?source=collection_archive---------9-----------------------#2024-11-12`](https://towardsdatascience.com/ner-in-czech-documents-with-xlm-roberta-using-accelerate-32a6baf3e91e?source=collection_archive---------9-----------------------#2024-11-12)
 
 ## *在开发一个成功部署的文档处理模型过程中，我做出的决策*
 
-[](https://medium.com/@bbuso?source=post_page---byline--32a6baf3e91e--------------------------------)[![Bohumir Buso](../Images/751ba491a8f5aca31add3dbc850841c5.png)](https://medium.com/@bbuso?source=post_page---byline--32a6baf3e91e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--32a6baf3e91e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--32a6baf3e91e--------------------------------) [Bohumir Buso](https://medium.com/@bbuso?source=post_page---byline--32a6baf3e91e--------------------------------)
+[](https://medium.com/@bbuso?source=post_page---byline--32a6baf3e91e--------------------------------)![Bohumir Buso](https://medium.com/@bbuso?source=post_page---byline--32a6baf3e91e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--32a6baf3e91e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--32a6baf3e91e--------------------------------) [Bohumir Buso](https://medium.com/@bbuso?source=post_page---byline--32a6baf3e91e--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--32a6baf3e91e--------------------------------) ·阅读时间：9分钟·2024年11月12日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--32a6baf3e91e--------------------------------) ·阅读时间：9 分钟·2024 年 11 月 12 日
 
 --
 
-![](../Images/874a04ed0f94f4a2b3e255bd98e3ae03.png)
+![](img/874a04ed0f94f4a2b3e255bd98e3ae03.png)
 
-图像由Dall-E生成
+图像由 Dall-E 生成
 
-尽管我在机器学习项目中已有超过8年的经验，但这是我第一次从事NLP项目。我最初寻找现有的资源和代码，但发现相关材料非常有限，特别是关于捷克语文档中的NER任务。这激发我将开发过程中学到的所有知识整理到一个地方，希望能帮助未来的新人更高效地进步。因此，**本文提供的是一个实用的入门介绍，而非深入的理论分析**。
+尽管我在机器学习项目中已有超过 8 年的经验，但这是我第一次从事 NLP 项目。我最初寻找现有的资源和代码，但发现相关材料非常有限，特别是关于捷克语文档中的 NER 任务。这激发我将开发过程中学到的所有知识整理到一个地方，希望能帮助未来的新人更高效地进步。因此，**本文提供的是一个实用的入门介绍，而非深入的理论分析**。
 
 由于敏感性考虑，特定的数值结果已被省略。
 
 # 数据
 
-![](../Images/36c928f19c6a3344476a2804e0a82cf8.png)
+![](img/36c928f19c6a3344476a2804e0a82cf8.png)
 
 包含实体的文档示例：*债权人变量符号*（红色）、姓氏（浅绿色）、名字（深绿色）、出生日期（蓝色）。敏感信息已被屏蔽。
 
 **任务** 主要目标是通过以下任一标识符来识别与每个文档相关联的客户：
 
-+   *债权人变量符号*（约20%的文档中出现）
++   *债权人变量符号*（约 20%的文档中出现）
 
-+   *出生身份证明*（约60%的文档中出现）
++   *出生身份证明*（约 60%的文档中出现）
 
-+   组合 *姓名* + *姓氏* + *出生日期*（约50%的文档中出现）
++   组合 *姓名* + *姓氏* + *出生日期*（约 50%的文档中出现）
 
-大约5%的文档没有包含任何识别实体。
+大约 5%的文档没有包含任何识别实体。
 
-**数据集** 在开发过程中，我使用了710个“真实”PDF文档，将其分为三个集：600个用于训练，55个用于验证，55个用于测试。
+**数据集** 在开发过程中，我使用了 710 个“真实”PDF 文档，将其分为三个集：600 个用于训练，55 个用于验证，55 个用于测试。
 
-**标签** 我收到了一个包含实体提取为纯文本的Excel文件，需要手动标注文档文本。我使用了[BIO](https://natural-language-understanding.fandom.com/wiki/Named_entity_recognition#BIO)标注格式，按照以下步骤进行操作：
+**标签** 我收到了一个包含实体提取为纯文本的 Excel 文件，需要手动标注文档文本。我使用了[BIO](https://natural-language-understanding.fandom.com/wiki/Named_entity_recognition#BIO)标注格式，按照以下步骤进行操作：
 
 1.  打开每个文档（使用`extract_text()`函数，来自`pdfminer.high_level`模块）
 
-1.  将文本拆分为单词（使用SpaCy模型“xx_sent_ud_sm”，并做一些调整，如防止在连字符上拆分，以处理出生号码格式，例如‘84–12–10/7869’）
+1.  将文本拆分为单词（使用 SpaCy 模型“xx_sent_ud_sm”，并做一些调整，如防止在连字符上拆分，以处理出生号码格式，例如‘84–12–10/7869’）
 
 1.  识别文本中的实体
 
 1.  为实体分配相应的标签，使用“O”标签标注所有其他词汇
 
-**替代方法** 类似LayoutLM的模型，考虑输入标记的边界框，可能会提高质量。然而，我避免了这个选项，因为和往常一样（😮‍💨），**我已经在数据准备上花费了大部分项目时间**（例如，重新格式化Excel文件、修正数据错误、标注）。追求基于边界框的模型会需要更多的时间。
+**替代方法** 类似 LayoutLM 的模型，考虑输入标记的边界框，可能会提高质量。然而，我避免了这个选项，因为和往常一样（😮‍💨），**我已经在数据准备上花费了大部分项目时间**（例如，重新格式化 Excel 文件、修正数据错误、标注）。追求基于边界框的模型会需要更多的时间。
 
 尽管正则表达式和启发式方法理论上可以处理这些简单的实体，我认为这种方法会无效，因为它需要过于复杂的规则才能准确地在其他潜在候选实体中识别出正确的实体（如律师名字、案件编号、其他诉讼参与者等）。另一方面，模型能够学习区分相关实体，因此不需要使用启发式方法。
 
@@ -54,15 +54,15 @@
 
 **🤗 Accelerate**
 
-由于在封装器较不常见的时期开始工作，**我习惯于编写自己的训练循环，这让我更容易调试 -** **这一方法得到了🤗 Accelerate的有效支持**。这在这个项目中证明是有益的——我并不完全确定所需的数据和标签格式或形状，而我的数据与教程中常见的组织良好的示例不符，但在训练循环中完全访问中间计算使我能够快速迭代。
+由于在封装器较不常见的时期开始工作，**我习惯于编写自己的训练循环，这让我更容易调试 -** **这一方法得到了🤗 Accelerate 的有效支持**。这在这个项目中证明是有益的——我并不完全确定所需的数据和标签格式或形状，而我的数据与教程中常见的组织良好的示例不符，但在训练循环中完全访问中间计算使我能够快速迭代。
 
-**上下文长度** 大多数教程建议将每个句子作为一个单独的训练示例。然而，在这个案例中，我决定**更长的上下文更为合适，因为文档通常包含对多个实体的引用，其中许多是无关的（例如律师、其他债权人、案件编号）**。这种更广泛的上下文帮助模型更好地识别相关客户。我使用每个文档的512个标记作为一个训练示例。这是大多数模型的常见最大限制，但足以容纳我文档中的所有实体。
+**上下文长度** 大多数教程建议将每个句子作为一个单独的训练示例。然而，在这个案例中，我决定**更长的上下文更为合适，因为文档通常包含对多个实体的引用，其中许多是无关的（例如律师、其他债权人、案件编号）**。这种更广泛的上下文帮助模型更好地识别相关客户。我使用每个文档的 512 个标记作为一个训练示例。这是大多数模型的常见最大限制，但足以容纳我文档中的所有实体。
 
 **子标记的标注** 在🤗标记分类教程[1]中，推荐的方法是：
 
 > 只标注给定单词的第一个标记。对同一单词的其他子标记分配`*-100*`。
 
-然而，我发现以下方法在他们的NLP课程中的标记分类教程[2]中效果更好：
+然而，我发现以下方法在他们的 NLP 课程中的标记分类教程[2]中效果更好：
 
 > 每个词元都得到与它所在单词开头词元相同的标签，因为它们是同一实体的一部分。对于单词内部但不是开头的词元，我们将`*B-*`替换为`*I-*`。
 
@@ -136,7 +136,7 @@ def compute_weights(trainset, num_labels):
     return weights
 ```
 
-**训练循环** 我定义了两个额外的函数：PyTorch的`DataLoader()`来管理批处理，以及一个`main()`函数来设置分布式训练对象并执行训练循环。
+**训练循环** 我定义了两个额外的函数：PyTorch 的`DataLoader()`来管理批处理，以及一个`main()`函数来设置分布式训练对象并执行训练循环。
 
 ```py
 from accelerate import Accelerator, notebook_launcher
@@ -316,15 +316,15 @@ notebook_launcher(main, args=(batch_size, num_workers, epochs, model_path,
 
 **我发现使用** `notebook_launcher()` **很方便，因为它允许我在控制台中运行训练，并且之后可以轻松处理结果。**
 
-**XLM-RoBERTa基础版 vs 大型版 vs Small-E-Czech** 我尝试了微调三种模型。XLM-RoBERTa基础版模型[3]表现令人满意，但服务器容量也允许我尝试XLM-RoBERTa大型版模型[3]，它的参数量是前者的两倍。
+**XLM-RoBERTa 基础版 vs 大型版 vs Small-E-Czech** 我尝试了微调三种模型。XLM-RoBERTa 基础版模型[3]表现令人满意，但服务器容量也允许我尝试 XLM-RoBERTa 大型版模型[3]，它的参数量是前者的两倍。
 
-> XLM-RoBERTa是RoBERTa的多语言版本。它是在2.5TB过滤后的CommonCrawl数据上预训练的，包含100种语言。
+> XLM-RoBERTa 是 RoBERTa 的多语言版本。它是在 2.5TB 过滤后的 CommonCrawl 数据上预训练的，包含 100 种语言。
 
-大型模型在结果上略有提升，所以我最终部署了它。我也测试了Small-E-Czech [4]，一个在捷克网页数据上预训练的Electra-small模型，但它的表现很差。
+大型模型在结果上略有提升，所以我最终部署了它。我也测试了 Small-E-Czech [4]，一个在捷克网页数据上预训练的 Electra-small 模型，但它的表现很差。
 
 **微调 vs 迁移学习 vs 从头训练** 除了微调（更新所有模型权重）之外，我还测试了迁移学习，因为有时会建议只训练最后一层（分类层）就足够了。然而，性能差异显著，微调更为优越。我还尝试了从头训练，通过仅导入模型的架构，随机初始化权重，然后进行训练，但如预期的那样，这种方法效果不佳。
 
-**RoBERTa vs LLM（Claude 3.5 Sonnet）** 我简要探索了零样本LLM，尽管我几乎没有进行提示工程（所以有点🥱）。模型在处理基本请求时表现困难，比如（我在实际提示中使用了捷克语）：
+**RoBERTa vs LLM（Claude 3.5 Sonnet）** 我简要探索了零样本 LLM，尽管我几乎没有进行提示工程（所以有点🥱）。模型在处理基本请求时表现困难，比如（我在实际提示中使用了捷克语）：
 
 > 查找债权人变量符号。这个数字由恰好 9 位连续数字（0–9）组成，不包含字母或其他特殊字符。通常前面会有以下缩写之一：‘ev.č.’、‘zn. opr’、‘VS. O’、‘evid. č. opr.’。相反，我对缩写为 ‘č.j.’ 的交易号不感兴趣。这个数字在文档中出现的频率较低，可能你找不到它，若无法找到，写上‘cannot find’。如果不确定，写上‘not sure’。
 
@@ -360,6 +360,6 @@ notebook_launcher(main, args=(batch_size, num_workers, epochs, model_path,
 
 [3] A. Conneau, K. Khandelwal, N. Goyal, V. Chaudhary, G. Wenzek, F. Guzman, E. Grave, M. Ott, L. Zettlemoyer 和 V. Stoyanov，[无监督跨语言表示学习 at Scale](https://arxiv.org/abs/1911.02116)（2019），CoRR abs/1911.02116
 
-[4] M. Kocián, J. Náplava, D. Štancl 和 V. Kadlec，[基于Siamese BERT的网络搜索相关性排序模型，在新的捷克数据集上进行评估](https://arxiv.org/abs/2112.01810)（2021）
+[4] M. Kocián, J. Náplava, D. Štancl 和 V. Kadlec，[基于 Siamese BERT 的网络搜索相关性排序模型，在新的捷克数据集上进行评估](https://arxiv.org/abs/2112.01810)（2021）
 
-[5] J. Straková, M. Straka 和 J. Hajič. [用于形态学、词形还原、词性标注和命名实体识别的开源工具](http://www.aclweb.org/anthology/P/P14/P14-5003.pdf)（2014），发表于《第52届计算语言学协会年会：系统展示论文集》，第13–18页，美国马里兰州巴尔的摩，2014年6月。计算语言学协会。
+[5] J. Straková, M. Straka 和 J. Hajič. [用于形态学、词形还原、词性标注和命名实体识别的开源工具](http://www.aclweb.org/anthology/P/P14/P14-5003.pdf)（2014），发表于《第 52 届计算语言学协会年会：系统展示论文集》，第 13–18 页，美国马里兰州巴尔的摩，2014 年 6 月。计算语言学协会。

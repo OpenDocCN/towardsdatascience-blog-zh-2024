@@ -1,16 +1,16 @@
 # 从零开始构建你的智能体
 
-> 原文：[https://towardsdatascience.com/build-your-agents-from-scratch-forget-autogen-or-crewai-part-a-a114cd1e785f?source=collection_archive---------2-----------------------#2024-09-23](https://towardsdatascience.com/build-your-agents-from-scratch-forget-autogen-or-crewai-part-a-a114cd1e785f?source=collection_archive---------2-----------------------#2024-09-23)
+> 原文：[`towardsdatascience.com/build-your-agents-from-scratch-forget-autogen-or-crewai-part-a-a114cd1e785f?source=collection_archive---------2-----------------------#2024-09-23`](https://towardsdatascience.com/build-your-agents-from-scratch-forget-autogen-or-crewai-part-a-a114cd1e785f?source=collection_archive---------2-----------------------#2024-09-23)
 
 ## 设计你自己的智能体，完全不依赖任何框架
 
-[](https://medium.com/@hamzafarooq?source=post_page---byline--a114cd1e785f--------------------------------)[![Hamza Farooq](../Images/8e6d6ae323b57a2e4448357c2d61be77.png)](https://medium.com/@hamzafarooq?source=post_page---byline--a114cd1e785f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a114cd1e785f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a114cd1e785f--------------------------------) [Hamza Farooq](https://medium.com/@hamzafarooq?source=post_page---byline--a114cd1e785f--------------------------------)
+[](https://medium.com/@hamzafarooq?source=post_page---byline--a114cd1e785f--------------------------------)![Hamza Farooq](https://medium.com/@hamzafarooq?source=post_page---byline--a114cd1e785f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a114cd1e785f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a114cd1e785f--------------------------------) [Hamza Farooq](https://medium.com/@hamzafarooq?source=post_page---byline--a114cd1e785f--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a114cd1e785f--------------------------------) ·7分钟阅读·2024年9月23日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a114cd1e785f--------------------------------) ·7 分钟阅读·2024 年 9 月 23 日
 
 --
 
-![](../Images/59d5595c2bac63d71cfbbdc8c6275882.png)
+![](img/59d5595c2bac63d71cfbbdc8c6275882.png)
 
 图片由[Arseny Togulev](https://unsplash.com/@tetrakiss?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -32,7 +32,7 @@
 
 在深入代码之前，让我们先概述一下我们将构建的关键组件：
 
-![](../Images/85a64a14a6e92b921810d9c644011382.png)
+![](img/85a64a14a6e92b921810d9c644011382.png)
 
 开发一个代理人从零开始的五个阶段（图片由作者提供）
 
@@ -200,7 +200,7 @@ def run(self, prompt):
 
     print(code)
 
-    print("\n正在执行代码...")
+    print("\n 正在执行代码...")
 
     output, error = self.execute_code(code)
 
@@ -230,36 +230,36 @@ Now that we have all our components, let’s see how we can use our newly minted
 
     agent = AgentPro()
 
-    agent.run("""制作一个关于最佳领导形式的详细幻灯片，至少包含10张，并保存为名为 leadership.pptx 的pptx文件""")
+    agent.run("""制作一个关于最佳领导形式的详细幻灯片，至少包含 10 张，并保存为名为 leadership.pptx 的 pptx 文件""")
 
-至少包含 10 张幻灯片，并保存为名为 leadership.pptx 的pptx文件""")
+至少包含 10 张幻灯片，并保存为名为 leadership.pptx 的 pptx 文件""")
 
 ```
 
-使用这个简单的命令，我们要求我们的代理创建一个关于领导风格的完整演示文稿，包含至少10张幻灯片，并将其保存为PowerPoint文件。
+使用这个简单的命令，我们要求我们的代理创建一个关于领导风格的完整演示文稿，包含至少 10 张幻灯片，并将其保存为 PowerPoint 文件。
 
-我们的代理将生成必要的Python代码（可能使用如python-pptx之类的库），安装任何需要的库，执行代码以创建演示文稿，然后报告结果或遇到的任何错误。
+我们的代理将生成必要的 Python 代码（可能使用如 python-pptx 之类的库），安装任何需要的库，执行代码以创建演示文稿，然后报告结果或遇到的任何错误。
 
-我们刚刚建立了一个强大的AI代理的基础，能够按需生成并执行Python代码。从通过OpenAI API设置它的“大脑”，到赋予它编写和运行代码的能力，再到为它装备安装必要工具的功能，我们创造了一个多功能的数字助手。
+我们刚刚建立了一个强大的 AI 代理的基础，能够按需生成并执行 Python 代码。从通过 OpenAI API 设置它的“大脑”，到赋予它编写和运行代码的能力，再到为它装备安装必要工具的功能，我们创造了一个多功能的数字助手。
 
-这只是自定义AI代理可能实现的一个开端。在未来的系列中，我们将探索如何通过网络搜索能力、图像生成，甚至更复杂的决策过程来增强AgentPro。
+这只是自定义 AI 代理可能实现的一个开端。在未来的系列中，我们将探索如何通过网络搜索能力、图像生成，甚至更复杂的决策过程来增强 AgentPro。
 
-记住，**能力越大，责任越大**。你新的AI助手是一个强大的工具，但如何使用它完全取决于你。用它来自动化繁琐的任务，探索新想法，推动AI的边界。
+记住，**能力越大，责任越大**。你新的 AI 助手是一个强大的工具，但如何使用它完全取决于你。用它来自动化繁琐的任务，探索新想法，推动 AI 的边界。
 
 只是，也许不要让它为你写结婚誓言或决定你的下一份职业——有些事情还是交给人类直觉来处理吧！
 
-敬请期待B部分，在那里我们将教我们的代理一些新技巧，并开始解锁它的真正潜力。直到那时，祝你编程愉快，愿你的AI冒险没有bug且永无止境！
+敬请期待 B 部分，在那里我们将教我们的代理一些新技巧，并开始解锁它的真正潜力。直到那时，祝你编程愉快，愿你的 AI 冒险没有 bug 且永无止境！
 
-关注B部分！
+关注 B 部分！
 
 如果你对了解更多内容感兴趣，请订阅。你也可以通过[LinkedIn](https://www.linkedin.com/in/hamzafarooq/)与我联系。
 
 **关于我**
 
-你好！我是Hamza，我很高兴成为你进入AI代理世界的指南。作为Google的资深研究科学家，并在斯坦福和UCLA等著名院校有教学经验，我多年来一直处于AI开发和教育的前沿。我的热情在于揭开复杂AI概念的神秘面纱，并赋能下一代AI从业者。
+你好！我是 Hamza，我很高兴成为你进入 AI 代理世界的指南。作为 Google 的资深研究科学家，并在斯坦福和 UCLA 等著名院校有教学经验，我多年来一直处于 AI 开发和教育的前沿。我的热情在于揭开复杂 AI 概念的神秘面纱，并赋能下一代 AI 从业者。
 
-说到这个，如果你喜欢这次深入了解如何从零构建AI代理，或许你会对将你的LLM知识提升到一个新层次感兴趣。我最近在MAVEN平台上开发了一门名为[企业RAG与多代理应用](https://maven.com/boring-bot/advanced-llm)的综合课程。这门课程专为那些希望推动大型语言模型（LLM）边界的实践者而设计，尤其是在企业环境中。
+说到这个，如果你喜欢这次深入了解如何从零构建 AI 代理，或许你会对将你的 LLM 知识提升到一个新层次感兴趣。我最近在 MAVEN 平台上开发了一门名为[企业 RAG 与多代理应用](https://maven.com/boring-bot/advanced-llm)的综合课程。这门课程专为那些希望推动大型语言模型（LLM）边界的实践者而设计，尤其是在企业环境中。
 
-在[企业RAG和多智能体应用](https://maven.com/boring-bot/advanced-llm)中，我们探索了超越基础的前沿技术。从先进的检索增强生成（RAG）解决方案，到最新的模型优化方法和负责任的AI实践，本课程旨在让你掌握应对现实世界AI挑战所需的技能。
+在[企业 RAG 和多智能体应用](https://maven.com/boring-bot/advanced-llm)中，我们探索了超越基础的前沿技术。从先进的检索增强生成（RAG）解决方案，到最新的模型优化方法和负责任的 AI 实践，本课程旨在让你掌握应对现实世界 AI 挑战所需的技能。
 
-无论你是想实施最先进的LLM应用，还是深入研究模型微调和伦理AI部署的复杂性，本课程都能满足你的需求。
+无论你是想实施最先进的 LLM 应用，还是深入研究模型微调和伦理 AI 部署的复杂性，本课程都能满足你的需求。

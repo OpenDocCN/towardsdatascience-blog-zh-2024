@@ -1,16 +1,16 @@
 # 使用 Power BI 进行规划（仓库）与库存值
 
-> 原文：[https://towardsdatascience.com/using-power-bi-for-planning-warehouse-with-stock-values-0c7219845d48?source=collection_archive---------3-----------------------#2024-06-18](https://towardsdatascience.com/using-power-bi-for-planning-warehouse-with-stock-values-0c7219845d48?source=collection_archive---------3-----------------------#2024-06-18)
+> 原文：[`towardsdatascience.com/using-power-bi-for-planning-warehouse-with-stock-values-0c7219845d48?source=collection_archive---------3-----------------------#2024-06-18`](https://towardsdatascience.com/using-power-bi-for-planning-warehouse-with-stock-values-0c7219845d48?source=collection_archive---------3-----------------------#2024-06-18)
 
 ## *Stock Measures 在 Power BI 中并不新鲜。但我们如何利用 Power BI 利用这些度量来规划未来呢？在这里，我将设计一个场景，并解释我如何解决它。*
 
-[](https://medium.com/@salvatorecagliari?source=post_page---byline--0c7219845d48--------------------------------)[![Salvatore Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--0c7219845d48--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0c7219845d48--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0c7219845d48--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--0c7219845d48--------------------------------)
+[](https://medium.com/@salvatorecagliari?source=post_page---byline--0c7219845d48--------------------------------)![Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--0c7219845d48--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0c7219845d48--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0c7219845d48--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--0c7219845d48--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0c7219845d48--------------------------------) ·9 分钟阅读·2024年6月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0c7219845d48--------------------------------) ·9 分钟阅读·2024 年 6 月 18 日
 
 --
 
-![](../Images/e2ab15931b90b9c4fb0207015caa9372.png)
+![](img/e2ab15931b90b9c4fb0207015caa9372.png)
 
 照片由 [Annie Williams](https://unsplash.com/@annietheby?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -48,7 +48,7 @@
 
 这里是巴伐利亚（德国）两个月的按体积分组的感兴趣值：
 
-![](../Images/8e5c747e99628bbc8130a45ba95641a7.png)
+![](img/8e5c747e99628bbc8130a45ba95641a7.png)
 
 图 1 — 巴伐利亚按体积类别分组的两个月感兴趣值（作者绘制）
 
@@ -82,7 +82,7 @@
 
 数据模型如下所示：
 
-![](../Images/8ef90786c3fe189e7dd185458d27d518.png)
+![](img/8ef90786c3fe189e7dd185458d27d518.png)
 
 图 2 — 基本数据模型（作者绘制）
 
@@ -116,7 +116,7 @@
 
 添加此表后，我的数据模型将如下所示：
 
-![](../Images/17ccc9334bc3a510ad13776ea7bc5371.png)
+![](img/17ccc9334bc3a510ad13776ea7bc5371.png)
 
 图 3 — 展开数据模型与计算表（作者绘制）
 
@@ -141,7 +141,7 @@ EVALUATE
 
 查询的结果如下：
 
-![](../Images/c5cd0e8dd7420c410688e56e103f7b4c.png)
+![](img/c5cd0e8dd7420c410688e56e103f7b4c.png)
 
 图 4 — 计算表的 DAX 查询结果（作者绘制的图）
 
@@ -157,7 +157,7 @@ Max Stock Volume = MAX('Inventory'[OnHandQuantity])
 
 接下来，我使用 New table 函数，通过上述查询中的[SUMMARIZECOLUMN()](https://dax.guide/summarizecolumns/)函数创建计算表：
 
-![](../Images/25af21807aef4cc6ba2900d4d4e34ff5.png)
+![](img/25af21807aef4cc6ba2900d4d4e34ff5.png)
 
 图 5 — 使用上述查询创建计算表（作者绘制的图）
 
@@ -167,7 +167,7 @@ Max Stock Volume = MAX('Inventory'[OnHandQuantity])
 
 我使用列`DateLastDayOfMonth`来创建与日期表的关系：
 
-![](../Images/53638b837f3053296afcbe9512469c85.png)
+![](img/53638b837f3053296afcbe9512469c85.png)
 
 图 6 — 将新关系添加到日期表（作者绘制的图）
 
@@ -199,7 +199,7 @@ RETURN
 
 巴伐利亚的结果如下所示：
 
-![](../Images/e45fd4b50b9a93bdd1da8bd50efb04f8.png)
+![](img/e45fd4b50b9a93bdd1da8bd50efb04f8.png)
 
 图 7 — 具有多行的计算列结果（作者绘制的图）
 
@@ -239,7 +239,7 @@ RETURN
 
 这是该计算的结果：
 
-![](../Images/1fa6aa9cd5ce35b8e051d6485ca0946f.png)
+![](img/1fa6aa9cd5ce35b8e051d6485ca0946f.png)
 
 图 8 — 高标列的修正结果（作者绘制的图）
 
@@ -251,7 +251,7 @@ Stock for Highmark = SUM('Inventory Analysis table'[HighMark Stock Volume])
 
 当按月显示结果时，我得到了所需的结果：
 
-![](../Images/999493a80ea5ebd37b59f610c1d21760.png)
+![](img/999493a80ea5ebd37b59f610c1d21760.png)
 
 图 9 — 2008 年第一季度各州及体积范围的结果（图由作者提供）
 
@@ -269,7 +269,7 @@ Stock for Highmark = SUM('Inventory Analysis table'[HighMark Stock Volume])
 
 因此，将这两列添加到计算表中更为简单：
 
-![](../Images/7b23ce059cd769bb1359cbdadb779f93.png)
+![](img/7b23ce059cd769bb1359cbdadb779f93.png)
 
 图 10 — 新添加的“国家”和“大陆”列的计算表（图由作者提供）
 
@@ -287,13 +287,13 @@ Stock for Highmark = SUM('Inventory Analysis table'[HighMark Stock Volume])
 
 当添加一个新列时，列[HighMark Stock Volume]将产生重复值，因为它不会考虑新列的加入。
 
-![](../Images/6bdc352b48081aac19e27538c86d2172.png)
+![](img/6bdc352b48081aac19e27538c86d2172.png)
 
 图 11 — 包含已添加产品类别和重复值的计算表（图由作者提供）
 
 为了纠正这一点，我必须为类别添加检查，确保值保持唯一：
 
-![](../Images/3d469f1344e319a2e3530d7fce1a2f0e.png)
+![](img/3d469f1344e319a2e3530d7fce1a2f0e.png)
 
 图 12 — 检查添加的类别列（图由作者提供）
 
@@ -335,7 +335,7 @@ a. 这意味着我不能使用地理表中的列来基于该表和库存表过�
 
 完美的解决方案可能会过于复杂，且没有任何附加的好处。
 
-![](../Images/af9a5b7f477a9ff4efe02f66bd76512a.png)
+![](img/af9a5b7f477a9ff4efe02f66bd76512a.png)
 
 图片由[CHUTTERSNAP](https://unsplash.com/@chuttersnap?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -343,33 +343,33 @@ a. 这意味着我不能使用地理表中的列来基于该表和库存表过�
 
 这里有一些关于如何使用库存度量的过去文章：
 
-[](/going-the-next-step-with-stock-measures-in-dax-cb49d4e21c13?source=post_page-----0c7219845d48--------------------------------) [## 在DAX中进一步深入使用库存度量
+[](/going-the-next-step-with-stock-measures-in-dax-cb49d4e21c13?source=post_page-----0c7219845d48--------------------------------) ## 在 DAX 中进一步深入使用库存度量
 
-### 在Power BI中使用库存度量时可能会出现一些奇怪的效果。我们来看看这种情况是如何出现的以及…
+### 在 Power BI 中使用库存度量时可能会出现一些奇怪的效果。我们来看看这种情况是如何出现的以及…
 
-[towardsdatascience.com](/going-the-next-step-with-stock-measures-in-dax-cb49d4e21c13?source=post_page-----0c7219845d48--------------------------------) [](/refinement-of-semi-additive-measures-in-dax-4e148fa83f56?source=post_page-----0c7219845d48--------------------------------) [## 在DAX中细化半加法度量
+[towardsdatascience.com [](/refinement-of-semi-additive-measures-in-dax-4e148fa83f56?source=post_page-----0c7219845d48--------------------------------) ## 在 DAX 中细化半加法度量
 
 ### 在之前的文章中，我解释了一些关于半加法度量（Semi-Additive Measures）的细节。这里有更多关于这个话题的提示。
 
-[towardsdatascience.com](/refinement-of-semi-additive-measures-in-dax-4e148fa83f56?source=post_page-----0c7219845d48--------------------------------)
+[towardsdatascience.com
 
 我之前写过一篇关于更改数据粒度的文章，这是一个类似的问题。
 
 这是它的链接：
 
-[](/changing-granularity-of-data-in-power-bi-3a2b81356990?source=post_page-----0c7219845d48--------------------------------) [## 在Power BI中更改数据粒度
+[](/changing-granularity-of-data-in-power-bi-3a2b81356990?source=post_page-----0c7219845d48--------------------------------) ## 在 Power BI 中更改数据粒度
 
 ### 有时候你需要以不同于数据原有粒度的方式创建报告。让我们来探索如何…
 
-[towardsdatascience.com](/changing-granularity-of-data-in-power-bi-3a2b81356990?source=post_page-----0c7219845d48--------------------------------)
+[towardsdatascience.com
 
-我使用的是Contoso示例数据集，就像我之前的文章中一样。你可以从Microsoft [这里](https://www.microsoft.com/en-us/download/details.aspx?id=18279)免费下载ContosoRetailDW数据集。
+我使用的是 Contoso 示例数据集，就像我之前的文章中一样。你可以从 Microsoft [这里](https://www.microsoft.com/en-us/download/details.aspx?id=18279)免费下载 ContosoRetailDW 数据集。
 
-Contoso 数据可以在MIT许可证下自由使用，具体描述请见[这里](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo)。
+Contoso 数据可以在 MIT 许可证下自由使用，具体描述请见[这里](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo)。
 
-[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----0c7219845d48--------------------------------) [## 每当Salvatore Cagliari发布新内容时，订阅电子邮件通知
+[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----0c7219845d48--------------------------------) [## 每当 Salvatore Cagliari 发布新内容时，订阅电子邮件通知
 
-### 每当Salvatore Cagliari发布新内容时，你将收到电子邮件通知。通过注册，如果你还没有Medium账户，将会创建一个账户…
+### 每当 Salvatore Cagliari 发布新内容时，你将收到电子邮件通知。通过注册，如果你还没有 Medium 账户，将会创建一个账户…
 
 [medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----0c7219845d48--------------------------------)
 
@@ -377,11 +377,11 @@ Contoso 数据可以在MIT许可证下自由使用，具体描述请见[这里](
 
 你可以通过以下方式支持我的工作，这些工作是在我的空闲时间里进行的。
 
-[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)
+[`buymeacoffee.com/salvatorecagliari`](https://buymeacoffee.com/salvatorecagliari)
 
 或者扫描这个二维码：
 
-![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)
+![](img/e7ac062070dcd7a00dcf995ad7e95434.png)
 
 任何支持都非常感激，并帮助我争取更多时间为你创作更多内容。
 

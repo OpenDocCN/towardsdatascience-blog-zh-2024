@@ -1,24 +1,24 @@
 # 时间反向传播 — RNN 如何学习
 
-> 原文：[https://towardsdatascience.com/backpropagation-through-time-how-rnns-learn-e5bc03ad1f0a?source=collection_archive---------4-----------------------#2024-05-17](https://towardsdatascience.com/backpropagation-through-time-how-rnns-learn-e5bc03ad1f0a?source=collection_archive---------4-----------------------#2024-05-17)
+> 原文：[`towardsdatascience.com/backpropagation-through-time-how-rnns-learn-e5bc03ad1f0a?source=collection_archive---------4-----------------------#2024-05-17`](https://towardsdatascience.com/backpropagation-through-time-how-rnns-learn-e5bc03ad1f0a?source=collection_archive---------4-----------------------#2024-05-17)
 
 ## 时间反向传播算法的解释
 
-[](https://medium.com/@egorhowell?source=post_page---byline--e5bc03ad1f0a--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--e5bc03ad1f0a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e5bc03ad1f0a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e5bc03ad1f0a--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--e5bc03ad1f0a--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--e5bc03ad1f0a--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--e5bc03ad1f0a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e5bc03ad1f0a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e5bc03ad1f0a--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--e5bc03ad1f0a--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e5bc03ad1f0a--------------------------------) ·阅读时间：9 分钟·2024年5月17日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e5bc03ad1f0a--------------------------------) ·阅读时间：9 分钟·2024 年 5 月 17 日
 
 --
 
-![](../Images/ee340856a1b151a2630e3e799c8e9f7e.png)
+![](img/ee340856a1b151a2630e3e799c8e9f7e.png)
 
-“[https://www.flaticon.com/free-icons/neural-network](https://www.flaticon.com/free-icons/neural-network)" title=”neural network icons”>神经网络图标由 pojok d 创建 — Flaticon。
+“[`www.flaticon.com/free-icons/neural-network`](https://www.flaticon.com/free-icons/neural-network)" title=”neural network icons”>神经网络图标由 pojok d 创建 — Flaticon。
 
 递归神经网络（RNNs）是常规前馈神经网络的变体，能够处理基于序列的数据，如时间序列和自然语言。
 
 它们通过添加一个“递归”神经元来实现这一点，该神经元允许信息从过去的输入和输出传递到下一步。下图展示了一个传统的 RNN：
 
-![](../Images/91392ef12cfd2972ccec9a5d9c622d1f.png)
+![](img/91392ef12cfd2972ccec9a5d9c622d1f.png)
 
 RNN 的示例架构。图示由作者提供。
 

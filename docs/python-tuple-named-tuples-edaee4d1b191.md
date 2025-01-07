@@ -1,18 +1,18 @@
 # Python “元组+”：具名元组
 
-> 原文：[https://towardsdatascience.com/python-tuple-named-tuples-edaee4d1b191?source=collection_archive---------2-----------------------#2024-01-03](https://towardsdatascience.com/python-tuple-named-tuples-edaee4d1b191?source=collection_archive---------2-----------------------#2024-01-03)
+> 原文：[`towardsdatascience.com/python-tuple-named-tuples-edaee4d1b191?source=collection_archive---------2-----------------------#2024-01-03`](https://towardsdatascience.com/python-tuple-named-tuples-edaee4d1b191?source=collection_archive---------2-----------------------#2024-01-03)
 
 ## PYTHON 编程
 
 ## 元组是一个强大的 Python 数据类型——但具名元组更强大！
 
-[](https://medium.com/@nyggus?source=post_page---byline--edaee4d1b191--------------------------------)[![Marcin Kozak](../Images/d7faf62e48ed81dab5d8ad92819fff54.png)](https://medium.com/@nyggus?source=post_page---byline--edaee4d1b191--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--edaee4d1b191--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--edaee4d1b191--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--edaee4d1b191--------------------------------)
+[](https://medium.com/@nyggus?source=post_page---byline--edaee4d1b191--------------------------------)![Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--edaee4d1b191--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--edaee4d1b191--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--edaee4d1b191--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--edaee4d1b191--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--edaee4d1b191--------------------------------) ·阅读时长 25 分钟·2024年1月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--edaee4d1b191--------------------------------) ·阅读时长 25 分钟·2024 年 1 月 3 日
 
 --
 
-![](../Images/9ae2459dfa5ba52377719be16f261147.png)
+![](img/9ae2459dfa5ba52377719be16f261147.png)
 
 具名元组结合了名称和元组的优点。图片由 [Ainur Iman](https://unsplash.com/@mynameisiknow?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

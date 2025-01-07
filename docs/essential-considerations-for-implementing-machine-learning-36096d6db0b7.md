@@ -1,24 +1,24 @@
 # 实施机器学习的关键考虑事项
 
-> 原文：[https://towardsdatascience.com/essential-considerations-for-implementing-machine-learning-36096d6db0b7?source=collection_archive---------5-----------------------#2024-07-13](https://towardsdatascience.com/essential-considerations-for-implementing-machine-learning-36096d6db0b7?source=collection_archive---------5-----------------------#2024-07-13)
+> 原文：[`towardsdatascience.com/essential-considerations-for-implementing-machine-learning-36096d6db0b7?source=collection_archive---------5-----------------------#2024-07-13`](https://towardsdatascience.com/essential-considerations-for-implementing-machine-learning-36096d6db0b7?source=collection_archive---------5-----------------------#2024-07-13)
 
 ## ***从传统机器学习和生产化的角度来看，你的使用案例是否是一个可行的机器学习产品？***
 
-[](https://medium.com/@conalhenderson?source=post_page---byline--36096d6db0b7--------------------------------)[![Conal Henderson](../Images/e10624264efc3861a2384493fa5ee55a.png)](https://medium.com/@conalhenderson?source=post_page---byline--36096d6db0b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--36096d6db0b7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--36096d6db0b7--------------------------------) [Conal Henderson](https://medium.com/@conalhenderson?source=post_page---byline--36096d6db0b7--------------------------------)
+[](https://medium.com/@conalhenderson?source=post_page---byline--36096d6db0b7--------------------------------)![Conal Henderson](https://medium.com/@conalhenderson?source=post_page---byline--36096d6db0b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--36096d6db0b7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--36096d6db0b7--------------------------------) [Conal Henderson](https://medium.com/@conalhenderson?source=post_page---byline--36096d6db0b7--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--36096d6db0b7--------------------------------) ·7分钟阅读·2024年7月13日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--36096d6db0b7--------------------------------) ·7 分钟阅读·2024 年 7 月 13 日
 
 --
 
-![](../Images/306c2cdff4e0795e4cdecec056543688.png)
+![](img/306c2cdff4e0795e4cdecec056543688.png)
 
 图片来源：[Tara Winstead](https://www.pexels.com/@tara-winstead/) 于 [Pixels](https://www.pexels.com/photo/robot-pointing-on-a-wall-8386440/)
 
 你是否曾经考虑过构建一个数据应用程序，但不知道构建机器学习系统的需求？或者，也许你是公司的一位高级经理，计划使用机器学习，但不确定你的使用案例是否适合机器学习。
 
-很多企业正在努力跟上AI/ML技术的指数级增长，许多人意识到，如果他们不在发展路线图中考虑AI/ML，可能会面临生死存亡的局面。
+很多企业正在努力跟上 AI/ML 技术的指数级增长，许多人意识到，如果他们不在发展路线图中考虑 AI/ML，可能会面临生死存亡的局面。
 
-企业们看到了大型语言模型（LLM）的潜力，认为AI/ML是解决问题的*“万能钥匙”*。大多数企业正在投入资金建立新的数据团队、购买计算资源和最新的数据库技术，但他们是否知道他们的问题能通过机器学习解决呢？
+企业们看到了大型语言模型（LLM）的潜力，认为 AI/ML 是解决问题的*“万能钥匙”*。大多数企业正在投入资金建立新的数据团队、购买计算资源和最新的数据库技术，但他们是否知道他们的问题能通过机器学习解决呢？
 
 我已经提炼出一个检查清单，来验证你的机器学习想法是否在**传统机器学习视角**下是可行的，包括：
 
@@ -44,13 +44,13 @@
 
 # 传统考虑
 
-亚瑟·塞缪尔（Arthur Samuel）在1959年首次推广了“机器学习”这一术语，并表示它是*“赋予计算机在不被明确编程的情况下学习的能力的研究领域”*。
+亚瑟·塞缪尔（Arthur Samuel）在 1959 年首次推广了“机器学习”这一术语，并表示它是*“赋予计算机在不被明确编程的情况下学习的能力的研究领域”*。
 
 Chip Huyen（人工智能/机器学习领域的领军人物和企业家）在她的书《*设计机器学习系统*》中提供了机器学习的一个更系统的定义——这本书是任何有意从事生产性机器学习的人必读的：
 
 > “机器学习是一种方法，(1) 从(2) 现有数据中学习(3) 复杂模式，并使用这些模式来对(4) 未见过的数据进行(5) 预测。”
 
-Chip将机器学习的组成部分分为五个部分，并通过包含机器学习采用的四个现代原因来进一步扩展它们，我们将在下面深入分析这些原因。
+Chip 将机器学习的组成部分分为五个部分，并通过包含机器学习采用的四个现代原因来进一步扩展它们，我们将在下面深入分析这些原因。
 
 ## 学习机会
 
@@ -76,7 +76,7 @@ Chip将机器学习的组成部分分为五个部分，并通过包含机器学�
 
 关于数据还是更好的算法能带来更强的预测能力，存在着持续的争论。尽管，随着大型语言模型（LLMs）在数据集规模扩展到数百亿甚至万亿参数后取得的巨大性能飞跃，这场辩论最近已经有所平息。
 
-![](../Images/7577e384e9910bc8495959a8b175f106.png)
+![](img/7577e384e9910bc8495959a8b175f106.png)
 
 数据来源：[维基百科](https://timelines.issarice.com/wiki/Timeline_of_large_language_models)
 
@@ -84,7 +84,7 @@ Chip将机器学习的组成部分分为五个部分，并通过包含机器学�
 
 在足球领域，数据供应商如[Opta](https://theanalyst.com/eu/2023/07/opta-football-match-centre/)、[Fbref](https://fbref.com/en/) 和[Transfermarkt](https://www.transfermarkt.co.uk/)持续生成球员表现数据，因为各个俱乐部在各个方面（从球员表现到招聘）都希望通过数据驱动的决策来提高效率。
 
-然而，从像Opta这样的第三方获取数据非常昂贵，因为数据收集过程非常密集，而且对详细统计数据的需求很高，以便为团队提供竞争优势。
+然而，从像 Opta 这样的第三方获取数据非常昂贵，因为数据收集过程非常密集，而且对详细统计数据的需求很高，以便为团队提供竞争优势。
 
 ## 通过预测解决的问题
 
@@ -92,9 +92,9 @@ Chip将机器学习的组成部分分为五个部分，并通过包含机器学�
 
 我们可以从多种方式将足球运动员市场价值的例子框定为预测问题。
 
-机器学习预测的两种常见类型是**回归**和**分类**。回归返回一个**连续的**预测（即数字），其规模与输入变量相同（即价值）。而分类可以返回**二元**（1或0）、**多分类**（1, 2, 3…n）或**多标签**（1, 0, 1, 0, 1）预测。
+机器学习预测的两种常见类型是**回归**和**分类**。回归返回一个**连续的**预测（即数字），其规模与输入变量相同（即价值）。而分类可以返回**二元**（1 或 0）、**多分类**（1, 2, 3…n）或**多标签**（1, 0, 1, 0, 1）预测。
 
-玩家价值预测问题可以被框定为回归和多分类问题。回归只是返回一个数字，例如根据赛季表现预测裘德·贝林厄姆的价值为1亿英镑。
+玩家价值预测问题可以被框定为回归和多分类问题。回归只是返回一个数字，例如根据赛季表现预测裘德·贝林厄姆的价值为 1 亿英镑。
 
 相反，如果我们将其视为分类问题，我们可以将估值分入不同的类别，并预测一个玩家属于哪个估值类别。例如，预测类别可以是£1m-£10m，£10m-£30m，以及£30m+。
 
@@ -104,7 +104,7 @@ Chip将机器学习的组成部分分为五个部分，并通过包含机器学�
 
 你希望预测的未见数据必须与用于训练机器学习模型的数据具有相似的模式。
 
-例如，如果我使用2004年的球员数据来训练一个机器学习模型以预测球员的估值。如果未见数据来自2020年，那么预测将无法反映训练到预测过程中16年间市场估值的变化。
+例如，如果我使用 2004 年的球员数据来训练一个机器学习模型以预测球员的估值。如果未见数据来自 2020 年，那么预测将无法反映训练到预测过程中 16 年间市场估值的变化。
 
 # 生产考虑因素
 
@@ -124,13 +124,13 @@ Chip将机器学习的组成部分分为五个部分，并通过包含机器学�
 
 这个问题被称为**类别不平衡**，为了克服这个问题，已经开发出了过采样和欠采样等策略。
 
-Travis Tang的文章很好地解释了类别不平衡以及解决方法的更多细节，可以参考[这里](/class-imbalance-strategies-a-visual-guide-with-code-8bc8fae71e1a)。
+Travis Tang 的文章很好地解释了类别不平衡以及解决方法的更多细节，可以参考这里。
 
 ## 错误预测的后果较小
 
 *错误预测是否会对最终用户产生严重后果？*
 
-机器学习模型每次都无法做到100%的预测准确率，这意味着当模型做出错误预测时，它会产生负面影响吗？
+机器学习模型每次都无法做到 100%的预测准确率，这意味着当模型做出错误预测时，它会产生负面影响吗？
 
 这是医疗领域中常见的问题，虚假阳性和虚假阴性率是其中的关注点。
 
@@ -142,9 +142,9 @@ Travis Tang的文章很好地解释了类别不平衡以及解决方法的更多
 
 *你的应用案例是否具有可扩展性？*
 
-生产成本可能非常昂贵，我自己就遇到过这种情况，当时我在谷歌的[Vertex AI](https://cloud.google.com/vertex-ai?hl=en)上托管了一个[XGBRegressor](https://xgboost.readthedocs.io/en/stable/python/python_api.html#module-xgboost.sklearn)模型，2天花费了我11英镑！诚然，我不应该让它一直运行，但想象一下大规模应用的成本。
+生产成本可能非常昂贵，我自己就遇到过这种情况，当时我在谷歌的[Vertex AI](https://cloud.google.com/vertex-ai?hl=en)上托管了一个[XGBRegressor](https://xgboost.readthedocs.io/en/stable/python/python_api.html#module-xgboost.sklearn)模型，2 天花费了我 11 英镑！诚然，我不应该让它一直运行，但想象一下大规模应用的成本。
 
-一个广为人知的可扩展机器学习解决方案例子是亚马逊的产品推荐系统，它[创造了公司35%的收入](https://www.mckinsey.com/industries/retail/our-insights/how-retailers-can-keep-up-with-consumers)。
+一个广为人知的可扩展机器学习解决方案例子是亚马逊的产品推荐系统，它[创造了公司 35%的收入](https://www.mckinsey.com/industries/retail/our-insights/how-retailers-can-keep-up-with-consumers)。
 
 尽管这是一个极端的例子，但这个系统利用并证明了计算能力、数据、基础设施和人才的成本，展示了构建可扩展的机器学习解决方案的基本原理，能够创造价值。
 
@@ -176,4 +176,4 @@ Travis Tang的文章很好地解释了类别不平衡以及解决方法的更多
 
 Huyen, C. (2022). 《设计机器学习系统》。Sebastopol, CA: O’Reilly
 
-Geron, A. (2019). 《动手实践机器学习：使用Scikit-Learn、Keras和TensorFlow构建智能系统的概念、工具和技术（第2版）》。O’Reilly.
+Geron, A. (2019). 《动手实践机器学习：使用 Scikit-Learn、Keras 和 TensorFlow 构建智能系统的概念、工具和技术（第 2 版）》。O’Reilly.

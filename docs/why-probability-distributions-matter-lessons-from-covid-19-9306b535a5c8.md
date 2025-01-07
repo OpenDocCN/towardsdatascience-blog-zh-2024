@@ -1,16 +1,16 @@
 # 来自 COVID-19 的教训：为什么概率分布如此重要
 
-> 原文：[https://towardsdatascience.com/why-probability-distributions-matter-lessons-from-covid-19-9306b535a5c8?source=collection_archive---------3-----------------------#2024-12-27](https://towardsdatascience.com/why-probability-distributions-matter-lessons-from-covid-19-9306b535a5c8?source=collection_archive---------3-----------------------#2024-12-27)
+> 原文：[`towardsdatascience.com/why-probability-distributions-matter-lessons-from-covid-19-9306b535a5c8?source=collection_archive---------3-----------------------#2024-12-27`](https://towardsdatascience.com/why-probability-distributions-matter-lessons-from-covid-19-9306b535a5c8?source=collection_archive---------3-----------------------#2024-12-27)
 
 ## 用*极值*理解分布：数据科学系列（完结）
 
-[](https://medium.com/@sahn1998?source=post_page---byline--9306b535a5c8--------------------------------)[![Sunghyun Ahn](../Images/e8efe3b5d7f0267713ab66149a8de5f7.png)](https://medium.com/@sahn1998?source=post_page---byline--9306b535a5c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9306b535a5c8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9306b535a5c8--------------------------------) [Sunghyun Ahn](https://medium.com/@sahn1998?source=post_page---byline--9306b535a5c8--------------------------------)
+[](https://medium.com/@sahn1998?source=post_page---byline--9306b535a5c8--------------------------------)![Sunghyun Ahn](https://medium.com/@sahn1998?source=post_page---byline--9306b535a5c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9306b535a5c8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9306b535a5c8--------------------------------) [Sunghyun Ahn](https://medium.com/@sahn1998?source=post_page---byline--9306b535a5c8--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9306b535a5c8--------------------------------) ·阅读时长 11 分钟·2024年12月27日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9306b535a5c8--------------------------------) ·阅读时长 11 分钟·2024 年 12 月 27 日
 
 --
 
-![](../Images/ec8b24577d88c235d6456a971d60568c.png)
+![](img/ec8b24577d88c235d6456a971d60568c.png)
 
 图片由 [Glen Carrie](https://unsplash.com/@glencarrie?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源于 [Unsplash](https://unsplash.com/photos/coronavirus-on-black-background-LfviizMGKaE?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

@@ -1,16 +1,16 @@
 # 停止手动排序你的 Python 列表，如果性能是你的关注点
 
-> 原文：[https://towardsdatascience.com/stop-manually-sorting-your-list-in-python-if-performance-is-concerned-fad2832e4fe5?source=collection_archive---------5-----------------------#2024-08-29](https://towardsdatascience.com/stop-manually-sorting-your-list-in-python-if-performance-is-concerned-fad2832e4fe5?source=collection_archive---------5-----------------------#2024-08-29)
+> 原文：[`towardsdatascience.com/stop-manually-sorting-your-list-in-python-if-performance-is-concerned-fad2832e4fe5?source=collection_archive---------5-----------------------#2024-08-29`](https://towardsdatascience.com/stop-manually-sorting-your-list-in-python-if-performance-is-concerned-fad2832e4fe5?source=collection_archive---------5-----------------------#2024-08-29)
 
-![](../Images/caa5e53852e34b711f137dfa5a95e885.png)
+![](img/caa5e53852e34b711f137dfa5a95e885.png)
 
 图片由作者在 Canva 上制作
 
-## 一个与C扩展一样快速的排序集合库
+## 一个与 C 扩展一样快速的排序集合库
 
-[](https://christophertao.medium.com/?source=post_page---byline--fad2832e4fe5--------------------------------)[![Christopher Tao](../Images/bea1e3c81cc62eb28bdba9275d6b326f.png)](https://christophertao.medium.com/?source=post_page---byline--fad2832e4fe5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fad2832e4fe5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fad2832e4fe5--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--fad2832e4fe5--------------------------------)
+[](https://christophertao.medium.com/?source=post_page---byline--fad2832e4fe5--------------------------------)![Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--fad2832e4fe5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fad2832e4fe5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fad2832e4fe5--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--fad2832e4fe5--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fad2832e4fe5--------------------------------) ·阅读时间：8分钟 ·2024年8月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fad2832e4fe5--------------------------------) ·阅读时间：8 分钟 ·2024 年 8 月 29 日
 
 --
 

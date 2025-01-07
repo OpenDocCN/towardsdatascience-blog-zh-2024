@@ -1,18 +1,18 @@
 # 使用 Apple 硬件运行 LLM 推理
 
-> 原文：[https://towardsdatascience.com/run-llm-inference-using-apple-hardware-00a4a5d455b7?source=collection_archive---------8-----------------------#2024-01-30](https://towardsdatascience.com/run-llm-inference-using-apple-hardware-00a4a5d455b7?source=collection_archive---------8-----------------------#2024-01-30)
+> 原文：[`towardsdatascience.com/run-llm-inference-using-apple-hardware-00a4a5d455b7?source=collection_archive---------8-----------------------#2024-01-30`](https://towardsdatascience.com/run-llm-inference-using-apple-hardware-00a4a5d455b7?source=collection_archive---------8-----------------------#2024-01-30)
 
 ## 解锁 Apple GPU 的强大功能以进行 LLM 推理，配合 MLX 使用
 
-[](https://medium.com/@christopher_karg?source=post_page---byline--00a4a5d455b7--------------------------------)[![Christopher Karg](../Images/9d163d59e0c3167732f55d497caf9db2.png)](https://medium.com/@christopher_karg?source=post_page---byline--00a4a5d455b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--00a4a5d455b7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--00a4a5d455b7--------------------------------) [Christopher Karg](https://medium.com/@christopher_karg?source=post_page---byline--00a4a5d455b7--------------------------------)
+[](https://medium.com/@christopher_karg?source=post_page---byline--00a4a5d455b7--------------------------------)![Christopher Karg](https://medium.com/@christopher_karg?source=post_page---byline--00a4a5d455b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--00a4a5d455b7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00a4a5d455b7--------------------------------) [Christopher Karg](https://medium.com/@christopher_karg?source=post_page---byline--00a4a5d455b7--------------------------------)
 
 ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00a4a5d455b7--------------------------------) ·阅读时间 15 分钟·2024 年 1 月 30 日
 
 --
 
-![](../Images/43b051fdf06c8fc88b6ddbaf1bc274cb.png)
+![](img/43b051fdf06c8fc88b6ddbaf1bc274cb.png)
 
-来源：[https://www.pexels.com/photo/train-railway-near-trees-552779/](https://www.pexels.com/photo/train-railway-near-trees-552779/)
+来源：[`www.pexels.com/photo/train-railway-near-trees-552779/`](https://www.pexels.com/photo/train-railway-near-trees-552779/)
 
 # 最后！
 

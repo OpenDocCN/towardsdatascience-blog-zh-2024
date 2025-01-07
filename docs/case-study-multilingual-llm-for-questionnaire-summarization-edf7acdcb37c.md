@@ -1,16 +1,16 @@
-# 案例研究：多语言LLM用于问卷总结
+# 案例研究：多语言 LLM 用于问卷总结
 
-> 原文：[https://towardsdatascience.com/case-study-multilingual-llm-for-questionnaire-summarization-edf7acdcb37c?source=collection_archive---------5-----------------------#2024-07-30](https://towardsdatascience.com/case-study-multilingual-llm-for-questionnaire-summarization-edf7acdcb37c?source=collection_archive---------5-----------------------#2024-07-30)
+> 原文：[`towardsdatascience.com/case-study-multilingual-llm-for-questionnaire-summarization-edf7acdcb37c?source=collection_archive---------5-----------------------#2024-07-30`](https://towardsdatascience.com/case-study-multilingual-llm-for-questionnaire-summarization-edf7acdcb37c?source=collection_archive---------5-----------------------#2024-07-30)
 
-## 基于LLM的学生开放式问卷回答总结方法
+## 基于 LLM 的学生开放式问卷回答总结方法
 
-[](https://medium.com/@sria.louis?source=post_page---byline--edf7acdcb37c--------------------------------)[![Sria Louis](../Images/d65b17e9d4ace7e0222118abc70f3954.png)](https://medium.com/@sria.louis?source=post_page---byline--edf7acdcb37c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--edf7acdcb37c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--edf7acdcb37c--------------------------------) [Sria Louis](https://medium.com/@sria.louis?source=post_page---byline--edf7acdcb37c--------------------------------)
+[](https://medium.com/@sria.louis?source=post_page---byline--edf7acdcb37c--------------------------------)![Sria Louis](https://medium.com/@sria.louis?source=post_page---byline--edf7acdcb37c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--edf7acdcb37c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--edf7acdcb37c--------------------------------) [Sria Louis](https://medium.com/@sria.louis?source=post_page---byline--edf7acdcb37c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--edf7acdcb37c--------------------------------) ·10分钟阅读·2024年7月30日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--edf7acdcb37c--------------------------------) ·10 分钟阅读·2024 年 7 月 30 日
 
 --
 
-![](../Images/cbbea877f5f00d69ee043faac8a55599.png)
+![](img/cbbea877f5f00d69ee043faac8a55599.png)
 
 插图：Or Livneh
 
@@ -22,7 +22,7 @@
 
 ## 问题背景
 
-作为其语言课程的一部分，Madrasa向学生分发问卷，其中包括需要数字回答的定量问题和要求学生用自然语言回答的开放式问题。
+作为其语言课程的一部分，Madrasa 向学生分发问卷，其中包括需要数字回答的定量问题和要求学生用自然语言回答的开放式问题。
 
 在这篇博客文章中，我们将集中讨论开放式自然语言回答。
 
@@ -42,15 +42,15 @@
 
 下表提供了两个问题的示例以及精选的学生回答。
 
-![](../Images/f88ecea943d4381a5ff4241b367c0428.png)
+![](img/f88ecea943d4381a5ff4241b367c0428.png)
 
 问题和学生回答的示例。左侧：原始问题和学生回答。右侧：为博客读者翻译成英文的内容。注意语言的混合，包括阿拉伯语到希伯来语的音译，即使在同一句话中也涉及多种主题，且使用了不同的语言风格。来源：Sria Louis / Madarsa
 
-![](../Images/7feb7527f2a36be8c1ca11edf55634f3.png)
+![](img/7feb7527f2a36be8c1ca11edf55634f3.png)
 
 一个问题和学生回答的示例。左侧：原始问题和学生回答。右侧：为博客读者翻译成英文的内容。注意语言的混合和音译，包括从英语到希伯来语以及从希伯来语到英语的音译。来源：Sria Louis / Madarsa
 
-每个问题都有成千上万的学生回答，且在分句后（如下所述），每列最多可能有约100,000个句子。这一数据量是可管理的，可以在本地进行处理。
+每个问题都有成千上万的学生回答，且在分句后（如下所述），每列最多可能有约 100,000 个句子。这一数据量是可管理的，可以在本地进行处理。
 
 我们的目标是总结学生在各个主题上的意见，涵盖每门课程、问卷和开放性问题。我们旨在捕捉学生的“主要观点”，同时确保不忽视个别学生提供的“小众意见”或“有价值的见解”。
 
@@ -60,31 +60,31 @@
 
 处理流程包括：
 
-1.  句子分词（使用NLTK句子分词器）
+1.  句子分词（使用 NLTK 句子分词器）
 
-1.  主题建模（使用BERTopic）
+1.  主题建模（使用 BERTopic）
 
-1.  主题表示（使用BERTopic + LLM）
+1.  主题表示（使用 BERTopic + LLM）
 
-1.  批量总结（使用LLM与迷你批次适应上下文大小）
+1.  批量总结（使用 LLM 与迷你批次适应上下文大小）
 
 1.  重新总结批次以创建最终的综合总结。
 
-**句子分割：** 我们使用NLTK将学生的回答分割成单独的句子。这个过程至关重要，因为学生的回答通常在一个句子中涉及多个话题。例如，一个学生可能写道：“老师使用了日常生活中的例子。应用程序中的游戏非常好。”这里，每个句子讨论了他们体验的不同方面。尽管句子分割有时会由于句子间的交叉引用而导致上下文丢失，但通常通过将回答拆分为更易管理且具有特定主题的单元，它能增强整体分析效果。这个方法已被证明显著提高了最终结果。
+**句子分割：** 我们使用 NLTK 将学生的回答分割成单独的句子。这个过程至关重要，因为学生的回答通常在一个句子中涉及多个话题。例如，一个学生可能写道：“老师使用了日常生活中的例子。应用程序中的游戏非常好。”这里，每个句子讨论了他们体验的不同方面。尽管句子分割有时会由于句子间的交叉引用而导致上下文丢失，但通常通过将回答拆分为更易管理且具有特定主题的单元，它能增强整体分析效果。这个方法已被证明显著提高了最终结果。
 
-> NLTK的句子分割器（`[nltk.tokenize.sent_tokenize](https://www.nltk.org/api/nltk.tokenize.sent_tokenize.html)`）使用语言学规则和模型来分割文档为句子，并确定句子的边界。默认的英语模型适用于我们的用例。
+> NLTK 的句子分割器（`[nltk.tokenize.sent_tokenize](https://www.nltk.org/api/nltk.tokenize.sent_tokenize.html)`）使用语言学规则和模型来分割文档为句子，并确定句子的边界。默认的英语模型适用于我们的用例。
 
-**使用BERTopic进行主题建模：** 我们利用BERTopic对分割后的句子进行主题建模，识别潜在主题，并为每个句子分配一个主题。在摘要之前，这一步骤非常关键，原因有几个。首先，学生回答中涉及的主题种类繁多，若没有主题建模，处理起来会非常困难。通过将学生的回答按主题拆分，我们可以更有效地管理和批量处理数据，从而提升分析性能。此外，主题建模确保了那些仅由少数学生提到的小众主题，在摘要过程中不会被主流话题所掩盖。
+**使用 BERTopic 进行主题建模：** 我们利用 BERTopic 对分割后的句子进行主题建模，识别潜在主题，并为每个句子分配一个主题。在摘要之前，这一步骤非常关键，原因有几个。首先，学生回答中涉及的主题种类繁多，若没有主题建模，处理起来会非常困难。通过将学生的回答按主题拆分，我们可以更有效地管理和批量处理数据，从而提升分析性能。此外，主题建模确保了那些仅由少数学生提到的小众主题，在摘要过程中不会被主流话题所掩盖。
 
 > [BERTopic](https://maartengr.github.io/BERTopic/index.html)是一个优雅的主题建模工具，它将文档嵌入向量，进行聚类，并为每个聚类建模其表示。它的主要优势在于模块化，我们利用这一优势进行希伯来语嵌入和超参数调优。
 
-BERTopic的配置经过精心设计，以应对数据的多语言特性和回答中的特定细微差别，从而提高了主题分配的准确性和相关性。
+BERTopic 的配置经过精心设计，以应对数据的多语言特性和回答中的特定细微差别，从而提高了主题分配的准确性和相关性。
 
 具体来说，请注意我们使用了[希伯来语句子嵌入模型](https://huggingface.co/imvladikon/sentence-transformers-alephbert)。我们曾考虑使用词级嵌入，但句子嵌入证明能够捕捉到所需的信息。
 
-在降维和聚类方面，我们分别使用了BERTopic标准模型[UMAP](https://umap-learn.readthedocs.io/en/latest/)和HDBSCAN，并通过一些超参数调优，最终的结果令我们满意。
+在降维和聚类方面，我们分别使用了 BERTopic 标准模型[UMAP](https://umap-learn.readthedocs.io/en/latest/)和 HDBSCAN，并通过一些超参数调优，最终的结果令我们满意。
 
-> [这里有一场关于HDBSCAN的精彩演讲](https://youtu.be/dGsxd67IFiU?si=CrAHWrXgLnq6-3ul)，由作者之一John Healy讲解。这不仅是一次非常有教育意义的演讲，讲者也非常幽默和机智！绝对值得一看 :)
+> [这里有一场关于 HDBSCAN 的精彩演讲](https://youtu.be/dGsxd67IFiU?si=CrAHWrXgLnq6-3ul)，由作者之一 John Healy 讲解。这不仅是一次非常有教育意义的演讲，讲者也非常幽默和机智！绝对值得一看 :)
 
 BERTopic 拥有出色的文档和支持社区，因此我将分享一个代码片段，展示它如何与高级模型配合使用。更重要的是，我们要强调一些超参数选择，旨在实现高聚类粒度并允许更小的主题。请记住，我们的目标不仅是总结大多数学生认同的“主流”观点，还要突出那些更为细微的视角和较为罕见的学生建议。这种方法的代价是处理速度较慢，并且可能会导致主题过多，但管理大约 40 个主题仍是可行的。
 
@@ -188,17 +188,17 @@ topic_model = BERTopic(**bert_config)
 
 大多数学生回应了积极的反馈，但也有一些提供了具体的建议。建议的种类繁多，通过聚类（主题建模）和总结，我们可以为非政府组织的管理团队提炼出有价值的洞察。
 
-这里是主题簇的图示，使用BERTopic可视化工具呈现。
+这里是主题簇的图示，使用 BERTopic 可视化工具呈现。
 
-![](../Images/4ff235d05a9f39828963f9ef2c5bf5f7.png)
+![](img/4ff235d05a9f39828963f9ef2c5bf5f7.png)
 
-层次聚类：为了可视化目的，我们展示了一组10个主题。然而，在某些情况下，我们的分析包括了对几十个主题的实验。致谢：Sria Louis / Madrasa。
+层次聚类：为了可视化目的，我们展示了一组 10 个主题。然而，在某些情况下，我们的分析包括了对几十个主题的实验。致谢：Sria Louis / Madrasa。
 
-最后，下面是七个主题（来自40个主题），总结了学生们对上述问题的回答。每个主题包括其关键词（由关键词提示生成）、来自该簇的三条代表性回答（使用表示模型选出），以及最终的总结。
+最后，下面是七个主题（来自 40 个主题），总结了学生们对上述问题的回答。每个主题包括其关键词（由关键词提示生成）、来自该簇的三条代表性回答（使用表示模型选出），以及最终的总结。
 
 总之，注意各种主题和富有洞察力的总结。
 
-![](../Images/aa14eb3d8ebaca7422d86685dc12eeba.png)
+![](img/aa14eb3d8ebaca7422d86685dc12eeba.png)
 
 一些主题包括：关键词、表示句子和总结。致谢：Sria Louis / Madrasa
 
@@ -214,19 +214,19 @@ topic_model = BERTopic(**bert_config)
 
 1.  **丰富总结**：使用思维链技术。
 
-1.  **丰富主题建模**：在聚类前添加情感分析。例如，如果在某个特定主题中，95%的回应是正面的，而5%是非常负面的，那么基于主题和句子情感进行聚类可能会有所帮助。这可能帮助摘要生成器避免收敛到平均值。
+1.  **丰富主题建模**：在聚类前添加情感分析。例如，如果在某个特定主题中，95%的回应是正面的，而 5%是非常负面的，那么基于主题和句子情感进行聚类可能会有所帮助。这可能帮助摘要生成器避免收敛到平均值。
 
-1.  **增强用户体验**：实施RAG或LLM可解释性技术。例如，给定一个具体的非平凡洞察，我们希望用户点击该洞察，并追溯到导致该洞察的确切学生回应。
+1.  **增强用户体验**：实施 RAG 或 LLM 可解释性技术。例如，给定一个具体的非平凡洞察，我们希望用户点击该洞察，并追溯到导致该洞察的确切学生回应。
 
-如果你是LLM专家并且愿意分享你的见解，我们很乐意向你学习。你有什么建议可以改进我们的模型或方法吗？快来联系我们！
+如果你是 LLM 专家并且愿意分享你的见解，我们很乐意向你学习。你有什么建议可以改进我们的模型或方法吗？快来联系我们！
 
-[sria.louis@gmail.com](mailto:sria.louis@gmail.com)
+sria.louis@gmail.com
 
-想了解更多关于Madarsa的信息吗？ [https://madrasafree.com/](https://madrasafree.com/)
+想了解更多关于 Madarsa 的信息吗？ [`madrasafree.com/`](https://madrasafree.com/)
 
-代码可以在[项目GitHub仓库](https://github.com/gitLouis/madarse-summarization)中找到。
+代码可以在[项目 GitHub 仓库](https://github.com/gitLouis/madarse-summarization)中找到。
 
-![](../Images/62500ce8f7182ccfc9e9822e71ec64bd.png)
+![](img/62500ce8f7182ccfc9e9822e71ec64bd.png)
 
 插图：Or Livneh
 

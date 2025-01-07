@@ -1,18 +1,18 @@
 # 如何将分类模型与基线模型进行比较
 
-> 原文：[https://towardsdatascience.com/how-to-compare-a-classification-model-to-a-baseline-fc3483367770?source=collection_archive---------8-----------------------#2024-02-18](https://towardsdatascience.com/how-to-compare-a-classification-model-to-a-baseline-fc3483367770?source=collection_archive---------8-----------------------#2024-02-18)
+> 原文：[`towardsdatascience.com/how-to-compare-a-classification-model-to-a-baseline-fc3483367770?source=collection_archive---------8-----------------------#2024-02-18`](https://towardsdatascience.com/how-to-compare-a-classification-model-to-a-baseline-fc3483367770?source=collection_archive---------8-----------------------#2024-02-18)
 
 ## 数据科学，机器学习
 
 ## 一份可以直接运行的 Python 和 scikit-learn 教程，用于评估分类模型与基线模型的对比
 
-[](https://alod83.medium.com/?source=post_page---byline--fc3483367770--------------------------------)[![Angelica Lo Duca](../Images/45aa2e2e504bb3af6d3b8009dc6f030e.png)](https://alod83.medium.com/?source=post_page---byline--fc3483367770--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc3483367770--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fc3483367770--------------------------------) [Angelica Lo Duca](https://alod83.medium.com/?source=post_page---byline--fc3483367770--------------------------------)
+[](https://alod83.medium.com/?source=post_page---byline--fc3483367770--------------------------------)![Angelica Lo Duca](https://alod83.medium.com/?source=post_page---byline--fc3483367770--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc3483367770--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc3483367770--------------------------------) [Angelica Lo Duca](https://alod83.medium.com/?source=post_page---byline--fc3483367770--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc3483367770--------------------------------) ·6分钟阅读·2024年2月18日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc3483367770--------------------------------) ·6 分钟阅读·2024 年 2 月 18 日
 
 --
 
-![](../Images/daf0af15dbadd313f17253df0fb5a24f.png)
+![](img/daf0af15dbadd313f17253df0fb5a24f.png)
 
 图片来源：[Kier in Sight Archives](https://unsplash.com/@kierinsightarchives?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,16 +1,16 @@
 # 用 Rust 编写 LLM：寻找高效的矩阵乘法
 
-> 原文：[https://towardsdatascience.com/writing-llms-in-rust-looking-for-an-efficient-matrix-multiplication-e9539b0cb9d3?source=collection_archive---------4-----------------------#2024-11-14](https://towardsdatascience.com/writing-llms-in-rust-looking-for-an-efficient-matrix-multiplication-e9539b0cb9d3?source=collection_archive---------4-----------------------#2024-11-14)
+> 原文：[`towardsdatascience.com/writing-llms-in-rust-looking-for-an-efficient-matrix-multiplication-e9539b0cb9d3?source=collection_archive---------4-----------------------#2024-11-14`](https://towardsdatascience.com/writing-llms-in-rust-looking-for-an-efficient-matrix-multiplication-e9539b0cb9d3?source=collection_archive---------4-----------------------#2024-11-14)
 
 ## 从 Karpathy 的 `llm.c` 开始，我不禁想：“我能用 Rust 写这个吗？”以下是我学到的经验，以及我如何编写 `llm.rust`。在这篇文章中，我们来解决矩阵乘法问题。
 
-[](https://stefanobosisio1.medium.com/?source=post_page---byline--e9539b0cb9d3--------------------------------)[![Stefano Bosisio](../Images/450d904024a4cbf1adf8a625886d852e.png)](https://stefanobosisio1.medium.com/?source=post_page---byline--e9539b0cb9d3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e9539b0cb9d3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e9539b0cb9d3--------------------------------) [Stefano Bosisio](https://stefanobosisio1.medium.com/?source=post_page---byline--e9539b0cb9d3--------------------------------)
+[](https://stefanobosisio1.medium.com/?source=post_page---byline--e9539b0cb9d3--------------------------------)![Stefano Bosisio](https://stefanobosisio1.medium.com/?source=post_page---byline--e9539b0cb9d3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e9539b0cb9d3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e9539b0cb9d3--------------------------------) [Stefano Bosisio](https://stefanobosisio1.medium.com/?source=post_page---byline--e9539b0cb9d3--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e9539b0cb9d3--------------------------------) ·阅读时长 14 分钟·2024年11月14日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e9539b0cb9d3--------------------------------) ·阅读时长 14 分钟·2024 年 11 月 14 日
 
 --
 
-![](../Images/1769e0bfb8a5da7e50ac3f79dba6ce6c.png)
+![](img/1769e0bfb8a5da7e50ac3f79dba6ce6c.png)
 
 图片来自 [GoogleDeepMind](https://unsplash.com/@googledeepmind) 在 [Unsplash](https://unsplash.com/photos/a-bonsai-tree-growing-out-of-a-concrete-block-K2V_fqM2RY8)
 

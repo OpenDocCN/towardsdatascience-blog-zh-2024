@@ -1,16 +1,16 @@
 # 利用因果图保护需求预测
 
-> 原文：[https://towardsdatascience.com/safeguarding-demand-forecasting-with-causal-graphs-591511fc8e0e?source=collection_archive---------6-----------------------#2024-06-28](https://towardsdatascience.com/safeguarding-demand-forecasting-with-causal-graphs-591511fc8e0e?source=collection_archive---------6-----------------------#2024-06-28)
+> 原文：[`towardsdatascience.com/safeguarding-demand-forecasting-with-causal-graphs-591511fc8e0e?source=collection_archive---------6-----------------------#2024-06-28`](https://towardsdatascience.com/safeguarding-demand-forecasting-with-causal-graphs-591511fc8e0e?source=collection_archive---------6-----------------------#2024-06-28)
 
 ## 因果 AI，探索将因果推理融入机器学习
 
-[](https://medium.com/@raz1470?source=post_page---byline--591511fc8e0e--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--591511fc8e0e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--591511fc8e0e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--591511fc8e0e--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--591511fc8e0e--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--591511fc8e0e--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--591511fc8e0e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--591511fc8e0e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--591511fc8e0e--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--591511fc8e0e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--591511fc8e0e--------------------------------) ·11分钟阅读·2024年6月28日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--591511fc8e0e--------------------------------) ·11 分钟阅读·2024 年 6 月 28 日
 
 --
 
-![](../Images/04ae3f78a67df7e275299b9801cf319b.png)
+![](img/04ae3f78a67df7e275299b9801cf319b.png)
 
 图片来自 [Boris Dunand](https://unsplash.com/@borisdunand?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,11 +22,11 @@
 
 如果你错过了上一篇关于营销组合建模的文章，请在这里查看：
 
-[](/enhancing-marketing-mix-modelling-with-causal-ai-77f638bce3a9?source=post_page-----591511fc8e0e--------------------------------) [## 利用因果 AI 强化营销组合建模
+[](/enhancing-marketing-mix-modelling-with-causal-ai-77f638bce3a9?source=post_page-----591511fc8e0e--------------------------------) ## 利用因果 AI 强化营销组合建模
 
 ### 因果 AI，探索将因果推理融入机器学习
 
-towardsdatascience.com](/enhancing-marketing-mix-modelling-with-causal-ai-77f638bce3a9?source=post_page-----591511fc8e0e--------------------------------)
+towardsdatascience.com
 
 # 介绍
 
@@ -48,7 +48,7 @@ towardsdatascience.com](/enhancing-marketing-mix-modelling-with-causal-ai-77f638
 
 [](https://github.com/raz1470/causal_ai/blob/main/notebooks/safeguarding%20demand%20forecasting%20with%20causal%20graphs.ipynb?source=post_page-----591511fc8e0e--------------------------------) [## causal_ai/notebooks/safeguarding demand forecasting with causal graphs.ipynb at main ·…
 
-### 本项目介绍了因果AI及其如何推动商业价值。 - causal_ai/notebooks/safeguarding demand…
+### 本项目介绍了因果 AI 及其如何推动商业价值。 - causal_ai/notebooks/safeguarding demand…
 
 github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/safeguarding%20demand%20forecasting%20with%20causal%20graphs.ipynb?source=post_page-----591511fc8e0e--------------------------------)
 
@@ -58,7 +58,7 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/safeguardin
 
 时间序列预测是基于历史观察值预测未来值的过程。
 
-![](../Images/1b694d850081befe34ef0aec17da8522.png)
+![](img/1b694d850081befe34ef0aec17da8522.png)
 
 用户生成图像
 
@@ -84,7 +84,7 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/safeguardin
 
 1.  **季节性分解** — 是将时间序列分解为季节性、趋势和残差成分的过程。
 
-![](../Images/5a2ceb597aa90c76f0b68ab324cab690.png)
+![](img/5a2ceb597aa90c76f0b68ab324cab690.png)
 
 用户生成图像
 
@@ -92,11 +92,11 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/safeguardin
 
 +   **ETS（误差、趋势、季节性）** — 一种指数平滑方法，用于建模误差、趋势和季节性成分。
 
-+   **自回归模型（AR模型）** — 将序列的当前值建模为其前期值的线性组合。
++   **自回归模型（AR 模型）** — 将序列的当前值建模为其前期值的线性组合。
 
-+   **移动平均模型（MA模型）** — 将序列的当前值建模为过去预测误差的线性组合。
++   **移动平均模型（MA 模型）** — 将序列的当前值建模为过去预测误差的线性组合。
 
-+   **自回归积分滑动平均（ARIMA模型）** — 将AR和MA模型结合，通过差分使序列平稳。
++   **自回归积分滑动平均（ARIMA 模型）** — 将 AR 和 MA 模型结合，通过差分使序列平稳。
 
 +   **状态空间模型** — 将时间序列分解为诸如趋势和季节性等独立成分。
 
@@ -108,17 +108,17 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/safeguardin
 
 如果你想进一步了解这个话题，我强烈推荐以下资源，它被广泛认为是预测的权威指南（以下版本是免费的😀）：
 
-[](https://otexts.com/fpp3/?source=post_page-----591511fc8e0e--------------------------------) [## 预测：原理与实践（第3版）
+[](https://otexts.com/fpp3/?source=post_page-----591511fc8e0e--------------------------------) [## 预测：原理与实践（第 3 版）
 
-### 第3版
+### 第 3 版
 
 otexts.com](https://otexts.com/fpp3/?source=post_page-----591511fc8e0e--------------------------------)
 
-在使用Python应用一些预测模型时，我推荐探索Nixtla，它有广泛实现的模型列表，并且提供易于使用的API：
+在使用 Python 应用一些预测模型时，我推荐探索 Nixtla，它有广泛实现的模型列表，并且提供易于使用的 API：
 
 [](https://github.com/Nixtla?source=post_page-----591511fc8e0e--------------------------------) [## Nixtla
 
-### 开源时间序列生态系统。Nixtla有35个可用的代码库。你可以在GitHub上关注他们的代码。
+### 开源时间序列生态系统。Nixtla 有 35 个可用的代码库。你可以在 GitHub 上关注他们的代码。
 
 github.com](https://github.com/Nixtla?source=post_page-----591511fc8e0e--------------------------------)
 
@@ -142,17 +142,17 @@ github.com](https://github.com/Nixtla?source=post_page-----591511fc8e0e---------
 
 我在我的系列文章中讨论过因果图几次，但以防你需要复习，可以查看我第一篇详细讨论因果图的文章：
 
-[](/using-causal-graphs-to-answer-causal-questions-5fd1dd82fa90?source=post_page-----591511fc8e0e--------------------------------) [## 使用因果图回答因果问题
+[](/using-causal-graphs-to-answer-causal-questions-5fd1dd82fa90?source=post_page-----591511fc8e0e--------------------------------) ## 使用因果图回答因果问题
 
-### 因果AI，探索将因果推理与机器学习相结合
+### 因果 AI，探索将因果推理与机器学习相结合
 
-towardsdatascience.com](/using-causal-graphs-to-answer-causal-questions-5fd1dd82fa90?source=post_page-----591511fc8e0e--------------------------------)
+towardsdatascience.com
 
 ## 因果图如何保障需求预测的准确性？
 
-以下面的图为例，假设我们想预测目标变量。我们发现有3个与目标变量相关的变量，因此我们将它们作为特征。为什么包含虚假的相关性会成为问题？我们包含更多特征不是能提高预测准确性吗？
+以下面的图为例，假设我们想预测目标变量。我们发现有 3 个与目标变量相关的变量，因此我们将它们作为特征。为什么包含虚假的相关性会成为问题？我们包含更多特征不是能提高预测准确性吗？
 
-![](../Images/66b864fdc1fb8642ba0489ffac247f8a.png)
+![](img/66b864fdc1fb8642ba0489ffac247f8a.png)
 
 用户生成的图片
 
@@ -182,13 +182,13 @@ towardsdatascience.com](/using-causal-graphs-to-answer-causal-questions-5fd1dd82
 
 1.  鲨鱼攻击是一个虚假相关（X3）
 
-![](../Images/8038224febe818d6a49a2d0980df047f.png)
+![](img/8038224febe818d6a49a2d0980df047f.png)
 
 用户生成的图像
 
 然后我使用了以下数据生成过程：
 
-![](../Images/087d0da8feedce2a5c4b85776f7c2157.png)
+![](img/087d0da8feedce2a5c4b85776f7c2157.png)
 
 用户生成的图像
 
@@ -245,7 +245,7 @@ tp.plot_timeseries(df)
 plt.show()
 ```
 
-![](../Images/176957d122740457eda755b7ea92f421.png)
+![](img/176957d122740457eda755b7ea92f421.png)
 
 用户生成的图像
 
@@ -263,15 +263,15 @@ plt.show()
 
 为了理解因果图，你可以使用 PCMCI（Tigramite 中有很好的实现），这是一种适合因果时间序列发现的方法。我这次不会详细介绍 PCMCI，因为它需要一篇专门的文章。不过，如果你对因果发现不太熟悉，可以参考我之前的文章来获得一个很好的入门：
 
-[](/making-causal-discovery-work-in-real-world-business-settings-80e80c5f66b8?source=post_page-----591511fc8e0e--------------------------------) [## 使因果发现能够在现实世界的商业环境中运作
+[](/making-causal-discovery-work-in-real-world-business-settings-80e80c5f66b8?source=post_page-----591511fc8e0e--------------------------------) ## 使因果发现能够在现实世界的商业环境中运作
 
 ### 因果人工智能，探索将因果推理集成到机器学习中的方法
 
-[towardsdatascience.com](/making-causal-discovery-work-in-real-world-business-settings-80e80c5f66b8?source=post_page-----591511fc8e0e--------------------------------) ![](../Images/ef72754fb775f028a38e302643adcd49.png)
+[towardsdatascience.com ![](img/ef72754fb775f028a38e302643adcd49.png)
 
 用户生成的图片
 
-从PCMCI输出的因果图如上所示。以下几点显而易见：
+从 PCMCI 输出的因果图如上所示。以下几点显而易见：
 
 1.  海滨访问是冰淇淋销售的直接原因
 
@@ -279,9 +279,9 @@ plt.show()
 
 1.  鲨鱼攻击是一个虚假相关性
 
-你质疑任何有常识的人怎么会把鲨鱼攻击作为特征！查看文档后，似乎顾问是使用ChatGPT获取了一个待考虑特征的列表，然后使用autoML训练了模型。
+你质疑任何有常识的人怎么会把鲨鱼攻击作为特征！查看文档后，似乎顾问是使用 ChatGPT 获取了一个待考虑特征的列表，然后使用 autoML 训练了模型。
 
-所以，如果ChatGPT和autoML认为鲨鱼攻击应该在模型中，难道它不会造成任何危害吗？
+所以，如果 ChatGPT 和 autoML 认为鲨鱼攻击应该在模型中，难道它不会造成任何危害吗？
 
 ## 预处理案例研究数据
 
@@ -303,7 +303,7 @@ df_pd = df_pd.iloc[1:, :]
 df_pd
 ```
 
-![](../Images/298d7e072e0a8fa2f6989842e6bd4ce1.png)
+![](img/298d7e072e0a8fa2f6989842e6bd4ce1.png)
 
 用户生成的图片
 
@@ -329,7 +329,7 @@ plt.legend(['shark attacks_lag1'])
 plt.show()
 ```
 
-![](../Images/979c0b072e146bec980c912f27650c7d.png)
+![](img/979c0b072e146bec980c912f27650c7d.png)
 
 用户生成的图片
 
@@ -381,7 +381,7 @@ print(f"R2 train: {round(r2_train, 2)}")
 print(f"R2 test: {round(r2_test, 2)}")
 ```
 
-![](../Images/a99b661eb27182a3109420cb80d4d844.png)
+![](img/a99b661eb27182a3109420cb80d4d844.png)
 
 用户生成的图片
 
@@ -407,7 +407,7 @@ print(f"R2 train: {round(r2_train, 2)}")
 print(f"R2 test: {round(r2_test, 2)}") 
 ```
 
-![](../Images/34b3554125a3463125a1508807f62962.png)
+![](img/34b3554125a3463125a1508807f62962.png)
 
 用户生成的图片
 
@@ -435,7 +435,7 @@ plt.legend(title='Series')
 plt.show()
 ```
 
-![](../Images/4c4b584d2faa4298eb39573a56423033.png)
+![](img/4c4b584d2faa4298eb39573a56423033.png)
 
 用户生成的图片
 
@@ -451,4 +451,4 @@ plt.show()
 
 +   中长期需求预测非常困难——你通常需要为每个特征建立一个预测模型，以便能够预测多个时间步的未来。 有趣的是，因果图（特别是结构因果模型）非常适合解决这个问题。
 
-如果你想继续深入了解因果 AI，请关注我——在下一篇文章中，我们将探讨如何比较CUPED和双重机器学习如何帮助推动你的实验。
+如果你想继续深入了解因果 AI，请关注我——在下一篇文章中，我们将探讨如何比较 CUPED 和双重机器学习如何帮助推动你的实验。

@@ -1,22 +1,22 @@
-# 如何在Python中制作高级蛛网图
+# 如何在 Python 中制作高级蛛网图
 
-> 原文：[https://towardsdatascience.com/how-to-make-an-advanced-spider-chart-in-python-adbdb6c24a66?source=collection_archive---------3-----------------------#2024-09-05](https://towardsdatascience.com/how-to-make-an-advanced-spider-chart-in-python-adbdb6c24a66?source=collection_archive---------3-----------------------#2024-09-05)
+> 原文：[`towardsdatascience.com/how-to-make-an-advanced-spider-chart-in-python-adbdb6c24a66?source=collection_archive---------3-----------------------#2024-09-05`](https://towardsdatascience.com/how-to-make-an-advanced-spider-chart-in-python-adbdb6c24a66?source=collection_archive---------3-----------------------#2024-09-05)
 
 ## 逐步讲解，最后提供一个易于使用的函数
 
-[](https://medium.com/@zvonimir.boban.mef?source=post_page---byline--adbdb6c24a66--------------------------------)[![Zvonimir Boban](../Images/cbad06b7e1f5d021ce9b2dc31b8a6a65.png)](https://medium.com/@zvonimir.boban.mef?source=post_page---byline--adbdb6c24a66--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--adbdb6c24a66--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--adbdb6c24a66--------------------------------) [Zvonimir Boban](https://medium.com/@zvonimir.boban.mef?source=post_page---byline--adbdb6c24a66--------------------------------)
+[](https://medium.com/@zvonimir.boban.mef?source=post_page---byline--adbdb6c24a66--------------------------------)![Zvonimir Boban](https://medium.com/@zvonimir.boban.mef?source=post_page---byline--adbdb6c24a66--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--adbdb6c24a66--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--adbdb6c24a66--------------------------------) [Zvonimir Boban](https://medium.com/@zvonimir.boban.mef?source=post_page---byline--adbdb6c24a66--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--adbdb6c24a66--------------------------------) ·8分钟阅读·2024年9月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--adbdb6c24a66--------------------------------) ·8 分钟阅读·2024 年 9 月 5 日
 
 --
 
-![](../Images/dbce2d785e6cd17f6370f715c8437a17.png)
+![](img/dbce2d785e6cd17f6370f715c8437a17.png)
 
 图片由[Divyadarshi Acharya](https://unsplash.com/@lincon_street?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)拍摄，来源于[Unsplash](https://unsplash.com/photos/selective-focus-photography-of-spider-on-web-Qbs6liSxjr8?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
 # 💡动机
 
-有多种Python库可以用来制作经典的蛛网图/雷达图。这些库的共同点在于它们只提供带有单一比例刻度轴的蛛网图，通常显示的刻度范围是从0到100。
+有多种 Python 库可以用来制作经典的蛛网图/雷达图。这些库的共同点在于它们只提供带有单一比例刻度轴的蛛网图，通常显示的刻度范围是从 0 到 100。
 
 当然，为了能够比较特征值，将其重新调整为一个公共刻度是必要的，但这样做却忽略了每个特征的绝对值范围。由于这些信息无法从图表中获得，我们不得不回到数据中去查找。在最好的情况下，这个过程既耗时又繁琐；而在最坏的情况下，我们可能无法访问原始数据，这意味着我们无法获得充分理解比较所需的关键信息。
 
@@ -24,7 +24,7 @@
 
 # 🕸️ 图表
 
-为了演示如何制作多轴蜘蛛图，我将使用著名的`mtcars`数据集的一小部分。该数据集来源于1974年《Motor Trend》杂志，并在Henderson和Velleman的1981年研究中首次发布[1]。让我们加载数据和所需的库。
+为了演示如何制作多轴蜘蛛图，我将使用著名的`mtcars`数据集的一小部分。该数据集来源于 1974 年《Motor Trend》杂志，并在 Henderson 和 Velleman 的 1981 年研究中首次发布[1]。让我们加载数据和所需的库。
 
 ```py
 import pandas as pd
@@ -58,7 +58,7 @@ p_data.columns = ['group', 'Miles per Gallon', 'Cylinders',
 
 如你所见，我将使用`plotnine`库来创建图表。受`ggplot2`启发，`plotnine`库也基于图形语法的概念，通过将多个图层叠加在一起来创建图表。这个强大的概念使我们能够创建几乎任何我们能想到的可视化图形。
 
-![](../Images/38276e502f62184d2de0ceb05a94f33f.png)
+![](img/38276e502f62184d2de0ceb05a94f33f.png)
 
 使用图形语法方法构建图表。图片由作者提供
 
@@ -87,7 +87,7 @@ step_1 = (ggplot(circle_df, aes('x', 'y')) +
         legend_box_spacing=0))
 ```
 
-![](../Images/49dd29a82fb73dd36d2b747086e0d49f.png)
+![](img/49dd29a82fb73dd36d2b747086e0d49f.png)
 
 第一步：为图表创建背景。图片由作者提供
 
@@ -108,7 +108,7 @@ def axis_coords(n_axis):
 step_2 = (step_1 + geom_line(data=axis_coords(p_data.shape[1] - 1), mapping=aes(x='x', y='y', group='id'), alpha=0.3))
 ```
 
-![](../Images/4704a33e8e066a82bbc62bfe6929671d.png)
+![](img/4704a33e8e066a82bbc62bfe6929671d.png)
 
 为数据集中的每个变量添加轴。图片由作者提供
 
@@ -141,7 +141,7 @@ geom_point(data=rescaled_coords_data, mapping=aes(x='x', y='y', group='group', c
         geom_polygon(data=rescaled_coords_data, mapping=aes('x', 'y', group = 'group', color = 'group', fill = 'group'), size = 1, alpha = 0.05, show_legend = False))
 ```
 
-![](../Images/864cc565f13cd3e145eb42ce014ffe05.png)
+![](img/864cc565f13cd3e145eb42ce014ffe05.png)
 
 将数据点叠加到图表上。图片由作者提供
 
@@ -182,7 +182,7 @@ step_4 = (step_3 +
         labs(color='', title = 'Comparison of car properties'))
 ```
 
-![](../Images/6311b6fb070dfa78ef0fc924fffd52de.png)
+![](img/6311b6fb070dfa78ef0fc924fffd52de.png)
 
 添加轴名称和标签。图片由作者提供
 
@@ -200,17 +200,17 @@ step_5 = (step_4 +
              lims(x=(-1.75, 1.75), y=(-1.5, 1.8)))
 ```
 
-![](../Images/7ea387aa2024833e4e1a8367eb94b492.png)
+![](img/7ea387aa2024833e4e1a8367eb94b492.png)
 
 最终的图表。图片由作者提供
 
-让我们再花一点时间评论一下显示的数字。即使是一个普通的蜘蛛图，也能明显看出沃尔沃是最慢的车。然而，在这里我们还可以看到确切的绝对差异——沃尔沃用了18.6秒才走完四分之一英里的距离，而三者中最快的玛莎拉蒂则少用了整整四秒。当然，预期的结果是，沃尔沃在燃油消耗方面最为经济，每加仑油能行驶比玛莎拉蒂Bora多6英里。作为跑车，玛莎拉蒂Bora和法拉利Dino也拥有更多的气缸和马力，且比沃尔沃重。
+让我们再花一点时间评论一下显示的数字。即使是一个普通的蜘蛛图，也能明显看出沃尔沃是最慢的车。然而，在这里我们还可以看到确切的绝对差异——沃尔沃用了 18.6 秒才走完四分之一英里的距离，而三者中最快的玛莎拉蒂则少用了整整四秒。当然，预期的结果是，沃尔沃在燃油消耗方面最为经济，每加仑油能行驶比玛莎拉蒂 Bora 多 6 英里。作为跑车，玛莎拉蒂 Bora 和法拉利 Dino 也拥有更多的气缸和马力，且比沃尔沃重。
 
 # 其他示例
 
 这是另一个使用泰坦尼克号数据集并且自定义了字体的蜘蛛图示例。
 
-![](../Images/c506c533342c409e4405ad4567fe9b64.png)
+![](img/c506c533342c409e4405ad4567fe9b64.png)
 
 另一个使用泰坦尼克号数据集的示例。图片由作者提供
 

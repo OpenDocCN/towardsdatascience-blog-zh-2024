@@ -1,18 +1,18 @@
 # 让我们通过数独了解一下计算机视觉
 
-> 原文：[https://towardsdatascience.com/lets-learn-a-little-about-computer-vision-via-sudoku-836065c0f07b?source=collection_archive---------2-----------------------#2024-12-14](https://towardsdatascience.com/lets-learn-a-little-about-computer-vision-via-sudoku-836065c0f07b?source=collection_archive---------2-----------------------#2024-12-14)
+> 原文：[`towardsdatascience.com/lets-learn-a-little-about-computer-vision-via-sudoku-836065c0f07b?source=collection_archive---------2-----------------------#2024-12-14`](https://towardsdatascience.com/lets-learn-a-little-about-computer-vision-via-sudoku-836065c0f07b?source=collection_archive---------2-----------------------#2024-12-14)
 
 ## 解数独是编程中的一个有趣挑战，将计算机视觉技术添加到数独解题中，可以将其与流行的机器学习技术相结合
 
-[](https://medium.com/@broepke?source=post_page---byline--836065c0f07b--------------------------------)[![Brian Roepke](../Images/0b7ef72cbfc9acda69fde14127d65dcf.png)](https://medium.com/@broepke?source=post_page---byline--836065c0f07b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--836065c0f07b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--836065c0f07b--------------------------------) [Brian Roepke](https://medium.com/@broepke?source=post_page---byline--836065c0f07b--------------------------------)
+[](https://medium.com/@broepke?source=post_page---byline--836065c0f07b--------------------------------)![Brian Roepke](https://medium.com/@broepke?source=post_page---byline--836065c0f07b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--836065c0f07b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--836065c0f07b--------------------------------) [Brian Roepke](https://medium.com/@broepke?source=post_page---byline--836065c0f07b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--836065c0f07b--------------------------------) ·阅读时间8分钟·2024年12月14日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--836065c0f07b--------------------------------) ·阅读时间 8 分钟·2024 年 12 月 14 日
 
 --
 
-![](../Images/81e3ba184f32ab3733ba55a7a898f130.png)
+![](img/81e3ba184f32ab3733ba55a7a898f130.png)
 
-图片由作者使用HubSpot AI制作
+图片由作者使用 HubSpot AI 制作
 
 # 介绍
 

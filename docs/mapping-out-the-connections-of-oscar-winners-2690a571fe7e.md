@@ -1,10 +1,10 @@
 # 绘制奥斯卡获奖者的连接关系
 
-> 原文：[https://towardsdatascience.com/mapping-out-the-connections-of-oscar-winners-2690a571fe7e?source=collection_archive---------3-----------------------#2024-02-25](https://towardsdatascience.com/mapping-out-the-connections-of-oscar-winners-2690a571fe7e?source=collection_archive---------3-----------------------#2024-02-25)
+> 原文：[`towardsdatascience.com/mapping-out-the-connections-of-oscar-winners-2690a571fe7e?source=collection_archive---------3-----------------------#2024-02-25`](https://towardsdatascience.com/mapping-out-the-connections-of-oscar-winners-2690a571fe7e?source=collection_archive---------3-----------------------#2024-02-25)
 
-![](../Images/930be05e80ba96a50fc20d855d326b3b.png)[](https://medium.com/@janosovm?source=post_page---byline--2690a571fe7e--------------------------------)[![Milan Janosov](../Images/b7ede67b165cdd368d96f13f46c68ccb.png)](https://medium.com/@janosovm?source=post_page---byline--2690a571fe7e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2690a571fe7e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2690a571fe7e--------------------------------) [Milan Janosov](https://medium.com/@janosovm?source=post_page---byline--2690a571fe7e--------------------------------)
+![](img/930be05e80ba96a50fc20d855d326b3b.png)[](https://medium.com/@janosovm?source=post_page---byline--2690a571fe7e--------------------------------)![Milan Janosov](https://medium.com/@janosovm?source=post_page---byline--2690a571fe7e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2690a571fe7e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2690a571fe7e--------------------------------) [Milan Janosov](https://medium.com/@janosovm?source=post_page---byline--2690a571fe7e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2690a571fe7e--------------------------------) ·阅读时间 6 分钟·2024年2月25日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2690a571fe7e--------------------------------) ·阅读时间 6 分钟·2024 年 2 月 25 日
 
 --
 
@@ -20,7 +20,7 @@
 
 首先，让我们来看一下，例如，[奥斯卡获奖男演员列表](https://en.wikipedia.org/wiki/Category:Best_Actor_Academy_Award_winners)是如何构建的：
 
-![](../Images/222e1b694433d0b6bd33f311785d183c.png)
+![](img/222e1b694433d0b6bd33f311785d183c.png)
 
 [奥斯卡获奖男演员列表](https://en.wikipedia.org/wiki/Category:Best_Actor_Academy_Award_winners)
 

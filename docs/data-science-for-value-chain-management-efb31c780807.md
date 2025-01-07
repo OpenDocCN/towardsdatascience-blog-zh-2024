@@ -1,16 +1,16 @@
 # 数据科学在价值链管理中的应用
 
-> 原文：[https://towardsdatascience.com/data-science-for-value-chain-management-efb31c780807?source=collection_archive---------6-----------------------#2024-05-15](https://towardsdatascience.com/data-science-for-value-chain-management-efb31c780807?source=collection_archive---------6-----------------------#2024-05-15)
+> 原文：[`towardsdatascience.com/data-science-for-value-chain-management-efb31c780807?source=collection_archive---------6-----------------------#2024-05-15`](https://towardsdatascience.com/data-science-for-value-chain-management-efb31c780807?source=collection_archive---------6-----------------------#2024-05-15)
 
 ## 你如何利用数据科学优化运营并提升盈利能力？
 
-[](https://s-saci95.medium.com/?source=post_page---byline--efb31c780807--------------------------------)[![Samir Saci](../Images/722d1f56a3308f6527d82b5ab97064ec.png)](https://s-saci95.medium.com/?source=post_page---byline--efb31c780807--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--efb31c780807--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--efb31c780807--------------------------------) [Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--efb31c780807--------------------------------)
+[](https://s-saci95.medium.com/?source=post_page---byline--efb31c780807--------------------------------)![Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--efb31c780807--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--efb31c780807--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--efb31c780807--------------------------------) [Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--efb31c780807--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--efb31c780807--------------------------------) ·阅读时间：12分钟·2024年5月15日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--efb31c780807--------------------------------) ·阅读时间：12 分钟·2024 年 5 月 15 日
 
 --
 
-![](../Images/9b9162339e5cc9cb640b09a68aa3050f.png)
+![](img/9b9162339e5cc9cb640b09a68aa3050f.png)
 
 价值链管理 — （图像来源：作者）
 
@@ -18,7 +18,7 @@
 
 这种方法帮助组织有效响应市场趋势并提高效率，以提升盈利能力。
 
-![](../Images/41595d88637c1226ba1926d6bb8e6686.png)
+![](img/41595d88637c1226ba1926d6bb8e6686.png)
 
 价值链与供应链 — （图像来源：作者）
 
@@ -61,7 +61,7 @@ Automate monitoring and improve the efficiency of outbound distribution.
 
 企业不断寻求通过提高效率和最大化盈利能力来获得竞争优势的方法。
 
-> 客户：Samir，我们希望将物流成本降低20%。我们希望你重新设计整个分销网络。
+> 客户：Samir，我们希望将物流成本降低 20%。我们希望你重新设计整个分销网络。
 
 这是我作为供应链工程师或数据科学家进行的大多数项目的共性。
 
@@ -79,7 +79,7 @@ Automate monitoring and improve the efficiency of outbound distribution.
 
 这种方式通过将任何业务拆解为一系列**互联的活动，这些活动有助于**创造和向客户传递价值，从而彻底改变了企业对其运营的看法。
 
-![](../Images/748addc8b7bb07d97348e7c7ee0c2208.png)
+![](img/748addc8b7bb07d97348e7c7ee0c2208.png)
 
 价值链的组成部分 — （作者提供的图像）
 
@@ -87,29 +87,29 @@ Automate monitoring and improve the efficiency of outbound distribution.
 
 +   **支持活动**包括基础设施、技术开发、人力资源管理和采购。
 
-让我们通过一个时尚零售商**在亚洲生产T恤并在欧洲销售**的例子，来探讨它们的定义。
+让我们通过一个时尚零售商**在亚洲生产 T 恤并在欧洲销售**的例子，来探讨它们的定义。
 
 ## 主要活动有哪些？
 
 主要活动包括入境物流、运营、出境物流、营销和服务。
 
-![](../Images/e528a810e8b9444afa0d322c3b1c439f.png)
+![](img/e528a810e8b9444afa0d322c3b1c439f.png)
 
 价值链管理中的主要活动 — （作者提供的图像）
 
 这些核心功能涉及创建、生产、营销和向最终客户交付**产品或服务**。
 
-![](../Images/8211bdd559524e9e45819cf3b11158ac.png)
+![](img/8211bdd559524e9e45819cf3b11158ac.png)
 
 时尚零售公司供应链运营 — （作者提供的图像）
 
-以我们T恤的价值链为例：
+以我们 T 恤的价值链为例：
 
 +   **入境物流**包括从供应商处采购棉花并运输到制造设施。
 
-+   **运营**包括将棉花转化为面料图案，缝合起来以制作T恤。
++   **运营**包括将棉花转化为面料图案，缝合起来以制作 T 恤。
 
-+   **出境物流**涉及所有包装、储存和将T恤送达最终目的地的物流过程。
++   **出境物流**涉及所有包装、储存和将 T 恤送达最终目的地的物流过程。
 
 +   **营销**和销售专注于推广以促进销售。
 
@@ -125,7 +125,7 @@ Automate monitoring and improve the efficiency of outbound distribution.
 
 支持活动通过提升**主要活动的效率和效果**，**间接**地增加了产品或服务的价值。
 
-![](../Images/cf9d2393bf452b912f9bc5f6453c1d4c.png)
+![](img/cf9d2393bf452b912f9bc5f6453c1d4c.png)
 
 聚焦支持活动 — （作者提供的图像）
 
@@ -153,9 +153,9 @@ Automate monitoring and improve the efficiency of outbound distribution.
 
 这包括所有与**接收**、**存储**和**分配**生产前输入相关的过程和活动。
 
-在我们的例子中，这些输入可能是**原材料**，如棉花、染料和制造T恤所需的其他物料。
+在我们的例子中，这些输入可能是**原材料**，如棉花、染料和制造 T 恤所需的其他物料。
 
-![](../Images/2f050e5235e04b1092731efd9961d050.png)
+![](img/2f050e5235e04b1092731efd9961d050.png)
 
 入境物流优化的数据分析解决方案示例 ——（图片由作者提供）
 
@@ -167,7 +167,7 @@ Automate monitoring and improve the efficiency of outbound distribution.
 
 你想提出解决方案以支持**供应商风险评估**。
 
-> ***💾 输入数据***：购买订单、供应商信息、工厂/仓库容量和Excel文件中的发货记录。
+> ***💾 输入数据***：购买订单、供应商信息、工厂/仓库容量和 Excel 文件中的发货记录。
 
 采购团队需要一个工具，可以提供跨供应商网络的可见性，用于执行风险评估、供应商整合和物流网络设计。
 
@@ -177,11 +177,11 @@ Automate monitoring and improve the efficiency of outbound distribution.
 > 
 > 你如何估算特定供应商故障对整体制造足迹的影响？*
 
-[![](../Images/aae726254762a9d3eb83e2d7a4726583.png)](https://towardsdatascience.com/transportation-network-analysis-with-graph-theory-55eceb7e4de4)
+![](https://towardsdatascience.com/transportation-network-analysis-with-graph-theory-55eceb7e4de4)
 
 网络图示例 ——（图片由作者提供）
 
-> B-45工厂有多少个关键供应商？
+> B-45 工厂有多少个关键供应商？
 > 
 > ***🚀 解决方案***：图论是一个数学领域，研究图中作为顶点和边表示的对象之间的关系。
 
@@ -195,23 +195,23 @@ Automate monitoring and improve the efficiency of outbound distribution.
 
 目标是可视化在同一路线交付的所有商店。
 
-[![](../Images/1459a1e1ce36be277603d8968eb2cb4e.png)](https://towardsdatascience.com/transportation-network-analysis-with-graph-theory-55eceb7e4de4)
+![](https://towardsdatascience.com/transportation-network-analysis-with-graph-theory-55eceb7e4de4)
 
-用于运输优化的图论示例 [[文章](/transportation-network-analysis-with-graph-theory-55eceb7e4de4)] — （图片来源：作者）
+用于运输优化的图论示例 [文章] — （图片来源：作者）
 
 这个例子可以很容易地**调整**用于审计供应商网络
 
-+   如果供应商正在向工厂B-45交付，请创建一个链接
++   如果供应商正在向工厂 B-45 交付，请创建一个链接
 
-+   创建原材料加工工厂B-45与装配线C-78之间的链接。
++   创建原材料加工工厂 B-45 与装配线 C-78 之间的链接。
 
 有关图论的更多信息，
 
-[](/transportation-network-analysis-with-graph-theory-55eceb7e4de4?source=post_page-----efb31c780807--------------------------------) [## 图论的运输网络分析
+[](/transportation-network-analysis-with-graph-theory-55eceb7e4de4?source=post_page-----efb31c780807--------------------------------) ## 图论的运输网络分析
 
 ### 使用图论优化零售公司道路运输网络
 
-towardsdatascience.com](/transportation-network-analysis-with-graph-theory-55eceb7e4de4?source=post_page-----efb31c780807--------------------------------)
+towardsdatascience.com
 
 > 什么样的分析可以支持图论？
 
@@ -233,33 +233,33 @@ towardsdatascience.com](/transportation-network-analysis-with-graph-theory-55ece
 
 +   **约束条件**如供应量 ≥ 需求量、供应商的容量限制和每单位产品的最大排放或水使用量。
 
-+   **特定目标**：最小化成本、水使用量或CO2排放。
++   **特定目标**：最小化成本、水使用量或 CO2 排放。
 
-> ***❔ 问题声明****：我们应该选择哪些供应商以最小化CO2排放？*
+> ***❔ 问题声明****：我们应该选择哪些供应商以最小化 CO2 排放？*
 
-[![](../Images/df90c3e4ec59326d02969467094c6552.png)](https://towardsdatascience.com/data-science-for-sustainable-sourcing-a72f2c4db424)
+![](https://towardsdatascience.com/data-science-for-sustainable-sourcing-a72f2c4db424)
 
 可持续采购问题声明 — （图片来源：作者）
 
-> ***🚀 解决方案****：使用Python中的线性规划，你可以根据用户选择的目标自动选择合适的供应商。*
+> ***🚀 解决方案****：使用 Python 中的线性规划，你可以根据用户选择的目标自动选择合适的供应商。*
 
-[![](../Images/302b282004b6975e4680a8905e3d0604.png)](https://towardsdatascience.com/data-science-for-sustainable-sourcing-a72f2c4db424)
+![](https://towardsdatascience.com/data-science-for-sustainable-sourcing-a72f2c4db424)
 
 多目标的不同解决方案 [尝试[应用](https://cloud.viktor.ai/public/sustainable-supply-chain-network-optimization)] — （图片来源：作者）
 
 在我部署的应用程序中，用户可以根据经济或可持续标准轻松模拟几种场景，以便于决策。
 
-[![](../Images/f6e91e9e022b3df35211e84575fba371.png)](https://towardsdatascience.com/data-science-for-sustainable-sourcing-a72f2c4db424)
+![](https://towardsdatascience.com/data-science-for-sustainable-sourcing-a72f2c4db424)
 
 用户可以可视化四个目标函数的成本影响 [试试这个[应用程序](https://cloud.viktor.ai/public/sustainable-supply-chain-network-optimization)]— （图片来自作者）
 
 本文详细介绍了该工具背后的理论。
 
-[](/data-science-for-sustainable-sourcing-a72f2c4db424?source=post_page-----efb31c780807--------------------------------) [## 可持续采购的数据科学
+[](/data-science-for-sustainable-sourcing-a72f2c4db424?source=post_page-----efb31c780807--------------------------------) ## 可持续采购的数据科学
 
 ### 我们如何使用数据科学来选择最佳供应商，同时考虑可持续性和社会等指标……
 
-[towardsdatascience.com](/data-science-for-sustainable-sourcing-a72f2c4db424?source=post_page-----efb31c780807--------------------------------)
+[towardsdatascience.com
 
 > 你的解决方案有什么影响？
 
@@ -269,11 +269,11 @@ towardsdatascience.com](/transportation-network-analysis-with-graph-theory-55ece
 
 # 运营：从原材料到成品
 
-这是T恤的**实际生产**阶段，通过将从入境物流获得的输入转化为成品。
+这是 T 恤的**实际生产**阶段，通过将从入境物流获得的输入转化为成品。
 
 这一活动包括诸如裁剪、缝纫、染色和印刷等过程。
 
-![](../Images/ef76cd8535f55756a193a670abe5deb5.png)
+![](img/ef76cd8535f55756a193a670abe5deb5.png)
 
 运营优化的数据分析解决方案示例 — （图片来自作者）
 
@@ -285,17 +285,17 @@ towardsdatascience.com](/transportation-network-analysis-with-graph-theory-55ece
 
 你希望提出一个解决方案来**优化生产计划**。
 
-[![](../Images/f6c22c549d32f858fdaa69fd53f35459.png)](https://towardsdatascience.com/production-fixed-horizon-planning-with-python-8dd38b468e86)
+![](https://towardsdatascience.com/production-fixed-horizon-planning-with-python-8dd38b468e86)
 
 生产计划 — （图片来自作者）
 
 > ***💾 输入数据****：客户发送* ***采购订单*** *，并指定* ***交付数量*** *和* ***交付时间****。*
 
-[![](../Images/2f604c58d7e6cad0f6fa28a68ae41bbe.png)](https://towardsdatascience.com/production-fixed-horizon-planning-with-python-8dd38b468e86)
+![](https://towardsdatascience.com/production-fixed-horizon-planning-with-python-8dd38b468e86)
 
 客户订单 — （图片来自作者）
 
-在上面的示例中，客户共享了未来12个月要交付的数量。
+在上面的示例中，客户共享了未来 12 个月要交付的数量。
 
 > ***❔ 问题陈述****：如何组织生产批次，以最小化每单位的总生产成本？*
 
@@ -311,7 +311,7 @@ towardsdatascience.com](/transportation-network-analysis-with-graph-theory-55ece
 
 > ***🚀 解决方案***：生产规划通过寻找*在* ***最小化库存*** *与* ***最大化每次设置生产数量*** *之间的平衡，* ***最小化生产总成本*** *。
 
-[![](../Images/aab7a05e3fdccadfd136b5cda1003acf.png)](https://towardsdatascience.com/production-fixed-horizon-planning-with-python-8dd38b468e86)
+![](https://towardsdatascience.com/production-fixed-horizon-planning-with-python-8dd38b468e86)
 
 生产规划输出 — （图片来自作者）
 
@@ -319,11 +319,11 @@ Wagner 和 Whitin 开发了一种通过动态规划寻找最优规划的算法�
 
 如果你想了解更多关于理论的内容，这篇文章提供了详细的介绍。
 
-[](/production-fixed-horizon-planning-with-python-8dd38b468e86?source=post_page-----efb31c780807--------------------------------) [## 使用 Python 优化生产规划
+[](/production-fixed-horizon-planning-with-python-8dd38b468e86?source=post_page-----efb31c780807--------------------------------) ## 使用 Python 优化生产规划
 
 ### 使用 Python 实现 Wagner-Whitin 算法进行生产规划，以最小化生产总成本
 
-towardsdatascience.com](/production-fixed-horizon-planning-with-python-8dd38b468e86?source=post_page-----efb31c780807--------------------------------)
+towardsdatascience.com
 
 ## 如何衡量你解决方案的影响？
 
@@ -337,7 +337,7 @@ towardsdatascience.com](/production-fixed-horizon-planning-with-python-8dd38b468
 
 你现在可以尝试我几个月前部署的这个原型
 
-[![](../Images/5bc241943254555ef39d87560ab4781e.png)](https://cloud.viktor.ai/public/production-planning-optimization)
+![](https://cloud.viktor.ai/public/production-planning-optimization)
 
 生产规划优化应用 [[链接](https://cloud.viktor.ai/public/production-planning-optimization)] — （图片来自作者）
 
@@ -349,7 +349,7 @@ towardsdatascience.com](/production-fixed-horizon-planning-with-python-8dd38b468
 
 对于我们的时尚零售商，这包括存储、订单履行、运输和整个欧洲的门店配送。
 
-![](../Images/8f3a8904249de7d4549285f94d297eda.png)
+![](img/8f3a8904249de7d4549285f94d297eda.png)
 
 出口物流优化分析解决方案示例 — （图片来自作者）
 
@@ -361,11 +361,11 @@ towardsdatascience.com](/production-fixed-horizon-planning-with-python-8dd38b468
 
 你与分销规划经理保持联系；她的团队监控所有门店补货订单。
 
-[![](../Images/8211bdd559524e9e45819cf3b11158ac.png)](https://towardsdatascience.com/automated-supply-chain-control-tower-with-python-17dbf93a18d0)
+![](https://towardsdatascience.com/automated-supply-chain-control-tower-with-python-17dbf93a18d0)
 
 零售公司分销过程 — （图片来自作者）
 
-配送计划员在ERP系统中监控每个在商店销售的商品的库存水平（单位）。
+配送计划员在 ERP 系统中监控每个在商店销售的商品的库存水平（单位）。
 
 当库存水平达到规划人员设置的最小水平时
 
@@ -379,7 +379,7 @@ towardsdatascience.com](/production-fixed-horizon-planning-with-python-8dd38b468
 
 参与配送链的不同系统在每个关键步骤记录时间戳。
 
-[![](../Images/12772ee804ce299e07ccb68139212b63.png)](https://towardsdatascience.com/automated-supply-chain-control-tower-with-python-17dbf93a18d0)
+![](https://towardsdatascience.com/automated-supply-chain-control-tower-with-python-17dbf93a18d0)
 
 配送过程中的关键步骤及截止时间——（图示：作者）
 
@@ -391,13 +391,13 @@ towardsdatascience.com](/production-fixed-horizon-planning-with-python-8dd38b468
 
 为了支持她的根本原因分析，她希望你实现一个系统，**自动标记**中间步骤中的延迟。
 
-[![](../Images/a3dc13c917fdec899854bc5935b62408.png)](https://towardsdatascience.com/automated-supply-chain-control-tower-with-python-17dbf93a18d0)
+![](https://towardsdatascience.com/automated-supply-chain-control-tower-with-python-17dbf93a18d0)
 
 已交付货物的示例（顶部：准时，底部：延迟）——（图示：作者）
 
 例如，底部的示例错过了“发货时间”目标，导致了交货延迟。
 
-[![](../Images/0425d3ec6da18123ccacd079910cfafc.png)](https://towardsdatascience.com/automated-supply-chain-control-tower-with-python-17dbf93a18d0)
+![](https://towardsdatascience.com/automated-supply-chain-control-tower-with-python-17dbf93a18d0)
 
 带有原因代码的延迟——（图示：作者）
 
@@ -405,11 +405,11 @@ towardsdatascience.com](/production-fixed-horizon-planning-with-python-8dd38b468
 
 有关如何实施此解决方案的更多细节，
 
-[](/automated-supply-chain-control-tower-with-python-17dbf93a18d0?source=post_page-----efb31c780807--------------------------------) [## 什么是供应链控制塔？
+[](/automated-supply-chain-control-tower-with-python-17dbf93a18d0?source=post_page-----efb31c780807--------------------------------) ## 什么是供应链控制塔？
 
-### 使用Python优化你的供应链网络，通过自动化解决方案跟踪你的货物并评估……
+### 使用 Python 优化你的供应链网络，通过自动化解决方案跟踪你的货物并评估……
 
-towardsdatascience.com](/automated-supply-chain-control-tower-with-python-17dbf93a18d0?source=post_page-----efb31c780807--------------------------------)
+towardsdatascience.com
 
 ## 我们如何通过这些诊断来提高性能？
 
@@ -419,7 +419,7 @@ towardsdatascience.com](/automated-supply-chain-control-tower-with-python-17dbf9
 
 +   通过原因代码映射，挑战运营团队进行根本原因分析；
 
-+   通过一个整体KPI衡量商店的影响，KPI衡量按时完整交付（OTIF）的订单百分比；
++   通过一个整体 KPI 衡量商店的影响，KPI 衡量按时完整交付（OTIF）的订单百分比；
 
 作为数据分析经理，你通过提供足够的洞察力，支持持续改进计划，贡献了交货周期的缩短。
 
@@ -433,19 +433,19 @@ towardsdatascience.com](/automated-supply-chain-control-tower-with-python-17dbf9
 
 通过探索从入库物流到出库分销的各种案例，我们展示了数据科学对战略流程的变革性影响。
 
-[![](../Images/5cecbfa7a3b54b0193dee2fcbd12dead.png)](https://towardsdatascience.com/leveraging-data-analytics-for-sustainable-business-transformation-cfd8d71f97f5)
+![](https://towardsdatascience.com/leveraging-data-analytics-for-sustainable-business-transformation-cfd8d71f97f5)
 
-“绿色转型的四大隐形敌人”示例[文章：[链接](/leveraging-data-analytics-for-sustainable-business-transformation-cfd8d71f97f5)] — （图片由作者提供）
+“绿色转型的四大隐形敌人”示例文章：[链接] — （图片由作者提供）
 
 这可以成为任何重大转型的推动力，影响整个价值链。
 
 随着组织不断拥抱数字化转型，您拥有展示团队潜力的工具，使其成为公司战略资产。
 
-[](/leveraging-data-analytics-for-sustainable-business-transformation-cfd8d71f97f5?source=post_page-----efb31c780807--------------------------------) [## 利用数据分析推动可持续业务转型
+[](/leveraging-data-analytics-for-sustainable-business-transformation-cfd8d71f97f5?source=post_page-----efb31c780807--------------------------------) ## 利用数据分析推动可持续业务转型
 
 ### 了解如何利用分析克服规模化绿色倡议所面临的挑战，这些挑战阻碍了组织的…
 
-towardsdatascience.com](/leveraging-data-analytics-for-sustainable-business-transformation-cfd8d71f97f5?source=post_page-----efb31c780807--------------------------------)
+towardsdatascience.com
 
 # 关于我
 

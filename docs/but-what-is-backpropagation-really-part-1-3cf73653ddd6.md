@@ -1,16 +1,16 @@
 # 但反向传播到底是什么呢？（第一部分）
 
-> 原文：[https://towardsdatascience.com/but-what-is-backpropagation-really-part-1-3cf73653ddd6?source=collection_archive---------8-----------------------#2024-02-07](https://towardsdatascience.com/but-what-is-backpropagation-really-part-1-3cf73653ddd6?source=collection_archive---------8-----------------------#2024-02-07)
+> 原文：[`towardsdatascience.com/but-what-is-backpropagation-really-part-1-3cf73653ddd6?source=collection_archive---------8-----------------------#2024-02-07`](https://towardsdatascience.com/but-what-is-backpropagation-really-part-1-3cf73653ddd6?source=collection_archive---------8-----------------------#2024-02-07)
 
 ## 从零开始实现一个简单的神经网络框架
 
-[](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)[![Matthew Chak](../Images/88881eb5a7c8f08c15555bc8c3c613d3.png)](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------) [Matthew Chak](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)
+[](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)![Matthew Chak](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------) [Matthew Chak](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------) ·阅读时间：11分钟·2024年2月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------) ·阅读时间：11 分钟·2024 年 2 月 7 日
 
 --
 
-![](../Images/a32c4308353179756efb049de6ad07a3.png)
+![](img/a32c4308353179756efb049de6ad07a3.png)
 
 树——计算的核心。来源：[Adrian Infernus on Unsplash](https://unsplash.com/photos/a-forest-filled-with-lots-of-snow-covered-trees-E4O3FTh9V04)
 
@@ -20,9 +20,9 @@
 
 从本质上讲，神经网络只是从输入空间到目标输出空间的数学函数。实际上，我们可以有效地“解开”任何神经网络，转化为一个函数。比如，考虑下面这个简单的具有两层和一个输入的神经网络：
 
-![](../Images/28d8d57c58d3bff09dc26bfd8b862275.png)
+![](img/28d8d57c58d3bff09dc26bfd8b862275.png)
 
-一个简单的神经网络，包含两层和一个ReLU激活。在这里，线性网络有权重wₙ和偏置bₙ
+一个简单的神经网络，包含两层和一个 ReLU 激活。在这里，线性网络有权重 wₙ和偏置 bₙ
 
 我们现在可以通过从输入层开始，逐层构建一个等效的函数。让我们逐层跟随我们的最终函数：
 
@@ -38,7 +38,7 @@
 
 然而，我们可以更进一步——这种形式的函数对于计算来说并不是特别方便，但我们可以将其解析为更有用的形式，即语法树。对于我们的简单网络，树形结构如下所示：
 
-![](../Images/2381ed9dd06321fd769d6bd9003b27b7.png)
+![](img/2381ed9dd06321fd769d6bd9003b27b7.png)
 
 我们函数的树形表示
 
@@ -75,7 +75,7 @@ class NeuralNetNode:
 
 现在假设我们有一个可微的损失函数，用于我们的神经网络，比如 MSE。回想一下，MSE（对于一个样本）的定义如下：
 
-![](../Images/d309e28f0599f66e68be32b3cdc62c61.png)
+![](img/d309e28f0599f66e68be32b3cdc62c61.png)
 
 MSE 损失函数
 
@@ -85,7 +85,7 @@ MSE 损失函数
 
 事实证明，链式法则与我们的递归树结构非常契合。基本的思想如下：假设我们有足够简单的基本操作，每个基本操作都知道其关于所有参数的导数。通过父操作的导数，我们可以通过简单的乘法计算每个子操作关于损失函数的导数。对于使用均方误差（MSE）的简单线性回归模型，我们可以将其图示化如下：
 
-![](../Images/cf0d461dba33bca20044ddd701532bc2.png)
+![](img/cf0d461dba33bca20044ddd701532bc2.png)
 
 一个简单线性分类器的前向和反向传递图，权重为 w1，偏置为 b1。注意 *h*₁ 只是我们乘法操作返回的变量，就像我们的预测是通过加法返回的一样。
 
@@ -325,9 +325,9 @@ print(linear_classifier.predict([32]))
 >> -1.7763568394002505e-14
 ```
 
-这正确地对应于一个线性分类器，权重为0.56，偏差为-17.78（这就是华氏度到摄氏度的公式）
+这正确地对应于一个线性分类器，权重为 0.56，偏差为-17.78（这就是华氏度到摄氏度的公式）
 
-当然，我们也可以训练更复杂的模型，例如，下面是一个用于预测一个点(x, y)是否位于y = x线的上方或下方的模型：
+当然，我们也可以训练更复杂的模型，例如，下面是一个用于预测一个点(x, y)是否位于 y = x 线的上方或下方的模型：
 
 ```py
 def bce_loss(y_true: float, y_pred: float, eps: float=0.00000001) -> float:
@@ -409,13 +409,13 @@ print(model_binary.predict([0, 0]))
 
 **练习 4：** 当你深入思考时，我们网络中的“复杂”节点（例如，线性层）实际上只是“宏”——也就是说，如果我们有一个神经网络树，形状如下：
 
-![](../Images/29319be00ff7ceadc6b3612ab061410d.png)
+![](img/29319be00ff7ceadc6b3612ab061410d.png)
 
 一个线性分类模型
 
 你真正做的事情是：
 
-![](../Images/16b4e8fbc11e64298ec81c1ca432a2b9.png)
+![](img/16b4e8fbc11e64298ec81c1ca432a2b9.png)
 
 我们线性网络的等效公式
 
@@ -423,9 +423,9 @@ print(model_binary.predict([0, 0]))
 
 对于这个练习，你的任务是实现**Macro**类。该类应该是一个**Operation**，它递归地将自身替换为基本操作。
 
-*注意：这个步骤可以随时进行，尽管通常最容易的方法是向你必须在训练之前调用的Operation类中添加一个`compile()`方法（或者将其添加到你在练习2中已有的方法中）。当然，我们也可以以其他（或许更高效）的方式实现更复杂的节点，但这仍然是一个很好的练习。*
+*注意：这个步骤可以随时进行，尽管通常最容易的方法是向你必须在训练之前调用的 Operation 类中添加一个`compile()`方法（或者将其添加到你在练习 2 中已有的方法中）。当然，我们也可以以其他（或许更高效）的方式实现更复杂的节点，但这仍然是一个很好的练习。*
 
-**练习 5：** 尽管我们实际上不需要内部节点输出除一个数字以外的任何其他内容，但有时对于树的根节点（即输出层）输出其他内容（例如，在Softmax的情况下是一个数字列表）是很有用的。实现**Output**类，并允许它输出一个`Listof[float]`而不仅仅是一个`float`。作为奖励，尝试实现SoftMax输出。
+**练习 5：** 尽管我们实际上不需要内部节点输出除一个数字以外的任何其他内容，但有时对于树的根节点（即输出层）输出其他内容（例如，在 Softmax 的情况下是一个数字列表）是很有用的。实现**Output**类，并允许它输出一个`Listof[float]`而不仅仅是一个`float`。作为奖励，尝试实现 SoftMax 输出。
 
 *注意：有几种方法可以实现这一点。你可以让 `Output` 类继承 `Operation`，然后修改 `NeuralNetNode` 类的 `op()` 方法，使其返回一个 `List[float]`，而不仅仅是一个浮点数。或者，你可以创建一个新的 `Node` 超类，既让 `Output` 又让 `Operation` 继承。这样可能更容易。*
 
@@ -437,6 +437,6 @@ print(model_binary.predict([0, 0]))
 
 现在就这些！如果你想查看代码，可以查看 [这个 Google Colab](https://colab.research.google.com/drive/1H0qOvXuq0GMxGoTNJmDba0W46bfZRowP?usp=sharing)，其中包含了所有内容（除了每个练习的解答，但 #6 练习的解答可能会在第二部分添加）。
 
-如有任何问题，请通过 [mchak@calpoly.edu](mailto:mchak@calpoly.edu) 联系我。
+如有任何问题，请通过 mchak@calpoly.edu 联系我。
 
 *除非另有说明，所有图片均由作者提供。*

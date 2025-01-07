@@ -1,16 +1,16 @@
 # Pre-Commit & Git 钩子：自动化高质量代码
 
-> 原文：[https://towardsdatascience.com/pre-commit-git-hooks-automate-high-code-quality-fbcbaa720e52?source=collection_archive---------9-----------------------#2024-08-09](https://towardsdatascience.com/pre-commit-git-hooks-automate-high-code-quality-fbcbaa720e52?source=collection_archive---------9-----------------------#2024-08-09)
+> 原文：[`towardsdatascience.com/pre-commit-git-hooks-automate-high-code-quality-fbcbaa720e52?source=collection_archive---------9-----------------------#2024-08-09`](https://towardsdatascience.com/pre-commit-git-hooks-automate-high-code-quality-fbcbaa720e52?source=collection_archive---------9-----------------------#2024-08-09)
 
 ## 如何通过 pre-commit 和 git 钩子提高代码质量
 
-[](https://medium.com/@egorhowell?source=post_page---byline--fbcbaa720e52--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--fbcbaa720e52--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fbcbaa720e52--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fbcbaa720e52--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--fbcbaa720e52--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--fbcbaa720e52--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--fbcbaa720e52--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fbcbaa720e52--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fbcbaa720e52--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--fbcbaa720e52--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fbcbaa720e52--------------------------------) ·阅读时间：6分钟·2024年8月9日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fbcbaa720e52--------------------------------) ·阅读时间：6 分钟·2024 年 8 月 9 日
 
 --
 
-![](../Images/0bb1682ecb04d7a2da46cba3d1e853e9.png)
+![](img/0bb1682ecb04d7a2da46cba3d1e853e9.png)
 
 图片来自 [Pankaj Patel](https://unsplash.com/@pankajpatel?utm_source=medium&utm_medium=referral) 提供的 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

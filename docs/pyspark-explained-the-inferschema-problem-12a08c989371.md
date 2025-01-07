@@ -1,16 +1,16 @@
 # PySpark 解析：InferSchema 问题
 
-> 原文：[https://towardsdatascience.com/pyspark-explained-the-inferschema-problem-12a08c989371?source=collection_archive---------8-----------------------#2024-09-16](https://towardsdatascience.com/pyspark-explained-the-inferschema-problem-12a08c989371?source=collection_archive---------8-----------------------#2024-09-16)
+> 原文：[`towardsdatascience.com/pyspark-explained-the-inferschema-problem-12a08c989371?source=collection_archive---------8-----------------------#2024-09-16`](https://towardsdatascience.com/pyspark-explained-the-inferschema-problem-12a08c989371?source=collection_archive---------8-----------------------#2024-09-16)
 
-![](../Images/7fee21d875d5afa38e089f8af407ea74.png)
+![](img/7fee21d875d5afa38e089f8af407ea74.png)
 
 图像来自 AI（Dalle-3）
 
 ## 在阅读大型 CSV 文件时，使用此常见选项之前请三思
 
-[](https://medium.com/@thomas_reid?source=post_page---byline--12a08c989371--------------------------------)[![Thomas Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--12a08c989371--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--12a08c989371--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--12a08c989371--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--12a08c989371--------------------------------)
+[](https://medium.com/@thomas_reid?source=post_page---byline--12a08c989371--------------------------------)![Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--12a08c989371--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--12a08c989371--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--12a08c989371--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--12a08c989371--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--12a08c989371--------------------------------) ·10分钟阅读·2024年9月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--12a08c989371--------------------------------) ·10 分钟阅读·2024 年 9 月 16 日
 
 --
 

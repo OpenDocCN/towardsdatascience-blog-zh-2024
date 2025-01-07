@@ -1,32 +1,32 @@
 # 伯努利朴素贝叶斯，详解：适合初学者的可视化指南及代码示例
 
-> 原文：[https://towardsdatascience.com/bernoulli-naive-bayes-explained-a-visual-guide-with-code-examples-for-beginners-aec39771ddd6?source=collection_archive---------2-----------------------#2024-08-24](https://towardsdatascience.com/bernoulli-naive-bayes-explained-a-visual-guide-with-code-examples-for-beginners-aec39771ddd6?source=collection_archive---------2-----------------------#2024-08-24)
+> 原文：[`towardsdatascience.com/bernoulli-naive-bayes-explained-a-visual-guide-with-code-examples-for-beginners-aec39771ddd6?source=collection_archive---------2-----------------------#2024-08-24`](https://towardsdatascience.com/bernoulli-naive-bayes-explained-a-visual-guide-with-code-examples-for-beginners-aec39771ddd6?source=collection_archive---------2-----------------------#2024-08-24)
 
 ## 分类算法
 
 ## 通过是/否概率解锁预测能力
 
-[](https://medium.com/@samybaladram?source=post_page---byline--aec39771ddd6--------------------------------)[![Samy Baladram](../Images/715cb7af97c57601966c5d2f9edd0066.png)](https://medium.com/@samybaladram?source=post_page---byline--aec39771ddd6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aec39771ddd6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--aec39771ddd6--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--aec39771ddd6--------------------------------)
+[](https://medium.com/@samybaladram?source=post_page---byline--aec39771ddd6--------------------------------)![Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--aec39771ddd6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aec39771ddd6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aec39771ddd6--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--aec39771ddd6--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aec39771ddd6--------------------------------) ·阅读时间9分钟·2024年8月24日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aec39771ddd6--------------------------------) ·阅读时间 9 分钟·2024 年 8 月 24 日
 
 --
 
-![](../Images/03ca097360665649a9247ebe64f4ed22.png)
+![](img/03ca097360665649a9247ebe64f4ed22.png)
 
-`⛳️ 更多分类算法，详解： · [虚拟分类器](/dummy-classifier-explained-a-visual-guide-with-code-examples-for-beginners-009ff95fc86e) · [K近邻分类器](/k-nearest-neighbor-classifier-explained-a-visual-guide-with-code-examples-for-beginners-a3d85cad00e1) ▶ [伯努利朴素贝叶斯](/bernoulli-naive-bayes-explained-a-visual-guide-with-code-examples-for-beginners-aec39771ddd6) · [高斯朴素贝叶斯](/gaussian-naive-bayes-explained-a-visual-guide-with-code-examples-for-beginners-04949cef383c) · [决策树分类器](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e) · [逻辑回归](/logistic-regression-explained-a-visual-guide-with-code-examples-for-beginners-81baf5871505) · [支持向量分类器](/support-vector-classifier-explained-a-visual-guide-with-mini-2d-dataset-62e831e7b9e9) · [多层感知机](/multilayer-perceptron-explained-a-visual-guide-with-mini-2d-dataset-0ae8100c5d1c)`
+`⛳️ 更多分类算法，详解： · 虚拟分类器 · K 近邻分类器 ▶ 伯努利朴素贝叶斯 · 高斯朴素贝叶斯 · 决策树分类器 · 逻辑回归 · 支持向量分类器 · 多层感知机`
 
-与[虚拟分类器](/dummy-classifier-explained-a-visual-guide-with-code-examples-for-beginners-009ff95fc86e)或[KNN基于相似度推理](/k-nearest-neighbor-classifier-explained-a-visual-guide-with-code-examples-for-beginners-a3d85cad00e1)的基线方法不同，朴素贝叶斯利用概率理论。它将每个“线索”（或特征）的个体概率结合起来，做出最终预测。这种直接而强大的方法在许多机器学习应用中被证明是无价的。
+与虚拟分类器或 KNN 基于相似度推理的基线方法不同，朴素贝叶斯利用概率理论。它将每个“线索”（或特征）的个体概率结合起来，做出最终预测。这种直接而强大的方法在许多机器学习应用中被证明是无价的。
 
-![](../Images/30ab2ece7ab19eccfe1d56b891244792.png)
+![](img/30ab2ece7ab19eccfe1d56b891244792.png)
 
-所有视觉内容：作者使用Canva Pro创建。已优化移动设备显示；在桌面上可能显示过大。
+所有视觉内容：作者使用 Canva Pro 创建。已优化移动设备显示；在桌面上可能显示过大。
 
 # 定义
 
 朴素贝叶斯是一种使用概率对数据进行分类的机器学习算法。它基于[贝叶斯定理](https://en.wikipedia.org/wiki/Bayes%27_theorem)，这是一个计算条件概率的公式。 “朴素”部分指的是它的一个关键假设：它假设所有特征彼此独立，即使它们在现实中可能不是。尽管这种简化通常不现实，但它大大减少了计算复杂性，并且在许多实际场景中表现良好。
 
-![](../Images/f7d3cf3a614af1aa7768d0a939f589b7.png)
+![](img/f7d3cf3a614af1aa7768d0a939f589b7.png)
 
 朴素贝叶斯方法是机器学习中的一种简单算法，基于概率作为其基础。
 
@@ -40,7 +40,7 @@
 
 1.  **高斯朴素贝叶斯**：假设连续特征服从正态分布。
 
-![](../Images/649ef29e85be0e8574c9d60724d5f436.png)
+![](img/649ef29e85be0e8574c9d60724d5f436.png)
 
 伯努利朴素贝叶斯假设二进制数据，多项式朴素贝叶斯处理离散计数，高斯朴素贝叶斯处理假设正态分布的连续数据。
 
@@ -50,7 +50,7 @@
 
 在本文中，我们将使用这个人工高尔夫数据集（灵感来源于[1]）作为示例。该数据集预测一个人是否会根据天气条件打高尔夫。
 
-![](../Images/26a4306804458312bd32df0299f49b7b.png)
+![](img/26a4306804458312bd32df0299f49b7b.png)
 
 列：‘Outlook’，‘Temperature’（华氏度），‘Humidity’（百分比），‘Wind’和‘Play’（目标特征）
 
@@ -89,9 +89,9 @@ print(pd.concat([X_test, y_test], axis=1))
 
 我们将稍作调整，使用伯努利朴素贝叶斯，通过将特征转换为二进制格式。
 
-![](../Images/61eb5e8d4ce645769beb07e6f3802a4c.png)
+![](img/61eb5e8d4ce645769beb07e6f3802a4c.png)
 
-由于所有数据必须是0和1格式，因此‘Outlook’被进行独热编码，而Temperature被分为≤80和>80。同样，Humidity被分为≤75和>75。
+由于所有数据必须是 0 和 1 格式，因此‘Outlook’被进行独热编码，而 Temperature 被分为≤80 和>80。同样，Humidity 被分为≤75 和>75。
 
 ```py
 # One-hot encode the categorized columns and drop them after, but do it separately for training and test sets
@@ -131,7 +131,7 @@ print(pd.concat([X_test, y_test], axis=1))
 
 1.  预测具有最高结果概率的类别。
 
-![](../Images/84714052b549a7af7c0d539e9ad80a40.png)
+![](img/84714052b549a7af7c0d539e9ad80a40.png)
 
 对于我们的高尔夫数据集，伯努利 NB 分类器查看每个特征在每个类别（YES 和 NO）下发生的概率，然后根据哪个类别的概率更高来做出决策。
 
@@ -141,7 +141,7 @@ print(pd.concat([X_test, y_test], axis=1))
 
 1.  **类别概率计算**：对于每个类别，计算其概率：（该类别中实例的数量）/（所有实例的总数）。
 
-![](../Images/9b5948e82009cdf2e32a27b5175ef059.png)
+![](img/9b5948e82009cdf2e32a27b5175ef059.png)
 
 在我们的高尔夫示例中，算法将计算总体上打高尔夫的频率。
 
@@ -162,7 +162,7 @@ print(calc_target_prob(y_train))
 
 +   （特征为 1 的实例数量）/（该类别中实例的数量）
 
-![](../Images/2b11338b2b4b82915b66915a59a02c86.png)
+![](img/2b11338b2b4b82915b66915a59a02c86.png)
 
 对于每种天气条件（例如，晴天），计算在晴天时打高尔夫的频率，以及晴天时不打高尔夫的频率。
 
@@ -187,7 +187,7 @@ print(sort_attr_label(y_train, X_train['sunny']))
 print(calc_feature_prob(X_train['sunny'], y_train))
 ```
 
-![](../Images/3f877762f5383987bfcc7aebba944cee.png)
+![](img/3f877762f5383987bfcc7aebba944cee.png)
 
 同样的过程应用于所有其他特征。
 
@@ -198,7 +198,7 @@ for col in X_train.columns:
 
 3. **平滑（可选）**：在每次概率计算时，向分子和分母中添加一个小值（通常为 1），以避免出现零概率。
 
-![](../Images/12828bae35f3666b1a11714d940b86dd.png)
+![](img/12828bae35f3666b1a11714d940b86dd.png)
 
 我们对所有分子加 1，对所有分母加 2，以保持总类别概率为 1。
 
@@ -211,7 +211,7 @@ nb_clf.fit(X_train, y_train)
 
 4. **存储结果**：保存所有计算出的概率，以便在分类过程中使用。
 
-![](../Images/4f252c018473e393221152c14c8237de.png)
+![](img/4f252c018473e393221152c14c8237de.png)
 
 平滑已经应用到所有特征概率中。我们将使用这些表格进行预测。
 
@@ -225,7 +225,7 @@ nb_clf.fit(X_train, y_train)
 
 +   对于新实例中的每个特征，收集该特征在此类别下为 0/1 的概率。
 
-![](../Images/e75f17e0d471205439b795c7edd459e1.png)
+![](img/e75f17e0d471205439b795c7edd459e1.png)
 
 对于 ID 14，我们选择每个特征（无论是 0 还是 1）发生的概率。
 
@@ -237,7 +237,7 @@ nb_clf.fit(X_train, y_train)
 
 +   得分最高的类别就是预测结果。
 
-![](../Images/27aa29b9b8151107a827f3c9a27df791.png)
+![](img/27aa29b9b8151107a827f3c9a27df791.png)
 
 在将类别概率与所有特征概率相乘后，选择得分更高的类别。
 
@@ -248,7 +248,7 @@ print(y_pred)
 
 # 评估步骤
 
-![](../Images/3902cfe7e903f14c43f4a61c2785b3f9.png)
+![](img/3902cfe7e903f14c43f4a61c2785b3f9.png)
 
 这个简单的概率模型在这个简单数据集上表现出了很好的准确性。
 
@@ -261,19 +261,19 @@ print(f"Accuracy: {accuracy_score(y_test, y_pred)}")
 
 伯努利朴素贝叶斯有一些重要参数：
 
-1.  **Alpha (α)**：这是平滑参数。它为每个特征添加一个小的计数，以防止零概率。默认通常为1.0（拉普拉斯平滑），如前所示。
+1.  **Alpha (α)**：这是平滑参数。它为每个特征添加一个小的计数，以防止零概率。默认通常为 1.0（拉普拉斯平滑），如前所示。
 
-1.  **Binarize**：如果您的特征尚未是二元的，此阈值会将其转换。任何高于此阈值的值变为1，低于该阈值的值变为0。
+1.  **Binarize**：如果您的特征尚未是二元的，此阈值会将其转换。任何高于此阈值的值变为 1，低于该阈值的值变为 0。
 
-![](../Images/ec7dd643acab9b9101b133d2d24b6fb2.png)
+![](img/ec7dd643acab9b9101b133d2d24b6fb2.png)
 
-对于scikit-learn中的BernoulliNB，数值特征通常是标准化的，而不是手动二值化的。模型会将这些标准化的值转化为二进制，通常使用0（均值）作为阈值。
+对于 scikit-learn 中的 BernoulliNB，数值特征通常是标准化的，而不是手动二值化的。模型会将这些标准化的值转化为二进制，通常使用 0（均值）作为阈值。
 
 3. **Fit Prior**：是否学习类别的先验概率，或假设均匀先验（50/50）。
 
-![](../Images/84092e5c0f5d406baed165d4f14aab41.png)
+![](img/84092e5c0f5d406baed165d4f14aab41.png)
 
-对于我们的高尔夫数据集，我们可能从默认的α=1.0开始，不进行二值化（因为我们的特征已经是二值的），并设置fit_prior=True。
+对于我们的高尔夫数据集，我们可能从默认的α=1.0 开始，不进行二值化（因为我们的特征已经是二值的），并设置 fit_prior=True。
 
 # 优缺点
 
@@ -353,7 +353,7 @@ print(f"Accuracy: {accuracy_score(y_test, y_pred)}")
 
 ## 进一步阅读
 
-对于[伯努利朴素贝叶斯](https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.BernoulliNB.html)分类器及其在scikit-learn中的实现，读者可以参考官方文档，文档中提供了关于其使用和参数的详细信息。
+对于[伯努利朴素贝叶斯](https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.BernoulliNB.html)分类器及其在 scikit-learn 中的实现，读者可以参考官方文档，文档中提供了关于其使用和参数的详细信息。
 
 ## 技术环境
 
@@ -363,36 +363,36 @@ print(f"Accuracy: {accuracy_score(y_test, y_pred)}")
 
 除非另有说明，所有图片均由作者创作，并结合了来自 Canva Pro 的授权设计元素。
 
-![](../Images/3eeb239271faf81969b84660399a1fb4.png)
+![](img/3eeb239271faf81969b84660399a1fb4.png)
 
-要查看 Bernoulli Naive Bayes 的简洁视觉总结，请查看[Instagram上的配套帖子](https://www.instagram.com/p/C_CUwtAyVI3/)。
+要查看 Bernoulli Naive Bayes 的简洁视觉总结，请查看[Instagram 上的配套帖子](https://www.instagram.com/p/C_CUwtAyVI3/)。
 
 ## 参考文献
 
-[1] T. M. Mitchell, [机器学习](https://www.cs.cmu.edu/afs/cs.cmu.edu/user/mitchell/ftp/mlbook.html) (1997), McGraw-Hill Science/Engineering/Math, 第59页
+[1] T. M. Mitchell, [机器学习](https://www.cs.cmu.edu/afs/cs.cmu.edu/user/mitchell/ftp/mlbook.html) (1997), McGraw-Hill Science/Engineering/Math, 第 59 页
 
 𝙎𝙚𝙚 𝙢𝙤𝙧𝙚 𝘾𝙡𝙖𝙨𝙨𝙞𝙛𝙞𝙘𝙖𝙩𝙞𝙤𝙣 𝘼𝙡𝙜𝙤𝙧𝙞𝙩𝙝𝙢𝙨 𝙝𝙚𝙧𝙚:
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----aec39771ddd6--------------------------------)
 
 ## 分类算法
 
-[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----aec39771ddd6--------------------------------)8篇故事![](../Images/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](../Images/6ea70d9d2d9456e0c221388dbb253be8.png)![](../Images/7221f0777228e7bcf08c1adb44a8eb76.png)
+[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----aec39771ddd6--------------------------------)8 篇故事![](img/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](img/6ea70d9d2d9456e0c221388dbb253be8.png)![](img/7221f0777228e7bcf08c1adb44a8eb76.png)
 
 𝙔𝙤𝙪 𝙢𝙞𝙜𝙝𝙩 𝙖𝙡𝙨𝙤 𝙡𝙞𝙠𝙚:
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----aec39771ddd6--------------------------------)
 
 ## 回归算法
 
-[查看列表](https://medium.com/@samybaladram/list/regression-algorithms-b0b6959f1b39?source=post_page-----aec39771ddd6--------------------------------)5篇故事![一个带着双马尾和粉色帽子的卡通娃娃。这个“假人”娃娃，凭借其简单的设计和心形装饰的衣服，直观地展示了机器学习中“假回归器”的概念。就像这个玩具人物是一个简化的、静态的人物表示一样，假回归器是作为基线的基本模型，用于更复杂的分析。](../Images/aa7eeaa18e4bb093f5ce4ab9b93a8a27.png)![](../Images/44e6d84e61c895757ff31e27943ee597.png)![](../Images/7f3e5f3e2aca2feec035ca92e1bc440a.png)![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+[查看列表](https://medium.com/@samybaladram/list/regression-algorithms-b0b6959f1b39?source=post_page-----aec39771ddd6--------------------------------)5 篇故事![一个带着双马尾和粉色帽子的卡通娃娃。这个“假人”娃娃，凭借其简单的设计和心形装饰的衣服，直观地展示了机器学习中“假回归器”的概念。就像这个玩具人物是一个简化的、静态的人物表示一样，假回归器是作为基线的基本模型，用于更复杂的分析。](img/aa7eeaa18e4bb093f5ce4ab9b93a8a27.png)![](img/44e6d84e61c895757ff31e27943ee597.png)![](img/7f3e5f3e2aca2feec035ca92e1bc440a.png)![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----aec39771ddd6--------------------------------)
 
 ## 集成学习
 
-[查看列表](https://medium.com/@samybaladram/list/ensemble-learning-673fc83cd7db?source=post_page-----aec39771ddd6--------------------------------)4篇故事![](../Images/1bd2995b5cb6dcc956ceadadc5ee3036.png)![](../Images/22a5d43568e70222eb89fd36789a9333.png)![](../Images/8ea1a2f29053080a5feffc709f5b8669.png)
+[查看列表](https://medium.com/@samybaladram/list/ensemble-learning-673fc83cd7db?source=post_page-----aec39771ddd6--------------------------------)4 篇故事![](img/1bd2995b5cb6dcc956ceadadc5ee3036.png)![](img/22a5d43568e70222eb89fd36789a9333.png)![](img/8ea1a2f29053080a5feffc709f5b8669.png)

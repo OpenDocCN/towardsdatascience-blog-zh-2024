@@ -1,16 +1,16 @@
-# 5种有用的可视化来增强你的分析
+# 5 种有用的可视化来增强你的分析
 
-> 原文：[https://towardsdatascience.com/5-useful-visualizations-to-enhance-your-analysis-022a5dd67912?source=collection_archive---------4-----------------------#2024-03-24](https://towardsdatascience.com/5-useful-visualizations-to-enhance-your-analysis-022a5dd67912?source=collection_archive---------4-----------------------#2024-03-24)
+> 原文：[`towardsdatascience.com/5-useful-visualizations-to-enhance-your-analysis-022a5dd67912?source=collection_archive---------4-----------------------#2024-03-24`](https://towardsdatascience.com/5-useful-visualizations-to-enhance-your-analysis-022a5dd67912?source=collection_archive---------4-----------------------#2024-03-24)
 
 ## 使用 Python 的统计可视化库 Seaborn 来提升你的分析。
 
-[](https://gustavorsantos.medium.com/?source=post_page---byline--022a5dd67912--------------------------------)[![Gustavo R Santos](../Images/a19a9f4525cdeb6e7a76cd05246aa622.png)](https://gustavorsantos.medium.com/?source=post_page---byline--022a5dd67912--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--022a5dd67912--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--022a5dd67912--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--022a5dd67912--------------------------------)
+[](https://gustavorsantos.medium.com/?source=post_page---byline--022a5dd67912--------------------------------)![Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--022a5dd67912--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--022a5dd67912--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--022a5dd67912--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--022a5dd67912--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--022a5dd67912--------------------------------) ·7分钟阅读·2024年3月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--022a5dd67912--------------------------------) ·7 分钟阅读·2024 年 3 月 24 日
 
 --
 
-![](../Images/da6cf07e13b039cd7ac4f254d751e0f2.png)
+![](img/da6cf07e13b039cd7ac4f254d751e0f2.png)
 
 图片来源：[ANIRUDH](https://unsplash.com/@lanirudhreddy?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 于 [Unsplash](https://unsplash.com/photos/lighted-number-5-kCes633Hh1M?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

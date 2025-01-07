@@ -1,16 +1,16 @@
-# 数据质量管理的过去、现在与未来：理解2024年数据测试、监控与数据可观察性
+# 数据质量管理的过去、现在与未来：理解 2024 年数据测试、监控与数据可观察性
 
-> 原文：[https://towardsdatascience.com/the-past-present-and-future-of-data-quality-management-understanding-testing-monitoring-and-efd1350457eb?source=collection_archive---------1-----------------------#2024-05-25](https://towardsdatascience.com/the-past-present-and-future-of-data-quality-management-understanding-testing-monitoring-and-efd1350457eb?source=collection_archive---------1-----------------------#2024-05-25)
+> 原文：[`towardsdatascience.com/the-past-present-and-future-of-data-quality-management-understanding-testing-monitoring-and-efd1350457eb?source=collection_archive---------1-----------------------#2024-05-25`](https://towardsdatascience.com/the-past-present-and-future-of-data-quality-management-understanding-testing-monitoring-and-efd1350457eb?source=collection_archive---------1-----------------------#2024-05-25)
 
 ## 数据领域正在发展，数据质量管理也需要与时俱进。以下是三种常见的方法以及在人工智能时代该领域的发展方向。
 
-[](https://barrmoses.medium.com/?source=post_page---byline--efd1350457eb--------------------------------)[![Barr Moses](../Images/4c74558ee692a85196d5a55ac1920718.png)](https://barrmoses.medium.com/?source=post_page---byline--efd1350457eb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--efd1350457eb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--efd1350457eb--------------------------------) [Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--efd1350457eb--------------------------------)
+[](https://barrmoses.medium.com/?source=post_page---byline--efd1350457eb--------------------------------)![Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--efd1350457eb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--efd1350457eb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--efd1350457eb--------------------------------) [Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--efd1350457eb--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--efd1350457eb--------------------------------) ·阅读时长9分钟·2024年5月25日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--efd1350457eb--------------------------------) ·阅读时长 9 分钟·2024 年 5 月 25 日
 
 --
 
-![](../Images/909e900a54fb2386b80def47598fe4a2.png)
+![](img/909e900a54fb2386b80def47598fe4a2.png)
 
 图片来源：作者
 
@@ -22,19 +22,19 @@
 
 然而，与一些人可能认为的相反，数据质量监控、数据测试和数据可观察性并不是互相矛盾或替代的数据质量管理方法——它们是一个单一解决方案的互补要素。
 
-在本文中，我将深入探讨这三种方法的具体内容，它们在什么情况下表现最佳，在哪些方面有所不足，以及如何优化数据质量实践，以推动2024年数据信任的提升。
+在本文中，我将深入探讨这三种方法的具体内容，它们在什么情况下表现最佳，在哪些方面有所不足，以及如何优化数据质量实践，以推动 2024 年数据信任的提升。
 
 # 了解现代数据质量问题
 
 在我们了解当前的解决方案之前，首先需要理解问题本身——以及它随时间的变化。让我们考虑以下类比。
 
-假设你是负责本地供水的工程师。当你接手这个工作时，城市只有1000名居民。但在城市地下发现黄金后，你的小社区从1000人迅速发展为一个真正的100万人大城市。
+假设你是负责本地供水的工程师。当你接手这个工作时，城市只有 1000 名居民。但在城市地下发现黄金后，你的小社区从 1000 人迅速发展为一个真正的 100 万人大城市。
 
 这会改变你做事的方式吗？
 
 首先，在一个小型环境中，故障点相对较少——如果管道出现故障，根本原因通常可以缩小到几个预期的罪魁祸首（如管道冻结、有人挖掘水管等常见原因），并且可以通过一两名员工的资源迅速解决。
 
-随着需要设计和维护的100万新居民的管道蜿蜒而来，满足需求所需的快速节奏，以及你的团队有限的能力（和可见性），你不再能够像以前那样定位和解决每个你预期会出现的问题——更不用说留意那些你预料不到的问题了。
+随着需要设计和维护的 100 万新居民的管道蜿蜒而来，满足需求所需的快速节奏，以及你的团队有限的能力（和可见性），你不再能够像以前那样定位和解决每个你预期会出现的问题——更不用说留意那些你预料不到的问题了。
 
 现代数据环境也是如此。数据团队发现了“金矿”，利益相关者也想参与其中。随着你的数据环境不断扩大，数据质量变得越来越具挑战性——而传统的数据质量方法则变得不再有效。
 
@@ -52,7 +52,7 @@
 
 这里有一个快速的插图，可能有助于直观地了解数据可观察性在[数据质量成熟度曲线](https://www.montecarlodata.com/blog-data-quality-maturity-curve/)中的位置。
 
-![](../Images/e7c95e1e587980b13fc1c915eeccb91b.png)
+![](img/e7c95e1e587980b13fc1c915eeccb91b.png)
 
 图片由作者提供。[来源](https://www.montecarlodata.com/blog-data-quality-maturity-curve/)。
 
@@ -62,17 +62,17 @@
 
 传统的两种数据质量方法之一是数据测试。[数据质量测试](https://www.montecarlodata.com/blog-data-quality-testing/)（或简单的[数据测试](https://www.montecarlodata.com/blog-data-observability-vs-data-testing-everything-you-need-to-know/)）是一种检测方法，使用用户定义的约束或规则来识别数据集中已知的特定问题，从而[验证数据完整性](https://www.montecarlodata.com/blog-data-integrity-testing-examples/)并确保特定的[数据质量标准](https://www.montecarlodata.com/blog-how-to-set-data-quality-standards/)。
 
-为了创建数据测试，数据质量负责人需要编写一系列手动脚本（通常使用SQL或利用像[dbt](https://www.getdbt.com/)这样的模块化解决方案）来检测特定问题，如过高的空值率或错误的字符串模式。
+为了创建数据测试，数据质量负责人需要编写一系列手动脚本（通常使用 SQL 或利用像[dbt](https://www.getdbt.com/)这样的模块化解决方案）来检测特定问题，如过高的空值率或错误的字符串模式。
 
 当你的数据需求——以及因此你的数据质量需求——非常小的时候，许多团队能够通过简单的数据测试满足需求。然而，随着数据规模和复杂性的增长，你很快会遇到新的数据质量问题——并需要新的能力来解决它们。而这一时刻会比你想象的来得更快。
 
 尽管数据测试将继续是数据质量框架中的必要组成部分，但在几个关键领域仍然存在不足：
 
-+   **需要深入的数据知识**——数据测试要求数据工程师具备1) 足够的专业领域知识来定义质量，以及2) 足够了解数据可能出现的问题，以便设定测试来验证数据。
++   **需要深入的数据知识**——数据测试要求数据工程师具备 1) 足够的专业领域知识来定义质量，以及 2) 足够了解数据可能出现的问题，以便设定测试来验证数据。
 
 +   **没有覆盖未知问题**——数据测试只能告诉你预期会发现的问题——而不是那些未预见的问题。如果没有编写测试来覆盖特定问题，测试将无法发现它。
 
-+   **不可扩展**——为30个表编写10个测试，与为3000个表编写100个测试是完全不同的。
++   **不可扩展**——为 30 个表编写 10 个测试，与为 3000 个表编写 100 个测试是完全不同的。
 
 +   **有限的可见性**——数据测试只会测试数据本身，因此无法告诉你问题究竟是数据、系统还是驱动它的代码出了问题。
 
@@ -106,7 +106,7 @@
 
 这就引出了数据可观察性。与上述方法不同，数据可观察性指的是一种*全面的*、供应商中立的解决方案，旨在提供完整的数据质量覆盖，既具有可扩展性又可操作。
 
-受软件工程最佳实践的启发，[数据可观察性](https://www.montecarlodata.com/blog-data-observability-category-leader)是一种端到端的AI驱动数据质量管理方法，旨在在单一平台内回答数据质量问题的“什么、谁、为什么和如何”。它通过将测试和全自动数据质量监控结合到一个系统中，弥补了传统数据质量方法的不足，并将覆盖范围扩展到数据、系统和代码层面。
+受软件工程最佳实践的启发，[数据可观察性](https://www.montecarlodata.com/blog-data-observability-category-leader)是一种端到端的 AI 驱动数据质量管理方法，旨在在单一平台内回答数据质量问题的“什么、谁、为什么和如何”。它通过将测试和全自动数据质量监控结合到一个系统中，弥补了传统数据质量方法的不足，并将覆盖范围扩展到数据、系统和代码层面。
 
 结合关键事件管理和解决功能（如自动化列级谱系和警报协议），数据可观察性帮助数据团队从数据摄取到消费的全过程中检测、分类和解决数据质量问题。
 
@@ -122,19 +122,19 @@
 
 +   **数据产品健康跟踪** — 数据可观测性还将监控和健康跟踪扩展到传统表格格式之外，用于监控、衡量和可视化特定数据产品或关键资产的健康状况。
 
-# 数据可观测性与AI
+# 数据可观测性与 AI
 
-我们都听过“垃圾进，垃圾出”这句话。这个格言对于AI应用来说更是成立。然而，AI不仅需要更好的数据质量管理来指导其输出；你的数据质量管理本身也应由AI驱动，以最大化其对不断发展的数据环境的可扩展性。
+我们都听过“垃圾进，垃圾出”这句话。这个格言对于 AI 应用来说更是成立。然而，AI 不仅需要更好的数据质量管理来指导其输出；你的数据质量管理本身也应由 AI 驱动，以最大化其对不断发展的数据环境的可扩展性。
 
-数据可观测性是事实上的——也可以说是唯一的——数据质量管理解决方案，它使企业数据团队能够有效地为AI提供可靠数据。而它实现这一目标的一部分方式，就是通过成为一个支持AI的解决方案。
+数据可观测性是事实上的——也可以说是唯一的——数据质量管理解决方案，它使企业数据团队能够有效地为 AI 提供可靠数据。而它实现这一目标的一部分方式，就是通过成为一个支持 AI 的解决方案。
 
-通过利用AI来创建监控、检测异常和进行根本原因分析，数据可观测性为实时数据流、RAG架构以及其他[AI应用案例](https://www.montecarlodata.com/blog-5-generative-ai-use-cases/)提供了超大规模的数据质量管理。
+通过利用 AI 来创建监控、检测异常和进行根本原因分析，数据可观测性为实时数据流、RAG 架构以及其他[AI 应用案例](https://www.montecarlodata.com/blog-5-generative-ai-use-cases/)提供了超大规模的数据质量管理。
 
-# 那么，2024年数据质量的下一步是什么？
+# 那么，2024 年数据质量的下一步是什么？
 
 随着企业及其以外的数据环境不断发展，传统的数据质量方法无法监控数据平台可能发生故障的所有方式，也无法在发生故障时帮助你解决问题。
 
-尤其是在AI时代，数据质量不仅是一个商业风险，更是一个生存风险。如果你不能信任输入到模型中的所有数据，就无法信任AI的输出。在AI的巨大规模下，传统的数据质量方法根本无法保护这些数据资产的价值或可靠性。
+尤其是在 AI 时代，数据质量不仅是一个商业风险，更是一个生存风险。如果你不能信任输入到模型中的所有数据，就无法信任 AI 的输出。在 AI 的巨大规模下，传统的数据质量方法根本无法保护这些数据资产的价值或可靠性。
 
 为了有效，测试和监控需要整合到一个平台无关的解决方案中，该解决方案能够客观地监控整个数据环境——数据、系统和代码——从头到尾，并为数据团队提供资源，以便更快地处理和解决问题。
 

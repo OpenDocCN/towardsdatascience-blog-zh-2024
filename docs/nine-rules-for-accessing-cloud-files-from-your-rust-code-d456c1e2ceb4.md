@@ -1,18 +1,18 @@
 # 从你的 Rust 代码访问云文件的九个规则
 
-> 原文：[https://towardsdatascience.com/nine-rules-for-accessing-cloud-files-from-your-rust-code-d456c1e2ceb4?source=collection_archive---------7-----------------------#2024-02-07](https://towardsdatascience.com/nine-rules-for-accessing-cloud-files-from-your-rust-code-d456c1e2ceb4?source=collection_archive---------7-----------------------#2024-02-07)
+> 原文：[`towardsdatascience.com/nine-rules-for-accessing-cloud-files-from-your-rust-code-d456c1e2ceb4?source=collection_archive---------7-----------------------#2024-02-07`](https://towardsdatascience.com/nine-rules-for-accessing-cloud-files-from-your-rust-code-d456c1e2ceb4?source=collection_archive---------7-----------------------#2024-02-07)
 
 ## 升级 Bed-Reader：来自生物信息学库的实践经验
 
-[](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)[![Carl M. Kadie](../Images/9dbe27c76e9567136e5a7dc587f1fb15.png)](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------) [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)
+[](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)![Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------) [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------) ·阅读时长 21 分钟·2024年2月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------) ·阅读时长 21 分钟·2024 年 2 月 7 日
 
 --
 
-![](../Images/1e411080a4ed67bba652ec6626318f0e.png)
+![](img/1e411080a4ed67bba652ec6626318f0e.png)
 
-Rust 和 Python 直接从云端读取 DNA 数据 — 来源：[https://openai.com/dall-e-2/](https://openai.com/dall-e-2/)。所有其他图片来自作者。
+Rust 和 Python 直接从云端读取 DNA 数据 — 来源：[`openai.com/dall-e-2/`](https://openai.com/dall-e-2/)。所有其他图片来自作者。
 
 你希望你的 Rust 程序能够无缝地访问云端的文件数据吗？当我提到“云端文件”时，我指的是存储在 Web 服务器或云存储解决方案（如 AWS S3、Azure Blob Storage 或 Google Cloud Storage）中的数据。这里所说的“读取”包含了对文件内容的顺序检索——无论是文本还是二进制数据，从头到尾——并且具有根据需要定位并提取文件中特定部分的能力。
 
@@ -116,7 +116,7 @@ fn main() -> io::Result<()> {
 }
 ```
 
-在`cloud-file`版本和本地文件版本之间，有三个突出差异。首先，我们可以轻松地将本地文件作为文本读取。默认情况下，我们将云文件作为二进制文件读取（但请参见规则2）。其次，默认情况下，我们同步读取本地文件，直到完成才会阻塞程序执行。另一方面，我们通常异步访问云文件，这样在等待相对较慢的网络访问完成时，程序的其他部分仍然可以继续运行。第三，像`lines()`这样的迭代器支持`for`循环。然而，像`stream_chunks()`这样的流则不支持，所以我们使用`while let`。
+在`cloud-file`版本和本地文件版本之间，有三个突出差异。首先，我们可以轻松地将本地文件作为文本读取。默认情况下，我们将云文件作为二进制文件读取（但请参见规则 2）。其次，默认情况下，我们同步读取本地文件，直到完成才会阻塞程序执行。另一方面，我们通常异步访问云文件，这样在等待相对较慢的网络访问完成时，程序的其他部分仍然可以继续运行。第三，像`lines()`这样的迭代器支持`for`循环。然而，像`stream_chunks()`这样的流则不支持，所以我们使用`while let`。
 
 我之前提到过，你不需要使用`cloud-file`包装器，而可以直接使用`object_store` crate。接下来，让我们看看只使用`object_store`方法时，如何计算云文件中的换行符：
 
@@ -162,13 +162,13 @@ async fn main() -> Result<(), anyhow::Error> {
 
 +   不再只处理一种错误类型（即`CloudFileError`），而是可能出现多种错误类型，因此我们退回使用了`[anyhow](https://crates.io/crates/anyhow)` crate。
 
-无论你是直接使用`object_store`（目前下载量为240万次），还是通过`cloud-file`间接使用（目前下载量为124次 😀），都由你决定。
+无论你是直接使用`object_store`（目前下载量为 240 万次），还是通过`cloud-file`间接使用（目前下载量为 124 次 😀），都由你决定。
 
 在本文的其余部分，我将重点讨论`cloud-file`。如果你想将`cloud-file`方法转换为纯`object_store`代码，可以查阅[该方法的文档](https://docs.rs/cloud-file)，并点击“source”链接。源代码通常只有一两行。
 
 我们已经了解了如何顺序读取云文件的字节。接下来，让我们看看如何顺序读取它的行。
 
-# 规则2：通过两个嵌套循环顺序读取云文件的文本行。
+# 规则 2：通过两个嵌套循环顺序读取云文件的文本行。
 
 我们经常需要顺序读取云文件的行。使用`cloud-file`（或`object_store`）来实现这一点需要两个嵌套循环。
 
@@ -230,15 +230,15 @@ let mut index_iter = 0usize..;
 let index = index_iter.next().unwrap(); // safe because we know the iterator is infinite
 ```
 
-> 旁白：为什么要用两个循环？为什么`cloud-file`不定义一个返回每次一行的流？因为我不知道怎么做。如果有人能搞明白，请发送一个包含解决方案的pull请求给我！
+> 旁白：为什么要用两个循环？为什么`cloud-file`不定义一个返回每次一行的流？因为我不知道怎么做。如果有人能搞明白，请发送一个包含解决方案的 pull 请求给我！
 
 我希望这能更简单些。我很高兴它是高效的。让我们通过下一步来回归简洁，看看如何随机访问云文件。
 
-# 规则3：使用范围方法随机访问云文件，即使是巨大的文件，同时尊重服务器设置的限制。
+# 规则 3：使用范围方法随机访问云文件，即使是巨大的文件，同时尊重服务器设置的限制。
 
-我在处理一种叫做PLINK Bed 1.9的基因组学文件格式。文件最大可达1 TB。是不是太大，无法通过网络访问？不一定。有时候我们只需要文件的一小部分。此外，现代云服务（包括大多数网络服务器）可以高效地从云文件中提取感兴趣的区域。
+我在处理一种叫做 PLINK Bed 1.9 的基因组学文件格式。文件最大可达 1 TB。是不是太大，无法通过网络访问？不一定。有时候我们只需要文件的一小部分。此外，现代云服务（包括大多数网络服务器）可以高效地从云文件中提取感兴趣的区域。
 
-让我们看一个例子。这个测试代码使用了一个名为`read_range_and_file_size`的`CloudFile`方法。它读取一个*.bed文件的前3个字节，检查文件是否以预期的字节开头，然后检查文件的预期长度。
+让我们看一个例子。这个测试代码使用了一个名为`read_range_and_file_size`的`CloudFile`方法。它读取一个*.bed 文件的前 3 个字节，检查文件是否以预期的字节开头，然后检查文件的预期长度。
 
 ```py
 #[tokio::test]
@@ -272,11 +272,11 @@ async fn check_file_signature() -> Result<(), CloudFileError> {
 
 如果我们一次请求太多数据，这些方法可能会遇到两个问题。首先，我们的云服务可能会限制每次调用能检索的字节数。其次，通过同时发出多个请求而不是一次发一个请求，我们可能会得到更快的结果。
 
-考虑这个例子：我们想要收集一个任意大小的文件中相邻ASCII字符的频率统计。例如，在一个包含10,000个相邻字符的随机样本中，或许“th”出现了171次。
+考虑这个例子：我们想要收集一个任意大小的文件中相邻 ASCII 字符的频率统计。例如，在一个包含 10,000 个相邻字符的随机样本中，或许“th”出现了 171 次。
 
-假设我们的Web服务器支持10个并发请求，但每个请求只允许我们获取750字节。（8 MB会是一个更常见的限制）。
+假设我们的 Web 服务器支持 10 个并发请求，但每个请求只允许我们获取 750 字节。（8 MB 会是一个更常见的限制）。
 
-> 感谢Seattle Rust Meetup的Ben Lichtman（B3NNY）指引我正确的方向，帮助我向异步流添加了限制。
+> 感谢 Seattle Rust Meetup 的 Ben Lichtman（B3NNY）指引我正确的方向，帮助我向异步流添加了限制。
 
 我们的主函数可能长这样：
 
@@ -336,7 +336,7 @@ async fn count_bigrams(
 //...
 ```
 
-接下来，根据文件大小，函数可以创建一个包含10,000个随机两字节范围的向量。
+接下来，根据文件大小，函数可以创建一个包含 10,000 个随机两字节范围的向量。
 
 ```py
  // Randomly choose the two-byte ranges to sample
@@ -346,7 +346,7 @@ async fn count_bigrams(
         .collect();
 ```
 
-例如，它可能生成以下向量`[4122418..4122420, 4361192..4361194, 145726..145728,` … `]`。但一次性获取20,000字节（我们假设这样）太多了。所以，我们将向量分成27个块，每个块不超过750字节：
+例如，它可能生成以下向量`[4122418..4122420, 4361192..4361194, 145726..145728,` … `]`。但一次性获取 20,000 字节（我们假设这样）太多了。所以，我们将向量分成 27 个块，每个块不超过 750 字节：
 
 ```py
  // Divide the ranges into chunks respecting the max_chunk_bytes limit
@@ -355,7 +355,7 @@ async fn count_bigrams(
     let range_chunks = range_samples.chunks(chunk_count);
 ```
 
-使用一些异步魔法，我们为每个27个块创建一个未来工作的迭代器，然后将该迭代器转换为流。我们告诉流最多同时调用10个请求。此外，我们还表示可以接受乱序的结果。
+使用一些异步魔法，我们为每个 27 个块创建一个未来工作的迭代器，然后将该迭代器转换为流。我们告诉流最多同时调用 10 个请求。此外，我们还表示可以接受乱序的结果。
 
 ```py
  // Create an iterator of future work
@@ -411,17 +411,17 @@ Bigram (', ') occurs 127 times
 Bigram (' a') occurs 121 times
 ```
 
-Bed-Reader基因组学crate的代码使用相同的技术来从分散的DNA区域获取信息。当DNA信息到达时，可能是乱序的，代码会填充输出数组的正确列。
+Bed-Reader 基因组学 crate 的代码使用相同的技术来从分散的 DNA 区域获取信息。当 DNA 信息到达时，可能是乱序的，代码会填充输出数组的正确列。
 
-> 顺便提一下：此方法使用了迭代器、流和循环。我希望它能更简单。如果你能找到一种更简单的方法来获取区域的向量，同时限制最大块大小和并发请求数，请发给我一个pull request。
+> 顺便提一下：此方法使用了迭代器、流和循环。我希望它能更简单。如果你能找到一种更简单的方法来获取区域的向量，同时限制最大块大小和并发请求数，请发给我一个 pull request。
 
-这涵盖了访问存储在HTTP服务器上的文件，但AWS S3和其他云服务呢？本地文件怎么办？
+这涵盖了访问存储在 HTTP 服务器上的文件，但 AWS S3 和其他云服务呢？本地文件怎么办？
 
-# 规则4：使用URL字符串和选项字符串来访问HTTP、本地文件、AWS S3、Azure和Google Cloud。
+# 规则 4：使用 URL 字符串和选项字符串来访问 HTTP、本地文件、AWS S3、Azure 和 Google Cloud。
 
-`object_store` crate（以及`cloud-file`包装crate）支持通过URL字符串或结构体指定文件。我建议使用URL字符串，但选择权在你。
+`object_store` crate（以及`cloud-file`包装 crate）支持通过 URL 字符串或结构体指定文件。我建议使用 URL 字符串，但选择权在你。
 
-让我们考虑一个AWS S3的示例。如你所见，AWS访问需要凭证信息。
+让我们考虑一个 AWS S3 的示例。如你所见，AWS 访问需要凭证信息。
 
 ```py
 use cloud_file::CloudFile;
@@ -466,7 +466,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let cloud_file = CloudFile::new_with_options(url, options)?;
 ```
 
-如果我们希望使用结构体而不是URL字符串，则变为：
+如果我们希望使用结构体而不是 URL 字符串，则变为：
 
 ```py
  use object_store::{aws::AmazonS3Builder, path::Path as StorePath};
@@ -481,13 +481,13 @@ async fn main() -> Result<(), anyhow::Error> {
     let cloud_file = CloudFile::from_structs(s3, store_path);
 ```
 
-我更喜欢URL方法而不是结构体。我发现URL稍微简单一些，更加统一，跨云服务时也更容易互操作（例如与Python）。
+我更喜欢 URL 方法而不是结构体。我发现 URL 稍微简单一些，更加统一，跨云服务时也更容易互操作（例如与 Python）。
 
-这里是我使用的三个Web服务的示例URL：
+这里是我使用的三个 Web 服务的示例 URL：
 
-+   HTTP — `[https://www.gutenberg.org/cache/epub/100/pg100.txt](https://www.gutenberg.org/cache/epub/100/pg100.txt)`
++   HTTP — `[`www.gutenberg.org/cache/epub/100/pg100.txt`](https://www.gutenberg.org/cache/epub/100/pg100.txt)`
 
-+   本地文件 — `file:///M:/data%20files/small.bed` — 使用`[cloud_file::abs_path_to_url_string](/fn.abs_path_to_url_string.html)`函数将完整的文件路径正确编码为URL。
++   本地文件 — `file:///M:/data%20files/small.bed` — 使用`cloud_file::abs_path_to_url_string`函数将完整的文件路径正确编码为 URL。
 
 +   AWS S3 — `s3://bedreader/v1/toydata.5chrom.bed`
 
@@ -552,7 +552,7 @@ async fn local_file() -> Result<(), CloudFileError> {
 
 如前所述，Bed-Reader 是一个用于读取和写入 PLINK Bed 文件的库，PLINK Bed 文件是一种在生物信息学中用于存储基因型（DNA）数据的二进制格式。Bed 格式的文件可以大到一个 TB。Bed-Reader 为用户提供对大量数据子集的快速随机访问。它返回一个二维数组，用户可以选择 int8、float32 或 float64 格式。Bed-Reader 还为用户提供了 12 个元数据字段，其中六个与个体相关，六个与 SNP（大致来说，是 DNA 位置）相关。基因型数据通常比元数据大 100,000 倍。
 
-![](../Images/210196974c88a9518883ab78d09b7c00.png)
+![](img/210196974c88a9518883ab78d09b7c00.png)
 
 PLINK 存储基因型数据和元数据。（图由作者提供。）
 
@@ -728,7 +728,7 @@ Bed-Reader 的 Python 用户之前可以使用命令 `open_bed(file_name_string)
 
 文档测试从 ```py` ``` ```py`. Within the doc test, lines starting with `/// #` disappear from the documentation:
 
-![](../Images/3aa4177d13d6e88dd119ca930801c492.png)
+![](img/3aa4177d13d6e88dd119ca930801c492.png)
 
 The hidden lines, however, will still be run by `cargo test`.
 
@@ -762,7 +762,7 @@ tokio = { version = "1.35.0", features = ["full"], optional = true }
 
 ```py
 
-Also, because I’m using Maturin to [create a Rust extension for Python](/nine-rules-for-writing-python-extensions-in-rust-d35ea3a4ec29), I include this text in `pyproject.toml`:
+Also, because I’m using Maturin to create a Rust extension for Python, I include this text in `pyproject.toml`:
 
 ```
 
@@ -823,18 +823,18 @@ As per Rule 5, we should also include examples in our documentation of the async
 
 在格式化文档时，Rust 默认包含所有功能的文档，因此我们看到了这四行代码：
 
-![](../Images/4544233478a0a6911c16e85bb4a9ab4e.png)
+![](img/4544233478a0a6911c16e85bb4a9ab4e.png)
 
-总结规则9：通过使用Cargo功能和条件编译，我们可以确保用户只为他们使用的功能付费。
+总结规则 9：通过使用 Cargo 功能和条件编译，我们可以确保用户只为他们使用的功能付费。
 
 # 结论
 
-所以，就这样：九条规则帮助你在Rust程序中读取云文件。借助[`object_store`](https://docs.rs/object_store/latest/object_store/) crate的强大功能，你的程序可以突破本地驱动器的限制，从Web、AWS S3、Azure和Google Cloud加载数据。为了让这一过程更简单，你还可以使用我为本文编写的全新[`cloud-file`](https://crates.io/crates/cloud-file)包装crate。
+所以，就这样：九条规则帮助你在 Rust 程序中读取云文件。借助[`object_store`](https://docs.rs/object_store/latest/object_store/) crate 的强大功能，你的程序可以突破本地驱动器的限制，从 Web、AWS S3、Azure 和 Google Cloud 加载数据。为了让这一过程更简单，你还可以使用我为本文编写的全新[`cloud-file`](https://crates.io/crates/cloud-file)包装 crate。
 
-我还应该提到，这篇文章仅探讨了`object_store`的一个子集功能。除了我们看到的，`object_store` crate 还处理写入文件和操作文件夹及子文件夹。另一方面，[`cloud-file`](https://crates.io/crates/cloud-file) crate 只处理读取文件。（但嘿，我很欢迎提交Pull Request）。
+我还应该提到，这篇文章仅探讨了`object_store`的一个子集功能。除了我们看到的，`object_store` crate 还处理写入文件和操作文件夹及子文件夹。另一方面，[`cloud-file`](https://crates.io/crates/cloud-file) crate 只处理读取文件。（但嘿，我很欢迎提交 Pull Request）。
 
-你是否应该在程序中添加云文件支持？当然，这取决于。支持云文件为你的程序用户提供了巨大的便利。代价是使用/提供异步接口的额外复杂性。代价还包括像Tokio这样的运行时文件大小的增加。另一方面，我认为添加此类支持的工具已经非常好，而且尝试它们也很简单，所以不妨试试看！
+你是否应该在程序中添加云文件支持？当然，这取决于。支持云文件为你的程序用户提供了巨大的便利。代价是使用/提供异步接口的额外复杂性。代价还包括像 Tokio 这样的运行时文件大小的增加。另一方面，我认为添加此类支持的工具已经非常好，而且尝试它们也很简单，所以不妨试试看！
 
 感谢你与我一同踏上云端之旅。如果你选择支持云文件，我希望这些步骤能帮助你实现。
 
-*请* [*关注Carl的Medium账号*](https://medium.com/@carlmkadie)*。我在Rust和Python的科学编程、机器学习和统计学方面写作。我通常每个月写一篇文章。*
+*请* [*关注 Carl 的 Medium 账号*](https://medium.com/@carlmkadie)*。我在 Rust 和 Python 的科学编程、机器学习和统计学方面写作。我通常每个月写一篇文章。*

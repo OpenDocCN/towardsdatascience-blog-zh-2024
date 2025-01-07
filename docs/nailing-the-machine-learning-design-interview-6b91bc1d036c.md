@@ -1,18 +1,18 @@
 # 完美应对机器学习设计面试
 
-> 原文：[https://towardsdatascience.com/nailing-the-machine-learning-design-interview-6b91bc1d036c?source=collection_archive---------8-----------------------#2024-06-18](https://towardsdatascience.com/nailing-the-machine-learning-design-interview-6b91bc1d036c?source=collection_archive---------8-----------------------#2024-06-18)
+> 原文：[`towardsdatascience.com/nailing-the-machine-learning-design-interview-6b91bc1d036c?source=collection_archive---------8-----------------------#2024-06-18`](https://towardsdatascience.com/nailing-the-machine-learning-design-interview-6b91bc1d036c?source=collection_archive---------8-----------------------#2024-06-18)
 
-## FAANG设计面试的提示和技巧
+## FAANG 设计面试的提示和技巧
 
-[](https://medium.com/@rheagoel?source=post_page---byline--6b91bc1d036c--------------------------------)[![Rhea Goel](../Images/06f846ffcdc891210786cf3e0a08cc1b.png)](https://medium.com/@rheagoel?source=post_page---byline--6b91bc1d036c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6b91bc1d036c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6b91bc1d036c--------------------------------) [Rhea Goel](https://medium.com/@rheagoel?source=post_page---byline--6b91bc1d036c--------------------------------)
+[](https://medium.com/@rheagoel?source=post_page---byline--6b91bc1d036c--------------------------------)![Rhea Goel](https://medium.com/@rheagoel?source=post_page---byline--6b91bc1d036c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6b91bc1d036c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6b91bc1d036c--------------------------------) [Rhea Goel](https://medium.com/@rheagoel?source=post_page---byline--6b91bc1d036c--------------------------------)
 
-·发布在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6b91bc1d036c--------------------------------) ·8分钟阅读·2024年6月18日
+·发布在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6b91bc1d036c--------------------------------) ·8 分钟阅读·2024 年 6 月 18 日
 
 --
 
-![](../Images/4886b4956c25d71687c4db6cca80329d.png)
+![](img/4886b4956c25d71687c4db6cca80329d.png)
 
-通过Dall-E生成
+通过 Dall-E 生成
 
 我是亚马逊的高级应用科学家，曾在机器学习设计面试问题的两方角色中都有过经验。我希望分享我随着时间积累的所有技巧和窍门。通过阅读本文，你将了解面试中可能遇到的内容，面试官的期望，候选人常犯的错误和陷阱，以及如何根据职位的资历/级别调整你的回答。接下来，我还会发布一系列关于常见机器学习设计面试问题的文章（包括解决方案）。敬请关注！
 
@@ -24,7 +24,7 @@
 
 你将被给定一个真实世界的商业问题，通常是与你所面试的公司或根据你的简历相关的专业领域的问题。你需要主导面试全过程，并经常与面试官确认方向及时间管理上的建议。讨论通常是开放式的，可能涉及白板工具（如[Excalidraw](https://excalidraw.com/)）或共享文档（如[Google Docs](https://www.google.com/docs/about/)）。通常，这一轮面试不需要编程。
 
-## **FAANG及类似公司常见的机器学习设计问题：**
+## **FAANG 及类似公司常见的机器学习设计问题：**
 
 +   为电商平台设计一个推荐系统
 
@@ -70,7 +70,7 @@
 
 > **不好的回答：**“对于欺诈检测，我会使用深度神经网络，因为它很强大。”
 > 
-> **好的回答：**“这个解决方案是用来做每次刷卡的实时欺诈检测吗？这意味着我们需要一个快速且高效的模型。让我先确定可以用来训练这个模型的所有数据。首先，我有交易元数据，例如交易金额、地点和时间。我还可以使用这张卡片的历史交易数据——我可以查看过去30天的数据，从而减少需要实时分析的数据量，或者我可能会预先计算从交易历史中得出的分类/二元特征，比如‘is_transaction_30_days’（30天内是否有交易）、‘most_frequent_transaction_location_30days’（过去30天最频繁的交易地点）等。最初，我将使用逻辑回归来设置基准，然后再考虑使用更复杂的模型，如深度神经网络，如果有必要的话。”
+> **好的回答：**“这个解决方案是用来做每次刷卡的实时欺诈检测吗？这意味着我们需要一个快速且高效的模型。让我先确定可以用来训练这个模型的所有数据。首先，我有交易元数据，例如交易金额、地点和时间。我还可以使用这张卡片的历史交易数据——我可以查看过去 30 天的数据，从而减少需要实时分析的数据量，或者我可能会预先计算从交易历史中得出的分类/二元特征，比如‘is_transaction_30_days’（30 天内是否有交易）、‘most_frequent_transaction_location_30days’（过去 30 天最频繁的交易地点）等。最初，我将使用逻辑回归来设置基准，然后再考虑使用更复杂的模型，如深度神经网络，如果有必要的话。”
 
 ## **#2 过于泛泛而谈**
 
@@ -78,7 +78,7 @@
 
 > **不好的回答：**“我会做探索性数据分析，去除异常值，然后构建模型预测用户参与度。”
 > 
-> **好的回答：**“我会分析历史用户数据，包括页面浏览量、点击率以及在网站上停留的时间。我会分析如产品类别、品牌等分类特征，如果有超过75%的值缺失，我会将其删除。但在这一步我会小心，因为某些特征的缺失有时可能也包含很有价值的信息。逻辑回归模型可以作为起点，如果需要的话，我会进一步使用像随机森林之类的更复杂的模型。”
+> **好的回答：**“我会分析历史用户数据，包括页面浏览量、点击率以及在网站上停留的时间。我会分析如产品类别、品牌等分类特征，如果有超过 75%的值缺失，我会将其删除。但在这一步我会小心，因为某些特征的缺失有时可能也包含很有价值的信息。逻辑回归模型可以作为起点，如果需要的话，我会进一步使用像随机森林之类的更复杂的模型。”
 
 ## **#3 只解决理想情况**
 
@@ -102,44 +102,44 @@
 
 > **不良回答**：“如果我们无法访问用户的个人身份信息，我们就无法构建个性化模型。”
 > 
-> **良好回答**：“对于选择不分享个人身份信息或过去互动数据的用户，我们可以将他们视为冷启动用户，并向他们推荐基于人气的内容。我们还可以加入在线会话RNN，基于他们在会话中的活动调整推荐。”
+> **良好回答**：“对于选择不分享个人身份信息或过去互动数据的用户，我们可以将他们视为冷启动用户，并向他们推荐基于人气的内容。我们还可以加入在线会话 RNN，基于他们在会话中的活动调整推荐。”
 
 ## **根据层级调整回应**
 
 随着职位层级的提升，回答中的广度和深度预期也会增加。通过一个例子可以更好地说明这一点。假设你被要求设计一个在线支付平台的欺诈检测系统。
 
-## **入门级（0-2年相关行业经验）**
+## **入门级（0-2 年相关行业经验）**
 
-对于这个层级，候选人应关注数据（特征、预处理技术）、模型（简单的基准模型、更复杂的模型、损失函数、优化方法）以及评估指标（离线指标、A/B实验设计）。一个好的流程如下：
+对于这个层级，候选人应关注数据（特征、预处理技术）、模型（简单的基准模型、更复杂的模型、损失函数、优化方法）以及评估指标（离线指标、A/B 实验设计）。一个好的流程如下：
 
 1.  特征识别与预处理：例如交易金额、位置、时间以及其他代表支付历史的分类特征。
 
 1.  基准模型与进阶模型：例如使用逻辑回归模型作为基准，考虑在下一版本中采用梯度提升树。
 
-1.  评估指标：例如精准率、召回率、F1分数。
+1.  评估指标：例如精准率、召回率、F1 分数。
 
-## **中级经验（3-6年相关行业经验）**
+## **中级经验（3-6 年相关行业经验）**
 
 对于这个层级，候选人应关注业务问题以及在生产环境中部署模型时的细节。一个好的流程如下：
 
 1.  业务需求：例如在召回率和精准率之间的权衡，我们希望减少欺诈金额，同时保持低假阳性率，以提供更好的用户体验；强调需要可解释的模型。
 
-1.  数据细节：例如欺诈交易的数量远少于非欺诈交易，可以使用像SMOTE这样的技术来解决类别不平衡问题。
+1.  数据细节：例如欺诈交易的数量远少于非欺诈交易，可以使用像 SMOTE 这样的技术来解决类别不平衡问题。
 
 1.  模型权衡：例如，先使用基于启发式的基线模型，然后是逻辑回归，再接着是基于树的模型，因为它们比使用难以解释的非线性特征变换的逻辑回归更易于解释。
 
 1.  讨论部署细节：例如，实时交易处理，以及更新模型的节奏，以适应变化中的欺诈模式。
 
-## **高级/员工/首席级别经验（6年以上）**
+## **高级/员工/首席级别经验（6 年以上）**
 
-对于这个层级，候选人需要利用他们多年的经验，深入思考更广泛的生态系统，识别这个领域中的核心挑战，并强调不同的机器学习子系统如何协同解决更大的问题。解决如实时数据处理和确保模型对抗攻击的鲁棒性等挑战。提出一种多层次的方案：使用规则引擎系统进行即时标记，并使用深度学习模型进行模式识别。包括反馈回路和监控机制，以确保模型能够适应新的欺诈形式。同时，展示你对最新行业趋势的了解（例如，使用GPU、表示学习、强化学习、边缘计算、联邦机器学习、构建不涉及PII数据的模型、机器学习中的公平性与偏见等）。
+对于这个层级，候选人需要利用他们多年的经验，深入思考更广泛的生态系统，识别这个领域中的核心挑战，并强调不同的机器学习子系统如何协同解决更大的问题。解决如实时数据处理和确保模型对抗攻击的鲁棒性等挑战。提出一种多层次的方案：使用规则引擎系统进行即时标记，并使用深度学习模型进行模式识别。包括反馈回路和监控机制，以确保模型能够适应新的欺诈形式。同时，展示你对最新行业趋势的了解（例如，使用 GPU、表示学习、强化学习、边缘计算、联邦机器学习、构建不涉及 PII 数据的模型、机器学习中的公平性与偏见等）。
 
 希望这份指南能帮助你顺利应对机器学习设计面试！如果有任何想法或经验分享，请留言评论。
 
 其他有用资源
 
-+   [https://research.facebook.com/blog/2018/05/the-facebook-field-guide-to-machine-learning-video-series/](https://research.facebook.com/blog/2018/05/the-facebook-field-guide-to-machine-learning-video-series/)
++   [`research.facebook.com/blog/2018/05/the-facebook-field-guide-to-machine-learning-video-series/`](https://research.facebook.com/blog/2018/05/the-facebook-field-guide-to-machine-learning-video-series/)
 
-+   [https://github.com/chiphuyen/machine-learning-systems-design/blob/master/content/design-a-machine-learning-system.md](https://github.com/chiphuyen/machine-learning-systems-design/blob/master/content/design-a-machine-learning-system.md)
++   [`github.com/chiphuyen/machine-learning-systems-design/blob/master/content/design-a-machine-learning-system.md`](https://github.com/chiphuyen/machine-learning-systems-design/blob/master/content/design-a-machine-learning-system.md)
 
-+   [http://patrickhalina.com/posts/ml-systems-design-interview-guide/](http://patrickhalina.com/posts/ml-systems-design-interview-guide/)
++   [`patrickhalina.com/posts/ml-systems-design-interview-guide/`](http://patrickhalina.com/posts/ml-systems-design-interview-guide/)

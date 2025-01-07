@@ -1,16 +1,16 @@
 # 今天学习和使用 Python 的最简单方法
 
-> 原文：[https://towardsdatascience.com/the-easiest-way-to-learn-and-use-python-today-8a230424ece4?source=collection_archive---------3-----------------------#2024-10-09](https://towardsdatascience.com/the-easiest-way-to-learn-and-use-python-today-8a230424ece4?source=collection_archive---------3-----------------------#2024-10-09)
+> 原文：[`towardsdatascience.com/the-easiest-way-to-learn-and-use-python-today-8a230424ece4?source=collection_archive---------3-----------------------#2024-10-09`](https://towardsdatascience.com/the-easiest-way-to-learn-and-use-python-today-8a230424ece4?source=collection_archive---------3-----------------------#2024-10-09)
 
 ## Google Colab 和其集成的生成式 AI，一个强大的组合
 
-[](https://medium.com/@quentin.gallea?source=post_page---byline--8a230424ece4--------------------------------)[![Quentin Gallea, PhD](../Images/457af55dd9c6121da7ec97f8e2991c43.png)](https://medium.com/@quentin.gallea?source=post_page---byline--8a230424ece4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8a230424ece4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8a230424ece4--------------------------------) [Quentin Gallea, PhD](https://medium.com/@quentin.gallea?source=post_page---byline--8a230424ece4--------------------------------)
+[](https://medium.com/@quentin.gallea?source=post_page---byline--8a230424ece4--------------------------------)![Quentin Gallea, PhD](https://medium.com/@quentin.gallea?source=post_page---byline--8a230424ece4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8a230424ece4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8a230424ece4--------------------------------) [Quentin Gallea, PhD](https://medium.com/@quentin.gallea?source=post_page---byline--8a230424ece4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8a230424ece4--------------------------------) ·阅读时长 7 分钟·2024年10月9日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8a230424ece4--------------------------------) ·阅读时长 7 分钟·2024 年 10 月 9 日
 
 --
 
-![](../Images/e57afc35d694a26225058907d940e7ca.png)
+![](img/e57afc35d694a26225058907d940e7ca.png)
 
 作者提供的图片，由 DALL-E 创作。
 
@@ -50,49 +50,49 @@
 
 # 第一部分：预备知识
 
-## 为什么选择Python和Google Colab？
+## 为什么选择 Python 和 Google Colab？
 
-**为什么选择Python？** Python是当今最流行、最具多样性的编程语言。Python可以用于：
+**为什么选择 Python？** Python 是当今最流行、最具多样性的编程语言。Python 可以用于：
 
 +   机器学习和人工智能（例如自然语言处理、深度学习等）
 
 +   统计与分析
 
-+   创建和使用聊天机器人（例如LLMs、代理等）
++   创建和使用聊天机器人（例如 LLMs、代理等）
 
-+   Web开发（例如后端开发）
++   Web 开发（例如后端开发）
 
 +   以及更多内容：金融、机器人技术、数据库访问、游戏开发等。
 
-此外，由于其广泛的应用，Python已成为许多职位的要求，且因为拥有大量的资源，学习起来尤其容易。
+此外，由于其广泛的应用，Python 已成为许多职位的要求，且因为拥有大量的资源，学习起来尤其容易。
 
-**为什么选择Google Colab？** 在Python编程中，有很多方法可以开始。最流行的两种方式是集成开发环境（IDE）或Notebook。Notebook是一种基于网页的交互式编程环境，允许你在一个文档中混合代码、文本和可视化内容。
+**为什么选择 Google Colab？** 在 Python 编程中，有很多方法可以开始。最流行的两种方式是集成开发环境（IDE）或 Notebook。Notebook 是一种基于网页的交互式编程环境，允许你在一个文档中混合代码、文本和可视化内容。
 
-你可以选择在计算机上安装本地Notebook工具（例如Jupyter Notebook），或者使用像Google Colab这样的基于云的在线解决方案。
+你可以选择在计算机上安装本地 Notebook 工具（例如 Jupyter Notebook），或者使用像 Google Colab 这样的基于云的在线解决方案。
 
-由于本指南聚焦于可访问性，我选择了一个无需安装的基于云的工具。唯一的要求是拥有一个Google账户。所有文档都将保存在你的Google Drive中，因此你可以在任何计算机上工作，并轻松与他人协作。
+由于本指南聚焦于可访问性，我选择了一个无需安装的基于云的工具。唯一的要求是拥有一个 Google 账户。所有文档都将保存在你的 Google Drive 中，因此你可以在任何计算机上工作，并轻松与他人协作。
 
-![](../Images/e726494f066570cb8cf4f1c7654db650.png)
+![](img/e726494f066570cb8cf4f1c7654db650.png)
 
-这是一个Notebook（Google Colab）的片段。你可以看到，在同一个文档中，既有文本、代码，也有代码的输出。图像由作者提供。
+这是一个 Notebook（Google Colab）的片段。你可以看到，在同一个文档中，既有文本、代码，也有代码的输出。图像由作者提供。
 
-## 从哪里开始学习Python？
+## 从哪里开始学习 Python？
 
-有无数的途径可以开始学习Python。以下是两个完整初学者Python指南的资源，提供不同格式的学习方式：
+有无数的途径可以开始学习 Python。以下是两个完整初学者 Python 指南的资源，提供不同格式的学习方式：
 
-+   初学者免费的完整课程： [https://www.youtube.com/watch?v=rfscVS0vtbw](https://www.youtube.com/watch?v=rfscVS0vtbw)
++   初学者免费的完整课程： [`www.youtube.com/watch?v=rfscVS0vtbw`](https://www.youtube.com/watch?v=rfscVS0vtbw)
 
-+   带集成代码单元的免费完整课程：[https://www.w3schools.com/python/python_intro.asp](https://www.w3schools.com/python/python_intro.asp)
++   带集成代码单元的免费完整课程：[`www.w3schools.com/python/python_intro.asp`](https://www.w3schools.com/python/python_intro.asp)
 
 +   互动平台：[DataCamp](https://www.datacamp.com/courses/intro-to-python-for-data-science)
 
-学习如何编程类似于学习许多其他技能，如游泳或骑自行车——你需要不断练习。所以，当你开始使用这些教程或其他教程时，打开Google Colab，开始实验代码，并进行调整。使用第二部分中介绍的工具来支持你的学习之旅。
+学习如何编程类似于学习许多其他技能，如游泳或骑自行车——你需要不断练习。所以，当你开始使用这些教程或其他教程时，打开 Google Colab，开始实验代码，并进行调整。使用第二部分中介绍的工具来支持你的学习之旅。
 
-# 第二部分：集成在Google Colab中的生成式AI工具
+# 第二部分：集成在 Google Colab 中的生成式 AI 工具
 
-自2022年11月ChatGPT 3.5的公开发布以来，支持编程的生成式AI工具迅速增长。像ChatGPT这样的大型语言模型（LLMs）在帮助我们进行编码方面极其强大。编程依赖于具有清晰语法的“语言”，这使得它成为LLM的理想领域。
+自 2022 年 11 月 ChatGPT 3.5 的公开发布以来，支持编程的生成式 AI 工具迅速增长。像 ChatGPT 这样的大型语言模型（LLMs）在帮助我们进行编码方面极其强大。编程依赖于具有清晰语法的“语言”，这使得它成为 LLM 的理想领域。
 
-Google Colab最近集成了一套生成式AI工具，可以支持你工作的各个方面，从代码建议到调试和解释。现在，让我们介绍所有这些工具：
+Google Colab 最近集成了一套生成式 AI 工具，可以支持你工作的各个方面，从代码建议到调试和解释。现在，让我们介绍所有这些工具：
 
 +   代码补全
 
@@ -112,7 +112,7 @@ Google Colab最近集成了一套生成式AI工具，可以支持你工作的各
 
 请注意，建议不仅基于你正在输入的内容，还基于文件中的其余部分，使得这个功能非常强大，远远超越了传统的简单代码补全工具。例如，在下方视频中，导入文件的建议并非通用的——它是我当前 Google Colab 文档中需要的确切代码，并且具有正确的格式。
 
-![](../Images/f4fa31cc74ee5533eedf2fabc2a3cfe8.png)
+![](img/f4fa31cc74ee5533eedf2fabc2a3cfe8.png)
 
 这个视频展示了 Google Colab 中的代码补全工具。你可以看到我输入某行代码的开头，代码以白色显示，然后建议会非常快速且自动地以灰色和斜体显示。我只需点击 Tab 键即可接受建议。视频由作者提供。
 
@@ -122,7 +122,7 @@ Google Colab最近集成了一套生成式AI工具，可以支持你工作的各
 
 但现在有一个非常快速的集成解决方案。正如你在下方视频中看到的，我运行了一些代码并生成了错误。在每个错误消息后，你会看到一个标有“解释错误”的按钮。点击后，右侧会打开一个面板，Gemini（一个大型语言模型）会解释错误并提出调整后的代码。你可以手动调整代码，复制粘贴建议，或者一键创建一个新的单元格，插入笔记本中修正后的代码。
 
-![](../Images/1f4356bae5b0ee84d02f006a01c797ab.png)
+![](img/1f4356bae5b0ee84d02f006a01c797ab.png)
 
 这是一个简单的调试情况示例，展示了 Google Colab 中集成的生成性 AI 系统。图片由作者提供。
 
@@ -132,13 +132,13 @@ Google Colab最近集成了一套生成式AI工具，可以支持你工作的各
 
 第一种方法是通过写注释（参见下方视频）。我只需写一个注释，解释下一行代码，然后 Colab 会直接解释它并自动建议相应的代码。这个功能主要适用于简单的、通常是单行的代码。
 
-![](../Images/f19c47f349ea5c83ad313d6436282baf.png)
+![](img/f19c47f349ea5c83ad313d6436282baf.png)
 
 这个视频展示了 Google Colab 如何使用生成性 AI 自动生成你刚写的注释对应的代码。视频由作者提供。
 
 当您需要针对更复杂的请求（通常需要几行代码）提供代码建议时，您可以在开始新的代码块时点击“生成”按钮（见下方视频）。然后，您可以用自然语言解释您想做的事情，代码将自动生成。请注意，提示会作为评论添加在顶部，所以请尽量清楚地表述需求，以节省时间。
 
-![](../Images/9861e90b722d792fc85917232247681b.png)
+![](img/9861e90b722d792fc85917232247681b.png)
 
 该视频展示了如何在 Google Colab 中使用自然语言生成代码。视频由作者提供。
 
@@ -148,7 +148,7 @@ Google Colab最近集成了一套生成式AI工具，可以支持你工作的各
 
 到目前为止，我对这个功能并没有留下深刻印象。它崩溃过几次，返回错误，或者建议了许多选项，但我感兴趣的选项并没有出现。
 
-![](../Images/9faa6b4cc9748100b4643e8a0039600d.png)
+![](img/9faa6b4cc9748100b4643e8a0039600d.png)
 
 该视频展示了 Google Copilot 中的自动图表建议功能。视频由作者提供。
 
@@ -156,7 +156,7 @@ Google Colab最近集成了一套生成式AI工具，可以支持你工作的各
 
 最后，您可以直接与 Gemini（一个聊天机器人/大语言模型）进行对话，询问与代码相关的问题。这些问题可以是您不理解的某段代码，如何用代码执行特定任务，或者几乎任何其他问题。您基本上可以随时获得一个 AI 导师，只需轻轻一按。
 
-![](../Images/7fa684eb21f50cab9c1eb9c375cd7d02.png)
+![](img/7fa684eb21f50cab9c1eb9c375cd7d02.png)
 
 在 Google Colab 中，您可以点击右上角的“Gemini”按钮，直接开始与代码相关的讨论。您可以询问当前代码的问题，或询问如何做某些事情等。图片由作者提供。
 
@@ -168,8 +168,8 @@ Google Colab最近集成了一套生成式AI工具，可以支持你工作的各
 
 然而，这引发了一个问题，对于那些还没有完全学会如何编程的人，长期使用这些工具会有什么影响。我记得曾经广泛使用这些工具来选择 Pandas 数据框的部分内容，因为我经常把括号、`.loc` 或 `.iloc` 函数以及语法弄混。ChatGPT 曾经帮我提高效率几次，但从长远来看，我变得更加低效。如果每次都得询问，它往往比我记住解决方案更耗时。那如果工具无法使用怎么办？
 
-此外，记住负责任地使用AI建议非常重要。始终致力于理解你所融合的代码，以避免可能的剽窃或无意的错误。请注意，当在Google Colab中使用建议时，你可能会看到代码灵感的来源（见下图）。这些信息有助于你避免潜在的版权侵犯问题。
+此外，记住负责任地使用 AI 建议非常重要。始终致力于理解你所融合的代码，以避免可能的剽窃或无意的错误。请注意，当在 Google Colab 中使用建议时，你可能会看到代码灵感的来源（见下图）。这些信息有助于你避免潜在的版权侵犯问题。
 
-![](../Images/b08f4256f0c95c1fdb207c7c1a1caf9d.png)
+![](img/b08f4256f0c95c1fdb207c7c1a1caf9d.png)
 
-在Google Colab中使用生成式AI代码推荐时添加的注释示例。看起来代码的潜在来源已被引用，并且提供了可点击的链接，以检查是否存在潜在的版权问题。图片来源：作者。
+在 Google Colab 中使用生成式 AI 代码推荐时添加的注释示例。看起来代码的潜在来源已被引用，并且提供了可点击的链接，以检查是否存在潜在的版权问题。图片来源：作者。

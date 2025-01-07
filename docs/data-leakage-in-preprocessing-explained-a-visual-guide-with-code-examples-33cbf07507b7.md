@@ -1,26 +1,26 @@
 # 数据泄露在预处理中的解释：带代码示例的视觉指南
 
-> 原文：[https://towardsdatascience.com/data-leakage-in-preprocessing-explained-a-visual-guide-with-code-examples-33cbf07507b7?source=collection_archive---------2-----------------------#2024-10-30](https://towardsdatascience.com/data-leakage-in-preprocessing-explained-a-visual-guide-with-code-examples-33cbf07507b7?source=collection_archive---------2-----------------------#2024-10-30)
+> 原文：[`towardsdatascience.com/data-leakage-in-preprocessing-explained-a-visual-guide-with-code-examples-33cbf07507b7?source=collection_archive---------2-----------------------#2024-10-30`](https://towardsdatascience.com/data-leakage-in-preprocessing-explained-a-visual-guide-with-code-examples-33cbf07507b7?source=collection_archive---------2-----------------------#2024-10-30)
 
 ## 数据预处理
 
-## 10种隐蔽的预处理管道泄露方式
+## 10 种隐蔽的预处理管道泄露方式
 
-[](https://medium.com/@samybaladram?source=post_page---byline--33cbf07507b7--------------------------------)[![Samy Baladram](../Images/715cb7af97c57601966c5d2f9edd0066.png)](https://medium.com/@samybaladram?source=post_page---byline--33cbf07507b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--33cbf07507b7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--33cbf07507b7--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--33cbf07507b7--------------------------------)
+[](https://medium.com/@samybaladram?source=post_page---byline--33cbf07507b7--------------------------------)![Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--33cbf07507b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--33cbf07507b7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--33cbf07507b7--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--33cbf07507b7--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--33cbf07507b7--------------------------------) ·阅读时间14分钟·2024年10月30日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--33cbf07507b7--------------------------------) ·阅读时间 14 分钟·2024 年 10 月 30 日
 
 --
 
-`⛳️ 更多[数据预处理](https://medium.com/@samybaladram/list/data-preprocessing-17a2c49b44e4)解释：· [缺失值填补](/missing-value-imputation-explained-a-visual-guide-with-code-examples-for-beginners-93e0726284eb) · [类别编码](/encoding-categorical-data-explained-a-visual-guide-with-code-example-for-beginners-b169ac4193ae) · [数据缩放](/scaling-numerical-data-explained-a-visual-guide-with-code-examples-for-beginners-11676cdb45cb) · [离散化](/discretization-explained-a-visual-guide-with-code-examples-for-beginners-f056af9102fa?gi=c1bf25229f86) · [过采样与欠采样](/oversampling-and-undersampling-explained-a-visual-guide-with-mini-2d-dataset-1155577d3091) ▶ [数据泄露在预处理中的应用](/data-leakage-in-preprocessing-explained-a-visual-guide-with-code-examples-33cbf07507b7)`
+`⛳️ 更多[数据预处理](https://medium.com/@samybaladram/list/data-preprocessing-17a2c49b44e4)解释：· 缺失值填补 · 类别编码 · 数据缩放 · 离散化 · 过采样与欠采样 ▶ 数据泄露在预处理中的应用`
 
-在我教授机器学习的经验中，学生们经常遇到这样的问题：“我的模型表现得很好——准确率超过90%！但是当我提交给隐藏数据集进行测试时，结果不如预期。哪里出了问题？”这种情况几乎总是指向数据泄露。
+在我教授机器学习的经验中，学生们经常遇到这样的问题：“我的模型表现得很好——准确率超过 90%！但是当我提交给隐藏数据集进行测试时，结果不如预期。哪里出了问题？”这种情况几乎总是指向数据泄露。
 
 数据泄露发生在测试数据的某些信息在数据准备步骤中悄悄地（或泄露）进入训练数据时。这种情况通常发生在常规的数据处理任务中，而你未曾察觉。当这种情况发生时，模型**从不该看到的测试数据中学习**，使得测试结果具有误导性。
 
 让我们看看常见的数据预处理步骤，并准确了解数据泄漏时会发生什么——希望你可以在自己的项目中避免这些“管道问题”。
 
-![](../Images/f9b656af3dc4c870b634e61dfd631791.png)
+![](img/f9b656af3dc4c870b634e61dfd631791.png)
 
 所有视觉图：作者使用 Canva Pro 创建。优化为移动端显示；在桌面端可能会显得过大。
 
@@ -30,7 +30,7 @@
 
 现在，让我们集中讨论以下数据预处理步骤中的数据泄漏问题。进一步，我们还将看到这些步骤对应的 `scikit-learn` 预处理方法名称，并且在文章的最后会看到代码示例。
 
-![](../Images/04fe8556bee3eb3b7108de42fc432543.png)
+![](img/04fe8556bee3eb3b7108de42fc432543.png)
 
 # 缺失值填充
 
@@ -58,13 +58,13 @@
 
 💥 **后果** 训练数据包含受测试数据影响的平均值
 
-![](../Images/d6efef35923d84701a67951a2c693a10.png)
+![](img/d6efef35923d84701a67951a2c693a10.png)
 
 均值填充泄漏发生在使用从所有数据行计算得到的平均值（4）填充缺失值，而不是正确地只使用训练数据的平均值（3），导致错误的填充值。
 
 ## **数据泄漏案例：KNN 填充**
 
-当你使用KNN填充缺失值时，算法会从训练集和测试集找到相似的数据点。它创建的替代值是基于这些邻近点的，这意味着测试集的值直接影响训练数据中的内容。由于KNN会查看实际的邻近值，因此这种训练和测试信息的混合比简单的均值填充更为直接。总结来说：
+当你使用 KNN 填充缺失值时，算法会从训练集和测试集找到相似的数据点。它创建的替代值是基于这些邻近点的，这意味着测试集的值直接影响训练数据中的内容。由于 KNN 会查看实际的邻近值，因此这种训练和测试信息的混合比简单的均值填充更为直接。总结来说：
 
 🚨 **问题** 在完整数据集上寻找邻居
 
@@ -72,9 +72,9 @@
 
 💥 **后果** 使用直接的测试集信息填充缺失值
 
-![](../Images/9fafdbf52962bef41e3fb5bec8e2325c.png)
+![](img/9fafdbf52962bef41e3fb5bec8e2325c.png)
 
-KNN填充泄漏发生在使用训练集和测试集数据共同寻找最近邻（生成3.5和4.5的值），而不是正确地只使用训练数据的模式来填充缺失值（生成6和6的值）。
+KNN 填充泄漏发生在使用训练集和测试集数据共同寻找最近邻（生成 3.5 和 4.5 的值），而不是正确地只使用训练数据的模式来填充缺失值（生成 6 和 6 的值）。
 
 # 类别编码
 
@@ -82,11 +82,11 @@ KNN填充泄漏发生在使用训练集和测试集数据共同寻找最近邻�
 
 转换类别的常见方法包括：
 
-1.  使用`OneHotEncoder()`为每个类别创建单独的1和0的列（也叫虚拟变量）
+1.  使用`OneHotEncoder()`为每个类别创建单独的 1 和 0 的列（也叫虚拟变量）
 
-1.  使用`OrdinalEncoder()`或`LabelEncoder()`为每个类别分配一个数字（如1，2，3）
+1.  使用`OrdinalEncoder()`或`LabelEncoder()`为每个类别分配一个数字（如 1，2，3）
 
-1.  使用`OrdinalEncoder(categories=[ordered_list])`与自定义类别顺序反映自然层级（如small=1，medium=2，large=3）
+1.  使用`OrdinalEncoder(categories=[ordered_list])`与自定义类别顺序反映自然层级（如 small=1，medium=2，large=3）
 
 1.  使用`TargetEncoder()`根据类别与我们试图预测的目标变量的关系将类别转换为数字
 
@@ -102,7 +102,7 @@ KNN填充泄漏发生在使用训练集和测试集数据共同寻找最近邻�
 
 💥 **后果** 训练特征包含未来目标信息
 
-![](../Images/57834471ff029388e93763c630f6e268.png)
+![](img/57834471ff029388e93763c630f6e268.png)
 
 目标编码泄漏发生在使用所有数据替换类别的平均目标值（A=3，B=4，C=2），而不是正确地只使用训练数据的平均值（A=2，B=5，C=1），导致类别值错误。
 
@@ -116,7 +116,7 @@ KNN填充泄漏发生在使用训练集和测试集数据共同寻找最近邻�
 
 💥 **后果** 特征选择受到测试集模式的影响
 
-![](../Images/de6c9ace481f7e7d863aebe762b2940a.png)
+![](img/de6c9ace481f7e7d863aebe762b2940a.png)
 
 当使用所有唯一值（A、B、C、D）从完整数据集创建类别列，而不是仅正确使用训练数据中存在的类别（A、B、C）时，会发生独热编码泄漏，导致错误的编码模式。
 
@@ -126,9 +126,9 @@ KNN填充泄漏发生在使用训练集和测试集数据共同寻找最近邻�
 
 常见的缩放调整方法包括：
 
-1.  使用`StandardScaler()`使得值集中在0附近，大多数值在-1和1之间（均值=0，方差=1）
+1.  使用`StandardScaler()`使得值集中在 0 附近，大多数值在-1 和 1 之间（均值=0，方差=1）
 
-1.  使用`MinMaxScaler()`将所有值缩放到0和1之间，或者使用`MinMaxScaler(feature_range=(min, max))`来设置自定义范围
+1.  使用`MinMaxScaler()`将所有值缩放到 0 和 1 之间，或者使用`MinMaxScaler(feature_range=(min, max))`来设置自定义范围
 
 1.  使用`FunctionTransformer(np.log1p)`或`PowerTransformer(method='box-cox')`来处理非常大的数字，使数据分布更加接近正态分布
 
@@ -146,7 +146,7 @@ KNN填充泄漏发生在使用训练集和测试集数据共同寻找最近邻�
 
 💥 **后果** 使用测试集分布缩放训练特征
 
-![](../Images/07e43284950a668a081b2a90dd6c0512.png)
+![](img/07e43284950a668a081b2a90dd6c0512.png)
 
 标准化泄漏发生在使用完整数据集的平均值（μ=0）和分布（σ=3）来规范化数据时，而不是仅正确使用训练数据的统计量（μ=2，σ=2），导致错误的标准化值。
 
@@ -160,7 +160,7 @@ KNN填充泄漏发生在使用训练集和测试集数据共同寻找最近邻�
 
 💥 **后果** 使用测试集范围对训练特征进行归一化
 
-![](../Images/f904f4f392adbf5fa4711e4a90bfaa9c.png)
+![](img/f904f4f392adbf5fa4711e4a90bfaa9c.png)
 
 使用完整数据集的最小值（-5）和最大值（5）来进行缩放，而不是仅正确使用训练数据的范围（最小值=-1，最大值=5）进行缩放，从而导致值的缩放错误。
 
@@ -190,7 +190,7 @@ KNN填充泄漏发生在使用训练集和测试集数据共同寻找最近邻�
 
 💥 **后果** 使用测试集分布对训练数据进行分箱
 
-![](../Images/c350933b8e9d11b558836a45c596c4b1.png)
+![](img/c350933b8e9d11b558836a45c596c4b1.png)
 
 等频分箱泄漏发生在使用所有数据设置箱的分割点（-0.5，2.5）时，而不是仅正确使用训练数据来设置边界（-0.5，2.0），从而导致值的分组错误。
 
@@ -204,9 +204,9 @@ KNN填充泄漏发生在使用训练集和测试集数据共同寻找最近邻�
 
 💥 **后果** 使用测试集边界对训练数据进行分箱
 
-![](../Images/9942d147b1bda767bd112c2d616cec43.png)
+![](img/9942d147b1bda767bd112c2d616cec43.png)
 
-等宽分箱泄漏发生在使用完整数据集范围（-3到6）将数据划分为相等大小的组时，而不是仅正确使用训练数据的范围（-3到3），从而导致错误的分组。
+等宽分箱泄漏发生在使用完整数据集范围（-3 到 6）将数据划分为相等大小的组时，而不是仅正确使用训练数据的范围（-3 到 3），从而导致错误的分组。
 
 # 重采样
 
@@ -232,7 +232,7 @@ KNN填充泄漏发生在使用训练集和测试集数据共同寻找最近邻�
 
 ## **数据泄漏案例：过采样（SMOTE）**
 
-当你在所有数据上使用SMOTE创建合成数据点时，算法会从训练集和测试集中挑选附近的点来创建新样本。这些新点是通过将测试集样本的值与训练数据混合生成的。这意味着你的训练数据得到了直接使用测试集信息创建的新样本。总结如下：
+当你在所有数据上使用 SMOTE 创建合成数据点时，算法会从训练集和测试集中挑选附近的点来创建新样本。这些新点是通过将测试集样本的值与训练数据混合生成的。这意味着你的训练数据得到了直接使用测试集信息创建的新样本。总结如下：
 
 🚨 **问题** 使用完整数据集生成样本
 
@@ -240,13 +240,13 @@ KNN填充泄漏发生在使用训练集和测试集数据共同寻找最近邻�
 
 💥 **后果** 训练数据被包含测试集影响的样本增强
 
-![](../Images/9faf04e494faa2e8a948243bc52ae55b.png)
+![](img/9faf04e494faa2e8a948243bc52ae55b.png)
 
 过采样泄漏发生在基于整个数据集的类别计数（A×4, B×3, C×2）重复数据点时，而不是仅根据训练数据（A×1, B×2, C×2）来决定每个类别重复的次数。
 
-## 数据泄漏案例：欠采样（Tomek链接）
+## 数据泄漏案例：欠采样（Tomek 链接）
 
-当你使用Tomek链接在所有数据中删除数据点时，算法会找到来自训练集和测试集的最近邻成对数据点，它们的标签却不同。根据这些数据点与测试集数据点的距离来决定是否从训练集中移除这些点。这意味着你的最终训练数据是由它与测试集值之间的关系决定的。总结如下：
+当你使用 Tomek 链接在所有数据中删除数据点时，算法会找到来自训练集和测试集的最近邻成对数据点，它们的标签却不同。根据这些数据点与测试集数据点的距离来决定是否从训练集中移除这些点。这意味着你的最终训练数据是由它与测试集值之间的关系决定的。总结如下：
 
 🚨 **问题** 使用完整数据集移除样本
 
@@ -254,7 +254,7 @@ KNN填充泄漏发生在使用训练集和测试集数据共同寻找最近邻�
 
 💥 **后果** 基于测试集模式减少训练
 
-![](../Images/d56e90a957fc6d7a249a9d990da10385.png)
+![](img/d56e90a957fc6d7a249a9d990da10385.png)
 
 欠采样泄漏发生在基于整个数据集的类别比例移除数据点时（A×4，B×3，C×2），而不是正确地仅使用训练数据（A×1，B×2，C×2）来决定从每个类别中保留多少样本。
 
@@ -326,7 +326,7 @@ clf.fit(X_train, y_train)
 print(f"Testing Accuracy (with leakage): {accuracy_score(y_test, clf.predict(X_test)):.2%}")
 ```
 
-上面的代码使用了`ColumnTransformer`，这是scikit-learn中的一个工具，允许我们对数据集中的不同列应用不同的预处理步骤。
+上面的代码使用了`ColumnTransformer`，这是 scikit-learn 中的一个工具，允许我们对数据集中的不同列应用不同的预处理步骤。
 
 这是数据集中每一列预处理策略的详细说明：
 
@@ -336,17 +336,17 @@ print(f"Testing Accuracy (with leakage): {accuracy_score(y_test, clf.predict(X_t
 
 - 标准化缩放以规范化值（均值=0，标准差=1）
 
-- 等宽离散化为4个区间，意味着将连续值分类为4个等宽区间
+- 等宽离散化为 4 个区间，意味着将连续值分类为 4 个等宽区间
 
 `**湿度**`**：
 
--** 与温度相同的策略：均值填充 → 标准化缩放 → 等宽离散化（4个区间）
+-** 与温度相同的策略：均值填充 → 标准化缩放 → 等宽离散化（4 个区间）
 
 `**展望**`**（类别）**：
 
 - 序数编码：将类别值转换为数值
 
-- 通过将未知值设置为-1来处理
+- 通过将未知值设置为-1 来处理
 
 `**风速**` **（二元）**：
 
@@ -358,7 +358,7 @@ print(f"Testing Accuracy (with leakage): {accuracy_score(y_test, clf.predict(X_t
 
 - 标签编码将“是/否”转换为 1/0
 
-- 在预处理后应用SMOTE通过创建少数类别的合成示例来平衡类别
+- 在预处理后应用 SMOTE 通过创建少数类别的合成示例来平衡类别
 
 - 使用简单的决策树来预测目标
 
@@ -437,7 +437,7 @@ print(f"Testing Accuracy: {accuracy_score(y_test, pipeline.predict(X_test)):.2%}
 
     - 预处理参数仅从训练数据中学习
 
-    - SMOTE仅适用于训练数据
+    - SMOTE 仅适用于训练数据
 
     - 测试数据在预测之前完全不可见
 
@@ -445,34 +445,34 @@ print(f"Testing Accuracy: {accuracy_score(y_test, pipeline.predict(X_test)):.2%}
 
 ## 技术环境
 
-本文使用Python 3.7，scikit-learn 1.5和imblearn 0.12。虽然讨论的概念通常适用，但具体的代码实现可能会因版本不同略有差异。
+本文使用 Python 3.7，scikit-learn 1.5 和 imblearn 0.12。虽然讨论的概念通常适用，但具体的代码实现可能会因版本不同略有差异。
 
 ## 关于插图
 
-除非另有说明，所有插图均由作者创建，并结合了Canva Pro授权的设计元素。
+除非另有说明，所有插图均由作者创建，并结合了 Canva Pro 授权的设计元素。
 
 𝙎𝙚𝙚 𝙢𝙤𝙧𝙚 𝘿𝙖𝙩𝙖 𝙋𝙧𝙚𝙥𝙧𝙤𝙘𝙚𝙨𝙨𝙞𝙣𝙜 𝙢𝙚𝙩𝙝𝙤𝙙𝙨 𝙝𝙚𝙧𝙚:
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----33cbf07507b7--------------------------------)
 
 ## 数据预处理
 
-[查看列表](https://medium.com/@samybaladram/list/data-preprocessing-17a2c49b44e4?source=post_page-----33cbf07507b7--------------------------------)6个故事！[](../Images/f7ead0fb9a8dc2823d7a43d67a1c6932.png)![两个人物拥抱的卡通插图，字母‘A’，‘B’，‘C’和数字‘1’，‘2’，‘3’在它们周围漂浮。一个粉色的心形图标悬浮在上方，象征着感情。背景是蓝色和绿色方块的像素化图案，代表数据或编码。这个插图隐喻地描绘了对类别数据进行编码的概念，其中类别（ABC）被转化为数字表示（123）。](../Images/72bb3a287a9ca4c5e7a3871e234bcc4b.png)![一张卡通插图，表示机器学习中的数据缩放。一个高大的女性（代表一个具有大范围的数值特征）正在缩小成一个小孩（代表相同特征在缩放后变为较小范围）。一个红色箭头指示缩小过程，孩子周围的黄色闪光象征着缩放的积极影响。](../Images/d261b2c52a3cafe266d1962d4dbabdbd.png)
+[查看列表](https://medium.com/@samybaladram/list/data-preprocessing-17a2c49b44e4?source=post_page-----33cbf07507b7--------------------------------)6 个故事！[](../Images/f7ead0fb9a8dc2823d7a43d67a1c6932.png)![两个人物拥抱的卡通插图，字母‘A’，‘B’，‘C’和数字‘1’，‘2’，‘3’在它们周围漂浮。一个粉色的心形图标悬浮在上方，象征着感情。背景是蓝色和绿色方块的像素化图案，代表数据或编码。这个插图隐喻地描绘了对类别数据进行编码的概念，其中类别（ABC）被转化为数字表示（123）。](img/72bb3a287a9ca4c5e7a3871e234bcc4b.png)![一张卡通插图，表示机器学习中的数据缩放。一个高大的女性（代表一个具有大范围的数值特征）正在缩小成一个小孩（代表相同特征在缩放后变为较小范围）。一个红色箭头指示缩小过程，孩子周围的黄色闪光象征着缩放的积极影响。](img/d261b2c52a3cafe266d1962d4dbabdbd.png)
 
 𝙔𝙤𝙪 𝙢𝙞𝙜𝙝𝙩 𝙖𝙡𝙨𝙤 𝙡𝙞𝙠𝙚:
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----33cbf07507b7--------------------------------)
 
 ## 分类算法
 
-[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----33cbf07507b7--------------------------------)8篇文章![](../Images/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](../Images/6ea70d9d2d9456e0c221388dbb253be8.png)![](../Images/7221f0777228e7bcf08c1adb44a8eb76.png)![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----33cbf07507b7--------------------------------)8 篇文章![](img/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](img/6ea70d9d2d9456e0c221388dbb253be8.png)![](img/7221f0777228e7bcf08c1adb44a8eb76.png)![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----33cbf07507b7--------------------------------)
 
 ## 回归算法
 
-[查看列表](https://medium.com/@samybaladram/list/regression-algorithms-b0b6959f1b39?source=post_page-----33cbf07507b7--------------------------------)5篇文章![一个扎着辫子、戴着粉色帽子的卡通娃娃。这个“傀儡”娃娃，凭借其简单的设计和心形装饰的衬衫，在视觉上代表了机器学习中的傀儡回归器概念。就像这个玩具般的形象是一个简化、静态的人物代表，傀儡回归器是作为基准的基本模型，供更复杂的分析使用。](../Images/aa7eeaa18e4bb093f5ce4ab9b93a8a27.png)![](../Images/44e6d84e61c895757ff31e27943ee597.png)![](../Images/7f3e5f3e2aca2feec035ca92e1bc440a.png)
+[查看列表](https://medium.com/@samybaladram/list/regression-algorithms-b0b6959f1b39?source=post_page-----33cbf07507b7--------------------------------)5 篇文章![一个扎着辫子、戴着粉色帽子的卡通娃娃。这个“傀儡”娃娃，凭借其简单的设计和心形装饰的衬衫，在视觉上代表了机器学习中的傀儡回归器概念。就像这个玩具般的形象是一个简化、静态的人物代表，傀儡回归器是作为基准的基本模型，供更复杂的分析使用。](img/aa7eeaa18e4bb093f5ce4ab9b93a8a27.png)![](img/44e6d84e61c895757ff31e27943ee597.png)![](img/7f3e5f3e2aca2feec035ca92e1bc440a.png)

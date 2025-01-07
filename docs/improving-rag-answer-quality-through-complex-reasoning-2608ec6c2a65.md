@@ -1,12 +1,12 @@
 # 通过复杂推理提高 RAG 回答质量
 
-> 原文：[https://towardsdatascience.com/improving-rag-answer-quality-through-complex-reasoning-2608ec6c2a65?source=collection_archive---------3-----------------------#2024-07-24](https://towardsdatascience.com/improving-rag-answer-quality-through-complex-reasoning-2608ec6c2a65?source=collection_archive---------3-----------------------#2024-07-24)
+> 原文：[`towardsdatascience.com/improving-rag-answer-quality-through-complex-reasoning-2608ec6c2a65?source=collection_archive---------3-----------------------#2024-07-24`](https://towardsdatascience.com/improving-rag-answer-quality-through-complex-reasoning-2608ec6c2a65?source=collection_archive---------3-----------------------#2024-07-24)
 
 ## 展示使用 DSPy 和 Indexify 构建多跳检索系统的过程
 
-[](https://sachinkhandewal.medium.com/?source=post_page---byline--2608ec6c2a65--------------------------------)[![Sachin Khandewal](../Images/9a9aa9bb27d1a621add08ea0b25049a6.png)](https://sachinkhandewal.medium.com/?source=post_page---byline--2608ec6c2a65--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2608ec6c2a65--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2608ec6c2a65--------------------------------) [Sachin Khandewal](https://sachinkhandewal.medium.com/?source=post_page---byline--2608ec6c2a65--------------------------------)
+[](https://sachinkhandewal.medium.com/?source=post_page---byline--2608ec6c2a65--------------------------------)![Sachin Khandewal](https://sachinkhandewal.medium.com/?source=post_page---byline--2608ec6c2a65--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2608ec6c2a65--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2608ec6c2a65--------------------------------) [Sachin Khandewal](https://sachinkhandewal.medium.com/?source=post_page---byline--2608ec6c2a65--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2608ec6c2a65--------------------------------) ·阅读时间：25分钟·2024年7月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2608ec6c2a65--------------------------------) ·阅读时间：25 分钟·2024 年 7 月 24 日
 
 --
 

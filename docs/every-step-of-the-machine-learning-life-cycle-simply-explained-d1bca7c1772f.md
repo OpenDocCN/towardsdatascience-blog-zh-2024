@@ -1,16 +1,16 @@
 # 机器学习生命周期的每个步骤简单解释
 
-> 原文：[https://towardsdatascience.com/every-step-of-the-machine-learning-life-cycle-simply-explained-d1bca7c1772f?source=collection_archive---------2-----------------------#2024-11-26](https://towardsdatascience.com/every-step-of-the-machine-learning-life-cycle-simply-explained-d1bca7c1772f?source=collection_archive---------2-----------------------#2024-11-26)
+> 原文：[`towardsdatascience.com/every-step-of-the-machine-learning-life-cycle-simply-explained-d1bca7c1772f?source=collection_archive---------2-----------------------#2024-11-26`](https://towardsdatascience.com/every-step-of-the-machine-learning-life-cycle-simply-explained-d1bca7c1772f?source=collection_archive---------2-----------------------#2024-11-26)
 
 ## 一份全面的机器学习生命周期指南，逐步讲解并提供 Python 示例
 
-[](https://medium.com/@pelletierhaden?source=post_page---byline--d1bca7c1772f--------------------------------)[![Haden Pelletier](../Images/8f73fc8222e783883c4ebcaee14513e0.png)](https://medium.com/@pelletierhaden?source=post_page---byline--d1bca7c1772f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d1bca7c1772f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d1bca7c1772f--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--d1bca7c1772f--------------------------------)
+[](https://medium.com/@pelletierhaden?source=post_page---byline--d1bca7c1772f--------------------------------)![Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--d1bca7c1772f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d1bca7c1772f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d1bca7c1772f--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--d1bca7c1772f--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d1bca7c1772f--------------------------------) ·15分钟阅读·2024年11月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d1bca7c1772f--------------------------------) ·15 分钟阅读·2024 年 11 月 26 日
 
 --
 
-![](../Images/4f34090b095ff5e0c73497d02fd4b491.png)
+![](img/4f34090b095ff5e0c73497d02fd4b491.png)
 
 机器学习生命周期。图片来自作者
 

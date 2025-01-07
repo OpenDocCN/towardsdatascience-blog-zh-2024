@@ -1,16 +1,16 @@
 # 《铃儿响叮当与统计检验》
 
-> 原文：[https://towardsdatascience.com/jingle-bells-and-statistical-tests-33ea90912099?source=collection_archive---------5-----------------------#2024-12-25](https://towardsdatascience.com/jingle-bells-and-statistical-tests-33ea90912099?source=collection_archive---------5-----------------------#2024-12-25)
+> 原文：[`towardsdatascience.com/jingle-bells-and-statistical-tests-33ea90912099?source=collection_archive---------5-----------------------#2024-12-25`](https://towardsdatascience.com/jingle-bells-and-statistical-tests-33ea90912099?source=collection_archive---------5-----------------------#2024-12-25)
 
 ## 数据类型、假设及适用于它们的统计检验，通过节日圣诞市场示例来解释🎄🎅🎡
 
-[](https://gizkaya.medium.com/?source=post_page---byline--33ea90912099--------------------------------)[![Gizem Kaya](../Images/29d29f04df742f8c19cb9fb0c7169e5d.png)](https://gizkaya.medium.com/?source=post_page---byline--33ea90912099--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--33ea90912099--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--33ea90912099--------------------------------) [Gizem Kaya](https://gizkaya.medium.com/?source=post_page---byline--33ea90912099--------------------------------)
+[](https://gizkaya.medium.com/?source=post_page---byline--33ea90912099--------------------------------)![Gizem Kaya](https://gizkaya.medium.com/?source=post_page---byline--33ea90912099--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--33ea90912099--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--33ea90912099--------------------------------) [Gizem Kaya](https://gizkaya.medium.com/?source=post_page---byline--33ea90912099--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--33ea90912099--------------------------------) ·6分钟阅读·2024年12月25日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--33ea90912099--------------------------------) ·6 分钟阅读·2024 年 12 月 25 日
 
 --
 
-![](../Images/bd3ae6953bd306679e59b3dde2c9c709.png)
+![](img/bd3ae6953bd306679e59b3dde2c9c709.png)
 
 照片由[Humphrey Muleba](https://unsplash.com/@good_citizen?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,70 +1,70 @@
-# ReLU如何使神经网络能够逼近连续非线性函数？
+# ReLU 如何使神经网络能够逼近连续非线性函数？
 
-> 原文：[https://towardsdatascience.com/how-relu-enables-neural-networks-to-approximate-continuous-nonlinear-functions-f171b7859727?source=collection_archive---------1-----------------------#2024-01-21](https://towardsdatascience.com/how-relu-enables-neural-networks-to-approximate-continuous-nonlinear-functions-f171b7859727?source=collection_archive---------1-----------------------#2024-01-21)
+> 原文：[`towardsdatascience.com/how-relu-enables-neural-networks-to-approximate-continuous-nonlinear-functions-f171b7859727?source=collection_archive---------1-----------------------#2024-01-21`](https://towardsdatascience.com/how-relu-enables-neural-networks-to-approximate-continuous-nonlinear-functions-f171b7859727?source=collection_archive---------1-----------------------#2024-01-21)
 
-## 了解如何通过使用ReLU激活的单隐藏层神经网络来表示连续非线性函数。
+## 了解如何通过使用 ReLU 激活的单隐藏层神经网络来表示连续非线性函数。
 
-[](https://medium.com/@lamthuy.lt?source=post_page---byline--f171b7859727--------------------------------)[![Thi-Lam-Thuy LE](../Images/a5af515421fe186f5ad47c532932af03.png)](https://medium.com/@lamthuy.lt?source=post_page---byline--f171b7859727--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f171b7859727--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f171b7859727--------------------------------) [Thi-Lam-Thuy LE](https://medium.com/@lamthuy.lt?source=post_page---byline--f171b7859727--------------------------------)
+[](https://medium.com/@lamthuy.lt?source=post_page---byline--f171b7859727--------------------------------)![Thi-Lam-Thuy LE](https://medium.com/@lamthuy.lt?source=post_page---byline--f171b7859727--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f171b7859727--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f171b7859727--------------------------------) [Thi-Lam-Thuy LE](https://medium.com/@lamthuy.lt?source=post_page---byline--f171b7859727--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f171b7859727--------------------------------) ·5分钟阅读·2024年1月21日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f171b7859727--------------------------------) ·5 分钟阅读·2024 年 1 月 21 日
 
 --
 
-激活函数在神经网络*(NN)*中起着至关重要的作用，因为它们引入了非线性，使得网络能够学习比简单线性回归更复杂的特征和函数。最常用的激活函数之一是修正线性单元*(ReLU)*，已经有[理论研究](https://en.wikipedia.org/wiki/Universal_approximation_theorem)表明，ReLU能够使神经网络逼近广泛的连续函数，使其成为强大的函数逼近器。
+激活函数在神经网络*(NN)*中起着至关重要的作用，因为它们引入了非线性，使得网络能够学习比简单线性回归更复杂的特征和函数。最常用的激活函数之一是修正线性单元*(ReLU)*，已经有[理论研究](https://en.wikipedia.org/wiki/Universal_approximation_theorem)表明，ReLU 能够使神经网络逼近广泛的连续函数，使其成为强大的函数逼近器。
 
-在这篇文章中，我们特别研究了连续非线性*(CNL)*函数的逼近，这是使用神经网络（NN）而非简单线性回归模型的主要目的。更具体地，我们考察了CNL函数的两个子类别：连续分段线性*(CPWL)*函数和连续曲线*(CC)*函数。我们将展示如何使用包含一个隐藏层的神经网络，通过足够的神经元和ReLU激活，来表示这两种函数类型。
+在这篇文章中，我们特别研究了连续非线性*(CNL)*函数的逼近，这是使用神经网络（NN）而非简单线性回归模型的主要目的。更具体地，我们考察了 CNL 函数的两个子类别：连续分段线性*(CPWL)*函数和连续曲线*(CC)*函数。我们将展示如何使用包含一个隐藏层的神经网络，通过足够的神经元和 ReLU 激活，来表示这两种函数类型。
 
 为了说明问题，我们仅考虑单一特征输入，但这个概念同样适用于多个特征输入。
 
-# ReLU激活
+# ReLU 激活
 
-![](../Images/e249461664cadb9fb803d9a1a41537b3.png)
+![](img/e249461664cadb9fb803d9a1a41537b3.png)
 
-图1：修正线性单元（ReLU）函数。
+图 1：修正线性单元（ReLU）函数。
 
-ReLU是一个分段线性函数，由两部分线性函数组成：一部分将负值截断，输出为零；另一部分为非负值提供连续的线性映射。
+ReLU 是一个分段线性函数，由两部分线性函数组成：一部分将负值截断，输出为零；另一部分为非负值提供连续的线性映射。
 
 # 连续分段线性函数逼近
 
-*CPWL函数是具有多个线性部分的连续函数。每个部分的斜率是一致的，然后通过添加新的线性函数在过渡点发生突变。*
+*CPWL 函数是具有多个线性部分的连续函数。每个部分的斜率是一致的，然后通过添加新的线性函数在过渡点发生突变。*
 
-![](../Images/f83d489627298162c04ec44a6e727c2f.png)
+![](img/f83d489627298162c04ec44a6e727c2f.png)
 
-图2：使用神经网络（NN）进行CPWL函数近似的示例。在每个过渡点，新的ReLU函数被加入到/从输入中减去，以增加/减少斜率。
+图 2：使用神经网络（NN）进行 CPWL 函数近似的示例。在每个过渡点，新的 ReLU 函数被加入到/从输入中减去，以增加/减少斜率。
 
-在使用ReLU激活函数和线性输出层的单隐藏层神经网络中，激活输出被聚合以形成CPWL目标函数。隐藏层的每个单元负责一个线性片段。在每个单元处，新增的ReLU函数对应于斜率的变化，从而产生新的斜率*（参见图2）*。由于此激活函数始终为正，增加斜率的单元对应的输出层权重将为正，反之，减小斜率的单元对应的权重将为负*（参见图3）*。新函数在过渡点添加，并且由于ReLU激活函数的禁用范围，它在该点之前（有时也在该点之后）不会对结果函数产生贡献。
+在使用 ReLU 激活函数和线性输出层的单隐藏层神经网络中，激活输出被聚合以形成 CPWL 目标函数。隐藏层的每个单元负责一个线性片段。在每个单元处，新增的 ReLU 函数对应于斜率的变化，从而产生新的斜率*（参见图 2）*。由于此激活函数始终为正，增加斜率的单元对应的输出层权重将为正，反之，减小斜率的单元对应的权重将为负*（参见图 3）*。新函数在过渡点添加，并且由于 ReLU 激活函数的禁用范围，它在该点之前（有时也在该点之后）不会对结果函数产生贡献。
 
-![](../Images/625c25d0d2b613b371adb52150ba4fd0.png)
+![](img/625c25d0d2b613b371adb52150ba4fd0.png)
 
-图3：使用包含一个带ReLU激活和线性输出层的隐藏层的神经网络对图2中的CPWL目标函数的近似。
+图 3：使用包含一个带 ReLU 激活和线性输出层的隐藏层的神经网络对图 2 中的 CPWL 目标函数的近似。
 
 **示例**
 
-为了让它更加具体，我们考虑一个由4个线性片段组成的CPWL函数，定义如下。
+为了让它更加具体，我们考虑一个由 4 个线性片段组成的 CPWL 函数，定义如下。
 
-![](../Images/55c82ec41548f85c2cc586fc300cac56.png)
+![](img/55c82ec41548f85c2cc586fc300cac56.png)
 
-图4：PWL函数的示例。
+图 4：PWL 函数的示例。
 
-为了表示该目标函数，我们将使用一个包含4个单元的1隐藏层神经网络，并且一个线性层输出前一层激活输出的加权和。我们来确定网络的参数，以便隐藏层的每个单元表示目标的一个片段。为了这个示例，输出层的偏置*(b2_0)*设置为0。
+为了表示该目标函数，我们将使用一个包含 4 个单元的 1 隐藏层神经网络，并且一个线性层输出前一层激活输出的加权和。我们来确定网络的参数，以便隐藏层的每个单元表示目标的一个片段。为了这个示例，输出层的偏置*(b2_0)*设置为 0。
 
-![](../Images/980a1377e98898a948078d0ac3d8018f.png)
+![](img/980a1377e98898a948078d0ac3d8018f.png)
 
-图5：建模图4中定义的PWL函数的网络架构。
+图 5：建模图 4 中定义的 PWL 函数的网络架构。
 
-![](../Images/c8c5123073a3fe737f0b292152ad1d8a.png)![](../Images/c2dc3ff0289cbb5110ed968fc1cfebb7.png)
+![](img/c8c5123073a3fe737f0b292152ad1d8a.png)![](img/c2dc3ff0289cbb5110ed968fc1cfebb7.png)
 
-图6：单元0（a1_0）的激活输出。
+图 6：单元 0（a1_0）的激活输出。
 
-![](../Images/479c32a0674d6f52eecae6d71b0cfc19.png)![](../Images/af866141263ed92ed63c95f0222a2544.png)
+![](img/479c32a0674d6f52eecae6d71b0cfc19.png)![](img/af866141263ed92ed63c95f0222a2544.png)
 
-图7：单元1（a1_1）的激活输出，聚合到输出*(a2_0)*以产生片段（2）。红色箭头表示斜率的变化。
+图 7：单元 1（a1_1）的激活输出，聚合到输出*(a2_0)*以产生片段（2）。红色箭头表示斜率的变化。
 
-![](../Images/2cc99c9616fd854e28c2c64dc2db9bdd.png)![](../Images/c2c7c57e436713ba9a76c8380b1c3680.png)
+![](img/2cc99c9616fd854e28c2c64dc2db9bdd.png)![](img/c2c7c57e436713ba9a76c8380b1c3680.png)
 
-图8：单元2（a1_2）的输出，聚合到输出（a2_0）以产生片段（3）。红色箭头表示斜率的变化。
+图 8：单元 2（a1_2）的输出，聚合到输出（a2_0）以产生片段（3）。红色箭头表示斜率的变化。
 
-![](../Images/cc95f6c47f81f48362d89b9f2456ade4.png)![](../Images/eb8a7102340e818e0dc2fc793b9e6c16.png)
+![](img/cc95f6c47f81f48362d89b9f2456ade4.png)![](img/eb8a7102340e818e0dc2fc793b9e6c16.png)
 
 图 9：单元 3（a1_3）的输出，它被聚合到输出（a2_0）中生成段（4）。红色箭头表示斜率的变化。
 
@@ -76,7 +76,7 @@ ReLU是一个分段线性函数，由两部分线性函数组成：一部分将�
 
 然而，在实际情况中，网络是为了拟合给定的数据集而训练的，其中输入输出映射函数是未知的。具有过多神经元的架构容易出现过拟合、高方差，并且需要更多的训练时间。因此，隐藏单元的适当数量应该足够大以正确拟合数据，同时又要足够小以避免过拟合。此外，在神经元数量有限的情况下，一个具有低损失的良好近似会在有限域内有更多的过渡点，而不是均匀采样方式下的等距过渡点（如*图 10*所示）。
 
-![](../Images/259fc3f5bef997908f75399fc78918ca.png)
+![](img/259fc3f5bef997908f75399fc78918ca.png)
 
 图 10：两种分段线性近似连续曲线函数（以虚线表示）。近似 1 在有限域内有更多的过渡点，并且比近似 2 更好地拟合目标函数。
 

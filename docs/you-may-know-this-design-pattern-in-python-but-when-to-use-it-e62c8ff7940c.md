@@ -1,16 +1,16 @@
 # 你可能已经知道 Python 中的这个设计模式，但该何时使用它呢？
 
-> 原文：[https://towardsdatascience.com/you-may-know-this-design-pattern-in-python-but-when-to-use-it-e62c8ff7940c?source=collection_archive---------5-----------------------#2024-03-31](https://towardsdatascience.com/you-may-know-this-design-pattern-in-python-but-when-to-use-it-e62c8ff7940c?source=collection_archive---------5-----------------------#2024-03-31)
+> 原文：[`towardsdatascience.com/you-may-know-this-design-pattern-in-python-but-when-to-use-it-e62c8ff7940c?source=collection_archive---------5-----------------------#2024-03-31`](https://towardsdatascience.com/you-may-know-this-design-pattern-in-python-but-when-to-use-it-e62c8ff7940c?source=collection_archive---------5-----------------------#2024-03-31)
 
-![](../Images/9cc611bb9a0181b91a6978e19ef2a5e1.png)
+![](img/9cc611bb9a0181b91a6978e19ef2a5e1.png)
 
 图片来自 [Pexels](https://pixabay.com/users/pexels-2286921/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=1846774) 自 [Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=1846774)
 
 ## 从教程到 Python 单例设计模式的实用示例
 
-[](https://christophertao.medium.com/?source=post_page---byline--e62c8ff7940c--------------------------------)[![Christopher Tao](../Images/bea1e3c81cc62eb28bdba9275d6b326f.png)](https://christophertao.medium.com/?source=post_page---byline--e62c8ff7940c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e62c8ff7940c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e62c8ff7940c--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--e62c8ff7940c--------------------------------)
+[](https://christophertao.medium.com/?source=post_page---byline--e62c8ff7940c--------------------------------)![Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--e62c8ff7940c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e62c8ff7940c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e62c8ff7940c--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--e62c8ff7940c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e62c8ff7940c--------------------------------) ·阅读时长 8 分钟·2024年3月31日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e62c8ff7940c--------------------------------) ·阅读时长 8 分钟·2024 年 3 月 31 日
 
 --
 
@@ -22,7 +22,7 @@
 
 # 1\. 如何编写一个基本的单例模式
 
-![](../Images/cea125b8548748e3c387d43f747018aa.png)
+![](img/cea125b8548748e3c387d43f747018aa.png)
 
 图片来自 [eko pramono](https://pixabay.com/users/nature_design-16152932/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=5241253) 自 [Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=5241253)
 

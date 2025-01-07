@@ -1,12 +1,12 @@
 # **关于机器学习测试，没人告诉你的事**
 
-> 原文：[https://towardsdatascience.com/things-no-one-tells-you-about-testing-machine-learning-28b7a3df3bca?source=collection_archive---------6-----------------------#2024-01-04](https://towardsdatascience.com/things-no-one-tells-you-about-testing-machine-learning-28b7a3df3bca?source=collection_archive---------6-----------------------#2024-01-04)
+> 原文：[`towardsdatascience.com/things-no-one-tells-you-about-testing-machine-learning-28b7a3df3bca?source=collection_archive---------6-----------------------#2024-01-04`](https://towardsdatascience.com/things-no-one-tells-you-about-testing-machine-learning-28b7a3df3bca?source=collection_archive---------6-----------------------#2024-01-04)
 
 ## 如何避免灾难
 
-[](https://medium.com/@ryan.feather?source=post_page---byline--28b7a3df3bca--------------------------------)[![Ryan Feather](../Images/085e617055a63eed8c00837edef17837.png)](https://medium.com/@ryan.feather?source=post_page---byline--28b7a3df3bca--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--28b7a3df3bca--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--28b7a3df3bca--------------------------------) [Ryan Feather](https://medium.com/@ryan.feather?source=post_page---byline--28b7a3df3bca--------------------------------)
+[](https://medium.com/@ryan.feather?source=post_page---byline--28b7a3df3bca--------------------------------)![Ryan Feather](https://medium.com/@ryan.feather?source=post_page---byline--28b7a3df3bca--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--28b7a3df3bca--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28b7a3df3bca--------------------------------) [Ryan Feather](https://medium.com/@ryan.feather?source=post_page---byline--28b7a3df3bca--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28b7a3df3bca--------------------------------) ·7分钟阅读·2024年1月4日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28b7a3df3bca--------------------------------) ·7 分钟阅读·2024 年 1 月 4 日
 
 --
 
@@ -14,9 +14,9 @@
 
 没有人愿意在事后被叫去修复一个令人尴尬的机器学习应用。如果你的客户已经指出有问题，那就意味着你失去了信任。现在是时候疯狂地尝试调试并修复一个可能涉及数十亿自动学习参数的系统了。
 
-![](../Images/9267516a16e656b2cc2a69feebc53c5f.png)
+![](img/9267516a16e656b2cc2a69feebc53c5f.png)
 
-图片由作者使用Stable Diffusion创建
+图片由作者使用 Stable Diffusion 创建
 
 如果这听起来有些抽象或不太可能，以下是我自己职业生涯中的一些例子，这些模型在“测试”集上表现良好，但在实际应用中却有不同的结果：
 
@@ -65,11 +65,11 @@ def test_pipeline(pipeline_instance):
     assert np.testing.assert_almost_equal(result, 0.1337)
 ```
 
-测试整个管道保持ML应用的健康。
+测试整个管道保持 ML 应用的健康。
 
 ## 信任是有代价的。
 
-在开发ML管道时，偏执是一种美德。你的管道和依赖关系越复杂，出错的可能性就越大，而这些错误往往是你的算法至关重要的部分。即使你的上游依赖由有能力的团队管理，你真的能指望他们永远不会犯错吗？**输入数据绝对不会被破坏的可能性为零吗**？**大概不行。**但是，为人类所犯错误做准备的公式其实很简单。
+在开发 ML 管道时，偏执是一种美德。你的管道和依赖关系越复杂，出错的可能性就越大，而这些错误往往是你的算法至关重要的部分。即使你的上游依赖由有能力的团队管理，你真的能指望他们永远不会犯错吗？**输入数据绝对不会被破坏的可能性为零吗**？**大概不行。**但是，为人类所犯错误做准备的公式其实很简单。
 
 1.  坚持已知的输入范围。
 
@@ -92,21 +92,21 @@ def check_inputs(frame):
     raise ValueError("Some square_footage values are not in plausible range") 
 ```
 
-上面的例子演示了公式。只需对每个输入重复此操作。将其放在管道的最前面。嘈杂的验证函数实现起来很快，并能帮助团队避免不幸的后果。这种简单的检查方法本可以帮助我们避免那次不幸的“空值替换为零”错误。然而，这些测试并不能捕捉到所有涉及多变量交互的场景。这时，稍后提到的MLOps技术便会发挥作用，显著提高鲁棒性水平。
+上面的例子演示了公式。只需对每个输入重复此操作。将其放在管道的最前面。嘈杂的验证函数实现起来很快，并能帮助团队避免不幸的后果。这种简单的检查方法本可以帮助我们避免那次不幸的“空值替换为零”错误。然而，这些测试并不能捕捉到所有涉及多变量交互的场景。这时，稍后提到的 MLOps 技术便会发挥作用，显著提高鲁棒性水平。
 
 # 运行真实数据障碍赛。
 
 单元测试就像一把外科手术刀，能够精确控制并执行代码中的具体路径。集成测试则非常适合检查数据是否按预期流经整个系统。然而，**在真实数据中总是存在“未知的未知”**。
 
-理想的部署前检查是将你的ML管道应用于尽可能多的真实数据，具体取决于时间和成本。接下来，对结果进行剖析，以发现异常值、错误和边缘情况。作为额外的好处，你还可以利用大规模执行进行性能测试和基础设施成本估算。
+理想的部署前检查是将你的 ML 管道应用于尽可能多的真实数据，具体取决于时间和成本。接下来，对结果进行剖析，以发现异常值、错误和边缘情况。作为额外的好处，你还可以利用大规模执行进行性能测试和基础设施成本估算。
 
-另一个有效的策略是“软启动”你的模型。在正式发布之前，先让一小部分用户体验。这让你能够发现任何负面的用户反馈，并且可以在小规模上找到真实世界中的失败，而不是在大规模上发现。这也是一个很好的时机，可以对现有或替代方案进行A/B测试。
+另一个有效的策略是“软启动”你的模型。在正式发布之前，先让一小部分用户体验。这让你能够发现任何负面的用户反馈，并且可以在小规模上找到真实世界中的失败，而不是在大规模上发现。这也是一个很好的时机，可以对现有或替代方案进行 A/B 测试。
 
 # **测试永远不够**。
 
 创建并认真维护单元测试只是开始。显然，实时软件需要异常处理策略、监控和告警。当软件依赖于一个可能很快过时的学习模型时，这一点尤为重要。
 
-MLOps领域已经发展起来，专门解决这些挑战。本文不会深入概述MLOps的现状，但这里有一些快速的想法，帮助你监控ML应用程序，超越"[黄金信号](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals)"。
+MLOps 领域已经发展起来，专门解决这些挑战。本文不会深入概述 MLOps 的现状，但这里有一些快速的想法，帮助你监控 ML 应用程序，超越"[黄金信号](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals)"。
 
 +   **寻找目标漂移——预测分布与长期或测试平均值之间的偏差。** 例如，在足够大的样本中，预测的类别应与基础率分布相似。你可以监控最近预测与预期分布之间的偏离，作为某些事情发生变化的迹象。
 

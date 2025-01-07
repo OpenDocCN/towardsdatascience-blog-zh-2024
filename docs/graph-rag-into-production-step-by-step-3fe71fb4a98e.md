@@ -1,20 +1,20 @@
 # 将 Graph RAG 投入生产——逐步指南
 
-> 原文：[https://towardsdatascience.com/graph-rag-into-production-step-by-step-3fe71fb4a98e?source=collection_archive---------0-----------------------#2024-09-23](https://towardsdatascience.com/graph-rag-into-production-step-by-step-3fe71fb4a98e?source=collection_archive---------0-----------------------#2024-09-23)
+> 原文：[`towardsdatascience.com/graph-rag-into-production-step-by-step-3fe71fb4a98e?source=collection_archive---------0-----------------------#2024-09-23`](https://towardsdatascience.com/graph-rag-into-production-step-by-step-3fe71fb4a98e?source=collection_archive---------0-----------------------#2024-09-23)
 
-![](../Images/203dbf1037dad17615e4716e4782dc37.png)
+![](img/203dbf1037dad17615e4716e4782dc37.png)
 
 图片由[JJ Ying](https://unsplash.com/@jjying?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 一个原生于 GCP、完全无服务器的实现，你只需几分钟即可复制
 
-[](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[![Jakob Pörschmann](../Images/b130445bf9ac471b70070eb4a2dc6b64.png)](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------) [Jakob Pörschmann](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)
+[](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)![Jakob Pörschmann](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------) [Jakob Pörschmann](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------) ·阅读时长 14 分钟·2024年9月23日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------) ·阅读时长 14 分钟·2024 年 9 月 23 日
 
 --
 
-在[概述 Graph RAG 概念](/graph-rag-a-conceptual-introduction-41cd0d431375)后，让我们将其投入生产。这就是如何将 GraphRAG 投入生产：完全无服务器、完全并行化，以最小化推理和索引时间，而且完全不涉及图数据库（保证！）。
+在概述 Graph RAG 概念后，让我们将其投入生产。这就是如何将 GraphRAG 投入生产：完全无服务器、完全并行化，以最小化推理和索引时间，而且完全不涉及图数据库（保证！）。
 
 在本文中，我将向您介绍[graphrag-lite](https://github.com/jakobap/graphrag-light)，这是一个端到端的 Graph RAG 数据摄取和查询实现。我将 graphrag-lite 作为开源项目发布，旨在让您在 GCP 上部署 graphrag 时更加轻松。graphrag-lite 是 Google Cloud 原生的，可以直接使用。代码以模块化方式设计，可以根据您选择的平台进行调整。
 
@@ -22,19 +22,19 @@
 
 检索增强生成（Retrieval Augmented Generation）本身并未描述任何特定的架构或方法。它仅展示了如何通过任意的检索方法增强给定的生成任务。原始的 RAG 论文（[《面向知识密集型 NLP 任务的检索增强生成》](https://arxiv.org/abs/2005.11401)，作者：Lewis 等）比较了两塔嵌入方法与词袋检索方法。
 
-现代问答系统区分局部问题和全局问题。一个局部（提取性）问题可能是“2023年谁获得了诺贝尔和平奖？”，针对一个非结构化的样本知识库。一个全局（聚合性）问题可能是“你知道的最近诺贝尔奖得主是谁？”。Text2embedding RAG在处理全局和结构化问题时存在明显的缺口。Graph RAG能够弥补这些缺口，并且做得很好！通过一个抽象层，它学习知识图谱社区的语义，从而构建对索引数据集的更“全球化”的理解。[这里是Graph RAG的概念介绍，供你阅读。](/graph-rag-a-conceptual-introduction-41cd0d431375)
+现代问答系统区分局部问题和全局问题。一个局部（提取性）问题可能是“2023 年谁获得了诺贝尔和平奖？”，针对一个非结构化的样本知识库。一个全局（聚合性）问题可能是“你知道的最近诺贝尔奖得主是谁？”。Text2embedding RAG 在处理全局和结构化问题时存在明显的缺口。Graph RAG 能够弥补这些缺口，并且做得很好！通过一个抽象层，它学习知识图谱社区的语义，从而构建对索引数据集的更“全球化”的理解。这里是 Graph RAG 的概念介绍，供你阅读。
 
-# Graph RAG管道
+# Graph RAG 管道
 
-一个Graph RAG管道通常遵循以下步骤：
+一个 Graph RAG 管道通常遵循以下步骤：
 
 ## 图谱提取
 
-这是主要的摄取步骤。你的LLM扫描每一个传入的文档，使用提示来提取与我们知识图谱相关的节点和边。你会多次执行此提示，确保捕捉到所有相关的信息。
+这是主要的摄取步骤。你的 LLM 扫描每一个传入的文档，使用提示来提取与我们知识图谱相关的节点和边。你会多次执行此提示，确保捕捉到所有相关的信息。
 
 ## 图谱存储
 
-你将提取的节点和边存储在你选择的数据存储中。专用图数据库（Graph DB）是一个选项，但它们通常比较繁琐。Graph2nosql是一个基于Python的接口，用于在Firestore或任何其他NoSQL数据库中存储和管理知识图谱。我开源了这个项目，因为我没有找到任何市场上可比的、原生支持知识图谱的选项。
+你将提取的节点和边存储在你选择的数据存储中。专用图数据库（Graph DB）是一个选项，但它们通常比较繁琐。Graph2nosql 是一个基于 Python 的接口，用于在 Firestore 或任何其他 NoSQL 数据库中存储和管理知识图谱。我开源了这个项目，因为我没有找到任何市场上可比的、原生支持知识图谱的选项。
 
 ## 社区检测
 
@@ -46,15 +46,15 @@
 
 ## 用于最终上下文构建的映射-归约（Map-Reduce）模式
 
-在查询时，你遵循映射-归约（map-reduce）模式，为知识图谱中的每个社区报告生成一个中间响应。你还让LLM评估每个中间查询响应的相关性。最后，你根据相关性对中间响应进行排名，并选择前n个作为最终响应的上下文，回复用户。
+在查询时，你遵循映射-归约（map-reduce）模式，为知识图谱中的每个社区报告生成一个中间响应。你还让 LLM 评估每个中间查询响应的相关性。最后，你根据相关性对中间响应进行排名，并选择前 n 个作为最终响应的上下文，回复用户。
 
-![](../Images/00aa36eaa8a8bf508304c06feae85d4e.png)
+![](img/00aa36eaa8a8bf508304c06feae85d4e.png)
 
-Graph RAG逐步逻辑 — 图像由作者提供
+Graph RAG 逐步逻辑 — 图像由作者提供
 
 # 图谱提取
 
-在初始摄取步骤中，你需要指示你的LLM将输入文档编码为图形。一个详细的提示会指示你的LLM首先识别给定类型的节点，其次识别你所识别节点之间的边。就像任何LLM提示一样，这个挑战没有唯一的解决方案。以下是我基于[微软的开源实现](https://github.com/microsoft/graphrag)的图形提取提示核心部分：
+在初始摄取步骤中，你需要指示你的 LLM 将输入文档编码为图形。一个详细的提示会指示你的 LLM 首先识别给定类型的节点，其次识别你所识别节点之间的边。就像任何 LLM 提示一样，这个挑战没有唯一的解决方案。以下是我基于[微软的开源实现](https://github.com/microsoft/graphrag)的图形提取提示核心部分：
 
 ```py
 -Goal-
@@ -149,7 +149,7 @@ class GraphExtractor:
 
 一旦你从文档中提取了节点和边，你需要以可访问的格式存储它们。图形数据库是一个选择，但它们也可能比较繁琐。对于你的知识图谱，你可能更倾向于寻找一些更轻量级的解决方案。我也有同样的想法，因为我没有找到任何开源的知识图谱本地库，于是我开源了 graph2nosql。[Graph2nosql 是一个简单的知识图谱本地 Python 接口](https://github.com/jakobap/graph2nosql)，它帮助你在任何 NoSQL 数据库中存储和管理知识图谱。所有这一切都无需通过图形数据库来扩展你的技术栈，或学习 Cypher。
 
-Graph2nosql 是为知识图谱检索而设计的，考虑到了图形RAG的需求。该库围绕三种主要数据类型进行设计：EdgeData（边数据）、NodeData（节点数据）和CommunityData（社区数据）。节点通过唯一标识符（uid）识别。边通过源节点和目标节点的uid以及边的uid识别。由于uid可以自由设计，graph2nosql的数据模型为任何规模的知识图谱留出了空间。你甚至可以添加文本或图形嵌入。这使得基于嵌入的分析、边预测和额外的文本嵌入检索成为可能（考虑到混合RAG）。
+Graph2nosql 是为知识图谱检索而设计的，考虑到了图形 RAG 的需求。该库围绕三种主要数据类型进行设计：EdgeData（边数据）、NodeData（节点数据）和 CommunityData（社区数据）。节点通过唯一标识符（uid）识别。边通过源节点和目标节点的 uid 以及边的 uid 识别。由于 uid 可以自由设计，graph2nosql 的数据模型为任何规模的知识图谱留出了空间。你甚至可以添加文本或图形嵌入。这使得基于嵌入的分析、边预测和额外的文本嵌入检索成为可能（考虑到混合 RAG）。
 
 [Graph2nosql](https://github.com/jakobap/graph2nosql) 本地设计时围绕 Firestore。
 
@@ -216,9 +216,9 @@ fskg.add_node(node_uid=entity_name,node_data=node_data)
 
 # 社区检测
 
-将所有相关的节点和边存储在你的图形数据库中后，你可以开始构建抽象层。实现这一点的一种方式是查找描述相似概念的节点，并描述它们是如何在语义上连接的。例如，Graph2nosql 提供了内建的社区检测，基于Louvain社区。
+将所有相关的节点和边存储在你的图形数据库中后，你可以开始构建抽象层。实现这一点的一种方式是查找描述相似概念的节点，并描述它们是如何在语义上连接的。例如，Graph2nosql 提供了内建的社区检测，基于 Louvain 社区。
 
-根据您的提取结果质量，您可能会在知识图谱中发现零度节点。从经验来看，零度节点通常是重复的。graphrag-lite使用图社区作为主要的抽象层，因此您应该删除没有任何边的节点。因此，考虑进行另一个去重/合并步骤和/或基于描述和图嵌入的节点预测步骤，以添加在提取步骤中可能遗漏的边是有意义的。在graphrag-lite中，我目前简单地删除所有零度节点。
+根据您的提取结果质量，您可能会在知识图谱中发现零度节点。从经验来看，零度节点通常是重复的。graphrag-lite 使用图社区作为主要的抽象层，因此您应该删除没有任何边的节点。因此，考虑进行另一个去重/合并步骤和/或基于描述和图嵌入的节点预测步骤，以添加在提取步骤中可能遗漏的边是有意义的。在 graphrag-lite 中，我目前简单地删除所有零度节点。
 
 ```py
 # clean graph off all nodes without any edges
@@ -228,17 +228,17 @@ fskg.clean_zerodegree_nodes()
 comms = kg.get_louvain_communities()
 ```
 
-这是[graphrag-lite社区检测的实现](https://github.com/jakobap/graphrag-light/blob/39d7ed73fe23509951a8c93cc4806499110e1433/graphrag_lite/GraphExtractor.py#L508C1-L509C1)。
+这是[graphrag-lite 社区检测的实现](https://github.com/jakobap/graphrag-light/blob/39d7ed73fe23509951a8c93cc4806499110e1433/graphrag_lite/GraphExtractor.py#L508C1-L509C1)。
 
-# 优化LLM应用中的吞吐量延迟
+# 优化 LLM 应用中的吞吐量延迟
 
-上述提到的GraphRAG管道在每个文档摄取和用户查询时都会进行多个LLM调用。例如，为每个新索引的文档生成多个社区报告，或者在查询时为多个社区生成中间响应。如果并发处理，结果将导致糟糕的用户体验。特别是在大规模应用时，用户可能需要等待几分钟到几小时才能收到查询的响应。幸运的是，如果您正确构建LLM提示，您可以将其设计为“无状态工作者”。无状态处理架构的优势是双重的。首先，它们易于并行化。其次，它们易于实现为无服务器基础设施。结合并行化和无服务器架构，可以最大化吞吐量可扩展性，并最小化空闲集群设置的成本。
+上述提到的 GraphRAG 管道在每个文档摄取和用户查询时都会进行多个 LLM 调用。例如，为每个新索引的文档生成多个社区报告，或者在查询时为多个社区生成中间响应。如果并发处理，结果将导致糟糕的用户体验。特别是在大规模应用时，用户可能需要等待几分钟到几小时才能收到查询的响应。幸运的是，如果您正确构建 LLM 提示，您可以将其设计为“无状态工作者”。无状态处理架构的优势是双重的。首先，它们易于并行化。其次，它们易于实现为无服务器基础设施。结合并行化和无服务器架构，可以最大化吞吐量可扩展性，并最小化空闲集群设置的成本。
 
-在graphrag-lite架构中，我将社区报告生成和中间查询生成作为无服务器的Cloud Run微服务工作者进行托管。这些工作者通过GCP的无服务器消息队列PubSub接收消息。
+在 graphrag-lite 架构中，我将社区报告生成和中间查询生成作为无服务器的 Cloud Run 微服务工作者进行托管。这些工作者通过 GCP 的无服务器消息队列 PubSub 接收消息。
 
-![](../Images/c49303b5e6ca48937ad3fc3115f7eb01.png)
+![](img/c49303b5e6ca48937ad3fc3115f7eb01.png)
 
-graphrag-lite的无服务器分布式摄取和查询管道 — 图片由作者提供
+graphrag-lite 的无服务器分布式摄取和查询管道 — 图片由作者提供
 
 # 社区报告生成
 
@@ -263,7 +263,7 @@ The report should include the following sections:
 
 社区报告生成还展示了知识图谱检索中的最大挑战。从理论上讲，任何文档都可能向图中的每个现有社区添加一个新节点。在最坏的情况下，您需要在每次添加新文档时重新生成知识库中的每个社区报告。实际上，关键是要包含一个检测步骤，识别在文档上传后发生变化的社区，从而仅为已调整的社区生成新报告。
 
-由于您需要为每次文档上传重新生成多个社区报告，如果同时运行这些请求，我们也面临显著的延迟挑战。因此，您应该将这项工作外包并将其并行化到异步工作者中。如前所述，graphrag-lite通过使用无服务器架构解决了这一问题。我使用PubSub作为消息队列来管理工作项并确保处理。Cloud Run作为计算平台，托管调用LLM的无状态工作者。在生成过程中，它们使用如上所示的提示。
+由于您需要为每次文档上传重新生成多个社区报告，如果同时运行这些请求，我们也面临显著的延迟挑战。因此，您应该将这项工作外包并将其并行化到异步工作者中。如前所述，graphrag-lite 通过使用无服务器架构解决了这一问题。我使用 PubSub 作为消息队列来管理工作项并确保处理。Cloud Run 作为计算平台，托管调用 LLM 的无状态工作者。在生成过程中，它们使用如上所示的提示。
 
 [这是运行在无状态工作者中的社区报告生成代码](https://github.com/jakobap/graphrag-light/blob/main/stateless-comm-reporter/main.py)：
 
@@ -398,7 +398,7 @@ response:
 
 # 最终用户响应的归约步骤
 
-为了成功完成归约步骤，您需要存储中间响应以便在查询时访问。在graphrag-lite中，我使用Firestore作为微服务之间的共享状态。在触发中间响应生成后，客户端还会定期检查共享状态中是否存在所有预期的条目。以下是来自graphrag-lite的代码片段，展示了我如何将每个社区报告提交到PubSub队列中。之后，我定期查询共享状态，以检查是否所有中间响应都已处理。最后，针对用户的最终响应将使用得分最高的社区报告作为上下文来回应用户查询。
+为了成功完成归约步骤，您需要存储中间响应以便在查询时访问。在 graphrag-lite 中，我使用 Firestore 作为微服务之间的共享状态。在触发中间响应生成后，客户端还会定期检查共享状态中是否存在所有预期的条目。以下是来自 graphrag-lite 的代码片段，展示了我如何将每个社区报告提交到 PubSub 队列中。之后，我定期查询共享状态，以检查是否所有中间响应都已处理。最后，针对用户的最终响应将使用得分最高的社区报告作为上下文来回应用户查询。
 
 ```py
 class KGraphGlobalQuery:

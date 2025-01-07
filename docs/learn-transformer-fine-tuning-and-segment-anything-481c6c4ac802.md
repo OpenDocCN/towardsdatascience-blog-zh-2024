@@ -1,52 +1,52 @@
-# 学习Transformer微调与Segment Anything
+# 学习 Transformer 微调与 Segment Anything
 
-> 原文：[https://towardsdatascience.com/learn-transformer-fine-tuning-and-segment-anything-481c6c4ac802?source=collection_archive---------0-----------------------#2024-06-30](https://towardsdatascience.com/learn-transformer-fine-tuning-and-segment-anything-481c6c4ac802?source=collection_archive---------0-----------------------#2024-06-30)
+> 原文：[`towardsdatascience.com/learn-transformer-fine-tuning-and-segment-anything-481c6c4ac802?source=collection_archive---------0-----------------------#2024-06-30`](https://towardsdatascience.com/learn-transformer-fine-tuning-and-segment-anything-481c6c4ac802?source=collection_archive---------0-----------------------#2024-06-30)
 
-## 训练Meta的Segment Anything Model（SAM），为任何领域分割高保真掩模
+## 训练 Meta 的 Segment Anything Model（SAM），为任何领域分割高保真掩模
 
-[](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)[![Stefan Todoran](../Images/37e67b874c85a58d597a6c8c82b1160f.png)](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------) [Stefan Todoran](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)
+[](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)![Stefan Todoran](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------) [Stefan Todoran](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------) ·11分钟阅读·2024年6月30日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------) ·11 分钟阅读·2024 年 6 月 30 日
 
 --
 
-几个强大的开源基础模型的发布以及微调技术的进步，带来了机器学习和人工智能领域的新范式。这场革命的核心是[transformer模型](https://arxiv.org/pdf/1706.03762)。
+几个强大的开源基础模型的发布以及微调技术的进步，带来了机器学习和人工智能领域的新范式。这场革命的核心是[transformer 模型](https://arxiv.org/pdf/1706.03762)。
 
 尽管高准确度的领域特定模型曾经只属于资金雄厚的公司，但如今，基础模型的范式使得即使是学生或独立研究者所拥有的有限资源，也能够取得与最先进的专有模型相媲美的成果。
 
-![](../Images/79d4f3b808380557b9859fb5d468c3fd.png)
+![](img/79d4f3b808380557b9859fb5d468c3fd.png)
 
 微调可以显著提升在分布外任务上的表现（图片来源：作者提供）。
 
-本文探讨了Meta的Segment Anything Model（SAM）在遥感任务中应用于河流像素分割。如果你想直接跳入代码，项目的源文件可以在[GitHub](https://github.com/geo-smart/water-surf/blob/main/book/chapters/masking_distributed.ipynb)上找到，数据也在[HuggingFace](https://huggingface.co/datasets/stodoran/elwha-segmentation-v1)上发布，尽管建议先阅读完整的文章。
+本文探讨了 Meta 的 Segment Anything Model（SAM）在遥感任务中应用于河流像素分割。如果你想直接跳入代码，项目的源文件可以在[GitHub](https://github.com/geo-smart/water-surf/blob/main/book/chapters/masking_distributed.ipynb)上找到，数据也在[HuggingFace](https://huggingface.co/datasets/stodoran/elwha-segmentation-v1)上发布，尽管建议先阅读完整的文章。
 
 # 项目要求
 
-第一步是找到或创建一个合适的数据集。根据现有文献，适合SAM的微调数据集应该至少包含200到800张图像。过去十年深度学习发展的一个关键经验是，更多的数据总是更好，因此更大的微调数据集是不会错的。然而，基础模型的目标是使得即使是相对较小的数据集也足以获得强劲的表现。
+第一步是找到或创建一个合适的数据集。根据现有文献，适合 SAM 的微调数据集应该至少包含 200 到 800 张图像。过去十年深度学习发展的一个关键经验是，更多的数据总是更好，因此更大的微调数据集是不会错的。然而，基础模型的目标是使得即使是相对较小的数据集也足以获得强劲的表现。
 
-还需要一个HuggingFace账户，可以在[此处创建](https://huggingface.co/join)。通过HuggingFace，我们可以轻松地在任何设备上随时存储和获取我们的数据集，这使得协作和可重复性变得更加容易。
+还需要一个 HuggingFace 账户，可以在[此处创建](https://huggingface.co/join)。通过 HuggingFace，我们可以轻松地在任何设备上随时存储和获取我们的数据集，这使得协作和可重复性变得更加容易。
 
-最后的要求是有一台配备GPU的设备，我们可以在其上运行训练工作流。Nvidia T4 GPU，通过[Google Colab](https://colab.research.google.com/)免费提供，足够强大，可以在12小时内对1000张图像进行50个epoch的训练，并训练出最大的SAM模型检查点（sam-vit-huge）。
+最后的要求是有一台配备 GPU 的设备，我们可以在其上运行训练工作流。Nvidia T4 GPU，通过[Google Colab](https://colab.research.google.com/)免费提供，足够强大，可以在 12 小时内对 1000 张图像进行 50 个 epoch 的训练，并训练出最大的 SAM 模型检查点（sam-vit-huge）。
 
-为避免因托管运行时的使用限制而丢失进度，您可以挂载Google Drive并将每个模型检查点保存到那里。或者，部署并连接到[GCP虚拟机](https://console.cloud.google.com/marketplace/product/colab-marketplace-image-public/colab)以绕过这些限制。如果您以前从未使用过GCP，您将有资格获得300美元的免费信用，这足以让您至少训练模型十二次。
+为避免因托管运行时的使用限制而丢失进度，您可以挂载 Google Drive 并将每个模型检查点保存到那里。或者，部署并连接到[GCP 虚拟机](https://console.cloud.google.com/marketplace/product/colab-marketplace-image-public/colab)以绕过这些限制。如果您以前从未使用过 GCP，您将有资格获得 300 美元的免费信用，这足以让您至少训练模型十二次。
 
-# 理解SAM
+# 理解 SAM
 
-在我们开始训练之前，我们需要了解SAM的架构。该模型包含三个组件：一个经过最小修改的[掩膜自编码器](https://arxiv.org/pdf/2111.06377)作为图像编码器，一个能够处理多种提示类型的灵活提示编码器，以及一个快速轻量的掩膜解码器。设计的一个动机是允许在边缘设备（例如浏览器）上实现快速、实时的分割，因为图像嵌入只需要计算一次，掩膜解码器可以在CPU上约50毫秒内运行。
+在我们开始训练之前，我们需要了解 SAM 的架构。该模型包含三个组件：一个经过最小修改的[掩膜自编码器](https://arxiv.org/pdf/2111.06377)作为图像编码器，一个能够处理多种提示类型的灵活提示编码器，以及一个快速轻量的掩膜解码器。设计的一个动机是允许在边缘设备（例如浏览器）上实现快速、实时的分割，因为图像嵌入只需要计算一次，掩膜解码器可以在 CPU 上约 50 毫秒内运行。
 
-![](../Images/1ca364b41e10eba87510cb407ede1fcf.png)
+![](img/1ca364b41e10eba87510cb407ede1fcf.png)
 
-SAM的模型架构展示了模型接受的输入以及需要训练的模型部分（图像来源：[SAM GitHub](https://github.com/facebookresearch/segment-anything)）。
+SAM 的模型架构展示了模型接受的输入以及需要训练的模型部分（图像来源：[SAM GitHub](https://github.com/facebookresearch/segment-anything)）。
 
 理论上，图像编码器已经学会了嵌入图像的最佳方式，能够识别形状、边缘和其他一般视觉特征。类似地，理论上，提示编码器已经能够优化地编码提示。掩膜解码器是模型架构的一部分，它接收这些图像和提示的嵌入，并通过操作图像和提示嵌入来实际创建掩膜。
 
 因此，一种方法是在训练过程中冻结与图像和提示编码器相关的模型参数，只更新掩膜解码器的权重。这种方法的好处是能够同时支持监督学习和无监督学习的下游任务，因为控制点和边界框提示既可以自动化，也可以由人类使用。
 
-![](../Images/9bd06d274db8c4e8c28203001b9df717.png)
+![](img/9bd06d274db8c4e8c28203001b9df717.png)
 
-展示冻结的SAM图像编码器和掩膜解码器，以及在AutoSAM架构中使用的超载提示编码器的示意图（来源：[AutoSAM论文](https://arxiv.org/pdf/2306.06370)）。
+展示冻结的 SAM 图像编码器和掩膜解码器，以及在 AutoSAM 架构中使用的超载提示编码器的示意图（来源：[AutoSAM 论文](https://arxiv.org/pdf/2306.06370)）。
 
-另一种方法是重载提示编码器，冻结图像编码器和掩膜解码器，并简单地不使用原始SAM掩膜编码器。例如，AutoSAM架构使用基于Harmonic Dense Net的网络来根据图像本身生成提示嵌入。在本教程中，我们将介绍第一种方法，即冻结图像和提示编码器，仅训练掩膜解码器，但关于这种替代方法的代码可以在AutoSAM的[GitHub](https://github.com/talshaharabany/AutoSAM/blob/main/inference.py)和[论文](https://arxiv.org/pdf/2306.06370)中找到。
+另一种方法是重载提示编码器，冻结图像编码器和掩膜解码器，并简单地不使用原始 SAM 掩膜编码器。例如，AutoSAM 架构使用基于 Harmonic Dense Net 的网络来根据图像本身生成提示嵌入。在本教程中，我们将介绍第一种方法，即冻结图像和提示编码器，仅训练掩膜解码器，但关于这种替代方法的代码可以在 AutoSAM 的[GitHub](https://github.com/talshaharabany/AutoSAM/blob/main/inference.py)和[论文](https://arxiv.org/pdf/2306.06370)中找到。
 
 # 配置提示
 
@@ -58,11 +58,11 @@ SAM的模型架构展示了模型接受的输入以及需要训练的模型部�
 
 +   点提示的可能空间比边界框提示的可能空间大几个数量级，因此它尚未被充分训练。
 
-+   原始SAM的作者关注于模型的零-shot和少量-shot（按人类提示交互次数计算）能力，因此预训练可能更侧重于边界框。
++   原始 SAM 的作者关注于模型的零-shot 和少量-shot（按人类提示交互次数计算）能力，因此预训练可能更侧重于边界框。
 
 不管怎样，河流分割实际上是一个特殊案例，其中点提示比边界框更有效（尽管即使在非常有利的领域中，差异也非常小）。鉴于任何一张河流图像中的水域几乎都会从图像的一端延伸到另一端，任何包含的边界框几乎总是会覆盖图像的大部分。因此，河流的不同部分的边界框提示看起来会非常相似，理论上意味着边界框提供给模型的信息远少于控制点，从而导致较差的表现。
 
-![](../Images/caef3506b78c144b9dca83f9982381dc.png)
+![](img/caef3506b78c144b9dca83f9982381dc.png)
 
 控制点、边界框提示以及在两张样本训练图像上叠加的真实分割掩膜（图片来源：作者提供）。
 
@@ -72,7 +72,7 @@ SAM的模型架构展示了模型接受的输入以及需要训练的模型部�
 
 无论是使用控制点还是边界框，生成提示通常首先涉及估计目标物体的粗略掩膜。边界框可以只是包裹粗略掩膜的最小矩形框，而控制点需要从粗略掩膜中采样。这意味着当地面真值掩膜未知时，边界框更容易获得，因为目标物体的估计掩膜只需要大致匹配真实物体的大小和位置，而对于控制点，估计的掩膜需要更精确地匹配物体的轮廓。
 
-![](../Images/e9b118912df2a60eb5dde9b81600cb6f.png)
+![](img/e9b118912df2a60eb5dde9b81600cb6f.png)
 
 使用估计掩膜而不是地面真值时，控制点的放置可能会包括误标的点，而边界框通常会在正确的位置（图片来源：作者提供）。
 
@@ -178,7 +178,7 @@ class SAMDataset(Dataset):
         return inputs
 ```
 
-将所有内容结合起来，我们可以创建一个函数，该函数接收HuggingFace数据集的任一分割，并生成并返回一个PyTorch数据加载器。编写返回数据加载器的函数，而不是仅仅执行包含相同代码的单元，不仅是编写灵活且可维护代码的好实践，而且如果你计划使用[HuggingFace Accelerate](https://huggingface.co/docs/accelerate/index)进行分布式训练，这也是必须的。
+将所有内容结合起来，我们可以创建一个函数，该函数接收 HuggingFace 数据集的任一分割，并生成并返回一个 PyTorch 数据加载器。编写返回数据加载器的函数，而不是仅仅执行包含相同代码的单元，不仅是编写灵活且可维护代码的好实践，而且如果你计划使用[HuggingFace Accelerate](https://huggingface.co/docs/accelerate/index)进行分布式训练，这也是必须的。
 
 ```py
 from transformers import SamProcessor
@@ -228,7 +228,7 @@ for name, param in model.named_parameters():
         param.requires_grad_(False)
 ```
 
-以下是训练循环代码的基本大纲。请注意，`forward_pass`、`calculate loss`、`evaluate_model`和`save_model_checkpoint`函数为了简洁起见没有展示，但实现代码可以在GitHub上找到。前向传播代码会根据提示类型有所不同，损失计算也需要根据提示类型做特殊处理；在使用点提示时，SAM会为每个输入点返回一个预测掩码，因此，为了获得一个可以与真实值进行比较的单一掩码，需要对预测掩码进行平均，或者选择最佳预测掩码（基于SAM预测的IoU分数）。
+以下是训练循环代码的基本大纲。请注意，`forward_pass`、`calculate loss`、`evaluate_model`和`save_model_checkpoint`函数为了简洁起见没有展示，但实现代码可以在 GitHub 上找到。前向传播代码会根据提示类型有所不同，损失计算也需要根据提示类型做特殊处理；在使用点提示时，SAM 会为每个输入点返回一个预测掩码，因此，为了获得一个可以与真实值进行比较的单一掩码，需要对预测掩码进行平均，或者选择最佳预测掩码（基于 SAM 预测的 IoU 分数）。
 
 ```py
 train_losses = []
@@ -287,25 +287,25 @@ while epoch < num_epochs:
 
 # 微调结果
 
-对于Elwha河项目，最佳设置使用GCP实例在12小时内训练了“sam-vit-base”模型，数据集包含超过1000个分割掩码。
+对于 Elwha 河项目，最佳设置使用 GCP 实例在 12 小时内训练了“sam-vit-base”模型，数据集包含超过 1000 个分割掩码。
 
-与基线SAM相比，微调显著提高了性能，中位掩码从不可用变为高度准确。
+与基线 SAM 相比，微调显著提高了性能，中位掩码从不可用变为高度准确。
 
-![](../Images/2a00107139c1bb22dddf9d3a329fc6cb.png)
+![](img/2a00107139c1bb22dddf9d3a329fc6cb.png)
 
-微调SAM大大改善了相对于基线SAM和默认提示的分割性能（图片来源：作者）。
+微调 SAM 大大改善了相对于基线 SAM 和默认提示的分割性能（图片来源：作者）。
 
-一个需要注意的重要事实是，训练数据集中的1000张河流图像并不完美，分割标签在正确分类像素的数量上差异很大。因此，上面展示的度量是基于一个保留的225张河流图像的像素完美数据集计算得出的。
+一个需要注意的重要事实是，训练数据集中的 1000 张河流图像并不完美，分割标签在正确分类像素的数量上差异很大。因此，上面展示的度量是基于一个保留的 225 张河流图像的像素完美数据集计算得出的。
 
 一个有趣的观察行为是，模型学会了从不完美的训练数据中进行泛化。当我们在包含明显误分类的训练示例上的数据点上进行评估时，我们可以观察到模型的预测避免了这些错误。请注意，显示训练样本的顶行图片中的掩码并没有完全覆盖河流到达河岸，而底行的模型预测则更紧密地分割了河流的边界。
 
-![](../Images/711983a57ffa0c862d13e50b50b1f44b.png)
+![](img/711983a57ffa0c862d13e50b50b1f44b.png)
 
-即使使用不完美的训练数据，微调SAM也能实现令人印象深刻的泛化。请注意，预测结果（底行）相比训练数据（顶行）有更少的误分类，并且更好地填充了河流区域。*图片来源：作者。*
+即使使用不完美的训练数据，微调 SAM 也能实现令人印象深刻的泛化。请注意，预测结果（底行）相比训练数据（顶行）有更少的误分类，并且更好地填充了河流区域。*图片来源：作者。*
 
 # 结论
 
-恭喜你！如果你已经走到这里，你已经学到了完全微调Meta的Segment Anything Model以适应任何下游视觉任务所需的所有知识！
+恭喜你！如果你已经走到这里，你已经学到了完全微调 Meta 的 Segment Anything Model 以适应任何下游视觉任务所需的所有知识！
 
 尽管你的微调工作流程无疑会与本文教程中展示的实现有所不同，但从阅读中获得的知识不仅会转移到你的分割项目上，还会对你未来的深度学习项目及其他项目产生帮助。
 
@@ -313,4 +313,4 @@ while epoch < num_epochs:
 
 # 附录
 
-本示例中使用的数据集是[Elwha V1 数据集](https://huggingface.co/datasets/stodoran/elwha-segmentation-v1)，由华盛顿大学的[GeoSMART研究实验室](https://geo-smart.github.io/)创建，用于一个关于将微调的大型视觉变换器应用于地理空间分割任务的研究项目。本文中的教程代表了即将发布论文的简化和更易接近的版本。总体而言，Elwha V1 数据集由SAM检查点模型的后处理预测组成，该模型使用由[Buscombe等人](https://zenodo.org/records/10155783)发布并在Zenodo上公开的标注正射影像子集进行微调。
+本示例中使用的数据集是[Elwha V1 数据集](https://huggingface.co/datasets/stodoran/elwha-segmentation-v1)，由华盛顿大学的[GeoSMART 研究实验室](https://geo-smart.github.io/)创建，用于一个关于将微调的大型视觉变换器应用于地理空间分割任务的研究项目。本文中的教程代表了即将发布论文的简化和更易接近的版本。总体而言，Elwha V1 数据集由 SAM 检查点模型的后处理预测组成，该模型使用由[Buscombe 等人](https://zenodo.org/records/10155783)发布并在 Zenodo 上公开的标注正射影像子集进行微调。

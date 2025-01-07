@@ -1,10 +1,10 @@
 # 将自己转化为 3D 高斯点绘
 
-> 原文：[https://towardsdatascience.com/turn-yourself-into-a-3d-gaussian-splat-3a2bc59a770f?source=collection_archive---------6-----------------------#2024-03-14](https://towardsdatascience.com/turn-yourself-into-a-3d-gaussian-splat-3a2bc59a770f?source=collection_archive---------6-----------------------#2024-03-14)
+> 原文：[`towardsdatascience.com/turn-yourself-into-a-3d-gaussian-splat-3a2bc59a770f?source=collection_archive---------6-----------------------#2024-03-14`](https://towardsdatascience.com/turn-yourself-into-a-3d-gaussian-splat-3a2bc59a770f?source=collection_archive---------6-----------------------#2024-03-14)
 
 ## **实践者**的动手指南
 
-[](https://medium.com/@SaschaKirch?source=post_page---byline--3a2bc59a770f--------------------------------)[![Sascha Kirch](../Images/a0d45da9dc9c602075b2810786c660c9.png)](https://medium.com/@SaschaKirch?source=post_page---byline--3a2bc59a770f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3a2bc59a770f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3a2bc59a770f--------------------------------) [Sascha Kirch](https://medium.com/@SaschaKirch?source=post_page---byline--3a2bc59a770f--------------------------------)
+[](https://medium.com/@SaschaKirch?source=post_page---byline--3a2bc59a770f--------------------------------)![Sascha Kirch](https://medium.com/@SaschaKirch?source=post_page---byline--3a2bc59a770f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3a2bc59a770f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a2bc59a770f--------------------------------) [Sascha Kirch](https://medium.com/@SaschaKirch?source=post_page---byline--3a2bc59a770f--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a2bc59a770f--------------------------------) ·阅读时间 11 分钟·2024 年 3 月 14 日
 
@@ -18,7 +18,7 @@
 
 那么，我们开始吧！
 
-![](../Images/f4d77321c2c5f433ba187b5e2e09f1b4.png)
+![](img/f4d77321c2c5f433ba187b5e2e09f1b4.png)
 
 图片来自 [Sascha Kirch](https://medium.com/@SaschaKirch).
 

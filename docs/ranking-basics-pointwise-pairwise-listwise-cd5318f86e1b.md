@@ -1,16 +1,16 @@
 # 排名基础：点对、成对、列表
 
-> 原文：[https://towardsdatascience.com/ranking-basics-pointwise-pairwise-listwise-cd5318f86e1b?source=collection_archive---------3-----------------------#2024-12-14](https://towardsdatascience.com/ranking-basics-pointwise-pairwise-listwise-cd5318f86e1b?source=collection_archive---------3-----------------------#2024-12-14)
+> 原文：[`towardsdatascience.com/ranking-basics-pointwise-pairwise-listwise-cd5318f86e1b?source=collection_archive---------3-----------------------#2024-12-14`](https://towardsdatascience.com/ranking-basics-pointwise-pairwise-listwise-cd5318f86e1b?source=collection_archive---------3-----------------------#2024-12-14)
 
 ## 因为邻近的对象很重要
 
-[](https://medium.com/@kunals726?source=post_page---byline--cd5318f86e1b--------------------------------)[![Kunal Santosh Sawant](../Images/f8689b4e61020ca714c28806d51f9b72.png)](https://medium.com/@kunals726?source=post_page---byline--cd5318f86e1b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cd5318f86e1b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cd5318f86e1b--------------------------------) [Kunal Santosh Sawant](https://medium.com/@kunals726?source=post_page---byline--cd5318f86e1b--------------------------------)
+[](https://medium.com/@kunals726?source=post_page---byline--cd5318f86e1b--------------------------------)![Kunal Santosh Sawant](https://medium.com/@kunals726?source=post_page---byline--cd5318f86e1b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cd5318f86e1b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd5318f86e1b--------------------------------) [Kunal Santosh Sawant](https://medium.com/@kunals726?source=post_page---byline--cd5318f86e1b--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd5318f86e1b--------------------------------) ·6分钟阅读·2024年12月14日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd5318f86e1b--------------------------------) ·6 分钟阅读·2024 年 12 月 14 日
 
 --
 
-![](../Images/54cb29c9cdd0f38ae586510bb08af75b.png)
+![](img/54cb29c9cdd0f38ae586510bb08af75b.png)
 
 图片来自 unsplash.com
 
@@ -58,7 +58,7 @@
 
 +   ***q2,d5***→标签: 1
 
-我们使用这些标注数据训练模型，利用查询和文档中的特征来预测标签。训练完成后，模型会预测每个文档与给定查询的相关性作为一个概率值（范围从0到1）。这个概率值可以解释为相关性分数。
+我们使用这些标注数据训练模型，利用查询和文档中的特征来预测标签。训练完成后，模型会预测每个文档与给定查询的相关性作为一个概率值（范围从 0 到 1）。这个概率值可以解释为相关性分数。
 
 例如，训练后，模型可能会生成以下分数：
 
@@ -152,11 +152,11 @@
 
 1.  **理想排序**：理想排序是通过根据文档的**真实相关性**对其进行排序来计算的。例如，***d1*** 可能是最相关的，其次是 ***d2***，然后是 ***d3***。
 
-1.  **NDCG计算**：NDCG是针对每个文档列表的排列进行计算的。它检查预测排序与理想排序的接近程度，同时考虑到文档的相关性和位置。
+1.  **NDCG 计算**：NDCG 是针对每个文档列表的排列进行计算的。它检查预测排序与理想排序的接近程度，同时考虑到文档的相关性和位置。
 
-1.  **惩罚错误排序**：如果预测排序与理想排序不同，NDCG分数将下降。例如，如果理想排序是***(d1, d3, d2)***，而模型排序为***(d2, d1, d3)***，那么NDCG分数会较低，因为最相关的文档（***d1***)没有排在最前面。
+1.  **惩罚错误排序**：如果预测排序与理想排序不同，NDCG 分数将下降。例如，如果理想排序是***(d1, d3, d2)***，而模型排序为***(d2, d1, d3)***，那么 NDCG 分数会较低，因为最相关的文档（***d1***)没有排在最前面。
 
-1.  **梯度计算**：模型根据如果调整文档顺序，NDCG分数会发生的变化来计算梯度。这些梯度指引模型如何改进预测。
+1.  **梯度计算**：模型根据如果调整文档顺序，NDCG 分数会发生的变化来计算梯度。这些梯度指引模型如何改进预测。
 
 这个过程帮助模型学习如何优化整个排序列表，提高呈现给用户的文档的相关性。
 
@@ -174,7 +174,7 @@
 
 ## 参考文献：
 
-[从RankNet到LambdaRank再到LambdaMART：概述](https://www.microsoft.com/en-us/research/uploads/prod/2016/02/MSR-TR-2010-82.pdf)
+[从 RankNet 到 LambdaRank 再到 LambdaMART：概述](https://www.microsoft.com/en-us/research/uploads/prod/2016/02/MSR-TR-2010-82.pdf)
 
 [学习排序：从成对排序方法到列表排序方法](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-2007-40.pdf)
 

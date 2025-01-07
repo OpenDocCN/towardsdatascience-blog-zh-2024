@@ -1,20 +1,20 @@
 # 使用 Keras 3 进行多框架 AI/ML 开发
 
-> 原文：[https://towardsdatascience.com/multi-framework-ai-ml-development-with-keras-3-cf7be29eb23d?source=collection_archive---------3-----------------------#2024-06-16](https://towardsdatascience.com/multi-framework-ai-ml-development-with-keras-3-cf7be29eb23d?source=collection_archive---------3-----------------------#2024-06-16)
+> 原文：[`towardsdatascience.com/multi-framework-ai-ml-development-with-keras-3-cf7be29eb23d?source=collection_archive---------3-----------------------#2024-06-16`](https://towardsdatascience.com/multi-framework-ai-ml-development-with-keras-3-cf7be29eb23d?source=collection_archive---------3-----------------------#2024-06-16)
 
 ## 欢迎 Keras 的回归
 
-[](https://chaimrand.medium.com/?source=post_page---byline--cf7be29eb23d--------------------------------)[![Chaim Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--cf7be29eb23d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cf7be29eb23d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cf7be29eb23d--------------------------------) [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--cf7be29eb23d--------------------------------)
+[](https://chaimrand.medium.com/?source=post_page---byline--cf7be29eb23d--------------------------------)![Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--cf7be29eb23d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cf7be29eb23d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cf7be29eb23d--------------------------------) [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--cf7be29eb23d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cf7be29eb23d--------------------------------) ·14 分钟阅读·2024年6月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cf7be29eb23d--------------------------------) ·14 分钟阅读·2024 年 6 月 16 日
 
 --
 
-![](../Images/2f76631d92e90d65b370eb16d967b59c.png)
+![](img/2f76631d92e90d65b370eb16d967b59c.png)
 
 照片由 [Jose Rueda](https://unsplash.com/@notartistic?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-![](../Images/60dcf4db50ea7db99db7c65748a3b9d0.png)
+![](img/60dcf4db50ea7db99db7c65748a3b9d0.png)
 
 作者：  
 
@@ -22,17 +22,17 @@ Keras 回来了！！Keras 最初于 2015 年发布，作为一个高阶 Python 
 
 在这篇文章中，我们将重新审视 Keras，并评估其在当前 AI/ML 开发时代的价值。我们将通过示例展示其易用性，并指出其不足之处。重要的是，这篇文章并非旨在支持或反对采用 Keras（或任何其他框架、库、服务等）。像往常一样，最适合你项目开发的决策将取决于许多细节，其中很多超出了这篇文章的范围。
 
-Google最近发布的开源NLP模型家族Gemma，以及Keras 3作为其API核心组件的加入，为我们提供了评估Keras优点的机会，也可能成为其复兴的一个绝佳机会。
+Google 最近发布的开源 NLP 模型家族 Gemma，以及 Keras 3 作为其 API 核心组件的加入，为我们提供了评估 Keras 优点的机会，也可能成为其复兴的一个绝佳机会。
 
-# 为什么使用Keras 3？
+# 为什么使用 Keras 3？
 
-在我们看来，Keras 3最有价值的特点是其多框架支持。这可能会让一些读者感到惊讶，他们可能会记得Keras的独特性在于其用户体验。Keras 3自我宣传为“简单”、“灵活”，并且是“为人类设计，而不是为机器设计”。的确，Keras的早期成功和急剧的流行上升，正是得益于其优秀的用户体验。但现在是2024年，许多高级深度学习API都提供了“降低认知负担”的功能。在我们看来，虽然用户体验非常好，但它已经不足以成为考虑选择Keras而不是其他替代框架的充足动因。而它的多框架支持则是。
+在我们看来，Keras 3 最有价值的特点是其多框架支持。这可能会让一些读者感到惊讶，他们可能会记得 Keras 的独特性在于其用户体验。Keras 3 自我宣传为“简单”、“灵活”，并且是“为人类设计，而不是为机器设计”。的确，Keras 的早期成功和急剧的流行上升，正是得益于其优秀的用户体验。但现在是 2024 年，许多高级深度学习 API 都提供了“降低认知负担”的功能。在我们看来，虽然用户体验非常好，但它已经不足以成为考虑选择 Keras 而不是其他替代框架的充足动因。而它的多框架支持则是。
 
 ## 多框架支持的优点
 
-Keras 3支持多个后端来训练和运行其模型。在本文撰写时，这些后端包括[JAX](https://jax.readthedocs.io/)、[TensorFlow](https://github.com/tensorflow/tensorflow)和[PyTorch](https://pytorch.org/)。[Keras 3公告](https://keras.io/keras_3/)很好地解释了这一特性的优势。我们将在此基础上扩展并加入一些自己的观点。
+Keras 3 支持多个后端来训练和运行其模型。在本文撰写时，这些后端包括[JAX](https://jax.readthedocs.io/)、[TensorFlow](https://github.com/tensorflow/tensorflow)和[PyTorch](https://pytorch.org/)。[Keras 3 公告](https://keras.io/keras_3/)很好地解释了这一特性的优势。我们将在此基础上扩展并加入一些自己的观点。
 
-**避免选择AI/ML框架的难题：** 选择一个AI/ML框架可能是作为ML开发者你需要做出的最重要的决定之一，同时也是最困难的决定之一。这个决策需要考虑的因素有很多，包括用户体验、API覆盖范围、可编程性、可调试性、支持的输入数据的格式和类型、与开发流程中其他组件的兼容性（例如，模型部署阶段可能施加的限制），以及最重要的——运行时性能。正如我们在之前的多篇文章中讨论的那样（例如，[这里](https://medium.com/p/6e407a7d2dc8#de85-799b58b79241)），AI/ML模型开发可能非常昂贵，选择框架所带来的哪怕是最小的性能提升，也会对整体成本产生重大影响。事实上，在很多情况下，这可能值得你为将模型和代码迁移到不同的框架，甚至支持多个框架而付出额外的开销。
+**避免选择 AI/ML 框架的难题：** 选择一个 AI/ML 框架可能是作为 ML 开发者你需要做出的最重要的决定之一，同时也是最困难的决定之一。这个决策需要考虑的因素有很多，包括用户体验、API 覆盖范围、可编程性、可调试性、支持的输入数据的格式和类型、与开发流程中其他组件的兼容性（例如，模型部署阶段可能施加的限制），以及最重要的——运行时性能。正如我们在之前的多篇文章中讨论的那样（例如，[这里](https://medium.com/p/6e407a7d2dc8#de85-799b58b79241)），AI/ML 模型开发可能非常昂贵，选择框架所带来的哪怕是最小的性能提升，也会对整体成本产生重大影响。事实上，在很多情况下，这可能值得你为将模型和代码迁移到不同的框架，甚至支持多个框架而付出额外的开销。
 
 问题在于，在你开始开发之前，几乎不可能知道哪个框架对你的模型最为优化。而且，即使你已经选择了一个框架，你也会希望紧跟所有框架的演变和发展，并持续评估改进模型和/或降低开发成本的潜在机会。AI/ML 开发的环境非常动态，优化和增强功能正在持续不断地设计和开发中。你不希望落后于人。
 
@@ -42,7 +42,7 @@ Keras 3 通过允许你在不承诺底层后端的情况下开发模型，解决
 
 **享受各个世界的最佳优势：** PyTorch、TensorFlow 和 JAX 各自具有独特的优势和差异化特性。例如，JAX 支持即时编译（JIT），在这种模式下，模型操作符会被转换成中间计算图，然后编译成专门针对底层硬件的机器码。对于许多模型来说，这通常会显著提升运行时性能。另一方面，PyTorch 通常以立即执行操作符（即“急切执行”）的方式使用，通常被认为：具有最符合 Python 风格的接口、最容易调试，并提供最佳的整体用户体验。通过使用 Keras 3，你可以享受两者的最佳优点。在初始模型开发和调试过程中，你可以将后端设置为 PyTorch，而在生产模式下进行训练时，可以切换到 JAX 以获得最佳性能。
 
-**与最大数量的 AI 加速器和运行时环境的兼容性：** 正如我们之前所讨论的（例如，[在这里](/instance-selection-for-deep-learning-7463d774cff0)），我们的目标是与尽可能多的 AI 加速器和运行时环境兼容。在 AI 机器容量受限的时代，能够在不同机器类型之间切换是一个巨大的优势。当你使用 Keras 3 及其多后端支持进行开发时，你将自动增加可以训练和运行你模型的平台数量。例如，虽然你可能最习惯在 GPU 上运行 PyTorch，但只需将后端更改为 JAX，你也可以将模型配置为在 [Google Cloud TPUs](https://cloud.google.com/tpu?hl=en) 上运行（——不过这可能取决于模型的具体细节）。
+**与最大数量的 AI 加速器和运行时环境的兼容性：** 正如我们之前所讨论的（例如，在这里），我们的目标是与尽可能多的 AI 加速器和运行时环境兼容。在 AI 机器容量受限的时代，能够在不同机器类型之间切换是一个巨大的优势。当你使用 Keras 3 及其多后端支持进行开发时，你将自动增加可以训练和运行你模型的平台数量。例如，虽然你可能最习惯在 GPU 上运行 PyTorch，但只需将后端更改为 JAX，你也可以将模型配置为在 [Google Cloud TPUs](https://cloud.google.com/tpu?hl=en) 上运行（——不过这可能取决于模型的具体细节）。
 
 **增加模型的采用率：** 如果你的目标是让其他 AI/ML 团队使用你的模型，那么通过支持多个框架，你将增加潜在的受众群体。由于各种原因，一些团队可能会局限于特定的 ML 框架。通过在 Keras 中交付你的模型，你消除了采用的障碍。一个很好的例子是最近发布的 Google 的 Gemma 模型，我们将在下面更详细地讨论。
 
@@ -54,19 +54,19 @@ Keras 3 帮助团队克服这一障碍，通过完全解耦数据输入管道和
 
 与市场上其他任何新软件解决方案一样，了解 Keras 3 的潜在缺点非常重要。软件开发中的一个通用准则是，越是在软件堆栈的上层，你对应用程序行为和性能的控制就越少。在 AI/ML 领域，成功的程度通常取决于模型超参数、初始化设置、环境配置等的精确调节，这样的控制可能至关重要。以下是一些需要考虑的潜在缺点：
 
-**运行时性能的潜在下降：** 使用高级 Keras API 而不是直接使用框架 API，可能会对优化运行时性能造成一定的限制。在我们关于[分析和优化 PyTorch 模型性能](/pytorch-model-performance-analysis-and-optimization-10c3c5822869)的系列文章中，我们展示了各种提高训练速度的工具和技巧。有时这些技巧需要直接、不加中介地使用 PyTorch 的 API。例如，Keras 的 API 目前对[PyTorch 的 JIT 编译](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)选项的支持非常有限（通过[*jit_compile*](https://keras.io/api/models/model_training_apis/)设置）。另一个例子是 PyTorch 对[缩放点积注意力](https://pytorch.org/docs/2.2/generated/torch.nn.functional.scaled_dot_product_attention.html)的内置支持，而 Keras 层面（截至本文撰写时）并不支持这一功能。
+**运行时性能的潜在下降：** 使用高级 Keras API 而不是直接使用框架 API，可能会对优化运行时性能造成一定的限制。在我们关于分析和优化 PyTorch 模型性能的系列文章中，我们展示了各种提高训练速度的工具和技巧。有时这些技巧需要直接、不加中介地使用 PyTorch 的 API。例如，Keras 的 API 目前对[PyTorch 的 JIT 编译](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)选项的支持非常有限（通过[*jit_compile*](https://keras.io/api/models/model_training_apis/)设置）。另一个例子是 PyTorch 对[缩放点积注意力](https://pytorch.org/docs/2.2/generated/torch.nn.functional.scaled_dot_product_attention.html)的内置支持，而 Keras 层面（截至本文撰写时）并不支持这一功能。
 
 **跨框架支持的局限性：** 虽然 Keras 的跨框架支持非常广泛，但你可能会发现它并不是包罗万象的。例如，一个覆盖的空白（截至本文撰写时）是分布式训练。虽然 Keras 引入了[Keras 分布式 API](https://keras.io/guides/distribution/)来支持所有后端的数据和模型并行性，但目前仅对 JAX 后端实现了该功能。要在使用其他后端时运行分布式训练，你需要回退到相关框架的标准分布式 API（例如，PyTorch 的[分布式数据并行 API](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)）。
 
-**维护跨框架兼容性的开销：** Keras 3支持多种预构建模型，您可以复用它们（例如，[这里](https://keras.io/api/keras_nlp/models/)）。然而，您可能不可避免地想要引入自己的自定义功能。虽然Keras 3支持自定义模型层、指标、训练循环等，但您需要小心避免破坏跨框架兼容性。例如，如果您使用Keras的后端无关API（`keras.ops`）创建了一个自定义层，您可以放心，它会保留多后端支持。但是，有时您可能会选择依赖于框架特定的操作。在这种情况下，保持跨框架兼容性将需要为每个框架提供专门的实现，并根据所使用的后端进行适当的条件编程。目前自定义[训练步骤](https://keras.io/guides/custom_train_step_in_jax/)和[训练循环](https://keras.io/guides/writing_a_custom_training_loop_in_jax/)的方法是框架特定的，这意味着它们同样需要为每个后端提供专门的实现，以保持跨框架兼容性。因此，随着模型复杂性的增加，维持这一独特能力所需的开销也可能增加。
+**维护跨框架兼容性的开销：** Keras 3 支持多种预构建模型，您可以复用它们（例如，[这里](https://keras.io/api/keras_nlp/models/)）。然而，您可能不可避免地想要引入自己的自定义功能。虽然 Keras 3 支持自定义模型层、指标、训练循环等，但您需要小心避免破坏跨框架兼容性。例如，如果您使用 Keras 的后端无关 API（`keras.ops`）创建了一个自定义层，您可以放心，它会保留多后端支持。但是，有时您可能会选择依赖于框架特定的操作。在这种情况下，保持跨框架兼容性将需要为每个框架提供专门的实现，并根据所使用的后端进行适当的条件编程。目前自定义[训练步骤](https://keras.io/guides/custom_train_step_in_jax/)和[训练循环](https://keras.io/guides/writing_a_custom_training_loop_in_jax/)的方法是框架特定的，这意味着它们同样需要为每个后端提供专门的实现，以保持跨框架兼容性。因此，随着模型复杂性的增加，维持这一独特能力所需的开销也可能增加。
 
-我们仅列出了Keras 3及其多后端支持的一些潜在缺点，您可能还会遇到其他问题。尽管多框架的提供确实具有吸引力，但其采用并不一定是无代价的。借用统计推断领域著名[定理](https://en.wikipedia.org/wiki/No_free_lunch_theorem)的名字，可以说，当涉及到选择AI/ML开发方法时，“没有免费的午餐”。
+我们仅列出了 Keras 3 及其多后端支持的一些潜在缺点，您可能还会遇到其他问题。尽管多框架的提供确实具有吸引力，但其采用并不一定是无代价的。借用统计推断领域著名[定理](https://en.wikipedia.org/wiki/No_free_lunch_theorem)的名字，可以说，当涉及到选择 AI/ML 开发方法时，“没有免费的午餐”。
 
-# Keras 3的实践 — 一个玩具示例
+# Keras 3 的实践 — 一个玩具示例
 
-正如我们在许多最近的文章中提到的，我们将定义的玩具模型是一个[视觉变换器](https://huggingface.co/docs/transformers/en/model_doc/vit)（ViT）支持的分类模型。我们将依赖于此Keras[教程](https://keras.io/examples/vision/image_classification_with_vision_transformer/)中的参考实现。我们已根据[ViT-Base](https://deci.ai/model-zoo/vit/)架构（约8600万个参数）配置了我们的模型，将[mixed_precision](https://keras.io/api/mixed_precision/)策略设置为使用*bfloat16*，并定义了一个带有随机输入数据的[PyTorch数据加载器](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html)。
+正如我们在许多最近的文章中提到的，我们将定义的玩具模型是一个[视觉变换器](https://huggingface.co/docs/transformers/en/model_doc/vit)（ViT）支持的分类模型。我们将依赖于此 Keras[教程](https://keras.io/examples/vision/image_classification_with_vision_transformer/)中的参考实现。我们已根据[ViT-Base](https://deci.ai/model-zoo/vit/)架构（约 8600 万个参数）配置了我们的模型，将[mixed_precision](https://keras.io/api/mixed_precision/)策略设置为使用*bfloat16*，并定义了一个带有随机输入数据的[PyTorch 数据加载器](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html)。
 
-以下区块包含了配置设置，并紧接着是核心ViT模型组件的定义：
+以下区块包含了配置设置，并紧接着是核心 ViT 模型组件的定义：
 
 ```py
 import os
@@ -152,7 +152,7 @@ class PatchEncoder(layers.Layer):
         return encoded
 ```
 
-使用核心组件，我们定义了一个ViT支持的Keras模型：
+使用核心组件，我们定义了一个 ViT 支持的 Keras 模型：
 
 ```py
 # the attention layer we will use in our ViT classifier
@@ -233,7 +233,7 @@ def get_data_loader(batch_size):
 dl = get_data_loader(batch_size)
 ```
 
-最后，我们使用Keras的[Model.fit()](https://keras.io/api/models/model_training_apis/)函数开始训练：
+最后，我们使用 Keras 的[Model.fit()](https://keras.io/api/models/model_training_apis/)函数开始训练：
 
 ```py
 model.fit(
@@ -275,7 +275,7 @@ attention_layer = MyAttention
 
 我们实验的结果总结在下面的表格中。请记住，相对性能结果可能会根据模型的细节和运行时环境有很大差异。
 
-![](../Images/bcef0995a3e1fe23cd9cca46c39e9294.png)
+![](img/bcef0995a3e1fe23cd9cca46c39e9294.png)
 
 ViT 运行时（作者）
 
@@ -344,7 +344,7 @@ torch.set_float32_matmul_precision('high')
 
 这个简单的变化在使用 PyTorch 后端时带来了 29% 的性能提升。再次，我们可以看到应用框架特定优化的影响。实验结果总结在下面的表格中。
 
-![](../Images/5aad8a9425e1f20875979fd728686855.png)
+![](img/5aad8a9425e1f20875979fd728686855.png)
 
 Gemma 微调运行时（作者提供）
 

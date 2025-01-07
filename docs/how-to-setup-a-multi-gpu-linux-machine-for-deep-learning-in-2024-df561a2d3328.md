@@ -1,40 +1,40 @@
-# 如何在2024年设置一个用于深度学习的多GPU Linux机器
+# 如何在 2024 年设置一个用于深度学习的多 GPU Linux 机器
 
-> 原文：[https://towardsdatascience.com/how-to-setup-a-multi-gpu-linux-machine-for-deep-learning-in-2024-df561a2d3328?source=collection_archive---------0-----------------------#2024-05-19](https://towardsdatascience.com/how-to-setup-a-multi-gpu-linux-machine-for-deep-learning-in-2024-df561a2d3328?source=collection_archive---------0-----------------------#2024-05-19)
+> 原文：[`towardsdatascience.com/how-to-setup-a-multi-gpu-linux-machine-for-deep-learning-in-2024-df561a2d3328?source=collection_archive---------0-----------------------#2024-05-19`](https://towardsdatascience.com/how-to-setup-a-multi-gpu-linux-machine-for-deep-learning-in-2024-df561a2d3328?source=collection_archive---------0-----------------------#2024-05-19)
 
-## 使用多个GPU进行深度学习
+## 使用多个 GPU 进行深度学习
 
-## 在几分钟内快速设置CUDA和PyTorch！
+## 在几分钟内快速设置 CUDA 和 PyTorch！
 
-[](https://medium.com/@nirajkamal?source=post_page---byline--df561a2d3328--------------------------------)[![Nika](../Images/fcf9dfec64ccae5ea841fcc5046817d6.png)](https://medium.com/@nirajkamal?source=post_page---byline--df561a2d3328--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--df561a2d3328--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--df561a2d3328--------------------------------) [Nika](https://medium.com/@nirajkamal?source=post_page---byline--df561a2d3328--------------------------------)
+[](https://medium.com/@nirajkamal?source=post_page---byline--df561a2d3328--------------------------------)![Nika](https://medium.com/@nirajkamal?source=post_page---byline--df561a2d3328--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--df561a2d3328--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--df561a2d3328--------------------------------) [Nika](https://medium.com/@nirajkamal?source=post_page---byline--df561a2d3328--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--df561a2d3328--------------------------------) ·6分钟阅读·2024年5月19日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--df561a2d3328--------------------------------) ·6 分钟阅读·2024 年 5 月 19 日
 
 --
 
-![](../Images/3cef01ab529215b4b49adeed49721c78.png)
+![](img/3cef01ab529215b4b49adeed49721c78.png)
 
-作者提供的图像：多GPU机器（卡通图）
+作者提供的图像：多 GPU 机器（卡通图）
 
-随着深度学习模型（尤其是LLM）不断变得更大，开发和本地使用这些模型对GPU内存（VRAM）的需求日益增加。构建或获得一台多GPU机器仅仅是挑战的第一部分。大多数库和应用程序默认只使用单个GPU。因此，机器还需要配备适当的驱动程序以及能够利用多GPU设置的库。
+随着深度学习模型（尤其是 LLM）不断变得更大，开发和本地使用这些模型对 GPU 内存（VRAM）的需求日益增加。构建或获得一台多 GPU 机器仅仅是挑战的第一部分。大多数库和应用程序默认只使用单个 GPU。因此，机器还需要配备适当的驱动程序以及能够利用多 GPU 设置的库。
 
-本文提供了一个如何设置多GPU（Nvidia）Linux机器并安装重要库的指南。希望能够节省你在实验中的时间，帮助你更快开始开发。
+本文提供了一个如何设置多 GPU（Nvidia）Linux 机器并安装重要库的指南。希望能够节省你在实验中的时间，帮助你更快开始开发。
 
-最后，提供了可以利用多GPU设置进行深度学习的流行开源库的链接。
+最后，提供了可以利用多 GPU 设置进行深度学习的流行开源库的链接。
 
 ## 目标
 
-> 设置一个多GPU的Linux系统，并安装必要的库，如CUDA工具包和PyTorch，以开始进行深度学习*🤖*。相同的步骤也适用于单GPU机器。
+> 设置一个多 GPU 的 Linux 系统，并安装必要的库，如 CUDA 工具包和 PyTorch，以开始进行深度学习*🤖*。相同的步骤也适用于单 GPU 机器。
 
-我们将安装1）CUDA工具包，2）PyTorch和3）Miniconda，开始使用exllamaV2和torchtune等框架进行深度学习。
+我们将安装 1）CUDA 工具包，2）PyTorch 和 3）Miniconda，开始使用 exllamaV2 和 torchtune 等框架进行深度学习。
 
 ©️ 本文中提到的所有库和信息均为开源和/或公开可用。
 
 ## 入门
 
-![](../Images/cf98219698c22c0bc7ba55518467eb1f.png)
+![](img/cf98219698c22c0bc7ba55518467eb1f.png)
 
-作者提供的图像：在配备8个Nvidia A10G GPU的Linux机器上运行nvidia-smi命令的输出
+作者提供的图像：在配备 8 个 Nvidia A10G GPU 的 Linux 机器上运行 nvidia-smi 命令的输出
 
 使用终端中的 `nvidia-smi` 命令检查机器中安装的 GPU 数量。它应该打印出所有已安装的 GPU 列表。如果有任何不一致，或者命令无法工作，请首先为你的 Linux 版本安装 Nvidia 驱动程序。确保 `nvidia-smi` 命令能正确打印出所有已安装的 GPU，如上所示。
 
@@ -50,7 +50,7 @@
 
 前往 [CUDA Toolkit 12.1 下载 | NVIDIA 开发者](https://developer.nvidia.com/cuda-12-1-0-download-archive) 获取 Linux 安装 CUDA 12.1 的命令（选择你的操作系统版本和相应的“deb（本地）”安装类型）。
 
-![](../Images/29309c4402baba465c39b23a0bc89e15.png)
+![](img/29309c4402baba465c39b23a0bc89e15.png)
 
 为 Ubuntu 22 选择的选项（来源：developer.nvidia.com）
 
@@ -133,7 +133,7 @@ pip3 install torch torchvision torchaudio
 
 上述命令来源于 PyTorch 安装指南 — [Start Locally | PyTorch](https://pytorch.org/get-started/locally/)。
 
-![](../Images/2cb51751b02a7e251fb9eb15d57fab1e.png)
+![](img/2cb51751b02a7e251fb9eb15d57fab1e.png)
 
 （来源：pytorch.org）
 

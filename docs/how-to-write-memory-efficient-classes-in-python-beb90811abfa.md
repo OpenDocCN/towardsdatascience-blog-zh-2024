@@ -1,16 +1,16 @@
 # 如何编写内存高效的 Python 类
 
-> 原文：[https://towardsdatascience.com/how-to-write-memory-efficient-classes-in-python-beb90811abfa?source=collection_archive---------0-----------------------#2024-01-13](https://towardsdatascience.com/how-to-write-memory-efficient-classes-in-python-beb90811abfa?source=collection_archive---------0-----------------------#2024-01-13)
+> 原文：[`towardsdatascience.com/how-to-write-memory-efficient-classes-in-python-beb90811abfa?source=collection_archive---------0-----------------------#2024-01-13`](https://towardsdatascience.com/how-to-write-memory-efficient-classes-in-python-beb90811abfa?source=collection_archive---------0-----------------------#2024-01-13)
 
-![](../Images/6d3fa23de320d6f4dd772d2fc675018d.png)
+![](img/6d3fa23de320d6f4dd772d2fc675018d.png)
 
 图片来源：[Christian Dubovan](https://unsplash.com/@cdubo?utm_source=medium&utm_medium=referral) 摄于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 防止你的数据项目内存溢出的三种技巧
 
-[](https://medium.com/@siavashyasini?source=post_page---byline--beb90811abfa--------------------------------)[![Siavash Yasini](../Images/55220a8a9397ba51dcc381828735f4a2.png)](https://medium.com/@siavashyasini?source=post_page---byline--beb90811abfa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--beb90811abfa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--beb90811abfa--------------------------------) [Siavash Yasini](https://medium.com/@siavashyasini?source=post_page---byline--beb90811abfa--------------------------------)
+[](https://medium.com/@siavashyasini?source=post_page---byline--beb90811abfa--------------------------------)![Siavash Yasini](https://medium.com/@siavashyasini?source=post_page---byline--beb90811abfa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--beb90811abfa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--beb90811abfa--------------------------------) [Siavash Yasini](https://medium.com/@siavashyasini?source=post_page---byline--beb90811abfa--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--beb90811abfa--------------------------------) ·阅读时间：7分钟·2024年1月13日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--beb90811abfa--------------------------------) ·阅读时间：7 分钟·2024 年 1 月 13 日
 
 --
 

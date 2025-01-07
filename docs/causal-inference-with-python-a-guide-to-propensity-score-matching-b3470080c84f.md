@@ -1,16 +1,16 @@
-# 使用Python进行因果推断：倾向得分匹配指南
+# 使用 Python 进行因果推断：倾向得分匹配指南
 
-> 原文：[https://towardsdatascience.com/causal-inference-with-python-a-guide-to-propensity-score-matching-b3470080c84f?source=collection_archive---------0-----------------------#2024-07-02](https://towardsdatascience.com/causal-inference-with-python-a-guide-to-propensity-score-matching-b3470080c84f?source=collection_archive---------0-----------------------#2024-07-02)
+> 原文：[`towardsdatascience.com/causal-inference-with-python-a-guide-to-propensity-score-matching-b3470080c84f?source=collection_archive---------0-----------------------#2024-07-02`](https://towardsdatascience.com/causal-inference-with-python-a-guide-to-propensity-score-matching-b3470080c84f?source=collection_archive---------0-----------------------#2024-07-02)
 
-## 介绍如何在非随机化环境下使用实际示例和Python代码估计治疗效应
+## 介绍如何在非随机化环境下使用实际示例和 Python 代码估计治疗效应
 
-[](https://medium.com/@lukasz.szubelak?source=post_page---byline--b3470080c84f--------------------------------)[![Lukasz Szubelak](../Images/2283fdd0c992b291b3e219a195a49d8c.png)](https://medium.com/@lukasz.szubelak?source=post_page---byline--b3470080c84f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b3470080c84f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b3470080c84f--------------------------------) [Lukasz Szubelak](https://medium.com/@lukasz.szubelak?source=post_page---byline--b3470080c84f--------------------------------)
+[](https://medium.com/@lukasz.szubelak?source=post_page---byline--b3470080c84f--------------------------------)![Lukasz Szubelak](https://medium.com/@lukasz.szubelak?source=post_page---byline--b3470080c84f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b3470080c84f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b3470080c84f--------------------------------) [Lukasz Szubelak](https://medium.com/@lukasz.szubelak?source=post_page---byline--b3470080c84f--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b3470080c84f--------------------------------) ·23分钟阅读·2024年7月2日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b3470080c84f--------------------------------) ·23 分钟阅读·2024 年 7 月 2 日
 
 --
 
-![](../Images/d19675cc1687b1925f3d751ce7c4f51b.png)
+![](img/d19675cc1687b1925f3d751ce7c4f51b.png)
 
 图片由[Isaac Smith](https://unsplash.com/@isaacmsmith?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -20,6 +20,6 @@
 
 **什么是倾向得分匹配？**
 
-倾向得分匹配（PSM）允许我们根据治疗组和未治疗组个体的相似性构建一个人工对照组。在应用PSM时，我们将每个治疗单位与具有相似特征的未治疗单位匹配。
+倾向得分匹配（PSM）允许我们根据治疗组和未治疗组个体的相似性构建一个人工对照组。在应用 PSM 时，我们将每个治疗单位与具有相似特征的未治疗单位匹配。
 
 通过这种方式，我们可以在没有随机实验的情况下获得一个对照组。这个人工对照组将由那些与治疗组相似的未治疗单位组成…

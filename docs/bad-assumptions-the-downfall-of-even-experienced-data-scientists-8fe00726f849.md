@@ -1,18 +1,18 @@
 # 错误假设——即使是经验丰富的数据科学家的失败
 
-> 原文：[https://towardsdatascience.com/bad-assumptions-the-downfall-of-even-experienced-data-scientists-8fe00726f849?source=collection_archive---------3-----------------------#2024-08-16](https://towardsdatascience.com/bad-assumptions-the-downfall-of-even-experienced-data-scientists-8fe00726f849?source=collection_archive---------3-----------------------#2024-08-16)
+> 原文：[`towardsdatascience.com/bad-assumptions-the-downfall-of-even-experienced-data-scientists-8fe00726f849?source=collection_archive---------3-----------------------#2024-08-16`](https://towardsdatascience.com/bad-assumptions-the-downfall-of-even-experienced-data-scientists-8fe00726f849?source=collection_archive---------3-----------------------#2024-08-16)
 
 ## 统计学
 
 ## 数据可能具有欺骗性，所以要保持警惕！
 
-[](https://medium.com/@maclayton?source=post_page---byline--8fe00726f849--------------------------------)[![Mike Clayton](../Images/2d37746b13b7d2ff1c6515893914da97.png)](https://medium.com/@maclayton?source=post_page---byline--8fe00726f849--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8fe00726f849--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8fe00726f849--------------------------------) [Mike Clayton](https://medium.com/@maclayton?source=post_page---byline--8fe00726f849--------------------------------)
+[](https://medium.com/@maclayton?source=post_page---byline--8fe00726f849--------------------------------)![Mike Clayton](https://medium.com/@maclayton?source=post_page---byline--8fe00726f849--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8fe00726f849--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8fe00726f849--------------------------------) [Mike Clayton](https://medium.com/@maclayton?source=post_page---byline--8fe00726f849--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8fe00726f849--------------------------------) ·阅读时间 9分钟·2024年8月16日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8fe00726f849--------------------------------) ·阅读时间 9 分钟·2024 年 8 月 16 日
 
 --
 
-![](../Images/78504a1b294bacf8fb40aaf7c53eb9a7.png)
+![](img/78504a1b294bacf8fb40aaf7c53eb9a7.png)
 
 图片由[Gordon Johnson](https://pixabay.com/users/gdj-1086657/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=4296272)提供，来自[Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=4296272)
 

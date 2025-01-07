@@ -1,18 +1,18 @@
 # 水冷器闲聊：生日悖论 🎂🎉
 
-> 原文：[https://towardsdatascience.com/water-cooler-small-talk-the-birthday-paradox-94ea294502c7?source=collection_archive---------3-----------------------#2024-09-25](https://towardsdatascience.com/water-cooler-small-talk-the-birthday-paradox-94ea294502c7?source=collection_archive---------3-----------------------#2024-09-25)
+> 原文：[`towardsdatascience.com/water-cooler-small-talk-the-birthday-paradox-94ea294502c7?source=collection_archive---------3-----------------------#2024-09-25`](https://towardsdatascience.com/water-cooler-small-talk-the-birthday-paradox-94ea294502c7?source=collection_archive---------3-----------------------#2024-09-25)
 
 ## 数据科学 | 统计学
 
 ## 一窥共享生日的反直觉数学
 
-[](https://medium.com/@m.mouschoutzi?source=post_page---byline--94ea294502c7--------------------------------)[![Maria Mouschoutzi, PhD](../Images/66f8cf036b6e4db2e24eae3e9f492db8.png)](https://medium.com/@m.mouschoutzi?source=post_page---byline--94ea294502c7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--94ea294502c7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--94ea294502c7--------------------------------) [Maria Mouschoutzi, PhD](https://medium.com/@m.mouschoutzi?source=post_page---byline--94ea294502c7--------------------------------)
+[](https://medium.com/@m.mouschoutzi?source=post_page---byline--94ea294502c7--------------------------------)![Maria Mouschoutzi, PhD](https://medium.com/@m.mouschoutzi?source=post_page---byline--94ea294502c7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--94ea294502c7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94ea294502c7--------------------------------) [Maria Mouschoutzi, PhD](https://medium.com/@m.mouschoutzi?source=post_page---byline--94ea294502c7--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94ea294502c7--------------------------------) ·阅读时长：9分钟·2024年9月25日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94ea294502c7--------------------------------) ·阅读时长：9 分钟·2024 年 9 月 25 日
 
 --
 
-![](../Images/e95f1ab3884c9722256c3f4da6770107.png)
+![](img/e95f1ab3884c9722256c3f4da6770107.png)
 
 由作者使用 GPT-4 创建的图像
 
@@ -20,7 +20,7 @@
 
 这是今天文章的水冷器讨论：
 
-> 我在一个有60多人的办公室楼层工作，上周有两个人在同一天过生日。得知他们的生日相同后，他们大概进行了如下对话：
+> 我在一个有 60 多人的办公室楼层工作，上周有两个人在同一天过生日。得知他们的生日相同后，他们大概进行了如下对话：
 > 
 > - 我简直不敢相信我们竟然在同一天过生日！
 > 

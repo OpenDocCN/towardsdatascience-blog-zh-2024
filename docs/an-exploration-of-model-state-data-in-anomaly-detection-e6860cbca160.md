@@ -1,16 +1,16 @@
 # 下一代异常检测：解锁神经洞察
 
-> 原文：[https://towardsdatascience.com/an-exploration-of-model-state-data-in-anomaly-detection-e6860cbca160?source=collection_archive---------3-----------------------#2024-04-11](https://towardsdatascience.com/an-exploration-of-model-state-data-in-anomaly-detection-e6860cbca160?source=collection_archive---------3-----------------------#2024-04-11)
+> 原文：[`towardsdatascience.com/an-exploration-of-model-state-data-in-anomaly-detection-e6860cbca160?source=collection_archive---------3-----------------------#2024-04-11`](https://towardsdatascience.com/an-exploration-of-model-state-data-in-anomaly-detection-e6860cbca160?source=collection_archive---------3-----------------------#2024-04-11)
 
 ## 利用神经元的力量，彻底变革异常检测！
 
-[](https://medium.com/@saranobregafn?source=post_page---byline--e6860cbca160--------------------------------)[![Sara Nóbrega](../Images/0cc9fafe4cfda6f38148d169b9055e29.png)](https://medium.com/@saranobregafn?source=post_page---byline--e6860cbca160--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e6860cbca160--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e6860cbca160--------------------------------) [Sara Nóbrega](https://medium.com/@saranobregafn?source=post_page---byline--e6860cbca160--------------------------------)
+[](https://medium.com/@saranobregafn?source=post_page---byline--e6860cbca160--------------------------------)![Sara Nóbrega](https://medium.com/@saranobregafn?source=post_page---byline--e6860cbca160--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e6860cbca160--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e6860cbca160--------------------------------) [Sara Nóbrega](https://medium.com/@saranobregafn?source=post_page---byline--e6860cbca160--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e6860cbca160--------------------------------) ·12分钟阅读·2024年4月11日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e6860cbca160--------------------------------) ·12 分钟阅读·2024 年 4 月 11 日
 
 --
 
-![](../Images/fa240c793192608435ca9a5c5219f733.png)
+![](img/fa240c793192608435ca9a5c5219f733.png)
 
 图片来源：作者。
 

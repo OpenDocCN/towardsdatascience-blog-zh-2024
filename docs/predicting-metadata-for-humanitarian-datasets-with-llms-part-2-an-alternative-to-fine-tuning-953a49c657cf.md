@@ -1,36 +1,36 @@
-# 使用LLM预测人道主义数据集的元数据第二部分——微调的替代方法
+# 使用 LLM 预测人道主义数据集的元数据第二部分——微调的替代方法
 
-> 原文：[https://towardsdatascience.com/predicting-metadata-for-humanitarian-datasets-with-llms-part-2-an-alternative-to-fine-tuning-953a49c657cf?source=collection_archive---------5-----------------------#2024-08-03](https://towardsdatascience.com/predicting-metadata-for-humanitarian-datasets-with-llms-part-2-an-alternative-to-fine-tuning-953a49c657cf?source=collection_archive---------5-----------------------#2024-08-03)
+> 原文：[`towardsdatascience.com/predicting-metadata-for-humanitarian-datasets-with-llms-part-2-an-alternative-to-fine-tuning-953a49c657cf?source=collection_archive---------5-----------------------#2024-08-03`](https://towardsdatascience.com/predicting-metadata-for-humanitarian-datasets-with-llms-part-2-an-alternative-to-fine-tuning-953a49c657cf?source=collection_archive---------5-----------------------#2024-08-03)
 
-[](https://medium.com/@astrobagel?source=post_page---byline--953a49c657cf--------------------------------)[![Matthew Harris](../Images/4fa3264bb8a028633cd8d37093c16214.png)](https://medium.com/@astrobagel?source=post_page---byline--953a49c657cf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--953a49c657cf--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--953a49c657cf--------------------------------) [Matthew Harris](https://medium.com/@astrobagel?source=post_page---byline--953a49c657cf--------------------------------)
+[](https://medium.com/@astrobagel?source=post_page---byline--953a49c657cf--------------------------------)![Matthew Harris](https://medium.com/@astrobagel?source=post_page---byline--953a49c657cf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--953a49c657cf--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--953a49c657cf--------------------------------) [Matthew Harris](https://medium.com/@astrobagel?source=post_page---byline--953a49c657cf--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--953a49c657cf--------------------------------) ·29分钟阅读·2024年8月3日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--953a49c657cf--------------------------------) ·29 分钟阅读·2024 年 8 月 3 日
 
 --
 
-![](../Images/0002f919edfe77b2a945716650c673f7.png)
+![](img/0002f919edfe77b2a945716650c673f7.png)
 
 来源：GPT-4o
 
 TL;DR
 
-*在人道主义响应领域，可能会有成千上万的表格数据集（CSV和Excel），其中许多包含拯救生命的关键信息。数据可能由数百个不同的组织提供，且命名约定、语言和数据标准各异，因此了解表格中每一列的含义（元数据）对于找到合适的数据并理解其如何组合至关重要。大部分元数据是手动设置的，这既耗时又容易出错，因此任何自动化方法都可能在帮助人们方面产生实际影响。在本文中，我们重新审视了先前的分析“*[*使用GPT-3预测人道主义数据集的元数据*](https://medium.com/towards-data-science/predicting-metadata-for-humanitarian-datasets-using-gpt-3-b104be17716d)*”，以了解过去18个月的进展如何为更高效、节省时间的方法铺平道路，用于设置表格数据的元数据。*”
+*在人道主义响应领域，可能会有成千上万的表格数据集（CSV 和 Excel），其中许多包含拯救生命的关键信息。数据可能由数百个不同的组织提供，且命名约定、语言和数据标准各异，因此了解表格中每一列的含义（元数据）对于找到合适的数据并理解其如何组合至关重要。大部分元数据是手动设置的，这既耗时又容易出错，因此任何自动化方法都可能在帮助人们方面产生实际影响。在本文中，我们重新审视了先前的分析“*[*使用 GPT-3 预测人道主义数据集的元数据*](https://medium.com/towards-data-science/predicting-metadata-for-humanitarian-datasets-using-gpt-3-b104be17716d)*”，以了解过去 18 个月的进展如何为更高效、节省时间的方法铺平道路，用于设置表格数据的元数据。*”
 
-*通过使用带有元数据标签的CSV和Excel数据集，来自于* [*人道主义数据交换平台*](https://data.humdata.org/) *(HDX)，我们展示了微调GPT-4o-mini在预测* [*人道主义交换语言*](https://hxlstandard.org/) *(HXL)标签和属性时的良好效果，尤其是对于与位置和日期相关的最常见标签。然而，对于那些较少出现的标签和属性，这一技术可能会受到训练数据质量不佳的限制，原因在于人工标签错误或人们没有使用所有可能的HXL元数据组合。它还存在一个限制，即当元数据标准发生变化时，它无法进行调整，因为训练数据不会反映这些变化。*
+*通过使用带有元数据标签的 CSV 和 Excel 数据集，来自于* [*人道主义数据交换平台*](https://data.humdata.org/) *(HDX)，我们展示了微调 GPT-4o-mini 在预测* [*人道主义交换语言*](https://hxlstandard.org/) *(HXL)标签和属性时的良好效果，尤其是对于与位置和日期相关的最常见标签。然而，对于那些较少出现的标签和属性，这一技术可能会受到训练数据质量不佳的限制，原因在于人工标签错误或人们没有使用所有可能的 HXL 元数据组合。它还存在一个限制，即当元数据标准发生变化时，它无法进行调整，因为训练数据不会反映这些变化。*
 
-*鉴于现在有了更强大的LLM可用，我们测试了一种技术，直接提示GPT-4o或GPT-4o-mini，而不是进行微调，在系统提示中提供完整的HXL核心架构定义，因为现在可以使用更大的上下文窗口。事实证明，当使用GPT-4o时，这种方法比微调更准确，能够支持较少见的HXL标签和属性，并且不需要定制的训练数据，使得管理和部署更加简便。然而，它的成本较高，但如果使用GPT-4o-mini，则成本较低，尽管性能略有下降。通过这种方法，我们提供了一个简单的Python类，位于* [*GitHub Gist*](https://gist.github.com/dividor/e693997c1fc7e0d94f8228cebc397014) *，可以在数据处理管道中自动为表格数据集添加HXL元数据标签和属性。*
+*鉴于现在有了更强大的 LLM 可用，我们测试了一种技术，直接提示 GPT-4o 或 GPT-4o-mini，而不是进行微调，在系统提示中提供完整的 HXL 核心架构定义，因为现在可以使用更大的上下文窗口。事实证明，当使用 GPT-4o 时，这种方法比微调更准确，能够支持较少见的 HXL 标签和属性，并且不需要定制的训练数据，使得管理和部署更加简便。然而，它的成本较高，但如果使用 GPT-4o-mini，则成本较低，尽管性能略有下降。通过这种方法，我们提供了一个简单的 Python 类，位于* [*GitHub Gist*](https://gist.github.com/dividor/e693997c1fc7e0d94f8228cebc397014) *，可以在数据处理管道中自动为表格数据集添加 HXL 元数据标签和属性。*
 
-# 生成性AI发展得**非常**迅速！
+# 生成性 AI 发展得**非常**迅速！
 
-大约18个月前，我写了一篇博客文章 [使用GPT-3预测人道主义数据集的元数据](https://medium.com/towards-data-science/predicting-metadata-for-humanitarian-datasets-using-gpt-3-b104be17716d)。
+大约 18 个月前，我写了一篇博客文章 [使用 GPT-3 预测人道主义数据集的元数据](https://medium.com/towards-data-science/predicting-metadata-for-humanitarian-datasets-using-gpt-3-b104be17716d)。
 
-没错，是使用GPT-3，不是GPT-3.5！🙂
+没错，是使用 GPT-3，不是 GPT-3.5！🙂
 
-即便如此，早在那时，大型语言模型（LLM）的微调就已在预测[人道主义交换语言](https://hxlstandard.org/)（HXL）元数据字段方面表现出色，尤其是在令人惊叹的[人道主义数据交换平台](https://data.humdata.org/)（HDX）上的表格数据集。在那项研究中，训练数据代表了HDX上的HXL数据分布，因此包含了与位置和日期相关的最常见标签。这些标签对于将不同数据集按位置和时间关联起来至关重要，这是利用数据优化人道主义响应的一个关键因素。
+即便如此，早在那时，大型语言模型（LLM）的微调就已在预测[人道主义交换语言](https://hxlstandard.org/)（HXL）元数据字段方面表现出色，尤其是在令人惊叹的[人道主义数据交换平台](https://data.humdata.org/)（HDX）上的表格数据集。在那项研究中，训练数据代表了 HDX 上的 HXL 数据分布，因此包含了与位置和日期相关的最常见标签。这些标签对于将不同数据集按位置和时间关联起来至关重要，这是利用数据优化人道主义响应的一个关键因素。
 
-LLM领域此后已取得了… **巨大的**进展。
+LLM 领域此后已取得了… **巨大的**进展。
 
-因此，在本文中，我们将重新审视这一技术，将其扩展到涵盖不太常见的HXL标签和属性，并探讨目前可用的其他选项，适用于需要将复杂、高层次的分类法应用于数据的情况。我们还将探讨预测当前在人为标注的训练数据中未包含的较少见的HXL标准标签和属性的能力。
+因此，在本文中，我们将重新审视这一技术，将其扩展到涵盖不太常见的 HXL 标签和属性，并探讨目前可用的其他选项，适用于需要将复杂、高层次的分类法应用于数据的情况。我们还将探讨预测当前在人为标注的训练数据中未包含的较少见的 HXL 标准标签和属性的能力。
 
 # 设置
 
@@ -38,37 +38,37 @@ LLM领域此后已取得了… **巨大的**进展。
 
 +   [generate-test-train-data.ipynb](https://github.com/datakind/hxl-metadata-prediction/blob/main/generate-test-train-data.ipynb) — 用于创建测试和训练数据集的笔记本
 
-+   [openai-hxl-prediction.ipynb](https://github.com/datakind/hxl-metadata-prediction/blob/main/openai-hxl-prediction.ipynb) — 探索微调和提示以预测HXL数据集的笔记本
++   [openai-hxl-prediction.ipynb](https://github.com/datakind/hxl-metadata-prediction/blob/main/openai-hxl-prediction.ipynb) — 探索微调和提示以预测 HXL 数据集的笔记本
 
 请参阅仓库中的[README](https://github.com/datakind/hxl-metadata-prediction/blob/main/README.md)获取安装说明。
 
-# 来自人道主义数据交换平台的HXL数据
+# 来自人道主义数据交换平台的 HXL 数据
 
-对于本研究，在HDX团队的帮助下，我们将使用从HDX平台提取的数据，通过他们运行的爬虫过程跟踪平台上HXL元数据标签和属性的使用情况。你可以在[GitHub](https://github.com/HXLStandard)找到很棒的HXL资源，但如果你想跟随本次分析，我也将源数据保存到了Google Drive，因为爬虫需要几天时间才能处理HDX上成千上万的表格数据集。
+对于本研究，在 HDX 团队的帮助下，我们将使用从 HDX 平台提取的数据，通过他们运行的爬虫过程跟踪平台上 HXL 元数据标签和属性的使用情况。你可以在[GitHub](https://github.com/HXLStandard)找到很棒的 HXL 资源，但如果你想跟随本次分析，我也将源数据保存到了 Google Drive，因为爬虫需要几天时间才能处理 HDX 上成千上万的表格数据集。
 
-数据如下所示，每个HXL标签化的表格列为一行…
+数据如下所示，每个 HXL 标签化的表格列为一行…
 
-![](../Images/1d1abdc669b37dc43cb697223ff9d3f7.png)
+![](img/1d1abdc669b37dc43cb697223ff9d3f7.png)
 
 本研究中使用的数据示例，每行代表一个表格数据列。
 
-# 核心HXL架构
+# 核心 HXL 架构
 
-[HXL明信片](https://hxlstandard.org/standard/1-1final/postcards/)是一个非常好的概述，展示了核心架构中最常见的HXL标签和属性。对于我们的分析，我们将应用[HDX](https://data.humdata.org/dataset/hxl-core-schemas)上提供的完整标准，并提供了一个支持的标签和属性的[电子表格](https://docs.google.com/spreadsheets/d/1En9FlmM8PrbTWgl3UHPF_MXnJ6ziVZFhBbojSJzBdLI/edit?usp=sharing)…
+[HXL 明信片](https://hxlstandard.org/standard/1-1final/postcards/)是一个非常好的概述，展示了核心架构中最常见的 HXL 标签和属性。对于我们的分析，我们将应用[HDX](https://data.humdata.org/dataset/hxl-core-schemas)上提供的完整标准，并提供了一个支持的标签和属性的[电子表格](https://docs.google.com/spreadsheets/d/1En9FlmM8PrbTWgl3UHPF_MXnJ6ziVZFhBbojSJzBdLI/edit?usp=sharing)…
 
-![](../Images/c72d8b2f6bce80bae6e654de56ba7af0.png)
+![](img/c72d8b2f6bce80bae6e654de56ba7af0.png)
 
-本研究中使用的“核心HXL架构”摘录，来源于[Humanitarian Data Exchange](https://data.humdata.org/dataset/hxl-core-schemas)
+本研究中使用的“核心 HXL 架构”摘录，来源于[Humanitarian Data Exchange](https://data.humdata.org/dataset/hxl-core-schemas)
 
 # 数据处理
 
 [generate-test-train-data.ipynb](https://github.com/datakind/hxl-metadata-prediction/blob/main/generate-test-train-data.ipynb)笔记本提供了创建测试和训练数据集的所有步骤，但这里有一些要注意的关键点：
 
-**1\. 删除自动化管道重复的HXL数据**
+**1\. 删除自动化管道重复的 HXL 数据**
 
-在本研究中，我通过使用每个表格数据集（CSV和Excel文件）中列名称的MDF哈希，删除由自动化管道上传到HDX的数据中的重复项。例如，某个组织创建的人口统计CSV文件通常与每个特定国家的CSV或Excel文件非常相似，因此我们只保留一个示例。这对数据起到了平衡作用，通过删除非常相似的重复数据，提供了更多的HXL标签和属性变异性。
+在本研究中，我通过使用每个表格数据集（CSV 和 Excel 文件）中列名称的 MDF 哈希，删除由自动化管道上传到 HDX 的数据中的重复项。例如，某个组织创建的人口统计 CSV 文件通常与每个特定国家的 CSV 或 Excel 文件非常相似，因此我们只保留一个示例。这对数据起到了平衡作用，通过删除非常相似的重复数据，提供了更多的 HXL 标签和属性变异性。
 
-**2\. 限制数据为有效的HXL格式**
+**2\. 限制数据为有效的 HXL 格式**
 
 大约 50% 的带有 HXL 标签的 HDX 数据使用了在[HXL 核心架构](https://docs.google.com/spreadsheets/d/1En9FlmM8PrbTWgl3UHPF_MXnJ6ziVZFhBbojSJzBdLI/edit?usp=sharing)中未指定的标签或属性，因此这些数据会被从训练集和测试集中移除。
 
@@ -198,9 +198,9 @@ model = fine_tune_model("hxl_chat_prompts_train.jsonl", model_name="gpt-4o-mini-
 
 在上面，我们使用的是新的[GPT-4-mini 模型](https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/)，该模型目前由 OpenAI 提供免费微调服务…
 
-> “现在到9月23日，GPT-4o mini可以免费调优，最多达到每日2M训练令牌的限制。超过2M训练令牌的部分将按$3.00/百万令牌收费。从9月24日起，调优训练将收费$3.00/百万令牌。查看[调优文档](http://url3243.email.openai.com/ls/click?upn=u001.IQLfsj4kk-2BK7JhymNusRMkuuWNTB2xtKMTOzsaHXXCxL87wc9xXN3T3-2B7A50MnxBgM-2FSPU6KI18qmN7e0qEq7w-3D-3DYSY8_HWAk4DGcP5bOseprwmP7vlMwrd2PVXgyuPjLpW3O5VwKbv89B-2BC2CHyio6JopT7iV9PDDQbS-2BN2x-2FOMYyECPpE2WpDWUaqXamxCNxLNFb3Rwb-2BHV-2FnmELwjcwafGYmpXvFXZ3a1UDAGj-2FI8RPRJ92m05wFP91cNzwWmQw2EWFsPrLyLakbHisdbOdu-2B4S0ScKBkmbmuJc7Ib-2Ftz7vKHoD5rdIHoytDF68pW1ivyzpO5isDzndxqHjHSEoXNrAMaOs0RnmRsG-2Btwq2onQS1WmIokXr00y08IHtcHQMGB8k2caZ5qZ1FzXlQ7tM-2F42kCwNCt4-2BmFy-2Bt8mm9-2BtTS6Qd9pEf9tpuFFcI14VFgdiiUINrbkZX-2BvxRqD924FparfXWICjMx3q6U3F78-2B0okeN23HKQddDiZ9ufm5tITBwbvTYG4vXxKkrvM1fg-2BY-2FSI1Zgu7AMY95FNOKhHZjjVYIXSEFJh5oN0U3K3ceVerRfgU0o1sp8yLH-2F4yaMjmyNjp9gAL5CiSYfTqIx0hHAETq3DyTWqiJMx5Fpsg8sAiqHj3Dgwqj5hydZgeMopCnrf3Cfo7Uf09kxixficprhjJLtC-2BOYDB9QH3AyxBxKCpKupl026DU1bx7HoE0Rcytak3Zy6lolc6PczWAxmgGmi8bkEWsMxj8VS-2BhSSPF7qHIr0a-2BP020bgEng-2BZL0HUgfiJpig0i4DhENBp-2BQokwZMcgMdFpOhJVou0cF-2BcxDprFi2U2xhrxn5es5vY0TTwpQjqAhs-2BoK-2FZpbE0zkuyQ9tTtlInaU26DOBv1RHaiFTN-2F8GTEHoxvkJ1OHhhds3ATTWUCGwOhUOZ-2Fl5JjWzYdCDPeOgqnxlQd8b1i-2BJuaBRnhUjpQ7TzPnWkCur4qMtI-2BYKM3tD2d0RxTYTYfQ3GoNsZ-2FBo5Mf4Rb3lKQt59vxsLqKYe33qRjeFo12Ke3dS20gxD7Zxtpu57q1z0xuMgwj9uDDqrPTZh9qbUDYGc1IsbRhOAjL5z4kAYR2jGvTi2SFq9f2AiA1swOO3CORlZpwn5Y6BA-3D-3D)以获取更多有关免费访问的详细信息。”
+> “现在到 9 月 23 日，GPT-4o mini 可以免费调优，最多达到每日 2M 训练令牌的限制。超过 2M 训练令牌的部分将按$3.00/百万令牌收费。从 9 月 24 日起，调优训练将收费$3.00/百万令牌。查看[调优文档](http://url3243.email.openai.com/ls/click?upn=u001.IQLfsj4kk-2BK7JhymNusRMkuuWNTB2xtKMTOzsaHXXCxL87wc9xXN3T3-2B7A50MnxBgM-2FSPU6KI18qmN7e0qEq7w-3D-3DYSY8_HWAk4DGcP5bOseprwmP7vlMwrd2PVXgyuPjLpW3O5VwKbv89B-2BC2CHyio6JopT7iV9PDDQbS-2BN2x-2FOMYyECPpE2WpDWUaqXamxCNxLNFb3Rwb-2BHV-2FnmELwjcwafGYmpXvFXZ3a1UDAGj-2FI8RPRJ92m05wFP91cNzwWmQw2EWFsPrLyLakbHisdbOdu-2B4S0ScKBkmbmuJc7Ib-2Ftz7vKHoD5rdIHoytDF68pW1ivyzpO5isDzndxqHjHSEoXNrAMaOs0RnmRsG-2Btwq2onQS1WmIokXr00y08IHtcHQMGB8k2caZ5qZ1FzXlQ7tM-2F42kCwNCt4-2BmFy-2Bt8mm9-2BtTS6Qd9pEf9tpuFFcI14VFgdiiUINrbkZX-2BvxRqD924FparfXWICjMx3q6U3F78-2B0okeN23HKQddDiZ9ufm5tITBwbvTYG4vXxKkrvM1fg-2BY-2FSI1Zgu7AMY95FNOKhHZjjVYIXSEFJh5oN0U3K3ceVerRfgU0o1sp8yLH-2F4yaMjmyNjp9gAL5CiSYfTqIx0hHAETq3DyTWqiJMx5Fpsg8sAiqHj3Dgwqj5hydZgeMopCnrf3Cfo7Uf09kxixficprhjJLtC-2BOYDB9QH3AyxBxKCpKupl026DU1bx7HoE0Rcytak3Zy6lolc6PczWAxmgGmi8bkEWsMxj8VS-2BhSSPF7qHIr0a-2BP020bgEng-2BZL0HUgfiJpig0i4DhENBp-2BQokwZMcgMdFpOhJVou0cF-2BcxDprFi2U2xhrxn5es5vY0TTwpQjqAhs-2BoK-2FZpbE0zkuyQ9tTtlInaU26DOBv1RHaiFTN-2F8GTEHoxvkJ1OHhhds3ATTWUCGwOhUOZ-2Fl5JjWzYdCDPeOgqnxlQd8b1i-2BJuaBRnhUjpQ7TzPnWkCur4qMtI-2BYKM3tD2d0RxTYTYfQ3GoNsZ-2FBo5Mf4Rb3lKQt59vxsLqKYe33qRjeFo12Ke3dS20gxD7Zxtpu57q1z0xuMgwj9uDDqrPTZh9qbUDYGc1IsbRhOAjL5z4kAYR2jGvTi2SFq9f2AiA1swOO3CORlZpwn5Y6BA-3D-3D)以获取更多有关免费访问的详细信息。”
 
-即使按$3.00/百万个令牌计算，对于这个任务来说，成本也相当低，整个调优过程大约需要7美元，测试文件中有超过200万个令牌。需要记住的是，对于这个特定任务，调优应该是一个少见的事件，一旦我们拥有这样的模型，它可以被重复使用。
+即使按$3.00/百万个令牌计算，对于这个任务来说，成本也相当低，整个调优过程大约需要 7 美元，测试文件中有超过 200 万个令牌。需要记住的是，对于这个特定任务，调优应该是一个少见的事件，一旦我们拥有这样的模型，它可以被重复使用。
 
 调优产生了以下输出……
 
@@ -232,11 +232,11 @@ Fine-tuning job ftjob-XXXXXXXXXXXXXXX succeeded!
 Fine-tuned model: ft:gpt-4o-mini-2024-07-18::XXXXXXX
 ```
 
-花了大约45分钟。
+花了大约 45 分钟。
 
-# 测试我们调优后的模型以预测HXL
+# 测试我们调优后的模型以预测 HXL
 
-现在我们有了一个精心调优的新模型，可以预测HXL标签和属性，我们可以使用测试文件来进行测试……
+现在我们有了一个精心调优的新模型，可以预测 HXL 标签和属性，我们可以使用测试文件来进行测试……
 
 ```py
 def make_chat_predictions(prompts, model, temperature=0.1, max_tokens=13):
@@ -382,7 +382,7 @@ output_prediction_metrics(results)
 print("Done")
 ```
 
-上述内容中需要注意的是，所有预测都经过了HXL标准中定义的允许标签和属性的筛选。
+上述内容中需要注意的是，所有预测都经过了 HXL 标准中定义的允许标签和属性的筛选。
 
 这给出了以下结果……
 
@@ -404,21 +404,21 @@ Recall: 0.61
 F1: 0.57 
 ```
 
-“仅HXL标签”是指预测HXL的第一部分，例如，如果完整的HXL是#affected+infected+f，模型正确预测了#affected部分。“标签和属性”是指预测完整的HXL字符串，即‘#affected+infected+f’，这是一个更具挑战性的任务，因为存在许多可能的组合。
+“仅 HXL 标签”是指预测 HXL 的第一部分，例如，如果完整的 HXL 是#affected+infected+f，模型正确预测了#affected 部分。“标签和属性”是指预测完整的 HXL 字符串，即‘#affected+infected+f’，这是一个更具挑战性的任务，因为存在许多可能的组合。
 
-性能并不完美，但也不算太差，特别是我们平衡了数据集，减少了位置和日期标签及属性的数量（即让这个研究稍微更具挑战性）。即使如此，仍然有成千上万的人道主义响应表格没有HDX，即使是上述性能也可能带来价值。
+性能并不完美，但也不算太差，特别是我们平衡了数据集，减少了位置和日期标签及属性的数量（即让这个研究稍微更具挑战性）。即使如此，仍然有成千上万的人道主义响应表格没有 HDX，即使是上述性能也可能带来价值。
 
 让我们看看预测与人工标注数据不一致的案例……
 
-# 审查人类标注的HXL数据
+# 审查人类标注的 HXL 数据
 
 预测结果已保存到电子表格中，我手动查看了大多数与标签不一致的预测。你可以在[这里](https://docs.google.com/spreadsheets/d/19BfVEU4hQJYUrliRKzfu5rXagK8CjoDH/edit?usp=sharing&ouid=107814789436940136200&rtpof=true&sd=true)找到这项分析，并在下文进行总结……
 
-![](../Images/dfbd71d99ab9103a6ad4e7e1673cdcbb.png)
+![](img/dfbd71d99ab9103a6ad4e7e1673cdcbb.png)
 
-有趣的是，在某些情况下，LLM实际上是正确的，例如在添加*额外的*HXL属性时，而这些属性在人工标注的数据中没有包含。也有一些情况下，人工标注的HXL完全合理，但LLM预测了另一个标签或属性，这个标签或属性也可以被解释为正确。例如，在某些国家，#region也可以是#admin1，而某些情况下判断一个是+id还是+code也很难决定，两者都是合适的。
+有趣的是，在某些情况下，LLM 实际上是正确的，例如在添加*额外的*HXL 属性时，而这些属性在人工标注的数据中没有包含。也有一些情况下，人工标注的 HXL 完全合理，但 LLM 预测了另一个标签或属性，这个标签或属性也可以被解释为正确。例如，在某些国家，#region 也可以是#admin1，而某些情况下判断一个是+id 还是+code 也很难决定，两者都是合适的。
 
-使用上述类别，我创建了一个新的测试集，其中纠正了期望的HXL标签。在重新运行预测后，我们得到了改进的结果……
+使用上述类别，我创建了一个新的测试集，其中纠正了期望的 HXL 标签。在重新运行预测后，我们得到了改进的结果……
 
 ```py
  Just HXL tags ...
@@ -436,25 +436,25 @@ Recall: 0.66
 F1: 0.66
 ```
 
-# 在没有微调的情况下预测HXL，而仅仅是通过提示来使用GPT-4o
+# 在没有微调的情况下预测 HXL，而仅仅是通过提示来使用 GPT-4o
 
-上述内容表明人类标注的数据本身可能是错误的。HXL标准设计得非常出色，但对于开发人员和数据科学家来说，在数据上设置HXL标签和属性时，记住它们可能是一个挑战。HXL团队已经提供了一些[令人惊叹的工具](https://hxlstandard.org/tools/)，但有时HXL仍然是错误的。这给依赖这些人类标注数据进行训练的微调方法带来了问题，尤其是对于那些人类不常使用的标签和属性，这些标签和属性的表示较少。它还存在一个限制，即无法在元数据标准发生变化时进行调整，因为训练数据不会反映这些变化。
+上述内容表明人类标注的数据本身可能是错误的。HXL 标准设计得非常出色，但对于开发人员和数据科学家来说，在数据上设置 HXL 标签和属性时，记住它们可能是一个挑战。HXL 团队已经提供了一些[令人惊叹的工具](https://hxlstandard.org/tools/)，但有时 HXL 仍然是错误的。这给依赖这些人类标注数据进行训练的微调方法带来了问题，尤其是对于那些人类不常使用的标签和属性，这些标签和属性的表示较少。它还存在一个限制，即无法在元数据标准发生变化时进行调整，因为训练数据不会反映这些变化。
 
-自18个月前的初步分析以来，各个LLM提供商已经显著提高了他们的模型。OpenAI当然发布了他们的旗舰产品[GPT-4o](https://openai.com/index/hello-gpt-4o/)，其具有128k个token的上下文窗口，这一点很重要，另外，这也是一个数据点，表明基础模型的成本正在下降（例如，GPT-4-Turbo与GPT-4o的比较[见此](https://huggingface.co/spaces/philschmid/llm-pricing)）。考虑到这些因素，我开始思考……
+自 18 个月前的初步分析以来，各个 LLM 提供商已经显著提高了他们的模型。OpenAI 当然发布了他们的旗舰产品[GPT-4o](https://openai.com/index/hello-gpt-4o/)，其具有 128k 个 token 的上下文窗口，这一点很重要，另外，这也是一个数据点，表明基础模型的成本正在下降（例如，GPT-4-Turbo 与 GPT-4o 的比较[见此](https://huggingface.co/spaces/philschmid/llm-pricing)）。考虑到这些因素，我开始思考……
 
-***如果模型变得更强大且使用成本更低，我们是否可以完全避免微调，仅通过提示就能预测HXL标签和属性？***
+***如果模型变得更强大且使用成本更低，我们是否可以完全避免微调，仅通过提示就能预测 HXL 标签和属性？***
 
-这不仅意味着减少清理数据和微调模型的工程工作，还可能具有一个巨大优势，即能够包括人类标注的训练数据中未包含但属于HXL标准的HXL标签和属性。这是强大LLM的一个潜在巨大优势，可以通过零样本和少样本提示进行分类。
+这不仅意味着减少清理数据和微调模型的工程工作，还可能具有一个巨大优势，即能够包括人类标注的训练数据中未包含但属于 HXL 标准的 HXL 标签和属性。这是强大 LLM 的一个潜在巨大优势，可以通过零样本和少样本提示进行分类。
 
-# 为预测HXL创建提示
+# 为预测 HXL 创建提示
 
-像GPT-4o这样的模型是基于网页数据训练的，所以我想先做一个测试，使用我们的提示之一来看看它是否已经知道关于HXL标签的所有信息…
+像 GPT-4o 这样的模型是基于网页数据训练的，所以我想先做一个测试，使用我们的提示之一来看看它是否已经知道关于 HXL 标签的所有信息…
 
-![](../Images/b39b540c5990d5719eae62d8834191e4.png)
+![](img/b39b540c5990d5719eae62d8834191e4.png)
 
-我们看到的是，它似乎知道HXL的语法，但答案不正确（正确答案是‘#affected+infected’），并且选择了不在HXL标准中的标签和属性。这实际上类似于我们在人类标注的HXL中看到的情况。
+我们看到的是，它似乎知道 HXL 的语法，但答案不正确（正确答案是‘#affected+infected’），并且选择了不在 HXL 标准中的标签和属性。这实际上类似于我们在人类标注的 HXL 中看到的情况。
 
-如果我们在系统提示中提供[HXL标准](https://docs.google.com/spreadsheets/d/1En9FlmM8PrbTWgl3UHPF_MXnJ6ziVZFhBbojSJzBdLI/edit?pli=1&gid=319251406#gid=319251406)的最重要部分怎么样？
+如果我们在系统提示中提供[HXL 标准](https://docs.google.com/spreadsheets/d/1En9FlmM8PrbTWgl3UHPF_MXnJ6ziVZFhBbojSJzBdLI/edit?pli=1&gid=319251406#gid=319251406)的最重要部分怎么样？
 
 ```py
 def generate_hxl_standard_prompt(local_data_file):
@@ -693,11 +693,11 @@ You are an AI assistant that predicts Humanitarian Markup Language (HXL) tags an
   You must return your result as a JSON record with the fields 'predicted' and 'reasoning', each is of type string.
 ```
 
-它相当长（上面已被截断），但包含了HXL标准的要点。
+它相当长（上面已被截断），但包含了 HXL 标准的要点。
 
-直接提示方法的另一个优势是，我们还可以要求LLM在预测HXL时提供其推理过程。当然，这可能包括幻觉，但我发现它对于优化提示非常有帮助。
+直接提示方法的另一个优势是，我们还可以要求 LLM 在预测 HXL 时提供其推理过程。当然，这可能包括幻觉，但我发现它对于优化提示非常有帮助。
 
-对于用户提示，我们将使用与微调时相同的信息，包括摘录和LLM生成的表格总结…
+对于用户提示，我们将使用与微调时相同的信息，包括摘录和 LLM 生成的表格总结…
 
 ```py
 What are the HXL tags and attributes for a column with these details? resource_name='/content/drive/MyDrive/Colab/hxl-metadata-prediction/data/IFRC Appeals Data for South Sudan8.csv'; 
@@ -717,7 +717,7 @@ What are the HXL tags and attributes for a column with these details? resource_n
    examples: ['18401', '17770', '17721', '16858', '15268', '15113', '14826', '14230', '12788', '9286', '8561']
 ```
 
-将所有内容综合起来，并同时对比GPT-4o-mini和GPT-4o的提示结果…
+将所有内容综合起来，并同时对比 GPT-4o-mini 和 GPT-4o 的提示结果…
 
 ```py
 def call_gpt(prompt, system_prompt, model, temperature, top_p, max_tokens):
@@ -890,15 +890,15 @@ Recall: 0.61
 F1: 0.57
 ```
 
-*仅使用提示的GPT-4o与GPT-4o-mini相比如何？*
+*仅使用提示的 GPT-4o 与 GPT-4o-mini 相比如何？*
 
-从上面的数据来看，我们发现GPT-4o-mini仅使用提示预测标签的准确率为77%，低于GPT-4o-mini微调后的83%和GPT-4o仅使用提示的86%。尽管如此，性能仍然不错，即便直接使用也能改善HXL覆盖率。
+从上面的数据来看，我们发现 GPT-4o-mini 仅使用提示预测标签的准确率为 77%，低于 GPT-4o-mini 微调后的 83%和 GPT-4o 仅使用提示的 86%。尽管如此，性能仍然不错，即便直接使用也能改善 HXL 覆盖率。
 
 *仅使用提示与微调模型的对比如何？*
 
-GPT-4o仅使用提示的结果是所有模型中最好的，在标签上的准确率为86%，在标签和属性上的准确率为71%。实际上，经过更多对测试数据的分析以纠正错误的人类标签后，性能可能会更好。
+GPT-4o 仅使用提示的结果是所有模型中最好的，在标签上的准确率为 86%，在标签和属性上的准确率为 71%。实际上，经过更多对测试数据的分析以纠正错误的人类标签后，性能可能会更好。
 
-让我们仔细看看GPT-4o出错的情况…
+让我们仔细看看 GPT-4o 出错的情况…
 
 ```py
 df = pd.read_excel(f"{LOCAL_DATA_DIR}/hxl-metadata-prompting-only-prediction-gpt-4o-results.xlsx")
@@ -1030,15 +1030,15 @@ Predicted #region+id
 
 从上面的示例来看，我们看到了一些熟悉的场景，这些场景出现在分析微调模型失败的预测时…
 
-+   +id和+code的模糊性
++   +id 和+code 的模糊性
 
-+   #region和#adm1互换使用
++   #region 和#adm1 互换使用
 
-+   #event与更详细的标签如#cause的对比
++   #event 与更详细的标签如#cause 的对比
 
-这些似乎属于那种根据HXL定义，给定列可能有两个标签的类别。但也有一些明显的不一致之处，需要进一步调查。
+这些似乎属于那种根据 HXL 定义，给定列可能有两个标签的类别。但也有一些明显的不一致之处，需要进一步调查。
 
-尽管如此，使用GPT-4o预测HXL标签和属性得出了最好的结果，我认为这是在可接受的水平，因为很多数据完全缺失HXL元数据，且许多包含这些数据的集合有错误的标签和属性。
+尽管如此，使用 GPT-4o 预测 HXL 标签和属性得出了最好的结果，我认为这是在可接受的水平，因为很多数据完全缺失 HXL 元数据，且许多包含这些数据的集合有错误的标签和属性。
 
 # 成本比较
 
@@ -1168,7 +1168,7 @@ urllib.request.urlretrieve(DATAFILE_URL, local_data_file)
 df = pd.read_excel(local_data_file, sheet_name=1)
 ```
 
-![](../Images/f4d88e404896f574504c6d75b455d9cb.png)
+![](img/f4d88e404896f574504c6d75b455d9cb.png)
 
 使用这个数据框，我们来预测 HXL 标签……
 
@@ -1182,7 +1182,7 @@ print("\n\nAFTER: \n\n")
 display(data)
 ```
 
-![](../Images/33bafdfd979641e3cc932f24d4992577.png)
+![](img/33bafdfd979641e3cc932f24d4992577.png)
 
 就这样，得到了些漂亮的 HXL 标签！
 
@@ -1195,7 +1195,7 @@ data = hxl_utils.add_hxl(df,"sudan_hrp_civilian_targeting_events_and_fatalities_
 
 结果是……
 
-![](../Images/551db548c232ea8e6d577b657dee9021.png)
+![](img/551db548c232ea8e6d577b657dee9021.png)
 
 很不错！gpt-4o 给出了“#affected+killed+num”作为最后一列，而“gpt-4o-mini”则给出了“#affected+num”，但这很可能可以通过一些巧妙的提示工程来解决。
 
@@ -1213,14 +1213,14 @@ data = hxl_utils.add_hxl(df,"sudan_hrp_civilian_targeting_events_and_fatalities_
 
 **提示工程与超参数调优**
 
-上述分析使用了非常基础的提示词，并没有应用任何真正的工程方法或策略，这些方法肯定可以通过改进来提高性能。通过评估集和像[Promptflow](https://github.com/microsoft/promptflow)这样的框架，可以测试不同的提示词变体。此外，我们还可以添加更多的上下文数据，例如在决定行政级别时，这可能因国家而异。最后，我们使用了固定的超参数，如温度、top_p以及完成标记长度。所有这些都可以调整，从而提高性能。
+上述分析使用了非常基础的提示词，并没有应用任何真正的工程方法或策略，这些方法肯定可以通过改进来提高性能。通过评估集和像[Promptflow](https://github.com/microsoft/promptflow)这样的框架，可以测试不同的提示词变体。此外，我们还可以添加更多的上下文数据，例如在决定行政级别时，这可能因国家而异。最后，我们使用了固定的超参数，如温度、top_p 以及完成标记长度。所有这些都可以调整，从而提高性能。
 
 **成本优化**
 
-仅使用提示词的方法无疑是一个强有力的选择，并简化了组织如何通过GPT-4o自动为其数据设置HXL标签。当然，这种方法有成本上的考虑，因为它较为昂贵，但预测只发生在低频率的模式变化时，而不是当底层数据本身发生变化时，随着OpenAI提供新的[批量提交](https://openai.com/api/pricing/)选项以及LLM成本不断下降，这项技术对许多组织来说是可行的。GPT-4o-mini的表现也很好，且成本只是其一小部分。
+仅使用提示词的方法无疑是一个强有力的选择，并简化了组织如何通过 GPT-4o 自动为其数据设置 HXL 标签。当然，这种方法有成本上的考虑，因为它较为昂贵，但预测只发生在低频率的模式变化时，而不是当底层数据本身发生变化时，随着 OpenAI 提供新的[批量提交](https://openai.com/api/pricing/)选项以及 LLM 成本不断下降，这项技术对许多组织来说是可行的。GPT-4o-mini 的表现也很好，且成本只是其一小部分。
 
 **应用于其他元数据标准**
 
-将这项技术应用于其他元数据和标注标准会很有趣，我确信许多组织已经在使用LLMs来实现这一点。
+将这项技术应用于其他元数据和标注标准会很有趣，我确信许多组织已经在使用 LLMs 来实现这一点。
 
 *如果你愿意，请点赞这篇文章，如果你关注我，我将非常高兴！你可以在* [*这里*](https://medium.com/@astrobagel)* 找到更多文章。*

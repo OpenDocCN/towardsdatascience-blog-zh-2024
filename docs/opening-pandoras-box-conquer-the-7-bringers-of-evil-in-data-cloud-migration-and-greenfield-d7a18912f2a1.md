@@ -1,16 +1,16 @@
-# 打开潘多拉的盒子：征服数据云迁移和新领域项目中的7个“邪恶使者”
+# 打开潘多拉的盒子：征服数据云迁移和新领域项目中的 7 个“邪恶使者”
 
-> 原文：[https://towardsdatascience.com/opening-pandoras-box-conquer-the-7-bringers-of-evil-in-data-cloud-migration-and-greenfield-d7a18912f2a1?source=collection_archive---------11-----------------------#2024-10-08](https://towardsdatascience.com/opening-pandoras-box-conquer-the-7-bringers-of-evil-in-data-cloud-migration-and-greenfield-d7a18912f2a1?source=collection_archive---------11-----------------------#2024-10-08)
+> 原文：[`towardsdatascience.com/opening-pandoras-box-conquer-the-7-bringers-of-evil-in-data-cloud-migration-and-greenfield-d7a18912f2a1?source=collection_archive---------11-----------------------#2024-10-08`](https://towardsdatascience.com/opening-pandoras-box-conquer-the-7-bringers-of-evil-in-data-cloud-migration-and-greenfield-d7a18912f2a1?source=collection_archive---------11-----------------------#2024-10-08)
 
 ## 克服云迁移挑战的指南
 
-[](https://medium.com/@martosi?source=post_page---byline--d7a18912f2a1--------------------------------)[![Marina Tosic](../Images/5e50c62f54caa6aca417dc9f1e593d05.png)](https://medium.com/@martosi?source=post_page---byline--d7a18912f2a1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d7a18912f2a1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d7a18912f2a1--------------------------------) [Marina Tosic](https://medium.com/@martosi?source=post_page---byline--d7a18912f2a1--------------------------------)
+[](https://medium.com/@martosi?source=post_page---byline--d7a18912f2a1--------------------------------)![Marina Tosic](https://medium.com/@martosi?source=post_page---byline--d7a18912f2a1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d7a18912f2a1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d7a18912f2a1--------------------------------) [Marina Tosic](https://medium.com/@martosi?source=post_page---byline--d7a18912f2a1--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d7a18912f2a1--------------------------------) ·阅读时长15分钟·2024年10月8日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d7a18912f2a1--------------------------------) ·阅读时长 15 分钟·2024 年 10 月 8 日
 
 --
 
-![](../Images/7378f5ec9f4d9b54062da484066a1ec8.png)
+![](img/7378f5ec9f4d9b54062da484066a1ec8.png)
 
 “尽管有警告，潘多拉依然充满好奇，她打开了罐子，释放了世界的恶行——只留下**希望**被困其中。” [照片由[Bailey Heedick](https://unsplash.com/@baileyheedick?utm_source=medium&utm_medium=referral)拍摄，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)]
 

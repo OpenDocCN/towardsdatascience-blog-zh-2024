@@ -1,18 +1,18 @@
 # 推理作为驱动法律论证的引擎
 
-> 原文：[https://towardsdatascience.com/reasoning-as-the-engine-driving-legal-arguments-beca3cc89c00?source=collection_archive---------9-----------------------#2024-09-06](https://towardsdatascience.com/reasoning-as-the-engine-driving-legal-arguments-beca3cc89c00?source=collection_archive---------9-----------------------#2024-09-06)
+> 原文：[`towardsdatascience.com/reasoning-as-the-engine-driving-legal-arguments-beca3cc89c00?source=collection_archive---------9-----------------------#2024-09-06`](https://towardsdatascience.com/reasoning-as-the-engine-driving-legal-arguments-beca3cc89c00?source=collection_archive---------9-----------------------#2024-09-06)
 
 ## 推理陈述表明了论证的类型
 
-[](https://medium.com/@vern.r.walker?source=post_page---byline--beca3cc89c00--------------------------------)[![Vern R Walker](../Images/dd6371d182e62da6c2146b966cf771b7.png)](https://medium.com/@vern.r.walker?source=post_page---byline--beca3cc89c00--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--beca3cc89c00--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--beca3cc89c00--------------------------------) [Vern R Walker](https://medium.com/@vern.r.walker?source=post_page---byline--beca3cc89c00--------------------------------)
+[](https://medium.com/@vern.r.walker?source=post_page---byline--beca3cc89c00--------------------------------)![Vern R Walker](https://medium.com/@vern.r.walker?source=post_page---byline--beca3cc89c00--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--beca3cc89c00--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--beca3cc89c00--------------------------------) [Vern R Walker](https://medium.com/@vern.r.walker?source=post_page---byline--beca3cc89c00--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--beca3cc89c00--------------------------------) ·阅读时间：10分钟·2024年9月6日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--beca3cc89c00--------------------------------) ·阅读时间：10 分钟·2024 年 9 月 6 日
 
 --
 
-![](../Images/4f3beb20b2135d6284b0993c2fc123f3.png)
+![](img/4f3beb20b2135d6284b0993c2fc123f3.png)
 
-图片由Vern R. Walker提供，[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。
+图片由 Vern R. Walker 提供，[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。
 
 在审判阶段的法律案件中，事实裁定者（无论是法官、陪审团还是行政法庭）需要评估证据的证明价值，并得出关于事实的结论。那么，法庭在执行这一任务时采用了哪些方法？法庭使用了多少种方法？任何类型的事实认定机构通常至少会有三个阶段。
 
@@ -24,7 +24,7 @@
 
 法律判决中发现的一种特定类型的句子为回答此类问题提供了重要线索。写得好的法律判决会明确表达至少一部分决策者的中间推理链条。特别重要的是那些陈述其证据推理的句子——我将其称为“推理句子”。
 
-在本文中，我讨论了此类推理句子的区分特征和实用性。我还讨论了使机器学习（ML）模型能够自动标注法律决策文件中推理句子的语言特征。我探讨了这些模型的表现适用性为何取决于使用场景，以及为什么即使是基本的机器学习模型也适用于此任务。最后，我将推理句子放在更广泛的任务框架中，探讨如何利用生成式AI和大型语言模型来解决[论证挖掘中的挑战](/7-challenges-for-argument-mining-in-law-fb98a6df7b0c)。
+在本文中，我讨论了此类推理句子的区分特征和实用性。我还讨论了使机器学习（ML）模型能够自动标注法律决策文件中推理句子的语言特征。我探讨了这些模型的表现适用性为何取决于使用场景，以及为什么即使是基本的机器学习模型也适用于此任务。最后，我将推理句子放在更广泛的任务框架中，探讨如何利用生成式 AI 和大型语言模型来解决论证挖掘中的挑战。
 
 **推理句子的特征和实用性**
 
@@ -32,7 +32,7 @@
 
 *此外，临床医生的病因学观点是可信的，因为它们具有内部一致性，并且她有责任提供真实的意见。*
 
-在其他文章中，我讨论了[证据句子](https://medium.com/towards-data-science/the-evidence-is-critical-for-classifying-legal-cases-36c1dd6cfd04)、[法律规则句子](/legal-rules-structure-the-reasoning-in-legal-documents-fbd59c67a17b)和[结论句子](/conclusions-as-anchors-for-mining-legal-reasoning-6f837fb8da3c)。从推理的角度来看，证据和法律规则起到了前提的作用，而事实认定则充当结论。你也可以将推理句子视为前提，因为它们解释了证据的证明价值。
+在其他文章中，我讨论了[证据句子](https://medium.com/towards-data-science/the-evidence-is-critical-for-classifying-legal-cases-36c1dd6cfd04)、法律规则句子和结论句子。从推理的角度来看，证据和法律规则起到了前提的作用，而事实认定则充当结论。你也可以将推理句子视为前提，因为它们解释了证据的证明价值。
 
 对于涉及案件的律师和当事人来说，推理句子提供了关于一方基于证据的论点为何成功或失败的官方解释。当事人有权要求法庭遵守其陈述的理由。各方的律师可以利用这些陈述的理由来帮助制定反驳法庭逻辑的论点，或者为该逻辑提供额外的支持。这类论点可以在审判阶段或上诉阶段提出。
 
@@ -70,29 +70,29 @@
 
 **机器学习结果**
 
-在我们的实验中，与其他句子类型相比，机器学习算法在分类推理句子时最为困难。然而，经过训练的模型仍能提供有用的句子类型预测。[我们训练了一个逻辑回归模型](http://ceur-ws.org/Vol-2385/paper1.pdf)，该模型使用了由[霍夫斯特拉大学法学院法律、逻辑与技术研究实验室（LLT Lab）](https://www.lltlab.org/)创建的50个BVA裁决的数据集。该数据集在预处理后包含了5,797个手动标注的句子，其中710个是推理句子。在多类场景中，模型对推理句子的精确度为0.66，召回率为0.52。我们在相同的BVA数据集上使用神经网络（“NN”）模型进行了训练，并在1,846个句子上进行了测试，得到了相似的结果。该模型对于推理句子的精确度为0.66，召回率为0.51。
+在我们的实验中，与其他句子类型相比，机器学习算法在分类推理句子时最为困难。然而，经过训练的模型仍能提供有用的句子类型预测。[我们训练了一个逻辑回归模型](http://ceur-ws.org/Vol-2385/paper1.pdf)，该模型使用了由[霍夫斯特拉大学法学院法律、逻辑与技术研究实验室（LLT Lab）](https://www.lltlab.org/)创建的 50 个 BVA 裁决的数据集。该数据集在预处理后包含了 5,797 个手动标注的句子，其中 710 个是推理句子。在多类场景中，模型对推理句子的精确度为 0.66，召回率为 0.52。我们在相同的 BVA 数据集上使用神经网络（“NN”）模型进行了训练，并在 1,846 个句子上进行了测试，得到了相似的结果。该模型对于推理句子的精确度为 0.66，召回率为 0.51。
 
 很容易认为这样的机器学习表现太低，无法提供有效的帮助。在这么做之前，重要的是调查错误的性质，以及根据使用场景，错误的实际成本。
 
 **实际错误分析**
 
-在175个神经网络模型预测为推理句子的句子中，有59个被误分类（精确度=0.66）。这些混淆是与其他几种类型的句子有关的。在这59个被误分类为推理句子的句子中，24个实际上是证据句子，15个是发现句子，11个是法律规则句子。
+在 175 个神经网络模型预测为推理句子的句子中，有 59 个被误分类（精确度=0.66）。这些混淆是与其他几种类型的句子有关的。在这 59 个被误分类为推理句子的句子中，24 个实际上是证据句子，15 个是发现句子，11 个是法律规则句子。
 
 如果推理句子的措辞与正在评估的证据、正在支持的发现或正在应用的法律规则紧密相连，那么这种混淆是可以理解的。一句证据句子也可能使用表示推理的词语或短语，但句子中报告的推理并非事实裁定者的推理，而是证据内容的一部分。
 
-作为一个假阳性（或精确度错误）的例子，经过训练的神经网络模型错误地预测以下为推理句子，实际上它是一个证据句子（模型最初分配了绿色背景色，专家审阅者手动更改为蓝色）（截图来自[软件应用程序LA-MPS](https://ceur-ws.org/Vol-3441/paper14.pdf)，由Apprentice Systems开发）：
+作为一个假阳性（或精确度错误）的例子，经过训练的神经网络模型错误地预测以下为推理句子，实际上它是一个证据句子（模型最初分配了绿色背景色，专家审阅者手动更改为蓝色）（截图来自[软件应用程序 LA-MPS](https://ceur-ws.org/Vol-3441/paper14.pdf)，由 Apprentice Systems 开发）：
 
-![](../Images/b1721d718c4ff8edf4a26d4ce69585b0.png)
+![](img/b1721d718c4ff8edf4a26d4ce69585b0.png)
 
-图片由Vern R. Walker提供，[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。
+图片由 Vern R. Walker 提供，[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。
 
 虽然这是一个证据句子，主要复述了退伍军人事务部（VA）检查员报告中反映的发现，但神经网络模型将该句子分类为陈述法庭推理，可能部分由于出现了“董事会注意到”这些词汇。然而，模型的预测分数表明，这种混淆实际上是一个相对接近的判断（见句子文本下方）：推理句子（53.88%）与证据句子（44.92%）。
 
 作为一个假阴性（或召回错误）的例子，神经网络模型错误地将以下句子归类为证据句子，而它显然是一个推理句子（模型最初分配了蓝色背景色，专家审阅者手动更改为绿色）：
 
-![](../Images/2c2502941e2af9178517314dcf088377.png)
+![](img/2c2502941e2af9178517314dcf088377.png)
 
-图片由Vern R. Walker提供，[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。
+图片由 Vern R. Walker 提供，[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。
 
 这句话提到了证据，但它这样做是为了说明法庭推理，表明来自退伍军人事务部（VA）的证据的证明价值大于私人治疗证据。关于可能的句子角色的预测分数（见句子文本下方）显示，神经网络模型错误地预测这是一个证据句子（分数 = 45.01%），尽管推理句子也获得了相对较高的分数（33.01%）。
 
@@ -102,7 +102,7 @@
 
 根据裁决中的即时上下文，我们手动标记这句话为陈述了关于何时需要进一步发展或证据确凿支持的法律规则。但这句话也包含了与案件细节中的事实裁定者推理一致的措辞。然而，仅凭句子的措辞，甚至律师也可能合理地将这句话归类为任一类别。
 
-分类错误的成本取决于使用场景和错误类型。对于提取和呈现法律推理示例的目的，上述的精确度和召回率可能对用户是可接受的。精确度为0.66意味着每3个预测为推理句子的句子中大约有2个被正确预测，而召回率为0.51意味着大约一半的实际推理句子被正确检测到。如果高召回率不是必需的，而目标是有效地展示过去的推理，那么这种表现可能是可以接受的。
+分类错误的成本取决于使用场景和错误类型。对于提取和呈现法律推理示例的目的，上述的精确度和召回率可能对用户是可接受的。精确度为 0.66 意味着每 3 个预测为推理句子的句子中大约有 2 个被正确预测，而召回率为 0.51 意味着大约一半的实际推理句子被正确检测到。如果高召回率不是必需的，而目标是有效地展示过去的推理，那么这种表现可能是可以接受的。
 
 如果一个错误特别低成本，可能是将推理句子与证据句子或法律规则句子混淆，但这些句子仍然包含关于案件推理的洞察信息。如果用户有兴趣查看不同的论证示例，那么被分类为推理、证据或法律规则的句子仍然可能是一个示范性论证模式的一部分。
 
@@ -116,4 +116,4 @@
 
 其次，如果我们从一个大型数据集中提取出一组推理句子，我们可以对它们进行调查，制定评估单个证据项的因素列表，并制定比较相互冲突证据项的软规则。
 
-还值得注意的是，如果我们的目标是进行[自动化论证挖掘](https://ceur-ws.org/Vol-3441/paper14.pdf)，那么识别和提取完整的论证依赖于比仅仅针对推理句子的分类器更多的分类器。我在其他文章中曾建议，自动分类器在某些用例中足以对[证据句子](https://medium.com/towards-data-science/the-evidence-is-critical-for-classifying-legal-cases-36c1dd6cfd04)、[法律规则句子](/legal-rules-structure-the-reasoning-in-legal-documents-fbd59c67a17b)和[查找句子](/conclusions-as-anchors-for-mining-legal-reasoning-6f837fb8da3c)进行标注。也许在过去的判决中自动标注这些句子类型可以帮助大型语言模型解决[论证挖掘中的挑战](/7-challenges-for-argument-mining-in-law-fb98a6df7b0c)——也就是说，帮助它们总结过去案件中的推理并推荐新案件中的论证。
+还值得注意的是，如果我们的目标是进行[自动化论证挖掘](https://ceur-ws.org/Vol-3441/paper14.pdf)，那么识别和提取完整的论证依赖于比仅仅针对推理句子的分类器更多的分类器。我在其他文章中曾建议，自动分类器在某些用例中足以对[证据句子](https://medium.com/towards-data-science/the-evidence-is-critical-for-classifying-legal-cases-36c1dd6cfd04)、法律规则句子和查找句子进行标注。也许在过去的判决中自动标注这些句子类型可以帮助大型语言模型解决论证挖掘中的挑战——也就是说，帮助它们总结过去案件中的推理并推荐新案件中的论证。

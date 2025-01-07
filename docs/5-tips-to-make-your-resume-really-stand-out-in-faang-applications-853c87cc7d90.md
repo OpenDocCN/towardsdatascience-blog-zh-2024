@@ -1,12 +1,12 @@
 # 5 个让你的简历在 FAANG 应聘中*真正*脱颖而出的技巧
 
-> 原文：[https://towardsdatascience.com/5-tips-to-make-your-resume-really-stand-out-in-faang-applications-853c87cc7d90?source=collection_archive---------1-----------------------#2024-09-02](https://towardsdatascience.com/5-tips-to-make-your-resume-really-stand-out-in-faang-applications-853c87cc7d90?source=collection_archive---------1-----------------------#2024-09-02)
+> 原文：[`towardsdatascience.com/5-tips-to-make-your-resume-really-stand-out-in-faang-applications-853c87cc7d90?source=collection_archive---------1-----------------------#2024-09-02`](https://towardsdatascience.com/5-tips-to-make-your-resume-really-stand-out-in-faang-applications-853c87cc7d90?source=collection_archive---------1-----------------------#2024-09-02)
 
 ## 如何在仅仅 6 秒钟内让招聘者说“WOW！”
 
-[](https://medium.com/@elalamik?source=post_page---byline--853c87cc7d90--------------------------------)[![Khouloud El Alami](../Images/58840bfe28a60892b51d40ad6ba7f5e8.png)](https://medium.com/@elalamik?source=post_page---byline--853c87cc7d90--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--853c87cc7d90--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--853c87cc7d90--------------------------------) [Khouloud El Alami](https://medium.com/@elalamik?source=post_page---byline--853c87cc7d90--------------------------------)
+[](https://medium.com/@elalamik?source=post_page---byline--853c87cc7d90--------------------------------)![Khouloud El Alami](https://medium.com/@elalamik?source=post_page---byline--853c87cc7d90--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--853c87cc7d90--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--853c87cc7d90--------------------------------) [Khouloud El Alami](https://medium.com/@elalamik?source=post_page---byline--853c87cc7d90--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--853c87cc7d90--------------------------------) ·阅读时长 8 分钟·2024年9月2日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--853c87cc7d90--------------------------------) ·阅读时长 8 分钟·2024 年 9 月 2 日
 
 --
 
@@ -20,7 +20,7 @@
 
 怎么做到的？一切的转机开始于一份令人印象深刻的简历，它让我在人群中脱颖而出。
 
-![](../Images/a5ce00f2f144136de8aa3e82f0354241.png)
+![](img/a5ce00f2f144136de8aa3e82f0354241.png)
 
 作者图片
 

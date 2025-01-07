@@ -1,16 +1,16 @@
 # 如何通过群体分析改变您的客户洞察
 
-> 原文：[https://towardsdatascience.com/how-cohort-analysis-can-transform-your-customer-insights-ff7e221b8fdc?source=collection_archive---------7-----------------------#2024-09-25](https://towardsdatascience.com/how-cohort-analysis-can-transform-your-customer-insights-ff7e221b8fdc?source=collection_archive---------7-----------------------#2024-09-25)
+> 原文：[`towardsdatascience.com/how-cohort-analysis-can-transform-your-customer-insights-ff7e221b8fdc?source=collection_archive---------7-----------------------#2024-09-25`](https://towardsdatascience.com/how-cohort-analysis-can-transform-your-customer-insights-ff7e221b8fdc?source=collection_archive---------7-----------------------#2024-09-25)
 
 ## 了解如何通过群体分析追踪客户行为，从而改善您的业务的客户参与和留存策略
 
-[](https://medium.com/@baoxinli?source=post_page---byline--ff7e221b8fdc--------------------------------)[![Shirley Bao, Ph.D.](../Images/4582ea321345d0f6e2eecc194bab457f.png)](https://medium.com/@baoxinli?source=post_page---byline--ff7e221b8fdc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ff7e221b8fdc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ff7e221b8fdc--------------------------------) [Shirley Bao, Ph.D.](https://medium.com/@baoxinli?source=post_page---byline--ff7e221b8fdc--------------------------------)
+[](https://medium.com/@baoxinli?source=post_page---byline--ff7e221b8fdc--------------------------------)![Shirley Bao, Ph.D.](https://medium.com/@baoxinli?source=post_page---byline--ff7e221b8fdc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ff7e221b8fdc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ff7e221b8fdc--------------------------------) [Shirley Bao, Ph.D.](https://medium.com/@baoxinli?source=post_page---byline--ff7e221b8fdc--------------------------------)
 
-· 发表在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ff7e221b8fdc--------------------------------) · 6分钟阅读 · 2024年9月25日
+· 发表在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ff7e221b8fdc--------------------------------) · 6 分钟阅读 · 2024 年 9 月 25 日
 
 --
 
-![](../Images/74e2f8226e951894bc19a6b1a9ae51b2.png)
+![](img/74e2f8226e951894bc19a6b1a9ae51b2.png)
 
 图片由 [Clker-Free-Vector-Images](https://pixabay.com/users/clker-free-vector-images-3736/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=36929) 提供，来源于 [Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=36929)
 

@@ -1,22 +1,22 @@
 # 🪜 精通辛普森悖论——我的因果关系入门
 
-> 原文：[https://towardsdatascience.com/mastering-simpsons-paradox-my-gateway-drug-to-causality-87e10b613a80?source=collection_archive---------3-----------------------#2024-10-07](https://towardsdatascience.com/mastering-simpsons-paradox-my-gateway-drug-to-causality-87e10b613a80?source=collection_archive---------3-----------------------#2024-10-07)
+> 原文：[`towardsdatascience.com/mastering-simpsons-paradox-my-gateway-drug-to-causality-87e10b613a80?source=collection_archive---------3-----------------------#2024-10-07`](https://towardsdatascience.com/mastering-simpsons-paradox-my-gateway-drug-to-causality-87e10b613a80?source=collection_archive---------3-----------------------#2024-10-07)
 
 ## 警告：你将再也不会以同样的方式看待数据
 
-[](https://eyal-kazin.medium.com/?source=post_page---byline--87e10b613a80--------------------------------)[![Eyal Kazin](../Images/3860e6f1f63d732ce3af939d6681f542.png)](https://eyal-kazin.medium.com/?source=post_page---byline--87e10b613a80--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--87e10b613a80--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--87e10b613a80--------------------------------) [Eyal Kazin](https://eyal-kazin.medium.com/?source=post_page---byline--87e10b613a80--------------------------------)
+[](https://eyal-kazin.medium.com/?source=post_page---byline--87e10b613a80--------------------------------)![Eyal Kazin](https://eyal-kazin.medium.com/?source=post_page---byline--87e10b613a80--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--87e10b613a80--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87e10b613a80--------------------------------) [Eyal Kazin](https://eyal-kazin.medium.com/?source=post_page---byline--87e10b613a80--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87e10b613a80--------------------------------) ·阅读时间：18分钟·2024年10月7日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87e10b613a80--------------------------------) ·阅读时间：18 分钟·2024 年 10 月 7 日
 
 --
 
-![](../Images/0f4810126dc62c0a677a93a01804bba7.png)
+![](img/0f4810126dc62c0a677a93a01804bba7.png)
 
 图片由[Jake Hills](https://unsplash.com/@jakehills?utm_source=medium&utm_medium=referral)提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 在认识到相关性不意味着因果关系后，精通***辛普森悖论***是人们走向因果思维的重要一步 👣。
 
-大多数研究人员和从业者很可能在某个阶段或另一阶段遇到过这个现象。我可以证明，在2020年，即使我拥有15年的数据分析和解读经验，我仍然没有意识到这是一个我应该关注的已知问题。
+大多数研究人员和从业者很可能在某个阶段或另一阶段遇到过这个现象。我可以证明，在 2020 年，即使我拥有 15 年的数据分析和解读经验，我仍然没有意识到这是一个我应该关注的已知问题。
 
 如果你还没有接触过辛普森悖论——准备好被震撼吧 🤯。如果你已经接触过，我希望能揭示一些你可能没有考虑过的方面 💡。
 

@@ -1,16 +1,16 @@
 # 如何解释矩阵表达式 — 变换
 
-> 原文：[https://towardsdatascience.com/how-to-interpret-matrix-expressions-transformations-a5e6871cd224?source=collection_archive---------2-----------------------#2024-12-04](https://towardsdatascience.com/how-to-interpret-matrix-expressions-transformations-a5e6871cd224?source=collection_archive---------2-----------------------#2024-12-04)
+> 原文：[`towardsdatascience.com/how-to-interpret-matrix-expressions-transformations-a5e6871cd224?source=collection_archive---------2-----------------------#2024-12-04`](https://towardsdatascience.com/how-to-interpret-matrix-expressions-transformations-a5e6871cd224?source=collection_archive---------2-----------------------#2024-12-04)
 
 ## 数据科学家的矩阵代数
 
-[](https://medium.com/@jaroslaw.drapala?source=post_page---byline--a5e6871cd224--------------------------------)[![Jaroslaw Drapala](../Images/34de3c52fc32005e36930135254ae45e.png)](https://medium.com/@jaroslaw.drapala?source=post_page---byline--a5e6871cd224--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a5e6871cd224--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a5e6871cd224--------------------------------) [Jaroslaw Drapala](https://medium.com/@jaroslaw.drapala?source=post_page---byline--a5e6871cd224--------------------------------)
+[](https://medium.com/@jaroslaw.drapala?source=post_page---byline--a5e6871cd224--------------------------------)![Jaroslaw Drapala](https://medium.com/@jaroslaw.drapala?source=post_page---byline--a5e6871cd224--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a5e6871cd224--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5e6871cd224--------------------------------) [Jaroslaw Drapala](https://medium.com/@jaroslaw.drapala?source=post_page---byline--a5e6871cd224--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5e6871cd224--------------------------------) ·阅读时间：23分钟·2024年12月4日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5e6871cd224--------------------------------) ·阅读时间：23 分钟·2024 年 12 月 4 日
 
 --
 
-![](../Images/4070d1bfcdecc387b4685ebc7c1ab93b.png)
+![](img/4070d1bfcdecc387b4685ebc7c1ab93b.png)
 
 图片由[Ben Allan](https://unsplash.com/@ballonandon?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -60,31 +60,31 @@
 
 这是使用行向量和列向量表示的**点积**：
 
-![](../Images/4cc9cca6b5d353563d474f66a9748940.png)
+![](img/4cc9cca6b5d353563d474f66a9748940.png)
 
 **矩阵**是一个按行和列排列符号的矩形数组。以下是一个具有两行三列的矩阵示例：
 
-![](../Images/73ceb88688619cab30df270d88da304c.png)
+![](img/73ceb88688619cab30df270d88da304c.png)
 
 你可以将其视为**一系列列**
 
-![](../Images/52f93ad2eec4d242106deb5d97e6d084.png)![](../Images/744dcfeea4c9ef2f971961a72eb40350.png)
+![](img/52f93ad2eec4d242106deb5d97e6d084.png)![](img/744dcfeea4c9ef2f971961a72eb40350.png)
 
 或者**一系列行**一个接一个地堆叠在一起：
 
-![](../Images/08bd1c9f80d39bb52e42131cb03da09a.png)
+![](img/08bd1c9f80d39bb52e42131cb03da09a.png)
 
 如你所见，我使用了上标表示行，使用下标表示列。在机器学习中，明确区分观察值（表示为向量）和特征（按行排列）是非常重要的。
 
 表示该矩阵的其他有趣方式包括**A***₂*ₓ*₃*和**A**[*aᵢ*⁽*ʲ* ⁾]。
 
-**矩阵**A和**B**的乘积结果是第三个矩阵**C** = **AB**，包含每一行的**A**与每一列的**B**的标量积，按照相应的顺序排列。以下是一个例子，表示**C***₂*ₓ*₂*= **A***₂*ₓ*₃***B***₃*ₓ*₂*。
+**矩阵**A 和**B**的乘积结果是第三个矩阵**C** = **AB**，包含每一行的**A**与每一列的**B**的标量积，按照相应的顺序排列。以下是一个例子，表示**C***₂*ₓ*₂*= **A***₂*ₓ*₃***B***₃*ₓ*₂*。
 
-![](../Images/e80a49676c39ee0ae27f395a452273c6.png)
+![](img/e80a49676c39ee0ae27f395a452273c6.png)
 
 其中 c*ᵢ*⁽*ʲ* ⁾ 是矩阵**B**的第*i*列与矩阵**A**的第*j*行的标量积：
 
-![](../Images/7346d6bad0c3048bd4216aa3384a1ac3.png)
+![](img/7346d6bad0c3048bd4216aa3384a1ac3.png)
 
 请注意，这一定义的矩阵乘法要求*左矩阵*的行数与*右矩阵*的列数相匹配。换句话说，**矩阵的内维度必须匹配**。
 
@@ -145,13 +145,13 @@ B A =
 
 在本节中，我将解释矩阵乘法对向量的影响。向量**x**与矩阵**A**相乘，产生一个新的向量**y**：
 
-![](../Images/a9ad5f2b2d114991258d0e67129daed2.png)
+![](img/a9ad5f2b2d114991258d0e67129daed2.png)
 
 这是数据科学中常见的操作，因为它可以实现**数据的线性变换**。使用矩阵来表示线性变换非常有优势，正如你将在以下示例中看到的那样。
 
 在下方，你可以看到你的网格空间和标准基向量：蓝色代表*x*⁽¹⁾方向，品红色代表*x*⁽²⁾方向。
 
-![](../Images/ede926b8ba98086d998573ee431a351e.png)
+![](img/ede926b8ba98086d998573ee431a351e.png)
 
 网格空间中的标准基
 
@@ -161,29 +161,29 @@ B A =
 
 作为示例，考虑一个线性变换，它产生如下所示的效果。标准基向量绘制得较淡，而变换后的向量则显示得更清晰。
 
-![](../Images/f09b964655b91e8cb825ac84b1bad995.png)
+![](img/f09b964655b91e8cb825ac84b1bad995.png)
 
 由矩阵**A**变换的标准基底
 
-通过比较变换前后基向量，你可以观察到该变换涉及关于原点的逆时针45度旋转，并伴随着向量的伸长。
+通过比较变换前后基向量，你可以观察到该变换涉及关于原点的逆时针 45 度旋转，并伴随着向量的伸长。
 
 这个效果可以通过矩阵**A**实现，其构成如下：
 
-![](../Images/f66cf341722a3e4849efd40ec7b764d6.png)
+![](img/f66cf341722a3e4849efd40ec7b764d6.png)
 
 矩阵的第一列包含变换后的第一个基向量的坐标，第二列包含第二个基向量的坐标。
 
 方程(1)然后变为如下形式
 
-![](../Images/6e4894b7838ae46f335906226c11b293.png)
+![](img/6e4894b7838ae46f335906226c11b293.png)
 
 让我们取两个示例点**x**₁和**x**₂：
 
-![](../Images/1c42eca1c9c3c50fef3476bf341dc03a.png)
+![](img/1c42eca1c9c3c50fef3476bf341dc03a.png)
 
 并将它们变换为向量**y**₁​和**y**₂：
 
-![](../Images/641645e3f7274bd47d636b82ec3792ee.png)
+![](img/641645e3f7274bd47d636b82ec3792ee.png)
 
 我建议你先手工计算这些内容，然后再使用像这样的程序：
 
@@ -215,13 +215,13 @@ y_1 = [-1.5  1\. ]
 
 下图显示了结果。
 
-![](../Images/620eb5e9122de60f3e382ce50c0b132b.png)
+![](img/620eb5e9122de60f3e382ce50c0b132b.png)
 
 由矩阵**A**变换的点
 
 **x**点为灰色且较小，而它们变换后的对应点**y**具有黑色边缘且较大。如果你更愿意将这些点看作箭头的尖端，下面是相应的插图：
 
-![](../Images/dd158ce434f6441a15216165f2c6c75e.png)
+![](img/dd158ce434f6441a15216165f2c6c75e.png)
 
 由矩阵**A**变换的向量
 
@@ -229,23 +229,23 @@ y_1 = [-1.5  1\. ]
 
 我们来研究另一个矩阵：
 
-![](../Images/919cdaab273f68fd87846d0a6341dafe.png)
+![](img/919cdaab273f68fd87846d0a6341dafe.png)
 
 并查看变换如何作用
 
-![](../Images/64340ef07ff0a3727dc510b69eef38d3.png)
+![](img/64340ef07ff0a3727dc510b69eef38d3.png)
 
 影响网格线上的点：
 
-![](../Images/47bdd0080d88de5d02d7215b668a6ffc.png)
+![](img/47bdd0080d88de5d02d7215b668a6ffc.png)
 
 由矩阵**B**变换的网格线
 
-将结果与使用**B**/2得到的结果进行比较，后者对应于将矩阵**B**的所有元素除以2：
+将结果与使用**B**/2 得到的结果进行比较，后者对应于将矩阵**B**的所有元素除以 2：
 
-![](../Images/257a75bda25f1cc28659d6452bd54163.png)
+![](img/257a75bda25f1cc28659d6452bd54163.png)
 
-由矩阵**B**/2变换的网格线
+由矩阵**B**/2 变换的网格线
 
 一般来说，线性变换：
 
@@ -259,11 +259,11 @@ y_1 = [-1.5  1\. ]
 
 让我们回到矩阵
 
-![](../Images/919cdaab273f68fd87846d0a6341dafe.png)
+![](img/919cdaab273f68fd87846d0a6341dafe.png)
 
 并将变换应用于一些示例点。
 
-![](../Images/70fa29bb0ad01ed57cce3b360d5f3e98.png)
+![](img/70fa29bb0ad01ed57cce3b360d5f3e98.png)
 
 变换**B**对各种输入向量的作用
 
@@ -289,13 +289,13 @@ y_1 = [-1.5  1\. ]
 
 例如，我们考虑矩阵
 
-![](../Images/1c78255ae8debe430d0f94d514b8c906.png)
+![](img/1c78255ae8debe430d0f94d514b8c906.png)
 
 其中**A**ᵀ表示转置矩阵。
 
 从几何角度来看，*第一个*新基向量的坐标来自于*所有*旧基向量的第一个坐标，第二个新基向量的坐标来自于第二个坐标，依此类推。
 
-在NumPy中，这就是这么简单：
+在 NumPy 中，这就是这么简单：
 
 ```py
 import numpy as np
@@ -320,29 +320,29 @@ A transposed:
 
 这是由矩阵**A**表示的变换的几何解释。灰色阴影区域被称为**平行四边形**。
 
-![](../Images/cc4da6b270ad59593b66ecd3c2ef9aaf.png)
+![](img/cc4da6b270ad59593b66ecd3c2ef9aaf.png)
 
 由矩阵**A**变换的基向量所生成的平行四边形
 
 将其与应用矩阵**A**ᵀ得到的变换进行比较：
 
-![](../Images/583dbc483553575dedb38801354a87bd.png)
+![](img/583dbc483553575dedb38801354a87bd.png)
 
 由矩阵**A**ᵀ变换的基向量所生成的平行四边形
 
 现在，让我们考虑另一个变换，它对单位向量应用完全不同的缩放：
 
-![](../Images/a1f9c9f8bf7aa8baf397057e38941807.png)
+![](img/a1f9c9f8bf7aa8baf397057e38941807.png)
 
 与矩阵**B**相关的平行四边形现在变得窄了许多：
 
-![](../Images/ce38dffa87078dc19015a4f85f9eff0f.png)
+![](img/ce38dffa87078dc19015a4f85f9eff0f.png)
 
 由矩阵**B**变换的基向量所生成的平行四边形
 
 但结果证明它与矩阵**B**ᵀ的大小是一样的：
 
-![](../Images/cc8e5ec58859440e7782dd669d504972.png)
+![](img/cc8e5ec58859440e7782dd669d504972.png)
 
 由矩阵**B**ᵀ变换的基向量所生成的平行四边形
 
@@ -350,7 +350,7 @@ A transposed:
 
 这里是这一部分的关键：可以通过计算矩阵的**行列式**来找到平行四边形的面积。更重要的是，*矩阵的行列式与其转置的行列式是相同的*。
 
-![](../Images/bf71b3faf8c4ed8e5cefabaf78bd14c4.png)
+![](img/bf71b3faf8c4ed8e5cefabaf78bd14c4.png)
 
 更多关于行列式的内容将在接下来的部分中介绍。
 
@@ -358,29 +358,29 @@ A transposed:
 
 你可以应用一系列变换——例如，首先对向量**x**应用**A**，然后将结果传递给**B**。这可以通过先将向量**x**与矩阵**A**相乘，然后将结果与矩阵**B**相乘来完成：
 
-![](../Images/73685f1fe740347c23835e6168605d91.png)
+![](img/73685f1fe740347c23835e6168605d91.png)
 
 你可以将矩阵**B**和**A**相乘，以获得矩阵**C**供进一步使用：
 
-![](../Images/a037c7b0cac6eeaba19b52edb0676319.png)
+![](img/a037c7b0cac6eeaba19b52edb0676319.png)
 
 这是矩阵**C**所表示的变换效果：
 
-![](../Images/02125514614c2a36bce4c5c3554da5eb.png)
+![](img/02125514614c2a36bce4c5c3554da5eb.png)
 
 由复合矩阵**BA**描述的变换
 
 你可以按相反的顺序进行变换：首先应用**B**，然后应用**A**：
 
-![](../Images/0c26a616bd0701edcb29b3ed70669815.png)
+![](img/0c26a616bd0701edcb29b3ed70669815.png)
 
 让**D**表示按此顺序执行的乘法序列：
 
-![](../Images/fdfb4328d6ef70c8e8a91f2804af571e.png)
+![](img/fdfb4328d6ef70c8e8a91f2804af571e.png)
 
 这就是它如何影响网格线的：
 
-![](../Images/0c89d832d86f8f2760a4d66e95a16555.png)
+![](img/0c89d832d86f8f2760a4d66e95a16555.png)
 
 由复合矩阵**AB**描述的变换
 
@@ -388,15 +388,15 @@ A transposed:
 
 **复合变换的转置**有一个很酷的性质。来看一下当我们将**A**乘以**B**时会发生什么：
 
-![](../Images/e80a49676c39ee0ae27f395a452273c6.png)
+![](img/e80a49676c39ee0ae27f395a452273c6.png)
 
 然后转置结果，这意味着我们将应用（**AB**)ᵀ：
 
-![](../Images/79c2894f91e4ef014cd9c69a778c1421.png)
+![](img/79c2894f91e4ef014cd9c69a778c1421.png)
 
 你可以很容易地将这个观察结果扩展为以下规则：
 
-![](../Images/7052600e654ee7c2d565c38b444116f3.png)
+![](img/7052600e654ee7c2d565c38b444116f3.png)
 
 在结束这一部分之前，我们考虑逆问题：仅给定**C** = **AB**，是否可以恢复矩阵**A**和**B**？
 
@@ -406,25 +406,25 @@ A transposed:
 
 你可以很容易地构造一个表示**不做任何变换**的矩阵，它不会改变标准基向量：
 
-![](../Images/028f2bbe2eefcad91f2fb3710204af8c.png)
+![](img/028f2bbe2eefcad91f2fb3710204af8c.png)
 
 它通常被称为**单位矩阵**。
 
 取矩阵**A**并考虑一个能够逆转其效果的变换。表示该变换的矩阵是**A**⁻¹。具体来说，当在**A**之后或之前应用时，它会得到单位矩阵**I**：
 
-![](../Images/278a35da36dddd4d8ee7104d5b3d5733.png)
+![](img/278a35da36dddd4d8ee7104d5b3d5733.png)
 
 有很多资源解释如何手动计算逆矩阵。我推荐学习[高斯-约旦法](https://www.mathsisfun.com/algebra/matrix-inverse-row-operations-gauss-jordan.html)，因为它涉及对增广矩阵进行简单的行操作。在每一步中，你可以交换两行、重新缩放任意一行，或者将其余行的加权和加到选定的行上。
 
 以以下矩阵为手动计算的例子：
 
-![](../Images/5dcbd283762d34da02b7985a74828053.png)
+![](img/5dcbd283762d34da02b7985a74828053.png)
 
 你应该得到逆矩阵：
 
-![](../Images/04d869f86b763751c24a5bfdf843fd18.png)
+![](img/04d869f86b763751c24a5bfdf843fd18.png)
 
-手动验证方程(4)是否成立。你也可以在NumPy中进行验证。
+手动验证方程(4)是否成立。你也可以在 NumPy 中进行验证。
 
 ```py
 import numpy as np
@@ -445,11 +445,11 @@ Inverse of A:
 
 看一下下面的插图，了解这两种变换的区别。
 
-![](../Images/6841442f62d2e5076f36dd59040ad1e1.png)
+![](img/6841442f62d2e5076f36dd59040ad1e1.png)
 
 变换**A**
 
-![](../Images/40d8f35857e15029116e004221c177f1.png)
+![](img/40d8f35857e15029116e004221c177f1.png)
 
 变换**A**⁻¹
 
@@ -465,23 +465,23 @@ Inverse of A:
 
 # 7\. 不可逆的变换
 
-下一次实验的主力将是对角线上全是1，反对角线上全是*b*的矩阵：
+下一次实验的主力将是对角线上全是 1，反对角线上全是*b*的矩阵：
 
-![](../Images/25a3ab7eb1f2fd31c21e71336ca8abf6.png)
+![](img/25a3ab7eb1f2fd31c21e71336ca8abf6.png)
 
 其中，*b*是区间(0, 1)中的一个分数。根据定义，这个矩阵是对称的，因为它恰好与其自身的转置相同：**A**=**A**ᵀ，但我只是顺便提一下，这在这里并不特别相关。
 
 使用高斯-约旦法逆转这个矩阵，你将得到以下结果：
 
-![](../Images/68a558db28b1988e8a1dff107e943aec.png)
+![](img/68a558db28b1988e8a1dff107e943aec.png)
 
-你可以在网上轻松找到计算2x2矩阵行列式的规则，它会给出
+你可以在网上轻松找到计算 2x2 矩阵行列式的规则，它会给出
 
-![](../Images/c3a5f7cf3fe401637edefe31ba794594.png)
+![](img/c3a5f7cf3fe401637edefe31ba794594.png)
 
 这不是巧合。一般来说，成立的是
 
-![](../Images/18c6939aaad77b3e9af3c75059ab77a9.png)
+![](img/18c6939aaad77b3e9af3c75059ab77a9.png)
 
 请注意，当 *b* = 0 时，两个矩阵是相同的。这并不令人惊讶，因为 **A** 退化为单位矩阵 **I**。
 
@@ -495,21 +495,21 @@ Inverse of A:
 
 步骤 1)
 
-![](../Images/eeace7b7e5bd790b47317dff9520bf3d.png)![](../Images/0c0250b06e9b3484f32e994538d49b5e.png)
+![](img/eeace7b7e5bd790b47317dff9520bf3d.png)![](img/0c0250b06e9b3484f32e994538d49b5e.png)
 
 变换 **A**
 
-![](../Images/07ae76e1916792ee122d8cf9e4f8f7ad.png)
+![](img/07ae76e1916792ee122d8cf9e4f8f7ad.png)
 
 变换 **A**⁻¹
 
 步骤 2)
 
-![](../Images/32a130667236785712ba893d8dc5385e.png)![](../Images/1dacc8d80f399a3697998a94b3b87bed.png)
+![](img/32a130667236785712ba893d8dc5385e.png)![](img/1dacc8d80f399a3697998a94b3b87bed.png)
 
 变换 **A**
 
-![](../Images/75c303220d28ee0aa41f487cdc6a6144.png)
+![](img/75c303220d28ee0aa41f487cdc6a6144.png)
 
 变换 **A**⁻¹
 
@@ -523,11 +523,11 @@ Inverse of A:
 
 步骤 3) *快完成了……*
 
-![](../Images/762d7551521b13fdada37d678056e7a3.png)![](../Images/51eb1cc88dc35bd03432b484d5d8ce04.png)
+![](img/762d7551521b13fdada37d678056e7a3.png)![](img/51eb1cc88dc35bd03432b484d5d8ce04.png)
 
 变换 **A**
 
-![](../Images/88d3105ae207249f20bb3ad02e74fcec.png)
+![](img/88d3105ae207249f20bb3ad02e74fcec.png)
 
 变换 **A**⁻¹
 
@@ -543,7 +543,7 @@ Inverse of A:
 
 这样考虑一下。
 
-当基向量不平行时，意味着它们形成的角度不是0度或180度，你可以用它们来表示整个平面上的任何点（数学家称这些向量***张成***平面）。否则，整个平面就无法再被张成，只有沿着基向量所覆盖的直线上的点可以被表示。
+当基向量不平行时，意味着它们形成的角度不是 0 度或 180 度，你可以用它们来表示整个平面上的任何点（数学家称这些向量***张成***平面）。否则，整个平面就无法再被张成，只有沿着基向量所覆盖的直线上的点可以被表示。
 
 .
 
@@ -553,23 +553,23 @@ Inverse of A:
 
 这就是当你将不可逆变换应用于随机选定的点时的效果：
 
-![](../Images/c9043605861f4f0c4cdf577eca6881d4.png)
+![](img/c9043605861f4f0c4cdf577eca6881d4.png)
 
 一个不可逆矩阵**A**会降低数据的维度。
 
 应用不可逆变换的一个后果是，二维空间会塌缩成一个一维子空间。变换后，不再可能唯一恢复点的原始坐标。
 
-看一下矩阵**A**的条目。当*b* = 1时，两列（或行）是相同的，这意味着变换矩阵实际上表现得像一个1×2矩阵，将二维向量映射到一个标量。
+看一下矩阵**A**的条目。当*b* = 1 时，两列（或行）是相同的，这意味着变换矩阵实际上表现得像一个 1×2 矩阵，将二维向量映射到一个标量。
 
 你可以轻松验证，如果一行是另一行的倍数，问题将是相同的。这可以进一步推广到任何维度的矩阵：如果任意一行可以表示为其他行的加权和（*线性组合*），则意味着一个维度塌缩。原因是这样的向量位于其他向量张成的空间内，因此不能提供超出已经能表示的点的能力。你可以将这个向量视为***冗余的***。
 
-从第4节的转置部分可以推断出，**如果有冗余的行，那么必定有相等数量的冗余列**。
+从第四部分的转置部分可以推断出，**如果有冗余的行，那么必定有相等数量的冗余列**。
 
 # 8\. 行列式
 
 你现在可能会问是否有一种非几何的方式来验证矩阵的列或行是否冗余。
 
-回想一下第4节中的平行四边形和被称为行列式的标量。我提到过
+回想一下第四部分中的平行四边形和被称为行列式的标量。我提到过
 
 > 矩阵的行列式表示在变换下，单位平行四边形的面积如何变化。
 
@@ -577,23 +577,23 @@ Inverse of A:
 
 我将展示由矩阵表示的两种变换的行为：
 
-![](../Images/983afc1e1e9040443ea782b7f54a953c.png)![](../Images/5188224ee675e76f85ee6713653134e0.png)
+![](img/983afc1e1e9040443ea782b7f54a953c.png)![](img/5188224ee675e76f85ee6713653134e0.png)
 
 det(**A**) = 2
 
-![](../Images/65e63a7a0e367989ad88d94d9c41f7ba.png)
+![](img/65e63a7a0e367989ad88d94d9c41f7ba.png)
 
 det(**B**) = -3/4
 
-行列式的大小表示变换总体上如何拉伸（若大于1）或缩小（若小于1）空间。虽然变换可能在一个方向上拉伸，在另一个方向上压缩，但总体效果由行列式的值决定。
+行列式的大小表示变换总体上如何拉伸（若大于 1）或缩小（若小于 1）空间。虽然变换可能在一个方向上拉伸，在另一个方向上压缩，但总体效果由行列式的值决定。
 
 此外，负的行列式表示一个反射；注意，矩阵**B**会反转基向量的顺序。
 
 一个面积为零的平行四边形对应一个压缩了一个维度的变换，这意味着**行列式可以用来检测矩阵基向量中的冗余**。
 
-由于行列式衡量的是在变换下平行四边形的面积，我们可以将其应用于一系列的变换。如果det(**A**)和det(**B**)分别表示变换**A**和**B**的单位面积的缩放因子，那么在依次应用这两个变换后，单位面积的缩放因子，即**AB**，等于det(**AB**)。由于这两个变换独立且顺序执行，总效果由det(**AB**) = det(**A**) det(**B**)给出。将矩阵**A**⁻¹代入矩阵**B**并注意到det(**I**) = 1，得到了上一节引入的方程（5）。
+由于行列式衡量的是在变换下平行四边形的面积，我们可以将其应用于一系列的变换。如果 det(**A**)和 det(**B**)分别表示变换**A**和**B**的单位面积的缩放因子，那么在依次应用这两个变换后，单位面积的缩放因子，即**AB**，等于 det(**AB**)。由于这两个变换独立且顺序执行，总效果由 det(**AB**) = det(**A**) det(**B**)给出。将矩阵**A**⁻¹代入矩阵**B**并注意到 det(**I**) = 1，得到了上一节引入的方程（5）。
 
-下面是如何使用NumPy计算行列式的方法：
+下面是如何使用 NumPy 计算行列式的方法：
 
 ```py
 import numpy as np
@@ -618,11 +618,11 @@ det(A) = -0.75
 
 这是一个**宽矩阵**的例子，它的列数多于行数：
 
-![](../Images/0642b7a3ca839f9e87d0d3f3f53b968d.png)
+![](img/0642b7a3ca839f9e87d0d3f3f53b968d.png)
 
 从方程（1）**y** = **Ax**的角度来看，它将三维向量**x**映射到二维向量**y**。
 
-在这种情况下，一列总是可以表示为另一列的倍数，或者是其他列的加权和。例如，这里第三列等于第一列的3/4倍加上第二列的5/4倍。
+在这种情况下，一列总是可以表示为另一列的倍数，或者是其他列的加权和。例如，这里第三列等于第一列的 3/4 倍加上第二列的 5/4 倍。
 
 一旦向量**x**被转换为**y**，就无法从**y**中重建原始的**x**。我们说这种变换**降低了输入数据的维度**。这类变换在机器学习中非常重要。
 
@@ -630,11 +630,11 @@ det(A) = -0.75
 
 我们可以使用矩阵**A**来创建两个不同的方阵。试着自己推导出以下结果：
 
-![](../Images/80f2cae52ac384fcb9146da7c1fa37a9.png)
+![](img/80f2cae52ac384fcb9146da7c1fa37a9.png)
 
 以及行列式（我推荐使用简化公式来处理[2×2](https://brilliant.org/wiki/expansion-of-determinants/)和[3×3](https://en.wikipedia.org/wiki/Rule_of_Sarrus)矩阵）：
 
-![](../Images/24633e4af77690f9c245aa92ac05590f.png)
+![](img/24633e4af77690f9c245aa92ac05590f.png)
 
 矩阵**A**ᵀ**A**由矩阵**A**中所有可能列对的点积组成，其中一些列对显然是冗余的，从而将这种冗余转移到**A**ᵀ**A**。
 
@@ -648,7 +648,7 @@ det(A) = -0.75
 
 这是一个**高矩阵**的例子
 
-![](../Images/a4113e8d05109a6962e31b4e136ed46a.png)
+![](img/a4113e8d05109a6962e31b4e136ed46a.png)
 
 它将二维向量**x**映射到三维向量**y**。我通过简单地将第一行的条目平方来创建了第三行。虽然这种扩展并没有给数据添加任何新的信息，但它却能出奇地改善某些机器学习模型的性能。
 
@@ -660,9 +660,9 @@ det(A) = -0.75
 
 最终得到：
 
-![](../Images/f7a2a74813ff1fef6d8bbd655f4619c7.png)
+![](img/f7a2a74813ff1fef6d8bbd655f4619c7.png)
 
-这就是它在Python中的实现方式：
+这就是它在 Python 中的实现方式：
 
 ```py
 import numpy as np
@@ -703,43 +703,43 @@ print(reconstructed_x)
 
 我们将从尚未出现的显而易见的那个开始。
 
-![](../Images/ec979c5c54f3212d0be3d698b6e191b6.png)
+![](img/ec979c5c54f3212d0be3d698b6e191b6.png)
 
 这里是先前给出的恒等式（2）和（5），并排放置：
 
-![](../Images/147f2a2d2ee0053d27fe2ee37563b518.png)
+![](img/147f2a2d2ee0053d27fe2ee37563b518.png)
 
 让我们通过以下推理，首先从方程（4）中的恒等式开始，其中**A**被复合矩阵**AB**替代：
 
-![](../Images/7d0da538c70be86d7770cfa67ef8182d.png)
+![](img/7d0da538c70be86d7770cfa67ef8182d.png)
 
 右边的括号是多余的。去掉它们后，我将矩阵**B**⁻¹右乘到等式两边，然后是**A**⁻¹。
 
-![](../Images/c71c62e2e8f8911aea2ae49a4b949246.png)![](../Images/7711ca2ab945fb221b91d72f15936b4f.png)![](../Images/db6b16f6655d291f2de92931dc97448f.png)
+![](img/c71c62e2e8f8911aea2ae49a4b949246.png)![](img/7711ca2ab945fb221b91d72f15936b4f.png)![](img/db6b16f6655d291f2de92931dc97448f.png)
 
 因此，我们观察到反演和转置之间的下一个相似性（参见方程（3））：
 
-![](../Images/10eaf1e5d985dceca4fe6a9e09a7c33a.png)
+![](img/10eaf1e5d985dceca4fe6a9e09a7c33a.png)
 
 你现在可能会失望，因为接下来的内容只适用于转置。
 
-![](../Images/2587c3c2b63f52999284d1f62a5b1816.png)
+![](img/2587c3c2b63f52999284d1f62a5b1816.png)
 
 但是假设**A**和**B**是标量。对于逆操作来说，这将是一个数学丑闻！
 
 为了变化，方程（4）中的恒等式仅适用于逆操作：
 
-![](../Images/468ae0bc1d92eed062816ab96280ed17.png)
+![](img/468ae0bc1d92eed062816ab96280ed17.png)
 
 我将通过讨论反演和转置之间的相互作用来结束这一部分。
 
 从最后一个方程和方程（3）结合，我们得到以下结果：
 
-![](../Images/39ef86a68fba2679de18655cbb169a98.png)
+![](img/39ef86a68fba2679de18655cbb169a98.png)
 
 请记住，**I**ᵀ = **I**。右乘**A**ᵀ的逆矩阵将得到以下恒等式：
 
-![](../Images/3ab87eb0e07fe889ebd9802afde5b1f4.png)
+![](img/3ab87eb0e07fe889ebd9802afde5b1f4.png)
 
 # 11\. 通过一个向量平移
 
@@ -749,23 +749,23 @@ print(reconstructed_x)
 
 线性运算的一个关键特性是，输入的线性组合会导致输出的线性组合：
 
-![](../Images/5a0cacd0a12470f99c0fbb5d74385709.png)
+![](img/5a0cacd0a12470f99c0fbb5d74385709.png)
 
 其中*α*，*β*是实数标量，*Lin*表示一个线性操作。
 
 让我们首先检查方程（1）中的矩阵-向量乘法算子*Lin*[**x**] = **Ax**：
 
-![](../Images/7fa1ced0afa32aacbed05cb51a10d0a8.png)
+![](img/7fa1ced0afa32aacbed05cb51a10d0a8.png)
 
 这证实了矩阵与向量相乘是一个线性操作。
 
 现在，让我们考虑一个更一般的变换，它涉及通过向量**b**的平移：
 
-![](../Images/011c6dfe8c7ba8d4d26c0489900894d8.png)
+![](img/011c6dfe8c7ba8d4d26c0489900894d8.png)
 
 代入一个加权和，看看会得到什么结果。
 
-![](../Images/9ba9c54b156a84f7cd1ec877c294e76d.png)
+![](img/9ba9c54b156a84f7cd1ec877c294e76d.png)
 
 你可以看到，添加**b**会破坏线性。像这样的操作被称为**仿射**，以区别于线性操作。
 
@@ -785,6 +785,6 @@ print(reconstructed_x)
 
 # 参考文献
 
-[1] Gilbert Strang. *线性代数导论*. 威尔斯利-剑桥出版社, 2022年。
+[1] Gilbert Strang. *线性代数导论*. 威尔斯利-剑桥出版社, 2022 年。
 
-[2] Marc Peter Deisenroth, A. Aldo Faisal, Cheng Soon Ong. *机器学习中的数学*. 剑桥大学出版社, 2020年。
+[2] Marc Peter Deisenroth, A. Aldo Faisal, Cheng Soon Ong. *机器学习中的数学*. 剑桥大学出版社, 2020 年。

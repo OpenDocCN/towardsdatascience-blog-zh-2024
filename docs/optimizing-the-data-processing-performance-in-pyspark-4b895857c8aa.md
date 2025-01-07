@@ -1,20 +1,20 @@
-# 优化PySpark中的数据处理性能
+# 优化 PySpark 中的数据处理性能
 
-> 原文：[https://towardsdatascience.com/optimizing-the-data-processing-performance-in-pyspark-4b895857c8aa?source=collection_archive---------3-----------------------#2024-11-07](https://towardsdatascience.com/optimizing-the-data-processing-performance-in-pyspark-4b895857c8aa?source=collection_archive---------3-----------------------#2024-11-07)
+> 原文：[`towardsdatascience.com/optimizing-the-data-processing-performance-in-pyspark-4b895857c8aa?source=collection_archive---------3-----------------------#2024-11-07`](https://towardsdatascience.com/optimizing-the-data-processing-performance-in-pyspark-4b895857c8aa?source=collection_archive---------3-----------------------#2024-11-07)
 
-## PySpark技术与策略，解决常见的性能挑战：一个实用的操作指南
+## PySpark 技术与策略，解决常见的性能挑战：一个实用的操作指南
 
-[](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)[![John Leung](../Images/ef45063e759e3450fa7f3c32b2f292c3.png)](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------) [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)
+[](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)![John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------) [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------) ·阅读时间：9分钟·发布日期：2024年11月7日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------) ·阅读时间：9 分钟·发布日期：2024 年 11 月 7 日
 
 --
 
-[Apache Spark](https://spark.apache.org/)由于其强大的分布式数据处理能力，近年来已成为领先的数据分析引擎之一。PySpark是Spark的Python API，常用于个人和企业项目中，以解决数据挑战。例如，我们可以使用PySpark高效地实现[时间序列数据的特征工程](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287)，包括数据摄取、提取和可视化。然而，尽管PySpark能够处理大规模数据集，但在一些特定场景下，如极端数据分布和复杂的数据转换流程，性能瓶颈仍然可能出现。
+[Apache Spark](https://spark.apache.org/)由于其强大的分布式数据处理能力，近年来已成为领先的数据分析引擎之一。PySpark 是 Spark 的 Python API，常用于个人和企业项目中，以解决数据挑战。例如，我们可以使用 PySpark 高效地实现时间序列数据的特征工程，包括数据摄取、提取和可视化。然而，尽管 PySpark 能够处理大规模数据集，但在一些特定场景下，如极端数据分布和复杂的数据转换流程，性能瓶颈仍然可能出现。
 
-本文将探讨在[Databricks](https://www.databricks.com/)上使用PySpark进行数据处理时常见的性能问题，并介绍各种优化策略，以实现更快的执行速度。
+本文将探讨在[Databricks](https://www.databricks.com/)上使用 PySpark 进行数据处理时常见的性能问题，并介绍各种优化策略，以实现更快的执行速度。
 
-![](../Images/7a51dfd6e0bb834e68f2dbd4ac63cace.png)
+![](img/7a51dfd6e0bb834e68f2dbd4ac63cace.png)
 
 图片来源：[Veri Ivanova](https://unsplash.com/@veri_ivanova?utm_source=medium&utm_medium=referral) 来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -106,7 +106,7 @@ return wrapper
 
 Spark 使用[弹性分布式数据集（RDD）](https://spark.apache.org/docs/latest/rdd-programming-guide.html)作为其核心构建块，数据默认通常保存在内存中。无论是执行计算（如连接和聚合）还是在集群中存储数据，所有操作都会在统一区域中贡献内存使用。
 
-![](../Images/f7f20c42fa3519fee671c569416280dc.png)
+![](img/f7f20c42fa3519fee671c569416280dc.png)
 
 一个包含执行内存和存储内存的统一区域（图源：作者）
 
@@ -164,7 +164,7 @@ display(after_cache(df))
 
 当我们执行如连接 DataFrame 或按数据字段分组的操作时，会发生洗牌。这是必要的，目的是将所有记录重新分布到集群中，并确保具有相同键的记录位于同一个节点。这有助于同时处理并合并结果。
 
-![](../Images/ab84ce7db5a3682b102879ebcf4c8646.png)
+![](img/ab84ce7db5a3682b102879ebcf4c8646.png)
 
 洗牌连接（图源：作者）
 
@@ -174,9 +174,9 @@ display(after_cache(df))
 
 (1) 对于小数据集，使用广播变量，将只读副本发送到每个工作节点进行本地处理
 
-> 虽然“较小”数据集通常定义为每个执行器最大内存阈值为8GB，但广播的理想大小应通过针对特定案例的实验来确定。
+> 虽然“较小”数据集通常定义为每个执行器最大内存阈值为 8GB，但广播的理想大小应通过针对特定案例的实验来确定。
 
-![](../Images/23bfddffdcd8abbc41eace540e8e045e.png)
+![](img/23bfddffdcd8abbc41eace540e8e045e.png)
 
 广播连接（作者图片）
 
@@ -186,7 +186,7 @@ display(after_cache(df))
 
 **代码示例：** 假设我们想返回与我们的州列表匹配的交易记录及其全名
 
-+   低效——大数据集与小数据集之间的shuffle连接
++   低效——大数据集与小数据集之间的 shuffle 连接
 
 ```py
 from pyspark.sql.functions import col
@@ -231,11 +231,11 @@ display(have_broadcast_var(df))
 
 一种常见的方法是加盐。其原理是通过向倾斜键添加随机数，使得数据在分区中更加均匀分布。假设在基于倾斜键进行聚合时，我们将使用加盐后的键进行聚合，然后再使用原始键进行聚合。另一种方法是重新分区，它通过增加分区的数量来帮助数据更均匀地分布。
 
-![](../Images/119db606882ab6d12a63942cc007751e.png)
+![](img/119db606882ab6d12a63942cc007751e.png)
 
 数据分布——加盐前后的情况（作者图片）
 
-**代码示例：** 我们想聚合一个不对称的数据集，主要由客户ID #100引起的倾斜。
+**代码示例：** 我们想聚合一个不对称的数据集，主要由客户 ID #100 引起的倾斜。
 
 +   低效——直接使用倾斜键
 
@@ -273,13 +273,13 @@ def have_salting(data):
 display(have_salting(df))
 ```
 
-向倾斜键添加一个随机的前缀或后缀都可以有效。通常，5到10个随机值是一个很好的起点，可以在扩展数据和保持高复杂性之间取得平衡。
+向倾斜键添加一个随机的前缀或后缀都可以有效。通常，5 到 10 个随机值是一个很好的起点，可以在扩展数据和保持高复杂性之间取得平衡。
 
 ## #4 序列化
 
-人们通常更倾向于使用[用户定义函数（UDFs）](https://spark.apache.org/docs/3.5.2/sql-ref-functions-udf-scalar.html)，因为它在定制数据处理逻辑方面更灵活。然而，UDFs是按行逐一操作的。代码需要被Python解释器序列化，发送到执行器JVM，然后再反序列化。这会产生高昂的序列化开销，且阻碍Spark对代码的优化和高效处理。
+人们通常更倾向于使用[用户定义函数（UDFs）](https://spark.apache.org/docs/3.5.2/sql-ref-functions-udf-scalar.html)，因为它在定制数据处理逻辑方面更灵活。然而，UDFs 是按行逐一操作的。代码需要被 Python 解释器序列化，发送到执行器 JVM，然后再反序列化。这会产生高昂的序列化开销，且阻碍 Spark 对代码的优化和高效处理。
 
-> 简单直接的方法是尽可能避免使用UDFs。
+> 简单直接的方法是尽可能避免使用 UDFs。
 
 我们应首先考虑使用[内置 Spark 函数](https://spark.apache.org/docs/latest/api/sql/)，这些函数可以处理聚合、数组/映射操作、日期/时间戳以及 JSON 数据处理等任务。如果内置函数无法满足你的需求，确实可以考虑使用[pandas *UDFs*](https://databricks.com/blog/2017/10/30/introducing-vectorized-udfs-for-pyspark.html)。与 UDFs 相比，它们建立在 Apache Arrow 基础上，具有更低的开销和更高的性能。
 
@@ -338,7 +338,7 @@ display(no_udf(df))
 
 如在存储部分讨论的那样，溢出是由于内存不足以容纳所有所需数据，导致将临时数据从内存写入磁盘。我们提到的许多性能问题都与溢出有关。例如，在分区之间洗牌大量数据的操作，容易导致内存耗尽并随之发生溢出。
 
-![](../Images/8e0391d49e71ebd4918378b38ed64fe2.png)
+![](img/8e0391d49e71ebd4918378b38ed64fe2.png)
 
 由于内存不足引起的溢出不同场景（图像由作者提供）
 
@@ -364,12 +364,12 @@ display(no_udf(df))
 
 如果你喜欢这篇文章，欢迎关注我的[Medium 页面](https://medium.com/@johnleungTJ)和[LinkedIn 页面](https://www.linkedin.com/in/john-leung-639800115/)。通过这样做，你可以及时获取有关数据科学副项目、机器学习运维（MLOps）示范以及项目管理方法学的精彩内容。
 
-[](/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=post_page-----4b895857c8aa--------------------------------) [## 简化数据工程项目中的 Python 代码
+[](/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=post_page-----4b895857c8aa--------------------------------) ## 简化数据工程项目中的 Python 代码
 
 ### 用于数据摄取、验证、处理和测试的 Python 技巧与技术：实用的操作流程
 
-towardsdatascience.com](/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=post_page-----4b895857c8aa--------------------------------) [](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=post_page-----4b895857c8aa--------------------------------) [## 使用 PySpark 在 Databricks 上进行时间序列特征工程
+towardsdatascience.com [](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=post_page-----4b895857c8aa--------------------------------) ## 使用 PySpark 在 Databricks 上进行时间序列特征工程
 
 ### 探索 PySpark 在时间序列数据中的潜力：摄取、提取和可视化数据，并附带实践…
 
-towardsdatascience.com](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=post_page-----4b895857c8aa--------------------------------)
+towardsdatascience.com

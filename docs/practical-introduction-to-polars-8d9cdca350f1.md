@@ -1,24 +1,24 @@
-# Polars的实用入门
+# Polars 的实用入门
 
-> 原文：[https://towardsdatascience.com/practical-introduction-to-polars-8d9cdca350f1?source=collection_archive---------2-----------------------#2024-09-10](https://towardsdatascience.com/practical-introduction-to-polars-8d9cdca350f1?source=collection_archive---------2-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/practical-introduction-to-polars-8d9cdca350f1?source=collection_archive---------2-----------------------#2024-09-10`](https://towardsdatascience.com/practical-introduction-to-polars-8d9cdca350f1?source=collection_archive---------2-----------------------#2024-09-10)
 
-## 带有Pandas并排示例的实践指南
+## 带有 Pandas 并排示例的实践指南
 
-[](https://medium.com/@npotapov?source=post_page---byline--8d9cdca350f1--------------------------------)[![Nikolai Potapov](../Images/d2ac4b8c12c0cf70df05b8908b875a19.png)](https://medium.com/@npotapov?source=post_page---byline--8d9cdca350f1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8d9cdca350f1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8d9cdca350f1--------------------------------) [Nikolai Potapov](https://medium.com/@npotapov?source=post_page---byline--8d9cdca350f1--------------------------------)
+[](https://medium.com/@npotapov?source=post_page---byline--8d9cdca350f1--------------------------------)![Nikolai Potapov](https://medium.com/@npotapov?source=post_page---byline--8d9cdca350f1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8d9cdca350f1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8d9cdca350f1--------------------------------) [Nikolai Potapov](https://medium.com/@npotapov?source=post_page---byline--8d9cdca350f1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8d9cdca350f1--------------------------------) ·14分钟阅读·2024年9月10日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8d9cdca350f1--------------------------------) ·14 分钟阅读·2024 年 9 月 10 日
 
 --
 
-![](../Images/07f4634c04141034295192ff239a64fe.png)
+![](img/07f4634c04141034295192ff239a64fe.png)
 
-由Dall-E AI创建的图像
+由 Dall-E AI 创建的图像
 
-本文并不是要对比Polars和Pandas或强调它们的区别。它讲述的是如何通过添加一个新工具来提升数据科学专业人士以及其他数据工作者的工作效率。我喜欢Polars，因为它是多线程的，开箱即用就提供了强大的性能，并且支持带有查询优化功能的惰性求值。这个工具无疑会提升你的数据技能，并开启新的机会。
+本文并不是要对比 Polars 和 Pandas 或强调它们的区别。它讲述的是如何通过添加一个新工具来提升数据科学专业人士以及其他数据工作者的工作效率。我喜欢 Polars，因为它是多线程的，开箱即用就提供了强大的性能，并且支持带有查询优化功能的惰性求值。这个工具无疑会提升你的数据技能，并开启新的机会。
 
-尽管Polars和Pandas是不同的库，但它们在API上有相似之处。将它们进行对比可以帮助那些熟悉Pandas API的人更容易地开始使用Polars。即使你不熟悉Pandas并且想要开始学习Polars，这仍然会是一个非常有用且值得的学习过程。
+尽管 Polars 和 Pandas 是不同的库，但它们在 API 上有相似之处。将它们进行对比可以帮助那些熟悉 Pandas API 的人更容易地开始使用 Polars。即使你不熟悉 Pandas 并且想要开始学习 Polars，这仍然会是一个非常有用且值得的学习过程。
 
-我们将讨论在我的经验中最常用的数据分析操作。为了说明如何使用Polars，我将考虑一个具有可重现数据的抽象任务，这样你可以在你的电脑上跟随所有步骤进行操作。
+我们将讨论在我的经验中最常用的数据分析操作。为了说明如何使用 Polars，我将考虑一个具有可重现数据的抽象任务，这样你可以在你的电脑上跟随所有步骤进行操作。
 
 假设我们有来自三家在线商店的数据，在这些商店中，我们记录用户行为，如浏览和购买。假设在任何时刻，每家在线商店每种类型的行为只会发生一次，如果发生交易错误，我们的数据可能会缺少产品标识符或其数量。此外，对于我们的任务，我们还需要一个包含每个商品价格的产品目录。
 
@@ -26,9 +26,9 @@
 
 我将把这个任务分解为以下步骤：
 
-1.  数据准备和DataFrame创建。
+1.  数据准备和 DataFrame 创建。
 
-1.  DataFrame的总结统计。
+1.  DataFrame 的总结统计。
 
 1.  检索前五条记录。
 
@@ -48,7 +48,7 @@
 
 1.  对数据进行分组。
 
-1.  将数据与另一个DataFrame合并。
+1.  将数据与另一个 DataFrame 合并。
 
 1.  计算新列。
 
@@ -56,13 +56,13 @@
 
 让我们开始吧！
 
-## **数据准备与DataFrame创建**
+## **数据准备与 DataFrame 创建**
 
 我们有以下数据：
 
 +   `OnlineStore` — 表示商店。
 
-+   `product` — 存储产品ID。
++   `product` — 存储产品 ID。
 
 +   `Action type` — 动作的类型（查看或购买）。
 
@@ -120,7 +120,7 @@ corrupted_data = [
 product_catalog_data = {"product_id": ["0001", "0002", "0003"], "price": [100, 25, 80]}
 ```
 
-数据已准备好。现在我们使用Pandas和Polars创建这些数据的DataFrame：
+数据已准备好。现在我们使用 Pandas 和 Polars 创建这些数据的 DataFrame：
 
 ```py
 # Pandas
@@ -134,7 +134,7 @@ corrupted_pl_df = pl.DataFrame(corrupted_data)
 product_catalog_pl_df = pl.DataFrame(product_catalog_data)
 ```
 
-由于我们有`user_actions_df`和`corrupted_df`，我们将它们连接成一个单一的DataFrame。
+由于我们有`user_actions_df`和`corrupted_df`，我们将它们连接成一个单一的 DataFrame。
 
 ```py
 # Pandas
@@ -144,11 +144,11 @@ user_actions_pd_df = pd.concat([user_actions_pd_df, corrupted_pd_df])
 user_actions_pl_df = pl.concat([user_actions_pl_df, corrupted_pl_df])
 ```
 
-通过这种方式，我们轻松地创建了DataFrame，以便进一步处理。
+通过这种方式，我们轻松地创建了 DataFrame，以便进一步处理。
 
 > 当然，每种方法都有其自身的参数，因此最好随时查看文档，以避免混淆并正确使用它们。
 
-## DataFrame的总结统计
+## DataFrame 的总结统计
 
 加载或准备数据后，快速探索结果数据集是很有用的。对于总结统计信息，方法名称保持不变，但结果可能会有所不同：
 
@@ -197,9 +197,9 @@ user_actions_pl_df.describe()
 └────────────┴─────────────┴─────────┴───────────┴─────────────┴────────────────────────────┘
 ```
 
-正如你所注意到的，Pandas根据不同的数据类型计算统计信息，并为所有列提供`unique`值。而Polars则计算`null_count`值。
+正如你所注意到的，Pandas 根据不同的数据类型计算统计信息，并为所有列提供`unique`值。而 Polars 则计算`null_count`值。
 
-此外，在[Polars文档](https://docs.pola.rs/api/python/dev/reference/dataframe/api/polars.DataFrame.describe.html#polars.DataFrame.describe)中指出：
+此外，在[Polars 文档](https://docs.pola.rs/api/python/dev/reference/dataframe/api/polars.DataFrame.describe.html#polars.DataFrame.describe)中指出：
 
 > 我们不保证`describe`的输出是稳定的。它将显示我们认为有用的统计信息，未来可能会更新。因此，不建议将`describe`用于编程操作（而非交互式探索）。
 
@@ -240,7 +240,7 @@ user_actions_pl_df.head()
 └─────────────┴─────────┴──────────┴─────────────┴─────────────────────┘
 ```
 
-Polars有一个有用的`glimpse()`函数，它提供DataFrame的紧凑预览。它不仅返回前10条记录（或您通过`max_items_per_column`参数指定的任何数量），还显示数据类型和记录计数。
+Polars 有一个有用的`glimpse()`函数，它提供 DataFrame 的紧凑预览。它不仅返回前 10 条记录（或您通过`max_items_per_column`参数指定的任何数量），还显示数据类型和记录计数。
 
 ```py
 # Polars
@@ -297,7 +297,7 @@ user_actions_pl_df = user_actions_pl_df.rename(
 
 ## **更改列类型**
 
-在处理数据时，优化其处理通常是首要任务，而数据类型也不例外。选择正确的类型不仅解锁了可用的函数，还节省了内存。在我们的例子中，我将`quantity`列的类型从`float`更改为`int`。在Pandas中，你会使用`astype()`方法，而在Polars中，你使用`cast()`方法。
+在处理数据时，优化其处理通常是首要任务，而数据类型也不例外。选择正确的类型不仅解锁了可用的函数，还节省了内存。在我们的例子中，我将`quantity`列的类型从`float`更改为`int`。在 Pandas 中，你会使用`astype()`方法，而在 Polars 中，你使用`cast()`方法。
 
 ```py
 # Pandas
@@ -314,7 +314,7 @@ Data columns (total 5 columns):
  2   quantity      1000510 non-null  Int64         
  3   action_type   1001000 non-null  object        
  4   action_dt     1001000 non-null  datetime64[ns]
-dtypes: Int64(1), datetime64[ns](1), object(3)
+dtypes: Int64(1), datetime64ns, object(3)
 memory usage: 46.8+ MB
 ```
 
@@ -333,22 +333,22 @@ $ action_type           <str>
 $ action_dt    <datetime[μs]> 
 ```
 
-> Polars有一个特殊的方法`estimated_size()`，用于返回DataFrame总（堆）分配大小的估算值。例如：
+> Polars 有一个特殊的方法`estimated_size()`，用于返回 DataFrame 总（堆）分配大小的估算值。例如：
 
 ```py
 user_actions_pl_df.estimated_size("mb")
 # Result: 24.91054630279541
 ```
 
-尽管更改类型的方法名称不同，SQL爱好者会欣赏这一过渡的简便性。
+尽管更改类型的方法名称不同，SQL 爱好者会欣赏这一过渡的简便性。
 
 ## 填充**缺失值**
 
 在实际项目中，数据很少是完美的，我们经常与经理、分析师及其他系统讨论如何解释数据行为。在数据准备阶段，我特意生成了`corrupted_data`，以便在数据中引入一些混乱。处理缺失值可以轻松成为一本书的主题。
 
-填充缺失值有几种策略，选择哪种方法取决于任务：有时用零填充缺失值就足够了，而有时可能使用均值。在Polars中，`fill_null()`方法既可以应用于DataFrame，也可以应用于特定列。要添加新列或替换现有列中的值，也可以使用`with_columns()`方法。
+填充缺失值有几种策略，选择哪种方法取决于任务：有时用零填充缺失值就足够了，而有时可能使用均值。在 Polars 中，`fill_null()`方法既可以应用于 DataFrame，也可以应用于特定列。要添加新列或替换现有列中的值，也可以使用`with_columns()`方法。
 
-在我们的例子中，我将用0填充`quantity`列中的缺失值：
+在我们的例子中，我将用 0 填充`quantity`列中的缺失值：
 
 ```py
 # Pandas
@@ -364,7 +364,7 @@ Data columns (total 5 columns):
  2   quantity      1001000 non-null  Int64         
  3   action_type   1001000 non-null  object        
  4   action_dt     1001000 non-null  datetime64[ns]
-dtypes: Int64(1), datetime64[ns](1), object(3)
+dtypes: Int64(1), datetime64ns, object(3)
 ```
 
 ```py
@@ -383,7 +383,7 @@ user_actions_pl_df = user_actions_pl_df.with_columns(pl.col("quantity").fill_nul
 └────────────┴──────────────┴────────────┴──────────┴─────────────┴────────────────────────────┘
 ```
 
-> 在Polars中，你可以使用多种策略来填充数据中的缺失值，例如：`{None, 'forward', 'backward', 'min', 'max', 'mean', 'zero', 'one'}`。这些策略的名称不言自明，因此我们不再详细介绍。
+> 在 Polars 中，你可以使用多种策略来填充数据中的缺失值，例如：`{None, 'forward', 'backward', 'min', 'max', 'mean', 'zero', 'one'}`。这些策略的名称不言自明，因此我们不再详细介绍。
 
 同时需要注意，对于浮点型列中的`NaN`值填充，应使用`fill_nan()`方法，这个方法不涉及策略。
 
@@ -391,7 +391,7 @@ user_actions_pl_df = user_actions_pl_df.with_columns(pl.col("quantity").fill_nul
 
 并非所有缺失值都能填充，因此那些无法正确填充并用于进一步计算的值最好删除。在我们的例子中，这适用于`product_id`列，因为没有这个标识符我们无法计算最终结果。
 
-要在Pandas和Polars中删除含有缺失值的行，可以使用以下方法：
+要在 Pandas 和 Polars 中删除含有缺失值的行，可以使用以下方法：
 
 ```py
 # Pandas
@@ -408,7 +408,7 @@ Data columns (total 5 columns):
  2   quantity      1000492 non-null  Int64         
  3   action_type   1000492 non-null  object        
  4   action_dt     1000492 non-null  datetime64[ns]
-dtypes: Int64(1), datetime64[ns](1), object(3)
+dtypes: Int64(1), datetime64ns, object(3)
 ```
 
 ```py
@@ -433,7 +433,7 @@ user_actions_pl_df = user_actions_pl_df.drop_nulls(subset=["product_id"])
 
 重复记录的最简单情况是当一条记录的所有值与另一条记录完全相同时。在我们的例子中，如果相同的操作在同一时刻在同一家在线商店中被多次记录，就可能会出现重复。我将在发现重复时，只保留最新的值。
 
-在Pandas中，去除重复记录使用`drop_duplicates()`方法，而在Polars中，使用`unique()`方法。
+在 Pandas 中，去除重复记录使用`drop_duplicates()`方法，而在 Polars 中，使用`unique()`方法。
 
 ```py
 # Pandas
@@ -453,7 +453,7 @@ Data columns (total 5 columns):
  2   quantity      907246 non-null  Int64         
  3   action_type   907246 non-null  object        
  4   action_dt     907246 non-null  datetime64[ns]
-dtypes: Int64(1), datetime64[ns](1), object(3)
+dtypes: Int64(1), datetime64ns, object(3)
 ```
 
 ```py
@@ -477,9 +477,9 @@ user_actions_pl_df = user_actions_pl_df.unique(
 
 ## **过滤数据**
 
-在数据清洗阶段之后，我们需要筛选出与未来计算相关的数据。在Polars中，这可以通过一个描述性很强的方法`filter()`来完成。
+在数据清洗阶段之后，我们需要筛选出与未来计算相关的数据。在 Polars 中，这可以通过一个描述性很强的方法`filter()`来完成。
 
-> 过滤条件不为True的行将被丢弃，包括空值。
+> 过滤条件不为 True 的行将被丢弃，包括空值。
 
 ```py
 # Pandas
@@ -498,7 +498,7 @@ Data columns (total 5 columns):
  2   quantity      262237 non-null  Int64         
  3   action_type   262237 non-null  object        
  4   action_dt     262237 non-null  datetime64[ns]
-dtypes: Int64(1), datetime64[ns](1), object(3)
+dtypes: Int64(1), datetime64ns, object(3)
 ```
 
 ```py
@@ -521,7 +521,7 @@ user_actions_pl_df = user_actions_pl_df.filter(
 
 ## **选择所需的列**
 
-在过滤数据后，您可能需要仅保留对进一步分析相关的列。在Polars中，可以使用`select()`方法来实现这一点。
+在过滤数据后，您可能需要仅保留对进一步分析相关的列。在 Polars 中，可以使用`select()`方法来实现这一点。
 
 ```py
 # Pandas
@@ -539,7 +539,7 @@ user_actions_pl_df = user_actions_pl_df.select(
 
 ## **分组数据**
 
-在准备好数据之后，我们可以对其进行聚合，获取每个在线商店和产品的`quantity`总和。我还会保留`action_type`以供后续步骤使用。在Polars中，我们使用`group_by()`方法，这与Pandas中的`groupby()`方法类似。
+在准备好数据之后，我们可以对其进行聚合，获取每个在线商店和产品的`quantity`总和。我还会保留`action_type`以供后续步骤使用。在 Polars 中，我们使用`group_by()`方法，这与 Pandas 中的`groupby()`方法类似。
 
 ```py
 # Pandas
@@ -589,9 +589,9 @@ user_actions_pl_df = (
 └──────────────┴────────────┴─────────────┴──────────┘
 ```
 
-## **与另一个DataFrame进行连接**
+## **与另一个 DataFrame 进行连接**
 
-要计算总购买量，我们需要将数据与价格目录进行连接。在Pandas中，我们有两种方法可以做到这一点，`join()`和`merge()`，它们在具体实现和功能上有所不同。在Polars中，我们只使用`join()`方法。
+要计算总购买量，我们需要将数据与价格目录进行连接。在 Pandas 中，我们有两种方法可以做到这一点，`join()`和`merge()`，它们在具体实现和功能上有所不同。在 Polars 中，我们只使用`join()`方法。
 
 ```py
 # Pandas
@@ -634,11 +634,11 @@ user_actions_pl_df = user_actions_pl_df.join(product_catalog_pl_df, on='product_
 └──────────────┴────────────┴─────────────┴──────────┴───────┘
 ```
 
-> 在Polars中，`how`参数支持以下值：`{'inner', 'left', 'right', 'full', 'semi', 'anti', 'cross'}`。
+> 在 Polars 中，`how`参数支持以下值：`{'inner', 'left', 'right', 'full', 'semi', 'anti', 'cross'}`。
 
 ## **计算新列**
 
-要计算一个新列或修改现有列，Polars使用`with_columns()`方法。要为列设置别名，可以使用`alias()`。
+要计算一个新列或修改现有列，Polars 使用`with_columns()`方法。要为列设置别名，可以使用`alias()`。
 
 ```py
 # Pandas
@@ -673,7 +673,7 @@ user_actions_pl_df = user_actions_pl_df.select(
 
 ## **创建透视表**
 
-我们的最后一步是创建一个透视表。我们已经计算了每个产品的总销售额，现在我们将轻松计算每个在线商店的总销售额。在Pandas中，我们使用`pivot_table()`方法，它允许应用聚合函数。在Polars中，我们使用`pivot()`方法来创建透视表。
+我们的最后一步是创建一个透视表。我们已经计算了每个产品的总销售额，现在我们将轻松计算每个在线商店的总销售额。在 Pandas 中，我们使用`pivot_table()`方法，它允许应用聚合函数。在 Polars 中，我们使用`pivot()`方法来创建透视表。
 
 ```py
 # Pandas
@@ -713,15 +713,15 @@ result_pl = user_actions_pl_df.pivot(
 
 > 弃用警告：`pl.DataFrame.pivot`的参数`columns`已弃用，现已重命名为`on`。
 
-现在我们结束我们的旅程。如我们所见，Pandas和Polars的结果一致。到达这里的每个人都很棒且非常努力——你们一定会成功！
+现在我们结束我们的旅程。如我们所见，Pandas 和 Polars 的结果一致。到达这里的每个人都很棒且非常努力——你们一定会成功！
 
 ## 总结
 
-在本文中，我们通过实际示例和与Pandas的比较来探讨Polars。我演示了如何处理数据准备、描述性统计、缺失值、重复值、过滤、列选择、分组、合并和透视表。通过展示Pandas和Polars这两者的任务，我突出了使用Polars的简便性以及从Pandas过渡到Polars的容易性。本指南作为高效数据分析中利用Polars的实用入门。
+在本文中，我们通过实际示例和与 Pandas 的比较来探讨 Polars。我演示了如何处理数据准备、描述性统计、缺失值、重复值、过滤、列选择、分组、合并和透视表。通过展示 Pandas 和 Polars 这两者的任务，我突出了使用 Polars 的简便性以及从 Pandas 过渡到 Polars 的容易性。本指南作为高效数据分析中利用 Polars 的实用入门。
 
 ## 推荐阅读：
 
-+   [使用Polars提高数据转换中的代码质量](https://medium.com/towards-data-science/improving-code-quality-during-data-transformation-with-polars-92997e67c8a9)
++   [使用 Polars 提高数据转换中的代码质量](https://medium.com/towards-data-science/improving-code-quality-during-data-transformation-with-polars-92997e67c8a9)
 
 ## 感谢阅读！
 

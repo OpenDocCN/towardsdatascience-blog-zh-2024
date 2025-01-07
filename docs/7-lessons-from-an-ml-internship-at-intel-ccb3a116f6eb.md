@@ -1,16 +1,16 @@
-# 来自英特尔机器学习实习的7个经验
+# 来自英特尔机器学习实习的 7 个经验
 
-> 原文：[https://towardsdatascience.com/7-lessons-from-an-ml-internship-at-intel-ccb3a116f6eb?source=collection_archive---------4-----------------------#2024-02-12](https://towardsdatascience.com/7-lessons-from-an-ml-internship-at-intel-ccb3a116f6eb?source=collection_archive---------4-----------------------#2024-02-12)
+> 原文：[`towardsdatascience.com/7-lessons-from-an-ml-internship-at-intel-ccb3a116f6eb?source=collection_archive---------4-----------------------#2024-02-12`](https://towardsdatascience.com/7-lessons-from-an-ml-internship-at-intel-ccb3a116f6eb?source=collection_archive---------4-----------------------#2024-02-12)
 
-## 自动化、机器学习和LLMs在芯片行业中的应用
+## 自动化、机器学习和 LLMs 在芯片行业中的应用
 
-[](https://conorosullyds.medium.com/?source=post_page---byline--ccb3a116f6eb--------------------------------)[![Conor O'Sullivan](../Images/2dc50a24edb12e843651d01ed48a3c3f.png)](https://conorosullyds.medium.com/?source=post_page---byline--ccb3a116f6eb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ccb3a116f6eb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ccb3a116f6eb--------------------------------) [Conor O'Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--ccb3a116f6eb--------------------------------)
+[](https://conorosullyds.medium.com/?source=post_page---byline--ccb3a116f6eb--------------------------------)![Conor O'Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--ccb3a116f6eb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ccb3a116f6eb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ccb3a116f6eb--------------------------------) [Conor O'Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--ccb3a116f6eb--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ccb3a116f6eb--------------------------------) ·7分钟阅读·2024年2月12日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ccb3a116f6eb--------------------------------) ·7 分钟阅读·2024 年 2 月 12 日
 
 --
 
-![](../Images/df8c748774c6ee26446c98f77210b3a0.png)
+![](img/df8c748774c6ee26446c98f77210b3a0.png)
 
 (来源：chatGPT)
 

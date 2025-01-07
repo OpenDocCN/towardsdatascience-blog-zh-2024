@@ -1,20 +1,20 @@
-# 多智能体系统101
+# 多智能体系统 101
 
-> 原文：[https://towardsdatascience.com/multi-ai-agent-systems-101-bac58e3bcc47?source=collection_archive---------0-----------------------#2024-06-16](https://towardsdatascience.com/multi-ai-agent-systems-101-bac58e3bcc47?source=collection_archive---------0-----------------------#2024-06-16)
+> 原文：[`towardsdatascience.com/multi-ai-agent-systems-101-bac58e3bcc47?source=collection_archive---------0-----------------------#2024-06-16`](https://towardsdatascience.com/multi-ai-agent-systems-101-bac58e3bcc47?source=collection_archive---------0-----------------------#2024-06-16)
 
-## 使用CrewAI自动化数据源管理中的常规任务
+## 使用 CrewAI 自动化数据源管理中的常规任务
 
-[](https://miptgirl.medium.com/?source=post_page---byline--bac58e3bcc47--------------------------------)[![Mariya Mansurova](../Images/b1dd377b0a1887db900cc5108bca8ea8.png)](https://miptgirl.medium.com/?source=post_page---byline--bac58e3bcc47--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bac58e3bcc47--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bac58e3bcc47--------------------------------) [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--bac58e3bcc47--------------------------------)
+[](https://miptgirl.medium.com/?source=post_page---byline--bac58e3bcc47--------------------------------)![Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--bac58e3bcc47--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bac58e3bcc47--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bac58e3bcc47--------------------------------) [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--bac58e3bcc47--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bac58e3bcc47--------------------------------) ·阅读时间：26分钟·2024年6月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bac58e3bcc47--------------------------------) ·阅读时间：26 分钟·2024 年 6 月 16 日
 
 --
 
-![](../Images/a5a6e119bd80a1c3c4af2c7c64b02bb6.png)
+![](img/a5a6e119bd80a1c3c4af2c7c64b02bb6.png)
 
 图片来自 DALL-E 3
 
-最初，当ChatGPT刚刚出现时，我们使用简单的提示来获得我们问题的答案。随后，我们遇到了幻觉问题，开始使用RAG（检索增强生成）来为LLM提供更多上下文。之后，我们开始尝试AI代理，其中LLM作为推理引擎，决定接下来做什么、使用什么工具以及何时返回最终答案。
+最初，当 ChatGPT 刚刚出现时，我们使用简单的提示来获得我们问题的答案。随后，我们遇到了幻觉问题，开始使用 RAG（检索增强生成）来为 LLM 提供更多上下文。之后，我们开始尝试 AI 代理，其中 LLM 作为推理引擎，决定接下来做什么、使用什么工具以及何时返回最终答案。
 
 下一步的进化是创建这样的代理团队，使其能够相互协作。这种方法是合乎逻辑的，因为它反映了人类的互动方式。我们在团队中工作，每个成员都有一个特定的角色：
 
@@ -26,9 +26,9 @@
 
 +   分析师检查数据，以确保其按预期执行，并找出改进产品以满足客户需求的方法。
 
-类似地，我们可以创建一个AI代理团队，每个代理专注于一个领域。它们可以协作并共同达成最终结论。正如专业化提升现实生活中的表现一样，它也能提高AI代理的表现。
+类似地，我们可以创建一个 AI 代理团队，每个代理专注于一个领域。它们可以协作并共同达成最终结论。正如专业化提升现实生活中的表现一样，它也能提高 AI 代理的表现。
 
-这种方法的另一个优势是更高的灵活性。每个代理可以使用自己独立的提示、工具集甚至是LLM。例如，我们可以为系统的不同部分使用不同的模型。你可以为需要更多推理的代理使用GPT-4，而为只做简单提取的代理使用GPT-3.5。我们甚至可以为小型特定任务对模型进行微调，并将其用于我们的代理团队中。
+这种方法的另一个优势是更高的灵活性。每个代理可以使用自己独立的提示、工具集甚至是 LLM。例如，我们可以为系统的不同部分使用不同的模型。你可以为需要更多推理的代理使用 GPT-4，而为只做简单提取的代理使用 GPT-3.5。我们甚至可以为小型特定任务对模型进行微调，并将其用于我们的代理团队中。
 
 这种方法的潜在缺点是时间和成本。多个智能体之间的交互和知识共享需要更多的 LLM 调用，并消耗额外的令牌。这可能导致更长的等待时间和增加的费用。
 
@@ -67,7 +67,7 @@ ollama run llama3
 
 例如，你可以提问类似这样的问题。
 
-![](../Images/b47f272e89a01f843e909b4d4e5cf665.png)
+![](img/b47f272e89a01f843e909b4d4e5cf665.png)
 
 让我们创建一个自定义的 Ollama 模型，以便在 CrewAI 中稍后使用。
 
@@ -106,9 +106,9 @@ chmod +x ./llama3_setup.sh
 ./llama3_setup.sh
 ```
 
-> 您可以在GitHub上找到这两个文件：[Llama3ModelFile](https://github.com/miptgirl/miptgirl_medium/blob/main/crewai_answering_questions/Llama3ModelFile) 和 [llama3_setup.sh](https://github.com/miptgirl/miptgirl_medium/blob/main/crewai_answering_questions/llama3_setup.sh)
+> 您可以在 GitHub 上找到这两个文件：[Llama3ModelFile](https://github.com/miptgirl/miptgirl_medium/blob/main/crewai_answering_questions/Llama3ModelFile) 和 [llama3_setup.sh](https://github.com/miptgirl/miptgirl_medium/blob/main/crewai_answering_questions/llama3_setup.sh)
 
-我们需要初始化以下环境变量以使用本地的Llama模型与CrewAI。
+我们需要初始化以下环境变量以使用本地的 Llama 模型与 CrewAI。
 
 ```py
 os.environ["OPENAI_API_BASE"]='http://localhost:11434/v1'
@@ -123,27 +123,27 @@ os.environ["OPENAI_API_KEY"] = "NA"
 
 # 用例：与文档一起工作
 
-作为分析师，我们经常扮演数据和一些与数据相关工具的专家角色。在我之前的团队中，我们曾经有一个拥有近1K参与者的频道，我们在那里回答了很多关于我们的数据和我们用作存储的ClickHouse数据库的问题。我们花了相当多的时间来管理这个频道。看看这些任务是否可以通过LLM自动化执行将是很有趣的。
+作为分析师，我们经常扮演数据和一些与数据相关工具的专家角色。在我之前的团队中，我们曾经有一个拥有近 1K 参与者的频道，我们在那里回答了很多关于我们的数据和我们用作存储的 ClickHouse 数据库的问题。我们花了相当多的时间来管理这个频道。看看这些任务是否可以通过 LLM 自动化执行将是很有趣的。
 
-对于这个示例，我将使用ClickHouse数据库。如果您感兴趣，您可以在[我的先前文章](https://clickhouse.com/)中了解更多关于ClickHouse以及如何在本地设置它的信息。但是，我们不会使用任何特定于ClickHouse的功能，因此请随意使用您了解的数据库。
+对于这个示例，我将使用 ClickHouse 数据库。如果您感兴趣，您可以在[我的先前文章](https://clickhouse.com/)中了解更多关于 ClickHouse 以及如何在本地设置它的信息。但是，我们不会使用任何特定于 ClickHouse 的功能，因此请随意使用您了解的数据库。
 
-我创建了一个非常简单的数据模型来使用。在我们的DWH（数据仓库）中只有两个表：`ecommerce_db.users` 和 `ecommerce_db.sessions`。正如你可能猜到的那样，第一个表包含有关我们服务的用户的信息。
+我创建了一个非常简单的数据模型来使用。在我们的 DWH（数据仓库）中只有两个表：`ecommerce_db.users` 和 `ecommerce_db.sessions`。正如你可能猜到的那样，第一个表包含有关我们服务的用户的信息。
 
-![](../Images/3de9376c5434676a728a3ee7f0d87037.png)
+![](img/3de9376c5434676a728a3ee7f0d87037.png)
 
 `ecommerce_db.sessions`表存储有关用户会话的信息。
 
-![](../Images/6ac727891735b98720fced70326530c0.png)
+![](img/6ac727891735b98720fced70326530c0.png)
 
-关于数据源管理，分析师通常处理编写和更新文档以及回答有关这些数据的问题等任务。因此，我们将使用LLM为数据库中的表编写文档，并教它回答有关数据或ClickHouse的问题。
+关于数据源管理，分析师通常处理编写和更新文档以及回答有关这些数据的问题等任务。因此，我们将使用 LLM 为数据库中的表编写文档，并教它回答有关数据或 ClickHouse 的问题。
 
-但在继续实施之前，让我们更多地了解CrewAI框架及其核心概念。
+但在继续实施之前，让我们更多地了解 CrewAI 框架及其核心概念。
 
-# CrewAI基本概念
+# CrewAI 基本概念
 
-多代理框架的基石是[**代理**](https://docs.crewai.com/core-concepts/Agents/)概念。在CrewAI中，代理由角色扮演驱动。角色扮演是一种策略，当你要求一个代理扮演一个角色并像顶尖后端工程师或乐于助人的客服代理一样行事时。因此，在创建CrewAI代理时，您需要指定每个代理的角色、目标和背景故事，以便LLM了解足够的信息来扮演这个角色。
+多代理框架的基石是[**代理**](https://docs.crewai.com/core-concepts/Agents/)概念。在 CrewAI 中，代理由角色扮演驱动。角色扮演是一种策略，当你要求一个代理扮演一个角色并像顶尖后端工程师或乐于助人的客服代理一样行事时。因此，在创建 CrewAI 代理时，您需要指定每个代理的角色、目标和背景故事，以便 LLM 了解足够的信息来扮演这个角色。
 
-代理的能力在没有[**工具**](https://docs.crewai.com/core-concepts/Tools/)（代理可以执行并获得结果的功能）的情况下是有限的。使用CrewAI，您可以使用预定义工具之一（例如，搜索互联网、解析网站或在文档上执行RAG），自己创建自定义工具或使用LangChain工具。因此，创建强大的代理非常容易。
+代理的能力在没有[**工具**](https://docs.crewai.com/core-concepts/Tools/)（代理可以执行并获得结果的功能）的情况下是有限的。使用 CrewAI，您可以使用预定义工具之一（例如，搜索互联网、解析网站或在文档上执行 RAG），自己创建自定义工具或使用 LangChain 工具。因此，创建强大的代理非常容易。
 
 让我们从智能体转到它们正在做的工作。智能体正在处理[**任务**](https://docs.crewai.com/core-concepts/Tasks/#task-attributes)（具体的任务）。对于每个任务，我们需要定义一个描述、期望的输出（完成的定义）、可用工具的集合和分配的智能体。我非常喜欢这些框架遵循管理最佳实践，例如对任务的清晰完成定义。
 
@@ -151,7 +151,7 @@ os.environ["OPENAI_API_KEY"] = "NA"
 
 +   **顺序性** — 当任务一个接一个地被调用时，这是一种最直接的方式。
 
-+   **层级化** — 当有一个经理（指定为LLM模型）创建并委派任务给智能体时。
++   **层级化** — 当有一个经理（指定为 LLM 模型）创建并委派任务给智能体时。
 
 此外，CrewAI 正在处理一个共识过程。在这样的过程中，智能体将能够通过民主的方式协作做出决策。
 
@@ -161,7 +161,7 @@ os.environ["OPENAI_API_KEY"] = "NA"
 
 +   你可以在任务上使用“人工输入”标志，然后智能体将在最终确定该任务输出之前请求人类批准。这可以让你在过程中加入监督。
 
-我们已经定义了所有的基本构件，并可以讨论CrewAI的圣杯——[**小组**](https://docs.crewai.com/core-concepts/Crews/#crew-attributes)概念。小组代表智能体团队和他们将要处理的任务集合。协作的方式（我们之前讨论的流程）也可以在小组级别进行定义。
+我们已经定义了所有的基本构件，并可以讨论 CrewAI 的圣杯——[**小组**](https://docs.crewai.com/core-concepts/Crews/#crew-attributes)概念。小组代表智能体团队和他们将要处理的任务集合。协作的方式（我们之前讨论的流程）也可以在小组级别进行定义。
 
 此外，我们可以为一个小组设置[**记忆**](https://docs.crewai.com/core-concepts/Memory/)。记忆对于智能体之间的高效协作至关重要。CrewAI 支持三种记忆级别：
 
@@ -171,13 +171,13 @@ os.environ["OPENAI_API_KEY"] = "NA"
 
 +   实体记忆捕捉并结构化关于实体的信息（如角色、城市等）。
 
-目前，你只能为小组开启所有类型的记忆，而无法进行进一步的自定义。不过，这在Llama模型上不起作用。
+目前，你只能为小组开启所有类型的记忆，而无法进行进一步的自定义。不过，这在 Llama 模型上不起作用。
 
-我们已经学到了足够多的CrewAI框架内容，现在是时候将这些知识付诸实践了。
+我们已经学到了足够多的 CrewAI 框架内容，现在是时候将这些知识付诸实践了。
 
 # 用例：编写文档
 
-让我们从一个简单的任务开始：为我们的DWH编写文档。正如我们之前讨论过的，DWH中有两个表，我希望使用LLM创建它们的详细描述。
+让我们从一个简单的任务开始：为我们的 DWH 编写文档。正如我们之前讨论过的，DWH 中有两个表，我希望使用 LLM 创建它们的详细描述。
 
 ## 第一种方法
 
@@ -185,7 +185,7 @@ os.environ["OPENAI_API_KEY"] = "NA"
 
 我将把这个任务分为两部分：从数据库中检索数据和编写文档。因此，我们需要一位数据库专家和一位技术写作者。数据库专家需要访问数据库，而写作者则不需要任何特殊工具。
 
-![](../Images/38ecf57b23d0f2c2cc2dd8f8031f6b1b.png)
+![](img/38ecf57b23d0f2c2cc2dd8f8031f6b1b.png)
 
 现在，我们有了一个高层次的计划。让我们创建这些代理。
 
@@ -221,7 +221,7 @@ tech_writer_agent = Agent(
 
 下一步是为代理设置任务。但在进行这些任务之前，我们需要创建一个自定义工具来连接数据库。
 
-首先，我编写了一个函数，用于通过HTTP API执行ClickHouse查询。
+首先，我编写了一个函数，用于通过 HTTP API 执行 ClickHouse 查询。
 
 ```py
 CH_HOST = 'http://localhost:8123' # default address 
@@ -235,9 +235,9 @@ def get_clickhouse_data(query, host = CH_HOST, connection_timeout = 1500):
       return 'Database returned the following error:\n' + r.text 
 ```
 
-在使用LLM代理时，确保工具具有容错性非常重要。例如，如果数据库返回错误（`status_code != 200`），我的代码不会抛出异常。相反，它会将错误描述返回给LLM，以便LLM尝试解决问题。
+在使用 LLM 代理时，确保工具具有容错性非常重要。例如，如果数据库返回错误（`status_code != 200`），我的代码不会抛出异常。相反，它会将错误描述返回给 LLM，以便 LLM 尝试解决问题。
 
-要创建CrewAI自定义工具，我们需要从`crewai_tools.BaseTool`派生类，实施`_run`方法，然后创建该类的实例。
+要创建 CrewAI 自定义工具，我们需要从`crewai_tools.BaseTool`派生类，实施`_run`方法，然后创建该类的实例。
 
 ```py
 from crewai_tools import BaseTool
@@ -253,7 +253,7 @@ class DatabaseQuery(BaseTool):
 database_query_tool = DatabaseQuery()
 ```
 
-现在，我们可以为代理设置任务。同样，向LLM提供清晰的指示和所有上下文是至关重要的。
+现在，我们可以为代理设置任务。同样，向 LLM 提供清晰的指示和所有上下文是至关重要的。
 
 ```py
 table_description_task = Task(
@@ -299,32 +299,32 @@ crew = Crew(
 result = crew.kickoff({'table': 'ecommerce_db.users'})
 ```
 
-这是一个令人兴奋的时刻，我真的很期待看到结果。如果执行过程需要一些时间，请不要担心。代理会多次调用LLM，因此花费几分钟是完全正常的。我在我的笔记本上花了2.5分钟。
+这是一个令人兴奋的时刻，我真的很期待看到结果。如果执行过程需要一些时间，请不要担心。代理会多次调用 LLM，因此花费几分钟是完全正常的。我在我的笔记本上花了 2.5 分钟。
 
-我们要求LLM以Markdown格式返回文档。我们可以使用以下代码在Jupyter Notebook中查看格式化后的结果。
+我们要求 LLM 以 Markdown 格式返回文档。我们可以使用以下代码在 Jupyter Notebook 中查看格式化后的结果。
 
 ```py
 from IPython.display import Markdown
 Markdown(result)
 ```
 
-第一眼看起来不错。我们得到了一个有效的Markdown文件，描述了“users”表。
+第一眼看起来不错。我们得到了一个有效的 Markdown 文件，描述了“users”表。
 
-![](../Images/e98ec48f91dc2754b39ac5b0c59424e2.png)
+![](img/e98ec48f91dc2754b39ac5b0c59424e2.png)
 
 等等，这不对。让我们看看表格中有哪些数据。
 
-![](../Images/3de9376c5434676a728a3ee7f0d87037.png)
+![](img/3de9376c5434676a728a3ee7f0d87037.png)
 
-文档中列出的列与我们数据库中的完全不同。这是LLM幻觉的一个例子。
+文档中列出的列与我们数据库中的完全不同。这是 LLM 幻觉的一个例子。
 
-我们已将`verbose = 2`设置为从CrewAI获取详细的日志。让我们浏览执行日志，以找出问题的根本原因。
+我们已将`verbose = 2`设置为从 CrewAI 获取详细的日志。让我们浏览执行日志，以找出问题的根本原因。
 
 首先，数据库专家由于引用符号的问题，无法查询数据库。
 
-![](../Images/966fcf095524bc7809853c882d83ab57.png)
+![](img/966fcf095524bc7809853c882d83ab57.png)
 
-专家未能解决这个问题。最终，这个链条已被CrewAI终止，输出为：`Agent stopped due to iteration limit or time limit`。
+专家未能解决这个问题。最终，这个链条已被 CrewAI 终止，输出为：`Agent stopped due to iteration limit or time limit`。
 
 这意味着技术写作者没有收到任何关于数据的事实性信息。然而，代理继续执行并产生了完全虚假的结果。最终我们得到了错误的文档。
 
@@ -332,7 +332,7 @@ Markdown(result)
 
 尽管我们的第一次迭代没有成功，但我们学到了很多。我们至少有两个可以改进的方面：
 
-+   我们的数据库工具对模型来说太复杂，代理难以使用它。我们可以通过去掉查询开始和结束的引号来使工具更具容错性。这个解决方案并不理想，因为有效的SQL可能以引号结尾，但我们还是试试看。
++   我们的数据库工具对模型来说太复杂，代理难以使用它。我们可以通过去掉查询开始和结束的引号来使工具更具容错性。这个解决方案并不理想，因为有效的 SQL 可能以引号结尾，但我们还是试试看。
 
 +   我们的技术写作者没有基于数据库专家的输入来生成输出。我们需要调整提示，强调只提供事实性信息的重要性。
 
@@ -388,11 +388,11 @@ table_documentation_task = Task(
 
 让我们再次执行我们的团队任务，看看结果。
 
-![](../Images/f79b2d4b9cfb0046ab1a6f48b6a4acb7.png)
+![](img/f79b2d4b9cfb0046ab1a6f48b6a4acb7.png)
 
 我们取得了一些更好的结果。我们的数据库专家能够执行查询并查看数据，这是我们的一项重大胜利。此外，我们可以在结果表中看到所有相关的字段，尽管还有许多其他字段。所以，它仍然不是完全正确的。
 
-我再次查看了CrewAI执行日志，试图弄清楚问题出在哪里。问题出在获取列列表时。没有按数据库进行过滤，因此它返回了一些与结果无关的列。
+我再次查看了 CrewAI 执行日志，试图弄清楚问题出在哪里。问题出在获取列列表时。没有按数据库进行过滤，因此它返回了一些与结果无关的列。
 
 ```py
 SELECT column_name 
@@ -400,11 +400,11 @@ FROM information_schema.columns
 WHERE table_name = 'users'
 ```
 
-此外，在查看了多次尝试后，我注意到数据库专家偶尔执行`select * from <table>`查询。它可能在生产环境中引发一些问题，因为它可能会生成大量数据并将其发送到LLM。
+此外，在查看了多次尝试后，我注意到数据库专家偶尔执行`select * from <table>`查询。它可能在生产环境中引发一些问题，因为它可能会生成大量数据并将其发送到 LLM。
 
 ## 更专业的工具
 
-我们可以为我们的代理提供更多专业的工具来改进我们的解决方案。目前，代理有一个可以执行任何SQL查询的工具，这个工具灵活且强大，但容易出错。我们可以创建更专注的工具，例如获取表结构和从表中提取前N行数据。希望这样可以减少错误的发生。
+我们可以为我们的代理提供更多专业的工具来改进我们的解决方案。目前，代理有一个可以执行任何 SQL 查询的工具，这个工具灵活且强大，但容易出错。我们可以创建更专注的工具，例如获取表结构和从表中提取前 N 行数据。希望这样可以减少错误的发生。
 
 ```py
 class TableStructure(BaseTool):
@@ -444,9 +444,9 @@ from the database specialist without any additions or modifications.
 
 更加专注的工具帮助数据库专家检索了正确的表信息。然而，尽管写作者拥有所有必要的信息，我们仍未得到预期的结果。
 
-如我们所知，LLM是概率性的，所以我又尝试了一次。太好了，这次结果非常好。
+如我们所知，LLM 是概率性的，所以我又尝试了一次。太好了，这次结果非常好。
 
-![](../Images/536e784233791190a9045928c534d537.png)
+![](img/536e784233791190a9045928c534d537.png)
 
 它还不完美，因为仍然包括一些无关的评论，并且缺少表格的整体描述。然而，提供更多专业工具显然是值得的。这也有助于防止在代理尝试加载表格中的所有数据时出现问题。
 
@@ -454,7 +454,7 @@ from the database specialist without any additions or modifications.
 
 我们已经取得了相当不错的结果，但让我们看看是否能进一步改善它们。多代理设置中的常见做法是质量保证，它在最终确定结果之前添加了最后的审核阶段。
 
-![](../Images/b452393cdc89394850940fa99040c1ef.png)
+![](img/b452393cdc89394850940fa99040c1ef.png)
 
 让我们创建一个新的代理——质量保证专家，负责审核工作。
 
@@ -516,17 +516,17 @@ full_crew = Crew(
 full_result = full_crew.kickoff({'table': 'ecommerce_db.users'})
 ```
 
-由于加入了QA阶段，我们现在有了更结构化和详细的文档。
+由于加入了 QA 阶段，我们现在有了更结构化和详细的文档。
 
-![](../Images/207c43201fa01049208b438839e28ebb.png)
+![](img/207c43201fa01049208b438839e28ebb.png)
 
 ## 委派
 
-随着质量保证（QA）专家的加入，测试委派机制会变得非常有趣。QA专家代理可能会有一些问题或请求，可以将其委派给其他代理。
+随着质量保证（QA）专家的加入，测试委派机制会变得非常有趣。QA 专家代理可能会有一些问题或请求，可以将其委派给其他代理。
 
-我尝试使用Llama 3进行委派，但结果不太理想。Llama 3在正确调用同事工具时遇到了困难，无法指定正确的同事姓名。
+我尝试使用 Llama 3 进行委派，但结果不太理想。Llama 3 在正确调用同事工具时遇到了困难，无法指定正确的同事姓名。
 
-我们使用本地模型在任何笔记本电脑上都能取得相当不错的结果，但现在是时候换个思路，使用更强大的模型——GPT-4o了。
+我们使用本地模型在任何笔记本电脑上都能取得相当不错的结果，但现在是时候换个思路，使用更强大的模型——GPT-4o 了。
 
 为了实现这一点，我们只需更新以下环境变量。
 
@@ -535,9 +535,9 @@ os.environ["OPENAI_MODEL_NAME"] = 'gpt-4o'
 os.environ["OPENAI_API_KEY"] = config['OPENAI_API_KEY'] # your OpenAI key
 ```
 
-为了开启委派功能，我们应该为QA专家代理指定`allow_delegation = True`。
+为了开启委派功能，我们应该为 QA 专家代理指定`allow_delegation = True`。
 
-此外，我们还可以使用OpenAI模型的便捷记忆功能，如上所述。记忆功能将允许我们的代理在执行过程中互相分享知识，并利用长期记忆从以前的执行中获取信息。
+此外，我们还可以使用 OpenAI 模型的便捷记忆功能，如上所述。记忆功能将允许我们的代理在执行过程中互相分享知识，并利用长期记忆从以前的执行中获取信息。
 
 ```py
 full_crew = Crew(
@@ -550,7 +550,7 @@ full_crew = Crew(
 full_result = full_crew.kickoff({'table': 'ecommerce_db.users'})
 ```
 
-让我们看看CrewAI的执行日志，了解委派是如何工作的。这里是QA专家的所有日志。我们可以看到它联系了数据库专家以核实信息。
+让我们看看 CrewAI 的执行日志，了解委派是如何工作的。这里是 QA 专家的所有日志。我们可以看到它联系了数据库专家以核实信息。
 
 ```py
 Thought: I need to review the provided draft documentation to ensure it 
@@ -633,11 +633,11 @@ the detailed introduction, examples, and ensuring the tone is professional
 but informal.
 ```
 
-当我第一次尝试委派时，没有启用记忆功能，这导致了不正确的结果。数据专家和技术写作者最初返回了正确的信息。然而，当QA专家返回后续问题时，他们开始出现幻觉。因此，看起来当启用记忆功能时，委派效果会更好。
+当我第一次尝试委派时，没有启用记忆功能，这导致了不正确的结果。数据专家和技术写作者最初返回了正确的信息。然而，当 QA 专家返回后续问题时，他们开始出现幻觉。因此，看起来当启用记忆功能时，委派效果会更好。
 
-这是GPT-4o的最终输出。现在结果看起来非常不错。我们完全可以使用LLM来自动化文档编写。
+这是 GPT-4o 的最终输出。现在结果看起来非常不错。我们完全可以使用 LLM 来自动化文档编写。
 
-![](../Images/ccca4f521728af6e15a2d73bc450db2a.png)
+![](img/ccca4f521728af6e15a2d73bc450db2a.png)
 
 所以，第一个任务已经解决！
 
@@ -651,11 +651,11 @@ but informal.
 
 +   文档支持专家将根据文档回答问题，
 
-+   支持QA代理人将在与客户分享答案之前对其进行审查。
++   支持 QA 代理人将在与客户分享答案之前对其进行审查。
 
-![](../Images/211478ae8b1f633d5693c883fea42a40.png)
+![](img/211478ae8b1f633d5693c883fea42a40.png)
 
-我们需要为文档专家提供一些工具，使他们能够查看存储在目录中的所有文件并阅读这些文件。这很简单，因为CrewAI已经实现了这样的工具。
+我们需要为文档专家提供一些工具，使他们能够查看存储在目录中的所有文件并阅读这些文件。这很简单，因为 CrewAI 已经实现了这样的工具。
 
 ```py
 from crewai_tools import DirectoryReadTool, FileReadTool
@@ -666,7 +666,7 @@ documentation_directory_tool = DirectoryReadTool(
 base_file_read_tool = FileReadTool()
 ```
 
-然而，由于Llama 3在调用工具时仍然在处理引号的问题，我不得不在`FileReaderTool`之上创建一个自定义工具来解决这个问题。
+然而，由于 Llama 3 在调用工具时仍然在处理引号的问题，我不得不在`FileReaderTool`之上创建一个自定义工具来解决这个问题。
 
 ```py
 from crewai_tools import BaseTool
@@ -822,7 +822,7 @@ users in 2023\. I hope this helps! If you have any further questions or
 need more assistance, please don't hesitate to ask.
 ```
 
-让我们稍微复杂化任务。假设我们不仅可以得到关于我们的数据的问题，还可以得到关于我们的工具（ClickHouse）的问题。因此，我们的团队中将有另一个代理人——ClickHouse专家。为了给我们的CH代理人一些知识，我将与它分享一个文档网站。
+让我们稍微复杂化任务。假设我们不仅可以得到关于我们的数据的问题，还可以得到关于我们的工具（ClickHouse）的问题。因此，我们的团队中将有另一个代理人——ClickHouse 专家。为了给我们的 CH 代理人一些知识，我将与它分享一个文档网站。
 
 ```py
 from crewai_tools import ScrapeWebsiteTool, WebsiteSearchTool
@@ -830,13 +830,13 @@ ch_documenation_tool = ScrapeWebsiteTool(
   'https://clickhouse.com/docs/en/guides/creating-tables')
 ```
 
-如果您需要处理长篇文档，可以尝试使用RAG（检索增强生成）—[WebsiteSearchTool](https://docs.crewai.com/tools/WebsiteSearchTool/)。它将计算嵌入并将其存储在ChromaDB中。在我们的情况下，我们将坚持使用简单的网站爬虫工具。
+如果您需要处理长篇文档，可以尝试使用 RAG（检索增强生成）—[WebsiteSearchTool](https://docs.crewai.com/tools/WebsiteSearchTool/)。它将计算嵌入并将其存储在 ChromaDB 中。在我们的情况下，我们将坚持使用简单的网站爬虫工具。
 
 现在我们有了两位主题专家，我们需要决定谁将负责回答问题。因此，现在是使用分层过程并添加经理来协调所有任务的时候了。
 
-![](../Images/1e8a9048cb1cf80662b17df62655fd37.png)
+![](img/1e8a9048cb1cf80662b17df62655fd37.png)
 
-CrewAI提供了经理实现，因此我们只需要指定LLM模型。我选择了GPT-4o。
+CrewAI 提供了经理实现，因此我们只需要指定 LLM 模型。我选择了 GPT-4o。
 
 ```py
 from langchain_openai import ChatOpenAI
@@ -852,9 +852,9 @@ complext_qna_crew = Crew(
 )
 ```
 
-> 在这一点上，我不得不再次从Llama 3切换到OpenAI模型以运行分层过程，因为使用Llama对我来说没有效果（类似于[此问题](https://github.com/joaomdmoura/crewAI/issues/657)）。
+> 在这一点上，我不得不再次从 Llama 3 切换到 OpenAI 模型以运行分层过程，因为使用 Llama 对我来说没有效果（类似于[此问题](https://github.com/joaomdmoura/crewAI/issues/657)）。
 
-现在，我们可以尝试使用不同类型的问题来测试我们的新团队（无论是与我们的数据还是ClickHouse数据库相关的问题）。
+现在，我们可以尝试使用不同类型的问题来测试我们的新团队（无论是与我们的数据还是 ClickHouse 数据库相关的问题）。
 
 ```py
 ch_result = complext_qna_crew.kickoff(
@@ -880,7 +880,7 @@ doc_result = complext_qna_crew.kickoff(
 )
 ```
 
-如果我们查看最终的答案和日志（*我在这里省略了它们，因为它们相当冗长，但* *你可以在* [*GitHub*](https://github.com/miptgirl/miptgirl_medium/blob/main/crewai_answering_questions/rag_documentation_poc_openai.ipynb) *找到它们和完整日志*），我们会看到管理器能够正确地协调并将任务委派给拥有相关知识的同事，以解答客户的问题。对于第一个（与ClickHouse相关）问题，我们得到了一个详细的答案，包含了示例以及使用`WITH TOTALS`功能的潜在影响。对于数据相关的问题，模型返回的信息大致与我们上面看到的相同。
+如果我们查看最终的答案和日志（*我在这里省略了它们，因为它们相当冗长，但* *你可以在* [*GitHub*](https://github.com/miptgirl/miptgirl_medium/blob/main/crewai_answering_questions/rag_documentation_poc_openai.ipynb) *找到它们和完整日志*），我们会看到管理器能够正确地协调并将任务委派给拥有相关知识的同事，以解答客户的问题。对于第一个（与 ClickHouse 相关）问题，我们得到了一个详细的答案，包含了示例以及使用`WITH TOTALS`功能的潜在影响。对于数据相关的问题，模型返回的信息大致与我们上面看到的相同。
 
 因此，我们构建了一个可以根据文档回答各种问题的团队，无论是来自本地文件还是网站。我认为这是一个非常棒的结果。
 
@@ -888,7 +888,7 @@ doc_result = complext_qna_crew.kickoff(
 
 # 总结
 
-在本文中，我们探讨了如何使用CrewAI多智能体框架创建一个基于表格撰写文档并回答相关问题的解决方案。
+在本文中，我们探讨了如何使用 CrewAI 多智能体框架创建一个基于表格撰写文档并回答相关问题的解决方案。
 
 鉴于我们所使用的广泛功能，现在是总结这个框架的优缺点的时候了。
 
@@ -900,7 +900,7 @@ doc_result = complext_qna_crew.kickoff(
 
 +   它鼓励像角色扮演这样的良好实践。
 
-+   它提供了许多开箱即用的实用工具，如RAG和网站解析器。
++   它提供了许多开箱即用的实用工具，如 RAG 和网站解析器。
 
 +   支持不同类型的记忆增强了智能体之间的协作。
 
@@ -908,18 +908,18 @@ doc_result = complext_qna_crew.kickoff(
 
 然而，仍有一些可以改进的地方：
 
-+   尽管该框架简单且易于使用，但它的可定制性不强。例如，目前你无法创建自己的LLM管理器来协调这些过程。
++   尽管该框架简单且易于使用，但它的可定制性不强。例如，目前你无法创建自己的 LLM 管理器来协调这些过程。
 
-+   有时，从文档中获取完整详细的信息是相当具有挑战性的。例如，显然CrewAI实现了一些防护措施，以防止重复的函数调用，但文档并没有完全解释它是如何工作的。
++   有时，从文档中获取完整详细的信息是相当具有挑战性的。例如，显然 CrewAI 实现了一些防护措施，以防止重复的函数调用，但文档并没有完全解释它是如何工作的。
 
-+   另一个改进的方向是透明度。我喜欢了解框架是如何在背后工作的。例如，在Langchain中，你可以使用`langchain.debug = True`来查看所有LLM调用。然而，我还没有弄清楚如何在CrewAI中获得相同级别的详细信息。
++   另一个改进的方向是透明度。我喜欢了解框架是如何在背后工作的。例如，在 Langchain 中，你可以使用`langchain.debug = True`来查看所有 LLM 调用。然而，我还没有弄清楚如何在 CrewAI 中获得相同级别的详细信息。
 
 +   对本地模型的全面支持将是一个很大的补充，因为当前的实现要么缺少某些功能，要么难以正确运行。
 
-LLM领域和工具正在迅速发展，因此我希望在不久的将来会看到许多进展。
+LLM 领域和工具正在迅速发展，因此我希望在不久的将来会看到许多进展。
 
 > 非常感谢你阅读这篇文章。希望这篇文章对你有所启发。如果你有任何后续问题或评论，请在评论区留下。
 
 # 参考资料
 
-本文灵感来源于DeepLearning.AI的[“带CrewAI的多AI智能体系统”](https://www.deeplearning.ai/short-courses/multi-ai-agent-systems-with-crewai/)短期课程。
+本文灵感来源于 DeepLearning.AI 的[“带 CrewAI 的多 AI 智能体系统”](https://www.deeplearning.ai/short-courses/multi-ai-agent-systems-with-crewai/)短期课程。

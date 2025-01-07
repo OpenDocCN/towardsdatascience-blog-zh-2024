@@ -1,16 +1,16 @@
 # 数据科学并没有那么特别
 
-> 原文：[https://towardsdatascience.com/data-science-is-not-that-special-caeed27cc2ac?source=collection_archive---------3-----------------------#2024-02-24](https://towardsdatascience.com/data-science-is-not-that-special-caeed27cc2ac?source=collection_archive---------3-----------------------#2024-02-24)
+> 原文：[`towardsdatascience.com/data-science-is-not-that-special-caeed27cc2ac?source=collection_archive---------3-----------------------#2024-02-24`](https://towardsdatascience.com/data-science-is-not-that-special-caeed27cc2ac?source=collection_archive---------3-----------------------#2024-02-24)
 
-![](../Images/d8e53ebe7ef599363cb23e7abde99c3f.png)
+![](img/d8e53ebe7ef599363cb23e7abde99c3f.png)
 
 这张图片是作者使用 MidJourney 并购买了付费许可生成的。
 
 ## 作为数据科学家从与工程师的摩擦中得到的教训
 
-[](https://louis-chan.medium.com/?source=post_page---byline--caeed27cc2ac--------------------------------)[![Louis Chan](../Images/6d8df9a478e929dd521059631f26e081.png)](https://louis-chan.medium.com/?source=post_page---byline--caeed27cc2ac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--caeed27cc2ac--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--caeed27cc2ac--------------------------------) [Louis Chan](https://louis-chan.medium.com/?source=post_page---byline--caeed27cc2ac--------------------------------)
+[](https://louis-chan.medium.com/?source=post_page---byline--caeed27cc2ac--------------------------------)![Louis Chan](https://louis-chan.medium.com/?source=post_page---byline--caeed27cc2ac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--caeed27cc2ac--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--caeed27cc2ac--------------------------------) [Louis Chan](https://louis-chan.medium.com/?source=post_page---byline--caeed27cc2ac--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--caeed27cc2ac--------------------------------) ·阅读时间 9 分钟 ·2024年2月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--caeed27cc2ac--------------------------------) ·阅读时间 9 分钟 ·2024 年 2 月 24 日
 
 --
 
@@ -20,9 +20,9 @@
 
 在这篇博客文章中，我将深入探讨作为数据科学家的矛盾心情，以及我对数据科学家的一些反思。读完这篇文章后，您应该能获得以下几点启示：
 
-+   5个关于数据科学的认识，
++   5 个关于数据科学的认识，
 
-+   15条关于如何打造一个高效数据科学团队的经验
++   15 条关于如何打造一个高效数据科学团队的经验
 
 +   这是我一点干巴巴的幽默。
 

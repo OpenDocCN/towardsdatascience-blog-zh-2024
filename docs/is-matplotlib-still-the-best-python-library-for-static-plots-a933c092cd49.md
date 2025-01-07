@@ -1,18 +1,18 @@
 # Matplotlib 仍然是最佳的静态图表绘图库吗？
 
-> 原文：[https://towardsdatascience.com/is-matplotlib-still-the-best-python-library-for-static-plots-a933c092cd49?source=collection_archive---------0-----------------------#2024-01-20](https://towardsdatascience.com/is-matplotlib-still-the-best-python-library-for-static-plots-a933c092cd49?source=collection_archive---------0-----------------------#2024-01-20)
+> 原文：[`towardsdatascience.com/is-matplotlib-still-the-best-python-library-for-static-plots-a933c092cd49?source=collection_archive---------0-----------------------#2024-01-20`](https://towardsdatascience.com/is-matplotlib-still-the-best-python-library-for-static-plots-a933c092cd49?source=collection_archive---------0-----------------------#2024-01-20)
 
 ## 可视化
 
 ## 这个无处不在的原版仍然是大师吗？
 
-[](https://medium.com/@maclayton?source=post_page---byline--a933c092cd49--------------------------------)[![Mike Clayton](../Images/2d37746b13b7d2ff1c6515893914da97.png)](https://medium.com/@maclayton?source=post_page---byline--a933c092cd49--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a933c092cd49--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a933c092cd49--------------------------------) [Mike Clayton](https://medium.com/@maclayton?source=post_page---byline--a933c092cd49--------------------------------)
+[](https://medium.com/@maclayton?source=post_page---byline--a933c092cd49--------------------------------)![Mike Clayton](https://medium.com/@maclayton?source=post_page---byline--a933c092cd49--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a933c092cd49--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a933c092cd49--------------------------------) [Mike Clayton](https://medium.com/@maclayton?source=post_page---byline--a933c092cd49--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a933c092cd49--------------------------------) ·阅读时长18分钟·2024年1月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a933c092cd49--------------------------------) ·阅读时长 18 分钟·2024 年 1 月 20 日
 
 --
 
-![](../Images/efbb3ac84c72a7d60ef6fbb3257ccb9f.png)
+![](img/efbb3ac84c72a7d60ef6fbb3257ccb9f.png)
 
 一个 Matplotlib 散点图 — 图像来自作者
 

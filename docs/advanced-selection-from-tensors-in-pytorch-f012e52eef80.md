@@ -1,20 +1,20 @@
-# Pytorch中的高级张量选择
+# Pytorch 中的高级张量选择
 
-> 原文：[https://towardsdatascience.com/advanced-selection-from-tensors-in-pytorch-f012e52eef80?source=collection_archive---------9-----------------------#2024-02-27](https://towardsdatascience.com/advanced-selection-from-tensors-in-pytorch-f012e52eef80?source=collection_archive---------9-----------------------#2024-02-27)
+> 原文：[`towardsdatascience.com/advanced-selection-from-tensors-in-pytorch-f012e52eef80?source=collection_archive---------9-----------------------#2024-02-27`](https://towardsdatascience.com/advanced-selection-from-tensors-in-pytorch-f012e52eef80?source=collection_archive---------9-----------------------#2024-02-27)
 
 ## 使用 `torch.index_select`、`torch.gather` 和 `torch.take`
 
-[](https://medium.com/@hrmnmichaels?source=post_page---byline--f012e52eef80--------------------------------)[![Oliver S](../Images/b5ee0fa2d5fb115f62e2e9dfcb92afdd.png)](https://medium.com/@hrmnmichaels?source=post_page---byline--f012e52eef80--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f012e52eef80--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f012e52eef80--------------------------------) [Oliver S](https://medium.com/@hrmnmichaels?source=post_page---byline--f012e52eef80--------------------------------)
+[](https://medium.com/@hrmnmichaels?source=post_page---byline--f012e52eef80--------------------------------)![Oliver S](https://medium.com/@hrmnmichaels?source=post_page---byline--f012e52eef80--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f012e52eef80--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f012e52eef80--------------------------------) [Oliver S](https://medium.com/@hrmnmichaels?source=post_page---byline--f012e52eef80--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f012e52eef80--------------------------------) ·6分钟阅读·2024年2月27日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f012e52eef80--------------------------------) ·6 分钟阅读·2024 年 2 月 27 日
 
 --
 
-在某些情况下，您可能需要使用Pytorch进行一些高级索引/选择，例如回答这个问题：“如何根据张量B中指定的索引从张量A中选择元素？”
+在某些情况下，您可能需要使用 Pytorch 进行一些高级索引/选择，例如回答这个问题：“如何根据张量 B 中指定的索引从张量 A 中选择元素？”
 
 在这篇文章中，我们将介绍三种最常见的方法来处理这类任务，即 [torch.index_select](https://pytorch.org/docs/stable/generated/torch.index_select.html)、[torch.gather](https://pytorch.org/docs/stable/generated/torch.gather.html) 和 [torch.take](https://pytorch.org/docs/stable/generated/torch.take.html)。我们将详细解释它们，并相互对比。
 
-![](../Images/341e3c1fa4e2acfbb5e8b65dde45f516.png)
+![](img/341e3c1fa4e2acfbb5e8b65dde45f516.png)
 
 图片来源：[Jerin J](https://unsplash.com/de/@rejiie?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在 [Unsplash](https://unsplash.com/de/fotos/zeitrafferfoto-von-lichtern-X5FDG7k5M94?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

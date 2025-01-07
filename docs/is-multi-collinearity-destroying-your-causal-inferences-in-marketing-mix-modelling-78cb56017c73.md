@@ -1,32 +1,32 @@
 # 多重共线性是否正在破坏你在市场营销组合建模中的因果推断？
 
-> 原文：[https://towardsdatascience.com/is-multi-collinearity-destroying-your-causal-inferences-in-marketing-mix-modelling-78cb56017c73?source=collection_archive---------1-----------------------#2024-09-10](https://towardsdatascience.com/is-multi-collinearity-destroying-your-causal-inferences-in-marketing-mix-modelling-78cb56017c73?source=collection_archive---------1-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/is-multi-collinearity-destroying-your-causal-inferences-in-marketing-mix-modelling-78cb56017c73?source=collection_archive---------1-----------------------#2024-09-10`](https://towardsdatascience.com/is-multi-collinearity-destroying-your-causal-inferences-in-marketing-mix-modelling-78cb56017c73?source=collection_archive---------1-----------------------#2024-09-10)
 
-## 因果AI，探索因果推理与机器学习的整合
+## 因果 AI，探索因果推理与机器学习的整合
 
-[](https://medium.com/@raz1470?source=post_page---byline--78cb56017c73--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--78cb56017c73--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--78cb56017c73--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--78cb56017c73--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--78cb56017c73--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--78cb56017c73--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--78cb56017c73--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--78cb56017c73--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--78cb56017c73--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--78cb56017c73--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--78cb56017c73--------------------------------) ·阅读时长16分钟·2024年9月10日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--78cb56017c73--------------------------------) ·阅读时长 16 分钟·2024 年 9 月 10 日
 
 --
 
-![](../Images/40d69b0f59c481ffa0a18c4d63f0e25c.png)
+![](img/40d69b0f59c481ffa0a18c4d63f0e25c.png)
 
 图片来自[NOAA](https://unsplash.com/@noaa?utm_source=medium&utm_medium=referral)，[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 本系列内容是什么？
 
-欢迎来到我的因果AI系列，我们将在这里探讨因果推理与机器学习模型的整合。预计将探索在不同商业环境中的多个实际应用。
+欢迎来到我的因果 AI 系列，我们将在这里探讨因果推理与机器学习模型的整合。预计将探索在不同商业环境中的多个实际应用。
 
-在上一篇文章中，我们探讨了*使用CUPED和双重机器学习驱动实验*。今天，我们将重点讨论多重共线性如何破坏你在市场营销组合建模中的因果推断。
+在上一篇文章中，我们探讨了*使用 CUPED 和双重机器学习驱动实验*。今天，我们将重点讨论多重共线性如何破坏你在市场营销组合建模中的因果推断。
 
-如果你错过了上一篇关于使用CUPED和双重机器学习驱动实验的文章，可以在这里查看：
+如果你错过了上一篇关于使用 CUPED 和双重机器学习驱动实验的文章，可以在这里查看：
 
-[](/powering-experiments-with-cuped-and-double-machine-learning-34dc2f3d3284?source=post_page-----78cb56017c73--------------------------------) [## 使用CUPED和双重机器学习驱动实验
+[](/powering-experiments-with-cuped-and-double-machine-learning-34dc2f3d3284?source=post_page-----78cb56017c73--------------------------------) ## 使用 CUPED 和双重机器学习驱动实验
 
-### 因果AI，探索因果推理与机器学习的整合
+### 因果 AI，探索因果推理与机器学习的整合
 
-towardsdatascience.com](/powering-experiments-with-cuped-and-double-machine-learning-34dc2f3d3284?source=post_page-----78cb56017c73--------------------------------)
+towardsdatascience.com
 
 # 介绍
 
@@ -60,7 +60,7 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/is%20multi-
 
 让我们以市场营销为例。你销售的产品需求高度季节性——因此，在需求高峰期间增加营销支出是有意义的。然而，如果电视和社交媒体支出都遵循相同的季节性模式，那么模型就会难以准确确定每个渠道的独立贡献。
 
-![](../Images/4f9efd582aef0ef90cd4d3f990247a86.png)
+![](img/4f9efd582aef0ef90cd4d3f990247a86.png)
 
 用户生成的图片
 
@@ -88,7 +88,7 @@ clf.fit(X, sales)
 print(f'Coefficients: {clf.coef_}')
 ```
 
-![](../Images/dce34bbbf08e16494d4361304dea2ba1.png)
+![](img/dce34bbbf08e16494d4361304dea2ba1.png)
 
 用户生成的图片
 
@@ -108,7 +108,7 @@ clf.fit(X, sales)
 print(f'Coefficients: {clf.coef_}')
 ```
 
-![](../Images/ada2358ce580c187767d675ea8067ab4.png)
+![](img/ada2358ce580c187767d675ea8067ab4.png)
 
 用户生成的图片
 
@@ -128,11 +128,11 @@ clf.fit(X, sales)
 print(f'Coefficients: {clf.coef_}')
 ```
 
-![](../Images/c515596d8efc79fa0dfaff399b6ec728.png)
+![](img/c515596d8efc79fa0dfaff399b6ec728.png)
 
 用户生成的图片
 
-此外，多重共线性还可能导致所谓的符号翻转现象，即变量的效应方向（正向或负向）可能会意外反转。例如，尽管你知道社交媒体广告应该对销售产生正面影响，但模型可能会显示一个负系数，原因仅仅是它与电视支出的高度相关性。我们可以在示例2中看到这一点。
+此外，多重共线性还可能导致所谓的符号翻转现象，即变量的效应方向（正向或负向）可能会意外反转。例如，尽管你知道社交媒体广告应该对销售产生正面影响，但模型可能会显示一个负系数，原因仅仅是它与电视支出的高度相关性。我们可以在示例 2 中看到这一点。
 
 # 为什么在营销混合建模中如此常见？
 
@@ -142,7 +142,7 @@ print(f'Coefficients: {clf.coef_}')
 
 我在营销混合模型（MMM）中见到的另一个多重共线性原因是因果图（DAGs）指定不当。如果我们只是将所有变量放入一个平坦的回归模型中，很可能会遇到多重共线性问题。举个例子——如果付费搜索展示量可以通过电视和社交媒体支出来解释，那么将它与电视和社交媒体一起放入一个平坦的线性回归模型中，很可能会导致多重共线性。
 
-![](../Images/bee63d262db8e900adee635716473865.png)
+![](img/bee63d262db8e900adee635716473865.png)
 
 用户生成的图像
 
@@ -152,19 +152,19 @@ print(f'Coefficients: {clf.coef_}')
 
 ## 相关性
 
-检测多重共线性的一种简单而有效的方法是检查相关矩阵。该矩阵显示了数据集中所有变量之间的成对相关性。如果两个预测变量的相关系数接近+1或-1，说明它们高度相关，这可能表明存在多重共线性。
+检测多重共线性的一种简单而有效的方法是检查相关矩阵。该矩阵显示了数据集中所有变量之间的成对相关性。如果两个预测变量的相关系数接近+1 或-1，说明它们高度相关，这可能表明存在多重共线性。
 
 ## **方差膨胀因子（VIF）**
 
 量化回归系数的方差由于多重共线性而被膨胀的程度：
 
-![](../Images/dbdeadc19a78f363cf86b8cc91c7a39b.png)
+![](img/dbdeadc19a78f363cf86b8cc91c7a39b.png)
 
 用户生成的图像
 
-R平方是通过将所有其他自变量回归到所选变量上得到的。如果R平方很高，意味着所选变量可以通过其他自变量来预测（这将导致所选变量的VIF很高）。
+R 平方是通过将所有其他自变量回归到所选变量上得到的。如果 R 平方很高，意味着所选变量可以通过其他自变量来预测（这将导致所选变量的 VIF 很高）。
 
-关于VIF检测多重共线性的经验法则阈值——然而，我没有找到任何有说服力的资源来支持这些阈值，因此这里不再引用它们。
+关于 VIF 检测多重共线性的经验法则阈值——然而，我没有找到任何有说服力的资源来支持这些阈值，因此这里不再引用它们。
 
 ## 标准误差
 
@@ -378,7 +378,7 @@ reg_1 = run_reg(sim_1, features, target)
 print(f"True coefficients: {true_coef}")
 ```
 
-![](../Images/b67455771d7ccc09c657dc107ed4ebde.png)
+![](img/b67455771d7ccc09c657dc107ed4ebde.png)
 
 用户生成的图像
 
@@ -394,7 +394,7 @@ print(f"True coefficients: {true_coef}")
 
 让我们从探索贝叶斯先验开始……
 
-我们将使用我最喜欢的MMM实现——pymc marketing：
+我们将使用我最喜欢的 MMM 实现——pymc marketing：
 
 [## Guide - pymc-marketing 0.8.0 文档
 
@@ -428,7 +428,7 @@ true_contributions = [round(np.sum(X["demand"] * true_coef[0]) / np.sum(y), 2),
 true_contributions
 ```
 
-![](../Images/9e9c1b03eb82816012b3f54d1f83d85f.png)
+![](img/9e9c1b03eb82816012b3f54d1f83d85f.png)
 
 用户生成的图片
 
@@ -450,7 +450,7 @@ mmm_default = MMM(
 mmm_default.default_model_config
 ```
 
-![](../Images/993475b7375f50b9e26666de97bda68a.png)
+![](img/993475b7375f50b9e26666de97bda68a.png)
 
 用户生成的图片
 
@@ -472,18 +472,18 @@ plt.grid(True)
 plt.show()
 ```
 
-![](../Images/6518eafb76d33b0992832a1d80355f98.png)
+![](img/6518eafb76d33b0992832a1d80355f98.png)
 
 用户生成的图片
 
-现在我们准备好训练模型并提取每个渠道的贡献了。如前所述，我们的系数存在偏差（我们知道这一点，因为每个渠道的贡献值不正确——社交媒体应该是50%，电视应该是35%）。然而，令人有趣的是，与我们之前运行线性回归时相比，它们现在更接近真实贡献。这实际上是营销团队的一个合理起点！
+现在我们准备好训练模型并提取每个渠道的贡献了。如前所述，我们的系数存在偏差（我们知道这一点，因为每个渠道的贡献值不正确——社交媒体应该是 50%，电视应该是 35%）。然而，令人有趣的是，与我们之前运行线性回归时相比，它们现在更接近真实贡献。这实际上是营销团队的一个合理起点！
 
 ```py
 mmm_default.fit(X, y)
 mmm_default.plot_waterfall_components_decomposition();
 ```
 
-![](../Images/8817a5d2dfce6f12cf8a7d22899540ab.png)
+![](img/8817a5d2dfce6f12cf8a7d22899540ab.png)
 
 用户生成的图片
 
@@ -491,7 +491,7 @@ mmm_default.plot_waterfall_components_decomposition();
 
 在我们继续之前，让我们借此机会思考一下自定义先验。我们可以做出一个（非常大胆的）假设，即每个渠道的投资回报率是相似的（或者在我们没有收入的情况下，是每销售的成本）。因此，我们可以使用渠道的支出分布来设置一些自定义先验。
 
-由于MMM类在目标和特征中都进行特征缩放，因此先验也需要在缩放后的空间中提供。正如你在下面的代码中看到的那样，这实际上让我们做起来非常容易：
+由于 MMM 类在目标和特征中都进行特征缩放，因此先验也需要在缩放后的空间中提供。正如你在下面的代码中看到的那样，这实际上让我们做起来非常容易：
 
 ```py
 total_spend_per_channel = df[channel_cols].sum(axis=0)
@@ -503,7 +503,7 @@ prior_sigma = n_channels * spend_share.to_numpy()
 spend_share
 ```
 
-![](../Images/7acd357f45c30cf3fcc649125f2df86a.png)
+![](img/7acd357f45c30cf3fcc649125f2df86a.png)
 
 用户生成的图片
 
@@ -526,7 +526,7 @@ mmm_priors = MMM(
 mmm_priors.default_model_config
 ```
 
-![](../Images/124cb5d9d63721ef1666330967f0af0e.png)
+![](img/124cb5d9d63721ef1666330967f0af0e.png)
 
 用户生成的图片
 
@@ -537,7 +537,7 @@ mmm_priors.fit(X, y)
 mmm_priors.plot_waterfall_components_decomposition();
 ```
 
-![](../Images/a835f00a98e53d3d699a913e41cfc76a.png)
+![](img/a835f00a98e53d3d699a913e41cfc76a.png)
 
 ## 随机预算调整
 
@@ -591,7 +591,7 @@ plt.show()
 
 从结果中我们可以看到，仅仅对每个渠道的预算进行一点小的随机调整，就能摆脱多重共线性的困扰！
 
-![](../Images/ca3eef8ed2ee2feb125463410751a119.png)
+![](img/ca3eef8ed2ee2feb125463410751a119.png)
 
 用户生成的图像
 

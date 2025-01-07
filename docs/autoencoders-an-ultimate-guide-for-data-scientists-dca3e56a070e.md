@@ -1,16 +1,16 @@
 # 自编码器：数据科学家的终极指南
 
-> 原文：[https://towardsdatascience.com/autoencoders-an-ultimate-guide-for-data-scientists-dca3e56a070e?source=collection_archive---------2-----------------------#2024-10-17](https://towardsdatascience.com/autoencoders-an-ultimate-guide-for-data-scientists-dca3e56a070e?source=collection_archive---------2-----------------------#2024-10-17)
+> 原文：[`towardsdatascience.com/autoencoders-an-ultimate-guide-for-data-scientists-dca3e56a070e?source=collection_archive---------2-----------------------#2024-10-17`](https://towardsdatascience.com/autoencoders-an-ultimate-guide-for-data-scientists-dca3e56a070e?source=collection_archive---------2-----------------------#2024-10-17)
 
-## 面向初学者的架构指南、Python实现及对未来的展望
+## 面向初学者的架构指南、Python 实现及对未来的展望
 
-[](https://medium.com/@niklas_lang?source=post_page---byline--dca3e56a070e--------------------------------)[![Niklas Lang](../Images/5fa71386db00d248438c588c5ae79c67.png)](https://medium.com/@niklas_lang?source=post_page---byline--dca3e56a070e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dca3e56a070e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dca3e56a070e--------------------------------) [Niklas Lang](https://medium.com/@niklas_lang?source=post_page---byline--dca3e56a070e--------------------------------)
+[](https://medium.com/@niklas_lang?source=post_page---byline--dca3e56a070e--------------------------------)![Niklas Lang](https://medium.com/@niklas_lang?source=post_page---byline--dca3e56a070e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dca3e56a070e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dca3e56a070e--------------------------------) [Niklas Lang](https://medium.com/@niklas_lang?source=post_page---byline--dca3e56a070e--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dca3e56a070e--------------------------------) ·阅读时间19分钟·2024年10月17日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dca3e56a070e--------------------------------) ·阅读时间 19 分钟·2024 年 10 月 17 日
 
 --
 
-![](../Images/a10009dfa3fe19f15c9bb9c886bf57ac.png)
+![](img/a10009dfa3fe19f15c9bb9c886bf57ac.png)
 
 图片由[Clark Van Der Beken](https://unsplash.com/@snapsbyclark?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

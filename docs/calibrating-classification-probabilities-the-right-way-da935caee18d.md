@@ -1,18 +1,18 @@
 # 正确地校准分类概率
 
-> 原文：[https://towardsdatascience.com/calibrating-classification-probabilities-the-right-way-da935caee18d?source=collection_archive---------0-----------------------#2024-09-18](https://towardsdatascience.com/calibrating-classification-probabilities-the-right-way-da935caee18d?source=collection_archive---------0-----------------------#2024-09-18)
+> 原文：[`towardsdatascience.com/calibrating-classification-probabilities-the-right-way-da935caee18d?source=collection_archive---------0-----------------------#2024-09-18`](https://towardsdatascience.com/calibrating-classification-probabilities-the-right-way-da935caee18d?source=collection_archive---------0-----------------------#2024-09-18)
 
 ## 或者为什么你不应该信任`predict_proba`方法
 
-[](https://medium.com/@jodancker?source=post_page---byline--da935caee18d--------------------------------)[![Jonte Dancker](../Images/29e37a1a1cabc15cfb90a860b2931f03.png)](https://medium.com/@jodancker?source=post_page---byline--da935caee18d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--da935caee18d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--da935caee18d--------------------------------) [Jonte Dancker](https://medium.com/@jodancker?source=post_page---byline--da935caee18d--------------------------------)
+[](https://medium.com/@jodancker?source=post_page---byline--da935caee18d--------------------------------)![Jonte Dancker](https://medium.com/@jodancker?source=post_page---byline--da935caee18d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--da935caee18d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da935caee18d--------------------------------) [Jonte Dancker](https://medium.com/@jodancker?source=post_page---byline--da935caee18d--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da935caee18d--------------------------------) ·阅读时间：8分钟·2024年9月18日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da935caee18d--------------------------------) ·阅读时间：8 分钟·2024 年 9 月 18 日
 
 --
 
-![](../Images/728cfc9bbdc5554cd2d3e758d88f6994.png)
+![](img/728cfc9bbdc5554cd2d3e758d88f6994.png)
 
-Venn-Abers预测器及其二分类器输出（图片由作者提供）。
+Venn-Abers 预测器及其二分类器输出（图片由作者提供）。
 
 在之前的文章中，我指出了了解模型对其预测有多确定的重要性。
 

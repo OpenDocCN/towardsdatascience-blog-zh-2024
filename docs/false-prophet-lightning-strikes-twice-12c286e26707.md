@@ -1,16 +1,16 @@
 # 假预言者：闪电两次击中
 
-> 原文：[https://towardsdatascience.com/false-prophet-lightning-strikes-twice-12c286e26707?source=collection_archive---------5-----------------------#2024-03-01](https://towardsdatascience.com/false-prophet-lightning-strikes-twice-12c286e26707?source=collection_archive---------5-----------------------#2024-03-01)
+> 原文：[`towardsdatascience.com/false-prophet-lightning-strikes-twice-12c286e26707?source=collection_archive---------5-----------------------#2024-03-01`](https://towardsdatascience.com/false-prophet-lightning-strikes-twice-12c286e26707?source=collection_archive---------5-----------------------#2024-03-01)
 
-## 将外部天气数据融入基于Meta的Prophet时间序列回归模型的见解
+## 将外部天气数据融入基于 Meta 的 Prophet 时间序列回归模型的见解
 
-[](https://bradley-stephen-shaw.medium.com/?source=post_page---byline--12c286e26707--------------------------------)[![Bradley Stephen Shaw](../Images/b3ef5e6e292083ff0f8523ec5ffe89f0.png)](https://bradley-stephen-shaw.medium.com/?source=post_page---byline--12c286e26707--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--12c286e26707--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--12c286e26707--------------------------------) [Bradley Stephen Shaw](https://bradley-stephen-shaw.medium.com/?source=post_page---byline--12c286e26707--------------------------------)
+[](https://bradley-stephen-shaw.medium.com/?source=post_page---byline--12c286e26707--------------------------------)![Bradley Stephen Shaw](https://bradley-stephen-shaw.medium.com/?source=post_page---byline--12c286e26707--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--12c286e26707--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--12c286e26707--------------------------------) [Bradley Stephen Shaw](https://bradley-stephen-shaw.medium.com/?source=post_page---byline--12c286e26707--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--12c286e26707--------------------------------) ·14分钟阅读·2024年3月1日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--12c286e26707--------------------------------) ·14 分钟阅读·2024 年 3 月 1 日
 
 --
 
-![](../Images/b711662bfae1897264979effb82c8159.png)
+![](img/b711662bfae1897264979effb82c8159.png)
 
 图片来自 [Michał Mancewicz](https://unsplash.com/@kreyatif?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

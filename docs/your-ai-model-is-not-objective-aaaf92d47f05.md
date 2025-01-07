@@ -1,14 +1,14 @@
 # 你的人工智能模型并非客观
 
-> 原文：[https://towardsdatascience.com/your-ai-model-is-not-objective-aaaf92d47f05?source=collection_archive---------13-----------------------#2024-06-28](https://towardsdatascience.com/your-ai-model-is-not-objective-aaaf92d47f05?source=collection_archive---------13-----------------------#2024-06-28)
+> 原文：[`towardsdatascience.com/your-ai-model-is-not-objective-aaaf92d47f05?source=collection_archive---------13-----------------------#2024-06-28`](https://towardsdatascience.com/your-ai-model-is-not-objective-aaaf92d47f05?source=collection_archive---------13-----------------------#2024-06-28)
 
 ## 观点
 
 ## 在这里我们探讨人工智能模型中的主观性问题，以及你为何应该关注这个问题
 
-[](https://medium.com/@p.h.hiemstra?source=post_page---byline--aaaf92d47f05--------------------------------)[![Paul Hiemstra](../Images/233823df2f4bf81ca07059dd17783ce3.png)](https://medium.com/@p.h.hiemstra?source=post_page---byline--aaaf92d47f05--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aaaf92d47f05--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--aaaf92d47f05--------------------------------) [Paul Hiemstra](https://medium.com/@p.h.hiemstra?source=post_page---byline--aaaf92d47f05--------------------------------)
+[](https://medium.com/@p.h.hiemstra?source=post_page---byline--aaaf92d47f05--------------------------------)![Paul Hiemstra](https://medium.com/@p.h.hiemstra?source=post_page---byline--aaaf92d47f05--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aaaf92d47f05--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aaaf92d47f05--------------------------------) [Paul Hiemstra](https://medium.com/@p.h.hiemstra?source=post_page---byline--aaaf92d47f05--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aaaf92d47f05--------------------------------) ·阅读时间 4分钟·2024年6月28日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aaaf92d47f05--------------------------------) ·阅读时间 4 分钟·2024 年 6 月 28 日
 
 --
 
@@ -16,7 +16,7 @@
 
 在这篇观点文章中，我想解释我与人工智能和客观性之间的分歧来源，以及为何“客观性”的关注会对那些希望在现实世界产生影响的人工智能研究者构成问题。这反映了我最近通过研究得出的见解，解释了为什么许多人工智能模型未能有效实施。
 
-![](../Images/b652f4070d04dec86fa2fa0723bcd7fc.png)
+![](img/b652f4070d04dec86fa2fa0723bcd7fc.png)
 
 图片由 [Vlad Hilitanu](https://unsplash.com/@vladhilitanu?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源于 [Unsplash](https://unsplash.com/photos/people-holding-miniature-figures-1FI2QAYPa-Y?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -46,14 +46,14 @@
 
 根据我的经验，将人工智能模型应用于现实世界的一个关键限制因素是与利益相关者的密切合作。无论是医生、员工、伦理学家、法律专家还是消费者。这种缺乏合作的情况部分源于我在许多人工智能研究人员中看到的孤立倾向。他们专注于自己的模型，从互联网和论文中吸收知识，并尽力创建最好的人工智能模型。但他们专注于模型的技术层面，沉浸在他们的数学泡沫中。
 
-我觉得，认为AI模型是客观的信念使得AI研究人员确信这种孤立主义是可以接受的，模型的客观性意味着它可以应用于现实世界。但现实世界充满了“情感、偏见和解读”，使得影响这个现实世界的AI模型也会与这些“情感、偏见和解读”产生互动。如果我们想要创建一个在现实世界中产生影响的模型，就需要融入现实世界的主观性。这需要围绕你的AI研究建立一个强大的利益相关者社区，探讨、交流和辩论所有这些“情感、偏见和解读”。这要求我们AI研究人员走出自我设限的数学壳。
+我觉得，认为 AI 模型是客观的信念使得 AI 研究人员确信这种孤立主义是可以接受的，模型的客观性意味着它可以应用于现实世界。但现实世界充满了“情感、偏见和解读”，使得影响这个现实世界的 AI 模型也会与这些“情感、偏见和解读”产生互动。如果我们想要创建一个在现实世界中产生影响的模型，就需要融入现实世界的主观性。这需要围绕你的 AI 研究建立一个强大的利益相关者社区，探讨、交流和辩论所有这些“情感、偏见和解读”。这要求我们 AI 研究人员走出自我设限的数学壳。
 
-*注意*: 如果你想了解更多关于以更加整体和协作的方式进行研究的内容，我强烈推荐Tineke Abma的研究作品，例如[这篇论文](https://onlinelibrary.wiley.com/doi/10.1002/ev.31)。
+*注意*: 如果你想了解更多关于以更加整体和协作的方式进行研究的内容，我强烈推荐 Tineke Abma 的研究作品，例如[这篇论文](https://onlinelibrary.wiley.com/doi/10.1002/ev.31)。
 
 如果你喜欢这篇文章，你可能也会喜欢我其他的一些文章：
 
-+   [一系列关于教AI机器人玩井字棋的文章](https://towardsdatascience.com/tagged/rl-series-paul)
++   [一系列关于教 AI 机器人玩井字棋的文章](https://towardsdatascience.com/tagged/rl-series-paul)
 
-+   [Altair图表解构：可视化天气数据的相关性结构](/altair-plot-deconstruction-visualizing-the-correlation-structure-of-weather-data-38fb5668c5b1)
++   Altair 图表解构：可视化天气数据的相关性结构
 
-+   [数据科学中的高级函数编程：使用函数操作符构建代码架构](/advanced-functional-programming-for-data-science-building-code-architectures-with-function-dd989cc3b0da)
++   数据科学中的高级函数编程：使用函数操作符构建代码架构

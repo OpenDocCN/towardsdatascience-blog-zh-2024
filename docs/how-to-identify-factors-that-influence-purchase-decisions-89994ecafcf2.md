@@ -1,16 +1,16 @@
 # 如何识别影响购买决策的因素
 
-> 原文：[https://towardsdatascience.com/how-to-identify-factors-that-influence-purchase-decisions-89994ecafcf2?source=collection_archive---------8-----------------------#2024-09-04](https://towardsdatascience.com/how-to-identify-factors-that-influence-purchase-decisions-89994ecafcf2?source=collection_archive---------8-----------------------#2024-09-04)
+> 原文：[`towardsdatascience.com/how-to-identify-factors-that-influence-purchase-decisions-89994ecafcf2?source=collection_archive---------8-----------------------#2024-09-04`](https://towardsdatascience.com/how-to-identify-factors-that-influence-purchase-decisions-89994ecafcf2?source=collection_archive---------8-----------------------#2024-09-04)
 
 ## 没有什么比简洁更复杂。因子分析如何被用来揭示隐藏的因素。
 
-[](https://medium.com/@panData?source=post_page---byline--89994ecafcf2--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--89994ecafcf2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--89994ecafcf2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--89994ecafcf2--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--89994ecafcf2--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--89994ecafcf2--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--89994ecafcf2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--89994ecafcf2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--89994ecafcf2--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--89994ecafcf2--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--89994ecafcf2--------------------------------) ·阅读时间19分钟·2024年9月4日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--89994ecafcf2--------------------------------) ·阅读时间 19 分钟·2024 年 9 月 4 日
 
 --
 
-![](../Images/0a8d0feaa47a57f5b9fef158e0d49d7e.png)
+![](img/0a8d0feaa47a57f5b9fef158e0d49d7e.png)
 
 图片由[Joshua Rawson-Harris](https://unsplash.com/@joshrh19?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

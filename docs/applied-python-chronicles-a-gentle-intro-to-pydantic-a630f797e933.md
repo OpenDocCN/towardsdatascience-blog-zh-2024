@@ -1,22 +1,22 @@
-# 应用Python编年史：Pydantic简介
+# 应用 Python 编年史：Pydantic 简介
 
-> 原文：[https://towardsdatascience.com/applied-python-chronicles-a-gentle-intro-to-pydantic-a630f797e933?source=collection_archive---------2-----------------------#2024-07-25](https://towardsdatascience.com/applied-python-chronicles-a-gentle-intro-to-pydantic-a630f797e933?source=collection_archive---------2-----------------------#2024-07-25)
+> 原文：[`towardsdatascience.com/applied-python-chronicles-a-gentle-intro-to-pydantic-a630f797e933?source=collection_archive---------2-----------------------#2024-07-25`](https://towardsdatascience.com/applied-python-chronicles-a-gentle-intro-to-pydantic-a630f797e933?source=collection_archive---------2-----------------------#2024-07-25)
 
-## 无论你是数据工程师、机器学习工程师还是Web开发者，你都应该熟悉这个工具。
+## 无论你是数据工程师、机器学习工程师还是 Web 开发者，你都应该熟悉这个工具。
 
-[](https://medium.com/@ilija.lazarevic?source=post_page---byline--a630f797e933--------------------------------)[![Ilija Lazarevic](../Images/4a0d84af6d8fa97705ee35444d319b07.png)](https://medium.com/@ilija.lazarevic?source=post_page---byline--a630f797e933--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a630f797e933--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a630f797e933--------------------------------) [Ilija Lazarevic](https://medium.com/@ilija.lazarevic?source=post_page---byline--a630f797e933--------------------------------)
+[](https://medium.com/@ilija.lazarevic?source=post_page---byline--a630f797e933--------------------------------)![Ilija Lazarevic](https://medium.com/@ilija.lazarevic?source=post_page---byline--a630f797e933--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a630f797e933--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a630f797e933--------------------------------) [Ilija Lazarevic](https://medium.com/@ilija.lazarevic?source=post_page---byline--a630f797e933--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a630f797e933--------------------------------) ·阅读时间：11分钟·2024年7月25日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a630f797e933--------------------------------) ·阅读时间：11 分钟·2024 年 7 月 25 日
 
 --
 
-![](../Images/63778e7e341a0790bc2b994ab5b0ebc3.png)
+![](img/63778e7e341a0790bc2b994ab5b0ebc3.png)
 
-夕阳如何照耀Pydantic用户。图片由[弗拉基米尔·季莫费耶夫](https://www.istockphoto.com/photo/sunset-above-acropolis-of-lindos-doric-columns-the-ancient-temple-athena-lindia-the-gm1009651096-272195895?clarity=false)提供，授权给伊利亚·拉扎列维奇。
+夕阳如何照耀 Pydantic 用户。图片由[弗拉基米尔·季莫费耶夫](https://www.istockphoto.com/photo/sunset-above-acropolis-of-lindos-doric-columns-the-ancient-temple-athena-lindia-the-gm1009651096-272195895?clarity=false)提供，授权给伊利亚·拉扎列维奇。
 
-在许多使用场景中，Pydantic几乎可以无缝地适配。数据处理等任务也能从使用Pydantic中受益。不过，它也可以在Web开发中用于解析和结构化预期格式的数据。
+在许多使用场景中，Pydantic 几乎可以无缝地适配。数据处理等任务也能从使用 Pydantic 中受益。不过，它也可以在 Web 开发中用于解析和结构化预期格式的数据。
 
-今天的主题是定义几个痛点，并展示如何使用Pydantic。我们从最常见的使用场景开始，那就是数据解析和处理。
+今天的主题是定义几个痛点，并展示如何使用 Pydantic。我们从最常见的使用场景开始，那就是数据解析和处理。
 
 假设我们有一个包含十几列和几千行的 CSV 文件。在数据分析中，常见的情况是将这个 CSV 文件加载到 Pandas DataFrame 中，然后开始处理它。通常，你会开始检查数据和列的数据类型，删除其中的一些列，并创建新的列。这个过程是基于你对数据集的先前知识。然而，这对其他人来说并不总是透明的。他们要么需要打开 CSV 文件（或任何其他数据源），要么需要浏览代码，搞清楚哪些列正在使用或被创建。这对于数据分析和研究的初始步骤是没问题的。然而，一旦数据集被分析完，并且我们准备创建一个数据管道来加载、转换并用于分析或机器学习目的时，我们就需要一种标准化的方法，确保数据集和数据类型符合预期格式。这就是为什么我们需要一个可以声明或定义这些的库。有一些库可以做到这一点，它们大多数是开源的，而 Pydantic 作为开源库，也已经进入了不同的框架，并在各种用例中得到广泛接受。
 
@@ -161,11 +161,11 @@ add('3', '3.3')
 
 不知道什么是 Python 的 *decorator* 函数？阅读我之前关于这个主题的文章之一：
 
-[](/advanced-python-functions-3be6810f92d1?source=post_page-----a630f797e933--------------------------------) [## 高级 Python：函数
+[](/advanced-python-functions-3be6810f92d1?source=post_page-----a630f797e933--------------------------------) ## 高级 Python：函数
 
 ### 阅读标题后，你可能会问自己：“Python 中的函数是高级...”
 
-[towardsdatascience.com](/advanced-python-functions-3be6810f92d1?source=post_page-----a630f797e933--------------------------------)
+[towardsdatascience.com
 
 那么默认值和参数提取呢？
 

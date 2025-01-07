@@ -1,12 +1,12 @@
 # 数据建模的被遗忘的指导作用
 
-> 原文：[https://towardsdatascience.com/the-forgotten-guiding-role-of-data-modelling-a76f69364284?source=collection_archive---------0-----------------------#2024-08-21](https://towardsdatascience.com/the-forgotten-guiding-role-of-data-modelling-a76f69364284?source=collection_archive---------0-----------------------#2024-08-21)
+> 原文：[`towardsdatascience.com/the-forgotten-guiding-role-of-data-modelling-a76f69364284?source=collection_archive---------0-----------------------#2024-08-21`](https://towardsdatascience.com/the-forgotten-guiding-role-of-data-modelling-a76f69364284?source=collection_archive---------0-----------------------#2024-08-21)
 
 ## 深入理解如何负责任地构建数据的真正意义
 
-[](https://dylansjanderson.medium.com/?source=post_page---byline--a76f69364284--------------------------------)[![Dylan Anderson](../Images/660e59b78dec0ccd2f5913fcd5a6708f.png)](https://dylansjanderson.medium.com/?source=post_page---byline--a76f69364284--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a76f69364284--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a76f69364284--------------------------------) [Dylan Anderson](https://dylansjanderson.medium.com/?source=post_page---byline--a76f69364284--------------------------------)
+[](https://dylansjanderson.medium.com/?source=post_page---byline--a76f69364284--------------------------------)![Dylan Anderson](https://dylansjanderson.medium.com/?source=post_page---byline--a76f69364284--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a76f69364284--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a76f69364284--------------------------------) [Dylan Anderson](https://dylansjanderson.medium.com/?source=post_page---byline--a76f69364284--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a76f69364284--------------------------------) ·10分钟阅读·2024年8月21日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a76f69364284--------------------------------) ·10 分钟阅读·2024 年 8 月 21 日
 
 --
 

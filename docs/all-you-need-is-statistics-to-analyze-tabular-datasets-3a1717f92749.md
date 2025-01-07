@@ -1,16 +1,16 @@
 # 分析表格数据集，只需要统计学
 
-> 原文：[https://towardsdatascience.com/all-you-need-is-statistics-to-analyze-tabular-datasets-3a1717f92749?source=collection_archive---------6-----------------------#2024-09-10](https://towardsdatascience.com/all-you-need-is-statistics-to-analyze-tabular-datasets-3a1717f92749?source=collection_archive---------6-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/all-you-need-is-statistics-to-analyze-tabular-datasets-3a1717f92749?source=collection_archive---------6-----------------------#2024-09-10`](https://towardsdatascience.com/all-you-need-is-statistics-to-analyze-tabular-datasets-3a1717f92749?source=collection_archive---------6-----------------------#2024-09-10)
 
-## 分析表格数据集不需要深度学习或大型语言模型。我将演示如何通过（简单的）统计方法和像PCA这样的技术来揭示新的见解并提供可解释的结果。
+## 分析表格数据集不需要深度学习或大型语言模型。我将演示如何通过（简单的）统计方法和像 PCA 这样的技术来揭示新的见解并提供可解释的结果。
 
-[](https://erdogant.medium.com/?source=post_page---byline--3a1717f92749--------------------------------)[![Erdogan Taskesen](../Images/f6b52ed5acb60bb16d42257a3a1232de.png)](https://erdogant.medium.com/?source=post_page---byline--3a1717f92749--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3a1717f92749--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3a1717f92749--------------------------------) [Erdogan Taskesen](https://erdogant.medium.com/?source=post_page---byline--3a1717f92749--------------------------------)
+[](https://erdogant.medium.com/?source=post_page---byline--3a1717f92749--------------------------------)![Erdogan Taskesen](https://erdogant.medium.com/?source=post_page---byline--3a1717f92749--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3a1717f92749--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a1717f92749--------------------------------) [Erdogan Taskesen](https://erdogant.medium.com/?source=post_page---byline--3a1717f92749--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a1717f92749--------------------------------) ·15分钟阅读·2024年9月10日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a1717f92749--------------------------------) ·15 分钟阅读·2024 年 9 月 10 日
 
 --
 
-![](../Images/a0b6726bd432e0d28e13921fe29e8a79.png)
+![](img/a0b6726bd432e0d28e13921fe29e8a79.png)
 
 照片由[Dan Cristian Pădureț](https://unsplash.com/@dancristianpaduret?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源于[Unsplash](https://unsplash.com/photos/orange-and-black-clouds-illustration-hguxpsaUpBk?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

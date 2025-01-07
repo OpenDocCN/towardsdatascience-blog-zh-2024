@@ -1,18 +1,18 @@
 # 医疗数据的差分隐私与联邦学习
 
-> 原文：[https://towardsdatascience.com/differential-privacy-and-federated-learning-for-medical-data-0f2437d6ece9?source=collection_archive---------7-----------------------#2024-04-23](https://towardsdatascience.com/differential-privacy-and-federated-learning-for-medical-data-0f2437d6ece9?source=collection_archive---------7-----------------------#2024-04-23)
+> 原文：[`towardsdatascience.com/differential-privacy-and-federated-learning-for-medical-data-0f2437d6ece9?source=collection_archive---------7-----------------------#2024-04-23`](https://towardsdatascience.com/differential-privacy-and-federated-learning-for-medical-data-0f2437d6ece9?source=collection_archive---------7-----------------------#2024-04-23)
 
 ## 在医疗领域对差分隐私与联邦学习的实际评估。
 
-[](https://medium.com/@eric.boernert?source=post_page---byline--0f2437d6ece9--------------------------------)[![Eric Boernert](../Images/3038e5e8f0cd468ec69794caecf32bba.png)](https://medium.com/@eric.boernert?source=post_page---byline--0f2437d6ece9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0f2437d6ece9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0f2437d6ece9--------------------------------) [Eric Boernert](https://medium.com/@eric.boernert?source=post_page---byline--0f2437d6ece9--------------------------------)
+[](https://medium.com/@eric.boernert?source=post_page---byline--0f2437d6ece9--------------------------------)![Eric Boernert](https://medium.com/@eric.boernert?source=post_page---byline--0f2437d6ece9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0f2437d6ece9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0f2437d6ece9--------------------------------) [Eric Boernert](https://medium.com/@eric.boernert?source=post_page---byline--0f2437d6ece9--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0f2437d6ece9--------------------------------) ·10分钟阅读·2024年4月23日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0f2437d6ece9--------------------------------) ·10 分钟阅读·2024 年 4 月 23 日
 
 --
 
-![](../Images/f8e948c4524bfa196d71cadef58061a5.png)
+![](img/f8e948c4524bfa196d71cadef58061a5.png)
 
-(必应AI生成的图像，原始，完全所有权)
+(必应 AI 生成的图像，原始，完全所有权)
 
 # 敏感数据呼唤更多的保护
 
@@ -28,13 +28,13 @@
 
 联邦分析和学习是能够分析数据并在患者数据上训练模型而不访问任何原始数据的绝佳选择。
 
-就联邦分析而言，这意味着，例如，我们可以在不访问任何原始数据（这些数据可能导致患者重新识别）的情况下，获得血糖与患者BMI之间的相关性。
+就联邦分析而言，这意味着，例如，我们可以在不访问任何原始数据（这些数据可能导致患者重新识别）的情况下，获得血糖与患者 BMI 之间的相关性。
 
 以机器学习为例，假设是在诊断领域，模型通过分析患者的影像来检测其组织中的恶性变化，并识别癌症的早期阶段。这实际上是机器学习在挽救生命方面的应用。模型在医院层面使用本地的影像和由专业放射科医生标注的标签进行本地训练，然后通过聚合将所有本地模型合并成一个更加通用的模型。这个过程会重复进行数十次或数百次，以提高模型的性能。
 
-![](../Images/2adfedf9f70a43b17a534cd0d78e5a60.png)
+![](img/2adfedf9f70a43b17a534cd0d78e5a60.png)
 
-*图1. 联邦学习在行动中，分享的是模型更新，而不是数据。*
+*图 1. 联邦学习在行动中，分享的是模型更新，而不是数据。*
 
 每家医院的回报是，它们将受益于一个训练得更好的模型，能够以更高的概率在未来的患者中检测到疾病。这是一个双赢的局面，特别是对患者来说。
 
@@ -58,11 +58,11 @@
 
 假设所有这些保护层都已到位，仍然存在与模型权重安全性相关的担忧。
 
-在AI社区中，对于机器学习模型作为数据的超级压缩形式的关注日益增加，它不像以前认为的那样是一个黑盒子，并且比以前认为的揭示了更多关于底层数据的信息。
+在 AI 社区中，对于机器学习模型作为数据的超级压缩形式的关注日益增加，它不像以前认为的那样是一个黑盒子，并且比以前认为的揭示了更多关于底层数据的信息。
 
 这意味着，只要具备足够的技能、时间、精力和强大的硬件，一个有动机的对手可以尝试重建原始数据，或者至少以高概率证明某个患者曾属于用于训练模型的群体（成员推断攻击（MIA））。其他可能的[攻击类型](https://arxiv.org/pdf/2211.14952.pdf)包括提取、重建和规避。
 
-更糟糕的是，我们所有人都钦佩并受益的生成性AI的进展，带来了新的、更有效的图像重建技术（[例如，患者的肺部扫描](https://arxiv.org/abs/2202.06924)）。我们所有人都用来按需生成图像的相同理念，可以被对手用来从MRI/CT扫描机器重建原始图像。其他类型的数据，如[表格数据](https://arxiv.org/pdf/2208.08114.pdf)、文本、声音和视频，现在也可以通过生成AI重建。
+更糟糕的是，我们所有人都钦佩并受益的生成性 AI 的进展，带来了新的、更有效的图像重建技术（[例如，患者的肺部扫描](https://arxiv.org/abs/2202.06924)）。我们所有人都用来按需生成图像的相同理念，可以被对手用来从 MRI/CT 扫描机器重建原始图像。其他类型的数据，如[表格数据](https://arxiv.org/pdf/2208.08114.pdf)、文本、声音和视频，现在也可以通过生成 AI 重建。
 
 # 差分隐私来拯救
 
@@ -70,11 +70,11 @@
 
 [差分隐私](https://blog.openmined.org/differential-privacy-using-pydp/)在实际应用中意味着我们添加了一种非常特殊的噪声和裁剪方式，作为回报，这将导致[隐私收益与准确性损失的非常好的比率](https://privacytools.seas.harvard.edu/files/privacytools/files/nissim_et_al_-_differential_privacy_primer_for_non-technical_audiences_1.pdf)。
 
-它可以像最不有效的高斯噪声一样简单，但如今我们拥抱了更加复杂的算法的发展，如稀疏向量技术（SVT）、Opacus库作为差分隐私随机梯度下降（DP-SGD）的实际实现，以及基于拉普拉斯噪声的经典库（即PyDP）。
+它可以像最不有效的高斯噪声一样简单，但如今我们拥抱了更加复杂的算法的发展，如稀疏向量技术（SVT）、Opacus 库作为差分隐私随机梯度下降（DP-SGD）的实际实现，以及基于拉普拉斯噪声的经典库（即 PyDP）。
 
-![](../Images/e66c98be78968db9ff7da231d8c762aa.png)
+![](img/e66c98be78968db9ff7da231d8c762aa.png)
 
-*图2\. 我们每时每刻都在使用的设备端差分隐私。*
+*图 2\. 我们每时每刻都在使用的设备端差分隐私。*
 
 顺便说一下，我们所有人都在享受这种技术的好处，却未曾意识到它的存在，而且它正在实时发生。我们来自移动设备（[Apple iOS](https://machinelearning.apple.com/research/learning-with-privacy-at-scale)，[Google Android](https://developers.googleblog.com/2021/01/how-were-helping-developers-with-differential-privacy.html?m=1)）和桌面操作系统（[Microsoft Windows](https://blogs.microsoft.com/on-the-issues/2020/06/24/differential-privacy-harvard-opendp/)）的遥测数据，正在使用差分隐私和联邦学习算法来训练模型，而无需将原始数据从我们的设备上传送。这项技术已经存在多年了。
 
@@ -84,15 +84,15 @@
 
 在联邦学习的背景下，我们预期在应用差分隐私后，模型的准确性会有所下降，但仍然（并且在某种程度上希望）期望模型的表现会优于没有联邦聚合的本地模型。因此，尽管加入了噪音和裁剪（DP），联邦模型仍然应该保持其优势。
 
-![](../Images/33bb671540c98ab5748bd857a92d1618.png)
+![](img/33bb671540c98ab5748bd857a92d1618.png)
 
-*图3\. 基于已知文献和我们的经验，我们可以预期的结果。*
+*图 3\. 基于已知文献和我们的经验，我们可以预期的结果。*
 
 差分隐私可以最早应用于源数据（本地差分隐私（LDP））。
 
-![](../Images/4215a9e94305aef91a8b158d3654068c.png)
+![](img/4215a9e94305aef91a8b158d3654068c.png)
 
-*图4，不同地方可以应用差分隐私以提高数据保护*
+*图 4，不同地方可以应用差分隐私以提高数据保护*
 
 也有一些联邦学习案例发生在一个合作伙伴网络中，所有合作伙伴都拥有数据访问权限，且对数据保护级别的关注较少，因此可能完全没有应用差分隐私。
 
@@ -100,7 +100,7 @@
 
 # 实际实验结果
 
-在罗氏的联邦开放科学团队，我们选择[英伟达 Flare](https://developer.nvidia.com/flare)作为我们的联邦学习工具，因为它是市场上最成熟的开源联邦框架。我们还与英伟达团队合作，共同推进[NVIDIA Flare的未来开发](https://developer.nvidia.com/blog/turning-machine-learning-to-federated-learning-in-minutes-with-nvidia-flare-2-4/)，很高兴能够帮助改进这一已经很棒的联邦学习解决方案。
+在罗氏的联邦开放科学团队，我们选择[英伟达 Flare](https://developer.nvidia.com/flare)作为我们的联邦学习工具，因为它是市场上最成熟的开源联邦框架。我们还与英伟达团队合作，共同推进[NVIDIA Flare 的未来开发](https://developer.nvidia.com/blog/turning-machine-learning-to-federated-learning-in-minutes-with-nvidia-flare-2-4/)，很高兴能够帮助改进这一已经很棒的联邦学习解决方案。
 
 我们测试了三种不同的差分隐私（DP）算法：
 
@@ -116,11 +116,11 @@
 
 +   仅限于第一轮（联邦训练）
 
-+   每第N轮（联邦训练）
++   每第 N 轮（联邦训练）
 
 对于三种不同的案例（数据集和算法）：
 
-+   FLamby Tiny IXI数据集
++   FLamby Tiny IXI 数据集
 
 +   乳腺密度分类
 
@@ -130,61 +130,61 @@
 
 结果符合我们对模型准确度下降的预期，且在隐私预算较低时（如预期）准确率下降较大。
 
-# FLamby Tiny IXI数据集
+# FLamby Tiny IXI 数据集
 
-(数据集来源：[https://owkin.github.io/FLamby/fed_ixi.html](https://owkin.github.io/FLamby/fed_ixi.html))
+(数据集来源：[`owkin.github.io/FLamby/fed_ixi.html`](https://owkin.github.io/FLamby/fed_ixi.html))
 
-![](../Images/a878aa9570490b92fdc7705b1e450ca0.png)
+![](img/a878aa9570490b92fdc7705b1e450ca0.png)
 
-*图 5\. 无DP的模型表现*
+*图 5\. 无 DP 的模型表现*
 
-![](../Images/d1fa7a6c6e5a7c5e925df2ca556067c5.png)
+![](img/d1fa7a6c6e5a7c5e925df2ca556067c5.png)
 
-*图 6\. 第一轮应用DP的模型表现*
+*图 6\. 第一轮应用 DP 的模型表现*
 
-![](../Images/ae7a6c918def2d29b01335393c43045b.png)
+![](img/ae7a6c918def2d29b01335393c43045b.png)
 
-*图 7\. 每第二轮应用SVT（带有递减阈值）*
+*图 7\. 每第二轮应用 SVT（带有递减阈值）*
 
-我们观察到，与每轮应用SVT滤波器相比，在第一轮应用SVT时，准确率有了显著改善。
+我们观察到，与每轮应用 SVT 滤波器相比，在第一轮应用 SVT 时，准确率有了显著改善。
 
 # 乳腺密度案例
 
-(数据集来源 [使用MONAI进行乳腺密度分类 | Kaggle](https://www.kaggle.com/code/theoviel/breast-density-classification-using-monai))
+(数据集来源 [使用 MONAI 进行乳腺密度分类 | Kaggle](https://www.kaggle.com/code/theoviel/breast-density-classification-using-monai))
 
-![](../Images/6d79ec0cd119de736d026df28b2de5c4.png)
+![](img/6d79ec0cd119de736d026df28b2de5c4.png)
 
-*图 8\. 无DP的模型表现*
+*图 8\. 无 DP 的模型表现*
 
-![](../Images/84ba2dad1d9e2ab32f33e37d46b71413.png)
+![](img/84ba2dad1d9e2ab32f33e37d46b71413.png)
 
-*图 9\. DP应用于第一轮*
+*图 9\. DP 应用于第一轮*
 
 我们观察到，应用高斯噪声滤波器后，准确率有适度的下降。
 
-这个数据集是最麻烦且对DP最敏感的（准确度大幅下降，结果不可预测）。
+这个数据集是最麻烦且对 DP 最敏感的（准确度大幅下降，结果不可预测）。
 
 # 希格斯分类
 
-(数据集来源 [HIGGS — UCI机器学习库](https://archive.ics.uci.edu/dataset/280/higgs))
+(数据集来源 [HIGGS — UCI 机器学习库](https://archive.ics.uci.edu/dataset/280/higgs))
 
-![](../Images/b52ce7bd21ec84c112083f3575e297da.png)
+![](img/b52ce7bd21ec84c112083f3575e297da.png)
 
 *图 10\. 百分位值 95 时的模型表现*
 
-![](../Images/59fc53bec323a0e2af6a500807da9f63.png)
+![](img/59fc53bec323a0e2af6a500807da9f63.png)
 
 *图 11\. 百分位值 50.*
 
-我们观察到与DP相关的微小且可接受的准确率损失。
+我们观察到与 DP 相关的微小且可接受的准确率损失。
 
 # 获得的经验教训
 
-重要的经验教训是，差分隐私的结果对给定DP算法的参数非常敏感，且很难调整这些参数以避免模型准确率的彻底崩溃。
+重要的经验教训是，差分隐私的结果对给定 DP 算法的参数非常敏感，且很难调整这些参数以避免模型准确率的彻底崩溃。
 
 此外，我们也体验到某种焦虑，基于一种印象，那就是我们并不真正知道，在付出多少代价的情况下，我们获得了多少隐私保护。我们只看到了“成本”方面（准确率下降）。
 
-我们在很大程度上依赖已有的文献，这些文献表明并已证明，即使是少量的DP噪声也有助于保护数据安全。
+我们在很大程度上依赖已有的文献，这些文献表明并已证明，即使是少量的 DP 噪声也有助于保护数据安全。
 
 作为工程师，我们希望看到某种自动化度量工具，能够证明我们为隐私保护获得了多少提升，同时损失了多少准确性，甚至可能有某种自动化差分隐私调优技术。这似乎离当前的技术和知识状态还很遥远。
 

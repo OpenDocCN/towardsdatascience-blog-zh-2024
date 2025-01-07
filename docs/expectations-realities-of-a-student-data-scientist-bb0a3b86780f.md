@@ -1,20 +1,20 @@
 # 数据科学学生的期望与现实
 
-> 原文：[https://towardsdatascience.com/expectations-realities-of-a-student-data-scientist-bb0a3b86780f?source=collection_archive---------10-----------------------#2024-04-15](https://towardsdatascience.com/expectations-realities-of-a-student-data-scientist-bb0a3b86780f?source=collection_archive---------10-----------------------#2024-04-15)
+> 原文：[`towardsdatascience.com/expectations-realities-of-a-student-data-scientist-bb0a3b86780f?source=collection_archive---------10-----------------------#2024-04-15`](https://towardsdatascience.com/expectations-realities-of-a-student-data-scientist-bb0a3b86780f?source=collection_archive---------10-----------------------#2024-04-15)
 
 ## 我不仅仅是在电脑前输入数字
 
-[](https://medium.com/@gurmankdhaliwal2?source=post_page---byline--bb0a3b86780f--------------------------------)[![Gurman Dhaliwal](../Images/683365e4736fec02d86ffc5d957b45a4.png)](https://medium.com/@gurmankdhaliwal2?source=post_page---byline--bb0a3b86780f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bb0a3b86780f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bb0a3b86780f--------------------------------) [Gurman Dhaliwal](https://medium.com/@gurmankdhaliwal2?source=post_page---byline--bb0a3b86780f--------------------------------)
+[](https://medium.com/@gurmankdhaliwal2?source=post_page---byline--bb0a3b86780f--------------------------------)![Gurman Dhaliwal](https://medium.com/@gurmankdhaliwal2?source=post_page---byline--bb0a3b86780f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bb0a3b86780f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb0a3b86780f--------------------------------) [Gurman Dhaliwal](https://medium.com/@gurmankdhaliwal2?source=post_page---byline--bb0a3b86780f--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb0a3b86780f--------------------------------) ·4分钟阅读·2024年4月15日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb0a3b86780f--------------------------------) ·4 分钟阅读·2024 年 4 月 15 日
 
 --
 
-![](../Images/716b19c774d00fbae06187b3f777f2e2.png)
+![](img/716b19c774d00fbae06187b3f777f2e2.png)
 
 图片来自[Myriam Jessier](https://unsplash.com/@mjessier?utm_source=medium&utm_medium=referral)在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-选择大学专业对我来说很困难。那感觉像是迈出了投身职业生涯的第一步，而我想要什么都尝试一下。我喜欢数学和编程，但我也希望找到一个能让我发挥创造力、提供交流平台，并且足够灵活，能够探索不同领域的工作。经过一些研究，UC圣地亚哥的Halıcıoğlu数据科学研究所（HDSI）的数据科学项目看起来很适合我。尽管我选择了这条道路，但我依然心存疑虑，最初的假设也反映了这种怀疑。然而，随着我进入最后几个学期，我很高兴（也很惊讶！）发现我的实际经历与最初的预期有了很大的不同。
+选择大学专业对我来说很困难。那感觉像是迈出了投身职业生涯的第一步，而我想要什么都尝试一下。我喜欢数学和编程，但我也希望找到一个能让我发挥创造力、提供交流平台，并且足够灵活，能够探索不同领域的工作。经过一些研究，UC 圣地亚哥的 Halıcıoğlu 数据科学研究所（HDSI）的数据科学项目看起来很适合我。尽管我选择了这条道路，但我依然心存疑虑，最初的假设也反映了这种怀疑。然而，随着我进入最后几个学期，我很高兴（也很惊讶！）发现我的实际经历与最初的预期有了很大的不同。
 
 > **期望 #1：数据科学会是大量重复的数学和编程课程。**
 > 
@@ -34,13 +34,13 @@
 > 
 > 现实：机器学习只是数据科学项目生命周期的一部分。**
 
-公平地说，刚开始我的数据科学之旅时，我对数据科学或机器学习（ML）如何定义了解不多。尽管如此，当我进入HDSI项目时，我认为数据科学就等同于机器学习。我想象大部分课程和工作将集中在创建预测模型和深入研究神经网络。然而，数据科学课程和工作的重点更多是在数据清洗、数据过期和可视化上，而机器学习分析所花的时间比你预期的要少… 至少目前是这样。‍
+公平地说，刚开始我的数据科学之旅时，我对数据科学或机器学习（ML）如何定义了解不多。尽管如此，当我进入 HDSI 项目时，我认为数据科学就等同于机器学习。我想象大部分课程和工作将集中在创建预测模型和深入研究神经网络。然而，数据科学课程和工作的重点更多是在数据清洗、数据过期和可视化上，而机器学习分析所花的时间比你预期的要少… 至少目前是这样。‍
 
 > **预期 #4：我的角色可能会被自动化。
 > 
 > 现实：某些职责可以自动化，但数据科学家作为问题解决者的创造力是无法被自动化的。**
 
-这种担忧始于我第一次参加自然语言处理课程时，教授展示了GPT-3写代码的速度有多快。作为一名入门级的数据科学家，这让我感到很有压力——我该如何与那些能比我读得更快写出正确SQL查询的模型竞争呢？然而，这个练习的目的是为了说明，我们作为技术人员的角色，不仅仅是学习如何使用工具和理解使其发挥作用的内在过程。大型语言模型仍然无法正确完成你的作业，但最终（不可避免地）它们会不断改进，届时，我对它们将更多地作为数据科学家的帮助而非负担充满乐观。与数据科学家不同，LLM（大型语言模型）并不是问题解决者。它们无法生成原创的想法，利用创造力解决模糊的问题，也无法有效地与不同的听众沟通。未来这种情况可能会有所变化，但通过我的教育和职业经历，我相信自己依然能够在这个领域产生积极的影响。
+这种担忧始于我第一次参加自然语言处理课程时，教授展示了 GPT-3 写代码的速度有多快。作为一名入门级的数据科学家，这让我感到很有压力——我该如何与那些能比我读得更快写出正确 SQL 查询的模型竞争呢？然而，这个练习的目的是为了说明，我们作为技术人员的角色，不仅仅是学习如何使用工具和理解使其发挥作用的内在过程。大型语言模型仍然无法正确完成你的作业，但最终（不可避免地）它们会不断改进，届时，我对它们将更多地作为数据科学家的帮助而非负担充满乐观。与数据科学家不同，LLM（大型语言模型）并不是问题解决者。它们无法生成原创的想法，利用创造力解决模糊的问题，也无法有效地与不同的听众沟通。未来这种情况可能会有所变化，但通过我的教育和职业经历，我相信自己依然能够在这个领域产生积极的影响。
 
 **重点总结**
 

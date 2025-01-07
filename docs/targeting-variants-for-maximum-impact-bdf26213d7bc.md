@@ -1,24 +1,24 @@
 # 目标是选择具有最大影响力的变体
 
-> 原文：[https://towardsdatascience.com/targeting-variants-for-maximum-impact-bdf26213d7bc?source=collection_archive---------13-----------------------#2024-08-30](https://towardsdatascience.com/targeting-variants-for-maximum-impact-bdf26213d7bc?source=collection_archive---------13-----------------------#2024-08-30)
+> 原文：[`towardsdatascience.com/targeting-variants-for-maximum-impact-bdf26213d7bc?source=collection_archive---------13-----------------------#2024-08-30`](https://towardsdatascience.com/targeting-variants-for-maximum-impact-bdf26213d7bc?source=collection_archive---------13-----------------------#2024-08-30)
 
 ## 如何使用因果推断来改善关键的商业指标
 
-[](https://medium.com/@alexander.polyakov?source=post_page---byline--bdf26213d7bc--------------------------------)[![Alexander Polyakov](../Images/d643bc58ff3b39274b3d52d5ee2c1672.png)](https://medium.com/@alexander.polyakov?source=post_page---byline--bdf26213d7bc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdf26213d7bc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bdf26213d7bc--------------------------------) [Alexander Polyakov](https://medium.com/@alexander.polyakov?source=post_page---byline--bdf26213d7bc--------------------------------)
+[](https://medium.com/@alexander.polyakov?source=post_page---byline--bdf26213d7bc--------------------------------)![Alexander Polyakov](https://medium.com/@alexander.polyakov?source=post_page---byline--bdf26213d7bc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdf26213d7bc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdf26213d7bc--------------------------------) [Alexander Polyakov](https://medium.com/@alexander.polyakov?source=post_page---byline--bdf26213d7bc--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdf26213d7bc--------------------------------) ·7分钟阅读·2024年8月30日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdf26213d7bc--------------------------------) ·7 分钟阅读·2024 年 8 月 30 日
 
 --
 
 [**Egor Kraev**](https://www.linkedin.com/in/egorkraev/) **和** [**Alexander Polyakov**](https://www.linkedin.com/in/alxdr-p/)
 
-![](../Images/db54a5a09fa2eddf2447e6c262e37065.png)
+![](img/db54a5a09fa2eddf2447e6c262e37065.png)
 
 图片由作者提供
 
 假设你想给客户发送一封电子邮件，或者对你的客户界面进行更改，并且你有多个变体可以选择。**你如何选择最佳选项？**
 
-最简单的方法是进行**A/B/N测试**，将每个变体展示给你的客户的随机子样本，并选择得到最佳平均响应的变体。然而，这种方法假设所有客户都有相同的偏好，且隐含地认为客户之间的差异仅仅是需要平均的噪音。我们能做得比这更好吗？能否根据客户的可观察特征，为每个客户选择最适合的变体？
+最简单的方法是进行**A/B/N 测试**，将每个变体展示给你的客户的随机子样本，并选择得到最佳平均响应的变体。然而，这种方法假设所有客户都有相同的偏好，且隐含地认为客户之间的差异仅仅是需要平均的噪音。我们能做得比这更好吗？能否根据客户的可观察特征，为每个客户选择最适合的变体？
 
 在评估实验结果时，真正的挑战在于根据可观察到的客户特征衡量每个变体的相对影响力。这并不像听起来那么简单。我们不仅仅关心具有特定特征的客户接收某个变体后的结果，还关心这个变体的影响力，即与另一个变体相比，结果的差异。
 
@@ -32,11 +32,11 @@
 
 **幸运的是，有一种更好的方法：**首先，你应该让你的有针对性的分配也带有一定的随机性，只是偏向你认为在每种情况下最好的选项。这是合理的，因为你永远不能确定什么是每个特定客户的最佳选择；而且它允许你在收获已知成果的同时继续学习。
 
-其次，当你收集到使用特定变体分配策略的实验结果时，你可以使用一种统计方法叫做**ERUPT**（或政策值）来获得任何其他分配策略，特别是随机分配变体的平均结果的无偏估计。听起来像魔法吗？不，这只是数学。查看[**ERUPT基础**](https://github.com/py-why/causaltune/blob/main/notebooks/ERUPT%20basics.ipynb)中的笔记本，了解一个简单的示例。
+其次，当你收集到使用特定变体分配策略的实验结果时，你可以使用一种统计方法叫做**ERUPT**（或政策值）来获得任何其他分配策略，特别是随机分配变体的平均结果的无偏估计。听起来像魔法吗？不，这只是数学。查看[**ERUPT 基础**](https://github.com/py-why/causaltune/blob/main/notebooks/ERUPT%20basics.ipynb)中的笔记本，了解一个简单的示例。
 
 # **寻找最佳任务分配**
 
-![](../Images/ce9aa4e665a1c9b8ff303a87eb429fb7.png)
+![](img/ce9aa4e665a1c9b8ff303a87eb429fb7.png)
 
 图片来源：作者
 
@@ -68,17 +68,17 @@
 
 # **Wise 案例研究：优化点击率**
 
-我们在Wise的数据科学团队工作，拥有许多实际的因果推断和提升模型的应用案例。这里有一个Wise早期应用的故事，我们几乎就是这么做的。该电子邮件营销活动的目标是向现有的Wise客户推荐他们应该尝试的下一个产品。第一波电子邮件使用了一个简单的模型，我们通过查看现有客户使用每个产品的初次使用顺序，训练了一个梯度提升模型，预测给定前几个元素后，该序列中的最后一个元素是什么，不使用其他任何数据。
+我们在 Wise 的数据科学团队工作，拥有许多实际的因果推断和提升模型的应用案例。这里有一个 Wise 早期应用的故事，我们几乎就是这么做的。该电子邮件营销活动的目标是向现有的 Wise 客户推荐他们应该尝试的下一个产品。第一波电子邮件使用了一个简单的模型，我们通过查看现有客户使用每个产品的初次使用顺序，训练了一个梯度提升模型，预测给定前几个元素后，该序列中的最后一个元素是什么，不使用其他任何数据。
 
 在随后的电子邮件营销活动中，我们使用该模型的预测来偏向分配，最终得到了**1.90%**的点击率——而根据**ERUPT**估算，相同实验结果下随机分配的点击率为**1.74%**。
 
-然后，我们在这些数据上训练了**CausalTune**，并使用该模型制定了两种新的变体分配策略。第一个策略是**“贪心”**的，即始终选择模型预测最高影响的变体。第二个策略不仅使用了影响估算值，还使用了它们的标准差（也由模型提供），并采用了[**Thompson采样**](https://en.wikipedia.org/wiki/Thompson_sampling)来生成分配概率。
+然后，我们在这些数据上训练了**CausalTune**，并使用该模型制定了两种新的变体分配策略。第一个策略是**“贪心”**的，即始终选择模型预测最高影响的变体。第二个策略不仅使用了影响估算值，还使用了它们的标准差（也由模型提供），并采用了[**Thompson 采样**](https://en.wikipedia.org/wiki/Thompson_sampling)来生成分配概率。
 
-贪心分配的样本外**ERUPT**估算为**2.18%**，而**Thompson采样**策略为**2.22%**，相比随机分配提高了**25%**！
+贪心分配的样本外**ERUPT**估算为**2.18%**，而**Thompson 采样**策略为**2.22%**，相比随机分配提高了**25%**！
 
-一个令人惊讶的发现是，尽管**Thompson采样**策略具有随机性，但其估计效果不逊色于贪心策略。这是一个好消息，因为像**Thompson采样**这样的随机策略使我们能够继续从下一个实验结果中学习，同时最大化利用我们已有的知识。
+一个令人惊讶的发现是，尽管**Thompson 采样**策略具有随机性，但其估计效果不逊色于贪心策略。这是一个好消息，因为像**Thompson 采样**这样的随机策略使我们能够继续从下一个实验结果中学习，同时最大化利用我们已有的知识。
 
-因此，我们建议使用**Thompson采样**从拟合的因果模型中创建策略，而不是使用贪心方法——更多内容将在下一篇文章中介绍。
+因此，我们建议使用**Thompson 采样**从拟合的因果模型中创建策略，而不是使用贪心方法——更多内容将在下一篇文章中介绍。
 
 我们目前正在准备该实验的第二波，以观察**ERUPT**预测的增益是否会在真实的点击率中显现。
 

@@ -1,10 +1,10 @@
 # 结构化生成式 AI
 
-> 原文：[https://towardsdatascience.com/structured-generative-ai-e772123428e4?source=collection_archive---------3-----------------------#2024-04-18](https://towardsdatascience.com/structured-generative-ai-e772123428e4?source=collection_archive---------3-----------------------#2024-04-18)
+> 原文：[`towardsdatascience.com/structured-generative-ai-e772123428e4?source=collection_archive---------3-----------------------#2024-04-18`](https://towardsdatascience.com/structured-generative-ai-e772123428e4?source=collection_archive---------3-----------------------#2024-04-18)
 
 ## 如何限制你的模型输出定义的格式
 
-[](https://medium.com/@orenmatar?source=post_page---byline--e772123428e4--------------------------------)[![Oren Matar](../Images/8b1fa6aa3585fc283d51828b53a0754c.png)](https://medium.com/@orenmatar?source=post_page---byline--e772123428e4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e772123428e4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e772123428e4--------------------------------) [Oren Matar](https://medium.com/@orenmatar?source=post_page---byline--e772123428e4--------------------------------)
+[](https://medium.com/@orenmatar?source=post_page---byline--e772123428e4--------------------------------)![Oren Matar](https://medium.com/@orenmatar?source=post_page---byline--e772123428e4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e772123428e4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e772123428e4--------------------------------) [Oren Matar](https://medium.com/@orenmatar?source=post_page---byline--e772123428e4--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e772123428e4--------------------------------) ·阅读时间 7 分钟·2024 年 4 月 18 日
 
@@ -41,23 +41,23 @@
 
 ## **关于令牌生成的快速提醒**
 
-无论是使用编码器-解码器架构还是GPT架构，令牌生成都是按顺序进行的。每个令牌的选择依赖于输入和之前生成的令牌，直到生成<end>令牌，标志着序列的完成。在每一步，分类器会为词汇表中的所有令牌分配logit值，表示每个令牌作为下一个选择的概率。接下来的令牌是基于这些logits进行采样的。
+无论是使用编码器-解码器架构还是 GPT 架构，令牌生成都是按顺序进行的。每个令牌的选择依赖于输入和之前生成的令牌，直到生成<end>令牌，标志着序列的完成。在每一步，分类器会为词汇表中的所有令牌分配 logit 值，表示每个令牌作为下一个选择的概率。接下来的令牌是基于这些 logits 进行采样的。
 
-![](../Images/cad3a2ae8eae2f7150a70bacdecbaa82.png)
+![](img/cad3a2ae8eae2f7150a70bacdecbaa82.png)
 
-解码器分类器为词汇表中的每个令牌分配一个logit（图片由作者提供）
+解码器分类器为词汇表中的每个令牌分配一个 logit（图片由作者提供）
 
 ## **限制令牌生成**
 
-为了约束令牌生成，我们结合了对输出语言结构的理解。不合法的令牌将其logits设置为-inf，确保它们不会被选中。例如，如果在“Select name”后只有逗号或“FROM”是合法的，那么所有其他令牌的logits都会被设置为-inf。
+为了约束令牌生成，我们结合了对输出语言结构的理解。不合法的令牌将其 logits 设置为-inf，确保它们不会被选中。例如，如果在“Select name”后只有逗号或“FROM”是合法的，那么所有其他令牌的 logits 都会被设置为-inf。
 
-如果你使用Hugging Face，可以通过“logits处理器”实现这一点。要使用它，你需要实现一个包含__call__方法的类，该方法在计算logits后被调用，但在采样之前。此方法接收所有令牌logits和生成的输入ID，并返回所有令牌的修改后的logits。
+如果你使用 Hugging Face，可以通过“logits 处理器”实现这一点。要使用它，你需要实现一个包含 __call__ 方法的类，该方法在计算 logits 后被调用，但在采样之前。此方法接收所有令牌 logits 和生成的输入 ID，并返回所有令牌的修改后的 logits。
 
-![](../Images/e92f5fbfb0e5b222e3b5b4571ae33971.png)
+![](img/e92f5fbfb0e5b222e3b5b4571ae33971.png)
 
-从logits处理器返回的logits：所有不合法的令牌都会得到-inf的值（图片由作者提供）
+从 logits 处理器返回的 logits：所有不合法的令牌都会得到-inf 的值（图片由作者提供）
 
-我将通过一个简化的示例演示代码。首先，我们初始化模型，这里我们使用Bart模型，但任何模型都可以使用。
+我将通过一个简化的示例演示代码。首先，我们初始化模型，这里我们使用 Bart 模型，但任何模型都可以使用。
 
 ```py
 from transformers import BartForConditionalGeneration, BartTokenizerFast, PreTrainedTokenizer
@@ -69,7 +69,7 @@ tokenizer = BartTokenizerFast.from_pretrained(name, add_prefix_space=True)
 pretrained_model = BartForConditionalGeneration.from_pretrained(name)
 ```
 
-如果我们想要生成从自然语言到SQL的翻译，可以运行：
+如果我们想要生成从自然语言到 SQL 的翻译，可以运行：
 
 ```py
 to_translate = 'customers emails from the us'
@@ -91,7 +91,7 @@ print(tokenizer.convert_tokens_to_string(
 'More emails from the us'
 ```
 
-由于我们没有针对文本到SQL任务对模型进行微调，因此输出不类似于SQL。在本教程中，我们不会训练模型，但我们会引导它生成SQL查询。我们将通过使用一个函数来实现这一点，该函数将每个生成的令牌映射到允许的下一个令牌列表。为了简化，我们仅关注紧接着的前一个令牌，但更复杂的机制也容易实现。我们将使用一个字典来定义每个令牌允许的后续令牌。例如，查询必须以“SELECT”或“DELETE”开始，在“SELECT”之后，仅允许“name”、“email”或“id”，因为这些是我们架构中的列。
+由于我们没有针对文本到 SQL 任务对模型进行微调，因此输出不类似于 SQL。在本教程中，我们不会训练模型，但我们会引导它生成 SQL 查询。我们将通过使用一个函数来实现这一点，该函数将每个生成的令牌映射到允许的下一个令牌列表。为了简化，我们仅关注紧接着的前一个令牌，但更复杂的机制也容易实现。我们将使用一个字典来定义每个令牌允许的后续令牌。例如，查询必须以“SELECT”或“DELETE”开始，在“SELECT”之后，仅允许“name”、“email”或“id”，因为这些是我们架构中的列。
 
 ```py
 rules = {'<s>': ['SELECT', 'DELETE'], # beginning of the generation
@@ -107,7 +107,7 @@ rules = {'<s>': ['SELECT', 'DELETE'], # beginning of the generation
 }
 ```
 
-现在我们需要将这些令牌转换为模型使用的ID。这将在一个继承自LogitsProcessor的类中完成。
+现在我们需要将这些令牌转换为模型使用的 ID。这将在一个继承自 LogitsProcessor 的类中完成。
 
 ```py
 def convert_token_to_id(token):
@@ -119,7 +119,7 @@ class SQLLogitsProcessor(LogitsProcessor):
         self.rules = {convert_token_to_id(k): [convert_token_to_id(v0) for v0 in v] for k,v in rules.items()}
 ```
 
-最后，我们将实现__call__函数，该函数在计算logits后被调用。此函数创建一个包含-infs的新张量，检查哪些ID符合规则（字典中的规则），并将其分数放入新张量中。结果是一个仅包含有效令牌的有效值的张量。
+最后，我们将实现 __call__ 函数，该函数在计算 logits 后被调用。此函数创建一个包含-infs 的新张量，检查哪些 ID 符合规则（字典中的规则），并将其分数放入新张量中。结果是一个仅包含有效令牌的有效值的张量。
 
 ```py
 class SQLLogitsProcessor(LogitsProcessor):
@@ -140,7 +140,7 @@ class SQLLogitsProcessor(LogitsProcessor):
         return new_scores
 ```
 
-就这样！我们现在可以使用logits处理器进行生成：
+就这样！我们现在可以使用 logits 处理器进行生成：
 
 ```py
 to_translate = 'customers emails from the us'
@@ -173,21 +173,13 @@ print(tokenizer.convert_tokens_to_string(
 
 分词通常被忽视，但在使用生成性 AI 进行结构化输出时，正确的分词至关重要。然而，在后台，分词可能对模型的训练产生影响。例如，您可能会微调一个模型，将文本翻译为 JSON。在微调过程中，您向模型提供文本-JSON 对，模型会对其进行分词。那么这种分词会是什么样子呢？
 
-![](../Images/dc9052660570390852112c1180650f1e.png)
+![](img/dc9052660570390852112c1180650f1e.png)
 
 (图像来源：作者)
 
-当您阅读“[[”时，它是两个方括号，但分词器将其转换为单一的 ID，这将被分词分类器视为与单一括号完全不同的类别。这使得模型必须学习的整个逻辑更加复杂（例如，记住需要关闭多少个括号）。类似地，在单词前添加空格可能会改变它们的分词和类别 ID。例如：
+当您阅读“[”时，它是两个方括号，但分词器将其转换为单一的 ID，这将被分词分类器视为与单一括号完全不同的类别。这使得模型必须学习的整个逻辑更加复杂（例如，记住需要关闭多少个括号）。类似地，在单词前添加空格可能会改变它们的分词和类别 ID。例如：
 
-![](../Images/756198370ecbaaf8710bcdb24c8ccf3a.png)
-
-(图像来源：作者)
-
-这再次增加了模型需要学习的逻辑复杂性，因为与这些 ID 相关的权重将需要单独学习，以适应稍微不同的情况。
-
-为了简化学习，确保每个概念和标点符号始终转换为相同的标记，方法是为单词和字符前添加空格。
-
-![](../Images/ce09edd397c68277a6d2ddf93b2cb378.png)
+![(图像来源：作者)这再次增加了模型需要学习的逻辑复杂性，因为与这些 ID 相关的权重将需要单独学习，以适应稍微不同的情况。为了简化学习，确保每个概念和标点符号始终转换为相同的标记，方法是为单词和字符前添加空格。![](img/ce09edd397c68277a6d2ddf93b2cb378.png)
 
 分开写的单词有助于更一致的分词（图像来源：作者）
 

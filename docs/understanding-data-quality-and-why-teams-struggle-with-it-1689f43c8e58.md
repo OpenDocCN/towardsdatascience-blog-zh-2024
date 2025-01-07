@@ -1,16 +1,16 @@
 # 理解数据质量及其为何让团队感到困扰
 
-> 原文：[https://towardsdatascience.com/understanding-data-quality-and-why-teams-struggle-with-it-1689f43c8e58?source=collection_archive---------3-----------------------#2024-03-10](https://towardsdatascience.com/understanding-data-quality-and-why-teams-struggle-with-it-1689f43c8e58?source=collection_archive---------3-----------------------#2024-03-10)
+> 原文：[`towardsdatascience.com/understanding-data-quality-and-why-teams-struggle-with-it-1689f43c8e58?source=collection_archive---------3-----------------------#2024-03-10`](https://towardsdatascience.com/understanding-data-quality-and-why-teams-struggle-with-it-1689f43c8e58?source=collection_archive---------3-----------------------#2024-03-10)
 
 ## 数据质量：涵盖业务逻辑、可靠性、有效性和一致性的总称
 
-[](https://medium.com/@elliottstam?source=post_page---byline--1689f43c8e58--------------------------------)[![Elliott Stam](../Images/5469da79b12b9d5842df36d381415033.png)](https://medium.com/@elliottstam?source=post_page---byline--1689f43c8e58--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1689f43c8e58--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1689f43c8e58--------------------------------) [Elliott Stam](https://medium.com/@elliottstam?source=post_page---byline--1689f43c8e58--------------------------------)
+[](https://medium.com/@elliottstam?source=post_page---byline--1689f43c8e58--------------------------------)![Elliott Stam](https://medium.com/@elliottstam?source=post_page---byline--1689f43c8e58--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1689f43c8e58--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1689f43c8e58--------------------------------) [Elliott Stam](https://medium.com/@elliottstam?source=post_page---byline--1689f43c8e58--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1689f43c8e58--------------------------------) ·9分钟阅读·2024年3月10日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1689f43c8e58--------------------------------) ·9 分钟阅读·2024 年 3 月 10 日
 
 --
 
-![](../Images/b5c00dd5c29216d16b40ac32ba63f872.png)
+![](img/b5c00dd5c29216d16b40ac32ba63f872.png)
 
 讨论中的问题核心。（图片来源：[Alberico Iusso](https://unsplash.com/@albe80?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)）
 

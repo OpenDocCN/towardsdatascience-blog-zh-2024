@@ -1,16 +1,16 @@
 # 函数调用：在 xLAM 上微调 Llama 3
 
-> 原文：[https://towardsdatascience.com/function-calling-fine-tuning-llama-3-on-xlam-f9b490d4f063?source=collection_archive---------4-----------------------#2024-07-23](https://towardsdatascience.com/function-calling-fine-tuning-llama-3-on-xlam-f9b490d4f063?source=collection_archive---------4-----------------------#2024-07-23)
+> 原文：[`towardsdatascience.com/function-calling-fine-tuning-llama-3-on-xlam-f9b490d4f063?source=collection_archive---------4-----------------------#2024-07-23`](https://towardsdatascience.com/function-calling-fine-tuning-llama-3-on-xlam-f9b490d4f063?source=collection_archive---------4-----------------------#2024-07-23)
 
 ## 由于 QLoRA 的优化，它们在速度和内存效率方面表现优异
 
-[](https://medium.com/@bnjmn_marie?source=post_page---byline--f9b490d4f063--------------------------------)[![Benjamin Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--f9b490d4f063--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f9b490d4f063--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f9b490d4f063--------------------------------) [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--f9b490d4f063--------------------------------)
+[](https://medium.com/@bnjmn_marie?source=post_page---byline--f9b490d4f063--------------------------------)![Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--f9b490d4f063--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f9b490d4f063--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f9b490d4f063--------------------------------) [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--f9b490d4f063--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f9b490d4f063--------------------------------) ·阅读时间 8 分钟·2024年7月23日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f9b490d4f063--------------------------------) ·阅读时间 8 分钟·2024 年 7 月 23 日
 
 --
 
-![](../Images/bc60aa203270d46fd98b330d5e32fcf4.png)
+![](img/bc60aa203270d46fd98b330d5e32fcf4.png)
 
 由 DALL-E 生成
 

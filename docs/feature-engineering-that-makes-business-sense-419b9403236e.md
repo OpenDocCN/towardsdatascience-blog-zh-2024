@@ -1,16 +1,16 @@
 # 具有商业意义的特征工程
 
-> 原文：[https://towardsdatascience.com/feature-engineering-that-makes-business-sense-419b9403236e?source=collection_archive---------2-----------------------#2024-04-28](https://towardsdatascience.com/feature-engineering-that-makes-business-sense-419b9403236e?source=collection_archive---------2-----------------------#2024-04-28)
+> 原文：[`towardsdatascience.com/feature-engineering-that-makes-business-sense-419b9403236e?source=collection_archive---------2-----------------------#2024-04-28`](https://towardsdatascience.com/feature-engineering-that-makes-business-sense-419b9403236e?source=collection_archive---------2-----------------------#2024-04-28)
 
 ## 作者概述了三种方法，通过这些方法，你可以扩展机器学习的特征集，加入能够解释行为并最大化预测能力的特征。
 
-[](https://medium.com/@guillaume.colley?source=post_page---byline--419b9403236e--------------------------------)[![Guillaume Colley](../Images/97ea637a566255b6724d4079ca2d5180.png)](https://medium.com/@guillaume.colley?source=post_page---byline--419b9403236e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--419b9403236e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--419b9403236e--------------------------------) [Guillaume Colley](https://medium.com/@guillaume.colley?source=post_page---byline--419b9403236e--------------------------------)
+[](https://medium.com/@guillaume.colley?source=post_page---byline--419b9403236e--------------------------------)![Guillaume Colley](https://medium.com/@guillaume.colley?source=post_page---byline--419b9403236e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--419b9403236e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--419b9403236e--------------------------------) [Guillaume Colley](https://medium.com/@guillaume.colley?source=post_page---byline--419b9403236e--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--419b9403236e--------------------------------) ·阅读时间：6分钟·2024年4月28日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--419b9403236e--------------------------------) ·阅读时间：6 分钟·2024 年 4 月 28 日
 
 --
 
-![](../Images/1b2289f4df73ff8bc7be0b5c5f999274.png)
+![](img/1b2289f4df73ff8bc7be0b5c5f999274.png)
 
 面向商业的特征工程 — 图片来自 DALL-E3
 

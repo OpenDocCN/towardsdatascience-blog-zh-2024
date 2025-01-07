@@ -1,14 +1,14 @@
 # Segment-Anything 模型（SAM）的解码器是如何工作的？
 
-> 原文：[https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-decoder-work-0e4ab4732c37?source=collection_archive---------5-----------------------#2024-03-24](https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-decoder-work-0e4ab4732c37?source=collection_archive---------5-----------------------#2024-03-24)
+> 原文：[`towardsdatascience.com/how-does-the-segment-anything-models-sam-s-decoder-work-0e4ab4732c37?source=collection_archive---------5-----------------------#2024-03-24`](https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-decoder-work-0e4ab4732c37?source=collection_archive---------5-----------------------#2024-03-24)
 
-[](https://jasonweiyi.medium.com/?source=post_page---byline--0e4ab4732c37--------------------------------)[![Wei Yi](../Images/24b7a438912082519f24d18e11ac9638.png)](https://jasonweiyi.medium.com/?source=post_page---byline--0e4ab4732c37--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e4ab4732c37--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0e4ab4732c37--------------------------------) [Wei Yi](https://jasonweiyi.medium.com/?source=post_page---byline--0e4ab4732c37--------------------------------)
+[](https://jasonweiyi.medium.com/?source=post_page---byline--0e4ab4732c37--------------------------------)![Wei Yi](https://jasonweiyi.medium.com/?source=post_page---byline--0e4ab4732c37--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e4ab4732c37--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e4ab4732c37--------------------------------) [Wei Yi](https://jasonweiyi.medium.com/?source=post_page---byline--0e4ab4732c37--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e4ab4732c37--------------------------------) ·18分钟阅读·2024年3月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e4ab4732c37--------------------------------) ·18 分钟阅读·2024 年 3 月 24 日
 
 --
 
-![](../Images/b352f48ee952208b5f82ab47be181458.png)
+![](img/b352f48ee952208b5f82ab47be181458.png)
 
 图片来自 [dylan nolte](https://unsplash.com/@dylan_nolte?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,16 +1,16 @@
 # Python 中的混淆矩阵热力图
 
-> 原文：[https://towardsdatascience.com/heatmap-for-confusion-matrix-in-python-20a9fc689665?source=collection_archive---------7-----------------------#2024-09-06](https://towardsdatascience.com/heatmap-for-confusion-matrix-in-python-20a9fc689665?source=collection_archive---------7-----------------------#2024-09-06)
+> 原文：[`towardsdatascience.com/heatmap-for-confusion-matrix-in-python-20a9fc689665?source=collection_archive---------7-----------------------#2024-09-06`](https://towardsdatascience.com/heatmap-for-confusion-matrix-in-python-20a9fc689665?source=collection_archive---------7-----------------------#2024-09-06)
 
 ## 一张图片胜过千言万语。
 
-[](https://czuk.medium.com/?source=post_page---byline--20a9fc689665--------------------------------)[![Michał Marcińczuk, Ph.D.](../Images/74fb7b0099084be3f7a35a149471ffbd.png)](https://czuk.medium.com/?source=post_page---byline--20a9fc689665--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--20a9fc689665--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--20a9fc689665--------------------------------) [Michał Marcińczuk, Ph.D.](https://czuk.medium.com/?source=post_page---byline--20a9fc689665--------------------------------)
+[](https://czuk.medium.com/?source=post_page---byline--20a9fc689665--------------------------------)![Michał Marcińczuk, Ph.D.](https://czuk.medium.com/?source=post_page---byline--20a9fc689665--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--20a9fc689665--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--20a9fc689665--------------------------------) [Michał Marcińczuk, Ph.D.](https://czuk.medium.com/?source=post_page---byline--20a9fc689665--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--20a9fc689665--------------------------------) ·6分钟阅读·2024年9月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--20a9fc689665--------------------------------) ·6 分钟阅读·2024 年 9 月 6 日
 
 --
 
-![](../Images/a2ca101d7e26f88565d40c01f54290ac.png)
+![](img/a2ca101d7e26f88565d40c01f54290ac.png)
 
 图片来源：作者
 
@@ -20,7 +20,7 @@
 
 这里是混淆矩阵元素的可视化解释。
 
-![](../Images/378e7fd57648148e46306686d9b80c45.png)
+![](img/378e7fd57648148e46306686d9b80c45.png)
 
 图片来源：作者
 

@@ -1,16 +1,16 @@
 # 机器学习模型中的因果关系：引入单调约束
 
-> 原文：[https://towardsdatascience.com/causality-in-ml-models-introducing-monotonic-constraints-8426e1b5cc34?source=collection_archive---------1-----------------------#2024-09-06](https://towardsdatascience.com/causality-in-ml-models-introducing-monotonic-constraints-8426e1b5cc34?source=collection_archive---------1-----------------------#2024-09-06)
+> 原文：[`towardsdatascience.com/causality-in-ml-models-introducing-monotonic-constraints-8426e1b5cc34?source=collection_archive---------1-----------------------#2024-09-06`](https://towardsdatascience.com/causality-in-ml-models-introducing-monotonic-constraints-8426e1b5cc34?source=collection_archive---------1-----------------------#2024-09-06)
 
 ## 单调约束是使机器学习模型可操作的关键，但它们仍然被很少使用
 
-[](https://medium.com/@mazzanti.sam?source=post_page---byline--8426e1b5cc34--------------------------------)[![Samuele Mazzanti](../Images/432477d6418a3f79bf25dec42755d364.png)](https://medium.com/@mazzanti.sam?source=post_page---byline--8426e1b5cc34--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8426e1b5cc34--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8426e1b5cc34--------------------------------) [Samuele Mazzanti](https://medium.com/@mazzanti.sam?source=post_page---byline--8426e1b5cc34--------------------------------)
+[](https://medium.com/@mazzanti.sam?source=post_page---byline--8426e1b5cc34--------------------------------)![Samuele Mazzanti](https://medium.com/@mazzanti.sam?source=post_page---byline--8426e1b5cc34--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8426e1b5cc34--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8426e1b5cc34--------------------------------) [Samuele Mazzanti](https://medium.com/@mazzanti.sam?source=post_page---byline--8426e1b5cc34--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8426e1b5cc34--------------------------------) ·阅读时间：9分钟·2024年9月6日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8426e1b5cc34--------------------------------) ·阅读时间：9 分钟·2024 年 9 月 6 日
 
 --
 
-![](../Images/5391cf5d3068c67d8d85f7d85e8e3df7.png)
+![](img/5391cf5d3068c67d8d85f7d85e8e3df7.png)
 
 [作者图片]
 
@@ -24,7 +24,7 @@
 
 # 因果机器学习模型与传统机器学习模型
 
-> 你可以通过[这个笔记本](https://github.com/smazzanti/tds_this_line_of_code_will_turn_your_model_into_a_causal_model/blob/main/tds_this_line_of_code_will_turn_your_model_into_a_causal_model.ipynb)复制文章中展示的所有结果。使用的数据集是来自[Pycaret](https://github.com/pycaret/pycaret)（一个遵循[MIT 许可证](https://github.com/pycaret/pycaret/blob/master/LICENSE)的Python库）的“房屋”数据集。
+> 你可以通过[这个笔记本](https://github.com/smazzanti/tds_this_line_of_code_will_turn_your_model_into_a_causal_model/blob/main/tds_this_line_of_code_will_turn_your_model_into_a_causal_model.ipynb)复制文章中展示的所有结果。使用的数据集是来自[Pycaret](https://github.com/pycaret/pycaret)（一个遵循[MIT 许可证](https://github.com/pycaret/pycaret/blob/master/LICENSE)的 Python 库）的“房屋”数据集。
 
 假设我们为一家房地产公司工作。公司的业务包括购买房屋并以更高的价格转售。
 

@@ -1,16 +1,16 @@
 # 你的数据质量检查远没有你想象的那么有效
 
-> 原文：[https://towardsdatascience.com/your-data-quality-checks-are-worth-less-than-you-think-c8bd181a1327?source=collection_archive---------7-----------------------#2024-11-20](https://towardsdatascience.com/your-data-quality-checks-are-worth-less-than-you-think-c8bd181a1327?source=collection_archive---------7-----------------------#2024-11-20)
+> 原文：[`towardsdatascience.com/your-data-quality-checks-are-worth-less-than-you-think-c8bd181a1327?source=collection_archive---------7-----------------------#2024-11-20`](https://towardsdatascience.com/your-data-quality-checks-are-worth-less-than-you-think-c8bd181a1327?source=collection_archive---------7-----------------------#2024-11-20)
 
 ## 如何在你的数据质量项目中创造超额价值
 
-[](https://medium.com/@cisenbe?source=post_page---byline--c8bd181a1327--------------------------------)[![Chad Isenberg](../Images/56e50c1ee292ac672df4b8062e460c8e.png)](https://medium.com/@cisenbe?source=post_page---byline--c8bd181a1327--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c8bd181a1327--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c8bd181a1327--------------------------------) [Chad Isenberg](https://medium.com/@cisenbe?source=post_page---byline--c8bd181a1327--------------------------------)
+[](https://medium.com/@cisenbe?source=post_page---byline--c8bd181a1327--------------------------------)![Chad Isenberg](https://medium.com/@cisenbe?source=post_page---byline--c8bd181a1327--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c8bd181a1327--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c8bd181a1327--------------------------------) [Chad Isenberg](https://medium.com/@cisenbe?source=post_page---byline--c8bd181a1327--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c8bd181a1327--------------------------------) ·5分钟阅读·2024年11月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c8bd181a1327--------------------------------) ·5 分钟阅读·2024 年 11 月 20 日
 
 --
 
-![](../Images/7751c0797a268fec4df4da0638c9af5e.png)
+![](img/7751c0797a268fec4df4da0638c9af5e.png)
 
 图片来源：[Wolfgang Weiser](https://unsplash.com/@hamburgmeinefreundin?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

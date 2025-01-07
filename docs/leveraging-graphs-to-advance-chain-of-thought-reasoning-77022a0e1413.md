@@ -1,8 +1,8 @@
 # 利用图表推进思维链推理
 
-> 原文：[https://towardsdatascience.com/leveraging-graphs-to-advance-chain-of-thought-reasoning-77022a0e1413?source=collection_archive---------11-----------------------#2024-01-16](https://towardsdatascience.com/leveraging-graphs-to-advance-chain-of-thought-reasoning-77022a0e1413?source=collection_archive---------11-----------------------#2024-01-16)
+> 原文：[`towardsdatascience.com/leveraging-graphs-to-advance-chain-of-thought-reasoning-77022a0e1413?source=collection_archive---------11-----------------------#2024-01-16`](https://towardsdatascience.com/leveraging-graphs-to-advance-chain-of-thought-reasoning-77022a0e1413?source=collection_archive---------11-----------------------#2024-01-16)
 
-[](https://medium.com/@alcarazanthony1?source=post_page---byline--77022a0e1413--------------------------------)[![Anthony Alcaraz](../Images/6a71a1752677bd07c384246fb0c7f7e8.png)](https://medium.com/@alcarazanthony1?source=post_page---byline--77022a0e1413--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77022a0e1413--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--77022a0e1413--------------------------------) [Anthony Alcaraz](https://medium.com/@alcarazanthony1?source=post_page---byline--77022a0e1413--------------------------------)
+[](https://medium.com/@alcarazanthony1?source=post_page---byline--77022a0e1413--------------------------------)![Anthony Alcaraz](https://medium.com/@alcarazanthony1?source=post_page---byline--77022a0e1413--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77022a0e1413--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77022a0e1413--------------------------------) [Anthony Alcaraz](https://medium.com/@alcarazanthony1?source=post_page---byline--77022a0e1413--------------------------------)
 
 ·发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77022a0e1413--------------------------------)·阅读时间 5 分钟·2024 年 1 月 16 日
 

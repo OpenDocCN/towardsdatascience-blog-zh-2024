@@ -1,20 +1,20 @@
-# 如何使用Burr、FastAPI和React构建流媒体代理
+# 如何使用 Burr、FastAPI 和 React 构建流媒体代理
 
-> 原文：[https://towardsdatascience.com/how-to-build-a-streaming-agent-with-burr-fastapi-and-react-e2459ef527a8?source=collection_archive---------3-----------------------#2024-07-25](https://towardsdatascience.com/how-to-build-a-streaming-agent-with-burr-fastapi-and-react-e2459ef527a8?source=collection_archive---------3-----------------------#2024-07-25)
+> 原文：[`towardsdatascience.com/how-to-build-a-streaming-agent-with-burr-fastapi-and-react-e2459ef527a8?source=collection_archive---------3-----------------------#2024-07-25`](https://towardsdatascience.com/how-to-build-a-streaming-agent-with-burr-fastapi-and-react-e2459ef527a8?source=collection_archive---------3-----------------------#2024-07-25)
 
 ## 如何利用开源工具构建一个简单的代理聊天机器人，使用流媒体技术。
 
-[](https://medium.com/@stefan.krawczyk?source=post_page---byline--e2459ef527a8--------------------------------)[![Stefan Krawczyk](../Images/150405abaad9590e1dc2589168ed2fa3.png)](https://medium.com/@stefan.krawczyk?source=post_page---byline--e2459ef527a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2459ef527a8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e2459ef527a8--------------------------------) [Stefan Krawczyk](https://medium.com/@stefan.krawczyk?source=post_page---byline--e2459ef527a8--------------------------------)
+[](https://medium.com/@stefan.krawczyk?source=post_page---byline--e2459ef527a8--------------------------------)![Stefan Krawczyk](https://medium.com/@stefan.krawczyk?source=post_page---byline--e2459ef527a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2459ef527a8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2459ef527a8--------------------------------) [Stefan Krawczyk](https://medium.com/@stefan.krawczyk?source=post_page---byline--e2459ef527a8--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2459ef527a8--------------------------------) ·阅读时间12分钟·2024年7月25日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2459ef527a8--------------------------------) ·阅读时间 12 分钟·2024 年 7 月 25 日
 
 --
 
-![](../Images/f76e421b3ba109b434f51c1d43eb0ba0.png)
+![](img/f76e421b3ba109b434f51c1d43eb0ba0.png)
 
 我们的代理应用模型。我们将展示如何通过流媒体构建这个模型，让你能够创造出出色的用户体验。图片由作者提供。
 
-在这篇文章中，我们将介绍如何构建一个代理聊天机器人，通过流媒体将响应传递给用户，利用[Burr](https://github.com/dagworks-inc/burr)（我也是作者）的流媒体功能，[FastAPI](https://fastapi.tiangolo.com/)的[StreamingResponse](https://fastapi.tiangolo.com/advanced/custom-response/?h=streamingresponse#using-streamingresponse-with-file-like-objects)以及由[React](https://react.dev/)查询的服务器推送事件（SSEs）。这些都是开源工具。本文面向那些希望了解如何在Python中使用流媒体，以及如何为他们的代理/应用程序添加交互性的人。虽然我们使用的工具相对具体，但所学的内容应该适用于广泛的流媒体响应实现方式。
+在这篇文章中，我们将介绍如何构建一个代理聊天机器人，通过流媒体将响应传递给用户，利用[Burr](https://github.com/dagworks-inc/burr)（我也是作者）的流媒体功能，[FastAPI](https://fastapi.tiangolo.com/)的[StreamingResponse](https://fastapi.tiangolo.com/advanced/custom-response/?h=streamingresponse#using-streamingresponse-with-file-like-objects)以及由[React](https://react.dev/)查询的服务器推送事件（SSEs）。这些都是开源工具。本文面向那些希望了解如何在 Python 中使用流媒体，以及如何为他们的代理/应用程序添加交互性的人。虽然我们使用的工具相对具体，但所学的内容应该适用于广泛的流媒体响应实现方式。
 
 首先，我们将讨论流媒体的重要性。接着，我们将介绍我们使用的开源工具。我们将通过一个示例讲解，并提供你可以使用的代码，帮助你入门，之后分享更多资源和替代实现方案。
 
@@ -22,13 +22,13 @@
 
 # 为什么要使用流式传输？
 
-虽然通过网络流式传输媒体是[90年代](https://en.wikipedia.org/wiki/Streaming_media#:~:text=Online%20streaming%20was%20initially%20popularised,being%20offered%20since%20the%202010s.)的技术，并且如今已无处不在（视频游戏、流媒体电视、音乐等），但最近生成式 AI 应用的兴起使得逐字流式传输文本的兴趣重新回到了人们的视野。
+虽然通过网络流式传输媒体是[90 年代](https://en.wikipedia.org/wiki/Streaming_media#:~:text=Online%20streaming%20was%20initially%20popularised,being%20offered%20since%20the%202010s.)的技术，并且如今已无处不在（视频游戏、流媒体电视、音乐等），但最近生成式 AI 应用的兴起使得逐字流式传输文本的兴趣重新回到了人们的视野。
 
 LLMs 是一种有趣的技术（甚至可能是有用的），但运行相对较慢，用户不喜欢等待。幸运的是，可以通过流式传输结果，让用户在 LLM 的响应生成过程中实时看到结果。此外，鉴于 LLM 的普遍机械且呆板的特性，流式传输可以使其看起来更具互动性，几乎就像它们在思考一样。
 
 一个正确的实现将允许跨多个服务边界进行流式通信，使得中间代理能够在将数据呈现给用户时增强/存储流式数据。
 
-![](../Images/9f99df7ca53e3a575dacdc8d977ef642.png)
+![](img/9f99df7ca53e3a575dacdc8d977ef642.png)
 
 一个简单的聊天机器人架构展示。图片由作者提供。
 
@@ -50,7 +50,7 @@ def counter(state: State) -> State:
     return state.update(counter=state.get("count", 0) +1) 
 ```
 
-你将Burr操作作为应用程序的一部分运行——这允许你将它们通过一系列（可选的）条件转换串联起来，从一个动作到另一个动作。
+你将 Burr 操作作为应用程序的一部分运行——这允许你将它们通过一系列（可选的）条件转换串联起来，从一个动作到另一个动作。
 
 ```py
 from burr.core import ApplicationBuilder, default, expr
@@ -68,25 +68,25 @@ app = (
 )
 ```
 
-Burr配有一个用户界面，可以进行监控/遥测，并且提供挂钩功能来持久化状态/在执行过程中执行任意代码。
+Burr 配有一个用户界面，可以进行监控/遥测，并且提供挂钩功能来持久化状态/在执行过程中执行任意代码。
 
 你可以将其视为一个流程图，即图形/状态机：
 
-![](../Images/f987bc5eedaa49d7f5a17e860b10a6e0.png)
+![](img/f987bc5eedaa49d7f5a17e860b10a6e0.png)
 
-Burr免费为你提供这张图片。图片由作者提供。
+Burr 免费为你提供这张图片。图片由作者提供。
 
 并使用本地遥测调试器进行监控：
 
-![](../Images/daf833de5eef0cfd6bd0b09cdb576096.png)
+![](img/daf833de5eef0cfd6bd0b09cdb576096.png)
 
-操作系统遥测UI在任何给定时刻都会告诉你应用程序的状态。图像由作者提供。
+操作系统遥测 UI 在任何给定时刻都会告诉你应用程序的状态。图像由作者提供。
 
-虽然上述示例是一个简单的插图，但Burr通常用于代理（如本示例中所示）、RAG应用程序和人类环中AI接口。请参阅仓库中的[示例](https://github.com/DAGWorks-Inc/burr/tree/main/examples)以获取（更详尽的）使用案例。稍后我们将详细介绍流式传输和一些更强大的功能。
+虽然上述示例是一个简单的插图，但 Burr 通常用于代理（如本示例中所示）、RAG 应用程序和人类环中 AI 接口。请参阅仓库中的[示例](https://github.com/DAGWorks-Inc/burr/tree/main/examples)以获取（更详尽的）使用案例。稍后我们将详细介绍流式传输和一些更强大的功能。
 
 # FastAPI
 
-[FastAPI](https://fastapi.tiangolo.com/)是一个框架，可以让你将Python函数暴露为REST API。它有一个简单的接口——你编写函数然后为其添加装饰器，最后运行脚本——它会变成一个带有自文档化端点的服务器，通过[OpenAPI](https://www.openapis.org/)进行描述。
+[FastAPI](https://fastapi.tiangolo.com/)是一个框架，可以让你将 Python 函数暴露为 REST API。它有一个简单的接口——你编写函数然后为其添加装饰器，最后运行脚本——它会变成一个带有自文档化端点的服务器，通过[OpenAPI](https://www.openapis.org/)进行描述。
 
 ```py
 @app.get("/")
@@ -98,29 +98,29 @@ def read_item(item_id: int, q: Union[str, None] = None):
     return {"item_id": item_id, "q": q}
 ```
 
-FastAPI提供了许多好处。它是原生支持异步的，通过OpenAPI提供文档，并且易于在任何云提供商上部署。它与基础设施无关，并且通常可以横向扩展（只要考虑到状态管理）。欲了解更多信息，请参见[此页面](https://fastapi.tiangolo.com/deployment/cloud/?h=deploy)。
+FastAPI 提供了许多好处。它是原生支持异步的，通过 OpenAPI 提供文档，并且易于在任何云提供商上部署。它与基础设施无关，并且通常可以横向扩展（只要考虑到状态管理）。欲了解更多信息，请参见[此页面](https://fastapi.tiangolo.com/deployment/cloud/?h=deploy)。
 
 # React
 
-React无需介绍——它是一个极受欢迎的工具，支撑了互联网的许多部分。即便是最近流行的工具（如next.js/remix）也建立在它之上。欲了解更多信息，请访问[react.dev](http://react.dev/)。我们将使用React、[typescript](https://www.typescriptlang.org/)和[tailwind](https://tailwindcss.com/)，但你也可以替换为自己喜欢的前端工具，并且大部分内容都可以复用。
+React 无需介绍——它是一个极受欢迎的工具，支撑了互联网的许多部分。即便是最近流行的工具（如 next.js/remix）也建立在它之上。欲了解更多信息，请访问[react.dev](http://react.dev/)。我们将使用 React、[typescript](https://www.typescriptlang.org/)和[tailwind](https://tailwindcss.com/)，但你也可以替换为自己喜欢的前端工具，并且大部分内容都可以复用。
 
 # 构建一个简单的代理型聊天机器人
 
-让我们构建一个简单的*代理型*聊天机器人——它将是*代理型*的，因为它实际上会进行两次LLM调用：
+让我们构建一个简单的*代理型*聊天机器人——它将是*代理型*的，因为它实际上会进行两次 LLM 调用：
 
 1.  一个调用，用于确定要查询的模型。我们的模型将有几个“模式”——生成诗歌、回答问题等……
 
 1.  一个调用，指向实际的模型（在本例中为提示+模型组合）
 
-使用OpenAI API时，这是一个玩具示例——他们的模型是令人印象深刻的多面手。也就是说，这种工具委托的模式在各种AI系统中都可以看到，且这个示例可以干净地外推。
+使用 OpenAI API 时，这是一个玩具示例——他们的模型是令人印象深刻的多面手。也就是说，这种工具委托的模式在各种 AI 系统中都可以看到，且这个示例可以干净地外推。
 
-# 在Burr中建模代理
+# 在 Burr 中建模代理
 
 ## 作为状态机建模
 
-为了利用Burr，我们将我们的代理型应用建模为一个状态机。基本的逻辑流程如下：
+为了利用 Burr，我们将我们的代理型应用建模为一个状态机。基本的逻辑流程如下：
 
-![](../Images/f76e421b3ba109b434f51c1d43eb0ba0.png)
+![](img/f76e421b3ba109b434f51c1d43eb0ba0.png)
 
 我们从用户输入的提示开始（顶部）。然后检查安全性，如果不安全，我们将进入“非安全”响应。否则，我们根据 *mode* 状态字段的值决定模式，并进行切换。每个操作都返回一个流式响应。流式传输完成后，它会返回到提示并等待另一个用户输入……图像由作者提供。
 
@@ -275,7 +275,7 @@ async def chat_response(project_id: str, app_id: str, prompt: PromptInput) -> St
 
 现在我们已经有了服务器、状态机和 LLM，让我们让它看起来更好！这就是一切整合的地方。虽然你可以下载并玩转完整的代码，[示例](https://github.com/DAGWorks-Inc/burr/tree/main/examples/streaming-fastapi)中有全部内容，但我们将专注于在点击“发送”时查询 API 的函数。
 
-![](../Images/a31aeb84cbc323ece54bc65f05a68bad.png)
+![](img/a31aeb84cbc323ece54bc65f05a68bad.png)
 
 这是 UI 的样子。你可以通过 Burr 附带的打包 Telemetry UI 运行这个。图像来自作者。
 
@@ -412,12 +412,12 @@ pip install "burr[start]"
 burr # will open up in a new window
 ```
 
-请注意，您需要一个来自[OpenAI的API密钥](http://platform.openai.com/)来运行这个特定的示例。您可以在[Burr + FastAPI代码](https://github.com/DAGWorks-Inc/hamilton/tree/main/examples/streaming-fastapi)中找到相关代码，在[前端代码](https://github.com/DAGWorks-Inc/hamilton/tree/main/telemetry/ui/src/examples/StreamingChatbot.tsx)中也可以找到。
+请注意，您需要一个来自[OpenAI 的 API 密钥](http://platform.openai.com/)来运行这个特定的示例。您可以在[Burr + FastAPI 代码](https://github.com/DAGWorks-Inc/hamilton/tree/main/examples/streaming-fastapi)中找到相关代码，在[前端代码](https://github.com/DAGWorks-Inc/hamilton/tree/main/telemetry/ui/src/examples/StreamingChatbot.tsx)中也可以找到。
 
 # 额外资源
 
-+   [Burr的Github仓库](http://github.com/dagworks-inc/burr)（如果您喜欢看到的内容，请给我们点个星！）
++   [Burr 的 Github 仓库](http://github.com/dagworks-inc/burr)（如果您喜欢看到的内容，请给我们点个星！）
 
-+   [FastAPI指南](https://fastapi.tiangolo.com/)
++   [FastAPI 指南](https://fastapi.tiangolo.com/)
 
 +   [示例 + README](https://github.com/DAGWorks-Inc/burr/tree/main/examples/streaming-fastapi)

@@ -1,18 +1,18 @@
 # 与 MLFlow 和 Microsoft Fabric 的实验
 
-> 原文：[https://towardsdatascience.com/experimenting-with-mlflow-and-microsoft-fabric-68f43043ff34?source=collection_archive---------7-----------------------#2024-04-22](https://towardsdatascience.com/experimenting-with-mlflow-and-microsoft-fabric-68f43043ff34?source=collection_archive---------7-----------------------#2024-04-22)
+> 原文：[`towardsdatascience.com/experimenting-with-mlflow-and-microsoft-fabric-68f43043ff34?source=collection_archive---------7-----------------------#2024-04-22`](https://towardsdatascience.com/experimenting-with-mlflow-and-microsoft-fabric-68f43043ff34?source=collection_archive---------7-----------------------#2024-04-22)
 
-## Fabric 疯狂系列第4部分
+## Fabric 疯狂系列第四部分
 
-[](https://medium.com/@roger_noble?source=post_page---byline--68f43043ff34--------------------------------)[![Roger Noble](../Images/869b5b0f237f24b119ca6c41c2e31162.png)](https://medium.com/@roger_noble?source=post_page---byline--68f43043ff34--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--68f43043ff34--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--68f43043ff34--------------------------------) [Roger Noble](https://medium.com/@roger_noble?source=post_page---byline--68f43043ff34--------------------------------)
+[](https://medium.com/@roger_noble?source=post_page---byline--68f43043ff34--------------------------------)![Roger Noble](https://medium.com/@roger_noble?source=post_page---byline--68f43043ff34--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--68f43043ff34--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--68f43043ff34--------------------------------) [Roger Noble](https://medium.com/@roger_noble?source=post_page---byline--68f43043ff34--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--68f43043ff34--------------------------------) ·10分钟阅读·2024年4月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--68f43043ff34--------------------------------) ·10 分钟阅读·2024 年 4 月 22 日
 
 --
 
-![](../Images/e7c1d4c5510a3052bfb3ab90be98619c.png)
+![](img/e7c1d4c5510a3052bfb3ab90be98619c.png)
 
-图片来源：作者和 ChatGPT。“设计一幅插图，展示数据实验的图像，聚焦于篮球数据”的提示。ChatGPT，4，OpenAI，2024年4月15日。[https://chat.openai.com.](https://chat.openai.com./)
+图片来源：作者和 ChatGPT。“设计一幅插图，展示数据实验的图像，聚焦于篮球数据”的提示。ChatGPT，4，OpenAI，2024 年 4 月 15 日。[`chat.openai.com.`](https://chat.openai.com./)
 
 *特别感谢* [*Martim Chaves*](https://medium.com/@mgrc99) *共同撰写了这篇文章并开发了示例脚本。*
 
@@ -24,11 +24,11 @@
 
 这是*实验*开始发挥作用的地方。实验是一种跟踪不同配置及其结果的方法。
 
-在Fabric中使用实验的好处是，它们实际上是[MLFlow](https://mlflow.org/)的一个封装，MLFlow是一个非常流行的开源平台，用于管理端到端的机器学习生命周期。这意味着我们可以使用MLFlow提供的所有强大功能，但又不必担心设置一个需要协作环境的MLFlow基础设施。这使我们可以专注于更有趣的部分 😎！
+在 Fabric 中使用实验的好处是，它们实际上是[MLFlow](https://mlflow.org/)的一个封装，MLFlow 是一个非常流行的开源平台，用于管理端到端的机器学习生命周期。这意味着我们可以使用 MLFlow 提供的所有强大功能，但又不必担心设置一个需要协作环境的 MLFlow 基础设施。这使我们可以专注于更有趣的部分 😎！
 
-在这篇文章中，我们将讨论如何在Fabric中使用实验，以及如何记录和分析这些实验的结果。具体来说，我们将涵盖：
+在这篇文章中，我们将讨论如何在 Fabric 中使用实验，以及如何记录和分析这些实验的结果。具体来说，我们将涵盖：
 
-+   MLFlow是如何工作的？
++   MLFlow 是如何工作的？
 
 +   创建和设置实验
 
@@ -36,9 +36,9 @@
 
 +   分析结果
 
-从高层次来看，MLFlow是一个帮助管理端到端机器学习生命周期的平台。它是一个帮助跟踪实验、将代码打包成可重现运行、共享和部署模型的工具。它本质上是一个专门用于跟踪你运行的各种实验配置和结果的数据库。
+从高层次来看，MLFlow 是一个帮助管理端到端机器学习生命周期的平台。它是一个帮助跟踪实验、将代码打包成可重现运行、共享和部署模型的工具。它本质上是一个专门用于跟踪你运行的各种实验配置和结果的数据库。
 
-在MLFlow中有两个主要的组织结构——**实验**和**运行**。
+在 MLFlow 中有两个主要的组织结构——**实验**和**运行**。
 
 实验是一个运行的集合，其中每个运行是执行一段代码、一个函数或一个脚本。这可能是训练一个模型，但也可以用于跟踪任何在不同运行间可能会变化的内容。实验是一种将相关运行进行分组的方式。
 
@@ -46,17 +46,17 @@
 
 运行可以被过滤和比较。这使我们能够了解哪些运行更成功，并选择表现最佳的运行，使用其配置（例如，在部署中）。
 
-现在我们已经介绍了MLFlow的基本工作原理，接下来让我们了解如何在Fabric中使用它！
+现在我们已经介绍了 MLFlow 的基本工作原理，接下来让我们了解如何在 Fabric 中使用它！
 
 # 创建和设置实验
 
-就像在Fabric中的一切一样，创建项目可以通过几种方式完成，既可以通过工作区中的**+ 新建**菜单，也可以使用数据科学体验或通过代码。在这种情况下，我们将使用数据科学体验。
+就像在 Fabric 中的一切一样，创建项目可以通过几种方式完成，既可以通过工作区中的**+ 新建**菜单，也可以使用数据科学体验或通过代码。在这种情况下，我们将使用数据科学体验。
 
-![](../Images/be643f7ab148a28cc673d70288df619f.png)
+![](img/be643f7ab148a28cc673d70288df619f.png)
 
-图1——使用UI创建实验。图像来源：作者。
+图 1——使用 UI 创建实验。图像来源：作者。
 
-一旦完成，为了在Notebook中使用该实验，我们需要`import mlflow`并设置实验名称：
+一旦完成，为了在 Notebook 中使用该实验，我们需要`import mlflow`并设置实验名称：
 
 ```py
 import mlflow
@@ -133,13 +133,13 @@ with mlflow.start_run(run_name="simple_training") as run:
 
 ## 数据
 
-现在让我们看一下用于训练我们基于篮球比赛结果的模型的代码。我们所查看的数据来自2024年美国大学篮球锦标赛，这些数据来自2024年3月机器学习狂热Kaggle竞赛，相关细节可以在[此处](https://www.kaggle.com/competitions/march-machine-learning-mania-2024/overview)找到，且该数据集使用CC BY 4.0许可协议。
+现在让我们看一下用于训练我们基于篮球比赛结果的模型的代码。我们所查看的数据来自 2024 年美国大学篮球锦标赛，这些数据来自 2024 年 3 月机器学习狂热 Kaggle 竞赛，相关细节可以在[此处](https://www.kaggle.com/competitions/march-machine-learning-mania-2024/overview)找到，且该数据集使用 CC BY 4.0 许可协议。
 
-在我们的设置中，我们想尝试三种不同的模型，这些模型使用了越来越多的参数。对于每个模型，我们还想尝试三种不同的学习率（一个控制我们在每次迭代中调整网络权重多少的超参数）。目标是找到最佳的模型和学习率组合，以便在测试集上获得最佳的[Brier得分](https://en.wikipedia.org/wiki/Brier_score)。
+在我们的设置中，我们想尝试三种不同的模型，这些模型使用了越来越多的参数。对于每个模型，我们还想尝试三种不同的学习率（一个控制我们在每次迭代中调整网络权重多少的超参数）。目标是找到最佳的模型和学习率组合，以便在测试集上获得最佳的[Brier 得分](https://en.wikipedia.org/wiki/Brier_score)。
 
 ## 模型
 
-为了定义模型架构，我们使用了TensorFlow，创建了三个简单的神经网络。以下是帮助定义模型的函数。
+为了定义模型架构，我们使用了 TensorFlow，创建了三个简单的神经网络。以下是帮助定义模型的函数。
 
 ```py
 from tensorflow.keras.models import Sequential
@@ -172,7 +172,7 @@ def create_model_large(input_shape):
 
 通过这种方式创建模型，使我们可以轻松地尝试不同的架构，并查看它们的表现。我们可以使用字典创建一个小型的*模型工厂*，让我们能够轻松地创建我们想要实验的模型。
 
-我们还定义了输入形状，即可用特征的数量。我们决定将模型训练100个epoch，这应该足以让模型收敛🤞。
+我们还定义了输入形状，即可用特征的数量。我们决定将模型训练 100 个 epoch，这应该足以让模型收敛🤞。
 
 ```py
 model_dict = {
@@ -290,7 +290,7 @@ def create_and_save_plot(train_loss, val_loss, model_name, lr):
 ```py
  with mlflow.start_run(run_name=run_name) as run:
  # Create model and dataset
- model = model_dict[model_name](input_shape)
+ model = model_dictmodel_name
 
  # Train model
  history, best_model = compile_and_train(model,
@@ -327,13 +327,13 @@ def create_and_save_plot(train_loss, val_loss, model_name, lr):
 
 现在我们已经运行了一些实验，是时候分析结果了！为此，我们可以回到工作区，在那里我们可以找到新创建的实验以及多个运行。
 
-![](../Images/716c608c377213fdf76833c2e0823194.png)
+![](img/716c608c377213fdf76833c2e0823194.png)
 
 图 2 — 实验列表。图片由作者提供。
 
 点击一个实验后，以下是我们将看到的内容：
 
-![](../Images/b9c60a7efb769462fc52aca550c959b2.png)
+![](img/b9c60a7efb769462fc52aca550c959b2.png)
 
 图 3 — 实验界面。图片由作者提供。
 
@@ -341,19 +341,19 @@ def create_and_save_plot(train_loss, val_loss, model_name, lr):
 
 通过点击**查看运行列表**，在**比较运行**部分下，我们可以比较不同的运行。
 
-![](../Images/1eece2a8179dad8814505c5fdb9f7e7e.png)
+![](img/1eece2a8179dad8814505c5fdb9f7e7e.png)
 
 图 4 — 比较运行。图片由作者提供。
 
 在运行列表视图中，我们可以选择希望比较的运行。在**指标比较**选项卡中，我们可以找到展示 Brier 分数与学习率关系的图表。在我们的案例中，看起来学习率越低，得分越好。我们甚至可以进一步创建更多图表，展示不同指标与其他超参数的关系（如果不同的指标和超参数已被记录的话）。
 
-![](../Images/44a7a6f448f6cbd157dbfee2415b5bb4.png)
+![](img/44a7a6f448f6cbd157dbfee2415b5bb4.png)
 
 图 5 — 展示 Brier 分数与学习率关系的图表。图片由作者提供。
 
 也许我们希望筛选运行——可以使用**筛选器**来完成此操作。例如，我们可以选择 Brier 分数低于 0.25 的运行。您可以根据记录的指标和参数以及运行的属性创建筛选器。
 
-![](../Images/66491b7a477f7c74f04dd736a281a55b.png)
+![](img/66491b7a477f7c74f04dd736a281a55b.png)
 
 图 6 — 根据 Brier 得分筛选运行。图像由作者提供。
 
@@ -369,4 +369,4 @@ def create_and_save_plot(train_loss, val_loss, model_name, lr):
 
 在下一篇文章中，我们将讨论如何选择最佳模型，并展示如何部署它。敬请期待！
 
-*原文发布于* [*https://nobledynamic.com*](https://nobledynamic.com/posts/fabric-madness-4/) *，发布时间为 2024年4月22日。*
+*原文发布于* [*https://nobledynamic.com*](https://nobledynamic.com/posts/fabric-madness-4/) *，发布时间为 2024 年 4 月 22 日。*

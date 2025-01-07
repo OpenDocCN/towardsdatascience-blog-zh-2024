@@ -1,12 +1,12 @@
 # 穿越迷宫：数据架构指南
 
-> 原文：[https://towardsdatascience.com/navigating-the-maze-a-guide-to-data-architectures-05e2ba412225?source=collection_archive---------10-----------------------#2024-05-13](https://towardsdatascience.com/navigating-the-maze-a-guide-to-data-architectures-05e2ba412225?source=collection_archive---------10-----------------------#2024-05-13)
+> 原文：[`towardsdatascience.com/navigating-the-maze-a-guide-to-data-architectures-05e2ba412225?source=collection_archive---------10-----------------------#2024-05-13`](https://towardsdatascience.com/navigating-the-maze-a-guide-to-data-architectures-05e2ba412225?source=collection_archive---------10-----------------------#2024-05-13)
 
 ## 数据是当今任何组织的命脉。但是，如何确保你的数据组织有序、安全并且能满足所有业务需求呢？这就是数据架构的作用所在。
 
-[](https://medium.com/@antoniograndinetti91?source=post_page---byline--05e2ba412225--------------------------------)[![Antonio Grandinetti](../Images/f97ba21a6eb1bf1f66174953511afcd2.png)](https://medium.com/@antoniograndinetti91?source=post_page---byline--05e2ba412225--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--05e2ba412225--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--05e2ba412225--------------------------------) [Antonio Grandinetti](https://medium.com/@antoniograndinetti91?source=post_page---byline--05e2ba412225--------------------------------)
+[](https://medium.com/@antoniograndinetti91?source=post_page---byline--05e2ba412225--------------------------------)![Antonio Grandinetti](https://medium.com/@antoniograndinetti91?source=post_page---byline--05e2ba412225--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--05e2ba412225--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05e2ba412225--------------------------------) [Antonio Grandinetti](https://medium.com/@antoniograndinetti91?source=post_page---byline--05e2ba412225--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05e2ba412225--------------------------------) ·阅读时长5分钟·2024年5月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05e2ba412225--------------------------------) ·阅读时长 5 分钟·2024 年 5 月 13 日
 
 --
 
@@ -16,7 +16,7 @@
 
 ## 支柱
 
-![](../Images/c2d6cfc7bb345da61df78441f3afc80e.png)
+![](img/c2d6cfc7bb345da61df78441f3afc80e.png)
 
 图片由[Clark Van Der Beken](https://unsplash.com/@snapsbyclark?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

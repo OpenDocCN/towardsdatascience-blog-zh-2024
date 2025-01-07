@@ -1,16 +1,16 @@
 # 如何使用机器学习进行定价
 
-> 原文：[https://towardsdatascience.com/how-to-price-with-machine-learning-c5423af6cb1b?source=collection_archive---------7-----------------------#2024-12-11](https://towardsdatascience.com/how-to-price-with-machine-learning-c5423af6cb1b?source=collection_archive---------7-----------------------#2024-12-11)
+> 原文：[`towardsdatascience.com/how-to-price-with-machine-learning-c5423af6cb1b?source=collection_archive---------7-----------------------#2024-12-11`](https://towardsdatascience.com/how-to-price-with-machine-learning-c5423af6cb1b?source=collection_archive---------7-----------------------#2024-12-11)
 
 ## 定制神经网络以适应价格响应函数
 
-[](https://medium.com/@qshickkim?source=post_page---byline--c5423af6cb1b--------------------------------)[![Kyoosik Kim](../Images/94b74eb327b6c5d239484f2e4f4e1412.png)](https://medium.com/@qshickkim?source=post_page---byline--c5423af6cb1b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c5423af6cb1b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c5423af6cb1b--------------------------------) [Kyoosik Kim](https://medium.com/@qshickkim?source=post_page---byline--c5423af6cb1b--------------------------------)
+[](https://medium.com/@qshickkim?source=post_page---byline--c5423af6cb1b--------------------------------)![Kyoosik Kim](https://medium.com/@qshickkim?source=post_page---byline--c5423af6cb1b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c5423af6cb1b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c5423af6cb1b--------------------------------) [Kyoosik Kim](https://medium.com/@qshickkim?source=post_page---byline--c5423af6cb1b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c5423af6cb1b--------------------------------) ·阅读时长6分钟·2024年12月11日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c5423af6cb1b--------------------------------) ·阅读时长 6 分钟·2024 年 12 月 11 日
 
 --
 
-![](../Images/d19342fe1e1eb909fa94e0ed9ef84a70.png)
+![](img/d19342fe1e1eb909fa94e0ed9ef84a70.png)
 
 图片来自[Unsplash](https://unsplash.com/photos/two-male-and-female-mannequin-wearing-clothes-49mCO5ZRQDk)
 

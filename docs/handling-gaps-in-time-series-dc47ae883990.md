@@ -1,16 +1,16 @@
 # 处理时间序列中的缺口
 
-> 原文：[https://towardsdatascience.com/handling-gaps-in-time-series-dc47ae883990?source=collection_archive---------4-----------------------#2024-01-31](https://towardsdatascience.com/handling-gaps-in-time-series-dc47ae883990?source=collection_archive---------4-----------------------#2024-01-31)
+> 原文：[`towardsdatascience.com/handling-gaps-in-time-series-dc47ae883990?source=collection_archive---------4-----------------------#2024-01-31`](https://towardsdatascience.com/handling-gaps-in-time-series-dc47ae883990?source=collection_archive---------4-----------------------#2024-01-31)
 
 ## 短序列和长序列插补的缺失性分析与评估方法
 
-[](https://medium.com/@erich.hs?source=post_page---byline--dc47ae883990--------------------------------)[![Erich Silva](../Images/448dee1644d3f3e092bbbcfbbf07592d.png)](https://medium.com/@erich.hs?source=post_page---byline--dc47ae883990--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dc47ae883990--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dc47ae883990--------------------------------) [Erich Silva](https://medium.com/@erich.hs?source=post_page---byline--dc47ae883990--------------------------------)
+[](https://medium.com/@erich.hs?source=post_page---byline--dc47ae883990--------------------------------)![Erich Silva](https://medium.com/@erich.hs?source=post_page---byline--dc47ae883990--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dc47ae883990--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc47ae883990--------------------------------) [Erich Silva](https://medium.com/@erich.hs?source=post_page---byline--dc47ae883990--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc47ae883990--------------------------------) ·阅读时间 22分钟·2024年1月31日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc47ae883990--------------------------------) ·阅读时间 22 分钟·2024 年 1 月 31 日
 
 --
 
-![](../Images/fa54bdfffac3a18bfd84af6520b53324.png)
+![](img/fa54bdfffac3a18bfd84af6520b53324.png)
 
 由[Willian Justen de Vasconcellos](https://unsplash.com/@willianjusten?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)拍摄，图片来源于[Unsplash](https://unsplash.com/photos/landscape-photography-of-desert-jOF2TFSNxQI?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -22,18 +22,18 @@
 
 ## 目录
 
-+   [本文目标](#58de)
++   本文目标
 
-+   [数据集描述](#f3ff)
++   数据集描述
 
-+   [库与依赖项](#9dee)
++   库与依赖项
 
-+   [数据预处理](#3ade)
++   数据预处理
 
-+   [孤立缺失值与连续缺失值](#4f45)
++   孤立缺失值与连续缺失值
 
-+   [缺失可视化](#a0e1)
++   缺失可视化
 
 +   [为实验创建子集区间](http://5ebb)
 
-+   [人为缺失数据](#1639)
++   人为缺失数据

@@ -1,16 +1,16 @@
 # 使用 weakref 模块深入了解 Python 的弱引用
 
-> 原文：[https://towardsdatascience.com/a-guide-to-pythons-weak-references-using-weakref-module-d3381b01db99?source=collection_archive---------6-----------------------#2024-06-25](https://towardsdatascience.com/a-guide-to-pythons-weak-references-using-weakref-module-d3381b01db99?source=collection_archive---------6-----------------------#2024-06-25)
+> 原文：[`towardsdatascience.com/a-guide-to-pythons-weak-references-using-weakref-module-d3381b01db99?source=collection_archive---------6-----------------------#2024-06-25`](https://towardsdatascience.com/a-guide-to-pythons-weak-references-using-weakref-module-d3381b01db99?source=collection_archive---------6-----------------------#2024-06-25)
 
 ## 了解 Python 中弱引用的所有内容：引用计数、垃圾回收以及 `weakref` 模块的实际应用
 
-[](https://medium.com/@martin.heinz?source=post_page---byline--d3381b01db99--------------------------------)[![Martin Heinz](../Images/a8d1540fd32998ee9bda4af0f0232f7d.png)](https://medium.com/@martin.heinz?source=post_page---byline--d3381b01db99--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d3381b01db99--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d3381b01db99--------------------------------) [Martin Heinz](https://medium.com/@martin.heinz?source=post_page---byline--d3381b01db99--------------------------------)
+[](https://medium.com/@martin.heinz?source=post_page---byline--d3381b01db99--------------------------------)![Martin Heinz](https://medium.com/@martin.heinz?source=post_page---byline--d3381b01db99--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d3381b01db99--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d3381b01db99--------------------------------) [Martin Heinz](https://medium.com/@martin.heinz?source=post_page---byline--d3381b01db99--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d3381b01db99--------------------------------) ·阅读时间：6分钟·2024年6月25日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d3381b01db99--------------------------------) ·阅读时间：6 分钟·2024 年 6 月 25 日
 
 --
 
-![](../Images/85fbf17d8afe2376e51b58139e0a9847.png)
+![](img/85fbf17d8afe2376e51b58139e0a9847.png)
 
 图片来源：[Dan Cristian Pădureț](https://unsplash.com/@dancristianpaduret?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在 [Unsplash](https://unsplash.com/photos/blue-and-white-abstract-painting-SMSLyc9FHl0?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -46,11 +46,11 @@ obj2 = None
 
 在这里，我们定义了一个只实现 `__del__` 方法的类，该方法在对象被垃圾回收（GC）时调用——我们这样做是为了看到垃圾回收发生的时刻。
 
-在创建了这个类的实例后，我们使用`sys.getrefcount`来获取当前对该对象的引用数。我们本来会期望得到`1`，但`getrefcount`返回的计数通常比预期的要高1，因为当我们调用`getrefcount`时，引用会按值复制到函数的参数中，从而暂时增加对象的引用计数。
+在创建了这个类的实例后，我们使用`sys.getrefcount`来获取当前对该对象的引用数。我们本来会期望得到`1`，但`getrefcount`返回的计数通常比预期的要高 1，因为当我们调用`getrefcount`时，引用会按值复制到函数的参数中，从而暂时增加对象的引用计数。
 
 接下来，如果我们声明`obj2 = obj`并再次调用`getrefcount`，我们会得到`3`，因为它现在被`obj`和`obj2`两个变量引用。相反，如果我们将`None`赋值给这些变量，引用计数将减少到零，最终我们将通过`__del__`方法收到对象被垃圾回收的消息。
 
-那么，弱引用如何适应这一点呢？如果对象的唯一剩余引用是*弱引用*，那么Python解释器就可以自由地回收这个对象。换句话说——对一个对象的弱引用不足以保持该对象的存活：
+那么，弱引用如何适应这一点呢？如果对象的唯一剩余引用是*弱引用*，那么 Python 解释器就可以自由地回收这个对象。换句话说——对一个对象的弱引用不足以保持该对象的存活：
 
 ```py
 import weakref
@@ -231,7 +231,7 @@ c = logging.getLogger("first")
 print(a is c)  # True
 ```
 
-上面展示的是Python内建`logging`模块的基本用法——我们可以看到，它允许只将一个日志实例与给定名称关联——这意味着当我们多次获取相同的日志器时，它始终返回相同的缓存日志实例。
+上面展示的是 Python 内建`logging`模块的基本用法——我们可以看到，它允许只将一个日志实例与给定名称关联——这意味着当我们多次获取相同的日志器时，它始终返回相同的缓存日志实例。
 
 如果我们想实现这一点，可能会是这样的：
 
@@ -258,7 +258,7 @@ c = get_logger("first")
 print(a is c)  # True
 ```
 
-最后，Python本身也使用了弱引用，例如在`OrderedDict`的实现中：
+最后，Python 本身也使用了弱引用，例如在`OrderedDict`的实现中：
 
 ```py
 from _weakref import proxy as _proxy
@@ -280,14 +280,14 @@ class OrderedDict(dict):
 
 `weakref`是一个相当晦涩但在某些时候非常有用的工具，你应该将其保留在你的工具箱中。当实现缓存或包含引用循环的数据结构时，它非常有帮助，比如双向链表。
 
-话虽如此，应该注意到`weakref`的支持——这里以及文档中提到的内容是针对CPython的，其他Python实现会有不同的`weakref`行为。此外，许多内建类型不支持弱引用，例如`list`、`tuple`或`int`。
+话虽如此，应该注意到`weakref`的支持——这里以及文档中提到的内容是针对 CPython 的，其他 Python 实现会有不同的`weakref`行为。此外，许多内建类型不支持弱引用，例如`list`、`tuple`或`int`。
 
 *本文最初发布于* [*martinheinz.dev*](https://martinheinz.dev/blog/112)
 
 你可能还会喜欢……
 
-[](/everything-you-can-do-with-pythons-textwrap-module-0d82c377a4c8?source=post_page-----d3381b01db99--------------------------------) [## 你可以用 Python 的 textwrap 模块做什么
+[](/everything-you-can-do-with-pythons-textwrap-module-0d82c377a4c8?source=post_page-----d3381b01db99--------------------------------) ## 你可以用 Python 的 textwrap 模块做什么
 
 ### 了解你可以使用 Python 的 textwrap 模块完成的所有操作，包括格式化、文本换行、修剪等…
 
-towardsdatascience.com](/everything-you-can-do-with-pythons-textwrap-module-0d82c377a4c8?source=post_page-----d3381b01db99--------------------------------)
+towardsdatascience.com

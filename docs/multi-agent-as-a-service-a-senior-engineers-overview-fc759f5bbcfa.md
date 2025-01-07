@@ -1,10 +1,10 @@
 # 多代理即服务——一位资深工程师的概述
 
-> 原文：[https://towardsdatascience.com/multi-agent-as-a-service-a-senior-engineers-overview-fc759f5bbcfa?source=collection_archive---------1-----------------------#2024-08-14](https://towardsdatascience.com/multi-agent-as-a-service-a-senior-engineers-overview-fc759f5bbcfa?source=collection_archive---------1-----------------------#2024-08-14)
+> 原文：[`towardsdatascience.com/multi-agent-as-a-service-a-senior-engineers-overview-fc759f5bbcfa?source=collection_archive---------1-----------------------#2024-08-14`](https://towardsdatascience.com/multi-agent-as-a-service-a-senior-engineers-overview-fc759f5bbcfa?source=collection_archive---------1-----------------------#2024-08-14)
 
-[](https://medium.com/@samanrj?source=post_page---byline--fc759f5bbcfa--------------------------------)[![Saman (Sam) Rajaei](../Images/d7f3f3f8bb70fcf94f4dc54534a23974.png)](https://medium.com/@samanrj?source=post_page---byline--fc759f5bbcfa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc759f5bbcfa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fc759f5bbcfa--------------------------------) [Saman (Sam) Rajaei](https://medium.com/@samanrj?source=post_page---byline--fc759f5bbcfa--------------------------------)
+[](https://medium.com/@samanrj?source=post_page---byline--fc759f5bbcfa--------------------------------)![Saman (Sam) Rajaei](https://medium.com/@samanrj?source=post_page---byline--fc759f5bbcfa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc759f5bbcfa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc759f5bbcfa--------------------------------) [Saman (Sam) Rajaei](https://medium.com/@samanrj?source=post_page---byline--fc759f5bbcfa--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc759f5bbcfa--------------------------------) ·8 分钟阅读·2024年8月14日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc759f5bbcfa--------------------------------) ·8 分钟阅读·2024 年 8 月 14 日
 
 --
 
@@ -20,25 +20,25 @@ AI 代理擅长处理那些有利于人性化交互的任务：
 
 1.  **个性化产品和内容创作：** 这一点的一个典型例子是 [Wix](https://www.wix.com/)——对于低代码或无代码的网站建设，Wix 开发了一款聊天机器人，通过互动问答环节，根据客户的描述和需求为其创建初步网站**。**
 
-> [“人类设定目标，但AI代理独立选择执行这些目标所需的最佳行动。”](https://aws.amazon.com/what-is/ai-agents/)
+> [“人类设定目标，但 AI 代理独立选择执行这些目标所需的最佳行动。”](https://aws.amazon.com/what-is/ai-agents/)
 
-总体来说，基于LLM的代理在模拟自然人类对话和简单业务工作流方面表现出色，通常能够产生既有效又令人印象深刻的结果。
+总体来说，基于 LLM 的代理在模拟自然人类对话和简单业务工作流方面表现出色，通常能够产生既有效又令人印象深刻的结果。
 
 ## 工程师的视角：AI 代理与企业生产环境
 
-考虑到上述提到的好处，你是否曾经想过AI代理在企业生产环境中的运作方式？哪些架构模式和基础设施组件最能支持它们？当问题不可避免地发生，代理出现[幻觉](https://www.ibm.com/topics/ai-hallucinations)、崩溃或（或许更糟糕的是）在执行关键任务时进行错误推理/规划时，我们该怎么办？
+考虑到上述提到的好处，你是否曾经想过 AI 代理在企业生产环境中的运作方式？哪些架构模式和基础设施组件最能支持它们？当问题不可避免地发生，代理出现[幻觉](https://www.ibm.com/topics/ai-hallucinations)、崩溃或（或许更糟糕的是）在执行关键任务时进行错误推理/规划时，我们该怎么办？
 
 作为高级工程师，我们需要仔细考虑上述内容。此外，我们还必须问一个更重要的问题：*我们如何定义一个多代理平台成功部署的标准是什么？*
 
-为了回答这个问题，让我们借用另一个软件工程领域的概念：来自可靠性工程的服务级目标（SLOs）。SLOs是衡量服务性能和可靠性的关键组成部分。简单来说，SLOs定义了“成功”测量与“所有”测量之间的可接受比例，并评估它们对用户旅程的影响。这些目标帮助我们确定代理及其所支持的更广泛工作流所需和预期的服务水平。
+为了回答这个问题，让我们借用另一个软件工程领域的概念：来自可靠性工程的服务级目标（SLOs）。SLOs 是衡量服务性能和可靠性的关键组成部分。简单来说，SLOs 定义了“成功”测量与“所有”测量之间的可接受比例，并评估它们对用户旅程的影响。这些目标帮助我们确定代理及其所支持的更广泛工作流所需和预期的服务水平。
 
-那么，SLOs与我们的AI代理讨论有何关系？
+那么，SLOs 与我们的 AI 代理讨论有何关系？
 
-以简化的视角来看，让我们考虑两个重要的目标——“可用性”和“准确性”——针对代理，并识别出一些更细化的SLOs，它们有助于实现这些目标：
+以简化的视角来看，让我们考虑两个重要的目标——“可用性”和“准确性”——针对代理，并识别出一些更细化的 SLOs，它们有助于实现这些目标：
 
-1.  **可用性：** 这指的是代理或平台接收到的请求中，*部分*成功响应（例如HTTP 200状态码）的比例。从历史上看，底层服务器的正常运行时间和ping成功率（即时间性度量）是可用性的关键相关指标。但随着微服务的兴起，名义上的正常运行时间变得不那么重要。现代系统更关注用户请求的成功响应与失败响应的数量，以此作为更准确的可用性代理。其他相关指标可以被认为是[**延迟**](https://sre.google/workbook/implementing-slos/#:~:text=A%20latency%20SLO%20can%20capture,for%20different%20types%20of%20services.) 和 **吞吐量**。
+1.  **可用性：** 这指的是代理或平台接收到的请求中，*部分*成功响应（例如 HTTP 200 状态码）的比例。从历史上看，底层服务器的正常运行时间和 ping 成功率（即时间性度量）是可用性的关键相关指标。但随着微服务的兴起，名义上的正常运行时间变得不那么重要。现代系统更关注用户请求的成功响应与失败响应的数量，以此作为更准确的可用性代理。其他相关指标可以被认为是[**延迟**](https://sre.google/workbook/implementing-slos/#:~:text=A%20latency%20SLO%20can%20capture,for%20different%20types%20of%20services.) 和 **吞吐量**。
 
-1.  **准确性：** 另一方面，准确性不仅仅是代理返回客户端响应的速度和一致性，更重要的是它们在没有人工验证的情况下，能从业务角度上多么*正确*地执行任务并返回数据。传统系统也会跟踪类似的SLOs，如数据的正确性和质量。
+1.  **准确性：** 另一方面，准确性不仅仅是代理返回客户端响应的速度和一致性，更重要的是它们在没有人工验证的情况下，能从业务角度上多么*正确*地执行任务并返回数据。传统系统也会跟踪类似的 SLOs，如数据的正确性和质量。
 
 上述两个目标的衡量通常通过在运行时提交内部应用程序指标来进行，这些指标可以是在设定的时间间隔内提交（例如每 10 分钟），或响应事件（用户请求、上游调用等）。例如，[合成](https://www.dynatrace.com/news/blog/what-is-synthetic-testing/)探测可以用于模拟用户请求、触发相关事件并监控相关数据。这里需要探索的**关键** **思想**是：传统系统在很大程度上是确定性的，因此通常更容易对其进行仪表化、探测和评估。另一方面，在我们这个美丽而非确定性的生成 AI 代理世界中，情况未必如此。
 
@@ -86,7 +86,7 @@ blog.langchain.dev](https://blog.langchain.dev/planning-for-agents/?source=post_
 
 通过应用这些原则，我们可以为 AI 智能体创建一个稳健的框架，将这一概念转变为“多智能体即服务”（MAaaS）。这种方法借鉴了基于云的应用最佳实践，重新定义了智能体的设计、部署和管理方式。
 
-![](../Images/6c95c0fa65c7c8f30f0ba535e39a5655.png)
+![](img/6c95c0fa65c7c8f30f0ba535e39a5655.png)
 
 图片来源：作者
 
@@ -94,33 +94,33 @@ blog.langchain.dev](https://blog.langchain.dev/planning-for-agents/?source=post_
 
 +   **面向服务的架构：** 将代理设计为可以轻松集成到现有系统中的服务。
 
-+   **API网关：** 使用API网关管理和保护客户端与代理之间的流量。
++   **API 网关：** 使用 API 网关管理和保护客户端与代理之间的流量。
 
 +   **弹性基础设施：** 利用能够根据需求弹性扩展或缩减资源的云基础设施。
 
 +   **托管服务：** 利用托管服务来管理数据库、向量存储、消息传递和机器学习，减少运营负担。
 
-+   **集中监控：** 使用集中监控解决方案（例如CloudWatch、Prometheus、Grafana）来跟踪代理的健康状况和性能。
++   **集中监控：** 使用集中监控解决方案（例如 CloudWatch、Prometheus、Grafana）来跟踪代理的健康状况和性能。
 
 为了突出这一点，我们将演示一个简单的多代理系统：一个辩论平台。
 
 ## 示例：多代理辩论系统
 
-我们设计了一个多代理辩论系统来展示MAaaS的实际应用。辩论的主题是*AI对就业市场的影响*。设置中有三个代理：
+我们设计了一个多代理辩论系统来展示 MAaaS 的实际应用。辩论的主题是*AI 对就业市场的影响*。设置中有三个代理：
 
-+   队伍A，支持AI对工作的益处
++   队伍 A，支持 AI 对工作的益处
 
-+   队伍B，持反对意见
++   队伍 B，持反对意见
 
 +   主持人管理辩论，在八轮之后或当讨论变得冗余时结束辩论。
 
-专注于系统架构，我们使用[PhiData](https://www.phidata.com/)创建代理，并通过AWS弹性Kubernetes服务（EKS）进行部署，以确保高可用性。代理活动通过AWS CloudWatch进行监控，EKS的服务发现确保代理之间无缝通信。重要的是，对话历史存储在数据库中，这样任何备份代理在发生故障时都可以不中断地继续对话。这种弹性通过消息队列得到增强，消息队列确保在完全消费消息之前不会处理它们，从而确保数据完整性。为了保持对话流畅，每个代理目前仅限于一个副本，尽管Kubernetes会确保在Pod宕机时始终保持所需的状态。
+专注于系统架构，我们使用[PhiData](https://www.phidata.com/)创建代理，并通过 AWS 弹性 Kubernetes 服务（EKS）进行部署，以确保高可用性。代理活动通过 AWS CloudWatch 进行监控，EKS 的服务发现确保代理之间无缝通信。重要的是，对话历史存储在数据库中，这样任何备份代理在发生故障时都可以不中断地继续对话。这种弹性通过消息队列得到增强，消息队列确保在完全消费消息之前不会处理它们，从而确保数据完整性。为了保持对话流畅，每个代理目前仅限于一个副本，尽管 Kubernetes 会确保在 Pod 宕机时始终保持所需的状态。
 
-![](../Images/e636989850513f6f2c4fc988c33a0a83.png)
+![](img/e636989850513f6f2c4fc988c33a0a83.png)
 
 作者提供的图片
 
-为了让用户能够在本地尝试系统，我们创建了一个MiniKube部署YAML文件。在这个简化版本中，我们去掉了postgres数据库。相反，每个代理将临时将其对话历史存储在内存中。这个调整使系统更加轻量化，并且便于本地部署，同时仍展示了核心功能。你需要先在系统上安装[MiniKube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fbinary+download)、[Ollama](https://ollama.com/download)和[kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)。
+为了让用户能够在本地尝试系统，我们创建了一个 MiniKube 部署 YAML 文件。在这个简化版本中，我们去掉了 postgres 数据库。相反，每个代理将临时将其对话历史存储在内存中。这个调整使系统更加轻量化，并且便于本地部署，同时仍展示了核心功能。你需要先在系统上安装[MiniKube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fbinary+download)、[Ollama](https://ollama.com/download)和[kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)。
 
 将上述内容保存为名为`deploy.yml`的文件，然后运行：
 
@@ -130,7 +130,7 @@ $ ollama run llama3
 $ kubectl apply -f deploy.yml
 ```
 
-启动辩论（MiniKube在基于Linux的系统与Windows系统上表现略有不同）：
+启动辩论（MiniKube 在基于 Linux 的系统与 Windows 系统上表现略有不同）：
 
 ```py
 $ kubectl get pods
@@ -153,7 +153,7 @@ $ kubectl delete -f .\minikube-deploy.yml
 
 ## 结论
 
-对多智能体系统的兴趣为创新和效率开辟了诸多可能性。通过利用云原生原则和最佳实践，我们可以创建可扩展、具有成本效益、安全且高度可用的多智能体系统。MAaaS范式不仅与现代软件工程原则一致，而且为更复杂且适合生产的AI应用铺平了道路。在我们继续探索和完善这些概念的过程中，多智能体系统在各个行业中变革的潜力变得越来越有前景。
+对多智能体系统的兴趣为创新和效率开辟了诸多可能性。通过利用云原生原则和最佳实践，我们可以创建可扩展、具有成本效益、安全且高度可用的多智能体系统。MAaaS 范式不仅与现代软件工程原则一致，而且为更复杂且适合生产的 AI 应用铺平了道路。在我们继续探索和完善这些概念的过程中，多智能体系统在各个行业中变革的潜力变得越来越有前景。
 
 *注意：本文由* [*Sam Rajaei*](https://www.linkedin.com/in/saman-rajaei-24315087/) *和* [*Guanyi Li*](https://www.linkedin.com/in/guanyi-li-91662016/)* 合作撰写。*
 

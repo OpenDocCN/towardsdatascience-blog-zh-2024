@@ -1,62 +1,62 @@
-# 如何充分利用LLM生产数据：模拟用户反馈
+# 如何充分利用 LLM 生产数据：模拟用户反馈
 
-> 原文：[https://towardsdatascience.com/how-to-make-the-most-out-of-llm-production-data-simulated-user-feedback-843c444febc7?source=collection_archive---------6-----------------------#2024-04-11](https://towardsdatascience.com/how-to-make-the-most-out-of-llm-production-data-simulated-user-feedback-843c444febc7?source=collection_archive---------6-----------------------#2024-04-11)
+> 原文：[`towardsdatascience.com/how-to-make-the-most-out-of-llm-production-data-simulated-user-feedback-843c444febc7?source=collection_archive---------6-----------------------#2024-04-11`](https://towardsdatascience.com/how-to-make-the-most-out-of-llm-production-data-simulated-user-feedback-843c444febc7?source=collection_archive---------6-----------------------#2024-04-11)
 
-## 一种新颖的方法，通过使用生产数据来模拟用户反馈，以测试和评估您的LLM应用
+## 一种新颖的方法，通过使用生产数据来模拟用户反馈，以测试和评估您的 LLM 应用
 
-[](https://medium.com/@pasquale_68605?source=post_page---byline--843c444febc7--------------------------------)[![Pasquale Antonante, Ph.D.](../Images/97733117413b3daeb79886e171ab30c9.png)](https://medium.com/@pasquale_68605?source=post_page---byline--843c444febc7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--843c444febc7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--843c444febc7--------------------------------) [Pasquale Antonante, Ph.D.](https://medium.com/@pasquale_68605?source=post_page---byline--843c444febc7--------------------------------)
+[](https://medium.com/@pasquale_68605?source=post_page---byline--843c444febc7--------------------------------)![Pasquale Antonante, Ph.D.](https://medium.com/@pasquale_68605?source=post_page---byline--843c444febc7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--843c444febc7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--843c444febc7--------------------------------) [Pasquale Antonante, Ph.D.](https://medium.com/@pasquale_68605?source=post_page---byline--843c444febc7--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--843c444febc7--------------------------------) ·阅读时间9分钟·2024年4月11日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--843c444febc7--------------------------------) ·阅读时间 9 分钟·2024 年 4 月 11 日
 
 --
 
-![](../Images/17386b21ff3d693432dc70e815185505.png)
+![](img/17386b21ff3d693432dc70e815185505.png)
 
-图片由作者和ChatGPT提供。“两只羊驼的图像，一只竖起大拇指，另一只竖起大拇指向下”提示。ChatGPT，4，OpenAI，2024年4月10日。[https://chat.openai.com.](https://chat.openai.com./)
+图片由作者和 ChatGPT 提供。“两只羊驼的图像，一只竖起大拇指，另一只竖起大拇指向下”提示。ChatGPT，4，OpenAI，2024 年 4 月 10 日。[`chat.openai.com.`](https://chat.openai.com./)
 
-一系列博客文章，分享我们如何评估和改进您的GenAI应用管道的观点
+一系列博客文章，分享我们如何评估和改进您的 GenAI 应用管道的观点
 
-*(由Pasquale Antonante和Yi Zhang在Relari.ai撰写)*
+*(由 Pasquale Antonante 和 Yi Zhang 在 Relari.ai 撰写)*
 
-LLM应用开发的世界总是变化无常——每周都有新的技巧、模型和应用出现。随着技术的进步，用户的期望也在不断提高。保持领先地位是确保用户不断回归的关键。
+LLM 应用开发的世界总是变化无常——每周都有新的技巧、模型和应用出现。随着技术的进步，用户的期望也在不断提高。保持领先地位是确保用户不断回归的关键。
 
 现在的问题变成了：如何衡量性能提升？当你调整提示、调整温度或更换模型时，你是否曾停下来思考过，“我的用户真的会更喜欢这个吗？”
 
-在这篇文章中，我们将详细介绍如何利用早期部署中的应用内用户反馈（或内部人工评估）快速塑造产品的未来版本。我们将讨论传统反馈机制的局限性，并介绍一种新技术，使AI开发者能够直接在离线测试和迭代中使用反馈数据（在新的部署之前），从而使开发周期更加灵活，能够更好地响应用户偏好。
+在这篇文章中，我们将详细介绍如何利用早期部署中的应用内用户反馈（或内部人工评估）快速塑造产品的未来版本。我们将讨论传统反馈机制的局限性，并介绍一种新技术，使 AI 开发者能够直接在离线测试和迭代中使用反馈数据（在新的部署之前），从而使开发周期更加灵活，能够更好地响应用户偏好。
 
 # 理解用户反馈的价值
 
 ## 为什么用户反馈很重要以及它的挑战
 
-在开发基于大语言模型（LLM）的应用程序时，我们常常会遇到一个特定的问题需要解决，*例如*，某种特定类型的问题准确度较低。当我们在调整提示语、参数、架构等方面进行实验时，我们希望评估新流程的表现，特别是用户是否会喜欢您应用程序的新版本。最直接的方式是通过A/B测试每个变化并收集用户的反馈数据，如点赞/点踩、评分或书面评论，但实际上，由于以下几个原因，这会面临一些挑战：
+在开发基于大语言模型（LLM）的应用程序时，我们常常会遇到一个特定的问题需要解决，*例如*，某种特定类型的问题准确度较低。当我们在调整提示语、参数、架构等方面进行实验时，我们希望评估新流程的表现，特别是用户是否会喜欢您应用程序的新版本。最直接的方式是通过 A/B 测试每个变化并收集用户的反馈数据，如点赞/点踩、评分或书面评论，但实际上，由于以下几个原因，这会面临一些挑战：
 
-1.  **收集缓慢：**除非您的应用程序已经有了大量的用户流量，否则您无法获得太多的反馈数据。据我们的客户反馈，AI应用中的反馈参与率通常在<1%（正常）到~10%（优秀，通常通过精心设计的UI/UX来鼓励更多的反馈）之间。因此，可能需要很长时间才能收集到足够的反馈数据，从而做出统计学上可靠的判断，判断某个变化是否在用户中产生了积极或消极的反响。
+1.  **收集缓慢：**除非您的应用程序已经有了大量的用户流量，否则您无法获得太多的反馈数据。据我们的客户反馈，AI 应用中的反馈参与率通常在<1%（正常）到~10%（优秀，通常通过精心设计的 UI/UX 来鼓励更多的反馈）之间。因此，可能需要很长时间才能收集到足够的反馈数据，从而做出统计学上可靠的判断，判断某个变化是否在用户中产生了积极或消极的反响。
 
-1.  **破坏用户关系的风险：**直接与用户测试是获得洞察的最有效方式，但如果用户遇到不满意的版本，确实有破坏与他们关系的风险。用户判断可能非常迅速，可能会在出现错误的第一时间就放弃您的应用程序。因此，开发者往往选择更保守或影响较小的变化进行A/B测试，保留更大胆、更具创新性的更新供内部测试。这种方法既允许实验，又能最大程度地减少疏远用户群体的风险。
+1.  **破坏用户关系的风险：**直接与用户测试是获得洞察的最有效方式，但如果用户遇到不满意的版本，确实有破坏与他们关系的风险。用户判断可能非常迅速，可能会在出现错误的第一时间就放弃您的应用程序。因此，开发者往往选择更保守或影响较小的变化进行 A/B 测试，保留更大胆、更具创新性的更新供内部测试。这种方法既允许实验，又能最大程度地减少疏远用户群体的风险。
 
-1.  **测量不一致：**由于大多数AI应用程序具有相当大的开放性，考虑到不同用户可能以不同的方式与您的产品互动，因此通常很难获得真正的“同类对比”的反馈数据。因此，基于LLM的应用程序的反馈数据A/B测试往往比传统应用程序的反馈数据更加嘈杂。
+1.  **测量不一致：**由于大多数 AI 应用程序具有相当大的开放性，考虑到不同用户可能以不同的方式与您的产品互动，因此通常很难获得真正的“同类对比”的反馈数据。因此，基于 LLM 的应用程序的反馈数据 A/B 测试往往比传统应用程序的反馈数据更加嘈杂。
 
 在下一节中，我们将介绍一种新颖的方法，已经被我们部署到多个客户身上，帮助他们在离线开发中充分利用用户反馈数据。
 
 # 一种新颖的方法：模拟用户反馈
 
-针对这些用户反馈收集的挑战，我们开发了一种新颖的方法，通过少量的用户（或内部标注的）反馈数据来模拟用户反馈。具体来说，我们使用度量集成和符合性预测来学习用户偏好，并在开发阶段离线使用它们。其核心是我们学习用户如何权衡不同的标准（例如语气、简洁性等），并利用符合性预测提供预测来量化信心。这种方法通过提供一种在完全实施新功能或更改之前预测用户可能反应的方式，极大地加速了LLM应用程序的开发。
+针对这些用户反馈收集的挑战，我们开发了一种新颖的方法，通过少量的用户（或内部标注的）反馈数据来模拟用户反馈。具体来说，我们使用度量集成和符合性预测来学习用户偏好，并在开发阶段离线使用它们。其核心是我们学习用户如何权衡不同的标准（例如语气、简洁性等），并利用符合性预测提供预测来量化信心。这种方法通过提供一种在完全实施新功能或更改之前预测用户可能反应的方式，极大地加速了 LLM 应用程序的开发。
 
-为了评估其有效性，我们将此方法与使用单一LLM调用来评估响应不同方面并做出判断的传统方法进行了比较。为了比较这两种方法（建议的方法与单一LLM调用），我们使用了[Unified-Feedback](https://huggingface.co/datasets/llm-blender/Unified-Feedback)数据集进行实验。我们使用Kendall tau这一排名相关性度量，比较了我们的用户反馈模拟和单一LLM调用方法产生的排名与由人工评估建立的真实排名。这一分析不仅帮助我们评估了各方法之间的一致性，还可以比较每种方法与人类排名的偏好顺序。
+为了评估其有效性，我们将此方法与使用单一 LLM 调用来评估响应不同方面并做出判断的传统方法进行了比较。为了比较这两种方法（建议的方法与单一 LLM 调用），我们使用了[Unified-Feedback](https://huggingface.co/datasets/llm-blender/Unified-Feedback)数据集进行实验。我们使用 Kendall tau 这一排名相关性度量，比较了我们的用户反馈模拟和单一 LLM 调用方法产生的排名与由人工评估建立的真实排名。这一分析不仅帮助我们评估了各方法之间的一致性，还可以比较每种方法与人类排名的偏好顺序。
 
-**我们的实验表明，用户反馈模拟与人类评判之间的相关性达到了93%，远远超过了单一LLM调用方法的约70%的相关性。这表明，在排名方面，模拟的用户反馈提供了更接近人类判断的近似结果。**
+**我们的实验表明，用户反馈模拟与人类评判之间的相关性达到了 93%，远远超过了单一 LLM 调用方法的约 70%的相关性。这表明，在排名方面，模拟的用户反馈提供了更接近人类判断的近似结果。**
 
-![](../Images/60384adfaaf39c33f4a4ee9b84534c31.png)
+![](img/60384adfaaf39c33f4a4ee9b84534c31.png)
 
-两种方法的Kendall tau值。较高的值表示该方法生成的排名与人类判断之间的相关性更强。模拟用户反馈（建议的方法，浅蓝色）在识别改进时与人类的意见高度一致，表明它更准确地反映了人类在识别和评估改进方面的判断。图像由作者提供。
+两种方法的 Kendall tau 值。较高的值表示该方法生成的排名与人类判断之间的相关性更强。模拟用户反馈（建议的方法，浅蓝色）在识别改进时与人类的意见高度一致，表明它更准确地反映了人类在识别和评估改进方面的判断。图像由作者提供。
 
 模拟用户反馈表现更好的原因有两个：
 
 1.  它通过实际用户反馈学习不同标准的重要性，使得该方法能够根据您的使用案例进行定制。
 
-1.  虽然个别标准可能出现在LLM的训练集里，但不同标准的复杂（且可能是庞大的）集合可能并未出现在训练数据中，这使得LLM评估器更难准确判断。
+1.  虽然个别标准可能出现在 LLM 的训练集里，但不同标准的复杂（且可能是庞大的）集合可能并未出现在训练数据中，这使得 LLM 评估器更难准确判断。
 
-虽然单一LLM调用能够识别管道中的重大改进，但它未必能发现成熟管道中至关重要的、更为频繁的小改进。然而，模拟的用户反馈与人类判断具有高度相关性，使其能够发现这些渐进的改进。
+虽然单一 LLM 调用能够识别管道中的重大改进，但它未必能发现成熟管道中至关重要的、更为频繁的小改进。然而，模拟的用户反馈与人类判断具有高度相关性，使其能够发现这些渐进的改进。
 
 作为旁注，虽然我们本可以利用这些数据来微调一个大语言模型（LLM），但这种方法通常需要更多的数据，并且不如直观易懂。
 
@@ -66,7 +66,7 @@ LLM应用开发的世界总是变化无常——每周都有新的技巧、模�
 
 在本节中，我们将展示如何使用开源库[continuous-eval](https://github.com/relari-ai/continuous-eval)来创建模拟用户反馈。
 
-以一个问答聊天机器人应用为例。部署后，用户开始用点赞或点踩来评分反馈，表示需要提升性能。对于这个例子，我们将使用`correctness`这个在continuous-eval中定义的示例：
+以一个问答聊天机器人应用为例。部署后，用户开始用点赞或点踩来评分反馈，表示需要提升性能。对于这个例子，我们将使用`correctness`这个在 continuous-eval 中定义的示例：
 
 ```py
 dataset = Dataset(example_data_downloader("correctness"))
@@ -177,11 +177,11 @@ datasplit = DataSplit(
 predictor = EnsembleMetric(training=datasplit.train, calibration=datasplit.calibration)
 ```
 
-这个模拟用户反馈预测器能够在测试集上正确预测人类反馈的准确率为96.67%。
+这个模拟用户反馈预测器能够在测试集上正确预测人类反馈的准确率为 96.67%。
 
 我们可以利用所提出的方法更好地理解用户关注的重点。下面是通过模拟用户反馈预测器学到的每个指标的重要性。
 
-![](../Images/6404708dceb38cba2037dde13c071620.png)
+![](img/6404708dceb38cba2037dde13c071620.png)
 
 通过模拟用户反馈预测器学到的每个指标的重要性。图片由作者提供。
 
@@ -191,7 +191,7 @@ predictor = EnsembleMetric(training=datasplit.train, calibration=datasplit.calib
 
 收集用户反馈是一个挑战，但它是大型语言模型（LLM）开发者最重要的信息。通过在离线测试中模拟用户反馈，我们显著缩短了反馈从实际场景到开发者之间的传递时间，同时保持了积极的用户关系。
 
-在实践中，我们的方法已被证明能够与实际人类反应高度一致，超过了传统依赖于孤立LLM响应的方法。这一策略使得生成性AI应用得以渐进式改进，促进了持续的优化，并与用户期望保持更高的一致性。
+在实践中，我们的方法已被证明能够与实际人类反应高度一致，超过了传统依赖于孤立 LLM 响应的方法。这一策略使得生成性 AI 应用得以渐进式改进，促进了持续的优化，并与用户期望保持更高的一致性。
 
 —
 
@@ -207,12 +207,12 @@ predictor = EnsembleMetric(training=datasplit.train, calibration=datasplit.calib
 
 # 早期帖子
 
-+   [RAG管道评估实用指南 第1部分：检索](https://medium.com/p/27a472b09893)
++   [RAG 管道评估实用指南 第一部分：检索](https://medium.com/p/27a472b09893)
 
-+   [RAG管道评估实践指南第2部分：生成](https://medium.com/relari/a-practical-guide-to-rag-evaluation-part-2-generation-c79b1bde0f5d)
++   [RAG 管道评估实践指南第二部分：生成](https://medium.com/relari/a-practical-guide-to-rag-evaluation-part-2-generation-c79b1bde0f5d)
 
-+   [黄金数据集对LLM管道评估有多重要？](https://medium.com/relari/how-important-is-a-golden-dataset-for-llm-pipeline-evaluation-4ef6deb14dc5)
++   [黄金数据集对 LLM 管道评估有多重要？](https://medium.com/relari/how-important-is-a-golden-dataset-for-llm-pipeline-evaluation-4ef6deb14dc5)
 
 +   [案例研究：无参考与基于参考的评估](https://medium.com/relari/case-study-reference-free-vs-reference-based-evaluation-of-rag-pipeline-9a49ef49866c)
 
-+   [如何评估复杂的GenAI应用：一种细化方法](https://medium.com/relari/how-to-evaluate-complex-genai-apps-a-granular-approach-0ab929d5b3e2)
++   [如何评估复杂的 GenAI 应用：一种细化方法](https://medium.com/relari/how-to-evaluate-complex-genai-apps-a-granular-approach-0ab929d5b3e2)

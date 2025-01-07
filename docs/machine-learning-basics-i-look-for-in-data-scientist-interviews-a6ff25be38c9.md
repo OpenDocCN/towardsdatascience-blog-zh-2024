@@ -1,16 +1,16 @@
 # 我在数据科学家面试中关注的机器学习基础知识
 
-> 原文：[https://towardsdatascience.com/machine-learning-basics-i-look-for-in-data-scientist-interviews-a6ff25be38c9?source=collection_archive---------0-----------------------#2024-12-04](https://towardsdatascience.com/machine-learning-basics-i-look-for-in-data-scientist-interviews-a6ff25be38c9?source=collection_archive---------0-----------------------#2024-12-04)
+> 原文：[`towardsdatascience.com/machine-learning-basics-i-look-for-in-data-scientist-interviews-a6ff25be38c9?source=collection_archive---------0-----------------------#2024-12-04`](https://towardsdatascience.com/machine-learning-basics-i-look-for-in-data-scientist-interviews-a6ff25be38c9?source=collection_archive---------0-----------------------#2024-12-04)
 
 ## 让我们共同拓展科学的广度。
 
-[](https://medium.com/@fmnobar?source=post_page---byline--a6ff25be38c9--------------------------------)[![Farzad Nobar](../Images/2d75209693b712300e6f0796bd2487d0.png)](https://medium.com/@fmnobar?source=post_page---byline--a6ff25be38c9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a6ff25be38c9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a6ff25be38c9--------------------------------) [Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--a6ff25be38c9--------------------------------)
+[](https://medium.com/@fmnobar?source=post_page---byline--a6ff25be38c9--------------------------------)![Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--a6ff25be38c9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a6ff25be38c9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a6ff25be38c9--------------------------------) [Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--a6ff25be38c9--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a6ff25be38c9--------------------------------) ·阅读时长39分钟·2024年12月4日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a6ff25be38c9--------------------------------) ·阅读时长 39 分钟·2024 年 12 月 4 日
 
 --
 
-![](../Images/070f8e471fe19971246fb89df0d5b5a0.png)
+![](img/070f8e471fe19971246fb89df0d5b5a0.png)
 
 图片由[Matt Wang](https://unsplash.com/@iseeworld?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源于[Unsplash](https://unsplash.com/photos/water-waves-on-black-and-white-textile-Z9NyRzMxicU?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

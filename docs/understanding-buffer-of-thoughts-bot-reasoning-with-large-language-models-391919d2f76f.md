@@ -1,28 +1,28 @@
 # 理解思维缓冲区（BoT）——与大型语言模型推理
 
-> 原文：[https://towardsdatascience.com/understanding-buffer-of-thoughts-bot-reasoning-with-large-language-models-391919d2f76f?source=collection_archive---------1-----------------------#2024-06-14](https://towardsdatascience.com/understanding-buffer-of-thoughts-bot-reasoning-with-large-language-models-391919d2f76f?source=collection_archive---------1-----------------------#2024-06-14)
+> 原文：[`towardsdatascience.com/understanding-buffer-of-thoughts-bot-reasoning-with-large-language-models-391919d2f76f?source=collection_archive---------1-----------------------#2024-06-14`](https://towardsdatascience.com/understanding-buffer-of-thoughts-bot-reasoning-with-large-language-models-391919d2f76f?source=collection_archive---------1-----------------------#2024-06-14)
 
 ## 一种用于复杂推理的新提示工具，与思维链（CoT）和思维树（ToT）进行比较
 
-[](https://medium.com/@itshesamsheikh?source=post_page---byline--391919d2f76f--------------------------------)[![Hesam Sheikh](../Images/b8d5f4f285eef77634e4c1d4321580ed.png)](https://medium.com/@itshesamsheikh?source=post_page---byline--391919d2f76f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--391919d2f76f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--391919d2f76f--------------------------------) [Hesam Sheikh](https://medium.com/@itshesamsheikh?source=post_page---byline--391919d2f76f--------------------------------)
+[](https://medium.com/@itshesamsheikh?source=post_page---byline--391919d2f76f--------------------------------)![Hesam Sheikh](https://medium.com/@itshesamsheikh?source=post_page---byline--391919d2f76f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--391919d2f76f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--391919d2f76f--------------------------------) [Hesam Sheikh](https://medium.com/@itshesamsheikh?source=post_page---byline--391919d2f76f--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--391919d2f76f--------------------------------) ·阅读时间：10分钟·2024年6月14日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--391919d2f76f--------------------------------) ·阅读时间：10 分钟·2024 年 6 月 14 日
 
 --
 
 > 如果你不是会员，[**免费阅读！**](https://hesamsheikh.substack.com/) **✨**
 
-![](../Images/1dd8cf331a7b47649dd087344982ff56.png)
+![](img/1dd8cf331a7b47649dd087344982ff56.png)
 
 图片由[Etienne Girardet](https://unsplash.com/@etiennegirardet?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 提升在复杂推理任务中的能力并避免幻觉依然是大型语言模型（LLMs）中的一个主要研究课题。尽管进行了大量努力，LLMs 仍然在广泛推理能力上需要帮助。传统方法，如**思维链（CoT）**或**思维树（ToT）**，通常需要多个假设或大量的反复提示，这意味着需要强大的计算资源。
 
-![](../Images/acb9be520c3976344727f77d1cbdfb81.png)
+![](img/acb9be520c3976344727f77d1cbdfb81.png)
 
 思维缓冲区（BoT）与其他提示方法的比较。（来源：[论文](https://arxiv.org/abs/2406.04271)）
 
-论文中提出的新的方法，[**思维缓冲区：基于大语言模型的思维增强推理**](https://arxiv.org/abs/2406.04271) **[1]**，通过一个动态、自适应的高层次思维模板库——**元缓冲区（meta-buffer）**，来应对这些局限。在BoT中，一旦用户提出一个新问题，首先对问题进行简化和分析，以提取关键信息，然后从动态数据集中检索与之相关的思维模板。这使得通过修改和复杂的推理模式实现自适应和高效的问题解决。根据原始论文，效果如此显著，*“****Llama3–8B+BoT*** *有潜力超越* ***Llama3–70B模型。”***
+论文中提出的新的方法，[**思维缓冲区：基于大语言模型的思维增强推理**](https://arxiv.org/abs/2406.04271) **[1]**，通过一个动态、自适应的高层次思维模板库——**元缓冲区（meta-buffer）**，来应对这些局限。在 BoT 中，一旦用户提出一个新问题，首先对问题进行简化和分析，以提取关键信息，然后从动态数据集中检索与之相关的思维模板。这使得通过修改和复杂的推理模式实现自适应和高效的问题解决。根据原始论文，效果如此显著，*“****Llama3–8B+BoT*** *有潜力超越* ***Llama3–70B 模型。”***
 
 **BoT**通过以下方式，在与其模板相似的问题中实现高效推理：
 
@@ -32,9 +32,9 @@
 
 +   (3) 动态更新其模板库，以确保在遇到新任务时能够不断发展。
 
-在本文中，我们将首先了解BoT如何工作的一般概述，理解每个关键部分的功能，并通过一个示例测试该过程。
+在本文中，我们将首先了解 BoT 如何工作的一般概述，理解每个关键部分的功能，并通过一个示例测试该过程。
 
-# BoT是如何工作的？
+# BoT 是如何工作的？
 
 一般的思维增强推理过程（如下图所示）从**问题提炼**开始，分析并浓缩传入的任务，提取出关键元素和约束条件，进而创建简化的问题陈述。
 
@@ -42,9 +42,9 @@
 
 在整个过程中，**缓冲区管理器（Buffer Manager）**会主动监控**元缓冲区（Meta-Buffer）**。一旦检测到元缓冲区中未包含的新见解，**缓冲区管理器（Buffer Manager）**会更新元缓冲区，确保思维模板库的持续进化。
 
-![](../Images/32292bd0be51f32c6798de545021c314.png)
+![](img/32292bd0be51f32c6798de545021c314.png)
 
-BoT过程。（来源：[论文](http://Paper)）
+BoT 过程。（来源：[论文](http://Paper)）
 
 让我们逐一了解这些关键部分，深入探讨每一部分的细节：
 
@@ -58,7 +58,7 @@ BoT过程。（来源：[论文](http://Paper)）
 
 问题提炼器（Problem Distiller）通过元提示ϕ减轻了大语言模型（LLM）识别和提取问题的关键信息与约束的负担：
 
-![](../Images/944bc53eb01b77fdf82f8608b1a19b46.png)
+![](img/944bc53eb01b77fdf82f8608b1a19b46.png)
 
 （来源：[论文](http://Paper)）
 
@@ -88,19 +88,19 @@ query input key information as input to solve the problem as an example.
 
 ## 元缓冲区（Meta-Buffer）
 
-元缓冲区是一个中央数据库，存储着高级的思维模板。这些模板是表示各种问题解决过程的高级抽象。其理念是LLM可以利用过去的问题和见解来解决当前的挑战。最棒的是，元缓冲区会动态更新，以确保新的未见过的问题也能被包括在内。元缓冲区不会强制思维模板遵循特定的指令。
+元缓冲区是一个中央数据库，存储着高级的思维模板。这些模板是表示各种问题解决过程的高级抽象。其理念是 LLM 可以利用过去的问题和见解来解决当前的挑战。最棒的是，元缓冲区会动态更新，以确保新的未见过的问题也能被包括在内。元缓冲区不会强制思维模板遵循特定的指令。
 
-**模板检索**：一旦任务被提炼，BoT会遍历思维模板并抓取与任务最相似的一个。通过计算任务与思维模板之间的嵌入相似度来完成此操作。
+**模板检索**：一旦任务被提炼，BoT 会遍历思维模板并抓取与任务最相似的一个。通过计算任务与思维模板之间的嵌入相似度来完成此操作。
 
-![](../Images/3877ad60c789b210ee2cd5f42b642b33.png)
+![](img/3877ad60c789b210ee2cd5f42b642b33.png)
 
-检索器会计算输入任务f(xd)的嵌入与模板f(DTi)的嵌入之间的相似度。（来源：[论文](https://arxiv.org/abs/2406.04271)）
+检索器会计算输入任务 f(xd)的嵌入与模板 f(DTi)的嵌入之间的相似度。（来源：[论文](https://arxiv.org/abs/2406.04271)）
 
 检索器会计算输入任务**f(xd)**的嵌入与模板**f(D*Ti*)**的嵌入之间的相似度。仅在相似度超过某个阈值δ（0.5–0.7）时才会进行此操作。如果没有思维模板与任务的相似度超过δ阈值，则**xd**会被识别为新任务。根据任务是否是新任务，将选择以下两条路径之一：
 
 +   如果任务与某个思维模板相似，则会使用实例化提示（可以在论文中查看）用提炼过的信息实例化该模板。这个实例化过程可以表示为
 
-![](../Images/872661a6c9986487d31d5d362f937a78.png)
+![](img/872661a6c9986487d31d5d362f937a78.png)
 
 实例化推理。（来源：[论文](https://arxiv.org/abs/2406.04271)）
 
@@ -110,7 +110,7 @@ query input key information as input to solve the problem as an example.
 
 缓冲区管理器在维护和增强元缓冲区中发挥着至关重要的作用。根据从解决任务中获得的新见解和结果，它更新思维模板。同时，每当解决一个新的或截然不同的问题时，缓冲区管理器会评估是否创建一个新的思维模板。这是为了确保思维模板始终紧扣主题，不冗余。
 
-![](../Images/64359637991b99ea155bceb95391d9d6.png)
+![](img/64359637991b99ea155bceb95391d9d6.png)
 
 检查新生成的模板是否与现有模板相似。（来源：论文）
 
@@ -120,7 +120,7 @@ query input key information as input to solve the problem as an example.
 
 BoT 相较于之前的方法有什么突出之处？论文的作者在多个数据集和不同任务上评估了各种方法，如数据理解、Python 编程难题、语言学年级数学（MGSM）等。结果显示，**BoT** 在几乎所有任务中都表现出意想不到的优势。
 
-![](../Images/498b49fc3dd24dbe76978a7fb2099b3f.png)
+![](img/498b49fc3dd24dbe76978a7fb2099b3f.png)
 
 BoT 与之前的方法比较。最佳结果（标记为蓝色）全部由 BoT 实现。（来源：[Paper](https://arxiv.org/abs/2406.04271)）
 
@@ -128,7 +128,7 @@ BoT 的关键优势之一是其效率——与多查询提示方法相比，平�
 
 > BoT+Llama3–8B 有潜力超越单一的 Llama3–70B 模型
 
-![](../Images/d343e715b3bfa85f8ddd6a75569f32f8.png)
+![](img/d343e715b3bfa85f8ddd6a75569f32f8.png)
 
 比较 BoT 在 Llama3–8B 和 70B 上的效果。已标注。（来源：[Paper](https://arxiv.org/abs/2406.04271)）
 
@@ -225,32 +225,32 @@ The result of code execution: <start> the melting in solid metals is achieved by
 "result": "<start> the alcohol goes directly from the stomach into the bloodstream <end>\n"}
 ```
 
-请注意，我使用的BoT仓库是一个演示代码，缺少原论文中提到的一些功能，比如通用思维模板、Meta-Buffer的动态更新，或者找到与用户任务最接近的模板嵌入。这些是框架的重要方面，没有它们，我们无法得出思想缓冲区在实际应用中的表现。
+请注意，我使用的 BoT 仓库是一个演示代码，缺少原论文中提到的一些功能，比如通用思维模板、Meta-Buffer 的动态更新，或者找到与用户任务最接近的模板嵌入。这些是框架的重要方面，没有它们，我们无法得出思想缓冲区在实际应用中的表现。
 
 # 最后的话
 
-总结来说，BoT在各个领域和任务中表现出色，既准确又高效。这是一种有趣的方法，通过将推理问题分解为基本限制和关键信息，并在之前的解决方案和模板基础上构建，以更好地构造任务，使LLM能够理解。
+总结来说，BoT 在各个领域和任务中表现出色，既准确又高效。这是一种有趣的方法，通过将推理问题分解为基本限制和关键信息，并在之前的解决方案和模板基础上构建，以更好地构造任务，使 LLM 能够理解。
 
-通过解决其他提示技术的一些局限性，思想缓冲区使LLM能够具备更复杂的思维模式，可能使较小的轻量级模型达到更大模型的性能水平。
+通过解决其他提示技术的一些局限性，思想缓冲区使 LLM 能够具备更复杂的思维模式，可能使较小的轻量级模型达到更大模型的性能水平。
 
-允许小型LLM实现接近大型LLM的结果是当前许多研究论文中讨论的一个关键主题。目标是采用各种提示和微调技术，以低计算量和成本提取准确的AI输出。
+允许小型 LLM 实现接近大型 LLM 的结果是当前许多研究论文中讨论的一个关键主题。目标是采用各种提示和微调技术，以低计算量和成本提取准确的 AI 输出。
 
-思想缓冲区是一个新颖且有前景的提示框架，利用一系列技术引导LLM逐步进行推理过程。思想缓冲区技术的完整实践实现尚未到来，但在此期间，可以在提供的演示GitHub仓库[2]中测试基准。
+思想缓冲区是一个新颖且有前景的提示框架，利用一系列技术引导 LLM 逐步进行推理过程。思想缓冲区技术的完整实践实现尚未到来，但在此期间，可以在提供的演示 GitHub 仓库[2]中测试基准。
 
 如果你已经读到这里，考虑继续**阅读更多**：
 
-[](/platonic-representation-hypothesis-c812813d7248?source=post_page-----391919d2f76f--------------------------------) [## 柏拉图式表征：人工智能深度网络模型是否趋同？
+[](/platonic-representation-hypothesis-c812813d7248?source=post_page-----391919d2f76f--------------------------------) ## 柏拉图式表征：人工智能深度网络模型是否趋同？
 
 ### 人工智能模型是否正在朝着现实的统一表征发展？柏拉图式表征……
 
-towardsdatascience.com](/platonic-representation-hypothesis-c812813d7248?source=post_page-----391919d2f76f--------------------------------)
+towardsdatascience.com
 
-**🌟 加入+1000人一起学习** Python、机器学习 / MLOps / 人工智能、数据科学和LLM。 [**关注我**](https://medium.com/@itshesamsheikh/subscribe)并查看我的[**X/Twitter**](https://twitter.com/itsHesamSheikh)，我每天为你更新**。**
+**🌟 加入+1000 人一起学习** Python、机器学习 / MLOps / 人工智能、数据科学和 LLM。 [**关注我**](https://medium.com/@itshesamsheikh/subscribe)并查看我的[**X/Twitter**](https://twitter.com/itsHesamSheikh)，我每天为你更新**。**
 
 感谢阅读，
 
 — Hesam
 
-[1] 杨凌、余泽、张涛、曹胜、许梦、张伟、戈恩萨雷斯、崔博（2024）。《思想缓冲区：通过大型语言模型增强的思维推理》。*arXiv*。取自[https://arxiv.org/abs/2406.04271](https://arxiv.org/abs/2406.04271)
+[1] 杨凌、余泽、张涛、曹胜、许梦、张伟、戈恩萨雷斯、崔博（2024）。《思想缓冲区：通过大型语言模型增强的思维推理》。*arXiv*。取自[`arxiv.org/abs/2406.04271`](https://arxiv.org/abs/2406.04271)
 
-[2] buffer-of-thought-llm, [https://github.com/YangLing0818/buffer-of-thought-llm](https://github.com/YangLing0818/buffer-of-thought-llm)
+[2] buffer-of-thought-llm, [`github.com/YangLing0818/buffer-of-thought-llm`](https://github.com/YangLing0818/buffer-of-thought-llm)

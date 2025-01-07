@@ -1,16 +1,16 @@
 # 帕雷托原则在数据工程中的应用
 
-> 原文：[https://towardsdatascience.com/the-pareto-principle-in-data-engineering-93e7129d9630?source=collection_archive---------5-----------------------#2024-09-26](https://towardsdatascience.com/the-pareto-principle-in-data-engineering-93e7129d9630?source=collection_archive---------5-----------------------#2024-09-26)
+> 原文：[`towardsdatascience.com/the-pareto-principle-in-data-engineering-93e7129d9630?source=collection_archive---------5-----------------------#2024-09-26`](https://towardsdatascience.com/the-pareto-principle-in-data-engineering-93e7129d9630?source=collection_archive---------5-----------------------#2024-09-26)
 
-![](../Images/c1aae7952a8bec41b477c29287512d5a.png)
+![](img/c1aae7952a8bec41b477c29287512d5a.png)
 
 数据堆栈评估的演变。图片由作者提供，使用 Open AI 制作。
 
 ## 一步前进，毫不退步
 
-[](https://medium.com/@hugolu87?source=post_page---byline--93e7129d9630--------------------------------)[![Hugo Lu](../Images/045de11463bb16ea70a816ba89118a9e.png)](https://medium.com/@hugolu87?source=post_page---byline--93e7129d9630--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--93e7129d9630--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--93e7129d9630--------------------------------) [Hugo Lu](https://medium.com/@hugolu87?source=post_page---byline--93e7129d9630--------------------------------)
+[](https://medium.com/@hugolu87?source=post_page---byline--93e7129d9630--------------------------------)![Hugo Lu](https://medium.com/@hugolu87?source=post_page---byline--93e7129d9630--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--93e7129d9630--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--93e7129d9630--------------------------------) [Hugo Lu](https://medium.com/@hugolu87?source=post_page---byline--93e7129d9630--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--93e7129d9630--------------------------------) ·6分钟阅读·2024年9月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--93e7129d9630--------------------------------) ·6 分钟阅读·2024 年 9 月 26 日
 
 --
 
@@ -20,7 +20,7 @@
 
 它来源于一位经济学家的研究，这位经济学家非常著名，以至于你在学校里也会学习到他们的内容。他们的名字是[维尔弗雷多·帕雷托](https://en.wikipedia.org/wiki/Vilfredo_Pareto)。学校里首先教给你的一个概念，也是与帕雷托同名的概念：[帕雷托效率](https://en.wikipedia.org/wiki/Pareto_efficiency)。
 
-![](../Images/7ba43a18b2492f10a052677dd7b20a34.png)
+![](img/7ba43a18b2492f10a052677dd7b20a34.png)
 
 维尔弗雷多·帕雷托。来源：维基百科
 

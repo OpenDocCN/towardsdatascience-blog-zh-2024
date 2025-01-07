@@ -1,20 +1,20 @@
 # 评估时间序列中异常值处理影响的终极指南
 
-> 原文：[https://towardsdatascience.com/evaluating-the-impact-of-outlier-treatment-in-time-series-b4fac4cabe94?source=collection_archive---------1-----------------------#2024-11-13](https://towardsdatascience.com/evaluating-the-impact-of-outlier-treatment-in-time-series-b4fac4cabe94?source=collection_archive---------1-----------------------#2024-11-13)
+> 原文：[`towardsdatascience.com/evaluating-the-impact-of-outlier-treatment-in-time-series-b4fac4cabe94?source=collection_archive---------1-----------------------#2024-11-13`](https://towardsdatascience.com/evaluating-the-impact-of-outlier-treatment-in-time-series-b4fac4cabe94?source=collection_archive---------1-----------------------#2024-11-13)
 
 ## 敏感性分析、模型验证、特征重要性等！
 
-[](https://medium.com/@saranobregafn?source=post_page---byline--b4fac4cabe94--------------------------------)[![Sara Nóbrega](../Images/0cc9fafe4cfda6f38148d169b9055e29.png)](https://medium.com/@saranobregafn?source=post_page---byline--b4fac4cabe94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b4fac4cabe94--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b4fac4cabe94--------------------------------) [Sara Nóbrega](https://medium.com/@saranobregafn?source=post_page---byline--b4fac4cabe94--------------------------------)
+[](https://medium.com/@saranobregafn?source=post_page---byline--b4fac4cabe94--------------------------------)![Sara Nóbrega](https://medium.com/@saranobregafn?source=post_page---byline--b4fac4cabe94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b4fac4cabe94--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4fac4cabe94--------------------------------) [Sara Nóbrega](https://medium.com/@saranobregafn?source=post_page---byline--b4fac4cabe94--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4fac4cabe94--------------------------------) ·阅读时长19分钟·2024年11月13日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4fac4cabe94--------------------------------) ·阅读时长 19 分钟·2024 年 11 月 13 日
 
 --
 
-![](../Images/518a0a627552487ab49fac14a71bf7d8.png)
+![](img/518a0a627552487ab49fac14a71bf7d8.png)
 
 来源：DaLL-E。
 
-*(如果你没有会员资格，请阅读本文* [*点击这里)*](/evaluating-the-impact-of-outlier-treatment-in-time-series-b4fac4cabe94?sk=ccd20bf556ad7d8ad7e8557b2d513d6e)*.*
+*(如果你没有会员资格，请阅读本文* *点击这里)**.*
 
 **设想一下：** 你正在处理时间序列数据，寻找模式并调查随时间变化的趋势。
 

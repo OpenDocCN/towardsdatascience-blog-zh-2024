@@ -1,20 +1,20 @@
-# 《在Python中进行期望改进和高斯过程回归的实操优化》
+# 《在 Python 中进行期望改进和高斯过程回归的实操优化》
 
-> 原文：[https://towardsdatascience.com/hands-on-optimization-with-expected-improvement-and-gaussian-process-regression-in-python-3c416eaa84f3?source=collection_archive---------2-----------------------#2024-06-09](https://towardsdatascience.com/hands-on-optimization-with-expected-improvement-and-gaussian-process-regression-in-python-3c416eaa84f3?source=collection_archive---------2-----------------------#2024-06-09)
+> 原文：[`towardsdatascience.com/hands-on-optimization-with-expected-improvement-and-gaussian-process-regression-in-python-3c416eaa84f3?source=collection_archive---------2-----------------------#2024-06-09`](https://towardsdatascience.com/hands-on-optimization-with-expected-improvement-and-gaussian-process-regression-in-python-3c416eaa84f3?source=collection_archive---------2-----------------------#2024-06-09)
 
-## 《在Python中进行全局优化期望改进的友好指南》
+## 《在 Python 中进行全局优化期望改进的友好指南》
 
-[](https://piero-paialunga.medium.com/?source=post_page---byline--3c416eaa84f3--------------------------------)[![Piero Paialunga](../Images/de2185596a49484698733e85114dd1ff.png)](https://piero-paialunga.medium.com/?source=post_page---byline--3c416eaa84f3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3c416eaa84f3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3c416eaa84f3--------------------------------) [Piero Paialunga](https://piero-paialunga.medium.com/?source=post_page---byline--3c416eaa84f3--------------------------------)
+[](https://piero-paialunga.medium.com/?source=post_page---byline--3c416eaa84f3--------------------------------)![Piero Paialunga](https://piero-paialunga.medium.com/?source=post_page---byline--3c416eaa84f3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3c416eaa84f3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3c416eaa84f3--------------------------------) [Piero Paialunga](https://piero-paialunga.medium.com/?source=post_page---byline--3c416eaa84f3--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3c416eaa84f3--------------------------------) ·11分钟阅读·2024年6月9日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3c416eaa84f3--------------------------------) ·11 分钟阅读·2024 年 6 月 9 日
 
 --
 
-![](../Images/8cd1badb6282fc614131f6a8ab079eed.png)
+![](img/8cd1badb6282fc614131f6a8ab079eed.png)
 
-图片由作者使用DALL·E制作
+图片由作者使用 DALL·E 制作
 
-> 免责声明：高斯出生于1777年，他比我聪明得多。很多人在我之前就写过这些内容，并且做得非常出色。这篇文章的一个很好的参考是[这篇](https://medium.com/@okanyenigun/step-by-step-guide-to-bayesian-optimization-a-python-based-approach-3558985c6818)，由[@okanyenigun](http://twitter.com/okanyenigun)写得非常好。
+> 免责声明：高斯出生于 1777 年，他比我聪明得多。很多人在我之前就写过这些内容，并且做得非常出色。这篇文章的一个很好的参考是[这篇](https://medium.com/@okanyenigun/step-by-step-guide-to-bayesian-optimization-a-python-based-approach-3558985c6818)，由[@okanyenigun](http://twitter.com/okanyenigun)写得非常好。
 
 **我的** **妻子**是商科专业，如果你问她：“**什么是人工智能？**”
 

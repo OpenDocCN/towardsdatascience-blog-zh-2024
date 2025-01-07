@@ -1,12 +1,12 @@
 # 线性规划优化：基础
 
-> 原文：[https://towardsdatascience.com/linear-programming-optimization-foundations-2f12770f66ca?source=collection_archive---------3-----------------------#2024-07-22](https://towardsdatascience.com/linear-programming-optimization-foundations-2f12770f66ca?source=collection_archive---------3-----------------------#2024-07-22)
+> 原文：[`towardsdatascience.com/linear-programming-optimization-foundations-2f12770f66ca?source=collection_archive---------3-----------------------#2024-07-22`](https://towardsdatascience.com/linear-programming-optimization-foundations-2f12770f66ca?source=collection_archive---------3-----------------------#2024-07-22)
 
 ## 第一部分 - 基本概念与示例
 
-[](https://medium.com/@jarom.hulet?source=post_page---byline--2f12770f66ca--------------------------------)[![Jarom Hulet](../Images/0fdeb1a2df90cccdd8f2f4b84d5e54eb.png)](https://medium.com/@jarom.hulet?source=post_page---byline--2f12770f66ca--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2f12770f66ca--------------------------------)[![数据科学前沿](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2f12770f66ca--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--2f12770f66ca--------------------------------)
+[](https://medium.com/@jarom.hulet?source=post_page---byline--2f12770f66ca--------------------------------)![Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--2f12770f66ca--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2f12770f66ca--------------------------------)![数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--2f12770f66ca--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--2f12770f66ca--------------------------------)
 
-·发布于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--2f12770f66ca--------------------------------) ·11分钟阅读·2024年7月22日
+·发布于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--2f12770f66ca--------------------------------) ·11 分钟阅读·2024 年 7 月 22 日
 
 --
 
@@ -18,7 +18,7 @@
 
 1.  了解线性规划是如何工作的以及它为何如此强大
 
-1.  在Python中运行一个线性规划示例
+1.  在 Python 中运行一个线性规划示例
 
 我个人认为，例子是学习技术主题的非常有效的途径。出于这个原因，本文将通过一个简单的例子进行讲解。我将在下一节介绍这个例子。
 

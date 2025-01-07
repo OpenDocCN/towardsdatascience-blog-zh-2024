@@ -1,16 +1,16 @@
 # 概率分布：泊松分布与二项分布
 
-> 原文：[https://towardsdatascience.com/probability-distributions-poisson-vs-binomial-distribution-ff8a6ddeb4a1?source=collection_archive---------0-----------------------#2024-12-10](https://towardsdatascience.com/probability-distributions-poisson-vs-binomial-distribution-ff8a6ddeb4a1?source=collection_archive---------0-----------------------#2024-12-10)
+> 原文：[`towardsdatascience.com/probability-distributions-poisson-vs-binomial-distribution-ff8a6ddeb4a1?source=collection_archive---------0-----------------------#2024-12-10`](https://towardsdatascience.com/probability-distributions-poisson-vs-binomial-distribution-ff8a6ddeb4a1?source=collection_archive---------0-----------------------#2024-12-10)
 
 ## 使用足球来理解泊松分布与二项分布的区别：数据科学系列（3）
 
-[](https://medium.com/@sahn1998?source=post_page---byline--ff8a6ddeb4a1--------------------------------)[![Sunghyun Ahn](../Images/e8efe3b5d7f0267713ab66149a8de5f7.png)](https://medium.com/@sahn1998?source=post_page---byline--ff8a6ddeb4a1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ff8a6ddeb4a1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ff8a6ddeb4a1--------------------------------) [Sunghyun Ahn](https://medium.com/@sahn1998?source=post_page---byline--ff8a6ddeb4a1--------------------------------)
+[](https://medium.com/@sahn1998?source=post_page---byline--ff8a6ddeb4a1--------------------------------)![Sunghyun Ahn](https://medium.com/@sahn1998?source=post_page---byline--ff8a6ddeb4a1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ff8a6ddeb4a1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ff8a6ddeb4a1--------------------------------) [Sunghyun Ahn](https://medium.com/@sahn1998?source=post_page---byline--ff8a6ddeb4a1--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ff8a6ddeb4a1--------------------------------) ·10分钟阅读·2024年12月10日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ff8a6ddeb4a1--------------------------------) ·10 分钟阅读·2024 年 12 月 10 日
 
 --
 
-![](../Images/0c692febcdc5af6a6129de75432adb75.png)
+![](img/0c692febcdc5af6a6129de75432adb75.png)
 
 图片由 [Fancy Crave](https://unsplash.com/@fancycrave?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来自 [Unsplash](https://unsplash.com/photos/people-watching-soccer-arena-qowyMze7jqg?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

@@ -1,16 +1,16 @@
 # 反对集中式奖章架构的案例
 
-> 原文：[https://towardsdatascience.com/the-case-against-centralized-medallion-architecture-297a1e21bc0f?source=collection_archive---------1-----------------------#2024-12-09](https://towardsdatascience.com/the-case-against-centralized-medallion-architecture-297a1e21bc0f?source=collection_archive---------1-----------------------#2024-12-09)
+> 原文：[`towardsdatascience.com/the-case-against-centralized-medallion-architecture-297a1e21bc0f?source=collection_archive---------1-----------------------#2024-12-09`](https://towardsdatascience.com/the-case-against-centralized-medallion-architecture-297a1e21bc0f?source=collection_archive---------1-----------------------#2024-12-09)
 
 ## 为什么定制化、去中心化的数据质量优于奖章架构
 
-[](https://medium.com/@bernd.wessely?source=post_page---byline--297a1e21bc0f--------------------------------)[![Bernd Wessely](../Images/e60e01c19412d8af8f8bddf78e561275.png)](https://medium.com/@bernd.wessely?source=post_page---byline--297a1e21bc0f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--297a1e21bc0f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--297a1e21bc0f--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--297a1e21bc0f--------------------------------)
+[](https://medium.com/@bernd.wessely?source=post_page---byline--297a1e21bc0f--------------------------------)![Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--297a1e21bc0f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--297a1e21bc0f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--297a1e21bc0f--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--297a1e21bc0f--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--297a1e21bc0f--------------------------------) ·8分钟阅读·2024年12月9日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--297a1e21bc0f--------------------------------) ·8 分钟阅读·2024 年 12 月 9 日
 
 --
 
-![](../Images/7a4abac7cb49b855a562c05a3584e8bd.png)
+![](img/7a4abac7cb49b855a562c05a3584e8bd.png)
 
 DALL-E 生成
 

@@ -1,16 +1,16 @@
 # 数据科学完美简历打造的全面指南
 
-> 原文：[https://towardsdatascience.com/comprehensive-guide-to-crafting-a-perfect-cv-in-data-science-dd6294aeb444?source=collection_archive---------4-----------------------#2024-10-22](https://towardsdatascience.com/comprehensive-guide-to-crafting-a-perfect-cv-in-data-science-dd6294aeb444?source=collection_archive---------4-----------------------#2024-10-22)
+> 原文：[`towardsdatascience.com/comprehensive-guide-to-crafting-a-perfect-cv-in-data-science-dd6294aeb444?source=collection_archive---------4-----------------------#2024-10-22`](https://towardsdatascience.com/comprehensive-guide-to-crafting-a-perfect-cv-in-data-science-dd6294aeb444?source=collection_archive---------4-----------------------#2024-10-22)
 
 ## **通过创建一份出色的简历，给招聘者留下深刻印象，获得梦想工作**
 
-[](https://medium.com/@slavahead?source=post_page---byline--dd6294aeb444--------------------------------)[![Vyacheslav Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--dd6294aeb444--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dd6294aeb444--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dd6294aeb444--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--dd6294aeb444--------------------------------)
+[](https://medium.com/@slavahead?source=post_page---byline--dd6294aeb444--------------------------------)![Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--dd6294aeb444--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dd6294aeb444--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dd6294aeb444--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--dd6294aeb444--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dd6294aeb444--------------------------------) ·18分钟阅读·2024年10月22日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dd6294aeb444--------------------------------) ·18 分钟阅读·2024 年 10 月 22 日
 
 --
 
-![](../Images/391d7e53564bb1aea1340ae88ef841e7.png)
+![](img/391d7e53564bb1aea1340ae88ef841e7.png)
 
 # 引言
 
@@ -22,7 +22,7 @@
 
 本文包含了一些有用的建议，帮助你优化简历，并将其转化为一个有价值的资产，帮助你在就业市场中脱颖而出。
 
-![](../Images/6cc46e886dc3ca0802b90899f8c06fef.png)
+![](img/6cc46e886dc3ca0802b90899f8c06fef.png)
 
 提高获得工作的机会的主要方法。在本文中，我们将重点讨论如何优化简历。
 

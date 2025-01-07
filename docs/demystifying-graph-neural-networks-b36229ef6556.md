@@ -1,20 +1,20 @@
 # 解密图神经网络
 
-> 原文：[https://towardsdatascience.com/demystifying-graph-neural-networks-b36229ef6556?source=collection_archive---------7-----------------------#2024-01-05](https://towardsdatascience.com/demystifying-graph-neural-networks-b36229ef6556?source=collection_archive---------7-----------------------#2024-01-05)
+> 原文：[`towardsdatascience.com/demystifying-graph-neural-networks-b36229ef6556?source=collection_archive---------7-----------------------#2024-01-05`](https://towardsdatascience.com/demystifying-graph-neural-networks-b36229ef6556?source=collection_archive---------7-----------------------#2024-01-05)
 
 ## 揭示一种新兴深度学习算法的力量和应用
 
-[](https://mohamed-mamoun-berrada.medium.com/?source=post_page---byline--b36229ef6556--------------------------------)[![穆罕默德·马蒙·贝拉达](../Images/f3e2400714558157a78bcbedc74fc19f.png)](https://mohamed-mamoun-berrada.medium.com/?source=post_page---byline--b36229ef6556--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b36229ef6556--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b36229ef6556--------------------------------) [穆罕默德·马蒙·贝拉达](https://mohamed-mamoun-berrada.medium.com/?source=post_page---byline--b36229ef6556--------------------------------)
+[](https://mohamed-mamoun-berrada.medium.com/?source=post_page---byline--b36229ef6556--------------------------------)![穆罕默德·马蒙·贝拉达](https://mohamed-mamoun-berrada.medium.com/?source=post_page---byline--b36229ef6556--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b36229ef6556--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b36229ef6556--------------------------------) [穆罕默德·马蒙·贝拉达](https://mohamed-mamoun-berrada.medium.com/?source=post_page---byline--b36229ef6556--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b36229ef6556--------------------------------) ·阅读时长6分钟·2024年1月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b36229ef6556--------------------------------) ·阅读时长 6 分钟·2024 年 1 月 5 日
 
 --
 
-![](../Images/1363f5defe406c8f1ec4109e344ab818.png)
+![](img/1363f5defe406c8f1ec4109e344ab818.png)
 
 由[莫里茨·金德勒](https://unsplash.com/@moritz_photography?utm_source=medium&utm_medium=referral)拍摄，图片来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-通过这篇文章，我旨在向大家介绍一种日益流行的深度学习算法——图神经网络（GNNs）。GNNs正逐渐从研究领域走向实际应用，已经在现实世界的问题上展示了令人印象深刻的成果，显示出它们巨大的潜力。本文的主要目标是解密这一算法。如果到最后，你能回答像“为什么要使用GNN？”“GNN是如何工作的？”这样的问题，我会认为我的任务已经完成。
+通过这篇文章，我旨在向大家介绍一种日益流行的深度学习算法——图神经网络（GNNs）。GNNs 正逐渐从研究领域走向实际应用，已经在现实世界的问题上展示了令人印象深刻的成果，显示出它们巨大的潜力。本文的主要目标是解密这一算法。如果到最后，你能回答像“为什么要使用 GNN？”“GNN 是如何工作的？”这样的问题，我会认为我的任务已经完成。
 
 在深入讨论之前，有必要回顾两个与我们话题密切相关的概念：
 

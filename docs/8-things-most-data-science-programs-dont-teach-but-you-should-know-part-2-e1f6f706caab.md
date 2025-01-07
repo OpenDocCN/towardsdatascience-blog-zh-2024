@@ -1,18 +1,18 @@
-# 大多数数据科学课程未教的8件事（但你应该知道）——第二部分
+# 大多数数据科学课程未教的 8 件事（但你应该知道）——第二部分
 
-> 原文：[https://towardsdatascience.com/8-things-most-data-science-programs-dont-teach-but-you-should-know-part-2-e1f6f706caab?source=collection_archive---------1-----------------------#2024-03-28](https://towardsdatascience.com/8-things-most-data-science-programs-dont-teach-but-you-should-know-part-2-e1f6f706caab?source=collection_archive---------1-----------------------#2024-03-28)
+> 原文：[`towardsdatascience.com/8-things-most-data-science-programs-dont-teach-but-you-should-know-part-2-e1f6f706caab?source=collection_archive---------1-----------------------#2024-03-28`](https://towardsdatascience.com/8-things-most-data-science-programs-dont-teach-but-you-should-know-part-2-e1f6f706caab?source=collection_archive---------1-----------------------#2024-03-28)
 
 ## [数据科学 101](https://towardsdatascience.com/tagged/ds101)
 
 ## 麻省理工学院称之为“计算机科学教育中缺失的学期”
 
-[](https://robodasha.medium.com/?source=post_page---byline--e1f6f706caab--------------------------------)[![Dasha Herrmannova, Ph.D.](../Images/9432ddd04a96034ea3974b4b0685c756.png)](https://robodasha.medium.com/?source=post_page---byline--e1f6f706caab--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e1f6f706caab--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e1f6f706caab--------------------------------) [Dasha Herrmannova, Ph.D.](https://robodasha.medium.com/?source=post_page---byline--e1f6f706caab--------------------------------)
+[](https://robodasha.medium.com/?source=post_page---byline--e1f6f706caab--------------------------------)![Dasha Herrmannova, Ph.D.](https://robodasha.medium.com/?source=post_page---byline--e1f6f706caab--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e1f6f706caab--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e1f6f706caab--------------------------------) [Dasha Herrmannova, Ph.D.](https://robodasha.medium.com/?source=post_page---byline--e1f6f706caab--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e1f6f706caab--------------------------------) ·阅读时间：10分钟·2024年3月28日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e1f6f706caab--------------------------------) ·阅读时间：10 分钟·2024 年 3 月 28 日
 
 --
 
-![](../Images/46172b321f6d1a67c8d5666605aef156.png)
+![](img/46172b321f6d1a67c8d5666605aef156.png)
 
 使用 Midjourney 创建。
 

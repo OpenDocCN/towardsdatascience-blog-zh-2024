@@ -1,22 +1,22 @@
 # 文本嵌入：全面指南
 
-> 原文：[https://towardsdatascience.com/text-embeddings-comprehensive-guide-afd97fce8fb5?source=collection_archive---------0-----------------------#2024-02-13](https://towardsdatascience.com/text-embeddings-comprehensive-guide-afd97fce8fb5?source=collection_archive---------0-----------------------#2024-02-13)
+> 原文：[`towardsdatascience.com/text-embeddings-comprehensive-guide-afd97fce8fb5?source=collection_archive---------0-----------------------#2024-02-13`](https://towardsdatascience.com/text-embeddings-comprehensive-guide-afd97fce8fb5?source=collection_archive---------0-----------------------#2024-02-13)
 
 ## 嵌入的演变、可视化和应用
 
-[](https://miptgirl.medium.com/?source=post_page---byline--afd97fce8fb5--------------------------------)[![玛丽亚·曼苏罗娃](../Images/b1dd377b0a1887db900cc5108bca8ea8.png)](https://miptgirl.medium.com/?source=post_page---byline--afd97fce8fb5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--afd97fce8fb5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--afd97fce8fb5--------------------------------) [玛丽亚·曼苏罗娃](https://miptgirl.medium.com/?source=post_page---byline--afd97fce8fb5--------------------------------)
+[](https://miptgirl.medium.com/?source=post_page---byline--afd97fce8fb5--------------------------------)![玛丽亚·曼苏罗娃](https://miptgirl.medium.com/?source=post_page---byline--afd97fce8fb5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--afd97fce8fb5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--afd97fce8fb5--------------------------------) [玛丽亚·曼苏罗娃](https://miptgirl.medium.com/?source=post_page---byline--afd97fce8fb5--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--afd97fce8fb5--------------------------------) ·阅读时间：20分钟·2024年2月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--afd97fce8fb5--------------------------------) ·阅读时间：20 分钟·2024 年 2 月 13 日
 
 --
 
-![](../Images/edce20eff0ac79af415ddaee3b40cfc3.png)
+![](img/edce20eff0ac79af415ddaee3b40cfc3.png)
 
-图片由DALL-E 3生成
+图片由 DALL-E 3 生成
 
 作为人类，我们可以阅读和理解文本（至少是其中一些）。相反，计算机“用数字思考”，因此它们无法自动理解单词和句子的含义。如果我们希望计算机理解自然语言，我们需要将这些信息转换为计算机可以处理的格式——数字向量。
 
-许多年前，人们就学会了如何将文本转换为计算机可以理解的格式（最早的版本之一是[ASCII](https://en.wikipedia.org/wiki/ASCII)）。这种方法有助于渲染和传输文本，但并没有编码单词的含义。当时，标准的搜索技术是关键字搜索，即仅仅查找包含特定单词或N-gram的所有文档。
+许多年前，人们就学会了如何将文本转换为计算机可以理解的格式（最早的版本之一是[ASCII](https://en.wikipedia.org/wiki/ASCII)）。这种方法有助于渲染和传输文本，但并没有编码单词的含义。当时，标准的搜索技术是关键字搜索，即仅仅查找包含特定单词或 N-gram 的所有文档。
 
 随后，经过数十年的发展，嵌入出现了。我们可以计算单词、句子甚至图像的嵌入。嵌入也是数字向量，但它们可以捕捉到意义。因此，你可以用它们进行语义搜索，甚至处理不同语言的文档。
 
@@ -24,7 +24,7 @@
 
 +   嵌入之前发生了什么，以及它们是如何演变的，
 
-+   如何使用OpenAI工具计算嵌入，
++   如何使用 OpenAI 工具计算嵌入，
 
 +   如何判断句子之间的相似度，
 
@@ -42,7 +42,7 @@
 
 将文本转换成向量的最基本方法是词袋模型。让我们看看理查德·费曼的名言之一*“我们很幸运生活在一个仍在不断发现的时代”*。我们将用它来说明词袋模型的方法。
 
-获取词袋向量的第一步是将文本拆分为单词（词元），然后将单词简化为其基础形式。例如，*“running”*将转换为*“run”*。这个过程叫做词干提取。我们可以使用NLTK Python包来完成这一操作。
+获取词袋向量的第一步是将文本拆分为单词（词元），然后将单词简化为其基础形式。例如，*“running”*将转换为*“run”*。这个过程叫做词干提取。我们可以使用 NLTK Python 包来完成这一操作。
 
 ```py
 from nltk.stem import SnowballStemmer
@@ -75,7 +75,7 @@ print(bag_of_words)
 
 实际上，如果我们想要将文本转换成向量，我们不仅需要考虑文本中的单词，还需要考虑整个词汇表。假设我们的词汇表中也包含*“i”*、*“you”*和*“study”*，那么我们就可以从费曼的名言中创建一个向量。
 
-![](../Images/352726337fbddb935f18fb369b489d69.png)
+![](img/352726337fbddb935f18fb369b489d69.png)
 
 作者提供的图表
 
@@ -85,15 +85,15 @@ print(bag_of_words)
 
 词袋模型方法的一个略微改进版本是[**TF-IDF**](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)（*词频-逆文档频率*）。它是两个指标的乘积。
 
-![](../Images/48834842d5c59c0eb25c7ba84ffa02da.png)
+![](img/48834842d5c59c0eb25c7ba84ffa02da.png)
 
 +   **词频**表示单词在文档中的出现频率。最常见的计算方法是将单词在文档中的原始计数（就像在词袋模型中一样）除以文档中单词的总数。然而，也有许多其他方法，如仅使用原始计数、布尔“频率”，以及不同的归一化方法。你可以在[维基百科](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)上了解更多关于不同方法的信息。
 
-![](../Images/4b88c942246dd26a9376e31a1c7eb065.png)
+![](img/4b88c942246dd26a9376e31a1c7eb065.png)
 
-+   **逆文档频率**表示单词提供的信息量。例如，像*“a”*或*“that”*这样的单词不会给你关于文档主题的额外信息。相反，像*“ChatGPT”*或*“生物信息学”*这样的单词可以帮助你定义领域（但对于这个句子来说不适用）。它是通过计算包含该单词的文档数量与文档总数的比率的对数来得出的。IDF值越接近0，表示该单词越常见，提供的信息越少。
++   **逆文档频率**表示单词提供的信息量。例如，像*“a”*或*“that”*这样的单词不会给你关于文档主题的额外信息。相反，像*“ChatGPT”*或*“生物信息学”*这样的单词可以帮助你定义领域（但对于这个句子来说不适用）。它是通过计算包含该单词的文档数量与文档总数的比率的对数来得出的。IDF 值越接近 0，表示该单词越常见，提供的信息越少。
 
-![](../Images/a07031a5a4933e2fb90ac8384d62f5a8.png)
+![](img/a07031a5a4933e2fb90ac8384d62f5a8.png)
 
 所以，最终我们会得到向量，其中常见单词（如*“I”*或*“you”*）的权重较低，而在文档中多次出现的稀有单词的权重较高。这种策略可以提供稍微更好的结果，但它仍然无法捕捉到语义上的含义。
 
@@ -105,13 +105,13 @@ print(bag_of_words)
 
 论文中提到了两种不同的 word2vec 方法：连续词袋模型（当我们基于周围的词汇预测目标词时）和 Skip-gram（相反的任务——当我们基于词汇预测上下文时）。
 
-![](../Images/a55f2b25a828530cca95fcce2c9901fa.png)
+![](img/a55f2b25a828530cca95fcce2c9901fa.png)
 
 论文中的图示，Mikolov 等人，2013 | [来源](https://arxiv.org/pdf/1301.3781.pdf)
 
 稠密向量表示的高级概念是训练两个模型：编码器和解码器。例如，在 Skip-gram 的情况下，我们可能会将词汇 *“christmas”* 传入编码器。然后，编码器会生成一个向量，我们将这个向量传递给解码器，期望得到词汇 *“merry”*、*“to”* 和 *“you”*。
 
-![](../Images/eaa26d1a1c68799c60dfe915ea18569b.png)
+![](img/eaa26d1a1c68799c60dfe915ea18569b.png)
 
 作者的示意图
 
@@ -129,7 +129,7 @@ Transformers 允许你使用相同的“核心”模型，并针对不同的使�
 
 从内部来看，BERT 仍然在与 word2vec 类似的单词级别进行操作，但我们仍然想要获取句子嵌入。所以，最简单的方法是取所有标记（token）向量的平均值。不幸的是，这种方法表现不好。
 
-这个问题在2019年得到了解决，当时[Sentence-BERT](https://arxiv.org/abs/1908.10084)发布。它超越了所有先前的语义文本相似性任务方法，并且能够计算句子嵌入。
+这个问题在 2019 年得到了解决，当时[Sentence-BERT](https://arxiv.org/abs/1908.10084)发布。它超越了所有先前的语义文本相似性任务方法，并且能够计算句子嵌入。
 
 这是一个庞大的话题，因此我们无法在这篇文章中完全覆盖它。如果你真的感兴趣，可以在[这篇文章](https://www.pinecone.io/learn/series/nlp/sentence-embeddings/)中了解更多关于句子嵌入的内容。
 
@@ -139,13 +139,13 @@ Transformers 允许你使用相同的“核心”模型，并针对不同的使�
 
 在这篇文章中，我们将使用 OpenAI 的嵌入模型。我们将尝试一个新的模型 `text-embedding-3-small`，它最近被[发布](https://openai.com/blog/new-embedding-models-and-api-updates)。与 `text-embedding-ada-002`相比，新模型的表现更好：
 
-+   在一个广泛使用的多语言检索（[MIRACL](https://github.com/project-miracl/miracl)）基准测试中，平均分数从31.4%上升到了44.0%。
++   在一个广泛使用的多语言检索（[MIRACL](https://github.com/project-miracl/miracl)）基准测试中，平均分数从 31.4%上升到了 44.0%。
 
-+   在一个常用的基准测试中，针对英文任务的平均性能（[MTEB](https://github.com/embeddings-benchmark/mteb)）也有所提升，从61.0%提高到了62.3%。
++   在一个常用的基准测试中，针对英文任务的平均性能（[MTEB](https://github.com/embeddings-benchmark/mteb)）也有所提升，从 61.0%提高到了 62.3%。
 
 OpenAI 还发布了一个新的更大模型 `text-embedding-3-large`。现在，这是他们表现最好的嵌入模型。
 
-作为数据源，我们将使用一个小样本的[Stack Exchange 数据库](https://archive.org/details/stackexchange)——这是一个匿名的所有用户贡献内容的转储，来自[Stack Exchange 网络](https://stackexchange.com/)。我选择了一些看起来有趣的主题，并从每个主题中随机抽取了100个问题。主题从生成性人工智能到咖啡或自行车，涉及内容非常广泛。
+作为数据源，我们将使用一个小样本的[Stack Exchange 数据库](https://archive.org/details/stackexchange)——这是一个匿名的所有用户贡献内容的转储，来自[Stack Exchange 网络](https://stackexchange.com/)。我选择了一些看起来有趣的主题，并从每个主题中随机抽取了 100 个问题。主题从生成性人工智能到咖啡或自行车，涉及内容非常广泛。
 
 首先，我们需要计算所有 Stack Exchange 问题的嵌入。值得做一次并将结果本地存储（在文件或向量存储中）。我们可以使用 OpenAI Python 包来生成嵌入。
 
@@ -161,7 +161,7 @@ def get_embedding(text, model="text-embedding-3-small"):
 get_embedding("We are lucky to live in an age in which we are still making discoveries.") 
 ```
 
-结果，我们得到了一个1536维的浮动数值向量。现在，我们可以对所有数据重复这个过程并开始分析这些值。
+结果，我们得到了一个 1536 维的浮动数值向量。现在，我们可以对所有数据重复这个过程并开始分析这些值。
 
 你可能会问的主要问题是：句子在语义上有多接近？为了揭示答案，让我们讨论一下向量之间的距离概念。
 
@@ -188,15 +188,15 @@ vector2 = [2, 2]
 
 ## 欧几里得距离（L2）
 
-定义两个点（或向量）之间距离的最标准方法是欧几里得距离或L2范数。这种度量方法在日常生活中最为常见，例如当我们谈论两个城镇之间的距离时。
+定义两个点（或向量）之间距离的最标准方法是欧几里得距离或 L2 范数。这种度量方法在日常生活中最为常见，例如当我们谈论两个城镇之间的距离时。
 
-这里是L2距离的可视化表示和公式。
+这里是 L2 距离的可视化表示和公式。
 
-![](../Images/e4d3008368443f6d56ba82b20c182b3a.png)
+![](img/e4d3008368443f6d56ba82b20c182b3a.png)
 
 图片来自作者
 
-我们可以使用原生Python或利用numpy函数来计算这个度量。
+我们可以使用原生 Python 或利用 numpy 函数来计算这个度量。
 
 ```py
 import numpy as np
@@ -210,13 +210,13 @@ np.linalg.norm((np.array(vector1) - np.array(vector2)), ord = 2)
 
 ## 曼哈顿距离（L1）
 
-另一个常用的距离度量是L1范数或曼哈顿距离。这个距离是以曼哈顿岛（纽约）命名的。这个岛有着网格状的街道布局，在曼哈顿，两个点之间的最短路径是L1距离，因为你需要沿着网格行驶。
+另一个常用的距离度量是 L1 范数或曼哈顿距离。这个距离是以曼哈顿岛（纽约）命名的。这个岛有着网格状的街道布局，在曼哈顿，两个点之间的最短路径是 L1 距离，因为你需要沿着网格行驶。
 
-![](../Images/f4e01e943ce4e010819197e8f2110ce5.png)
+![](img/f4e01e943ce4e010819197e8f2110ce5.png)
 
 图片来自作者
 
-我们也可以从零开始实现，或者使用numpy函数。
+我们也可以从零开始实现，或者使用 numpy 函数。
 
 ```py
 sum(list(map(lambda x, y: abs(x - y), vector1, vector2)))
@@ -230,7 +230,7 @@ np.linalg.norm((np.array(vector1) - np.array(vector2)), ord = 1)
 
 另一种看待向量之间距离的方法是计算点积或标量积。这里是公式，我们可以轻松实现它。
 
-![](../Images/d3e514aa4acf640b217c3c129beb49f6.png)
+![](img/d3e514aa4acf640b217c3c129beb49f6.png)
 
 图片来自作者
 
@@ -254,11 +254,11 @@ np.dot(vector1, vector2)
 
 很多时候，会使用余弦相似度。余弦相似度是通过向量的大小（或范数）归一化后的点积。
 
-![](../Images/a44f78804a4d51ccf45138b17cc279c0.png)
+![](img/a44f78804a4d51ccf45138b17cc279c0.png)
 
 图片来自作者
 
-我们可以像之前那样自己计算所有内容，或者使用来自sklearn的函数。
+我们可以像之前那样自己计算所有内容，或者使用来自 sklearn 的函数。
 
 ```py
 dot_product = sum(list(map(lambda x, y: x*y, vector1, vector2)))
@@ -278,15 +278,15 @@ cosine_similarity(
 # 0.8575
 ```
 
-函数`cosine_similarity`期望输入2D数组。因此，我们需要调整numpy数组的形状。
+函数`cosine_similarity`期望输入 2D 数组。因此，我们需要调整 numpy 数组的形状。
 
 让我们谈谈这个度量的物理意义。余弦相似度等于两个向量之间的余弦值。向量越接近，度量值越高。
 
-![](../Images/f20da9af06b65db763be0113f19108f0.png)
+![](img/f20da9af06b65db763be0113f19108f0.png)
 
 图片来自作者
 
-我们甚至可以计算两个向量之间的精确角度（单位为度）。我们得到的结果大约为30度，这看起来非常合理。
+我们甚至可以计算两个向量之间的精确角度（单位为度）。我们得到的结果大约为 30 度，这看起来非常合理。
 
 ```py
 import math
@@ -305,11 +305,11 @@ math.degrees(math.acos(0.8575))
 
 +   我们可以发现某些主题非常接近，例如*“政治”*和*“经济学”*，或者*“人工智能”*和*“数据科学”*。
 
-![](../Images/c2b2f26c939f419047e52a0c1c7a1fac.png)
+![](img/c2b2f26c939f419047e52a0c1c7a1fac.png)
 
 图片由作者提供
 
-![](../Images/4dc3fdc10fb1dc9616d7ff13a18d177e.png)
+![](img/4dc3fdc10fb1dc9616d7ff13a18d177e.png)
 
 图片由作者提供
 
@@ -327,7 +327,7 @@ math.degrees(math.acos(0.8575))
 
 我想简要地展示一下它是如何工作的，以便你能有所直觉。我计算了 OpenAI 嵌入值的分布，并生成了具有不同维度的 300 个向量集。然后，我计算了所有向量之间的距离，并绘制了直方图。你可以清楚地看到，向量维度的增加使得分布变得更窄。
 
-![](../Images/fbfdf3c34e03b2ae519e305d5703bfef.png)
+![](img/fbfdf3c34e03b2ae519e305d5703bfef.png)
 
 图表由作者提供
 
@@ -350,7 +350,7 @@ print(embeddings_array.shape)
 # (1400, 1536)
 ```
 
-然后，我们需要初始化一个PCA模型，设置`n_components = 2`（因为我们想创建一个二维可视化图），在整个数据上训练模型并预测新值。
+然后，我们需要初始化一个 PCA 模型，设置`n_components = 2`（因为我们想创建一个二维可视化图），在整个数据上训练模型并预测新值。
 
 ```py
 from sklearn.decomposition import PCA
@@ -381,7 +381,7 @@ fig.update_layout(
 fig.show()
 ```
 
-![](../Images/a0683ee9c8cfe52995691ef7887777cf.png)
+![](img/a0683ee9c8cfe52995691ef7887777cf.png)
 
 作者提供的图像
 
@@ -389,9 +389,9 @@ fig.show()
 
 ## t-SNE
 
-PCA是一个线性算法，而现实生活中的大多数关系是非线性的。因此，由于非线性原因，我们可能无法将簇分开。让我们尝试使用非线性算法[t-SNE](https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding)，看看它是否能展示更好的结果。
+PCA 是一个线性算法，而现实生活中的大多数关系是非线性的。因此，由于非线性原因，我们可能无法将簇分开。让我们尝试使用非线性算法[t-SNE](https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding)，看看它是否能展示更好的结果。
 
-代码几乎相同。我只是用了t-SNE模型而不是PCA。
+代码几乎相同。我只是用了 t-SNE 模型而不是 PCA。
 
 ```py
 from sklearn.manifold import TSNE
@@ -413,9 +413,9 @@ fig.update_layout(
 fig.show()
 ```
 
-t-SNE的结果看起来好多了。除了*“genai”*、*“datascience”*和*“ai”*，大部分簇都已经分开了。然而，这是预料之中的——我怀疑我能否将这些话题分开。
+t-SNE 的结果看起来好多了。除了*“genai”*、*“datascience”*和*“ai”*，大部分簇都已经分开了。然而，这是预料之中的——我怀疑我能否将这些话题分开。
 
-![](../Images/c4f6590a648a74f2c411e17a989b4959.png)
+![](img/c4f6590a648a74f2c411e17a989b4959.png)
 
 看着这个可视化结果，我们可以看到，嵌入在编码语义意义方面相当不错。
 
@@ -439,7 +439,7 @@ fig.update_layout(xaxis_title = 'first component', yaxis_title = 'second compone
 fig.show()
 ```
 
-![](../Images/aa256e26b30e0c95d5caf111543890ec.png)
+![](img/aa256e26b30e0c95d5caf111543890ec.png)
 
 ## 条形码
 
@@ -478,7 +478,7 @@ plt.yticks([0.5], labels = ['Bioinformatics'])
 plt.show()
 ```
 
-![](../Images/89478c10950950c9aee5c8cfe304754c.png)
+![](img/89478c10950950c9aee5c8cfe304754c.png)
 
 作者提供的图
 
@@ -494,9 +494,9 @@ plt.show()
 
 让我们从聚类开始。聚类是一种无监督学习技术，允许你将数据分成不同的组，而不需要任何初始标签。聚类可以帮助你理解数据中的内部结构模式。
 
-我们将使用最基本的聚类算法之一——[K-means](https://scikit-learn.org/stable/modules/clustering.html#k-means)。对于K-means算法，我们需要指定聚类的数量。我们可以通过[silhouette评分](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_score.html)来定义最优的聚类数量。
+我们将使用最基本的聚类算法之一——[K-means](https://scikit-learn.org/stable/modules/clustering.html#k-means)。对于 K-means 算法，我们需要指定聚类的数量。我们可以通过[silhouette 评分](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_score.html)来定义最优的聚类数量。
 
-让我们尝试k（聚类数量）在2到50之间的值。对于每个k，我们将训练一个模型并计算silhouette评分。silhouette评分越高，聚类效果越好。
+让我们尝试 k（聚类数量）在 2 到 50 之间的值。对于每个 k，我们将训练一个模型并计算 silhouette 评分。silhouette 评分越高，聚类效果越好。
 
 ```py
 from sklearn.cluster import KMeans
@@ -524,13 +524,13 @@ fig = px.line(pd.DataFrame(silhouette_scores).set_index('k'),
 fig.update_layout(showlegend = False)
 ```
 
-在我们的例子中，当`k = 11`时，silhouette评分达到了最大值。因此，让我们在最终模型中使用这个聚类数量。
+在我们的例子中，当`k = 11`时，silhouette 评分达到了最大值。因此，让我们在最终模型中使用这个聚类数量。
 
-![](../Images/4b555cc018bfc29bf8ecea55f54da8f6.png)
+![](img/4b555cc018bfc29bf8ecea55f54da8f6.png)
 
 图表由作者提供
 
-让我们像之前一样，使用t-SNE进行降维来可视化聚类。
+让我们像之前一样，使用 t-SNE 进行降维来可视化聚类。
 
 ```py
 tsne_model = TSNE(n_components=2, random_state=42)
@@ -552,7 +552,7 @@ fig.show()
 
 从视觉上看，我们可以看到算法能够很好地区分聚类——它们分离得非常清晰。
 
-![](../Images/994324e79d3962523b499f92912d38c2.png)
+![](img/994324e79d3962523b499f92912d38c2.png)
 
 我们有事实性的主题标签，因此我们甚至可以评估聚类的效果。让我们看看每个聚类的主题混合情况。
 
@@ -577,9 +577,9 @@ fig = px.imshow(
 fig.show()
 ```
 
-![](../Images/58c3df19b731f65894997ea8dddad3d8.png)
+![](img/58c3df19b731f65894997ea8dddad3d8.png)
 
-在大多数情况下，聚类效果非常好。例如，聚类5几乎只包含关于自行车的问题，而聚类6则是关于咖啡的。然而，它无法区分一些相近的主题：
+在大多数情况下，聚类效果非常好。例如，聚类 5 几乎只包含关于自行车的问题，而聚类 6 则是关于咖啡的。然而，它无法区分一些相近的主题：
 
 +   *“ai”*、*“genai”*和*“datascience”*都在一个聚类中，
 
@@ -589,11 +589,11 @@ fig.show()
 
 ## 分类
 
-我们可以将嵌入用于分类或回归任务。例如，你可以用它来预测客户评论的情感（分类）或NPS评分（回归）。
+我们可以将嵌入用于分类或回归任务。例如，你可以用它来预测客户评论的情感（分类）或 NPS 评分（回归）。
 
 由于分类和回归是监督学习，你需要有标签。幸运的是，我们知道问题的主题，并且可以训练模型来预测它们。
 
-我将使用随机森林分类器。如果你需要快速复习一下随机森林的相关知识，可以在[这里](https://medium.com/towards-data-science/interpreting-random-forests-638bca8b49ea)找到。为了正确评估分类模型的性能，我们将把数据集分为训练集和测试集（80%对20%）。然后，我们可以在训练集上训练模型，并在测试集上测量质量（模型未见过的问题）。
+我将使用随机森林分类器。如果你需要快速复习一下随机森林的相关知识，可以在[这里](https://medium.com/towards-data-science/interpreting-random-forests-638bca8b49ea)找到。为了正确评估分类模型的性能，我们将把数据集分为训练集和测试集（80%对 20%）。然后，我们可以在训练集上训练模型，并在测试集上测量质量（模型未见过的问题）。
 
 ```py
 from sklearn.ensemble import RandomForestClassifier
@@ -614,7 +614,7 @@ class_model.fit(X_train, y_train)
 y_pred = class_model.predict(X_test)
 ```
 
-为了评估模型的表现，让我们计算一个混淆矩阵。在理想情况下，所有非对角元素应该为0。
+为了评估模型的表现，让我们计算一个混淆矩阵。在理想情况下，所有非对角元素应该为 0。
 
 ```py
 from sklearn.metrics import confusion_matrix
@@ -633,11 +633,11 @@ fig = px.imshow(
 fig.show()
 ```
 
-![](../Images/a401de02b5f824451d9efc6db62491d5.png)
+![](img/a401de02b5f824451d9efc6db62491d5.png)
 
-我们可以看到与聚类相似的结果：一些主题很容易分类，准确率达到100%，例如*“自行车”*或*“旅行”*，而其他一些则难以区分（尤其是*“ai”*）。
+我们可以看到与聚类相似的结果：一些主题很容易分类，准确率达到 100%，例如*“自行车”*或*“旅行”*，而其他一些则难以区分（尤其是*“ai”*）。
 
-然而，我们达到了91.8%的总体准确率，这已经相当不错了。
+然而，我们达到了 91.8%的总体准确率，这已经相当不错了。
 
 ## 发现异常
 
@@ -674,7 +674,7 @@ should know about?
 
 我们可以通过 t-SNE 可视化图来发现它实际上靠近 *咖啡* 聚类。
 
-![](../Images/26e6b84079ede41be03aff139e1c984e.png)
+![](img/26e6b84079ede41be03aff139e1c984e.png)
 
 作者图
 
@@ -698,7 +698,7 @@ should know about?
 
 +   仅将相关文档传递给 LLM 以获得最终答案。
 
-若要了解更多关于 RAG 的信息，不要犹豫，阅读我的文章，里面有更多的细节 [在这里.](/rag-how-to-talk-to-your-data-eaf5469b83b0)
+若要了解更多关于 RAG 的信息，不要犹豫，阅读我的文章，里面有更多的细节 在这里.
 
 # 总结
 
@@ -720,6 +720,6 @@ should know about?
 
 本文的灵感来源于以下课程：
 
-+   DeepLearning.AI与Google Cloud合作制作的“[理解与应用文本嵌入](https://www.deeplearning.ai/short-courses/google-cloud-vertex-ai/)”课程，
++   DeepLearning.AI 与 Google Cloud 合作制作的“[理解与应用文本嵌入](https://www.deeplearning.ai/short-courses/google-cloud-vertex-ai/)”课程，
 
-+   DeepLearning.AI与Weaviate合作制作的“[向量数据库：从嵌入到应用](https://learn.deeplearning.ai/vector-databases-embeddings-applications/lesson/1/introduction)”课程。
++   DeepLearning.AI 与 Weaviate 合作制作的“[向量数据库：从嵌入到应用](https://learn.deeplearning.ai/vector-databases-embeddings-applications/lesson/1/introduction)”课程。

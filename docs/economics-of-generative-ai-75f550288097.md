@@ -1,22 +1,22 @@
 # 生成性人工智能的经济学
 
-> 原文：[https://towardsdatascience.com/economics-of-generative-ai-75f550288097?source=collection_archive---------0-----------------------#2024-08-01](https://towardsdatascience.com/economics-of-generative-ai-75f550288097?source=collection_archive---------0-----------------------#2024-08-01)
+> 原文：[`towardsdatascience.com/economics-of-generative-ai-75f550288097?source=collection_archive---------0-----------------------#2024-08-01`](https://towardsdatascience.com/economics-of-generative-ai-75f550288097?source=collection_archive---------0-----------------------#2024-08-01)
 
 ## 考虑到我们目前对这项技术和市场的了解，生成性人工智能的商业模式是什么？
 
-[](https://medium.com/@s.kirmer?source=post_page---byline--75f550288097--------------------------------)[![Stephanie Kirmer](../Images/f9d9ef9167febde974c223dd4d8d6293.png)](https://medium.com/@s.kirmer?source=post_page---byline--75f550288097--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--75f550288097--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--75f550288097--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--75f550288097--------------------------------)
+[](https://medium.com/@s.kirmer?source=post_page---byline--75f550288097--------------------------------)![Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--75f550288097--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--75f550288097--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--75f550288097--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--75f550288097--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--75f550288097--------------------------------) ·6分钟阅读·2024年8月1日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--75f550288097--------------------------------) ·6 分钟阅读·2024 年 8 月 1 日
 
 --
 
-![](../Images/21594879c6d77dd1459c2d3922b3fbe2.png)
+![](img/21594879c6d77dd1459c2d3922b3fbe2.png)
 
 图片由[Ibrahim Rifath](https://unsplash.com/@ripey__?utm_source=medium&utm_medium=referral)提供，发布于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-> OpenAI已经建立了历史上增长最快的企业之一。它可能也是运营成本最高的企业之一。
+> OpenAI 已经建立了历史上增长最快的企业之一。它可能也是运营成本最高的企业之一。
 > 
-> 根据The Information的一项分析，ChatGPT的制造商今年可能会亏损多达50亿美元，该分析基于先前未公开的内部财务数据以及参与该业务的人士。如果我们的分析正确，OpenAI（最近估值为800亿美元）将在接下来的12个月内需要筹集更多的资金。
+> 根据 The Information 的一项分析，ChatGPT 的制造商今年可能会亏损多达 50 亿美元，该分析基于先前未公开的内部财务数据以及参与该业务的人士。如果我们的分析正确，OpenAI（最近估值为 800 亿美元）将在接下来的 12 个月内需要筹集更多的资金。
 > 
 > - [The Information](https://www.theinformation.com/articles/why-openai-could-lose-5-billion-this-year)
 
@@ -42,22 +42,22 @@
 
 说到这些，不管你是否同意我的观点，我们都应该记住，拥有一项高度先进的技术与能够利用这项技术创造出人们愿意购买的产品并从中建立一个可持续的、可再生的商业模式是完全不同的。你可以发明一个很酷的新东西，但正如任何初创公司或科技公司中的产品团队所告诉你的那样，这并不是过程的终点。弄清楚普通人如何以及为何会使用你的新东西，并将这一点传达出去，让人们相信你的新东西值一个可持续的价格，这是极其困难的。
 
-我们确实看到了很多来自各个渠道的提议，但其中一些想法的效果相当差。[OpenAI上周宣布的搜索引擎新测试版，已经在输出结果中出现了重大错误](https://www.theatlantic.com/technology/archive/2024/07/searchgpt-openai-error/679248/)。任何读过[我之前的文章](https://medium.com/towards-data-science/what-does-it-mean-when-machine-learning-makes-a-mistake-37b213200697)和[其他文章](https://medium.com/towards-data-science/is-generative-ai-taking-over-the-world-a970a5ccdad5)的人都不会感到惊讶。（我个人只是感到惊讶，他们在开发这个产品时，居然没有考虑到这个显而易见的问题。）即便是那些看起来有吸引力的想法，也不能只是“可有可无”或者奢侈品，它们必须是必不可少的，因为要使这个业务可持续所需的成本必须非常高。当你的烧钱速度达到每年50亿美元时，为了实现盈利并自我维持，你的付费用户数量必须是天文数字，或者用户支付的价格必须令人瞠目结舌。
+我们确实看到了很多来自各个渠道的提议，但其中一些想法的效果相当差。[OpenAI 上周宣布的搜索引擎新测试版，已经在输出结果中出现了重大错误](https://www.theatlantic.com/technology/archive/2024/07/searchgpt-openai-error/679248/)。任何读过[我之前的文章](https://medium.com/towards-data-science/what-does-it-mean-when-machine-learning-makes-a-mistake-37b213200697)和[其他文章](https://medium.com/towards-data-science/is-generative-ai-taking-over-the-world-a970a5ccdad5)的人都不会感到惊讶。（我个人只是感到惊讶，他们在开发这个产品时，居然没有考虑到这个显而易见的问题。）即便是那些看起来有吸引力的想法，也不能只是“可有可无”或者奢侈品，它们必须是必不可少的，因为要使这个业务可持续所需的成本必须非常高。当你的烧钱速度达到每年 50 亿美元时，为了实现盈利并自我维持，你的付费用户数量必须是天文数字，或者用户支付的价格必须令人瞠目结舌。
 
 # 难道研究本身就不具备内在的价值吗？
 
 这让那些最想推动技术边界的人处于一个困难的境地。为了研究而研究的行为一直以某种形式存在，即使其结果并不立即具有实际应用价值。但资本主义并没有一个好的渠道来维持这种工作，尤其是在这种研究的参与成本高得令人难以置信的情况下。几十年来，美国一直在把学术机构的资源榨干，因此学者和[学术研究人员几乎没有机会参与这种研究，除非有私人投资](https://www.washingtonpost.com/technology/2024/03/10/big-tech-companies-ai-research/)。
 
-我认为这真是太遗憾了，因为学术界正是可以在适当监管下进行这种研究的地方。伦理、安全和风险问题可以在学术环境中得到认真对待和探索，而这些问题在私营部门根本不会得到优先考虑。学术研究的文化和规范能够让学者把知识置于金钱之上，但当私营部门企业主导所有研究时，这些选择就发生了变化。我们的社会信任做“更纯粹”研究的人，并没有获得足够的资源来显著参与生成性AI的蓬勃发展。
+我认为这真是太遗憾了，因为学术界正是可以在适当监管下进行这种研究的地方。伦理、安全和风险问题可以在学术环境中得到认真对待和探索，而这些问题在私营部门根本不会得到优先考虑。学术研究的文化和规范能够让学者把知识置于金钱之上，但当私营部门企业主导所有研究时，这些选择就发生了变化。我们的社会信任做“更纯粹”研究的人，并没有获得足够的资源来显著参与生成性 AI 的蓬勃发展。
 
 # 那接下来怎么办？
 
-当然，即便是这些私营公司，也很可能没有足够的资源来支撑继续训练更多、更大的模型的疯狂竞赛，这又将我们带回我在本文开头提到的那句话。由于支配我们技术进步的经济模型，我们可能会错失潜在的机会。那些有意义的生成性人工智能应用，虽然合理，却未必能赚取足够的数十亿，以支撑GPU的费用，因此可能永远无法深入探索；而那些社会有害、愚蠢或无用的应用则可能获得投资，因为它们带来了更大的现金收益机会。
+当然，即便是这些私营公司，也很可能没有足够的资源来支撑继续训练更多、更大的模型的疯狂竞赛，这又将我们带回我在本文开头提到的那句话。由于支配我们技术进步的经济模型，我们可能会错失潜在的机会。那些有意义的生成性人工智能应用，虽然合理，却未必能赚取足够的数十亿，以支撑 GPU 的费用，因此可能永远无法深入探索；而那些社会有害、愚蠢或无用的应用则可能获得投资，因为它们带来了更大的现金收益机会。
 
 欲了解更多我的作品，请访问 [www.stephaniekirmer.com.](http://www.stephaniekirmer.com.)
 
 # 进一步阅读
 
-[https://www.theatlantic.com/technology/archive/2024/07/searchgpt-openai-error/679248/](https://www.theatlantic.com/technology/archive/2024/07/searchgpt-openai-error/679248/)
+[`www.theatlantic.com/technology/archive/2024/07/searchgpt-openai-error/679248/`](https://www.theatlantic.com/technology/archive/2024/07/searchgpt-openai-error/679248/)
 
-[https://www.washingtonpost.com/technology/2024/03/10/big-tech-companies-ai-research/](https://www.washingtonpost.com/technology/2024/03/10/big-tech-companies-ai-research/)
+[`www.washingtonpost.com/technology/2024/03/10/big-tech-companies-ai-research/`](https://www.washingtonpost.com/technology/2024/03/10/big-tech-companies-ai-research/)

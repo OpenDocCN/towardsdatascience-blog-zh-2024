@@ -1,10 +1,10 @@
 # 基于真实数据的端到端数据工程系统，使用 Kafka、Spark、Airflow、Postgres 和 Docker
 
-> 原文：[https://towardsdatascience.com/end-to-end-data-engineering-system-on-real-data-with-kafka-spark-airflow-postgres-and-docker-a70e18df4090?source=collection_archive---------0-----------------------#2024-01-19](https://towardsdatascience.com/end-to-end-data-engineering-system-on-real-data-with-kafka-spark-airflow-postgres-and-docker-a70e18df4090?source=collection_archive---------0-----------------------#2024-01-19)
+> 原文：[`towardsdatascience.com/end-to-end-data-engineering-system-on-real-data-with-kafka-spark-airflow-postgres-and-docker-a70e18df4090?source=collection_archive---------0-----------------------#2024-01-19`](https://towardsdatascience.com/end-to-end-data-engineering-system-on-real-data-with-kafka-spark-airflow-postgres-and-docker-a70e18df4090?source=collection_archive---------0-----------------------#2024-01-19)
 
-[](https://medium.com/@hamzagharbi_19502?source=post_page---byline--a70e18df4090--------------------------------)[![Hamza Gharbi](../Images/da96d29dfde486875d9a4ed932879aef.png)](https://medium.com/@hamzagharbi_19502?source=post_page---byline--a70e18df4090--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a70e18df4090--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a70e18df4090--------------------------------) [Hamza Gharbi](https://medium.com/@hamzagharbi_19502?source=post_page---byline--a70e18df4090--------------------------------)
+[](https://medium.com/@hamzagharbi_19502?source=post_page---byline--a70e18df4090--------------------------------)![Hamza Gharbi](https://medium.com/@hamzagharbi_19502?source=post_page---byline--a70e18df4090--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a70e18df4090--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a70e18df4090--------------------------------) [Hamza Gharbi](https://medium.com/@hamzagharbi_19502?source=post_page---byline--a70e18df4090--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a70e18df4090--------------------------------) ·16分钟阅读·2024年1月19日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a70e18df4090--------------------------------) ·16 分钟阅读·2024 年 1 月 19 日
 
 --
 
@@ -32,7 +32,7 @@
 
 所有这些工具将使用 Docker 构建和运行，更具体地说是使用 [docker-compose](https://docs.docker.com/compose/)。
 
-![](../Images/97b5e1b0b1332bc0aef250d1fdb62728.png)
+![](img/97b5e1b0b1332bc0aef250d1fdb62728.png)
 
 数据管道概览。图片由作者提供。
 
@@ -131,7 +131,7 @@ pip install -r requirements.txt
 
 为了避免每次运行流式任务时都发送所有的 API 数据，我们定义了一个本地 JSON 文件，里面包含最新流式处理的最后发布日期。然后我们将使用此日期作为新流式任务的起始日期。
 
-举个例子，假设最新召回的产品发布日期为**2023年11月22日**。如果我们假设在此日期之前的所有召回产品信息已经保存在我们的 Postgres 数据库中，我们现在可以从11月22日开始流式传输数据。请注意，这里有重叠，因为我们可能会遇到没有处理完11月22日所有数据的情况。
+举个例子，假设最新召回的产品发布日期为**2023 年 11 月 22 日**。如果我们假设在此日期之前的所有召回产品信息已经保存在我们的 Postgres 数据库中，我们现在可以从 11 月 22 日开始流式传输数据。请注意，这里有重叠，因为我们可能会遇到没有处理完 11 月 22 日所有数据的情况。
 
 该文件保存在 `./data/last_processed.json` 中，格式如下：
 
@@ -211,9 +211,9 @@ docker network create airflow-kafka
 docker-compose up 
 ```
 
-服务启动后，访问 kafka-ui，网址为 [http://localhost:8800/](http://localhost:8000/)。通常，您应该看到类似以下内容：
+服务启动后，访问 kafka-ui，网址为 [`localhost:8800/`](http://localhost:8000/)。通常，您应该看到类似以下内容：
 
-![](../Images/972914181dc72291fbbb4e232bdb72d1.png)
+![](img/972914181dc72291fbbb4e232bdb72d1.png)
 
 Kafka UI 概览。图片来源：作者。
 
@@ -223,11 +223,11 @@ Kafka UI 概览。图片来源：作者。
 
 在设置 spark 和 airflow 配置之前，让我们创建 Postgres 数据库，以便持久化我们的 API 数据。我使用了 **pgadmin 4** 工具来完成此任务，不过任何其他 Postgres 开发平台也能完成这项工作。
 
-要安装 postgres 和 pgadmin，请访问此链接 [https://www.postgresql.org/download/](https://www.postgresql.org/download/)，根据您的操作系统下载相应的安装包。然后，在安装 postgres 时，您需要设置一个密码，稍后我们将使用该密码从 spark 环境连接到数据库。您也可以将端口保留为 5432。
+要安装 postgres 和 pgadmin，请访问此链接 [`www.postgresql.org/download/`](https://www.postgresql.org/download/)，根据您的操作系统下载相应的安装包。然后，在安装 postgres 时，您需要设置一个密码，稍后我们将使用该密码从 spark 环境连接到数据库。您也可以将端口保留为 5432。
 
 如果您的安装成功，您可以启动 pgadmin，并且应该看到类似下面的窗口：
 
-![](../Images/e80944d60d82b2e7a4b068ab4281ebb1.png)
+![](img/e80944d60d82b2e7a4b068ab4281ebb1.png)
 
 pgAdmin 界面的概述。图片由作者提供。
 
@@ -609,13 +609,13 @@ echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_PROJ_DIR=\"./airflow_resources\"" > .env
 
 然后，若要访问 airflow 用户界面，你可以访问这个网址 `http://localhost:8080`。
 
-![](../Images/6580d6371fbac338bc4f5ecc512f9269.png)
+![](img/6580d6371fbac338bc4f5ecc512f9269.png)
 
 Airflow 登录窗口。图片来自作者。
 
 默认情况下，用户名和密码都是 **airflow**。登录后，你将看到 airflow 自带的 Dags 列表。找到我们项目的 dag **kafka_spark_dag** 并点击它。
 
-![](../Images/cdec2476e37b4256db6b0be23b8286af.png)
+![](img/cdec2476e37b4256db6b0be23b8286af.png)
 
 airflow 中任务窗口的概览。图片来自作者。
 
@@ -623,32 +623,32 @@ airflow 中任务窗口的概览。图片来自作者。
 
 接下来，你可以在图表标签中查看任务的状态。当任务变为绿色时，表示完成。因此，当一切完成时，应该像这样：
 
-![](../Images/b068e823ce2776a714df06f36dcbecfb.png)
+![](img/b068e823ce2776a714df06f36dcbecfb.png)
 
 作者提供的图片。
 
-要验证`rappel_conso_table`是否已填充数据，请在pgAdmin查询工具中使用以下SQL查询：
+要验证`rappel_conso_table`是否已填充数据，请在 pgAdmin 查询工具中使用以下 SQL 查询：
 
 ```py
 SELECT count(*) FROM rappel_conso_table
 ```
 
-当我在2024年1月运行时，查询返回了总共10022行。你的结果应该也在这个范围内。
+当我在 2024 年 1 月运行时，查询返回了总共 10022 行。你的结果应该也在这个范围内。
 
 # 结论
 
-本文成功展示了如何使用Kafka、Airflow、Spark、PostgreSQL和Docker构建一个基本而功能齐全的数据工程管道。本文主要面向初学者和数据工程领域的新手，提供了一种动手实践的方式来理解和实现数据流、处理和存储中的关键概念。
+本文成功展示了如何使用 Kafka、Airflow、Spark、PostgreSQL 和 Docker 构建一个基本而功能齐全的数据工程管道。本文主要面向初学者和数据工程领域的新手，提供了一种动手实践的方式来理解和实现数据流、处理和存储中的关键概念。
 
-在本指南中，我们详细介绍了管道的每个组件，从设置Kafka进行数据流处理，到使用Airflow进行任务编排，再到使用Spark处理数据并将其存储在PostgreSQL中。整个项目中使用Docker简化了设置，并确保不同环境之间的一致性。
+在本指南中，我们详细介绍了管道的每个组件，从设置 Kafka 进行数据流处理，到使用 Airflow 进行任务编排，再到使用 Spark 处理数据并将其存储在 PostgreSQL 中。整个项目中使用 Docker 简化了设置，并确保不同环境之间的一致性。
 
 需要注意的是，虽然这个设置非常适合学习和小规模项目，但要将其扩展到生产环境，仍然需要考虑其他因素，尤其是在安全性和性能优化方面。未来的改进可能包括整合更先进的数据处理技术、探索实时分析，甚至扩展管道以涵盖更多复杂的数据源。
 
 本质上，这个项目作为一个实践起点，旨在帮助那些想要深入数据工程的人。它为理解基础知识打下了基础，为进一步探索该领域提供了坚实的基础。
 
-在第二部分，我们将探讨如何有效地使用存储在PostgreSQL数据库中的数据。我们将介绍由大型语言模型（LLMs）驱动的代理以及各种工具，帮助我们使用自然语言查询与数据库进行交互。所以，敬请期待！
+在第二部分，我们将探讨如何有效地使用存储在 PostgreSQL 数据库中的数据。我们将介绍由大型语言模型（LLMs）驱动的代理以及各种工具，帮助我们使用自然语言查询与数据库进行交互。所以，敬请期待！
 
 # 目标是
 
-+   LinkedIn: [https://www.linkedin.com/in/hamza-gharbi-043045151/](https://www.linkedin.com/in/hamza-gharbi-043045151/)
++   LinkedIn: [`www.linkedin.com/in/hamza-gharbi-043045151/`](https://www.linkedin.com/in/hamza-gharbi-043045151/)
 
-+   Twitter: [https://twitter.com/HamzaGh25079790](https://twitter.com/HamzaGh25079790)
++   Twitter: [`twitter.com/HamzaGh25079790`](https://twitter.com/HamzaGh25079790)

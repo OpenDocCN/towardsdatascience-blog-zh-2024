@@ -1,16 +1,16 @@
 # 理解变压器中的位置嵌入：从绝对到旋转
 
-> 原文：[https://towardsdatascience.com/understanding-positional-embeddings-in-transformers-from-absolute-to-rotary-31c082e16b26?source=collection_archive---------2-----------------------#2024-07-20](https://towardsdatascience.com/understanding-positional-embeddings-in-transformers-from-absolute-to-rotary-31c082e16b26?source=collection_archive---------2-----------------------#2024-07-20)
+> 原文：[`towardsdatascience.com/understanding-positional-embeddings-in-transformers-from-absolute-to-rotary-31c082e16b26?source=collection_archive---------2-----------------------#2024-07-20`](https://towardsdatascience.com/understanding-positional-embeddings-in-transformers-from-absolute-to-rotary-31c082e16b26?source=collection_archive---------2-----------------------#2024-07-20)
 
 ## 深入分析绝对位置、相对位置和旋转位置嵌入，并附有代码示例
 
-[](https://medium.com/@mina.ghashami?source=post_page---byline--31c082e16b26--------------------------------)[![Mina Ghashami](../Images/745f53b94f5667a485299b49913c7a21.png)](https://medium.com/@mina.ghashami?source=post_page---byline--31c082e16b26--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--31c082e16b26--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--31c082e16b26--------------------------------) [Mina Ghashami](https://medium.com/@mina.ghashami?source=post_page---byline--31c082e16b26--------------------------------)
+[](https://medium.com/@mina.ghashami?source=post_page---byline--31c082e16b26--------------------------------)![Mina Ghashami](https://medium.com/@mina.ghashami?source=post_page---byline--31c082e16b26--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--31c082e16b26--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31c082e16b26--------------------------------) [Mina Ghashami](https://medium.com/@mina.ghashami?source=post_page---byline--31c082e16b26--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31c082e16b26--------------------------------) ·阅读时间 17 分钟·2024年7月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31c082e16b26--------------------------------) ·阅读时间 17 分钟·2024 年 7 月 20 日
 
 --
 
-![](../Images/d4cf43e5eac52b5568bc147832f80905.png)
+![](img/d4cf43e5eac52b5568bc147832f80905.png)
 
 旋转位置嵌入 — 图片来自 [[6](https://arxiv.org/pdf/2104.09864)]
 

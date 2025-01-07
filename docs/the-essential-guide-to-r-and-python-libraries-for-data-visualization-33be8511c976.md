@@ -1,12 +1,12 @@
 # 数据可视化的 R 和 Python 库实用指南
 
-> 原文：[https://towardsdatascience.com/the-essential-guide-to-r-and-python-libraries-for-data-visualization-33be8511c976?source=collection_archive---------2-----------------------#2024-12-16](https://towardsdatascience.com/the-essential-guide-to-r-and-python-libraries-for-data-visualization-33be8511c976?source=collection_archive---------2-----------------------#2024-12-16)
+> 原文：[`towardsdatascience.com/the-essential-guide-to-r-and-python-libraries-for-data-visualization-33be8511c976?source=collection_archive---------2-----------------------#2024-12-16`](https://towardsdatascience.com/the-essential-guide-to-r-and-python-libraries-for-data-visualization-33be8511c976?source=collection_archive---------2-----------------------#2024-12-16)
 
 ## 让我们深入了解 R 和 Python 中最重要的库，如何使用它们来可视化数据并创建不同的图表，以及它们的优缺点。
 
-[](https://medium.com/@schuerch_sarah?source=post_page---byline--33be8511c976--------------------------------)[![Sarah Lea](../Images/09c9fa20016d1439b70b9fb6670b57a9.png)](https://medium.com/@schuerch_sarah?source=post_page---byline--33be8511c976--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--33be8511c976--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--33be8511c976--------------------------------) [Sarah Lea](https://medium.com/@schuerch_sarah?source=post_page---byline--33be8511c976--------------------------------)
+[](https://medium.com/@schuerch_sarah?source=post_page---byline--33be8511c976--------------------------------)![Sarah Lea](https://medium.com/@schuerch_sarah?source=post_page---byline--33be8511c976--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--33be8511c976--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--33be8511c976--------------------------------) [Sarah Lea](https://medium.com/@schuerch_sarah?source=post_page---byline--33be8511c976--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--33be8511c976--------------------------------) ·阅读时间 15 分钟·2024年12月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--33be8511c976--------------------------------) ·阅读时间 15 分钟·2024 年 12 月 16 日
 
 --
 
@@ -20,6 +20,6 @@
 
 > **目录**
 > 
-> [1 — 为什么 R 是必备的？（以及用于可视化的核心库）](#48c2)
+> 1 — 为什么 R 是必备的？（以及用于可视化的核心库）
 > 
-> [2 —](#490d)…
+> 2 —…

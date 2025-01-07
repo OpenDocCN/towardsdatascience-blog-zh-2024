@@ -1,16 +1,16 @@
-# 使用Python进行数值微分实战，从零到英雄
+# 使用 Python 进行数值微分实战，从零到英雄
 
-> 原文：[https://towardsdatascience.com/hands-on-numerical-derivative-with-python-from-zero-to-hero-79eb5b5ffabf?source=collection_archive---------1-----------------------#2024-09-22](https://towardsdatascience.com/hands-on-numerical-derivative-with-python-from-zero-to-hero-79eb5b5ffabf?source=collection_archive---------1-----------------------#2024-09-22)
+> 原文：[`towardsdatascience.com/hands-on-numerical-derivative-with-python-from-zero-to-hero-79eb5b5ffabf?source=collection_archive---------1-----------------------#2024-09-22`](https://towardsdatascience.com/hands-on-numerical-derivative-with-python-from-zero-to-hero-79eb5b5ffabf?source=collection_archive---------1-----------------------#2024-09-22)
 
 ## 这里是你需要知道的所有内容（超越标准定义），让你掌握数值微分的世界。
 
-[](https://piero-paialunga.medium.com/?source=post_page---byline--79eb5b5ffabf--------------------------------)[![Piero Paialunga](../Images/de2185596a49484698733e85114dd1ff.png)](https://piero-paialunga.medium.com/?source=post_page---byline--79eb5b5ffabf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--79eb5b5ffabf--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--79eb5b5ffabf--------------------------------) [Piero Paialunga](https://piero-paialunga.medium.com/?source=post_page---byline--79eb5b5ffabf--------------------------------)
+[](https://piero-paialunga.medium.com/?source=post_page---byline--79eb5b5ffabf--------------------------------)![Piero Paialunga](https://piero-paialunga.medium.com/?source=post_page---byline--79eb5b5ffabf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--79eb5b5ffabf--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79eb5b5ffabf--------------------------------) [Piero Paialunga](https://piero-paialunga.medium.com/?source=post_page---byline--79eb5b5ffabf--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79eb5b5ffabf--------------------------------) ·9分钟阅读·2024年9月22日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79eb5b5ffabf--------------------------------) ·9 分钟阅读·2024 年 9 月 22 日
 
 --
 
-![](../Images/6205b125b4a477a3f4c005a4ae15b3fc.png)
+![](img/6205b125b4a477a3f4c005a4ae15b3fc.png)
 
 由 [Roman Mager](https://unsplash.com/@roman_lazygeek?utm_source=medium&utm_medium=referral) 提供的照片，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

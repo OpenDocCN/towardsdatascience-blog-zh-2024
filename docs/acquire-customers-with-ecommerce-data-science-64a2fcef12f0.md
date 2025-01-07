@@ -1,12 +1,12 @@
 # 使用电子商务数据科学获取客户
 
-> 原文：[https://towardsdatascience.com/acquire-customers-with-ecommerce-data-science-64a2fcef12f0?source=collection_archive---------8-----------------------#2024-06-05](https://towardsdatascience.com/acquire-customers-with-ecommerce-data-science-64a2fcef12f0?source=collection_archive---------8-----------------------#2024-06-05)
+> 原文：[`towardsdatascience.com/acquire-customers-with-ecommerce-data-science-64a2fcef12f0?source=collection_archive---------8-----------------------#2024-06-05`](https://towardsdatascience.com/acquire-customers-with-ecommerce-data-science-64a2fcef12f0?source=collection_archive---------8-----------------------#2024-06-05)
 
 ## 数据驱动的策略帮助电子商务企业克服广告挑战
 
-[](https://ivylc.medium.com/?source=post_page---byline--64a2fcef12f0--------------------------------)[![Ivy Liu](../Images/74483fd84a1b4e4a0e013474496d9925.png)](https://ivylc.medium.com/?source=post_page---byline--64a2fcef12f0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--64a2fcef12f0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--64a2fcef12f0--------------------------------) [Ivy Liu](https://ivylc.medium.com/?source=post_page---byline--64a2fcef12f0--------------------------------)
+[](https://ivylc.medium.com/?source=post_page---byline--64a2fcef12f0--------------------------------)![Ivy Liu](https://ivylc.medium.com/?source=post_page---byline--64a2fcef12f0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--64a2fcef12f0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--64a2fcef12f0--------------------------------) [Ivy Liu](https://ivylc.medium.com/?source=post_page---byline--64a2fcef12f0--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--64a2fcef12f0--------------------------------) ·6 分钟阅读·2024年6月5日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--64a2fcef12f0--------------------------------) ·6 分钟阅读·2024 年 6 月 5 日
 
 --
 
@@ -18,13 +18,13 @@
 
 幸运的是，电子商务的高管和营销人员可以利用数据科学来克服这些挑战。在本文中，我们将解释广告平台的算法如何工作，并分享一些改善客户获取的实用方法。
 
-![](../Images/0f878edf309b74a019665356867a8456.png)
+![](img/0f878edf309b74a019665356867a8456.png)
 
 图片来源：作者
 
 # 广告平台如何运作
 
-广告平台通过实时竞拍来确定哪些广告展示给哪些用户。以Meta为例，其广告竞拍通过总价值评分来决定获胜广告：
+广告平台通过实时竞拍来确定哪些广告展示给哪些用户。以 Meta 为例，其广告竞拍通过总价值评分来决定获胜广告：
 
 **总价值 = 出价 × 预估行动率 + 相关性和质量评分**
 

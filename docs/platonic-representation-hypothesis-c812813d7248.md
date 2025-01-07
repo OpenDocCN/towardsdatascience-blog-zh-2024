@@ -1,12 +1,12 @@
 # 人工智能深度网络模型是否正在趋同？
 
-> 原文：[https://towardsdatascience.com/platonic-representation-hypothesis-c812813d7248?source=collection_archive---------9-----------------------#2024-05-23](https://towardsdatascience.com/platonic-representation-hypothesis-c812813d7248?source=collection_archive---------9-----------------------#2024-05-23)
+> 原文：[`towardsdatascience.com/platonic-representation-hypothesis-c812813d7248?source=collection_archive---------9-----------------------#2024-05-23`](https://towardsdatascience.com/platonic-representation-hypothesis-c812813d7248?source=collection_archive---------9-----------------------#2024-05-23)
 
 ## 人工智能模型是否正在朝着统一的现实表征演化？柏拉图式表征假设认为，机器学习模型正在趋同。
 
-[](https://medium.com/@itshesamsheikh?source=post_page---byline--c812813d7248--------------------------------)[![Hesam Sheikh](../Images/b8d5f4f285eef77634e4c1d4321580ed.png)](https://medium.com/@itshesamsheikh?source=post_page---byline--c812813d7248--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c812813d7248--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c812813d7248--------------------------------) [Hesam Sheikh](https://medium.com/@itshesamsheikh?source=post_page---byline--c812813d7248--------------------------------)
+[](https://medium.com/@itshesamsheikh?source=post_page---byline--c812813d7248--------------------------------)![Hesam Sheikh](https://medium.com/@itshesamsheikh?source=post_page---byline--c812813d7248--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c812813d7248--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c812813d7248--------------------------------) [Hesam Sheikh](https://medium.com/@itshesamsheikh?source=post_page---byline--c812813d7248--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c812813d7248--------------------------------) ·8分钟阅读·2024年5月23日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c812813d7248--------------------------------) ·8 分钟阅读·2024 年 5 月 23 日
 
 --
 
@@ -16,7 +16,7 @@
 
 *✨这是付费文章。如果你不是 Medium 会员，你可以在我的新闻通讯中免费阅读此文：* [***Qiubyte***](https://hesamsheikh.substack.com/)***.***
 
-![](../Images/7d3f9d3d6b75ce9eeffa8cf92e8fdd3e.png)
+![](img/7d3f9d3d6b75ce9eeffa8cf92e8fdd3e.png)
 
 柏拉图的洞穴寓言，由[Jan Saenredam](https://en.wikipedia.org/wiki/Allegory_of_the_cave#/media/File:Platon_Cave_Sanraedam_1604.jpg)（公有领域）创作。
 
@@ -24,7 +24,7 @@
 
 > 我们认为，不同神经网络模型中数据点的表示方式正日益相似。这种相似性跨越了不同的模型架构、训练目标，甚至数据形式。
 
-![](../Images/5da8256363d2d7ad31122d9252187a10.png)
+![](img/5da8256363d2d7ad31122d9252187a10.png)
 
 柏拉图式表征假设。视觉表征**X**和文本表征**Y**都是共同现实**Z**的投影。（来源：[论文](https://arxiv.org/abs/2405.07987)）
 
@@ -34,41 +34,41 @@
 
 作者认为，这种趋向**柏拉图式表示**的收敛性是由模型所训练的底层数据结构和数据本身的性质驱动的，以及模型本身日益增长的复杂性和能力。随着模型接触到更多样的数据集和更广泛的应用，它们需要一种能够捕捉所有数据类型中常见的基本属性的表示。
 
-![](../Images/c0a103eba7bdc3841ba60e0dd6101975.png)
+![](img/c0a103eba7bdc3841ba60e0dd6101975.png)
 
 《洞穴寓言》的插图，摘自柏拉图的《理想国》（艺术作品来自[4edges](https://commons.wikimedia.org/wiki/User:4edges)，来源：[Wikipedia](https://en.wikipedia.org/wiki/Allegory_of_the_cave#/media/File:An_Illustration_of_The_Allegory_of_the_Cave,_from_Plato%E2%80%99s_Republic.jpg))
 
-# 2.  AI模型会收敛吗？
+# 2.  AI 模型会收敛吗？
 
-各种规模的AI模型，即使是基于不同架构构建并为不同任务训练的模型，也开始表现出在数据表示上的收敛迹象。随着这些模型的规模和复杂度不断增长，输入数据变得更加庞大和多样，它们处理数据的方式开始*趋于一致。*
+各种规模的 AI 模型，即使是基于不同架构构建并为不同任务训练的模型，也开始表现出在数据表示上的收敛迹象。随着这些模型的规模和复杂度不断增长，输入数据变得更加庞大和多样，它们处理数据的方式开始*趋于一致。*
 
 在不同数据模态——视觉或文本上训练的模型也会收敛吗？答案可能是*是的！*
 
 ## 2.1 能说话的视觉模型
 
-这种对齐跨越了视觉和文本数据——论文随后确认，这一理论的局限性在于它只关注这两种模态，而没有涉及音频或机器人对世界的感知等其他模态。支持这一点的一个案例[1]是[***LLaVA***](https://llava-vl.github.io/)，该案例展示了通过2层MLP将视觉特征投影到语言特征中，从而实现了最先进的结果。
+这种对齐跨越了视觉和文本数据——论文随后确认，这一理论的局限性在于它只关注这两种模态，而没有涉及音频或机器人对世界的感知等其他模态。支持这一点的一个案例[1]是[***LLaVA***](https://llava-vl.github.io/)，该案例展示了通过 2 层 MLP 将视觉特征投影到语言特征中，从而实现了最先进的结果。
 
-![](../Images/55ffd69249f08c5f8411e44c510cb79c.png)
+![](img/55ffd69249f08c5f8411e44c510cb79c.png)
 
-LLaVA如何将视觉特征映射到语言模型的概述。（来源：[LLaVA](https://llava-vl.github.io/3)，CC-BY）
+LLaVA 如何将视觉特征映射到语言模型的概述。（来源：[LLaVA](https://llava-vl.github.io/3)，CC-BY）
 
 ## 2.2 能看见的语言模型
 
-另一个有趣的例子是***大型语言模型的视力检查***[2]，它探讨了大型语言模型在理解和处理视觉数据方面的程度。该研究使用代码作为图像和文本之间的桥梁，作为将视觉数据输入LLM的创新方法。论文揭示了LLM可以通过代码生成图像，这些图像虽然可能看起来不真实，但仍包含足够的视觉信息来训练视觉模型。
+另一个有趣的例子是***大型语言模型的视力检查***[2]，它探讨了大型语言模型在理解和处理视觉数据方面的程度。该研究使用代码作为图像和文本之间的桥梁，作为将视觉数据输入 LLM 的创新方法。论文揭示了 LLM 可以通过代码生成图像，这些图像虽然可能看起来不真实，但仍包含足够的视觉信息来训练视觉模型。
 
-![](../Images/b5cf01098f7054317c6704cf8e05dd91.png)
+![](img/b5cf01098f7054317c6704cf8e05dd91.png)
 
 语言模型能看见吗？([source](https://arxiv.org/abs/2401.01862))
 
 ## 2.3 更大的模型，更强的对齐
 
-不同模型的对齐与其规模相关。例如，训练用于*CIFAR-10分类*的较大模型，表现出比小模型更强的对齐性。这意味着随着当前构建模型的趋势向10亿和100亿级别发展，这些巨型模型将会更加一致。
+不同模型的对齐与其规模相关。例如，训练用于*CIFAR-10 分类*的较大模型，表现出比小模型更强的对齐性。这意味着随着当前构建模型的趋势向 10 亿和 100 亿级别发展，这些巨型模型将会更加一致。
 
 > “所有强大的模型都是相似的，每个弱模型都是以自己独特的方式弱。”
 
-## 3. 为什么AI模型会收敛？
+## 3. 为什么 AI 模型会收敛？
 
-![](../Images/da754cb83931f36ce44538279e2c757f.png)
+![](img/da754cb83931f36ce44538279e2c757f.png)
 
 AI 模型的学习过程，f ∗ 是训练后的模型，𝐹 F 是函数类，𝐿 L 是依赖于模型 𝑓 f 和来自数据集的输入 𝑥 x 的损失函数，𝑅 R 表示正则化函数，𝐸 E 表示数据集的期望值。每种颜色代表收敛的一个原因。 (来源：[论文](https://arxiv.org/abs/2405.07987))
 
@@ -78,7 +78,7 @@ AI 模型的学习过程，f ∗ 是训练后的模型，𝐹 F 是函数类，�
 
 随着模型被训练以同时解决越来越多的任务，其解决方案空间变得越来越小且更加受限。更高的通用性意味着尝试学习更接近*现实*的数据点。
 
-![](../Images/94dad5d024071616ad980eacb4c22f08.png)
+![](img/94dad5d024071616ad980eacb4c22f08.png)
 
 一个模型能够解决的任务越多，它就被迫学习一个在解决所有这些任务时都有效的非重叠表示。 (来源：[论文](https://arxiv.org/abs/2405.07987))
 
@@ -92,7 +92,7 @@ AI 模型的学习过程，f ∗ 是训练后的模型，𝐹 F 是函数类，�
 
 随着模型的能力增强，通过更复杂的架构、更大的数据集或更复杂的训练算法，这些模型开发出的表示方式变得更加相似。
 
-![](../Images/1b9e4e58eaeecfa96213276140d77730.png)
+![](img/1b9e4e58eaeecfa96213276140d77730.png)
 
 更大的假设空间比小的假设空间更容易收敛到一个解。 (来源：[论文](https://arxiv.org/abs/2405.07987))
 
@@ -104,7 +104,7 @@ AI 模型的学习过程，f ∗ 是训练后的模型，𝐹 F 是函数类，�
 
 想象一下，在两个不同任务上训练两个**大规模**神经网络：一个模型必须能够识别图像中的面孔，另一个模型被训练来解读面孔的情绪。最初，这两个任务似乎没有什么关系——但是你会惊讶地发现两个模型最终会在面部特征表示上趋于相似吗？毕竟，一切归结于准确识别和解读面部关键点（眼睛、鼻子、嘴巴等）。
 
-![](../Images/406bfc4d6cdfd719d909d9d7d8969fd8.png)
+![](img/406bfc4d6cdfd719d909d9d7d8969fd8.png)
 
 深度神经网络倾向于更简单的函数。（来源：[论文](https://arxiv.org/abs/2405.07987)）
 
@@ -118,31 +118,31 @@ AI 模型的学习过程，f ∗ 是训练后的模型，𝐹 F 是函数类，�
 
 # 4\. 这种收敛性的影响
 
-那么，如果模型正在收敛，又会怎么样呢？首先，这表明不同模态的数据比以前认为的更有用。从预训练的LLM微调视觉模型，或反之，可能会得到出乎意料的好结果。
+那么，如果模型正在收敛，又会怎么样呢？首先，这表明不同模态的数据比以前认为的更有用。从预训练的 LLM 微调视觉模型，或反之，可能会得到出乎意料的好结果。
 
 论文中指出的另一个影响是**“规模化可能减少幻觉和偏见”**。这一论点是，随着模型的规模扩大，它们可以从更大、更具多样性的数据库中学习，从而帮助它们形成更准确、更健壮的世界理解。这种增强的理解使得模型能够做出更加可靠且更少偏见的预测和输出。
 
-![](../Images/2165138d4d2f30d11a5c239ac0ba9116.png)
+![](img/2165138d4d2f30d11a5c239ac0ba9116.png)
 
-VISION模型随着**能力**的增加而收敛。（来源：[论文](https://arxiv.org/abs/2405.07987)）
+VISION 模型随着**能力**的增加而收敛。（来源：[论文](https://arxiv.org/abs/2405.07987)）
 
 # 5\. 一点怀疑
 
 在考虑论文中提出的论点时，必须考虑一些局限性，几乎所有这些局限性都在论文中有所讨论。
 
-首先，论文假设现实世界的**双射投影**，其中一个现实世界概念Z有可以学习的投影X和Y。然而，某些概念是独特地固有于某一模态的。有时，语言能够表达一种概念或情感，而许多图像无法做到，反之，语言也可能无法替代图像来描述视觉概念。
+首先，论文假设现实世界的**双射投影**，其中一个现实世界概念 Z 有可以学习的投影 X 和 Y。然而，某些概念是独特地固有于某一模态的。有时，语言能够表达一种概念或情感，而许多图像无法做到，反之，语言也可能无法替代图像来描述视觉概念。
 
-其次，正如前面提到的，论文关注两种模态：视觉和语言。第三，关于“AI模型正在趋同”的论点仅适用于多任务AI模型，而不适用于特定模型，如ADAS或情感分析模型。
+其次，正如前面提到的，论文关注两种模态：视觉和语言。第三，关于“AI 模型正在趋同”的论点仅适用于多任务 AI 模型，而不适用于特定模型，如 ADAS 或情感分析模型。
 
-最后，尽管论文表明不同模型的**对齐度**有所**增加**，但并未表明这些模型的表示变得相似。大模型之间的对齐分数确实高于小模型，但即使如此，0.16/1.00的分数仍然留给研究一些悬而未解的问题。
+最后，尽管论文表明不同模型的**对齐度**有所**增加**，但并未表明这些模型的表示变得相似。大模型之间的对齐分数确实高于小模型，但即使如此，0.16/1.00 的分数仍然留给研究一些悬而未解的问题。
 
-**🌟 加入1000+人一起学习** Python🐍，机器学习/机器学习操作/人工智能🤖，数据科学📈，以及大语言模型 🗯
+**🌟 加入 1000+人一起学习** Python🐍，机器学习/机器学习操作/人工智能🤖，数据科学📈，以及大语言模型 🗯
 
 [**关注我**](https://medium.com/@itshesamsheikh/subscribe)，并查看我的[**X/Twitter**](https://twitter.com/itsHesamSheikh)，我每天都会为你提供更新**。**
 
 [](https://hesamsheikh.substack.com/?source=post_page-----c812813d7248--------------------------------) [## QiuByte | Hesam Sheikh | Substack
 
-### 人工智能、编程和机器学习，仅在简易的方式下。点击阅读《QiuByte》，由Hesam Sheikh主办，Substack…
+### 人工智能、编程和机器学习，仅在简易的方式下。点击阅读《QiuByte》，由 Hesam Sheikh 主办，Substack…
 
 [hesamsheikh.substack.com](https://hesamsheikh.substack.com/?source=post_page-----c812813d7248--------------------------------)
 
@@ -150,12 +150,12 @@ VISION模型随着**能力**的增加而收敛。（来源：[论文](https://ar
 
 — Hesam
 
-[1] 刘浩，李晨，吴奇，李洋杰。《视觉指令调优》。发表于NeurIPS，2023。
+[1] 刘浩，李晨，吴奇，李洋杰。《视觉指令调优》。发表于 NeurIPS，2023。
 
-[2] Sharma, P., Rott Shaham, T., Baradad, M., Fu, S., Rodriguez-Munoz, A., Duggal, S., Isola, P., and Torralba, A. 《语言模型的视觉检查》。发表于arXiv预印本，2024。
+[2] Sharma, P., Rott Shaham, T., Baradad, M., Fu, S., Rodriguez-Munoz, A., Duggal, S., Isola, P., and Torralba, A. 《语言模型的视觉检查》。发表于 arXiv 预印本，2024。
 
-[3] H. Shah，K. Tamuly，《神经网络中简单性偏差的陷阱》，2020年，[https://arxiv.org/abs/2006.07710](https://arxiv.org/abs/2006.07710)
+[3] H. Shah，K. Tamuly，《神经网络中简单性偏差的陷阱》，2020 年，[`arxiv.org/abs/2006.07710`](https://arxiv.org/abs/2006.07710)
 
 [4] [关于简单性偏差的简短说明](https://www.lesswrong.com/posts/Gyggp2DJRMRLSnhid/a-brief-note-on-simplicity-bias-1)
 
-[5] [深度神经网络在初始化时偏向简单函数](/deep-neural-networks-are-biased-at-initialisation-towards-simple-functions-a63487edcb99)
+[5] 深度神经网络在初始化时偏向简单函数

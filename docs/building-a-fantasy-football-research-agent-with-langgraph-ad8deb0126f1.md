@@ -1,16 +1,16 @@
 # 使用 LangGraph 构建幻想足球研究代理
 
-> 原文：[https://towardsdatascience.com/building-a-fantasy-football-research-agent-with-langgraph-ad8deb0126f1?source=collection_archive---------7-----------------------#2024-12-05](https://towardsdatascience.com/building-a-fantasy-football-research-agent-with-langgraph-ad8deb0126f1?source=collection_archive---------7-----------------------#2024-12-05)
+> 原文：[`towardsdatascience.com/building-a-fantasy-football-research-agent-with-langgraph-ad8deb0126f1?source=collection_archive---------7-----------------------#2024-12-05`](https://towardsdatascience.com/building-a-fantasy-football-research-agent-with-langgraph-ad8deb0126f1?source=collection_archive---------7-----------------------#2024-12-05)
 
 ## 一份全面的指南，涵盖了与 Sleeper API 的集成、Streamlit 用户界面的创建以及通过 AWS CDK 的部署。
 
-[](https://evandiewald.medium.com/?source=post_page---byline--ad8deb0126f1--------------------------------)[![Evan Diewald](../Images/207d5c48363d21c0d9fb5ae3428f6363.png)](https://evandiewald.medium.com/?source=post_page---byline--ad8deb0126f1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ad8deb0126f1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ad8deb0126f1--------------------------------) [Evan Diewald](https://evandiewald.medium.com/?source=post_page---byline--ad8deb0126f1--------------------------------)
+[](https://evandiewald.medium.com/?source=post_page---byline--ad8deb0126f1--------------------------------)![Evan Diewald](https://evandiewald.medium.com/?source=post_page---byline--ad8deb0126f1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ad8deb0126f1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ad8deb0126f1--------------------------------) [Evan Diewald](https://evandiewald.medium.com/?source=post_page---byline--ad8deb0126f1--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ad8deb0126f1--------------------------------) ·阅读时长 9 分钟·2024年12月5日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ad8deb0126f1--------------------------------) ·阅读时长 9 分钟·2024 年 12 月 5 日
 
 --
 
-![](../Images/6164ac579dfc394bf298bcb623544676.png)
+![](img/6164ac579dfc394bf298bcb623544676.png)
 
 照片由 [Dmitriy Demidov](https://unsplash.com/@fotograw?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,7 +22,7 @@
 
 例如，如果我们询问 Claude Sonnet 3.5 谁是当前最好的跑卫，我们会看到像 Christian McCaffrey、Breece Hall 和 Travis Etienne 这样的名字，这些球员在 2024 年的赛季中都受到伤病困扰或表现令人失望。此时没有提到 Saquon Barkley 或 Derrick Henry——这两位明显的领跑者。（不过值得一提的是，Claude 会披露其局限性。）
 
-![](../Images/6700132629c292799231a2c0c0f1580b.png)
+![](img/6700132629c292799231a2c0c0f1580b.png)
 
 像 [Perplexity](https://www.perplexity.ai/) 这样的应用程序更为准确，因为它们确实访问了一个拥有最新信息的搜索引擎。然而，它当然不了解我的整个阵容情况、我们联盟的季后赛局势或我们守护规则的细微差别。
 
@@ -34,17 +34,17 @@
 
 聊天机器人的核心将是一个基于[ReAct](https://arxiv.org/abs/2210.03629)框架的[LangGraph](https://www.langchain.com/langgraph)代理。我们将让它访问与[Sleeper API](https://docs.sleeper.com/)集成的工具，用于常见操作，如查看联盟排名、名单、球员统计、专家分析等。
 
-除了LangGraph API服务器，我们的后端还将包括一个小型Postgres数据库和Redis缓存，用于管理状态和路由请求。我们将使用[Streamlit](https://streamlit.io/)来构建一个简单但有效的用户界面。
+除了 LangGraph API 服务器，我们的后端还将包括一个小型 Postgres 数据库和 Redis 缓存，用于管理状态和路由请求。我们将使用[Streamlit](https://streamlit.io/)来构建一个简单但有效的用户界面。
 
 在开发过程中，我们可以通过[Docker Compose](https://docs.docker.com/compose/)在本地运行所有这些组件，但我也将展示基础设施即代码（IaC）来部署一个可扩展的堆栈，使用[AWS CDK](https://docs.aws.amazon.com/cdk/api/v2/)。
 
-## Sleeper API集成
+## Sleeper API 集成
 
-[Sleeper](https://sleeper.com) 慷慨地提供了一个公开的只读API，我们可以利用它获取用户和联盟的详细信息，包括完整的球员名单、名单和选秀信息。尽管没有明确文档化，但我还发现了一些GraphQL端点，提供关键的统计数据、预测以及——也许最有价值的——NFL记者的最新专家分析。
+[Sleeper](https://sleeper.com) 慷慨地提供了一个公开的只读 API，我们可以利用它获取用户和联盟的详细信息，包括完整的球员名单、名单和选秀信息。尽管没有明确文档化，但我还发现了一些 GraphQL 端点，提供关键的统计数据、预测以及——也许最有价值的——NFL 记者的最新专家分析。
 
-我创建了一个简单的API客户端来访问各种方法，你可以在[这里](https://github.com/evandiewald/fantasy-football-agent/blob/main/fantasy_chatbot/sleeper.py)找到它。我想要强调的一个技巧是`requests-cache` [库](https://requests-cache.readthedocs.io/en/stable/index.html)。我不想成为Sleeper免费数据集的贪婪客户端，所以我将响应缓存到本地的Sqlite数据库，并使用基本的TTL机制。
+我创建了一个简单的 API 客户端来访问各种方法，你可以在[这里](https://github.com/evandiewald/fantasy-football-agent/blob/main/fantasy_chatbot/sleeper.py)找到它。我想要强调的一个技巧是`requests-cache` [库](https://requests-cache.readthedocs.io/en/stable/index.html)。我不想成为 Sleeper 免费数据集的贪婪客户端，所以我将响应缓存到本地的 Sqlite 数据库，并使用基本的 TTL 机制。
 
-这样不仅减少了重复的API流量对Sleeper服务器的压力（降低了他们将我的IP地址列入黑名单的机会），而且大大降低了我的客户端的延迟，提供更好的用户体验。
+这样不仅减少了重复的 API 流量对 Sleeper 服务器的压力（降低了他们将我的 IP 地址列入黑名单的机会），而且大大降低了我的客户端的延迟，提供更好的用户体验。
 
 设置和使用缓存非常简单，正如你在这个代码片段中看到的那样——
 
@@ -82,13 +82,13 @@ class SleeperClient:
 
 `self.session.get(url)`
 
-首先检查本地Sqlite缓存中是否有未过期的响应。如果找到，我们可以跳过API调用，直接从数据库中读取。
+首先检查本地 Sqlite 缓存中是否有未过期的响应。如果找到，我们可以跳过 API 调用，直接从数据库中读取。
 
 ## 定义工具
 
-我想把Sleeper API客户端转化为一组关键功能，供代理使用以提供响应。因为这些功能将由LLM有效地调用，所以我认为为它们做清晰的注解并要求简单、灵活的参数是很重要的。
+我想把 Sleeper API 客户端转化为一组关键功能，供代理使用以提供响应。因为这些功能将由 LLM 有效地调用，所以我认为为它们做清晰的注解并要求简单、灵活的参数是很重要的。
 
-例如，Sleeper的API通常要求提供数字化的球员ID，这对于编程接口是有意义的。然而，我希望将这个概念从LLM中抽象出来，让它仅仅输入球员的名字进行这些功能。为了确保额外的灵活性，并允许像拼写错误这样的情况，我实现了一种基本的“[模糊搜索](https://github.com/rapidfuzz/RapidFuzz)”方法，将球员名字的搜索映射到他们对应的球员ID。
+例如，Sleeper 的 API 通常要求提供数字化的球员 ID，这对于编程接口是有意义的。然而，我希望将这个概念从 LLM 中抽象出来，让它仅仅输入球员的名字进行这些功能。为了确保额外的灵活性，并允许像拼写错误这样的情况，我实现了一种基本的“[模糊搜索](https://github.com/rapidfuzz/RapidFuzz)”方法，将球员名字的搜索映射到他们对应的球员 ID。
 
 ```py
 # file: fantasy_chatbot/league.py
@@ -123,9 +123,9 @@ def get_player_news(self, player_name: Annotated[str, "The player's name."]) -> 
    return player_news
 ```
 
-这比简单的名称到球员ID的映射更好，因为它允许拼写错误和其他打字错误，例如`saquon` → `Saquon Barkley`
+这比简单的名称到球员 ID 的映射更好，因为它允许拼写错误和其他打字错误，例如`saquon` → `Saquon Barkley`
 
-![](../Images/091f3735f1f8c100a869129af236093f.png)
+![](img/091f3735f1f8c100a869129af236093f.png)
 
 我基于这些原则创建了一些有用的工具：
 
@@ -145,17 +145,17 @@ def get_player_news(self, player_name: Annotated[str, "The player's name."]) -> 
 
 你可能还能想到一些有用的功能可以添加，比如关于最近交易、联盟对战情况和选秀信息的详细数据。
 
-## LangGraph代理
+## LangGraph 代理
 
-整个项目的推动力来源于一个学习LangGraph生态系统的机会，这可能正在成为构建智能工作流的事实标准。
+整个项目的推动力来源于一个学习 LangGraph 生态系统的机会，这可能正在成为构建智能工作流的事实标准。
 
-我过去曾从零开始构建代理，如果当时我知道LangGraph就好了。它不仅仅是一个薄的封装层，围绕着各种LLM提供者，它为构建、部署和监控复杂工作流提供了巨大的实用性。如果你有兴趣深入了解，可以查看LangChain Academy的[LangGraph简介](https://academy.langchain.com/courses/intro-to-langgraph)课程。
+我过去曾从零开始构建代理，如果当时我知道 LangGraph 就好了。它不仅仅是一个薄的封装层，围绕着各种 LLM 提供者，它为构建、部署和监控复杂工作流提供了巨大的实用性。如果你有兴趣深入了解，可以查看 LangChain Academy 的[LangGraph 简介](https://academy.langchain.com/courses/intro-to-langgraph)课程。
 
-如前所述，图形本身基于ReAct框架，这是一种流行且有效的方法，可以使大语言模型（LLM）与外部工具进行交互，例如上述定义的工具。
+如前所述，图形本身基于 ReAct 框架，这是一种流行且有效的方法，可以使大语言模型（LLM）与外部工具进行交互，例如上述定义的工具。
 
 我还添加了一个节点，用于持久化每个用户的长期记忆，以便信息可以跨会话保存。我希望我们的代理能够“记住”用户的关注点、偏好和之前推荐的交易，因为这是我在见过的聊天机器人中并没有特别好实现的功能。以图形的形式，它看起来是这样的：
 
-![](../Images/436f6bbcdcdf128744ef4cb4a3d1ecaa.png)
+![](img/436f6bbcdcdf128744ef4cb4a3d1ecaa.png)
 
 很简单吧？再说一次，你可以查看完整的图定义在[代码](https://github.com/evandiewald/fantasy-football-agent/blob/main/fantasy_chatbot/chatbot.py)中，但我会重点介绍`write_memory`节点，它负责为每个用户写入和更新个人资料。这使我们能够在有效利用令牌的同时，跟踪关键的交互。
 
@@ -205,7 +205,7 @@ def write_memory(state: MessagesState, config: RunnableConfig, store: BaseStore)
 
 对于开发，我建议通过提供的 `docker-compose.yml` 文件将组件本地部署。这将在 `http://localhost:8123` 上本地暴露 API，因此您可以快速测试更改并从本地 Streamlit 应用程序连接。
 
-![](../Images/5afeba0c67645f244863f81be5d72e78.png)
+![](img/5afeba0c67645f244863f81be5d72e78.png)
 
 我还包含了一个基于 AWS CDK 的 IaC，用于将应用程序托管到互联网。大多数资源定义见[此处](https://github.com/evandiewald/fantasy-football-agent/blob/main/deploy/lib/fantasy-football-agent-stack.ts)。请注意 `docker-compose.yml` 和与 ECS 设置相关的 CDK 代码之间的相似之处：
 

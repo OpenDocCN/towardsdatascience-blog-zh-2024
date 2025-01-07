@@ -1,18 +1,18 @@
 # 如何使你的数据科学/机器学习工程师工作流程更高效
 
-> 原文：[https://towardsdatascience.com/how-to-make-your-data-science-ml-engineer-workflow-more-effective-4f857c36bbc1?source=collection_archive---------10-----------------------#2024-09-26](https://towardsdatascience.com/how-to-make-your-data-science-ml-engineer-workflow-more-effective-4f857c36bbc1?source=collection_archive---------10-----------------------#2024-09-26)
+> 原文：[`towardsdatascience.com/how-to-make-your-data-science-ml-engineer-workflow-more-effective-4f857c36bbc1?source=collection_archive---------10-----------------------#2024-09-26`](https://towardsdatascience.com/how-to-make-your-data-science-ml-engineer-workflow-more-effective-4f857c36bbc1?source=collection_archive---------10-----------------------#2024-09-26)
 
 ## 学习如何使用 VS Code 互动窗口提高编程效率
 
-[](https://oieivind.medium.com/?source=post_page---byline--4f857c36bbc1--------------------------------)[![Eivind Kjosbakken](../Images/5f91b74428e1202fc4a176a3dd1cb1c7.png)](https://oieivind.medium.com/?source=post_page---byline--4f857c36bbc1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4f857c36bbc1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4f857c36bbc1--------------------------------) [Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--4f857c36bbc1--------------------------------)
+[](https://oieivind.medium.com/?source=post_page---byline--4f857c36bbc1--------------------------------)![Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--4f857c36bbc1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4f857c36bbc1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4f857c36bbc1--------------------------------) [Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--4f857c36bbc1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4f857c36bbc1--------------------------------) ·阅读时间 4 分钟·2024年9月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4f857c36bbc1--------------------------------) ·阅读时间 4 分钟·2024 年 9 月 26 日
 
 --
 
 任何从事编程工作的人都需要一个高效的工作流程。许多任务都非常耗时，你会希望尽可能自动化以减少手动工作。本文讨论了我最近是如何更新我的数据科学工作流程的，从使用 Jupyter Notebook 转变为使用 VS Code 互动窗口。
 
-![](../Images/4c4863f0c5dfd3e00ad2a4972dfb86fa.png)
+![](img/4c4863f0c5dfd3e00ad2a4972dfb86fa.png)
 
 本文讨论了如何通过 VS Code 互动窗口提升你的数据科学/机器学习工程师工作流程。图片由 ChatGPT 提供。
 

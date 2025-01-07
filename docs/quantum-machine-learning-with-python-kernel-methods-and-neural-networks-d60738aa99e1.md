@@ -1,28 +1,28 @@
-# 使用Python进行量子机器学习：核方法与神经网络
+# 使用 Python 进行量子机器学习：核方法与神经网络
 
-> 原文：[https://towardsdatascience.com/quantum-machine-learning-with-python-kernel-methods-and-neural-networks-d60738aa99e1?source=collection_archive---------3-----------------------#2024-03-12](https://towardsdatascience.com/quantum-machine-learning-with-python-kernel-methods-and-neural-networks-d60738aa99e1?source=collection_archive---------3-----------------------#2024-03-12)
+> 原文：[`towardsdatascience.com/quantum-machine-learning-with-python-kernel-methods-and-neural-networks-d60738aa99e1?source=collection_archive---------3-----------------------#2024-03-12`](https://towardsdatascience.com/quantum-machine-learning-with-python-kernel-methods-and-neural-networks-d60738aa99e1?source=collection_archive---------3-----------------------#2024-03-12)
 
-[](https://xaviervasques.medium.com/?source=post_page---byline--d60738aa99e1--------------------------------)[![Xavier Vasques](../Images/5517ccd82bb4744fc0bff5be9ba399e4.png)](https://xaviervasques.medium.com/?source=post_page---byline--d60738aa99e1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d60738aa99e1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d60738aa99e1--------------------------------) [Xavier Vasques](https://xaviervasques.medium.com/?source=post_page---byline--d60738aa99e1--------------------------------)
+[](https://xaviervasques.medium.com/?source=post_page---byline--d60738aa99e1--------------------------------)![Xavier Vasques](https://xaviervasques.medium.com/?source=post_page---byline--d60738aa99e1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d60738aa99e1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d60738aa99e1--------------------------------) [Xavier Vasques](https://xaviervasques.medium.com/?source=post_page---byline--d60738aa99e1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d60738aa99e1--------------------------------) ·15分钟阅读·2024年3月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d60738aa99e1--------------------------------) ·15 分钟阅读·2024 年 3 月 12 日
 
 --
 
-![](../Images/6926b4f6dbcce2f545ddac86fa1016d0.png)
+![](img/6926b4f6dbcce2f545ddac86fa1016d0.png)
 
-由Annamária Borsos拍摄（经许可使用）
+由 Annamária Borsos 拍摄（经许可使用）
 
 # 介绍
 
-量子机器学习（QML）代表了量子计算和机器学习技术的一个迷人融合。随着量子计算在数学和复杂结构数据处理方面的潜力，QML有可能革新药物发现、金融等多个领域。本博客深入探讨了量子神经网络（QNNs）和量子核技术的创新领域，通过实际的Python示例展示了它们的独特能力。博客中不会详细介绍数学概念。如需了解更多信息，请随时阅读我最新的书籍《*机器学习理论与应用：在经典与量子机器上的Python实战用例*》，Wiley，2024年。
+量子机器学习（QML）代表了量子计算和机器学习技术的一个迷人融合。随着量子计算在数学和复杂结构数据处理方面的潜力，QML 有可能革新药物发现、金融等多个领域。本博客深入探讨了量子神经网络（QNNs）和量子核技术的创新领域，通过实际的 Python 示例展示了它们的独特能力。博客中不会详细介绍数学概念。如需了解更多信息，请随时阅读我最新的书籍《*机器学习理论与应用：在经典与量子机器上的 Python 实战用例*》，Wiley，2024 年。
 
-量子核方法引入了一种量子增强的数据处理方式。通过将经典数据映射到量子特征空间，这些方法利用量子力学的叠加和纠缠特性来执行分类或回归任务。使用量子核估计器和量子变分分类器的示例展示了这些概念的实际应用。量子神经网络（QNNs）利用量子态进行计算，提供了一种全新的神经网络架构方法。Qiskit框架支持量子核方法和QNN的实现，使得探索量子算法在学习和模式识别中的效率成为可能。
+量子核方法引入了一种量子增强的数据处理方式。通过将经典数据映射到量子特征空间，这些方法利用量子力学的叠加和纠缠特性来执行分类或回归任务。使用量子核估计器和量子变分分类器的示例展示了这些概念的实际应用。量子神经网络（QNNs）利用量子态进行计算，提供了一种全新的神经网络架构方法。Qiskit 框架支持量子核方法和 QNN 的实现，使得探索量子算法在学习和模式识别中的效率成为可能。
 
 通过结合 Python 代码示例，本博客旨在为读者提供全面的 QML 代码示例，帮助他们探索其有前景的应用和所面临的挑战。通过这些示例，读者可以开始实践并理解量子计算在机器学习中的变革潜力以及未来的激动人心的可能性。
 
 # 首先，安装 qiskit
 
-我们将使用开源 SDK Qiskit ([https://qiskit.org](https://qiskit.org/))，它允许与量子计算机进行交互。Qiskit 支持 Python 3.6 及更高版本。
+我们将使用开源 SDK Qiskit ([`qiskit.org`](https://qiskit.org/))，它允许与量子计算机进行交互。Qiskit 支持 Python 3.6 及更高版本。
 
 在我们的环境中，我们可以使用 pip 安装 Qiskit：
 
@@ -36,7 +36,7 @@ pip install qiskit
 pip install qiskit-machine-learning
 ```
 
-文档可以在 GitHub 上找到：[https://github.com/Qiskit/qiskit-machine-learning/](https://github.com/Qiskit/qiskit-machine-learning/)。
+文档可以在 GitHub 上找到：[`github.com/Qiskit/qiskit-machine-learning/`](https://github.com/Qiskit/qiskit-machine-learning/)。
 
 为了运行我们的代码，我们可以使用模拟器或实际硬件，尽管我强烈推荐使用硬件，或推动模拟器的极限以促进该领域的研究。在学习 Qiskit 文档时，您将遇到 Qiskit Runtime 原语的相关内容，这些原语是 qiskit.primitives 模块中 Sampler 和 Estimator 接口的实现。这些接口通过最小的代码修改，便于原语实现的无缝互换。Qiskit Runtime 的初始版本包含两个基本原语：
 
@@ -44,23 +44,23 @@ pip install qiskit-machine-learning
 
 +   Estimator（估计器）：这个原语计算由输入电路和可观察量导出的期望值。
 
-有关更全面的见解，详细信息可以在以下资源中找到：[https://qiskit.org/ecosystem/ibm-runtime/tutorials/how-to-getting-started-with-sampler.html.](https://qiskit.org/ecosystem/ibm-runtime/tutorials/how-to-getting-started-with-sampler.html.)
+有关更全面的见解，详细信息可以在以下资源中找到：[`qiskit.org/ecosystem/ibm-runtime/tutorials/how-to-getting-started-with-sampler.html.`](https://qiskit.org/ecosystem/ibm-runtime/tutorials/how-to-getting-started-with-sampler.html.)
 
 # 量子核方法
 
 探索用于监督式机器学习的量子方法是一个新颖的研究方向。经典机器学习广泛利用核方法，其中支持向量机（SVM）分类方法因其广泛应用而脱颖而出。
 
-支持向量机（SVM），因其在二分类中的作用而著名，近年来越来越多地应用于多分类问题。二分类SVM的核心是通过构造一个超平面，将n维数据点线性地分成两组，目的是寻找到一个最佳的边界，使数据能够清晰地被分类到各自的类别中。这个超平面可以有效地在原始特征空间或转换后的高维核空间中选择，选取标准是能够最大化类之间的分隔，这涉及一个优化问题，即最大化边距，边距定义为从最近的数据点到超平面两侧的距离。这导致了最大边距分类器的形成。边界上的关键数据点被称为支持向量，而边距则是通常没有数据点的区域。如果一个最优超平面离数据点过近，表示边距狭窄，则会削弱模型的预测鲁棒性和泛化能力。
+支持向量机（SVM），因其在二分类中的作用而著名，近年来越来越多地应用于多分类问题。二分类 SVM 的核心是通过构造一个超平面，将 n 维数据点线性地分成两组，目的是寻找到一个最佳的边界，使数据能够清晰地被分类到各自的类别中。这个超平面可以有效地在原始特征空间或转换后的高维核空间中选择，选取标准是能够最大化类之间的分隔，这涉及一个优化问题，即最大化边距，边距定义为从最近的数据点到超平面两侧的距离。这导致了最大边距分类器的形成。边界上的关键数据点被称为支持向量，而边距则是通常没有数据点的区域。如果一个最优超平面离数据点过近，表示边距狭窄，则会削弱模型的预测鲁棒性和泛化能力。
 
-为了解决多分类SVM的挑战，引入了类似全对策略（all-pair strategy）的方法，该方法对每一对类别进行二分类。除了简单的线性分类外，还可以通过核技巧实现非线性分类。这一技术通过核函数将输入映射到一个更广阔的高维特征空间，从而促进了在输入空间中无法线性分隔的数据的分离。核函数本质上是在一个可能非常庞大的欧几里得空间中执行内积运算，这个空间被称为特征空间。非线性SVM的目标是通过使用合适的映射将数据映射到一个更高维度，从而实现数据的分离。选择合适的特征映射对于那些不能仅通过线性方法解决的数据至关重要。在这一点上，量子技术可以发挥作用。量子核方法将经典核策略与量子创新相结合，为机器学习开辟了新的途径。早期的量子核方法主要集中在通过量子特征映射将数据点编码为内积或希尔伯特空间中的幅度。实现特征映射的量子电路的复杂度与数据集的大小呈线性或对数线性增长。
+为了解决多分类 SVM 的挑战，引入了类似全对策略（all-pair strategy）的方法，该方法对每一对类别进行二分类。除了简单的线性分类外，还可以通过核技巧实现非线性分类。这一技术通过核函数将输入映射到一个更广阔的高维特征空间，从而促进了在输入空间中无法线性分隔的数据的分离。核函数本质上是在一个可能非常庞大的欧几里得空间中执行内积运算，这个空间被称为特征空间。非线性 SVM 的目标是通过使用合适的映射将数据映射到一个更高维度，从而实现数据的分离。选择合适的特征映射对于那些不能仅通过线性方法解决的数据至关重要。在这一点上，量子技术可以发挥作用。量子核方法将经典核策略与量子创新相结合，为机器学习开辟了新的途径。早期的量子核方法主要集中在通过量子特征映射将数据点编码为内积或希尔伯特空间中的幅度。实现特征映射的量子电路的复杂度与数据集的大小呈线性或对数线性增长。
 
-# 带有ZZFeatureMaps的量子核
+# 带有 ZZFeatureMaps 的量子核
 
-在这个第一个例子中，我们将使用带有线性纠缠的ZZFeatureMap，我们将数据编码步骤重复两次，并使用主成分分析进行特征降维。当然，你可以使用其他特征降维、数据重新缩放或特征选择技术来提高模型的准确性。我们将使用乳腺癌数据集，你可以在这里找到：[https://github.com/xaviervasques/hephaistos/blob/main/data/datasets/breastcancer.csv](https://github.com/xaviervasques/hephaistos/blob/main/data/datasets/breastcancer.csv)
+在这个第一个例子中，我们将使用带有线性纠缠的 ZZFeatureMap，我们将数据编码步骤重复两次，并使用主成分分析进行特征降维。当然，你可以使用其他特征降维、数据重新缩放或特征选择技术来提高模型的准确性。我们将使用乳腺癌数据集，你可以在这里找到：[`github.com/xaviervasques/hephaistos/blob/main/data/datasets/breastcancer.csv`](https://github.com/xaviervasques/hephaistos/blob/main/data/datasets/breastcancer.csv)
 
-让我们描述一下下面Python脚本的步骤。此Python脚本演示了将量子计算技术与传统机器学习相结合以分类乳腺癌数据的应用。它代表了一种混合方法，在经典机器学习工作流中使用量子增强特征。目标是根据从乳腺肿块特征提取的一组特征来预测乳腺癌的诊断结果（良性或恶性）。  
+让我们描述一下下面 Python 脚本的步骤。此 Python 脚本演示了将量子计算技术与传统机器学习相结合以分类乳腺癌数据的应用。它代表了一种混合方法，在经典机器学习工作流中使用量子增强特征。目标是根据从乳腺肿块特征提取的一组特征来预测乳腺癌的诊断结果（良性或恶性）。  
 
-进行量子核机器学习的方式与我们作为数据科学家做的经典机器学习非常相似。我们导入必要的库（Pandas、NumPy、scikit-learn）和用于量子计算和核估计的Qiskit，加载数据，预处理数据并将数据分为特征（X）和目标标签（y）。一个具体的步骤是量子特征映射。该脚本使用Qiskit中的ZZFeatureMap设置量子特征图，并配置特征维度、重复次数和纠缠类型等参数。量子特征图对于将经典数据转换为量子态至关重要，从而实现量子计算原理在数据分析中的应用。接着，量子核的设置包含基于保真度的方法来配置量子核。它作为一种新的方法，用于计算数据点在由量子态定义的特征空间中的相似性，并有可能捕捉复杂的模式。最后一步回到经典机器学习流程，通过标准化缩放数据、使用主成分分析进行降维，并使用支持向量分类器（SVC）进行分类，SVC利用量子核进行分类。我们使用5折交叉验证来评估模型。  
+进行量子核机器学习的方式与我们作为数据科学家做的经典机器学习非常相似。我们导入必要的库（Pandas、NumPy、scikit-learn）和用于量子计算和核估计的 Qiskit，加载数据，预处理数据并将数据分为特征（X）和目标标签（y）。一个具体的步骤是量子特征映射。该脚本使用 Qiskit 中的 ZZFeatureMap 设置量子特征图，并配置特征维度、重复次数和纠缠类型等参数。量子特征图对于将经典数据转换为量子态至关重要，从而实现量子计算原理在数据分析中的应用。接着，量子核的设置包含基于保真度的方法来配置量子核。它作为一种新的方法，用于计算数据点在由量子态定义的特征空间中的相似性，并有可能捕捉复杂的模式。最后一步回到经典机器学习流程，通过标准化缩放数据、使用主成分分析进行降维，并使用支持向量分类器（SVC）进行分类，SVC 利用量子核进行分类。我们使用 5 折交叉验证来评估模型。  
 
 让我们开始编写代码。  
 
@@ -123,7 +123,7 @@ mean_score = np.mean(cv)  # Calculate the mean of the cross-validation scores
 print(mean_score)
 ```
 
-我们将获得一个平均分验证得分为0.63。
+我们将获得一个平均分验证得分为 0.63。
 
 这段代码在本地模拟器上执行。要在真实硬件上运行，请替换以下几行：  
 
@@ -169,9 +169,9 @@ sampler = Sampler(session=backend, options=options)
 
 # 量子核训练  
 
-本部分将探索量子核对齐（QKA）方法，用于二分类任务。QKA通过迭代调整参数化的量子核，以适应数据集，旨在支持向量机（SVM）中实现尽可能大的间隔。有关QKA的更多细节，请参考名为《适用于具有群结构数据的协变量子核》的预印本。下面的Python脚本是一个综合示例，展示了如何将传统机器学习技术与量子计算相结合，以提高乳腺癌诊断分类的预测准确性。它使用乳腺癌特征数据集来预测诊断结果（良性或恶性）。  
+本部分将探索量子核对齐（QKA）方法，用于二分类任务。QKA 通过迭代调整参数化的量子核，以适应数据集，旨在支持向量机（SVM）中实现尽可能大的间隔。有关 QKA 的更多细节，请参考名为《适用于具有群结构数据的协变量子核》的预印本。下面的 Python 脚本是一个综合示例，展示了如何将传统机器学习技术与量子计算相结合，以提高乳腺癌诊断分类的预测准确性。它使用乳腺癌特征数据集来预测诊断结果（良性或恶性）。  
 
-该机器学习管道与使用ZZFeatureMaps部分中的量子核类似。不同之处在于，我们将构建一个自定义量子电路，将旋转层与ZZFeatureMap结合，以准备数据的量子态表示。量子核估计步骤利用Qiskit原语和算法，通过量子核训练（QKT）和优化器来优化量子核的参数。
+该机器学习管道与使用 ZZFeatureMaps 部分中的量子核类似。不同之处在于，我们将构建一个自定义量子电路，将旋转层与 ZZFeatureMap 结合，以准备数据的量子态表示。量子核估计步骤利用 Qiskit 原语和算法，通过量子核训练（QKT）和优化器来优化量子核的参数。
 
 让我们开始编码。  
 
@@ -290,11 +290,11 @@ print(mean_score)
 
 我们将获得以下输出：0.6526315789473685  
 
-正如您所观察到的，尽管我们通过对数据进行采样，仅保留三分之一的数据并将SPSA的最大迭代次数设置为10，但QKT和使用像ZZFeatureMap这样的预定义特征映射的量子核在执行时间上仍然存在差异。QKT不仅涉及量子核的使用，还涉及量子特征映射或量子核本身参数的优化，以提高模型性能。这个优化过程需要对参数进行迭代调整，每次迭代都需要运行量子计算来评估当前参数集的性能。这种迭代特性显著增加了计算时间。而使用像ZZFeatureMap这样的预定义量子核时，特征映射是固定的，不涉及量子参数的迭代优化。量子计算是用来评估数据点之间的核，但没有调整和优化量子电路参数的额外开销。这种方法更为直接，所需的量子计算较少，因此更快。QKT中的每个优化步骤都需要评估当前量子核的模型性能，这取决于该步骤中的量子特征映射参数。这意味着需要多次评估核矩阵，每次评估都需要大量的量子计算。  
+正如您所观察到的，尽管我们通过对数据进行采样，仅保留三分之一的数据并将 SPSA 的最大迭代次数设置为 10，但 QKT 和使用像 ZZFeatureMap 这样的预定义特征映射的量子核在执行时间上仍然存在差异。QKT 不仅涉及量子核的使用，还涉及量子特征映射或量子核本身参数的优化，以提高模型性能。这个优化过程需要对参数进行迭代调整，每次迭代都需要运行量子计算来评估当前参数集的性能。这种迭代特性显著增加了计算时间。而使用像 ZZFeatureMap 这样的预定义量子核时，特征映射是固定的，不涉及量子参数的迭代优化。量子计算是用来评估数据点之间的核，但没有调整和优化量子电路参数的额外开销。这种方法更为直接，所需的量子计算较少，因此更快。QKT 中的每个优化步骤都需要评估当前量子核的模型性能，这取决于该步骤中的量子特征映射参数。这意味着需要多次评估核矩阵，每次评估都需要大量的量子计算。  
 
 # **量子神经网络**  
 
-下面的Python脚本将量子神经网络（QNNs）集成到机器学习管道中。在这个脚本中，我们需要配置量子特征映射和量子电路结构（ansatz），通过将特征映射和量子电路结构附加到基础量子电路上来构建量子电路（此设置对创建处理输入数据的量子神经网络至关重要），并使用为二分类设计的量子电路创建QNN。在回到经典机器学习管道之前，包括数据重缩放、数据降维和模型评估，我们采用了一个量子分类器，该分类器将QNN与经典优化算法（COBYLA）集成以进行训练。定义了一个回调函数来可视化优化过程，跟踪目标函数值在各个迭代过程中的变化。  
+下面的 Python 脚本将量子神经网络（QNNs）集成到机器学习管道中。在这个脚本中，我们需要配置量子特征映射和量子电路结构（ansatz），通过将特征映射和量子电路结构附加到基础量子电路上来构建量子电路（此设置对创建处理输入数据的量子神经网络至关重要），并使用为二分类设计的量子电路创建 QNN。在回到经典机器学习管道之前，包括数据重缩放、数据降维和模型评估，我们采用了一个量子分类器，该分类器将 QNN 与经典优化算法（COBYLA）集成以进行训练。定义了一个回调函数来可视化优化过程，跟踪目标函数值在各个迭代过程中的变化。  
 
 让我们开始编码。  
 
@@ -415,9 +415,9 @@ print("Standard deviation of cross-validation scores:", cross_std)
 
 交叉验证分数的标准差：0.09618163326986424
 
-![](../Images/194a9fd37a05cf66d9a3ee867de7e44a.png)
+![](img/194a9fd37a05cf66d9a3ee867de7e44a.png)
 
-正如我们所看到的，在这个特定数据集上，QNN并没有提供非常好的分类分数。
+正如我们所看到的，在这个特定数据集上，QNN 并没有提供非常好的分类分数。
 
 # 结论
 

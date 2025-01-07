@@ -1,20 +1,20 @@
-# 数据科学最佳实践，第2部分 — 一起工作
+# 数据科学最佳实践，第二部分 — 一起工作
 
-> 原文：[https://towardsdatascience.com/data-science-better-practices-part-2-work-together-9ec019f8b79e?source=collection_archive---------8-----------------------#2024-01-05](https://towardsdatascience.com/data-science-better-practices-part-2-work-together-9ec019f8b79e?source=collection_archive---------8-----------------------#2024-01-05)
+> 原文：[`towardsdatascience.com/data-science-better-practices-part-2-work-together-9ec019f8b79e?source=collection_archive---------8-----------------------#2024-01-05`](https://towardsdatascience.com/data-science-better-practices-part-2-work-together-9ec019f8b79e?source=collection_archive---------8-----------------------#2024-01-05)
 
 ## 你不能仅仅投入更多的数据科学家来处理这个模型，并期待准确率神奇地提高。
 
-[](https://medium.com/@scf1984?source=post_page---byline--9ec019f8b79e--------------------------------)[![Shachaf Poran](../Images/ac1ac57b8777c3441ad69358af1d649b.png)](https://medium.com/@scf1984?source=post_page---byline--9ec019f8b79e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ec019f8b79e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9ec019f8b79e--------------------------------) [Shachaf Poran](https://medium.com/@scf1984?source=post_page---byline--9ec019f8b79e--------------------------------)
+[](https://medium.com/@scf1984?source=post_page---byline--9ec019f8b79e--------------------------------)![Shachaf Poran](https://medium.com/@scf1984?source=post_page---byline--9ec019f8b79e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ec019f8b79e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ec019f8b79e--------------------------------) [Shachaf Poran](https://medium.com/@scf1984?source=post_page---byline--9ec019f8b79e--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ec019f8b79e--------------------------------) ·阅读时间10分钟·2024年1月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ec019f8b79e--------------------------------) ·阅读时间 10 分钟·2024 年 1 月 5 日
 
 --
 
-![](../Images/779611b5d766e019ee32e49510a48cf2.png)
+![](img/779611b5d766e019ee32e49510a48cf2.png)
 
-图片来源：Joseph Ruwa：[https://www.pexels.com/photo/set-of-chess-pieces-in-daylight-4038397/](https://www.pexels.com/photo/set-of-chess-pieces-in-daylight-4038397/)
+图片来源：Joseph Ruwa：[`www.pexels.com/photo/set-of-chess-pieces-in-daylight-4038397/`](https://www.pexels.com/photo/set-of-chess-pieces-in-daylight-4038397/)
 
-[(第一部分在这里)](/data-science-better-practices-part-1-test-your-queries-629ad5209f28)
+(第一部分在这里)
 
 并非所有的数据科学项目都一样。
 
@@ -24,7 +24,7 @@
 
 只有少数项目能够在长期内不断成长和成熟。
 
-这些特别的项目通常是解决对组织具有特殊意义的问题。例如，在线广告网络的CTR预测器，或视觉效果生成器的图像分割模型，或内容过滤服务的脏话检测器*。*
+这些特别的项目通常是解决对组织具有特殊意义的问题。例如，在线广告网络的 CTR 预测器，或视觉效果生成器的图像分割模型，或内容过滤服务的脏话检测器*。*
 
 这些项目也通常会投入大量公司资源进行优化，理应如此。当某些准确性指标的微小改进可以直接带来更高的收入，或成为产品发布和融资轮次的成败关键时——组织应该毫不吝啬地投入资源。
 
@@ -294,7 +294,7 @@ best_model_so_far = Model([sepal_diagonal], SKLRFModelInterface(), {})
 
 # 保存和加载
 
-我选择在本帖中省略保存和加载的细节，因为内容已经有些冗长，但欢迎查看我的[清洁数据科学 GitHub 仓库](https://github.com/scf1984/clean-data-science/tree/main/team_cooperation)，里面有一个完整操作的Hey示例。
+我选择在本帖中省略保存和加载的细节，因为内容已经有些冗长，但欢迎查看我的[清洁数据科学 GitHub 仓库](https://github.com/scf1984/clean-data-science/tree/main/team_cooperation)，里面有一个完整操作的 Hey 示例。
 
 # 摘要
 
@@ -306,9 +306,9 @@ best_model_so_far = Model([sepal_diagonal], SKLRFModelInterface(), {})
 
 # 常见问题
 
-问：如果你只需要从子类获取特定功能，难道不应该使用协议（Protocol）而不是ABC吗？
+问：如果你只需要从子类获取特定功能，难道不应该使用协议（Protocol）而不是 ABC 吗？
 
-答：我可以这样做，但这不是一个高级的Python课程。有句希伯来谚语说：“书呆子无法教书。”所以，你懂的。
+答：我可以这样做，但这不是一个高级的 Python 课程。有句希伯来谚语说：“书呆子无法教书。”所以，你懂的。
 
 问：那删除特征呢？这也很重要啊！
 

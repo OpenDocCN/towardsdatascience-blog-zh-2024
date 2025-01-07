@@ -1,16 +1,16 @@
 # 《平台重构的事后指南》
 
-> 原文：[https://towardsdatascience.com/the-hindsight-guide-to-replatforming-1dc11f7933d4?source=collection_archive---------3-----------------------#2024-10-05](https://towardsdatascience.com/the-hindsight-guide-to-replatforming-1dc11f7933d4?source=collection_archive---------3-----------------------#2024-10-05)
+> 原文：[`towardsdatascience.com/the-hindsight-guide-to-replatforming-1dc11f7933d4?source=collection_archive---------3-----------------------#2024-10-05`](https://towardsdatascience.com/the-hindsight-guide-to-replatforming-1dc11f7933d4?source=collection_archive---------3-----------------------#2024-10-05)
 
 ## *剖析软件“心脏移植”的动机、风险和潜在回报*
 
-[](https://medium.com/@ethan.m.knox?source=post_page---byline--1dc11f7933d4--------------------------------)[![Ethan Knox](../Images/a8e3a63ce5f093b3e015f058714c6255.png)](https://medium.com/@ethan.m.knox?source=post_page---byline--1dc11f7933d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1dc11f7933d4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1dc11f7933d4--------------------------------) [Ethan Knox](https://medium.com/@ethan.m.knox?source=post_page---byline--1dc11f7933d4--------------------------------)
+[](https://medium.com/@ethan.m.knox?source=post_page---byline--1dc11f7933d4--------------------------------)![Ethan Knox](https://medium.com/@ethan.m.knox?source=post_page---byline--1dc11f7933d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1dc11f7933d4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1dc11f7933d4--------------------------------) [Ethan Knox](https://medium.com/@ethan.m.knox?source=post_page---byline--1dc11f7933d4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1dc11f7933d4--------------------------------) ·阅读时间：16分钟·2024年10月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1dc11f7933d4--------------------------------) ·阅读时间：16 分钟·2024 年 10 月 5 日
 
 --
 
-![](../Images/d6865eb3ebff9d0d061c5217d12f1597.png)
+![](img/d6865eb3ebff9d0d061c5217d12f1597.png)
 
 动力系统的演变 — 由 Midjourney v6.1 生成的 AI 图像
 

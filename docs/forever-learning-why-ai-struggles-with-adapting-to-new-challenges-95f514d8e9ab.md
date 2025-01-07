@@ -1,20 +1,20 @@
-# 永远学习：为何AI难以适应新挑战
+# 永远学习：为何 AI 难以适应新挑战
 
-> 原文：[https://towardsdatascience.com/forever-learning-why-ai-struggles-with-adapting-to-new-challenges-95f514d8e9ab?source=collection_archive---------2-----------------------#2024-09-07](https://towardsdatascience.com/forever-learning-why-ai-struggles-with-adapting-to-new-challenges-95f514d8e9ab?source=collection_archive---------2-----------------------#2024-09-07)
+> 原文：[`towardsdatascience.com/forever-learning-why-ai-struggles-with-adapting-to-new-challenges-95f514d8e9ab?source=collection_archive---------2-----------------------#2024-09-07`](https://towardsdatascience.com/forever-learning-why-ai-struggles-with-adapting-to-new-challenges-95f514d8e9ab?source=collection_archive---------2-----------------------#2024-09-07)
 
 ## |人工智能|持续学习|深度学习的局限性|
 
 ## 理解深度学习的局限性及寻求真正的持续适应
 
-[](https://salvatore-raieli.medium.com/?source=post_page---byline--95f514d8e9ab--------------------------------)[![Salvatore Raieli](../Images/6bb4520e2df40d20283e7283141b5e06.png)](https://salvatore-raieli.medium.com/?source=post_page---byline--95f514d8e9ab--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95f514d8e9ab--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--95f514d8e9ab--------------------------------) [Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--95f514d8e9ab--------------------------------)
+[](https://salvatore-raieli.medium.com/?source=post_page---byline--95f514d8e9ab--------------------------------)![Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--95f514d8e9ab--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95f514d8e9ab--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95f514d8e9ab--------------------------------) [Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--95f514d8e9ab--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95f514d8e9ab--------------------------------) ·14分钟阅读·2024年9月7日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95f514d8e9ab--------------------------------) ·14 分钟阅读·2024 年 9 月 7 日
 
 --
 
-![](../Images/c7b17f72bea7c4f2b74676aee0d65bcb.png)
+![](img/c7b17f72bea7c4f2b74676aee0d65bcb.png)
 
-图片由作者使用AI生成
+图片由作者使用 AI 生成
 
 > “智者根据环境调整自己，正如水会依形状填充瓶子。” — 中国谚语
 > 

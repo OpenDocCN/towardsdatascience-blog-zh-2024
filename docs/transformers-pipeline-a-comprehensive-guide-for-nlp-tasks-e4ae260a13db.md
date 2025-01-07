@@ -1,16 +1,16 @@
 # Transformers 流程：NLP 任务的综合指南
 
-> 原文：[https://towardsdatascience.com/transformers-pipeline-a-comprehensive-guide-for-nlp-tasks-e4ae260a13db?source=collection_archive---------4-----------------------#2024-02-16](https://towardsdatascience.com/transformers-pipeline-a-comprehensive-guide-for-nlp-tasks-e4ae260a13db?source=collection_archive---------4-----------------------#2024-02-16)
+> 原文：[`towardsdatascience.com/transformers-pipeline-a-comprehensive-guide-for-nlp-tasks-e4ae260a13db?source=collection_archive---------4-----------------------#2024-02-16`](https://towardsdatascience.com/transformers-pipeline-a-comprehensive-guide-for-nlp-tasks-e4ae260a13db?source=collection_archive---------4-----------------------#2024-02-16)
 
 ## 深入探讨那行代码，它可以将成千上万的现成 AI 解决方案带入你的脚本，并充分利用 🤗 Transformers 库的强大功能。
 
-[](https://medium.com/@george.stavrakis.1996?source=post_page---byline--e4ae260a13db--------------------------------)[![George Stavrakis](../Images/50a2e9cac1e0af3e9a8402379d6a1f29.png)](https://medium.com/@george.stavrakis.1996?source=post_page---byline--e4ae260a13db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e4ae260a13db--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e4ae260a13db--------------------------------) [George Stavrakis](https://medium.com/@george.stavrakis.1996?source=post_page---byline--e4ae260a13db--------------------------------)
+[](https://medium.com/@george.stavrakis.1996?source=post_page---byline--e4ae260a13db--------------------------------)![George Stavrakis](https://medium.com/@george.stavrakis.1996?source=post_page---byline--e4ae260a13db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e4ae260a13db--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e4ae260a13db--------------------------------) [George Stavrakis](https://medium.com/@george.stavrakis.1996?source=post_page---byline--e4ae260a13db--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e4ae260a13db--------------------------------) ·19分钟阅读·2024年2月16日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e4ae260a13db--------------------------------) ·19 分钟阅读·2024 年 2 月 16 日
 
 --
 
-![](../Images/8328d012a20db0cf025fb5b6e8e4ce79.png)
+![](img/8328d012a20db0cf025fb5b6e8e4ce79.png)
 
 摄影：由[Simon Kadula](https://unsplash.com/@simonkadula?utm_source=medium&utm_medium=referral)提供，图片来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

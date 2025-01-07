@@ -1,10 +1,10 @@
 # 探讨新的 OpenAI 实时 API 如何简化语音代理流程
 
-> 原文：[https://towardsdatascience.com/exploring-how-the-new-openai-realtime-api-simplifies-voice-agent-flows-7b136ef8483d?source=collection_archive---------7-----------------------#2024-10-03](https://towardsdatascience.com/exploring-how-the-new-openai-realtime-api-simplifies-voice-agent-flows-7b136ef8483d?source=collection_archive---------7-----------------------#2024-10-03)
+> 原文：[`towardsdatascience.com/exploring-how-the-new-openai-realtime-api-simplifies-voice-agent-flows-7b136ef8483d?source=collection_archive---------7-----------------------#2024-10-03`](https://towardsdatascience.com/exploring-how-the-new-openai-realtime-api-simplifies-voice-agent-flows-7b136ef8483d?source=collection_archive---------7-----------------------#2024-10-03)
 
 ## 使用 Twilio 和 OpenAI 实时 API 设置语音代理
 
-[](https://medium.com/@ssmaameri?source=post_page---byline--7b136ef8483d--------------------------------)[![Sami Maameri](../Images/9e9892fe7d3cc53ad1c4d165145878ef.png)](https://medium.com/@ssmaameri?source=post_page---byline--7b136ef8483d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7b136ef8483d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7b136ef8483d--------------------------------) [Sami Maameri](https://medium.com/@ssmaameri?source=post_page---byline--7b136ef8483d--------------------------------)
+[](https://medium.com/@ssmaameri?source=post_page---byline--7b136ef8483d--------------------------------)![Sami Maameri](https://medium.com/@ssmaameri?source=post_page---byline--7b136ef8483d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7b136ef8483d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7b136ef8483d--------------------------------) [Sami Maameri](https://medium.com/@ssmaameri?source=post_page---byline--7b136ef8483d--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7b136ef8483d--------------------------------) ·8 分钟阅读·2024 年 10 月 3 日
 
@@ -50,9 +50,9 @@
 
 这些服务在下面的图示中进行了说明
 
-![](../Images/8dd1f33ba5808328d984fbd791914750.png)
+![](img/8dd1f33ba5808328d984fbd791914750.png)
 
-（来源 [https://github.com/twilio-labs/call-gpt](https://github.com/twilio-labs/call-gpt)，MIT 许可）
+（来源 [`github.com/twilio-labs/call-gpt`](https://github.com/twilio-labs/call-gpt)，MIT 许可）
 
 这当然意味着与多个服务的集成，并为每个部分发送独立的 API 请求。
 
@@ -62,7 +62,7 @@
 
 这是使用新的 OpenAI Realtime API 时，类似的新流程的流程图。
 
-![](../Images/b46168112d4e112560181c037971de44.png)
+![](img/b46168112d4e112560181c037971de44.png)
 
 显然，这是一个更简单的流程。发生的情况是，我们将电话中的语音/音频直接传送到 OpenAI Realtime API。不需要语音转文本的中介服务。
 
@@ -218,7 +218,7 @@ fastify.listen({ port: PORT }, (err) => {
 
 由于 OpenAI 实时 API 刚刚发布，可能并非所有人都能访问。我最初也无法访问它。运行应用程序是可以的，但一旦尝试连接 OpenAI 实时 API，就会出现 403 错误。因此，如果你遇到相同的问题，可能也是因为暂时没有权限访问。
 
-![](../Images/ef320cbbdec8e19721b97fe4e4cb01b7.png)
+![](img/ef320cbbdec8e19721b97fe4e4cb01b7.png)
 
 # React OpenAI 实时 API 演示
 
@@ -234,9 +234,9 @@ OpenAI 还提供了一个很棒的演示，可以通过 React 应用程序在浏
 
 这是运行在本地后的应用程序界面截图。
 
-![](../Images/7c66d5839aa9c80f702df45586fc6195.png)
+![](img/7c66d5839aa9c80f702df45586fc6195.png)
 
-（来源 [https://github.com/openai/openai-realtime-console](https://github.com/openai/openai-realtime-console)，MIT 许可证）
+（来源 [`github.com/openai/openai-realtime-console`](https://github.com/openai/openai-realtime-console)，MIT 许可证）
 
 # 定价
 
@@ -246,7 +246,7 @@ OpenAI 还提供了一个很棒的演示，可以通过 React 应用程序在浏
 
 这意味着使用 OpenAI 实时 API 的费用将是每分钟价格的 10 倍多一点。
 
-![](../Images/27e7d126e7f638d7166645bb22c3464c.png)
+![](img/27e7d126e7f638d7166645bb22c3464c.png)
 
 听起来确实更贵了一些，尽管我们应该权衡一下 OpenAI 实时 API 所提供的一些好处，包括
 

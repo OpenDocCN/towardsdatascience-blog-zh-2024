@@ -1,16 +1,16 @@
 # Spark 流处理中 Sigma 规则检测的性能洞察
 
-> 原文：[https://towardsdatascience.com/performance-insights-from-sigma-rule-detections-in-spark-streaming-fac8c67d37b8?source=collection_archive---------3-----------------------#2024-06-01](https://towardsdatascience.com/performance-insights-from-sigma-rule-detections-in-spark-streaming-fac8c67d37b8?source=collection_archive---------3-----------------------#2024-06-01)
+> 原文：[`towardsdatascience.com/performance-insights-from-sigma-rule-detections-in-spark-streaming-fac8c67d37b8?source=collection_archive---------3-----------------------#2024-06-01`](https://towardsdatascience.com/performance-insights-from-sigma-rule-detections-in-spark-streaming-fac8c67d37b8?source=collection_archive---------3-----------------------#2024-06-01)
 
 ## 在网络安全日志中利用 Sigma 规则进行异常检测：关于性能优化的研究
 
-[](https://medium.com/@jean-claude.cote?source=post_page---byline--fac8c67d37b8--------------------------------)[![Jean-Claude Cote](../Images/aea2df9c7b95fc85cc336f64d64b0a76.png)](https://medium.com/@jean-claude.cote?source=post_page---byline--fac8c67d37b8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fac8c67d37b8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fac8c67d37b8--------------------------------) [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--fac8c67d37b8--------------------------------)
+[](https://medium.com/@jean-claude.cote?source=post_page---byline--fac8c67d37b8--------------------------------)![Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--fac8c67d37b8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fac8c67d37b8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fac8c67d37b8--------------------------------) [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--fac8c67d37b8--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fac8c67d37b8--------------------------------) ·14 分钟阅读·2024年6月1日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fac8c67d37b8--------------------------------) ·14 分钟阅读·2024 年 6 月 1 日
 
 --
 
-![](../Images/37046fd8ffe78e40feab09bcdfb16198.png)
+![](img/37046fd8ffe78e40feab09bcdfb16198.png)
 
 图片来源：Ed Vazquez，Unsplash
 
@@ -18,19 +18,19 @@
 
 在将我们的 Sigma 规则检测投入生产时，我们在 Spark 流处理应用程序中发现了一个有趣的现象。运行一个包含 1000 条 Sigma 检测规则的大型 SQL 语句的速度比运行五个单独的查询要慢，每个查询应用 200 条 Sigma 规则。这令人惊讶，因为运行五个查询会迫使 Spark 阅读源数据五次，而不是一次。有关更多细节，请参考我们的系列文章：
 
-[](/anomaly-detection-using-sigma-rules-part-1-leveraging-spark-sql-streaming-246900e95457?source=post_page-----fac8c67d37b8--------------------------------) [## 使用 Sigma 规则进行异常检测（第一部分）：利用 Spark SQL 流处理
+[](/anomaly-detection-using-sigma-rules-part-1-leveraging-spark-sql-streaming-246900e95457?source=post_page-----fac8c67d37b8--------------------------------) ## 使用 Sigma 规则进行异常检测（第一部分）：利用 Spark SQL 流处理
 
 ### Sigma 规则用于检测网络安全日志中的异常。我们使用 Spark 结构化流处理来评估 Sigma…
 
-towardsdatascience.com](/anomaly-detection-using-sigma-rules-part-1-leveraging-spark-sql-streaming-246900e95457?source=post_page-----fac8c67d37b8--------------------------------)
+towardsdatascience.com
 
 鉴于我们需要执行的大量遥测数据和检测规则，每一点性能提升都能带来显著的成本节省。因此，我们决定调查这个奇特的观察结果，旨在解释它并可能发现额外的性能提升机会。在这个过程中我们学到了一些东西，并希望与更广泛的社区分享。
 
 ## **简介**
 
-我们的直觉是，我们达到了Spark代码生成的限制。因此，了解一下这个主题的背景是必要的。2014年，Spark引入了代码生成来评估形如`(id > 1 and id > 2) and (id < 1000 or (id + id) = 12)`的表达式。Databricks的一篇文章对此做了很好的解释：[Spark SQL的激动人心的性能提升即将来临](https://www.databricks.com/blog/2014/06/02/exciting-performance-improvements-on-the-horizon-for-spark-sql.html)
+我们的直觉是，我们达到了 Spark 代码生成的限制。因此，了解一下这个主题的背景是必要的。2014 年，Spark 引入了代码生成来评估形如`(id > 1 and id > 2) and (id < 1000 or (id + id) = 12)`的表达式。Databricks 的一篇文章对此做了很好的解释：[Spark SQL 的激动人心的性能提升即将来临](https://www.databricks.com/blog/2014/06/02/exciting-performance-improvements-on-the-horizon-for-spark-sql.html)
 
-两年后，Spark引入了全阶段代码生成。这项优化将多个操作符合并成一个单一的Java函数。像表达式代码生成一样，全阶段代码生成消除了虚拟函数调用，并利用CPU寄存器处理中间数据。然而，它与表达式级别的生成不同，它是应用于操作符级别的。操作符是执行计划中的节点。欲了解更多信息，请阅读[Apache Spark作为编译器：在笔记本电脑上每秒连接十亿行数据](https://www.databricks.com/blog/2016/05/23/apache-spark-as-a-compiler-joining-a-billion-rows-per-second-on-a-laptop.html)
+两年后，Spark 引入了全阶段代码生成。这项优化将多个操作符合并成一个单一的 Java 函数。像表达式代码生成一样，全阶段代码生成消除了虚拟函数调用，并利用 CPU 寄存器处理中间数据。然而，它与表达式级别的生成不同，它是应用于操作符级别的。操作符是执行计划中的节点。欲了解更多信息，请阅读[Apache Spark 作为编译器：在笔记本电脑上每秒连接十亿行数据](https://www.databricks.com/blog/2016/05/23/apache-spark-as-a-compiler-joining-a-billion-rows-per-second-on-a-laptop.html)
 
 为了总结这些文章，让我们生成这个简单查询的执行计划：
 
@@ -43,7 +43,7 @@ from
     range(0, 10000, 1, 32)
 ```
 
-在这个简单的查询中，我们使用了两个操作符：Range用于生成行，Select用于执行投影。我们可以在查询的物理计划中看到这些操作符。注意节点旁边的星号（*）以及它们相关的`[codegen id : 1]`。这表示这两个操作符通过全阶段代码生成被合并为一个单一的Java函数。
+在这个简单的查询中，我们使用了两个操作符：Range 用于生成行，Select 用于执行投影。我们可以在查询的物理计划中看到这些操作符。注意节点旁边的星号（*）以及它们相关的`[codegen id : 1]`。这表示这两个操作符通过全阶段代码生成被合并为一个单一的 Java 函数。
 
 ```py
 |== Physical Plan ==
@@ -219,7 +219,7 @@ Generated code:
 
 `project_doConsume_0`函数包含了评估`(id > 1 and id > 2) and (id < 1000 or (id + id) = 12)`的代码。请注意，这段代码是如何被生成来评估这个特定表达式的。这是表达式代码生成的一个示例。
 
-整个类是一个具有`processNext`方法的操作符。这个生成的操作符同时执行投影（Projection）和范围（Range）操作。在第117行的while循环中，我们可以看到生成行的代码和一个特定的调用（不是虚拟函数）`project_doConsume_0`。这展示了全阶段代码生成（Whole-Stage Code Generation）是如何工作的。
+整个类是一个具有`processNext`方法的操作符。这个生成的操作符同时执行投影（Projection）和范围（Range）操作。在第 117 行的 while 循环中，我们可以看到生成行的代码和一个特定的调用（不是虚拟函数）`project_doConsume_0`。这展示了全阶段代码生成（Whole-Stage Code Generation）是如何工作的。
 
 ## **性能分析**
 
@@ -346,7 +346,7 @@ Spark 有一个优化规则，用于检测 `explode` 函数，并产生这个额
 
 > 从 Generate 推断过滤器，以便可以在连接和数据源之前，提前移除本该被此 Generate 移除的行。
 
-有关 Spark 如何优化执行计划的更多细节，请参阅 David Vrba 的文章 [Mastering Query Plans in Spark 3.0](/mastering-query-plans-in-spark-3-0-f4c334663aa4)。
+有关 Spark 如何优化执行计划的更多细节，请参阅 David Vrba 的文章 Mastering Query Plans in Spark 3.0。
 
 另一个问题出现了：我们是否从这个额外的过滤器中受益？注意，这个额外的过滤器同样没有被整个阶段的代码生成，可能是因为 lambda 函数的原因。让我们尝试表达相同的查询，但不使用 lambda 函数。
 
@@ -408,7 +408,7 @@ from (
 Caused by: org.codehaus.commons.compiler.InternalCompilerException: Code grows beyond 64 KB
 ```
 
-我们尝试增加了`spakr.sql.codegen.maxFields`和`spark.sql.codegen.hugeMethodLimit`，但从根本上讲，Java 类的函数大小限制为64 KB。此外，JVM JIT 编译器限制其只能编译小于 8 KB 的函数。
+我们尝试增加了`spakr.sql.codegen.maxFields`和`spark.sql.codegen.hugeMethodLimit`，但从根本上讲，Java 类的函数大小限制为 64 KB。此外，JVM JIT 编译器限制其只能编译小于 8 KB 的函数。
 
 然而，查询仍然能够正常运行，因为 Spark 会在某些执行计划的部分回退到火山执行模型（Volcano execution model）。毕竟，WholeStageCodeGen 只是一个优化。
 
@@ -477,7 +477,7 @@ Spark 提供了一个名为 `spark.sql.codegen.factoryMode` 的调试属性，�
 
 ## 结果
 
-![](../Images/e6090af0bc9f5f696f7d7887ded95d2b.png)
+![](img/e6090af0bc9f5f696f7d7887ded95d2b.png)
 
 图片由作者提供
 
@@ -493,20 +493,20 @@ Spark 流处理通过运行微批次直到完成，然后在开始新的微批�
 
 在每个微批次中，Spark 必须完成所有任务，通常是 200 个。然而，并非所有任务的难度相同。Spark 采用轮询策略将行分配给这些任务。因此，某些任务可能会包含大属性的事件，例如非常大的命令行，导致某些任务快速完成，而其他任务则需要更长时间。例如，这里展示了微批任务执行时间的分布。中位数任务时间为 14 秒。然而，最慢的任务竟然需要 1.6 分钟！
 
-![](../Images/8b9727dd12cf03571a89fcfbd3947a42.png)
+![](img/8b9727dd12cf03571a89fcfbd3947a42.png)
 
 图片由作者提供
 
 这确实揭示了一个不同的现象。每个微批中，Spark 会等待一些滞后任务，这导致许多 CPU 空闲，这也解释了为什么将大型查询拆分为多个较小的查询会导致整体性能更快。
 
-这张图展示了5个较小的查询在同一个Spark应用中并行运行。Batch3在等待一个拖慢的任务，而其他查询继续进展。
+这张图展示了 5 个较小的查询在同一个 Spark 应用中并行运行。Batch3 在等待一个拖慢的任务，而其他查询继续进展。
 
-![](../Images/a683d30843790b2d9984ffabbce854f5.png)
+![](img/a683d30843790b2d9984ffabbce854f5.png)
 
 图片由作者提供
 
-在这些等待期间，Spark可以利用空闲的CPU来处理其他查询，从而最大化资源利用率和整体吞吐量。
+在这些等待期间，Spark 可以利用空闲的 CPU 来处理其他查询，从而最大化资源利用率和整体吞吐量。
 
 ## 结论
 
-在本文中，我们概述了Spark的代码生成过程，并讨论了内置优化可能并不总是产生理想的结果。此外，我们展示了将查询从使用lambda函数重构为使用简单的explode操作后，性能得到了提升。最后，我们得出结论，尽管拆分大查询确实提升了性能，但推动这些提升的主要因素是执行拓扑结构，而非查询本身。
+在本文中，我们概述了 Spark 的代码生成过程，并讨论了内置优化可能并不总是产生理想的结果。此外，我们展示了将查询从使用 lambda 函数重构为使用简单的 explode 操作后，性能得到了提升。最后，我们得出结论，尽管拆分大查询确实提升了性能，但推动这些提升的主要因素是执行拓扑结构，而非查询本身。

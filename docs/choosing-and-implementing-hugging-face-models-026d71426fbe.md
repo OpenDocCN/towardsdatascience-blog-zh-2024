@@ -1,20 +1,20 @@
-# 选择与实施Hugging Face模型
+# 选择与实施 Hugging Face 模型
 
-> 原文：[https://towardsdatascience.com/choosing-and-implementing-hugging-face-models-026d71426fbe?source=collection_archive---------1-----------------------#2024-11-01](https://towardsdatascience.com/choosing-and-implementing-hugging-face-models-026d71426fbe?source=collection_archive---------1-----------------------#2024-11-01)
+> 原文：[`towardsdatascience.com/choosing-and-implementing-hugging-face-models-026d71426fbe?source=collection_archive---------1-----------------------#2024-11-01`](https://towardsdatascience.com/choosing-and-implementing-hugging-face-models-026d71426fbe?source=collection_archive---------1-----------------------#2024-11-01)
 
 ## 将预训练模型应用到你的使用案例中
 
-[](https://medium.com/@s.kirmer?source=post_page---byline--026d71426fbe--------------------------------)[![Stephanie Kirmer](../Images/f9d9ef9167febde974c223dd4d8d6293.png)](https://medium.com/@s.kirmer?source=post_page---byline--026d71426fbe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--026d71426fbe--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--026d71426fbe--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--026d71426fbe--------------------------------)
+[](https://medium.com/@s.kirmer?source=post_page---byline--026d71426fbe--------------------------------)![Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--026d71426fbe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--026d71426fbe--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--026d71426fbe--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--026d71426fbe--------------------------------)
 
-· 发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--026d71426fbe--------------------------------) · 阅读时长8分钟·2024年11月1日
+· 发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--026d71426fbe--------------------------------) · 阅读时长 8 分钟·2024 年 11 月 1 日
 
 --
 
-![](../Images/d86c2584594995a09bfe18527bc9a2ac.png)
+![](img/d86c2584594995a09bfe18527bc9a2ac.png)
 
 图片由[Erda Estremera](https://unsplash.com/@erdaest?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-最近，我在日常工作中尝试了很多来自Hugging Face目录的模型，觉得这可能是一个不错的时机，分享我所学到的经验，并给读者一些建议，如何以最小的压力应用这些模型。
+最近，我在日常工作中尝试了很多来自 Hugging Face 目录的模型，觉得这可能是一个不错的时机，分享我所学到的经验，并给读者一些建议，如何以最小的压力应用这些模型。
 
 我最近的具体任务涉及查看一些无结构的文本数据（比如备忘录、电子邮件、自由文本评论字段等），并根据与业务使用案例相关的类别对其进行分类。有很多方法可以做到这一点，我尽可能多地进行了探索，包括像模式匹配和词汇搜索这样简单的方法，但也扩展到使用预构建的神经网络模型，进行不同功能的应用，结果让我感到比较满意。
 
@@ -32,7 +32,7 @@
 
 # 查找模型
 
-这是最有趣的部分之一 — 浏览 Hugging Face 模型目录！在 [https://huggingface.co/models](https://huggingface.co/models) 上，您可以看到一个巨大的模型集合，这些模型是由用户添加到目录中的。我有一些建议和建议，告诉您如何明智地进行选择。
+这是最有趣的部分之一 — 浏览 Hugging Face 模型目录！在 [`huggingface.co/models`](https://huggingface.co/models) 上，您可以看到一个巨大的模型集合，这些模型是由用户添加到目录中的。我有一些建议和建议，告诉您如何明智地进行选择。
 
 +   查看下载和点赞数，不要选择尚未经过足够数量其他用户尝试和测试的内容。您还可以查看每个模型页面上的“社区”选项卡，看看用户是否在讨论挑战或报告错误。
 
@@ -48,19 +48,19 @@
 
 一旦您找到一个想尝试的模型，只需点击 Model Card 页面右上角的“使用此模型”按钮，即可开始使用。如果您选择 Transformers 选项，您将看到如下实施方式的选择。如果您选择 Transformers 选项，您将看到如下实施方式的选择。
 
-![](../Images/b8cdf8040c61623e5a4129e84a3dd4fb.png)
+![](img/b8cdf8040c61623e5a4129e84a3dd4fb.png)
 
 作者拍摄的屏幕截图
 
 如果您选择的模型不受 Transformers 库支持，可能会列出其他技术，如 TF-Keras、scikit-learn 等，但当您点击该按钮时，所有这些都应该显示使用说明和示例代码以便轻松使用。
 
-在我的实验中，所有的模型都得到了Transformers的支持，所以只要按照这些步骤进行，我通常能够顺利运行它们。如果你发现有问题，也可以查看更深入的文档，查看Transformers库的完整API细节以及它提供的不同类。我确实花时间查看过这些文档，尤其是在优化时，针对特定类，但如果只是想让基础部分运行起来，实际上不需要那么做。
+在我的实验中，所有的模型都得到了 Transformers 的支持，所以只要按照这些步骤进行，我通常能够顺利运行它们。如果你发现有问题，也可以查看更深入的文档，查看 Transformers 库的完整 API 细节以及它提供的不同类。我确实花时间查看过这些文档，尤其是在优化时，针对特定类，但如果只是想让基础部分运行起来，实际上不需要那么做。
 
 # 准备推理数据
 
-好的，假设你已经选择了一个你想尝试的模型。你已经有数据了吗？如果没有，我在这次实验中使用了几个公开的可用数据集，主要来自Kaggle，你也可以在那里找到许多有用的数据集。此外，Hugging Face也有一个数据集目录供你查看，但根据我的经验，它那里的数据并不像Kaggle那样容易搜索或理解（文档相对较少）。
+好的，假设你已经选择了一个你想尝试的模型。你已经有数据了吗？如果没有，我在这次实验中使用了几个公开的可用数据集，主要来自 Kaggle，你也可以在那里找到许多有用的数据集。此外，Hugging Face 也有一个数据集目录供你查看，但根据我的经验，它那里的数据并不像 Kaggle 那样容易搜索或理解（文档相对较少）。
 
-一旦你选择了一个非结构化文本数据集，将其加载到这些模型中并不难。加载你的模型和分词器（来自上文提到的Hugging Face文档），然后将这一切传递给transformers库中的`pipeline`函数。你将遍历一个列表或pandas Series中的文本块，并将它们传递给模型函数。无论你做什么任务，本质上都是一样的，尽管对于零样本分类，你还需要提供候选标签或标签列表，下面我会展示如何做。
+一旦你选择了一个非结构化文本数据集，将其加载到这些模型中并不难。加载你的模型和分词器（来自上文提到的 Hugging Face 文档），然后将这一切传递给 transformers 库中的`pipeline`函数。你将遍历一个列表或 pandas Series 中的文本块，并将它们传递给模型函数。无论你做什么任务，本质上都是一样的，尽管对于零样本分类，你还需要提供候选标签或标签列表，下面我会展示如何做。
 
 # 代码示例
 
@@ -84,9 +84,9 @@ for text in list_of_texts:
     all_results.append(results_dict)
 ```
 
-这将返回一个包含字典的列表，每个字典都包含可能标签的键，而值是每个标签的概率。你不一定要像我这里使用pipeline，但它使得多标签零样本分类比手动编写代码要容易得多，而且它返回的结果更容易理解和处理。
+这将返回一个包含字典的列表，每个字典都包含可能标签的键，而值是每个标签的概率。你不一定要像我这里使用 pipeline，但它使得多标签零样本分类比手动编写代码要容易得多，而且它返回的结果更容易理解和处理。
 
-如果你不想使用pipeline，你也可以尝试像这样做，但你需要为每个标签分别运行一次。注意，处理模型运行后输出的logits需要明确指定，以便获得易于人类理解的输出。此外，你仍然需要按照上面描述的方法加载分词器和模型。
+如果你不想使用 pipeline，你也可以尝试像这样做，但你需要为每个标签分别运行一次。注意，处理模型运行后输出的 logits 需要明确指定，以便获得易于人类理解的输出。此外，你仍然需要按照上面描述的方法加载分词器和模型。
 
 ```py
 def run_zero_shot_classifier(text, label):
@@ -119,7 +119,7 @@ for text in list_of_texts:
 
 你可能已经注意到，我在这个项目中没有谈论过自己对模型进行微调 — 这是真的。我可能会在未来这样做，但我受限于我目前拥有的极少标记的训练数据。我可以使用半监督技术或引导一个带标签的训练集，但整个实验的目的是看看我能用现成的模型走多远。我确实有一些小的带标签数据样本，用于测试模型的性能，但这远远不足以调整模型所需的数据量。
 
-如果你有好的训练数据并且想微调一个基础模型，Hugging Face 有一些文档可以帮助。[https://huggingface.co/docs/transformers/en/training](https://huggingface.co/docs/transformers/en/training)
+如果你有好的训练数据并且想微调一个基础模型，Hugging Face 有一些文档可以帮助。[`huggingface.co/docs/transformers/en/training`](https://huggingface.co/docs/transformers/en/training)
 
 # 计算和速度
 

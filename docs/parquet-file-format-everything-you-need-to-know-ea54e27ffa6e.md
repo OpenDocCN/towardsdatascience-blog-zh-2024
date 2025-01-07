@@ -1,16 +1,16 @@
 # Parquet 文件格式：你需要了解的一切
 
-> 原文：[https://towardsdatascience.com/parquet-file-format-everything-you-need-to-know-ea54e27ffa6e?source=collection_archive---------2-----------------------#2024-07-18](https://towardsdatascience.com/parquet-file-format-everything-you-need-to-know-ea54e27ffa6e?source=collection_archive---------2-----------------------#2024-07-18)
+> 原文：[`towardsdatascience.com/parquet-file-format-everything-you-need-to-know-ea54e27ffa6e?source=collection_archive---------2-----------------------#2024-07-18`](https://towardsdatascience.com/parquet-file-format-everything-you-need-to-know-ea54e27ffa6e?source=collection_archive---------2-----------------------#2024-07-18)
 
 ## 新的数据格式需要新的存储方式。了解你需要知道的关于 Parquet 文件格式的所有内容
 
-[](https://datamozart.medium.com/?source=post_page---byline--ea54e27ffa6e--------------------------------)[![Nikola Ilic](../Images/9fab894b9696c0dfd80c5173188b720b.png)](https://datamozart.medium.com/?source=post_page---byline--ea54e27ffa6e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ea54e27ffa6e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ea54e27ffa6e--------------------------------) [Nikola Ilic](https://datamozart.medium.com/?source=post_page---byline--ea54e27ffa6e--------------------------------)
+[](https://datamozart.medium.com/?source=post_page---byline--ea54e27ffa6e--------------------------------)![Nikola Ilic](https://datamozart.medium.com/?source=post_page---byline--ea54e27ffa6e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ea54e27ffa6e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ea54e27ffa6e--------------------------------) [Nikola Ilic](https://datamozart.medium.com/?source=post_page---byline--ea54e27ffa6e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ea54e27ffa6e--------------------------------) ·8分钟阅读·2024年7月18日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ea54e27ffa6e--------------------------------) ·8 分钟阅读·2024 年 7 月 18 日
 
 --
 
-![](../Images/7180b4a414091814e72557bcf2f03767.png)
+![](img/7180b4a414091814e72557bcf2f03767.png)
 
 作者提供的图片
 

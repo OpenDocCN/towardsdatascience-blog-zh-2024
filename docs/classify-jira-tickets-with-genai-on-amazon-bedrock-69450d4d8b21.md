@@ -1,36 +1,36 @@
-# 使用生成式AI在Amazon Bedrock上分类Jira票务
+# 使用生成式 AI 在 Amazon Bedrock 上分类 Jira 票务
 
-> 原文：[https://towardsdatascience.com/classify-jira-tickets-with-genai-on-amazon-bedrock-69450d4d8b21?source=collection_archive---------4-----------------------#2024-11-04](https://towardsdatascience.com/classify-jira-tickets-with-genai-on-amazon-bedrock-69450d4d8b21?source=collection_archive---------4-----------------------#2024-11-04)
+> 原文：[`towardsdatascience.com/classify-jira-tickets-with-genai-on-amazon-bedrock-69450d4d8b21?source=collection_archive---------4-----------------------#2024-11-04`](https://towardsdatascience.com/classify-jira-tickets-with-genai-on-amazon-bedrock-69450d4d8b21?source=collection_archive---------4-----------------------#2024-11-04)
 
-## 使用提示工程和大语言模型（LLM）替代传统的NLP方法来进行Jira票务文本分类。这是一个代码示例的详细讲解。
+## 使用提示工程和大语言模型（LLM）替代传统的 NLP 方法来进行 Jira 票务文本分类。这是一个代码示例的详细讲解。
 
-[](https://medium.com/@tannermcrae?source=post_page---byline--69450d4d8b21--------------------------------)[![Tanner McRae](../Images/bb80770681d29438860fe83aba8a22fb.png)](https://medium.com/@tannermcrae?source=post_page---byline--69450d4d8b21--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--69450d4d8b21--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--69450d4d8b21--------------------------------) [Tanner McRae](https://medium.com/@tannermcrae?source=post_page---byline--69450d4d8b21--------------------------------)
+[](https://medium.com/@tannermcrae?source=post_page---byline--69450d4d8b21--------------------------------)![Tanner McRae](https://medium.com/@tannermcrae?source=post_page---byline--69450d4d8b21--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--69450d4d8b21--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--69450d4d8b21--------------------------------) [Tanner McRae](https://medium.com/@tannermcrae?source=post_page---byline--69450d4d8b21--------------------------------)
 
-·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--69450d4d8b21--------------------------------) ·阅读时长8分钟·2024年11月4日
+·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--69450d4d8b21--------------------------------) ·阅读时长 8 分钟·2024 年 11 月 4 日
 
 --
 
-![](../Images/e829c8a66e2c4fbdce6ee9ed37ea3f46.png)
+![](img/e829c8a66e2c4fbdce6ee9ed37ea3f46.png)
 
 图片由[Annie Spratt](https://unsplash.com/@anniespratt?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 还记得以前将文本分类意味着开始一段机器学习之旅吗？如果你在机器学习领域待得够久，你可能已经亲眼见证过至少一个团队陷入了构建“完美”文本分类系统的无底洞。这个故事通常是这样的：
 
-+   **第1个月：“我们就快速训练一个NLP模型！”**
++   **第 1 个月：“我们就快速训练一个 NLP 模型！”**
 
-+   **第2个月：“我们需要更多的训练数据……”**
++   **第 2 个月：“我们需要更多的训练数据……”**
 
-+   **第3个月：“**这个已经足够好了”
++   **第 3 个月：“**这个已经足够好了”
 
 多年来，文本分类一直是经典机器学习领域的一个部分。早在我的职业生涯初期，我就记得为电子邮件分类训练支持向量机（SVM）。那时需要大量的预处理、迭代、数据收集和标注。
 
-但这里有个转折：现在是2024年，生成式AI模型已经能够**“通常”**开箱即用进行文本分类！你可以构建一个强大的票务分类系统，无需收集成千上万的标注训练数据，也不需要管理机器学习训练管道，或者维护定制的模型。
+但这里有个转折：现在是 2024 年，生成式 AI 模型已经能够**“通常”**开箱即用进行文本分类！你可以构建一个强大的票务分类系统，无需收集成千上万的标注训练数据，也不需要管理机器学习训练管道，或者维护定制的模型。
 
-在这篇文章中，我们将讨论如何使用Amazon Bedrock上的大语言模型和其他AWS服务，搭建一个Jira票务分类系统。
+在这篇文章中，我们将讨论如何使用 Amazon Bedrock 上的大语言模型和其他 AWS 服务，搭建一个 Jira 票务分类系统。
 
-**免责声明**：我在AWS担任生成式AI架构师，以下观点仅代表我个人意见。
+**免责声明**：我在 AWS 担任生成式 AI 架构师，以下观点仅代表我个人意见。
 
-## 为什么要分类Jira票务？
+## 为什么要分类 Jira 票务？
 
 企业常见的需求之一是了解团队如何分配时间。Jira 有标签功能，但有时由于人为错误或缺乏粒度，可能会有所不足。通过进行这项工作，组织可以更好地洞察团队活动，从而做出基于数据的资源分配、项目投资和淘汰决策。
 
@@ -56,7 +56,7 @@
 
 架构非常简单。你可以在下面找到详细信息。
 
-![](../Images/7a1dc84efb3bbf496059d6045ca74266.png)
+![](img/7a1dc84efb3bbf496059d6045ca74266.png)
 
 图片来源：作者
 
@@ -76,7 +76,7 @@ $ git clone https://github.com/aws-samples/jira-ticket-classification.git
 $ cd jira-ticket-classification/terraform
 ```
 
-运行`terraform init`、`plan`和`apply`。确保你的计算机上已安装Terraform并配置了AWS CLI。
+运行`terraform init`、`plan`和`apply`。确保你的计算机上已安装 Terraform 并配置了 AWS CLI。
 
 ```py
 $ terraform init
@@ -86,21 +86,21 @@ $ terraform plan
 $ terraform apply
 ```
 
-一旦基础设施部署到你的账户中，你可以导航到AWS Secrets Manager并更新密钥，使用你的Jira Cloud凭证。你需要一个API密钥、基本网址和电子邮件来启用自动拉取功能。
+一旦基础设施部署到你的账户中，你可以导航到 AWS Secrets Manager 并更新密钥，使用你的 Jira Cloud 凭证。你需要一个 API 密钥、基本网址和电子邮件来启用自动拉取功能。
 
-![](../Images/74f14dbab21c582550d50baf14a9b905.png)
+![](img/74f14dbab21c582550d50baf14a9b905.png)
 
 图片由作者提供
 
 就是这样！
 
-你可以选择（1）等待Cron触发自动拉取，（2）将票据导出为CSV并上传到`/unprocessed` S3前缀，或者（3）通过测试手动触发Lambda函数。
+你可以选择（1）等待 Cron 触发自动拉取，（2）将票据导出为 CSV 并上传到`/unprocessed` S3 前缀，或者（3）通过测试手动触发 Lambda 函数。
 
 # 它是如何工作的？
 
-## Jira拉取：
+## Jira 拉取：
 
-Jira拉取使用Lambda函数和CloudWatch cron事件来触发。Lambda函数获取AWS Secrets，并使用while循环中的get请求，直到JQL查询完成，来检索分页结果：
+Jira 拉取使用 Lambda 函数和 CloudWatch cron 事件来触发。Lambda 函数获取 AWS Secrets，并使用 while 循环中的 get 请求，直到 JQL 查询完成，来检索分页结果：
 
 ```py
 def fetch_jira_issues(base_url, project_id, email, api_key):
@@ -139,7 +139,7 @@ def fetch_jira_issues(base_url, project_id, email, api_key):
     return all_issues
 ```
 
-它会创建CSV的字符串表示，并将其上传到S3：
+它会创建 CSV 的字符串表示，并将其上传到 S3：
 
 ```py
 def upload_to_s3(csv_string, bucket, key):
@@ -154,9 +154,9 @@ def upload_to_s3(csv_string, bucket, key):
         raise Exception(f"Failed to upload CSV to S3: {str(e)}")
 ```
 
-## Glue作业
+## Glue 作业
 
-`/unprocessed`前缀上的S3事件触发了第二个Lambda函数，启动了AWS Glue作业。当Jira票据有多个入口点进入系统时，这非常有用。例如，如果你想进行回填操作。
+`/unprocessed`前缀上的 S3 事件触发了第二个 Lambda 函数，启动了 AWS Glue 作业。当 Jira 票据有多个入口点进入系统时，这非常有用。例如，如果你想进行回填操作。
 
 ```py
 import boto3 
@@ -186,11 +186,11 @@ def handler(event, context):
     )
 ```
 
-Glue作业本身是用PySpark编写的，可以在代码仓库[这里](https://github.com/aws-samples/jira-ticket-classification/blob/main/src/glue/etl_script.py)找到。重要的要点是，它使用[左反连接](https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select-join.html#anti-join)将新CSV中的项与`/staged` CSV中的所有ID进行连接。
+Glue 作业本身是用 PySpark 编写的，可以在代码仓库[这里](https://github.com/aws-samples/jira-ticket-classification/blob/main/src/glue/etl_script.py)找到。重要的要点是，它使用[左反连接](https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select-join.html#anti-join)将新 CSV 中的项与`/staged` CSV 中的所有 ID 进行连接。
 
 结果随后被推送到**/staged**前缀。
 
-## 分类Jira票据：
+## 分类 Jira 票据：
 
 这就是有趣的地方。事实证明，使用提示工程可以与文本分类模型的表现相媲美，甚至在某些技术上表现更好。
 
@@ -244,7 +244,7 @@ When you are finished thinking, classify the ticket and place your answer in <an
 '''
 ```
 
-我们添加了一个帮助类，将调用Bedrock的操作串联起来，以加快速度：
+我们添加了一个帮助类，将调用 Bedrock 的操作串联起来，以加快速度：
 
 ```py
 import boto3
@@ -311,7 +311,7 @@ class TicketClassifier:
         return matches.group(1).strip() if matches else None
 ```
 
-最后，分类的票据被转换为CSV并上传到S3。
+最后，分类的票据被转换为 CSV 并上传到 S3。
 
 ```py
 import boto3
@@ -338,7 +338,7 @@ def upload_csv(data: List[Dict[str, str]]) -> None:
 
 # 仪表板
 
-该项目对仪表板工具没有依赖。任何流行的工具/服务都可以，只要它能够处理CSV。Amazon Quicksight、Tableau或任何介于两者之间的工具都可以使用。
+该项目对仪表板工具没有依赖。任何流行的工具/服务都可以，只要它能够处理 CSV。Amazon Quicksight、Tableau 或任何介于两者之间的工具都可以使用。
 
 # 结论
 

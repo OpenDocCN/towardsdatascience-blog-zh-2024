@@ -1,16 +1,16 @@
-# 用 LLMs 可视化和整合复杂想法，第1部分：Napkin AI
+# 用 LLMs 可视化和整合复杂想法，第一部分：Napkin AI
 
-> 原文：[https://towardsdatascience.com/visualizing-and-integrating-complex-ideas-with-llms-part-1-napkin-ai-0d6ced98c6dc?source=collection_archive---------2-----------------------#2024-07-16](https://towardsdatascience.com/visualizing-and-integrating-complex-ideas-with-llms-part-1-napkin-ai-0d6ced98c6dc?source=collection_archive---------2-----------------------#2024-07-16)
+> 原文：[`towardsdatascience.com/visualizing-and-integrating-complex-ideas-with-llms-part-1-napkin-ai-0d6ced98c6dc?source=collection_archive---------2-----------------------#2024-07-16`](https://towardsdatascience.com/visualizing-and-integrating-complex-ideas-with-llms-part-1-napkin-ai-0d6ced98c6dc?source=collection_archive---------2-----------------------#2024-07-16)
 
 ## 发现 AI 工具如何将复杂的概念转化为清晰、实用的框架和图表
 
-[](https://medium.com/@kunalkpuri?source=post_page---byline--0d6ced98c6dc--------------------------------)[![Kunal Kambo Puri](../Images/a4b656a198594c6a7d2f5179262fc440.png)](https://medium.com/@kunalkpuri?source=post_page---byline--0d6ced98c6dc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0d6ced98c6dc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0d6ced98c6dc--------------------------------) [Kunal Kambo Puri](https://medium.com/@kunalkpuri?source=post_page---byline--0d6ced98c6dc--------------------------------)
+[](https://medium.com/@kunalkpuri?source=post_page---byline--0d6ced98c6dc--------------------------------)![Kunal Kambo Puri](https://medium.com/@kunalkpuri?source=post_page---byline--0d6ced98c6dc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0d6ced98c6dc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0d6ced98c6dc--------------------------------) [Kunal Kambo Puri](https://medium.com/@kunalkpuri?source=post_page---byline--0d6ced98c6dc--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0d6ced98c6dc--------------------------------) ·4分钟阅读·2024年7月16日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0d6ced98c6dc--------------------------------) ·4 分钟阅读·2024 年 7 月 16 日
 
 --
 
-![](../Images/58218128e48c929c406439e733cef6a3.png)
+![](img/58218128e48c929c406439e733cef6a3.png)
 
 *图片由作者提供，使用 Napkin AI 制作*
 
@@ -18,7 +18,7 @@
 
 像 Chat GPT 这样的 AI 工具正在改变我们处理复杂想法的方式。我喜欢用它做的一件事是整合来自不同思想家的视角和想法，并区分它们，以更好地理解它们的细微差别。这无疑是我最喜欢的 AI 应用之一。
 
-![](../Images/e74d91bdb00b4649782c4fc2ef88f6c4.png)
+![](img/e74d91bdb00b4649782c4fc2ef88f6c4.png)
 
 *图片由作者提供，使用 Napkin AI 制作*
 
@@ -26,7 +26,7 @@
 
 Napkin AI 吸引了我的注意，因为它可以根据文本输入自动生成有趣的图表，使其高度灵活且易于使用。我一直在寻找好的概念图和知识图谱软件，而这个工具看起来是一个不错的起点。
 
-![](../Images/8b20516786b7468aea59e12975e39b91.png)
+![](img/8b20516786b7468aea59e12975e39b91.png)
 
 *图片由作者提供，使用 Napkin AI 制作*
 
@@ -34,7 +34,7 @@ Napkin AI 吸引了我的注意，因为它可以根据文本输入自动生成�
 
 这篇文章是我将探索不同方法来检查、整合和可视化复杂思想和视角的系列文章中的第一篇。虽然我现在已经开始创建自己的工具，但实验使用 Napkin AI 是一个重要的第一步。在这个系列中，我将记录这段旅程，探索一些现有工具，制作新的工具易于使用，并分享我的经验。
 
-![](../Images/18b735807061fc54b3ea0a9b6b8cbf4b.png)
+![](img/18b735807061fc54b3ea0a9b6b8cbf4b.png)
 
 *图片由作者提供，使用 Napkin AI 制作*
 
@@ -50,7 +50,7 @@ Napkin AI 吸引了我的注意，因为它可以根据文本输入自动生成�
 
 > “艾伦·瓦茨（Alan Watts）、罗伯特·M·皮尔西格（Robert M. Pirsig）、斯宾诺莎（Spinoza）和马库斯·奥勒留（Marcus Aurelius）的独特洞察，强调它们彼此的重叠，以及它们在哲学、科学和心理学中非常具体的思想基础，整理成实际的框架，并朝着这些框架的逻辑进展。”
 
-![](../Images/9f77b18ac768ab06e554e71ad05f46fb.png)
+![](img/9f77b18ac768ab06e554e71ad05f46fb.png)
 
 *图片由作者提供，使用 Napkin AI 制作*
 
@@ -64,7 +64,7 @@ Napkin AI 吸引了我的注意，因为它可以根据文本输入自动生成�
 
 我选择了我认为最适合每个部分的图表模板。我倾向于选择几个最适合这个项目的模板，但我还是选择了在一致性和多样性之间找到平衡。以下是一些示例：
 
-![](../Images/271563f4ca741fe5acf5282f674a3d19.png)![](../Images/0c284d6cb5e03ba52c9f94713799b207.png)![](../Images/17fb20b689e8711d7d0eb43385db9b9b.png)![](../Images/2d67cf24d1f8456ea8998b12ab6cb520.png)
+![](img/271563f4ca741fe5acf5282f674a3d19.png)![](img/0c284d6cb5e03ba52c9f94713799b207.png)![](img/17fb20b689e8711d7d0eb43385db9b9b.png)![](img/2d67cf24d1f8456ea8998b12ab6cb520.png)
 
 *图片由作者提供，使用 Napkin AI 制作*
 
@@ -76,7 +76,7 @@ Napkin AI 吸引了我的注意，因为它可以根据文本输入自动生成�
 
 我确实很高兴我决定使用这个工具。我所创建的并不是我最初想要的概念图，但它确实帮助我可视化了复杂的主题。通过其“AI 草图”选项，它甚至帮助我将这些主题整合成实际的框架，尽管你也可以开始一个空白文档并提供自己的文本。如果你想编辑文档或添加自己的图片，那也很容易。
 
-![](../Images/2e27ee5f30b1388a1c4b6e971540ff33.png)
+![](img/2e27ee5f30b1388a1c4b6e971540ff33.png)
 
 *图片由作者提供，使用 Napkin AI 制作*
 
@@ -86,7 +86,7 @@ Napkin AI 吸引了我的注意，因为它可以根据文本输入自动生成�
 
 这是一个很好的开始，但我还有更多内容要分享。除了使用其他工具进行图表绘制外，我正在开发一个定制工具，旨在更好地集成和可视化复杂的想法，包括其各个组件之间的详细关系。本系列将涵盖这些过程，敬请关注！
 
-![](../Images/553efc5d47ef54fb4b1df3a83f2c973f.png)
+![](img/553efc5d47ef54fb4b1df3a83f2c973f.png)
 
 图片来源：作者，由 Napkin AI 制作
 

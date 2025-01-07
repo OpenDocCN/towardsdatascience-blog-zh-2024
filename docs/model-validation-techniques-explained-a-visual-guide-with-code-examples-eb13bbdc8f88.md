@@ -1,14 +1,14 @@
 # 模型验证技术解析：带有代码示例的可视化指南
 
-> 原文：[https://towardsdatascience.com/model-validation-techniques-explained-a-visual-guide-with-code-examples-eb13bbdc8f88?source=collection_archive---------1-----------------------#2024-11-30](https://towardsdatascience.com/model-validation-techniques-explained-a-visual-guide-with-code-examples-eb13bbdc8f88?source=collection_archive---------1-----------------------#2024-11-30)
+> 原文：[`towardsdatascience.com/model-validation-techniques-explained-a-visual-guide-with-code-examples-eb13bbdc8f88?source=collection_archive---------1-----------------------#2024-11-30`](https://towardsdatascience.com/model-validation-techniques-explained-a-visual-guide-with-code-examples-eb13bbdc8f88?source=collection_archive---------1-----------------------#2024-11-30)
 
 ## 模型评估与优化
 
-## 12种必须了解的**机器学习验证方法**
+## 12 种必须了解的**机器学习验证方法**
 
-[](https://medium.com/@samybaladram?source=post_page---byline--eb13bbdc8f88--------------------------------)[![Samy Baladram](../Images/715cb7af97c57601966c5d2f9edd0066.png)](https://medium.com/@samybaladram?source=post_page---byline--eb13bbdc8f88--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eb13bbdc8f88--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--eb13bbdc8f88--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--eb13bbdc8f88--------------------------------)
+[](https://medium.com/@samybaladram?source=post_page---byline--eb13bbdc8f88--------------------------------)![Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--eb13bbdc8f88--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eb13bbdc8f88--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eb13bbdc8f88--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--eb13bbdc8f88--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eb13bbdc8f88--------------------------------) ·阅读时长26分钟·2024年11月30日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eb13bbdc8f88--------------------------------) ·阅读时长 26 分钟·2024 年 11 月 30 日
 
 --
 
@@ -16,11 +16,11 @@
 
 这时，验证就显得尤为重要。验证方法测试机器的预测结果，以衡量其可靠性。虽然这听起来很简单，但实际上存在多种验证方法，每种方法都是为了应对机器学习中的特定挑战而设计的。
 
-在这里，我将这些验证技术——全部12种——以树状结构组织，展示它们如何从基本概念发展成更为专业的技术。当然，我们将使用清晰的可视化图像和一致的数据集，展示每种方法的不同之处以及为什么选择方法至关重要。
+在这里，我将这些验证技术——全部 12 种——以树状结构组织，展示它们如何从基本概念发展成更为专业的技术。当然，我们将使用清晰的可视化图像和一致的数据集，展示每种方法的不同之处以及为什么选择方法至关重要。
 
-![](../Images/b1f5d5ea3c85d86aa30c1a32e4af95d6.png)
+![](img/b1f5d5ea3c85d86aa30c1a32e4af95d6.png)
 
-所有可视化图像：作者使用Canva Pro创建。已优化为移动端显示；在桌面端可能会显得过大。
+所有可视化图像：作者使用 Canva Pro 创建。已优化为移动端显示；在桌面端可能会显得过大。
 
 # 什么是模型验证？
 
@@ -36,7 +36,7 @@
 
 这里有一棵树形图，展示了这些验证方法之间的关系：
 
-![](../Images/ef40a8b199595fb3a2ea907fc7d8c4e7.png)
+![](img/ef40a8b199595fb3a2ea907fc7d8c4e7.png)
 
 这棵树形图展示了哪些验证方法相互关联。
 
@@ -50,9 +50,9 @@
 
 我们将使用这个数据集，它根据天气条件预测某人是否会打高尔夫。
 
-![](../Images/a76a1336de0cf6952c9aee515376a7ad.png)
+![](img/a76a1336de0cf6952c9aee515376a7ad.png)
 
-列：‘Overcast（独热编码为3列）’，‘Temperature’（以华氏度表示），‘Humidity’（百分比），‘Windy’（是/否）和‘Play’（是/否，目标特征）
+列：‘Overcast（独热编码为 3 列）’，‘Temperature’（以华氏度表示），‘Humidity’（百分比），‘Windy’（是/否）和‘Play’（是/否，目标特征）
 
 ```py
 import pandas as pd
@@ -91,19 +91,19 @@ X, y = df.drop('Play', axis=1), df['Play']
 
 ## 📈 我们的模型选择
 
-我们将在所有测试中使用[决策树分类器](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e)。如果你不熟悉它，可以参考以下文章：
+我们将在所有测试中使用决策树分类器。如果你不熟悉它，可以参考以下文章：
 
-[](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e?source=post_page-----eb13bbdc8f88--------------------------------) [## 决策树分类器解析：附带代码示例的视觉指南（面向初学者）
+[](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e?source=post_page-----eb13bbdc8f88--------------------------------) ## 决策树分类器解析：附带代码示例的视觉指南（面向初学者）
 
 ### 对我们最喜欢的倒立树的全新看法
 
-[towardsdatascience.com](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e?source=post_page-----eb13bbdc8f88--------------------------------)
+[towardsdatascience.com
 
 我们选择这个模型是因为我们可以很容易地将结果模型绘制为树形结构，每个分支显示不同的决策。为了简化操作并专注于如何测试模型，我们将使用默认的`scikit-learn`参数，并设置固定的`random_state`。
 
 让我们明确这两个术语：决策树分类器是我们的**学习算法**——它是找到数据中模式的方法。当我们将数据输入该算法时，它会创建一个**模型**（在这种情况下，是一棵显示不同决策的树）。这个模型就是我们实际用来进行预测的模型。
 
-![](../Images/05f04d2e03922330e874044c751e77f9.png)
+![](img/05f04d2e03922330e874044c751e77f9.png)
 
 ```py
 from sklearn.tree import DecisionTreeClassifier, plot_tree
@@ -126,13 +126,13 @@ dt = DecisionTreeClassifier(random_state=42)
 
 训练集和测试集的大小取决于我们的总数据集大小，通常用它们的比例来表示。为了确定它们的大小，您可以遵循以下指导原则：
 
-+   对于小型数据集（大约1,000–10,000个样本），使用80:20的比例。
++   对于小型数据集（大约 1,000–10,000 个样本），使用 80:20 的比例。
 
-+   对于中等规模的数据集（大约10,000–100,000个样本），使用70:30的比例。
++   对于中等规模的数据集（大约 10,000–100,000 个样本），使用 70:30 的比例。
 
-+   大型数据集（超过100,000个样本），使用90:10的比例。
++   大型数据集（超过 100,000 个样本），使用 90:10 的比例。
 
-![](../Images/ea1cda2f5b4ebaf2ac345e82232c49e6.png)
+![](img/ea1cda2f5b4ebaf2ac345e82232c49e6.png)
 
 ```py
 from sklearn.model_selection import train_test_split
@@ -154,7 +154,7 @@ plt.title(f'Train-Test Split (Test Accuracy: {test_accuracy:.3f})')
 plt.tight_layout()
 ```
 
-![](../Images/9b572acdaf081abe2ed17104646ae2ac.png)
+![](img/9b572acdaf081abe2ed17104646ae2ac.png)
 
 这种方法很容易使用，但也有一些局限性 —— 结果可能会因为我们如何随机分割数据而有很大变化。这就是为什么我们总是需要尝试不同的`random_state`来确保结果的一致性。此外，如果我们起初的数据不多，可能没有足够的数据来充分训练或测试我们的模型。
 
@@ -166,13 +166,13 @@ plt.tight_layout()
 
 以下是常见的数据拆分方式：
 
-+   对于较小的数据集（1,000–10,000个样本），使用60:20:20的比例。
++   对于较小的数据集（1,000–10,000 个样本），使用 60:20:20 的比例。
 
-+   对于中等规模的数据集（10,000–100,000个样本），使用70:15:15的比例。
++   对于中等规模的数据集（10,000–100,000 个样本），使用 70:15:15 的比例。
 
-+   大型数据集（>100,000个样本），使用80:10:10的比例。
++   大型数据集（>100,000 个样本），使用 80:10:10 的比例。
 
-![](../Images/8abee1c3e7b3526152ccf2256108da3f.png)
+![](img/8abee1c3e7b3526152ccf2256108da3f.png)
 
 ```py
 ### Train-Validation-Test Split ###
@@ -199,22 +199,22 @@ plt.title(f'Train-Val-Test Split\nValidation Accuracy: {val_accuracy:.3f}'
 plt.tight_layout()
 ```
 
-![](../Images/4b6cfed209a3227dfc62eaf3f28413a1.png)
+![](img/4b6cfed209a3227dfc62eaf3f28413a1.png)
 
-保留法根据数据量的不同会有不同的表现。当你有大量数据（>100,000个样本）时，它效果很好。但当你数据较少（<1,000个样本）时，这种方法可能不是最理想的。在数据较少的情况下，你可能需要使用更高级的验证方法，以便更好地了解你的模型到底有多有效。
+保留法根据数据量的不同会有不同的表现。当你有大量数据（>100,000 个样本）时，它效果很好。但当你数据较少（<1,000 个样本）时，这种方法可能不是最理想的。在数据较少的情况下，你可能需要使用更高级的验证方法，以便更好地了解你的模型到底有多有效。
 
 ## 📊 转向交叉验证
 
-我们刚刚了解到，留出法可能在小数据集上效果不佳。这正是我们目前面临的挑战——我们只有28天的数据。按照留出法原则，我们将保留14天的数据作为最终测试数据。这样，我们剩下14天的数据可以用于尝试其他验证方法。
+我们刚刚了解到，留出法可能在小数据集上效果不佳。这正是我们目前面临的挑战——我们只有 28 天的数据。按照留出法原则，我们将保留 14 天的数据作为最终测试数据。这样，我们剩下 14 天的数据可以用于尝试其他验证方法。
 
-![](../Images/81a27f280c9b79b4950ec9a9f00ae731.png)
+![](img/81a27f280c9b79b4950ec9a9f00ae731.png)
 
 ```py
 # Initial train-test split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, shuffle=False)
 ```
 
-在接下来的部分，我们将看到交叉验证方法如何将这14天的数据多次划分，并以不同的方式进行测试。这让我们即使在数据有限的情况下，也能更好地了解模型的实际效果。
+在接下来的部分，我们将看到交叉验证方法如何将这 14 天的数据多次划分，并以不同的方式进行测试。这让我们即使在数据有限的情况下，也能更好地了解模型的实际效果。
 
 # 交叉验证
 
@@ -222,15 +222,15 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, shuffle
 
 交叉验证的主要思想是多次测试我们的模型，每次的训练集和测试集都来自我们数据的不同部分。这有助于避免由于数据划分极端（如特别好或特别差）而带来的偏差。
 
-这为什么很重要呢？假设我们的模型在某次测试中得到95%的准确率，而在另一种测试方法下只得到75%的准确率，哪一个结果才是真正反映模型表现的呢？交叉验证通过提供多个测试结果，而不仅仅是一个，帮助我们回答这个问题。这让我们更清楚地了解模型的实际表现。
+这为什么很重要呢？假设我们的模型在某次测试中得到 95%的准确率，而在另一种测试方法下只得到 75%的准确率，哪一个结果才是真正反映模型表现的呢？交叉验证通过提供多个测试结果，而不仅仅是一个，帮助我们回答这个问题。这让我们更清楚地了解模型的实际表现。
 
-## K折法
+## K 折法
 
-***基础K折交叉验证*** *K*折交叉验证解决了基本数据划分方法的一个大问题：过于依赖单一的数据划分方式。与其只进行一次数据划分，*K*折将数据划分成*K*个相等的部分。然后，它多次测试模型，每次使用不同的部分进行测试，而其他部分则用于训练。
+***基础 K 折交叉验证*** *K*折交叉验证解决了基本数据划分方法的一个大问题：过于依赖单一的数据划分方式。与其只进行一次数据划分，*K*折将数据划分成*K*个相等的部分。然后，它多次测试模型，每次使用不同的部分进行测试，而其他部分则用于训练。
 
-我们选择的*K*数值会影响我们如何测试模型。大多数人使用5或10作为*K*，但这个数值也可以根据我们拥有的数据量和项目需求来调整。假设我们使用*K* = 3。这意味着我们将数据分成三等份。然后我们将模型训练和测试三次。每次，2/3的数据用于训练，1/3的数据用于测试，但每次测试时，所用的测试部分都会不同。这样，每个数据片段都会同时用于训练和测试。
+我们选择的*K*数值会影响我们如何测试模型。大多数人使用 5 或 10 作为*K*，但这个数值也可以根据我们拥有的数据量和项目需求来调整。假设我们使用*K* = 3。这意味着我们将数据分成三等份。然后我们将模型训练和测试三次。每次，2/3 的数据用于训练，1/3 的数据用于测试，但每次测试时，所用的测试部分都会不同。这样，每个数据片段都会同时用于训练和测试。
 
-![](../Images/06b5298158f9daf8c0fdf2f24ba9d7f9.png)
+![](img/06b5298158f9daf8c0fdf2f24ba9d7f9.png)
 
 ```py
 from sklearn.model_selection import KFold, cross_val_score
@@ -256,7 +256,7 @@ plt.tight_layout()
 
 `验证准确率: 0.433 ± 0.047`
 
-![](../Images/3597efd5b0c424bb9ef27f510ef42907.png)
+![](img/3597efd5b0c424bb9ef27f510ef42907.png)
 
 当我们完成所有轮次后，我们会计算所有*K*测试的平均表现。这个平均值为我们提供了一个更可靠的衡量标准，来评估我们的模型表现如何。我们还可以通过观察不同测试轮次之间结果的变化，来了解我们的模型有多稳定。
 
@@ -264,7 +264,7 @@ plt.tight_layout()
 
 分层 K 折交叉验证通过确保每个数据划分与原始数据的分布相同来解决这个问题。如果我们的完整数据集中有 10% 是 B 类型，那么每个划分也将包含大约 10% 的 B 类型数据。这使得我们的测试更加可靠，特别是在某些数据类型比其他类型稀少时。
 
-![](../Images/6410d2ca1a0a1801423584f4ee9c30dd.png)
+![](img/6410d2ca1a0a1801423584f4ee9c30dd.png)
 
 ```py
 from sklearn.model_selection import StratifiedKFold, cross_val_score
@@ -290,7 +290,7 @@ plt.tight_layout()
 
 `验证准确率：0.650 ± 0.071`
 
-![](../Images/6a845da93fa64fae2b73609521f534a5.png)
+![](img/6a845da93fa64fae2b73609521f534a5.png)
 
 保持这种平衡有两个好处。首先，它确保每个划分能够恰当地代表我们数据的分布。其次，它使得我们的测试结果更加一致。这意味着，如果我们多次测试模型，我们很可能每次都会得到类似的结果。
 
@@ -298,7 +298,7 @@ plt.tight_layout()
 
 例如，假设我们运行 5 折交叉验证三次。这意味着我们的模型总共会进行 15 次训练和测试。通过如此多次的测试，我们可以更好地判断结果中的差异是来自随机因素，还是能真正反映出模型的性能。缺点是，所有这些额外的测试需要更多的时间来完成。
 
-![](../Images/f2b033a8e6b90cc1bad5a07059d1457a.png)![](../Images/53d8b614cdb52f63a8289ec002c7dce5.png)
+![](img/f2b033a8e6b90cc1bad5a07059d1457a.png)![](img/53d8b614cdb52f63a8289ec002c7dce5.png)
 
 ```py
 from sklearn.model_selection import RepeatedKFold
@@ -332,13 +332,13 @@ plt.tight_layout()
 
 `验证准确率：0.425 ± 0.107`
 
-![](../Images/e94bb4e17347fd027be23da900507dd9.png)
+![](img/e94bb4e17347fd027be23da900507dd9.png)
 
 当我们查看重复 K 折结果时，由于我们有很多组测试结果，我们可以做的不仅仅是计算平均值——我们还可以了解我们对结果的信心。这使我们更好地理解模型的可靠性。
 
 ***重复分层 K 折*** 这种方法结合了我们刚刚学习的两件事：保持类别平衡（分层）和进行多轮测试（重复）。它在测试多次的同时保持了不同类型数据的正确比例。这在我们的数据集较小且不平衡时尤其有效——例如，当我们有大量一种类型的数据，而其他类型的数据较少时。
 
-![](../Images/f9084cb48d717d1a53b287556171438e.png)![](../Images/9736bf44bf4d82ce511033183bcb338a.png)
+![](img/f9084cb48d717d1a53b287556171438e.png)![](img/9736bf44bf4d82ce511033183bcb338a.png)
 
 ```py
 from sklearn.model_selection import RepeatedStratifiedKFold
@@ -372,7 +372,7 @@ plt.tight_layout()
 
 `验证准确率：0.542 ± 0.167`
 
-![](../Images/61517576ff80c26f2c20ca066afe43fd.png)
+![](img/61517576ff80c26f2c20ca066afe43fd.png)
 
 然而，这种方法有一个权衡：它需要更多的时间来运行。每次我们重复整个过程时，训练模型所需的时间会成倍增加。在决定是否使用这种方法时，我们需要考虑，是否值得花费额外的时间来获得更可靠的结果。
 
@@ -380,7 +380,7 @@ plt.tight_layout()
 
 分组 K 折交叉验证通过保持来自同一组的数据（例如来自同一高尔夫球场的所有测量数据）一起划分，来解决这一问题。这可以防止我们的模型在训练过程中无意中看到不应该看到的信息，从而让我们误以为它表现得比实际情况更好。
 
-![](../Images/cde7db87459ae48728b9dd87dd26ac88.png)
+![](img/cde7db87459ae48728b9dd87dd26ac88.png)
 
 ```py
 # Create groups 
@@ -421,7 +421,7 @@ plt.tight_layout()
 
 `验证准确度: 0.417 ± 0.143`
 
-![](../Images/616c266d6ae7d923873b81a26b0df5de.png)
+![](img/616c266d6ae7d923873b81a26b0df5de.png)
 
 当我们处理自然分组的数据时，这种方法尤其重要，比如来自同一个高尔夫球场的多次天气数据，或者同一地点在不同时间收集的数据。
 
@@ -429,7 +429,7 @@ plt.tight_layout()
 
 时间序列划分并非随机分割数据，而是按顺序使用数据，从过去到未来。训练数据仅包括测试数据之前的时间段的信息。这与我们在现实生活中使用模型的方式一致，即我们利用过去的数据来预测未来的事件。
 
-![](../Images/81146fa4c70beaca8801445fd200d3fb.png)
+![](img/81146fa4c70beaca8801445fd200d3fb.png)
 
 ```py
 from sklearn.model_selection import TimeSeriesSplit, cross_val_score
@@ -457,7 +457,7 @@ plt.tight_layout()
 
 `验证准确度: 0.556 ± 0.157`
 
-![](../Images/4d881beb9b6d1811302457256067f38f.png)
+![](img/4d881beb9b6d1811302457256067f38f.png)
 
 例如，假设*K*=3，并且我们有高尔夫数据。我们可以使用一月和二月的天气数据训练，来预测三月的高尔夫打球模式。接着，我们使用一月到三月的数据来预测四月，依此类推。通过只向前推进时间，这种方法能更真实地反映我们的模型在预测基于天气的未来高尔夫打球模式时的表现。
 
@@ -465,11 +465,11 @@ plt.tight_layout()
 
 ***留一交叉验证 (LOOCV)*** 留一交叉验证 (LOOCV) 是最彻底的验证方法。它仅使用*一个*样本进行测试，其他所有样本用于训练。验证会重复进行，直到每一条数据都被用作测试。
 
-假设我们有100天的高尔夫天气数据。LOOCV会训练并测试模型100次。每次，它使用99天的数据进行训练，1天的数据进行测试。这种方法消除了测试中的任何随机性——如果你多次在相同的数据上运行LOOCV，你将始终得到相同的结果。
+假设我们有 100 天的高尔夫天气数据。LOOCV 会训练并测试模型 100 次。每次，它使用 99 天的数据进行训练，1 天的数据进行测试。这种方法消除了测试中的任何随机性——如果你多次在相同的数据上运行 LOOCV，你将始终得到相同的结果。
 
-然而，LOOCV需要很长的计算时间。如果你有*N*个数据点，你需要训练模型*N*次。对于大型数据集或复杂模型，这可能需要的时间太长，无法实际使用。一些简单的模型，如线性模型，有一些捷径使得LOOCV变得更快，但并不是所有模型都适用。
+然而，LOOCV 需要很长的计算时间。如果你有*N*个数据点，你需要训练模型*N*次。对于大型数据集或复杂模型，这可能需要的时间太长，无法实际使用。一些简单的模型，如线性模型，有一些捷径使得 LOOCV 变得更快，但并不是所有模型都适用。
 
-![](../Images/52e0f4b1c42428101fe15f6f81637446.png)
+![](img/52e0f4b1c42428101fe15f6f81637446.png)
 
 ```py
 from sklearn.model_selection import LeaveOneOut
@@ -497,15 +497,15 @@ plt.tight_layout()
 
 `验证准确率：0.429 ± 0.495`
 
-![](../Images/40709bb360f71992f6218297c2d2242e.png)
+![](img/40709bb360f71992f6218297c2d2242e.png)
 
-LOOCV在数据量不多，需要最大限度利用每一份数据时表现得非常好。由于结果依赖于每一条数据，如果数据中有噪声或异常值，结果可能会有很大变化。
+LOOCV 在数据量不多，需要最大限度利用每一份数据时表现得非常好。由于结果依赖于每一条数据，如果数据中有噪声或异常值，结果可能会有很大变化。
 
-***Leave-P-Out交叉验证*** Leave-P-Out基于Leave-One-Out的思想，但它每次测试时使用P个数据点，而不是仅测试一个数据点。这在Leave-One-Out和K-fold验证之间创造了平衡。我们选择的P值会改变模型的测试方式以及所需的时间。
+***Leave-P-Out 交叉验证*** Leave-P-Out 基于 Leave-One-Out 的思想，但它每次测试时使用 P 个数据点，而不是仅测试一个数据点。这在 Leave-One-Out 和 K-fold 验证之间创造了平衡。我们选择的 P 值会改变模型的测试方式以及所需的时间。
 
-Leave-P-Out的主要问题是可能的测试组合数量增长得非常快。例如，如果我们有100天的高尔夫天气数据，并且每次测试5天（P=5），那么选择这5天的方式有数百万种不同的组合。当数据量很大或P值较大时，测试所有这些组合会耗费大量时间。
+Leave-P-Out 的主要问题是可能的测试组合数量增长得非常快。例如，如果我们有 100 天的高尔夫天气数据，并且每次测试 5 天（P=5），那么选择这 5 天的方式有数百万种不同的组合。当数据量很大或 P 值较大时，测试所有这些组合会耗费大量时间。
 
-![](../Images/b08884b049867b549153b90e059cd20b.png)
+![](img/b08884b049867b549153b90e059cd20b.png)
 
 ```py
 from sklearn.model_selection import LeavePOut, cross_val_score
@@ -537,19 +537,19 @@ plt.tight_layout()
 
 `验证准确率：0.441 ± 0.254`
 
-![](../Images/b285dc37f93b1968c4e62df28fba57d7.png)
+![](img/b285dc37f93b1968c4e62df28fba57d7.png)
 
-由于这些实际限制，Leave-P-Out通常用于需要非常彻底测试且数据集足够小以使其可行的特殊情况。它在研究项目中尤其有用，在这些项目中，获取最准确的测试结果比测试所需的时间更为重要。
+由于这些实际限制，Leave-P-Out 通常用于需要非常彻底测试且数据集足够小以使其可行的特殊情况。它在研究项目中尤其有用，在这些项目中，获取最准确的测试结果比测试所需的时间更为重要。
 
 ## 随机方法
 
-***ShuffleSplit交叉验证*** ShuffleSplit与其他验证方法不同，它采用完全随机的分割方式。与K-fold按有序方式划分数据，或像Leave-P-Out那样测试所有可能的组合不同，ShuffleSplit每次都会创建随机的训练和测试分割。
+***ShuffleSplit 交叉验证*** ShuffleSplit 与其他验证方法不同，它采用完全随机的分割方式。与 K-fold 按有序方式划分数据，或像 Leave-P-Out 那样测试所有可能的组合不同，ShuffleSplit 每次都会创建随机的训练和测试分割。
 
-ShuffleSplit与K-fold的不同之处在于，分割不遵循任何固定模式。在K-fold中，每条数据都恰好用于一次测试。但在ShuffleSplit中，一天的高尔夫天气数据可能被用于多次测试，也可能根本不被用于测试。这种随机性为我们提供了一种不同的方式来理解模型的表现。
+ShuffleSplit 与 K-fold 的不同之处在于，分割不遵循任何固定模式。在 K-fold 中，每条数据都恰好用于一次测试。但在 ShuffleSplit 中，一天的高尔夫天气数据可能被用于多次测试，也可能根本不被用于测试。这种随机性为我们提供了一种不同的方式来理解模型的表现。
 
 ShuffleSplit 在大数据集上特别有效，而 K-折交叉验证可能需要花费过多时间来运行。我们可以选择测试多少次，无论数据量多大。同时，我们还可以控制每次划分的大小。这让我们能够在全面测试和运行时间之间找到一个良好的平衡。
 
-![](../Images/923156cc72cc526aae6376b4a83d7b24.png)
+![](img/923156cc72cc526aae6376b4a83d7b24.png)
 
 ```py
 from sklearn.model_selection import ShuffleSplit, train_test_split
@@ -577,7 +577,7 @@ plt.tight_layout()
 
 `验证准确率：0.333 ± 0.272`
 
-![](../Images/8c1642d4aa7fd19870eddc81316dddfa.png)
+![](img/8c1642d4aa7fd19870eddc81316dddfa.png)
 
 由于 ShuffleSplit 可以创建任意数量的随机划分，它在我们希望查看模型性能如何随不同的随机划分而变化，或在我们需要更多的测试以确保结果的可靠性时非常有用。
 
@@ -585,7 +585,7 @@ plt.tight_layout()
 
 该方法为我们提供了双赢的局面：既有随机划分的自由，又有保持数据平衡的公平性。例如，如果我们的高尔夫数据集有 70% 的“是”天和 30% 的“否”天，每个随机划分都会尽量保持这一 70-30 的比例。这在数据不均衡时尤其有用，因为随机划分可能会无意中创建不代表我们数据的测试集。
 
-![](../Images/c6f0a11a4d547374bf57dafa1869e61c.png)
+![](img/c6f0a11a4d547374bf57dafa1869e61c.png)
 
 ```py
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
@@ -613,7 +613,7 @@ plt.tight_layout()
 
 `验证准确率：0.556 ± 0.157`
 
-![](../Images/96409b67fddbc5e5715ea4f0bed7f347.png)
+![](img/96409b67fddbc5e5715ea4f0bed7f347.png)
 
 然而，保持划分的随机性以及数据类型的正确混合可能会很棘手。该方法有时需要在完全随机和保持完美比例之间做出一些小的妥协。在实际使用中，这些小的折衷很少会引起问题，且通常保持测试集的平衡比拥有完全随机的划分更为重要。
 
@@ -770,7 +770,7 @@ print(f"Test accuracy: {test_accuracy:.3f}")
 
 ***小型数据集（少于 1,000 个样本）***
 
-小型数据集，例如我们28天高尔夫记录的例子，需要更仔细的测试。在这种情况下，Leave-One-Out 交叉验证或重复 K 折交叉验证（使用更多折数）实际上可以很好地工作。尽管这些方法的运行时间较长，但在数据量不大的情况下，它们帮助我们获得最可靠的结果。
+小型数据集，例如我们 28 天高尔夫记录的例子，需要更仔细的测试。在这种情况下，Leave-One-Out 交叉验证或重复 K 折交叉验证（使用更多折数）实际上可以很好地工作。尽管这些方法的运行时间较长，但在数据量不大的情况下，它们帮助我们获得最可靠的结果。
 
 ## 2\. 计算资源
 
@@ -782,17 +782,17 @@ print(f"Test accuracy: {test_accuracy:.3f}")
 
 **资源密集型模型**
 
-深度神经网络、拥有大量树的随机森林或梯度提升模型的训练时间较长。在使用这些模型时，更加密集的验证方法，如重复K折交叉验证或Leave-P-Out，可能不太实际。我们可能需要选择更简单的方法，如基本的K折交叉验证或ShuffleSplit，以保持合理的测试时间。
+深度神经网络、拥有大量树的随机森林或梯度提升模型的训练时间较长。在使用这些模型时，更加密集的验证方法，如重复 K 折交叉验证或 Leave-P-Out，可能不太实际。我们可能需要选择更简单的方法，如基本的 K 折交叉验证或 ShuffleSplit，以保持合理的测试时间。
 
 **内存考虑因素**
 
-一些方法，如K折交叉验证，需要同时跟踪多个数据划分。ShuffleSplit可以帮助解决内存限制问题，因为它一次只处理一个随机划分。对于具有复杂模型（如需要大量内存的深度神经网络）的大规模数据集，可能需要使用更简单的保留方法。如果我们在内存有限的情况下仍需要彻底的验证，可以使用时间序列划分，因为它自然地按顺序处理数据，而不需要一次性将所有划分存储在内存中。
+一些方法，如 K 折交叉验证，需要同时跟踪多个数据划分。ShuffleSplit 可以帮助解决内存限制问题，因为它一次只处理一个随机划分。对于具有复杂模型（如需要大量内存的深度神经网络）的大规模数据集，可能需要使用更简单的保留方法。如果我们在内存有限的情况下仍需要彻底的验证，可以使用时间序列划分，因为它自然地按顺序处理数据，而不需要一次性将所有划分存储在内存中。
 
-当资源有限时，使用一个我们可以顺利运行的更简单的验证方法（例如基本的K折交叉验证）比尝试运行一个我们无法完成的更复杂方法（例如Leave-P-Out）要好。
+当资源有限时，使用一个我们可以顺利运行的更简单的验证方法（例如基本的 K 折交叉验证）比尝试运行一个我们无法完成的更复杂方法（例如 Leave-P-Out）要好。
 
 ## 3\. 类别分布
 
-类别不平衡会强烈影响我们应该如何验证模型。对于不平衡数据，分层验证方法变得至关重要。像分层K折交叉验证和分层ShuffleSplit这样的方式确保每个测试划分与完整数据集的类别分布大致相同。如果不使用这些分层方法，一些测试集可能完全没有某个类别，这样就无法正确测试模型的预测效果。
+类别不平衡会强烈影响我们应该如何验证模型。对于不平衡数据，分层验证方法变得至关重要。像分层 K 折交叉验证和分层 ShuffleSplit 这样的方式确保每个测试划分与完整数据集的类别分布大致相同。如果不使用这些分层方法，一些测试集可能完全没有某个类别，这样就无法正确测试模型的预测效果。
 
 ## 4\. 时间序列
 
@@ -800,13 +800,13 @@ print(f"Test accuracy: {test_accuracy:.3f}")
 
 ## 5\. 群组依赖
 
-许多数据集包含自然的相关数据组。在验证模型时，这些数据中的连接需要特殊处理。当数据点相关时，我们需要使用像Group K-fold这样的方式，以防止我们的模型错误地学习到不该学习的东西。
+许多数据集包含自然的相关数据组。在验证模型时，这些数据中的连接需要特殊处理。当数据点相关时，我们需要使用像 Group K-fold 这样的方式，以防止我们的模型错误地学习到不该学习的东西。
 
 ## 实用指南
 
 这张流程图将帮助你为你的数据选择最合适的验证方法。下面的步骤概述了一个清晰的选择最佳验证方法的过程，前提是你有足够的计算资源。
 
-![](../Images/3c111d0da670ace01dcf36fc6effc876.png)
+![](img/3c111d0da670ace01dcf36fc6effc876.png)
 
 # 最后的备注
 
@@ -820,34 +820,34 @@ print(f"Test accuracy: {test_accuracy:.3f}")
 
 ## 技术环境
 
-本文使用的是Python 3.7和scikit-learn 1.5。尽管所讨论的概念通常适用，但具体的代码实现可能会因版本不同而有所变化。
+本文使用的是 Python 3.7 和 scikit-learn 1.5。尽管所讨论的概念通常适用，但具体的代码实现可能会因版本不同而有所变化。
 
 ## 关于插图
 
-除非另有说明，否则所有图片均由作者创作，并结合了Canva Pro的授权设计元素。
+除非另有说明，否则所有图片均由作者创作，并结合了 Canva Pro 的授权设计元素。
 
 𝙎𝙚𝙚 𝙢𝙤𝙧𝙚 𝙈𝙤𝙙𝙚𝙡 𝙀𝙫𝙖𝙡𝙪𝙖𝙩𝙞𝙤𝙣 & 𝙊𝙥𝙩𝙞𝙢𝙞𝙯𝙖𝙩𝙞𝙤𝙣 𝙢𝙚𝙩𝙝𝙤𝙙𝙨 𝙝𝙚𝙧𝙚:
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----eb13bbdc8f88--------------------------------)
 
 ## 模型评估与优化
 
-[查看列表](https://medium.com/@samybaladram/list/model-evaluation-optimization-331287896864?source=post_page-----eb13bbdc8f88--------------------------------)3个故事![](../Images/18fa82b1435fa7d5571ee54ae93a6c62.png)![](../Images/c95e89d05d1de700c631c342cd008de0.png)![](../Images/30e20e1a8ba3ced1e77644b706acd18d.png)
+[查看列表](https://medium.com/@samybaladram/list/model-evaluation-optimization-331287896864?source=post_page-----eb13bbdc8f88--------------------------------)3 个故事![](img/18fa82b1435fa7d5571ee54ae93a6c62.png)![](img/c95e89d05d1de700c631c342cd008de0.png)![](img/30e20e1a8ba3ced1e77644b706acd18d.png)
 
 𝙔𝙤𝙪 𝙢𝙞𝙜𝙝𝙩 𝙖𝙡𝙨𝙤 𝙡𝙞𝙠𝙚:
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----eb13bbdc8f88--------------------------------)
 
 ## 分类算法
 
-[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----eb13bbdc8f88--------------------------------)8个故事![](../Images/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](../Images/6ea70d9d2d9456e0c221388dbb253be8.png)![](../Images/7221f0777228e7bcf08c1adb44a8eb76.png)![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----eb13bbdc8f88--------------------------------)8 个故事![](img/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](img/6ea70d9d2d9456e0c221388dbb253be8.png)![](img/7221f0777228e7bcf08c1adb44a8eb76.png)![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----eb13bbdc8f88--------------------------------)
 
 ## 集成学习
 
-[查看列表](https://medium.com/@samybaladram/list/ensemble-learning-673fc83cd7db?source=post_page-----eb13bbdc8f88--------------------------------)4个故事![](../Images/1bd2995b5cb6dcc956ceadadc5ee3036.png)![](../Images/22a5d43568e70222eb89fd36789a9333.png)![](../Images/8ea1a2f29053080a5feffc709f5b8669.png)
+[查看列表](https://medium.com/@samybaladram/list/ensemble-learning-673fc83cd7db?source=post_page-----eb13bbdc8f88--------------------------------)4 个故事![](img/1bd2995b5cb6dcc956ceadadc5ee3036.png)![](img/22a5d43568e70222eb89fd36789a9333.png)![](img/8ea1a2f29053080a5feffc709f5b8669.png)

@@ -1,12 +1,12 @@
 # 在 Azure 中的端到端机器学习
 
-> 原文：[https://towardsdatascience.com/end-to-end-machine-learning-in-azure-1429528ecbe5?source=collection_archive---------3-----------------------#2024-02-20](https://towardsdatascience.com/end-to-end-machine-learning-in-azure-1429528ecbe5?source=collection_archive---------3-----------------------#2024-02-20)
+> 原文：[`towardsdatascience.com/end-to-end-machine-learning-in-azure-1429528ecbe5?source=collection_archive---------3-----------------------#2024-02-20`](https://towardsdatascience.com/end-to-end-machine-learning-in-azure-1429528ecbe5?source=collection_archive---------3-----------------------#2024-02-20)
 
 ## 如何在 Azure 中训练和部署机器学习模型
 
-[](https://medium.com/@jonathanbogerd?source=post_page---byline--1429528ecbe5--------------------------------)[![Jonathan Bogerd](../Images/e844961c6ea9766476d3d520dd993ae2.png)](https://medium.com/@jonathanbogerd?source=post_page---byline--1429528ecbe5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1429528ecbe5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1429528ecbe5--------------------------------) [Jonathan Bogerd](https://medium.com/@jonathanbogerd?source=post_page---byline--1429528ecbe5--------------------------------)
+[](https://medium.com/@jonathanbogerd?source=post_page---byline--1429528ecbe5--------------------------------)![Jonathan Bogerd](https://medium.com/@jonathanbogerd?source=post_page---byline--1429528ecbe5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1429528ecbe5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1429528ecbe5--------------------------------) [Jonathan Bogerd](https://medium.com/@jonathanbogerd?source=post_page---byline--1429528ecbe5--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1429528ecbe5--------------------------------) ·10 分钟阅读·2024年2月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1429528ecbe5--------------------------------) ·10 分钟阅读·2024 年 2 月 20 日
 
 --
 
@@ -14,13 +14,13 @@
 
 在本文中，我们将通过一个端到端的示例来讲解如何在 Azure 中使用机器学习。我们将讨论如何转换数据，以便可以利用 Azure Synapse Analytics 来训练模型。接着，我们将在 Azure Machine Learning 中训练一个模型，并用它对一些测试数据进行评分。本文的目的是给你一个关于在 Azure 中实现这一过程所需的技术和工具的概览，并详细展示如何操作。在研究这篇文章时，我发现了许多冲突的代码片段，其中大多数是过时的并且包含错误。因此，我希望本文能为你提供一个良好的技术和工具概览，并附上一些帮助你快速开始 Azure 机器学习之旅的代码片段。
 
-![](../Images/6e71e88a1216c4c2de900afb5686dd31.png)
+![](img/6e71e88a1216c4c2de900afb5686dd31.png)
 
 图片由 [Igor Omilaev](https://unsplash.com/@omilaev?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## **数据和目标**
 
-为了在本文中构建一个机器学习示例，我们需要数据。我们将使用我创建的一个关于2017年至2022年间美国各州冰淇淋销售的数据集。该数据集可以在[此处](https://github.com/jonathanbogerd/icecreamdata)找到。你可以自由地使用它进行自己的机器学习测试项目。我们的目标是训练一个模型，预测某一天某个州的冰淇淋销量。为了实现这一目标，我们将把这个数据集与每个州的人口数据结合起来，后者来自[USAFacts](https://usafacts.org/data/topics/people-society/population-and-demographics/population-data/population/)。它是以 Creative Commons 许可证共享的，详细信息可以在[此处](https://usafacts.org/faq/)找到。
+为了在本文中构建一个机器学习示例，我们需要数据。我们将使用我创建的一个关于 2017 年至 2022 年间美国各州冰淇淋销售的数据集。该数据集可以在[此处](https://github.com/jonathanbogerd/icecreamdata)找到。你可以自由地使用它进行自己的机器学习测试项目。我们的目标是训练一个模型，预测某一天某个州的冰淇淋销量。为了实现这一目标，我们将把这个数据集与每个州的人口数据结合起来，后者来自[USAFacts](https://usafacts.org/data/topics/people-society/population-and-demographics/population-data/population/)。它是以 Creative Commons 许可证共享的，详细信息可以在[此处](https://usafacts.org/faq/)找到。
 
 构建一个机器学习模型需要几个数据转换步骤。首先，数据格式需要对齐，且两个数据集必须合并。我们将在下一节中使用 Azure Synapse Analytics 执行这些步骤。然后，我们将数据拆分为训练数据和测试数据，以训练和评估机器学习模型。
 
@@ -52,7 +52,7 @@
 
 现在我们已经创建了所有活动，我们需要创建一个管道来运行这些活动。Synapse 中的管道用于按指定顺序和触发器执行活动。这样，你可以例如每天定时获取数据，或每月自动重新训练模型。让我们创建一个包含三项活动的管道，其中有两项数据流活动和一项 Notebook 活动。结果应该类似于下面所示：
 
-![](../Images/ae8f1e10c440d137b9315c94526ed5e3.png)
+![](img/ae8f1e10c440d137b9315c94526ed5e3.png)
 
 作者提供的图片
 
@@ -130,4 +130,4 @@ Azure 机器学习（AML）是一个工具，能够进行机器学习模型的�
 
 [github.com](https://github.com/Azure/azureml-examples/blob/main/tutorials/get-started-notebooks/quickstart.ipynb?source=post_page-----1429528ecbe5--------------------------------)
 
-[https://learn.microsoft.com/zh-cn/azure/machine-learning](https://learn.microsoft.com/en-us/azure/machine-learning)/
+[`learn.microsoft.com/zh-cn/azure/machine-learning`](https://learn.microsoft.com/en-us/azure/machine-learning)/

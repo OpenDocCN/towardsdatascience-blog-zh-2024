@@ -1,10 +1,10 @@
 # 双下划线方法：Python 的隐藏宝石
 
-> 原文：[https://towardsdatascience.com/dunder-methods-the-hidden-gems-of-python-a234e29b192d?source=collection_archive---------0-----------------------#2024-11-30](https://towardsdatascience.com/dunder-methods-the-hidden-gems-of-python-a234e29b192d?source=collection_archive---------0-----------------------#2024-11-30)
+> 原文：[`towardsdatascience.com/dunder-methods-the-hidden-gems-of-python-a234e29b192d?source=collection_archive---------0-----------------------#2024-11-30`](https://towardsdatascience.com/dunder-methods-the-hidden-gems-of-python-a234e29b192d?source=collection_archive---------0-----------------------#2024-11-30)
 
 ## 通过实际例子展示如何主动使用特殊方法可以简化编码并提高可读性。
 
-[](https://medium.com/@federico.zabeo29?source=post_page---byline--a234e29b192d--------------------------------)[![Federico Zabeo](../Images/387bdad1380d507c9ace1cbea24a694c.png)](https://medium.com/@federico.zabeo29?source=post_page---byline--a234e29b192d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a234e29b192d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a234e29b192d--------------------------------) [Federico Zabeo](https://medium.com/@federico.zabeo29?source=post_page---byline--a234e29b192d--------------------------------)
+[](https://medium.com/@federico.zabeo29?source=post_page---byline--a234e29b192d--------------------------------)![Federico Zabeo](https://medium.com/@federico.zabeo29?source=post_page---byline--a234e29b192d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a234e29b192d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a234e29b192d--------------------------------) [Federico Zabeo](https://medium.com/@federico.zabeo29?source=post_page---byline--a234e29b192d--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a234e29b192d--------------------------------) ·阅读时长 8 分钟·2024 年 11 月 30 日
 
@@ -20,7 +20,7 @@
 
 如果我在生活中学到了一件事，那就是并非一切如初看时所见，Python 也不例外。
 
-![](../Images/07c8e26ee7f55de29278f00feb2ff468.png)
+![](img/07c8e26ee7f55de29278f00feb2ff468.png)
 
 图片由 [Robert Katzki](https://unsplash.com/@ro_ka?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -96,7 +96,7 @@ item = Item(name="Milk (1L)", price=0.99)
 
 让我们尝试获取更具信息性和更漂亮的输出！
 
-![](../Images/fd7e5e5454f250598838a4907fdd0424.png)
+![](img/fd7e5e5454f250598838a4907fdd0424.png)
 
 图片由 [Shamblen Studios](https://unsplash.com/@shamblenstudios?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -121,7 +121,7 @@ Item('Milk (1L)', 0.99)
 
 没什么特别的，对吧？你说得对：我们本可以实现相同的方法并将其命名为*my_custom_repr*，而无需使用双下划线方法。然而，虽然每个人都能立刻理解我们通过***print(item)***或仅仅***item***表示的意思，但我们能否说出类似***item.my_custom_repr()***的东西呢？
 
-**定义对象与Python原生运算符之间的交互**
+**定义对象与 Python 原生运算符之间的交互**
 
 假设我们想要创建一个新的类*Grocery*，它允许我们构建一个*Item*的集合以及它们的数量。
 
@@ -131,7 +131,7 @@ Item('Milk (1L)', 0.99)
 
 1.  使用***for***循环直接迭代*Grocery*类
 
-1.  使用括号***[]***符号从Grocery类中访问特定的Item
+1.  使用括号***[]***符号从 Grocery 类中访问特定的 Item
 
 为了实现这一点，我们将**定义**（我们已经看到，通用类默认没有这些方法）双下划线方法***__add__***、***__iter__***和***__getitem__***。
 
@@ -178,7 +178,7 @@ grocery = Grocery(items={item: 3})
 {Item('Milk (1L)', 0.99): 3}
 ```
 
-然后，我们使用***+***运算符添加一个新的Item，并验证更改已生效。
+然后，我们使用***+***运算符添加一个新的 Item，并验证更改已生效。
 
 ```py
 new_item = Item(name="Soy Sauce (0.375L)", price=1.99)
@@ -208,13 +208,13 @@ fake_item = Item("Creamy Cheese (500g)", 2.99)
 KeyError: "Item Item('Creamy Cheese (500g)', 2.99) not in the grocery"
 ```
 
-本质上，我们为Grocery类分配了一些标准的字典般行为，同时还允许了一些此数据类型本不具备的操作。
+本质上，我们为 Grocery 类分配了一些标准的字典般行为，同时还允许了一些此数据类型本不具备的操作。
 
 **增强功能：使类可调用以简化和增强功能。**
 
 让我们通过一个最终示例来总结这个深入探讨的双下划线方法，展示它们如何成为我们工具库中的强大工具。
 
-![](../Images/98a9fbb88437116ee9565a35777a3ad6.png)
+![](img/98a9fbb88437116ee9565a35777a3ad6.png)
 
 图片由[Marek Studzinski](https://unsplash.com/@jccards?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -228,7 +228,7 @@ def expensive_function(input):
     return input
 ```
 
-如果我们对相同的输入运行两次该函数会发生什么？好吧，现在计算会执行两次，这意味着我们要等待整个执行时间（即总共10秒）才能得到两次相同的输出。
+如果我们对相同的输入运行两次该函数会发生什么？好吧，现在计算会执行两次，这意味着我们要等待整个执行时间（即总共 10 秒）才能得到两次相同的输出。
 
 ```py
 start_time = time.time()

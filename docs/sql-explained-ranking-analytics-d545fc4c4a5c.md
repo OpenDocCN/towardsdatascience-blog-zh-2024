@@ -1,16 +1,16 @@
 # SQL 解析：排名分析
 
-> 原文：[https://towardsdatascience.com/sql-explained-ranking-analytics-d545fc4c4a5c?source=collection_archive---------13-----------------------#2024-06-11](https://towardsdatascience.com/sql-explained-ranking-analytics-d545fc4c4a5c?source=collection_archive---------13-----------------------#2024-06-11)
+> 原文：[`towardsdatascience.com/sql-explained-ranking-analytics-d545fc4c4a5c?source=collection_archive---------13-----------------------#2024-06-11`](https://towardsdatascience.com/sql-explained-ranking-analytics-d545fc4c4a5c?source=collection_archive---------13-----------------------#2024-06-11)
 
-![](../Images/7b3e9d3a4d02e1ad400006c9a00283ab.png)
+![](img/7b3e9d3a4d02e1ad400006c9a00283ab.png)
 
 图片来源：AI（Dalle-3）
 
 ## 它们是什么，以及如何使用它们
 
-[](https://medium.com/@thomas_reid?source=post_page---byline--d545fc4c4a5c--------------------------------)[![Thomas Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--d545fc4c4a5c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d545fc4c4a5c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d545fc4c4a5c--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--d545fc4c4a5c--------------------------------)
+[](https://medium.com/@thomas_reid?source=post_page---byline--d545fc4c4a5c--------------------------------)![Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--d545fc4c4a5c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d545fc4c4a5c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d545fc4c4a5c--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--d545fc4c4a5c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d545fc4c4a5c--------------------------------) ·13分钟阅读·2024年6月11日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d545fc4c4a5c--------------------------------) ·13 分钟阅读·2024 年 6 月 11 日
 
 --
 

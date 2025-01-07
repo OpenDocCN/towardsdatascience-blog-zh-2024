@@ -1,28 +1,28 @@
-# Florence-2：通过单一VLM模型推动多个视觉任务的进展
+# Florence-2：通过单一 VLM 模型推动多个视觉任务的进展
 
-> 原文：[https://towardsdatascience.com/florence-2-mastering-multiple-vision-tasks-with-a-single-vlm-model-435d251976d0?source=collection_archive---------2-----------------------#2024-10-14](https://towardsdatascience.com/florence-2-mastering-multiple-vision-tasks-with-a-single-vlm-model-435d251976d0?source=collection_archive---------2-----------------------#2024-10-14)
+> 原文：[`towardsdatascience.com/florence-2-mastering-multiple-vision-tasks-with-a-single-vlm-model-435d251976d0?source=collection_archive---------2-----------------------#2024-10-14`](https://towardsdatascience.com/florence-2-mastering-multiple-vision-tasks-with-a-single-vlm-model-435d251976d0?source=collection_archive---------2-----------------------#2024-10-14)
 
-## Florence-2零样本能力的引导性探索：图像说明、物体检测、分割与OCR。
+## Florence-2 零样本能力的引导性探索：图像说明、物体检测、分割与 OCR。
 
-[](https://medium.com/@lihigurarie?source=post_page---byline--435d251976d0--------------------------------)[![Lihi Gur Arie, PhD](../Images/7a1eb30725a95159401c3672fa5f43ab.png)](https://medium.com/@lihigurarie?source=post_page---byline--435d251976d0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--435d251976d0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--435d251976d0--------------------------------) [Lihi Gur Arie, PhD](https://medium.com/@lihigurarie?source=post_page---byline--435d251976d0--------------------------------)
+[](https://medium.com/@lihigurarie?source=post_page---byline--435d251976d0--------------------------------)![Lihi Gur Arie, PhD](https://medium.com/@lihigurarie?source=post_page---byline--435d251976d0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--435d251976d0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--435d251976d0--------------------------------) [Lihi Gur Arie, PhD](https://medium.com/@lihigurarie?source=post_page---byline--435d251976d0--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--435d251976d0--------------------------------) ·阅读时长7分钟·2024年10月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--435d251976d0--------------------------------) ·阅读时长 7 分钟·2024 年 10 月 14 日
 
 --
 
-![](../Images/d06dac442af9954dd35b05fe0f06a790.png)
+![](img/d06dac442af9954dd35b05fe0f06a790.png)
 
 图像注释由作者提供。原图来自 [Pexels](https://www.pexels.com/)。
 
 ## 介绍
 
-近年来，计算机视觉领域见证了基础模型的崛起，这些模型无需训练定制模型即可进行图像注释。我们已经看到像[CLIP](/clip-creating-image-classifiers-without-data-b21c72b741fa?sk=88fdd2c1a132538015968df3f49b64b1) [2]这样的分类模型，[GroundingDINO](/automatic-labeling-of-object-detection-datasets-using-groundingdino-b66c486656fe?sk=7c98df89b60ea49a6de9efd5278f645e) [3]用于物体检测，和SAM [4]用于图像分割——每个模型在各自领域中表现优异。但是，如果我们有一个能够同时处理所有这些任务的单一模型呢？
+近年来，计算机视觉领域见证了基础模型的崛起，这些模型无需训练定制模型即可进行图像注释。我们已经看到像 CLIP [2]这样的分类模型，GroundingDINO [3]用于物体检测，和 SAM [4]用于图像分割——每个模型在各自领域中表现优异。但是，如果我们有一个能够同时处理所有这些任务的单一模型呢？
 
-> 如果你没有付费的Medium账户，你可以在[这里]( /florence-2-mastering-multiple-vision-tasks-with-a-single-vlm-model-435d251976d0?sk=e25bdee736a9aa9ace1ca80b98a036a4)免费阅读。
+> 如果你没有付费的 Medium 账户，你可以在这里免费阅读。
 
-在本教程中，我们将介绍Florence-2 [1]——一个新颖的开源视觉语言模型（VLM），旨在处理多种视觉和多模态任务，包括图像说明、物体检测、分割和光学字符识别（OCR）。
+在本教程中，我们将介绍 Florence-2 [1]——一个新颖的开源视觉语言模型（VLM），旨在处理多种视觉和多模态任务，包括图像说明、物体检测、分割和光学字符识别（OCR）。
 
-配套的Colab笔记本中，我们将探索Florence-2在零样本条件下标注一张老式相机图像的能力。
+配套的 Colab 笔记本中，我们将探索 Florence-2 在零样本条件下标注一张老式相机图像的能力。
 
 # Florence-2
 
@@ -62,7 +62,7 @@ Florence-2 基于标准的编码器-解码器 Transformer 架构构建。以下�
 
 1.  在训练过程中，模型最小化交叉熵损失，类似于标准语言模型。
 
-![](../Images/83b1b171555b8ba0c1e9513a11913d8f.png)
+![](img/83b1b171555b8ba0c1e9513a11913d8f.png)
 
 Florence-2 架构的示意图。来源：[link](https://arxiv.org/abs/2311.06242)*.*
 
@@ -189,13 +189,13 @@ task_prompt results = run_example(image, task_prompt= '<DENSE_REGION_CAPTION>')
 draw_bbox(image, results['<DENSE_REGION_CAPTION>'])
 ```
 
-![](../Images/0efcbdf15dc83e62153b6a752144f800.png)
+![](img/0efcbdf15dc83e62153b6a752144f800.png)
 
 左侧的图像展示了‘<OD>’任务提示的结果，而右侧的图像展示了‘<DENSE_REGION_CAPTION>’的结果。
 
 **2.2 文本基础的物体检测**
 
-Florence-2还可以执行文本基础的物体检测。通过提供特定的物体名称或描述作为输入，Florence-2能够检测到围绕指定物体的边界框。
+Florence-2 还可以执行文本基础的物体检测。通过提供特定的物体名称或描述作为输入，Florence-2 能够检测到围绕指定物体的边界框。
 
 ```py
 task_prompt = '<CAPTION_TO_PHRASE_GROUNDING>'
@@ -203,13 +203,13 @@ results = run_example(image,task_prompt, text_input=”lens. camera. table. logo
 draw_bbox(image, results['<CAPTION_TO_PHRASE_GROUNDING>'])
 ```
 
-![](../Images/4a18ac8e5ecfafaded830f3246ee3953.png)
+![](img/4a18ac8e5ecfafaded830f3246ee3953.png)
 
-CAPTION_TO_PHRASE_GROUNDING任务，文本输入为：“镜头。相机。桌子。标志。闪光。”
+CAPTION_TO_PHRASE_GROUNDING 任务，文本输入为：“镜头。相机。桌子。标志。闪光。”
 
 ## 3. 分割相关任务：
 
-Florence-2也可以生成由文本（`'<REFERRING_EXPRESSION_SEGMENTATION>'`）或边界框（`'<REGION_TO_SEGMENTATION>'`）约束的分割多边形：
+Florence-2 也可以生成由文本（`'<REFERRING_EXPRESSION_SEGMENTATION>'`）或边界框（`'<REGION_TO_SEGMENTATION>'`）约束的分割多边形：
 
 ```py
 results = run_example(image, task_prompt='<REFERRING_EXPRESSION_SEGMENTATION>', text_input=”camera”)
@@ -221,24 +221,24 @@ results = run_example(image, task_prompt='<REGION_TO_SEGMENTATION>', text_input=
 draw_polygons(output_image, results['<REGION_TO_SEGMENTATION>'])
 ```
 
-![](../Images/d3545d83b63447e4043f6d333e0c4d17.png)
+![](img/d3545d83b63447e4043f6d333e0c4d17.png)
 
-左侧的图像展示了使用‘相机’文本作为输入的REFERRING_EXPRESSION_SEGMENTATION任务的结果，右侧的图像展示了使用边界框围绕镜头作为输入的REGION_TO_SEGMENTATION任务的结果。
+左侧的图像展示了使用‘相机’文本作为输入的 REFERRING_EXPRESSION_SEGMENTATION 任务的结果，右侧的图像展示了使用边界框围绕镜头作为输入的 REGION_TO_SEGMENTATION 任务的结果。
 
 ## 4. OCR 相关任务：
 
-Florence-2展示了强大的OCR能力。它可以通过`'<OCR>'`任务提示从图像中提取文本，或者通过`'<OCR_WITH_REGION>'`提取文本及其位置：
+Florence-2 展示了强大的 OCR 能力。它可以通过`'<OCR>'`任务提示从图像中提取文本，或者通过`'<OCR_WITH_REGION>'`提取文本及其位置：
 
 ```py
 results = run_example(image,task_prompt)
 draw_ocr_bboxes(image, results['<OCR_WITH_REGION>'])
 ```
 
-![](../Images/3cab509233de43f25be60c54ce24c3a2.png)
+![](img/3cab509233de43f25be60c54ce24c3a2.png)
 
 # 结论
 
-Florence-2是一个多功能的视觉语言模型（VLM），能够在单一模型中处理多种视觉任务。它在图像描述、物体检测、分割和OCR等多种任务中都展示了出色的零-shot能力。虽然Florence-2开箱即用效果良好，但进一步的微调可以让模型适应新任务或在独特的自定义数据集上提高性能。
+Florence-2 是一个多功能的视觉语言模型（VLM），能够在单一模型中处理多种视觉任务。它在图像描述、物体检测、分割和 OCR 等多种任务中都展示了出色的零-shot 能力。虽然 Florence-2 开箱即用效果良好，但进一步的微调可以让模型适应新任务或在独特的自定义数据集上提高性能。
 
 # 感谢阅读！
 
@@ -252,17 +252,17 @@ Florence-2是一个多功能的视觉语言模型（VLM），能够在单一模�
 
 +   在[**Linkedin**](https://www.linkedin.com/in/lihi-gur-arie/)上关注我
 
-# 完整代码，作为Colab笔记本：
+# 完整代码，作为 Colab 笔记本：
 
 # 参考文献
 
-[0] Colab Notebook中的代码: [link](https://gist.github.com/Lihi-Gur-Arie/427ecce6a5c7f279d06f3910941e0145)
+[0] Colab Notebook 中的代码: [link](https://gist.github.com/Lihi-Gur-Arie/427ecce6a5c7f279d06f3910941e0145)
 
 [1] Florence-2: [推进统一的表示方法，以应对多种视觉任务](https://arxiv.org/pdf/2311.06242).
 
 [2] CLIP: [从自然语言监督中学习可转移的视觉模型](https://arxiv.org/pdf/2103.00020v1).
 
-[3] Grounding DINO: [结合DINO和基础预训练进行开放集物体检测](https://arxiv.org/abs/2303.05499).
+[3] Grounding DINO: [结合 DINO 和基础预训练进行开放集物体检测](https://arxiv.org/abs/2303.05499).
 
 [4] SAM2: [图像和视频中的任何物体分割](https://arxiv.org/pdf/2408.00714).
 

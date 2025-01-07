@@ -1,16 +1,16 @@
-# 强化学习，第5部分：时间差学习
+# 强化学习，第五部分：时间差学习
 
-> 原文：[https://towardsdatascience.com/reinforcement-learning-part-5-temporal-difference-learning-cacf7854fe0c?source=collection_archive---------4-----------------------#2024-07-13](https://towardsdatascience.com/reinforcement-learning-part-5-temporal-difference-learning-cacf7854fe0c?source=collection_archive---------4-----------------------#2024-07-13)
+> 原文：[`towardsdatascience.com/reinforcement-learning-part-5-temporal-difference-learning-cacf7854fe0c?source=collection_archive---------4-----------------------#2024-07-13`](https://towardsdatascience.com/reinforcement-learning-part-5-temporal-difference-learning-cacf7854fe0c?source=collection_archive---------4-----------------------#2024-07-13)
 
 ## 智能地协同动态规划和蒙特卡洛算法
 
-[](https://medium.com/@slavahead?source=post_page---byline--cacf7854fe0c--------------------------------)[![Vyacheslav Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--cacf7854fe0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cacf7854fe0c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cacf7854fe0c--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--cacf7854fe0c--------------------------------)
+[](https://medium.com/@slavahead?source=post_page---byline--cacf7854fe0c--------------------------------)![Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--cacf7854fe0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cacf7854fe0c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cacf7854fe0c--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--cacf7854fe0c--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cacf7854fe0c--------------------------------) ·15分钟阅读·2024年7月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cacf7854fe0c--------------------------------) ·15 分钟阅读·2024 年 7 月 13 日
 
 --
 
-![](../Images/6f0c189ccd16283132ffcd5a786aa783.png)
+![](img/6f0c189ccd16283132ffcd5a786aa783.png)
 
 # 引言
 
@@ -20,8 +20,8 @@
 
 > **注意**：为了充分理解本文所包含的概念，强烈建议先了解之前文章中讨论的[动态规划](https://medium.com/towards-data-science/reinforcement-learning-part-2-policy-evaluation-and-improvement-59ec85d03b3a)和[蒙特卡洛方法](https://medium.com/towards-data-science/reinforcement-learning-part-3-monte-carlo-methods-7ce2828a1fdb)。
 
-[](/reinforcement-learning-part-2-policy-evaluation-and-improvement-59ec85d03b3a?source=post_page-----cacf7854fe0c--------------------------------) [## 强化学习，第2部分：策略评估与改进
+[](/reinforcement-learning-part-2-policy-evaluation-and-improvement-59ec85d03b3a?source=post_page-----cacf7854fe0c--------------------------------) ## 强化学习，第二部分：策略评估与改进
 
 ### 从数据到决策：通过策略改进方法最大化奖励，寻找最优策略
 
-towardsdatascience.com](/reinforcement-learning-part-2-policy-evaluation-and-improvement-59ec85d03b3a?source=post_page-----cacf7854fe0c--------------------------------)
+towardsdatascience.com

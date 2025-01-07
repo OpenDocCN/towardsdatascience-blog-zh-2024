@@ -1,24 +1,24 @@
 # 神经网络能否形成冲击波？
 
-> 原文：[https://towardsdatascience.com/can-neural-networks-formulate-shock-wave-147bb75d0715?source=collection_archive---------4-----------------------#2024-04-04](https://towardsdatascience.com/can-neural-networks-formulate-shock-wave-147bb75d0715?source=collection_archive---------4-----------------------#2024-04-04)
+> 原文：[`towardsdatascience.com/can-neural-networks-formulate-shock-wave-147bb75d0715?source=collection_archive---------4-----------------------#2024-04-04`](https://towardsdatascience.com/can-neural-networks-formulate-shock-wave-147bb75d0715?source=collection_archive---------4-----------------------#2024-04-04)
 
-## 我们如何构建一个具有冲击波形成的无粘性Burgers方程的PINN
+## 我们如何构建一个具有冲击波形成的无粘性 Burgers 方程的 PINN
 
-[](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)[![Shuyang Xiang](../Images/36a5fd18fd9b7b88cb41094f09b83882.png)](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------) [Shuyang Xiang](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)
+[](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)![Shuyang Xiang](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------) [Shuyang Xiang](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------) ·6分钟阅读·2024年4月4日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------) ·6 分钟阅读·2024 年 4 月 4 日
 
 --
 
-# 冲击波上的PINN
+# 冲击波上的 PINN
 
 **物理信息神经网络**（**PINNs**）是一种特殊类型的神经网络。它们通过将给定数据集的物理定律纳入学习过程，从而估计偏微分方程的解。
 
-这种方程的一个例子是无粘性Burgers方程，它是一个守恒定律的原型，可以形成冲击波。
+这种方程的一个例子是无粘性 Burgers 方程，它是一个守恒定律的原型，可以形成冲击波。
 
-![](../Images/db32daff6b729cd7c952efddb61d7dbc.png)
+![](img/db32daff6b729cd7c952efddb61d7dbc.png)
 
-图片来源：[维基百科](https://en.wikipedia.org/wiki/Burgers%27_equation)：无粘性Burgers方程，在冲击波形成时的二维空间变量。
+图片来源：[维基百科](https://en.wikipedia.org/wiki/Burgers%27_equation)：无粘性 Burgers 方程，在冲击波形成时的二维空间变量。
 
 目前的文献难以有效解决这个问题。由于冲击波不是连续解，它们仅在弱意义上满足方程。**连续时间模型**，如依赖于训练样本的算法微分方法，无法捕捉冲击波。这些方法仅适用于函数正则性的情况。
 
@@ -50,7 +50,7 @@ u = neural_net(t,x;weights)
 
 现在，考虑一维无粘性 Burgers 方程：
 
-![](../Images/438341126c6d5a88b69547e4c5d5b42f.png)
+![](img/438341126c6d5a88b69547e4c5d5b42f.png)
 
 无粘性 Burgers 方程
 
@@ -58,11 +58,11 @@ u = neural_net(t,x;weights)
 
 以下代码灵感来自 git 仓库 [pinn-burgers](https://github.com/okada39/pinn_burgers)。在这里，考虑一个粘性 Burgers 方程，𝜈>0。已证明在初始条件为平滑函数并且在无穷大处增长如 o(|x|) 的情况下，方程具有全局定义的平滑解 [3]。
 
-![](../Images/53cc03415a2a21967c67c8870036a817.png)
+![](img/53cc03415a2a21967c67c8870036a817.png)
 
 粘性 Burgers 方程
 
-我们将u(t,x)表示为neural_net(t,x;weights)，目的是最小化L(u)（在本例中是ut + uux）以及初始条件和边界条件的均方误差。如果方程的解是平滑的，可以自然地使用TensorFlow编写以下代码来计算所需的未知数：
+我们将 u(t,x)表示为 neural_net(t,x;weights)，目的是最小化 L(u)（在本例中是 ut + uux）以及初始条件和边界条件的均方误差。如果方程的解是平滑的，可以自然地使用 TensorFlow 编写以下代码来计算所需的未知数：
 
 ```py
 with tf.GradientTape() as g:
@@ -73,19 +73,19 @@ du_dt = du_dtx[..., 0]
 du_dx = du_dtx[..., 1]
 ```
 
-L(u)（在代码中，我们将其称为u_eqn）将简单地定义为：
+L(u)（在代码中，我们将其称为 u_eqn）将简单地定义为：
 
 ```py
 u_eqn = du_dt+ u*du_dt # (1)
 ```
 
-问题在于方程ut + uux仅在弱意义下成立。这意味着，在冲击波形成时，考虑ut和ux的值可能没有用，因为它们会爆炸。该方程仅适用于积分形式。像TensorFlow或PyTorch这样的常见Python包提供了神经网络和微分算法的API，但不提供弱意义的解。因此，我们需要重新配置L(u)的公式，以强制神经网络形成冲击波。
+问题在于方程 ut + uux 仅在弱意义下成立。这意味着，在冲击波形成时，考虑 ut 和 ux 的值可能没有用，因为它们会爆炸。该方程仅适用于积分形式。像 TensorFlow 或 PyTorch 这样的常见 Python 包提供了神经网络和微分算法的 API，但不提供弱意义的解。因此，我们需要重新配置 L(u)的公式，以强制神经网络形成冲击波。
 
 # 冲击波引入
 
-我们引入了Rankine–Hugoniot条件，也叫Rankine–Hugoniot跳跃条件或关系。这些条件描述了冲击波两侧状态之间的关系。对于Burgers方程，Rankine–Hugoniot条件表示为：1/2[[𝑢²]]=𝑠[[𝑢]]。方括号[[ ]]表示右侧和左侧值之间的差异，而‘s’是冲击传播速度。
+我们引入了 Rankine–Hugoniot 条件，也叫 Rankine–Hugoniot 跳跃条件或关系。这些条件描述了冲击波两侧状态之间的关系。对于 Burgers 方程，Rankine–Hugoniot 条件表示为：1/2[[𝑢²]]=𝑠[[𝑢]]。方括号[[ ]]表示右侧和左侧值之间的差异，而‘s’是冲击传播速度。
 
-考虑一个特定的空间变量‘x’，我们旨在仔细检查左侧或右侧的极限，即在不连续情况下的u(x±)。以下是相关的代码：
+考虑一个特定的空间变量‘x’，我们旨在仔细检查左侧或右侧的极限，即在不连续情况下的 u(x±)。以下是相关的代码：
 
 ```py
 delta = 1e-3
@@ -102,9 +102,9 @@ du_dt = du_dtx[..., 0]
 du_dx = du_dtx[..., 1]
 ```
 
-我们定义一个小的delta，并计算空间变量x左右两侧解的值，直到delta。
+我们定义一个小的 delta，并计算空间变量 x 左右两侧解的值，直到 delta。
 
-接下来，我们重新定义函数L(u)为：
+接下来，我们重新定义函数 L(u)为：
 
 ```py
  term1 = du_dt + u * du_dx
@@ -113,23 +113,23 @@ du_dx = du_dtx[..., 1]
    u_eqn = tf.where(condition, term1, term2) # (2)
 ```
 
-当du_dt的值是有限的（具体来说，小于足够大的值）时，我们使用方程的常规形式；当du_dt的值是无限时，我们使用Rankine–Hugoniot条件。
+当 du_dt 的值是有限的（具体来说，小于足够大的值）时，我们使用方程的常规形式；当 du_dt 的值是无限时，我们使用 Rankine–Hugoniot 条件。
 
 # 实验
 
-假设Burgers方程的初始条件为sin(πx)，定义区间为[-1, 1]。解可以表示为u=sin(π(x-ut))，并且在t=1时形成冲击波。使用公式（1），我们得出以下解：
+假设 Burgers 方程的初始条件为 sin(πx)，定义区间为[-1, 1]。解可以表示为 u=sin(π(x-ut))，并且在 t=1 时形成冲击波。使用公式（1），我们得出以下解：
 
-![](../Images/091063661f41358dd888e4c627d52a52.png)
+![](img/091063661f41358dd888e4c627d52a52.png)
 
-作者图像：使用公式（1）求解Burgers方程
+作者图像：使用公式（1）求解 Burgers 方程
 
 模型在没有了解冲击波的情况下，努力找出正确的答案。然而，如果我们切换到公式（2），则可以得到以下解：
 
-![](../Images/ce521d21ba2d9a221ac0677dd8dbf1cc.png)
+![](img/ce521d21ba2d9a221ac0677dd8dbf1cc.png)
 
-作者图像：使用公式（2）求解Burgers方程
+作者图像：使用公式（2）求解 Burgers 方程
 
-你可以看到，模型在t=1时成功捕捉到了冲击波。
+你可以看到，模型在 t=1 时成功捕捉到了冲击波。
 
 # 结论
 
@@ -139,8 +139,8 @@ du_dx = du_dtx[..., 1]
 
 [1] M. Raissi, P. Perdikaris, G.E. Karniadakis，
 
-物理信息神经网络：一种用于求解涉及非线性偏微分方程的正向和反向问题的深度学习框架，《计算物理学杂志》，2019年，第378卷，第686–707页。
+物理信息神经网络：一种用于求解涉及非线性偏微分方程的正向和反向问题的深度学习框架，《计算物理学杂志》，2019 年，第 378 卷，第 686–707 页。
 
 [2] A. Salih, 无粘 Burgers 方程。讲义笔记。印度太空科学与技术研究所航空航天工程系。
 
-[3] J. Unterberger, 粘性 Burgers 方程强解的全局存在性。2015年3月。《控制与控制论》46(2)。
+[3] J. Unterberger, 粘性 Burgers 方程强解的全局存在性。2015 年 3 月。《控制与控制论》46(2)。

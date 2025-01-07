@@ -1,44 +1,44 @@
 # 如何在 5 分钟内构建自己的 Google AI 聊天机器人
 
-> 原文：[https://towardsdatascience.com/how-to-build-your-own-ai-chatbot-within-5-minutes-using-google-llm-and-your-private-knowledge-eed4b6852917?source=collection_archive---------0-----------------------#2024-02-11](https://towardsdatascience.com/how-to-build-your-own-ai-chatbot-within-5-minutes-using-google-llm-and-your-private-knowledge-eed4b6852917?source=collection_archive---------0-----------------------#2024-02-11)
+> 原文：[`towardsdatascience.com/how-to-build-your-own-ai-chatbot-within-5-minutes-using-google-llm-and-your-private-knowledge-eed4b6852917?source=collection_archive---------0-----------------------#2024-02-11`](https://towardsdatascience.com/how-to-build-your-own-ai-chatbot-within-5-minutes-using-google-llm-and-your-private-knowledge-eed4b6852917?source=collection_archive---------0-----------------------#2024-02-11)
 
 ## 充分利用 Google LLM 和你的私人知识的力量
 
-[](https://medium.com/@lizhuohang.selina?source=post_page---byline--eed4b6852917--------------------------------)[![Selina Li](../Images/8bc2e0079d72b4d23f9d903b24144acb.png)](https://medium.com/@lizhuohang.selina?source=post_page---byline--eed4b6852917--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eed4b6852917--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--eed4b6852917--------------------------------) [Selina Li](https://medium.com/@lizhuohang.selina?source=post_page---byline--eed4b6852917--------------------------------)
+[](https://medium.com/@lizhuohang.selina?source=post_page---byline--eed4b6852917--------------------------------)![Selina Li](https://medium.com/@lizhuohang.selina?source=post_page---byline--eed4b6852917--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eed4b6852917--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eed4b6852917--------------------------------) [Selina Li](https://medium.com/@lizhuohang.selina?source=post_page---byline--eed4b6852917--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eed4b6852917--------------------------------) ·14 分钟阅读 ·2024年2月11日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eed4b6852917--------------------------------) ·14 分钟阅读 ·2024 年 2 月 11 日
 
 --
 
 作者：[Selina Li](https://medium.com/u/7b9ea39b0d79?source=post_page---user_mention--eed4b6852917--------------------------------)、[Tianyi Li](https://medium.com/u/4092d7367010?source=post_page---user_mention--eed4b6852917--------------------------------)
 
-· [问题](#e714)
+· 问题
 
-· [解决方案](#1b3c)
+· 解决方案
 
-· [使用案例](#5489)
+· 使用案例
 
-· [逐步指南](#59ba)
+· 逐步指南
 
-∘ [第 1 步：环境设置](#9037)
+∘ 第 1 步：环境设置
 
-∘ [第 2 步：准备私人知识并将其存储到 Google 云存储（低代码）](#f3cd)
+∘ 第 2 步：准备私人知识并将其存储到 Google 云存储（低代码）
 
-∘ [第 3 步：创建聊天机器人和聊天机器人背后的数据存储（无代码）](#4368)
+∘ 第 3 步：创建聊天机器人和聊天机器人背后的数据存储（无代码）
 
-∘ [第 4 步：测试聊天机器人（无代码）](#7842)
+∘ 第 4 步：测试聊天机器人（无代码）
 
-∘ [第 5 步：发布/集成聊天机器人（低代码）](#5ba1)
+∘ 第 5 步：发布/集成聊天机器人（低代码）
 
-∘ [第 6 步（可选）：通过一个精美的应用发布它（低代码）](#eb61)
+∘ 第 6 步（可选）：通过一个精美的应用发布它（低代码）
 
-· [是什么让这变得“神奇”？](#c1a0)
+· 是什么让这变得“神奇”？
 
-· [一些观察](#d869)
+· 一些观察
 
-· [总结](#9e33)
+· 总结
 
-· [喜欢这个故事吗？](#1884)
+· 喜欢这个故事吗？
 
 # 问题
 
@@ -50,9 +50,9 @@
 
 最终产品将是这样的：
 
-![](../Images/43425b636db296b5f717c704821742cf.png)
+![](img/43425b636db296b5f717c704821742cf.png)
 
-Github 链接：[https://github.com/bianbianzhu/property-hunter](https://github.com/bianbianzhu/property-hunter)
+Github 链接：[`github.com/bianbianzhu/property-hunter`](https://github.com/bianbianzhu/property-hunter)
 
 # 解决方案
 
@@ -60,29 +60,29 @@ Github 链接：[https://github.com/bianbianzhu/property-hunter](https://github.
 
 这个想法很简单，首先将一批私有知识文档放到 Google Cloud Storage 上：
 
-![](../Images/ef41c9002b1f774d04761323d723ee89.png)
+![](img/ef41c9002b1f774d04761323d723ee89.png)
 
 然后创建一个数据存储，并将文档从 Cloud Storage 导入到数据存储中：
 
-![](../Images/fb494f7b0897ae6aebf5ea2e54c71af5.png)
+![](img/fb494f7b0897ae6aebf5ea2e54c71af5.png)
 
 最后将数据存储接入 Dialogflow CX：
 
-![](../Images/d1accd902a2ca0296ef96a71fff49740.png)
+![](img/d1accd902a2ca0296ef96a71fff49740.png)
 
 然后我们就完成了！
 
 我们可以像这样测试聊天机器人：
 
-![](../Images/acc5dc21a230ba1d9c21fb32d076d0c5.png)
+![](img/acc5dc21a230ba1d9c21fb32d076d0c5.png)
 
 如果我们想通过一个漂亮的应用程序发布它，Google 提供了一个公开的 Git 仓库，可以用于一个聊天应用程序。通过一点编程知识，我们可以将 Dialogflow 聊天机器人链接插入到这个聊天应用程序中，并自定义界面，像这样：
 
-![](../Images/6b68e2456865c0acdd93a11b340e53a3.png)
+![](img/6b68e2456865c0acdd93a11b340e53a3.png)
 
 或者是这个：
 
-![](../Images/6c6a1713a41172745feeeb5b0d0a147d.png)
+![](img/6c6a1713a41172745feeeb5b0d0a147d.png)
 
 # 使用案例
 
@@ -92,7 +92,7 @@ Github 链接：[https://github.com/bianbianzhu/property-hunter](https://github.
 
 ChatGPT 给了我一个完美的选项 —
 
-> 要抓取的书籍 ([https://books.toscrape.com/](https://books.toscrape.com/))。这是一个专门为网页抓取练习设计的模拟书店。它提供了一个简单的结构，用于抓取书籍的详细信息，如标题、价格和评分。
+> 要抓取的书籍 ([`books.toscrape.com/`](https://books.toscrape.com/))。这是一个专门为网页抓取练习设计的模拟书店。它提供了一个简单的结构，用于抓取书籍的详细信息，如标题、价格和评分。
 
 在这个使用案例中，我假设我是这个 [Books to Scrape 网站](https://books.toscrape.com/) 的所有者，并基于该网站创建聊天机器人。
 
@@ -106,7 +106,7 @@ ChatGPT 给了我一个完美的选项 —
 
 Google 提供了一个 [免费套餐程序](https://cloud.google.com/free/docs/free-cloud-features#free-trial)，为新的 Google Cloud Platform (GCP) 用户提供为期 90 天的试用期，其中包括 $300 的免费云计费积分。
 
-按照[这里的教程](https://medium.com/@lizhuohang.selina/create-a-free-tier-google-cloud-account-9f4303516a28)设置免费的**Google Cloud账户**。
+按照[这里的教程](https://medium.com/@lizhuohang.selina/create-a-free-tier-google-cloud-account-9f4303516a28)设置免费的**Google Cloud 账户**。
 
 在你设置好 Google Cloud 账户并能够访问控制台后，**创建一个存储桶**（[分步指南在这里](https://cloud.google.com/storage/docs/creating-buckets#create_a_new_bucket)）供下一步使用。
 
@@ -126,17 +126,17 @@ Google 提供了一个 [免费套餐程序](https://cloud.google.com/free/docs/f
 
 从“文件”下拉菜单中选择“在 Drive 中保存副本”选项
 
-![](../Images/fd5f4b55322d2af0a812da6fa47b221b.png)
+![](img/fd5f4b55322d2af0a812da6fa47b221b.png)
 
 图片来自[Google Colab 笔记本](https://colab.research.google.com/gist/zeroasterisk/54e6caa81fc8dea0c629275f12463e5f/-flutter-vertex-ai-demo-crawl-a-website-and-save-the-html-files-to-google-cloud-bucket.ipynb?utm_source=events-with-google&utm_medium=et&utm_campaign=FY24-Q1-apac-EXP89-onlineevent-er-applied-ai-summit-2023-apac-mc&utm_content=apac_appaisummit_lp_2024_resources) 由 Alan Blount 提供
 
 然后，如果你进入[Google Drive](https://drive.google.com/drive/u/0/home)，你将能够看到你创建的笔记本。根据需要自由重命名它。
 
-![](../Images/4991dcbe134654bcd5e1f935c794a203.png)
+![](img/4991dcbe134654bcd5e1f935c794a203.png)
 
 **2.2 在你自己的笔记本中，定位以下内容并指定**
 
-![](../Images/78797a6185557f76579a72b238276df1.png)
+![](img/78797a6185557f76579a72b238276df1.png)
 
 图片来自 Google Colab 笔记本
 
@@ -148,31 +148,31 @@ Google 提供了一个 [免费套餐程序](https://cloud.google.com/free/docs/f
 
 这是我的版本：
 
-![](../Images/852466c2662e2ff8f9b098cf809280f4.png)
+![](img/852466c2662e2ff8f9b098cf809280f4.png)
 
 图片来自 Google Colab 笔记本
 
 **2.3 运行所有**
 
-![](../Images/a3ddf0b6c7e615dab7fd751a6cf39d12.png)
+![](img/a3ddf0b6c7e615dab7fd751a6cf39d12.png)
 
 图片来自 Google Colab 笔记本
 
 **2.4 当系统提示你授权 Google Colab 笔记本访问你的 Google 凭证时，点击“允许”->“继续”**
 
-![](../Images/e9f5054915992ec2a7fb33474c87e91a.png)
+![](img/e9f5054915992ec2a7fb33474c87e91a.png)
 
 来自 Google Colab 笔记本的图像
 
 然后，脚本应该会运行，并在底部显示抓取进度，就像这样：
 
-![](../Images/243dc44d573ffe7e5e813866425dae78.png)
+![](img/243dc44d573ffe7e5e813866425dae78.png)
 
 来自 Google Colab 笔记本的图像
 
 如果你查看 Google Cloud 存储桶，你会看到这些 HTML 文件被正确抓取并存储在你的存储桶中：
 
-![](../Images/1958b429f4b9a1dfe1b2cda49c66baa1.png)
+![](img/1958b429f4b9a1dfe1b2cda49c66baa1.png)
 
 来自 Google Cloud 控制台的图像
 
@@ -196,31 +196,31 @@ blob.upload_from_string(html_string, content_type='text/html')
 
 ## **步骤 3：创建聊天机器人以及其背后的数据存储（无需代码）**
 
-前往 Google Cloud 控制台 ([https://console.cloud.google.com/](https://console.cloud.google.com/)) 并输入“搜索与对话”作为服务：
+前往 Google Cloud 控制台 ([`console.cloud.google.com/`](https://console.cloud.google.com/)) 并输入“搜索与对话”作为服务：
 
-![](../Images/cdc2fa2c03fe7366995674b632080c99.png)
+![](img/cdc2fa2c03fe7366995674b632080c99.png)
 
 创建“新应用”：
 
-![](../Images/23fb1e16321fa04a0763e1412706040e.png)
+![](img/23fb1e16321fa04a0763e1412706040e.png)
 
 来自 Google Cloud 控制台的图像
 
 选择“聊天”：
 
-![](../Images/a9bdcf2828414350c09b17a39ffcfa3a.png)
+![](img/a9bdcf2828414350c09b17a39ffcfa3a.png)
 
 来自 Google Cloud 控制台的图像
 
 提供你的“公司名称”和“代理名称”。请注意，这里的**“代理名称”**将是**聊天机器人的名称**，你可能想为你的用户取个好名字。
 
-![](../Images/7de2b5b1cef6e653803f3fc9e071c515.png)
+![](img/7de2b5b1cef6e653803f3fc9e071c515.png)
 
 来自 Google Cloud 控制台的图像
 
 在此“数据”页面，选择“创建新数据存储”：
 
-![](../Images/4a7c4131fcc6fb7d1fd7022478b60752.png)
+![](img/4a7c4131fcc6fb7d1fd7022478b60752.png)
 
 来自 Google Cloud 控制台的图像
 
@@ -228,59 +228,59 @@ blob.upload_from_string(html_string, content_type='text/html')
 
 由于我已经将网站内容抓取到 Cloud Storage，我们可以在此选择“Cloud Storage”：
 
-![](../Images/26f6021d1fbe20f93b4e51f4c1fbf0f5.png)
+![](img/26f6021d1fbe20f93b4e51f4c1fbf0f5.png)
 
 来自 Google Cloud 控制台的图像
 
 指定 Cloud Storage 存储桶名称，并在下方选择“非结构化文档”：
 
-![](../Images/007f40ea225ea53e2f09824696bccb9f.png)
+![](img/007f40ea225ea53e2f09824696bccb9f.png)
 
 来自 Google Cloud 控制台的图像
 
 给你的数据存储命名，然后点击“创建”
 
-![](../Images/cb47148fdce7687e914f5e42e94ef37c.png)
+![](img/cb47148fdce7687e914f5e42e94ef37c.png)
 
 来自 Google Cloud 控制台的图像
 
 你会看到数据存储列出，然后点击“创建”
 
-![](../Images/263ca3f4e929d8484d3e6affe02f50e6.png)
+![](img/263ca3f4e929d8484d3e6affe02f50e6.png)
 
 来自 Google Cloud 控制台的图像
 
 你的数据存储将如下所示创建
 
-![](../Images/f3a674367d1e83604ab947a730fdffdb.png)
+![](img/f3a674367d1e83604ab947a730fdffdb.png)
 
 来自 Google Cloud 控制台的图像
 
 如果你点击进去，你会看到你的数据存储正在“处理数据”，并从我们之前指定的 Cloud Storage 存储桶中导入文档：
 
-![](../Images/5e4d7f67be0634518a6421f5aab1f710.png)
+![](img/5e4d7f67be0634518a6421f5aab1f710.png)
 
 来自 Google Cloud 控制台的图像
 
 如果我们点击“ACTIVITY”标签，我们可以看到导入正在进行中：
 
-![](../Images/f185ddec47ae70cf303ae4d317ff3bf6.png)
+![](img/f185ddec47ae70cf303ae4d317ff3bf6.png)
 
 来自 Google Cloud 控制台的图片
 
 导入过程可能需要几分钟到几小时，具体取决于你 Cloud Storage 存储桶中的文档数量。
 
-在我的情况下，我有超过1000个文件，几分钟内就完成了。
+在我的情况下，我有超过 1000 个文件，几分钟内就完成了。
 
 导入完成后，突出显示的状态已发生变化：
 
-![](../Images/d2d95cd21050dbab5288a33a8627fa5d.png)
+![](img/d2d95cd21050dbab5288a33a8627fa5d.png)
 
 来自 Google Cloud 控制台的图片
 
 如果你切换回“文档”标签，你将看到导入到数据存储中的文件列表：
 
-![](../Images/5e45c1fa781b8ae0197c8fd6f51382df.png)
+![](img/5e45c1fa781b8ae0197c8fd6f51382df.png)
 
 来自 Google Cloud 控制台的图片
 
@@ -288,41 +288,41 @@ blob.upload_from_string(html_string, content_type='text/html')
 
 ## 步骤 4：测试聊天机器人（无代码）
 
-在上面的第3步中，我们已经创建了一个聊天机器人应用程序以及其背后的数据存储。
+在上面的第 3 步中，我们已经创建了一个聊天机器人应用程序以及其背后的数据存储。
 
 点击顶部的“应用”：
 
-![](../Images/7450fedd30a09bc504966d67b4733843.png)
+![](img/7450fedd30a09bc504966d67b4733843.png)
 
 来自 Google Cloud 控制台的图片
 
-你将看到你在第3步中创建的聊天机器人：
+你将看到你在第 3 步中创建的聊天机器人：
 
-![](../Images/00b8eead5847c59b5fed9fb8485fb09d.png)
+![](img/00b8eead5847c59b5fed9fb8485fb09d.png)
 
 来自 Google Cloud 控制台的图片
 
 如果你点击聊天机器人名称，你将被引导到类似下面的 Dialogflow CX 页面：
 
-![](../Images/2a7e6e5f22342f2be8407396c90ad25b.png)
+![](img/2a7e6e5f22342f2be8407396c90ad25b.png)
 
 来自 Google Cloud 控制台的图片
 
 要测试聊天机器人，选择右上角的“测试代理”：
 
-![](../Images/2caf01d59ef23194b0031248b5cfe325.png)
+![](img/2caf01d59ef23194b0031248b5cfe325.png)
 
 来自 Google Cloud 控制台的图片
 
 然后对话框会弹出：
 
-![](../Images/0bfcf164f96e4f7c25ffec31b04d1d39.png)
+![](img/0bfcf164f96e4f7c25ffec31b04d1d39.png)
 
 来自 Google Cloud 控制台的图片
 
 你可以通过说“hi”并开始向聊天机器人提问来启动对话：
 
-![](../Images/49719ee09a923fcf2fac33803a903ec1.png)
+![](img/49719ee09a923fcf2fac33803a903ec1.png)
 
 来自 Google Cloud 控制台的图片
 
@@ -334,7 +334,7 @@ blob.upload_from_string(html_string, content_type='text/html')
 
 进入左侧面板，选择“管理” -> “集成” -> “Dialogflow Messenger”
 
-![](../Images/0773340e4495d08c40822981036748b2.png)
+![](img/0773340e4495d08c40822981036748b2.png)
 
 来自 Google Cloud 控制台的图片
 
@@ -342,13 +342,13 @@ blob.upload_from_string(html_string, content_type='text/html')
 
 为了演示，我选择了“未认证的 API”作为 API 和“弹出式”作为 UI 风格：
 
-![](../Images/a29403b6a78b67cac4c9de6dea005d10.png)
+![](img/a29403b6a78b67cac4c9de6dea005d10.png)
 
 来自 Google Cloud 控制台的图片
 
-选择“完成”后，下一页会生成如下的HTML代码片段：
+选择“完成”后，下一页会生成如下的 HTML 代码片段：
 
-![](../Images/8635dec907fe99d3b43227079a7cf16d.png)
+![](img/8635dec907fe99d3b43227079a7cf16d.png)
 
 来自 Google Cloud 控制台的图片
 
@@ -356,7 +356,7 @@ blob.upload_from_string(html_string, content_type='text/html')
 
 为了演示，我将这个 HTML 代码片段复制并粘贴到 [JSFiddle](https://jsfiddle.net/) 中运行，然后我看到我的小聊天机器人在右下角正常工作！
 
-![](../Images/65bb7fe604bec0cf0d4394f324f190b8.png)
+![](img/65bb7fe604bec0cf0d4394f324f190b8.png)
 
 来自 [JSFiddle](https://jsfiddle.net/) 的图片
 
@@ -368,15 +368,15 @@ blob.upload_from_string(html_string, content_type='text/html')
 
 您需要将 `project-id`、`agent-id` 和 `chat-title` 更改为您自己的。
 
-![](../Images/4b3fe26c95da711768cf3af30a354c3e.png)
+![](img/4b3fe26c95da711768cf3af30a354c3e.png)
 
-该图片来自 Git 仓库 [https://github.com/GoogleCloudPlatform/generative-ai/tree/main/conversation/chat-ap](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/conversation/chat-app)
+该图片来自 Git 仓库 [`github.com/GoogleCloudPlatform/generative-ai/tree/main/conversation/chat-ap`](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/conversation/chat-app)
 
 一旦您运行/部署该应用程序，您将获得如下所示的 Web UI：
 
-![](../Images/c6c931e4ab087b0f9dec6bb65bf71225.png)
+![](img/c6c931e4ab087b0f9dec6bb65bf71225.png)
 
-该图片来自 Git 仓库 [https://github.com/GoogleCloudPlatform/generative-ai/tree/main/conversation/chat-app](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/conversation/chat-app)
+该图片来自 Git 仓库 [`github.com/GoogleCloudPlatform/generative-ai/tree/main/conversation/chat-app`](https://github.com/GoogleCloudPlatform/generative-ai/tree/main/conversation/chat-app)
 
 当然，您可以根据需要更改 UI 的外观。
 
@@ -386,13 +386,13 @@ blob.upload_from_string(html_string, content_type='text/html')
 
 回想我们在开头提到的解决方案设计。看起来有点像魔法，因为您只需要将您的私人知识提供给 Google Cloud Storage 存储桶，就能轻松获得自己的 LLM 驱动的聊天机器人。
 
-![](../Images/d1accd902a2ca0296ef96a71fff49740.png)
+![](img/d1accd902a2ca0296ef96a71fff49740.png)
 
 这一切的实现得益于 Google 在幕后做了大量的集成工作，通过将 **Vertex AI 平台** 与聊天机器人代理服务 **Dialogflow CX** 集成，并推出了一个新的抽象层，称为 **Vertex AI 对话**（前身为 Gen 应用构建器）。这个新的抽象层还支持 **搜索** 和 **推荐**，该服务的全名为“**Vertex AI 搜索与对话**”。
 
 正如我们所见，这种新的“Vertex AI 搜索与对话”的抽象位于 Vertex AI 之上，后者协调了多个基础模型，并通过用户提供的最新真实世界信息进行“增强”，使其能够将这些信息纳入其回应的上下文。
 
-![](../Images/98e515df9473082c7f1482959086d777.png)
+![](img/98e515df9473082c7f1482959086d777.png)
 
 该图片来自 Google Cloud CEO 的演讲幻灯片 [生成式 AI：开发者的下一个前沿](https://youtu.be/L-UKYBPJTWE?si=zJR9gJs7YTH_JiJ1)
 
@@ -402,9 +402,9 @@ blob.upload_from_string(html_string, content_type='text/html')
 
 1.  人们在探索生成式 AI 解决方案，但还未找到合适的应用场景
 
-想象你是一个使用Dialogflow CX的**传统聊天机器人构建者**，你在创建页面、意图和路由，将客户意图路由到相应的页面。基本上，你在定义“如果客户说这个，那么我用这个回应”，这有点像硬编码。现在，谷歌将Vertex AI接入进来，它可以利用LLM模型（例如text-bison、gemini）生成智能的代理回应，并控制对话流程。这可以显著减少代理设计时间，并提高代理质量。
+想象你是一个使用 Dialogflow CX 的**传统聊天机器人构建者**，你在创建页面、意图和路由，将客户意图路由到相应的页面。基本上，你在定义“如果客户说这个，那么我用这个回应”，这有点像硬编码。现在，谷歌将 Vertex AI 接入进来，它可以利用 LLM 模型（例如 text-bison、gemini）生成智能的代理回应，并控制对话流程。这可以显著减少代理设计时间，并提高代理质量。
 
-另一方面，想象你在**探索LLM和生成式AI的强大功能，但不确定如何使用它**。这个**Vertex AI 对话**功能可以让你轻松构建并快速启动自己的聊天机器人应用，并使其适用于实际用例。这可以显著缩短LLM和生成AI解决方案的上市时间。
+另一方面，想象你在**探索 LLM 和生成式 AI 的强大功能，但不确定如何使用它**。这个**Vertex AI 对话**功能可以让你轻松构建并快速启动自己的聊天机器人应用，并使其适用于实际用例。这可以显著缩短 LLM 和生成 AI 解决方案的上市时间。
 
 # 一些观察
 
@@ -412,7 +412,7 @@ blob.upload_from_string(html_string, content_type='text/html')
 
 我们的直觉是，这是谷歌通过“整合”几个现有工具推出的一款新产品，并且仍在努力使其变得更好。集成如何在幕后发生，以及开发者如何理解和配置它，仍然不够清晰。
 
-我很快就得到了我们的聊天机器人，但一旦开始查看如何微调它，我花了相当多的时间来弄明白Dialogflow CX是如何工作的，什么是“生成器”，以及它是如何工作的。此刻，我仍然困惑为什么这个聊天机器人在我甚至没有配置任何[谷歌文档中描述的“生成器”](https://cloud.google.com/dialogflow/cx/docs/concept/generative/generators)的情况下运作得如此出色，是否/如何通过使用“生成器”能使它变得更好。
+我很快就得到了我们的聊天机器人，但一旦开始查看如何微调它，我花了相当多的时间来弄明白 Dialogflow CX 是如何工作的，什么是“生成器”，以及它是如何工作的。此刻，我仍然困惑为什么这个聊天机器人在我甚至没有配置任何[谷歌文档中描述的“生成器”](https://cloud.google.com/dialogflow/cx/docs/concept/generative/generators)的情况下运作得如此出色，是否/如何通过使用“生成器”能使它变得更好。
 
 开发过程中还有一些其他观察：
 
@@ -428,11 +428,11 @@ blob.upload_from_string(html_string, content_type='text/html')
 
 +   支撑聊天机器人的数据存储最适合处理非结构化数据。对于结构化数据，它支持连接到 CSV 格式的结构化数据，但必须采用 Google 文档中提到的“问题”和“答案”格式：
 
-![](../Images/5afdef6df1cace674c95147b7bfb630f.png)
+![](img/5afdef6df1cace674c95147b7bfb630f.png)
 
 图片来自 Google Cloud 控制台
 
-![](../Images/ba0455873dd78c1f5dfeaec6cb327dfd.png)
+![](img/ba0455873dd78c1f5dfeaec6cb327dfd.png)
 
 图片来自 [Google Cloud Dialogflow 指南](https://cloud.google.com/dialogflow/vertex/docs/concept/data-store#structured)
 

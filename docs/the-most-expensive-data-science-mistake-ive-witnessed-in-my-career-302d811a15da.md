@@ -1,16 +1,16 @@
 # 我在职业生涯中见证的最昂贵的数据科学错误
 
-> 原文：[https://towardsdatascience.com/the-most-expensive-data-science-mistake-ive-witnessed-in-my-career-302d811a15da?source=collection_archive---------0-----------------------#2024-11-28](https://towardsdatascience.com/the-most-expensive-data-science-mistake-ive-witnessed-in-my-career-302d811a15da?source=collection_archive---------0-----------------------#2024-11-28)
+> 原文：[`towardsdatascience.com/the-most-expensive-data-science-mistake-ive-witnessed-in-my-career-302d811a15da?source=collection_archive---------0-----------------------#2024-11-28`](https://towardsdatascience.com/the-most-expensive-data-science-mistake-ive-witnessed-in-my-career-302d811a15da?source=collection_archive---------0-----------------------#2024-11-28)
 
 ## 为什么机器学习的真正成功超越了优化单一指标
 
-[](https://ds-claudia.medium.com/?source=post_page---byline--302d811a15da--------------------------------)[![Claudia Ng](../Images/81d7927943f38f6303690cfd5676c8fd.png)](https://ds-claudia.medium.com/?source=post_page---byline--302d811a15da--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--302d811a15da--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--302d811a15da--------------------------------) [Claudia Ng](https://ds-claudia.medium.com/?source=post_page---byline--302d811a15da--------------------------------)
+[](https://ds-claudia.medium.com/?source=post_page---byline--302d811a15da--------------------------------)![Claudia Ng](https://ds-claudia.medium.com/?source=post_page---byline--302d811a15da--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--302d811a15da--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--302d811a15da--------------------------------) [Claudia Ng](https://ds-claudia.medium.com/?source=post_page---byline--302d811a15da--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--302d811a15da--------------------------------) ·6分钟阅读·2024年11月28日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--302d811a15da--------------------------------) ·6 分钟阅读·2024 年 11 月 28 日
 
 --
 
-![](../Images/3d9918e5a88081ecf638af26c80f0952.png)
+![](img/3d9918e5a88081ecf638af26c80f0952.png)
 
 图片由[Clker-Free-Vector-Images](https://pixabay.com/users/clker-free-vector-images-3736/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=40671)提供，来源于[Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=40671)
 

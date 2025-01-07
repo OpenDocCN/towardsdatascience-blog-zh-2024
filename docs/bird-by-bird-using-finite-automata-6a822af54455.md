@@ -1,16 +1,16 @@
 # 逐步实现：使用有限自动机
 
-> 原文：[https://towardsdatascience.com/bird-by-bird-using-finite-automata-6a822af54455?source=collection_archive---------8-----------------------#2024-05-14](https://towardsdatascience.com/bird-by-bird-using-finite-automata-6a822af54455?source=collection_archive---------8-----------------------#2024-05-14)
+> 原文：[`towardsdatascience.com/bird-by-bird-using-finite-automata-6a822af54455?source=collection_archive---------8-----------------------#2024-05-14`](https://towardsdatascience.com/bird-by-bird-using-finite-automata-6a822af54455?source=collection_archive---------8-----------------------#2024-05-14)
 
 ## 使用 Python 对物体检测的现实 AI 系统进行有限状态机建模与仿真
 
-[](https://slipnitskaya.medium.com/?source=post_page---byline--6a822af54455--------------------------------)[![Sofya Lipnitskaya](../Images/9ea0dd0af32232eb4c8db0cb96f66449.png)](https://slipnitskaya.medium.com/?source=post_page---byline--6a822af54455--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a822af54455--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6a822af54455--------------------------------) [Sofya Lipnitskaya](https://slipnitskaya.medium.com/?source=post_page---byline--6a822af54455--------------------------------)
+[](https://slipnitskaya.medium.com/?source=post_page---byline--6a822af54455--------------------------------)![Sofya Lipnitskaya](https://slipnitskaya.medium.com/?source=post_page---byline--6a822af54455--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a822af54455--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a822af54455--------------------------------) [Sofya Lipnitskaya](https://slipnitskaya.medium.com/?source=post_page---byline--6a822af54455--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a822af54455--------------------------------) ·阅读时间 17 分钟·2024年5月14日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a822af54455--------------------------------) ·阅读时间 17 分钟·2024 年 5 月 14 日
 
 --
 
-![](../Images/c81c58a8ab45f4b63344efe5ae0663f5.png)
+![](img/c81c58a8ab45f4b63344efe5ae0663f5.png)
 
 图片由作者提供
 
@@ -20,9 +20,9 @@
 
 为什么我们需要仿真？通过采样并获得平均值，我们到底能获得什么优势？但实际上，它从来不仅仅是这些。与我们在计算机科学课程中遇到的简单任务相比，现实生活通常要复杂得多。有时我们无法找到解析解，无法找到总体参数。有时我们必须建立一个模型，以反映系统动态的具体情况，我们必须运行仿真来研究潜在过程，从而更好地理解现实世界的情况。仿真建模为各行各业和应用中的系统设计与工程提供了无价的工具。它有助于分析系统性能，识别潜在的瓶颈和低效问题，从而允许进行迭代改进和优化。
 
-说到我们这个非常特别的挑战，在这里，我们将创建一个FSM仿真，模拟一个AI辅助的草坪监控和清洁安全系统的行为。特别地，我们将处理模拟过程，通过物体检测和喷水子系统智能管理鸟类的进出。在[上一篇文章](/bird-by-bird-using-finite-automata-9d50b36bcbd3)中，你已经了解了有限状态机（FSM）的理论和设计原则，旨在解决臭名昭著的鸡与火鸡（CaT）问题，从而创建了一个在高层次抽象下描述复杂草坪场景的模型。通过本文，我们将进一步探讨基于FSM的仿真在利用实际系统操作方面的实际应用。此外，我们还将用Python实现FSM仿真，以便后续通过优化和XAI技术对其进行改进。在本教程结束时，你将拥有一个完全功能的FSM解决方案，并对通过仿真建模解决工程问题有更深入的理解。
+说到我们这个非常特别的挑战，在这里，我们将创建一个 FSM 仿真，模拟一个 AI 辅助的草坪监控和清洁安全系统的行为。特别地，我们将处理模拟过程，通过物体检测和喷水子系统智能管理鸟类的进出。在上一篇文章中，你已经了解了有限状态机（FSM）的理论和设计原则，旨在解决臭名昭著的鸡与火鸡（CaT）问题，从而创建了一个在高层次抽象下描述复杂草坪场景的模型。通过本文，我们将进一步探讨基于 FSM 的仿真在利用实际系统操作方面的实际应用。此外，我们还将用 Python 实现 FSM 仿真，以便后续通过优化和 XAI 技术对其进行改进。在本教程结束时，你将拥有一个完全功能的 FSM 解决方案，并对通过仿真建模解决工程问题有更深入的理解。
 
-***免责声明：*** *本作品是“*[*鸟瞰深度学习*](/bird-by-bird-using-deep-learning-4c0fa81365d7)*”系列的一部分，专注于使用有限自动机进行计算机视觉应用的实际系统建模与仿真。所有的参与者、状态、事件和输出仅为FSM设计过程中的教育性产物。与实际人物、鸟类或真实事件的任何相似之处纯属巧合。*
+***免责声明：*** *本作品是“**鸟瞰深度学习**”系列的一部分，专注于使用有限自动机进行计算机视觉应用的实际系统建模与仿真。所有的参与者、状态、事件和输出仅为 FSM 设计过程中的教育性产物。与实际人物、鸟类或真实事件的任何相似之处纯属巧合。*
 
 # 用有限自动机进行系统建模
 
@@ -36,7 +36,7 @@
 
 ## 为什么不用 if-else 语句
 
-使用 if-else 条件分支进行系统建模是一种幼稚的解决方案，最终会导致复杂性和易出错性增加，从而使得进一步开发和维护变得更加困难。下面你将看到如何（不）描述一个简单的草坪上的鸡系统，考虑我们之前讨论过的有限状态机的示例（请参见[图 1](/bird-by-bird-using-finite-automata-9d50b36bcbd3)，该图展示了简化的 CaT 系统场景下的 FSM 状态转换图）。
+使用 if-else 条件分支进行系统建模是一种幼稚的解决方案，最终会导致复杂性和易出错性增加，从而使得进一步开发和维护变得更加困难。下面你将看到如何（不）描述一个简单的草坪上的鸡系统，考虑我们之前讨论过的有限状态机的示例（请参见图 1，该图展示了简化的 CaT 系统场景下的 FSM 状态转换图）。
 
 ```py
 # import functions with input events and actions
@@ -108,7 +108,7 @@ while current_state != END:
 
 *“好了，孩子，我们现在要做一只鸡。” — 未知工程师。*
 
-## 从FSM到底层
+## 从 FSM 到底层
 
 在本节中，我们深入探讨了有限状态机实现的设计选择，阐明了简化模拟过程和最大化其在现实系统优化中效用的策略。为了构建模拟，我们首先需要基于对基础过程的假设创建一个系统模型。一种方法是从封装个体状态和过渡的功能开始。然后，我们可以将它们组合起来，通过复制真实系统行为来创建一系列事件。我们还希望跟踪每次模拟运行的输出统计数据，以提供其性能的概念。我们想要做的是观察系统如何随着时间的推移在条件变化下演变（例如，基于概率的鸟类孵化和破坏草坪的随机过程）。为此，让我们首先定义和安排我们稍后将要实现的构建模块。以下是计划：
 
@@ -124,7 +124,7 @@ while current_state != END:
 
 ## 让我们谈谈抽象
 
-首先，我们需要为我们的模拟创建一个类层次结构，从表示状态的基类到更具领域特定的院子模拟子类。我们将使用`@abc.abstractmethod`和`@property`装饰器来分别标记抽象方法和属性。在AbstractSimulation类中，我们将定义`step()`和`run()`抽象方法，以确保子类实现它们。
+首先，我们需要为我们的模拟创建一个类层次结构，从表示状态的基类到更具领域特定的院子模拟子类。我们将使用`@abc.abstractmethod`和`@property`装饰器来分别标记抽象方法和属性。在 AbstractSimulation 类中，我们将定义`step()`和`run()`抽象方法，以确保子类实现它们。
 
 ```py
 class AbstractSimulation(abc.ABC):
@@ -137,7 +137,7 @@ class AbstractSimulation(abc.ABC):
        pass
 ```
 
-对AbstractState也有类似的应用，它定义了一个抽象方法`transit()`，由子类实现：
+对 AbstractState 也有类似的应用，它定义了一个抽象方法`transit()`，由子类实现：
 
 ```py
 class AbstractState(abc.ABC):
@@ -153,24 +153,24 @@ class AbstractState(abc.ABC):
        pass
 ```
 
-对于我们的有限状态机（FSM），系统模拟的更具体方面将封装在继承自AbstractSimulation的AbstractYardSimulation类中。如其名称所示，AbstractYardSimulation更精确地概述了模拟的领域，因此我们可以在CaT问题的背景下定义一些特定于院子模拟的额外方法和属性，包括`simulate_intrusion()`、`simulate_detection()`、`simulate_sprinkling()`、`simulate_spoiling()`。
+对于我们的有限状态机（FSM），系统模拟的更具体方面将封装在继承自 AbstractSimulation 的 AbstractYardSimulation 类中。如其名称所示，AbstractYardSimulation 更精确地概述了模拟的领域，因此我们可以在 CaT 问题的背景下定义一些特定于院子模拟的额外方法和属性，包括`simulate_intrusion()`、`simulate_detection()`、`simulate_sprinkling()`、`simulate_spoiling()`。
 
-我们还将创建一个中间抽象类AbstractYardState，以确保类层次结构中的类型一致性：
+我们还将创建一个中间抽象类 AbstractYardState，以确保类层次结构中的类型一致性：
 
 ```py
 class AbstractYardState(AbstractState, abc.ABC):
    state_machine: AbstractYardSimulation
 ```
 
-现在，让我们看一下反映名为Target及其后代的继承树。
+现在，让我们看一下反映名为 Target 及其后代的继承树。
 
 ## 鸡和火鸡的创建
 
-Target行为是我们模拟的基石，因为它影响着所有方面，助力构建有效的模型以及后续的优化。图1展示了我们将要实现的目标类的类图。
+Target 行为是我们模拟的基石，因为它影响着所有方面，助力构建有效的模型以及后续的优化。图 1 展示了我们将要实现的目标类的类图。
 
-![](../Images/84fac7433b526cba359328705f488ccb.png)
+![](img/84fac7433b526cba359328705f488ccb.png)
 
-图1\. 目标类的类层次结构（图示由作者提供）
+图 1\. 目标类的类层次结构（图示由作者提供）
 
 对于我们的系统，重要的是要注意目标出现的频率，它可能会对草坪造成一定的损害，而且它还具有健康属性。后者与目标的大小有关，大小可能不同，因此水枪可以瞄准较小或较大的目标（这反过来会影响水的消耗）。因此，大目标具有较多的生命值，小水流无法有效地处理它。
 
@@ -196,7 +196,7 @@ class AbstractTarget(int, abc.ABC):
 
 请注意，在我们的实现中，我们希望目标对象是有效的整数，这将在模拟中用于建模随机性。
 
-接下来，我们创建子类来实现不同类型的目标。以下是类Chicken的代码，我们在其中重写了从父类继承的抽象方法：
+接下来，我们创建子类来实现不同类型的目标。以下是类 Chicken 的代码，我们在其中重写了从父类继承的抽象方法：
 
 ```py
 class Chicken(AbstractTarget):
@@ -213,17 +213,17 @@ class Chicken(AbstractTarget):
        return 9
 ```
 
-我们对剩余的火鸡和空目标类执行类似的过程。对于火鸡，生命值和损害参数分别设置为7和17（让我们看看如何用我们的AI辅助系统处理这些笨重的家伙）。空目标是一个特殊类型的目标，表示草坪上没有任何鸟类。虽然我们不能给它的生命值和损害属性赋予其他值，除了0，但草坪上无鸟的无条件（即不是由工程师引起的）状态有非零的概率，这个概率反映在频率值为9的设定中。
+我们对剩余的火鸡和空目标类执行类似的过程。对于火鸡，生命值和损害参数分别设置为 7 和 17（让我们看看如何用我们的 AI 辅助系统处理这些笨重的家伙）。空目标是一个特殊类型的目标，表示草坪上没有任何鸟类。虽然我们不能给它的生命值和损害属性赋予其他值，除了 0，但草坪上无鸟的无条件（即不是由工程师引起的）状态有非零的概率，这个概率反映在频率值为 9 的设定中。
 
 ## 从入侵到敌人被轻松发现
 
-现在想象一只鸟在其自然栖息地中的样子。它可以表现出各种各样的敌对行为和展示。在面对挑战时，动物可能会根据具体情况采用一系列适应性策略，包括战斗、逃跑反应以及其他中间行为。接续上一篇关于FSM设计与建模的文章，你可能还记得我们已经描述了CaT系统的关键组成部分，我们将用它来进行实际实现（参见[表2](/bird-by-bird-using-finite-automata-9d50b36bcbd3)，其中列出了描述触发状态变化的FSM输入事件）。
+现在想象一只鸟在其自然栖息地中的样子。它可以表现出各种各样的敌对行为和展示。在面对挑战时，动物可能会根据具体情况采用一系列适应性策略，包括战斗、逃跑反应以及其他中间行为。接续上一篇关于 FSM 设计与建模的文章，你可能还记得我们已经描述了 CaT 系统的关键组成部分，我们将用它来进行实际实现（参见表 2，其中列出了描述触发状态变化的 FSM 输入事件）。
 
-在FSM模拟领域，一只鸟可以被看作是一个独立的触发一系列事件的行为体：侵犯院子、破坏草坪等等。特别地，在乐观的场景下（鸟类检测和识别成功，防御行为）：鸟类在可能被基于CV的鸟类检测器识别之前侵入院子，以便继续进行喷水模块，这些配置依赖于上游预测的入侵者类别。通过这种方式，鸟类可以成功地被赶走（击中）或未能被赶走（未击中）。在这个场景下（鸟类检测成功、类别预测、防御行为），最终，鸟类逃离了草坪。任务完成。哒哒！
+在 FSM 模拟领域，一只鸟可以被看作是一个独立的触发一系列事件的行为体：侵犯院子、破坏草坪等等。特别地，在乐观的场景下（鸟类检测和识别成功，防御行为）：鸟类在可能被基于 CV 的鸟类检测器识别之前侵入院子，以便继续进行喷水模块，这些配置依赖于上游预测的入侵者类别。通过这种方式，鸟类可以成功地被赶走（击中）或未能被赶走（未击中）。在这个场景下（鸟类检测成功、类别预测、防御行为），最终，鸟类逃离了草坪。任务完成。哒哒！
 
-你可能还记得，有限状态机（FSM）可以通过状态转移图来图形化表示，这一点我们在之前的教程中已经涉及过（参见[表3](/bird-by-bird-using-finite-automata-9d50b36bcbd3)，其中展示了FSM状态转移表及下一阶段的转移逻辑）。考虑到这一点，接下来我们将创建AbstractYardState的子类，并重写`transit()`方法，根据当前状态和事件来指定状态之间的转移。
+你可能还记得，有限状态机（FSM）可以通过状态转移图来图形化表示，这一点我们在之前的教程中已经涉及过（参见表 3，其中展示了 FSM 状态转移表及下一阶段的转移逻辑）。考虑到这一点，接下来我们将创建 AbstractYardState 的子类，并重写`transit()`方法，根据当前状态和事件来指定状态之间的转移。
 
-Start是初始状态，状态机从该状态过渡到Spawn。
+Start 是初始状态，状态机从该状态过渡到 Spawn。
 
 ```py
 class Start(AbstractYardState):
@@ -231,7 +231,7 @@ class Start(AbstractYardState):
        return Spawn(self.state_machine)
 ```
 
-从Spawn状态，系统可以过渡到以下状态之一：Intrusion、Empty或End。
+从 Spawn 状态，系统可以过渡到以下状态之一：Intrusion、Empty 或 End。
 
 ```py
 class Spawn(AbstractYardState):
@@ -251,9 +251,9 @@ class Spawn(AbstractYardState):
        return next_state
 ```
 
-如果我们达到模拟时间步数的上限，状态机会过渡到End状态。如果有鸟侵入或者已经在草地上，状态机会切换到Intrusion状态，否则下一状态是Empty。
+如果我们达到模拟时间步数的上限，状态机会过渡到 End 状态。如果有鸟侵入或者已经在草地上，状态机会切换到 Intrusion 状态，否则下一状态是 Empty。
 
-Intrusion和Empty状态都跟随一个检测尝试，因此它们共享转移逻辑。因此，我们可以通过创建一个父类——IntrusionStatus来封装这一逻辑，从而减少代码重复，同时使得子类能够在类型层面区分模拟中的实际状态Intrusion和Empty。
+Intrusion 和 Empty 状态都跟随一个检测尝试，因此它们共享转移逻辑。因此，我们可以通过创建一个父类——IntrusionStatus 来封装这一逻辑，从而减少代码重复，同时使得子类能够在类型层面区分模拟中的实际状态 Intrusion 和 Empty。
 
 ```py
 class IntrusionStatus(AbstractYardState):
@@ -272,7 +272,7 @@ class IntrusionStatus(AbstractYardState):
        return next_state
 ```
 
-我们对Detected和NotDetected类采取类似的方法，那个超类DetectionStatus负责目标预测。
+我们对 Detected 和 NotDetected 类采取类似的方法，那个超类 DetectionStatus 负责目标预测。
 
 ```py
 class DetectionStatus(AbstractYardState):
@@ -284,7 +284,7 @@ class DetectionStatus(AbstractYardState):
        return self
 ```
 
-然而，与Intrusion/Empty组合状态不同，NotDetected类引入了额外的转移逻辑，用以指引模拟流程，特别是关于草地污染/损坏的情况。
+然而，与 Intrusion/Empty 组合状态不同，NotDetected 类引入了额外的转移逻辑，用以指引模拟流程，特别是关于草地污染/损坏的情况。
 
 ```py
 class Detected(DetectionStatus):
@@ -306,7 +306,7 @@ class NotDetected(DetectionStatus):
        return next_state
 ```
 
-Detected类会无条件地过渡到Sprinkling状态。对于其对立面，有两个可能的下一个状态，取决于草地上是否真的有鸟。如果鸟不在，那显然不会有鸟屎，而如果有鸟屎的可能性，则可能需要进行草地清理（或者不需要，CaT世界充满了随机性）。
+Detected 类会无条件地过渡到 Sprinkling 状态。对于其对立面，有两个可能的下一个状态，取决于草地上是否真的有鸟。如果鸟不在，那显然不会有鸟屎，而如果有鸟屎的可能性，则可能需要进行草地清理（或者不需要，CaT 世界充满了随机性）。
 
 回到喷洒状态，它有两个可能的结果（命中或未命中），取决于系统是否成功将鸟驱赶走（至少这次是如此）。
 
@@ -324,7 +324,7 @@ class Sprinkling(AbstractYardState):
        return next_state
 ```
 
-注：Hit状态没有专门的转移逻辑，它的存在是为了遵循关于草地上翼助攻击领域的语义。忽略它会导致Shooting状态直接过渡到Leaving。
+注：Hit 状态没有专门的转移逻辑，它的存在是为了遵循关于草地上翼助攻击领域的语义。忽略它会导致 Shooting 状态直接过渡到 Leaving。
 
 ```py
 class Hit(AbstractYardState):
@@ -332,7 +332,7 @@ class Hit(AbstractYardState):
        return Leaving(self.state_machine)
 ```
 
-如果水喷洒器被激活且草地上没有鸟（检测器错误预测了鸟的存在），状态机将返回到Spawn状态。如果鸟实际上在场且我们没有检测到，草地上可能会有鸟屎。
+如果水喷洒器被激活且草地上没有鸟（检测器错误预测了鸟的存在），状态机将返回到 Spawn 状态。如果鸟实际上在场且我们没有检测到，草地上可能会有鸟屎。
 
 ```py
 class Miss(AbstractYardState):
@@ -346,7 +346,7 @@ class Miss(AbstractYardState):
        return next_state
 ```
 
-最终，攻击尝试可能会对草地造成实际的损害，正如Attacking类及其子类所体现的那样：
+最终，攻击尝试可能会对草地造成实际的损害，正如 Attacking 类及其子类所体现的那样：
 
 ```py
 class Attacking(AbstractYardState):
@@ -370,7 +370,7 @@ class NotAttacked(AfterAttacking):
        return super().transit()
 ```
 
-我们可以采用与Intrusion状态相同的思路，将共享的转移逻辑封装到一个名为AfterAttacking的超类中，从而得到Leaving或返回Spawn状态：
+我们可以采用与 Intrusion 状态相同的思路，将共享的转移逻辑封装到一个名为 AfterAttacking 的超类中，从而得到 Leaving 或返回 Spawn 状态：
 
 ```py
 class AfterAttacking(AbstractYardState):
@@ -384,7 +384,7 @@ class AfterAttacking(AbstractYardState):
        return next_state
 ```
 
-接下来会发生什么呢？当模拟达到步数限制时，它会卡在End状态：
+接下来会发生什么呢？当模拟达到步数限制时，它会卡在 End 状态：
 
 ```py
 class End(AbstractYardState):
@@ -394,7 +394,7 @@ class End(AbstractYardState):
 
 在实际操作中，我们不希望程序无休止地执行。因此，一旦模拟检测到过渡到结束状态，它将关闭。
 
-# 模拟CaT系统
+# 模拟 CaT 系统
 
 *“在鸟类探测的微妙世界中，请记住：当一个模型说“未检测到鸡”时，可能有一只狡猾的鸟正悄悄地站在草坪上，未被发现。这种差异提醒我们需要完善和增强我们的人工智能系统。” — 无名工程师。*
 
@@ -554,13 +554,13 @@ detector_matrix_perfect = np.eye(len(Target))
 
 然后，我们可以聚合并比较不同实验设置下与目标喷水和草坪清理的总水使用量相关的输出统计数据：
 
-![](../Images/358c0e78bfce985a406f93e3b1888da8.png)
+![](img/358c0e78bfce985a406f93e3b1888da8.png)
 
 图 2\. FSM 模拟输出统计数据，涵盖了鸟类检测子系统的边缘情况（图片由作者提供）
 
-实验结果的总结对比显示，拥有一个更好的计算机视觉（CV）模型可以使得水使用量减少37.8%（70.9与44.1），相较于未经过训练的基线检测器，在给定输入参数和仿真条件下对鸟类的检测——这一概念既直观又在预期之中。但“更好”的定量意义是什么呢？是否值得费力地精细调整模型？数值结果展示了改进模型的价值，激励了进一步优化的努力。未来，我们将把这些统计结果作为全局优化的目标，以提高鸟类检测子系统的效率，并减少系统操作和维护中的水消耗，从而让工程师稍微高兴一点。
+实验结果的总结对比显示，拥有一个更好的计算机视觉（CV）模型可以使得水使用量减少 37.8%（70.9 与 44.1），相较于未经过训练的基线检测器，在给定输入参数和仿真条件下对鸟类的检测——这一概念既直观又在预期之中。但“更好”的定量意义是什么呢？是否值得费力地精细调整模型？数值结果展示了改进模型的价值，激励了进一步优化的努力。未来，我们将把这些统计结果作为全局优化的目标，以提高鸟类检测子系统的效率，并减少系统操作和维护中的水消耗，从而让工程师稍微高兴一点。
 
-本教程所使用的源代码可以在此GitHub仓库中找到：[https://github.com/slipnitskaya/computer-vision-birds](https://github.com/slipnitskaya/computer-vision-birds)。
+本教程所使用的源代码可以在此 GitHub 仓库中找到：[`github.com/slipnitskaya/computer-vision-birds`](https://github.com/slipnitskaya/computer-vision-birds)。
 
 # **结论**
 
@@ -568,20 +568,20 @@ detector_matrix_perfect = np.eye(len(Target))
 
 +   如何设计一个模型来近似一个复杂系统，从而改进其在鸟类检测和水洒布方面的操作。
 
-+   如何创建现实世界过程的仿真，以便在不同条件下理解CaT系统的行为。
++   如何创建现实世界过程的仿真，以便在不同条件下理解 CaT 系统的行为。
 
-+   如何在Python中实现基于FSM的解决方案，使得系统能够追踪仿真过程中的相关统计数据。
++   如何在 Python 中实现基于 FSM 的解决方案，使得系统能够追踪仿真过程中的相关统计数据。
 
 # 接下来做什么
 
-聚焦于提高资源效率，在后续文章中，你将发现如何通过应用蒙特卡洛方法和可解释AI（XAI）技术来解决水成本降低的非解析优化问题，从而增强基于计算机视觉的鸟类检测子系统，推动我们的仿真AI辅助草坪安防系统的发展。
+聚焦于提高资源效率，在后续文章中，你将发现如何通过应用蒙特卡洛方法和可解释 AI（XAI）技术来解决水成本降低的非解析优化问题，从而增强基于计算机视觉的鸟类检测子系统，推动我们的仿真 AI 辅助草坪安防系统的发展。
 
 在视觉项目的仿真建模和优化中，还有哪些重要的概念？请访问[Bird by Bird Tech](https://towardsdatascience.com/tagged/bird-by-bird-tech)了解更多。
 
 # 参考文献
 
-1.  Forsyth, David. 《计算机科学中的概率与统计》。第13卷。Cham: Springer International Publishing, 2018。
+1.  Forsyth, David. 《计算机科学中的概率与统计》。第 13 卷。Cham: Springer International Publishing, 2018。
 
-1.  Knuth, Donald Ervin. 《计算机程序设计的艺术》。第3卷。Reading, MA: Addison-Wesley, 1973。
+1.  Knuth, Donald Ervin. 《计算机程序设计的艺术》。第 3 卷。Reading, MA: Addison-Wesley, 1973。
 
 1.  Wagner, Ferdinand 等. 《使用有限状态机建模软件：一种实用方法》。Auerbach Publications, 2006。

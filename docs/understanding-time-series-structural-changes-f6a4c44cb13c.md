@@ -1,16 +1,16 @@
 # 理解时间序列的结构性变化
 
-> 原文：[https://towardsdatascience.com/understanding-time-series-structural-changes-f6a4c44cb13c?source=collection_archive---------4-----------------------#2024-09-04](https://towardsdatascience.com/understanding-time-series-structural-changes-f6a4c44cb13c?source=collection_archive---------4-----------------------#2024-09-04)
+> 原文：[`towardsdatascience.com/understanding-time-series-structural-changes-f6a4c44cb13c?source=collection_archive---------4-----------------------#2024-09-04`](https://towardsdatascience.com/understanding-time-series-structural-changes-f6a4c44cb13c?source=collection_archive---------4-----------------------#2024-09-04)
 
 ## 如何使用 Python 检测时间序列变化点
 
-[](https://vcerq.medium.com/?source=post_page---byline--f6a4c44cb13c--------------------------------)[![Vitor Cerqueira](../Images/9e52f462c6bc20453d3ea273eb52114b.png)](https://vcerq.medium.com/?source=post_page---byline--f6a4c44cb13c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f6a4c44cb13c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f6a4c44cb13c--------------------------------) [Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--f6a4c44cb13c--------------------------------)
+[](https://vcerq.medium.com/?source=post_page---byline--f6a4c44cb13c--------------------------------)![Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--f6a4c44cb13c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f6a4c44cb13c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f6a4c44cb13c--------------------------------) [Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--f6a4c44cb13c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f6a4c44cb13c--------------------------------) ·7 分钟阅读·2024年9月4日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f6a4c44cb13c--------------------------------) ·7 分钟阅读·2024 年 9 月 4 日
 
 --
 
-![](../Images/709cd6e791407b03f1de3f62f08fb787.png)
+![](img/709cd6e791407b03f1de3f62f08fb787.png)
 
 摄影： [Robby McCullough](https://unsplash.com/@mybbor?utm_source=medium&utm_medium=referral) 来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

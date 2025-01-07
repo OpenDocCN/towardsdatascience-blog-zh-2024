@@ -1,16 +1,16 @@
 # Power BI 报告的十条命令
 
-> 原文：[https://towardsdatascience.com/the-ten-commandments-for-power-bi-reporting-508cbe81f7e7?source=collection_archive---------5-----------------------#2024-12-03](https://towardsdatascience.com/the-ten-commandments-for-power-bi-reporting-508cbe81f7e7?source=collection_archive---------5-----------------------#2024-12-03)
+> 原文：[`towardsdatascience.com/the-ten-commandments-for-power-bi-reporting-508cbe81f7e7?source=collection_archive---------5-----------------------#2024-12-03`](https://towardsdatascience.com/the-ten-commandments-for-power-bi-reporting-508cbe81f7e7?source=collection_archive---------5-----------------------#2024-12-03)
 
 ## *我曾多次被问及创建报告解决方案时的一些基本规则。通常我会回答，“嗯，这并不简单。”但现在我开始写下这些规则了。*
 
-[](https://medium.com/@salvatorecagliari?source=post_page---byline--508cbe81f7e7--------------------------------)[![Salvatore Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--508cbe81f7e7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--508cbe81f7e7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--508cbe81f7e7--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--508cbe81f7e7--------------------------------)
+[](https://medium.com/@salvatorecagliari?source=post_page---byline--508cbe81f7e7--------------------------------)![Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--508cbe81f7e7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--508cbe81f7e7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--508cbe81f7e7--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--508cbe81f7e7--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--508cbe81f7e7--------------------------------) ·阅读时间 11 分钟 ·2024年12月3日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--508cbe81f7e7--------------------------------) ·阅读时间 11 分钟 ·2024 年 12 月 3 日
 
 --
 
-![](../Images/05db6557dd53a262f95b359d9e8da4be.png)
+![](img/05db6557dd53a262f95b359d9e8da4be.png)
 
 图片来自[Mark Duffel](https://unsplash.com/@2mduffel?utm_source=medium&utm_medium=referral) 在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -72,9 +72,9 @@
 
 这里是一个简化的星型模式图：
 
-![](../Images/d87e0741f716ca4d2963e72181548c5d.png)
+![](img/d87e0741f716ca4d2963e72181548c5d.png)
 
-图1 — 简单的星型模式，包含一个事实表、一个日期表和四个维度表（图示由作者提供）
+图 1 — 简单的星型模式，包含一个事实表、一个日期表和四个维度表（图示由作者提供）
 
 如果你不了解这种方法，这里有一个简短的介绍：
 
@@ -96,19 +96,19 @@
 
 关于星型模式，还有很多内容值得了解。
 
-你可以在下面的参考部分找到关于Microsoft Data Warehouse Toolkit的链接。
+你可以在下面的参考部分找到关于 Microsoft Data Warehouse Toolkit 的链接。
 
 尽管这篇文章相对较旧，且是在考虑微软产品的情况下写的，但其中描述的原则依然有效且有价值。
 
 # 4.1\. 你不应害怕数据冗余
 
-这是第四条戒律的一个子集，因此它是4.1。
+这是第四条戒律的一个子集，因此它是 4.1。
 
 请看以下数据模型：
 
-![](../Images/7a8d8858476ed9b3afb2ebb9e4c96aa5.png)
+![](img/7a8d8858476ed9b3afb2ebb9e4c96aa5.png)
 
-图2 — Power BI中的数据模型。数据模型中标红的部分表示地理维度的双重使用。这可能会导致问题（图由作者提供）
+图 2 — Power BI 中的数据模型。数据模型中标红的部分表示地理维度的双重使用。这可能会导致问题（图由作者提供）
 
 请查看标红的部分。
 
@@ -124,9 +124,9 @@
 
 现在，数据模型如下所示：
 
-![](../Images/94fb9b654274d421c6e89e4dec76fe0b.png)
+![](img/94fb9b654274d421c6e89e4dec76fe0b.png)
 
-图3 — 没有地理维度但有冗余内容的数据模型。注意在门店和客户维度中都有的ContinentName属性（图由作者提供）
+图 3 — 没有地理维度但有冗余内容的数据模型。注意在门店和客户维度中都有的 ContinentName 属性（图由作者提供）
 
 # 5\. 你应为数据模型的易用性做好准备
 
@@ -152,11 +152,11 @@
 
 这在任何情况下都可能不实用，也并不总是最佳方法，如这里所述：
 
-[](/pre-calculated-aggregations-for-power-bi-why-should-you-avoid-them-371abdec5bb4?source=post_page-----508cbe81f7e7--------------------------------) [## Power BI 的预计算聚合 — 为什么你应该避免它们
+[](/pre-calculated-aggregations-for-power-bi-why-should-you-avoid-them-371abdec5bb4?source=post_page-----508cbe81f7e7--------------------------------) ## Power BI 的预计算聚合 — 为什么你应该避免它们
 
 ### 我的一个客户总是希望在他的 Excel 文件中预计算聚合，以便生成报告。这里是我们应该避免的原因……
 
-towardsdatascience.com](/pre-calculated-aggregations-for-power-bi-why-should-you-avoid-them-371abdec5bb4?source=post_page-----508cbe81f7e7--------------------------------)
+towardsdatascience.com
 
 然而，这可能是具有挑战性的。
 
@@ -164,11 +164,11 @@ towardsdatascience.com](/pre-calculated-aggregations-for-power-bi-why-should-you
 
 例如，我在日期表中创建了额外的列，使得我的时间智能计算更加容易：
 
-[](/3-ways-to-improve-your-reporting-with-an-expanded-date-table-2d983d76cced?source=post_page-----508cbe81f7e7--------------------------------) [## 通过扩展日期表来改进报告的三种方式
+[](/3-ways-to-improve-your-reporting-with-an-expanded-date-table-2d983d76cced?source=post_page-----508cbe81f7e7--------------------------------) ## 通过扩展日期表来改进报告的三种方式
 
 ### 时间是最关键的报告维度。你可以通过一个良好的日期表扩展你的报告功能。
 
-towardsdatascience.com](/3-ways-to-improve-your-reporting-with-an-expanded-date-table-2d983d76cced?source=post_page-----508cbe81f7e7--------------------------------)
+towardsdatascience.com
 
 有时，复杂的计算是不可避免的。
 
@@ -206,13 +206,13 @@ learn.microsoft.com](https://learn.microsoft.com/en-us/power-bi/create-reports/d
 
 +   每个开发者都应该使用的其他表格。
 
-+   只要你不使用版本控制工具，如GitHub、GitLab、Azure DevOps或其他任何工具，可以添加一个带有更改日志的报告页面，或其他存储更改日志的地方。
++   只要你不使用版本控制工具，如 GitHub、GitLab、Azure DevOps 或其他任何工具，可以添加一个带有更改日志的报告页面，或其他存储更改日志的地方。
 
 确保所有开发者都知道模板存放的位置，并且他们正在使用它。
 
 # 8\. 你不应该在报告中过度使用颜色。
 
-你知道IBCS吗？
+你知道 IBCS 吗？
 
 [## IBCS - 国际商业沟通标准](https://www.ibcs.com/?source=post_page-----508cbe81f7e7--------------------------------)
 
@@ -236,7 +236,7 @@ learn.microsoft.com](https://learn.microsoft.com/en-us/power-bi/create-reports/d
 
 [www.visioncenter.org](https://www.visioncenter.org/resources/color-blind-statistics/?source=post_page-----508cbe81f7e7--------------------------------)
 
-创建一个没有颜色且仅使用灰度的PDF。如果你在区分颜色上有困难，可能需要考虑更改颜色。
+创建一个没有颜色且仅使用灰度的 PDF。如果你在区分颜色上有困难，可能需要考虑更改颜色。
 
 此外，任何在日常生活中有意义的颜色，在与不同含义一起使用时应该避免。
 
@@ -330,7 +330,7 @@ learn.microsoft.com](https://learn.microsoft.com/en-us/power-bi/create-reports/d
 
 然后，随着你知识的增长，你将获得信心，知道何时偏离这些规则。
 
-![](../Images/4dd364c93428a6503411f10cdf8c4c16.png)
+![](img/4dd364c93428a6503411f10cdf8c4c16.png)
 
 图片由[Highlight ID](https://unsplash.com/@highlightid?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -358,11 +358,11 @@ learn.microsoft.com](https://learn.microsoft.com/en-us/power-bi/guidance/model-d
 
 你可以通过以下方式支持我的工作：
 
-[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)
+[`buymeacoffee.com/salvatorecagliari`](https://buymeacoffee.com/salvatorecagliari)
 
 或者扫描此二维码：
 
-![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)
+![](img/e7ac062070dcd7a00dcf995ad7e95434.png)
 
 任何支持都非常感激，能帮助我腾出更多时间为你创作更多内容。
 

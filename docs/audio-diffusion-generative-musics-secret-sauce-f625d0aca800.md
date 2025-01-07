@@ -1,16 +1,16 @@
 # 音频扩散：生成音乐的秘密武器
 
-> 原文：[https://towardsdatascience.com/audio-diffusion-generative-musics-secret-sauce-f625d0aca800?source=collection_archive---------0-----------------------#2024-01-22](https://towardsdatascience.com/audio-diffusion-generative-musics-secret-sauce-f625d0aca800?source=collection_archive---------0-----------------------#2024-01-22)
+> 原文：[`towardsdatascience.com/audio-diffusion-generative-musics-secret-sauce-f625d0aca800?source=collection_archive---------0-----------------------#2024-01-22`](https://towardsdatascience.com/audio-diffusion-generative-musics-secret-sauce-f625d0aca800?source=collection_archive---------0-----------------------#2024-01-22)
 
-![](../Images/1bd508ba6fc0a161a09a10ef07843c01.png)
+![](img/1bd508ba6fc0a161a09a10ef07843c01.png)
 
 图像由 DALL·E 生成
 
 ## 探讨扩散技术背后的原理及其如何被应用于为艺术家和制作人创造突破性人工智能工具。
 
-[](https://medium.com/@crlandschoot?source=post_page---byline--f625d0aca800--------------------------------)[![Christopher Landschoot](../Images/99a2569f5a6a3a99fd1f72553aa3d634.png)](https://medium.com/@crlandschoot?source=post_page---byline--f625d0aca800--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f625d0aca800--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f625d0aca800--------------------------------) [Christopher Landschoot](https://medium.com/@crlandschoot?source=post_page---byline--f625d0aca800--------------------------------)
+[](https://medium.com/@crlandschoot?source=post_page---byline--f625d0aca800--------------------------------)![Christopher Landschoot](https://medium.com/@crlandschoot?source=post_page---byline--f625d0aca800--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f625d0aca800--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f625d0aca800--------------------------------) [Christopher Landschoot](https://medium.com/@crlandschoot?source=post_page---byline--f625d0aca800--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f625d0aca800--------------------------------) ·阅读时间：14分钟·2024年1月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f625d0aca800--------------------------------) ·阅读时间：14 分钟·2024 年 1 月 22 日
 
 --
 
@@ -22,21 +22,21 @@
 
 ## 背景
 
-“AI生成”这个术语已经在音乐行业中变得非常普及，但什么才算是“AI生成”的内容实际上是相当模糊的。为了赶上这个流行词的热潮，这个说法被随意地使用，无论是AI用来模仿某种效果、自动混音或母带处理、分离[音轨](https://en.wikipedia.org/wiki/Stem_(audio))，还是增强音色。只要最终的音频在某种程度上受到AI的处理，这个术语就会被贴上整个作品。然而，目前发布的大多数音乐仍然主要通过人工制作生成（是的，即使是鬼才作曲者的“[Heart On My Sleeve](https://youtu.be/7HZ2ie2ErFI?si=Ie3954lyyj7l-tEG)” 👻）。
+“AI 生成”这个术语已经在音乐行业中变得非常普及，但什么才算是“AI 生成”的内容实际上是相当模糊的。为了赶上这个流行词的热潮，这个说法被随意地使用，无论是 AI 用来模仿某种效果、自动混音或母带处理、分离[音轨](https://en.wikipedia.org/wiki/Stem_(audio))，还是增强音色。只要最终的音频在某种程度上受到 AI 的处理，这个术语就会被贴上整个作品。然而，目前发布的大多数音乐仍然主要通过人工制作生成（是的，即使是鬼才作曲者的“[Heart On My Sleeve](https://youtu.be/7HZ2ie2ErFI?si=Ie3954lyyj7l-tEG)” 👻）。
 
-尽管“AI生成”这个术语为了点击率而变得老生常谈，但它的恰当使用是当新声音的确是由计算机生成时，即*生成音频*。
+尽管“AI 生成”这个术语为了点击率而变得老生常谈，但它的恰当使用是当新声音的确是由计算机生成时，即*生成音频*。
 
-音频生成可以涵盖音效样本、旋律、人声，甚至完整歌曲的创作。实现这一点的两种主要方式是通过*MIDI生成*和*音频波形生成*。[MIDI（数字乐器接口）](https://blog.landr.com/what-is-midi/)生成计算成本较低，并且能够提供高质量的输出，因为生成的MIDI数据会通过现有的虚拟乐器来产生声音。这与制作人通过[piano roll](https://blog.landr.com/piano-roll/)编程MIDI并通过[VST](https://en.wikipedia.org/wiki/Virtual_Studio_Technology)插件（如[Serum](https://xferrecords.com/products/serum/)）播放的概念相同。
+音频生成可以涵盖音效样本、旋律、人声，甚至完整歌曲的创作。实现这一点的两种主要方式是通过*MIDI 生成*和*音频波形生成*。[MIDI（数字乐器接口）](https://blog.landr.com/what-is-midi/)生成计算成本较低，并且能够提供高质量的输出，因为生成的 MIDI 数据会通过现有的虚拟乐器来产生声音。这与制作人通过[piano roll](https://blog.landr.com/piano-roll/)编程 MIDI 并通过[VST](https://en.wikipedia.org/wiki/Virtual_Studio_Technology)插件（如[Serum](https://xferrecords.com/products/serum/)）播放的概念相同。
 
-![](../Images/2825dd04aa8dd49f0cb8d0cd21b1550c.png)
+![](img/2825dd04aa8dd49f0cb8d0cd21b1550c.png)
 
-Pro Tools中的MIDI钢琴卷轴
+Pro Tools 中的 MIDI 钢琴卷轴
 
-虽然这一点很有吸引力，但它仅部分是生成的，因为实际上没有音频是由AI生成的，就像人类不能凭空合成乐器的声音一样。创作能力还受到算法能够访问的虚拟乐器的限制。即便有这些限制，采用这种技术的产品，如[AIVA](https://www.aiva.ai/)和[Seeds by Lemonaide](https://www.lemonaide.ai/)，也能够生成相当引人注目的输出。
+虽然这一点很有吸引力，但它仅部分是生成的，因为实际上没有音频是由 AI 生成的，就像人类不能凭空合成乐器的声音一样。创作能力还受到算法能够访问的虚拟乐器的限制。即便有这些限制，采用这种技术的产品，如[AIVA](https://www.aiva.ai/)和[Seeds by Lemonaide](https://www.lemonaide.ai/)，也能够生成相当引人注目的输出。
 
-音频波形生成是一项更为复杂的任务，因为它是一个端到端的系统，不依赖任何外部技术。换句话说，它从零开始生成声音。这个过程最精确地符合“AI生成”音频的真正定义。
+音频波形生成是一项更为复杂的任务，因为它是一个端到端的系统，不依赖任何外部技术。换句话说，它从零开始生成声音。这个过程最精确地符合“AI 生成”音频的真正定义。
 
-音频波形生成可以通过多种方法实现，并产生不同的结果。它可以生成单个样本，比如[Audialab的ED 2](https://audialab.com/features/)和[Humanize](https://audialab.com/humanize/)，或是我之前的作品[Tiny Audio Diffusion](/tiny-audio-diffusion-ddc19e90af9b)，也可以生成完整的歌曲，如[AudioLM](https://google-research.github.io/seanet/audiolm/examples/)、[Moûsai](https://flavioschneider.notion.site/flavioschneider/Audio-Generation-with-Diffusion-c4f29f39048d4f03a23da13078a44cdb)、[Riffusion](https://www.riffusion.com/)、[MusicGen](https://ai.honu.io/papers/musicgen/)和[Stable Audio](https://www.stableaudio.com/)。在这些最先进的模型中，许多都利用了某种形式的*扩散*来生成声音。你可能至少在某种程度上听说过扩散，可能是通过[稳定扩散](https://stability.ai/stable-diffusion)或其他一些曾席卷全球的顶尖图像生成模型。这种生成方法同样可以应用于音频。那么这一切到底是什么意思呢？
+音频波形生成可以通过多种方法实现，并产生不同的结果。它可以生成单个样本，比如[Audialab 的 ED 2](https://audialab.com/features/)和[Humanize](https://audialab.com/humanize/)，或是我之前的作品 Tiny Audio Diffusion，也可以生成完整的歌曲，如[AudioLM](https://google-research.github.io/seanet/audiolm/examples/)、[Moûsai](https://flavioschneider.notion.site/flavioschneider/Audio-Generation-with-Diffusion-c4f29f39048d4f03a23da13078a44cdb)、[Riffusion](https://www.riffusion.com/)、[MusicGen](https://ai.honu.io/papers/musicgen/)和[Stable Audio](https://www.stableaudio.com/)。在这些最先进的模型中，许多都利用了某种形式的*扩散*来生成声音。你可能至少在某种程度上听说过扩散，可能是通过[稳定扩散](https://stability.ai/stable-diffusion)或其他一些曾席卷全球的顶尖图像生成模型。这种生成方法同样可以应用于音频。那么这一切到底是什么意思呢？
 
 # 什么是扩散？
 
@@ -44,49 +44,49 @@ Pro Tools中的MIDI钢琴卷轴
 
 在人工智能的背景下，扩散指的只是给信号添加或移除噪声的过程（就像老电视机中的静电噪声）。*前向扩散*向信号中添加噪声（*噪声化*），而*反向扩散*则移除噪声（*去噪*）。从概念层面来看，扩散模型将白噪声逐步通过去噪过程，直到音频类似于某个可识别的声音，比如一个样本或一首歌。这个去噪过程是许多生成音频模型创造力的秘密武器。
 
-![](../Images/a50d1ee92ac55dd644ea459cf0b23f44.png)
+![](img/a50d1ee92ac55dd644ea459cf0b23f44.png)
 
 音频波形扩散（来源：[CRASH：基于原始音频评分的可控高分辨率鼓声合成生成模型（Rouard, Hadjeres）](https://github.com/simonrouard/CRASH)）
 
 这个过程最初是为图像开发的。观察噪声如何解析成一幅图像（例如，一只小狗坐在网球旁边）能更清楚地展示这些模型是如何工作的。
 
-![](../Images/35afb6da06976e35eca7951128b52ec0.png)
+![](img/35afb6da06976e35eca7951128b52ec0.png)
 
 图像扩散（图像生成使用稳定扩散）
 
 通过概念性的理解，让我们深入探讨音频扩散模型架构的关键组成部分。虽然这会涉及一些技术性内容，但请跟着我，因为对这些算法如何工作的深入理解将更好地说明它们是如何产生结果的（如果没有，您随时可以向[ChatGPT](https://chat.openai.com/)请求简明扼要的解释）。
 
-## U-Net模型架构、压缩与重建
+## U-Net 模型架构、压缩与重建
 
-在音频扩散模型的核心是[*U-Net*](https://arxiv.org/abs/1505.04597)。U-Net最初是为了医学图像分割而开发的，因其外形像字母U而得名，后来由于其强大的能力能够捕捉数据中的局部和全局特征，被适应用于生成音频。原始的U-Net是一个二维[*卷积神经网络*](https://en.wikipedia.org/wiki/Convolutional_neural_network)（CNN），用于图像处理，但也可以适配为一维卷积，以处理音频波形数据。请参见下面的原始U-Net架构（用于图像）的视觉表示。
+在音频扩散模型的核心是[*U-Net*](https://arxiv.org/abs/1505.04597)。U-Net 最初是为了医学图像分割而开发的，因其外形像字母 U 而得名，后来由于其强大的能力能够捕捉数据中的局部和全局特征，被适应用于生成音频。原始的 U-Net 是一个二维[*卷积神经网络*](https://en.wikipedia.org/wiki/Convolutional_neural_network)（CNN），用于图像处理，但也可以适配为一维卷积，以处理音频波形数据。请参见下面的原始 U-Net 架构（用于图像）的视觉表示。
 
-![](../Images/7bbc0b12b588c6e781f128256fdcbb55.png)
+![](img/7bbc0b12b588c6e781f128256fdcbb55.png)
 
 U-Net（来源：[U-Net: 卷积网络用于生物医学图像分割（Ronneberger 等）](https://arxiv.org/abs/1505.04597v1)）
 
-类似于[变分自编码器（VAE）](/understanding-variational-autoencoders-vaes-f70510919f73)，U-Net由*编码器*（U的左侧）和*解码器*（U的右侧）组成，通过*瓶颈*（U的底部层）相连接。然而，与VAE不同，U-Net具有*跳跃连接*（由水平灰色箭头表示），这些连接将编码器与解码器连接起来，这是生成高分辨率输出的关键部分。编码器负责捕捉输入音频信号的[*特征*](https://en.wikipedia.org/wiki/Feature_(machine_learning))，或特性，而解码器负责信号的重建。
+类似于变分自编码器（VAE），U-Net 由*编码器*（U 的左侧）和*解码器*（U 的右侧）组成，通过*瓶颈*（U 的底部层）相连接。然而，与 VAE 不同，U-Net 具有*跳跃连接*（由水平灰色箭头表示），这些连接将编码器与解码器连接起来，这是生成高分辨率输出的关键部分。编码器负责捕捉输入音频信号的[*特征*](https://en.wikipedia.org/wiki/Feature_(machine_learning))，或特性，而解码器负责信号的重建。
 
-为了帮助可视化，可以想象音频数据从U的左上方进入，沿着红色和蓝色箭头通过编码器向下到达U的底部瓶颈层，然后再沿着蓝色和绿色箭头通过解码器回到U的右上方。每个蓝色矩形代表一个模型*层*。在编码器的每一层中，输入音频信号会逐渐被压缩，直到它在U的底部（瓶颈处）达到高度浓缩的声音表示。然后，解码器接收这个压缩信号，并有效地逆转这一过程以重建信号。数据通过的每一层（蓝色矩形）都有一系列可调的权重，可以看作是成千上万的微小旋钮，用户可以旋转这些旋钮来调整压缩/重建过程。具有不同压缩级别的层允许模型从数据中学习各种特征，从大尺度的特征（例如旋律和节奏）到细粒度的细节（例如高频音色特征）。
+为了帮助可视化，可以想象音频数据从 U 的左上方进入，沿着红色和蓝色箭头通过编码器向下到达 U 的底部瓶颈层，然后再沿着蓝色和绿色箭头通过解码器回到 U 的右上方。每个蓝色矩形代表一个模型*层*。在编码器的每一层中，输入音频信号会逐渐被压缩，直到它在 U 的底部（瓶颈处）达到高度浓缩的声音表示。然后，解码器接收这个压缩信号，并有效地逆转这一过程以重建信号。数据通过的每一层（蓝色矩形）都有一系列可调的权重，可以看作是成千上万的微小旋钮，用户可以旋转这些旋钮来调整压缩/重建过程。具有不同压缩级别的层允许模型从数据中学习各种特征，从大尺度的特征（例如旋律和节奏）到细粒度的细节（例如高频音色特征）。
 
-使用类比，你可以将整个系统想象成创建一个[MP3](https://en.wikipedia.org/wiki/MP3)音频文件并在播放设备上收听该MP3的过程。从本质上讲，MP3是音频信号的压缩版本。假设编码器的工作是创建一种新的压缩音频格式，类似于MP3，以尽可能地压缩音频信号而不损失保真度。然后，解码器的工作就像你的iPhone（或任何播放设备），将MP3解码成可以通过耳机播放的高保真音频表现形式。瓶颈可以看作是这个新创建的MP3类型格式本身。**U-Net代表的是压缩和重建的过程，而不是音频数据**。然后，可以以准确压缩和重建各种音频信号为目标训练这个模型。
+使用类比，你可以将整个系统想象成创建一个[MP3](https://en.wikipedia.org/wiki/MP3)音频文件并在播放设备上收听该 MP3 的过程。从本质上讲，MP3 是音频信号的压缩版本。假设编码器的工作是创建一种新的压缩音频格式，类似于 MP3，以尽可能地压缩音频信号而不损失保真度。然后，解码器的工作就像你的 iPhone（或任何播放设备），将 MP3 解码成可以通过耳机播放的高保真音频表现形式。瓶颈可以看作是这个新创建的 MP3 类型格式本身。**U-Net 代表的是压缩和重建的过程，而不是音频数据**。然后，可以以准确压缩和重建各种音频信号为目标训练这个模型。
 
 这一切都很好，但我们还没有生成任何内容。我们只构建了压缩和重建音频信号的方法。然而，这个过程是生成新音频所必需的基本过程，而且只需稍微调整一下就能实现。
 
 ## 噪声与去噪
 
-让我们回顾一下我们之前提到的*噪声*和*去噪*的概念。从理论上讲，我们曾设想过一个魔法模型，它可以被训练来将一些白噪声“去噪”成可识别的音频，可能是一首美丽的协奏曲。这个魔法模型的一个关键要求是，它必须能够以高保真度重建输入的音频信号。幸运的是，U-Net架构的设计正是为了完成这一任务。因此，接下来要解决的难题是修改U-Net以执行这个去噪过程。
+让我们回顾一下我们之前提到的*噪声*和*去噪*的概念。从理论上讲，我们曾设想过一个魔法模型，它可以被训练来将一些白噪声“去噪”成可识别的音频，可能是一首美丽的协奏曲。这个魔法模型的一个关键要求是，它必须能够以高保真度重建输入的音频信号。幸运的是，U-Net 架构的设计正是为了完成这一任务。因此，接下来要解决的难题是修改 U-Net 以执行这个去噪过程。
 
 违反直觉的是，为了教会一个模型去噪音频信号，首先要教它如何给信号添加噪声。一旦它学会了这个过程，它就自然知道如何执行逆操作，以去除噪声。
 
-回想一下前一部分，我们详细描述了U-Net如何学习压缩和重建音频信号。噪声处理过程几乎遵循相同的公式，但不同的是，U-Net并不是重建完全相同的输入音频信号，而是被指导重建加入少量噪声的输入音频信号。这可以通过反转之前小狗图像序列中的步骤来可视化。
+回想一下前一部分，我们详细描述了 U-Net 如何学习压缩和重建音频信号。噪声处理过程几乎遵循相同的公式，但不同的是，U-Net 并不是重建完全相同的输入音频信号，而是被指导重建加入少量噪声的输入音频信号。这可以通过反转之前小狗图像序列中的步骤来可视化。
 
-![](../Images/9e223a528f9d9406258a26a766f85b89.png)
+![](img/9e223a528f9d9406258a26a766f85b89.png)
 
-扩散噪声步骤（图像由Stable Diffusion生成）
+扩散噪声步骤（图像由 Stable Diffusion 生成）
 
 向信号添加噪声的过程必须是概率性的（即可预测的）。模型首先展示给一个音频信号，然后被指示预测添加少量[高斯噪声](https://en.wikipedia.org/wiki/Gaussian_noise#:~:text=In%20signal%20processing%20theory%2C%20Gaussian,can%20take%20are%20Gaussian%2Ddistributed.)后的信号。由于其特性，高斯噪声最为常见，但并非必须使用。噪声必须由概率分布定义，意味着它遵循一个特定的模式，且这个模式是可以一致预测的。这个过程会在多个*步骤*中重复，直到信号最终变成只有噪声。
 
-![](../Images/c04fe7144cc50b5a0c8ba8149e95d410.png)
+![](img/c04fe7144cc50b5a0c8ba8149e95d410.png)
 
 添加噪声到击鼓样本（来源：[CRASH: 基于音频分数的可控高分辨率鼓声合成的原始音频生成模型 (Rouard, Hadjeres)](https://github.com/simonrouard/CRASH)）
 
@@ -98,7 +98,7 @@ U-Net（来源：[U-Net: 卷积网络用于生物医学图像分割（Ronneberge
 
 为了说明这一点，我们使用以下草图。
 
-![](../Images/b4ad00a6c897be31a523510cd5e747c1.png)
+![](img/b4ad00a6c897be31a523510cd5e747c1.png)
 
 假设所有可能的声音，从吉他弹奏到狗吠声，再到白噪声，都可以绘制在一个二维平面上，平面由上图中的黑色矩形表示。在这个空间中，有一个区域是小军鼓击打声所在的位置。由于它们在音色和瞬态特性上的相似性，它们被稍微聚集在一起。这由蓝色的斑点显示，每一个蓝色的点代表我们用来训练模型的一个小军鼓样本。红色的点代表模型训练时使用的已经加入噪声的小军鼓版本，并与它们未加入噪声的蓝色点样本相对应。
 
@@ -132,7 +132,7 @@ U-Net（来源：[U-Net: 卷积网络用于生物医学图像分割（Ronneberge
 
 毫无疑问，这些新的生成型人工智能模型是令人惊叹的技术进步，不论它们被视为积极还是消极的。关于扩散模型的优化空间非常广泛，可以在速度、多样性和质量等方面提升它们的性能，但我们已经讨论了这些模型功能的基本原理。这些知识为我们提供了更深刻的背景，让我们理解当这些模型生成“新声音”时，真正意味着什么。
 
-从更广泛的层面来看，人们关心的并不仅仅是音乐本身——更重要的是音乐创作中的人类元素。问问自己，如果你听到一段高超且迅速的吉他独奏录音，你会感到印象深刻吗？这取决于情况。如果这段独奏是由一个制作人编程的虚拟MIDI乐器人工生成的，你可能会毫不动容，甚至不喜欢它的声音。然而，如果你知道这段独奏是由一位吉他手用真实吉他演奏的，或者甚至亲眼看到他或她演奏，你将完全被他们的专业技巧和精准度所吸引。我们被演奏中的灵巧、歌词背后的思想和情感，以及创作歌曲时每个决定背后的考虑所吸引。
+从更广泛的层面来看，人们关心的并不仅仅是音乐本身——更重要的是音乐创作中的人类元素。问问自己，如果你听到一段高超且迅速的吉他独奏录音，你会感到印象深刻吗？这取决于情况。如果这段独奏是由一个制作人编程的虚拟 MIDI 乐器人工生成的，你可能会毫不动容，甚至不喜欢它的声音。然而，如果你知道这段独奏是由一位吉他手用真实吉他演奏的，或者甚至亲眼看到他或她演奏，你将完全被他们的专业技巧和精准度所吸引。我们被演奏中的灵巧、歌词背后的思想和情感，以及创作歌曲时每个决定背后的考虑所吸引。
 
 尽管这些令人难以置信的进步让艺术家和制作人感到一些生存焦虑，但人工智能永远无法剥夺我们创作的声音和音乐中那份人类元素。因此，我们应该以一种工具的心态来看待这些新的进展，认为它们是为了增强艺术家的创造力，而不是取而代之。
 

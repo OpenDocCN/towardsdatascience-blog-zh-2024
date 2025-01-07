@@ -1,22 +1,22 @@
-# 数据网格实现：加速从ERP/CRM系统中提取价值
+# 数据网格实现：加速从 ERP/CRM 系统中提取价值
 
-> 原文：[https://towardsdatascience.com/a-data-mesh-implementation-expediting-value-extraction-from-erp-crm-systems-66ac65644fe2?source=collection_archive---------5-----------------------#2024-02-01](https://towardsdatascience.com/a-data-mesh-implementation-expediting-value-extraction-from-erp-crm-systems-66ac65644fe2?source=collection_archive---------5-----------------------#2024-02-01)
+> 原文：[`towardsdatascience.com/a-data-mesh-implementation-expediting-value-extraction-from-erp-crm-systems-66ac65644fe2?source=collection_archive---------5-----------------------#2024-02-01`](https://towardsdatascience.com/a-data-mesh-implementation-expediting-value-extraction-from-erp-crm-systems-66ac65644fe2?source=collection_archive---------5-----------------------#2024-02-01)
 
 ## 从大型操作系统中启用快速数据开发
 
-[](https://medium.com/@david.rubio_63959?source=post_page---byline--66ac65644fe2--------------------------------)[![David Rubio](../Images/6a828bf368bd40aa5b1efda618dffed8.png)](https://medium.com/@david.rubio_63959?source=post_page---byline--66ac65644fe2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--66ac65644fe2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--66ac65644fe2--------------------------------) [David Rubio](https://medium.com/@david.rubio_63959?source=post_page---byline--66ac65644fe2--------------------------------)
+[](https://medium.com/@david.rubio_63959?source=post_page---byline--66ac65644fe2--------------------------------)![David Rubio](https://medium.com/@david.rubio_63959?source=post_page---byline--66ac65644fe2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--66ac65644fe2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--66ac65644fe2--------------------------------) [David Rubio](https://medium.com/@david.rubio_63959?source=post_page---byline--66ac65644fe2--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--66ac65644fe2--------------------------------) ·阅读时间7分钟·2024年2月1日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--66ac65644fe2--------------------------------) ·阅读时间 7 分钟·2024 年 2 月 1 日
 
 --
 
-![](../Images/0572559b67060803cd5562c1e4b416e0.png)
+![](img/0572559b67060803cd5562c1e4b416e0.png)
 
 图片由[Benjamin Zanatta](https://unsplash.com/@benjaminzanatta?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 面对“怪物”时的挑战
 
-对于从事务性系统（如ERP（企业资源规划）和CRM（客户关系管理））构建分析的数据显示工程师来说，主要的挑战在于如何弥合原始操作数据与领域知识之间的鸿沟。ERP和CRM系统的设计和构建是为了满足广泛的业务流程和功能需求。**这种通用性使得它们的数据模型复杂且晦涩，需要领域专家的参与**。
+对于从事务性系统（如 ERP（企业资源规划）和 CRM（客户关系管理））构建分析的数据显示工程师来说，主要的挑战在于如何弥合原始操作数据与领域知识之间的鸿沟。ERP 和 CRM 系统的设计和构建是为了满足广泛的业务流程和功能需求。**这种通用性使得它们的数据模型复杂且晦涩，需要领域专家的参与**。
 
 更难以管理的是，在大型组织中，常见的设置是拥有多个这些系统的实例，并且某些底层过程负责在它们之间传输数据，这可能导致数据重复、不一致以及不透明。
 
@@ -28,9 +28,9 @@
 
 # 访问操作数据  
 
-我曾通过连接事务数据库中的视图或操作系统提供的API来请求原始数据。  
+我曾通过连接事务数据库中的视图或操作系统提供的 API 来请求原始数据。  
 
-![](../Images/0e7a117965fe474c52087b5a4fe9564a.png)  
+![](img/0e7a117965fe474c52087b5a4fe9564a.png)  
 
 订单快照存储在我自己的开发区域（图像由作者提供）  
 
@@ -38,9 +38,9 @@
 
 # 理解操作数据  
 
-一旦原始操作数据可用，我就面临下一个挑战：解读所有复杂的对象和属性，并处理它们之间数十种关系的迷宫（即SAP中的通用物料数据，[https://leanx.eu/en/sap/table/mara.html](https://leanx.eu/en/sap/table/mara.html)）  
+一旦原始操作数据可用，我就面临下一个挑战：解读所有复杂的对象和属性，并处理它们之间数十种关系的迷宫（即 SAP 中的通用物料数据，[`leanx.eu/en/sap/table/mara.html`](https://leanx.eu/en/sap/table/mara.html)）  
 
-尽管ERP或CRM系统中的标准对象有很好的文档记录，**但我需要处理许多需要领域专业知识的自定义对象和属性**，因为这些对象无法在标准数据模型中找到。大多数时候，我发现自己在不断进行‘试错’查询，试图对齐操作对象之间的键，根据属性的值来解释属性的含义，并通过操作界面截图验证我的假设。  
+尽管 ERP 或 CRM 系统中的标准对象有很好的文档记录，**但我需要处理许多需要领域专业知识的自定义对象和属性**，因为这些对象无法在标准数据模型中找到。大多数时候，我发现自己在不断进行‘试错’查询，试图对齐操作对象之间的键，根据属性的值来解释属性的含义，并通过操作界面截图验证我的假设。  
 
 # 数据网格中的操作数据管理  
 
@@ -72,19 +72,19 @@
 
 按照这种方法，销售领域负责发布“sales_orders”数据产品并将其提供到共享数据目录中。
 
-![](../Images/2fb3038cd98501d96003c3778206c103.png)
+![](img/2fb3038cd98501d96003c3778206c103.png)
 
 销售订单数据产品暴露销售订单数据集（图片来自作者）
 
 负责维护数据产品的数据管道可以这样定义：
 
-![](../Images/2aefb513782736438d769f3d84ae04aa.png)
+![](img/2aefb513782736438d769f3d84ae04aa.png)
 
 数据管道步骤（图片来自作者）
 
 **数据提取**
 
-构建源对齐数据产品的第一步是从操作源中提取我们要暴露的数据。有很多数据集成工具提供了简化数据摄取的UI，数据团队可以在这里创建作业，使用JDBC连接或API从操作源提取原始数据。为了避免浪费计算工作，并且在可能的情况下，只应增量地添加自上次提取以来更新的原始数据到数据产品中。
+构建源对齐数据产品的第一步是从操作源中提取我们要暴露的数据。有很多数据集成工具提供了简化数据摄取的 UI，数据团队可以在这里创建作业，使用 JDBC 连接或 API 从操作源提取原始数据。为了避免浪费计算工作，并且在可能的情况下，只应增量地添加自上次提取以来更新的原始数据到数据产品中。
 
 **数据清洗**
 
@@ -123,7 +123,7 @@ end as SALES_DOCUMENT_CATEGORY
 
 现在，再次想象你是一名数据工程师，负责识别公司内的畅销产品。但这次，假设你可以访问一个数据目录，其中提供代表每个领域实际情况的数据产品，这些领域塑造了业务。你只需在数据产品目录中输入“订单”，就可以找到销售数据团队发布的条目。只需一眼，你就能评估数据的质量和新鲜度，并阅读详细的内容描述。
 
-![](../Images/f282ce8153984c50b5a3703776d02d79.png)
+![](img/f282ce8153984c50b5a3703776d02d79.png)
 
 数据目录中销售订单数据产品的条目示例（图片由作者提供）
 
@@ -151,6 +151,6 @@ end as SALES_DOCUMENT_CATEGORY
 
 martinfowler.com](https://martinfowler.com/articles/data-monolith-to-mesh.html?source=post_page-----66ac65644fe2--------------------------------)
 
-[https://www.oreilly.com/library/view/data-mesh/9781492092384/](https://www.oreilly.com/library/view/data-mesh/9781492092384/)
+[`www.oreilly.com/library/view/data-mesh/9781492092384/`](https://www.oreilly.com/library/view/data-mesh/9781492092384/)
 
-*感谢我的Thoughtworks同事Arne（两次！）、Pablo、Ayush和Samvardhan，感谢他们花时间审阅本文的早期版本*
+*感谢我的 Thoughtworks 同事 Arne（两次！）、Pablo、Ayush 和 Samvardhan，感谢他们花时间审阅本文的早期版本*

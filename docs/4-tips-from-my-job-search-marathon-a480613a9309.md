@@ -1,20 +1,20 @@
 # 我的求职马拉松的四个建议
 
-> 原文：[https://towardsdatascience.com/4-tips-from-my-job-search-marathon-a480613a9309?source=collection_archive---------5-----------------------#2024-03-07](https://towardsdatascience.com/4-tips-from-my-job-search-marathon-a480613a9309?source=collection_archive---------5-----------------------#2024-03-07)
+> 原文：[`towardsdatascience.com/4-tips-from-my-job-search-marathon-a480613a9309?source=collection_archive---------5-----------------------#2024-03-07`](https://towardsdatascience.com/4-tips-from-my-job-search-marathon-a480613a9309?source=collection_archive---------5-----------------------#2024-03-07)
 
 ## 用工具来应对挑战
 
-[](https://medium.com/@cereniyim?source=post_page---byline--a480613a9309--------------------------------)[![Ceren Iyim](../Images/5a774ece76cff16b65cdf4fcfe01eb06.png)](https://medium.com/@cereniyim?source=post_page---byline--a480613a9309--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a480613a9309--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a480613a9309--------------------------------) [Ceren Iyim](https://medium.com/@cereniyim?source=post_page---byline--a480613a9309--------------------------------)
+[](https://medium.com/@cereniyim?source=post_page---byline--a480613a9309--------------------------------)![Ceren Iyim](https://medium.com/@cereniyim?source=post_page---byline--a480613a9309--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a480613a9309--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a480613a9309--------------------------------) [Ceren Iyim](https://medium.com/@cereniyim?source=post_page---byline--a480613a9309--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a480613a9309--------------------------------) ·6分钟阅读·2024年3月7日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a480613a9309--------------------------------) ·6 分钟阅读·2024 年 3 月 7 日
 
 --
 
-![](../Images/10b62145c6bebc0fb9370b6a1b3e9379.png)
+![](img/10b62145c6bebc0fb9370b6a1b3e9379.png)
 
 图片由[sporlab](https://unsplash.com/@sporlab?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-我在2023年8月重新回到了求职市场。尽管大公司的裁员和当前的挑战状况让我面临很大困难，我还是毅然决定离开公司，全身心投入到寻找下一份机器学习/数据科学职位的过程中。
+我在 2023 年 8 月重新回到了求职市场。尽管大公司的裁员和当前的挑战状况让我面临很大困难，我还是毅然决定离开公司，全身心投入到寻找下一份机器学习/数据科学职位的过程中。
 
 我天真地估计自己会在几个月内找到梦想中的职位。现实证明，这比预期的时间要长。因此，这个过程对我来说是一次马拉松，而不是短跑。幸运的是，我这个月完成了这场马拉松🎉
 
@@ -28,7 +28,7 @@
 
 1.  不要盲目地撒网祈祷
 
-1.  使用基于AI的招聘工具
+1.  使用基于 AI 的招聘工具
 
 P.S. 最后有一个额外的小贴士😉
 
@@ -54,21 +54,21 @@ P.S. 最后有一个额外的小贴士😉
 
 ## 拒绝的数量将大于成功的回应
 
-准备好接受更多的拒绝，而不是成功的回应。这个在LinkedIn上疯传的图表证明了这一点。它展示了一个市场营销技术求职者的申请统计数据。从我的经验来看，我可以告诉你，这个统计数据对于数据科学/机器学习领域是有效的。
+准备好接受更多的拒绝，而不是成功的回应。这个在 LinkedIn 上疯传的图表证明了这一点。它展示了一个市场营销技术求职者的申请统计数据。从我的经验来看，我可以告诉你，这个统计数据对于数据科学/机器学习领域是有效的。
 
-![](../Images/37bbc04b734340fab3ed48c77eb87b67.png)
+![](img/37bbc04b734340fab3ed48c77eb87b67.png)
 
-图片来自Reddit上的r/recruitinghell。 [图片链接](https://www.reddit.com/r/recruitinghell/comments/1adbfx8/job_hunting_my_way_out_of_hell_marketing_tech/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button)
+图片来自 Reddit 上的 r/recruitinghell。 [图片链接](https://www.reddit.com/r/recruitinghell/comments/1adbfx8/job_hunting_my_way_out_of_hell_marketing_tech/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button)
 
-我从100份申请中收到了23个成功回应和5个工作邀请。其余的要么是没有回复，要么是被拒绝。一开始，我对每一次被拒绝感到沮丧，甚至为一些我感觉和公司文化高度契合、自己技能匹配度很高的拒绝而哭泣🥲。经过几次低谷后，我学会了度过失望的情绪，并不把拒绝和自己的自我价值挂钩。
+我从 100 份申请中收到了 23 个成功回应和 5 个工作邀请。其余的要么是没有回复，要么是被拒绝。一开始，我对每一次被拒绝感到沮丧，甚至为一些我感觉和公司文化高度契合、自己技能匹配度很高的拒绝而哭泣🥲。经过几次低谷后，我学会了度过失望的情绪，并不把拒绝和自己的自我价值挂钩。
 
 此外，拒绝仅适用于特定的职位和时间。未来相同的职位可能会重新开放，要求也可能发生变化。在此期间，你可能已经自我提升了。
 
-例如，2023年11月，我与两家公司进行了面试，分别是MLOps工程师和数据科学家的职位。第一次面试后，我被淘汰了。快进到2024年2月，我收到了两家公司的机器学习工程师职位的工作邀请。所以，永远不要放弃，坚持尝试✌🏼
+例如，2023 年 11 月，我与两家公司进行了面试，分别是 MLOps 工程师和数据科学家的职位。第一次面试后，我被淘汰了。快进到 2024 年 2 月，我收到了两家公司的机器学习工程师职位的工作邀请。所以，永远不要放弃，坚持尝试✌🏼
 
 ## 不要盲目投递
 
-> “我一天申请多达50个职位，涉及两个不同的职业方向。”
+> “我一天申请多达 50 个职位，涉及两个不同的职业方向。”
 
 …这是上面图片的创作者所说的。
 
@@ -90,13 +90,13 @@ P.S. 最后有一个额外的小贴士😉
 
 我选择了[Teal](https://app.tealhq.com/)，这是我在[这篇 LinkedIn 文章中列出的多个工具](https://www.linkedin.com/feed/update/urn:li:activity:7117854690926628865?updateEntityUrn=urn%3Ali%3Afs_updateV2%3A%28urn%3Ali%3Aactivity%3A7117854690926628865%2CFEED_DETAIL%2CEMPTY%2CDEFAULT%2Cfalse%29)中挑选的。我使用了简历构建器功能，为每个申请制作了量身定制的简历。
 
-![](../Images/5d0be3dd544a0ee006b1a4e9c606fa7a.png)
+![](img/5d0be3dd544a0ee006b1a4e9c606fa7a.png)
 
 图片由作者提供
 
 此外，匹配部分帮助我量化了职位发布与我的简历之间的匹配度。它会根据简历和职位发布中的关键词计算一个百分比。在定制简历时，你可以目标是获得一个较高的匹配得分，从而帮助你通过初筛。此外，Teal 还会建议如何改善简历中的措辞和表述你的成就。
 
-基于AI的工具仍然是我们的助手，它们尚不能取代人在创意写作中的作用。我认为求职信和简历是一种专业的创意写作形式。所以不要仅仅依赖由AI工具生成的求职信或简历。始终评估它们的输出，并将其建议作为反馈。
+基于 AI 的工具仍然是我们的助手，它们尚不能取代人在创意写作中的作用。我认为求职信和简历是一种专业的创意写作形式。所以不要仅仅依赖由 AI 工具生成的求职信或简历。始终评估它们的输出，并将其建议作为反馈。
 
 **额外提示：** 由于年初的预算调整和人们在年初薪资调整后更倾向于换工作，因此每年第一季度的就业市场更为活跃。这是我个人的观察，也来自一位在亚马逊拥有多年人力资源经验的朋友的建议😉
 

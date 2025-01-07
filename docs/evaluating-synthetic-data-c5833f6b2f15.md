@@ -1,18 +1,18 @@
 # 评估合成数据
 
-> 原文：[https://towardsdatascience.com/evaluating-synthetic-data-c5833f6b2f15?source=collection_archive---------7-----------------------#2024-10-14](https://towardsdatascience.com/evaluating-synthetic-data-c5833f6b2f15?source=collection_archive---------7-----------------------#2024-10-14)
+> 原文：[`towardsdatascience.com/evaluating-synthetic-data-c5833f6b2f15?source=collection_archive---------7-----------------------#2024-10-14`](https://towardsdatascience.com/evaluating-synthetic-data-c5833f6b2f15?source=collection_archive---------7-----------------------#2024-10-14)
 
 ## 评估我们从真实数据中生成的数据的可行性和有用性
 
-[](https://medium.com/@aymeric.floyrac.x?source=post_page---byline--c5833f6b2f15--------------------------------)[![Aymeric Floyrac](../Images/f598fa3564693e544d02255d527682c2.png)](https://medium.com/@aymeric.floyrac.x?source=post_page---byline--c5833f6b2f15--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c5833f6b2f15--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c5833f6b2f15--------------------------------) [Aymeric Floyrac](https://medium.com/@aymeric.floyrac.x?source=post_page---byline--c5833f6b2f15--------------------------------)
+[](https://medium.com/@aymeric.floyrac.x?source=post_page---byline--c5833f6b2f15--------------------------------)![Aymeric Floyrac](https://medium.com/@aymeric.floyrac.x?source=post_page---byline--c5833f6b2f15--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c5833f6b2f15--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c5833f6b2f15--------------------------------) [Aymeric Floyrac](https://medium.com/@aymeric.floyrac.x?source=post_page---byline--c5833f6b2f15--------------------------------)
 
-· 发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c5833f6b2f15--------------------------------) · 8分钟阅读 · 2024年10月14日
+· 发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c5833f6b2f15--------------------------------) · 8 分钟阅读 · 2024 年 10 月 14 日
 
 --
 
 合成数据服务于多种用途，且因大语言模型（LLM）的令人信服的能力而逐渐受到关注。但什么是“良好”的合成数据，我们又如何知道自己是否成功生成了它？
 
-![](../Images/05da845afb54cf39126b28069887e44d.png)
+![](img/05da845afb54cf39126b28069887e44d.png)
 
 图片由 [Nigel Hoare](https://unsplash.com/@dementedpixel?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -54,7 +54,7 @@
 
 # 实际评估
 
-![](../Images/376b37492db54f154482daa4d6ce9919.png)
+![](img/376b37492db54f154482daa4d6ce9919.png)
 
 图片由[美国国会图书馆](https://unsplash.com/@libraryofcongress?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -113,7 +113,7 @@ synthetic_data = synthesizer.sample(num_rows=150)
 
 现在，我们想测试是否可以判断一个样本是否是合成的。
 
-从这个公式出发，我们很容易看出它本质上是一个二元分类问题（合成 vs 原始）。因此，我们可以训练任何模型来区分原始数据和合成数据：如果这个模型达到一个好的准确率（这里的准确率意味着远高于0.5），那么合成样本就不够真实。我们的目标是0.5的准确率（如果测试集包含一半的原始样本和一半的合成样本），这意味着分类器在做随机猜测。
+从这个公式出发，我们很容易看出它本质上是一个二元分类问题（合成 vs 原始）。因此，我们可以训练任何模型来区分原始数据和合成数据：如果这个模型达到一个好的准确率（这里的准确率意味着远高于 0.5），那么合成样本就不够真实。我们的目标是 0.5 的准确率（如果测试集包含一半的原始样本和一半的合成样本），这意味着分类器在做随机猜测。
 
 和任何分类问题一样，我们不应该局限于使用弱模型，而应在超参数选择和模型训练上投入足够的精力。
 
@@ -216,7 +216,7 @@ Not significantly different
 
 第一个方法是绘制二元分布（或相关图）。
 
-我们还可以一次性表示所有数据集维度：例如，给定一个表格数据集及其合成版本，我们可以使用降维技术（如t-SNE、PCA或UMAP）绘制两个数据集的图。如果合成器完美无缺，散点图应该看起来相同。
+我们还可以一次性表示所有数据集维度：例如，给定一个表格数据集及其合成版本，我们可以使用降维技术（如 t-SNE、PCA 或 UMAP）绘制两个数据集的图。如果合成器完美无缺，散点图应该看起来相同。
 
 现在来看代码：
 
@@ -262,7 +262,7 @@ def plot(
 plot(real_data, synthetic_data, kind="pairplot")
 ```
 
-![](../Images/cce9d8e2218658a1a2ad69578bef06b2.png)
+![](img/cce9d8e2218658a1a2ad69578bef06b2.png)
 
 我们已经在这些图中看到，真实数据和合成数据的二元分布并不相同，这又一次暗示了合成过程未能成功再现数据维度之间的高阶关系。
 
@@ -272,13 +272,13 @@ plot(real_data, synthetic_data, kind="pairplot")
 plot(real_data, synthetic_data, kind="umap")
 ```
 
-![](../Images/7fd393890001712f5cdf5ec4d0a21d79.png)
+![](img/7fd393890001712f5cdf5ec4d0a21d79.png)
 
 在这张图中也可以清楚地看到，两个数据集是彼此不同的。
 
 **信息**
 
-合成数据集应该与原始数据集一样有用。特别是，它应该在预测任务中同样有效，这意味着它应该捕捉到特征之间的复杂关系。因此，我们进行一次比较：TSTR与TRTR，分别代表“在合成数据上训练，在真实数据上测试”与“在真实数据上训练，在真实数据上测试”。实际操作中这意味着什么？
+合成数据集应该与原始数据集一样有用。特别是，它应该在预测任务中同样有效，这意味着它应该捕捉到特征之间的复杂关系。因此，我们进行一次比较：TSTR 与 TRTR，分别代表“在合成数据上训练，在真实数据上测试”与“在真实数据上训练，在真实数据上测试”。实际操作中这意味着什么？
 
 对于给定的数据集，我们选择一个特定的任务，比如预测下一个标记或下一个事件，或根据其他列预测某一列。在这个任务下，我们先在合成数据集上训练第一个模型，再在原始数据集上训练第二个模型。然后，我们在一个共同的测试集上评估这两个模型，该测试集是从原始数据集中提取的。如果第一个模型的表现接近第二个模型的表现，*无论表现如何*，我们就认为我们的合成数据集是有用的。这意味着我们能够在合成数据集上学习到与原始数据集相同的模式，而这正是我们所希望的（尤其是在数据增强的情况下）。
 

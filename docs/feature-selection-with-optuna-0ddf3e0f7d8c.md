@@ -1,16 +1,16 @@
 # 使用 Optuna 进行特征选择
 
-> 原文：[https://towardsdatascience.com/feature-selection-with-optuna-0ddf3e0f7d8c?source=collection_archive---------3-----------------------#2024-05-09](https://towardsdatascience.com/feature-selection-with-optuna-0ddf3e0f7d8c?source=collection_archive---------3-----------------------#2024-05-09)
+> 原文：[`towardsdatascience.com/feature-selection-with-optuna-0ddf3e0f7d8c?source=collection_archive---------3-----------------------#2024-05-09`](https://towardsdatascience.com/feature-selection-with-optuna-0ddf3e0f7d8c?source=collection_archive---------3-----------------------#2024-05-09)
 
 ## 一种多功能且有前景的特征选择方法
 
-[](https://medium.com/@nicolupi.2?source=post_page---byline--0ddf3e0f7d8c--------------------------------)[![Nicolas Lupi](../Images/7f0735890a77b9ef601dc6cd54a9a861.png)](https://medium.com/@nicolupi.2?source=post_page---byline--0ddf3e0f7d8c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0ddf3e0f7d8c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0ddf3e0f7d8c--------------------------------) [Nicolas Lupi](https://medium.com/@nicolupi.2?source=post_page---byline--0ddf3e0f7d8c--------------------------------)
+[](https://medium.com/@nicolupi.2?source=post_page---byline--0ddf3e0f7d8c--------------------------------)![Nicolas Lupi](https://medium.com/@nicolupi.2?source=post_page---byline--0ddf3e0f7d8c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0ddf3e0f7d8c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0ddf3e0f7d8c--------------------------------) [Nicolas Lupi](https://medium.com/@nicolupi.2?source=post_page---byline--0ddf3e0f7d8c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0ddf3e0f7d8c--------------------------------) ·阅读时间 13 分钟·2024年5月9日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0ddf3e0f7d8c--------------------------------) ·阅读时间 13 分钟·2024 年 5 月 9 日
 
 --
 
-![](../Images/dd461c48cbc1fb8dfe671c1403a9486e.png)
+![](img/dd461c48cbc1fb8dfe671c1403a9486e.png)
 
 图片由 [Edu Grande](https://unsplash.com/@edgr?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -24,11 +24,11 @@
 
 +   **更好的解释性** — 减少特征数量能够产生更简洁的模型，更容易理解。
 
-有许多可用的特征选择技术，每种技术的复杂度不同。在本文中，我想分享一种使用强大开源优化工具Optuna以创新方式执行特征选择任务的方法。其主要思想是拥有一个灵活的工具，可以通过高效地测试不同的特征组合（例如，不是逐一尝试它们）来处理各种任务的特征选择。接下来，我们将通过一个动手示例来实现这种方法，并将其与其他常见的特征选择策略进行比较。要实验本文讨论的特征选择技术，您可以按照此[Colab笔记本](https://colab.research.google.com/drive/193Jwb0xXWh_UkvwIiFgufKEYer-86RNA?usp=sharing)进行操作。
+有许多可用的特征选择技术，每种技术的复杂度不同。在本文中，我想分享一种使用强大开源优化工具 Optuna 以创新方式执行特征选择任务的方法。其主要思想是拥有一个灵活的工具，可以通过高效地测试不同的特征组合（例如，不是逐一尝试它们）来处理各种任务的特征选择。接下来，我们将通过一个动手示例来实现这种方法，并将其与其他常见的特征选择策略进行比较。要实验本文讨论的特征选择技术，您可以按照此[Colab 笔记本](https://colab.research.google.com/drive/193Jwb0xXWh_UkvwIiFgufKEYer-86RNA?usp=sharing)进行操作。
 
-在这个示例中，我们将重点关注基于[Kaggle的移动价格分类](https://www.kaggle.com/datasets/iabhishekofficial/mobile-price-classification)数据集的分类任务。我们有20个特征，包括‘*battery_power*’、‘*clock_speed*’和‘*ram*’，用于预测‘*price_range*’特征，该特征可以属于四个不同的区间：0、1、2和3。
+在这个示例中，我们将重点关注基于[Kaggle 的移动价格分类](https://www.kaggle.com/datasets/iabhishekofficial/mobile-price-classification)数据集的分类任务。我们有 20 个特征，包括‘*battery_power*’、‘*clock_speed*’和‘*ram*’，用于预测‘*price_range*’特征，该特征可以属于四个不同的区间：0、1、2 和 3。
 
-我们首先将数据集拆分为训练集和测试集，并在训练集中准备一个5折验证集——这将在后续过程中派上用场。
+我们首先将数据集拆分为训练集和测试集，并在训练集中准备一个 5 折验证集——这将在后续过程中派上用场。
 
 ```py
 import pandas as pd
@@ -58,7 +58,7 @@ skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
 splits = list(skf.split(X_train, y_train))
 ```
 
-我们在整个示例中使用的模型是[随机森林分类器](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html)，使用的是scikit-learn实现和默认参数。我们首先使用所有特征训练模型以设定基准。我们将衡量的指标是对所有四个价格区间加权的F1分数。通过在训练集上拟合模型后，我们在测试集上进行评估，得到大约0.87的F1分数。
+我们在整个示例中使用的模型是[随机森林分类器](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html)，使用的是 scikit-learn 实现和默认参数。我们首先使用所有特征训练模型以设定基准。我们将衡量的指标是对所有四个价格区间加权的 F1 分数。通过在训练集上拟合模型后，我们在测试集上进行评估，得到大约 0.87 的 F1 分数。
 
 ```py
 from sklearn.ensemble import RandomForestClassifier
@@ -72,17 +72,17 @@ print(classification_report(y_test, preds))
 print(f"Global F1: {f1_score(y_test, preds, average='weighted')}")
 ```
 
-![](../Images/06ba109e36469ca2e01826c3e7150bc1.png)
+![](img/06ba109e36469ca2e01826c3e7150bc1.png)
 
 图片由作者提供
 
-现在的目标是通过选择一个精简的特征集来改善这些指标。我们将首先概述我们的基于Optuna的方法如何工作，然后与其他常见的特征选择策略进行测试和比较。
+现在的目标是通过选择一个精简的特征集来改善这些指标。我们将首先概述我们的基于 Optuna 的方法如何工作，然后与其他常见的特征选择策略进行测试和比较。
 
 # Optuna
 
-[Optuna](https://optuna.org/)是一个主要用于超参数调优的优化框架。该框架的一个关键特性是使用贝叶斯优化技术来搜索参数空间。其主要思想是，Optuna尝试不同的参数组合，并评估每种配置下目标函数的变化。从这些试验中，它构建了一个概率模型，用于估计哪些参数值可能会带来更好的结果。
+[Optuna](https://optuna.org/)是一个主要用于超参数调优的优化框架。该框架的一个关键特性是使用贝叶斯优化技术来搜索参数空间。其主要思想是，Optuna 尝试不同的参数组合，并评估每种配置下目标函数的变化。从这些试验中，它构建了一个概率模型，用于估计哪些参数值可能会带来更好的结果。
 
-与网格搜索或随机搜索相比，这种策略效率更高。例如，如果我们有*n*个特征，并尝试每个可能的特征子集，我们将不得不进行2^*n*次试验。如果有20个特征，这将超过一百万次试验。相反，使用Optuna，我们可以用更少的试验探索搜索空间。
+与网格搜索或随机搜索相比，这种策略效率更高。例如，如果我们有*n*个特征，并尝试每个可能的特征子集，我们将不得不进行 2^*n*次试验。如果有 20 个特征，这将超过一百万次试验。相反，使用 Optuna，我们可以用更少的试验探索搜索空间。
 
 Optuna 提供了多种采样器供选择。对于我们的情况，我们将使用默认的 *TPESampler*，它基于树结构 Parzen 估计器算法（TPE）。这个采样器是最常用的，并且推荐用于搜索分类参数，这正是我们的情况，正如我们下面所看到的那样。根据文档，这个算法“拟合一个高斯混合模型（GMM）*l(x)* 到与最佳目标值关联的参数值集，并将另一个 GMM *g(x)* 拟合到剩余的参数值。它选择最大化 *l(x)/g(x)* 比率的参数值 x。”
 
@@ -214,13 +214,13 @@ study.optimize(FeatureSelectionOptuna(
 
 注意，从原始的 20 个特征中，搜索仅保留了其中的 9 个特征，这是一种显著的减少。这些特征产生了大约 -0.9117 的最小验证损失，这意味着它们在所有折叠上的平均 F1 分数大约为 0.9108（在调整了惩罚项之后）。
 
-下一步是使用这些选定的特征在整个训练集上训练模型，并在测试集上进行评估。这样会得到一个大约为0.882的F1分数：
+下一步是使用这些选定的特征在整个训练集上训练模型，并在测试集上进行评估。这样会得到一个大约为 0.882 的 F1 分数：
 
-![](../Images/3efce9ccee6e54966260ab9e0c568dc8.png)
+![](img/3efce9ccee6e54966260ab9e0c568dc8.png)
 
 图片由作者提供
 
-通过选择合适的特征，我们能够将特征集减少一半以上，同时仍然比使用完整特征集时获得更高的F1分数。接下来我们将讨论使用Optuna进行特征选择的一些优缺点：
+通过选择合适的特征，我们能够将特征集减少一半以上，同时仍然比使用完整特征集时获得更高的 F1 分数。接下来我们将讨论使用 Optuna 进行特征选择的一些优缺点：
 
 **优点**：
 
@@ -228,7 +228,7 @@ study.optimize(FeatureSelectionOptuna(
 
 +   适用于多种场景：只要有模型和损失函数，我们就可以将其应用于任何特征选择任务。
 
-+   看得更全面：与逐个评估特征的方法不同，Optuna会考虑哪些特征相互搭配良好，哪些则不然。
++   看得更全面：与逐个评估特征的方法不同，Optuna 会考虑哪些特征相互搭配良好，哪些则不然。
 
 +   在优化过程中动态确定特征的数量。这可以通过惩罚项进行调整。
 
@@ -236,7 +236,7 @@ study.optimize(FeatureSelectionOptuna(
 
 +   它不像简单方法那样直观，对于较小和较简单的数据集来说，可能不值得使用。
 
-+   尽管它比其他方法（如穷举搜索）需要的试验次数要少得多，但它通常仍然需要大约100到1000次试验。根据模型和数据集的不同，这可能是时间消耗大且计算开销高的。
++   尽管它比其他方法（如穷举搜索）需要的试验次数要少得多，但它通常仍然需要大约 100 到 1000 次试验。根据模型和数据集的不同，这可能是时间消耗大且计算开销高的。
 
 接下来，我们将把我们的方法与其他常见的特征选择策略进行比较。
 
@@ -244,7 +244,7 @@ study.optimize(FeatureSelectionOptuna(
 
 ## 过滤方法 — 卡方检验
 
-最简单的替代方法之一是使用统计测试分别评估每个特征，并根据其分数保留前* k *个特征。请注意，这种方法不需要任何机器学习模型。例如，对于分类任务，我们可以选择卡方检验，它确定每个特征与目标变量之间是否存在统计学上的显著关联。我们将使用来自scikit-learn的[SelectKBest](https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectKBest.html)类，它将分数函数（卡方检验）应用于每个特征，并返回前* k *个得分最高的变量。与Optuna方法不同，特征的数量不是在选择过程中确定的，而是必须事先设定。在这种情况下，我们将其数量设置为十。这些方法属于过滤方法类别。它们通常是最简单且最快的计算方法，因为它们不需要背后有任何模型。
+最简单的替代方法之一是使用统计测试分别评估每个特征，并根据其分数保留前* k *个特征。请注意，这种方法不需要任何机器学习模型。例如，对于分类任务，我们可以选择卡方检验，它确定每个特征与目标变量之间是否存在统计学上的显著关联。我们将使用来自 scikit-learn 的[SelectKBest](https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectKBest.html)类，它将分数函数（卡方检验）应用于每个特征，并返回前* k *个得分最高的变量。与 Optuna 方法不同，特征的数量不是在选择过程中确定的，而是必须事先设定。在这种情况下，我们将其数量设置为十。这些方法属于过滤方法类别。它们通常是最简单且最快的计算方法，因为它们不需要背后有任何模型。
 
 ```py
 from sklearn.feature_selection import SelectKBest, chi2
@@ -259,13 +259,13 @@ featureScores.columns = ['feature','score']
 featureScores.nlargest(10, 'score')
 ```
 
-![](../Images/c5caab606183aa19ef91c6caf5dfd41b.png)
+![](img/c5caab606183aa19ef91c6caf5dfd41b.png)
 
 图片由作者提供
 
-在我们的例子中，*ram* 在卡方检验中得分最高，其次是*px_height*和*battery_power*。请注意，这些特征也是我们上面Optuna方法所选择的特征，此外还有*px_width*、*mobile_wt*和*sc_w*。然而，也有一些新的特征如*int_memory*和*talk_time*——这些特征在Optuna研究中并未被选中。在使用这10个特征训练随机森林并在测试集上评估后，我们获得了略高于之前最佳得分的F1得分，约为0.888：
+在我们的例子中，*ram* 在卡方检验中得分最高，其次是*px_height*和*battery_power*。请注意，这些特征也是我们上面 Optuna 方法所选择的特征，此外还有*px_width*、*mobile_wt*和*sc_w*。然而，也有一些新的特征如*int_memory*和*talk_time*——这些特征在 Optuna 研究中并未被选中。在使用这 10 个特征训练随机森林并在测试集上评估后，我们获得了略高于之前最佳得分的 F1 得分，约为 0.888：
 
-![](../Images/6d68dc4ce15b284ad414bbc2ead91a35.png)
+![](img/6d68dc4ce15b284ad414bbc2ead91a35.png)
 
 图片来源：作者
 
@@ -285,9 +285,9 @@ featureScores.nlargest(10, 'score')
 
 ## 包装方法 — 前向搜索
 
-包装方法是另一类特征选择策略。这些方法是迭代性的；它们包括用一组特征训练模型、评估其性能，然后决定是否添加或删除特征。我们的Optuna策略属于这些方法之一。然而，最常见的例子包括前向选择和后向选择。在前向选择中，我们从没有特征开始，在每一步中，我们贪婪地添加提供最高性能增益的特征，直到满足停止准则（特征数量或性能下降）。相反，后向选择从所有特征开始，并在每一步中迭代地删除最不重要的特征。
+包装方法是另一类特征选择策略。这些方法是迭代性的；它们包括用一组特征训练模型、评估其性能，然后决定是否添加或删除特征。我们的 Optuna 策略属于这些方法之一。然而，最常见的例子包括前向选择和后向选择。在前向选择中，我们从没有特征开始，在每一步中，我们贪婪地添加提供最高性能增益的特征，直到满足停止准则（特征数量或性能下降）。相反，后向选择从所有特征开始，并在每一步中迭代地删除最不重要的特征。
 
-接下来，我们尝试使用scikit-learn中的[SequentialFeatureSelector](https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SequentialFeatureSelector.html)类，执行前向选择，直到找到前10个特征。此方法还将利用我们之前执行的5折交叉验证，在每一步对验证集的性能进行平均。
+接下来，我们尝试使用 scikit-learn 中的[SequentialFeatureSelector](https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SequentialFeatureSelector.html)类，执行前向选择，直到找到前 10 个特征。此方法还将利用我们之前执行的 5 折交叉验证，在每一步对验证集的性能进行平均。
 
 ```py
 from sklearn.feature_selection import SequentialFeatureSelector
@@ -304,9 +304,9 @@ print(selected_features)
 
 [*‘battery_power’, ‘blue’, ‘fc’, ‘mobile_wt’, ‘px_height’, ‘px_width’, ‘ram’, ‘talk_time’, ‘three_g’, ‘touch_screen’*]
 
-再次提到，一些特征与之前的方法相同，另一些则是新的（例如，*three_g* 和 *touch_screen*）。使用这些特征，随机森林在测试集上的F1得分较低，略低于0.88。
+再次提到，一些特征与之前的方法相同，另一些则是新的（例如，*three_g* 和 *touch_screen*）。使用这些特征，随机森林在测试集上的 F1 得分较低，略低于 0.88。
 
-![](../Images/e201b5306398514db1b2d9345d072136.png)
+![](img/e201b5306398514db1b2d9345d072136.png)
 
 图片来源：作者
 
@@ -324,7 +324,7 @@ print(selected_features)
 
 ## 特征重要性
 
-最后，我们将探讨另一种简单的特征选择策略，即使用模型学习到的特征重要性（如果有）。某些模型，如随机森林，提供了哪些特征对预测最重要的度量。我们可以利用这些排名来筛选掉那些模型认为重要性最小的特征。在这种情况下，我们在整个训练数据集上训练模型，并保留10个最重要的特征：
+最后，我们将探讨另一种简单的特征选择策略，即使用模型学习到的特征重要性（如果有）。某些模型，如随机森林，提供了哪些特征对预测最重要的度量。我们可以利用这些排名来筛选掉那些模型认为重要性最小的特征。在这种情况下，我们在整个训练数据集上训练模型，并保留 10 个最重要的特征：
 
 ```py
 model = RandomForestClassifier(random_state=SEED)
@@ -334,13 +334,13 @@ importance = pd.DataFrame({'feature':X_train.columns, 'importance':model.feature
 importance.nlargest(10, 'importance')
 ```
 
-![](../Images/331f3e642958ee301da7619b9775d6e2.png)
+![](img/331f3e642958ee301da7619b9775d6e2.png)
 
 图片由作者提供
 
-请注意，*ram*再次被排名为最重要的特征，远远高于第二重要的特征。在使用这10个特征进行训练时，我们获得了接近0.883的测试F1分数，这与我们之前看到的分数相似。同时，注意通过特征重要性选择的特征与通过卡方检验选择的特征相同，尽管它们的排名不同。这种排名差异导致了稍微不同的结果。
+请注意，*ram*再次被排名为最重要的特征，远远高于第二重要的特征。在使用这 10 个特征进行训练时，我们获得了接近 0.883 的测试 F1 分数，这与我们之前看到的分数相似。同时，注意通过特征重要性选择的特征与通过卡方检验选择的特征相同，尽管它们的排名不同。这种排名差异导致了稍微不同的结果。
 
-![](../Images/723f66b75c094da32fcf5cc1c88cef56.png)
+![](img/723f66b75c094da32fcf5cc1c88cef56.png)
 
 图片由作者提供
 
@@ -362,10 +362,10 @@ importance.nlargest(10, 'importance')
 
 # 结束语
 
-总结来说，我们已经看到如何使用一个强大的优化工具Optuna来进行特征选择任务。通过高效地探索搜索空间，它能够在相对较少的试验中找到良好的特征子集。不仅如此，它还非常灵活，只要我们定义了模型和损失函数，就可以适应许多不同的场景。
+总结来说，我们已经看到如何使用一个强大的优化工具 Optuna 来进行特征选择任务。通过高效地探索搜索空间，它能够在相对较少的试验中找到良好的特征子集。不仅如此，它还非常灵活，只要我们定义了模型和损失函数，就可以适应许多不同的场景。
 
-在我们的示例中，我们观察到所有技术都产生了相似的特征集和结果。这主要是因为我们使用的数据集相对简单。在这些情况下，较简单的方法已经能够产生良好的特征选择，因此采用Optuna方法并没有太大意义。然而，对于更复杂的数据集，其中包含更多特征并且它们之间存在复杂关系，使用Optuna可能是一个不错的选择。因此，总的来说，鉴于其相对简单的实现方式和能够提供良好结果的能力，将Optuna用于特征选择是数据科学家工具包中值得加入的一个方法。
+在我们的示例中，我们观察到所有技术都产生了相似的特征集和结果。这主要是因为我们使用的数据集相对简单。在这些情况下，较简单的方法已经能够产生良好的特征选择，因此采用 Optuna 方法并没有太大意义。然而，对于更复杂的数据集，其中包含更多特征并且它们之间存在复杂关系，使用 Optuna 可能是一个不错的选择。因此，总的来说，鉴于其相对简单的实现方式和能够提供良好结果的能力，将 Optuna 用于特征选择是数据科学家工具包中值得加入的一个方法。
 
 感谢阅读！
 
-Colab Notebook: [https://colab.research.google.com/drive/193Jwb0xXWh_UkvwIiFgufKEYer-86RNA?usp=sharing](https://colab.research.google.com/drive/193Jwb0xXWh_UkvwIiFgufKEYer-86RNA?usp=sharing)
+Colab Notebook: [`colab.research.google.com/drive/193Jwb0xXWh_UkvwIiFgufKEYer-86RNA?usp=sharing`](https://colab.research.google.com/drive/193Jwb0xXWh_UkvwIiFgufKEYer-86RNA?usp=sharing)

@@ -1,12 +1,12 @@
 # 使用 AWS S3 设置自动化模型训练工作流
 
-> 原文：[https://towardsdatascience.com/setting-up-automated-model-training-workflows-with-aws-s3-cd0587b42f34?source=collection_archive---------6-----------------------#2024-03-18](https://towardsdatascience.com/setting-up-automated-model-training-workflows-with-aws-s3-cd0587b42f34?source=collection_archive---------6-----------------------#2024-03-18)
+> 原文：[`towardsdatascience.com/setting-up-automated-model-training-workflows-with-aws-s3-cd0587b42f34?source=collection_archive---------6-----------------------#2024-03-18`](https://towardsdatascience.com/setting-up-automated-model-training-workflows-with-aws-s3-cd0587b42f34?source=collection_archive---------6-----------------------#2024-03-18)
 
 ## 工作流自动化的开源方法
 
-[](https://khuyentran1476.medium.com/?source=post_page---byline--cd0587b42f34--------------------------------)[![Khuyen Tran](../Images/98aa66025ad29b618e875c75f1c400a5.png)](https://khuyentran1476.medium.com/?source=post_page---byline--cd0587b42f34--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cd0587b42f34--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cd0587b42f34--------------------------------) [Khuyen Tran](https://khuyentran1476.medium.com/?source=post_page---byline--cd0587b42f34--------------------------------)
+[](https://khuyentran1476.medium.com/?source=post_page---byline--cd0587b42f34--------------------------------)![Khuyen Tran](https://khuyentran1476.medium.com/?source=post_page---byline--cd0587b42f34--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cd0587b42f34--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd0587b42f34--------------------------------) [Khuyen Tran](https://khuyentran1476.medium.com/?source=post_page---byline--cd0587b42f34--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd0587b42f34--------------------------------) ·阅读时间 7 分钟 ·2024年3月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd0587b42f34--------------------------------) ·阅读时间 7 分钟 ·2024 年 3 月 18 日
 
 --
 
@@ -16,7 +16,7 @@
 
 为了优化推荐，你计划每当 S3 中添加新文件时，使用最新的客户互动数据重新训练推荐模型。那么，如何具体处理这个任务呢？
 
-![](../Images/19c91eea848de1654a1def0fce56e5a3.png)
+![](img/19c91eea848de1654a1def0fce56e5a3.png)
 
 除非另有说明，所有图片均由作者提供
 
@@ -36,7 +36,7 @@
 
 +   **环境控制：** 对执行环境的完全控制使你能够根据自己的喜好自定义开发工具和集成开发环境（IDE）。
 
-![](../Images/aa329b6f70ec6933a5f407cb563a3fd2.png)
+![](img/aa329b6f70ec6933a5f407cb563a3fd2.png)
 
 虽然你可以在 Apache Airflow 中解决这个问题，但它需要复杂的基础设施和部署设置。因此，我们将使用 [Kestra](https://bit.ly/49OMyH9)，它提供了直观的用户界面，并且可以通过一个 Docker 命令启动。
 
@@ -56,11 +56,11 @@ github.com](https://github.com/khuyentran1401/mlops-kestra-workflow?source=post_
 
 +   Python 脚本和流程存储在 Git 中，并且会按计划同步到 Kestra。
 
-![](../Images/ff05c4168232f7a136a385271928fd4b.png)
+![](img/ff05c4168232f7a136a385271928fd4b.png)
 
 +   当 S3 桶的“new”前缀下出现新文件时，Kestra 会触发一系列 Python 脚本的执行。
 
-![](../Images/19c91eea848de1654a1def0fce56e5a3.png)
+![](img/19c91eea848de1654a1def0fce56e5a3.png)
 
 ## Python 脚本
 
@@ -72,7 +72,7 @@ github.com](https://github.com/khuyentran1401/mlops-kestra-workflow?source=post_
 
 +   [*train.py*](https://github.com/khuyentran1401/mlops-kestra-workflow/blob/main/src/train.py)*:* 使用处理后的数据训练模型。
 
-![](../Images/f230c2f02a707f09663735925e93bbdd.png)
+![](img/f230c2f02a707f09663735925e93bbdd.png)
 
 由于我们将在 Kestra 中执行从 Git 下载的代码，请确保将这些 Python 脚本提交到仓库中。
 
@@ -99,9 +99,9 @@ https://raw.githubusercontent.com/kestra-io/kestra/develop/docker-compose.yml
 docker-compose up -d
 ```
 
-通过在浏览器中打开 URL [http://localhost:8080](http://localhost:8080/) 访问 UI。
+通过在浏览器中打开 URL [`localhost:8080`](http://localhost:8080/) 访问 UI。
 
-![](../Images/5b33ef5eb4c0a7f3801fb1ba4f5fa7e8.png)
+![](img/5b33ef5eb4c0a7f3801fb1ba4f5fa7e8.png)
 
 ## 从 Git 同步
 
@@ -121,7 +121,7 @@ docker-compose up -d
 
 如果您使用的是 VSCode，可以使用 [Kestra 插件](https://marketplace.visualstudio.com/items?itemName=kestra-io.kestra) 来启用 `.yaml` 文件中的流程自动完成和验证功能。
 
-![](../Images/5d963b494550c1f0572c20a04a2f7675.png)![](../Images/0d1942b43ca808d76b4744901d3bb420.png)
+![](img/5d963b494550c1f0572c20a04a2f7675.png)![](img/0d1942b43ca808d76b4744901d3bb420.png)
 
 以下是从 Git 同步代码的流程实现：
 
@@ -192,7 +192,7 @@ SECRET_AWS_SECRET_ACCESS_KEY=bXlhd3NzZWNyZXRhY2Nlc3NrZXk=
 .env_encoded
 ```
 
-最后，将新流程和Docker Compose文件都提交到Git：
+最后，将新流程和 Docker Compose 文件都提交到 Git：
 
 ```py
 git add _flows/sync_from_git.yml docker-compose.yml
@@ -200,17 +200,17 @@ git commit -m 'add Git Sync'
 git push origin main
 ```
 
-现在，随着`sync_from_git`流程设置为每分钟运行一次，你可以方便地通过Kestra UI访问并触发Python脚本的执行。
+现在，随着`sync_from_git`流程设置为每分钟运行一次，你可以方便地通过 Kestra UI 访问并触发 Python 脚本的执行。
 
-![](../Images/720f5af3075edd1455253930ff0f021c.png)![](../Images/84846040a61cc99923ac42d464e5516c.png)
+![](img/720f5af3075edd1455253930ff0f021c.png)![](img/84846040a61cc99923ac42d464e5516c.png)
 
 ## 编排
 
 我们将创建一个流程，当有新文件添加到“winequality-red”桶中的“new”前缀时触发。
 
-一旦检测到新文件，Kestra会将其下载到内部存储并执行Python文件。最后，它将文件从“new”前缀移动到“old”前缀，以避免在随后的轮询中重复检测。
+一旦检测到新文件，Kestra 会将其下载到内部存储并执行 Python 文件。最后，它将文件从“new”前缀移动到“old”前缀，以避免在随后的轮询中重复检测。
 
-![](../Images/7108977a1b3c4ca3def8ec2ac3f9c195.png)
+![](img/7108977a1b3c4ca3def8ec2ac3f9c195.png)
 
 ```py
 id: run_ml_pipeline
@@ -251,21 +251,21 @@ triggers:
 
 `run_python_commands`任务使用：
 
-+   使用`namespaceFiles`访问本地项目中的所有文件，并与Git仓库同步。
++   使用`namespaceFiles`访问本地项目中的所有文件，并与 Git 仓库同步。
 
 +   使用`env`来检索环境变量。
 
-+   使用`docker`在docker容器`ghcr.io/kestra-io/pydata:latest`内执行脚本。
++   使用`docker`在 docker 容器`ghcr.io/kestra-io/pydata:latest`内执行脚本。
 
 +   使用`beforeCommands`在执行命令之前从“requirements.txt”文件安装依赖。
 
 +   使用`commands`按顺序执行命令列表。
 
-+   使用`outputFiles`将所有pickle文件从本地文件系统发送到Kestra的内部存储。
++   使用`outputFiles`将所有 pickle 文件从本地文件系统发送到 Kestra 的内部存储。
 
-最后，添加`upload`任务，将模型的pickle文件上传到S3。
+最后，添加`upload`任务，将模型的 pickle 文件上传到 S3。
 
-![](../Images/0bf0fad92d75de999eb59d2fefd93602.png)
+![](img/0bf0fad92d75de999eb59d2fefd93602.png)
 
 ```py
 id: run_ml_pipeline
@@ -313,23 +313,23 @@ git push origin main
 
 ## 触发流程
 
-要启动流程，只需将新文件添加到S3的“winequality-red”桶中的“new”前缀。
+要启动流程，只需将新文件添加到 S3 的“winequality-red”桶中的“new”前缀。
 
-![](../Images/1c3cf593aa7d5ea84478abcf8c5e57a5.png)
+![](img/1c3cf593aa7d5ea84478abcf8c5e57a5.png)
 
 该操作将触发`run_ml_pipeline`流程，启动从“旧”前缀下载数据、合并所有文件、处理数据并训练模型。
 
-![](../Images/6e9a0b6ab67bc14bc15e7eca149714ec.png)![](../Images/d3cfe0e9fa37c79f185715567c6f35f9.png)
+![](img/6e9a0b6ab67bc14bc15e7eca149714ec.png)![](img/d3cfe0e9fa37c79f185715567c6f35f9.png)
 
-一旦工作流执行完毕，“model.pkl”文件会被上传到S3。
+一旦工作流执行完毕，“model.pkl”文件会被上传到 S3。
 
-![](../Images/5c20d3d5356ee53bdf05e9993a5e8938.png)
+![](img/5c20d3d5356ee53bdf05e9993a5e8938.png)
 
 # 结论
 
-本文展示了如何使用Kestra自动化执行数据科学任务的Python脚本，每当有新文件添加到S3时。如果你在寻找自动化机器学习管道的方式，可以尝试这个解决方案。
+本文展示了如何使用 Kestra 自动化执行数据科学任务的 Python 脚本，每当有新文件添加到 S3 时。如果你在寻找自动化机器学习管道的方式，可以尝试这个解决方案。
 
-![](../Images/374d772107eebbec9b782240512405e3.png)
+![](img/374d772107eebbec9b782240512405e3.png)
 
 我喜欢写关于数据科学的概念，并玩弄各种数据科学工具。你可以通过以下方式保持关注我的最新文章：
 

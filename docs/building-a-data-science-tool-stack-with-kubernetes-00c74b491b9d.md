@@ -1,28 +1,28 @@
-# 使用Kubernetes构建数据科学平台
+# 使用 Kubernetes 构建数据科学平台
 
-> 原文：[https://towardsdatascience.com/building-a-data-science-tool-stack-with-kubernetes-00c74b491b9d?source=collection_archive---------7-----------------------#2024-07-11](https://towardsdatascience.com/building-a-data-science-tool-stack-with-kubernetes-00c74b491b9d?source=collection_archive---------7-----------------------#2024-07-11)
+> 原文：[`towardsdatascience.com/building-a-data-science-tool-stack-with-kubernetes-00c74b491b9d?source=collection_archive---------7-----------------------#2024-07-11`](https://towardsdatascience.com/building-a-data-science-tool-stack-with-kubernetes-00c74b491b9d?source=collection_archive---------7-----------------------#2024-07-11)
 
-## Kubernetes如何作为后端工具，支持数据科学团队实现从模型开发到部署的端到端机器学习生命周期
+## Kubernetes 如何作为后端工具，支持数据科学团队实现从模型开发到部署的端到端机器学习生命周期
 
-[](https://avinashknmr.medium.com/?source=post_page---byline--00c74b491b9d--------------------------------)[![Avinash Kanumuru](../Images/7d9f0547542650178297ed04365fb7da.png)](https://avinashknmr.medium.com/?source=post_page---byline--00c74b491b9d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--00c74b491b9d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--00c74b491b9d--------------------------------) [Avinash Kanumuru](https://avinashknmr.medium.com/?source=post_page---byline--00c74b491b9d--------------------------------)
+[](https://avinashknmr.medium.com/?source=post_page---byline--00c74b491b9d--------------------------------)![Avinash Kanumuru](https://avinashknmr.medium.com/?source=post_page---byline--00c74b491b9d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--00c74b491b9d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00c74b491b9d--------------------------------) [Avinash Kanumuru](https://avinashknmr.medium.com/?source=post_page---byline--00c74b491b9d--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00c74b491b9d--------------------------------) ·阅读时长6分钟·2024年7月11日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00c74b491b9d--------------------------------) ·阅读时长 6 分钟·2024 年 7 月 11 日
 
 --
 
-![](../Images/6e99dc373ba82e9468ce30f2575fb1af.png)
+![](img/6e99dc373ba82e9468ce30f2575fb1af.png)
 
 图片来源：[Growtika](https://unsplash.com/@growtika?utm_source=medium&utm_medium=referral) 于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 当我开始担任数据科学经理的新职位时，我对为团队搭建数据科学平台几乎一无所知。在我之前的所有职位中，我主要工作是构建模型，并在一定程度上进行模型部署（或者至少是支持进行模型部署的团队），但我从未需要从零开始搭建什么（我指的是基础设施）。那时，数据科学团队还不存在。
 
-所以，我的第一个目标是搭建一个平台，不仅仅是为数据科学团队单独使用，而是能够与数据工程和软件团队集成。这就是我第一次直接接触Kubernetes（k8s）的时候。我之前听说过它，但没有超出创建docker镜像的范围，其他人会在某些基础设施上进行部署。
+所以，我的第一个目标是搭建一个平台，不仅仅是为数据科学团队单独使用，而是能够与数据工程和软件团队集成。这就是我第一次直接接触 Kubernetes（k8s）的时候。我之前听说过它，但没有超出创建 docker 镜像的范围，其他人会在某些基础设施上进行部署。
 
-那么，为什么数据科学团队需要Kubernetes呢？数据科学团队面临哪些挑战？
+那么，为什么数据科学团队需要 Kubernetes 呢？数据科学团队面临哪些挑战？
 
 +   根据需求可扩展的计算——作为数据科学家，我们每天处理不同的问题，每个问题的资源需求各不相同。没有一种通用的计算机。即使有，也不能提供给数据科学团队的每个成员。
 
-+   版本问题——在团队中工作时，或者在我们部署到生产环境时，Python和包的版本问题
++   版本问题——在团队中工作时，或者在我们部署到生产环境时，Python 和包的版本问题
 
 +   不同的技术和平台 — 有些预处理和模型构建需要使用 Spark，而有些可以通过 Pandas 完成。所以再次强调，本地计算机上并没有适用于所有情况的“一刀切”方案。
 
@@ -64,25 +64,25 @@ z2jh.jupyter.org](https://z2jh.jupyter.org/?source=post_page-----00c74b491b9d---
 
 [](https://github.com/avinashknmr/data-science-tools?source=post_page-----00c74b491b9d--------------------------------) [## GitHub - avinashknmr/data-science-tools  
 
-### 通过在GitHub上创建账户，参与开发avinashknmr/data-science-tools项目。  
+### 通过在 GitHub 上创建账户，参与开发 avinashknmr/data-science-tools 项目。  
 
 [github.com](https://github.com/avinashknmr/data-science-tools?source=post_page-----00c74b491b9d--------------------------------)  
 
-为了启用Google Oauth，我做了很多调整，包括将Notebook作为root用户启动，但以个别用户身份运行它们，检索用户名、用户级别的权限、持久卷声明和服务账户等，这些都花费了我几天时间才能让它工作，尤其是身份验证部分。但代码库中的这段代码，可以为你提供一个框架，帮助你开始使用。  
+为了启用 Google Oauth，我做了很多调整，包括将 Notebook 作为 root 用户启动，但以个别用户身份运行它们，检索用户名、用户级别的权限、持久卷声明和服务账户等，这些都花费了我几天时间才能让它工作，尤其是身份验证部分。但代码库中的这段代码，可以为你提供一个框架，帮助你开始使用。  
 
 ## MLflow  
 
-设置MLFlow很简单。  
+设置 MLFlow 很简单。  
 
-[](https://mlflow.org/docs/latest/introduction/index.html?source=post_page-----00c74b491b9d--------------------------------) [## 什么是MLflow？  
+[](https://mlflow.org/docs/latest/introduction/index.html?source=post_page-----00c74b491b9d--------------------------------) [## 什么是 MLflow？  
 
 ### 进入机器学习（ML）领域是一次令人兴奋的旅程，但它常常伴随着一些复杂性，这可能…  
 
 [mlflow.org](https://mlflow.org/docs/latest/introduction/index.html?source=post_page-----00c74b491b9d--------------------------------)  
 
-MLflow提供模型追踪、模型注册和模型服务能力。但对于模型服务，我们使用下一个工具（Seldon-Core）。  
+MLflow 提供模型追踪、模型注册和模型服务能力。但对于模型服务，我们使用下一个工具（Seldon-Core）。  
 
-构建一个包含所需Python包的Docker镜像。  
+构建一个包含所需 Python 包的 Docker 镜像。  
 
 ```py
 FROM python:3.11-slim
@@ -92,7 +92,7 @@ RUN pip install mlflow==2.0.1 boto3==1.26.12 awscli==1.27.22 psycopg2-binary==2.
 EXPOSE 5000
 ```
 
-一旦创建并推送Docker镜像到你选择的容器注册中心，我们会为Kubernetes创建一个部署和服务文件（类似于任何其他Docker镜像部署）。下面给出了部署yaml的一个片段。  
+一旦创建并推送 Docker 镜像到你选择的容器注册中心，我们会为 Kubernetes 创建一个部署和服务文件（类似于任何其他 Docker 镜像部署）。下面给出了部署 yaml 的一个片段。  
 
 ```py
 containers:
@@ -110,21 +110,21 @@ containers:
 
 这里有两个主要的配置，花了我一些时间才理解和配置完成——
 
-1.  artifact的位置  
+1.  artifact 的位置  
 
 1.  后端存储  
 
-artifact的位置将是一个Blob存储，你的模型文件将存储在此处，并可用于模型服务。然而，在我们的案例中，这个位置是AWS S3，所有的模型都存储在这里，并且它对我们来说是一个模型注册中心。还有其他几种选择可以在服务器本地存储模型，但每当Pod重启时，数据会丢失，而且PersistentVolume只能通过服务器访问。通过使用云存储，我们可以与其他服务进行集成——例如，Seldon-Core可以从这个位置加载并服务模型。后端存储则保存运行应用所需的所有元数据，包括模型追踪——每次实验/运行的参数和指标。  
+artifact 的位置将是一个 Blob 存储，你的模型文件将存储在此处，并可用于模型服务。然而，在我们的案例中，这个位置是 AWS S3，所有的模型都存储在这里，并且它对我们来说是一个模型注册中心。还有其他几种选择可以在服务器本地存储模型，但每当 Pod 重启时，数据会丢失，而且 PersistentVolume 只能通过服务器访问。通过使用云存储，我们可以与其他服务进行集成——例如，Seldon-Core 可以从这个位置加载并服务模型。后端存储则保存运行应用所需的所有元数据，包括模型追踪——每次实验/运行的参数和指标。  
 
 ## Seldon-Core  
 
-三者中第二个最棘手的是Seldon-Core。  
+三者中第二个最棘手的是 Seldon-Core。  
 
-Seldon-Core就像是你模型的封装器，它可以打包、部署和监控ML模型。这消除了对ML工程师的依赖，避免了需要他们来创建部署流水线。  
+Seldon-Core 就像是你模型的封装器，它可以打包、部署和监控 ML 模型。这消除了对 ML 工程师的依赖，避免了需要他们来创建部署流水线。  
 
-[](https://github.com/SeldonIO/seldon-core?source=post_page-----00c74b491b9d--------------------------------) [## GitHub - SeldonIO/seldon-core：一个用于打包、部署、监控和管理成千上万的生产机器学习模型的MLOps框架…  
+[](https://github.com/SeldonIO/seldon-core?source=post_page-----00c74b491b9d--------------------------------) [## GitHub - SeldonIO/seldon-core：一个用于打包、部署、监控和管理成千上万的生产机器学习模型的 MLOps 框架…  
 
-### 一个MLOps框架，用于打包、部署、监控和管理成千上万的生产机器学习模型…  
+### 一个 MLOps 框架，用于打包、部署、监控和管理成千上万的生产机器学习模型…  
 
 [github.com](https://github.com/SeldonIO/seldon-core?source=post_page-----00c74b491b9d--------------------------------)
 

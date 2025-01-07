@@ -1,18 +1,18 @@
-# 介绍 NumPy，第 1 部分：理解数组
+# 介绍 NumPy，第一部分：理解数组
 
-> 原文：[https://towardsdatascience.com/introducing-numpy-part-1-understanding-arrays-3f6fecc97e3d?source=collection_archive---------5-----------------------#2024-09-10](https://towardsdatascience.com/introducing-numpy-part-1-understanding-arrays-3f6fecc97e3d?source=collection_archive---------5-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/introducing-numpy-part-1-understanding-arrays-3f6fecc97e3d?source=collection_archive---------5-----------------------#2024-09-10`](https://towardsdatascience.com/introducing-numpy-part-1-understanding-arrays-3f6fecc97e3d?source=collection_archive---------5-----------------------#2024-09-10)
 
 ## 快速成功的数据科学
 
 ## 创建、描述和访问属性
 
-[](https://medium.com/@lee_vaughan?source=post_page---byline--3f6fecc97e3d--------------------------------)[![Lee Vaughan](../Images/9f6b90bb76102f438ab0b9a4a62ffa3f.png)](https://medium.com/@lee_vaughan?source=post_page---byline--3f6fecc97e3d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f6fecc97e3d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3f6fecc97e3d--------------------------------) [Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--3f6fecc97e3d--------------------------------)
+[](https://medium.com/@lee_vaughan?source=post_page---byline--3f6fecc97e3d--------------------------------)![Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--3f6fecc97e3d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f6fecc97e3d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f6fecc97e3d--------------------------------) [Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--3f6fecc97e3d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f6fecc97e3d--------------------------------) ·阅读时长 19 分钟·2024年9月10日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f6fecc97e3d--------------------------------) ·阅读时长 19 分钟·2024 年 9 月 10 日
 
 --
 
-![](../Images/f0e8c61e5a658a187f8cf8202e38fbc0.png)
+![](img/f0e8c61e5a658a187f8cf8202e38fbc0.png)
 
 DALL-E3 想象的 3D 数组
 

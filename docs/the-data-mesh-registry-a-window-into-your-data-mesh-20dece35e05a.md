@@ -1,16 +1,16 @@
 # 数据网格注册表 — 进入数据网格的窗口
 
-> 原文：[https://towardsdatascience.com/the-data-mesh-registry-a-window-into-your-data-mesh-20dece35e05a?source=collection_archive---------7-----------------------#2024-01-20](https://towardsdatascience.com/the-data-mesh-registry-a-window-into-your-data-mesh-20dece35e05a?source=collection_archive---------7-----------------------#2024-01-20)
+> 原文：[`towardsdatascience.com/the-data-mesh-registry-a-window-into-your-data-mesh-20dece35e05a?source=collection_archive---------7-----------------------#2024-01-20`](https://towardsdatascience.com/the-data-mesh-registry-a-window-into-your-data-mesh-20dece35e05a?source=collection_archive---------7-----------------------#2024-01-20)
 
 ## 在不断发展的企业数据网格生态系统中查找数据产品是一项挑战，但传统的集中式数据目录可能不是答案。相反，数据网格的联邦式方法为创建进入企业数据网格的窗口提供了新的机会。
 
-[](https://medium.com/@ericbroda?source=post_page---byline--20dece35e05a--------------------------------)[![Eric Broda](../Images/98628a26c6fa903108bda7c4d8955c04.png)](https://medium.com/@ericbroda?source=post_page---byline--20dece35e05a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--20dece35e05a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--20dece35e05a--------------------------------) [Eric Broda](https://medium.com/@ericbroda?source=post_page---byline--20dece35e05a--------------------------------)
+[](https://medium.com/@ericbroda?source=post_page---byline--20dece35e05a--------------------------------)![Eric Broda](https://medium.com/@ericbroda?source=post_page---byline--20dece35e05a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--20dece35e05a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--20dece35e05a--------------------------------) [Eric Broda](https://medium.com/@ericbroda?source=post_page---byline--20dece35e05a--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--20dece35e05a--------------------------------) ·阅读时间20分钟·2024年1月20日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--20dece35e05a--------------------------------) ·阅读时间 20 分钟·2024 年 1 月 20 日
 
 --
 
-![](../Images/f50621d51a0f9e06ac3747bf06df9e8d.png)
+![](img/f50621d51a0f9e06ac3747bf06df9e8d.png)
 
 图片来自[Nathan Anderson](https://unsplash.com/@nathananderson?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText) 于[Unsplash](https://unsplash.com/photos/Ih2kgjkekQk?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)
 

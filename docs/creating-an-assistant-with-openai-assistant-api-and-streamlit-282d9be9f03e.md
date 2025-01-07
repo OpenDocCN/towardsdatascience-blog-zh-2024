@@ -1,16 +1,16 @@
 # 使用 OpenAI 助理 API 和 Streamlit 创建助理
 
-> 原文：[https://towardsdatascience.com/creating-an-assistant-with-openai-assistant-api-and-streamlit-282d9be9f03e?source=collection_archive---------4-----------------------#2024-06-18](https://towardsdatascience.com/creating-an-assistant-with-openai-assistant-api-and-streamlit-282d9be9f03e?source=collection_archive---------4-----------------------#2024-06-18)
+> 原文：[`towardsdatascience.com/creating-an-assistant-with-openai-assistant-api-and-streamlit-282d9be9f03e?source=collection_archive---------4-----------------------#2024-06-18`](https://towardsdatascience.com/creating-an-assistant-with-openai-assistant-api-and-streamlit-282d9be9f03e?source=collection_archive---------4-----------------------#2024-06-18)
 
 ## 一步步的指南
 
-[](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--282d9be9f03e--------------------------------)[![Shuyang Xiang](../Images/36a5fd18fd9b7b88cb41094f09b83882.png)](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--282d9be9f03e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--282d9be9f03e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--282d9be9f03e--------------------------------) [Shuyang Xiang](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--282d9be9f03e--------------------------------)
+[](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--282d9be9f03e--------------------------------)![Shuyang Xiang](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--282d9be9f03e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--282d9be9f03e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--282d9be9f03e--------------------------------) [Shuyang Xiang](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--282d9be9f03e--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--282d9be9f03e--------------------------------) ·6分钟阅读·2024年6月18日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--282d9be9f03e--------------------------------) ·6 分钟阅读·2024 年 6 月 18 日
 
 --
 
-![](../Images/c668f6173825f0585d7ec25aca505ba6.png)
+![](img/c668f6173825f0585d7ec25aca505ba6.png)
 
 作者提供的图片：使用助理 API 和 Streamlit 完成的助理
 
@@ -34,21 +34,21 @@ OpenAI 最近推出了展示代理架构的新功能，例如助理 API。根据
 
 +   然后循环重新开始。
 
-![](../Images/070f496f4c9531b9c9a982299f110bdf.png)
+![](img/070f496f4c9531b9c9a982299f110bdf.png)
 
 作者提供的图片：LLM 代理循环
 
 不幸的是，尽管有宣布的优势，我发现 API 的文档做得很差，尤其是在与自定义函数调用的交互以及使用如 Streamlit 等框架构建应用时。
 
-在这篇博文中，我将引导你通过使用OpenAI助手API和自定义函数调用来构建一个AI助手，结合Streamlit界面，帮助那些有兴趣有效使用助手API的人。
+在这篇博文中，我将引导你通过使用 OpenAI 助手 API 和自定义函数调用来构建一个 AI 助手，结合 Streamlit 界面，帮助那些有兴趣有效使用助手 API 的人。
 
 # 使用案例：税费计算助手
 
-在这篇博文中，我将展示一个简单的示例：一个能够根据给定收入计算税费的AI助手。Langchain 用户可以轻松地通过创建一个带有“税费计算”工具的[代理](https://python.langchain.com/v0.1/docs/modules/agents/)来实现这一点。
+在这篇博文中，我将展示一个简单的示例：一个能够根据给定收入计算税费的 AI 助手。Langchain 用户可以轻松地通过创建一个带有“税费计算”工具的[代理](https://python.langchain.com/v0.1/docs/modules/agents/)来实现这一点。
 
-这个工具将包括必要的计算步骤和一个设计良好的提示，以确保LLM在任何涉及收入或税费的问题中都知道何时调用该工具。
+这个工具将包括必要的计算步骤和一个设计良好的提示，以确保 LLM 在任何涉及收入或税费的问题中都知道何时调用该工具。
 
-然而，这一过程与OpenAI助手API的工作方式并不完全相同。虽然代码解释器和文件搜索工具可以直接按照[OpenAI的文档](https://platform.openai.com/docs/assistants/how-it-works/creating-assistants)以直接的方式使用，但自定义工具则需要稍微不同的方法。
+然而，这一过程与 OpenAI 助手 API 的工作方式并不完全相同。虽然代码解释器和文件搜索工具可以直接按照[OpenAI 的文档](https://platform.openai.com/docs/assistants/how-it-works/creating-assistants)以直接的方式使用，但自定义工具则需要稍微不同的方法。
 
 ```py
 assistant = client.beta.assistants.create(
@@ -69,7 +69,7 @@ assistant = client.beta.assistants.create(
 
 # 助手集成的税费计算功能
 
-请注意，下面段落中描述的税费计算工具仅作为一个示例，用于展示如何使用本文讨论的API。它不应当用于实际的税费计算。
+请注意，下面段落中描述的税费计算工具仅作为一个示例，用于展示如何使用本文讨论的 API。它不应当用于实际的税费计算。
 
 考虑以下分段函数，它返回给定收入的税费值。请注意，输入被设置为字符串，以便更简单地解析：
 
@@ -127,7 +127,7 @@ assistant = client.beta.assistants.create(
 
 现在，关键点：
 
-当“calculate_tax”被调用时，助手如何使用该函数？这一部分在OpenAI助手文档中说明得不够清楚，许多用户在第一次使用时可能会感到困惑。为了解决这个问题，我们需要定义一个`EventHandler`来管理响应流中的不同事件，特别是如何处理当“calculate_tax”工具被调用时的事件。
+当“calculate_tax”被调用时，助手如何使用该函数？这一部分在 OpenAI 助手文档中说明得不够清楚，许多用户在第一次使用时可能会感到困惑。为了解决这个问题，我们需要定义一个`EventHandler`来管理响应流中的不同事件，特别是如何处理当“calculate_tax”工具被调用时的事件。
 
 ```py
  def handle_requires_action(self, data, run_id):
@@ -161,7 +161,7 @@ assistant = client.beta.assistants.create(
 
 # 与助手对话
 
-你现在可以按照OpenAI文档中的标准步骤与助手互动（因此我不会在这一部分提供过多细节）：
+你现在可以按照 OpenAI 文档中的标准步骤与助手互动（因此我不会在这一部分提供过多细节）：
 
 1.  **创建一个线程：** 这代表了用户与助手之间的对话。
 
@@ -223,6 +223,6 @@ def on_text_delta(self, delta: TextDelta, snapshot: Text):
 
 本文演示了如何使用 OpenAI Assistant API 和 Streamlit 构建一个能够计算税收的 AI 助手。
 
-我做了这个简单的项目，旨在突出**Assistant API**的功能，尽管它的文档不够清晰。我的目标是澄清一些模糊之处，并为那些有兴趣使用Assistant API的人提供一些指导。希望这篇文章对你有所帮助，并鼓励你进一步探索这个强大工具的其他可能性。
+我做了这个简单的项目，旨在突出**Assistant API**的功能，尽管它的文档不够清晰。我的目标是澄清一些模糊之处，并为那些有兴趣使用 Assistant API 的人提供一些指导。希望这篇文章对你有所帮助，并鼓励你进一步探索这个强大工具的其他可能性。
 
-由于空间限制，我尽量避免包含不必要的代码片段。不过，如果需要，请访问我的[Github仓库](https://github.com/ShuyangenFrance/openai_assistant)查看完整实现。
+由于空间限制，我尽量避免包含不必要的代码片段。不过，如果需要，请访问我的[Github 仓库](https://github.com/ShuyangenFrance/openai_assistant)查看完整实现。

@@ -1,68 +1,68 @@
-# 在LangChain中使用工具和工具包构建简单代理
+# 在 LangChain 中使用工具和工具包构建简单代理
 
-> 原文：[https://towardsdatascience.com/building-a-simple-agent-with-tools-and-toolkits-in-langchain-77e0f9bd1fa5?source=collection_archive---------1-----------------------#2024-04-10](https://towardsdatascience.com/building-a-simple-agent-with-tools-and-toolkits-in-langchain-77e0f9bd1fa5?source=collection_archive---------1-----------------------#2024-04-10)
+> 原文：[`towardsdatascience.com/building-a-simple-agent-with-tools-and-toolkits-in-langchain-77e0f9bd1fa5?source=collection_archive---------1-----------------------#2024-04-10`](https://towardsdatascience.com/building-a-simple-agent-with-tools-and-toolkits-in-langchain-77e0f9bd1fa5?source=collection_archive---------1-----------------------#2024-04-10)
 
-## 熟悉LangChain中代理的构建模块
+## 熟悉 LangChain 中代理的构建模块
 
-[](https://medium.com/@ssmaameri?source=post_page---byline--77e0f9bd1fa5--------------------------------)[![Sami Maameri](../Images/9e9892fe7d3cc53ad1c4d165145878ef.png)](https://medium.com/@ssmaameri?source=post_page---byline--77e0f9bd1fa5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77e0f9bd1fa5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--77e0f9bd1fa5--------------------------------) [Sami Maameri](https://medium.com/@ssmaameri?source=post_page---byline--77e0f9bd1fa5--------------------------------)
+[](https://medium.com/@ssmaameri?source=post_page---byline--77e0f9bd1fa5--------------------------------)![Sami Maameri](https://medium.com/@ssmaameri?source=post_page---byline--77e0f9bd1fa5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77e0f9bd1fa5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77e0f9bd1fa5--------------------------------) [Sami Maameri](https://medium.com/@ssmaameri?source=post_page---byline--77e0f9bd1fa5--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77e0f9bd1fa5--------------------------------) ·13分钟阅读·2024年4月10日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77e0f9bd1fa5--------------------------------) ·13 分钟阅读·2024 年 4 月 10 日
 
 --
 
-![](../Images/c890aaf761bb571b28a0b60b25e8fda6.png)
+![](img/c890aaf761bb571b28a0b60b25e8fda6.png)
 
 图片由[Dan LeFebvre](https://unsplash.com/@danlefeb?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-让我们在LangChain中构建一个简单的代理，帮助我们理解一些基础概念以及代理如何工作的构建模块。
+让我们在 LangChain 中构建一个简单的代理，帮助我们理解一些基础概念以及代理如何工作的构建模块。
 
 通过保持简单，我们可以更好地理解这些代理背后的基础理念，从而在未来构建更复杂的代理。
 
 ```py
 **Contents**
 
-[What are Agents?](#417f)
+What are Agents?
 
-[Building the Agent](#6fc2)
-- [The Tools](#8705)
-- [The Toolkit](#6004)
-- [The LLM](#1c1d)
-- [The Prompt](#0728)
+Building the Agent
+- The Tools
+- The Toolkit
+- The LLM
+- The Prompt
 
-[The Agent](#159c)
+The Agent
 
-[Testing our Agent](#0844)
+Testing our Agent
 
-[Observations](#fef3)
+Observations
 
-[The Future](#daa9)
+The Future
 
-[Conclusion](#c1a5)
+Conclusion
 ```
 
 想要获得我未来文章的通知吗？[*在此订阅*](https://medium.com/@ssmaameri/subscribe)
 
 # 什么是代理
 
-LangChain文档实际上有一个相当[好的页面](https://python.langchain.com/docs/modules/agents/)介绍了关于代理的高层次概念。它简短易懂，在开始之前浏览一下肯定值得。
+LangChain 文档实际上有一个相当[好的页面](https://python.langchain.com/docs/modules/agents/)介绍了关于代理的高层次概念。它简短易懂，在开始之前浏览一下肯定值得。
 
 如果你查找人工智能代理的定义，你会看到类似于“一个能够感知其环境、对环境采取行动、做出智能决策以达到目标，并且具有边走边学习能力的实体”的描述。
 
-我认为这完全符合LangChain代理的定义。让这一切在软件中成为可能的是大型语言模型（LLM）的推理能力。LangChain代理的大脑是LLM。正是LLM被用来推理执行用户请求的最佳方法。
+我认为这完全符合 LangChain 代理的定义。让这一切在软件中成为可能的是大型语言模型（LLM）的推理能力。LangChain 代理的大脑是 LLM。正是 LLM 被用来推理执行用户请求的最佳方法。
 
-为了执行任务并操作事物以及获取信息，代理在LangChain中有一些叫做工具（Tool）的东西可供使用。正是通过这些工具，它能够与环境进行交互。
+为了执行任务并操作事物以及获取信息，代理在 LangChain 中有一些叫做工具（Tool）的东西可供使用。正是通过这些工具，它能够与环境进行交互。
 
-这些工具基本上就是代理可以访问的方法/类，它们可以做一些事情，比如通过API与股票市场指数交互、更新Google日历事件或对数据库执行查询。我们可以根据需要构建工具，这取决于我们试图通过代理完成的任务的性质。
+这些工具基本上就是代理可以访问的方法/类，它们可以做一些事情，比如通过 API 与股票市场指数交互、更新 Google 日历事件或对数据库执行查询。我们可以根据需要构建工具，这取决于我们试图通过代理完成的任务的性质。
 
-在LangChain中，工具的集合称为Toolkit。在实现上，这实际上只是一个包含可供代理使用的工具的数组。因此，LangChain中代理的高级概述大致如下所示
+在 LangChain 中，工具的集合称为 Toolkit。在实现上，这实际上只是一个包含可供代理使用的工具的数组。因此，LangChain 中代理的高级概述大致如下所示
 
-![](../Images/34df972c8faa9ba0de48bb3d01d91eb9.png)
+![](img/34df972c8faa9ba0de48bb3d01d91eb9.png)
 
 图片由作者提供
 
 所以，从基本的角度来看，一个代理需要
 
-+   一个LLM作为它的大脑，并赋予它推理能力
++   一个 LLM 作为它的大脑，并赋予它推理能力
 
 +   工具，以便它能够与周围的环境进行交互，并实现其目标
 
@@ -87,7 +87,7 @@ python3 -m venv .venv
 pip install langchain langchain_openai
 ```
 
-另外，你也可以克隆这里使用的代码[从GitHub](https://github.com/smaameri/simple-math-agent)
+另外，你也可以克隆这里使用的代码[从 GitHub](https://github.com/smaameri/simple-math-agent)
 
 ```py
 git clone git@github.com:smaameri/simple-math-agent.git
@@ -99,11 +99,11 @@ git clone git@github.com:smaameri/simple-math-agent.git
 
 最简单的开始方式是首先为我们的数学代理定义工具。
 
-让我们为它提供“add”、“multiply”和“square”工具，以便它能够对我们传递给它的问题执行这些操作。通过保持工具简单，我们可以专注于核心概念，自己构建工具，而不是依赖像WikipediaTool这样更复杂的现成工具，它作为Wikipedia API的包装器，需要我们从LangChain库中导入。
+让我们为它提供“add”、“multiply”和“square”工具，以便它能够对我们传递给它的问题执行这些操作。通过保持工具简单，我们可以专注于核心概念，自己构建工具，而不是依赖像 WikipediaTool 这样更复杂的现成工具，它作为 Wikipedia API 的包装器，需要我们从 LangChain 库中导入。
 
 再次强调，我们并不打算做什么复杂的事情，只是保持简单，将代理的主要构建模块拼凑在一起，以便我们能够理解它们是如何工作的，并让我们的第一个代理启动并运行。
 
-我们从“add”工具开始。在LangChain中创建工具的自底向上的方式是扩展**BaseTool**类，设置类中的**name**和**description**字段，并实现**_run**方法。代码如下所示
+我们从“add”工具开始。在 LangChain 中创建工具的自底向上的方式是扩展**BaseTool**类，设置类中的**name**和**description**字段，并实现**_run**方法。代码如下所示
 
 ```py
 from langchain_core.tools import BaseTool
@@ -122,7 +122,7 @@ class AddTool(BaseTool):
 
 注意，我们需要实现**_run**方法，以显示我们的工具如何处理传递给它的参数。
 
-还要注意它需要一个pydantic模型作为**args_schema**。我们将在这里定义它。
+还要注意它需要一个 pydantic 模型作为**args_schema**。我们将在这里定义它。
 
 ```py
 AddInput
@@ -130,7 +130,7 @@ AddInput
     b: int = Field(description="second number")
 ```
 
-现在，LangChain确实为我们提供了一种更简便的方式来定义工具，而不需要每次都扩展**BaseTool**类。我们可以借助**@tool**装饰器来做到这一点。使用@tool装饰器在LangChain中定义“add”工具的代码如下所示
+现在，LangChain 确实为我们提供了一种更简便的方式来定义工具，而不需要每次都扩展**BaseTool**类。我们可以借助**@tool**装饰器来做到这一点。使用@tool 装饰器在 LangChain 中定义“add”工具的代码如下所示
 
 ```py
 from langchain.tools import tool
@@ -232,33 +232,33 @@ prompt = ChatPromptTemplate.from_messages(
 )
 ```
 
-就这样。我们已经设置好了代理所需的工具和工具包，代理需要这些作为设置的一部分，以便了解它可以执行哪些类型的操作和具有哪些能力。我们也已经设置好了LLM和系统提示。
+就这样。我们已经设置好了代理所需的工具和工具包，代理需要这些作为设置的一部分，以便了解它可以执行哪些类型的操作和具有哪些能力。我们也已经设置好了 LLM 和系统提示。
 
 现在是有趣的部分了。设置我们的代理！
 
 # 代理
 
-LangChain有[多种不同的代理类型](https://python.langchain.com/docs/modules/agents/agent_types/)可以创建，这些代理具有不同的推理能力和特性。我们将使用目前最强大和最有能力的代理——[OpenAI工具](https://python.langchain.com/docs/modules/agents/agent_types/openai_tools/)代理。根据OpenAI工具代理的文档，它也使用了更新的OpenAI模型。
+LangChain 有[多种不同的代理类型](https://python.langchain.com/docs/modules/agents/agent_types/)可以创建，这些代理具有不同的推理能力和特性。我们将使用目前最强大和最有能力的代理——[OpenAI 工具](https://python.langchain.com/docs/modules/agents/agent_types/openai_tools/)代理。根据 OpenAI 工具代理的文档，它也使用了更新的 OpenAI 模型。
 
-> 更新后的OpenAI模型已经经过微调，以便能够检测何时应该调用一个或多个函数，并响应应传递给函数的输入。在API调用中，你可以描述函数，并让模型智能地选择输出一个包含调用这些函数所需参数的JSON对象。OpenAI工具API的目标是比使用通用的文本完成或聊天API更可靠地返回有效且有用的函数调用。
+> 更新后的 OpenAI 模型已经经过微调，以便能够检测何时应该调用一个或多个函数，并响应应传递给函数的输入。在 API 调用中，你可以描述函数，并让模型智能地选择输出一个包含调用这些函数所需参数的 JSON 对象。OpenAI 工具 API 的目标是比使用通用的文本完成或聊天 API 更可靠地返回有效且有用的函数调用。
 
 换句话说，这个代理擅长生成正确的结构来调用函数，并能够理解我们的任务是否需要多个函数（工具）。这个代理还能够调用具有多个输入参数的函数（工具），就像我们的代理一样。有些代理只能处理具有单一输入参数的函数。
 
-如果你熟悉[OpenAI的函数调用功能](https://platform.openai.com/docs/guides/function-calling)，在该功能中，我们可以使用OpenAI的LLM来生成正确的参数，以便调用函数，那么我们在这里使用的OpenAI工具代理也在利用其中的一部分功能，能够以正确的参数调用正确的工具。
+如果你熟悉[OpenAI 的函数调用功能](https://platform.openai.com/docs/guides/function-calling)，在该功能中，我们可以使用 OpenAI 的 LLM 来生成正确的参数，以便调用函数，那么我们在这里使用的 OpenAI 工具代理也在利用其中的一部分功能，能够以正确的参数调用正确的工具。
 
-为了在LangChain中设置代理，我们需要使用提供的工厂方法来创建我们选择的代理。
+为了在 LangChain 中设置代理，我们需要使用提供的工厂方法来创建我们选择的代理。
 
-创建OpenAI工具代理的工厂方法是**create_openai_tools_agent()**。它需要传入我们上面设置的LLM、工具和提示。因此，让我们初始化我们的代理。
+创建 OpenAI 工具代理的工厂方法是**create_openai_tools_agent()**。它需要传入我们上面设置的 LLM、工具和提示。因此，让我们初始化我们的代理。
 
 ```py
 agent = create_openai_tools_agent(llm, toolkit, prompt)
 ```
 
-最后，为了在LangChain中运行代理，我们不能直接调用“*run*”类型的方法。它们需要通过AgentExecutor来运行。
+最后，为了在 LangChain 中运行代理，我们不能直接调用“*run*”类型的方法。它们需要通过 AgentExecutor 来运行。
 
-我之所以在最后提到Agent Executor，是因为我认为它不是理解代理工作原理的关键概念，放在开始时与其他内容一起讲解只会让整个过程看起来比实际需要的更复杂，而且还可能分散对一些更基本概念的理解。
+我之所以在最后提到 Agent Executor，是因为我认为它不是理解代理工作原理的关键概念，放在开始时与其他内容一起讲解只会让整个过程看起来比实际需要的更复杂，而且还可能分散对一些更基本概念的理解。
 
-所以，现在我们介绍一下，AgentExecutor作为LangChain中代理的运行时，允许代理一直运行，直到准备好返回最终的响应给用户。在伪代码中，AgentExecutor的工作原理大致如下（直接摘自[LangChain文档](https://python.langchain.com/docs/modules/agents/concepts/#agentexecutor)）
+所以，现在我们介绍一下，AgentExecutor 作为 LangChain 中代理的运行时，允许代理一直运行，直到准备好返回最终的响应给用户。在伪代码中，AgentExecutor 的工作原理大致如下（直接摘自[LangChain 文档](https://python.langchain.com/docs/modules/agents/concepts/#agentexecutor)）
 
 ```py
 next_action = agent.get_action(...)
@@ -268,9 +268,9 @@ while next_action != AgentFinish:
 return next_action
 ```
 
-所以它们基本上是一个while循环，持续调用代理的下一个操作方法，直到代理返回最终响应。
+所以它们基本上是一个 while 循环，持续调用代理的下一个操作方法，直到代理返回最终响应。
 
-所以，让我们将代理设置在代理执行器内。我们传递给它代理，并且还必须传递工具包。我们将“verbose”设置为True，以便在代理处理我们的请求时了解它在做什么。
+所以，让我们将代理设置在代理执行器内。我们传递给它代理，并且还必须传递工具包。我们将“verbose”设置为 True，以便在代理处理我们的请求时了解它在做什么。
 
 ```py
 agent_executor = AgentExecutor(agent=agent, tools=toolkit, verbose=True)
@@ -288,11 +288,11 @@ result = agent_executor.invoke({"input": "what is 1 + 1"})
 python3 math-agent.py
 ```
 
-![](../Images/38082f690ae8ca1409e8cac5d2270f77.png)
+![](img/38082f690ae8ca1409e8cac5d2270f77.png)
 
 图片来自作者
 
-由于我们在AgentExecutor上设置了**verbose=True**，我们可以看到代理所采取的每个操作步骤。它已经识别出我们应该调用“**加法**”工具，并使用所需的参数调用了“**加法**”工具，最终返回了结果。
+由于我们在 AgentExecutor 上设置了**verbose=True**，我们可以看到代理所采取的每个操作步骤。它已经识别出我们应该调用“**加法**”工具，并使用所需的参数调用了“**加法**”工具，最终返回了结果。
 
 这就是完整的源代码
 
@@ -361,35 +361,35 @@ print(result['output'])
 
 让我们向代理提几个问题，看看它的表现如何。
 
-## **5的平方是多少？**
+## **5 的平方是多少？**
 
 再次获得正确的结果，看到它确实使用了我们的**平方**工具
 
-![](../Images/4da75f6cccd073be0ccf10095da58268.png)
+![](img/4da75f6cccd073be0ccf10095da58268.png)
 
 图片来自作者
 
-## 5的6次方是多少？
+## 5 的 6 次方是多少？
 
-它采取了一个有趣的行动步骤。它首先使用**平方**工具。然后，使用该结果，尝试使用**乘法**工具多次来得到最终答案。坦率地说，最终答案3125是错误的，还需要再乘以5才能得到正确的答案。但有趣的是，看到代理尝试使用不同的工具，并通过多个步骤来尝试得到最终答案。
+它采取了一个有趣的行动步骤。它首先使用**平方**工具。然后，使用该结果，尝试使用**乘法**工具多次来得到最终答案。坦率地说，最终答案 3125 是错误的，还需要再乘以 5 才能得到正确的答案。但有趣的是，看到代理尝试使用不同的工具，并通过多个步骤来尝试得到最终答案。
 
-![](../Images/06605974f62a317700216b36626a3a9f.png)
+![](img/06605974f62a317700216b36626a3a9f.png)
 
 图片来自作者
 
-## **1减去3是多少？**
+## **1 减去 3 是多少？**
 
 我们没有减法工具。但它足够聪明，使用我们的加法工具，并将第二个值设置为-3。有时候它们真是太聪明和富有创意了，挺有趣的，甚至令人惊讶。
 
-![](../Images/1c4add21cd9408cce4be6aeaa9abdd53.png)
+![](img/1c4add21cd9408cce4be6aeaa9abdd53.png)
 
 图片来自作者
 
-## **64的平方根是多少**
+## **64 的平方根是多少**
 
-作为最后的测试，如果我们要求它执行一个不在我们工具集中的数学运算会怎样？由于我们没有平方根工具，它不会尝试调用工具，而是直接使用LLM计算该值。
+作为最后的测试，如果我们要求它执行一个不在我们工具集中的数学运算会怎样？由于我们没有平方根工具，它不会尝试调用工具，而是直接使用 LLM 计算该值。
 
-![](../Images/670b50b68a2de3c16cf3636692a5838c.png)
+![](img/670b50b68a2de3c16cf3636692a5838c.png)
 
 图片来自作者
 

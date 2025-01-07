@@ -1,16 +1,16 @@
 # 使用 Overpass API 提取地铁路线数据：一步步指南
 
-> 原文：[https://towardsdatascience.com/subway-route-data-extraction-with-overpass-api-a-step-by-step-guide-fdeec6b2edb1?source=collection_archive---------9-----------------------#2024-09-03](https://towardsdatascience.com/subway-route-data-extraction-with-overpass-api-a-step-by-step-guide-fdeec6b2edb1?source=collection_archive---------9-----------------------#2024-09-03)
+> 原文：[`towardsdatascience.com/subway-route-data-extraction-with-overpass-api-a-step-by-step-guide-fdeec6b2edb1?source=collection_archive---------9-----------------------#2024-09-03`](https://towardsdatascience.com/subway-route-data-extraction-with-overpass-api-a-step-by-step-guide-fdeec6b2edb1?source=collection_archive---------9-----------------------#2024-09-03)
 
 ## 通过 Overpass API 简化 OpenStreetMaps 的地理数据提取
 
-[](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--fdeec6b2edb1--------------------------------)[![Amanda Iglesias Moreno](../Images/9cff03d0c0caaa9a8aa53c4c34c90cac.png)](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--fdeec6b2edb1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fdeec6b2edb1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fdeec6b2edb1--------------------------------) [Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--fdeec6b2edb1--------------------------------)
+[](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--fdeec6b2edb1--------------------------------)![Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--fdeec6b2edb1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fdeec6b2edb1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fdeec6b2edb1--------------------------------) [Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--fdeec6b2edb1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fdeec6b2edb1--------------------------------) ·10 分钟阅读·2024年9月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fdeec6b2edb1--------------------------------) ·10 分钟阅读·2024 年 9 月 3 日
 
 --
 
-![](../Images/3745f9c7a87451f81530fae120fedb82.png)
+![](img/3745f9c7a87451f81530fae120fedb82.png)
 
 汉堡地铁网络的 Folium 可视化（图片由作者制作）
 

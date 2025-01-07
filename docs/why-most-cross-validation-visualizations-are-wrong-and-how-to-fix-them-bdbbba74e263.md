@@ -1,20 +1,20 @@
 # 为什么大多数交叉验证可视化是错误的（以及如何修复它们）
 
-> 原文：[https://towardsdatascience.com/why-most-cross-validation-visualizations-are-wrong-and-how-to-fix-them-bdbbba74e263?source=collection_archive---------0-----------------------#2024-11-16](https://towardsdatascience.com/why-most-cross-validation-visualizations-are-wrong-and-how-to-fix-them-bdbbba74e263?source=collection_archive---------0-----------------------#2024-11-16)
+> 原文：[`towardsdatascience.com/why-most-cross-validation-visualizations-are-wrong-and-how-to-fix-them-bdbbba74e263?source=collection_archive---------0-----------------------#2024-11-16`](https://towardsdatascience.com/why-most-cross-validation-visualizations-are-wrong-and-how-to-fix-them-bdbbba74e263?source=collection_archive---------0-----------------------#2024-11-16)
 
 ## 更好的机器学习可视化
 
 ## 停止使用移动的框！
 
-[](https://medium.com/@samybaladram?source=post_page---byline--bdbbba74e263--------------------------------)[![Samy Baladram](../Images/715cb7af97c57601966c5d2f9edd0066.png)](https://medium.com/@samybaladram?source=post_page---byline--bdbbba74e263--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdbbba74e263--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bdbbba74e263--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--bdbbba74e263--------------------------------)
+[](https://medium.com/@samybaladram?source=post_page---byline--bdbbba74e263--------------------------------)![Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--bdbbba74e263--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdbbba74e263--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdbbba74e263--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--bdbbba74e263--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdbbba74e263--------------------------------) ·阅读时长：10分钟·2024年11月16日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdbbba74e263--------------------------------) ·阅读时长：10 分钟·2024 年 11 月 16 日
 
 --
 
 你知道那些在每个数据科学教程中出现的交叉验证图表吗？那些通过不同颜色的框在四处移动来解释我们如何拆分数据进行训练和测试的图表？像这样：
 
-![](../Images/7310960c11e4e979706ce2dea8eedfbf.png)
+![](img/7310960c11e4e979706ce2dea8eedfbf.png)
 
 你见过那个吗？图像由作者提供。
 
@@ -24,7 +24,7 @@
 
 这就是我们大脑的工作方式——当我们看到类似的东西移动到新位置时，我们会认为它是同一个东西。（这其实也是卡通和动画能够有效工作的原因！）
 
-![](../Images/293776fe285e9c1651b9ca1c65706411.png)
+![](img/293776fe285e9c1651b9ca1c65706411.png)
 
 你可能认为动画版本更好，但现在你忍不住开始跟着蓝色框移动，并且渐渐忘记了这应该代表交叉验证的工作方式。来源：[维基百科](https://commons.wikimedia.org/wiki/File:LOOCV.gif)
 
@@ -32,9 +32,9 @@
 
 作为一个同时从事设计和数据工作的人员，我开始思考：也许有更好的方法？如果我们能以一种更符合大脑处理信息方式的方式展示交叉验证呢？
 
-![](../Images/a213cf03718d755a88bb08470f7d3abb.png)
+![](img/a213cf03718d755a88bb08470f7d3abb.png)
 
-所有可视化：作者使用Canva Pro创建。已优化移动设备显示；在桌面上可能显得过大。
+所有可视化：作者使用 Canva Pro 创建。已优化移动设备显示；在桌面上可能显得过大。
 
 # 交叉验证到底是关于什么的？
 
@@ -66,7 +66,7 @@
 
 +   相同图示的多个版本并排显示
 
-![](../Images/11bdeccff9e5426a2f8669b317c7faab.png)
+![](img/11bdeccff9e5426a2f8669b317c7faab.png)
 
 当前，如果你搜索“交叉验证”，你看到的第一个图像就类似于这个。（图片由作者提供）
 
@@ -76,7 +76,7 @@
 
 颜色在展示数据分割时会带来实际问题。有些人无法区分某些颜色，而其他人可能根本看不见颜色。当以黑白打印或在不同显示屏上查看时，颜色会发生变化，导致可视化失效。将颜色作为区分数据部分的主要方式意味着一些人由于色觉问题错过了重要信息。
 
-![](../Images/e3c7aea8baea654253fbedde5e3dd811.png)
+![](img/e3c7aea8baea654253fbedde5e3dd811.png)
 
 不是每个人看到的颜色都相同。图片由作者提供。
 
@@ -86,7 +86,7 @@
 
 > 我们的大脑本能地不会将颜色与数据分割关联起来。
 
-![](../Images/e4690d7c50d8de5d8855975b40cd0424.png)
+![](img/e4690d7c50d8de5d8855975b40cd0424.png)
 
 这些是我们在前面图示中使用的颜色。为什么原始数据集是绿色的？然后分成蓝色和红色？
 
@@ -94,7 +94,7 @@
 
 当前的图表也存在信息过载的问题。它们试图在一个图像中展示整个交叉验证过程，这就带来了不必要的复杂性。多个箭头、大量标签，所有的元素都在争夺注意力。当我们试图同时展示过程的每一个方面时，我们反而让理解每个独立部分变得更加困难。这个方法没有澄清概念，反而增加了我们需要首先解码的复杂层次。
 
-![](../Images/3860f294e42aad31e7ef34a9bdaf9ccf.png)
+![](img/3860f294e42aad31e7ef34a9bdaf9ccf.png)
 
 标签太多，颜色太多，箭头太多，导致很难集中注意力。
 
@@ -104,7 +104,7 @@
 
 这些图表还给人错误的印象，认为数据在交叉验证过程中是物理移动的。实际上，我们每次只是从原始数据集中选择不同的行。数据保持在原位，我们只是更改每次分割中用于测试的行。当图表显示数据在分割之间流动时，它们给过程增加了不必要的复杂性。
 
-![](../Images/d8fa4ea0c53cc2aa618406d0c99e6f09.png)
+![](img/d8fa4ea0c53cc2aa618406d0c99e6f09.png)
 
 虽然图表通常是从上到下流动的，但很难跟随操作的顺序。模型训练和计算结果的时间仍然不明确。训练什么时候进行？每个计算的结果是什么？
 
@@ -126,13 +126,13 @@
 
 让我们尝试一些不同的方式。首先，这是大多数人看到的数据样子——一行行、列列的数字和索引。
 
-![](../Images/08da329b59c04831295fa503a37cb6e4.png)
+![](img/08da329b59c04831295fa503a37cb6e4.png)
 
 这是我在[关于分类算法的文章](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c)中使用的常见数据集。
 
 受到这个结构的启发，下面是一个更有意义的图表。
 
-![](../Images/e1633734844646b0c9a447fea09fde60.png)
+![](img/e1633734844646b0c9a447fea09fde60.png)
 
 更简单但清晰的交叉验证描绘。
 
@@ -160,7 +160,7 @@
 
 虽然上述概念是正确的，但考虑实际的行索引会使其更加清晰：
 
-![](../Images/00368eec59269afee2665564b9803290.png)
+![](img/00368eec59269afee2665564b9803290.png)
 
 这是一个增强版的变化，增加了细微的索引，使得更容易看出每个折叠对应的数据集的哪一部分。虚线帮助区分各个索引。
 
@@ -180,7 +180,7 @@
 
 如果你觉得黑白版本过于简单，这也是另一种可接受的选项：
 
-![](../Images/cb7cf250b229c7400f322b84366f03c4.png)
+![](img/cb7cf250b229c7400f322b84366f03c4.png)
 
 这是简单图示的一种变化，给每个折叠的数字添加了颜色。
 
@@ -194,7 +194,7 @@
 
 > 即使你完全忽略颜色，视觉化仍然是完全功能性的且易于理解。
 
-![](../Images/96381337f14683b33da41d5110ce0bcf.png)
+![](img/96381337f14683b33da41d5110ce0bcf.png)
 
 尝试上面的挑战。对于有限数量的颜色，它有助于更快地跟踪位置的变化。
 
@@ -206,7 +206,7 @@
 
 **数据结构的清晰性：** 通过将数据以带索引的列形式展示，我们揭示了数据集的实际结构。每行都有一个编号，每个编号仅出现在一个测试集里。这不仅是良好的设计，它还准确反映了我们的数据在代码中的组织方式。
 
-![](../Images/a1a6c60195236d8940224e07615342ab.png)
+![](img/a1a6c60195236d8940224e07615342ab.png)
 
 即使是默认的交叉验证方式——洗牌，我们也可以通过更改索引让人们明白数据正在被洗牌。
 
@@ -220,15 +220,15 @@
 
 我们的新设计可以一目了然地回答这些问题。
 
-**基于索引的理解：** 我们不再显示抽象的彩色框，而是显示实际的行索引。当你编写交叉验证代码时，你正在处理这些索引。现在，视觉化与代码相匹配——折叠1使用行1-4，折叠2使用行5-7，以此类推。
+**基于索引的理解：** 我们不再显示抽象的彩色框，而是显示实际的行索引。当你编写交叉验证代码时，你正在处理这些索引。现在，视觉化与代码相匹配——折叠 1 使用行 1-4，折叠 2 使用行 5-7，以此类推。
 
-![](../Images/043d42a32e5df5fd0f4bc6f3d408ba2a.png)
+![](img/043d42a32e5df5fd0f4bc6f3d408ba2a.png)
 
 使用类似的图示，我们还可以展示如何进行留一法交叉验证。每次测试集只使用一个数据点！拆分编号和选择的测试集索引也很好地匹配。
 
 **清晰的数据流：** 布局展示了数据从左到右流动：这是你的数据集，这是它是如何被分割的，这是每个分割的样子。它与交叉验证的逻辑步骤匹配，而且也更容易查看。
 
-![](../Images/c23f34808ce42cb3b8f8f14364010915.png)
+![](img/c23f34808ce42cb3b8f8f14364010915.png)
 
 阐明箭头的作用，表示训练与测试过程，可以更清楚地展示交叉验证中有多少模型以及它们的输出是什么。你可能会注意到，分割之间没有连接元素的箭头。
 
@@ -254,24 +254,24 @@
 
 ## 关于插图
 
-除非另有说明，所有图像均由作者创作，并结合了来自Canva Pro的授权设计元素。
+除非另有说明，所有图像均由作者创作，并结合了来自 Canva Pro 的授权设计元素。
 
 𝙎𝙚𝙚 𝙢𝙤𝙧𝙚 𝙈𝙤𝙙𝙚𝙡 𝙀𝙫𝙖𝙡𝙪𝙖𝙩𝙞𝙤𝙣 & 𝙊𝙥𝙩𝙞𝙢𝙞𝙯𝙖𝙩𝙞𝙤𝙣 𝙝𝙚𝙧𝙚:
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----bdbbba74e263--------------------------------)
 
 ## 模型评估与优化
 
-[查看列表](https://medium.com/@samybaladram/list/model-evaluation-optimization-331287896864?source=post_page-----bdbbba74e263--------------------------------)3个故事![](../Images/18fa82b1435fa7d5571ee54ae93a6c62.png)![](../Images/c95e89d05d1de700c631c342cd008de0.png)![](../Images/30e20e1a8ba3ced1e77644b706acd18d.png)
+[查看列表](https://medium.com/@samybaladram/list/model-evaluation-optimization-331287896864?source=post_page-----bdbbba74e263--------------------------------)3 个故事![](img/18fa82b1435fa7d5571ee54ae93a6c62.png)![](img/c95e89d05d1de700c631c342cd008de0.png)![](img/30e20e1a8ba3ced1e77644b706acd18d.png)
 
 𝙔𝙤𝙪 𝙢𝙞𝙜𝙝𝙩 𝙖𝙡𝙨𝙤 𝙡𝙞𝙠𝙚:
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----bdbbba74e263--------------------------------)
 
 ## 分类算法
 
-[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----bdbbba74e263--------------------------------)8 个故事！[](../Images/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](../Images/6ea70d9d2d9456e0c221388dbb253be8.png)![](../Images/7221f0777228e7bcf08c1adb44a8eb76.png)
+[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----bdbbba74e263--------------------------------)8 个故事！[](../Images/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](img/6ea70d9d2d9456e0c221388dbb253be8.png)![](img/7221f0777228e7bcf08c1adb44a8eb76.png)

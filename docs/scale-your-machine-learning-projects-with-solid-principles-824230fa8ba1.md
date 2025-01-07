@@ -1,12 +1,12 @@
 # 使用 SOLID 原则扩展你的机器学习项目
 
-> 原文：[https://towardsdatascience.com/scale-your-machine-learning-projects-with-solid-principles-824230fa8ba1?source=collection_archive---------1-----------------------#2024-03-12](https://towardsdatascience.com/scale-your-machine-learning-projects-with-solid-principles-824230fa8ba1?source=collection_archive---------1-----------------------#2024-03-12)
+> 原文：[`towardsdatascience.com/scale-your-machine-learning-projects-with-solid-principles-824230fa8ba1?source=collection_archive---------1-----------------------#2024-03-12`](https://towardsdatascience.com/scale-your-machine-learning-projects-with-solid-principles-824230fa8ba1?source=collection_archive---------1-----------------------#2024-03-12)
 
 ## 如何编写可扩展且能加速你作为数据科学家或机器学习工程师工作流程的代码。
 
-[](https://medium.com/@jeremyarancio?source=post_page---byline--824230fa8ba1--------------------------------)[![Jeremy Arancio](../Images/37c4c41e71eb91cfffc7e4ff2bb4394a.png)](https://medium.com/@jeremyarancio?source=post_page---byline--824230fa8ba1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--824230fa8ba1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--824230fa8ba1--------------------------------) [Jeremy Arancio](https://medium.com/@jeremyarancio?source=post_page---byline--824230fa8ba1--------------------------------)
+[](https://medium.com/@jeremyarancio?source=post_page---byline--824230fa8ba1--------------------------------)![Jeremy Arancio](https://medium.com/@jeremyarancio?source=post_page---byline--824230fa8ba1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--824230fa8ba1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--824230fa8ba1--------------------------------) [Jeremy Arancio](https://medium.com/@jeremyarancio?source=post_page---byline--824230fa8ba1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--824230fa8ba1--------------------------------) ·13 分钟阅读·2024年3月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--824230fa8ba1--------------------------------) ·13 分钟阅读·2024 年 3 月 12 日
 
 --
 

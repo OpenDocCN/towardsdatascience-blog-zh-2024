@@ -1,18 +1,18 @@
 # 作为数据科学家的第一年：生存指南
 
-> 原文：[https://towardsdatascience.com/your-first-year-as-a-data-scientist-a-survival-guide-f1d48fef2352?source=collection_archive---------3-----------------------#2024-05-10](https://towardsdatascience.com/your-first-year-as-a-data-scientist-a-survival-guide-f1d48fef2352?source=collection_archive---------3-----------------------#2024-05-10)
+> 原文：[`towardsdatascience.com/your-first-year-as-a-data-scientist-a-survival-guide-f1d48fef2352?source=collection_archive---------3-----------------------#2024-05-10`](https://towardsdatascience.com/your-first-year-as-a-data-scientist-a-survival-guide-f1d48fef2352?source=collection_archive---------3-----------------------#2024-05-10)
 
-## 作为初学者，我将从以下5个技巧中受益匪浅
+## 作为初学者，我将从以下 5 个技巧中受益匪浅
 
-[](https://medium.com/@pelletierhaden?source=post_page---byline--f1d48fef2352--------------------------------)[![Haden Pelletier](../Images/8f73fc8222e783883c4ebcaee14513e0.png)](https://medium.com/@pelletierhaden?source=post_page---byline--f1d48fef2352--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f1d48fef2352--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f1d48fef2352--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--f1d48fef2352--------------------------------)
+[](https://medium.com/@pelletierhaden?source=post_page---byline--f1d48fef2352--------------------------------)![Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--f1d48fef2352--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f1d48fef2352--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f1d48fef2352--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--f1d48fef2352--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f1d48fef2352--------------------------------) ·阅读时长9分钟·2024年5月10日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f1d48fef2352--------------------------------) ·阅读时长 9 分钟·2024 年 5 月 10 日
 
 --
 
-到了8月，我将迎来作为全职数据科学家的第二个年头！（严格来说是第三年，因为我第一年是在这个领域做实习生的。）
+到了 8 月，我将迎来作为全职数据科学家的第二个年头！（严格来说是第三年，因为我第一年是在这个领域做实习生的。）
 
-![](../Images/97ae5e5977e16b9b3c1b8cabe01015d9.png)
+![](img/97ae5e5977e16b9b3c1b8cabe01015d9.png)
 
 图片来自 [Campaign Creators](https://unsplash.com/@campaign_creators?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

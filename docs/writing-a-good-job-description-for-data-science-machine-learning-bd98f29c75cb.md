@@ -1,16 +1,16 @@
 # 为数据科学/机器学习职位编写一份好的职位描述
 
-> 原文：[https://towardsdatascience.com/writing-a-good-job-description-for-data-science-machine-learning-bd98f29c75cb?source=collection_archive---------7-----------------------#2024-08-16](https://towardsdatascience.com/writing-a-good-job-description-for-data-science-machine-learning-bd98f29c75cb?source=collection_archive---------7-----------------------#2024-08-16)
+> 原文：[`towardsdatascience.com/writing-a-good-job-description-for-data-science-machine-learning-bd98f29c75cb?source=collection_archive---------7-----------------------#2024-08-16`](https://towardsdatascience.com/writing-a-good-job-description-for-data-science-machine-learning-bd98f29c75cb?source=collection_archive---------7-----------------------#2024-08-16)
 
 ## 为了找到合适的候选人来填补你开放的职位，需要做的事情和避免做的事情
 
-[](https://medium.com/@s.kirmer?source=post_page---byline--bd98f29c75cb--------------------------------)[![Stephanie Kirmer](../Images/f9d9ef9167febde974c223dd4d8d6293.png)](https://medium.com/@s.kirmer?source=post_page---byline--bd98f29c75cb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bd98f29c75cb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bd98f29c75cb--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--bd98f29c75cb--------------------------------)
+[](https://medium.com/@s.kirmer?source=post_page---byline--bd98f29c75cb--------------------------------)![Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--bd98f29c75cb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bd98f29c75cb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bd98f29c75cb--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--bd98f29c75cb--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bd98f29c75cb--------------------------------) ·13分钟阅读·2024年8月16日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bd98f29c75cb--------------------------------) ·13 分钟阅读·2024 年 8 月 16 日
 
 --
 
-![](../Images/c99f21381a5b1b7517fc4b3ee936a1e6.png)
+![](img/c99f21381a5b1b7517fc4b3ee936a1e6.png)
 
 一位非常优秀候选人的照片，来自[Thomas Butler](https://unsplash.com/@thomaswbutler?utm_source=medium&utm_medium=referral)，拍摄于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -52,7 +52,7 @@
 
 ## **大型组织**
 
-在这种情况下，你至少已经有几个数据科学/机器学习的员工，所以希望可以请这些人告诉你这个职位作为个人贡献者（IC）每天的工作是什么样的。问问他们！令人惊讶的是，你会发现HR或管理层在这种情况下竟然没有充分利用他们现有的内部专业知识。
+在这种情况下，你至少已经有几个数据科学/机器学习的员工，所以希望可以请这些人告诉你这个职位作为个人贡献者（IC）每天的工作是什么样的。问问他们！令人惊讶的是，你会发现 HR 或管理层在这种情况下竟然没有充分利用他们现有的内部专业知识。
 
 然而，你还需要确定这位新员工是否将主要或完全从事与现有员工相同的工作，还是他们可能会填补不同类型的空缺。如果你现有的问题仅仅是缺乏足够的技能人员来完成工作，那么期望新员工担任与现有职位类似的角色是合理的。但是，如果你是为了一个非常特定的技能集而招聘（例如，出现了一个新的自然语言处理问题，而你的团队中没人对此有足够的了解），那么一定要在职位描述中明确该角色将承担的独特职责。
 
@@ -64,13 +64,13 @@
 
 +   经验：如果这个人是你的第一个或第二个数据科学/机器学习招聘，**不要** **招聘没有一定工作经验的人**。这些人可能会更贵，但在你的情况中，你需要的是一个能够非常自我驱动，并且已经在其他专业环境中见识过数据科学和机器学习的实践的人。这个可能不言而喻，但你几乎没有内部培训这位员工的能力，所以你需要他们已经在之前的工作中获得过相关的培训。
 
-+   技能要求：那么，你究竟需要寻找什么样的技能呢？为了有效实现你的目标，候选人需要具备哪些技术能力、编程语言等？除了确保他们能够使用Python之外，我建议如果可能的话，向行业内的其他从业者咨询，询问他们认为你的需求应该具备哪些技能。这些技能要求变化非常快，因为这是一个发展迅速的领域，所以我无法告诉你今天的招聘要求，明年你的数据科学家或机器学习工程师需要做什么。([我可以告诉你，要求博士学位几乎肯定不是正确答案。](https://medium.com/towards-data-science/your-data-scientist-does-not-need-a-stem-ph-d-7f2206f43871))
++   技能要求：那么，你究竟需要寻找什么样的技能呢？为了有效实现你的目标，候选人需要具备哪些技术能力、编程语言等？除了确保他们能够使用 Python 之外，我建议如果可能的话，向行业内的其他从业者咨询，询问他们认为你的需求应该具备哪些技能。这些技能要求变化非常快，因为这是一个发展迅速的领域，所以我无法告诉你今天的招聘要求，明年你的数据科学家或机器学习工程师需要做什么。([我可以告诉你，要求博士学位几乎肯定不是正确答案。](https://medium.com/towards-data-science/your-data-scientist-does-not-need-a-stem-ph-d-7f2206f43871))
 
 如果你确实要寻求建议，确保你咨询的是那些在实际工作中从事数据科学/机器学习的人，而不是那些所谓的“思想领袖”或自我推销为招聘专家的人。如果你认识的人中没有符合条件的，可以尝试通过你的网络寻找或联系数据科学/机器学习专业组织。看看其他类似职位的招聘广告，但要小心，因为这些职位的质量也可能不怎么样。
 
 无论如何，认真对待这一点——如果你在职位描述中写下不切实际、不合理或完全无关/过时的技能要求，你会把合格的候选人拒之门外，因为他们会意识到“哦，这家公司根本不知道自己在做什么”，而这将完全违背这次招聘的初衷。
 
-另一种选择是找到一位数据科学/机器学习的自由职业者来帮助你启动项目，而不是自己雇佣某个人。如今有很多兼职或自由职业的从业者，还有一些咨询公司可以帮助你解决这个问题。快速在Google上搜索“兼职数据科学家”会得到很多选择，但记得做好尽职调查。
+另一种选择是找到一位数据科学/机器学习的自由职业者来帮助你启动项目，而不是自己雇佣某个人。如今有很多兼职或自由职业的从业者，还有一些咨询公司可以帮助你解决这个问题。快速在 Google 上搜索“兼职数据科学家”会得到很多选择，但记得做好尽职调查。
 
 ## **更大的组织**
 
@@ -92,13 +92,13 @@
 
 +   **初级或助理**：刚从学校毕业，没有工作经验，可能有实习经历。
 
-+   **无职级**：可能有一到两份专业工作或2-3年的经验。
++   **无职级**：可能有一到两份专业工作或 2-3 年的经验。
 
 +   **高级**：三年以上的工作经验。
 
 此外，还有一些组织有更高的职级，而有些则没有：
 
-+   **职员**：可能有6-10年的专业经验。
++   **职员**：可能有 6-10 年的专业经验。
 
 +   **首席、高级职员等**：超过这些要求。不同组织之间差异很大，实际上很难明确说明。
 
@@ -126,13 +126,13 @@
 
 > 注意：我们都听过无数次的陈词滥调——“女性只有在符合所有要求时才会申请工作”，这一说法已经非常疲劳，并且因为很多原因具有问题，但它提醒我们要列出你真正需要的技能，而不是仅仅列出一堆愿望清单。
 
-相反，[使用包容性语言](https://www.inclusionhub.com/articles/inclusive-job-descriptions)。我建议将你希望的资格要求写成“成功的候选人能够……”的形式，然后列出具体的行动项，比如“使用Python构建机器学习模型”或“使用合适的指标如召回率、精确度、MAE、RMSE等进行模型评估”。要清晰明确，让别人能轻松地说出“哦，我能做这个”或“嗯，我做不到这个”。
+相反，[使用包容性语言](https://www.inclusionhub.com/articles/inclusive-job-descriptions)。我建议将你希望的资格要求写成“成功的候选人能够……”的形式，然后列出具体的行动项，比如“使用 Python 构建机器学习模型”或“使用合适的指标如召回率、精确度、MAE、RMSE 等进行模型评估”。要清晰明确，让别人能轻松地说出“哦，我能做这个”或“嗯，我做不到这个”。
 
 如果你知道潜在候选人的群体非常单一，例如因为在你的领域中，少数族裔的人很少获得大学学位，考虑是否需要采取额外的步骤来将你的职位展示给这些候选人。花时间在多元化导向的招聘网站上发布职位，并与不同群体的专业组织分享你的职位。如果你的职位从未被多样化的个体看到，你就不会吸引到多样化的候选人来申请。
 
 ## 薪酬与福利
 
-现在这应该不言而喻，但请对职位的福利和薪酬保持透明和清晰。**即使法律上没有要求**，也要提供一个薪酬范围。如果你所在的州没有强制要求提供薪酬范围，你可能会认为这对你来说不是问题，但实际上是的，因为拥有选择的候选人会更倾向于申请那些他们可以清楚看到薪酬与自己期望相符的职位。如果你省略了薪酬范围（或者提供一个跨度为$100k的范围，使得该范围实际上毫无用处），这会让你看起来像在剥削员工。跟上时代，给出一个合理的薪酬范围。
+现在这应该不言而喻，但请对职位的福利和薪酬保持透明和清晰。**即使法律上没有要求**，也要提供一个薪酬范围。如果你所在的州没有强制要求提供薪酬范围，你可能会认为这对你来说不是问题，但实际上是的，因为拥有选择的候选人会更倾向于申请那些他们可以清楚看到薪酬与自己期望相符的职位。如果你省略了薪酬范围（或者提供一个跨度为$100k 的范围，使得该范围实际上毫无用处），这会让你看起来像在剥削员工。跟上时代，给出一个合理的薪酬范围。
 
 此外，我之前已经提到过，但值得重复——要诚实地说明工作情况。不要把职位广告标成“远程”，然后在面试时才透露实际上是每周有三天需要到现场办公。这也是非常不好的做法，是对大家时间的粗鲁浪费。给候选人他们所需的细节，让他们能够做出明智的申请决定。
 
@@ -160,23 +160,23 @@
 
 # 进一步阅读
 
-[](https://www.inclusionhub.com/articles/inclusive-job-descriptions?source=post_page-----bd98f29c75cb--------------------------------) [## DEI招聘：如何创建包容性的职位描述
+[](https://www.inclusionhub.com/articles/inclusive-job-descriptions?source=post_page-----bd98f29c75cb--------------------------------) [## DEI 招聘：如何创建包容性的职位描述
 
 ### 找到合适的候选人从合适的职位描述开始。正确的职位描述是那个…
 
-www.inclusionhub.com](https://www.inclusionhub.com/articles/inclusive-job-descriptions?source=post_page-----bd98f29c75cb--------------------------------) [](/archetypes-of-the-data-scientist-role-1b078966fb2?source=post_page-----bd98f29c75cb--------------------------------) [## 数据科学家角色的原型
+www.inclusionhub.com](https://www.inclusionhub.com/articles/inclusive-job-descriptions?source=post_page-----bd98f29c75cb--------------------------------) [](/archetypes-of-the-data-scientist-role-1b078966fb2?source=post_page-----bd98f29c75cb--------------------------------) ## 数据科学家角色的原型
 
 ### 数据科学岗位可能差异很大，职位发布内容并不总是清晰。你想戴什么帽子？
 
-towardsdatascience.com](/archetypes-of-the-data-scientist-role-1b078966fb2?source=post_page-----bd98f29c75cb--------------------------------) [](/your-data-scientist-does-not-need-a-stem-ph-d-7f2206f43871?source=post_page-----bd98f29c75cb--------------------------------) [## 你的数据科学家不需要一个STEM博士学位
+towardsdatascience.com [](/your-data-scientist-does-not-need-a-stem-ph-d-7f2206f43871?source=post_page-----bd98f29c75cb--------------------------------) ## 你的数据科学家不需要一个 STEM 博士学位
 
 ### 招聘数据科学家非常困难。它需要时间和精力，而且关于什么才是正确的…
 
-towardsdatascience.com](/your-data-scientist-does-not-need-a-stem-ph-d-7f2206f43871?source=post_page-----bd98f29c75cb--------------------------------) [](/machine-learning-engineers-what-do-they-actually-do-e666081c3181?source=post_page-----bd98f29c75cb--------------------------------) [## 机器学习工程师——他们到底做什么？
+towardsdatascience.com [](/machine-learning-engineers-what-do-they-actually-do-e666081c3181?source=post_page-----bd98f29c75cb--------------------------------) ## 机器学习工程师——他们到底做什么？
 
 ### 机器学习工程师对我们领域意味着新的东西吗？如果是，是什么？
 
-towardsdatascience.com](/machine-learning-engineers-what-do-they-actually-do-e666081c3181?source=post_page-----bd98f29c75cb--------------------------------) [](https://hbr.org/2014/08/why-women-dont-apply-for-jobs-unless-theyre-100-qualified?source=post_page-----bd98f29c75cb--------------------------------) [## 为什么女性只有在完全符合要求时才申请工作
+towardsdatascience.com [](https://hbr.org/2014/08/why-women-dont-apply-for-jobs-unless-theyre-100-qualified?source=post_page-----bd98f29c75cb--------------------------------) [## 为什么女性只有在完全符合要求时才申请工作
 
 ### 并不是因为他们缺乏信心。
 

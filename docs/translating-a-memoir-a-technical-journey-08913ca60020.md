@@ -1,20 +1,20 @@
 # 翻译回忆录：一段技术旅程
 
-> 原文：[https://towardsdatascience.com/translating-a-memoir-a-technical-journey-08913ca60020?source=collection_archive---------9-----------------------#2024-12-11](https://towardsdatascience.com/translating-a-memoir-a-technical-journey-08913ca60020?source=collection_archive---------9-----------------------#2024-12-11)
+> 原文：[`towardsdatascience.com/translating-a-memoir-a-technical-journey-08913ca60020?source=collection_archive---------9-----------------------#2024-12-11`](https://towardsdatascience.com/translating-a-memoir-a-technical-journey-08913ca60020?source=collection_archive---------9-----------------------#2024-12-11)
 
-## *利用GPT-3.5和非结构化API进行翻译*
+## *利用 GPT-3.5 和非结构化 API 进行翻译*
 
-[](https://medium.com/@ValeriaCortezVD?source=post_page---byline--08913ca60020--------------------------------)[![Valeria Cortez](../Images/e2d607ca9f86b3a5d72026c357cc8aa3.png)](https://medium.com/@ValeriaCortezVD?source=post_page---byline--08913ca60020--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--08913ca60020--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--08913ca60020--------------------------------) [Valeria Cortez](https://medium.com/@ValeriaCortezVD?source=post_page---byline--08913ca60020--------------------------------)
+[](https://medium.com/@ValeriaCortezVD?source=post_page---byline--08913ca60020--------------------------------)![Valeria Cortez](https://medium.com/@ValeriaCortezVD?source=post_page---byline--08913ca60020--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--08913ca60020--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--08913ca60020--------------------------------) [Valeria Cortez](https://medium.com/@ValeriaCortezVD?source=post_page---byline--08913ca60020--------------------------------)
 
-·发表于[《Towards Data Science》](https://towardsdatascience.com/?source=post_page---byline--08913ca60020--------------------------------) ·阅读时长：6分钟·2024年12月11日
+·发表于[《Towards Data Science》](https://towardsdatascience.com/?source=post_page---byline--08913ca60020--------------------------------) ·阅读时长：6 分钟·2024 年 12 月 11 日
 
 --
 
-**这篇博客文章详细介绍了我如何利用GPT翻译我家族朋友的个人回忆录，使其能够被更广泛的读者群体阅读。** 具体来说，我使用了GPT-3.5进行翻译，并通过Unstructured的API实现高效的内容提取和格式化。
+**这篇博客文章详细介绍了我如何利用 GPT 翻译我家族朋友的个人回忆录，使其能够被更广泛的读者群体阅读。** 具体来说，我使用了 GPT-3.5 进行翻译，并通过 Unstructured 的 API 实现高效的内容提取和格式化。
 
-这本回忆录由我的家族朋友卡门·罗莎（Carmen Rosa）撰写，真挚地讲述了她在玻利维亚的成长经历以及在充满活力的1970年代，与一位伊朗男子在巴黎的浪漫旅程。原文为西班牙语，我们的目标是通过应用LLM技术，在保留她叙事精髓的同时，扩大其在英语读者中的影响力。
+这本回忆录由我的家族朋友卡门·罗莎（Carmen Rosa）撰写，真挚地讲述了她在玻利维亚的成长经历以及在充满活力的 1970 年代，与一位伊朗男子在巴黎的浪漫旅程。原文为西班牙语，我们的目标是通过应用 LLM 技术，在保留她叙事精髓的同时，扩大其在英语读者中的影响力。
 
-![](../Images/56510196d4a4728b280ce74035ebef0a.png)
+![](img/56510196d4a4728b280ce74035ebef0a.png)
 
 《Un Destino Sorprendente》封面图，作者卡门·罗莎·维赫滕达尔（Carmen Rosa Wichtendahl）授权使用。
 
@@ -24,9 +24,9 @@
 
 我在翻译这本书时遵循了以下步骤：
 
-1.  **导入图书数据：** 我通过Unstructured API将书籍从Docx文档中导入，并将其分为章节和段落。
+1.  **导入图书数据：** 我通过 Unstructured API 将书籍从 Docx 文档中导入，并将其分为章节和段落。
 
-1.  **翻译技术：** 我使用GPT-3.5翻译了每一章。在每个段落中，我提供了该章最新的三句翻译（如果有的话）。这种方法有两个目的：
+1.  **翻译技术：** 我使用 GPT-3.5 翻译了每一章。在每个段落中，我提供了该章最新的三句翻译（如果有的话）。这种方法有两个目的：
 
 +   ***风格一致性：*** 通过提供先前翻译的上下文，保持整个翻译过程中的风格一致性。
 
@@ -308,21 +308,21 @@ def create_docx_from_chapters(chapters: Dict, output_filename: str) -> None:
 
 尽管使用 GPT 和 API 进行翻译快速高效，但与人工翻译相比，仍有一些关键限制：
 
-+   **代词和指代错误：** GPT确实在少数情况下误解了代词或指代，可能将某些行为或陈述错误地归因于叙事中的错误人物。人类翻译者可以更好地解决这些模糊性问题。
++   **代词和指代错误：** GPT 确实在少数情况下误解了代词或指代，可能将某些行为或陈述错误地归因于叙事中的错误人物。人类翻译者可以更好地解决这些模糊性问题。
 
-+   **文化背景：** GPT未能准确捕捉一些微妙的文化参考和习语，这些是人类翻译者能够更精确地解读的。在这种情况下，几个独特于玻利维亚圣克鲁斯的俚语被保留在原语言中，未做额外的解释或上下文说明。
++   **文化背景：** GPT 未能准确捕捉一些微妙的文化参考和习语，这些是人类翻译者能够更精确地解读的。在这种情况下，几个独特于玻利维亚圣克鲁斯的俚语被保留在原语言中，未做额外的解释或上下文说明。
 
 结合人工智能与人工审核可以平衡速度和质量，确保翻译既准确又真实。
 
 # 结论
 
-本项目展示了通过结合GPT-3和Unstructured APIs来翻译书籍的一种方法。通过自动化翻译过程，我们显著减少了所需的人工努力。尽管初始翻译输出可能需要进行一些小的人工修订，以精细化细微差别并确保最高质量，但这种方法为高效且有效的书籍翻译提供了坚实的基础。
+本项目展示了通过结合 GPT-3 和 Unstructured APIs 来翻译书籍的一种方法。通过自动化翻译过程，我们显著减少了所需的人工努力。尽管初始翻译输出可能需要进行一些小的人工修订，以精细化细微差别并确保最高质量，但这种方法为高效且有效的书籍翻译提供了坚实的基础。
 
 如果您对如何改进此过程或翻译质量有任何反馈或建议，请随时在下面的评论中分享。
 
 # 附录
 
-+   链接到[Colab笔记本](https://colab.research.google.com/drive/1FxdtBO8iy1vnXG3VpjRIJ5yZEIEPHk9u#scrollTo=XaX0tVYlP9NU)
++   链接到[Colab 笔记本](https://colab.research.google.com/drive/1FxdtBO8iy1vnXG3VpjRIJ5yZEIEPHk9u#scrollTo=XaX0tVYlP9NU)
 
 +   链接到[原语言书籍（西班牙语）](https://docs.google.com/document/d/1slQQXHqSq4n3d4zCNg9KNF4cIq3RpY4Y/edit?usp=sharing&ouid=114182714261805101186&rtpof=true&sd=true)
 

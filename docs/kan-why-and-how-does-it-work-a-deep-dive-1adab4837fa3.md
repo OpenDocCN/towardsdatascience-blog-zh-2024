@@ -1,16 +1,16 @@
 # KAN：它为什么以及如何工作？深入探讨
 
-> 原文：[https://towardsdatascience.com/kan-why-and-how-does-it-work-a-deep-dive-1adab4837fa3?source=collection_archive---------0-----------------------#2024-05-10](https://towardsdatascience.com/kan-why-and-how-does-it-work-a-deep-dive-1adab4837fa3?source=collection_archive---------0-----------------------#2024-05-10)
+> 原文：[`towardsdatascience.com/kan-why-and-how-does-it-work-a-deep-dive-1adab4837fa3?source=collection_archive---------0-----------------------#2024-05-10`](https://towardsdatascience.com/kan-why-and-how-does-it-work-a-deep-dive-1adab4837fa3?source=collection_archive---------0-----------------------#2024-05-10)
 
 ## 我们能通过 KAN 发现新的物理学吗？
 
-[](https://saptashwa.medium.com/?source=post_page---byline--1adab4837fa3--------------------------------)[![Saptashwa Bhattacharyya](../Images/b01238113a1f6b91cb6fb0fbfa50303a.png)](https://saptashwa.medium.com/?source=post_page---byline--1adab4837fa3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1adab4837fa3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1adab4837fa3--------------------------------) [Saptashwa Bhattacharyya](https://saptashwa.medium.com/?source=post_page---byline--1adab4837fa3--------------------------------)
+[](https://saptashwa.medium.com/?source=post_page---byline--1adab4837fa3--------------------------------)![Saptashwa Bhattacharyya](https://saptashwa.medium.com/?source=post_page---byline--1adab4837fa3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1adab4837fa3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1adab4837fa3--------------------------------) [Saptashwa Bhattacharyya](https://saptashwa.medium.com/?source=post_page---byline--1adab4837fa3--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1adab4837fa3--------------------------------) ·阅读时长13分钟·2024年5月10日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1adab4837fa3--------------------------------) ·阅读时长 13 分钟·2024 年 5 月 10 日
 
 --
 
-![](../Images/ea5d35d82a620a8bec456b82cd565f47.png)
+![](img/ea5d35d82a620a8bec456b82cd565f47.png)
 
 神经网络能发现新的物理学吗？（由作者使用 DALLE-2 生成）
 

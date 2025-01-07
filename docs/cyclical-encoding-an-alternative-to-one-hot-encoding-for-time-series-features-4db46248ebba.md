@@ -1,12 +1,12 @@
 # 循环编码：时间序列特征的替代方法
 
-> 原文：[https://towardsdatascience.com/cyclical-encoding-an-alternative-to-one-hot-encoding-for-time-series-features-4db46248ebba?source=collection_archive---------3-----------------------#2024-05-03](https://towardsdatascience.com/cyclical-encoding-an-alternative-to-one-hot-encoding-for-time-series-features-4db46248ebba?source=collection_archive---------3-----------------------#2024-05-03)
+> 原文：[`towardsdatascience.com/cyclical-encoding-an-alternative-to-one-hot-encoding-for-time-series-features-4db46248ebba?source=collection_archive---------3-----------------------#2024-05-03`](https://towardsdatascience.com/cyclical-encoding-an-alternative-to-one-hot-encoding-for-time-series-features-4db46248ebba?source=collection_archive---------3-----------------------#2024-05-03)
 
 ## 循环编码为你的模型提供了相同的信息，但使用了显著更少的特征。
 
-[](https://medium.com/@pelletierhaden?source=post_page---byline--4db46248ebba--------------------------------)[![Haden Pelletier](../Images/8f73fc8222e783883c4ebcaee14513e0.png)](https://medium.com/@pelletierhaden?source=post_page---byline--4db46248ebba--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4db46248ebba--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4db46248ebba--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--4db46248ebba--------------------------------)
+[](https://medium.com/@pelletierhaden?source=post_page---byline--4db46248ebba--------------------------------)![Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--4db46248ebba--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4db46248ebba--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4db46248ebba--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--4db46248ebba--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4db46248ebba--------------------------------) ·阅读时长 7 分钟·2024年5月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4db46248ebba--------------------------------) ·阅读时长 7 分钟·2024 年 5 月 3 日
 
 --
 

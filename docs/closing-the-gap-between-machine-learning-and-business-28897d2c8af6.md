@@ -1,20 +1,20 @@
 # 缩小机器学习与商业之间的差距
 
-> 原文：[https://towardsdatascience.com/closing-the-gap-between-machine-learning-and-business-28897d2c8af6?source=collection_archive---------5-----------------------#2024-01-13](https://towardsdatascience.com/closing-the-gap-between-machine-learning-and-business-28897d2c8af6?source=collection_archive---------5-----------------------#2024-01-13)
+> 原文：[`towardsdatascience.com/closing-the-gap-between-machine-learning-and-business-28897d2c8af6?source=collection_archive---------5-----------------------#2024-01-13`](https://towardsdatascience.com/closing-the-gap-between-machine-learning-and-business-28897d2c8af6?source=collection_archive---------5-----------------------#2024-01-13)
 
 ## 你觉得自己在这里做什么？
 
-[](https://medium.com/@s.kirmer?source=post_page---byline--28897d2c8af6--------------------------------)[![Stephanie Kirmer](../Images/f9d9ef9167febde974c223dd4d8d6293.png)](https://medium.com/@s.kirmer?source=post_page---byline--28897d2c8af6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--28897d2c8af6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--28897d2c8af6--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--28897d2c8af6--------------------------------)
+[](https://medium.com/@s.kirmer?source=post_page---byline--28897d2c8af6--------------------------------)![Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--28897d2c8af6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--28897d2c8af6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28897d2c8af6--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--28897d2c8af6--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28897d2c8af6--------------------------------) ·6分钟阅读·2024年1月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28897d2c8af6--------------------------------) ·6 分钟阅读·2024 年 1 月 13 日
 
 --
 
-![](../Images/ce865e5fc1f21d87da7b64d464cb0ba0.png)
+![](img/ce865e5fc1f21d87da7b64d464cb0ba0.png)
 
 图片由[Cookie the Pom](https://unsplash.com/@cookiethepom?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-现在我们很多人已经从冬季假期回来，重新投入工作，我一直在思考机器学习职能与其他业务之间的关系。自从去年11月以来，我开始在DataGrail担任新职位，这让我意识到机器学习岗位了解公司实际运营及需求的重要性。
+现在我们很多人已经从冬季假期回来，重新投入工作，我一直在思考机器学习职能与其他业务之间的关系。自从去年 11 月以来，我开始在 DataGrail 担任新职位，这让我意识到机器学习岗位了解公司实际运营及需求的重要性。
 
 我在这里的想法可能并不适用于所有机器学习从业者——那些纯粹从事研究的同仁可能可以跳过。但对于那些在商业或组织中服务的机器学习从业者而言，而非仅仅为了推动机器学习本身的发展，我认为值得反思一下我们如何与所在组织互动。
 

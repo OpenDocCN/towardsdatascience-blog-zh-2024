@@ -1,36 +1,36 @@
-# 教授AI智能体记忆的关键洞察
+# 教授 AI 智能体记忆的关键洞察
 
-> 原文：[https://towardsdatascience.com/key-insights-for-teaching-ai-agents-to-remember-c23deffe7f1a?source=collection_archive---------10-----------------------#2024-09-10](https://towardsdatascience.com/key-insights-for-teaching-ai-agents-to-remember-c23deffe7f1a?source=collection_archive---------10-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/key-insights-for-teaching-ai-agents-to-remember-c23deffe7f1a?source=collection_archive---------10-----------------------#2024-09-10`](https://towardsdatascience.com/key-insights-for-teaching-ai-agents-to-remember-c23deffe7f1a?source=collection_archive---------10-----------------------#2024-09-10)
 
-## 关于基于对Autogen“可教智能体”实验的记忆能力构建建议
+## 关于基于对 Autogen“可教智能体”实验的记忆能力构建建议
 
-[](https://medium.com/@sandibesen?source=post_page---byline--c23deffe7f1a--------------------------------)[![Sandi Besen](../Images/97361d97f50269f70b6621da2256bc29.png)](https://medium.com/@sandibesen?source=post_page---byline--c23deffe7f1a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c23deffe7f1a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c23deffe7f1a--------------------------------) [Sandi Besen](https://medium.com/@sandibesen?source=post_page---byline--c23deffe7f1a--------------------------------)
+[](https://medium.com/@sandibesen?source=post_page---byline--c23deffe7f1a--------------------------------)![Sandi Besen](https://medium.com/@sandibesen?source=post_page---byline--c23deffe7f1a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c23deffe7f1a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c23deffe7f1a--------------------------------) [Sandi Besen](https://medium.com/@sandibesen?source=post_page---byline--c23deffe7f1a--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c23deffe7f1a--------------------------------) ·阅读时间：16分钟·2024年9月10日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c23deffe7f1a--------------------------------) ·阅读时间：16 分钟·2024 年 9 月 10 日
 
 --
 
-记忆无疑正成为智能体AI（Agentic AI）中的一个关键组成部分。随着AI智能体应用场景的复杂化，这些智能体需要从过去的经验中学习，利用存储的特定业务知识，并根据累积的信息适应不断变化的场景。
+记忆无疑正成为智能体 AI（Agentic AI）中的一个关键组成部分。随着 AI 智能体应用场景的复杂化，这些智能体需要从过去的经验中学习，利用存储的特定业务知识，并根据累积的信息适应不断变化的场景。
 
-在我之前的文章“[AI中的记忆：关键好处与投资考量](https://medium.com/towards-data-science/the-important-role-of-memory-in-agentic-ai-896b22542b3e)”中，我探讨了记忆为何对AI至关重要，讨论了它在回忆、推理和持续学习中的作用。然而，本文将直接深入记忆的实施，通过在流行智能体框架[Autogen](https://microsoft.github.io/autogen/)中考察其“可教性”功能来分析其影响。
+在我之前的文章“[AI 中的记忆：关键好处与投资考量](https://medium.com/towards-data-science/the-important-role-of-memory-in-agentic-ai-896b22542b3e)”中，我探讨了记忆为何对 AI 至关重要，讨论了它在回忆、推理和持续学习中的作用。然而，本文将直接深入记忆的实施，通过在流行智能体框架[Autogen](https://microsoft.github.io/autogen/)中考察其“可教性”功能来分析其影响。
 
-***注意****:* *尽管本文具有技术性，但它对技术专业人士和希望评估记忆在智能体AI系统中作用的商业领袖同样具有价值。我已将其结构化，以便读者可以跳过代码部分，依然能够理解记忆如何增强AI系统的响应。如果你不想深入跟随代码，你可以阅读每个步骤的描述，了解过程的概况……或者直接阅读主要发现与建议部分。*
+***注意****:* *尽管本文具有技术性，但它对技术专业人士和希望评估记忆在智能体 AI 系统中作用的商业领袖同样具有价值。我已将其结构化，以便读者可以跳过代码部分，依然能够理解记忆如何增强 AI 系统的响应。如果你不想深入跟随代码，你可以阅读每个步骤的描述，了解过程的概况……或者直接阅读主要发现与建议部分。*
 
-![](../Images/8d57b87125a4809bbd544b77bc1db128.png)
+![](img/8d57b87125a4809bbd544b77bc1db128.png)
 
 来源：Dalle3 ，提示作者：Sandi Besen
 
 # 主要发现与建议
 
-我对Autogen的可教智能体进行的探索揭示了它们在处理简单和复杂记忆任务时的潜力与局限性。
+我对 Autogen 的可教智能体进行的探索揭示了它们在处理简单和复杂记忆任务时的潜力与局限性。
 
-初步使用时，Autogen的可教学代理的表现不如预期。该代理的推理能力将记忆混合在一起，产生了低效的结果，而且其内建的检索机制没有设置为适应回答复杂问题所需的多步搜索。**这一局限性表明，如果你想使用Autogen的可教学代理，必须进行大量定制，以补充推理能力并实现更复杂的记忆检索。**
+初步使用时，Autogen 的可教学代理的表现不如预期。该代理的推理能力将记忆混合在一起，产生了低效的结果，而且其内建的检索机制没有设置为适应回答复杂问题所需的多步搜索。**这一局限性表明，如果你想使用 Autogen 的可教学代理，必须进行大量定制，以补充推理能力并实现更复杂的记忆检索。**
 
 **为了构建更强大的记忆能力，实施多步搜索功能至关重要**。单一的记忆搜索通常无法提供完成复杂任务所需的全面信息。实施一系列互相关联的搜索可以显著增强代理收集和综合相关信息的能力。
 
-**“可教学性”功能虽然强大，但应谨慎使用**。**持续激活而没有监督会导致数据污染并危及可信信息源**。商业领袖和解决方案架构师应考虑实施“人类在环”方法，让用户批准系统学习的内容，而不是将每一个推断视为系统应学习的真实事实。Autogen当前的可教学代理设计中的这种监督缺失可能会带来与不受控制学习相关的重大风险。
+**“可教学性”功能虽然强大，但应谨慎使用**。**持续激活而没有监督会导致数据污染并危及可信信息源**。商业领袖和解决方案架构师应考虑实施“人类在环”方法，让用户批准系统学习的内容，而不是将每一个推断视为系统应学习的真实事实。Autogen 当前的可教学代理设计中的这种监督缺失可能会带来与不受控制学习相关的重大风险。
 
-最后，从知识库中进行记忆检索的方法在系统的有效性中起着重要作用。**超越简单的最近邻搜索（这是TeachableAgent的默认方式），采用更先进的技术，如混合搜索**（结合关键词和向量方法），**语义搜索或知识图谱的使用**，**可以显著提高检索信息的相关性和准确性**。
+最后，从知识库中进行记忆检索的方法在系统的有效性中起着重要作用。**超越简单的最近邻搜索（这是 TeachableAgent 的默认方式），采用更先进的技术，如混合搜索**（结合关键词和向量方法），**语义搜索或知识图谱的使用**，**可以显著提高检索信息的相关性和准确性**。
 
 # 描述性代码实现
 
@@ -40,9 +40,9 @@
 
 **步骤 1：**
 
-预先设置要求如果你的环境中没有安装autogen，需要通过pip安装autogen，并创建一个配置JSON文件。
+预先设置要求如果你的环境中没有安装 autogen，需要通过 pip 安装 autogen，并创建一个配置 JSON 文件。
 
-一个兼容的配置文件示例，使用Azure OpenAI的服务模型GPT4–o：
+一个兼容的配置文件示例，使用 Azure OpenAI 的服务模型 GPT4–o：
 
 ```py
 [{
@@ -54,7 +54,7 @@
 }]
 ```
 
-安装Autogen for python：
+安装 Autogen for python：
 
 ```py
 pip install pyautogen
@@ -80,7 +80,7 @@ config_list = autogen.config_list_from_json(
 
 **步骤 3：**
 
-创建代理。由于Autogen框架的工作方式，我们需要创建两个代理。我们使用一个UserProxyAgent来执行任务，并与人类进行互动或替代人类参与（具体取决于所需的人工干预程度）。我们还创建一个Conversable Agent作为“可教代理”（Teachable Agent），它旨在与其他代理互动（而非用户）。你可以在这里了解更多关于[UserProxyAgents](https://microsoft.github.io/autogen/docs/reference/agentchat/user_proxy_agent/)和[ConversableAgents](https://microsoft.github.io/autogen/docs/reference/agentchat/conversable_agent/)的信息。
+创建代理。由于 Autogen 框架的工作方式，我们需要创建两个代理。我们使用一个 UserProxyAgent 来执行任务，并与人类进行互动或替代人类参与（具体取决于所需的人工干预程度）。我们还创建一个 Conversable Agent 作为“可教代理”（Teachable Agent），它旨在与其他代理互动（而非用户）。你可以在这里了解更多关于[UserProxyAgents](https://microsoft.github.io/autogen/docs/reference/agentchat/user_proxy_agent/)和[ConversableAgents](https://microsoft.github.io/autogen/docs/reference/agentchat/conversable_agent/)的信息。
 
 ```py
 teachable_agent = ConversableAgent(
@@ -420,19 +420,19 @@ user.initiate_chat(teachable_agent, message=business_rules_25to50, clear_history
 user.initiate_chat(teachable_agent, message=business_rules_0to25, clear_history=True)
 ```
 
-## **步骤7：**
+## **步骤 7：**
 
 现在我们已经将重要信息添加到长期记忆中，让我们再问代理相同的问题，并查看它的回答有什么不同。
 
-**简单问题：**“设施目前面临40%的电力短缺。需要优先考虑哪些型号？”
+**简单问题：**“设施目前面临 40%的电力短缺。需要优先考虑哪些型号？”
 
-**复杂的多步骤问题：**“设施目前面临40%的电力短缺。请提供一份详细的机器停用和应保持活动机器的列表。”
+**复杂的多步骤问题：**“设施目前面临 40%的电力短缺。请提供一份详细的机器停用和应保持活动机器的列表。”
 
 **实施长期记忆后的结果：**
 
 可教代理能够部分回答简单问题。它在需要优先考虑的汽车型号上是正确的，但提供了关于哪些组件需要包括的额外错误信息。
 
-复杂的多步骤问题未能得到充分解决。它错误地将0-25%和25-50%容量限制的两个不同业务指南合并为一个泛化的指南，导致了不准确的回答。此外，它仅提供了每个组件生产中应保持活动或应停用的部分机器列表，遗漏了完整操作协议中的关键细节。这表明从多个独立的记忆源中准确检索和综合信息来回答复杂问题的挑战。
+复杂的多步骤问题未能得到充分解决。它错误地将 0-25%和 25-50%容量限制的两个不同业务指南合并为一个泛化的指南，导致了不准确的回答。此外，它仅提供了每个组件生产中应保持活动或应停用的部分机器列表，遗漏了完整操作协议中的关键细节。这表明从多个独立的记忆源中准确检索和综合信息来回答复杂问题的挑战。
 
 ```py
 SIMPLE QUESTION RESPONSE
@@ -547,7 +547,7 @@ user.initiate_chat(teachable_agent, message="The facility is experiencing a powe
 
 虽然 Autogen 提供了一个关于具有记忆的 AI 系统的直接介绍，但在有效处理复杂任务方面仍显不足。
 
-***在开发具有记忆能力的AI代理系统时，请考虑专注于以下关键能力****：*
+***在开发具有记忆能力的 AI 代理系统时，请考虑专注于以下关键能力****：*
 
 +   **实施多步骤搜索**以确保全面和相关的结果。这使得代理能够评估搜索结果的有效性，并利用检索到的信息解决查询的各个方面。此外，**考虑使用更先进的检索方法**，例如语义搜索、混合搜索或知识图谱，以获得最佳结果。
 

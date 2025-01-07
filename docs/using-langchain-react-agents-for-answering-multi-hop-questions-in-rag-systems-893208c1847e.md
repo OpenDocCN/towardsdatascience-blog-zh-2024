@@ -1,26 +1,26 @@
-# 使用LangChain ReAct代理回答RAG系统中的多跳问题
+# 使用 LangChain ReAct 代理回答 RAG 系统中的多跳问题
 
-> 原文：[https://towardsdatascience.com/using-langchain-react-agents-for-answering-multi-hop-questions-in-rag-systems-893208c1847e?source=collection_archive---------0-----------------------#2024-02-15](https://towardsdatascience.com/using-langchain-react-agents-for-answering-multi-hop-questions-in-rag-systems-893208c1847e?source=collection_archive---------0-----------------------#2024-02-15)
+> 原文：[`towardsdatascience.com/using-langchain-react-agents-for-answering-multi-hop-questions-in-rag-systems-893208c1847e?source=collection_archive---------0-----------------------#2024-02-15`](https://towardsdatascience.com/using-langchain-react-agents-for-answering-multi-hop-questions-in-rag-systems-893208c1847e?source=collection_archive---------0-----------------------#2024-02-15)
 
 ## #LLM 初学者指南
 
-## 在使用ReAct和Open AI Tools代理逐步回答复杂查询时非常有用，特别是在处理内部文档时。
+## 在使用 ReAct 和 Open AI Tools 代理逐步回答复杂查询时非常有用，特别是在处理内部文档时。
 
-[](https://varshitasher.medium.com/?source=post_page---byline--893208c1847e--------------------------------)[![Dr. Varshita Sher](../Images/a3f2e9bf1dc1d8cbe018e54f9341f608.png)](https://varshitasher.medium.com/?source=post_page---byline--893208c1847e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--893208c1847e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--893208c1847e--------------------------------) [Dr. Varshita Sher](https://varshitasher.medium.com/?source=post_page---byline--893208c1847e--------------------------------)
+[](https://varshitasher.medium.com/?source=post_page---byline--893208c1847e--------------------------------)![Dr. Varshita Sher](https://varshitasher.medium.com/?source=post_page---byline--893208c1847e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--893208c1847e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--893208c1847e--------------------------------) [Dr. Varshita Sher](https://varshitasher.medium.com/?source=post_page---byline--893208c1847e--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--893208c1847e--------------------------------) ·阅读时长43分钟·2024年2月15日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--893208c1847e--------------------------------) ·阅读时长 43 分钟·2024 年 2 月 15 日
 
 --
 
-![](../Images/f9c86e008b8faef32897c564b10f8949.png)
+![](img/f9c86e008b8faef32897c564b10f8949.png)
 
 图片由作者生成（提示工程学贡献：Fabian Nitka）
 
 # 动机
 
-我过去使用标准的LangChain组件（如vectorstore、retrievers等）构建的基本RAG聊天机器人效果很好。根据我提供的内部数据集，它们能够处理一些简单的问题，比如“印度的产假政策是什么”（源数据集：HR政策文档）、“我们产品的口味主要有哪些问题”（源数据集：社交媒体/Twitter）、“莫奈画作中的主题是什么”（源数据集：艺术期刊）等。最近，输入的查询复杂度增加了，例如，“过去1个月内，关于口味的关注是否有所增加”。除非内部文档中有专门讨论比较的部分，否则聊天机器人很难给出正确答案。原因是——正确的答案需要以下步骤被有序地规划和执行：
+我过去使用标准的 LangChain 组件（如 vectorstore、retrievers 等）构建的基本 RAG 聊天机器人效果很好。根据我提供的内部数据集，它们能够处理一些简单的问题，比如“印度的产假政策是什么”（源数据集：HR 政策文档）、“我们产品的口味主要有哪些问题”（源数据集：社交媒体/Twitter）、“莫奈画作中的主题是什么”（源数据集：艺术期刊）等。最近，输入的查询复杂度增加了，例如，“过去 1 个月内，关于口味的关注是否有所增加”。除非内部文档中有专门讨论比较的部分，否则聊天机器人很难给出正确答案。原因是——正确的答案需要以下步骤被有序地规划和执行：
 
-+   第一步：根据“过去1个月”和今天的日期计算*开始*日期和*结束*日期
++   第一步：根据“过去 1 个月”和今天的日期计算*开始*日期和*结束*日期
 
 +   第二步：获取提到口味问题的*开始*日期的查询
 
@@ -36,7 +36,7 @@
 
 > 代理的核心思想是使用语言模型选择一系列要执行的操作。在代理中，语言模型作为推理引擎，决定采取哪些行动以及以什么顺序执行。[[来源](https://python.langchain.com/docs/modules/agents)]
 
-![](../Images/991e5a86b326cc3876bedba860b192a4.png)
+![](img/991e5a86b326cc3876bedba860b192a4.png)
 
 代理以逐步方式回答多跳问题。（图像由作者提供）
 
@@ -93,13 +93,13 @@ embeddings = OpenAIEmbeddings(
 )
 ```
 
-*免责声明 — 我将交替使用“RAG工具”、“Q&A系统”和“QnA工具”这几个术语。在本教程中，它们都指的是一个能够查找一堆文档以回答特定用户查询的工具，但它* ***没有*** *任何对话记忆，即你不能以类似聊天的方式提问后续问题。不过，这可以在LangChain中轻松实现，可能会在未来的某篇文章中讨论。这里的重点仅仅是让多跳问题能够正常工作。*
+*免责声明 — 我将交替使用“RAG 工具”、“Q&A 系统”和“QnA 工具”这几个术语。在本教程中，它们都指的是一个能够查找一堆文档以回答特定用户查询的工具，但它* ***没有*** *任何对话记忆，即你不能以类似聊天的方式提问后续问题。不过，这可以在 LangChain 中轻松实现，可能会在未来的某篇文章中讨论。这里的重点仅仅是让多跳问题能够正常工作。*
 
-## 基于RAG的QnA
+## 基于 RAG 的 QnA
 
 让我们继续使用这些数据构建一个标准的问答系统。
 
-我们将使用`TextLoader`加载虚拟HR文档。
+我们将使用`TextLoader`加载虚拟 HR 文档。
 
 ```py
 # Loading the document
@@ -159,7 +159,7 @@ retriever = ParentDocumentRetriever(
 
 一旦运行这些命令，你应该会看到在工作会话中创建了两个文件夹 — `local_docstore`和`local_vectorstore`。可以随意检查每个文件夹的内容。
 
-![](../Images/9eff59ac6709193585ebaefdf989691e.png)
+![](img/9eff59ac6709193585ebaefdf989691e.png)
 
 快速检查`retriever`是否设置正确：
 
@@ -233,9 +233,9 @@ qa({"query": "What is the percentage difference in the annual budget for Japan a
   Document(page_content='**Leave Policies - Germany:**\nIn Germany, generous leave policies offer 30 days of paid vacation and 20 days of paid sick leave annually. An annual budget of €1 million is allocated for leave-related expenses.\n\n**Leave Policies - Japan:**\nIn Japan, employees enjoy 20 days of paid vacation and 15 days of paid sick leave per year. An annual budget of ¥100 million is allocated for leave-related expenses.\n\n**Performance Management:**\nPerformance reviews are conducted annually, with regular feedback provided to support professional development. GlobalCorp encourages continuous learning and allocates an annual budget of $5,000 per employee for training and development opportunities.', metadata={'source': '../data/globalcorp_hr_policy.txt'})]}
 ```
 
-从数学上讲，响应并不是100%正确。虽然它使用的逻辑是正确的（即将金额从¥转换为$），但所使用的汇率已过时。
+从数学上讲，响应并不是 100%正确。虽然它使用的逻辑是正确的（即将金额从¥转换为$），但所使用的汇率已过时。
 
-让我们尝试通过在查询中提供汇率信息（1美元 = 147.72日元）来帮助它。
+让我们尝试通过在查询中提供汇率信息（1 美元 = 147.72 日元）来帮助它。
 
 ```py
 # Results are still slightly off!
@@ -249,7 +249,7 @@ qa({"query": "What is the percentage difference in the annual budget for Japan a
   Document(page_content='**Leave Policies - Germany:**\nIn Germany, generous leave policies offer 30 days of paid vacation and 20 days of paid sick leave annually. An annual budget of €1 million is allocated for leave-related expenses.\n\n**Leave Policies - Japan:**\nIn Japan, employees enjoy 20 days of paid vacation and 15 days of paid sick leave per year. An annual budget of ¥100 million is allocated for leave-related expenses.\n\n**Performance Management:**\nPerformance reviews are conducted annually, with regular feedback provided to support professional development. GlobalCorp encourages continuous learning and allocates an annual budget of $5,000 per employee for training and development opportunities.', metadata={'source': '../data/globalcorp_hr_policy.txt'})]}
 ```
 
-有趣的是，LLM能够将汇率作为计算的一部分，并且它给出的答案（即$338,164.25）非常接近实际答案（即338,478.20）。不过，还是有改进的空间。
+有趣的是，LLM 能够将汇率作为计算的一部分，并且它给出的答案（即$338,164.25）非常接近实际答案（即 338,478.20）。不过，还是有改进的空间。
 
 让我们尝试另一个问题，这次是一个比较问题：
 
@@ -381,7 +381,7 @@ Question: {input}
 Thought:{agent_scratchpad}
 ```
 
-*注意 2：进行上述操作（即更详细/更长的提示）可能会指数级增加你的用例的 token 数量。我的建议是，如果你提前知道行动/思考的执行顺序，那么切换到 LLM 的链式调用会更有效* ***如果*** *(且这是一个很大的前提条件)*。例如：如果你知道你的系统需要回答的唯一类型问题是像我上面提到的比较问题，那么创建一个 LLM 的顺序链条（一个输出作为另一个输入）会更有意义。我在之前的* [*文章*](/a-gentle-intro-to-chaining-llms-agents-and-utils-via-langchain-16cd385fca81)* 中讲解了如何在 LangChain 中实现这一技术。*
+*注意 2：进行上述操作（即更详细/更长的提示）可能会指数级增加你的用例的 token 数量。我的建议是，如果你提前知道行动/思考的执行顺序，那么切换到 LLM 的链式调用会更有效* ***如果*** *(且这是一个很大的前提条件)*。例如：如果你知道你的系统需要回答的唯一类型问题是像我上面提到的比较问题，那么创建一个 LLM 的顺序链条（一个输出作为另一个输入）会更有意义。我在之前的* *文章** 中讲解了如何在 LangChain 中实现这一技术。*
 
 ## 创建 ReAct 代理
 
@@ -432,13 +432,13 @@ Final Answer: I don't have access to information about which country has the hig
 
 +   注意第一个 `Action` 的 `Action Input`（即“最高国家预算”）。这是将传递给 PDR `retriever` 的 `get_relevant_function()` 的搜索查询（而不是实际的输入查询，即“哪个国家的预算最高？”）。这意味着，如果底层文档中有讨论最高国家预算的部分，我们就可以顺利找到答案！可惜，情况并非如此。
 
-+   `Observation`（即运行 `action`（工具与 `action inputs`）后的结果）会在 `Action Input` 后立即打印。在我们的例子中，它是检索到的文档（`[Document(page_content=’**申诉和纪律程序：**\n我们的申诉和纪律程序是...）`），并包含回答查询所需的信息。尽管如此，最终的回答仍然不正确。[P.S. 根据我的测试，这种情况主要出现在 gpt3.5 中。]
++   `Observation`（即运行 `action`（工具与 `action inputs`）后的结果）会在 `Action Input` 后立即打印。在我们的例子中，它是检索到的文档（`[Document(page_content=’**申诉和纪律程序：**\n 我们的申诉和纪律程序是...）`），并包含回答查询所需的信息。尽管如此，最终的回答仍然不正确。[P.S. 根据我的测试，这种情况主要出现在 gpt3.5 中。]
 
-+   (为了使其与gpt-3.5兼容) 我尝试将搜索查询更新为`"Which of the two countries has the highest budget — Japan or Unites States?"`，希望代理能够识别国家名称，并连续进行两次检索调用以获取相关信息。不幸的是，最终的答案与之前相同。
++   (为了使其与 gpt-3.5 兼容) 我尝试将搜索查询更新为`"Which of the two countries has the highest budget — Japan or Unites States?"`，希望代理能够识别国家名称，并连续进行两次检索调用以获取相关信息。不幸的是，最终的答案与之前相同。
 
-+   最终，经过轻微的措辞调整，我们有了一个有效的查询（与gpt3.5兼容）。
++   最终，经过轻微的措辞调整，我们有了一个有效的查询（与 gpt3.5 兼容）。
 
-    主要要点：(1) 即使是看起来相似的提示，响应也可能有很大差异。(2) GPT4比GPT3.5更适合实现ReAct代理。
+    主要要点：(1) 即使是看起来相似的提示，响应也可能有很大差异。(2) GPT4 比 GPT3.5 更适合实现 ReAct 代理。
 
 ```py
 query = "Is the budget for Japan different than United States?"
@@ -464,11 +464,11 @@ Final Answer: According to the HR policy, the annual budget for employee benefit
 
 ## 理解代理的实现
 
-*LangChain库刚开始可能有点令人生畏，如果你想调试与react代理相关的底层工作原理，这里有一些有用的* [*调试器中的断点设置*](/how-to-make-most-of-your-python-debugger-in-vscode-9e05dfce533f)*。*
+*LangChain 库刚开始可能有点令人生畏，如果你想调试与 react 代理相关的底层工作原理，这里有一些有用的* *调试器中的断点设置**。*
 
-I. [ReAct代理的设置](https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/agents/react/agent.py#L113-L120)：在这里你将看到代理在每次迭代时所采取的四个主要步骤（通过`|`符号连接）。(*我还包含了片段，展示了每个步骤的输入/输出。)
+I. [ReAct 代理的设置](https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/agents/react/agent.py#L113-L120)：在这里你将看到代理在每次迭代时所采取的四个主要步骤（通过`|`符号连接）。(*我还包含了片段，展示了每个步骤的输入/输出。)
 
-P.S. 如果你是第一次看到这个管道符号* `*|*` *在LangChain中，我建议先阅读* [*这个*](https://python.langchain.com/docs/expression_language/why) *和* [*这个*](https://python.langchain.com/docs/expression_language/cookbook/prompt_llm_parser) *。简单来说，`*|*`*符号将第一个步骤的输出作为输入传递给链中的下一步。*
+P.S. 如果你是第一次看到这个管道符号* `*|*` *在 LangChain 中，我建议先阅读* [*这个*](https://python.langchain.com/docs/expression_language/why) *和* [*这个*](https://python.langchain.com/docs/expression_language/cookbook/prompt_llm_parser) *。简单来说，`*|*`*符号将第一个步骤的输出作为输入传递给链中的下一步。*
 
 (a) `Runnable.assign()`：使用观察结果更新`agent_scratchpad`，即所有先前的思考-行动-观察，并创建一个字典，可以将其作为输入传递给下一步，即`PromptTemplate`。
 
@@ -500,9 +500,9 @@ output_1 = agent_1.invoke(input)
  'agent_scratchpad': 'Some log here\nObservation: Result of the tool\nThought: '}
 ```
 
-(b) `PromptTemplate`：基于更新后的`agent_scratchpad`框架最终的react提示，以便调用LLM，并创建一个`StringPromptValue`。
+(b) `PromptTemplate`：基于更新后的`agent_scratchpad`框架最终的 react 提示，以便调用 LLM，并创建一个`StringPromptValue`。
 
-(注意：根据react提示模板，我们还需要另一个名为`tools`的`input_variables`，它已经通过`prompt.partial`在[这里](https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/agents/react/agent.py#L99-L102)附加了。)
+(注意：根据 react 提示模板，我们还需要另一个名为`tools`的`input_variables`，它已经通过`prompt.partial`在[这里](https://github.com/langchain-ai/langchain/blob/master/libs/langchain/langchain/agents/react/agent.py#L99-L102)附加了。)
 
 ```py
 # Testing PromptTemplate in isolation
@@ -546,7 +546,7 @@ AgentAction(tool='Currency conversion', tool_input='¥50 million', log='I found 
 
 II. [工作中的代理](https://github.com/langchain-ai/langchain/blob/ac970c9497e2aca1f6396c3f6954b4f6cd0ac879/libs/core/langchain_core/runnables/base.py#L2052)：这里可以看到用于遍历之前四个步骤的`for`循环。可以自由设置观察变量并检查中间结果。在完成所有四个步骤后，最终的响应类型要么是`AgentAction`（是否调用另一个工具），要么是`AgentFinish`（结束循环）。下面是我在四个步骤中的调试器快照：
 
-![](../Images/cd862def19b093e5e6607441b5d56fc8.png)![](../Images/8c10cfe73dfc902dfb6fa60b3d1193dd.png)![](../Images/c6cb10ba661cd55ac44667c2f07c2671.png)![](../Images/d37a025c163ed34d555c12d8bd184cfa.png)
+![](img/cd862def19b093e5e6607441b5d56fc8.png)![](img/8c10cfe73dfc902dfb6fa60b3d1193dd.png)![](img/c6cb10ba661cd55ac44667c2f07c2671.png)![](img/d37a025c163ed34d555c12d8bd184cfa.png)
 
 代理的中间输出
 
@@ -558,7 +558,7 @@ V. `[while](https://github.com/langchain-ai/langchain/blob/ac970c9497e2aca1f6396
 
 *注意：中间步骤是观测结果的集合，而这些观测通常是工具的输出。所以在检索工具的情况下，它将是文档的列表，在货币转换的情况下，它将是一个数字，等等。*
 
-![](../Images/fa837b6676eef62a6ea1a41349a85fd7.png)
+![](img/fa837b6676eef62a6ea1a41349a85fd7.png)
 
 中间步骤示例
 
@@ -633,7 +633,7 @@ Final Answer: The budget for Japan is different than the United States.
  'output': 'The budget for Japan is different than the United States.'}
 ```
 
-你可能会想，这个答案有什么大不了的。即使没有这个工具，我们之前得到的答案也是正确的。然而，值得注意的是，它能够在得出预算确实不同的最终结论之前，先将货币转换为美元。这有助于建立对回答的信任。如果没有这个工具，我敢打赌，如果人力资源政策上显示日本和美国的预算分别为7.41亿日元和500万美元，LLM会回应说它们的预算不同，尽管按今天的汇率转换后，应该是相同的。
+你可能会想，这个答案有什么大不了的。即使没有这个工具，我们之前得到的答案也是正确的。然而，值得注意的是，它能够在得出预算确实不同的最终结论之前，先将货币转换为美元。这有助于建立对回答的信任。如果没有这个工具，我敢打赌，如果人力资源政策上显示日本和美国的预算分别为 7.41 亿日元和 500 万美元，LLM 会回应说它们的预算不同，尽管按今天的汇率转换后，应该是相同的。
 
 一些观察：
 
@@ -665,7 +665,7 @@ Final Answer: The difference in company budget for Japan and the United States i
  'output': 'The difference in company budget for Japan and the United States is $661,521.80.'}
 ```
 
-LLM在处理减法时做得很好（尽管我仍然谨慎依赖LLM进行任何类型的计算）。如果我们想让它更加健壮，我们可以添加另一个工具，比如`calculator_subtract`来计算两个数字之间的差异。如我之前提到的，ReAct代理无法处理多输入工具，做这件事会引发错误。这就是Open AI工具代理的用武之地。
+LLM 在处理减法时做得很好（尽管我仍然谨慎依赖 LLM 进行任何类型的计算）。如果我们想让它更加健壮，我们可以添加另一个工具，比如`calculator_subtract`来计算两个数字之间的差异。如我之前提到的，ReAct 代理无法处理多输入工具，做这件事会引发错误。这就是 Open AI 工具代理的用武之地。
 
 ## Open AI 工具代理
 
@@ -741,15 +741,15 @@ Invoking: `percentage_difference` with `{'metric1': 338478.20200379094, 'metric2
  'output': 'The percentage difference in budgets for employee benefits between Japan and the US is approximately 98.85%, with the US budget being higher.'}
 ```
 
-*注意：运行这行代码时，您可能会遇到类似* [*这个*](https://github.com/Azure/azure-sdk-for-java/issues/38115) *的错误，即*`*Unrecognized request argument supplied: tools*`*。这意味着在API调用到* `*llm*`*时，系统无法识别* `*tools*` *参数。鉴于只有新版API能识别该参数，这就意味着您正在使用旧版模型。您可以通过以下方式修复这个问题：*
+*注意：运行这行代码时，您可能会遇到类似* [*这个*](https://github.com/Azure/azure-sdk-for-java/issues/38115) *的错误，即*`*Unrecognized request argument supplied: tools*`*。这意味着在 API 调用到* `*llm*`*时，系统无法识别* `*tools*` *参数。鉴于只有新版 API 能识别该参数，这就意味着您正在使用旧版模型。您可以通过以下方式修复这个问题：*
 
-+   *如果你使用的是Azure Open AI服务 — 请部署新版模型（见下图），并在你的代码库中更新* `*deployment_name*` *，即* `*llm=AzureChatOpenAI(deployment_name=..., )*`
++   *如果你使用的是 Azure Open AI 服务 — 请部署新版模型（见下图），并在你的代码库中更新* `*deployment_name*` *，即* `*llm=AzureChatOpenAI(deployment_name=..., )*`
 
-![](../Images/9a2a77e4aabc5f6ca5230d171c3c0344.png)
+![](img/9a2a77e4aabc5f6ca5230d171c3c0344.png)
 
-*Azure Open AI上的可用模型*
+*Azure Open AI 上的可用模型*
 
-+   *如果你直接使用Open AI的API — 请检查模型是否为* [*这个*](https://platform.openai.com/docs/models/gpt-3-5-turbo) *列表中的新版。*
++   *如果你直接使用 Open AI 的 API — 请检查模型是否为* [*这个*](https://platform.openai.com/docs/models/gpt-3-5-turbo) *列表中的新版。*
 
 *为了测试这个是否解决了问题，这里有一个版本更新前后的比较（完整代码片段可以在* [*这里*](https://github.com/gkamradt/langchain-tutorials/blob/main/data_generation/Exploring%20ChatGPT%20Function%20Calling.ipynb)*找到）：*
 
@@ -782,22 +782,22 @@ content='' additional_kwargs={'tool_calls': [<OpenAIObject id=call_8lvikb3ZqflGr
 
 ## 结论
 
-在深入研究ReAct代理的内部工作原理后，我希望你在实施此代理到你的项目时能更加自信。本文只是略有涉及，实际上还有很多内容需要探讨。例如，如何为这些问答系统添加记忆，以便你可以以聊天的方式使用它们。
+在深入研究 ReAct 代理的内部工作原理后，我希望你在实施此代理到你的项目时能更加自信。本文只是略有涉及，实际上还有很多内容需要探讨。例如，如何为这些问答系统添加记忆，以便你可以以聊天的方式使用它们。
 
 一如既往，如果有更简单的方式来做/解释本文中提到的一些内容，请告知我。一般来说，避免发表未经请求的破坏性/无意义/敌意评论！
 
 下次再见 ✨
 
-[](/a-gentle-intro-to-chaining-llms-agents-and-utils-via-langchain-16cd385fca81?source=post_page-----893208c1847e--------------------------------) [## 通过LangChain轻松了解LLM、代理和工具的串联
+[](/a-gentle-intro-to-chaining-llms-agents-and-utils-via-langchain-16cd385fca81?source=post_page-----893208c1847e--------------------------------) ## 通过 LangChain 轻松了解 LLM、代理和工具的串联
 
 ### 了解代理、工具和提示的基本概念，以及在此过程中获得的一些学习经验
 
-[towardsdatascience.com](/a-gentle-intro-to-chaining-llms-agents-and-utils-via-langchain-16cd385fca81?source=post_page-----893208c1847e--------------------------------) [](https://medium.com/illumination/3-apps-to-make-you-the-smartest-person-in-the-room-1cc2d927971d?source=post_page-----893208c1847e--------------------------------) [## 让你成为房间里最聪明的人的3个应用
+[towardsdatascience.com [](https://medium.com/illumination/3-apps-to-make-you-the-smartest-person-in-the-room-1cc2d927971d?source=post_page-----893208c1847e--------------------------------) [## 让你成为房间里最聪明的人的 3 个应用
 
 ### 最少的每日时间投入
 
-[medium.com](https://medium.com/illumination/3-apps-to-make-you-the-smartest-person-in-the-room-1cc2d927971d?source=post_page-----893208c1847e--------------------------------) [](/is-googles-notebooklm-going-to-disrupt-the-podcasting-industry-ea8e1ec7f431?source=post_page-----893208c1847e--------------------------------) [## 谷歌的NotebookLM会颠覆播客行业吗？
+[medium.com](https://medium.com/illumination/3-apps-to-make-you-the-smartest-person-in-the-room-1cc2d927971d?source=post_page-----893208c1847e--------------------------------) [](/is-googles-notebooklm-going-to-disrupt-the-podcasting-industry-ea8e1ec7f431?source=post_page-----893208c1847e--------------------------------) ## 谷歌的 NotebookLM 会颠覆播客行业吗？
 
-### 尤其是如果只需要点击1次就能将任何内容转成播客
+### 尤其是如果只需要点击 1 次就能将任何内容转成播客
 
-[towardsdatascience.com](/is-googles-notebooklm-going-to-disrupt-the-podcasting-industry-ea8e1ec7f431?source=post_page-----893208c1847e--------------------------------)
+[towardsdatascience.com

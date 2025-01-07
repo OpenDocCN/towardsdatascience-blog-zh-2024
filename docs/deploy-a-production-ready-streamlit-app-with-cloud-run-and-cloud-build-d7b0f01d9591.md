@@ -1,16 +1,16 @@
 # 使用 Cloud Run 和 Cloud Build 部署生产就绪的 Streamlit 应用
 
-> 原文：[https://towardsdatascience.com/deploy-a-production-ready-streamlit-app-with-cloud-run-and-cloud-build-d7b0f01d9591?source=collection_archive---------5-----------------------#2024-03-22](https://towardsdatascience.com/deploy-a-production-ready-streamlit-app-with-cloud-run-and-cloud-build-d7b0f01d9591?source=collection_archive---------5-----------------------#2024-03-22)
+> 原文：[`towardsdatascience.com/deploy-a-production-ready-streamlit-app-with-cloud-run-and-cloud-build-d7b0f01d9591?source=collection_archive---------5-----------------------#2024-03-22`](https://towardsdatascience.com/deploy-a-production-ready-streamlit-app-with-cloud-run-and-cloud-build-d7b0f01d9591?source=collection_archive---------5-----------------------#2024-03-22)
 
 ## 如何在无服务器架构和 CI/CD 流水线中部署容器化应用。
 
-[](https://ahmedbesbes.medium.com/?source=post_page---byline--d7b0f01d9591--------------------------------)[![Ahmed Besbes](../Images/93804d9291439715e578f204b79c9bdd.png)](https://ahmedbesbes.medium.com/?source=post_page---byline--d7b0f01d9591--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d7b0f01d9591--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d7b0f01d9591--------------------------------) [Ahmed Besbes](https://ahmedbesbes.medium.com/?source=post_page---byline--d7b0f01d9591--------------------------------)
+[](https://ahmedbesbes.medium.com/?source=post_page---byline--d7b0f01d9591--------------------------------)![Ahmed Besbes](https://ahmedbesbes.medium.com/?source=post_page---byline--d7b0f01d9591--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d7b0f01d9591--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d7b0f01d9591--------------------------------) [Ahmed Besbes](https://ahmedbesbes.medium.com/?source=post_page---byline--d7b0f01d9591--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d7b0f01d9591--------------------------------) ·8分钟阅读·2024年3月22日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d7b0f01d9591--------------------------------) ·8 分钟阅读·2024 年 3 月 22 日
 
 --
 
-![](../Images/c52ef8a1606ef2f17afb9cc0f2929540.png)
+![](img/c52ef8a1606ef2f17afb9cc0f2929540.png)
 
 图片来自 [Dominik Lückmann](https://unsplash.com/@exdigy?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,18 +1,18 @@
 # 《学校的数据科学，第一部分：使用 Python 和 OR-Tools 自动化课程表管理》
 
-> 原文：[https://towardsdatascience.com/data-science-for-schools-automate-timetabling-with-python-and-or-tools-part-1-f627c140a206?source=collection_archive---------3-----------------------#2024-06-12](https://towardsdatascience.com/data-science-for-schools-automate-timetabling-with-python-and-or-tools-part-1-f627c140a206?source=collection_archive---------3-----------------------#2024-06-12)
+> 原文：[`towardsdatascience.com/data-science-for-schools-automate-timetabling-with-python-and-or-tools-part-1-f627c140a206?source=collection_archive---------3-----------------------#2024-06-12`](https://towardsdatascience.com/data-science-for-schools-automate-timetabling-with-python-and-or-tools-part-1-f627c140a206?source=collection_archive---------3-----------------------#2024-06-12)
 
 ## 一种免费的、人类参与的方式来组织教职员工的替代工作
 
-[](https://medium.com/@mattchapmanmsc?source=post_page---byline--f627c140a206--------------------------------)[![Matt Chapman](../Images/7511deb8d9ed408ece21031f6614c532.png)](https://medium.com/@mattchapmanmsc?source=post_page---byline--f627c140a206--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f627c140a206--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f627c140a206--------------------------------) [Matt Chapman](https://medium.com/@mattchapmanmsc?source=post_page---byline--f627c140a206--------------------------------)
+[](https://medium.com/@mattchapmanmsc?source=post_page---byline--f627c140a206--------------------------------)![Matt Chapman](https://medium.com/@mattchapmanmsc?source=post_page---byline--f627c140a206--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f627c140a206--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f627c140a206--------------------------------) [Matt Chapman](https://medium.com/@mattchapmanmsc?source=post_page---byline--f627c140a206--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f627c140a206--------------------------------) ·阅读时间：10 分钟·2024年6月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f627c140a206--------------------------------) ·阅读时间：10 分钟·2024 年 6 月 12 日
 
 --
 
 想象一下学校的课程表：
 
-![](../Images/c22eb96bbb3af6959197d209bca1ee37.png)
+![](img/c22eb96bbb3af6959197d209bca1ee37.png)
 
 图片由作者提供
 
@@ -24,7 +24,7 @@
 
 结果是，一堆由学校的“数据人员”维护的庞大 Excel 表格：
 
-![](../Images/87e451f883ebc32259e0ad3d36180be9.png)
+![](img/87e451f883ebc32259e0ad3d36180be9.png)
 
 我们总是担心“`timetable_8b_final_FINAL_v2.xlsx`”的第 21 个标签页崩溃。图片由作者提供
 

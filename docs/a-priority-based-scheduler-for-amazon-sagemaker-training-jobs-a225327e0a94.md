@@ -1,22 +1,22 @@
-# 亚马逊SageMaker训练作业的优先级调度器
+# 亚马逊 SageMaker 训练作业的优先级调度器
 
-> 原文：[https://towardsdatascience.com/a-priority-based-scheduler-for-amazon-sagemaker-training-jobs-a225327e0a94?source=collection_archive---------10-----------------------#2024-03-08](https://towardsdatascience.com/a-priority-based-scheduler-for-amazon-sagemaker-training-jobs-a225327e0a94?source=collection_archive---------10-----------------------#2024-03-08)
+> 原文：[`towardsdatascience.com/a-priority-based-scheduler-for-amazon-sagemaker-training-jobs-a225327e0a94?source=collection_archive---------10-----------------------#2024-03-08`](https://towardsdatascience.com/a-priority-based-scheduler-for-amazon-sagemaker-training-jobs-a225327e0a94?source=collection_archive---------10-----------------------#2024-03-08)
 
-## 优化有限的AI训练加速器的使用——第二部分
+## 优化有限的 AI 训练加速器的使用——第二部分
 
-[](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)[![Chaim Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------) [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)
+[](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)![Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------) [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------) ·阅读时间：12分钟·2024年3月8日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------) ·阅读时间：12 分钟·2024 年 3 月 8 日
 
 --
 
-![](../Images/d4dd51c7492c9ad3b406d2ca1d86b429.png)
+![](img/d4dd51c7492c9ad3b406d2ca1d86b429.png)
 
 由[Adrien Aletti](https://unsplash.com/@ahda_gallery?utm_source=medium&utm_medium=referral)拍摄，图片来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 本文与[Max Rabin](https://www.linkedin.com/in/maxrabin/)合作创作。
 
-这是关于最大化稀缺 AI 资源利用的系列文章的第二部分。在[第一篇文章](/maximizing-the-utility-of-scarce-ai-resources-a-kubernetes-approach-0230ba53965b)中，我们提到，随着 AI 资源规模化能力的限制日益增加，AI 开发团队为保证 AI 计算能力，正逐渐倾向于通过构建内部 AI 服务器农场和/或在云中预留专用实例等方式来解决这一问题。AI 计算资源的稀缺性促使我们设计专门的调度解决方案，以最大程度地减少空闲时间，并优先处理关键工作负载。请参阅我们[之前的文章](/maximizing-the-utility-of-scarce-ai-resources-a-kubernetes-approach-0230ba53965b)，其中我们提出了此类解决方案的详细需求清单。我们采用的方法是利用现有的基于优先级的[调度器](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/)，该调度器与[Kubernetes](https://kubernetes.io/)一起提供，并使我们的训练开发工作流与其使用保持一致。在本文中，我们探讨了保持现有框架进行 AI 模型训练并通过自定义实现优先级调度器来增强该框架的选项。重要的是，这种类型的解决方案的需求通常不仅由 AI 资源的稀缺性驱动，还受到希望增加对训练工作负载的编排和优先级管理控制的推动，从而降低开发成本。例如，即使在容量充足的情况下，你也可能选择将训练实例的数量限制在一个固定范围内，以便控制训练开销。
+这是关于最大化稀缺 AI 资源利用的系列文章的第二部分。在第一篇文章中，我们提到，随着 AI 资源规模化能力的限制日益增加，AI 开发团队为保证 AI 计算能力，正逐渐倾向于通过构建内部 AI 服务器农场和/或在云中预留专用实例等方式来解决这一问题。AI 计算资源的稀缺性促使我们设计专门的调度解决方案，以最大程度地减少空闲时间，并优先处理关键工作负载。请参阅我们之前的文章，其中我们提出了此类解决方案的详细需求清单。我们采用的方法是利用现有的基于优先级的[调度器](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/)，该调度器与[Kubernetes](https://kubernetes.io/)一起提供，并使我们的训练开发工作流与其使用保持一致。在本文中，我们探讨了保持现有框架进行 AI 模型训练并通过自定义实现优先级调度器来增强该框架的选项。重要的是，这种类型的解决方案的需求通常不仅由 AI 资源的稀缺性驱动，还受到希望增加对训练工作负载的编排和优先级管理控制的推动，从而降低开发成本。例如，即使在容量充足的情况下，你也可能选择将训练实例的数量限制在一个固定范围内，以便控制训练开销。
 
 本文假设我们选择的训练框架是 AWS 的 AI 模型训练托管服务[Amazon SageMaker](https://aws.amazon.com/sagemaker/)。我们将提出的解决方案将使用其他 AWS 服务，如[Amazon DynamoDB](https://aws.amazon.com/pm/dynamodb/)和[AWS Lambda](https://aws.amazon.com/pm/lambda/)。选择使用 AWS 服务来展示我们的解决方案不应被视为对其的推荐。市面上有许多基于云的服务可供选择，最适合您的解决方案将取决于您项目的具体细节。我们所描述的类似解决方案可以在其他云环境中设计，或使用其他云服务来实现。
 
@@ -54,7 +54,7 @@ estimator.fit()
 
 在本节中，我们将描述我们提出的解决方案的组件。我们将使用[AWS 无服务器应用程序模型 (SAM) 规范](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification.html)。更具体地说，我们将创建一个[AWS SAM 模板 YAML 文件](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy.html)，并逐步添加我们需要的 AWS 资源。有关如何使用 AWS SAM 定义和部署无服务器解决方案的详细信息，请参见[文档](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html)。
 
-![](../Images/25932c7e09d19a30ed4bb4cffb192a95.png)
+![](img/25932c7e09d19a30ed4bb4cffb192a95.png)
 
 AWS 架构图（作者提供）
 
@@ -103,7 +103,7 @@ Resources:
       TableName: sagemaker-queue
 ```
 
-我们定义了一个函数，从给定的训练作业请求创建表项。我们假设请求包含与[create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html) API的输入内容相同的JSON格式数据。我们进一步假设工作负载的*优先级*作为一个键值[标签](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_Tag.html)输入到训练作业定义中。
+我们定义了一个函数，从给定的训练作业请求创建表项。我们假设请求包含与[create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html) API 的输入内容相同的 JSON 格式数据。我们进一步假设工作负载的*优先级*作为一个键值[标签](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_Tag.html)输入到训练作业定义中。
 
 ```py
 import json, boto3, datetime
@@ -143,7 +143,7 @@ def add_job_entry(job_json):
     print(f'Added job {job_name} to queue')
 ```
 
-我们即将定义的REST API *add-job* 方法将被编程为调用 *add_job_entry* 函数。
+我们即将定义的 REST API *add-job* 方法将被编程为调用 *add_job_entry* 函数。
 
 我们定义了第二个函数，从数据库中提取待处理作业，并按优先级返回它们。如果多个作业具有相同的优先级，它们将根据在队列中等待的时间长短进行排序。
 
@@ -233,7 +233,7 @@ def remove_job(job_name):
     print(f'Removed job {job_name} from queue')
 ```
 
-我们选择DynamoDB及其使用（例如，使用[Scan](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Scan.html) API而不是[Query](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Query.html) API）假设队列中的作业总数最多为几十个。对于更大规模的解决方案，您可能需要选择一个更强大的数据库（例如，能够为您执行排序操作的数据库）或更复杂的DynamoDB使用方式（例如，参见[这里](https://aws.amazon.com/blogs/database/implementing-priority-queueing-with-amazon-dynamodb/)）。
+我们选择 DynamoDB 及其使用（例如，使用[Scan](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Scan.html) API 而不是[Query](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Query.html) API）假设队列中的作业总数最多为几十个。对于更大规模的解决方案，您可能需要选择一个更强大的数据库（例如，能够为您执行排序操作的数据库）或更复杂的 DynamoDB 使用方式（例如，参见[这里](https://aws.amazon.com/blogs/database/implementing-priority-queueing-with-amazon-dynamodb/)）。
 
 ## 定义训练作业队列管理器
 
@@ -241,11 +241,11 @@ def remove_job(job_name):
 
 1.  提取按优先级排序的队列中作业列表。如果没有作业，返回。
 
-1.  发现未使用的实例容量。对于每个空闲实例，在SageMaker上启动一个待处理作业。如果没有剩余作业，返回。
+1.  发现未使用的实例容量。对于每个空闲实例，在 SageMaker 上启动一个待处理作业。如果没有剩余作业，返回。
 
-1.  计算处于*停止*状态的SageMaker作业数量。如果超过待处理作业的数量，返回。
+1.  计算处于*停止*状态的 SageMaker 作业数量。如果超过待处理作业的数量，返回。
 
-1.  通过将运行中的SageMaker作业的*优先级*与待处理作业的优先级进行比较，评估是否需要抢占正在运行的作业。
+1.  通过将运行中的 SageMaker 作业的*优先级*与待处理作业的优先级进行比较，评估是否需要抢占正在运行的作业。
 
 ```py
 # set the limit on total number of instances/jobs
@@ -346,15 +346,15 @@ def manage_queue():
 
 重要提示：
 
-1.  我们的实现非常乐观，假设所有插入的作业都是有效的，并且我们可以在SageMaker上顺利启动它们。实际上，应该添加适当的错误处理（例如，使用适当的日志记录从队列中移除有问题的作业）。
+1.  我们的实现非常乐观，假设所有插入的作业都是有效的，并且我们可以在 SageMaker 上顺利启动它们。实际上，应该添加适当的错误处理（例如，使用适当的日志记录从队列中移除有问题的作业）。
 
-1.  在生产环境中，我们需要考虑当多个并发事件触发我们的[竞争条件](https://en.wikipedia.org/wiki/Race_condition)时，可能会发生的情况。解决此问题的方法有多种（例如，参见[这里](https://medium.com/@moradiyabhavik/race-condition-understanding-and-solution-926b6d2808cf)），包括强制原子性（例如，通过将我们的[Lambda函数并发](https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html)设置为1）、使用某种形式的锁机制（例如，如[这里](https://aws.amazon.com/blogs/database/implementing-priority-queueing-with-amazon-dynamodb/)所做的），或使我们的函数具有[幂等性](https://en.wikipedia.org/wiki/Idempotence)。在这里，我们采用了我们所称的“乐观幂等性”方法，依赖于API的适当使用以及底层调用SageMaker API的幂等性。
+1.  在生产环境中，我们需要考虑当多个并发事件触发我们的[竞争条件](https://en.wikipedia.org/wiki/Race_condition)时，可能会发生的情况。解决此问题的方法有多种（例如，参见[这里](https://medium.com/@moradiyabhavik/race-condition-understanding-and-solution-926b6d2808cf)），包括强制原子性（例如，通过将我们的[Lambda 函数并发](https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html)设置为 1）、使用某种形式的锁机制（例如，如[这里](https://aws.amazon.com/blogs/database/implementing-priority-queueing-with-amazon-dynamodb/)所做的），或使我们的函数具有[幂等性](https://en.wikipedia.org/wiki/Idempotence)。在这里，我们采用了我们所称的“乐观幂等性”方法，依赖于 API 的适当使用以及底层调用 SageMaker API 的幂等性。
 
 1.  我们强调，我们的实现是初级的。实际上，我们建议使用更复杂的算法，1）考虑使用不同类型的实例和需要多个实例的任务，2）考虑所有边界情况，3）根据项目的具体需求量身定制。
 
-## 定义AWS Lambda函数
+## 定义 AWS Lambda 函数
 
-解决方案的下一个组件是Lambda函数。以下代码块包括我们无服务器函数的[SAM](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html)定义。我们编写该函数以响应两种不同类型的事件：对我们私有API网关上的[*add-job*](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-api.html)的任何调用，以及[SageMaker训练任务状态的变化](https://docs.aws.amazon.com/sagemaker/latest/dg/automating-sagemaker-with-eventbridge.html)。
+解决方案的下一个组件是 Lambda 函数。以下代码块包括我们无服务器函数的[SAM](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html)定义。我们编写该函数以响应两种不同类型的事件：对我们私有 API 网关上的[*add-job*](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-api.html)的任何调用，以及[SageMaker 训练任务状态的变化](https://docs.aws.amazon.com/sagemaker/latest/dg/automating-sagemaker-with-eventbridge.html)。
 
 ```py
  ManagedTrainingJobQueue:
@@ -425,7 +425,7 @@ def lambda_handler(event, context):
 
 ## 拦截创建训练任务请求
 
-为了完成我们的解决方案，最后需要修改的部分是拦截对SageMaker的[create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html) API的调用，并将其重新路由到我们的*add-job*方法。我们通过重写[SageMaker会话类](https://sagemaker.readthedocs.io/en/stable/api/utility/session.html)的[_intercept_create_request](https://github.com/aws/sagemaker-python-sdk/blob/v2.208.0/src/sagemaker/session.py#L6212)函数来实现这一点：
+为了完成我们的解决方案，最后需要修改的部分是拦截对 SageMaker 的[create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html) API 的调用，并将其重新路由到我们的*add-job*方法。我们通过重写[SageMaker 会话类](https://sagemaker.readthedocs.io/en/stable/api/utility/session.html)的[_intercept_create_request](https://github.com/aws/sagemaker-python-sdk/blob/v2.208.0/src/sagemaker/session.py#L6212)函数来实现这一点：
 
 ```py
 from sagemaker.pytorch import PyTorch
@@ -478,15 +478,15 @@ estimator.fit(wait=False)
 
 # 用例示例
 
-为了测试我们的解决方案，我们提交以下任务序列。每次调用后，我们打印队列状态（使用*print_queue_state*函数），并暂停20秒。
+为了测试我们的解决方案，我们提交以下任务序列。每次调用后，我们打印队列状态（使用*print_queue_state*函数），并暂停 20 秒。
 
-1.  使用优先级1启动job1。
+1.  使用优先级 1 启动 job1。
 
-1.  使用优先级2启动job2。
+1.  使用优先级 2 启动 job2。
 
-1.  使用优先级1启动job3。
+1.  使用优先级 1 启动 job3。
 
-1.  使用优先级3启动job4。
+1.  使用优先级 3 启动 job4。
 
 前两个作业会立即提交到 SageMaker，并更新为*运行中*状态。由于第三个作业的优先级较低，并且我们恰好有两个训练实例，它会保持在*待处理*状态，等待轮到它。提交前三个作业后，队列状态如下所示：
 

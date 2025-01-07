@@ -1,16 +1,16 @@
 # 在你的笔记本电脑上构建并运行你自己的 RAG：ColBERT + DSPy + Streamlit
 
-> 原文：[https://towardsdatascience.com/rag-on-your-laptop-colbert-dspy-streamlit-c206ea92188f?source=collection_archive---------2-----------------------#2024-03-13](https://towardsdatascience.com/rag-on-your-laptop-colbert-dspy-streamlit-c206ea92188f?source=collection_archive---------2-----------------------#2024-03-13)
+> 原文：[`towardsdatascience.com/rag-on-your-laptop-colbert-dspy-streamlit-c206ea92188f?source=collection_archive---------2-----------------------#2024-03-13`](https://towardsdatascience.com/rag-on-your-laptop-colbert-dspy-streamlit-c206ea92188f?source=collection_archive---------2-----------------------#2024-03-13)
 
-![](../Images/250fcc511d345830f2fa9e220b017cc2.png)
+![](img/250fcc511d345830f2fa9e220b017cc2.png)
 
 照片由 [Tamara Gak](https://unsplash.com/@tamara_photography?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## *生成型 AI 初学者教程：让我们一步步在本地构建一个非常简单的 RAG（检索增强生成）系统*
 
-[](https://medium.com/@ngshya?source=post_page---byline--c206ea92188f--------------------------------)[![Shuyi Yang](../Images/73640b84246487db835da320b2592f9e.png)](https://medium.com/@ngshya?source=post_page---byline--c206ea92188f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c206ea92188f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c206ea92188f--------------------------------) [Shuyi Yang](https://medium.com/@ngshya?source=post_page---byline--c206ea92188f--------------------------------)
+[](https://medium.com/@ngshya?source=post_page---byline--c206ea92188f--------------------------------)![Shuyi Yang](https://medium.com/@ngshya?source=post_page---byline--c206ea92188f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c206ea92188f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c206ea92188f--------------------------------) [Shuyi Yang](https://medium.com/@ngshya?source=post_page---byline--c206ea92188f--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c206ea92188f--------------------------------) ·阅读时间：16 分钟·2024年3月13日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c206ea92188f--------------------------------) ·阅读时间：16 分钟·2024 年 3 月 13 日
 
 --
 

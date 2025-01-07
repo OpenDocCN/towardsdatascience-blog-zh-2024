@@ -1,16 +1,16 @@
 # Pydantic V2 中的验证
 
-> 原文：[https://towardsdatascience.com/validations-in-pydantic-v2-15bcbb39a98b?source=collection_archive---------6-----------------------#2024-07-17](https://towardsdatascience.com/validations-in-pydantic-v2-15bcbb39a98b?source=collection_archive---------6-----------------------#2024-07-17)
+> 原文：[`towardsdatascience.com/validations-in-pydantic-v2-15bcbb39a98b?source=collection_archive---------6-----------------------#2024-07-17`](https://towardsdatascience.com/validations-in-pydantic-v2-15bcbb39a98b?source=collection_archive---------6-----------------------#2024-07-17)
 
 ## 使用字段验证器、注解验证器、字段验证器和模型验证器进行验证
 
-[](https://kayjanwong.medium.com/?source=post_page---byline--15bcbb39a98b--------------------------------)[![Kay Jan Wong](../Images/28e803eca6327d97b6aa97ee4095d7bd.png)](https://kayjanwong.medium.com/?source=post_page---byline--15bcbb39a98b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--15bcbb39a98b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--15bcbb39a98b--------------------------------) [Kay Jan Wong](https://kayjanwong.medium.com/?source=post_page---byline--15bcbb39a98b--------------------------------)
+[](https://kayjanwong.medium.com/?source=post_page---byline--15bcbb39a98b--------------------------------)![Kay Jan Wong](https://kayjanwong.medium.com/?source=post_page---byline--15bcbb39a98b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--15bcbb39a98b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--15bcbb39a98b--------------------------------) [Kay Jan Wong](https://kayjanwong.medium.com/?source=post_page---byline--15bcbb39a98b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--15bcbb39a98b--------------------------------) ·7分钟阅读·2024年7月17日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--15bcbb39a98b--------------------------------) ·7 分钟阅读·2024 年 7 月 17 日
 
 --
 
-![](../Images/bd2605efe60b46b99118b62a88d62303.png)
+![](img/bd2605efe60b46b99118b62a88d62303.png)
 
 图片由 [Max Di Capua](https://unsplash.com/@maxdicapua?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

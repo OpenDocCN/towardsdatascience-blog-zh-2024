@@ -1,18 +1,18 @@
-# 提升你数据科学水平的5项关键软技能
+# 提升你数据科学水平的 5 项关键软技能
 
-> 原文：[https://towardsdatascience.com/5-key-soft-skills-to-elevate-your-data-science-game-1a4451f6884b?source=collection_archive---------5-----------------------#2024-04-05](https://towardsdatascience.com/5-key-soft-skills-to-elevate-your-data-science-game-1a4451f6884b?source=collection_archive---------5-----------------------#2024-04-05)
+> 原文：[`towardsdatascience.com/5-key-soft-skills-to-elevate-your-data-science-game-1a4451f6884b?source=collection_archive---------5-----------------------#2024-04-05`](https://towardsdatascience.com/5-key-soft-skills-to-elevate-your-data-science-game-1a4451f6884b?source=collection_archive---------5-----------------------#2024-04-05)
 
 ## 数据科学家应高度重视的软技能，以便在人群中脱颖而出
 
-[](https://medium.com/@florentpajot?source=post_page---byline--1a4451f6884b--------------------------------)[![Florent Pajot](../Images/ff375f53bcfdec60e84a24068431361d.png)](https://medium.com/@florentpajot?source=post_page---byline--1a4451f6884b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1a4451f6884b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1a4451f6884b--------------------------------) [Florent Pajot](https://medium.com/@florentpajot?source=post_page---byline--1a4451f6884b--------------------------------)
+[](https://medium.com/@florentpajot?source=post_page---byline--1a4451f6884b--------------------------------)![Florent Pajot](https://medium.com/@florentpajot?source=post_page---byline--1a4451f6884b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1a4451f6884b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1a4451f6884b--------------------------------) [Florent Pajot](https://medium.com/@florentpajot?source=post_page---byline--1a4451f6884b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1a4451f6884b--------------------------------) ·10分钟阅读·2024年4月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1a4451f6884b--------------------------------) ·10 分钟阅读·2024 年 4 月 5 日
 
 --
 
 在这个故事中，我将与大家分享我认为数据科学家应高度重视的五项软技能，以帮助他们在人群中脱颖而出。这些观察基于我过去十年的经验，与数据科学家一起工作并管理他们的经历。
 
-![](../Images/6265454130173751e77d9a74265604dd.png)
+![](img/6265454130173751e77d9a74265604dd.png)
 
 图片来自[Gary Butterfield](https://unsplash.com/@garybpt?utm_source=medium&utm_medium=referral)在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)上的分享
 
@@ -50,7 +50,7 @@
 
 抓住任何离开舒适区的机会，学习新事物。如果你采取一种对所有事物都感兴趣、对每个人都值得倾听的态度，你将扩展自己的视野，并开始质疑自己在专业领域之外的事情。
 
-![](../Images/a71fde3c27af5ca7923f9dd067741f0e.png)
+![](img/a71fde3c27af5ca7923f9dd067741f0e.png)
 
 照片由[Panos Sakalakis](https://unsplash.com/@meymigrou?utm_source=medium&utm_medium=referral)拍摄，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -68,7 +68,7 @@
 
 ## 高效地传达成果
 
-即使只有1%的项目时间用于沟通成果，这看似微小的部分，往往包含了99%的价值。
+即使只有 1%的项目时间用于沟通成果，这看似微小的部分，往往包含了 99%的价值。
 
 可惜的是，我注意到许多初级数据科学家会花费数周时间完善他们的技术方法或数据分析，但在传达有影响力的见解时却因为沟通不力而失败。
 
@@ -82,7 +82,7 @@
 
 每当我有一个“重要”的会议时，我会花 5 分钟准备。我的准备方法如下：
 
-+   花 1 分钟进行颧骨热身（这有助于改善发音）-> [https://preply.com/en/blog/english-pronunciation-practice/](https://preply.com/en/blog/english-pronunciation-practice/)
++   花 1 分钟进行颧骨热身（这有助于改善发音）-> [`preply.com/en/blog/english-pronunciation-practice/`](https://preply.com/en/blog/english-pronunciation-practice/)
 
 +   定义我的目标
 
@@ -96,19 +96,19 @@
 
 资源：
 
-+   [https://hbr.org/2023/06/how-to-give-and-receive-critical-feedback](https://hbr.org/2023/06/how-to-give-and-receive-critical-feedback)
++   [`hbr.org/2023/06/how-to-give-and-receive-critical-feedback`](https://hbr.org/2023/06/how-to-give-and-receive-critical-feedback)
 
-+   [https://kimmalonescott.medium.com/asking-for-feedback-how-to-solicit-radical-candor-823dab2860c0](https://kimmalonescott.medium.com/asking-for-feedback-how-to-solicit-radical-candor-823dab2860c0)
++   [`kimmalonescott.medium.com/asking-for-feedback-how-to-solicit-radical-candor-823dab2860c0`](https://kimmalonescott.medium.com/asking-for-feedback-how-to-solicit-radical-candor-823dab2860c0)
 
 2\. 阅读
 
 阅读关于沟通的书籍！我强烈推荐从 Chip 和 Dan Heath 的《Made To Stick》开始，这本书提供了一种使你的想法更具记忆性和影响力的方法。
 
-![](../Images/13978828a36ed4bcb9090e731c87bfe9.png)
+![](img/13978828a36ed4bcb9090e731c87bfe9.png)
 
 图片由 [Seema Miah](https://unsplash.com/@seemamiah?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-你也可以在互联网上找到许多有趣的免费资源，比如 [https://online.hbs.edu/blog/post/communication-techniques](https://online.hbs.edu/blog/post/communication-techniques)
+你也可以在互联网上找到许多有趣的免费资源，比如 [`online.hbs.edu/blog/post/communication-techniques`](https://online.hbs.edu/blog/post/communication-techniques)
 
 # 3\. 科学思维方式
 
@@ -130,9 +130,9 @@
 
 统计学是数据科学家硬技能的三大支柱之一。而任何科学方法都需要合理使用统计工具。例如，统计检验可以帮助你检查特征相关性或数据分布。因此，如果你不熟悉这些工具，可以考虑提升你的统计武器库。
 
-你可以立即在 Medium 上开始：[https://towardsdatascience.com/ultimate-guide-to-statistics-for-data-science-a3d8f1fd69a7](/ultimate-guide-to-statistics-for-data-science-a3d8f1fd69a7)
+你可以立即在 Medium 上开始：`towardsdatascience.com/ultimate-guide-to-statistics-for-data-science-a3d8f1fd69a7`
 
-我还推荐这本全面的书籍：[https://www.oreilly.com/library/view/practical-statistics-for/9781492072935/](https://www.oreilly.com/library/view/practical-statistics-for/9781492072935/)
+我还推荐这本全面的书籍：[`www.oreilly.com/library/view/practical-statistics-for/9781492072935/`](https://www.oreilly.com/library/view/practical-statistics-for/9781492072935/)
 
 3\. 工具
 
@@ -142,11 +142,11 @@
 
 对于像 Kaggle 竞赛这样的个人项目，我喜欢使用[DVC](https://dvc.org/doc/api-reference)，它几年前引入了实验跟踪功能。然而，市场上也有许多更先进的工具，如[MLFlow](https://mlflow.org/docs/latest/introduction/index.html)和[Neptune.ai](https://neptune.ai/)。
 
-你可以在这里找到一个关于实验跟踪工具的全面比较：[https://towardsdatascience.com/a-comprehensive-comparison-of-ml-experiment-tracking-tools-9f0192543feb](/a-comprehensive-comparison-of-ml-experiment-tracking-tools-9f0192543feb)
+你可以在这里找到一个关于实验跟踪工具的全面比较：`towardsdatascience.com/a-comprehensive-comparison-of-ml-experiment-tracking-tools-9f0192543feb`
 
 但是，你不需要复杂的工具来记录你的想法、问题和实验。所以我建议至少从用记事本写下内容开始。
 
-![](../Images/24899d565e898a8d200fe09bdf60396b.png)
+![](img/24899d565e898a8d200fe09bdf60396b.png)
 
 图片来源：[Brett Jordan](https://unsplash.com/@brett_jordan?utm_source=medium&utm_medium=referral)在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -162,7 +162,7 @@
 
 +   《如何用统计学撒谎》by Darrell Huff
 
-+   [https://towardsdatascience.com/lessons-from-how-to-lie-with-statistics-57060c0d2f19](/lessons-from-how-to-lie-with-statistics-57060c0d2f19)
++   `towardsdatascience.com/lessons-from-how-to-lie-with-statistics-57060c0d2f19`
 
 拥有巨大权力的同时也意味着巨大的责任。但，这并不是我认为诚信对我重要的唯一原因。
 
@@ -174,13 +174,13 @@
 
 相关的有趣资源：
 
-+   [https://developers.google.com/machine-learning/crash-course/fairness/video-lecture](https://developers.google.com/machine-learning/crash-course/fairness/video-lecture)
++   [`developers.google.com/machine-learning/crash-course/fairness/video-lecture`](https://developers.google.com/machine-learning/crash-course/fairness/video-lecture)
 
-+   [https://pair-code.github.io/what-if-tool/](https://pair-code.github.io/what-if-tool/)
++   [`pair-code.github.io/what-if-tool/`](https://pair-code.github.io/what-if-tool/)
 
-如果你像我一样是AWS用户，[Sagemaker Clarify](https://aws.amazon.com/sagemaker/clarify/)提供了多种偏见检测分析工具。
+如果你像我一样是 AWS 用户，[Sagemaker Clarify](https://aws.amazon.com/sagemaker/clarify/)提供了多种偏见检测分析工具。
 
-如果你对深度学习的公平性感兴趣，可以仔细查看[DEEL实验室的出版物](https://www.deel.ai/bias/)，以及他们的开源解决方案，如[Influencia](https://github.com/deel-ai/influenciae)。
+如果你对深度学习的公平性感兴趣，可以仔细查看[DEEL 实验室的出版物](https://www.deel.ai/bias/)，以及他们的开源解决方案，如[Influencia](https://github.com/deel-ai/influenciae)。
 
 ## 环境影响
 
@@ -196,17 +196,17 @@
 
 有趣的资源：
 
-+   [https://www.oecd.org/publications/measuring-the-environmental-impacts-of-artificial-intelligence-compute-and-applications-7babf571-en.htm](https://www.oecd.org/publications/measuring-the-environmental-impacts-of-artificial-intelligence-compute-and-applications-7babf571-en.htm)
++   [`www.oecd.org/publications/measuring-the-environmental-impacts-of-artificial-intelligence-compute-and-applications-7babf571-en.htm`](https://www.oecd.org/publications/measuring-the-environmental-impacts-of-artificial-intelligence-compute-and-applications-7babf571-en.htm)
 
-+   [https://www.nature.com/articles/s42256-020-0219-9](https://www.nature.com/articles/s42256-020-0219-9)
++   [`www.nature.com/articles/s42256-020-0219-9`](https://www.nature.com/articles/s42256-020-0219-9)
 
-+   像AWS这样的编辑可能会提供类似于[https://aws.amazon.com/aws-cost-management/aws-customer-carbon-footprint-tool/](https://aws.amazon.com/aws-cost-management/aws-customer-carbon-footprint-tool/)的工具。
++   像 AWS 这样的编辑可能会提供类似于[`aws.amazon.com/aws-cost-management/aws-customer-carbon-footprint-tool/`](https://aws.amazon.com/aws-cost-management/aws-customer-carbon-footprint-tool/)的工具。
 
 如果你想开始思考你的代码碳足迹：
 
-+   [https://mlco2.github.io/codecarbon/](https://mlco2.github.io/codecarbon/)
++   [`mlco2.github.io/codecarbon/`](https://mlco2.github.io/codecarbon/)
 
-+   了解你的代码在哪些地方低效也是一个很好的起点：[https://pyinstrument.readthedocs.io/en/latest/](https://pyinstrument.readthedocs.io/en/latest/)
++   了解你的代码在哪些地方低效也是一个很好的起点：[`pyinstrument.readthedocs.io/en/latest/`](https://pyinstrument.readthedocs.io/en/latest/)
 
 ## 你如何保持你的诚信？
 
@@ -214,19 +214,19 @@
 
 然后，抵制外部压力，保持忠于自己。同时，不要忽视领域中的伦理挑战。这些问题对社会来说日益重要，我们有责任提供解决方案。
 
-![](../Images/438fe29a203fe153994cb707f36bc579.png)
+![](img/438fe29a203fe153994cb707f36bc579.png)
 
 图片来源：[Afif Ramdhasuma](https://unsplash.com/@javaistan?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 5. 以价值为中心
 
-所有数据科学家都喜欢探索数据和构建模型。这也是Kaggle如此受欢迎的原因。作为专业人士，很容易被无尽的数据探索、无限的实验或模型优化所困住。
+所有数据科学家都喜欢探索数据和构建模型。这也是 Kaggle 如此受欢迎的原因。作为专业人士，很容易被无尽的数据探索、无限的实验或模型优化所困住。
 
 以价值为中心指的是一种方法或心态，它强调将提供价值作为决策、问题解决和整体战略中的主要目标。
 
 因此，在数据科学的背景下，作为以价值为中心意味着你必须保持专注，并运用你的技能创造价值，而不是将时间浪费在那些你希望通过解决技术问题来达成最佳解决方案的事情上。
 
-再次强调，我合作过的最优秀的数据科学家都是有目的地探索数据，提出并回答那些能帮助他们解决正确问题的问题。然后，他们进行最小限度的实验，以得出解决方案并构建MVP。他们迅速投入生产，看看会发生什么，并进行迭代。
+再次强调，我合作过的最优秀的数据科学家都是有目的地探索数据，提出并回答那些能帮助他们解决正确问题的问题。然后，他们进行最小限度的实验，以得出解决方案并构建 MVP。他们迅速投入生产，看看会发生什么，并进行迭代。
 
 这条路径由在优化事物和为最终用户增加增量价值之间的无数权衡组成。
 
@@ -238,15 +238,15 @@
 
 在构建数据科学模型时，通常可以根据预期的性能以及模型如何影响业务，快速评估一个模型是否能提供足够的价值。
 
-例如，如果你不熟悉如何构建基于非技术指标评估模型的自定义评分函数，可以查看这个：[https://towardsdatascience.com/calculating-the-business-value-of-a-data-science-project-3b282de9be3c](/calculating-the-business-value-of-a-data-science-project-3b282de9be3c)
+例如，如果你不熟悉如何构建基于非技术指标评估模型的自定义评分函数，可以查看这个：`towardsdatascience.com/calculating-the-business-value-of-a-data-science-project-3b282de9be3c`
 
-在某些时刻，你也可能面临提高模型性能的机会。这个时候正是理解哪些改进会有价值的时候。相比你需要付出的努力，提高0.01的F1分数值得吗？这是否需要收集10万条新的标注数据？
+在某些时刻，你也可能面临提高模型性能的机会。这个时候正是理解哪些改进会有价值的时候。相比你需要付出的努力，提高 0.01 的 F1 分数值得吗？这是否需要收集 10 万条新的标注数据？
 
 由于产品负责人和其他软件工程师可能无法理解开发模型的所有技术细节，因此做出这些决策是你的责任。
 
 其他有趣的资源：
 
-+   工作伦理的概念包含了价值和责任的思想：[https://hbr.org/2022/09/how-to-develop-a-strong-work-ethic](https://hbr.org/2022/09/how-to-develop-a-strong-work-ethic)
++   工作伦理的概念包含了价值和责任的思想：[`hbr.org/2022/09/how-to-develop-a-strong-work-ethic`](https://hbr.org/2022/09/how-to-develop-a-strong-work-ethic)
 
 # 结论
 

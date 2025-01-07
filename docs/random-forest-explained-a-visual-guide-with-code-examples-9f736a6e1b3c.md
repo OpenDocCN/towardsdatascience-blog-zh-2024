@@ -1,32 +1,32 @@
 # 随机森林解析：带有代码示例的视觉指南
 
-> 原文：[https://towardsdatascience.com/random-forest-explained-a-visual-guide-with-code-examples-9f736a6e1b3c?source=collection_archive---------0-----------------------#2024-11-07](https://towardsdatascience.com/random-forest-explained-a-visual-guide-with-code-examples-9f736a6e1b3c?source=collection_archive---------0-----------------------#2024-11-07)
+> 原文：[`towardsdatascience.com/random-forest-explained-a-visual-guide-with-code-examples-9f736a6e1b3c?source=collection_archive---------0-----------------------#2024-11-07`](https://towardsdatascience.com/random-forest-explained-a-visual-guide-with-code-examples-9f736a6e1b3c?source=collection_archive---------0-----------------------#2024-11-07)
 
 ## 集成学习
 
 ## 用随机树做出惊人的预测
 
-[](https://medium.com/@samybaladram?source=post_page---byline--9f736a6e1b3c--------------------------------)[![Samy Baladram](../Images/715cb7af97c57601966c5d2f9edd0066.png)](https://medium.com/@samybaladram?source=post_page---byline--9f736a6e1b3c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9f736a6e1b3c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9f736a6e1b3c--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--9f736a6e1b3c--------------------------------)
+[](https://medium.com/@samybaladram?source=post_page---byline--9f736a6e1b3c--------------------------------)![Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--9f736a6e1b3c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9f736a6e1b3c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9f736a6e1b3c--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--9f736a6e1b3c--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9f736a6e1b3c--------------------------------) ·阅读时间12分钟·2024年11月7日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9f736a6e1b3c--------------------------------) ·阅读时间 12 分钟·2024 年 11 月 7 日
 
 --
 
-[](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e?source=post_page-----9f736a6e1b3c--------------------------------) [## 决策树分类器解析：带有代码示例的初学者视觉指南
+[](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e?source=post_page-----9f736a6e1b3c--------------------------------) ## 决策树分类器解析：带有代码示例的初学者视觉指南
 
 ### 从全新的角度看我们最喜爱的倒立树
 
-towardsdatascience.com](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e?source=post_page-----9f736a6e1b3c--------------------------------)
+towardsdatascience.com
 
-[决策树](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e)是机器学习的一个很好的起点——它们直观且易于理解。但有一个问题：它们在处理新数据时往往效果不好。预测结果可能不稳定且不可靠，这在你试图构建有用的东西时是一个真正的问题。
+决策树是机器学习的一个很好的起点——它们直观且易于理解。但有一个问题：它们在处理新数据时往往效果不好。预测结果可能不稳定且不可靠，这在你试图构建有用的东西时是一个真正的问题。
 
 这时，随机森林就派上用场了。它结合了决策树的优点，并通过将多棵树结合在一起，使它们的效果更好。它已经成为许多数据科学家最喜爱的工具，因为它既有效又实用。
 
 让我们来看看随机森林是如何工作的，以及它为什么可能正是你下一个项目所需要的。是时候不再迷失在树木中，真正看到森林的全貌——你下一个可靠的机器学习工具。
 
-![](../Images/a46fad3053f42f475b5f070c27b60998.png)
+![](img/a46fad3053f42f475b5f070c27b60998.png)
 
-所有图像：作者使用Canva Pro创建。优化了移动设备显示；在桌面设备上可能会显得过大。
+所有图像：作者使用 Canva Pro 创建。优化了移动设备显示；在桌面设备上可能会显得过大。
 
 # 定义
 
@@ -34,7 +34,7 @@ towardsdatascience.com](/decision-tree-classifier-explained-a-visual-guide-with-
 
 对于分类任务，森林通过树之间的多数投票来进行预测；而对于回归任务，它通过平均各棵树的预测结果来进行预测。该模型的优势来自于它的“集体智慧”方法——虽然单棵树可能会犯错，但集体决策过程**往往能将这些错误平均化**，从而得出更可靠的预测结果。
 
-![](../Images/a7c8ea0333ddfcdeb2779b785e896929.png)
+![](img/a7c8ea0333ddfcdeb2779b785e896929.png)
 
 随机森林是袋装（自助聚合）算法的一部分，因为它使用数据的不同随机部分来构建每棵树，并将它们的结果结合起来。
 
@@ -42,9 +42,9 @@ towardsdatascience.com](/decision-tree-classifier-explained-a-visual-guide-with-
 
 在本文中，我们将以经典的高尔夫数据集为分类任务的例子进行讲解。虽然随机森林既可以处理分类任务，也可以处理回归任务，但我们将集中讨论分类部分——根据天气条件预测某人是否会打高尔夫。我们探讨的概念也可以很容易地应用于回归问题（例如预测球员数量），使用相同的原理。
 
-![](../Images/05586d1dcea17f8a18206b58019181ea.png)
+![](img/05586d1dcea17f8a18206b58019181ea.png)
 
-列：‘Overcast（被一热编码成3列）’，’Temperature（华氏温度）’，‘Humidity（湿度，%）’，‘Windy（是否有风，Yes/No）’和‘Play（是否打球，Yes/No，目标特征）’
+列：‘Overcast（被一热编码成 3 列）’，’Temperature（华氏温度）’，‘Humidity（湿度，%）’，‘Windy（是否有风，Yes/No）’和‘Play（是否打球，Yes/No，目标特征）’
 
 ```py
 import pandas as pd
@@ -98,15 +98,15 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.5, shuffl
 
 1.  **最终预测：** 所有树一起投票决定最终的预测结果。对于分类任务，采用类别预测的多数投票；对于回归任务，计算所有树的预测值的平均值。
 
-![](../Images/3e815426c28ac98519c4884d12f43fac.png)
+![](img/3e815426c28ac98519c4884d12f43fac.png)
 
-随机森林分类器通过结合来自100棵不同决策树的结果来进行预测，每棵树分析的特征包括温度和天气条件。最终的预测来自所有树中最常见的答案。
+随机森林分类器通过结合来自 100 棵不同决策树的结果来进行预测，每棵树分析的特征包括温度和天气条件。最终的预测来自所有树中最常见的答案。
 
 # 训练步骤
 
 随机森林算法构建多个决策树并将它们结合起来。其工作原理如下：
 
-**步骤1：自助样本创建**
+**步骤 1：自助样本创建**
 
 1.0\. 设置树的数量（默认 = 100）
 
@@ -116,7 +116,7 @@ a. 通过从原始数据中进行随机抽样并允许重复抽取，直到达�
 
 b. 标记并将未选中的样本作为袋外（OOB）样本保留，以便后续进行误差估算
 
-![](../Images/1671fe794bccb45ec5a642740a8d0d8f.png)
+![](img/1671fe794bccb45ec5a642740a8d0d8f.png)
 
 随机森林通过从原始训练集中随机选择数据点为每棵树创建不同的训练集，某些数据点可能会被多次选择。未使用的数据点则成为测试集，用于检查每棵树的性能。
 
@@ -150,15 +150,15 @@ for i in samples_to_show:
     print(f"Percentage of OOB: {len(all_oob_indices[i])/n_samples*100:.1f}%")
 ```
 
-![](../Images/fd0d49cc5d9614e8b4d96dedd10a6ca2.png)
+![](img/fd0d49cc5d9614e8b4d96dedd10a6ca2.png)
 
-注意，OOB的百分比是多么相似？在进行*n*样本的自助法抽样时，每个样本大约有37%的机会永远不会被选择。这来自于概率计算（1–1/*n*)*ⁿ*，随着*n*的增大，它接近1/e ≈ 0.368。因此，每棵树最终使用约63%的数据进行训练，其余的37%成为OOB样本。
+注意，OOB 的百分比是多么相似？在进行*n*样本的自助法抽样时，每个样本大约有 37%的机会永远不会被选择。这来自于概率计算（1–1/*n*)*ⁿ*，随着*n*的增大，它接近 1/e ≈ 0.368。因此，每棵树最终使用约 63%的数据进行训练，其余的 37%成为 OOB 样本。
 
-**步骤2：树的构建**
+**步骤 2：树的构建**
 
 2.1. 从根节点开始，使用完整的自助法样本
 
-![](../Images/58dd94d352eb90afbfe2312662b55270.png)
+![](img/58dd94d352eb90afbfe2312662b55270.png)
 
 在构建每棵决策树时，随机森林会考虑数据点的子集，并基于这些数据点的值提出分割问题——将较小的值分配到左侧，将较大的值分配到右侧进行预测。
 
@@ -168,9 +168,9 @@ a. 使用节点中的所有样本计算初始节点杂质
 
 · 回归：均方误差（MSE）
 
-![](../Images/49ffa6509e2a0b7efc710bf7c8891e58.png)
+![](img/49ffa6509e2a0b7efc710bf7c8891e58.png)
 
-随机森林首先计算整个数据集的基尼杂质（在任何分割之前），使用YES和NO标签的比例——这是一种衡量当前数据中标签混合程度的指标。
+随机森林首先计算整个数据集的基尼杂质（在任何分割之前），使用 YES 和 NO 标签的比例——这是一种衡量当前数据中标签混合程度的指标。
 
 b. 从总可用特征中选择随机子集：
 
@@ -178,9 +178,9 @@ b. 从总可用特征中选择随机子集：
 
 · 回归：n_features/3
 
-![](../Images/71393bd15609a6d43354efe5d9f06ac3.png)
+![](img/71393bd15609a6d43354efe5d9f06ac3.png)
 
-对于树中的每次分割，随机森林会随机选择一个天气特征的子集（这里是从6个特征中选择2个）来进行考虑，从而使每棵树关注数据的不同方面。
+对于树中的每次分割，随机森林会随机选择一个天气特征的子集（这里是从 6 个特征中选择 2 个）来进行考虑，从而使每棵树关注数据的不同方面。
 
 c. 对每个选定的特征：
 
@@ -188,9 +188,9 @@ c. 对每个选定的特征：
 
 · 确定潜在的分割点（连续唯一特征值之间的中点）
 
-![](../Images/31b2530c2f2eab495683e971a5cc88da.png)
+![](img/31b2530c2f2eab495683e971a5cc88da.png)
 
-对于每个选定的特征，随机森林会查看排序后的数据中所有可能的分割点（如温度值66.0、69.0、71.0等），以找出最佳的方式将数据分为两组。
+对于每个选定的特征，随机森林会查看排序后的数据中所有可能的分割点（如温度值 66.0、69.0、71.0 等），以找出最佳的方式将数据分为两组。
 
 d. 对每个潜在的分割点：
 
@@ -204,17 +204,17 @@ d. 对每个潜在的分割点：
 
 parent_impurity — (left_weight × left_impurity + right_weight × right_impurity)
 
-![](../Images/3a76a1bc476cd60a143540debd4b04b3.png)
+![](img/3a76a1bc476cd60a143540debd4b04b3.png)
 
 为了找到最佳分割点，随机森林会计算每个可能分割点的基尼杂质，基于组的大小进行加权平均，并选择那个能最大程度减少父节点杂质的分割点。
 
 e. 使用提供最大纯度减少的特征和分割点来分割当前节点的数据。然后将数据点传递给各自的子节点。
 
-![](../Images/e71e8da4672712136d3478ad9d1cd59b.png)
+![](img/e71e8da4672712136d3478ad9d1cd59b.png)
 
-在比较所有可能的分割后，随机森林选择73.5°F的温度阈值，因为它提供了最大的纯度减少（0.041），并创建了两个分组：一个是低于73.5°F的混合组，另一个是纯净组。
+在比较所有可能的分割后，随机森林选择 73.5°F 的温度阈值，因为它提供了最大的纯度减少（0.041），并创建了两个分组：一个是低于 73.5°F 的混合组，另一个是纯净组。
 
-f. 对每个子节点，重复过程（步骤b-e），直到：
+f. 对每个子节点，重复过程（步骤 b-e），直到：
 
 - 纯节点或最小不纯度减少
 
@@ -224,13 +224,13 @@ f. 对每个子节点，重复过程（步骤b-e），直到：
 
 - 最大叶子节点数
 
-![](../Images/8e9f1677218a52ede01934cdc731077e.png)
+![](img/8e9f1677218a52ede01934cdc731077e.png)
 
-这个过程对每个新的分组（节点）继续进行：随机选择特征，找到最佳的分割点，并进一步划分数据，直到每个分组是纯净的（全部为YES或全部为NO）或无法再分割。
+这个过程对每个新的分组（节点）继续进行：随机选择特征，找到最佳的分割点，并进一步划分数据，直到每个分组是纯净的（全部为 YES 或全部为 NO）或无法再分割。
 
-**步骤3：树构建** 对其他自助抽样重复整个步骤2。
+**步骤 3：树构建** 对其他自助抽样重复整个步骤 2。
 
-![](../Images/5a6197d5a37f101b794221d1c2c3383d.png)
+![](img/5a6197d5a37f101b794221d1c2c3383d.png)
 
 随机森林中的每棵决策树通过使用不同的特征和阈值以不同的方式分割数据。这种多样性帮助森林做出比单棵树更好的预测。
 
@@ -267,9 +267,9 @@ for idx, tree_idx in enumerate(trees_to_show):
 plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 ```
 
-![](../Images/b46220bdf49910aa49e1d13e353fe1fc.png)
+![](img/b46220bdf49910aa49e1d13e353fe1fc.png)
 
-当前的scikit-learn实现中无法直接访问内部的自助抽样索引，因此生成的树与我们之前示例中计算的树不同。
+当前的 scikit-learn 实现中无法直接访问内部的自助抽样索引，因此生成的树与我们之前示例中计算的树不同。
 
 # 测试步骤
 
@@ -279,25 +279,25 @@ plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
 - 回归：平均预测
 
-![](../Images/e8bd423acc3d8361e5ce82ec3fd542e4.png)
+![](img/e8bd423acc3d8361e5ce82ec3fd542e4.png)
 
-当新数据进入时，随机森林中的每棵树使用自己的决策路径进行预测。森林结合所有这些预测（74个YES与26个NO），并通过多数投票得到最终答案（在这个例子中是YES）。
+当新数据进入时，随机森林中的每棵树使用自己的决策路径进行预测。森林结合所有这些预测（74 个 YES 与 26 个 NO），并通过多数投票得到最终答案（在这个例子中是 YES）。
 
 ## 袋外（OOB）评估
 
-记住那些未被用于训练每棵树的样本——那剩下的1/3？它们就是你的OOB样本。随机森林不仅仅是忽略它们，而是将它们作为每棵树的便捷验证集。
+记住那些未被用于训练每棵树的样本——那剩下的 1/3？它们就是你的 OOB 样本。随机森林不仅仅是忽略它们，而是将它们作为每棵树的便捷验证集。
 
-![](../Images/afccd043882db9aba10d7e5fb93558e5.png)
+![](img/afccd043882db9aba10d7e5fb93558e5.png)
 
-每棵树都会在其自己的袋外样本上进行测试（即未用于训练的数据）。通过平均这些单个的OOB准确率得分（50%、66.6%、60%），随机森林提供了一种内建的方式来测量性能，无需单独的测试集。
+每棵树都会在其自己的袋外样本上进行测试（即未用于训练的数据）。通过平均这些单个的 OOB 准确率得分（50%、66.6%、60%），随机森林提供了一种内建的方式来测量性能，无需单独的测试集。
 
 # 评估步骤
 
 构建完所有树后，我们可以评估测试集。
 
-![](../Images/55f4ae7dd4d6a6513400959cda5c3c12.png)
+![](img/55f4ae7dd4d6a6513400959cda5c3c12.png)
 
-通过结合多个多样化的决策树并使用多数投票，随机森林达到了85.7%的高准确率——通常比单棵决策树或更简单的模型表现更好！
+通过结合多个多样化的决策树并使用多数投票，随机森林达到了 85.7%的高准确率——通常比单棵决策树或更简单的模型表现更好！
 
 # 关键参数
 
@@ -307,7 +307,7 @@ plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
 +   `oob_score` 这个参数使用剩余的数据（袋外样本）来检查模型的表现。这为你提供了一种不需要单独设置测试数据来测试模型的方法，尤其适用于小数据集。
 
-+   `n_estimators` 这个参数控制要构建多少棵树（默认值是100）。为了找到最佳的树木数量，**在添加更多树木时跟踪OOB误差率**。误差通常会迅速下降，然后趋于平稳。**稳定的点即是最佳树木数量**——在此之后增加更多树木只会带来最小的改善，同时增加计算时间。
++   `n_estimators` 这个参数控制要构建多少棵树（默认值是 100）。为了找到最佳的树木数量，**在添加更多树木时跟踪 OOB 误差率**。误差通常会迅速下降，然后趋于平稳。**稳定的点即是最佳树木数量**——在此之后增加更多树木只会带来最小的改善，同时增加计算时间。
 
 ```py
 # Calculate OOB error for different numbers of trees
@@ -333,9 +333,9 @@ for i, error in enumerate(oob_errors, 1):
         print(f"Trees: {i:3d}, OOB Error: {error:.4f}")
 ```
 
-![](../Images/97234d73657a128e85e5409216f55df5.png)![](../Images/3d6b30f69790966d7d1dc81b1bed0c83.png)
+![](img/97234d73657a128e85e5409216f55df5.png)![](img/3d6b30f69790966d7d1dc81b1bed0c83.png)
 
-在我们的结果中，尽管大约27棵树显示出最佳的得分（0.2857），但这个早期表现可能不太可靠。在40到100棵树之间，误差率大约稳定在0.5000，显示出更一致的结果。超过100棵树并没有帮助，反而有时会使结果变差。这表明，使用大约50到60棵树是一个不错的选择——它既稳定、高效，又可靠。
+在我们的结果中，尽管大约 27 棵树显示出最佳的得分（0.2857），但这个早期表现可能不太可靠。在 40 到 100 棵树之间，误差率大约稳定在 0.5000，显示出更一致的结果。超过 100 棵树并没有帮助，反而有时会使结果变差。这表明，使用大约 50 到 60 棵树是一个不错的选择——它既稳定、高效，又可靠。
 
 +   `bootstrap` 这个参数决定了每棵树是从数据的随机样本中学习（`True`），还是使用所有数据（`False`）。默认值（`True`）有助于创建不同类型的树，这是随机森林工作原理的关键。**只有在数据非常少，无法跳过任何样本时，才考虑将其设置为**`**False**`。
 
@@ -343,7 +343,7 @@ for i, error in enumerate(oob_errors, 1):
 
 ## 与决策树共享的参数
 
-以下参数与[决策树中的工作方式相同](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e)。
+以下参数与决策树中的工作方式相同。
 
 +   `max_depth`: 最大树深度
 
@@ -483,32 +483,32 @@ print(f"Root Mean Squared Error: {rmse:.2f}")
 
 ## 进一步阅读
 
-对于[RandomForestClassifier](https://scikit-learn.org/1.5/modules/generated/sklearn.ensemble.RandomForestClassifier.html)和[RandomForestRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html)的详细解释及其在scikit-learn中的实现，读者可以参考官方文档，其中提供了关于使用和参数的全面信息。
+对于[RandomForestClassifier](https://scikit-learn.org/1.5/modules/generated/sklearn.ensemble.RandomForestClassifier.html)和[RandomForestRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html)的详细解释及其在 scikit-learn 中的实现，读者可以参考官方文档，其中提供了关于使用和参数的全面信息。
 
 ## 技术环境
 
-本文使用的是Python 3.7和scikit-learn 1.5版本。尽管讨论的概念通常是适用的，但不同版本的代码实现可能会略有不同。
+本文使用的是 Python 3.7 和 scikit-learn 1.5 版本。尽管讨论的概念通常是适用的，但不同版本的代码实现可能会略有不同。
 
 ## 关于插图
 
-除非另有说明，所有插图均由作者创作，包含了来自Canva Pro的授权设计元素。
+除非另有说明，所有插图均由作者创作，包含了来自 Canva Pro 的授权设计元素。
 
 在这里查看更多关于集成学习的信息：
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----9f736a6e1b3c--------------------------------)
 
 ## 集成学习
 
-[查看列表](https://medium.com/@samybaladram/list/ensemble-learning-673fc83cd7db?source=post_page-----9f736a6e1b3c--------------------------------)4个故事![](../Images/1bd2995b5cb6dcc956ceadadc5ee3036.png)![](../Images/22a5d43568e70222eb89fd36789a9333.png)![](../Images/8ea1a2f29053080a5feffc709f5b8669.png)
+[查看列表](https://medium.com/@samybaladram/list/ensemble-learning-673fc83cd7db?source=post_page-----9f736a6e1b3c--------------------------------)4 个故事![](img/1bd2995b5cb6dcc956ceadadc5ee3036.png)![](img/22a5d43568e70222eb89fd36789a9333.png)![](img/8ea1a2f29053080a5feffc709f5b8669.png)
 
 𝙔𝙤𝙪 𝙢𝙞𝙜𝙝𝙩 𝙖𝙡𝙨𝙤 𝙡𝙞𝙠𝙚:
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----9f736a6e1b3c--------------------------------)
 
 ## 分类算法
 
-[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----9f736a6e1b3c--------------------------------)8个故事![](../Images/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](../Images/6ea70d9d2d9456e0c221388dbb253be8.png)![](../Images/7221f0777228e7bcf08c1adb44a8eb76.png)
+[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----9f736a6e1b3c--------------------------------)8 个故事![](img/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](img/6ea70d9d2d9456e0c221388dbb253be8.png)![](img/7221f0777228e7bcf08c1adb44a8eb76.png)

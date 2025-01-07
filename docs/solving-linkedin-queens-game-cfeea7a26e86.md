@@ -1,14 +1,14 @@
 # 我是如何通过回溯法解决 LinkedIn Queens 游戏的
 
-> 原文：[https://towardsdatascience.com/solving-linkedin-queens-game-cfeea7a26e86?source=collection_archive---------8-----------------------#2024-09-07](https://towardsdatascience.com/solving-linkedin-queens-game-cfeea7a26e86?source=collection_archive---------8-----------------------#2024-09-07)
+> 原文：[`towardsdatascience.com/solving-linkedin-queens-game-cfeea7a26e86?source=collection_archive---------8-----------------------#2024-09-07`](https://towardsdatascience.com/solving-linkedin-queens-game-cfeea7a26e86?source=collection_archive---------8-----------------------#2024-09-07)
 
-![](../Images/8f67811fb92c1b9632967ca47e774234.png)
+![](img/8f67811fb92c1b9632967ca47e774234.png)
 
 ## 使用 OpenCV 自动检测拼图并重新绘制最终答案
 
-[](https://memsranga.com/?source=post_page---byline--cfeea7a26e86--------------------------------)[![Shanmukha Ranganath](../Images/b362e4a5eb87077e889cb1db702955b3.png)](https://memsranga.com/?source=post_page---byline--cfeea7a26e86--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cfeea7a26e86--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cfeea7a26e86--------------------------------) [Shanmukha Ranganath](https://memsranga.com/?source=post_page---byline--cfeea7a26e86--------------------------------)
+[](https://memsranga.com/?source=post_page---byline--cfeea7a26e86--------------------------------)![Shanmukha Ranganath](https://memsranga.com/?source=post_page---byline--cfeea7a26e86--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cfeea7a26e86--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cfeea7a26e86--------------------------------) [Shanmukha Ranganath](https://memsranga.com/?source=post_page---byline--cfeea7a26e86--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cfeea7a26e86--------------------------------) ·10分钟阅读·2024年9月7日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cfeea7a26e86--------------------------------) ·10 分钟阅读·2024 年 9 月 7 日
 
 --
 

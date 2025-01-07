@@ -1,16 +1,16 @@
 # 从洞察到影响：利用数据科学最大化客户价值
 
-> 原文：[https://towardsdatascience.com/from-insights-to-impact-leveraging-data-science-to-maximize-customer-value-9c9af354e192?source=collection_archive---------3-----------------------#2024-08-13](https://towardsdatascience.com/from-insights-to-impact-leveraging-data-science-to-maximize-customer-value-9c9af354e192?source=collection_archive---------3-----------------------#2024-08-13)
+> 原文：[`towardsdatascience.com/from-insights-to-impact-leveraging-data-science-to-maximize-customer-value-9c9af354e192?source=collection_archive---------3-----------------------#2024-08-13`](https://towardsdatascience.com/from-insights-to-impact-leveraging-data-science-to-maximize-customer-value-9c9af354e192?source=collection_archive---------3-----------------------#2024-08-13)
 
-![](../Images/7155ce7419fbe3addb6c832849242609.png)
+![](img/7155ce7419fbe3addb6c832849242609.png)
 
 图片由[Oleg Moroz](https://unsplash.com/@tengyart?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 提升建模：因果机器学习如何改变客户关系和收入
 
-[](https://medium.com/@arthur.cruiziat?source=post_page---byline--9c9af354e192--------------------------------)[![Arthur Cruiziat](../Images/32ae05f184523057a5a2e81184f9bc67.png)](https://medium.com/@arthur.cruiziat?source=post_page---byline--9c9af354e192--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9c9af354e192--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9c9af354e192--------------------------------) [Arthur Cruiziat](https://medium.com/@arthur.cruiziat?source=post_page---byline--9c9af354e192--------------------------------)
+[](https://medium.com/@arthur.cruiziat?source=post_page---byline--9c9af354e192--------------------------------)![Arthur Cruiziat](https://medium.com/@arthur.cruiziat?source=post_page---byline--9c9af354e192--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9c9af354e192--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9c9af354e192--------------------------------) [Arthur Cruiziat](https://medium.com/@arthur.cruiziat?source=post_page---byline--9c9af354e192--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9c9af354e192--------------------------------) ·阅读时间：10分钟·2024年8月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9c9af354e192--------------------------------) ·阅读时间：10 分钟·2024 年 8 月 13 日
 
 --
 
@@ -46,13 +46,13 @@
 
 通常，公司会试图预测客户的行为，例如流失。为了做到这一点，他们会为每个用户建模流失的概率。这是“结果”建模，意味着估算用户采取特定行动的可能性。
 
-例如，如果一个结果模型估算某个特定用户流失的概率为90%。在这种情况下，公司可能会尝试联系该用户，以防止他们流失，对吧？这已经是一个很大的进步，并且可能有助于显著降低流失率或识别其根本原因。但这里有一个棘手的问题：如果我们识别出的一些用户实际上想离开，但他们只是懒得打电话或取消订阅呢？他们可能会利用这个电话实际上选择流失，而不是继续留在我们这里！
+例如，如果一个结果模型估算某个特定用户流失的概率为 90%。在这种情况下，公司可能会尝试联系该用户，以防止他们流失，对吧？这已经是一个很大的进步，并且可能有助于显著降低流失率或识别其根本原因。但这里有一个棘手的问题：如果我们识别出的一些用户实际上想离开，但他们只是懒得打电话或取消订阅呢？他们可能会利用这个电话实际上选择流失，而不是继续留在我们这里！
 
 与结果建模不同，**提升建模是一种预测建模技术，直接衡量治疗—或行动—对个体行为的增量影响。** 这意味着我们将建模一个用户在被公司联系时，选择留存的概率。
 
 提升模型专注于干预组和对照组之间结果的差异，使公司能够评估个体层面的实际“提升”，**识别出对每个客户最有效的行动。**
 
-![](../Images/abee223e57cb2d20276d60304bf91437.png)
+![](img/abee223e57cb2d20276d60304bf91437.png)
 
 提升模型与结果模型的描述
 
@@ -72,7 +72,7 @@
 
 +   一些用户——**可说服群体**——可能只需要一个电话或电子邮件，就能留住他们。
 
-+   其他人——**可说服群体**——可能需要一个价值10美元的优惠券来被说服。
++   其他人——**可说服群体**——可能需要一个价值 10 美元的优惠券来被说服。
 
 +   一些——**稳妥客户**——无需任何干预，因为他们可能会继续留存。
 
@@ -106,27 +106,27 @@
 
 这是一个很好的问题，在探讨这种方法的潜在结果之前——说实话，这种方法确实令人印象深刻——解决这个问题是至关重要的。正如预期的那样，答案是多方面的，数据科学家有多种方法来评估模型预测一个行为增量影响的能力。
 
-> 一种特别有趣的方法是Qini曲线。Qini曲线将**累计增量收益**与目标人群的比例进行对比。
+> 一种特别有趣的方法是 Qini 曲线。Qini 曲线将**累计增量收益**与目标人群的比例进行对比。
 
-![](../Images/f590b3d226295ac28c53faf4594625b6.png)
+![](img/f590b3d226295ac28c53faf4594625b6.png)
 
-Qini曲线示例
+Qini 曲线示例
 
-简单来说，它有助于回答这个问题：*通过使用你的模型针对X%的人群进行目标定位，相较于随机目标定位，你可以实现多少额外的积极结果？* 我们通常会将提升模型的Qini曲线与随机目标定位策略的Qini曲线进行比较，以模拟如果我们没有提升模型而是随机地针对用户或客户进行目标定位时会发生什么。在构建提升模型时，最佳实践是比较所有模型的Qini曲线，以识别在未见数据上最有效的模型。然而，我们将在技术文章中深入探讨这一点。
+简单来说，它有助于回答这个问题：*通过使用你的模型针对 X%的人群进行目标定位，相较于随机目标定位，你可以实现多少额外的积极结果？* 我们通常会将提升模型的 Qini 曲线与随机目标定位策略的 Qini 曲线进行比较，以模拟如果我们没有提升模型而是随机地针对用户或客户进行目标定位时会发生什么。在构建提升模型时，最佳实践是比较所有模型的 Qini 曲线，以识别在未见数据上最有效的模型。然而，我们将在技术文章中深入探讨这一点。
 
 现在，让我们探索这种方法的潜在影响。再次强调，可能会出现各种不同的场景。
 
 ## 我可以从我新构建的提升模型中预期到什么样的影响？
 
-说实话，这真的取决于许多不同的变量，从你的使用场景开始：你为什么要首先构建一个提升模型？例如，你是否尝试通过只接触80%的客户来优化资源，因为预算有限？还是你打算通过多重治疗模型来个性化你的方法？
+说实话，这真的取决于许多不同的变量，从你的使用场景开始：你为什么要首先构建一个提升模型？例如，你是否尝试通过只接触 80%的客户来优化资源，因为预算有限？还是你打算通过多重治疗模型来个性化你的方法？
 
 另一个关键点是了解你的用户——你是专注于留住高度参与的客户，还是你有很多不活跃的用户和失去的机会？
 
-![](../Images/75badf825a9562a9b1d84f76a2208ba7.png)
+![](img/75badf825a9562a9b1d84f76a2208ba7.png)
 
 即使不涉及这些具体细节，我们通常可以将潜在影响分为两大类——正如你在上面的精美图示中所看到的：
 
-+   **优化模型：** 提升模型可以帮助你通过识别哪些用户最有可能对你的干预产生积极反应来优化资源分配。例如，你可能通过只接触50%的用户就能实现80%的总积极结果。虽然这种方法不一定总是优于接触所有人，但它可以显著降低成本，同时保持较高的影响力。其主要优势在于效率：用更少的资源实现几乎相同的结果。
++   **优化模型：** 提升模型可以帮助你通过识别哪些用户最有可能对你的干预产生积极反应来优化资源分配。例如，你可能通过只接触 50%的用户就能实现 80%的总积极结果。虽然这种方法不一定总是优于接触所有人，但它可以显著降低成本，同时保持较高的影响力。其主要优势在于效率：用更少的资源实现几乎相同的结果。
 
 +   **高影响力模型：** 这种类型的模型能够让你实现比接触所有人更大的总体影响。它通过识别哪些人会做出积极反应以及哪些人可能会对你的干预产生负面反应来实现这一点。这在用户群体多样化或个性化方法至关重要的场景中尤为有价值。
 
@@ -138,7 +138,7 @@ Qini曲线示例
 
 你可能会问：如果提升建模如此强大，为什么我以前从未听说过它？答案很简单：它的设置非常复杂。它需要深入的数据科学知识、设计和运行实验的能力，以及因果机器学习的专业知识。虽然我们将在下一篇文章中更深入地探讨技术细节，但让我们概述一下创建、扩展和整合你的第一个提升模型的主要步骤：
 
-**第一步：** **定义目标并设计实验**。首先，明确你的目标和目标受众。例如，你可能希望减少高端订阅用户的流失。然后，设计一个A/B测试（或随机对照试验）来测试你想尝试的所有操作。这可能包括：
+**第一步：** **定义目标并设计实验**。首先，明确你的目标和目标受众。例如，你可能希望减少高端订阅用户的流失。然后，设计一个 A/B 测试（或随机对照试验）来测试你想尝试的所有操作。这可能包括：
 
 +   发送个性化邮件
 
@@ -184,14 +184,14 @@ Qini曲线示例
 
 *除非另有说明，所有图片均由作者提供*
 
-[1] [https://en.wikipedia.org/wiki/Uplift_modelling](https://en.wikipedia.org/wiki/Uplift_modelling)
+[1] [`en.wikipedia.org/wiki/Uplift_modelling`](https://en.wikipedia.org/wiki/Uplift_modelling)
 
-[2] [https://growthstage.marketing/improve-marketing-effectiveness-with-ml/](https://growthstage.marketing/improve-marketing-effectiveness-with-ml/)
+[2] [`growthstage.marketing/improve-marketing-effectiveness-with-ml/`](https://growthstage.marketing/improve-marketing-effectiveness-with-ml/)
 
-[3] [https://forecast.global/insight/understanding-customer-behaviour-using-uplift-modelling/](https://forecast.global/insight/understanding-customer-behaviour-using-uplift-modelling/)
+[3] [`forecast.global/insight/understanding-customer-behaviour-using-uplift-modelling/`](https://forecast.global/insight/understanding-customer-behaviour-using-uplift-modelling/)
 
-[4] [https://dxc.com/us/en/insights/perspectives/paper/to-tackle-data-science-challenges-think-like-an-entrepreneur](https://dxc.com/us/en/insights/perspectives/paper/to-tackle-data-science-challenges-think-like-an-entrepreneur)
+[4] [`dxc.com/us/en/insights/perspectives/paper/to-tackle-data-science-challenges-think-like-an-entrepreneur`](https://dxc.com/us/en/insights/perspectives/paper/to-tackle-data-science-challenges-think-like-an-entrepreneur)
 
-[5] [https://arxiv.org/pdf/1908.05372](https://arxiv.org/pdf/1908.05372)
+[5] [`arxiv.org/pdf/1908.05372`](https://arxiv.org/pdf/1908.05372)
 
-[6] [https://arxiv.org/abs/2308.09066](https://arxiv.org/abs/2308.09066)
+[6] [`arxiv.org/abs/2308.09066`](https://arxiv.org/abs/2308.09066)

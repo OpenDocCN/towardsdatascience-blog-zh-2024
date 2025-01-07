@@ -1,24 +1,24 @@
-# 评估ELT/ETL工具时需要做的5件事
+# 评估 ELT/ETL 工具时需要做的 5 件事
 
-> 原文：[https://towardsdatascience.com/5-things-to-do-when-evaluating-elt-etl-tools-4b74fd622194?source=collection_archive---------8-----------------------#2024-05-07](https://towardsdatascience.com/5-things-to-do-when-evaluating-elt-etl-tools-4b74fd622194?source=collection_archive---------8-----------------------#2024-05-07)
+> 原文：[`towardsdatascience.com/5-things-to-do-when-evaluating-elt-etl-tools-4b74fd622194?source=collection_archive---------8-----------------------#2024-05-07`](https://towardsdatascience.com/5-things-to-do-when-evaluating-elt-etl-tools-4b74fd622194?source=collection_archive---------8-----------------------#2024-05-07)
 
-## 一份让评估ELT/ETL工具变得不那么令人生畏的清单
+## 一份让评估 ELT/ETL 工具变得不那么令人生畏的清单
 
-[](https://medium.com/@erevear?source=post_page---byline--4b74fd622194--------------------------------)[![Eva Revear](../Images/675266fccb503690d50d83b8c92f48b8.png)](https://medium.com/@erevear?source=post_page---byline--4b74fd622194--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4b74fd622194--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4b74fd622194--------------------------------) [Eva Revear](https://medium.com/@erevear?source=post_page---byline--4b74fd622194--------------------------------)
+[](https://medium.com/@erevear?source=post_page---byline--4b74fd622194--------------------------------)![Eva Revear](https://medium.com/@erevear?source=post_page---byline--4b74fd622194--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4b74fd622194--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b74fd622194--------------------------------) [Eva Revear](https://medium.com/@erevear?source=post_page---byline--4b74fd622194--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b74fd622194--------------------------------) ·阅读时间4分钟·2024年5月7日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b74fd622194--------------------------------) ·阅读时间 4 分钟·2024 年 5 月 7 日
 
 --
 
-![](../Images/3ad194f237d190f7ee63a22bd6cff2b5.png)
+![](img/3ad194f237d190f7ee63a22bd6cff2b5.png)
 
 照片由[Volodymyr Hryshchenko](https://unsplash.com/@lunarts?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-我们都经历过：你参加了与所有SaaS数据集成工具公司销售代表的（许多！）会议，并获得了14天的试用期来体验他们的产品。现在你必须决定测试哪些内容，以便明确地判断这个工具是否适合你和你的团队。
+我们都经历过：你参加了与所有 SaaS 数据集成工具公司销售代表的（许多！）会议，并获得了 14 天的试用期来体验他们的产品。现在你必须决定测试哪些内容，以便明确地判断这个工具是否适合你和你的团队。
 
 我想整理一些关于关键评估问题的笔记，以及几种检查功能的方法，因为我确信这是一个我将会一次又一次遇到的过程，而我喜欢为这些类型的事情准备一个模板。
 
-这些主要是针对基于云的集成平台（例如但不限于Fivetran、Airbyte和Rivery）收集的，但也可以应用于其他情况！
+这些主要是针对基于云的集成平台（例如但不限于 Fivetran、Airbyte 和 Rivery）收集的，但也可以应用于其他情况！
 
 如果你有任何测试新数据工具的好方法，欢迎在评论区分享！
 
@@ -32,9 +32,9 @@
 
 ## **2\. 立即启动一个简单的管道**
 
-选择一个简单的例子，并在第一天就将其启动。这有助于创建一个关于日志记录、元数据、延迟、CDC以及管道中其他所有内容的整体画面。
+选择一个简单的例子，并在第一天就将其启动。这有助于创建一个关于日志记录、元数据、延迟、CDC 以及管道中其他所有内容的整体画面。
 
-如果幸运的话，你可能在14天的测试期间遇到平台错误，并能看到该错误如何在工具公司那边得到处理。如果你使用的是开源选项，这也能帮助你了解自己是否有能力在内部处理这些问题。
+如果幸运的话，你可能在 14 天的测试期间遇到平台错误，并能看到该错误如何在工具公司那边得到处理。如果你使用的是开源选项，这也能帮助你了解自己是否有能力在内部处理这些问题。
 
 **关键问题**
 
@@ -46,13 +46,13 @@
 
 ## **3\. 创建几个端到端的转换**
 
-一些工具带有内建的DBT集成，一些则允许完全自定义的基于Python的转换。将一些转换，甚至是一个相对复杂的转换，从现有解决方案中端到端地迁移，可以帮助你大致了解迁移的难度以及是否可能完成。
+一些工具带有内建的 DBT 集成，一些则允许完全自定义的基于 Python 的转换。将一些转换，甚至是一个相对复杂的转换，从现有解决方案中端到端地迁移，可以帮助你大致了解迁移的难度以及是否可能完成。
 
 **关键问题**
 
 +   你能否以目前的数据格式进行数据导入，还是会以某种方式发生变化，进而对上游依赖造成重大影响？
 
-+   在数据导入之前，你是否有一些转换操作无法在工具中完成（例如，连接补充数据源、解析杂乱的多层级JSON等），这些操作现在是否需要在数据库中处理？
++   在数据导入之前，你是否有一些转换操作无法在工具中完成（例如，连接补充数据源、解析杂乱的多层级 JSON 等），这些操作现在是否需要在数据库中处理？
 
 ## **4\. 输入一个非本地数据源**
 
@@ -80,10 +80,10 @@
 
 ## 一些额外的好处
 
-**让非技术用户导入Google表格**
+**让非技术用户导入 Google 表格**
 
 需要集成手动上传的电子表格中的数据，是比数据工程师通常认为的更常见的使用场景。一个工具应该让生产业务团队可以轻松地完成这一操作，而无需数据工程师介入。
 
-**阅读Reddit上关于该工具的讨论**
+**阅读 Reddit 上关于该工具的讨论**
 
-我发现Reddit在查看工具选项时非常有用。人们通常会非常客观地评估工具的正面和负面体验，并且乐于回答问题。毕竟，即使是彻底的试用阶段也会错过一些东西，而这可以是一个轻松的方式，看看你是否有盲点。
+我发现 Reddit 在查看工具选项时非常有用。人们通常会非常客观地评估工具的正面和负面体验，并且乐于回答问题。毕竟，即使是彻底的试用阶段也会错过一些东西，而这可以是一个轻松的方式，看看你是否有盲点。

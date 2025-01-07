@@ -1,26 +1,26 @@
 # Python 中的 PRISM 规则
 
-> 原文：[https://towardsdatascience.com/prism-rules-in-python-14d2cfd801a3?source=collection_archive---------3-----------------------#2024-06-02](https://towardsdatascience.com/prism-rules-in-python-14d2cfd801a3?source=collection_archive---------3-----------------------#2024-06-02)
+> 原文：[`towardsdatascience.com/prism-rules-in-python-14d2cfd801a3?source=collection_archive---------3-----------------------#2024-06-02`](https://towardsdatascience.com/prism-rules-in-python-14d2cfd801a3?source=collection_archive---------3-----------------------#2024-06-02)
 
 ## 一个简单的 Python 规则归纳系统
 
-[](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)[![W Brett Kennedy](../Images/b3ce55ffd028167326c117d47c64c467.png)](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------) [W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)
+[](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)![W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------) [W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------) ·12分钟阅读·2024年6月2日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------) ·12 分钟阅读·2024 年 6 月 2 日
 
 --
 
-这篇文章是关于可解释预测模型系列的一部分。之前的文章涵盖了 [ikNN](/interpretable-knn-iknn-33d38402b8fc) 和 [加法决策树](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223)。PRISM 是一个现有的算法（虽然我确实创建了一个 Python 实现），而这个系列的重点是原创算法，但我觉得它足够有用，值得单独写一篇文章。尽管这是一个老想法，但我发现它与大多数其他可解释模型在分类任务中具有竞争力，并且我已经使用过很多次。
+这篇文章是关于可解释预测模型系列的一部分。之前的文章涵盖了 ikNN 和 [加法决策树](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223)。PRISM 是一个现有的算法（虽然我确实创建了一个 Python 实现），而这个系列的重点是原创算法，但我觉得它足够有用，值得单独写一篇文章。尽管这是一个老想法，但我发现它与大多数其他可解释模型在分类任务中具有竞争力，并且我已经使用过很多次。
 
 PRISM 相对简单，但在机器学习中，有时最复杂的解决方案效果最好，有时最简单的解决方案效果最佳。然而，当我们希望有可解释的模型时，简单性带来的好处是显而易见的。
 
 PRISM 是一个规则归纳工具。也就是说，它创建一组规则，从其他特征预测目标特征。
 
-规则在机器学习中至少有两个非常重要的目的。一个是预测。类似于决策树、线性回归、GAMs、[ikNN](/interpretable-knn-iknn-33d38402b8fc)、[加法决策树](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223)、决策表以及其他少数工具，它们可以提供可解释的分类模型。
+规则在机器学习中至少有两个非常重要的目的。一个是预测。类似于决策树、线性回归、GAMs、ikNN、[加法决策树](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223)、决策表以及其他少数工具，它们可以提供可解释的分类模型。
 
 规则也可以仅作为理解数据的一种技术。事实上，即使没有标签，它们也可以以无监督的方式使用，通过创建一组规则从其他特征预测每个特征（轮流将表中的每个特征视为目标列），这可以突出数据中的任何强烈模式。
 
-在 Python 中，还有其他用于创建规则的工具，包括非常强大的[imodels库](https://github.com/csinva/imodels)。然而，创建既准确又易于理解的规则集仍然具有挑战性。通常，规则归纳系统无法创建合理准确的模型，或者即使能够创建，也只能通过生成大量规则和包含许多术语的规则来实现。例如，像这样的规则：
+在 Python 中，还有其他用于创建规则的工具，包括非常强大的[imodels 库](https://github.com/csinva/imodels)。然而，创建既准确又易于理解的规则集仍然具有挑战性。通常，规则归纳系统无法创建合理准确的模型，或者即使能够创建，也只能通过生成大量规则和包含许多术语的规则来实现。例如，像这样的规则：
 
 如果 color = ‘blue’ 且 height < 3.4 且 width > 3.2 且 length > 33.21 且 temperature > 33.2 且 temperature < 44.2 且 width < 5.1 且 weight > 554.0 且 … 那么…
 
@@ -30,7 +30,7 @@ PRISM 是一个规则归纳工具。也就是说，它创建一组规则，从�
 
 PRISM 是一个规则归纳系统，最早由 Chendrowska 提出 [[1]](https://github.com/Brett-Kennedy/PRISM-Rules#references) [[2]](https://github.com/Brett-Kennedy/PRISM-Rules#references)，并在《数据挖掘原理》一书中进行了描述 [[3]](https://github.com/Brett-Kennedy/PRISM-Rules#references)。
 
-我未能找到 Python 实现，因此我创建了一个。PRISM 规则的主页面是：[https://github.com/Brett-Kennedy/PRISM-Rules](https://github.com/Brett-Kennedy/PRISM-Rules)。
+我未能找到 Python 实现，因此我创建了一个。PRISM 规则的主页面是：[`github.com/Brett-Kennedy/PRISM-Rules`](https://github.com/Brett-Kennedy/PRISM-Rules)。
 
 PRISM 支持生成规则，既可以作为描述性模型：用于描述表中的模式（以特征之间的关联形式）；也可以作为预测性模型。它通常生成一组非常简洁、干净且可解释的规则。
 
@@ -196,7 +196,7 @@ proline = High AND alcohol = High
    Support:  the target has value: '0' for 100.000% of the 39 rows matching the rule
 ```
 
-这表明，在39行数据中，其中proline = High（特征proline具有高数值）和alcohol = High（特征alcohol具有高数值），在100%的情况下，目标值为0。
+这表明，在 39 行数据中，其中 proline = High（特征 proline 具有高数值）和 alcohol = High（特征 alcohol 具有高数值），在 100%的情况下，目标值为 0。
 
 覆盖度表示规则覆盖了多少行。对于第一条规则，这是：
 
@@ -216,15 +216,15 @@ Coverage: the rule matches: 39 out of 59 rows for target value: 0\. This is:
 y_pred = prism.predict(df.drop(columns=['Y']))
 ```
 
-这样，PRISM规则可以与任何其他预测模型等效使用，如决策树、随机森林、XGBoost等。
+这样，PRISM 规则可以与任何其他预测模型等效使用，如决策树、随机森林、XGBoost 等。
 
-然而，在生成预测时，一些行可能不匹配任何规则。在这种情况下，默认情况下将使用训练过程中目标列中最常见的值（可以通过访问prism.default_target查看）。`predict()`方法还支持一个参数leave_unknown。如果将其设置为True，则任何不匹配规则的记录将被标记为“无预测”。在这种情况下，即使原始目标列是数值型的，预测结果也将以字符串类型返回。
+然而，在生成预测时，一些行可能不匹配任何规则。在这种情况下，默认情况下将使用训练过程中目标列中最常见的值（可以通过访问 prism.default_target 查看）。`predict()`方法还支持一个参数 leave_unknown。如果将其设置为 True，则任何不匹配规则的记录将被标记为“无预测”。在这种情况下，即使原始目标列是数值型的，预测结果也将以字符串类型返回。
 
 更多示例可在示例笔记本中查看。
 
 # 带有数值数据的示例
 
-在此示例中，我们使用sklearn的`make_classification()`方法来创建数值数据（目标列除外），然后将其进行分箱。默认情况下，每个数值特征会分为三个箱。
+在此示例中，我们使用 sklearn 的`make_classification()`方法来创建数值数据（目标列除外），然后将其进行分箱。默认情况下，每个数值特征会分为三个箱。
 
 ```py
 x, y = make_classification(
@@ -275,34 +275,34 @@ Target: 0
 
 # 《数据挖掘原理》书中的示例
 
-这个示例可以在github页面的其中一个示例笔记本中找到。
+这个示例可以在 github 页面的其中一个示例笔记本中找到。
 
-![](../Images/dc7522d6dae2c461205a8af9a8c2fb61.png)
+![](img/dc7522d6dae2c461205a8af9a8c2fb61.png)
 
-PRISM生成了三条规则：
+PRISM 生成了三条规则：
 
-+   如果tears = 1，那么目标 = 3
++   如果 tears = 1，那么目标 = 3
 
-+   如果astig = 1并且tears = 2并且specRX = 2，那么目标 = 2
++   如果 astig = 1 并且 tears = 2 并且 specRX = 2，那么目标 = 2
 
-+   如果astig = 2并且tears = 2并且specRX = 1，那么目标 = 1
++   如果 astig = 2 并且 tears = 2 并且 specRX = 1，那么目标 = 1
 
 # 执行时间
 
 该算法通常能够在几秒钟或几分钟内生成一组规则，但如果需要减少算法的执行时间，可以使用数据的一个样本来代替完整的数据集。该算法在数据样本上通常表现得非常好，因为模型在寻找的是一般性的模式，而不是例外，这些模式在任何足够大的样本中都会出现。
 
-关于模型调优的更多说明可以在github页面上找到。
+关于模型调优的更多说明可以在 github 页面上找到。
 
 # 结论
 
-不幸的是，目前可用的可解释预测模型选项相对较少。此外，没有任何一个可解释的模型能够对所有数据集既足够准确又足够可解释。因此，在可解释性很重要的情况下，测试多个可解释模型可能是值得的，包括决策树、其他规则诱导工具、广义加性模型（GAMs）、[ikNN](/interpretable-knn-iknn-33d38402b8fc)、[加性决策树](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223)和PRISM规则。
+不幸的是，目前可用的可解释预测模型选项相对较少。此外，没有任何一个可解释的模型能够对所有数据集既足够准确又足够可解释。因此，在可解释性很重要的情况下，测试多个可解释模型可能是值得的，包括决策树、其他规则诱导工具、广义加性模型（GAMs）、ikNN、[加性决策树](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223)和 PRISM 规则。
 
-PRISM规则经常生成简洁、可解释的规则，并且通常具有较高的准确性，尽管这会因项目而异。虽然与其他预测模型类似，仍然需要进行一定的调整。
+PRISM 规则经常生成简洁、可解释的规则，并且通常具有较高的准确性，尽管这会因项目而异。虽然与其他预测模型类似，仍然需要进行一定的调整。
 
 # 参考文献
 
-[1] Chendrowska, J. (1987) PRISM：一种诱导模块化规则的算法。《国际人机研究杂志》，第27卷，349–370页。
+[1] Chendrowska, J. (1987) PRISM：一种诱导模块化规则的算法。《国际人机研究杂志》，第 27 卷，349–370 页。
 
 [2] Chendrowska, J. (1990) 《专家系统的知识获取：从示例中诱导模块化规则》。博士论文，开放大学。
 
-[3] Bramer, M. (2007) 《数据挖掘原理》，Springer出版社。
+[3] Bramer, M. (2007) 《数据挖掘原理》，Springer 出版社。

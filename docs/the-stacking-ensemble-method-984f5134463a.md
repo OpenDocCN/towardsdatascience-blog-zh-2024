@@ -1,12 +1,12 @@
 # 堆叠集成方法
 
-> 原文：[https://towardsdatascience.com/the-stacking-ensemble-method-984f5134463a?source=collection_archive---------3-----------------------#2024-02-29](https://towardsdatascience.com/the-stacking-ensemble-method-984f5134463a?source=collection_archive---------3-----------------------#2024-02-29)
+> 原文：[`towardsdatascience.com/the-stacking-ensemble-method-984f5134463a?source=collection_archive---------3-----------------------#2024-02-29`](https://towardsdatascience.com/the-stacking-ensemble-method-984f5134463a?source=collection_archive---------3-----------------------#2024-02-29)
 
 ## 使用 scikit-learn 理解堆叠
 
-[](https://mocquin.medium.com/?source=post_page---byline--984f5134463a--------------------------------)[![Yoann Mocquin](../Images/b30a0f70c56972aabd2bc0a74baa90bb.png)](https://mocquin.medium.com/?source=post_page---byline--984f5134463a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--984f5134463a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--984f5134463a--------------------------------) [Yoann Mocquin](https://mocquin.medium.com/?source=post_page---byline--984f5134463a--------------------------------)
+[](https://mocquin.medium.com/?source=post_page---byline--984f5134463a--------------------------------)![Yoann Mocquin](https://mocquin.medium.com/?source=post_page---byline--984f5134463a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--984f5134463a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--984f5134463a--------------------------------) [Yoann Mocquin](https://mocquin.medium.com/?source=post_page---byline--984f5134463a--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--984f5134463a--------------------------------) ·阅读时间13分钟·2024年2月29日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--984f5134463a--------------------------------) ·阅读时间 13 分钟·2024 年 2 月 29 日
 
 --
 
@@ -30,7 +30,7 @@
 
 +   如何调优和优化堆叠模型的使用
 
-![](../Images/e38a73a60e65b3cf71db9018b0b3c24e.png)
+![](img/e38a73a60e65b3cf71db9018b0b3c24e.png)
 
 图片来自 [Brigitte Tohm](https://unsplash.com/@brigittetohm?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

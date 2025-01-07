@@ -1,20 +1,20 @@
-# 使用LLM进行高效文档分块：一次解锁一个知识块
+# 使用 LLM 进行高效文档分块：一次解锁一个知识块
 
-> 原文：[https://towardsdatascience.com/efficient-document-chunking-using-llms-unlocking-knowledge-one-block-at-a-time-355717a88c5c?source=collection_archive---------0-----------------------#2024-10-21](https://towardsdatascience.com/efficient-document-chunking-using-llms-unlocking-knowledge-one-block-at-a-time-355717a88c5c?source=collection_archive---------0-----------------------#2024-10-21)
+> 原文：[`towardsdatascience.com/efficient-document-chunking-using-llms-unlocking-knowledge-one-block-at-a-time-355717a88c5c?source=collection_archive---------0-----------------------#2024-10-21`](https://towardsdatascience.com/efficient-document-chunking-using-llms-unlocking-knowledge-one-block-at-a-time-355717a88c5c?source=collection_archive---------0-----------------------#2024-10-21)
 
-[](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)[![Carlo Peron](../Images/e6db9521113aa6a2dd43b0b2aa6687b5.png)](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------) [Carlo Peron](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)
+[](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)![Carlo Peron](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------) [Carlo Peron](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------) ·阅读时长：8分钟·2024年10月21日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------) ·阅读时长：8 分钟·2024 年 10 月 21 日
 
 --
 
-![](../Images/8d39f802c75bb432d069186938148b8c.png)
+![](img/8d39f802c75bb432d069186938148b8c.png)
 
 划分两个块的过程——作者插图
 
-本文解释了如何使用LLM（大语言模型）根据“想法”概念对文档进行分块。
+本文解释了如何使用 LLM（大语言模型）根据“想法”概念对文档进行分块。
 
-我在这个示例中使用了OpenAI的gpt-4o模型，但同样的方法也可以应用于其他任何LLM，如Hugging Face、Mistral等。
+我在这个示例中使用了 OpenAI 的 gpt-4o 模型，但同样的方法也可以应用于其他任何 LLM，如 Hugging Face、Mistral 等。
 
 每个人都可以免费访问这篇[文章](https://medium.com/@peronc79/355717a88c5c?sk=1cc4e46c40708d5057d54da391035cfa)。
 
@@ -22,7 +22,7 @@
 
 在认知心理学中，块代表一个“信息单元”。
 
-这一概念也可以应用于计算：使用LLM（大语言模型），我们可以分析文档并生成一组块，通常是可变长度的，每个块表达一个完整的“想法”。
+这一概念也可以应用于计算：使用 LLM（大语言模型），我们可以分析文档并生成一组块，通常是可变长度的，每个块表达一个完整的“想法”。
 
 这意味着系统将文档划分为“文本块”，每个块表达一个统一的概念，而不会在同一块中混合不同的想法。
 
@@ -34,7 +34,7 @@
 
 第一步是确定一个将成为我们知识库一部分的文档。
 
-这通常是一个PDF或Word文档，可以逐页或逐段阅读并转换为文本。
+这通常是一个 PDF 或 Word 文档，可以逐页或逐段阅读并转换为文本。
 
 为简单起见，假设我们已经有一个像以下这样的文本段落列表，这些段落是从 ***环游世界八十天*** 中提取的：
 
@@ -90,7 +90,7 @@ documents = [
 
 从视觉上看，结果如图 1 所示。
 
-![](../Images/366d6fb7dc3c658b31fa9d0481492dca.png)
+![](img/366d6fb7dc3c658b31fa9d0481492dca.png)
 
 图 1 — 将文档拆分成最大为 200 个 token 的块 — 图像由作者提供
 
@@ -106,41 +106,41 @@ documents = [
 
 结果如图 2 所示。
 
-![](../Images/d38ce011f33c722eaeb5e5dea015397a.png)
+![](img/d38ce011f33c722eaeb5e5dea015397a.png)
 
 图 2 — 将块拆分成小块 — 图像由作者提供
 
-这个过程是线性进行的，允许LLM自由决定如何形成块。
+这个过程是线性进行的，允许 LLM 自由决定如何形成块。
 
 **处理两个块之间的重叠**
 
 如前所述，在块拆分过程中，仅考虑长度限制，而不考虑表达相同想法的相邻段落是否被拆分到不同块中。
 
-如图1所示，“bla bla bla”概念（代表一个统一的想法）被拆分到两个相邻的块之间。
+如图 1 所示，“bla bla bla”概念（代表一个统一的想法）被拆分到两个相邻的块之间。
 
-如图2所示，块分割器一次只处理一个块，这意味着LLM无法将此信息与下一个块关联（它甚至不知道存在下一个块），因此，将其放入最后一个拆分的块中。
+如图 2 所示，块分割器一次只处理一个块，这意味着 LLM 无法将此信息与下一个块关联（它甚至不知道存在下一个块），因此，将其放入最后一个拆分的块中。
 
-这个问题在导入过程中经常发生，特别是在导入一个无法完全放入单个LLM提示中的长文档时。
+这个问题在导入过程中经常发生，特别是在导入一个无法完全放入单个 LLM 提示中的长文档时。
 
-为了解决这个问题，*llm_chunkizer.chunk_text_with_llm* 如图3所示：
+为了解决这个问题，*llm_chunkizer.chunk_text_with_llm* 如图 3 所示：
 
-1.  从前一个块生成的最后一个块（或最后N个块）将从“有效”块列表中移除，并将其内容添加到下一个要拆分的块中。
+1.  从前一个块生成的最后一个块（或最后 N 个块）将从“有效”块列表中移除，并将其内容添加到下一个要拆分的块中。
 
 1.  *New Block2* 再次传递给分块函数。
 
-![](../Images/17201eb773dba1ba31362002dc138ad4.png)
+![](img/17201eb773dba1ba31362002dc138ad4.png)
 
-图3 — 处理重叠 — 图片由作者提供
+图 3 — 处理重叠 — 图片由作者提供
 
-如图3所示，块M的内容被更有效地拆分为两个块，保持了概念“bla bla bla”的连贯性。
+如图 3 所示，块 M 的内容被更有效地拆分为两个块，保持了概念“bla bla bla”的连贯性。
 
-这个解决方案背后的思想是，前一个块的最后N个块代表独立的想法，而不仅仅是无关的段落。
+这个解决方案背后的思想是，前一个块的最后 N 个块代表独立的想法，而不仅仅是无关的段落。
 
-因此，将它们添加到新块中，可以让LLM生成类似的块，同时创建一个新块，将之前无视意义而被拆分的段落重新联合。
+因此，将它们添加到新块中，可以让 LLM 生成类似的块，同时创建一个新块，将之前无视意义而被拆分的段落重新联合。
 
 **分块结果**
 
-最后，系统生成以下6个块：
+最后，系统生成以下 6 个块：
 
 ```py
 0: On October 2, 1872, Phileas Fogg, an English gentleman, left London for an extraordinary journey. He had wagered that he could circumnavigate the globe in just eighty days. Fogg was a man of strict habits and a very methodical life; everything was planned down to the smallest detail, and nothing was left to chance.  
@@ -153,11 +153,11 @@ documents = [
 
 **关于块大小的考虑**
 
-让我们看看当原始文档被拆分成最大大小为1000个标记的较大块时会发生什么。
+让我们看看当原始文档被拆分成最大大小为 1000 个标记的较大块时会发生什么。
 
-使用较大的块大小时，系统生成4个块而不是6个。
+使用较大的块大小时，系统生成 4 个块而不是 6 个。
 
-这种行为是预期的，因为LLM可以一次分析更大部分的内容，并能够使用更多的文本来表示一个单一的概念。
+这种行为是预期的，因为 LLM 可以一次分析更大部分的内容，并能够使用更多的文本来表示一个单一的概念。
 
 下面是此情况下的块：
 
@@ -176,7 +176,7 @@ documents = [
 
 **敬请期待**
 
-在下一篇文章中，我将展示如何使用LLM来检索块 — [LLMRetriever](https://github.com/peronc/LLMRetriever)。
+在下一篇文章中，我将展示如何使用 LLM 来检索块 — [LLMRetriever](https://github.com/peronc/LLMRetriever)。
 
 你可以在我的仓库中找到所有代码和更多示例 — [LLMChunkizer](https://github.com/peronc/LLMChunkizer/)。
 

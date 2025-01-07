@@ -1,16 +1,16 @@
 # 如何管理大规模数据科学项目的技巧
 
-> 原文：[https://towardsdatascience.com/tips-on-how-to-manage-large-scale-data-science-projects-1511f4db3d01?source=collection_archive---------3-----------------------#2024-09-14](https://towardsdatascience.com/tips-on-how-to-manage-large-scale-data-science-projects-1511f4db3d01?source=collection_archive---------3-----------------------#2024-09-14)
+> 原文：[`towardsdatascience.com/tips-on-how-to-manage-large-scale-data-science-projects-1511f4db3d01?source=collection_archive---------3-----------------------#2024-09-14`](https://towardsdatascience.com/tips-on-how-to-manage-large-scale-data-science-projects-1511f4db3d01?source=collection_archive---------3-----------------------#2024-09-14)
 
 ## 使用这些技巧来最大化你的数据科学项目的成功
 
-[](https://ivopbernardo.medium.com/?source=post_page---byline--1511f4db3d01--------------------------------)[![Ivo Bernardo](../Images/39887b6f3e63a67c0545e87962ad5df0.png)](https://ivopbernardo.medium.com/?source=post_page---byline--1511f4db3d01--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1511f4db3d01--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1511f4db3d01--------------------------------) [Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--1511f4db3d01--------------------------------)
+[](https://ivopbernardo.medium.com/?source=post_page---byline--1511f4db3d01--------------------------------)![Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--1511f4db3d01--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1511f4db3d01--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1511f4db3d01--------------------------------) [Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--1511f4db3d01--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1511f4db3d01--------------------------------) ·6分钟阅读·2024年9月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1511f4db3d01--------------------------------) ·6 分钟阅读·2024 年 9 月 14 日
 
 --
 
-![](../Images/9134521a1ee7769dffa0c0cebf942037.png)
+![](img/9134521a1ee7769dffa0c0cebf942037.png)
 
 图片来源：[Jakub Żerdzicki](https://unsplash.com/pt-br/@jakubzerdzicki) @ Unsplash.com
 

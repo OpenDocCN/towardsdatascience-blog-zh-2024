@@ -1,22 +1,22 @@
 # 微调更小的 Transformer 模型：文本分类
 
-> 原文：[https://towardsdatascience.com/fine-tune-smaller-transformer-models-text-classification-77cbbd3bf02b?source=collection_archive---------0-----------------------#2024-05-28](https://towardsdatascience.com/fine-tune-smaller-transformer-models-text-classification-77cbbd3bf02b?source=collection_archive---------0-----------------------#2024-05-28)
+> 原文：[`towardsdatascience.com/fine-tune-smaller-transformer-models-text-classification-77cbbd3bf02b?source=collection_archive---------0-----------------------#2024-05-28`](https://towardsdatascience.com/fine-tune-smaller-transformer-models-text-classification-77cbbd3bf02b?source=collection_archive---------0-----------------------#2024-05-28)
 
 ## 使用更小的语言模型
 
 ## 使用微软的 Phi-3 生成合成数据
 
-[](https://medium.com/@ilsilfverskiold?source=post_page---byline--77cbbd3bf02b--------------------------------)[![Ida Silfverskiöld](../Images/a2c0850bc0198688f70a5eca858cf8b5.png)](https://medium.com/@ilsilfverskiold?source=post_page---byline--77cbbd3bf02b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77cbbd3bf02b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--77cbbd3bf02b--------------------------------) [Ida Silfverskiöld](https://medium.com/@ilsilfverskiold?source=post_page---byline--77cbbd3bf02b--------------------------------)
+[](https://medium.com/@ilsilfverskiold?source=post_page---byline--77cbbd3bf02b--------------------------------)![Ida Silfverskiöld](https://medium.com/@ilsilfverskiold?source=post_page---byline--77cbbd3bf02b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77cbbd3bf02b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77cbbd3bf02b--------------------------------) [Ida Silfverskiöld](https://medium.com/@ilsilfverskiold?source=post_page---byline--77cbbd3bf02b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77cbbd3bf02b--------------------------------) ·18 分钟阅读·2024年5月28日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77cbbd3bf02b--------------------------------) ·18 分钟阅读·2024 年 5 月 28 日
 
 --
 
-![](../Images/d6d2531f8cfeba1957c01af183353d13.png)
+![](img/d6d2531f8cfeba1957c01af183353d13.png)
 
 从更大的模型构建更小的模型来执行某个应用场景 | 图片来自作者
 
-*如果你不是会员，但想阅读这篇文章，可以通过这个朋友链接查看* [*点击这里。*](/fine-tune-smaller-transformer-models-text-classification-77cbbd3bf02b?sk=e71e980957ac03cbb3676a33252c61ad)
+*如果你不是会员，但想阅读这篇文章，可以通过这个朋友链接查看* *点击这里。*
 
 文本分类模型并不新鲜，但其构建速度和性能水平已有显著提升。
 
@@ -24,7 +24,7 @@
 
 这个想法是优化 AI 工作流，使得较小的模型在某些场景下表现更好，特别是在处理冗余任务时，较大的模型则显得有些过于强大。
 
-![](../Images/782d09ae6a26ffdc3592b605481710ca.png)
+![](img/782d09ae6a26ffdc3592b605481710ca.png)
 
 简化的模型大小演示 | 图片来自作者
 

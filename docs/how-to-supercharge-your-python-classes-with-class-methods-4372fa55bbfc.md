@@ -1,16 +1,16 @@
 # 如何通过类方法增强你的 Python 类
 
-> 原文：[https://towardsdatascience.com/how-to-supercharge-your-python-classes-with-class-methods-4372fa55bbfc?source=collection_archive---------2-----------------------#2024-05-03](https://towardsdatascience.com/how-to-supercharge-your-python-classes-with-class-methods-4372fa55bbfc?source=collection_archive---------2-----------------------#2024-05-03)
+> 原文：[`towardsdatascience.com/how-to-supercharge-your-python-classes-with-class-methods-4372fa55bbfc?source=collection_archive---------2-----------------------#2024-05-03`](https://towardsdatascience.com/how-to-supercharge-your-python-classes-with-class-methods-4372fa55bbfc?source=collection_archive---------2-----------------------#2024-05-03)
 
-![](../Images/a5eb45f9e87a8cde77526cb0ebd2846d.png)
+![](img/a5eb45f9e87a8cde77526cb0ebd2846d.png)
 
 进入 Python 类的方式可能不止一种——图片来自 Midjourney，由作者修改。
 
 ## 四个高级技巧，让你的数据科学和机器学习类拥有你从未意识到的优势
 
-[](https://medium.com/@siavashyasini?source=post_page---byline--4372fa55bbfc--------------------------------)[![Siavash Yasini](../Images/55220a8a9397ba51dcc381828735f4a2.png)](https://medium.com/@siavashyasini?source=post_page---byline--4372fa55bbfc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4372fa55bbfc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4372fa55bbfc--------------------------------) [Siavash Yasini](https://medium.com/@siavashyasini?source=post_page---byline--4372fa55bbfc--------------------------------)
+[](https://medium.com/@siavashyasini?source=post_page---byline--4372fa55bbfc--------------------------------)![Siavash Yasini](https://medium.com/@siavashyasini?source=post_page---byline--4372fa55bbfc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4372fa55bbfc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4372fa55bbfc--------------------------------) [Siavash Yasini](https://medium.com/@siavashyasini?source=post_page---byline--4372fa55bbfc--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4372fa55bbfc--------------------------------) ·阅读时间9分钟·2024年5月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4372fa55bbfc--------------------------------) ·阅读时间 9 分钟·2024 年 5 月 3 日
 
 --
 

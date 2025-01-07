@@ -1,16 +1,16 @@
 # 稀疏专家混合的崛起：Switch Transformers
 
-> 原文：[https://towardsdatascience.com/the-rise-of-sparse-mixtures-of-experts-switch-transformers-39cf3671f8a0?source=collection_archive---------6-----------------------#2024-02-15](https://towardsdatascience.com/the-rise-of-sparse-mixtures-of-experts-switch-transformers-39cf3671f8a0?source=collection_archive---------6-----------------------#2024-02-15)
+> 原文：[`towardsdatascience.com/the-rise-of-sparse-mixtures-of-experts-switch-transformers-39cf3671f8a0?source=collection_archive---------6-----------------------#2024-02-15`](https://towardsdatascience.com/the-rise-of-sparse-mixtures-of-experts-switch-transformers-39cf3671f8a0?source=collection_archive---------6-----------------------#2024-02-15)
 
 ## 深入探讨为今天行业中最强大的大规模语言模型（LLM）铺平道路的技术
 
-[](https://medium.com/@samuel.flender?source=post_page---byline--39cf3671f8a0--------------------------------)[![Samuel Flender](../Images/390d82a673de8a8bb11cef66978269b5.png)](https://medium.com/@samuel.flender?source=post_page---byline--39cf3671f8a0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--39cf3671f8a0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--39cf3671f8a0--------------------------------) [Samuel Flender](https://medium.com/@samuel.flender?source=post_page---byline--39cf3671f8a0--------------------------------)
+[](https://medium.com/@samuel.flender?source=post_page---byline--39cf3671f8a0--------------------------------)![Samuel Flender](https://medium.com/@samuel.flender?source=post_page---byline--39cf3671f8a0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--39cf3671f8a0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--39cf3671f8a0--------------------------------) [Samuel Flender](https://medium.com/@samuel.flender?source=post_page---byline--39cf3671f8a0--------------------------------)
 
-· 发表在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--39cf3671f8a0--------------------------------) ·8 分钟阅读·2024年2月15日
+· 发表在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--39cf3671f8a0--------------------------------) ·8 分钟阅读·2024 年 2 月 15 日
 
 --
 
-![](../Images/f8e64759f9946f38accbec2ec3e09a23.png)
+![](img/f8e64759f9946f38accbec2ec3e09a23.png)
 
 使用 Dall-E 生成的图像
 

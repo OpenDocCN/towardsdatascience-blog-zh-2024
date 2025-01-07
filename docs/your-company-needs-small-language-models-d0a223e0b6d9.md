@@ -1,30 +1,30 @@
 # 你的公司需要小型语言模型
 
-> 原文：[https://towardsdatascience.com/your-company-needs-small-language-models-d0a223e0b6d9?source=collection_archive---------0-----------------------#2024-12-26](https://towardsdatascience.com/your-company-needs-small-language-models-d0a223e0b6d9?source=collection_archive---------0-----------------------#2024-12-26)
+> 原文：[`towardsdatascience.com/your-company-needs-small-language-models-d0a223e0b6d9?source=collection_archive---------0-----------------------#2024-12-26`](https://towardsdatascience.com/your-company-needs-small-language-models-d0a223e0b6d9?source=collection_archive---------0-----------------------#2024-12-26)
 
-![](../Images/26913b776ae04e4f9a355fe2fa31fad8.png)
+![](img/26913b776ae04e4f9a355fe2fa31fad8.png)
 
-由Stable Diffusion生成的图像
+由 Stable Diffusion 生成的图像
 
 ## 当专用模型超过通用模型时
 
-[](https://slgero.medium.com/?source=post_page---byline--d0a223e0b6d9--------------------------------)[![Sergei Savvov](../Images/a653eaeeec954f1a71e6341b424f009a.png)](https://slgero.medium.com/?source=post_page---byline--d0a223e0b6d9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d0a223e0b6d9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d0a223e0b6d9--------------------------------) [Sergei Savvov](https://slgero.medium.com/?source=post_page---byline--d0a223e0b6d9--------------------------------)
+[](https://slgero.medium.com/?source=post_page---byline--d0a223e0b6d9--------------------------------)![Sergei Savvov](https://slgero.medium.com/?source=post_page---byline--d0a223e0b6d9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d0a223e0b6d9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0a223e0b6d9--------------------------------) [Sergei Savvov](https://slgero.medium.com/?source=post_page---byline--d0a223e0b6d9--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0a223e0b6d9--------------------------------) ·12分钟阅读·2024年12月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0a223e0b6d9--------------------------------) ·12 分钟阅读·2024 年 12 月 26 日
 
 --
 
-“更大总是更好”——这一原则在AI领域根深蒂固。每个月，更多的参数和更大的模型被创造出来。公司甚至为此建立了[$100亿的AI数据中心](https://www.datacenterfrontier.com/hyperscale/article/55248311/meta-sees-10b-ai-data-center-in-louisiana-using-combo-of-clean-energy-nuclear-power)。但是，这真的是唯一的方向吗？
+“更大总是更好”——这一原则在 AI 领域根深蒂固。每个月，更多的参数和更大的模型被创造出来。公司甚至为此建立了[$100 亿的 AI 数据中心](https://www.datacenterfrontier.com/hyperscale/article/55248311/meta-sees-10b-ai-data-center-in-louisiana-using-combo-of-clean-energy-nuclear-power)。但是，这真的是唯一的方向吗？
 
-在[NeurIPS 2024会议上，OpenAI的联合创始人Ilya Sutskever](https://www.youtube.com/watch?v=1yvBqasHLZs)分享了一个观点：“*我们所知的预训练将无可避免地结束*”。看起来**规模化时代即将结束**，这意味着现在是时候集中精力改进现有的方法和算法了。
+在[NeurIPS 2024 会议上，OpenAI 的联合创始人 Ilya Sutskever](https://www.youtube.com/watch?v=1yvBqasHLZs)分享了一个观点：“*我们所知的预训练将无可避免地结束*”。看起来**规模化时代即将结束**，这意味着现在是时候集中精力改进现有的方法和算法了。
 
-最有前景的领域之一是使用最多10B参数的小型语言模型（SLMs）。这种方法在行业中真正开始起飞。例如，Hugging Face的CEO Clem Delangue，[预测最多99%的使用案例可以通过SLMs来解决](https://www.linkedin.com/posts/clementdelangue_ive-said-it-and-will-say-it-again-1-activity-7112524134395318273-T3z6/)。YC的[最新创业请求](https://www.ycombinator.com/rfs#summer-2024-small-fine-tuned-models-as-an-alternative-to-giant-generic-ones)中也可以看到类似的趋势：
+最有前景的领域之一是使用最多 10B 参数的小型语言模型（SLMs）。这种方法在行业中真正开始起飞。例如，Hugging Face 的 CEO Clem Delangue，[预测最多 99%的使用案例可以通过 SLMs 来解决](https://www.linkedin.com/posts/clementdelangue_ive-said-it-and-will-say-it-again-1-activity-7112524134395318273-T3z6/)。YC 的[最新创业请求](https://www.ycombinator.com/rfs#summer-2024-small-fine-tuned-models-as-an-alternative-to-giant-generic-ones)中也可以看到类似的趋势：
 
 > 拥有大量参数的巨型通用模型非常令人印象深刻。但它们也非常昂贵，且往往面临延迟和隐私问题。
 
-在我上一篇文章“[你真的需要托管的LLM吗？](https://betterprogramming.pub/you-dont-need-hosted-llms-do-you-1160b2520526)”中，我曾经想过你是否需要自托管的模型。现在我更进一步，提出一个问题：**你根本需要LLM吗？**
+在我上一篇文章“[你真的需要托管的 LLM 吗？](https://betterprogramming.pub/you-dont-need-hosted-llms-do-you-1160b2520526)”中，我曾经想过你是否需要自托管的模型。现在我更进一步，提出一个问题：**你根本需要 LLM 吗？**
 
-![](../Images/72ad67f12c5f765e561a3aab710ca34c.png)
+![](img/72ad67f12c5f765e561a3aab710ca34c.png)
 
 文章的“简短”总结。
 
@@ -34,23 +34,23 @@
 
 大型语言模型（LLM）的经济学可能是企业最痛苦的话题之一。然而，这个问题远不止如此：它包括对昂贵硬件的需求、基础设施成本、能源成本和环境后果。
 
-是的，大型语言模型在其能力上令人印象深刻，但它们的维护成本也非常高。您可能已经注意到基于LLM的应用程序订阅价格的上涨？例如，OpenAI最近宣布的**每月$200**专业版计划就是成本上升的信号。而且，很可能竞争对手也会将价格提高到这些水平。
+是的，大型语言模型在其能力上令人印象深刻，但它们的维护成本也非常高。您可能已经注意到基于 LLM 的应用程序订阅价格的上涨？例如，OpenAI 最近宣布的**每月$200**专业版计划就是成本上升的信号。而且，很可能竞争对手也会将价格提高到这些水平。
 
-![](../Images/2b41027953cd666454647c2b116ac0b3.png)
+![](img/2b41027953cd666454647c2b116ac0b3.png)
 
 专业版计划，$200
 
-[Moxie机器人故事](https://arstechnica.com/gadgets/2024/12/startup-will-brick-800-emotional-support-robot-for-kids-without-refunds/)是这一观点的一个很好的例子。Embodied为孩子们创造了一个优秀的伴侣机器人，售价为$800，使用了OpenAI API。尽管产品取得了成功（孩子们每天发送500到1000条消息！），但由于API的高运营成本，公司[正在关闭](https://moxierobot.com/pages/closing-faqs)。现在，成千上万的机器人将变得无用，孩子们将失去他们的朋友。
+[Moxie 机器人故事](https://arstechnica.com/gadgets/2024/12/startup-will-brick-800-emotional-support-robot-for-kids-without-refunds/)是这一观点的一个很好的例子。Embodied 为孩子们创造了一个优秀的伴侣机器人，售价为$800，使用了 OpenAI API。尽管产品取得了成功（孩子们每天发送 500 到 1000 条消息！），但由于 API 的高运营成本，公司[正在关闭](https://moxierobot.com/pages/closing-faqs)。现在，成千上万的机器人将变得无用，孩子们将失去他们的朋友。
 
 一种方法是**针对您的特定领域对小型语言模型进行微调**。当然，它并不能解决“世界上所有的问题”，但它能完美地应对分配给它的任务。例如，分析客户文档或生成特定报告。与此同时，小型语言模型在维护上更具经济性，消耗的资源更少，所需的数据量更小，并且可以在更加简朴的硬件上运行（[甚至是智能手机](https://privatellm.app/blog/run-local-gpt-on-ios-complete-guide)）。
 
-![](../Images/ebee1b3fa08f2a9ac511bdd47215c967.png)
+![](img/ebee1b3fa08f2a9ac511bdd47215c967.png)
 
-不同参数量模型的使用对比。[来源1](https://arxiv.org/pdf/2404.08850)，[来源2](https://adasci.org/how-much-energy-do-llms-consume-unveiling-the-power-behind-ai/)，[来源3](https://huggingface.co/blog/inference-dgx-cloud)，[来源4](https://llamaimodel.com/price/)。
+不同参数量模型的使用对比。[来源 1](https://arxiv.org/pdf/2404.08850)，[来源 2](https://adasci.org/how-much-energy-do-llms-consume-unveiling-the-power-behind-ai/)，[来源 3](https://huggingface.co/blog/inference-dgx-cloud)，[来源 4](https://llamaimodel.com/price/)。
 
 最后，我们不能忽视环境因素。在 [《碳排放与大规模神经网络训练》](https://arxiv.org/ftp/arxiv/papers/2104/2104.10350.pdf) 文章中，我发现了一些让我惊讶的统计数据：训练 GPT-3（拥有 1750 亿参数）所消耗的电力相当于美国普通家庭 120 年的用电量。它还 **排放了 502 吨 CO₂**，相当于一百多辆汽油车一年的排放量。而这还不包括推理成本。相比之下，部署像 **7B** 这样的较小模型，仅需消耗大型模型 5% 的电力。那最新的 [o3 版本](https://techcrunch.com/2024/12/20/openai-announces-new-o3-model/)呢？
 
-![](../Images/e0b5c26438dab27fe0c8d676828452ac.png)
+![](img/e0b5c26438dab27fe0c8d676828452ac.png)
 
 模拟 o3 CO₂ 排放。[来源](https://www.linkedin.com/posts/bgamazay_openai-has-announced-o3-which-appears-to-activity-7276250095019335680-sVbW).
 
@@ -60,7 +60,7 @@
 
 既然我们已经讨论了经济性，接下来谈谈质量。自然，几乎没有人愿意仅仅为了节省成本而在解决方案的准确性上做出妥协。但即便如此，SLM 也有其独特的优势。
 
-![](../Images/671c7646feb5e05b026184d19a97a9bd.png)
+![](img/671c7646feb5e05b026184d19a97a9bd.png)
 
 行业内内容审核表现。比较 SLM 和 LLM 在行业内内容审核任务中的准确性、召回率和精度表现。在所有子版块中，表现最好的 SLM 在准确性和召回率上超越了 LLM，而 LLM 在精度上则超过了 SLM。[来源](https://arxiv.org/pdf/2410.13155)
 
@@ -72,15 +72,15 @@
 
 1.  **数学任务：** [Google DeepMind 的研究表明](https://arxiv.org/pdf/2408.16737)，训练一个小型模型 Gemma2–9B，使用另一个小型模型生成的数据，比使用来自更大模型 Gemma2–27B 的数据训练效果更好。较小的模型往往能更好地专注于细节，而不会像大型模型那样“试图通过所有知识来显示自己”。
 
-1.  **内容审核：**[LLaMA 3.1 8B超越了](https://arxiv.org/pdf/2410.13155)GPT-3.5，在准确性（提高了11.5%）和召回率（提高了25.7%）方面表现更好，尤其是在审核15个热门子版块的内容时。**即使在4位量化的情况下**，也成功减少了模型的大小。
+1.  **内容审核：**[LLaMA 3.1 8B 超越了](https://arxiv.org/pdf/2410.13155)GPT-3.5，在准确性（提高了 11.5%）和召回率（提高了 25.7%）方面表现更好，尤其是在审核 15 个热门子版块的内容时。**即使在 4 位量化的情况下**，也成功减少了模型的大小。
 
-![](../Images/67a12f7e7296b11c505a401955b85fa3.png)
+![](img/67a12f7e7296b11c505a401955b85fa3.png)
 
-针对PubMedQA的指令调优领域SLM与LLM的比较。[来源](https://arxiv.org/pdf/2411.03350)。
+针对 PubMedQA 的指令调优领域 SLM 与 LLM 的比较。[来源](https://arxiv.org/pdf/2411.03350)。
 
 我将更进一步，分享一个个人案例：我正在开发一个心理支持产品，我们每天处理来自用户的超过一千条消息。用户可以通过聊天发送消息并获得回复。每条消息首先会被分类到以下四类之一：
 
-![](../Images/a756c82fcba8cae98609aba545fb141c.png)
+![](img/a756c82fcba8cae98609aba545fb141c.png)
 
 消息分类方案。
 
@@ -88,47 +88,47 @@
 
 +   `GRATITUDE` — 用户感谢机器人；我们只需发送一个“点赞”。
 
-+   `TRY_TO_HACK` — 用户请求的内容与应用程序的目的无关（例如，“写一个Python函数”）。
++   `TRY_TO_HACK` — 用户请求的内容与应用程序的目的无关（例如，“写一个 Python 函数”）。
 
 +   `OTHER` — 所有其他消息，我们会进一步处理。
 
-之前，我使用了GPT-3.5-turbo进行分类，后来切换到GPT-4o mini，花费了大量时间更改提示。但是，我仍然遇到错误。因此，我决定尝试经典方法：TF-IDF + 简单分类器。训练时间不到一分钟，宏观F1得分提高到了0.95（相比之下，GPT-4o mini为0.92）。模型大小仅为76MB，当应用于200万条处理过的消息（我们的实际数据）时，节省的成本非常可观：**基于GPT的解决方案大约需要500美元，而经典方法几乎不需要费用**。
+之前，我使用了 GPT-3.5-turbo 进行分类，后来切换到 GPT-4o mini，花费了大量时间更改提示。但是，我仍然遇到错误。因此，我决定尝试经典方法：TF-IDF + 简单分类器。训练时间不到一分钟，宏观 F1 得分提高到了 0.95（相比之下，GPT-4o mini 为 0.92）。模型大小仅为 76MB，当应用于 200 万条处理过的消息（我们的实际数据）时，节省的成本非常可观：**基于 GPT 的解决方案大约需要 500 美元，而经典方法几乎不需要费用**。
 
-![](../Images/299ede5a52ee02c3ce6ef99f7f448dc2.png)
+![](img/299ede5a52ee02c3ce6ef99f7f448dc2.png)
 
-准确性、速度和成本比较表：GPT-4o mini与TF-IDF模型。
+准确性、速度和成本比较表：GPT-4o mini 与 TF-IDF 模型。
 
 我们的产品中有许多这样的“小”且简单的任务。我相信你们的公司也可能会发现类似的情况。当然，大模型适合快速启动，特别是在没有标注数据且需求不断变化的情况下。但对于那些定义明确、稳定的任务，准确性和最小成本是关键，专用且简单的模型（包括经典方法）往往能提供更有效的解决方案。
 
-💡**提示：**使用LLM进行原型设计，当任务变得清晰且稳定时，再切换到更小、更便宜、更精确的模型。这种混合方法有助于保持高质量，显著降低成本，并避免通用模型的冗余。
+💡**提示：**使用 LLM 进行原型设计，当任务变得清晰且稳定时，再切换到更小、更便宜、更精确的模型。这种混合方法有助于保持高质量，显著降低成本，并避免通用模型的冗余。
 
 # 安全性、隐私和合规性
 
-通过API使用LLMs，你实际上是将敏感数据交给外部提供商，增加了数据泄漏的风险，并使得遵守严格法规（如HIPAA、GDPR和CCPA）变得更加复杂。OpenAI最近关于引入广告的公告进一步凸显了这些风险。**你的公司不仅失去了对数据的完全控制，还变得依赖于第三方的服务水平协议（SLA）。**
+通过 API 使用 LLMs，你实际上是将敏感数据交给外部提供商，增加了数据泄漏的风险，并使得遵守严格法规（如 HIPAA、GDPR 和 CCPA）变得更加复杂。OpenAI 最近关于引入广告的公告进一步凸显了这些风险。**你的公司不仅失去了对数据的完全控制，还变得依赖于第三方的服务水平协议（SLA）。**
 
-当然，可以在本地运行大型语言模型（LLM），但其部署和扩展的成本（数百GB的内存、多个GPU）往往超出合理的经济限制，并且使得快速适应新的监管要求变得困难。你可以忘记在低端硬件上启动它。
+当然，可以在本地运行大型语言模型（LLM），但其部署和扩展的成本（数百 GB 的内存、多个 GPU）往往超出合理的经济限制，并且使得快速适应新的监管要求变得困难。你可以忘记在低端硬件上启动它。
 
-![](../Images/99295d3081eef53a84bd486fdd456dd9.png)
+![](img/99295d3081eef53a84bd486fdd456dd9.png)
 
-云API风险与设备上SLM优势比较
+云 API 风险与设备上 SLM 优势比较
 
 这正是“小型模型”重新发挥作用的地方：
 
 ## 1. 简化审计
 
-SLM较小的体积降低了进行审计、验证和定制以满足特定法规的门槛。更容易理解模型如何处理数据，实现自定义加密或日志记录，并向审计员展示信息从未离开过受信任的环境。作为一家医疗公司创始人，我深知这一任务有多么具有挑战性和重要性。
+SLM 较小的体积降低了进行审计、验证和定制以满足特定法规的门槛。更容易理解模型如何处理数据，实现自定义加密或日志记录，并向审计员展示信息从未离开过受信任的环境。作为一家医疗公司创始人，我深知这一任务有多么具有挑战性和重要性。
 
 ## **2.** 在隔离和低端硬件上运行
 
-大型语言模型（LLMs）在隔离的网络段或智能手机上高效“部署”十分困难。然而，考虑到其较低的计算需求，简化语言模型（SLMs）几乎可以在任何地方运行：从私有网络中的本地服务器到医生或检查员的设备。[根据IDC的预测](https://blogs.idc.com/2024/07/05/the-rise-of-gen-ai-smartphones/)，**到2028年，超过9亿部智能手机将能够本地运行生成性AI模型**。
+大型语言模型（LLMs）在隔离的网络段或智能手机上高效“部署”十分困难。然而，考虑到其较低的计算需求，简化语言模型（SLMs）几乎可以在任何地方运行：从私有网络中的本地服务器到医生或检查员的设备。[根据 IDC 的预测](https://blogs.idc.com/2024/07/05/the-rise-of-gen-ai-smartphones/)，**到 2028 年，超过 9 亿部智能手机将能够本地运行生成性 AI 模型**。
 
 ## **3.** 新法规更新与适应
 
-法规和法律经常变化——紧凑型模型可以在数小时内进行微调或调整，而不是几天。这使得能够快速响应新的要求，而不需要进行大规模的基础设施升级，这是大规模LLMs的常见特征。
+法规和法律经常变化——紧凑型模型可以在数小时内进行微调或调整，而不是几天。这使得能够快速响应新的要求，而不需要进行大规模的基础设施升级，这是大规模 LLMs 的常见特征。
 
 ## **4. 分布式安全架构**
 
-与LLMs的单体架构不同，LLMs将所有安全组件“集成”到一个大型模型中，而SLMs则允许创建一个分布式安全系统。每个组件：
+与 LLMs 的单体架构不同，LLMs 将所有安全组件“集成”到一个大型模型中，而 SLMs 则允许创建一个分布式安全系统。每个组件：
 
 +   专注于特定任务。
 
@@ -142,29 +142,29 @@ SLM较小的体积降低了进行审计、验证和定制以满足特定法规�
 
 1.  **医学验证器（3B）**——确保医学准确性。
 
-1.  **合规检查器（1B）**——监控HIPAA合规性。
+1.  **合规检查器（1B）**——监控 HIPAA 合规性。
 
 **较小的模型更容易验证和更新**，使整体架构更加灵活和可靠。
 
-![](../Images/c73556307d7ff9a0f482dd5e882ed0da.png)
+![](img/c73556307d7ff9a0f482dd5e882ed0da.png)
 
 数据隐私特性比较
 
-💡**提示：**如果你所在的领域受到严格监管，可以考虑使用SLMs。密切关注数据传输政策和监管环境变化的频率。如果你的专业领域是医疗、金融或法律，我推荐使用SLMs。
+💡**提示：**如果你所在的领域受到严格监管，可以考虑使用 SLMs。密切关注数据传输政策和监管环境变化的频率。如果你的专业领域是医疗、金融或法律，我推荐使用 SLMs。
 
-# AI代理：完美的应用场景
+# AI 代理：完美的应用场景
 
-还记得旧的[Unix哲学：“做一件事，并把它做得很好”](https://en.wikipedia.org/wiki/Unix_philosophy)吗？现在似乎我们又回到了这一原则，只不过是在人工智能的背景下。
+还记得旧的[Unix 哲学：“做一件事，并把它做得很好”](https://en.wikipedia.org/wiki/Unix_philosophy)吗？现在似乎我们又回到了这一原则，只不过是在人工智能的背景下。
 
-Ilya Sutskever最近在NeurIPS上的声明——“我们所知道的预训练将毫无疑问地结束”以及下代模型将“以真实方式具备代理能力”——只会进一步确认这一趋势。Y Combinator甚至预测，[**AI代理可能创造一个比SaaS市场大10倍的市场**](https://www.youtube.com/watch?v=ASABxNenD_U)。
+Ilya Sutskever 最近在 NeurIPS 上的声明——“我们所知道的预训练将毫无疑问地结束”以及下代模型将“以真实方式具备代理能力”——只会进一步确认这一趋势。Y Combinator 甚至预测，[**AI 代理可能创造一个比 SaaS 市场大 10 倍的市场**](https://www.youtube.com/watch?v=ASABxNenD_U)。
 
-例如，目前已有[12%的企业解决方案采用基于代理的架构](https://menlovc.com/2024-the-state-of-generative-ai-in-the-enterprise/)。此外，分析师预测，代理将成为AI转型的下一个浪潮，不仅能影响4000亿美元的软件市场，还能影响**10万亿美元的美国服务经济**。
+例如，目前已有[12%的企业解决方案采用基于代理的架构](https://menlovc.com/2024-the-state-of-generative-ai-in-the-enterprise/)。此外，分析师预测，代理将成为 AI 转型的下一个浪潮，不仅能影响 4000 亿美元的软件市场，还能影响**10 万亿美元的美国服务经济**。
 
-而SMLs是这个角色的理想候选者。也许单个模型非常有限，但这样的多个模型——可以逐步解决复杂的任务。**更快、更高质量、更便宜。**
+而 SMLs 是这个角色的理想候选者。也许单个模型非常有限，但这样的多个模型——可以逐步解决复杂的任务。**更快、更高质量、更便宜。**
 
 让我们来看一个具体的例子：假设你正在构建一个系统来分析金融文档。你可以将任务拆分成多个专门的代理，而不是使用一个大模型：
 
-![](../Images/b9593e6888e27316001c963ec8232ee1.png)
+![](img/b9593e6888e27316001c963ec8232ee1.png)
 
 专门代理之间的信息流动示例。
 
@@ -172,13 +172,13 @@ Ilya Sutskever最近在NeurIPS上的声明——“我们所知道的预训练�
 
 为了支持这一点，让我列举几个公司：
 
-1.  [**H公司**](https://www.hcompany.ai/)在种子轮融资中筹集了1亿美元，旨在开发基于SLMs的多代理系统（2-3B参数）。他们的代理Runner H（3B）完成任务的成功率为67%，相比之下，Anthropic的Computer Use为52%，**且成本显著更低**。
+1.  [**H 公司**](https://www.hcompany.ai/)在种子轮融资中筹集了 1 亿美元，旨在开发基于 SLMs 的多代理系统（2-3B 参数）。他们的代理 Runner H（3B）完成任务的成功率为 67%，相比之下，Anthropic 的 Computer Use 为 52%，**且成本显著更低**。
 
-1.  [**Liquid AI**](https://www.liquid.ai/)最近获得了2.5亿美元的融资，专注于构建高效的企业模型。他们的模型（1.3B参数）超越了所有类似规模的现有模型。同时，他们的LFM-3B在性能上与7B甚至13B模型不相上下，**同时需要更少的内存**。
+1.  [**Liquid AI**](https://www.liquid.ai/)最近获得了 2.5 亿美元的融资，专注于构建高效的企业模型。他们的模型（1.3B 参数）超越了所有类似规模的现有模型。同时，他们的 LFM-3B 在性能上与 7B 甚至 13B 模型不相上下，**同时需要更少的内存**。
 
-1.  [**Cohere**](https://cohere.com/)推出了Command R7B，这是一款专门针对RAG应用的模型，甚至可以**在CPU上运行**。该模型支持23种语言，并与外部工具集成，在推理和问答任务中表现出最顶级的结果。
+1.  [**Cohere**](https://cohere.com/)推出了 Command R7B，这是一款专门针对 RAG 应用的模型，甚至可以**在 CPU 上运行**。该模型支持 23 种语言，并与外部工具集成，在推理和问答任务中表现出最顶级的结果。
 
-1.  **贵公司名称**也可以加入这个名单。我不仅仅是这么说的——在我工作的公司[Reforma Health](https://reforma.health/)，我们正在开发针对各种医疗领域的专用SLM。做出这一决定是因为需要遵守HIPAA规定以及医疗信息处理的具体要求。我们的经验表明，高度**专用的SLM可以成为显著的竞争优势**，尤其是在受监管的领域。
+1.  **贵公司名称**也可以加入这个名单。我不仅仅是这么说的——在我工作的公司[Reforma Health](https://reforma.health/)，我们正在开发针对各种医疗领域的专用 SLM。做出这一决定是因为需要遵守 HIPAA 规定以及医疗信息处理的具体要求。我们的经验表明，高度**专用的 SLM 可以成为显著的竞争优势**，尤其是在受监管的领域。
 
 这些例子突显了以下几点：
 
@@ -188,25 +188,25 @@ Ilya Sutskever最近在NeurIPS上的声明——“我们所知道的预训练�
 
 +   市场正在转向**“智能”专用代理**，而不再依赖于“通用”大型模型。
 
-💡**提示：**从识别项目中的重复任务开始。这些任务最适合开发专用的SLM代理。通过这种方式，你将避免为LLM的过度能力支付过多费用，并能更好地掌控流程。
+💡**提示：**从识别项目中的重复任务开始。这些任务最适合开发专用的 SLM 代理。通过这种方式，你将避免为 LLM 的过度能力支付过多费用，并能更好地掌控流程。
 
-# SLM与LLM相比的潜在局限性
+# SLM 与 LLM 相比的潜在局限性
 
 虽然我在整篇文章中都在赞扬小型模型，但公平地说，也应指出它们的局限性。
 
 ## 1. 任务灵活性的局限
 
-SLM的最大限制是其狭窄的专用性。与可以处理广泛任务的LLM不同，SLM仅在它们经过训练的特定任务中表现出色。例如，在医学领域，[Diabetica-7B在糖尿病相关测试中优于LLM](https://arxiv.org/pdf/2409.13191)，但其他医学领域则需要额外的微调或全新的架构。
+SLM 的最大限制是其狭窄的专用性。与可以处理广泛任务的 LLM 不同，SLM 仅在它们经过训练的特定任务中表现出色。例如，在医学领域，[Diabetica-7B 在糖尿病相关测试中优于 LLM](https://arxiv.org/pdf/2409.13191)，但其他医学领域则需要额外的微调或全新的架构。
 
-![](../Images/22382712a4e184c3025a715a8ed608f2.png)
+![](img/22382712a4e184c3025a715a8ed608f2.png)
 
-LLM与SLM：灵活性与专用性。
+LLM 与 SLM：灵活性与专用性。
 
 ## 2. 上下文窗口的限制
 
-与可以处理高达1M tokens的较大模型（如[Gemini 2.0](https://blog.google/technology/google-deepmind/google-gemini-ai-update-december-2024/)）不同，SLM的上下文长度较短。尽管近期小型LLaMA 3.2模型（3B, 1B）已具有128k tokens的上下文长度，[但有效的上下文长度往往并非如宣传所称](https://arxiv.org/pdf/2410.18745)：模型通常无法保持文本开头与结尾之间的“联系”。例如，SLM无法高效处理多年的病人医疗历史或大量法律文件。
+与可以处理高达 1M tokens 的较大模型（如[Gemini 2.0](https://blog.google/technology/google-deepmind/google-gemini-ai-update-december-2024/)）不同，SLM 的上下文长度较短。尽管近期小型 LLaMA 3.2 模型（3B, 1B）已具有 128k tokens 的上下文长度，[但有效的上下文长度往往并非如宣传所称](https://arxiv.org/pdf/2410.18745)：模型通常无法保持文本开头与结尾之间的“联系”。例如，SLM 无法高效处理多年的病人医疗历史或大量法律文件。
 
-![](../Images/3bce47a45b59ed7cdc06638f6f63d2d2.png)
+![](img/3bce47a45b59ed7cdc06638f6f63d2d2.png)
 
 不同模型最大上下文长度的比较。
 
@@ -214,30 +214,30 @@ LLM与SLM：灵活性与专用性。
 
 许多“新兴能力”只有在模型达到某个规模门槛时才会[显现](https://arxiv.org/pdf/2001.08361)。SLM**通常无法达到进行高级逻辑推理或深度上下文理解所需的参数水平**。[谷歌研究的一项研究](https://arxiv.org/pdf/2408.16737)通过数学问题展示了这一点：小型模型在基础算术方面存在困难，而较大模型则能突然展示出复杂的数学推理能力。
 
-然而，[Hugging Face 最近的研究表明](https://huggingface.co/spaces/HuggingFaceH4/blogpost-scaling-test-time-compute) **测试时计算扩展**可以部分弥合这一差距。通过使用**迭代自我优化**或采用**奖励模型**等策略，小型模型可以在复杂问题上“思考更长时间”。例如，在延长生成时间的情况下，小型模型（1B和3B）在MATH-500基准测试中超过了它们的大型模型（8B和70B）。
+然而，[Hugging Face 最近的研究表明](https://huggingface.co/spaces/HuggingFaceH4/blogpost-scaling-test-time-compute) **测试时计算扩展**可以部分弥合这一差距。通过使用**迭代自我优化**或采用**奖励模型**等策略，小型模型可以在复杂问题上“思考更长时间”。例如，在延长生成时间的情况下，小型模型（1B 和 3B）在 MATH-500 基准测试中超过了它们的大型模型（8B 和 70B）。
 
-💡**提示：** 如果您在一个任务每周都在变化、需要分析大量文档或涉及解决复杂逻辑问题的环境中工作，较大的LLM通常更可靠和多功能。
+💡**提示：** 如果您在一个任务每周都在变化、需要分析大量文档或涉及解决复杂逻辑问题的环境中工作，较大的 LLM 通常更可靠和多功能。
 
 # 结束语
 
-与我在上一篇文章中讨论的选择[OpenAI与自托管LLM之间的平衡](https://medium.com/better-programming/you-dont-need-hosted-llms-do-you-1160b2520526)一样，这里也没有“一刀切”的解决方案。如果您的任务涉及持续变化、缺乏精确的专业化，或需要快速原型开发，LLM将提供一个轻松的起点。
+与我在上一篇文章中讨论的选择[OpenAI 与自托管 LLM 之间的平衡](https://medium.com/better-programming/you-dont-need-hosted-llms-do-you-1160b2520526)一样，这里也没有“一刀切”的解决方案。如果您的任务涉及持续变化、缺乏精确的专业化，或需要快速原型开发，LLM 将提供一个轻松的起点。
 
 然而，随着时间的推移，当您的目标变得更加明确时，转向紧凑、专业化的**SLM 代理可以显著降低成本、提高准确性，并简化合规性要求**。
 
-![](../Images/12891117c3be9a5f526a54a48e569a6d.png)
+![](img/12891117c3be9a5f526a54a48e569a6d.png)
 
-从LLM的快速原型开发转向优化的SLM代理生态系统。
+从 LLM 的快速原型开发转向优化的 SLM 代理生态系统。
 
-SLM 并非为了跟随潮流而改变范式，而是一种务实的方法，使您能够更准确、经济地解决特定问题，而无需为不必要的功能支付过多费用。您不需要完全放弃LLM——**您可以逐步用SLM**或甚至经典的NLP方法替换其中的某些组件。所有这些取决于您的指标、预算和任务的性质。
+SLM 并非为了跟随潮流而改变范式，而是一种务实的方法，使您能够更准确、经济地解决特定问题，而无需为不必要的功能支付过多费用。您不需要完全放弃 LLM——**您可以逐步用 SLM**或甚至经典的 NLP 方法替换其中的某些组件。所有这些取决于您的指标、预算和任务的性质。
 
 一个很好的例子是 IBM，它采用了[多模型策略](https://www.ibm.com/products/watsonx-ai/foundation-models)，将较小的模型用于不同的任务。正如他们所指出的：
 
 > 更大并不总是更好，因为专业化模型在基础设施要求较低的情况下，通常超过通用模型的表现。
 
-最终，**成功的关键是适应**。从一个大型模型开始，评估它在何处表现最佳，然后优化您的架构，以避免为不必要的能力支付过高费用，并确保数据隐私不受影响。这种方法使您能够结合两者的优势：在初期阶段，LLM的灵活性和多功能性，以及在成熟产品阶段，SLM的精确和成本效益。
+最终，**成功的关键是适应**。从一个大型模型开始，评估它在何处表现最佳，然后优化您的架构，以避免为不必要的能力支付过高费用，并确保数据隐私不受影响。这种方法使您能够结合两者的优势：在初期阶段，LLM 的灵活性和多功能性，以及在成熟产品阶段，SLM 的精确和成本效益。
 
 如果您有任何问题或建议，请随时在[LinkedIn](https://www.linkedin.com/in/sergey-savvov/)上与我联系。
 
-> ***免责声明***：本文中的信息截至2024年12月，但请注意此后可能会发生变化。
+> ***免责声明***：本文中的信息截至 2024 年 12 月，但请注意此后可能会发生变化。
 > 
 > *除非另有说明，所有图片均由作者提供。*

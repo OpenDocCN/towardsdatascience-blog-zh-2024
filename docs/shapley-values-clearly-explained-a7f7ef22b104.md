@@ -1,20 +1,20 @@
-# Shapley值清晰解释
+# Shapley 值清晰解释
 
-> 原文：[https://towardsdatascience.com/shapley-values-clearly-explained-a7f7ef22b104?source=collection_archive---------0-----------------------#2024-02-04](https://towardsdatascience.com/shapley-values-clearly-explained-a7f7ef22b104?source=collection_archive---------0-----------------------#2024-02-04)
+> 原文：[`towardsdatascience.com/shapley-values-clearly-explained-a7f7ef22b104?source=collection_archive---------0-----------------------#2024-02-04`](https://towardsdatascience.com/shapley-values-clearly-explained-a7f7ef22b104?source=collection_archive---------0-----------------------#2024-02-04)
 
 ## 公平地将团队成果分配给每个成员
 
-[](https://dr-robert-kuebler.medium.com/?source=post_page---byline--a7f7ef22b104--------------------------------)[![Dr. Robert Kübler](../Images/3b8d8b88f76c0c43d9c305e3885e7ab9.png)](https://dr-robert-kuebler.medium.com/?source=post_page---byline--a7f7ef22b104--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a7f7ef22b104--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a7f7ef22b104--------------------------------) [Dr. Robert Kübler](https://dr-robert-kuebler.medium.com/?source=post_page---byline--a7f7ef22b104--------------------------------)
+[](https://dr-robert-kuebler.medium.com/?source=post_page---byline--a7f7ef22b104--------------------------------)![Dr. Robert Kübler](https://dr-robert-kuebler.medium.com/?source=post_page---byline--a7f7ef22b104--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a7f7ef22b104--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a7f7ef22b104--------------------------------) [Dr. Robert Kübler](https://dr-robert-kuebler.medium.com/?source=post_page---byline--a7f7ef22b104--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a7f7ef22b104--------------------------------) ·12分钟阅读·2024年2月4日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a7f7ef22b104--------------------------------) ·12 分钟阅读·2024 年 2 月 4 日
 
 --
 
-![](../Images/5e699dc2a90a6aa24698fd8ed6f0fb16.png)
+![](img/5e699dc2a90a6aa24698fd8ed6f0fb16.png)
 
 图片由 [Vadim Sherbakov](https://unsplash.com/@madebyvadim?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-上次你和朋友们一起合作并取得了一些伟大的成绩是什么时候？无论是赢得一场比赛、完成一个工作项目，还是在Kaggle比赛中进入前三。如果你不记得了（真可怜），那和朋友们度过一个愉快的夜晚怎么样？想象一下：度过了一个精彩的晚上，随后大家一起搭出租车回家，却迎来了一个不小的出租车账单。在这样的时刻，你或许会开始思考：
+上次你和朋友们一起合作并取得了一些伟大的成绩是什么时候？无论是赢得一场比赛、完成一个工作项目，还是在 Kaggle 比赛中进入前三。如果你不记得了（真可怜），那和朋友们度过一个愉快的夜晚怎么样？想象一下：度过了一个精彩的晚上，随后大家一起搭出租车回家，却迎来了一个不小的出租车账单。在这样的时刻，你或许会开始思考：
 
 > 我们如何能将团队成果公平地分配给每个成员？
 
@@ -22,4 +22,4 @@
 
 ## 公平还是平均？
 
-举个例子，假设你和另外两位朋友组成团队参加比赛，表现优异并作为团队获得了12,000欧元。你该如何**公平**地分配这笔钱呢？**平均**分配没有问题，每个人获得4,000欧元。但我们都知道，通常有些人对团队的成功贡献要比其他人多。那么……
+举个例子，假设你和另外两位朋友组成团队参加比赛，表现优异并作为团队获得了 12,000 欧元。你该如何**公平**地分配这笔钱呢？**平均**分配没有问题，每个人获得 4,000 欧元。但我们都知道，通常有些人对团队的成功贡献要比其他人多。那么……

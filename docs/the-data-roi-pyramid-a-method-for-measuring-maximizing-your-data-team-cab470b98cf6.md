@@ -1,16 +1,16 @@
 # 数据投资回报率金字塔：衡量和最大化数据团队价值的方法
 
-> 原文：[https://towardsdatascience.com/the-data-roi-pyramid-a-method-for-measuring-maximizing-your-data-team-cab470b98cf6?source=collection_archive---------4-----------------------#2024-02-02](https://towardsdatascience.com/the-data-roi-pyramid-a-method-for-measuring-maximizing-your-data-team-cab470b98cf6?source=collection_archive---------4-----------------------#2024-02-02)
+> 原文：[`towardsdatascience.com/the-data-roi-pyramid-a-method-for-measuring-maximizing-your-data-team-cab470b98cf6?source=collection_archive---------4-----------------------#2024-02-02`](https://towardsdatascience.com/the-data-roi-pyramid-a-method-for-measuring-maximizing-your-data-team-cab470b98cf6?source=collection_archive---------4-----------------------#2024-02-02)
 
 ## 难以清晰表达你数据团队的价值？了解如何使用数据投资回报率金字塔计算你数据团队的回报。
 
-[](https://barrmoses.medium.com/?source=post_page---byline--cab470b98cf6--------------------------------)[![Barr Moses](../Images/4c74558ee692a85196d5a55ac1920718.png)](https://barrmoses.medium.com/?source=post_page---byline--cab470b98cf6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cab470b98cf6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cab470b98cf6--------------------------------) [Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--cab470b98cf6--------------------------------)
+[](https://barrmoses.medium.com/?source=post_page---byline--cab470b98cf6--------------------------------)![Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--cab470b98cf6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cab470b98cf6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cab470b98cf6--------------------------------) [Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--cab470b98cf6--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cab470b98cf6--------------------------------) ·阅读时间12分钟·2024年2月2日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cab470b98cf6--------------------------------) ·阅读时间 12 分钟·2024 年 2 月 2 日
 
 --
 
-![](../Images/a88c4a15e30894c4d0596ad816a36a3f.png)
+![](img/a88c4a15e30894c4d0596ad816a36a3f.png)
 
 图片来源：作者
 
@@ -28,13 +28,13 @@
 
 +   迁移到一个支持更快速、更可扩展计算的新数据架构
 
-+   由于数据质量改进措施，数据采纳率提高了30%
++   由于数据质量改进措施，数据采纳率提高了 30%
 
 这并不容易！那些成功将客户获取漏斗这一复杂的领域转变为可预测科学的资深数据行业专家，在向内审视时，往往会感到不安。
 
 在过去的六个月里，我与数据领域的领导者进行了交流，并反复探讨了各种投资回报率公式，所有这些努力都是为了达成一个目标：即使无法完全捕捉到数据团队的*确切*价值，至少能够更接近这个目标。
 
-而这些讨论的结果就是一个全新的数据ROI金字塔。是的，我知道之前有很多[伟大的金字塔](https://parksandrecreation.fandom.com/wiki/Ron_Swanson%27s_Pyramid_of_Greatness)和[联结三角形](https://www.bustle.com/articles/157415-are-the-conjoined-triangles-of-success-real-silicon-valley-mocks-a-famous-business-model)，但这个不同，算是不同吧。
+而这些讨论的结果就是一个全新的数据 ROI 金字塔。是的，我知道之前有很多[伟大的金字塔](https://parksandrecreation.fandom.com/wiki/Ron_Swanson%27s_Pyramid_of_Greatness)和[联结三角形](https://www.bustle.com/articles/157415-are-the-conjoined-triangles-of-success-real-silicon-valley-mocks-a-famous-business-model)，但这个不同，算是不同吧。
 
 这个金字塔的目标明确地帮助数据领导者：
 
@@ -46,17 +46,17 @@
 
 所以，前言已经结束，让我们从头开始！
 
-# 计算数据ROI
+# 计算数据 ROI
 
-![](../Images/dd5ad1b66f1549184cb24c917c3e33d0.png)
+![](img/dd5ad1b66f1549184cb24c917c3e33d0.png)
 
 图片由作者提供。
 
-一般来说，组织中职位越高，你的指标就会越少且越全面。CEO并不关心你支持多少个仪表盘，或者你的数据新鲜度SLA遵守百分比。
+一般来说，组织中职位越高，你的指标就会越少且越全面。CEO 并不关心你支持多少个仪表盘，或者你的数据新鲜度 SLA 遵守百分比。
 
 他们想知道他们的投资者想知道的：**“我有没有从我的投资中获得回报？”**
 
-数据ROI金字塔通过与引言中类似的公式来解决这个问题：
+数据 ROI 金字塔通过与引言中类似的公式来解决这个问题：
 
 **（数据产品价值 — 数据停机时间）/ 数据投资** **= ROI**
 
@@ -64,13 +64,13 @@
 
 停机时间变量很重要，因为随着更多数据团队通过机器学习模型、面向客户的应用程序、数据民主化和其他举措推动更高的收入水平，停机时间的后果在时间、收入和信任方面变得更加严重。
 
-这也使得减少数据停机时间成为数据领导者提高ROI的三大战略之一：你可以增加收入，可以减少投资，或者可以减少数据停机时间。而其中一个策略比其他的更容易实现。
+这也使得减少数据停机时间成为数据领导者提高 ROI 的三大战略之一：你可以增加收入，可以减少投资，或者可以减少数据停机时间。而其中一个策略比其他的更容易实现。
 
-所以，现在我们已经有了计算ROI的框架，让我们深入探讨如何识别这些变量。
+所以，现在我们已经有了计算 ROI 的框架，让我们深入探讨如何识别这些变量。
 
 # 计算数据投资
 
-![](../Images/cdeade00e435f9154ba359b00900eeb4.png)
+![](img/cdeade00e435f9154ba359b00900eeb4.png)
 
 图片由作者提供。
 
@@ -92,17 +92,17 @@
 
 +   **洞察（或行动）时间** — 这个杠杆关注的是数据消费者实现价值所需的时间。换句话说，数据团队在多大程度上有效地帮助了数据消费者？可发现性和自助服务可以改善消费者的洞察时间，而微批处理基础设施则可以以最低的延迟使数据可用于机器学习、分析和报告。
 
-![](../Images/21740558066bf99a20bd21ec77cb3ada.png)
+![](img/21740558066bf99a20bd21ec77cb3ada.png)
 
 花费时间来支持数据自助服务通常是值得的，但其回报必须大于构建和维护所投入的努力。图片由[Shane Murray](https://www.montecarlodata.com/blog-product-experimentation/)提供。
 
 # 计算数据产品回报
 
-![](../Images/72f16fe24e86a633464b9b9fa57c072a.png)
+![](img/72f16fe24e86a633464b9b9fa57c072a.png)
 
 图片来源：作者。
 
-计算数据产品回报是我们ROI计算中最复杂的步骤。因为随着数据行业的不断发展，数据产品使用案例的多样性和复杂性也在不断进步。
+计算数据产品回报是我们 ROI 计算中最复杂的步骤。因为随着数据行业的不断发展，数据产品使用案例的多样性和复杂性也在不断进步。
 
 幸运的是，数据产品通常可以分为三大类：分析数据产品、操作数据产品和面向客户的数据产品。这些产品可以以仪表板、机器学习模型、利用数据洞察的实验形式存在，当然还有——生成式人工智能。虽然后者可能在构建上稍显复杂，但生成式人工智能本质上仍然是数据产品，并且它的价值仍然可以通过我们将在下面概述的方法来计算。
 
@@ -112,7 +112,7 @@
 
 **分析数据产品 + 操作数据产品 + 面向客户的数据产品 = 数据产品回报**
 
-如你所见，这部分的方程式为我们的ROI计算带来了最多的变量。由于这一部分是迄今为止最复杂的，我们将在这里花费大部分时间。因此，考虑到这一点，我们将更加详细地查看每个子类别（或使用案例）。
+如你所见，这部分的方程式为我们的 ROI 计算带来了最多的变量。由于这一部分是迄今为止最复杂的，我们将在这里花费大部分时间。因此，考虑到这一点，我们将更加详细地查看每个子类别（或使用案例）。
 
 ## 分析数据产品
 
@@ -138,9 +138,9 @@
 
 为了考虑这些数据产品，我们需要采取更为细致的方法来估算价值。在这种情况下，我们将通过与消费者本身接触，将定性数据转化为有代表性的东西。
 
-不管你信不信，你的业务用户和数据消费者实际上对你的仪表板对他们的价值（或不价值）有着相当的了解。而他们的反馈是可以量化的。虽然乍一看，这似乎并不够严谨，但这实际上与[麻省理工学院经济学家所使用的方法](https://news.mit.edu/2019/online-tools-facebook-count-toward-gdp-0326)类似，用来确定免费的服务如何为国家GDP贡献价值。例如，他们问受访者，如果一年内不使用Facebook或Google Maps，愿意接受多少报酬。（如果你感兴趣的话，Facebook的月费用大概是40到50美元。）
+不管你信不信，你的业务用户和数据消费者实际上对你的仪表板对他们的价值（或不价值）有着相当的了解。而他们的反馈是可以量化的。虽然乍一看，这似乎并不够严谨，但这实际上与[麻省理工学院经济学家所使用的方法](https://news.mit.edu/2019/online-tools-facebook-count-toward-gdp-0326)类似，用来确定免费的服务如何为国家 GDP 贡献价值。例如，他们问受访者，如果一年内不使用 Facebook 或 Google Maps，愿意接受多少报酬。（如果你感兴趣的话，Facebook 的月费用大概是 40 到 50 美元。）
 
-对于最重要的仪表板，数据团队可以进一步通过为响应者创建基准来进行衡量，例如：“我们估计上个季度维护此仪表板的成本约为$5,000。您认为在那段时间内，它为您的工作增加了相同的价值吗？”作为基准，以下是我们对[200名数据专业人员的调查](https://resources.montecarlodata.com/ebooks/survey-the-state-of?lx=LPgDLW&_ga=2.241244226.1959217176.1687357614-281318478.1687357614&__hstc=100283906.219fdde827c76a2f0cbc0d86979fce46.1699371251532.1706637990490.1706643706988.228&__hssc=100283906.1.1706643706988&__hsfp=589919331)结果，显示他们认为数据消费者会如何评估他们的仪表板：
+对于最重要的仪表板，数据团队可以进一步通过为响应者创建基准来进行衡量，例如：“我们估计上个季度维护此仪表板的成本约为$5,000。您认为在那段时间内，它为您的工作增加了相同的价值吗？”作为基准，以下是我们对[200 名数据专业人员的调查](https://resources.montecarlodata.com/ebooks/survey-the-state-of?lx=LPgDLW&_ga=2.241244226.1959217176.1687357614-281318478.1687357614&__hstc=100283906.219fdde827c76a2f0cbc0d86979fce46.1699371251532.1706637990490.1706643706988.228&__hssc=100283906.1.1706643706988&__hsfp=589919331)结果，显示他们认为数据消费者会如何评估他们的仪表板：
 
 +   少于$500k: 5%
 
@@ -164,7 +164,7 @@
 
 在某些情况下，数据可能只是锦上添花。在其他情况下，它可能是客户获取和保持的一个重要因素。幸运的是，数据团队已经开始实验并衡量功能对客户保持的影响一段时间了。
 
-![](../Images/ca78bffbaf751e7ca1aca213cea31ae0.png)
+![](img/ca78bffbaf751e7ca1aca213cea31ae0.png)
 
 图片来自[Shane Murray.](https://www.montecarlodata.com/blog-product-experimentation/)
 
@@ -176,9 +176,9 @@
 
 在这些情况下，价值通常最好通过自动化和痛苦过程之间节省的时间来确定。在某些情况下，诸如避免罚款或降低客户满意度等替代影响也可以进行计算。
 
-![](../Images/1e971179757bc680ab672be198c3c825.png)
+![](img/1e971179757bc680ab672be198c3c825.png)
 
-图片由[Shane Murray提供](https://www.linkedin.com/in/shanemurray5/)。
+图片由[Shane Murray 提供](https://www.linkedin.com/in/shanemurray5/)。
 
 # 最大化数据产品回报的杠杆
 
@@ -190,11 +190,11 @@
 
 # 计算数据停机时间
 
-![](../Images/f64c14f0831d80c7cbbe26aabc000858.png)
+![](img/f64c14f0831d80c7cbbe26aabc000858.png)
 
 图片由作者提供。
 
-最后，我们需要了解数据停机时间如何影响ROI。
+最后，我们需要了解数据停机时间如何影响 ROI。
 
 在其他文章中，我们讨论了如何使用事件和响应时间来计算数据停机时间。以下是该公式的样子：
 
@@ -206,21 +206,21 @@
 
 既然我们已经计算出每个数据产品（包括关键仪表板）所产生的收入，我们现在可以从收入中扣除这些停机时间的运营成本。
 
-对于这个ROI计算的组成部分，我建议只关注违反数据服务水平协议（SLA）的停机时间。如果一个每天检查的仪表板出现数据新鲜度问题，并且该问题在几小时内就得到解决，那么这种停机时间不太可能对组织产生运营影响（你的数据团队也不应因此受到惩罚）。
+对于这个 ROI 计算的组成部分，我建议只关注违反数据服务水平协议（SLA）的停机时间。如果一个每天检查的仪表板出现数据新鲜度问题，并且该问题在几小时内就得到解决，那么这种停机时间不太可能对组织产生运营影响（你的数据团队也不应因此受到惩罚）。
 
 # 减少数据停机时间的杠杆
 
-数据停机时间的改善可能对你数据团队的ROI计算产生巨大影响，尤其是在数据对产品提供至关重要的用例中，数据停机时间等同于运营停机时间。
+数据停机时间的改善可能对你数据团队的 ROI 计算产生巨大影响，尤其是在数据对产品提供至关重要的用例中，数据停机时间等同于运营停机时间。
 
-![](../Images/d823cadf518ead9580759a30e1bfb815.png)
+![](img/d823cadf518ead9580759a30e1bfb815.png)
 
-Red Ventures定制构建的SLA遵守仪表板。图片由[Red Ventures的Red Digital提供](https://www.montecarlodata.com/blog-one-sla-at-a-time-our-data-quality-journey-at-red-digital/)。
+Red Ventures 定制构建的 SLA 遵守仪表板。图片由[Red Ventures 的 Red Digital 提供](https://www.montecarlodata.com/blog-one-sla-at-a-time-our-data-quality-journey-at-red-digital/)。
 
-我们已经讨论了CEO关心的指标以及数据领导者应考虑的战略指标。现在让我们来谈谈你的团队可以采取哪些战术杠杆，以在这些战略指标上最大化你的成果。
+我们已经讨论了 CEO 关心的指标以及数据领导者应考虑的战略指标。现在让我们来谈谈你的团队可以采取哪些战术杠杆，以在这些战略指标上最大化你的成果。
 
-## SLA遵守情况
+## SLA 遵守情况
 
-SLA遵守率（SLA被违反的时间与SLA被遵守的时间的比例）可以帮助数据团队维持对特定数据资产受到的不良影响及其数据质量事件的详细了解——并采取措施保护这些产品的价值。
+SLA 遵守率（SLA 被违反的时间与 SLA 被遵守的时间的比例）可以帮助数据团队维持对特定数据资产受到的不良影响及其数据质量事件的详细了解——并采取措施保护这些产品的价值。
 
 ## 覆盖率%
 
@@ -232,7 +232,7 @@ SLA遵守率（SLA被违反的时间与SLA被遵守的时间的比例）可以�
 
 如果你的数据团队有较低的状态更新比例，那要么是因为警报疲劳，要么是因为你的团队无法迅速处理事件。
 
-# 计算数据ROI很难——但这是值得的
+# 计算数据 ROI 很难——但这是值得的
 
 虽然我并不认为计算数据产品的投资回报率（ROI）是一门精确的科学或快速的成功之道，但我坚信这是一个值得追求的努力——也许最重要的是，这是一个可以实现的目标。
 

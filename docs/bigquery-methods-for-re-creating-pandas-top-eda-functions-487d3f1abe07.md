@@ -1,16 +1,16 @@
 # BigQuery 方法用于重新创建 Pandas 的顶级 EDA 函数
 
-> 原文：[https://towardsdatascience.com/bigquery-methods-for-re-creating-pandas-top-eda-functions-487d3f1abe07?source=collection_archive---------14-----------------------#2024-02-05](https://towardsdatascience.com/bigquery-methods-for-re-creating-pandas-top-eda-functions-487d3f1abe07?source=collection_archive---------14-----------------------#2024-02-05)
+> 原文：[`towardsdatascience.com/bigquery-methods-for-re-creating-pandas-top-eda-functions-487d3f1abe07?source=collection_archive---------14-----------------------#2024-02-05`](https://towardsdatascience.com/bigquery-methods-for-re-creating-pandas-top-eda-functions-487d3f1abe07?source=collection_archive---------14-----------------------#2024-02-05)
 
 ## 在本指南中，我们将探讨如何在 BigQuery 中重新创建用于 EDA 的关键 Pandas 函数，如 describe 和 corr。
 
-[](https://medium.com/@thomas.ellyatt?source=post_page---byline--487d3f1abe07--------------------------------)[![Tom Ellyatt](../Images/8756acdd11fef8db9a868820251e7575.png)](https://medium.com/@thomas.ellyatt?source=post_page---byline--487d3f1abe07--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--487d3f1abe07--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--487d3f1abe07--------------------------------) [Tom Ellyatt](https://medium.com/@thomas.ellyatt?source=post_page---byline--487d3f1abe07--------------------------------)
+[](https://medium.com/@thomas.ellyatt?source=post_page---byline--487d3f1abe07--------------------------------)![Tom Ellyatt](https://medium.com/@thomas.ellyatt?source=post_page---byline--487d3f1abe07--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--487d3f1abe07--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--487d3f1abe07--------------------------------) [Tom Ellyatt](https://medium.com/@thomas.ellyatt?source=post_page---byline--487d3f1abe07--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--487d3f1abe07--------------------------------) ·阅读时间：21分钟·2024年2月5日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--487d3f1abe07--------------------------------) ·阅读时间：21 分钟·2024 年 2 月 5 日
 
 --
 
-![](../Images/2046af8f74e4abf2694bbd8d2c9bcf3e.png)
+![](img/2046af8f74e4abf2694bbd8d2c9bcf3e.png)
 
 图像由 DALL-E 创建
 
@@ -22,12 +22,12 @@
 
 让我们开始吧！
 
-## 在本文中，我们将看看这13个函数：
+## 在本文中，我们将看看这 13 个函数：
 
-1.  [头部 / 尾部](#c763)
+1.  头部 / 尾部
 
-1.  [列](#9301)
+1.  列
 
-1.  [数据类型](#83a3)
+1.  数据类型
 
-1.  [Nunique](#6751)
+1.  Nunique

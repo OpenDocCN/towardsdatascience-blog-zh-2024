@@ -1,16 +1,16 @@
 # Torch 编译：以低努力实现 2 倍更快的 Llama 3.2
 
-> 原文：[https://towardsdatascience.com/torch-compile-2x-faster-llama-3-2-with-low-effort-d17c102ac405?source=collection_archive---------2-----------------------#2024-11-13](https://towardsdatascience.com/torch-compile-2x-faster-llama-3-2-with-low-effort-d17c102ac405?source=collection_archive---------2-----------------------#2024-11-13)
+> 原文：[`towardsdatascience.com/torch-compile-2x-faster-llama-3-2-with-low-effort-d17c102ac405?source=collection_archive---------2-----------------------#2024-11-13`](https://towardsdatascience.com/torch-compile-2x-faster-llama-3-2-with-low-effort-d17c102ac405?source=collection_archive---------2-----------------------#2024-11-13)
 
 ## 但这将取决于你的 GPU。
 
-[](https://medium.com/@bnjmn_marie?source=post_page---byline--d17c102ac405--------------------------------)[![Benjamin Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--d17c102ac405--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d17c102ac405--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d17c102ac405--------------------------------) [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--d17c102ac405--------------------------------)
+[](https://medium.com/@bnjmn_marie?source=post_page---byline--d17c102ac405--------------------------------)![Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--d17c102ac405--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d17c102ac405--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d17c102ac405--------------------------------) [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--d17c102ac405--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d17c102ac405--------------------------------) ·阅读时间 5 分钟·2024年11月13日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d17c102ac405--------------------------------) ·阅读时间 5 分钟·2024 年 11 月 13 日
 
 --
 
-![](../Images/8149a5a73c8bea9de7489e3fb32fb911.png)
+![](img/8149a5a73c8bea9de7489e3fb32fb911.png)
 
 图像由 ChatGPT 生成。
 

@@ -1,12 +1,12 @@
 # 使用 Docker Compose 定制 RStudio 容器
 
-> 原文：[https://towardsdatascience.com/customizing-rstudio-container-with-docker-compose-60cdfe0e8894?source=collection_archive---------1-----------------------#2024-03-23](https://towardsdatascience.com/customizing-rstudio-container-with-docker-compose-60cdfe0e8894?source=collection_archive---------1-----------------------#2024-03-23)
+> 原文：[`towardsdatascience.com/customizing-rstudio-container-with-docker-compose-60cdfe0e8894?source=collection_archive---------1-----------------------#2024-03-23`](https://towardsdatascience.com/customizing-rstudio-container-with-docker-compose-60cdfe0e8894?source=collection_archive---------1-----------------------#2024-03-23)
 
 ## 一步步指南，帮助你定制和启动在容器内运行的 RStudio Server，使用 Docker Compose
 
-[](https://medium.com/@rami.krispin?source=post_page---byline--60cdfe0e8894--------------------------------)[![Rami Krispin](../Images/8af28c282d42a2a27c28aa8af4c8d482.png)](https://medium.com/@rami.krispin?source=post_page---byline--60cdfe0e8894--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--60cdfe0e8894--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--60cdfe0e8894--------------------------------) [Rami Krispin](https://medium.com/@rami.krispin?source=post_page---byline--60cdfe0e8894--------------------------------)
+[](https://medium.com/@rami.krispin?source=post_page---byline--60cdfe0e8894--------------------------------)![Rami Krispin](https://medium.com/@rami.krispin?source=post_page---byline--60cdfe0e8894--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--60cdfe0e8894--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--60cdfe0e8894--------------------------------) [Rami Krispin](https://medium.com/@rami.krispin?source=post_page---byline--60cdfe0e8894--------------------------------)
 
-·发布在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--60cdfe0e8894--------------------------------) ·6 分钟阅读·2024年3月23日
+·发布在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--60cdfe0e8894--------------------------------) ·6 分钟阅读·2024 年 3 月 23 日
 
 --
 
@@ -14,15 +14,15 @@
 
 相关文章：
 
-[](/running-rstudio-inside-a-container-e9db5e809ff8?source=post_page-----60cdfe0e8894--------------------------------) [## 在容器内运行 RStudio
+[](/running-rstudio-inside-a-container-e9db5e809ff8?source=post_page-----60cdfe0e8894--------------------------------) ## 在容器内运行 RStudio
 
 ### 一步步指南，帮助你在容器内设置 RStudio 服务器，并使用本地 RStudio 设置
 
-towardsdatascience.com](/running-rstudio-inside-a-container-e9db5e809ff8?source=post_page-----60cdfe0e8894--------------------------------)
+towardsdatascience.com
 
 完成本教程后，你将能够将 `docker run` 设置转换为 `docker-compose.yml` 文件，并通过 `docker-compose` 命令无缝启动 RStudio 容器。
 
-![](../Images/49748bef7511670c428781da1624c48a.png)
+![](img/49748bef7511670c428781da1624c48a.png)
 
 使用 Docker Compose 在容器内启动 RStudio Server（截图由作者提供）
 
@@ -78,7 +78,7 @@ services:
 
 ## 使用 Docker Compose 设置 RStudio
 
-回顾在 [上一教程](/running-rstudio-inside-a-container-e9db5e809ff8) 中，我们使用以下 `docker run` 命令在容器内启动了 RStudio 服务器：
+回顾在 上一教程 中，我们使用以下 `docker run` 命令在容器内启动了 RStudio 服务器：
 
 ```py
 docker run --rm -ti \
@@ -162,9 +162,9 @@ rstudio-docker-rstudio-1  | [services.d] starting services
 rstudio-docker-rstudio-1  | [services.d] done.
 ```
 
-启动容器后，你可以通过浏览器使用本地主机地址和端口号访问 RStudio 服务器，在这种情况下是 — [http://localhost:8787](http://localhost:8787)：
+启动容器后，你可以通过浏览器使用本地主机地址和端口号访问 RStudio 服务器，在这种情况下是 — [`localhost:8787`](http://localhost:8787)：
 
-![](../Images/5a36f324527f067e61dabcf0f8cce827.png)
+![](img/5a36f324527f067e61dabcf0f8cce827.png)
 
 容器内的 RStudio 服务器（截图由作者提供）
 
@@ -188,12 +188,12 @@ docker-compose up -d
 
 ## 资源
 
-+   在容器内运行 RStudio — [https://towardsdatascience.com/running-rstudio-inside-a-container-e9db5e809ff8](/running-rstudio-inside-a-container-e9db5e809ff8)
++   在容器内运行 RStudio — `towardsdatascience.com/running-rstudio-inside-a-container-e9db5e809ff8`
 
-+   Docker Compose — [https://docs.docker.com/compose/](https://docs.docker.com/compose/)
++   Docker Compose — [`docs.docker.com/compose/`](https://docs.docker.com/compose/)
 
-+   Rocker 项目 — [https://rocker-project.org/](https://rocker-project.org/)
++   Rocker 项目 — [`rocker-project.org/`](https://rocker-project.org/)
 
-+   Docker Hub — [https://hub.docker.com/](https://hub.docker.com/)
++   Docker Hub — [`hub.docker.com/`](https://hub.docker.com/)
 
-+   RStudio Docker Compose 模板 — [https://github.com/RamiKrispin/rstudio-docker-template](https://github.com/RamiKrispin/rstudio-docker-template)
++   RStudio Docker Compose 模板 — [`github.com/RamiKrispin/rstudio-docker-template`](https://github.com/RamiKrispin/rstudio-docker-template)

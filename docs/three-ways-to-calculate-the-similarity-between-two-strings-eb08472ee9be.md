@@ -1,18 +1,18 @@
 # 计算两个字符串相似性的三种方法
 
-> 原文：[https://towardsdatascience.com/three-ways-to-calculate-the-similarity-between-two-strings-eb08472ee9be?source=collection_archive---------5-----------------------#2024-02-15](https://towardsdatascience.com/three-ways-to-calculate-the-similarity-between-two-strings-eb08472ee9be?source=collection_archive---------5-----------------------#2024-02-15)
+> 原文：[`towardsdatascience.com/three-ways-to-calculate-the-similarity-between-two-strings-eb08472ee9be?source=collection_archive---------5-----------------------#2024-02-15`](https://towardsdatascience.com/three-ways-to-calculate-the-similarity-between-two-strings-eb08472ee9be?source=collection_archive---------5-----------------------#2024-02-15)
 
 ## textPython，文本分析
 
 ## 使用 jellyfish 库的 Python 教程来计算两个字符串之间的相似性
 
-[](https://alod83.medium.com/?source=post_page---byline--eb08472ee9be--------------------------------)[![Angelica Lo Duca](../Images/45aa2e2e504bb3af6d3b8009dc6f030e.png)](https://alod83.medium.com/?source=post_page---byline--eb08472ee9be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eb08472ee9be--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--eb08472ee9be--------------------------------) [Angelica Lo Duca](https://alod83.medium.com/?source=post_page---byline--eb08472ee9be--------------------------------)
+[](https://alod83.medium.com/?source=post_page---byline--eb08472ee9be--------------------------------)![Angelica Lo Duca](https://alod83.medium.com/?source=post_page---byline--eb08472ee9be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eb08472ee9be--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eb08472ee9be--------------------------------) [Angelica Lo Duca](https://alod83.medium.com/?source=post_page---byline--eb08472ee9be--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eb08472ee9be--------------------------------) ·阅读时间：7分钟·2024年2月15日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eb08472ee9be--------------------------------) ·阅读时间：7 分钟·2024 年 2 月 15 日
 
 --
 
-![](../Images/cd7bf122ca7a1d589ef6cfde8246bd6c.png)
+![](img/cd7bf122ca7a1d589ef6cfde8246bd6c.png)
 
 图片由[Farzad](https://unsplash.com/@euwars?utm_source=medium&utm_medium=referral)拍摄，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

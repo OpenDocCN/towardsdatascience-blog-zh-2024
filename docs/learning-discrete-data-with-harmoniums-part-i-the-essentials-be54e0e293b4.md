@@ -1,24 +1,24 @@
 # 使用和谐网络学习离散数据：第一部分，基础知识
 
-> 原文：[https://towardsdatascience.com/learning-discrete-data-with-harmoniums-part-i-the-essentials-be54e0e293b4?source=collection_archive---------13-----------------------#2024-01-05](https://towardsdatascience.com/learning-discrete-data-with-harmoniums-part-i-the-essentials-be54e0e293b4?source=collection_archive---------13-----------------------#2024-01-05)
+> 原文：[`towardsdatascience.com/learning-discrete-data-with-harmoniums-part-i-the-essentials-be54e0e293b4?source=collection_archive---------13-----------------------#2024-01-05`](https://towardsdatascience.com/learning-discrete-data-with-harmoniums-part-i-the-essentials-be54e0e293b4?source=collection_archive---------13-----------------------#2024-01-05)
 
-## 来自档案：00年代的生成式AI
+## 来自档案：00 年代的生成式 AI
 
-[](https://medium.com/@hylke.donker?source=post_page---byline--be54e0e293b4--------------------------------)[![Hylke C. Donker](../Images/bed587d1bb305ded80f7ce21bc4f4856.png)](https://medium.com/@hylke.donker?source=post_page---byline--be54e0e293b4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--be54e0e293b4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--be54e0e293b4--------------------------------) [Hylke C. Donker](https://medium.com/@hylke.donker?source=post_page---byline--be54e0e293b4--------------------------------)
+[](https://medium.com/@hylke.donker?source=post_page---byline--be54e0e293b4--------------------------------)![Hylke C. Donker](https://medium.com/@hylke.donker?source=post_page---byline--be54e0e293b4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--be54e0e293b4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--be54e0e293b4--------------------------------) [Hylke C. Donker](https://medium.com/@hylke.donker?source=post_page---byline--be54e0e293b4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--be54e0e293b4--------------------------------) ·阅读时间：7分钟·2024年1月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--be54e0e293b4--------------------------------) ·阅读时间：7 分钟·2024 年 1 月 5 日
 
 --
 
-我想带你回到上一个生成式AI的篇章，回到00年代初期。在这段时间里，深度学习的奠基人之一Geoff Hinton发表了一篇具有影响力的论文，详细介绍了对比散度算法[1]。这一发现使得Smolensky的和谐网络[2]——Hinton称之为限制玻尔兹曼机——能够高效地进行训练。很快人们意识到，这一模型可以用于各种用途：初始化前馈神经网络[3]，作为深度信念网络的一部分[4]，等等。至少在十年的时间里，和谐网络一直是AI的支柱之一，直到我们发现了更好的优化器来训练前馈网络。尽管和谐网络现在已经不再流行，但它仍然在建模离散数据方面保持着重要的价值。
+我想带你回到上一个生成式 AI 的篇章，回到 00 年代初期。在这段时间里，深度学习的奠基人之一 Geoff Hinton 发表了一篇具有影响力的论文，详细介绍了对比散度算法[1]。这一发现使得 Smolensky 的和谐网络[2]——Hinton 称之为限制玻尔兹曼机——能够高效地进行训练。很快人们意识到，这一模型可以用于各种用途：初始化前馈神经网络[3]，作为深度信念网络的一部分[4]，等等。至少在十年的时间里，和谐网络一直是 AI 的支柱之一，直到我们发现了更好的优化器来训练前馈网络。尽管和谐网络现在已经不再流行，但它仍然在建模离散数据方面保持着重要的价值。
 
 在本系列的第一篇文章中，我们将专注于基本内容：什么是和谐网络，它们何时有用，以及如何开始使用*scikit-learn*。在后续的文章中，我们将更详细地探讨技术细节。
 
 # 什么是和谐网络？
 
-![](../Images/0ca9ec5daae7f78bca9886032b72a05f.png)
+![](img/0ca9ec5daae7f78bca9886032b72a05f.png)
 
-图1：**和谐网络的图形表示。** 感受野是连接可见单元***x***与隐藏单元**h**的边，形成一个二分图网络。图像由作者提供。
+图 1：**和谐网络的图形表示。** 感受野是连接可见单元***x***与隐藏单元**h**的边，形成一个二分图网络。图像由作者提供。
 
 经典的哈莫纽姆——或限制玻尔兹曼机——是一个处理二进制数据的神经网络[2]。这些网络由两种类型的变量组成：输入 ***x*** 和隐藏状态 ***h***（见图 1）。输入由零和一组成，*xᵢ* ∈ {0, 1}，我们称这些观测值——***x***——为网络的*可见状态*或*单元*。相反，隐藏单元 ***h*** 是潜在的，不是直接观察到的；它们位于网络内部。像可见单元一样，隐藏单元 ***h*** 也是零或一，*hᵢ* ∈ {0, 1}。  
 
@@ -60,13 +60,13 @@
 
 **4. 用于数据插补。**
 
-由于哈莫纽姆（harmonium）是生成模型，它们可以用于补全缺失数据（即插补）或生成全新的（合成）示例。传统上，它们被用于图像修复：补全被遮挡的图像部分。另一个例子是推荐系统：哈莫纽姆曾在Netflix比赛中用于改善电影推荐。
+由于哈莫纽姆（harmonium）是生成模型，它们可以用于补全缺失数据（即插补）或生成全新的（合成）示例。传统上，它们被用于图像修复：补全被遮挡的图像部分。另一个例子是推荐系统：哈莫纽姆曾在 Netflix 比赛中用于改善电影推荐。
 
-# 开始使用scikit-learn
+# 开始使用 scikit-learn
 
 现在你已经了解了基本要点，接下来让我们展示如何训练一个模型。
 
-作为我们的运行示例，我们将使用[UCI MLR手写数字数据库](https://archive.ics.uci.edu/dataset/80/optical+recognition+of+handwritten+digits)（CC BY 4.0），这是*scikit-learn*的一部分。虽然严格来说，哈莫纽姆需要二进制数据作为输入，但实际上使用二进制概率（而不是其样本）效果也很好。因此，在训练之前，我们将像素值归一化到单位区间[0, 1]。
+作为我们的运行示例，我们将使用[UCI MLR 手写数字数据库](https://archive.ics.uci.edu/dataset/80/optical+recognition+of+handwritten+digits)（CC BY 4.0），这是*scikit-learn*的一部分。虽然严格来说，哈莫纽姆需要二进制数据作为输入，但实际上使用二进制概率（而不是其样本）效果也很好。因此，在训练之前，我们将像素值归一化到单位区间[0, 1]。
 
 ```py
 from sklearn.datasets import load_digits
@@ -91,7 +91,7 @@ receptive_fields = -harmonium.components_  # Energy sign convention.
 
 在模型的内部，依赖于持久对比散度算法来拟合模型的参数[6]。（要了解更多算法细节，敬请关注。）
 
-![](../Images/b69e638d7b20e9283b2599d72118ad54.png)
+![](img/b69e638d7b20e9283b2599d72118ad54.png)
 
 图 2：每个哈莫纽姆隐藏单元的感受野**W**。图片由作者提供。
 
@@ -116,11 +116,11 @@ x_six_missing = X_test[0] * mask  # Digit six, partly erased.
 
 我们现在将使用和谐模型来填充已删除的变量。诀窍是使用马尔科夫链蒙特卡罗（MCMC）方法：利用我们已观测到的像素值来模拟缺失的像素值。事实证明，吉布斯采样——一种特定的 MCMC 方法——在和谐模型中尤其容易实现。
 
-![](../Images/290ea16c6c9431f49e89c7c10e34cf37.png)
+![](img/290ea16c6c9431f49e89c7c10e34cf37.png)
 
 图 3：红色方框中的像素值丢失（左），并通过和谐模型进行填充（中）。为了对比，右侧显示了原始图像（UCI MLR 手写数字数据库，CC BY 4.0）。图片由作者提供。
 
-以下是操作步骤：首先，使用你想要填充的样本初始化多个马尔科夫链（例如，100条链）。然后，使用吉布斯采样对链进行多次迭代（例如，1000次），同时固定观测到的值。最后，从链中聚合样本，以获得缺失值的分布。代码实现如下：
+以下是操作步骤：首先，使用你想要填充的样本初始化多个马尔科夫链（例如，100 条链）。然后，使用吉布斯采样对链进行多次迭代（例如，1000 次），同时固定观测到的值。最后，从链中聚合样本，以获得缺失值的分布。代码实现如下：
 
 ```py
 # Impute the data by running 100 parallel Gibbs chains for 1000 steps:
@@ -158,4 +158,4 @@ x_imputed = X_reconstr.mean(axis=0)
 
 [5] Le Roux-Bengio, “[限制玻尔兹曼机和深度信念网络的表示能力](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/representational_power.pdf)” 神经计算 20.6, 1631–1649 (2008).
 
-[6] Tieleman, “[使用似然梯度的近似训练限制玻尔兹曼机](https://dl.acm.org/doi/pdf/10.1145/1390156.1390290?casa_token=KA8SOPhKmvIAAAAA%3AulezajFrxWkXlhByFI-M_T8BhZBe7snX8eaFql0D0IMDw0igH710rVMYtCmK-r4Vz2VcjMPXGysT)” *第25届国际机器学习大会论文集*。2008年。
+[6] Tieleman, “[使用似然梯度的近似训练限制玻尔兹曼机](https://dl.acm.org/doi/pdf/10.1145/1390156.1390290?casa_token=KA8SOPhKmvIAAAAA%3AulezajFrxWkXlhByFI-M_T8BhZBe7snX8eaFql0D0IMDw0igH710rVMYtCmK-r4Vz2VcjMPXGysT)” *第 25 届国际机器学习大会论文集*。2008 年。

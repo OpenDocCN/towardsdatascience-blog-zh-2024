@@ -1,16 +1,16 @@
 # 将你的 Python 函数通过一行代码变成装饰器
 
-> 原文：[https://towardsdatascience.com/turn-your-python-function-into-a-decorator-with-one-line-of-code-1ebd738f31c0?source=collection_archive---------0-----------------------#2024-05-23](https://towardsdatascience.com/turn-your-python-function-into-a-decorator-with-one-line-of-code-1ebd738f31c0?source=collection_archive---------0-----------------------#2024-05-23)
+> 原文：[`towardsdatascience.com/turn-your-python-function-into-a-decorator-with-one-line-of-code-1ebd738f31c0?source=collection_archive---------0-----------------------#2024-05-23`](https://towardsdatascience.com/turn-your-python-function-into-a-decorator-with-one-line-of-code-1ebd738f31c0?source=collection_archive---------0-----------------------#2024-05-23)
 
 ## 一种编写更简洁、更清晰、更易读的 Python 装饰器的新方法，同时也充当上下文管理器
 
-[](https://mikehuls.medium.com/?source=post_page---byline--1ebd738f31c0--------------------------------)[![Mike Huls](../Images/8f9f55a0d25db00799c5d37383b7f5b6.png)](https://mikehuls.medium.com/?source=post_page---byline--1ebd738f31c0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ebd738f31c0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1ebd738f31c0--------------------------------) [Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--1ebd738f31c0--------------------------------)
+[](https://mikehuls.medium.com/?source=post_page---byline--1ebd738f31c0--------------------------------)![Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--1ebd738f31c0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ebd738f31c0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ebd738f31c0--------------------------------) [Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--1ebd738f31c0--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ebd738f31c0--------------------------------) ·阅读时间 4 分钟 ·2024年5月23日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ebd738f31c0--------------------------------) ·阅读时间 4 分钟 ·2024 年 5 月 23 日
 
 --
 
-![](../Images/819b3ce51931583081a67238f9efb95b.png)
+![](img/819b3ce51931583081a67238f9efb95b.png)
 
 装饰器简化（图片由 [Tobias Bjørkli](https://www.pexels.com/@tobiasbjorkli/) 提供，来自 [Pexels](https://www.pexels.com/photo/multicolored-graffiti-2119706/)）
 

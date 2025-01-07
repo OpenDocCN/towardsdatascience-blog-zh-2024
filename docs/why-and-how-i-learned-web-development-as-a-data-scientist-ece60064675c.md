@@ -1,16 +1,16 @@
 # 为什么（以及如何）我作为数据科学家学习网页开发
 
-> 原文：[https://towardsdatascience.com/why-and-how-i-learned-web-development-as-a-data-scientist-ece60064675c?source=collection_archive---------3-----------------------#2024-01-27](https://towardsdatascience.com/why-and-how-i-learned-web-development-as-a-data-scientist-ece60064675c?source=collection_archive---------3-----------------------#2024-01-27)
+> 原文：[`towardsdatascience.com/why-and-how-i-learned-web-development-as-a-data-scientist-ece60064675c?source=collection_archive---------3-----------------------#2024-01-27`](https://towardsdatascience.com/why-and-how-i-learned-web-development-as-a-data-scientist-ece60064675c?source=collection_archive---------3-----------------------#2024-01-27)
 
-## 网页开发让你能够构建全栈的机器学习应用，并最大化机器学习工程/创业技能。哦，而且你可以用Python来做。
+## 网页开发让你能够构建全栈的机器学习应用，并最大化机器学习工程/创业技能。哦，而且你可以用 Python 来做。
 
-[](https://medium.com/@mattchapmanmsc?source=post_page---byline--ece60064675c--------------------------------)[![Matt Chapman](../Images/7511deb8d9ed408ece21031f6614c532.png)](https://medium.com/@mattchapmanmsc?source=post_page---byline--ece60064675c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ece60064675c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ece60064675c--------------------------------) [Matt Chapman](https://medium.com/@mattchapmanmsc?source=post_page---byline--ece60064675c--------------------------------)
+[](https://medium.com/@mattchapmanmsc?source=post_page---byline--ece60064675c--------------------------------)![Matt Chapman](https://medium.com/@mattchapmanmsc?source=post_page---byline--ece60064675c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ece60064675c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ece60064675c--------------------------------) [Matt Chapman](https://medium.com/@mattchapmanmsc?source=post_page---byline--ece60064675c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ece60064675c--------------------------------) ·6分钟阅读·2024年1月27日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ece60064675c--------------------------------) ·6 分钟阅读·2024 年 1 月 27 日
 
 --
 
-![](../Images/3b4d801bfb41a011d148cafdda5cd380.png)
+![](img/3b4d801bfb41a011d148cafdda5cd380.png)
 
 图片由 [Davide Baraldi](https://www.pexels.com/@davideibiza/) 提供，来源于 [Pexels](https://www.pexels.com/photo/close-up-shot-of-an-ipad-11813187/)
 
@@ -22,6 +22,6 @@
 
 我的朋友——我们称他为哥白尼——提醒我，对于那些在科技炒作泡沫之外的人来说，人工智能仅仅是谜题中的一块拼图，而不是宇宙的中心。这激发了我对探索科技“太阳系”中其他“行星”的好奇心，最终我决定学习网页开发，原因有四个：
 
-+   **创业潜力** —— 我希望能够从“端到端”构建完整的产品和应用，这样当我有一个产品/SaaS创意时，我就可以免费自己动手构建。
++   **创业潜力** —— 我希望能够从“端到端”构建完整的产品和应用，这样当我有一个产品/SaaS 创意时，我就可以免费自己动手构建。
 
-+   **机器学习工程** —— 一个在Jupyter中运行的机器学习模型…
++   **机器学习工程** —— 一个在 Jupyter 中运行的机器学习模型…

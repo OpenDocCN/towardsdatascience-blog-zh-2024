@@ -1,24 +1,24 @@
-# 从零开始重建PyTorch（支持GPU和自动求导）
+# 从零开始重建 PyTorch（支持 GPU 和自动求导）
 
-> 原文：[https://towardsdatascience.com/recreating-pytorch-from-scratch-with-gpu-support-and-automatic-differentiation-8f565122a3cc?source=collection_archive---------0-----------------------#2024-05-14](https://towardsdatascience.com/recreating-pytorch-from-scratch-with-gpu-support-and-automatic-differentiation-8f565122a3cc?source=collection_archive---------0-----------------------#2024-05-14)
+> 原文：[`towardsdatascience.com/recreating-pytorch-from-scratch-with-gpu-support-and-automatic-differentiation-8f565122a3cc?source=collection_archive---------0-----------------------#2024-05-14`](https://towardsdatascience.com/recreating-pytorch-from-scratch-with-gpu-support-and-automatic-differentiation-8f565122a3cc?source=collection_archive---------0-----------------------#2024-05-14)
 
-## 基于C/C++、CUDA和Python构建你自己的深度学习框架，支持GPU并具有自动求导功能
+## 基于 C/C++、CUDA 和 Python 构建你自己的深度学习框架，支持 GPU 并具有自动求导功能
 
-[](https://medium.com/@lucasdelimanogueira?source=post_page---byline--8f565122a3cc--------------------------------)[![Lucas de Lima Nogueira](../Images/76edd8ee4005d4c0b8bd476261eb06ae.png)](https://medium.com/@lucasdelimanogueira?source=post_page---byline--8f565122a3cc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8f565122a3cc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8f565122a3cc--------------------------------) [Lucas de Lima Nogueira](https://medium.com/@lucasdelimanogueira?source=post_page---byline--8f565122a3cc--------------------------------)
+[](https://medium.com/@lucasdelimanogueira?source=post_page---byline--8f565122a3cc--------------------------------)![Lucas de Lima Nogueira](https://medium.com/@lucasdelimanogueira?source=post_page---byline--8f565122a3cc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8f565122a3cc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8f565122a3cc--------------------------------) [Lucas de Lima Nogueira](https://medium.com/@lucasdelimanogueira?source=post_page---byline--8f565122a3cc--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8f565122a3cc--------------------------------) ·阅读时长24分钟·2024年5月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8f565122a3cc--------------------------------) ·阅读时长 24 分钟·2024 年 5 月 14 日
 
 --
 
-![](../Images/7fb280914af3d0239f5a27ae8d414ce0.png)
+![](img/7fb280914af3d0239f5a27ae8d414ce0.png)
 
-图片由作者与AI协作制作 ([https://copilot.microsoft.com/images/create](https://copilot.microsoft.com/images/create))
+图片由作者与 AI 协作制作 ([`copilot.microsoft.com/images/create`](https://copilot.microsoft.com/images/create))
 
 # 介绍
 
-多年来，我一直在使用PyTorch构建和训练深度学习模型。尽管我已经学会了它的语法和规则，但一直有一个问题让我感到好奇：在这些操作过程中，内部发生了什么？这一切是如何工作的？
+多年来，我一直在使用 PyTorch 构建和训练深度学习模型。尽管我已经学会了它的语法和规则，但一直有一个问题让我感到好奇：在这些操作过程中，内部发生了什么？这一切是如何工作的？
 
-如果你已经读到这里，你可能有相同的问题。如果我问你如何在PyTorch中创建和训练一个模型，你可能会写出类似于下面的代码：
+如果你已经读到这里，你可能有相同的问题。如果我问你如何在 PyTorch 中创建和训练一个模型，你可能会写出类似于下面的代码：
 
 ```py
 import torch
@@ -59,7 +59,7 @@ for epoch in range(epochs):
         optimizer.step()
 ```
 
-但如果我问你，反向传播是如何工作的呢？或者，例如，当你重新塑形一个张量时，会发生什么？数据是否在内部重新排列？这一过程是如何发生的？为什么PyTorch如此高效？PyTorch是如何处理GPU操作的？这些问题一直令我感到好奇，我想它们也会让你感兴趣。因此，为了更好地理解这些概念，最好的方法是什么呢？那就是从***零开始***构建你自己的张量库！而这正是你将在本文中学到的内容！
+但如果我问你，反向传播是如何工作的呢？或者，例如，当你重新塑形一个张量时，会发生什么？数据是否在内部重新排列？这一过程是如何发生的？为什么 PyTorch 如此高效？PyTorch 是如何处理 GPU 操作的？这些问题一直令我感到好奇，我想它们也会让你感兴趣。因此，为了更好地理解这些概念，最好的方法是什么呢？那就是从***零开始***构建你自己的张量库！而这正是你将在本文中学到的内容！
 
 # #1 — 张量
 
@@ -67,7 +67,7 @@ for epoch in range(epochs):
 
 你可能会直观地认为张量是一个数学概念，表示一个包含一些数字的 n 维数据结构。但在这里我们需要从计算的角度理解如何建模这个数据结构。我们可以把张量看作是由数据本身和一些元数据组成，这些元数据描述了张量的某些方面，如它的形状或它所存储的设备（即 CPU 内存、GPU 内存等）。
 
-![](../Images/126751c339f220fec6bc0a40690fb069.png)
+![](img/126751c339f220fec6bc0a40690fb069.png)
 
 作者提供的图片
 
@@ -75,13 +75,13 @@ for epoch in range(epochs):
 
 想象一个形状为 [4, 8] 的二维张量，如下所示。
 
-![](../Images/169e1865490d4603d66dc792052c1458.png)
+![](img/169e1865490d4603d66dc792052c1458.png)
 
 4x8 张量（作者提供的图片）
 
 张量的数据（即浮点数）实际上是以一维数组的形式存储在内存中的：
 
-![](../Images/edc491c716df7cab51cd1ca4a61ff296.png)
+![](img/edc491c716df7cab51cd1ca4a61ff296.png)
 
 张量的一维数据数组（作者提供的图片）
 
@@ -89,7 +89,7 @@ for epoch in range(epochs):
 
 我们有一个 4 行 8 列的矩阵。考虑到它的所有元素都是按行在一维数组中组织的，如果我们想访问位置 [2, 3] 的值，我们需要遍历 2 行（每行 8 个元素），加上 3 个位置。用数学术语来说，我们需要在一维数组上遍历 3 + 2 * 8 个元素：
 
-![](../Images/644a13550e4601385357edc5bb88071b.png)
+![](img/644a13550e4601385357edc5bb88071b.png)
 
 作者提供的图片
 
@@ -99,7 +99,7 @@ for epoch in range(epochs):
 
 现在，让我们想象一个三维张量：
 
-![](../Images/bc1c13d004a29b88a4f73e8b11a51483.png)
+![](img/bc1c13d004a29b88a4f73e8b11a51483.png)
 
 5x4x8 张量（作者提供的图片）
 
@@ -107,23 +107,23 @@ for epoch in range(epochs):
 
 现在，为了访问位置 [1, 2, 7] 的元素，你需要遍历一个完整的形状为 [4, 8] 的矩阵，2 行形状为 [8] 和 7 列形状为 [1]。所以，你需要在一维数组上遍历 (1 * 4 * 8) + (2 * 8) + (7 * 1) 个位置。
 
-![](../Images/292c1ea36eb8d9c10528822680f5c698.png)
+![](img/292c1ea36eb8d9c10528822680f5c698.png)
 
 作者提供的图片
 
 因此，要在一维数据数组上访问一个形状为 [shape_0, shape_1, shape_2] 的三维张量中的元素 [i][j][k]，你需要：
 
-![](../Images/81de413fc9cf4c48a4a1b0c764dea74f.png)
+![](img/81de413fc9cf4c48a4a1b0c764dea74f.png)
 
 这个 shape_1 * shape_2 是第一维的 *步幅*，shape_2 是第二维的 *步幅*，1 是第三维的步幅。
 
 然后，为了进行概括：
 
-![](../Images/e3ef816d9241ae378b6b92a5d7a09bbc.png)
+![](img/e3ef816d9241ae378b6b92a5d7a09bbc.png)
 
 每个维度的*步幅*可以通过下一个维度张量形状的乘积来计算：
 
-![](../Images/7b9a7f16cd0d11e4767e681da1993aef.png)
+![](img/7b9a7f16cd0d11e4767e681da1993aef.png)
 
 然后我们设置步幅[n-1] = 1。
 
@@ -138,7 +138,7 @@ torch.rand([5, 4, 8]).stride()
 #(32, 8, 1)
 ```
 
-好的，但是为什么我们需要形状和步幅？除了访问存储为1维数组的N维张量的元素之外，这个概念可以非常容易地用来操作张量排列。
+好的，但是为什么我们需要形状和步幅？除了访问存储为 1 维数组的 N 维张量的元素之外，这个概念可以非常容易地用来操作张量排列。
 
 例如，要重塑一个张量，你只需要设置新形状并根据它计算新步幅！（因为新形状保证了相同数量的元素）
 
@@ -162,9 +162,9 @@ print(new_t.stride())
 # [40, 8, 4, 2, 1]
 ```
 
-在内部，张量仍然存储为相同的1维数组。重塑方法没有改变数组内元素的顺序！这很神奇，不是吗？😁
+在内部，张量仍然存储为相同的 1 维数组。重塑方法没有改变数组内元素的顺序！这很神奇，不是吗？😁
 
-你可以自己验证，使用以下函数访问PyTorch的内部1维数组：
+你可以自己验证，使用以下函数访问 PyTorch 的内部 1 维数组：
 
 ```py
 import ctypes
@@ -271,9 +271,9 @@ print_internal(new_t_contiguous)
 
 现在我们理解了张量是如何建模的，让我们开始创建我们的库吧！
 
-我将其称为*Norch*，代表着NOT PyTorch，并且也暗指了我的姓氏，Nogueira 😁
+我将其称为*Norch*，代表着 NOT PyTorch，并且也暗指了我的姓氏，Nogueira 😁
 
-首先要知道的是，尽管PyTorch是通过Python使用的，但在内部它运行的是C/C++。因此，我们将首先创建我们的内部C/C++函数。
+首先要知道的是，尽管 PyTorch 是通过 Python 使用的，但在内部它运行的是 C/C++。因此，我们将首先创建我们的内部 C/C++函数。
 
 我们可以首先定义张量作为一个结构体来存储其数据和元数据，并创建一个函数来实例化它：
 
@@ -455,9 +455,9 @@ Tensor* reshape_tensor(Tensor* tensor, int* new_shape, int new_ndim) {
 }
 ```
 
-虽然我们现在可以进行一些张量操作，但是没有人愿意使用C/C++来运行它，对吧？让我们开始构建我们的Python包装器！
+虽然我们现在可以进行一些张量操作，但是没有人愿意使用 C/C++来运行它，对吧？让我们开始构建我们的 Python 包装器！
 
-有很多选项可以使用Python运行C/C++代码，比如*Pybind11*和*Cython*。在我们的例子中，我将使用*ctypes*。
+有很多选项可以使用 Python 运行 C/C++代码，比如*Pybind11*和*Cython*。在我们的例子中，我将使用*ctypes*。
 
 *ctypes*的基本结构如下所示：
 
@@ -496,7 +496,7 @@ print(result)
 # 5.7
 ```
 
-如你所见，这非常直观。在你编译C/C++代码后，可以非常轻松地在Python中使用*ctypes*。你只需要定义函数的参数和返回值类型，并将变量转换为相应的C类型，再调用函数。对于更复杂的类型，如数组（浮动列表），你可以使用指针。
+如你所见，这非常直观。在你编译 C/C++代码后，可以非常轻松地在 Python 中使用*ctypes*。你只需要定义函数的参数和返回值类型，并将变量转换为相应的 C 类型，再调用函数。对于更复杂的类型，如数组（浮动列表），你可以使用指针。
 
 ```py
 data = [1.0, 2.0, 3.0]
@@ -509,7 +509,7 @@ lib.some_array_func.argstypes = [ctypes.POINTER(ctypes.c_float)]
 lib.some_array_func(data)
 ```
 
-对于结构类型，我们可以创建我们自己的C类型：
+对于结构类型，我们可以创建我们自己的 C 类型：
 
 ```py
 class CustomType(ctypes.Structure):
@@ -522,7 +522,7 @@ class CustomType(ctypes.Structure):
 # Can be used as ctypes.POINTER(CustomType)
 ```
 
-在这段简短的解释之后，让我们为我们的张量C/C++库构建Python包装器！
+在这段简短的解释之后，让我们为我们的张量 C/C++库构建 Python 包装器！
 
 ```py
 # norch/tensor.py
@@ -590,7 +590,7 @@ class Tensor:
         return flat_data, shape 
 ```
 
-现在我们包括了Python张量操作，以便调用C/C++操作。
+现在我们包括了 Python 张量操作，以便调用 C/C++操作。
 
 ```py
 # norch/tensor.py
@@ -677,21 +677,21 @@ print(result[0, 0])
 # 4 
 ```
 
-# #2 — GPU支持
+# #2 — GPU 支持
 
-在创建了我们库的基本结构之后，现在我们将把它提升到一个新层次。众所周知，你可以调用`.to("cuda")`将数据发送到GPU，并加快数学运算速度。我假设你对CUDA的基本工作原理有所了解，但如果不了解，你可以阅读我另外一篇文章：[CUDA教程.](/why-deep-learning-models-run-faster-on-gpus-a-brief-introduction-to-cuda-programming-035272906d66) 我在这里等你。😊
+在创建了我们库的基本结构之后，现在我们将把它提升到一个新层次。众所周知，你可以调用`.to("cuda")`将数据发送到 GPU，并加快数学运算速度。我假设你对 CUDA 的基本工作原理有所了解，但如果不了解，你可以阅读我另外一篇文章：CUDA 教程. 我在这里等你。😊
 
 …
 
 对于急于了解的人，这里有一个简短的介绍：
 
-基本上，到目前为止，我们的所有代码都在CPU内存上运行。虽然对于单一操作CPU速度更快，但GPU的优势在于它的并行化能力。CPU设计旨在快速执行一系列操作（线程）（但它只能执行几十个），而GPU设计则旨在并行执行数百万个操作（通过牺牲单个线程的性能）。
+基本上，到目前为止，我们的所有代码都在 CPU 内存上运行。虽然对于单一操作 CPU 速度更快，但 GPU 的优势在于它的并行化能力。CPU 设计旨在快速执行一系列操作（线程）（但它只能执行几十个），而 GPU 设计则旨在并行执行数百万个操作（通过牺牲单个线程的性能）。
 
-因此，我们可以利用这一能力并行执行操作。例如，在一个百万大小的张量加法中，不必在循环内部依次添加每个索引的元素，使用GPU我们可以一次性并行地加和所有元素。为此，我们可以使用CUDA，这是NVIDIA开发的一个平台，旨在让开发者将GPU支持集成到他们的软件应用中。
+因此，我们可以利用这一能力并行执行操作。例如，在一个百万大小的张量加法中，不必在循环内部依次添加每个索引的元素，使用 GPU 我们可以一次性并行地加和所有元素。为此，我们可以使用 CUDA，这是 NVIDIA 开发的一个平台，旨在让开发者将 GPU 支持集成到他们的软件应用中。
 
-为了做到这一点，你可以使用CUDA C/C++，这是一种基于C/C++的简单接口，旨在运行特定的GPU操作（例如将数据从CPU内存复制到GPU内存）。
+为了做到这一点，你可以使用 CUDA C/C++，这是一种基于 C/C++的简单接口，旨在运行特定的 GPU 操作（例如将数据从 CPU 内存复制到 GPU 内存）。
 
-以下代码基本上使用了一些CUDA C/C++函数，将数据从CPU复制到GPU，并在总共N个GPU线程上并行运行AddTwoArrays函数（也叫做kernel），每个线程负责加和数组中的不同元素。
+以下代码基本上使用了一些 CUDA C/C++函数，将数据从 CPU 复制到 GPU，并在总共 N 个 GPU 线程上并行运行 AddTwoArrays 函数（也叫做 kernel），每个线程负责加和数组中的不同元素。
 
 ```py
 #include <stdio.h>
@@ -740,7 +740,7 @@ int main() {
 
 在这段简短的介绍之后，我们可以回到我们的张量库。
 
-第一步是创建一个函数，将张量数据从CPU发送到GPU，反之亦然。
+第一步是创建一个函数，将张量数据从 CPU 发送到 GPU，反之亦然。
 
 ```py
 //norch/csrc/tensor.cpp
@@ -790,7 +790,7 @@ __host__ void cuda_to_cpu(Tensor* tensor) {
 }
 ```
 
-Python包装器：
+Python 包装器：
 
 ```py
 # norch/tensor.py
@@ -806,7 +806,7 @@ def to(self, device):
     return self
 ```
 
-然后，我们为所有的张量操作创建GPU版本。我将为加法和减法写出示例：
+然后，我们为所有的张量操作创建 GPU 版本。我将为加法和减法写出示例：
 
 ```py
 //norch/csrc/cuda.cu
@@ -860,7 +860,7 @@ __host__ void sub_tensor_cuda(Tensor* tensor1, Tensor* tensor2, float* result_da
 ... 
 ```
 
-随后，我们在`tensor.cpp`上包含一个新的张量属性`char* device`，我们可以使用它来选择操作将在哪里运行（CPU或GPU）：
+随后，我们在`tensor.cpp`上包含一个新的张量属性`char* device`，我们可以使用它来选择操作将在哪里运行（CPU 或 GPU）：
 
 ```py
 //norch/csrc/tensor.cpp
@@ -917,7 +917,7 @@ Tensor* add_tensor(Tensor* tensor1, Tensor* tensor2) {
 }
 ```
 
-现在我们的库支持GPU！
+现在我们的库支持 GPU！
 
 ```py
 import norch
@@ -930,7 +930,7 @@ result = tensor1 + tensor2
 
 # #3 — 自动微分（Autograd）
 
-PyTorch变得如此受欢迎的主要原因之一是其Autograd模块。这是一个核心组件，允许自动微分以计算梯度（对于使用梯度下降等优化算法训练模型至关重要）。通过调用单个方法`.backward()`，它计算出先前张量操作的所有梯度：
+PyTorch 变得如此受欢迎的主要原因之一是其 Autograd 模块。这是一个核心组件，允许自动微分以计算梯度（对于使用梯度下降等优化算法训练模型至关重要）。通过调用单个方法`.backward()`，它计算出先前张量操作的所有梯度：
 
 ```py
 x = torch.tensor([[1., 2, 3], [3., 2, 1]], requires_grad=True)
@@ -961,47 +961,47 @@ print(y.grad)
 
 为了理解发生了什么，让我们尝试手动复制相同的过程：
 
-![](../Images/255a2823dc15242c9d7414c9175d073d.png)
+![](img/255a2823dc15242c9d7414c9175d073d.png)
 
 让我们首先计算：
 
-![](../Images/3d5353e2d05c964798dfe75e81572db5.png)
+![](img/3d5353e2d05c964798dfe75e81572db5.png)
 
 请注意*x*是一个矩阵，因此我们需要分别计算*L*对每个元素的导数。此外，*L*是所有元素的总和，但重要的是要记住，对于每个元素，其他元素不会影响其导数。因此，我们得到以下项：
 
-![](../Images/612ffe8a8a672f3c2ebac55743b1a82c.png)
+![](img/612ffe8a8a672f3c2ebac55743b1a82c.png)
 
 通过为每个项应用链式法则，我们区分外部函数并乘以内部函数的导数：
 
-![](../Images/97a8bb17dd8c8e8153ee9eb9d5b77606.png)
+![](img/97a8bb17dd8c8e8153ee9eb9d5b77606.png)
 
 其中：
 
-![](../Images/0834be1c1e2772168593070107e386de.png)
+![](img/0834be1c1e2772168593070107e386de.png)
 
 最后：
 
-![](../Images/4dec4240d0004de073e923b6d937831d.png)
+![](img/4dec4240d0004de073e923b6d937831d.png)
 
 因此，我们有以下最终方程来计算*L*相对于*x*的导数：
 
-![](../Images/1f6843db3a0d35b765a74b1241ac61ae.png)
+![](img/1f6843db3a0d35b765a74b1241ac61ae.png)
 
 将值代入方程式：
 
-![](../Images/95897f1570971bf15b239d7182f2b8cb.png)
+![](img/95897f1570971bf15b239d7182f2b8cb.png)
 
-计算结果，我们得到与PyTorch获得的相同值：
+计算结果，我们得到与 PyTorch 获得的相同值：
 
-![](../Images/ac68ee4bb235624b9c9c1c0df4a69ae4.png)
+![](img/ac68ee4bb235624b9c9c1c0df4a69ae4.png)
 
 现在，让我们分析刚才做的事情：
 
-基本上，我们按照保留顺序观察了所有涉及的操作：求和、3的幂和减法。然后，我们应用链式法则，计算每个操作的导数，并递归地计算下一个操作的导数。因此，首先我们需要为不同的数学操作实现导数：
+基本上，我们按照保留顺序观察了所有涉及的操作：求和、3 的幂和减法。然后，我们应用链式法则，计算每个操作的导数，并递归地计算下一个操作的导数。因此，首先我们需要为不同的数学操作实现导数：
 
 对于加法：
 
-![](../Images/f0bea287a54af0930d57584959d48ecd.png)
+![](img/f0bea287a54af0930d57584959d48ecd.png)
 
 ```py
 # norch/autograd/functions.py
@@ -1016,7 +1016,7 @@ class AddBackward:
 
 对于正弦：
 
-![](../Images/0751c6d99ffe7a0d1b1c359ffbcd68b4.png)
+![](img/0751c6d99ffe7a0d1b1c359ffbcd68b4.png)
 
 ```py
 # norch/autograd/functions.py
@@ -1032,7 +1032,7 @@ class SinBackward:
 
 对于余弦：
 
-![](../Images/4359a9a560ad9072af54cf872019b3bd.png)
+![](img/4359a9a560ad9072af54cf872019b3bd.png)
 
 ```py
 # norch/autograd/functions.py
@@ -1048,7 +1048,7 @@ class CosBackward:
 
 对于逐元素乘法：
 
-![](../Images/3564658c2002c0917544fbbef510374c.png)
+![](img/3564658c2002c0917544fbbef510374c.png)
 
 ```py
 # norch/autograd/functions.py
@@ -1077,7 +1077,7 @@ class SumBackward:
         return [float(gradient.tensor.contents.data[0]) * self.input[0].ones_like()] 
 ```
 
-您可以在文章末尾访问GitHub存储库链接以探索其他操作。
+您可以在文章末尾访问 GitHub 存储库链接以探索其他操作。
 
 现在我们对每个操作有了导数表达式，我们可以继续实现递归反向链规则。我们可以为我们的张量设置一个`requires_grad`参数，以指示我们要存储此张量的梯度。如果为真，我们将为每个张量操作存储梯度。例如：
 
@@ -1146,11 +1146,11 @@ def detach(self):
     self.grad_fn = None
 ```
 
-恭喜！您刚刚创建了一个完整的张量库，支持GPU和自动微分！现在我们可以创建`nn`和`optim`模块，更轻松地训练一些深度学习模型。
+恭喜！您刚刚创建了一个完整的张量库，支持 GPU 和自动微分！现在我们可以创建`nn`和`optim`模块，更轻松地训练一些深度学习模型。
 
-# #4 — nn和optim模块
+# #4 — nn 和 optim 模块
 
-`nn`是用于构建神经网络和深度学习模型的模块，而`optim`与优化算法相关，用于训练这些模型。为了重新创建它们，首先要实现一个Parameter，它只是一个可训练的张量，具有相同的操作，但`requires_grad`始终设置为`True`，并采用一些随机初始化技术。
+`nn`是用于构建神经网络和深度学习模型的模块，而`optim`与优化算法相关，用于训练这些模型。为了重新创建它们，首先要实现一个 Parameter，它只是一个可训练的张量，具有相同的操作，但`requires_grad`始终设置为`True`，并采用一些随机初始化技术。
 
 ```py
 # norch/nn/parameter.py
@@ -1297,7 +1297,7 @@ class Linear(Module):
                f"bias={True if self.bias is not None else False}"
 ```
 
-现在我们可以实现一些损失和激活函数。例如，均方误差损失和sigmoid函数：
+现在我们可以实现一些损失和激活函数。例如，均方误差损失和 sigmoid 函数：
 
 ```py
 # norch/nn/loss.py
@@ -1460,7 +1460,7 @@ for epoch in range(epochs):
 # Epoch [10/10], Loss: 0.1297
 ```
 
-![](../Images/e7662c657102cedd3717cdac495019f6.png)
+![](img/e7662c657102cedd3717cdac495019f6.png)
 
 作者提供的图片
 
@@ -1470,25 +1470,25 @@ for epoch in range(epochs):
 
 # 结论
 
-在本文中，我们介绍了张量的基本概念，它是如何建模的，以及更高级的主题，如CUDA和Autograd。我们成功地创建了一个支持GPU和自动微分的深度学习框架。希望本文能帮助您简要了解PyTorch在幕后是如何工作的。
+在本文中，我们介绍了张量的基本概念，它是如何建模的，以及更高级的主题，如 CUDA 和 Autograd。我们成功地创建了一个支持 GPU 和自动微分的深度学习框架。希望本文能帮助您简要了解 PyTorch 在幕后是如何工作的。
 
-在未来的帖子中，我将尝试涵盖更高级的主题，如分布式训练（多节点/多GPU）和内存管理。请在评论中告诉我您的想法或您希望我写下的内容！非常感谢您的阅读！😊
+在未来的帖子中，我将尝试涵盖更高级的主题，如分布式训练（多节点/多 GPU）和内存管理。请在评论中告诉我您的想法或您希望我写下的内容！非常感谢您的阅读！😊
 
-此外，请关注我的[LinkedIn个人资料](https://www.linkedin.com/in/lucas-de-lima-nogueira/)，以获取最新文章更新！
+此外，请关注我的[LinkedIn 个人资料](https://www.linkedin.com/in/lucas-de-lima-nogueira/)，以获取最新文章更新！
 
 # 参考资料
 
-[PyNorch](https://github.com/lucasdelimanogueira/PyNorch) — 本项目的GitHub存储库。
+[PyNorch](https://github.com/lucasdelimanogueira/PyNorch) — 本项目的 GitHub 存储库。
 
-[CUDA教程](https://medium.com/towards-data-science/why-deep-learning-models-run-faster-on-gpus-a-brief-introduction-to-cuda-programming-035272906d66) — CUDA工作原理简介。
+[CUDA 教程](https://medium.com/towards-data-science/why-deep-learning-models-run-faster-on-gpus-a-brief-introduction-to-cuda-programming-035272906d66) — CUDA 工作原理简介。
 
-[PyTorch](https://pytorch.org/docs/stable/index.html) — PyTorch文档。
+[PyTorch](https://pytorch.org/docs/stable/index.html) — PyTorch 文档。
 
-[MartinLwx的博客](https://martinlwx.github.io/en/how-to-reprensent-a-tensor-or-ndarray/) — 关于步幅的教程。
+[MartinLwx 的博客](https://martinlwx.github.io/en/how-to-reprensent-a-tensor-or-ndarray/) — 关于步幅的教程。
 
 [步幅教程](https://ajcr.net/stride-guide-part-1/) — 关于步幅的另一个教程。
 
-[PyTorch内部](http://blog.ezyang.com/2019/05/pytorch-internals/) — PyTorch的结构指南。
+[PyTorch 内部](http://blog.ezyang.com/2019/05/pytorch-internals/) — PyTorch 的结构指南。
 
 [Nets](https://github.com/arthurdjn/nets) — 使用 NumPy 重建的 PyTorch。
 

@@ -1,18 +1,18 @@
 # 使用 Microsoft Fabric 和 PySpark 进行特征工程
 
-> 原文：[https://towardsdatascience.com/feature-engineering-with-microsoft-fabric-and-pyspark-16d458018744?source=collection_archive---------9-----------------------#2024-04-08](https://towardsdatascience.com/feature-engineering-with-microsoft-fabric-and-pyspark-16d458018744?source=collection_archive---------9-----------------------#2024-04-08)
+> 原文：[`towardsdatascience.com/feature-engineering-with-microsoft-fabric-and-pyspark-16d458018744?source=collection_archive---------9-----------------------#2024-04-08`](https://towardsdatascience.com/feature-engineering-with-microsoft-fabric-and-pyspark-16d458018744?source=collection_archive---------9-----------------------#2024-04-08)
 
 ## Fabric 疯狂系列第二部分
 
-[](https://medium.com/@roger_noble?source=post_page---byline--16d458018744--------------------------------)[![Roger Noble](../Images/869b5b0f237f24b119ca6c41c2e31162.png)](https://medium.com/@roger_noble?source=post_page---byline--16d458018744--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16d458018744--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--16d458018744--------------------------------) [Roger Noble](https://medium.com/@roger_noble?source=post_page---byline--16d458018744--------------------------------)
+[](https://medium.com/@roger_noble?source=post_page---byline--16d458018744--------------------------------)![Roger Noble](https://medium.com/@roger_noble?source=post_page---byline--16d458018744--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16d458018744--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16d458018744--------------------------------) [Roger Noble](https://medium.com/@roger_noble?source=post_page---byline--16d458018744--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16d458018744--------------------------------) ·12分钟阅读·2024年4月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16d458018744--------------------------------) ·12 分钟阅读·2024 年 4 月 8 日
 
 --
 
-![](../Images/e76cf994c16355962435cec1d006594b.png)
+![](img/e76cf994c16355962435cec1d006594b.png)
 
-图片由作者和 ChatGPT 提供。“设计一幅插图，重点描绘一位正在行动的篮球运动员，这次的主题是使用 PySpark 为机器学习模型生成特征，采用图像小说风格。”提示语：ChatGPT，4，OpenAI，2024年4月4日。[https://chat.openai.com.](https://chat.openai.com./)
+图片由作者和 ChatGPT 提供。“设计一幅插图，重点描绘一位正在行动的篮球运动员，这次的主题是使用 PySpark 为机器学习模型生成特征，采用图像小说风格。”提示语：ChatGPT，4，OpenAI，2024 年 4 月 4 日。[`chat.openai.com.`](https://chat.openai.com./)
 
 *特别感谢* [*Martim Chaves*](https://medium.com/@mgrc99) *，他与我共同撰写了这篇文章并开发了示例脚本。*
 
@@ -184,9 +184,9 @@ w_data = w_data.withColumn("HighScore", F.when(F.col("Score") > 80, "Yes").other
 
 现在我们对 PySpark 有了基本的了解，并知道如何使用它，让我们来看看常规赛统计特征是如何创建的。这些特征随后被用作机器学习模型的输入，以尝试预测最终锦标赛比赛的结果。
 
-起点是一个名为 `regular_data` 的数据框，包含了*常规赛*的逐场比赛统计数据，这是指每年从11月到3月的美国大学篮球赛季。
+起点是一个名为 `regular_data` 的数据框，包含了*常规赛*的逐场比赛统计数据，这是指每年从 11 月到 3 月的美国大学篮球赛季。
 
-这个数据框中的每一行包含了赛季、比赛日期、队伍1的ID、队伍2的ID以及其他信息，如比赛的地点。重要的是，它还包含了*每支队伍*在*特定比赛*中的统计数据，例如 `"T1_FGM"`，表示队伍1的投篮命中数 (FGM)，或者 `"T2_OR"`，表示队伍2的进攻篮板 (OR)。
+这个数据框中的每一行包含了赛季、比赛日期、队伍 1 的 ID、队伍 2 的 ID 以及其他信息，如比赛的地点。重要的是，它还包含了*每支队伍*在*特定比赛*中的统计数据，例如 `"T1_FGM"`，表示队伍 1 的投篮命中数 (FGM)，或者 `"T2_OR"`，表示队伍 2 的进攻篮板 (OR)。
 
 第一步是选择哪些列将被使用。这些列严格包含了比赛中的统计数据。
 
@@ -233,7 +233,7 @@ agg_exprs = {col: F.mean(col).alias(col + 'mean') for col in boxscore_cols}
 season_statistics = regular_data.groupBy(["Season", "T1_TeamID"]).agg(*agg_exprs.values())
 ```
 
-请注意，分组是按照赛季和**队伍1的ID**进行的——这意味着，例如，`"T2_FGAmean"` 实际上会是 T1 对手的投篮出手数的均值，而不一定是某支特定队伍的投篮出手均值。所以，我们实际上需要将像 `"T2_FGAmean"` 这样的列重命名为类似 `"T1_opponent_FGAmean"` 的名称。
+请注意，分组是按照赛季和**队伍 1 的 ID**进行的——这意味着，例如，`"T2_FGAmean"` 实际上会是 T1 对手的投篮出手数的均值，而不一定是某支特定队伍的投篮出手均值。所以，我们实际上需要将像 `"T2_FGAmean"` 这样的列重命名为类似 `"T1_opponent_FGAmean"` 的名称。
 
 ```py
 # Rename columns for T1
@@ -244,7 +244,7 @@ for col in boxscore_cols:
 
 在这一点上，必须提到的是，`regular_data` 数据框实际上每场比赛都有**两**行数据。这是为了让每场比赛的两支队伍都可以被标记为“T1”和“T2”。这个小“技巧”使得这些统计数据变得有用。
 
-请注意，我们“只有”关于“T1”的统计数据。我们“需要”关于“T2”的统计数据——因为没有计算新的统计数据，所以“需要”加上引号。我们只需要相同的数据，但是列的名称不同，这样对于“T1”和“T2”的匹配，我们就能得到T1和T2的统计数据。因此，我们创建了一个镜像的DataFrame，在这个DataFrame中，原来的“T1&mldr;mean”和“T1_opponent_&mldr;mean”被替换为“T2&mldr;mean”和“T2_opponent_&mldr;mean”。这是非常重要的，因为稍后，当我们将这些常规赛统计数据与锦标赛比赛数据合并时，我们就能够得到T1和T2的统计数据。
+请注意，我们“只有”关于“T1”的统计数据。我们“需要”关于“T2”的统计数据——因为没有计算新的统计数据，所以“需要”加上引号。我们只需要相同的数据，但是列的名称不同，这样对于“T1”和“T2”的匹配，我们就能得到 T1 和 T2 的统计数据。因此，我们创建了一个镜像的 DataFrame，在这个 DataFrame 中，原来的“T1&mldr;mean”和“T1_opponent_&mldr;mean”被替换为“T2&mldr;mean”和“T2_opponent_&mldr;mean”。这是非常重要的，因为稍后，当我们将这些常规赛统计数据与锦标赛比赛数据合并时，我们就能够得到 T1 和 T2 的统计数据。
 
 ```py
 season_statistics_T2 = season_statistics.select(
@@ -252,20 +252,20 @@ season_statistics_T2 = season_statistics.select(
 )
 ```
 
-现在，有两个DataFrame，分别包含了“T1”和“T2”的赛季统计数据。由于最终的DataFrame将包含“赛季”、“T1TeamID”和“T2TeamID”，我们可以通过合并操作将这些新创建的特征合并起来！
+现在，有两个 DataFrame，分别包含了“T1”和“T2”的赛季统计数据。由于最终的 DataFrame 将包含“赛季”、“T1TeamID”和“T2TeamID”，我们可以通过合并操作将这些新创建的特征合并起来！
 
 ```py
 tourney_df = tourney_df.join(season_statistics, on=['Season', 'T1_TeamID'], how='left')
 tourney_df = tourney_df.join(season_statistics_T2, on=['Season', 'T2_TeamID'], how='left')
 ```
 
-## Elo评分
+## Elo 评分
 
-Elo最早由[阿尔帕德·厄洛](https://en.wikipedia.org/wiki/Elo_rating_system)创立，是一个用于零和游戏（即一方获胜另一方失败的游戏）的评分系统，例如篮球。在Elo评分系统中，每支队伍都有一个Elo评分，这个评分通常反映了队伍的质量。最初，每支队伍的Elo评分是相同的，当队伍获胜时，Elo评分增加；当队伍失败时，Elo评分减少。这个系统的一个关键特点是，战胜强队时Elo评分的增幅大于战胜弱队时的增幅。因此，它是一个非常有用的特征！
+Elo 最早由[阿尔帕德·厄洛](https://en.wikipedia.org/wiki/Elo_rating_system)创立，是一个用于零和游戏（即一方获胜另一方失败的游戏）的评分系统，例如篮球。在 Elo 评分系统中，每支队伍都有一个 Elo 评分，这个评分通常反映了队伍的质量。最初，每支队伍的 Elo 评分是相同的，当队伍获胜时，Elo 评分增加；当队伍失败时，Elo 评分减少。这个系统的一个关键特点是，战胜强队时 Elo 评分的增幅大于战胜弱队时的增幅。因此，它是一个非常有用的特征！
 
-我们想要记录一个团队在常规赛结束时的Elo评分，并将其作为锦标赛的特征。为了做到这一点，我们为每场比赛计算了每个团队的Elo评分。为了计算这个特征的Elo，我们发现使用Pandas更为直观。
+我们想要记录一个团队在常规赛结束时的 Elo 评分，并将其作为锦标赛的特征。为了做到这一点，我们为每场比赛计算了每个团队的 Elo 评分。为了计算这个特征的 Elo，我们发现使用 Pandas 更为直观。
 
-Elo的核心是计算每支队伍的预期得分。可以通过以下代码来描述这一过程：
+Elo 的核心是计算每支队伍的预期得分。可以通过以下代码来描述这一过程：
 
 ```py
 # Function to calculate expected score
@@ -276,9 +276,9 @@ def expected_score(ra, rb):
     return 1 / (1 + 10 ** ((rb - ra) / 400))
 ```
 
-考虑一支队伍A和一支队伍B，这个函数计算队伍A对队伍B的预期得分。
+考虑一支队伍 A 和一支队伍 B，这个函数计算队伍 A 对队伍 B 的预期得分。
 
-对于每场比赛，我们都会更新队伍的Elo评分。请注意，比赛的地点也起着作用——在主场获胜被认为不如客场获胜令人印象深刻。
+对于每场比赛，我们都会更新队伍的 Elo 评分。请注意，比赛的地点也起着作用——在主场获胜被认为不如客场获胜令人印象深刻。
 
 ```py
 # Function to update Elo ratings, keeping T1 and T2 terminology
@@ -313,7 +313,7 @@ def update_elo(t1_elo, t2_elo, location, T1_Score, T2_Score):
     return new_t1_elo, new_t2_elo
 ```
 
-为了应用Elo评分系统，我们遍历了每个赛季的比赛，为每支队伍初始化一个基础评分，并逐场更新它们的评分。每支队伍在每个赛季的最终Elo评分，应该能很好地描述该队伍的质量。
+为了应用 Elo 评分系统，我们遍历了每个赛季的比赛，为每支队伍初始化一个基础评分，并逐场更新它们的评分。每支队伍在每个赛季的最终 Elo 评分，应该能很好地描述该队伍的质量。
 
 ```py
 def calculate_elo_through_seasons(regular_data):
@@ -371,20 +371,20 @@ def calculate_elo_through_seasons(regular_data):
     return final_elo_t1_df, final_elo_t2_df
 ```
 
-理想情况下，我们不会逐场计算Elo的变化来确定每支队伍赛季结束时的最终Elo。然而，我们没有想到更好的方法。你有什么想法吗？如果有，请告诉我们！
+理想情况下，我们不会逐场计算 Elo 的变化来确定每支队伍赛季结束时的最终 Elo。然而，我们没有想到更好的方法。你有什么想法吗？如果有，请告诉我们！
 
 ## 附加值
 
-展示的特征工程步骤展示了我们如何将原始数据——常规赛统计数据——转化为具有预测能力的有价值信息。可以合理假设，一支球队在常规赛中的表现能够反映其在最终锦标赛中的潜在表现。通过计算每场比赛的统计数据平均值，包括球队和对手的统计数据，以及每支球队在最后一场比赛中的Elo评分，我们能够创建一个适合建模的数据集。然后，使用这些特征，训练模型来预测锦标赛比赛的结果，其他特征也以类似的方式开发。通过这些模型，我们只需要两个球队的ID，查找它们的常规赛统计数据平均值和Elo评分，输入到模型中即可预测得分！
+展示的特征工程步骤展示了我们如何将原始数据——常规赛统计数据——转化为具有预测能力的有价值信息。可以合理假设，一支球队在常规赛中的表现能够反映其在最终锦标赛中的潜在表现。通过计算每场比赛的统计数据平均值，包括球队和对手的统计数据，以及每支球队在最后一场比赛中的 Elo 评分，我们能够创建一个适合建模的数据集。然后，使用这些特征，训练模型来预测锦标赛比赛的结果，其他特征也以类似的方式开发。通过这些模型，我们只需要两个球队的 ID，查找它们的常规赛统计数据平均值和 Elo 评分，输入到模型中即可预测得分！
 
 # 结论
 
-在这篇文章中，我们探讨了Spark和PySpark背后的部分理论，如何应用这些理论，并展示了一个具体的实践例子。我们研究了如何在体育数据的案例中进行特征工程，创建常规赛统计数据，作为最终锦标赛比赛的特征使用。希望你觉得这篇文章有趣且有帮助——祝特征工程愉快！
+在这篇文章中，我们探讨了 Spark 和 PySpark 背后的部分理论，如何应用这些理论，并展示了一个具体的实践例子。我们研究了如何在体育数据的案例中进行特征工程，创建常规赛统计数据，作为最终锦标赛比赛的特征使用。希望你觉得这篇文章有趣且有帮助——祝特征工程愉快！
 
 **这篇文章及系列中其他文章的完整源代码可以在** [**这里**](https://dev.azure.com/nobledynamic/_git/FabricMadness)**找到。**
 
-*最初发布于* [*https://nobledynamic.com*](https://nobledynamic.com/posts/fabric-madness-2/) *2024年4月8日。*
+*最初发布于* [*https://nobledynamic.com*](https://nobledynamic.com/posts/fabric-madness-2/) *2024 年 4 月 8 日。*
 
 ## 参考文献
 
-[1] Jeff Sonas, Ryan Holbrook, Addison Howard, Anju Kandru. (2024). March Machine Learning Mania 2024\. Kaggle. [https://kaggle.com/competitions/march-machine-learning-mania-2024](https://kaggle.com/competitions/march-machine-learning-mania-2024)
+[1] Jeff Sonas, Ryan Holbrook, Addison Howard, Anju Kandru. (2024). March Machine Learning Mania 2024\. Kaggle. [`kaggle.com/competitions/march-machine-learning-mania-2024`](https://kaggle.com/competitions/march-machine-learning-mania-2024)

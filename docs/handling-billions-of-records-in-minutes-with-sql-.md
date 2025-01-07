@@ -1,16 +1,16 @@
-# 使用SQL在几分钟内处理数十亿条记录 ⏱️
+# 使用 SQL 在几分钟内处理数十亿条记录 ⏱️
 
-> 原文：[https://towardsdatascience.com/handling-billions-of-records-in-minutes-with-sql-%EF%B8%8F-484d2d6027bc?source=collection_archive---------1-----------------------#2024-12-23](https://towardsdatascience.com/handling-billions-of-records-in-minutes-with-sql-%EF%B8%8F-484d2d6027bc?source=collection_archive---------1-----------------------#2024-12-23)
+> 原文：[`towardsdatascience.com/handling-billions-of-records-in-minutes-with-sql-%EF%B8%8F-484d2d6027bc?source=collection_archive---------1-----------------------#2024-12-23`](https://towardsdatascience.com/handling-billions-of-records-in-minutes-with-sql-%EF%B8%8F-484d2d6027bc?source=collection_archive---------1-----------------------#2024-12-23)
 
 ## 直接在内存中分析海量数据集——比以往更快
 
-[](https://medium.com/@panData?source=post_page---byline--484d2d6027bc--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--484d2d6027bc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--484d2d6027bc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--484d2d6027bc--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--484d2d6027bc--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--484d2d6027bc--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--484d2d6027bc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--484d2d6027bc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--484d2d6027bc--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--484d2d6027bc--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--484d2d6027bc--------------------------------) ·阅读时长25分钟·2024年12月23日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--484d2d6027bc--------------------------------) ·阅读时长 25 分钟·2024 年 12 月 23 日
 
 --
 
-![](../Images/970106bdfe038dddacf5a0c46a3a661d.png)
+![](img/970106bdfe038dddacf5a0c46a3a661d.png)
 
 照片由[Daniele Franchi](https://unsplash.com/@daniele_franchi?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -28,7 +28,7 @@
 
 +   掌握**大规模数据处理**
 
-+   应用**基于SQL的分析技术**
++   应用**基于 SQL 的分析技术**
 
 +   探索用于**内存处理**的高性能工具
 

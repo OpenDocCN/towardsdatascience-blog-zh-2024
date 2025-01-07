@@ -1,18 +1,18 @@
 # 我是如何在加入 LinkedIn 之前成为一名数据科学家的
 
-> 原文：[https://towardsdatascience.com/how-i-became-a-data-scientist-before-i-joined-linkedin-e3b8e4816001?source=collection_archive---------4-----------------------#2024-03-07](https://towardsdatascience.com/how-i-became-a-data-scientist-before-i-joined-linkedin-e3b8e4816001?source=collection_archive---------4-----------------------#2024-03-07)
+> 原文：[`towardsdatascience.com/how-i-became-a-data-scientist-before-i-joined-linkedin-e3b8e4816001?source=collection_archive---------4-----------------------#2024-03-07`](https://towardsdatascience.com/how-i-became-a-data-scientist-before-i-joined-linkedin-e3b8e4816001?source=collection_archive---------4-----------------------#2024-03-07)
 
 ## 这些实践项目对职业转型至关重要
 
-[](https://medium.com/@aijimmy?source=post_page---byline--e3b8e4816001--------------------------------)[![Jimmy Wong](../Images/cdaccbfe070eaecbff75fe3330effda8.png)](https://medium.com/@aijimmy?source=post_page---byline--e3b8e4816001--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e3b8e4816001--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e3b8e4816001--------------------------------) [Jimmy Wong](https://medium.com/@aijimmy?source=post_page---byline--e3b8e4816001--------------------------------)
+[](https://medium.com/@aijimmy?source=post_page---byline--e3b8e4816001--------------------------------)![Jimmy Wong](https://medium.com/@aijimmy?source=post_page---byline--e3b8e4816001--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e3b8e4816001--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e3b8e4816001--------------------------------) [Jimmy Wong](https://medium.com/@aijimmy?source=post_page---byline--e3b8e4816001--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e3b8e4816001--------------------------------) ·8分钟阅读·2024年3月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e3b8e4816001--------------------------------) ·8 分钟阅读·2024 年 3 月 7 日
 
 --
 
-![](../Images/d0041e333ae17efa37d074e8bb2dde62.png)
+![](img/d0041e333ae17efa37d074e8bb2dde62.png)
 
-2023年在 LinkedIn 总部与同事合影，已获授权使用（[来源](https://www.linkedin.com/pulse/my-12-years-linkedin-jimmy-wong/?trackingId=9Wn8B2jnTXKxY9X4VHNiNw%3D%3D)）
+2023 年在 LinkedIn 总部与同事合影，已获授权使用（[来源](https://www.linkedin.com/pulse/my-12-years-linkedin-jimmy-wong/?trackingId=9Wn8B2jnTXKxY9X4VHNiNw%3D%3D)）
 
 一个人是如何首次获得梦想中的数据科学家职位的？
 
@@ -22,7 +22,7 @@
 
 在我被 LinkedIn 招聘之前，我仍然需要证明自己能够胜任这项工作。
 
-我很感激最终被 LinkedIn 招聘。我后来成为 LinkedIn 数据科学团队的负责人，带领由14位数据科学家组成的团队，负责获取和发展我们在数十亿美元规模的在线广告业务中的客户。
+我很感激最终被 LinkedIn 招聘。我后来成为 LinkedIn 数据科学团队的负责人，带领由 14 位数据科学家组成的团队，负责获取和发展我们在数十亿美元规模的在线广告业务中的客户。
 
 我将与大家分享我最初是如何开始从事数据科学工作的。
 

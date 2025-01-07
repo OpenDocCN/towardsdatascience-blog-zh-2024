@@ -1,20 +1,20 @@
 # 好的、坏的和丑的：神经网络的记忆
 
-> 原文：[https://towardsdatascience.com/the-good-the-bad-an-ugly-memory-for-a-neural-network-bac1f79e8dfd?source=collection_archive---------6-----------------------#2024-12-17](https://towardsdatascience.com/the-good-the-bad-an-ugly-memory-for-a-neural-network-bac1f79e8dfd?source=collection_archive---------6-----------------------#2024-12-17)
+> 原文：[`towardsdatascience.com/the-good-the-bad-an-ugly-memory-for-a-neural-network-bac1f79e8dfd?source=collection_archive---------6-----------------------#2024-12-17`](https://towardsdatascience.com/the-good-the-bad-an-ugly-memory-for-a-neural-network-bac1f79e8dfd?source=collection_archive---------6-----------------------#2024-12-17)
 
 ## |人工智能|记忆|神经网络|学习|
 
 ## 记忆可能会耍花招；要学得最好，记忆并不总是有效的
 
-[](https://salvatore-raieli.medium.com/?source=post_page---byline--bac1f79e8dfd--------------------------------)[![Salvatore Raieli](../Images/6bb4520e2df40d20283e7283141b5e06.png)](https://salvatore-raieli.medium.com/?source=post_page---byline--bac1f79e8dfd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bac1f79e8dfd--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bac1f79e8dfd--------------------------------) [Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--bac1f79e8dfd--------------------------------)
+[](https://salvatore-raieli.medium.com/?source=post_page---byline--bac1f79e8dfd--------------------------------)![Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--bac1f79e8dfd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bac1f79e8dfd--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bac1f79e8dfd--------------------------------) [Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--bac1f79e8dfd--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bac1f79e8dfd--------------------------------) ·12分钟阅读·2024年12月17日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bac1f79e8dfd--------------------------------) ·12 分钟阅读·2024 年 12 月 17 日
 
 --
 
-![](../Images/b0b6fc0d8316c04da45469a33f2812a6.png)
+![](img/b0b6fc0d8316c04da45469a33f2812a6.png)
 
-由作者使用DALL-E生成的图像
+由作者使用 DALL-E 生成的图像
 
 > 没有人有足够好的记忆力，能够成为一个成功的骗子。——亚伯拉罕·林肯
 > 

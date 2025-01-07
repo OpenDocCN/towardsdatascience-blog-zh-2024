@@ -1,20 +1,20 @@
 # 在树莓派上使用 Stable Diffusion 和 OnnxStream 生成图像
 
-> 原文：[https://towardsdatascience.com/generating-images-with-stable-diffusion-and-onnxstream-on-the-raspberry-pi-f126636b6c0c?source=collection_archive---------4-----------------------#2024-01-20](https://towardsdatascience.com/generating-images-with-stable-diffusion-and-onnxstream-on-the-raspberry-pi-f126636b6c0c?source=collection_archive---------4-----------------------#2024-01-20)
+> 原文：[`towardsdatascience.com/generating-images-with-stable-diffusion-and-onnxstream-on-the-raspberry-pi-f126636b6c0c?source=collection_archive---------4-----------------------#2024-01-20`](https://towardsdatascience.com/generating-images-with-stable-diffusion-and-onnxstream-on-the-raspberry-pi-f126636b6c0c?source=collection_archive---------4-----------------------#2024-01-20)
 
 ## **学习如何使用 OnnxStream 在树莓派上生成图像，利用 Stable Diffusion XL Turbo！**
 
-[](https://medium.com/@pyesonekyaw?source=post_page---byline--f126636b6c0c--------------------------------)[![Pye Sone Kyaw](../Images/907574a7d2de57a4cc0ce36d73234a7a.png)](https://medium.com/@pyesonekyaw?source=post_page---byline--f126636b6c0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f126636b6c0c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f126636b6c0c--------------------------------) [Pye Sone Kyaw](https://medium.com/@pyesonekyaw?source=post_page---byline--f126636b6c0c--------------------------------)
+[](https://medium.com/@pyesonekyaw?source=post_page---byline--f126636b6c0c--------------------------------)![Pye Sone Kyaw](https://medium.com/@pyesonekyaw?source=post_page---byline--f126636b6c0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f126636b6c0c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f126636b6c0c--------------------------------) [Pye Sone Kyaw](https://medium.com/@pyesonekyaw?source=post_page---byline--f126636b6c0c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f126636b6c0c--------------------------------) ·5 分钟阅读·2024年1月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f126636b6c0c--------------------------------) ·5 分钟阅读·2024 年 1 月 20 日
 
 --
 
-![](../Images/9dea536f7bcfc9ad472de762c24c95ad.png)
+![](img/9dea536f7bcfc9ad472de762c24c95ad.png)
 
 使用 SDXL Turbo 在树莓派上生成的图像，每张大约需要 3 分钟 | 来源：作者
 
-[在我上一篇文章中，我分享了如何在树莓派上运行大型语言模型和视觉语言模型](/running-local-llms-and-vlms-on-the-raspberry-pi-57bd0059c41a)。这一次，我们不使用 LLMs 和 VLMs，而是运行一个图像生成模型 —— [Stable Diffusion XL (SDXL) Turbo](https://stability.ai/news/stability-ai-sdxl-turbo) —— 在树莓派 5 上。这听起来像是一个不可能完成的壮举，但开源的奇迹确实存在，在资源极为有限的环境中运行 SDXL Turbo 模型就是其中之一。
+在我上一篇文章中，我分享了如何在树莓派上运行大型语言模型和视觉语言模型。这一次，我们不使用 LLMs 和 VLMs，而是运行一个图像生成模型 —— [Stable Diffusion XL (SDXL) Turbo](https://stability.ai/news/stability-ai-sdxl-turbo) —— 在树莓派 5 上。这听起来像是一个不可能完成的壮举，但开源的奇迹确实存在，在资源极为有限的环境中运行 SDXL Turbo 模型就是其中之一。
 
 # **OnnxStream**
 
@@ -34,7 +34,7 @@
 
 +   需要互联网连接
 
-![](../Images/e96b30f0366c093aa74449de91faba28.png)
+![](img/e96b30f0366c093aa74449de91faba28.png)
 
 在树莓派上通过单步扩散生成的图像 | 来源：作者
 
@@ -72,7 +72,7 @@ cmake -DMAX_SPEED=ON -DXNNPACK_DIR=<DIRECTORY_WHERE_XNNPACK_WAS_CLONED> ..
 cmake --build . --config Release
 ```
 
-确保将<DIRECTORY_WHERE_XNNPACK_WAS_CLONED>替换为XNNPack克隆路径（不是构建文件夹）。在我的例子中，它位于 /home/admin/XNNPACK/。
+确保将<DIRECTORY_WHERE_XNNPACK_WAS_CLONED>替换为 XNNPack 克隆路径（不是构建文件夹）。在我的例子中，它位于 /home/admin/XNNPACK/。
 
 ## **3\. 下载模型权重**
 
@@ -104,30 +104,30 @@ cd ~/OnnxStream/src/build/
 
 所需的参数将根据使用的模型类型而变化，因此请查看[OnnxStream 的 GitHub 仓库](https://github.com/vitoplantamura/OnnxStream#how-to-build-the-stable-diffusion-example-on-linuxmacwindowstermux)，了解如果你使用的是非 SDXL Turbo 的模型所需传递的完整参数列表。
 
-![](../Images/c6bae00f3eaaaede4564ee9063047aad.png)
+![](img/c6bae00f3eaaaede4564ee9063047aad.png)
 
 你应该会得到类似这样的输出 | 来源：作者
 
-如上图所示，在树莓派5上，每个扩散步骤大约需要1分钟，总体加上预处理和解码，生成一张图像大约需要3分钟。
+如上图所示，在树莓派 5 上，每个扩散步骤大约需要 1 分钟，总体加上预处理和解码，生成一张图像大约需要 3 分钟。
 
-![](../Images/a016aa96a094a749b8c3aac1a8ac117d.png)
+![](img/a016aa96a094a749b8c3aac1a8ac117d.png)
 
-使用相同种子和提示，分别经过1、2、5和10步生成的图像 | 来源：作者
+使用相同种子和提示，分别经过 1、2、5 和 10 步生成的图像 | 来源：作者
 
-这是从第1步到第10步，相同种子和提示下生成的图像对比和进展。你可以看到，即使只是经过一步的优化，生成的图像已经非常精美。这与SDXL或SD1.5不同，后者需要更多的步骤才能达到这样的质量。
+这是从第 1 步到第 10 步，相同种子和提示下生成的图像对比和进展。你可以看到，即使只是经过一步的优化，生成的图像已经非常精美。这与 SDXL 或 SD1.5 不同，后者需要更多的步骤才能达到这样的质量。
 
 # **结论**
 
 由于生成一张图像大约需要几分钟时间，因此关于它的使用场景问题不容忽视。
 
-![](../Images/b138fcad68e649f781cde62d61d153ab.png)
+![](img/b138fcad68e649f781cde62d61d153ab.png)
 
-必不可少的我的树莓派5照片 | 来源：作者
+必不可少的我的树莓派 5 照片 | 来源：作者
 
-对我来说，最明显和有趣的使用场景是一个不断变化的照片框架，每隔几分钟生成一张新图像。实际上，有一个[类似的项目](https://github.com/rvdveen/epaper-slow-generative-art)，由GitHub上的rvdveen开发，使用OnnxStream，通过树莓派Zero 2 W生成新闻文章的图像，并通过电子墨水显示器显示在照片框架上。使用SD1.5生成图像大约需要5小时，但嘿，你不需要照片框架实时更换显示的内容。
+对我来说，最明显和有趣的使用场景是一个不断变化的照片框架，每隔几分钟生成一张新图像。实际上，有一个[类似的项目](https://github.com/rvdveen/epaper-slow-generative-art)，由 GitHub 上的 rvdveen 开发，使用 OnnxStream，通过树莓派 Zero 2 W 生成新闻文章的图像，并通过电子墨水显示器显示在照片框架上。使用 SD1.5 生成图像大约需要 5 小时，但嘿，你不需要照片框架实时更换显示的内容。
 
 或许你只是想要一个本地托管的图像生成器，它可以在不占用网络上主要计算设备的情况下生成高质量的图像。
 
-在树莓派上玩SDXL Turbo，玩得开心！
+在树莓派上玩 SDXL Turbo，玩得开心！
 
-**免责声明**：我与OnnxStream或StabilityAI没有任何关联。所有观点和意见均为我个人的，并不代表任何组织。
+**免责声明**：我与 OnnxStream 或 StabilityAI 没有任何关联。所有观点和意见均为我个人的，并不代表任何组织。

@@ -1,22 +1,22 @@
 # 将简单线性回归剖析到最基础的层面
 
-> 原文：[https://towardsdatascience.com/mlbasics-simple-linear-regression-machine-learning-algorithm-predict-programming-8d83cac9873a?source=collection_archive---------2-----------------------#2024-01-14](https://towardsdatascience.com/mlbasics-simple-linear-regression-machine-learning-algorithm-predict-programming-8d83cac9873a?source=collection_archive---------2-----------------------#2024-01-14)
+> 原文：[`towardsdatascience.com/mlbasics-simple-linear-regression-machine-learning-algorithm-predict-programming-8d83cac9873a?source=collection_archive---------2-----------------------#2024-01-14`](https://towardsdatascience.com/mlbasics-simple-linear-regression-machine-learning-algorithm-predict-programming-8d83cac9873a?source=collection_archive---------2-----------------------#2024-01-14)
 
 ## MLBasics #1：用简单线性回归揭开机器学习算法的神秘面纱
 
-[](https://medium.com/@rfeers?source=post_page---byline--8d83cac9873a--------------------------------)[![Josep Ferrer](../Images/dee7e2248a813eb2da5847efee159330.png)](https://medium.com/@rfeers?source=post_page---byline--8d83cac9873a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8d83cac9873a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8d83cac9873a--------------------------------) [Josep Ferrer](https://medium.com/@rfeers?source=post_page---byline--8d83cac9873a--------------------------------)
+[](https://medium.com/@rfeers?source=post_page---byline--8d83cac9873a--------------------------------)![Josep Ferrer](https://medium.com/@rfeers?source=post_page---byline--8d83cac9873a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8d83cac9873a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8d83cac9873a--------------------------------) [Josep Ferrer](https://medium.com/@rfeers?source=post_page---byline--8d83cac9873a--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8d83cac9873a--------------------------------) ·阅读时长8分钟·2024年1月14日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8d83cac9873a--------------------------------) ·阅读时长 8 分钟·2024 年 1 月 14 日
 
 --
 
-![](../Images/dae9d1d94041716612d52c8171e4d86c.png)
+![](img/dae9d1d94041716612d52c8171e4d86c.png)
 
 图片由作者提供。ML Basics。简单线性回归。
 
 在数据和计算机程序的世界里，机器学习的概念可能听起来像一个难以破解的难题，充满了复杂的数学和复杂的思想。
 
-这就是为什么今天我想放慢脚步，看看使这一切运作的基本内容。我将开始发布一系列新的文章，名为MLBasics。
+这就是为什么今天我想放慢脚步，看看使这一切运作的基本内容。我将开始发布一系列新的文章，名为 MLBasics。
 
 我们将回顾那些简单却至关重要的模型，它们是机器学习的基本组成部分。可以把它看作是从一个大拼图中开始，从最简单的部分入手。我们回归到简单的内容，在这里很容易理解发生了什么。
 

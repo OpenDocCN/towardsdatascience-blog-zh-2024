@@ -1,16 +1,16 @@
 # 成功之路：如何获得机器学习和数据科学实习机会
 
-> 原文：[https://towardsdatascience.com/your-pathway-to-success-how-you-can-land-a-machine-learning-and-data-science-internship-c14825b58420?source=collection_archive---------6-----------------------#2024-09-04](https://towardsdatascience.com/your-pathway-to-success-how-you-can-land-a-machine-learning-and-data-science-internship-c14825b58420?source=collection_archive---------6-----------------------#2024-09-04)
+> 原文：[`towardsdatascience.com/your-pathway-to-success-how-you-can-land-a-machine-learning-and-data-science-internship-c14825b58420?source=collection_archive---------6-----------------------#2024-09-04`](https://towardsdatascience.com/your-pathway-to-success-how-you-can-land-a-machine-learning-and-data-science-internship-c14825b58420?source=collection_archive---------6-----------------------#2024-09-04)
 
 ## 来自一位在一年内成功获得两次实习机会的数据科学家的建议和技巧
 
-[](https://medium.com/@saranobregafn?source=post_page---byline--c14825b58420--------------------------------)[![Sara Nóbrega](../Images/0cc9fafe4cfda6f38148d169b9055e29.png)](https://medium.com/@saranobregafn?source=post_page---byline--c14825b58420--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c14825b58420--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c14825b58420--------------------------------) [Sara Nóbrega](https://medium.com/@saranobregafn?source=post_page---byline--c14825b58420--------------------------------)
+[](https://medium.com/@saranobregafn?source=post_page---byline--c14825b58420--------------------------------)![Sara Nóbrega](https://medium.com/@saranobregafn?source=post_page---byline--c14825b58420--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c14825b58420--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c14825b58420--------------------------------) [Sara Nóbrega](https://medium.com/@saranobregafn?source=post_page---byline--c14825b58420--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c14825b58420--------------------------------) ·14分钟阅读·2024年9月4日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c14825b58420--------------------------------) ·14 分钟阅读·2024 年 9 月 4 日
 
 --
 
-![](../Images/fc2ec53b0032c4660d05cb49c31a11c7.png)
+![](img/fc2ec53b0032c4660d05cb49c31a11c7.png)
 
 来源：Dall-E。
 

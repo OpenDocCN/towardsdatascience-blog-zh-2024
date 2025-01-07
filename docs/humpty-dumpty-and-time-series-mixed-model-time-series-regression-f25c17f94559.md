@@ -1,16 +1,16 @@
 # 时间序列回归的混合模型
 
-> 原文：[https://towardsdatascience.com/humpty-dumpty-and-time-series-mixed-model-time-series-regression-f25c17f94559?source=collection_archive---------4-----------------------#2024-01-13](https://towardsdatascience.com/humpty-dumpty-and-time-series-mixed-model-time-series-regression-f25c17f94559?source=collection_archive---------4-----------------------#2024-01-13)
+> 原文：[`towardsdatascience.com/humpty-dumpty-and-time-series-mixed-model-time-series-regression-f25c17f94559?source=collection_archive---------4-----------------------#2024-01-13`](https://towardsdatascience.com/humpty-dumpty-and-time-series-mixed-model-time-series-regression-f25c17f94559?source=collection_archive---------4-----------------------#2024-01-13)
 
 ## 使用多种模型形式来捕捉并预测复杂时间序列的各个组成部分
 
-[](https://bradley-stephen-shaw.medium.com/?source=post_page---byline--f25c17f94559--------------------------------)[![Bradley Stephen Shaw](../Images/b3ef5e6e292083ff0f8523ec5ffe89f0.png)](https://bradley-stephen-shaw.medium.com/?source=post_page---byline--f25c17f94559--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f25c17f94559--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f25c17f94559--------------------------------) [Bradley Stephen Shaw](https://bradley-stephen-shaw.medium.com/?source=post_page---byline--f25c17f94559--------------------------------)
+[](https://bradley-stephen-shaw.medium.com/?source=post_page---byline--f25c17f94559--------------------------------)![Bradley Stephen Shaw](https://bradley-stephen-shaw.medium.com/?source=post_page---byline--f25c17f94559--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f25c17f94559--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f25c17f94559--------------------------------) [Bradley Stephen Shaw](https://bradley-stephen-shaw.medium.com/?source=post_page---byline--f25c17f94559--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f25c17f94559--------------------------------) ·16分钟阅读·2024年1月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f25c17f94559--------------------------------) ·16 分钟阅读·2024 年 1 月 13 日
 
 --
 
-![](../Images/ea42597212f839d8fbe30668a57a77bf.png)
+![](img/ea42597212f839d8fbe30668a57a77bf.png)
 
 照片由[Hunter Haley](https://unsplash.com/@hnhmarketing?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

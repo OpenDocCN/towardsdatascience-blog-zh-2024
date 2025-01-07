@@ -1,16 +1,16 @@
 # 泰勒级数，解释
 
-> 原文：[https://towardsdatascience.com/the-taylor-series-explained-7e2c07c6808f?source=collection_archive---------3-----------------------#2024-09-11](https://towardsdatascience.com/the-taylor-series-explained-7e2c07c6808f?source=collection_archive---------3-----------------------#2024-09-11)
+> 原文：[`towardsdatascience.com/the-taylor-series-explained-7e2c07c6808f?source=collection_archive---------3-----------------------#2024-09-11`](https://towardsdatascience.com/the-taylor-series-explained-7e2c07c6808f?source=collection_archive---------3-----------------------#2024-09-11)
 
 ## 函数逼近的方法
 
-[](https://medium.com/@xichu.zhang?source=post_page---byline--7e2c07c6808f--------------------------------)[![Xichu Zhang](../Images/fd29a733931978e3cf880a08a4a56d15.png)](https://medium.com/@xichu.zhang?source=post_page---byline--7e2c07c6808f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7e2c07c6808f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7e2c07c6808f--------------------------------) [Xichu Zhang](https://medium.com/@xichu.zhang?source=post_page---byline--7e2c07c6808f--------------------------------)
+[](https://medium.com/@xichu.zhang?source=post_page---byline--7e2c07c6808f--------------------------------)![Xichu Zhang](https://medium.com/@xichu.zhang?source=post_page---byline--7e2c07c6808f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7e2c07c6808f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e2c07c6808f--------------------------------) [Xichu Zhang](https://medium.com/@xichu.zhang?source=post_page---byline--7e2c07c6808f--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e2c07c6808f--------------------------------) ·17分钟阅读·2024年9月11日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e2c07c6808f--------------------------------) ·17 分钟阅读·2024 年 9 月 11 日
 
 --
 
-![](../Images/a9748f78fbacbd8ee50d1a7b66ccdbb2.png)
+![](img/a9748f78fbacbd8ee50d1a7b66ccdbb2.png)
 
 作者提供的图片
 

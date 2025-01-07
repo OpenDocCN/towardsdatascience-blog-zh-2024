@@ -1,16 +1,16 @@
-# 从Sphinx切换到MkDocs文档 —— 我得到了什么，失去了什么？
+# 从 Sphinx 切换到 MkDocs 文档 —— 我得到了什么，失去了什么？
 
-> 原文：[https://towardsdatascience.com/switching-from-sphinx-to-mkdocs-documentation-what-did-i-gain-and-lose-04080338ad38?source=collection_archive---------9-----------------------#2024-02-02](https://towardsdatascience.com/switching-from-sphinx-to-mkdocs-documentation-what-did-i-gain-and-lose-04080338ad38?source=collection_archive---------9-----------------------#2024-02-02)
+> 原文：[`towardsdatascience.com/switching-from-sphinx-to-mkdocs-documentation-what-did-i-gain-and-lose-04080338ad38?source=collection_archive---------9-----------------------#2024-02-02`](https://towardsdatascience.com/switching-from-sphinx-to-mkdocs-documentation-what-did-i-gain-and-lose-04080338ad38?source=collection_archive---------9-----------------------#2024-02-02)
 
 ## 关于执行此切换的指南，以及它们之间的比较
 
-[](https://kayjanwong.medium.com/?source=post_page---byline--04080338ad38--------------------------------)[![Kay Jan Wong](../Images/28e803eca6327d97b6aa97ee4095d7bd.png)](https://kayjanwong.medium.com/?source=post_page---byline--04080338ad38--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04080338ad38--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--04080338ad38--------------------------------) [Kay Jan Wong](https://kayjanwong.medium.com/?source=post_page---byline--04080338ad38--------------------------------)
+[](https://kayjanwong.medium.com/?source=post_page---byline--04080338ad38--------------------------------)![Kay Jan Wong](https://kayjanwong.medium.com/?source=post_page---byline--04080338ad38--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04080338ad38--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04080338ad38--------------------------------) [Kay Jan Wong](https://kayjanwong.medium.com/?source=post_page---byline--04080338ad38--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04080338ad38--------------------------------) ·11分钟阅读·2024年2月2日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04080338ad38--------------------------------) ·11 分钟阅读·2024 年 2 月 2 日
 
 --
 
-![](../Images/1a331c257915b007b5798901def47ad5.png)
+![](img/1a331c257915b007b5798901def47ad5.png)
 
 图片由[melanfolia](https://unsplash.com/@melanfolia?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

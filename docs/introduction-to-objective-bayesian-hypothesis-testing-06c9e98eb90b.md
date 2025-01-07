@@ -1,16 +1,16 @@
 # 目标贝叶斯假设检验介绍
 
-> 原文：[https://towardsdatascience.com/introduction-to-objective-bayesian-hypothesis-testing-06c9e98eb90b?source=collection_archive---------6-----------------------#2024-06-11](https://towardsdatascience.com/introduction-to-objective-bayesian-hypothesis-testing-06c9e98eb90b?source=collection_archive---------6-----------------------#2024-06-11)
+> 原文：[`towardsdatascience.com/introduction-to-objective-bayesian-hypothesis-testing-06c9e98eb90b?source=collection_archive---------6-----------------------#2024-06-11`](https://towardsdatascience.com/introduction-to-objective-bayesian-hypothesis-testing-06c9e98eb90b?source=collection_archive---------6-----------------------#2024-06-11)
 
 ## 如何利用默认贝叶斯因子推导假设的后验概率
 
-[](https://medium.com/@ryan.burn?source=post_page---byline--06c9e98eb90b--------------------------------)[![Ryan Burn](../Images/5d45aa3c86bbcd5f30e92f2cb6a484f6.png)](https://medium.com/@ryan.burn?source=post_page---byline--06c9e98eb90b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--06c9e98eb90b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--06c9e98eb90b--------------------------------) [Ryan Burn](https://medium.com/@ryan.burn?source=post_page---byline--06c9e98eb90b--------------------------------)
+[](https://medium.com/@ryan.burn?source=post_page---byline--06c9e98eb90b--------------------------------)![Ryan Burn](https://medium.com/@ryan.burn?source=post_page---byline--06c9e98eb90b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--06c9e98eb90b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--06c9e98eb90b--------------------------------) [Ryan Burn](https://medium.com/@ryan.burn?source=post_page---byline--06c9e98eb90b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--06c9e98eb90b--------------------------------) ·15 分钟阅读·2024年6月11日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--06c9e98eb90b--------------------------------) ·15 分钟阅读·2024 年 6 月 11 日
 
 --
 
-![](../Images/2fe67ce12a5a87609dc0f3c5bc28eed3.png)
+![](img/2fe67ce12a5a87609dc0f3c5bc28eed3.png)
 
 卡拉马祖精神病医院——Cushny 和 Peebles 进行氟烯丙胺临床试验的地方 [14]
 

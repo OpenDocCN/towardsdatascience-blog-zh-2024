@@ -1,16 +1,16 @@
 # 数据网格中的挑战与解决方案 — 第二部分
 
-> 原文：[https://towardsdatascience.com/challenges-and-solutions-in-data-mesh-part-2-7dfe97aa461a?source=collection_archive---------2-----------------------#2024-05-17](https://towardsdatascience.com/challenges-and-solutions-in-data-mesh-part-2-7dfe97aa461a?source=collection_archive---------2-----------------------#2024-05-17)
+> 原文：[`towardsdatascience.com/challenges-and-solutions-in-data-mesh-part-2-7dfe97aa461a?source=collection_archive---------2-----------------------#2024-05-17`](https://towardsdatascience.com/challenges-and-solutions-in-data-mesh-part-2-7dfe97aa461a?source=collection_archive---------2-----------------------#2024-05-17)
 
 ## “数据作为产品”是数据网格中的核心原则：为什么当前的定义需要调整才能完全支持网格的实施
 
-[](https://medium.com/@bernd.wessely?source=post_page---byline--7dfe97aa461a--------------------------------)[![Bernd Wessely](../Images/e60e01c19412d8af8f8bddf78e561275.png)](https://medium.com/@bernd.wessely?source=post_page---byline--7dfe97aa461a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7dfe97aa461a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7dfe97aa461a--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--7dfe97aa461a--------------------------------)
+[](https://medium.com/@bernd.wessely?source=post_page---byline--7dfe97aa461a--------------------------------)![Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--7dfe97aa461a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7dfe97aa461a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7dfe97aa461a--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--7dfe97aa461a--------------------------------)
 
-·发布于[面向数据科学](https://towardsdatascience.com/?source=post_page---byline--7dfe97aa461a--------------------------------) ·阅读时间：12分钟·2024年5月17日
+·发布于[面向数据科学](https://towardsdatascience.com/?source=post_page---byline--7dfe97aa461a--------------------------------) ·阅读时间：12 分钟·2024 年 5 月 17 日
 
 --
 
-![](../Images/eb831b1add8d36d6aabc1bffbeea9eb1.png)
+![](img/eb831b1add8d36d6aabc1bffbeea9eb1.png)
 
 图片由[Luke Chesser](https://unsplash.com/@lukechesser?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

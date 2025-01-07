@@ -1,22 +1,22 @@
 # 使用高级检索 LlamaPacks 启动您的 RAG 流水线，并通过 Lighthouz AI 进行基准测试
 
-> 原文：[https://towardsdatascience.com/jump-start-your-rag-pipelines-with-advanced-retrieval-llamapacks-and-benchmark-with-lighthouz-ai-80a09b7c7d9d?source=collection_archive---------4-----------------------#2024-01-29](https://towardsdatascience.com/jump-start-your-rag-pipelines-with-advanced-retrieval-llamapacks-and-benchmark-with-lighthouz-ai-80a09b7c7d9d?source=collection_archive---------4-----------------------#2024-01-29)
+> 原文：[`towardsdatascience.com/jump-start-your-rag-pipelines-with-advanced-retrieval-llamapacks-and-benchmark-with-lighthouz-ai-80a09b7c7d9d?source=collection_archive---------4-----------------------#2024-01-29`](https://towardsdatascience.com/jump-start-your-rag-pipelines-with-advanced-retrieval-llamapacks-and-benchmark-with-lighthouz-ai-80a09b7c7d9d?source=collection_archive---------4-----------------------#2024-01-29)
 
 ## 探索使用 LlamaPacks、Lighthouz AI 和 Llama Guard 开发强大的 RAG
 
-[](https://medium.com/@wenqiglantz?source=post_page---byline--80a09b7c7d9d--------------------------------)[![Wenqi Glantz](../Images/65b518863e01aaa48ecc6b8ac6d1be60.png)](https://medium.com/@wenqiglantz?source=post_page---byline--80a09b7c7d9d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--80a09b7c7d9d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--80a09b7c7d9d--------------------------------) [Wenqi Glantz](https://medium.com/@wenqiglantz?source=post_page---byline--80a09b7c7d9d--------------------------------)
+[](https://medium.com/@wenqiglantz?source=post_page---byline--80a09b7c7d9d--------------------------------)![Wenqi Glantz](https://medium.com/@wenqiglantz?source=post_page---byline--80a09b7c7d9d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--80a09b7c7d9d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--80a09b7c7d9d--------------------------------) [Wenqi Glantz](https://medium.com/@wenqiglantz?source=post_page---byline--80a09b7c7d9d--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--80a09b7c7d9d--------------------------------) ·12分钟阅读·2024年1月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--80a09b7c7d9d--------------------------------) ·12 分钟阅读·2024 年 1 月 29 日
 
 --
 
-![](../Images/6d7f462c37ab95873598eb26946fee1f.png)
+![](img/6d7f462c37ab95873598eb26946fee1f.png)
 
 由作者使用 DALL-E 3 生成的图片
 
-自2023年11月下旬发布以来，LlamaPacks 已策划了超过50个包，帮助启动您的 RAG 流水线开发。在这些包中，许多高级检索包应运而生。在本文中，我们将深入探讨七个高级检索包；请参见下方的图表。
+自 2023 年 11 月下旬发布以来，LlamaPacks 已策划了超过 50 个包，帮助启动您的 RAG 流水线开发。在这些包中，许多高级检索包应运而生。在本文中，我们将深入探讨七个高级检索包；请参见下方的图表。
 
-![](../Images/e7ce4ad372f0c68941c78249d9f7c823.png)
+![](img/e7ce4ad372f0c68941c78249d9f7c823.png)
 
 图片来源：[LlamaIndex 关于七个高级检索 LlamaPacks 的推文](https://twitter.com/llama_index/status/1729303619760259463)
 

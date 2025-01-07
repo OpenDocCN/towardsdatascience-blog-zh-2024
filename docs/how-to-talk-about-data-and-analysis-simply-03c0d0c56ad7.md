@@ -1,16 +1,16 @@
 # 如何简明扼要地讨论数据和分析
 
-> 原文：[https://towardsdatascience.com/how-to-talk-about-data-and-analysis-simply-03c0d0c56ad7?source=collection_archive---------2-----------------------#2024-10-08](https://towardsdatascience.com/how-to-talk-about-data-and-analysis-simply-03c0d0c56ad7?source=collection_archive---------2-----------------------#2024-10-08)
+> 原文：[`towardsdatascience.com/how-to-talk-about-data-and-analysis-simply-03c0d0c56ad7?source=collection_archive---------2-----------------------#2024-10-08`](https://towardsdatascience.com/how-to-talk-about-data-and-analysis-simply-03c0d0c56ad7?source=collection_archive---------2-----------------------#2024-10-08)
 
 ## 让它变得对（几乎）每个人都能理解并且引人入胜
 
-[](https://medium.com/@michalszudejko?source=post_page---byline--03c0d0c56ad7--------------------------------)[![Michal Szudejko](../Images/d4c303d02a79ad29df193ed3b25910d9.png)](https://medium.com/@michalszudejko?source=post_page---byline--03c0d0c56ad7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03c0d0c56ad7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--03c0d0c56ad7--------------------------------) [Michal Szudejko](https://medium.com/@michalszudejko?source=post_page---byline--03c0d0c56ad7--------------------------------)
+[](https://medium.com/@michalszudejko?source=post_page---byline--03c0d0c56ad7--------------------------------)![Michal Szudejko](https://medium.com/@michalszudejko?source=post_page---byline--03c0d0c56ad7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03c0d0c56ad7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03c0d0c56ad7--------------------------------) [Michal Szudejko](https://medium.com/@michalszudejko?source=post_page---byline--03c0d0c56ad7--------------------------------)
 
-·发布于[《Towards Data Science》](https://towardsdatascience.com/?source=post_page---byline--03c0d0c56ad7--------------------------------) ·17分钟阅读·2024年10月8日
+·发布于[《Towards Data Science》](https://towardsdatascience.com/?source=post_page---byline--03c0d0c56ad7--------------------------------) ·17 分钟阅读·2024 年 10 月 8 日
 
 --
 
-![](../Images/994b39840ca448670438f7507878ce2f.png)
+![](img/994b39840ca448670438f7507878ce2f.png)
 
 **感到不知所措？幸运的是，这不是我的后院:).** 来源：图片由作者提供。
 

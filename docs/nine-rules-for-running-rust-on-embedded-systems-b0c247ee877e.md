@@ -1,95 +1,95 @@
-# 在嵌入式系统上运行Rust的九条规则
+# 在嵌入式系统上运行 Rust 的九条规则
 
-> 原文：[https://towardsdatascience.com/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e?source=collection_archive---------0-----------------------#2024-10-13](https://towardsdatascience.com/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e?source=collection_archive---------0-----------------------#2024-10-13)
+> 原文：[`towardsdatascience.com/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e?source=collection_archive---------0-----------------------#2024-10-13`](https://towardsdatascience.com/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e?source=collection_archive---------0-----------------------#2024-10-13)
 
 ## 将`range-set-blaze`移植到`no_std`的实践经验
 
-[](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)[![Carl M. Kadie](../Images/9dbe27c76e9567136e5a7dc587f1fb15.png)](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------) [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)
+[](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)![Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------) [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------) ·阅读时长：16分钟·2024年10月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------) ·阅读时长：16 分钟·2024 年 10 月 13 日
 
 --
 
-![](../Images/c3cbaa1585fa74c08e577624b2a2e707.png)
+![](img/c3cbaa1585fa74c08e577624b2a2e707.png)
 
-Rust在嵌入式设备上的运行 — 来源：[https://openai.com/dall-e-2/](https://openai.com/dall-e-2/)。所有其他图示来自作者。
+Rust 在嵌入式设备上的运行 — 来源：[`openai.com/dall-e-2/`](https://openai.com/dall-e-2/)。所有其他图示来自作者。
 
-你想让你的Rust代码可以在各种设备上运行——从大型服务器到网页、机器人，甚至是手表吗？在这篇三部分系列文章的最后一篇中[[1](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a), [2](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1), [3](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)]，我们将看到如何使用Rust在嵌入式设备上运行，方法是使用`no_std`。
+你想让你的 Rust 代码可以在各种设备上运行——从大型服务器到网页、机器人，甚至是手表吗？在这篇三部分系列文章的最后一篇中[[1](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a), [2](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1), [3](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)]，我们将看到如何使用 Rust 在嵌入式设备上运行，方法是使用`no_std`。
 
-将你的Rust项目移植到`no_std`环境，可以让你面向微控制器和深度嵌入式系统，从而为资源受限的环境创建高效的软件。例如，我使用即将发布的`range-set-blaze`版本，创建了一个LED动画序列和合成器，该软件在Raspberry Pi Pico上运行：
+将你的 Rust 项目移植到`no_std`环境，可以让你面向微控制器和深度嵌入式系统，从而为资源受限的环境创建高效的软件。例如，我使用即将发布的`range-set-blaze`版本，创建了一个 LED 动画序列和合成器，该软件在 Raspberry Pi Pico 上运行：
 
-1分钟的视频展示了在Pico上的LED动画
+1 分钟的视频展示了在 Pico 上的 LED 动画
 
-在没有标准库的情况下运行Rust会带来独特的挑战。由于没有操作系统的支持，一些功能，如文件I/O、网络连接，甚至有时动态内存分配都不可用。在本文中，我们将探讨一些实用的策略，以克服这些限制。
+在没有标准库的情况下运行 Rust 会带来独特的挑战。由于没有操作系统的支持，一些功能，如文件 I/O、网络连接，甚至有时动态内存分配都不可用。在本文中，我们将探讨一些实用的策略，以克服这些限制。
 
-将Rust移植到`no_std`环境需要仔细的步骤和选择，任何一步遗漏都可能导致失败。我们将通过遵循这九条规则来简化这一过程，接下来我们将详细探讨这些规则：
+将 Rust 移植到`no_std`环境需要仔细的步骤和选择，任何一步遗漏都可能导致失败。我们将通过遵循这九条规则来简化这一过程，接下来我们将详细探讨这些规则：
 
-1.  确保你的项目在WASM WASI和浏览器中的WASM环境下能够正常工作。
+1.  确保你的项目在 WASM WASI 和浏览器中的 WASM 环境下能够正常工作。
 
 1.  使用目标 `thumbv7m-none-eabi` 和 `cargo tree` 来识别和修复与 `no_std` 不兼容的依赖项。
 
 1.  标记主（非测试）代码为 `no_std` 和 `alloc`。将 `std::` 替换为 `core::` 和 `alloc::`。
 
-1.  使用Cargo功能使你的主代码能够选择性地使用 `std` 来处理文件相关功能（等）。
+1.  使用 Cargo 功能使你的主代码能够选择性地使用 `std` 来处理文件相关功能（等）。
 
 1.  了解为什么测试代码总是使用标准库。
 
-1.  创建一个简单的嵌入式测试项目。通过QEMU运行它。
+1.  创建一个简单的嵌入式测试项目。通过 QEMU 运行它。
 
-1.  在 `Cargo.toml` 中添加适用于WASM和 `no_std` 的关键字和类别。
+1.  在 `Cargo.toml` 中添加适用于 WASM 和 `no_std` 的关键字和类别。
 
 1.  [可选] 使用预分配数据类型以避免 `alloc`。
 
-1.  将 `thumbv7m-none-eabi` 和 QEMU 添加到你的CI（持续集成）测试中。
+1.  将 `thumbv7m-none-eabi` 和 QEMU 添加到你的 CI（持续集成）测试中。
 
-> 附注：这些文章基于我在[RustConf24](https://rustconf.com/programs/#755)上于蒙特利尔主持的一个三小时工作坊。感谢所有参与该工作坊的人员。特别感谢来自西雅图Rust Meetup的志愿者们，他们帮助测试了这份材料。这些文章更新了我去年撰写的[一篇文章](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-the-web-and-on-embedded-94462ef249a2)中的信息。
+> 附注：这些文章基于我在[RustConf24](https://rustconf.com/programs/#755)上于蒙特利尔主持的一个三小时工作坊。感谢所有参与该工作坊的人员。特别感谢来自西雅图 Rust Meetup 的志愿者们，他们帮助测试了这份材料。这些文章更新了我去年撰写的[一篇文章](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-the-web-and-on-embedded-94462ef249a2)中的信息。
 
 和本系列中的[第一篇](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)和[第二篇](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)文章一样，在逐条讲解规则之前，我们先来定义一些术语。
 
 +   **本地环境：** 你的主操作系统（Linux，Windows，macOS）
 
-+   **标准库 (std)**：提供Rust的核心功能——`Vec`，`String`，文件输入/输出，网络，时间处理。
++   **标准库 (std)**：提供 Rust 的核心功能——`Vec`，`String`，文件输入/输出，网络，时间处理。
 
 +   **WASM**：WebAssembly（WASM）是一种二进制指令格式，能够在大多数浏览器中运行（以及更广泛的环境中）。
 
-+   **WASI**：WebAssembly系统接口（WASI）允许浏览器外部的WASM访问文件输入/输出、网络（尚未实现）以及时间处理。
++   **WASI**：WebAssembly 系统接口（WASI）允许浏览器外部的 WASM 访问文件输入/输出、网络（尚未实现）以及时间处理。
 
-+   **no_std**：指示Rust程序不使用完整的标准库，使其适用于小型嵌入式设备或资源极其有限的环境。
++   **no_std**：指示 Rust 程序不使用完整的标准库，使其适用于小型嵌入式设备或资源极其有限的环境。
 
 +   **alloc**：在 `no_std` 环境中提供堆内存分配功能（`Vec`，`String` 等），对于动态管理内存至关重要。
 
 基于我在`[range-set-blaze](https://github.com/CarlKCarlK/range-set-blaze)`数据结构项目中的经验，以下是我推荐的决策，每个决策逐一描述。为了避免模糊不清，我将它们作为规则表达出来。
 
-# 规则1：确保你的项目能够与WASM WASI和浏览器中的WASM兼容。
+# 规则 1：确保你的项目能够与 WASM WASI 和浏览器中的 WASM 兼容。
 
-在将Rust代码移植到嵌入式环境之前，请确保它能够在[WASM WASI](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)和[WASM浏览器](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)中成功运行。这些环境暴露了与标准库的脱离相关的问题，并施加了类似嵌入式系统的约束。通过提前解决这些挑战，你将更接近在嵌入式设备上运行你的项目。
+在将 Rust 代码移植到嵌入式环境之前，请确保它能够在[WASM WASI](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)和[WASM 浏览器](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)中成功运行。这些环境暴露了与标准库的脱离相关的问题，并施加了类似嵌入式系统的约束。通过提前解决这些挑战，你将更接近在嵌入式设备上运行你的项目。
 
-> 旁白：如果你不需要让你的项目同时在本地和/或WASM上运行，你可以跳过这一步。不过，你可能会发现之前文章中的一些步骤仍然有用——例如，运行在32位环境下和理解条件编译。
+> 旁白：如果你不需要让你的项目同时在本地和/或 WASM 上运行，你可以跳过这一步。不过，你可能会发现之前文章中的一些步骤仍然有用——例如，运行在 32 位环境下和理解条件编译。
 
-![](../Images/c13b6ccb5fcff21890cb7aa324a1c097.png)
+![](img/c13b6ccb5fcff21890cb7aa324a1c097.png)
 
 我们希望在其中运行代码的环境，可以看作是一个逐步收紧约束的维恩图。
 
-运行以下命令以确认你的代码在WASM WASI和WASM浏览器中都能正常工作：
+运行以下命令以确认你的代码在 WASM WASI 和 WASM 浏览器中都能正常工作：
 
 ```py
 cargo test --target wasm32-wasip1
 cargo test --target wasm32-unknown-unknown 
 ```
 
-如果测试失败或无法运行，请重新查看本系列早期文章中的步骤：[WASM WASI](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)和[WASM浏览器](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)。
+如果测试失败或无法运行，请重新查看本系列早期文章中的步骤：[WASM WASI](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)和[WASM 浏览器](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)。
 
-WASM WASI文章还提供了关于理解Rust目标（规则2）、条件编译（规则4）和Cargo特性（规则6）的关键背景知识。
+WASM WASI 文章还提供了关于理解 Rust 目标（规则 2）、条件编译（规则 4）和 Cargo 特性（规则 6）的关键背景知识。
 
 一旦满足这些前提条件，下一步是看看我们是否能让依赖项在嵌入式系统上工作。
 
-# 规则2：使用目标`thumbv7m-none-eabi`和`cargo tree`来识别和修复与`no_std`不兼容的依赖项。
+# 规则 2：使用目标`thumbv7m-none-eabi`和`cargo tree`来识别和修复与`no_std`不兼容的依赖项。
 
 要检查你的依赖项是否与嵌入式环境兼容，可以为嵌入式目标编译项目。我建议使用`thumbv7m-none-eabi`目标：
 
-+   `thumbv7m` — 代表ARM Cortex-M3微控制器，是一种流行的嵌入式处理器系列。
++   `thumbv7m` — 代表 ARM Cortex-M3 微控制器，是一种流行的嵌入式处理器系列。
 
-+   `none` — 表示没有可用的操作系统（OS）。在Rust中，这通常意味着我们无法依赖标准库（`std`），因此我们使用`no_std`。请记住，标准库提供了诸如`Vec`、`String`、文件输入/输出、网络和时间等核心功能。
++   `none` — 表示没有可用的操作系统（OS）。在 Rust 中，这通常意味着我们无法依赖标准库（`std`），因此我们使用`no_std`。请记住，标准库提供了诸如`Vec`、`String`、文件输入/输出、网络和时间等核心功能。
 
 +   `eabi` — 嵌入式应用程序二进制接口，一种定义嵌入式可执行文件调用约定、数据类型和二进制布局的标准。
 
@@ -104,7 +104,7 @@ cargo check --target thumbv7m-none-eabi
 
 当我在`range-set-blaze`上进行此操作时，遇到了一些关于依赖项的错误，例如：
 
-![](../Images/78e11b0199b7ae21db407aaaf719595f.png)
+![](img/78e11b0199b7ae21db407aaaf719595f.png)
 
 这表明我的项目依赖于`num-traits`，而`num-traits`又依赖于`either`，最终依赖于`std`。
 
@@ -146,7 +146,7 @@ num-traits = { version = "0.2.19", features=["i128"], default-features = false }
 
 关闭 Cargo 特性并不总是足以使你的依赖项兼容 `no_std`。
 
-例如，流行的 `thiserror` 包将 `std` 引入到你的代码中，并且没有提供禁用它的 Cargo 特性。然而，社区已经创建了 `no_std` 替代版本。你可以通过搜索，例如 [https://crates.io/search?q=thiserror+no_std](https://crates.io/search?q=thiserror+no_std)，来找到这些替代版本。
+例如，流行的 `thiserror` 包将 `std` 引入到你的代码中，并且没有提供禁用它的 Cargo 特性。然而，社区已经创建了 `no_std` 替代版本。你可以通过搜索，例如 [`crates.io/search?q=thiserror+no_std`](https://crates.io/search?q=thiserror+no_std)，来找到这些替代版本。
 
 对于 `range-set-blaze`，仍然存在与包 `[gen_ops](https://crates.io/crates/gen_ops)` 相关的问题——这是一个非常方便的包，用于定义操作符如 `+` 和 `&`。该包使用了 `std`，但其实并不需要。我找到了需要的单行更改（使用我们将在规则 3 中讲解的方法）并提交了拉取请求。维护者接受了它，他们发布了更新版本：`0.4.0`。
 
@@ -321,17 +321,17 @@ use std::{format, print, println, vec};
 
 要真正测试没有标准库的代码，你需要使用不依赖于`cargo test`的替代方法。我们将在下一条规则中探讨如何运行`no_std`测试。
 
-# 规则6：创建一个简单的嵌入式测试项目。使用QEMU运行它。
+# 规则 6：创建一个简单的嵌入式测试项目。使用 QEMU 运行它。
 
 你无法在嵌入式环境中运行常规测试。然而，你**可以** — 并且应该 — 至少运行一个嵌入式测试。我的哲学是，即使只有一个测试，也比没有测试要好得多。由于“如果它能编译，它就能工作”通常对`no_std`项目有效，一个（或几个）精心选择的测试可能会非常有效。
 
 > 旁注：有希望以更正常的方式运行嵌入式测试[[1](https://users.rust-lang.org/t/how-to-implement-unit-tests-for-a-project-with-embedded-rust/99768)][[2](https://www.reddit.com/r/rust/comments/1g3i5uh/comment/lrxith4/)]。据我所知，正常的本地测试没有简单的方法。如果有变化，请告诉我，我会更新这一部分内容。
 
-要运行这个测试，我们使用QEMU（快速仿真器，发音为“cue-em-you”），它允许我们在主操作系统（Linux、Windows或macOS）上模拟`thumbv7m-none-eabi`代码。
+要运行这个测试，我们使用 QEMU（快速仿真器，发音为“cue-em-you”），它允许我们在主操作系统（Linux、Windows 或 macOS）上模拟`thumbv7m-none-eabi`代码。
 
-## 安装QEMU。
+## 安装 QEMU。
 
-查看QEMU的[下载页面](https://www.qemu.org/download/)以获取完整信息：
+查看 QEMU 的[下载页面](https://www.qemu.org/download/)以获取完整信息：
 
 **Linux/WSL**
 
@@ -343,9 +343,9 @@ use std::{format, print, println, vec};
 
 **Windows**
 
-+   方法 1：[https://qemu.weilnetz.de/w64](https://qemu.weilnetz.de/w64)。运行安装程序（告诉Windows它是可以的）。将`"C:\Program Files\qemu\"`添加到你的路径中。
++   方法 1：[`qemu.weilnetz.de/w64`](https://qemu.weilnetz.de/w64)。运行安装程序（告诉 Windows 它是可以的）。将`"C:\Program Files\qemu\"`添加到你的路径中。
 
-+   方法 2：从[https://www.msys2.org/](https://www.msys2.org/)安装MSYS2。打开MSYS2 UCRT64终端。`pacman -S mingw-w64-x86_64-qemu`。将`C:\msys64\mingw64\bin\`添加到你的路径中。
++   方法 2：从[`www.msys2.org/`](https://www.msys2.org/)安装 MSYS2。打开 MSYS2 UCRT64 终端。`pacman -S mingw-w64-x86_64-qemu`。将`C:\msys64\mingw64\bin\`添加到你的路径中。
 
 **Mac**
 
@@ -367,7 +367,7 @@ cargo new tests/embedded
 
 这个命令生成一个新的子项目，包括位于`tests/embedded/Cargo.toml`的配置文件。
 
-> 附注**：此命令还会修改您的顶级`Cargo.toml`，将子项目添加到您的工作区。在Rust中，工作区是由顶级`Cargo.toml`中的`[workspace]`部分定义的相关包的集合。工作区中的所有包共享一个`Cargo.lock`文件，确保整个工作区的依赖版本一致。
+> 附注**：此命令还会修改您的顶级`Cargo.toml`，将子项目添加到您的工作区。在 Rust 中，工作区是由顶级`Cargo.toml`中的`[workspace]`部分定义的相关包的集合。工作区中的所有包共享一个`Cargo.lock`文件，确保整个工作区的依赖版本一致。
 
 编辑`tests/embedded/Cargo.toml`使其如下所示，但将`"range-set-blaze"`替换为您顶级项目的名称：
 
@@ -446,7 +446,7 @@ if range_set_blaze.to_string() != "-4..=-3, 100..=103" {
 
 ## 添加支持文件。
 
-在运行测试之前，您必须将两个文件添加到子项目中：来自Cortex-M [快速入门仓库](https://github.com/rust-embedded/cortex-m-quickstart/tree/master)的`build.rs`和`memory.x`文件。
+在运行测试之前，您必须将两个文件添加到子项目中：来自 Cortex-M [快速入门仓库](https://github.com/rust-embedded/cortex-m-quickstart/tree/master)的`build.rs`和`memory.x`文件。
 
 **Linux/WSL/macOS**
 
@@ -474,7 +474,7 @@ runner = "qemu-system-arm -cpu cortex-m3 -machine lm3s6965evb -nographic -semiho
 target = "thumbv7m-none-eabi"
 ```
 
-此配置指示Cargo使用QEMU运行嵌入式代码，并将`thumbv7m-none-eabi`设置为子项目的默认目标。
+此配置指示 Cargo 使用 QEMU 运行嵌入式代码，并将`thumbv7m-none-eabi`设置为子项目的默认目标。
 
 ## 运行测试。
 
@@ -492,13 +492,13 @@ cargo run
 
 您应该看到日志消息，且进程应该无错误退出。在我的例子中，我看到：`"-4..=-3, 100..=103"`。
 
-这些步骤可能看起来需要做很多工作，仅仅是为了运行一个（或几个）测试。然而，这主要是一次性的工作，主要是复制和粘贴。此外，它还使得在CI环境中运行测试成为可能（请参见规则9）。替代方法——声称代码在`no_std`环境中运行良好，而实际上从未在`no_std`中运行过——可能会忽视关键问题。
+这些步骤可能看起来需要做很多工作，仅仅是为了运行一个（或几个）测试。然而，这主要是一次性的工作，主要是复制和粘贴。此外，它还使得在 CI 环境中运行测试成为可能（请参见规则 9）。替代方法——声称代码在`no_std`环境中运行良好，而实际上从未在`no_std`中运行过——可能会忽视关键问题。
 
 下一个规则要简单得多。
 
-# 规则7：在`Cargo.toml`中，为WASM和`no_std`添加关键字和分类。
+# 规则 7：在`Cargo.toml`中，为 WASM 和`no_std`添加关键字和分类。
 
-一旦您的包编译并通过了额外的嵌入式测试，您可能希望将其发布到[crates.io](https://crates.io/)，Rust的包注册表。为了让其他人知道它兼容WASM和`no_std`，请将以下关键字和分类添加到您的`Cargo.toml`文件中：
+一旦您的包编译并通过了额外的嵌入式测试，您可能希望将其发布到[crates.io](https://crates.io/)，Rust 的包注册表。为了让其他人知道它兼容 WASM 和`no_std`，请将以下关键字和分类添加到您的`Cargo.toml`文件中：
 
 ```py
 [package]
@@ -509,7 +509,7 @@ keywords = ["no_std", "wasm"] # + others specific to your package
 
 请注意，对于分类，我们在`no-std`中使用了连字符。对于关键字，`no_std`（带下划线）比`no-std`更常用。您的包最多可以有五个关键字和五个分类。
 
-这里有一个[分类](https://crates.io/categories/)和[关键字](https://crates.io/keywords)的列表，可能会对您有兴趣，并附有每个术语使用的crate数量：
+这里有一个[分类](https://crates.io/categories/)和[关键字](https://crates.io/keywords)的列表，可能会对您有兴趣，并附有每个术语使用的 crate 数量：
 
 +   [分类 no-std](https://crates.io/categories/no-std?sort=downloads)（6884）
 
@@ -545,13 +545,13 @@ keywords = ["no_std", "wasm"] # + others specific to your package
 
 +   降低功耗
 
-有些crate可以帮助你替换像`Vec`、`String`和`HashMap`这样的动态数据结构。这些替代方案通常要求你指定一个最大大小。下表展示了一些常用的crate：
+有些 crate 可以帮助你替换像`Vec`、`String`和`HashMap`这样的动态数据结构。这些替代方案通常要求你指定一个最大大小。下表展示了一些常用的 crate：
 
-![](../Images/4f7714b6900349e2d92b8951535736c8.png)
+![](img/4f7714b6900349e2d92b8951535736c8.png)
 
 我推荐使用`heapless` crate，因为它提供了一系列协同工作的数据结构。
 
-这是一个与LED显示相关的代码示例——使用`heapless`。这段代码创建了一个从字节到整数列表的映射。我们将映射中条目的数量和整数列表的长度限制为`DIGIT_COUNT`（在此例中为4）。
+这是一个与 LED 显示相关的代码示例——使用`heapless`。这段代码创建了一个从字节到整数列表的映射。我们将映射中条目的数量和整数列表的长度限制为`DIGIT_COUNT`（在此例中为 4）。
 
 ```py
 use heapless::{LinearMap, Vec};
@@ -563,19 +563,19 @@ vec.push(index).unwrap();
 map.insert(*byte, vec).unwrap(); // actually copies
 ```
 
-创建一个`no_alloc`项目的完整细节超出了我的经验范围。然而，第一步是从你的`lib.rs`或`main.rs`中删除这一行（在规则3中添加的）：
+创建一个`no_alloc`项目的完整细节超出了我的经验范围。然而，第一步是从你的`lib.rs`或`main.rs`中删除这一行（在规则 3 中添加的）：
 
 ```py
 extern crate alloc; // remove this
 ```
 
-# 规则 9：将`thumbv7m-none-eabi`和QEMU添加到你的CI（持续集成）测试中。
+# 规则 9：将`thumbv7m-none-eabi`和 QEMU 添加到你的 CI（持续集成）测试中。
 
 你的项目现在已经编译为`no_std`并通过了至少一个嵌入式特定的测试。你完成了吗？还没有。正如我在前两篇文章中所说：
 
-> 如果它不在CI中，那就不存在。
+> 如果它不在 CI 中，那就不存在。
 
-记住，持续集成（CI）是一个每次更新代码时都能自动运行测试的系统。我使用GitHub Actions作为我的CI平台。以下是我添加到`.github/workflows/ci.yml`中的配置，用于在嵌入式平台上测试我的项目：
+记住，持续集成（CI）是一个每次更新代码时都能自动运行测试的系统。我使用 GitHub Actions 作为我的 CI 平台。以下是我添加到`.github/workflows/ci.yml`中的配置，用于在嵌入式平台上测试我的项目：
 
 ```py
 test_thumbv7m_none_eabi:
@@ -603,9 +603,9 @@ test_thumbv7m_none_eabi:
           cargo run
 ```
 
-通过在CI中测试嵌入式和`no_std`，我可以确保我的代码将继续支持未来的嵌入式平台。
+通过在 CI 中测试嵌入式和`no_std`，我可以确保我的代码将继续支持未来的嵌入式平台。
 
-所以，事情就是这样——移植Rust代码到嵌入式的九条规则。要查看应用了这九条规则后整个`range-set-blaze`项目的快照，请参见[这个Github分支](https://github.com/CarlKCarlK/range-set-blaze/tree/rustconf24.nostd)。
+所以，事情就是这样——移植 Rust 代码到嵌入式的九条规则。要查看应用了这九条规则后整个`range-set-blaze`项目的快照，请参见[这个 Github 分支](https://github.com/CarlKCarlK/range-set-blaze/tree/rustconf24.nostd)。
 
 这就是让我在移植到嵌入式时感到惊讶的地方：
 
@@ -617,12 +617,12 @@ test_thumbv7m_none_eabi:
 
 **好的一面：**
 
-+   Rust中“如果能编译，就能运行”的说法在嵌入式开发中依然成立。这使我们能够在无需大量新测试的情况下，对代码的正确性充满信心。
++   Rust 中“如果能编译，就能运行”的说法在嵌入式开发中依然成立。这使我们能够在无需大量新测试的情况下，对代码的正确性充满信心。
 
 +   尽管`no_std`移除了我们对标准库的直接访问，但许多项目仍然可以通过`core`和`alloc`使用。
 
 +   借助仿真，你可以在没有硬件的情况下为嵌入式系统进行开发。
 
-感谢你加入我从WASI到WebAssembly再到嵌入式开发的旅程。Rust凭借其在不同环境中高效且安全运行的能力，继续让我印象深刻。随着你探索这些不同的领域，我希望你能像我一样，感受到Rust的灵活性和强大。无论你是在处理云服务器、浏览器还是微控制器，我们讨论的工具都将帮助你自信地应对未来的挑战。
+感谢你加入我从 WASI 到 WebAssembly 再到嵌入式开发的旅程。Rust 凭借其在不同环境中高效且安全运行的能力，继续让我印象深刻。随着你探索这些不同的领域，我希望你能像我一样，感受到 Rust 的灵活性和强大。无论你是在处理云服务器、浏览器还是微控制器，我们讨论的工具都将帮助你自信地应对未来的挑战。
 
-> 对未来的文章感兴趣吗？请[在Medium上关注我](https://medium.com/@carlmkadie)。我写关于Rust和Python、科学编程、机器学习以及统计学的文章。我倾向于每月写一篇文章。
+> 对未来的文章感兴趣吗？请[在 Medium 上关注我](https://medium.com/@carlmkadie)。我写关于 Rust 和 Python、科学编程、机器学习以及统计学的文章。我倾向于每月写一篇文章。

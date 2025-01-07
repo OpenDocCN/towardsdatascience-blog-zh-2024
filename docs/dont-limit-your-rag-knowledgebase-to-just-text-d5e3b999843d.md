@@ -1,16 +1,16 @@
 # 不要让你的 RAG 知识库仅限于文本
 
-> 原文：[https://towardsdatascience.com/dont-limit-your-rag-knowledgebase-to-just-text-d5e3b999843d?source=collection_archive---------1-----------------------#2024-08-19](https://towardsdatascience.com/dont-limit-your-rag-knowledgebase-to-just-text-d5e3b999843d?source=collection_archive---------1-----------------------#2024-08-19)
+> 原文：[`towardsdatascience.com/dont-limit-your-rag-knowledgebase-to-just-text-d5e3b999843d?source=collection_archive---------1-----------------------#2024-08-19`](https://towardsdatascience.com/dont-limit-your-rag-knowledgebase-to-just-text-d5e3b999843d?source=collection_archive---------1-----------------------#2024-08-19)
 
 ## 盗取这个即插即用的 Python 脚本，轻松将图像集成到你的聊天机器人知识库中
 
-[](https://medium.com/@marcosss?source=post_page---byline--d5e3b999843d--------------------------------)[![Marcos Santiago](../Images/570c90fc27b75cbc22786ffcc4a38e6d.png)](https://medium.com/@marcosss?source=post_page---byline--d5e3b999843d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d5e3b999843d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d5e3b999843d--------------------------------) [Marcos Santiago](https://medium.com/@marcosss?source=post_page---byline--d5e3b999843d--------------------------------)
+[](https://medium.com/@marcosss?source=post_page---byline--d5e3b999843d--------------------------------)![Marcos Santiago](https://medium.com/@marcosss?source=post_page---byline--d5e3b999843d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d5e3b999843d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d5e3b999843d--------------------------------) [Marcos Santiago](https://medium.com/@marcosss?source=post_page---byline--d5e3b999843d--------------------------------)
 
-·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--d5e3b999843d--------------------------------) ·阅读时长7分钟·2024年8月19日
+·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--d5e3b999843d--------------------------------) ·阅读时长 7 分钟·2024 年 8 月 19 日
 
 --
 
-![](../Images/5744b566e9ae3f3bc18f08717fa7e57c.png)
+![](img/5744b566e9ae3f3bc18f08717fa7e57c.png)
 
 图片来源：[Nitish Meena](https://unsplash.com/@nitishm?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

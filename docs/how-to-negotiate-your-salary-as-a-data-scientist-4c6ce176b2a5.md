@@ -1,16 +1,16 @@
 # 如何作为数据科学家谈判薪资
 
-> 原文：[https://towardsdatascience.com/how-to-negotiate-your-salary-as-a-data-scientist-4c6ce176b2a5?source=collection_archive---------1-----------------------#2024-10-27](https://towardsdatascience.com/how-to-negotiate-your-salary-as-a-data-scientist-4c6ce176b2a5?source=collection_archive---------1-----------------------#2024-10-27)
+> 原文：[`towardsdatascience.com/how-to-negotiate-your-salary-as-a-data-scientist-4c6ce176b2a5?source=collection_archive---------1-----------------------#2024-10-27`](https://towardsdatascience.com/how-to-negotiate-your-salary-as-a-data-scientist-4c6ce176b2a5?source=collection_archive---------1-----------------------#2024-10-27)
 
 ## 以及我第一年赚了多少钱
 
-[](https://medium.com/@pelletierhaden?source=post_page---byline--4c6ce176b2a5--------------------------------)[![Haden Pelletier](../Images/8f73fc8222e783883c4ebcaee14513e0.png)](https://medium.com/@pelletierhaden?source=post_page---byline--4c6ce176b2a5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4c6ce176b2a5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4c6ce176b2a5--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--4c6ce176b2a5--------------------------------)
+[](https://medium.com/@pelletierhaden?source=post_page---byline--4c6ce176b2a5--------------------------------)![Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--4c6ce176b2a5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4c6ce176b2a5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c6ce176b2a5--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--4c6ce176b2a5--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c6ce176b2a5--------------------------------) ·阅读时长6分钟·2024年10月27日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c6ce176b2a5--------------------------------) ·阅读时长 6 分钟·2024 年 10 月 27 日
 
 --
 
-![](../Images/eb733b32bbe53cb65003871ca0755253.png)
+![](img/eb733b32bbe53cb65003871ca0755253.png)
 
 图片由[Amy Hirschi](https://unsplash.com/@amyhirschi?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

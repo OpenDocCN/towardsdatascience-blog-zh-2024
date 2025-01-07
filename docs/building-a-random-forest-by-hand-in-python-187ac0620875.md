@@ -1,22 +1,22 @@
-# 手动在Python中构建随机森林
+# 手动在 Python 中构建随机森林
 
-> 原文：[https://towardsdatascience.com/building-a-random-forest-by-hand-in-python-187ac0620875?source=collection_archive---------4-----------------------#2024-01-30](https://towardsdatascience.com/building-a-random-forest-by-hand-in-python-187ac0620875?source=collection_archive---------4-----------------------#2024-01-30)
+> 原文：[`towardsdatascience.com/building-a-random-forest-by-hand-in-python-187ac0620875?source=collection_archive---------4-----------------------#2024-01-30`](https://towardsdatascience.com/building-a-random-forest-by-hand-in-python-187ac0620875?source=collection_archive---------4-----------------------#2024-01-30)
 
 ## 对一种强大且流行的算法的深入探讨
 
-[](https://mgsosna.medium.com/?source=post_page---byline--187ac0620875--------------------------------)[![Matt Sosna](../Images/c3175c0dc62b795a8d0fa57532fb669b.png)](https://mgsosna.medium.com/?source=post_page---byline--187ac0620875--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--187ac0620875--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--187ac0620875--------------------------------) [Matt Sosna](https://mgsosna.medium.com/?source=post_page---byline--187ac0620875--------------------------------)
+[](https://mgsosna.medium.com/?source=post_page---byline--187ac0620875--------------------------------)![Matt Sosna](https://mgsosna.medium.com/?source=post_page---byline--187ac0620875--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--187ac0620875--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--187ac0620875--------------------------------) [Matt Sosna](https://mgsosna.medium.com/?source=post_page---byline--187ac0620875--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--187ac0620875--------------------------------) ·17分钟阅读·2024年1月30日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--187ac0620875--------------------------------) ·17 分钟阅读·2024 年 1 月 30 日
 
 --
 
-![](../Images/3e3e1bb4d0ea0375209a319ae9478702.png)
+![](img/3e3e1bb4d0ea0375209a319ae9478702.png)
 
 图片来源：[FlyD](https://unsplash.com/@flyd2069?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 从 [药物发现](https://www.sciencedirect.com/science/article/abs/pii/S0957417416306819) 到 [物种分类](https://www.mdpi.com/2072-4292/4/9/2661)，从 [信用评分](https://journals.sagepub.com/doi/abs/10.1177/2278533718765531) 到 [网络安全](https://www.sciencedirect.com/science/article/pii/S1877050916311127) 等，随机森林是一个流行且强大的算法，用于建模我们复杂的世界。它的多功能性和预测能力似乎需要最前沿的复杂技术，但如果我们深入了解随机森林的实际构成，我们会发现**它实际上只是一个出乎意料简单的重复步骤集。**
 
-我发现，学习某个东西最好的方式就是动手实践。因此，为了直观理解随机森林的工作原理，我们将手动在Python中构建一个，从决策树开始，逐步扩展到完整的森林。我们将亲自体验这个算法在分类和回归中的灵活性和可解释性。虽然这个项目听起来可能很复杂，但我们实际上只需要学习几个核心概念：1）如何迭代地划分数据，以及 2）如何量化数据划分的效果。
+我发现，学习某个东西最好的方式就是动手实践。因此，为了直观理解随机森林的工作原理，我们将手动在 Python 中构建一个，从决策树开始，逐步扩展到完整的森林。我们将亲自体验这个算法在分类和回归中的灵活性和可解释性。虽然这个项目听起来可能很复杂，但我们实际上只需要学习几个核心概念：1）如何迭代地划分数据，以及 2）如何量化数据划分的效果。
 
 # 背景
 

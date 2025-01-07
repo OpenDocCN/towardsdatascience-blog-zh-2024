@@ -1,16 +1,16 @@
 # 计算机是如何工作的：为我们中的新手提供的指南。
 
-> 原文：[https://towardsdatascience.com/how-computers-work-for-the-greenhorns-amongst-us-40dbf1b59546?source=collection_archive---------9-----------------------#2024-03-18](https://towardsdatascience.com/how-computers-work-for-the-greenhorns-amongst-us-40dbf1b59546?source=collection_archive---------9-----------------------#2024-03-18)
+> 原文：[`towardsdatascience.com/how-computers-work-for-the-greenhorns-amongst-us-40dbf1b59546?source=collection_archive---------9-----------------------#2024-03-18`](https://towardsdatascience.com/how-computers-work-for-the-greenhorns-amongst-us-40dbf1b59546?source=collection_archive---------9-----------------------#2024-03-18)
 
 ## 了解个人电脑如何运作的初学者指南。
 
-[](https://opheliapjohnson.medium.com/?source=post_page---byline--40dbf1b59546--------------------------------)[![Ophelia P Johnson](../Images/714fd3cde66dbbe645a4b7cb9aac203f.png)](https://opheliapjohnson.medium.com/?source=post_page---byline--40dbf1b59546--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--40dbf1b59546--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--40dbf1b59546--------------------------------) [Ophelia P Johnson](https://opheliapjohnson.medium.com/?source=post_page---byline--40dbf1b59546--------------------------------)
+[](https://opheliapjohnson.medium.com/?source=post_page---byline--40dbf1b59546--------------------------------)![Ophelia P Johnson](https://opheliapjohnson.medium.com/?source=post_page---byline--40dbf1b59546--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--40dbf1b59546--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40dbf1b59546--------------------------------) [Ophelia P Johnson](https://opheliapjohnson.medium.com/?source=post_page---byline--40dbf1b59546--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40dbf1b59546--------------------------------) ·阅读时间：7分钟·2024年3月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40dbf1b59546--------------------------------) ·阅读时间：7 分钟·2024 年 3 月 18 日
 
 --
 
-![](../Images/30b1b4ad71a149fcecc389992a8d02cc.png)
+![](img/30b1b4ad71a149fcecc389992a8d02cc.png)
 
 图片由 [Dan Cristian Pădureț](https://www.pexels.com/photo/blue-and-yellow-phone-modules-1476321/) 提供
 
@@ -22,31 +22,31 @@
 
 ## 什么是计算机？
 
-计算机的发明源于人类的低效。还有懒惰。设计一台为我们思考的奇妙机器，比我们自己去思考要好得多。你的个人电脑就是一台计算机；但 [安提基希拉机制](https://www.thephysicsmill.com/2014/09/06/non-digital-computers/)，它大约建于公元前100年，用于导航星空，也是一台计算机。计算机并不是近代才有的现象，但本文专注于**现代数字计算机**。
+计算机的发明源于人类的低效。还有懒惰。设计一台为我们思考的奇妙机器，比我们自己去思考要好得多。你的个人电脑就是一台计算机；但 [安提基希拉机制](https://www.thephysicsmill.com/2014/09/06/non-digital-computers/)，它大约建于公元前 100 年，用于导航星空，也是一台计算机。计算机并不是近代才有的现象，但本文专注于**现代数字计算机**。
 
 计算机接受输入数据，对其进行处理，然后输出一些结果数据。艾伦·图灵的理论模型（图灵机）将计算机描述为能够执行任何可以通过一组逻辑规则描述的计算的机器。用英语来说：任何你可以用笔和纸（并且有足够的时间）理论上完成的任务，‘计算机’也应该能够做。它可能比你做得更快。
 
-![](../Images/ee2ba1b4b7b568c25ea0ba670188245c.png)
+![](img/ee2ba1b4b7b568c25ea0ba670188245c.png)
 
 计算机工作原理的过度简化表示。图片由作者提供。
 
 ## 计算机由什么构成？
 
-由于与物理相关的因素，计算机只能理解两种状态：高电压和低电压。你会听到计算机极客称这些状态为1和0（也就是‘真’和‘假’）。用户要求计算机执行的每一个操作，都始于1和0。无法绕过这一点。
+由于与物理相关的因素，计算机只能理解两种状态：高电压和低电压。你会听到计算机极客称这些状态为 1 和 0（也就是‘真’和‘假’）。用户要求计算机执行的每一个操作，都始于 1 和 0。无法绕过这一点。
 
-为了使这些1和0发生作用，我们使用逻辑门。逻辑门是电路中一种物理组件，包含（许多）晶体管。当这些逻辑门连接在一起时，计算机就能够执行逻辑和算术运算。
+为了使这些 1 和 0 发生作用，我们使用逻辑门。逻辑门是电路中一种物理组件，包含（许多）晶体管。当这些逻辑门连接在一起时，计算机就能够执行逻辑和算术运算。
 
 以下面的‘OR’门为例。如果我们只接收到两个低电压，就没有电力。但是如果接收到一个高电压，就有电力。
 
-![](../Images/c9a31841444258cd73e1a0f11066b99a.png)
+![](img/c9a31841444258cd73e1a0f11066b99a.png)
 
-OR门及其真值表。图片由[维基百科](https://en.wikipedia.org/wiki/OR_gate)提供，表格由作者制作。
+OR 门及其真值表。图片由[维基百科](https://en.wikipedia.org/wiki/OR_gate)提供，表格由作者制作。
 
 如果你仍然感到困惑，可以尝试从一个普通的、非计算的背景来思考。例如，蛋糕！
 
-![](../Images/b70a0caaefbfe2c3d97243fc7fe07c0b.png)
+![](img/b70a0caaefbfe2c3d97243fc7fe07c0b.png)
 
-‘蛋糕’表示的OR门。图片由作者提供。
+‘蛋糕’表示的 OR 门。图片由作者提供。
 
 有不同类型的逻辑门来做出不同的决策。请查看[这里](https://www.khanacademy.org/computing/computers-and-internet/xcae6f4a7ff015e7d:computers/xcae6f4a7ff015e7d:logic-gates-and-circuits/a/logic-gates#:~:text=A%20logic%20gate%20is%20a,than%20a%20single%20binary%20digit.)以获得一个很好的解释。
 
@@ -56,7 +56,7 @@ OR门及其真值表。图片由[维基百科](https://en.wikipedia.org/wiki/OR_
 
 进入中央处理单元（CPU）。
 
-中央处理单元（CPU）由数百万个晶体管和逻辑门组成。可以将其视为计算机的大脑。就像我们的大脑与其他器官一起工作一样，CPU也与其他组件（如存储单元）一起工作，完成它的工作：**即运行程序。**
+中央处理单元（CPU）由数百万个晶体管和逻辑门组成。可以将其视为计算机的大脑。就像我们的大脑与其他器官一起工作一样，CPU 也与其他组件（如存储单元）一起工作，完成它的工作：**即运行程序。**
 
 **程序只是一个长长的指令序列。当我们将新程序下载到 PC 上时，** CPU 会检查该程序并确定如何执行它的指令。它通过 **获取、解码、执行** 循环来实现——这本身就是一个完整的过程，稍后会有一篇新的文章来详细讲解。在此期间，我建议你阅读关于冯·诺依曼架构的内容：[这个视频](https://www.youtube.com/watch?v=Ml3-kVYLNr8)来自 Computerphile，非常棒。
 
@@ -72,7 +72,7 @@ OR门及其真值表。图片由[维基百科](https://en.wikipedia.org/wiki/OR_
 
 这里有一个表格，帮助更清楚地区分这些概念：
 
-![](../Images/be6a7a671830750f659727d4e5d479f5.png)
+![](img/be6a7a671830750f659727d4e5d479f5.png)
 
 RAM 和 ROM 的区别。图片来自作者。
 
@@ -82,27 +82,27 @@ RAM 和 ROM 的区别。图片来自作者。
 
 操作系统决定了程序何时可以由 CPU 运行，以及该程序可以访问哪些资源。这就是为什么恶意软件（如 Rootkit）会被制作出来的原因：如果你能够控制操作系统，你几乎可以控制 PC 上的一切。内核被认为是操作系统的核心。
 
-![](../Images/ab7979423b4cf35eea05301a7be4b9d2.png)
+![](img/ab7979423b4cf35eea05301a7be4b9d2.png)
 
 操作系统的保护环。来源：[维基百科](https://en.wikipedia.org/wiki/Protection_ring)
 
 操作系统有多种用途。我可以用一种冗长无趣的方式列举出来，但这里我提供一个思维导图：
 
-![](../Images/835559aeeb1392651de7bd1178e9c63f.png)
+![](img/835559aeeb1392651de7bd1178e9c63f.png)
 
-操作系统的用途。由作者创建，使用Miro
+操作系统的用途。由作者创建，使用 Miro
 
-## 当我按下PC的电源按钮时，实际上发生了什么？
+## 当我按下 PC 的电源按钮时，实际上发生了什么？
 
-坦白说，当你启动PC时会发生很多事情。这里是一个简化版的过程：
+坦白说，当你启动 PC 时会发生很多事情。这里是一个简化版的过程：
 
 1.  当电源按钮上的灯亮起时，它会向电源供应单元发送信号，开始向计算机的各个组件供电。
 
-1.  主板从电源单元（PSU）获取电力并开始初始化过程。这包括检查各种组件，如CPU、RAM和外设，以确保它们正常工作。
+1.  主板从电源单元（PSU）获取电力并开始初始化过程。这包括检查各种组件，如 CPU、RAM 和外设，以确保它们正常工作。
 
-1.  CPU也获得电力，并开始执行来自BIOS（基本输入输出系统）或UEFI（统一可扩展固件接口）固件的指令，这些固件存储在主板上的内存芯片中。随后，这些组件执行自检（POST），以检查硬件错误。
+1.  CPU 也获得电力，并开始执行来自 BIOS（基本输入输出系统）或 UEFI（统一可扩展固件接口）固件的指令，这些固件存储在主板上的内存芯片中。随后，这些组件执行自检（POST），以检查硬件错误。
 
-1.  一旦BIOS/UEFI初始化完成，主板将控制权交给安装在计算机上的操作系统引导加载程序。引导加载程序将操作系统内核加载到内存中，并启动操作系统。
+1.  一旦 BIOS/UEFI 初始化完成，主板将控制权交给安装在计算机上的操作系统引导加载程序。引导加载程序将操作系统内核加载到内存中，并启动操作系统。
 
 1.  最终，操作系统会向用户展示登录界面或桌面环境，让用户能够与计算机进行互动。
 
@@ -110,7 +110,7 @@ RAM 和 ROM 的区别。图片来自作者。
 
 你可能不会感到惊讶，计算机的工作原理涉及到很多内容。这并不是一个简单的问题：经过多年的技术进步，怎么可能有一个简单的答案呢？你无法将所有内容浓缩成一个简单的声明，坦白说，本文的内容只是触及了表面。
 
-如果你想了解更多，我鼓励你进行一些传统的阅读；更好的是，买一台便宜的PC并破解它。正如厄尔·奈廷格尔曾经宣称：
+如果你想了解更多，我鼓励你进行一些传统的阅读；更好的是，买一台便宜的 PC 并破解它。正如厄尔·奈廷格尔曾经宣称：
 
 “*每天一小时的学习，就足够了。每天一小时的学习，三年内你会成为你所在领域的佼佼者。五年内，你将成为全国权威。七年后，你将成为世界上最顶尖的人之一。*”
 

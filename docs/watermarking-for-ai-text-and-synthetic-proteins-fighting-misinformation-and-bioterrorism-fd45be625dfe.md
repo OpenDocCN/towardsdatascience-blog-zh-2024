@@ -1,16 +1,16 @@
 # 人工智能文本和合成蛋白质的水印
 
-> 原文：[https://towardsdatascience.com/watermarking-for-ai-text-and-synthetic-proteins-fighting-misinformation-and-bioterrorism-fd45be625dfe?source=collection_archive---------9-----------------------#2024-11-07](https://towardsdatascience.com/watermarking-for-ai-text-and-synthetic-proteins-fighting-misinformation-and-bioterrorism-fd45be625dfe?source=collection_archive---------9-----------------------#2024-11-07)
+> 原文：[`towardsdatascience.com/watermarking-for-ai-text-and-synthetic-proteins-fighting-misinformation-and-bioterrorism-fd45be625dfe?source=collection_archive---------9-----------------------#2024-11-07`](https://towardsdatascience.com/watermarking-for-ai-text-and-synthetic-proteins-fighting-misinformation-and-bioterrorism-fd45be625dfe?source=collection_archive---------9-----------------------#2024-11-07)
 
-![](../Images/285ec832e68ca552b538789de92bbab8.png)
+![](img/285ec832e68ca552b538789de92bbab8.png)
 
-彩色病毒突变图像，作者Nataliya Smirnova，来源：[UnSplash](https://unsplash.com/photos/a-group-of-colorful-butterflies-de3yM8H00vo)
+彩色病毒突变图像，作者 Nataliya Smirnova，来源：[UnSplash](https://unsplash.com/photos/a-group-of-colorful-butterflies-de3yM8H00vo)
 
 ## 理解生物学中人工智能应用对机器学习工程师的意义
 
-[](https://medium.com/@meghanheintz?source=post_page---byline--fd45be625dfe--------------------------------)[![Meghan Heintz](../Images/9eaae6d3d8168086d83ff7100329c51f.png)](https://medium.com/@meghanheintz?source=post_page---byline--fd45be625dfe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fd45be625dfe--------------------------------)[![数据科学前沿](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fd45be625dfe--------------------------------) [Meghan Heintz](https://medium.com/@meghanheintz?source=post_page---byline--fd45be625dfe--------------------------------)
+[](https://medium.com/@meghanheintz?source=post_page---byline--fd45be625dfe--------------------------------)![Meghan Heintz](https://medium.com/@meghanheintz?source=post_page---byline--fd45be625dfe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fd45be625dfe--------------------------------)![数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--fd45be625dfe--------------------------------) [Meghan Heintz](https://medium.com/@meghanheintz?source=post_page---byline--fd45be625dfe--------------------------------)
 
-·发布于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--fd45be625dfe--------------------------------) ·阅读时间：7分钟·2024年11月7日
+·发布于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--fd45be625dfe--------------------------------) ·阅读时间：7 分钟·2024 年 11 月 7 日
 
 --
 
@@ -18,11 +18,11 @@
 
 水印或数字水印，与那个会挟持你孩子学校照片的物理水印不同，是一种用于标识所有权的秘密信号。有效的水印必须具有鲁棒性，能够在不被专门方法探测的情况下承受修改。它们在各个创意领域得到广泛应用，从保护版权的数字图像和视频到确保文件的完整性。如果我们能为生成性人工智能（GenAI）开发出有效的水印技术，我们就能在应对虚假信息和生物恐怖主义的斗争中获得一项强有力的工具。
 
-在我们的[系列](https://medium.com/@meghanheintz/list/understanding-ai-applications-in-bio-for-ml-engineers-7b9e9551bb7f)中，我们探讨了其他生成性文本和生物学突破如何依赖相关的架构突破，而当前的水印提案也不例外。谷歌在2024年10月宣布了[SynthID-Text](https://www.nature.com/articles/s41586-024-08025-4)，这是一种已准备投入生产的文本水印方案，作为Gemini的一部分部署。它们的方法通过应用一个秘密的随机函数来修改最终的采样过程或推理，[马里兰大学帕克分校团队](https://www.biorxiv.org/content/10.1101/2024.05.02.591928v1.full.pdf)的生成蛋白质设计水印提案也采用了类似的方法。
+在我们的[系列](https://medium.com/@meghanheintz/list/understanding-ai-applications-in-bio-for-ml-engineers-7b9e9551bb7f)中，我们探讨了其他生成性文本和生物学突破如何依赖相关的架构突破，而当前的水印提案也不例外。谷歌在 2024 年 10 月宣布了[SynthID-Text](https://www.nature.com/articles/s41586-024-08025-4)，这是一种已准备投入生产的文本水印方案，作为 Gemini 的一部分部署。它们的方法通过应用一个秘密的随机函数来修改最终的采样过程或推理，[马里兰大学帕克分校团队](https://www.biorxiv.org/content/10.1101/2024.05.02.591928v1.full.pdf)的生成蛋白质设计水印提案也采用了类似的方法。
 
-![](../Images/30872b035f04d87a16ec188a40299e80.png)![](../Images/9e464a2dae90abb6d5560c8c114a2a93.png)
+![](img/30872b035f04d87a16ec188a40299e80.png)![](img/9e464a2dae90abb6d5560c8c114a2a93.png)
 
-（左）一幅来自罗马帝国的早期虚假信息示例，[《亚克提乌姆战役》由洛伦佐·A·卡斯特罗](https://simple.wikipedia.org/wiki/Battle_of_Actium#/media/File:Castro_Battle_of_Actium.jpg)绘制，这幅画作为凯撒死后宣传运动的一部分。 （右）本作者记得的第一个生物安全事件，[2001年炭疽邮件袭击](https://en.wikipedia.org/wiki/2001_anthrax_attacks)。巧合的是，这也是一个虚假信息的例子，因为犯罪者试图将责任嫁祸给穆斯林。
+（左）一幅来自罗马帝国的早期虚假信息示例，[《亚克提乌姆战役》由洛伦佐·A·卡斯特罗](https://simple.wikipedia.org/wiki/Battle_of_Actium#/media/File:Castro_Battle_of_Actium.jpg)绘制，这幅画作为凯撒死后宣传运动的一部分。 （右）本作者记得的第一个生物安全事件，[2001 年炭疽邮件袭击](https://en.wikipedia.org/wiki/2001_anthrax_attacks)。巧合的是，这也是一个虚假信息的例子，因为犯罪者试图将责任嫁祸给穆斯林。
 
 # 水印技术中的关键理想特性
 
@@ -34,41 +34,41 @@
 
 对于文本，如果水印可以在没有秘密密钥的情况下被检测到，通常意味着文本已经被严重扭曲，读者会觉得它很奇怪。对于蛋白质设计，如果可以裸露地检测到水印，可能会导致设计质量的下降。
 
-# 文本水印和Synthtext-ID
+# 文本水印和 Synthtext-ID
 
-让我们**深入**探讨这个话题。如果你像我一样，花太多时间在[Twitter](https://x.com/JeremyNguyenPhD/status/1774021645709295840)上，你可能已经意识到，很多人发现ChatGPT过度使用某些词汇。其中一个就是“delve”（深入），其过度使用正在被用来分析[学术文章](https://www.medrxiv.org/content/10.1101/2024.05.14.24307373v2.full-text)是否由ChatGPT撰写或在其帮助下完成。这本身就是一种“脆弱”的水印技术，因为它可以帮助我们识别由大型语言模型（LLM）撰写的文本。然而，随着这一点成为常识，查找和替换“delve”实例变得太容易了。但SynthText-ID背后的理念是可以的，我们可以通过选词的概率来区分AI和人类写作的文本。
+让我们**深入**探讨这个话题。如果你像我一样，花太多时间在[Twitter](https://x.com/JeremyNguyenPhD/status/1774021645709295840)上，你可能已经意识到，很多人发现 ChatGPT 过度使用某些词汇。其中一个就是“delve”（深入），其过度使用正在被用来分析[学术文章](https://www.medrxiv.org/content/10.1101/2024.05.14.24307373v2.full-text)是否由 ChatGPT 撰写或在其帮助下完成。这本身就是一种“脆弱”的水印技术，因为它可以帮助我们识别由大型语言模型（LLM）撰写的文本。然而，随着这一点成为常识，查找和替换“delve”实例变得太容易了。但 SynthText-ID 背后的理念是可以的，我们可以通过选词的概率来区分 AI 和人类写作的文本。
 
-![](../Images/2e0e368c6108ad47a07caea5cc20fbd6.png)
+![](img/2e0e368c6108ad47a07caea5cc20fbd6.png)
 
-[深入探讨PubMed记录：随着ChatGPT的到来，一些医学写作中的术语发生了巨大变化](https://www.medrxiv.org/content/10.1101/2024.05.14.24307373v2.full-text)
+[深入探讨 PubMed 记录：随着 ChatGPT 的到来，一些医学写作中的术语发生了巨大变化](https://www.medrxiv.org/content/10.1101/2024.05.14.24307373v2.full-text)
 
-SynthText-ID使用“比赛抽样”根据随机水印函数修改令牌被选中的概率。这是一种高效的水印方法，因为它可以在推理过程中完成，而不需要更改训练过程。这种方法改进了[吉布尔抽样](/what-is-gumbel-softmax-7f6d9cdcb90e)，该方法在抽样步骤之前对LLM的概率分布进行随机扰动。
+SynthText-ID 使用“比赛抽样”根据随机水印函数修改令牌被选中的概率。这是一种高效的水印方法，因为它可以在推理过程中完成，而不需要更改训练过程。这种方法改进了吉布尔抽样，该方法在抽样步骤之前对 LLM 的概率分布进行随机扰动。
 
-在论文的示例中，序列“my favorite tropical fruit is”可以通过候选令牌中的任何一个（如芒果、榴莲、荔枝等）来圆满完成。这些候选者是从LLM的概率分布中抽样的，条件是前面的文本。构建括号后，选取的令牌将在一个水印函数的基础上进行评分，该函数基于上下文窗口和水印密钥。这个过程将统计签名引入生成的文本中，稍后可进行测量。
+在论文的示例中，序列“my favorite tropical fruit is”可以通过候选令牌中的任何一个（如芒果、榴莲、荔枝等）来圆满完成。这些候选者是从 LLM 的概率分布中抽样的，条件是前面的文本。构建括号后，选取的令牌将在一个水印函数的基础上进行评分，该函数基于上下文窗口和水印密钥。这个过程将统计签名引入生成的文本中，稍后可进行测量。
 
-![](../Images/046beaccc13fe2d19af424f81d9d2165.png)
+![](img/046beaccc13fe2d19af424f81d9d2165.png)
 
 来自《可扩展水印技术用于识别大型语言模型输出》的比赛抽样示例，演示了比赛抽样技术。[Dathathri, S., See, A., Ghaisas, S., Huang, P., McAdam, R., Welbl, J., … & Kohli, P. (2024). 可扩展水印技术用于识别大型语言模型输出. *Nature, 631*(7624), 755–759](https://www.nature.com/articles/s41586-024-08025-4#MOESM1)
 
-为了检测水印，每个令牌都会用水印函数进行评分，平均得分越高，文本来自LLM的可能性就越大。应用一个简单的阈值来预测文本的来源。
+为了检测水印，每个令牌都会用水印函数进行评分，平均得分越高，文本来自 LLM 的可能性就越大。应用一个简单的阈值来预测文本的来源。
 
 该签名的强度由几个因素控制：
 
-+   比赛的轮数（m）（通常为m=30），每一轮都会加强签名（并且也减少得分方差）。
++   比赛的轮数（m）（通常为 m=30），每一轮都会加强签名（并且也减少得分方差）。
 
-+   LLM的熵。低熵模型无法提供足够的随机性，导致比赛无法选择得分较高的候选者。*FWIW，这对作者来说似乎是个大问题，因为他从未使用过除temperature=0以外的任何设置。*
++   LLM 的熵。低熵模型无法提供足够的随机性，导致比赛无法选择得分较高的候选者。*FWIW，这对作者来说似乎是个大问题，因为他从未使用过除 temperature=0 以外的任何设置。*
 
 +   文本的长度；较长的序列包含更多的证据，因此统计上的确定性更高。
 
 +   是否使用非扭曲和扭曲配置。
 
-扭曲是指在保持文本质量与检测之间所做的权衡。非扭曲配置优先考虑文本质量，以换取可检测性的牺牲。扭曲配置则相反，使用比每轮比赛更多的令牌，从而允许更多的自由度选择得分最高的令牌。谷歌表示，他们将在Gemini中实现一个非扭曲版本的该算法。
+扭曲是指在保持文本质量与检测之间所做的权衡。非扭曲配置优先考虑文本质量，以换取可检测性的牺牲。扭曲配置则相反，使用比每轮比赛更多的令牌，从而允许更多的自由度选择得分最高的令牌。谷歌表示，他们将在 Gemini 中实现一个非扭曲版本的该算法。
 
-非扭曲版本在400个标记序列的情况下，达到了接近90%的TPR（真正阳性率），假阳性率为1%，这大约是1-2段文字。一个（非付费）推文或X帖子限制为280个字符或大约70-100个标记。该长度下的TPR只有大约50%，这引发了人们对这种方法在实际应用中效果的质疑。*也许它对于抓捕懒惰的大学生有用，但在选举期间对于外国势力就不一定有效了？*
+非扭曲版本在 400 个标记序列的情况下，达到了接近 90%的 TPR（真正阳性率），假阳性率为 1%，这大约是 1-2 段文字。一个（非付费）推文或 X 帖子限制为 280 个字符或大约 70-100 个标记。该长度下的 TPR 只有大约 50%，这引发了人们对这种方法在实际应用中效果的质疑。*也许它对于抓捕懒惰的大学生有用，但在选举期间对于外国势力就不一定有效了？*
 
-![](../Images/974488bdfd75a3bcd670c133215adc62.png)
+![](img/974488bdfd75a3bcd670c133215adc62.png)
 
-水印可检测性是通过在假阳性率（FPR）设置为1%时，使用真正阳性率（TPR）来衡量的，适用于SynthText-ID和Gumble采样。[Dathathri, S., See, A., Ghaisas, S., Huang, P., McAdam, R., Welbl, J., … & Kohli, P. (2024). 可扩展水印技术用于识别大型语言模型输出。*Nature, 631*(7624), 755–759](https://www.nature.com/articles/s41586-024-08025-4#MOESM1)
+水印可检测性是通过在假阳性率（FPR）设置为 1%时，使用真正阳性率（TPR）来衡量的，适用于 SynthText-ID 和 Gumble 采样。[Dathathri, S., See, A., Ghaisas, S., Huang, P., McAdam, R., Welbl, J., … & Kohli, P. (2024). 可扩展水印技术用于识别大型语言模型输出。*Nature, 631*(7624), 755–759](https://www.nature.com/articles/s41586-024-08025-4#MOESM1)
 
 # 生成性蛋白质水印与生物安全性
 
@@ -76,26 +76,26 @@ SynthText-ID使用“比赛抽样”根据随机水印函数修改令牌被选�
 
 当文本被水印过程扭曲时，可能会让读者感到困惑或听起来很奇怪。更严重的是，生成性蛋白质设计中的扭曲可能会使蛋白质变得完全没有价值或功能上发生改变。为了避免扭曲，水印必须不会改变设计蛋白质的总体统计属性。
 
-水印过程与SynthText-ID相似。它不是修改标记的概率分布，而是调整氨基酸残基的概率分布。这个过程是通过一个无偏重的重加权函数（Gumble采样，而不是锦标赛采样）实现的，该函数根据研究人员的私钥派生的水印码，将原始残基的概率分布进行转换。Gumble采样被认为是无偏的，因为它专门设计用于以一种保持原始分布统计属性而不引入系统性错误的方式，近似地求得一组值的最大值；或者平均而言，引入的噪声会相互抵消。
+水印过程与 SynthText-ID 相似。它不是修改标记的概率分布，而是调整氨基酸残基的概率分布。这个过程是通过一个无偏重的重加权函数（Gumble 采样，而不是锦标赛采样）实现的，该函数根据研究人员的私钥派生的水印码，将原始残基的概率分布进行转换。Gumble 采样被认为是无偏的，因为它专门设计用于以一种保持原始分布统计属性而不引入系统性错误的方式，近似地求得一组值的最大值；或者平均而言，引入的噪声会相互抵消。
 
-![](../Images/14be44d35960ebbef7bc29fed5d25f2a.png)
+![](img/14be44d35960ebbef7bc29fed5d25f2a.png)
 
-(a) 现有的生物安全流程，IGSC记录所有发送进行DNA合成的序列。(b) 提议的水印过程，通过Gumble采样添加无偏噪声。(c) 研究人员如何使用他们的私钥给蛋白质添加水印，并帮助IGSC识别可疑蛋白质。[Chen, Y., Hu, Z., Wu, Y., Chen, R., Jin, Y., Chen, W., & Huang, H. (2024). 增强生物安全性与水印蛋白质设计. *bioRxiv*.](https://www.biorxiv.org/content/10.1101/2024.05.02.591928v1.full.pdf)
+(a) 现有的生物安全流程，IGSC 记录所有发送进行 DNA 合成的序列。(b) 提议的水印过程，通过 Gumble 采样添加无偏噪声。(c) 研究人员如何使用他们的私钥给蛋白质添加水印，并帮助 IGSC 识别可疑蛋白质。[Chen, Y., Hu, Z., Wu, Y., Chen, R., Jin, Y., Chen, W., & Huang, H. (2024). 增强生物安全性与水印蛋白质设计. *bioRxiv*.](https://www.biorxiv.org/content/10.1101/2024.05.02.591928v1.full.pdf)
 
-研究人员通过使用[ProteinMPNN](https://www.science.org/doi/10.1126/science.add2187)，一个基于深度学习的蛋白质序列设计模型，验证了重加权函数在实验中的无偏性。随后，使用[ESMFold](https://github.com/facebookresearch/esm)（进化尺度建模）在水印前后预测pLDDT或预测的局部距离差异测试。结果表明，性能没有变化。
+研究人员通过使用[ProteinMPNN](https://www.science.org/doi/10.1126/science.add2187)，一个基于深度学习的蛋白质序列设计模型，验证了重加权函数在实验中的无偏性。随后，使用[ESMFold](https://github.com/facebookresearch/esm)（进化尺度建模）在水印前后预测 pLDDT 或预测的局部距离差异测试。结果表明，性能没有变化。
 
-![](../Images/8011317d932da19c3bacfbe92bed70fb.png)
+![](img/8011317d932da19c3bacfbe92bed70fb.png)
 
-蓝色和红色分别代表原始的ProteinMPNN和带水印的ProteinMPNN。每个小提琴图包含来自60个不同单体设计任务的3000个pLDDT分数，每个任务有50个不同的设计，结果显示没有变化。[Chen, Y., Hu, Z., Wu, Y., Chen, R., Jin, Y., Chen, W., & Huang, H. (2024). 增强生物安全性与水印蛋白质设计. *bioRxiv*.](https://www.biorxiv.org/content/10.1101/2024.05.02.591928v1.full.pdf)
+蓝色和红色分别代表原始的 ProteinMPNN 和带水印的 ProteinMPNN。每个小提琴图包含来自 60 个不同单体设计任务的 3000 个 pLDDT 分数，每个任务有 50 个不同的设计，结果显示没有变化。[Chen, Y., Hu, Z., Wu, Y., Chen, R., Jin, Y., Chen, W., & Huang, H. (2024). 增强生物安全性与水印蛋白质设计. *bioRxiv*.](https://www.biorxiv.org/content/10.1101/2024.05.02.591928v1.full.pdf)
 
-类似于低温LLM设置下的检测，当可能的高质量设计数量较少时，检测变得更加困难。结果产生的低熵使得在不引入显著变化的情况下嵌入可检测水印变得困难。然而，这一限制可能比LLM的类似限制轻微。低熵设计任务可能只有少数几种蛋白质符合要求，这使得使用现有数据库方法追踪它们变得更容易。
+类似于低温 LLM 设置下的检测，当可能的高质量设计数量较少时，检测变得更加困难。结果产生的低熵使得在不引入显著变化的情况下嵌入可检测水印变得困难。然而，这一限制可能比 LLM 的类似限制轻微。低熵设计任务可能只有少数几种蛋白质符合要求，这使得使用现有数据库方法追踪它们变得更容易。
 
 # 主要结论
 
-+   LLM和蛋白质设计的水印方法正在改进，但仍然需要进一步提高！（不能仅依赖它们来检测机器人军团！）
++   LLM 和蛋白质设计的水印方法正在改进，但仍然需要进一步提高！（不能仅依赖它们来检测机器人军团！）
 
 +   两种方法都专注于修改采样过程；这非常重要，因为它意味着我们不需要编辑训练过程，且它们的应用计算效率较高。
 
-+   温度和文本长度是影响水印可检测性的两个重要因素。当前的方法（SynthText-ID）在1%假阳性率下，对于1至2段长度的序列，召回率（TPR）大约为90%。
++   温度和文本长度是影响水印可检测性的两个重要因素。当前的方法（SynthText-ID）在 1%假阳性率下，对于 1 至 2 段长度的序列，召回率（TPR）大约为 90%。
 
 +   一些蛋白质具有有限的可能结构，因此这些蛋白质更难以加水印。然而，现有方法应该能够使用数据库检测这些序列。

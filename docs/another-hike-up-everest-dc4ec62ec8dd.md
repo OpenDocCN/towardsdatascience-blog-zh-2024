@@ -1,24 +1,24 @@
 # 再次登顶珠穆朗玛
 
-> 原文：[https://towardsdatascience.com/another-hike-up-everest-dc4ec62ec8dd?source=collection_archive---------8-----------------------#2024-11-22](https://towardsdatascience.com/another-hike-up-everest-dc4ec62ec8dd?source=collection_archive---------8-----------------------#2024-11-22)
+> 原文：[`towardsdatascience.com/another-hike-up-everest-dc4ec62ec8dd?source=collection_archive---------8-----------------------#2024-11-22`](https://towardsdatascience.com/another-hike-up-everest-dc4ec62ec8dd?source=collection_archive---------8-----------------------#2024-11-22)
 
 ## 如何在人工智能的难题中取得进展
 
-[](https://medium.com/@jamesbarney71?source=post_page---byline--dc4ec62ec8dd--------------------------------)[![James Barney](../Images/7f39f18db180ffc654caa7f44a9652da.png)](https://medium.com/@jamesbarney71?source=post_page---byline--dc4ec62ec8dd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dc4ec62ec8dd--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dc4ec62ec8dd--------------------------------) [James Barney](https://medium.com/@jamesbarney71?source=post_page---byline--dc4ec62ec8dd--------------------------------)
+[](https://medium.com/@jamesbarney71?source=post_page---byline--dc4ec62ec8dd--------------------------------)![James Barney](https://medium.com/@jamesbarney71?source=post_page---byline--dc4ec62ec8dd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dc4ec62ec8dd--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc4ec62ec8dd--------------------------------) [James Barney](https://medium.com/@jamesbarney71?source=post_page---byline--dc4ec62ec8dd--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc4ec62ec8dd--------------------------------) ·阅读时间8分钟·2024年11月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc4ec62ec8dd--------------------------------) ·阅读时间 8 分钟·2024 年 11 月 22 日
 
 --
 
-![](../Images/d56829b47a980bf9a64af2e7dbbe3dd9.png)
+![](img/d56829b47a980bf9a64af2e7dbbe3dd9.png)
 
 珠穆朗玛峰，当地人称之为**萨加玛塔**或**珠穆朗玛**（[维基百科](https://en.wikipedia.org/wiki/Mount_Everest)）
 
 新技术诞生、成熟，最终被取代。人工智能（AI）也不例外，将遵循这一发展曲线。许多新闻文章已经宣称生成性人工智能（Gen AI）已经进入了“幻灭低谷”：即采用过程中的阶段，早期采用者开始意识到，新技术所承诺的成果比他们想象的要难以实现得多。
 
-![](../Images/9d495766f9cb58e03dcde63fafeff15f.png)
+![](img/9d495766f9cb58e03dcde63fafeff15f.png)
 
-Gartner炒作周期 [维基百科](https://en.wikipedia.org/wiki/Gartner_hype_cycle)
+Gartner 炒作周期 [维基百科](https://en.wikipedia.org/wiki/Gartner_hype_cycle)
 
 这是正常现象，在生成性人工智能之前也曾多次发生过。比如区块链的兴起与衰退——[你在商店买的生菜](https://www.nytimes.com/2018/09/24/business/walmart-blockchain-lettuce.html)将通过区块链从农场追踪到餐桌！又比如大数据：你将能够[了解客户的一切](https://www.nytimes.com/2012/02/12/sunday-review/big-datas-impact-in-the-world.html)，以最小的努力为他们提供价值，同时为自己带来利润！
 
@@ -26,9 +26,9 @@ Gartner炒作周期 [维基百科](https://en.wikipedia.org/wiki/Gartner_hype_cy
 
 就像珠穆朗玛峰一样，你不能在一天内登顶。需要几个月甚至几年的准备。途中每个营地都为该位置量身定制。有时，即使是准备最充分的尝试也未必能成功登顶——这并不意味着登山队不具备资格或能力：可能是天气不好，或者他们走错了路线。
 
-![](../Images/2409842b726193f4f523752a7cf77b2c.png)
+![](img/2409842b726193f4f523752a7cf77b2c.png)
 
-1963年美国珠穆朗玛峰远征（[维基百科](https://commons.m.wikimedia.org/wiki/File:1963_American_Everest_expedition.svg)）
+1963 年美国珠穆朗玛峰远征（[维基百科](https://commons.m.wikimedia.org/wiki/File:1963_American_Everest_expedition.svg)）
 
 你的生成式人工智能策略应该与爬珠穆朗玛峰的策略相同（不过可以暂时不使用额外的氧气）。
 
@@ -36,7 +36,7 @@ Gartner炒作周期 [维基百科](https://en.wikipedia.org/wiki/Gartner_hype_cy
 
 记住：在爬山时，大幅度的跃进是危险的。进步实际上是通过沿着一条路径的小步伐逐渐取得的。
 
-![](../Images/e40e0e02e348c85aa39fae0a8be59dfa.png)
+![](img/e40e0e02e348c85aa39fae0a8be59dfa.png)
 
 不要跳跃——使用梯子（[维基百科](https://commons.m.wikimedia.org/wiki/File:Inside_Khumbu-Icefall.jpg)）
 
@@ -68,7 +68,7 @@ Gartner炒作周期 [维基百科](https://en.wikipedia.org/wiki/Gartner_hype_cy
 
 +   上传期待的格式是什么？文本？PDF？Excel？
 
-+   如果是Excel模板，是否有多个工作表？不可写入的单元格？数据验证要求？
++   如果是 Excel 模板，是否有多个工作表？不可写入的单元格？数据验证要求？
 
 生成式 AI *能够* 处理所有这些任务 —— 你只需要能够清晰地定义每一步骤。如果你不能清楚地描述一个流程的输入和输出，生成式 AI 很可能不会按照你预期的方式执行。
 
@@ -169,7 +169,7 @@ Instructions:
 Begin!"""
 ```
 
-当你发送这个提示时，LLM会按照示例提取信息：
+当你发送这个提示时，LLM 会按照示例提取信息：
 
 ```py
 {
@@ -185,11 +185,11 @@ Begin!"""
 }
 ```
 
-通过使用这个定义明确的格式来处理电子邮件订单，我们可以将这个解析后的对象重新传回LLM，并要求它确保订单中的所有必需字段都存在。如果没有，我们可以将电子邮件发送给人工求助！
+通过使用这个定义明确的格式来处理电子邮件订单，我们可以将这个解析后的对象重新传回 LLM，并要求它确保订单中的所有必需字段都存在。如果没有，我们可以将电子邮件发送给人工求助！
 
-例如，假设所有的EmailOrders也需要一个CompanyName字段。如果验证规则这么简单，我们可以直接使用`pydantic`进行验证（无需AI！）。如果你的使用场景变得更加复杂，输出结果可以通过LLM进行处理，以提供更高层次的逻辑。
+例如，假设所有的 EmailOrders 也需要一个 CompanyName 字段。如果验证规则这么简单，我们可以直接使用`pydantic`进行验证（无需 AI！）。如果你的使用场景变得更加复杂，输出结果可以通过 LLM 进行处理，以提供更高层次的逻辑。
 
-我们将采取与上述相同的订单，但省略CompanyName字段：
+我们将采取与上述相同的订单，但省略 CompanyName 字段：
 
 ```py
 >>> class EmailOrder(BaseModel):
@@ -210,9 +210,9 @@ CompanyName
   Field required [type=missing, input_value={'CustomerName': 'James',...ello', ItemQuantity=2)]}, input_type=dict]
 ```
 
-Pydantic在这里为我们做了很多工作，抛出了一个`ValidationError`。我们的驱动程序可以简单地捕获这个错误，并将电子邮件发送给人工审查员。
+Pydantic 在这里为我们做了很多工作，抛出了一个`ValidationError`。我们的驱动程序可以简单地捕获这个错误，并将电子邮件发送给人工审查员。
 
-当然，一个LLM也可以检测到这个错误。我展示这个是为了完整性；通常你会想利用传统编程来进行数据验证：
+当然，一个 LLM 也可以检测到这个错误。我展示这个是为了完整性；通常你会想利用传统编程来进行数据验证：
 
 ```py
 prompt = """Evaluate that the input object matches the expected schema: 
@@ -222,7 +222,7 @@ Reply with "True" if it does match and "False" if it does not match.
 """
 ```
 
-有了这些，我们现在拥有一个能够轻松处理正确书写的电子邮件订单的系统。更重要的是，我们实现了一个**自我管理的过程**，当AI需要帮助时，会让人工参与。
+有了这些，我们现在拥有一个能够轻松处理正确书写的电子邮件订单的系统。更重要的是，我们实现了一个**自我管理的过程**，当 AI 需要帮助时，会让人工参与。
 
 关键是，我们并没有重写整个订单录入过程！我们已经将这个耗时的过程部分化，并建立了一个集中人类努力的系统，将精力集中在那些能够产生最大差异的领域。未来，我们可以开始修改过程中的其他部分，系统地去除人工劳动力。
 
@@ -230,8 +230,8 @@ Reply with "True" if it does match and "False" if it does not match.
 
 这种解决复杂问题的迭代方法并不新鲜。所有大问题都需要拆解成其组成部分，才能真正得到解决。
 
-然而，AI的“魔力”尤其令人信服。鉴于这些模型只需几行输入就能表现得如此强大，很容易希望实现大的突破。与区块链和大数据等技术相比，从创意到令人兴奋的概念验证所需的努力最小。AI不需要数十台定制配置的服务器来执行一个跨越18 TB数据的Map-Reduce任务，这个任务花了你6个月时间进行迁移。
+然而，AI 的“魔力”尤其令人信服。鉴于这些模型只需几行输入就能表现得如此强大，很容易希望实现大的突破。与区块链和大数据等技术相比，从创意到令人兴奋的概念验证所需的努力最小。AI 不需要数十台定制配置的服务器来执行一个跨越 18 TB 数据的 Map-Reduce 任务，这个任务花了你 6 个月时间进行迁移。
 
-因此，在构建下一个AI解决方案时，请记住这种简单性：一步一步走向顶峰。
+因此，在构建下一个 AI 解决方案时，请记住这种简单性：一步一步走向顶峰。
 
 在那里见！

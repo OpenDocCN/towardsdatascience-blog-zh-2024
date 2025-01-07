@@ -1,12 +1,12 @@
 # 量子生成对抗网络基础介绍
 
-> 原文：[https://towardsdatascience.com/a-basic-introduction-to-quantum-gans-4dbdc27ccb54?source=collection_archive---------7-----------------------#2024-09-21](https://towardsdatascience.com/a-basic-introduction-to-quantum-gans-4dbdc27ccb54?source=collection_archive---------7-----------------------#2024-09-21)
+> 原文：[`towardsdatascience.com/a-basic-introduction-to-quantum-gans-4dbdc27ccb54?source=collection_archive---------7-----------------------#2024-09-21`](https://towardsdatascience.com/a-basic-introduction-to-quantum-gans-4dbdc27ccb54?source=collection_archive---------7-----------------------#2024-09-21)
 
 ## 一种量子-经典混合方法用于合成数据生成
 
-[](https://javier-marin.medium.com/?source=post_page---byline--4dbdc27ccb54--------------------------------)[![Javier Marin](../Images/31800b2fbfd1f7c841c9f6a2579d5681.png)](https://javier-marin.medium.com/?source=post_page---byline--4dbdc27ccb54--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4dbdc27ccb54--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4dbdc27ccb54--------------------------------) [Javier Marin](https://javier-marin.medium.com/?source=post_page---byline--4dbdc27ccb54--------------------------------)
+[](https://javier-marin.medium.com/?source=post_page---byline--4dbdc27ccb54--------------------------------)![Javier Marin](https://javier-marin.medium.com/?source=post_page---byline--4dbdc27ccb54--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4dbdc27ccb54--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4dbdc27ccb54--------------------------------) [Javier Marin](https://javier-marin.medium.com/?source=post_page---byline--4dbdc27ccb54--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4dbdc27ccb54--------------------------------) ·阅读时间 9 分钟 ·2024年9月21日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4dbdc27ccb54--------------------------------) ·阅读时间 9 分钟 ·2024 年 9 月 21 日
 
 --
 

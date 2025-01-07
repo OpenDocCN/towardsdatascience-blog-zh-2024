@@ -1,24 +1,24 @@
 # 使用 OpenAlex API 进行开源研究的主题建模
 
-> 原文：[https://towardsdatascience.com/topic-modeling-open-source-research-with-the-openalex-api-5191c7db9156?source=collection_archive---------7-----------------------#2024-07-15](https://towardsdatascience.com/topic-modeling-open-source-research-with-the-openalex-api-5191c7db9156?source=collection_archive---------7-----------------------#2024-07-15)
+> 原文：[`towardsdatascience.com/topic-modeling-open-source-research-with-the-openalex-api-5191c7db9156?source=collection_archive---------7-----------------------#2024-07-15`](https://towardsdatascience.com/topic-modeling-open-source-research-with-the-openalex-api-5191c7db9156?source=collection_archive---------7-----------------------#2024-07-15)
 
 ## 开源情报（OSINT）是能够为组织带来巨大价值的一项技术。从分析社交媒体数据、网络数据或全球研究中获得的洞察，可以在支持各种分析时发挥重要作用。本文将概述如何使用主题建模来帮助我们理解成千上万的开源研究资料。
 
-[](https://medium.com/@adavis08?source=post_page---byline--5191c7db9156--------------------------------)[![Alex Davis](../Images/f773cce9438a68856cb8ba486ac8b051.png)](https://medium.com/@adavis08?source=post_page---byline--5191c7db9156--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5191c7db9156--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5191c7db9156--------------------------------) [Alex Davis](https://medium.com/@adavis08?source=post_page---byline--5191c7db9156--------------------------------)
+[](https://medium.com/@adavis08?source=post_page---byline--5191c7db9156--------------------------------)![Alex Davis](https://medium.com/@adavis08?source=post_page---byline--5191c7db9156--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5191c7db9156--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5191c7db9156--------------------------------) [Alex Davis](https://medium.com/@adavis08?source=post_page---byline--5191c7db9156--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5191c7db9156--------------------------------) ·阅读时长9分钟·2024年7月15日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5191c7db9156--------------------------------) ·阅读时长 9 分钟·2024 年 7 月 15 日
 
 --
 
-![](../Images/ee2aac991c4193c160d128a71f553a42.png)
+![](img/ee2aac991c4193c160d128a71f553a42.png)
 
-“使用纸张…… #research# #proposal”由[catherinecronin](https://www.flickr.com/photos/catherinecronin/14326101068)授权，采用CC BY-SA 2.0许可。要查看此许可证的副本，请访问[https://creativecommons.org/licenses/by-sa/2.0/?ref=openverse.](https://creativecommons.org/licenses/by-sa/2.0/?ref=openverse.)
+“使用纸张…… #research# #proposal”由[catherinecronin](https://www.flickr.com/photos/catherinecronin/14326101068)授权，采用 CC BY-SA 2.0 许可。要查看此许可证的副本，请访问[`creativecommons.org/licenses/by-sa/2.0/?ref=openverse.`](https://creativecommons.org/licenses/by-sa/2.0/?ref=openverse.)
 
 # **什么是主题建模？**
 
 主题建模是一种无监督的机器学习技术，用于分析文档并通过语义相似性识别“主题”。这类似于聚类，但并非每个文档都独立属于一个主题。它更多的是将语料库中的内容进行分组。主题建模有许多不同的应用，但主要用于更好地理解大量文本数据。
 
-![](../Images/ae6dbdf009e015f0e89bfb45c5c4be55.png)
+![](img/ae6dbdf009e015f0e89bfb45c5c4be55.png)
 
 作者提供的图片
 
@@ -28,7 +28,7 @@
 
 # OpenAlex
 
-OpenAlex是一个免费使用的全球研究目录系统。他们已经索引了超过2.5亿篇新闻、文章、摘要等。
+OpenAlex 是一个免费使用的全球研究目录系统。他们已经索引了超过 2.5 亿篇新闻、文章、摘要等。
 
 [## OpenAlex
 
@@ -36,13 +36,13 @@ OpenAlex是一个免费使用的全球研究目录系统。他们已经索引了
 
 [openalex.org](https://openalex.org/?source=post_page-----5191c7db9156--------------------------------)
 
-幸运的是，他们提供了一个免费的（但有限制）灵活API，可以让我们快速获取成千上万篇文章，并且应用过滤条件，如年份、媒体类型、关键词等。
+幸运的是，他们提供了一个免费的（但有限制）灵活 API，可以让我们快速获取成千上万篇文章，并且应用过滤条件，如年份、媒体类型、关键词等。
 
 # 创建数据管道
 
-在我们从API获取数据时，我们会应用一些标准。首先，我们只会获取年份在2016到2022年之间的文档。我们希望使用相对较新的语言，因为某些主题的术语和分类法会随着时间的推移发生变化。
+在我们从 API 获取数据时，我们会应用一些标准。首先，我们只会获取年份在 2016 到 2022 年之间的文档。我们希望使用相对较新的语言，因为某些主题的术语和分类法会随着时间的推移发生变化。
 
-我们还将添加关键术语并进行多次搜索。虽然通常我们可能会随机获取不同的主题领域，但我们将使用关键术语来缩小搜索范围。通过这种方式，我们可以了解有多少个高级主题，并将其与模型的输出进行比较。下面，我们创建一个可以添加关键术语并通过API进行搜索的函数。
+我们还将添加关键术语并进行多次搜索。虽然通常我们可能会随机获取不同的主题领域，但我们将使用关键术语来缩小搜索范围。通过这种方式，我们可以了解有多少个高级主题，并将其与模型的输出进行比较。下面，我们创建一个可以添加关键术语并通过 API 进行搜索的函数。
 
 ```py
 import pandas as pd
@@ -81,7 +81,7 @@ def import_data(pages, start_year, end_year, search_terms):
     return(search_results)
 ```
 
-我们进行5次不同的搜索，每次搜索涉及不同的技术领域。这些技术领域受到国防部“关键技术领域”的启发。详情请见：
+我们进行 5 次不同的搜索，每次搜索涉及不同的技术领域。这些技术领域受到国防部“关键技术领域”的启发。详情请见：
 
 [](https://www.cto.mil/usdre-strat-vision-critical-tech-areas/?source=post_page-----5191c7db9156--------------------------------) [## USD(R&E)战略愿景与关键技术领域 - 国防部研究与工程，OUSD(R&E)
 
@@ -89,7 +89,7 @@ def import_data(pages, start_year, end_year, search_terms):
 
 [www.cto.mil](https://www.cto.mil/usdre-strat-vision-critical-tech-areas/?source=post_page-----5191c7db9156--------------------------------)
 
-这是一个使用所需OpenAlex语法进行搜索的示例：
+这是一个使用所需 OpenAlex 语法进行搜索的示例：
 
 ```py
 #search for Trusted AI and Autonomy
@@ -100,7 +100,7 @@ ai_search = import_data(35, 2016, 2024, "'artificial intelligence' OR 'deep lear
 
 1.  摘要以倒排索引的形式返回（出于法律原因）。然而，我们可以利用这些索引返回原始文本。
 
-1.  一旦我们获得原始文本，它将是未经处理的原始数据，产生噪声并影响我们的模型表现。我们将进行传统的NLP预处理，以便为模型做好准备。
+1.  一旦我们获得原始文本，它将是未经处理的原始数据，产生噪声并影响我们的模型表现。我们将进行传统的 NLP 预处理，以便为模型做好准备。
 
 以下是一个从倒排索引中返回原始文本的函数。
 
@@ -270,7 +270,7 @@ lda_viz
 
 如下所示，这生成了一个很好的可视化图，我们可以快速了解模型的表现。通过查看向量空间，我们可以看到一些主题是明确且定义良好的。然而，也有一些主题是重叠的。
 
-![](../Images/528452b69c598401246c2e00ad1dcb42.png)
+![](img/528452b69c598401246c2e00ad1dcb42.png)
 
 图片来源：作者
 
@@ -327,7 +327,7 @@ def lda_model_evaluation():
 
 # 下一步
 
-为了继续构建一个生产级别的模型，我们需要在参数上进行大量实验。由于LDA计算开销较大，我将上述实验限定在比较大约20个不同的模型。但如果有更多的时间和计算能力，我们可以比较数百个模型。
+为了继续构建一个生产级别的模型，我们需要在参数上进行大量实验。由于 LDA 计算开销较大，我将上述实验限定在比较大约 20 个不同的模型。但如果有更多的时间和计算能力，我们可以比较数百个模型。
 
 此外，我们的数据管道也有待改进。我注意到有几个词可能需要添加到停用词列表中。像“use”和“department”这样的词并没有提供任何语义价值，特别是对于不同技术领域的文档来说。还有一些技术术语未能正确处理，结果变成了单个字母或一组字母。我们可以花一些时间做一个词袋分析，以识别这些停用词机会。这将有助于减少数据集中的噪音。
 
@@ -335,14 +335,14 @@ def lda_model_evaluation():
 
 在本文中，我们：
 
-1.  了解了主题建模和OpenAlex数据源的基本概念
+1.  了解了主题建模和 OpenAlex 数据源的基本概念
 
-1.  构建了一个数据管道，用于从API中获取数据并为NLP模型做准备
+1.  构建了一个数据管道，用于从 API 中获取数据并为 NLP 模型做准备
 
-1.  构建了一个LDA模型，并使用pyLDAvis可视化结果
+1.  构建了一个 LDA 模型，并使用 pyLDAvis 可视化结果
 
 1.  编写了代码来帮助我们找到最优参数
 
 1.  讨论了模型改进的下一步
 
-*这是我在Medium上的第一篇文章，希望你喜欢。请随时留下反馈、提问或提出其他话题的请求！*
+*这是我在 Medium 上的第一篇文章，希望你喜欢。请随时留下反馈、提问或提出其他话题的请求！*

@@ -1,16 +1,16 @@
 # 数组 — 数据科学家的数据结构与算法
 
-> 原文：[https://towardsdatascience.com/arrays-data-structures-algorithms-for-data-scientists-b2e39e25136d?source=collection_archive---------4-----------------------#2024-10-07](https://towardsdatascience.com/arrays-data-structures-algorithms-for-data-scientists-b2e39e25136d?source=collection_archive---------4-----------------------#2024-10-07)
+> 原文：[`towardsdatascience.com/arrays-data-structures-algorithms-for-data-scientists-b2e39e25136d?source=collection_archive---------4-----------------------#2024-10-07`](https://towardsdatascience.com/arrays-data-structures-algorithms-for-data-scientists-b2e39e25136d?source=collection_archive---------4-----------------------#2024-10-07)
 
 ## 动态数组和静态数组在后台是如何工作的
 
-[](https://medium.com/@egorhowell?source=post_page---byline--b2e39e25136d--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--b2e39e25136d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b2e39e25136d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b2e39e25136d--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--b2e39e25136d--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--b2e39e25136d--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--b2e39e25136d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b2e39e25136d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b2e39e25136d--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--b2e39e25136d--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b2e39e25136d--------------------------------) ·阅读时长6分钟·2024年10月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b2e39e25136d--------------------------------) ·阅读时长 6 分钟·2024 年 10 月 7 日
 
 --
 
-![](../Images/b303752d5288c84a7b3e77e7b7621d91.png)
+![](img/b303752d5288c84a7b3e77e7b7621d91.png)
 
 图片由 [Caspar Camille Rubin](https://unsplash.com/@casparrubin?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

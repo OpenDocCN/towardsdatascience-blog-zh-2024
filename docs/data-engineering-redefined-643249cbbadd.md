@@ -1,12 +1,12 @@
 # 数据工程，重新定义
 
-> 原文：[https://towardsdatascience.com/data-engineering-redefined-643249cbbadd?source=collection_archive---------1-----------------------#2024-06-28](https://towardsdatascience.com/data-engineering-redefined-643249cbbadd?source=collection_archive---------1-----------------------#2024-06-28)
+> 原文：[`towardsdatascience.com/data-engineering-redefined-643249cbbadd?source=collection_archive---------1-----------------------#2024-06-28`](https://towardsdatascience.com/data-engineering-redefined-643249cbbadd?source=collection_archive---------1-----------------------#2024-06-28)
 
 ## 今天数据工程的实践方式以及为什么我们应该重新定义它
 
-[](https://medium.com/@bernd.wessely?source=post_page---byline--643249cbbadd--------------------------------)[![Bernd Wessely](../Images/e60e01c19412d8af8f8bddf78e561275.png)](https://medium.com/@bernd.wessely?source=post_page---byline--643249cbbadd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--643249cbbadd--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--643249cbbadd--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--643249cbbadd--------------------------------)
+[](https://medium.com/@bernd.wessely?source=post_page---byline--643249cbbadd--------------------------------)![Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--643249cbbadd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--643249cbbadd--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--643249cbbadd--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--643249cbbadd--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--643249cbbadd--------------------------------) ·阅读时间 7分钟·2024年6月28日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--643249cbbadd--------------------------------) ·阅读时间 7 分钟·2024 年 6 月 28 日
 
 --
 
@@ -44,7 +44,7 @@
 
 # 为什么数据工程被偏离了
 
-![](../Images/5627991f57e82f1bd2fc7e6ee5bd1a17.png)
+![](img/5627991f57e82f1bd2fc7e6ee5bd1a17.png)
 
 分离关注点的简单而明显的原则 —— 作者提供的图像
 
@@ -52,9 +52,9 @@
 
 我认为这种转变可以归因于数据库快速发展为多功能系统的趋势。最初，数据库只是作为企业数据的简单持久存储解决方案。它们提供了非常有用的抽象，能够将数据持久化的功能从应用程序的实际业务逻辑中卸载出来。然而，供应商迅速通过在其数据库产品中嵌入软件开发功能来吸引应用程序开发人员，从而增强了这些系统的功能。这一整合使得数据库从简单的数据存储库转变为全面的平台，结合了复杂的编程语言和工具，支持全面的软件开发。因此，数据库演变成了强大的转换引擎，使得数据专家能够在传统应用程序之外实现业务逻辑。随着大型数据仓库的出现，这一转变的需求得到了进一步加强，数据仓库旨在整合分散的数据存储——这一问题在微服务架构兴起后变得更加突出。这一技术进步使得在数据库内结合业务逻辑和业务数据变得既实际又高效。
 
-最终，并非所有软件工程师都屈服于将应用程序逻辑捆绑在数据库中的诱惑，仍然保留了清晰分离的希望。随着数据量和复杂性的不断增长，大数据工具如Hadoop及其后继者应运而生，甚至在某些领域取代了传统数据库。这一转变为将业务逻辑从数据库中移出并返回给应用程序开发人员提供了机会。然而，数据工程不仅仅包括数据迁移和管理的观念已经深入人心。我们开发了许多工具来支持商业智能、先进分析和复杂的转换管道，从而能够实现复杂的业务逻辑。
+最终，并非所有软件工程师都屈服于将应用程序逻辑捆绑在数据库中的诱惑，仍然保留了清晰分离的希望。随着数据量和复杂性的不断增长，大数据工具如 Hadoop 及其后继者应运而生，甚至在某些领域取代了传统数据库。这一转变为将业务逻辑从数据库中移出并返回给应用程序开发人员提供了机会。然而，数据工程不仅仅包括数据迁移和管理的观念已经深入人心。我们开发了许多工具来支持商业智能、先进分析和复杂的转换管道，从而能够实现复杂的业务逻辑。
 
-这些工具已成为现代数据架构（MDS）的核心组成部分，使得数据工程成为一门独立的学科。MDS包括一整套用于数据处理和转化的工具，但这些工具对于典型的应用开发人员或软件工程师来说仍然相对陌生。尽管有可能[“将数据库翻转过来”](https://martin.kleppmann.com/2015/03/04/turning-the-database-inside-out.html)并将业务逻辑重新迁移到应用层，但我们未能完全把握这一机会。实现业务逻辑的这一不幸做法至今依然由数据工程师承担。
+这些工具已成为现代数据架构（MDS）的核心组成部分，使得数据工程成为一门独立的学科。MDS 包括一整套用于数据处理和转化的工具，但这些工具对于典型的应用开发人员或软件工程师来说仍然相对陌生。尽管有可能[“将数据库翻转过来”](https://martin.kleppmann.com/2015/03/04/turning-the-database-inside-out.html)并将业务逻辑重新迁移到应用层，但我们未能完全把握这一机会。实现业务逻辑的这一不幸做法至今依然由数据工程师承担。
 
 # 数据工程如何被重新定义
 
@@ -62,29 +62,29 @@
 
 数据工程师可以并且应该提供最成熟的工具和平台，供应用开发人员使用，以便处理数据。这也是[“自服务数据平台”](https://martinfowler.com/articles/data-monolith-to-mesh.html#DataAndSelf-servePlatformDesignConvergence)在数据网格中的主要思想。然而，定义和维护业务逻辑的责任仍然在业务领域内。这些人对业务了解得更多，知道应如何将业务转型逻辑应用于数据。
 
-好吧，那么像数据仓库系统这样的好主意以及更广泛的[“数据工程生命周期”](https://medium.com/towards-data-engineering/data-engineering-lifecycle-d1e7ee81632e)（由Joe Reis和Matt Housley定义）怎么办呢？
+好吧，那么像数据仓库系统这样的好主意以及更广泛的[“数据工程生命周期”](https://medium.com/towards-data-engineering/data-engineering-lifecycle-d1e7ee81632e)（由 Joe Reis 和 Matt Housley 定义）怎么办呢？
 
-![](../Images/2a71e249539fff492919a8553f05cf45.png)
+![](img/2a71e249539fff492919a8553f05cf45.png)
 
-数据工程生命周期已完成 — 图片由作者根据Joe Reis和Matt Housley的观点制作
+数据工程生命周期已完成 — 图片由作者根据 Joe Reis 和 Matt Housley 的观点制作
 
 “数据管道”实际上只是应用程序之间的代理，但如果业务逻辑要在管道中实现，这些系统应被视为企业中的独立应用程序。这些应用程序应由业务领域的应用开发人员维护，而不是由数据工程师维护。
 
-数据从源头（在他们的参考中称为“生成”）到提供给消费者的流动其实在理想化的情况下被简化了。从“反向ETL”输出的数据再次作为下游应用程序的输入。而不仅仅是“反向ETL”，还有“分析”和“机器学习”会创建输出，供下游的分析和操作性应用程序使用。数据在组织中的流动并不会在机器学习模型的训练或应用，或商业分析的创建时结束。这些应用的结果需要在公司内部进一步处理，因此必须集成到整体的业务流程中（通过蓝色框和箭头表示）。这种观点模糊了仍然在操作性和分析性层面之间实行的严格区分，[我已经将其消除作为数据网格的核心目标](https://medium.com/towards-data-science/challenges-and-solutions-in-data-mesh-part-1-24cd45290805)。
+数据从源头（在他们的参考中称为“生成”）到提供给消费者的流动其实在理想化的情况下被简化了。从“反向 ETL”输出的数据再次作为下游应用程序的输入。而不仅仅是“反向 ETL”，还有“分析”和“机器学习”会创建输出，供下游的分析和操作性应用程序使用。数据在组织中的流动并不会在机器学习模型的训练或应用，或商业分析的创建时结束。这些应用的结果需要在公司内部进一步处理，因此必须集成到整体的业务流程中（通过蓝色框和箭头表示）。这种观点模糊了仍然在操作性和分析性层面之间实行的严格区分，[我已经将其消除作为数据网格的核心目标](https://medium.com/towards-data-science/challenges-and-solutions-in-data-mesh-part-1-24cd45290805)。
 
 那么，数据工程师的真正任务是什么？我们应该发展企业架构，使得应用开发人员能够将业务逻辑重新带入他们的应用程序，同时允许这些应用程序之间无缝交换和共享数据。数据工程师实际上构建了“数据基础设施”和所有通过数据网格将业务逻辑整合到互联的业务应用程序中的工具。这比仅提供不同类型的数据库、一种数据仓库或数据湖（无论是在本地还是在云中）要复杂得多。它包括工具和基础设施的实施，治理和数据共享原则的定义和应用（包括建模），最终实现企业中的**普遍数据供应**。然而，业务逻辑的实现应该绝对不在数据工程的范围之内。
 
-![](../Images/e12f43b1f42bcec87e2db35da6ef4776.png)
+![](img/e12f43b1f42bcec87e2db35da6ef4776.png)
 
 数据基础设施作为数据工程师为所有应用程序开发人员提供的服务 — 作者图片
 
 这种重新定义的数据工程实践与我在这三部分系列文章中提出的调整后的数据网格方法相一致：
 
-[](/challenges-and-solutions-in-data-mesh-part-1-24cd45290805?source=post_page-----643249cbbadd--------------------------------) [## 数据网格中的挑战与解决方案 — 第一部分
+[](/challenges-and-solutions-in-data-mesh-part-1-24cd45290805?source=post_page-----643249cbbadd--------------------------------) ## 数据网格中的挑战与解决方案 — 第一部分
 
-### 为什么由Zhamak Dehghani定义的数据网格面临挑战，以及如何解决这些问题。
+### 为什么由 Zhamak Dehghani 定义的数据网格面临挑战，以及如何解决这些问题。
 
-towardsdatascience.com](/challenges-and-solutions-in-data-mesh-part-1-24cd45290805?source=post_page-----643249cbbadd--------------------------------) [](/challenges-and-solutions-in-data-mesh-part-2-7dfe97aa461a?source=post_page-----643249cbbadd--------------------------------) [## 数据网格中的挑战与解决方案 — 第二部分
+towardsdatascience.com [](/challenges-and-solutions-in-data-mesh-part-2-7dfe97aa461a?source=post_page-----643249cbbadd--------------------------------) [## 数据网格中的挑战与解决方案 — 第二部分
 
 ### “数据即产品”是数据网格中的核心原则。为什么当前的定义需要调整，以便完全实现…
 

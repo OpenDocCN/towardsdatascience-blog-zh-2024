@@ -1,16 +1,16 @@
 # 你意识到你数据专长在推动商业盈利能力方面的潜力吗？
 
-> 原文：[https://towardsdatascience.com/are-you-aware-of-the-potential-of-your-data-expertise-in-driving-business-profitability-16cffb607437?source=collection_archive---------4-----------------------#2024-10-24](https://towardsdatascience.com/are-you-aware-of-the-potential-of-your-data-expertise-in-driving-business-profitability-16cffb607437?source=collection_archive---------4-----------------------#2024-10-24)
+> 原文：[`towardsdatascience.com/are-you-aware-of-the-potential-of-your-data-expertise-in-driving-business-profitability-16cffb607437?source=collection_archive---------4-----------------------#2024-10-24`](https://towardsdatascience.com/are-you-aware-of-the-potential-of-your-data-expertise-in-driving-business-profitability-16cffb607437?source=collection_archive---------4-----------------------#2024-10-24)
 
 ## 一位供应链数据科学家的反思，他偶然发现了数据分析在帮助大小企业方面的力量。
 
-[](https://s-saci95.medium.com/?source=post_page---byline--16cffb607437--------------------------------)[![Samir Saci](../Images/722d1f56a3308f6527d82b5ab97064ec.png)](https://s-saci95.medium.com/?source=post_page---byline--16cffb607437--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16cffb607437--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--16cffb607437--------------------------------) [Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--16cffb607437--------------------------------)
+[](https://s-saci95.medium.com/?source=post_page---byline--16cffb607437--------------------------------)![Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--16cffb607437--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16cffb607437--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16cffb607437--------------------------------) [Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--16cffb607437--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16cffb607437--------------------------------) ·11分钟阅读·2024年10月24日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16cffb607437--------------------------------) ·11 分钟阅读·2024 年 10 月 24 日
 
 --
 
-![](../Images/e0d91cf812972a98edd0593680584a44.png)
+![](img/e0d91cf812972a98edd0593680584a44.png)
 
 图片来源：[Fabian Blank](https://unsplash.com/@blankerwahnsinn?utm_source=medium&utm_medium=referral) via [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -24,15 +24,15 @@
 
 因此，估算我方案的投资回报率（ROI）变得稍微可控一些，但仍然很难说服决策者。
 
-> 例如，我会解释：“这个算法将提高拣货生产力25%，这将导致可变成本减少12%。”
+> 例如，我会解释：“这个算法将提高拣货生产力 25%，这将导致可变成本减少 12%。”
 
-这些成功激励我分享涵盖60多个运营案例研究的解决方案，已发布在这个[Medium博客](https://s-saci95.medium.com/welcome-to-my-profile-5011f02dfbf3)上。
+这些成功激励我分享涵盖 60 多个运营案例研究的解决方案，已发布在这个[Medium 博客](https://s-saci95.medium.com/welcome-to-my-profile-5011f02dfbf3)上。
 
 虽然我的重点是改善物流运营，但在过程中发生了一些意想不到的事情：
 
 > 如果我将重点转向商业盈利能力会怎样？
 
-在一个项目中，我将这些工具应用于一个商业案例研究：[最大化一家面包店的盈利能力](/maximize-your-business-profitability-with-python-fbefebbdf802).
+在一个项目中，我将这些工具应用于一个商业案例研究：最大化一家面包店的盈利能力.
 
 我收到的反馈让我意识到，无论是小企业还是大企业，都需要优化他们的利润率，并且自动化数据驱动的决策。
 
@@ -63,11 +63,11 @@ Understanding processes is an important skill to answer business problems
 
 > 供应链解决方案设计经理的工作是什么？
 
-例如，想象一下像Costco这样的零售商希望在上海建立一个配送中心。
+例如，想象一下像 Costco 这样的零售商希望在上海建立一个配送中心。
 
-1.  他们提供关于交易量和过程需求的数据，通常是在RFP中。
+1.  他们提供关于交易量和过程需求的数据，通常是在 RFP 中。
 
-1.  我的工作是设计解决方案（布局、人员配置、设备）并基于超过100个参数的成本模型来制定定价。
+1.  我的工作是设计解决方案（布局、人员配置、设备）并基于超过 100 个参数的成本模型来制定定价。
 
 1.  我们向客户展示解决方案，并提供详细的定价表。
 
@@ -75,11 +75,11 @@ Understanding processes is an important skill to answer business problems
 
 为了赢得这个项目，我必须确保具有竞争力的定价，同时保持最低利润率，并且不能低于成本定价。
 
-![](../Images/3d9979495f94797039427f5709c4d8f2.png)
+![](img/3d9979495f94797039427f5709c4d8f2.png)
 
 定价结构 — （图片来自作者）
 
-例如，如果我报价每箱€1.25用于拣货，我就能准确知道成本和利润是如何分解的
+例如，如果我报价每箱€1.25 用于拣货，我就能准确知道成本和利润是如何分解的
 
 +   **€0.57**用于劳动力成本
 
@@ -87,29 +87,29 @@ Understanding processes is an important skill to answer business problems
 
 +   **€0.20**用于固定仓储成本
 
-+   **€0.11**为我们的毛利（销售额的8.8%利润）
++   **€0.11**为我们的毛利（销售额的 8.8%利润）
 
-接下来是什么？你赢得了这笔生意，并签署了一个为期三年的500万**欧元预算**合同。
+接下来是什么？你赢得了这笔生意，并签署了一个为期三年的 500 万**欧元预算**合同。
 
-> 但是，如果客户希望将价格降低到每箱€1.10会发生什么呢？
+> 但是，如果客户希望将价格降低到每箱€1.10 会发生什么呢？
 
 这在低利润公司中经常发生，比如传统零售商、汽车售后分销商或消费品公司。
 
-你必须找到减少成本的方式，同时保持8.8%的利润率不变。
+你必须找到减少成本的方式，同时保持 8.8%的利润率不变。
 
 因此，我一直在使用数据分析来
 
-+   [使用帕累托原则和Python减少仓库空间](/reduce-warehouse-space-with-the-pareto-principle-using-python-e722a6babe0e)
++   使用帕累托原则和 Python 减少仓库空间
 
-+   [使用路径规划算法提高仓库拣货效率](/reduce-warehouse-space-with-the-pareto-principle-using-python-e722a6babe0e)
++   使用路径规划算法提高仓库拣货效率
 
-+   [使用图论和Python优化运输路线](/transportation-network-analysis-with-graph-theory-55eceb7e4de4?postPublishedType=repub)
++   使用图论和 Python 优化运输路线
 
-![](../Images/b18529e262b58095f6b6698739f51af7.png)
+![](img/b18529e262b58095f6b6698739f51af7.png)
 
 持续改进举措 — （图片来自作者）
 
-以及许多其他**由数据分析支持的运营改进，这些内容**在[这篇Medium博客中分享](https://s-saci95.medium.com/welcome-to-my-profile-5011f02dfbf3)。
+以及许多其他**由数据分析支持的运营改进，这些内容**在[这篇 Medium 博客中分享](https://s-saci95.medium.com/welcome-to-my-profile-5011f02dfbf3)。
 
 > 我可以将类似的方法应用到物流以外的领域吗？
 
@@ -143,9 +143,9 @@ Understanding processes is an important skill to answer business problems
 
 1.  **建立一个 Python 模型来复制他们当前的设置**并模拟不同的场景。
 
-结果是文章中提出的解决方案：[使用 Python 最大化商业盈利](/maximize-your-business-profitability-with-python-fbefebbdf802)。
+结果是文章中提出的解决方案：使用 Python 最大化商业盈利。
 
-![](../Images/ff98f0bdfaa4d188569dad99c87f8d6e.png)
+![](img/ff98f0bdfaa4d188569dad99c87f8d6e.png)
 
 应用于面包店盈利案例的方法论 — （图像来源：作者）
 
@@ -157,7 +157,7 @@ Understanding processes is an important skill to answer business problems
 
 > “这是我第一次能够估算我的商业策略对整体盈利能力的影响，”那位老板说。
 
-![](../Images/933eb4f3592f694df7e47750cd285ec1.png)
+![](img/933eb4f3592f694df7e47750cd285ec1.png)
 
 添加指标：设备和劳动力使用比例 — （图像来源：作者）
 
@@ -181,7 +181,7 @@ Understanding processes is an important skill to answer business problems
 
 我的一个朋友，他经营着一家小型餐饮企业，使用我的模型来支持决策并最大化收入。
 
-[![](../Images/957d9adfd0d893423894fd6d18af740d.png)](https://towardsdatascience.com/business-planning-with-python-inventory-and-cash-flow-management-4f9beb7ecbec)
+![](https://towardsdatascience.com/business-planning-with-python-inventory-and-cash-flow-management-4f9beb7ecbec)
 
 我朋友的商业模型 —— （图片来源：作者）
 
@@ -197,7 +197,7 @@ Understanding processes is an important skill to answer business problems
 
 核心问题很明确：**他们需要清楚了解他们的财务流动。**
 
-[![](../Images/9bea82d51ce72ed4f695444d95d6f8d5.png)](https://towardsdatascience.com/business-planning-with-python-inventory-and-cash-flow-management-4f9beb7ecbec)
+![](https://towardsdatascience.com/business-planning-with-python-inventory-and-cash-flow-management-4f9beb7ecbec)
 
 咖啡杯的价值链 —— （图片来源：作者）
 
@@ -209,17 +209,17 @@ Understanding processes is an important skill to answer business problems
 
 +   固定的运营成本和现金流管理。
 
-[![](../Images/209105cf8c379e09d2c2bc1cc162a406.png)](https://towardsdatascience.com/business-planning-with-python-inventory-and-cash-flow-management-4f9beb7ecbec)
+![](https://towardsdatascience.com/business-planning-with-python-inventory-and-cash-flow-management-4f9beb7ecbec)
 
 业务的模拟引擎 —— （图片来源：作者）
 
-结果是一个用Python编写的模拟引擎（具有合理的粒度），它复制了我朋友的业务。
+结果是一个用 Python 编写的模拟引擎（具有合理的粒度），它复制了我朋友的业务。
 
 > 接下来是什么？我们可以回答我朋友所有的问题！
 
 我朋友最大的不满是缺乏可视化和无法验证假设。
 
-+   如果我们将库存覆盖周期从8周减少到6周，会怎么样？
++   如果我们将库存覆盖周期从 8 周减少到 6 周，会怎么样？
 
 +   使用空运交付会更具成本效益吗？
 
@@ -227,7 +227,7 @@ Understanding processes is an important skill to answer business problems
 
 由于涉及的参数复杂，他之前无法得到明确的答案。
 
-[![](../Images/99d974ac2c03fad0ec0e17c3d8bd9cc0.png)](https://towardsdatascience.com/business-planning-with-python-inventory-and-cash-flow-management-4f9beb7ecbec)
+![](https://towardsdatascience.com/business-planning-with-python-inventory-and-cash-flow-management-4f9beb7ecbec)
 
 所有场景的总结 —— （图片来源：作者）
 
@@ -245,11 +245,11 @@ Understanding processes is an important skill to answer business problems
 
 这听起来像是你的业务面临的问题吗？欲了解更多详情，请查看本文
 
-[](/business-planning-with-python-inventory-and-cash-flow-management-4f9beb7ecbec?source=post_page-----16cffb607437--------------------------------) [## 使用 Python 进行商业规划 — 库存和现金流管理
+[](/business-planning-with-python-inventory-and-cash-flow-management-4f9beb7ecbec?source=post_page-----16cffb607437--------------------------------) ## 使用 Python 进行商业规划 — 库存和现金流管理
 
 ### 小企业的商业规划，用于管理库存、预测流动性需求并最大化盈利能力……
 
-towardsdatascience.com](/business-planning-with-python-inventory-and-cash-flow-management-4f9beb7ecbec?source=post_page-----16cffb607437--------------------------------)
+towardsdatascience.com
 
 模型提供的洞察帮助我的朋友减少了运营所需的现金，并降低了销售成本（COGS）。
 
@@ -257,7 +257,7 @@ towardsdatascience.com](/business-planning-with-python-inventory-and-cash-flow-m
 
 他回来说有另一个与定价策略相关的请求。
 
-[![](../Images/e8a9e33d0aea94aaa86180bb22cbacad.png)](https://towardsdatascience.com/business-planning-with-python-revenue-optimization-83387074826d)
+![](https://towardsdatascience.com/business-planning-with-python-revenue-optimization-83387074826d)
 
 定价策略示例 — （图片来源：作者）
 
@@ -271,9 +271,9 @@ towardsdatascience.com](/business-planning-with-python-inventory-and-cash-flow-m
 
 我们可以通过**多种销售量场景**估算每个定价策略的盈利能力及其他商业指标。
 
-[![](../Images/fe501dfb8a43c90fa55645dc0d05b3d6.png)](https://towardsdatascience.com/business-planning-with-python-revenue-optimization-83387074826d)
+![](https://towardsdatascience.com/business-planning-with-python-revenue-optimization-83387074826d)
 
-模拟定价策略 2 [文章: [链接](/business-planning-with-python-revenue-optimization-83387074826d)] — （图片来源：作者）
+模拟定价策略 2 文章: [链接] — （图片来源：作者）
 
 在上表中，我们模拟了定价策略二的影响，假设了七种营业额情景。
 
@@ -281,11 +281,11 @@ towardsdatascience.com](/business-planning-with-python-inventory-and-cash-flow-m
 
 我们可以通过几次点击评估每个提议的策略。
 
-[](/business-planning-with-python-revenue-optimization-83387074826d?source=post_page-----16cffb607437--------------------------------) [## 使用 Python 进行商业规划 — 收入优化
+[](/business-planning-with-python-revenue-optimization-83387074826d?source=post_page-----16cffb607437--------------------------------) ## 使用 Python 进行商业规划 — 收入优化
 
 ### 你如何利用数据分析帮助小企业在保持或改善其他方面的同时，最大化收入？
 
-towardsdatascience.com](/business-planning-with-python-revenue-optimization-83387074826d?source=post_page-----16cffb607437--------------------------------)
+towardsdatascience.com
 
 模型生成的洞察帮助解决了联合创始人之间的激烈讨论。
 
@@ -305,7 +305,7 @@ towardsdatascience.com](/business-planning-with-python-revenue-optimization-8338
 
 这是一个积极的过程，要求你提出正确的问题，以了解哪些指标对企业主重要，以及如何建模这些流程。
 
-[![](../Images/ecb0de4ce3243e8744b04c85540ed5a2.png)](http://A reflection of a supply chain data scientist who randomly discovered the power of data analytics to help small and large businesses.)
+![](http://A reflection of a supply chain data scientist who randomly discovered the power of data analytics to help small and large businesses.)
 
 咖啡杯的价值链 — （图片来源：作者）
 
@@ -337,7 +337,7 @@ towardsdatascience.com](/business-planning-with-python-revenue-optimization-8338
 
 这是因为我发现先进的分析工具在业务优化中非常有效。
 
-你不需要关注分析解决方案的复杂性（机器学习、优化或生成AI），而是要理解业务本身。
+你不需要关注分析解决方案的复杂性（机器学习、优化或生成 AI），而是要理解业务本身。
 
 > 你听说过可持续性吗？
 
@@ -347,21 +347,21 @@ towardsdatascience.com](/business-planning-with-python-revenue-optimization-8338
 
 这个想法是引入更严格的透明度要求，特别是在环境、社会和治理（ESG）指标方面。
 
-[![](../Images/01a3148beeb5faa37b43e60a3d683c7e.png)](https://towardsdatascience.com/what-is-esg-reporting-d610535eed9c)
+![](https://towardsdatascience.com/what-is-esg-reporting-d610535eed9c)
 
-ESG支柱展示 [文章：[链接](/what-is-esg-reporting-d610535eed9c)] — （图片来源：作者）
+ESG 支柱展示 文章：[链接] — （图片来源：作者）
 
 本文中介绍的我们在商业盈利能力方面的方法**也可以应用于可持续性挑战**。
 
-> 决策者：“我们需要将分销网络的范围3排放量减少30%。”
+> 决策者：“我们需要将分销网络的范围 3 排放量减少 30%。”
 
-例如，在这篇关于[绿色库存管理](/data-science-for-sustainability-green-inventory-management-e7ddfd97696f)的文章中，我分享了一个关于减少商店配送碳排放的案例研究。
+例如，在这篇关于绿色库存管理的文章中，我分享了一个关于减少商店配送碳排放的案例研究。
 
-这个方法的目标是找到最优配送频率，以最小化CO2排放。
+这个方法的目标是找到最优配送频率，以最小化 CO2 排放。
 
-[![](../Images/45d4e1ed738f57a3bd6b2368a69334d1.png)](https://towardsdatascience.com/data-science-for-sustainability-green-inventory-management-e7ddfd97696f)
+![](https://towardsdatascience.com/data-science-for-sustainability-green-inventory-management-e7ddfd97696f)
 
-绿色库存管理[文章：[链接](/data-science-for-sustainability-green-inventory-management-e7ddfd97696f)] — （图片由作者提供）
+绿色库存管理文章：[链接] — （图片由作者提供）
 
 文章中提出的解决这个操作问题的方法是类似的。
 
@@ -369,19 +369,19 @@ ESG支柱展示 [文章：[链接](/what-is-esg-reporting-d610535eed9c)] — （
 
     *为时尚零售商店准备并交付订单*
 
-1.  使用Python构建一个仿真模型来估算排放量。
+1.  使用 Python 构建一个仿真模型来估算排放量。
 
-    *输入：销售数据和配送频率 / 输出：CO2排放量*
+    *输入：销售数据和配送频率 / 输出：CO2 排放量*
 
 1.  测试多个配送频率的不同情境，并计算排放量的减少。
 
 如果你有兴趣寻找减少排放的解决方案，
 
-[](/data-science-for-sustainability-green-inventory-management-e7ddfd97696f?source=post_page-----16cffb607437--------------------------------) [## 数据科学与可持续发展 - 绿色库存管理
+[](/data-science-for-sustainability-green-inventory-management-e7ddfd97696f?source=post_page-----16cffb607437--------------------------------) ## 数据科学与可持续发展 - 绿色库存管理
 
-### 模拟商店配送频率对时尚零售商CO2排放的影响。
+### 模拟商店配送频率对时尚零售商 CO2 排放的影响。
 
-towardsdatascience.com](/data-science-for-sustainability-green-inventory-management-e7ddfd97696f?source=post_page-----16cffb607437--------------------------------)
+towardsdatascience.com
 
 > 针对不同问题的类似方法。
 

@@ -1,16 +1,16 @@
 # 精通 t-SNE：理解和在 Python 中实现的综合指南
 
-> 原文：[https://towardsdatascience.com/mastering-t-sne-a-comprehensive-guide-to-understanding-and-implementation-in-python-480929bfe6f4?source=collection_archive---------5-----------------------#2024-09-20](https://towardsdatascience.com/mastering-t-sne-a-comprehensive-guide-to-understanding-and-implementation-in-python-480929bfe6f4?source=collection_archive---------5-----------------------#2024-09-20)
+> 原文：[`towardsdatascience.com/mastering-t-sne-a-comprehensive-guide-to-understanding-and-implementation-in-python-480929bfe6f4?source=collection_archive---------5-----------------------#2024-09-20`](https://towardsdatascience.com/mastering-t-sne-a-comprehensive-guide-to-understanding-and-implementation-in-python-480929bfe6f4?source=collection_archive---------5-----------------------#2024-09-20)
 
 ## 解锁 t-SNE 在可视化高维数据中的强大功能，通过一步步的 Python 实现和深入的讲解。
 
-[](https://medium.com/@niklas_lang?source=post_page---byline--480929bfe6f4--------------------------------)[![Niklas Lang](../Images/5fa71386db00d248438c588c5ae79c67.png)](https://medium.com/@niklas_lang?source=post_page---byline--480929bfe6f4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--480929bfe6f4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--480929bfe6f4--------------------------------) [Niklas Lang](https://medium.com/@niklas_lang?source=post_page---byline--480929bfe6f4--------------------------------)
+[](https://medium.com/@niklas_lang?source=post_page---byline--480929bfe6f4--------------------------------)![Niklas Lang](https://medium.com/@niklas_lang?source=post_page---byline--480929bfe6f4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--480929bfe6f4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--480929bfe6f4--------------------------------) [Niklas Lang](https://medium.com/@niklas_lang?source=post_page---byline--480929bfe6f4--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--480929bfe6f4--------------------------------) ·21分钟阅读·2024年9月20日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--480929bfe6f4--------------------------------) ·21 分钟阅读·2024 年 9 月 20 日
 
 --
 
-![](../Images/ec9050494c252dcae83e96d67e6da9d4.png)
+![](img/ec9050494c252dcae83e96d67e6da9d4.png)
 
 图片来自[Martin Dörsch](https://unsplash.com/@martindorsch?utm_source=medium&utm_medium=referral) 在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

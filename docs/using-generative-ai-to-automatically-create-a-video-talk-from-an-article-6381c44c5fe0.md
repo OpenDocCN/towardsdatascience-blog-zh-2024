@@ -1,28 +1,28 @@
-# 使用生成式AI从文章中自动创建视频讲座
+# 使用生成式 AI 从文章中自动创建视频讲座
 
-> 原文：[https://towardsdatascience.com/using-generative-ai-to-automatically-create-a-video-talk-from-an-article-6381c44c5fe0?source=collection_archive---------2-----------------------#2024-09-22](https://towardsdatascience.com/using-generative-ai-to-automatically-create-a-video-talk-from-an-article-6381c44c5fe0?source=collection_archive---------2-----------------------#2024-09-22)
+> 原文：[`towardsdatascience.com/using-generative-ai-to-automatically-create-a-video-talk-from-an-article-6381c44c5fe0?source=collection_archive---------2-----------------------#2024-09-22`](https://towardsdatascience.com/using-generative-ai-to-automatically-create-a-video-talk-from-an-article-6381c44c5fe0?source=collection_archive---------2-----------------------#2024-09-22)
 
-## 使用Gemini + 文本转语音 + MoviePy创建视频，以及这对生成式AI（GenAI）迅速变得有用的意义
+## 使用 Gemini + 文本转语音 + MoviePy 创建视频，以及这对生成式 AI（GenAI）迅速变得有用的意义
 
-[](https://lakshmanok.medium.com/?source=post_page---byline--6381c44c5fe0--------------------------------)[![Lak Lakshmanan](../Images/9faaaf72d600f592cbaf3e9089cbb913.png)](https://lakshmanok.medium.com/?source=post_page---byline--6381c44c5fe0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6381c44c5fe0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6381c44c5fe0--------------------------------) [Lak Lakshmanan](https://lakshmanok.medium.com/?source=post_page---byline--6381c44c5fe0--------------------------------)
+[](https://lakshmanok.medium.com/?source=post_page---byline--6381c44c5fe0--------------------------------)![Lak Lakshmanan](https://lakshmanok.medium.com/?source=post_page---byline--6381c44c5fe0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6381c44c5fe0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6381c44c5fe0--------------------------------) [Lak Lakshmanan](https://lakshmanok.medium.com/?source=post_page---byline--6381c44c5fe0--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6381c44c5fe0--------------------------------) ·10分钟阅读·2024年9月22日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6381c44c5fe0--------------------------------) ·10 分钟阅读·2024 年 9 月 22 日
 
 --
 
-像大多数人一样，我对[NotebookLM及其生成播客的能力](https://blog.google/technology/ai/notebooklm-audio-overviews/)感到震惊。然后，我开始思考：“他们是怎么做到的？我在哪里可以获得这种魔力？”复制这一过程会有多容易？
+像大多数人一样，我对[NotebookLM 及其生成播客的能力](https://blog.google/technology/ai/notebooklm-audio-overviews/)感到震惊。然后，我开始思考：“他们是怎么做到的？我在哪里可以获得这种魔力？”复制这一过程会有多容易？
 
 ## 目标：从文章中创建视频讲座
 
 我不想创建播客，但我常常希望能够从我的博客文章中生成幻灯片和视频讲座——有些人喜欢翻阅幻灯片，另一些人则喜欢观看视频，这将是一个很好的方式来满足他们的需求。在本文中，我将展示如何做到这一点。
 
-本文的[完整代码](https://github.com/lakshmanok/lakblogs/blob/main/genai_seminar/create_lecture.ipynb)在GitHub上——如果你想和我一起操作，可以参考。目标是从[这篇文章](https://lakshmanok.medium.com/what-goes-into-bronze-silver-and-gold-layers-of-a-medallion-data-architecture-4b6fdfb405fc)创建视频：
+本文的[完整代码](https://github.com/lakshmanok/lakblogs/blob/main/genai_seminar/create_lecture.ipynb)在 GitHub 上——如果你想和我一起操作，可以参考。目标是从[这篇文章](https://lakshmanok.medium.com/what-goes-into-bronze-silver-and-gold-layers-of-a-medallion-data-architecture-4b6fdfb405fc)创建视频：
 
 视频是使用本文描述的代码自动创建的。视频由作者生成。
 
-## 1. 初始化LLM
+## 1. 初始化 LLM
 
-我将使用Google Gemini Flash，因为（a）它是目前最便宜的前沿LLM，（b）它是多模态的，能够读取和理解图像，（c）它支持受控生成，这意味着我们可以确保LLM的输出符合预期的结构。
+我将使用 Google Gemini Flash，因为（a）它是目前最便宜的前沿 LLM，（b）它是多模态的，能够读取和理解图像，（c）它支持受控生成，这意味着我们可以确保 LLM 的输出符合预期的结构。
 
 ```py
 import pdfkit
@@ -151,7 +151,7 @@ for slidejson in lecture['slides']:
 
 结果是一个 PowerPoint 演示文稿，格式如下：
 
-![](../Images/532193d938ec39c67ae8e4b4c5ca81e8.png)
+![](img/532193d938ec39c67ae8e4b4c5ca81e8.png)
 
 从要点和讲义生成的 PowerPoint 文件。截图由作者提供。
 
@@ -226,11 +226,11 @@ for audio_file in audio_files:
 combined.export("lecture.wav", format="wav")
 ```
 
-但结果是我并不需要这么做。每张幻灯片的单独音频文件，正是我需要用来创建视频的内容。当然，对于播客，你会希望有一个单一的mp3或wav文件。
+但结果是我并不需要这么做。每张幻灯片的单独音频文件，正是我需要用来创建视频的内容。当然，对于播客，你会希望有一个单一的 mp3 或 wav 文件。
 
 ## 6\. 创建幻灯片图像
 
-有点烦人的是，使用Python将PowerPoint幻灯片渲染为图像没有简单的办法。你需要一台安装了Office软件的机器来完成这个任务——这不是一种容易自动化的操作。也许我应该使用Google Slides…无论如何，渲染图像的简单方法是使用Python图像库（PIL）：
+有点烦人的是，使用 Python 将 PowerPoint 幻灯片渲染为图像没有简单的办法。你需要一台安装了 Office 软件的机器来完成这个任务——这不是一种容易自动化的操作。也许我应该使用 Google Slides…无论如何，渲染图像的简单方法是使用 Python 图像库（PIL）：
 
 ```py
 def text_to_image(output_path, title, keypoints):
@@ -246,13 +246,13 @@ def text_to_image(output_path, title, keypoints):
 
 结果图像效果不算很好，但还算能用（你可以看出来，现在没有人支付我写生产级代码了）：
 
-![](../Images/417e2c0e11b84caacc8069f9a4e922d8.png)
+![](img/417e2c0e11b84caacc8069f9a4e922d8.png)
 
 与音频片段一起使用的图像是这样的。图像由作者生成。
 
 ## 7\. 创建视频
 
-现在我们已经有了一组音频文件和图像文件，可以使用Python包moviepy来创建一个视频片段：
+现在我们已经有了一组音频文件和图像文件，可以使用 Python 包 moviepy 来创建一个视频片段：
 
 ```py
 clips = []
@@ -271,7 +271,7 @@ full_video.write_videofile("lecture.mp4", fps=24, codec="mpeg4",
                            temp_audiofile='temp-audio.mp4', remove_temp=True)
 ```
 
-最终结果？我们从article.pdf自动生成了四个产物：
+最终结果？我们从 article.pdf 自动生成了四个产物：
 
 ```py
 lecture.json  lecture.mp4  lecture.pptx  lecture.wav
@@ -279,43 +279,43 @@ lecture.json  lecture.mp4  lecture.pptx  lecture.wav
 
 包括：
 
-+   一个包含关键点、讲义等内容的JSON文件
++   一个包含关键点、讲义等内容的 JSON 文件
 
-+   一个可以修改的PowerPoint文件。幻灯片上有关键点，幻灯片的注释部分则包含“讲义”内容。
++   一个可以修改的 PowerPoint 文件。幻灯片上有关键点，幻灯片的注释部分则包含“讲义”内容。
 
-+   一个由AI语音朗读讲义的音频文件
++   一个由 AI 语音朗读讲义的音频文件
 
-+   一部mp4电影（我上传到YouTube）包含音频和图像。这就是我打算创建的视频讲座。
++   一部 mp4 电影（我上传到 YouTube）包含音频和图像。这就是我打算创建的视频讲座。
 
 很酷吧？
 
 ## 8\. 这对软件未来的意义
 
-我们作为一个社区，正在探索这项非常酷的技术（生成式AI）可以用于什么。显然，你可以用它来创建内容，但它创建的内容适合用于头脑风暴，而不能直接使用。三年的技术进步并没有解决GenAI生成空洞内容和不成熟代码的问题。
+我们作为一个社区，正在探索这项非常酷的技术（生成式 AI）可以用于什么。显然，你可以用它来创建内容，但它创建的内容适合用于头脑风暴，而不能直接使用。三年的技术进步并没有解决 GenAI 生成空洞内容和不成熟代码的问题。
 
-这带我们进入了GenAI所打开的一些辅助功能。而这些功能非常有用。本文展示了GenAI的四个功能。
+这带我们进入了 GenAI 所打开的一些辅助功能。而这些功能非常有用。本文展示了 GenAI 的四个功能。
 
 **(1) 将非结构化数据转化为结构化数据**
 
-《Attention》论文是为了解决翻译问题而写的，结果发现基于Transformer的模型在翻译方面表现非常优秀。我们不断发现这个技术的应用场景。但不仅仅是[日语到英语](https://mse238blog.stanford.edu/2017/08/jchoi8/machine-learning-transforms-google-translate-overnight/)，还包括[Java 11到Java 17](https://digiday.com/media/how-amazons-genai-tool-for-developers-is-saving-4500-years-of-work-260-million-annually/)，[文本到SQL](https://paperswithcode.com/task/text-to-sql)，文本到语音，不同数据库方言之间的转换，……现在，还可以将文章转为音频脚本。事实证明，这就是利用GenAI创建播客、讲座、视频等内容的起点。
+《Attention》论文是为了解决翻译问题而写的，结果发现基于 Transformer 的模型在翻译方面表现非常优秀。我们不断发现这个技术的应用场景。但不仅仅是[日语到英语](https://mse238blog.stanford.edu/2017/08/jchoi8/machine-learning-transforms-google-translate-overnight/)，还包括[Java 11 到 Java 17](https://digiday.com/media/how-amazons-genai-tool-for-developers-is-saving-4500-years-of-work-260-million-annually/)，[文本到 SQL](https://paperswithcode.com/task/text-to-sql)，文本到语音，不同数据库方言之间的转换，……现在，还可以将文章转为音频脚本。事实证明，这就是利用 GenAI 创建播客、讲座、视频等内容的起点。
 
-我所要做的就是提示LLM从文章中构建一系列幻灯片内容（关键点、标题等），它就做到了。它甚至以结构化格式返回数据，便于从计算机程序中使用。具体来说，*GenAI在将非结构化数据转化为结构化数据方面非常出色*。
+我所要做的就是提示 LLM 从文章中构建一系列幻灯片内容（关键点、标题等），它就做到了。它甚至以结构化格式返回数据，便于从计算机程序中使用。具体来说，*GenAI 在将非结构化数据转化为结构化数据方面非常出色*。
 
 **(2) 代码搜索和编程帮助如今变得更加出色**
 
-另一个GenAI表现得非常出色的领域是动态适配代码示例。我并不是每天都写代码来创建演示文稿、文本转语音或电影剪辑。两年前，我可能会使用谷歌搜索，查看Stack Overflow页面，并手动调整代码。现在，谷歌搜索直接给我提供了可以直接使用的代码：
+另一个 GenAI 表现得非常出色的领域是动态适配代码示例。我并不是每天都写代码来创建演示文稿、文本转语音或电影剪辑。两年前，我可能会使用谷歌搜索，查看 Stack Overflow 页面，并手动调整代码。现在，谷歌搜索直接给我提供了可以直接使用的代码：
 
-![](../Images/318fc9e541190e93ace8486d8dcd05f1.png)
+![](img/318fc9e541190e93ace8486d8dcd05f1.png)
 
 谷歌搜索返回了适应我特定查询的代码示例。截图来自作者。
 
-当然，如果我使用的是Python IDE（而不是Jupyter笔记本），我完全可以避免搜索步骤——我只需写一个注释，系统就会为我生成代码。这非常有帮助，并且加快了使用通用API的开发速度。
+当然，如果我使用的是 Python IDE（而不是 Jupyter 笔记本），我完全可以避免搜索步骤——我只需写一个注释，系统就会为我生成代码。这非常有帮助，并且加快了使用通用 API 的开发速度。
 
-**(3) GenAI Web服务既强大又易于使用**
+**(3) GenAI Web 服务既强大又易于使用**
 
-让我们不要忘记，我使用了谷歌云文本转语音服务将我的音频脚本转化为实际的音频文件。文本转语音本身就是一个生成式AI模型（也是翻译超级能力的另一个例子）。谷歌的TTS服务于[2018年推出](https://cloud.google.com/blog/products/ai-machine-learning/introducing-cloud-text-to-speech-powered-by-deepmind-wavenet-technology)（此后可能有所改进），是最早投入生产的生成式AI服务之一，并通过API提供使用。
+让我们不要忘记，我使用了谷歌云文本转语音服务将我的音频脚本转化为实际的音频文件。文本转语音本身就是一个生成式 AI 模型（也是翻译超级能力的另一个例子）。谷歌的 TTS 服务于[2018 年推出](https://cloud.google.com/blog/products/ai-machine-learning/introducing-cloud-text-to-speech-powered-by-deepmind-wavenet-technology)（此后可能有所改进），是最早投入生产的生成式 AI 服务之一，并通过 API 提供使用。
 
-在本文中，我使用了两个生成式AI模型——TTS和Gemini，它们作为Web服务提供。我所需要做的就是调用它们的API。
+在本文中，我使用了两个生成式 AI 模型——TTS 和 Gemini，它们作为 Web 服务提供。我所需要做的就是调用它们的 API。
 
 **(4) 提供最终用户定制化比以往任何时候都更加容易**
 
@@ -325,20 +325,20 @@ lecture.json  lecture.mp4  lecture.pptx  lecture.wav
 
 ## 总结
 
-受到NotebookLM播客功能的启发，我开始构建一个应用程序，将我的文章转化为视频讲座。关键步骤是提示LLM从文章中生成幻灯片内容，另一个GenAI模型将音频脚本转化为音频文件，并利用现有的Python API将它们整合成一个视频。
+受到 NotebookLM 播客功能的启发，我开始构建一个应用程序，将我的文章转化为视频讲座。关键步骤是提示 LLM 从文章中生成幻灯片内容，另一个 GenAI 模型将音频脚本转化为音频文件，并利用现有的 Python API 将它们整合成一个视频。
 
-本文展示了GenAI解锁的四项能力：各种类型的翻译、编程帮助、强大的Web服务和最终用户定制化。
+本文展示了 GenAI 解锁的四项能力：各种类型的翻译、编程帮助、强大的 Web 服务和最终用户定制化。
 
 我很喜欢能够轻松快速地从我的文章中创建视频讲座。但我更为兴奋的是，我们在手中拥有的这一新工具中不断发现的潜力。
 
 ## 进一步阅读
 
-1.  本文的完整代码：[https://github.com/lakshmanok/lakblogs/blob/main/genai_seminar/create_lecture.ipynb](https://github.com/lakshmanok/lakblogs/blob/main/genai_seminar/create_lecture.ipynb)
+1.  本文的完整代码：[`github.com/lakshmanok/lakblogs/blob/main/genai_seminar/create_lecture.ipynb`](https://github.com/lakshmanok/lakblogs/blob/main/genai_seminar/create_lecture.ipynb)
 
-1.  我将这篇文章转换为视频的源文章：[https://lakshmanok.medium.com/what-goes-into-bronze-silver-and-gold-layers-of-a-medallion-data-architecture-4b6fdfb405fc](https://lakshmanok.medium.com/what-goes-into-bronze-silver-and-gold-layers-of-a-medallion-data-architecture-4b6fdfb405fc)
+1.  我将这篇文章转换为视频的源文章：[`lakshmanok.medium.com/what-goes-into-bronze-silver-and-gold-layers-of-a-medallion-data-architecture-4b6fdfb405fc`](https://lakshmanok.medium.com/what-goes-into-bronze-silver-and-gold-layers-of-a-medallion-data-architecture-4b6fdfb405fc)
 
-1.  生成的视频：[https://youtu.be/jKzmj8-1Y9Q](https://youtu.be/jKzmj8-1Y9Q)
+1.  生成的视频：[`youtu.be/jKzmj8-1Y9Q`](https://youtu.be/jKzmj8-1Y9Q)
 
-1.  结果发现[Sascha Heyer写了一篇关于如何使用GenAI生成播客的文章](https://medium.com/google-cloud/building-a-dynamic-podcast-generator-inspired-by-googles-notebooklm-and-illuminate-e585cfcd0af1)，这正是Notebook LM的使用场景。他的方法和我有些相似，区别在于没有视频，只有音频。在一个有趣的变化中，他使用了自己的声音作为播客的讲解者之一！
+1.  结果发现[Sascha Heyer 写了一篇关于如何使用 GenAI 生成播客的文章](https://medium.com/google-cloud/building-a-dynamic-podcast-generator-inspired-by-googles-notebooklm-and-illuminate-e585cfcd0af1)，这正是 Notebook LM 的使用场景。他的方法和我有些相似，区别在于没有视频，只有音频。在一个有趣的变化中，他使用了自己的声音作为播客的讲解者之一！
 
 1.  当然，这里是用该视频中展示的技术创建的文章视频演讲。理想情况下，我们会从文章中提取代码片段和图片，但这只是一个开始……

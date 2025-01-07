@@ -1,20 +1,20 @@
 # 被困在网络中：图形的基础模型在哪里？
 
-> 原文：[https://towardsdatascience.com/trapped-in-the-net-where-is-a-foundation-model-for-graphs-6154bd688d4c?source=collection_archive---------6-----------------------#2024-11-25](https://towardsdatascience.com/trapped-in-the-net-where-is-a-foundation-model-for-graphs-6154bd688d4c?source=collection_archive---------6-----------------------#2024-11-25)
+> 原文：[`towardsdatascience.com/trapped-in-the-net-where-is-a-foundation-model-for-graphs-6154bd688d4c?source=collection_archive---------6-----------------------#2024-11-25`](https://towardsdatascience.com/trapped-in-the-net-where-is-a-foundation-model-for-graphs-6154bd688d4c?source=collection_archive---------6-----------------------#2024-11-25)
 
 ## |LLM|变换器|基础模型|图|网络|
 
 ## 与其他模态断开连接的图形，等待它们的人工智能革命：它会到来吗？
 
-[](https://salvatore-raieli.medium.com/?source=post_page---byline--6154bd688d4c--------------------------------)[![Salvatore Raieli](../Images/6bb4520e2df40d20283e7283141b5e06.png)](https://salvatore-raieli.medium.com/?source=post_page---byline--6154bd688d4c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6154bd688d4c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6154bd688d4c--------------------------------) [Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--6154bd688d4c--------------------------------)
+[](https://salvatore-raieli.medium.com/?source=post_page---byline--6154bd688d4c--------------------------------)![Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--6154bd688d4c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6154bd688d4c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6154bd688d4c--------------------------------) [Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--6154bd688d4c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6154bd688d4c--------------------------------) ·阅读时间：11分钟·2024年11月25日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6154bd688d4c--------------------------------) ·阅读时间：11 分钟·2024 年 11 月 25 日
 
 --
 
-![](../Images/e836676ce85496ae680dd31eac59e92f.png)
+![](img/e836676ce85496ae680dd31eac59e92f.png)
 
-图片由作者使用DALL-E创建
+图片由作者使用 DALL-E 创建
 
 > **“如果基础牢固，其他一切都会随之而来。”** – **未知**
 > 

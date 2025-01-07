@@ -1,22 +1,22 @@
 # 网络行业中的 AI 代理
 
-> 原文：[https://towardsdatascience.com/ai-agents-in-networking-industry-f73a42fa22e1?source=collection_archive---------9-----------------------#2024-11-27](https://towardsdatascience.com/ai-agents-in-networking-industry-f73a42fa22e1?source=collection_archive---------9-----------------------#2024-11-27)
+> 原文：[`towardsdatascience.com/ai-agents-in-networking-industry-f73a42fa22e1?source=collection_archive---------9-----------------------#2024-11-27`](https://towardsdatascience.com/ai-agents-in-networking-industry-f73a42fa22e1?source=collection_archive---------9-----------------------#2024-11-27)
 
 ## 用于部署、配置和监控网络的 AI 代理
 
-[](https://medium.com/@mandeepkular?source=post_page---byline--f73a42fa22e1--------------------------------)[![Mandeep Kular](../Images/7569ebc1b25b979bfdf76abd4a39f154.png)](https://medium.com/@mandeepkular?source=post_page---byline--f73a42fa22e1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f73a42fa22e1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f73a42fa22e1--------------------------------) [Mandeep Kular](https://medium.com/@mandeepkular?source=post_page---byline--f73a42fa22e1--------------------------------)
+[](https://medium.com/@mandeepkular?source=post_page---byline--f73a42fa22e1--------------------------------)![Mandeep Kular](https://medium.com/@mandeepkular?source=post_page---byline--f73a42fa22e1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f73a42fa22e1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f73a42fa22e1--------------------------------) [Mandeep Kular](https://medium.com/@mandeepkular?source=post_page---byline--f73a42fa22e1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f73a42fa22e1--------------------------------) ·阅读时间：11分钟·2024年11月27日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f73a42fa22e1--------------------------------) ·阅读时间：11 分钟·2024 年 11 月 27 日
 
 --
 
-AI 代理在2024年成为热议话题，且实至名归。与传统的 AI 模型或与大型语言模型（LLMs）的交互不同，后者仅根据静态训练数据提供回应，AI 代理是动态的实体，能够感知、推理（得益于提示技术）并在其操作领域内自主行动。它们的适应性和优化过程的能力使它们在需要复杂决策和实时响应的领域中不可或缺，如网络部署、测试、监控和调试。在未来的日子里，我们将看到 AI 代理在各行各业的广泛应用，尤其是在网络行业。
+AI 代理在 2024 年成为热议话题，且实至名归。与传统的 AI 模型或与大型语言模型（LLMs）的交互不同，后者仅根据静态训练数据提供回应，AI 代理是动态的实体，能够感知、推理（得益于提示技术）并在其操作领域内自主行动。它们的适应性和优化过程的能力使它们在需要复杂决策和实时响应的领域中不可或缺，如网络部署、测试、监控和调试。在未来的日子里，我们将看到 AI 代理在各行各业的广泛应用，尤其是在网络行业。
 
-![](../Images/6f63370ec2c836b6f6516ee7697713c0.png)
+![](img/6f63370ec2c836b6f6516ee7697713c0.png)
 
 代理工作流（图片由作者提供）
 
-在这里，我展示了通过 AI 代理进行网络部署、配置和监控的过程。整体代理工作流由 4 个代理组成。第一个代理负责从 [https://learn.srlinux.dev/get-started/lab/](https://learn.srlinux.dev/get-started/lab/) 网站获取安装步骤。第二个代理执行这些步骤。第三个代理根据网络拓扑提供相关的节点配置，最后一个代理执行配置并验证端到端的连接性。
+在这里，我展示了通过 AI 代理进行网络部署、配置和监控的过程。整体代理工作流由 4 个代理组成。第一个代理负责从 [`learn.srlinux.dev/get-started/lab/`](https://learn.srlinux.dev/get-started/lab/) 网站获取安装步骤。第二个代理执行这些步骤。第三个代理根据网络拓扑提供相关的节点配置，最后一个代理执行配置并验证端到端的连接性。
 
 > ***有关代码手册的详细信息，请查看我的 GitHub 链接：*** [***AI-Agents-For-Networking***](https://github.com/mkular/AI-Agents-For-Networking)***.***
 
@@ -197,15 +197,15 @@ rtt 最小/平均/最大/均方根 = 15.316/16.778/20.466/2.142 ms
 
 容器 ID   镜像                                命令                  创建时间         状态         端口                                          名称
 
-ada601805590   ghcr.io/nokia/srlinux:24.7.2         "/tini -- fixuid -q …"   4分钟前   运行中 4 分钟                                                spine1
+ada601805590   ghcr.io/nokia/srlinux:24.7.2         "/tini -- fixuid -q …"   4 分钟前   运行中 4 分钟                                                spine1
 
-6f9f0822be5d   ghcr.io/srl-labs/network-multitool   "/bin/sh /docker/ent…"   4分钟前   运行中 4 分钟   22/tcp, 80/tcp, 443/tcp, 1180/tcp, 11443/tcp   client2
+6f9f0822be5d   ghcr.io/srl-labs/network-multitool   "/bin/sh /docker/ent…"   4 分钟前   运行中 4 分钟   22/tcp, 80/tcp, 443/tcp, 1180/tcp, 11443/tcp   client2
 
-e7a1a3874600   ghcr.io/nokia/srl-labs/network-multitool   "/bin/sh /docker/ent…"   4分钟前   运行中 4 分钟                                                leaf1
+e7a1a3874600   ghcr.io/nokia/srl-labs/network-multitool   "/bin/sh /docker/ent…"   4 分钟前   运行中 4 分钟                                                leaf1
 
-ab894528a0e9   ghcr.io/nokia/srl-labs/network-multitool   "/bin/sh /docker/ent…"   4分钟前   运行中 4 分钟                                                client1
+ab894528a0e9   ghcr.io/nokia/srl-labs/network-multitool   "/bin/sh /docker/ent…"   4 分钟前   运行中 4 分钟                                                client1
 
-ed4399b8f7d6   ghcr.io/nokia/srlinux:24.7.2         "/tini -- fixuid -q …"   4分钟前   运行中 4 分钟                                                leaf2
+ed4399b8f7d6   ghcr.io/nokia/srlinux:24.7.2         "/tini -- fixuid -q …"   4 分钟前   运行中 4 分钟                                                leaf2
 
 ```py
 
@@ -497,11 +497,11 @@ PING 10.1.4.2 (10.1.4.2) 56(84) 字节数据。
 
 从 10.1.4.2 收到 64 字节：icmp_seq=3 ttl=61 time=4.49 ms
 
-64字节来自10.1.4.2：icmp_seq=4 ttl=61 time=5.86 ms
+64 字节来自 10.1.4.2：icmp_seq=4 ttl=61 time=5.86 ms
 
---- 10.1.4.2 ping统计 ---
+--- 10.1.4.2 ping 统计 ---
 
-传输4个数据包，接收4个，丢包率0%，时间3005ms
+传输 4 个数据包，接收 4 个，丢包率 0%，时间 3005ms
 
 rtt min/avg/max/mdev = 4.491/36.620/127.973/52.758 ms
 
@@ -517,8 +517,8 @@ This confirms that the BGP configurations are working correctly and the network 
 
 # **结论**
 
-AI代理超越了自动化的范畴。它们可以推理并尝试提出替代方案。一个简单的例子是，如果一个Linux命令因权限问题失败，而代理有sudo密码的访问权限，那么下次它将尝试使用sudo密码以便成功。一个复杂的例子是，如果BGP对等连接没有建立，根据提示指令，它们可以尝试找出原因，甚至进行修复。
+AI 代理超越了自动化的范畴。它们可以推理并尝试提出替代方案。一个简单的例子是，如果一个 Linux 命令因权限问题失败，而代理有 sudo 密码的访问权限，那么下次它将尝试使用 sudo 密码以便成功。一个复杂的例子是，如果 BGP 对等连接没有建立，根据提示指令，它们可以尝试找出原因，甚至进行修复。
 
 代理工作流有其挑战，需要与程序化方法不同的思维方式。到目前为止，我遇到的缺点包括，可能需要更长时间（有时要长得多）才能实现结果，运行时每次都不同，输出也会有所变化（这可以通过更好的提示词进行某种程度的控制）。
 
-最后，对于一些琐碎、直接的任务，比如抓取网站并执行给定的命令，可以使用较小的LLM，如gpt-4o-mini或llama3.1–7b等。然而，对于设计网络拓扑这样的任务，则需要更大的LLM。虽然这里选择了claude-3–5-sonnet，但理想情况下，一个好的70b模型应该足够。最后，你必须非常谨慎地使用提示词。它们可能决定你的用例成败！
+最后，对于一些琐碎、直接的任务，比如抓取网站并执行给定的命令，可以使用较小的 LLM，如 gpt-4o-mini 或 llama3.1–7b 等。然而，对于设计网络拓扑这样的任务，则需要更大的 LLM。虽然这里选择了 claude-3–5-sonnet，但理想情况下，一个好的 70b 模型应该足够。最后，你必须非常谨慎地使用提示词。它们可能决定你的用例成败！

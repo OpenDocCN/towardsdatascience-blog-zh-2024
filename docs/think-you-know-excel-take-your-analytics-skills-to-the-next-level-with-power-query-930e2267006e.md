@@ -1,38 +1,38 @@
-# 以为你了解Excel吗？通过Power Query将你的分析技能提升到新高度！
+# 以为你了解 Excel 吗？通过 Power Query 将你的分析技能提升到新高度！
 
-> 原文：[https://towardsdatascience.com/think-you-know-excel-take-your-analytics-skills-to-the-next-level-with-power-query-930e2267006e?source=collection_archive---------3-----------------------#2024-11-29](https://towardsdatascience.com/think-you-know-excel-take-your-analytics-skills-to-the-next-level-with-power-query-930e2267006e?source=collection_archive---------3-----------------------#2024-11-29)
+> 原文：[`towardsdatascience.com/think-you-know-excel-take-your-analytics-skills-to-the-next-level-with-power-query-930e2267006e?source=collection_archive---------3-----------------------#2024-11-29`](https://towardsdatascience.com/think-you-know-excel-take-your-analytics-skills-to-the-next-level-with-power-query-930e2267006e?source=collection_archive---------3-----------------------#2024-11-29)
 
-## 5个实用的案例，证明Power Query值得深入探索。
+## 5 个实用的案例，证明 Power Query 值得深入探索。
 
-[](https://medium.com/@ihetsevi?source=post_page---byline--930e2267006e--------------------------------)[![Ilona Hetsevich](../Images/0f2b2b5b61f76dfedec9370e3f96f9c2.png)](https://medium.com/@ihetsevi?source=post_page---byline--930e2267006e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--930e2267006e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--930e2267006e--------------------------------) [Ilona Hetsevich](https://medium.com/@ihetsevi?source=post_page---byline--930e2267006e--------------------------------)
+[](https://medium.com/@ihetsevi?source=post_page---byline--930e2267006e--------------------------------)![Ilona Hetsevich](https://medium.com/@ihetsevi?source=post_page---byline--930e2267006e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--930e2267006e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--930e2267006e--------------------------------) [Ilona Hetsevich](https://medium.com/@ihetsevi?source=post_page---byline--930e2267006e--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--930e2267006e--------------------------------) ·阅读时长：7分钟·2024年11月29日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--930e2267006e--------------------------------) ·阅读时长：7 分钟·2024 年 11 月 29 日
 
 --
 
-我有一个 confession：我一直生活在石头下 🪨。不是字面上的意思，但我怎么能解释，直到现在我才发现**Power Query**在Excel中存在呢？
+我有一个 confession：我一直生活在石头下 🪨。不是字面上的意思，但我怎么能解释，直到现在我才发现**Power Query**在 Excel 中存在呢？
 
-想象一下，你意识到那些花费了无数小时整理VLOOKUP、嵌套IF和处理凌乱数据的时间，其实可以通过几个简单的点击来替代。
+想象一下，你意识到那些花费了无数小时整理 VLOOKUP、嵌套 IF 和处理凌乱数据的时间，其实可以通过几个简单的点击来替代。
 
-![](../Images/67bcf0948fe76f1fa809ce4267377f53.png)
+![](img/67bcf0948fe76f1fa809ce4267377f53.png)
 
 图片由作者生成
 
-Power Query能够做Excel公式可以做的一切——只是更快、更智能，且更少令人沮丧。从合并数据集到轻松的转换与创建计算列，可能性是无穷无尽的。
+Power Query 能够做 Excel 公式可以做的一切——只是更快、更智能，且更少令人沮丧。从合并数据集到轻松的转换与创建计算列，可能性是无穷无尽的。
 
-网络上已经有大量文章和视频提供了详细的步骤指南，帮助你入门，所以**我不会再写一篇如何操作的教程**。相反，我将分享一些让我大吃一惊的功能，并通过**5个使用案例**，希望能够激励你亲自探索这个强大的工具。🚀
+网络上已经有大量文章和视频提供了详细的步骤指南，帮助你入门，所以**我不会再写一篇如何操作的教程**。相反，我将分享一些让我大吃一惊的功能，并通过**5 个使用案例**，希望能够激励你亲自探索这个强大的工具。🚀
 
-为了展示其卓越的功能，我将使用一个简单的电子商务数据集，该数据集包含两个CSV文件：一个是客户数据，另一个是交易数据。
+为了展示其卓越的功能，我将使用一个简单的电子商务数据集，该数据集包含两个 CSV 文件：一个是客户数据，另一个是交易数据。
 
-![](../Images/5632ab1efd9773d7598f666109dfb2e5.png)![](../Images/306c4573351da08a946e33b9c7da0630.png)
+![](img/5632ab1efd9773d7598f666109dfb2e5.png)![](img/306c4573351da08a946e33b9c7da0630.png)
 
-这些屏幕展示了每个CSV文件的前10行样本（由作者生成）
+这些屏幕展示了每个 CSV 文件的前 10 行样本（由作者生成）
 
-# 使用案例1：合并数据集（VLOOKUP的更智能替代方案）
+# 使用案例 1：合并数据集（VLOOKUP 的更智能替代方案）
 
-当涉及到数据合并时，我们都会使用VLOOKUP。但让我们面对现实——VLOOKUP有它的局限性。
+当涉及到数据合并时，我们都会使用 VLOOKUP。但让我们面对现实——VLOOKUP 有它的局限性。
 
-**为什么Power Query比VLOOKUP更好✨：**
+**为什么 Power Query 比 VLOOKUP 更好✨：**
 
 +   你可以一步完成从多个列连接数据（无需重复查找）。
 
@@ -58,7 +58,7 @@ Power Query能够做Excel公式可以做的一切——只是更快、更智能�
 
 几秒钟内完成！⏱️
 
-![](../Images/86919782253f21446a4c8447685333e2.png)
+![](img/86919782253f21446a4c8447685333e2.png)
 
 这个 gif 解释了使用 Power Query 合并两个文件的过程（由作者生成）
 
@@ -80,7 +80,7 @@ Power Query 让你非常轻松地转换数据。从快速计算到日期处理�
 
 所有这些操作只需几次点击即可完成。
 
-![](../Images/35187c82943a862422ab4f186736db34.png)
+![](img/35187c82943a862422ab4f186736db34.png)
 
 这个 gif 解释了使用 Power Query 进行快速计算的过程（由作者生成）
 
@@ -96,7 +96,7 @@ Power Query 使处理日期变得简单。你可以快速提取月份名称，�
 
 无需复杂的公式！
 
-![](../Images/0d52971317e46b1bb370d0b787915b0b.png)
+![](img/0d52971317e46b1bb370d0b787915b0b.png)
 
 这个 gif 解释了使用 Power Query 修改日期的过程（由作者生成）
 
@@ -108,7 +108,7 @@ Power Query 使处理日期变得简单。你可以快速提取月份名称，�
 
 +   **对于我们使用 Mac 的人**（像我一样），遗憾的是这个功能不可用。但别担心，还有解决办法！你仍然可以使用 **“条件列”** 功能，通过设置逻辑规则来将数据分类到不同的区间。
 
-![](../Images/c936a197620df72f9efc1de14833cf89.png)
+![](img/c936a197620df72f9efc1de14833cf89.png)
 
 这个 GIF 解释了如何使用“条件列”功能创建区间的过程（由作者生成）
 
@@ -130,7 +130,7 @@ Power Query 使处理日期变得简单。你可以快速提取月份名称，�
 
 就这样，你已经用平均值填充了缺失的数据——只需几个点击。
 
-![](../Images/6c7a57e64d045bcb41ba886e413f5f3f.png)
+![](img/6c7a57e64d045bcb41ba886e413f5f3f.png)
 
 这个 GIF 解释了如何使用 Power Query 填充缺失值的过程（由作者生成）
 
@@ -152,7 +152,7 @@ Power Query 非常适合将数据转换成符合分析需求的格式。
 
 完成后，将数据加载回 Excel，并创建折线图以可视化销售趋势！
 
-![](../Images/5a3703ddd40df04f9e93494b817070bb.png)
+![](img/5a3703ddd40df04f9e93494b817070bb.png)
 
 这个 GIF 解释了如何使用“按组分组”和“转置”功能的过程（由作者生成）
 
@@ -188,7 +188,7 @@ else if [Month short] = "Dec" then 12
 else null
 ```
 
-![](../Images/e2343d3408394a76ef13f442c167cba8.png)
+![](img/e2343d3408394a76ef13f442c167cba8.png)
 
 这个 gif 解释了在 Power Query 中使用 M 公式语言的过程（由作者生成）
 

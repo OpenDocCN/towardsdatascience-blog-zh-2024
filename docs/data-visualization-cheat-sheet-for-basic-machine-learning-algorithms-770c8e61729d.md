@@ -1,16 +1,16 @@
 # 基本机器学习算法数据可视化备忘单
 
-> 原文：[https://towardsdatascience.com/data-visualization-cheat-sheet-for-basic-machine-learning-algorithms-770c8e61729d?source=collection_archive---------2-----------------------#2024-03-05](https://towardsdatascience.com/data-visualization-cheat-sheet-for-basic-machine-learning-algorithms-770c8e61729d?source=collection_archive---------2-----------------------#2024-03-05)
+> 原文：[`towardsdatascience.com/data-visualization-cheat-sheet-for-basic-machine-learning-algorithms-770c8e61729d?source=collection_archive---------2-----------------------#2024-03-05`](https://towardsdatascience.com/data-visualization-cheat-sheet-for-basic-machine-learning-algorithms-770c8e61729d?source=collection_archive---------2-----------------------#2024-03-05)
 
 ## 显示机器学习结果的指导图表。
 
-[](https://medium.com/@borih.k?source=post_page---byline--770c8e61729d--------------------------------)[![Boriharn K](../Images/1b23a79640f5272c1382918bfdba03b0.png)](https://medium.com/@borih.k?source=post_page---byline--770c8e61729d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--770c8e61729d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--770c8e61729d--------------------------------) [Boriharn K](https://medium.com/@borih.k?source=post_page---byline--770c8e61729d--------------------------------)
+[](https://medium.com/@borih.k?source=post_page---byline--770c8e61729d--------------------------------)![Boriharn K](https://medium.com/@borih.k?source=post_page---byline--770c8e61729d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--770c8e61729d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--770c8e61729d--------------------------------) [Boriharn K](https://medium.com/@borih.k?source=post_page---byline--770c8e61729d--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--770c8e61729d--------------------------------) ·8分钟阅读·2024年3月5日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--770c8e61729d--------------------------------) ·8 分钟阅读·2024 年 3 月 5 日
 
 --
 
-![](../Images/5642d7b9c79a7ed20f5453db8bc9d9fb.png)
+![](img/5642d7b9c79a7ed20f5453db8bc9d9fb.png)
 
 图片由[Charlesdeluvio](https://unsplash.com/@charlesdeluvio)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,7 +22,7 @@
 
 嗯哼！！
 
-![](../Images/7751b854d91092d1cb17a17cbd30ef5b.png)
+![](img/7751b854d91092d1cb17a17cbd30ef5b.png)
 
 基本机器学习数据可视化备忘单 — 由作者创建。
 

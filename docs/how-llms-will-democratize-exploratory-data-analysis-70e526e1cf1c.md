@@ -1,20 +1,20 @@
-# LLM将如何使探索性数据分析民主化
+# LLM 将如何使探索性数据分析民主化
 
-> 原文：[https://towardsdatascience.com/how-llms-will-democratize-exploratory-data-analysis-70e526e1cf1c?source=collection_archive---------0-----------------------#2024-06-09](https://towardsdatascience.com/how-llms-will-democratize-exploratory-data-analysis-70e526e1cf1c?source=collection_archive---------0-----------------------#2024-06-09)
+> 原文：[`towardsdatascience.com/how-llms-will-democratize-exploratory-data-analysis-70e526e1cf1c?source=collection_archive---------0-----------------------#2024-06-09`](https://towardsdatascience.com/how-llms-will-democratize-exploratory-data-analysis-70e526e1cf1c?source=collection_archive---------0-----------------------#2024-06-09)
 
-## *或者，当你觉得生活太艰难时，不妨去和Claude聊一聊*
+## *或者，当你觉得生活太艰难时，不妨去和 Claude 聊一聊*
 
-[](https://medium.com/@kkehoe1985?source=post_page---byline--70e526e1cf1c--------------------------------)[![Ken Kehoe](../Images/37516ed3ea9d99ba0abf62e022b2589d.png)](https://medium.com/@kkehoe1985?source=post_page---byline--70e526e1cf1c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--70e526e1cf1c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--70e526e1cf1c--------------------------------) [Ken Kehoe](https://medium.com/@kkehoe1985?source=post_page---byline--70e526e1cf1c--------------------------------)
+[](https://medium.com/@kkehoe1985?source=post_page---byline--70e526e1cf1c--------------------------------)![Ken Kehoe](https://medium.com/@kkehoe1985?source=post_page---byline--70e526e1cf1c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--70e526e1cf1c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--70e526e1cf1c--------------------------------) [Ken Kehoe](https://medium.com/@kkehoe1985?source=post_page---byline--70e526e1cf1c--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--70e526e1cf1c--------------------------------) ·阅读时间15分钟·2024年6月9日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--70e526e1cf1c--------------------------------) ·阅读时间 15 分钟·2024 年 6 月 9 日
 
 --
 
-![](../Images/b82e3547c05d05e4b489fd7c171799c5.png)
+![](img/b82e3547c05d05e4b489fd7c171799c5.png)
 
 由[soysuwan123](https://stock.adobe.com/contributor/203211311/soysuwan123?load_type=author&prev_url=detail)
 
-当我想到理解复杂系统所面临的挑战时，我常常回想起在Tripadvisor工作时发生的一件事。我曾帮助我们的机器学习团队为增长营销团队进行分析，以了解哪些客户行为能够预测高生命周期价值（LTV）。我们与一位才华横溢的博士级数据科学家合作，他训练了一个逻辑回归模型，并将系数作为第一次初步输出。
+当我想到理解复杂系统所面临的挑战时，我常常回想起在 Tripadvisor 工作时发生的一件事。我曾帮助我们的机器学习团队为增长营销团队进行分析，以了解哪些客户行为能够预测高生命周期价值（LTV）。我们与一位才华横溢的博士级数据科学家合作，他训练了一个逻辑回归模型，并将系数作为第一次初步输出。
 
 当我们和增长团队一起查看分析结果时，他们感到困惑——逻辑回归系数很难解读，因为它们的尺度不是线性的，而最终最具预测性的特征也不是增长团队可以轻松影响的东西。我们都沉思了一会儿，开启了一个后续分析的工单，但像往常一样，两个团队很快就转向了他们下一个闪亮的想法。数据科学家有一些优先级很高的工作要做，比如我们的搜索排名算法，实际上，增长团队将这份分析丢进了垃圾堆。
 
@@ -24,7 +24,7 @@
 
 上面的轶事描述了一个*探索性分析*，它并未完全成功。探索性分析不同于*描述性分析*，后者仅旨在描述发生了什么。探索性分析寻求对一个系统有更深的理解，而不是针对一个明确的问题。考虑以下几种你在商业环境中可能遇到的问题：
 
-![](../Images/a59cca3178437283e4f830debab0978e.png)
+![](img/a59cca3178437283e4f830debab0978e.png)
 
 注意，探索性问题是开放式的，旨在提升对复杂问题空间的理解。探索性分析通常需要更多的循环和“领域专家”与实际进行分析的人之间更紧密的合作，而这两者通常不是同一个人。在上面的轶事中，合作不够紧密，反馈循环不够短，我们没有投入足够的循环。
 
@@ -34,21 +34,21 @@
 
 ***这是大语言模型（LLM）在分析领域所带来的机会——承诺任何人都可以在技术分析师的帮助下进行探索性分析。***
 
-让我们来看看这在实践中如何体现。以下案例研究和演示展示了具有领域专长的决策者如何与能够查询和可视化数据的AI分析师有效配对。我们将比较ChatGPT的40模型与使用Tableau进行的手动分析的数据探索体验，这也将作为潜在幻觉的错误检查。
+让我们来看看这在实践中如何体现。以下案例研究和演示展示了具有领域专长的决策者如何与能够查询和可视化数据的 AI 分析师有效配对。我们将比较 ChatGPT 的 40 模型与使用 Tableau 进行的手动分析的数据探索体验，这也将作为潜在幻觉的错误检查。
 
-**关于数据隐私的说明：** 以下部分链接的视频演示使用的是纯合成数据集，旨在模仿真实的商业模式。有关AI分析师的数据隐私和安全性的一般说明，请参见[数据隐私](#e683)。
+**关于数据隐私的说明：** 以下部分链接的视频演示使用的是纯合成数据集，旨在模仿真实的商业模式。有关 AI 分析师的数据隐私和安全性的一般说明，请参见数据隐私。
 
 # 案例研究：电子商务分析
 
-想象一下：你是一个电子商务服装网站的忙碌高管。你有一个包含预定义的高级关键绩效指标（KPI）的执行摘要仪表板，但有一天早上你查看它时，发现了一些令人担忧的事情：月度市场收入比上个月下降了45%，但为什么下降并不立即清楚。
+想象一下：你是一个电子商务服装网站的忙碌高管。你有一个包含预定义的高级关键绩效指标（KPI）的执行摘要仪表板，但有一天早上你查看它时，发现了一些令人担忧的事情：月度市场收入比上个月下降了 45%，但为什么下降并不立即清楚。
 
-![](../Images/627ca889b46772571d46fe2fb75ebfce.png)
+![](img/627ca889b46772571d46fe2fb75ebfce.png)
 
 你的思维会同时朝几个不同的方向展开：是什么导致了收入下降？这个问题是否仅限于某些渠道？问题是否局限于某些消息类型？
 
 但更重要的是，我们能做些什么呢？最近什么有效？什么无效？这一季我们看到哪些季节性趋势？我们如何利用这些趋势？
 
-为了回答这些开放性问题，您需要进行一个中等复杂度的多变量分析。这正是AI分析师可以提供帮助的类型的任务。
+为了回答这些开放性问题，您需要进行一个中等复杂度的多变量分析。这正是 AI 分析师可以提供帮助的类型的任务。
 
 # 诊断分析
 
@@ -72,45 +72,45 @@
 
 1.  消息类型：所有消息类型中是否都有观察到此问题？
 
-在这种情况下，通过几个提示，LLM能够识别出这两段时间内发送的消息类型之间的巨大差异——即在7月进行了50%的折扣促销，而在8月没有进行。
+在这种情况下，通过几个提示，LLM 能够识别出这两段时间内发送的消息类型之间的巨大差异——即在 7 月进行了 50%的折扣促销，而在 8 月没有进行。
 
 # 即席数据可视化
 
-所以现在这个下降看起来更有意义了，但我们不可能每个月都进行50%的折扣促销。我们还能做些什么来确保充分利用营销接触点呢？让我们看看我们表现最好的活动，看看除了促销活动外，还有什么能进入前10名。
+所以现在这个下降看起来更有意义了，但我们不可能每个月都进行 50%的折扣促销。我们还能做些什么来确保充分利用营销接触点呢？让我们看看我们表现最好的活动，看看除了促销活动外，还有什么能进入前 10 名。
 
-数据可视化工具支持点选界面来构建数据可视化。今天，像ChatGPT和Julius AI这样的工具已经能够忠实地复制迭代的数据可视化工作流程。
+数据可视化工具支持点选界面来构建数据可视化。今天，像 ChatGPT 和 Julius AI 这样的工具已经能够忠实地复制迭代的数据可视化工作流程。
 
-这些工具利用Python库来创建和呈现静态数据可视化以及交互式图表，直接在聊天界面中进行。这些可视化可以通过自然语言进行调整和迭代，流程相当顺畅。随着代码模块、图像渲染和交互式图表元素的引入，聊天界面已接近于jupyter笔记本所普及的“笔记本”格式。
+这些工具利用 Python 库来创建和呈现静态数据可视化以及交互式图表，直接在聊天界面中进行。这些可视化可以通过自然语言进行调整和迭代，流程相当顺畅。随着代码模块、图像渲染和交互式图表元素的引入，聊天界面已接近于 jupyter 笔记本所普及的“笔记本”格式。
 
-通过几个提示，您通常可以像使用数据可视化工具如Tableau的高级用户一样快速得到数据可视化。在这种情况下，您甚至不需要查阅帮助文档来学习Tableau的[双轴图表](https://help.tableau.com/current/pro/desktop/en-us/multiple_measures.htm)如何工作。
+通过几个提示，您通常可以像使用数据可视化工具如 Tableau 的高级用户一样快速得到数据可视化。在这种情况下，您甚至不需要查阅帮助文档来学习 Tableau 的[双轴图表](https://help.tableau.com/current/pro/desktop/en-us/multiple_measures.htm)如何工作。
 
 在这里，我们可以看到，“新品到货”消息即使在大量发送的情况下，也能为每个接收者带来强大的收入：
 
-![](../Images/68ae0817e5ee3912f11a5d39f25cf1d6.png)
+![](img/68ae0817e5ee3912f11a5d39f25cf1d6.png)
 
 # 季节性与预测
 
 所以，“新品到货”似乎产生了共鸣，那么下个月我们应该确保推出哪些新产品呢？我们即将进入九月，想了解客户购买模式在这个时节如何变化。我们预计哪些产品类别会增加？哪些会减少？
 
-![](../Images/f9151e8206ad2be61c5ec3e7ba725024.png)
+![](img/f9151e8206ad2be61c5ec3e7ba725024.png)
 
-再次通过几个提示，我们得到了清晰、准确的数据可视化，而且我们甚至不需要弄清楚如何使用Tableau的[快速表计算](https://help.tableau.com/current/pro/desktop/en-us/calculations_tablecalculations_quick.htm)功能！
+再次通过几个提示，我们得到了清晰、准确的数据可视化，而且我们甚至不需要弄清楚如何使用 Tableau 的[快速表计算](https://help.tableau.com/current/pro/desktop/en-us/calculations_tablecalculations_quick.htm)功能！
 
 # 市场篮子分析
 
 既然我们已经知道下个月哪些产品类别可能会增加，我们可能想要调整一些交叉销售的推荐。那么，如果男士运动外套将迎来最大增幅，我们如何查看哪些其他类别是与这些商品最常一起购买的？
 
-这通常被称为“市场篮子分析”，进行这种分析所需的数据转换稍显复杂。事实上，在Excel中进行[市场篮子分析](https://www.data-mania.com/blog/market-basket-analysis-in-excel/)如果没有使用笨重的插件几乎是不可能的。但有了LLM，只需稍作停顿，清晰地提出问题即可：
+这通常被称为“市场篮子分析”，进行这种分析所需的数据转换稍显复杂。事实上，在 Excel 中进行[市场篮子分析](https://www.data-mania.com/blog/market-basket-analysis-in-excel/)如果没有使用笨重的插件几乎是不可能的。但有了 LLM，只需稍作停顿，清晰地提出问题即可：
 
-> *“嘿GPT，对于包含男士运动外套的订单，哪些产品类型是同一客户在同一购物车中最常购买的？”*
+> *“嘿 GPT，对于包含男士运动外套的订单，哪些产品类型是同一客户在同一购物车中最常购买的？”*
 
 # 企业流程将如何发展，以融入人工智能？
 
-上面的演示展示了一些LLM如何在大规模数据驱动决策中提供支持的例子。主要参与者已意识到这一机会，整个生态系统正在迅速发展，将LLM融入到分析工作流中。请考虑以下内容：
+上面的演示展示了一些 LLM 如何在大规模数据驱动决策中提供支持的例子。主要参与者已意识到这一机会，整个生态系统正在迅速发展，将 LLM 融入到分析工作流中。请考虑以下内容：
 
-+   当OpenAI去年发布其“代码解释器”测试版时，很快将该功能更名为“高级数据分析”，以便与早期用户的使用方式相匹配。
++   当 OpenAI 去年发布其“代码解释器”测试版时，很快将该功能更名为“高级数据分析”，以便与早期用户的使用方式相匹配。
 
-+   使用GPT4o，OpenAI现在支持渲染[交互式图表](https://openai.com/index/improvements-to-data-analysis-in-chatgpt/)，包括更改颜色编码、悬停时显示工具提示、排序/筛选图表、选择图表列并应用计算的功能。
++   使用 GPT4o，OpenAI 现在支持渲染[交互式图表](https://openai.com/index/improvements-to-data-analysis-in-chatgpt/)，包括更改颜色编码、悬停时显示工具提示、排序/筛选图表、选择图表列并应用计算的功能。
 
 +   像 [Julius.ai](http://julius.ai) 这样的工具正在出现，专门解决关键的分析用例，在合适的情况下提供对多个模型的访问。Julius 提供对 OpenAI 和 Anthropic 的模型访问。
 
@@ -170,25 +170,25 @@ LLM 在分析领域的主要优势在于其能够……
 
 **最有效的 LLM 分析系统将利用来自单一提供商的多个模型，智能地使用针对特定任务所需的最低复杂度模型，从而节省令牌成本。**
 
-随着LLM提供商不断发布新模型，一种基于令牌的定价结构应运而生，该结构根据所使用模型的复杂性应用乘数。也就是说，GPT-4o的回答比GPT-3.5的回答要贵。为了降低成本，基于AI的应用将需要优化不同模型之间的使用。由于发送大量数据所带来的成本，预计组织将限制数据共享，仅与单一提供商共享数据。
+随着 LLM 提供商不断发布新模型，一种基于令牌的定价结构应运而生，该结构根据所使用模型的复杂性应用乘数。也就是说，GPT-4o 的回答比 GPT-3.5 的回答要贵。为了降低成本，基于 AI 的应用将需要优化不同模型之间的使用。由于发送大量数据所带来的成本，预计组织将限制数据共享，仅与单一提供商共享数据。
 
 **扩展的上下文窗口将允许用户进行长期分析，保持上下文的连贯性，随着新数据的到来和假设的变化，能够跨越几天或几周进行分析**
 
-LLM的上下文窗口大小决定了可以作为输入传递多少信息。对于像数据分析这样的RAG（检索增强生成）用例，这个值可能特别高。更大的上下文窗口允许传递更多信息，并且能够进行更长时间的对话交换。
+LLM 的上下文窗口大小决定了可以作为输入传递多少信息。对于像数据分析这样的 RAG（检索增强生成）用例，这个值可能特别高。更大的上下文窗口允许传递更多信息，并且能够进行更长时间的对话交换。
 
-目前，谷歌的Gemini 1.5模型具有所有LLM中最大的可用上下文窗口：
+目前，谷歌的 Gemini 1.5 模型具有所有 LLM 中最大的可用上下文窗口：
 
-![](../Images/c519af3ace80874ba3e121017ef02191.png)
+![](img/c519af3ace80874ba3e121017ef02191.png)
 
-# 2024年设置AI分析师
+# 2024 年设置 AI 分析师
 
-如果你有兴趣尝试将LLM用于分析用例，进行一些初始配置是必要的。阅读以下部分，获取一些关于如何获得最佳性能的建议，并避免一些常见的陷阱。
+如果你有兴趣尝试将 LLM 用于分析用例，进行一些初始配置是必要的。阅读以下部分，获取一些关于如何获得最佳性能的建议，并避免一些常见的陷阱。
 
 # 初始配置
 
 # 数据集和数据字典
 
-首先，您需要为LLM提供访问数据的权限。尽管这听起来显而易见，您共享的数据集必须包含回答您希望向LLM提出的问题所需的数据。更重要的是，数据集中所有字段需要有清晰、书写良好的数据字典，以便LLM能够充分理解每个指标和维度。上述演示中使用的数据集和数据字典可以在这里查看：
+首先，您需要为 LLM 提供访问数据的权限。尽管这听起来显而易见，您共享的数据集必须包含回答您希望向 LLM 提出的问题所需的数据。更重要的是，数据集中所有字段需要有清晰、书写良好的数据字典，以便 LLM 能够充分理解每个指标和维度。上述演示中使用的数据集和数据字典可以在这里查看：
 
 +   [事件数据集示例](https://docs.google.com/spreadsheets/d/1AsnBx47a1t2R5d_Y1T9UHE_NPsGYKNwqlcQRVwss49w/edit?usp=sharing)
 
@@ -196,17 +196,17 @@ LLM的上下文窗口大小决定了可以作为输入传递多少信息。对�
 
 # 数据连接
 
-与LLM共享数据的方式有多种，这取决于您使用的模型：
+与 LLM 共享数据的方式有多种，这取决于您使用的模型：
 
-+   **文件上传：** 当前最简单的方法是通过网页应用的UI上传静态文件。ChatGPT、Claude和Julius.ai都支持通过网页UI上传文件。
++   **文件上传：** 当前最简单的方法是通过网页应用的 UI 上传静态文件。ChatGPT、Claude 和 Julius.ai 都支持通过网页 UI 上传文件。
 
-+   **Google Sheets：** ChatGPT和Julius.ai原生支持从Google Sheets导入数据。
++   **Google Sheets：** ChatGPT 和 Julius.ai 原生支持从 Google Sheets 导入数据。
 
-+   **API：** 对于更复杂的用例或AI驱动的应用，您可以通过API共享数据集。更多细节请参阅您提供商的开发者文档。
++   **API：** 对于更复杂的用例或 AI 驱动的应用，您可以通过 API 共享数据集。更多细节请参阅您提供商的开发者文档。
 
 # 数据隐私
 
-目前，除非您安装了像[Meta的Llama](https://llama.meta.com/)这样的开源LLM并在本地运行，否则必须通过上述方法之一将数据发送到LLM。这引发了明显的安全性和数据隐私问题。
+目前，除非您安装了像[Meta 的 Llama](https://llama.meta.com/)这样的开源 LLM 并在本地运行，否则必须通过上述方法之一将数据发送到 LLM。这引发了明显的安全性和数据隐私问题。
 
 如果您想分析包含 PII（个人身份信息）如 customer_ids 的数据集，请考虑是否聚合后的数据集足以满足您的需求。如果您认为预先聚合的数据集不足以满足需求，请确保在上传前加密这些字段，以免泄露 PII。
 
@@ -214,11 +214,11 @@ LLM的上下文窗口大小决定了可以作为输入传递多少信息。对�
 
 您可以在此查看文中提到的模型的隐私政策：
 
-+   OpenAI: [https://openai.com/policies/privacy-policy/](https://openai.com/policies/privacy-policy/)
++   OpenAI: [`openai.com/policies/privacy-policy/`](https://openai.com/policies/privacy-policy/)
 
-+   Anthropic: [https://support.anthropic.com/en/collections/4078534-privacy-legal](https://support.anthropic.com/en/collections/4078534-privacy-legal)
++   Anthropic: [`support.anthropic.com/en/collections/4078534-privacy-legal`](https://support.anthropic.com/en/collections/4078534-privacy-legal)
 
-+   Julius: [https://julius.ai/docs/privacy-policy](https://julius.ai/docs/privacy-policy)
++   Julius: [`julius.ai/docs/privacy-policy`](https://julius.ai/docs/privacy-policy)
 
 # 自定义指令
 

@@ -1,16 +1,16 @@
-# 单位圆盘与2D有界核密度估计
+# 单位圆盘与 2D 有界核密度估计
 
-> 原文：[https://towardsdatascience.com/unit-disk-and-2d-bounded-kde-2cb5c3544f1c?source=collection_archive---------8-----------------------#2024-07-25](https://towardsdatascience.com/unit-disk-and-2d-bounded-kde-2cb5c3544f1c?source=collection_archive---------8-----------------------#2024-07-25)
+> 原文：[`towardsdatascience.com/unit-disk-and-2d-bounded-kde-2cb5c3544f1c?source=collection_archive---------8-----------------------#2024-07-25`](https://towardsdatascience.com/unit-disk-and-2d-bounded-kde-2cb5c3544f1c?source=collection_archive---------8-----------------------#2024-07-25)
 
 ## 如何将有界核密度估计扩展到二维情况？让我们探索如何修正单位圆盘周围的边界偏差。
 
-[](https://medium.com/@thom01.rouch?source=post_page---byline--2cb5c3544f1c--------------------------------)[![Thomas Rouch](../Images/a8440bbed59cd8d9cdd752cf1fea2831.png)](https://medium.com/@thom01.rouch?source=post_page---byline--2cb5c3544f1c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2cb5c3544f1c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2cb5c3544f1c--------------------------------) [Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--2cb5c3544f1c--------------------------------)
+[](https://medium.com/@thom01.rouch?source=post_page---byline--2cb5c3544f1c--------------------------------)![Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--2cb5c3544f1c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2cb5c3544f1c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2cb5c3544f1c--------------------------------) [Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--2cb5c3544f1c--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2cb5c3544f1c--------------------------------) ·12分钟阅读·2024年7月25日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2cb5c3544f1c--------------------------------) ·12 分钟阅读·2024 年 7 月 25 日
 
 --
 
-![](../Images/ec9b89e02ffca87b6de3078ca825c636.png)
+![](img/ec9b89e02ffca87b6de3078ca825c636.png)
 
 图片由[Leo_Visions](https://unsplash.com/@leo_visions_?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -26,7 +26,7 @@
 
 如下方公式所示，蒙特卡洛通过加权平均被积函数在从给定分布中抽取的样本点上的值来估计积分。
 
-![](../Images/6d160d6f1e82e716632aebce4d6465d3.png)
+![](img/6d160d6f1e82e716632aebce4d6465d3.png)
 
 因此，蒙特卡洛积分要求能够在任意维度上从任意分布中进行采样。
 
@@ -56,7 +56,7 @@
 
 +   *加权*：裁剪并归一化超出磁盘的核心扩展
 
-![](../Images/b9ef2f835f1665dd3581a0c8ba5c5944.png)
+![](img/b9ef2f835f1665dd3581a0c8ba5c5944.png)
 
 图片由 [Nathan Shipps](https://unsplash.com/@nateshipps?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -68,7 +68,7 @@
 
 确实，如下图所示，在一个正方形领域中，核的扩展往往会超出边界，人工降低了边缘附近的密度。
 
-![](../Images/9f37564088b91ec08ce16c5e5d9ccd74.png)
+![](img/9f37564088b91ec08ce16c5e5d9ccd74.png)
 
 核心泄漏超出正方形边界 — 图自作者
 
@@ -82,11 +82,11 @@
 
 以下左图是通过运行上述代码得到的。可以观察到圆盘边缘附近的密度明显下降。为了更好地展示边缘附近的下降，我还提取了沿对角线的密度分布图，理想情况下它应该是一个完美的阶跃函数。
 
-![](../Images/3e6859b460524a0397a5bd55438960df.png)
+![](img/3e6859b460524a0397a5bd55438960df.png)
 
-左图：基于在单位圆盘内均匀抽取样本的KDE。右图：对应的1D密度分布图沿密度图的对角线方向 — 作者提供的图。
+左图：基于在单位圆盘内均匀抽取样本的 KDE。右图：对应的 1D 密度分布图沿密度图的对角线方向 — 作者提供的图。
 
-![](../Images/a451c14e76bf8026d821782d91e85316.png)
+![](img/a451c14e76bf8026d821782d91e85316.png)
 
 照片由[Михаил Секацкий](https://unsplash.com/@sekatsky?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -94,65 +94,65 @@
 
 ## 反射
 
-在1D中，这个技巧的核心是通过将样本反射到左右边界外来增加样本集。这有助于弥补边界另一侧邻居的缺失。这相当于将局部核函数的尾部反射回来，保持它们在有界区域内。下面的公式用于反射正的1D值。
+在 1D 中，这个技巧的核心是通过将样本反射到左右边界外来增加样本集。这有助于弥补边界另一侧邻居的缺失。这相当于将局部核函数的尾部反射回来，保持它们在有界区域内。下面的公式用于反射正的 1D 值。
 
 > 注意，当密度导数在边界处为零时，这种方法效果最佳。
 
-![](../Images/98530866e0af243fd41b016f0e38e7e5.png)
+![](img/98530866e0af243fd41b016f0e38e7e5.png)
 
-然而，在2D中，并没有通用的反射公式；它取决于边界的形状。直观上，反射应该与边界法线对齐。因此，对于圆盘来说，将点沿径向反射是有意义的，这意味着反射只会修改半径。
+然而，在 2D 中，并没有通用的反射公式；它取决于边界的形状。直观上，反射应该与边界法线对齐。因此，对于圆盘来说，将点沿径向反射是有意义的，这意味着反射只会修改半径。
 
-![](../Images/ddcf038f7fde1be4df50505f03c5a337.png)
+![](img/ddcf038f7fde1be4df50505f03c5a337.png)
 
 > 注意，处理单位正方形的边界反射比处理圆盘要更具挑战性，因为正方形在角落处的边界线不可微。
 
 ## 直观的圆盘反射
 
-直观上，我们可以通过将点对称地反射到边界外来模拟1D的情况。一个半径为`r`的点离边缘的距离为`1-r`。通过在边界外增加这个距离，我们得到`2-r`。下面的方程和图示演示了如何利用这种对称性将点反射到单位圆盘的边界外。
+直观上，我们可以通过将点对称地反射到边界外来模拟 1D 的情况。一个半径为`r`的点离边缘的距离为`1-r`。通过在边界外增加这个距离，我们得到`2-r`。下面的方程和图示演示了如何利用这种对称性将点反射到单位圆盘的边界外。
 
-![](../Images/c43146ac1fac68bc6df51db91490fe1f.png)![](../Images/978bb2781e207ce52a903fd5cc3d4cdc.png)
+![](img/c43146ac1fac68bc6df51db91490fe1f.png)![](img/978bb2781e207ce52a903fd5cc3d4cdc.png)
 
-使用f(r)=2-r公式对单位圆盘边缘对称反射的彩色点。半径r=1和r=2的圆圈。 — 作者提供的图。
+使用 f(r)=2-r 公式对单位圆盘边缘对称反射的彩色点。半径 r=1 和 r=2 的圆圈。 — 作者提供的图。
 
-然而，当这种方法应用于校正密度图时，尽管它相较于标准KDE有了显著改善，但在边缘附近仍然可以看到轻微的下降。
+然而，当这种方法应用于校正密度图时，尽管它相较于标准 KDE 有了显著改善，但在边缘附近仍然可以看到轻微的下降。
 
-![](../Images/b884385683ef61bf3bf280acaa30518f.png)
+![](img/b884385683ef61bf3bf280acaa30518f.png)
 
-左图：在单位圆盘内均匀抽取样本的反射KDE。右图：对应的1D密度分布图沿密度图的对角线方向 — 作者提供的图。
+左图：在单位圆盘内均匀抽取样本的反射 KDE。右图：对应的 1D 密度分布图沿密度图的对角线方向 — 作者提供的图。
 
 ## 优化的圆盘反射
 
-让我们看看如何改进这个反射函数，以更好地适应圆盘边界。与一维情况不同，`f(r)=2-r` 的反射会扭曲空间，将面积为π的单位圆盘映射到一个面积为3π的更大圆环上。
+让我们看看如何改进这个反射函数，以更好地适应圆盘边界。与一维情况不同，`f(r)=2-r` 的反射会扭曲空间，将面积为π的单位圆盘映射到一个面积为 3π的更大圆环上。
 
-理想情况下，我们希望圆盘内每个微分面在反射映射过程中保持不变。如下面的图所示，我们考虑在半径r处的点周围的微分变化dr和dθ。
+理想情况下，我们希望圆盘内每个微分面在反射映射过程中保持不变。如下面的图所示，我们考虑在半径 r 处的点周围的微分变化 dr 和 dθ。
 
-![](../Images/607de0ee48e70824896038fb61d2c310.png)
+![](img/607de0ee48e70824896038fb61d2c310.png)
 
 反射前后的微分面（r, dr, dθ） — 图由作者提供
 
-![](../Images/3720ba80ee5feeef4ebad68f7c0fee6f.png)
+![](img/3720ba80ee5feeef4ebad68f7c0fee6f.png)
 
-面积守恒导致了反射函数必须满足的微分方程。请注意，负号的出现是因为由于反射性质，函数f必然是递减的。
+面积守恒导致了反射函数必须满足的微分方程。请注意，负号的出现是因为由于反射性质，函数 f 必然是递减的。
 
-![](../Images/ce8684a6bdcce66d55a294d7c1a33ea1.png)
+![](img/ce8684a6bdcce66d55a294d7c1a33ea1.png)
 
 给定边界条件`f(1)=1`，该微分方程`-x=yy'`有唯一解。
 
-![](../Images/c11701f3d19077d43ee4f32d22b606e8.png)
+![](img/c11701f3d19077d43ee4f32d22b606e8.png)
 
-我们只需要用新的反射公式更新我们的代码。现在，反射点被限制在半径为1和√2之间的圆环内。如我们所见，反射点没有被过度扭曲，并保持相似的局部密度。
+我们只需要用新的反射公式更新我们的代码。现在，反射点被限制在半径为 1 和√2 之间的圆环内。如我们所见，反射点没有被过度扭曲，并保持相似的局部密度。
 
-![](../Images/5713b62b40d16b0e1158ed018bf357da.png)
+![](img/5713b62b40d16b0e1158ed018bf357da.png)
 
-使用`f(r)=sqrt(2-r²)`反射穿过单位圆盘边缘的彩色点。半径为r=1、r=sqrt(2)和r=2的圆圈。 — 图由作者提供
+使用`f(r)=sqrt(2-r²)`反射穿过单位圆盘边缘的彩色点。半径为 r=1、r=sqrt(2)和 r=2 的圆圈。 — 图由作者提供
 
 这次，得到的密度估计看起来几乎完美！
 
-![](../Images/d18de7cdf9572a7a9f18ba3c79502412.png)
+![](img/d18de7cdf9572a7a9f18ba3c79502412.png)
 
-左：在单位圆盘内均匀抽样的优化反射KDE。右：沿密度图对角线的相应一维密度分布 — 图由作者提供
+左：在单位圆盘内均匀抽样的优化反射 KDE。右：沿密度图对角线的相应一维密度分布 — 图由作者提供
 
-![](../Images/03232e5fa3a128665deea8c6fe3bb939.png)
+![](img/03232e5fa3a128665deea8c6fe3bb939.png)
 
 照片来自[SpaceX](https://unsplash.com/@spacex?utm_source=medium&utm_medium=referral)提供，图片来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -160,7 +160,7 @@
 
 ## 转换空间中的 KDE
 
-变换技巧将有界数据映射到无界空间，在那里可以安全地应用普通的KDE。这意味着每个输入样本将使用不同的核函数。
+变换技巧将有界数据映射到无界空间，在那里可以安全地应用普通的 KDE。这意味着每个输入样本将使用不同的核函数。
 
 > 然而，正如在上一篇文章[*有界核密度估计*](https://medium.com/towards-data-science/bounded-kernel-density-estimation-2082dff3f47f)中所看到的，当密度在边界处非零且不趋向于无穷大时，往往会导致不想要的伪影。
 
@@ -168,27 +168,27 @@
 
 基于我们上一节的方法，我们将再次使用中心对称性，并选择一个仅改变半径的变换`f`。变换后的变量将用波浪符号`~`表示。
 
-![](../Images/5b4f6a1a2a188469ad2b463c870c6ed2.png)
+![](img/5b4f6a1a2a188469ad2b463c870c6ed2.png)
 
 然而，与反射情况不同，在那里我们保持单位圆盘并仅使用变换来添加新点，在这里我们直接变换并使用单位圆盘内的点。
 
 因此，边界条件是不同的，强制要求保持原点不变并将圆盘膨胀到无穷大。
 
-![](../Images/955be14ee2706712da691cf257bfd8ba.png)
+![](img/955be14ee2706712da691cf257bfd8ba.png)
 
 ## 密度变换
 
 当对多维随机变量 U 应用变换 T 时，得到的密度是通过除以 T 的雅可比矩阵行列式的绝对值来计算的。
 
-![](../Images/198b30a69bbf3e6710e4b3f31a971c8d.png)
+![](img/198b30a69bbf3e6710e4b3f31a971c8d.png)
 
 例如，极坐标变换给我们带来了以下密度。
 
-![](../Images/d67aab7843e4c3b8a8829d0c4d9da02e.png)
+![](img/d67aab7843e4c3b8a8829d0c4d9da02e.png)
 
 基于之前的两个性质，我们可以推导出变换前后密度之间的关系。这将使我们能够从变换后的点估算的密度中恢复真实的密度。
 
-![](../Images/8647eca330ee2cb37f89ee21b4bb4579.png)
+![](img/8647eca330ee2cb37f89ee21b4bb4579.png)
 
 ## 该选择哪种变换？对数变换，还是反向变换？
 
@@ -196,21 +196,21 @@
 
 下图展示了使用对数和反向变换创建的潜在候选函数，用于在 `r=-1` 和 `r=1` 处引入奇异性。
 
-![](../Images/7cb4fa038b8fdca1a34f48f27ca9ffce.png)
+![](img/7cb4fa038b8fdca1a34f48f27ca9ffce.png)
 
 下面是一些在原点为零并在接近 +/-1 时趋向于无穷大的函数示例 —— 图由作者提供
 
 基于描述变换后的密度的方程，我们旨在找到一个变换，将均匀分布映射到一个通过普通 KDE 易于估算的形式。如果我们有一个均匀分布 `p(x,y)`，那么在变换后的空间中的密度与下方函数 `g` 成正比。
 
-![](../Images/cda78ca4d98f029d2cf455cc0c8c9da8.png)
+![](img/cda78ca4d98f029d2cf455cc0c8c9da8.png)
 
 对数和反向变换候选给出了以下 `g` 函数。
 
-![](../Images/42e89020c8d230eb49779cafba117417.png)![](../Images/39c366866c1df22882164b364a735321.png)
+![](img/42e89020c8d230eb49779cafba117417.png)![](img/39c366866c1df22882164b364a735321.png)
 
 当 `r` 接近零时，它们是等价的，只有当 α 等于一时，它们才会收敛到有意义的值。
 
-![](../Images/f7d4637b486fd2ea9d5c7ef4c8f4b641.png)
+![](img/f7d4637b486fd2ea9d5c7ef4c8f4b641.png)
 
 下图展示了三种情况，每列对应具有 0.5、1 和 2 的 alpha 值的对数变换。
 
@@ -218,7 +218,7 @@
 
 > 请记住，变换和 KDE 仍然在圆盘上的 2D 空间中执行。下面显示的一维曲线是从 2D 结果中提取的。
 
-![](../Images/d74c925d22997679fcec81e4e6300eac.png)
+![](img/d74c925d22997679fcec81e4e6300eac.png)
 
 变换后和原始域内沿对角线的密度（第一行和第二行）。列对应于具有 alpha 值为 0.5 / 1 / 2 的对数变换 —— 图由作者提供
 
@@ -232,15 +232,15 @@
 
 尽管拟合稍有改善，但它在原点处仍然高度偏斜。此外，由于需要低带宽来拟合原点处非常陡峭的尖形，边界变得完全不稳定，并在高频率下振荡。
 
-![](../Images/2d3763d0cec90680876ade34c66beb03.png)
+![](img/2d3763d0cec90680876ade34c66beb03.png)
 
-在变换后和原始域中的对角线上的密度（第一行和第二行），使用基于对数的变换和α等于1的三角滤波器 — 图由作者提供
+在变换后和原始域中的对角线上的密度（第一行和第二行），使用基于对数的变换和α等于 1 的三角滤波器 — 图由作者提供
 
 ## 尝试使用切线函数？
 
 切线函数也被证明是一个合适的候选者，可以在`r=1`处引入奇点。
 
-![](../Images/c518663356641f0e3a3a74fa5f30ace8.png)![](../Images/d8d5c736e87d89e16ee3aa2e47569a0d.png)
+![](img/c518663356641f0e3a3a74fa5f30ace8.png)![](img/d8d5c736e87d89e16ee3aa2e47569a0d.png)
 
 切线函数经过修改，趋向于无穷大，随着半径接近+/-1 — 图由作者提供
 
@@ -248,11 +248,11 @@
 
 > 为了保持可读性并避免冗余，我将不包括导致这些结果的数学细节。
 
-![](../Images/83026a897d26229483f8e6ce6dd3b7a9.png)
+![](img/83026a897d26229483f8e6ce6dd3b7a9.png)
 
 然而，正如下面的图所示，我们仍然受到边界附近相同的不稳定性的影响。
 
-![](../Images/f9637ffbd11644ad0df22aafb2107245.png)
+![](img/f9637ffbd11644ad0df22aafb2107245.png)
 
 在变换后和原始域中的对角线上的密度（第一行和第二行），使用基于切线的变换 — 图由作者提供
 
@@ -260,17 +260,17 @@
 
 该变换方法似乎不适用于我们在二维圆盘内的均匀分布。它在边界附近引入了过多的方差，并显著干扰了原本已经完全无偏的内部。
 
-尽管性能较差，我还是生成了使用对数和切线变换的Transform KDE得到的结果2D密度图。
+尽管性能较差，我还是生成了使用对数和切线变换的 Transform KDE 得到的结果 2D 密度图。
 
-![](../Images/de437992636891765c692b65831f8da1.png)
+![](img/de437992636891765c692b65831f8da1.png)
 
-左：在单位圆盘内均匀抽样的对数变换KDE。右：沿密度图对角线的相应一维密度轮廓 — 图由作者提供
+左：在单位圆盘内均匀抽样的对数变换 KDE。右：沿密度图对角线的相应一维密度轮廓 — 图由作者提供
 
-![](../Images/6469a37826922a1ce11469f73cf0b55a.png)
+![](img/6469a37826922a1ce11469f73cf0b55a.png)
 
-左：在单位圆盘内均匀抽样的切线变换KDE。右：沿密度图对角线的相应一维密度轮廓 — 图由作者提供
+左：在单位圆盘内均匀抽样的切线变换 KDE。右：沿密度图对角线的相应一维密度轮廓 — 图由作者提供
 
-![](../Images/d05eb760e26f8b70089908e9aae880ee.png)
+![](img/d05eb760e26f8b70089908e9aae880ee.png)
 
 [Piret Ilver](https://unsplash.com/@saltsup?utm_source=medium&utm_medium=referral)拍摄的照片，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -290,19 +290,19 @@
 
 在下面的代码中，我们假设一个各向同性的高斯分布，并获取核的标准差。随后，我们使用 OpenCV 对二进制圆盘掩码进行卷积，得到下图所示的数组。请注意，它与有偏 vanilla KDE 的接近程度。
 
-![](../Images/a580a9450e42692374802764e4dedbf7.png)
+![](img/a580a9450e42692374802764e4dedbf7.png)
 
-对单位圆盘的二进制图像应用高斯模糊。半径为1的圆——图示由作者提供
+对单位圆盘的二进制图像应用高斯模糊。半径为 1 的圆——图示由作者提供
 
 ## 结果
 
 一旦修正的权重图被计算出来，我们可以将其应用于有偏的预测密度。修正后的密度图几乎是完美的。
 
-![](../Images/927a7a7233330a6f97e6a3a168970531.png)
+![](img/927a7a7233330a6f97e6a3a168970531.png)
 
-左侧：在单位圆盘内均匀抽样的切割与归一化 KDE。右侧：对应的沿密度图对角线的1D密度轮廓——图示由作者提供
+左侧：在单位圆盘内均匀抽样的切割与归一化 KDE。右侧：对应的沿密度图对角线的 1D 密度轮廓——图示由作者提供
 
-![](../Images/9fb00bbf65647ea62f693c37a2f9672e.png)
+![](img/9fb00bbf65647ea62f693c37a2f9672e.png)
 
 [Florian Schmetz](https://unsplash.com/@floschmaezz?utm_source=medium&utm_medium=referral)拍摄的照片，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,12 +1,12 @@
-# 使用R进行回归的有限正态混合模型介绍
+# 使用 R 进行回归的有限正态混合模型介绍
 
-> 原文：[https://towardsdatascience.com/introduction-to-the-finite-normal-mixtures-in-regression-with-6a884810a692?source=collection_archive---------7-----------------------#2024-11-15](https://towardsdatascience.com/introduction-to-the-finite-normal-mixtures-in-regression-with-6a884810a692?source=collection_archive---------7-----------------------#2024-11-15)
+> 原文：[`towardsdatascience.com/introduction-to-the-finite-normal-mixtures-in-regression-with-6a884810a692?source=collection_archive---------7-----------------------#2024-11-15`](https://towardsdatascience.com/introduction-to-the-finite-normal-mixtures-in-regression-with-6a884810a692?source=collection_archive---------7-----------------------#2024-11-15)
 
 ## 如何使线性回归足够灵活以处理非线性数据
 
-[](https://medium.com/@lukaszgatarek81?source=post_page---byline--6a884810a692--------------------------------)[![Lukasz Gatarek](../Images/a44ec84d3c30e6dd5ad0735698d46a52.png)](https://medium.com/@lukaszgatarek81?source=post_page---byline--6a884810a692--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a884810a692--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6a884810a692--------------------------------) [Lukasz Gatarek](https://medium.com/@lukaszgatarek81?source=post_page---byline--6a884810a692--------------------------------)
+[](https://medium.com/@lukaszgatarek81?source=post_page---byline--6a884810a692--------------------------------)![Lukasz Gatarek](https://medium.com/@lukaszgatarek81?source=post_page---byline--6a884810a692--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a884810a692--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a884810a692--------------------------------) [Lukasz Gatarek](https://medium.com/@lukaszgatarek81?source=post_page---byline--6a884810a692--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a884810a692--------------------------------) ·阅读时长8分钟·2024年11月15日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a884810a692--------------------------------) ·阅读时长 8 分钟·2024 年 11 月 15 日
 
 --
 
@@ -14,15 +14,15 @@
 
 这种方法特别有趣的地方在于其可解释性。尽管具有极高的灵活性，所有检测到的关系都可以直接解释。该模型与神经网络一样具有普适性，但它并不会变成一个黑盒子。你可以读取这些关系，并理解各个变量的影响。
 
-在这篇文章中，我们展示了如何使用马尔可夫链蒙特卡洛（MCMC）采样来模拟回归的有限混合模型。我们将生成具有多个成分（组）的数据，并拟合一个混合模型，通过贝叶斯推断来恢复这些成分。这个过程涉及回归模型和混合模型，并结合MCMC技术进行参数估计。
+在这篇文章中，我们展示了如何使用马尔可夫链蒙特卡洛（MCMC）采样来模拟回归的有限混合模型。我们将生成具有多个成分（组）的数据，并拟合一个混合模型，通过贝叶斯推断来恢复这些成分。这个过程涉及回归模型和混合模型，并结合 MCMC 技术进行参数估计。
 
-![](../Images/36ff117a1f0b195a0c5ab4c72153b45e.png)
+![](img/36ff117a1f0b195a0c5ab4c72153b45e.png)
 
 数据模拟为三个线性回归的混合
 
 # 加载所需的库
 
-我们首先加载必要的库，以便处理回归模型、MCMC和多元分布。
+我们首先加载必要的库，以便处理回归模型、MCMC 和多元分布。
 
 ```py
 # Loading the required libraries for various functions
@@ -33,7 +33,7 @@ library(mvtnorm)        # For multivariate normal distribution functio
 
 +   **pscl**：用于各种统计功能，如回归模型。
 
-+   **MCMCpack**：包含用于贝叶斯推断的函数，特别是MCMC采样。
++   **MCMCpack**：包含用于贝叶斯推断的函数，特别是 MCMC 采样。
 
 +   **mvtnorm**：提供了处理多变量正态分布的工具。
 
@@ -41,9 +41,9 @@ library(mvtnorm)        # For multivariate normal distribution functio
 
 我们模拟一个数据集，其中每个观测值属于多个组之一（混合模型的组分），响应变量是使用回归模型生成的，并且具有随机系数。
 
-我们考虑一个使用G个正态混合组件的回归模型的通用设置。
+我们考虑一个使用 G 个正态混合组件的回归模型的通用设置。
 
-![](../Images/3ed53e8272456985255a39c1e2290cd9.png)
+![](img/3ed53e8272456985255a39c1e2290cd9.png)
 
 ```py
 ## Generate the observations
@@ -57,7 +57,7 @@ G <- 3
 
 +   **N**：每组的观测数。
 
-+   **nSim**：MCMC迭代次数。
++   **nSim**：MCMC 迭代次数。
 
 +   **G**：混合模型中组件（组）的数量。
 
@@ -84,11 +84,11 @@ sigmas <- rep(1, G) / 1  # Set variance to 1 for each component, with a fixed di
 
 我们通过一组组件标签向量来扩展模型，以表示
 
-![](../Images/eb047a04981f3687cebbe80278b29314.png)
+![](img/eb047a04981f3687cebbe80278b29314.png)
 
 其中
 
-![](../Images/9756b038c770fa78ab6fd85e875d98dc.png)
+![](img/9756b038c770fa78ab6fd85e875d98dc.png)
 
 因此，*z_gi=1* 表示第*i*个个体来自混合模型的第*g*个组分。
 
@@ -109,7 +109,7 @@ data <- data[sampled_order,]
 
 我们为回归系数和方差设置了先验分布。这些先验将指导我们的贝叶斯估计。
 
-![](../Images/66c79c39852ac0490d55a7958de9afa6.png)
+![](img/66c79c39852ac0490d55a7958de9afa6.png)
 
 ```py
 ## Define Priors for Bayesian estimation# Define the prior mean (muBeta) for the regression coefficients
@@ -121,7 +121,7 @@ shSigma <- ag
 raSigma <- bg^(-1)
 ```
 
-+   **muBeta**：回归系数的先验均值。我们将其设置为所有组的0。
++   **muBeta**：回归系数的先验均值。我们将其设置为所有组的 0。
 
 +   **VBeta**：先验方差，值较大（100），以允许回归系数有较大的灵活性。
 
@@ -129,20 +129,20 @@ raSigma <- bg^(-1)
 
 对于组件指示符和组件概率，我们考虑以下先验分配。
 
-![](../Images/32c364a60b362d26cc314efdca7072ba.png)
+![](img/32c364a60b362d26cc314efdca7072ba.png)
 
-多项式先验M是二项分布的多变量推广，而Dirichlet先验D是贝塔分布的多变量推广。
+多项式先验 M 是二项分布的多变量推广，而 Dirichlet 先验 D 是贝塔分布的多变量推广。
 
-# MCMC初始化
+# MCMC 初始化
 
-在本节中，我们通过设置矩阵来初始化MCMC过程，以存储回归系数、方差和混合比例的样本。
+在本节中，我们通过设置矩阵来初始化 MCMC 过程，以存储回归系数、方差和混合比例的样本。
 
 ```py
 ## Initialize MCMC sampling# Initialize matrix to store the samples for beta
 mBeta <- matrix(NA, nSim, G)# Assign the first value of beta using a random normal distribution
 for (g in 1:G) {
   mBeta[1, g] <- rnorm(1, muBeta[g, 1], VBeta[g, g])
-}# Initialize the sigma^2 values (variance for each component)
+}# Initialize the sigma² values (variance for each component)
 mSigma2 <- matrix(NA, nSim, G)
 mSigma2[1, ] <- rigamma(1, shSigma, raSigma)# Initialize the mixing proportions (pi), using a Dirichlet distribution
 mPi <- matrix(NA, nSim, G)
@@ -152,37 +152,37 @@ mPi[1, ] <- rdirichlet(1, alphaPrior)
 
 +   **mBeta**：用于存储回归系数样本的矩阵。
 
-+   **mSigma2**：用于存储每个组方差（sigma平方）的矩阵。
++   **mSigma2**：用于存储每个组方差（sigma 平方）的矩阵。
 
-+   **mPi**：用于存储混合比例的矩阵，通过Dirichlet分布初始化。
++   **mPi**：用于存储混合比例的矩阵，通过 Dirichlet 分布初始化。
 
-# MCMC采样：后验更新
+# MCMC 采样：后验更新
 
 如果我们在组件指示变量 z 的值上进行条件化，则条件似然可以表示为
 
-![](../Images/a03f350ff3f9294c59770a83f1abc56c.png)
+![](img/a03f350ff3f9294c59770a83f1abc56c.png)
 
 在 MCMC 采样循环中，我们基于后验分布更新组分配（`z`）、回归系数（`beta`）和方差（`sigma`）。计算每个组分配的似然，并选择具有最高后验概率的组。
 
 以下完整的后验条件可以得到：
 
-![](../Images/a7d1f5bcc4952cfa4ab1f0d36e1478a4.png)
+![](img/a7d1f5bcc4952cfa4ab1f0d36e1478a4.png)
 
 其中
 
-![](../Images/aaf3ceb5f34ba16009e704d76e351267.png)
+![](img/aaf3ceb5f34ba16009e704d76e351267.png)
 
 表示后验中的所有参数，除了*x*。
 
-![](../Images/b9f326d43e2c0dc83726a042e1f3adff.png)
+![](img/b9f326d43e2c0dc83726a042e1f3adff.png)
 
 其中，*n_g* 表示混合模型中第 *g* 个组的观测数。
 
-![](../Images/220beb5af0688c95c858473ae05d9b2c.png)
+![](img/220beb5af0688c95c858473ae05d9b2c.png)
 
 和
 
-![](../Images/f9b9da480f7230033270068a2921f3d3.png)
+![](img/f9b9da480f7230033270068a2921f3d3.png)
 
 以下算法按照顺序从上面的后验分布系列中提取样本。
 
@@ -219,8 +219,8 @@ for (i in 2:nSim) {
     # Update the number of observations in group g
     ng[i, g] <- sum(z[i, ] == g)
 
-    # Update the variance (sigma^2) for each group
-    mSigma2[i, g] <- rigamma(1, ng[i, g]/2 + shSigma, raSigma + 1/2 * sum((y[z[i, ] == g, 1] - (X[z[i, ] == g, ] * mBeta[i, g]))^2))
+    # Update the variance (sigma²) for each group
+    mSigma2[i, g] <- rigamma(1, ng[i, g]/2 + shSigma, raSigma + 1/2 * sum((y[z[i, ] == g, 1] - (X[z[i, ] == g, ] * mBeta[i, g]))²))
   }
 
   # Reorder the group labels to maintain consistency

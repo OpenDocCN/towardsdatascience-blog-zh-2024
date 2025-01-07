@@ -1,26 +1,26 @@
 # ASCVIT V1：自动化统计计算、可视化和解释工具
 
-> 原文：[https://towardsdatascience.com/ascvit-v1-automatic-statistical-calculation-visualization-and-interpretation-tool-aa910001a3a7?source=collection_archive---------2-----------------------#2024-09-16](https://towardsdatascience.com/ascvit-v1-automatic-statistical-calculation-visualization-and-interpretation-tool-aa910001a3a7?source=collection_archive---------2-----------------------#2024-09-16)
+> 原文：[`towardsdatascience.com/ascvit-v1-automatic-statistical-calculation-visualization-and-interpretation-tool-aa910001a3a7?source=collection_archive---------2-----------------------#2024-09-16`](https://towardsdatascience.com/ascvit-v1-automatic-statistical-calculation-visualization-and-interpretation-tool-aa910001a3a7?source=collection_archive---------2-----------------------#2024-09-16)
 
-## 轻松实现自动化数据分析：ASCVIT工具的第一个版本，提供统计计算、可视化和解释功能
+## 轻松实现自动化数据分析：ASCVIT 工具的第一个版本，提供统计计算、可视化和解释功能
 
-[](https://medium.com/@stefanpietrusky?source=post_page---byline--aa910001a3a7--------------------------------)[![Stefan Pietrusky](../Images/f5abf75db277f3aec8d8e56877daafe4.png)](https://medium.com/@stefanpietrusky?source=post_page---byline--aa910001a3a7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aa910001a3a7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--aa910001a3a7--------------------------------) [Stefan Pietrusky](https://medium.com/@stefanpietrusky?source=post_page---byline--aa910001a3a7--------------------------------)
+[](https://medium.com/@stefanpietrusky?source=post_page---byline--aa910001a3a7--------------------------------)![Stefan Pietrusky](https://medium.com/@stefanpietrusky?source=post_page---byline--aa910001a3a7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aa910001a3a7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aa910001a3a7--------------------------------) [Stefan Pietrusky](https://medium.com/@stefanpietrusky?source=post_page---byline--aa910001a3a7--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aa910001a3a7--------------------------------) ·阅读时间30分钟·2024年9月16日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aa910001a3a7--------------------------------) ·阅读时间 30 分钟·2024 年 9 月 16 日
 
 --
 
-在我的学习过程中，我参加了一个数据科学研讨会，并首次接触到了统计编程语言R。当时，我对其可能带来的应用潜力感到着迷。与此同时，得益于机器学习领域的进展，数据的统计评估变得更加简便。当然，这需要一定的技术理解，并且你需要知道某些方法的实际作用。还需要了解哪些数据或输入是某些方法能够正常工作或得出有意义结果的前提。在本文中，我将讨论开发本地应用的第一个版本（V1）的过程，该应用可以用于自动地将各种统计方法应用于任何数据集。这是一个开源项目，旨在用于教育和研究目的。
+在我的学习过程中，我参加了一个数据科学研讨会，并首次接触到了统计编程语言 R。当时，我对其可能带来的应用潜力感到着迷。与此同时，得益于机器学习领域的进展，数据的统计评估变得更加简便。当然，这需要一定的技术理解，并且你需要知道某些方法的实际作用。还需要了解哪些数据或输入是某些方法能够正常工作或得出有意义结果的前提。在本文中，我将讨论开发本地应用的第一个版本（V1）的过程，该应用可以用于自动地将各种统计方法应用于任何数据集。这是一个开源项目，旨在用于教育和研究目的。
 
-数据可以以.csv或.xlsx格式上传。应用的第一版本提供了一个通用的数据概览（数据预览、数据描述、数据点数量和变量分类）、描述性统计分析（直方图、箱型图、散点图矩阵和相关矩阵）、各种假设检验（t检验、方差分析和卡方检验）、回归分析（线性回归、逻辑回归和多元回归）、时间序列分析，并支持各种聚类方法（k均值、层次聚类和DBSCAN）。该应用是使用Python框架Streamlit创建的。
+数据可以以.csv 或.xlsx 格式上传。应用的第一版本提供了一个通用的数据概览（数据预览、数据描述、数据点数量和变量分类）、描述性统计分析（直方图、箱型图、散点图矩阵和相关矩阵）、各种假设检验（t 检验、方差分析和卡方检验）、回归分析（线性回归、逻辑回归和多元回归）、时间序列分析，并支持各种聚类方法（k 均值、层次聚类和 DBSCAN）。该应用是使用 Python 框架 Streamlit 创建的。
 
-![](../Images/2aeaafcbbff406fea620a84e506c2e8b.png)
+![](img/2aeaafcbbff406fea620a84e506c2e8b.png)
 
 ASCVIT V1 分析方法概览（图片来自作者）
 
 由于代码的模块化结构，可以轻松实现进一步的统计程序。代码中有注释，这使得你更容易上手。当应用程序运行时，上传数据集后界面如下所示。
 
-![](../Images/e7b5a06c2d4276d7fc811f32eb999b4f.png)
+![](img/e7b5a06c2d4276d7fc811f32eb999b4f.png)
 
 ASCVIT V1 Streamlit 应用程序（图片来自作者）
 
@@ -28,7 +28,7 @@ ASCVIT V1 Streamlit 应用程序（图片来自作者）
 
 我已经在我发布的[**Towards Data Science**](https://medium.com/towards-data-science/how-to-talk-to-a-pdf-file-without-using-proprietary-models-cli-streamlit-ollama-6c22437ed932) [1] 文章中解释了这一原理。在应用程序的第一个版本中，此功能仅限于描述性统计分析，但也可以扩展到其他分析上。具体来说，这意味着除了自动统计计算外，应用程序还会自动解读数据。
 
-![](../Images/72272ad4d80906cdb2f175181563da74.png)
+![](img/72272ad4d80906cdb2f175181563da74.png)
 
 ASCVIT V1 CLI + OLLAMA + LMS（图片来自作者）
 
@@ -36,15 +36,15 @@ ASCVIT V1 CLI + OLLAMA + LMS（图片来自作者）
 
 如果你没有自己的数据，可以访问互联网上的多个网站，这些网站提供免费的数据集。用于开发和测试此应用程序的数据集来自[**Maven Analytics**](https://mavenanalytics.io/data-playground?accessType=open&order=date_added%2Cdesc&page=1&pageSize=5)(许可证：ODC-BY) [2]。
 
-![](../Images/544d667fb9fd8ddd3896b0d2c5920415.png)
+![](img/544d667fb9fd8ddd3896b0d2c5920415.png)
 
 MAVEN Analytics 数据游乐场（截图来自作者）
 
-网站上有大量免费的数据集。我所查看的数据涉及从1976年到2024年间的视频游戏销售数据。具体来说，它记录了北美、日本、欧盟、非洲和其他地区的销售数据。总共有64016个游戏标题以及它们的评分、类型、平台等信息。
+网站上有大量免费的数据集。我所查看的数据涉及从 1976 年到 2024 年间的视频游戏销售数据。具体来说，它记录了北美、日本、欧盟、非洲和其他地区的销售数据。总共有 64016 个游戏标题以及它们的评分、类型、平台等信息。
 
 不幸的是，并非所有标题都有完整的信息。有很多 NaN（非数字）值，这在用 Python 分析时会导致问题或扭曲某些统计分析结果。下面我将简要讨论数据记录的清理过程。
 
-![](../Images/193f5b427ac3d2335be5cdf1d3387001.png)
+![](img/193f5b427ac3d2335be5cdf1d3387001.png)
 
 MAVEN Analytics 的视频游戏销售数据（截图来自作者）
 
@@ -62,11 +62,11 @@ df_cleaned.to_csv('cleaned_file.csv', index=False)
 print("Lines with missing data have been removed and saved in 'cleaned_file.csv'.")
 ```
 
-使用*“pd.read_csv(‘.csv’)”*读取文件，并将数据保存到DataFrame“df”中。*“df.dropna()”*删除DataFrame中包含缺失值‘NaN’的所有行。清洗后的DataFrame保存在变量*“df_cleaned”*中。使用*“df_cleaned.to_csv(‘cleaned_file.csv’, index=False)”*将数据保存到新的.csv文件中，且不保存行索引。接下来，输出成功完成的过程*“print(…)”*。该数据集清洗的代码可以在文件*“clean.py”*中找到，并且稍后也可以下载。接下来，让我们进入应用程序的实际代码部分。
+使用*“pd.read_csv(‘.csv’)”*读取文件，并将数据保存到 DataFrame“df”中。*“df.dropna()”*删除 DataFrame 中包含缺失值‘NaN’的所有行。清洗后的 DataFrame 保存在变量*“df_cleaned”*中。使用*“df_cleaned.to_csv(‘cleaned_file.csv’, index=False)”*将数据保存到新的.csv 文件中，且不保存行索引。接下来，输出成功完成的过程*“print(…)”*。该数据集清洗的代码可以在文件*“clean.py”*中找到，并且稍后也可以下载。接下来，让我们进入应用程序的实际代码部分。
 
-![](../Images/ede7322dd5c84e374c7cc838afe3d6cb.png)
+![](img/ede7322dd5c84e374c7cc838afe3d6cb.png)
 
-ASCVIT V1 Python代码片段（作者制作的GIF）
+ASCVIT V1 Python 代码片段（作者制作的 GIF）
 
 ## 所需的库和模块
 
@@ -94,7 +94,7 @@ import streamlit as st
 
 **关于图表表示的说明。** 有些使用*“pyplot”*（Matplotlib），而有些使用*“plotly”*（例如箱形图）。尽管使用*“plotly”*会产生更互动的图形，但并不意味着每种图表类型都需要使用它。最终，用户必须自行决定图表应如何显示。代码必须相应地进行调整。
 
-可以通过ZIP目录中的requirements.txt文件使用以下命令安装应用程序所需的库。
+可以通过 ZIP 目录中的 requirements.txt 文件使用以下命令安装应用程序所需的库。
 
 ```py
 pip install -r requirements.txt
@@ -102,13 +102,13 @@ pip install -r requirements.txt
 
 ## 数据概览
 
-函数*“display_data_info()”*专门分析Pandas DataFrame *“df”*并输出统计关键数据（均值、标准差等）*“df.describe()”*。DataFrame的总数据点（行数）通过*“len(df)”*输出。同样，DataFrame的数值型变量*“numerical_columns”*和分类变量*“categorical_columns”*（字符串类型）也会被输出。
+函数*“display_data_info()”*专门分析 Pandas DataFrame *“df”*并输出统计关键数据（均值、标准差等）*“df.describe()”*。DataFrame 的总数据点（行数）通过*“len(df)”*输出。同样，DataFrame 的数值型变量*“numerical_columns”*和分类变量*“categorical_columns”*（字符串类型）也会被输出。
 
-![](../Images/7ebc74d3ca69d370554105df06d51e84.png)
+![](img/7ebc74d3ca69d370554105df06d51e84.png)
 
 ASCVIT V1 应用数据概览（作者制作的图片）
 
-数据集总共有64016个数据点，其中6个数值型变量和8个分类变量。在开始进行某些统计处理之前，首先应该查看数据。在*“数据概览”*部分，您可以获取各种信息，以得出是否可以进行某些测试的结论。
+数据集总共有 64016 个数据点，其中 6 个数值型变量和 8 个分类变量。在开始进行某些统计处理之前，首先应该查看数据。在*“数据概览”*部分，您可以获取各种信息，以得出是否可以进行某些测试的结论。
 
 例如，如果数据集中没有日期变量，则无法进行时间序列分析。如果没有二元变量，则无法进行逻辑回归。该应用程序已经设计为在变量类别不正确时询问或显示错误信息。接下来，让我们继续描述性统计部分。
 
@@ -183,23 +183,23 @@ def descriptive_statistics(df, numerical_columns):
 
 ## 直方图函数
 
-*“plot_histogram()”*函数用于根据用户选择的变量创建直方图。开始时，所有NaN值都会从变量*“cleaned_data”*中去除。然后计算各种统计关键数字（均值*“mean_value”*、中位数*“median_value”*、标准差*“std_value”*、最小值*“min_value”*、最大值*“max_value”*以及标准差的上下限）。
+*“plot_histogram()”*函数用于根据用户选择的变量创建直方图。开始时，所有 NaN 值都会从变量*“cleaned_data”*中去除。然后计算各种统计关键数字（均值*“mean_value”*、中位数*“median_value”*、标准差*“std_value”*、最小值*“min_value”*、最大值*“max_value”*以及标准差的上下限）。
 
-由于数据是由LLM（大语言模型）进行解读的，正如前面提到的，数据的离散度（与数据范围相关的标准差）和分布（均值与中位数的差异）被分类。直方图是通过*“fix, ax = plt.subplots()”*创建的，随后添加垂直线以增加信息量，最后通过*“st.pyplot(fig)”*显示直方图。如果数据是扭曲的或呈指数分布，可以激活对数缩放，进而调整直方图的y轴。此时，图表看起来如下所示[3]。
+由于数据是由 LLM（大语言模型）进行解读的，正如前面提到的，数据的离散度（与数据范围相关的标准差）和分布（均值与中位数的差异）被分类。直方图是通过*“fix, ax = plt.subplots()”*创建的，随后添加垂直线以增加信息量，最后通过*“st.pyplot(fig)”*显示直方图。如果数据是扭曲的或呈指数分布，可以激活对数缩放，进而调整直方图的 y 轴。此时，图表看起来如下所示[3]。
 
-![](../Images/474b62510e5c5d8f8e38a129f663484f.png)
+![](img/474b62510e5c5d8f8e38a129f663484f.png)
 
-ASCVIT V1 直方图（pyplot）与LLM解释（作者提供的图片）
+ASCVIT V1 直方图（pyplot）与 LLM 解释（作者提供的图片）
 
-由于目前没有可以直接读取图形的模型，我们为LLM创建了一个通用的分析上下文。该上下文包含统计计算结果及附加说明或所需的解释。这意味着，作为LLM输入的上下文，可以应用于任何数据集。
+由于目前没有可以直接读取图形的模型，我们为 LLM 创建了一个通用的分析上下文。该上下文包含统计计算结果及附加说明或所需的解释。这意味着，作为 LLM 输入的上下文，可以应用于任何数据集。
 
-具体而言，输入包括上述统计关键数字、分布的分析（对称、右偏或左偏）、扩展范围的估计（低、中或高）以及为LLM格式化的解释。根据所需的输出，可以单独调整和进一步指定上下文。
+具体而言，输入包括上述统计关键数字、分布的分析（对称、右偏或左偏）、扩展范围的估计（低、中或高）以及为 LLM 格式化的解释。根据所需的输出，可以单独调整和进一步指定上下文。
 
-![](../Images/33136ad371a7207a0887e3d72893bdcb.png)
+![](img/33136ad371a7207a0887e3d72893bdcb.png)
 
-LLM上下文示例（作者提供的图片）
+LLM 上下文示例（作者提供的图片）
 
-分析结果通过*“response = query_llm_via_cli(context)”*发送到LLM，之后在短时间间隔内，根据本地系统的性能，进行直方图的解释*“st.write(f”**Histogram Interpretation:** {response}”)”*。
+分析结果通过*“response = query_llm_via_cli(context)”*发送到 LLM，之后在短时间间隔内，根据本地系统的性能，进行直方图的解释*“st.write(f”**Histogram Interpretation:** {response}”)”*。
 
 ```py
 def plot_histogram(df, variable, apply_log_scale):
@@ -271,7 +271,7 @@ def plot_histogram(df, variable, apply_log_scale):
 
 后者有助于识别异常值以及其他超出某个值的数据参数。箱线图是通过 Plotly 库 *“fig = px.box(df, y=variable)”* 创建的，最后在应用程序中显示 *“st.plotly_chart(fig)”*。此图类型也可以使用对数尺度 [4]。图表的样式如下所示：
 
-![](../Images/1240490defa061076c18513fa0716b84.png)
+![](img/1240490defa061076c18513fa0716b84.png)
 
 ASCVIT V1 箱线图（plotly），显示 critic_score 和 LLM 解读（作者提供的图片）
 
@@ -375,7 +375,7 @@ def plot_pairplot(df, selected_vars):
 
 *“plot_pairplot()”* 函数在对角线上使用 KDE（核密度估计）来显示每个单独变量的分布。与之前的函数一样，也为 LLM 创建了一个上下文进行分析。对于这种类型的图表，LLM 会接收来自相关性和回归分析的数据。文本已格式化，以便生成有关变量之间关系的详细解释。
 
-![](../Images/6d2bd3af562582c6074c5c389c746db9.png)
+![](img/6d2bd3af562582c6074c5c389c746db9.png)
 
 ASCVIT V1 配对图（pyplot），展示 critic_score、na_sales、pal_sales 和 LLM 解释（作者提供的图像）
 
@@ -385,7 +385,7 @@ ASCVIT V1 配对图（pyplot），展示 critic_score、na_sales、pal_sales 和
 
 选定变量之间的线性相关性以相关系数（值在 -1 和 +1 之间）*“corr_matrix = df[selected_vars].cor()”* 的形式展示。若值为 0，表示没有线性相关性。接近 -1 的值表示强烈的负相关，而接近 +1 的值表示强烈的正相关。变量对及其相关值会保存在 *“high_correlations”* [4] 中。
 
-![](../Images/6729066db61d5785023c97f0e3cc5af7.png)
+![](img/6729066db61d5785023c97f0e3cc5af7.png)
 
 ASCVIT V1 相关矩阵（pyplot），包含所有变量及 LLM 解释（作者提供的图像）
 
@@ -437,15 +437,15 @@ def plot_correlation_matrix(df, selected_vars):
 
 ## T 检验
 
-如果用户选择了t检验，他们必须选择一个组变量（类别型）*“group_col”* 和一个数值变量（数值型）*“value_col”*。组变量定义了要比较的两组，数值变量比较这两组的均值。一旦选择完成，必须在文本框 *“st.text_input()”* 中输入两组的名称 *“group1”* 和 *“group2”*。这两组应该出现在所选的类别变量中。这里也提供了对数标度 *“apply_log_scale”*，它应用于数值变量。当进行检验时，提取组的数据并输出数据点数量（移除NaN值后）。然后显示t统计量和p值。
+如果用户选择了 t 检验，他们必须选择一个组变量（类别型）*“group_col”* 和一个数值变量（数值型）*“value_col”*。组变量定义了要比较的两组，数值变量比较这两组的均值。一旦选择完成，必须在文本框 *“st.text_input()”* 中输入两组的名称 *“group1”* 和 *“group2”*。这两组应该出现在所选的类别变量中。这里也提供了对数标度 *“apply_log_scale”*，它应用于数值变量。当进行检验时，提取组的数据并输出数据点数量（移除 NaN 值后）。然后显示 t 统计量和 p 值。
 
-第一个值表示两组之间均值差异与数据分布的相对关系。是否存在显著的组间差异由p值指示。如果p值小于0.05，则说明差异显著。为了直观地突出显示两组的分布，*“filtered_df = df[df[group_col].isin([group1, group2])]”*，创建了一个箱形图 *“fig, ax = plt.subplots()”*。这里使用了*“pyplot”*，你也可以选择使用*“plotly”* [6]。
+第一个值表示两组之间均值差异与数据分布的相对关系。是否存在显著的组间差异由 p 值指示。如果 p 值小于 0.05，则说明差异显著。为了直观地突出显示两组的分布，*“filtered_df = df[df[group_col].isin([group1, group2])]”*，创建了一个箱形图 *“fig, ax = plt.subplots()”*。这里使用了*“pyplot”*，你也可以选择使用*“plotly”* [6]。
 
-![](../Images/0281425b6d6f039c3e18eac9de239395.png)
+![](img/0281425b6d6f039c3e18eac9de239395.png)
 
 ASCVIT V1 箱形图，按类型（动作/射击）和评论分数分类（图像来源：作者）
 
-在此示例中，*“genre”* 被选为组变量，*“critic_score”* 被选为数值变量。动作（组1）和射击（组2）被定义为比较组。该函数还计算组内是否存在显著的离群值。离群值被定义为超出上四分位数1.5倍四分位距的数据点 *“outliers_group1/2”*。最后，找到的离群值会被显示出来，以确认t检验的有效性。如果偏差过大，必须相应考虑，以便更好地分类检验结果的可靠性和可解释性。
+在此示例中，*“genre”* 被选为组变量，*“critic_score”* 被选为数值变量。动作（组 1）和射击（组 2）被定义为比较组。该函数还计算组内是否存在显著的离群值。离群值被定义为超出上四分位数 1.5 倍四分位距的数据点 *“outliers_group1/2”*。最后，找到的离群值会被显示出来，以确认 t 检验的有效性。如果偏差过大，必须相应考虑，以便更好地分类检验结果的可靠性和可解释性。
 
 ```py
 def t_test(df, numerical_columns, categorical_columns):
@@ -510,19 +510,19 @@ def t_test(df, numerical_columns, categorical_columns):
             st.error("One or both groups contain no data after removing NaN values.")
 ```
 
-## **ANOVA检验**
+## **ANOVA 检验**
 
-*“anova_test()”* 函数集成了执行ANOVA检验的选项。该检验用于检查多个组的均值是否存在显著差异。数据首先被清洗 *“df_clean”*。如果ANOVA检验显著，还会进行Tukey的HSD检验（诚实显著差异）。首先，再次定义一个组变量和一个数值变量。如果某个组的数据点少于2个，它将被排除 *“valid_groups = group_sizes[group_sizes >= 2].index”*。
+*“anova_test()”* 函数集成了执行 ANOVA 检验的选项。该检验用于检查多个组的均值是否存在显著差异。数据首先被清洗 *“df_clean”*。如果 ANOVA 检验显著，还会进行 Tukey 的 HSD 检验（诚实显著差异）。首先，再次定义一个组变量和一个数值变量。如果某个组的数据点少于 2 个，它将被排除 *“valid_groups = group_sizes[group_sizes >= 2].index”*。
 
 如果调整后剩余的组少于两个，则会显示错误信息，且不执行该测试。ANOVA 测试计算 F 值和 p 值。F 值衡量组间的变异性与组内变异性的比值。p 值则指示组间均值差异是否显著。如果 p 值小于 0.05，则至少有一个组存在显著差异。为了可视化结果，使用 *“pyplot”* 创建箱型图 [7]。
 
-![](../Images/6cf3791fda75bcdaa972c48cde52e76f.png)
+![](img/6cf3791fda75bcdaa972c48cde52e76f.png)
 
 ASCVIT V1 箱型图与控制台和评分（图像来源：作者）
 
 如果 ANOVA 测试结果显著，则进行 Tukey 测试，以具体检验各组之间的差异。因此，ANOVA 测试并不显示哪些组之间存在差异。会创建一个图表，显示各组之间的配对均值差异及其置信区间 *“st.pyplot(tukey.plot_simultaneous())”*。
 
-![](../Images/97edb4e4c3fa24a8ce648df77b1cba45.png)
+![](img/97edb4e4c3fa24a8ce648df77b1cba45.png)
 
 ASCVIT V1 Tukey 测试结果（图像来源：作者）
 
@@ -582,11 +582,11 @@ def anova_test(df, numerical_columns, categorical_columns):
 
 创建了一个交叉表 *“contingency_table”*，它使用热图显示两个选定变量中类别组合的频率。如果交叉表无效（数据过少或仅有一个类别），则不执行该测试 [8]。
 
-![](../Images/ef33476baee433f6277b1754200bb8ba.png)
+![](img/ef33476baee433f6277b1754200bb8ba.png)
 
 ASCVIT V1 带有类型和控制台的热图（图像来源：作者）
 
-测试计算各种值。卡方值*“chi2”*确定观察频率与预期频率之间差异的程度。高值表明差异很大。与其他分析一样，p值*“p”*显示差异是否显著。还指示了测试的自由度*“dof”*以及预期频率*“expected”*。
+测试计算各种值。卡方值*“chi2”*确定观察频率与预期频率之间差异的程度。高值表明差异很大。与其他分析一样，p 值*“p”*显示差异是否显著。还指示了测试的自由度*“dof”*以及预期频率*“expected”*。
 
 ```py
 def chi_square_test(df, categorical_columns):
@@ -631,7 +631,7 @@ def chi_square_test(df, categorical_columns):
 
 最后，选择因变量和一个或多个自变量。数据被清理后，为所有选择的自变量创建线性回归模型*“model = LinearRegression()”*。回归系数和截距被指定。在总体模型运行完成后，为每个自变量创建单独的线性回归模型，并通过散点图表示[9]。
 
-![](../Images/81dfffeb6570fce448f25ce65a1210d6.png)
+![](img/81dfffeb6570fce448f25ce65a1210d6.png)
 
 ASCVIT V1 线性回归 pal_sales、na_sales 和 total_sales（图像由作者提供）
 
@@ -686,13 +686,13 @@ def linear_regression(df, numerical_columns):
 
 与其他功能一样，用户在开始时选择因变量和自变量。在此分析方法中，因变量必须是二元的（0/1）。为了演示该功能，我创建了一些与迄今为止使用的数据集无关的数据。或者，你也可以手动调整变量的值，只要类别数目不太多。如果选择了错误的变量，将显示相应的错误信息。
 
-如果所有内容都正确定义，则执行逻辑回归，模型使用自变量来建模目标变量的概率。具体而言，这是指事件发生的概率。每个自变量都有相应的系数，并且逻辑函数会被可视化。这展示了当自变量变化时，目标结果（1而非0）的概率如何变化[10]。
+如果所有内容都正确定义，则执行逻辑回归，模型使用自变量来建模目标变量的概率。具体而言，这是指事件发生的概率。每个自变量都有相应的系数，并且逻辑函数会被可视化。这展示了当自变量变化时，目标结果（1 而非 0）的概率如何变化[10]。
 
-![](../Images/e7d6e5009edd8c76de604785d349d750.png)
+![](img/e7d6e5009edd8c76de604785d349d750.png)
 
 ASCVIT V1 逻辑回归演示用途的虚构值（图片来源：作者）
 
-在散点图中，红线代表目标结果的预测概率，即结果1发生的概率。自变量发生变化。*“logistic_regression()”* 函数非常适用于二分类问题，在该问题中，您希望根据多个因素预测事件的发生。
+在散点图中，红线代表目标结果的预测概率，即结果 1 发生的概率。自变量发生变化。*“logistic_regression()”* 函数非常适用于二分类问题，在该问题中，您希望根据多个因素预测事件的发生。
 
 ```py
 def logistic_regression(df, numerical_columns):
@@ -740,7 +740,7 @@ def logistic_regression(df, numerical_columns):
 
 为所有自变量和因变量的组合创建带回归线的散点图。这个功能使得可以同时分析多个目标变量，并且建立它们与多个预测因子之间的关系[11]。
 
-![](../Images/8338266ad3f6ce75729c046c2603e435.png)
+![](img/8338266ad3f6ce75729c046c2603e435.png)
 
 ASCVIT V1 多元回归（plotly）示例（图片来源：作者）
 
@@ -794,11 +794,11 @@ def multivariate_regression(df, numerical_columns):
 
 所选时间变量被转换为日期格式 *“df[time_var]”*。如果数据点无效，则会将其转换为 NaN 值并删除 *“df = df.dropna(subset=[time_var])”*。然后，数据按年分组 *“df[‘year’] = df[time_var].dt.year”*，并计算指定值变量“value_var”的年均值 *“yearly_avg”*。计算值变量的最小和最大年均值以及所有数据点的总体均值 *“overall_avg”*。接着，以折线图的形式显示每年的值变量年均值。总体均值集成在水平线上。为了提高可读性，值会交替显示在数据点的上下方[12]。
 
-![](../Images/72c72193d79e866f168e57599dc1d787.png)
+![](img/72c72193d79e866f168e57599dc1d787.png)
 
-ASCVIT V1 时间序列分析与年份和critic_score（图片来自作者）
+ASCVIT V1 时间序列分析与年份和 critic_score（图片来自作者）
 
-重要的统计关键指标显示在图表下方，可以像描述性分析一样使用LLM轻松解释。具体来说，显示了标准差、方差以及值变量和年份的最小值和最大值。*“perform_time_series_analysis()”*函数适用于分析数据序列中的时间趋势。这可以对时间的变异性进行初步分析。
+重要的统计关键指标显示在图表下方，可以像描述性分析一样使用 LLM 轻松解释。具体来说，显示了标准差、方差以及值变量和年份的最小值和最大值。*“perform_time_series_analysis()”*函数适用于分析数据序列中的时间趋势。这可以对时间的变异性进行初步分析。
 
 ```py
 def perform_time_series_analysis(df, time_var, value_var):
@@ -850,11 +850,11 @@ def perform_time_series_analysis(df, time_var, value_var):
 
 ## 聚类方法选择
 
-与假设检验和回归分析类似，在聚类方法领域也有多种选项可供选择。选择函数的结构与其他方法相似。选择一种方法并执行相应的函数，同时也会显示该方法的简要说明。根据不同的方法，必须定义簇的数量。对于k-Means和层次聚类，可以定义最多10个簇。对于DBSCAN，则需要查询半径*“eps”*和每个簇的最小点数*“min_samples”*。每种方法必须选择至少两个数值变量。
+与假设检验和回归分析类似，在聚类方法领域也有多种选项可供选择。选择函数的结构与其他方法相似。选择一种方法并执行相应的函数，同时也会显示该方法的简要说明。根据不同的方法，必须定义簇的数量。对于 k-Means 和层次聚类，可以定义最多 10 个簇。对于 DBSCAN，则需要查询半径*“eps”*和每个簇的最小点数*“min_samples”*。每种方法必须选择至少两个数值变量。
 
 ## k-Means 聚类
 
-k-Means算法将数据分为*“n_clusters”*个簇。数据点的分组方式是使得簇内数据点之间的距离最小化。簇的数量由用户确定。根据该数量，算法计算出每个数据点属于哪个簇。结果会发送到*“visualize_clusters()”*函数进行可视化[13]。
+k-Means 算法将数据分为*“n_clusters”*个簇。数据点的分组方式是使得簇内数据点之间的距离最小化。簇的数量由用户确定。根据该数量，算法计算出每个数据点属于哪个簇。结果会发送到*“visualize_clusters()”*函数进行可视化[13]。
 
 ```py
 def perform_kmeans(X, n_clusters):
@@ -864,13 +864,13 @@ def perform_kmeans(X, n_clusters):
     visualize_clusters(X, 'k-Means Clustering')
 ```
 
-![](../Images/bf09602a745cb7788a25d666df0efdf2.png)
+![](img/bf09602a745cb7788a25d666df0efdf2.png)
 
-ASCVIT V1 k-Means 聚类与PCA降维（图片来自作者）
+ASCVIT V1 k-Means 聚类与 PCA 降维（图片来自作者）
 
 ## 层次聚类
 
-在这里创建了一个簇的层次结构，可以使用聚合或分割方法。该函数使用的是聚合聚类方法，其中每个数据点最初被视为一个独立的簇，然后依次合并。簇的数量由用户确定，算法根据数量进行数据划分。与k-Means相同的函数用于可视化*“visualize_clusters(X, ‘Hierarchical Clustering’)”* [14]。
+在这里创建了一个簇的层次结构，可以使用聚合或分割方法。该函数使用的是聚合聚类方法，其中每个数据点最初被视为一个独立的簇，然后依次合并。簇的数量由用户确定，算法根据数量进行数据划分。与 k-Means 相同的函数用于可视化*“visualize_clusters(X, ‘Hierarchical Clustering’)”* [14]。
 
 ```py
 def perform_hierarchical_clustering(X, n_clusters):
@@ -880,9 +880,9 @@ def perform_hierarchical_clustering(X, n_clusters):
     visualize_clusters(X, 'Hierarchical Clustering')
 ```
 
-![](../Images/8b1934c74ae21d70a6c215720b73422e.png)
+![](img/8b1934c74ae21d70a6c215720b73422e.png)
 
-ASCVIT V1 层次聚类与PCA降维（图片来自作者）
+ASCVIT V1 层次聚类与 PCA 降维（图片来自作者）
 
 ## DBSCAN 聚类
 
@@ -896,15 +896,15 @@ def perform_dbscan(X, eps, min_samples):
     visualize_clusters(X, 'DBSCAN Clustering')
 ```
 
-![](../Images/912638c2ef5cec406ef2be9277455bfc.png)
+![](img/912638c2ef5cec406ef2be9277455bfc.png)
 
-ASCVIT V1 DBSCAN聚类与PCA降维（图片来自作者）
+ASCVIT V1 DBSCAN 聚类与 PCA 降维（图片来自作者）
 
 ## 聚类可视化
 
-三种不同聚类方法的结果通过*“visualize_clusters”*函数进行可视化，采用主成分分析（PCA）。数据的维度通过PCA降到两个分量*“n_components”*，以便能够显示聚类结果。检查数据点和变量*“num_samples”*是否足够；如果不足，则会显示错误信息。聚类结果通过散点图进行可视化，图中显示了前两个PCA分量中的数据点。
+三种不同聚类方法的结果通过*“visualize_clusters”*函数进行可视化，采用主成分分析（PCA）。数据的维度通过 PCA 降到两个分量*“n_components”*，以便能够显示聚类结果。检查数据点和变量*“num_samples”*是否足够；如果不足，则会显示错误信息。聚类结果通过散点图进行可视化，图中显示了前两个 PCA 分量中的数据点。
 
-聚类结果以不同颜色显示*“cmap=‘tab10’”*。在图表中，轴标签*“ax.set_x/ylabel”*和图例*“legend_labels”*已做调整，以便更好地解读。数据点的大小“s”以及透明度*“alpha”*也进行了调整，以提高可见性。在DBSCAN中，离群点会被自动分配到聚类-1。聚类的每个变量的平均值以表格形式显示在可视化图形下方*“st.dataframe(cluster_means)”*。
+聚类结果以不同颜色显示*“cmap=‘tab10’”*。在图表中，轴标签*“ax.set_x/ylabel”*和图例*“legend_labels”*已做调整，以便更好地解读。数据点的大小“s”以及透明度*“alpha”*也进行了调整，以提高可见性。在 DBSCAN 中，离群点会被自动分配到聚类-1。聚类的每个变量的平均值以表格形式显示在可视化图形下方*“st.dataframe(cluster_means)”*。
 
 ```py
 def visualize_clusters(X, title):
@@ -944,11 +944,11 @@ def visualize_clusters(X, title):
         st.error(f"**Error:** Not enough variables were selected.")
 ```
 
-## 与LLM的通信
+## 与 LLM 的通信
 
-在应用程序的第一个版本中，统计计算的输出仅在描述性区域进行分析。关键数字通过*“query_llm_via_cli”*函数进行解释。具体来说，该函数用于通过命令行（CLI）与LLM进行通信。为此，使用Python模块*“subprocess”*通过命令行启动进程。LLM通过命令[*“ollama”, “run”, “llama3.1”*]启动。输入存储在*“stdin”*中，输出存储在*“stout”*中。
+在应用程序的第一个版本中，统计计算的输出仅在描述性区域进行分析。关键数字通过*“query_llm_via_cli”*函数进行解释。具体来说，该函数用于通过命令行（CLI）与 LLM 进行通信。为此，使用 Python 模块*“subprocess”*通过命令行启动进程。LLM 通过命令[*“ollama”, “run”, “llama3.1”*]启动。输入存储在*“stdin”*中，输出存储在*“stout”*中。
 
-错误和警告被存储在*“stderr”*中，虽然希望不会出现这些问题。输入通过*“process.communicate”*发送到模型。具体来说，创建的*“context”*被发送到函数与LLM进行通信。如果模型没有回应，包含超时机制*“timeout=40”*，它将在40秒后停止执行。根据所用系统的计算能力，通常模型应更早返回响应。模型的响应被清理并传递到*“extract_relevant_answer”*，以提取相关信息[1]。
+错误和警告被存储在*“stderr”*中，虽然希望不会出现这些问题。输入通过*“process.communicate”*发送到模型。具体来说，创建的*“context”*被发送到函数与 LLM 进行通信。如果模型没有回应，包含超时机制*“timeout=40”*，它将在 40 秒后停止执行。根据所用系统的计算能力，通常模型应更早返回响应。模型的响应被清理并传递到*“extract_relevant_answer”*，以提取相关信息[1]。
 
 ```py
 def query_llm_via_cli(input_text):
@@ -987,19 +987,19 @@ def extract_relevant_answer(full_response):
 
 ## 应用程序的主函数
 
-应用程序的结构由*“main()”*函数定义。标题通过*“st.title()”*设置，侧边栏用于上传CSV或Excel格式的数据集*“uploaded_file”*。上传文件后，应用程序会分析文件并提取数值和类别变量。在这里和许多其他情况下，Streamlit使用*“session_state”*存储与分析方法选择相关的某些参数。
+应用程序的结构由*“main()”*函数定义。标题通过*“st.title()”*设置，侧边栏用于上传 CSV 或 Excel 格式的数据集*“uploaded_file”*。上传文件后，应用程序会分析文件并提取数值和类别变量。在这里和许多其他情况下，Streamlit 使用*“session_state”*存储与分析方法选择相关的某些参数。
 
 变量*“numerical_columns”*和*“categorical_columns”*将在上传新数据集后更新。一旦数据可用，用户可以从多种分析方法中选择。选择方法后，会显示该方法，并在相应的变量定义后进行操作。主功能控制应用程序的互动统计分析。
 
 ## 自定义选项
 
-如前所述，由于代码的模块化结构，该应用程序可以扩展以包括其他分析方法。使用LLM解读统计关键数据的功能也可以转移到其他方法。当前使用的是Meta的Llama3.1 (8B)，但也可以使用Ollama的另一款LLM（例如Mistral）。此时，*“query_llm_via_cli”*函数中的命令必须进行相应调整。
+如前所述，由于代码的模块化结构，该应用程序可以扩展以包括其他分析方法。使用 LLM 解读统计关键数据的功能也可以转移到其他方法。当前使用的是 Meta 的 Llama3.1 (8B)，但也可以使用 Ollama 的另一款 LLM（例如 Mistral）。此时，*“query_llm_via_cli”*函数中的命令必须进行相应调整。
 
-根据可用的计算资源，也可以使用更多参数的模型。图表的设计可以进一步优化，传输的上下文也可以加以改进，以提升LLM的输出效果。或者，你也可以创建一个新的模型文件，调整LLM的某些参数（例如参数），从而改善数据的解读。
+根据可用的计算资源，也可以使用更多参数的模型。图表的设计可以进一步优化，传输的上下文也可以加以改进，以提升 LLM 的输出效果。或者，你也可以创建一个新的模型文件，调整 LLM 的某些参数（例如参数），从而改善数据的解读。
 
-## ASCVIT V1 PYTHON脚本 [GITHUB]
+## ASCVIT V1 PYTHON 脚本 [GITHUB]
 
-应用程序的代码可以从以下[**GitHub仓库**](https://github.com/stefanpietrusky/ASCVITV1)下载。应用程序可以在相应目录中通过以下命令启动：
+应用程序的代码可以从以下[**GitHub 仓库**](https://github.com/stefanpietrusky/ASCVITV1)下载。应用程序可以在相应目录中通过以下命令启动：
 
 ```py
 Streamlit run app.py
@@ -1007,42 +1007,42 @@ Streamlit run app.py
 
 ## 结论
 
-在本文中，我展示了如何使用Streamlit创建一个应用程序，利用多种方法分析数据集。我还展示了如何将LLM集成到该应用程序中，从而带来实际的附加值。数据不仅会自动可视化并输出统计参数，还会进行分类。该应用程序具有广泛的发展潜力。我在倒数第二部分列出了一些建议。希望你在使用和自定义应用程序时玩得开心。
+在本文中，我展示了如何使用 Streamlit 创建一个应用程序，利用多种方法分析数据集。我还展示了如何将 LLM 集成到该应用程序中，从而带来实际的附加值。数据不仅会自动可视化并输出统计参数，还会进行分类。该应用程序具有广泛的发展潜力。我在倒数第二部分列出了一些建议。希望你在使用和自定义应用程序时玩得开心。
 
-![](../Images/6986252b10d7723e67c0529d265a19a5.png)
+![](img/6986252b10d7723e67c0529d265a19a5.png)
 
-你最多可以拍手50次！
+你最多可以拍手 50 次！
 
-[1] Pietrusky, S. (2024年8月21日). *如何在不使用专有模型的情况下与PDF文件交互：CLI, Streamlit, Ollama.* *Towards Data Science*. [URL](https://medium.com/towards-data-science/how-to-talk-to-a-pdf-file-without-using-proprietary-models-cli-streamlit-ollama-6c22437ed932)
+[1] Pietrusky, S. (2024 年 8 月 21 日). *如何在不使用专有模型的情况下与 PDF 文件交互：CLI, Streamlit, Ollama.* *Towards Data Science*. [URL](https://medium.com/towards-data-science/how-to-talk-to-a-pdf-file-without-using-proprietary-models-cli-streamlit-ollama-6c22437ed932)
 
-[2] Maven Analytics. (2024年6月10日). *数据游乐场，视频游戏销售.* [URL](https://mavenanalytics.io/data-playground?accessType=open&order=date_added%2Cdesc&search=game)
+[2] Maven Analytics. (2024 年 6 月 10 日). *数据游乐场，视频游戏销售.* [URL](https://mavenanalytics.io/data-playground?accessType=open&order=date_added%2Cdesc&search=game)
 
-[3] Hastie, T., Tibshirani, R., & Friedman, J. (2009). *统计学习的元素：数据挖掘、推断与预测*（第2版）。斯坦福大学。[URL](https://hastie.su.domains/Papers/ESLII.pdf)
+[3] Hastie, T., Tibshirani, R., & Friedman, J. (2009). *统计学习的元素：数据挖掘、推断与预测*（第 2 版）。斯坦福大学。[URL](https://hastie.su.domains/Papers/ESLII.pdf)
 
-[4] Bruce, P., Bruce, A., & Gedeck, P. (2021). *数据科学家的实用统计学：50+个R和Python中的核心概念*（第2版）。O’Reilly。
+[4] Bruce, P., Bruce, A., & Gedeck, P. (2021). *数据科学家的实用统计学：50+个 R 和 Python 中的核心概念*（第 2 版）。O’Reilly。
 
-[5] VanderPlas J. (2017). *Python数据科学手册：处理数据的必备工具*. O’Reilly。[URL]
+[5] VanderPlas J. (2017). *Python 数据科学手册：处理数据的必备工具*. O’Reilly。[URL]
 
-[6] Fahrmeir, L., Künstler, R., Pigeot, I., & Tutz, G. (2016). *统计学：数据分析之路*（第8版）。Springer.
+[6] Fahrmeir, L., Künstler, R., Pigeot, I., & Tutz, G. (2016). *统计学：数据分析之路*（第 8 版）。Springer.
 
-[7] Montgomery, D. C. (2012). *实验设计与分析*（第8版）。Wiley. [URL](https://faculty.ksu.edu.sa/sites/default/files/douglas_c._montgomery-design_and_analysis_of_experiments-wiley_2012_edition_8.pdf)
+[7] Montgomery, D. C. (2012). *实验设计与分析*（第 8 版）。Wiley. [URL](https://faculty.ksu.edu.sa/sites/default/files/douglas_c._montgomery-design_and_analysis_of_experiments-wiley_2012_edition_8.pdf)
 
-[8] Moore, D. S., McCabe, G. P., Craig, B. A., & Duckworth, W. M. (2021). *统计学实践导论*（第10版）。W. H. Freeman.
+[8] Moore, D. S., McCabe, G. P., Craig, B. A., & Duckworth, W. M. (2021). *统计学实践导论*（第 10 版）。W. H. Freeman.
 
-[9] Montgomery, D. C., Peck, E. A., & Vining, G. G. (2012). *线性回归分析导论*（第5版）。Wiley. [URL](https://ocd.lcwu.edu.pk/cfiles/Statistics/Stat-503/IntroductiontoLinearRegressionAnalysisbyDouglasC.MontgomeryElizabethA.PeckG.GeoffreyViningz-lib.org.pdf)
+[9] Montgomery, D. C., Peck, E. A., & Vining, G. G. (2012). *线性回归分析导论*（第 5 版）。Wiley. [URL](https://ocd.lcwu.edu.pk/cfiles/Statistics/Stat-503/IntroductiontoLinearRegressionAnalysisbyDouglasC.MontgomeryElizabethA.PeckG.GeoffreyViningz-lib.org.pdf)
 
-[10] Hosmer, D. W., Lemeshow, S., & Sturdivant, R. X. (2013). *应用逻辑回归*（第3版）。Wiley.
+[10] Hosmer, D. W., Lemeshow, S., & Sturdivant, R. X. (2013). *应用逻辑回归*（第 3 版）。Wiley.
 
-[11] Johnson, R. A., & Wichern, D. W. (2007). *应用多元统计分析*（第6版）。Pearson. [URL](https://alimoradi.iut.ac.ir/sites/alimoradi.iut.ac.ir/files/file_basepage/richard_arnold_johnson_dean_w._wichern_applied_bookzz.org_.pdf)
+[11] Johnson, R. A., & Wichern, D. W. (2007). *应用多元统计分析*（第 6 版）。Pearson. [URL](https://alimoradi.iut.ac.ir/sites/alimoradi.iut.ac.ir/files/file_basepage/richard_arnold_johnson_dean_w._wichern_applied_bookzz.org_.pdf)
 
-[12] Box, G. E. P., Jenkins, G. M., Reinsel, G. C., & Ljung, G. M. (2015). *时间序列分析：预测与控制*（第5版）。Wiley. [URL](http://repo.darmajaya.ac.id/4781/1/Time%20Series%20Analysis_%20Forecasting%20and%20Control%20%28%20PDFDrive%20%29.pdf)
+[12] Box, G. E. P., Jenkins, G. M., Reinsel, G. C., & Ljung, G. M. (2015). *时间序列分析：预测与控制*（第 5 版）。Wiley. [URL](http://repo.darmajaya.ac.id/4781/1/Time%20Series%20Analysis_%20Forecasting%20and%20Control%20%28%20PDFDrive%20%29.pdf)
 
-[13] Witten, I. H., & Frank, E. (2005). *数据挖掘：实用的机器学习工具与技术*（第2版）。Morgan Kaufmann. [URL](http://academia.dk/BiologiskAntropologi/Epidemiologi/DataMining/Witten_and_Frank_DataMining_Weka_2nd_Ed_2005.pdf)
+[13] Witten, I. H., & Frank, E. (2005). *数据挖掘：实用的机器学习工具与技术*（第 2 版）。Morgan Kaufmann. [URL](http://academia.dk/BiologiskAntropologi/Epidemiologi/DataMining/Witten_and_Frank_DataMining_Weka_2nd_Ed_2005.pdf)
 
-[14] Everitt, B. S., Landau, S., Leese, M., & Stahl, D. (2011). *聚类分析*（第5版）。Wiley. [URL](https://cicerocq.wordpress.com/wp-content/uploads/2019/05/cluster-analysis_5ed_everitt.pdf)
+[14] Everitt, B. S., Landau, S., Leese, M., & Stahl, D. (2011). *聚类分析*（第 5 版）。Wiley. [URL](https://cicerocq.wordpress.com/wp-content/uploads/2019/05/cluster-analysis_5ed_everitt.pdf)
 
 [15] Aggarwal, C. C., & Reddy, C. K. (2014). *数据聚类：算法与应用*。CRC Press [URL](https://people.cs.vt.edu/~reddy/papers/DCBOOK.pdf)
 
-![](../Images/1eb59c043d8bcab8d8e926430e0f308d.png)
+![](img/1eb59c043d8bcab8d8e926430e0f308d.png)
 
 仅为缩略图（图片来源：作者）

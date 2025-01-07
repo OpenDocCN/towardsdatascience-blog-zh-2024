@@ -1,12 +1,12 @@
 # 如何使用约束编程解决优化问题
 
-> 原文：[https://towardsdatascience.com/how-to-tackle-an-optimization-problem-with-constraint-programming-9ae77b4d803d?source=collection_archive---------2-----------------------#2024-12-23](https://towardsdatascience.com/how-to-tackle-an-optimization-problem-with-constraint-programming-9ae77b4d803d?source=collection_archive---------2-----------------------#2024-12-23)
+> 原文：[`towardsdatascience.com/how-to-tackle-an-optimization-problem-with-constraint-programming-9ae77b4d803d?source=collection_archive---------2-----------------------#2024-12-23`](https://towardsdatascience.com/how-to-tackle-an-optimization-problem-with-constraint-programming-9ae77b4d803d?source=collection_archive---------2-----------------------#2024-12-23)
 
 ## 案例研究：旅行推销员问题
 
-[](https://medium.com/@yangeorget?source=post_page---byline--9ae77b4d803d--------------------------------)[![Yan Georget](../Images/4555bf99c8c71f6a3c905e828819c599.png)](https://medium.com/@yangeorget?source=post_page---byline--9ae77b4d803d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ae77b4d803d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9ae77b4d803d--------------------------------) [Yan Georget](https://medium.com/@yangeorget?source=post_page---byline--9ae77b4d803d--------------------------------)
+[](https://medium.com/@yangeorget?source=post_page---byline--9ae77b4d803d--------------------------------)![Yan Georget](https://medium.com/@yangeorget?source=post_page---byline--9ae77b4d803d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ae77b4d803d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ae77b4d803d--------------------------------) [Yan Georget](https://medium.com/@yangeorget?source=post_page---byline--9ae77b4d803d--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ae77b4d803d--------------------------------) ·阅读时间8分钟·2024年12月23日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ae77b4d803d--------------------------------) ·阅读时间 8 分钟·2024 年 12 月 23 日
 
 --
 
@@ -14,9 +14,9 @@
 
 约束编程是一种解决约束满足问题的首选技术。本文将展示它如何适用于小型到中型的优化问题。以广为人知的[旅行推销员问题](https://en.wikipedia.org/wiki/Travelling_salesman_problem)（TSP）为例，我们将详细说明所有步骤，带你走向一个高效的模型。
 
-为了简化起见，我们将考虑TSP的对称情况（两个城市之间的距离在任何反方向上是相同的）。
+为了简化起见，我们将考虑 TSP 的对称情况（两个城市之间的距离在任何反方向上是相同的）。
 
-本文中的所有代码示例使用了[NuCS](https://github.com/yangeorget/nucs)，这是我目前作为副项目正在开发的一个用100% Python编写的快速约束求解器。NuCS发布在[MIT许可证](https://github.com/yangeorget/nucs/blob/main/LICENSE.md)下。
+本文中的所有代码示例使用了[NuCS](https://github.com/yangeorget/nucs)，这是我目前作为副项目正在开发的一个用 100% Python 编写的快速约束求解器。NuCS 发布在[MIT 许可证](https://github.com/yangeorget/nucs/blob/main/LICENSE.md)下。
 
 # 对称旅行推销员问题
 
@@ -24,11 +24,11 @@
 
 > 给定一个城市列表和每对城市之间的距离，如何找到一条最短的路线，访问每个城市一次并返回到起始城市？
 
-![](../Images/bba1920404a4386283a19f8b2e1fd05f.png)
+![](img/bba1920404a4386283a19f8b2e1fd05f.png)
 
 [来源：维基百科](https://fr.wikipedia.org/wiki/Probl%C3%A8me_du_voyageur_de_commerce#/media/Fichier:TSP_Deutschland_3.png)
 
-这是一个NP难问题。从现在开始，假设有*n*个城市。
+这是一个 NP 难问题。从现在开始，假设有*n*个城市。
 
 这个问题最简单的表述方式是，对于城市之间每条可能的边，决定它是否属于最优解。搜索空间的大小为***2ⁿ⁽ⁿ⁻¹⁾*ᐟ²**，对于*n=30*时大约为*8.8e130*（远大于宇宙中的原子数）。
 
@@ -313,7 +313,7 @@ NuCS 提供两种优化模式，对应两种利用 *t < s* 的方式：
 
 下表总结了我们的实验：
 
-![](../Images/969261fc6190fbaebdcbfb1b1bcda6a6.png)
+![](img/969261fc6190fbaebdcbfb1b1bcda6a6.png)
 
 NuCS 的 TSP 实验
 
@@ -333,10 +333,10 @@ NuCS 的 TSP 实验
 
 一些有用的链接可以进一步了解 NuCS：
 
-+   源代码： [https://github.com/yangeorget/nucs](https://github.com/yangeorget/nucs)
++   源代码： [`github.com/yangeorget/nucs`](https://github.com/yangeorget/nucs)
 
-+   文档： [https://nucs.readthedocs.io/en/latest/index.html](https://nucs.readthedocs.io/en/latest/index.html)
++   文档： [`nucs.readthedocs.io/en/latest/index.html`](https://nucs.readthedocs.io/en/latest/index.html)
 
-+   Pip 包： [https://pypi.org/project/NUCS/](https://pypi.org/project/NUCS/)
++   Pip 包： [`pypi.org/project/NUCS/`](https://pypi.org/project/NUCS/)
 
 如果你喜欢这篇关于 NuCS 的文章，请**鼓掌 50**次！

@@ -1,16 +1,16 @@
 # 使用 Elementary 实现开源数据可观测性——从零到英雄（第二部分）
 
-> 原文：[https://towardsdatascience.com/opensource-data-observability-with-elementary-from-zero-to-hero-part-2-c09077ed4476?source=collection_archive---------15-----------------------#2024-09-10](https://towardsdatascience.com/opensource-data-observability-with-elementary-from-zero-to-hero-part-2-c09077ed4476?source=collection_archive---------15-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/opensource-data-observability-with-elementary-from-zero-to-hero-part-2-c09077ed4476?source=collection_archive---------15-----------------------#2024-09-10`](https://towardsdatascience.com/opensource-data-observability-with-elementary-from-zero-to-hero-part-2-c09077ed4476?source=collection_archive---------15-----------------------#2024-09-10)
 
 ## 带你免费提升 dbt 测试水平的指南
 
-[](https://sezin-sezgin.medium.com/?source=post_page---byline--c09077ed4476--------------------------------)[![Sezin Sezgin-Rummelsberger](../Images/7892210e427388de3b5066a4b250d96d.png)](https://sezin-sezgin.medium.com/?source=post_page---byline--c09077ed4476--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c09077ed4476--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c09077ed4476--------------------------------) [Sezin Sezgin-Rummelsberger](https://sezin-sezgin.medium.com/?source=post_page---byline--c09077ed4476--------------------------------)
+[](https://sezin-sezgin.medium.com/?source=post_page---byline--c09077ed4476--------------------------------)![Sezin Sezgin-Rummelsberger](https://sezin-sezgin.medium.com/?source=post_page---byline--c09077ed4476--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c09077ed4476--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c09077ed4476--------------------------------) [Sezin Sezgin-Rummelsberger](https://sezin-sezgin.medium.com/?source=post_page---byline--c09077ed4476--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c09077ed4476--------------------------------) ·阅读时间 6 分钟·2024 年 9 月 10 日
 
 --
 
-![](../Images/4436d79ec654db529fca075e12919af5.png)
+![](img/4436d79ec654db529fca075e12919af5.png)
 
 图片来源：[Caspar Camille Rubin](https://unsplash.com/@casparrubin?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 于 [Unsplash](https://unsplash.com/photos/macbook-pro-with-images-of-computer-language-codes-fPkvU7RDmCo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

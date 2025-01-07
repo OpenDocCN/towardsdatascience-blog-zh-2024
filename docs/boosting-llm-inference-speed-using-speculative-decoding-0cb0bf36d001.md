@@ -1,16 +1,16 @@
 # 使用推测性解码提升大语言模型推理速度
 
-> 原文：[https://towardsdatascience.com/boosting-llm-inference-speed-using-speculative-decoding-0cb0bf36d001?source=collection_archive---------8-----------------------#2024-08-27](https://towardsdatascience.com/boosting-llm-inference-speed-using-speculative-decoding-0cb0bf36d001?source=collection_archive---------8-----------------------#2024-08-27)
+> 原文：[`towardsdatascience.com/boosting-llm-inference-speed-using-speculative-decoding-0cb0bf36d001?source=collection_archive---------8-----------------------#2024-08-27`](https://towardsdatascience.com/boosting-llm-inference-speed-using-speculative-decoding-0cb0bf36d001?source=collection_archive---------8-----------------------#2024-08-27)
 
 ## 使用前沿优化技术加速推理的实用指南
 
-[](https://medium.com/@het.trivedi05?source=post_page---byline--0cb0bf36d001--------------------------------)[![Het Trivedi](../Images/f6f11a66f60cacc6b553c7d1682b2fc6.png)](https://medium.com/@het.trivedi05?source=post_page---byline--0cb0bf36d001--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0cb0bf36d001--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0cb0bf36d001--------------------------------) [Het Trivedi](https://medium.com/@het.trivedi05?source=post_page---byline--0cb0bf36d001--------------------------------)
+[](https://medium.com/@het.trivedi05?source=post_page---byline--0cb0bf36d001--------------------------------)![Het Trivedi](https://medium.com/@het.trivedi05?source=post_page---byline--0cb0bf36d001--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0cb0bf36d001--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0cb0bf36d001--------------------------------) [Het Trivedi](https://medium.com/@het.trivedi05?source=post_page---byline--0cb0bf36d001--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0cb0bf36d001--------------------------------) ·6 分钟阅读·2024年8月27日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0cb0bf36d001--------------------------------) ·6 分钟阅读·2024 年 8 月 27 日
 
 --
 
-![](../Images/96708875ea858ad9b494372501b5c7bb.png)
+![](img/96708875ea858ad9b494372501b5c7bb.png)
 
 图片由 Flux Schnell 生成
 
@@ -20,7 +20,7 @@
 
 GPU 从设计上来说能够并行处理任务，但变换器架构是自回归的。为了生成下一个标记，必须查看所有之前的标记。变换器不允许你并行预测下一个 `n` 个标记。最终，这使得大型语言模型（LLM）的生成过程非常缓慢，因为每个新标记**必须**按顺序生成。推测性解码是一种新颖的优化技术，旨在解决这一问题。
 
-![](../Images/069f5d5ee327f9a495bcc31e9233eb6b.png)
+![](img/069f5d5ee327f9a495bcc31e9233eb6b.png)
 
 每次前向传递会生成一个新的标记，由大型语言模型生成
 

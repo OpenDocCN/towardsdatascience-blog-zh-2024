@@ -1,16 +1,16 @@
 # 构建伦理人工智能从数据团队开始——这是为什么
 
-> 原文：[https://towardsdatascience.com/building-ethical-ai-starts-with-the-data-team-heres-why-ebf0ec7c162b?source=collection_archive---------5-----------------------#2024-03-20](https://towardsdatascience.com/building-ethical-ai-starts-with-the-data-team-heres-why-ebf0ec7c162b?source=collection_archive---------5-----------------------#2024-03-20)
+> 原文：[`towardsdatascience.com/building-ethical-ai-starts-with-the-data-team-heres-why-ebf0ec7c162b?source=collection_archive---------5-----------------------#2024-03-20`](https://towardsdatascience.com/building-ethical-ai-starts-with-the-data-team-heres-why-ebf0ec7c162b?source=collection_archive---------5-----------------------#2024-03-20)
 
 ## 生成性人工智能是一个伦理困境。数据负责人在其中应承担什么责任？本文将探讨伦理人工智能的必要性，以及为什么数据伦理就是人工智能伦理。
 
-[](https://barrmoses.medium.com/?source=post_page---byline--ebf0ec7c162b--------------------------------)[![Barr Moses](../Images/4c74558ee692a85196d5a55ac1920718.png)](https://barrmoses.medium.com/?source=post_page---byline--ebf0ec7c162b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ebf0ec7c162b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ebf0ec7c162b--------------------------------) [Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--ebf0ec7c162b--------------------------------)
+[](https://barrmoses.medium.com/?source=post_page---byline--ebf0ec7c162b--------------------------------)![Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--ebf0ec7c162b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ebf0ec7c162b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ebf0ec7c162b--------------------------------) [Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--ebf0ec7c162b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ebf0ec7c162b--------------------------------) ·9分钟阅读·2024年3月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ebf0ec7c162b--------------------------------) ·9 分钟阅读·2024 年 3 月 20 日
 
 --
 
-![](../Images/c864bd33c0bb4f391c469b5a237f6fa7.png)
+![](img/c864bd33c0bb4f391c469b5a237f6fa7.png)
 
 图片由 aniqpixel 提供，来源于 [Shutterstock](https://www.shutterstock.com/g/aniqpixel)。
 
@@ -32,7 +32,7 @@
 
 # 人工智能伦理的三层次
 
-当我与我的同事Shane Murray——前纽约时报数据与洞察高级副总裁——聊天时，他分享了他第一次遇到真正的伦理困境的经历。在为纽约时报开发一个关于财务激励的机器学习模型时，讨论提出了一个问题：一个能够决定折扣的机器学习模型的伦理影响。
+当我与我的同事 Shane Murray——前纽约时报数据与洞察高级副总裁——聊天时，他分享了他第一次遇到真正的伦理困境的经历。在为纽约时报开发一个关于财务激励的机器学习模型时，讨论提出了一个问题：一个能够决定折扣的机器学习模型的伦理影响。
 
 从表面上看，折扣码的机器学习模型似乎是一个相对无害的请求，考虑到所有因素。但是，尽管自动化一些折扣码看起来无害，但从商业问题中剔除人类的同理心，给团队带来了各种伦理上的考虑。
 
@@ -92,29 +92,29 @@
 
 数据团队需要对数据如何被用于 AI 模型中负责，因为说实话，他们是唯一能够做到这一点的团队。当然，也有合规团队、安全团队，甚至是法律团队会在忽视伦理时承担责任。但无论责任如何分担，最终，这些团队永远无法像数据团队一样深入理解数据。
 
-想象一下，你的软件工程团队使用OpenAI或Anthropic的第三方LLM创建了一个应用程序，但没有意识到你们正在追踪和存储位置数据——除了他们实际上需要的应用数据外，他们还利用了整个数据库来支持模型。若逻辑上存在缺陷，恶意行为者可能会轻松构造一个提示语，利用存储在数据集中的数据追踪任何个人。（这正是[开源与闭源LLM之间的张力](https://www.montecarlodata.com/blog-the-moat-for-enterprise-ai-is-rag-fine-tuning/)）
+想象一下，你的软件工程团队使用 OpenAI 或 Anthropic 的第三方 LLM 创建了一个应用程序，但没有意识到你们正在追踪和存储位置数据——除了他们实际上需要的应用数据外，他们还利用了整个数据库来支持模型。若逻辑上存在缺陷，恶意行为者可能会轻松构造一个提示语，利用存储在数据集中的数据追踪任何个人。（这正是[开源与闭源 LLM 之间的张力](https://www.montecarlodata.com/blog-the-moat-for-enterprise-ai-is-rag-fine-tuning/)）
 
-比如，假设软件团队知道那个位置数据，但他们没有意识到这个位置数据实际上可能是近似的。他们可能使用这些位置数据创建AI地图技术，而无意间导致一名16岁的少年晚上走进一条黑暗的巷子，而不是走到街角的必胜客。当然，这种错误并非故意的，但它突显了数据使用中固有的意外风险。
+比如，假设软件团队知道那个位置数据，但他们没有意识到这个位置数据实际上可能是近似的。他们可能使用这些位置数据创建 AI 地图技术，而无意间导致一名 16 岁的少年晚上走进一条黑暗的巷子，而不是走到街角的必胜客。当然，这种错误并非故意的，但它突显了数据使用中固有的意外风险。
 
-这些例子和其他类似的案例凸显了数据团队在伦理AI方面作为“看门人”的角色。
+这些例子和其他类似的案例凸显了数据团队在伦理 AI 方面作为“看门人”的角色。
 
 # 那么，数据团队如何保持伦理性呢？
 
-在大多数情况下，数据团队习惯于处理近似数据和代理数据，以使他们的模型正常工作。但当涉及到为AI模型提供数据时，实际上你需要更高水平的验证。
+在大多数情况下，数据团队习惯于处理近似数据和代理数据，以使他们的模型正常工作。但当涉及到为 AI 模型提供数据时，实际上你需要更高水平的验证。
 
 为了有效地为消费者站稳脚跟，数据团队需要有意识地审视自己的数据实践，以及这些实践与整个组织的关系。
 
-在我们考虑如何减轻AI的风险时，以下是数据团队必须采取的三步措施，以推动AI走向更加伦理的未来。
+在我们考虑如何减轻 AI 的风险时，以下是数据团队必须采取的三步措施，以推动 AI 走向更加伦理的未来。
 
 # 1. 获取席位
 
-数据团队不是鸵鸟——他们不能埋头沙里，希望问题会消失。就像数据团队曾为获得领导层席位而奋斗一样，数据团队还需要为在AI领域中争取到一个席位而努力。
+数据团队不是鸵鸟——他们不能埋头沙里，希望问题会消失。就像数据团队曾为获得领导层席位而奋斗一样，数据团队还需要为在 AI 领域中争取到一个席位而努力。
 
-就像任何数据质量的应急演练一样，事后再跳进混战并不足够。当我们面对生成型AI所固有的存在性风险时，比以往任何时候都更需要主动应对我们个人的责任。
+就像任何数据质量的应急演练一样，事后再跳进混战并不足够。当我们面对生成型 AI 所固有的存在性风险时，比以往任何时候都更需要主动应对我们个人的责任。
 
 如果他们不让你坐在桌子旁，那么你有责任从外部进行教育。竭尽全力提供出色的发现、治理和数据质量解决方案，以便为那些掌舵的团队提供信息，使他们能够做出关于数据的负责任决策。教他们什么时候使用什么工具，并说明无法通过你们团队内部协议验证的第三方数据的使用风险。
 
-这不仅仅是一个商业问题。正如United Healthcare和不列颠哥伦比亚省所证明的那样，在许多情况下，这些事关的是人们的生命——和生计——。因此，让我们确保从这个角度来操作。
+这不仅仅是一个商业问题。正如 United Healthcare 和不列颠哥伦比亚省所证明的那样，在许多情况下，这些事关的是人们的生命——和生计——。因此，让我们确保从这个角度来操作。
 
 # 2. 利用像 RAG 这样的方式策划更负责任的 — 以及更可靠的 — 数据
 
@@ -148,6 +148,6 @@
 
 # 现在正是最佳时机
 
-对更高数据可靠性和可信度的需求正是促使我们团队在2019年创建数据可观测性类别的动力。
+对更高数据可靠性和可信度的需求正是促使我们团队在 2019 年创建数据可观测性类别的动力。
 
 今天，随着人工智能承诺颠覆我们日常依赖的许多过程和系统，数据质量的挑战——更重要的是，数据质量的伦理影响——变得更加严峻。

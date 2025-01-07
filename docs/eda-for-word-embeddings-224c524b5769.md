@@ -1,20 +1,20 @@
-# 使用EDA深入探索词向量
+# 使用 EDA 深入探索词向量
 
-> 原文：[https://towardsdatascience.com/eda-for-word-embeddings-224c524b5769?source=collection_archive---------1-----------------------#2024-07-12](https://towardsdatascience.com/eda-for-word-embeddings-224c524b5769?source=collection_archive---------1-----------------------#2024-07-12)
+> 原文：[`towardsdatascience.com/eda-for-word-embeddings-224c524b5769?source=collection_archive---------1-----------------------#2024-07-12`](https://towardsdatascience.com/eda-for-word-embeddings-224c524b5769?source=collection_archive---------1-----------------------#2024-07-12)
 
 ## 可视化文本数据中的意外见解
 
-[](https://medium.com/@crackalamoo?source=post_page---byline--224c524b5769--------------------------------)[![Harys Dalvi](../Images/cf7fa3865063408efd1fd4c0b4b603db.png)](https://medium.com/@crackalamoo?source=post_page---byline--224c524b5769--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--224c524b5769--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--224c524b5769--------------------------------) [Harys Dalvi](https://medium.com/@crackalamoo?source=post_page---byline--224c524b5769--------------------------------)
+[](https://medium.com/@crackalamoo?source=post_page---byline--224c524b5769--------------------------------)![Harys Dalvi](https://medium.com/@crackalamoo?source=post_page---byline--224c524b5769--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--224c524b5769--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--224c524b5769--------------------------------) [Harys Dalvi](https://medium.com/@crackalamoo?source=post_page---byline--224c524b5769--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--224c524b5769--------------------------------) ·阅读时间：14分钟·2024年7月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--224c524b5769--------------------------------) ·阅读时间：14 分钟·2024 年 7 月 12 日
 
 --
 
 在开始使用新数据集时，通常从一些**探索性数据分析**（EDA）入手是个不错的选择。在训练任何复杂模型之前，花时间了解你的数据有助于你理解数据集的结构，识别任何明显的问题，并运用领域特定的知识。
 
-你可以在各种形式中看到EDA，从[房价](https://www.kaggle.com/code/spscientist/a-simple-tutorial-on-exploratory-data-analysis)到数据科学行业中的高级应用。但我仍然没有看到它应用于当前最火的新数据集：**词向量**，这也是我们最优秀的大型语言模型的基础。那么，为什么不尝试一下呢？
+你可以在各种形式中看到 EDA，从[房价](https://www.kaggle.com/code/spscientist/a-simple-tutorial-on-exploratory-data-analysis)到数据科学行业中的高级应用。但我仍然没有看到它应用于当前最火的新数据集：**词向量**，这也是我们最优秀的大型语言模型的基础。那么，为什么不尝试一下呢？
 
-在这篇文章中，我们将**将EDA应用于GloVe词向量**，使用**协方差矩阵、聚类、PCA和向量数学**等技术。这将帮助我们理解词向量的结构，为我们在此数据基础上构建更强大的模型提供一个有用的起点。当我们探索这个结构时，我们会发现它并不总是表面看起来的那样，某些意想不到的偏差隐藏在语料库中。
+在这篇文章中，我们将**将 EDA 应用于 GloVe 词向量**，使用**协方差矩阵、聚类、PCA 和向量数学**等技术。这将帮助我们理解词向量的结构，为我们在此数据基础上构建更强大的模型提供一个有用的起点。当我们探索这个结构时，我们会发现它并不总是表面看起来的那样，某些意想不到的偏差隐藏在语料库中。
 
 你将需要：
 
@@ -22,17 +22,17 @@
 
 +   Python 包：`numpy`、`sklearn` 和 `matplotlib`
 
-+   约3 GB的空闲磁盘空间
++   约 3 GB 的空闲磁盘空间
 
 # 数据集
 
-要开始，请下载数据集，链接为：[huggingface.co/stanfordnlp/glove/resolve/main/glove.6B.zip](https://huggingface.co/stanfordnlp/glove/resolve/main/glove.6B.zip)[1]。此文件包含三个文本文件，每个文件包含一组单词及其向量表示。我们将使用**300维的表示**（glove.6B.300d.txt）。
+要开始，请下载数据集，链接为：[huggingface.co/stanfordnlp/glove/resolve/main/glove.6B.zip](https://huggingface.co/stanfordnlp/glove/resolve/main/glove.6B.zip)[1]。此文件包含三个文本文件，每个文件包含一组单词及其向量表示。我们将使用**300 维的表示**（glove.6B.300d.txt）。
 
-简单说明一下这个数据集的来源：基本上，这是从维基百科和各种新闻来源中获取的60亿个标记的**共现数据**生成的词嵌入列表。使用共现的一个有用副作用是，**意思相近的词往往会聚集在一起**。例如，由于“the *red* bird”和“the *blue* bird”都是有效句子，我们可能会预期“red”和“blue”的向量会彼此接近。更多技术信息，可以参考[原始的GloVe论文](https://nlp.stanford.edu/pubs/glove.pdf)[1]。
+简单说明一下这个数据集的来源：基本上，这是从维基百科和各种新闻来源中获取的 60 亿个标记的**共现数据**生成的词嵌入列表。使用共现的一个有用副作用是，**意思相近的词往往会聚集在一起**。例如，由于“the *red* bird”和“the *blue* bird”都是有效句子，我们可能会预期“red”和“blue”的向量会彼此接近。更多技术信息，可以参考[原始的 GloVe 论文](https://nlp.stanford.edu/pubs/glove.pdf)[1]。
 
 需要明确的是，这些**不是**为大型语言模型训练的词嵌入。它们是一种完全无监督的技术，基于大量语料库。然而，它们展示了许多与语言模型嵌入相似的特性，且本身也很有趣。
 
-这个文本文件的每一行由一个单词和该单词对应的300个向量分量组成，分量之间以空格分开。我们可以用Python将其加载进来。（为了减少噪音并加速处理，我这里使用了完整数据集的前10% `//10`，但如果你愿意的话，可以调整。）
+这个文本文件的每一行由一个单词和该单词对应的 300 个向量分量组成，分量之间以空格分开。我们可以用 Python 将其加载进来。（为了减少噪音并加速处理，我这里使用了完整数据集的前 10% `//10`，但如果你愿意的话，可以调整。）
 
 ```py
 import numpy as np
@@ -53,15 +53,15 @@ for i in range(len(glove_content)//10):
 print(len(embeddings))
 ```
 
-那么我们现在加载了40,000个嵌入向量。
+那么我们现在加载了 40,000 个嵌入向量。
 
 # 相似度度量
 
 我们可能会问的一个自然问题是：**向量通常是否与意义相似的其他向量接近？** 作为后续问题，我们如何量化这个？
 
-我们将量化向量之间相似度的主要方式有两种：一种是**欧几里得距离**，这就是我们熟悉的自然的毕达哥拉斯定理距离。另一种是**余弦相似度**，它衡量两个向量之间的*角度*的余弦值。一个向量与自身的余弦相似度为1，与相反的向量为-1，与正交向量为0。
+我们将量化向量之间相似度的主要方式有两种：一种是**欧几里得距离**，这就是我们熟悉的自然的毕达哥拉斯定理距离。另一种是**余弦相似度**，它衡量两个向量之间的*角度*的余弦值。一个向量与自身的余弦相似度为 1，与相反的向量为-1，与正交向量为 0。
 
-让我们在NumPy中实现这些：
+让我们在 NumPy 中实现这些：
 
 ```py
 def cos_sim(a, b):
@@ -89,7 +89,7 @@ def get_sims(to_word=None, to_e=None, metric=cos_sim):
     return sims
 ```
 
-现在我们可以写一个函数来显示最相似的10个词。最好能加上一个反向选项，这样我们就能显示*最不*相似的词。
+现在我们可以写一个函数来显示最相似的 10 个词。最好能加上一个反向选项，这样我们就能显示*最不*相似的词。
 
 ```py
 def display_sims(to_word=None, to_e=None, n=10, metric=cos_sim, reverse=False, label=None):
@@ -137,7 +137,7 @@ display_sims(to_word='queen')
 
 # 类比推理
 
-词嵌入的一个迷人特性是，**类比是通过向量数学内建的**。GloVe论文中的例子是*king - queen = man - woman*。换句话说，重新排列这个方程，我们预期会得到*king = man - woman + queen*。这是真的吗？
+词嵌入的一个迷人特性是，**类比是通过向量数学内建的**。GloVe 论文中的例子是*king - queen = man - woman*。换句话说，重新排列这个方程，我们预期会得到*king = man - woman + queen*。这是真的吗？
 
 ```py
 display_sims(to_e=embeddings['man'] - embeddings['woman'] + embeddings['queen'], label='king-queen analogy')
@@ -191,7 +191,7 @@ def plot_magnitudes():
 plot_magnitudes()
 ```
 
-![](../Images/1cc1402864a59a660414c0cefbb9d77f.png)
+![](img/1cc1402864a59a660414c0cefbb9d77f.png)
 
 我们的词嵌入的幅度直方图
 
@@ -233,7 +233,7 @@ print("nurse - woman", cos_sim(embeddings['nurse'], embeddings['woman'])) # 0.45
 
 # 聚类
 
-让我们看看能否使用***k*-均值聚类**来**聚类具有相似含义的词语**。使用`scikit-learn`包可以轻松实现这一点。我们将使用300个聚类，虽然听起来很多，但相信我：几乎所有聚类都非常有趣，你可以仅通过解释它们写一篇完整的文章！
+让我们看看能否使用***k*-均值聚类**来**聚类具有相似含义的词语**。使用`scikit-learn`包可以轻松实现这一点。我们将使用 300 个聚类，虽然听起来很多，但相信我：几乎所有聚类都非常有趣，你可以仅通过解释它们写一篇完整的文章！
 
 ```py
 from sklearn.cluster import KMeans
@@ -335,7 +335,7 @@ for i, vec in enumerate(pca_vecs):
     display_sims(to_e=vec, metric=cos_sim, label=f'PCA {i+1} negative', reverse=True)
 ```
 
-就像我们的*k*-均值实验一样，这些PCA向量中有很多非常有趣的内容。例如，让我们来看看主成分9：
+就像我们的*k*-均值实验一样，这些 PCA 向量中有很多非常有趣的内容。例如，让我们来看看主成分 9：
 
 ```py
  PCA 9
@@ -362,9 +362,9 @@ for i, vec in enumerate(pca_vecs):
 10 wyoming: -0.29613
 ```
 
-看起来，组件9的正值与中东、南亚和东南亚的术语相关，而负值则与北美和英国的术语相关。
+看起来，组件 9 的正值与中东、南亚和东南亚的术语相关，而负值则与北美和英国的术语相关。
 
-另一个有趣的成分是成分3。所有的正值都是十进制数，显然这是这个模型中的一个显著特征。成分8也展示了类似的模式。
+另一个有趣的成分是成分 3。所有的正值都是十进制数，显然这是这个模型中的一个显著特征。成分 8 也展示了类似的模式。
 
 ```py
  PCA 3
@@ -382,7 +382,7 @@ for i, vec in enumerate(pca_vecs):
 
 ## 降维
 
-PCA的一个主要优点是，它允许我们**将一个高维数据集**（在此案例中为300维）**通过投影到前几个组件，仅用两维或三维展示**。让我们尝试做一个二维图，看是否能从中提取出任何信息。我们还会使用*k*-均值进行按聚类的颜色编码。
+PCA 的一个主要优点是，它允许我们**将一个高维数据集**（在此案例中为 300 维）**通过投影到前几个组件，仅用两维或三维展示**。让我们尝试做一个二维图，看是否能从中提取出任何信息。我们还会使用*k*-均值进行按聚类的颜色编码。
 
 ```py
 def plot_pca(pca_vecs, kmeans):
@@ -401,11 +401,11 @@ def plot_pca(pca_vecs, kmeans):
 plot_pca(pca_vecs, kmeans)
 ```
 
-![](../Images/8754000d85b058dbbdcf1ea2133c5029.png)
+![](img/8754000d85b058dbbdcf1ea2133c5029.png)
 
-我们的嵌入数据集的第一（X轴）和第二（Y轴）主成分的图表
+我们的嵌入数据集的第一（X 轴）和第二（Y 轴）主成分的图表
 
-不幸的是，这个图表完全乱了！从中学到的信息非常有限。看起来仅凭两个维度来解释300个维度的数据集，至少在这个数据集的情况下，并不是很容易。
+不幸的是，这个图表完全乱了！从中学到的信息非常有限。看起来仅凭两个维度来解释 300 个维度的数据集，至少在这个数据集的情况下，并不是很容易。
 
 有两个例外。首先，我们看到名字通常会聚集在图表的顶部。其次，在左下角有一个突出的小部分，像个伤疤一样。这一区域似乎与数字相关，尤其是十进制数字。
 
@@ -425,19 +425,19 @@ def display_covariance():
 display_covariance()
 ```
 
-![](../Images/bdf321419db9850f8aaabea3567d3ad2.png)
+![](img/bdf321419db9850f8aaabea3567d3ad2.png)
 
-我们数据集中所有300个向量组件的协方差矩阵
+我们数据集中所有 300 个向量组件的协方差矩阵
 
 当然，主对角线有一条明显的线，表示每个组件与自身有很强的相关性。除此之外，这个图并没有什么特别有趣的地方。大部分区域看起来几乎是空白的，这其实是一个好兆头。
 
-如果仔细观察，你会发现有一个例外：组件9和276似乎有较强的相关性（协方差为0.308）。
+如果仔细观察，你会发现有一个例外：组件 9 和 276 似乎有较强的相关性（协方差为 0.308）。
 
-![](../Images/bd08c04d3fad3c5c45538546d37a43e3.png)
+![](img/bd08c04d3fad3c5c45538546d37a43e3.png)
 
-聚焦于组件9和276的协方差矩阵。观察这里有一个稍微明亮的红点，以及沿着行和列的奇怪行为。
+聚焦于组件 9 和 276 的协方差矩阵。观察这里有一个稍微明亮的红点，以及沿着行和列的奇怪行为。
 
-让我们通过打印与组件9和276最相关的向量来进一步调查。这个操作相当于计算与一个全零基向量的余弦相似度，除了相关组件的位置为1。
+让我们通过打印与组件 9 和 276 最相关的向量来进一步调查。这个操作相当于计算与一个全零基向量的余弦相似度，除了相关组件的位置为 1。
 
 ```py
 e9 = np.zeros_like(zero_vec)
@@ -465,18 +465,18 @@ display_sims(to_e=e276, metric=cos_sim, label='e276', reverse=True)
 
 # 结论
 
-在本文中，我们对一个包含300维的**GloVe词向量**数据集应用了各种**探索性数据分析（EDA）**技术。我们使用余弦相似度来衡量词汇意义之间的相似性，使用聚类将词汇分组为相关群体，并通过主成分分析（PCA）来识别对词向量模型最重要的向量空间方向。
+在本文中，我们对一个包含 300 维的**GloVe 词向量**数据集应用了各种**探索性数据分析（EDA）**技术。我们使用余弦相似度来衡量词汇意义之间的相似性，使用聚类将词汇分组为相关群体，并通过主成分分析（PCA）来识别对词向量模型最重要的向量空间方向。
 
-我们通过主成分分析（PCA）在视觉上观察到输入特征之间的协方差非常小。我们尝试使用PCA将所有300维的数据投影到二维空间中，但结果还是有点混乱。
+我们通过主成分分析（PCA）在视觉上观察到输入特征之间的协方差非常小。我们尝试使用 PCA 将所有 300 维的数据投影到二维空间中，但结果还是有点混乱。
 
 我们还测试了数据集中的假设和偏差。通过比较*nurse*与*man*和*woman*的余弦相似度，我们识别出了数据集中的性别偏见。我们尝试使用向量数学表示类比（例如，“king”与“queen”的关系就像“man”与“woman”），并取得了一定的成功。通过减去指代男性和女性的向量示例，我们能够发现与性别相关的向量方向，并展示数据集中“最男性化”和“最女性化”的向量。
 
-你可以在词向量数据集上尝试更多的EDA，但我希望这能作为一个良好的起点，帮助你理解一般的EDA技术以及词向量的结构。如果你想查看与本文相关的完整代码及一些额外的示例，可以访问我的GitHub：[crackalamoo/glove-embeddings-eda](https://github.com/crackalamoo/glove-embeddings-eda)。感谢阅读！
+你可以在词向量数据集上尝试更多的 EDA，但我希望这能作为一个良好的起点，帮助你理解一般的 EDA 技术以及词向量的结构。如果你想查看与本文相关的完整代码及一些额外的示例，可以访问我的 GitHub：[crackalamoo/glove-embeddings-eda](https://github.com/crackalamoo/glove-embeddings-eda)。感谢阅读！
 
 ## 参考文献
 
-[1] J. Pennington, R. Socher 和 C. Manning，[GloVe：用于词表示的全局向量](https://nlp.stanford.edu/projects/glove/)（2014年），斯坦福大学自然语言处理（公开领域数据集）
+[1] J. Pennington, R. Socher 和 C. Manning，[GloVe：用于词表示的全局向量](https://nlp.stanford.edu/projects/glove/)（2014 年），斯坦福大学自然语言处理（公开领域数据集）
 
-[2] T. Bolukbasi, K. Chang, J. Zou, V. Saligrama 和 A. Kalai，[人类和计算机程序员的关系，就像女人和家庭主妇的关系？去偏见词向量嵌入](https://arxiv.org/pdf/1607.06520)（2016年），微软研究院新英格兰分院
+[2] T. Bolukbasi, K. Chang, J. Zou, V. Saligrama 和 A. Kalai，[人类和计算机程序员的关系，就像女人和家庭主妇的关系？去偏见词向量嵌入](https://arxiv.org/pdf/1607.06520)（2016 年），微软研究院新英格兰分院
 
-*所有图片均由作者使用Matplotlib制作。*
+*所有图片均由作者使用 Matplotlib 制作。*

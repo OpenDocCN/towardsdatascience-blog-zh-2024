@@ -1,16 +1,16 @@
 # 使用 LLM 构建生物医学实体链接器
 
-> 原文：[https://towardsdatascience.com/building-a-biomedical-entity-linker-with-llms-d385cb85c15a?source=collection_archive---------1-----------------------#2024-03-19](https://towardsdatascience.com/building-a-biomedical-entity-linker-with-llms-d385cb85c15a?source=collection_archive---------1-----------------------#2024-03-19)
+> 原文：[`towardsdatascience.com/building-a-biomedical-entity-linker-with-llms-d385cb85c15a?source=collection_archive---------1-----------------------#2024-03-19`](https://towardsdatascience.com/building-a-biomedical-entity-linker-with-llms-d385cb85c15a?source=collection_archive---------1-----------------------#2024-03-19)
 
 ## 如何有效地将 LLM 应用于生物医学实体链接？
 
-[](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)[![Anand Subramanian](../Images/096dc5504d6ada2493e0ac26959e60f0.png)](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------) [Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)
+[](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)![Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------) [Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------) ·阅读时长 26 分钟·2024年3月19日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------) ·阅读时长 26 分钟·2024 年 3 月 19 日
 
 --
 
-![](../Images/0d4e8f951e2ffc6a22bf4f64e0b63818.png)
+![](img/0d4e8f951e2ffc6a22bf4f64e0b63818.png)
 
 图片来源：[Alina Grubnyak](https://unsplash.com/@alinnnaaaa) 于 [Unsplash](https://unsplash.com/photos/low-angle-photography-of-metal-structure-ZiQkhI7417A)
 
@@ -20,29 +20,29 @@
 
 # 目录：
 
-1.  [什么是实体链接？](#558f)
+1.  什么是实体链接？
 
-1.  [LLM在这里有什么作用？](#9285)
+1.  LLM 在这里有什么作用？
 
-1.  [实验设置](#5023)
+1.  实验设置
 
-1.  [处理数据集](#29ad)
+1.  处理数据集
 
-1.  [使用LLM进行零样本实体链接](#5925)
+1.  使用 LLM 进行零样本实体链接
 
-1.  [使用带有检索增强生成的LLM进行实体链接](#1299)
+1.  使用带有检索增强生成的 LLM 进行实体链接
 
-1.  [使用LLM和外部知识库链接器进行零样本实体提取](#8d3c)
+1.  使用 LLM 和外部知识库链接器进行零样本实体提取
 
-1.  [使用LLM和外部知识库链接器进行微调实体提取](#274a)
+1.  使用 LLM 和外部知识库链接器进行微调实体提取
 
-1.  [Scispacy基准测试](#63d3)
+1.  Scispacy 基准测试
 
-1.  [关键要点](#7e94)
+1.  关键要点
 
-1.  [局限性](#8e52)
+1.  局限性
 
-1.  [参考文献](#fb75)
+1.  参考文献
 
 # 什么是实体链接？
 
@@ -50,29 +50,29 @@
 
 实体链接涉及在文本中识别和提取实体，并将它们映射到大型术语库中的标准化概念。在此上下文中，**知识库（KB）**指的是一个详细的数据库，包含与术语库相关的标准化信息和概念，如医学术语、疾病和药物。通常，知识库由专家策划和设计，包含关于概念的详细信息，包括可能用来指代该概念的术语变体，或该概念与其他概念的关系。
 
-![](../Images/2d49dc0785ee698265fce0c8c4a29456.png)
+![](img/2d49dc0785ee698265fce0c8c4a29456.png)
 
-实体识别与链接管道概述。实体首先从文本中解析出来，然后将每个实体链接到知识库，以获取它们对应的标识符。本例中考虑的知识库是MeSH术语。示例文本来自BioCreative V CDR语料库[4,5,6,7,8]（图像来自作者）。
+实体识别与链接管道概述。实体首先从文本中解析出来，然后将每个实体链接到知识库，以获取它们对应的标识符。本例中考虑的知识库是 MeSH 术语。示例文本来自 BioCreative V CDR 语料库[4,5,6,7,8]（图像来自作者）。
 
 实体识别涉及提取在我们任务上下文中重要的单词或短语。在这个上下文中，通常指的是提取生物医学术语，如药物、疾病等。通常，基于查找的方法或基于机器学习/深度学习的系统常用于实体识别。将实体链接到知识库通常需要一个检索系统，该系统对知识库进行索引。该系统从前一步中提取每个实体，并从知识库中检索可能的标识符。这里的检索器也是一种抽象，可能是稀疏的（BM-25）、密集的（基于嵌入的）或甚至是生成性的系统（如大型语言模型（LLM）），它将知识库编码在其参数中。
 
-# LLM在这里的作用是什么？
+# LLM 在这里的作用是什么？
 
-我一直很好奇如何将LLM集成到生物医学和临床文本处理管道中。鉴于实体链接是这类管道的重要组成部分，我决定探索LLM如何最好地应用于这个任务。具体来说，我研究了以下几种设置：
+我一直很好奇如何将 LLM 集成到生物医学和临床文本处理管道中。鉴于实体链接是这类管道的重要组成部分，我决定探索 LLM 如何最好地应用于这个任务。具体来说，我研究了以下几种设置：
 
-1.  **零-shot实体链接与LLM：** 利用LLM直接从输入的生物医学文本中识别所有实体和概念ID，而无需任何微调。
+1.  **零-shot 实体链接与 LLM：** 利用 LLM 直接从输入的生物医学文本中识别所有实体和概念 ID，而无需任何微调。
 
-1.  **LLM与检索增强生成（RAG）：** 在RAG框架中使用LLM，通过在提示中注入有关相关概念ID的信息来进行实体链接。
+1.  **LLM 与检索增强生成（RAG）：** 在 RAG 框架中使用 LLM，通过在提示中注入有关相关概念 ID 的信息来进行实体链接。
 
-1.  **使用外部知识库链接器的零-shot实体提取：** 利用LLM从生物医学文本中进行零-shot实体提取，并使用外部链接器/检索器将实体映射到概念ID。
+1.  **使用外部知识库链接器的零-shot 实体提取：** 利用 LLM 从生物医学文本中进行零-shot 实体提取，并使用外部链接器/检索器将实体映射到概念 ID。
 
-1.  **与外部知识库链接器的微调实体提取：** 首先对LLM进行实体提取任务的微调，并将其用作实体提取器，与外部链接器/检索器结合，将实体映射到概念ID。
+1.  **与外部知识库链接器的微调实体提取：** 首先对 LLM 进行实体提取任务的微调，并将其用作实体提取器，与外部链接器/检索器结合，将实体映射到概念 ID。
 
-1.  **与现有管道的比较：** 与用于生物医学文本处理的常用库Scispacy相比，这些方法表现如何？
+1.  **与现有管道的比较：** 与用于生物医学文本处理的常用库 Scispacy 相比，这些方法表现如何？
 
 # 实验设置
 
-> 与本文相关的所有代码和资源都可以在[此Github仓库](https://github.com/anand-subu/blog_resources)的entity_linking文件夹中找到。欢迎拉取仓库并直接运行笔记本，以进行这些实验。如果您有任何反馈或观察，或者发现任何错误，请告诉我！
+> 与本文相关的所有代码和资源都可以在[此 Github 仓库](https://github.com/anand-subu/blog_resources)的 entity_linking 文件夹中找到。欢迎拉取仓库并直接运行笔记本，以进行这些实验。如果您有任何反馈或观察，或者发现任何错误，请告诉我！
 
 为了进行这些实验，我们利用 [Mistral-7B Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) [9] 作为我们的 LLM。为了将医学术语与实体进行链接，我们使用 MeSH 术语。引用 [美国国家医学图书馆网站](https://www.nlm.nih.gov/mesh/meshhome.html) 的话：
 
@@ -175,17 +175,17 @@ def remove_duplicates(dict_list):
     return unique_dicts
 ```
 
-我们首先解析原始数据集中提供的文本文件中的数据集。原始数据集包括标题、摘要，以及所有标注的实体和它们的实体类型（疾病或化学物质）、它们在文本中的准确位置的子字符串索引，以及它们的MeSH ID。在处理我们的数据集时，我们进行了一些简化。我们忽略了子字符串索引和实体类型。此外，我们去重了具有相同实体名称和MeSH ID的标注。在这一阶段，我们仅进行区分大小写的去重处理，这意味着如果同一实体在文档中同时以大小写不同的形式出现，我们目前的处理方式会保留这两个实例。
+我们首先解析原始数据集中提供的文本文件中的数据集。原始数据集包括标题、摘要，以及所有标注的实体和它们的实体类型（疾病或化学物质）、它们在文本中的准确位置的子字符串索引，以及它们的 MeSH ID。在处理我们的数据集时，我们进行了一些简化。我们忽略了子字符串索引和实体类型。此外，我们去重了具有相同实体名称和 MeSH ID 的标注。在这一阶段，我们仅进行区分大小写的去重处理，这意味着如果同一实体在文档中同时以大小写不同的形式出现，我们目前的处理方式会保留这两个实例。
 
-# **使用LLM进行零-shot实体链接**
+# **使用 LLM 进行零-shot 实体链接**
 
-首先，我们旨在确定LLM是否由于其预训练而已经具备了MeSH术语的理解，以及它是否能够作为零-shot实体链接器。所谓零-shot，指的是LLM基于其内在知识，在没有依赖外部知识库链接器的情况下，直接将实体链接到其MeSH ID。这个假设并不完全不现实，因为MeSH相关的信息在网上是可以找到的，这意味着模型在预训练阶段可能接触过MeSH相关的信息。然而，即使LLM在训练时包含了这些信息，仅凭这些信息也不太可能使模型有效地执行零-shot实体链接，因为生物医学术语的复杂性和进行准确实体链接所需的精确性都非常高。
+首先，我们旨在确定 LLM 是否由于其预训练而已经具备了 MeSH 术语的理解，以及它是否能够作为零-shot 实体链接器。所谓零-shot，指的是 LLM 基于其内在知识，在没有依赖外部知识库链接器的情况下，直接将实体链接到其 MeSH ID。这个假设并不完全不现实，因为 MeSH 相关的信息在网上是可以找到的，这意味着模型在预训练阶段可能接触过 MeSH 相关的信息。然而，即使 LLM 在训练时包含了这些信息，仅凭这些信息也不太可能使模型有效地执行零-shot 实体链接，因为生物医学术语的复杂性和进行准确实体链接所需的精确性都非常高。
 
-为了评估这一点，我们将输入文本提供给LLM，并直接提示它预测实体及其对应的MeSH ID。此外，我们通过从训练数据集中抽取三个数据点来创建一个few-shot提示。需要澄清的是，这里“zero-shot”和“few-shot”的使用有所区别：“zero-shot”指的是LLM在没有针对这一任务的特定训练的情况下进行实体链接，而“few-shot”指的是在该上下文中采用的提示策略。
+为了评估这一点，我们将输入文本提供给 LLM，并直接提示它预测实体及其对应的 MeSH ID。此外，我们通过从训练数据集中抽取三个数据点来创建一个 few-shot 提示。需要澄清的是，这里“zero-shot”和“few-shot”的使用有所区别：“zero-shot”指的是 LLM 在没有针对这一任务的特定训练的情况下进行实体链接，而“few-shot”指的是在该上下文中采用的提示策略。
 
-![](../Images/fd42fe12a7a1f7a02ab36a6869cb6304.png)
+![](img/fd42fe12a7a1f7a02ab36a6869cb6304.png)
 
-LLM作为零-shot实体链接器（图像由作者提供）
+LLM 作为零-shot 实体链接器（图像由作者提供）
 
 为了计算我们的指标，我们定义了评估性能的函数：
 
@@ -301,11 +301,11 @@ for item in tqdm(test_set_subsample):
     mistral_few_shot_answers.append(parse_answer(gen_text.strip()))
 ```
 
-在实体提取层面，考虑到LLM并未专门为此任务进行显式微调，其表现相当不错。然而，作为零-shot链接器，它的表现非常差，整体表现低于1%。这个结果是直观的，因为MeSH标签的输出空间非常庞大，将实体精确映射到特定的MeSH ID是一项艰巨的任务。
+在实体提取层面，考虑到 LLM 并未专门为此任务进行显式微调，其表现相当不错。然而，作为零-shot 链接器，它的表现非常差，整体表现低于 1%。这个结果是直观的，因为 MeSH 标签的输出空间非常庞大，将实体精确映射到特定的 MeSH ID 是一项艰巨的任务。
 
-零-shot实体提取与实体链接得分
+零-shot 实体提取与实体链接得分
 
-# **使用检索增强生成的LLM进行实体链接**
+# **使用检索增强生成的 LLM 进行实体链接**
 
 检索增强生成（RAG）[12] 指的是一种将 LLM 与外部知识库（KB）结合的框架，该知识库配备了查询功能，如检索器/链接器。对于每个输入查询，系统首先使用查询功能从 KB 中检索与查询相关的知识。然后，系统将检索到的知识与查询结合，将这个合并后的提示提供给 LLM 来执行任务。这种方法基于这样一个理解：LLM 可能没有所有必要的知识或信息来有效地回答输入查询。因此，知识通过查询外部知识源注入到模型中。
 
@@ -319,7 +319,7 @@ for item in tqdm(test_set_subsample):
 
 为了研究提供给模型的检索到的 ID 数量对实体链接过程的影响，我们运行此设置，提供前 10、30 和 50 个文档给模型，并量化其在实体提取和 MeSH 概念识别上的表现。
 
-![](../Images/d148dffe6caaa1a993320d088efbe29e.png)
+![](img/d148dffe6caaa1a993320d088efbe29e.png)
 
 具有 RAG 的 LLM 作为实体链接器（图示由作者提供）
 
@@ -445,39 +445,39 @@ for key, value in mistral_rag_answers.items():
 
 通常，与原始的零-shot 设置相比，RAG 设置改进了整体的 MeSH 标识过程。但提供给模型的信息文档数量有何影响呢？我们绘制了得分与提供给模型作为上下文的检索到的 ID 数量的关系。
 
-![](../Images/6ae236d2474983aadfbb5d1e563cb577.png)![](../Images/b3d3431fb1870acf1eb3e99153a7c978.png)
+![](img/6ae236d2474983aadfbb5d1e563cb577.png)![](img/b3d3431fb1870acf1eb3e99153a7c978.png)
 
 在 RAG 设置中，实体提取和实体链接性能指标随着检索文档数量变化的图表（图示由作者提供）
 
-在研究图表时，我们观察到了一些有趣的趋势。对于实体提取，检索到的文档数量增加与宏观精度的急剧提高相关，宏观精度得分略高于50%。这比模型的零-shot实体提取性能高出近10%。然而，宏观召回率的影响是任务相关的；对于实体提取任务，它保持不变，但对于实体链接任务则有所提高。总体而言，增加提供给模型的文档数量作为上下文，在MeSH标识设置中显著改善了所有指标，但在实体提取设置中效果不一。
+在研究图表时，我们观察到了一些有趣的趋势。对于实体提取，检索到的文档数量增加与宏观精度的急剧提高相关，宏观精度得分略高于 50%。这比模型的零-shot 实体提取性能高出近 10%。然而，宏观召回率的影响是任务相关的；对于实体提取任务，它保持不变，但对于实体链接任务则有所提高。总体而言，增加提供给模型的文档数量作为上下文，在 MeSH 标识设置中显著改善了所有指标，但在实体提取设置中效果不一。
 
-在这个实验中需要考虑的一个重要限制是上游检索器的性能。如果检索器无法检索到相关文档，那么LLM的性能将受到影响，因为模型所提供的知识中并没有实际答案。
+在这个实验中需要考虑的一个重要限制是上游检索器的性能。如果检索器无法检索到相关文档，那么 LLM 的性能将受到影响，因为模型所提供的知识中并没有实际答案。
 
-![](../Images/7295ffa080576fa90975f690981e945d.png)
+![](img/7295ffa080576fa90975f690981e945d.png)
 
-作为输入文本每个MeSH ID被检索器检索到的MeSH ID中的地面真值百分比，作为检索到的ID总数的函数（图片由作者提供）
+作为输入文本每个 MeSH ID 被检索器检索到的 MeSH ID 中的地面真值百分比，作为检索到的 ID 总数的函数（图片由作者提供）
 
-为了调查这一点，我们计算了每个输入文本中，检索器所提取的MeSH ID中包含的地面真值MeSH ID的平均百分比。我们的发现表明，BM-25检索器平均只能检索到约12.6%到17.7%的相关MeSH ID。检索器的选择和我们检索的方式因此成为RAG设置中的一个重要性能瓶颈，可能需要优化以提升性能。
+为了调查这一点，我们计算了每个输入文本中，检索器所提取的 MeSH ID 中包含的地面真值 MeSH ID 的平均百分比。我们的发现表明，BM-25 检索器平均只能检索到约 12.6%到 17.7%的相关 MeSH ID。检索器的选择和我们检索的方式因此成为 RAG 设置中的一个重要性能瓶颈，可能需要优化以提升性能。
 
-# **LLM与外部知识库连接器的零-shot实体提取**
+# **LLM 与外部知识库连接器的零-shot 实体提取**
 
-到目前为止，我们已经考察了LLM作为零-shot实体链接器的表现，以及RAG如何提升其性能。尽管与零-shot设置相比，RAG提高了性能，但这种方法也有其局限性。
+到目前为止，我们已经考察了 LLM 作为零-shot 实体链接器的表现，以及 RAG 如何提升其性能。尽管与零-shot 设置相比，RAG 提高了性能，但这种方法也有其局限性。
 
-在RAG设置中使用LLM时，我们一直将知识组件（KB + 检索器）**置于模型的上游**。RAG设置中的知识检索是**粗糙的**，即通过查询检索器使用整个生物医学文本来检索可能的MeSH ID。这在一定程度上保证了检索结果的**多样性**，因为获取的结果很可能对应文本中的不同实体，但这些结果的**精确度**较低。起初这似乎并不是问题，因为你可以通过在RAG设置中为模型提供更多相关结果作为上下文来在一定程度上缓解这个问题。然而，这有两个缺点：
+在 RAG 设置中使用 LLM 时，我们一直将知识组件（KB + 检索器）**置于模型的上游**。RAG 设置中的知识检索是**粗糙的**，即通过查询检索器使用整个生物医学文本来检索可能的 MeSH ID。这在一定程度上保证了检索结果的**多样性**，因为获取的结果很可能对应文本中的不同实体，但这些结果的**精确度**较低。起初这似乎并不是问题，因为你可以通过在 RAG 设置中为模型提供更多相关结果作为上下文来在一定程度上缓解这个问题。然而，这有两个缺点：
 
-1.  LLM通常在处理文本时有一个上下文长度的上限。LLM的上下文长度大致指的是LLM在生成新文本之前，可以考虑的最大标记数量（提示中的标记数）。这可能限制我们能提供给LLM的知识量。
+1.  LLM 通常在处理文本时有一个上下文长度的上限。LLM 的上下文长度大致指的是 LLM 在生成新文本之前，可以考虑的最大标记数量（提示中的标记数）。这可能限制我们能提供给 LLM 的知识量。
 
-1.  假设我们有一个能够处理长上下文长度的LLM。我们现在可以检索并附加更多的上下文到模型中。太棒了！然而，更长的上下文长度不一定与LLM的增强RAG能力相关联[13]。即使你通过检索更多结果将大量相关知识传递给LLM，也不能保证LLM会准确地提取出正确的答案。
+1.  假设我们有一个能够处理长上下文长度的 LLM。我们现在可以检索并附加更多的上下文到模型中。太棒了！然而，更长的上下文长度不一定与 LLM 的增强 RAG 能力相关联[13]。即使你通过检索更多结果将大量相关知识传递给 LLM，也不能保证 LLM 会准确地提取出正确的答案。
 
-这将我们带回最初描述的**传统管道**的实体链接。在这种设置中，知识组件被保持在模型的**下游**，在实体提取后，实体被提供给外部检索器以获取相关的MeSH ID。只要你有一个好的实体提取器，你就可以检索到更精确的MeSH ID。
+这将我们带回最初描述的**传统管道**的实体链接。在这种设置中，知识组件被保持在模型的**下游**，在实体提取后，实体被提供给外部检索器以获取相关的 MeSH ID。只要你有一个好的实体提取器，你就可以检索到更精确的 MeSH ID。
 
-早些时候，我们在完全零-shot的设置下观察到，虽然LLM在预测MeSH ID时表现较差，但它的实体提取表现相当不错。我们现在使用Mistral模型提取实体，并将其提供给外部检索器以获取MeSH ID。
+早些时候，我们在完全零-shot 的设置下观察到，虽然 LLM 在预测 MeSH ID 时表现较差，但它的实体提取表现相当不错。我们现在使用 Mistral 模型提取实体，并将其提供给外部检索器以获取 MeSH ID。
 
-![](../Images/fd74260b6f485d82ec964f16ec94c936.png)
+![](img/fd74260b6f485d82ec964f16ec94c936.png)
 
-使用LLM作为实体提取器和外部检索器的实体链接（作者提供的图像）
+使用 LLM 作为实体提取器和外部检索器的实体链接（作者提供的图像）
 
-在此检索中，我们再次使用BM-25检索器作为我们的知识库链接器。然而，我们在这里做的一个小调整是将我们的ID索引基于连接它们的标准名称和别名。我们重新使用在第一次零-shot设置中提取的实体进行本次实验。现在让我们评估一下这个设置的表现如何：
+在此检索中，我们再次使用 BM-25 检索器作为我们的知识库链接器。然而，我们在这里做的一个小调整是将我们的 ID 索引基于连接它们的标准名称和别名。我们重新使用在第一次零-shot 设置中提取的实体进行本次实验。现在让我们评估一下这个设置的表现如何：
 
 ```py
 entity_mesh_data_dict = [[x["concept_id"] , " ".join(x["aliases"].split(",")) + " " + x["canonical_name"]] for x in mesh_data]
@@ -499,17 +499,17 @@ macro_recall_mesh = sum([x[1] for x in mesh_scores]) / len(metric_scores)
 macro_f1_mesh = sum([x[2] for x in mesh_scores]) / len(metric_scores)
 ```
 
-在这种设置下，性能在所有指标上都明显优于RAG设置。与最佳RAG设置（在50个文档进行检索）相比，我们在宏精度上提高了超过12%，在宏召回率上提高了20%，在宏F1得分上提高了16%。**再次强调**，这更类似于传统的实体提取管道，其中实体提取和链接是分开的组件。
+在这种设置下，性能在所有指标上都明显优于 RAG 设置。与最佳 RAG 设置（在 50 个文档进行检索）相比，我们在宏精度上提高了超过 12%，在宏召回率上提高了 20%，在宏 F1 得分上提高了 16%。**再次强调**，这更类似于传统的实体提取管道，其中实体提取和链接是分开的组件。
 
 Zero-Shot LLM 实体提取与外部检索器得分
 
-# **使用LLM和外部知识库链接器的微调实体提取**
+# **使用 LLM 和外部知识库链接器的微调实体提取**
 
-到目前为止，我们通过将LLM作为实体提取器放入更大的管道中获得了最佳性能。然而，我们是在零-shot的方式下进行实体提取的。我们是否可以通过特别为实体提取微调LLM来进一步提升性能？
+到目前为止，我们通过将 LLM 作为实体提取器放入更大的管道中获得了最佳性能。然而，我们是在零-shot 的方式下进行实体提取的。我们是否可以通过特别为实体提取微调 LLM 来进一步提升性能？
 
-对于微调，我们使用来自BioCreative V数据集的训练集，该数据集包含500个数据点。我们采用Q-Lora [14]来微调我们的LLM，这一过程包括将LLM量化为4位并冻结，同时微调低秩适配器。这种方法通常在参数和内存方面效率较高，因为适配器的权重仅占原始LLM的极小一部分，意味着我们微调的权重要远少于微调整个LLM的情况。它还使我们能够在单个GPU上微调模型。
+对于微调，我们使用来自 BioCreative V 数据集的训练集，该数据集包含 500 个数据点。我们采用 Q-Lora [14]来微调我们的 LLM，这一过程包括将 LLM 量化为 4 位并冻结，同时微调低秩适配器。这种方法通常在参数和内存方面效率较高，因为适配器的权重仅占原始 LLM 的极小一部分，意味着我们微调的权重要远少于微调整个 LLM 的情况。它还使我们能够在单个 GPU 上微调模型。
 
-让我们实现微调组件。对于这部分，我参考并修改了[Niels Rogge关于使用Q-Lora微调Mistral模型的笔记本](https://github.com/NielsRogge/Transformers-Tutorials/blob/master/Mistral/Supervised_fine_tuning_(SFT)_of_an_LLM_using_Hugging_Face_tooling.ipynb)，修改内容主要集中在正确准备和处理数据集。
+让我们实现微调组件。对于这部分，我参考并修改了[Niels Rogge 关于使用 Q-Lora 微调 Mistral 模型的笔记本](https://github.com/NielsRogge/Transformers-Tutorials/blob/master/Mistral/Supervised_fine_tuning_(SFT)_of_an_LLM_using_Hugging_Face_tooling.ipynb)，修改内容主要集中在正确准备和处理数据集。
 
 ```py
 from datasets import load_dataset
@@ -592,7 +592,7 @@ df = pd.DataFrame(chat_format_questions)
 train_dataset = Dataset.from_pandas(df)
 ```
 
-现在让我们为微调模型定义适当的配置。我们为量化LLM定义配置：
+现在让我们为微调模型定义适当的配置。我们为量化 LLM 定义配置：
 
 ```py
 quantization_config = BitsAndBytesConfig(
@@ -718,17 +718,17 @@ macro_recall_mesh = sum([x[1] for x in mesh_scores]) / len(mesh_scores)
 macro_f1_mesh = sum([x[2] for x in mesh_scores]) / len(mesh_scores)
 ```
 
-这个设置与之前的设置完全相同，仍然使用LLM作为实体提取器，外部检索器用于将每个实体链接到MeSH ID。微调模型带来了实体提取和链接方面的显著改进。
+这个设置与之前的设置完全相同，仍然使用 LLM 作为实体提取器，外部检索器用于将每个实体链接到 MeSH ID。微调模型带来了实体提取和链接方面的显著改进。
 
-与零-shot实体提取相比，微调在所有指标上提高了最多或超过20%。类似地，与之前的设置相比，实体链接也在所有指标上提高了约12%至14%。这些结果并不令人惊讶，因为任务特定的模型预计会比零-shot设置表现更好。尽管如此，将这些改进量化出来仍然令人高兴！
+与零-shot 实体提取相比，微调在所有指标上提高了最多或超过 20%。类似地，与之前的设置相比，实体链接也在所有指标上提高了约 12%至 14%。这些结果并不令人惊讶，因为任务特定的模型预计会比零-shot 设置表现更好。尽管如此，将这些改进量化出来仍然令人高兴！
 
-微调的LLM作为实体提取器和外部检索器得分
+微调的 LLM 作为实体提取器和外部检索器得分
 
-# Scispacy基准测试
+# Scispacy 基准测试
 
-这个实现与现有的可以执行实体链接的工具相比如何？Scispacy是生物医学和临床文本处理中常用的工具，提供了实体提取和实体链接功能。特别地，Scispacy还提供了一种将实体链接到MeSH知识库的功能，而这个文件也是我们原始LLM实验中使用的知识库。让我们在我们的测试集上基准测试Scispacy的性能，并与我们的LLM实验进行比较。
+这个实现与现有的可以执行实体链接的工具相比如何？Scispacy 是生物医学和临床文本处理中常用的工具，提供了实体提取和实体链接功能。特别地，Scispacy 还提供了一种将实体链接到 MeSH 知识库的功能，而这个文件也是我们原始 LLM 实验中使用的知识库。让我们在我们的测试集上基准测试 Scispacy 的性能，并与我们的 LLM 实验进行比较。
 
-我们使用Scispacy中的“**en_ner_bc5cdr_md**” [15]作为实体提取模块，因为该模型是专门在BioCreative V数据集上训练的。让我们评估其性能：
+我们使用 Scispacy 中的“**en_ner_bc5cdr_md**” [15]作为实体提取模块，因为该模型是专门在 BioCreative V 数据集上训练的。让我们评估其性能：
 
 ```py
 from scispacy.linking import EntityLinker
@@ -780,65 +780,65 @@ macro_recall_mesh = sum([x[1] for x in mesh_scores]) / len(entity_scores)
 macro_f1_mesh = sum([x[2] for x in mesh_scores]) / len(entity_scores)
 ```
 
-Scispacy评估得分
+Scispacy 评估得分
 
-Scispacy在实体提取方面比微调后的LLM提高了10%的得分，实体链接方面提高了14%到20%！对于生物医学实体提取和链接任务，Scispacy仍然是一个强大的工具。
+Scispacy 在实体提取方面比微调后的 LLM 提高了 10%的得分，实体链接方面提高了 14%到 20%！对于生物医学实体提取和链接任务，Scispacy 仍然是一个强大的工具。
 
 # 重点总结
 
-![](../Images/c719dd37db7371d0764e5c9e4843dc01.png)
+![](img/c719dd37db7371d0764e5c9e4843dc01.png)
 
-在所有设置下，实体提取和实体链接的宏F1得分
+在所有设置下，实体提取和实体链接的宏 F1 得分
 
 实验结束时，我们可以从中得到哪些具体的收获？
 
-1.  **零-shot实体提取的优势：** Mistral-Instruct是一个不错的生物医学文本零-shot实体提取器。尽管它的参数化知识不足以进行零-shot的MeSH实体链接，但我们在实验中将其与外部KB检索器结合使用，作为实体提取器，从而获得了更好的性能。
+1.  **零-shot 实体提取的优势：** Mistral-Instruct 是一个不错的生物医学文本零-shot 实体提取器。尽管它的参数化知识不足以进行零-shot 的 MeSH 实体链接，但我们在实验中将其与外部 KB 检索器结合使用，作为实体提取器，从而获得了更好的性能。
 
-1.  **RAG在零-shot预测上的改进：** 在RAG设置中，LLM在实体链接方面相比纯粹的零-shot方法表现出了一定的改进。然而，RAG设置中的检索器组件可能是一个显著的瓶颈，正如我们在案例中所看到的，BM-25检索器每个数据点只能检索到大约12-17%的相关ID。这表明需要更有效的检索方法。
+1.  **RAG 在零-shot 预测上的改进：** 在 RAG 设置中，LLM 在实体链接方面相比纯粹的零-shot 方法表现出了一定的改进。然而，RAG 设置中的检索器组件可能是一个显著的瓶颈，正如我们在案例中所看到的，BM-25 检索器每个数据点只能检索到大约 12-17%的相关 ID。这表明需要更有效的检索方法。
 
-1.  **流水线提取提供最佳性能：** 鉴于LLM作为实体提取器的能力，当将这些能力与包含外部检索器以将实体链接到MeSH知识库（KB）的更大管道结合时，可以实现最佳性能。这与传统设置相同，其中实体提取和KB链接保持为独立模块。
+1.  **流水线提取提供最佳性能：** 鉴于 LLM 作为实体提取器的能力，当将这些能力与包含外部检索器以将实体链接到 MeSH 知识库（KB）的更大管道结合时，可以实现最佳性能。这与传统设置相同，其中实体提取和 KB 链接保持为独立模块。
 
-1.  **微调的好处：** 使用QLora对LLM进行微调以进行实体提取任务，可以显著提高实体提取和实体链接的性能，尤其是与外部检索器一起使用时。
+1.  **微调的好处：** 使用 QLora 对 LLM 进行微调以进行实体提取任务，可以显著提高实体提取和实体链接的性能，尤其是与外部检索器一起使用时。
 
-1.  **Scispacy表现最佳：** 在我们的实验中，Scispacy在实体链接任务上优于所有基于LLM的方法。在生物医学文本处理方面，Scispacy依然是一款强大的工具。与需要良好GPU进行快速推理的LLM相比，它还需要较少的计算资源。相比之下，Scispacy只需要一台好的CPU。
+1.  **Scispacy 表现最佳：** 在我们的实验中，Scispacy 在实体链接任务上优于所有基于 LLM 的方法。在生物医学文本处理方面，Scispacy 依然是一款强大的工具。与需要良好 GPU 进行快速推理的 LLM 相比，它还需要较少的计算资源。相比之下，Scispacy 只需要一台好的 CPU。
 
-1.  **优化机会：** 我们目前基于LLM的实体链接管道实现相当基础，存在较大的改进空间。一些可以优化的领域包括检索的选择以及检索逻辑本身。使用更多数据对LLM进行微调也能进一步提升其实体提取性能。
+1.  **优化机会：** 我们目前基于 LLM 的实体链接管道实现相当基础，存在较大的改进空间。一些可以优化的领域包括检索的选择以及检索逻辑本身。使用更多数据对 LLM 进行微调也能进一步提升其实体提取性能。
 
 # 局限性
 
 到目前为止，我们的实验存在一些局限性。
 
-1.  **一个实体对应多个MeSH ID：** 在我们的数据集中，每个文档中的一些实体可能会与多个MeSH ID关联。在我们测试集中的100个文档中，共有968个实体，其中有15个案例（1.54%）存在这种情况。在Scispacy评估中，以及在所有我们使用外部知识库链接器（BM-25检索器）进行实体提取的LLM实验中，我们每个实体只链接一个MeSH概念。尽管Scispacy提供了为每个实体链接多个MeSH ID的可能性，但我们选择不使用这个功能，以确保与LLM实验的公平比较。扩展功能以支持链接多个概念也是一个有趣的补充。
+1.  **一个实体对应多个 MeSH ID：** 在我们的数据集中，每个文档中的一些实体可能会与多个 MeSH ID 关联。在我们测试集中的 100 个文档中，共有 968 个实体，其中有 15 个案例（1.54%）存在这种情况。在 Scispacy 评估中，以及在所有我们使用外部知识库链接器（BM-25 检索器）进行实体提取的 LLM 实验中，我们每个实体只链接一个 MeSH 概念。尽管 Scispacy 提供了为每个实体链接多个 MeSH ID 的可能性，但我们选择不使用这个功能，以确保与 LLM 实验的公平比较。扩展功能以支持链接多个概念也是一个有趣的补充。
 
-1.  **不在知识库中的MeSH ID：** 在测试数据集中，有一些实体的MeSH ID不在我们的知识库中。具体而言，64个实体（占6.6%）拥有一个不在我们知识库中的MeSH ID。这个限制出在检索器端，可以通过更新知识库来解决。
+1.  **不在知识库中的 MeSH ID：** 在测试数据集中，有一些实体的 MeSH ID 不在我们的知识库中。具体而言，64 个实体（占 6.6%）拥有一个不在我们知识库中的 MeSH ID。这个限制出在检索器端，可以通过更新知识库来解决。
 
-1.  **缺乏MeSH ID的实体：** 同样，另有1.65%的实体（968个中的16个）无法映射到MeSH ID。在所有使用外部KB链接器进行实体提取的LLM实验中，我们目前无法确定一个实体是否没有MeSH ID。
+1.  **缺乏 MeSH ID 的实体：** 同样，另有 1.65%的实体（968 个中的 16 个）无法映射到 MeSH ID。在所有使用外部 KB 链接器进行实体提取的 LLM 实验中，我们目前无法确定一个实体是否没有 MeSH ID。
 
 # **参考文献**
 
 > 我已经将本文中提到的所有论文和资源汇总在此。如果我遗漏了什么，请告诉我，我将添加它们！
 
-[1] Bodenreider O. (2004). 统一医学语言系统(UMLS)：整合生物医学术语。*核酸研究*, *32*(数据库专刊)，D267–D270\. [https://doi.org/10.1093/nar/gkh061](https://doi.org/10.1093/nar/gkh061)
+[1] Bodenreider O. (2004). 统一医学语言系统(UMLS)：整合生物医学术语。*核酸研究*, *32*(数据库专刊)，D267–D270\. [`doi.org/10.1093/nar/gkh061`](https://doi.org/10.1093/nar/gkh061)
 
-[2] [https://www.nlm.nih.gov/healthit/snomedct/index.html](https://www.nlm.nih.gov/healthit/snomedct/index.html)
+[2] [`www.nlm.nih.gov/healthit/snomedct/index.html`](https://www.nlm.nih.gov/healthit/snomedct/index.html)
 
-[3] [https://www.nlm.nih.gov/mesh/meshhome.html](https://www.nlm.nih.gov/mesh/meshhome.html)
+[3] [`www.nlm.nih.gov/mesh/meshhome.html`](https://www.nlm.nih.gov/mesh/meshhome.html)
 
-[4] Wei CH, Peng Y, Leaman R, Davis AP, Mattingly CJ, Li J, Wiegers TC, Lu Z. BioCreative V化学-疾病关系(CDR)任务概述，发表于《第五届BioCreative挑战评估工作坊论文集》，第154–166页，2015年
+[4] Wei CH, Peng Y, Leaman R, Davis AP, Mattingly CJ, Li J, Wiegers TC, Lu Z. BioCreative V 化学-疾病关系(CDR)任务概述，发表于《第五届 BioCreative 挑战评估工作坊论文集》，第 154–166 页，2015 年
 
-[5] Li J, Sun Y, Johnson RJ, Sciaky D, Wei CH, Leaman R, Davis AP, Mattingly CJ, Wiegers TC, Lu Z. 在生物医学文献中注释化学品、疾病及其相互作用，发表于《第五届BioCreative挑战评估工作坊论文集》，第173–182页，2015年
+[5] Li J, Sun Y, Johnson RJ, Sciaky D, Wei CH, Leaman R, Davis AP, Mattingly CJ, Wiegers TC, Lu Z. 在生物医学文献中注释化学品、疾病及其相互作用，发表于《第五届 BioCreative 挑战评估工作坊论文集》，第 173–182 页，2015 年
 
-[6] Leaman R, Dogan RI, Lu Z. DNorm：通过成对学习排序进行疾病名称规范化，生物信息学 29(22):2909–17，2013年
+[6] Leaman R, Dogan RI, Lu Z. DNorm：通过成对学习排序进行疾病名称规范化，生物信息学 29(22):2909–17，2013 年
 
-[7] Leaman R, Wei CH, Lu Z. tmChem：一种高效的化学命名实体识别与规范化方法。J Cheminform, 7:S3, 2015年
+[7] Leaman R, Wei CH, Lu Z. tmChem：一种高效的化学命名实体识别与规范化方法。J Cheminform, 7:S3, 2015 年
 
-[8] Li, J., Sun, Y., Johnson, R. J., Sciaky, D., Wei, C. H., Leaman, R., Davis, A. P., Mattingly, C. J., Wiegers, T. C., & Lu, Z. (2016). BioCreative V CDR任务语料库：化学-疾病关系抽取资源。*数据库：生物数据库与注释期刊*, *2016*, baw068\. [https://doi.org/10.1093/database/baw068](https://doi.org/10.1093/database/baw068)
+[8] Li, J., Sun, Y., Johnson, R. J., Sciaky, D., Wei, C. H., Leaman, R., Davis, A. P., Mattingly, C. J., Wiegers, T. C., & Lu, Z. (2016). BioCreative V CDR 任务语料库：化学-疾病关系抽取资源。*数据库：生物数据库与注释期刊*, *2016*, baw068\. [`doi.org/10.1093/database/baw068`](https://doi.org/10.1093/database/baw068)
 
-[9] Jiang, A. Q., Sablayrolles, A., Mensch, A., Bamford, C., Chaplot, D. S., Casas, D. D. L., … & Sayed, W. E. (2023). Mistral 7B. *arXiv预印本arXiv:2310.06825*。
+[9] Jiang, A. Q., Sablayrolles, A., Mensch, A., Bamford, C., Chaplot, D. S., Casas, D. D. L., … & Sayed, W. E. (2023). Mistral 7B. *arXiv 预印本 arXiv:2310.06825*。
 
-[10] Neumann, M., King, D., Beltagy, I., & Ammar, W. (2019年8月). ScispaCy：生物医学自然语言处理的快速且稳健的模型。发表于《第18届BioNLP研讨会及共享任务论文集》 (第319–327页)。
+[10] Neumann, M., King, D., Beltagy, I., & Ammar, W. (2019 年 8 月). ScispaCy：生物医学自然语言处理的快速且稳健的模型。发表于《第 18 届 BioNLP 研讨会及共享任务论文集》 (第 319–327 页)。
 
-[11] [https://ai2-s2-scispacy.s3-us-west-2.amazonaws.com/data/kbs/2020-10-09/mesh_2020.jsonl](https://ai2-s2-scispacy.s3-us-west-2.amazonaws.com/data/kbs/2020-10-09/mesh_2020.jsonl)
+[11] [`ai2-s2-scispacy.s3-us-west-2.amazonaws.com/data/kbs/2020-10-09/mesh_2020.jsonl`](https://ai2-s2-scispacy.s3-us-west-2.amazonaws.com/data/kbs/2020-10-09/mesh_2020.jsonl)
 
 [12] Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., … & Kiela, D. (2020). 用于知识密集型自然语言处理任务的检索增强生成。*神经信息处理系统进展*，*33*，9459–9474。
 
@@ -846,4 +846,4 @@ Scispacy在实体提取方面比微调后的LLM提高了10%的得分，实体链
 
 [14] Dettmers, T., Pagnoni, A., Holtzman, A., & Zettlemoyer, L. (2024). Qlora: 高效的量化大语言模型微调。*神经信息处理系统进展*，*36*。
 
-[15] [https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_ner_bc5cdr_md-0.4.0.tar.gz](https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz)
+[15] [`s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_ner_bc5cdr_md-0.4.0.tar.gz`](https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz)

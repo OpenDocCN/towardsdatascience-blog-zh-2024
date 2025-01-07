@@ -1,18 +1,18 @@
-# 如何轻松部署本地生成式搜索引擎使用VerifAI
+# 如何轻松部署本地生成式搜索引擎使用 VerifAI
 
-> 原文：[https://towardsdatascience.com/how-to-easily-deploy-a-local-generative-search-engine-using-verifai-cdf9dedf53c0?source=collection_archive---------4-----------------------#2024-11-21](https://towardsdatascience.com/how-to-easily-deploy-a-local-generative-search-engine-using-verifai-cdf9dedf53c0?source=collection_archive---------4-----------------------#2024-11-21)
+> 原文：[`towardsdatascience.com/how-to-easily-deploy-a-local-generative-search-engine-using-verifai-cdf9dedf53c0?source=collection_archive---------4-----------------------#2024-11-21`](https://towardsdatascience.com/how-to-easily-deploy-a-local-generative-search-engine-using-verifai-cdf9dedf53c0?source=collection_archive---------4-----------------------#2024-11-21)
 
-## 一个开源倡议，帮助你基于本地文件和自托管（Mistral, Llama 3.x）或商业LLM模型（GPT4, GPT4o等）部署生成式搜索。
+## 一个开源倡议，帮助你基于本地文件和自托管（Mistral, Llama 3.x）或商业 LLM 模型（GPT4, GPT4o 等）部署生成式搜索。
 
-[](https://datawarrior.medium.com/?source=post_page---byline--cdf9dedf53c0--------------------------------)[![Nikola Milosevic (Data Warrior)](../Images/ebea6501c00030561a59a4a12ab7a79a.png)](https://datawarrior.medium.com/?source=post_page---byline--cdf9dedf53c0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cdf9dedf53c0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cdf9dedf53c0--------------------------------) [Nikola Milosevic (Data Warrior)](https://datawarrior.medium.com/?source=post_page---byline--cdf9dedf53c0--------------------------------)
+[](https://datawarrior.medium.com/?source=post_page---byline--cdf9dedf53c0--------------------------------)![Nikola Milosevic (Data Warrior)](https://datawarrior.medium.com/?source=post_page---byline--cdf9dedf53c0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cdf9dedf53c0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdf9dedf53c0--------------------------------) [Nikola Milosevic (Data Warrior)](https://datawarrior.medium.com/?source=post_page---byline--cdf9dedf53c0--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdf9dedf53c0--------------------------------) ·8分钟阅读·2024年11月21日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdf9dedf53c0--------------------------------) ·8 分钟阅读·2024 年 11 月 21 日
 
 --
 
-我之前曾写过关于[构建自己的简单生成式搜索引擎](/how-to-build-a-generative-search-engine-for-your-local-files-using-llama-3-399551786965)的文章，也写过关于[VerifAI项目](/verifai-project-open-source-biomedical-question-answering-with-verified-answers-5417cd9003e0)的文章，发布在《Towards Data Science》网站上。然而，这次有一个重大更新值得重新关注。最初，VerifAI被开发为一个生物医学生成式搜索引擎，提供参考资料和AI验证的答案。这个版本仍然可以使用，我们现在称之为**VerifAI BioMed**。可以在这里访问：[https://app.verifai-project.com/](https://app.verifai-project.com/)。
+我之前曾写过关于构建自己的简单生成式搜索引擎的文章，也写过关于 VerifAI 项目的文章，发布在《Towards Data Science》网站上。然而，这次有一个重大更新值得重新关注。最初，VerifAI 被开发为一个生物医学生成式搜索引擎，提供参考资料和 AI 验证的答案。这个版本仍然可以使用，我们现在称之为**VerifAI BioMed**。可以在这里访问：[`app.verifai-project.com/`](https://app.verifai-project.com/)。
 
-**然而，主要的更新是，你现在可以索引本地文件，并将它们转化为你自己的生成式搜索引擎**（或者称之为生产力引擎，正如一些人称基于GenAI的这些系统）。它也可以作为企业或组织的生成式搜索引擎。我们称这个版本为**VerifAI Core**，因为它作为其他版本的基础。在本文中，我们将探讨如何通过几个简单的步骤来部署它并开始使用。鉴于它是用Python编写的，所以可以在任何操作系统上运行。
+**然而，主要的更新是，你现在可以索引本地文件，并将它们转化为你自己的生成式搜索引擎**（或者称之为生产力引擎，正如一些人称基于 GenAI 的这些系统）。它也可以作为企业或组织的生成式搜索引擎。我们称这个版本为**VerifAI Core**，因为它作为其他版本的基础。在本文中，我们将探讨如何通过几个简单的步骤来部署它并开始使用。鉴于它是用 Python 编写的，所以可以在任何操作系统上运行。
 
 # 架构
 
@@ -28,21 +28,21 @@
 
 对于词汇索引，VerifAI 使用**OpenSearch**。对于语义索引，它使用在配置文件中指定的嵌入模型对文档块进行向量化（支持来自**Hugging Face**的模型），然后将这些向量存储在**Qdrant**中。这个过程的视觉表示如下图所示。
 
-![](../Images/5d23755d1cc6f35287d4b9a18ce08121.png)
+![](img/5d23755d1cc6f35287d4b9a18ce08121.png)
 
 索引架构（图由作者提供）
 
 当使用 VerifAI 来回答问题时，方法有些复杂。用户问题以自然语言编写，经过预处理（例如，排除停用词），然后转化为查询。
 
-对于**OpenSearch**，只执行词汇处理（例如，排除停用词），并检索最相关的文档。对于**Qdrant**，查询会使用与存储在Qdrant中的文档块相同的模型进行嵌入。这些嵌入随后用于查询Qdrant，基于**点积相似度**检索最相似的文档。使用点积是因为它考虑了向量的角度和大小。
+对于**OpenSearch**，只执行词汇处理（例如，排除停用词），并检索最相关的文档。对于**Qdrant**，查询会使用与存储在 Qdrant 中的文档块相同的模型进行嵌入。这些嵌入随后用于查询 Qdrant，基于**点积相似度**检索最相似的文档。使用点积是因为它考虑了向量的角度和大小。
 
-最后，必须将两个引擎的结果合并。这是通过将每个引擎的检索得分标准化到0和1之间来完成的（通过将每个得分除以其各自引擎中的最高得分）。然后，将对应于同一文档的得分相加，并按合并后的得分降序排序。
+最后，必须将两个引擎的结果合并。这是通过将每个引擎的检索得分标准化到 0 和 1 之间来完成的（通过将每个得分除以其各自引擎中的最高得分）。然后，将对应于同一文档的得分相加，并按合并后的得分降序排序。
 
-使用检索到的文档，构建一个提示。该提示包含指令、最相关的文档和用户的问题。然后，将该提示传递给选择的大型语言模型（可以在配置文件中指定，如果未设置模型，则默认为我们本地部署并微调的 Mistral 版本）。最后，应用验证模型以确保没有幻觉，答案通过GUI呈现给用户。该过程的示意图如下图所示。
+使用检索到的文档，构建一个提示。该提示包含指令、最相关的文档和用户的问题。然后，将该提示传递给选择的大型语言模型（可以在配置文件中指定，如果未设置模型，则默认为我们本地部署并微调的 Mistral 版本）。最后，应用验证模型以确保没有幻觉，答案通过 GUI 呈现给用户。该过程的示意图如下图所示。
 
-![](../Images/2be84f495093fd14b2f9ef63f0548f71.png)
+![](img/2be84f495093fd14b2f9ef63f0548f71.png)
 
-检索、生成和验证架构（图由作者提供）。该模型基于以下论文的结合：[https://arxiv.org/pdf/2407.11485](https://arxiv.org/pdf/2407.11485)，[https://aclanthology.org/2024.bionlp-1.44/](https://aclanthology.org/2024.bionlp-1.44/)
+检索、生成和验证架构（图由作者提供）。该模型基于以下论文的结合：[`arxiv.org/pdf/2407.11485`](https://arxiv.org/pdf/2407.11485)，[`aclanthology.org/2024.bionlp-1.44/`](https://aclanthology.org/2024.bionlp-1.44/)
 
 # 安装必要的库
 
@@ -173,16 +173,16 @@ npm start
 
 最后，安装完成后，系统应该大致如下所示：
 
-![](../Images/5e50d230e27c2b95425ca2d3766d55d1.png)
+![](img/5e50d230e27c2b95425ca2d3766d55d1.png)
 
 启用验证功能后的一个示例问题（绿色文本）并引用文件，文件可以下载（截图由作者提供）
 
-![](../Images/dbfa4e8ee9292aac605f14c577b144db.png)
+![](img/dbfa4e8ee9292aac605f14c577b144db.png)
 
 截图展示了已验证声明的工具提示，并呈现了文章中最相似的句子（截图由作者提供）
 
 # 贡献与未来方向
 
-到目前为止，VerifAI 得到了来自欧盟资助的“下一代互联网搜索”项目的帮助。它由塞尔维亚人工智能研究与发展研究所和拜耳公司（Bayer A.G.）联合开发。第一版作为一个面向生物医学的生成搜索引擎开发。该产品将继续在 [https://app.verifai-project.com/](https://app.verifai-project.com/) 上运行。然而，最近我们决定扩展该项目，使其能够真正成为一个开源的生成搜索引擎，能够为任何文件提供可验证的答案，且可以被不同的企业、中小型公司、非政府组织或政府广泛使用。这些修改是由 Natasa Radmilovic 和我自愿开发的（特别感谢 Natasa！）。
+到目前为止，VerifAI 得到了来自欧盟资助的“下一代互联网搜索”项目的帮助。它由塞尔维亚人工智能研究与发展研究所和拜耳公司（Bayer A.G.）联合开发。第一版作为一个面向生物医学的生成搜索引擎开发。该产品将继续在 [`app.verifai-project.com/`](https://app.verifai-project.com/) 上运行。然而，最近我们决定扩展该项目，使其能够真正成为一个开源的生成搜索引擎，能够为任何文件提供可验证的答案，且可以被不同的企业、中小型公司、非政府组织或政府广泛使用。这些修改是由 Natasa Radmilovic 和我自愿开发的（特别感谢 Natasa！）。
 
-然而，鉴于这是一个开源项目，托管在 GitHub 上（[https://github.com/nikolamilosevic86/verifAI](https://github.com/nikolamilosevic86/verifAI)），我们欢迎任何人通过拉取请求、错误报告、功能请求、讨论或其他任何形式的贡献（欢迎随时联系我们——对于 BioMed 和 Core 版本（如此处所述的文档生成搜索），网站将保持不变——[https://verifai-project.com](https://verifai-project.com)）。因此，我们欢迎您贡献代码、启动我们的项目，并在未来关注我们。
+然而，鉴于这是一个开源项目，托管在 GitHub 上（[`github.com/nikolamilosevic86/verifAI`](https://github.com/nikolamilosevic86/verifAI)），我们欢迎任何人通过拉取请求、错误报告、功能请求、讨论或其他任何形式的贡献（欢迎随时联系我们——对于 BioMed 和 Core 版本（如此处所述的文档生成搜索），网站将保持不变——[`verifai-project.com`](https://verifai-project.com)）。因此，我们欢迎您贡献代码、启动我们的项目，并在未来关注我们。

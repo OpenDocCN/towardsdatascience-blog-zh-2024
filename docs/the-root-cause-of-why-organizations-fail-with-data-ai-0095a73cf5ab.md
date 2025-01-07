@@ -1,8 +1,8 @@
 # 数据与人工智能失败的根本原因
 
-> 原文：[https://towardsdatascience.com/the-root-cause-of-why-organizations-fail-with-data-ai-0095a73cf5ab?source=collection_archive---------1-----------------------#2024-11-19](https://towardsdatascience.com/the-root-cause-of-why-organizations-fail-with-data-ai-0095a73cf5ab?source=collection_archive---------1-----------------------#2024-11-19)
+> 原文：[`towardsdatascience.com/the-root-cause-of-why-organizations-fail-with-data-ai-0095a73cf5ab?source=collection_archive---------1-----------------------#2024-11-19`](https://towardsdatascience.com/the-root-cause-of-why-organizations-fail-with-data-ai-0095a73cf5ab?source=collection_archive---------1-----------------------#2024-11-19)
 
-![](../Images/09ff4564ba1ff8364922f775ea70f4b8.png)
+![](img/09ff4564ba1ff8364922f775ea70f4b8.png)
 
 Wave by CLEANPNG
 
@@ -10,9 +10,9 @@ Wave by CLEANPNG
 
 ## 成功所需的战略性基础工作的指南
 
-[](https://medium.com/@jens-linden?source=post_page---byline--0095a73cf5ab--------------------------------)[![Jens Linden, PhD](../Images/49d3b9119b7429766a049a567e26ca49.png)](https://medium.com/@jens-linden?source=post_page---byline--0095a73cf5ab--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0095a73cf5ab--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0095a73cf5ab--------------------------------) [Jens Linden, PhD](https://medium.com/@jens-linden?source=post_page---byline--0095a73cf5ab--------------------------------)
+[](https://medium.com/@jens-linden?source=post_page---byline--0095a73cf5ab--------------------------------)![Jens Linden, PhD](https://medium.com/@jens-linden?source=post_page---byline--0095a73cf5ab--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0095a73cf5ab--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0095a73cf5ab--------------------------------) [Jens Linden, PhD](https://medium.com/@jens-linden?source=post_page---byline--0095a73cf5ab--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0095a73cf5ab--------------------------------) ·阅读时间：26分钟·2024年11月19日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0095a73cf5ab--------------------------------) ·阅读时间：26 分钟·2024 年 11 月 19 日
 
 --
 
@@ -20,7 +20,7 @@ Wave by CLEANPNG
 
 *这是* [*一系列文章的第二部分*](https://towardsdatascience.com/tagged/demystify-data-strategy)*，在这篇文章中，我揭示了数据战略——这是任何希望成为数据驱动型组织、在当今数字化世界中保持竞争力的企业所必需的核心要素*。
 
-*我是Jens，一位具有近20年实践经验的商业导向数据专家，专注于实施数据与AI应用案例。我为来自各行各业的领导者提供建议，帮助他们设计战略并培养数据文化，以利用数据、分析和AI。*
+*我是 Jens，一位具有近 20 年实践经验的商业导向数据专家，专注于实施数据与 AI 应用案例。我为来自各行各业的领导者提供建议，帮助他们设计战略并培养数据文化，以利用数据、分析和 AI。*
 
 # tl;dr
 
@@ -32,59 +32,59 @@ Wave by CLEANPNG
 
 # 目录
 
-[**1\. 数据出了什么问题？**](#efe0)
+**1\. 数据出了什么问题？**
 
-[1.1 数据价值创造失调的症状](#9ef8)
+1.1 数据价值创造失调的症状
 
-[1.2 根本原因](#1e7b)
+1.2 根本原因
 
-[1.3 问题有多大？](#82b5)
+1.3 问题有多大？
 
-[**2\. 赢得胜利的策略**](#5bea)
+**2\. 赢得胜利的策略**
 
-[2.1 它的起源](#5ac8)
+2.1 它的起源
 
-[2.2 战略就是做出选择](#5947)
+2.2 战略就是做出选择
 
-[2.3 战略选择级联](#1021)
+2.3 战略选择级联
 
-[2.4 备忘单](#297a)
+2.4 备忘单
 
-[2.5 做出综合选择](#57b0)
+2.5 做出综合选择
 
-[2.6 制定选择方案](#7988)
+2.6 制定选择方案
 
-[2.7 将战略付诸实践](#1a13)
+2.7 将战略付诸实践
 
-[**3\. 数据业务需求**](#fb6c)
+**3\. 数据业务需求**
 
-[3.1 没有明确的数据需求](#23fa)
+3.1 没有明确的数据需求
 
-[3.2 数据作为运营职责](#7c1b)
+3.2 数据作为运营职责
 
-[3.3 数据作为战略差异化因素](#f643)
+3.3 数据作为战略差异化因素
 
-[3.4 数据作为业务](#be4c)
+3.4 数据作为业务
 
-[3.5 为什么了解你的数据业务需求如此重要？](#d12f)
+3.5 为什么了解你的数据业务需求如此重要？
 
-[**4 何时需要专门的数据或人工智能战略？**](#8968)
+**4 何时需要专门的数据或人工智能战略？**
 
-[4.1 数据战略之谜](#959a)
+4.1 数据战略之谜
 
-[4.2 数据或人工智能职能的战略](#1fa2)
+4.2 数据或人工智能职能的战略
 
-[4.3 建立数据能力的计划](#c376)
+4.3 建立数据能力的计划
 
-[**5 将一切整合在一起**](#e756)
+**5 将一切整合在一起**
 
-[5.1 为数据奠定战略基础的过程](#6cd5)
+5.1 为数据奠定战略基础的过程
 
-[5.2 制定数据相关选择的示例](#8c27)
+5.2 制定数据相关选择的示例
 
-[**6 结论**](#e97e)
+**6 结论**
 
-[**参考文献**](#89c0)
+**参考文献**
 
 # 1\. 数据出了什么问题？
 
@@ -100,9 +100,9 @@ Wave by CLEANPNG
 
 +   更多创新，以及基于数字产品和服务的新商业模式的可能性
 
-有关数据驱动型组织的动机和背景的更多细节，请参见[本系列文章的第1部分[1]](https://medium.com/towards-data-science/the-data-strategy-choice-cascade-9f2742b81bda)。
+有关数据驱动型组织的动机和背景的更多细节，请参见[本系列文章的第一部分[1]](https://medium.com/towards-data-science/the-data-strategy-choice-cascade-9f2742b81bda)。
 
-数据咨询行业、众多数据专家（包括我自己）和技术供应商不厌其烦地重复强调组织领导者为何应投资于数据能力，包括技能、能力、方法论、文化以及——当然——相应的IT工具和平台。以下是从[2]翻译过来的一个引用，点明了要点：
+数据咨询行业、众多数据专家（包括我自己）和技术供应商不厌其烦地重复强调组织领导者为何应投资于数据能力，包括技能、能力、方法论、文化以及——当然——相应的 IT 工具和平台。以下是从[2]翻译过来的一个引用，点明了要点：
 
 > *“通过数据创造持续价值已经成为当今企业的决定性竞争优势，且在不久的将来，这将成为生存的必需条件。”[2]*
 
@@ -140,21 +140,21 @@ Wave by CLEANPNG
 
 曾经并且现在依然存在一种普遍的误解，即数据价值创造是一个技术挑战。如果我们只引入合适的平台并提供所需的培训，组织就能够有效且高效地利用数据来创造商业价值。但这是一个谬论。
 
-IT平台、工具和算法库已经存在了一段时间，成熟且可以使用，并且持续改进。虽然数据的技术提取和准备应该‘正确’完成，以实现高质量数据以及可扩展和灵活的数据模型，但已有经过验证的框架和最佳实践可以精确实现这一目标。
+IT 平台、工具和算法库已经存在了一段时间，成熟且可以使用，并且持续改进。虽然数据的技术提取和准备应该‘正确’完成，以实现高质量数据以及可扩展和灵活的数据模型，但已有经过验证的框架和最佳实践可以精确实现这一目标。
 
-> 选择和实施IT平台、工具、最佳实践和算法库来处理数据是一个复杂但并不复杂的问题，实际上已经解决了。
+> 选择和实施 IT 平台、工具、最佳实践和算法库来处理数据是一个复杂但并不复杂的问题，实际上已经解决了。
 
 组织要么具备选择和实施内部技术的专业知识，要么可以轻松获得可靠的外部专家咨询。
 
 我认为，功能失调的数据价值创造的根本原因是缺乏一致的商业战略：
 
-> 缺乏商业战略是许多组织在数据、分析和AI方面失败的根本原因。
+> 缺乏商业战略是许多组织在数据、分析和 AI 方面失败的根本原因。
 
 如果商业战略没有明确定义，组织在构建和维护他们需要的数据能力时会遇到困难，这些能力对于有效和高效地发现、创新、构建和维护数据驱动的解决方案至关重要。
 
-![](../Images/e5a669a5526905695300cec655fda9c2.png)
+![](img/e5a669a5526905695300cec655fda9c2.png)
 
-图1：战略是大多数公司在数据方面失败的根本原因。植物图片来自CLEANPNG。
+图 1：战略是大多数公司在数据方面失败的根本原因。植物图片来自 CLEANPNG。
 
 例如，成功实现数据价值生成所需的一个核心数据能力是（*数据*）*文化* [3, 4]，它确保员工：
 
@@ -168,11 +168,11 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 然而，为了创建有效的数据文化，你需要知道你的目标文化应朝着哪个方向发展。你必须了解数据业务需求，这些需求指引你需要在何种方向上发展你的目标数据文化。这些数据业务需求正是由战略提供的。
 
-没有明确的商业战略，组织很难就数据、分析和AI的需求达成一致。数据价值创造的角色也因此不明确。然而，要构建量身定制和可持续的数据能力，你需要了解在组织中数据的主要用途，是否是例如为CFO提供一组报告，还是数据是推动竞争优势的一种手段，比如通过数字产品和服务。
+没有明确的商业战略，组织很难就数据、分析和 AI 的需求达成一致。数据价值创造的角色也因此不明确。然而，要构建量身定制和可持续的数据能力，你需要了解在组织中数据的主要用途，是否是例如为 CFO 提供一组报告，还是数据是推动竞争优势的一种手段，比如通过数字产品和服务。
 
 通过有意识的战略设计，将隐含的选择变得显而易见，你便构建了一种沟通方式，来达成关于数据业务需求的共识。
 
-正确构建数据和AI能力无疑并非制定稳固战略的唯一好处。这更像是一个副作用。虽然这应该是不言自明的，但为了完整性，拥有一个明确且精心设计的商业战略的好处包括：
+正确构建数据和 AI 能力无疑并非制定稳固战略的唯一好处。这更像是一个副作用。虽然这应该是不言自明的，但为了完整性，拥有一个明确且精心设计的商业战略的好处包括：
 
 1.  竞争优势
 
@@ -202,9 +202,9 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 虽然我并不清楚有关此问题的代表性统计数据，且一个好的商业战略可能确实依赖于组织的规模以及其他因素，如行业等，但我个人对德语市场的印象——我最为活跃的领域——是，许多公司缺乏一个扎实、明确且设计良好的战略。
 
-> 很少有组织能够制定出明确、扎实的商业战略，从中可以推导出所需的数据、分析和AI能力。
+> 很少有组织能够制定出明确、扎实的商业战略，从中可以推导出所需的数据、分析和 AI 能力。
 
-根据我的经验，小型和中型企业，*“Mittelstand”*，即德国经济的支柱，面临的挑战尤其严峻[大约56%的员工在这些企业工作 [6]](https://de.statista.com/themen/3996/mittelstand-in-deutschland/#topicOverview)。
+根据我的经验，小型和中型企业，*“Mittelstand”*，即德国经济的支柱，面临的挑战尤其严峻[大约 56%的员工在这些企业工作 [6]](https://de.statista.com/themen/3996/mittelstand-in-deutschland/#topicOverview)。
 
 通过本文，我旨在通过澄清组织战略工作中需要做的事，来解决数据作为资产的根本性问题。
 
@@ -214,9 +214,9 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 ## 2.1 它的起源
 
-玩转成功是一种由[罗杰·马丁](https://rogerlmartin.com/) [7]提出的战略框架，他在2017年被评为全球#1管理思想家，是全球各大公司CEO的可信顾问，曾任Monitor咨询公司顾问，且曾是罗特曼管理学院的教授。
+玩转成功是一种由[罗杰·马丁](https://rogerlmartin.com/) [7]提出的战略框架，他在 2017 年被评为全球#1 管理思想家，是全球各大公司 CEO 的可信顾问，曾任 Monitor 咨询公司顾问，且曾是罗特曼管理学院的教授。
 
-这一框架是在1980年代和1990年代开发并不断完善的[5b]，并最终形成了罗杰·马丁和宝洁公司前CEO A.G. 拉夫利的[合著书籍 [8]](https://rogerlmartin.com/lets-read/playing-to-win)。该书于2013年出版。
+这一框架是在 1980 年代和 1990 年代开发并不断完善的[5b]，并最终形成了罗杰·马丁和宝洁公司前 CEO A.G. 拉夫利的[合著书籍 [8]](https://rogerlmartin.com/lets-read/playing-to-win)。该书于 2013 年出版。
 
 这一框架成为宝洁公司的标准战略方法论，并且自那时以来已成功应用于许多行业。此外，玩转成功框架也通过罗杰·马丁的一系列战略实践者见解不断得到详细阐述[5, 5c]。
 
@@ -234,7 +234,7 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 > “规划是制定项目的时间表、交付物、预算和责任的行为。”[5d]
 
-然而，战略和计划并不是互相排斥的。制定计划是战略设计过程的自然部分，目的是建立实施战略所需的能力（参见下文2.7节）。
+然而，战略和计划并不是互相排斥的。制定计划是战略设计过程的自然部分，目的是建立实施战略所需的能力（参见下文 2.7 节）。
 
 还有一种我特别喜欢的战略定义，即：“*战略是决定你选择做什么和不做什么，以实现特定目标的逻辑*”[10]。
 
@@ -244,17 +244,17 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 在“赢得竞争”框架内，每个战略设计者必须做出五个关键选择。这些选择被结构化为所谓的战略选择级联，这是该框架的核心工具之一。
 
-![](../Images/82545aa881e4ff52d1dc2a8204801a7d.png)
+![](img/82545aa881e4ff52d1dc2a8204801a7d.png)
 
-图2：战略选择级联有助于结构化战略设计过程中需要回答的战略问题。
+图 2：战略选择级联有助于结构化战略设计过程中需要回答的战略问题。
 
 战略的实际核心由第二和第三框中所做的一致选择构成：*何处竞争与如何取胜*。
 
 如何应用这个级联，最好通过一个现实世界的例子来说明，该例子来自[9]，描述了西南航空的公司战略选择。
 
-![](../Images/9c2eff32a728d590478ac2c93dd7496b.png)
+![](img/9c2eff32a728d590478ac2c93dd7496b.png)
 
-图3：西南航空的战略选择级联示例。该级联总结了大多数相关的战略决策。
+图 3：西南航空的战略选择级联示例。该级联总结了大多数相关的战略决策。
 
 该级联不会仅仅填充一次；它将在战略设计过程的多个使用场景中反复审视和应用：
 
@@ -268,7 +268,7 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 当我使用选择级联时，我的《赢得竞争备忘单》对我有所帮助，其中包含了有关每个框的进一步信息以及框架的主要来源。
 
-![](../Images/a3c64015150480bbabee4dde59f5d09e.png)
+![](img/a3c64015150480bbabee4dde59f5d09e.png)
 
 图 4：赢得竞争备忘单，提供有关战略选择级联每个元素的详细信息。
 
@@ -280,7 +280,7 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 但在考虑必须具备的能力和管理系统时，你需要时刻牢记你的“何处竞争”和“如何竞争”。能力和系统是一种现实检查：如果你无法建立所需的能力和系统以实现你的战略，你需要考虑采取不同的方式取胜，有时甚至需要换一个竞争领域。
 
-![](../Images/9404b1ce7eb3045d7c0873f661ea1f26.png)
+![](img/9404b1ce7eb3045d7c0873f661ea1f26.png)
 
 图 5：在处理选择级联时，这是一个来回的过程，你需要在关注前景的同时，也要始终牢记背景。
 
@@ -296,9 +296,9 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 不仅各个业务单元需要做出自己的战略选择，从而制定嵌套的选择级联，职能部门[10]，如信息技术（IT）、人力资源（HR）、财务、市场营销、研发或数据与人工智能（Data & AI）等也需要做出战略选择。
 
-![](../Images/726e4ab94aa93db19774e86651fc25f0.png)
+![](img/726e4ab94aa93db19774e86651fc25f0.png)
 
-图6：展示了一个职能战略的嵌套选择级联。
+图 6：展示了一个职能战略的嵌套选择级联。
 
 功能性战略的一个特点是，它们可以被视为自然垄断[5j]，在这种情况下，（内部）客户通常没有其他选择，只能使用该职能提供的服务。
 
@@ -310,9 +310,9 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 战略激活包括创建利益相关者的参与，以使战略具体化，并通过建立必备能力和相应的管理支持系统，推动从设计到行动的转变。
 
-![](../Images/00489266e981821852aacfe895def7a6.png)
+![](img/00489266e981821852aacfe895def7a6.png)
 
-图7：通过构建所需的能力和系统，战略被付诸实践。
+图 7：通过构建所需的能力和系统，战略被付诸实践。
 
 一旦能力和系统被定义，它们就需要被构建和维护。对于每个能力或系统进行适配差距分析（通常称为成熟度评估）后，将为创建构建、购买或借用所需能力和系统的计划提供输入。
 
@@ -332,15 +332,15 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 数据业务需求可以采取四种不同的形式。
 
-![](../Images/d2ec9ab2fe69ab201b0cfb8b8e310d07.png)
+![](img/d2ec9ab2fe69ab201b0cfb8b8e310d07.png)
 
-图8：概述了四种可能的数据业务需求，并在浅黄色中突出了数据、分析和人工智能在商业战略选择级联中的相关元素。
+图 8：概述了四种可能的数据业务需求，并在浅黄色中突出了数据、分析和人工智能在商业战略选择级联中的相关元素。
 
 让我们深入分析这四种情景。
 
 ## 3.1 没有明确的数据需求
 
-![](../Images/7738301e80233c0339b9479bce647687.png)
+![](img/7738301e80233c0339b9479bce647687.png)
 
 在这种情况下，组织内部对数据价值创造是否有必要为取胜提供共识。这意味着，数据似乎与战略选择瀑布的五个框架无关。
 
@@ -364,7 +364,7 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 ## 3.2 数据作为运营职责
 
-![](../Images/6b9ae5a8ac454952df6cbcee34186e35.png)
+![](img/6b9ae5a8ac454952df6cbcee34186e35.png)
 
 在第二种情况下，数据、分析和人工智能是运营性能力，但不是战略性能力和/或系统，因此应尽可能实现成本效益。相关的数据元素可以在瀑布图的第四和第五框中找到，即必备能力和启用管理系统。
 
@@ -388,7 +388,7 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 一家地区性公用事业公司使用数据、分析和人工智能来监控能源使用、预测维护需求并生成内部报告。与示例 1 类似，数据有助于实现运营效率和满足合规要求，但并未提供战略性差异化。
 
-因此，数据、分析和人工智能是能力（第4框）或系统（第5框），代表着运营上的迫切需求，而非战略性能力。
+因此，数据、分析和人工智能是能力（第 4 框）或系统（第 5 框），代表着运营上的迫切需求，而非战略性能力。
 
 与数据相关的启用管理系统的例子可能是需要提供管理洞察的数据报告系统、商业智能工具或相应的数据平台。
 
@@ -406,17 +406,17 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 ## 3.3 数据作为战略差异化因素
 
-![](../Images/692e7e6e4a12bfc361e90dea54d3dde9.png)
+![](img/692e7e6e4a12bfc361e90dea54d3dde9.png)
 
-在这种情况下，数据、分析和人工智能作为核心差异化因素，直接影响公司在市场中如何获胜。它们是实现公司价值主张的关键部分，帮助公司创造竞争优势（框3：如何获胜），或是实现竞争优势理论的关键战略能力（框4：必备能力）。
+在这种情况下，数据、分析和人工智能作为核心差异化因素，直接影响公司在市场中如何获胜。它们是实现公司价值主张的关键部分，帮助公司创造竞争优势（框 3：如何获胜），或是实现竞争优势理论的关键战略能力（框 4：必备能力）。
 
 **示例**
 
-这个示例，[借鉴自[5k]](https://rogermartin.medium.com/distinguishing-how-to-win-from-capabilities-in-your-strategy-choice-fd190484ccea)，是Frito Lay的案例，Frito Lay是一家咸味零食生产商（Lay’s、Doritos等），它采用了一种直接门店交货系统，即产品直接配送到便利店，并由配送司机将其摆放在货架上。
+这个示例，[借鉴自[5k]](https://rogermartin.medium.com/distinguishing-how-to-win-from-capabilities-in-your-strategy-choice-fd190484ccea)，是 Frito Lay 的案例，Frito Lay 是一家咸味零食生产商（Lay’s、Doritos 等），它采用了一种直接门店交货系统，即产品直接配送到便利店，并由配送司机将其摆放在货架上。
 
-这种直接门店交货系统劳动密集，因此成本较高，但它使Frito Lay区别于其竞争对手。拥有大量知名产品为Frito Lay的配送系统创造了巨大的成本优势（一次性采购多种产品），从而产生了独特的竞争优势，是竞争对手无法匹敌的。
+这种直接门店交货系统劳动密集，因此成本较高，但它使 Frito Lay 区别于其竞争对手。拥有大量知名产品为 Frito Lay 的配送系统创造了巨大的成本优势（一次性采购多种产品），从而产生了独特的竞争优势，是竞争对手无法匹敌的。
 
-构建数据和人工智能解决方案，预测商店库存并为每个销售点生成最佳产品订单，有助于降低直接门店交货系统的成本。因此，数据、分析和人工智能是战略性能力（框4：必备能力），直接支持竞争优势（框3：如何获胜）。
+构建数据和人工智能解决方案，预测商店库存并为每个销售点生成最佳产品订单，有助于降低直接门店交货系统的成本。因此，数据、分析和人工智能是战略性能力（框 4：必备能力），直接支持竞争优势（框 3：如何获胜）。
 
 **建议**
 
@@ -430,23 +430,23 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 ## 3.4 数据即业务
 
-![](../Images/8a157c2c7828f2e49e041f0c41a9b903.png)
+![](img/8a157c2c7828f2e49e041f0c41a9b903.png)
 
 这是大多数人感到兴奋的情境：数据扩展甚至根本性地改变了当前的商业模式，组织进入了数字经济。
 
-在这种情况下，数字数据驱动的产品或服务是公司产品的一部分（框2：在哪里竞争），甚至可能是愿景的一部分（框1：胜利的愿望）。
+在这种情况下，数字数据驱动的产品或服务是公司产品的一部分（框 2：在哪里竞争），甚至可能是愿景的一部分（框 1：胜利的愿望）。
 
 **示例**
 
-这个示例[同样借鉴自[5k]](https://rogermartin.medium.com/distinguishing-how-to-win-from-capabilities-in-your-strategy-choice-fd190484ccea)，讲的是Westlaw，一家提供法律搜索服务的数字平台。Westlaw的战略资产之一是一个包含自1975年以来法院案件记录的数据库，允许律师根据实际案件查阅历史案例。
+这个示例[同样借鉴自[5k]](https://rogermartin.medium.com/distinguishing-how-to-win-from-capabilities-in-your-strategy-choice-fd190484ccea)，讲的是 Westlaw，一家提供法律搜索服务的数字平台。Westlaw 的战略资产之一是一个包含自 1975 年以来法院案件记录的数据库，允许律师根据实际案件查阅历史案例。
 
-数据是公司产品的一部分（框2：在哪里竞争），其在市场上的独特性确保了其竞争优势（框3：如何取胜）。
+数据是公司产品的一部分（框 2：在哪里竞争），其在市场上的独特性确保了其竞争优势（框 3：如何取胜）。
 
 **建议**
 
 由于数据显然是公司的一项资产，能够确保竞争优势，因此必须对数据予以相应的重视。例如，它需要关心、培育、保护和质量保证。
 
-因此，数据治理（框4：必备能力）和相应的系统（框5：支持管理系统）是必不可少的。
+因此，数据治理（框 4：必备能力）和相应的系统（框 5：支持管理系统）是必不可少的。
 
 ## 3.5 为什么了解你的数据业务需求很重要？
 
@@ -492,9 +492,9 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 如果一个组织有或将拥有一个数据管理、分析或 AI 的功能，为（内部）数据客户提供服务，那么它只需要如第 2.6 节所述的战略。
 
-如何将战略选择级联应用于设计这样的*数据战略*，是[本系列第 1 部分的主题 [1]](/the-data-strategy-choice-cascade-9f2742b81bda)。
+如何将战略选择级联应用于设计这样的*数据战略*，是[本系列第一部分的主题 [1]](/the-data-strategy-choice-cascade-9f2742b81bda)。
 
-![](../Images/800e6a1b09cbfb82cefe7159fac5a4ee.png)
+![](img/800e6a1b09cbfb82cefe7159fac5a4ee.png)
 
 图 8：数据战略选择级联的可视化 [1] 展示了如何将级联翻译到数据功能的上下文中。
 
@@ -526,9 +526,9 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 一个设计有效的数据和人工智能能力的过程可能如下所示：
 
-![](../Images/bc549e01d0d1c113d5670486f12adae0.png)
+![](img/bc549e01d0d1c113d5670486f12adae0.png)
 
-图9：为数据、分析和人工智能奠定战略基础的四步流程，为数据驱动型组织提供基础。
+图 9：为数据、分析和人工智能奠定战略基础的四步流程，为数据驱动型组织提供基础。
 
 **1\. （重新）设计您的业务战略**
 
@@ -564,25 +564,25 @@ IT平台、工具和算法库已经存在了一段时间，成熟且可以使用
 
 奠定战略基础确保高管和员工理解数据在组织中的角色。反过来，这将有助于建设有效且可持续的数据能力，并为开发和维护这些能力所需的资源提供指导。
 
-在第一步中，我们已经在本文第3节中看到了相关示例。那么第二步中的决策授权应该是怎样的呢？
+在第一步中，我们已经在本文第三部分中看到了相关示例。那么第二步中的决策授权应该是怎样的呢？
 
 ## 5.2 数据相关决策授权的示例
 
-让我们将过程的第二步应用到Frito Lay的上述示例中，其中店铺库存预测支持直接门店配送系统的竞争优势。
+让我们将过程的第二步应用到 Frito Lay 的上述示例中，其中店铺库存预测支持直接门店配送系统的竞争优势。
 
-销售部门的店铺库存预测案例可能是Frito Lay众多AI应用案例之一，因此AI能力在公司许多部门中都是必需的。假设Frito Lay决定建立一个中央AI能力，从而设立一个专门的AI职能部门。
+销售部门的店铺库存预测案例可能是 Frito Lay 众多 AI 应用案例之一，因此 AI 能力在公司许多部门中都是必需的。假设 Frito Lay 决定建立一个中央 AI 能力，从而设立一个专门的 AI 职能部门。
 
-![](../Images/1e7e2d082bdcbfe1cecf72cd431cfe72.png)
+![](img/1e7e2d082bdcbfe1cecf72cd431cfe72.png)
 
-图10：组织中数据和AI相关决策授权的示例。
+图 10：组织中数据和 AI 相关决策授权的示例。
 
-AI功能负责人需要设计一个支持公司战略并直接促进Frito Lay“如何取胜”（How to Win）的AI战略。AI战略中的一个“Where To Play”可以是为销售部门提供预测解决方案。
+AI 功能负责人需要设计一个支持公司战略并直接促进 Frito Lay“如何取胜”（How to Win）的 AI 战略。AI 战略中的一个“Where To Play”可以是为销售部门提供预测解决方案。
 
-为了确保AI预测解决方案产生影响，还需要将与数据相关的决策交给销售负责人，以便销售部门承诺在其规划过程中使用AI驱动的洞察。这意味着“AI驱动的销售规划”将成为销售战略的必备能力。
+为了确保 AI 预测解决方案产生影响，还需要将与数据相关的决策交给销售负责人，以便销售部门承诺在其规划过程中使用 AI 驱动的洞察。这意味着“AI 驱动的销售规划”将成为销售战略的必备能力。
 
 # 6 结论
 
-良好的商业战略对成功的数据价值创造似乎被低估和忽视了。公司必须有一个明确定义的、明确的商业战略，从中可以明显看出任何数据、分析和AI需求。这一战略基础是授权数据相关决策的起点，无论是在专门的数据管理、分析或AI职能中，还是在跨业务单元构建必要能力时。
+良好的商业战略对成功的数据价值创造似乎被低估和忽视了。公司必须有一个明确定义的、明确的商业战略，从中可以明显看出任何数据、分析和 AI 需求。这一战略基础是授权数据相关决策的起点，无论是在专门的数据管理、分析或 AI 职能中，还是在跨业务单元构建必要能力时。
 
 为了让你的组织成为数据驱动型的，确保你有一个稳固的战略基础。否则，你很可能会遇到问题，并经历我们都熟知的功能失调的数据价值创造症状。
 
@@ -592,39 +592,39 @@ AI功能负责人需要设计一个支持公司战略并直接促进Frito Lay“
 
 # 参考文献
 
-[1] Jens Linden, [数据战略选择级联](https://towardsdatascience.com/the-data-strategy-choice-cascade-9f2742b81bda) (2024)，在[Towards Data Science](https://towardsdatascience.com/)上发布的Medium文章
+[1] Jens Linden, [数据战略选择级联](https://towardsdatascience.com/the-data-strategy-choice-cascade-9f2742b81bda) (2024)，在[Towards Data Science](https://towardsdatascience.com/)上发布的 Medium 文章
 
-[2] Sebastian Wernicke, [数据启示](https://www.vahlen.de/wernicke-data-inspired/product/35418267) (2024)，由Vahlen出版的德语书籍
+[2] Sebastian Wernicke, [数据启示](https://www.vahlen.de/wernicke-data-inspired/product/35418267) (2024)，由 Vahlen 出版的德语书籍
 
 [3] Carsten Bange, [数据文化：定义、挑战与措施](https://barc.com/de/data-culture/) (2022)，文章
 
-[4] Jens Linden, [数据文化——什么与为什么？](https://www.linkedin.com/posts/jens-linden_dataculture-datastrategy-digitaltransformation-activity-7240268684340998144-LGXa) (2024)，LinkedIn帖子
+[4] Jens Linden, [数据文化——什么与为什么？](https://www.linkedin.com/posts/jens-linden_dataculture-datastrategy-digitaltransformation-activity-7240268684340998144-LGXa) (2024)，LinkedIn 帖子
 
 [5] Roger Martin, [赢得胜利/ 实践者洞察](https://rogerlmartin.com/archive/medium-posts/-in-thought-pillars,strategy) (2024)，列出文章的网页
 
-[5a] Roger Martin, [从值得称赞的清单到如何真正赢得胜利](https://medium.com/@rogermartin/from-laudable-list-to-how-to-really-win-6aa20498e89) (2020)，Medium文章，属于[‘赢得胜利实践者洞察’](https://rogerlmartin.com/archive/medium-posts)系列
+[5a] Roger Martin, [从值得称赞的清单到如何真正赢得胜利](https://medium.com/@rogermartin/from-laudable-list-to-how-to-really-win-6aa20498e89) (2020)，Medium 文章，属于[‘赢得胜利实践者洞察’](https://rogerlmartin.com/archive/medium-posts)系列
 
-[5b] Roger Martin, [赢得胜利的起源](https://medium.com/@rogermartin/the-origins-of-playing-to-win-1d63af815797) (2023)，Medium文章，属于[‘赢得胜利实践者洞察’](https://rogerlmartin.com/archive/medium-posts)系列
+[5b] Roger Martin, [赢得胜利的起源](https://medium.com/@rogermartin/the-origins-of-playing-to-win-1d63af815797) (2023)，Medium 文章，属于[‘赢得胜利实践者洞察’](https://rogerlmartin.com/archive/medium-posts)系列
 
-[5c] Roger Martin, [(赢得胜利) x 5 (2024)](https://medium.com/@rogermartin/playing-to-win-x-5-43fb814a89a6)，Medium文章，属于[‘赢得胜利实践者洞察’](https://rogerlmartin.com/archive/medium-posts)系列
+[5c] Roger Martin, [(赢得胜利) x 5 (2024)](https://medium.com/@rogermartin/playing-to-win-x-5-43fb814a89a6)，Medium 文章，属于[‘赢得胜利实践者洞察’](https://rogerlmartin.com/archive/medium-posts)系列
 
-[5d] 罗杰·马丁，[战略与规划：互为补充而非替代](https://rogermartin.medium.com/strategy-vs-planning-complements-not-substitutes-ea08e56809d6)（2024），Medium文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
+[5d] 罗杰·马丁，[战略与规划：互为补充而非替代](https://rogermartin.medium.com/strategy-vs-planning-complements-not-substitutes-ea08e56809d6)（2024），Medium 文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
 
-[5e] 罗杰·马丁，[最佳战略破冰者](https://rogermartin.medium.com/the-best-strategy-icebreaker-0c9b6ae58461)（2024），Medium文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
+[5e] 罗杰·马丁，[最佳战略破冰者](https://rogermartin.medium.com/the-best-strategy-icebreaker-0c9b6ae58461)（2024），Medium 文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
 
-[5f] 罗杰·马丁，[战略选择结构化过程](https://medium.com/@rogermartin/the-strategic-choice-structuring-process-5e116b12ae1f)，Medium文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
+[5f] 罗杰·马丁，[战略选择结构化过程](https://medium.com/@rogermartin/the-strategic-choice-structuring-process-5e116b12ae1f)，Medium 文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
 
-[5g] 罗杰·马丁，[克服整合战略挑战](https://rogermartin.medium.com/overcoming-the-integrative-strategy-challenge-9af0d670d083)（2024），Medium文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
+[5g] 罗杰·马丁，[克服整合战略挑战](https://rogermartin.medium.com/overcoming-the-integrative-strategy-challenge-9af0d670d083)（2024），Medium 文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
 
-[5h] 罗杰·马丁，[论“在哪里竞争”与“如何赢”不可分割性](https://rogermartin.medium.com/on-the-inseparability-of-where-to-play-and-how-to-win-181c2ea5c463)（2020），Medium文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
+[5h] 罗杰·马丁，[论“在哪里竞争”与“如何赢”不可分割性](https://rogermartin.medium.com/on-the-inseparability-of-where-to-play-and-how-to-win-181c2ea5c463)（2020），Medium 文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
 
-[5i] 罗杰·马丁，[战略选择指导](https://rogermartin.medium.com/strategic-choice-chartering-3d56d8962ec3)（2024），Medium文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
+[5i] 罗杰·马丁，[战略选择指导](https://rogermartin.medium.com/strategic-choice-chartering-3d56d8962ec3)（2024），Medium 文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
 
-[5j] 罗杰·马丁，[自然垄断的战略](https://medium.com/@rogermartin/strategy-for-natural-monopolies-aecfb3cc6ac9)（2024），Medium文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
+[5j] 罗杰·马丁，[自然垄断的战略](https://medium.com/@rogermartin/strategy-for-natural-monopolies-aecfb3cc6ac9)（2024），Medium 文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
 
-[5k] 罗杰·马丁，[区分战略选择中的“如何赢”与“能力”](https://rogermartin.medium.com/distinguishing-how-to-win-from-capabilities-in-your-strategy-choice-fd190484ccea)（2021），Medium文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
+[5k] 罗杰·马丁，[区分战略选择中的“如何赢”与“能力”](https://rogermartin.medium.com/distinguishing-how-to-win-from-capabilities-in-your-strategy-choice-fd190484ccea)（2021），Medium 文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
 
-[5l] 罗杰·马丁，[企业战略与业务单元战略](https://rogermartin.medium.com/corporate-vs-business-unit-strategy-adb1163665da)（2022），Medium文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
+[5l] 罗杰·马丁，[企业战略与业务单元战略](https://rogermartin.medium.com/corporate-vs-business-unit-strategy-adb1163665da)（2022），Medium 文章，属于[“玩得赢实战见解”](https://rogerlmartin.com/archive/medium-posts)系列
 
 [6] statista，[作为经济支柱的中小企业](https://de.statista.com/themen/3996/mittelstand-in-deutschland/#topicOverview)（2024），德语网站
 
@@ -638,14 +638,14 @@ AI功能负责人需要设计一个支持公司战略并直接促进Frito Lay“
 
 [11] IDEO U, [激活战略](https://www.ideou.com/products/activating-strategy)（2024），网站
 
-[12] Tableau, [西南航空利用Tableau保持准时航班并优化机队表现](https://www.tableau.com/solutions/customer/southwest-airlines-maintains-time-flights-and-optimizes-fleet-performance-tableau)（2024），网站
+[12] Tableau, [西南航空利用 Tableau 保持准时航班并优化机队表现](https://www.tableau.com/solutions/customer/southwest-airlines-maintains-time-flights-and-optimizes-fleet-performance-tableau)（2024），网站
 
-[13] Jens Linden, [数据急救包](https://www.linkedin.com/posts/jens-linden_data-first-aid-kit-activity-6890240099456479232-SVjL)（2022），LinkedIn帖子
+[13] Jens Linden, [数据急救包](https://www.linkedin.com/posts/jens-linden_data-first-aid-kit-activity-6890240099456479232-SVjL)（2022），LinkedIn 帖子
 
-[14] Caroline Carruthers 和 Peter Jackson, 《首席数据官的操作手册》第2版（2020），Facet Publishing出版的书籍
+[14] Caroline Carruthers 和 Peter Jackson, 《首席数据官的操作手册》第 2 版（2020），Facet Publishing 出版的书籍
 
-[15] Caroline Carruthers 和 Peter Jackson, 《数据驱动的商业转型》（2019），Wiley出版的书籍
+[15] Caroline Carruthers 和 Peter Jackson, 《数据驱动的商业转型》（2019），Wiley 出版的书籍
 
-[16] Jens Linden, [数据货币化——数据战略的‘Where to Play’](https://www.linkedin.com/posts/jens-linden_datastrategy-datamonetization-activity-7151564352897089537-a1om)（2024），LinkedIn帖子
+[16] Jens Linden, [数据货币化——数据战略的‘Where to Play’](https://www.linkedin.com/posts/jens-linden_datastrategy-datamonetization-activity-7151564352897089537-a1om)（2024），LinkedIn 帖子
 
 *除非另有说明，所有图片均为作者提供。*

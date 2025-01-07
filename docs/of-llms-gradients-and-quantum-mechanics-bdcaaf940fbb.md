@@ -1,16 +1,16 @@
-# 关于LLM、梯度和量子力学
+# 关于 LLM、梯度和量子力学
 
-> 原文：[https://towardsdatascience.com/of-llms-gradients-and-quantum-mechanics-bdcaaf940fbb?source=collection_archive---------6-----------------------#2024-11-12](https://towardsdatascience.com/of-llms-gradients-and-quantum-mechanics-bdcaaf940fbb?source=collection_archive---------6-----------------------#2024-11-12)
+> 原文：[`towardsdatascience.com/of-llms-gradients-and-quantum-mechanics-bdcaaf940fbb?source=collection_archive---------6-----------------------#2024-11-12`](https://towardsdatascience.com/of-llms-gradients-and-quantum-mechanics-bdcaaf940fbb?source=collection_archive---------6-----------------------#2024-11-12)
 
 ## 量子计算是否能帮助我们提高训练大型神经网络语言模型（LLM）的能力？
 
-[](https://riccardo-disipio.medium.com/?source=post_page---byline--bdcaaf940fbb--------------------------------)[![Riccardo Di Sipio](../Images/07d5e8829a0bba4f32a91e261378d969.png)](https://riccardo-disipio.medium.com/?source=post_page---byline--bdcaaf940fbb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdcaaf940fbb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bdcaaf940fbb--------------------------------) [Riccardo Di Sipio](https://riccardo-disipio.medium.com/?source=post_page---byline--bdcaaf940fbb--------------------------------)
+[](https://riccardo-disipio.medium.com/?source=post_page---byline--bdcaaf940fbb--------------------------------)![Riccardo Di Sipio](https://riccardo-disipio.medium.com/?source=post_page---byline--bdcaaf940fbb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdcaaf940fbb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdcaaf940fbb--------------------------------) [Riccardo Di Sipio](https://riccardo-disipio.medium.com/?source=post_page---byline--bdcaaf940fbb--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdcaaf940fbb--------------------------------) ·13分钟阅读·2024年11月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdcaaf940fbb--------------------------------) ·13 分钟阅读·2024 年 11 月 12 日
 
 --
 
-![](../Images/c29f7df67db71e4b0399ae2ff25a9683.png)
+![](img/c29f7df67db71e4b0399ae2ff25a9683.png)
 
 图片来源：Alessio Soggetti (@asoggetti) 来自 Unsplash.com
 

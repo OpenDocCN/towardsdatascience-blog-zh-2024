@@ -1,16 +1,16 @@
 # 使用 GPT-4o 创建 WhatsApp AI 助理
 
-> 原文：[https://towardsdatascience.com/creating-a-whatsapp-ai-agent-with-gpt-4o-f0bc197d2ac0?source=collection_archive---------0-----------------------#2024-12-22](https://towardsdatascience.com/creating-a-whatsapp-ai-agent-with-gpt-4o-f0bc197d2ac0?source=collection_archive---------0-----------------------#2024-12-22)
+> 原文：[`towardsdatascience.com/creating-a-whatsapp-ai-agent-with-gpt-4o-f0bc197d2ac0?source=collection_archive---------0-----------------------#2024-12-22`](https://towardsdatascience.com/creating-a-whatsapp-ai-agent-with-gpt-4o-f0bc197d2ac0?source=collection_archive---------0-----------------------#2024-12-22)
 
-![](../Images/0d1193bc8f30025fc5f60982397b5141.png)
+![](img/0d1193bc8f30025fc5f60982397b5141.png)
 
 使用 DALL-E 创建
 
 ## 如何使用 Meta API 构建你自己的 LLM 驱动的 Whatsapp 聊天机器人
 
-[](https://medium.com/@lukas.kowejsza?source=post_page---byline--f0bc197d2ac0--------------------------------)[![Lukasz Kowejsza](../Images/8d920478bee9ad674a6c79462128b0db.png)](https://medium.com/@lukas.kowejsza?source=post_page---byline--f0bc197d2ac0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f0bc197d2ac0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f0bc197d2ac0--------------------------------) [Lukasz Kowejsza](https://medium.com/@lukas.kowejsza?source=post_page---byline--f0bc197d2ac0--------------------------------)
+[](https://medium.com/@lukas.kowejsza?source=post_page---byline--f0bc197d2ac0--------------------------------)![Lukasz Kowejsza](https://medium.com/@lukas.kowejsza?source=post_page---byline--f0bc197d2ac0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f0bc197d2ac0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f0bc197d2ac0--------------------------------) [Lukasz Kowejsza](https://medium.com/@lukas.kowejsza?source=post_page---byline--f0bc197d2ac0--------------------------------)
 
-·发布在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f0bc197d2ac0--------------------------------) ·18分钟阅读·2024年12月22日
+·发布在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f0bc197d2ac0--------------------------------) ·18 分钟阅读·2024 年 12 月 22 日
 
 --
 
@@ -26,9 +26,9 @@
 
 在本系列的早期章节中，我们为我们的 AI 驱动的业务经理奠定了基础：
 
-+   [**第一部分**](/leverage-openai-tool-calling-building-a-reliable-ai-agent-from-scratch-4e21fcd15b62)：目标是开发一个原型代理工作流，使其能够与工具对象互动，并减少由底层语言模型（LLM）产生的工具参数中的幻觉。
++   **第一部分**：目标是开发一个原型代理工作流，使其能够与工具对象互动，并减少由底层语言模型（LLM）产生的工具参数中的幻觉。
 
-+   [**第二部分**](/building-an-ai-powered-business-manager-e2a31a2fe984)：我们集中精力定义基本功能，组织项目存储库，并使用 SQLModel 构建数据库模式。我们还为数据添加和查询添加了 SQL 工具，并更新了 Tool 类以容纳 SQLModel 对象。此外，我们介绍了 TaskAgent 类，用于自动化代理启动，并设置了 OpenAIAgent 以实现上下文感知的工具使用。
++   **第二部分**：我们集中精力定义基本功能，组织项目存储库，并使用 SQLModel 构建数据库模式。我们还为数据添加和查询添加了 SQL 工具，并更新了 Tool 类以容纳 SQLModel 对象。此外，我们介绍了 TaskAgent 类，用于自动化代理启动，并设置了 OpenAIAgent 以实现上下文感知的工具使用。
 
 # 本文范围
 
@@ -74,7 +74,7 @@
 
 1.  生成一个访问令牌。这是你的 `WHATSAPP_API_TOKEN`，我们将在第 6 步中使用它。
 
-![](../Images/6790dd7e097200fd38c229e5372fc718.png)
+![](img/6790dd7e097200fd38c229e5372fc718.png)
 
 截图 ngrok（图片来自作者）
 
@@ -138,11 +138,11 @@ uvicorn main:app --reload
 
 我们现在提供以下端点：
 
-+   验证 WhatsApp Webhook：`[http://127.0.0.1:8000/?hub.mode=subscribe&hub.challenge=1234&hub.verify_token=abcdefg12345](http://127.0.0.1:8000/?hub.mode=subscribe&hub.challenge=1234&hub.verify_token=abcdefg12345)`
++   验证 WhatsApp Webhook：`[`127.0.0.1:8000/?hub.mode=subscribe&hub.challenge=1234&hub.verify_token=abcdefg12345`](http://127.0.0.1:8000/?hub.mode=subscribe&hub.challenge=1234&hub.verify_token=abcdefg12345)`
 
-+   健康检查端点：`[http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)`
++   健康检查端点：`[`127.0.0.1:8000/health`](http://127.0.0.1:8000/health)`
 
-+   准备就绪端点：`[http://127.0.0.1:8000/readiness](http://127.0.0.1:8000/readiness)`
++   准备就绪端点：`[`127.0.0.1:8000/readiness`](http://127.0.0.1:8000/readiness)`
 
 你可以使用健康检查端点来检查应用程序是否正在运行。在浏览器中打开 `http://127.0.0.1:8000/health`，你应该会看到：`{"status": "healthy"}`
 
@@ -213,17 +213,17 @@ Webhook 是 HTTP 回调，它使得程序能够在特定事件发生时（例如
 
 +   **提取电话号码和消息：** 来自请求的有效载荷包含包括电话号码和消息的数据。我们需要在后端对其进行处理。
 
-+   **过滤传入的对象：** 由于CloudAPI可能会为同一消息发送多个事件（例如发送、接收和阅读），后端需要确保只处理一条消息的实例。
++   **过滤传入的对象：** 由于 CloudAPI 可能会为同一消息发送多个事件（例如发送、接收和阅读），后端需要确保只处理一条消息的实例。
 
 +   **处理多种消息类型：** 后端可以处理不同类型的消息，例如文本、语音消息和图像。为了避免扩展文章的范围，我们只会为图像奠定基础，但不会实现到最后。
 
-+   **通过LLM-Agent工作流处理：** 提取的信息通过LLM-Agent工作流进行处理，我们在系列的前几个部分中开发了这个工作流。你也可以使用其他代理实现，比如Langchain或Langgraph。
++   **通过 LLM-Agent 工作流处理：** 提取的信息通过 LLM-Agent 工作流进行处理，我们在系列的前几个部分中开发了这个工作流。你也可以使用其他代理实现，比如 Langchain 或 Langgraph。
 
 # 5.1 定义模型和模式
 
-我们将从Webhook接收有效载荷。你可以在Meta的文档中找到示例有效载荷：[示例有效载荷](https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples/)
+我们将从 Webhook 接收有效载荷。你可以在 Meta 的文档中找到示例有效载荷：[示例有效载荷](https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples/)
 
-我更喜欢使用Pydantic来编写代码，以为我的Python代码添加类型安全性。此外，类型注解和Pydantic是FastAPI应用的最佳搭配。因此，让我们首先定义在端点中使用的模型：
+我更喜欢使用 Pydantic 来编写代码，以为我的 Python 代码添加类型安全性。此外，类型注解和 Pydantic 是 FastAPI 应用的最佳搭配。因此，让我们首先定义在端点中使用的模型：
 
 ```py
 # app/schema.py
@@ -299,7 +299,7 @@ class UserMessage(BaseModel):
 
 # 5.2 解析传入的消息
 
-接下来，我们将创建一些辅助函数，用于在FastAPI中使用依赖注入：
+接下来，我们将创建一些辅助函数，用于在 FastAPI 中使用依赖注入：
 
 ```py
 # app/main.py
@@ -347,7 +347,7 @@ def message_extractor(
 
 在这里，我们有一个来自领域层的导入。整个脚本`message_service`是我们放置所有特定于领域的代码的地方，比如`authenticate_user_by_phone_number`和`transcribe_audio`。
 
-# 5.3 实现POST端点
+# 5.3 实现 POST 端点
 
 ```py
 # app/main.py
@@ -381,7 +381,7 @@ def receive_whatsapp(
     return {"status": "ok"}
 ```
 
-+   **POST端点实现：** 该端点处理传入的POST请求。它检查用户、消息或图像是否有效。如果没有有效项，它将仅返回一个状态消息给CloudAPI。如果用户未经过身份验证，它将引发一个`HTTPException`，并返回401状态码。
++   **POST 端点实现：** 该端点处理传入的 POST 请求。它检查用户、消息或图像是否有效。如果没有有效项，它将仅返回一个状态消息给 CloudAPI。如果用户未经过身份验证，它将引发一个`HTTPException`，并返回 401 状态码。
 
 +   **处理图像和消息：** 如果收到图像，我们会简单地打印到标准输出，作为未来图像处理的占位符。如果收到文本消息，它会异步处理，使用单独的线程以避免阻塞主应用程序线程。`message_service.respond_and_send_message` 函数会根据 LLM-Agent 工作流程来处理消息。
 
@@ -469,9 +469,9 @@ def transcribe_audio(audio: Audio) -> str:
 
 # 6.2 用户身份验证
 
-在使用Meta提供的测试号码时，我们必须预定义哪些号码可以向我们的聊天机器人发送消息。我不太确定，也没有测试过是否任何号码都可以向我们的聊天机器人发送消息。但无论如何，一旦我们切换到自定义号码，我们不希望任何人能够执行我们的代理聊天机器人。所以我们需要一种方法来验证用户身份。我们有几种方法可以做到这一点。首先，我们必须考虑将用户信息存储在哪里。我们可以使用例如PostgreSQL这样的数据库，或者像Firestore这样的非关系型数据库。我们可以在文件系统中通过JSON文件或`.env`文件来预定义我们的用户。对于本教程，我将选择最简单的方式，将用户硬编码在我们的身份验证函数中的一个列表里。
+在使用 Meta 提供的测试号码时，我们必须预定义哪些号码可以向我们的聊天机器人发送消息。我不太确定，也没有测试过是否任何号码都可以向我们的聊天机器人发送消息。但无论如何，一旦我们切换到自定义号码，我们不希望任何人能够执行我们的代理聊天机器人。所以我们需要一种方法来验证用户身份。我们有几种方法可以做到这一点。首先，我们必须考虑将用户信息存储在哪里。我们可以使用例如 PostgreSQL 这样的数据库，或者像 Firestore 这样的非关系型数据库。我们可以在文件系统中通过 JSON 文件或`.env`文件来预定义我们的用户。对于本教程，我将选择最简单的方式，将用户硬编码在我们的身份验证函数中的一个列表里。
 
-列表项具有与**步骤 5.1**中定义的`User`模型相同的结构。因此，用户由ID、名、姓和电话号码组成。我们尚未在我们的代理工作流中实现角色系统。但是在大多数不同用户的使用场景中，例如小型商业助理的示例中，不同的用户将拥有不同的权限和访问范围。目前，我们仅将`"default"`作为占位符角色传递。
+列表项具有与**步骤 5.1**中定义的`User`模型相同的结构。因此，用户由 ID、名、姓和电话号码组成。我们尚未在我们的代理工作流中实现角色系统。但是在大多数不同用户的使用场景中，例如小型商业助理的示例中，不同的用户将拥有不同的权限和访问范围。目前，我们仅将`"default"`作为占位符角色传递。
 
 ```py
 def authenticate_user_by_phone_number(phone_number: str) -> User | None:  
@@ -489,15 +489,15 @@ def authenticate_user_by_phone_number(phone_number: str) -> User | None:
 
 # 6.3 发送消息
 
-现在，在我们实际调用代理之前，最后一个辅助函数是`send_whatsapp_message`。我在这个函数中加入了两种模式，因为某些Meta特定的WhatsApp API逻辑。
+现在，在我们实际调用代理之前，最后一个辅助函数是`send_whatsapp_message`。我在这个函数中加入了两种模式，因为某些 Meta 特定的 WhatsApp API 逻辑。
 
 基本上，你不允许向用户发送自定义消息作为对话的开始。这意味着，如果用户首先启动对话并向聊天机器人发送消息，你可以回复一条单独的文本消息。否则，如果你希望聊天机器人启动对话，你只能使用已批准的模板，如“Hello World”模板。
 
-还需要提到的是，当我们谈论Meta逻辑时，开始后的对话会打开一个24小时的对话窗口，在此窗口内你可以向该用户发送消息。这个对话窗口是收费的，而不是单独的消息。根据对话的类型（如营销、支持等），这个过程会变得稍微复杂一些。
+还需要提到的是，当我们谈论 Meta 逻辑时，开始后的对话会打开一个 24 小时的对话窗口，在此窗口内你可以向该用户发送消息。这个对话窗口是收费的，而不是单独的消息。根据对话的类型（如营销、支持等），这个过程会变得稍微复杂一些。
 
-你还可以自己定义一个模板并让Meta批准。在这一点上我还没有做，所以为了测试我们是否可以从后端向用户发送消息，我使用了“Hello World”模板。如果你添加了一些自定义的已批准模板，你也可以使用此功能将它们发送给用户。
+你还可以自己定义一个模板并让 Meta 批准。在这一点上我还没有做，所以为了测试我们是否可以从后端向用户发送消息，我使用了“Hello World”模板。如果你添加了一些自定义的已批准模板，你也可以使用此功能将它们发送给用户。
 
-回到代码部分。为了发送消息，我们发起一个POST请求并定义一个有效载荷，该载荷可以包括文本内容或模板：
+回到代码部分。为了发送消息，我们发起一个 POST 请求并定义一个有效载荷，该载荷可以包括文本内容或模板：
 
 ```py
 def send_whatsapp_message(to, message, template=True):  
@@ -557,7 +557,7 @@ def respond_and_send_message(user_message: str, user: User):
 
 现在，您应该能够向测试号码发送消息，并通过代理执行器获得答复。**备注**：在使用 WhatsApp 测试号码时，您必须在 Meta API 应用中注册允许向您的机器人发送消息的电话号码。
 
-通过遵循本指南，您已迈出了创建与 WhatsApp 无缝配合的强大LLM驱动聊天机器人的重要一步。这不仅仅是关于实时设置自动化业务通信；更是为未来更先进的基于AI的工作流奠定基础。
+通过遵循本指南，您已迈出了创建与 WhatsApp 无缝配合的强大 LLM 驱动聊天机器人的重要一步。这不仅仅是关于实时设置自动化业务通信；更是为未来更先进的基于 AI 的工作流奠定基础。
 
 # **我们做了什么：**
 
@@ -575,14 +575,14 @@ def respond_and_send_message(user_message: str, user: User):
 
 # 接下来做什么：
 
-在接下来的部分中，我承诺会更快地发布🙏，我将把实现移至LangGraph。我将为代理添加更多功能，如创建数据库表+工具。这将使代理更加灵活。我也乐意接受反馈和想法，以确定要添加的功能！
+在接下来的部分中，我承诺会更快地发布🙏，我将把实现移至 LangGraph。我将为代理添加更多功能，如创建数据库表+工具。这将使代理更加灵活。我也乐意接受反馈和想法，以确定要添加的功能！
 
 # **总结：**
 
-将 WhatsApp 的覆盖范围和易用性与LLMs相结合对于企业和个人使用场景来说是一大胜利。无论您是想要个人助手还是完整的商业工具，本指南都为您提供了实现目标的路径。继续调试、改进和突破界限——这只是您可以构建的开始。
+将 WhatsApp 的覆盖范围和易用性与 LLMs 相结合对于企业和个人使用场景来说是一大胜利。无论您是想要个人助手还是完整的商业工具，本指南都为您提供了实现目标的路径。继续调试、改进和突破界限——这只是您可以构建的开始。
 
 祝编码愉快！🚀
 
 您可以在这里找到完整的代码：[Github 仓库](https://github.com/elokus/WhatsappAgent)
 
-完整链接：[https://github.com/elokus/WhatsappAgent](https://github.com/elokus/WhatsappAgent)
+完整链接：[`github.com/elokus/WhatsappAgent`](https://github.com/elokus/WhatsappAgent)

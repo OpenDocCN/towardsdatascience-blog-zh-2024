@@ -1,24 +1,24 @@
 # AI 解释性的重要性
 
-> 原文：[https://towardsdatascience.com/the-meaning-of-explainability-for-ai-d8ae809c97fa?source=collection_archive---------3-----------------------#2024-06-04](https://towardsdatascience.com/the-meaning-of-explainability-for-ai-d8ae809c97fa?source=collection_archive---------3-----------------------#2024-06-04)
+> 原文：[`towardsdatascience.com/the-meaning-of-explainability-for-ai-d8ae809c97fa?source=collection_archive---------3-----------------------#2024-06-04`](https://towardsdatascience.com/the-meaning-of-explainability-for-ai-d8ae809c97fa?source=collection_archive---------3-----------------------#2024-06-04)
 
 ## 我们现在还关心我们的机器学习是如何做出决策的吗？
 
-[](https://medium.com/@s.kirmer?source=post_page---byline--d8ae809c97fa--------------------------------)[![Stephanie Kirmer](../Images/f9d9ef9167febde974c223dd4d8d6293.png)](https://medium.com/@s.kirmer?source=post_page---byline--d8ae809c97fa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d8ae809c97fa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d8ae809c97fa--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--d8ae809c97fa--------------------------------)
+[](https://medium.com/@s.kirmer?source=post_page---byline--d8ae809c97fa--------------------------------)![Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--d8ae809c97fa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d8ae809c97fa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8ae809c97fa--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--d8ae809c97fa--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8ae809c97fa--------------------------------) ·8分钟阅读·2024年6月4日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8ae809c97fa--------------------------------) ·8 分钟阅读·2024 年 6 月 4 日
 
 --
 
 今天，我想谈谈一点哲学，讨论一下机器学习中的解释性和风险如何交汇。
 
-![](../Images/dea845c74d9370ff46f3baf0d29920fd.png)
+![](img/dea845c74d9370ff46f3baf0d29920fd.png)
 
 图片由 [Kenny Eliason](https://unsplash.com/@neonbrand?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 我们所说的解释性是什么意思？
 
-简而言之，机器学习中的[解释性](https://www.researchgate.net/profile/Kai-Heinrich-3/publication/344357897_White_Grey_Black_Effects_of_XAI_Augmentation_on_the_Confidence_in_AI-based_Decision_Support_Systems/links/5f6ba89392851c14bc922907/White-Grey-Black-Effects-of-XAI-Augmentation-on-the-Confidence-in-AI-based-Decision-Support-Systems.pdf)是指你可以向一个人类用户（不一定是技术专家）解释模型是如何做出决策的。例如，决策树就是一个容易解释的（有时被称为“白盒”）模型，你可以指出“模型将数据分为房屋面积大于1的和面积小于或等于1的”等等。其他类型的更复杂的模型可以是“灰盒”或“黑盒”——这些模型对于人类用户来说，理解起来会越来越困难，甚至是不可能的。
+简而言之，机器学习中的[解释性](https://www.researchgate.net/profile/Kai-Heinrich-3/publication/344357897_White_Grey_Black_Effects_of_XAI_Augmentation_on_the_Confidence_in_AI-based_Decision_Support_Systems/links/5f6ba89392851c14bc922907/White-Grey-Black-Effects-of-XAI-Augmentation-on-the-Confidence-in-AI-based-Decision-Support-Systems.pdf)是指你可以向一个人类用户（不一定是技术专家）解释模型是如何做出决策的。例如，决策树就是一个容易解释的（有时被称为“白盒”）模型，你可以指出“模型将数据分为房屋面积大于 1 的和面积小于或等于 1 的”等等。其他类型的更复杂的模型可以是“灰盒”或“黑盒”——这些模型对于人类用户来说，理解起来会越来越困难，甚至是不可能的。
 
 # 老学校
 
@@ -64,26 +64,26 @@
 
 # 但是，进展呢？
 
-从哲学角度来看，我们可以（而且人们确实这么做）辩称，机器学习技术达到一定复杂度后，需要放弃完全理解它的愿望。这可能是对的！但我们不应忽视由此带来的权衡和我们所接受的风险。最好的情况是，你的生成性AI模型主要按照预期运行（也许如果你控制了温度，并且你的模型非常缺乏创意），不会做出太多意外的事情；而最坏的情况是，你释放了一个灾难，因为模型以你完全没有预料到的方式做出反应。这可能意味着你看起来很傻，或者可能意味着你的生意结束，或者可能意味着对人们造成真正的身体伤害。当你接受模型的可解释性是无法实现的时，这就是你自己肩负的风险。你不能说“哦，模型就是这样”——当你建造了这个东西并做出了释放它或使用其预测的有意识决定时。
+从哲学角度来看，我们可以（而且人们确实这么做）辩称，机器学习技术达到一定复杂度后，需要放弃完全理解它的愿望。这可能是对的！但我们不应忽视由此带来的权衡和我们所接受的风险。最好的情况是，你的生成性 AI 模型主要按照预期运行（也许如果你控制了温度，并且你的模型非常缺乏创意），不会做出太多意外的事情；而最坏的情况是，你释放了一个灾难，因为模型以你完全没有预料到的方式做出反应。这可能意味着你看起来很傻，或者可能意味着你的生意结束，或者可能意味着对人们造成真正的身体伤害。当你接受模型的可解释性是无法实现的时，这就是你自己肩负的风险。你不能说“哦，模型就是这样”——当你建造了这个东西并做出了释放它或使用其预测的有意识决定时。
 
-各大大小小的科技公司都已接受生成性AI有时会产生不正确、危险、歧视性以及其他有害的结果，并认为为了获得其感知的好处，这些风险是值得的——我们知道这一点，因为那些经常表现出不良行为的生成性AI模型已经被公开发布。我个人很困扰的是，科技行业在没有任何明确考虑或讨论的情况下，选择将公众置于这种风险之中，但魔 genie 已经放出来了。
+各大大小小的科技公司都已接受生成性 AI 有时会产生不正确、危险、歧视性以及其他有害的结果，并认为为了获得其感知的好处，这些风险是值得的——我们知道这一点，因为那些经常表现出不良行为的生成性 AI 模型已经被公开发布。我个人很困扰的是，科技行业在没有任何明确考虑或讨论的情况下，选择将公众置于这种风险之中，但魔 genie 已经放出来了。
 
 # 现在怎么办？
 
-对我来说，追求XAI并试图让它跟上生成性AI的进步是一个崇高的目标，但我认为我们不会看到大多数人能够轻松理解这些模型是如何运作的，因为它们的架构非常复杂且具有挑战性。因此，我认为我们还需要实施风险缓解措施，确保那些负责日益复杂的模型的人，对这些影响我们日常生活的产品及其安全负责。由于结果往往是不可预测的，我们需要框架来保护我们的社区免受最坏情况的影响。
+对我来说，追求 XAI 并试图让它跟上生成性 AI 的进步是一个崇高的目标，但我认为我们不会看到大多数人能够轻松理解这些模型是如何运作的，因为它们的架构非常复杂且具有挑战性。因此，我认为我们还需要实施风险缓解措施，确保那些负责日益复杂的模型的人，对这些影响我们日常生活的产品及其安全负责。由于结果往往是不可预测的，我们需要框架来保护我们的社区免受最坏情况的影响。
 
-我们不应把所有的风险都视为无法承受，但我们需要清醒地认识到风险的存在，并且由于AI前沿的可解释性挑战，机器学习的风险比以往任何时候都更难以衡量和预见。唯一负责任的选择是将这种风险与这些模型所带来的实际利益进行平衡（而不是将某些未来版本的预期或承诺利益视为理所当然），并据此做出深思熟虑的决策。
+我们不应把所有的风险都视为无法承受，但我们需要清醒地认识到风险的存在，并且由于 AI 前沿的可解释性挑战，机器学习的风险比以往任何时候都更难以衡量和预见。唯一负责任的选择是将这种风险与这些模型所带来的实际利益进行平衡（而不是将某些未来版本的预期或承诺利益视为理所当然），并据此做出深思熟虑的决策。
 
 阅读更多我的作品，请访问 [www.stephaniekirmer.com](http://www.stephaniekirmer.com)。
 
 # 进一步阅读
 
-+   [扩展单一语义性：从Claude 3 Sonnet中提取可解释特征](https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html)（2024年5月21日，Anthropic团队）
++   [扩展单一语义性：从 Claude 3 Sonnet 中提取可解释特征](https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html)（2024 年 5 月 21 日，Anthropic 团队）
 
-+   [可解释的生成型人工智能：调查、概念化与研究议程](https://arxiv.org/pdf/2404.09554)（2024年4月15日；Johannes Schneider）——这篇文章内容非常易读，推荐大家阅读。
++   [可解释的生成型人工智能：调查、概念化与研究议程](https://arxiv.org/pdf/2404.09554)（2024 年 4 月 15 日；Johannes Schneider）——这篇文章内容非常易读，推荐大家阅读。
 
-+   [卷积神经网络可解释性方法分析](https://www.sciencedirect.com/science/article/pii/S0952197622005966)（2023年1月，Von der Haar等人）
++   [卷积神经网络可解释性方法分析](https://www.sciencedirect.com/science/article/pii/S0952197622005966)（2023 年 1 月，Von der Haar 等人）
 
-+   [可解释的卷积神经网络：分类法、回顾与未来方向](https://dl.acm.org/doi/full/10.1145/3563691)（2023年2月2日；Ibrahim等人）
++   [可解释的卷积神经网络：分类法、回顾与未来方向](https://dl.acm.org/doi/full/10.1145/3563691)（2023 年 2 月 2 日；Ibrahim 等人）
 
-+   [谷歌的人工智能告诉用户往比萨饼上加胶水、吃石头并制造氯气](https://www.livescience.com/technology/artificial-intelligence/googles-ai-tells-users-to-add-glue-to-their-pizza-eat-rocks-and-make-chlorine-gas)（2024年5月23日）
++   [谷歌的人工智能告诉用户往比萨饼上加胶水、吃石头并制造氯气](https://www.livescience.com/technology/artificial-intelligence/googles-ai-tells-users-to-add-glue-to-their-pizza-eat-rocks-and-make-chlorine-gas)（2024 年 5 月 23 日）

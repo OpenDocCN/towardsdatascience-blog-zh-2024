@@ -1,16 +1,16 @@
-# 在QGIS中进行可视性分析
+# 在 QGIS 中进行可视性分析
 
-> 原文：[https://towardsdatascience.com/running-visibility-analysis-in-qgis-d8fbdd8b02c5?source=collection_archive---------6-----------------------#2024-10-04](https://towardsdatascience.com/running-visibility-analysis-in-qgis-d8fbdd8b02c5?source=collection_archive---------6-----------------------#2024-10-04)
+> 原文：[`towardsdatascience.com/running-visibility-analysis-in-qgis-d8fbdd8b02c5?source=collection_archive---------6-----------------------#2024-10-04`](https://towardsdatascience.com/running-visibility-analysis-in-qgis-d8fbdd8b02c5?source=collection_archive---------6-----------------------#2024-10-04)
 
-## 学习如何使用免费的GIS软件和数据轻松进行可视性分析，并利用结果创建令人惊叹的可视化效果
+## 学习如何使用免费的 GIS 软件和数据轻松进行可视性分析，并利用结果创建令人惊叹的可视化效果
 
-[](https://medium.com/@helenmakesmaps?source=post_page---byline--d8fbdd8b02c5--------------------------------)[![Helen McKenzie](../Images/68b33e3dee55611b60b365fe08658430.png)](https://medium.com/@helenmakesmaps?source=post_page---byline--d8fbdd8b02c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d8fbdd8b02c5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d8fbdd8b02c5--------------------------------) [Helen McKenzie](https://medium.com/@helenmakesmaps?source=post_page---byline--d8fbdd8b02c5--------------------------------)
+[](https://medium.com/@helenmakesmaps?source=post_page---byline--d8fbdd8b02c5--------------------------------)![Helen McKenzie](https://medium.com/@helenmakesmaps?source=post_page---byline--d8fbdd8b02c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d8fbdd8b02c5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8fbdd8b02c5--------------------------------) [Helen McKenzie](https://medium.com/@helenmakesmaps?source=post_page---byline--d8fbdd8b02c5--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8fbdd8b02c5--------------------------------) ·阅读时间9分钟·2024年10月4日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8fbdd8b02c5--------------------------------) ·阅读时间 9 分钟·2024 年 10 月 4 日
 
 --
 
-我最喜欢的空间分析类型之一就是可视性分析。它是一个非常简单的概念，允许你理论上计算出某个物体从哪里可以被看到。可视性分析主要有两种形式——也叫视域分析或ZTVs（理论可视区）。这两种形式分别是：
+我最喜欢的空间分析类型之一就是可视性分析。它是一个非常简单的概念，允许你理论上计算出某个物体从哪里可以被看到。可视性分析主要有两种形式——也叫视域分析或 ZTVs（理论可视区）。这两种形式分别是：
 
 +   “标准”视域分析：我能从这个位置看到什么？例如，如果我站在一座山顶上，我的视野将是什么样的？
 

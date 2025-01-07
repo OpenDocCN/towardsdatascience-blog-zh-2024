@@ -1,18 +1,18 @@
 # 如何在不感到停滞的情况下发展职业生涯
 
-> 原文：[https://towardsdatascience.com/how-to-grow-your-career-without-feeling-stuck-c7fe96881a44?source=collection_archive---------3-----------------------#2024-04-17](https://towardsdatascience.com/how-to-grow-your-career-without-feeling-stuck-c7fe96881a44?source=collection_archive---------3-----------------------#2024-04-17)
+> 原文：[`towardsdatascience.com/how-to-grow-your-career-without-feeling-stuck-c7fe96881a44?source=collection_archive---------3-----------------------#2024-04-17`](https://towardsdatascience.com/how-to-grow-your-career-without-feeling-stuck-c7fe96881a44?source=collection_archive---------3-----------------------#2024-04-17)
 
 ## 晋升手册
 
 ## 无论你是刚刚起步，还是渴望再跳跃一层，都要确保你已经准备好，并且让你的老板知道这一点。
 
-[](https://mikhailiuk.medium.com/?source=post_page---byline--c7fe96881a44--------------------------------)[![阿列克谢·米哈伊柳克博士](../Images/f4bf3f15f3e0b42f34e50b3ffc436b2a.png)](https://mikhailiuk.medium.com/?source=post_page---byline--c7fe96881a44--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c7fe96881a44--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c7fe96881a44--------------------------------) [阿列克谢·米哈伊柳克博士](https://mikhailiuk.medium.com/?source=post_page---byline--c7fe96881a44--------------------------------)
+[](https://mikhailiuk.medium.com/?source=post_page---byline--c7fe96881a44--------------------------------)![阿列克谢·米哈伊柳克博士](https://mikhailiuk.medium.com/?source=post_page---byline--c7fe96881a44--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c7fe96881a44--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c7fe96881a44--------------------------------) [阿列克谢·米哈伊柳克博士](https://mikhailiuk.medium.com/?source=post_page---byline--c7fe96881a44--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c7fe96881a44--------------------------------) ·11分钟阅读·2024年4月17日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c7fe96881a44--------------------------------) ·11 分钟阅读·2024 年 4 月 17 日
 
 --
 
-![](../Images/4bc5fe6f95d3a7dc0fbfe1ba8041f40a.png)
+![](img/4bc5fe6f95d3a7dc0fbfe1ba8041f40a.png)
 
 图片由作者使用[Imagen](https://imagen.research.google/)生成
 

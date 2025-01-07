@@ -1,12 +1,12 @@
 # 相互冲突的提示与构建企业级提示库的艺术
 
-> 原文：[https://towardsdatascience.com/conflicting-prompts-and-the-art-of-building-robust-prompt-stores-fb2a2b38849f?source=collection_archive---------9-----------------------#2024-08-20](https://towardsdatascience.com/conflicting-prompts-and-the-art-of-building-robust-prompt-stores-fb2a2b38849f?source=collection_archive---------9-----------------------#2024-08-20)
+> 原文：[`towardsdatascience.com/conflicting-prompts-and-the-art-of-building-robust-prompt-stores-fb2a2b38849f?source=collection_archive---------9-----------------------#2024-08-20`](https://towardsdatascience.com/conflicting-prompts-and-the-art-of-building-robust-prompt-stores-fb2a2b38849f?source=collection_archive---------9-----------------------#2024-08-20)
 
 ## 基于强化学习的提示库自动化策划
 
-[](https://debmalyabiswas.medium.com/?source=post_page---byline--fb2a2b38849f--------------------------------)[![Debmalya Biswas](../Images/4b985e2a5b362a4b962d3ad29665dfea.png)](https://debmalyabiswas.medium.com/?source=post_page---byline--fb2a2b38849f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fb2a2b38849f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fb2a2b38849f--------------------------------) [Debmalya Biswas](https://debmalyabiswas.medium.com/?source=post_page---byline--fb2a2b38849f--------------------------------)
+[](https://debmalyabiswas.medium.com/?source=post_page---byline--fb2a2b38849f--------------------------------)![Debmalya Biswas](https://debmalyabiswas.medium.com/?source=post_page---byline--fb2a2b38849f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fb2a2b38849f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb2a2b38849f--------------------------------) [Debmalya Biswas](https://debmalyabiswas.medium.com/?source=post_page---byline--fb2a2b38849f--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb2a2b38849f--------------------------------) ·10分钟阅读·2024年8月20日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb2a2b38849f--------------------------------) ·10 分钟阅读·2024 年 8 月 20 日
 
 --
 

@@ -1,18 +1,18 @@
 # 网络分析示意图：传播公共卫生信息的指标
 
-> 原文：[https://towardsdatascience.com/network-analysis-illustrated-metrics-to-spread-public-health-information-4e259c3a5e33?source=collection_archive---------15-----------------------#2024-02-16](https://towardsdatascience.com/network-analysis-illustrated-metrics-to-spread-public-health-information-4e259c3a5e33?source=collection_archive---------15-----------------------#2024-02-16)
+> 原文：[`towardsdatascience.com/network-analysis-illustrated-metrics-to-spread-public-health-information-4e259c3a5e33?source=collection_archive---------15-----------------------#2024-02-16`](https://towardsdatascience.com/network-analysis-illustrated-metrics-to-spread-public-health-information-4e259c3a5e33?source=collection_archive---------15-----------------------#2024-02-16)
 
 ## 网络分析
 
 ## 本文通过视觉化的方式简化了网络指标，以公共卫生为例进行讲解。
 
-[](https://medium.com/@christabellecp?source=post_page---byline--4e259c3a5e33--------------------------------)[![Christabelle Pabalan](../Images/24187865b6e9d03ae1aabf873ce1e67c.png)](https://medium.com/@christabellecp?source=post_page---byline--4e259c3a5e33--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4e259c3a5e33--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4e259c3a5e33--------------------------------) [Christabelle Pabalan](https://medium.com/@christabellecp?source=post_page---byline--4e259c3a5e33--------------------------------)
+[](https://medium.com/@christabellecp?source=post_page---byline--4e259c3a5e33--------------------------------)![Christabelle Pabalan](https://medium.com/@christabellecp?source=post_page---byline--4e259c3a5e33--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4e259c3a5e33--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4e259c3a5e33--------------------------------) [Christabelle Pabalan](https://medium.com/@christabellecp?source=post_page---byline--4e259c3a5e33--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4e259c3a5e33--------------------------------) ·7分钟阅读·2024年2月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4e259c3a5e33--------------------------------) ·7 分钟阅读·2024 年 2 月 16 日
 
 --
 
-![](../Images/1dc4fb06d0f7cfd7e74f6736b4d15f15.png)
+![](img/1dc4fb06d0f7cfd7e74f6736b4d15f15.png)
 
 DALLE 生成的图像，作者提供
 

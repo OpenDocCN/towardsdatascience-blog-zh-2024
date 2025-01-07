@@ -1,16 +1,16 @@
-# 3种流行的空间插值方法
+# 3 种流行的空间插值方法
 
-> 原文：[https://towardsdatascience.com/3-best-methods-for-spatial-interpolation-912cab7aee47?source=collection_archive---------4-----------------------#2024-04-09](https://towardsdatascience.com/3-best-methods-for-spatial-interpolation-912cab7aee47?source=collection_archive---------4-----------------------#2024-04-09)
+> 原文：[`towardsdatascience.com/3-best-methods-for-spatial-interpolation-912cab7aee47?source=collection_archive---------4-----------------------#2024-04-09`](https://towardsdatascience.com/3-best-methods-for-spatial-interpolation-912cab7aee47?source=collection_archive---------4-----------------------#2024-04-09)
 
-## 从头开始，用Python实现
+## 从头开始，用 Python 实现
 
-[](https://medium.com/@alexroz?source=post_page---byline--912cab7aee47--------------------------------)[![Aleksei Rozanov](../Images/748b69bfaccf39c9aa568a9e6f41eec3.png)](https://medium.com/@alexroz?source=post_page---byline--912cab7aee47--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--912cab7aee47--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--912cab7aee47--------------------------------) [Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--912cab7aee47--------------------------------)
+[](https://medium.com/@alexroz?source=post_page---byline--912cab7aee47--------------------------------)![Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--912cab7aee47--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--912cab7aee47--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--912cab7aee47--------------------------------) [Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--912cab7aee47--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--912cab7aee47--------------------------------) ·10分钟阅读·2024年4月9日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--912cab7aee47--------------------------------) ·10 分钟阅读·2024 年 4 月 9 日
 
 --
 
-![](../Images/001778775344af81b306237ca482d2f3.png)
+![](img/001778775344af81b306237ca482d2f3.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
@@ -30,23 +30,23 @@ x = np.arange(-5,5, 0.1)
 y = F(x)
 ```
 
-![](../Images/cf8d98b5a651c1aa5f0a1d3acbbc0385.png)
+![](img/cf8d98b5a651c1aa5f0a1d3acbbc0385.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
 现在我们可以随机选择几个点 [-4.2, 0, 2.5] 并将它们连接起来：
 
-![](../Images/e8719b75ecd4d6a0fc7f3f0127f7eac7.png)
+![](img/e8719b75ecd4d6a0fc7f3f0127f7eac7.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
-这就是线性插值，因为在每个区间内，函数由一条直线近似，而现在，只知道函数在3个点的值，我们就可以找到区间[-4.2;2.5]内的值。
+这就是线性插值，因为在每个区间内，函数由一条直线近似，而现在，只知道函数在 3 个点的值，我们就可以找到区间[-4.2;2.5]内的值。
 
 还有许多其他方法，它们具有更高的精度，但它们的基本思路是相同的：在至少两个已知点之间找到函数值。
 
-现在是时候进入地理空间部分了。在本教程中，我们的目标是对瑞士各地气象站测得的每日平均气温进行空间插值，这些数据由[NOAA](https://www.ncdc.noaa.gov/cdo-web/datatools/selectlocation)提供。预期结果是生成一个温度网格，单元格分辨率为0.1°。
+现在是时候进入地理空间部分了。在本教程中，我们的目标是对瑞士各地气象站测得的每日平均气温进行空间插值，这些数据由[NOAA](https://www.ncdc.noaa.gov/cdo-web/datatools/selectlocation)提供。预期结果是生成一个温度网格，单元格分辨率为 0.1°。
 
-首先，我们需要获取瑞士的行政边界，并使用geopandas将其可视化：
+首先，我们需要获取瑞士的行政边界，并使用 geopandas 将其可视化：
 
 ```py
 import geopandas as gdp
@@ -55,13 +55,13 @@ shape = gpd.read_file('gadm41_CHE_0.shp')
 shape.plot()
 ```
 
-![](../Images/5e55dea85838eb0bcc54cd63a1bb2fe8.png)
+![](img/5e55dea85838eb0bcc54cd63a1bb2fe8.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
 确实，看起来像是瑞士，哇 =)
 
-现在让我们绘制我们的温度观测数据，并将其与国家边界形状叠加。为此，我们将气象数据加载到常规的pandas数据框中，然后将其转换为带有坐标的geopandas数据框，这些坐标转化为*shapely*点：
+现在让我们绘制我们的温度观测数据，并将其与国家边界形状叠加。为此，我们将气象数据加载到常规的 pandas 数据框中，然后将其转换为带有坐标的 geopandas 数据框，这些坐标转化为*shapely*点：
 
 ```py
 import pandas as pd
@@ -86,7 +86,7 @@ gdf.plot(ax=ax, color='r', markersize=85)
 plt.show()
 ```
 
-![](../Images/f4faf1e5e8b63083eefa2d94851ca8a7.png)
+![](img/f4faf1e5e8b63083eefa2d94851ca8a7.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
@@ -111,23 +111,23 @@ gl.yformatter = LATITUDE_FORMATTER
 plt.show()
 ```
 
-![](../Images/e4607c90b750b50ae111a917e734562d.png)
+![](img/e4607c90b750b50ae111a917e734562d.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
-所以目标是对上面插值的常规网格进行插值，包含8个温度观测值。
+所以目标是对上面插值的常规网格进行插值，包含 8 个温度观测值。
 
 # I. 最近邻（NN）
 
 第一个直观且简单的方法叫做最近邻（NN）。正如你从名称中可以猜到的，这个算法将最近观测值的值分配给每个网格节点。
 
-为了实现它，我们只需要两个函数。第一个函数叫做Euclidean，它使用以下公式计算两点之间的距离：
+为了实现它，我们只需要两个函数。第一个函数叫做 Euclidean，它使用以下公式计算两点之间的距离：
 
-![](../Images/0d1d55d8a5f799b2ed5b785c283e1d97.png)
+![](img/0d1d55d8a5f799b2ed5b785c283e1d97.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
-第二个方法就是NN方法本身。在创建一个空数组来存储值之后，我们遍历所有纬度和经度，计算每个点到当前网格节点的距离，并将最近观测值的值分配给该网格节点：
+第二个方法就是 NN 方法本身。在创建一个空数组来存储值之后，我们遍历所有纬度和经度，计算每个点到当前网格节点的距离，并将最近观测值的值分配给该网格节点：
 
 ```py
 def Euclidean(x1,x2,y1,y2):
@@ -149,9 +149,9 @@ def NN(data, LAT, LON):
 idx = data.apply(lambda row: Euclidean(row.LONGITUDE, lon, row.LATITUDE, lat), axis = 1).argmin()
 ```
 
-变量数据是我们包含气象站点的pandas数据框（每行表示一个站点）。因此，在*for*循环中，我们计算距离并找到距离最小的站点的索引。
+变量数据是我们包含气象站点的 pandas 数据框（每行表示一个站点）。因此，在*for*循环中，我们计算距离并找到距离最小的站点的索引。
 
-现在让我们运行算法，并将结果封装到xarray数据集中：
+现在让我们运行算法，并将结果封装到 xarray 数据集中：
 
 ```py
 t2m = NN(df, LAT, LON)
@@ -162,11 +162,11 @@ ds = xr.Dataset(
 
 现在我们可以绘制结果了：
 
-![](../Images/467e205cd93ce8b723cd2532c76ca361.png)
+![](img/467e205cd93ce8b723cd2532c76ca361.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
-看起来不错，但让我们通过使用regionmask库创建瑞士的掩模来增强我们的绘图：
+看起来不错，但让我们通过使用 regionmask 库创建瑞士的掩模来增强我们的绘图：
 
 ```py
 shape['new_column'] = 0
@@ -181,7 +181,7 @@ ax.gridlines(draw_labels=True,linewidth=2, color='black', alpha=0.5, linestyle='
 plt.show()
 ```
 
-![](../Images/e7f7730e717c2319598913a194acc95f.png)
+![](img/e7f7730e717c2319598913a194acc95f.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
@@ -191,7 +191,7 @@ plt.show()
 
 # II. 反距离加权（IDW）
 
-基本上，反距离加权（IDW）是NN的增强版：
+基本上，反距离加权（IDW）是 NN 的增强版：
 
 ```py
 def IDW(data, LAT, LON, betta=2):
@@ -209,17 +209,17 @@ def IDW(data, LAT, LON, betta=2):
 
 在得到权重后，我们计算加权平均值。
 
-![](../Images/e1e8c71eaf2d24be507f660bc5ad8a9b.png)
+![](img/e1e8c71eaf2d24be507f660bc5ad8a9b.png)
 
 图片来自[作者](https://medium.com/@alexroz)。
 
-![](../Images/a8c951cc303dfcb26d32ae11e115651a.png)
+![](img/a8c951cc303dfcb26d32ae11e115651a.png)
 
 图片来自[作者](https://medium.com/@alexroz)。
 
 让我们绘制它：
 
-![](../Images/92f3b15ccad15743feffd844cd4c00ff.png)
+![](img/92f3b15ccad15743feffd844cd4c00ff.png)
 
 图片来自[作者](https://medium.com/@alexroz)。
 
@@ -235,7 +235,7 @@ def IDW(data, LAT, LON, betta=2):
 
 第一个计算非常简单。它被定义为**gamma γ**：
 
-![](../Images/4abd2abbed6ff877bef3b09fb87691a7.png)
+![](img/4abd2abbed6ff877bef3b09fb87691a7.png)
 
 图片来自[作者](https://medium.com/@alexroz)。
 
@@ -243,7 +243,7 @@ def IDW(data, LAT, LON, betta=2):
 
 理论变异函数要复杂一些。首先，有很多种：
 
-![](../Images/2ee04146f677148333add1dd78b6b9ff.png)
+![](img/2ee04146f677148333add1dd78b6b9ff.png)
 
 图片来自[作者](https://medium.com/@alexroz)。
 
@@ -251,13 +251,13 @@ def IDW(data, LAT, LON, betta=2):
 
 我在[CDT Columbia](https://iri.columbia.edu/~rijaf/CDTUserGuide/html/interpolation_methods.html)找到了一个非常好的这些参数的可视化解释。我从他们的资料中采用了一张插图，展示了**γ**与距离之间的关系。如你所见，现在清楚地展示了阈值、部分阈值、暴露量和范围。
 
-![](../Images/8565dd27b5eed2585089effddec4cff4.png)
+![](img/8565dd27b5eed2585089effddec4cff4.png)
 
 图片来自[作者](https://medium.com/@alexroz)。
 
 所以这个算法的整个思路是调整理论变异函数的参数，使其与实验变异函数匹配，然后利用它预测节点的值。
 
-为了实现该方法，我们将需要几个额外的库，并创建一个名为OrdinaryKriging的类。
+为了实现该方法，我们将需要几个额外的库，并创建一个名为 OrdinaryKriging 的类。
 
 ```py
 from scipy.linalg import solve
@@ -414,7 +414,7 @@ ax.gridlines(draw_labels=True,linewidth=2, color='black', alpha=0.5, linestyle='
 plt.show()
 ```
 
-![](../Images/1349a0969a19bd1bac7ea47919a97413.png)
+![](img/1349a0969a19bd1bac7ea47919a97413.png)
 
 图片来源：[作者](https://medium.com/@alexroz)。
 

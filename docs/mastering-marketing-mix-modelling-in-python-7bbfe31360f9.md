@@ -1,16 +1,16 @@
 # 精通 Python 中的市场营销组合建模
 
-> 原文：[https://towardsdatascience.com/mastering-marketing-mix-modelling-in-python-7bbfe31360f9?source=collection_archive---------1-----------------------#2024-09-26](https://towardsdatascience.com/mastering-marketing-mix-modelling-in-python-7bbfe31360f9?source=collection_archive---------1-----------------------#2024-09-26)
+> 原文：[`towardsdatascience.com/mastering-marketing-mix-modelling-in-python-7bbfe31360f9?source=collection_archive---------1-----------------------#2024-09-26`](https://towardsdatascience.com/mastering-marketing-mix-modelling-in-python-7bbfe31360f9?source=collection_archive---------1-----------------------#2024-09-26)
 
-## 实践指南的第 1 部分，帮助你掌握 **pymc** 中的 MMM
+## 实践指南的第一部分，帮助你掌握 **pymc** 中的 MMM
 
-[](https://medium.com/@raz1470?source=post_page---byline--7bbfe31360f9--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--7bbfe31360f9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7bbfe31360f9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7bbfe31360f9--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--7bbfe31360f9--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--7bbfe31360f9--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--7bbfe31360f9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7bbfe31360f9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7bbfe31360f9--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--7bbfe31360f9--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7bbfe31360f9--------------------------------) ·阅读时间 21 分钟·2024年9月26日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7bbfe31360f9--------------------------------) ·阅读时间 21 分钟·2024 年 9 月 26 日
 
 --
 
-![](../Images/963728066476cce1befa283fb3499efc.png)
+![](img/963728066476cce1befa283fb3499efc.png)
 
 用户生成的图像
 
@@ -50,51 +50,51 @@ github.com](https://github.com/raz1470/pymc_marketing/blob/main/notebooks/1.%20t
 
 # 1.0 MMM 背景
 
-让我们先简要概述一下营销组合模型（MMM）。我们将探索可用的各种开源包，并深入了解贝叶斯MMM的原理，包括先验概念。最后，我们将评估**pymc-marketing**中使用的默认先验，以衡量它们的适用性和有效性。
+让我们先简要概述一下营销组合模型（MMM）。我们将探索可用的各种开源包，并深入了解贝叶斯 MMM 的原理，包括先验概念。最后，我们将评估**pymc-marketing**中使用的默认先验，以衡量它们的适用性和有效性。
 
 ## 1.1 我们可以使用哪些开源包？
 
-在谈到MMM时，我们可以使用几个开源包：
+在谈到 MMM 时，我们可以使用几个开源包：
 
-![](../Images/52f6723ecd7065016292c73060be7eba.png)
+![](img/52f6723ecd7065016292c73060be7eba.png)
 
 用户生成的图片
 
 有几个令人信服的理由，在本系列中我们要专注于**pymc-marketing**：
 
-1.  **Python兼容性**：与仅支持R的Robyn不同，pymc-marketing服务于更多喜欢使用Python的用户。
+1.  **Python 兼容性**：与仅支持 R 的 Robyn 不同，pymc-marketing 服务于更多喜欢使用 Python 的用户。
 
-1.  **当前可用性**：Meridian尚未发布（截至2024年9月23日），这使得pymc-marketing现在是一个更容易访问的选择。
+1.  **当前可用性**：Meridian 尚未发布（截至 2024 年 9 月 23 日），这使得 pymc-marketing 现在是一个更容易访问的选择。
 
-1.  **未来考虑**：一旦Meridian发布，LightweightMMM将被淘汰，这进一步巩固了寻找可靠替代品的必要性。
+1.  **未来考虑**：一旦 Meridian 发布，LightweightMMM 将被淘汰，这进一步巩固了寻找可靠替代品的必要性。
 
-1.  **积极开发**：pymc-marketing通过其庞大的贡献者社区不断进行增强，确保它始终跟上新特性和改进。
+1.  **积极开发**：pymc-marketing 通过其庞大的贡献者社区不断进行增强，确保它始终跟上新特性和改进。
 
-你可以在这里查看pymc-marketing包，他们提供了一些很棒的笔记本，展示了该包的一些功能：
+你可以在这里查看 pymc-marketing 包，他们提供了一些很棒的笔记本，展示了该包的一些功能：
 
 [## 使用方法 - pymc-marketing 0.9.0 文档
 
-### 这里你会找到一系列示例和使用PyMC-Marketing MMM及CLV模型的使用指南。
+### 这里你会找到一系列示例和使用 PyMC-Marketing MMM 及 CLV 模型的使用指南。
 
 [www.pymc-marketing.io](https://www.pymc-marketing.io/en/stable/notebooks/index.html?source=post_page-----7bbfe31360f9--------------------------------)
 
 ## 1.2 什么是贝叶斯营销组合模型（MMM）？
 
-你会注意到，上面突出的4个包中有3个采用了贝叶斯方法。所以让我们花点时间了解一下贝叶斯MMM是什么样的！对于初学者来说，贝叶斯分析有点像进入了一个兔子洞，但我们可以将其分解为5个关键点：
+你会注意到，上面突出的 4 个包中有 3 个采用了贝叶斯方法。所以让我们花点时间了解一下贝叶斯 MMM 是什么样的！对于初学者来说，贝叶斯分析有点像进入了一个兔子洞，但我们可以将其分解为 5 个关键点：
 
-![](../Images/fe739acf49ab2eca4bf2ebf2e8a8805b.png)
+![](img/fe739acf49ab2eca4bf2ebf2e8a8805b.png)
 
 用户生成的图片
 
-1.  **贝叶斯定理** — 在贝叶斯MMM中，贝叶斯定理用于在我们收集到新数据时更新我们关于营销渠道如何影响销售的信念。例如，如果我们对电视广告如何影响销售有一些初步的看法，贝叶斯定理允许我们在看到实际的销售和电视广告支出数据后，完善这一看法。
+1.  **贝叶斯定理** — 在贝叶斯 MMM 中，贝叶斯定理用于在我们收集到新数据时更新我们关于营销渠道如何影响销售的信念。例如，如果我们对电视广告如何影响销售有一些初步的看法，贝叶斯定理允许我们在看到实际的销售和电视广告支出数据后，完善这一看法。
 
-1.  **P(θ)** — **先验**代表我们对模型中参数的初步信念，例如电视广告支出对销售的影响。例如，如果我们做了一个地理提升测试，估计电视广告使销售增长了5%，我们可能会根据这个估计设置一个先验。
+1.  **P(θ)** — **先验**代表我们对模型中参数的初步信念，例如电视广告支出对销售的影响。例如，如果我们做了一个地理提升测试，估计电视广告使销售增长了 5%，我们可能会根据这个估计设置一个先验。
 
-1.  **P(Data | θ)** — **似然函数**，它捕捉了在特定营销投入水平下观察到销售数据的概率。例如，如果你在社交媒体上花费了£100,000并看到了相应的销售增长，似然函数会告诉我们，根据社交媒体的假定效果，这种销售增长的可能性有多大。
+1.  **P(Data | θ)** — **似然函数**，它捕捉了在特定营销投入水平下观察到销售数据的概率。例如，如果你在社交媒体上花费了£100,000 并看到了相应的销售增长，似然函数会告诉我们，根据社交媒体的假定效果，这种销售增长的可能性有多大。
 
-1.  **P(θ | 数据)** — **后验分布**是我们在贝叶斯MMM中最关心的内容——它是我们在结合数据和先验假设后，对不同营销渠道如何影响销售的更新信念。例如，在观察到新的销售数据后，我们最初认为电视广告会带来5%的销售增长，可能会调整为更精确的估计，比如4.7%。
+1.  **P(θ | 数据)** — **后验分布**是我们在贝叶斯 MMM 中最关心的内容——它是我们在结合数据和先验假设后，对不同营销渠道如何影响销售的更新信念。例如，在观察到新的销售数据后，我们最初认为电视广告会带来 5%的销售增长，可能会调整为更精确的估计，比如 4.7%。
 
-1.  **采样** — 由于贝叶斯MMM涉及多个参数的复杂模型（例如广告效果、饱和度、营销渠道效应、控制效应等），直接计算后验分布可能很困难。MCMC（马尔可夫链蒙特卡洛）方法通过从每个参数的分布中生成样本来近似后验分布。该方法在处理难以解析求解的模型时特别有用。
+1.  **采样** — 由于贝叶斯 MMM 涉及多个参数的复杂模型（例如广告效果、饱和度、营销渠道效应、控制效应等），直接计算后验分布可能很困难。MCMC（马尔可夫链蒙特卡洛）方法通过从每个参数的分布中生成样本来近似后验分布。该方法在处理难以解析求解的模型时特别有用。
 
 ## 1.3 什么是贝叶斯先验？
 
@@ -104,7 +104,7 @@ github.com](https://github.com/raz1470/pymc_marketing/blob/main/notebooks/1.%20t
 
 +   **半正态分布**: 用于希望强制参数为正的情况。
 
-+   **Beta**: 用于参数约束在0和1之间的情况。
++   **Beta**: 用于参数约束在 0 和 1 之间的情况。
 
 +   **伽马分布**: 用于正值且偏斜的参数。
 
@@ -128,11 +128,11 @@ dummy_model = MMM(
 dummy_model.default_model_config
 ```
 
-![](../Images/9400cb34fdda8bf521e61419a8d59c17.png)
+![](img/9400cb34fdda8bf521e61419a8d59c17.png)
 
 用户生成的图片
 
-上面我已打印出包含7个默认先验的字典——让我们首先简要了解每个先验是什么：
+上面我已打印出包含 7 个默认先验的字典——让我们首先简要了解每个先验是什么：
 
 +   **截距** — 在没有任何营销支出或其他变量的情况下，销售或目标变量的基准水平。它为模型设定了起点。
 
@@ -173,11 +173,11 @@ plt.grid(True)
 plt.show()
 ```
 
-![](../Images/e3671fd16838d7163f2631f2d0ded101.png)
+![](img/e3671fd16838d7163f2631f2d0ded101.png)
 
 用户生成图像
 
-我们通常将广告库存阿尔法值限制在0到1之间，因此贝塔分布是一个合理的选择。具体而言，使用beta(1, 3)作为广告库存阿尔法的先验，反映了在大多数情况下，衰减率应该相对较高，这意味着营销活动的影响很快就会消失。
+我们通常将广告库存阿尔法值限制在 0 到 1 之间，因此贝塔分布是一个合理的选择。具体而言，使用 beta(1, 3)作为广告库存阿尔法的先验，反映了在大多数情况下，衰减率应该相对较高，这意味着营销活动的影响很快就会消失。
 
 为了进一步加深直觉，我们可以可视化不同广告库存阿尔法值的影响：
 
@@ -210,7 +210,7 @@ plt.grid(True)
 plt.show()
 ```
 
-![](../Images/bdaf927c95b02e76d85e9809154dbf5c.png)
+![](img/bdaf927c95b02e76d85e9809154dbf5c.png)
 
 用户生成图像
 
@@ -241,7 +241,7 @@ plt.grid(True)
 plt.show()
 ```
 
-![](../Images/479cf4d94568e019efdd618fce3ed7df.png)
+![](img/479cf4d94568e019efdd618fce3ed7df.png)
 
 用户生成图像
 
@@ -269,7 +269,7 @@ plt.grid(True)
 plt.show()
 ```
 
-![](../Images/5609476231ba26040181014d24f8e204.png)
+![](img/5609476231ba26040181014d24f8e204.png)
 
 用户生成的图像
 
@@ -301,7 +301,7 @@ plt.grid(True)
 plt.show()
 ```
 
-![](../Images/eccd7a85e2d0c231a137f92cad24fc2c.png)
+![](img/eccd7a85e2d0c231a137f92cad24fc2c.png)
 
 用户生成的图像
 
@@ -330,7 +330,7 @@ plt.grid(True)
 plt.show()
 ```
 
-![](../Images/707d7b29c3f5727586082ecd0a4dfb96.png)
+![](img/707d7b29c3f5727586082ecd0a4dfb96.png)
 
 用户生成的图像
 
@@ -448,11 +448,11 @@ def data_generator(start_date, periods, channels, spend_scalar, adstock_alphas, 
 
 现在，我们可以使用一些现实的参数调用数据生成函数：
 
-+   3年的每周数据。
++   3 年的每周数据。
 
-+   来自营销漏斗不同部分的3个渠道。
++   来自营销漏斗不同部分的 3 个渠道。
 
-+   每个渠道有不同的广告库存、饱和度和beta参数。
++   每个渠道有不同的广告库存、饱和度和 beta 参数。
 
 ```py
 np.random.seed(10)
@@ -486,7 +486,7 @@ contributions = np.asarray([
 df[["date", "demand", "demand_proxy", "tv_spend_raw", "social_spend_raw", "search_spend_raw", "sales"]]
 ```
 
-![](../Images/7ca303d078ee53b448bb1ee9b57a01a5.png)
+![](img/7ca303d078ee53b448bb1ee9b57a01a5.png)
 
 用户生成的图像
 
@@ -509,7 +509,7 @@ plt.legend()
 plt.show()
 ```
 
-![](../Images/18d3746085c06c6c3d5c76a0b81d6cfc.png)
+![](img/18d3746085c06c6c3d5c76a0b81d6cfc.png)
 
 用户生成的图像
 
@@ -527,7 +527,7 @@ plt.xticks(rotation=45, ha='right')
 plt.show()
 ```
 
-![](../Images/bb3c5867096a652e29c78489641372fc.png)
+![](img/bb3c5867096a652e29c78489641372fc.png)
 
 用户生成的图像
 
@@ -547,7 +547,7 @@ plt.legend()
 plt.show()
 ```
 
-![](../Images/2d95c270ebfb611c102827cb886fa0c2.png)
+![](img/2d95c270ebfb611c102827cb886fa0c2.png)
 
 用户生成的图像
 
@@ -567,11 +567,11 @@ plt.legend()
 plt.show()
 ```
 
-![](../Images/f29c738a4a8ac910bf98e1128814e3d0.png)
+![](img/f29c738a4a8ac910bf98e1128814e3d0.png)
 
 用户生成的图像
 
-+   下面我们可以看到，我们的变量高度相关，这在MMM数据中非常常见，因为营销团队在高峰期花费更多。
++   下面我们可以看到，我们的变量高度相关，这在 MMM 数据中非常常见，因为营销团队在高峰期花费更多。
 
 ```py
 plt.figure(figsize=(8, 8))
@@ -580,7 +580,7 @@ plt.title('Correlation Heatmap')
 plt.show()
 ```
 
-![](../Images/51b7a970f682018e63613dfd3777be03.png)
+![](img/51b7a970f682018e63613dfd3777be03.png)
 
 用户生成的图像
 
@@ -599,7 +599,7 @@ plt.legend()
 plt.show()
 ```
 
-![](../Images/5279c48b359969074e3dd862faba5bbf.png)
+![](img/5279c48b359969074e3dd862faba5bbf.png)
 
 用户生成的图像
 
@@ -640,11 +640,11 @@ train_idx = slice(0, len(df) - test_len)
 out_of_time_idx = slice(len(df) - test_len, len(df))
 ```
 
-接下来我们初始化MMM类。MMM中的一个主要挑战是参数与训练观察值的比率很高。我们可以通过对转换方式进行务实选择来缓解这一问题：
+接下来我们初始化 MMM 类。MMM 中的一个主要挑战是参数与训练观察值的比率很高。我们可以通过对转换方式进行务实选择来缓解这一问题：
 
-+   我们选择了几何广告库存（adstock），它每个渠道有1个参数，而与使用威布尔广告库存相比，后者有2个参数。
++   我们选择了几何广告库存（adstock），它每个渠道有 1 个参数，而与使用威布尔广告库存相比，后者有 2 个参数。
 
-+   我们选择了逻辑饱和度，它每个渠道有1个参数，而与使用Hill饱和度相比，后者有2个参数。
++   我们选择了逻辑饱和度，它每个渠道有 1 个参数，而与使用 Hill 饱和度相比，后者有 2 个参数。
 
 +   我们使用需求的代理，并决定不包括季节性成分或时间变化趋势，这进一步减少了我们的参数数量。
 
@@ -664,7 +664,7 @@ mmm_default = MMM(
 mmm_default.default_model_config
 ```
 
-![](../Images/9400cb34fdda8bf521e61419a8d59c17.png)
+![](img/9400cb34fdda8bf521e61419a8d59c17.png)
 
 用户生成的图像
 
@@ -701,7 +701,7 @@ mmm_default.fit(X[train_idx], y[train_idx], **fit_kwargs)
 mmm_default.idata["sample_stats"]["diverging"].sum().item()
 ```
 
-![](../Images/777b7fb5560a8528aeecf40c563bc8a9.png)
+![](img/777b7fb5560a8528aeecf40c563bc8a9.png)
 
 用户生成的图像
 
@@ -713,7 +713,7 @@ mmm_default.idata["sample_stats"]["diverging"].sum().item()
 
 +   **rhat** — Gelman-Rubin 统计量，用于衡量链的收敛性。接近 1（通常 < 1.05）的值表示良好的收敛性。
 
-我们的R-hat值都非常接近1，这在没有发散的情况下是可以预期的。在下一节进行参数恢复练习时，我们将重新审视均值参数值。
+我们的 R-hat 值都非常接近 1，这在没有发散的情况下是可以预期的。在下一节进行参数恢复练习时，我们将重新审视均值参数值。
 
 ```py
 az.summary(
@@ -729,15 +729,15 @@ az.summary(
 )
 ```
 
-![](../Images/a240798d58cfb3beced35bc3f44392ea.png)
+![](img/a240798d58cfb3beced35bc3f44392ea.png)
 
 用户生成的图像
 
-接下来，我们生成诊断图，这对评估MCMC采样质量至关重要：
+接下来，我们生成诊断图，这对评估 MCMC 采样质量至关重要：
 
-+   **后验分布（左）：** 显示每个参数在MCMC采样过程中的值。理想情况下，这些分布应平滑且单峰，所有链条应显示出相似的分布。
++   **后验分布（左）：** 显示每个参数在 MCMC 采样过程中的值。理想情况下，这些分布应平滑且单峰，所有链条应显示出相似的分布。
 
-+   **轨迹图（右）：** 显示每个参数在MCMC采样过程中的值。任何趋势或缓慢漂移可能表明混合不良或非收敛，而未重叠的链条可能表明它们陷入了后验分布的不同模式。
++   **轨迹图（右）：** 显示每个参数在 MCMC 采样过程中的值。任何趋势或缓慢漂移可能表明混合不良或非收敛，而未重叠的链条可能表明它们陷入了后验分布的不同模式。
 
 从我们的诊断图看，没有出现明显的警告信号。
 
@@ -758,7 +758,7 @@ _ = az.plot_trace(
 plt.gcf().suptitle("Model Trace", fontsize=16);
 ```
 
-![](../Images/562fd3b92302d6301106a3300701dbd8.png)
+![](img/562fd3b92302d6301106a3300701dbd8.png)
 
 用户生成的图像
 
@@ -774,21 +774,21 @@ mmm_default.sample_posterior_predictive(X[train_idx], extend_idata=True, combine
 mmm_default.plot_posterior_predictive(original_scale=True);
 ```
 
-![](../Images/943e1bad64df9f23b6c48ad2687d8052.png)
+![](img/943e1bad64df9f23b6c48ad2687d8052.png)
 
 用户生成的图像
 
-接下来，我们可以计算后验预测均值和实际数据之间的残差。我们可以绘制这些残差随时间变化的图形，以检查是否有模式或自相关性。看起来残差围绕0波动，正如预期的那样。
+接下来，我们可以计算后验预测均值和实际数据之间的残差。我们可以绘制这些残差随时间变化的图形，以检查是否有模式或自相关性。看起来残差围绕 0 波动，正如预期的那样。
 
 ```py
 mmm_default.plot_errors(original_scale=True);
 ```
 
-![](../Images/69861606a8e25d688f660ac44ea6b4b6.png)
+![](img/69861606a8e25d688f660ac44ea6b4b6.png)
 
 用户生成的图像
 
-我们还可以检查残差是否围绕0正态分布。再次，我们通过了这个诊断测试。
+我们还可以检查残差是否围绕 0 正态分布。再次，我们通过了这个诊断测试。
 
 ```py
 errors = mmm_default.get_errors(original_scale=True)
@@ -802,7 +802,7 @@ ax.legend()
 ax.set(title="Errors Posterior Distribution");
 ```
 
-![](../Images/68f34d1d28ffb345180286225eee8eba.png)
+![](img/68f34d1d28ffb345180286225eee8eba.png)
 
 用户生成的图像
 
@@ -851,7 +851,7 @@ plot_out_of_sample(
 ax.legend(loc="upper left");
 ```
 
-![](../Images/d38d396327df862fae164b3befa5a31a.png)
+![](img/d38d396327df862fae164b3befa5a31a.png)
 
 用户生成的图像
 
@@ -863,7 +863,7 @@ ax.legend(loc="upper left");
 
 ## 2.4.1 参数恢复 — 广告库存效应（Adstock）
 
-让我们从将广告库存参数的后验分布与我们之前存储在adstock_alphas列表中的真实值进行比较开始。模型表现得相当不错，达到了正确的排名顺序，并且真实值始终位于后验分布范围内。
+让我们从将广告库存参数的后验分布与我们之前存储在 adstock_alphas 列表中的真实值进行比较开始。模型表现得相当不错，达到了正确的排名顺序，并且真实值始终位于后验分布范围内。
 
 ```py
 fig = mmm_default.plot_channel_parameter(param_name="adstock_alpha", figsize=(9, 5))
@@ -874,13 +874,13 @@ ax.axvline(x=adstock_alphas[2], color="C2", linestyle="--", label=r"$\alpha_3$")
 ax.legend(loc="upper right");
 ```
 
-![](../Images/892a862a32784f26e6da5ec8f9b39a90.png)
+![](img/892a862a32784f26e6da5ec8f9b39a90.png)
 
 用户生成的图片
 
 ## 2.4.2 参数恢复 — 饱和度
 
-当我们检查饱和度时，模型在恢复电视的lambda方面表现非常好，但在恢复社交和搜索的真实值时表现较差，尽管结果并不灾难性。
+当我们检查饱和度时，模型在恢复电视的 lambda 方面表现非常好，但在恢复社交和搜索的真实值时表现较差，尽管结果并不灾难性。
 
 ```py
 fig = mmm_default.plot_channel_parameter(param_name="saturation_lam", figsize=(9, 5))
@@ -891,7 +891,7 @@ ax.axvline(x=saturation_lamdas[2], color="C2", linestyle="--", label=r"$\lambda_
 ax.legend(loc="upper right");
 ```
 
-![](../Images/418eee6dc457947cc8bcc7aae7732297.png)
+![](img/418eee6dc457947cc8bcc7aae7732297.png)
 
 用户生成的图片
 
@@ -908,7 +908,7 @@ ax.axvline(x=betas_scaled[2], color="C2", linestyle="--", label=r"$\beta_3$")
 ax.legend(loc="upper right");
 ```
 
-![](../Images/5e5d4ae64fa29861fd4c5733a829deaa.png)
+![](img/5e5d4ae64fa29861fd4c5733a829deaa.png)
 
 用户生成的图片
 
@@ -926,7 +926,7 @@ true_contributions = true_contributions.style.bar(subset=['Contributions'], colo
 true_contributions
 ```
 
-![](../Images/036cd2b56ddb8b1aa652170a03e81b41.png)
+![](img/036cd2b56ddb8b1aa652170a03e81b41.png)
 
 用户生成的图片
 
@@ -936,12 +936,12 @@ true_contributions
 mmm_default.plot_waterfall_components_decomposition(figsize=(10,6));
 ```
 
-![](../Images/9222b02732fff116d22c5b9cb5e18b7d.png)
+![](img/9222b02732fff116d22c5b9cb5e18b7d.png)
 
 用户生成的图片
 
 # 结束语
 
-在2.3节中，我们验证了模型，并得出结论认为它是稳健的。然而，参数恢复实验表明，我们的模型大大高估了营销效果。这一高估是由需求这一混杂因素引起的。在现实生活中，不可能进行参数恢复实验。那么，你如何识别模型中营销贡献的偏差？一旦识别出来，你又会如何解决这个问题呢？这引出了我们下一篇关于模型校准的文章！
+在 2.3 节中，我们验证了模型，并得出结论认为它是稳健的。然而，参数恢复实验表明，我们的模型大大高估了营销效果。这一高估是由需求这一混杂因素引起的。在现实生活中，不可能进行参数恢复实验。那么，你如何识别模型中营销贡献的偏差？一旦识别出来，你又会如何解决这个问题呢？这引出了我们下一篇关于模型校准的文章！
 
-希望你喜欢这第一篇文章！如果你想继续走向掌握MMM的道路，记得关注我——在下一篇文章中，我们将把焦点转向使用实验的有用先验进行模型校准。
+希望你喜欢这第一篇文章！如果你想继续走向掌握 MMM 的道路，记得关注我——在下一篇文章中，我们将把焦点转向使用实验的有用先验进行模型校准。

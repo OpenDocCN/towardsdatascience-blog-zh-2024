@@ -1,16 +1,16 @@
 # 你可以在机器学习背景下使用的 5 个项目管理框架
 
-> 原文：[https://towardsdatascience.com/5-project-management-frameworks-you-can-use-in-the-context-of-machine-learning-04bde5f3a6ac?source=collection_archive---------8-----------------------#2024-04-26](https://towardsdatascience.com/5-project-management-frameworks-you-can-use-in-the-context-of-machine-learning-04bde5f3a6ac?source=collection_archive---------8-----------------------#2024-04-26)
+> 原文：[`towardsdatascience.com/5-project-management-frameworks-you-can-use-in-the-context-of-machine-learning-04bde5f3a6ac?source=collection_archive---------8-----------------------#2024-04-26`](https://towardsdatascience.com/5-project-management-frameworks-you-can-use-in-the-context-of-machine-learning-04bde5f3a6ac?source=collection_archive---------8-----------------------#2024-04-26)
 
 ## 在这篇文章中，我们将讨论 5 个你可以在数据科学和机器学习背景下使用的著名项目管理框架：敏捷（Agile）、瀑布（Waterfall）、SEMMA、CRISP-DM 和 KDD
 
-[](https://ivopbernardo.medium.com/?source=post_page---byline--04bde5f3a6ac--------------------------------)[![Ivo Bernardo](../Images/39887b6f3e63a67c0545e87962ad5df0.png)](https://ivopbernardo.medium.com/?source=post_page---byline--04bde5f3a6ac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04bde5f3a6ac--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--04bde5f3a6ac--------------------------------) [Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--04bde5f3a6ac--------------------------------)
+[](https://ivopbernardo.medium.com/?source=post_page---byline--04bde5f3a6ac--------------------------------)![Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--04bde5f3a6ac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04bde5f3a6ac--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04bde5f3a6ac--------------------------------) [Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--04bde5f3a6ac--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04bde5f3a6ac--------------------------------) ·阅读时间 8 分钟 ·2024年4月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04bde5f3a6ac--------------------------------) ·阅读时间 8 分钟 ·2024 年 4 月 26 日
 
 --
 
-![](../Images/daa4c293ea0bbdc51f8efd25ab8627a6.png)
+![](img/daa4c293ea0bbdc51f8efd25ab8627a6.png)
 
 图片来自 [joszczepanska](https://unsplash.com/pt-br/@joszczepanska) @Unplash.com
 

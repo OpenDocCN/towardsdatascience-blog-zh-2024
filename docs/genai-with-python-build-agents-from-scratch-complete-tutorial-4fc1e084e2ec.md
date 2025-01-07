@@ -1,16 +1,16 @@
-# 使用Python构建GenAI：从零开始构建代理（完整教程）
+# 使用 Python 构建 GenAI：从零开始构建代理（完整教程）
 
-> 原文：[https://towardsdatascience.com/genai-with-python-build-agents-from-scratch-complete-tutorial-4fc1e084e2ec?source=collection_archive---------0-----------------------#2024-09-29](https://towardsdatascience.com/genai-with-python-build-agents-from-scratch-complete-tutorial-4fc1e084e2ec?source=collection_archive---------0-----------------------#2024-09-29)
+> 原文：[`towardsdatascience.com/genai-with-python-build-agents-from-scratch-complete-tutorial-4fc1e084e2ec?source=collection_archive---------0-----------------------#2024-09-29`](https://towardsdatascience.com/genai-with-python-build-agents-from-scratch-complete-tutorial-4fc1e084e2ec?source=collection_archive---------0-----------------------#2024-09-29)
 
-## 使用Ollama、LangChain、LangGraph（无GPU，无APIKEY）
+## 使用 Ollama、LangChain、LangGraph（无 GPU，无 APIKEY）
 
-[](https://maurodp.medium.com/?source=post_page---byline--4fc1e084e2ec--------------------------------)[![Mauro Di Pietro](../Images/3586d9d3238d904a1e1fa39c77b59d3f.png)](https://maurodp.medium.com/?source=post_page---byline--4fc1e084e2ec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4fc1e084e2ec--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4fc1e084e2ec--------------------------------) [Mauro Di Pietro](https://maurodp.medium.com/?source=post_page---byline--4fc1e084e2ec--------------------------------)
+[](https://maurodp.medium.com/?source=post_page---byline--4fc1e084e2ec--------------------------------)![Mauro Di Pietro](https://maurodp.medium.com/?source=post_page---byline--4fc1e084e2ec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4fc1e084e2ec--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4fc1e084e2ec--------------------------------) [Mauro Di Pietro](https://maurodp.medium.com/?source=post_page---byline--4fc1e084e2ec--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4fc1e084e2ec--------------------------------) ·15分钟阅读·2024年9月29日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4fc1e084e2ec--------------------------------) ·15 分钟阅读·2024 年 9 月 29 日
 
 --
 
-![](../Images/a4b4f821b7e226c94d46a7574097b60f.png)
+![](img/a4b4f821b7e226c94d46a7574097b60f.png)
 
 图片由[Mathieu Stern](https://unsplash.com/@mathieustern?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,24 +1,24 @@
 # 优化的直观基础
 
-> 原文：[https://towardsdatascience.com/the-intuitive-basics-of-optimization-730e5b52180a?source=collection_archive---------6-----------------------#2024-06-26](https://towardsdatascience.com/the-intuitive-basics-of-optimization-730e5b52180a?source=collection_archive---------6-----------------------#2024-06-26)
+> 原文：[`towardsdatascience.com/the-intuitive-basics-of-optimization-730e5b52180a?source=collection_archive---------6-----------------------#2024-06-26`](https://towardsdatascience.com/the-intuitive-basics-of-optimization-730e5b52180a?source=collection_archive---------6-----------------------#2024-06-26)
 
 ## 对优化这一神奇领域的温和介绍
 
-[](https://medium.com/@jarom.hulet?source=post_page---byline--730e5b52180a--------------------------------)[![Jarom Hulet](../Images/0fdeb1a2df90cccdd8f2f4b84d5e54eb.png)](https://medium.com/@jarom.hulet?source=post_page---byline--730e5b52180a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--730e5b52180a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--730e5b52180a--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--730e5b52180a--------------------------------)
+[](https://medium.com/@jarom.hulet?source=post_page---byline--730e5b52180a--------------------------------)![Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--730e5b52180a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--730e5b52180a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--730e5b52180a--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--730e5b52180a--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--730e5b52180a--------------------------------) ·12分钟阅读·2024年6月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--730e5b52180a--------------------------------) ·12 分钟阅读·2024 年 6 月 26 日
 
 --
 
 本文将通过你的直觉和一个“日常”例子，向你介绍优化的基本组成部分。阅读完本文后，你将理解解决优化问题时（1）目标，（2）约束，（3）决策变量，（4）解空间和（5）解的定义和作用。本文旨在介绍优化的概念——并不涉及优化的数学原理或具体技术，相关内容将在未来的文章中讨论！
 
-阅读完本文后，你将能看到优化框架如何应用于下面链接文章中的“现实世界”股票切割问题（这是我的第一篇TDS文章！）。
+阅读完本文后，你将能看到优化框架如何应用于下面链接文章中的“现实世界”股票切割问题（这是我的第一篇 TDS 文章！）。
 
-[](/how-bad-is-being-greedy-cdec75ce52a6?source=post_page-----730e5b52180a--------------------------------) [## 贪心有多糟糕？
+[](/how-bad-is-being-greedy-cdec75ce52a6?source=post_page-----730e5b52180a--------------------------------) ## 贪心有多糟糕？
 
 ### 对股票切割问题的贪心方法的评估
 
-towardsdatascience.com](/how-bad-is-being-greedy-cdec75ce52a6?source=post_page-----730e5b52180a--------------------------------)
+towardsdatascience.com
 
 **内容**
 

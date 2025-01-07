@@ -1,30 +1,30 @@
-# 使用Facebook Prophet预测时间序列数据入门
+# 使用 Facebook Prophet 预测时间序列数据入门
 
-> 原文：[https://towardsdatascience.com/getting-started-predicting-time-series-data-with-facebook-prophet-c74ad3040525?source=collection_archive---------2-----------------------#2024-01-30](https://towardsdatascience.com/getting-started-predicting-time-series-data-with-facebook-prophet-c74ad3040525?source=collection_archive---------2-----------------------#2024-01-30)
+> 原文：[`towardsdatascience.com/getting-started-predicting-time-series-data-with-facebook-prophet-c74ad3040525?source=collection_archive---------2-----------------------#2024-01-30`](https://towardsdatascience.com/getting-started-predicting-time-series-data-with-facebook-prophet-c74ad3040525?source=collection_archive---------2-----------------------#2024-01-30)
 
-## 本文旨在通过使用Prophet进行的动手教程，消除入门时间序列分析的障碍。
+## 本文旨在通过使用 Prophet 进行的动手教程，消除入门时间序列分析的障碍。
 
-[](https://medium.com/@jonas_dieckmann?source=post_page---byline--c74ad3040525--------------------------------)[![Jonas Dieckmann](../Images/b3345d7d4ba503b08bd4dc715390d650.png)](https://medium.com/@jonas_dieckmann?source=post_page---byline--c74ad3040525--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c74ad3040525--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c74ad3040525--------------------------------) [Jonas Dieckmann](https://medium.com/@jonas_dieckmann?source=post_page---byline--c74ad3040525--------------------------------)
+[](https://medium.com/@jonas_dieckmann?source=post_page---byline--c74ad3040525--------------------------------)![Jonas Dieckmann](https://medium.com/@jonas_dieckmann?source=post_page---byline--c74ad3040525--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c74ad3040525--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c74ad3040525--------------------------------) [Jonas Dieckmann](https://medium.com/@jonas_dieckmann?source=post_page---byline--c74ad3040525--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c74ad3040525--------------------------------) ·阅读时间：9分钟·2024年1月30日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c74ad3040525--------------------------------) ·阅读时间：9 分钟·2024 年 1 月 30 日
 
 --
 
 当开始学习数据科学时，时间序列分析是人们常常希望自己尝试的一个内容！这里的基本理念是通过学习历史模式来预测未来。典型的应用案例可能是天气预测或销售预测。但是，下面这位聪明的预言家与这些有什么关系呢？！
 
-![](../Images/6b84a482c13b16a83fedc78c40fa8e57.png)
+![](img/6b84a482c13b16a83fedc78c40fa8e57.png)
 
-由leonardo.ai生成的图像
+由 leonardo.ai 生成的图像
 
-本文旨在通过使用一种最简单的工具之一——[Facebook Prophet](https://facebook.github.io/prophet/)——在[Google Colab](https://colab.research.google.com/)中进行的动手教程，消除入门时间序列分析的障碍（这两个工具都是免费的！）。如果你想立即开始，可以跳过接下来的两章，我将在其中简要介绍时间序列的基本原理以及Facebook Prophet本身。祝你玩得开心！
+本文旨在通过使用一种最简单的工具之一——[Facebook Prophet](https://facebook.github.io/prophet/)——在[Google Colab](https://colab.research.google.com/)中进行的动手教程，消除入门时间序列分析的障碍（这两个工具都是免费的！）。如果你想立即开始，可以跳过接下来的两章，我将在其中简要介绍时间序列的基本原理以及 Facebook Prophet 本身。祝你玩得开心！
 
 本文分为三个主要部分：
 
 #1 时间序列分析原理简要介绍
 
-#2 Facebook Prophet简介
+#2 Facebook Prophet 简介
 
-#3 如何在Google Colab中使用Prophet的动手教程（免费）
+#3 如何在 Google Colab 中使用 Prophet 的动手教程（免费）
 
 # #1 时间序列分析的基本原则
 
@@ -32,7 +32,7 @@
 
 以下图形展示了历史产品需求（深蓝色线条）的人工发展趋势，可以用来分析时间序列模式。我们的最终目标是尽可能准确地预测（红色虚线）实际的未来需求（浅蓝色线条）：
 
-![](../Images/76be98eabce3d974413bec2d78f08e89.png)
+![](img/76be98eabce3d974413bec2d78f08e89.png)
 
 绘制的时间序列示例。图像来自作者
 
@@ -46,7 +46,7 @@
 
 将时间序列分解为这三大组件，通常称为加性或乘性分解，能够帮助分析师更好地理解数据的潜在结构和模式。这种理解对于选择合适的预测模型以及基于历史数据做出准确预测至关重要。[2]
 
-![](../Images/7014027115a20cfee7d61ec8779c0dd5.png)
+![](img/7014027115a20cfee7d61ec8779c0dd5.png)
 
 将时间序列分解为趋势+季节性+误差的示例。图像来自作者
 
@@ -66,7 +66,7 @@ Prophet 特别适用于商业预测应用，并因其易用性和在处理各种
 
 在 Colab 中设置基本的时间序列分析环境，你可以按照以下两个步骤操作：
 
-1.  打开[https://colab.research.google.com/](https://colab.research.google.com/)并注册一个免费账户
+1.  打开[`colab.research.google.com/`](https://colab.research.google.com/)并注册一个免费账户
 
 1.  在 Colab 中创建一个新的*notebook*
 
@@ -82,9 +82,9 @@ from prophet import Prophet
 
 ## 加载并准备数据
 
-我上传了一个小型虚拟数据集，代表本地公交公司（2012–2023年）的月度乘客数量。你可以在[GitHub 上找到数据](https://raw.githubusercontent.com/jonasdieckmann/prophet_tutorial/main/passengers.csv)。
+我上传了一个小型虚拟数据集，代表本地公交公司（2012–2023 年）的月度乘客数量。你可以在[GitHub 上找到数据](https://raw.githubusercontent.com/jonasdieckmann/prophet_tutorial/main/passengers.csv)。
 
-作为第一步，我们将使用 pandas 加载数据，并创建两个独立的数据集：一个包含2012到2022年的训练子集，以及一个包含2023年的测试子集。我们将使用第一个子集来训练我们的时间序列模型，并预测2023年的乘客数量。通过第二个子集，我们稍后将能够验证模型的准确性。
+作为第一步，我们将使用 pandas 加载数据，并创建两个独立的数据集：一个包含 2012 到 2022 年的训练子集，以及一个包含 2023 年的测试子集。我们将使用第一个子集来训练我们的时间序列模型，并预测 2023 年的乘客数量。通过第二个子集，我们稍后将能够验证模型的准确性。
 
 ```py
 import pandas as pd
@@ -99,13 +99,13 @@ display(df_data_train)
 
 显示命令的输出如下所示。数据集包含两列：年份-月份的组合标识，以及该月的乘客数量的数值列。默认情况下，Prophet 设计为处理每日（甚至每小时）的数据，但我们将确保月度模式也可以使用。
 
-![](../Images/083ecb9d59735390a75f1cdfde35f4d6.png)
+![](img/083ecb9d59735390a75f1cdfde35f4d6.png)
 
 乘客数据集。图像由作者提供
 
 ## 分解训练数据
 
-为了更好地理解我们虚拟数据中的时间序列组件，我们将进行快速分解。为此，我们从*statsmodels*库中导入该方法，并对我们的数据集进行分解。我们选择了加法模型，并指定数据中的一个周期包含12个元素（月）。如果是每日数据集，则周期=365。
+为了更好地理解我们虚拟数据中的时间序列组件，我们将进行快速分解。为此，我们从*statsmodels*库中导入该方法，并对我们的数据集进行分解。我们选择了加法模型，并指定数据中的一个周期包含 12 个元素（月）。如果是每日数据集，则周期=365。
 
 ```py
 from statsmodels.tsa.seasonal import seasonal_decompose
@@ -117,15 +117,15 @@ decompose.plot().show()
 
 这段简短的代码将为我们提供时间序列本身的视觉印象，特别是关于趋势、季节性和残差随时间变化的情况：
 
-![](../Images/52c693392ede2122ae4d49aeb2225592.png)
+![](img/52c693392ede2122ae4d49aeb2225592.png)
 
 乘客虚拟数据的分解元素。图像由作者提供
 
-现在我们可以清晰地看到过去10年中，显著上升的趋势以及每年可识别的季节性模式。根据这些迹象，我们现在预计模型会预测未来年份夏季的乘客数量会有所增加，并且跟随季节性波峰。但让我们试试看——是时候应用一些机器学习了！
+现在我们可以清晰地看到过去 10 年中，显著上升的趋势以及每年可识别的季节性模式。根据这些迹象，我们现在预计模型会预测未来年份夏季的乘客数量会有所增加，并且跟随季节性波峰。但让我们试试看——是时候应用一些机器学习了！
 
 ## 使用 Facebook Prophet 进行模型拟合
 
-在Prophet中拟合模型时，至少需要有一个“ds”（日期戳）和一个“y”（要预测的值）列。我们应该确保我们的列名已被重命名，以反映这一点。
+在 Prophet 中拟合模型时，至少需要有一个“ds”（日期戳）和一个“y”（要预测的值）列。我们应该确保我们的列名已被重命名，以反映这一点。
 
 ```py
 df_train_prophet = df_data_train
@@ -148,29 +148,29 @@ model_prophet.fit(df_train_prophet)
 
 ## 进行预测
 
-我们需要对一个包含“ds”列（包含你想要进行预测的日期）的表格进行预测。要设置这个表格，使用*make_future_dataframe*方法，它会自动包含历史日期。通过这种方式，你可以看到模型如何拟合过去的数据并预测未来。由于我们处理的是月度数据，我们会通过“freq=12”来指定频率，并要求预测的未来时间段为12个月（“periods=12”）。
+我们需要对一个包含“ds”列（包含你想要进行预测的日期）的表格进行预测。要设置这个表格，使用*make_future_dataframe*方法，它会自动包含历史日期。通过这种方式，你可以看到模型如何拟合过去的数据并预测未来。由于我们处理的是月度数据，我们会通过“freq=12”来指定频率，并要求预测的未来时间段为 12 个月（“periods=12”）。
 
 ```py
 df_future = model_prophet.make_future_dataframe(periods=12, freq='MS')
 display(df_future)
 ```
 
-这个新的数据集包含了训练期和我们想要预测的额外12个月数据：
+这个新的数据集包含了训练期和我们想要预测的额外 12 个月数据：
 
-![](../Images/67f5957194177eec969937a413b16b0e.png)
+![](img/67f5957194177eec969937a413b16b0e.png)
 
 未来数据集。图片来源：作者
 
-要进行预测，我们只需调用Prophet的*predict*方法，并提供未来数据集。预测结果将包含一个包含许多不同列的大数据集，但我们只关注预测值*yhat*以及不确定性区间*yhat_lower*和*yhat_upper*。
+要进行预测，我们只需调用 Prophet 的*predict*方法，并提供未来数据集。预测结果将包含一个包含许多不同列的大数据集，但我们只关注预测值*yhat*以及不确定性区间*yhat_lower*和*yhat_upper*。
 
 ```py
 forecast_prophet = model_prophet.predict(df_future)
 forecast_prophet[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].round().tail()
 ```
 
-下表给我们一些关于如何生成和存储输出的概念。对于2023年8月，模型预测的乘客数量为532人。默认设置为80%的不确定性区间，简单来说，它告诉我们在这个月，大多数情况下，乘客数量可能在508人到556人之间。
+下表给我们一些关于如何生成和存储输出的概念。对于 2023 年 8 月，模型预测的乘客数量为 532 人。默认设置为 80%的不确定性区间，简单来说，它告诉我们在这个月，大多数情况下，乘客数量可能在 508 人到 556 人之间。
 
-![](../Images/2db589424d17336f514f1af97cb1c9ce.png)
+![](img/2db589424d17336f514f1af97cb1c9ce.png)
 
 预测子集。图片来源：作者
 
@@ -178,7 +178,7 @@ forecast_prophet[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].round().tail()
 
 ## 可视化结果
 
-为了绘制结果，我们可以利用Prophet的内置绘图工具。通过plot方法，我们可以显示原始时间序列数据和预测值。
+为了绘制结果，我们可以利用 Prophet 的内置绘图工具。通过 plot 方法，我们可以显示原始时间序列数据和预测值。
 
 ```py
 import matplotlib.pyplot as plt
@@ -201,7 +201,7 @@ plt.legend()
 
 除了常规的时间序列图，我们还添加了一条虚线，表示训练期的结束，从而标志着预测期的开始。此外，我们还使用了我们在一开始准备的真实测试数据集。
 
-![](../Images/4f9654f9a8bee5bd9b32e54ca2a7f1df.png)
+![](img/4f9654f9a8bee5bd9b32e54ca2a7f1df.png)
 
 绘制的时间序列分析结果，包括真实测试数据和预测结果。图片来源：作者
 
@@ -223,7 +223,7 @@ Prophet 是一个强大的工具，用于预测时间序列数据中的未来值
 
 medium.com](https://medium.com/@jonas_dieckmann?source=post_page-----c74ad3040525--------------------------------)
 
-我希望您觉得这很有用。请告诉我您的想法！也欢迎在 LinkedIn 上与我联系 [https://www.linkedin.com/in/jonas-dieckmann/](https://www.linkedin.com/in/jonas-dieckmann/) 或在 Medium 上关注我。
+我希望您觉得这很有用。请告诉我您的想法！也欢迎在 LinkedIn 上与我联系 [`www.linkedin.com/in/jonas-dieckmann/`](https://www.linkedin.com/in/jonas-dieckmann/) 或在 Medium 上关注我。
 
 ## 请参见我其他的一些文章：
 
@@ -231,11 +231,11 @@ medium.com](https://medium.com/@jonas_dieckmann?source=post_page-----c74ad304052
 
 ### 您是否想过如何使用 OpenAI 的 API 直接与 GPT 算法交互？它很简单、免费，而且更…
 
-[pub.towardsai.net](https://pub.towardsai.net/how-to-use-chatgpt-api-for-direct-interaction-from-colab-or-databricks-39969a0ead5f?source=post_page-----c74ad3040525--------------------------------) [](/how-to-set-started-with-tensorflow-using-keras-api-and-google-colab-5421e5e4ef56?source=post_page-----c74ad3040525--------------------------------) [## 如何使用 Keras API 和 Google Colab 入门 TensorFlow
+[pub.towardsai.net](https://pub.towardsai.net/how-to-use-chatgpt-api-for-direct-interaction-from-colab-or-databricks-39969a0ead5f?source=post_page-----c74ad3040525--------------------------------) [](/how-to-set-started-with-tensorflow-using-keras-api-and-google-colab-5421e5e4ef56?source=post_page-----c74ad3040525--------------------------------) ## 如何使用 Keras API 和 Google Colab 入门 TensorFlow
 
 ### 分步教程：使用神经网络分析人类活动
 
-towardsdatascience.com](/how-to-set-started-with-tensorflow-using-keras-api-and-google-colab-5421e5e4ef56?source=post_page-----c74ad3040525--------------------------------)
+towardsdatascience.com
 
 ## 参考文献
 
@@ -245,4 +245,4 @@ towardsdatascience.com](/how-to-set-started-with-tensorflow-using-keras-api-and-
 
 [3] **Rafferty, Greg (2021)**: 使用 Facebook Prophet 预测时间序列数据
 
-[4] [https://facebook.github.io/prophet/docs/quick_start.html](https://facebook.github.io/prophet/docs/quick_start.html)
+[4] [`facebook.github.io/prophet/docs/quick_start.html`](https://facebook.github.io/prophet/docs/quick_start.html)

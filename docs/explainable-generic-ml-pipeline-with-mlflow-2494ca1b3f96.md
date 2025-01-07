@@ -1,38 +1,38 @@
-# 可解释的通用机器学习管道与MLflow
+# 可解释的通用机器学习管道与 MLflow
 
-> 原文：[https://towardsdatascience.com/explainable-generic-ml-pipeline-with-mlflow-2494ca1b3f96?source=collection_archive---------5-----------------------#2024-11-26](https://towardsdatascience.com/explainable-generic-ml-pipeline-with-mlflow-2494ca1b3f96?source=collection_archive---------5-----------------------#2024-11-26)
+> 原文：[`towardsdatascience.com/explainable-generic-ml-pipeline-with-mlflow-2494ca1b3f96?source=collection_archive---------5-----------------------#2024-11-26`](https://towardsdatascience.com/explainable-generic-ml-pipeline-with-mlflow-2494ca1b3f96?source=collection_archive---------5-----------------------#2024-11-26)
 
 ## 一个端到端的示范，将预处理器和解释器包装成一个算法无关的机器学习管道，使用`mlflow.pyfunc`
 
-[](https://menawang.medium.com/?source=post_page---byline--2494ca1b3f96--------------------------------)[![Mena Wang, PhD](../Images/eac9fa55026f9fc119bc868439ff311b.png)](https://menawang.medium.com/?source=post_page---byline--2494ca1b3f96--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2494ca1b3f96--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2494ca1b3f96--------------------------------) [Mena Wang, PhD](https://menawang.medium.com/?source=post_page---byline--2494ca1b3f96--------------------------------)
+[](https://menawang.medium.com/?source=post_page---byline--2494ca1b3f96--------------------------------)![Mena Wang, PhD](https://menawang.medium.com/?source=post_page---byline--2494ca1b3f96--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2494ca1b3f96--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2494ca1b3f96--------------------------------) [Mena Wang, PhD](https://menawang.medium.com/?source=post_page---byline--2494ca1b3f96--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2494ca1b3f96--------------------------------) ·13分钟阅读·2024年11月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2494ca1b3f96--------------------------------) ·13 分钟阅读·2024 年 11 月 26 日
 
 --
 
-![](../Images/718ec8036048d1449b127442c59434ab.png)
+![](img/718ec8036048d1449b127442c59434ab.png)
 
 图片由 [Hannah Murrell](https://unsplash.com/@hannahj236?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源 [Unsplash](https://unsplash.com/photos/person-holding-ball-focus-on-tree-pTfdcT0hxGc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
 # **介绍**
 
-MLOps中的一个常见挑战是迁移不同算法或框架时的麻烦。为了解决这个问题，这是我关于使用`mlflow.pyfunc`进行通用模型构建的第二篇文章。
+MLOps 中的一个常见挑战是迁移不同算法或框架时的麻烦。为了解决这个问题，这是我关于使用`mlflow.pyfunc`进行通用模型构建的第二篇文章。
 
 在我之前的文章中，我提供了一个适合初学者的逐步示范，展示如何创建一个极简的算法无关模型包装器。
 
-[](/algorithm-agnostic-model-building-with-mlflow-b106a5a29535?source=post_page-----2494ca1b3f96--------------------------------) [## 使用MLflow进行算法无关模型构建
+[](/algorithm-agnostic-model-building-with-mlflow-b106a5a29535?source=post_page-----2494ca1b3f96--------------------------------) ## 使用 MLflow 进行算法无关模型构建
 
-### 一个适合初学者的逐步指南，展示如何使用mlflow.pyfunc创建通用机器学习管道
+### 一个适合初学者的逐步指南，展示如何使用 mlflow.pyfunc 创建通用机器学习管道
 
-towardsdatascience.com](/algorithm-agnostic-model-building-with-mlflow-b106a5a29535?source=post_page-----2494ca1b3f96--------------------------------)
+towardsdatascience.com
 
 为了推进我们的旅程，在本文结束时，我们将构建一个更为复杂的机器学习管道，具备以下功能：
 
-1.  该管道支持分类（二分类）和回归任务。它适用于scikit-learn模型以及其他遵循scikit-learn接口的算法（即，fit、predict/predict_proba）。
+1.  该管道支持分类（二分类）和回归任务。它适用于 scikit-learn 模型以及其他遵循 scikit-learn 接口的算法（即，fit、predict/predict_proba）。
 
 1.  引入一个功能完备的`预处理器`，它可以在训练数据上拟合，然后用于转换新数据，以供模型使用。这个预处理器可以处理数值型和类别型特征，并能通过各种插补策略处理缺失值。
 
-1.  添加一个`explainer`来阐明模型的推理过程，这对于模型选择、监控和实现至关重要。由于不同机器学习算法对SHAP值的实现各异，这项任务可能会很棘手。但没问题，我们将在本文中解决这个挑战。😎
+1.  添加一个`explainer`来阐明模型的推理过程，这对于模型选择、监控和实现至关重要。由于不同机器学习算法对 SHAP 值的实现各异，这项任务可能会很棘手。但没问题，我们将在本文中解决这个挑战。😎
 
 与前一篇文章一致，
 
@@ -44,7 +44,7 @@ towardsdatascience.com](/algorithm-agnostic-model-building-with-mlflow-b106a5a29
 
 # **预处理器（V1）**
 
-许多机器学习算法——例如线性模型（如线性回归、支持向量机）、基于距离的模型（如KNN、PCA）以及基于梯度的模型（如梯度提升方法或梯度下降优化）——通常在对输入特征进行缩放后表现更好，因为缩放可以防止具有较大范围的特征主导学习过程。此外，现实世界中的数据通常包含缺失值。因此，在这个第一版中，我们将构建一个预处理器，它可以训练来缩放新数据并填充缺失值，为模型的使用做准备。
+许多机器学习算法——例如线性模型（如线性回归、支持向量机）、基于距离的模型（如 KNN、PCA）以及基于梯度的模型（如梯度提升方法或梯度下降优化）——通常在对输入特征进行缩放后表现更好，因为缩放可以防止具有较大范围的特征主导学习过程。此外，现实世界中的数据通常包含缺失值。因此，在这个第一版中，我们将构建一个预处理器，它可以训练来缩放新数据并填充缺失值，为模型的使用做准备。
 
 一旦这个预处理器构建完成，我将演示如何轻松地将它集成到`pyfunc`机器学习管道中。听起来不错吧？我们开始吧。🤠
 
@@ -167,11 +167,11 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 ```
 
-以下是{sweetViz}报告在缩放前后的截图；你可以看到，缩放没有改变每个特征分布的基本形状，只是重新缩放并移动了它。顺便说一下，只需要两行代码就能生成一份非常全面的EDA报告，{sweetViz}的代码可以在上面链接的GitHub仓库中找到。🥂
+以下是{sweetViz}报告在缩放前后的截图；你可以看到，缩放没有改变每个特征分布的基本形状，只是重新缩放并移动了它。顺便说一下，只需要两行代码就能生成一份非常全面的 EDA 报告，{sweetViz}的代码可以在上面链接的 GitHub 仓库中找到。🥂
 
-![](../Images/7a1b3029a4739afeff34a9d50170c3d3.png)
+![](img/7a1b3029a4739afeff34a9d50170c3d3.png)
 
-预处理前后SweetViz报告的截图
+预处理前后 SweetViz 报告的截图
 
 # **带预处理器的机器学习管道**
 
@@ -272,7 +272,7 @@ ml_pipeline = ML_PIPELINE(model = RandomForestRegressor(),
                           preprocessor = PreProcessor())
 ```
 
-如下方代码片段所示，向算法传递超参数非常简单，这使得该ML管道成为超参数调优的完美工具。我将在后续的文章中详细讲解这个话题。
+如下方代码片段所示，向算法传递超参数非常简单，这使得该 ML 管道成为超参数调优的完美工具。我将在后续的文章中详细讲解这个话题。
 
 ```py
 params = {
@@ -285,7 +285,7 @@ ml_pipeline = ML_PIPELINE(model = model,
                           preprocessor = PreProcessor())
 ```
 
-因为这个ML管道是基于`mlflow.pyfunc`版本构建的。我们可以使用`mlflow`自动保存的丰富元数据进行日志记录，供下游使用。部署后，我们可以将元数据作为`context`传递给模型，在`predict`函数中使用，如下所示。更多信息和演示可以在我之前的文章中找到，链接已在文中给出。
+因为这个 ML 管道是基于`mlflow.pyfunc`版本构建的。我们可以使用`mlflow`自动保存的丰富元数据进行日志记录，供下游使用。部署后，我们可以将元数据作为`context`传递给模型，在`predict`函数中使用，如下所示。更多信息和演示可以在我之前的文章中找到，链接已在文中给出。
 
 ```py
 # train the ML pipeline
@@ -448,7 +448,7 @@ print(f"auc: {auc:.3f}")
 
 # **自定义预处理器的轻松切换**
 
-就是这样：一个新的预处理器，它 1）更加可定制，2）能够处理数值特征和类别特征。让我们用它定义一个ML管道实例。
+就是这样：一个新的预处理器，它 1）更加可定制，2）能够处理数值特征和类别特征。让我们用它定义一个 ML 管道实例。
 
 ```py
 # Define a PreProcessor (V2) instance while specifying impute strategy
@@ -462,7 +462,7 @@ ml_pipeline = ML_PIPELINE(
 )
 ```
 
-让我们用另一个包含数值特征和类别特征的合成数据集测试这个新的ML管道实例。
+让我们用另一个包含数值特征和类别特征的合成数据集测试这个新的 ML 管道实例。
 
 ```py
 # add missings
@@ -482,7 +482,7 @@ labels = ['bottom', 'lower-mid', 'upper-mid', 'top']
 X['inf_1'] = pd.qcut(X['inf_1'], q=percentiles, labels=labels)
 ```
 
-就是这样——这个ML管道在新数据上运行顺利。然而，正如预期的那样，如果我们用之前的预处理器定义ML管道，然后在这个数据集上运行它，我们将遇到错误，因为之前的预处理器并没有设计来处理类别特征。
+就是这样——这个 ML 管道在新数据上运行顺利。然而，正如预期的那样，如果我们用之前的预处理器定义 ML 管道，然后在这个数据集上运行它，我们将遇到错误，因为之前的预处理器并没有设计来处理类别特征。
 
 ```py
 # create an ML pipeline instance with PreProcessor v1
@@ -502,11 +502,11 @@ Error: Cannot use median strategy with non-numeric data:
 could not convert string to float: 'lower-mid'
 ```
 
-# 可解释的ML管道的好处
+# 可解释的 ML 管道的好处
 
-在ML管道中添加解释器在多个方面都非常有帮助：
+在 ML 管道中添加解释器在多个方面都非常有帮助：
 
-1.  **模型选择**：通过评估模型推理的合理性，它有助于我们选择最佳模型。两个算法在像AUC或精度这样的指标上可能表现相似，但它们依赖的关键特征可能不同。与领域专家一起回顾模型的推理，讨论在这种情况下哪个模型更合理是一个好主意。
+1.  **模型选择**：通过评估模型推理的合理性，它有助于我们选择最佳模型。两个算法在像 AUC 或精度这样的指标上可能表现相似，但它们依赖的关键特征可能不同。与领域专家一起回顾模型的推理，讨论在这种情况下哪个模型更合理是一个好主意。
 
 1.  **故障排除**：一种有助于模型改进的策略是分析错误背后的推理。例如，在分类问题中，我们可以识别出模型最有信心的假阳性（即预测的可能性最高），并调查推理中出了什么问题，哪些关键特征导致了错误。
 
@@ -518,31 +518,31 @@ could not convert string to float: 'lower-mid'
 
 因为我们的机器学习管道是算法无关的，因此解释器也必须能够跨算法工作。
 
-SHAP（Shapley加性解释）值是我们目的的理想选择，因为它们基于博弈论提供理论上稳健的解释。它们设计上能够在各种算法中一致工作，包括基于树的和非基于树的模型，对于后者会有一些近似。此外，SHAP还提供丰富的可视化功能，并被广泛认为是行业标准。
+SHAP（Shapley 加性解释）值是我们目的的理想选择，因为它们基于博弈论提供理论上稳健的解释。它们设计上能够在各种算法中一致工作，包括基于树的和非基于树的模型，对于后者会有一些近似。此外，SHAP 还提供丰富的可视化功能，并被广泛认为是行业标准。
 
-在下面的笔记本中，我深入探讨了SHAP在各种机器学习算法中的实现的相似性与差异。
+在下面的笔记本中，我深入探讨了 SHAP 在各种机器学习算法中的实现的相似性与差异。
 
-+   [SHAP用于回归模型](https://github.com/MenaWANG/ML_toy_examples/blob/main/explain%20models/shap_basic_regression.ipynb)
++   [SHAP 用于回归模型](https://github.com/MenaWANG/ML_toy_examples/blob/main/explain%20models/shap_basic_regression.ipynb)
 
-+   [SHAP用于XGBoost分类器](https://github.com/MenaWANG/ML_toy_examples/blob/main/explain%20models/shap_XGB_classification.ipynb)
++   [SHAP 用于 XGBoost 分类器](https://github.com/MenaWANG/ML_toy_examples/blob/main/explain%20models/shap_XGB_classification.ipynb)
 
-+   [SHAP用于随机森林分类器](https://github.com/MenaWANG/ML_toy_examples/blob/main/explain%20models/shap_basic_RF_classification.ipynb)
++   [SHAP 用于随机森林分类器](https://github.com/MenaWANG/ML_toy_examples/blob/main/explain%20models/shap_basic_RF_classification.ipynb)
 
-+   [SHAP用于LightGBM分类器](https://github.com/MenaWANG/ML_toy_examples/blob/main/explain%20models/shap_lightgbm_classification.ipynb)
++   [SHAP 用于 LightGBM 分类器](https://github.com/MenaWANG/ML_toy_examples/blob/main/explain%20models/shap_lightgbm_classification.ipynb)
 
 要为我们的机器学习管道创建一个通用的解释器，需要解决的关键差异是
 
 > ***1\. 模型是否被*** `***shap.Explainer***` ***直接支持***
 
-特定模型的SHAP解释器比模型无关的解释器更高效。因此，我们在这里采用的方法是
+特定模型的 SHAP 解释器比模型无关的解释器更高效。因此，我们在这里采用的方法是
 
-+   首先尝试使用直接的SHAP解释器来适应模型类型，
++   首先尝试使用直接的 SHAP 解释器来适应模型类型，
 
-+   如果这失败了，则回退到使用predict函数的模型无关解释器。
++   如果这失败了，则回退到使用 predict 函数的模型无关解释器。
 
-> ***2\. SHAP值的形状***
+> ***2\. SHAP 值的形状***
 
-对于二分类问题，SHAP值可以有两种格式/形状。
+对于二分类问题，SHAP 值可以有两种格式/形状。
 
 +   **格式 1**：仅显示对正类的影响
 
@@ -556,7 +556,7 @@ shape = (n_samples, n_features) # 2d array
 shape = (n_samples, n_features, n_classes) # 3d array
 ```
 
-+   以下的解释器实现总是展示对正类的影响。当SHAP值中同时有正类和负类的影响时，它会选择正类的影响。
++   以下的解释器实现总是展示对正类的影响。当 SHAP 值中同时有正类和负类的影响时，它会选择正类的影响。
 
 请参见下面的代码，了解上述方法的实现。
 
@@ -661,17 +661,17 @@ class ML_PIPELINE(mlflow.pyfunc.PythonModel):
 
 现在，更新后的机器学习管道实例可以通过一行代码为你创建解释性图表。😎
 
-![](../Images/130400a4a9c80519ff731a20d3ede222.png)
+![](img/130400a4a9c80519ff731a20d3ede222.png)
 
-用于模型全局解释的SHAP图
+用于模型全局解释的 SHAP 图
 
-![](../Images/b20822a6bb527748b1849d31e4cb83d0.png)
+![](img/b20822a6bb527748b1849d31e4cb83d0.png)
 
-用于特定案例局部解释的SHAP图
+用于特定案例局部解释的 SHAP 图
 
 # **记录并使用模型**
 
-当然，你可以使用`mlflow`记录训练好的机器学习管道，并享受所有关于模型部署和可重复性的元数据。在下面的截图中，你可以看到，除了pickle保存的`pyfunc`模型本身，Python环境、指标和超参数都已经在下面的几行代码中记录下来了。想了解更多，请参考我之前关于`mlflow.pyfunc`的文章，链接已在文中提到。
+当然，你可以使用`mlflow`记录训练好的机器学习管道，并享受所有关于模型部署和可重复性的元数据。在下面的截图中，你可以看到，除了 pickle 保存的`pyfunc`模型本身，Python 环境、指标和超参数都已经在下面的几行代码中记录下来了。想了解更多，请参考我之前关于`mlflow.pyfunc`的文章，链接已在文中提到。
 
 ```py
 # Log the model with MLflow
@@ -693,9 +693,9 @@ with mlflow.start_run() as run:
     run_id = run.info.run_id
 ```
 
-![](../Images/d1ce888009587f800ff1a165eb1fb61a.png)
+![](img/d1ce888009587f800ff1a165eb1fb61a.png)
 
-使用mlflow记录丰富的模型元数据和工件
+使用 mlflow 记录丰富的模型元数据和工件
 
 # **结论与下一步**
 

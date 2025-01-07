@@ -1,12 +1,12 @@
 # 数据领域中谁做什么？数据工程师与数据科学家的角色实用介绍
 
-> 原文：[https://towardsdatascience.com/who-does-what-in-data-a-practical-introduction-to-the-role-of-a-data-engineer-data-scientist-894d06bf5da9?source=collection_archive---------4-----------------------#2024-12-05](https://towardsdatascience.com/who-does-what-in-data-a-practical-introduction-to-the-role-of-a-data-engineer-data-scientist-894d06bf5da9?source=collection_archive---------4-----------------------#2024-12-05)
+> 原文：[`towardsdatascience.com/who-does-what-in-data-a-practical-introduction-to-the-role-of-a-data-engineer-data-scientist-894d06bf5da9?source=collection_archive---------4-----------------------#2024-12-05`](https://towardsdatascience.com/who-does-what-in-data-a-practical-introduction-to-the-role-of-a-data-engineer-data-scientist-894d06bf5da9?source=collection_archive---------4-----------------------#2024-12-05)
 
 ## 数据工程师与数据科学家有什么不同的工作内容？
 
-[](https://medium.com/@schuerch_sarah?source=post_page---byline--894d06bf5da9--------------------------------)[![Sarah Lea](../Images/09c9fa20016d1439b70b9fb6670b57a9.png)](https://medium.com/@schuerch_sarah?source=post_page---byline--894d06bf5da9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--894d06bf5da9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--894d06bf5da9--------------------------------) [Sarah Lea](https://medium.com/@schuerch_sarah?source=post_page---byline--894d06bf5da9--------------------------------)
+[](https://medium.com/@schuerch_sarah?source=post_page---byline--894d06bf5da9--------------------------------)![Sarah Lea](https://medium.com/@schuerch_sarah?source=post_page---byline--894d06bf5da9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--894d06bf5da9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--894d06bf5da9--------------------------------) [Sarah Lea](https://medium.com/@schuerch_sarah?source=post_page---byline--894d06bf5da9--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--894d06bf5da9--------------------------------) ·14分钟阅读·2024年12月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--894d06bf5da9--------------------------------) ·14 分钟阅读·2024 年 12 月 5 日
 
 --
 

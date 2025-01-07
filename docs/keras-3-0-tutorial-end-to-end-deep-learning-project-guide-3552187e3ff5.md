@@ -1,16 +1,16 @@
 # Keras 3.0 教程：端到端深度学习项目指南
 
-> 原文：[https://towardsdatascience.com/keras-3-0-tutorial-end-to-end-deep-learning-project-guide-3552187e3ff5?source=collection_archive---------1-----------------------#2024-05-18](https://towardsdatascience.com/keras-3-0-tutorial-end-to-end-deep-learning-project-guide-3552187e3ff5?source=collection_archive---------1-----------------------#2024-05-18)
+> 原文：[`towardsdatascience.com/keras-3-0-tutorial-end-to-end-deep-learning-project-guide-3552187e3ff5?source=collection_archive---------1-----------------------#2024-05-18`](https://towardsdatascience.com/keras-3-0-tutorial-end-to-end-deep-learning-project-guide-3552187e3ff5?source=collection_archive---------1-----------------------#2024-05-18)
 
 ## 从头实现一个编码器-解码器递归网络
 
-[](https://qtalen.medium.com/?source=post_page---byline--3552187e3ff5--------------------------------)[![Peng Qian](../Images/9ce9aeb381ec6b017c1ee5d4714937e2.png)](https://qtalen.medium.com/?source=post_page---byline--3552187e3ff5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3552187e3ff5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3552187e3ff5--------------------------------) [Peng Qian](https://qtalen.medium.com/?source=post_page---byline--3552187e3ff5--------------------------------)
+[](https://qtalen.medium.com/?source=post_page---byline--3552187e3ff5--------------------------------)![Peng Qian](https://qtalen.medium.com/?source=post_page---byline--3552187e3ff5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3552187e3ff5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3552187e3ff5--------------------------------) [Peng Qian](https://qtalen.medium.com/?source=post_page---byline--3552187e3ff5--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3552187e3ff5--------------------------------) ·12分钟阅读·2024年5月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3552187e3ff5--------------------------------) ·12 分钟阅读·2024 年 5 月 18 日
 
 --
 
-![](../Images/fe4279573dca9dad3407a1ca9b80136c.png)
+![](img/fe4279573dca9dad3407a1ca9b80136c.png)
 
 Keras 3.0 教程：端到端深度学习项目指南。图片由作者提供
 

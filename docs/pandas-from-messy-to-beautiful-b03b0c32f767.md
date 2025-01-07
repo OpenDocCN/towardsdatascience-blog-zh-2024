@@ -1,16 +1,16 @@
 # Pandas: 从杂乱到优雅
 
-> 原文：[https://towardsdatascience.com/pandas-from-messy-to-beautiful-b03b0c32f767?source=collection_archive---------2-----------------------#2024-03-31](https://towardsdatascience.com/pandas-from-messy-to-beautiful-b03b0c32f767?source=collection_archive---------2-----------------------#2024-03-31)
+> 原文：[`towardsdatascience.com/pandas-from-messy-to-beautiful-b03b0c32f767?source=collection_archive---------2-----------------------#2024-03-31`](https://towardsdatascience.com/pandas-from-messy-to-beautiful-b03b0c32f767?source=collection_archive---------2-----------------------#2024-03-31)
 
 ## 这就是如何让你的 pandas 代码既易于阅读又坚不可摧。
 
-[](https://medium.com/@azawadzka?source=post_page---byline--b03b0c32f767--------------------------------)[![Anna Zawadzka](../Images/bcdd9dfb9faeace44e831c057984bc63.png)](https://medium.com/@azawadzka?source=post_page---byline--b03b0c32f767--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b03b0c32f767--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b03b0c32f767--------------------------------) [Anna Zawadzka](https://medium.com/@azawadzka?source=post_page---byline--b03b0c32f767--------------------------------)
+[](https://medium.com/@azawadzka?source=post_page---byline--b03b0c32f767--------------------------------)![Anna Zawadzka](https://medium.com/@azawadzka?source=post_page---byline--b03b0c32f767--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b03b0c32f767--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b03b0c32f767--------------------------------) [Anna Zawadzka](https://medium.com/@azawadzka?source=post_page---byline--b03b0c32f767--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b03b0c32f767--------------------------------) ·阅读时间 9 分钟 ·2024年3月31日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b03b0c32f767--------------------------------) ·阅读时间 9 分钟 ·2024 年 3 月 31 日
 
 --
 
-![](../Images/85b2209904b2b7ed17ff3d5b5e960141.png)
+![](img/85b2209904b2b7ed17ff3d5b5e960141.png)
 
 在 pandas `DataFrame` 上编写脚本可能会变成一堆尴尬的（并不那么）老式意大利面式代码。我和我的同事们经常使用这个包，尽管我们尽力遵循良好的编程实践，比如将代码拆分成模块和进行单元测试，但有时我们还是会互相妨碍，编写出令人困惑的代码。
 
@@ -26,13 +26,13 @@ Pandas `DataFrame` 是值**可变**的 [[2](https://pandas.pydata.org/pandas-doc
 
 这是关键点：在 Python 中，对象通过**赋值**传递给函数[[4](https://medium.com/techtofreedom/5-levels-of-understanding-the-mutability-of-python-objects-a5ed839d6c24), [5]](https://realpython.com/python-pass-by-reference/)**。** 看图：`df` 的值在作为参数传递给函数时被赋值给变量 `in_df`。即使它们使用不同的变量名，原始的 `df` 和函数内部的 `in_df` 都指向相同的内存位置（括号中的数字值）。在修改其属性时，可变对象的位置保持不变。现在，所有其他作用域也能看到这些变化——它们都指向相同的内存位置。
 
-![](../Images/388fcc4c3aa872d7d1d0775d63fd45ee.png)
+![](img/388fcc4c3aa872d7d1d0775d63fd45ee.png)
 
 修改可变对象在 Python 内存中的情况。
 
 实际上，由于我们已修改了原始实例，因此返回 `DataFrame` 并将其赋值给变量是多余的。这个代码有相同的效果：
 
-![](../Images/5d40a39701f5dcc10a5cad4a1a5bbbce.png)
+![](img/5d40a39701f5dcc10a5cad4a1a5bbbce.png)
 
 修改可变对象在 Python 内存中的情况，冗余赋值已被移除。
 
@@ -40,7 +40,7 @@ Pandas `DataFrame` 是值**可变**的 [[2](https://pandas.pydata.org/pandas-doc
 
 相反，如果对象是不可变的，它会在整个修改过程中改变内存位置，就像下面的例子一样。由于红色字符串无法修改（字符串是不可变的），绿色字符串是在旧字符串之上创建的，但它是一个全新的对象，声明了一个新的内存位置。返回的字符串不是同一个字符串，而返回的 `DataFrame` 是完全相同的 `DataFrame`。
 
-![](../Images/749363a0bcce3c499a1c18844d6814c5.png)
+![](img/749363a0bcce3c499a1c18844d6814c5.png)
 
 修改不可变对象在 Python 内存中的情况。
 
@@ -109,7 +109,7 @@ series[0] = "roberta"   # <-- this does not change the original DataFrame
 > 
 > *在一个函数内混合不同的抽象层次总是令人困惑。读者可能无法分辨某个表达式是核心概念还是细节。[1 p.36]*
 
-另外，尽管我们现在并不专注于面向对象代码，但我们还是可以借鉴OOP中的**单一职责原则**[1 p.138]。
+另外，尽管我们现在并不专注于面向对象代码，但我们还是可以借鉴 OOP 中的**单一职责原则**[1 p.138]。
 
 为什么不提前准备好数据呢？我们将数据准备和实际计算分成不同的函数：
 
@@ -201,7 +201,7 @@ def test_create_name_len_col(series1: pd.Series, series2: pd.Series):
     pd.testing.assert_series_equal(create_name_len_col(series1), series2, check_dtype=False)
 ```
 
-3\. 这里我们清理了桌面。我们彻底测试了计算函数，抛开了Pandas的封装。在专注于一个问题时，更容易想到边界情况。我发现我想测试`DataFrame`中可能出现的`None`值，最终我不得不改进我的函数，以使这个测试通过。一个bug被发现了！
+3\. 这里我们清理了桌面。我们彻底测试了计算函数，抛开了 Pandas 的封装。在专注于一个问题时，更容易想到边界情况。我发现我想测试`DataFrame`中可能出现的`None`值，最终我不得不改进我的函数，以使这个测试通过。一个 bug 被发现了！
 
 ```py
 def compute_length(word: Optional[str]) -> int:
@@ -242,7 +242,7 @@ def test_find_max_element(collection: Collection, result: int):
 
 > 摘要
 > 
-> 没有一种唯一正确的编码方式，但以下是一些使用pandas进行脚本编写的灵感：
+> 没有一种唯一正确的编码方式，但以下是一些使用 pandas 进行脚本编写的灵感：
 > 
 > 禁止事项：
 > 
@@ -264,16 +264,16 @@ def test_find_max_element(collection: Collection, result: int):
 
 +   [1] Robert C. Martin，《代码整洁之道：敏捷软件工艺手册》（2009），Pearson Education, Inc.
 
-+   [2] pandas文档 - 包概述 — 数据的可变性与拷贝，[https://pandas.pydata.org/pandas-docs/stable/getting_started/overview.html#mutability-and-copying-of-data](https://pandas.pydata.org/pandas-docs/stable/getting_started/overview.html#mutability-and-copying-of-data)
++   [2] pandas 文档 - 包概述 — 数据的可变性与拷贝，[`pandas.pydata.org/pandas-docs/stable/getting_started/overview.html#mutability-and-copying-of-data`](https://pandas.pydata.org/pandas-docs/stable/getting_started/overview.html#mutability-and-copying-of-data)
 
-+   [3] Python的可变类型与不可变类型：有何区别？，[https://realpython.com/python-mutable-vs-immutable-types/](https://realpython.com/python-mutable-vs-immutable-types/)
++   [3] Python 的可变类型与不可变类型：有何区别？，[`realpython.com/python-mutable-vs-immutable-types/`](https://realpython.com/python-mutable-vs-immutable-types/)
 
-+   [4] 理解Python对象的可变性：5个层次，[https://medium.com/techtofreedom/5-levels-of-understanding-the-mutability-of-python-objects-a5ed839d6c24](https://medium.com/techtofreedom/5-levels-of-understanding-the-mutability-of-python-objects-a5ed839d6c24)
++   [4] 理解 Python 对象的可变性：5 个层次，[`medium.com/techtofreedom/5-levels-of-understanding-the-mutability-of-python-objects-a5ed839d6c24`](https://medium.com/techtofreedom/5-levels-of-understanding-the-mutability-of-python-objects-a5ed839d6c24)
 
-+   [5] Python中的引用传递：背景与最佳实践，[https://realpython.com/python-pass-by-reference/](https://realpython.com/python-pass-by-reference/)
++   [5] Python 中的引用传递：背景与最佳实践，[`realpython.com/python-pass-by-reference/`](https://realpython.com/python-pass-by-reference/)
 
-+   [6] Python对象的浅拷贝与深拷贝，[https://realpython.com/copying-python-objects/](https://realpython.com/copying-python-objects/)
++   [6] Python 对象的浅拷贝与深拷贝，[`realpython.com/copying-python-objects/`](https://realpython.com/copying-python-objects/)
 
 +   [7] Brian Okken，《Python Testing with pytest》，第二版（2022），The Pragmatic Programmers, LLC.
 
-这些图表是我使用[Miro](https://miro.com/)制作的。封面图片也是我使用[Titanic](https://www.openml.org/search?type=data&sort=runs&id=40945&status=active)数据集和GIMP（涂抹效果）制作的。
+这些图表是我使用[Miro](https://miro.com/)制作的。封面图片也是我使用[Titanic](https://www.openml.org/search?type=data&sort=runs&id=40945&status=active)数据集和 GIMP（涂抹效果）制作的。

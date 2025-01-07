@@ -1,16 +1,16 @@
 # 数据职业的四大支柱
 
-> 原文：[https://towardsdatascience.com/the-four-pillars-of-a-data-career-d6a09edf8ac9?source=collection_archive---------0-----------------------#2024-11-10](https://towardsdatascience.com/the-four-pillars-of-a-data-career-d6a09edf8ac9?source=collection_archive---------0-----------------------#2024-11-10)
+> 原文：[`towardsdatascience.com/the-four-pillars-of-a-data-career-d6a09edf8ac9?source=collection_archive---------0-----------------------#2024-11-10`](https://towardsdatascience.com/the-four-pillars-of-a-data-career-d6a09edf8ac9?source=collection_archive---------0-----------------------#2024-11-10)
 
 ## 确保获得入门级数据分析师职位的技术基础
 
-[](https://medium.com/@Carobert?source=post_page---byline--d6a09edf8ac9--------------------------------)[![Charles Mendelson](../Images/0a8dea9bab2a49da65687095d31065e9.png)](https://medium.com/@Carobert?source=post_page---byline--d6a09edf8ac9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d6a09edf8ac9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d6a09edf8ac9--------------------------------) [Charles Mendelson](https://medium.com/@Carobert?source=post_page---byline--d6a09edf8ac9--------------------------------)
+[](https://medium.com/@Carobert?source=post_page---byline--d6a09edf8ac9--------------------------------)![Charles Mendelson](https://medium.com/@Carobert?source=post_page---byline--d6a09edf8ac9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d6a09edf8ac9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d6a09edf8ac9--------------------------------) [Charles Mendelson](https://medium.com/@Carobert?source=post_page---byline--d6a09edf8ac9--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d6a09edf8ac9--------------------------------) ·阅读时长 8 分钟·2024年11月10日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d6a09edf8ac9--------------------------------) ·阅读时长 8 分钟·2024 年 11 月 10 日
 
 --
 
-![](../Images/e76d8b4c0425a6797e4bf0fd3eb343a6.png)
+![](img/e76d8b4c0425a6797e4bf0fd3eb343a6.png)
 
 由 [Jon Tyson](https://unsplash.com/@jontyson?utm_source=medium&utm_medium=referral) 摄影，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -36,11 +36,11 @@ TLDR;
 
 # Excel
 
-![](../Images/ecac22a9d26ab955919cd36c57101468.png)
+![](img/ecac22a9d26ab955919cd36c57101468.png)
 
 由 [m.](https://unsplash.com/@m_____me?utm_source=medium&utm_medium=referral) 摄影，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-Excel 是数据世界的起源和终结。30年来，数据界一直在讨论传说中的“Excel 杀手”，但至今未曾出现。你可能参与了一个由多个团队组成、历时6个月的项目，旨在统一来自7个数据库的数据，并将其构建成最炫的 Tableau 仪表板，而你的利益相关者问的第一件事就是，如何将数据导出到 Excel。
+Excel 是数据世界的起源和终结。30 年来，数据界一直在讨论传说中的“Excel 杀手”，但至今未曾出现。你可能参与了一个由多个团队组成、历时 6 个月的项目，旨在统一来自 7 个数据库的数据，并将其构建成最炫的 Tableau 仪表板，而你的利益相关者问的第一件事就是，如何将数据导出到 Excel。
 
 Excel 功能庞大，大多数用户只是触及了其表面，但这是我认为成为分析师角色所需的最低技能列表：
 
@@ -78,7 +78,7 @@ Google 表格是 Excel 的一个可靠替代品，但缺少很多高级功能。
 
 # SQL 和数据库
 
-![](../Images/7bf945ae258f937b9050394386b469fb.png)
+![](img/7bf945ae258f937b9050394386b469fb.png)
 
 图片来源：[Jan Antonin Kolar](https://unsplash.com/@jankolar?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -112,7 +112,7 @@ Google 表格是 Excel 的一个可靠替代品，但缺少很多高级功能。
 
 # 可视化
 
-![](../Images/fe73510dcbcdddb53bed5bf4c6c75531.png)
+![](img/fe73510dcbcdddb53bed5bf4c6c75531.png)
 
 图片来源：[Clay Banks](https://unsplash.com/@claybanks?utm_source=medium&utm_medium=referral) 摄于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -142,7 +142,7 @@ Google 表格是 Excel 的一个可靠替代品，但缺少很多高级功能。
 
 # 脚本语言
 
-![](../Images/e36478ae8e17173134611cd1b12cd7cf.png)
+![](img/e36478ae8e17173134611cd1b12cd7cf.png)
 
 图片来源：[Kevin Canlas](https://unsplash.com/@kvncnls?utm_source=medium&utm_medium=referral) 摄于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -178,11 +178,11 @@ R 语言通常在与学术界关系密切的组织中更为常见。生物技术
 
 +   对于初级分析师职位，主要集中在 Excel 上。
 
-+   不要高估自己的技能水平。我曾面试过一位自称为“中级”Python用户的候选人。虽然这个职位并不要求使用Python，但既然他们说能做，我就给他们布置了一个现场编程测试。我要求他们定义一个函数，检测给定的字符串输入是否是回文（即正着和倒着拼写都相同的单词）。他们随后承认自己不知道如何定义函数。我礼貌地结束了面试。
++   不要高估自己的技能水平。我曾面试过一位自称为“中级”Python 用户的候选人。虽然这个职位并不要求使用 Python，但既然他们说能做，我就给他们布置了一个现场编程测试。我要求他们定义一个函数，检测给定的字符串输入是否是回文（即正着和倒着拼写都相同的单词）。他们随后承认自己不知道如何定义函数。我礼貌地结束了面试。
 
 # 证书
 
-![](../Images/f01f21b09875a30bfb2d24c27044200f.png)
+![](img/f01f21b09875a30bfb2d24c27044200f.png)
 
 图片来源：[Lewis Keegan](https://unsplash.com/@skillscouter?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -204,7 +204,7 @@ R 语言通常在与学术界关系密切的组织中更为常见。生物技术
 
 # 通过技术面试
 
-![](../Images/7b737e5da4a8aa133be3c5a83d098902.png)
+![](img/7b737e5da4a8aa133be3c5a83d098902.png)
 
 图片来源：[charlesdeluvio](https://unsplash.com/@charlesdeluvio?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -216,7 +216,7 @@ R 语言通常在与学术界关系密切的组织中更为常见。生物技术
 
 # 资源
 
-![](../Images/0f4f28f1ba8def6d0ffa30755c3b1d6c.png)
+![](img/0f4f28f1ba8def6d0ffa30755c3b1d6c.png)
 
 图片由 [Twinkl](https://unsplash.com/@twinkl?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -242,7 +242,7 @@ R 语言通常在与学术界关系密切的组织中更为常见。生物技术
 
 ## Python
 
-[Python圣经](https://www.udemy.com/course/the-python-bible/?couponCode=JUST4U02223): Ziyad 是一位非常引人入胜的在线讲师。
+[Python 圣经](https://www.udemy.com/course/the-python-bible/?couponCode=JUST4U02223): Ziyad 是一位非常引人入胜的在线讲师。
 
 [完整的 Pandas 训练营](https://www.udemy.com/course/the-pandas-bootcamp/): Alexander Hagman 内容枯燥，但非常彻底。每当我需要复习 Pandas 时，我仍然参考这门课程。
 

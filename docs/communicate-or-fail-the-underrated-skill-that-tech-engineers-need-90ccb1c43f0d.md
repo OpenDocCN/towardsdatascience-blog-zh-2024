@@ -1,16 +1,16 @@
 # 沟通或失败：技术工程师必备的被低估技能
 
-> 原文：[https://towardsdatascience.com/communicate-or-fail-the-underrated-skill-that-tech-engineers-need-90ccb1c43f0d?source=collection_archive---------17-----------------------#2024-01-30](https://towardsdatascience.com/communicate-or-fail-the-underrated-skill-that-tech-engineers-need-90ccb1c43f0d?source=collection_archive---------17-----------------------#2024-01-30)
+> 原文：[`towardsdatascience.com/communicate-or-fail-the-underrated-skill-that-tech-engineers-need-90ccb1c43f0d?source=collection_archive---------17-----------------------#2024-01-30`](https://towardsdatascience.com/communicate-or-fail-the-underrated-skill-that-tech-engineers-need-90ccb1c43f0d?source=collection_archive---------17-----------------------#2024-01-30)
 
 ## 为什么技术工程师需要成为沟通大师
 
-[](https://medium.com/@lorenagongang?source=post_page---byline--90ccb1c43f0d--------------------------------)[![Lorena Gongang](../Images/18d8fd3275bd258e5572ffa9ce1805c0.png)](https://medium.com/@lorenagongang?source=post_page---byline--90ccb1c43f0d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--90ccb1c43f0d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--90ccb1c43f0d--------------------------------) [Lorena Gongang](https://medium.com/@lorenagongang?source=post_page---byline--90ccb1c43f0d--------------------------------)
+[](https://medium.com/@lorenagongang?source=post_page---byline--90ccb1c43f0d--------------------------------)![Lorena Gongang](https://medium.com/@lorenagongang?source=post_page---byline--90ccb1c43f0d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--90ccb1c43f0d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--90ccb1c43f0d--------------------------------) [Lorena Gongang](https://medium.com/@lorenagongang?source=post_page---byline--90ccb1c43f0d--------------------------------)
 
-·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--90ccb1c43f0d--------------------------------) ·阅读时间5分钟·2024年1月30日
+·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--90ccb1c43f0d--------------------------------) ·阅读时间 5 分钟·2024 年 1 月 30 日
 
 --
 
-![](../Images/e10eba476f58258e90c48a0d05d2794d.png)
+![](img/e10eba476f58258e90c48a0d05d2794d.png)
 
 图片由[Christina @ wocintechchat.com](https://unsplash.com/fr/@wocintechchat?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来自[Unsplash](https://unsplash.com/fr/photos/personnes-sur-la-table-de-conference-regardant-une-femme-qui-parle-Q80LYxv_Tbs?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

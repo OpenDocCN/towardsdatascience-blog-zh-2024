@@ -1,16 +1,16 @@
 # 没有基准？没有标准？没关系！一种敏捷聊天机器人开发的实验性方法
 
-> 原文：[https://towardsdatascience.com/lessons-from-agile-experimental-chatbot-development-73ea515ba762?source=collection_archive---------3-----------------------#2024-08-26](https://towardsdatascience.com/lessons-from-agile-experimental-chatbot-development-73ea515ba762?source=collection_archive---------3-----------------------#2024-08-26)
+> 原文：[`towardsdatascience.com/lessons-from-agile-experimental-chatbot-development-73ea515ba762?source=collection_archive---------3-----------------------#2024-08-26`](https://towardsdatascience.com/lessons-from-agile-experimental-chatbot-development-73ea515ba762?source=collection_archive---------3-----------------------#2024-08-26)
 
 ## 将基于大语言模型的产品推向生产环境的经验教训
 
-[](https://katherineamunro.medium.com/?source=post_page---byline--73ea515ba762--------------------------------)[![Katherine Munro](../Images/8013140495c7b9bd25ef08d712f097bf.png)](https://katherineamunro.medium.com/?source=post_page---byline--73ea515ba762--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--73ea515ba762--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--73ea515ba762--------------------------------) [Katherine Munro](https://katherineamunro.medium.com/?source=post_page---byline--73ea515ba762--------------------------------)
+[](https://katherineamunro.medium.com/?source=post_page---byline--73ea515ba762--------------------------------)![Katherine Munro](https://katherineamunro.medium.com/?source=post_page---byline--73ea515ba762--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--73ea515ba762--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--73ea515ba762--------------------------------) [Katherine Munro](https://katherineamunro.medium.com/?source=post_page---byline--73ea515ba762--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--73ea515ba762--------------------------------) ·阅读时间：12分钟·2024年8月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--73ea515ba762--------------------------------) ·阅读时间：12 分钟·2024 年 8 月 26 日
 
 --
 
-![](../Images/1d299d52ea5c591442d1c95eb740087b.png)
+![](img/1d299d52ea5c591442d1c95eb740087b.png)
 
 今天的文章回顾了我最近的演讲，讲述了将基于大语言模型的产品推向生产环境的经验教训。你可以在[这里](https://www.youtube.com/watch?v=kOpapPHt2JQ&t=221s)查看该视频。
 

@@ -1,18 +1,18 @@
-# 使用MkDocs记录Python项目
+# 使用 MkDocs 记录 Python 项目
 
-> 原文：[https://towardsdatascience.com/documenting-python-projects-with-mkdocs-60e26b64380e?source=collection_archive---------1-----------------------#2024-11-22](https://towardsdatascience.com/documenting-python-projects-with-mkdocs-60e26b64380e?source=collection_archive---------1-----------------------#2024-11-22)
+> 原文：[`towardsdatascience.com/documenting-python-projects-with-mkdocs-60e26b64380e?source=collection_archive---------1-----------------------#2024-11-22`](https://towardsdatascience.com/documenting-python-projects-with-mkdocs-60e26b64380e?source=collection_archive---------1-----------------------#2024-11-22)
 
-## 使用Markdown快速为你的项目创建一个漂亮的文档页面
+## 使用 Markdown 快速为你的项目创建一个漂亮的文档页面
 
-[](https://gustavorsantos.medium.com/?source=post_page---byline--60e26b64380e--------------------------------)[![Gustavo R Santos](../Images/a19a9f4525cdeb6e7a76cd05246aa622.png)](https://gustavorsantos.medium.com/?source=post_page---byline--60e26b64380e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--60e26b64380e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--60e26b64380e--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--60e26b64380e--------------------------------)
+[](https://gustavorsantos.medium.com/?source=post_page---byline--60e26b64380e--------------------------------)![Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--60e26b64380e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--60e26b64380e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--60e26b64380e--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--60e26b64380e--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--60e26b64380e--------------------------------) ·阅读时间9分钟·2024年11月22日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--60e26b64380e--------------------------------) ·阅读时间 9 分钟·2024 年 11 月 22 日
 
 --
 
-![](../Images/921ba9192a09db2a7f6984fe05bd1667.png)
+![](img/921ba9192a09db2a7f6984fe05bd1667.png)
 
-图片由OpenAI的DALL·E生成。[https://openai.com.](https://openai.com.) 使用MkDocs进行Python文档编写。
+图片由 OpenAI 的 DALL·E 生成。[`openai.com.`](https://openai.com.) 使用 MkDocs 进行 Python 文档编写。
 
 # 介绍
 
@@ -20,7 +20,7 @@
 
 在我职业生涯的开始，我通过痛苦的经历学到了一个重要的教训，那就是一个项目必须有文档。
 
-让我们回到过去——2000年代——那时我在大型美国公司担任客户代表。我是一个团队的一员，我和我的同事们大约在同一个月加入了公司。因此，一段时间内，我们不需要担心，因为刚刚开始新工作的人不可能在几周或几个月后就请假。
+让我们回到过去——2000 年代——那时我在大型美国公司担任客户代表。我是一个团队的一员，我和我的同事们大约在同一个月加入了公司。因此，一段时间内，我们不需要担心，因为刚刚开始新工作的人不可能在几周或几个月后就请假。
 
 然而，经过一段时间，这种情况不可避免地会发生。而且我们每个人都被分配去互相备份。正是在那时，**文档**开始在我的职业生涯中扮演重要角色。
 

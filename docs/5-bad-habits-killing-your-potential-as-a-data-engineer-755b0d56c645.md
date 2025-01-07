@@ -1,16 +1,16 @@
-# 5个正在扼杀你作为数据工程师潜力的坏习惯
+# 5 个正在扼杀你作为数据工程师潜力的坏习惯
 
-> 原文：[https://towardsdatascience.com/5-bad-habits-killing-your-potential-as-a-data-engineer-755b0d56c645?source=collection_archive---------8-----------------------#2024-02-16](https://towardsdatascience.com/5-bad-habits-killing-your-potential-as-a-data-engineer-755b0d56c645?source=collection_archive---------8-----------------------#2024-02-16)
+> 原文：[`towardsdatascience.com/5-bad-habits-killing-your-potential-as-a-data-engineer-755b0d56c645?source=collection_archive---------8-----------------------#2024-02-16`](https://towardsdatascience.com/5-bad-habits-killing-your-potential-as-a-data-engineer-755b0d56c645?source=collection_archive---------8-----------------------#2024-02-16)
 
 ## 还有一些可以立即扭转这些问题的简单解决方案
 
-[](https://madison-schott.medium.com/?source=post_page---byline--755b0d56c645--------------------------------)[![Madison Schott](../Images/0b82d0dd48629641abb439cef23ebe04.png)](https://madison-schott.medium.com/?source=post_page---byline--755b0d56c645--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--755b0d56c645--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--755b0d56c645--------------------------------) [Madison Schott](https://madison-schott.medium.com/?source=post_page---byline--755b0d56c645--------------------------------)
+[](https://madison-schott.medium.com/?source=post_page---byline--755b0d56c645--------------------------------)![Madison Schott](https://madison-schott.medium.com/?source=post_page---byline--755b0d56c645--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--755b0d56c645--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--755b0d56c645--------------------------------) [Madison Schott](https://madison-schott.medium.com/?source=post_page---byline--755b0d56c645--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--755b0d56c645--------------------------------) ·6分钟阅读·2024年2月16日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--755b0d56c645--------------------------------) ·6 分钟阅读·2024 年 2 月 16 日
 
 --
 
-![](../Images/9cb535ff4e78fbf4282a80ba038d1c62.png)
+![](img/9cb535ff4e78fbf4282a80ba038d1c62.png)
 
 图片由 [t Kaiser](https://unsplash.com/@tkaiser?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

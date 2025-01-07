@@ -1,18 +1,18 @@
 # 使用 Microsoft Fabric 和 Dataflow Gen2 进行特征工程
 
-> 原文：[https://towardsdatascience.com/feature-engineering-with-microsoft-fabric-and-dataflow-gen2-1471d22014b9?source=collection_archive---------11-----------------------#2024-04-15](https://towardsdatascience.com/feature-engineering-with-microsoft-fabric-and-dataflow-gen2-1471d22014b9?source=collection_archive---------11-----------------------#2024-04-15)
+> 原文：[`towardsdatascience.com/feature-engineering-with-microsoft-fabric-and-dataflow-gen2-1471d22014b9?source=collection_archive---------11-----------------------#2024-04-15`](https://towardsdatascience.com/feature-engineering-with-microsoft-fabric-and-dataflow-gen2-1471d22014b9?source=collection_archive---------11-----------------------#2024-04-15)
 
 ## Fabric Madness 第三部分
 
-[](https://medium.com/@roger_noble?source=post_page---byline--1471d22014b9--------------------------------)[![Roger Noble](../Images/869b5b0f237f24b119ca6c41c2e31162.png)](https://medium.com/@roger_noble?source=post_page---byline--1471d22014b9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1471d22014b9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1471d22014b9--------------------------------) [Roger Noble](https://medium.com/@roger_noble?source=post_page---byline--1471d22014b9--------------------------------)
+[](https://medium.com/@roger_noble?source=post_page---byline--1471d22014b9--------------------------------)![Roger Noble](https://medium.com/@roger_noble?source=post_page---byline--1471d22014b9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1471d22014b9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1471d22014b9--------------------------------) [Roger Noble](https://medium.com/@roger_noble?source=post_page---byline--1471d22014b9--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1471d22014b9--------------------------------) ·阅读时间11分钟·2024年4月15日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1471d22014b9--------------------------------) ·阅读时间 11 分钟·2024 年 4 月 15 日
 
 --
 
-![](../Images/6a72c6bcc90ff02e9f300c48d9df2afc.png)
+![](img/6a72c6bcc90ff02e9f300c48d9df2afc.png)
 
-图片由作者和 ChatGPT 提供。“设计一张插图，展示一名残奥篮球运动员在比赛中的动作，本次主题为数据管道”提示。ChatGPT，4，OpenAI，2024年4月15日。[https://chat.openai.com.](https://chat.openai.com./)
+图片由作者和 ChatGPT 提供。“设计一张插图，展示一名残奥篮球运动员在比赛中的动作，本次主题为数据管道”提示。ChatGPT，4，OpenAI，2024 年 4 月 15 日。[`chat.openai.com.`](https://chat.openai.com./)
 
 在[上一篇文章](https://medium.com/towards-data-science/feature-engineering-with-microsoft-fabric-and-pyspark-16d458018744)中，我们讨论了如何使用 PySpark 和 Notebooks 进行特征工程。虽然 Spark 提供了很大的灵活性和强大功能，但它相当复杂，需要大量代码来入门。并不是每个人都愿意编写代码，或者有时间学习一种新的编程语言，这就是 Dataflow Gen2 的用武之地。
 
@@ -22,7 +22,7 @@ Dataflow Gen2 是一个低代码数据转换和集成引擎，允许您创建数
 
 在这篇文章中，我们将演示如何使用 Dataflow Gen2 创建训练机器学习模型所需的特征。我们将使用与上一篇文章相同的数据集，该数据集包含有关大学篮球比赛的数据。
 
-![](../Images/9612ef75cfbd3ebf67434d7e9b667e29.png)
+![](img/9612ef75cfbd3ebf67434d7e9b667e29.png)
 
 图 1 — 最终结果。图片由作者提供。
 
@@ -44,13 +44,13 @@ Dataflow Gen2 是一个低代码数据转换和集成引擎，允许您创建数
 
 第一步是从 Lakehouse 获取数据，这可以通过在“开始”选项卡中点击“获取数据”按钮，然后从数据源列表中选择 **更多…** 来实现。
 
-![](../Images/09e6830ca797495bd419893e0cb18b0e.png)
+![](img/09e6830ca797495bd419893e0cb18b0e.png)
 
 图 2 — 选择数据源。图片由作者提供。
 
 从列表中选择 **OneLake 数据中心**，找到 Lakehouse，然后在文件夹中找到 csv 文件。
 
-![](../Images/79af66f24ffb07087bd9b233f519caa0.png)
+![](img/79af66f24ffb07087bd9b233f519caa0.png)
 
 图 3 — 选择 csv 文件。图片由作者提供。
 
@@ -64,7 +64,7 @@ Dataflow Gen2 是一个低代码数据转换和集成引擎，允许您创建数
 
 +   导入的 CSV：将二进制文件转换为表格。
 
-![](../Images/b2fd1a2b8f2b1f429cc45716b45bb3a2.png)
+![](img/b2fd1a2b8f2b1f429cc45716b45bb3a2.png)
 
 图 4 — 初始加载。图片由作者提供。
 
@@ -74,7 +74,7 @@ Dataflow Gen2 是一个低代码数据转换和集成引擎，允许您创建数
 
 location 列包含比赛地点，值为“H”代表主场，“A”代表客场，或“N”代表中立场地。为了方便我们的分析，我们希望将这些值转换为数值，其中“H”表示 1，“A”表示 -1，“N”表示 0，这样更方便在模型中使用。这可以通过选择该列，然后在“转换”菜单项中使用 **替换值…** 转换来实现。
 
-![](../Images/3026952f8952ad4f14af39db338e6cc0.png)
+![](img/3026952f8952ad4f14af39db338e6cc0.png)
 
 图 5 — 替换值。图片来自作者。
 
@@ -82,7 +82,7 @@ location 列包含比赛地点，值为“H”代表主场，“A”代表客场
 
 最后，我们需要将位置列的数据类型从文本更改为整数。这可以通过选择该列，然后在“主页”功能区的“转换”组中，从下拉列表中选择数据类型来完成。
 
-![](../Images/6a798ea01fb3197b4ffcacc135a69f88.png)
+![](img/6a798ea01fb3197b4ffcacc135a69f88.png)
 
 图 6 — 最终数据加载。图片来自作者。
 
@@ -100,7 +100,7 @@ Table.ReplaceValue(#"Renamed columns", each [location], each if Text.Contains([l
 
 引用列可以通过左侧的查询面板完成，或者在使用图示视图时，通过选择查询的上下文菜单来完成。这将创建一个引用原始查询的新查询，并且对原始查询所做的任何更改都会反映到新查询中。我做了两次操作，一次用于胜利队伍，一次用于失败队伍，然后通过分别为它们加上“ T1_” 和 “T2_” 前缀来重命名列。
 
-![](../Images/eaa71856383445c2c54e32569ebd31f8.png)
+![](img/eaa71856383445c2c54e32569ebd31f8.png)
 
 图 7 — 拆分数据集。图片来自作者。
 
@@ -108,7 +108,7 @@ Table.ReplaceValue(#"Renamed columns", each [location], each if Text.Contains([l
 
 完成这些后，我们就可以将数据作为新表加载到 Lakehouse 中。最终的结果应该如下所示：
 
-![](../Images/b1e0440221e77afad699b89e8a1ee67d.png)
+![](img/b1e0440221e77afad699b89e8a1ee67d.png)
 
 图 8 — 所有连接起来。图片来自作者。
 
@@ -122,7 +122,7 @@ Table.ReplaceValue(#"Renamed columns", each [location], each if Text.Contains([l
 
 低代码方法的目标是减少所需的重复查询次数，并使得转换的重用变得更加容易。为此，我们将利用 Power Query 是一种函数式语言的特点，创建函数来封装我们想要应用于数据的转换操作。当我们第一次从 Lakehouse 加载数据时，创建了四个步骤，第二步是将 Lakehouse 的内容转换为一个表格，每一行包含一个指向二进制 csv 文件的引用。我们可以将这个作为函数的输入，这个函数将使用“调用自定义函数”转换来加载 csv 到一个新表格中。
 
-![](../Images/38cb149e20c76260a93ed2ba7fc2ddf4.png)
+![](img/38cb149e20c76260a93ed2ba7fc2ddf4.png)
 
 图 9 — 使用名为“Content”的列中的二进制 csv 文件进行 Lakehouse 查询。图片来自作者。
 
@@ -140,13 +140,13 @@ in
 
 然后，我们可以使用“调用自定义函数”转换来将这个函数应用到 Lakehouse 查询的每一行。这可以通过从“添加列”功能区中选择“调用自定义函数”转换，并选择我们刚刚创建的函数来完成。
 
-![](../Images/93db46a8fd3ec467e7c6ccb9c13d3605.png)
+![](img/93db46a8fd3ec467e7c6ccb9c13d3605.png)
 
 图 10 — 调用自定义函数。图片来自作者。
 
 这将会在 Lakehouse 查询中创建一个新列，其中 csv 文件的所有内容会加载到一个表格中，并在表格视图中显示为`[Table]`。然后，我们可以使用列标题上的展开功能，将表格展开为单独的列。
 
-![](../Images/a2f6d83805e7ca0cf3ab9814c6746ac0.png)
+![](img/a2f6d83805e7ca0cf3ab9814c6746ac0.png)
 
 图 11 — 展开列。图片来自作者。
 
@@ -205,13 +205,13 @@ in
 
 使用查询非常简单，只需选择它，然后使用 `TourneyType` 参数调用函数。
 
-![](../Images/6fb312c0bced0e91a3e7141022d951e5.png)
+![](img/6fb312c0bced0e91a3e7141022d951e5.png)
 
 图 12 — 调用函数。图片由作者提供。
 
 这将创建一个新的查询，使用函数作为源，并加载并转换数据。然后，只需将数据作为新表加载到 Lakehouse 中即可。
 
-![](../Images/91ea5a15eb7ff19de63185d8fee0d1a8.png)
+![](img/91ea5a15eb7ff19de63185d8fee0d1a8.png)
 
 图 13 — 函数加载。图片由作者提供。
 
@@ -223,6 +223,6 @@ in
 
 希望这篇文章能为你提供如何使用 Dataflow Gen2 准备数据并为机器学习模型创建特征的概述。其低代码方法使得快速创建数据管道变得非常简单，并且包含了许多强大的功能，可以用于创建复杂的转换。对于需要转换数据的人来说，这是一个很好的起点，更重要的是，它的好处在于不需要编写容易出错、难以测试且难以维护的复杂代码。
 
-在撰写本文时，Dataflows Gen2 尚不支持 Git 集成，因此无法对数据流进行版本控制或共享。预计此功能将在[2024年第四季度发布](https://learn.microsoft.com/en-us/fabric/release-plan/data-factory#git-df)。
+在撰写本文时，Dataflows Gen2 尚不支持 Git 集成，因此无法对数据流进行版本控制或共享。预计此功能将在[2024 年第四季度发布](https://learn.microsoft.com/en-us/fabric/release-plan/data-factory#git-df)。
 
-*最初发布于* [*https://nobledynamic.com*](https://nobledynamic.com/posts/fabric-madness-3/) *2024年4月15日。*
+*最初发布于* [*https://nobledynamic.com*](https://nobledynamic.com/posts/fabric-madness-3/) *2024 年 4 月 15 日。*

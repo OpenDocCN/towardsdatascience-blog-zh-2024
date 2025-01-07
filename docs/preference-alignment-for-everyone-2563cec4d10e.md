@@ -1,28 +1,28 @@
 # 每个人的偏好对齐！
 
-> 原文：[https://towardsdatascience.com/preference-alignment-for-everyone-2563cec4d10e?source=collection_archive---------2-----------------------#2024-11-08](https://towardsdatascience.com/preference-alignment-for-everyone-2563cec4d10e?source=collection_archive---------2-----------------------#2024-11-08)
+> 原文：[`towardsdatascience.com/preference-alignment-for-everyone-2563cec4d10e?source=collection_archive---------2-----------------------#2024-11-08`](https://towardsdatascience.com/preference-alignment-for-everyone-2563cec4d10e?source=collection_archive---------2-----------------------#2024-11-08)
 
-## 亚马逊SageMaker上的节俭RLHF与多适配器PPO
+## 亚马逊 SageMaker 上的节俭 RLHF 与多适配器 PPO
 
-[](https://medium.com/@aris.tsakpinis?source=post_page---byline--2563cec4d10e--------------------------------)[![Aris Tsakpinis](../Images/2cc1101aed68e1f71a0026bfdec28f58.png)](https://medium.com/@aris.tsakpinis?source=post_page---byline--2563cec4d10e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2563cec4d10e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2563cec4d10e--------------------------------) [Aris Tsakpinis](https://medium.com/@aris.tsakpinis?source=post_page---byline--2563cec4d10e--------------------------------)
+[](https://medium.com/@aris.tsakpinis?source=post_page---byline--2563cec4d10e--------------------------------)![Aris Tsakpinis](https://medium.com/@aris.tsakpinis?source=post_page---byline--2563cec4d10e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2563cec4d10e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2563cec4d10e--------------------------------) [Aris Tsakpinis](https://medium.com/@aris.tsakpinis?source=post_page---byline--2563cec4d10e--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2563cec4d10e--------------------------------) ·阅读时间：26分钟·2024年11月8日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2563cec4d10e--------------------------------) ·阅读时间：26 分钟·2024 年 11 月 8 日
 
 --
 
-![](../Images/77e9a1dd091dae519aca481072d8bae4.png)
+![](img/77e9a1dd091dae519aca481072d8bae4.png)
 
-图片由StableDiffusionXL在亚马逊Web服务上提供
+图片由 StableDiffusionXL 在亚马逊 Web 服务上提供
 
 注意：除非另有注明，所有图片均为作者提供。
 
 # 这是什么？为什么它很重要？
 
-在过去的两年里，研究和实践提供了大量证据，表明偏好对齐（PA）是提升大语言模型（LLM）性能的游戏规则改变者，尤其是（但不限于）直接暴露于人类的模型。PA利用（人类）反馈来使模型行为与模型实际所处环境中的偏好保持一致，而不是像其他微调方法那样仅仅依赖代理数据集（正如我在[这篇博文](/stepping-out-of-the-comfort-zone-through-domain-adaptation-a-deep-dive-into-dynamic-prompting-4860c6d16224)中详细解释的微调变体）。这种在模型性能上的提升，正如人类用户所感知的，是使LLM和其他基础模型（FM）变得更加可访问和流行的关键因素，显著推动了当前生成式AI的兴奋热潮。
+在过去的两年里，研究和实践提供了大量证据，表明偏好对齐（PA）是提升大语言模型（LLM）性能的游戏规则改变者，尤其是（但不限于）直接暴露于人类的模型。PA 利用（人类）反馈来使模型行为与模型实际所处环境中的偏好保持一致，而不是像其他微调方法那样仅仅依赖代理数据集（正如我在这篇博文中详细解释的微调变体）。这种在模型性能上的提升，正如人类用户所感知的，是使 LLM 和其他基础模型（FM）变得更加可访问和流行的关键因素，显著推动了当前生成式 AI 的兴奋热潮。
 
-随着时间的推移，研究提出了各种PA方法，并迅速被一些实践者采纳。在这些方法中，RLHF（截至2024年秋季）无疑是最受欢迎且被验证有效的方法。
+随着时间的推移，研究提出了各种 PA 方法，并迅速被一些实践者采纳。在这些方法中，RLHF（截至 2024 年秋季）无疑是最受欢迎且被验证有效的方法。
 
-然而，由于实施复杂性、计算需求或训练协调等挑战，迄今为止，像RLHF这样的PA方法的适应主要限于高技能个人和组织，如FM生产商。此外，我找到的大多数实际示例和教程，展示了如何掌握像RLHF这样的方式，往往是有限或不完整的。
+然而，由于实施复杂性、计算需求或训练协调等挑战，迄今为止，像 RLHF 这样的 PA 方法的适应主要限于高技能个人和组织，如 FM 生产商。此外，我找到的大多数实际示例和教程，展示了如何掌握像 RLHF 这样的方式，往往是有限或不完整的。
 
 本文为您提供了 RLHF 的全面介绍，讨论了实施中的挑战，并建议使用多适配器 PPO 的 RLHF，这是一种轻量级的实现方法，解决了这些挑战中的一些关键问题。
 
@@ -44,9 +44,9 @@ PA 对 FMs 的巨大成功与以用户为中心的产品开发理念完美契合
 
 ## RLHF 是如何工作的？
 
-*注意：本节内容是我在我的* [*关于不同微调变体的博客文章*](/stepping-out-of-the-comfort-zone-through-domain-adaptation-a-deep-dive-into-dynamic-prompting-4860c6d16224)*中的 RLHF 部分的改编版本。如果你想要了解微调的全面概述，可能还需要查看它。*
+*注意：本节内容是我在我的* *关于不同微调变体的博客文章**中的 RLHF 部分的改编版本。如果你想要了解微调的全面概述，可能还需要查看它。*
 
-![](../Images/0c206faae0d0b57cb16f4bcbf0ba5631.png)
+![](img/0c206faae0d0b57cb16f4bcbf0ba5631.png)
 
 图 1：RLHF 的奖励模型训练（来源：Lambert 等，2022）
 
@@ -54,47 +54,47 @@ RLHF 采用两步过程，具体过程如图 13 和图 14 所示：
 
 第一步（图 1）：首先，需要训练一个奖励模型，以便在实际的强化学习驱动的训练方法中使用。因此，模型将接收一个与目标对齐的提示数据集（例如，聊天/指令模型或特定领域任务目标），该数据集用于优化，并要求模型生成不止一个而是两个或更多推理结果。这些结果将提交给人工标注员进行评分（第一、第二、第三等），评分标准基于优化目标。也有一些开源的偏好排序数据集，其中包括[“Anthropic/hh-rlhf”](https://huggingface.co/datasets/Anthropic/hh-rlhf)（我们将在本博客的实践部分中使用该数据集），该数据集专门针对红队测试以及诚实性和无害性目标。经过归一化并将得分转换为奖励值后，使用每个样本-奖励对来训练奖励模型，其中每个样本是单个模型响应。奖励模型的架构通常与待微调的模型相似，只是在最后适配了一个小型头部，将潜在空间投射为奖励值，而不是标记的概率分布。然而，该模型的理想参数规模仍在研究中，过去不同的模型提供者采取了不同的方式。在本博客的实践部分中，奖励模型我们将使用与待微调模型相同的架构。
 
-![](../Images/762043a6b8c3fb52e183b1886888c937.png)
+![](img/762043a6b8c3fb52e183b1886888c937.png)
 
 图 2：基于 PPO 的强化学习模型调优用于 RLHF（来源：Lambert 等，2022）
 
-第2步（图2）：我们的新奖励模型现在用于训练实际的模型。因此，另一组提示词被输入到需要微调的模型中（图示中的灰色框），每次得到一个响应。随后，这些响应被输入到奖励模型中，以检索各自的奖励。接着，使用基于策略的强化学习算法——近端策略优化（PPO），逐步调整模型的权重，以最大化分配给模型回答的奖励。与因果语言建模（CLM——详细解释见[这里](https://medium.com/towards-data-science/stepping-out-of-the-comfort-zone-through-domain-adaptation-a-deep-dive-into-dynamic-prompting-4860c6d16224)）不同，PPO方法不是采用梯度下降，而是利用梯度上升（或者说是对*1 — 奖励*进行梯度下降），因为我们现在试图最大化一个目标（奖励）。为了提高算法的稳定性，防止在训练过程中因RL方法（如PPO）引发的模型行为过度漂移，奖励项中加入了预测偏移惩罚，对偏离初始语言模型预测概率分布过多的回答进行惩罚。
+第 2 步（图 2）：我们的新奖励模型现在用于训练实际的模型。因此，另一组提示词被输入到需要微调的模型中（图示中的灰色框），每次得到一个响应。随后，这些响应被输入到奖励模型中，以检索各自的奖励。接着，使用基于策略的强化学习算法——近端策略优化（PPO），逐步调整模型的权重，以最大化分配给模型回答的奖励。与因果语言建模（CLM——详细解释见[这里](https://medium.com/towards-data-science/stepping-out-of-the-comfort-zone-through-domain-adaptation-a-deep-dive-into-dynamic-prompting-4860c6d16224)）不同，PPO 方法不是采用梯度下降，而是利用梯度上升（或者说是对*1 — 奖励*进行梯度下降），因为我们现在试图最大化一个目标（奖励）。为了提高算法的稳定性，防止在训练过程中因 RL 方法（如 PPO）引发的模型行为过度漂移，奖励项中加入了预测偏移惩罚，对偏离初始语言模型预测概率分布过多的回答进行惩罚。
 
-## RLHF面临的挑战
+## RLHF 面临的挑战
 
-RLHF的工作方式本身就带来了一些核心挑战，特别是在大规模实现和运行方面，以下是其中的一些挑战：
+RLHF 的工作方式本身就带来了一些核心挑战，特别是在大规模实现和运行方面，以下是其中的一些挑战：
 
 - **奖励模型训练的成本：** 选择合适的奖励模型架构和大小仍然是当前研究的热点。这些模型通常是类似于需要微调的模型的变换器模型，并配备一个修改过的头部，输出奖励分数而非词汇概率分布。这意味着，不论实际选择怎样，大多数奖励模型的参数数量都在数十亿级别。对这种奖励模型进行完整的参数训练需要大量的数据和计算资源。
 
-- **训练集群的成本：** 在训练集群中，需要同时托管奖励模型（用于奖励值）、基础模型（用于KL预测偏移惩罚）和实际被微调的模型三个模型。这会导致巨大的计算需求，通常只有通过多节点的多GPU实例集群（通常部署在云端）才能满足，从而带来硬件和运营成本。
+- **训练集群的成本：** 在训练集群中，需要同时托管奖励模型（用于奖励值）、基础模型（用于 KL 预测偏移惩罚）和实际被微调的模型三个模型。这会导致巨大的计算需求，通常只有通过多节点的多 GPU 实例集群（通常部署在云端）才能满足，从而带来硬件和运营成本。
 
-- **训练集群的协调：** RLHF算法需要在每次训练循环中同时进行推理和训练相关的操作。这要求在多节点多GPU集群中进行协调，并尽量减少通信开销，以达到最佳的训练吞吐量。
+- **训练集群的协调：** RLHF 算法需要在每次训练循环中同时进行推理和训练相关的操作。这要求在多节点多 GPU 集群中进行协调，并尽量减少通信开销，以达到最佳的训练吞吐量。
 
-- **在高度专业化设置中的训练/推理成本：** PA通过将模型性能对齐到用户群体或目标领域而表现突出。由于大多数专业应用场景具有特定的领域和异质的用户群体，这导致了一个有趣的权衡：优化性能将导致训练和托管许多在性能上表现出色的专业化模型。然而，优化资源消耗（即成本）将导致模型的过度泛化，从而降低性能。
+- **在高度专业化设置中的训练/推理成本：** PA 通过将模型性能对齐到用户群体或目标领域而表现突出。由于大多数专业应用场景具有特定的领域和异质的用户群体，这导致了一个有趣的权衡：优化性能将导致训练和托管许多在性能上表现出色的专业化模型。然而，优化资源消耗（即成本）将导致模型的过度泛化，从而降低性能。
 
 ## 使用多适配器 PPO 的 RLHF
 
-![](../Images/43d376a2044c3fc5511ddd397cca4912.png)
+![](img/43d376a2044c3fc5511ddd397cca4912.png)
 
-图3：通过动态多适配器加载最小化PPO的GPU占用
+图 3：通过动态多适配器加载最小化 PPO 的 GPU 占用
 
-多适配器PPO是RLHF训练过程第二步中一种特别节省GPU资源的方法。它不是使用全参数微调，而是利用参数高效微调（PEFT）技术，显著减少基础设施和协调占用。与其在训练集群中并行托管三个独立的模型（微调模型、奖励模型、用于KL预测偏移惩罚的参考模型），这种方法在微调过程中使用低秩适配（LoRA）适配器，这些适配器会动态加载和卸载到训练集群的加速器中。
+多适配器 PPO 是 RLHF 训练过程第二步中一种特别节省 GPU 资源的方法。它不是使用全参数微调，而是利用参数高效微调（PEFT）技术，显著减少基础设施和协调占用。与其在训练集群中并行托管三个独立的模型（微调模型、奖励模型、用于 KL 预测偏移惩罚的参考模型），这种方法在微调过程中使用低秩适配（LoRA）适配器，这些适配器会动态加载和卸载到训练集群的加速器中。
 
-![](../Images/3fd297299c11b108133ded22488394b9.png)
+![](img/3fd297299c11b108133ded22488394b9.png)
 
-图4：使用多适配器PPO进行端到端RLHF训练，用于无害的问答机器人
+图 4：使用多适配器 PPO 进行端到端 RLHF 训练，用于无害的问答机器人
 
-尽管这种方法的最终目标是对RLHF第二步采取资源和协调节约的方法，但它对第一步也有影响：
+尽管这种方法的最终目标是对 RLHF 第二步采取资源和协调节约的方法，但它对第一步也有影响：
 
 +   **奖励模型选择：** 选择与要微调的模型具有相同模型架构的奖励模型，并为其配备奖励分类头。
 
-+   **奖励模型训练方法：** 如图4(2)所示，与全参数奖励模型训练不同，训练的是奖励模型的LoRA适配器，从而减少了训练的占用资源。
++   **奖励模型训练方法：** 如图 4(2)所示，与全参数奖励模型训练不同，训练的是奖励模型的 LoRA 适配器，从而减少了训练的占用资源。
 
-与此类似，第二步中进行的RLHF微调并不是采用全参数微调的方式。相反，训练的是LoRA适配器。如图4所示，在一次训练迭代中，首先加载RLHF模型适配器，以便生成当前训练批次提示的模型响应（4a）。然后，加载奖励模型适配器以计算相应的原始奖励值（4b）。为了完成奖励项，输入提示通过基础模型进行计算，以获得KL预测偏移惩罚。因此，所有适配器需要被卸载（4c，4d）。最后，RLHF模型适配器重新加载，以执行此次迭代步骤的权重更新（4e）。
+与此类似，第二步中进行的 RLHF 微调并不是采用全参数微调的方式。相反，训练的是 LoRA 适配器。如图 4 所示，在一次训练迭代中，首先加载 RLHF 模型适配器，以便生成当前训练批次提示的模型响应（4a）。然后，加载奖励模型适配器以计算相应的原始奖励值（4b）。为了完成奖励项，输入提示通过基础模型进行计算，以获得 KL 预测偏移惩罚。因此，所有适配器需要被卸载（4c，4d）。最后，RLHF 模型适配器重新加载，以执行此次迭代步骤的权重更新（4e）。
 
-这种RLHF方法显著减少了内存占用和协调复杂性。
+这种 RLHF 方法显著减少了内存占用和协调复杂性。
 
-# 在HuggingFace和Amazon SageMaker上运行使用多适配器 PPO 的RLHF
+# 在 HuggingFace 和 Amazon SageMaker 上运行使用多适配器 PPO 的 RLHF
 
 在接下来的内容中，我们将通过一个展示多适配器 PPO 在端到端 (E2E) 方式下使用强化学习与人类反馈（RLHF）的笔记本来进行讲解。因此，我们将使用 HuggingFace 和 Amazon SageMaker 提供一个特别用户友好的接口，用于实现、编排和计算层的操作。整个笔记本可以在[这里](https://github.com/aws-samples/build-language-models-on-aws/tree/main/align-models-with-amazon-sagemaker/rlhf-with-multi-adapter-ppo)找到。
 
@@ -110,7 +110,7 @@ RLHF的工作方式本身就带来了一些核心挑战，特别是在大规模�
 
 尽管这一选择较为通用，但我们仍需要为我们的任务选择一个模型。在这篇博客中，我们将使用 Meta 的 Llama3.1–8b-instruct 模型。这个模型是 Meta 在 2024 年夏季发布的一系列多语言预训练和指令调优解码器模型中最小的一个版本。更多细节可以在 Meta 官方网站的[文档](https://llama.meta.com/docs/model-cards-and-prompt-formats/llama3_1#llama-3.1-instruct)以及 HuggingFace 提供的[模型卡](https://huggingface.co/meta-llama/Meta-Llama-3.1-8B-Instruct)中找到。
 
-![](../Images/92f35b3b8bd00507db12d2a4a26d3815.png)
+![](img/92f35b3b8bd00507db12d2a4a26d3815.png)
 
 图 5：HuggingFace Hub 上的 Llama-3.1–8b-instruct 模型卡
 
@@ -118,7 +118,7 @@ RLHF的工作方式本身就带来了一些核心挑战，特别是在大规模�
 
 我们将在笔记本的演示中开始一些必要的准备步骤。
 
-![](../Images/448c07c74376c62d180935b6d48a716b.png)
+![](img/448c07c74376c62d180935b6d48a716b.png)
 
 图 6：通过 HuggingFace Hub 接受 Meta 的许可协议
 
@@ -126,7 +126,7 @@ RLHF的工作方式本身就带来了一些核心挑战，特别是在大规模�
 
 此外，为了存储奖励模型和偏好对齐模型的适配器权重，我们将使用 HuggingFace 模型 Hub 上的私人模型仓库。这需要一个 HuggingFace 账户。一旦登录到 HuggingFace 平台，我们需要创建两个模型仓库。为此，请点击 HuggingFace 登录页右上角的账户图标，并在菜单中选择“+ 新建模型”。
 
-![](../Images/913dabd67e327e505f481f44bc411501.png)
+![](img/913dabd67e327e505f481f44bc411501.png)
 
 图 7：在 HuggingFace 模型 Hub 上创建模型仓库
 
@@ -138,7 +138,7 @@ RLHF的工作方式本身就带来了一些核心挑战，特别是在大规模�
 
 在设置中，我们选择菜单项“访问令牌”，然后点击“+ 创建新令牌”。
 
-![](../Images/6444c90a1d12546dd6a9699087935638.png)
+![](img/6444c90a1d12546dd6a9699087935638.png)
 
 图 8：在 HuggingFace hub 上创建访问令牌
 
@@ -150,7 +150,7 @@ RLHF的工作方式本身就带来了一些核心挑战，特别是在大规模�
 
 现在我们完成了先决条件，可以继续使用我们在这个任务中将要使用的数据集。
 
-![](../Images/91ccb2b30be64e7b3eb90d0bb193d5cf.png)
+![](img/91ccb2b30be64e7b3eb90d0bb193d5cf.png)
 
 图 9：HuggingFace hub 上的 Anthropic hh-rlhf 数据集
 
@@ -160,11 +160,11 @@ RLHF的工作方式本身就带来了一些核心挑战，特别是在大规模�
 
 # 代码库
 
-![](../Images/8558c4acfd289147c8bac0697f5e8d7e.png)
+![](img/8558c4acfd289147c8bac0697f5e8d7e.png)
 
 图 10：代码库
 
-在查看了我们将使用的数据集后，接下来让我们看看目录结构以及在本演示中将使用的文件。该目录包含3个文件：config.yaml，一个用于通过远程装饰器运行 SageMaker 作业的配置文件；requirements.txt，用于扩展训练容器中已安装的依赖项；最后是包含我们 E2E PA 代码的 `rlhf-multi-adapter-ppo.ipynb` 笔记本。
+在查看了我们将使用的数据集后，接下来让我们看看目录结构以及在本演示中将使用的文件。该目录包含 3 个文件：config.yaml，一个用于通过远程装饰器运行 SageMaker 作业的配置文件；requirements.txt，用于扩展训练容器中已安装的依赖项；最后是包含我们 E2E PA 代码的 `rlhf-multi-adapter-ppo.ipynb` 笔记本。
 
 前面提到的 config.yaml 文件包含了通过远程装饰器触发的训练作业的重要配置，例如训练实例类型或训练镜像。
 
@@ -337,7 +337,7 @@ encoded_train = encode_dataset(extract_questions(d_train['data']))
 encoded_test = encode_dataset(extract_questions(d_test['data']))
 ```
 
-我们将训练样本填充到最多2048个标记，以减少训练时的内存占用。这可以调整到模型的最大上下文窗口。阈值应在特定用例或领域所需的提示长度和保持小的训练内存占用之间找到一个良好的折中。请注意，较大的输入标记大小可能需要扩展计算基础设施。
+我们将训练样本填充到最多 2048 个标记，以减少训练时的内存占用。这可以调整到模型的最大上下文窗口。阈值应在特定用例或领域所需的提示长度和保持小的训练内存占用之间找到一个良好的折中。请注意，较大的输入标记大小可能需要扩展计算基础设施。
 
 ```py
 # Restrict training context size (due to memory limitations, can be adjusted)
@@ -362,11 +362,11 @@ def create_and_prepare_dataset(tokenizer, dataset):
 tokenized_dataset_squad = create_and_prepare_dataset(tokenizer, dataset_dict).remove_columns(["input"])
 ```
 
-最后，我们将数据集上传到s3。请将存储桶路径调整为指向您帐户中的存储桶的路径。
+最后，我们将数据集上传到 s3。请将存储桶路径调整为指向您帐户中的存储桶的路径。
 
 ## 奖励模型训练
 
-在奖励模型的训练中，我们定义了两个辅助函数：一个计算模型可训练参数的函数，用于展示LoRA如何影响可训练参数；另一个函数用于识别模型中的所有线性模块，因为这些模块将被LoRA所作用。
+在奖励模型的训练中，我们定义了两个辅助函数：一个计算模型可训练参数的函数，用于展示 LoRA 如何影响可训练参数；另一个函数用于识别模型中的所有线性模块，因为这些模块将被 LoRA 所作用。
 
 ```py
 def print_trainable_parameters(model):
@@ -395,11 +395,11 @@ def find_all_linear_names(hf_model):
     return list(lora_module_names)
 ```
 
-训练函数“train_fn”被装饰器remote装饰。这使我们能够将其作为SageMaker训练任务执行。在装饰器中，我们定义了一些参数，并与config.yaml中指定的参数一起使用。这些参数可以在实际调用训练任务时被覆盖。
+训练函数“train_fn”被装饰器 remote 装饰。这使我们能够将其作为 SageMaker 训练任务执行。在装饰器中，我们定义了一些参数，并与 config.yaml 中指定的参数一起使用。这些参数可以在实际调用训练任务时被覆盖。
 
-在训练函数中，我们首先设置一个种子以确保可重复性。然后，我们初始化一个Accelerator对象来处理分布式训练。该对象将在4个rank（请注意装饰器参数中的*nproc_per_node=4*）的ml.g5.12xlarge实例上以数据并行方式协调我们的分布式训练（请注意*config.yaml*中的*InstanceType: ml.g5.12xlarge*）。
+在训练函数中，我们首先设置一个种子以确保可重复性。然后，我们初始化一个 Accelerator 对象来处理分布式训练。该对象将在 4 个 rank（请注意装饰器参数中的*nproc_per_node=4*）的 ml.g5.12xlarge 实例上以数据并行方式协调我们的分布式训练（请注意*config.yaml*中的*InstanceType: ml.g5.12xlarge*）。
 
-然后，我们登录HuggingFace Hub并加载并配置分词器。
+然后，我们登录 HuggingFace Hub 并加载并配置分词器。
 
 ```py
 # Start training with remote decorator (https://docs.aws.amazon.com/sagemaker/latest/dg/train-remote-decorator.html). Additional job config is being pulled in from config.yaml. 
@@ -445,7 +445,7 @@ def train_fn(
     tokenizer.pad_token_id = tokenizer.eos_token_id 
 ```
 
-在接下来的步骤中，我们从S3加载训练数据，并将其加载到HuggingFace的DatasetDict对象中。由于这是一个演示，我们希望能够仅使用数据的一个子集进行训练，以节省时间和资源。为此，我们可以配置要使用的数据集项的范围。
+在接下来的步骤中，我们从 S3 加载训练数据，并将其加载到 HuggingFace 的 DatasetDict 对象中。由于这是一个演示，我们希望能够仅使用数据的一个子集进行训练，以节省时间和资源。为此，我们可以配置要使用的数据集项的范围。
 
 ```py
  # Load data from S3
@@ -464,7 +464,7 @@ def train_fn(
         eval_dataset = dataset["test"]
 ```
 
-我们使用HuggingFace的bitsandbytes库进行量化。在此配置中，bitsandbytes将用NF4层替换模型的所有线性层，并将计算及存储的数据类型设置为bfloat16。然后，模型使用这种量化配置从HuggingFace Hub加载，使用Flash Attention 2实现注意力机制，以进一步提高内存使用效率和计算效率。我们还会打印出此状态下模型的所有可训练参数。接着，模型为量化训练做好准备。
+我们使用 HuggingFace 的 bitsandbytes 库进行量化。在此配置中，bitsandbytes 将用 NF4 层替换模型的所有线性层，并将计算及存储的数据类型设置为 bfloat16。然后，模型使用这种量化配置从 HuggingFace Hub 加载，使用 Flash Attention 2 实现注意力机制，以进一步提高内存使用效率和计算效率。我们还会打印出此状态下模型的所有可训练参数。接着，模型为量化训练做好准备。
 
 ```py
  # Specify quantization config
@@ -497,7 +497,7 @@ def train_fn(
     model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=gradient_checkpointing)
 ```
 
-接下来，我们发现模型中的所有线性层，并将它们传递到一个LoraConfig中，该配置指定了一些LoRA超参数。请注意，与传统的大型语言模型（LLM）训练不同，task_type不是“CAUSAL_LM”，而是“SEQ_CLS”，因为我们训练的是奖励模型，而不是文本生成模型。该配置应用于模型，训练参数再次被打印出来。请注意可训练参数和总参数的区别。
+接下来，我们发现模型中的所有线性层，并将它们传递到一个 LoraConfig 中，该配置指定了一些 LoRA 超参数。请注意，与传统的大型语言模型（LLM）训练不同，task_type 不是“CAUSAL_LM”，而是“SEQ_CLS”，因为我们训练的是奖励模型，而不是文本生成模型。该配置应用于模型，训练参数再次被打印出来。请注意可训练参数和总参数的区别。
 
 ```py
  # Get lora target modules
@@ -890,16 +890,16 @@ llm.delete_endpoint()
 
 1.  RLHF 的原理及其涉及奖励模型训练和基于 PPO 的微调的两步过程。
 
-1.  实现RLHF过程中面临的挑战，包括计算资源和协调复杂性。
+1.  实现 RLHF 过程中面临的挑战，包括计算资源和协调复杂性。
 
-1.  多适配器PPO方法作为减少基础设施和协调开销的解决方案。
+1.  多适配器 PPO 方法作为减少基础设施和协调开销的解决方案。
 
-1.  使用HuggingFace框架和Amazon SageMaker的详细端到端实现，包括数据预处理、奖励模型训练、多适配器PPO训练和模型部署。
+1.  使用 HuggingFace 框架和 Amazon SageMaker 的详细端到端实现，包括数据预处理、奖励模型训练、多适配器 PPO 训练和模型部署。
 
-这种节俭的强化学习与人类反馈（RLHF）方法使得偏好对齐变得更加易于被更广泛的从业者所接受，可能加速对齐AI系统的开发和部署。
+这种节俭的强化学习与人类反馈（RLHF）方法使得偏好对齐变得更加易于被更广泛的从业者所接受，可能加速对齐 AI 系统的开发和部署。
 
-通过减少计算需求并简化实现过程，多适配器PPO为根据特定领域或用户偏好微调语言模型开辟了新的可能性。
+通过减少计算需求并简化实现过程，多适配器 PPO 为根据特定领域或用户偏好微调语言模型开辟了新的可能性。
 
-随着AI领域的不断发展，像这样的技术将在创建更高效、更有效且更对齐的语言模型方面发挥至关重要的作用。我鼓励读者尝试这种方法，将其适应到具体的使用场景中，并分享他们在构建负责任且以用户为中心的大型语言模型（LLMs）方面的成功经验。
+随着 AI 领域的不断发展，像这样的技术将在创建更高效、更有效且更对齐的语言模型方面发挥至关重要的作用。我鼓励读者尝试这种方法，将其适应到具体的使用场景中，并分享他们在构建负责任且以用户为中心的大型语言模型（LLMs）方面的成功经验。
 
-***如果你有兴趣深入了解LLM的预训练和对齐，我推荐查看我和我的尊敬的同事们最近发布的*** [***AWS SkillBuilder课程***](https://explore.skillbuilder.aws/learn/course/external/view/elearning/17556/building-language-models-on-aws) ***，包括*** [***Anastasia***](https://anastasia-tzeveleka.medium.com/) ***和*** [***Gili***](https://medium.com/@gilinachum)***。***
+***如果你有兴趣深入了解 LLM 的预训练和对齐，我推荐查看我和我的尊敬的同事们最近发布的*** [***AWS SkillBuilder 课程***](https://explore.skillbuilder.aws/learn/course/external/view/elearning/17556/building-language-models-on-aws) ***，包括*** [***Anastasia***](https://anastasia-tzeveleka.medium.com/) ***和*** [***Gili***](https://medium.com/@gilinachum)***。***

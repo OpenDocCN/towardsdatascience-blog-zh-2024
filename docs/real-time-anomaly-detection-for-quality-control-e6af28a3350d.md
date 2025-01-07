@@ -1,16 +1,16 @@
 # 实时异常检测用于质量控制
 
-> 原文：[https://towardsdatascience.com/real-time-anomaly-detection-for-quality-control-e6af28a3350d?source=collection_archive---------5-----------------------#2024-02-03](https://towardsdatascience.com/real-time-anomaly-detection-for-quality-control-e6af28a3350d?source=collection_archive---------5-----------------------#2024-02-03)
+> 原文：[`towardsdatascience.com/real-time-anomaly-detection-for-quality-control-e6af28a3350d?source=collection_archive---------5-----------------------#2024-02-03`](https://towardsdatascience.com/real-time-anomaly-detection-for-quality-control-e6af28a3350d?source=collection_archive---------5-----------------------#2024-02-03)
 
 ## 在行业中两年的经验总结
 
-[](https://medium.com/@anthonycvn?source=post_page---byline--e6af28a3350d--------------------------------)[![Anthony Cavin](../Images/60a13c72d1390b74864cd12bc959eae9.png)](https://medium.com/@anthonycvn?source=post_page---byline--e6af28a3350d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e6af28a3350d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e6af28a3350d--------------------------------) [Anthony Cavin](https://medium.com/@anthonycvn?source=post_page---byline--e6af28a3350d--------------------------------)
+[](https://medium.com/@anthonycvn?source=post_page---byline--e6af28a3350d--------------------------------)![Anthony Cavin](https://medium.com/@anthonycvn?source=post_page---byline--e6af28a3350d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e6af28a3350d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e6af28a3350d--------------------------------) [Anthony Cavin](https://medium.com/@anthonycvn?source=post_page---byline--e6af28a3350d--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e6af28a3350d--------------------------------) ·阅读时长10分钟·2024年2月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e6af28a3350d--------------------------------) ·阅读时长 10 分钟·2024 年 2 月 3 日
 
 --
 
-![](../Images/94997be408610283291b5d9da76f60e7.png)
+![](img/94997be408610283291b5d9da76f60e7.png)
 
 编码器和潜在空间中的图表示示例（图像来源：作者）
 

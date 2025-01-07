@@ -1,16 +1,16 @@
 # 集成文本和图像，进行更智能的数据分类
 
-> 原文：[https://towardsdatascience.com/integrating-text-and-images-for-smarter-data-classification-6a53252d8a73?source=collection_archive---------6-----------------------#2024-11-18](https://towardsdatascience.com/integrating-text-and-images-for-smarter-data-classification-6a53252d8a73?source=collection_archive---------6-----------------------#2024-11-18)
+> 原文：[`towardsdatascience.com/integrating-text-and-images-for-smarter-data-classification-6a53252d8a73?source=collection_archive---------6-----------------------#2024-11-18`](https://towardsdatascience.com/integrating-text-and-images-for-smarter-data-classification-6a53252d8a73?source=collection_archive---------6-----------------------#2024-11-18)
 
-[](https://medium.com/@CVxTz?source=post_page---byline--6a53252d8a73--------------------------------)[![Youness Mansar](../Images/b68fe2cbbe219ab0231922c7165f2b6a.png)](https://medium.com/@CVxTz?source=post_page---byline--6a53252d8a73--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a53252d8a73--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6a53252d8a73--------------------------------) [Youness Mansar](https://medium.com/@CVxTz?source=post_page---byline--6a53252d8a73--------------------------------)
+[](https://medium.com/@CVxTz?source=post_page---byline--6a53252d8a73--------------------------------)![Youness Mansar](https://medium.com/@CVxTz?source=post_page---byline--6a53252d8a73--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a53252d8a73--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a53252d8a73--------------------------------) [Youness Mansar](https://medium.com/@CVxTz?source=post_page---byline--6a53252d8a73--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a53252d8a73--------------------------------) ·7分钟阅读·2024年11月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a53252d8a73--------------------------------) ·7 分钟阅读·2024 年 11 月 18 日
 
 --
 
 这是一篇关于如何利用多模态人工智能分类混合文本和图像数据的技术演示，内容包括详细的说明、可执行的代码示例以及有效实现的技巧。
 
-![](../Images/88c05e548892522a34fec7ecb8d4b602.png)
+![](img/88c05e548892522a34fec7ecb8d4b602.png)
 
 图片来源：[Tschernjawski Sergej](https://unsplash.com/@mrt1987?utm_source=medium&utm_medium=referral) 来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -34,33 +34,33 @@
 
 如果你的项目仅涉及文本分类，我的[另一篇博客文章](https://medium.com/towards-data-science/building-a-reliable-text-classification-pipeline-with-llms-a-step-by-step-guide-87dc73213605)可能会对你有所帮助——它专门讨论了这些方法。
 
-[](/building-a-reliable-text-classification-pipeline-with-llms-a-step-by-step-guide-87dc73213605?source=post_page-----6a53252d8a73--------------------------------) [## 使用LLM构建可靠的文本分类管道：一步一步的指南
+[](/building-a-reliable-text-classification-pipeline-with-llms-a-step-by-step-guide-87dc73213605?source=post_page-----6a53252d8a73--------------------------------) ## 使用 LLM 构建可靠的文本分类管道：一步一步的指南
 
-### 克服基于LLM的文本分类中的常见挑战
+### 克服基于 LLM 的文本分类中的常见挑战
 
-[towardsdatascience.com](/building-a-reliable-text-classification-pipeline-with-llms-a-step-by-step-guide-87dc73213605?source=post_page-----6a53252d8a73--------------------------------)
+[towardsdatascience.com
 
 要成功构建一个多模态的图像-文本分类系统，我们需要三个关键组件。下面是每个元素的详细介绍：
 
-## 1\. 一个可靠的LLM提供商
+## 1\. 一个可靠的 LLM 提供商
 
-本教程的核心是**托管的LLM作为服务**。在试验了几种选项后，我发现并非所有LLM都能提供一致的结果，特别是在处理结构化输出时。以下是我的经验总结：
+本教程的核心是**托管的 LLM 作为服务**。在试验了几种选项后，我发现并非所有 LLM 都能提供一致的结果，特别是在处理结构化输出时。以下是我的经验总结：
 
-+   **Groq** 和 **Fireworks.ai**：这些平台提供无服务器、按令牌付费的多模态LLM。虽然它们看起来很有前景，但它们的API在处理结构化输出请求时存在问题。例如，当发送一个带有预定义架构的查询时，返回的输出并没有遵循预期的格式，使得它们在需要精确的任务中不可靠。Groq的Llama 3.2仍处于预览阶段，所以我可能稍后会再次尝试它们。Fireworks.ai通常不响应错误报告，所以我从现在起就将它们从我的选项中删除。
++   **Groq** 和 **Fireworks.ai**：这些平台提供无服务器、按令牌付费的多模态 LLM。虽然它们看起来很有前景，但它们的 API 在处理结构化输出请求时存在问题。例如，当发送一个带有预定义架构的查询时，返回的输出并没有遵循预期的格式，使得它们在需要精确的任务中不可靠。Groq 的 Llama 3.2 仍处于预览阶段，所以我可能稍后会再次尝试它们。Fireworks.ai 通常不响应错误报告，所以我从现在起就将它们从我的选项中删除。
 
-+   **Gemini 1.5**：经过一些反复尝试，我选择了Gemini 1.5。它始终返回期望格式的结果，并且至今表现良好。尽管它仍然有一些奇怪的小毛病，如果你长时间使用它会发现（比如不能使用过大的枚举值……）。我们将在本文后续讨论这些问题。这将是我们在本教程中使用的LLM。
++   **Gemini 1.5**：经过一些反复尝试，我选择了 Gemini 1.5。它始终返回期望格式的结果，并且至今表现良好。尽管它仍然有一些奇怪的小毛病，如果你长时间使用它会发现（比如不能使用过大的枚举值……）。我们将在本文后续讨论这些问题。这将是我们在本教程中使用的 LLM。
 
-## 2\. Python库：LangChain
+## 2\. Python 库：LangChain
 
-为了与LLM接口并处理多模态输入，我们将使用**LangChain**库。LangChain特别适合这项任务，因为它使我们能够：
+为了与 LLM 接口并处理多模态输入，我们将使用**LangChain**库。LangChain 特别适合这项任务，因为它使我们能够：
 
-+   将文本和图像数据作为输入注入LLM。
++   将文本和图像数据作为输入注入 LLM。
 
-+   定义不同LLM作为服务提供商的通用抽象。
++   定义不同 LLM 作为服务提供商的通用抽象。
 
 +   定义结构化输出模式，以确保结果符合我们需要的格式。
 
-结构化输出对分类任务尤其重要，因为它们涉及预定义的类别，输出必须符合这些类别。LangChain确保了这一结构的执行，使其成为我们用例的理想选择。
+结构化输出对分类任务尤其重要，因为它们涉及预定义的类别，输出必须符合这些类别。LangChain 确保了这一结构的执行，使其成为我们用例的理想选择。
 
 ## 3. 分类任务：摄影图片的关键词建议
 
@@ -72,11 +72,11 @@
 
 例如，一个由图片及其描述组成的输入可能会被分类为如*landscape, sunset*和*nature*等关键词。虽然一个输入可以应用多个关键词，但这些关键词必须从预定义的类别集中选择。
 
-# 步骤指南：设置Gemini 1.5和LangChain的多模态图像-文本分类
+# 步骤指南：设置 Gemini 1.5 和 LangChain 的多模态图像-文本分类
 
-现在我们已经覆盖了基础概念，让我们深入实现部分。这个逐步指南将引导你完成配置Gemini 1.5、设置LangChain以及为摄影相关图片构建关键词建议系统的过程。
+现在我们已经覆盖了基础概念，让我们深入实现部分。这个逐步指南将引导你完成配置 Gemini 1.5、设置 LangChain 以及为摄影相关图片构建关键词建议系统的过程。
 
-## 第一步：获取你的Gemini API密钥
+## 第一步：获取你的 Gemini API 密钥
 
 第一步是获取你的**Gemini API 密钥**，你可以在[Google AI Studio](https://aistudio.google.com/app/apikey)生成该密钥。获得密钥后，将其导出到名为`GOOGLE_API_KEY`的环境变量中。你可以选择：
 
@@ -92,7 +92,7 @@ GOOGLE_API_KEY=your_api_key_here
 export GOOGLE_API_KEY=your_api_key_here
 ```
 
-## 第2步：安装并初始化客户端
+## 第 2 步：安装并初始化客户端
 
 接下来，安装必要的库：
 
@@ -115,9 +115,9 @@ llm_google_client = ChatGoogleGenerativeAI(
 )
 ```
 
-## 第3步：定义输出模式
+## 第 3 步：定义输出模式
 
-为了确保LLM生成有效的结构化结果，我们使用**Pydantic**定义输出模式。这个模式充当过滤器，验证模型返回的类别是否与我们预定义的可接受类别列表匹配。
+为了确保 LLM 生成有效的结构化结果，我们使用**Pydantic**定义输出模式。这个模式充当过滤器，验证模型返回的类别是否与我们预定义的可接受类别列表匹配。
 
 ```py
 from typing import List, Literal
@@ -140,7 +140,7 @@ def generate_multi_label_classification_model(list_classes: list[str]):
 
 **为什么** `**field_validator**` **作为变通方法是必要的：**
 
-在定义模式时，我们遇到了Gemini 1.5（以及类似的LLM）的一项限制：它们不严格执行**枚举**。这意味着，即使我们提供了固定的类别集，模型也可能返回超出此集合的值。例如：
+在定义模式时，我们遇到了 Gemini 1.5（以及类似的 LLM）的一项限制：它们不严格执行**枚举**。这意味着，即使我们提供了固定的类别集，模型也可能返回超出此集合的值。例如：
 
 +   预期：`["landscape", "forest", "mountain"]`
 
@@ -152,9 +152,9 @@ def generate_multi_label_classification_model(list_classes: list[str]):
 
 1.  无效或意外的值将被移除。
 
-这个保障措施确保模型的结果与任务要求相符。虽然我们必须这样做很麻烦，但似乎是我测试过的所有LLM提供商的共同问题。如果你知道哪家提供商能很好地处理枚举，请告诉我。
+这个保障措施确保模型的结果与任务要求相符。虽然我们必须这样做很麻烦，但似乎是我测试过的所有 LLM 提供商的共同问题。如果你知道哪家提供商能很好地处理枚举，请告诉我。
 
-# 第4步：将模式绑定到LLM客户端
+# 第 4 步：将模式绑定到 LLM 客户端
 
 接下来，将模式绑定到客户端进行结构化输出处理：
 
@@ -169,9 +169,9 @@ categories_model = generate_multi_label_classification_model(list_classes)
 llm_classifier = llm_google_client.with_structured_output(categories_model)
 ```
 
-## 第5步：构建查询并调用LLM
+## 第 5 步：构建查询并调用 LLM
 
-定义预测函数以将图像和文本输入发送到LLM：
+定义预测函数以将图像和文本输入发送到 LLM：
 
 ```py
 ...
@@ -199,21 +199,21 @@ llm_classifier = llm_google_client.with_structured_output(categories_model)
         return prediction.category
 ```
 
-要将图像数据发送到Gemini LLM API，我们需要将图像编码为模型可以处理的格式。这时**base64编码**就派上用场了。
+要将图像数据发送到 Gemini LLM API，我们需要将图像编码为模型可以处理的格式。这时**base64 编码**就派上用场了。
 
-**什么是Base64？**
+**什么是 Base64？**
 
-Base64是一种二进制到文本的编码方案，将二进制数据（如图像）转换为文本格式。当传输与基于文本的系统（如API）不兼容的数据时，这非常有用。通过将图像编码为base64，我们可以将其作为有效载荷的一部分，在向LLM发送数据时一起发送。
+Base64 是一种二进制到文本的编码方案，将二进制数据（如图像）转换为文本格式。当传输与基于文本的系统（如 API）不兼容的数据时，这非常有用。通过将图像编码为 base64，我们可以将其作为有效载荷的一部分，在向 LLM 发送数据时一起发送。
 
-## 第6步：以多标签关键词的形式获取结果
+## 第 6 步：以多标签关键词的形式获取结果
 
 最后，运行分类器并查看结果。让我们用一个例子来测试：
 
-## 示例输入1：
+## 示例输入 1：
 
 +   **图片**：
 
-![](../Images/6a7a0ee9460973d78f72f4b816a1fbed.png)
+![](img/6a7a0ee9460973d78f72f4b816a1fbed.png)
 
 图片由[Calvin Ma](https://unsplash.com/@mkwcalvin?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来自[Unsplash](https://unsplash.com/photos/classic-red-and-white-bus-parked-beside-road-VaH2X8eHKVg?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -235,13 +235,13 @@ Base64是一种二进制到文本的编码方案，将二进制数据（如图�
 ['transportation', 'vehicle', 'road']
 ```
 
-如图所示，当使用文本和图像输入时，结果与实际内容更为相关。仅使用文本输入时，LLM给出了正确但不完整的值。
+如图所示，当使用文本和图像输入时，结果与实际内容更为相关。仅使用文本输入时，LLM 给出了正确但不完整的值。
 
-## 示例输入2：
+## 示例输入 2：
 
 +   **图片**：
 
-![](../Images/124e22659b64a9cdbe4ec3d8bdcf71bf.png)
+![](img/124e22659b64a9cdbe4ec3d8bdcf71bf.png)
 
 图片由[Tadeusz Lakota](https://unsplash.com/@tadekl?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来自[Unsplash](https://unsplash.com/photos/black-and-white-coated-dog-bLQFCJDImnc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -265,7 +265,7 @@ Base64是一种二进制到文本的编码方案，将二进制数据（如图�
 
 # 结论
 
-多模态分类结合了文本和图像数据，为创建更具上下文感知和更有效的AI系统提供了一种方法。在本教程中，我们使用Gemini 1.5和LangChain构建了一个关键词建议系统，解决了结构化输出处理和图像数据编码等关键挑战。
+多模态分类结合了文本和图像数据，为创建更具上下文感知和更有效的 AI 系统提供了一种方法。在本教程中，我们使用 Gemini 1.5 和 LangChain 构建了一个关键词建议系统，解决了结构化输出处理和图像数据编码等关键挑战。
 
 通过结合文本和视觉输入，我们展示了这种方法如何比单独使用任何一种模式更准确、更有意义地进行分类。实际例子突显了将数据类型结合使用的价值，从而更好地捕捉给定场景的完整上下文。
 
@@ -275,10 +275,10 @@ Base64是一种二进制到文本的编码方案，将二进制数据（如图�
 
 +   **文本和视频**：通过结合视频帧采样和文本输入（如字幕或元数据），扩展系统以分类或分析视频。
 
-+   **文本和PDF**：开发能够处理丰富内容的文档分类器，如科研论文、合同或简历，结合视觉布局和文本数据。
++   **文本和 PDF**：开发能够处理丰富内容的文档分类器，如科研论文、合同或简历，结合视觉布局和文本数据。
 
 +   **现实世界应用**：将此管道集成到电子商务网站、教育工具或社交媒体内容审查系统等平台中。
 
-这些方向展示了多模态方法的灵活性及其解决多样化现实世界挑战的潜力。随着多模态AI的进化，尝试不同的输入组合将为更智能、更具响应性的系统开辟新的可能性。
+这些方向展示了多模态方法的灵活性及其解决多样化现实世界挑战的潜力。随着多模态 AI 的进化，尝试不同的输入组合将为更智能、更具响应性的系统开辟新的可能性。
 
 完整代码：[llmclassifier/llm_multi_modal_classifier.py](https://github.com/CVxTz/llmclassifier/blob/master/llmclassifier/llm_multi_modal_classifier.py)

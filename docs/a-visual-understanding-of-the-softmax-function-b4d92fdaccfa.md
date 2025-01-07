@@ -1,16 +1,16 @@
 # 对 softmax 函数的视觉理解
 
-> 原文：[https://towardsdatascience.com/a-visual-understanding-of-the-softmax-function-b4d92fdaccfa?source=collection_archive---------2-----------------------#2024-11-03](https://towardsdatascience.com/a-visual-understanding-of-the-softmax-function-b4d92fdaccfa?source=collection_archive---------2-----------------------#2024-11-03)
+> 原文：[`towardsdatascience.com/a-visual-understanding-of-the-softmax-function-b4d92fdaccfa?source=collection_archive---------2-----------------------#2024-11-03`](https://towardsdatascience.com/a-visual-understanding-of-the-softmax-function-b4d92fdaccfa?source=collection_archive---------2-----------------------#2024-11-03)
 
 ## softmax 函数的数学原理与直觉，以及它在神经网络和 softmax 回归中的应用
 
-[](https://reza-bagheri79.medium.com/?source=post_page---byline--b4d92fdaccfa--------------------------------)[![Reza Bagheri](../Images/7c5a7dc9e6e31048ce31c8d49055987c.png)](https://reza-bagheri79.medium.com/?source=post_page---byline--b4d92fdaccfa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b4d92fdaccfa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b4d92fdaccfa--------------------------------) [Reza Bagheri](https://reza-bagheri79.medium.com/?source=post_page---byline--b4d92fdaccfa--------------------------------)
+[](https://reza-bagheri79.medium.com/?source=post_page---byline--b4d92fdaccfa--------------------------------)![Reza Bagheri](https://reza-bagheri79.medium.com/?source=post_page---byline--b4d92fdaccfa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b4d92fdaccfa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4d92fdaccfa--------------------------------) [Reza Bagheri](https://reza-bagheri79.medium.com/?source=post_page---byline--b4d92fdaccfa--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4d92fdaccfa--------------------------------) ·阅读时间 25 分钟·2024 年 11 月 3 日
 
 --
 
-![](../Images/7dc6407208970404abdcca81e6affe28.png)
+![](img/7dc6407208970404abdcca81e6affe28.png)
 
 图像由 DALL.E 生成
 

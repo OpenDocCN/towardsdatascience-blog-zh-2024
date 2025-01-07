@@ -1,16 +1,16 @@
 # 我将如何在 2024 年从零开始学习 Python
 
-> 原文：[https://towardsdatascience.com/how-i-would-learn-python-in-2024-from-zero-b1c5edcdec84?source=collection_archive---------0-----------------------#2024-02-17](https://towardsdatascience.com/how-i-would-learn-python-in-2024-from-zero-b1c5edcdec84?source=collection_archive---------0-----------------------#2024-02-17)
+> 原文：[`towardsdatascience.com/how-i-would-learn-python-in-2024-from-zero-b1c5edcdec84?source=collection_archive---------0-----------------------#2024-02-17`](https://towardsdatascience.com/how-i-would-learn-python-in-2024-from-zero-b1c5edcdec84?source=collection_archive---------0-----------------------#2024-02-17)
 
 ## 我将如何学习世界上最流行的编程语言之一
 
-[](https://medium.com/@egorhowell?source=post_page---byline--b1c5edcdec84--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--b1c5edcdec84--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b1c5edcdec84--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b1c5edcdec84--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--b1c5edcdec84--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--b1c5edcdec84--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--b1c5edcdec84--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b1c5edcdec84--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b1c5edcdec84--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--b1c5edcdec84--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b1c5edcdec84--------------------------------) ·阅读时间 8 分钟·2024年2月17日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b1c5edcdec84--------------------------------) ·阅读时间 8 分钟·2024 年 2 月 17 日
 
 --
 
-![](../Images/00f69e519a538f22aabc8bd58b9a9adf.png)
+![](img/00f69e519a538f22aabc8bd58b9a9adf.png)
 
 图片来源：[James Harrison](https://unsplash.com/@jstrippa?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

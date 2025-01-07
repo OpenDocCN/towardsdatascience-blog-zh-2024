@@ -1,16 +1,16 @@
 # 发掘 SQL 分析窗口函数的威力：深入探讨融合 IPv4 块
 
-> 原文：[https://towardsdatascience.com/unleashing-the-power-of-sql-analytical-window-functions-a-deep-dive-into-fusing-ipv4-blocks-62bf2b3405e0?source=collection_archive---------15-----------------------#2024-01-10](https://towardsdatascience.com/unleashing-the-power-of-sql-analytical-window-functions-a-deep-dive-into-fusing-ipv4-blocks-62bf2b3405e0?source=collection_archive---------15-----------------------#2024-01-10)
+> 原文：[`towardsdatascience.com/unleashing-the-power-of-sql-analytical-window-functions-a-deep-dive-into-fusing-ipv4-blocks-62bf2b3405e0?source=collection_archive---------15-----------------------#2024-01-10`](https://towardsdatascience.com/unleashing-the-power-of-sql-analytical-window-functions-a-deep-dive-into-fusing-ipv4-blocks-62bf2b3405e0?source=collection_archive---------15-----------------------#2024-01-10)
 
 ## 如何通过合并连续的网络 IPv4 块来总结地理位置表
 
-[](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)[![Jean-Claude Cote](../Images/aea2df9c7b95fc85cc336f64d64b0a76.png)](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------) [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)
+[](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)![Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------) [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------) ·阅读时长 8 分钟·2024 年 1 月 10 日
 
 --
 
-![](../Images/e46edade3e88927aa214a1e67a73ca08.png)
+![](img/e46edade3e88927aa214a1e67a73ca08.png)
 
 图片来源：Pascal Bernardon，来自 Unsplash
 
@@ -37,9 +37,9 @@
 +----------+-------+---------+-----------+-----------+
 ```
 
-这里，`start_ip`表示网络块中的最低值，`end_ip`表示最大值。通常，这些数字要大得多。例如，Google的DNS服务器8.8.8.8的表示数字是134744072。我们使用简单的合成值来进行说明。
+这里，`start_ip`表示网络块中的最低值，`end_ip`表示最大值。通常，这些数字要大得多。例如，Google 的 DNS 服务器 8.8.8.8 的表示数字是 134744072。我们使用简单的合成值来进行说明。
 
-首先，让我们进行一个简单的汇总。例如，统计每个国家分配的IP地址数量。这可以通过按国家分组数据，并对每个网络块的IP数量进行求和来实现。
+首先，让我们进行一个简单的汇总。例如，统计每个国家分配的 IP 地址数量。这可以通过按国家分组数据，并对每个网络块的 IP 数量进行求和来实现。
 
 ```py
 SELECT
@@ -51,7 +51,7 @@ GROUP BY
     country
 ```
 
-这个语句按国家对行进行分组，并应用`SUM`聚合函数，计算每个国家的IP总数。需要注意的是，`SUM`聚合是结合性的，这意味着求和的顺序不重要，类似于数学中的加法。
+这个语句按国家对行进行分组，并应用`SUM`聚合函数，计算每个国家的 IP 总数。需要注意的是，`SUM`聚合是结合性的，这意味着求和的顺序不重要，类似于数学中的加法。
 
 ```py
 +---------+--------+
@@ -61,7 +61,7 @@ GROUP BY
 +---------+--------+
 ```
 
-现在，让我们深入探讨聚合连续网络块的复杂性。参照我们原始的表格，我们需要将前3行合并。区块1-2、3-4、5-8应合并为大区块1-8。我们还需要合并最后两行。区块19-22和23-29应合并为19-29。我们的目标是生成如下表格：
+现在，让我们深入探讨聚合连续网络块的复杂性。参照我们原始的表格，我们需要将前 3 行合并。区块 1-2、3-4、5-8 应合并为大区块 1-8。我们还需要合并最后两行。区块 19-22 和 23-29 应合并为 19-29。我们的目标是生成如下表格：
 
 ```py
 +----------+-------+---------+
@@ -73,7 +73,7 @@ GROUP BY
 +----------+-------+---------+
 ```
 
-检测连续区块需要行间信息，并且行的顺序变得至关重要。幸运的是，窗口分析函数提供了解决方案，提供了一个行间引用的机制。这些函数，如`LEAD`和`LAG`，使得可以与前后行的值进行比较，从而帮助识别连续的IP块。
+检测连续区块需要行间信息，并且行的顺序变得至关重要。幸运的是，窗口分析函数提供了解决方案，提供了一个行间引用的机制。这些函数，如`LEAD`和`LAG`，使得可以与前后行的值进行比较，从而帮助识别连续的 IP 块。
 
 让我们将`LEAD`和`LAG`窗口函数应用到我们的表格中。注意，在`OVER`子句中，我们仍然指定数据按国家分组`PARTITION BY country`，同时还指定了数据的排序`ORDER BY start_ip`。
 
@@ -107,7 +107,7 @@ FROM
 
 区分窗口函数和简单的`GROUP BY`函数至关重要。在`OVER()`操作中，`LEAD`和`LAG`的结果会附加到每一行，为前后行的信息提供上下文。这与`GROUP BY`子句中的函数不同，后者将一组行减少为单一的聚合结果。
 
-现在，我们可以访问前后行的详细信息，从而可以进行行间比较。这种比较对于识别连续IP块至关重要，帮助我们确定何时将相邻的块合并在一起。
+现在，我们可以访问前后行的详细信息，从而可以进行行间比较。这种比较对于识别连续 IP 块至关重要，帮助我们确定何时将相邻的块合并在一起。
 
 每行可以处于四种状态之一：
 
@@ -230,7 +230,7 @@ WHERE
     state IN ('start', 'keep')
 ```
 
-因此，我们达到了将连续IPv4块合并为巨型块的目标。
+因此，我们达到了将连续 IPv4 块合并为巨型块的目标。
 
 ```py
 +----------+-------+---------+-------+-------------+------------+----------+
@@ -289,6 +289,6 @@ WHERE
     state IN ('start', 'keep')
 ```
 
-总结来说，SQL分析窗口函数为复杂的数据分析提供了一个强大的框架。它们使得用户能够在保留每行上下文的同时执行聚合操作，从而便于完成诸如运行总和、平均值和百分位计算等任务。此外，这些函数在排名、时间序列分析以及检测数据集中的异常值和离群值中也起着至关重要的作用。这些函数是数据工作者工具包中不可或缺的资产。
+总结来说，SQL 分析窗口函数为复杂的数据分析提供了一个强大的框架。它们使得用户能够在保留每行上下文的同时执行聚合操作，从而便于完成诸如运行总和、平均值和百分位计算等任务。此外，这些函数在排名、时间序列分析以及检测数据集中的异常值和离群值中也起着至关重要的作用。这些函数是数据工作者工具包中不可或缺的资产。
 
-分析窗口函数非常强大。在本文中，我们仅仅触及了其表面；例如，我们没有使用`window_frame`。窗口框架允许你进一步细化哪些行将被考虑在聚合中。窗口框架是相对于当前行的，并且可以基于行数或时间间隔，这使得这些函数在各种分析中不可或缺。你可以在Spark文档中了解更多关于这些功能的信息：[Spark SQL — Window Operations](https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select-window.html)。
+分析窗口函数非常强大。在本文中，我们仅仅触及了其表面；例如，我们没有使用`window_frame`。窗口框架允许你进一步细化哪些行将被考虑在聚合中。窗口框架是相对于当前行的，并且可以基于行数或时间间隔，这使得这些函数在各种分析中不可或缺。你可以在 Spark 文档中了解更多关于这些功能的信息：[Spark SQL — Window Operations](https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select-window.html)。

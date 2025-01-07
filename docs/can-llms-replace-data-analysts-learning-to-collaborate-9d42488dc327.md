@@ -1,16 +1,16 @@
 # LLM 能替代数据分析师吗？学会如何合作
 
-> 原文：[https://towardsdatascience.com/can-llms-replace-data-analysts-learning-to-collaborate-9d42488dc327?source=collection_archive---------2-----------------------#2024-01-09](https://towardsdatascience.com/can-llms-replace-data-analysts-learning-to-collaborate-9d42488dc327?source=collection_archive---------2-----------------------#2024-01-09)
+> 原文：[`towardsdatascience.com/can-llms-replace-data-analysts-learning-to-collaborate-9d42488dc327?source=collection_archive---------2-----------------------#2024-01-09`](https://towardsdatascience.com/can-llms-replace-data-analysts-learning-to-collaborate-9d42488dc327?source=collection_archive---------2-----------------------#2024-01-09)
 
-## 第 3 部分：教导 LLM 代理提出和处理澄清性问题
+## 第三部分：教导 LLM 代理提出和处理澄清性问题
 
-[](https://miptgirl.medium.com/?source=post_page---byline--9d42488dc327--------------------------------)[![Mariya Mansurova](../Images/b1dd377b0a1887db900cc5108bca8ea8.png)](https://miptgirl.medium.com/?source=post_page---byline--9d42488dc327--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9d42488dc327--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9d42488dc327--------------------------------) [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--9d42488dc327--------------------------------)
+[](https://miptgirl.medium.com/?source=post_page---byline--9d42488dc327--------------------------------)![Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--9d42488dc327--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9d42488dc327--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9d42488dc327--------------------------------) [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--9d42488dc327--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9d42488dc327--------------------------------) ·20 分钟阅读·2024 年 1 月 9 日
 
 --
 
-![](../Images/fa7743b2c33135033008e395f36e9ffd.png)
+![](img/fa7743b2c33135033008e395f36e9ffd.png)
 
 图片由 DALL-E 3 提供
 
@@ -26,51 +26,51 @@
 
 让我们快速回顾一下我们已经学到的关于 LLM 代理的内容。
 
-+   我们已经[讨论过](/can-llms-replace-data-analysts-building-an-llm-powered-analyst-851578fa10ce)如何通过外部工具赋能 LLM。这有助于它们克服局限性（例如，在数学任务中的表现较差），并能够接触到更广阔的世界（例如，你的数据库或互联网）。
++   我们已经讨论过如何通过外部工具赋能 LLM。这有助于它们克服局限性（例如，在数学任务中的表现较差），并能够接触到更广阔的世界（例如，你的数据库或互联网）。
 
 +   LLM 代理的核心思想是将 LLM 作为推理引擎来定义执行的动作集合，并利用工具。因此，在这种方法中，你不需要硬编码逻辑，而是让 LLM 决定接下来的步骤，以实现最终目标。
 
-+   我们已经[实现了](/can-llms-replace-data-analysts-getting-answers-using-sql-8cf7da132259)一个LLM驱动的代理，能够与SQL数据库配合使用并回答用户请求。
++   我们已经实现了一个 LLM 驱动的代理，能够与 SQL 数据库配合使用并回答用户请求。
 
-自我们上次迭代以来，LangChain已从0.0.350更新至0.1.0版本。LLM代理的文档和最佳实践发生了变化。这个领域发展迅速，因此工具也在不断演变，这并不令人惊讶。让我们快速回顾一下。
+自我们上次迭代以来，LangChain 已从 0.0.350 更新至 0.1.0 版本。LLM 代理的文档和最佳实践发生了变化。这个领域发展迅速，因此工具也在不断演变，这并不令人惊讶。让我们快速回顾一下。
 
-首先，LangChain大幅改进了[文档](https://python.langchain.com/docs/modules/agents/agent_types/)，现在你可以清楚地、结构化地查看支持的代理类型及其之间的差异。
+首先，LangChain 大幅改进了[文档](https://python.langchain.com/docs/modules/agents/agent_types/)，现在你可以清楚地、结构化地查看支持的代理类型及其之间的差异。
 
 模型处理只有一个输入参数的工具更为简单，因此一些代理有这样的限制。然而，在大多数现实案例中，工具有多个参数。因此，让我们关注那些能够处理多个输入的代理。这样我们只剩下三个可能的选项。
 
-1.  [**OpenAI工具**](https://python.langchain.com/docs/modules/agents/agent_types/openai_tools)
+1.  [**OpenAI 工具**](https://python.langchain.com/docs/modules/agents/agent_types/openai_tools)
 
 +   它是最前沿的代理类型，因为它支持聊天历史、具有多个输入的工具，甚至并行函数调用。
 
-+   你可以与最近的OpenAI模型（`1106`之后的版本）一起使用它，因为这些模型已经过针对工具调用的微调。
++   你可以与最近的 OpenAI 模型（`1106`之后的版本）一起使用它，因为这些模型已经过针对工具调用的微调。
 
-2. [**OpenAI函数**](https://python.langchain.com/docs/modules/agents/agent_types/openai_functions_agent)
+2. [**OpenAI 函数**](https://python.langchain.com/docs/modules/agents/agent_types/openai_functions_agent)
 
-+   OpenAI函数代理接近OpenAI工具，但在底层有些许不同。
++   OpenAI 函数代理接近 OpenAI 工具，但在底层有些许不同。
 
 +   这种代理不支持并行函数调用。
 
-+   你可以使用经过微调以与函数一起使用的最新OpenAI模型（完整列表请见[这里](https://platform.openai.com/docs/guides/function-calling/supported-models)），或兼容的开源LLM。
++   你可以使用经过微调以与函数一起使用的最新 OpenAI 模型（完整列表请见[这里](https://platform.openai.com/docs/guides/function-calling/supported-models)），或兼容的开源 LLM。
 
 3.[**结构化聊天**](https://python.langchain.com/docs/modules/agents/agent_types/structured_chat)
 
-+   这种方法类似于ReAct。它指示代理遵循“思考 -> 行动 -> 观察”框架。
++   这种方法类似于 ReAct。它指示代理遵循“思考 -> 行动 -> 观察”框架。
 
-+   它不支持并行函数调用，就像OpenAI函数方法一样。
++   它不支持并行函数调用，就像 OpenAI 函数方法一样。
 
 +   你可以与任何模型一起使用它。
 
-> 此外，你还会注意到我们在[上一篇文章](/can-llms-replace-data-analysts-getting-answers-using-sql-8cf7da132259)中尝试过的实验性代理类型，如BabyAGI、Plan-and-execute和AutoGPT，仍然不是推荐的选项之一。它们可能会在以后被纳入（我希望如此），但目前我不建议在生产环境中使用它们。
+> 此外，你还会注意到我们在上一篇文章中尝试过的实验性代理类型，如 BabyAGI、Plan-and-execute 和 AutoGPT，仍然不是推荐的选项之一。它们可能会在以后被纳入（我希望如此），但目前我不建议在生产环境中使用它们。
 
-阅读完新的文档后，我终于意识到OpenAI工具和OpenAI函数代理之间的区别。使用OpenAI工具方法时，代理可以在同一迭代中调用多个工具，而其他代理类型不支持这种功能。让我们看看它是如何工作的，以及为什么这很重要。
+阅读完新的文档后，我终于意识到 OpenAI 工具和 OpenAI 函数代理之间的区别。使用 OpenAI 工具方法时，代理可以在同一迭代中调用多个工具，而其他代理类型不支持这种功能。让我们看看它是如何工作的，以及为什么这很重要。
 
-让我们创建两个代理——OpenAI工具和OpenAI函数。我们将为它们配备两种工具：
+让我们创建两个代理——OpenAI 工具和 OpenAI 函数。我们将为它们配备两种工具：
 
 +   `get_monthly_active_users`返回某个城市和月份的活跃客户数量。为了简化调试，我们将使用一个虚拟函数来代替。在实际操作中，我们会去数据库获取这些数据。
 
 +   `percentage_difference`计算两个度量值之间的差异。
 
-让我们从Python函数创建工具，并使用Pydantic指定架构。如果您想回顾一下这个话题，可以在[本系列的第一篇文章](/can-llms-replace-data-analysts-building-an-llm-powered-analyst-851578fa10ce)中找到详细的解释。
+让我们从 Python 函数创建工具，并使用 Pydantic 指定架构。如果您想回顾一下这个话题，可以在本系列的第一篇文章中找到详细的解释。
 
 ```py
 from pydantic import BaseModel, Field
@@ -150,7 +150,7 @@ prompt = ChatPromptTemplate.from_messages([
 ])
 ```
 
-让我们使用新的LangChain函数来创建代理 — `create_openai_functions_agent` 和 `create_openai_tools_agent`。要创建一个代理，我们需要指定一些参数 — LLM模型、工具列表和提示模板。除了代理之外，我们还需要创建代理执行器。
+让我们使用新的 LangChain 函数来创建代理 — `create_openai_functions_agent` 和 `create_openai_tools_agent`。要创建一个代理，我们需要指定一些参数 — LLM 模型、工具列表和提示模板。除了代理之外，我们还需要创建代理执行器。
 
 ```py
  from langchain.agents import create_openai_tools_agent, create_openai_functions_agent, AgentExecutor
@@ -181,7 +181,7 @@ agent_funcs_executor = AgentExecutor(
     early_stopping_method = 'generate')
 ```
 
-我使用了ChatGPT 4 Turbo模型，因为它能够与OpenAI工具协同工作。由于我们需要进行一些复杂的推理，ChatGPT 3.5可能不足以满足我们的使用需求。
+我使用了 ChatGPT 4 Turbo 模型，因为它能够与 OpenAI 工具协同工作。由于我们需要进行一些复杂的推理，ChatGPT 3.5 可能不足以满足我们的使用需求。
 
 我们已经创建了两个代理执行器，现在是时候在实践中测试它们并比较结果了。
 
@@ -204,27 +204,27 @@ agent_tools_executor.invoke(
 
 有趣的是，两个代理返回了相同的正确结果。这并不奇怪，因为我们使用了低温度设置。
 
-两个代理都表现良好，但让我们比较一下它们在幕后是如何工作的。我们可以开启调试模式（执行`langchain.debug = True`）来查看LLM调用次数和使用的tokens数量。
+两个代理都表现良好，但让我们比较一下它们在幕后是如何工作的。我们可以开启调试模式（执行`langchain.debug = True`）来查看 LLM 调用次数和使用的 tokens 数量。
 
 您可以看到下方展示两个代理调用的架构。
 
-![](../Images/a63a4a9fcfd1c6bd41445b50fd5d422c.png)
+![](img/a63a4a9fcfd1c6bd41445b50fd5d422c.png)
 
 作者设计的架构
 
-OpenAI函数代理进行了4次LLM调用，而OpenAI工具代理只进行了3次调用，因为它可以在一次迭代中获取伦敦和柏林的MAU数据。总体而言，这导致了使用的tokens数量较少，从而降低了成本：
+OpenAI 函数代理进行了 4 次 LLM 调用，而 OpenAI 工具代理只进行了 3 次调用，因为它可以在一次迭代中获取伦敦和柏林的 MAU 数据。总体而言，这导致了使用的 tokens 数量较少，从而降低了成本：
 
-+   OpenAI工具代理 — 1,537个tokens
++   OpenAI 工具代理 — 1,537 个 tokens
 
-+   OpenAI函数代理 — 1,874个tokens（*+21.9%*）。
++   OpenAI 函数代理 — 1,874 个 tokens（*+21.9%*）。
 
-因此，我建议您考虑使用OpenAI工具代理。它可以与ChatGPT 4 Turbo和ChatGPT 3.5 Turbo都一起使用。
+因此，我建议您考虑使用 OpenAI 工具代理。它可以与 ChatGPT 4 Turbo 和 ChatGPT 3.5 Turbo 都一起使用。
 
-我们已经修订了之前的基于LLM的分析师实现。所以，现在是时候让我们的代理提问后续问题了。
+我们已经修订了之前的基于 LLM 的分析师实现。所以，现在是时候让我们的代理提问后续问题了。
 
 # 提出澄清性问题
 
-我们希望教会代理向用户提出澄清性问题。教导LLM代理新知识的最合理方法是为它们提供一个工具。所以，LangChain提供了一个方便的工具——[Human](https://python.langchain.com/docs/integrations/tools/human_tools)。
+我们希望教会代理向用户提出澄清性问题。教导 LLM 代理新知识的最合理方法是为它们提供一个工具。所以，LangChain 提供了一个方便的工具——[Human](https://python.langchain.com/docs/integrations/tools/human_tools)。
 
 > 这并不是什么高深的技术。您可以在[这里](https://api.python.langchain.com/en/latest/_modules/langchain_community/tools/human/tool.html#)查看实现。我们可以轻松地自己实现它，但使用框架提供的工具是一种良好的实践。
 
@@ -299,7 +299,7 @@ human_input_agent_executor.invoke(
 #             Please provide the time frame or specify the metric you need.'}
 ```
 
-代理没有理解它需要使用这个工具。让我们尝试修复它并修改Human工具的描述，使代理在需要使用该工具时能够更清楚地识别。
+代理没有理解它需要使用这个工具。让我们尝试修复它并修改 Human 工具的描述，使代理在需要使用该工具时能够更清楚地识别。
 
 ```py
 human_tool_desc = '''
@@ -314,23 +314,23 @@ human_tool = HumanInputRun(
 )
 ```
 
-更改后，代理使用了Human工具并请求了一个特定的时间段。我提供了答案，我们得到了正确的结果——2023年12月伦敦有4,286名活跃客户。
+更改后，代理使用了 Human 工具并请求了一个特定的时间段。我提供了答案，我们得到了正确的结果——2023 年 12 月伦敦有 4,286 名活跃客户。
 
-![](../Images/76aae445324f1a27b903fd3c4f1eafa6.png)
+![](img/76aae445324f1a27b903fd3c4f1eafa6.png)
 
 作者截图
 
 所以，像往常一样，调整提示帮助了我们。现在，它工作得相当不错。记住，创建一个好的提示是一个迭代过程，值得尝试多个选项并评估结果。
 
-我们已经教会了我们的LLM代理在处理数据请求时，要求提供更多细节并加以考虑。
+我们已经教会了我们的 LLM 代理在处理数据请求时，要求提供更多细节并加以考虑。
 
-然而，这只是协作的一部分。在现实中，分析师在提供任何研究后，经常会收到后续问题。现在，我们的代理无法继续对话并回答用户的新问题，因为它没有记忆。是时候了解一下我们可以用来在LangChain中实现记忆的工具了。
+然而，这只是协作的一部分。在现实中，分析师在提供任何研究后，经常会收到后续问题。现在，我们的代理无法继续对话并回答用户的新问题，因为它没有记忆。是时候了解一下我们可以用来在 LangChain 中实现记忆的工具了。
 
 > 事实上，我们在当前的代理实现中已经有了记忆的概念。我们的代理将与工具的交互记录存储在`agent_scratchpad`变量中。我们不仅需要记住与工具的交互，还需要记住与用户的对话。
 
-# LangChain中的记忆
+# LangChain 中的记忆
 
-默认情况下，LLM是无状态的，并且不会记住先前的对话。如果我们希望我们的代理能够进行长时间的对话，我们需要以某种方式存储聊天历史。LangChain提供了多种不同的记忆实现。让我们进一步了解它。
+默认情况下，LLM 是无状态的，并且不会记住先前的对话。如果我们希望我们的代理能够进行长时间的对话，我们需要以某种方式存储聊天历史。LangChain 提供了多种不同的记忆实现。让我们进一步了解它。
 
 `ConversationBufferMemory`是最简单的方法。它只会保存你推送给它的所有上下文。让我们试试：初始化一个内存对象并添加几次对话交换。
 
@@ -358,15 +358,15 @@ print(memory.buffer)
 # AI: In December 2023, the number of customers in London was 4,286, and in Berlin, it was 2,143\. The percentage difference between the number of customers in London and Berlin is -50.0%, indicating that London had twice as many customers as Berlin.
 ```
 
-这种方法效果很好。然而，在许多情况下，将整个先前的对话传递给LLM进行每次迭代是不切实际的，因为：
+这种方法效果很好。然而，在许多情况下，将整个先前的对话传递给 LLM 进行每次迭代是不切实际的，因为：
 
 +   我们可能会遇到上下文长度的限制，
 
-+   LLM对于处理长文本并不擅长，
++   LLM 对于处理长文本并不擅长，
 
 +   我们正在支付代币，而这种方法可能会变得相当昂贵。
 
-所以，还有另一个实现——`ConversationBufferWindowMemory`，它可以存储有限数量的对话交换。因此，它将只存储最后的k次迭代。
+所以，还有另一个实现——`ConversationBufferWindowMemory`，它可以存储有限数量的对话交换。因此，它将只存储最后的 k 次迭代。
 
 ```py
 from langchain.memory import ConversationBufferWindowMemory
@@ -427,9 +427,9 @@ print(memory.buffer)
 # <Comment from the author>: only the last response from the LLM fit the memory size 
 ```
 
-在这种情况下，我们需要传递一个LLM模型来初始化内存对象，因为LangChain需要知道模型来计算令牌数。
+在这种情况下，我们需要传递一个 LLM 模型来初始化内存对象，因为 LangChain 需要知道模型来计算令牌数。
 
-在我们上面讨论的所有方法中，我们存储了整个对话或至少是部分内容。然而，我们不需要这样做。例如，人们通常不会完全记得他们的对话。我不能逐字复述昨天会议的内容，但我记得主要的想法和行动项目——一个摘要。由于人类是GI（通用智能），因此将这种策略应用于LLM似乎是合理的。LangChain在`ConversationSummaryBufferMemory`中实现了这一点。
+在我们上面讨论的所有方法中，我们存储了整个对话或至少是部分内容。然而，我们不需要这样做。例如，人们通常不会完全记得他们的对话。我不能逐字复述昨天会议的内容，但我记得主要的想法和行动项目——一个摘要。由于人类是 GI（通用智能），因此将这种策略应用于 LLM 似乎是合理的。LangChain 在`ConversationSummaryBufferMemory`中实现了这一点。
 
 让我们在实践中试试看：初始化内存并保存第一次对话交换。我们得到了整个对话，因为我们当前的上下文还没有超过阈值。
 
@@ -450,7 +450,7 @@ print(memory.load_memory_variables({})['history'])
 # AI: Good morning, I had a wonderful time off and spent the whole day learning about LLM agents. It works like magic.
 ```
 
-让我们再添加一次对话交换。现在，我们达到了限制：整个聊天历史超过了100个令牌，这是设定的阈值。因此，只有最后的AI回应被存储（它在100个令牌限制之内）。对于早期的消息，已经生成了摘要。
+让我们再添加一次对话交换。现在，我们达到了限制：整个聊天历史超过了 100 个令牌，这是设定的阈值。因此，只有最后的 AI 回应被存储（它在 100 个令牌限制之内）。对于早期的消息，已经生成了摘要。
 
 摘要是以`System:`前缀存储的。
 
@@ -465,7 +465,7 @@ print(memory.load_memory_variables({})['history'])
 # AI: In December 2023, the number of customers in London was 4,286, and in Berlin, it was 2,143\. The percentage difference between the number of customers in London and Berlin is -50.0%, indicating that London had twice as many customers as Berlin.
 ```
 
-像往常一样，看看它是如何在幕后工作的很有趣，我们可以通过调试模式来理解它。当对话超出内存大小限制时，LLM调用使用了以下提示：
+像往常一样，看看它是如何在幕后工作的很有趣，我们可以通过调试模式来理解它。当对话超出内存大小限制时，LLM 调用使用了以下提示：
 
 ```py
 Human: Progressively summarize the lines of conversation provided, 
@@ -502,9 +502,9 @@ New summary:
 
 它实现了摘要的渐进式更新。因此，它使用更少的令牌，而不是每次都传递整个聊天历史来获取更新的摘要。这是合理的。
 
-此外，LangChain还具有更多先进的内存类型：
+此外，LangChain 还具有更多先进的内存类型：
 
-+   向量数据内存——将文本的嵌入存储在向量存储中（类似于我们在RAG——检索增强生成中所做的），然后我们可以检索出最相关的信息并将其纳入对话中。这种内存类型对于长期对话最为有用。
++   向量数据内存——将文本的嵌入存储在向量存储中（类似于我们在 RAG——检索增强生成中所做的），然后我们可以检索出最相关的信息并将其纳入对话中。这种内存类型对于长期对话最为有用。
 
 +   实体内存，用于记住关于特定实体（如人）的详细信息。
 
@@ -512,7 +512,7 @@ New summary:
 
 我们不会在本文中讨论这些更先进的方法。
 
-我们已经了解了如何在LangChain中实现记忆。现在，是时候将这些知识应用到我们的代理中了。
+我们已经了解了如何在 LangChain 中实现记忆。现在，是时候将这些知识应用到我们的代理中了。
 
 ## 为代理添加记忆
 
@@ -524,7 +524,7 @@ human_input_agent_executor.invoke(
      'agent_scratchpad': []})
 ```
 
-对于这个调用，代理执行了一个工具并返回了正确的答案：`2023年12月伦敦的活跃客户数量为4,286`。
+对于这个调用，代理执行了一个工具并返回了正确的答案：`2023 年 12 月伦敦的活跃客户数量为 4,286`。
 
 我们知道伦敦的用户数量了。现在了解柏林的情况也很有趣。让我们问问我们的代理。
 
@@ -536,7 +536,7 @@ human_input_agent_executor.invoke(
 
 令人惊讶的是，代理能够正确地处理这个问题。然而，它必须使用“人工工具”来澄清问题，并且用户需要提供相同的信息（这不是最好的客户体验）。
 
-![](../Images/9031d4e99965bb6760a04deb221449a9.png)
+![](img/9031d4e99965bb6760a04deb221449a9.png)
 
 截图由作者提供
 
@@ -566,7 +566,7 @@ memory.save_context(
 print(memory.buffer)
 ```
 
-让我们再次尝试之前的用例，并询问LLM分析师关于伦敦的用户数量。
+让我们再次尝试之前的用例，并询问 LLM 分析师关于伦敦的用户数量。
 
 ```py
 human_input_agent_executor.invoke(
@@ -583,7 +583,7 @@ human_input_agent_executor.invoke(
 
 在回答问题：“‘请指定你希望了解伦敦用户数量的时间段？’”后，我们得到了正确的答案，并且代理和用户之间的对话历史（包括之前的闲聊）也被保存了下来。
 
-如果我们现在问关于柏林的后续问题，代理将直接返回2023年12月的数字，而无需再次询问详细信息，因为它已经在上下文中有了这些信息。
+如果我们现在问关于柏林的后续问题，代理将直接返回 2023 年 12 月的数字，而无需再次询问详细信息，因为它已经在上下文中有了这些信息。
 
 ```py
 human_input_agent_executor.invoke(
@@ -599,7 +599,7 @@ human_input_agent_executor.invoke(
 #  'output': 'The number of active customers in Berlin for December 2023 is 2,143.'}
 ```
 
-让我们看看第一次LLM调用的提示。我们可以看到，所有的聊天历史实际上都传递给了模型。
+让我们看看第一次 LLM 调用的提示。我们可以看到，所有的聊天历史实际上都传递给了模型。
 
 ```py
 System: 
@@ -625,13 +625,13 @@ AI: The number of active customers in London for December 2023 is 4,286.
 Human: What is the number for Berlin?
 ```
 
-因此，我们已将聊天历史添加到我们的LLM驱动分析师中，现在它能够处理较长的对话并回答后续问题。这是一个重大的进步。
+因此，我们已将聊天历史添加到我们的 LLM 驱动分析师中，现在它能够处理较长的对话并回答后续问题。这是一个重大的进步。
 
 > 你可以在[GitHub](https://github.com/miptgirl/miptgirl_medium/blob/main/analyst_agent/agent_prototype_collaboration.ipynb)上找到完整的代码。
 
 # 摘要
 
-在本文中，我们教会了我们的LLM驱动分析师如何与用户协作。现在，它可以在初始请求中信息不足时提问澄清问题，甚至可以回答用户的后续问题。
+在本文中，我们教会了我们的 LLM 驱动分析师如何与用户协作。现在，它可以在初始请求中信息不足时提问澄清问题，甚至可以回答用户的后续问题。
 
 我们已经取得了如此显著的改进：
 
@@ -639,6 +639,6 @@ Human: What is the number for Berlin?
 
 +   通过为代理添加记忆功能，可以存储聊天历史。
 
-我们的智能体现在已经掌握了协作技能。在接下来的文章中，我们将尝试迈出下一步，将LLM智能体与RAG（检索增强生成）结合起来。我们已经了解了如何查询数据库并与用户进行沟通。下一步是开始使用知识库。敬请期待！
+我们的智能体现在已经掌握了协作技能。在接下来的文章中，我们将尝试迈出下一步，将 LLM 智能体与 RAG（检索增强生成）结合起来。我们已经了解了如何查询数据库并与用户进行沟通。下一步是开始使用知识库。敬请期待！
 
 > 非常感谢您阅读本文。希望它对您有所启发。如果您有任何后续问题或评论，请在评论区留言。

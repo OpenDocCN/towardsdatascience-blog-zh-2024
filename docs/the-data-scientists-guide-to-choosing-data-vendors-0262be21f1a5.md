@@ -1,16 +1,16 @@
 # 数据科学家选择数据供应商的指南
 
-> 原文：[https://towardsdatascience.com/the-data-scientists-guide-to-choosing-data-vendors-0262be21f1a5?source=collection_archive---------15-----------------------#2024-06-28](https://towardsdatascience.com/the-data-scientists-guide-to-choosing-data-vendors-0262be21f1a5?source=collection_archive---------15-----------------------#2024-06-28)
+> 原文：[`towardsdatascience.com/the-data-scientists-guide-to-choosing-data-vendors-0262be21f1a5?source=collection_archive---------15-----------------------#2024-06-28`](https://towardsdatascience.com/the-data-scientists-guide-to-choosing-data-vendors-0262be21f1a5?source=collection_archive---------15-----------------------#2024-06-28)
 
 ## *有效评估和选择数据以丰富和改善你的模型的实用指南*
 
-[](https://elad-cohen.medium.com/?source=post_page---byline--0262be21f1a5--------------------------------)[![Elad Cohen](../Images/693490bdf557a7414d6e94e4a52ad96a.png)](https://elad-cohen.medium.com/?source=post_page---byline--0262be21f1a5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0262be21f1a5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0262be21f1a5--------------------------------) [Elad Cohen](https://elad-cohen.medium.com/?source=post_page---byline--0262be21f1a5--------------------------------)
+[](https://elad-cohen.medium.com/?source=post_page---byline--0262be21f1a5--------------------------------)![Elad Cohen](https://elad-cohen.medium.com/?source=post_page---byline--0262be21f1a5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0262be21f1a5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0262be21f1a5--------------------------------) [Elad Cohen](https://elad-cohen.medium.com/?source=post_page---byline--0262be21f1a5--------------------------------)
 
-·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--0262be21f1a5--------------------------------)·6分钟阅读·2024年6月28日
+·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--0262be21f1a5--------------------------------)·6 分钟阅读·2024 年 6 月 28 日
 
 --
 
-![](../Images/3b910840cddae7fa350907a5b1e14cf2.png)
+![](img/3b910840cddae7fa350907a5b1e14cf2.png)
 
 一位数据科学家在数十个数据供应商之间做选择 | imagine.art
 

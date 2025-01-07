@@ -1,20 +1,20 @@
-# 如何以及为什么使用LLM进行基于块的信息检索
+# 如何以及为什么使用 LLM 进行基于块的信息检索
 
-> 原文：[https://towardsdatascience.com/how-and-why-to-use-llms-for-chunk-based-information-retrieval-5242f0133b55?source=collection_archive---------4-----------------------#2024-10-28](https://towardsdatascience.com/how-and-why-to-use-llms-for-chunk-based-information-retrieval-5242f0133b55?source=collection_archive---------4-----------------------#2024-10-28)
+> 原文：[`towardsdatascience.com/how-and-why-to-use-llms-for-chunk-based-information-retrieval-5242f0133b55?source=collection_archive---------4-----------------------#2024-10-28`](https://towardsdatascience.com/how-and-why-to-use-llms-for-chunk-based-information-retrieval-5242f0133b55?source=collection_archive---------4-----------------------#2024-10-28)
 
-[](https://medium.com/@peronc79?source=post_page---byline--5242f0133b55--------------------------------)[![Carlo Peron](../Images/e6db9521113aa6a2dd43b0b2aa6687b5.png)](https://medium.com/@peronc79?source=post_page---byline--5242f0133b55--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5242f0133b55--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5242f0133b55--------------------------------) [Carlo Peron](https://medium.com/@peronc79?source=post_page---byline--5242f0133b55--------------------------------)
+[](https://medium.com/@peronc79?source=post_page---byline--5242f0133b55--------------------------------)![Carlo Peron](https://medium.com/@peronc79?source=post_page---byline--5242f0133b55--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5242f0133b55--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5242f0133b55--------------------------------) [Carlo Peron](https://medium.com/@peronc79?source=post_page---byline--5242f0133b55--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5242f0133b55--------------------------------) ·阅读时长9分钟·2024年10月28日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5242f0133b55--------------------------------) ·阅读时长 9 分钟·2024 年 10 月 28 日
 
 --
 
-![](../Images/ea9b1bb4b44a9f0b8ada220d93ecda54.png)
+![](img/ea9b1bb4b44a9f0b8ada220d93ecda54.png)
 
 检索流程 — 图像来自作者
 
 在本文中，我旨在解释为什么以及如何使用大语言模型（LLM）进行基于块的信息检索。
 
-我以OpenAI的GPT-4模型为例，但这种方法可以应用于任何其他大语言模型，如Hugging Face、Claude等提供的模型。
+我以 OpenAI 的 GPT-4 模型为例，但这种方法可以应用于任何其他大语言模型，如 Hugging Face、Claude 等提供的模型。
 
 每个人都可以免费访问这篇[文章](https://medium.com/@peronc79/5242f0133b55?sk=aafe7dca2cb777410b6e426321c0b53e)。
 
@@ -22,19 +22,19 @@
 
 主要概念是将一组文档（**文本块**）存储在数据库中，可以根据某些过滤条件进行检索。
 
-通常，使用某种工具来实现混合搜索（例如Azure AI Search、LlamaIndex等），该工具可以：
+通常，使用某种工具来实现混合搜索（例如 Azure AI Search、LlamaIndex 等），该工具可以：
 
-+   使用诸如TF-IDF（例如BM25）之类的术语频率算法执行基于文本的搜索；
++   使用诸如 TF-IDF（例如 BM25）之类的术语频率算法执行基于文本的搜索；
 
 +   进行基于向量的搜索，计算向量之间的距离（通常是余弦相似度），即使使用不同的术语，也能识别相似的概念；
 
-+   结合步骤1和步骤2的元素，通过加权突出最相关的结果。
++   结合步骤 1 和步骤 2 的元素，通过加权突出最相关的结果。
 
-![](../Images/6f4f4ba0a88c11c7dc09513356aa58d5.png)
+![](img/6f4f4ba0a88c11c7dc09513356aa58d5.png)
 
-图1 - 默认混合搜索流程 — 图像来自作者
+图 1 - 默认混合搜索流程 — 图像来自作者
 
-图1显示了经典的检索流程：
+图 1 显示了经典的检索流程：
 
 +   用户向系统提出问题：“我想谈谈巴黎”；
 
@@ -69,45 +69,45 @@ documents = [
 ]
 ```
 
-假设我们有一个RAG系统，包含一个具有混合搜索能力的向量数据库和基于LLM的提示，用户向其提出如下问题：“我需要了解一些关于话题B的内容。”
+假设我们有一个 RAG 系统，包含一个具有混合搜索能力的向量数据库和基于 LLM 的提示，用户向其提出如下问题：“我需要了解一些关于话题 B 的内容。”
 
-如图2所示，搜索还返回了一个不正确的块，虽然语义上相关，但并不适合回答问题，在某些情况下，甚至可能会让负责提供答案的LLM感到困惑。
+如图 2 所示，搜索还返回了一个不正确的块，虽然语义上相关，但并不适合回答问题，在某些情况下，甚至可能会让负责提供答案的 LLM 感到困惑。
 
-![](../Images/356ad8ff68ceb28acca4d8a23ec584c1.png)
+![](img/356ad8ff68ceb28acca4d8a23ec584c1.png)
 
-图2 — 可能导致错误的检索示例 — 作者提供的图像
+图 2 — 可能导致错误的检索示例 — 作者提供的图像
 
-在这个示例中，用户请求关于“*话题B*”的信息，搜索返回的块包括“*该文档扩展了话题H，也涉及话题B*”以及“*与话题B相关的见解可以在这里找到*”，还有一个块指出，“*没有关于话题B的信息*”。
+在这个示例中，用户请求关于“*话题 B*”的信息，搜索返回的块包括“*该文档扩展了话题 H，也涉及话题 B*”以及“*与话题 B 相关的见解可以在这里找到*”，还有一个块指出，“*没有关于话题 B 的信息*”。
 
-尽管这符合混合搜索的预期行为（因为块引用了“*话题B*”），但这并不是期望的结果，因为第三个块被返回时并没有识别到它对于回答问题并无帮助。
+尽管这符合混合搜索的预期行为（因为块引用了“*话题 B*”），但这并不是期望的结果，因为第三个块被返回时并没有识别到它对于回答问题并无帮助。
 
-检索没有产生预期的结果，不仅仅因为BM25搜索在第三个块中找到了“*话题B*”这一术语，还因为向量搜索得到了较高的余弦相似度。
+检索没有产生预期的结果，不仅仅因为 BM25 搜索在第三个块中找到了“*话题 B*”这一术语，还因为向量搜索得到了较高的余弦相似度。
 
-要理解这一点，请参见图3，它显示了使用OpenAI的text-embedding-ada-002模型进行嵌入时，块相对于问题的余弦相似度值。
+要理解这一点，请参见图 3，它显示了使用 OpenAI 的 text-embedding-ada-002 模型进行嵌入时，块相对于问题的余弦相似度值。
 
-![](../Images/c42a17cff143c55984745f79381a2c9e.png)
+![](img/c42a17cff143c55984745f79381a2c9e.png)
 
-图3 — 使用text-embedding-ada-002的余弦相似度 — 作者提供的图像
+图 3 — 使用 text-embedding-ada-002 的余弦相似度 — 作者提供的图像
 
-很明显，“块9”的余弦相似度值是最高的，而且在该块与引用“*话题B*”的块10之间，还有一个块1，它没有提到“*话题B*”。
+很明显，“块 9”的余弦相似度值是最高的，而且在该块与引用“*话题 B*”的块 10 之间，还有一个块 1，它没有提到“*话题 B*”。
 
 即使使用不同的方法衡量距离，这种情况也不会改变，正如在闵可夫斯基距离的情况下所见。
 
-**利用LLM进行信息检索：一个示例**
+**利用 LLM 进行信息检索：一个示例**
 
-我将描述的解决方案灵感来源于我在GitHub仓库中发布的内容 [https://github.com/peronc/LLMRetriever/](https://github.com/peronc/LLMRetriever/)。
+我将描述的解决方案灵感来源于我在 GitHub 仓库中发布的内容 [`github.com/peronc/LLMRetriever/`](https://github.com/peronc/LLMRetriever/)。
 
-这个想法是让LLM分析哪些块对回答用户的问题有用，而不是通过排名返回的块（如RankGPT的情况），而是直接评估所有可用的块。
+这个想法是让 LLM 分析哪些块对回答用户的问题有用，而不是通过排名返回的块（如 RankGPT 的情况），而是直接评估所有可用的块。
 
-![](../Images/ea9b1bb4b44a9f0b8ada220d93ecda54.png)
+![](img/ea9b1bb4b44a9f0b8ada220d93ecda54.png)
 
-图4 - LLM检索管道 — 作者提供的图像
+图 4 - LLM 检索管道 — 作者提供的图像
 
-总结来说，如图4所示，系统接收一组需要分析的文档，这些文档可以来自任何数据源，如文件存储、关系数据库或向量数据库。
+总结来说，如图 4 所示，系统接收一组需要分析的文档，这些文档可以来自任何数据源，如文件存储、关系数据库或向量数据库。
 
 这些块被分成组，并通过与块总量成比例的线程数并行处理。
 
-每个线程的逻辑包括一个循环，该循环遍历输入的块，为每个块调用OpenAI提示，以检查它与用户问题的相关性。
+每个线程的逻辑包括一个循环，该循环遍历输入的块，为每个块调用 OpenAI 提示，以检查它与用户问题的相关性。
 
 提示返回该块以及一个布尔值：*true* 如果它相关，*false* 如果它不相关。
 
@@ -115,7 +115,7 @@ documents = [
 
 为了简化代码的解释，我将使用*documents*数组中存在的块（在结论部分我将引用一个实际案例）。
 
-首先，我导入必要的标准库，包括os、langchain和dotenv。
+首先，我导入必要的标准库，包括 os、langchain 和 dotenv。
 
 ```py
 import os
@@ -123,13 +123,13 @@ from langchain_openai.chat_models.azure import AzureChatOpenAI
 from dotenv import load_dotenv
 ```
 
-接下来，我导入了我的LLMRetrieverLib/llm_retrieve.py类，它提供了几个执行分析所需的重要静态方法。
+接下来，我导入了我的 LLMRetrieverLib/llm_retrieve.py 类，它提供了几个执行分析所需的重要静态方法。
 
 ```py
 from LLMRetrieverLib.retriever import llm_retriever
 ```
 
-接下来，我需要导入使用Azure OpenAI GPT-4模型所需的必要变量。
+接下来，我需要导入使用 Azure OpenAI GPT-4 模型所需的必要变量。
 
 ```py
 load_dotenv()
@@ -140,14 +140,14 @@ endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 api_version = os.getenv("API_VERSION")
 ```
 
-接下来，我继续初始化LLM。
+接下来，我继续初始化 LLM。
 
 ```py
 # Initialize the LLM
 llm = AzureChatOpenAI(api_key=api_key, azure_endpoint=endpoint, azure_deployment=azure_deployment, api_version=api_version,temperature=temperature)
 ```
 
-我们准备开始：用户提出问题以收集有关*主题B*的额外信息。
+我们准备开始：用户提出问题以收集有关*主题 B*的额外信息。
 
 ```py
 question = "I need to know something about topic B"
@@ -170,7 +170,7 @@ relevant_chunks = LLMRetrieverLib.retriever.llm_retriever.process_chunks_in_para
 'Chunk 8: This document expands on topic H. It also talk about topic B']
 ```
 
-最后，我请求LLM为用户的问题提供答案：
+最后，我请求 LLM 为用户的问题提供答案：
 
 ```py
 final_answer = LLMRetrieverLib.retriever.llm_retriever.generate_final_answer_with_llm(llm, relevant_chunks, question)
@@ -178,7 +178,7 @@ print("Final answer:")
 print(final_answer) 
 ```
 
-以下是LLM的回答，虽然内容相关，但由于这些块虽然相关，但在*主题B*的内容上并不充分，因此回答显得有些简单：
+以下是 LLM 的回答，虽然内容相关，但由于这些块虽然相关，但在*主题 B*的内容上并不充分，因此回答显得有些简单：
 
 ```py
 Topic B is covered in both Chunk 2 and Chunk 8\. 
@@ -190,9 +190,9 @@ Chunk 8 expands on topic H but also includes discussions on topic B, potentially
 
 现在让我们尝试提出相同的问题，但使用基于评分的方法。
 
-我请求LLM为每个块分配1到10的评分，以评估每个块与问题的相关性，仅考虑相关性高于5的块。
+我请求 LLM 为每个块分配 1 到 10 的评分，以评估每个块与问题的相关性，仅考虑相关性高于 5 的块。
 
-为此，我调用函数 `llm_retriever.process_chunks_in_parallel`，传入三个额外的参数，分别表示：将应用评分，必须大于或等于5才能被认为有效，并且我希望打印出带有各自评分的块。
+为此，我调用函数 `llm_retriever.process_chunks_in_parallel`，传入三个额外的参数，分别表示：将应用评分，必须大于或等于 5 才能被认为有效，并且我希望打印出带有各自评分的块。
 
 ```py
 relevant_chunks = llm_retriever.process_chunks_in_parallel(llm, question, documents, 3, True, 5, True)
@@ -215,7 +215,7 @@ score: 1 - Chunk 10: Finally, a discussion of topic J. This document doesn't con
 
 结果与之前相同，但评分很有趣 😊。
 
-最后，我再次请求LLM为用户的问题提供答案，结果与之前的类似：
+最后，我再次请求 LLM 为用户的问题提供答案，结果与之前的类似：
 
 ```py
 Chunk 2 provides insights related to topic B, offering foundational information and key points.
@@ -229,7 +229,7 @@ Together, these chunks should give you a well-rounded understanding of topic B. 
 
 我注意到，纯粹基于向量的搜索虽然能产生有用的结果，但当嵌入在非英语语言中时，通常不够充分。
 
-使用OpenAI处理意大利语句子时，明显发现术语的标记化常常不正确；例如，“*canzone*”一词在意大利语中意味着“*歌曲*”，但它被错误地标记为两个不同的词：“*can*”和“*zone*”。
+使用 OpenAI 处理意大利语句子时，明显发现术语的标记化常常不正确；例如，“*canzone*”一词在意大利语中意味着“*歌曲*”，但它被错误地标记为两个不同的词：“*can*”和“*zone*”。
 
 这导致了嵌入数组的构建远未达到预期效果。
 
@@ -239,7 +239,7 @@ Together, these chunks should give you a well-rounded understanding of topic B. 
 
 +   **作为主要搜索方法：** 在这种方法中，数据库会根据过滤条件（例如元数据过滤器）查询所有片段或其子集；
 
-+   **作为混合搜索中的一种优化：**（这是RankGPT使用的相同方法）通过这种方式，混合搜索可以提取大量片段，系统可以过滤它们，确保只有相关的片段传递到LLM，并且遵守输入令牌的限制；
++   **作为混合搜索中的一种优化：**（这是 RankGPT 使用的相同方法）通过这种方式，混合搜索可以提取大量片段，系统可以过滤它们，确保只有相关的片段传递到 LLM，并且遵守输入令牌的限制；
 
 +   **作为备选方案：** 在混合搜索没有得到期望结果的情况下，可以分析所有片段。
 
@@ -247,11 +247,11 @@ Together, these chunks should give you a well-rounded understanding of topic B. 
 
 当然，闪闪发光的并不都是金子，因为必须考虑响应时间和成本。
 
-在一个实际的使用案例中，我从一个关系型数据库中检索了由我的`LLMChunkizerLib/chunkizer.py`库语义分割的95个文本片段，这些片段来自两个Microsoft Word文档，总共33页。
+在一个实际的使用案例中，我从一个关系型数据库中检索了由我的`LLMChunkizerLib/chunkizer.py`库语义分割的 95 个文本片段，这些片段来自两个 Microsoft Word 文档，总共 33 页。
 
-对95个片段与问题相关性的分析是通过在本地PC上调用OpenAI的API完成的，该PC的带宽并不保证，平均约为10Mb，导致响应时间从7秒到20秒不等。
+对 95 个片段与问题相关性的分析是通过在本地 PC 上调用 OpenAI 的 API 完成的，该 PC 的带宽并不保证，平均约为 10Mb，导致响应时间从 7 秒到 20 秒不等。
 
-自然地，在云系统中，或通过在GPU上使用本地LLM，这些时间可以显著减少。
+自然地，在云系统中，或通过在 GPU 上使用本地 LLM，这些时间可以显著减少。
 
 我认为，关于响应时间的考虑非常主观：在某些情况下，花更多时间来提供正确答案是可以接受的，而在其他情况下，至关重要的是不要让用户等待太久。
 
@@ -259,7 +259,7 @@ Together, these chunks should give you a well-rounded understanding of topic B. 
 
 在某些领域，由于不正确或遗漏的答案导致的声誉损害，可能超过了令牌的费用。
 
-此外，尽管OpenAI和其他提供商的成本在近年来一直在稳步下降，但那些已经拥有基于GPU的基础设施的人（可能是由于需要处理敏感或机密数据）可能更倾向于使用本地的LLM。
+此外，尽管 OpenAI 和其他提供商的成本在近年来一直在稳步下降，但那些已经拥有基于 GPU 的基础设施的人（可能是由于需要处理敏感或机密数据）可能更倾向于使用本地的 LLM。
 
 **结论**
 
@@ -273,6 +273,6 @@ Together, these chunks should give you a well-rounded understanding of topic B. 
 
 GitHub 仓库可以在这里找到：
 
-• [https://github.com/peronc/LLMRetriever/](https://github.com/peronc/LLMRetriever/)
+• [`github.com/peronc/LLMRetriever/`](https://github.com/peronc/LLMRetriever/)
 
-• [https://github.com/peronc/LLMChunkizer/](https://github.com/peronc/LLMChunkizer/)
+• [`github.com/peronc/LLMChunkizer/`](https://github.com/peronc/LLMChunkizer/)

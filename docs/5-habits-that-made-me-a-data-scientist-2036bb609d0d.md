@@ -1,16 +1,16 @@
 # 让我成为数据科学家的五个习惯
 
-> 原文：[https://towardsdatascience.com/5-habits-that-made-me-a-data-scientist-2036bb609d0d?source=collection_archive---------7-----------------------#2024-06-28](https://towardsdatascience.com/5-habits-that-made-me-a-data-scientist-2036bb609d0d?source=collection_archive---------7-----------------------#2024-06-28)
+> 原文：[`towardsdatascience.com/5-habits-that-made-me-a-data-scientist-2036bb609d0d?source=collection_archive---------7-----------------------#2024-06-28`](https://towardsdatascience.com/5-habits-that-made-me-a-data-scientist-2036bb609d0d?source=collection_archive---------7-----------------------#2024-06-28)
 
 ## 成为数据科学家的建议和技巧
 
-[](https://medium.com/@egorhowell?source=post_page---byline--2036bb609d0d--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--2036bb609d0d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2036bb609d0d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2036bb609d0d--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--2036bb609d0d--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--2036bb609d0d--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--2036bb609d0d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2036bb609d0d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2036bb609d0d--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--2036bb609d0d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2036bb609d0d--------------------------------) ·7 分钟阅读·2024年6月28日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2036bb609d0d--------------------------------) ·7 分钟阅读·2024 年 6 月 28 日
 
 --
 
-![](../Images/f10b488024dee1e776c905363154cc04.png)
+![](img/f10b488024dee1e776c905363154cc04.png)
 
 图片来源：[Nubelson Fernandes](https://unsplash.com/@nublson?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -20,7 +20,7 @@
 
 # 以行动为导向
 
-![](../Images/bd3e6cf1535ac94d8a573232627c088b.png)
+![](img/bd3e6cf1535ac94d8a573232627c088b.png)
 
 图片来源：[Jakob Owens](https://unsplash.com/@jakobowens1?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

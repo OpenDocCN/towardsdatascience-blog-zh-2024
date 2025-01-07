@@ -1,16 +1,16 @@
 # 统计抽样简介
 
-> 原文：[https://towardsdatascience.com/statistical-sampling-c1e45a43ceb4?source=collection_archive---------3-----------------------#2024-12-11](https://towardsdatascience.com/statistical-sampling-c1e45a43ceb4?source=collection_archive---------3-----------------------#2024-12-11)
+> 原文：[`towardsdatascience.com/statistical-sampling-c1e45a43ceb4?source=collection_archive---------3-----------------------#2024-12-11`](https://towardsdatascience.com/statistical-sampling-c1e45a43ceb4?source=collection_archive---------3-----------------------#2024-12-11)
 
-![](../Images/8d7a9170e461cf05429501179a3941db.png)
+![](img/8d7a9170e461cf05429501179a3941db.png)
 
 [CC BY-SA 3.0](https://commons.wikimedia.org/wiki/File:02_K%C3%A4se_aus_Kuhmilch_hergestellt,_Rudawka_Rymanowska_2013.JPG)
 
 ## “如果你尝试了，你可能会想买它。”
 
-[](https://timeseriesreasoning.medium.com/?source=post_page---byline--c1e45a43ceb4--------------------------------)[![Sachin Date](../Images/bd023298b414caf88f79b00ef032d065.png)](https://timeseriesreasoning.medium.com/?source=post_page---byline--c1e45a43ceb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c1e45a43ceb4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c1e45a43ceb4--------------------------------) [Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--c1e45a43ceb4--------------------------------)
+[](https://timeseriesreasoning.medium.com/?source=post_page---byline--c1e45a43ceb4--------------------------------)![Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--c1e45a43ceb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c1e45a43ceb4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c1e45a43ceb4--------------------------------) [Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--c1e45a43ceb4--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c1e45a43ceb4--------------------------------) ·阅读时间28分钟·2024年12月11日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c1e45a43ceb4--------------------------------) ·阅读时间 28 分钟·2024 年 12 月 11 日
 
 --
 

@@ -1,10 +1,10 @@
 # 如何使用 Autogen 或 LangGraph 实现 GenAI 代理
 
-> 原文：[https://towardsdatascience.com/how-to-implement-a-genai-agent-using-autogen-or-langgraph-929135afd34d?source=collection_archive---------1-----------------------#2024-08-01](https://towardsdatascience.com/how-to-implement-a-genai-agent-using-autogen-or-langgraph-929135afd34d?source=collection_archive---------1-----------------------#2024-08-01)
+> 原文：[`towardsdatascience.com/how-to-implement-a-genai-agent-using-autogen-or-langgraph-929135afd34d?source=collection_archive---------1-----------------------#2024-08-01`](https://towardsdatascience.com/how-to-implement-a-genai-agent-using-autogen-or-langgraph-929135afd34d?source=collection_archive---------1-----------------------#2024-08-01)
 
 ## 从开发者角度比较 Autogen 和 LangGraph
 
-[](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)[![Lak Lakshmanan](../Images/9faaaf72d600f592cbaf3e9089cbb913.png)](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------) [Lak Lakshmanan](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)
+[](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)![Lak Lakshmanan](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------) [Lak Lakshmanan](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------) ·10 分钟阅读·2024 年 8 月 1 日
 
@@ -20,44 +20,44 @@ GenAI 模型擅长一些特定任务，如文本总结、问题回答和代码�
 
 美国国家气象局（NWS）提供了一个开放且[免费的 API](https://weather-gov.github.io/api/general-faqs)，用于提供某一地点的短期天气预报。然而，要使用这个 API 来回答类似“芝加哥下雨吗？”这样的问题，涉及几个额外步骤（见图 1）：
 
-![](../Images/0f71eccdecb13d6971c6c65ff33327e3.png)
+![](img/0f71eccdecb13d6971c6c65ff33327e3.png)
 
 图 1. 用于回答关于当前天气问题的代理应用程序，围绕对话代理构建
 
 1.  我们需要设置一个代理框架来协调接下来的步骤。
 
-1.  用户感兴趣的地点是哪里？在我们示例句子中的答案是“芝加哥”。这并不只是简单地提取句子的最后一个词——如果用户问“Orca Island今天热吗？”，那么感兴趣的地点就是“Orca Island”。因为从问题中提取地点需要能够理解自然语言，所以你可以提示LLM来识别用户感兴趣的地点。
+1.  用户感兴趣的地点是哪里？在我们示例句子中的答案是“芝加哥”。这并不只是简单地提取句子的最后一个词——如果用户问“Orca Island 今天热吗？”，那么感兴趣的地点就是“Orca Island”。因为从问题中提取地点需要能够理解自然语言，所以你可以提示 LLM 来识别用户感兴趣的地点。
 
-1.  NWS API基于纬度和经度。如果你想获取芝加哥的天气，你需要将字符串“芝加哥”转换为一个点的纬度和经度，然后调用API。这被称为*地理编码*。Google Maps提供了一个地理编码API，给定一个地名，例如“芝加哥”，它将返回相应的纬度和经度。告诉代理使用这个工具来获取地点的坐标。
+1.  NWS API 基于纬度和经度。如果你想获取芝加哥的天气，你需要将字符串“芝加哥”转换为一个点的纬度和经度，然后调用 API。这被称为*地理编码*。Google Maps 提供了一个地理编码 API，给定一个地名，例如“芝加哥”，它将返回相应的纬度和经度。告诉代理使用这个工具来获取地点的坐标。
 
-1.  将地点坐标发送到NWS天气API。你将收到一个包含天气数据的JSON对象。
+1.  将地点坐标发送到 NWS 天气 API。你将收到一个包含天气数据的 JSON 对象。
 
-1.  告诉LLM提取相应的天气预报（例如，如果问题是关于现在、今晚或下周一），并将其添加到问题的上下文中。
+1.  告诉 LLM 提取相应的天气预报（例如，如果问题是关于现在、今晚或下周一），并将其添加到问题的上下文中。
 
 1.  基于这个丰富的上下文，代理最终能够回答用户的问题。
 
 让我们逐步进行这些操作。
 
-# 第一步：设置Autogen
+# 第一步：设置 Autogen
 
-首先，我们将使用[Autogen](https://microsoft.github.io/autogen/)，这是微软创建的开源代理框架。为了跟随教程，请克隆[我的Git仓库](https://github.com/lakshmanok/lakblogs/)，根据[Google Cloud](https://cloud.google.com/api-keys/docs/overview)和[OpenAI](https://openai.com/index/openai-api/)提供的说明获取API密钥。切换到genai_agents文件夹，并用你的密钥更新[keys.env](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/keys.env)文件。
+首先，我们将使用[Autogen](https://microsoft.github.io/autogen/)，这是微软创建的开源代理框架。为了跟随教程，请克隆[我的 Git 仓库](https://github.com/lakshmanok/lakblogs/)，根据[Google Cloud](https://cloud.google.com/api-keys/docs/overview)和[OpenAI](https://openai.com/index/openai-api/)提供的说明获取 API 密钥。切换到 genai_agents 文件夹，并用你的密钥更新[keys.env](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/keys.env)文件。
 
 ```py
 GOOGLE_API_KEY=AI…
 OPENAI_API_KEY=sk-…
 ```
 
-接下来，使用pip安装所需的Python模块：
+接下来，使用 pip 安装所需的 Python 模块：
 
 ```py
 pip install -r requirements.txt
 ```
 
-这将安装Google Maps和OpenAI的autogen模块和客户端库。
+这将安装 Google Maps 和 OpenAI 的 autogen 模块和客户端库。
 
 通过查看[ag_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py)来跟踪下面的讨论。
 
-Autogen将代理任务视为代理之间的对话。所以，Autogen的第一步是创建将执行各个步骤的代理。一个将是终端用户的代理，它将与我们称之为助手的AI代理进行对话：
+Autogen 将代理任务视为代理之间的对话。所以，Autogen 的第一步是创建将执行各个步骤的代理。一个将是终端用户的代理，它将与我们称之为助手的 AI 代理进行对话：
 
 ```py
 user_proxy = UserProxyAgent("user_proxy",
@@ -71,7 +71,7 @@ human_input_mode="NEVER",
 
 1.  如果助手回复包含代码，用户代理可以在沙箱中执行该代码。
 
-1.  如果助手的回复包含“TERMINATE”这个词，用户代理将终止对话。这是LLM告诉我们用户的问题已经得到完全回答的方式。让LLM执行此操作是Autogen发送给LLM的隐藏系统提示的一部分。
+1.  如果助手的回复包含“TERMINATE”这个词，用户代理将终止对话。这是 LLM 告诉我们用户的问题已经得到完全回答的方式。让 LLM 执行此操作是 Autogen 发送给 LLM 的隐藏系统提示的一部分。
 
 1.  用户代理永远不会向终端用户提问后续问题。如果有后续问题，我们会指定在什么条件下向用户询问更多信息。
 
@@ -269,7 +269,7 @@ Question:
 
 在图的范式中，我们的天气代理如图 2 所示。
 
-![](../Images/6f107ffe2c1cf3165b5cc34df992874d.png)
+![](img/6f107ffe2c1cf3165b5cc34df992874d.png)
 
 图 2\. 基于语言模型图构建的回答当前天气问题的智能应用。
 
@@ -381,14 +381,14 @@ There is a chance of showers and thunderstorms after 8pm tonight. The low will b
 
 在 Autogen 和 LangGraph 之间，你应该选择哪一个？以下是一些考虑因素：
 
-![](../Images/7daad164e11286b6e415c82f1e5c271b.png)
+![](img/7daad164e11286b6e415c82f1e5c271b.png)
 
 当然，随着你阅读本文时的进展，Autogen 对非 OpenAI 模型和其他工具的支持水平可能会有所提高。LangGraph 可能会增加自主能力，而 Autogen 则可能提供更精细的控制。代理领域正在快速发展！
 
 # 资源
 
-1.  ag_weather_agent.py: [https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py)
+1.  ag_weather_agent.py: [`github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py`](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py)
 
-1.  lg_weather_agent.py: [https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py)
+1.  lg_weather_agent.py: [`github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py`](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py)
 
 *本文摘自我正在撰写的 O'Reilly 即将出版的书籍《可视化生成型 AI》，与* [*Priyanka Vergadia*](https://www.linkedin.com/in/pvergadia/)* 合作编写。文中的所有图表均由作者制作。*

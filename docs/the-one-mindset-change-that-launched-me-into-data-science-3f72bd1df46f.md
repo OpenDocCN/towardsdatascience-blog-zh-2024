@@ -1,22 +1,22 @@
 # 启动我进入数据科学的那一个思维方式转变
 
-> 原文：[https://towardsdatascience.com/the-one-mindset-change-that-launched-me-into-data-science-3f72bd1df46f?source=collection_archive---------2-----------------------#2024-10-19](https://towardsdatascience.com/the-one-mindset-change-that-launched-me-into-data-science-3f72bd1df46f?source=collection_archive---------2-----------------------#2024-10-19)
+> 原文：[`towardsdatascience.com/the-one-mindset-change-that-launched-me-into-data-science-3f72bd1df46f?source=collection_archive---------2-----------------------#2024-10-19`](https://towardsdatascience.com/the-one-mindset-change-that-launched-me-into-data-science-3f72bd1df46f?source=collection_archive---------2-----------------------#2024-10-19)
 
 ## 让它成为现实：微小的改变帮助你进入数据科学或任何梦想职业
 
-[](https://ostiguyphilippe.medium.com/?source=post_page---byline--3f72bd1df46f--------------------------------)[![Philippe Ostiguy, M. Sc.](../Images/8b292bc1baa848a0c5de821dc9576534.png)](https://ostiguyphilippe.medium.com/?source=post_page---byline--3f72bd1df46f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f72bd1df46f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3f72bd1df46f--------------------------------) [Philippe Ostiguy, M. Sc.](https://ostiguyphilippe.medium.com/?source=post_page---byline--3f72bd1df46f--------------------------------)
+[](https://ostiguyphilippe.medium.com/?source=post_page---byline--3f72bd1df46f--------------------------------)![Philippe Ostiguy, M. Sc.](https://ostiguyphilippe.medium.com/?source=post_page---byline--3f72bd1df46f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f72bd1df46f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f72bd1df46f--------------------------------) [Philippe Ostiguy, M. Sc.](https://ostiguyphilippe.medium.com/?source=post_page---byline--3f72bd1df46f--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f72bd1df46f--------------------------------) ·10分钟阅读·2024年10月19日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f72bd1df46f--------------------------------) ·10 分钟阅读·2024 年 10 月 19 日
 
 --
 
-![](../Images/58121b2cd2a5b2e9c30d073e7b020070.png)
+![](img/58121b2cd2a5b2e9c30d073e7b020070.png)
 
 图片来源：[Jared Rice](https://unsplash.com/@jareddrice?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-你知道吗，[77%的员工对自己的工作既不投入也不积极参与](https://workweek.com/2023/09/27/gallups-workplace-2023-report-is-here/)? 没错——我们大多数人都有一份不能真正满足我们的工作。考虑到一个人一生大约会花费90,000小时在工作上，找到一份自己喜欢的事业变得尤为重要。
+你知道吗，[77%的员工对自己的工作既不投入也不积极参与](https://workweek.com/2023/09/27/gallups-workplace-2023-report-is-here/)? 没错——我们大多数人都有一份不能真正满足我们的工作。考虑到一个人一生大约会花费 90,000 小时在工作上，找到一份自己喜欢的事业变得尤为重要。
 
-想象一下，如果你花费这90,000小时做一些能让你兴奋、挑战自我并带给你目标感的事情，它可能对你的整体幸福感产生重要影响。但对许多人来说，找到一份自己喜欢的工作似乎遥不可及。所有这些障碍看起来似乎无法克服。
+想象一下，如果你花费这 90,000 小时做一些能让你兴奋、挑战自我并带给你目标感的事情，它可能对你的整体幸福感产生重要影响。但对许多人来说，找到一份自己喜欢的工作似乎遥不可及。所有这些障碍看起来似乎无法克服。
 
 或许你能感同身受。你已经努力去改变，找到一份自己喜爱的职业。你通过人际网络，反复修改简历，阅读了所有能找到的职业建议文章。可梦想中的工作依然遥不可及。你在问自己：“我做错了什么？”
 
@@ -28,13 +28,13 @@
 
 最棒的部分是什么？它适用于你想从事的任何工作，不仅仅是数据科学。
 
-苹果公司联合创始人史蒂夫·乔布斯是一位远见卓识的人，他改变了技术行业。他在iPhone、iPad和Macintosh等领先产品的开发中起到了关键作用。即使今天，我们使用技术的方式依然受到这些产品的影响。
+苹果公司联合创始人史蒂夫·乔布斯是一位远见卓识的人，他改变了技术行业。他在 iPhone、iPad 和 Macintosh 等领先产品的开发中起到了关键作用。即使今天，我们使用技术的方式依然受到这些产品的影响。
 
 乔布斯理解用户的需求，并且天生具有设计天赋。
 
 这正是苹果与众不同的地方。它不仅仅是做技术，而是创造出人们喜欢使用的美丽产品。
 
-他一直倡导无论人生走到哪里，都要追寻自己的激情。他在2005年斯坦福大学的著名演讲中曾分享过一句话：“[做伟大的工作唯一的方式就是热爱你所做的。](https://www.youtube.com/watch?v=JV3OqaRmBk4)”这个观点不仅对他自己的人生产生了深远影响，它也是苹果文化的一部分……在那里，你做的是你喜欢的事情。
+他一直倡导无论人生走到哪里，都要追寻自己的激情。他在 2005 年斯坦福大学的著名演讲中曾分享过一句话：“[做伟大的工作唯一的方式就是热爱你所做的。](https://www.youtube.com/watch?v=JV3OqaRmBk4)”这个观点不仅对他自己的人生产生了深远影响，它也是苹果文化的一部分……在那里，你做的是你喜欢的事情。
 
 [沃伦·巴菲特](https://www.youtube.com/watch?v=EBuXEt-g1Z0)也是如此，他是历史上最伟大的投资者之一。他曾经说过：“在商业世界里，最成功的人是那些做自己喜欢的事情的人。”他通过自己的努力，将伯克希尔哈撒韦公司打造成了商业帝国，整个职业生涯都是如此。
 
@@ -58,7 +58,7 @@
 
 这种分析思维和对商业的兴趣自然地引导我走上了一个可以同时运用两者的职业道路。我被解决那些直接影响组织利润的复杂问题所吸引，总是寻找优化投资回报率的方法。这条路对我来说，感觉是真实的，符合我内心的本质。
 
-![](../Images/fab47283a2b160f79e26d0c3d894be1e.png)
+![](img/fab47283a2b160f79e26d0c3d894be1e.png)
 
 图片由[Olav Ahrens Røtne](https://unsplash.com/@olav_ahrens?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)。
 
@@ -82,19 +82,19 @@
 
 # 发挥你独特的价值
 
-亚历克斯·霍诺德（Alex Honnold）5岁时开始在健身房攀岩，11岁时开始到户外攀岩。2017年，他完成了他最著名的成就——完成了优胜美地国家公园第一条自由单人攀登的El Capitan Freerider路线。
+亚历克斯·霍诺德（Alex Honnold）5 岁时开始在健身房攀岩，11 岁时开始到户外攀岩。2017 年，他完成了他最著名的成就——完成了优胜美地国家公园第一条自由单人攀登的 El Capitan Freerider 路线。
 
-换句话说，他在没有任何绳索、保护带或防护装备的情况下，攀登了一个3000英尺的路线，这条路线对于经验丰富的攀岩者来说也是一条艰难的路线（该路线的难度评级为5.13a）。甚至像汤米·卡尔德威（Tommy Caldwell）这样的著名攀岩者也被这个尝试所“[吓到](https://www.youtube.com/watch?v=urRVZ4SW7WU&t=22s)”了。这个成就被记录在纪录片《[Free Solo](https://films.nationalgeographic.com/free-solo)》中，并在2019年获得了奥斯卡最佳纪录片奖。
+换句话说，他在没有任何绳索、保护带或防护装备的情况下，攀登了一个 3000 英尺的路线，这条路线对于经验丰富的攀岩者来说也是一条艰难的路线（该路线的难度评级为 5.13a）。甚至像汤米·卡尔德威（Tommy Caldwell）这样的著名攀岩者也被这个尝试所“[吓到](https://www.youtube.com/watch?v=urRVZ4SW7WU&t=22s)”了。这个成就被记录在纪录片《[Free Solo](https://films.nationalgeographic.com/free-solo)》中，并在 2019 年获得了奥斯卡最佳纪录片奖。
 
 像许多人一样，我被亚历克斯·霍诺德的成就所吸引。这项成就推动了攀岩领域的极限。
 
-我对这项运动有着强烈的热情。如果我在空闲时间没有在做副业的AI项目，那么我很可能正在攀岩。
+我对这项运动有着强烈的热情。如果我在空闲时间没有在做副业的 AI 项目，那么我很可能正在攀岩。
 
 然而，我的攀岩技能是否和亚历克斯·霍诺德、亚当·翁德拉（Adam Ondra）或汤米·卡尔德威一样高？不。我没有从小开始，也没有把我的一生奉献给掌握这项运动。我是十年前才开始的。要达到他们的攀岩水平，我需要付出极大的努力。
 
 相反，我是否容易发现潜在的高影响力机会并解决复杂问题？是的，而且这是我天生的能力。我在这些领域表现出色，几乎不费力气，和攀岩不同，尽管我非常喜欢这项运动。
 
-![](../Images/df115c581644cb90fc6134f0203c5d6c.png)
+![](img/df115c581644cb90fc6134f0203c5d6c.png)
 
 图片来源：[胡晨](https://unsplash.com/@huchenme?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -110,11 +110,11 @@
 > 
 > — 老子
 
-如果你不喜欢你的工作，或者它提供的成长空间有限，不要让这些限制阻碍你。开始花更多时间在你真正喜欢的活动上——即使只占你时间的10%或20%！这只是一个开始。即使现在需要额外的努力，从长远来看，这会有所回报。
+如果你不喜欢你的工作，或者它提供的成长空间有限，不要让这些限制阻碍你。开始花更多时间在你真正喜欢的活动上——即使只占你时间的 10%或 20%！这只是一个开始。即使现在需要额外的努力，从长远来看，这会有所回报。
 
-在我以前的工作中，我们团队花费了大量时间做手动任务，比如在Excel表格中复制和粘贴数据。
+在我以前的工作中，我们团队花费了大量时间做手动任务，比如在 Excel 表格中复制和粘贴数据。
 
-我的老板没有要求解决方案，但我决定使用Python自动化这些任务，这正是我喜欢并擅长的工作。我在正常工作时间之外做了这些，结果证明是值得的。通过这些脚本，我们成功节省了相当于1.5个全职员工手动工作的时间！
+我的老板没有要求解决方案，但我决定使用 Python 自动化这些任务，这正是我喜欢并擅长的工作。我在正常工作时间之外做了这些，结果证明是值得的。通过这些脚本，我们成功节省了相当于 1.5 个全职员工手动工作的时间！
 
 当我的老板看到这些节省的时间后，他给我更多的自动化任务。我甚至开始研究基本的机器学习算法。通过做我喜欢的事并积极主动，我稍微改变了我的角色。这个小小的变化为我带来了新的机会。
 
@@ -128,13 +128,13 @@
 
 此外，确保与你的经理讨论你的兴趣和职业抱负。谈谈你如何将自己的兴趣与组织目标对接，并寻找在目前的工作或未来项目中使用这些技能的方法。
 
-![](../Images/c1986d6d9356c88c41a882c068c93f66.png)
+![](img/c1986d6d9356c88c41a882c068c93f66.png)
 
 图片来源：[Unseen Studio](https://unsplash.com/@uns__nstudio?utm_source=medium&utm_medium=referral) 通过 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 保持灵活性
 
-比尔·盖茨与他从小一起长大的朋友保罗·艾伦于1975年共同创办了微软。从一个小型合作伙伴关系起步，他们开始为新兴的计算机市场开发软件。这项努力最终催生了像Windows和MS-DOS这样的突破性技术。
+比尔·盖茨与他从小一起长大的朋友保罗·艾伦于 1975 年共同创办了微软。从一个小型合作伙伴关系起步，他们开始为新兴的计算机市场开发软件。这项努力最终催生了像 Windows 和 MS-DOS 这样的突破性技术。
 
 在盖茨的领导下，微软发展成了一个科技巨头。这使他成为世界上最富有的人之一，并改变了人们使用计算机的方式。
 

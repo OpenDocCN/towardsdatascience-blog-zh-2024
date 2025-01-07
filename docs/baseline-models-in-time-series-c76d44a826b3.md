@@ -1,16 +1,16 @@
 # 如何做：时间序列中的基准模型
 
-> 原文：[https://towardsdatascience.com/baseline-models-in-time-series-c76d44a826b3?source=collection_archive---------6-----------------------#2024-03-07](https://towardsdatascience.com/baseline-models-in-time-series-c76d44a826b3?source=collection_archive---------6-----------------------#2024-03-07)
+> 原文：[`towardsdatascience.com/baseline-models-in-time-series-c76d44a826b3?source=collection_archive---------6-----------------------#2024-03-07`](https://towardsdatascience.com/baseline-models-in-time-series-c76d44a826b3?source=collection_archive---------6-----------------------#2024-03-07)
 
 ## 为什么（以及如何）在训练最终模型之前创建基准模型
 
-[](https://medium.com/@pelletierhaden?source=post_page---byline--c76d44a826b3--------------------------------)[![Haden Pelletier](../Images/8f73fc8222e783883c4ebcaee14513e0.png)](https://medium.com/@pelletierhaden?source=post_page---byline--c76d44a826b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c76d44a826b3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c76d44a826b3--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--c76d44a826b3--------------------------------)
+[](https://medium.com/@pelletierhaden?source=post_page---byline--c76d44a826b3--------------------------------)![Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--c76d44a826b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c76d44a826b3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c76d44a826b3--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--c76d44a826b3--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c76d44a826b3--------------------------------) ·5分钟阅读·2024年3月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c76d44a826b3--------------------------------) ·5 分钟阅读·2024 年 3 月 7 日
 
 --
 
-![](../Images/55166b86fc3d444ee4d57ade1d13c333.png)
+![](img/55166b86fc3d444ee4d57ade1d13c333.png)
 
 图片来自 [Zetong Li](https://unsplash.com/@zetong?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,30 +1,30 @@
-# 为Llamaindex工作流构建交互式UI
+# 为 Llamaindex 工作流构建交互式 UI
 
-> 原文：[https://towardsdatascience.com/building-an-interactive-ui-for-llamaindex-workflows-842dd7abedde?source=collection_archive---------3-----------------------#2024-09-24](https://towardsdatascience.com/building-an-interactive-ui-for-llamaindex-workflows-842dd7abedde?source=collection_archive---------3-----------------------#2024-09-24)
+> 原文：[`towardsdatascience.com/building-an-interactive-ui-for-llamaindex-workflows-842dd7abedde?source=collection_archive---------3-----------------------#2024-09-24`](https://towardsdatascience.com/building-an-interactive-ui-for-llamaindex-workflows-842dd7abedde?source=collection_archive---------3-----------------------#2024-09-24)
 
-## 使用Llamaindex、FastAPI和Streamlit集成人机互动的指南
+## 使用 Llamaindex、FastAPI 和 Streamlit 集成人机互动的指南
 
-[](https://medium.com/@lzchen.cs?source=post_page---byline--842dd7abedde--------------------------------)[![Lingzhen Chen](../Images/9014cbac032238d8a5c9f4708ba6ffcb.png)](https://medium.com/@lzchen.cs?source=post_page---byline--842dd7abedde--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--842dd7abedde--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--842dd7abedde--------------------------------) [Lingzhen Chen](https://medium.com/@lzchen.cs?source=post_page---byline--842dd7abedde--------------------------------)
+[](https://medium.com/@lzchen.cs?source=post_page---byline--842dd7abedde--------------------------------)![Lingzhen Chen](https://medium.com/@lzchen.cs?source=post_page---byline--842dd7abedde--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--842dd7abedde--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--842dd7abedde--------------------------------) [Lingzhen Chen](https://medium.com/@lzchen.cs?source=post_page---byline--842dd7abedde--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--842dd7abedde--------------------------------) ·阅读时间：10分钟·2024年9月24日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--842dd7abedde--------------------------------) ·阅读时间：10 分钟·2024 年 9 月 24 日
 
 --
 
-在上一篇文章中，我展示了如何使用LlamaIndex工作流来简化我的研究和展示过程。我构建了一个工作流，该工作流获取研究主题，在arxiv.org上查找相关文章，创建论文摘要，并生成一个PowerPoint幻灯片展示这些论文。你可以在这里阅读完整的操作步骤：
+在上一篇文章中，我展示了如何使用 LlamaIndex 工作流来简化我的研究和展示过程。我构建了一个工作流，该工作流获取研究主题，在 arxiv.org 上查找相关文章，创建论文摘要，并生成一个 PowerPoint 幻灯片展示这些论文。你可以在这里阅读完整的操作步骤：
 
-[](/how-i-streamline-my-research-and-presentation-with-llamaindex-workflows-3d75a9a10564?source=post_page-----842dd7abedde--------------------------------) [## 我如何通过LlamaIndex工作流简化我的研究和展示
+[](/how-i-streamline-my-research-and-presentation-with-llamaindex-workflows-3d75a9a10564?source=post_page-----842dd7abedde--------------------------------) ## 我如何通过 LlamaIndex 工作流简化我的研究和展示
 
-### 一个协调AI工作流的示例，具有鲁棒性、灵活性和可控性
+### 一个协调 AI 工作流的示例，具有鲁棒性、灵活性和可控性
 
-towardsdatascience.com](/how-i-streamline-my-research-and-presentation-with-llamaindex-workflows-3d75a9a10564?source=post_page-----842dd7abedde--------------------------------)
+towardsdatascience.com
 
-为了继续构建工作流并使其更具用户友好性，我使用Streamlit实现了一个UI，以增强用户体验。该UI显示工作流执行的进度更新，集成用户输入，支持实时用户反馈，并呈现最终生成的幻灯片。
+为了继续构建工作流并使其更具用户友好性，我使用 Streamlit 实现了一个 UI，以增强用户体验。该 UI 显示工作流执行的进度更新，集成用户输入，支持实时用户反馈，并呈现最终生成的幻灯片。
 
-![](../Images/943a490d724acbf5ce0f3ce0d5b7e379.png)
+![](img/943a490d724acbf5ce0f3ce0d5b7e379.png)
 
 Streamlit UI（作者录屏）
 
-你可以在我的[Github](https://github.com/lz-chen/research-agent)上查看完整代码。在本文中，我将介绍UI实现的一些关键点，以及前端和后端之间的集成：
+你可以在我的[Github](https://github.com/lz-chen/research-agent)上查看完整代码。在本文中，我将介绍 UI 实现的一些关键点，以及前端和后端之间的集成：
 
 **后端增强：**
 
@@ -32,9 +32,9 @@ Streamlit UI（作者录屏）
 
 +   更新工作流以暂停执行并等待用户输入
 
-+   使用FastAPI托管多个端点以运行工作流，接受用户输入和下载文件，支持异步处理和流式消息
++   使用 FastAPI 托管多个端点以运行工作流，接受用户输入和下载文件，支持异步处理和流式消息
 
-**前端UI功能：**
+**前端 UI 功能：**
 
 +   向后台发送请求并在扩展框中显示从后台流式传输的事件数据
 
@@ -52,15 +52,15 @@ Streamlit UI（作者录屏）
 
 从终端启动工作流时，可以很直观地看到当前正在执行的步骤以及我们在这些步骤中添加的日志信息。
 
-![](../Images/20ff5b34a307eada9bf3fc5771f5eab0.png)
+![](img/20ff5b34a307eada9bf3fc5771f5eab0.png)
 
 工作流执行的终端日志（截图来自作者）
 
-我们还可以通过简单地在工作流中使用`user_feedback = input()`来启用人机互动。这将暂停工作流并等待用户输入（请参见此官方Llamaindex[笔记本](https://docs.llamaindex.ai/en/stable/examples/workflow/human_in_the_loop_story_crafting/)中的人机互动示例）。然而，为了在用户友好的界面中实现相同的功能，我们需要对原始工作流做出额外的修改。
+我们还可以通过简单地在工作流中使用`user_feedback = input()`来启用人机互动。这将暂停工作流并等待用户输入（请参见此官方 Llamaindex[笔记本](https://docs.llamaindex.ai/en/stable/examples/workflow/human_in_the_loop_story_crafting/)中的人机互动示例）。然而，为了在用户友好的界面中实现相同的功能，我们需要对原始工作流做出额外的修改。
 
 # 从工作流发送流式事件
 
-工作流执行可能需要很长时间，因此为了提供更好的用户体验，Llamaindex提供了一种方法，通过发送流式事件来指示工作流的进度，如笔记本[这里](https://docs.llamaindex.ai/en/stable/understanding/workflows/stream/)所示。在我的工作流中，我定义了一个`WorkflowStreamingEvent`类，包含有关事件消息的有用信息，如事件类型，以及它是从哪个步骤发送的：
+工作流执行可能需要很长时间，因此为了提供更好的用户体验，Llamaindex 提供了一种方法，通过发送流式事件来指示工作流的进度，如笔记本[这里](https://docs.llamaindex.ai/en/stable/understanding/workflows/stream/)所示。在我的工作流中，我定义了一个`WorkflowStreamingEvent`类，包含有关事件消息的有用信息，如事件类型，以及它是从哪个步骤发送的：
 
 ```py
 class WorkflowStreamingEvent(BaseModel):
@@ -121,11 +121,11 @@ async def tavily_query(self, ctx: Context, ev: StartEvent) -> TavilyResultsEvent
         ...
 ```
 
-这些事件在后台API和前端逻辑中有不同的处理方式，我将在本文后续部分详细描述。
+这些事件在后台 API 和前端逻辑中有不同的处理方式，我将在本文后续部分详细描述。
 
 # 暂停工作流以等待用户输入
 
-![](../Images/e95ddc55fad1afe523da3672c85e3168.png)
+![](img/e95ddc55fad1afe523da3672c85e3168.png)
 
 需要用户反馈的工作流步骤（图像来自作者）
 
@@ -466,7 +466,7 @@ def gather_outline_feedback(placeholder):
      ...
 ```
 
-最后，当工作流运行结束时，前端客户端将收到一个响应，其中包含最终生成文件的路径（相同的幻灯片文件，pdf格式用于UI渲染，pptx格式用于下载作为最终结果）。我们展示pdf文件，并创建一个按钮供用户下载pptx文件：
+最后，当工作流运行结束时，前端客户端将收到一个响应，其中包含最终生成文件的路径（相同的幻灯片文件，pdf 格式用于 UI 渲染，pptx 格式用于下载作为最终结果）。我们展示 pdf 文件，并创建一个按钮供用户下载 pptx 文件：
 
 ```py
  if "download_url_pdf" in st.session_state and st.session_state.download_url_pdf:
@@ -510,7 +510,7 @@ def gather_outline_feedback(placeholder):
 
 # 使用`docker-compose`将一切组合起来
 
-我们将使用`docker-compose`创建一个多服务的Docker应用程序，来运行前端和后端应用程序。
+我们将使用`docker-compose`创建一个多服务的 Docker 应用程序，来运行前端和后端应用程序。
 
 ```py
 version: '3.8'
@@ -547,4 +547,4 @@ networks:
 
 就这样！只需运行`docker-compose up`，我们现在有一个应用程序，可以根据用户输入的查询运行研究工作流，在执行过程中提示用户提供反馈，并向用户显示最终结果。
 
-感谢阅读！查看我的[GitHub](https://github.com/lz-chen/research-agent)获取完整实现。我期待听到您的想法、建议和反馈。我目前在[Inmeta](https://inmeta.no/)担任数据科学顾问，Inmeta是[Crayon Group](https://www.crayon.com/no/)的一部分。欢迎在[LinkedIn](https://www.linkedin.com/in/lingzhen-chen-76720680/)与我联系。😊
+感谢阅读！查看我的[GitHub](https://github.com/lz-chen/research-agent)获取完整实现。我期待听到您的想法、建议和反馈。我目前在[Inmeta](https://inmeta.no/)担任数据科学顾问，Inmeta 是[Crayon Group](https://www.crayon.com/no/)的一部分。欢迎在[LinkedIn](https://www.linkedin.com/in/lingzhen-chen-76720680/)与我联系。😊

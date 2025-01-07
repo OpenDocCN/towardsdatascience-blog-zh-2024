@@ -1,16 +1,16 @@
 # 4 个示例助你提升 PySpark 技能
 
-> 原文：[https://towardsdatascience.com/4-examples-to-take-your-pyspark-skills-to-next-level-2a04cbe6e630?source=collection_archive---------6-----------------------#2024-01-30](https://towardsdatascience.com/4-examples-to-take-your-pyspark-skills-to-next-level-2a04cbe6e630?source=collection_archive---------6-----------------------#2024-01-30)
+> 原文：[`towardsdatascience.com/4-examples-to-take-your-pyspark-skills-to-next-level-2a04cbe6e630?source=collection_archive---------6-----------------------#2024-01-30`](https://towardsdatascience.com/4-examples-to-take-your-pyspark-skills-to-next-level-2a04cbe6e630?source=collection_archive---------6-----------------------#2024-01-30)
 
 ## 使用 PySpark 适应大规模数据处理
 
-[](https://sonery.medium.com/?source=post_page---byline--2a04cbe6e630--------------------------------)[![Soner Yıldırım](../Images/c589572e9d1ee176cd4f5a0008173f1b.png)](https://sonery.medium.com/?source=post_page---byline--2a04cbe6e630--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2a04cbe6e630--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2a04cbe6e630--------------------------------) [Soner Yıldırım](https://sonery.medium.com/?source=post_page---byline--2a04cbe6e630--------------------------------)
+[](https://sonery.medium.com/?source=post_page---byline--2a04cbe6e630--------------------------------)![Soner Yıldırım](https://sonery.medium.com/?source=post_page---byline--2a04cbe6e630--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2a04cbe6e630--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2a04cbe6e630--------------------------------) [Soner Yıldırım](https://sonery.medium.com/?source=post_page---byline--2a04cbe6e630--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2a04cbe6e630--------------------------------) ·7分钟阅读·2024年1月30日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2a04cbe6e630--------------------------------) ·7 分钟阅读·2024 年 1 月 30 日
 
 --
 
-![](../Images/a222122f8db4bec4e2342525412c2088.png)
+![](img/a222122f8db4bec4e2342525412c2088.png)
 
 图片由 [fabio](https://unsplash.com/@fabioha?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来自 [Unsplash](https://unsplash.com/photos/geometric-shape-digital-wallpaper-oyXis2kALVg?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

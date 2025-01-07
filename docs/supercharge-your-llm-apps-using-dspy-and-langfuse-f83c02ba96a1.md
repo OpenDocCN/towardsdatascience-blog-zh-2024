@@ -1,96 +1,96 @@
-# 使用DSPy和Langfuse提升你的LLM应用程序
+# 使用 DSPy 和 Langfuse 提升你的 LLM 应用程序
 
-> 原文：[https://towardsdatascience.com/supercharge-your-llm-apps-using-dspy-and-langfuse-f83c02ba96a1?source=collection_archive---------2-----------------------#2024-10-07](https://towardsdatascience.com/supercharge-your-llm-apps-using-dspy-and-langfuse-f83c02ba96a1?source=collection_archive---------2-----------------------#2024-10-07)
+> 原文：[`towardsdatascience.com/supercharge-your-llm-apps-using-dspy-and-langfuse-f83c02ba96a1?source=collection_archive---------2-----------------------#2024-10-07`](https://towardsdatascience.com/supercharge-your-llm-apps-using-dspy-and-langfuse-f83c02ba96a1?source=collection_archive---------2-----------------------#2024-10-07)
 
-## 轻松构建生产级LLM应用
+## 轻松构建生产级 LLM 应用
 
-[](https://medium.com/@Rghv_Bali?source=post_page---byline--f83c02ba96a1--------------------------------)[![Raghav Bali](../Images/49fea68f38f59d0bc39dab484b55684f.png)](https://medium.com/@Rghv_Bali?source=post_page---byline--f83c02ba96a1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f83c02ba96a1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f83c02ba96a1--------------------------------) [Raghav Bali](https://medium.com/@Rghv_Bali?source=post_page---byline--f83c02ba96a1--------------------------------)
+[](https://medium.com/@Rghv_Bali?source=post_page---byline--f83c02ba96a1--------------------------------)![Raghav Bali](https://medium.com/@Rghv_Bali?source=post_page---byline--f83c02ba96a1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f83c02ba96a1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f83c02ba96a1--------------------------------) [Raghav Bali](https://medium.com/@Rghv_Bali?source=post_page---byline--f83c02ba96a1--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f83c02ba96a1--------------------------------) ·阅读时间12分钟·2024年10月7日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f83c02ba96a1--------------------------------) ·阅读时间 12 分钟·2024 年 10 月 7 日
 
 --
 
-![](../Images/03fee566222b05ecc08e045cd78395f5.png)
+![](img/03fee566222b05ecc08e045cd78395f5.png)
 
 图片来源：[Glen Carrie](https://unsplash.com/@glencarrie?utm_source=medium&utm_medium=referral) 在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-# **LLM的崛起**
+# **LLM 的崛起**
 
 大型语言模型（LLM）已成为一种变革性力量，彻底改变了我们与信息的互动和处理方式。这些强大的人工智能模型能够理解和生成类似人类的文本，已经在多个领域找到了应用，从聊天机器人和虚拟助手到内容创作和数据分析。
 
-![](../Images/ba0872bec49d5fb2b3f7ca3b00afd991.png)
+![](img/ba0872bec49d5fb2b3f7ca3b00afd991.png)
 
 常规的基于提示的开发工作流。来源：作者
 
-然而，构建和维护高效的LLM驱动应用程序并非没有挑战。提示工程，*即为LLM制定精确指令的艺术*，可能是一个耗时且反复迭代的过程。由于这些模型具有固有的“黑箱”特性，调试和故障排除LLM的行为也可能变得复杂。此外，了解LLM应用程序的性能和成本影响对于优化和可扩展性至关重要（这是任何生产环境设置的关键组件）。
+然而，构建和维护高效的 LLM 驱动应用程序并非没有挑战。提示工程，*即为 LLM 制定精确指令的艺术*，可能是一个耗时且反复迭代的过程。由于这些模型具有固有的“黑箱”特性，调试和故障排除 LLM 的行为也可能变得复杂。此外，了解 LLM 应用程序的性能和成本影响对于优化和可扩展性至关重要（这是任何生产环境设置的关键组件）。
 
-## **LLM生态系统**
+## **LLM 生态系统**
 
-LLM的生态系统仍处于初期阶段。为了解决其中的一些挑战，许多创新工具和框架正在开发中。来自斯坦福大学的[DSPy](https://dspy-docs.vercel.app/)就是一种正式化LLM应用开发的独特尝试。另一方面，[Langfuse](https://langfuse.com/)则作为一个解决方案出现，旨在简化和操作化LLM应用维护的各个方面。简而言之：
+LLM 的生态系统仍处于初期阶段。为了解决其中的一些挑战，许多创新工具和框架正在开发中。来自斯坦福大学的[DSPy](https://dspy-docs.vercel.app/)就是一种正式化 LLM 应用开发的独特尝试。另一方面，[Langfuse](https://langfuse.com/)则作为一个解决方案出现，旨在简化和操作化 LLM 应用维护的各个方面。简而言之：
 
-+   **DSPY**提供了一个模块化和可组合的框架，用于构建LLM应用程序，抽象化了提示工程的复杂性，使开发人员能够专注于应用程序的核心逻辑。
++   **DSPY**提供了一个模块化和可组合的框架，用于构建 LLM 应用程序，抽象化了提示工程的复杂性，使开发人员能够专注于应用程序的核心逻辑。
 
-+   **Langfuse**提供了一个全面的可观测性平台，帮助LLM应用程序提供关于模型性能、成本和用户交互的深刻洞察。
++   **Langfuse**提供了一个全面的可观测性平台，帮助 LLM 应用程序提供关于模型性能、成本和用户交互的深刻洞察。
 
-通过结合DSPy和Langfuse，开发人员可以释放LLM的全部潜力，构建强大、可扩展且具有深刻洞察力的应用程序，从而提供卓越的用户体验。
+通过结合 DSPy 和 Langfuse，开发人员可以释放 LLM 的全部潜力，构建强大、可扩展且具有深刻洞察力的应用程序，从而提供卓越的用户体验。
 
-# 利用DSPy释放大语言模型（LLM）的潜力
+# 利用 DSPy 释放大语言模型（LLM）的潜力
 
-语言模型是极其复杂的机器，能够从一个非常大的潜在空间中检索和重组信息。为了引导这个搜索并获得期望的响应，我们在很大程度上依赖复杂、冗长且脆弱的提示（有时这些提示对于特定的LLM来说非常具体）。
+语言模型是极其复杂的机器，能够从一个非常大的潜在空间中检索和重组信息。为了引导这个搜索并获得期望的响应，我们在很大程度上依赖复杂、冗长且脆弱的提示（有时这些提示对于特定的 LLM 来说非常具体）。
 
-作为一个开放的研究领域，各个团队从不同的角度工作，以抽象化和加速LLM系统的快速开发。DSPy就是一个针对LLM提示和*权重*进行算法优化的框架。
+作为一个开放的研究领域，各个团队从不同的角度工作，以抽象化和加速 LLM 系统的快速开发。DSPy 就是一个针对 LLM 提示和*权重*进行算法优化的框架。
 
 ## **好吧，你让我感兴趣了，能告诉我更多吗？**
 
-DSPy框架从深度学习框架（如*PyTorch*）中汲取灵感。
+DSPy 框架从深度学习框架（如*PyTorch*）中汲取灵感。
 
-例如，使用PyTorch构建深度神经网络时，我们只需使用标准层，如*卷积*、*丢弃*、*线性*，并将其与优化器（如*Adam*）连接，然后进行训练，而不必每次都从头开始实现这些。
+例如，使用 PyTorch 构建深度神经网络时，我们只需使用标准层，如*卷积*、*丢弃*、*线性*，并将其与优化器（如*Adam*）连接，然后进行训练，而不必每次都从头开始实现这些。
 
-同样，DSPy提供了一套标准的通用模块（例如*ChainOfThought*、*Predict*）、优化器（例如*BootstrapFewShotWithRandomSearch*），并通过将这些组件作为层组合成一个*程序*来帮助我们构建系统，而无需显式处理提示！是不是很棒？
+同样，DSPy 提供了一套标准的通用模块（例如*ChainOfThought*、*Predict*）、优化器（例如*BootstrapFewShotWithRandomSearch*），并通过将这些组件作为层组合成一个*程序*来帮助我们构建系统，而无需显式处理提示！是不是很棒？
 
-## **DSPy构建块与工作流**
+## **DSPy 构建块与工作流**
 
-![](../Images/490f9851fac27b4b2ff35e95ad3565ff.png)
+![](img/490f9851fac27b4b2ff35e95ad3565ff.png)
 
-图1：（左）DSPy构建块，包括签名（Signatures）、模块（Modules）、优化器（Optimizers）。(右) DSPy程序工作流。来源：作者
+图 1：（左）DSPy 构建块，包括签名（Signatures）、模块（Modules）、优化器（Optimizers）。(右) DSPy 程序工作流。来源：作者
 
-如*图1*所示，DSPy是一个类似PyTorch/乐高积木的框架，用于构建基于LLM的应用程序。开箱即用，它包括：
+如*图 1*所示，DSPy 是一个类似 PyTorch/乐高积木的框架，用于构建基于 LLM 的应用程序。开箱即用，它包括：
 
-+   [**签名**](https://dspy-docs.vercel.app/docs/building-blocks/signatures)：这些是用于定义DSPy程序输入输出行为的规范。可以使用*简写*表示法（例如，“question -> answer”，框架会自动理解question是输入，answer是输出），或者使用*声明式规范*，通过Python类进行定义（后续章节将详细介绍）。
++   [**签名**](https://dspy-docs.vercel.app/docs/building-blocks/signatures)：这些是用于定义 DSPy 程序输入输出行为的规范。可以使用*简写*表示法（例如，“question -> answer”，框架会自动理解 question 是输入，answer 是输出），或者使用*声明式规范*，通过 Python 类进行定义（后续章节将详细介绍）。
 
 +   [**模块**](https://dspy-docs.vercel.app/docs/building-blocks/modules)：这些是预定义组件的层，用于实现强大的概念，如*Chain of Thought*、*ReAct*，甚至是简单的文本完成（Predict）。这些模块抽象了底层脆弱的提示，同时仍然通过自定义组件提供可扩展性。
 
-+   [**优化器**](https://dspy-docs.vercel.app/docs/building-blocks/optimizers)：这些优化器是DSPy框架特有的，灵感来源于PyTorch本身。这些优化器利用注释数据集和评估指标，帮助调优/优化基于LLM的DSPy程序。
++   [**优化器**](https://dspy-docs.vercel.app/docs/building-blocks/optimizers)：这些优化器是 DSPy 框架特有的，灵感来源于 PyTorch 本身。这些优化器利用注释数据集和评估指标，帮助调优/优化基于 LLM 的 DSPy 程序。
 
 +   **数据**、**指标**、[**断言**](https://dspy-docs.vercel.app/docs/building-blocks/assertions)和**跟踪器**是该框架的其他组成部分，它们像粘合剂一样在背后工作，丰富了整体框架。
 
-要使用DSPy构建应用/程序，我们采用模块化且循序渐进的方法（如*图1（右）*所示）。我们首先定义我们的*任务*，以帮助我们清晰地定义程序的签名（输入和输出规范）。接下来，我们构建一个*管道*程序，该程序利用一个或多个抽象化的提示模块、语言模型模块以及检索模型模块。完成这些步骤后，我们接着准备一些*示例*，并结合所需的指标来*评估*我们的设置，这些指标被*优化器*和*断言*组件用来*编译*一个强大的应用。
+要使用 DSPy 构建应用/程序，我们采用模块化且循序渐进的方法（如*图 1（右）*所示）。我们首先定义我们的*任务*，以帮助我们清晰地定义程序的签名（输入和输出规范）。接下来，我们构建一个*管道*程序，该程序利用一个或多个抽象化的提示模块、语言模型模块以及检索模型模块。完成这些步骤后，我们接着准备一些*示例*，并结合所需的指标来*评估*我们的设置，这些指标被*优化器*和*断言*组件用来*编译*一个强大的应用。
 
-# 使用Langfuse获取LLM洞察
+# 使用 Langfuse 获取 LLM 洞察
 
-Langfuse是一个LLM工程平台，旨在帮助开发者构建、管理和优化基于LLM的应用。虽然它提供了托管和自托管解决方案，但在本文中我们将重点介绍自托管选项，使你能够完全控制自己的LLM基础设施。
+Langfuse 是一个 LLM 工程平台，旨在帮助开发者构建、管理和优化基于 LLM 的应用。虽然它提供了托管和自托管解决方案，但在本文中我们将重点介绍自托管选项，使你能够完全控制自己的 LLM 基础设施。
 
-## **Langfuse设置的主要亮点**
+## **Langfuse 设置的主要亮点**
 
-Langfuse为你提供了一套强大的工具，简化了LLM开发流程：
+Langfuse 为你提供了一套强大的工具，简化了 LLM 开发流程：
 
 +   **提示管理：** 轻松版本控制和检索提示，确保可重复性并促进实验。
 
-+   **追踪：** 通过详细的追踪信息深入了解你的LLM应用，便于高效调试和故障排除。开箱即用的直观UI使团队能够标注模型交互，以开发和评估训练数据集。
++   **追踪：** 通过详细的追踪信息深入了解你的 LLM 应用，便于高效调试和故障排除。开箱即用的直观 UI 使团队能够标注模型交互，以开发和评估训练数据集。
 
 +   **指标：** 跟踪重要指标，如成本、延迟和令牌使用情况，使你能够优化性能并控制开销。
 
-+   **评估：** 捕获用户反馈，注释LLM响应，甚至设置评估函数，持续评估并改进你的模型。
++   **评估：** 捕获用户反馈，注释 LLM 响应，甚至设置评估函数，持续评估并改进你的模型。
 
-+   **数据集：** 管理和组织来自LLM应用的数据集，促进进一步的微调和模型增强。
++   **数据集：** 管理和组织来自 LLM 应用的数据集，促进进一步的微调和模型增强。
 
 ## **轻松设置**
 
-Langfuse的自托管解决方案非常易于设置，利用基于*docker*的架构，你可以通过*docker compose*快速启动。这种简化的方式最小化了部署复杂性，使你能够专注于构建你的LLM应用。
+Langfuse 的自托管解决方案非常易于设置，利用基于*docker*的架构，你可以通过*docker compose*快速启动。这种简化的方式最小化了部署复杂性，使你能够专注于构建你的 LLM 应用。
 
 ## **框架兼容性**
 
-Langfuse与流行的LLM框架如[LangChain](https://www.langchain.com/)、[LlamaIndex](https://www.llamaindex.ai/)以及DSPy无缝集成，使其成为适用于各种LLM开发框架的多功能工具。
+Langfuse 与流行的 LLM 框架如[LangChain](https://www.langchain.com/)、[LlamaIndex](https://www.llamaindex.ai/)以及 DSPy 无缝集成，使其成为适用于各种 LLM 开发框架的多功能工具。
 
 # DSPY + Langfuse 的强大功能
 
@@ -146,7 +146,7 @@ DSPy 和 Langfuse 的结合在以下场景中尤为重要：
 
 ## **任务：构建问答系统**
 
-在本次练习中，我们将利用DSPy构建一个问答系统，该系统能够回答关于我的工作坊内容（笔记本、markdown文件等）的问题。这个任务突出了DSPy处理和提取文本数据中信息的能力，这是许多LLM应用中至关重要的功能。试想一下，拥有一个个人AI助手（或副驾驶），能够帮助你回忆过去几周的细节、识别工作中的模式，甚至挖掘被遗忘的洞察！这还展示了这样的模块化设置如何轻松扩展到任何其他文本数据集，几乎不需要任何努力。
+在本次练习中，我们将利用 DSPy 构建一个问答系统，该系统能够回答关于我的工作坊内容（笔记本、markdown 文件等）的问题。这个任务突出了 DSPy 处理和提取文本数据中信息的能力，这是许多 LLM 应用中至关重要的功能。试想一下，拥有一个个人 AI 助手（或副驾驶），能够帮助你回忆过去几周的细节、识别工作中的模式，甚至挖掘被遗忘的洞察！这还展示了这样的模块化设置如何轻松扩展到任何其他文本数据集，几乎不需要任何努力。
 
 让我们从设置程序所需的对象开始。
 
@@ -209,7 +209,7 @@ collection.add(
 )
 ```
 
-下一步是简单地将我们的chromadb检索器连接到DSPy框架。以下代码片段创建了一个RM对象，并测试检索是否按预期工作。
+下一步是简单地将我们的 chromadb 检索器连接到 DSPy 框架。以下代码片段创建了一个 RM 对象，并测试检索是否按预期工作。
 
 ```py
 retriever_model = ChromadbRM(
@@ -227,7 +227,7 @@ for result in results:
     display(Markdown(f">- __Document id__::{result.id} \n>- __Document score__::{result.score}"))
 ```
 
-结果看起来很有前景，因为在没有任何干预的情况下，Chromadb能够获取最相关的文档。
+结果看起来很有前景，因为在没有任何干预的情况下，Chromadb 能够获取最相关的文档。
 
 ```py
 Document::# Quick Overview of RLFH
@@ -256,7 +256,7 @@ Document::# Image DSPy: Beyond Prompting
 - Document score::0.9200280698248913
 ```
 
-最后一步是将所有这些内容整合在一起，准备一个DSPy程序。对于我们的简单问答用例，我们准备了一个标准的RAG程序，利用Chromadb作为检索器，Langfuse作为跟踪器。以下代码片段展示了开发基于LLM的应用程序的类似pytorch的方法，无需担心脆弱的提示！
+最后一步是将所有这些内容整合在一起，准备一个 DSPy 程序。对于我们的简单问答用例，我们准备了一个标准的 RAG 程序，利用 Chromadb 作为检索器，Langfuse 作为跟踪器。以下代码片段展示了开发基于 LLM 的应用程序的类似 pytorch 的方法，无需担心脆弱的提示！
 
 ```py
 # RAG Signature
@@ -309,37 +309,37 @@ for question in my_questions:
 
 输出确实非常准确，达到了作为此工作坊材料助手的目的，能够回答问题并很好地引导参与者。
 
-![](../Images/12ca0eec049875f56d6d90960d5d0723.png)
+![](img/12ca0eec049875f56d6d90960d5d0723.png)
 
-图2：DSPy RAG程序的输出。来源：作者
+图 2：DSPy RAG 程序的输出。来源：作者
 
-## **Langfuse的优势**
+## **Langfuse 的优势**
 
-在本文的前面部分，我们讨论了langfuse是如何通过让我们监控LLM的使用情况并改进管道的其他方面来完善整个流程的。langfuse作为跟踪工具的惊人集成，通过一个简单易用的界面将所有内容在后台串联起来。在当前的设置中，langfuse仪表板呈现了我们LLM使用情况的快速总结。
+在本文的前面部分，我们讨论了 langfuse 是如何通过让我们监控 LLM 的使用情况并改进管道的其他方面来完善整个流程的。langfuse 作为跟踪工具的惊人集成，通过一个简单易用的界面将所有内容在后台串联起来。在当前的设置中，langfuse 仪表板呈现了我们 LLM 使用情况的快速总结。
 
-![](../Images/3a36ba9137c9c67f2dd44f0ce7d93a6e.png)
+![](img/3a36ba9137c9c67f2dd44f0ce7d93a6e.png)
 
-图3：Langfuse仪表板。来源：作者
+图 3：Langfuse 仪表板。来源：作者
 
 仪表板包括如追踪数量、总成本甚至令牌使用等指标（这些在优化管道时非常有用）。
 
 ## **洞察与好处**
 
-Langfuse的实用性不仅仅局限于顶层的度量仪表板。它还提供了追踪级别的详细信息（如*图4*所示）。
+Langfuse 的实用性不仅仅局限于顶层的度量仪表板。它还提供了追踪级别的详细信息（如*图 4*所示）。
 
-![](../Images/f1112de13de787eefe9a218d498d391f.png)
+![](img/f1112de13de787eefe9a218d498d391f.png)
 
-图4：Langfuse跟踪详细信息，包括成本、令牌使用、提示以及模型响应。来源：作者。
+图 4：Langfuse 跟踪详细信息，包括成本、令牌使用、提示以及模型响应。来源：作者。
 
 这个界面是通往多个其他方面的门户，这些方面在迭代和改进基于 LLM 的应用程序时非常有用。首先要提到的功能是基于实际使用情况准备数据集。这些数据集可用于微调 LLM、优化 DSPy 程序等。*图 5* 展示了如何从网页 UI 本身轻松定义数据集，并根据需要将跟踪信息（输入请求及模型响应）添加到数据集中。
 
-![](../Images/db0f7ed09c4a08f8a23720d6a454efbf.png)![](../Images/3f9796f949790f848308a49a81f1545c.png)
+![](img/db0f7ed09c4a08f8a23720d6a454efbf.png)![](img/3f9796f949790f848308a49a81f1545c.png)
 
 图 5：（左）通过提供数据集名称和描述等必要信息，直接从网页 UI 创建一个新的数据集。（右）可以通过点击按钮将跟踪记录添加到数据集中。来源：作者
 
 类似于数据集创建和向其中添加数据点，langfuse 简化了指标的创建和数据点的标注。*图 6* 展示了只需点击几下按钮，便能轻松完成相同操作。
 
-![](../Images/acf9c98a20ba18ecf4c51ad3fca07835.png)![](../Images/e19a439a5374973c5f72cd3a492f60ca.png)
+![](img/acf9c98a20ba18ecf4c51ad3fca07835.png)![](img/e19a439a5374973c5f72cd3a492f60ca.png)
 
 图 6：Langfuse 中的指标创建与标注。来源：作者
 
@@ -388,7 +388,7 @@ for item in annotated_dataset.items:
 
 如上面的代码片段所示，我们只需遍历数据集中的数据点，直观地比较两个模型的输出（参见 *图 7*）。使用 Langfuse SDK，我们可以轻松地将实验观察结果、新的跟踪记录和评估分数附加上去。
 
-![](../Images/5f7debc33c398b2935a9540b2ca759f1.png)![](../Images/24ffbca1793fbdb95aea3c357b05b398.png)
+![](img/5f7debc33c398b2935a9540b2ca759f1.png)![](img/24ffbca1793fbdb95aea3c357b05b398.png)
 
 图 7：使用 Langfuse 准备的数据集中的数据点为 LLaMA3.1 驱动的 RAG 提供输出
 

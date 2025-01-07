@@ -1,16 +1,16 @@
 # ChatGPT 并不总是能理解 SQL，但这个 Python 工具可以
 
-> 原文：[https://towardsdatascience.com/say-goodbye-to-sql-headaches-with-this-python-tool-75099f5ff33d?source=collection_archive---------2-----------------------#2024-01-15](https://towardsdatascience.com/say-goodbye-to-sql-headaches-with-this-python-tool-75099f5ff33d?source=collection_archive---------2-----------------------#2024-01-15)
+> 原文：[`towardsdatascience.com/say-goodbye-to-sql-headaches-with-this-python-tool-75099f5ff33d?source=collection_archive---------2-----------------------#2024-01-15`](https://towardsdatascience.com/say-goodbye-to-sql-headaches-with-this-python-tool-75099f5ff33d?source=collection_archive---------2-----------------------#2024-01-15)
 
-![](../Images/7f533659c48f254a71a1f16cf7d400db.png)
+![](img/7f533659c48f254a71a1f16cf7d400db.png)
 
 图片来自[2023852](https://pixabay.com/users/2023852-2023852/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=1192669)的[Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=1192669)
 
 ## SQLGlot — 一站式 SQL 解析与操作 Python 库
 
-[](https://christophertao.medium.com/?source=post_page---byline--75099f5ff33d--------------------------------)[![Christopher Tao](../Images/bea1e3c81cc62eb28bdba9275d6b326f.png)](https://christophertao.medium.com/?source=post_page---byline--75099f5ff33d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--75099f5ff33d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--75099f5ff33d--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--75099f5ff33d--------------------------------)
+[](https://christophertao.medium.com/?source=post_page---byline--75099f5ff33d--------------------------------)![Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--75099f5ff33d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--75099f5ff33d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--75099f5ff33d--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--75099f5ff33d--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--75099f5ff33d--------------------------------) ·10分钟阅读·2024年1月15日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--75099f5ff33d--------------------------------) ·10 分钟阅读·2024 年 1 月 15 日
 
 --
 
@@ -20,7 +20,7 @@
 
 # 1\. 安装
 
-![](../Images/63bffb8ceb480bdb056a738f4d347dee.png)
+![](img/63bffb8ceb480bdb056a738f4d347dee.png)
 
 图片来自[AndreasAux](https://pixabay.com/users/andreasaux-148268/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=326923)的[Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=326923)
 

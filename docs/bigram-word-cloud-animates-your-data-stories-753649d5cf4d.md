@@ -1,16 +1,16 @@
 # Bigram 词云动画展示你的数据故事
 
-> 原文：[https://towardsdatascience.com/bigram-word-cloud-animates-your-data-stories-753649d5cf4d?source=collection_archive---------12-----------------------#2024-05-08](https://towardsdatascience.com/bigram-word-cloud-animates-your-data-stories-753649d5cf4d?source=collection_archive---------12-----------------------#2024-05-08)
+> 原文：[`towardsdatascience.com/bigram-word-cloud-animates-your-data-stories-753649d5cf4d?source=collection_archive---------12-----------------------#2024-05-08`](https://towardsdatascience.com/bigram-word-cloud-animates-your-data-stories-753649d5cf4d?source=collection_archive---------12-----------------------#2024-05-08)
 
-## 实践教程，讲解如何创建 *Animated* *Word* *Cloud* 来显示大ram频率的文本数据集并导出为 MP4 视频
+## 实践教程，讲解如何创建 *Animated* *Word* *Cloud* 来显示大 ram 频率的文本数据集并导出为 MP4 视频
 
-[](https://petrkorab.medium.com/?source=post_page---byline--753649d5cf4d--------------------------------)[![Petr Korab](../Images/9f3afb4b8985584981220e30f18e3b69.png)](https://petrkorab.medium.com/?source=post_page---byline--753649d5cf4d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--753649d5cf4d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--753649d5cf4d--------------------------------) [Petr Korab](https://petrkorab.medium.com/?source=post_page---byline--753649d5cf4d--------------------------------)
+[](https://petrkorab.medium.com/?source=post_page---byline--753649d5cf4d--------------------------------)![Petr Korab](https://petrkorab.medium.com/?source=post_page---byline--753649d5cf4d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--753649d5cf4d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--753649d5cf4d--------------------------------) [Petr Korab](https://petrkorab.medium.com/?source=post_page---byline--753649d5cf4d--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--753649d5cf4d--------------------------------) ·阅读时长 5 分钟·2024年5月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--753649d5cf4d--------------------------------) ·阅读时长 5 分钟·2024 年 5 月 8 日
 
 --
 
-![](../Images/2141fca2ea2b580e87671f132285a724.png)
+![](img/2141fca2ea2b580e87671f132285a724.png)
 
 来源：[AnimatedWordCloud](https://pypi.org/project/AnimatedWordCloud) 库。图片来源：作者。
 
@@ -22,4 +22,4 @@
 
 +   扩展 *n_gram* 参数（= 2）以生成 ***bigram 词云***
 
-+   ***效率提升***（现在每个周期节省了220帧，改进了Y轴等）。
++   ***效率提升***（现在每个周期节省了 220 帧，改进了 Y 轴等）。

@@ -1,16 +1,16 @@
 # 如何生成用于目标检测任务的合成图像
 
-> 原文：[https://towardsdatascience.com/how-to-generate-synthetic-images-for-object-detection-tasks-ac4c015bb3ff?source=collection_archive---------1-----------------------#2024-03-08](https://towardsdatascience.com/how-to-generate-synthetic-images-for-object-detection-tasks-ac4c015bb3ff?source=collection_archive---------1-----------------------#2024-03-08)
+> 原文：[`towardsdatascience.com/how-to-generate-synthetic-images-for-object-detection-tasks-ac4c015bb3ff?source=collection_archive---------1-----------------------#2024-03-08`](https://towardsdatascience.com/how-to-generate-synthetic-images-for-object-detection-tasks-ac4c015bb3ff?source=collection_archive---------1-----------------------#2024-03-08)
 
 ## 使用 Blender、Python 和 3D 资源的逐步教程
 
-[](https://medium.com/@leoneversberg?source=post_page---byline--ac4c015bb3ff--------------------------------)[![Dr. Leon Eversberg](../Images/56dc3579a29933f7047a9ce60be4697a.png)](https://medium.com/@leoneversberg?source=post_page---byline--ac4c015bb3ff--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ac4c015bb3ff--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ac4c015bb3ff--------------------------------) [Dr. Leon Eversberg](https://medium.com/@leoneversberg?source=post_page---byline--ac4c015bb3ff--------------------------------)
+[](https://medium.com/@leoneversberg?source=post_page---byline--ac4c015bb3ff--------------------------------)![Dr. Leon Eversberg](https://medium.com/@leoneversberg?source=post_page---byline--ac4c015bb3ff--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ac4c015bb3ff--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ac4c015bb3ff--------------------------------) [Dr. Leon Eversberg](https://medium.com/@leoneversberg?source=post_page---byline--ac4c015bb3ff--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ac4c015bb3ff--------------------------------) ·10 分钟阅读·2024年3月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ac4c015bb3ff--------------------------------) ·10 分钟阅读·2024 年 3 月 8 日
 
 --
 
-![](../Images/7c3a44be509e2b2d8a89246fc7a037f8.png)
+![](img/7c3a44be509e2b2d8a89246fc7a037f8.png)
 
 图像由作者创建
 

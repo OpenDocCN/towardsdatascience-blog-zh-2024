@@ -1,16 +1,16 @@
 # 理解 Shiny for Python 的两面性：Core 和 Express
 
-> 原文：[https://towardsdatascience.com/understanding-the-two-faces-of-shiny-for-python-core-and-express-7a6450b8bd59?source=collection_archive---------10-----------------------#2024-05-29](https://towardsdatascience.com/understanding-the-two-faces-of-shiny-for-python-core-and-express-7a6450b8bd59?source=collection_archive---------10-----------------------#2024-05-29)
+> 原文：[`towardsdatascience.com/understanding-the-two-faces-of-shiny-for-python-core-and-express-7a6450b8bd59?source=collection_archive---------10-----------------------#2024-05-29`](https://towardsdatascience.com/understanding-the-two-faces-of-shiny-for-python-core-and-express-7a6450b8bd59?source=collection_archive---------10-----------------------#2024-05-29)
 
 ## 探索 Shiny Core 和 Shiny Express for Python 的区别及使用场景
 
-[](https://medium.com/@menghani.deepsha?source=post_page---byline--7a6450b8bd59--------------------------------)[![Deepsha Menghani](../Images/56a6ed8597c36e8c76d8a29a449325a4.png)](https://medium.com/@menghani.deepsha?source=post_page---byline--7a6450b8bd59--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7a6450b8bd59--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7a6450b8bd59--------------------------------) [Deepsha Menghani](https://medium.com/@menghani.deepsha?source=post_page---byline--7a6450b8bd59--------------------------------)
+[](https://medium.com/@menghani.deepsha?source=post_page---byline--7a6450b8bd59--------------------------------)![Deepsha Menghani](https://medium.com/@menghani.deepsha?source=post_page---byline--7a6450b8bd59--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7a6450b8bd59--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7a6450b8bd59--------------------------------) [Deepsha Menghani](https://medium.com/@menghani.deepsha?source=post_page---byline--7a6450b8bd59--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7a6450b8bd59--------------------------------) ·7分钟阅读·2024年5月29日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7a6450b8bd59--------------------------------) ·7 分钟阅读·2024 年 5 月 29 日
 
 --
 
-![](../Images/f0d0a35e5f331fd3ba9c92cd28c1a85f.png)
+![](img/f0d0a35e5f331fd3ba9c92cd28c1a85f.png)
 
 图片由[Vincent van Zalinge](https://unsplash.com/@vincentvanzalinge?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源：[Unsplash](https://unsplash.com/photos/two-giraffe-illustration-4Mu2bXIsn5Y?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

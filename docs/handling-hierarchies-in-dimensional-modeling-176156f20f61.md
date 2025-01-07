@@ -1,12 +1,12 @@
 # 维度建模中的层次结构处理
 
-> 原文：[https://towardsdatascience.com/handling-hierarchies-in-dimensional-modeling-176156f20f61?source=collection_archive---------5-----------------------#2024-07-24](https://towardsdatascience.com/handling-hierarchies-in-dimensional-modeling-176156f20f61?source=collection_archive---------5-----------------------#2024-07-24)
+> 原文：[`towardsdatascience.com/handling-hierarchies-in-dimensional-modeling-176156f20f61?source=collection_archive---------5-----------------------#2024-07-24`](https://towardsdatascience.com/handling-hierarchies-in-dimensional-modeling-176156f20f61?source=collection_archive---------5-----------------------#2024-07-24)
 
 ## 对于层次结构，有多种建模技术可供选择。那么，哪种技术在数据仓库的维度建模中表现最佳呢？如何使用这些技术处理不同类型的层次结构？让我们一探究竟。
 
-[](https://medium.com/@krzysztof.kornel?source=post_page---byline--176156f20f61--------------------------------)[![Krzysztof K. Zdeb](../Images/4531b37707bf6a01ef635e4b9ecfc03f.png)](https://medium.com/@krzysztof.kornel?source=post_page---byline--176156f20f61--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--176156f20f61--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--176156f20f61--------------------------------) [Krzysztof K. Zdeb](https://medium.com/@krzysztof.kornel?source=post_page---byline--176156f20f61--------------------------------)
+[](https://medium.com/@krzysztof.kornel?source=post_page---byline--176156f20f61--------------------------------)![Krzysztof K. Zdeb](https://medium.com/@krzysztof.kornel?source=post_page---byline--176156f20f61--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--176156f20f61--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--176156f20f61--------------------------------) [Krzysztof K. Zdeb](https://medium.com/@krzysztof.kornel?source=post_page---byline--176156f20f61--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--176156f20f61--------------------------------) ·14分钟阅读·2024年7月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--176156f20f61--------------------------------) ·14 分钟阅读·2024 年 7 月 24 日
 
 --
 

@@ -1,16 +1,16 @@
 # 利用数学规划和列生成方法求解资源规划问题
 
-> 原文：[https://towardsdatascience.com/solving-a-resource-planning-problem-with-mathematical-programming-and-column-generation-07fc7dd21ca6?source=collection_archive---------2-----------------------#2024-06-05](https://towardsdatascience.com/solving-a-resource-planning-problem-with-mathematical-programming-and-column-generation-07fc7dd21ca6?source=collection_archive---------2-----------------------#2024-06-05)
+> 原文：[`towardsdatascience.com/solving-a-resource-planning-problem-with-mathematical-programming-and-column-generation-07fc7dd21ca6?source=collection_archive---------2-----------------------#2024-06-05`](https://towardsdatascience.com/solving-a-resource-planning-problem-with-mathematical-programming-and-column-generation-07fc7dd21ca6?source=collection_archive---------2-----------------------#2024-06-05)
 
 ## 使用 Python 和 Gurobipy 求解图着色问题的列生成方法
 
-[](https://medium.com/@luisfernandopa1212?source=post_page---byline--07fc7dd21ca6--------------------------------)[![Luis Fernando PÉREZ ARMAS, Ph.D.](../Images/ca1b4775c2b278769c38542ea989ac92.png)](https://medium.com/@luisfernandopa1212?source=post_page---byline--07fc7dd21ca6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--07fc7dd21ca6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--07fc7dd21ca6--------------------------------) [Luis Fernando PÉREZ ARMAS, Ph.D.](https://medium.com/@luisfernandopa1212?source=post_page---byline--07fc7dd21ca6--------------------------------)
+[](https://medium.com/@luisfernandopa1212?source=post_page---byline--07fc7dd21ca6--------------------------------)![Luis Fernando PÉREZ ARMAS, Ph.D.](https://medium.com/@luisfernandopa1212?source=post_page---byline--07fc7dd21ca6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--07fc7dd21ca6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--07fc7dd21ca6--------------------------------) [Luis Fernando PÉREZ ARMAS, Ph.D.](https://medium.com/@luisfernandopa1212?source=post_page---byline--07fc7dd21ca6--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--07fc7dd21ca6--------------------------------) ·阅读时间：22分钟·2024年6月5日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--07fc7dd21ca6--------------------------------) ·阅读时间：22 分钟·2024 年 6 月 5 日
 
 --
 
-![](../Images/21fc1345a2914c4942de9cd655a7697c.png)
+![](img/21fc1345a2914c4942de9cd655a7697c.png)
 
 毫无疑问，最好的资源规划者（图片由 DALLE-3 创建）
 
@@ -18,7 +18,7 @@
 
 > “但即兴发挥只能带你走到下一个危机的边缘，永远不能替代提前考虑几步并规划到最后的思维。”
 > 
-> **罗伯特·格林**，[**《权力的48条法则》**](https://www.goodreads.com/work/quotes/1297604)
+> **罗伯特·格林**，[**《权力的 48 条法则》**](https://www.goodreads.com/work/quotes/1297604)
 
 我一直觉得必须有更好的方法来解决这个问题，但当时我并不知道 🤔。事实上，获得解决这些问题的技能是我继续学习的主要动力之一。本文探讨了数学优化的一个具体应用，以及它如何能让我的工作当时变得更加轻松。我想，我写这篇文章是送给过去的自己🎁。
 

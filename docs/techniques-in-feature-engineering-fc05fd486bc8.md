@@ -1,16 +1,16 @@
 # 医疗数据分析中的特征工程技术 — 第二部分。
 
-> 原文：[https://towardsdatascience.com/techniques-in-feature-engineering-fc05fd486bc8?source=collection_archive---------4-----------------------#2024-11-20](https://towardsdatascience.com/techniques-in-feature-engineering-fc05fd486bc8?source=collection_archive---------4-----------------------#2024-11-20)
+> 原文：[`towardsdatascience.com/techniques-in-feature-engineering-fc05fd486bc8?source=collection_archive---------4-----------------------#2024-11-20`](https://towardsdatascience.com/techniques-in-feature-engineering-fc05fd486bc8?source=collection_archive---------4-----------------------#2024-11-20)
 
 ## 医疗数据分析中的特征工程技术，重点讨论现实世界的挑战和实际解决方案。
 
-[](https://medium.com/@panData?source=post_page---byline--fc05fd486bc8--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--fc05fd486bc8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc05fd486bc8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fc05fd486bc8--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--fc05fd486bc8--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--fc05fd486bc8--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--fc05fd486bc8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc05fd486bc8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc05fd486bc8--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--fc05fd486bc8--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc05fd486bc8--------------------------------) ·阅读时长25分钟·2024年11月20日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc05fd486bc8--------------------------------) ·阅读时长 25 分钟·2024 年 11 月 20 日
 
 --
 
-![](../Images/ea3d2f0a6152b49f91defcd5ccddb5e1.png)
+![](img/ea3d2f0a6152b49f91defcd5ccddb5e1.png)
 
 由[Irwan](https://unsplash.com/@blogcious?utm_source=medium&utm_medium=referral)拍摄，图片来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

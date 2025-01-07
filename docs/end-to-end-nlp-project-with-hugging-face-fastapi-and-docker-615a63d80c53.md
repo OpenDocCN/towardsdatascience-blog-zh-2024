@@ -1,16 +1,16 @@
 # 使用 Hugging Face、FastAPI 和 Docker 的端到端 NLP 项目
 
-> 原文：[https://towardsdatascience.com/end-to-end-nlp-project-with-hugging-face-fastapi-and-docker-615a63d80c53?source=collection_archive---------2-----------------------#2024-03-07](https://towardsdatascience.com/end-to-end-nlp-project-with-hugging-face-fastapi-and-docker-615a63d80c53?source=collection_archive---------2-----------------------#2024-03-07)
+> 原文：[`towardsdatascience.com/end-to-end-nlp-project-with-hugging-face-fastapi-and-docker-615a63d80c53?source=collection_archive---------2-----------------------#2024-03-07`](https://towardsdatascience.com/end-to-end-nlp-project-with-hugging-face-fastapi-and-docker-615a63d80c53?source=collection_archive---------2-----------------------#2024-03-07)
 
 ## 本教程解释了如何使用 Hugging Face、FastAPI 和 Docker 构建一个容器化的情感分析 API。
 
-[](https://kaspergroesludvigsen.medium.com/?source=post_page---byline--615a63d80c53--------------------------------)[![Kasper Groes Albin Ludvigsen](../Images/3c31c9e54fae4fd1c8f1c441379d1f10.png)](https://kaspergroesludvigsen.medium.com/?source=post_page---byline--615a63d80c53--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--615a63d80c53--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--615a63d80c53--------------------------------) [Kasper Groes Albin Ludvigsen](https://kaspergroesludvigsen.medium.com/?source=post_page---byline--615a63d80c53--------------------------------)
+[](https://kaspergroesludvigsen.medium.com/?source=post_page---byline--615a63d80c53--------------------------------)![Kasper Groes Albin Ludvigsen](https://kaspergroesludvigsen.medium.com/?source=post_page---byline--615a63d80c53--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--615a63d80c53--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--615a63d80c53--------------------------------) [Kasper Groes Albin Ludvigsen](https://kaspergroesludvigsen.medium.com/?source=post_page---byline--615a63d80c53--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--615a63d80c53--------------------------------) ·阅读时间：10分钟·2024年3月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--615a63d80c53--------------------------------) ·阅读时间：10 分钟·2024 年 3 月 7 日
 
 --
 
-![](../Images/0cce1f0d3ed49f09a3eee64df608b20e.png)
+![](img/0cce1f0d3ed49f09a3eee64df608b20e.png)
 
 图片由 [Joshua Hoehne](https://unsplash.com/@mrthetrain?utm_source=medium&utm_medium=referral) 提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

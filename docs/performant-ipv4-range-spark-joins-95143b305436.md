@@ -1,28 +1,28 @@
-# 高性能IPv4范围Spark连接
+# 高性能 IPv4 范围 Spark 连接
 
-> 原文：[https://towardsdatascience.com/performant-ipv4-range-spark-joins-95143b305436?source=collection_archive---------3-----------------------#2024-01-25](https://towardsdatascience.com/performant-ipv4-range-spark-joins-95143b305436?source=collection_archive---------3-----------------------#2024-01-25)
+> 原文：[`towardsdatascience.com/performant-ipv4-range-spark-joins-95143b305436?source=collection_archive---------3-----------------------#2024-01-25`](https://towardsdatascience.com/performant-ipv4-range-spark-joins-95143b305436?source=collection_archive---------3-----------------------#2024-01-25)
 
-## 实用指南：优化Spark中的非等值连接
+## 实用指南：优化 Spark 中的非等值连接
 
-[](https://medium.com/@jean-claude.cote?source=post_page---byline--95143b305436--------------------------------)[![Jean-Claude Cote](../Images/aea2df9c7b95fc85cc336f64d64b0a76.png)](https://medium.com/@jean-claude.cote?source=post_page---byline--95143b305436--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95143b305436--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--95143b305436--------------------------------) [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--95143b305436--------------------------------)
+[](https://medium.com/@jean-claude.cote?source=post_page---byline--95143b305436--------------------------------)![Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--95143b305436--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95143b305436--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95143b305436--------------------------------) [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--95143b305436--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95143b305436--------------------------------) ·9分钟阅读·2024年1月25日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95143b305436--------------------------------) ·9 分钟阅读·2024 年 1 月 25 日
 
 --
 
-![](../Images/e2dd3d2557024e0fd123571495dea461.png)
+![](img/e2dd3d2557024e0fd123571495dea461.png)
 
-图片由John Lee提供，来源于Unsplash
+图片由 John Lee 提供，来源于 Unsplash
 
-通过IP地理位置信息丰富网络事件是一个至关重要的任务，特别是对于[加拿大网络安全中心](https://www.cyber.gc.ca/en)等组织，这是加拿大的国家计算机安全事件响应团队（CSIRT）。在本文中，我们将展示如何优化Spark SQL连接，特别关注涉及不等式条件的场景——这是处理IP地理位置数据时常见的挑战。
+通过 IP 地理位置信息丰富网络事件是一个至关重要的任务，特别是对于[加拿大网络安全中心](https://www.cyber.gc.ca/en)等组织，这是加拿大的国家计算机安全事件响应团队（CSIRT）。在本文中，我们将展示如何优化 Spark SQL 连接，特别关注涉及不等式条件的场景——这是处理 IP 地理位置数据时常见的挑战。
 
-作为网络安全从业者，我们依赖于通过IP地理位置数据库丰富网络事件，这就要求我们采用高效的策略来处理非等值连接。尽管有许多文章阐述了Spark支持的各种连接策略，但这些策略在实际应用中的效果仍然是业内专业人士关注的一个问题。
+作为网络安全从业者，我们依赖于通过 IP 地理位置数据库丰富网络事件，这就要求我们采用高效的策略来处理非等值连接。尽管有许多文章阐述了 Spark 支持的各种连接策略，但这些策略在实际应用中的效果仍然是业内专业人士关注的一个问题。
 
-David Vrba的深刻文章，[“关于Spark 3.0中的连接”](/about-joins-in-spark-3-0-1e0ea083ea86)，发布于Towards Data Science，是一篇宝贵的资源。它解释了Spark选择特定连接策略的条件。在他的文章中，David简要地指出，优化非等值连接的方法是将其转化为等值连接。
+David Vrba 的深刻文章，“关于 Spark 3.0 中的连接”，发布于 Towards Data Science，是一篇宝贵的资源。它解释了 Spark 选择特定连接策略的条件。在他的文章中，David 简要地指出，优化非等值连接的方法是将其转化为等值连接。
 
-本文旨在提供一个实用指南，帮助优化非等值连接的性能，特别是聚焦于与地理位置表中的IP范围进行连接的情况。
+本文旨在提供一个实用指南，帮助优化非等值连接的性能，特别是聚焦于与地理位置表中的 IP 范围进行连接的情况。
 
-为了举例说明这些优化，我们将回顾在[我们之前的文章](/unleashing-the-power-of-sql-analytical-window-functions-a-deep-dive-into-fusing-ipv4-blocks-62bf2b3405e0)中介绍的地理位置表。
+为了举例说明这些优化，我们将回顾在我们之前的文章中介绍的地理位置表。
 
 ```py
 +----------+--------+---------+-----------+-----------+
@@ -131,11 +131,11 @@ FROM
 
 > 如果没有等值条件，Spark 必须使用广播嵌套循环连接（BroadcastNestedLoopJoin，BNLJ）或笛卡尔积连接（Cartesian Product Join，CPJ）。
 
-这两种策略都涉及暴力破解问题；对于左侧的每一行，Spark会对右侧的每一行测试“between”条件。它别无选择。如果右侧的表足够小，Spark可以通过将右侧表复制到每个读取左侧的任务中来优化，这种情况称为BNLJ（嵌套循环连接）情况。然而，如果左侧太大，每个任务将需要读取右侧和左侧的表，这种情况称为CPJ（连接点连接）情况。在这两种情况下，这两种策略都是非常昂贵的。
+这两种策略都涉及暴力破解问题；对于左侧的每一行，Spark 会对右侧的每一行测试“between”条件。它别无选择。如果右侧的表足够小，Spark 可以通过将右侧表复制到每个读取左侧的任务中来优化，这种情况称为 BNLJ（嵌套循环连接）情况。然而，如果左侧太大，每个任务将需要读取右侧和左侧的表，这种情况称为 CPJ（连接点连接）情况。在这两种情况下，这两种策略都是非常昂贵的。
 
-那么，我们如何改进这种情况呢？诀窍是引入连接条件中的相等性。例如，我们可以简单地展开地理位置表中的所有IP范围，为每个IP生成一行。
+那么，我们如何改进这种情况呢？诀窍是引入连接条件中的相等性。例如，我们可以简单地展开地理位置表中的所有 IP 范围，为每个 IP 生成一行。
 
-这是在Spark中容易实现的；我们可以执行以下SQL来展开所有IP范围：
+这是在 Spark 中容易实现的；我们可以执行以下 SQL 来展开所有 IP 范围：
 
 ```py
 SELECT
@@ -147,7 +147,7 @@ FROM
   geolocation
 ```
 
-[sequence](https://spark.apache.org/docs/latest/api/sql/#sequence)函数创建一个从`start_ip`到`end_ip`的IP值数组。[explode](https://spark.apache.org/docs/latest/api/sql/#explode)函数将这个数组展开成单独的行。
+[sequence](https://spark.apache.org/docs/latest/api/sql/#sequence)函数创建一个从`start_ip`到`end_ip`的 IP 值数组。[explode](https://spark.apache.org/docs/latest/api/sql/#explode)函数将这个数组展开成单独的行。
 
 ```py
 +---------+---------+---------+-----------+
@@ -180,9 +180,9 @@ FROM
 +---------+---------+---------+-----------+
 ```
 
-有了两侧的键，我们现在可以执行等值连接，Spark可以高效地分配问题，从而实现最优性能。然而，在实际应用中，这种情况并不现实，因为真正的地理位置表通常包含数十亿行。
+有了两侧的键，我们现在可以执行等值连接，Spark 可以高效地分配问题，从而实现最优性能。然而，在实际应用中，这种情况并不现实，因为真正的地理位置表通常包含数十亿行。
 
-为了解决这个问题，我们可以通过增加映射的粗糙度来提高效率。我们可以将IP范围映射到IP空间中的段，而不是将IP范围映射到每个单独的IP。假设我们将IP空间分割成5个一组的段。分段后的空间大致如下所示：
+为了解决这个问题，我们可以通过增加映射的粗糙度来提高效率。我们可以将 IP 范围映射到 IP 空间中的段，而不是将 IP 范围映射到每个单独的 IP。假设我们将 IP 空间分割成 5 个一组的段。分段后的空间大致如下所示：
 
 ```py
 +---------------+-------------+-----------+
@@ -197,7 +197,7 @@ FROM
 +---------------+-------------+-----------+
 ```
 
-现在，我们的目标是将IP范围映射到它们重叠的段。类似于我们之前做的那样，我们可以展开IP范围，但这次我们将按5个一组的段进行操作。
+现在，我们的目标是将 IP 范围映射到它们重叠的段。类似于我们之前做的那样，我们可以展开 IP 范围，但这次我们将按 5 个一组的段进行操作。
 
 ```py
 SELECT
@@ -209,7 +209,7 @@ FROM
   geolocations
 ```
 
-我们观察到某些IP范围共享相同的`bucket_id`。范围1–2和3–4都属于段1–5。
+我们观察到某些 IP 范围共享相同的`bucket_id`。范围 1–2 和 3–4 都属于段 1–5。
 
 ```py
 +----------+--------+---------+-----------+-----------+-----------+
@@ -226,7 +226,7 @@ FROM
 +----------+--------+---------+-----------+-----------+-----------+
 ```
 
-此外，我们注意到一些IP范围是重复的。IP范围23–29的最后两行与段20–25和26–30重叠。类似于我们展开单个IP的情况，我们仍然在重复行，但重复的程度要小得多。
+此外，我们注意到一些 IP 范围是重复的。IP 范围 23–29 的最后两行与段 20–25 和 26–30 重叠。类似于我们展开单个 IP 的情况，我们仍然在重复行，但重复的程度要小得多。
 
 现在，我们可以利用这个分桶表来执行我们的连接。
 
@@ -243,11 +243,11 @@ FROM
   )
 ```
 
-连接中的相等条件使得Spark能够执行排序合并连接（Sort Merge Join，SMJ）策略。“between”条件消除了IP范围共享相同`bucket_id`的情况。
+连接中的相等条件使得 Spark 能够执行排序合并连接（Sort Merge Join，SMJ）策略。“between”条件消除了 IP 范围共享相同`bucket_id`的情况。
 
-在这个示例中，我们使用了5个一组的段；然而，实际上，我们会将IP空间分割成256个一组的段。这是因为全球IP地址空间由互联网号码分配局（IANA）监管，传统上，IANA按256个IP的块分配地址空间。
+在这个示例中，我们使用了 5 个一组的段；然而，实际上，我们会将 IP 空间分割成 256 个一组的段。这是因为全球 IP 地址空间由互联网号码分配局（IANA）监管，传统上，IANA 按 256 个 IP 的块分配地址空间。
 
-使用Spark的`approx_percentile`函数分析真正的地理位置表中的IP范围可以发现，大多数记录的跨度小于256，而大于256的记录非常少。
+使用 Spark 的`approx_percentile`函数分析真正的地理位置表中的 IP 范围可以发现，大多数记录的跨度小于 256，而大于 256 的记录非常少。
 
 ```py
 SELECT 

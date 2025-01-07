@@ -1,16 +1,16 @@
 # 通过权重量化优化深度学习模型
 
-> 原文：[https://towardsdatascience.com/optimizing-deep-learning-models-with-weight-quantization-c786ffc6d6c1?source=collection_archive---------4-----------------------#2024-06-07](https://towardsdatascience.com/optimizing-deep-learning-models-with-weight-quantization-c786ffc6d6c1?source=collection_archive---------4-----------------------#2024-06-07)
+> 原文：[`towardsdatascience.com/optimizing-deep-learning-models-with-weight-quantization-c786ffc6d6c1?source=collection_archive---------4-----------------------#2024-06-07`](https://towardsdatascience.com/optimizing-deep-learning-models-with-weight-quantization-c786ffc6d6c1?source=collection_archive---------4-----------------------#2024-06-07)
 
 ## 权重量化的实际应用及其对模型大小和性能的影响。
 
-[](https://medium.com/@chienvu?source=post_page---byline--c786ffc6d6c1--------------------------------)[![Chien Vu](../Images/ba70374c28ea91c1941a0a8f1402712f.png)](https://medium.com/@chienvu?source=post_page---byline--c786ffc6d6c1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c786ffc6d6c1--------------------------------)[![数据科学前沿](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c786ffc6d6c1--------------------------------) [Chien Vu](https://medium.com/@chienvu?source=post_page---byline--c786ffc6d6c1--------------------------------)
+[](https://medium.com/@chienvu?source=post_page---byline--c786ffc6d6c1--------------------------------)![Chien Vu](https://medium.com/@chienvu?source=post_page---byline--c786ffc6d6c1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c786ffc6d6c1--------------------------------)![数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--c786ffc6d6c1--------------------------------) [Chien Vu](https://medium.com/@chienvu?source=post_page---byline--c786ffc6d6c1--------------------------------)
 
-·发布于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--c786ffc6d6c1--------------------------------) ·阅读时间14分钟·2024年6月7日
+·发布于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--c786ffc6d6c1--------------------------------) ·阅读时间 14 分钟·2024 年 6 月 7 日
 
 --
 
-![](../Images/07929b8bc2ee3b934b4cc36b0248e5f1.png)
+![](img/07929b8bc2ee3b934b4cc36b0248e5f1.png)
 
 图片来自作者
 

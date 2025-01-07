@@ -1,16 +1,16 @@
 # 偏倚与方差如何影响你的模型
 
-> 原文：[https://towardsdatascience.com/how-bias-and-variance-affect-your-model-a03b1c3dd6d1?source=collection_archive---------6-----------------------#2024-12-24](https://towardsdatascience.com/how-bias-and-variance-affect-your-model-a03b1c3dd6d1?source=collection_archive---------6-----------------------#2024-12-24)
+> 原文：[`towardsdatascience.com/how-bias-and-variance-affect-your-model-a03b1c3dd6d1?source=collection_archive---------6-----------------------#2024-12-24`](https://towardsdatascience.com/how-bias-and-variance-affect-your-model-a03b1c3dd6d1?source=collection_archive---------6-----------------------#2024-12-24)
 
 ## 学习概念和实践。了解模型在每种情况下的表现。
 
-[](https://gustavorsantos.medium.com/?source=post_page---byline--a03b1c3dd6d1--------------------------------)[![Gustavo R Santos](../Images/a19a9f4525cdeb6e7a76cd05246aa622.png)](https://gustavorsantos.medium.com/?source=post_page---byline--a03b1c3dd6d1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a03b1c3dd6d1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a03b1c3dd6d1--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--a03b1c3dd6d1--------------------------------)
+[](https://gustavorsantos.medium.com/?source=post_page---byline--a03b1c3dd6d1--------------------------------)![Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--a03b1c3dd6d1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a03b1c3dd6d1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a03b1c3dd6d1--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--a03b1c3dd6d1--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a03b1c3dd6d1--------------------------------) ·阅读时间 7 分钟·2024年12月24日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a03b1c3dd6d1--------------------------------) ·阅读时间 7 分钟·2024 年 12 月 24 日
 
 --
 
-![](../Images/29fa767247b39410915d7550e2038134.png)
+![](img/29fa767247b39410915d7550e2038134.png)
 
 击中靶心 | Google Gemini 2.0 Flash，2024\. https://gemini.google.com
 
@@ -28,6 +28,6 @@
 
 # 高偏倚
 
-![](../Images/a67a940074637324905fe5aec8017a6a.png)
+![](img/a67a940074637324905fe5aec8017a6a.png)
 
-过度简化 = 用锤子敲打任何东西 | Google Gemini，2024\. [https://gemini.google.com](https://gemini.google.com)
+过度简化 = 用锤子敲打任何东西 | Google Gemini，2024\. [`gemini.google.com`](https://gemini.google.com)

@@ -1,16 +1,16 @@
 # 创建一个互动地图来显示卫星影像的时间序列
 
-> 原文：[https://towardsdatascience.com/create-an-interactive-map-to-display-time-series-of-satellite-imagery-e9346e165e27?source=collection_archive---------6-----------------------#2024-05-17](https://towardsdatascience.com/create-an-interactive-map-to-display-time-series-of-satellite-imagery-e9346e165e27?source=collection_archive---------6-----------------------#2024-05-17)
+> 原文：[`towardsdatascience.com/create-an-interactive-map-to-display-time-series-of-satellite-imagery-e9346e165e27?source=collection_archive---------6-----------------------#2024-05-17`](https://towardsdatascience.com/create-an-interactive-map-to-display-time-series-of-satellite-imagery-e9346e165e27?source=collection_archive---------6-----------------------#2024-05-17)
 
 ## 学习如何使用 Folium 和 Plotly 库（Python）在地图上可视化来自卫星影像的时间序列数据
 
-[](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--e9346e165e27--------------------------------)[![Mahyar Aboutalebi, Ph.D. 🎓](../Images/83d62352800f8a2932db8a07997c8059.png)](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--e9346e165e27--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e9346e165e27--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e9346e165e27--------------------------------) [Mahyar Aboutalebi, Ph.D. 🎓](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--e9346e165e27--------------------------------)
+[](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--e9346e165e27--------------------------------)![Mahyar Aboutalebi, Ph.D. 🎓](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--e9346e165e27--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e9346e165e27--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e9346e165e27--------------------------------) [Mahyar Aboutalebi, Ph.D. 🎓](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--e9346e165e27--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e9346e165e27--------------------------------) ·11分钟阅读·2024年5月17日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e9346e165e27--------------------------------) ·11 分钟阅读·2024 年 5 月 17 日
 
 --
 
-![](../Images/8051e0ef34a1dbf6b20f61c0a6ac5964.png)
+![](img/8051e0ef34a1dbf6b20f61c0a6ac5964.png)
 
 来源：ChatGPT 4-o
 

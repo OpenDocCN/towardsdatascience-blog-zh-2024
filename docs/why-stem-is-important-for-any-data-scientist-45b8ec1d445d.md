@@ -1,22 +1,22 @@
 # 为什么 STEM 对任何数据科学家都很重要
 
-> 原文：[https://towardsdatascience.com/why-stem-is-important-for-any-data-scientist-45b8ec1d445d?source=collection_archive---------6-----------------------#2024-11-14](https://towardsdatascience.com/why-stem-is-important-for-any-data-scientist-45b8ec1d445d?source=collection_archive---------6-----------------------#2024-11-14)
+> 原文：[`towardsdatascience.com/why-stem-is-important-for-any-data-scientist-45b8ec1d445d?source=collection_archive---------6-----------------------#2024-11-14`](https://towardsdatascience.com/why-stem-is-important-for-any-data-scientist-45b8ec1d445d?source=collection_archive---------6-----------------------#2024-11-14)
 
-## 从我个人经验出发，有3个案例可以证明这一点
+## 从我个人经验出发，有 3 个案例可以证明这一点
 
-[](https://radmilamandzhi.medium.com/?source=post_page---byline--45b8ec1d445d--------------------------------)[![Radmila M.](../Images/f3722a0ca0c96b5f6abb8f23a1162488.png)](https://radmilamandzhi.medium.com/?source=post_page---byline--45b8ec1d445d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--45b8ec1d445d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--45b8ec1d445d--------------------------------) [Radmila M.](https://radmilamandzhi.medium.com/?source=post_page---byline--45b8ec1d445d--------------------------------)
+[](https://radmilamandzhi.medium.com/?source=post_page---byline--45b8ec1d445d--------------------------------)![Radmila M.](https://radmilamandzhi.medium.com/?source=post_page---byline--45b8ec1d445d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--45b8ec1d445d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--45b8ec1d445d--------------------------------) [Radmila M.](https://radmilamandzhi.medium.com/?source=post_page---byline--45b8ec1d445d--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--45b8ec1d445d--------------------------------) ·8分钟阅读·2024年11月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--45b8ec1d445d--------------------------------) ·8 分钟阅读·2024 年 11 月 14 日
 
 --
 
-![](../Images/c07104a43f20e38bbb4a5f6523ad4a8a.png)
+![](img/c07104a43f20e38bbb4a5f6523ad4a8a.png)
 
 图片来源：[Ashley Batz](https://unsplash.com/@ashleybatz?utm_source=medium&utm_medium=referral) 通过 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 前言
 
-曾几何时，我曾学习石油工程。说实话，我几乎是偶然进入了这个本科专业。在学校时，我喜欢物理和数学，因此我肯定想在大学学习STEM专业。那时，我对石油行业一无所知，像许多人一样，我以为石油是从地下湖泊中提取的。但因为我成功地被该项目录取，我决定尝试一下。
+曾几何时，我曾学习石油工程。说实话，我几乎是偶然进入了这个本科专业。在学校时，我喜欢物理和数学，因此我肯定想在大学学习 STEM 专业。那时，我对石油行业一无所知，像许多人一样，我以为石油是从地下湖泊中提取的。但因为我成功地被该项目录取，我决定尝试一下。
 
 我不能说我后悔自己的选择，尽管我必须承认，除了实习期间，我并未在行业中工作。但我得到的是解决各种任务的科学方法，而毫无疑问，这是一份极大的礼物。
 
@@ -28,15 +28,15 @@
 
 这是傅里叶变换的正式定义，从中可以看出，该方法的核心是对波的分解，以便简化它们的分析。因此，傅里叶变换在许多应用中都非常有用。例如，音乐识别服务使用傅里叶变换来识别歌曲。在语音识别中，傅里叶变换和相关的变换用于重建语音。
 
-此外，傅里叶变换在图像处理中的应用也非常广泛。JPEG压缩算法就是傅里叶变换的一个特例，用于去除图像中的高频成分。
+此外，傅里叶变换在图像处理中的应用也非常广泛。JPEG 压缩算法就是傅里叶变换的一个特例，用于去除图像中的高频成分。
 
-就我个人而言，我已经应用了快速傅里叶变换（或简称FFT）来创建图像副本，这个方法适用于当我们无法访问微型CT扫描仪，但需要一些二进制图像来研究岩石样本的主要特性时。
+就我个人而言，我已经应用了快速傅里叶变换（或简称 FFT）来创建图像副本，这个方法适用于当我们无法访问微型 CT 扫描仪，但需要一些二进制图像来研究岩石样本的主要特性时。
 
 顺便说一下，最近我写了一篇关于二进制图像的文章：
 
 [](https://pub.towardsai.net/the-brief-history-of-binary-images-c4dacf40ce95?source=post_page-----45b8ec1d445d--------------------------------) [## 二进制图像的简史
 
-### 关于如何使用AI和统计方法处理此类图像的简短Python指南
+### 关于如何使用 AI 和统计方法处理此类图像的简短 Python 指南
 
 pub.towardsai.net](https://pub.towardsai.net/the-brief-history-of-binary-images-c4dacf40ce95?source=post_page-----45b8ec1d445d--------------------------------)
 
@@ -44,13 +44,13 @@ pub.towardsai.net](https://pub.towardsai.net/the-brief-history-of-binary-images-
 
 这是我们将要处理的原始照片：
 
-![](../Images/3765574ea9555f51a229933d8766632b.png)
+![](img/3765574ea9555f51a229933d8766632b.png)
 
 输入图像。由作者拍摄。
 
 让我们使用`skimage`包中的`imread`函数来读取图像，然后对其应用傅里叶变换。
 
-Python代码：
+Python 代码：
 
 ```py
 import matplotlib.pyplot as plt
@@ -79,7 +79,7 @@ plt.show()
 
 输出结果：
 
-![](../Images/2ae22111841a50427ee014e8c9656c6a.png)
+![](img/2ae22111841a50427ee014e8c9656c6a.png)
 
 应用傅里叶变换。图像由作者提供。
 
@@ -87,7 +87,7 @@ plt.show()
 
 那么，如果我们尝试去除与照片中的云层相关的水平“噪音”呢？
 
-我们可以使用一个掩模，该掩模通过初始化一个与图像大小相同的零矩阵来创建，然后在掩模中设置中心的垂直和水平条带为1。接着，通过逐元素相乘将掩模应用于平移后的傅里叶变换图像。过滤后，我们对掩模后的频域数据进行逆傅里叶变换（IFFT），以将其转换回空间域。
+我们可以使用一个掩模，该掩模通过初始化一个与图像大小相同的零矩阵来创建，然后在掩模中设置中心的垂直和水平条带为 1。接着，通过逐元素相乘将掩模应用于平移后的傅里叶变换图像。过滤后，我们对掩模后的频域数据进行逆傅里叶变换（IFFT），以将其转换回空间域。
 
 ```py
 # create vertical & horizontal mask for noise removal
@@ -118,7 +118,7 @@ plt.show()
 
 结果将如下所示：
 
-![](../Images/7995ac29d8d0c1f465793f8fcb54c5d1.png)
+![](img/7995ac29d8d0c1f465793f8fcb54c5d1.png)
 
 经过垂直和水平掩模处理的图像。图像由作者提供。
 
@@ -190,7 +190,7 @@ plt.show()
 
 输出为：
 
-![](../Images/8dfde87c23e52b72598bf2be7bb8b871.png)
+![](img/8dfde87c23e52b72598bf2be7bb8b871.png)
 
 两条正弦波叠加的结果。图片来自作者。
 
@@ -200,7 +200,7 @@ plt.show()
 
 我决定在关于 STEM 的帖子中提到物料平衡，因为任何数据科学家都或多或少知道一个著名的“垃圾进，垃圾出”（或简称 GIGO）公式，意味着低质量的输入将产生错误的输出，我认为这也是数据科学中物料平衡的一种形式 :)
 
-![](../Images/b97278dd03afb284b971be4cc5eeb1e8.png)
+![](img/b97278dd03afb284b971be4cc5eeb1e8.png)
 
 GIGO 原理中的物料平衡。图片来自作者。
 

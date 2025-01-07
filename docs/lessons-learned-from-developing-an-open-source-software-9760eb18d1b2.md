@@ -1,16 +1,16 @@
 # 从开发开源软件中学到的经验
 
-> 原文：[https://towardsdatascience.com/lessons-learned-from-developing-an-open-source-software-9760eb18d1b2?source=collection_archive---------1-----------------------#2024-09-13](https://towardsdatascience.com/lessons-learned-from-developing-an-open-source-software-9760eb18d1b2?source=collection_archive---------1-----------------------#2024-09-13)
+> 原文：[`towardsdatascience.com/lessons-learned-from-developing-an-open-source-software-9760eb18d1b2?source=collection_archive---------1-----------------------#2024-09-13`](https://towardsdatascience.com/lessons-learned-from-developing-an-open-source-software-9760eb18d1b2?source=collection_archive---------1-----------------------#2024-09-13)
 
-![](../Images/922f019d5ed5ff7b52cf80ec194e6dcb.png)
+![](img/922f019d5ed5ff7b52cf80ec194e6dcb.png)
 
 图片来自 Ideogram，由作者修改
 
 ## 以及它们给我作为数据科学家和机器学习工程师带来的意外优势
 
-[](https://medium.com/@siavashyasini?source=post_page---byline--9760eb18d1b2--------------------------------)[![Siavash Yasini](../Images/55220a8a9397ba51dcc381828735f4a2.png)](https://medium.com/@siavashyasini?source=post_page---byline--9760eb18d1b2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9760eb18d1b2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9760eb18d1b2--------------------------------) [Siavash Yasini](https://medium.com/@siavashyasini?source=post_page---byline--9760eb18d1b2--------------------------------)
+[](https://medium.com/@siavashyasini?source=post_page---byline--9760eb18d1b2--------------------------------)![Siavash Yasini](https://medium.com/@siavashyasini?source=post_page---byline--9760eb18d1b2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9760eb18d1b2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9760eb18d1b2--------------------------------) [Siavash Yasini](https://medium.com/@siavashyasini?source=post_page---byline--9760eb18d1b2--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9760eb18d1b2--------------------------------) ·17分钟阅读·2024年9月13日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9760eb18d1b2--------------------------------) ·17 分钟阅读·2024 年 9 月 13 日
 
 --
 

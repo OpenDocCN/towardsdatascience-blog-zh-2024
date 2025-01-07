@@ -1,16 +1,16 @@
 # 构建 WhatsApp LLM 机器人：懒人单人程序员指南
 
-> 原文：[https://towardsdatascience.com/build-a-whatsapp-llm-bot-a-guide-for-lazy-solo-programmers-24934d8f5488?source=collection_archive---------3-----------------------#2024-09-20](https://towardsdatascience.com/build-a-whatsapp-llm-bot-a-guide-for-lazy-solo-programmers-24934d8f5488?source=collection_archive---------3-----------------------#2024-09-20)
+> 原文：[`towardsdatascience.com/build-a-whatsapp-llm-bot-a-guide-for-lazy-solo-programmers-24934d8f5488?source=collection_archive---------3-----------------------#2024-09-20`](https://towardsdatascience.com/build-a-whatsapp-llm-bot-a-guide-for-lazy-solo-programmers-24934d8f5488?source=collection_archive---------3-----------------------#2024-09-20)
 
 ## 我如何在 12 小时内使用 Python、AWS 和 OpenAI 构建它，并总结经验教训
 
-[](https://medium.com/@ianxiao?source=post_page---byline--24934d8f5488--------------------------------)[![Ian Xiao](../Images/ebc61b173710b2bbdfb439173258f5ba.png)](https://medium.com/@ianxiao?source=post_page---byline--24934d8f5488--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--24934d8f5488--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--24934d8f5488--------------------------------) [Ian Xiao](https://medium.com/@ianxiao?source=post_page---byline--24934d8f5488--------------------------------)
+[](https://medium.com/@ianxiao?source=post_page---byline--24934d8f5488--------------------------------)![Ian Xiao](https://medium.com/@ianxiao?source=post_page---byline--24934d8f5488--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--24934d8f5488--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--24934d8f5488--------------------------------) [Ian Xiao](https://medium.com/@ianxiao?source=post_page---byline--24934d8f5488--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--24934d8f5488--------------------------------) ·阅读时长：8分钟·2024年9月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--24934d8f5488--------------------------------) ·阅读时长：8 分钟·2024 年 9 月 20 日
 
 --
 
-![](../Images/6deaee4817f5c361e3cf094d12f7735e.png)
+![](img/6deaee4817f5c361e3cf094d12f7735e.png)
 
 图片来源：[Milad Fakurian](https://unsplash.com/@fakurian?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在 [Unsplash](https://unsplash.com/photos/a-blue-and-white-abstract-design-on-a-black-background-4KYpp7fR5Ew?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 上
 

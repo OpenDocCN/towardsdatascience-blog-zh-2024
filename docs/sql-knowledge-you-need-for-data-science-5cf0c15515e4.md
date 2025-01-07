@@ -1,20 +1,20 @@
 # 数据科学所需的 SQL 知识
 
-> 原文：[https://towardsdatascience.com/sql-knowledge-you-need-for-data-science-5cf0c15515e4?source=collection_archive---------4-----------------------#2024-06-08](https://towardsdatascience.com/sql-knowledge-you-need-for-data-science-5cf0c15515e4?source=collection_archive---------4-----------------------#2024-06-08)
+> 原文：[`towardsdatascience.com/sql-knowledge-you-need-for-data-science-5cf0c15515e4?source=collection_archive---------4-----------------------#2024-06-08`](https://towardsdatascience.com/sql-knowledge-you-need-for-data-science-5cf0c15515e4?source=collection_archive---------4-----------------------#2024-06-08)
 
 ## 成为 SQL 熟练者的主题、资源和建议。
 
-[](https://medium.com/@egorhowell?source=post_page---byline--5cf0c15515e4--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--5cf0c15515e4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5cf0c15515e4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5cf0c15515e4--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--5cf0c15515e4--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--5cf0c15515e4--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--5cf0c15515e4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5cf0c15515e4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5cf0c15515e4--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--5cf0c15515e4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5cf0c15515e4--------------------------------) ·阅读时间：9分钟·2024年6月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5cf0c15515e4--------------------------------) ·阅读时间：9 分钟·2024 年 6 月 8 日
 
 --
 
-![](../Images/6e1a5fba0b8a03cf5c84544cb0f38b3f.png)
+![](img/6e1a5fba0b8a03cf5c84544cb0f38b3f.png)
 
 图片由 [fabio](https://unsplash.com/@fabioha?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-根据 [365DataScience](https://365datascience.com/career-advice/data-scientist-job-outlook/) 的一篇文章，这篇文章调查了1000个 LinkedIn 上的数据科学职位招聘信息，其中 60% 要求 SQL。
+根据 [365DataScience](https://365datascience.com/career-advice/data-scientist-job-outlook/) 的一篇文章，这篇文章调查了 1000 个 LinkedIn 上的数据科学职位招聘信息，其中 60% 要求 SQL。
 
 *这告诉了我们什么？*
 

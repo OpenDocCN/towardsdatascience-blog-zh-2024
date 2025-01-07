@@ -1,16 +1,16 @@
-# Python中的动态可视化
+# Python 中的动态可视化
 
-> 原文：[https://towardsdatascience.com/animated-plotting-in-python-with-opencv-and-matplotlib-d640462c41f4?source=collection_archive---------3-----------------------#2024-11-21](https://towardsdatascience.com/animated-plotting-in-python-with-opencv-and-matplotlib-d640462c41f4?source=collection_archive---------3-----------------------#2024-11-21)
+> 原文：[`towardsdatascience.com/animated-plotting-in-python-with-opencv-and-matplotlib-d640462c41f4?source=collection_archive---------3-----------------------#2024-11-21`](https://towardsdatascience.com/animated-plotting-in-python-with-opencv-and-matplotlib-d640462c41f4?source=collection_archive---------3-----------------------#2024-11-21)
 
-## 如何用OpenCV和Matplotlib制作动画图表
+## 如何用 OpenCV 和 Matplotlib 制作动画图表
 
-[](https://medium.com/@flip.flo.dev?source=post_page---byline--d640462c41f4--------------------------------)[![Florian Trautweiler](../Images/63aa57830a244986c400982f7b78d614.png)](https://medium.com/@flip.flo.dev?source=post_page---byline--d640462c41f4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d640462c41f4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d640462c41f4--------------------------------) [Florian Trautweiler](https://medium.com/@flip.flo.dev?source=post_page---byline--d640462c41f4--------------------------------)
+[](https://medium.com/@flip.flo.dev?source=post_page---byline--d640462c41f4--------------------------------)![Florian Trautweiler](https://medium.com/@flip.flo.dev?source=post_page---byline--d640462c41f4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d640462c41f4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d640462c41f4--------------------------------) [Florian Trautweiler](https://medium.com/@flip.flo.dev?source=post_page---byline--d640462c41f4--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d640462c41f4--------------------------------) ·8分钟阅读·2024年11月21日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d640462c41f4--------------------------------) ·8 分钟阅读·2024 年 11 月 21 日
 
 --
 
-![](../Images/5c206bd2b728441d5c595ce0f3b6404f.png)
+![](img/5c206bd2b728441d5c595ce0f3b6404f.png)
 
 追踪球体轨迹并实时动画显示其垂直位置
 
@@ -20,11 +20,11 @@
 
 仅将值作为数字显示在屏幕上可能无法提供足够的洞察，尤其是当信号快速变化时。在这些情况下，可视化信号的一种非常好的方法是使用带有**时间轴**的图表。在这篇文章中，我将展示如何结合**OpenCV**和**Matplotlib**的强大功能，创建这种信号的动态实时可视化。
 
-我在这个项目中使用的代码和视频可以在GitHub上找到：
+我在这个项目中使用的代码和视频可以在 GitHub 上找到：
 
-[](https://github.com/trflorian/ball-tracking-live-plot?source=post_page-----d640462c41f4--------------------------------) [## GitHub - trflorian/ball-tracking-live-plot: 使用OpenCV追踪球体并绘制…
+[](https://github.com/trflorian/ball-tracking-live-plot?source=post_page-----d640462c41f4--------------------------------) [## GitHub - trflorian/ball-tracking-live-plot: 使用 OpenCV 追踪球体并绘制…
 
-### 使用OpenCV追踪球体并用Matplotlib绘制轨迹 - trflorian/ball-tracking-live-plot
+### 使用 OpenCV 追踪球体并用 Matplotlib 绘制轨迹 - trflorian/ball-tracking-live-plot
 
 [github.com](https://github.com/trflorian/ball-tracking-live-plot?source=post_page-----d640462c41f4--------------------------------)
 
@@ -32,13 +32,13 @@
 
 让我们来探索一个简单的问题，我录制了一个球垂直投向空中的视频。目标是跟踪视频中的球，并绘制其**位置 *p(t)***、**速度 *v(t)***和**加速度 *a(t)***随时间的变化。
 
-![](../Images/cbb6dde91a35cfe409e6e7077d25dfa5.png)
+![](img/cbb6dde91a35cfe409e6e7077d25dfa5.png)
 
 输入视频
 
 我们将参考帧定义为摄像头，并为简单起见，我们仅追踪图像中球体的垂直位置。我们预计位置呈抛物线形状，速度呈线性减少，且加速度保持恒定。
 
-![](../Images/e0854134188a624ac8728d8b27a37126.png)
+![](img/e0854134188a624ac8728d8b27a37126.png)
 
 我们预期的图形草图
 
@@ -46,7 +46,7 @@
 
 在第一步，我们需要识别视频序列中每一帧的球体。由于摄像头保持静止，检测球体的一个简单方法是使用背景减除模型，并结合颜色模型来去除帧中的手部。
 
-首先，我们通过使用[**VideoCapture**](https://docs.opencv.org/4.x/dd/d43/tutorial_py_video_display.html)从**OpenCV**库播放视频片段，并用一个简单的循环显示视频。视频播放到结尾时，我们会重新启动视频。我们还确保以原始帧率回放视频，通过计算视频的FPS来确定**sleep_time**（以毫秒为单位）。最后，记得在结束时释放资源并关闭窗口。
+首先，我们通过使用[**VideoCapture**](https://docs.opencv.org/4.x/dd/d43/tutorial_py_video_display.html)从**OpenCV**库播放视频片段，并用一个简单的循环显示视频。视频播放到结尾时，我们会重新启动视频。我们还确保以原始帧率回放视频，通过计算视频的 FPS 来确定**sleep_time**（以毫秒为单位）。最后，记得在结束时释放资源并关闭窗口。
 
 ```py
 import cv2
@@ -71,7 +71,7 @@ cap.release()
 cv2.destroyAllWindows()
 ```
 
-![](../Images/de085d4139f222d448033a6c43aa09a5.png)
+![](img/de085d4139f222d448033a6c43aa09a5.png)
 
 输入视频的可视化
 
@@ -85,7 +85,7 @@ hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 mask_color = cv2.inRange(hsv, (20, 0, 0), (100, 255, 255))
 ```
 
-为了创建一个运动掩模，我们可以使用一个简单的[**背景减除**](https://en.wikipedia.org/wiki/Foreground_detection#Background_mixture_models)模型。我们使用视频的第一帧作为背景，并将**学习率设置为1**。在循环中，我们应用背景模型来获取前景掩模，但通过将**学习率设置为0**，不将新帧集成到模型中。
+为了创建一个运动掩模，我们可以使用一个简单的[**背景减除**](https://en.wikipedia.org/wiki/Foreground_detection#Background_mixture_models)模型。我们使用视频的第一帧作为背景，并将**学习率设置为 1**。在循环中，我们应用背景模型来获取前景掩模，但通过将**学习率设置为 0**，不将新帧集成到模型中。
 
 ```py
 ...
@@ -114,7 +114,7 @@ mask = cv2.morphologyEx(
 )
 ```
 
-![](../Images/9267b761f4ad6bc0b8b5c340245d198d.png)
+![](img/9267b761f4ad6bc0b8b5c340245d198d.png)
 
 **左上角：** 视频序列，**右上角：** 颜色掩模，**左下角：** 运动掩模，**右下角：** 组合掩模
 
@@ -155,7 +155,7 @@ while True:
       cv2.line(frame, tracked_pos[i - 1], tracked_pos[i], (255, 0, 0), 1)
 ```
 
-![](../Images/f650435618b04b8ca29fd3cd5b1b6325.png)
+![](img/f650435618b04b8ca29fd3cd5b1b6325.png)
 
 球的轨迹可视化
 
@@ -202,7 +202,7 @@ axs[2].plot(range(len(acc)), acc, c="b")
 plt.show()
 ```
 
-![](../Images/1d470d2c80763c501bdbc00c9af25a39.png)
+![](img/1d470d2c80763c501bdbc00c9af25a39.png)
 
 位置、速度和加速度的静态图
 
@@ -239,7 +239,7 @@ while True:
 cv2.imshow("Plot", plot)
 ```
 
-![](../Images/4587f731ece8dfd1948f4c91e8287b31.png)
+![](img/4587f731ece8dfd1948f4c91e8287b31.png)
 
 动画图表
 
@@ -284,17 +284,17 @@ fig.canvas.blit(axs[2].bbox)
 
 就这样，绘图速度加快，性能得到了显著提升。
 
-![](../Images/e9a892839ffccb8b9c85b6df8e94d300.png)
+![](img/e9a892839ffccb8b9c85b6df8e94d300.png)
 
 优化后的图形
 
 # 结论
 
-在这篇文章中，您学会了如何应用简单的计算机视觉技术提取一个移动的前景物体并追踪它的轨迹。接着，我们使用**matplotlib**和**OpenCV**创建了一个动画图。这个绘图演示是通过一个玩具示例视频实现的，视频中一个球被垂直抛向空中。然而，这个项目中使用的工具和技术对于各种任务和实际应用都非常有用！完整的源代码可以在我的GitHub上找到。希望今天您有所收获，祝编码愉快，保重！
+在这篇文章中，您学会了如何应用简单的计算机视觉技术提取一个移动的前景物体并追踪它的轨迹。接着，我们使用**matplotlib**和**OpenCV**创建了一个动画图。这个绘图演示是通过一个玩具示例视频实现的，视频中一个球被垂直抛向空中。然而，这个项目中使用的工具和技术对于各种任务和实际应用都非常有用！完整的源代码可以在我的 GitHub 上找到。希望今天您有所收获，祝编码愉快，保重！
 
-[](https://github.com/trflorian/ball-tracking-live-plot?source=post_page-----d640462c41f4--------------------------------) [## GitHub - trflorian/ball-tracking-live-plot: 使用OpenCV追踪一个球并绘制轨迹…
+[](https://github.com/trflorian/ball-tracking-live-plot?source=post_page-----d640462c41f4--------------------------------) [## GitHub - trflorian/ball-tracking-live-plot: 使用 OpenCV 追踪一个球并绘制轨迹…
 
-### 使用OpenCV追踪一个球并使用Matplotlib绘制轨迹 - trflorian/ball-tracking-live-plot
+### 使用 OpenCV 追踪一个球并使用 Matplotlib 绘制轨迹 - trflorian/ball-tracking-live-plot
 
 github.com](https://github.com/trflorian/ball-tracking-live-plot?source=post_page-----d640462c41f4--------------------------------)
 

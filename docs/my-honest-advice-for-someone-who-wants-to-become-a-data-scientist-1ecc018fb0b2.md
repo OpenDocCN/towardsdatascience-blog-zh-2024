@@ -1,16 +1,16 @@
 # 我给想成为数据科学家的人的诚实建议
 
-> 原文：[https://towardsdatascience.com/my-honest-advice-for-someone-who-wants-to-become-a-data-scientist-1ecc018fb0b2?source=collection_archive---------1-----------------------#2024-08-12](https://towardsdatascience.com/my-honest-advice-for-someone-who-wants-to-become-a-data-scientist-1ecc018fb0b2?source=collection_archive---------1-----------------------#2024-08-12)
+> 原文：[`towardsdatascience.com/my-honest-advice-for-someone-who-wants-to-become-a-data-scientist-1ecc018fb0b2?source=collection_archive---------1-----------------------#2024-08-12`](https://towardsdatascience.com/my-honest-advice-for-someone-who-wants-to-become-a-data-scientist-1ecc018fb0b2?source=collection_archive---------1-----------------------#2024-08-12)
 
 ## 我希望有人在我学习数据科学之前告诉我这些话
 
-[](https://medium.com/@egorhowell?source=post_page---byline--1ecc018fb0b2--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--1ecc018fb0b2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ecc018fb0b2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1ecc018fb0b2--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--1ecc018fb0b2--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--1ecc018fb0b2--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--1ecc018fb0b2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ecc018fb0b2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ecc018fb0b2--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--1ecc018fb0b2--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ecc018fb0b2--------------------------------) ·阅读时长 6 分钟 ·2024年8月12日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ecc018fb0b2--------------------------------) ·阅读时长 6 分钟 ·2024 年 8 月 12 日
 
 --
 
-![](../Images/80022115fb46936eac804588ab53ea07.png)
+![](img/80022115fb46936eac804588ab53ea07.png)
 
 图片来源：[GRAY](https://unsplash.com/@100gray?utm_source=medium&utm_medium=referral) via [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

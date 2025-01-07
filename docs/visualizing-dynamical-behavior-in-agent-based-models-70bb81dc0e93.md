@@ -1,14 +1,14 @@
 # 在基于代理的模型中可视化动态行为
 
-> 原文：[https://towardsdatascience.com/visualizing-dynamical-behavior-in-agent-based-models-70bb81dc0e93?source=collection_archive---------9-----------------------#2024-03-05](https://towardsdatascience.com/visualizing-dynamical-behavior-in-agent-based-models-70bb81dc0e93?source=collection_archive---------9-----------------------#2024-03-05)
+> 原文：[`towardsdatascience.com/visualizing-dynamical-behavior-in-agent-based-models-70bb81dc0e93?source=collection_archive---------9-----------------------#2024-03-05`](https://towardsdatascience.com/visualizing-dynamical-behavior-in-agent-based-models-70bb81dc0e93?source=collection_archive---------9-----------------------#2024-03-05)
 
-![](../Images/535063d1630e3ce67be8af53598f0beb.png)
+![](img/535063d1630e3ce67be8af53598f0beb.png)
 
 ## 并在过程中遇到涌现的复杂性
 
-[](https://medium.com/@Dani_Lisle?source=post_page---byline--70bb81dc0e93--------------------------------)[![Dani Lisle](../Images/2933bbbca26cf198e7964547a91b2751.png)](https://medium.com/@Dani_Lisle?source=post_page---byline--70bb81dc0e93--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--70bb81dc0e93--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--70bb81dc0e93--------------------------------) [Dani Lisle](https://medium.com/@Dani_Lisle?source=post_page---byline--70bb81dc0e93--------------------------------)
+[](https://medium.com/@Dani_Lisle?source=post_page---byline--70bb81dc0e93--------------------------------)![Dani Lisle](https://medium.com/@Dani_Lisle?source=post_page---byline--70bb81dc0e93--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--70bb81dc0e93--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--70bb81dc0e93--------------------------------) [Dani Lisle](https://medium.com/@Dani_Lisle?source=post_page---byline--70bb81dc0e93--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--70bb81dc0e93--------------------------------) ·阅读时间 9 分钟 ·2024年3月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--70bb81dc0e93--------------------------------) ·阅读时间 9 分钟 ·2024 年 3 月 5 日
 
 --
 
@@ -36,11 +36,11 @@
 
 对于我的问题，我希望能够一目了然地看到每个代理的位置及其随时间的移动，并且展示一些基本的状态信息（即每个代理的一个或两个变量）。
 
-目前，有几个库满足了可视化代理基础模型（ABM）的需求，包括NetLogo和Mesa（Python版）。然而，它们主要是为了可视化离散空间模型，而非连续空间模型。对于我的目的，我对后者更感兴趣，因此开始了这个附带任务。如果你想跟着一起学习或亲自测试代码，所有代码都存储在[github.com/dreamchef/abm-viz](https://github.com/dreamchef/abm-dynamics-viz)。
+目前，有几个库满足了可视化代理基础模型（ABM）的需求，包括 NetLogo 和 Mesa（Python 版）。然而，它们主要是为了可视化离散空间模型，而非连续空间模型。对于我的目的，我对后者更感兴趣，因此开始了这个附带任务。如果你想跟着一起学习或亲自测试代码，所有代码都存储在[github.com/dreamchef/abm-viz](https://github.com/dreamchef/abm-dynamics-viz)。
 
-# 在Python中构建类和动画
+# 在 Python 中构建类和动画
 
-首先，我需要表示和存储代理和世界的状态及其动态。我选择使用Python类来实现这一点。我定义了一个Agent类，并为其设置了一组我认为对许多可能的建模任务有用的变量。我还为每个代理在类结构内定义了一个可绘制的圆形对象（使用PyPlot）。
+首先，我需要表示和存储代理和世界的状态及其动态。我选择使用 Python 类来实现这一点。我定义了一个 Agent 类，并为其设置了一组我认为对许多可能的建模任务有用的变量。我还为每个代理在类结构内定义了一个可绘制的圆形对象（使用 PyPlot）。
 
 ```py
 class Agent:
@@ -92,7 +92,7 @@ class World:
 
 我编写这个类是为了让程序员能够简单地指定所需的代理数量（以及世界大小、生成区域大小等其他参数），而不是在主程序中手动创建和添加代理。
 
-在定义了这个基本结构并且在世界中生成了具有随机位置和初始速度的代理后，我使用了PyPlot库的动画功能来创建一个方法，开始进行可视化：
+在定义了这个基本结构并且在世界中生成了具有随机位置和初始速度的代理后，我使用了 PyPlot 库的动画功能来创建一个方法，开始进行可视化：
 
 ```py
 def start(self):
@@ -102,7 +102,7 @@ def start(self):
         plt.show()
 ```
 
-这个函数引用了存储在World实例中的图形、动画的速度和时长的规格，以及一个更新函数，后者也在World类中定义：
+这个函数引用了存储在 World 实例中的图形、动画的速度和时长的规格，以及一个更新函数，后者也在 World 类中定义：
 
 ```py
 def updateWorld(self,x=0):
@@ -128,7 +128,7 @@ def updateWorld(self,x=0):
 
 World.updatePosition 函数仅将每个代理的静态速度添加到当前位置。这项初步工作能够生成像这样的简单动画：
 
-![](../Images/62630e7bd868ec7c0f0e00b752b71c05.png)
+![](img/62630e7bd868ec7c0f0e00b752b71c05.png)
 
 恒定速度
 
@@ -138,7 +138,7 @@ World.updatePosition 函数仅将每个代理的静态速度添加到当前位�
 
 我首先选择定义一个动态，其中每个代理根据周围其他代理的平均运动方向改变自己的运动方向。用方程形式表示：
 
-![](../Images/3a277f060187732ccbdba91e6e82777d.png)
+![](img/3a277f060187732ccbdba91e6e82777d.png)
 
 我通过 Agent.updatePosition() 和 Agent.updateVelocity() 方法在 Python 中编码了该动态，这些方法在每一帧动画中运行：
 
@@ -167,13 +167,13 @@ def updatePosition(self, agents, worldSize):
 
 在下面的 PyPlot 动画中，代理从不同的速度开始，但很快就调整并开始朝同一方向移动。在这种情况下，平均方向最初大致是 Y 方向上的向上。
 
-![](../Images/c71a52a10d0d946ff5df87bb544bff4b.png)
+![](img/c71a52a10d0d946ff5df87bb544bff4b.png)
 
 向上汇聚
 
 这一次，群体初始化时大致以向左的速度运动，并且有一个“滞后者”，它很快调整过来。
 
-![](../Images/fc77372a07139faeff1b8014388fb0f4.png)
+![](img/fc77372a07139faeff1b8014388fb0f4.png)
 
 单个滞后者向左汇聚
 
@@ -189,7 +189,7 @@ pltObjects.append(velocityArrow)
 
 这一修改带来了更有帮助的动画，例如这个。我们仍然可以一眼看到速度汇聚的动态，但现在可以更清楚地看到加速度的变化率。
 
-![](../Images/8322d6407c8d74f5dbba398bd6d03b5a.png)
+![](img/8322d6407c8d74f5dbba398bd6d03b5a.png)
 
 速度箭头
 
@@ -231,9 +231,9 @@ self.pltObj = plt.Circle(self.position, self.plotSize, color=self.color)
 herd_velocity += neighbor.velocity * (0.5-np.sqrt(abs(self.species-neighbor.species)))
 ```
 
-这一变化导致了像这样的动画。为了看到其中有趣的行为，我在动画开始大约20秒后开始录制。
+这一变化导致了像这样的动画。为了看到其中有趣的行为，我在动画开始大约 20 秒后开始录制。
 
-![](../Images/72c034b975c1a23e2db32ccf1cc87b42.png)
+![](img/72c034b975c1a23e2db32ccf1cc87b42.png)
 
 涌现行为
 
@@ -247,7 +247,7 @@ herd_velocity += neighbor.velocity * (0.5-np.sqrt(abs(self.species-neighbor.spec
 
 # 可视化、涌现与数据洞察
 
-我们开始这段旅程的简单目标是可视化一个ABM，以确保我们设置的动态在高层次上能够按预期工作。但除了实现这一目标外，我们还偶然发现了一个可能在创建模型时根本没有考虑过的涌现行为。
+我们开始这段旅程的简单目标是可视化一个 ABM，以确保我们设置的动态在高层次上能够按预期工作。但除了实现这一目标外，我们还偶然发现了一个可能在创建模型时根本没有考虑过的涌现行为。
 
 这说明了在数据科学、模拟和建模领域，关于可视化的重要合作关系。通过对模型或数据集的新视角，可以加速发现复杂系统中的涌现行为。这不仅仅适用于基于代理的建模，它同样适用于在数据科学的其他领域获得洞见。而且，创建新的富有创意的可视化图像提供了一种确保获得此类视角的有效途径。
 

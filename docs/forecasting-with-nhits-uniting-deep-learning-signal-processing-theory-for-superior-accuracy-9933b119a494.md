@@ -1,16 +1,16 @@
-# 使用NHiTs进行预测：将深度学习与信号处理理论结合，实现卓越的准确性
+# 使用 NHiTs 进行预测：将深度学习与信号处理理论结合，实现卓越的准确性
 
-> 原文：[https://towardsdatascience.com/forecasting-with-nhits-uniting-deep-learning-signal-processing-theory-for-superior-accuracy-9933b119a494?source=collection_archive---------3-----------------------#2024-10-10](https://towardsdatascience.com/forecasting-with-nhits-uniting-deep-learning-signal-processing-theory-for-superior-accuracy-9933b119a494?source=collection_archive---------3-----------------------#2024-10-10)
+> 原文：[`towardsdatascience.com/forecasting-with-nhits-uniting-deep-learning-signal-processing-theory-for-superior-accuracy-9933b119a494?source=collection_archive---------3-----------------------#2024-10-10`](https://towardsdatascience.com/forecasting-with-nhits-uniting-deep-learning-signal-processing-theory-for-superior-accuracy-9933b119a494?source=collection_archive---------3-----------------------#2024-10-10)
 
 ## 适用于所有预测场景的高性能深度学习模型
 
-[](https://medium.com/@nikoskafritsas?source=post_page---byline--9933b119a494--------------------------------)[![Nikos Kafritsas](../Images/de965cfcd8fbd8e1baf849017d365cbb.png)](https://medium.com/@nikoskafritsas?source=post_page---byline--9933b119a494--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9933b119a494--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9933b119a494--------------------------------) [Nikos Kafritsas](https://medium.com/@nikoskafritsas?source=post_page---byline--9933b119a494--------------------------------)
+[](https://medium.com/@nikoskafritsas?source=post_page---byline--9933b119a494--------------------------------)![Nikos Kafritsas](https://medium.com/@nikoskafritsas?source=post_page---byline--9933b119a494--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9933b119a494--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9933b119a494--------------------------------) [Nikos Kafritsas](https://medium.com/@nikoskafritsas?source=post_page---byline--9933b119a494--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9933b119a494--------------------------------) ·阅读时间10分钟·2024年10月10日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9933b119a494--------------------------------) ·阅读时间 10 分钟·2024 年 10 月 10 日
 
 --
 
-![](../Images/b8e878a9683d13d5e9c432ac79fdc215.png)
+![](img/b8e878a9683d13d5e9c432ac79fdc215.png)
 
 图片来源[1]
 
@@ -26,4 +26,4 @@
 
 让我们开始吧。
 
-> *✅* 在我的通讯的[**AI项目文件夹**](https://aihorizonforecast.substack.com/p/ai-projects)中，找到关于NHiTS的实际项目（项目2），以及其他酷炫的项目！别忘了订阅！
+> *✅* 在我的通讯的[**AI 项目文件夹**](https://aihorizonforecast.substack.com/p/ai-projects)中，找到关于 NHiTS 的实际项目（项目 2），以及其他酷炫的项目！别忘了订阅！

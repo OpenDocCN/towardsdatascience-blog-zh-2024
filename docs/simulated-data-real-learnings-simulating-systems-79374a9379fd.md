@@ -1,16 +1,16 @@
 # 仿真数据，真实学习：模拟系统
 
-> 原文：[https://towardsdatascience.com/simulated-data-real-learnings-simulating-systems-79374a9379fd?source=collection_archive---------8-----------------------#2024-04-16](https://towardsdatascience.com/simulated-data-real-learnings-simulating-systems-79374a9379fd?source=collection_archive---------8-----------------------#2024-04-16)
+> 原文：[`towardsdatascience.com/simulated-data-real-learnings-simulating-systems-79374a9379fd?source=collection_archive---------8-----------------------#2024-04-16`](https://towardsdatascience.com/simulated-data-real-learnings-simulating-systems-79374a9379fd?source=collection_archive---------8-----------------------#2024-04-16)
 
 ## 第四部分——通过仿真理解系统
 
-[](https://medium.com/@jarom.hulet?source=post_page---byline--79374a9379fd--------------------------------)[![Jarom Hulet](../Images/0fdeb1a2df90cccdd8f2f4b84d5e54eb.png)](https://medium.com/@jarom.hulet?source=post_page---byline--79374a9379fd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--79374a9379fd--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--79374a9379fd--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--79374a9379fd--------------------------------)
+[](https://medium.com/@jarom.hulet?source=post_page---byline--79374a9379fd--------------------------------)![Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--79374a9379fd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--79374a9379fd--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79374a9379fd--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--79374a9379fd--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79374a9379fd--------------------------------) ·13分钟阅读·2024年4月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79374a9379fd--------------------------------) ·13 分钟阅读·2024 年 4 月 16 日
 
 --
 
-![](../Images/224e5e7d2d62dc39524d882bfd31ce00.png)
+![](img/224e5e7d2d62dc39524d882bfd31ce00.png)
 
 来自 Pexels.com 的张凯逸
 
@@ -30,8 +30,8 @@
 
 以下是这些文章的链接：
 
-[](/simulated-data-real-learnings-part-1-dccb52667e32?source=post_page-----79374a9379fd--------------------------------) [## 仿真数据，真实学习：第一部分
+[](/simulated-data-real-learnings-part-1-dccb52667e32?source=post_page-----79374a9379fd--------------------------------) ## 仿真数据，真实学习：第一部分
 
 ### 使用仿真测试机器学习方法
 
-towardsdatascience.com](/simulated-data-real-learnings-part-1-dccb52667e32?source=post_page-----79374a9379fd--------------------------------)
+towardsdatascience.com

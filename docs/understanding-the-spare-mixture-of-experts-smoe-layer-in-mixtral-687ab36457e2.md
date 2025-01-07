@@ -1,18 +1,18 @@
-# 理解Mixtral中的稀疏专家混合（SMoE）层
+# 理解 Mixtral 中的稀疏专家混合（SMoE）层
 
-> 原文：[https://towardsdatascience.com/understanding-the-spare-mixture-of-experts-smoe-layer-in-mixtral-687ab36457e2?source=collection_archive---------2-----------------------#2024-03-21](https://towardsdatascience.com/understanding-the-spare-mixture-of-experts-smoe-layer-in-mixtral-687ab36457e2?source=collection_archive---------2-----------------------#2024-03-21)
+> 原文：[`towardsdatascience.com/understanding-the-spare-mixture-of-experts-smoe-layer-in-mixtral-687ab36457e2?source=collection_archive---------2-----------------------#2024-03-21`](https://towardsdatascience.com/understanding-the-spare-mixture-of-experts-smoe-layer-in-mixtral-687ab36457e2?source=collection_archive---------2-----------------------#2024-03-21)
 
-## 本博客文章将探讨《极大规模神经网络：稀疏门控专家混合层》论文的研究成果及其在Mixtral中的实现。
+## 本博客文章将探讨《极大规模神经网络：稀疏门控专家混合层》论文的研究成果及其在 Mixtral 中的实现。
 
-[](https://medium.com/@mgunton7?source=post_page---byline--687ab36457e2--------------------------------)[![Matthew Gunton](../Images/6f5a9530ad5252aa3f2fae87b3f272b1.png)](https://medium.com/@mgunton7?source=post_page---byline--687ab36457e2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--687ab36457e2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--687ab36457e2--------------------------------) [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--687ab36457e2--------------------------------)
+[](https://medium.com/@mgunton7?source=post_page---byline--687ab36457e2--------------------------------)![Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--687ab36457e2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--687ab36457e2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--687ab36457e2--------------------------------) [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--687ab36457e2--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--687ab36457e2--------------------------------) ·8分钟阅读·2024年3月21日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--687ab36457e2--------------------------------) ·8 分钟阅读·2024 年 3 月 21 日
 
 --
 
-![](../Images/22c84ef8e930f85af40fdb3ea5507534.png)
+![](img/22c84ef8e930f85af40fdb3ea5507534.png)
 
-作者提供的图片，由DALL-E生成
+作者提供的图片，由 DALL-E 生成
 
 # 专业化的探索
 
@@ -20,7 +20,7 @@
 
 自然地，当人们开始着手教计算机进行推理时，分解任务成机器可以处理的多个组件是有意义的——例如，数学一个组件，科学一个组件，语言一个组件，等等。
 
-![](../Images/2f4560d6c8508122c1048e4db4625f03.png)
+![](img/2f4560d6c8508122c1048e4db4625f03.png)
 
 作者提供的图片
 

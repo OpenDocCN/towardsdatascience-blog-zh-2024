@@ -1,16 +1,16 @@
-# 生成式人工智能：使用Pytorch生成对抗网络（GANs）合成数据
+# 生成式人工智能：使用 Pytorch 生成对抗网络（GANs）合成数据
 
-> 原文：[https://towardsdatascience.com/generative-ai-synthetic-data-generation-with-gans-using-pytorch-2e4dde8a17dd?source=collection_archive---------1-----------------------#2024-01-15](https://towardsdatascience.com/generative-ai-synthetic-data-generation-with-gans-using-pytorch-2e4dde8a17dd?source=collection_archive---------1-----------------------#2024-01-15)
+> 原文：[`towardsdatascience.com/generative-ai-synthetic-data-generation-with-gans-using-pytorch-2e4dde8a17dd?source=collection_archive---------1-----------------------#2024-01-15`](https://towardsdatascience.com/generative-ai-synthetic-data-generation-with-gans-using-pytorch-2e4dde8a17dd?source=collection_archive---------1-----------------------#2024-01-15)
 
 ## **解开复杂性的谜团：超越图像和语言模型**
 
-[](https://medium.com/@ns650?source=post_page---byline--2e4dde8a17dd--------------------------------)[![Najib Sharifi, Ph.D.](../Images/d94932c5e3633e32247d98a3c221b181.png)](https://medium.com/@ns650?source=post_page---byline--2e4dde8a17dd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e4dde8a17dd--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2e4dde8a17dd--------------------------------) [Najib Sharifi, Ph.D.](https://medium.com/@ns650?source=post_page---byline--2e4dde8a17dd--------------------------------)
+[](https://medium.com/@ns650?source=post_page---byline--2e4dde8a17dd--------------------------------)![Najib Sharifi, Ph.D.](https://medium.com/@ns650?source=post_page---byline--2e4dde8a17dd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e4dde8a17dd--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e4dde8a17dd--------------------------------) [Najib Sharifi, Ph.D.](https://medium.com/@ns650?source=post_page---byline--2e4dde8a17dd--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e4dde8a17dd--------------------------------) ·7分钟阅读·2024年1月15日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e4dde8a17dd--------------------------------) ·7 分钟阅读·2024 年 1 月 15 日
 
 --
 
-生成式模型因其生成美丽且逼真的图像和语言模型（例如ChatGPT）而变得极为流行，这些模型在各个行业中的应用日益增多。这些生成式模型可以说是人工智能/机器学习现在备受关注（或担忧）的原因；因为它展示了机器学习的巨大潜力，尤其是向那些非专业领域的人展示了这一点。网络上已经有很多关于GANs模型的资源，但大多数都集中在图像生成上。这些图像生成和语言模型需要复杂的空间或时间细节，这增加了额外的复杂性，使得读者更难理解GANs的真正本质。
+生成式模型因其生成美丽且逼真的图像和语言模型（例如 ChatGPT）而变得极为流行，这些模型在各个行业中的应用日益增多。这些生成式模型可以说是人工智能/机器学习现在备受关注（或担忧）的原因；因为它展示了机器学习的巨大潜力，尤其是向那些非专业领域的人展示了这一点。网络上已经有很多关于 GANs 模型的资源，但大多数都集中在图像生成上。这些图像生成和语言模型需要复杂的空间或时间细节，这增加了额外的复杂性，使得读者更难理解 GANs 的真正本质。
 
 为了改善这一点并使 GAN 更加容易为更广泛的受众所接受，在这段简短的讨论和 GAN 模型示例中，我们将采取一种不同且更实用的方法，重点是生成数学函数的合成数据。除了作为学习用途的简化外，合成数据生成本身也变得越来越重要。数据不仅在商业决策中扮演着核心角色，而且越来越多的使用场景中，数据驱动的方法正变得比从第一原理建模更为流行。一个令人兴奋的例子是天气预报，第一原理模型包括了简化版本的纳维-斯托克斯方程，并通过数值方法求解（我得补充一句，计算成本非常高）。然而，近期使用深度学习进行天气预报的尝试（例如，看看 Nvidia 的 FourCastNet [1]）在捕捉天气模式方面取得了非常成功的成果，一旦训练完成，运行起来更容易且速度更快。
 
@@ -30,7 +30,7 @@
 
 **GAN — 结构和组成部分**
 
-![](../Images/1fa83d74ad0c8fcc4dcca0381c8f8226.png)
+![](img/1fa83d74ad0c8fcc4dcca0381c8f8226.png)
 
 GAN 解剖学的示意图。图片来源：[Tingting Zhu](https://www.researchgate.net/publication/376301143_A_Survey_of_Generative_Adversarial_Networks_for_Synthesizing_Structured_Electronic_Health_Records) [2]
 
@@ -48,17 +48,17 @@ GAN 解剖学的示意图。图片来源：[Tingting Zhu](https://www.researchga
 
 生成器努力学习生成判别器无法区分的合成数据，同时，判别器也在不断学习并提高其区分真实与合成数据的能力。这一动态训练过程促使两个模型不断完善自己的技能。这两个模型始终在竞争（因此它被称为对抗性），通过这种竞争，两个模型都能在各自的角色中变得非常出色。
 
-**使用Pytorch实现GAN**
+**使用 Pytorch 实现 GAN**
 
-让我们通过一个创建GAN的示例来继续。在这个示例中，我们在PyTorch中实现一个能够生成合成数据的模型。对于训练，我们有一个包含6个参数的数据集，具有以下形状（所有参数作为参数1的函数被绘制）。每个参数的分布和形状被故意选择得有显著的不同，以增加数据集的复杂性并模拟现实世界的数据。然而，值得一提的是，判别器和生成器的架构仍有很大的优化空间，但在本教程中我们不会关注这一点。
+让我们通过一个创建 GAN 的示例来继续。在这个示例中，我们在 PyTorch 中实现一个能够生成合成数据的模型。对于训练，我们有一个包含 6 个参数的数据集，具有以下形状（所有参数作为参数 1 的函数被绘制）。每个参数的分布和形状被故意选择得有显著的不同，以增加数据集的复杂性并模拟现实世界的数据。然而，值得一提的是，判别器和生成器的架构仍有很大的优化空间，但在本教程中我们不会关注这一点。
 
-在本教程中，我假设你已经理解了常见的人工神经网络（ANN）模型架构和Python编程。我在代码中提供了注释，以帮助你理解代码。
+在本教程中，我假设你已经理解了常见的人工神经网络（ANN）模型架构和 Python 编程。我在代码中提供了注释，以帮助你理解代码。
 
-![](../Images/9dca607323f861b859fe959578580dd0.png)
+![](img/9dca607323f861b859fe959578580dd0.png)
 
-训练数据 — 所有6个参数作为参数1的函数被绘制
+训练数据 — 所有 6 个参数作为参数 1 的函数被绘制
 
-定义GAN模型组件（生成器和判别器）
+定义 GAN 模型组件（生成器和判别器）
 
 ```py
 import torch
@@ -279,14 +279,14 @@ plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.show()
 ```
 
-![](../Images/dc6dbaad057f7434bcbb3812ed77ae2c.png)![](../Images/66571da2455b2846c32dd5a59fda6ba8.png)
+![](img/dc6dbaad057f7434bcbb3812ed77ae2c.png)![](img/66571da2455b2846c32dd5a59fda6ba8.png)
 
-尽管我们的模型很简单，但合成数据和真实数据的分布及数学形态非常相似！训练过程和模型架构可以进行修改，以提高准确性，但这不是我们在这里关注的内容。这个模型可以很容易地调整，以生成其他应用的合成数据，适用于具有更多参数和更复杂的真实物理系统。感谢您抽出时间阅读，希望您觉得这篇文章有启发性。使用生成对抗网络（GANs）可以做很多事情，它是一个非常激动人心的话题，绝对值得尝试这个代码，了解GAN的整体概念，然后开始尝试其他的创意！祝您好运！
+尽管我们的模型很简单，但合成数据和真实数据的分布及数学形态非常相似！训练过程和模型架构可以进行修改，以提高准确性，但这不是我们在这里关注的内容。这个模型可以很容易地调整，以生成其他应用的合成数据，适用于具有更多参数和更复杂的真实物理系统。感谢您抽出时间阅读，希望您觉得这篇文章有启发性。使用生成对抗网络（GANs）可以做很多事情，它是一个非常激动人心的话题，绝对值得尝试这个代码，了解 GAN 的整体概念，然后开始尝试其他的创意！祝您好运！
 
 *除非另有注明，所有图片均为作者提供*
 
 **参考文献**
 
-[1] Jaideep Pathak, Shashank Subramanian, Peter Harrington, Sanjeev Raja, Ashesh Chattopadhyay, Morteza Mardani, Thorsten Kurth, David Hall, Zongyi Li, Kamyar Azizzadenesheli, Pedram Hassanzadeh, Karthik Kashinath, Animashree Anandkumar. (2022). FourCastNet：一种使用自适应傅里叶神经算子的全球数据驱动高分辨率天气模型。arXiv:2202.11214\. [https://doi.org/10.48550/arXiv.2202.11214](https://doi.org/10.48550/arXiv.2202.11214)
+[1] Jaideep Pathak, Shashank Subramanian, Peter Harrington, Sanjeev Raja, Ashesh Chattopadhyay, Morteza Mardani, Thorsten Kurth, David Hall, Zongyi Li, Kamyar Azizzadenesheli, Pedram Hassanzadeh, Karthik Kashinath, Animashree Anandkumar. (2022). FourCastNet：一种使用自适应傅里叶神经算子的全球数据驱动高分辨率天气模型。arXiv:2202.11214\. [`doi.org/10.48550/arXiv.2202.11214`](https://doi.org/10.48550/arXiv.2202.11214)
 
-[2] Ghosheh, Ghadeer & Jin, Li & Zhu, Tingting. (2023). 生成对抗网络在合成结构化电子健康记录中的应用调研。ACM计算调查。10.1145/3636424。
+[2] Ghosheh, Ghadeer & Jin, Li & Zhu, Tingting. (2023). 生成对抗网络在合成结构化电子健康记录中的应用调研。ACM 计算调查。10.1145/3636424。

@@ -1,16 +1,16 @@
 # Delta Lake — 类型扩展
 
-> 原文：[https://towardsdatascience.com/delta-lake-type-widening-82935384a0f5?source=collection_archive---------6-----------------------#2024-04-29](https://towardsdatascience.com/delta-lake-type-widening-82935384a0f5?source=collection_archive---------6-----------------------#2024-04-29)
+> 原文：[`towardsdatascience.com/delta-lake-type-widening-82935384a0f5?source=collection_archive---------6-----------------------#2024-04-29`](https://towardsdatascience.com/delta-lake-type-widening-82935384a0f5?source=collection_archive---------6-----------------------#2024-04-29)
 
 ## 什么是类型扩展，为什么它很重要？
 
-[](https://medium.com/@vitorf24?source=post_page---byline--82935384a0f5--------------------------------)[![Vitor Teixeira](../Images/db450ae1e572a49357c02e9ba3eb4f9d.png)](https://medium.com/@vitorf24?source=post_page---byline--82935384a0f5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--82935384a0f5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--82935384a0f5--------------------------------) [Vitor Teixeira](https://medium.com/@vitorf24?source=post_page---byline--82935384a0f5--------------------------------)
+[](https://medium.com/@vitorf24?source=post_page---byline--82935384a0f5--------------------------------)![Vitor Teixeira](https://medium.com/@vitorf24?source=post_page---byline--82935384a0f5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--82935384a0f5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--82935384a0f5--------------------------------) [Vitor Teixeira](https://medium.com/@vitorf24?source=post_page---byline--82935384a0f5--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--82935384a0f5--------------------------------) ·5 分钟阅读·2024年4月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--82935384a0f5--------------------------------) ·5 分钟阅读·2024 年 4 月 29 日
 
 --
 
-![](../Images/bb2aaa61d9daf044cfc42e106d1c8535.png)
+![](img/bb2aaa61d9daf044cfc42e106d1c8535.png)
 
 图片来源：[Luca Florio](https://unsplash.com/@elleflorio?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,22 +1,22 @@
 # 通过保形预测和自定义非保形评分方法调整的预测区间
 
-> 原文：[https://towardsdatascience.com/use-case-adapted-prediction-intervals-by-means-of-conformal-predictions-and-a-custom-non-conformity-b4fb28d2a4f7?source=collection_archive---------3-----------------------#2024-01-24](https://towardsdatascience.com/use-case-adapted-prediction-intervals-by-means-of-conformal-predictions-and-a-custom-non-conformity-b4fb28d2a4f7?source=collection_archive---------3-----------------------#2024-01-24)
+> 原文：[`towardsdatascience.com/use-case-adapted-prediction-intervals-by-means-of-conformal-predictions-and-a-custom-non-conformity-b4fb28d2a4f7?source=collection_archive---------3-----------------------#2024-01-24`](https://towardsdatascience.com/use-case-adapted-prediction-intervals-by-means-of-conformal-predictions-and-a-custom-non-conformity-b4fb28d2a4f7?source=collection_archive---------3-----------------------#2024-01-24)
 
 ## 我应该对机器学习模型在新数据点上的预测有多大的信心？我能否得到一个可能值的范围？
 
-[](https://medium.com/@arnaud.gc.capitaine?source=post_page---byline--b4fb28d2a4f7--------------------------------)[![Arnaud Capitaine](../Images/3d2ef4ffd67289732c79b59c37771b70.png)](https://medium.com/@arnaud.gc.capitaine?source=post_page---byline--b4fb28d2a4f7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b4fb28d2a4f7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b4fb28d2a4f7--------------------------------) [Arnaud Capitaine](https://medium.com/@arnaud.gc.capitaine?source=post_page---byline--b4fb28d2a4f7--------------------------------)
+[](https://medium.com/@arnaud.gc.capitaine?source=post_page---byline--b4fb28d2a4f7--------------------------------)![Arnaud Capitaine](https://medium.com/@arnaud.gc.capitaine?source=post_page---byline--b4fb28d2a4f7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b4fb28d2a4f7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4fb28d2a4f7--------------------------------) [Arnaud Capitaine](https://medium.com/@arnaud.gc.capitaine?source=post_page---byline--b4fb28d2a4f7--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4fb28d2a4f7--------------------------------) ·9分钟阅读·2024年1月24日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4fb28d2a4f7--------------------------------) ·9 分钟阅读·2024 年 1 月 24 日
 
 --
 
-![](../Images/4a98c53a6c2c214aed040c14db0e4ced.png)
+![](img/4a98c53a6c2c214aed040c14db0e4ced.png)
 
 作者提供的图像
 
 在进行监督任务时，可以使用机器学习模型来预测新样本的结果。然而，新数据点的**预测可能是错误的**。特别是在回归任务中，结果可能取无限多个值时，这一点尤为真实。
 
-为了得到更有洞察力的预测，我们可能更希望（甚至需要）一个预测区间，而不是单一的预测点。**做出充分信息的决策应考虑不确定性**。例如，作为一名房地产投资者，如果预测区间是[100000–10000 ; 100000+10000]，我不会给出与预测区间为[100000–1000 ; 100000+1000]时相同的报价（尽管单点预测是相同的，即100000）。我可能会对第二个区间的单点预测比较信任，但对于第一个区间，我可能会深入研究，因为这个区间相当宽，利润空间也很大，最终价格可能与单点预测有显著差异。
+为了得到更有洞察力的预测，我们可能更希望（甚至需要）一个预测区间，而不是单一的预测点。**做出充分信息的决策应考虑不确定性**。例如，作为一名房地产投资者，如果预测区间是[100000–10000 ; 100000+10000]，我不会给出与预测区间为[100000–1000 ; 100000+1000]时相同的报价（尽管单点预测是相同的，即 100000）。我可能会对第二个区间的单点预测比较信任，但对于第一个区间，我可能会深入研究，因为这个区间相当宽，利润空间也很大，最终价格可能与单点预测有显著差异。
 
 # 预测区间与置信区间
 
@@ -56,11 +56,11 @@
 
 第三个图展示了全局和局部覆盖率。覆盖率是指落在预测区间内的样本数量与总样本数的比值。全局覆盖率是指测试集所有点的比值。局部覆盖率是指测试集的子集上的比值。这些桶是通过实际价格的分位数创建的。
 
-![](../Images/a40e31c43df8e167081d1baea69df2e1.png)
+![](img/a40e31c43df8e167081d1baea69df2e1.png)
 
 图片来自作者
 
-我们可以看到，所有预测的预测宽度几乎相同。覆盖率为94%，接近所选的95%。然而，即使全局覆盖率接近理想值，如果我们看一下（我称之为）局部覆盖率（即对于价格几乎相同的数据点的子集的覆盖率），我们会发现**对于昂贵的房屋，覆盖率很差**（根据我的数据集，昂贵的房屋）。相反，对于便宜的房屋，覆盖率较好（根据我的数据集，便宜的房屋）。然而，**对于便宜的房屋，洞察力非常有限**。例如，对于一套便宜的房屋，预测区间可能是[0 ; 180000]，这对做决策帮助不大。
+我们可以看到，所有预测的预测宽度几乎相同。覆盖率为 94%，接近所选的 95%。然而，即使全局覆盖率接近理想值，如果我们看一下（我称之为）局部覆盖率（即对于价格几乎相同的数据点的子集的覆盖率），我们会发现**对于昂贵的房屋，覆盖率很差**（根据我的数据集，昂贵的房屋）。相反，对于便宜的房屋，覆盖率较好（根据我的数据集，便宜的房屋）。然而，**对于便宜的房屋，洞察力非常有限**。例如，对于一套便宜的房屋，预测区间可能是[0 ; 180000]，这对做决策帮助不大。
 
 本能上，我希望预测区间的宽度与预测值成正比，以便预测宽度能与预测结果匹配。这就是为什么我查看了其他更适合我的用例的非一致性分数。
 
@@ -68,7 +68,7 @@
 
 尽管我不是房地产专家，但对于预测区间，我有一些预期。正如前面所说，我希望它们在某种程度上与预测值成正比。我希望当价格较低时，预测区间较小，而当价格较高时，预测区间较大。
 
-因此，对于这个用例，我将实现两个不符合度得分，这两个得分符合不符合度得分必须满足的条件[[7](https://proceedings.mlr.press/v204/cordier23a/cordier23a.pdf)]（3.1节和附录C）。我从接口*ConformityScore*创建了两个类，该接口要求至少实现两个方法：*get_signed_conformity_scores*和*get_estimation_distribution*。*get_signed_conformity_scores*根据预测值和观察值计算不符合度得分。*get_estimation_distribution*计算估计的分布，然后用于获得预测区间（在提供所选覆盖率后）。我决定将我的第一个不符合度得分命名为*PoissonConformityScore*，因为它与泊松回归直观相关。当考虑泊松回归时，(Y-μ)/√μ具有0均值和方差为1。同样，对于*TweedieConformityScore*类，当考虑Tweedie回归时，(Y-μ)/(μ^(p/2))具有0均值和方差为σ²（假设对所有观察值都是相同的）。在这两个类中，*sym=False*，因为不符合度得分不预期是对称的。此外，*consistency_check=False*，因为我知道这两个方法是一致的，并且满足必要的要求。
+因此，对于这个用例，我将实现两个不符合度得分，这两个得分符合不符合度得分必须满足的条件[[7](https://proceedings.mlr.press/v204/cordier23a/cordier23a.pdf)]（3.1 节和附录 C）。我从接口*ConformityScore*创建了两个类，该接口要求至少实现两个方法：*get_signed_conformity_scores*和*get_estimation_distribution*。*get_signed_conformity_scores*根据预测值和观察值计算不符合度得分。*get_estimation_distribution*计算估计的分布，然后用于获得预测区间（在提供所选覆盖率后）。我决定将我的第一个不符合度得分命名为*PoissonConformityScore*，因为它与泊松回归直观相关。当考虑泊松回归时，(Y-μ)/√μ具有 0 均值和方差为 1。同样，对于*TweedieConformityScore*类，当考虑 Tweedie 回归时，(Y-μ)/(μ^(p/2))具有 0 均值和方差为σ²（假设对所有观察值都是相同的）。在这两个类中，*sym=False*，因为不符合度得分不预期是对称的。此外，*consistency_check=False*，因为我知道这两个方法是一致的，并且满足必要的要求。
 
 ```py
 import numpy as np
@@ -247,15 +247,15 @@ class TweedieConformityScore(ConformityScore):
 
 然后，我使用了与之前相同的例子。除了默认的不符合度得分（我在图中将其命名为*AbsoluteConformityScore*）外，我还考虑了这两个额外的不符合度得分。
 
-![](../Images/e4221fa85633ecfec2a22305d8c4bb59.png)
+![](img/e4221fa85633ecfec2a22305d8c4bb59.png)
 
 图片来源：作者
 
-如我们所见，全球覆盖率都接近所选的95%。我认为这些小的变化是由于在训练集和测试集之间的随机拆分造成的。然而，预测区间的宽度在不同方法之间存在显著差异，局部覆盖率也是如此。再一次，我不是房地产专家，但我认为对于最后一个不符合度得分（图中的第三列），预测区间更为现实。对于新的两个不符合度得分，预测区间对于廉价房屋来说相当狭窄（尽管略低于95%但覆盖率良好），而对于昂贵房屋则相当宽。这是为了（几乎）达到所选的覆盖率（95%）。**我们来自*TweedieConformityScore*不符合度得分的新预测区间在整个价格范围内具有良好的局部覆盖率，并且更具洞察力，因为预测区间不会不必要地宽泛。**
+如我们所见，全球覆盖率都接近所选的 95%。我认为这些小的变化是由于在训练集和测试集之间的随机拆分造成的。然而，预测区间的宽度在不同方法之间存在显著差异，局部覆盖率也是如此。再一次，我不是房地产专家，但我认为对于最后一个不符合度得分（图中的第三列），预测区间更为现实。对于新的两个不符合度得分，预测区间对于廉价房屋来说相当狭窄（尽管略低于 95%但覆盖率良好），而对于昂贵房屋则相当宽。这是为了（几乎）达到所选的覆盖率（95%）。**我们来自*TweedieConformityScore*不符合度得分的新预测区间在整个价格范围内具有良好的局部覆盖率，并且更具洞察力，因为预测区间不会不必要地宽泛。**
 
 # 结论
 
-预测区间可能有助于做出更明智的决策。共形预测是一个工具，它可以通过理论覆盖保证和仅有的弱假设（数据可交换性）来构建预测区间。在考虑常用的非一致性得分时，尽管全球覆盖是所需的，但局部覆盖可能会因使用场景的不同而与所选覆盖差异显著。这就是为什么我最终考虑了适应所考虑使用场景的其他非一致性得分。我展示了如何在共形预测库MAPIE中实现这一点，并说明了这样做的好处。一个合适的非一致性得分有助于获得更有洞察力的预测区间（在目标值范围内具有良好的局部覆盖）。
+预测区间可能有助于做出更明智的决策。共形预测是一个工具，它可以通过理论覆盖保证和仅有的弱假设（数据可交换性）来构建预测区间。在考虑常用的非一致性得分时，尽管全球覆盖是所需的，但局部覆盖可能会因使用场景的不同而与所选覆盖差异显著。这就是为什么我最终考虑了适应所考虑使用场景的其他非一致性得分。我展示了如何在共形预测库 MAPIE 中实现这一点，并说明了这样做的好处。一个合适的非一致性得分有助于获得更有洞察力的预测区间（在目标值范围内具有良好的局部覆盖）。
 
 # 参考文献
 
@@ -277,7 +277,7 @@ class TweedieConformityScore(ConformityScore):
 
 [共形预测 - 维基百科](https://en.wikipedia.org/wiki/Conformal_prediction?source=post_page-----b4fb28d2a4f7--------------------------------)
 
-### OpenML是一个开放平台，用于共享数据集、算法和实验——共同学习如何更好地学习。
+### OpenML 是一个开放平台，用于共享数据集、算法和实验——共同学习如何更好地学习。
 
 [www.openml.org](https://www.openml.org/search?type=data&sort=runs&id=42165&status=active&source=post_page-----b4fb28d2a4f7--------------------------------) [](https://github.com/scikit-learn-contrib/MAPIE?source=post_page-----b4fb28d2a4f7--------------------------------) [## GitHub - scikit-learn-contrib/MAPIE: 一个与 scikit-learn 兼容的预测区间估计模块…
 

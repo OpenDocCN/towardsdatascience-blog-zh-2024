@@ -1,20 +1,20 @@
 # 如何通过理解嵌入质量提升人工智能性能
 
-> 原文：[https://towardsdatascience.com/how-to-improve-ai-performance-by-understanding-embedding-quality-8bcbcb37a60f?source=collection_archive---------2-----------------------#2024-02-14](https://towardsdatascience.com/how-to-improve-ai-performance-by-understanding-embedding-quality-8bcbcb37a60f?source=collection_archive---------2-----------------------#2024-02-14)
+> 原文：[`towardsdatascience.com/how-to-improve-ai-performance-by-understanding-embedding-quality-8bcbcb37a60f?source=collection_archive---------2-----------------------#2024-02-14`](https://towardsdatascience.com/how-to-improve-ai-performance-by-understanding-embedding-quality-8bcbcb37a60f?source=collection_archive---------2-----------------------#2024-02-14)
 
 ## 了解如何确保你的嵌入质量，这对于你的机器学习系统至关重要。
 
-[](https://oieivind.medium.com/?source=post_page---byline--8bcbcb37a60f--------------------------------)[![Eivind Kjosbakken](../Images/5f91b74428e1202fc4a176a3dd1cb1c7.png)](https://oieivind.medium.com/?source=post_page---byline--8bcbcb37a60f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8bcbcb37a60f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8bcbcb37a60f--------------------------------) [Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--8bcbcb37a60f--------------------------------)
+[](https://oieivind.medium.com/?source=post_page---byline--8bcbcb37a60f--------------------------------)![Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--8bcbcb37a60f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8bcbcb37a60f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8bcbcb37a60f--------------------------------) [Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--8bcbcb37a60f--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8bcbcb37a60f--------------------------------) ·阅读时间：10分钟·2024年2月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8bcbcb37a60f--------------------------------) ·阅读时间：10 分钟·2024 年 2 月 14 日
 
 --
 
 创建高质量的嵌入是大多数人工智能系统的重要组成部分。嵌入是人工智能模型进行工作的基础，因此，创建高质量的嵌入是打造高精度人工智能模型的关键元素。因此，本文将讨论如何确保嵌入的质量，从而帮助你创建更好的人工智能模型。
 
-![](../Images/4040b4dd006efe4f34dfb309cdf8769d.png)
+![](img/4040b4dd006efe4f34dfb309cdf8769d.png)
 
-“为人工智能创建可读取嵌入图像”提示。图像由*ChatGPT*提供，OpenAI，2024年2月7日。[https://chat.openai.com.](https://chat.openai.com.)
+“为人工智能创建可读取嵌入图像”提示。图像由*ChatGPT*提供，OpenAI，2024 年 2 月 7 日。[`chat.openai.com.`](https://chat.openai.com.)
 
 # 引言
 

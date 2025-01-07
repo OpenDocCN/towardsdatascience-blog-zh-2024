@@ -1,16 +1,16 @@
 # A/B 测试的全面引导项目（带有笔记本）
 
-> 原文：[https://towardsdatascience.com/a-comprehensive-guided-project-to-a-b-testing-notebook-91e5a300966c?source=collection_archive---------5-----------------------#2024-12-19](https://towardsdatascience.com/a-comprehensive-guided-project-to-a-b-testing-notebook-91e5a300966c?source=collection_archive---------5-----------------------#2024-12-19)
+> 原文：[`towardsdatascience.com/a-comprehensive-guided-project-to-a-b-testing-notebook-91e5a300966c?source=collection_archive---------5-----------------------#2024-12-19`](https://towardsdatascience.com/a-comprehensive-guided-project-to-a-b-testing-notebook-91e5a300966c?source=collection_archive---------5-----------------------#2024-12-19)
 
 ## 从大学时期统计学的失败到对假设检验的热情
 
-[](https://medium.com/@panData?source=post_page---byline--91e5a300966c--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--91e5a300966c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--91e5a300966c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--91e5a300966c--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--91e5a300966c--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--91e5a300966c--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--91e5a300966c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--91e5a300966c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--91e5a300966c--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--91e5a300966c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--91e5a300966c--------------------------------) ·23分钟阅读·2024年12月19日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--91e5a300966c--------------------------------) ·23 分钟阅读·2024 年 12 月 19 日
 
 --
 
-![](../Images/933c8b8865581dc93b61134d02d4950a.png)
+![](img/933c8b8865581dc93b61134d02d4950a.png)
 
 使用**Dall-E**进行 A 与 B 的比较
 

@@ -1,16 +1,16 @@
 # 组织的机器学习投资是（或应该是）渐进式的
 
-> 原文：[https://towardsdatascience.com/organizations-machine-learning-investment-is-or-should-be-incremental-6e3658bb8b19?source=collection_archive---------11-----------------------#2024-07-23](https://towardsdatascience.com/organizations-machine-learning-investment-is-or-should-be-incremental-6e3658bb8b19?source=collection_archive---------11-----------------------#2024-07-23)
+> 原文：[`towardsdatascience.com/organizations-machine-learning-investment-is-or-should-be-incremental-6e3658bb8b19?source=collection_archive---------11-----------------------#2024-07-23`](https://towardsdatascience.com/organizations-machine-learning-investment-is-or-should-be-incremental-6e3658bb8b19?source=collection_archive---------11-----------------------#2024-07-23)
 
 ## 将机器学习系统嵌入生产环境仍然是一个艰难的任务（对于大多数公司来说）
 
-[](https://ivopbernardo.medium.com/?source=post_page---byline--6e3658bb8b19--------------------------------)[![Ivo Bernardo](../Images/39887b6f3e63a67c0545e87962ad5df0.png)](https://ivopbernardo.medium.com/?source=post_page---byline--6e3658bb8b19--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6e3658bb8b19--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6e3658bb8b19--------------------------------) [Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--6e3658bb8b19--------------------------------)
+[](https://ivopbernardo.medium.com/?source=post_page---byline--6e3658bb8b19--------------------------------)![Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--6e3658bb8b19--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6e3658bb8b19--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e3658bb8b19--------------------------------) [Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--6e3658bb8b19--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e3658bb8b19--------------------------------) ·阅读时长7分钟·2024年7月23日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e3658bb8b19--------------------------------) ·阅读时长 7 分钟·2024 年 7 月 23 日
 
 --
 
-![](../Images/ad02939a2a5e23a140ba9d0fc7cab15d.png)
+![](img/ad02939a2a5e23a140ba9d0fc7cab15d.png)
 
 图片来源：[Glen Carrie](https://unsplash.com/pt-br/@glencarrie) @ Unsplash.com
 

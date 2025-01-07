@@ -1,16 +1,16 @@
 # 粒子群优化（PSO）从零开始。用 Python 实现的最简单解释
 
-> 原文：[https://towardsdatascience.com/what-the-hell-is-particle-swarm-optimization-pso-simplest-explanation-in-python-be296fc3b1ab?source=collection_archive---------3-----------------------#2024-02-16](https://towardsdatascience.com/what-the-hell-is-particle-swarm-optimization-pso-simplest-explanation-in-python-be296fc3b1ab?source=collection_archive---------3-----------------------#2024-02-16)
+> 原文：[`towardsdatascience.com/what-the-hell-is-particle-swarm-optimization-pso-simplest-explanation-in-python-be296fc3b1ab?source=collection_archive---------3-----------------------#2024-02-16`](https://towardsdatascience.com/what-the-hell-is-particle-swarm-optimization-pso-simplest-explanation-in-python-be296fc3b1ab?source=collection_archive---------3-----------------------#2024-02-16)
 
 ## 如何实现 PSO
 
-[](https://medium.com/@alexroz?source=post_page---byline--be296fc3b1ab--------------------------------)[![Aleksei Rozanov](../Images/748b69bfaccf39c9aa568a9e6f41eec3.png)](https://medium.com/@alexroz?source=post_page---byline--be296fc3b1ab--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--be296fc3b1ab--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--be296fc3b1ab--------------------------------) [Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--be296fc3b1ab--------------------------------)
+[](https://medium.com/@alexroz?source=post_page---byline--be296fc3b1ab--------------------------------)![Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--be296fc3b1ab--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--be296fc3b1ab--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--be296fc3b1ab--------------------------------) [Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--be296fc3b1ab--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--be296fc3b1ab--------------------------------) ·7 分钟阅读·2024年2月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--be296fc3b1ab--------------------------------) ·7 分钟阅读·2024 年 2 月 16 日
 
 --
 
-![](../Images/d042439b9fca217c92cc9f23072a8af7.png)
+![](img/d042439b9fca217c92cc9f23072a8af7.png)
 
 图片来自 [James Wainscoat](https://unsplash.com/@tumbao1949?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -38,13 +38,13 @@ plt.grid(True)
 plt.show()
 ```
 
-![](../Images/fcbfbeae100b6d28c0d7595cb7ac626e.png)
+![](img/fcbfbeae100b6d28c0d7595cb7ac626e.png)
 
 图片来自 [作者](https://medium.com/@alexroz)。
 
-对于这个函数，y=x²，优化的目标是找到点x=0，使得y的值尽可能低——即为0。但这太简单了。让我们把一切弄得更复杂一些，但仍然保持在**二维**空间。我决定使用以下方程组：
+对于这个函数，y=x²，优化的目标是找到点 x=0，使得 y 的值尽可能低——即为 0。但这太简单了。让我们把一切弄得更复杂一些，但仍然保持在**二维**空间。我决定使用以下方程组：
 
-![](../Images/9e910a9f11cfc5b39085024fa10206c7.png)
+![](img/9e910a9f11cfc5b39085024fa10206c7.png)
 
 图片来源：[作者](https://medium.com/@alexroz)。
 
@@ -69,11 +69,11 @@ plt.grid(True)
 plt.show()
 ```
 
-![](../Images/085120e0e4cf19b81720c0551f3ce42e.png)
+![](img/085120e0e4cf19b81720c0551f3ce42e.png)
 
 图片来源：[作者](https://medium.com/@alexroz)。
 
-如你所见，我故意设置了两个极小值：全局（左）和局部（右）。在优化一个函数时，我们通常需要找到最小（最大）值，即全局最小值（最大值），因此我希望PSO算法面临两个极值的挑战。
+如你所见，我故意设置了两个极小值：全局（左）和局部（右）。在优化一个函数时，我们通常需要找到最小（最大）值，即全局最小值（最大值），因此我希望 PSO 算法面临两个极值的挑战。
 
 # 现在让我们讨论一下算法本身。
 
@@ -85,7 +85,7 @@ plt.show()
 
 粒子本身有两个特征——**位置**和**速度**（或者说是速度；我们的粒子在飞行，对吧？）。所以这些粒子通过逐步迭代，不断改变它们的位置。它们的速度由以下公式定义：
 
-![](../Images/910a6732701e5d166f2e8af3748177f9.png)
+![](img/910a6732701e5d166f2e8af3748177f9.png)
 
 图片来源：[作者](https://medium.com/@alexroz)。
 
@@ -97,15 +97,15 @@ plt.show()
 
 计算速度后，我们通过简单的加法更新粒子的当前位置：
 
-![](../Images/b370df6126ccd1c67f4a480a3fd3e703.png)
+![](img/b370df6126ccd1c67f4a480a3fd3e703.png)
 
 图片来源：[作者](https://medium.com/@alexroz)。
 
 > *到目前为止，有一个大问题尚未解答：* ***这些群体和种群中的最佳位置是什么？***
 
-为了计算这些，我们需要一个增益/奖励函数，来指示哪个解更接近最小值（最大值）。在我们的例子中，这个增益函数就是我们绘制的函数。因此，粒子是X，通过将每个X代入函数，我们可以找出哪个X给出了最小（最大）值的Y。
+为了计算这些，我们需要一个增益/奖励函数，来指示哪个解更接近最小值（最大值）。在我们的例子中，这个增益函数就是我们绘制的函数。因此，粒子是 X，通过将每个 X 代入函数，我们可以找出哪个 X 给出了最小（最大）值的 Y。
 
-因此，在一个种群中，最佳位置是X，它在**当前迭代**中给出了最低（最大）的Y。而在一个群体中，最佳位置是X，它在所有**先前的迭代**中给出了最低（最大）的Y。
+因此，在一个种群中，最佳位置是 X，它在**当前迭代**中给出了最低（最大）的 Y。而在一个群体中，最佳位置是 X，它在所有**先前的迭代**中给出了最低（最大）的 Y。
 
 *简化来说，我们可以说算法的核心思想如下：*
 
@@ -147,13 +147,13 @@ plt.grid(True)
 plt.show()
 ```
 
-![](../Images/dd8f28abbe9d431893d272b348e1ed37.png)
+![](img/dd8f28abbe9d431893d272b348e1ed37.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
-在这里你可以看到，我随机初始化了50个粒子的种群，其中一些粒子已经接近解。
+在这里你可以看到，我随机初始化了 50 个粒子的种群，其中一些粒子已经接近解。
 
-现在让我们实现PSO算法本身。我对代码中的每一行都做了注释，如果你有任何问题，请随时在下方评论区提问。
+现在让我们实现 PSO 算法本身。我对代码中的每一行都做了注释，如果你有任何问题，请随时在下方评论区提问。
 
 ```py
 """Particle Swarm Optimization (PSO)"""
@@ -191,15 +191,15 @@ for i in range(MAX_ITER):
     print(f'Iteration {i+1} \tGain: {swarm_best_gain}')
 ```
 
-经过30次迭代，我们得到了这个结果：
+经过 30 次迭代，我们得到了这个结果：
 
-![](../Images/d82a4138cb2889322b10be822de4a443.png)
+![](img/d82a4138cb2889322b10be822de4a443.png)
 
 PSO（w=0.2，c1=1，c2=2）。图片由[作者](https://medium.com/@alexroz)提供。
 
 正如你所看到的，算法陷入了局部最小值，这是我们不希望发生的。因此，我们需要调整超参数并重新开始。这一次，我决定将惯性权重设置为**w=0.8**，因此，之前的速度对当前状态的影响更大。
 
-![](../Images/1d43dcf5b6fa3f9f4e3a55a0be1bcb2f.png)
+![](img/1d43dcf5b6fa3f9f4e3a55a0be1bcb2f.png)
 
 PSO（w=0.9，c1=1，c2=2）。图片由[作者](https://medium.com/@alexroz)提供。
 
@@ -207,7 +207,7 @@ PSO（w=0.9，c1=1，c2=2）。图片由[作者](https://medium.com/@alexroz)提
 
 ===========================================
 
-[1]Shi Y. 粒子群优化 //IEEE connections. — 2004年 — 第2卷 — 第1期 — 第8-13页。
+[1]Shi Y. 粒子群优化 //IEEE connections. — 2004 年 — 第 2 卷 — 第 1 期 — 第 8-13 页。
 
 ===========================================
 

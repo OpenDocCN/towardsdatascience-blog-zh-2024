@@ -1,16 +1,16 @@
 # 使用 Gemini 为任何类型的 PDF 构建文档 AI 流水线
 
-> 原文：[https://towardsdatascience.com/build-a-document-ai-pipeline-for-any-type-of-pdf-with-gemini-9221c8e143db?source=collection_archive---------0-----------------------#2024-12-15](https://towardsdatascience.com/build-a-document-ai-pipeline-for-any-type-of-pdf-with-gemini-9221c8e143db?source=collection_archive---------0-----------------------#2024-12-15)
+> 原文：[`towardsdatascience.com/build-a-document-ai-pipeline-for-any-type-of-pdf-with-gemini-9221c8e143db?source=collection_archive---------0-----------------------#2024-12-15`](https://towardsdatascience.com/build-a-document-ai-pipeline-for-any-type-of-pdf-with-gemini-9221c8e143db?source=collection_archive---------0-----------------------#2024-12-15)
 
 ## 表格、图片、图表或公式已经不再是问题！提供完整代码。
 
-[](https://medium.com/@CVxTz?source=post_page---byline--9221c8e143db--------------------------------)[![Youness Mansar](../Images/b68fe2cbbe219ab0231922c7165f2b6a.png)](https://medium.com/@CVxTz?source=post_page---byline--9221c8e143db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9221c8e143db--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9221c8e143db--------------------------------) [Youness Mansar](https://medium.com/@CVxTz?source=post_page---byline--9221c8e143db--------------------------------)
+[](https://medium.com/@CVxTz?source=post_page---byline--9221c8e143db--------------------------------)![Youness Mansar](https://medium.com/@CVxTz?source=post_page---byline--9221c8e143db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9221c8e143db--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9221c8e143db--------------------------------) [Youness Mansar](https://medium.com/@CVxTz?source=post_page---byline--9221c8e143db--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9221c8e143db--------------------------------) ·阅读时间 10 分钟·2024年12月15日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9221c8e143db--------------------------------) ·阅读时间 10 分钟·2024 年 12 月 15 日
 
 --
 
-![](../Images/04f5f0506207581622a222ae56c38208.png)
+![](img/04f5f0506207581622a222ae56c38208.png)
 
 图片来源：[Matt Noble](https://unsplash.com/@mcnoble?utm_source=medium&utm_medium=referral) via [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,15 +22,15 @@
 
 # 多模态 LLMs
 
-最近的大型模型大多是多模态的，意味着它们能够处理文本、代码和图像等多种模态。这为我们的问题提供了更简单的解决方案，可以让一个模型一次性处理所有内容。因此，代替为图像加上标题和解析表格，我们可以直接将页面作为图像输入，并按原样处理。我们的管道将能够加载PDF，提取每一页作为图像，使用LLM将其拆分为多个分块，并为每个分块创建索引。如果某个分块被检索到，完整的页面将被包含在LLM的上下文中进行任务处理。接下来，我们将详细说明如何在实践中实现这一点。
+最近的大型模型大多是多模态的，意味着它们能够处理文本、代码和图像等多种模态。这为我们的问题提供了更简单的解决方案，可以让一个模型一次性处理所有内容。因此，代替为图像加上标题和解析表格，我们可以直接将页面作为图像输入，并按原样处理。我们的管道将能够加载 PDF，提取每一页作为图像，使用 LLM 将其拆分为多个分块，并为每个分块创建索引。如果某个分块被检索到，完整的页面将被包含在 LLM 的上下文中进行任务处理。接下来，我们将详细说明如何在实践中实现这一点。
 
 # 管道
 
-我们实现的管道是一个两步过程。首先，我们将每一页分割成重要的分块并对每个分块进行摘要。其次，我们在每次获取请求时检索这些分块并将完整上下文与每个检索到的分块一同包含在LLM上下文中。
+我们实现的管道是一个两步过程。首先，我们将每一页分割成重要的分块并对每个分块进行摘要。其次，我们在每次获取请求时检索这些分块并将完整上下文与每个检索到的分块一同包含在 LLM 上下文中。
 
 ## 步骤 1：页面分割与摘要
 
-我们将页面提取为图像，并将每个图像传递给多模态LLM进行分割。像Gemini这样的模型可以轻松理解并处理页面布局：
+我们将页面提取为图像，并将每个图像传递给多模态 LLM 进行分割。像 Gemini 这样的模型可以轻松理解并处理页面布局：
 
 +   **表格**被视为一个分块。
 
@@ -40,7 +40,7 @@
 
 +   …
 
-对于每个元素，LLM会生成一个摘要，可以嵌入并索引到向量数据库中。
+对于每个元素，LLM 会生成一个摘要，可以嵌入并索引到向量数据库中。
 
 ## 步骤 2：嵌入与上下文检索
 
@@ -54,27 +54,27 @@
 
 +   提供完整页面图像的链接以增加上下文信息。
 
-该架构允许**局部级别搜索**（按分块级别），同时保持**上下文跟踪**（通过链接回完整页面）。例如，如果搜索查询检索到某个项，代理可以将整个页面图像包含进来，以便向LLM提供完整的布局和额外的上下文信息，从而最大化响应质量。
+该架构允许**局部级别搜索**（按分块级别），同时保持**上下文跟踪**（通过链接回完整页面）。例如，如果搜索查询检索到某个项，代理可以将整个页面图像包含进来，以便向 LLM 提供完整的布局和额外的上下文信息，从而最大化响应质量。
 
-通过提供完整图像，所有的视觉提示和重要的布局信息（如图像、标题、项目符号…）以及邻近的项（表格、段落等）都可以在生成响应时提供给LLM。
+通过提供完整图像，所有的视觉提示和重要的布局信息（如图像、标题、项目符号…）以及邻近的项（表格、段落等）都可以在生成响应时提供给 LLM。
 
 # 代理
 
 我们将每个步骤实现为一个独立的、可重用的代理：
 
-第一个代理用于解析、分块和摘要。这涉及到将文档分割成重要的分块，并为每个分块生成摘要。这个代理每个PDF只需要运行一次，用于预处理文档。
+第一个代理用于解析、分块和摘要。这涉及到将文档分割成重要的分块，并为每个分块生成摘要。这个代理每个 PDF 只需要运行一次，用于预处理文档。
 
 第二个代理负责管理索引、搜索和检索。这包括将分块的嵌入插入到向量数据库中，以便高效搜索。索引在每个文档中只执行一次，而搜索可以根据不同的查询重复进行。
 
-对于两个代理，我们使用**Gemini**，一个具有强大视觉理解能力的多模态LLM。
+对于两个代理，我们使用**Gemini**，一个具有强大视觉理解能力的多模态 LLM。
 
 ## 解析与分块代理
 
 第一个代理负责将每一页分割成有意义的片段，并对每个片段进行总结，按照以下步骤进行：
 
-**步骤 1：将PDF页面提取为图像**
+**步骤 1：将 PDF 页面提取为图像**
 
-我们使用`pdf2image`库。然后将图像编码为Base64格式，以简化将其添加到LLM请求中。
+我们使用`pdf2image`库。然后将图像编码为 Base64 格式，以简化将其添加到 LLM 请求中。
 
 下面是实现过程：
 
@@ -98,13 +98,13 @@ class DocumentParsingAgent:
         return {"pages_as_base64_jpeg_images": pages_as_base64_jpeg_images}
 ```
 
-`extract_images_from_pdf`：将PDF的每一页提取为PIL图像。
+`extract_images_from_pdf`：将 PDF 的每一页提取为 PIL 图像。
 
-`pil_image_to_base64_jpeg`：将图像转换为Base64编码的JPEG格式。
+`pil_image_to_base64_jpeg`：将图像转换为 Base64 编码的 JPEG 格式。
 
 **步骤 2：分段和总结**
 
-每个图像将被发送到LLM进行分割和总结。我们使用结构化输出以确保获得我们期望的格式的预测：
+每个图像将被发送到 LLM 进行分割和总结。我们使用结构化输出以确保获得我们期望的格式的预测：
 
 ```py
 from pydantic import BaseModel, Field
@@ -185,7 +185,7 @@ class DocumentParsingAgent:
 
 **步骤 3：页面的并行处理**
 
-页面并行处理以提高速度。以下方法创建一个任务列表，以便同时处理所有页面图像，因为处理是IO绑定的：
+页面并行处理以提高速度。以下方法创建一个任务列表，以便同时处理所有页面图像，因为处理是 IO 绑定的：
 
 ```py
 from langgraph.types import Send
@@ -236,7 +236,7 @@ class DocumentParsingAgent:
         self.graph = builder.compile()
 ```
 
-要在一个样本PDF上运行代理，我们需要执行以下操作：
+要在一个样本 PDF 上运行代理，我们需要执行以下操作：
 
 ```py
 if __name__ == "__main__":
@@ -263,15 +263,15 @@ if __name__ == "__main__":
         print(item.metadata["element_type"]) 
 ```
 
-这将生成一个解析、分段和总结后的PDF表示，它是我们接下来要构建的第二个代理的输入。
+这将生成一个解析、分段和总结后的 PDF 表示，它是我们接下来要构建的第二个代理的输入。
 
-## RAG代理
+## RAG 代理
 
 这个第二个代理负责索引和检索部分。它将前一个代理的文档保存到向量数据库中，并使用结果进行检索。这可以分为两个独立的步骤，索引和检索。
 
 **步骤 1：索引拆分文档**
 
-使用生成的总结，我们将它们向量化并保存到ChromaDB数据库中：
+使用生成的总结，我们将它们向量化并保存到 ChromaDB 数据库中：
 
 ```py
 class DocumentRAGAgent:
@@ -329,7 +329,7 @@ class DocumentRAGAgent:
         return {"response": response.text, "relevant_documents": relevant_documents}
 ```
 
-检索器查询向量存储以查找与用户问题最相关的片段。然后我们为LLM（Gemini）构建上下文，结合文本片段和图像以生成回应。
+检索器查询向量存储以查找与用户问题最相关的片段。然后我们为 LLM（Gemini）构建上下文，结合文本片段和图像以生成回应。
 
 **完整代理工作流程**
 
@@ -395,44 +395,44 @@ if __name__ == "__main__":
 
 通过此实现，管道完成了文档处理、检索和问答功能。
 
-# 示例：使用文档AI管道
+# 示例：使用文档 AI 管道
 
-让我们通过一个实际示例来操作，使用文档[LLM & Adaptation.pdf](https://github.com/SharifiZarchi/Introduction_to_Machine_Learning/blob/main/Slides/Chapter_05_Natural_Language_Processing/04-LLM%26Adaptation/LLM%20%26%20Adaptation.pdf)，它包含39页幻灯片，包含文本、公式和图形（CC BY 4.0）。
+让我们通过一个实际示例来操作，使用文档[LLM & Adaptation.pdf](https://github.com/SharifiZarchi/Introduction_to_Machine_Learning/blob/main/Slides/Chapter_05_Natural_Language_Processing/04-LLM%26Adaptation/LLM%20%26%20Adaptation.pdf)，它包含 39 页幻灯片，包含文本、公式和图形（CC BY 4.0）。
 
-## 第1步：解析和总结文档（代理1）
+## 第 1 步：解析和总结文档（代理 1）
 
-+   **执行时间**：解析39页文档花费了**29秒**。
++   **执行时间**：解析 39 页文档花费了**29 秒**。
 
-+   **结果**：代理1生成了一个索引文档，其中包含每页的摘要和Base64编码的JPEG图片。
++   **结果**：代理 1 生成了一个索引文档，其中包含每页的摘要和 Base64 编码的 JPEG 图片。
 
-## 第2步：质疑文档（代理2）
+## 第 2 步：质疑文档（代理 2）
 
 我们提出了以下问题：
 
-**“**解释LoRA，给出相关的公式**”**
+**“**解释 LoRA，给出相关的公式**”**
 
 ## 结果：
 
 检索的页面：
 
-![](../Images/a96c96db2579443f470a142aa9c9d1a7.png)
+![](img/a96c96db2579443f470a142aa9c9d1a7.png)
 
 来源：[LLM & Adaptation.pdf](https://github.com/SharifiZarchi/Introduction_to_Machine_Learning/blob/main/Slides/Chapter_05_Natural_Language_Processing/04-LLM%26Adaptation/LLM%20%26%20Adaptation.pdf) 许可证 CC-BY
 
-## 来自LLM的回应
+## 来自 LLM 的回应
 
-![](../Images/4af2dc191f5a778641c7a0e0c0b2fcb8.png)
+![](img/4af2dc191f5a778641c7a0e0c0b2fcb8.png)
 
 图片来源：作者。
 
-LLM能够通过利用生成连贯且正确回应的视觉上下文，将公式和图形纳入其回应中。
+LLM 能够通过利用生成连贯且正确回应的视觉上下文，将公式和图形纳入其回应中。
 
 # 结论
 
-在这个简短的教程中，我们看到了如何通过利用近期LLMs的多模态性，进一步推进你的文档AI处理流程，并利用每个文档中的完整视觉上下文，来提升你从信息提取或RAG流程中获得的输出质量。
+在这个简短的教程中，我们看到了如何通过利用近期 LLMs 的多模态性，进一步推进你的文档 AI 处理流程，并利用每个文档中的完整视觉上下文，来提升你从信息提取或 RAG 流程中获得的输出质量。
 
-我们构建了一个更强大的文档分割步骤，能够检测到重要的项目，如段落、表格和图形，并对其进行总结，随后使用这一第一步的结果来查询项目和页面集合，利用Gemini给出相关且精准的答案。作为下一步，你可以在你的使用案例和文档上尝试，试着使用一个可扩展的向量数据库，并将这些代理部署为你AI应用的一部分。
+我们构建了一个更强大的文档分割步骤，能够检测到重要的项目，如段落、表格和图形，并对其进行总结，随后使用这一第一步的结果来查询项目和页面集合，利用 Gemini 给出相关且精准的答案。作为下一步，你可以在你的使用案例和文档上尝试，试着使用一个可扩展的向量数据库，并将这些代理部署为你 AI 应用的一部分。
 
-完整代码和示例请参见：[https://github.com/CVxTz/document_ai_agents](https://github.com/CVxTz/document_ai_agents)
+完整代码和示例请参见：[`github.com/CVxTz/document_ai_agents`](https://github.com/CVxTz/document_ai_agents)
 
 感谢阅读！😃

@@ -1,20 +1,20 @@
-# 让Google变成Google的算法
+# 让 Google 变成 Google 的算法
 
-> 原文：[https://towardsdatascience.com/the-algorithm-that-made-google-google-3bbc2cfa8815?source=collection_archive---------1-----------------------#2024-12-18](https://towardsdatascience.com/the-algorithm-that-made-google-google-3bbc2cfa8815?source=collection_archive---------1-----------------------#2024-12-18)
+> 原文：[`towardsdatascience.com/the-algorithm-that-made-google-google-3bbc2cfa8815?source=collection_archive---------1-----------------------#2024-12-18`](https://towardsdatascience.com/the-algorithm-that-made-google-google-3bbc2cfa8815?source=collection_archive---------1-----------------------#2024-12-18)
 
-## PageRank如何改变了我们搜索互联网的方式，以及它为何在LLMs与图形RAG中仍然发挥着重要作用。
+## PageRank 如何改变了我们搜索互联网的方式，以及它为何在 LLMs 与图形 RAG 中仍然发挥着重要作用。
 
-[](https://medium.com/@cristianleo120?source=post_page---byline--3bbc2cfa8815--------------------------------)[![Cristian Leo](../Images/99074292e7dfda50cf50a790b8deda79.png)](https://medium.com/@cristianleo120?source=post_page---byline--3bbc2cfa8815--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3bbc2cfa8815--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3bbc2cfa8815--------------------------------) [Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--3bbc2cfa8815--------------------------------)
+[](https://medium.com/@cristianleo120?source=post_page---byline--3bbc2cfa8815--------------------------------)![Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--3bbc2cfa8815--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3bbc2cfa8815--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3bbc2cfa8815--------------------------------) [Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--3bbc2cfa8815--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3bbc2cfa8815--------------------------------) ·阅读时间：16分钟·2024年12月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3bbc2cfa8815--------------------------------) ·阅读时间：16 分钟·2024 年 12 月 18 日
 
 --
 
-![](../Images/b9c5d8296fadf79dceaa79c41cdd3643.png)
+![](img/b9c5d8296fadf79dceaa79c41cdd3643.png)
 
-由DALL-E生成的图像
+由 DALL-E 生成的图像
 
-在1990年代末，两位斯坦福大学的研究生，拉里·佩奇和谢尔盖·布林，在他们的博士研究中遇到了一个有趣的想法。
+在 1990 年代末，两位斯坦福大学的研究生，拉里·佩奇和谢尔盖·布林，在他们的博士研究中遇到了一个有趣的想法。
 
 拉里特别着迷于网页之间如何相互链接的方式。他将互联网看作一个庞大的引用网络，就像学术论文互相引用一样。这激发了一个想法：**如果一个网页的重要性可以通过其他页面链接到它的数量来衡量，会怎样？** 但不仅如此——**如果这些链接页面的重要性也很重要呢？**
 

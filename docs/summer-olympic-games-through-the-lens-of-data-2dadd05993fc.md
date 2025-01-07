@@ -1,14 +1,14 @@
 # 通过数据视角看夏季奥运会
 
-> 原文：[https://towardsdatascience.com/summer-olympic-games-through-the-lens-of-data-2dadd05993fc?source=collection_archive---------7-----------------------#2024-07-23](https://towardsdatascience.com/summer-olympic-games-through-the-lens-of-data-2dadd05993fc?source=collection_archive---------7-----------------------#2024-07-23)
+> 原文：[`towardsdatascience.com/summer-olympic-games-through-the-lens-of-data-2dadd05993fc?source=collection_archive---------7-----------------------#2024-07-23`](https://towardsdatascience.com/summer-olympic-games-through-the-lens-of-data-2dadd05993fc?source=collection_archive---------7-----------------------#2024-07-23)
 
-![](../Images/98c0791d13d47c8d3adbf15aa1ea01c9.png)
+![](img/98c0791d13d47c8d3adbf15aa1ea01c9.png)
 
-## 使用Python和维基百科绘制获奖国家的地理和网络地图。
+## 使用 Python 和维基百科绘制获奖国家的地理和网络地图。
 
-[](https://medium.com/@janosovm?source=post_page---byline--2dadd05993fc--------------------------------)[![Milan Janosov](../Images/b7ede67b165cdd368d96f13f46c68ccb.png)](https://medium.com/@janosovm?source=post_page---byline--2dadd05993fc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2dadd05993fc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2dadd05993fc--------------------------------) [Milan Janosov](https://medium.com/@janosovm?source=post_page---byline--2dadd05993fc--------------------------------)
+[](https://medium.com/@janosovm?source=post_page---byline--2dadd05993fc--------------------------------)![Milan Janosov](https://medium.com/@janosovm?source=post_page---byline--2dadd05993fc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2dadd05993fc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2dadd05993fc--------------------------------) [Milan Janosov](https://medium.com/@janosovm?source=post_page---byline--2dadd05993fc--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2dadd05993fc--------------------------------) ·阅读时间：13分钟·2024年7月23日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2dadd05993fc--------------------------------) ·阅读时间：13 分钟·2024 年 7 月 23 日
 
 --
 

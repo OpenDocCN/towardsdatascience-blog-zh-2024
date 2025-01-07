@@ -1,16 +1,16 @@
 # 使用 RAG 和混合搜索构建一个（食谱）推荐聊天机器人（第一部分）
 
-> 原文：[https://towardsdatascience.com/build-a-recipe-recommender-chatbot-using-rag-and-hybrid-search-part-i-c4aa07d14dcf?source=collection_archive---------2-----------------------#2024-03-20](https://towardsdatascience.com/build-a-recipe-recommender-chatbot-using-rag-and-hybrid-search-part-i-c4aa07d14dcf?source=collection_archive---------2-----------------------#2024-03-20)
+> 原文：[`towardsdatascience.com/build-a-recipe-recommender-chatbot-using-rag-and-hybrid-search-part-i-c4aa07d14dcf?source=collection_archive---------2-----------------------#2024-03-20`](https://towardsdatascience.com/build-a-recipe-recommender-chatbot-using-rag-and-hybrid-search-part-i-c4aa07d14dcf?source=collection_archive---------2-----------------------#2024-03-20)
 
 ## 本教程将教你如何创建稀疏和密集嵌入，并使用混合搜索构建推荐系统。
 
-[](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)[![Sebastian Bahr](../Images/082ca57697e35575127e71308a613b54.png)](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------) [Sebastian Bahr](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)
+[](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)![Sebastian Bahr](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------) [Sebastian Bahr](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------) ·14分钟阅读·2024年3月20日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------) ·14 分钟阅读·2024 年 3 月 20 日
 
 --
 
-![](../Images/6619ea46b5aacdb61382fdadae8d715d.png)
+![](img/6619ea46b5aacdb61382fdadae8d715d.png)
 
 图片来自[Katie Smith](https://unsplash.com/@kate5oh3?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)在[Unsplash](https://unsplash.com/photos/avocado-tomatoes-eggs-mushrooms-spring-onions-and-leaves-uQs1802D0CQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -20,7 +20,7 @@
 
 # 数据准备
 
-对于这个项目，我们将使用来自[Public Domain Recipes](https://publicdomainrecipes.com/)的食谱。所有食谱都以Markdown文件格式存储在这个GitHub [仓库](https://github.com/ronaldlong46/public-domain-recipes)中。对于本教程，我已经进行了数据清理，并从原始文本输入中创建了特征。如果你有兴趣自己做数据清理部分，代码可以在我的GitHub [仓库](https://github.com/sebastianbahr/RecipeRecommender)中找到。
+对于这个项目，我们将使用来自[Public Domain Recipes](https://publicdomainrecipes.com/)的食谱。所有食谱都以 Markdown 文件格式存储在这个 GitHub [仓库](https://github.com/ronaldlong46/public-domain-recipes)中。对于本教程，我已经进行了数据清理，并从原始文本输入中创建了特征。如果你有兴趣自己做数据清理部分，代码可以在我的 GitHub [仓库](https://github.com/sebastianbahr/RecipeRecommender)中找到。
 
 数据集包含以下列：
 
@@ -40,7 +40,7 @@
 
 +   *output:* 包含食谱的*title*、*ingredients*和*direction*，并将在后续提供给聊天模型作为输入。
 
-让我们来看看*recipe_type*特征的分布。我们可以看到，大多数（60%）的食谱包含鱼或肉类，不适合素食者。大约35%的食谱适合素食者，只有5%的食谱适合纯素食者。这个特征将作为从向量数据库中检索匹配食谱的硬性筛选条件。
+让我们来看看*recipe_type*特征的分布。我们可以看到，大多数（60%）的食谱包含鱼或肉类，不适合素食者。大约 35%的食谱适合素食者，只有 5%的食谱适合纯素食者。这个特征将作为从向量数据库中检索匹配食谱的硬性筛选条件。
 
 ```py
 import re
@@ -79,14 +79,14 @@ recipes = pd.read_json("recipes_v2.json")
 recipes.head()
 ```
 
-![](../Images/7fe0a3fb021229bc428ebc654abad1a4.png)
+![](img/7fe0a3fb021229bc428ebc654abad1a4.png)
 
 ```py
 plt.bar(recipes.recipe_type.unique(), recipes.recipe_type.value_counts(normalize=True).values)
 plt.show()
 ```
 
-![](../Images/493e0101786f39c0ad909cc73d765734.png)
+![](img/493e0101786f39c0ad909cc73d765734.png)
 
 食谱类型的分布
 
@@ -99,9 +99,9 @@ recipes["dense_feature"] = recipes.title + "; " + recipes.tags.apply(lambda x: s
 recipes["dense_feature"].head()
 ```
 
-![](../Images/7c5589bf23680055144fc3a93bd8e990.png)
+![](img/7c5589bf23680055144fc3a93bd8e990.png)
 
-最后，在深入生成嵌入之前，我们先来看看*output*列。本教程的第二部分将全程讲解如何使用OpenAI创建一个能够回答用户问题的聊天机器人，并利用我们的食谱数据库中的知识。因此，在找到最匹配用户查询的食谱后，聊天模型需要一些信息来构建其答案。这就是*output*的作用，它包含了构建一个合适答案所需的所有信息。
+最后，在深入生成嵌入之前，我们先来看看*output*列。本教程的第二部分将全程讲解如何使用 OpenAI 创建一个能够回答用户问题的聊天机器人，并利用我们的食谱数据库中的知识。因此，在找到最匹配用户查询的食谱后，聊天模型需要一些信息来构建其答案。这就是*output*的作用，它包含了构建一个合适答案所需的所有信息。
 
 ```py
 # example output
@@ -146,7 +146,7 @@ for i in tqdm(range(len(recipes))):
 recipes["sparse_vectors"] = sparse_vectors
 ```
 
-![](../Images/69a25dad27f8097f9e1d64df625d39e1.png)
+![](img/69a25dad27f8097f9e1d64df625d39e1.png)
 
 第一份食谱的稀疏嵌入
 
@@ -220,7 +220,7 @@ pc.create_index(
 pc.describe_index("recipe-project")
 ```
 
-![](../Images/164af1e806cbfad149d54caeb0a5d067.png)
+![](img/164af1e806cbfad149d54caeb0a5d067.png)
 
 恭喜您创建了第一个 Pinecone 索引！现在是时候将嵌入数据上传到向量数据库了。如果您使用的嵌入模型创建的向量维度不同，请确保调整 *dimension* 参数。
 
@@ -262,7 +262,7 @@ index.describe_index_stats()
 
 如果你对上传的数据内容感到好奇，可以登录 Pinecone，选择新创建的索引，查看其中的项目。目前，我们无需关注分数，因为它是默认生成的，表示与 Pinecone 随机生成的向量的匹配度。不过，稍后我们将计算嵌入的用户查询与向量数据库中所有条目的相似度，并检索*最相似的 k 个*条目。此外，每个项目都包含一个由 Pinecone 生成的项目 ID 和元数据，其中包括食谱*ID*及其*recipe_type*。密集嵌入存储在*Values*中，稀疏嵌入存储在*Sparse Values*中。
 
-![](../Images/62c6420c8583f925846f22822a799b95.png)
+![](img/62c6420c8583f925846f22822a799b95.png)
 
 索引的前三项（*作者提供的图片*）
 
@@ -272,7 +272,7 @@ index.describe_index_stats()
 index.fetch(ids=["50"])
 ```
 
-![](../Images/67424101a92329f08d02ba4bac2b2dfb.png)
+![](img/67424101a92329f08d02ba4bac2b2dfb.png)
 
 与 Pinecone 仪表板中一样，我们获取元素的项目 ID、元数据、稀疏值和密集值，这些信息存储在截断输出底部的列表中。
 
@@ -333,7 +333,7 @@ retrieved_ids = [item.get("metadata").get("ID") for item in retrieved_items.get(
 retrieved_items
 ```
 
-![](../Images/c10907a654af67b069ab69bcc05a33b7.png)
+![](img/c10907a654af67b069ab69bcc05a33b7.png)
 
 在获取推荐食谱的 ID 后，我们可以轻松查询*食谱*数据集，并查看它们的*输出*。*输出*包含所有所需信息，如*标题*、*食材*和*做法*。查看前几条推荐结果，发现它们都是素食，这并不奇怪，因为我们应用了“硬”筛选，但它们都是用户要求的意大利菜肴。
 
@@ -341,7 +341,7 @@ retrieved_items
 recipes[recipes.ID.isin(retrieved_ids)].output.values
 ```
 
-![](../Images/d13ce43cfeefe2b52d9d511f9ee2b074.png)
+![](img/d13ce43cfeefe2b52d9d511f9ee2b074.png)
 
 相似度得分最高的食谱
 
@@ -359,7 +359,7 @@ recipes[recipes.ID.isin(retrieved_ids)].output.values[0]
 
 现在是时候实现混合搜索了。这个概念听起来比实际要复杂，你会发现我们只需用两行代码就能实现它。混合搜索通过一个因子*alpha*对密集向量的值进行加权，对稀疏向量的值加权系数为*1-alpha*。换句话说，*alpha*决定了输入文本的密集向量与稀疏向量分别应该获得多少“关注”。如果*alpha=1*，我们进行纯密集向量搜索；*alpha=0.5*是纯混合搜索；而*alpha=0*是纯稀疏向量搜索。
 
-正如你所记得的，稀疏和密集向量是使用不同的信息创建的。稀疏向量包含有关食材的信息，而密集向量包含标题、标签和介绍。因此，通过改变*alpha*，我们可以告诉查询引擎优先考虑食谱的某些特征而非其他特征。让我们首先使用alpha值为1，并在用户查询上进行纯密集搜索：
+正如你所记得的，稀疏和密集向量是使用不同的信息创建的。稀疏向量包含有关食材的信息，而密集向量包含标题、标签和介绍。因此，通过改变*alpha*，我们可以告诉查询引擎优先考虑食谱的某些特征而非其他特征。让我们首先使用 alpha 值为 1，并在用户查询上进行纯密集搜索：
 
 > 我可以用土豆、蘑菇和牛肉做些什么？
 
@@ -434,11 +434,11 @@ retrieved_ids = [item.get("metadata").get("ID") for item in retrieved_items.get(
 ['- 1 beef kidney - 60g butter - 2 onions - 2 shallots - 1 sprig of fresh parsley - 3 bay leaves - 400g croutons or toasted bread in pieces']
 ```
 
-让我们将alpha设置为0.5，看看推荐食谱的食材。这个alpha值得出了一个更好的结果，推荐的食谱包含了要求的所有三种食材：
+让我们将 alpha 设置为 0.5，看看推荐食谱的食材。这个 alpha 值得出了一个更好的结果，推荐的食谱包含了要求的所有三种食材：
 
-+   500克牛肉
++   500 克牛肉
 
-+   300–400克土豆
++   300–400 克土豆
 
 +   2–3 颗香菇
 
@@ -466,7 +466,7 @@ retrieved_ids = [item.get("metadata").get("ID") for item in retrieved_items.get(
 
 ## 最后的备注
 
-> 混合搜索的实现，在基于pod和无服务器索引之间有所不同。如果你从一种切换到另一种，可能会经历精度或性能上的回退。
+> 混合搜索的实现，在基于 pod 和无服务器索引之间有所不同。如果你从一种切换到另一种，可能会经历精度或性能上的回退。
 > 
 > 当你查询无服务器索引时，查询的密集值用于检索初步的候选记录，然后在返回最终结果时考虑稀疏值。
 
@@ -474,7 +474,7 @@ retrieved_ids = [item.get("metadata").get("ID") for item in retrieved_items.get(
 
 在本教程中，你学习了如何使用稀疏和密集嵌入来嵌入数据集，并使用密集和混合搜索来查找向量数据库中最匹配的条目。
 
-在第二部分，你将使用GPT 3.5-turbo模型构建一个带有函数调用的聊天机器人，并使用Plotly Dash生成UI。如果你感兴趣并且喜欢第一部分，可以看看第二部分。
+在第二部分，你将使用 GPT 3.5-turbo 模型构建一个带有函数调用的聊天机器人，并使用 Plotly Dash 生成 UI。如果你感兴趣并且喜欢第一部分，可以看看第二部分。
 
 ## 请支持我的工作！
 

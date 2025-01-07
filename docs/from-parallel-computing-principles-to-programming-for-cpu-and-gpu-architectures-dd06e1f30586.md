@@ -1,20 +1,20 @@
-# 从并行计算原理到CPU和GPU架构的编程
+# 从并行计算原理到 CPU 和 GPU 架构的编程
 
-> 原文：[https://towardsdatascience.com/from-parallel-computing-principles-to-programming-for-cpu-and-gpu-architectures-dd06e1f30586?source=collection_archive---------5-----------------------#2024-11-12](https://towardsdatascience.com/from-parallel-computing-principles-to-programming-for-cpu-and-gpu-architectures-dd06e1f30586?source=collection_archive---------5-----------------------#2024-11-12)
+> 原文：[`towardsdatascience.com/from-parallel-computing-principles-to-programming-for-cpu-and-gpu-architectures-dd06e1f30586?source=collection_archive---------5-----------------------#2024-11-12`](https://towardsdatascience.com/from-parallel-computing-principles-to-programming-for-cpu-and-gpu-architectures-dd06e1f30586?source=collection_archive---------5-----------------------#2024-11-12)
 
-## 适用于早期的机器学习工程师和数据科学家，旨在帮助他们理解内存基础、并行执行，以及如何为CPU和GPU编写代码。
+## 适用于早期的机器学习工程师和数据科学家，旨在帮助他们理解内存基础、并行执行，以及如何为 CPU 和 GPU 编写代码。
 
-[](https://medium.com/@shreyashukla04?source=post_page---byline--dd06e1f30586--------------------------------)[![Shreya Shukla](../Images/202aca58677a445ec618494f1151d2d7.png)](https://medium.com/@shreyashukla04?source=post_page---byline--dd06e1f30586--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dd06e1f30586--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dd06e1f30586--------------------------------) [Shreya Shukla](https://medium.com/@shreyashukla04?source=post_page---byline--dd06e1f30586--------------------------------)
+[](https://medium.com/@shreyashukla04?source=post_page---byline--dd06e1f30586--------------------------------)![Shreya Shukla](https://medium.com/@shreyashukla04?source=post_page---byline--dd06e1f30586--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dd06e1f30586--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dd06e1f30586--------------------------------) [Shreya Shukla](https://medium.com/@shreyashukla04?source=post_page---byline--dd06e1f30586--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dd06e1f30586--------------------------------) ·19分钟阅读·2024年11月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dd06e1f30586--------------------------------) ·19 分钟阅读·2024 年 11 月 12 日
 
 --
 
-![](../Images/655d3adf6d073a78237e2072eedbb398.png)
+![](img/655d3adf6d073a78237e2072eedbb398.png)
 
 照片由[Olav Ahrens Røtne](https://unsplash.com/@olav_ahrens?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-本文旨在解释并行计算的基础知识。我们从基础开始，包括理解共享架构与分布式架构以及这些系统之间的通信。我们将探讨GPU架构以及如何通过编写代码（使用C++ Kokkos）将架构原理映射到代码实现。最后，我们将使用运行Kokkos代码所获得的运行时数据来测量性能指标（加速），这些数据来自CPU和GPU架构下的向量-矩阵乘法，这是机器学习领域中最常见的操作之一。
+本文旨在解释并行计算的基础知识。我们从基础开始，包括理解共享架构与分布式架构以及这些系统之间的通信。我们将探讨 GPU 架构以及如何通过编写代码（使用 C++ Kokkos）将架构原理映射到代码实现。最后，我们将使用运行 Kokkos 代码所获得的运行时数据来测量性能指标（加速），这些数据来自 CPU 和 GPU 架构下的向量-矩阵乘法，这是机器学习领域中最常见的操作之一。
 
 本文的核心主题是探索和解答问题。虽然这似乎是一次漫长的旅程，但它将是值得的。让我们开始吧！
 
@@ -24,7 +24,7 @@
 
 计算中的最小时间单位称为**时钟周期**。它代表执行一个操作所需的最短时间，例如获取数据、执行计算或进行通信。**时钟周期**从技术上讲是指执行指令所需的状态变化。状态可以是处理器状态、数据状态、内存状态或控制信号。在一个时钟周期内，可能执行完整的指令、部分指令或多个指令。
 
-**CPU允许每秒进行有限数量的状态变化**。例如，一个3GHz时钟频率的CPU每秒可以进行30亿次状态变化。时钟频率有上限，因为每个时钟周期都会产生热量，过高的频率会因为产生的热量损坏CPU芯片。
+**CPU 允许每秒进行有限数量的状态变化**。例如，一个 3GHz 时钟频率的 CPU 每秒可以进行 30 亿次状态变化。时钟频率有上限，因为每个时钟周期都会产生热量，过高的频率会因为产生的热量损坏 CPU 芯片。
 
 因此，我们希望通过使用并行计算方法来充分利用可用的计算能力。目的是隐藏**内存延迟**（从内存获取第一条数据所需的时间），提高**内存带宽**（每单位时间传输的数据量），并增强**计算吞吐量**（每个时钟周期内执行的任务数量）。
 
@@ -42,13 +42,13 @@
 
 在设定的术语中，一个节点可以与处理器芯片建立一对多的关系，而每个处理器芯片可以与核心建立一对多的关系。下图给出了包含处理器和核心的节点的可视化描述。
 
-![](../Images/c153ab76de53b118f94f98245679085f.png)
+![](img/c153ab76de53b118f94f98245679085f.png)
 
 现代节点具有四个八核心处理器，共享一个公共内存池。参考：[康奈尔虚拟研讨会](https://cvw.cac.cornell.edu/parallel/hpc/nodes)
 
 系统的**非物理**组件包括线程和进程——
 
-1.  **线程** — 线程是操作系统视为一个单独单元进行调度和执行的**CPU指令序列**。
+1.  **线程** — 线程是操作系统视为一个单独单元进行调度和执行的**CPU 指令序列**。
 
 1.  **进程** — 在计算中，进程是一个**资源分配的整体单元**，包括内存、文件处理器、端口和设备。一个进程可以管理多个线程的资源。[线程可以作为进程的组件进行建模。](https://cvw.cac.cornell.edu/parallel/terminology/threads-processes)
 
@@ -64,7 +64,7 @@
 
 **并行执行** — 在这种方式中，多个任务同时发生。在计算中，这可以是—
 
-1.  **单个工人** — 单个执行线程同时处理多个数据项（CPU中的向量指令）。想象一个人根据花色整理扑克牌。由于有四种花色要分类，这个人必须逐一浏览整副牌，整理每种花色的卡片。
+1.  **单个工人** — 单个执行线程同时处理多个数据项（CPU 中的向量指令）。想象一个人根据花色整理扑克牌。由于有四种花色要分类，这个人必须逐一浏览整副牌，整理每种花色的卡片。
 
 1.  **协作工作** — 单个进程中的多个执行线程。它相当于多个人一起合作，根据花色对一副扑克牌进行排序。
 
@@ -72,11 +72,11 @@
 
 1.  以上的任意组合。
 
-![](../Images/6d28c89a540999a37bf692c49d4ab184.png)
+![](img/6d28c89a540999a37bf692c49d4ab184.png)
 
-**协作工作**：两个工人需要插入同一花色的卡片。工人A持有部分结果
+**协作工作**：两个工人需要插入同一花色的卡片。工人 A 持有部分结果
 
-对于梅花花色，工人B被暂时阻塞。参考：[康奈尔虚拟研讨会](https://cvw.cac.cornell.edu/parallel/intro/working-together)
+对于梅花花色，工人 B 被暂时阻塞。参考：[康奈尔虚拟研讨会](https://cvw.cac.cornell.edu/parallel/intro/working-together)
 
 **内存访问**
 
@@ -86,7 +86,7 @@
 
 1.  **混合策略** — **多线程进程**可以在同一节点或不同节点上运行，旨在通过共享内存编程利用单一节点上的多个核心。同时，它们还可以采用分布式内存策略与其他节点上的进程进行协调。可以想象，在上图中，多个人或线程在多个隔间工作。相同隔间中的工作者通过共享内存编程进行通信，而不同隔间中的工作者则通过分布式内存编程进行交互。
 
-![](../Images/55c24c2dcde05cd6ce2f376d807bdda8.png)
+![](img/55c24c2dcde05cd6ce2f376d807bdda8.png)
 
 在分布式内存设计中，多个并行工作者被分配到不同的隔间（进程）。参考：[康奈尔虚拟工作坊](https://cvw.cac.cornell.edu/parallel/terminology/tasks)
 
@@ -108,17 +108,17 @@
 
 **加速比**用于评估效率，其计算公式为：
 
-![](../Images/917b99538054a2358cb3c512063c8ceb.png)
+![](img/917b99538054a2358cb3c512063c8ceb.png)
 
 [当程序受限于处理器的计算速度时，速度提升不能超过并行资源的数量](https://cvw.cac.cornell.edu/parallel/efficiency/about-efficiency)。
 
 使用加速比，测量并行效率的公式为：
 
-![](../Images/5979f6439a7de8b14daa2056e1bdd6b5.png)
+![](img/5979f6439a7de8b14daa2056e1bdd6b5.png)
 
 > [*因此，优化并行程序的一个重要目标是将其加速比尽可能接近核心数量。*](https://cvw.cac.cornell.edu/parallel/efficiency/about-efficiency)
 
-假设代码的串行执行时间为300秒。在使用50个核心并行化任务后，整体的墙钟时间为6秒。在这种情况下，速度提升可以通过将串行执行的墙钟时间除以并行执行的墙钟时间来计算，结果为300秒/6秒 = 50。我们通过将速度提升除以核心数来获得并行效率，即50/50 = 1。这是最佳情况的示例：工作负载完美地进行了并行化，且所有核心得到了高效利用。
+假设代码的串行执行时间为 300 秒。在使用 50 个核心并行化任务后，整体的墙钟时间为 6 秒。在这种情况下，速度提升可以通过将串行执行的墙钟时间除以并行执行的墙钟时间来计算，结果为 300 秒/6 秒 = 50。我们通过将速度提升除以核心数来获得并行效率，即 50/50 = 1。这是最佳情况的示例：工作负载完美地进行了并行化，且所有核心得到了高效利用。
 
 ## 如果数据大小或任务数量增加，增加更多的计算单元是否会持续提高性能？
 
@@ -136,15 +136,15 @@
 
 是的，将某些顺序操作并行化确实可能相当具有挑战性。并行化依赖于多个指令流和/或多个数据流。
 
-![](../Images/826d67454a004c65b755cbb6b327bc25.png)
+![](img/826d67454a004c65b755cbb6b327bc25.png)
 
 不同类型的并行计算架构。参考：[康奈尔虚拟工作坊](https://cvw.cac.cornell.edu/parallel/hpc/taxonomy-parallel-computers)
 
-要了解什么可以并行化，我们来看看CPU中的SIMD，它是通过矢量化实现的。
+要了解什么可以并行化，我们来看看 CPU 中的 SIMD，它是通过矢量化实现的。
 
 > *矢量化是一种编程技术，其中操作是一次性应用到整个数组，而不是逐个处理单个元素。它是通过使用处理器中的矢量单元实现的，矢量单元包括矢量寄存器和矢量指令。*
 
-考虑这样一种情况，我们遍历数组，并在for循环中对单个元素执行多个操作。当数据是独立的时，编写可矢量化的代码变得非常简单；请参见下面的示例：
+考虑这样一种情况，我们遍历数组，并在 for 循环中对单个元素执行多个操作。当数据是独立的时，编写可矢量化的代码变得非常简单；请参见下面的示例：
 
 ```py
 do i, n
@@ -212,7 +212,7 @@ do i, n
 
 是的！
 
-![](../Images/7b996318622b4ea4b0acd28a9998e877.png)
+![](img/7b996318622b4ea4b0acd28a9998e877.png)
 
 比较 CPU 和 GPU 架构中基本元素的相对能力。参考：[康奈尔虚拟研讨会](https://cvw.cac.cornell.edu/gpu-architecture/gpu-characteristics/design)
 
@@ -226,19 +226,19 @@ do i, n
 
 1.  **统一处理步骤 —** 处理步骤的顺序对于所有对象都是相同的。
 
-## 因此，GPU的多个核心可以同时处理不同的数据，像SIMD（单指令多数据）架构一样并行执行计算。任务是如何在核心之间划分的？每个核心是否像CPU一样只运行一个线程？
+## 因此，GPU 的多个核心可以同时处理不同的数据，像 SIMD（单指令多数据）架构一样并行执行计算。任务是如何在核心之间划分的？每个核心是否像 CPU 一样只运行一个线程？
 
-在GPU中，**流式多处理器（SMs）**类似于CPU中的核心。GPU中的核心类似于CPU中的向量通道。SM是容纳核心的硬件单元。
+在 GPU 中，**流式多处理器（SMs）**类似于 CPU 中的核心。GPU 中的核心类似于 CPU 中的向量通道。SM 是容纳核心的硬件单元。
 
-当一个被称为**内核（kernel）**的函数或计算在GPU上执行时，它通常会被分解成**线程块（thread blocks）**。这些线程块包含**多个线程（multiple threads）**；每个SM可以管理其核心上的多个线程。如果线程块的数量超过SM的数量，多个线程块可以被分配到单个SM上。同时，多个线程可以在单个核心上运行。
+当一个被称为**内核（kernel）**的函数或计算在 GPU 上执行时，它通常会被分解成**线程块（thread blocks）**。这些线程块包含**多个线程（multiple threads）**；每个 SM 可以管理其核心上的多个线程。如果线程块的数量超过 SM 的数量，多个线程块可以被分配到单个 SM 上。同时，多个线程可以在单个核心上运行。
 
-[每个SM进一步将**线程块（thread blocks）**划分为称为**warps**的组，每个warp由**32个线程**组成。](https://cvw.cac.cornell.edu/gpu-architecture/gpu-characteristics/simt_warp) 这些线程在不同的数据元素上执行相同的指令流，遵循**单指令多数据（SIMD）**模型。warp大小被设置为32，因为在NVIDIA的架构中，CUDA核心是按32个一组进行分组的。这使得warp中的所有线程可以通过32个CUDA核心并行处理，从而实现高效率和优化的资源利用。
+[每个 SM 进一步将**线程块（thread blocks）**划分为称为**warps**的组，每个 warp 由**32 个线程**组成。](https://cvw.cac.cornell.edu/gpu-architecture/gpu-characteristics/simt_warp) 这些线程在不同的数据元素上执行相同的指令流，遵循**单指令多数据（SIMD）**模型。warp 大小被设置为 32，因为在 NVIDIA 的架构中，CUDA 核心是按 32 个一组进行分组的。这使得 warp 中的所有线程可以通过 32 个 CUDA 核心并行处理，从而实现高效率和优化的资源利用。
 
-在**SIMD（单指令多数据）**中，单一指令对所有数据元素执行相同的操作，每个数据元素以完全相同的方式进行处理。**SIMT（单指令多线程）**，这是GPU中常用的方式，放宽了这一限制。在SIMT中，线程可以被激活或停用，因此指令和数据在激活的线程中被处理；然而，局部数据在非激活线程中保持不变。
+在**SIMD（单指令多数据）**中，单一指令对所有数据元素执行相同的操作，每个数据元素以完全相同的方式进行处理。**SIMT（单指令多线程）**，这是 GPU 中常用的方式，放宽了这一限制。在 SIMT 中，线程可以被激活或停用，因此指令和数据在激活的线程中被处理；然而，局部数据在非激活线程中保持不变。
 
-## 我想理解如何编写代码以利用不同的架构。相似的代码可以同时在CPU和GPU架构上工作吗？我们可以使用哪些参数和方法来确保代码有效地利用底层硬件架构，无论是CPU还是GPU？
+## 我想理解如何编写代码以利用不同的架构。相似的代码可以同时在 CPU 和 GPU 架构上工作吗？我们可以使用哪些参数和方法来确保代码有效地利用底层硬件架构，无论是 CPU 还是 GPU？
 
-代码通常用高级语言如C或C++编写，并且必须通过编译器转换为二进制代码，因为计算机无法直接处理高级指令。虽然GPU和CPU都可以执行相同的内核，但正如我们将在示例代码中看到的，我们需要使用指令或参数来运行代码在特定架构上，编译并生成该架构的指令集。这种方法使我们能够利用架构特定的功能。为了确保兼容性，我们可以为编译器指定适当的标志，以生成针对所需架构优化的二进制代码，无论是CPU还是GPU。
+代码通常用高级语言如 C 或 C++编写，并且必须通过编译器转换为二进制代码，因为计算机无法直接处理高级指令。虽然 GPU 和 CPU 都可以执行相同的内核，但正如我们将在示例代码中看到的，我们需要使用指令或参数来运行代码在特定架构上，编译并生成该架构的指令集。这种方法使我们能够利用架构特定的功能。为了确保兼容性，我们可以为编译器指定适当的标志，以生成针对所需架构优化的二进制代码，无论是 CPU 还是 GPU。
 
 各种编码框架，如 SYCL、CUDA 和 Kokkos，广泛用于为不同架构编写内核或函数。在本文中，我们将使用来自 Kokkos 的示例。
 
@@ -282,7 +282,7 @@ Kokkos 提供了多种内存空间选项，使用户能够控制内存管理和�
 
 讨论**内存布局**也非常重要，它指的是内存中数据的组织和安排。Kokkos 提供了几种内存布局选项，帮助用户优化不同计算的数据显示方式。一些常用的内存布局包括—
 
-![](../Images/1049e781fcb83e45fec8455b8c008e2d.png)
+![](img/1049e781fcb83e45fec8455b8c008e2d.png)
 
 矩阵的行主序与列主序迭代。参考：[Wikipedia](https://en.wikipedia.org/wiki/Row-_and_column-major_order)
 
@@ -405,7 +405,7 @@ y^T denotes the transpose of vector y.
 * denotes matrix-vector multiplication.
 ```
 
-这个操作在Kokkos中的内核—
+这个操作在 Kokkos 中的内核—
 
 ```py
  // Use a RangePolicy.
@@ -426,47 +426,47 @@ y^T denotes the transpose of vector y.
 
 对于上述内核，`parallel_reduce`作为模式，`range_policy`定义了策略，而实际的操作构成了计算体。
 
-我在一台配有NVIDIA Quadro RTX 5000 GPU的TACC Frontera节点上执行了此内核实验。实验使用了不同的**N**值，**N**代表向量**y**和**x**的长度，以及矩阵**A**的行数。计算执行了100次以获得显著结果，并记录了内核在串行（主机）和CUDA执行空间中的执行时间。我使用了`**ENABLE_CUDA**`编译器标志在执行环境之间切换：**True**表示GPU/CUDA执行空间，**False**表示CPU/串行执行空间。以下展示了这些实验的结果及相应的加速比。
+我在一台配有 NVIDIA Quadro RTX 5000 GPU 的 TACC Frontera 节点上执行了此内核实验。实验使用了不同的**N**值，**N**代表向量**y**和**x**的长度，以及矩阵**A**的行数。计算执行了 100 次以获得显著结果，并记录了内核在串行（主机）和 CUDA 执行空间中的执行时间。我使用了`**ENABLE_CUDA**`编译器标志在执行环境之间切换：**True**表示 GPU/CUDA 执行空间，**False**表示 CPU/串行执行空间。以下展示了这些实验的结果及相应的加速比。
 
-有关CPU与GPU架构下内核执行时间和加速比的数据参考：作者提供的表格
+有关 CPU 与 GPU 架构下内核执行时间和加速比的数据参考：作者提供的表格
 
-![](../Images/29171354662a8b3bac463f48c99db523.png)
+![](img/29171354662a8b3bac463f48c99db523.png)
 
 不同数据大小下的加速比趋势（GPU vs CPU）参考：作者提供的图片
 
-我们注意到，随着N值的增大，加速比显著增加，这表明CUDA实现对于较大规模的问题变得越来越有优势。
+我们注意到，随着 N 值的增大，加速比显著增加，这表明 CUDA 实现对于较大规模的问题变得越来越有优势。
 
-目前为止就这些！希望本文能在探索计算领域时为您提供一个良好的开端。理解GPU架构的基础至关重要，本文介绍了一种我实验过的跨架构代码编写方法。然而，还有多种值得探索的方法和技术。
+目前为止就这些！希望本文能在探索计算领域时为您提供一个良好的开端。理解 GPU 架构的基础至关重要，本文介绍了一种我实验过的跨架构代码编写方法。然而，还有多种值得探索的方法和技术。
 
-虽然我不是该领域的专家，但本文反映了我在德州奥斯汀TACC短暂工作的学习经历。我欢迎反馈和讨论，如果您有任何问题或想了解更多内容，我很乐意提供帮助。请参考下面的优秀资源以进一步学习。祝计算愉快！
+虽然我不是该领域的专家，但本文反映了我在德州奥斯汀 TACC 短暂工作的学习经历。我欢迎反馈和讨论，如果您有任何问题或想了解更多内容，我很乐意提供帮助。请参考下面的优秀资源以进一步学习。祝计算愉快！
 
 ## 致谢
 
-本文参考了三个主要来源。第一个来源是**SDS394: UT Austin的科学与技术计算研究生课程**，该课程提供了关于单核多线程系统的基础知识。第二个来源是[**Cornell虚拟工作坊：并行编程概念与高性能计算**](https://cvw.cac.cornell.edu/parallel)，这是一个关于并行计算的优秀学习资源。Kokkos代码实现主要基于[**GitHub上的Kokkos教程**](https://github.com/kokkos/kokkos-tutorials)中的材料。这些都是任何有兴趣学习并行计算的人的绝佳资源。
+本文参考了三个主要来源。第一个来源是**SDS394: UT Austin 的科学与技术计算研究生课程**，该课程提供了关于单核多线程系统的基础知识。第二个来源是[**Cornell 虚拟工作坊：并行编程概念与高性能计算**](https://cvw.cac.cornell.edu/parallel)，这是一个关于并行计算的优秀学习资源。Kokkos 代码实现主要基于[**GitHub 上的 Kokkos 教程**](https://github.com/kokkos/kokkos-tutorials)中的材料。这些都是任何有兴趣学习并行计算的人的绝佳资源。
 
 — — — — — — — — — —
 
-C++ Kokkos内核的开发，用于在不同架构之间进行性能比较，作为由**Intel OneAPI卓越中心**和**TACC STAR学者计划**支持的项目的一部分，该项目得到了TACC行业合作伙伴的慷慨资助，其中包括**Intel、Shell、Exxon**和**Chevron**。
+C++ Kokkos 内核的开发，用于在不同架构之间进行性能比较，作为由**Intel OneAPI 卓越中心**和**TACC STAR 学者计划**支持的项目的一部分，该项目得到了 TACC 行业合作伙伴的慷慨资助，其中包括**Intel、Shell、Exxon**和**Chevron**。
 
 — — — — — — — — — —
 
 参考资料/资源：
 
-[](https://github.com/VictorEijkhout/TheArtofHPC_pdfs/tree/main?source=post_page-----dd06e1f30586--------------------------------) [## GitHub - VictorEijkhout/TheArtofHPC_pdfs：Victor Eijkhout《高性能计算艺术》书籍及课程的所有pdf]
+[](https://github.com/VictorEijkhout/TheArtofHPC_pdfs/tree/main?source=post_page-----dd06e1f30586--------------------------------) [## GitHub - VictorEijkhout/TheArtofHPC_pdfs：Victor Eijkhout《高性能计算艺术》书籍及课程的所有 pdf]
 
-### Victor Eijkhout《高性能计算艺术》书籍及课程的所有pdf - VictorEijkhout/TheArtofHPC_pdfs
+### Victor Eijkhout《高性能计算艺术》书籍及课程的所有 pdf - VictorEijkhout/TheArtofHPC_pdfs
 
-[github.com](https://github.com/VictorEijkhout/TheArtofHPC_pdfs/tree/main?source=post_page-----dd06e1f30586--------------------------------) [](https://docs.tacc.utexas.edu/hpc/frontera/?source=post_page-----dd06e1f30586--------------------------------) [## Frontera - TACC HPC文档]
+[github.com](https://github.com/VictorEijkhout/TheArtofHPC_pdfs/tree/main?source=post_page-----dd06e1f30586--------------------------------) [](https://docs.tacc.utexas.edu/hpc/frontera/?source=post_page-----dd06e1f30586--------------------------------) [## Frontera - TACC HPC 文档]
 
-### 最近更新：2024年10月24日 重要提示：请注意TACC的新SU收费政策。Frontera由国家资助…
+### 最近更新：2024 年 10 月 24 日 重要提示：请注意 TACC 的新 SU 收费政策。Frontera 由国家资助…
 
 [docs.tacc.utexas.edu](https://docs.tacc.utexas.edu/hpc/frontera/?source=post_page-----dd06e1f30586--------------------------------) [## 康奈尔虚拟研讨会：并行编程概念与高性能计算]
 
 ### 本路线图解释了并行编程概念，以及并行编程如何与高性能计算相关……
 
-[康奈尔虚拟研讨会：了解GPU架构](https://cvw.cac.cornell.edu/parallel?source=post_page-----dd06e1f30586--------------------------------)
+[康奈尔虚拟研讨会：了解 GPU 架构](https://cvw.cac.cornell.edu/parallel?source=post_page-----dd06e1f30586--------------------------------)
 
-### 本路线图面向那些相对较新的GPU使用者或希望深入了解其中的计算机技术的人员……
+### 本路线图面向那些相对较新的 GPU 使用者或希望深入了解其中的计算机技术的人员……
 
 [cvw.cac.cornell.edu](https://cvw.cac.cornell.edu/gpu-architecture?source=post_page-----dd06e1f30586--------------------------------) [## 康奈尔虚拟研讨会：矢量化]
 
@@ -476,8 +476,8 @@ C++ Kokkos内核的开发，用于在不同架构之间进行性能比较，作�
 
 ### Kokkos C++ 性能可移植性编程生态系统教程 — kokkos/kokkos-tutorials
 
-[github.com](https://github.com/kokkos/kokkos-tutorials?source=post_page-----dd06e1f30586--------------------------------) [](https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series?source=post_page-----dd06e1f30586--------------------------------) [## Kokkos讲座系列]
+[github.com](https://github.com/kokkos/kokkos-tutorials?source=post_page-----dd06e1f30586--------------------------------) [](https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series?source=post_page-----dd06e1f30586--------------------------------) [## Kokkos 讲座系列]
 
-### Kokkos C++ 性能可移植性编程生态系统教程 - Kokkos讲座系列 ·…
+### Kokkos C++ 性能可移植性编程生态系统教程 - Kokkos 讲座系列 ·…
 
 [github.com](https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series?source=post_page-----dd06e1f30586--------------------------------)

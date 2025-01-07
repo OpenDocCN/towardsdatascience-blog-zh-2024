@@ -1,16 +1,16 @@
 # 如何在 SQL 中训练决策树分类器…
 
-> 原文：[https://towardsdatascience.com/how-to-train-a-decision-tree-classifier-in-sql-e29f37835f18?source=collection_archive---------2-----------------------#2024-04-11](https://towardsdatascience.com/how-to-train-a-decision-tree-classifier-in-sql-e29f37835f18?source=collection_archive---------2-----------------------#2024-04-11)
+> 原文：[`towardsdatascience.com/how-to-train-a-decision-tree-classifier-in-sql-e29f37835f18?source=collection_archive---------2-----------------------#2024-04-11`](https://towardsdatascience.com/how-to-train-a-decision-tree-classifier-in-sql-e29f37835f18?source=collection_archive---------2-----------------------#2024-04-11)
 
 ## SQL 现在可以替代 Python 完成大部分监督式机器学习任务。你是否应该做出这个切换？
 
-[](https://medium.com/@radecicdario?source=post_page---byline--e29f37835f18--------------------------------)[![Dario Radečić](../Images/41882a3b30bab9da43d66a59f1df366b.png)](https://medium.com/@radecicdario?source=post_page---byline--e29f37835f18--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e29f37835f18--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e29f37835f18--------------------------------) [Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--e29f37835f18--------------------------------)
+[](https://medium.com/@radecicdario?source=post_page---byline--e29f37835f18--------------------------------)![Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--e29f37835f18--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e29f37835f18--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e29f37835f18--------------------------------) [Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--e29f37835f18--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e29f37835f18--------------------------------) ·8分钟阅读·2024年4月11日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e29f37835f18--------------------------------) ·8 分钟阅读·2024 年 4 月 11 日
 
 --
 
-![](../Images/bce1aa30e358ab9ddfa19caa8fd0452b.png)
+![](img/bce1aa30e358ab9ddfa19caa8fd0452b.png)
 
 由[Resource Database](https://unsplash.com/@resourcedatabase?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)拍摄，照片来源于[Unsplash](https://unsplash.com/photos/a-black-and-white-photo-of-a-circular-object-FNuryNf-8-g?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

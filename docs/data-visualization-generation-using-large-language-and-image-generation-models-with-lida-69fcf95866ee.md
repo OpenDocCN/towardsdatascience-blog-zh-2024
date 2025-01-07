@@ -1,28 +1,28 @@
-# 使用大型语言模型和图像生成模型进行数据可视化生成——结合LIDA
+# 使用大型语言模型和图像生成模型进行数据可视化生成——结合 LIDA
 
-> 原文：[https://towardsdatascience.com/data-visualization-generation-using-large-language-and-image-generation-models-with-lida-69fcf95866ee?source=collection_archive---------1-----------------------#2024-06-25](https://towardsdatascience.com/data-visualization-generation-using-large-language-and-image-generation-models-with-lida-69fcf95866ee?source=collection_archive---------1-----------------------#2024-06-25)
+> 原文：[`towardsdatascience.com/data-visualization-generation-using-large-language-and-image-generation-models-with-lida-69fcf95866ee?source=collection_archive---------1-----------------------#2024-06-25`](https://towardsdatascience.com/data-visualization-generation-using-large-language-and-image-generation-models-with-lida-69fcf95866ee?source=collection_archive---------1-----------------------#2024-06-25)
 
-## LIDA库概述，包括如何入门、示例和未来的考虑事项
+## LIDA 库概述，包括如何入门、示例和未来的考虑事项
 
-[](https://medium.com/@payal-patel?source=post_page---byline--69fcf95866ee--------------------------------)[![Payal Patel](../Images/2fc555726b3865db375ce7973f4c1cec.png)](https://medium.com/@payal-patel?source=post_page---byline--69fcf95866ee--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--69fcf95866ee--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--69fcf95866ee--------------------------------) [Payal Patel](https://medium.com/@payal-patel?source=post_page---byline--69fcf95866ee--------------------------------)
+[](https://medium.com/@payal-patel?source=post_page---byline--69fcf95866ee--------------------------------)![Payal Patel](https://medium.com/@payal-patel?source=post_page---byline--69fcf95866ee--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--69fcf95866ee--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--69fcf95866ee--------------------------------) [Payal Patel](https://medium.com/@payal-patel?source=post_page---byline--69fcf95866ee--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--69fcf95866ee--------------------------------) ·阅读时间12分钟·2024年6月25日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--69fcf95866ee--------------------------------) ·阅读时间 12 分钟·2024 年 6 月 25 日
 
 --
 
-最近我发现了[LIDA](https://microsoft.github.io/lida/)——这是一个与语法无关的库，旨在使用大型语言模型（LLMs）和图像生成模型（IGMs）自动生成数据可视化和信息图。LIDA支持多种大型语言模型提供商，例如OpenAI和Hugging Face。在这篇文章中，我将提供该库的高层次概述，展示如何入门，列出一些示例，并分享我对在数据可视化和商业智能（BI）领域中使用LLMs和IGMs的思考与考虑。
+最近我发现了[LIDA](https://microsoft.github.io/lida/)——这是一个与语法无关的库，旨在使用大型语言模型（LLMs）和图像生成模型（IGMs）自动生成数据可视化和信息图。LIDA 支持多种大型语言模型提供商，例如 OpenAI 和 Hugging Face。在这篇文章中，我将提供该库的高层次概述，展示如何入门，列出一些示例，并分享我对在数据可视化和商业智能（BI）领域中使用 LLMs 和 IGMs 的思考与考虑。
 
-![](../Images/d826a62854c7a0146b0b8618ca5a7847.png)
+![](img/d826a62854c7a0146b0b8618ca5a7847.png)
 
 [照片](https://unsplash.com/photos/a-group-of-colorful-objects-2yClsTFXIcE)来自[and_machines](https://unsplash.com/@and_machines)于[Unsplash](https://unsplash.com/)
 
 # 概述¹
 
-创建数据可视化通常是一项复杂的任务——涉及数据处理、编码和设计技能。LIDA是一个开源库，通过减少开发时间、错误数量和整体复杂性，自动化数据可视化创建过程。
+创建数据可视化通常是一项复杂的任务——涉及数据处理、编码和设计技能。LIDA 是一个开源库，通过减少开发时间、错误数量和整体复杂性，自动化数据可视化创建过程。
 
-LIDA包含4个模块，如下图所示。每个模块在这一多阶段可视化生成方法中都有独特的作用。
+LIDA 包含 4 个模块，如下图所示。每个模块在这一多阶段可视化生成方法中都有独特的作用。
 
-![](../Images/3a59fdd48ac545ca16921436a912328a.png)
+![](img/3a59fdd48ac545ca16921436a912328a.png)
 
 图像来源：Victor Dibia，来自[LIDA GitHub](https://microsoft.github.io/lida/)
 
@@ -66,43 +66,43 @@ pip install lida
 pip install -U llmx openai
 ```
 
-## 步骤 2：创建一个变量来存储您的OpenAI API密钥
+## 步骤 2：创建一个变量来存储您的 OpenAI API 密钥
 
-要创建OpenAI API密钥，请导航到您的**个人资料** > **用户API密钥**，然后选择**+ 创建新密钥**。
+要创建 OpenAI API 密钥，请导航到您的**个人资料** > **用户 API 密钥**，然后选择**+ 创建新密钥**。
 
-![](../Images/13a7b80195d14424e7c8f61096f3da78.png)
+![](img/13a7b80195d14424e7c8f61096f3da78.png)
 
-作者图片：获取API密钥
+作者图片：获取 API 密钥
 
-复制API密钥。在一个新的终端窗口中，将API密钥保存为名为**OPENAI_API_KEY**的变量。
+复制 API 密钥。在一个新的终端窗口中，将 API 密钥保存为名为**OPENAI_API_KEY**的变量。
 
 ```py
 export OPENAI_API_KEY=""
 ```
 
-## 步骤 3：启动UI Web应用
+## 步骤 3：启动 UI Web 应用
 
-从终端窗口启动LIDA UI Web应用，使用以下命令。
+从终端窗口启动 LIDA UI Web 应用，使用以下命令。
 
 ```py
 lida ui --port=8080 --docs
 ```
 
-在Web浏览器中，导航到“***localhost:8080****”，* 然后就可以开始了！选择**Live demo**或**Demo**标签来查看Web应用。
+在 Web 浏览器中，导航到“***localhost:8080****”，* 然后就可以开始了！选择**Live demo**或**Demo**标签来查看 Web 应用。
 
-![](../Images/1deda8eed8d554fa2cab76ee63709641.png)
+![](img/1deda8eed8d554fa2cab76ee63709641.png)
 
-作者图片：访问LIDA Web应用
+作者图片：访问 LIDA Web 应用
 
-# Web应用示例
+# Web 应用示例
 
-本部分展示了一些使用来自Kaggle的[**美国票房前10电影数据集**](https://www.kaggle.com/datasets/willsfilms/top-10-films-at-the-us-box-office-2000-2023)³的示例和提示。
+本部分展示了一些使用来自 Kaggle 的[**美国票房前 10 电影数据集**](https://www.kaggle.com/datasets/willsfilms/top-10-films-at-the-us-box-office-2000-2023)³的示例和提示。
 
 ## 步骤 1：选择可视化库/语法
 
-在创建任何数据可视化或总结之前，选择一个可视化库。有4个选项可供选择：Altair、Matplotlib、Seaborn和GGPlot。首先，选择***Seaborn*** —— 这是一个基于Matplotlib的Python数据可视化库。
+在创建任何数据可视化或总结之前，选择一个可视化库。有 4 个选项可供选择：Altair、Matplotlib、Seaborn 和 GGPlot。首先，选择***Seaborn*** —— 这是一个基于 Matplotlib 的 Python 数据可视化库。
 
-![](../Images/206ff7d5471fa98c1f32d252e6df1761.png)
+![](img/206ff7d5471fa98c1f32d252e6df1761.png)
 
 作者图片：选择可视化库/语法
 
@@ -112,73 +112,73 @@ lida ui --port=8080 --docs
 
 右侧有一个选项可以修改**生成设置**。在这里，您可以选择**模型提供商**、用于生成的**模型**，并调整其他字段，如**最大令牌数**、**温度**和**消息数量**。目前，可以保持默认设置。
 
-![](../Images/365f40b7a152e2ab5ba489f0eb2f56d3.png)
+![](img/365f40b7a152e2ab5ba489f0eb2f56d3.png)
 
 作者图片：查看生成设置
 
 ## 步骤 3：上传数据
 
-在设置基本参数后，上传数据集。点击或拖动文件将数据集上传到Web应用。或者，您可以使用提供的样本文件之一。
+在设置基本参数后，上传数据集。点击或拖动文件将数据集上传到 Web 应用。或者，您可以使用提供的样本文件之一。
 
-![](../Images/ab02ff8718021b8c8375c8bff004e4f5.png)
+![](img/ab02ff8718021b8c8375c8bff004e4f5.png)
 
 作者图片：上传文件
 
-***提示：*** *如果在尝试上传文件时遇到错误，请检查所选模型提供商的使用情况和计费权限。访问权限问题可能导致LIDA中的数据文件上传问题。此外，终端窗口将显示任何可能对排除问题有帮助的错误消息。*
+***提示：*** *如果在尝试上传文件时遇到错误，请检查所选模型提供商的使用情况和计费权限。访问权限问题可能导致 LIDA 中的数据文件上传问题。此外，终端窗口将显示任何可能对排除问题有帮助的错误消息。*
 
-**注意：请小心是否/何时切换回LIDA主页——这将导致丢失当前显示中的工作！**
+**注意：请小心是否/何时切换回 LIDA 主页——这将导致丢失当前显示中的工作！**
 
 ## 步骤 4：查看数据摘要
 
 **数据概述**部分提供了数据集的描述，以及数据集中各个字段的总结，包括列类型、唯一值数量、列描述和示例值。这一输出是之前提到的**总结模块**的结果。
 
-以下图片展示了[**美国票房前10名电影数据集**](https://www.kaggle.com/datasets/willsfilms/top-10-films-at-the-us-box-office-2000-2023)的**数据概述**。其中包含了整个数据集的描述，以及数据集中所有9列的内容。
+以下图片展示了[**美国票房前 10 名电影数据集**](https://www.kaggle.com/datasets/willsfilms/top-10-films-at-the-us-box-office-2000-2023)的**数据概述**。其中包含了整个数据集的描述，以及数据集中所有 9 列的内容。
 
-![](../Images/445cc0f6b834f829c3f0560a92b15128.png)
+![](img/445cc0f6b834f829c3f0560a92b15128.png)
 
-作者提供的图片：关于“美国票房前10名电影数据集”的数据概述
+作者提供的图片：关于“美国票房前 10 名电影数据集”的数据概述
 
-选择**查看原始摘要？**来以JSON字典格式查看数据概述。
+选择**查看原始摘要？**来以 JSON 字典格式查看数据概述。
 
-![](../Images/324a74b33ed3347958143514efade886.png)
+![](img/324a74b33ed3347958143514efade886.png)
 
 作者提供的图片：查看原始摘要
 
-## 第5步：审查目标探索
+## 第 5 步：审查目标探索
 
 本部分展示了根据上传的数据集自动生成的目标或假设列表。每个目标都以问题的形式呈现，并包括可视化将展示的内容的描述。这一输出是之前提到的**目标探索模块**的结果。
 
 在这里，你可以浏览不同的目标，并选择一个在**可视化生成**部分进行可视化展示。
 
-![](../Images/d78a1b7d400b3cd9717fba880e3481e4.png)
+![](img/d78a1b7d400b3cd9717fba880e3481e4.png)
 
-作者提供的图片：关于“美国票房前10名电影数据集”的目标探索结果
+作者提供的图片：关于“美国票房前 10 名电影数据集”的目标探索结果
 
-## 第6步：可视化生成
+## 第 6 步：可视化生成
 
-根据之前部分选择的目标**目标探索**，你将看到相应的可视化结果，以及用于生成该可视化的Python代码。
+根据之前部分选择的目标**目标探索**，你将看到相应的可视化结果，以及用于生成该可视化的 Python 代码。
 
-以下图片展示了目标“*电影上映月份分布是怎样的？*”的结果。左侧是可视化结果，一个垂直条形图，右侧是用于生成该可视化的Python代码。这段代码可以复制用于外部使用。
+以下图片展示了目标“*电影上映月份分布是怎样的？*”的结果。左侧是可视化结果，一个垂直条形图，右侧是用于生成该可视化的 Python 代码。这段代码可以复制用于外部使用。
 
-![](../Images/3465a5730f6df0b8a2ed0bc1dc6bd853.png)
+![](img/3465a5730f6df0b8a2ed0bc1dc6bd853.png)
 
 作者提供的图片：关于“电影上映月份分布”的可视化生成输出
 
 另外，你也可以输入一个新的可视化目标，超出**目标探索**部分列出的目标。
 
-例如，以下图片展示了“*预算平均值最大的前5个电影类型*”的输出。
+例如，以下图片展示了“*预算平均值最大的前 5 个电影类型*”的输出。
 
-![](../Images/711c438ccd9ef6f23c818545160efb6b.png)
+![](img/711c438ccd9ef6f23c818545160efb6b.png)
 
-作者提供的图片：关于“预算平均值最大的前5个电影类型”的可视化生成输出
+作者提供的图片：关于“预算平均值最大的前 5 个电影类型”的可视化生成输出
 
 **注意：** 选择目标右侧的**生成**按钮将刷新可视化结果。这可能会导致一些细微的变化，例如颜色方案的变化。
 
-## 第7步：可视化修改与评估
+## 第 7 步：可视化修改与评估
 
 一旦生成了可视化，有四个标签可以使用：**优化**、**解释**、**评估**和**推荐**。
 
-![](../Images/a823c2d62c642b811c2d3d4eba9930fb.png)
+![](img/a823c2d62c642b811c2d3d4eba9930fb.png)
 
 作者提供的图片：可视化生成部分下的**优化**、**解释**、**评估**和**推荐**标签
 
@@ -186,7 +186,7 @@ lida ui --port=8080 --docs
 
 下图显示了使用**修改**标签对图表“*电影发行月份分布是什么*？”所做的修改。图表通过自然语言命令修改，将月份按时间顺序排列，显示为水平条形图，并为每个条形添加计数值。
 
-![](../Images/e68acf9d54415fd0996e3bd537d9894f.png)
+![](img/e68acf9d54415fd0996e3bd537d9894f.png)
 
 作者提供的图片：在“修改”标签中输入自然语言命令后的可视化生成输出
 
@@ -194,41 +194,41 @@ lida ui --port=8080 --docs
 
 如果你需要在几个样式提示未按预期生成结果后重置可视化，请使用**清除聊天历史**按钮来重置可视化。
 
-![](../Images/0780134a5513a9890e0ca18ed7a86f66.png)
+![](img/0780134a5513a9890e0ca18ed7a86f66.png)
 
 作者提供的图片：清除聊天历史按钮
 
 第二个标签，**解释**，提供关于如何创建可视化的文本解释——涉及数据转换、图表元素、代码等。
 
-![](../Images/fa9a159a684e7504e84e7a181ef49b19.png)
+![](img/fa9a159a684e7504e84e7a181ef49b19.png)
 
 作者提供的图片：图表解释示例
 
-第三个标签，**评估**，从6个维度评估生成的图表：缺陷、转换、合规性、类型、编码和美学。每个维度有一个5分制的评分，并提供了为什么给出该评分的描述。
+第三个标签，**评估**，从 6 个维度评估生成的图表：缺陷、转换、合规性、类型、编码和美学。每个维度有一个 5 分制的评分，并提供了为什么给出该评分的描述。
 
-![](../Images/f82976ba455f3783db80e447b59fe28a.png)
+![](img/f82976ba455f3783db80e447b59fe28a.png)
 
 作者提供的图片：图表评估示例
 
 右下角有一个按钮可以自动修复图表，按钮名称为**自动修复图表**，如上图所示。如果你同意图表评估中提供的建议，那么这是一个快捷的修复方式！下图显示了在根据*美学*评估自动修复图表后更新的图表。
 
-![](../Images/d686cbfb32ccedcabd4a9bab5dfd6bf2.png)
+![](img/d686cbfb32ccedcabd4a9bab5dfd6bf2.png)
 
 作者提供的图片：选择**自动修复图表**后的更新条形图
 
 第四个标签，**推荐！**，生成类似的图表及相应的代码片段——这些不与初始目标绑定。这对于集思广益、思考从数据中获取的其他图表或洞见非常有用。
 
-![](../Images/e8c580a41e1b79ba763c04599795dbdc.png)
+![](img/e8c580a41e1b79ba763c04599795dbdc.png)
 
 作者提供的图片：图表推荐示例
 
 # 思考与考虑事项
 
-本节强调了在数据可视化和商业智能领域使用LLM（大语言模型）和IGM（智能生成模型）时需要考虑的几个方面——包括但不限于自动生成数据可视化。
+本节强调了在数据可视化和商业智能领域使用 LLM（大语言模型）和 IGM（智能生成模型）时需要考虑的几个方面——包括但不限于自动生成数据可视化。
 
 ## 评估指标
 
-LIDA使用两个指标——可视化错误率（VER）和自评可视化质量（SEVQ）。
+LIDA 使用两个指标——可视化错误率（VER）和自评可视化质量（SEVQ）。
 
 VER 显示了生成的可视化中有多少导致了代码编译错误，以百分比形式表示。
 
@@ -250,13 +250,13 @@ SEVQ 使用大型语言模型（LLMs），例如 GPT-4，来评估生成的可�
 
 无论个人的角色如何，图表旁的自然语言文本都可以帮助提供数据可视化的关键洞察。目前已经有一些自然语言生成（NLG）工具能够集成到商业智能（BI）工具中。随着 LLMs、IGMs 和数据可视化解决方案的发展，看看这个领域如何持续演变将会非常有趣。
 
-*之前没见过结合BI的自然语言生成（NLG）吗？查看这个* [*GitHub页面*](https://github.com/payalnpatel/Tableau/blob/main/NLG/NLG-for-BI-notes.md) *快速了解一下。*
+*之前没见过结合 BI 的自然语言生成（NLG）吗？查看这个* [*GitHub 页面*](https://github.com/payalnpatel/Tableau/blob/main/NLG/NLG-for-BI-notes.md) *快速了解一下。*
 
-展望未来，考虑最终用户并理解什么样的LLM + IGM + 数据可视化解决方案适合该受众群体，基于他们的目标和兴趣，是至关重要的。
+展望未来，考虑最终用户并理解什么样的 LLM + IGM + 数据可视化解决方案适合该受众群体，基于他们的目标和兴趣，是至关重要的。
 
 ## 使用提示进行图表设计
 
-之前的示例展示了如何使用LLM和IGM生成数据可视化图表。虽然这些图表是自动生成的，但它们仍然需要修改以确保设计良好。通常，你不能将第一个图表保持不变。这需要使用LIDA中的自动修复功能，虽然它能够捕捉到部分变化，但并不能覆盖所有应做的修改，同时还需要样式提示，这要求一定的数据可视化领域经验和知识。
+之前的示例展示了如何使用 LLM 和 IGM 生成数据可视化图表。虽然这些图表是自动生成的，但它们仍然需要修改以确保设计良好。通常，你不能将第一个图表保持不变。这需要使用 LIDA 中的自动修复功能，虽然它能够捕捉到部分变化，但并不能覆盖所有应做的修改，同时还需要样式提示，这要求一定的数据可视化领域经验和知识。
 
 这些样式提示由用户用自然语言输入，可以包括诸如修改图表标题、改变图表颜色或排序图表值等请求。
 
@@ -266,16 +266,16 @@ SEVQ 使用大型语言模型（LLMs），例如 GPT-4，来评估生成的可�
 
 这并不意味着我们不应该在创建数据可视化时利用提示语——而是指出，在开始时可能会有一个学习曲线。找出正确的提示语可能需要一些测试，并且需要明确表达的命令。
 
-总的来说，LIDA是一个很好的开源工具，适合开始学习LLM、IGM和数据可视化领域的一些最新进展。查看Victor Dibia的完整论文 [这里](https://aclanthology.org/2023.acl-demo.11.pdf)，并试用网页应用程序或Python API，进一步了解LLM和IGM如何改变我们创建数据可视化的方式。
+总的来说，LIDA 是一个很好的开源工具，适合开始学习 LLM、IGM 和数据可视化领域的一些最新进展。查看 Victor Dibia 的完整论文 [这里](https://aclanthology.org/2023.acl-demo.11.pdf)，并试用网页应用程序或 Python API，进一步了解 LLM 和 IGM 如何改变我们创建数据可视化的方式。
 
-*Payal是一位数据与AI专家。在业余时间，她喜欢阅读、旅行，并在Medium上写作。如果你喜欢她的作品，* [*关注或订阅*](https://medium.com/@payal-patel) *她的列表，永不错过任何故事！*
+*Payal 是一位数据与 AI 专家。在业余时间，她喜欢阅读、旅行，并在 Medium 上写作。如果你喜欢她的作品，* [*关注或订阅*](https://medium.com/@payal-patel) *她的列表，永不错过任何故事！*
 
-*以上文章是个人观点，不一定代表IBM的立场、战略或意见。*
+*以上文章是个人观点，不一定代表 IBM 的立场、战略或意见。*
 
 **参考文献**
 
-[1]: Dibia, Victor. *LIDA：一种使用大型语言模型自动生成语法无关的可视化和信息图表的工具*, 微软研究院, 2023年5月8日, aclanthology.org/2023.acl-demo.11.pdf.
+[1]: Dibia, Victor. *LIDA：一种使用大型语言模型自动生成语法无关的可视化和信息图表的工具*, 微软研究院, 2023 年 5 月 8 日, aclanthology.org/2023.acl-demo.11.pdf.
 
-[2]: Vagh, Avinash. “NLP和提示工程：理解基础知识。” *DEV社区*, DEV社区, 2023年4月6日, dev.to/avinashvagh/understanding-the-concept-of-natural-language-processing-nlp-and-prompt-engineering-35hg.
+[2]: Vagh, Avinash. “NLP 和提示工程：理解基础知识。” *DEV 社区*, DEV 社区, 2023 年 4 月 6 日, dev.to/avinashvagh/understanding-the-concept-of-natural-language-processing-nlp-and-prompt-engineering-35hg.
 
-[3]: 影片，Will’s。“2000–2023年美国票房前十名电影。”*Kaggle*，2024年3月20日，[www.kaggle.com/datasets/willsfilms/top-10-films-at-the-us-box-office-2000-2023.](http://www.kaggle.com/datasets/willsfilms/top-10-films-at-the-us-box-office-2000-2023.)（CC0）
+[3]: 影片，Will’s。“2000–2023 年美国票房前十名电影。”*Kaggle*，2024 年 3 月 20 日，[www.kaggle.com/datasets/willsfilms/top-10-films-at-the-us-box-office-2000-2023.](http://www.kaggle.com/datasets/willsfilms/top-10-films-at-the-us-box-office-2000-2023.)（CC0）

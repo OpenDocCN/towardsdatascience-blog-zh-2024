@@ -1,34 +1,34 @@
-# 设置一个Docker化的Python环境——硬方法
+# 设置一个 Docker 化的 Python 环境——硬方法
 
-> 原文：[https://towardsdatascience.com/setting-a-dockerized-python-environment-the-hard-way-e62531bca7a0?source=collection_archive---------2-----------------------#2024-02-13](https://towardsdatascience.com/setting-a-dockerized-python-environment-the-hard-way-e62531bca7a0?source=collection_archive---------2-----------------------#2024-02-13)
+> 原文：[`towardsdatascience.com/setting-a-dockerized-python-environment-the-hard-way-e62531bca7a0?source=collection_archive---------2-----------------------#2024-02-13`](https://towardsdatascience.com/setting-a-dockerized-python-environment-the-hard-way-e62531bca7a0?source=collection_archive---------2-----------------------#2024-02-13)
 
-[](https://medium.com/@rami.krispin?source=post_page---byline--e62531bca7a0--------------------------------)[![Rami Krispin](../Images/8af28c282d42a2a27c28aa8af4c8d482.png)](https://medium.com/@rami.krispin?source=post_page---byline--e62531bca7a0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e62531bca7a0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e62531bca7a0--------------------------------) [Rami Krispin](https://medium.com/@rami.krispin?source=post_page---byline--e62531bca7a0--------------------------------)
+[](https://medium.com/@rami.krispin?source=post_page---byline--e62531bca7a0--------------------------------)![Rami Krispin](https://medium.com/@rami.krispin?source=post_page---byline--e62531bca7a0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e62531bca7a0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e62531bca7a0--------------------------------) [Rami Krispin](https://medium.com/@rami.krispin?source=post_page---byline--e62531bca7a0--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e62531bca7a0--------------------------------) ·阅读时长9分钟·2024年2月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e62531bca7a0--------------------------------) ·阅读时长 9 分钟·2024 年 2 月 13 日
 
 --
 
-本文将回顾从命令行（CLI）运行Docker化Python环境的不同方法。我是否推荐你从CLI运行Python环境？**绝对不！**
+本文将回顾从命令行（CLI）运行 Docker 化 Python 环境的不同方法。我是否推荐你从 CLI 运行 Python 环境？**绝对不！**
 
-还有更好的方式来设置Python开发环境，比如使用[VScode和Dev Containers扩展](https://github.com/RamiKrispin/vscode-python)。但为了学习目的，我们将使用“硬方法”通过CLI来设置Python环境。我们将回顾使用run命令启动容器的不同方法，并了解如何通过Dockerfile定制内置镜像。
+还有更好的方式来设置 Python 开发环境，比如使用[VScode 和 Dev Containers 扩展](https://github.com/RamiKrispin/vscode-python)。但为了学习目的，我们将使用“硬方法”通过 CLI 来设置 Python 环境。我们将回顾使用 run 命令启动容器的不同方法，并了解如何通过 Dockerfile 定制内置镜像。
 
-![](../Images/acbfde2cb642aa103b6f28af32df61d0.png)
+![](img/acbfde2cb642aa103b6f28af32df61d0.png)
 
-一只由作者使用Midjourney创建的Pixal Python Snake
+一只由作者使用 Midjourney 创建的 Pixal Python Snake
 
 # 前提条件
 
 要跟随本教程进行操作，您需要以下内容：
 
-+   如果您使用的是macOS或Windows操作系统的机器，则需要安装Docker Desktop（或等效工具）；如果您使用的是Linux操作系统，则需要安装Docker。
++   如果您使用的是 macOS 或 Windows 操作系统的机器，则需要安装 Docker Desktop（或等效工具）；如果您使用的是 Linux 操作系统，则需要安装 Docker。
 
-+   您需要一个Docker Hub账户来拉取镜像。
++   您需要一个 Docker Hub 账户来拉取镜像。
 
-在整个教程中，我们将使用官方的Python镜像——`python:3.10`。
+在整个教程中，我们将使用官方的 Python 镜像——`python:3.10`。
 
 # 入门
 
-我们首先从Docker Hub拉取官方的Python 3.10镜像。首先，使用`docker login`命令登录到Docker Hub：
+我们首先从 Docker Hub 拉取官方的 Python 3.10 镜像。首先，使用`docker login`命令登录到 Docker Hub：
 
 ```py
 docker login docker.io                                                                                                                                                                      ok
@@ -198,7 +198,7 @@ docker run --interactive --tty python:3.10
 
 这将把终端连接到容器并在容器内打开 Python：
 
-![](../Images/b066a01e44128424e719f9428d280fc9.png)
+![](img/b066a01e44128424e719f9428d280fc9.png)
 
 在交互模式下运行 Python 镜像（截图由作者提供）
 
@@ -212,7 +212,7 @@ docker run --interactive --tty python:3.10
 
 例如，如果我们尝试加载 pandas，我们将遇到以下错误：
 
-![](../Images/574f93ea2b2baadd9a6e412773b40e20.png)
+![](img/574f93ea2b2baadd9a6e412773b40e20.png)
 
 尝试加载 Pandas 库（截图由作者提供）
 
@@ -269,9 +269,9 @@ source /opt/$PYTHON_ENV/bin/activate
 pip3 install -r ./requirements/requirements.txt
 ```
 
-**注意：** 我们使用一个变量（标记为`$1`）来定义环境名称，该名称将被赋值给`PYTHON_ENV`变量。在构建过程中使用变量是一种良好的做法，因为它使我们能够在不修改代码的情况下修改镜像的某些特性。我们将在Dockerfile中为变量赋值。
+**注意：** 我们使用一个变量（标记为`$1`）来定义环境名称，该名称将被赋值给`PYTHON_ENV`变量。在构建过程中使用变量是一种良好的做法，因为它使我们能够在不修改代码的情况下修改镜像的某些特性。我们将在 Dockerfile 中为变量赋值。
 
-让我们解释一下来自上述bash脚本的以下拼接代码，它设置了虚拟环境：
+让我们解释一下来自上述 bash 脚本的以下拼接代码，它设置了虚拟环境：
 
 ```py
 python3 -m venv /opt/$PYTHON_ENV  \
@@ -289,9 +289,9 @@ python3 -m venv /opt/$PYTHON_ENV  \
 
 环境设置完成后，我们使用`source`命令激活环境，并使用`pip3`命令在环境中安装库。
 
-## 创建Dockerfile
+## 创建 Dockerfile
 
-在审查了辅助文件后，让我们看看它们如何在下面的Dockerfile中被引用。
+在审查了辅助文件后，让我们看看它们如何在下面的 Dockerfile 中被引用。
 
 `Dockerfile`
 
@@ -321,11 +321,11 @@ CMD ["/bin/sh", "-c", "bash"]
 
 在设置虚拟环境之前，我们将在镜像的根目录下创建一个名为`requirements`的新文件夹，并使用`COPY`命令将上述辅助文件——`requirements.txt`和`set_my_python.sh`复制到`requirements`文件夹中。
 
-接下来，我们调用bash脚本`set_my_python.sh`，该脚本设置虚拟环境并安装所需的库。如上所述，我们使用`PYTHON_ENV`变量作为参数，配合`set_my_python.sh`文件动态设置虚拟环境名称。
+接下来，我们调用 bash 脚本`set_my_python.sh`，该脚本设置虚拟环境并安装所需的库。如上所述，我们使用`PYTHON_ENV`变量作为参数，配合`set_my_python.sh`文件动态设置虚拟环境名称。
 
-我们使用`apt`命令安装**vim**——一个CLI编辑器。这样我们就可以通过容器CLI编辑代码了。
+我们使用`apt`命令安装**vim**——一个 CLI 编辑器。这样我们就可以通过容器 CLI 编辑代码了。
 
-最后但同样重要的是，使用`CMD`命令启动一个bash终端：
+最后但同样重要的是，使用`CMD`命令启动一个 bash 终端：
 
 ```py
 CMD ["/bin/sh", "-c", "bash"]
@@ -363,7 +363,7 @@ docker build .-f Dockerfile -t my_python_env:3.10
  => => naming to docker.io/library/my_python_env:3.10
 ```
 
-让我们再次运行docker images命令，查看当前镜像：
+让我们再次运行 docker images 命令，查看当前镜像：
 
 ```py
 docker images                                                  
@@ -372,9 +372,9 @@ my_python_env   3.10      391879baceea   7 minutes ago   1.23GB
 python          3.10      f7537c504c9a   8 days ago      1.01GB
 ```
 
-正如你所注意到的，添加虚拟环境并安装包后，镜像大小增加了大约250MB。
+正如你所注意到的，添加虚拟环境并安装包后，镜像大小增加了大约 250MB。
 
-## 运行Python环境
+## 运行 Python 环境
 
 构建完镜像后，让我们使用`docker run`命令启动镜像，并检查上述属性是否按预期定义：
 
@@ -382,9 +382,9 @@ python          3.10      f7537c504c9a   8 days ago      1.01GB
 docker run --interactive --tty my_python_env:3.10
 ```
 
-这将以交互模式启动镜像，并按预期打开一个bash终端：
+这将以交互模式启动镜像，并按预期打开一个 bash 终端：
 
-![](../Images/6898d42a4462a0bbb0ea5a3826cada26.png)
+![](img/6898d42a4462a0bbb0ea5a3826cada26.png)
 
 通过 shell 终端启动容器（截图由作者提供）
 
@@ -400,7 +400,7 @@ docker run -v .:/my_scripts  --interactive --tty my_python_env:3.10
 
 这是输出结果：
 
-![](../Images/a8623245254898dcff248d1bac468805.png)
+![](img/a8623245254898dcff248d1bac468805.png)
 
 将本地卷挂载到容器中（截图由作者提供）
 
@@ -412,10 +412,10 @@ docker run -v .:/my_scripts  --interactive --tty my_python_env:3.10
 
 # 资源
 
-+   使用 VScode 和 Dev Containers 设置 Docker 化 Python 环境的完整教程 — [https://github.com/RamiKrispin/vscode-python](https://github.com/RamiKrispin/vscode-python)
++   使用 VScode 和 Dev Containers 设置 Docker 化 Python 环境的完整教程 — [`github.com/RamiKrispin/vscode-python`](https://github.com/RamiKrispin/vscode-python)
 
-+   使用 GitHub 模板设置 Docker 化 Python 开发环境 — [https://medium.com/@rami.krispin/setting-a-dockerized-python-development-environment-template-de2400c4812b](https://medium.com/@rami.krispin/setting-a-dockerized-python-development-environment-template-de2400c4812b)
++   使用 GitHub 模板设置 Docker 化 Python 开发环境 — [`medium.com/@rami.krispin/setting-a-dockerized-python-development-environment-template-de2400c4812b`](https://medium.com/@rami.krispin/setting-a-dockerized-python-development-environment-template-de2400c4812b)
 
-+   Docker 与虚拟环境的对比 — [https://medium.com/@rami.krispin/running-python-r-with-docker-vs-virtual-environment-4a62ed36900f](https://medium.com/@rami.krispin/running-python-r-with-docker-vs-virtual-environment-4a62ed36900f)
++   Docker 与虚拟环境的对比 — [`medium.com/@rami.krispin/running-python-r-with-docker-vs-virtual-environment-4a62ed36900f`](https://medium.com/@rami.krispin/running-python-r-with-docker-vs-virtual-environment-4a62ed36900f)
 
-+   Dockerfile 参考 — [https://docs.docker.com/engine/reference/builder/](https://docs.docker.com/engine/reference/builder/)
++   Dockerfile 参考 — [`docs.docker.com/engine/reference/builder/`](https://docs.docker.com/engine/reference/builder/)

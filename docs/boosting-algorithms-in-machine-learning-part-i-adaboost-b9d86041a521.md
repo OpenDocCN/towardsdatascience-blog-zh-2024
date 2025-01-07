@@ -1,16 +1,16 @@
 # 机器学习中的提升算法，第一部分：AdaBoost
 
-> 原文：[https://towardsdatascience.com/boosting-algorithms-in-machine-learning-part-i-adaboost-b9d86041a521?source=collection_archive---------12-----------------------#2024-01-05](https://towardsdatascience.com/boosting-algorithms-in-machine-learning-part-i-adaboost-b9d86041a521?source=collection_archive---------12-----------------------#2024-01-05)
+> 原文：[`towardsdatascience.com/boosting-algorithms-in-machine-learning-part-i-adaboost-b9d86041a521?source=collection_archive---------12-----------------------#2024-01-05`](https://towardsdatascience.com/boosting-algorithms-in-machine-learning-part-i-adaboost-b9d86041a521?source=collection_archive---------12-----------------------#2024-01-05)
 
 ## 了解 AdaBoost 背后的逻辑，并使用 Python 实现它
 
-[](https://medium.com/@gurjinderkaur95?source=post_page---byline--b9d86041a521--------------------------------)[![Gurjinder Kaur](../Images/d5c6746466025dad06077b1a89a789d1.png)](https://medium.com/@gurjinderkaur95?source=post_page---byline--b9d86041a521--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b9d86041a521--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b9d86041a521--------------------------------) [Gurjinder Kaur](https://medium.com/@gurjinderkaur95?source=post_page---byline--b9d86041a521--------------------------------)
+[](https://medium.com/@gurjinderkaur95?source=post_page---byline--b9d86041a521--------------------------------)![Gurjinder Kaur](https://medium.com/@gurjinderkaur95?source=post_page---byline--b9d86041a521--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b9d86041a521--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b9d86041a521--------------------------------) [Gurjinder Kaur](https://medium.com/@gurjinderkaur95?source=post_page---byline--b9d86041a521--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b9d86041a521--------------------------------) ·13分钟阅读·2024年1月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b9d86041a521--------------------------------) ·13 分钟阅读·2024 年 1 月 5 日
 
 --
 
-![](../Images/3e3f0a714d392b74e007aec11aca3a71.png)
+![](img/3e3f0a714d392b74e007aec11aca3a71.png)
 
 由 [Jeffrey Brandjes](https://unsplash.com/@jeffreyfotografie?utm_source=medium&utm_medium=referral) 拍摄，图片来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

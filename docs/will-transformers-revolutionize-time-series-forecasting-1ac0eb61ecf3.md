@@ -1,16 +1,16 @@
 # Transformer 是否会彻底改变时间序列预测？
 
-> 原文：[https://towardsdatascience.com/will-transformers-revolutionize-time-series-forecasting-1ac0eb61ecf3?source=collection_archive---------2-----------------------#2024-07-31](https://towardsdatascience.com/will-transformers-revolutionize-time-series-forecasting-1ac0eb61ecf3?source=collection_archive---------2-----------------------#2024-07-31)
+> 原文：[`towardsdatascience.com/will-transformers-revolutionize-time-series-forecasting-1ac0eb61ecf3?source=collection_archive---------2-----------------------#2024-07-31`](https://towardsdatascience.com/will-transformers-revolutionize-time-series-forecasting-1ac0eb61ecf3?source=collection_archive---------2-----------------------#2024-07-31)
 
 ## 结合来自工业界、学术界和领先研究人员的数据
 
-[](https://medium.com/@nikoskafritsas?source=post_page---byline--1ac0eb61ecf3--------------------------------)[![Nikos Kafritsas](../Images/de965cfcd8fbd8e1baf849017d365cbb.png)](https://medium.com/@nikoskafritsas?source=post_page---byline--1ac0eb61ecf3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ac0eb61ecf3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1ac0eb61ecf3--------------------------------) [Nikos Kafritsas](https://medium.com/@nikoskafritsas?source=post_page---byline--1ac0eb61ecf3--------------------------------)
+[](https://medium.com/@nikoskafritsas?source=post_page---byline--1ac0eb61ecf3--------------------------------)![Nikos Kafritsas](https://medium.com/@nikoskafritsas?source=post_page---byline--1ac0eb61ecf3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ac0eb61ecf3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ac0eb61ecf3--------------------------------) [Nikos Kafritsas](https://medium.com/@nikoskafritsas?source=post_page---byline--1ac0eb61ecf3--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ac0eb61ecf3--------------------------------) ·阅读时间 9 分钟·2024 年 7 月 31 日
 
 --
 
-![](../Images/e56cc4aeee1808c90d4458dc5c78d043.png)
+![](img/e56cc4aeee1808c90d4458dc5c78d043.png)
 
 由作者使用 DALLE*3 创作
 

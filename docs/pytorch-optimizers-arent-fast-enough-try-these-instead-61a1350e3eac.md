@@ -1,16 +1,16 @@
 # PyTorch 的优化器不够快。试试这些优化器吧
 
-> 原文：[https://towardsdatascience.com/pytorch-optimizers-arent-fast-enough-try-these-instead-61a1350e3eac?source=collection_archive---------1-----------------------#2024-10-14](https://towardsdatascience.com/pytorch-optimizers-arent-fast-enough-try-these-instead-61a1350e3eac?source=collection_archive---------1-----------------------#2024-10-14)
+> 原文：[`towardsdatascience.com/pytorch-optimizers-arent-fast-enough-try-these-instead-61a1350e3eac?source=collection_archive---------1-----------------------#2024-10-14`](https://towardsdatascience.com/pytorch-optimizers-arent-fast-enough-try-these-instead-61a1350e3eac?source=collection_archive---------1-----------------------#2024-10-14)
 
 ## 这四种先进的优化器将开启你的思维。
 
-[](https://medium.com/@benjybo7?source=post_page---byline--61a1350e3eac--------------------------------)[![Benjamin Bodner](../Images/f66d5ba5b80455f8a0cd198499e8f4c2.png)](https://medium.com/@benjybo7?source=post_page---byline--61a1350e3eac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--61a1350e3eac--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--61a1350e3eac--------------------------------) [Benjamin Bodner](https://medium.com/@benjybo7?source=post_page---byline--61a1350e3eac--------------------------------)
+[](https://medium.com/@benjybo7?source=post_page---byline--61a1350e3eac--------------------------------)![Benjamin Bodner](https://medium.com/@benjybo7?source=post_page---byline--61a1350e3eac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--61a1350e3eac--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--61a1350e3eac--------------------------------) [Benjamin Bodner](https://medium.com/@benjybo7?source=post_page---byline--61a1350e3eac--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--61a1350e3eac--------------------------------) ·阅读时间10分钟·2024年10月14日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--61a1350e3eac--------------------------------) ·阅读时间 10 分钟·2024 年 10 月 14 日
 
 --
 
-![](../Images/bdf3ef0a7f55b35562b754c50d2e50b9.png)
+![](img/bdf3ef0a7f55b35562b754c50d2e50b9.png)
 
 来源：作者提供的图片
 

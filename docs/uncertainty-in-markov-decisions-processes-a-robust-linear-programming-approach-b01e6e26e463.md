@@ -1,24 +1,24 @@
 # 马尔可夫决策过程中的不确定性：一种鲁棒的线性规划方法
 
-> 原文：[https://towardsdatascience.com/uncertainty-in-markov-decisions-processes-a-robust-linear-programming-approach-b01e6e26e463?source=collection_archive---------2-----------------------#2024-09-18](https://towardsdatascience.com/uncertainty-in-markov-decisions-processes-a-robust-linear-programming-approach-b01e6e26e463?source=collection_archive---------2-----------------------#2024-09-18)
+> 原文：[`towardsdatascience.com/uncertainty-in-markov-decisions-processes-a-robust-linear-programming-approach-b01e6e26e463?source=collection_archive---------2-----------------------#2024-09-18`](https://towardsdatascience.com/uncertainty-in-markov-decisions-processes-a-robust-linear-programming-approach-b01e6e26e463?source=collection_archive---------2-----------------------#2024-09-18)
 
 ## 马尔可夫决策过程（MDP）的鲁棒对偶理论推导：作为一个线性规划（LP）
 
-[](https://medium.com/@h.fellahi?source=post_page---byline--b01e6e26e463--------------------------------)[![Hussein Fellahi](../Images/b49c8620d8a490ab078b5d4dfe8d017a.png)](https://medium.com/@h.fellahi?source=post_page---byline--b01e6e26e463--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b01e6e26e463--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b01e6e26e463--------------------------------) [Hussein Fellahi](https://medium.com/@h.fellahi?source=post_page---byline--b01e6e26e463--------------------------------)
+[](https://medium.com/@h.fellahi?source=post_page---byline--b01e6e26e463--------------------------------)![Hussein Fellahi](https://medium.com/@h.fellahi?source=post_page---byline--b01e6e26e463--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b01e6e26e463--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b01e6e26e463--------------------------------) [Hussein Fellahi](https://medium.com/@h.fellahi?source=post_page---byline--b01e6e26e463--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b01e6e26e463--------------------------------) ·8分钟阅读·2024年9月18日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b01e6e26e463--------------------------------) ·8 分钟阅读·2024 年 9 月 18 日
 
 --
 
-![](../Images/5ca68bd8a46abe36f974ccfa485f67ad.png)
+![](img/5ca68bd8a46abe36f974ccfa485f67ad.png)
 
 图片由 [ZHENYU LUO](https://unsplash.com/@mrnuclear?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 引言
 
-马尔可夫决策过程（MDP）是顺序决策问题的基础，是强化学习的构建模块。它们建模了一个代理在必须执行一系列动作与其环境之间的动态互动。由于其在机器人技术、金融、运筹学和人工智能等领域的广泛应用，MDP已在理论和实践中得到了广泛研究。
+马尔可夫决策过程（MDP）是顺序决策问题的基础，是强化学习的构建模块。它们建模了一个代理在必须执行一系列动作与其环境之间的动态互动。由于其在机器人技术、金融、运筹学和人工智能等领域的广泛应用，MDP 已在理论和实践中得到了广泛研究。
 
-然而，现有的大部分MDP文献集中于理想化的情境，其中模型参数——如转移概率和奖励函数——假设已知且确定。在实践中，应用如策略迭代和价值迭代等常见方法需要对这些参数进行精确估计，这些估计通常来自于真实世界的数据。对数据的依赖带来了显著的挑战：估计过程本质上是嘈杂的，并且对数据稀缺、测量误差以及观察到的环境变异性等限制因素敏感。因此，当将标准的MDP方法应用于具有不确定性或不完整数据的问题时，其性能可能会显著下降。
+然而，现有的大部分 MDP 文献集中于理想化的情境，其中模型参数——如转移概率和奖励函数——假设已知且确定。在实践中，应用如策略迭代和价值迭代等常见方法需要对这些参数进行精确估计，这些估计通常来自于真实世界的数据。对数据的依赖带来了显著的挑战：估计过程本质上是嘈杂的，并且对数据稀缺、测量误差以及观察到的环境变异性等限制因素敏感。因此，当将标准的 MDP 方法应用于具有不确定性或不完整数据的问题时，其性能可能会显著下降。
 
 在本文中，我们基于鲁棒优化（RO）文献提出了一个通用框架来解决这些问题。**我们提供了一个鲁棒线性规划（RLP）公式化的 MDP，能够处理各种不确定性和对抗性扰动。**
 
@@ -46,47 +46,47 @@
 
 *策略 π 的价值函数是该策略下期望的折现奖励，当从给定状态* ***s*** *开始时：*
 
-![](../Images/6d82dc5a1a2e1a0b0d5228793fd75781.png)
+![](img/6d82dc5a1a2e1a0b0d5228793fd75781.png)
 
 *特别地，最优策略 π* 的价值函数满足贝尔曼最优性方程：*
 
-![](../Images/7daa90e2dd4bf9c84f0d01a1d142ddc2.png)
+![](img/7daa90e2dd4bf9c84f0d01a1d142ddc2.png)
 
 *这产生了确定性的最优策略：*
 
-![](../Images/25de5914d7227557fccc869698b8a51c.png)
+![](img/25de5914d7227557fccc869698b8a51c.png)
 
 ## 推导 MDP 的线性规划（LP）公式：
 
 根据上述定义，我们可以从以下事实入手：任何满足的价值函数 V
 
-![](../Images/853b1072047df6981994647e5fdb183f.png)
+![](img/853b1072047df6981994647e5fdb183f.png)
 
 是最优价值函数的上界。为了理解这一点，我们可以首先注意到这样的价值函数也满足：
 
-![](../Images/ead9064be99992fb736efcd2fb7162c9.png)
+![](img/ead9064be99992fb736efcd2fb7162c9.png)
 
 我们识别出应用于 V 的价值迭代运算符：
 
-![](../Images/addbe4760a5cbd1d16e641580e000de3.png)
+![](img/addbe4760a5cbd1d16e641580e000de3.png)
 
 即
 
-![](../Images/529b5be7c352fdaac409965f0a558859.png)
+![](img/529b5be7c352fdaac409965f0a558859.png)
 
 另外，注意到 H* 运算符是递增的，我们可以迭代地应用它得到：
 
-![](../Images/1eb2f85b3fef8f0a3946982532d2528c.png)
+![](img/1eb2f85b3fef8f0a3946982532d2528c.png)
 
 其中我们使用了 V* 是 H* 的不动点这一性质。
 
 因此，找到 V* 的问题归结为找到 **遵守上述方程的最紧上界 V**，从而得到以下公式：
 
-![](../Images/dd511b37256a48510693d9294a7427cb.png)
+![](img/dd511b37256a48510693d9294a7427cb.png)
 
 在这里，我们添加了一个与状态 *s* 的起始概率相关的权重项。我们可以看到，上述问题在线性形式下表示为 V，并且可以重写如下：
 
-![](../Images/a95c4fe11f870f446a9cf2a04b8d975e.png)
+![](img/a95c4fe11f870f446a9cf2a04b8d975e.png)
 
 进一步的细节可以在 [1] 和 [2] 中找到。
 
@@ -94,7 +94,7 @@
 
 给定上述标准形式的线性规划，RO 框架假设输入（即成本向量和约束）中存在对抗噪声。为了建模这种不确定性，我们定义了一个**不确定性集**：
 
-![](../Images/8632027096c26bd218ef09dce04263fd.png)
+![](img/8632027096c26bd218ef09dce04263fd.png)
 
 简而言之，我们想要找到所有线性规划的最小值，即对于不确定性集中的每一次出现。显然，这会导致一个完全无法处理的模型（可能是无穷多个线性规划），因为我们对 *U* 的形式没有做任何假设。
 
@@ -106,7 +106,7 @@
 
 +   鲁棒问题的约束形式为：
 
-![](../Images/c3789208dc20154982543af2d706aa66.png)
+![](img/c3789208dc20154982543af2d706aa66.png)
 
 其中：\bar{c} 被称为*标称约束向量*（例如，通过某些估计得到），*z* 是不确定因素，*Q* 是一个固定的矩阵，直观上对应于噪声如何作用于约束向量的每个系数。*Q* 可以用来建模 *c* 的不同分量之间噪声的相关性。例如，更多细节和证明可以参见 [3]。
 
@@ -116,7 +116,7 @@
 
 所有这些导致了以下问题的公式化：
 
-![](../Images/a3909cb7130218128c2279000361bd40.png)
+![](img/a3909cb7130218128c2279000361bd40.png)
 
 在这一阶段，我们可以对 *U* 的形式做出一些假设，以便进一步简化问题：
 
@@ -126,57 +126,57 @@
 
 优化问题变为：
 
-![](../Images/419cb06e77e1678dee33007b6e287c4e.png)
+![](img/419cb06e77e1678dee33007b6e287c4e.png)
 
 这等价于：
 
-![](../Images/92e0dc89bd906107cf3daa4c57035b35.png)
+![](img/92e0dc89bd906107cf3daa4c57035b35.png)
 
 最后，仔细观察约束中的最大化问题，我们发现它具有封闭形式。因此，最终问题可以写成（**带有盒式不确定性的线性规划的鲁棒对偶**）：
 
-![](../Images/1a024026d6db5e420aae02229ede1a5f.png)
+![](img/1a024026d6db5e420aae02229ede1a5f.png)
 
 对上述公式的一些评论：
 
 +   不确定性项消失了——鲁棒性通过额外的安全项引入
 
-+   由于L1范数可以线性化，因此这是一个线性规划
++   由于 L1 范数可以线性化，因此这是一个线性规划
 
 +   上述公式不依赖于*Q*的形式——所作的假设将在下一部分中发挥作用
 
 有兴趣的读者可以参见[3]以了解更多细节。
 
-# MDP的RLP公式
+# MDP 的 RLP 公式
 
 从上述公式出发：
 
-![](../Images/93c5fcdf66e345016b93c434216c00a8.png)
+![](img/93c5fcdf66e345016b93c434216c00a8.png)
 
 最后，将约束中的绝对值线性化得到：
 
-![](../Images/0f21ead78a1601595332037d985dfdce.png)
+![](img/0f21ead78a1601595332037d985dfdce.png)
 
-我们注意到鲁棒性转化为约束中的额外**安全项**——考虑到*c*的不确定性（这主要转化为MDP的转移概率的不确定性）。
+我们注意到鲁棒性转化为约束中的额外**安全项**——考虑到*c*的不确定性（这主要转化为 MDP 的转移概率的不确定性）。
 
 如前所述，考虑奖励的不确定性也可以通过类似的推导轻松完成。回到标准形式的线性规划，我们在约束条件的右侧添加了另一个噪声项：
 
-![](../Images/1170d90147dfdaf5d285ec368f6caad5.png)
+![](img/1170d90147dfdaf5d285ec368f6caad5.png)
 
 经过与之前相似的推理，我们得到完整的线性规划：
 
-![](../Images/304f023eec33f211753050b9b290e5dc.png)
+![](img/304f023eec33f211753050b9b290e5dc.png)
 
 再次类似于之前，对于奖励函数的额外鲁棒性转化为约束中的另一个安全项，这最终可能导致一个不太最优的值函数和策略，但能填充约束边界。这种权衡由*Q*和不确定性盒子* d *的大小共同控制。
 
 # 结论
 
-虽然这完成了作为线性规划的鲁棒马尔科夫决策过程（Robust MDP）的推导，但文献中已经提出了其他鲁棒MDP方法，例如参见[4]。这些方法通常采取不同的路径，例如直接推导出鲁棒策略评估算子——这具有与线性规划方法相比更好的复杂度优势。这在状态和动作空间较大时尤其重要。那么我们为什么要使用这样的公式呢？
+虽然这完成了作为线性规划的鲁棒马尔科夫决策过程（Robust MDP）的推导，但文献中已经提出了其他鲁棒 MDP 方法，例如参见[4]。这些方法通常采取不同的路径，例如直接推导出鲁棒策略评估算子——这具有与线性规划方法相比更好的复杂度优势。这在状态和动作空间较大时尤其重要。那么我们为什么要使用这样的公式呢？
 
-+   RLP公式使我们能够利用线性规划的所有理论性质。这意味着在问题可行且有界的情况下，保证存在解，并且能够使用对偶性理论和敏感性分析的已知结果。
++   RLP 公式使我们能够利用线性规划的所有理论性质。这意味着在问题可行且有界的情况下，保证存在解，并且能够使用对偶性理论和敏感性分析的已知结果。
 
 +   线性规划方法允许轻松使用不同的不确定性集几何形状——有关详细信息，参见[3]
 
-+   这种公式允许自然地集成MDP的附加约束，同时保持鲁棒性特性
++   这种公式允许自然地集成 MDP 的附加约束，同时保持鲁棒性特性
 
 +   我们还可以应用一些投影或近似方法（例如参见[5]）来改进线性规划复杂度。
 

@@ -1,20 +1,20 @@
-# AI代理与CrewAI的强大协作
+# AI 代理与 CrewAI 的强大协作
 
-> 原文：[https://towardsdatascience.com/powerful-collaboration-of-ai-agents-with-crewai-17f84378430b?source=collection_archive---------3-----------------------#2024-02-12](https://towardsdatascience.com/powerful-collaboration-of-ai-agents-with-crewai-17f84378430b?source=collection_archive---------3-----------------------#2024-02-12)
+> 原文：[`towardsdatascience.com/powerful-collaboration-of-ai-agents-with-crewai-17f84378430b?source=collection_archive---------3-----------------------#2024-02-12`](https://towardsdatascience.com/powerful-collaboration-of-ai-agents-with-crewai-17f84378430b?source=collection_archive---------3-----------------------#2024-02-12)
 
 ## 一个实战营销用例
 
-[](https://toon-beerten.medium.com/?source=post_page---byline--17f84378430b--------------------------------)[![Toon Beerten](../Images/f169eaa8cefa00f17176955596972d57.png)](https://toon-beerten.medium.com/?source=post_page---byline--17f84378430b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--17f84378430b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--17f84378430b--------------------------------) [Toon Beerten](https://toon-beerten.medium.com/?source=post_page---byline--17f84378430b--------------------------------)
+[](https://toon-beerten.medium.com/?source=post_page---byline--17f84378430b--------------------------------)![Toon Beerten](https://toon-beerten.medium.com/?source=post_page---byline--17f84378430b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--17f84378430b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--17f84378430b--------------------------------) [Toon Beerten](https://toon-beerten.medium.com/?source=post_page---byline--17f84378430b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--17f84378430b--------------------------------) ·阅读时间11分钟·2024年2月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--17f84378430b--------------------------------) ·阅读时间 11 分钟·2024 年 2 月 12 日
 
 --
 
-![](../Images/8e6b6dc2cf7f29bc959f6bdc65a4ae87.png)
+![](img/8e6b6dc2cf7f29bc959f6bdc65a4ae87.png)
 
 图片由作者提供（[通过](https://huggingface.co/spaces/prodia/fast-stable-diffusion)）
 
-在本文中，我将向你展示如何编排AI“木偶”来成功应对现实生活中的营销挑战，其中代理们共同合作，完成以下任务：
+在本文中，我将向你展示如何编排 AI“木偶”来成功应对现实生活中的营销挑战，其中代理们共同合作，完成以下任务：
 
 +   分析客户数据资料
 
@@ -22,19 +22,19 @@
 
 +   为这些产品创建有吸引力的推广文案。
 
-我们将使用一个新的框架——[CrewAI](https://github.com/joaomdmoura/crewAI)，使得自主AI代理能够协作并实现共同目标。所有内容都有文档记录在提供的[Colab笔记本](https://colab.research.google.com/github/Toon-nooT/notebooks/blob/main/Marketing_Campaign__With_CrewAI.ipynb)中，因此你可以复制并将其适应到你自己的用例中。
+我们将使用一个新的框架——[CrewAI](https://github.com/joaomdmoura/crewAI)，使得自主 AI 代理能够协作并实现共同目标。所有内容都有文档记录在提供的[Colab 笔记本](https://colab.research.google.com/github/Toon-nooT/notebooks/blob/main/Marketing_Campaign__With_CrewAI.ipynb)中，因此你可以复制并将其适应到你自己的用例中。
 
-# 什么是CrewAI？
+# 什么是 CrewAI？
 
-[CrewAI](https://docs.crewai.com/)是一个新的框架，旨在促进AI代理之间的协作。代理可以扮演特定角色，分享共同目标，并作为一个整体高效地运作。它是开源的，基于[Langchain](https://www.langchain.com/)构建的。在同一领域的一些替代方案包括[微软的AutoGen](https://microsoft.github.io/autogen/)和[ChatDev](https://github.com/OpenBMB/ChatDev)。
+[CrewAI](https://docs.crewai.com/)是一个新的框架，旨在促进 AI 代理之间的协作。代理可以扮演特定角色，分享共同目标，并作为一个整体高效地运作。它是开源的，基于[Langchain](https://www.langchain.com/)构建的。在同一领域的一些替代方案包括[微软的 AutoGen](https://microsoft.github.io/autogen/)和[ChatDev](https://github.com/OpenBMB/ChatDev)。
 
-![](../Images/4afc85d7770d80f5787167c25db39ee8.png)
+![](img/4afc85d7770d80f5787167c25db39ee8.png)
 
 图片来自官方[文档](https://joaomdmoura.github.io/crewAI/)
 
-CrewAI的主要概念围绕三个核心实体：**代理**、**任务**和**小组**。
+CrewAI 的主要概念围绕三个核心实体：**代理**、**任务**和**小组**。
 
-1.  **代理**：这些是独立单元，编程用于执行任务、做出决策并与其他代理沟通。它们可以使用**工具**，这些工具可以是简单的搜索功能，或者是涉及其他链条、API等的复杂集成。
+1.  **代理**：这些是独立单元，编程用于执行任务、做出决策并与其他代理沟通。它们可以使用**工具**，这些工具可以是简单的搜索功能，或者是涉及其他链条、API 等的复杂集成。
 
 1.  **任务**：任务是人工智能代理需要完成的工作或职责。任务可以包含额外的信息，例如哪个代理应该执行此任务以及他们可能需要哪些工具。
 
@@ -44,7 +44,7 @@ CrewAI的主要概念围绕三个核心实体：**代理**、**任务**和**小�
 
 # **营销挑战**
 
-假设你是一个地方零售商的负责人。下周，你将对12种产品进行促销活动。你会将哪些产品推广给哪些客户？正如你所想，向男性客户推广口红几乎没有意义。这个过程能通过人工智能进行优化吗？
+假设你是一个地方零售商的负责人。下周，你将对 12 种产品进行促销活动。你会将哪些产品推广给哪些客户？正如你所想，向男性客户推广口红几乎没有意义。这个过程能通过人工智能进行优化吗？
 
 通过使用忠诚卡和数据挖掘，您可以访问一个包含客户个性分析的数据库。这有助于了解客户的特点、偏好和行为。通过精心设计的提示（见笔记本），我几秒钟内便获得了这一客户数据集：
 
@@ -150,7 +150,7 @@ description why it matches with this customer. '''
 
 所有代理彼此互动，直到**首席促销总监**满意并结束任务。为了更好地理解当这组代理被解除任务时发生了什么，我创建了这个示意图：
 
-![](../Images/677abbd30b9354d5e71d11dfaddd2035.png)
+![](img/677abbd30b9354d5e71d11dfaddd2035.png)
 
 作者图片
 
@@ -196,13 +196,13 @@ Your final answer MUST include the 3 products from the list,
 each with a short promotional message.'''
 ```
 
-每个代理都与他们将使用的大型语言模型连接。我将他们连接到[Mistral API](https://docs.mistral.ai/)。我首先集成了他们的Mistral 7B Instruct v0.2模型，但它推理得非常奇怪，例如对于选择尿布的解释：“*虽然客户目前是单身，但她未来可能会有孩子。尿布是未来为父母准备的实际投资，因为它们是照顾婴儿和幼儿所必需的。*”
+每个代理都与他们将使用的大型语言模型连接。我将他们连接到[Mistral API](https://docs.mistral.ai/)。我首先集成了他们的 Mistral 7B Instruct v0.2 模型，但它推理得非常奇怪，例如对于选择尿布的解释：“*虽然客户目前是单身，但她未来可能会有孩子。尿布是未来为父母准备的实际投资，因为它们是照顾婴儿和幼儿所必需的。*”
 
 通过升级到更大的型号：Mixtral 8x7B，这个问题得以解决。我再也没见过类似的逻辑缺陷。
 
 # **结果**
 
-在我设置好两组人员后，是时候让他们开始分析10个客户了。通过将详细模式设置为2，我能够在屏幕后面查看并跟踪代理的思考和互动。例如：
+在我设置好两组人员后，是时候让他们开始分析 10 个客户了。通过将详细模式设置为 2，我能够在屏幕后面查看并跟踪代理的思考和互动。例如：
 
 ```py
 Thought: Do I need to use a tool? Yes
@@ -235,7 +235,7 @@ Observation: I have provided the three recommended products for the customer bas
 1990,F,single,25,0,0,associates,10,35,0,low
 ```
 
-将其交给**分析代理**，其回应是：“*我们的客户是一位20多岁末或30岁初的单身女性，收入中等。她喜欢葡萄酒和蔬菜，可能是自己做饭。她没有孩子，具有较高的教育背景，这表明她可能更加注重健康并且生活节奏繁忙。她不常使用优惠券，说明她可能更偏向于便利而非省钱。*”
+将其交给**分析代理**，其回应是：“*我们的客户是一位 20 多岁末或 30 岁初的单身女性，收入中等。她喜欢葡萄酒和蔬菜，可能是自己做饭。她没有孩子，具有较高的教育背景，这表明她可能更加注重健康并且生活节奏繁忙。她不常使用优惠券，说明她可能更偏向于便利而非省钱。*”
 
 **产品专家**代理回复：“*根据客户档案，我推荐以下产品：*”
 
@@ -247,7 +247,7 @@ Observation: I have provided the three recommended products for the customer bas
 
 这些选择非常合理！现在让我们看看其他小组提出的促销信息。我已将其粘贴在这个示意图中。产品信息非常精准：
 
-![](../Images/87ce8b71f59b0114d515810727461338.png)
+![](img/87ce8b71f59b0114d515810727461338.png)
 
 作者提供的图片
 
@@ -257,15 +257,15 @@ Observation: I have provided the three recommended products for the customer bas
 1985,M,married,90,2,1,phd,80,100,120,high
 ```
 
-构建的个人档案非常基础，但完整：“*客户出生于1985年，男性，已婚，年收入位于前90%，有2个幼儿和1个青少年孩子，最高学历博士，花费80美元买葡萄酒，100美元买蔬菜，120美元买玩具，使用优惠券频繁。*”
+构建的个人档案非常基础，但完整：“*客户出生于 1985 年，男性，已婚，年收入位于前 90%，有 2 个幼儿和 1 个青少年孩子，最高学历博士，花费 80 美元买葡萄酒，100 美元买蔬菜，120 美元买玩具，使用优惠券频繁。*”
 
 以下是所选择并推广的产品：
 
-![](../Images/a71b809c7ac1fd13bcab5ede68f97436.png)
+![](img/a71b809c7ac1fd13bcab5ede68f97436.png)
 
 作者提供的图片
 
-产品选择和促销文案与客户已知的信息非常匹配。他们因为客户收入较高推荐了和牛肉，因为他是一个有3个孩子的忙碌父母，而游戏则是因为他有青少年孩子。
+产品选择和促销文案与客户已知的信息非常匹配。他们因为客户收入较高推荐了和牛肉，因为他是一个有 3 个孩子的忙碌父母，而游戏则是因为他有青少年孩子。
 
 拉远一点，这里是我从整个小组输出中得到的**观察**：
 
@@ -275,9 +275,9 @@ Observation: I have provided the three recommended products for the customer bas
 
 ✔️ 和牛肉只推荐给最高收入的客户
 
-✔️ 洗衣粉被推荐了4次。两次推荐给女性，也有两次推荐给未婚（！）男性
+✔️ 洗衣粉被推荐了 4 次。两次推荐给女性，也有两次推荐给未婚（！）男性
 
-✔️ 香烟从未被推荐过（*拍了拍 Mixtral* —— 好AI）
+✔️ 香烟从未被推荐过（*拍了拍 Mixtral* —— 好 AI）
 
 ✔️ 所有的配套文本都根据客户的情况量身定制，而不会显得过于具体或包含虚假信息
 
@@ -293,9 +293,9 @@ Observation: I have provided the three recommended products for the customer bas
 
 # 结论
 
-我的结果表明，AI代理能够根据客户的个人资料推理出最佳产品，并提供精准的促销信息，量身定制给每个客户，考虑到年龄、性别、婚姻状况和收入等因素。
+我的结果表明，AI 代理能够根据客户的个人资料推理出最佳产品，并提供精准的促销信息，量身定制给每个客户，考虑到年龄、性别、婚姻状况和收入等因素。
 
-我们看到自主AI代理协作、委派或被分配子任务、呼叫帮助并互相检查工作。当它们这样做时，它们的输出质量显著提升，从而做出更可靠、更符合常识的决策。像 CrewAI 这样的框架通过允许自然语言指令提供了一种直接而有效的方式来利用这一能力。我还讨论了大型语言模型中内嵌的常识，以及偏见的存在，应该努力追求公平。
+我们看到自主 AI 代理协作、委派或被分配子任务、呼叫帮助并互相检查工作。当它们这样做时，它们的输出质量显著提升，从而做出更可靠、更符合常识的决策。像 CrewAI 这样的框架通过允许自然语言指令提供了一种直接而有效的方式来利用这一能力。我还讨论了大型语言模型中内嵌的常识，以及偏见的存在，应该努力追求公平。
 
 这只是一个简单的例子，专注于营销。还有许多其他的应用场景：数据解析、自动社交媒体发布、Markdown 校验器或城市旅行规划器……可能性无穷无尽。也许它能帮助你应对下一个挑战？
 

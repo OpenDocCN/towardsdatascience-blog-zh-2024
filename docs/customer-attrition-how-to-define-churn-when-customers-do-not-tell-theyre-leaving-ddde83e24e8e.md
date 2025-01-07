@@ -1,16 +1,16 @@
 # 客户流失：如何定义客户未告知其离开的流失
 
-> 原文：[https://towardsdatascience.com/customer-attrition-how-to-define-churn-when-customers-do-not-tell-theyre-leaving-ddde83e24e8e?source=collection_archive---------3-----------------------#2024-02-15](https://towardsdatascience.com/customer-attrition-how-to-define-churn-when-customers-do-not-tell-theyre-leaving-ddde83e24e8e?source=collection_archive---------3-----------------------#2024-02-15)
+> 原文：[`towardsdatascience.com/customer-attrition-how-to-define-churn-when-customers-do-not-tell-theyre-leaving-ddde83e24e8e?source=collection_archive---------3-----------------------#2024-02-15`](https://towardsdatascience.com/customer-attrition-how-to-define-churn-when-customers-do-not-tell-theyre-leaving-ddde83e24e8e?source=collection_archive---------3-----------------------#2024-02-15)
 
 ## 作者详细说明了在某些情况下如何定义客户流失，这些情况下流失并不明显：零售和银行业。
 
-[](https://medium.com/@guillaume.colley?source=post_page---byline--ddde83e24e8e--------------------------------)[![Guillaume Colley](../Images/97ea637a566255b6724d4079ca2d5180.png)](https://medium.com/@guillaume.colley?source=post_page---byline--ddde83e24e8e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ddde83e24e8e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ddde83e24e8e--------------------------------) [Guillaume Colley](https://medium.com/@guillaume.colley?source=post_page---byline--ddde83e24e8e--------------------------------)
+[](https://medium.com/@guillaume.colley?source=post_page---byline--ddde83e24e8e--------------------------------)![Guillaume Colley](https://medium.com/@guillaume.colley?source=post_page---byline--ddde83e24e8e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ddde83e24e8e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ddde83e24e8e--------------------------------) [Guillaume Colley](https://medium.com/@guillaume.colley?source=post_page---byline--ddde83e24e8e--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ddde83e24e8e--------------------------------) ·阅读时长9分钟·2024年2月15日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ddde83e24e8e--------------------------------) ·阅读时长 9 分钟·2024 年 2 月 15 日
 
 --
 
-![](../Images/ed2fa715cd2d0de3a3dcb9ea09dae277.png)
+![](img/ed2fa715cd2d0de3a3dcb9ea09dae277.png)
 
 图片来源：[Mantas Hesthaven](https://unsplash.com/@mantashesthaven?utm_source=medium&utm_medium=referral) 由[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)提供
 

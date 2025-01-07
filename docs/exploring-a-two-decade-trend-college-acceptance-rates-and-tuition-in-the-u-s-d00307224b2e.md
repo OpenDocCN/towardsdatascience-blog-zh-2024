@@ -1,18 +1,18 @@
 # 探索二十年的趋势：美国大学录取率与学费
 
-> 原文：[https://towardsdatascience.com/exploring-a-two-decade-trend-college-acceptance-rates-and-tuition-in-the-u-s-d00307224b2e?source=collection_archive---------2-----------------------#2024-01-26](https://towardsdatascience.com/exploring-a-two-decade-trend-college-acceptance-rates-and-tuition-in-the-u-s-d00307224b2e?source=collection_archive---------2-----------------------#2024-01-26)
+> 原文：[`towardsdatascience.com/exploring-a-two-decade-trend-college-acceptance-rates-and-tuition-in-the-u-s-d00307224b2e?source=collection_archive---------2-----------------------#2024-01-26`](https://towardsdatascience.com/exploring-a-two-decade-trend-college-acceptance-rates-and-tuition-in-the-u-s-d00307224b2e?source=collection_archive---------2-----------------------#2024-01-26)
 
 ## 如今，进入大学是否变得更加困难？
 
-[](https://medium.com/@ryuryu09030903?source=post_page---byline--d00307224b2e--------------------------------)[![Ryu Sonoda](../Images/52445252872ed381dd86d3ada5665e1b.png)](https://medium.com/@ryuryu09030903?source=post_page---byline--d00307224b2e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d00307224b2e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d00307224b2e--------------------------------) [Ryu Sonoda](https://medium.com/@ryuryu09030903?source=post_page---byline--d00307224b2e--------------------------------)
+[](https://medium.com/@ryuryu09030903?source=post_page---byline--d00307224b2e--------------------------------)![Ryu Sonoda](https://medium.com/@ryuryu09030903?source=post_page---byline--d00307224b2e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d00307224b2e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d00307224b2e--------------------------------) [Ryu Sonoda](https://medium.com/@ryuryu09030903?source=post_page---byline--d00307224b2e--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d00307224b2e--------------------------------) ·10分钟阅读·2024年1月26日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d00307224b2e--------------------------------) ·10 分钟阅读·2024 年 1 月 26 日
 
 --
 
-**背景** 作为一名刚刚毕业的格林内尔学院校友，我密切关注并深受学术领域重大变化的影响。当我毕业时，格林内尔的录取率从我入学时的水平下降了15%，与此同时学费也急剧上升。这一趋势并非仅限于我的母校；来自不同大学的朋友们也分享了类似的经历。
+**背景** 作为一名刚刚毕业的格林内尔学院校友，我密切关注并深受学术领域重大变化的影响。当我毕业时，格林内尔的录取率从我入学时的水平下降了 15%，与此同时学费也急剧上升。这一趋势并非仅限于我的母校；来自不同大学的朋友们也分享了类似的经历。
 
-这让我开始思考：这是美国各大学普遍的趋势吗？我的理论有两个方面：首先，在线申请的兴起可能简化了向多所大学申请的过程，从而增加了申请人数并降低了录取率。其次，[移民政策研究所](https://www.migrationpolicy.org/article/international-students-united-states)的一篇文章提到，从2000年到2020年，美国国际学生人数翻了一番（从50万增加到100万），这可能加剧了竞争。同时，我对2001年到2022年的学费趋势也很感兴趣。我的目标是通过数据可视化揭示这些模式。以下分析中的所有图片，除非另有说明，均为作者提供！
+这让我开始思考：这是美国各大学普遍的趋势吗？我的理论有两个方面：首先，在线申请的兴起可能简化了向多所大学申请的过程，从而增加了申请人数并降低了录取率。其次，[移民政策研究所](https://www.migrationpolicy.org/article/international-students-united-states)的一篇文章提到，从 2000 年到 2020 年，美国国际学生人数翻了一番（从 50 万增加到 100 万），这可能加剧了竞争。同时，我对 2001 年到 2022 年的学费趋势也很感兴趣。我的目标是通过数据可视化揭示这些模式。以下分析中的所有图片，除非另有说明，均为作者提供！
 
 **数据集** 我使用的数据集包含了关于美国大学从 2001 年到 2022 年的一系列数据，涵盖了学校类型、年度录取率、州所在位置和学费等方面。数据来源于[大学评分卡](https://collegescorecard.ed.gov/data/)，原始数据集庞大，包含了超过 3,000 列和 10,000 行。我精心挑选了相关列进行聚焦分析，最终得到了在[Kaggle](https://www.kaggle.com/datasets/ryusonoda/u-s-university-dataset-from-2001-to-2022/data)上提供的精炼数据集。为了确保数据的相关性和完整性，我专注于美国新闻大学排名中的四年制大学，并从[这里](https://andyreiter.com/datasets/)获取了该列表。
 
@@ -36,7 +36,7 @@ plt.legend()
 plt.show()
 ```
 
-![](../Images/edcf234932cd9def99ac1caf7efcd03f.png)
+![](img/edcf234932cd9def99ac1caf7efcd03f.png)
 
 *图 1*
 
@@ -54,7 +54,7 @@ plt.legend(title='Colleges')
 plt.show()
 ```
 
-![](../Images/2f3484d9f108c63d52a5a84e998ecd39.png)
+![](img/2f3484d9f108c63d52a5a84e998ecd39.png)
 
 *图 2*
 
@@ -90,7 +90,7 @@ plt.legend()
 plt.show()
 ```
 
-![](../Images/f573997329472ca67f904b096a40e744.png)
+![](img/f573997329472ca67f904b096a40e744.png)
 
 *图 3*
 
@@ -120,7 +120,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-![](../Images/f234a0b01d9dcad2a26cc8bf87792a59.png)
+![](img/f234a0b01d9dcad2a26cc8bf87792a59.png)
 
 *图 4*
 
@@ -172,7 +172,7 @@ plt.gca().set_aspect('equal')
 plt.show()
 ```
 
-![](../Images/668c84cf5e37509b23685c3a1bd39509.png)
+![](img/668c84cf5e37509b23685c3a1bd39509.png)
 
 *图 5*
 
@@ -191,7 +191,7 @@ tmp = tmp.merge(df_ranked[df_ranked["year"]==2022][["INSTNM", "STABBR", "CITY"]]
 tmp.sort_values(by="diff",ascending=False)[["INSTNM", "diff", "STABBR", "CITY"]].head(5)
 ```
 
-![](../Images/c4669731bfb46e44188d261ccabbc839.png)
+![](img/c4669731bfb46e44188d261ccabbc839.png)
 
 *图 6*
 
@@ -223,7 +223,7 @@ plt.legend()
 plt.show()
 ```
 
-![](../Images/a7a93476f8a82f1af32fc2724a738ad1.png)
+![](img/a7a93476f8a82f1af32fc2724a738ad1.png)
 
 *图 7*
 
@@ -249,7 +249,7 @@ plt.legend()
 plt.show()
 ```
 
-![](../Images/d19ecf56543a2c8c01c33c88a051378f.png)
+![](img/d19ecf56543a2c8c01c33c88a051378f.png)
 
 *图 8*
 
@@ -271,7 +271,7 @@ plt.legend()
 plt.show()
 ```
 
-![](../Images/51f7b987a8b446ee5e6eb1bf17c7c079.png)
+![](img/51f7b987a8b446ee5e6eb1bf17c7c079.png)
 
 *图 9*
 
@@ -301,7 +301,7 @@ plt.legend(fontsize=6)
 plt.show()
 ```
 
-![](../Images/27ab9b992a6fdf4ee1392242be9185a7.png)
+![](img/27ab9b992a6fdf4ee1392242be9185a7.png)
 
 *图 10*
 
@@ -309,7 +309,7 @@ plt.show()
 
 尽管这一分析提供了基于单年度录取率变化与学费变化的见解，但通过 5 年平均值的比较，可以获得更全面的视角。在我使用这种方法进行的初步分析中，结论与之前类似。
 
-使用的数据集还包含了许多其他属性，如种族比例、平均SAT成绩和家庭收入中位数。然而，由于较旧数据中的缺失值，我没有使用这些因素。通过聚焦于近年来的数据，这些额外的因素可能提供更深入的见解。对于那些有兴趣进一步探索的人，数据集可以在[Kaggle](https://www.kaggle.com/datasets/ryusonoda/u-s-university-dataset-from-2001-to-2022/data)上获取。
+使用的数据集还包含了许多其他属性，如种族比例、平均 SAT 成绩和家庭收入中位数。然而，由于较旧数据中的缺失值，我没有使用这些因素。通过聚焦于近年来的数据，这些额外的因素可能提供更深入的见解。对于那些有兴趣进一步探索的人，数据集可以在[Kaggle](https://www.kaggle.com/datasets/ryusonoda/u-s-university-dataset-from-2001-to-2022/data)上获取。
 
 需要注意的是，这一分析基于美国新闻排名的大学，可能引入了一定的偏差。观察到的趋势可能与美国大学的整体状况有所不同。
 
@@ -317,8 +317,8 @@ plt.show()
 
 # 来源
 
-[1] Emma Israel 和 Jeanne Batalova. “美国的国际学生”（2021年1月14日）。[https://www.migrationpolicy.org/article/international-students-united-states](https://www.migrationpolicy.org/article/international-students-united-states)
+[1] Emma Israel 和 Jeanne Batalova. “美国的国际学生”（2021 年 1 月 14 日）。[`www.migrationpolicy.org/article/international-students-united-states`](https://www.migrationpolicy.org/article/international-students-united-states)
 
-[2] 美国教育部大学排名（最后更新于2023年10月10日）。公共领域，[https://will-stanton.com/creating-a-great-data-science-resume/](https://collegescorecard.ed.gov/data/)
+[2] 美国教育部大学排名（最后更新于 2023 年 10 月 10 日）。公共领域，[`will-stanton.com/creating-a-great-data-science-resume/`](https://collegescorecard.ed.gov/data/)
 
-[3] Andrew G. Reiter, “美国新闻与世界报道历史性文理学院及大学排名” [http://andyreiter.com/datasets/](http://andyreiter.com/datasets/)
+[3] Andrew G. Reiter, “美国新闻与世界报道历史性文理学院及大学排名” [`andyreiter.com/datasets/`](http://andyreiter.com/datasets/)

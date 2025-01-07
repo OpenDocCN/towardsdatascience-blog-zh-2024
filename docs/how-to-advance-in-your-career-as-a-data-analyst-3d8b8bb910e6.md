@@ -1,16 +1,16 @@
 # 如何在数据分析师的职业生涯中取得进展
 
-> 原文：[https://towardsdatascience.com/how-to-advance-in-your-career-as-a-data-analyst-3d8b8bb910e6?source=collection_archive---------8-----------------------#2024-01-16](https://towardsdatascience.com/how-to-advance-in-your-career-as-a-data-analyst-3d8b8bb910e6?source=collection_archive---------8-----------------------#2024-01-16)
+> 原文：[`towardsdatascience.com/how-to-advance-in-your-career-as-a-data-analyst-3d8b8bb910e6?source=collection_archive---------8-----------------------#2024-01-16`](https://towardsdatascience.com/how-to-advance-in-your-career-as-a-data-analyst-3d8b8bb910e6?source=collection_archive---------8-----------------------#2024-01-16)
 
-## 2024年提升职业的5步指南
+## 2024 年提升职业的 5 步指南
 
-[](https://rashidesai2424.medium.com/?source=post_page---byline--3d8b8bb910e6--------------------------------)[![Rashi Desai](../Images/0a706eb6bb2407c83c67a874e3747e36.png)](https://rashidesai2424.medium.com/?source=post_page---byline--3d8b8bb910e6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3d8b8bb910e6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3d8b8bb910e6--------------------------------) [Rashi Desai](https://rashidesai2424.medium.com/?source=post_page---byline--3d8b8bb910e6--------------------------------)
+[](https://rashidesai2424.medium.com/?source=post_page---byline--3d8b8bb910e6--------------------------------)![Rashi Desai](https://rashidesai2424.medium.com/?source=post_page---byline--3d8b8bb910e6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3d8b8bb910e6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d8b8bb910e6--------------------------------) [Rashi Desai](https://rashidesai2424.medium.com/?source=post_page---byline--3d8b8bb910e6--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d8b8bb910e6--------------------------------) ·阅读时间6分钟·2024年1月16日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d8b8bb910e6--------------------------------) ·阅读时间 6 分钟·2024 年 1 月 16 日
 
 --
 
-![](../Images/1945df90952e99b8fe5be13e104e9a9a.png)
+![](img/1945df90952e99b8fe5be13e104e9a9a.png)
 
 照片来自[Vidar Nordli-Mathisen](https://unsplash.com/@vidarnm?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)于[Unsplash](https://unsplash.com/photos/person-in-white-suit-walking-on-staircase-LyZO-6jLa8c?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

@@ -1,16 +1,16 @@
-# 自动驾驶汽车背后的AI模型基础
+# 自动驾驶汽车背后的 AI 模型基础
 
-> 原文：[https://towardsdatascience.com/the-basics-behind-ai-models-for-self-driving-cars-42fd0e1f58b4?source=collection_archive---------8-----------------------#2024-09-19](https://towardsdatascience.com/the-basics-behind-ai-models-for-self-driving-cars-42fd0e1f58b4?source=collection_archive---------8-----------------------#2024-09-19)
+> 原文：[`towardsdatascience.com/the-basics-behind-ai-models-for-self-driving-cars-42fd0e1f58b4?source=collection_archive---------8-----------------------#2024-09-19`](https://towardsdatascience.com/the-basics-behind-ai-models-for-self-driving-cars-42fd0e1f58b4?source=collection_archive---------8-----------------------#2024-09-19)
 
-## 学习如何使用Python中的PyTorch构建一个能够驾驶的神经网络
+## 学习如何使用 Python 中的 PyTorch 构建一个能够驾驶的神经网络
 
-[](https://ds-claudia.medium.com/?source=post_page---byline--42fd0e1f58b4--------------------------------)[![Claudia Ng](../Images/81d7927943f38f6303690cfd5676c8fd.png)](https://ds-claudia.medium.com/?source=post_page---byline--42fd0e1f58b4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--42fd0e1f58b4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--42fd0e1f58b4--------------------------------) [Claudia Ng](https://ds-claudia.medium.com/?source=post_page---byline--42fd0e1f58b4--------------------------------)
+[](https://ds-claudia.medium.com/?source=post_page---byline--42fd0e1f58b4--------------------------------)![Claudia Ng](https://ds-claudia.medium.com/?source=post_page---byline--42fd0e1f58b4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--42fd0e1f58b4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--42fd0e1f58b4--------------------------------) [Claudia Ng](https://ds-claudia.medium.com/?source=post_page---byline--42fd0e1f58b4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--42fd0e1f58b4--------------------------------) ·8分钟阅读·2024年9月19日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--42fd0e1f58b4--------------------------------) ·8 分钟阅读·2024 年 9 月 19 日
 
 --
 
-![](../Images/e4573108f66890ea73f1a0f9ec1887f1.png)
+![](img/e4573108f66890ea73f1a0f9ec1887f1.png)
 
 途中搭乘无人驾驶出租车（图像来源：作者）
 

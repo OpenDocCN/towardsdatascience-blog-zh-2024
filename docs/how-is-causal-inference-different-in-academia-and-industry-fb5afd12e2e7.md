@@ -1,16 +1,16 @@
 # 因果推断在学术界和行业中的不同之处？
 
-> 原文：[https://towardsdatascience.com/how-is-causal-inference-different-in-academia-and-industry-fb5afd12e2e7?source=collection_archive---------7-----------------------#2024-01-17](https://towardsdatascience.com/how-is-causal-inference-different-in-academia-and-industry-fb5afd12e2e7?source=collection_archive---------7-----------------------#2024-01-17)
+> 原文：[`towardsdatascience.com/how-is-causal-inference-different-in-academia-and-industry-fb5afd12e2e7?source=collection_archive---------7-----------------------#2024-01-17`](https://towardsdatascience.com/how-is-causal-inference-different-in-academia-and-industry-fb5afd12e2e7?source=collection_archive---------7-----------------------#2024-01-17)
 
-![](../Images/11fe2d0062772ba965873afc1a8780bf.png)
+![](img/11fe2d0062772ba965873afc1a8780bf.png)
 
 图片来源：[Element5 Digital](https://unsplash.com/@element5digital?utm_source=medium&utm_medium=referral)来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 《为什么的书》([The Book of Why](https://amzn.to/4grzPgC))系列的附加文章
 
-[](https://zzhu17.medium.com/?source=post_page---byline--fb5afd12e2e7--------------------------------)[![Zijing Zhu, PhD](../Images/436b22e28798b87261c4814a7e2b20e3.png)](https://zzhu17.medium.com/?source=post_page---byline--fb5afd12e2e7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fb5afd12e2e7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fb5afd12e2e7--------------------------------) [Zijing Zhu, PhD](https://zzhu17.medium.com/?source=post_page---byline--fb5afd12e2e7--------------------------------)
+[](https://zzhu17.medium.com/?source=post_page---byline--fb5afd12e2e7--------------------------------)![Zijing Zhu, PhD](https://zzhu17.medium.com/?source=post_page---byline--fb5afd12e2e7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fb5afd12e2e7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb5afd12e2e7--------------------------------) [Zijing Zhu, PhD](https://zzhu17.medium.com/?source=post_page---byline--fb5afd12e2e7--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb5afd12e2e7--------------------------------) ·7分钟阅读·2024年1月17日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb5afd12e2e7--------------------------------) ·7 分钟阅读·2024 年 1 月 17 日
 
 --
 

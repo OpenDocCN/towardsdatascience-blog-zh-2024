@@ -1,16 +1,16 @@
 # 在 SQL 中从随机分布中抽样
 
-> 原文：[https://towardsdatascience.com/drawing-from-a-random-distribution-in-sql-b6c97c89e45c?source=collection_archive---------10-----------------------#2024-02-09](https://towardsdatascience.com/drawing-from-a-random-distribution-in-sql-b6c97c89e45c?source=collection_archive---------10-----------------------#2024-02-09)
+> 原文：[`towardsdatascience.com/drawing-from-a-random-distribution-in-sql-b6c97c89e45c?source=collection_archive---------10-----------------------#2024-02-09`](https://towardsdatascience.com/drawing-from-a-random-distribution-in-sql-b6c97c89e45c?source=collection_archive---------10-----------------------#2024-02-09)
 
 ## 从概率密度函数到随机样本
 
-[](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)[![Sami Abboud](../Images/546a33fe92a194068816e6173eaa854a.png)](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------) [Sami Abboud](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)
+[](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)![Sami Abboud](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------) [Sami Abboud](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------) ·8分钟阅读·2024年2月9日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------) ·8 分钟阅读·2024 年 2 月 9 日
 
 --
 
-![](../Images/22d2395939286048baeef0d7e72e1687.png)
+![](img/22d2395939286048baeef0d7e72e1687.png)
 
 图片来自 [Moritz Kindler](https://unsplash.com/@moritz_photography?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) ，发布于 [Unsplash](https://unsplash.com/photos/white-and-black-polka-dot-ceramic-mug-with-water-okiy0SxOaBg?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -84,7 +84,7 @@ beta_param = (1–0.674) * 72
 scipy_beta_draw = beta.rvs(alpha_param, beta_param, size=1000)
 ```
 
-![](../Images/8fd72857adf2b4861d92580c4316de1f.png)
+![](img/8fd72857adf2b4861d92580c4316de1f.png)
 
 （**左侧**）：使用 BigQuery 的简单抽样。（**右侧**）：使用 SciPy 的 beta.rvs() 抽样
 
@@ -113,7 +113,7 @@ scipy_manual_beta_draw = np.array([
 
 让我们再次用一个 100-bin 的直方图来检查分布：
 
-![](../Images/de29f9bc9661da1f062515f5e5ea0db7.png)
+![](img/de29f9bc9661da1f062515f5e5ea0db7.png)
 
 使用 Python 的简单抽样
 
@@ -195,7 +195,7 @@ manual_beta_draw = np.array([
 
 *呼* 这个看起来好多了：
 
-![](../Images/eb08d3d0bc8cb8c045eba5cf4cbc73fe.png)
+![](img/eb08d3d0bc8cb8c045eba5cf4cbc73fe.png)
 
 两个直方图的叠加，比较使用 SciPy 的 beta.rvs() 和手动抽样的 1,000 次抽样结果
 
@@ -265,7 +265,7 @@ GROUP BY draw_id;
 
 1.  在 SQL 中执行相同操作
 
-![](../Images/48e0f6a2ad13082a144664db8a95f8dc.png)
+![](img/48e0f6a2ad13082a144664db8a95f8dc.png)
 
 三个直方图的叠加，比较使用 SciPy 的 beta.rvs()、Python 中的手动抽样和 SQL 中的手动抽样的 1,000 次抽样结果
 

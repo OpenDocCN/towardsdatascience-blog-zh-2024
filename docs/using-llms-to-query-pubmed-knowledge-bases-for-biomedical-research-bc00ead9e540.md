@@ -1,20 +1,20 @@
 # 使用 LLMs 查询 PubMed 知识库进行生物医学研究
 
-> 原文：[https://towardsdatascience.com/using-llms-to-query-pubmed-knowledge-bases-for-biomedical-research-bc00ead9e540?source=collection_archive---------6-----------------------#2024-07-24](https://towardsdatascience.com/using-llms-to-query-pubmed-knowledge-bases-for-biomedical-research-bc00ead9e540?source=collection_archive---------6-----------------------#2024-07-24)
+> 原文：[`towardsdatascience.com/using-llms-to-query-pubmed-knowledge-bases-for-biomedical-research-bc00ead9e540?source=collection_archive---------6-----------------------#2024-07-24`](https://towardsdatascience.com/using-llms-to-query-pubmed-knowledge-bases-for-biomedical-research-bc00ead9e540?source=collection_archive---------6-----------------------#2024-07-24)
 
 ## 为了乐趣和盈利使用 AI！
 
-[](https://medium.com/@jilliandrowe?source=post_page---byline--bc00ead9e540--------------------------------)[![Jillian Rowe](../Images/b1445fff6cf2011d270fe36b65123764.png)](https://medium.com/@jilliandrowe?source=post_page---byline--bc00ead9e540--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bc00ead9e540--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bc00ead9e540--------------------------------) [Jillian Rowe](https://medium.com/@jilliandrowe?source=post_page---byline--bc00ead9e540--------------------------------)
+[](https://medium.com/@jilliandrowe?source=post_page---byline--bc00ead9e540--------------------------------)![Jillian Rowe](https://medium.com/@jilliandrowe?source=post_page---byline--bc00ead9e540--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bc00ead9e540--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bc00ead9e540--------------------------------) [Jillian Rowe](https://medium.com/@jilliandrowe?source=post_page---byline--bc00ead9e540--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bc00ead9e540--------------------------------) ·阅读时间：11分钟·2024年7月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bc00ead9e540--------------------------------) ·阅读时间：11 分钟·2024 年 7 月 24 日
 
 --
 
-![](../Images/162ee2641c1ac9a9bde0687955abfffe.png)
+![](img/162ee2641c1ac9a9bde0687955abfffe.png)
 
 图片由 [🇸🇮 Janko Ferlič](https://unsplash.com/@itfeelslikefilm?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-# 第1部分：创建知识库
+# 第一部分：创建知识库
 
 在本文中，我们将探讨如何利用大语言模型（LLMs）来搜索和科学论文，来自 [PubMed Open Access](https://www.ncbi.nlm.nih.gov/pmc/tools/openftlist/) 子集，这是一个用于访问生物医学和生命科学文献的免费资源。我们将使用检索增强生成（RAG）技术来搜索我们的数字图书馆。
 
@@ -71,7 +71,7 @@ pubget run -q "((rheumatoid arthritis) AND gene) AND cell" \
 
 文章还将涵盖将你的预处理和结构化数据集加载到知识库中的最佳实践，并提供如何有效查询知识库的示例，使用的 LLM 由 AWS Bedrock 托管。
 
-到文章末尾时，你应该能充分理解如何利用LLM搜索并从大量研究论文中提取相关信息，同时掌握如何构建和组织数据集，以优化知识库的性能和准确性。
+到文章末尾时，你应该能充分理解如何利用 LLM 搜索并从大量研究论文中提取相关信息，同时掌握如何构建和组织数据集，以优化知识库的性能和准确性。
 
 ```py
 import boto3
@@ -111,9 +111,9 @@ import uuid
 
 # 设置数据库连接
 
-我正在本地运行一个[SupaBase](https://supabase.com/)的PostgreSQL数据库，通过他们的`docker-compose`设置运行。在生产环境中，我建议使用真正的数据库，比如AWS AuroraDB，或者将Supabase运行在除你的笔记本电脑之外的地方。另外，记得把密码改成其他的，而不是“password”。
+我正在本地运行一个[SupaBase](https://supabase.com/)的 PostgreSQL 数据库，通过他们的`docker-compose`设置运行。在生产环境中，我建议使用真正的数据库，比如 AWS AuroraDB，或者将 Supabase 运行在除你的笔记本电脑之外的地方。另外，记得把密码改成其他的，而不是“password”。
 
-我没有注意到在较小的数据集上，AWS托管的知识库和我的笔记本电脑之间有任何性能差异，但你的体验可能会不同。
+我没有注意到在较小的数据集上，AWS 托管的知识库和我的笔记本电脑之间有任何性能差异，但你的体验可能会不同。
 
 ```py
 connection = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{database}" 
@@ -125,9 +125,9 @@ conn = psycopg.connect(
 cur = conn.cursor()
 ```
 
-# 使用Langchain将AWS BedRock嵌入插入表格
+# 使用 Langchain 将 AWS BedRock 嵌入插入表格
 
-我们正在使用AWS Bedrock作为我们的AI知识库。我与大多数合作公司的工作中都有某种专有数据，而Bedrock保证你的数据将保持私密。你也可以使用任何其他AI后端。
+我们正在使用 AWS Bedrock 作为我们的 AI 知识库。我与大多数合作公司的工作中都有某种专有数据，而 Bedrock 保证你的数据将保持私密。你也可以使用任何其他 AI 后端。
 
 ```py
 os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
@@ -218,9 +218,9 @@ collection_name_text = "MY_COLLECTION" #pubmed, smiles, etc
 vectorstore = create_vectorstore(bedrock_embeddings,collection_name_text,connection)
 ```
 
-# 加载和处理Pubmed XML论文
+# 加载和处理 Pubmed XML 论文
 
-我们的大部分数据是通过`pubget`工具获取的，文章格式为XML。我们将使用LangChain XML加载器来处理、拆分和加载嵌入。
+我们的大部分数据是通过`pubget`工具获取的，文章格式为 XML。我们将使用 LangChain XML 加载器来处理、拆分和加载嵌入。
 
 ```py
 files = glob.glob("/home/jovyan/data/pubget_ra/pubget_data/*/articles/*/*/article.xml")
@@ -231,9 +231,9 @@ files = glob.glob("/home/jovyan/data/pubget_ra/pubget_data/*/articles/*/*/articl
 insert_embeddings(files[0:2], bedrock_embeddings, vectorstore)
 ```
 
-# 加载和处理Pubmed PDF论文
+# 加载和处理 Pubmed PDF 论文
 
-PDF格式更易于阅读，我抓取了一些用于与知识库进行问答测试。
+PDF 格式更易于阅读，我抓取了一些用于与知识库进行问答测试。
 
 ```py
 files = glob.glob("/home/jovyan/data/pubget_ra/papers/*pdf")
@@ -242,17 +242,17 @@ insert_embeddings(files[0:2], bedrock_embeddings, vectorstor
 
 # 第二部分 — 查询知识库
 
-现在我们已经设置好了知识库，可以使用增强型生成检索（RAG）方法，利用LLM运行查询。
+现在我们已经设置好了知识库，可以使用增强型生成检索（RAG）方法，利用 LLM 运行查询。
 
 我们的查询内容是：
 
-+   告诉我关于类风湿性关节炎中的T细胞来源细胞因子的相关信息，并提供引用和文章标题。
++   告诉我关于类风湿性关节炎中的 T 细胞来源细胞因子的相关信息，并提供引用和文章标题。
 
 +   告诉我关于类风湿性关节炎的单细胞研究。
 
 +   告诉我关于类风湿性关节炎中的蛋白质-蛋白质关联。
 
-+   告诉我关于类风湿性关节炎的GWAS研究发现。
++   告诉我关于类风湿性关节炎的 GWAS 研究发现。
 
 ```py
 import hashlib
@@ -293,7 +293,7 @@ from rich.logging import RichHandler
 
 我总是推荐先运行几个问答查询。以不同方式提问同样的显而易见的问题。
 
-你还需要根据你的时间限制和知识库中的文章数量调整`MAX_DOCS_RETURNED`。LLM会一直搜索，直到达到最大值，然后停止。如果需要全面搜索，你需要增加这个数值。
+你还需要根据你的时间限制和知识库中的文章数量调整`MAX_DOCS_RETURNED`。LLM 会一直搜索，直到达到最大值，然后停止。如果需要全面搜索，你需要增加这个数值。
 
 ```py
 # Make sure to keep the collection name consistent!
@@ -339,37 +339,37 @@ for answer in ai_responses:
 
 # 第三部分：结果！
 
-我们已经建立了知识库，运行了一些查询，现在我们准备查看LLM为我们生成的结果。
+我们已经建立了知识库，运行了一些查询，现在我们准备查看 LLM 为我们生成的结果。
 
 每个结果都是一个字典，包含原始查询、回应以及相关的源文档片段。
 
-> 告诉我关于类风湿性关节炎中的T细胞来源细胞因子的相关信息，并提供引用和文章标题。
+> 告诉我关于类风湿性关节炎中的 T 细胞来源细胞因子的相关信息，并提供引用和文章标题。
 > 
-> T细胞衍生的细胞因子在类风湿关节炎（RA）的发病机制中起着关键作用。一些关键发现包括：
+> T 细胞衍生的细胞因子在类风湿关节炎（RA）的发病机制中起着关键作用。一些关键发现包括：
 > 
-> 已发现RA患者滑液中IL-17水平升高，IL-17是由Th17细胞产生的细胞因子。IL-17可以刺激成纤维样滑膜细胞（FLS）和巨噬细胞产生炎症介质，如VEGF、IL-1、IL-6、TNF-α和前列腺素E2，并促进破骨细胞形成，从而促进关节炎症和破坏（Honorati等，2006年，Schurgers等，2011年）。
+> 已发现 RA 患者滑液中 IL-17 水平升高，IL-17 是由 Th17 细胞产生的细胞因子。IL-17 可以刺激成纤维样滑膜细胞（FLS）和巨噬细胞产生炎症介质，如 VEGF、IL-1、IL-6、TNF-α和前列腺素 E2，并促进破骨细胞形成，从而促进关节炎症和破坏（Honorati 等，2006 年，Schurgers 等，2011 年）。
 > 
-> 产生IFN-γ的Th1细胞也与RA的发病机制相关。IFN-γ可以诱导巨噬细胞极化为促炎的M1表型（Schurgers等，2011年，Kebir等，2009年，Boniface等，2010年）。
+> 产生 IFN-γ的 Th1 细胞也与 RA 的发病机制相关。IFN-γ可以诱导巨噬细胞极化为促炎的 M1 表型（Schurgers 等，2011 年，Kebir 等，2009 年，Boniface 等，2010 年）。
 > 
-> CD161+ Th17细胞能够同时产生IL-17和IFN-γ，它们在RA患者的滑膜中富集，并可能促进炎症环境的形成（Afzali等，2013年，Bovenschen等，2011年，Koenen等，2008年，Pesenacker等，2013年）。
+> CD161+ Th17 细胞能够同时产生 IL-17 和 IFN-γ，它们在 RA 患者的滑膜中富集，并可能促进炎症环境的形成（Afzali 等，2013 年，Bovenschen 等，2011 年，Koenen 等，2008 年，Pesenacker 等，2013 年）。
 > 
-> 通常抑制炎症的调节性T细胞（Tregs）在RA中功能受损，可能导致免疫反应失调（Moradi等，2014年，Samson等，2012年，Zhang等，2018年，Walter等，2013年，Wang等，2018年，Morita等，2016年）。
+> 通常抑制炎症的调节性 T 细胞（Tregs）在 RA 中功能受损，可能导致免疫反应失调（Moradi 等，2014 年，Samson 等，2012 年，Zhang 等，2018 年，Walter 等，2013 年，Wang 等，2018 年，Morita 等，2016 年）。
 > 
-> 总结来说，促炎T细胞亚群（Th1，Th17）与抗炎Tregs之间的不平衡是RA发病机制的标志，细胞因子如IL-17和IFN-γ在推动关节炎症和破坏中起着核心作用。
+> 总结来说，促炎 T 细胞亚群（Th1，Th17）与抗炎 Tregs 之间的不平衡是 RA 发病机制的标志，细胞因子如 IL-17 和 IFN-γ在推动关节炎症和破坏中起着核心作用。
 > 
 > 告诉我关于类风湿关节炎中的单细胞研究。
 > 
 > 单细胞研究为类风湿关节炎（RA）的发病机制提供了重要的见解：
 > 
-> 单细胞RNA测序（scRNA-seq）研究已经在RA滑膜中识别出不同的细胞状态和亚群，包括病理性T细胞亚群，如T外周辅助（Tph）细胞和细胞毒性CD8+ T细胞。
+> 单细胞 RNA 测序（scRNA-seq）研究已经在 RA 滑膜中识别出不同的细胞状态和亚群，包括病理性 T 细胞亚群，如 T 外周辅助（Tph）细胞和细胞毒性 CD8+ T 细胞。
 > 
-> 对RA滑膜中T细胞受体（TCR）库的分析揭示了CD4+和CD8+ T细胞群体的克隆扩增，表明存在抗原驱动的反应。
+> 对 RA 滑膜中 T 细胞受体（TCR）库的分析揭示了 CD4+和 CD8+ T 细胞群体的克隆扩增，表明存在抗原驱动的反应。
 > 
-> scRNA-seq还表征了RA滑膜中扩展的活化B细胞、原始浆细胞和浆细胞群体，这些细胞群体展示了显著的克隆关系。
+> scRNA-seq 还表征了 RA 滑膜中扩展的活化 B 细胞、原始浆细胞和浆细胞群体，这些细胞群体展示了显著的克隆关系。
 > 
-> 基于scRNA-seq数据的受体-配体分析预测了关键的细胞间相互作用，例如Tph细胞与B细胞之间的相互作用，这可能推动滑膜炎症的发生。
+> 基于 scRNA-seq 数据的受体-配体分析预测了关键的细胞间相互作用，例如 Tph 细胞与 B 细胞之间的相互作用，这可能推动滑膜炎症的发生。
 > 
-> 总体来说，单细胞研究揭示了RA滑膜中的细胞和分子异质性，识别了特定的免疫细胞亚群和可能作为个性化治疗靶点的途径。
+> 总体来说，单细胞研究揭示了 RA 滑膜中的细胞和分子异质性，识别了特定的免疫细胞亚群和可能作为个性化治疗靶点的途径。
 > 
 > 告诉我关于类风湿关节炎中的蛋白质-蛋白质相互作用。
 > 
@@ -377,51 +377,51 @@ for answer in ai_responses:
 > 
 > 类风湿因子（RF）和抗环瓜氨酸蛋白抗体（ACPAs）：
 > 
-> 类风湿关节炎的前关节阶段约80%的患者中发现类风湿因子（RF）。
+> 类风湿关节炎的前关节阶段约 80%的患者中发现类风湿因子（RF）。
 > 
-> ACPA对RA具有高度特异性，并且可以在临床症状发作前数年检测到。
+> ACPA 对 RA 具有高度特异性，并且可以在临床症状发作前数年检测到。
 > 
-> 蛋白精氨酸脱亚氨基酶（PAD）酶和抗PAD抗体：
+> 蛋白精氨酸脱亚氨基酶（PAD）酶和抗 PAD 抗体：
 > 
-> 抗PAD2抗体与中等病程相关，而抗PAD4抗体与更严重和快速进展的RA相关。
+> 抗 PAD2 抗体与中等病程相关，而抗 PAD4 抗体与更严重和快速进展的 RA 相关。
 > 
-> 抗PAD3/4抗体可能预示着RA相关的间质性肺病的发展。
+> 抗 PAD3/4 抗体可能预示着 RA 相关的间质性肺病的发展。
 > 
 > 抗碳酰化蛋白（anti-CarP）抗体：
 > 
-> 抗CarP抗体存在于25-50%的RA患者中，与RF或ACPA阳性无关。
+> 抗 CarP 抗体存在于 25-50%的 RA 患者中，与 RF 或 ACPA 阳性无关。
 > 
-> 抗CarP抗体与不良预后和增加的发病率相关，包括RA相关的间质性肺病。
+> 抗 CarP 抗体与不良预后和增加的发病率相关，包括 RA 相关的间质性肺病。
 > 
-> 丙二醛-乙醛（MAA）加合物和抗MAA抗体：
+> 丙二醛-乙醛（MAA）加合物和抗 MAA 抗体：
 > 
-> 抗MAA抗体与无血清RA的放射学进展相关。
+> 抗 MAA 抗体与无血清 RA 的放射学进展相关。
 > 
 > 信号通路中的蛋白质相互作用：
 > 
-> JAK-STAT、MAPK、PI3K-AKT和SYK信号通路都涉及到RA的发病机制，并且是治疗干预的潜在靶点。
+> JAK-STAT、MAPK、PI3K-AKT 和 SYK 信号通路都涉及到 RA 的发病机制，并且是治疗干预的潜在靶点。
 > 
-> 总的来说，上下文突出了RA中几个关键的蛋白质相互作用，包括自身抗体（RF、ACPA、抗PAD、抗CarP、抗MAA）和信号通路组分（JAK、STAT、MAPK、PI3K、SYK），这些在疾病的发病和进展中起着重要作用。
+> 总的来说，上下文突出了 RA 中几个关键的蛋白质相互作用，包括自身抗体（RF、ACPA、抗 PAD、抗 CarP、抗 MAA）和信号通路组分（JAK、STAT、MAPK、PI3K、SYK），这些在疾病的发病和进展中起着重要作用。
 > 
-> 告诉我关于类风湿性关节炎GWAS研究结果的情况。
+> 告诉我关于类风湿性关节炎 GWAS 研究结果的情况。
 > 
-> 以下是类风湿性关节炎GWAS研究的一些关键发现：
+> 以下是类风湿性关节炎 GWAS 研究的一些关键发现：
 > 
-> 全基因组关联研究（GWAS）已经确定了100多个与类风湿性关节炎易感性相关的遗传风险位点。
+> 全基因组关联研究（GWAS）已经确定了 100 多个与类风湿性关节炎易感性相关的遗传风险位点。
 > 
-> HLA-DRB1基因是最强的遗传风险因素，约占类风湿性关节炎遗传成分的50%。含有“共享表位”序列的特定HLA-DRB1等位基因与增加的RA风险密切相关。
+> HLA-DRB1 基因是最强的遗传风险因素，约占类风湿性关节炎遗传成分的 50%。含有“共享表位”序列的特定 HLA-DRB1 等位基因与增加的 RA 风险密切相关。
 > 
-> 通过GWAS识别的其他显著遗传风险因素包括PTPN22、STAT4、CCR6、PADI4、CTLA4和CD40。这些基因参与免疫调节和炎症途径。
+> 通过 GWAS 识别的其他显著遗传风险因素包括 PTPN22、STAT4、CCR6、PADI4、CTLA4 和 CD40。这些基因参与免疫调节和炎症途径。
 > 
-> 遗传风险因素可能在血清阳性（ACPA阳性）和血清阴性类风湿性关节炎之间有所不同。例如，HLA-DRB1等位基因与血清阳性RA有更强的关联。
+> 遗传风险因素可能在血清阳性（ACPA 阳性）和血清阴性类风湿性关节炎之间有所不同。例如，HLA-DRB1 等位基因与血清阳性 RA 有更强的关联。
 > 
-> GWAS还确定了与类风湿性关节炎疾病严重程度和治疗反应相关的遗传变异。例如，FCGR3A和PTPRC基因的变异已与抗TNF疗法的反应相关联。
+> GWAS 还确定了与类风湿性关节炎疾病严重程度和治疗反应相关的遗传变异。例如，FCGR3A 和 PTPRC 基因的变异已与抗 TNF 疗法的反应相关联。
 > 
-> 总体而言，GWAS为类风湿性关节炎的遗传结构和发病机制提供了重要见解，这对于开发靶向治疗和个性化治疗方法具有重要意义。
+> 总体而言，GWAS 为类风湿性关节炎的遗传结构和发病机制提供了重要见解，这对于开发靶向治疗和个性化治疗方法具有重要意义。
 
 # 调查源文件
 
-查询知识库将返回与源文件相关的片段。有时，langchain返回的格式可能有些问题，但您可以随时返回源文件。
+查询知识库将返回与源文件相关的片段。有时，langchain 返回的格式可能有些问题，但您可以随时返回源文件。
 
 ```py
 x = 0

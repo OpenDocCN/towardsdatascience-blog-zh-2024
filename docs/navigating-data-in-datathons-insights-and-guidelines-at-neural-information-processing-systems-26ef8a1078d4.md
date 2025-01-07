@@ -1,12 +1,12 @@
 # 在数据马拉松中导航数据：见解与指导 [NeurIPS’23]
 
-> 原文：[https://towardsdatascience.com/navigating-data-in-datathons-insights-and-guidelines-at-neural-information-processing-systems-26ef8a1078d4?source=collection_archive---------11-----------------------#2024-02-09](https://towardsdatascience.com/navigating-data-in-datathons-insights-and-guidelines-at-neural-information-processing-systems-26ef8a1078d4?source=collection_archive---------11-----------------------#2024-02-09)
+> 原文：[`towardsdatascience.com/navigating-data-in-datathons-insights-and-guidelines-at-neural-information-processing-systems-26ef8a1078d4?source=collection_archive---------11-----------------------#2024-02-09`](https://towardsdatascience.com/navigating-data-in-datathons-insights-and-guidelines-at-neural-information-processing-systems-26ef8a1078d4?source=collection_archive---------11-----------------------#2024-02-09)
 
 ## 如何在数据马拉松中处理数据
 
-[](https://medium.com/@carmougan?source=post_page---byline--26ef8a1078d4--------------------------------)[![Carlos Mougan](../Images/7a56269362fc48c7a6179474b106857a.png)](https://medium.com/@carmougan?source=post_page---byline--26ef8a1078d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--26ef8a1078d4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--26ef8a1078d4--------------------------------) [Carlos Mougan](https://medium.com/@carmougan?source=post_page---byline--26ef8a1078d4--------------------------------)
+[](https://medium.com/@carmougan?source=post_page---byline--26ef8a1078d4--------------------------------)![Carlos Mougan](https://medium.com/@carmougan?source=post_page---byline--26ef8a1078d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--26ef8a1078d4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26ef8a1078d4--------------------------------) [Carlos Mougan](https://medium.com/@carmougan?source=post_page---byline--26ef8a1078d4--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26ef8a1078d4--------------------------------) ·阅读时间 8分钟·2024年2月9日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26ef8a1078d4--------------------------------) ·阅读时间 8 分钟·2024 年 2 月 9 日
 
 --
 
@@ -24,7 +24,7 @@
 
 ## 这篇博客的目标是什么？
 
-本文基于2023年[神经信息处理系统会议](https://medium.com/u/f5c0769c2aa2?source=post_page---user_mention--26ef8a1078d4--------------------------------)上的一篇论文《*如何在数据马拉松中处理数据*》（[*How to Data in Datathons*](https://arxiv.org/abs/2309.09770)），深入探讨了准备和选择数据参加数据马拉松的关键方面，涉及：
+本文基于 2023 年[神经信息处理系统会议](https://medium.com/u/f5c0769c2aa2?source=post_page---user_mention--26ef8a1078d4--------------------------------)上的一篇论文《*如何在数据马拉松中处理数据*》（[*How to Data in Datathons*](https://arxiv.org/abs/2309.09770)），深入探讨了准备和选择数据参加数据马拉松的关键方面，涉及：
 
 *— 数据对数据马拉松来说* ***合适*** *是什么意思？*
 
@@ -36,17 +36,17 @@
 
 *— 数据是否* ***可靠*** *？*
 
-该框架来源于艾伦·图灵研究所自2016年以来，与60多个合作组织共同举办80多场数据马拉松挑战赛的经验和洞察！！
+该框架来源于艾伦·图灵研究所自 2016 年以来，与 60 多个合作组织共同举办 80 多场数据马拉松挑战赛的经验和洞察！！
 
 它旨在提供一套指南和建议，帮助准备不同类型的数据，以应对数据马拉松，这些建议来源于广泛的数据马拉松组织经验。如果有兴趣，考虑作为参与者或挑战拥有者参加其中的一个数据学习小组活动；更多信息请见[[此处]](https://www.turing.ac.uk/collaborate-turing/data-study-groups)
 
-![](../Images/36bfcefebe6f19ea564132ef6c4308f8.png)
+![](img/36bfcefebe6f19ea564132ef6c4308f8.png)
 
-这是艾伦·图灵研究所应用技能团队的合影，摄于2023年5月。
+这是艾伦·图灵研究所应用技能团队的合影，摄于 2023 年 5 月。
 
 # 在数据马拉松中的数据评估
 
-![](../Images/880843fa792b7908b246ff0d5d80dc68.png)
+![](img/880843fa792b7908b246ff0d5d80dc68.png)
 
 数据评估矩阵。摘自《如何在数据马拉松中使用数据》#NeurIPS23
 
@@ -128,7 +128,7 @@
 
 现场活动是计划与现实的交汇点。PI（主要研究员）在引导参与者解决数据挑战并确保目标达成方面发挥着关键作用。此外，参与者的反馈是宝贵的资源。他们对数据的全新视角可以揭示新的洞察或识别改进的领域，使得数据马拉松成为一个动态环境，调整不仅是可能的，而且是受到鼓励的。
 
-*对实际应用案例感兴趣吗？在会议论文中，我们将10个应用案例映射到我们的框架中。*
+*对实际应用案例感兴趣吗？在会议论文中，我们将 10 个应用案例映射到我们的框架中。*
 
 1.  Cefas: 环境、渔业与水产科学中心
 
@@ -142,23 +142,23 @@
 
 1.  DWP: 工作和养老金部
 
-1.  痴呆症研究所与DEMON网络：预测DNA序列与表观遗传状态之间的功能关系
+1.  痴呆症研究所与 DEMON 网络：预测 DNA 序列与表观遗传状态之间的功能关系
 
 1.  自动化评估重症病人舌下微循环的灌注情况
 
 1.  Entale: 播客发现的推荐系统
 
-1.  Odin Vision: 探索AI支持的早期结直肠癌诊断决策
+1.  Odin Vision: 探索 AI 支持的早期结直肠癌诊断决策
 
 *完整报告以及其他数据研究小组的成果可以在[*报告部分*](https://www.turing.ac.uk/collaborate-turing/data-study-groups)找到。*
 
-![](../Images/e12fb8164715607bce1392addf7e27ef.png)
+![](img/e12fb8164715607bce1392addf7e27ef.png)
 
-最后10个DSG报告的报告计数数据评估分类
+最后 10 个 DSG 报告的报告计数数据评估分类
 
 # 结论
 
-在本文中，我们从五个关键维度（适当性、准备性、可靠性、敏感性和充足性）分析了数据马拉松中的数据，这些维度来自于自2016年以来组织的80多场数据马拉松。通过这样做，我们希望在数据马拉松事件之前改善组织对数据的处理。
+在本文中，我们从五个关键维度（适当性、准备性、可靠性、敏感性和充足性）分析了数据马拉松中的数据，这些维度来自于自 2016 年以来组织的 80 多场数据马拉松。通过这样做，我们希望在数据马拉松事件之前改善组织对数据的处理。
 
 我们提出的定性分析提供了多个视角下的数据状态程度；这些程度可以根据需要调整或扩展，类似于美国国家航空航天局提供的技术准备度等级，后者随着时间的推移和进一步的工作不断扩展。
 
@@ -177,6 +177,6 @@ url={https://openreview.net/forum?id=bjvRVA2ihO}
 
 > Mougan, C., Plant, R., Teng, C., Bazzi, M., Cabrejas-Egea, A., Chan, R. S.-Y., Jasin, D. S., Stoffel, M., Whitaker, K. J., & Manser, J. (2023). 如何在数据马拉松中使用数据。载于*第三十七届神经信息处理系统大会数据集和基准跟踪*。
 
-![](../Images/5f8da924103086b0e5849292d44e642a.png)
+![](img/5f8da924103086b0e5849292d44e642a.png)
 
 一张我（Carlos Mougan）在艾伦·图灵研究所的照片。（所有图片由作者提供并经授权使用）

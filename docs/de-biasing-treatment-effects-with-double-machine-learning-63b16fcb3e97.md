@@ -1,16 +1,16 @@
 # 利用双重机器学习去偏处理效应
 
-> 原文：[https://towardsdatascience.com/de-biasing-treatment-effects-with-double-machine-learning-63b16fcb3e97?source=collection_archive---------2-----------------------#2024-04-05](https://towardsdatascience.com/de-biasing-treatment-effects-with-double-machine-learning-63b16fcb3e97?source=collection_archive---------2-----------------------#2024-04-05)
+> 原文：[`towardsdatascience.com/de-biasing-treatment-effects-with-double-machine-learning-63b16fcb3e97?source=collection_archive---------2-----------------------#2024-04-05`](https://towardsdatascience.com/de-biasing-treatment-effects-with-double-machine-learning-63b16fcb3e97?source=collection_archive---------2-----------------------#2024-04-05)
 
 ## 因果 AI，探索因果推理与机器学习的整合
 
-[](https://medium.com/@raz1470?source=post_page---byline--63b16fcb3e97--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--63b16fcb3e97--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--63b16fcb3e97--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--63b16fcb3e97--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--63b16fcb3e97--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--63b16fcb3e97--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--63b16fcb3e97--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--63b16fcb3e97--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--63b16fcb3e97--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--63b16fcb3e97--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--63b16fcb3e97--------------------------------) ·阅读时长 11 分钟·2024年4月5日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--63b16fcb3e97--------------------------------) ·阅读时长 11 分钟·2024 年 4 月 5 日
 
 --
 
-![](../Images/ab5fa72d3cb69f3db74f7b4b8b53bf4b.png)
+![](img/ab5fa72d3cb69f3db74f7b4b8b53bf4b.png)
 
 图片由 [Ales Nesetril](https://unsplash.com/@alesnesetril?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,11 +22,11 @@
 
 如果你错过了上一篇关于因果发现的文章，请点击这里查看：
 
-[](/making-causal-discovery-work-in-real-world-business-settings-80e80c5f66b8?source=post_page-----63b16fcb3e97--------------------------------) [## 如何让因果发现应用于现实世界的商业环境
+[](/making-causal-discovery-work-in-real-world-business-settings-80e80c5f66b8?source=post_page-----63b16fcb3e97--------------------------------) ## 如何让因果发现应用于现实世界的商业环境
 
 ### 因果 AI，探索因果推理与机器学习的整合
 
-towardsdatascience.com](/making-causal-discovery-work-in-real-world-business-settings-80e80c5f66b8?source=post_page-----63b16fcb3e97--------------------------------)
+towardsdatascience.com
 
 # 介绍
 
@@ -54,9 +54,9 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/estimating%
 
 ## ATE
 
-ATE是处理或干预对一个群体的平均影响。我们可以通过比较处理组和控制组之间某一选择指标的平均变化来计算ATE。
+ATE 是处理或干预对一个群体的平均影响。我们可以通过比较处理组和控制组之间某一选择指标的平均变化来计算 ATE。
 
-例如，考虑一个营销团队正在进行促销活动。处理组由收到优惠的客户组成，而控制组由未收到优惠的客户组成。我们可以通过比较处理组和控制组中的平均订单数来计算ATE。
+例如，考虑一个营销团队正在进行促销活动。处理组由收到优惠的客户组成，而控制组由未收到优惠的客户组成。我们可以通过比较处理组和控制组中的平均订单数来计算 ATE。
 
 ## 潜在结果框架
 
@@ -80,15 +80,15 @@ ATE是处理或干预对一个群体的平均影响。我们可以通过比较�
 
 ## 实验数据
 
-使用实验数据估计ATE相对简单。
+使用实验数据估计 ATE 相对简单。
 
-随机对照试验（RCT）或AB测试的设计是随机将参与者分配到处理组和控制组。这确保了任何结果的差异都可以归因于处理效应，而不是参与者的先天特征。
+随机对照试验（RCT）或 AB 测试的设计是随机将参与者分配到处理组和控制组。这确保了任何结果的差异都可以归因于处理效应，而不是参与者的先天特征。
 
 回到市场营销团队的例子。如果他们随机将客户分为治疗组和控制组，那么订单的平均差异就是所发送优惠的因果效应。
 
 ## 观察数据
 
-使用观察数据估计ATE更具挑战性。
+使用观察数据估计 ATE 更具挑战性。
 
 最常见的挑战是混杂变量，它们同时影响治疗和结果。如果没有控制混杂因子，将导致治疗效应的估计偏差。我们将在文章后续的案例研究中回到这个问题。
 
@@ -98,21 +98,21 @@ ATE是处理或干预对一个群体的平均影响。我们可以通过比较�
 
 +   异质性治疗效应——治疗效应在不同子群体之间变化。
 
-# 使用线性回归估计ATE
+# 使用线性回归估计 ATE
 
 ## 概述
 
-线性回归可以用于使用观察数据估计ATE。治疗（T）和控制特征（X）作为变量包含在模型中。
+线性回归可以用于使用观察数据估计 ATE。治疗（T）和控制特征（X）作为变量包含在模型中。
 
-![](../Images/7376810d24b3d2809491a9d3a5ef646c.png)
+![](img/7376810d24b3d2809491a9d3a5ef646c.png)
 
 使用生成的图片
 
-治疗变量的系数就是ATE——与治疗变量的单位变化相关的结果变量的平均变化，同时保持控制特征不变。
+治疗变量的系数就是 ATE——与治疗变量的单位变化相关的结果变量的平均变化，同时保持控制特征不变。
 
 ## 数据生成过程
 
-我们可以使用一个简单的数据生成过程，包含一个结果变量、治疗和混杂因子，来说明如何使用线性回归估计ATE。
+我们可以使用一个简单的数据生成过程，包含一个结果变量、治疗和混杂因子，来说明如何使用线性回归估计 ATE。
 
 首先，我们可以可视化因果图：
 
@@ -136,11 +136,11 @@ graph_actual[1, 2] = 1.0 # Treatment -> Outcome
 plot_graph(input_graph=graph_actual, node_lookup=node_lookup)
 ```
 
-![](../Images/47433c1ed4b55f5eea942decc7e270bf.png)
+![](img/47433c1ed4b55f5eea942decc7e270bf.png)
 
 用户生成的图片
 
-然后我们可以使用简单的数据生成过程创建样本。请特别注意治疗变量的系数（0.75）——这就是我们的真实ATE。
+然后我们可以使用简单的数据生成过程创建样本。请特别注意治疗变量的系数（0.75）——这就是我们的真实 ATE。
 
 ```py
 np.random.seed(123)
@@ -154,13 +154,13 @@ df['Outcome'] = 0.25 * df['Confounder'] + 0.75 * df['Treatment'] + np.random.nor
 sns.pairplot(df, corner=True)
 ```
 
-![](../Images/685d36d4f99ac2ed2f3144007ec5c5cd.png)
+![](img/685d36d4f99ac2ed2f3144007ec5c5cd.png)
 
 用户生成的图片
 
 ## 线性回归
 
-然后，我们可以训练一个线性回归模型，并提取治疗变量的系数——我们可以看到它正确估计了ATE（0.75）。
+然后，我们可以训练一个线性回归模型，并提取治疗变量的系数——我们可以看到它正确估计了 ATE（0.75）。
 
 ```py
 # Set target and features
@@ -177,13 +177,13 @@ ate_lr = round(model.coef_[1], 2)
 print(f'The average treatment effect using Linear Regression is: {ate_lr}')
 ```
 
-![](../Images/40ba21494af79a37542ae973b900291c.png)
+![](img/40ba21494af79a37542ae973b900291c.png)
 
 用户生成的图片
 
 ## 挑战
 
-线性回归可以是估计ATE（平均处理效应）非常有效的方法。然而，需要注意一些挑战：
+线性回归可以是估计 ATE（平均处理效应）非常有效的方法。然而，需要注意一些挑战：
 
 +   当我们处理高维数据时，它会遇到困难。
 
@@ -199,7 +199,7 @@ print(f'The average treatment effect using Linear Regression is: {ate_lr}')
 
 ## 概述
 
-双重机器学习（Double Machine Learning）是一种因果方法，首次在2017年发表于《双重/去偏机器学习用于处理和结构参数》一文中：
+双重机器学习（Double Machine Learning）是一种因果方法，首次在 2017 年发表于《双重/去偏机器学习用于处理和结构参数》一文中：
 
 [](https://arxiv.org/abs/1608.00060?source=post_page-----63b16fcb3e97--------------------------------) [## 双重/去偏机器学习用于处理和因果参数
 
@@ -213,19 +213,19 @@ print(f'The average treatment effect using Linear Regression is: {ate_lr}')
 
 ## 弗里希-沃-洛维尔定理
 
-FWL定理用于分解多个回归变量对结果变量的影响，从而使我们能够隔离感兴趣的效应。
+FWL 定理用于分解多个回归变量对结果变量的影响，从而使我们能够隔离感兴趣的效应。
 
-假设你有两组特征，X1和X2。你可以像之前那样使用线性回归来估计模型参数。然而，你也可以通过以下步骤得到X1的相同参数：
+假设你有两组特征，X1 和 X2。你可以像之前那样使用线性回归来估计模型参数。然而，你也可以通过以下步骤得到 X1 的相同参数：
 
-1.  仅使用X2来预测结果
+1.  仅使用 X2 来预测结果
 
-1.  仅使用X2来预测X1
+1.  仅使用 X2 来预测 X1
 
-1.  计算结果模型（步骤1）和特征模型（步骤2）的残差
+1.  计算结果模型（步骤 1）和特征模型（步骤 2）的残差
 
-1.  将结果模型的残差对特征模型的残差进行回归，以估计X1的参数
+1.  将结果模型的残差对特征模型的残差进行回归，以估计 X1 的参数
 
-一开始这可能很难理解，因此让我们用Python来演示一下。我们使用之前相同的数据，但将处理列作为X1，将混杂变量列作为X2：
+一开始这可能很难理解，因此让我们用 Python 来演示一下。我们使用之前相同的数据，但将处理列作为 X1，将混杂变量列作为 X2：
 
 ```py
 # Set treatment, outcome and confounder samples
@@ -253,7 +253,7 @@ ate_dml = round(final_model.coef_[0][0], 2)
 print(f'The average treatment effect is: {ate_fwl}')
 ```
 
-![](../Images/65373cb179311c38f15b7dee86f3957a.png)
+![](img/65373cb179311c38f15b7dee86f3957a.png)
 
 用户生成的图像
 
@@ -261,7 +261,7 @@ print(f'The average treatment effect is: {ate_fwl}')
 
 ## 双重机器学习
 
-双重机器学习（Double Machine Learning）通过隔离处理和控制特征的效应，并使用灵活的机器学习模型，基于FWL定理进行构建。
+双重机器学习（Double Machine Learning）通过隔离处理和控制特征的效应，并使用灵活的机器学习模型，基于 FWL 定理进行构建。
 
 第一阶段通常被称为正交化，因为干扰参数是独立于处理效应估计的。
 
@@ -275,9 +275,9 @@ print(f'The average treatment effect is: {ate_fwl}')
 
 +   处理模型的残差用于预测结果模型的残差。
 
-第二阶段模型的系数是ATE（平均处理效应）。值得注意的是，第二阶段模型是一个线性模型，这意味着我们假设我们的处理效应是线性的（这也是我们称DML为部分线性模型的原因）。
+第二阶段模型的系数是 ATE（平均处理效应）。值得注意的是，第二阶段模型是一个线性模型，这意味着我们假设我们的处理效应是线性的（这也是我们称 DML 为部分线性模型的原因）。
 
-我们可以使用微软的包EconML，而不是自己编写代码。EconML实现了广泛的因果机器学习（Causal ML）技术，其中包括多个DML的实现：
+我们可以使用微软的包 EconML，而不是自己编写代码。EconML 实现了广泛的因果机器学习（Causal ML）技术，其中包括多个 DML 的实现：
 
 [](https://econml.azurewebsites.net/?source=post_page-----63b16fcb3e97--------------------------------) [## 欢迎访问 econml 文档！ - econml 0.15.0 文档
 
@@ -296,7 +296,7 @@ ate_dml = round(dml.ate()[0], 2)
 print(f'The average treatment effect using the DML is: {ate_dml}')
 ```
 
-![](../Images/114df1a5af40ff552d6988100f981da2.png)
+![](img/114df1a5af40ff552d6988100f981da2.png)
 
 用户生成的图片
 
@@ -328,13 +328,13 @@ print(f'The average treatment effect using the DML is: {ate_dml}')
 
 X 特征是治疗前收集的客户特征：
 
-![](../Images/8afb0c2d4588af0545c01cc9248d533d.png)
+![](img/8afb0c2d4588af0545c01cc9248d533d.png)
 
 用户生成的图片
 
 T 是一个二进制标志，表示客户是否收到了优惠。
 
-![](../Images/0c53dd6127d10b58a8b3d16279cac3b3.png)
+![](img/0c53dd6127d10b58a8b3d16279cac3b3.png)
 
 用户生成的图片
 
@@ -398,7 +398,7 @@ ate_lr = round(model.coef_[-1], 2)
 print(f'The average treatment effect using Linear Regression is: {ate_lr}')
 ```
 
-![](../Images/cfb31a3c1ca5076492b4b662a5aec340.png)
+![](img/cfb31a3c1ca5076492b4b662a5aec340.png)
 
 用户生成的图片
 
@@ -419,7 +419,7 @@ ate_dml = round(dml.ate(), 2)
 print(f'The average treatment effect using the DML is: {ate_dml}')
 ```
 
-![](../Images/846376efd6ddfe95c40381066958beb4.png)
+![](img/846376efd6ddfe95c40381066958beb4.png)
 
 用户生成的图片
 
@@ -436,13 +436,13 @@ plt.title('Average Treatment Effect comparison')
 plt.show()
 ```
 
-![](../Images/80196d33787aebf96e40acac24077d4f.png)
+![](img/80196d33787aebf96e40acac24077d4f.png)
 
 用户生成的图片
 
 # 其他方法
 
-还有一些其他因果方法可以用来估计平均处理效应（ATE）（其中很多方法已经在EconML和CausalML包中实现）：
+还有一些其他因果方法可以用来估计平均处理效应（ATE）（其中很多方法已经在 EconML 和 CausalML 包中实现）：
 
 +   倾向得分匹配（PSM）
 
@@ -456,12 +456,12 @@ plt.show()
 
 +   工具变量学习者（IV）
 
-如果你想进一步深入这些方法，我建议从S-学习者和T-学习者（通常被称为元学习者）开始。以下是几个关键点，帮助你了解何时以及如何应用它们：
+如果你想进一步深入这些方法，我建议从 S-学习者和 T-学习者（通常被称为元学习者）开始。以下是几个关键点，帮助你了解何时以及如何应用它们：
 
-+   当你的处理是二元的，并且处理组和对照组的规模相等时，T-学习者通常是DML的一个更简单的替代方案。
++   当你的处理是二元的，并且处理组和对照组的规模相等时，T-学习者通常是 DML 的一个更简单的替代方案。
 
-+   当你的处理是连续型的，并且你怀疑处理效应可能是非线性的时，S-学习者可能比DML更合适。
++   当你的处理是连续型的，并且你怀疑处理效应可能是非线性的时，S-学习者可能比 DML 更合适。
 
-+   元学习者可能会受到正则化偏差的影响（尤其是S-学习者）——当我们看到双重机器学习（DML）优于元学习者时，通常就是因为这个原因。
++   元学习者可能会受到正则化偏差的影响（尤其是 S-学习者）——当我们看到双重机器学习（DML）优于元学习者时，通常就是因为这个原因。
 
 如果你想继续这段因果人工智能的旅程，请关注我——在下一篇文章中，我们将探讨如何利用双重机器学习估计条件平均处理效应（CATE），帮助我们在客户层面个性化治疗。

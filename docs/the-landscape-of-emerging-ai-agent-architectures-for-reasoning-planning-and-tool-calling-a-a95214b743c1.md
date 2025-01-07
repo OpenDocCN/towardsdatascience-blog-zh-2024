@@ -1,14 +1,14 @@
 # 新兴人工智能代理架构在推理、规划和工具调用方面的全景：一项调查
 
-> 原文：[https://towardsdatascience.com/the-landscape-of-emerging-ai-agent-architectures-for-reasoning-planning-and-tool-calling-a-a95214b743c1?source=collection_archive---------0-----------------------#2024-04-23](https://towardsdatascience.com/the-landscape-of-emerging-ai-agent-architectures-for-reasoning-planning-and-tool-calling-a-a95214b743c1?source=collection_archive---------0-----------------------#2024-04-23)
+> 原文：[`towardsdatascience.com/the-landscape-of-emerging-ai-agent-architectures-for-reasoning-planning-and-tool-calling-a-a95214b743c1?source=collection_archive---------0-----------------------#2024-04-23`](https://towardsdatascience.com/the-landscape-of-emerging-ai-agent-architectures-for-reasoning-planning-and-tool-calling-a-a95214b743c1?source=collection_archive---------0-----------------------#2024-04-23)
 
-[](https://medium.com/@sandibesen?source=post_page---byline--a95214b743c1--------------------------------)[![Sandi Besen](../Images/97361d97f50269f70b6621da2256bc29.png)](https://medium.com/@sandibesen?source=post_page---byline--a95214b743c1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a95214b743c1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a95214b743c1--------------------------------) [Sandi Besen](https://medium.com/@sandibesen?source=post_page---byline--a95214b743c1--------------------------------)
+[](https://medium.com/@sandibesen?source=post_page---byline--a95214b743c1--------------------------------)![Sandi Besen](https://medium.com/@sandibesen?source=post_page---byline--a95214b743c1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a95214b743c1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a95214b743c1--------------------------------) [Sandi Besen](https://medium.com/@sandibesen?source=post_page---byline--a95214b743c1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a95214b743c1--------------------------------) ·7分钟阅读·2024年4月23日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a95214b743c1--------------------------------) ·7 分钟阅读·2024 年 4 月 23 日
 
 --
 
-![](../Images/f40135ab16836eb9faae12e98ef3805d.png)
+![](img/f40135ab16836eb9faae12e98ef3805d.png)
 
 图片由作者提供
 
@@ -20,7 +20,7 @@
 
 # 向代理转型
 
-自ChatGPT推出以来，初期的生成式人工智能应用大多围绕着利用检索增强生成（RAG）模式来响应用户提示的聊天机器人展开。尽管目前仍有在增强这些基于RAG的系统的鲁棒性方面的工作，但研究界现在正在探索下一代人工智能应用——一个共同的主题是开发自主人工智能代理。
+自 ChatGPT 推出以来，初期的生成式人工智能应用大多围绕着利用检索增强生成（RAG）模式来响应用户提示的聊天机器人展开。尽管目前仍有在增强这些基于 RAG 的系统的鲁棒性方面的工作，但研究界现在正在探索下一代人工智能应用——一个共同的主题是开发自主人工智能代理。
 
 代理系统融合了高级能力，如规划、迭代和反思，利用模型固有的推理能力完成端到端的任务。结合使用工具、插件和功能调用的能力，代理能够处理更广泛的一般用途工作。
 
@@ -30,7 +30,7 @@
 
 我们发现，大多数代理实现包含一个规划阶段，利用以下技术之一来创建计划：任务分解、多计划选择、外部模块辅助规划、反思和优化以及记忆增强规划[1]。
 
-采用代理实现而非仅使用基础语言模型的另一个好处是代理能够通过调用工具解决复杂问题。工具可以使代理执行诸如与API交互、向第三方应用写入数据等操作**。**推理与工具调用是紧密相连的，有效的工具调用依赖于充分的推理能力。简而言之，你不能指望一个推理能力差的代理理解何时是调用其工具的合适时机。
+采用代理实现而非仅使用基础语言模型的另一个好处是代理能够通过调用工具解决复杂问题。工具可以使代理执行诸如与 API 交互、向第三方应用写入数据等操作**。**推理与工具调用是紧密相连的，有效的工具调用依赖于充分的推理能力。简而言之，你不能指望一个推理能力差的代理理解何时是调用其工具的合适时机。
 
 # **单一代理与多代理架构**
 
@@ -42,7 +42,7 @@
 
 多智能体参与的架构为基于能力的智能劳动分工提供了机会，同时也为来自不同智能体角色的宝贵反馈提供了机会。许多多智能体架构在各个阶段运作，其中智能体团队在每个规划、执行和评估阶段都会动态形成和重新组织[7, 8, 9]。这种重新组织产生了卓越的结果，因为专门的智能体被用于特定任务，并在不再需要时被移除。通过将智能体角色和技能与手头的任务匹配，智能体团队可以实现更高的准确性，并减少实现目标所需的时间。有效的多智能体架构的关键特征包括智能体团队内明确的领导、动态团队构建以及团队成员之间的高效信息共享，以防止重要信息在多余的沟通中丢失。
 
-*我们的研究重点介绍了诸如ReAct、RAISE、Reflexion、AutoGPT + P、LATS等显著的单智能体方法，以及DyLAN、AgentVerse和MetaGPT等多智能体实现，这些在* [*全文*](https://arxiv.org/abs/2404.11584)*.* *中有更深入的解释。
+*我们的研究重点介绍了诸如 ReAct、RAISE、Reflexion、AutoGPT + P、LATS 等显著的单智能体方法，以及 DyLAN、AgentVerse 和 MetaGPT 等多智能体实现，这些在* [*全文*](https://arxiv.org/abs/2404.11584)*.* *中有更深入的解释。
 
 # 我们的主要发现
 
@@ -72,7 +72,7 @@
 
 # 结论
 
-我们的元分析旨在提供对当前AI代理格局的全面理解，并为那些使用现有代理架构或开发自定义代理架构的人提供洞察。设计和开发自主AI代理仍存在显著的局限性和未来改进的空间，如缺乏全面的代理基准、实际应用性不足以及有害语言模型偏见的缓解。这些问题需要在短期内解决，以实现可靠的代理。
+我们的元分析旨在提供对当前 AI 代理格局的全面理解，并为那些使用现有代理架构或开发自定义代理架构的人提供洞察。设计和开发自主 AI 代理仍存在显著的局限性和未来改进的空间，如缺乏全面的代理基准、实际应用性不足以及有害语言模型偏见的缓解。这些问题需要在短期内解决，以实现可靠的代理。
 
 注意：本文及论文中表达的观点仅代表作者个人意见，不一定反映其所属雇主的观点或政策。
 
@@ -80,26 +80,26 @@
 
 ***参考文献***
 
-[1] 蒂莫·比尔等人. AutoGPT+P: 基于效能的任务规划与大语言模型. arXiv:2402.10778 [cs] 版本: 1\. 2024年2月\. URL: [http://arxiv.org/abs/2402.10778.](https://arxiv.org/abs/2402.10778)
+[1] 蒂莫·比尔等人. AutoGPT+P: 基于效能的任务规划与大语言模型. arXiv:2402.10778 [cs] 版本: 1\. 2024 年 2 月\. URL: [`arxiv.org/abs/2402.10778.`](https://arxiv.org/abs/2402.10778)
 
-[2] 姚顺宇等人. ReAct: 在语言模型中协同推理与行动. arXiv:2210.03629 [cs]. 2023年3月\. URL: [http://arxiv.org/abs/2210.03629.](https://arxiv.org/abs/2210.03629)
+[2] 姚顺宇等人. ReAct: 在语言模型中协同推理与行动. arXiv:2210.03629 [cs]. 2023 年 3 月\. URL: [`arxiv.org/abs/2210.03629.`](https://arxiv.org/abs/2210.03629)
 
-[3] 刘娜等人. 从LLM到对话智能体: 具有大语言模型微调的记忆增强架构. arXiv:2401.02777 [cs]. 2024年1月\. URL: [http://arxiv.org/abs/2401.02777.](https://arxiv.org/abs/2401.02777)
+[3] 刘娜等人. 从 LLM 到对话智能体: 具有大语言模型微调的记忆增强架构. arXiv:2401.02777 [cs]. 2024 年 1 月\. URL: [`arxiv.org/abs/2401.02777.`](https://arxiv.org/abs/2401.02777)
 
-[4] 诺亚·辛恩等人. Reflexion: 语言智能体与言语强化学习. arXiv:2303.11366 [cs]. 2023年10月\. URL: [http://arxiv.org/abs/2303.11366](https://arxiv.org/abs/2303.11366)
+[4] 诺亚·辛恩等人. Reflexion: 语言智能体与言语强化学习. arXiv:2303.11366 [cs]. 2023 年 10 月\. URL: [`arxiv.org/abs/2303.11366`](https://arxiv.org/abs/2303.11366)
 
-[5] 石正良等人. 通过协作和交互式智能体学习使用工具. arXiv:2403.03031 [cs]. 2024年3月\. URL: [https://arxiv.org/abs/2403.03031](https://arxiv.org/abs/2403.03031)
+[5] 石正良等人. 通过协作和交互式智能体学习使用工具. arXiv:2403.03031 [cs]. 2024 年 3 月\. URL: [`arxiv.org/abs/2403.03031`](https://arxiv.org/abs/2403.03031)
 
-[6] 高思林等人. 通过抽象链推理高效使用工具. arXiv:2401.17464 [cs]. 2024年2月\. URL: [http://arxiv.org/abs/2401.17464](https://arxiv.org/abs/2401.17464)
+[6] 高思林等人. 通过抽象链推理高效使用工具. arXiv:2401.17464 [cs]. 2024 年 2 月\. URL: [`arxiv.org/abs/2401.17464`](https://arxiv.org/abs/2401.17464)
 
-[7] 陈伟泽等人. AgentVerse: 促进多智能体协作与探索涌现行为. arXiv:2308.10848 [cs]. 2023年10月\. URL: [http://arxiv.org/abs/2308.10848](https://arxiv.org/abs/2308.10848)。
+[7] 陈伟泽等人. AgentVerse: 促进多智能体协作与探索涌现行为. arXiv:2308.10848 [cs]. 2023 年 10 月\. URL: [`arxiv.org/abs/2308.10848`](https://arxiv.org/abs/2308.10848)。
 
-[8] 郭旭东等人. 有形LLM智能体学习在有组织团队中的合作. 2024\. arXiv: 2403.12482 [cs.AI]. URL: [https://arxiv.org/abs/2403.12482](https://arxiv.org/abs/2403.12482)
+[8] 郭旭东等人. 有形 LLM 智能体学习在有组织团队中的合作. 2024\. arXiv: 2403.12482 [cs.AI]. URL: [`arxiv.org/abs/2403.12482`](https://arxiv.org/abs/2403.12482)
 
-[9] 刘子俊等人. 动态LLM-智能体网络: 一种具有智能体团队优化的LLM-智能体协作框架. 2023\. arXiv: 2310.02170 [cs.CL]. URL: [https://arxiv.org/abs/2310.02170](https://arxiv.org/abs/2310.02170)
+[9] 刘子俊等人. 动态 LLM-智能体网络: 一种具有智能体团队优化的 LLM-智能体协作框架. 2023\. arXiv: 2310.02170 [cs.CL]. URL: [`arxiv.org/abs/2310.02170`](https://arxiv.org/abs/2310.02170)
 
-[10] 张木如等人. 语言模型幻觉如何会呈滚雪球效应. arXiv:2305.13534 [cs]. 2023年5月\. URL: [http://arxiv.org/abs/2305.13534](https://arxiv.org/abs/2305.13534)。
+[10] 张木如等人. 语言模型幻觉如何会呈滚雪球效应. arXiv:2305.13534 [cs]. 2023 年 5 月\. URL: [`arxiv.org/abs/2305.13534`](https://arxiv.org/abs/2305.13534)。
 
 [11] 冯学阳等人. 基于大语言模型的人类-智能体协作解决复杂任务. 2024\. arXiv: 2402.12914 [cs.CL]。
 
-[12] 陈伟泽等人. AgentVerse: 促进多智能体协作与探索涌现行为. arXiv:2308.10848 [cs]. 2023年10月\. URL: [http://arxiv.org/abs/2308.10848](https://arxiv.org/abs/2308.10848)。
+[12] 陈伟泽等人. AgentVerse: 促进多智能体协作与探索涌现行为. arXiv:2308.10848 [cs]. 2023 年 10 月\. URL: [`arxiv.org/abs/2308.10848`](https://arxiv.org/abs/2308.10848)。

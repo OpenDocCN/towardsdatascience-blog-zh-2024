@@ -1,20 +1,20 @@
-# 简化Python代码以应对数据工程项目
+# 简化 Python 代码以应对数据工程项目
 
-> 原文：[https://towardsdatascience.com/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=collection_archive---------1-----------------------#2024-06-12](https://towardsdatascience.com/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=collection_archive---------1-----------------------#2024-06-12)
+> 原文：[`towardsdatascience.com/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=collection_archive---------1-----------------------#2024-06-12`](https://towardsdatascience.com/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=collection_archive---------1-----------------------#2024-06-12)
 
-## 数据摄取、验证、处理和测试的Python技巧与技术：实用操作指南
+## 数据摄取、验证、处理和测试的 Python 技巧与技术：实用操作指南
 
-[](https://medium.com/@johnleungTJ?source=post_page---byline--95f0c41dc58a--------------------------------)[![John Leung](../Images/ef45063e759e3450fa7f3c32b2f292c3.png)](https://medium.com/@johnleungTJ?source=post_page---byline--95f0c41dc58a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95f0c41dc58a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--95f0c41dc58a--------------------------------) [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--95f0c41dc58a--------------------------------)
+[](https://medium.com/@johnleungTJ?source=post_page---byline--95f0c41dc58a--------------------------------)![John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--95f0c41dc58a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95f0c41dc58a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95f0c41dc58a--------------------------------) [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--95f0c41dc58a--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95f0c41dc58a--------------------------------) ·阅读时间10分钟·2024年6月12日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95f0c41dc58a--------------------------------) ·阅读时间 10 分钟·2024 年 6 月 12 日
 
 --
 
 原始数据来自不同的来源和格式。在数据能够用来回答关键的商业问题之前，需要大量的努力和时间来进行数据工程。虽然基础的数据基础设施可能根据数据的量、速度和分析需求而有所不同，但一些基本的代码设计技巧仍然是相关的，可以简化和优化各种任务。
 
-本文将探讨一般数据工程项目中的不同关键部分，从数据摄取到管道测试。Python是数据工程中最广泛使用的编程语言，我们将学习如何使用Python中的内置功能和高效库来处理这些用例。
+本文将探讨一般数据工程项目中的不同关键部分，从数据摄取到管道测试。Python 是数据工程中最广泛使用的编程语言，我们将学习如何使用 Python 中的内置功能和高效库来处理这些用例。
 
-![](../Images/128d4c278ec7ce5302584afdc96ee3f1.png)
+![](img/128d4c278ec7ce5302584afdc96ee3f1.png)
 
 图片来源：[Katerina Pavlyuchkova](https://unsplash.com/@kat_katerina?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,7 +22,7 @@
 
 ## #0 模拟数据
 
-我们首先使用[JSON Lines](https://jsonlines.org/)（JSONL）文本格式将一些交易数据模拟到文件中，其中每一行都是一个独立的JSON对象。这种格式在数据流处理领域非常有吸引力，例如网页/应用分析和日志管理。
+我们首先使用[JSON Lines](https://jsonlines.org/)（JSONL）文本格式将一些交易数据模拟到文件中，其中每一行都是一个独立的 JSON 对象。这种格式在数据流处理领域非常有吸引力，例如网页/应用分析和日志管理。
 
 在我们的文件中，数据字段属于不同的数据类型。它们包括客户和产品标识符（以整数/数组格式），支付方式（以字符串格式），以及交易总金额（以浮动数字格式）。
 
@@ -70,9 +70,9 @@ with open('retail_transactions.jsonl', 'w') as f:
 
 ## #1 数据摄取 — Yield
 
-读取文件中的交易记录，最简单的方法之一是将数据集遍历到一个列表中，然后将其转换为Pandas DataFrame。
+读取文件中的交易记录，最简单的方法之一是将数据集遍历到一个列表中，然后将其转换为 Pandas DataFrame。
 
-这个方法对于我们演示数据集中的500,000条交易非常有效。但如果现实世界中的数据集有数百万甚至数十亿行数据呢？如果不导致内存问题，我们可能需要长时间等待整个计算完成。
+这个方法对于我们演示数据集中的 500,000 条交易非常有效。但如果现实世界中的数据集有数百万甚至数十亿行数据呢？如果不导致内存问题，我们可能需要长时间等待整个计算完成。
 
 有时候，我们不关心整个结果，而是希望在加载最后一条记录之前先处理初步结果。在这种情况下，我们可以使用`yield`来控制[生成器](https://wiki.python.org/moin/Generators)的流向。
 
@@ -97,11 +97,11 @@ def read_json_file(file_name):
 txn_generator = read_json_file('retail_transactions.jsonl')
 ```
 
-这些代码的输出是一个Python生成器，一种特殊类型的迭代器。你可以在循环中使用`next`函数来逐个返回后续项目。除了实时数据过滤，另一个思路是设计一个生成器函数，预处理数据并以预定义的批量大小进行生成，这可以直接解析并供机器学习模型训练使用。而且，我们还可以用它来异步处理网页请求和响应，进行网页爬取。
+这些代码的输出是一个 Python 生成器，一种特殊类型的迭代器。你可以在循环中使用`next`函数来逐个返回后续项目。除了实时数据过滤，另一个思路是设计一个生成器函数，预处理数据并以预定义的批量大小进行生成，这可以直接解析并供机器学习模型训练使用。而且，我们还可以用它来异步处理网页请求和响应，进行网页爬取。
 
 ## #2 数据验证 — Pydantic
 
-假设你有一个包含交易记录信息的JSON数据列表，这是数据摄取后的一个示例交易：
+假设你有一个包含交易记录信息的 JSON 数据列表，这是数据摄取后的一个示例交易：
 
 ```py
 {
@@ -117,7 +117,7 @@ txn_generator = read_json_file('retail_transactions.jsonl')
 
 对于每一条传入的数据，我们希望确保它经过验证，否则在运行后续的数据处理函数时，我们很容易遇到各种错误。这可以通过使用`pydantic`库来实现。
 
-> 我们首先使用[PyDantic模型](https://docs.pydantic.dev/latest/api/base_model/)定义数据字段的模式，然后使用`model_validate()`函数验证我们的JSON数据。
+> 我们首先使用[PyDantic 模型](https://docs.pydantic.dev/latest/api/base_model/)定义数据字段的模式，然后使用`model_validate()`函数验证我们的 JSON 数据。
 
 ```py
 from datetime import datetime
@@ -145,7 +145,7 @@ except ValidationError as exc:
 # Validated successfully
 ```
 
-有时，我们发现需要应用更严格的验证规则。例如，Pydantic基础模型会尝试将字符串数据强制转换为整数。为避免这种情况，可以在模型级别或字段级别设置`strict=True`。
+有时，我们发现需要应用更严格的验证规则。例如，Pydantic 基础模型会尝试将字符串数据强制转换为整数。为避免这种情况，可以在模型级别或字段级别设置`strict=True`。
 
 此外，我们还可以对数据字段应用自定义验证规则。例如，我们可能希望检查支付方式值是否符合我们的预期。为了方便测试，我们手动将示例案例的支付方式设置为“Bitcoin”，这是在线商店中不存在的选项，然后使用`AfterValidator`嵌入一个函数进行进一步检查。
 
@@ -186,7 +186,7 @@ except ValidationError as exc:
 # {'error': ValueError("Invalid paymentMthd, payment type must be one of ['Credit card', 'Debit card', 'Digital wallet', 'Cash on delivery', 'Cryptocurrency']")}
 ```
 
-验证器成功识别到支付方式不在可能值的列表中。这是通过应用Pydantic的内部验证逻辑，并随后使用自定义验证函数完成的。代码会引发一个`ValueError`，并填充`ValidationError`。
+验证器成功识别到支付方式不在可能值的列表中。这是通过应用 Pydantic 的内部验证逻辑，并随后使用自定义验证函数完成的。代码会引发一个`ValueError`，并填充`ValidationError`。
 
 当触发错误时，我们可以采取后续行动进行纠正。这些功能有助于消除数据错误，从而确保数据的准确性和完整性。
 
@@ -196,9 +196,9 @@ except ValidationError as exc:
 
 数据验证后，我们开始处理数据密集型函数。随着数据管道的复杂化，执行时间可能会变长。我们希望找出根本原因，并优化函数的时间性能。一种简单的方法是，在每个函数的开始和结束时收集两个时间戳，然后逐一计算时间差。
 
-为了确保数据管道中的代码更简洁，我们可以利用[Python装饰器](https://book.pythontips.com/en/latest/decorators.html)。
+为了确保数据管道中的代码更简洁，我们可以利用[Python 装饰器](https://book.pythontips.com/en/latest/decorators.html)。
 
-> 我们首先设计一个Python装饰器来测量执行时间。之后，我们为任何需要此功能的函数添加注解。
+> 我们首先设计一个 Python 装饰器来测量执行时间。之后，我们为任何需要此功能的函数添加注解。
 
 例如，您可以测量对所有交易进行分类所需的时间。
 
@@ -238,9 +238,9 @@ txn_list = group_txn_price(txn_list)
 
 (2) Map、reduce、filter
 
-这些是常用的Python数组方法，许多开发者可能都很熟悉。但我仍然认为它们值得提及，原因有几点：（1）不可变性——这些函数不会修改原始列表的值；（2）链式灵活性——可以同时应用多个函数的组合；（3）简洁可读——只需一行代码。
+这些是常用的 Python 数组方法，许多开发者可能都很熟悉。但我仍然认为它们值得提及，原因有几点：（1）不可变性——这些函数不会修改原始列表的值；（2）链式灵活性——可以同时应用多个函数的组合；（3）简洁可读——只需一行代码。
 
-假设我们有一个包含两个键的JSON对象列表：支付方式和总金额。让我们探索这些函数是如何工作的。
+假设我们有一个包含两个键的 JSON 对象列表：支付方式和总金额。让我们探索这些函数是如何工作的。
 
 **Map：** 对列表中的所有元素执行相同的操作（例如，为支付方式的值添加后缀）。
 
@@ -292,7 +292,7 @@ print(total_amt_crypto)
 
 > 通常会进行单元测试，以确保机器学习系统的每个组件按预期执行。
 
-最受欢迎的Python测试框架之一是`[Pytest](https://docs.pytest.org/en/stable/contents.html)`。假设我们希望确保转化后的数据质量，技术团队和决策者都可以信任这些数据。我们可以测试我们之前处理的关于分类交易价格的函数。为了实现这一点，我们需要准备两个Python文件：
+最受欢迎的 Python 测试框架之一是`[Pytest](https://docs.pytest.org/en/stable/contents.html)`。假设我们希望确保转化后的数据质量，技术团队和决策者都可以信任这些数据。我们可以测试我们之前处理的关于分类交易价格的函数。为了实现这一点，我们需要准备两个 Python 文件：
 
 +   **feature_engineering.py**：包含之前构建的函数的文件
 
@@ -311,7 +311,7 @@ def add_features(sample_cases):
 return sample_cases
 ```
 
-+   **test_feature_engineering.py**：带有“test_”前缀的文件，Pytest仅在测试过程中识别此文件。
++   **test_feature_engineering.py**：带有“test_”前缀的文件，Pytest 仅在测试过程中识别此文件。
 
 ```py
 from feature_engineering import add_features
@@ -336,11 +336,11 @@ def test_add_features():
     assert len(txn['totalAmtCat']) != 0
 ```
 
-上面的assert语句确保新的“totalAmtCat”数据字段已添加且其值非空，同时原始数据字段不受影响。通过执行命令`Pytest`，我们可以知道测试已经通过！
+上面的 assert 语句确保新的“totalAmtCat”数据字段已添加且其值非空，同时原始数据字段不受影响。通过执行命令`Pytest`，我们可以知道测试已经通过！
 
-![](../Images/f5d42bc912f608940f41c8519fbb3498.png)
+![](img/f5d42bc912f608940f41c8519fbb3498.png)
 
-Pytest结果 — 测试通过（图片由作者提供）
+Pytest 结果 — 测试通过（图片由作者提供）
 
 对于一个更高级的案例，假设我们有三个函数，顺序如下：`load_data`、`clean_data`和`add_features`。我们应该如何设计测试文件来逐个验证这些函数的输出？
 
@@ -388,30 +388,30 @@ def test_add_features(jsonl_file):
   # assert statements here
 ```
 
-我们应该为初始化定义一个固定的基准，例如一个包含样本测试用例的JSON Lines文件。在这里，我们使用`@pytest.fixture`装饰器，它类似于我们在Python装饰器部分讨论的`time_decorator`。这个装饰器有助于避免反复初始化样本文件。对于剩下的代码，我们涉及几个测试函数来运行管道函数，并使用assert语句来检测逻辑错误。
+我们应该为初始化定义一个固定的基准，例如一个包含样本测试用例的 JSON Lines 文件。在这里，我们使用`@pytest.fixture`装饰器，它类似于我们在 Python 装饰器部分讨论的`time_decorator`。这个装饰器有助于避免反复初始化样本文件。对于剩下的代码，我们涉及几个测试函数来运行管道函数，并使用 assert 语句来检测逻辑错误。
 
 ## 总结一下
 
-我们遇到了数据工程项目中的几个关键方面，并探索了如何简化和优化Python代码以提高效率和可读性：
+我们遇到了数据工程项目中的几个关键方面，并探索了如何简化和优化 Python 代码以提高效率和可读性：
 
 +   数据摄取，使用`yield`处理大数据集，同时实现高效的内存使用。
 
 +   数据验证，利用`Pydantic`根据模式和自定义值模式验证数据字段。
 
-+   数据处理，通过应用Python装饰器和内置库来启用额外的功能，而无需重复代码。
++   数据处理，通过应用 Python 装饰器和内置库来启用额外的功能，而无需重复代码。
 
 +   通过使用`Pytest`进行管道测试，以确保工作流中各个环节的函数输出质量。
 
 ## 在你继续之前
 
-如果你喜欢这篇文章，我邀请你关注我的[Medium页面](https://medium.com/@johnleungTJ)和[LinkedIn页面](https://www.linkedin.com/in/john-leung-639800115/)。通过这种方式，你可以随时获取有关数据科学副项目、机器学习操作（MLOps）演示以及项目管理方法的最新内容。
+如果你喜欢这篇文章，我邀请你关注我的[Medium 页面](https://medium.com/@johnleungTJ)和[LinkedIn 页面](https://www.linkedin.com/in/john-leung-639800115/)。通过这种方式，你可以随时获取有关数据科学副项目、机器学习操作（MLOps）演示以及项目管理方法的最新内容。
 
-[](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----95f0c41dc58a--------------------------------) [## 使用LangChain和LLMs进行客户分析
+[](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----95f0c41dc58a--------------------------------) ## 使用 LangChain 和 LLMs 进行客户分析
 
-### 探索LangChain在客户分析中的潜力与局限性，并附带实际的实现过程…
+### 探索 LangChain 在客户分析中的潜力与局限性，并附带实际的实现过程…
 
-towardsdatascience.com](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----95f0c41dc58a--------------------------------) [](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=post_page-----95f0c41dc58a--------------------------------) [## 使用PySpark在Databricks上进行时间序列特征工程
+towardsdatascience.com [](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=post_page-----95f0c41dc58a--------------------------------) ## 使用 PySpark 在 Databricks 上进行时间序列特征工程
 
-### 探索PySpark在时间序列数据中的潜力：导入、提取和可视化数据，并附带实际操作…
+### 探索 PySpark 在时间序列数据中的潜力：导入、提取和可视化数据，并附带实际操作…
 
-towardsdatascience.com](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=post_page-----95f0c41dc58a--------------------------------)
+towardsdatascience.com

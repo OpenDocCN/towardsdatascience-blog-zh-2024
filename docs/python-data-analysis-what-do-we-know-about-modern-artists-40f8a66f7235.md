@@ -1,16 +1,16 @@
 # Python 数据分析：我们了解现代艺术家的哪些信息？
 
-> 原文：[https://towardsdatascience.com/python-data-analysis-what-do-we-know-about-modern-artists-40f8a66f7235?source=collection_archive---------8-----------------------#2024-06-08](https://towardsdatascience.com/python-data-analysis-what-do-we-know-about-modern-artists-40f8a66f7235?source=collection_archive---------8-----------------------#2024-06-08)
+> 原文：[`towardsdatascience.com/python-data-analysis-what-do-we-know-about-modern-artists-40f8a66f7235?source=collection_archive---------8-----------------------#2024-06-08`](https://towardsdatascience.com/python-data-analysis-what-do-we-know-about-modern-artists-40f8a66f7235?source=collection_archive---------8-----------------------#2024-06-08)
 
 ## 在媒体环境中利用维基百科、Python 和 NetworkX 寻找模式
 
-[](https://dmitryelj.medium.com/?source=post_page---byline--40f8a66f7235--------------------------------)[![Dmitrii Eliuseev](../Images/7c48f0c016930ead59ddb785eaf3e0e6.png)](https://dmitryelj.medium.com/?source=post_page---byline--40f8a66f7235--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--40f8a66f7235--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--40f8a66f7235--------------------------------) [Dmitrii Eliuseev](https://dmitryelj.medium.com/?source=post_page---byline--40f8a66f7235--------------------------------)
+[](https://dmitryelj.medium.com/?source=post_page---byline--40f8a66f7235--------------------------------)![Dmitrii Eliuseev](https://dmitryelj.medium.com/?source=post_page---byline--40f8a66f7235--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--40f8a66f7235--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40f8a66f7235--------------------------------) [Dmitrii Eliuseev](https://dmitryelj.medium.com/?source=post_page---byline--40f8a66f7235--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40f8a66f7235--------------------------------) ·13分钟阅读·2024年6月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40f8a66f7235--------------------------------) ·13 分钟阅读·2024 年 6 月 8 日
 
 --
 
-![](../Images/c593136c84dca007ff7691b7ee354eaf.png)
+![](img/c593136c84dca007ff7691b7ee354eaf.png)
 
 图表可视化，图片来自作者
 

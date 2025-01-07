@@ -1,18 +1,18 @@
 # 数据脏乱度评分
 
-> 原文：[https://towardsdatascience.com/data-dirtiness-score-fe2ca5678d40?source=collection_archive---------1-----------------------#2024-03-02](https://towardsdatascience.com/data-dirtiness-score-fe2ca5678d40?source=collection_archive---------1-----------------------#2024-03-02)
+> 原文：[`towardsdatascience.com/data-dirtiness-score-fe2ca5678d40?source=collection_archive---------1-----------------------#2024-03-02`](https://towardsdatascience.com/data-dirtiness-score-fe2ca5678d40?source=collection_archive---------1-----------------------#2024-03-02)
 
 ## 测量表格数据集质量的新方法
 
-[](https://medium.com/@simon.grah?source=post_page---byline--fe2ca5678d40--------------------------------)[![Simon Grah](../Images/f8fd00600db79bc910ff51e9f64503d0.png)](https://medium.com/@simon.grah?source=post_page---byline--fe2ca5678d40--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fe2ca5678d40--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fe2ca5678d40--------------------------------) [Simon Grah](https://medium.com/@simon.grah?source=post_page---byline--fe2ca5678d40--------------------------------)
+[](https://medium.com/@simon.grah?source=post_page---byline--fe2ca5678d40--------------------------------)![Simon Grah](https://medium.com/@simon.grah?source=post_page---byline--fe2ca5678d40--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fe2ca5678d40--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fe2ca5678d40--------------------------------) [Simon Grah](https://medium.com/@simon.grah?source=post_page---byline--fe2ca5678d40--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fe2ca5678d40--------------------------------) ·阅读时间：11分钟·2024年3月2日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fe2ca5678d40--------------------------------) ·阅读时间：11 分钟·2024 年 3 月 2 日
 
 --
 
 > 本文是关于涉及大型语言模型（LLM）数据清洗实践系列文章的第一篇，重点讨论如何量化数据集的清洁度或脏乱度
 
-![](../Images/4c8f68fd06ac2bc78782f13b1a251904.png)
+![](img/4c8f68fd06ac2bc78782f13b1a251904.png)
 
 图片来自[Fabizio Conti](https://unsplash.com/@conti_photos?utm_source=medium&utm_medium=referral) 在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -26,7 +26,7 @@
 
 1.  其次，**修复**这些**错误**。
 
-每个阶段的评估通常依赖于将脏乱的数据集与清洁（真实）版本进行比较，使用分类指标如召回率、精确度和F1得分进行错误检测（例如，参见[大型基础模型能处理你的数据吗？](https://arxiv.org/abs/2205.09911)，[检测数据错误：我们在哪儿，需要做什么？](https://cs.uwaterloo.ca/~ilyas/papers/AbedjanVLDB2016.pdf)）以及用于数据修复任务的准确率或重叠度度量（例如，参见[自动数据修复：我们准备好部署了吗？](https://www.semanticscholar.org/reader/5191f08424a3ec0cdaf2b3285860216caca57463)或[HoloClean：通过概率推理进行整体数据修复](https://arxiv.org/abs/1702.00820)）。
+每个阶段的评估通常依赖于将脏乱的数据集与清洁（真实）版本进行比较，使用分类指标如召回率、精确度和 F1 得分进行错误检测（例如，参见[大型基础模型能处理你的数据吗？](https://arxiv.org/abs/2205.09911)，[检测数据错误：我们在哪儿，需要做什么？](https://cs.uwaterloo.ca/~ilyas/papers/AbedjanVLDB2016.pdf)）以及用于数据修复任务的准确率或重叠度度量（例如，参见[自动数据修复：我们准备好部署了吗？](https://www.semanticscholar.org/reader/5191f08424a3ec0cdaf2b3285860216caca57463)或[HoloClean：通过概率推理进行整体数据修复](https://arxiv.org/abs/1702.00820)）。
 
 然而，这些指标是任务特定的，并未提供一个统一的衡量标准来评估包含各种错误类型的数据集的整体清洁度。
 
@@ -34,15 +34,15 @@
 
 # 评分蓝图
 
-以下所有假设都是*数据脏污评分*所依赖的基础。这些假设大多来自文章[《如何量化数据质量？》](/how-to-quantify-data-quality-743721bdba03)。当然，所有这些假设都可以被辩论和批评，但明确陈述这些假设对促进讨论至关重要。
+以下所有假设都是*数据脏污评分*所依赖的基础。这些假设大多来自文章《如何量化数据质量？》。当然，所有这些假设都可以被辩论和批评，但明确陈述这些假设对促进讨论至关重要。
 
-**数据错误与违反约束有关**，这些约束来源于对数据的**期望**。例如，如果期望ID列不应有缺失值，那么ID列中存在缺失值就构成了约束违反。
+**数据错误与违反约束有关**，这些约束来源于对数据的**期望**。例如，如果期望 ID 列不应有缺失值，那么 ID 列中存在缺失值就构成了约束违反。
 
 无期望则无忧。**缺乏期望意味着不会对评分产生影响**。换句话说，若没有预定义的期望，就无法识别数据问题，因此也无法违反不存在的约束。
 
 **数据问题应能定位到具体单元格**。评分依赖于能够将错误精确定位到数据集中特定单元格的能力。
 
-**数据错误的置信度分数**。并非所有数据错误都能以相同的确定性被识别。每个检测到的问题应标记一个置信度级别，表示该问题确实是一个错误的可能性有多大。这种方法承认一些错误可能存在解释空间。我们建议将置信度级别分为四个顺序类别：`低`、`中`、`高`和`确定`。这些类别分别对应0.25、0.5、0.75和1的概率值。
+**数据错误的置信度分数**。并非所有数据错误都能以相同的确定性被识别。每个检测到的问题应标记一个置信度级别，表示该问题确实是一个错误的可能性有多大。这种方法承认一些错误可能存在解释空间。我们建议将置信度级别分为四个顺序类别：`低`、`中`、`高`和`确定`。这些类别分别对应 0.25、0.5、0.75 和 1 的概率值。
 
 **单元格对整体评分的均匀影响**。数据集中的每个单元格对脏数据评分都有相同的潜在影响。解决与某个单元格相关的问题可能会解决其他单元格的问题，这表明在评分计算中单元格的权重是均匀分布的。
 
@@ -60,7 +60,7 @@ Student#,Last Name,First Name,Favorite Color,Age
 6,,Robinson,,Sophia,,blue,,12
 ```
 
-该示例来自书籍[《有效数据科学的数据清洗》](https://github.com/PacktPublishing/Cleaning-Data-for-Effective-Data-Science)，它展示了一个代表六年级班级的数据集中存在的数据质量问题。该数据集包含每个学生的多个变量，组织方式是每个学生有6个学生和5个变量。
+该示例来自书籍[《有效数据科学的数据清洗》](https://github.com/PacktPublishing/Cleaning-Data-for-Effective-Data-Science)，它展示了一个代表六年级班级的数据集中存在的数据质量问题。该数据集包含每个学生的多个变量，组织方式是每个学生有 6 个学生和 5 个变量。
 
 在检查时，某些条目可能因明显的不一致性或错误而引起关注：
 
@@ -68,13 +68,13 @@ Student#,Last Name,First Name,Favorite Color,Age
 
 +   下一位学生，Isabella Lee，缺少`Favorite Color`值。鉴于该列不应有任何缺失项，因此该问题已被以`certain`置信度识别为需要修正。
 
-+   学号为4的学生Mason Fisher的记录列出了`-1`的年龄，这是一个不可信的值。这可能代表一个表示缺失数据的哨兵值，因为使用这种占位符是常见做法。然而，年龄应该是正整数，因此需要审查这一条目。
++   学号为 4 的学生 Mason Fisher 的记录列出了`-1`的年龄，这是一个不可信的值。这可能代表一个表示缺失数据的哨兵值，因为使用这种占位符是常见做法。然而，年龄应该是正整数，因此需要审查这一条目。
 
-+   学号为5的学生Olivia Gupta所在的行虽然没有结构性错误，但却呈现出一个不寻常的情况，因为有多个解释是合理的。`Favorite Color`和`First Name`字段可能被交换，因为`Olivia`既可以是名字，也可以是颜色。此外，数字`9`可能表示颜色代码，但这一假设缺乏支持证据。而且，一名六年级学生的年龄为`102`是不太可能的，这表明可能存在拼写错误（例如将`102`写成了`12`）。
++   学号为 5 的学生 Olivia Gupta 所在的行虽然没有结构性错误，但却呈现出一个不寻常的情况，因为有多个解释是合理的。`Favorite Color`和`First Name`字段可能被交换，因为`Olivia`既可以是名字，也可以是颜色。此外，数字`9`可能表示颜色代码，但这一假设缺乏支持证据。而且，一名六年级学生的年龄为`102`是不太可能的，这表明可能存在拼写错误（例如将`102`写成了`12`）。
 
 +   最后一行包含多余的逗号，表示可能存在数据摄取问题。然而，除了这个格式问题之外，条目本身似乎有效，因此在识别该错误的性质时，给出了`high`的置信度级别。
 
-根据我们的指导方针计算数据脏度分数，我们可以通过引入一个Python中的`DataIssue`类来采用系统化的方法，该类旨在封装数据问题的各个方面：
+根据我们的指导方针计算数据脏度分数，我们可以通过引入一个 Python 中的`DataIssue`类来采用系统化的方法，该类旨在封装数据问题的各个方面：
 
 ```py
 @dataclass
@@ -86,7 +86,7 @@ class DataIssue:
     location: np.ndarray
 ```
 
-为了定位特定错误，使用一个大小为`(6, 5)`的`numpy`数组，其中每个元素对应数据集中的一个单元格。该数组由0和1组成，1表示数据集中相应单元格可能存在问题。
+为了定位特定错误，使用一个大小为`(6, 5)`的`numpy`数组，其中每个元素对应数据集中的一个单元格。该数组由 0 和 1 组成，1 表示数据集中相应单元格可能存在问题。
 
 所有已识别的数据问题将在此之后实例化：
 
@@ -225,7 +225,7 @@ issue_7 = DataIssue(
 
 通过使用针对各个问题的置信得分作为每个单元格中错误独立概率的估计值，我们可以应用基本的概率原理来计算每个单元格出现问题的可能性，从而得出*数据脏污得分*。
 
-以下是一个Python函数，用于根据已识别的数据问题列表计算该指标：
+以下是一个 Python 函数，用于根据已识别的数据问题列表计算该指标：
 
 ```py
 def compute_data_dirtiness_score(data_issues: List[DataIssue]) -> float:
@@ -303,11 +303,11 @@ compute_data_dirtiness_score(data_issues)
 
 另一个需要考虑的方面是得分的动态特性。解决一个问题可能会影响其他问题，这引发了如何高效更新得分而不产生太多麻烦的问题。
 
-还有一个问题是，在计算清洁度得分时，是否应将索引和列名作为数据集单元的一部分，因为它们的准确性也会影响数据清理过程（例如，参见 [使用ChatGPT进行列类型标注](https://arxiv.org/abs/2306.00745)）。
+还有一个问题是，在计算清洁度得分时，是否应将索引和列名作为数据集单元的一部分，因为它们的准确性也会影响数据清理过程（例如，参见 [使用 ChatGPT 进行列类型标注](https://arxiv.org/abs/2306.00745)）。
 
-本系列的未来文章将探讨与此相关的各种主题，包括数据错误的分类法、利用LLM进行自动化问题检测，以及数据修正和修复的策略。敬请关注！
+本系列的未来文章将探讨与此相关的各种主题，包括数据错误的分类法、利用 LLM 进行自动化问题检测，以及数据修正和修复的策略。敬请关注！
 
--> 第二篇文章链接：[LLMs驱动的数据质量错误检测](/automated-detection-of-data-quality-issues-54a3cb283a91)。
+-> 第二篇文章链接：LLMs 驱动的数据质量错误检测。
 
 # 参考文献
 
@@ -321,7 +321,7 @@ compute_data_dirtiness_score(data_issues)
 
 +   [整洁数据 | 统计软件期刊](https://www.jstatsoft.org/article/view/v059i10)
 
-+   [如何量化数据质量？](/how-to-quantify-data-quality-743721bdba03)
++   如何量化数据质量？
 
 +   [有效数据科学的数据清理](https://github.com/PacktPublishing/Cleaning-Data-for-Effective-Data-Science)
 
@@ -331,7 +331,7 @@ compute_data_dirtiness_score(data_issues)
 
 +   [作为数据预处理器的大型语言模型](https://arxiv.org/abs/2308.16361)
 
-+   [使用ChatGPT进行列类型标注](https://arxiv.org/abs/2306.00745)
++   [使用 ChatGPT 进行列类型标注](https://arxiv.org/abs/2306.00745)
 
 # 得分理论
 
@@ -339,21 +339,21 @@ compute_data_dirtiness_score(data_issues)
 
 我们引入一个与 𝒟 维度相同的矩阵 X，具有 I 行和 J 列：
 
-![](../Images/9e7f620081e61c7931d40d94f0cbba78.png)
+![](img/9e7f620081e61c7931d40d94f0cbba78.png)
 
 在这个矩阵中，每个元素 X_{ij} 遵循一个参数为 π_{ij} 的伯努利分布。如果数据集 𝒟 中单元格 (i, j) 没有数据问题，则 X_{ij} 的值为 0；如果有问题，则 X_{ij} 的值为 1，概率 𝔼[X_{ij}] = π_{ij} 表示问题发生的可能性。
 
 接下来，我们定义一个随机变量 Y，表示数据集 𝒟 中存在问题的单元格的比例。Y 的公式如下：
 
-![](../Images/5b81b04e0127fadd5e595f155ada72ae.png)
+![](img/5b81b04e0127fadd5e595f155ada72ae.png)
 
 *数据脏污度分数*是 Y 的期望值：
 
-![](../Images/9751e5fc469f30e2848fb5cde58471e8.png)
+![](img/9751e5fc469f30e2848fb5cde58471e8.png)
 
 为了将此与我们之前的讨论联系起来，每个单元格数据错误的置信度分数与概率 π_{ij} 之间的关系由以下公式表示：
 
-![](../Images/6dd87d19370c09f8103e0cae7236a483.png)
+![](img/6dd87d19370c09f8103e0cae7236a483.png)
 
 这意味着，单元格无错误的概率是通过该单元格潜在错误的置信度分数的补数相乘计算出来的。
 
@@ -361,7 +361,7 @@ compute_data_dirtiness_score(data_issues)
 
 计算数据集的脏污度分数或清洁度分数本质上给出了相同的见解，只是从不同的角度来看。*数据清洁度分数*的公式只是 1 减去 *数据脏污度分数*：
 
-![](../Images/b96f59c6e83b5836924288130a2d89f7.png)
+![](img/b96f59c6e83b5836924288130a2d89f7.png)
 
 通过这种方式，完全没有错误的数据集将具有 100% 的清洁度分数和 0% 的脏污度分数。
 

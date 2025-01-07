@@ -1,28 +1,28 @@
 # 噪声中的信息
 
-> 原文：[https://towardsdatascience.com/information-in-noise-08bc05bf6484?source=collection_archive---------5-----------------------#2024-09-03](https://towardsdatascience.com/information-in-noise-08bc05bf6484?source=collection_archive---------5-----------------------#2024-09-03)
+> 原文：[`towardsdatascience.com/information-in-noise-08bc05bf6484?source=collection_archive---------5-----------------------#2024-09-03`](https://towardsdatascience.com/information-in-noise-08bc05bf6484?source=collection_archive---------5-----------------------#2024-09-03)
 
 ## **一次可视化多个时间序列的两种技巧**
 
-[](https://medium.com/@lenixc210?source=post_page---byline--08bc05bf6484--------------------------------)[![Lenix Carter](../Images/d25c86c00d6b2ee64b70cae8297fd761.png)](https://medium.com/@lenixc210?source=post_page---byline--08bc05bf6484--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--08bc05bf6484--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--08bc05bf6484--------------------------------) [Lenix Carter](https://medium.com/@lenixc210?source=post_page---byline--08bc05bf6484--------------------------------)
+[](https://medium.com/@lenixc210?source=post_page---byline--08bc05bf6484--------------------------------)![Lenix Carter](https://medium.com/@lenixc210?source=post_page---byline--08bc05bf6484--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--08bc05bf6484--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--08bc05bf6484--------------------------------) [Lenix Carter](https://medium.com/@lenixc210?source=post_page---byline--08bc05bf6484--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--08bc05bf6484--------------------------------) ·阅读时长 4 分钟 ·2024年9月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--08bc05bf6484--------------------------------) ·阅读时长 4 分钟 ·2024 年 9 月 3 日
 
 --
 
 想象一下：你手头有一堆折线图，而且你有信心在这些数据中至少隐藏着一个趋势。无论你是在追踪公司成千上万种产品的销售数据，还是深入分析股市数据，你的目标是揭示这些子趋势，并使它们在你的可视化中脱颖而出。让我们探索几种帮助你实现这一目标的技巧。
 
-![](../Images/d5cfc56ca003cdc54cfe161c1a695ef4.png)
+![](img/d5cfc56ca003cdc54cfe161c1a695ef4.png)
 
 绘制了数百条线，但不清楚子趋势是什么。这些合成数据可以展示这些策略的好处。(*图片来源：作者*)
 
 # 选项 1 — 密度折线图：
 
-密度折线图是一种巧妙的绘图技巧，由Dominik Moritz和Danyel Fisher在他们的论文中提出，[*Visualizing a Million Time Series with the Density Line Chart*](https://idl.cs.washington.edu/files/2018-DenseLines-arXiv.pdf)*。* 这种方法将众多折线图转化为热力图，揭示了线条重叠最多的区域。
+密度折线图是一种巧妙的绘图技巧，由 Dominik Moritz 和 Danyel Fisher 在他们的论文中提出，[*Visualizing a Million Time Series with the Density Line Chart*](https://idl.cs.washington.edu/files/2018-DenseLines-arXiv.pdf)*。* 这种方法将众多折线图转化为热力图，揭示了线条重叠最多的区域。
 
 当我们将密度折线图应用到我们之前展示的合成数据时，结果如下所示：
 
-![](../Images/e9c21306de50986b6b4363d1c7db5ba5.png)
+![](img/e9c21306de50986b6b4363d1c7db5ba5.png)
 
 PyDLC 使我们能够看到线条高度重叠的“热点”区域。(*图片来源：作者*)
 
@@ -52,7 +52,7 @@ plt.show()
 
 这种技术并未得到广泛讨论，也没有一个公认的名称。然而，它本质上是“折线密度图”或“折线密度可视化”的一种变体，我们通过使用较粗且低透明度的线条来揭示重叠区域和密集区。
 
-![](../Images/fa5ed8cd56459253e05f3243a9ce0ea9.png)
+![](img/fa5ed8cd56459253e05f3243a9ce0ea9.png)
 
 这种技术非常适合展示子趋势，并且能减少多条折线带来的认知负担。 (*图片来自作者*)
 
@@ -77,7 +77,7 @@ for column in synth_df.columns:
 
 # 一个例子
 
-假设我们正在寻找50只股票的日收益率中的子趋势。第一步是提取数据并计算日收益率。
+假设我们正在寻找 50 只股票的日收益率中的子趋势。第一步是提取数据并计算日收益率。
 
 ```py
 import yfinance as yf
@@ -132,13 +132,13 @@ plt.grid(True)
 plt.tight_layout()
 ```
 
-![](../Images/e67e7eac07a03a226e4f0ef66b4d5ad6.png)
+![](img/e67e7eac07a03a226e4f0ef66b4d5ad6.png)
 
 一个非常杂乱的多条折线图，几乎没有明显的信息。 (*图片来自作者*)
 
 密度折线图由于数据的零散性，确实面临一些挑战。然而，它仍然能提供关于整体市场趋势的有价值的见解。例如，你可以观察到密度最高的区域对应于显著的市场下跌，突出显示了市场的低迷时期。
 
-![](../Images/9bdbfd4d6aa876b9c0185886c6cbdc72.png)
+![](img/9bdbfd4d6aa876b9c0185886c6cbdc72.png)
 
 (*图片来自作者*)
 
@@ -159,7 +159,7 @@ plt.show()
 
 然而，我们发现透明度技术在这个特定问题上表现得明显更好。我们之前提到的市场下跌变得更加清晰易见。
 
-![](../Images/c2ec596a21b770c1699161480a35fb02.png)
+![](img/c2ec596a21b770c1699161480a35fb02.png)
 
 (*图片来自作者*)
 

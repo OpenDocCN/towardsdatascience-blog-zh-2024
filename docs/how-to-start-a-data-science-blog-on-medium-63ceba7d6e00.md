@@ -1,16 +1,16 @@
 # 如何在 Medium 上开始写数据科学博客
 
-> 原文：[https://towardsdatascience.com/how-to-start-a-data-science-blog-on-medium-63ceba7d6e00?source=collection_archive---------5-----------------------#2024-12-27](https://towardsdatascience.com/how-to-start-a-data-science-blog-on-medium-63ceba7d6e00?source=collection_archive---------5-----------------------#2024-12-27)
+> 原文：[`towardsdatascience.com/how-to-start-a-data-science-blog-on-medium-63ceba7d6e00?source=collection_archive---------5-----------------------#2024-12-27`](https://towardsdatascience.com/how-to-start-a-data-science-blog-on-medium-63ceba7d6e00?source=collection_archive---------5-----------------------#2024-12-27)
 
 ## 关于如何入门、写第一篇文章并获得关注的建议
 
-[](https://medium.com/@pelletierhaden?source=post_page---byline--63ceba7d6e00--------------------------------)[![Haden Pelletier](../Images/8f73fc8222e783883c4ebcaee14513e0.png)](https://medium.com/@pelletierhaden?source=post_page---byline--63ceba7d6e00--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--63ceba7d6e00--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--63ceba7d6e00--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--63ceba7d6e00--------------------------------)
+[](https://medium.com/@pelletierhaden?source=post_page---byline--63ceba7d6e00--------------------------------)![Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--63ceba7d6e00--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--63ceba7d6e00--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--63ceba7d6e00--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--63ceba7d6e00--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--63ceba7d6e00--------------------------------) ·6 分钟阅读 ·2024年12月27日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--63ceba7d6e00--------------------------------) ·6 分钟阅读 ·2024 年 12 月 27 日
 
 --
 
-![](../Images/561964a889c39c843ed340095de3dbd5.png)
+![](img/561964a889c39c843ed340095de3dbd5.png)
 
 图片来自 [Andrew Neel](https://unsplash.com/@andrewtneel?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

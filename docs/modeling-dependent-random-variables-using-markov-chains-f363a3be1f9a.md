@@ -1,20 +1,20 @@
 # 使用马尔可夫链建模依赖随机变量
 
-> 原文：[https://towardsdatascience.com/modeling-dependent-random-variables-using-markov-chains-f363a3be1f9a?source=collection_archive---------2-----------------------#2024-02-23](https://towardsdatascience.com/modeling-dependent-random-variables-using-markov-chains-f363a3be1f9a?source=collection_archive---------2-----------------------#2024-02-23)
+> 原文：[`towardsdatascience.com/modeling-dependent-random-variables-using-markov-chains-f363a3be1f9a?source=collection_archive---------2-----------------------#2024-02-23`](https://towardsdatascience.com/modeling-dependent-random-variables-using-markov-chains-f363a3be1f9a?source=collection_archive---------2-----------------------#2024-02-23)
 
 ## 纠正独立性违背的依赖模型
 
-[](https://romanmichaelpaolucci.medium.com/?source=post_page---byline--f363a3be1f9a--------------------------------)[![Roman Paolucci](../Images/d0072d982b6327bdeffa615044a765ad.png)](https://romanmichaelpaolucci.medium.com/?source=post_page---byline--f363a3be1f9a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f363a3be1f9a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f363a3be1f9a--------------------------------) [Roman Paolucci](https://romanmichaelpaolucci.medium.com/?source=post_page---byline--f363a3be1f9a--------------------------------)
+[](https://romanmichaelpaolucci.medium.com/?source=post_page---byline--f363a3be1f9a--------------------------------)![Roman Paolucci](https://romanmichaelpaolucci.medium.com/?source=post_page---byline--f363a3be1f9a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f363a3be1f9a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f363a3be1f9a--------------------------------) [Roman Paolucci](https://romanmichaelpaolucci.medium.com/?source=post_page---byline--f363a3be1f9a--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f363a3be1f9a--------------------------------) ·阅读时长：15分钟·2024年2月23日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f363a3be1f9a--------------------------------) ·阅读时长：15 分钟·2024 年 2 月 23 日
 
 --
 
-![](../Images/3440e542aeebecf661620ca654f5004c.png)
+![](img/3440e542aeebecf661620ca654f5004c.png)
 
-摄影：Nick Collins：[https://www.pexels.com/photo/blue-abstract-painting-1292996/](https://www.pexels.com/photo/blue-abstract-painting-1292996/)
+摄影：Nick Collins：[`www.pexels.com/photo/blue-abstract-painting-1292996/`](https://www.pexels.com/photo/blue-abstract-painting-1292996/)
 
-在我之前讨论的[随机变量参数的最大似然估计](/maximum-likelihood-estimation-4a1a866dfa70)一文中，我们扮演了医院风险经理、高级医生统计学家、数据科学护士（我依然*一点也不清楚*谁会负责这个）等角色，并开发了一个简单的概率模型来估计在没有足够床位容纳新患者时的风险。为了实现这一目标，我们做出了以下假设：
+在我之前讨论的随机变量参数的最大似然估计一文中，我们扮演了医院风险经理、高级医生统计学家、数据科学护士（我依然*一点也不清楚*谁会负责这个）等角色，并开发了一个简单的概率模型来估计在没有足够床位容纳新患者时的风险。为了实现这一目标，我们做出了以下假设：
 
 +   *假设所有入住医院的患者当天会出院*
 

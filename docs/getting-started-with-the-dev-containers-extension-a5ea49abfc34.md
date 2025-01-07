@@ -1,12 +1,12 @@
 # Dev Containers 扩展入门
 
-> 原文：[https://towardsdatascience.com/getting-started-with-the-dev-containers-extension-a5ea49abfc34?source=collection_archive---------9-----------------------#2024-05-07](https://towardsdatascience.com/getting-started-with-the-dev-containers-extension-a5ea49abfc34?source=collection_archive---------9-----------------------#2024-05-07)
+> 原文：[`towardsdatascience.com/getting-started-with-the-dev-containers-extension-a5ea49abfc34?source=collection_archive---------9-----------------------#2024-05-07`](https://towardsdatascience.com/getting-started-with-the-dev-containers-extension-a5ea49abfc34?source=collection_archive---------9-----------------------#2024-05-07)
 
 ## 这是一个逐步教程，帮助您入门 Dev Containers 扩展。本教程是一个系列教程的第一部分，重点介绍 Dev Containers 扩展。
 
-[](https://medium.com/@rami.krispin?source=post_page---byline--a5ea49abfc34--------------------------------)[![Rami Krispin](../Images/8af28c282d42a2a27c28aa8af4c8d482.png)](https://medium.com/@rami.krispin?source=post_page---byline--a5ea49abfc34--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a5ea49abfc34--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a5ea49abfc34--------------------------------) [Rami Krispin](https://medium.com/@rami.krispin?source=post_page---byline--a5ea49abfc34--------------------------------)
+[](https://medium.com/@rami.krispin?source=post_page---byline--a5ea49abfc34--------------------------------)![Rami Krispin](https://medium.com/@rami.krispin?source=post_page---byline--a5ea49abfc34--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a5ea49abfc34--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5ea49abfc34--------------------------------) [Rami Krispin](https://medium.com/@rami.krispin?source=post_page---byline--a5ea49abfc34--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5ea49abfc34--------------------------------) ·阅读时间 9 分钟·2024年5月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5ea49abfc34--------------------------------) ·阅读时间 9 分钟·2024 年 5 月 7 日
 
 --
 
@@ -14,7 +14,7 @@
 
 在接下来的教程中，我们将探索该扩展的核心功能，并回顾定制化选项。
 
-![](../Images/7f654de22acb5763c546eae9b915c8af.png)
+![](img/7f654de22acb5763c546eae9b915c8af.png)
 
 一艘货船停靠在港口（由作者使用 Midjourney 创建）
 

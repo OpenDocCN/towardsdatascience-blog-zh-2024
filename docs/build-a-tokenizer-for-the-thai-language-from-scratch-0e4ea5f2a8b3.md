@@ -1,22 +1,22 @@
 # 从零开始构建泰语分词器
 
-> 原文：[https://towardsdatascience.com/build-a-tokenizer-for-the-thai-language-from-scratch-0e4ea5f2a8b3?source=collection_archive---------6-----------------------#2024-09-14](https://towardsdatascience.com/build-a-tokenizer-for-the-thai-language-from-scratch-0e4ea5f2a8b3?source=collection_archive---------6-----------------------#2024-09-14)
+> 原文：[`towardsdatascience.com/build-a-tokenizer-for-the-thai-language-from-scratch-0e4ea5f2a8b3?source=collection_archive---------6-----------------------#2024-09-14`](https://towardsdatascience.com/build-a-tokenizer-for-the-thai-language-from-scratch-0e4ea5f2a8b3?source=collection_archive---------6-----------------------#2024-09-14)
 
 ## 基于 BPE 算法，使用 Python 训练泰语和英语数据集，构建一个泰语多语言子词分词器的逐步指南
 
-[](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[![Milan Tamang](../Images/18e8be296bcef18e8792bfc18240469a.png)](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------) [Milan Tamang](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)
+[](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)![Milan Tamang](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------) [Milan Tamang](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------) ·14分钟阅读·2024年9月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------) ·14 分钟阅读·2024 年 9 月 14 日
 
 --
 
-![](../Images/a876522a3058062625e355547ef07b75.png)
+![](img/a876522a3058062625e355547ef07b75.png)
 
 **[图片来源：作者]**：泰语分词器将泰语文本编码和解码为 Token ID，并反向操作。
 
 **分词器**的主要任务是将原始输入文本（在我们的例子中是泰语，但也可以是任何外语）转换为数字，并将其传递给模型的 Transformer。模型的 Transformer 然后生成输出数字。再次，**分词器**将这些数字转回为用户可以理解的文本。下方的高层次图示描述了上述过程。
 
-![](../Images/9fc0dc22dc54e54c85fdbc1377f4f4a3.png)
+![](img/9fc0dc22dc54e54c85fdbc1377f4f4a3.png)
 
 [图片来源：作者]: 图示展示了分词器在大型语言模型（LLM）输入和输出流中的作用。
 
@@ -46,9 +46,9 @@
 
 BPE 算法在许多流行的 LLM（大型语言模型）中都有应用，如 Llama、GPT 等，用于构建它们的分词器。如果我们的模型是基于英语的，我们可以选择这些 LLM 分词器之一。由于我们正在构建泰语分词器，最佳选择是从零开始创建我们自己的 BPE 算法，并用它来构建我们的分词器。让我们首先通过下面简单的流程图理解 BPE 算法是如何工作的，然后我们就可以根据它开始构建。
 
-![](../Images/bdc0fe33fb3088b9db81b36efeeed005.png)
+![](img/bdc0fe33fb3088b9db81b36efeeed005.png)
 
-[图像来自作者]：BPE 流程图。示例引用自维基百科页面（[https://en.wikipedia.org/wiki/Byte_pair_encoding](https://en.wikipedia.org/wiki/Byte_pair_encoding)）
+[图像来自作者]：BPE 流程图。示例引用自维基百科页面（[`en.wikipedia.org/wiki/Byte_pair_encoding`](https://en.wikipedia.org/wiki/Byte_pair_encoding)）
 
 流程图中的示例以英语展示，目的是为了让理解更加简便。
 
@@ -121,7 +121,7 @@ def render_token(t: bytes) -> str:
 
 ## 步骤 2：训练分词器：
 
-训练分词器涉及生成一个词汇表，这是一个包含唯一标记（单词和子单词）及其唯一索引编号的数据库。我们将使用**泰语维基数据集**从Hugging Face来训练我们的泰语分词器。就像训练LLM需要大量数据一样，你也需要大量数据来训练分词器。你也可以使用相同的数据集来同时训练LLM和分词器，虽然这不是必须的。对于多语言LLM，建议以2:1的比例使用英语和泰语数据集，这是许多从业者遵循的标准做法。
+训练分词器涉及生成一个词汇表，这是一个包含唯一标记（单词和子单词）及其唯一索引编号的数据库。我们将使用**泰语维基数据集**从 Hugging Face 来训练我们的泰语分词器。就像训练 LLM 需要大量数据一样，你也需要大量数据来训练分词器。你也可以使用相同的数据集来同时训练 LLM 和分词器，虽然这不是必须的。对于多语言 LLM，建议以 2:1 的比例使用英语和泰语数据集，这是许多从业者遵循的标准做法。
 
 **让我们开始编写训练代码。**
 
@@ -284,15 +284,15 @@ class ThaiTokenizer():
         self.vocab = self._build_vocab() 
 ```
 
-## 第3步：分词器的编码和解码功能：
+## 第 3 步：分词器的编码和解码功能：
 
-+   **分词器编码：** 分词器的编码功能查找词汇表，将给定的输入文本或提示转换为整数ID列表。这些ID随后被输入到转换器块中。
++   **分词器编码：** 分词器的编码功能查找词汇表，将给定的输入文本或提示转换为整数 ID 列表。这些 ID 随后被输入到转换器块中。
 
-+   **分词器解码：** 分词器的解码功能查找词汇表，将来自转换器分类块生成的ID列表转换为输出文本。
++   **分词器解码：** 分词器的解码功能查找词汇表，将来自转换器分类块生成的 ID 列表转换为输出文本。
 
 让我们看一下下面的图表，以便更清楚地理解。
 
-![](../Images/8d677b110b92dc2cb9ac0c4822965467.png)
+![](img/8d677b110b92dc2cb9ac0c4822965467.png)
 
 [图片来源：作者]：泰语分词器的编码和解码功能
 
@@ -369,11 +369,11 @@ class ThaiTokenizer():
         return text
 ```
 
-## 第4步：加载并测试分词器：
+## 第 4 步：加载并测试分词器：
 
 最后，来到了本文的精彩部分。在这一部分，我们将进行两个有趣的任务。
 
-+   首先，用Hugging Face的泰语维基数据集训练我们的分词器。我们选择了一个较小的数据集（2.2 MB），以便加快训练速度。然而，实际应用中，你应该选择一个更大的数据集以获得更好的结果。训练完成后，我们将保存模型。
++   首先，用 Hugging Face 的泰语维基数据集训练我们的分词器。我们选择了一个较小的数据集（2.2 MB），以便加快训练速度。然而，实际应用中，你应该选择一个更大的数据集以获得更好的结果。训练完成后，我们将保存模型。
 
 +   其次，我们将加载保存的分词器模型，并测试分词器的编码和解码功能。
 
@@ -425,13 +425,13 @@ thai_decoded_texts = tokenizer.decode(thai_encoded_ids)
 print(f"Decoded Texts: {thai_decoded_texts}")
 ```
 
-![](../Images/935f6773b6e220ece558ac08625cfef3.png)
+![](img/935f6773b6e220ece558ac08625cfef3.png)
 
 **[泰语分词器]：泰语和英语文本的编码与解码输出。**
 
 完美。我们的泰语分词器现在可以成功且准确地对泰语和英语文本进行编码和解码。
 
-你有没有注意到，英文文本的编码ID比泰语编码ID要长？这是因为我们仅使用泰语数据集来训练我们的分词器。因此，分词器只能为泰语构建一个全面的词汇表。由于我们没有使用英文数据集进行训练，分词器必须从字符级别开始编码，这就导致了更长的编码ID。正如我之前提到的，对于多语言LLM，你应该以2:1的比例训练英语和泰语数据集。这样可以获得平衡且高质量的结果。
+你有没有注意到，英文文本的编码 ID 比泰语编码 ID 要长？这是因为我们仅使用泰语数据集来训练我们的分词器。因此，分词器只能为泰语构建一个全面的词汇表。由于我们没有使用英文数据集进行训练，分词器必须从字符级别开始编码，这就导致了更长的编码 ID。正如我之前提到的，对于多语言 LLM，你应该以 2:1 的比例训练英语和泰语数据集。这样可以获得平衡且高质量的结果。
 
 **就这样！** 我们现在已经成功地从零开始仅使用 Python 创建了我们自己的泰语分词器。而且，我觉得这真的很酷。有了这个，你可以轻松地为任何外语构建分词器。这将在实现你的多语言大语言模型时为你提供很大的帮助。
 

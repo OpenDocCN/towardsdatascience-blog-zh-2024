@@ -1,16 +1,16 @@
 # 在 AWS EC2 上部署 Tiny-Llama
 
-> 原文：[https://towardsdatascience.com/deploy-tiny-llama-on-aws-ec2-f3ff312c896d?source=collection_archive---------3-----------------------#2024-01-12](https://towardsdatascience.com/deploy-tiny-llama-on-aws-ec2-f3ff312c896d?source=collection_archive---------3-----------------------#2024-01-12)
+> 原文：[`towardsdatascience.com/deploy-tiny-llama-on-aws-ec2-f3ff312c896d?source=collection_archive---------3-----------------------#2024-01-12`](https://towardsdatascience.com/deploy-tiny-llama-on-aws-ec2-f3ff312c896d?source=collection_archive---------3-----------------------#2024-01-12)
 
-![](../Images/f413377810614e94c713c29a27c88010.png)
+![](img/f413377810614e94c713c29a27c88010.png)
 
-Tiny-Llama logo（来源：[https://github.com/jzhang38/TinyLlama](https://github.com/jzhang38/TinyLlama)）
+Tiny-Llama logo（来源：[`github.com/jzhang38/TinyLlama`](https://github.com/jzhang38/TinyLlama)）
 
 ## 学习如何使用 AWS 和 FastAPI 部署一个真实的 ML 应用
 
-[](https://medium.com/@marcellopoliti?source=post_page---byline--f3ff312c896d--------------------------------)[![Marcello Politi](../Images/484e44571bd2e75acfe5fef3146ab3c2.png)](https://medium.com/@marcellopoliti?source=post_page---byline--f3ff312c896d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f3ff312c896d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f3ff312c896d--------------------------------) [Marcello Politi](https://medium.com/@marcellopoliti?source=post_page---byline--f3ff312c896d--------------------------------)
+[](https://medium.com/@marcellopoliti?source=post_page---byline--f3ff312c896d--------------------------------)![Marcello Politi](https://medium.com/@marcellopoliti?source=post_page---byline--f3ff312c896d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f3ff312c896d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f3ff312c896d--------------------------------) [Marcello Politi](https://medium.com/@marcellopoliti?source=post_page---byline--f3ff312c896d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f3ff312c896d--------------------------------) ·13 分钟阅读·2024年1月12日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f3ff312c896d--------------------------------) ·13 分钟阅读·2024 年 1 月 12 日
 
 --
 

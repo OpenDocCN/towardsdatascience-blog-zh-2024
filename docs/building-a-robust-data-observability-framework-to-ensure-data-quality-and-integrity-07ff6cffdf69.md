@@ -1,18 +1,18 @@
 # 构建一个稳健的数据可观察性框架以确保数据质量和完整性
 
-> 原文：[https://towardsdatascience.com/building-a-robust-data-observability-framework-to-ensure-data-quality-and-integrity-07ff6cffdf69?source=collection_archive---------5-----------------------#2024-08-27](https://towardsdatascience.com/building-a-robust-data-observability-framework-to-ensure-data-quality-and-integrity-07ff6cffdf69?source=collection_archive---------5-----------------------#2024-08-27)
+> 原文：[`towardsdatascience.com/building-a-robust-data-observability-framework-to-ensure-data-quality-and-integrity-07ff6cffdf69?source=collection_archive---------5-----------------------#2024-08-27`](https://towardsdatascience.com/building-a-robust-data-observability-framework-to-ensure-data-quality-and-integrity-07ff6cffdf69?source=collection_archive---------5-----------------------#2024-08-27)
 
 ## 我们如何通过开源工具提高可观察性？
 
-[](https://medium.com/@jurgitamotus?source=post_page---byline--07ff6cffdf69--------------------------------)[![Jurgita Motus | Coresignal](../Images/3183b1185da74c385e9f48f58f7198fd.png)](https://medium.com/@jurgitamotus?source=post_page---byline--07ff6cffdf69--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--07ff6cffdf69--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--07ff6cffdf69--------------------------------) [Jurgita Motus | Coresignal](https://medium.com/@jurgitamotus?source=post_page---byline--07ff6cffdf69--------------------------------)
+[](https://medium.com/@jurgitamotus?source=post_page---byline--07ff6cffdf69--------------------------------)![Jurgita Motus | Coresignal](https://medium.com/@jurgitamotus?source=post_page---byline--07ff6cffdf69--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--07ff6cffdf69--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--07ff6cffdf69--------------------------------) [Jurgita Motus | Coresignal](https://medium.com/@jurgitamotus?source=post_page---byline--07ff6cffdf69--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--07ff6cffdf69--------------------------------) ·7分钟阅读·2024年8月27日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--07ff6cffdf69--------------------------------) ·7 分钟阅读·2024 年 8 月 27 日
 
 --
 
-![](../Images/93f4cbc6482b6848518c648294835d33.png)
+![](img/93f4cbc6482b6848518c648294835d33.png)
 
-[照片由rivage提供，来自Unsplash](https://unsplash.com/photos/man-in-black-jacket-sitting-beside-black-flat-screen-computer-monitor-rWE7bTqgMJE)
+[照片由 rivage 提供，来自 Unsplash](https://unsplash.com/photos/man-in-black-jacket-sitting-beside-black-flat-screen-computer-monitor-rWE7bTqgMJE)
 
 **传统的监控方式已经无法满足复杂数据组织的需求。数据工程师不再依赖反应式系统来识别已知问题，而是必须创建互动式可观察性框架，帮助他们快速发现任何类型的异常。**
 
@@ -22,7 +22,7 @@
 
 # 什么是数据可观察性？
 
-总的来说，可观察性定义了你从外部输出中能够了解多少有关内部系统的信息。这个术语最早由匈牙利裔美国工程师[Rudolf E. Kálmán](https://learning.oreilly.com/library/view/observability-engineering/9781492076438/ch01.html#the_mathematical_definition_of_observab)在1960年提出，他在讨论数学控制系统中的可观察性时首次定义了这一术语。
+总的来说，可观察性定义了你从外部输出中能够了解多少有关内部系统的信息。这个术语最早由匈牙利裔美国工程师[Rudolf E. Kálmán](https://learning.oreilly.com/library/view/observability-engineering/9781492076438/ch01.html#the_mathematical_definition_of_observab)在 1960 年提出，他在讨论数学控制系统中的可观察性时首次定义了这一术语。
 
 多年来，这一概念已经被应用于多个领域，包括数据工程。在这里，它解决了数据质量的问题，并能够追踪数据是如何收集的以及如何进行转化的。
 
@@ -50,11 +50,11 @@
 
 只有从可靠来源收集的高质量数据才能提供准确的见解。正如那句老话所说：垃圾进，垃圾出。您不能指望从组织混乱的数据集中提取任何实际的知识。
 
-作为公共数据提供商Coresignal的高级数据分析师，我不断寻求改善数据质量的新方法。尽管在动态的技术环境中实现这一目标相当复杂，但许多路径可以通向它。良好的数据可观察性在这里发挥着重要作用。
+作为公共数据提供商 Coresignal 的高级数据分析师，我不断寻求改善数据质量的新方法。尽管在动态的技术环境中实现这一目标相当复杂，但许多路径可以通向它。良好的数据可观察性在这里发挥着重要作用。
 
 那么，我们如何确保数据的质量呢？归根结底，就是在每个数据管道阶段中添加更好的可观察性方法——从数据摄取、转换到存储和分析。这些方法中的一些将在整个管道中起作用，而另一些只会在某个特定阶段相关。让我们来看看：
 
-![](../Images/15485148c44e2a753a2053075bd70a4a.png)
+![](img/15485148c44e2a753a2053075bd70a4a.png)
 
 *跨越数据管道不同阶段的数据可观察性。来源：Jurgita Motus*
 
@@ -72,7 +72,7 @@
 
 接下来，我们有五个其他项目，在不同的数据管道阶段中更为相关：
 
-1.  **服务水平协议（SLAs）**。SLA有助于为客户和供应商设定标准，并定义数据的质量、完整性和一般责任。SLA的阈值还可以在设置警报系统时提供帮助，通常，它们会在数据接收阶段之前或期间签署。
+1.  **服务水平协议（SLAs）**。SLA 有助于为客户和供应商设定标准，并定义数据的质量、完整性和一般责任。SLA 的阈值还可以在设置警报系统时提供帮助，通常，它们会在数据接收阶段之前或期间签署。
 
 1.  **数据合同**。这些协议定义了数据进入其他系统之前的结构方式。它们充当一套规则，明确你可以期望的数据的新鲜度和质量水平，通常会在数据接收阶段之前谈判确定。
 
@@ -94,21 +94,21 @@
 
 下面是我推荐查看的五个必要平台的列表：
 
-1.  **Prometheus 和 Grafana** 平台互为补充，帮助工程师实时收集和可视化大量数据。Prometheus是一款开源监控系统，非常适合数据存储和观察，而可观察性平台Grafana则通过易于导航的可视化仪表板帮助追踪新趋势。
+1.  **Prometheus 和 Grafana** 平台互为补充，帮助工程师实时收集和可视化大量数据。Prometheus 是一款开源监控系统，非常适合数据存储和观察，而可观察性平台 Grafana 则通过易于导航的可视化仪表板帮助追踪新趋势。
 
 1.  **Apache Iceberg** 表格格式提供了数据库元数据的概览，包括跟踪表列的统计信息。跟踪元数据有助于更好地理解整个数据库，而无需不必要地处理数据。它不完全是一个可观察性平台，但其功能允许工程师更好地了解他们的数据。
 
 1.  **Apache Superset** 是另一款开源数据探索和可视化工具，可以帮助展示大量数据、构建仪表板并生成警报。
 
-1.  **Great Expectations** 是一个帮助测试和验证数据的Python包。例如，它可以使用预定义规则扫描样本数据集，并创建数据质量条件，稍后可用于整个数据集。我们的团队使用Great Expectations对新数据集进行质量测试。
+1.  **Great Expectations** 是一个帮助测试和验证数据的 Python 包。例如，它可以使用预定义规则扫描样本数据集，并创建数据质量条件，稍后可用于整个数据集。我们的团队使用 Great Expectations 对新数据集进行质量测试。
 
-1.  **Dagster** 数据管道编排工具可以帮助确保数据血缘关系并进行资产检查。尽管它不是作为数据可观察性平台而创建的，但它通过现有的数据工程工具和表格格式提供可视化。该工具有助于找出数据异常的根本原因。该平台的付费版本还包含由AI生成的洞察。这款应用程序提供自助式可观察性，并带有内置的资产目录，用于跟踪数据资产。
+1.  **Dagster** 数据管道编排工具可以帮助确保数据血缘关系并进行资产检查。尽管它不是作为数据可观察性平台而创建的，但它通过现有的数据工程工具和表格格式提供可视化。该工具有助于找出数据异常的根本原因。该平台的付费版本还包含由 AI 生成的洞察。这款应用程序提供自助式可观察性，并带有内置的资产目录，用于跟踪数据资产。
 
 请记住，这些只是众多可选工具中的一部分。务必进行研究，找到适合你组织的工具。
 
 # 如果忽视数据可观察性原则会发生什么？
 
-一旦出现问题，组织通常依赖工程师的直觉来找出问题的根本原因。正如软件工程师Charity Majors在[她的回忆录](https://learning.oreilly.com/library/view/observability-engineering/9781492076438/)中生动地解释的那样，在MBaaS平台Parse工作时，大多数传统的监控系统都是由在公司工作时间最长的工程师推动的，他们能够迅速猜测系统的问题。这使得资深工程师变得不可替代，并且带来了其他问题，比如较高的职业倦怠率。
+一旦出现问题，组织通常依赖工程师的直觉来找出问题的根本原因。正如软件工程师 Charity Majors 在[她的回忆录](https://learning.oreilly.com/library/view/observability-engineering/9781492076438/)中生动地解释的那样，在 MBaaS 平台 Parse 工作时，大多数传统的监控系统都是由在公司工作时间最长的工程师推动的，他们能够迅速猜测系统的问题。这使得资深工程师变得不可替代，并且带来了其他问题，比如较高的职业倦怠率。
 
 使用数据可观察性工具可以消除故障排除中的猜测，减少停机时间，并增强信任。如果没有数据可观察性工具，你可能会遇到较长的停机时间、数据质量问题以及对新出现问题反应迟缓等问题。因此，这些问题可能会迅速导致收入损失、客户流失，甚至损害品牌声誉。
 
@@ -120,4 +120,4 @@
 
 机器学习，特别是大型语言模型（LLMs），是这里显而易见的解决方案。它们可以帮助快速扫描数据库，标记异常，并通过识别重复项或添加新的丰富字段来提高整体数据质量。同时，这些算法还能帮助跟踪模式和日志的变化，改善数据一致性并提升数据血缘关系。
 
-然而，选择合适的时机来实施你的人工智能计划至关重要。提升你的可观察性能力需要资源、时间和投资。在开始使用自定义的LLM之前，你应该仔细考虑这是否真的能为你的组织带来好处。有时，坚持使用上述已经有效完成工作的标准开源数据可观察性工具，可能会更高效。
+然而，选择合适的时机来实施你的人工智能计划至关重要。提升你的可观察性能力需要资源、时间和投资。在开始使用自定义的 LLM 之前，你应该仔细考虑这是否真的能为你的组织带来好处。有时，坚持使用上述已经有效完成工作的标准开源数据可观察性工具，可能会更高效。

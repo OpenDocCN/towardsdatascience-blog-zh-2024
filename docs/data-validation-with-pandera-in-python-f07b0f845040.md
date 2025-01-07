@@ -1,16 +1,16 @@
 # 使用 Pandera 进行 Python 数据验证
 
-> 原文：[https://towardsdatascience.com/data-validation-with-pandera-in-python-f07b0f845040?source=collection_archive---------0-----------------------#2024-11-18](https://towardsdatascience.com/data-validation-with-pandera-in-python-f07b0f845040?source=collection_archive---------0-----------------------#2024-11-18)
+> 原文：[`towardsdatascience.com/data-validation-with-pandera-in-python-f07b0f845040?source=collection_archive---------0-----------------------#2024-11-18`](https://towardsdatascience.com/data-validation-with-pandera-in-python-f07b0f845040?source=collection_archive---------0-----------------------#2024-11-18)
 
 ## 验证你的数据框以用于生产机器学习管道
 
-[](https://gabrielfurnieles.medium.com/?source=post_page---byline--f07b0f845040--------------------------------)[![Gabriel Furnieles](../Images/710c939d8114ea8a4db16fd9f2c71f8a.png)](https://gabrielfurnieles.medium.com/?source=post_page---byline--f07b0f845040--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f07b0f845040--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f07b0f845040--------------------------------) [Gabriel Furnieles](https://gabrielfurnieles.medium.com/?source=post_page---byline--f07b0f845040--------------------------------)
+[](https://gabrielfurnieles.medium.com/?source=post_page---byline--f07b0f845040--------------------------------)![Gabriel Furnieles](https://gabrielfurnieles.medium.com/?source=post_page---byline--f07b0f845040--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f07b0f845040--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f07b0f845040--------------------------------) [Gabriel Furnieles](https://gabrielfurnieles.medium.com/?source=post_page---byline--f07b0f845040--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f07b0f845040--------------------------------) ·9分钟阅读·2024年11月18日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f07b0f845040--------------------------------) ·9 分钟阅读·2024 年 11 月 18 日
 
 --
 
-![](../Images/53c2470e3fd017ad184018a7824bc84c.png)
+![](img/53c2470e3fd017ad184018a7824bc84c.png)
 
 图像由 [NightCafe](https://creator.nightcafe.studio/) 生成。
 
@@ -18,19 +18,19 @@
 
 Python 已经有一个很棒的开源项目来处理这个任务，叫做 [Pydantic](https://docs.pydantic.dev/latest/)。然而，当处理像机器学习中那样的大型数据框对象时，[Pandera](https://pandera.readthedocs.io/en/stable/index.html) 是一种更快、更可扩展的验证数据方式（请查看[这篇文章](https://www.union.ai/blog-post/pandera-0-17-adds-support-for-pydantic-v2)和公开的笔记本）。
 
-![](../Images/eb2c0f75b2f743dedaa7a6fe7b1a33b6.png)
+![](img/eb2c0f75b2f743dedaa7a6fe7b1a33b6.png)
 
 Pandera 和 Pydantic 的逐行验证性能比较，适用于不同大小的 pandas.DataFrame 对象。图片来源于 [source](https://www.union.ai/blog-post/pandera-0-17-adds-support-for-pydantic-v2#:~:text=%22records%22))-,Benchmarking%20Pandera%E2%80%99s%20row%2Dwise%20validation%20with%20Pydantic,-Because%20Pandera%20validates)。
 
 此外，Pandera 提供对多种数据框库的支持，如 `pandas`、`polars`、`dask`、`modin` 和 `pyspark.pandas`。有关更多信息，请参考 [Pandera 文档📄](https://pandera.readthedocs.io/en/stable/index.html)。
 
-> **免责声明。** Pandera是一个开源项目，采用MIT许可证。我与Pandera团队或Union.ai没有任何关系。此帖子没有商业目的。
+> **免责声明。** Pandera 是一个开源项目，采用 MIT 许可证。我与 Pandera 团队或 Union.ai 没有任何关系。此帖子没有商业目的。
 
-# 使用Pandera验证数据
+# 使用 Pandera 验证数据
 
-Pandera有两种定义验证器的方式：**Schemas**和**Models**。我将专注于第二种方式，因为它与Pydantic模型相似，并且代码更简洁。
+Pandera 有两种定义验证器的方式：**Schemas**和**Models**。我将专注于第二种方式，因为它与 Pydantic 模型相似，并且代码更简洁。
 
-要定义Pandera模型，创建一个继承自DataframeModel的子类，并开始声明数据框必须具有的列和数据类型：
+要定义 Pandera 模型，创建一个继承自 DataframeModel 的子类，并开始声明数据框必须具有的列和数据类型：
 
 ```py
 import pandera as pa
@@ -50,11 +50,11 @@ df = pd.DataFrame(...)
 UserModel.validate(df) # <- If invalidad raises SchemaError
 ```
 
-请注意，为了定义用户创建时间戳，我使用了Pandas原生的日期类型，而不是像`datetime.datetime`这样的其他类型。Pandera仅支持内建的Python、NumPy和Pandas数据类型。你也可以创建[自定义数据类型](https://pandera.readthedocs.io/en/stable/dtypes.html#logical-data-types)，但这是一个高级话题，在大多数情况下不常用。
+请注意，为了定义用户创建时间戳，我使用了 Pandas 原生的日期类型，而不是像`datetime.datetime`这样的其他类型。Pandera 仅支持内建的 Python、NumPy 和 Pandas 数据类型。你也可以创建[自定义数据类型](https://pandera.readthedocs.io/en/stable/dtypes.html#logical-data-types)，但这是一个高级话题，在大多数情况下不常用。
 
 ## 验证列属性
 
-使用Pandera，除了验证数据类型外，你还可以验证其他列属性：
+使用 Pandera，除了验证数据类型外，你还可以验证其他列属性：
 
 ```py
 class UserModel(pa.DataFrameModel):
@@ -66,21 +66,21 @@ class UserModel(pa.DataFrameModel):
     creation_date: pd.DatetimeTZDtype = pa.Field(dtype_kwargs={"unit": "ns", "tz": "UTC"})
 ```
 
-在这里，我像使用pydantic一样使用Pandera的Field。
+在这里，我像使用 pydantic 一样使用 Pandera 的 Field。
 
-+   首先，我指定`id`列不得包含重复值，并且这些值必须大于或等于0。
++   首先，我指定`id`列不得包含重复值，并且这些值必须大于或等于 0。
 
 +   在`username`和`email`中，我使用正则表达式检查字符串是否有效。用户名只能包含字母数字字符和下划线，而电子邮件地址还可以包含短横线和点，但必须始终遵循“smth@smth.smth”的模式。
 
-+   `membership`只能取列表中的值。更好的方法是使用StrEnum来定义有效值，而不是硬编码它们。
++   `membership`只能取列表中的值。更好的方法是使用 StrEnum 来定义有效值，而不是硬编码它们。
 
-+   最后，`creation_date`必须以纳秒为单位，并使用UTC时区。这行代码可以更简洁，使用`typing`库中的Annotated：`creation_date: Annotated[pd.DatetimeTZDtype, "ns", "UTC"]`。
++   最后，`creation_date`必须以纳秒为单位，并使用 UTC 时区。这行代码可以更简洁，使用`typing`库中的 Annotated：`creation_date: Annotated[pd.DatetimeTZDtype, "ns", "UTC"]`。
 
-查看[文档](https://pandera.readthedocs.io/en/stable/reference/generated/pandera.api.dataframe.model_components.Field.html#pandera.api.dataframe.model_components.Field)，阅读所有Field选项😋
+查看[文档](https://pandera.readthedocs.io/en/stable/reference/generated/pandera.api.dataframe.model_components.Field.html#pandera.api.dataframe.model_components.Field)，阅读所有 Field 选项😋
 
 ## 自定义验证
 
-有时需要添加自定义验证。Pandera允许你注入[列/索引检查](https://pandera.readthedocs.io/en/stable/dataframe_models.html#dataframe-checks:~:text=as%20class%20methods.-,Column/Index%20checks,-%C2%B6)（单列的自定义检查）和[数据框检查](https://pandera.readthedocs.io/en/stable/dataframe_models.html#dataframe-checks:~:text=1%3A%20%3CCheck%20check_means%3E-,DataFrame%20Checks,-%C2%B6)（多个列之间的检查）。
+有时需要添加自定义验证。Pandera 允许你注入[列/索引检查](https://pandera.readthedocs.io/en/stable/dataframe_models.html#dataframe-checks:~:text=as%20class%20methods.-,Column/Index%20checks,-%C2%B6)（单列的自定义检查）和[数据框检查](https://pandera.readthedocs.io/en/stable/dataframe_models.html#dataframe-checks:~:text=1%3A%20%3CCheck%20check_means%3E-,DataFrame%20Checks,-%C2%B6)（多个列之间的检查）。
 
 ```py
 import pandera as pa
@@ -132,7 +132,7 @@ class UserModel(pa.DataFrameModel):
 
 ## 其他配置
 
-**别名** 当列名由于语言语法无法声明为Python变量时，Pandera允许为列验证器设置别名，以匹配数据框。
+**别名** 当列名由于语言语法无法声明为 Python 变量时，Pandera 允许为列验证器设置别名，以匹配数据框。
 
 ```py
 class MyModel(pa.DataFrameModel):
@@ -140,7 +140,7 @@ class MyModel(pa.DataFrameModel):
     ...
 ```
 
-**严格和强制** 当`strict`选项设置为true时，它会强制验证的数据框仅包含在Pandera DataFrameModel中定义的列。另一方面，当启用`coerce`选项时，Pandera会尝试将列数据强制转换为与模型的数据类型匹配。
+**严格和强制** 当`strict`选项设置为 true 时，它会强制验证的数据框仅包含在 Pandera DataFrameModel 中定义的列。另一方面，当启用`coerce`选项时，Pandera 会尝试将列数据强制转换为与模型的数据类型匹配。
 
 ```py
 class MyModel(pa.DataFrameModel):
@@ -153,7 +153,7 @@ class MyModel(pa.DataFrameModel):
 
 `coerce`选项也可以在字段级别使用，方法是`pa.Field(..., coerce=True)`
 
-**懒惰验证** 默认情况下，当验证检查未通过时，Pandera会抛出错误。这可能会令人烦恼，因为它只显示遇到的第一个验证错误，并阻止其余数据的检查。
+**懒惰验证** 默认情况下，当验证检查未通过时，Pandera 会抛出错误。这可能会令人烦恼，因为它只显示遇到的第一个验证错误，并阻止其余数据的检查。
 
 在某些情况下，最好让整个数据框架进行验证，并在一次运行中收集所有错误，而不是一个个修复它们并等待验证再次运行。前者是懒惰验证所做的。
 
@@ -164,11 +164,11 @@ Mymodel.validate(df, lazy_validation=True)
 
 # 带有数据验证的机器学习生产管道
 
-![](../Images/c9b4dfd55516a8c114ec37de0fc9ae03.png)
+![](img/c9b4dfd55516a8c114ec37de0fc9ae03.png)
 
 使用[NightCafe](https://creator.nightcafe.studio/)生成的图像。
 
-因为大多数机器学习管道是在Python中使用表格数据编码成数据框架结构进行训练的，所以**Pandera**是一个验证其输入和输出的强大工具。
+因为大多数机器学习管道是在 Python 中使用表格数据编码成数据框架结构进行训练的，所以**Pandera**是一个验证其输入和输出的强大工具。
 
 ```py
 # pipeline.py
@@ -194,9 +194,9 @@ class MLPipeline:
 
 我们希望避免模型因无效数据而抛出错误。那样意味着我们已经做了将模型加载到内存中和处理原始数据的所有工作，但结果是白费力气，浪费资源，还阻止了其余数据点的评估。
 
-同样，如果模型的输出结构不正确，我们的后处理管道（将结果上传到数据库，通过RESTful API返回结果等）将会失败。
+同样，如果模型的输出结构不正确，我们的后处理管道（将结果上传到数据库，通过 RESTful API 返回结果等）将会失败。
 
-在使用Pandera定义验证模型后，我们可以利用其[用于管道集成的装饰器](https://pandera.readthedocs.io/en/stable/decorators.html#:~:text=Auto%20color%20theme-,Decorators%20for%20Pipeline%20Integration,-%C2%B6)来执行输入/输出验证。
+在使用 Pandera 定义验证模型后，我们可以利用其[用于管道集成的装饰器](https://pandera.readthedocs.io/en/stable/decorators.html#:~:text=Auto%20color%20theme-,Decorators%20for%20Pipeline%20Integration,-%C2%B6)来执行输入/输出验证。
 
 ```py
 # models.py
@@ -246,7 +246,7 @@ class MLPipeline:
 
 我们不希望我们的管道因为某些数据点包含不正确的数据而中断。如果发生验证错误，策略应该是将有问题的数据点单独处理，并继续使用其余数据运行管道。管道不能停止！🔥
 
-Pandera模型有自动移除所有无效行的选项：
+Pandera 模型有自动移除所有无效行的选项：
 
 ```py
 class MyModel(pa.DataFrameModel):
@@ -258,7 +258,7 @@ class MyModel(pa.DataFrameModel):
 
 然而，丢弃所有无效行而不记录它们可能是危险的。你需要知道为什么这些数据点无效，以便稍后可以向客户或数据工程师沟通错误的原因。
 
-这就是为什么我不使用Pandera装饰器，而是创建我自己的验证辅助函数：
+这就是为什么我不使用 Pandera 装饰器，而是创建我自己的验证辅助函数：
 
 ```py
 from typing import Tuple

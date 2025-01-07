@@ -1,16 +1,16 @@
 # 可解释聚类简介
 
-> 原文：[https://towardsdatascience.com/introduction-to-interpretable-clustering-d0e07fbd2c99?source=collection_archive---------3-----------------------#2024-08-01](https://towardsdatascience.com/introduction-to-interpretable-clustering-d0e07fbd2c99?source=collection_archive---------3-----------------------#2024-08-01)
+> 原文：[`towardsdatascience.com/introduction-to-interpretable-clustering-d0e07fbd2c99?source=collection_archive---------3-----------------------#2024-08-01`](https://towardsdatascience.com/introduction-to-interpretable-clustering-d0e07fbd2c99?source=collection_archive---------3-----------------------#2024-08-01)
 
-![](../Images/f00f83f4fd90e7f7f5816b140764a195.png)
+![](img/f00f83f4fd90e7f7f5816b140764a195.png)
 
 图片由[Sergei A](https://unsplash.com/@sakulich?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 什么是可解释的聚类，为什么它很重要？
 
-[](https://medium.com/@upadhyan?source=post_page---byline--d0e07fbd2c99--------------------------------)[![Nakul Upadhya](../Images/336cb21272e9b1f098177adbde50e92e.png)](https://medium.com/@upadhyan?source=post_page---byline--d0e07fbd2c99--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d0e07fbd2c99--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d0e07fbd2c99--------------------------------) [Nakul Upadhya](https://medium.com/@upadhyan?source=post_page---byline--d0e07fbd2c99--------------------------------)
+[](https://medium.com/@upadhyan?source=post_page---byline--d0e07fbd2c99--------------------------------)![Nakul Upadhya](https://medium.com/@upadhyan?source=post_page---byline--d0e07fbd2c99--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d0e07fbd2c99--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0e07fbd2c99--------------------------------) [Nakul Upadhya](https://medium.com/@upadhyan?source=post_page---byline--d0e07fbd2c99--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0e07fbd2c99--------------------------------) ·阅读时间11分钟·2024年8月1日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0e07fbd2c99--------------------------------) ·阅读时间 11 分钟·2024 年 8 月 1 日
 
 --
 

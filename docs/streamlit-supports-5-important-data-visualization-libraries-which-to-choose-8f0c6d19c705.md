@@ -1,16 +1,16 @@
 # Streamlit 支持 5 个重要的数据可视化库 — 该选择哪个？
 
-> 原文：[https://towardsdatascience.com/streamlit-supports-5-important-data-visualization-libraries-which-to-choose-8f0c6d19c705?source=collection_archive---------5-----------------------#2024-05-16](https://towardsdatascience.com/streamlit-supports-5-important-data-visualization-libraries-which-to-choose-8f0c6d19c705?source=collection_archive---------5-----------------------#2024-05-16)
+> 原文：[`towardsdatascience.com/streamlit-supports-5-important-data-visualization-libraries-which-to-choose-8f0c6d19c705?source=collection_archive---------5-----------------------#2024-05-16`](https://towardsdatascience.com/streamlit-supports-5-important-data-visualization-libraries-which-to-choose-8f0c6d19c705?source=collection_archive---------5-----------------------#2024-05-16)
 
 ## 我们将使用 Altair、Bokeh、Plotly、Pandas Plot 和 Matplotlib 编写示例代码，以说明每个库的优缺点。
 
-[](https://medium.com/@alan-jones?source=post_page---byline--8f0c6d19c705--------------------------------)[![Alan Jones](../Images/359379fab1d6685ff08080b98173e67c.png)](https://medium.com/@alan-jones?source=post_page---byline--8f0c6d19c705--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8f0c6d19c705--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8f0c6d19c705--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--8f0c6d19c705--------------------------------)
+[](https://medium.com/@alan-jones?source=post_page---byline--8f0c6d19c705--------------------------------)![Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--8f0c6d19c705--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8f0c6d19c705--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8f0c6d19c705--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--8f0c6d19c705--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8f0c6d19c705--------------------------------) ·17分钟阅读·2024年5月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8f0c6d19c705--------------------------------) ·17 分钟阅读·2024 年 5 月 16 日
 
 --
 
-![](../Images/2b5d201f2a28dde0c5f07fd1c01d0c63.png)
+![](img/2b5d201f2a28dde0c5f07fd1c01d0c63.png)
 
 图片由作者借助 Microsoft Image Creator 创建
 

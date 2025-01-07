@@ -1,18 +1,18 @@
 # 使用 Nvidia 的 LLaMa-Mesh 生成 3D 图像
 
-> 原文：[https://towardsdatascience.com/generate-3d-images-with-nvidias-llama-mesh-69a6929a4580?source=collection_archive---------10-----------------------#2024-11-19](https://towardsdatascience.com/generate-3d-images-with-nvidias-llama-mesh-69a6929a4580?source=collection_archive---------10-----------------------#2024-11-19)
+> 原文：[`towardsdatascience.com/generate-3d-images-with-nvidias-llama-mesh-69a6929a4580?source=collection_archive---------10-----------------------#2024-11-19`](https://towardsdatascience.com/generate-3d-images-with-nvidias-llama-mesh-69a6929a4580?source=collection_archive---------10-----------------------#2024-11-19)
 
 ## 深度学习论文
 
-## 论文深度剖析（5分钟速览）
+## 论文深度剖析（5 分钟速览）
 
-[](https://varshitasher.medium.com/?source=post_page---byline--69a6929a4580--------------------------------)[![Dr. Varshita Sher](../Images/a3f2e9bf1dc1d8cbe018e54f9341f608.png)](https://varshitasher.medium.com/?source=post_page---byline--69a6929a4580--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--69a6929a4580--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--69a6929a4580--------------------------------) [Dr. Varshita Sher](https://varshitasher.medium.com/?source=post_page---byline--69a6929a4580--------------------------------)
+[](https://varshitasher.medium.com/?source=post_page---byline--69a6929a4580--------------------------------)![Dr. Varshita Sher](https://varshitasher.medium.com/?source=post_page---byline--69a6929a4580--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--69a6929a4580--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--69a6929a4580--------------------------------) [Dr. Varshita Sher](https://varshitasher.medium.com/?source=post_page---byline--69a6929a4580--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--69a6929a4580--------------------------------) ·5分钟阅读·2024年11月19日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--69a6929a4580--------------------------------) ·5 分钟阅读·2024 年 11 月 19 日
 
 --
 
-![](../Images/54a94d7a83e9d4615209cfcd3b48eefe.png)
+![](img/54a94d7a83e9d4615209cfcd3b48eefe.png)
 
 摘自论文
 
@@ -22,7 +22,7 @@
 
 简单来说，如果你能说，*“给我讲个笑话”*，那么现在你可以说，*“给我一个车的 3D 网格”*，它就能生成一个 OBJ 格式的输出文件（稍后详细说明）。
 
-> 如果你想尝试一些例子，可以点击这里 —— [https://huggingface.co/spaces/Zhengyi/LLaMA-Mesh](https://huggingface.co/spaces/Zhengyi/LLaMA-Mesh)
+> 如果你想尝试一些例子，可以点击这里 —— [`huggingface.co/spaces/Zhengyi/LLaMA-Mesh`](https://huggingface.co/spaces/Zhengyi/LLaMA-Mesh)
 
 对我来说，最令人惊讶的部分是，它在没有扩展词汇或引入新标记的情况下完成了这一点，这在大多数微调任务中是很常见的做法。
 
@@ -60,7 +60,7 @@ f 1 2 6 5
 
 实际来说，日常物品（如长椅）的 obj 文件大概长这样：
 
-![](../Images/17e377768d383fdca3851d49b2b687f3.png)
+![](img/17e377768d383fdca3851d49b2b687f3.png)
 
 不同对象的 obj 文件示例（摘自论文）
 
@@ -72,7 +72,7 @@ f 1 2 6 5
 
 他们在论文中使用顶点量化来实现这一点，将一个坐标分割成多个标记（类似于长单词 `operational` 会被分割成两个标记 —— `oper` 和 `ational`，如 [GPT4o tokenizer](https://platform.openai.com/tokenizer) 所示）。正如预期的那样，减少表示小数的标记数会带来正常的精度-成本权衡。
 
-![](../Images/5fb1a7ee1d43422858e1fc7445211069.png)
+![](img/5fb1a7ee1d43422858e1fc7445211069.png)
 
 为了实现顶点量化，他们将网格中的三个轴都缩放到 (0, 64) 范围，并将坐标量化为最接近的整数，即每个轴的值可以在 0 到 64 之间（在本例中为 39、19 和 35）。最后，通过读取和生成这样的格式，LLM 就能够处理 3D 对象。
 
@@ -92,7 +92,7 @@ Assistant: <start of mesh> v 0 3 4 v 0 4 6 v 0 3 … f 1 3 2 f 4 3 5 … . <end 
 
 除了生成 3D 网格，LLama-Mesh 还能够解释 3D 网格。为此，它的训练数据还包含了几个网格理解和网格生成的示例，作为对话式格式的一部分。以下是数据集中的一些示例：
 
-![](../Images/dfc043eef6d5b257e2f48c7a48e81bec.png)
+![](img/dfc043eef6d5b257e2f48c7a48e81bec.png)
 
 为 LLama-Mesh 精心策划的训练数据集
 
@@ -100,38 +100,38 @@ Assistant: <start of mesh> v 0 3 4 v 0 4 6 v 0 3 … f 1 3 2 f 4 3 5 … . <end 
 
 +   LlaMa-Mesh 可以与文本和 3D 对象 **无缝** 交互，无需特殊的标记器或扩展 LLM 的词汇量（这要归功于使用 OBJ 格式和前述的顶点量化方法，它可以有效地将 3D 网格数据标记化为 LLM 可以无缝处理的离散标记）。
 
-![](../Images/9c9d63bf68147f6a8d5ca8cbf283a39d.png)
+![](img/9c9d63bf68147f6a8d5ca8cbf283a39d.png)
 
 图片摘自论文
 
-+   LlaMa-Mesh可以从相同的输入文本生成多样化的形状。
++   LlaMa-Mesh 可以从相同的输入文本生成多样化的形状。
 
-![](../Images/9765acd06efa01af4b7afca377607486.png)
+![](img/9765acd06efa01af4b7afca377607486.png)
 
 来自论文
 
-+   尽管微调过程略微降低了模型的语言理解和推理能力（他们将其视为由选择的指令数据集和较小的8B模型规模所带来的局限性），但这一点被微调模型能够生成高质量OBJ文件以供3D网格生成的能力所抵消。
++   尽管微调过程略微降低了模型的语言理解和推理能力（他们将其视为由选择的指令数据集和较小的 8B 模型规模所带来的局限性），但这一点被微调模型能够生成高质量 OBJ 文件以供 3D 网格生成的能力所抵消。
 
-![](../Images/a9f3f98035525faf5b3b6f84f0f917ba.png)
+![](img/a9f3f98035525faf5b3b6f84f0f917ba.png)
 
 对比基础模型和微调版本在评估模型的通用知识、常识推理和数学问题解决能力方面的指标（图片来自论文）。
 
 ## 为什么你应该关注这篇论文？
 
-我已经为大语言模型生成类人文本、代码以及与视觉内容推理的能力感到惊叹。将3D网格加入这个列表简直是太聪明了。
+我已经为大语言模型生成类人文本、代码以及与视觉内容推理的能力感到惊叹。将 3D 网格加入这个列表简直是太聪明了。
 
-像LLaMa-Mesh这样的LLM有潜力彻底改变包括游戏、教育和医疗在内的多个行业。
+像 LLaMa-Mesh 这样的 LLM 有潜力彻底改变包括游戏、教育和医疗在内的多个行业。
 
 它可以用于直接从文本描述生成用于视频游戏的逼真资产，如角色、环境和物体。
 
 同样，它可以加速产品开发和创意过程，因为任何公司都需要一个设计来知道他们要创造什么。
 
-它还可以用于建筑物、机械、桥梁和其他基础设施项目的建筑设计。最后，在教育技术领域，它可以用于将互动3D模拟嵌入到培训材料中。
+它还可以用于建筑物、机械、桥梁和其他基础设施项目的建筑设计。最后，在教育技术领域，它可以用于将互动 3D 模拟嵌入到培训材料中。
 
 这篇论文简洁明了，阅读起来非常快速，我强烈建议你阅读它。
 
-**论文页面** — [https://arxiv.org/pdf/2411.09595](https://arxiv.org/pdf/2411.09595)
+**论文页面** — [`arxiv.org/pdf/2411.09595`](https://arxiv.org/pdf/2411.09595)
 
-**代码** — [https://github.com/nv-tlabs/LLaMA-Mesh](https://github.com/nv-tlabs/LLaMA-Mesh)
+**代码** — [`github.com/nv-tlabs/LLaMA-Mesh`](https://github.com/nv-tlabs/LLaMA-Mesh)
 
-**Nvidia的博客** — [https://research.nvidia.com/labs/toronto-ai/LLaMA-Mesh/](https://research.nvidia.com/labs/toronto-ai/LLaMA-Mesh/)
+**Nvidia 的博客** — [`research.nvidia.com/labs/toronto-ai/LLaMA-Mesh/`](https://research.nvidia.com/labs/toronto-ai/LLaMA-Mesh/)

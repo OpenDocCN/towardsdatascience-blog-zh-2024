@@ -1,56 +1,56 @@
-# 自主代理生态系统、数据集成、开源LLM以及其他11月必读文章
+# 自主代理生态系统、数据集成、开源 LLM 以及其他 11 月必读文章
 
-> 原文：[https://towardsdatascience.com/autonomous-agent-ecosystems-data-integration-open-source-llms-and-other-november-must-reads-a8bafb49f0b7?source=collection_archive---------8-----------------------#2024-11-28](https://towardsdatascience.com/autonomous-agent-ecosystems-data-integration-open-source-llms-and-other-november-must-reads-a8bafb49f0b7?source=collection_archive---------8-----------------------#2024-11-28)
+> 原文：[`towardsdatascience.com/autonomous-agent-ecosystems-data-integration-open-source-llms-and-other-november-must-reads-a8bafb49f0b7?source=collection_archive---------8-----------------------#2024-11-28`](https://towardsdatascience.com/autonomous-agent-ecosystems-data-integration-open-source-llms-and-other-november-must-reads-a8bafb49f0b7?source=collection_archive---------8-----------------------#2024-11-28)
 
-[](https://towardsdatascience.medium.com/?source=post_page---byline--a8bafb49f0b7--------------------------------)[![TDS编辑团队](../Images/4b2d1beaf4f6dcf024ffa6535de3b794.png)](https://towardsdatascience.medium.com/?source=post_page---byline--a8bafb49f0b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a8bafb49f0b7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a8bafb49f0b7--------------------------------) [TDS编辑团队](https://towardsdatascience.medium.com/?source=post_page---byline--a8bafb49f0b7--------------------------------)
+[](https://towardsdatascience.medium.com/?source=post_page---byline--a8bafb49f0b7--------------------------------)![TDS 编辑团队](https://towardsdatascience.medium.com/?source=post_page---byline--a8bafb49f0b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a8bafb49f0b7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a8bafb49f0b7--------------------------------) [TDS 编辑团队](https://towardsdatascience.medium.com/?source=post_page---byline--a8bafb49f0b7--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a8bafb49f0b7--------------------------------) ·作为 [新闻通讯](/newsletter?source=post_page---byline--a8bafb49f0b7--------------------------------) 发送 ·4分钟阅读·2024年11月28日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a8bafb49f0b7--------------------------------) ·作为 新闻通讯 发送 ·4 分钟阅读·2024 年 11 月 28 日
 
 --
 
-> 想要写第一篇TDS文章吗？ [我们一直欢迎新作者投稿](http://bit.ly/write-for-tds)。
+> 想要写第一篇 TDS 文章吗？ [我们一直欢迎新作者投稿](http://bit.ly/write-for-tds)。
 
-欢迎来到2024年的倒数第二个月度回顾——我们真能离年底这么近了吗？！我们相信，和我们一样，你也在忙于收尾工作，并为各自的项目做最后的冲刺。我们这边有不少这样的工作要完成，其中一个让我们激动不已的更新是，TDS现在已经在Bluesky平台活跃。如果你是最近加入该平台的用户（或者一直在考虑加入），我们鼓励你 [关注我们的账号](https://bsky.app/profile/towardsdatascience.com)。
+欢迎来到 2024 年的倒数第二个月度回顾——我们真能离年底这么近了吗？！我们相信，和我们一样，你也在忙于收尾工作，并为各自的项目做最后的冲刺。我们这边有不少这样的工作要完成，其中一个让我们激动不已的更新是，TDS 现在已经在 Bluesky 平台活跃。如果你是最近加入该平台的用户（或者一直在考虑加入），我们鼓励你 [关注我们的账号](https://bsky.app/profile/towardsdatascience.com)。
 
-我们的脑海中还有什么？就是我们作者最近几周发布的所有精彩文章，激励我们的读者学习新技能，探索数据科学和AI领域的新兴话题。我们的月度亮点涵盖了广泛的内容——正如往常一样——并提供了多种可访问的入口，带你深入了解及时的技术话题，从知识图谱到RAG评估。让我们一探究竟吧。
+我们的脑海中还有什么？就是我们作者最近几周发布的所有精彩文章，激励我们的读者学习新技能，探索数据科学和 AI 领域的新兴话题。我们的月度亮点涵盖了广泛的内容——正如往常一样——并提供了多种可访问的入口，带你深入了解及时的技术话题，从知识图谱到 RAG 评估。让我们一探究竟吧。
 
 ## 月度亮点
 
-+   [**Agentic Mesh：生成型AI驱动的自主代理生态系统的未来**](/agentic-mesh-the-future-of-generative-ai-enabled-autonomous-agent-ecosystems-d6a11381c979)
++   **Agentic Mesh：生成型 AI 驱动的自主代理生态系统的未来**
 
-    自主代理如何在安全、高效和可信的方式下相互发现、协作、互动和交易，究竟需要什么？[Eric Broda](https://medium.com/u/9eab94e66722?source=post_page---user_mention--a8bafb49f0b7--------------------------------)展示了他对代理网的激动人心的愿景，这是一个作为AI代理无缝连接的框架。
+    自主代理如何在安全、高效和可信的方式下相互发现、协作、互动和交易，究竟需要什么？[Eric Broda](https://medium.com/u/9eab94e66722?source=post_page---user_mention--a8bafb49f0b7--------------------------------)展示了他对代理网的激动人心的愿景，这是一个作为 AI 代理无缝连接的框架。
 
-+   [**使用LLM图形转换器构建知识图谱**](/building-knowledge-graphs-with-llm-graph-transformer-a91045c49b59)
++   **使用 LLM 图形转换器构建知识图谱**
 
-    对于任何有兴趣深入实践的人，[Tomaz Bratanic](https://medium.com/u/57f13c0ea39a?source=post_page---user_mention--a8bafb49f0b7--------------------------------)的最新技术指南带我们深入了解LangChain实现图构建与LLM结合的具体细节。
+    对于任何有兴趣深入实践的人，[Tomaz Bratanic](https://medium.com/u/57f13c0ea39a?source=post_page---user_mention--a8bafb49f0b7--------------------------------)的最新技术指南带我们深入了解 LangChain 实现图构建与 LLM 结合的具体细节。
 
-+   [**为什么是ETL-Zero？理解数据集成中的转变**](/why-etl-zero-understanding-the-shift-in-data-integration-as-a-beginner-d0cefa244154)
++   **为什么是 ETL-Zero？理解数据集成中的转变**
 
-    “数据不应像传统方式那样需要在独立步骤中显式地提取、转换和加载，而应该在不同系统之间无缝流动。”[Sarah Lea](https://medium.com/u/4ece41619669?source=post_page---user_mention--a8bafb49f0b7--------------------------------)介绍了一种利用Python创建简化ETL过程的新方法。
+    “数据不应像传统方式那样需要在独立步骤中显式地提取、转换和加载，而应该在不同系统之间无缝流动。”[Sarah Lea](https://medium.com/u/4ece41619669?source=post_page---user_mention--a8bafb49f0b7--------------------------------)介绍了一种利用 Python 创建简化 ETL 过程的新方法。
 
-![](../Images/85989f0f6a7476149a845a7574eb5748.png)
+![](img/85989f0f6a7476149a845a7574eb5748.png)
 
 图片由[Jacky Watt](https://unsplash.com/@jackywatt?utm_source=medium&utm_medium=referral)拍摄，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-+   [**托管开源LLM的经济学**](/economics-of-hosting-open-source-llms-17b4ec4e7691)
++   **托管开源 LLM 的经济学**
 
-    随着LLM使用量在过去一年左右急剧增加，实践者们越来越多地开始思考，如何最有效地部署这些模型。[Ida Silfverskiöld](https://medium.com/u/53550965faed?source=post_page---user_mention--a8bafb49f0b7--------------------------------)提供了一个详细的分析，讲解了考虑的各种因素，以及不同提供商在处理时间、冷启动延迟以及CPU、内存和GPU成本方面的对比。
+    随着 LLM 使用量在过去一年左右急剧增加，实践者们越来越多地开始思考，如何最有效地部署这些模型。[Ida Silfverskiöld](https://medium.com/u/53550965faed?source=post_page---user_mention--a8bafb49f0b7--------------------------------)提供了一个详细的分析，讲解了考虑的各种因素，以及不同提供商在处理时间、冷启动延迟以及 CPU、内存和 GPU 成本方面的对比。
 
-+   [**我如何通过两个小习惯提高作为数据科学家的生产力**](/how-i-improved-my-productivity-as-a-data-scientist-with-two-small-habits-de09854d553c)
++   **我如何通过两个小习惯提高作为数据科学家的生产力**
 
-    有时候，对日常例行公事做些微小的改变，就能带来与彻底改造工作流程同样大的影响。一个例子是：[Philippe Ostiguy, M. Sc.](https://medium.com/u/63ab85f48acf?source=post_page---user_mention--a8bafb49f0b7--------------------------------)的新文章，介绍了两项看似与工作无关的习惯，关于休息和心理强度，这些习惯显著提升了Philippe的生产力。
+    有时候，对日常例行公事做些微小的改变，就能带来与彻底改造工作流程同样大的影响。一个例子是：[Philippe Ostiguy, M. Sc.](https://medium.com/u/63ab85f48acf?source=post_page---user_mention--a8bafb49f0b7--------------------------------)的新文章，介绍了两项看似与工作无关的习惯，关于休息和心理强度，这些习惯显著提升了 Philippe 的生产力。
 
-+   [**构建初级数据科学作品集的6个月详细计划**](/a-6-month-detailed-plan-to-build-your-junior-data-science-portfolio-a470ab79ee58)
++   **构建初级数据科学作品集的 6 个月详细计划**
 
     无论你是刚刚成为数据科学家的新手，还是正在寻找新职位的经验丰富的专业人士，[Sabrine Bendimerad](https://medium.com/u/496180b93dd?source=post_page---user_mention--a8bafb49f0b7--------------------------------)为成功打造作品集提供的蓝图，将为你提供切实可行的思路和实际的时间表，帮助你完成工作。
 
-+   [**如何减少Python运行时以应对高负荷任务**](/how-to-reduce-python-runtime-for-demanding-tasks-2857efad0cec)
++   **如何减少 Python 运行时以应对高负荷任务**
 
-    每个人都希望代码运行得更快，但在处理特别繁重的工作负载时，遇到瓶颈几乎是不可避免的。然而，正如[Jiayan Yin](https://medium.com/u/c60e52fd4379?source=post_page---user_mention--a8bafb49f0b7--------------------------------)在她的高效实用文章中所展示的那样，可能还有一些GPU优化选项你尚未利用，可以加速你的Python代码。
+    每个人都希望代码运行得更快，但在处理特别繁重的工作负载时，遇到瓶颈几乎是不可避免的。然而，正如[Jiayan Yin](https://medium.com/u/c60e52fd4379?source=post_page---user_mention--a8bafb49f0b7--------------------------------)在她的高效实用文章中所展示的那样，可能还有一些 GPU 优化选项你尚未利用，可以加速你的 Python 代码。
 
-+   [**如何从文档创建RAG评估数据集**](/how-to-create-a-rag-evaluation-dataset-from-documents-140daa3cbe71)
++   **如何从文档创建 RAG 评估数据集**
 
-    正如[Dr. Leon Eversberg](https://medium.com/u/a67b10ad1762?source=post_page---user_mention--a8bafb49f0b7--------------------------------)在他的最新教程中所解释的，“通过上传PDF文件并将其存储在向量数据库中，我们可以通过向量相似性搜索检索这些知识，然后将检索到的文本作为附加上下文插入LLM提示中。” 结果是什么呢？一种稳健的评估RAG工作流的方法，减少了出现幻觉的概率。
+    正如[Dr. Leon Eversberg](https://medium.com/u/a67b10ad1762?source=post_page---user_mention--a8bafb49f0b7--------------------------------)在他的最新教程中所解释的，“通过上传 PDF 文件并将其存储在向量数据库中，我们可以通过向量相似性搜索检索这些知识，然后将检索到的文本作为附加上下文插入 LLM 提示中。” 结果是什么呢？一种稳健的评估 RAG 工作流的方法，减少了出现幻觉的概率。
 
 ## 我们最新的一批新作者
 
@@ -58,6 +58,6 @@
 
 感谢您支持我们作者的工作！我们非常喜欢发布新作者的文章，如果您最近写了一篇有趣的项目教程、教学文章或关于我们核心主题的理论反思，欢迎随时[与我们分享](http://bit.ly/write-for-tds)。
 
-直到下一个Variable，
+直到下一个 Variable，
 
-TDS团队
+TDS 团队

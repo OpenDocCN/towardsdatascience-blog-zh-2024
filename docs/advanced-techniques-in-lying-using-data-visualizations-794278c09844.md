@@ -1,22 +1,22 @@
 # 使用数据可视化的高级谎言技巧
 
-> 原文：[https://towardsdatascience.com/advanced-techniques-in-lying-using-data-visualizations-794278c09844?source=collection_archive---------0-----------------------#2024-10-04](https://towardsdatascience.com/advanced-techniques-in-lying-using-data-visualizations-794278c09844?source=collection_archive---------0-----------------------#2024-10-04)
+> 原文：[`towardsdatascience.com/advanced-techniques-in-lying-using-data-visualizations-794278c09844?source=collection_archive---------0-----------------------#2024-10-04`](https://towardsdatascience.com/advanced-techniques-in-lying-using-data-visualizations-794278c09844?source=collection_archive---------0-----------------------#2024-10-04)
 
 ## 发现图表设计的力量，能够引导观众朝向任何叙事
 
-[](https://medium.com/@caiparryjones96?source=post_page---byline--794278c09844--------------------------------)[![Cai Parry-Jones](../Images/60b83f5167651f9621a3e73b8d72ccae.png)](https://medium.com/@caiparryjones96?source=post_page---byline--794278c09844--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--794278c09844--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--794278c09844--------------------------------) [Cai Parry-Jones](https://medium.com/@caiparryjones96?source=post_page---byline--794278c09844--------------------------------)
+[](https://medium.com/@caiparryjones96?source=post_page---byline--794278c09844--------------------------------)![Cai Parry-Jones](https://medium.com/@caiparryjones96?source=post_page---byline--794278c09844--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--794278c09844--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--794278c09844--------------------------------) [Cai Parry-Jones](https://medium.com/@caiparryjones96?source=post_page---byline--794278c09844--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--794278c09844--------------------------------) ·9分钟阅读·2024年10月4日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--794278c09844--------------------------------) ·9 分钟阅读·2024 年 10 月 4 日
 
 --
 
-![](../Images/7fb392a5dcbf3472527bf692ef82cd7e.png)
+![](img/7fb392a5dcbf3472527bf692ef82cd7e.png)
 
 来源：[unsplash.com](https://unsplash.com/)
 
 *本文为讽刺文章。利用虚假的可视化传播错误信息并不可取。本文的目的是教你如何识别错误信息。*
 
-你有一个需要推销的叙事吗？也许你在工作中预测了某些事情，现在需要证明它。也许X上的某人说你的政治观点是错的，所以你需要为反击准备弹药。
+你有一个需要推销的叙事吗？也许你在工作中预测了某些事情，现在需要证明它。也许 X 上的某人说你的政治观点是错的，所以你需要为反击准备弹药。
 
 数据可视化通常是数据分析的最后一层，用于快速和简便地呈现见解。观众可以有所不同，从董事会成员到电视观众，从政府官员到社交媒体粉丝。然而，尽管他们各有差异，但他们通常有一些共同点。他们通常不是数据技术专家，而且他们通常没有时间深入细节。这使得数据可视化成为操控观众的完美工具，无论数据是什么，叙事是什么。
 
@@ -48,13 +48,13 @@
 
 马修·沃克确保叙事完美无缺的做法，当然是省略了不需要的数据。书中没有提到任何与“少睡觉不影响健康，甚至可能对你有益”这一观点相矛盾的研究。然而，真正令人印象深刻的是，书中并没有出现任何实际使用的、冗余的数据分析点！
 
-比如，在讨论运动伤害与平均睡眠时长的关系时，书中第129页展示了一张图表，呈现了一项研究论文的结果。图中有四个数据点，6小时=72%，7小时=60%，8小时=34%，9小时=18%。构建这张图表的基础数据来自一篇发表在《儿科矫形学杂志》（Journal of Paediatric Orthopaedics）上的[研究](https://journals.lww.com/pedorthopaedics/fulltext/2014/03000/chronic_lack_of_sleep_is_associated_with_increased.1.aspx)，题为《慢性睡眠不足与青少年运动员运动损伤风险增加相关》。这篇论文的数据与图表中的数据完全一致，唯一的不同之处是，研究中还有一个额外的数据点，即平均睡眠时间为五小时的运动员，其受伤风险为54%。
+比如，在讨论运动伤害与平均睡眠时长的关系时，书中第 129 页展示了一张图表，呈现了一项研究论文的结果。图中有四个数据点，6 小时=72%，7 小时=60%，8 小时=34%，9 小时=18%。构建这张图表的基础数据来自一篇发表在《儿科矫形学杂志》（Journal of Paediatric Orthopaedics）上的[研究](https://journals.lww.com/pedorthopaedics/fulltext/2014/03000/chronic_lack_of_sleep_is_associated_with_increased.1.aspx)，题为《慢性睡眠不足与青少年运动员运动损伤风险增加相关》。这篇论文的数据与图表中的数据完全一致，唯一的不同之处是，研究中还有一个额外的数据点，即平均睡眠时间为五小时的运动员，其受伤风险为 54%。
 
-为什么这一个数据点会从Matthew Walker的图表中被省略？它来自一个同行评审的期刊，所以并不是说五小时的数据点不可用。当然，答案是它与叙事相悖。拥有一张图表，从最少睡眠=最差到最多睡眠=最好，显然更好。下次，当你遇到一个或两个恼人的数据点时，记住，你可以直接把它去掉。如果它对于一本由UC Berkeley教授编写、企鹅出版的书籍都可以接受，那对于我们来说也足够可以接受了。
+为什么这一个数据点会从 Matthew Walker 的图表中被省略？它来自一个同行评审的期刊，所以并不是说五小时的数据点不可用。当然，答案是它与叙事相悖。拥有一张图表，从最少睡眠=最差到最多睡眠=最好，显然更好。下次，当你遇到一个或两个恼人的数据点时，记住，你可以直接把它去掉。如果它对于一本由 UC Berkeley 教授编写、企鹅出版的书籍都可以接受，那对于我们来说也足够可以接受了。
 
-![](../Images/5a6e9d3e889fb22b5ca2ec198d54c334.png)
+![](img/5a6e9d3e889fb22b5ca2ec198d54c334.png)
 
-由作者使用Google Sheets创建。
+由作者使用 Google Sheets 创建。
 
 # 利用模式心理学
 
@@ -72,25 +72,25 @@
 
 福克斯新闻擅长做这种[事情](https://www.researchgate.net/figure/The-original-Fox-News-bar-chart-cropping-y-axis-and-omitting-labels-Source_fig2_329075050)。然而，根据你观众批判性评估你工作的能力，你可能需要调整你利用这个技巧的程度。
 
-![](../Images/6cee45c006e56bd28f24f6576d18eb77.png)
+![](img/6cee45c006e56bd28f24f6576d18eb77.png)
 
-由作者使用Google Sheets创建。
+由作者使用 Google Sheets 创建。
 
-上述方法使用了常见的技巧，将Y轴从零以上开始。这个效果是数据点之间的差异更为显著，给人一种重要性的感觉。当然，如果数据点之间的变化与叙事相悖，你会希望将Y轴设置得尽可能低，从而传达出差异不重要的感觉。
+上述方法使用了常见的技巧，将 Y 轴从零以上开始。这个效果是数据点之间的差异更为显著，给人一种重要性的感觉。当然，如果数据点之间的变化与叙事相悖，你会希望将 Y 轴设置得尽可能低，从而传达出差异不重要的感觉。
 
 另一种展示数据以符合你议程的方式是使用颜色。对于大多数人来说，红色与不好的事情相关。展示一张充满红色的图表在给观众提供恐惧、危机、警报等感觉时非常有效。气候变化是一个特别适合使用红色的主题，因为红色也用来象征热量和火焰。
 
 《卫报》的一张图表，来自文章“[澳大利亚气候危机和温室气体排放的变化](https://www.theguardian.com/environment/datablog/ng-interactive/2022/oct/03/tracking-australias-progress-on-the-climate-crisis-and-the-consequences-of-global-heating)”完美地展示了红色的使用。
 
-![](../Images/4e9cbd5c8ddd2f800bec3ebb937a5051.png)
+![](img/4e9cbd5c8ddd2f800bec3ebb937a5051.png)
 
-“火热的世界”版本的图表。由作者使用Tableau创建。数据来源：全球碳预算，2022年
+“火热的世界”版本的图表。由作者使用 Tableau 创建。数据来源：全球碳预算，2022 年
 
 注意看地图上每个国家都被标红，即使是那些零化石燃料排放的国家也会被标上粉红色的红。使用完全相同的数据，而没有全红色的色标，就会产生一张看起来不那么令人恐惧的图表，比如下面这张：
 
-![](../Images/904a32b97a3f17d8cacfba98128cfc75.png)
+![](img/904a32b97a3f17d8cacfba98128cfc75.png)
 
-"只有部分世界着火"版本的图表。由作者使用Tableau创建。数据来源：全球碳预算，2022年
+"只有部分世界着火"版本的图表。由作者使用 Tableau 创建。数据来源：全球碳预算，2022 年
 
 # 在分类时要有选择性
 
@@ -98,35 +98,35 @@
 
 我将从一个简单的示例开始，来解释我所说的数据重新排列。假设我在研究一个村庄中每户家庭的人数。我收集到了以下原始数据：
 
-![](../Images/736a8cfa6a2f47b0ee38629c984136b0.png)
+![](img/736a8cfa6a2f47b0ee38629c984136b0.png)
 
 如果我想传达的信息是这个村庄有很多过度拥挤的家庭，那么我可以将数据呈现为如下所示：
 
-![](../Images/68a3fdcd288c424c3465778380a67fa5.png)
+![](img/68a3fdcd288c424c3465778380a67fa5.png)
 
-由作者使用Google Sheets创建。
+由作者使用 Google Sheets 创建。
 
-我所做的只是将5、6、7和8组合在一起，形成一个单一的数据点5+。最终结果是，家庭中最多人的类别出现在最大的区域。完美符合我的叙事。
+我所做的只是将 5、6、7 和 8 组合在一起，形成一个单一的数据点 5+。最终结果是，家庭中最多人的类别出现在最大的区域。完美符合我的叙事。
 
 但是，如果我不想要这样呢？事实上，如果我想传达完全相反的信息呢？我可以稍微重新排列数据，最终呈现出如下数据：
 
-![](../Images/9f6e038cd4282a1d74b9a057c35014c6.png)
+![](img/9f6e038cd4282a1d74b9a057c35014c6.png)
 
-由作者使用Google Sheets创建。
+由作者使用 Google Sheets 创建。
 
-在这里，我所做的是将0、1、2组合在一起，3、4、5组合在一起，6、7、8组合在一起。如你所见，在没有遗漏任何一项原始数据的情况下，我完全改变了这个故事。
+在这里，我所做的是将 0、1、2 组合在一起，3、4、5 组合在一起，6、7、8 组合在一起。如你所见，在没有遗漏任何一项原始数据的情况下，我完全改变了这个故事。
 
-这种技巧在一篇学术研究论文中得到了巧妙的应用，研究的焦点是更多的枪支是否会减少或增加犯罪。由John Lott和David Mustard撰写的、被广泛引用的[论文](https://www.jstor.org/stable/10.1086/467988?seq=34)《犯罪、威慑与持枪权利》提供了一张关于实施隐蔽携带手枪法案后，增加街头枪支数量的后果的显著图表。
+这种技巧在一篇学术研究论文中得到了巧妙的应用，研究的焦点是更多的枪支是否会减少或增加犯罪。由 John Lott 和 David Mustard 撰写的、被广泛引用的[论文](https://www.jstor.org/stable/10.1086/467988?seq=34)《犯罪、威慑与持枪权利》提供了一张关于实施隐蔽携带手枪法案后，增加街头枪支数量的后果的显著图表。
 
-![](../Images/abe9423b4460844065d638324384423e.png)
+![](img/abe9423b4460844065d638324384423e.png)
 
-来源：[《犯罪、威慑与持枪权利》](https://www.jstor.org/stable/10.1086/467988?seq=34) 由John Lott和David Mustard撰写
+来源：[《犯罪、威慑与持枪权利》](https://www.jstor.org/stable/10.1086/467988?seq=34) 由 John Lott 和 David Mustard 撰写
 
 再花一点时间仔细看看这张图表，它非常值得注意。它暗示着暴力犯罪几乎普遍是由于缺乏隐蔽携带手枪所导致的，这可以从缺乏变化中看出来，即在引入携带手枪法案后，犯罪率平稳下降。那么，作者是如何实现如此显著的图表的呢？
 
-首先，它利用了第二种技巧，即利用模式心理学，通过将Y轴起始点设置为大于零。其次，最具影响力的是，它有选择地决定了哪些数据被视为‘暴力犯罪’，‘隐蔽携带手枪法’以及研究的‘人口’。例如，在暴力犯罪类别中，他们选择允许有枪的抢劫和加重袭击，但不包括没有枪的案件，如用刀抢劫。为什么？因为有枪抢劫和加重袭击在隐蔽携带手枪法实施后平均增加，这与叙事相悖。但如果仅仅选择这一部分暴力犯罪——即有枪的抢劫和加重袭击，那么在隐蔽携带手枪法实施后，平均数据恰好减少。
+首先，它利用了第二种技巧，即利用模式心理学，通过将 Y 轴起始点设置为大于零。其次，最具影响力的是，它有选择地决定了哪些数据被视为‘暴力犯罪’，‘隐蔽携带手枪法’以及研究的‘人口’。例如，在暴力犯罪类别中，他们选择允许有枪的抢劫和加重袭击，但不包括没有枪的案件，如用刀抢劫。为什么？因为有枪抢劫和加重袭击在隐蔽携带手枪法实施后平均增加，这与叙事相悖。但如果仅仅选择这一部分暴力犯罪——即有枪的抢劫和加重袭击，那么在隐蔽携带手枪法实施后，平均数据恰好减少。
 
-同样，一些地区和年份被排除在样本人口之外。这些地区和年份在隐蔽携带手枪法实施后暴力犯罪飙升。作者给出的理由是因为‘毒品价格上涨’（我没编造，这在第24页 “[Crime, Deterrence, and Right‐to‐Carry Concealed Handguns](https://www.jstor.org/stable/10.1086/467988?seq=34)” 中写着）。
+同样，一些地区和年份被排除在样本人口之外。这些地区和年份在隐蔽携带手枪法实施后暴力犯罪飙升。作者给出的理由是因为‘毒品价格上涨’（我没编造，这在第 24 页 “[Crime, Deterrence, and Right‐to‐Carry Concealed Handguns](https://www.jstor.org/stable/10.1086/467988?seq=34)” 中写着）。
 
 如果再重复几次这种选择性分类，瞧——完美的图表！
 
@@ -134,9 +134,9 @@
 
 如果遗憾的是，你无法避免在图表中展示一些难看的数据，还有一种最终的技巧可以用来保持你的叙事效果。让图表看起来令人无法忍受。一种经典做法是将数据以冰冷的表格形式呈现。例如：
 
-![](../Images/fc524ebd4ed5808f7be3a47ea1cc062d.png)
+![](img/fc524ebd4ed5808f7be3a47ea1cc062d.png)
 
-作者使用Microsoft Word制作
+作者使用 Microsoft Word 制作
 
 你读完了吗？如果是的话，你比我更强。我得坦诚，至今我不清楚这些数据是否在试图操控我，我只知道我不想读那张丑陋的表格，你也不能逼我！
 
@@ -148,4 +148,4 @@
 
 **给数据消费者（基本上是所有人）的一条信息**：我希望这篇文章能够帮助你批判性地评估你遇到的数据和统计数字。此外，我鼓励读者对于发现的不良数据伦理问题大胆发声。无论是通过口头讨论、社交媒体发布、博客、视频文章、评论区留言……方式有很多种，看到问题时，请不要害羞，尽管批评它。
 
-如果你想了解更多关于如何揭示数据问题的见解，我鼓励你阅读我之前的文章，[停止盲目追求数据驱动](https://medium.com/towards-data-science/stop-being-data-driven-583b5e7abe7b)，并关注我在[Medium](https://medium.com/@caiparryjones96)上的未来文章。如果你想扩大这篇文章的影响力，请为它点赞（或者给我50个😏）并在社交媒体上分享。感谢阅读。下次见，数据高手们，和平！✌️
+如果你想了解更多关于如何揭示数据问题的见解，我鼓励你阅读我之前的文章，[停止盲目追求数据驱动](https://medium.com/towards-data-science/stop-being-data-driven-583b5e7abe7b)，并关注我在[Medium](https://medium.com/@caiparryjones96)上的未来文章。如果你想扩大这篇文章的影响力，请为它点赞（或者给我 50 个😏）并在社交媒体上分享。感谢阅读。下次见，数据高手们，和平！✌️

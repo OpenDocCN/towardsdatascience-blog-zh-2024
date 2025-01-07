@@ -1,40 +1,40 @@
-# 定制语言AI的商业指南 第二部分
+# 定制语言 AI 的商业指南 第二部分
 
-> 原文：[https://towardsdatascience.com/the-business-guide-to-tailoring-language-ai-part-2-989a5e987f0c?source=collection_archive---------12-----------------------#2024-04-19](https://towardsdatascience.com/the-business-guide-to-tailoring-language-ai-part-2-989a5e987f0c?source=collection_archive---------12-----------------------#2024-04-19)
+> 原文：[`towardsdatascience.com/the-business-guide-to-tailoring-language-ai-part-2-989a5e987f0c?source=collection_archive---------12-----------------------#2024-04-19`](https://towardsdatascience.com/the-business-guide-to-tailoring-language-ai-part-2-989a5e987f0c?source=collection_archive---------12-----------------------#2024-04-19)
 
-## 向ChatGPT和其他基于聊天的语言AI发出提示——以及为什么您应该（不）关心它
+## 向 ChatGPT 和其他基于聊天的语言 AI 发出提示——以及为什么您应该（不）关心它
 
-[](https://medium.com/@georg.ruile?source=post_page---byline--989a5e987f0c--------------------------------)[![Georg Ruile博士](../Images/83b04db23852ba2df2818fe62250ca22.png)](https://medium.com/@georg.ruile?source=post_page---byline--989a5e987f0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--989a5e987f0c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--989a5e987f0c--------------------------------) [Georg Ruile博士](https://medium.com/@georg.ruile?source=post_page---byline--989a5e987f0c--------------------------------)
+[](https://medium.com/@georg.ruile?source=post_page---byline--989a5e987f0c--------------------------------)![Georg Ruile 博士](https://medium.com/@georg.ruile?source=post_page---byline--989a5e987f0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--989a5e987f0c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--989a5e987f0c--------------------------------) [Georg Ruile 博士](https://medium.com/@georg.ruile?source=post_page---byline--989a5e987f0c--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--989a5e987f0c--------------------------------) ·12分钟阅读·2024年4月19日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--989a5e987f0c--------------------------------) ·12 分钟阅读·2024 年 4 月 19 日
 
 --
 
-![](../Images/d38c05848cc0a25ec1ad62765d9fe3e1.png)
+![](img/d38c05848cc0a25ec1ad62765d9fe3e1.png)
 
 ## 前言
 
-本文阐明了如何“与”旨在进行对话交互的超大语言模型（LLM）进行沟通，如ChatGPT、Claude等，从而确保您从中获得的答案对于当前任务尽可能有用。人类与语言聊天机器人之间的这种沟通通常被称为提示。在本文中，我旨在为没有计算机科学背景的人提供关于该主题的简明概述，以便每个人都能理解。它也可以帮助企业理解在定制LLM过程中应当期待什么（或不应期待什么）。
+本文阐明了如何“与”旨在进行对话交互的超大语言模型（LLM）进行沟通，如 ChatGPT、Claude 等，从而确保您从中获得的答案对于当前任务尽可能有用。人类与语言聊天机器人之间的这种沟通通常被称为提示。在本文中，我旨在为没有计算机科学背景的人提供关于该主题的简明概述，以便每个人都能理解。它也可以帮助企业理解在定制 LLM 过程中应当期待什么（或不应期待什么）。
 
-提示是您在为企业定制语言模型时可以采取的四个步骤中的第一个。我在[上一篇文章](https://medium.com/towards-data-science/the-business-guide-to-tailoring-language-ai-5f0fa806e838)中介绍了**四步框架**，旨在解锁定制LLM。如果您还没有阅读过，先读一下可能会对您有所帮助，这样您就能将本文中的思想放入更大的背景中。
+提示是您在为企业定制语言模型时可以采取的四个步骤中的第一个。我在[上一篇文章](https://medium.com/towards-data-science/the-business-guide-to-tailoring-language-ai-5f0fa806e838)中介绍了**四步框架**，旨在解锁定制 LLM。如果您还没有阅读过，先读一下可能会对您有所帮助，这样您就能将本文中的思想放入更大的背景中。
 
-[](/the-business-guide-to-tailoring-language-ai-5f0fa806e838?source=post_page-----989a5e987f0c--------------------------------) [## 定制语言AI的商业指南
+[](/the-business-guide-to-tailoring-language-ai-5f0fa806e838?source=post_page-----989a5e987f0c--------------------------------) ## 定制语言 AI 的商业指南
 
-### 解锁您将理解的定制LLM解决方案框架
+### 解锁您将理解的定制 LLM 解决方案框架
 
-towardsdatascience.com](/the-business-guide-to-tailoring-language-ai-5f0fa806e838?source=post_page-----989a5e987f0c--------------------------------)
+towardsdatascience.com
 
 # 引言
 
-在ChatGPT广泛推出后不久，一个新的热门职业进入了AI领域：**提示工程**。这些AI“耳语者”，即那些具有特定“提示”技能的人，能够与语言AI对话，让它以有用的方式回应，已成为炙手可热的职位（[并且薪水丰厚](https://www.forbes.com/sites/jackkelly/2024/03/06/the-hot-new-high-paying-career-is-an-ai-prompt-engineer/)）。考虑到正确提示的一个主要构建块仅仅是（或不那么简单地）提供准确的指令（见下文），我必须承认这一发展让我感到惊讶（尽管提示*工程*无疑不仅仅是“耳语”）：精确简洁地沟通不是我们每个人都应具备的基本职业技能吗？但我又反思到，在软件开发中拥有精心设计的需求是多么重要，而“需求工程”角色已经成为成功软件开发项目的重要组成部分。
+在 ChatGPT 广泛推出后不久，一个新的热门职业进入了 AI 领域：**提示工程**。这些 AI“耳语者”，即那些具有特定“提示”技能的人，能够与语言 AI 对话，让它以有用的方式回应，已成为炙手可热的职位（[并且薪水丰厚](https://www.forbes.com/sites/jackkelly/2024/03/06/the-hot-new-high-paying-career-is-an-ai-prompt-engineer/)）。考虑到正确提示的一个主要构建块仅仅是（或不那么简单地）提供准确的指令（见下文），我必须承认这一发展让我感到惊讶（尽管提示*工程*无疑不仅仅是“耳语”）：精确简洁地沟通不是我们每个人都应具备的基本职业技能吗？但我又反思到，在软件开发中拥有精心设计的需求是多么重要，而“需求工程”角色已经成为成功软件开发项目的重要组成部分。
 
-在LLM和提示的主题中，我观察到一种不确定性和“最佳猜测”，甚至是矛盾，这在我以往接触的任何IT相关主题中都没有经历过。这与AI模型的类型和规模以及它们的**随机特性**有关，而这些超出了本文的讨论范围。考虑到像GPT-4这样模型的[1.76万亿参数](https://en.wikipedia.org/wiki/GPT-4)，从输入（你的“提示”）到输出（模型回应）的可能组合和路径数量几乎是无限且非确定性的。因此，应用程序主要将这些模型视为黑箱，而相关研究则侧重于经验方法，比如基准测试它们的性能。
+在 LLM 和提示的主题中，我观察到一种不确定性和“最佳猜测”，甚至是矛盾，这在我以往接触的任何 IT 相关主题中都没有经历过。这与 AI 模型的类型和规模以及它们的**随机特性**有关，而这些超出了本文的讨论范围。考虑到像 GPT-4 这样模型的[1.76 万亿参数](https://en.wikipedia.org/wiki/GPT-4)，从输入（你的“提示”）到输出（模型回应）的可能组合和路径数量几乎是无限且非确定性的。因此，应用程序主要将这些模型视为黑箱，而相关研究则侧重于经验方法，比如基准测试它们的性能。
 
-不幸的是，我不能提供一个完美的、适用于所有情况的提示解决方案，来永远解决你的LLM需求。再者，**不同的模型行为不同**，你可能会理解我的困境。不过，也有一些好消息：一方面，你可以且应该始终考虑一些**基本原则和概念**，这些会帮助你优化与机器的互动。精心设计的提示能比糟糕的提示更进一步，这也是为什么深入探讨这个话题是非常值得的。另一方面，**甚至可能根本不需要过多担心提示问题**，这将节省你宝贵的计算时间（字面意义上的CPU/GPU时间，以及比喻意义上你自己大脑的时间）。
+不幸的是，我不能提供一个完美的、适用于所有情况的提示解决方案，来永远解决你的 LLM 需求。再者，**不同的模型行为不同**，你可能会理解我的困境。不过，也有一些好消息：一方面，你可以且应该始终考虑一些**基本原则和概念**，这些会帮助你优化与机器的互动。精心设计的提示能比糟糕的提示更进一步，这也是为什么深入探讨这个话题是非常值得的。另一方面，**甚至可能根本不需要过多担心提示问题**，这将节省你宝贵的计算时间（字面意义上的 CPU/GPU 时间，以及比喻意义上你自己大脑的时间）。
 
 ## 从“为什么”开始
 
-这里我并不是指Simon Sinek的经典TEDx商业建议。相反，我鼓励你去好奇地思考**技术为什么会这样做**。我坚信，如果你至少理解一点软件的内在工作原理，它将极大地帮助你在应用中使用它。
+这里我并不是指 Simon Sinek 的经典 TEDx 商业建议。相反，我鼓励你去好奇地思考**技术为什么会这样做**。我坚信，如果你至少理解一点软件的内在工作原理，它将极大地帮助你在应用中使用它。
 
 那么，从原则上来说，输入（提示）是如何与输出（响应）相关的？为什么正确的提示会导致更合适的响应？要弄清楚这一点，我们至少需要对模型架构及其训练和微调有一个粗略的了解，而不需要理解像臭名昭著的 Transformer 架构和注意力机制等深奥的概念，这些概念最终促成了我们今天所知的 ChatGPT 类生成 AI 的突破。
 
@@ -46,7 +46,7 @@ towardsdatascience.com](/the-business-guide-to-tailoring-language-ai-5f0fa806e83
 
 重要的是要理解，LLM 本质上是一个**深度神经网络**，因此，它是基于**统计和概率**来工作的。简单来说，模型生成的输出反映了与上下文最接近的匹配，基于它从大量训练数据中学习到的知识。这里的一个构建块是所谓的**嵌入**，其中相似的词义（在数学上）彼此接近，尽管模型实际上并不“理解”这些词义。如果这听起来很花哨，它确实有点复杂，但同时，它“仅仅”是数学而已，所以不要害怕。
 
-![](../Images/bdb1b66d57538d9d96891eb1aea06b47.png)
+![](img/bdb1b66d57538d9d96891eb1aea06b47.png)
 
 一个简单的词向量嵌入示例——相似的词“含义”彼此接近
 
@@ -86,11 +86,11 @@ towardsdatascience.com](/the-business-guide-to-tailoring-language-ai-5f0fa806e83
 
 ***从现在起，你是一位优秀的数学老师，总是正确地教授你的学生数学问题。我是你的学生之一。***
 
-已经证明，这一概念能够带来更优的结果。一个[研究论文](https://arxiv.org/abs/2308.07702)报告指出，通过这种角色扮演，模型会隐式地触发逐步推理过程，这正是你希望它在应用CoT技巧时所做的，如下所示。然而，这种方法也已被证明**有时会表现不尽如人意**，因此需要精心设计。
+已经证明，这一概念能够带来更优的结果。一个[研究论文](https://arxiv.org/abs/2308.07702)报告指出，通过这种角色扮演，模型会隐式地触发逐步推理过程，这正是你希望它在应用 CoT 技巧时所做的，如下所示。然而，这种方法也已被证明**有时会表现不尽如人意**，因此需要精心设计。
 
-根据我的经验，单纯分配一个角色并不能奏效。我曾尝试过上面提到的论文中的示例任务。与这项研究不同，GPT3.5（截至今天是OpenAI的ChatGPT的免费版本，你可以自己尝试）通过简单查询得出了正确的结果：
+根据我的经验，单纯分配一个角色并不能奏效。我曾尝试过上面提到的论文中的示例任务。与这项研究不同，GPT3.5（截至今天是 OpenAI 的 ChatGPT 的免费版本，你可以自己尝试）通过简单查询得出了正确的结果：
 
-![](../Images/89a418b3d6837d5d59787565537487e2.png)
+![](img/89a418b3d6837d5d59787565537487e2.png)
 
 一个使用简单查询的示例，而不是[2]建议的角色扮演提示，依然得出了正确的回答。
 
@@ -118,33 +118,33 @@ towardsdatascience.com](/the-business-guide-to-tailoring-language-ai-5f0fa806e83
 
 让我们来看一个典型的分类示例。这里，模型被给出几个判断为正面、负面或中立的陈述。模型的任务是对最终的陈述进行评分：
 
-![](../Images/964b159019f7b64cc3c4b8f5ea1fa594.png)
+![](img/964b159019f7b64cc3c4b8f5ea1fa594.png)
 
 一个典型的少量样本提示的分类示例。模型需要将陈述分类为给定的类别（正面/负面）。
 
 再次强调，尽管这是一种简单直观的方法，我对它在最先进的语言模型中的价值持怀疑态度。在我的（再次，非科学严谨的）实验中，**少样本（Few-Shot）提示在任何情况下都没有优于零样本（Zero-Shot）**。（模型已经知道，不守时的鼓手是一种糟糕的体验，而我并没有教它这个……）。我的发现似乎与最近的研究一致，甚至有研究显示相反的效果（**零样本优于少样本**）[4]。
 
-在我看来，根据这一经验背景，值得考虑的是，这种方法的设计成本、计算成本、API成本和延迟成本是否值得投资。
+在我看来，根据这一经验背景，值得考虑的是，这种方法的设计成本、计算成本、API 成本和延迟成本是否值得投资。
 
-## CoT提示或“让我们一步步思考”
+## CoT 提示或“让我们一步步思考”
 
-思维链（CoT）提示旨在让我们的模型更擅长解决复杂的多步骤推理问题。它可以像在输入查询中添加CoT指令“让我们一步步思考”一样简单，从而显著提高准确性[5][6]。
+思维链（CoT）提示旨在让我们的模型更擅长解决复杂的多步骤推理问题。它可以像在输入查询中添加 CoT 指令“让我们一步步思考”一样简单，从而显著提高准确性[5][6]。
 
 与其像少样本（Few-Shot）方法那样仅提供最终查询或在提示中添加一个或几个示例，不如提示模型**将其推理过程分解成一系列中间步骤**。这类似于人类如何（理想情况下）解决一个具有挑战性的问题。
 
 记得你在学校的数学考试吗？通常，在更高级的课程中，你不仅被要求解答一个数学方程式，还要写下你是如何推导出最终解答的逻辑步骤。即使答案不对，你可能也会因为数学上合理的解题步骤而获得一些分数。就像你在学校的老师一样，你期望模型将任务分解成子任务，进行中间推理，并得出最终答案。
 
-再次强调，我自己也进行过不少CoT实验。并且，大多数时候，仅仅添加**“让我们一步步思考”并没有改善回答的质量**。事实上，似乎**CoT方法已经成为最近经过微调的基于聊天的语言模型（如ChatGPT）的隐式标准**，即使没有明确的指令，回应也经常被分解为推理的块。
+再次强调，我自己也进行过不少 CoT 实验。并且，大多数时候，仅仅添加**“让我们一步步思考”并没有改善回答的质量**。事实上，似乎**CoT 方法已经成为最近经过微调的基于聊天的语言模型（如 ChatGPT）的隐式标准**，即使没有明确的指令，回应也经常被分解为推理的块。
 
-然而，我遇到过一个例子，在这个例子中，**明确的CoT指令确实显著改善了答案**。我使用了来自[这篇文章](https://medium.com/@thomasczerny/chain-of-thought-cot-prompting-9ee4967e927c)的CoT示例，但将其改编成了一个trick question。在这里，你可以看到ChatGPT是如何陷入我的陷阱的，当它没有明确要求使用CoT方法时（尽管回应中展示了逐步推理）：
+然而，我遇到过一个例子，在这个例子中，**明确的 CoT 指令确实显著改善了答案**。我使用了来自[这篇文章](https://medium.com/@thomasczerny/chain-of-thought-cot-prompting-9ee4967e927c)的 CoT 示例，但将其改编成了一个 trick question。在这里，你可以看到 ChatGPT 是如何陷入我的陷阱的，当它没有明确要求使用 CoT 方法时（尽管回应中展示了逐步推理）：
 
-![](../Images/d66d445d5c947e3d7919d1c8553ca5da.png)
+![](img/d66d445d5c947e3d7919d1c8553ca5da.png)
 
-这是一个通过简单查询而不是CoT提示提出的 trick question。尽管回答被“逐步”分解，但它并不完全正确。
+这是一个通过简单查询而不是 CoT 提示提出的 trick question。尽管回答被“逐步”分解，但它并不完全正确。
 
-当我在相同的提示中添加“让我们一步步思考”时，它正确地解答了这个trick question（嗯，它实际上是无法解决的，ChatGPT也正确指出了这一点）：
+当我在相同的提示中添加“让我们一步步思考”时，它正确地解答了这个 trick question（嗯，它实际上是无法解决的，ChatGPT 也正确指出了这一点）：
 
-![](../Images/286f905eaa9ca7c70dc194b2da1c2fd3.png)
+![](img/286f905eaa9ca7c70dc194b2da1c2fd3.png)
 
 使用明确的思维链提示，得到正确回答的同一个陷阱问题
 
@@ -168,26 +168,26 @@ towardsdatascience.com](/the-business-guide-to-tailoring-language-ai-5f0fa806e83
 
 所有插图均由作者亲手精心绘制 :)*
 
-[1]: 大型语言模型如何工作：从零到ChatGPT
+[1]: 大型语言模型如何工作：从零到 ChatGPT
 
-[https://medium.com/data-science-at-microsoft/how-large-language-models-work-91c362f5b78f](https://medium.com/data-science-at-microsoft/how-large-language-models-work-91c362f5b78f)
+[`medium.com/data-science-at-microsoft/how-large-language-models-work-91c362f5b78f`](https://medium.com/data-science-at-microsoft/how-large-language-models-work-91c362f5b78f)
 
 [2]: 通过角色扮演提示实现更好的零样本推理
 
-[https://arxiv.org/abs/2308.07702](https://arxiv.org/abs/2308.07702)
+[`arxiv.org/abs/2308.07702`](https://arxiv.org/abs/2308.07702)
 
 [3]: 重新思考演示的角色：是什么让上下文学习有效？
 
-[https://arxiv.org/abs/2202.12837](https://arxiv.org/abs/2202.12837)
+[`arxiv.org/abs/2202.12837`](https://arxiv.org/abs/2202.12837)
 
 [4]: 大型语言模型的提示编程：超越少样本范式
 
-[https://dl.acm.org/doi/abs/10.1145/3411763.3451760](https://dl.acm.org/doi/abs/10.1145/3411763.3451760)。
+[`dl.acm.org/doi/abs/10.1145/3411763.3451760`](https://dl.acm.org/doi/abs/10.1145/3411763.3451760)。
 
 [5]: 什么时候需要为 ChatGPT 提供链式思维提示？
 
-[https://arxiv.org/abs/2304.03262](https://arxiv.org/abs/2304.03262)
+[`arxiv.org/abs/2304.03262`](https://arxiv.org/abs/2304.03262)
 
 [6]: 大型语言模型是零-shot 推理者
 
-[https://arxiv.org/abs/2205.11916](https://arxiv.org/abs/2205.11916)
+[`arxiv.org/abs/2205.11916`](https://arxiv.org/abs/2205.11916)

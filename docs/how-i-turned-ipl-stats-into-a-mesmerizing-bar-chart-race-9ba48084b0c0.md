@@ -1,12 +1,12 @@
 # 我是如何将 IPL 数据转化为令人着迷的条形图竞赛
 
-> 原文：[https://towardsdatascience.com/how-i-turned-ipl-stats-into-a-mesmerizing-bar-chart-race-9ba48084b0c0?source=collection_archive---------6-----------------------#2024-10-06](https://towardsdatascience.com/how-i-turned-ipl-stats-into-a-mesmerizing-bar-chart-race-9ba48084b0c0?source=collection_archive---------6-----------------------#2024-10-06)
+> 原文：[`towardsdatascience.com/how-i-turned-ipl-stats-into-a-mesmerizing-bar-chart-race-9ba48084b0c0?source=collection_archive---------6-----------------------#2024-10-06`](https://towardsdatascience.com/how-i-turned-ipl-stats-into-a-mesmerizing-bar-chart-race-9ba48084b0c0?source=collection_archive---------6-----------------------#2024-10-06)
 
 ## 数据故事化中创建引人入胜的动画可视化的逐步指南
 
-[](https://tezansahu.medium.com/?source=post_page---byline--9ba48084b0c0--------------------------------)[![Tezan Sahu](../Images/494010beafe125d53290a67107d38d10.png)](https://tezansahu.medium.com/?source=post_page---byline--9ba48084b0c0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ba48084b0c0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9ba48084b0c0--------------------------------) [Tezan Sahu](https://tezansahu.medium.com/?source=post_page---byline--9ba48084b0c0--------------------------------)
+[](https://tezansahu.medium.com/?source=post_page---byline--9ba48084b0c0--------------------------------)![Tezan Sahu](https://tezansahu.medium.com/?source=post_page---byline--9ba48084b0c0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ba48084b0c0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ba48084b0c0--------------------------------) [Tezan Sahu](https://tezansahu.medium.com/?source=post_page---byline--9ba48084b0c0--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ba48084b0c0--------------------------------) ·阅读时间 8 分钟·2024年10月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ba48084b0c0--------------------------------) ·阅读时间 8 分钟·2024 年 10 月 6 日
 
 --
 
@@ -14,7 +14,7 @@
 
 我知道我有过——像你们中的许多人一样，我一直对那些出现在社交媒体上的动画可视化着迷。你们知道的，就是那些迷人的***条形图竞赛***，展示人口增长，或是***动态气泡图***，说明人们如何度过一天的时间。我会一遍遍地看，惊叹于它们讲述的故事，哪怕没有一句话。
 
-![](../Images/64f37deb646449a419f1a1437fd9baec.png)![](../Images/64f2639860e97b871ca39093c0710930.png)
+![](img/64f37deb646449a419f1a1437fd9baec.png)![](img/64f2639860e97b871ca39093c0710930.png)
 
 动画图表的示例——条形图竞赛（左）和动态气泡图（右）
 
@@ -24,7 +24,7 @@
 
 在这篇文章中，我分享了如何勇敢尝试并创建了我的第一个惊艳的动画可视化。这是最终效果的一个小预览：
 
-![](../Images/6c091cdc00fccd5e3806ad62633f4556.png)
+![](img/6c091cdc00fccd5e3806ad62633f4556.png)
 
 最终可视化的一部分（2020–24）（由作者创建）
 
@@ -60,13 +60,13 @@ www.kaggle.com](https://www.kaggle.com/datasets/patrickb1912/ipl-complete-datase
 
 虽然我很擅长使用 Python 从零开始编写可视化代码，但我对低代码工具的高效性产生了兴趣。于是，遇到了 [**Flourish**](https://flourish.studio/visualisations/bar-chart-race/)——一个我偶然发现的工具，承诺在不需要编码的情况下帮助创建令人惊叹的可视化 —— 真是太酷了！
 
-![](../Images/755083ab68cfb3602daafadf118f4394.png)
+![](img/755083ab68cfb3602daafadf118f4394.png)
 
 在搜索工具以创建动画可视化时，我偶然发现了 “Flourish”。
 
 Flourish 提供的可视化选项种类丰富（即使是免费版用户也可以使用）。在选择“条形图竞赛”选项后，点击“数据”切换按钮，我迅速理解了 Flourish 生成条形图竞赛可视化所需的数据要求。
 
-![](../Images/f537b8ae6674dcab6e5ccced44d7b2cd.png)
+![](img/f537b8ae6674dcab6e5ccced44d7b2cd.png)
 
 理解 Flourish 中的数据需求
 
@@ -78,7 +78,7 @@ Flourish 提供的可视化选项种类丰富（即使是免费版用户也可�
 
 第一步，我大致解释了数据集最初的格式，以及我希望最终表示的方式：
 
-这是GitHub Copilot返回的结果：
+这是 GitHub Copilot 返回的结果：
 
 我惊喜地发现，这段代码几乎*第一次就正确了*！所示过程很简单：
 
@@ -100,17 +100,17 @@ if date != unique_dates[0]:
 
 `cumulative_wins.head()` 得到如下结果：
 
-![](../Images/ba3387d4d774becbb847c26b4b2f1921.png)
+![](img/ba3387d4d774becbb847c26b4b2f1921.png)
 
 等等，别急！IPL，像所有好的戏剧一样，有着自己的曲折变化……
 
-# 处理IPL的细节
+# 处理 IPL 的细节
 
-尽管这些数据本身已经*足够*用于在Flourish中做条形图竞赛可视化，但我决定处理一些IPL的细节，以使可视化更加真实。
+尽管这些数据本身已经*足够*用于在 Flourish 中做条形图竞赛可视化，但我决定处理一些 IPL 的细节，以使可视化更加真实。
 
 ## 队伍更名
 
-在IPL的历史中，曾多次发生过俱乐部老板更换，导致队伍重新品牌化的情况。*还记得* ***德干充电器*** *变成了* ***太阳神海得拉巴*** 吗？
+在 IPL 的历史中，曾多次发生过俱乐部老板更换，导致队伍重新品牌化的情况。*还记得* ***德干充电器*** *变成了* ***太阳神海得拉巴*** 吗？
 
 在数据集中，这些被视为单独的队伍，在单独的行中，其中在更名后，旧队伍会保留到那一年的累计胜场，而新队伍则从零胜场开始。
 
@@ -118,21 +118,21 @@ if date != unique_dates[0]:
 
 经过几处小修正，最终的代码如下：
 
-现在，为了将其推广并应用于各种变化，我尝试将其转化为一个函数，并使用Bing查找这些重大队伍变动的年份，然后将该函数应用于它们：
+现在，为了将其推广并应用于各种变化，我尝试将其转化为一个函数，并使用 Bing 查找这些重大队伍变动的年份，然后将该函数应用于它们：
 
 太棒了！我已经能考虑到多年来发生的所有俱乐部更换情况。尽管如此，有一件事仍然困扰我……
 
 ## 解散的队伍
 
-IPL中有一些队伍只出现在几个赛季中，然后消失不见。它们在最终可视化中的存在，看起来没有必要。
+IPL 中有一些队伍只出现在几个赛季中，然后消失不见。它们在最终可视化中的存在，看起来没有必要。
 
 所以，我尝试通过以下提示在它们最后一次出现后将其移除：
 
-这给了我另一个很棒的功能，我可以将其应用于那些多年来解散的队伍（再次说明，这些数据是我从Bing找到的）。
+这给了我另一个很棒的功能，我可以将其应用于那些多年来解散的队伍（再次说明，这些数据是我从 Bing 找到的）。
 
 ## 队伍徽标
 
-在Flourish的演示数据中，我注意到有一列包含了每个条形图竞赛中可以使用的图像链接。
+在 Flourish 的演示数据中，我注意到有一列包含了每个条形图竞赛中可以使用的图像链接。
 
 为了让我的可视化更加突出，我想做一些类似的事情。所以，我找到了我们数据集中每支独特队伍的徽标图片，并将它们添加到一个新列中：
 
@@ -184,7 +184,7 @@ IPL 团队获胜的最终条形图比赛可视化（由作者创建）
 
 嗨，大家好！👋🏼
 
-我是**Tezan Sahu**，一名**微软**的软件工程师 2（前数据与应用科学家 2），***亚马逊 #1畅销书作者***（著作《[**Beyond Code**](https://www.amazon.in/Beyond-Code-Strategies-Technical-Scientists-ebook/dp/B0BW8MJW6G/)》），同时也是《[**The Vision, Debugged**](https://the-vision-debugged.beehiiv.com/)》AI时事通讯的共同作者。
+我是**Tezan Sahu**，一名**微软**的软件工程师 2（前数据与应用科学家 2），***亚马逊 #1 畅销书作者***（著作《[**Beyond Code**](https://www.amazon.in/Beyond-Code-Strategies-Technical-Scientists-ebook/dp/B0BW8MJW6G/)》），同时也是《[**The Vision, Debugged**](https://the-vision-debugged.beehiiv.com/)》AI 时事通讯的共同作者。
 
 我热衷于帮助有志成为数据科学家和软件开发者的人们启动他们的职业生涯，持续地产生影响，并成为人工智能和数据科学领域的有差异化的专业人士。
 

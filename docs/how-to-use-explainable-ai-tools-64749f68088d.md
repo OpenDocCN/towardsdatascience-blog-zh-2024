@@ -1,18 +1,18 @@
 # 如何使用可解释的 AI 工具
 
-> 原文：[https://towardsdatascience.com/how-to-use-explainable-ai-tools-64749f68088d?source=collection_archive---------7-----------------------#2024-08-15](https://towardsdatascience.com/how-to-use-explainable-ai-tools-64749f68088d?source=collection_archive---------7-----------------------#2024-08-15)
+> 原文：[`towardsdatascience.com/how-to-use-explainable-ai-tools-64749f68088d?source=collection_archive---------7-----------------------#2024-08-15`](https://towardsdatascience.com/how-to-use-explainable-ai-tools-64749f68088d?source=collection_archive---------7-----------------------#2024-08-15)
 
 ## [AI 陷阱摘要](https://medium.com/@pedram-ataee/list/ai-pitfalls-digest-881a26c7eec5)
 
 ## 深入探讨特征重要性、部分依赖图和子群体分析
 
-[](https://pedram-ataee.medium.com/?source=post_page---byline--64749f68088d--------------------------------)[![Pedram Ataee 博士](../Images/f4fb1ce6d5543f24e56cdf83630844b2.png)](https://pedram-ataee.medium.com/?source=post_page---byline--64749f68088d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--64749f68088d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--64749f68088d--------------------------------) [Pedram Ataee 博士](https://pedram-ataee.medium.com/?source=post_page---byline--64749f68088d--------------------------------)
+[](https://pedram-ataee.medium.com/?source=post_page---byline--64749f68088d--------------------------------)![Pedram Ataee 博士](https://pedram-ataee.medium.com/?source=post_page---byline--64749f68088d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--64749f68088d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--64749f68088d--------------------------------) [Pedram Ataee 博士](https://pedram-ataee.medium.com/?source=post_page---byline--64749f68088d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--64749f68088d--------------------------------) ·阅读时间：7 分钟·2024年8月15日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--64749f68088d--------------------------------) ·阅读时间：7 分钟·2024 年 8 月 15 日
 
 --
 
-![](../Images/22af3c18fc0d81ec941cbdfdfad2e0a6.png)
+![](img/22af3c18fc0d81ec941cbdfdfad2e0a6.png)
 
 图片来自[Artem Sapegin](https://unsplash.com/@sapegin?utm_source=medium&utm_medium=referral)的[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

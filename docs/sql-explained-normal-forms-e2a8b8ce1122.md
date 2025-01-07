@@ -1,16 +1,16 @@
 # SQL 解释：规范化范式
 
-> 原文：[https://towardsdatascience.com/sql-explained-normal-forms-e2a8b8ce1122?source=collection_archive---------9-----------------------#2024-05-29](https://towardsdatascience.com/sql-explained-normal-forms-e2a8b8ce1122?source=collection_archive---------9-----------------------#2024-05-29)
+> 原文：[`towardsdatascience.com/sql-explained-normal-forms-e2a8b8ce1122?source=collection_archive---------9-----------------------#2024-05-29`](https://towardsdatascience.com/sql-explained-normal-forms-e2a8b8ce1122?source=collection_archive---------9-----------------------#2024-05-29)
 
-![](../Images/34e9cd23d967f10a6359526963a89744.png)
+![](img/34e9cd23d967f10a6359526963a89744.png)
 
 图像来源：AI（Dalle-3）
 
 ## 将第一、第二和第三范式应用于数据库
 
-[](https://medium.com/@thomas_reid?source=post_page---byline--e2a8b8ce1122--------------------------------)[![Thomas Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--e2a8b8ce1122--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2a8b8ce1122--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e2a8b8ce1122--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--e2a8b8ce1122--------------------------------)
+[](https://medium.com/@thomas_reid?source=post_page---byline--e2a8b8ce1122--------------------------------)![Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--e2a8b8ce1122--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2a8b8ce1122--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2a8b8ce1122--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--e2a8b8ce1122--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2a8b8ce1122--------------------------------) ·阅读时间 10 分钟·2024年5月29日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2a8b8ce1122--------------------------------) ·阅读时间 10 分钟·2024 年 5 月 29 日
 
 --
 

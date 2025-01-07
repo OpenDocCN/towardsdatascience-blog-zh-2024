@@ -1,16 +1,16 @@
 # 为机器学习中的测试驱动开发辩护
 
-> 原文：[https://towardsdatascience.com/making-the-case-for-test-driven-development-in-machine-learning-1aa84bc2a0aa?source=collection_archive---------5-----------------------#2024-04-22](https://towardsdatascience.com/making-the-case-for-test-driven-development-in-machine-learning-1aa84bc2a0aa?source=collection_archive---------5-----------------------#2024-04-22)
+> 原文：[`towardsdatascience.com/making-the-case-for-test-driven-development-in-machine-learning-1aa84bc2a0aa?source=collection_archive---------5-----------------------#2024-04-22`](https://towardsdatascience.com/making-the-case-for-test-driven-development-in-machine-learning-1aa84bc2a0aa?source=collection_archive---------5-----------------------#2024-04-22)
 
-![](../Images/73dee20511bf080415d5c9e04adfcace.png)
+![](img/73dee20511bf080415d5c9e04adfcace.png)
 
-照片来源：cottonbro studio: [https://www.pexels.com/photo/woman-using-a-computer-5473298/](https://www.pexels.com/photo/woman-using-a-computer-5473298/)
+照片来源：cottonbro studio: [`www.pexels.com/photo/woman-using-a-computer-5473298/`](https://www.pexels.com/photo/woman-using-a-computer-5473298/)
 
 ## 发现测试驱动开发（TDD）如何改变机器学习项目的结果。本文揭示了 TDD 为什么有益且易于实施。
 
-[](https://jonathanserrano.medium.com/?source=post_page---byline--1aa84bc2a0aa--------------------------------)[![Jonathan Serrano](../Images/31510f02d59e7e48f169edb822cd0dc9.png)](https://jonathanserrano.medium.com/?source=post_page---byline--1aa84bc2a0aa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1aa84bc2a0aa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1aa84bc2a0aa--------------------------------) [Jonathan Serrano](https://jonathanserrano.medium.com/?source=post_page---byline--1aa84bc2a0aa--------------------------------)
+[](https://jonathanserrano.medium.com/?source=post_page---byline--1aa84bc2a0aa--------------------------------)![Jonathan Serrano](https://jonathanserrano.medium.com/?source=post_page---byline--1aa84bc2a0aa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1aa84bc2a0aa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1aa84bc2a0aa--------------------------------) [Jonathan Serrano](https://jonathanserrano.medium.com/?source=post_page---byline--1aa84bc2a0aa--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1aa84bc2a0aa--------------------------------) ·阅读时间 11 分钟·2024年4月22日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1aa84bc2a0aa--------------------------------) ·阅读时间 11 分钟·2024 年 4 月 22 日
 
 --
 

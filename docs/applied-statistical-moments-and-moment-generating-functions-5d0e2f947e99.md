@@ -1,16 +1,16 @@
 # 应用统计矩和矩生成函数
 
-> 原文：[https://towardsdatascience.com/applied-statistical-moments-and-moment-generating-functions-5d0e2f947e99?source=collection_archive---------11-----------------------#2024-01-22](https://towardsdatascience.com/applied-statistical-moments-and-moment-generating-functions-5d0e2f947e99?source=collection_archive---------11-----------------------#2024-01-22)
+> 原文：[`towardsdatascience.com/applied-statistical-moments-and-moment-generating-functions-5d0e2f947e99?source=collection_archive---------11-----------------------#2024-01-22`](https://towardsdatascience.com/applied-statistical-moments-and-moment-generating-functions-5d0e2f947e99?source=collection_archive---------11-----------------------#2024-01-22)
 
 ## 动机、定义及应用
 
-[](https://romanmichaelpaolucci.medium.com/?source=post_page---byline--5d0e2f947e99--------------------------------)[![Roman Paolucci](../Images/d0072d982b6327bdeffa615044a765ad.png)](https://romanmichaelpaolucci.medium.com/?source=post_page---byline--5d0e2f947e99--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5d0e2f947e99--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5d0e2f947e99--------------------------------) [Roman Paolucci](https://romanmichaelpaolucci.medium.com/?source=post_page---byline--5d0e2f947e99--------------------------------)
+[](https://romanmichaelpaolucci.medium.com/?source=post_page---byline--5d0e2f947e99--------------------------------)![Roman Paolucci](https://romanmichaelpaolucci.medium.com/?source=post_page---byline--5d0e2f947e99--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5d0e2f947e99--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d0e2f947e99--------------------------------) [Roman Paolucci](https://romanmichaelpaolucci.medium.com/?source=post_page---byline--5d0e2f947e99--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d0e2f947e99--------------------------------) ·9分钟阅读·2024年1月22日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d0e2f947e99--------------------------------) ·9 分钟阅读·2024 年 1 月 22 日
 
 --
 
-![](../Images/e430936579ded789bbbb2f1739e3e934.png)
+![](img/e430936579ded789bbbb2f1739e3e934.png)
 
 图片由[Milad Fakurian](https://unsplash.com/@fakurian?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

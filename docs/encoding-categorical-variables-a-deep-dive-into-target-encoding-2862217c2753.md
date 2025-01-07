@@ -1,12 +1,12 @@
 # 编码分类变量：深入探讨目标编码
 
-> 原文：[https://towardsdatascience.com/encoding-categorical-variables-a-deep-dive-into-target-encoding-2862217c2753?source=collection_archive---------2-----------------------#2024-02-05](https://towardsdatascience.com/encoding-categorical-variables-a-deep-dive-into-target-encoding-2862217c2753?source=collection_archive---------2-----------------------#2024-02-05)
+> 原文：[`towardsdatascience.com/encoding-categorical-variables-a-deep-dive-into-target-encoding-2862217c2753?source=collection_archive---------2-----------------------#2024-02-05`](https://towardsdatascience.com/encoding-categorical-variables-a-deep-dive-into-target-encoding-2862217c2753?source=collection_archive---------2-----------------------#2024-02-05)
 
 ## 数据有不同的形态和形式，其中一种形式被称为分类数据。
 
-[](https://medium.com/@juanjosemunozp?source=post_page---byline--2862217c2753--------------------------------)[![Juan Jose Munoz](../Images/b42d72e9e2a2eaf11da5465e9b041d53.png)](https://medium.com/@juanjosemunozp?source=post_page---byline--2862217c2753--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2862217c2753--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2862217c2753--------------------------------) [Juan Jose Munoz](https://medium.com/@juanjosemunozp?source=post_page---byline--2862217c2753--------------------------------)
+[](https://medium.com/@juanjosemunozp?source=post_page---byline--2862217c2753--------------------------------)![Juan Jose Munoz](https://medium.com/@juanjosemunozp?source=post_page---byline--2862217c2753--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2862217c2753--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2862217c2753--------------------------------) [Juan Jose Munoz](https://medium.com/@juanjosemunozp?source=post_page---byline--2862217c2753--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2862217c2753--------------------------------) ·10分钟阅读·2024年2月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2862217c2753--------------------------------) ·10 分钟阅读·2024 年 2 月 5 日
 
 --
 
@@ -14,7 +14,7 @@
 
 **下面是如何使用目标编码将分类特征转换为数值的方法。**
 
-![](../Images/f5faebf9812d3395ba1b4d55a6ddf0f3.png)
+![](img/f5faebf9812d3395ba1b4d55a6ddf0f3.png)
 
 图片由[Sonika Agarwal](https://unsplash.com/@sonika_agarwal?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -40,7 +40,7 @@ one_hot_encoded = pd.get_dummies(df['Category'])
 print(one_hot_encoded)
 ```
 
-![](../Images/ba9c89d63e6cba7e5db81567deaf9b35.png)
+![](img/ba9c89d63e6cba7e5db81567deaf9b35.png)
 
 一热编码输出——我们可以通过去掉一列来改进这一点，因为如果我们知道了蓝色和绿色，就能推断出红色的值。图片由作者提供
 
@@ -54,7 +54,7 @@ print(one_hot_encoded)
 data.info()
 ```
 
-![](../Images/5e6c072ac9109edba362fc86ca6496ee.png)
+![](img/5e6c072ac9109edba362fc86ca6496ee.png)
 
 列信息。图像来源：作者
 
@@ -66,7 +66,7 @@ print("Number of unique values in each column:")
 print(unique_values_per_column)
 ```
 
-![](../Images/3272325aaa9c9f09c59e5aa935a95c95.png)
+![](img/3272325aaa9c9f09c59e5aa935a95c95.png)
 
 这八个特征具有高基数。图像来源：作者
 
@@ -79,7 +79,7 @@ total_memory_usage = memory_usage.sum()
 print(f"\nTotal memory usage of the DataFrame: {total_memory_usage / (1024 ** 2):.2f} MB")
 ```
 
-![](../Images/c46013a222c086c67eca8bdf08167d6a.png)
+![](img/c46013a222c086c67eca8bdf08167d6a.png)
 
 初始数据集大小为 11.24 MB。图像来源：作者
 
@@ -92,11 +92,11 @@ data_encoded = pd.get_dummies(data,
 data_encoded.shape
 ```
 
-![](../Images/c18fd40a3d00ecb79244ef3e78d51923.png)
+![](img/c18fd40a3d00ecb79244ef3e78d51923.png)
 
 独热编码后，数据集有 15,618 列。图像来源：作者
 
-![](../Images/8d92598376535d840d3f52d59a26e239.png)
+![](img/8d92598376535d840d3f52d59a26e239.png)
 
 结果数据集非常稀疏，这意味着它包含了大量的 0 和 1。图像来源：作者
 
@@ -107,7 +107,7 @@ total_memory_usage = memory_usage.sum()
 print(f"\nTotal memory usage of the DataFrame: {total_memory_usage / (1024 ** 2):.2f} MB")
 ```
 
-![](../Images/ca2ecf4f83515a06eae3394bcd8aa012.png)
+![](img/ca2ecf4f83515a06eae3394bcd8aa012.png)
 
 由于列数增加，数据集的内存使用量增加到 488.08 MB。图像来源：作者
 
@@ -133,7 +133,7 @@ expected_values = data.groupby('ROLE_TITLE')['ACTION'].value_counts(normalize=Tr
 expected_values
 ```
 
-![](../Images/492473834fd253f24f7d6a3fe7c7dcb6.png)
+![](img/492473834fd253f24f7d6a3fe7c7dcb6.png)
 
 结果表格显示了每个 `ACTION` 结果按唯一 `Role_title` ID 的概率。图像来源：作者
 
@@ -147,7 +147,7 @@ expected_values
 
 为了使目标编码更加稳健，你可以创建一个自定义的转换器类，并将其与 scikit-learn 集成，这样就可以在任何模型管道中使用。
 
-*注意：以下代码取自《Kaggle书籍》，可以在 Kaggle 中找到：* [*https://www.kaggle.com/code/lucamassaron/meta-features-and-target-encoding*](https://www.kaggle.com/code/lucamassaron/meta-features-and-target-encoding)
+*注意：以下代码取自《Kaggle 书籍》，可以在 Kaggle 中找到：* [*https://www.kaggle.com/code/lucamassaron/meta-features-and-target-encoding*](https://www.kaggle.com/code/lucamassaron/meta-features-and-target-encoding)
 
 ```py
 import numpy as np
@@ -353,7 +353,7 @@ te.fit(data, data['ACTION'])
 te.transform(data[['ROLE_TITLE']])
 ```
 
-![](../Images/22681eff29fda72f848991a453fed087.png)
+![](img/22681eff29fda72f848991a453fed087.png)
 
 输出带有目标编码角色标题的结果。图像由作者提供
 
@@ -370,7 +370,7 @@ te_data = te.transform(features)
 te_data.head()
 ```
 
-![](../Images/16cffc6f388731f36b184f0376183964.png)
+![](img/16cffc6f388731f36b184f0376183964.png)
 
 输出目标编码特征。图像由作者提供
 
@@ -380,7 +380,7 @@ total_memory_usage = memory_usage.sum()
 print(f"\nTotal memory usage of the DataFrame: {total_memory_usage / (1024 ** 2):.2f} MB")
 ```
 
-![](../Images/9d24943bd0681c1ba70420d2f47e6bdd.png)
+![](img/9d24943bd0681c1ba70420d2f47e6bdd.png)
 
 结果数据集仅使用了 2.25 MB，而独热编码器则使用了 488.08 MB。图像由作者提供
 
@@ -407,7 +407,7 @@ X_trans = te.fit_transform(features, y)
 features_encoded = pd.DataFrame(X_trans, columns = features.columns) 
 ```
 
-![](../Images/1aaf7df1af07f04088bc8380e62d514f.png)
+![](img/1aaf7df1af07f04088bc8380e62d514f.png)
 
 sklearn 目标编码器转换的输出。图片由作者提供
 
@@ -421,8 +421,8 @@ sklearn 目标编码器转换的输出。图片由作者提供
 
 [1] Banachewicz, K. & Massaron, L. (2022). *《Kaggle 书：用于竞争数据科学的数据分析与机器学习》*。Packt>
 
-[2] Massaron, L. (2022年1月)。Amazon 员工访问挑战。于 2024 年 2 月 1 日检索自 [https://www.kaggle.com/datasets/lucamassaron/amazon-employee-access-challenge](https://www.kaggle.com/datasets/lucamassaron/amazon-employee-access-challenge)
+[2] Massaron, L. (2022 年 1 月)。Amazon 员工访问挑战。于 2024 年 2 月 1 日检索自 [`www.kaggle.com/datasets/lucamassaron/amazon-employee-access-challenge`](https://www.kaggle.com/datasets/lucamassaron/amazon-employee-access-challenge)
 
-[3] Massaron, L. 元特征和目标编码。于 2024 年 2 月 1 日检索自 [https://www.kaggle.com/luca-massaron/meta-features-and-target-encoding](https://www.kaggle.com/luca-massaron/meta-features-and-target-encoding)
+[3] Massaron, L. 元特征和目标编码。于 2024 年 2 月 1 日检索自 [`www.kaggle.com/luca-massaron/meta-features-and-target-encoding`](https://www.kaggle.com/luca-massaron/meta-features-and-target-encoding)
 
-[4] Scikit-learn.`sklearn.preprocessing.TargetEncoder`。在 scikit-learn：Python 中的机器学习（版本 1.3）。于 2024 年 2 月 1 日检索自 [https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.TargetEncoder.html](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.TargetEncoder.html)
+[4] Scikit-learn.`sklearn.preprocessing.TargetEncoder`。在 scikit-learn：Python 中的机器学习（版本 1.3）。于 2024 年 2 月 1 日检索自 [`scikit-learn.org/stable/modules/generated/sklearn.preprocessing.TargetEncoder.html`](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.TargetEncoder.html)

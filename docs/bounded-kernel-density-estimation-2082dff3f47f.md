@@ -1,16 +1,16 @@
 # 有界核密度估计
 
-> 原文：[https://towardsdatascience.com/bounded-kernel-density-estimation-2082dff3f47f?source=collection_archive---------7-----------------------#2024-02-28](https://towardsdatascience.com/bounded-kernel-density-estimation-2082dff3f47f?source=collection_archive---------7-----------------------#2024-02-28)
+> 原文：[`towardsdatascience.com/bounded-kernel-density-estimation-2082dff3f47f?source=collection_archive---------7-----------------------#2024-02-28`](https://towardsdatascience.com/bounded-kernel-density-estimation-2082dff3f47f?source=collection_archive---------7-----------------------#2024-02-28)
 
 ## *了解核密度估计是如何工作的，以及如何调整它以更好地处理有界数据，如年龄、身高或价格*
 
-[](https://medium.com/@thom01.rouch?source=post_page---byline--2082dff3f47f--------------------------------)[![Thomas Rouch](../Images/a8440bbed59cd8d9cdd752cf1fea2831.png)](https://medium.com/@thom01.rouch?source=post_page---byline--2082dff3f47f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2082dff3f47f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2082dff3f47f--------------------------------) [Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--2082dff3f47f--------------------------------)
+[](https://medium.com/@thom01.rouch?source=post_page---byline--2082dff3f47f--------------------------------)![Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--2082dff3f47f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2082dff3f47f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2082dff3f47f--------------------------------) [Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--2082dff3f47f--------------------------------)
 
-·发表于[《数据科学前沿》](https://towardsdatascience.com/?source=post_page---byline--2082dff3f47f--------------------------------) ·9分钟阅读·2024年2月28日
+·发表于[《数据科学前沿》](https://towardsdatascience.com/?source=post_page---byline--2082dff3f47f--------------------------------) ·9 分钟阅读·2024 年 2 月 28 日
 
 --
 
-![](../Images/5227621375cf4dca482a337bcfaf6180.png)
+![](img/5227621375cf4dca482a337bcfaf6180.png)
 
 图片来自[Maxim Berg](https://unsplash.com/@maxberg?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -26,9 +26,9 @@
 
 +   ***小的箱子大小***：有助于捕捉较高频率的细节。然而，如果样本数量太小，我们可能会在真实密度不存在的地方出现大量空箱子。
 
-![](../Images/fc2efc6f47353bda2c8e052fa20b6281.png)
+![](img/fc2efc6f47353bda2c8e052fa20b6281.png)
 
-从高斯分布中抽取的100个样本的直方图，箱子数量递增（5/10/50）— 作者提供的图片
+从高斯分布中抽取的 100 个样本的直方图，箱子数量递增（5/10/50）— 作者提供的图片
 
 ## 核密度估计 (KDE)
 
@@ -36,13 +36,13 @@
 
 这正是核密度估计（KDE）所做的。它通过将每个样本周围的局部密度核 K 的平均值作为全局密度进行估计。核是一个非负函数，其积分为 `1`，例如均匀、三角形、正态分布等……就像在直方图中调整箱子的大小一样，我们引入了一个带宽参数 `h`，它调节每个样本点周围核的偏差。因此，它控制着最终密度估计的平滑度。
 
-![](../Images/ac11595d755e2dce6d7d8cb08639a66e.png)
+![](img/ac11595d755e2dce6d7d8cb08639a66e.png)
 
 ## 带宽选择
 
 寻找合适的平衡点，在欠平滑和过度平滑之间并非易事。一个流行且易于计算的启发式方法是 Silverman 的经验法则，当估计的基础密度为高斯分布时，它是最优的。
 
-![](../Images/2f679c8d8847706e9df45beb35d899d9.png)
+![](img/2f679c8d8847706e9df45beb35d899d9.png)
 
 Silverman 的经验法则，其中 n 是样本数量，sigma 是样本的标准差
 
@@ -50,7 +50,7 @@ Silverman 的经验法则，其中 n 是样本数量，sigma 是样本的标准�
 
 下图展示了在不同带宽值下，通过高斯核密度估计（KDE）估计的高斯分布。正如我们所见，Silverman 的经验法则非常适用，但更高的带宽会导致过度平滑，而较低的带宽则会在真实密度周围引入高频振荡。
 
-![](../Images/fbaf3cf096dbb269df2384b94d1ce347.png)
+![](img/fbaf3cf096dbb269df2384b94d1ce347.png)
 
 从 100 个样本中抽取的真实高斯分布进行的高斯核密度估计，使用不同的带宽参数（0.01、0.04、0.10）——图片由作者提供
 
@@ -60,7 +60,7 @@ Silverman 的经验法则，其中 n 是样本数量，sigma 是样本的标准�
 
 > 尽管这不是最优的，但我选择在视频中保持较小的常数带宽 `h`，以更好地展示核平均的过程，并在样本量非常小的时候避免过度平滑。
 
-![](../Images/a4e90d2578ba746cad4effc4bc365e1b.png)
+![](img/a4e90d2578ba746cad4effc4bc365e1b.png)
 
 随着样本大小增加，高斯核密度估计在 4 个标准密度分布（均匀、三角形、高斯、高斯混合）上的收敛性——视频由作者提供
 
@@ -76,7 +76,7 @@ Silverman 的经验法则，其中 n 是样本数量，sigma 是样本的标准�
 
 > 注意：此版本之所以快速，是因为它是向量化的。然而，它涉及创建一个形状为 `(len(x_data), len(x_prediction))` 的大型二维临时数组来存储所有核评估。为了降低内存占用，我们可以使用 `numba` 或 `cython` 重新编写代码（以避免 Python 循环带来的计算负担），在每次输出预测时动态地将核评估聚合到一个累计和中。
 
-![](../Images/d70725ddf1f3e1a32622c0dff26ca558.png)
+![](img/d70725ddf1f3e1a32622c0dff26ca558.png)
 
 图片由 [Parker Coffman](https://unsplash.com/@lowmurmer?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -90,7 +90,7 @@ Silverman 的经验法则，其中 n 是样本数量，sigma 是样本的标准�
 
 如下图所示，核在估计均匀分布的边缘时效果较差，会泄漏到有界域之外。
 
-![](../Images/512f7dee93cb2ecb811e4eede5ce19db.png)
+![](img/512f7dee93cb2ecb811e4eede5ce19db.png)
 
 高斯 KDE 对 100 个从均匀分布中抽取的样本进行估计 — 图片来自作者
 
@@ -118,45 +118,45 @@ Silverman 的经验法则，其中 n 是样本数量，sigma 是样本的标准�
 
 下面的图表展示了反射技巧在三种标准分布中的应用：均匀分布、右三角分布和反平方根分布。即使是在反平方根分布的奇点处，它也能有效地减少边界处的偏差。
 
-![](../Images/a2bee39cfbb23090555e0de197fec3c6.png)
+![](img/a2bee39cfbb23090555e0de197fec3c6.png)
 
-对均匀分布的KDE，使用反射处理边界——作者提供的图片
+对均匀分布的 KDE，使用反射处理边界——作者提供的图片
 
-![](../Images/36fe2400d8dd695f2f442e0a9afad07b.png)
+![](img/36fe2400d8dd695f2f442e0a9afad07b.png)
 
-对三角形分布的KDE，使用反射处理边界——作者提供的图片
+对三角形分布的 KDE，使用反射处理边界——作者提供的图片
 
-![](../Images/139670d395596d1addd42afb6699aa55.png)
+![](img/139670d395596d1addd42afb6699aa55.png)
 
-对反平方根分布的KDE，使用反射处理边界——作者提供的图片
+对反平方根分布的 KDE，使用反射处理边界——作者提供的图片
 
-> 注意：`basic_kde`的签名已稍作更新，现在可以选择提供自定义的带宽参数，而不是使用Silverman的经验法则。
+> 注意：`basic_kde`的签名已稍作更新，现在可以选择提供自定义的带宽参数，而不是使用 Silverman 的经验法则。
 
 ## ***解决方案：加权***
 
 上述反射技巧将局部核的泄漏尾部重新加回到边界域中，从而避免信息丢失。然而，我们也可以计算出局部核在边界域外损失了多少，并利用这一信息来修正偏差。
 
-对于大量样本，KDE会收敛到核函数与真实密度的卷积，并在边界域上进行截断。
+对于大量样本，KDE 会收敛到核函数与真实密度的卷积，并在边界域上进行截断。
 
-![](../Images/52befe5a923f523514183599c3049017.png)
+![](img/52befe5a923f523514183599c3049017.png)
 
-如果`x`处于边界，那么只有一半的核区域会被实际使用。直观上，我们希望对卷积核进行归一化，使其在有界域内积分为1。该积分在有界区间的中心接近1，在边界附近会降至0.5。这是因为边界处缺少邻近的核函数。
+如果`x`处于边界，那么只有一半的核区域会被实际使用。直观上，我们希望对卷积核进行归一化，使其在有界域内积分为 1。该积分在有界区间的中心接近 1，在边界附近会降至 0.5。这是因为边界处缺少邻近的核函数。
 
-![](../Images/4562347079cb9001fc35e204d4832b16.png)
+![](img/4562347079cb9001fc35e204d4832b16.png)
 
 类似于反射技术，下面的图表展示了三种标准分布的加权技巧：均匀分布、右三角分布和反平方根分布。其效果与反射法非常相似。
 
 从计算角度来看，这不需要处理三倍于样本数的数据，但需要在预测点计算正态累积分布函数。
 
-![](../Images/b1d0f6328e6867278099f88dc392a045.png)
+![](img/b1d0f6328e6867278099f88dc392a045.png)
 
-对均匀分布的KDE，应用边缘加权处理边界——作者提供的图片
+对均匀分布的 KDE，应用边缘加权处理边界——作者提供的图片
 
-![](../Images/1b4690f9ddb54c9ba2f021d043ac7ffb.png)
+![](img/1b4690f9ddb54c9ba2f021d043ac7ffb.png)
 
-对三角形分布的KDE，应用边缘加权处理边界——作者提供的图片
+对三角形分布的 KDE，应用边缘加权处理边界——作者提供的图片
 
-![](../Images/81ffd559a6a60a493b75d9bca98c40e7.png)
+![](img/81ffd559a6a60a493b75d9bca98c40e7.png)
 
 对反平方根分布应用加权来处理边界的 KDE — 图像由作者提供
 
@@ -166,33 +166,33 @@ Silverman 的经验法则，其中 n 是样本数量，sigma 是样本的标准�
 
 Logit 函数利用对数将单位区间 `[0,1]` 映射到整个实数轴。
 
-![](../Images/edaa6ce64267812567ef794b46968254.png)
+![](img/edaa6ce64267812567ef794b46968254.png)
 
 Logit 函数 — 图像由作者提供
 
 当对随机变量 `X` 应用变换 `f` 时，得到的密度可以通过除以 `f` 的导数的绝对值来获得。
 
-![](../Images/963bad27288d12de9ef24f023f7efbeb.png)
+![](img/963bad27288d12de9ef24f023f7efbeb.png)
 
 现在我们可以将其应用于 logit 变换的特例，从 logit 空间中估算的密度分布中恢复出原始密度分布。
 
-![](../Images/754b22657314764d9c7120a995fea91a.png)
+![](img/754b22657314764d9c7120a995fea91a.png)
 
 类似于反射和加权技术，下图展示了三种标准分布（均匀分布、右三角形分布和反平方根分布）的加权技巧。通过在边界处创建大幅波动，这种方法表现较差。然而，它很好地处理了反平方根分布的奇异性。
 
-![](../Images/fadf55b1409f89d75c4e31e09b255a13.png)
+![](img/fadf55b1409f89d75c4e31e09b255a13.png)
 
 在将样本映射到 logit 空间后，计算出的均匀分布的 KDE——图像由作者提供
 
-![](../Images/616669a0204e732995da1fed80645535.png)
+![](img/616669a0204e732995da1fed80645535.png)
 
 在将样本映射到 logit 空间后，计算出的三角形分布的 KDE — 图像由作者提供
 
-![](../Images/45f638457823124a75f24495a53da1a9.png)
+![](img/45f638457823124a75f24495a53da1a9.png)
 
 在将样本映射到 logit 空间后，计算出的反平方根分布的 KDE——图像由作者提供
 
-![](../Images/bffbdc79d5aa04c66af6cb5746a72f95.png)
+![](img/bffbdc79d5aa04c66af6cb5746a72f95.png)
 
 图片来自 [Martin Martz](https://unsplash.com/@martz90?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -216,7 +216,7 @@ Logit 函数 — 图像由作者提供
 
 上面展示的代码是针对单位区间内的数据编写的。在应用仿射变换以规范化数据时，别忘了缩放密度。
 
-![](../Images/b9caa79b4e4649590d40423a89ea6330.png)
+![](img/b9caa79b4e4649590d40423a89ea6330.png)
 
 通过仅在一侧进行反射、将核函数在一侧积分到无穷大，或使用对数代替逻辑值，它也可以很容易地调整为单侧有界域。
 

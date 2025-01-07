@@ -1,16 +1,16 @@
 # 引导大型语言模型（LLM）的响应以创建结构化输出
 
-> 原文：[https://towardsdatascience.com/guiding-an-llms-response-to-create-structured-output-5dde0d3e426b?source=collection_archive---------5-----------------------#2024-06-21](https://towardsdatascience.com/guiding-an-llms-response-to-create-structured-output-5dde0d3e426b?source=collection_archive---------5-----------------------#2024-06-21)
+> 原文：[`towardsdatascience.com/guiding-an-llms-response-to-create-structured-output-5dde0d3e426b?source=collection_archive---------5-----------------------#2024-06-21`](https://towardsdatascience.com/guiding-an-llms-response-to-create-structured-output-5dde0d3e426b?source=collection_archive---------5-----------------------#2024-06-21)
 
 ## *学习如何构建语言模型的响应，确保响应格式被遵守，如 JSON*
 
-[](https://medium.com/@theDrewDag?source=post_page---byline--5dde0d3e426b--------------------------------)[![Andrea D'Agostino](../Images/58c7c218815f25278aae59cea44d8771.png)](https://medium.com/@theDrewDag?source=post_page---byline--5dde0d3e426b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5dde0d3e426b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5dde0d3e426b--------------------------------) [Andrea D'Agostino](https://medium.com/@theDrewDag?source=post_page---byline--5dde0d3e426b--------------------------------)
+[](https://medium.com/@theDrewDag?source=post_page---byline--5dde0d3e426b--------------------------------)![Andrea D'Agostino](https://medium.com/@theDrewDag?source=post_page---byline--5dde0d3e426b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5dde0d3e426b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5dde0d3e426b--------------------------------) [Andrea D'Agostino](https://medium.com/@theDrewDag?source=post_page---byline--5dde0d3e426b--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5dde0d3e426b--------------------------------) ·阅读时间 9 分钟·2024年6月21日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5dde0d3e426b--------------------------------) ·阅读时间 9 分钟·2024 年 6 月 21 日
 
 --
 
-![](../Images/46656d56b1953f990b95d596d65622a0.png)
+![](img/46656d56b1953f990b95d596d65622a0.png)
 
 图片来源：[Ricardo Gomez Angel](https://unsplash.com/@rgaleriacom?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -26,4 +26,4 @@
 
 +   什么是**数据模型**，以及如何定义它
 
-+   如何确保您的**LLM通过验证规则遵守输出格式**
++   如何确保您的**LLM 通过验证规则遵守输出格式**

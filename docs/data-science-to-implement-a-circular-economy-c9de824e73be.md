@@ -1,16 +1,16 @@
 # 数据科学支持循环经济实施
 
-> 原文：[https://towardsdatascience.com/data-science-to-implement-a-circular-economy-c9de824e73be?source=collection_archive---------4-----------------------#2024-03-20](https://towardsdatascience.com/data-science-to-implement-a-circular-economy-c9de824e73be?source=collection_archive---------4-----------------------#2024-03-20)
+> 原文：[`towardsdatascience.com/data-science-to-implement-a-circular-economy-c9de824e73be?source=collection_archive---------4-----------------------#2024-03-20`](https://towardsdatascience.com/data-science-to-implement-a-circular-economy-c9de824e73be?source=collection_archive---------4-----------------------#2024-03-20)
 
 ## 您如何利用数据科学来支持快时尚零售商实施循环经济？
 
-[](https://s-saci95.medium.com/?source=post_page---byline--c9de824e73be--------------------------------)[![Samir Saci](../Images/722d1f56a3308f6527d82b5ab97064ec.png)](https://s-saci95.medium.com/?source=post_page---byline--c9de824e73be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c9de824e73be--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c9de824e73be--------------------------------) [Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--c9de824e73be--------------------------------)
+[](https://s-saci95.medium.com/?source=post_page---byline--c9de824e73be--------------------------------)![Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--c9de824e73be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c9de824e73be--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c9de824e73be--------------------------------) [Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--c9de824e73be--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c9de824e73be--------------------------------) ·阅读时间10分钟·2024年3月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c9de824e73be--------------------------------) ·阅读时间 10 分钟·2024 年 3 月 20 日
 
 --
 
-![](../Images/0639a5291b28a7c7f3b17707522bf606.png)
+![](img/0639a5291b28a7c7f3b17707522bf606.png)
 
 （图片来自作者）
 
@@ -20,7 +20,7 @@
 
 目标是最大化资源利用，并在每个生命周期结束时再生产品或材料。
 
-![](../Images/8f1f33bd85b37ede19eec37e20904276.png)
+![](img/8f1f33bd85b37ede19eec37e20904276.png)
 
 服装退还后的处理流程 — （图片来自作者）
 
@@ -46,7 +46,7 @@
 
 该公司在亚洲的工厂生产服装、包包和配饰。
 
-![](../Images/1166b993b3e7f6c3a6253184b2e42e32.png)
+![](img/1166b993b3e7f6c3a6253184b2e42e32.png)
 
 供应链网络 — （图片来自作者）
 
@@ -54,17 +54,17 @@
 
 去年，你的首席执行官公开承诺支持[联合国可持续发展目标](https://s-saci95.medium.com/what-are-the-sustainable-development-goals-sdgs-988a1eb2b62b)，并特别关注地球的目标。
 
-![](../Images/fc8f12964f1c5619fcd8671cc7410d6e.png)
+![](img/fc8f12964f1c5619fcd8671cc7410d6e.png)
 
-17个可持续发展目标 [文章：[链接](https://s-saci95.medium.com/what-are-the-sustainable-development-goals-sdgs-988a1eb2b62b)] — （图片来源：作者）
+17 个可持续发展目标 [文章：[链接](https://s-saci95.medium.com/what-are-the-sustainable-development-goals-sdgs-988a1eb2b62b)] — （图片来源：作者）
 
-因此，**可持续发展团队**正在制定一个**路线图**，计划到2030年减少碳足迹。
+因此，**可持续发展团队**正在制定一个**路线图**，计划到 2030 年减少碳足迹。
 
-![](../Images/241d408cc514bf36bba305f02c5c717f.png)
+![](img/241d408cc514bf36bba305f02c5c717f.png)
 
 可持续发展路线图项目团队 — （图片来源：作者）
 
-已经组建了一个项目团队，团队成员包括来自运营部门（制造和物流）、财务经理和IT专家的专家。
+已经组建了一个项目团队，团队成员包括来自运营部门（制造和物流）、财务经理和 IT 专家的专家。
 
 作为数据科学经理，你为**物流**部门在转型中的**实施挑战**提供**分析解决方案**。
 
@@ -72,7 +72,7 @@
 
 需要对分销网络进行彻底重组，以包括这个逆向流动。
 
-![](../Images/ed096ef6934ffe52d53832835b710e7d.png)
+![](img/ed096ef6934ffe52d53832835b710e7d.png)
 
 逆向物流 — （图片来源：作者）
 
@@ -88,7 +88,7 @@
 
 > 如何通过数据支持这些解决方案的设计和实施？
 
-你的任务是**设计先进的分析工具**，以**监控**运营的KPI并**优化**过程。
+你的任务是**设计先进的分析工具**，以**监控**运营的 KPI 并**优化**过程。
 
 在下一节中，我们将详细介绍组织在实施这些过程变更时可能面临的运营挑战。
 
@@ -96,7 +96,7 @@
 
 多年来，你与物流团队合作，实施**报告**和**优化**工具用于**前向物流**。
 
-![](../Images/8e61956bc9864cf59ea9fed79e22c146.png)
+![](img/8e61956bc9864cf59ea9fed79e22c146.png)
 
 逆向物流 — （图片来源：作者）
 
@@ -112,13 +112,13 @@
 
 因此，物流团队需要能够**追踪**和**追溯**产品的整个**生命周期**。
 
-[![](../Images/45d6fedad9bb7d3b10cd106a65ea9442.png)](https://towardsdatascience.com/what-is-business-intelligence-bf1de730319c)
+![](https://towardsdatascience.com/what-is-business-intelligence-bf1de730319c)
 
 产品追踪与可追溯性 — （图片来源：作者）
 
 对于正向物流，产品从工厂到商店的追踪。
 
-+   **主数据数据库**将包括（库存单位）SKU编号、产品信息（尺寸、颜色、包装）
++   **主数据数据库**将包括（库存单位）SKU 编号、产品信息（尺寸、颜色、包装）
 
 +   **生产系统**可以提供批次号（如果需要调用商品时很有用）、生产日期和工厂位置。
 
@@ -128,19 +128,19 @@
 
 对于逆向物流，物流部门需要你的支持来监控“退货”产品从**回收箱**到**分拣中心**的流动。
 
-[![](../Images/783216a84c171e67bd16a0ee76ab50bb.png)](https://towardsdatascience.com/what-is-business-intelligence-bf1de730319c)
+![](https://towardsdatascience.com/what-is-business-intelligence-bf1de730319c)
 
 物流管理系统 — （图片来源：作者）
 
 不同的物流系统记录交易数据，可以作为数据源用来构建自动化的流动监控工具：
 
-+   **企业资源计划（ERP）**记录店铺的客户退货信息，包括**店铺位置**、SKU ID、数量、**回收箱ID**和**回收时间**。
++   **企业资源计划（ERP）**记录店铺的客户退货信息，包括**店铺位置**、SKU ID、数量、**回收箱 ID**和**回收时间**。
 
-+   **运输管理系统**记录了回收箱的取件情况，包括商店位置、回收箱ID和取件时间**。**
++   **运输管理系统**记录了回收箱的取件情况，包括商店位置、回收箱 ID 和取件时间**。**
 
-+   **仓库管理系统**跟踪从接收商品到分拣过程结束的商品信息，包括SKU ID、回收箱、接收时间、分拣结束时间和最终目的地。
++   **仓库管理系统**跟踪从接收商品到分拣过程结束的商品信息，包括 SKU ID、回收箱、接收时间、分拣结束时间和最终目的地。
 
-[![](../Images/f5b5d66e05393b9487b132b3293691d2.png)](https://towardsdatascience.com/what-is-business-intelligence-bf1de730319c)
+![](https://towardsdatascience.com/what-is-business-intelligence-bf1de730319c)
 
 数据仓库结合来自多个来源的数据 — （图片来源：作者）
 
@@ -148,11 +148,11 @@
 
 如果你需要更多关于如何实现它的细节，可以查看这篇文章。
 
-[](/what-is-business-intelligence-bf1de730319c?source=post_page-----c9de824e73be--------------------------------) [## 什么是商业智能？
+[](/what-is-business-intelligence-bf1de730319c?source=post_page-----c9de824e73be--------------------------------) ## 什么是商业智能？
 
 ### 发现适用于供应链优化的数据驱动决策工具。
 
-towardsdatascience.com](/what-is-business-intelligence-bf1de730319c?source=post_page-----c9de824e73be--------------------------------)
+towardsdatascience.com
 
 现在你已经为操作提供了**透明度**，接下来让我们专注于流程优化。
 
@@ -162,7 +162,7 @@ towardsdatascience.com](/what-is-business-intelligence-bf1de730319c?source=post_
 
 最优网络可能与当前网络不同，因为你需要在销售后收集商品并将回收材料重新引入链条中。
 
-![](../Images/d9146f805a0456306b793f09fa621896.png)
+![](img/d9146f805a0456306b793f09fa621896.png)
 
 网络设计 — （图片来源：作者）
 
@@ -174,9 +174,9 @@ towardsdatascience.com](/what-is-business-intelligence-bf1de730319c?source=post_
 
 > ***问题***：我们应该将排序中心放置在哪里，以最小化成本和二氧化碳排放？
 
-这将提醒您[供应链网络优化问题](/robust-supply-chain-network-with-monte-carlo-simulation-21ef5adb1722)，您需要为此设计一个工厂网络。
+这将提醒您供应链网络优化问题，您需要为此设计一个工厂网络。
 
-![](../Images/af82cf2a943be27db2493faa96b4b283.png)
+![](img/af82cf2a943be27db2493faa96b4b283.png)
 
 供应链网络问题 — （图片来源：作者）
 
@@ -186,11 +186,11 @@ towardsdatascience.com](/what-is-business-intelligence-bf1de730319c?source=post_
 
 更多细节，请查看这个详细示例
 
-[](/robust-supply-chain-network-with-monte-carlo-simulation-21ef5adb1722?source=post_page-----c9de824e73be--------------------------------) [## 使用蒙特卡洛模拟的强健供应链网络
+[](/robust-supply-chain-network-with-monte-carlo-simulation-21ef5adb1722?source=post_page-----c9de824e73be--------------------------------) ## 使用蒙特卡洛模拟的强健供应链网络
 
 ### 在设计供应链网络时，您是否考虑了需求波动？
 
-towardsdatascience.com](/robust-supply-chain-network-with-monte-carlo-simulation-21ef5adb1722?source=post_page-----c9de824e73be--------------------------------)
+towardsdatascience.com
 
 > 我们如何将这个解决方案调整到排序网络设计问题上？
 
@@ -216,7 +216,7 @@ towardsdatascience.com](/robust-supply-chain-network-with-monte-carlo-simulation
 
 运输团队请求您支持设计一个工具，将正确的排序中心分配给每个仓库。
 
-![](../Images/b28c7806755285e3e88c99c9ed739fe0.png)
+![](img/b28c7806755285e3e88c99c9ed739fe0.png)
 
 反向物流规划问题 — （图片来源：作者）
 
@@ -224,9 +224,9 @@ towardsdatascience.com](/robust-supply-chain-network-with-monte-carlo-simulation
 
 > ***问题***：对于每个仓库 i，应该由哪个中心对退货进行排序，以最小化运输成本？
 
-在上一篇文章中，我讨论了一个类似的问题：[供应计划问题](/supply-planning-using-linear-programming-with-python-bff2401bf270)。
+在上一篇文章中，我讨论了一个类似的问题：供应计划问题。
 
-[![](../Images/5739a90d31738ce94707fd00a291e9e5.png)](https://towardsdatascience.com/supply-planning-using-linear-programming-with-python-bff2401bf270)
+![](https://towardsdatascience.com/supply-planning-using-linear-programming-with-python-bff2401bf270)
 
 供应计划问题 — （图像来源：作者）
 
@@ -246,11 +246,11 @@ towardsdatascience.com](/robust-supply-chain-network-with-monte-carlo-simulation
 
 你可以按照本文中详细介绍的方法（并使用代码）进行操作。
 
-[](/supply-planning-using-linear-programming-with-python-bff2401bf270?source=post_page-----c9de824e73be--------------------------------) [## 使用线性规划与 Python 进行供应计划
+[](/supply-planning-using-linear-programming-with-python-bff2401bf270?source=post_page-----c9de824e73be--------------------------------) ## 使用线性规划与 Python 进行供应计划
 
 ### 你需要将库存分配到哪里，以满足客户需求并减少运输成本？
 
-towardsdatascience.com](/supply-planning-using-linear-programming-with-python-bff2401bf270?source=post_page-----c9de824e73be--------------------------------)
+towardsdatascience.com
 
 现在我们已经设计了分拣位置的网络，并开发了优化反向流动的工具，我们可以着手进行绩效监控。
 
@@ -262,7 +262,7 @@ towardsdatascience.com](/supply-planning-using-linear-programming-with-python-bf
 
 供应链是指多个方交换物料、信息或资金资源，以履行客户需求的过程。
 
-![](../Images/2cbc3f6fac1f4729002e487b135720aa.png)
+![](img/2cbc3f6fac1f4729002e487b135720aa.png)
 
 用于监控流动的系统 — （图像来源：作者）
 
@@ -276,7 +276,7 @@ towardsdatascience.com](/supply-planning-using-linear-programming-with-python-bf
 
 它们连接到一个中央**企业资源规划（ERP）**系统，该系统集中管理端到端的操作。
 
-![](../Images/1b09e9d96177a0632e123effb6021353.png)
+![](img/1b09e9d96177a0632e123effb6021353.png)
 
 供应链集成：可以从系统中捕获关键数据 — （图像来源：作者）
 
@@ -292,7 +292,7 @@ towardsdatascience.com](/supply-planning-using-linear-programming-with-python-bf
 
 物流管理需要能够可视化一组指标，以跟踪循环经济实施的进度，并在需要时进行调整。
 
-![](../Images/3be8b0a265c966629a629eaae0ca6e65.png)
+![](img/3be8b0a265c966629a629eaae0ca6e65.png)
 
 绩效管理分析 — （图像来源：作者）
 
@@ -324,7 +324,7 @@ towardsdatascience.com](/supply-planning-using-linear-programming-with-python-bf
 
 这些额外的约束将需要付出努力和资源来转变组织。
 
-![](../Images/f2f477072329e83f56a2467ff8497389.png)
+![](img/f2f477072329e83f56a2467ff8497389.png)
 
 益处 —（作者提供的图片）
 
@@ -342,13 +342,13 @@ towardsdatascience.com](/supply-planning-using-linear-programming-with-python-bf
 
 作为下一步，你可以着手优化可持续供应链网络，以减少上游流动的影响。
 
-![](../Images/5846aa350352af0e038b2c57f9162b17.png)
+![](img/5846aa350352af0e038b2c57f9162b17.png)
 
 供应链网络设计问题 —（作者提供的图片）
 
 可持续供应链优化是一种将成本减少与环境责任相结合的网络设计方法。
 
-![](../Images/07e7c2acfe9455b6a4e60e8691919a58.png)
+![](img/07e7c2acfe9455b6a4e60e8691919a58.png)
 
 可持续供应链优化应用程序 —（作者提供的图片）
 
@@ -356,31 +356,31 @@ towardsdatascience.com](/supply-planning-using-linear-programming-with-python-bf
 
 🚀 了解更多信息！👇
 
-[](/create-a-sustainable-supply-chain-optimization-web-app-20599b98cab6?source=post_page-----c9de824e73be--------------------------------) [## 创建一个可持续的供应链优化网络应用程序
+[](/create-a-sustainable-supply-chain-optimization-web-app-20599b98cab6?source=post_page-----c9de824e73be--------------------------------) ## 创建一个可持续的供应链优化网络应用程序
 
 ### 帮助你的组织结合可持续采购和供应链优化，以控制成本和减少环境影响…
 
-[towardsdatascience.com](/create-a-sustainable-supply-chain-optimization-web-app-20599b98cab6?source=post_page-----c9de824e73be--------------------------------)
+[towardsdatascience.com
 
 > 为什么不租赁你的连衣裙而不是购买它呢？！
 
 ## 模拟循环经济的表现
 
-在[另一篇文章](/data-science-for-sustainability-simulate-a-circular-economy-b6a13d4b0451)中，我模拟了**为时尚零售商实施订阅模型**。
+在另一篇文章中，我模拟了**为时尚零售商实施订阅模型**。
 
-[![](../Images/8c0d04c8f29200c2910a8f07b5efa353.png)](https://towardsdatascience.com/data-science-for-sustainability-simulate-a-circular-economy-b6a13d4b0451)
+![](https://towardsdatascience.com/data-science-for-sustainability-simulate-a-circular-economy-b6a13d4b0451)
 
-循环租赁模式[文章：[链接](/data-science-for-sustainability-simulate-a-circular-economy-b6a13d4b0451)]——（图片由作者提供）
+循环租赁模式文章：[链接]——（图片由作者提供）
 
 这个想法是让客户支付定期费用，以在**特定时期**内访问某个产品或服务。
 
 目标是减少产品生命周期中的环境影响。
 
-[![](../Images/f7fba41e23eba58f209e0bfe4f089989.png)](https://towardsdatascience.com/data-science-for-sustainability-simulate-a-circular-economy-b6a13d4b0451)
+![](https://towardsdatascience.com/data-science-for-sustainability-simulate-a-circular-economy-b6a13d4b0451)
 
 线性模型（上）与循环模型（下）——（图片由作者提供）
 
-在上述示例中，我们将5次购买转换为5次租赁相同的物品，这样你只需支付费用即可节省开支。
+在上述示例中，我们将 5 次购买转换为 5 次租赁相同的物品，这样你只需支付费用即可节省开支。
 
 +   **一个完整的周期**从原材料提取到商店交付。
 
@@ -388,11 +388,11 @@ towardsdatascience.com](/supply-planning-using-linear-programming-with-python-bf
 
 更多详情，
 
-[](/data-science-for-sustainability-simulate-a-circular-economy-b6a13d4b0451?source=post_page-----c9de824e73be--------------------------------) [## 可持续发展中的数据科学——模拟循环经济
+[](/data-science-for-sustainability-simulate-a-circular-economy-b6a13d4b0451?source=post_page-----c9de824e73be--------------------------------) ## 可持续发展中的数据科学——模拟循环经济
 
-### 使用数据科学模拟循环模型对快时尚行业的CO2排放和水使用的影响……
+### 使用数据科学模拟循环模型对快时尚行业的 CO2 排放和水使用的影响……
 
-towardsdatascience.com](/data-science-for-sustainability-simulate-a-circular-economy-b6a13d4b0451?source=post_page-----c9de824e73be--------------------------------)
+towardsdatascience.com
 
 # 关于我
 
@@ -408,7 +408,7 @@ towardsdatascience.com](/data-science-for-sustainability-simulate-a-circular-eco
 
 samirsaci.com](https://samirsaci.com/?source=post_page-----c9de824e73be--------------------------------)
 
-💡 在Medium上关注我，获取更多关于🏭供应链分析、🌳可持续发展和🕜生产力的相关文章。
+💡 在 Medium 上关注我，获取更多关于🏭供应链分析、🌳可持续发展和🕜生产力的相关文章。
 
 📘 你的供应链分析完整指南：[分析备忘单](https://bit.ly/supply-chain-cheat)
 

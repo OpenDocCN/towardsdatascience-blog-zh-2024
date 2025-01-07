@@ -1,16 +1,16 @@
 # 如何挑战自己的分析，避免他人挑战
 
-> 原文：[https://towardsdatascience.com/how-to-challenge-your-own-analysis-so-others-wont-b3745919d098?source=collection_archive---------2-----------------------#2024-07-03](https://towardsdatascience.com/how-to-challenge-your-own-analysis-so-others-wont-b3745919d098?source=collection_archive---------2-----------------------#2024-07-03)
+> 原文：[`towardsdatascience.com/how-to-challenge-your-own-analysis-so-others-wont-b3745919d098?source=collection_archive---------2-----------------------#2024-07-03`](https://towardsdatascience.com/how-to-challenge-your-own-analysis-so-others-wont-b3745919d098?source=collection_archive---------2-----------------------#2024-07-03)
 
 ## 掌握合理性检查的艺术，提升你的工作质量
 
-[](https://medium.com/@twalbaum?source=post_page---byline--b3745919d098--------------------------------)[![Torsten Walbaum](../Images/27964d8095af45642f152a0ce4fa2681.png)](https://medium.com/@twalbaum?source=post_page---byline--b3745919d098--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b3745919d098--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b3745919d098--------------------------------) [Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--b3745919d098--------------------------------)
+[](https://medium.com/@twalbaum?source=post_page---byline--b3745919d098--------------------------------)![Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--b3745919d098--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b3745919d098--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b3745919d098--------------------------------) [Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--b3745919d098--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b3745919d098--------------------------------) ·12分钟阅读·2024年7月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b3745919d098--------------------------------) ·12 分钟阅读·2024 年 7 月 3 日
 
 --
 
-![](../Images/bcb71beec76c23a3facff334f43b379c.png)
+![](img/bcb71beec76c23a3facff334f43b379c.png)
 
 作者提供的图片
 
@@ -60,7 +60,7 @@
 
 在检查我们的工作时，大多数时候我们是逐步检查的，看看是否有错误。单元格是否正确链接？我是否把公式拉到底部？我的 SQL 中的所有连接是否正确？
 
-![](../Images/17ebd80adada2ffd2dc0443cb439ab88.png)
+![](img/17ebd80adada2ffd2dc0443cb439ab88.png)
 
 作者提供的图片
 
@@ -76,7 +76,7 @@
 
 我们的分析通常是自上而下***或者***自下而上。那么这是什么意思呢？
 
-![](../Images/b4be238a8a4a60eda2d7b3d477bf33e5.png)
+![](img/b4be238a8a4a60eda2d7b3d477bf33e5.png)
 
 作者提供的图片
 
@@ -92,7 +92,7 @@
 
 > ***因此，确保你的工作合理性检查的最佳方式是结合自上而下与自下而上的分析。***
 
-![](../Images/f8446f933da1c8eb01f44f2dfd2cf1d9.png)
+![](img/f8446f933da1c8eb01f44f2dfd2cf1d9.png)
 
 作者提供的图片
 
@@ -108,7 +108,7 @@
 
 +   **增长假设：** 你预测的趋势是什么？例如，新的产品预计相比过去的发布会增长得更快吗？
 
-+   **季节性：** 你的预测是否显示出与基准相同的重复模式？例如，如果其他市场在12月假期期间出现放缓，你为什么预测新国家不会有这个趋势？
++   **季节性：** 你的预测是否显示出与基准相同的重复模式？例如，如果其他市场在 12 月假期期间出现放缓，你为什么预测新国家不会有这个趋势？
 
 这并不意味着你总是必须按照基准来建模；**但你总是需要能够解释为什么会有所偏离。**
 
@@ -122,7 +122,7 @@
 
 +   什么让你有信心认为这是可能的？英国市场是否在结构上有所不同（例如，市场更大）？我们的产品是否更适合英国市场？我们是否采用了不同的市场进入策略？
 
-+   为什么法国没有季节性波动？假期期间是否有所不同？B2B买家的季节性购买模式是否不同？
++   为什么法国没有季节性波动？假期期间是否有所不同？B2B 买家的季节性购买模式是否不同？
 
 👉 如果你无法充分说明新市场与过去发布的差异，最好将预测保持一致。
 
@@ -180,7 +180,7 @@
 
 你还可以直接与多个工具集成；例如，在这个例子中，我链接了包含我的预测的 Google 表格：
 
-![](../Images/d393ed46b39dd9b5fb5832650a09a290.png)
+![](img/d393ed46b39dd9b5fb5832650a09a290.png)
 
 作者提供的图片
 
@@ -208,13 +208,13 @@
 
 > *不要盲目使用 AI 生成的任何内容；它可能（并且确实会）犯错误，最终结果由你负责。AI 可以提供有用的输入并节省时间，但它不能替代批判性思维。*
 
-## 第2步：写一个提示，要求 ChatGPT 进行合理性检查。
+## 第 2 步：写一个提示，要求 ChatGPT 进行合理性检查。
 
 在读取你的文件后，你需要写一个提示，要求 ChatGPT 对你的工作进行合理性检查。
 
 这是我用来合理性检查我上面链接的市场推广计划的内容：
 
-![](../Images/bc07784c165e6de3150f70475cbec544.png)
+![](img/bc07784c165e6de3150f70475cbec544.png)
 
 作者提供的图片
 
@@ -222,17 +222,17 @@
 
 你也可以给 ChatGPT 这篇文章，或者另一篇关于如何进行合理性检查的总结，这样就不需要在提示中包含太多的说明。
 
-## 第3步：确保 ChatGPT 正确读取了数据。
+## 第 3 步：确保 ChatGPT 正确读取了数据。
 
 在读取文件后，ChatGPT 通常会简要总结它所看到的内容以及它认为数据所代表的含义，并列出它进行分析的步骤：
 
-![](../Images/f4f813d5a030d3edd028d10e88dd44ff.png)
+![](img/f4f813d5a030d3edd028d10e88dd44ff.png)
 
 来自我的[第三次尝试截图](https://chatgpt.com/share/61da15ca-ec6b-47cb-94d1-d2ed79cb8554)；图片来源：作者
 
 ChatGPT 还经常在聊天中重新陈述一些数据，这有助于确保它正确提取了数据：
 
-![](../Images/57ef9901dda1fe439087620a09c3291d.png)
+![](img/57ef9901dda1fe439087620a09c3291d.png)
 
 来自我的[第三次尝试截图](https://chatgpt.com/share/61da15ca-ec6b-47cb-94d1-d2ed79cb8554)；图片来源：作者
 
@@ -246,7 +246,7 @@ ChatGPT 还经常在聊天中重新陈述一些数据，这有助于确保它正
 
 接下来，ChatGPT 会开始提供一些初步观察，像这样：
 
-![](../Images/2862a34687aeb5e65a37dafd4a32a09d.png)
+![](img/2862a34687aeb5e65a37dafd4a32a09d.png)
 
 来自我的[第三次尝试截图](https://chatgpt.com/share/61da15ca-ec6b-47cb-94d1-d2ed79cb8554)；图片来源：作者
 
@@ -256,7 +256,7 @@ ChatGPT 正确识别出该预测是保守的，并且最终会追赶上英国，
 
 以下是对话的继续部分：
 
-![](../Images/7b1a0d94e6d2dac1e10113c9a3ab8f89.png)
+![](img/7b1a0d94e6d2dac1e10113c9a3ab8f89.png)
 
 来自我的第三次尝试截图；图片来源：作者
 
@@ -264,13 +264,13 @@ ChatGPT 正确识别出该预测是保守的，并且最终会追赶上英国，
 
 然后我们开始讨论季节性；正如你所看到的，我需要提供初步的推动，并且进行了几轮反复对话，但 ChatGPT 完成了识别正确模式的工作：
 
-![](../Images/4e9e1b8f1ee35641b5eab999d380d0d6.png)
+![](img/4e9e1b8f1ee35641b5eab999d380d0d6.png)
 
 来自我的[第三次尝试截图](https://chatgpt.com/share/61da15ca-ec6b-47cb-94d1-d2ed79cb8554)；图片来源：作者
 
 在我的几次尝试中，ChatGPT 还简要地总结了市场营销组合的要点，像这样：
 
-![](../Images/8d7d53ae34d6fb173233822e3f716fac.png)
+![](img/8d7d53ae34d6fb173233822e3f716fac.png)
 
 来自我的[第四次尝试截图](https://chatgpt.com/share/5927f094-d54a-4ec2-a11d-be56682dc29a)；图片来源：作者
 
@@ -284,7 +284,7 @@ ChatGPT 正确识别出该预测是保守的，并且最终会追赶上英国，
 
 在我的情况下，我让它加入了季节性因素：
 
-![](../Images/a4e84701de48ceb13b62fff03ec5f01b.png)
+![](img/a4e84701de48ceb13b62fff03ec5f01b.png)
 
 图片来源：作者
 

@@ -1,32 +1,32 @@
-# 解剖Stockfish 第三部分：深入了解棋类引擎
+# 解剖 Stockfish 第三部分：深入了解棋类引擎
 
-> 原文：[https://towardsdatascience.com/dissecting-stockfish-part-3-in-depth-look-at-a-chess-engine-51b59e532bb4?source=collection_archive---------6-----------------------#2024-07-22](https://towardsdatascience.com/dissecting-stockfish-part-3-in-depth-look-at-a-chess-engine-51b59e532bb4?source=collection_archive---------6-----------------------#2024-07-22)
+> 原文：[`towardsdatascience.com/dissecting-stockfish-part-3-in-depth-look-at-a-chess-engine-51b59e532bb4?source=collection_archive---------6-----------------------#2024-07-22`](https://towardsdatascience.com/dissecting-stockfish-part-3-in-depth-look-at-a-chess-engine-51b59e532bb4?source=collection_archive---------6-----------------------#2024-07-22)
 
 ## 大规模浏览棋局树
 
-[](https://medium.com/@antoine.champion?source=post_page---byline--51b59e532bb4--------------------------------)[![Antoine Champion](../Images/dfd05ce8d2081c94e388254731fe7174.png)](https://medium.com/@antoine.champion?source=post_page---byline--51b59e532bb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--51b59e532bb4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--51b59e532bb4--------------------------------) [Antoine Champion](https://medium.com/@antoine.champion?source=post_page---byline--51b59e532bb4--------------------------------)
+[](https://medium.com/@antoine.champion?source=post_page---byline--51b59e532bb4--------------------------------)![Antoine Champion](https://medium.com/@antoine.champion?source=post_page---byline--51b59e532bb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--51b59e532bb4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--51b59e532bb4--------------------------------) [Antoine Champion](https://medium.com/@antoine.champion?source=post_page---byline--51b59e532bb4--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--51b59e532bb4--------------------------------) ·阅读时间5分钟·2024年7月22日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--51b59e532bb4--------------------------------) ·阅读时间 5 分钟·2024 年 7 月 22 日
 
 --
 
-![](../Images/e3759642068a88760c83493078f2d5eb.png)
+![](img/e3759642068a88760c83493078f2d5eb.png)
 
 Stockfish 棋类引擎，背景照片由[ᴊᴀᴄʜʏᴍ ᴍɪᴄʜᴀʟ](https://unsplash.com/@jachymmichal?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)提供，图片来自[Unsplash](https://unsplash.com/s/photos/chess?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)
 
-欢迎回到我们关于Stockfish棋类引擎内部运作的系列文章。本系列的目标是解释使Stockfish成为世界上最强大的棋类引擎之一的算法和技术。通过了解这些机制，我们可以深入理解计算机科学、人工智能和博弈论的交汇点。
+欢迎回到我们关于 Stockfish 棋类引擎内部运作的系列文章。本系列的目标是解释使 Stockfish 成为世界上最强大的棋类引擎之一的算法和技术。通过了解这些机制，我们可以深入理解计算机科学、人工智能和博弈论的交汇点。
 
-本系列的前几部分探讨了Stockfish是如何找到一个可行的棋步（[第一部分](https://medium.com/towards-data-science/dissecting-stockfish-part-1-in-depth-look-at-a-chess-engine-7fddd1d83579)）并评估该棋步的局势质量（[第二部分](/dissecting-stockfish-part-2-in-depth-look-at-a-chess-engine-2643cdc35c9a)）。但如何考虑我们的对手接下来可能的棋步呢？我们又该如何回应？
+本系列的前几部分探讨了 Stockfish 是如何找到一个可行的棋步（[第一部分](https://medium.com/towards-data-science/dissecting-stockfish-part-1-in-depth-look-at-a-chess-engine-7fddd1d83579)）并评估该棋步的局势质量（第二部分）。但如何考虑我们的对手接下来可能的棋步呢？我们又该如何回应？
 
-为了应对这种情况，Stockfish依赖于一个最终概念：深度。
+为了应对这种情况，Stockfish 依赖于一个最终概念：深度。
 
 # 所有棋步的树
 
-游戏开始：兵到e4。对手回应e5。然后是Nf3，Nc6，依此类推。这个序列在所有可能的棋步树中形成了一条分支。
+游戏开始：兵到 e4。对手回应 e5。然后是 Nf3，Nc6，依此类推。这个序列在所有可能的棋步树中形成了一条分支。
 
-Stockfish浏览这个树状结构，以基于所有可能的结果确定最佳棋步。
+Stockfish 浏览这个树状结构，以基于所有可能的结果确定最佳棋步。
 
-![](../Images/16ab623cbace833e3d4b82cb6a350c6a.png)
+![](img/16ab623cbace833e3d4b82cb6a350c6a.png)
 
 高层概述 — 图片由作者提供
 
@@ -36,7 +36,7 @@ Stockfish浏览这个树状结构，以基于所有可能的结果确定最佳�
 
 下面的图示展示了这一点：
 
-![](../Images/be81af5a92f71021445ee059068626cf.png)
+![](img/be81af5a92f71021445ee059068626cf.png)
 
 国际象棋的 Minimax 算法。正分意味着白方占优，负分意味着黑方占优 — 图片由作者提供
 
@@ -54,11 +54,11 @@ Stockfish浏览这个树状结构，以基于所有可能的结果确定最佳�
 
 尽管 Stockfish 每秒可以评估数百万个棋步，但由于每增加一层深度，可能的棋步呈指数级增长，它仍然无法在合理的时间内评估整个棋局。
 
-例如，[克劳德·香农证明](https://en.wikipedia.org/wiki/Shannon_number)，要从起始位置达到10步的深度，需要评估690亿个位置。仅使用 Minimax 算法，这将需要几天时间。
+例如，[克劳德·香农证明](https://en.wikipedia.org/wiki/Shannon_number)，要从起始位置达到 10 步的深度，需要评估 690 亿个位置。仅使用 Minimax 算法，这将需要几天时间。
 
 Stockfish 对 Minimax 算法进行了多项改进。其中之一是**Alpha-Beta 剪枝**，它优化了移动树的遍历。如下图所示：
 
-![](../Images/30800d0c726948a806121b8fc2cae162.png)
+![](img/30800d0c726948a806121b8fc2cae162.png)
 
 国际象棋中的 Alpha-Beta 剪枝 — 图片由作者提供
 
@@ -76,9 +76,9 @@ Stockfish 的最终大局搜索算法非常复杂（见 [search.cpp](https://git
 
 现代计算机可以使用多线程，从而使 Stockfish 能够利用分布式计算能力进行扩展。
 
-为此，Stockfish利用多个线程并行搜索最佳走法，每个线程通过并发内存存储系统进行通信。
+为此，Stockfish 利用多个线程并行搜索最佳走法，每个线程通过并发内存存储系统进行通信。
 
-![](../Images/cbbe0e8bdfd6d63504325cdb915331fb.png)
+![](img/cbbe0e8bdfd6d63504325cdb915331fb.png)
 
 使用共享字典的并行计算 — 图片由作者提供
 
@@ -96,24 +96,24 @@ Stockfish 的最终大局搜索算法非常复杂（见 [search.cpp](https://git
 
 +   它监视线程是否完成计算，若完成，则停止所有计算线程，并从字典中读取评估结果。
 
-> 有趣的是，访问“真正的”并发字典时，内存锁所需的几纳秒会产生过多的开销。因此，Stockfish的程序员开发了自己的分布式表格（参见[tt.h](https://github.com/official-stockfish/Stockfish/blob/master/src/tt.h)）。
+> 有趣的是，访问“真正的”并发字典时，内存锁所需的几纳秒会产生过多的开销。因此，Stockfish 的程序员开发了自己的分布式表格（参见[tt.h](https://github.com/official-stockfish/Stockfish/blob/master/src/tt.h)）。
 
 # 结论
 
 总结：
 
-+   Stockfish为给定深度生成每一个候选走法。
++   Stockfish 为给定深度生成每一个候选走法。
 
 +   它在树中使用各种优化方法评估这些走法。
 
 +   它增加了评估深度，并重复这一过程。
 
-通过这个系列，我们揭示了Stockfish如何将经典算法与现代计算技术和神经网络结合，实现最先进的性能。
+通过这个系列，我们揭示了 Stockfish 如何将经典算法与现代计算技术和神经网络结合，实现最先进的性能。
 
-理解Stockfish的内部工作原理，不仅能解开这款最强国际象棋引擎之一的神秘面纱，还能为计算和人工智能中的挑战及解决方案提供更广泛的见解。由于其固有特性，Stockfish主要关注效率，这一主题在计算能力不断提升的背景下，已在人工智能领域变得越来越少见。此外，Stockfish还是如何从AI核心构建一个完整的分布式系统的一个范例。
+理解 Stockfish 的内部工作原理，不仅能解开这款最强国际象棋引擎之一的神秘面纱，还能为计算和人工智能中的挑战及解决方案提供更广泛的见解。由于其固有特性，Stockfish 主要关注效率，这一主题在计算能力不断提升的背景下，已在人工智能领域变得越来越少见。此外，Stockfish 还是如何从 AI 核心构建一个完整的分布式系统的一个范例。
 
 我希望这个系列对你有所启发并具有教育意义。感谢阅读！
 
 若要进一步阅读，你可以查阅[国际象棋编程百科](https://www.chessprogramming.org/Main_Page)，并加入[计算机国际象棋俱乐部](https://talkchess.com/)论坛，讨论国际象棋编程。
 
-[https://antoinechampion.com](https://antoinechampion.com/)
+[`antoinechampion.com`](https://antoinechampion.com/)

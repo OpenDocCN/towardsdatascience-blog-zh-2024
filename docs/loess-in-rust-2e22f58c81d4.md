@@ -1,32 +1,32 @@
-# Rust中的LOESS
+# Rust 中的 LOESS
 
-> 原文：[https://towardsdatascience.com/loess-in-rust-2e22f58c81d4?source=collection_archive---------7-----------------------#2024-08-12](https://towardsdatascience.com/loess-in-rust-2e22f58c81d4?source=collection_archive---------7-----------------------#2024-08-12)
+> 原文：[`towardsdatascience.com/loess-in-rust-2e22f58c81d4?source=collection_archive---------7-----------------------#2024-08-12`](https://towardsdatascience.com/loess-in-rust-2e22f58c81d4?source=collection_archive---------7-----------------------#2024-08-12)
 
-## 是时候将Python中的LOESS代码移植到Rust了。
+## 是时候将 Python 中的 LOESS 代码移植到 Rust 了。
 
-[](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)[![João Paulo Figueira](../Images/54e4176f66e4ab0324d86ec71d8b033d.png)](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------) [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)
+[](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)![João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------) [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------) ·阅读时长5分钟·2024年8月12日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------) ·阅读时长 5 分钟·2024 年 8 月 12 日
 
 --
 
-![](../Images/199267c891b0dc1dd794f992bbc5a653.png)
+![](img/199267c891b0dc1dd794f992bbc5a653.png)
 
 摄影：[Matt Foxx](https://unsplash.com/@foxxmd?utm_source=medium&utm_medium=referral) 于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-五年前，从本文写作之时算起，我在Medium上发布了我最成功的文章。那篇文章源于一个需求：从车载远程信息处理数据流中过滤一个特别嘈杂的传感器数据。具体来说，它是连接到卡车传动轴的扭矩传感器，需要去除噪声。LOESS是解决方案，因此写了那篇文章。
+五年前，从本文写作之时算起，我在 Medium 上发布了我最成功的文章。那篇文章源于一个需求：从车载远程信息处理数据流中过滤一个特别嘈杂的传感器数据。具体来说，它是连接到卡车传动轴的扭矩传感器，需要去除噪声。LOESS 是解决方案，因此写了那篇文章。
 
-[](/loess-373d43b03564?source=post_page-----2e22f58c81d4--------------------------------) [## LOESS
+[](/loess-373d43b03564?source=post_page-----2e22f58c81d4--------------------------------) ## LOESS
 
 ### 使用局部回归平滑数据
 
-towardsdatascience.com](/loess-373d43b03564?source=post_page-----2e22f58c81d4--------------------------------)
+towardsdatascience.com
 
-到那时，我已经深陷于Python的世界，并且该项目需要使用Spark，因此在Python中实现算法是毫不犹豫的选择。然而，随着时间的推移，我现在更多使用Rust，并决定尝试将旧代码移植过来。本文描述了移植过程以及我在重写代码时的选择。你应该阅读原始文章和参考材料，进一步了解算法。这里，我们将重点讨论在Rust中编写矩阵代码的细节，尽可能地替代之前的[NumPy](https://numpy.org/)实现。
+到那时，我已经深陷于 Python 的世界，并且该项目需要使用 Spark，因此在 Python 中实现算法是毫不犹豫的选择。然而，随着时间的推移，我现在更多使用 Rust，并决定尝试将旧代码移植过来。本文描述了移植过程以及我在重写代码时的选择。你应该阅读原始文章和参考材料，进一步了解算法。这里，我们将重点讨论在 Rust 中编写矩阵代码的细节，尽可能地替代之前的[NumPy](https://numpy.org/)实现。
 
-# Rust数值计算
+# Rust 数值计算
 
-作为一个坚定的反对重复造轮子的人，我寻找了推荐的Rust包来替代我在原始Python代码中使用的[NumPy](https://numpy.org/)，很快就找到了[**nalgebra**](https://nalgebra.org/)。
+作为一个坚定的反对重复造轮子的人，我寻找了推荐的 Rust 包来替代我在原始 Python 代码中使用的[NumPy](https://numpy.org/)，很快就找到了[**nalgebra**](https://nalgebra.org/)。
 
 > **nalgebra** 旨在成为一个通用的低维线性代数库，提供一套针对计算机图形学和物理学优化的工具集。
 

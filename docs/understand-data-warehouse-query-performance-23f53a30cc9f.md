@@ -1,22 +1,22 @@
 # 了解数据仓库：查询性能
 
-> 原文：[https://towardsdatascience.com/understand-data-warehouse-query-performance-23f53a30cc9f?source=collection_archive---------7-----------------------#2024-01-08](https://towardsdatascience.com/understand-data-warehouse-query-performance-23f53a30cc9f?source=collection_archive---------7-----------------------#2024-01-08)
+> 原文：[`towardsdatascience.com/understand-data-warehouse-query-performance-23f53a30cc9f?source=collection_archive---------7-----------------------#2024-01-08`](https://towardsdatascience.com/understand-data-warehouse-query-performance-23f53a30cc9f?source=collection_archive---------7-----------------------#2024-01-08)
 
-## 解读SQL查询性能：数据仓库和数据库管理系统中的实用分析
+## 解读 SQL 查询性能：数据仓库和数据库管理系统中的实用分析
 
-[](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)[![Richard Tang](../Images/0b9acf81a5ffa0ad3c215bfcfc9984d8.png)](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------) [Richard Tang](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)
+[](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)![Richard Tang](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------) [Richard Tang](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------) ·7分钟阅读·2024年1月8日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------) ·7 分钟阅读·2024 年 1 月 8 日
 
 --
 
-![](../Images/f62c15593db2326dafdaca72d280cb7f.png)
+![](img/f62c15593db2326dafdaca72d280cb7f.png)
 
 图片来自[Manuel Geissinger](https://www.pexels.com/@artunchained/)在[Pexels](https://www.pexels.com/photo/black-server-racks-on-a-room-325229/)上的照片
 
-与Python和其他命令式编程语言不同，命令式编程语言需要按步骤详细说明算法以进行优化，SQL是一种声明式编程语言，关注的不是操作的顺序，而是表达你想要实现的逻辑。查询在数据库中的执行方式取决于数据库系统本身，尤其是一个名为查询计划器（或优化器）的组件，它决定了执行查询的最佳方式。这就是为什么几乎相同的查询在数据仓库与传统数据库管理系统中执行方式差异如此之大。
+与 Python 和其他命令式编程语言不同，命令式编程语言需要按步骤详细说明算法以进行优化，SQL 是一种声明式编程语言，关注的不是操作的顺序，而是表达你想要实现的逻辑。查询在数据库中的执行方式取决于数据库系统本身，尤其是一个名为查询计划器（或优化器）的组件，它决定了执行查询的最佳方式。这就是为什么几乎相同的查询在数据仓库与传统数据库管理系统中执行方式差异如此之大。
 
-对于大多数数据工作者来说，通常不需要过于关注这种差异，只要查询能够检索到正确的数据即可。然而，当创建交互式仪表盘或机器学习管道时，情况就不同了。在这些情况下，频繁执行的查询会显著影响查询效率和成本。设计良好的查询不仅能节省用户加载数据和指标的时间，还能为公司节省数千美元的BigQuery或Snowflake账单费用。
+对于大多数数据工作者来说，通常不需要过于关注这种差异，只要查询能够检索到正确的数据即可。然而，当创建交互式仪表盘或机器学习管道时，情况就不同了。在这些情况下，频繁执行的查询会显著影响查询效率和成本。设计良好的查询不仅能节省用户加载数据和指标的时间，还能为公司节省数千美元的 BigQuery 或 Snowflake 账单费用。
 
 今天，我们将专注于一个常见的使用案例：比较多种查询语法和数据库。我们将看到并理解这些数据库在获取和计算数据时的不同处理方式。
 
@@ -112,7 +112,7 @@ Q6: 使用 CTE 进行 JOIN，并过滤时间范围
 
 # 实验结果：
 
-![](../Images/2f84ee5d52b3aa8a5873585d4f6fcbd9.png)
+![](img/2f84ee5d52b3aa8a5873585d4f6fcbd9.png)
 
 *作者提供的图片*
 
@@ -126,7 +126,7 @@ Q6: 使用 CTE 进行 JOIN，并过滤时间范围
 
 Q1 'IN' 和 Q3 'EXISTS' 的执行计划完全相同。两步执行首先在子查询中进行了筛选，然后使用 SEMI JOIN 来识别至少有一个病人入院的医生。这正好是我们之前提到的一个完美例子：SQL 是一种声明式语言，它描述了你需要什么，而 BigQuery 会决定如何执行。即使 SQL 逻辑在解决问题的方式上有所不同，BigQuery 也意识到它们需要相同的结果，并决定使用相同的执行方式进行优化。
 
-![](../Images/4b57d9f23f01a9f9afccccd7b2980a19.png)
+![](img/4b57d9f23f01a9f9afccccd7b2980a19.png)
 
 *图片由作者提供*
 
@@ -142,18 +142,18 @@ Q1 'IN' 和 Q3 'EXISTS' 的执行计划完全相同。两步执行首先在子�
 
 Q1 'IN' 和 Q3 'EXISTS' 拥有相同的执行计划，并且是最低成本的。与 BigQuery 类似，PostgreSQL 也识别出这两个查询需要相同的数据，并为它们进行了优化。
 
-Q2、Q4和Q6的执行计划完全相同，只是成本略高。尽管这些查询在逻辑或语法上有所不同，但Postgres的查询计划器决定执行相同的操作：过滤 -> 按(DISTINCT)分组 -> JOIN。
+Q2、Q4 和 Q6 的执行计划完全相同，只是成本略高。尽管这些查询在逻辑或语法上有所不同，但 Postgres 的查询计划器决定执行相同的操作：过滤 -> 按(DISTINCT)分组 -> JOIN。
 
-![](../Images/f7326db08785b9e7a709edf06dcd43d2.png)
+![](img/f7326db08785b9e7a709edf06dcd43d2.png)
 
 *图片来源：作者*
 
-Q5 ‘JOIN before filter’有着成本最高的执行计划。尽管PostgreSQL的查询计划器仍然设法在JOIN之前应用了过滤器，但去重过程是应用到较大的表上，导致了更高的成本。
+Q5 ‘JOIN before filter’有着成本最高的执行计划。尽管 PostgreSQL 的查询计划器仍然设法在 JOIN 之前应用了过滤器，但去重过程是应用到较大的表上，导致了更高的成本。
 
 # 结论：
 
-在我们的实验中，像是在JOIN之前强制加上过滤器或为IN操作符添加DISTINCT选项的做法并没有提高我们的查询性能；相反，它们使查询变得更慢。将BigQuery与Postgres进行比较，可以明显看出它们各自有自己的优势和特点。它们的查询计划器也针对不同的目标进行了优化，采用了不同的策略。
+在我们的实验中，像是在 JOIN 之前强制加上过滤器或为 IN 操作符添加 DISTINCT 选项的做法并没有提高我们的查询性能；相反，它们使查询变得更慢。将 BigQuery 与 Postgres 进行比较，可以明显看出它们各自有自己的优势和特点。它们的查询计划器也针对不同的目标进行了优化，采用了不同的策略。
 
-话虽如此，在像SQL这样的声明式语言中优化效率不仅仅取决于你的查询本身。数据库引擎如何解释、规划和执行查询同样重要。这个过程在很大程度上取决于数据库的设计，以及数据的结构和索引。
+话虽如此，在像 SQL 这样的声明式语言中优化效率不仅仅取决于你的查询本身。数据库引擎如何解释、规划和执行查询同样重要。这个过程在很大程度上取决于数据库的设计，以及数据的结构和索引。
 
 我们为博客进行的实验特定于某些特定的用例和数据集。了解性能的最有效方式是运行你自己的查询，检查查询执行计划，并查看它将如何执行。不要基于理论假设过度优化。实际的测试和观察应该始终是查询优化的指导原则。

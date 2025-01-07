@@ -1,22 +1,22 @@
-# 理解与实现Medprompt
+# 理解与实现 Medprompt
 
-> 原文：[https://towardsdatascience.com/understanding-and-implementing-medprompt-77bbd2777c91?source=collection_archive---------0-----------------------#2024-07-06](https://towardsdatascience.com/understanding-and-implementing-medprompt-77bbd2777c91?source=collection_archive---------0-----------------------#2024-07-06)
+> 原文：[`towardsdatascience.com/understanding-and-implementing-medprompt-77bbd2777c91?source=collection_archive---------0-----------------------#2024-07-06`](https://towardsdatascience.com/understanding-and-implementing-medprompt-77bbd2777c91?source=collection_archive---------0-----------------------#2024-07-06)
 
 ## 深入探讨提示框架背后的细节
 
-[](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)[![Anand Subramanian](../Images/096dc5504d6ada2493e0ac26959e60f0.png)](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------) [Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)
+[](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)![Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------) [Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------) ·14分钟阅读·2024年7月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------) ·14 分钟阅读·2024 年 7 月 6 日
 
 --
 
-![](../Images/17dd8d46598db7fb9ab33ac9280bb740.png)
+![](img/17dd8d46598db7fb9ab33ac9280bb740.png)
 
-Medprompt策略的各个组成部分示意图（图片来自Medprompt论文中的图6 [1] ([https://arxiv.org/abs/2311.16452](https://arxiv.org/abs/2311.16452) ))
+Medprompt 策略的各个组成部分示意图（图片来自 Medprompt 论文中的图 6 [1] ([`arxiv.org/abs/2311.16452`](https://arxiv.org/abs/2311.16452) ))
 
-在我的 [第一篇博客文章](https://medium.com/towards-data-science/an-introduction-to-prompting-for-llms-61d36aec2048) 中，我探讨了提示（prompting）及其在大语言模型（LLMs）中的重要性。提示对于从LLMs获取高质量输出至关重要，因为它指导模型的响应并确保其与当前任务相关。在此基础上，当尝试使用LLMs解决实际问题时，常常会出现两个关键问题：仅凭提示能够将性能推向多远？以及何时需要做出决定，认为微调模型可能更加有效？
+在我的 [第一篇博客文章](https://medium.com/towards-data-science/an-introduction-to-prompting-for-llms-61d36aec2048) 中，我探讨了提示（prompting）及其在大语言模型（LLMs）中的重要性。提示对于从 LLMs 获取高质量输出至关重要，因为它指导模型的响应并确保其与当前任务相关。在此基础上，当尝试使用 LLMs 解决实际问题时，常常会出现两个关键问题：仅凭提示能够将性能推向多远？以及何时需要做出决定，认为微调模型可能更加有效？
 
-在做出关于利用提示的设计决策时，需要考虑多个因素。像少量示例提示和思维链（CoT）[2] 提示等技术可以帮助提高大多数任务的LLM性能。检索增强生成（RAG）管道可以通过适应新领域而无需微调，进一步提升LLM性能，同时提供对生成输出的可控性，减少幻觉现象。总体而言，我们有一套工具可以在不依赖微调的情况下，推动LLM性能的提升。
+在做出关于利用提示的设计决策时，需要考虑多个因素。像少量示例提示和思维链（CoT）[2] 提示等技术可以帮助提高大多数任务的 LLM 性能。检索增强生成（RAG）管道可以通过适应新领域而无需微调，进一步提升 LLM 性能，同时提供对生成输出的可控性，减少幻觉现象。总体而言，我们有一套工具可以在不依赖微调的情况下，推动 LLM 性能的提升。
 
 微调本身就伴随着一系列挑战和复杂性，包括对标注数据的需求以及与 LLM 训练和部署相关的成本。微调在某些情况下还可能增加 LLM 的幻觉 [3]。将这些因素汇总，我们可以看到，通过提示来优化 LLM 性能，在采取微调之前，确实具有重要的价值。
 
@@ -24,17 +24,17 @@ Medprompt策略的各个组成部分示意图（图片来自Medprompt论文中�
 
 ## 目录：
 
-1.  [**MedPrompt 解释**](#90ba)
+1.  **MedPrompt 解释**
 
-1.  [**MedPrompt 组件**](#d584)
+1.  **MedPrompt 组件**
 
-1.  [**实现 MedPrompt**](#6d10)
+1.  **实现 MedPrompt**
 
-1.  [**评估性能**](#b207)
+1.  **评估性能**
 
-1.  [**结论**](#b79b)
+1.  **结论**
 
-1.  [**参考文献**](#2755)
+1.  **参考文献**
 
 # MedPrompt 解释
 
@@ -46,9 +46,9 @@ LLMs 在各个领域展示了令人印象深刻的能力，尤其是在医疗健
 
 作为本研究的一部分，论文介绍了**Medprompt**，一种创新的提示策略，不仅能提高模型的性能，还能超越像 MedPaLM-2 这样的专用模型。
 
-![](../Images/56bd75bc7bca6dbb22de6d88744d8ff5.png)
+![](img/56bd75bc7bca6dbb22de6d88744d8ff5.png)
 
-各种 LLM 在医学知识基准测试中的比较。使用 Medprompt 的 GPT-4 在所有这些数据集上都优于 Med-PaLM 2。（来自 Medprompt 论文 [1] 的表格 1 图像 [https://arxiv.org/abs/2311.16452](https://arxiv.org/abs/2311.16452)）
+各种 LLM 在医学知识基准测试中的比较。使用 Medprompt 的 GPT-4 在所有这些数据集上都优于 Med-PaLM 2。（来自 Medprompt 论文 [1] 的表格 1 图像 [`arxiv.org/abs/2311.16452`](https://arxiv.org/abs/2311.16452)）
 
 使用 Medprompt 的 GPT-4 在所有医学 MCQA 基准测试中都超越了 Med-PaLM 2，而无需任何**领域特定的微调**。让我们来探索一下 Medprompt 的组件。
 
@@ -76,7 +76,7 @@ Medprompt 将少量样本提示、思维链提示（CoT）和检索增强生成�
 
 在预处理管道中，我们首先从训练数据集中提取每个问题，并在提示中加入详细的指令，以指导生成答案及其相关推理步骤。大语言模型（LLM）会被提示生成答案和推理步骤。在获取生成的回答后，我们通过将预测的答案与该特定问题的真实答案进行对比，来验证其准确性。
 
-![](../Images/c963d79a34de678026ba379c9833720a.png)
+![](img/c963d79a34de678026ba379c9833720a.png)
 
 Medprompt 预处理管道（图片由作者提供）
 
@@ -86,7 +86,7 @@ Medprompt 预处理管道（图片由作者提供）
 
 在推理阶段，我们首先使用文本嵌入模型对测试集中的每个问题进行嵌入。然后，我们使用 KNN 模型来识别最相似的 top-k 问题。对于每个检索到的数据点，我们可以访问自生成的思维链（CoT）推理和预测答案。我们将这些元素——问题、CoT 推理和答案——格式化为最终提示的少量示例。
 
-![](../Images/71c38445d50f25f5fca81cb0d6352615.png)
+![](img/71c38445d50f25f5fca81cb0d6352615.png)
 
 Medprompt 推理管道（作者插图）
 
@@ -476,13 +476,13 @@ print(ctr / len(test_samples))
 
 我们评估了 Medprompt 在 MedQA 测试子集上与 GPT-4o 相关的准确性表现。此外，我们还基准测试了零样本提示、随机少样本提示和随机少样本 CoT 提示的表现。
 
-![](../Images/5689439bdcd82036f6539f1e4fbd3b44.png)
+![](img/5689439bdcd82036f6539f1e4fbd3b44.png)
 
 我们的评估结果（图片由作者提供）
 
 我们观察到，Medprompt 和随机少样本 CoT 提示比零样本和少样本提示基准表现更好。然而，令人惊讶的是，我们注意到随机少样本 CoT 的表现超出了我们的 Medprompt 表现。这可能是由于以下几个原因：
 
-1.  原始的 Medprompt 论文基准测试了 GPT-4 的表现。我们观察到，GPT-4o 在各种文本基准测试中显著优于 GPT-4T 和 GPT-4（[https://openai.com/index/hello-gpt-4o/](https://openai.com/index/hello-gpt-4o/)），这表明 Medprompt 在像 GPT-4o 这样的更强模型上的影响可能较小。
+1.  原始的 Medprompt 论文基准测试了 GPT-4 的表现。我们观察到，GPT-4o 在各种文本基准测试中显著优于 GPT-4T 和 GPT-4（[`openai.com/index/hello-gpt-4o/`](https://openai.com/index/hello-gpt-4o/)），这表明 Medprompt 在像 GPT-4o 这样的更强模型上的影响可能较小。
 
 1.  我们将评估限制在从 MedQA 中子抽取的 500 个问题。Medprompt 论文评估了其他医学 MCQA 数据集以及 MedQA 的完整版。对 GPT-4o 进行完整版数据集的评估可能能更全面地展示整体表现。
 
@@ -492,14 +492,14 @@ Medprompt 是一个有趣的框架，用于创建复杂的提示管道，特别�
 
 # **参考文献：**
 
-[1] Nori, H., Lee, Y. T., Zhang, S., Carignan, D., Edgar, R., Fusi, N., … & Horvitz, E. (2023). 通用基础模型能否超越专用微调？医学领域的案例研究。*arXiv 预印本 arXiv:2311.16452*。([https://arxiv.org/abs/2311.16452](https://arxiv.org/abs/2311.16452))
+[1] Nori, H., Lee, Y. T., Zhang, S., Carignan, D., Edgar, R., Fusi, N., … & Horvitz, E. (2023). 通用基础模型能否超越专用微调？医学领域的案例研究。*arXiv 预印本 arXiv:2311.16452*。([`arxiv.org/abs/2311.16452`](https://arxiv.org/abs/2311.16452))
 
-[2] Wei, J., Wang, X., Schuurmans, D., Bosma, M., Xia, F., Chi, E., … & Zhou, D. (2022). 思维链提示引发大型语言模型的推理。*神经信息处理系统进展*，*35*，24824–24837\. ([https://openreview.net/pdf?id=_VjQlMeSB_J](https://openreview.net/pdf?id=_VjQlMeSB_J))
+[2] Wei, J., Wang, X., Schuurmans, D., Bosma, M., Xia, F., Chi, E., … & Zhou, D. (2022). 思维链提示引发大型语言模型的推理。*神经信息处理系统进展*，*35*，24824–24837\. ([`openreview.net/pdf?id=_VjQlMeSB_J`](https://openreview.net/pdf?id=_VjQlMeSB_J))
 
-[3] Gekhman, Z., Yona, G., Aharoni, R., Eyal, M., Feder, A., Reichart, R., & Herzig, J. (2024). 在新知识上微调 LLM 是否会鼓励幻觉？*arXiv 预印本 arXiv:2405.05904*。([https://arxiv.org/abs/2405.05904](https://arxiv.org/abs/2405.05904))
+[3] Gekhman, Z., Yona, G., Aharoni, R., Eyal, M., Feder, A., Reichart, R., & Herzig, J. (2024). 在新知识上微调 LLM 是否会鼓励幻觉？*arXiv 预印本 arXiv:2405.05904*。([`arxiv.org/abs/2405.05904`](https://arxiv.org/abs/2405.05904))
 
-[4] Singhal, K., Azizi, S., Tu, T., Mahdavi, S. S., Wei, J., Chung, H. W., … & Natarajan, V. (2023). 大型语言模型编码临床知识。*自然*，*620*(7972)，172–180\. ([https://www.nature.com/articles/s41586-023-06291-2](https://www.nature.com/articles/s41586-023-06291-2))
+[4] Singhal, K., Azizi, S., Tu, T., Mahdavi, S. S., Wei, J., Chung, H. W., … & Natarajan, V. (2023). 大型语言模型编码临床知识。*自然*，*620*(7972)，172–180\. ([`www.nature.com/articles/s41586-023-06291-2`](https://www.nature.com/articles/s41586-023-06291-2))
 
-[5] Singhal, K., Tu, T., Gottweis, J., Sayres, R., Wulczyn, E., Hou, L., … & Natarajan, V. (2023). 通过大型语言模型实现专家级医学问答。*arXiv 预印本 arXiv:2305.09617*。([https://arxiv.org/abs/2305.09617](https://arxiv.org/abs/2305.09617))
+[5] Singhal, K., Tu, T., Gottweis, J., Sayres, R., Wulczyn, E., Hou, L., … & Natarajan, V. (2023). 通过大型语言模型实现专家级医学问答。*arXiv 预印本 arXiv:2305.09617*。([`arxiv.org/abs/2305.09617`](https://arxiv.org/abs/2305.09617))
 
-[6] Jin, D., Pan, E., Oufattole, N., Weng, W. H., Fang, H., & Szolovits, P. (2021). 这个病人得了什么病？一个来自医学考试的大规模开放领域问答数据集。*应用科学*，*11*(14)，6421\. ([https://arxiv.org/abs/2009.13081](https://arxiv.org/abs/2009.13081))（原始数据集发布在 MIT 许可下）
+[6] Jin, D., Pan, E., Oufattole, N., Weng, W. H., Fang, H., & Szolovits, P. (2021). 这个病人得了什么病？一个来自医学考试的大规模开放领域问答数据集。*应用科学*，*11*(14)，6421\. ([`arxiv.org/abs/2009.13081`](https://arxiv.org/abs/2009.13081))（原始数据集发布在 MIT 许可下）

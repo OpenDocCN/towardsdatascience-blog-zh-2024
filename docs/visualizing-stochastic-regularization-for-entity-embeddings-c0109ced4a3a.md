@@ -1,16 +1,16 @@
 # 可视化实体嵌入的随机正则化
 
-> 原文：[https://towardsdatascience.com/visualizing-stochastic-regularization-for-entity-embeddings-c0109ced4a3a?source=collection_archive---------8-----------------------#2024-08-06](https://towardsdatascience.com/visualizing-stochastic-regularization-for-entity-embeddings-c0109ced4a3a?source=collection_archive---------8-----------------------#2024-08-06)
+> 原文：[`towardsdatascience.com/visualizing-stochastic-regularization-for-entity-embeddings-c0109ced4a3a?source=collection_archive---------8-----------------------#2024-08-06`](https://towardsdatascience.com/visualizing-stochastic-regularization-for-entity-embeddings-c0109ced4a3a?source=collection_archive---------8-----------------------#2024-08-06)
 
 ## 揭示神经网络如何感知类别数据及其层次结构
 
-[](https://medium.com/@vla6?source=post_page---byline--c0109ced4a3a--------------------------------)[![Valerie Carey](../Images/9ef394fe5a6a5439521c1905e0195751.png)](https://medium.com/@vla6?source=post_page---byline--c0109ced4a3a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c0109ced4a3a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c0109ced4a3a--------------------------------) [Valerie Carey](https://medium.com/@vla6?source=post_page---byline--c0109ced4a3a--------------------------------)
+[](https://medium.com/@vla6?source=post_page---byline--c0109ced4a3a--------------------------------)![Valerie Carey](https://medium.com/@vla6?source=post_page---byline--c0109ced4a3a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c0109ced4a3a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c0109ced4a3a--------------------------------) [Valerie Carey](https://medium.com/@vla6?source=post_page---byline--c0109ced4a3a--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c0109ced4a3a--------------------------------) ·11分钟阅读·2024年8月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c0109ced4a3a--------------------------------) ·11 分钟阅读·2024 年 8 月 6 日
 
 --
 
-![](../Images/3b2502e5244064b351537fa99c7cff97.png)
+![](img/3b2502e5244064b351537fa99c7cff97.png)
 
 图片由 [Rachael Crowe](https://unsplash.com/@hellorachaelcrowe?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -20,6 +20,6 @@
 
 > 实际上，当使用层次信息与随机正则化结合时，模型对未见编码的性能可以接近已知编码的表现！
 
-在这里，我使用可视化和SHAP值来“探究内部机制”，并深入了解实体嵌入如何响应随机正则化。这些图像很漂亮，看着数据变化时图表的变化也很酷。此外，这些可视化能够为模型改进提供建议，并能够识别出分析师可能感兴趣的群体。
+在这里，我使用可视化和 SHAP 值来“探究内部机制”，并深入了解实体嵌入如何响应随机正则化。这些图像很漂亮，看着数据变化时图表的变化也很酷。此外，这些可视化能够为模型改进提供建议，并能够识别出分析师可能感兴趣的群体。
 
-## NAICS代码
+## NAICS 代码

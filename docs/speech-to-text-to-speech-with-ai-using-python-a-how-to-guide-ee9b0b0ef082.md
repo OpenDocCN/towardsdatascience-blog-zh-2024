@@ -1,16 +1,16 @@
 # 使用 Python 和 AI 的语音转文本再转语音 — 一份如何实现的指南
 
-> 原文：[https://towardsdatascience.com/speech-to-text-to-speech-with-ai-using-python-a-how-to-guide-ee9b0b0ef082?source=collection_archive---------1-----------------------#2024-02-11](https://towardsdatascience.com/speech-to-text-to-speech-with-ai-using-python-a-how-to-guide-ee9b0b0ef082?source=collection_archive---------1-----------------------#2024-02-11)
+> 原文：[`towardsdatascience.com/speech-to-text-to-speech-with-ai-using-python-a-how-to-guide-ee9b0b0ef082?source=collection_archive---------1-----------------------#2024-02-11`](https://towardsdatascience.com/speech-to-text-to-speech-with-ai-using-python-a-how-to-guide-ee9b0b0ef082?source=collection_archive---------1-----------------------#2024-02-11)
 
 ## 如何创建一个语音转文本再转语音程序
 
-[](https://naomikriger.medium.com/?source=post_page---byline--ee9b0b0ef082--------------------------------)[![Naomi Kriger](../Images/14839f859e1375965c046912f00df5b9.png)](https://naomikriger.medium.com/?source=post_page---byline--ee9b0b0ef082--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ee9b0b0ef082--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ee9b0b0ef082--------------------------------) [Naomi Kriger](https://naomikriger.medium.com/?source=post_page---byline--ee9b0b0ef082--------------------------------)
+[](https://naomikriger.medium.com/?source=post_page---byline--ee9b0b0ef082--------------------------------)![Naomi Kriger](https://naomikriger.medium.com/?source=post_page---byline--ee9b0b0ef082--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ee9b0b0ef082--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ee9b0b0ef082--------------------------------) [Naomi Kriger](https://naomikriger.medium.com/?source=post_page---byline--ee9b0b0ef082--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ee9b0b0ef082--------------------------------) ·阅读时长 8 分钟·2024年2月11日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ee9b0b0ef082--------------------------------) ·阅读时长 8 分钟·2024 年 2 月 11 日
 
 --
 
-![](../Images/9373a2a21c40ba755fe7e692fc61b292.png)
+![](img/9373a2a21c40ba755fe7e692fc61b292.png)
 
 [图片](https://unsplash.com/photos/aaujbh59zqI) 由 [Mariia Shalabaieva](https://unsplash.com/@maria_shalabaieva) 提供，来源于 [unsplash](http://unsplash.com)
 
@@ -109,9 +109,9 @@ def detect_chosen_option_from_transcript(
         return ""
 ```
 
-如果你想了解更多关于`FuzzyWuzzy`库及其功能的信息，可以阅读我写的这篇文章[这里](/string-comparison-is-easy-with-fuzzywuzzy-library-611cc1888d97)。
+如果你想了解更多关于`FuzzyWuzzy`库及其功能的信息，可以阅读我写的这篇文章这里。
 
-## 获取ChatGPT响应
+## 获取 ChatGPT 响应
 
 一旦我们得到了转录内容，就可以将其发送给`ChatGPT`以获取回复。
 
@@ -140,9 +140,9 @@ def get_system_instructions(figure: str) -> str:
 
 ## 文本转语音
 
-对于文本转语音部分，我们选择了一个名为`pyttsx3`的Python库。这个选择不仅实现起来直接，而且还提供了若干额外的优势。它是免费的，提供两种语音选项——男性和女性——并允许你选择语速（每分钟单词数）。
+对于文本转语音部分，我们选择了一个名为`pyttsx3`的 Python 库。这个选择不仅实现起来直接，而且还提供了若干额外的优势。它是免费的，提供两种语音选项——男性和女性——并允许你选择语速（每分钟单词数）。
 
-当用户开始游戏时，他们从预定义的选项列表中选择一个角色。如果我们在列表中找不到匹配的内容，就会从“备选角色”列表中随机选择一个角色。在这两个列表中，每个角色都与一个性别关联，因此我们的文本转语音功能也会收到对应所选性别的语音ID。
+当用户开始游戏时，他们从预定义的选项列表中选择一个角色。如果我们在列表中找不到匹配的内容，就会从“备选角色”列表中随机选择一个角色。在这两个列表中，每个角色都与一个性别关联，因此我们的文本转语音功能也会收到对应所选性别的语音 ID。
 
 这是我们文本转语音功能的样子：
 
@@ -214,15 +214,15 @@ if __name__ == "__main__":
 
 # 未走的道路
 
-我们有几个想法，在黑客松期间没有实现。这是因为在那个周末我们没有找到一个令我们满意的API，或者由于时间限制无法开发某些功能。这些就是我们未选择的路径：
+我们有几个想法，在黑客松期间没有实现。这是因为在那个周末我们没有找到一个令我们满意的 API，或者由于时间限制无法开发某些功能。这些就是我们未选择的路径：
 
 ## 匹配响应语音与所选角色的“实际”语音
 
-想象一下，如果用户选择与史瑞克、特朗普或奥普拉·温弗瑞对话。我们希望我们的文本到语音库或API能够用与所选人物匹配的声音来表达回应。然而，在黑客松期间，我们没有找到一个价格合理的库或API提供这个功能。如果你有建议，我们依然欢迎哦 =)
+想象一下，如果用户选择与史瑞克、特朗普或奥普拉·温弗瑞对话。我们希望我们的文本到语音库或 API 能够用与所选人物匹配的声音来表达回应。然而，在黑客松期间，我们没有找到一个价格合理的库或 API 提供这个功能。如果你有建议，我们依然欢迎哦 =)
 
 ## 让用户与“自己”对话
 
-另一个有趣的想法是提示用户提供他们自己的语音样本。我们将使用这个样本训练一个模型，然后让ChatGPT生成的所有回应用用户自己的声音朗读。在这种情况下，用户可以选择回应的语气（肯定和支持、讽刺、愤怒等），但声音会尽可能像用户自己的声音。然而，在黑客松的限制下，我们没能找到支持这种功能的API。
+另一个有趣的想法是提示用户提供他们自己的语音样本。我们将使用这个样本训练一个模型，然后让 ChatGPT 生成的所有回应用用户自己的声音朗读。在这种情况下，用户可以选择回应的语气（肯定和支持、讽刺、愤怒等），但声音会尽可能像用户自己的声音。然而，在黑客松的限制下，我们没能找到支持这种功能的 API。
 
 ## 为我们的应用添加前端
 
@@ -242,7 +242,7 @@ if __name__ == "__main__":
 
 # 总结
 
-在这篇文章中，我们学习了如何使用Python创建一个语音到文本再到语音的游戏，并将其与AI结合。我们使用了`OpenAI`的`Whisper`模型进行语音识别，玩弄了`FuzzyWuzzy`库进行文本匹配，利用`ChatGPT`的对话魔力通过开发者API实现，并通过`pyttsx3`将其转换为语音。虽然`OpenAI`的服务（`Whisper`和`ChatGPT`开发者版）确实有一定的费用，但它还是很实惠的。
+在这篇文章中，我们学习了如何使用 Python 创建一个语音到文本再到语音的游戏，并将其与 AI 结合。我们使用了`OpenAI`的`Whisper`模型进行语音识别，玩弄了`FuzzyWuzzy`库进行文本匹配，利用`ChatGPT`的对话魔力通过开发者 API 实现，并通过`pyttsx3`将其转换为语音。虽然`OpenAI`的服务（`Whisper`和`ChatGPT`开发者版）确实有一定的费用，但它还是很实惠的。
 
 我们希望这篇指南对你有所启发，并激励你开始你的项目。
 

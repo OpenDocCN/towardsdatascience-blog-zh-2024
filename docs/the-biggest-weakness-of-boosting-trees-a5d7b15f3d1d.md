@@ -1,16 +1,16 @@
 # 增强树的最大弱点
 
-> 原文：[https://towardsdatascience.com/the-biggest-weakness-of-boosting-trees-a5d7b15f3d1d?source=collection_archive---------2-----------------------#2024-02-12](https://towardsdatascience.com/the-biggest-weakness-of-boosting-trees-a5d7b15f3d1d?source=collection_archive---------2-----------------------#2024-02-12)
+> 原文：[`towardsdatascience.com/the-biggest-weakness-of-boosting-trees-a5d7b15f3d1d?source=collection_archive---------2-----------------------#2024-02-12`](https://towardsdatascience.com/the-biggest-weakness-of-boosting-trees-a5d7b15f3d1d?source=collection_archive---------2-----------------------#2024-02-12)
 
 ## 为什么分布漂移真的会伤害你的模型
 
-[](https://medium.com/@jacky.kaub?source=post_page---byline--a5d7b15f3d1d--------------------------------)[![Jacky Kaub](../Images/e66c699ee5a9d5bbd58a1a72d688234a.png)](https://medium.com/@jacky.kaub?source=post_page---byline--a5d7b15f3d1d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a5d7b15f3d1d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a5d7b15f3d1d--------------------------------) [Jacky Kaub](https://medium.com/@jacky.kaub?source=post_page---byline--a5d7b15f3d1d--------------------------------)
+[](https://medium.com/@jacky.kaub?source=post_page---byline--a5d7b15f3d1d--------------------------------)![Jacky Kaub](https://medium.com/@jacky.kaub?source=post_page---byline--a5d7b15f3d1d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a5d7b15f3d1d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5d7b15f3d1d--------------------------------) [Jacky Kaub](https://medium.com/@jacky.kaub?source=post_page---byline--a5d7b15f3d1d--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5d7b15f3d1d--------------------------------) ·10分钟阅读·2024年2月12日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5d7b15f3d1d--------------------------------) ·10 分钟阅读·2024 年 2 月 12 日
 
 --
 
-![](../Images/586edd3d27e719508579b7f9a3040cd3.png)
+![](img/586edd3d27e719508579b7f9a3040cd3.png)
 
 图片由[Sebastian Unrau](https://unsplash.com/@sebastian_unrau?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

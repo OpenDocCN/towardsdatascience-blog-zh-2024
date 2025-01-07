@@ -1,24 +1,24 @@
-# 使用FAISS和CLIP构建图像相似度搜索引擎
+# 使用 FAISS 和 CLIP 构建图像相似度搜索引擎
 
-> 原文：[https://towardsdatascience.com/building-an-image-similarity-search-engine-with-faiss-and-clip-2211126d08fa?source=collection_archive---------3-----------------------#2024-08-23](https://towardsdatascience.com/building-an-image-similarity-search-engine-with-faiss-and-clip-2211126d08fa?source=collection_archive---------3-----------------------#2024-08-23)
+> 原文：[`towardsdatascience.com/building-an-image-similarity-search-engine-with-faiss-and-clip-2211126d08fa?source=collection_archive---------3-----------------------#2024-08-23`](https://towardsdatascience.com/building-an-image-similarity-search-engine-with-faiss-and-clip-2211126d08fa?source=collection_archive---------3-----------------------#2024-08-23)
 
-## 一篇指导性教程，解释如何使用CLIP嵌入和FAISS索引，通过文本或照片查询搜索图像数据集。
+## 一篇指导性教程，解释如何使用 CLIP 嵌入和 FAISS 索引，通过文本或照片查询搜索图像数据集。
 
-[](https://medium.com/@lihigurarie?source=post_page---byline--2211126d08fa--------------------------------)[![Lihi Gur Arie, PhD](../Images/7a1eb30725a95159401c3672fa5f43ab.png)](https://medium.com/@lihigurarie?source=post_page---byline--2211126d08fa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2211126d08fa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2211126d08fa--------------------------------) [Lihi Gur Arie, 博士](https://medium.com/@lihigurarie?source=post_page---byline--2211126d08fa--------------------------------)
+[](https://medium.com/@lihigurarie?source=post_page---byline--2211126d08fa--------------------------------)![Lihi Gur Arie, PhD](https://medium.com/@lihigurarie?source=post_page---byline--2211126d08fa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2211126d08fa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2211126d08fa--------------------------------) [Lihi Gur Arie, 博士](https://medium.com/@lihigurarie?source=post_page---byline--2211126d08fa--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2211126d08fa--------------------------------) ·6分钟阅读·2024年8月23日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2211126d08fa--------------------------------) ·6 分钟阅读·2024 年 8 月 23 日
 
 --
 
-![](../Images/6aa0f89a4ae8ff874b4620b8a4ef873b.png)
+![](img/6aa0f89a4ae8ff874b4620b8a4ef873b.png)
 
-图片由作者在Flux-Pro平台上生成
+图片由作者在 Flux-Pro 平台上生成
 
 # 引言
 
-你是否曾经想在你的无尽图像数据集中找到一张图像，却觉得这项任务太繁琐？在本教程中，我们将构建一个图像相似度搜索引擎，通过文本查询或参考图像轻松找到图像。为了方便起见，本教程的完整代码已提供在文章底部，作为一个**Colab笔记本**。
+你是否曾经想在你的无尽图像数据集中找到一张图像，却觉得这项任务太繁琐？在本教程中，我们将构建一个图像相似度搜索引擎，通过文本查询或参考图像轻松找到图像。为了方便起见，本教程的完整代码已提供在文章底部，作为一个**Colab 笔记本**。
 
-> 如果你没有付费的Medium账户，你可以在[这里](/building-an-image-similarity-search-engine-with-faiss-and-clip-2211126d08fa?sk=4d3ed082bd53b0e2ada2f660bd0da5ad)免费阅读。
+> 如果你没有付费的 Medium 账户，你可以在这里免费阅读。
 
 ## 流程概览
 
@@ -26,15 +26,15 @@
 
 这里是简要概览：
 
-1.  **嵌入**：图像的嵌入是通过CLIP模型提取的。
+1.  **嵌入**：图像的嵌入是通过 CLIP 模型提取的。
 
-1.  **索引**：嵌入向量被存储为FAISS索引。
+1.  **索引**：嵌入向量被存储为 FAISS 索引。
 
-1.  **检索**：使用FAISS，查询的嵌入与索引中的嵌入进行比较，从而检索最相似的图像。
+1.  **检索**：使用 FAISS，查询的嵌入与索引中的嵌入进行比较，从而检索最相似的图像。
 
-## CLIP模型
+## CLIP 模型
 
-CLIP（对比语言-图像预训练）模型是由 OpenAI 开发的多模态视觉与语言模型，它将图像和文本映射到相同的潜在空间。由于我们将使用图像和文本查询来搜索图像，我们将使用 CLIP 模型来嵌入我们的数据。关于 CLIP 的进一步阅读，您可以查看我之前的文章[这里](/clip-creating-image-classifiers-without-data-b21c72b741fa?sk=88fdd2c1a132538015968df3f49b64b1)。
+CLIP（对比语言-图像预训练）模型是由 OpenAI 开发的多模态视觉与语言模型，它将图像和文本映射到相同的潜在空间。由于我们将使用图像和文本查询来搜索图像，我们将使用 CLIP 模型来嵌入我们的数据。关于 CLIP 的进一步阅读，您可以查看我之前的文章这里。
 
 ## FAISS 索引
 
@@ -46,7 +46,7 @@ FAISS（Facebook AI 相似度搜索）是 Meta 开发的开源库。它围绕存
 
 为了创建本教程的图像数据集，我从[Pexels](https://www.pexels.com/)收集了 52 张各种主题的图像。为了帮助理解，我们来看一下 10 张随机图像：
 
-![](../Images/5783da36e449663c611c2569c8921c43.png)
+![](img/5783da36e449663c611c2569c8921c43.png)
 
 ## **第 2 步 — 从图像数据集中提取 CLIP 嵌入向量**
 
@@ -145,11 +145,11 @@ def retrieve_similar_images(query, model, index, image_paths, top_k=3):
     return query, retrieved_images
 ```
 
-检索发生在`index.search`方法中。它实现了k近邻（kNN）搜索，用于查找与查询向量最相似的`k`个向量。我们可以通过更改`top_k`参数来调整k的值。在我们的实现中，kNN搜索使用的距离度量是余弦相似度。该函数返回查询和一系列获取的图片路径。
+检索发生在`index.search`方法中。它实现了 k 近邻（kNN）搜索，用于查找与查询向量最相似的`k`个向量。我们可以通过更改`top_k`参数来调整 k 的值。在我们的实现中，kNN 搜索使用的距离度量是余弦相似度。该函数返回查询和一系列获取的图片路径。
 
 **使用文本查询进行搜索：**
 
-现在我们准备好检查搜索结果了。辅助函数`visualize_results`展示了这些结果。你可以在关联的Colab笔记本中找到它。让我们以文本查询“ball”为例，探索获取的三个最相似的图片：
+现在我们准备好检查搜索结果了。辅助函数`visualize_results`展示了这些结果。你可以在关联的 Colab 笔记本中找到它。让我们以文本查询“ball”为例，探索获取的三个最相似的图片：
 
 ```py
 query = 'ball'
@@ -157,13 +157,13 @@ query, retrieved_images = retrieve_similar_images(query, model, index, image_pat
 visualize_results(query, retrieved_images)
 ```
 
-![](../Images/0982e9cc9e59715d51147782f62d60f5.png)
+![](img/0982e9cc9e59715d51147782f62d60f5.png)
 
 使用查询“a ball”获取的图片
 
 对于查询“animal”，我们得到了：
 
-![](../Images/6beffd16ea96ed9928100a9d117bcb0d.png)
+![](img/6beffd16ea96ed9928100a9d117bcb0d.png)
 
 使用查询“animal”获取的图片
 
@@ -175,17 +175,17 @@ query, retrieved_images = retrieve_similar_images(query, model, index, image_pat
 visualize_results(query, retrieved_images)
 ```
 
-![](../Images/015aeddcd340d75270dd41904b56d11d.png)
+![](img/015aeddcd340d75270dd41904b56d11d.png)
 
 查询和获取的图片
 
 正如我们所见，我们对现成的预训练模型得到了相当不错的结果。当我们用一幅眼睛画作为参考图片进行搜索时，除了找到原始图片外，还找到了一张眼镜和一张不同画作的匹配。这展示了查询图片的语义含义的不同方面。
 
-你可以在提供的Colab笔记本中尝试其他查询，查看模型在不同文本和图像输入下的表现。
+你可以在提供的 Colab 笔记本中尝试其他查询，查看模型在不同文本和图像输入下的表现。
 
 # 结语
 
-在本教程中，我们使用CLIP和FAISS构建了一个基本的图像相似性搜索引擎。获取的图片与查询具有相似的语义含义，表明该方法的有效性。尽管CLIP对零样本模型显示出不错的结果，但它可能在分布外数据、细粒度任务中表现较差，并且继承了它所训练数据的自然偏差。为了克服这些限制，你可以尝试使用其他类似CLIP的预训练模型，如在[OpenClip](https://github.com/mlfoundations/open_clip/tree/main)中，或者在你自己的定制数据集上微调CLIP。
+在本教程中，我们使用 CLIP 和 FAISS 构建了一个基本的图像相似性搜索引擎。获取的图片与查询具有相似的语义含义，表明该方法的有效性。尽管 CLIP 对零样本模型显示出不错的结果，但它可能在分布外数据、细粒度任务中表现较差，并且继承了它所训练数据的自然偏差。为了克服这些限制，你可以尝试使用其他类似 CLIP 的预训练模型，如在[OpenClip](https://github.com/mlfoundations/open_clip/tree/main)中，或者在你自己的定制数据集上微调 CLIP。
 
 # 感谢阅读！
 
@@ -199,6 +199,6 @@ visualize_results(query, retrieved_images)
 
 +   在[**Linkedin**](https://www.linkedin.com/in/lihi-gur-arie/)上关注我
 
-# 完整代码作为Colab笔记本：
+# 完整代码作为 Colab 笔记本：
 
-Colab笔记本[链接](https://gist.github.com/Lihi-Gur-Arie/7cac63dbffde55449d2444e402d87bfc)
+Colab 笔记本[链接](https://gist.github.com/Lihi-Gur-Arie/7cac63dbffde55449d2444e402d87bfc)

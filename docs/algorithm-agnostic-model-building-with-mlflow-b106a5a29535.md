@@ -1,32 +1,32 @@
-# 使用MLflow进行算法无关的模型构建
+# 使用 MLflow 进行算法无关的模型构建
 
-> 原文：[https://towardsdatascience.com/algorithm-agnostic-model-building-with-mlflow-b106a5a29535?source=collection_archive---------0-----------------------#2024-08-10](https://towardsdatascience.com/algorithm-agnostic-model-building-with-mlflow-b106a5a29535?source=collection_archive---------0-----------------------#2024-08-10)
+> 原文：[`towardsdatascience.com/algorithm-agnostic-model-building-with-mlflow-b106a5a29535?source=collection_archive---------0-----------------------#2024-08-10`](https://towardsdatascience.com/algorithm-agnostic-model-building-with-mlflow-b106a5a29535?source=collection_archive---------0-----------------------#2024-08-10)
 
-## 面向初学者的逐步指南，帮助你使用mlflow.pyfunc创建通用的机器学习管道
+## 面向初学者的逐步指南，帮助你使用 mlflow.pyfunc 创建通用的机器学习管道
 
-[](https://menawang.medium.com/?source=post_page---byline--b106a5a29535--------------------------------)[![Mena Wang, PhD](../Images/eac9fa55026f9fc119bc868439ff311b.png)](https://menawang.medium.com/?source=post_page---byline--b106a5a29535--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b106a5a29535--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b106a5a29535--------------------------------) [Mena Wang, PhD](https://menawang.medium.com/?source=post_page---byline--b106a5a29535--------------------------------)
+[](https://menawang.medium.com/?source=post_page---byline--b106a5a29535--------------------------------)![Mena Wang, PhD](https://menawang.medium.com/?source=post_page---byline--b106a5a29535--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b106a5a29535--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b106a5a29535--------------------------------) [Mena Wang, PhD](https://menawang.medium.com/?source=post_page---byline--b106a5a29535--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b106a5a29535--------------------------------) ·阅读时间：8分钟·2024年8月10日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b106a5a29535--------------------------------) ·阅读时间：8 分钟·2024 年 8 月 10 日
 
 --
 
-MLOps中的一个常见挑战是不同算法或框架之间迁移的麻烦。本文面向初学者，帮助你通过使用`mlflow.pyfunc`进行算法无关的模型构建来应对这一挑战。
+MLOps 中的一个常见挑战是不同算法或框架之间迁移的麻烦。本文面向初学者，帮助你通过使用`mlflow.pyfunc`进行算法无关的模型构建来应对这一挑战。
 
 # **为什么选择算法无关的模型构建？**
 
-假设有这样一个场景：我们有一个当前在生产环境中部署的sklearn模型，用于某个特定的使用场景。后来我们发现，深度学习模型的表现更好。如果sklearn模型是以其原生格式部署的，切换到深度学习模型可能会很麻烦🤪，因为这两种模型的文件格式差异很大。
+假设有这样一个场景：我们有一个当前在生产环境中部署的 sklearn 模型，用于某个特定的使用场景。后来我们发现，深度学习模型的表现更好。如果 sklearn 模型是以其原生格式部署的，切换到深度学习模型可能会很麻烦🤪，因为这两种模型的文件格式差异很大。
 
-![](../Images/33a9e7864d65b8a617c6d295f3d2b53a.png)
+![](img/33a9e7864d65b8a617c6d295f3d2b53a.png)
 
-由Gemini生成的图像
+由 Gemini 生成的图像
 
-为了解决这一挑战，`mlflow.pyfunc`模型类型提供了一种多功能的通用方法，用于在Python中构建和部署机器学习模型。😎
+为了解决这一挑战，`mlflow.pyfunc`模型类型提供了一种多功能的通用方法，用于在 Python 中构建和部署机器学习模型。😎
 
 **1. 通用模型构建：** `pyfunc`模型类型提供了一种统一的方式来构建模型，无论使用的是哪个框架或库。
 
-**2. ML管道的封装：** `pyfunc`允许我们将模型与其前后处理步骤或在模型使用过程中所需的其他自定义逻辑一起封装。
+**2. ML 管道的封装：** `pyfunc`允许我们将模型与其前后处理步骤或在模型使用过程中所需的其他自定义逻辑一起封装。
 
-**3. 统一的模型表示：** 我们可以使用`pyfunc`部署一个模型、一个机器学习管道或任何Python函数，而无需担心模型的底层格式。这种统一的表示简化了模型的部署、重新部署以及后续评分。
+**3. 统一的模型表示：** 我们可以使用`pyfunc`部署一个模型、一个机器学习管道或任何 Python 函数，而无需担心模型的底层格式。这种统一的表示简化了模型的部署、重新部署以及后续评分。
 
 听起来很有趣？如果是的话，本文将帮助你开始使用`mlflow.pyfunc`。🥂
 
@@ -40,7 +40,7 @@ MLOps中的一个常见挑战是不同算法或框架之间迁移的麻烦。本
 
 # {pyfunc} 简单玩具模型
 
-首先，让我们创建一个简单的玩具`mlflow.pyfunc`模型，然后将其与mlflow工作流一起使用。
+首先，让我们创建一个简单的玩具`mlflow.pyfunc`模型，然后将其与 mlflow 工作流一起使用。
 
 +   第一步：创建模型
 
@@ -70,7 +70,7 @@ class ToyModel(mlflow.pyfunc.PythonModel):
         return [x + 1 for x in model_input]
 ```
 
-如上例所示，你可以创建一个`mlflow.pyfunc`模型，以实现任何适合你机器学习解决方案的自定义Python函数，这不一定是现成的机器学习算法。
+如上例所示，你可以创建一个`mlflow.pyfunc`模型，以实现任何适合你机器学习解决方案的自定义 Python 函数，这不一定是现成的机器学习算法。
 
 然后，你可以记录这个模型并在之后加载它以执行推理。
 
@@ -97,17 +97,17 @@ print(model.predict(x_new))
 [2, 3, 4]
 ```
 
-# **{pyfunc} 封装的XGBoost管道**
+# **{pyfunc} 封装的 XGBoost 管道**
 
 现在，让我们创建一个封装了估算器和额外自定义逻辑的机器学习管道。
 
-在下面的示例中，`XGB_PIPELINE`类是一个包装器，它将估算器与预处理步骤结合在一起，对于某些MLOps实现来说非常有用。借助`mlflow.pyfunc`，这个包装器与估算器无关，提供统一的模型表示。具体来说：
+在下面的示例中，`XGB_PIPELINE`类是一个包装器，它将估算器与预处理步骤结合在一起，对于某些 MLOps 实现来说非常有用。借助`mlflow.pyfunc`，这个包装器与估算器无关，提供统一的模型表示。具体来说：
 
-+   `fit()`：这个类使用`.fit()`方法，而不是使用XGBoost的原生API（`xgboost.train()`），该方法遵循sklearn的惯例，能够轻松集成到sklearn管道中，并确保不同估算器之间的一致性。
++   `fit()`：这个类使用`.fit()`方法，而不是使用 XGBoost 的原生 API（`xgboost.train()`），该方法遵循 sklearn 的惯例，能够轻松集成到 sklearn 管道中，并确保不同估算器之间的一致性。
 
-+   `DMatrix()`：`DMatrix`是XGBoost中的核心数据结构，它优化了用于训练和预测的数据。在这个类中，将pandas DataFrame转换为`DMatrix`的步骤被封装在类内部，使其能够像所有其他sklearn估算器一样无缝地与pandas DataFrame集成。
++   `DMatrix()`：`DMatrix`是 XGBoost 中的核心数据结构，它优化了用于训练和预测的数据。在这个类中，将 pandas DataFrame 转换为`DMatrix`的步骤被封装在类内部，使其能够像所有其他 sklearn 估算器一样无缝地与 pandas DataFrame 集成。
 
-+   `predict()`：这是`mlflow.pyfunc`模型的通用推理API。对于这个机器学习管道、上面的玩具模型以及我们封装在`mlflow.pyfunc`模型中的任何机器学习算法或自定义逻辑，它都保持一致。
++   `predict()`：这是`mlflow.pyfunc`模型的通用推理 API。对于这个机器学习管道、上面的玩具模型以及我们封装在`mlflow.pyfunc`模型中的任何机器学习算法或自定义逻辑，它都保持一致。
 
 ```py
 import json
@@ -218,11 +218,11 @@ loaded_model.predict(pd.DataFrame(X_test))
 ```
 
 ```py
-array([ 4.11692047e+00,  7.30551958e+00, -2.36042137e+01, -1.31888123e+02,
+array( 4.11692047e+00,  7.30551958e+00, -2.36042137e+01, -1.31888123e+02,
        ...
 ```
 
-# **深入探讨Mlflow.pyfunc对象**
+# **深入探讨 Mlflow.pyfunc 对象**
 
 上述过程相当顺利，不是吗？这代表了`mlflow.pyfunc`对象的基本功能。现在，让我们深入挖掘，探索`mlflow.pyfunc`所能提供的全部强大功能。
 
@@ -230,7 +230,7 @@ array([ 4.11692047e+00,  7.30551958e+00, -2.36042137e+01, -1.31888123e+02,
 
 在上面的示例中，`mlflow.pyfunc.log_model()`返回的`model_info`对象是`mlflow.models.model.ModelInfo`类的一个实例。它包含了关于已记录模型的元数据和信息。例如：
 
-![](../Images/db3200cecb1423a55f817cd3fa348526.png)
+![
 
 一些`model_info`对象的属性
 
@@ -302,7 +302,7 @@ print(loaded_model.metadata.run_id)
 38a617d0f30645e8ae95eea4642a03c2
 ```
 
-![](../Images/19ac0e4424ede80aedef7fde2314054d.png)
+![](img/19ac0e4424ede80aedef7fde2314054d.png)
 
 记录的 `mlflow.pyfunc` 模型中的工件文件夹
 
@@ -310,13 +310,13 @@ print(loaded_model.metadata.run_id)
 
 下面的`requiarements`指定了重建环境以运行模型所需的依赖项版本。
 
-![](../Images/60ec4a56daa108ee438d8ae822f0220c.png)
+![](img/60ec4a56daa108ee438d8ae822f0220c.png)
 
 工件文件夹中的`requirements.txt`文件
 
-下面的`MLmodel`文档定义了加载和提供模型所需的元数据和配置，以YAML格式呈现。
+下面的`MLmodel`文档定义了加载和提供模型所需的元数据和配置，以 YAML 格式呈现。
 
-![](../Images/7e4d7a6e8cc4576ae6e3e756c44c8ffa.png)
+![](img/7e4d7a6e8cc4576ae6e3e756c44c8ffa.png)
 
 工件文件夹中的`MLmodel`文件
 
@@ -326,7 +326,7 @@ print(loaded_model.metadata.run_id)
 
 1.  `mlflow.pyfunc`提供了一个统一的模型表示，独立于构建模型时使用的底层框架或库。
 
-1.  我们甚至可以将丰富的自定义逻辑封装到`mlflow.pyfunc`模型中，以便根据每个用例进行定制，同时保持推理API的一致性和统一性。
+1.  我们甚至可以将丰富的自定义逻辑封装到`mlflow.pyfunc`模型中，以便根据每个用例进行定制，同时保持推理 API 的一致性和统一性。
 
 1.  可以从加载的`mlflow.pyfunc`模型中解包底层模型，从而使我们能够利用更多的自定义方法/属性来满足每个用例的需求。
 
@@ -338,11 +338,11 @@ print(loaded_model.metadata.run_id)
 
 现在我们已经整理好了基础内容，接下来的文章中，我们可以继续讨论`mlflow.pyfunc`的更高级使用方法。😎 以下是我随便想到的一些主题；欢迎留言告诉我你想看到什么。🥰
 
-1.  利用统一的API进行不同算法的实验，并为特定用例识别最佳解决方案。
+1.  利用统一的 API 进行不同算法的实验，并为特定用例识别最佳解决方案。
 
 1.  使用`mlflow.pyfunc`自定义模型进行超参数调优。
 
-1.  将自定义逻辑封装到`mlflow.pyfunc` ML管道中，以便定制模型的使用和诊断。
+1.  将自定义逻辑封装到`mlflow.pyfunc` ML 管道中，以便定制模型的使用和诊断。
 
 如果你喜欢这篇文章，可以在[Medium](https://menawang.medium.com/)上关注我。😁
 

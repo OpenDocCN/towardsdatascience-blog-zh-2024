@@ -1,16 +1,16 @@
 # 幕后：解释我作为数据科学家的工作
 
-> 原文：[https://towardsdatascience.com/behind-the-scenes-explaining-my-work-as-a-data-scientist-6fe67cb923b7?source=collection_archive---------7-----------------------#2024-05-24](https://towardsdatascience.com/behind-the-scenes-explaining-my-work-as-a-data-scientist-6fe67cb923b7?source=collection_archive---------7-----------------------#2024-05-24)
+> 原文：[`towardsdatascience.com/behind-the-scenes-explaining-my-work-as-a-data-scientist-6fe67cb923b7?source=collection_archive---------7-----------------------#2024-05-24`](https://towardsdatascience.com/behind-the-scenes-explaining-my-work-as-a-data-scientist-6fe67cb923b7?source=collection_archive---------7-----------------------#2024-05-24)
 
 ## 我作为数据科学家的角色究竟包括哪些内容
 
-[](https://medium.com/@egorhowell?source=post_page---byline--6fe67cb923b7--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--6fe67cb923b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6fe67cb923b7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6fe67cb923b7--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--6fe67cb923b7--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--6fe67cb923b7--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--6fe67cb923b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6fe67cb923b7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6fe67cb923b7--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--6fe67cb923b7--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6fe67cb923b7--------------------------------) ·阅读时间：8分钟·2024年5月24日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6fe67cb923b7--------------------------------) ·阅读时间：8 分钟·2024 年 5 月 24 日
 
 --
 
-![](../Images/2c244845b9527674984954fde028bf75.png)
+![](img/2c244845b9527674984954fde028bf75.png)
 
 图片来源：[Corinne Kutz](https://unsplash.com/@corinnekutz?utm_source=medium&utm_medium=referral)来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

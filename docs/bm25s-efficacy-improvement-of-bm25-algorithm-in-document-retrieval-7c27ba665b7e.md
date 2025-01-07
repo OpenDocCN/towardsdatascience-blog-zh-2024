@@ -1,16 +1,16 @@
 # BM25S — BM25 算法在文档检索中的效能提升
 
-> 原文：[https://towardsdatascience.com/bm25s-efficacy-improvement-of-bm25-algorithm-in-document-retrieval-7c27ba665b7e?source=collection_archive---------11-----------------------#2024-08-12](https://towardsdatascience.com/bm25s-efficacy-improvement-of-bm25-algorithm-in-document-retrieval-7c27ba665b7e?source=collection_archive---------11-----------------------#2024-08-12)
+> 原文：[`towardsdatascience.com/bm25s-efficacy-improvement-of-bm25-algorithm-in-document-retrieval-7c27ba665b7e?source=collection_archive---------11-----------------------#2024-08-12`](https://towardsdatascience.com/bm25s-efficacy-improvement-of-bm25-algorithm-in-document-retrieval-7c27ba665b7e?source=collection_archive---------11-----------------------#2024-08-12)
 
 ## bm25s 是 BM25 算法在 Python 中的实现，利用 Scipy 提高文档检索速度。
 
-[](https://medium.com/@chienvu?source=post_page---byline--7c27ba665b7e--------------------------------)[![Chien Vu](../Images/ba70374c28ea91c1941a0a8f1402712f.png)](https://medium.com/@chienvu?source=post_page---byline--7c27ba665b7e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7c27ba665b7e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7c27ba665b7e--------------------------------) [Chien Vu](https://medium.com/@chienvu?source=post_page---byline--7c27ba665b7e--------------------------------)
+[](https://medium.com/@chienvu?source=post_page---byline--7c27ba665b7e--------------------------------)![Chien Vu](https://medium.com/@chienvu?source=post_page---byline--7c27ba665b7e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7c27ba665b7e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7c27ba665b7e--------------------------------) [Chien Vu](https://medium.com/@chienvu?source=post_page---byline--7c27ba665b7e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7c27ba665b7e--------------------------------) ·阅读时长 10 分钟·2024年8月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7c27ba665b7e--------------------------------) ·阅读时长 10 分钟·2024 年 8 月 12 日
 
 --
 
-![](../Images/0807ee6b67db00d5e3761a48af739a63.png)
+![](img/0807ee6b67db00d5e3761a48af739a63.png)
 
 图片来源：作者
 
@@ -22,7 +22,7 @@ BM25 使用词频和逆文档频率作为其公式的一部分。词频和逆文
 
 首先，让我们快速浏览一下 TF-IDF 公式。
 
-![](../Images/1c9c70b184daeb3319b395da02efb689.png)
+![](img/1c9c70b184daeb3319b395da02efb689.png)
 
 TF-IDF 公式（作者提供的图片）
 

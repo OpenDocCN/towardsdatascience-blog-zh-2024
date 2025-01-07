@@ -1,22 +1,22 @@
-# 学校的数据科学，第2部分：使用Python进行学生选修课程分配
+# 学校的数据科学，第二部分：使用 Python 进行学生选修课程分配
 
-> 原文：[https://towardsdatascience.com/data-science-for-schools-part-2-student-electives-allocation-with-python-9102830fff9c?source=collection_archive---------1-----------------------#2024-06-24](https://towardsdatascience.com/data-science-for-schools-part-2-student-electives-allocation-with-python-9102830fff9c?source=collection_archive---------1-----------------------#2024-06-24)
+> 原文：[`towardsdatascience.com/data-science-for-schools-part-2-student-electives-allocation-with-python-9102830fff9c?source=collection_archive---------1-----------------------#2024-06-24`](https://towardsdatascience.com/data-science-for-schools-part-2-student-electives-allocation-with-python-9102830fff9c?source=collection_archive---------1-----------------------#2024-06-24)
 
 ## 是时候停止依赖`allocations_final_FINALv2.xlsx`了
 
-[](https://medium.com/@mattchapmanmsc?source=post_page---byline--9102830fff9c--------------------------------)[![Matt Chapman](../Images/7511deb8d9ed408ece21031f6614c532.png)](https://medium.com/@mattchapmanmsc?source=post_page---byline--9102830fff9c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9102830fff9c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9102830fff9c--------------------------------) [Matt Chapman](https://medium.com/@mattchapmanmsc?source=post_page---byline--9102830fff9c--------------------------------)
+[](https://medium.com/@mattchapmanmsc?source=post_page---byline--9102830fff9c--------------------------------)![Matt Chapman](https://medium.com/@mattchapmanmsc?source=post_page---byline--9102830fff9c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9102830fff9c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9102830fff9c--------------------------------) [Matt Chapman](https://medium.com/@mattchapmanmsc?source=post_page---byline--9102830fff9c--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9102830fff9c--------------------------------) ·阅读时间10分钟·2024年6月24日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9102830fff9c--------------------------------) ·阅读时间 10 分钟·2024 年 6 月 24 日
 
 --
 
-想象以下场景：你是一名教师，被要求帮助为200名学生创建一个课外“选项/选修课”项目。
+想象以下场景：你是一名教师，被要求帮助为 200 名学生创建一个课外“选项/选修课”项目。
 
-每个学生选择他们的四个优先课程，你需要以最大化学生满意度的方式进行分配，同时考虑到各种约束条件（例如，选修课需要至少5名学生才能开设）。
+每个学生选择他们的四个优先课程，你需要以最大化学生满意度的方式进行分配，同时考虑到各种约束条件（例如，选修课需要至少 5 名学生才能开设）。
 
 你怎么做的？
 
-![](../Images/125de72025669ce6c2e9678a306e9045.png)
+![](img/125de72025669ce6c2e9678a306e9045.png)
 
 作者提供的图片
 

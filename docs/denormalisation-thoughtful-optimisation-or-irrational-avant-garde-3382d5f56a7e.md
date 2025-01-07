@@ -1,16 +1,16 @@
 # 非规范化：深思熟虑的优化还是不理性的先锋派？
 
-> 原文：[https://towardsdatascience.com/denormalisation-thoughtful-optimisation-or-irrational-avant-garde-3382d5f56a7e?source=collection_archive---------2-----------------------#2024-08-10](https://towardsdatascience.com/denormalisation-thoughtful-optimisation-or-irrational-avant-garde-3382d5f56a7e?source=collection_archive---------2-----------------------#2024-08-10)
+> 原文：[`towardsdatascience.com/denormalisation-thoughtful-optimisation-or-irrational-avant-garde-3382d5f56a7e?source=collection_archive---------2-----------------------#2024-08-10`](https://towardsdatascience.com/denormalisation-thoughtful-optimisation-or-irrational-avant-garde-3382d5f56a7e?source=collection_archive---------2-----------------------#2024-08-10)
 
 ## **关于性能优化和数据质量的视角**
 
-[](https://blog.heilmela.eu/?source=post_page---byline--3382d5f56a7e--------------------------------)[![Laurin Heilmeyer](../Images/bf503815c37deba7a84ae313530f20e6.png)](https://blog.heilmela.eu/?source=post_page---byline--3382d5f56a7e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3382d5f56a7e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3382d5f56a7e--------------------------------) [Laurin Heilmeyer](https://blog.heilmela.eu/?source=post_page---byline--3382d5f56a7e--------------------------------)
+[](https://blog.heilmela.eu/?source=post_page---byline--3382d5f56a7e--------------------------------)![Laurin Heilmeyer](https://blog.heilmela.eu/?source=post_page---byline--3382d5f56a7e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3382d5f56a7e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3382d5f56a7e--------------------------------) [Laurin Heilmeyer](https://blog.heilmela.eu/?source=post_page---byline--3382d5f56a7e--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3382d5f56a7e--------------------------------) ·15分钟阅读·2024年8月10日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3382d5f56a7e--------------------------------) ·15 分钟阅读·2024 年 8 月 10 日
 
 --
 
-![](../Images/aa951d0881ddb3c14ee92555b68ce310.png)
+![](img/aa951d0881ddb3c14ee92555b68ce310.png)
 
 拆解关系型数据 - （图片来源：[DALL-E](https://openai.com/index/dall-e-2/)）
 
@@ -20,6 +20,6 @@
 
 > “要深刻理解规则，这样你才能有效地打破它们。”
 > 
-> *达赖喇嘛的18条生活规则*
+> *达赖喇嘛的 18 条生活规则*
 
 在我看来，这句格言确实非常精准。我很重视做出有根据的决策，而在与传统规则推理时……

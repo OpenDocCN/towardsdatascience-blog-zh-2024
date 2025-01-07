@@ -1,44 +1,44 @@
-# 如何构建一个带自查询检索器的RAG系统
+# 如何构建一个带自查询检索器的 RAG 系统
 
-> 原文：[https://towardsdatascience.com/how-to-build-a-rag-system-with-a-self-querying-retriever-in-langchain-16b4fa23e9ad?source=collection_archive---------0-----------------------#2024-04-25](https://towardsdatascience.com/how-to-build-a-rag-system-with-a-self-querying-retriever-in-langchain-16b4fa23e9ad?source=collection_archive---------0-----------------------#2024-04-25)
+> 原文：[`towardsdatascience.com/how-to-build-a-rag-system-with-a-self-querying-retriever-in-langchain-16b4fa23e9ad?source=collection_archive---------0-----------------------#2024-04-25`](https://towardsdatascience.com/how-to-build-a-rag-system-with-a-self-querying-retriever-in-langchain-16b4fa23e9ad?source=collection_archive---------0-----------------------#2024-04-25)
 
 ## RAG + 元数据过滤 = 极好的电影推荐 🍿
 
-[](https://medium.com/@ed.izaguirre?source=post_page---byline--16b4fa23e9ad--------------------------------)[![Ed Izaguirre](../Images/c9eded1f06c47571baa662107428483f.png)](https://medium.com/@ed.izaguirre?source=post_page---byline--16b4fa23e9ad--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16b4fa23e9ad--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--16b4fa23e9ad--------------------------------) [Ed Izaguirre](https://medium.com/@ed.izaguirre?source=post_page---byline--16b4fa23e9ad--------------------------------)
+[](https://medium.com/@ed.izaguirre?source=post_page---byline--16b4fa23e9ad--------------------------------)![Ed Izaguirre](https://medium.com/@ed.izaguirre?source=post_page---byline--16b4fa23e9ad--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16b4fa23e9ad--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16b4fa23e9ad--------------------------------) [Ed Izaguirre](https://medium.com/@ed.izaguirre?source=post_page---byline--16b4fa23e9ad--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16b4fa23e9ad--------------------------------) ·阅读时间12分钟·2024年4月25日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16b4fa23e9ad--------------------------------) ·阅读时间 12 分钟·2024 年 4 月 25 日
 
 --
 
-![](../Images/f25989e1bd8f991ca2ce6d84a27ab9ef.png)
+![](img/f25989e1bd8f991ca2ce6d84a27ab9ef.png)
 
-电视观看者的图片。图片由DALL·E 3创建。
+电视观看者的图片。图片由 DALL·E 3 创建。
 
 ## 目录
 
-+   [检索数据](#86c4)
++   检索数据
 
-+   [将文档上传到Pinecone](#53e3)
++   将文档上传到 Pinecone
 
-+   [创建自查询检索器](#21a7)
++   创建自查询检索器
 
-+   [创建聊天模型](#409b)
++   创建聊天模型
 
-+   [演示](#3817)
++   演示
 
 ## 链接
 
-+   编辑：我更新了电影搜索，并将其重新命名为Rosebud。我还将其改为免费使用！ [在这里查看网站。](https://filmsearch.azurewebsites.net/)
++   编辑：我更新了电影搜索，并将其重新命名为 Rosebud。我还将其改为免费使用！ [在这里查看网站。](https://filmsearch.azurewebsites.net/)
 
-+   还可以查看我关于改进这个应用程序的新文章！ [链接.](/productionizing-a-rag-app-04c857e0966e)
++   还可以查看我关于改进这个应用程序的新文章！ 链接.
 
-+   [GitHub上的代码链接](https://github.com/EdIzaguirre/Rosebud)
++   [GitHub 上的代码链接](https://github.com/EdIzaguirre/Rosebud)
 
-最近，我在浏览Max，试图找到一部电影观看。通常这包括浏览呈现给我的各种列表，阅读几个描述，然后挑选出听起来略微有趣的东西。有时候这是一个不错的选择，有时候则不尽如人意。如果我知道自己想看的电影标题或演员的名字，我通常才会使用搜索功能。否则，搜索功能就不太有用了。
+最近，我在浏览 Max，试图找到一部电影观看。通常这包括浏览呈现给我的各种列表，阅读几个描述，然后挑选出听起来略微有趣的东西。有时候这是一个不错的选择，有时候则不尽如人意。如果我知道自己想看的电影标题或演员的名字，我通常才会使用搜索功能。否则，搜索功能就不太有用了。
 
-我突然有了一个想法：为什么我不能使用自然语言，根据电影的*氛围*或*内容*来查询电影，而不仅仅是基于标题或演员呢？例如，为什么我不能打开Max、Netflix或Hulu，然后在搜索栏中输入以下查询之一：
+我突然有了一个想法：为什么我不能使用自然语言，根据电影的*氛围*或*内容*来查询电影，而不仅仅是基于标题或演员呢？例如，为什么我不能打开 Max、Netflix 或 Hulu，然后在搜索栏中输入以下查询之一：
 
-+   *帮我找一些英文的戏剧电影，时长不超过2小时，并且有宠物。*
++   *帮我找一些英文的戏剧电影，时长不超过 2 小时，并且有宠物。*
 
 +   *推荐僵尸电影，但要确保它们是有趣的。*
 
@@ -46,7 +46,7 @@
 
 这种方法的美妙之处不仅仅在于提供了更自然的搜索电影方式。这种方法还保护了用户的隐私。**这个系统完全不使用任何用户数据**。所需的唯一内容就是一个查询。
 
-所以我构建了电影搜索系统。这是一个基于RAG（检索增强生成）的系统，它接收用户查询，将其嵌入并进行相似性搜索，找到类似的电影。但它不仅仅是一个普通的RAG系统。这个系统使用了所谓的**自查询检索器**。这使得在进行相似性搜索之前，能够通过电影的元数据对其进行筛选。所以，如果用户的查询是“*推荐1980年后制作的恐怖电影，并且包含大量爆炸场面*”，搜索会首先过滤掉所有不是“1980年后制作的恐怖电影”的影片，然后再进行关于“包含大量爆炸场面”的相似性搜索。
+所以我构建了电影搜索系统。这是一个基于 RAG（检索增强生成）的系统，它接收用户查询，将其嵌入并进行相似性搜索，找到类似的电影。但它不仅仅是一个普通的 RAG 系统。这个系统使用了所谓的**自查询检索器**。这使得在进行相似性搜索之前，能够通过电影的元数据对其进行筛选。所以，如果用户的查询是“*推荐 1980 年后制作的恐怖电影，并且包含大量爆炸场面*”，搜索会首先过滤掉所有不是“1980 年后制作的恐怖电影”的影片，然后再进行关于“包含大量爆炸场面”的相似性搜索。
 
 在本文中，我将提供一个关于如何构建这个系统的高层次概述。如果你想深入了解，完整的代码可以通过上面的链接获取。
 
@@ -54,7 +54,7 @@
 
 # 获取数据
 
-这个项目的数据来自于[The Movie Database (TMDB)](https://developer.themoviedb.org/docs/getting-started)，并且得到了所有者的许可。他们的API简单易用，维护良好，并且限制不多。我从他们的API中提取了以下电影属性：
+这个项目的数据来自于[The Movie Database (TMDB)](https://developer.themoviedb.org/docs/getting-started)，并且得到了所有者的许可。他们的 API 简单易用，维护良好，并且限制不多。我从他们的 API 中提取了以下电影属性：
 
 +   片名
 
@@ -82,7 +82,7 @@
 
 +   制作公司列表
 
-以下是如何使用TMDB API和Python的响应库提取数据的片段：
+以下是如何使用 TMDB API 和 Python 的响应库提取数据的片段：
 
 ```py
 def get_data(API_key, Movie_ID, max_retries=5):
@@ -114,9 +114,9 @@ def get_data(API_key, Movie_ID, max_retries=5):
             return dict
 ```
 
-请注意，查询需要电影ID（这些ID也是通过TMDB获得的），以及`append_to_response`，它允许我拉取多种类型的数据，例如关键词、观看提供者、信用信息（导演和演员）以及一些关于电影的基本信息。这里还包括一些基本的框架代码，以防我遇到速率限制，尽管我从未遇到过这种情况。
+请注意，查询需要电影 ID（这些 ID 也是通过 TMDB 获得的），以及`append_to_response`，它允许我拉取多种类型的数据，例如关键词、观看提供者、信用信息（导演和演员）以及一些关于电影的基本信息。这里还包括一些基本的框架代码，以防我遇到速率限制，尽管我从未遇到过这种情况。
 
-接下来，我们需要解析JSON响应。以下是一个片段，展示了如何解析参与电影制作的演员和导演信息：
+接下来，我们需要解析 JSON 响应。以下是一个片段，展示了如何解析参与电影制作的演员和导演信息：
 
 ```py
 credits = dict[‘credits’]
@@ -140,15 +140,15 @@ director_str = ', '.join(list(set(director_list)))
 
 请注意，我将每部电影的演员数量限制在前五名。我还必须指定只关心导演，因为响应中还包含了其他类型的工作人员，比如剪辑师、服装设计师等。
 
-所有这些数据随后被汇总成了CSV文件。上面列出的每个属性都变成了一个列，而每一行现在代表一部特定的电影。以下是从`2008_movie_collection_data.csv`文件中提取的一小段电影数据，这个文件是通过编程生成的。在这个项目中，我大约获取了1920年至2023年间的100部顶级电影。
+所有这些数据随后被汇总成了 CSV 文件。上面列出的每个属性都变成了一个列，而每一行现在代表一部特定的电影。以下是从`2008_movie_collection_data.csv`文件中提取的一小段电影数据，这个文件是通过编程生成的。在这个项目中，我大约获取了 1920 年至 2023 年间的 100 部顶级电影。
 
 用于演示的电影数据片段。作者提供。
 
 信不信由你，我至今还没有看过《功夫熊猫》。或许在这个项目之后我得去看一看。
 
-# 上传文档到Pinecone
+# 上传文档到 Pinecone
 
-接下来，我需要将csv数据上传到Pinecone。在RAG系统中，通常需要对数据进行分块，但这里每个“文档”（CSV文件中的一行）都相对较短，因此不需要分块。我首先将每个CSV文件转换为LangChain文档，然后指定哪些字段应该是主要内容，哪些字段应该是metadata。
+接下来，我需要将 csv 数据上传到 Pinecone。在 RAG 系统中，通常需要对数据进行分块，但这里每个“文档”（CSV 文件中的一行）都相对较短，因此不需要分块。我首先将每个 CSV 文件转换为 LangChain 文档，然后指定哪些字段应该是主要内容，哪些字段应该是 metadata。
 
 下面是用于构建这些文档的代码片段：
 
@@ -191,9 +191,9 @@ for doc in docs:
         convert_to_int(doc, field)
 ```
 
-来自LangChain的`DirectoryLoader`负责将所有csv文件加载为文档。然后，我需要指定什么内容应该是`page_content`，什么内容应该是`metadata`。这是一个重要的决定。`page_content`将被嵌入并在检索阶段用于相似度搜索。`metadata`仅在相似度搜索之前用于过滤。 我决定将`overview`和`keywords`属性嵌入到`page_content`中，而其他属性则作为metadata。进一步调整应考虑是否将`title`也包含在`page_content`中，但我发现这个配置对于大多数用户查询效果很好。
+来自 LangChain 的`DirectoryLoader`负责将所有 csv 文件加载为文档。然后，我需要指定什么内容应该是`page_content`，什么内容应该是`metadata`。这是一个重要的决定。`page_content`将被嵌入并在检索阶段用于相似度搜索。`metadata`仅在相似度搜索之前用于过滤。 我决定将`overview`和`keywords`属性嵌入到`page_content`中，而其他属性则作为 metadata。进一步调整应考虑是否将`title`也包含在`page_content`中，但我发现这个配置对于大多数用户查询效果很好。
 
-然后，文档需要上传到Pinecone。这是一个相当直接的过程：
+然后，文档需要上传到 Pinecone。这是一个相当直接的过程：
 
 ```py
 # Create empty index
@@ -237,15 +237,15 @@ index(docs, record_manager, vectorstore,
 
 在这里，我只想强调几点：
 
-+   使用`SQLRecordManager`可以确保如果这段代码运行多次，重复的文档不会被上传到Pinecone。如果文档被修改，只有该文档会在向量存储中被更新。
++   使用`SQLRecordManager`可以确保如果这段代码运行多次，重复的文档不会被上传到 Pinecone。如果文档被修改，只有该文档会在向量存储中被更新。
 
-+   我们使用的是OpenAI的经典`text-embedding-ada-002`嵌入模型。
++   我们使用的是 OpenAI 的经典`text-embedding-ada-002`嵌入模型。
 
 # 创建自查询检索器
 
-自查询检索器将允许我们通过之前定义的metadata过滤在RAG过程中检索的电影。这将大大提高我们电影推荐系统的实用性。
+自查询检索器将允许我们通过之前定义的 metadata 过滤在 RAG 过程中检索的电影。这将大大提高我们电影推荐系统的实用性。
 
-选择向量存储时，一个重要的考虑因素是确保它支持通过metadata进行过滤，因为并非所有向量存储都支持。[这是LangChain支持自查询检索的数据库列表](https://python.langchain.com/docs/integrations/retrievers/self_query)。另一个重要的考虑因素是每个向量存储允许哪些类型的比较器。比较器是我们通过metadata进行过滤的方法。例如，我们可以使用`eq`比较器来确保我们的电影属于科幻类型：`eq('Genre', 'Science Fiction')`。并非所有向量存储都允许所有比较器。作为例子，请查看[Weaviate中允许的比较器](https://weaviate.io/developers/weaviate/api/graphql/filters#filter-structure)，以及它们与[Pinecone中的比较器](https://docs.pinecone.io/guides/data/filtering-with-metadata#metadata-query-language)的差异。我们需要告诉模型允许哪些比较器，以防止它意外地写出不允许的查询。
+选择向量存储时，一个重要的考虑因素是确保它支持通过 metadata 进行过滤，因为并非所有向量存储都支持。[这是 LangChain 支持自查询检索的数据库列表](https://python.langchain.com/docs/integrations/retrievers/self_query)。另一个重要的考虑因素是每个向量存储允许哪些类型的比较器。比较器是我们通过 metadata 进行过滤的方法。例如，我们可以使用`eq`比较器来确保我们的电影属于科幻类型：`eq('Genre', 'Science Fiction')`。并非所有向量存储都允许所有比较器。作为例子，请查看[Weaviate 中允许的比较器](https://weaviate.io/developers/weaviate/api/graphql/filters#filter-structure)，以及它们与[Pinecone 中的比较器](https://docs.pinecone.io/guides/data/filtering-with-metadata#metadata-query-language)的差异。我们需要告诉模型允许哪些比较器，以防止它意外地写出不允许的查询。
 
 除了告诉模型存在哪些比较器，我们还可以给模型提供一些用户查询的示例和相应的筛选条件。这被称为**少量样本学习**，它对于帮助指导你的模型非常宝贵。
 
@@ -321,13 +321,13 @@ document_content_description = "Brief overview of a movie, along with keywords"
 
 除了示例，模型还必须了解每个元数据字段的描述。这有助于它理解可能的元数据筛选。
 
-最后，我们构建我们的链条。这里的`query_model`是使用OpenAI API的GPT-4 Turbo实例。我建议使用GPT-4而不是3.5来编写这些元数据筛选查询，因为这是一个关键步骤，而3.5在这一点上更容易出错。`search_kwargs={'k':10}`告诉检索器根据用户查询拉取最相似的10部电影。
+最后，我们构建我们的链条。这里的`query_model`是使用 OpenAI API 的 GPT-4 Turbo 实例。我建议使用 GPT-4 而不是 3.5 来编写这些元数据筛选查询，因为这是一个关键步骤，而 3.5 在这一点上更容易出错。`search_kwargs={'k':10}`告诉检索器根据用户查询拉取最相似的 10 部电影。
 
 # 创建聊天模型
 
-最后，在构建自查询检索器之后，我们可以在其基础上构建标准的RAG模型。我们从定义聊天模型开始。我称之为总结模型，因为它接受一个上下文（检索到的电影 + 系统消息），并以每个推荐的摘要进行回应。如果你想降低成本，可以使用GPT-3.5 Turbo，或者如果你想要最好的结果，可以使用GPT-4 Turbo。
+最后，在构建自查询检索器之后，我们可以在其基础上构建标准的 RAG 模型。我们从定义聊天模型开始。我称之为总结模型，因为它接受一个上下文（检索到的电影 + 系统消息），并以每个推荐的摘要进行回应。如果你想降低成本，可以使用 GPT-3.5 Turbo，或者如果你想要最好的结果，可以使用 GPT-4 Turbo。
 
-在系统消息中，我告诉机器人它的目标是什么，并提供一系列建议和限制，其中**最重要的是不要推荐任何没有通过自查询检索器提供的电影**。在测试中，当用户查询没有从数据库中检索到电影时，我遇到了问题。例如，查询：*“推荐一些由马特·达蒙主演、韦斯·安德森导演的恐怖片，且是在1980年之前制作的”*会导致自查询检索器无法检索到任何电影（因为虽然听起来很棒，但这样的电影并不存在）。在没有电影数据的上下文中，模型会使用它自己的（错误的）记忆来尝试推荐一些电影。这种行为不好。我不希望Netflix推荐系统讨论数据库中不存在的电影。下面的系统消息成功阻止了这种行为。我确实注意到，GPT-4比GPT-3.5更善于遵循指令，这是预期之中的。
+在系统消息中，我告诉机器人它的目标是什么，并提供一系列建议和限制，其中**最重要的是不要推荐任何没有通过自查询检索器提供的电影**。在测试中，当用户查询没有从数据库中检索到电影时，我遇到了问题。例如，查询：*“推荐一些由马特·达蒙主演、韦斯·安德森导演的恐怖片，且是在 1980 年之前制作的”*会导致自查询检索器无法检索到任何电影（因为虽然听起来很棒，但这样的电影并不存在）。在没有电影数据的上下文中，模型会使用它自己的（错误的）记忆来尝试推荐一些电影。这种行为不好。我不希望 Netflix 推荐系统讨论数据库中不存在的电影。下面的系统消息成功阻止了这种行为。我确实注意到，GPT-4 比 GPT-3.5 更善于遵循指令，这是预期之中的。
 
 ```py
 chat_model = ChatOpenAI(
@@ -389,7 +389,7 @@ rag_chain_with_source = RunnableParallel(
 
 `rag_chain_from_docs` 是一个链条，它接受检索到的文档，通过 `format_docs` 格式化，然后将格式化后的文档输入模型上下文中，模型基于这些内容回答问题。最后，我们创建了 `rag_chain_with_source`，这是一个 `RunnableParallel`，顾名思义，它同时执行两个操作：自查询检索器去检索相似的文档，而查询则通过 `RunnablePassthrough()` 直接传递给模型。然后，来自并行组件的结果被组合，`rag_chain_from_docs` 用来生成答案。这里的 `source` 指的是检索器，它访问所有的‘源’文档。
 
-因为我希望答案是逐步流式传输的（例如，像ChatGPT一样逐块展示给用户），我们使用以下代码：
+因为我希望答案是逐步流式传输的（例如，像 ChatGPT 一样逐块展示给用户），我们使用以下代码：
 
 ```py
 for chunk in rag_chain_with_source.stream(query):
@@ -400,21 +400,21 @@ for chunk in rag_chain_with_source.stream(query):
 
 # 演示
 
-现在是有趣的部分：与模型互动。如前所述，Streamlit 被用来创建前端并托管应用程序。我在这里不讨论UI的代码；有关实现的详细信息，请参见原始代码。它相当直接，而且在[Streamlit 网站](https://docs.streamlit.io/knowledge-base/tutorials/build-conversational-apps)上有很多其他示例。
+现在是有趣的部分：与模型互动。如前所述，Streamlit 被用来创建前端并托管应用程序。我在这里不讨论 UI 的代码；有关实现的详细信息，请参见原始代码。它相当直接，而且在[Streamlit 网站](https://docs.streamlit.io/knowledge-base/tutorials/build-conversational-apps)上有很多其他示例。
 
-![](../Images/02b3a62862751b327a753fd250ba3e74.png)
+![](img/02b3a62862751b327a753fd250ba3e74.png)
 
 电影搜索界面。作者提供。
 
 有几个建议可以使用，但让我们尝试我们自己的查询：
 
-![](../Images/7ad4d1b3125c7faf549f71d8c1afbacf.png)
+![](img/7ad4d1b3125c7faf549f71d8c1afbacf.png)
 
 示例查询和模型响应。作者提供。
 
-在后台，自查询检索器确保过滤掉任何非法语的电影。然后，它执行了一个“成长故事”的相似性搜索，结果是上下文中有十部电影。最后，摘要机器人选择了五部电影进行推荐。请注意推荐的电影范围：一些电影的上映日期早至1959年，最晚的为2012年。为了方便起见，我确保机器人包括电影的片长、上映年份、流媒体提供商，以及由机器人精心制作的简短推荐。
+在后台，自查询检索器确保过滤掉任何非法语的电影。然后，它执行了一个“成长故事”的相似性搜索，结果是上下文中有十部电影。最后，摘要机器人选择了五部电影进行推荐。请注意推荐的电影范围：一些电影的上映日期早至 1959 年，最晚的为 2012 年。为了方便起见，我确保机器人包括电影的片长、上映年份、流媒体提供商，以及由机器人精心制作的简短推荐。
 
-*(附注：如果你还没有看过* [*400击*](https://en.wikipedia.org/wiki/The_400_Blows)*，立刻停下你正在做的事情，去* [*立即观看*](https://www.youtube.com/watch?v=PvjUhgtn_-U)*。)*
+*(附注：如果你还没有看过* [*400 击*](https://en.wikipedia.org/wiki/The_400_Blows)*，立刻停下你正在做的事情，去* [*立即观看*](https://www.youtube.com/watch?v=PvjUhgtn_-U)*。)*
 
 在大型语言模型中，通常被视为负面的特性，比如其响应的非确定性，现在变成了积极的。你如果向模型问同一个问题两次，可能会得到略有不同的推荐。
 

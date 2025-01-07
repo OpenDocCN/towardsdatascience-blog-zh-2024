@@ -1,16 +1,16 @@
 # OLAP 已死——还是它并未死？
 
-> 原文：[https://towardsdatascience.com/olap-is-dead-or-is-it-e1267d955358?source=collection_archive---------3-----------------------#2024-10-21](https://towardsdatascience.com/olap-is-dead-or-is-it-e1267d955358?source=collection_archive---------3-----------------------#2024-10-21)
+> 原文：[`towardsdatascience.com/olap-is-dead-or-is-it-e1267d955358?source=collection_archive---------3-----------------------#2024-10-21`](https://towardsdatascience.com/olap-is-dead-or-is-it-e1267d955358?source=collection_archive---------3-----------------------#2024-10-21)
 
 ## OLAP 在现代分析时代的命运
 
-[](https://medium.com/@marc.polizzi?source=post_page---byline--e1267d955358--------------------------------)[![Marc Polizzi](../Images/ad28284eb89beb6ead55fbcdbdae9ded.png)](https://medium.com/@marc.polizzi?source=post_page---byline--e1267d955358--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e1267d955358--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e1267d955358--------------------------------) [Marc Polizzi](https://medium.com/@marc.polizzi?source=post_page---byline--e1267d955358--------------------------------)
+[](https://medium.com/@marc.polizzi?source=post_page---byline--e1267d955358--------------------------------)![Marc Polizzi](https://medium.com/@marc.polizzi?source=post_page---byline--e1267d955358--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e1267d955358--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e1267d955358--------------------------------) [Marc Polizzi](https://medium.com/@marc.polizzi?source=post_page---byline--e1267d955358--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e1267d955358--------------------------------) ·13分钟阅读·2024年10月21日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e1267d955358--------------------------------) ·13 分钟阅读·2024 年 10 月 21 日
 
 --
 
-1993年，E.F. Codd及其团队提出了OLAP（在线分析处理）这一术语，用于描述从不同角度回答多维分析查询的技术。OLAP主要包括三个关键操作：
+1993 年，E.F. Codd 及其团队提出了 OLAP（在线分析处理）这一术语，用于描述从不同角度回答多维分析查询的技术。OLAP 主要包括三个关键操作：
 
 +   汇总：在更高层次的聚合中总结数据，
 
@@ -18,11 +18,11 @@
 
 +   切片与切块：从不同的视角选择和分析数据。
 
-现在浏览网络，似乎每个数据分析问题都与流行的自助式BI相关，关注使用强化AI分析大数据的平台。像LinkedIn和Reddit这样的平台上充斥着关于过时OLAP的缺点的无尽讨论，相较于最新的数据分析趋势，OLAP显得不合时宜。所以是的，我们可以自信地宣布：OLAP已死。但等等……它真的死了吗？
+现在浏览网络，似乎每个数据分析问题都与流行的自助式 BI 相关，关注使用强化 AI 分析大数据的平台。像 LinkedIn 和 Reddit 这样的平台上充斥着关于过时 OLAP 的缺点的无尽讨论，相较于最新的数据分析趋势，OLAP 显得不合时宜。所以是的，我们可以自信地宣布：OLAP 已死。但等等……它真的死了吗？
 
-![](../Images/c82d2252606777f9235f6b47f2f4f82e.png)
+![](img/c82d2252606777f9235f6b47f2f4f82e.png)
 
-RIP OLAP（作者提供的图片—AI生成）
+RIP OLAP（作者提供的图片—AI 生成）
 
 **我是谁，为什么写这篇文章？**
 
@@ -121,27 +121,27 @@ INFORMATION       : is all of the data and derived information needed,
 
 假设一切正常，那么你如何维护这些报告？更重要的是，如何管理底层原始数据中的任何必要更改，因为没有简单的方法知道数据是在哪里使用的？
 
-所以，类似于大数据的论点，我不认为自助BI是解决每个现代分析挑战的真正方案。事实上，从长远来看，它可能会带来更多问题。
+所以，类似于大数据的论点，我不认为自助 BI 是解决每个现代分析挑战的真正方案。事实上，从长远来看，它可能会带来更多问题。
 
-# 数据分析 != 生成式AI数据分析
+# 数据分析 != 生成式 AI 数据分析
 
-最后是AI的论点。你不再需要OLAP引擎，顺便提一下，你也不再需要任何分析工具。AI来了，统治一切！我有点夸张，但考虑到目前围绕AI的所有炒作，我并没有太远离现实 ;-)
+最后是 AI 的论点。你不再需要 OLAP 引擎，顺便提一下，你也不再需要任何分析工具。AI 来了，统治一切！我有点夸张，但考虑到目前围绕 AI 的所有炒作，我并没有太远离现实 ;-)
 
-更严肃地说，在icCube，即使我们目前对于使用AI生成MDX代码或分析数据持怀疑态度，这并不意味着我们反对AI。恰恰相反，事实上。我们最近推出了一个聊天机器人小工具，帮助终端用户理解他们的数据。我们正在积极研究如何利用AI提高客户的生产力。我们面临的实际问题主要是：
+更严肃地说，在 icCube，即使我们目前对于使用 AI 生成 MDX 代码或分析数据持怀疑态度，这并不意味着我们反对 AI。恰恰相反，事实上。我们最近推出了一个聊天机器人小工具，帮助终端用户理解他们的数据。我们正在积极研究如何利用 AI 提高客户的生产力。我们面临的实际问题主要是：
 
 +   它的准确性不足以交给无法分辨幻觉的终端用户。
 
 +   对于那些在领域内是专家且能够理解并修正幻觉的终端用户，提供这些功能就是过度设计了。
 
-+   每个查询的成本（即LLM推理成本）。
++   每个查询的成本（即 LLM 推理成本）。
 
-但不要只听我说 — 我想强调一下Marco Russo的实践和类似的观点。你可以通过[这里](https://www.youtube.com/watch?v=i8DrFmsddgc)查看他的视频。如果时间紧迫，可以跳到32分钟的位置，那里Marco分享了他对于使用ChatGPT生成DAX代码的看法。
+但不要只听我说 — 我想强调一下 Marco Russo 的实践和类似的观点。你可以通过[这里](https://www.youtube.com/watch?v=i8DrFmsddgc)查看他的视频。如果时间紧迫，可以跳到 32 分钟的位置，那里 Marco 分享了他对于使用 ChatGPT 生成 DAX 代码的看法。
 
-目前，生成式AI还无法取代任何OLAP系统，当然也不能作为OLAP已死的论据。
+目前，生成式 AI 还无法取代任何 OLAP 系统，当然也不能作为 OLAP 已死的论据。
 
-现在，让我们回到FASMI测试，看看定义OLAP系统的五个关键术语。
+现在，让我们回到 FASMI 测试，看看定义 OLAP 系统的五个关键术语。
 
-# FASMI测试：快速
+# FASMI 测试：快速
 
 ```py
 means that the system is targeted to deliver most responses to users
@@ -149,7 +149,7 @@ within about five seconds, with the simplest analyses taking no more than
 one second and very few taking more than 20 seconds.
 ```
 
-提供快速响应时间的分析查询不再是OLAP系统的专利。然而，它仍然是OLAP系统的一项附加优势，因为OLAP系统专门为此类查询量身定制。一个显著的优势是，它有助于避免对OLTP数据库（或任何实际数据源）的过载，因为：
+提供快速响应时间的分析查询不再是 OLAP 系统的专利。然而，它仍然是 OLAP 系统的一项附加优势，因为 OLAP 系统专门为此类查询量身定制。一个显著的优势是，它有助于避免对 OLTP 数据库（或任何实际数据源）的过载，因为：
 
 +   可能已经创建了一个专用的数据仓库。
 
@@ -157,7 +157,7 @@ one second and very few taking more than 20 seconds.
 
 这个中间层的另一个好处是，它可以帮助降低访问底层原始数据的成本。
 
-# FASMI测试：分析
+# FASMI 测试：分析
 
 ```py
 means that the system can cope with any business logic and statistical
@@ -165,7 +165,7 @@ analysis that is relevant for the application and the user, and keep it
 easy enough for the target user.
 ```
 
-OLAP系统旨在执行复杂的分析查询，因此提供了一系列通常在其他系统中无法直接获得的功能。这些功能包括：
+OLAP 系统旨在执行复杂的分析查询，因此提供了一系列通常在其他系统中无法直接获得的功能。这些功能包括：
 
 +   切片和切块功能：允许用户从不同的视角和维度探索数据。
 
@@ -185,9 +185,9 @@ OLAP系统旨在执行复杂的分析查询，因此提供了一系列通常在�
 
 +   高级数学运算：提供向量和其他结构，优雅地执行复杂的数学计算（统计、回归等）。
 
-+   MDX扩展：函数、Java代码嵌入、结果后处理等。
++   MDX 扩展：函数、Java 代码嵌入、结果后处理等。
 
-# FASMI测试：共享
+# FASMI 测试：共享
 
 ```py
 means that the system implements all the security requirements for
@@ -196,15 +196,15 @@ confidentiality (possibly down to cell level).
 
 根据我的经验，我认为这是继多维模型之后的第二个最重要的需求。在每个需要安全性的客户模型中，定义适当的授权成为一个重大挑战。
 
-我建议通过将单元格级别粒度设为强制要求来改进FASMI测试。
+我建议通过将单元格级别粒度设为强制要求来改进 FASMI 测试。
 
-微软分析服务、icCube，以及其他平台可能允许在多维模型中直接定义安全性，使用MDX语言（将在下一点介绍）。这种方法非常自然，通常与公司层级安全结构自然对接。
+微软分析服务、icCube，以及其他平台可能允许在多维模型中直接定义安全性，使用 MDX 语言（将在下一点介绍）。这种方法非常自然，通常与公司层级安全结构自然对接。
 
-在多维模型层级定义安全性尤为重要，尤其当模型是由多个数据源构建时。例如，在没有此功能的情况下，应用企业安全策略到来自IoT传感器等来源的数据可能会非常复杂。
+在多维模型层级定义安全性尤为重要，尤其当模型是由多个数据源构建时。例如，在没有此功能的情况下，应用企业安全策略到来自 IoT 传感器等来源的数据可能会非常复杂。
 
-自从FASMI测试推出以来，将分析功能嵌入应用程序已经成为一个关键需求。许多OLAP系统，包括微软分析服务和icCube，现在支持在运行时动态创建安全配置文件 —— 一旦用户身份验证通过 —— 基于不同的用户属性。一旦定义了此安全模板，它将在每次用户登录系统时动态应用。
+自从 FASMI 测试推出以来，将分析功能嵌入应用程序已经成为一个关键需求。许多 OLAP 系统，包括微软分析服务和 icCube，现在支持在运行时动态创建安全配置文件 —— 一旦用户身份验证通过 —— 基于不同的用户属性。一旦定义了此安全模板，它将在每次用户登录系统时动态应用。
 
-# FASMI测试：多维
+# FASMI 测试：多维
 
 ```py
 is our key requirement. If we had to pick a one-word definition of OLAP,
@@ -251,11 +251,11 @@ however much is relevant for the application.
 
 从各种来源提取数据——无论是 SQL、NoSQL、物联网、文件还是 SaaS 平台——已经不再是 OLAP 系统的专属功能。然而，OLAP 系统仍然具有一个关键优势：它们专门设计用于创建一个安全的多维模型，作为您的分析需求的事实语义层。
 
-# FASMI 测试：2024年依然相关吗？
+# FASMI 测试：2024 年依然相关吗？
 
-FASMI测试的原始定义旨在为在线分析处理（OLAP）系统提供清晰而易于记忆的描述：共享多维信息的快速分析。我相信这个定义依然相关，而且比以往任何时候都更加必要。在2024年，人们不应该再将OLAP与其过去的某个实现——过时的OLAP立方体混淆。
+FASMI 测试的原始定义旨在为在线分析处理（OLAP）系统提供清晰而易于记忆的描述：共享多维信息的快速分析。我相信这个定义依然相关，而且比以往任何时候都更加必要。在 2024 年，人们不应该再将 OLAP 与其过去的某个实现——过时的 OLAP 立方体混淆。
 
-# 你在2024年需要OLAP吗？
+# 你在 2024 年需要 OLAP 吗？
 
 作为一个务实的人，在不了解你当前的数据分析挑战之前，我不会建议使用特定的工具。我建议仔细识别你的当前需求，然后寻找合适的工具。最重要的是，如果你对当前的分析平台感到满意，不要仅仅为了使用最新的流行工具而更换它。
 
@@ -275,14 +275,14 @@ FASMI测试的原始定义旨在为在线分析处理（OLAP）系统提供清�
 
 +   在信任你的分析洞察时感到困难，
 
-那么值得考虑现代的OLAP系统。请放心，它们并没有过时，而且还会持续一段时间。现代OLAP工具正在积极开发，并在2024年保持相关性。此外，它们受益于最新的技术进展：
+那么值得考虑现代的 OLAP 系统。请放心，它们并没有过时，而且还会持续一段时间。现代 OLAP 工具正在积极开发，并在 2024 年保持相关性。此外，它们受益于最新的技术进展：
 
 +   大数据技术，
 
 +   自助服务功能，
 
-+   生成性AI，
++   生成性 AI，
 
 实现新功能或完善现有功能以提高最终用户的生产力。这将是未来一篇文章的主题。敬请期待！
 
-有兴趣的读者可以在此维基百科[页面](https://en.wikipedia.org/wiki/Comparison_of_OLAP_servers)上探索可用的OLAP服务器。
+有兴趣的读者可以在此维基百科[页面](https://en.wikipedia.org/wiki/Comparison_of_OLAP_servers)上探索可用的 OLAP 服务器。

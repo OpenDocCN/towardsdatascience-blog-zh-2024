@@ -1,16 +1,16 @@
 # 数据科学家面试中我关注的数学知识
 
-> 原文：[https://towardsdatascience.com/mathematics-i-look-for-in-data-scientist-interviews-7c7cb1aaebe5?source=collection_archive---------2-----------------------#2024-10-09](https://towardsdatascience.com/mathematics-i-look-for-in-data-scientist-interviews-7c7cb1aaebe5?source=collection_archive---------2-----------------------#2024-10-09)
+> 原文：[`towardsdatascience.com/mathematics-i-look-for-in-data-scientist-interviews-7c7cb1aaebe5?source=collection_archive---------2-----------------------#2024-10-09`](https://towardsdatascience.com/mathematics-i-look-for-in-data-scientist-interviews-7c7cb1aaebe5?source=collection_archive---------2-----------------------#2024-10-09)
 
 ## 让我们重建我们的数据科学基础。
 
-[](https://medium.com/@fmnobar?source=post_page---byline--7c7cb1aaebe5--------------------------------)[![Farzad Nobar](../Images/2d75209693b712300e6f0796bd2487d0.png)](https://medium.com/@fmnobar?source=post_page---byline--7c7cb1aaebe5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7c7cb1aaebe5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7c7cb1aaebe5--------------------------------) [Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--7c7cb1aaebe5--------------------------------)
+[](https://medium.com/@fmnobar?source=post_page---byline--7c7cb1aaebe5--------------------------------)![Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--7c7cb1aaebe5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7c7cb1aaebe5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7c7cb1aaebe5--------------------------------) [Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--7c7cb1aaebe5--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7c7cb1aaebe5--------------------------------) ·阅读时间16分钟·2024年10月9日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7c7cb1aaebe5--------------------------------) ·阅读时间 16 分钟·2024 年 10 月 9 日
 
 --
 
-![](../Images/d1a8bbf4be6272855594eea08febef42.png)
+![](img/d1a8bbf4be6272855594eea08febef42.png)
 
 图片由[Deniz Altindas](https://unsplash.com/@omeganova?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源于[Unsplash](https://unsplash.com/photos/gray-stones-t1XLQvDqt_4?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

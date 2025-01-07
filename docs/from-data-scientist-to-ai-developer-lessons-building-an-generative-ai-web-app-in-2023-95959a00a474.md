@@ -1,16 +1,16 @@
-# 从数据科学家到AI开发者：2023年构建生成式AI Web应用的经验教训
+# 从数据科学家到 AI 开发者：2023 年构建生成式 AI Web 应用的经验教训
 
-> 原文：[https://towardsdatascience.com/from-data-scientist-to-ai-developer-lessons-building-an-generative-ai-web-app-in-2023-95959a00a474?source=collection_archive---------0-----------------------#2024-01-21](https://towardsdatascience.com/from-data-scientist-to-ai-developer-lessons-building-an-generative-ai-web-app-in-2023-95959a00a474?source=collection_archive---------0-----------------------#2024-01-21)
+> 原文：[`towardsdatascience.com/from-data-scientist-to-ai-developer-lessons-building-an-generative-ai-web-app-in-2023-95959a00a474?source=collection_archive---------0-----------------------#2024-01-21`](https://towardsdatascience.com/from-data-scientist-to-ai-developer-lessons-building-an-generative-ai-web-app-in-2023-95959a00a474?source=collection_archive---------0-----------------------#2024-01-21)
 
-## 为任何希望构建能够服务成千上万用户的AI Web应用的数据科学爱好者提供的技术技巧指南
+## 为任何希望构建能够服务成千上万用户的 AI Web 应用的数据科学爱好者提供的技术技巧指南
 
-[](https://iztham.medium.com/?source=post_page---byline--95959a00a474--------------------------------)[![Isaac Tham](../Images/57f44f34adc534dbf09791a8cd54e7f3.png)](https://iztham.medium.com/?source=post_page---byline--95959a00a474--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95959a00a474--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--95959a00a474--------------------------------) [Isaac Tham](https://iztham.medium.com/?source=post_page---byline--95959a00a474--------------------------------)
+[](https://iztham.medium.com/?source=post_page---byline--95959a00a474--------------------------------)![Isaac Tham](https://iztham.medium.com/?source=post_page---byline--95959a00a474--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95959a00a474--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95959a00a474--------------------------------) [Isaac Tham](https://iztham.medium.com/?source=post_page---byline--95959a00a474--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95959a00a474--------------------------------) ·阅读时间：12分钟·2024年1月21日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95959a00a474--------------------------------) ·阅读时间：12 分钟·2024 年 1 月 21 日
 
 --
 
-![](../Images/eb97eaccbbe21c2af01f7cecb07ae29b.png)
+![](img/eb97eaccbbe21c2af01f7cecb07ae29b.png)
 
 来源：DALLE-3
 
@@ -18,17 +18,17 @@
 
 但是，如果你曾尝试过全栈网页开发，你很快就会面对配置、部署、终端命令、服务器等看似不可逾越的难题。
 
-![](../Images/28ce8c12dd701b5e9e013af438fb3b77.png)
+![](img/28ce8c12dd701b5e9e013af438fb3b77.png)
 
 这是我在编写应用程序的初期，和我的大学室友之间无数次沮丧对话中的一幕。图片来自作者。
 
 我对此深有体会，曾经在无数个小时里感到无助，这只让我更加深信自己永远无法制作出一个能正常运行的软件应用。
 
-但是恰好一年前，1月21日，一个因为护照问题和取消的旅行而意外空出的周末，我开始了一个制作AI应用程序的旅程。这是一次带我去到意想不到地方的旅程——我与一个位于世界另一端的联合创始人合作，加入了一个[旧金山初创公司加速器](https://buildspace.so/s3/demoday/Podsmart)，并最终发展到拥有数千用户并创造了可观年收入的规模（查看我的应用程序，[Podsmart](http://podsmartai.com)! 我们总结播客）。
+但是恰好一年前，1 月 21 日，一个因为护照问题和取消的旅行而意外空出的周末，我开始了一个制作 AI 应用程序的旅程。这是一次带我去到意想不到地方的旅程——我与一个位于世界另一端的联合创始人合作，加入了一个[旧金山初创公司加速器](https://buildspace.so/s3/demoday/Podsmart)，并最终发展到拥有数千用户并创造了可观年收入的规模（查看我的应用程序，[Podsmart](http://podsmartai.com)! 我们总结播客）。
 
-![](../Images/ae887cfe6b631727d4e6ef557556600c.png)
+![](img/ae887cfe6b631727d4e6ef557556600c.png)
 
-我的应用演示页面位于 Buildspace 启动加速器上。来源：[https://buildspace.so/s3/demoday/Podsmart](https://buildspace.so/s3/demoday/Podsmart)
+我的应用演示页面位于 Buildspace 启动加速器上。来源：[`buildspace.so/s3/demoday/Podsmart`](https://buildspace.so/s3/demoday/Podsmart)
 
 但最重要的是，这是一段充满挫折、回溯、错误和返工的旅程。它是关于如何在没有正式计算机科学/软件工程背景的情况下，穿越困惑的开发世界。
 
@@ -40,35 +40,35 @@
 
 ## **目录**
 
-· [你想要构建的内容](#8680)
+· 你想要构建的内容
 
-· [YouTube Web 开发教程的危险](#d511)
+· YouTube Web 开发教程的危险
 
-∘ [提示 #1: 使用 Next.js 代替 React](#5c6a)
+∘ 提示 #1: 使用 Next.js 代替 React
 
-∘ [提示 #2: 使用 Tailwind CSS 代替 Bootstrap 进行样式设计](#e5b3)
+∘ 提示 #2: 使用 Tailwind CSS 代替 Bootstrap 进行样式设计
 
-· [数据科学思维模式的局限](#91d1)
+· 数据科学思维模式的局限
 
-∘ [提示 #3: 为后端选择 FastAPI 而非 Flask，并严格定义响应模型](#f335)
+∘ 提示 #3: 为后端选择 FastAPI 而非 Flask，并严格定义响应模型
 
-∘ [提示 #4: 使用 TypeScript 代替 JavaScript](#d98b)
+∘ 提示 #4: 使用 TypeScript 代替 JavaScript
 
-· [关于部署……](#2175)
+· 关于部署……
 
-∘ [提示 #5: 为 GPU 后端使用 Modal](#5631)
+∘ 提示 #5: 为 GPU 后端使用 Modal
 
-∘ [提示 #6: 使用 AWS Lambda 部署后端，使用 Vercel 部署前端](#c901)
+∘ 提示 #6: 使用 AWS Lambda 部署后端，使用 Vercel 部署前端
 
-· [让生活更轻松](#858e)
+· 让生活更轻松
 
-∘ [提示 #7: 不要用 React 自建着陆页](#e97d)
+∘ 提示 #7: 不要用 React 自建着陆页
 
-∘ [提示 #8: Firebase + Stripe 用于用户认证和支付](#1919)
+∘ 提示 #8: Firebase + Stripe 用于用户认证和支付
 
-∘ [提示 #9: 实现 Sentry 进行错误监控](#900c)
+∘ 提示 #9: 实现 Sentry 进行错误监控
 
-· [结论](#a25a)
+· 结论
 
 # **你想要构建的内容**
 
@@ -92,17 +92,17 @@
 
 ## **技巧 #1：使用 Next.js，而不是 React**
 
-![](../Images/e83c69363b500db47cc3b2f3efda54e4.png)
+![](img/e83c69363b500db47cc3b2f3efda54e4.png)
 
-在 YouTube 上搜索“全栈应用教程”会找到很多 React 教程。来源：[https://www.youtube.com/results?search_query=full+stack+app+tutorial](https://www.youtube.com/results?search_query=full+stack+app+tutorial)
+在 YouTube 上搜索“全栈应用教程”会找到很多 React 教程。来源：[`www.youtube.com/results?search_query=full+stack+app+tutorial`](https://www.youtube.com/results?search_query=full+stack+app+tutorial)
 
 很多 YouTube 教程推荐使用 React，最初我也跟风使用了它。
 
 然而，最终我希望提高网站的 SEO 性能——这对获取更多用户至关重要。React 的一些局限性，比如无法动态更改 meta 标签，缺乏服务器端渲染，令人沮丧，迫使我做出繁琐的切换，转向 Next.js。切换后，性能差异简直是天壤之别。
 
-![](../Images/dff8497750428d823d3e7da9529dbe77.png)
+![](img/dff8497750428d823d3e7da9529dbe77.png)
 
-Vercel 提供了大量的 Next.js 模板，供你快速启动网站开发。来源：[https://vercel.com/templates/next.js](https://vercel.com/templates/next.js)
+Vercel 提供了大量的 Next.js 模板，供你快速启动网站开发。来源：[`vercel.com/templates/next.js`](https://vercel.com/templates/next.js)
 
 有些人说 React 更适合初学者，但网上有很多 Next.js 模板，比如 [Vercel（Next.js 的创造者）](https://vercel.com/templates/next.js)，尤其是 AI 应用。Next.js 真的是几乎所有 AI 应用中使用的现代 Web 框架。
 
@@ -110,19 +110,19 @@ Vercel 提供了大量的 Next.js 模板，供你快速启动网站开发。来�
 
 在开始我的前端 UI 之旅时，我最初有些天真地跟随了一波前端教程，走向了 Bootstrap。它的吸引力？承诺通过现成的组件（如下拉菜单和手风琴组件）来简化开发。
 
-![](../Images/4d5a4c7e8e2b86bacdd91b84dfe7a537.png)
+![](img/4d5a4c7e8e2b86bacdd91b84dfe7a537.png)
 
 “Bootstrap 外观”——2023 年 2 月 20 日，我的网站看起来有多丑。图片来源：作者。
 
 然而，过了一段时间，我意识到我的网站看起来……真的很丑，尤其是与那些流线型、现代的 AI 演示页面相比。那种明显的“Bootstrap 外观”——一种审美上的固执，抵制自定义，纠缠于一堆混乱命名的 CSS 类名中。所以，最终，我再次咬紧牙关，重新用 Tailwind CSS 完全重做了我的前端，花了整整三天时间。
 
-![](../Images/5221bef3add4cb446ac04a25742faf56.png)
+![](img/5221bef3add4cb446ac04a25742faf56.png)
 
 这个 AI 演示页面肯定不是用 Bootstrap 构建的。来源：restorephotos.io
 
 如果你曾经见过一页现代且简洁的 AI 演示页面，那么它很有可能使用了 [Tailwind CSS](https://tailwindcss.com/)。
 
-![](../Images/3994a7cc9b25aaed300f897e34a92ee4.png)
+![](img/3994a7cc9b25aaed300f897e34a92ee4.png)
 
 Tailwind CSS 及其实用类使得定制每个组件变得异常简单。图像来自作者。
 
@@ -150,7 +150,7 @@ FastAPI 具有几个改变游戏规则的优势：
 
 +   **更好的性能** — FastAPI 显然比 Flask 快得多，并且消耗更少的内存 — 这对于我的应用发送大量负载非常有帮助。
 
-![](../Images/2025eb6f59fc6cead298cb352aa26796.png)
+![](img/2025eb6f59fc6cead298cb352aa26796.png)
 
 使用 Pydantic 构建数据模型，你可以用它来定义 FastAPI 路由的响应类型。图像来自作者。
 
@@ -168,7 +168,7 @@ FastAPI 具有几个改变游戏规则的优势：
 
 因此，当我的大科技公司软件工程师朋友告诉我，您可以**通过 API 规范自动生成 TypeScript 客户端代码**时，我感到非常震惊。（**更多 FastAPI 文档请见[这里](https://fastapi.tiangolo.com/advanced/generate-clients)，其中一个这样的包是 [openapi-typescript-codegen](https://github.com/ferdikoomen/openapi-typescript-codegen)）
 
-![](../Images/7b720eb2bec8cddc3a2f2e7dd64e6a81.png)
+![](img/7b720eb2bec8cddc3a2f2e7dd64e6a81.png)
 
 通过自动生成的 TypeScript 客户端代码，您的获取方法将根据 FastAPI 端点响应模型提供自动补全和文档。图片来自作者。
 
@@ -192,7 +192,7 @@ Modal 以其卓越的文档和学习资源脱颖而出，提供了最新应用�
 
 实际上，我的整个播客转录应用是通过分叉 Modal 的示例[音频转录代码](https://modal.com/docs/examples/whisper-transcriber)开始的，所以可以毫不夸张地说，没有 Modal，我是无法构建我的应用的。
 
-![](../Images/f819ee82a0792bb0b91397c0af79f527.png)
+![](img/f819ee82a0792bb0b91397c0af79f527.png)
 
 Modal 的仪表板在监控和错误追踪方面非常用户友好。图像来源：作者提供。来源：modal.com
 
@@ -224,29 +224,29 @@ React 更适合用于像实际的 AI 应用界面这样的自定义功能。对�
 
 在用户身份验证方面，市面上的选项和教程多得让人眼花缭乱。我需要一个不仅处理身份验证，还能与支付系统集成的解决方案，以根据用户的订阅状态控制访问权限。
 
-在尝试并失败于使用几种不同的身份验证解决方案（例如auth0）之后，我发现Stripe + Firebase的组合非常有效。Firebase有一个Stripe集成，能在支付成功后更新用户的订阅状态，Firebase的React客户端处理客户端身份验证，而Python客户端则很好地管理服务器访问控制。参考这两段视频（[这里](https://www.youtube.com/watch?v=P0Udy2Gi7n8)和[这里](https://www.youtube.com/watch?v=UhrmPH3TLus)）让我成功地将这一方案实现到我的应用中。
+在尝试并失败于使用几种不同的身份验证解决方案（例如 auth0）之后，我发现 Stripe + Firebase 的组合非常有效。Firebase 有一个 Stripe 集成，能在支付成功后更新用户的订阅状态，Firebase 的 React 客户端处理客户端身份验证，而 Python 客户端则很好地管理服务器访问控制。参考这两段视频（[这里](https://www.youtube.com/watch?v=P0Udy2Gi7n8)和[这里](https://www.youtube.com/watch?v=UhrmPH3TLus)）让我成功地将这一方案实现到我的应用中。
 
-## **技巧#9：实施Sentry进行错误监控**
+## **技巧#9：实施 Sentry 进行错误监控**
 
-几个月来，我完全不知道用户在我的应用上线后遇到了什么bug。只有当我或用户发现bug时，我才会通过AWS Cloudwatch界面去排查后端的bug。
+几个月来，我完全不知道用户在我的应用上线后遇到了什么 bug。只有当我或用户发现 bug 时，我才会通过 AWS Cloudwatch 界面去排查后端的 bug。
 
-![](../Images/bf6403d8b346f68bccfc0ff5d1e8a7d6.png)
+![](img/bf6403d8b346f68bccfc0ff5d1e8a7d6.png)
 
-Sentry在你的应用生产环境中追踪错误（包括前端和后端）。图像由作者提供。来源：sentry.io。
+Sentry 在你的应用生产环境中追踪错误（包括前端和后端）。图像由作者提供。来源：sentry.io。
 
-这一切持续了直到我的联合创始人向我介绍了[Sentry](https://sentry.io)，一个用于云应用性能监控和错误追踪的工具。它非常容易为前端和后端初始化，你甚至可以将其与Slack集成，实时接收错误通知。只是要小心不要把你免费计划的每月错误预算浪费在像身份验证超时这样的琐碎但频繁的错误上。这就是我当时遇到的情况——我不得不订阅付费计划才能找到我真正想解决的重要bug的日志。
+这一切持续了直到我的联合创始人向我介绍了[Sentry](https://sentry.io)，一个用于云应用性能监控和错误追踪的工具。它非常容易为前端和后端初始化，你甚至可以将其与 Slack 集成，实时接收错误通知。只是要小心不要把你免费计划的每月错误预算浪费在像身份验证超时这样的琐碎但频繁的错误上。这就是我当时遇到的情况——我不得不订阅付费计划才能找到我真正想解决的重要 bug 的日志。
 
-**额外技巧#10：**不要尝试使用Spotify的API构建Web应用！我浪费了2个月的时间，假设我可以集成Spotify的API，让用户加载他们保存的播客。但是要实现这一点，你需要申请配额扩展请求，而Spotify审核这个请求需要一个多月的时间。如果你的应用涉及任何AI/ML模型（尽管我的应用实际上并没有用Spotify数据训练任何模型），他们可能会拒绝你的申请（根据他们的开发者政策中禁止的措辞）。
+**额外技巧#10：**不要尝试使用 Spotify 的 API 构建 Web 应用！我浪费了 2 个月的时间，假设我可以集成 Spotify 的 API，让用户加载他们保存的播客。但是要实现这一点，你需要申请配额扩展请求，而 Spotify 审核这个请求需要一个多月的时间。如果你的应用涉及任何 AI/ML 模型（尽管我的应用实际上并没有用 Spotify 数据训练任何模型），他们可能会拒绝你的申请（根据他们的开发者政策中禁止的措辞）。
 
 # **结论**
 
-我希望这篇技术指南能为其他数据科学爱好者解开一些Web应用开发的神秘面纱。
+我希望这篇技术指南能为其他数据科学爱好者解开一些 Web 应用开发的神秘面纱。
 
 如果你觉得这篇文章有帮助：
 
-1.  不妨看看我在Medium上的其他文章：[如何使用AI总结长文本](/summarize-podcast-transcripts-and-long-texts-better-with-nlp-and-ai-e04c89d3b2cb)，[使用深度学习生成音乐](https://medium.com/towards-data-science/generating-music-using-deep-learning-cb5843a9d55e)
+1.  不妨看看我在 Medium 上的其他文章：如何使用 AI 总结长文本，[使用深度学习生成音乐](https://medium.com/towards-data-science/generating-music-using-deep-learning-cb5843a9d55e)
 
-1.  尝试我的[应用](http://podsmartai.com) — [Podsmart](http://podsmartai.com)可以转录并总结播客和YouTube视频，帮助忙碌的知识工作者节省大量听力时间。
+1.  尝试我的[应用](http://podsmartai.com) — [Podsmart](http://podsmartai.com)可以转录并总结播客和 YouTube 视频，帮助忙碌的知识工作者节省大量听力时间。
 
 1.  在[LinkedIn](https://www.linkedin.com/in/isaacthamhy/)或[Twitter/X](https://twitter.com/thamsuppp)上关注我，或者通过消息或评论与我联系！我很乐意就所有与数据科学和人工智能相关的内容交流想法。
 

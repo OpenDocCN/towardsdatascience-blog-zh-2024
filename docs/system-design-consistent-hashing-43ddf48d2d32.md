@@ -1,16 +1,16 @@
 # 系统设计：一致性哈希
 
-> 原文：[https://towardsdatascience.com/system-design-consistent-hashing-43ddf48d2d32?source=collection_archive---------1-----------------------#2024-03-13](https://towardsdatascience.com/system-design-consistent-hashing-43ddf48d2d32?source=collection_archive---------1-----------------------#2024-03-13)
+> 原文：[`towardsdatascience.com/system-design-consistent-hashing-43ddf48d2d32?source=collection_archive---------1-----------------------#2024-03-13`](https://towardsdatascience.com/system-design-consistent-hashing-43ddf48d2d32?source=collection_archive---------1-----------------------#2024-03-13)
 
-## 解锁分布式数据库中高效数据分区的力量，如Cassandra和Dynamo DB。
+## 解锁分布式数据库中高效数据分区的力量，如 Cassandra 和 Dynamo DB。
 
-[](https://medium.com/@slavahead?source=post_page---byline--43ddf48d2d32--------------------------------)[![Vyacheslav Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--43ddf48d2d32--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--43ddf48d2d32--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--43ddf48d2d32--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--43ddf48d2d32--------------------------------)
+[](https://medium.com/@slavahead?source=post_page---byline--43ddf48d2d32--------------------------------)![Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--43ddf48d2d32--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--43ddf48d2d32--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43ddf48d2d32--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--43ddf48d2d32--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43ddf48d2d32--------------------------------) ·7分钟阅读·2024年3月13日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43ddf48d2d32--------------------------------) ·7 分钟阅读·2024 年 3 月 13 日
 
 --
 
-![](../Images/8c8018c09601a9fce07a351aebeee8eb.png)
+![](img/8c8018c09601a9fce07a351aebeee8eb.png)
 
 # 介绍
 
@@ -22,7 +22,7 @@
 
 # 问题
 
-假设我们有n个数据对象需要存储在k台不同的服务器上。服务器的配置可能会随着时间的推移发生变化：
+假设我们有 n 个数据对象需要存储在 k 台不同的服务器上。服务器的配置可能会随着时间的推移发生变化：
 
 +   任何服务器都可以关闭；
 

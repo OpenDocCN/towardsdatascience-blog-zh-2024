@@ -1,16 +1,16 @@
 # 客户细分项目：训练、测试、调整、重复
 
-> 原文：[https://towardsdatascience.com/customer-segmentation-cluster-project-train-test-tweak-repeat-2bc93874b315?source=collection_archive---------5-----------------------#2024-08-23](https://towardsdatascience.com/customer-segmentation-cluster-project-train-test-tweak-repeat-2bc93874b315?source=collection_archive---------5-----------------------#2024-08-23)
+> 原文：[`towardsdatascience.com/customer-segmentation-cluster-project-train-test-tweak-repeat-2bc93874b315?source=collection_archive---------5-----------------------#2024-08-23`](https://towardsdatascience.com/customer-segmentation-cluster-project-train-test-tweak-repeat-2bc93874b315?source=collection_archive---------5-----------------------#2024-08-23)
 
-## 使用K-Means聚类学习客户细分。
+## 使用 K-Means 聚类学习客户细分。
 
-[](https://medium.com/@panData?source=post_page---byline--2bc93874b315--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--2bc93874b315--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2bc93874b315--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2bc93874b315--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--2bc93874b315--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--2bc93874b315--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--2bc93874b315--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2bc93874b315--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2bc93874b315--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--2bc93874b315--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2bc93874b315--------------------------------) ·阅读时间33分钟·2024年8月23日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2bc93874b315--------------------------------) ·阅读时间 33 分钟·2024 年 8 月 23 日
 
 --
 
-![](../Images/e1efe48276717212b1802beb2d847a11.png)
+![](img/e1efe48276717212b1802beb2d847a11.png)
 
 图片由[nrd](https://unsplash.com/@nicotitto?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

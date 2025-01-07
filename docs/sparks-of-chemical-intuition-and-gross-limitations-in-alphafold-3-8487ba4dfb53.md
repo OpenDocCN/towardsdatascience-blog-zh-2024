@@ -1,16 +1,16 @@
-# “化学直觉的火花”——以及AlphaFold 3中的重大局限！
+# “化学直觉的火花”——以及 AlphaFold 3 中的重大局限！
 
-> 原文：[https://towardsdatascience.com/sparks-of-chemical-intuition-and-gross-limitations-in-alphafold-3-8487ba4dfb53?source=collection_archive---------6-----------------------#2024-06-05](https://towardsdatascience.com/sparks-of-chemical-intuition-and-gross-limitations-in-alphafold-3-8487ba4dfb53?source=collection_archive---------6-----------------------#2024-06-05)
+> 原文：[`towardsdatascience.com/sparks-of-chemical-intuition-and-gross-limitations-in-alphafold-3-8487ba4dfb53?source=collection_archive---------6-----------------------#2024-06-05`](https://towardsdatascience.com/sparks-of-chemical-intuition-and-gross-limitations-in-alphafold-3-8487ba4dfb53?source=collection_archive---------6-----------------------#2024-06-05)
 
-## 在DeepMind发布其迄今为止最先进的生物分子结构预测模型的三周后，进行的观察。
+## 在 DeepMind 发布其迄今为止最先进的生物分子结构预测模型的三周后，进行的观察。
 
-[](https://lucianosphere.medium.com/?source=post_page---byline--8487ba4dfb53--------------------------------)[![LucianoSphere (Luciano Abriata, PhD)](../Images/a8ae3085d094749bbdd1169cca672b86.png)](https://lucianosphere.medium.com/?source=post_page---byline--8487ba4dfb53--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8487ba4dfb53--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8487ba4dfb53--------------------------------) [LucianoSphere (Luciano Abriata, PhD)](https://lucianosphere.medium.com/?source=post_page---byline--8487ba4dfb53--------------------------------)
+[](https://lucianosphere.medium.com/?source=post_page---byline--8487ba4dfb53--------------------------------)![LucianoSphere (Luciano Abriata, PhD)](https://lucianosphere.medium.com/?source=post_page---byline--8487ba4dfb53--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8487ba4dfb53--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8487ba4dfb53--------------------------------) [LucianoSphere (Luciano Abriata, PhD)](https://lucianosphere.medium.com/?source=post_page---byline--8487ba4dfb53--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8487ba4dfb53--------------------------------) ·阅读时间：16分钟·2024年6月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8487ba4dfb53--------------------------------) ·阅读时间：16 分钟·2024 年 6 月 5 日
 
 --
 
-![](../Images/21581d1aab964bc0703bb26ccabc7273.png)
+![](img/21581d1aab964bc0703bb26ccabc7273.png)
 
 图由作者绘制。
 
@@ -18,11 +18,11 @@
 
 **- 介绍**
 
-- **AlphaFold 3是什么，它与之前版本的区别** *超越蛋白质*
+- **AlphaFold 3 是什么，它与之前版本的区别** *超越蛋白质*
 
 *社区黑客合作
 
--* **蛋白质存在的问题，包括AlphaFold 2没有遭遇的一些问题**
+-* **蛋白质存在的问题，包括 AlphaFold 2 没有遭遇的一些问题**
 
 - AlphaFold 3（不了解的）脂质物理化学
 
@@ -36,4 +36,4 @@
 
 # 介绍
 
-就在三周前，AlphaFold 3作为DeepMind（以及与Google相关的另一家公司Isomorphic Lab）最新的工具诞生，应用人工智能解决在原子级别理解生物学的问题。正如我在专门的文章中详细介绍的……
+就在三周前，AlphaFold 3 作为 DeepMind（以及与 Google 相关的另一家公司 Isomorphic Lab）最新的工具诞生，应用人工智能解决在原子级别理解生物学的问题。正如我在专门的文章中详细介绍的……

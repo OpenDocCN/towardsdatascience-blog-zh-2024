@@ -1,26 +1,26 @@
 # 为什么你不应该将数值评估用作大语言模型的评判标准
 
-> 原文：[https://towardsdatascience.com/why-you-should-not-use-numeric-evals-for-llm-as-a-judge-bf22424f5379?source=collection_archive---------7-----------------------#2024-03-08](https://towardsdatascience.com/why-you-should-not-use-numeric-evals-for-llm-as-a-judge-bf22424f5379?source=collection_archive---------7-----------------------#2024-03-08)
+> 原文：[`towardsdatascience.com/why-you-should-not-use-numeric-evals-for-llm-as-a-judge-bf22424f5379?source=collection_archive---------7-----------------------#2024-03-08`](https://towardsdatascience.com/why-you-should-not-use-numeric-evals-for-llm-as-a-judge-bf22424f5379?source=collection_archive---------7-----------------------#2024-03-08)
 
-![](../Images/79a5cc98acefd1df47dd89312b5b7ff2.png)
+![](img/79a5cc98acefd1df47dd89312b5b7ff2.png)
 
 由作者使用 Dall-E 3 创建的图像
 
 ## 测试主要的大语言模型在进行数值评估时的表现
 
-[](https://aparnadhinak.medium.com/?source=post_page---byline--bf22424f5379--------------------------------)[![Aparna Dhinakaran](../Images/e431ee69563ecb27c86f3428ba53574c.png)](https://aparnadhinak.medium.com/?source=post_page---byline--bf22424f5379--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bf22424f5379--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bf22424f5379--------------------------------) [Aparna Dhinakaran](https://aparnadhinak.medium.com/?source=post_page---byline--bf22424f5379--------------------------------)
+[](https://aparnadhinak.medium.com/?source=post_page---byline--bf22424f5379--------------------------------)![Aparna Dhinakaran](https://aparnadhinak.medium.com/?source=post_page---byline--bf22424f5379--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bf22424f5379--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bf22424f5379--------------------------------) [Aparna Dhinakaran](https://aparnadhinak.medium.com/?source=post_page---byline--bf22424f5379--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bf22424f5379--------------------------------) ·8 分钟阅读·2024年3月8日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bf22424f5379--------------------------------) ·8 分钟阅读·2024 年 3 月 8 日
 
 --
 
 除了为日益增多的行业应用生成文本外，大语言模型（LLMs）现在广泛[被用作](https://medium.com/towards-data-science/llm-evals-setup-and-the-metrics-that-matter-2cc27e8e35f3)评估工具。模型可以量化检索系统中文档的相关性，评估评论和帖子的情感等——评估人类和 AI 生成的文本。这些评估通常是数值型或类别型的。
 
-![](../Images/a9e618d9c5f95f5e440d8bd9122805c2.png)
+![](img/a9e618d9c5f95f5e440d8bd9122805c2.png)
 
 不同类型的大语言模型评估（由作者提供的图示）
 
-数值评估涉及大语言模型根据一组评估标准返回一个数字。例如，模型可能会被要求在1到10的尺度上评估一个文档与用户查询的相关性。
+数值评估涉及大语言模型根据一组评估标准返回一个数字。例如，模型可能会被要求在 1 到 10 的尺度上评估一个文档与用户查询的相关性。
 
 类别评估则有所不同，它允许大语言模型从一组预定义的、通常是基于文本的选项中进行选择来进行评估。例如，一个提示可能会询问一个段落是“快乐的”，“悲伤的”还是“中立的”，而不是试图量化段落的快乐程度。
 
@@ -61,13 +61,13 @@ SIMPLE_TEMPLATE_SPELLING = """
 
 然后我们要求模型返回一个数字评估，表示文章中拼写错误单词的百分比（3 → 30% 拼写错误，8 → 80% 拼写错误，依此类推）。理想情况下，得分为 10 表示文档中的每个单词都拼写错误，而得分为 0 表示没有拼写错误。针对三种大型语言模型（LLM）——GPT-4、Claude 和 Mixtral——的实验结果并不理想。
 
-![](../Images/9f13e27577980514ef037a3976255a31.png)
+![](img/9f13e27577980514ef037a3976255a31.png)
 
 GPT-4 拼写错误结果（图片来源：作者）
 
 观察到的结果与预期的完美线性范围相差甚远；评分系统并未始终如一地反映文档中拼写错误的比例。实际上，GPT-4（如上所示）在每个拼写错误密度为 10% 或以上的文档中都返回了 10（表示 100% 错误率）。报告的得分是多次试验的中位数，试验是在每个指定的错误级别进行的。
 
-![](../Images/578fb8279f35a889e0f3a22b679431b0.png)
+![](img/578fb8279f35a889e0f3a22b679431b0.png)
 
 GPT-4、Claude、Mixtral 拼写错误结果（图片来源：作者）
 
@@ -107,13 +107,13 @@ SIMPLE_TEMPLATE_SADNESS = """
 
 再次强调，得分为 10 应表明文档中的每个句子都包含悲伤或沮丧的修饰词，而得分为 0 则意味着完全没有此类修饰词。得分介于两者之间的情况对应于不同程度的情感频率，得分越高，情感句子的比例越大。
 
-![](../Images/3117570eea0e8dd1adbc502217d4db51.png)
+![](img/3117570eea0e8dd1adbc502217d4db51.png)
 
 GPT-4 拼写错误、悲伤、沮丧结果（图像由作者提供）
 
 与拼写错误实验类似，结果显示与预期结果存在显著差异。GPT-4 对于悲伤率超过 30% 或沮丧率约为 70% 的每个文档都给出了 10 分的评分。值得注意的是，在所有与 GPT-4 进行的测试中，只有在完全没有修饰词或拼写错误时，中位答案才能满足完美的线性范围。
 
-![](../Images/a7aba63433568febddfbb121e92e9071.png)
+![](img/a7aba63433568febddfbb121e92e9071.png)
 
 Mixtral 拼写错误、悲伤、沮丧结果（图像由作者提供）
 
@@ -125,7 +125,7 @@ Mixtral 拼写错误、悲伤、沮丧结果（图像由作者提供）
 
 值得注意的是，我们对每个模型进行了多次测试，并绘制了它们的响应分布图。
 
-![](../Images/6c52ad659be803faba9ee3b4621a7ca4.png)
+![](img/6c52ad659be803faba9ee3b4621a7ca4.png)
 
 跨多个测试的评估结果比较，得分范围为 1 到 10（图像由作者提供）
 
@@ -133,18 +133,18 @@ Mixtral 拼写错误、悲伤、沮丧结果（图像由作者提供）
 
 有两点特别突出。首先，各个模型和任务的分布密度差异很大。Claude 的分布在我们的测试中变化较大；例如，在 80% 拼写错误的情况下，我们有模型始终给出 1 到 4 的评分。另一方面，GPT-4 的分布要紧凑得多——尽管大部分情况下其得分未能满足合理的预期。
 
-其次，一些模型比其他模型更擅长处理连续范围中的过渡。Mixtral的分布看起来接近于可能的可接受性能，但这三种模型似乎仍然有一段路要走，才能准备好投入生产。
+其次，一些模型比其他模型更擅长处理连续范围中的过渡。Mixtral 的分布看起来接近于可能的可接受性能，但这三种模型似乎仍然有一段路要走，才能准备好投入生产。
 
-# LLM评估的影响
+# LLM 评估的影响
 
-目前有大量关于[LLM评估](https://arize.com/blog-course/llm-evaluation-the-definitive-guide/)的研究正在进行。例如，微软的GPT估算指标评估（[GEMBA](https://arxiv.org/pdf/2302.14520.pdf)）考察了不同大型语言模型评估不同翻译段落质量的能力。虽然一些研究论文将概率和数字分数作为评估输出的一部分——包括GEMBA在内的研究报告了有希望的结果——但我们看到客户在现实世界中应用分数评估的方式往往与当前的研究大不相同。
+目前有大量关于[LLM 评估](https://arize.com/blog-course/llm-evaluation-the-definitive-guide/)的研究正在进行。例如，微软的 GPT 估算指标评估（[GEMBA](https://arxiv.org/pdf/2302.14520.pdf)）考察了不同大型语言模型评估不同翻译段落质量的能力。虽然一些研究论文将概率和数字分数作为评估输出的一部分——包括 GEMBA 在内的研究报告了有希望的结果——但我们看到客户在现实世界中应用分数评估的方式往往与当前的研究大不相同。
 
-有鉴于此，我们试图将我们的研究调整为更具实践性、面向现实世界的应用——结果突出显示了直接使用分数做决策可能存在的问题。考虑到我们在评分评估研究中对GPT-4回答的分析，似乎该模型倾向于选择两个选项之一：1或10，要么全选，要么不选。
+有鉴于此，我们试图将我们的研究调整为更具实践性、面向现实世界的应用——结果突出显示了直接使用分数做决策可能存在的问题。考虑到我们在评分评估研究中对 GPT-4 回答的分析，似乎该模型倾向于选择两个选项之一：1 或 10，要么全选，要么不选。
 
 最终，类别评估（无论是二元还是多类）很可能具有很大潜力，未来在这一领域的进展值得关注。
 
 # 结论
 
-使用LLM进行数字评估非常挑剔且不可靠。模型之间的切换以及提示模板的微小变化可能会导致截然不同的结果，这使得很难将LLM作为数字评估标准的一致可靠的裁决者。此外，跨多次测试的大量结果分布表明，这些模型在回答时往往不一致，即使独立变量保持不变。构建LLM评估的读者应谨慎，避免以[这篇文章](https://arize.com/blog-course/numeric-evals-for-llm-as-a-judge/)中概述的方式使用数字评估。
+使用 LLM 进行数字评估非常挑剔且不可靠。模型之间的切换以及提示模板的微小变化可能会导致截然不同的结果，这使得很难将 LLM 作为数字评估标准的一致可靠的裁决者。此外，跨多次测试的大量结果分布表明，这些模型在回答时往往不一致，即使独立变量保持不变。构建 LLM 评估的读者应谨慎，避免以[这篇文章](https://arize.com/blog-course/numeric-evals-for-llm-as-a-judge/)中概述的方式使用数字评估。
 
 *有问题吗？请随时通过* [*X*](https://twitter.com/aparnadhinak)*，* [*LinkedIn*](https://www.linkedin.com/in/aparnadhinakaran/)*，或* [*Slack*](https://join.slack.com/t/arize-ai/shared_invite/zt-26zg4u3lw-OjUNoLvKQ2Yv53EfvxW6Kg)*联系我们！*

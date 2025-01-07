@@ -1,16 +1,16 @@
 # 数据可视化入门：吸引眼球的可视化操作手册
 
-> 原文：[https://towardsdatascience.com/data-visualisation-101-playbook-for-attention-grabbing-visuals-c5b9faa7a950?source=collection_archive---------1-----------------------#2024-02-05](https://towardsdatascience.com/data-visualisation-101-playbook-for-attention-grabbing-visuals-c5b9faa7a950?source=collection_archive---------1-----------------------#2024-02-05)
+> 原文：[`towardsdatascience.com/data-visualisation-101-playbook-for-attention-grabbing-visuals-c5b9faa7a950?source=collection_archive---------1-----------------------#2024-02-05`](https://towardsdatascience.com/data-visualisation-101-playbook-for-attention-grabbing-visuals-c5b9faa7a950?source=collection_archive---------1-----------------------#2024-02-05)
 
 ## 使用 Plotly 进行引人注目的可视化交流的实用技巧
 
-[](https://miptgirl.medium.com/?source=post_page---byline--c5b9faa7a950--------------------------------)[![玛丽亚·曼苏罗娃](../Images/b1dd377b0a1887db900cc5108bca8ea8.png)](https://miptgirl.medium.com/?source=post_page---byline--c5b9faa7a950--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c5b9faa7a950--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c5b9faa7a950--------------------------------) [玛丽亚·曼苏罗娃](https://miptgirl.medium.com/?source=post_page---byline--c5b9faa7a950--------------------------------)
+[](https://miptgirl.medium.com/?source=post_page---byline--c5b9faa7a950--------------------------------)![玛丽亚·曼苏罗娃](https://miptgirl.medium.com/?source=post_page---byline--c5b9faa7a950--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c5b9faa7a950--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c5b9faa7a950--------------------------------) [玛丽亚·曼苏罗娃](https://miptgirl.medium.com/?source=post_page---byline--c5b9faa7a950--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c5b9faa7a950--------------------------------) ·阅读时间：15分钟·2024年2月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c5b9faa7a950--------------------------------) ·阅读时间：15 分钟·2024 年 2 月 5 日
 
 --
 
-![](../Images/4ae5b13ef99ae95541ef3b8986bc995b.png)
+![](img/4ae5b13ef99ae95541ef3b8986bc995b.png)
 
 图片由 DALL-E 3 生成
 
@@ -44,17 +44,17 @@
 
 我们的目标是最大化图表中有意义元素（或墨水）的比例。为此，我们可以从图表中去除杂乱（或噪音），以减少感知上的认知负担。杂乱是指那些存在于图表中但没有提供任何附加理解的图形元素。
 
-不幸的是，我们工具中的默认设置有时并不能帮助我们制作清晰的可视化。因此，我首先建议你更改Plotly中的默认模板——这将帮助你简化图表。
+不幸的是，我们工具中的默认设置有时并不能帮助我们制作清晰的可视化。因此，我首先建议你更改 Plotly 中的默认模板——这将帮助你简化图表。
 
-默认模板是`plotly`。它与seaborn风格相似（你可以在[画廊](https://seaborn.pydata.org/examples/index.html)中查看），包括背景颜色和网格线。在我看来，它给图表增加了太多噪音。我更喜欢一个轻量级的模板，叫做`simple_white`。
+默认模板是`plotly`。它与 seaborn 风格相似（你可以在[画廊](https://seaborn.pydata.org/examples/index.html)中查看），包括背景颜色和网格线。在我看来，它给图表增加了太多噪音。我更喜欢一个轻量级的模板，叫做`simple_white`。
 
 你可以在图表上对比这两种风格，感受它们的差异。
 
-![](../Images/db250fe14ca41942a0e3a93a3bae3d1b.png)
+![](img/db250fe14ca41942a0e3a93a3bae3d1b.png)
 
 作者图表
 
-使用下面的代码可以更改你所有Plotly可视化的模板。你可以查看其他内置模板，甚至在[文档](https://plotly.com/python/templates/)中学习如何创建自己的自定义模板。
+使用下面的代码可以更改你所有 Plotly 可视化的模板。你可以查看其他内置模板，甚至在[文档](https://plotly.com/python/templates/)中学习如何创建自己的自定义模板。
 
 ```py
 import plotly.io as pio
@@ -67,7 +67,7 @@ pio.templates.default = 'simple_white'
 
 如果你创建一个只有一个数据系列的条形图，Plotly 仍然会显示图例。然而，我们可以在不失去任何信息的情况下去除它，并通过 y 轴标题提供度量的上下文。
 
-![](../Images/bf7414614473f77aa4ea5ab319f40688.png)
+![](img/bf7414614473f77aa4ea5ab319f40688.png)
 
 作者图表
 
@@ -83,7 +83,7 @@ fig.update_layout(showlegend = False)
 
 这让我感到惊讶，但确实有些情况下你不仅可以去除图例，还可以去除其中一个轴。看下面的两张图表：我们为每个条形添加了标签，确保观众可以轻松解读并比较基于条形长度的数值。因此，x 轴不再是必要的。理想情况下，我们应该将关于使用的度量的一些背景信息添加到图表标题中——我们稍后会讨论如何做。
 
-![](../Images/0903525e57897a112250507007b3e5c0.png)
+![](img/0903525e57897a112250507007b3e5c0.png)
 
 作者图表
 
@@ -98,7 +98,7 @@ fig.update_xaxes(visible = False)
 
 分析师喜欢数字（至少我是）。因此，我们经常希望向观众展示这些数字，比如过去几个月我们有多少客户。结果常常是这样的图表。
 
-![](../Images/a975bfef09a5decebdb6fbd2ead51db5.png)
+![](img/a975bfef09a5decebdb6fbd2ead51db5.png)
 
 作者图表
 
@@ -112,7 +112,7 @@ fig.update_xaxes(visible = False)
 
 另一个诱惑是让你的可视化更加多彩。除非颜色有特定作用，比如编码某些数据或突出显示最值得注意的部分，否则请避免这么做。我们稍后会讨论如何明智地使用颜色。同时，你可以看看下面的例子，观察一下首先吸引你眼球的是什么，以及你需要花费多少精力去理解底层数据。当我看第一张图时，我感到有些困惑，一直在思考这些颜色是什么意思，为什么每个条形有所不同。
 
-![](../Images/b7cb09f0e4be56fcff02cdd827783f6f.png)
+![](img/b7cb09f0e4be56fcff02cdd827783f6f.png)
 
 作者图表
 
@@ -120,7 +120,7 @@ fig.update_xaxes(visible = False)
 
 我们已经学会了如何从图表中去除噪音。经过这一步，我们得到了中立的可视化效果。它们就像一块画布。接下来的步骤是战略性地加入重点。
 
-# 第2步：添加重点
+# 第 2 步：添加重点
 
 明智地使用重点颜色可以引导观众的注意力，并强调主要信息。人们通常首先会注意到较亮或较暗的颜色。然而，重要的是要记住，你不能突出显示所有内容。相反，你应该将观众的注意力集中在数据的一个或两个关键方面。
 
@@ -132,7 +132,7 @@ fig.update_xaxes(visible = False)
 
 在我看来，颜色是驱动观众注意力的最强大工具。这就是为什么我想详细讨论它。让我们从一个例子开始。看看下面的可视化图。你首先注意到的是什么？你认为作者想通过这个图表告诉你什么？
 
-![](../Images/305d79fc34a9014c0ed0d12a1698d861.png)
+![](img/305d79fc34a9014c0ed0d12a1698d861.png)
 
 图表由作者提供，数据来自 [StackOverflow 调查](https://survey.stackoverflow.co/2023/#technology-most-popular-technologies)
 
@@ -144,13 +144,13 @@ fig.update_xaxes(visible = False)
 
 让我们将其与完全灰色中性的版本进行对比。在没有任何视觉提示的情况下，你将花费更多的时间和精力来查看所有数据。
 
-![](../Images/1ba5b117793fe9dec7ca384ce4adc42c.png)
+![](img/1ba5b117793fe9dec7ca384ce4adc42c.png)
 
 图表由作者提供
 
 希望你现在能看到颜色的所有潜力。让我们学习如何在 Plotly 中使用颜色
 
-我们将从一个像上面示例中的条形图开始。我用更亮的颜色突出显示了那些转化率低于阈值的部分。为此，我根据转化率值定义了颜色列表，并将其作为颜色传递给Plotly，用于线条和标记。我还指定了希望标签显示在条形图外部，并通过调整透明度使颜色变得更加淡化。
+我们将从一个像上面示例中的条形图开始。我用更亮的颜色突出显示了那些转化率低于阈值的部分。为此，我根据转化率值定义了颜色列表，并将其作为颜色传递给 Plotly，用于线条和标记。我还指定了希望标签显示在条形图外部，并通过调整透明度使颜色变得更加淡化。
 
 ```py
 # defining colors based on conversion value
@@ -173,17 +173,17 @@ fig.update_layout(showlegend = False)
 fig.update_yaxes(range = [0, 70]) 
 ```
 
-![](../Images/3f1a6ca99375229f2e4904bbbdeb21be.png)
+![](img/3f1a6ca99375229f2e4904bbbdeb21be.png)
 
 图表由作者绘制
 
-让我们稍微讨论一下如何定义颜色。在上面的示例中，我使用了预定义的SVG颜色`"silver"`和`"purple"`。你可以在[这里](https://www.w3.org/TR/css-color-3/#svg-color)找到预定义颜色的完整列表。
+让我们稍微讨论一下如何定义颜色。在上面的示例中，我使用了预定义的 SVG 颜色`"silver"`和`"purple"`。你可以在[这里](https://www.w3.org/TR/css-color-3/#svg-color)找到预定义颜色的完整列表。
 
-如果你想要更多自定义选项，可以将颜色作为HEX代码传递。例如，你可以使用品牌颜色为你的演示文稿增添公司风格。
+如果你想要更多自定义选项，可以将颜色作为 HEX 代码传递。例如，你可以使用品牌颜色为你的演示文稿增添公司风格。
 
-获取HEX代码最简单的方法是截取你的界面截图，上传到颜色选取器（*我通常会搜索“在线颜色选取器从图片”*），然后查找所有需要的代码。例如，我目前工作的公司Wise的品牌色之一是明亮的绿色，HEX代码为`#9FE870`。
+获取 HEX 代码最简单的方法是截取你的界面截图，上传到颜色选取器（*我通常会搜索“在线颜色选取器从图片”*），然后查找所有需要的代码。例如，我目前工作的公司 Wise 的品牌色之一是明亮的绿色，HEX 代码为`#9FE870`。
 
-![](../Images/4dfa5c62f9feac2ff4b4c228b1d1e6f2.png)
+![](img/4dfa5c62f9feac2ff4b4c228b1d1e6f2.png)
 
 图片由作者提供
 
@@ -199,18 +199,18 @@ colours = {
 }
 ```
 
-现在，我希望你不会因为不理解如何告诉Plotly你想要的颜色而卡住。所以，让我们继续下一个例子，使用线性图，并学习其他指定颜色的方法。
+现在，我希望你不会因为不理解如何告诉 Plotly 你想要的颜色而卡住。所以，让我们继续下一个例子，使用线性图，并学习其他指定颜色的方法。
 
-如果你希望精确手动定义每个部分的颜色，可以使用`color_discrete_map`。当我需要在多个图表中保持一致的颜色编码时，我经常使用这种方法。如果在一个图表中你把Android用蓝色表示，iOS用橙色表示，而在另一个图表中反过来，观众可能会感到困惑。所以，值得注意这些细节。
+如果你希望精确手动定义每个部分的颜色，可以使用`color_discrete_map`。当我需要在多个图表中保持一致的颜色编码时，我经常使用这种方法。如果在一个图表中你把 Android 用蓝色表示，iOS 用橙色表示，而在另一个图表中反过来，观众可能会感到困惑。所以，值得注意这些细节。
 
-在下面的图表中，我用紫色突出显示了增长的iOS受众，并使用灰色阴影表示其他平台，因为我不希望你关注它们。
+在下面的图表中，我用紫色突出显示了增长的 iOS 受众，并使用灰色阴影表示其他平台，因为我不希望你关注它们。
 
 ```py
 colormap = {'Android': 'silver', 'Windows': 'gray', 'iOS': 'purple'}
 px.line(ts_df, color_discrete_map = colormap)
 ```
 
-![](../Images/2c24b7aa9b0531e89a83db9d1de3a20f.png)
+![](img/2c24b7aa9b0531e89a83db9d1de3a20f.png)
 
 图片由作者提供
 
@@ -220,11 +220,11 @@ px.line(ts_df, color_discrete_map = colormap)
 px.area(df, color_discrete_sequence = px.colors.qualitative.Prism)
 ```
 
-![](../Images/c1d26c43beb3833a8ed0736389d6345b.png)
+![](img/c1d26c43beb3833a8ed0736389d6345b.png)
 
 图表由作者绘制
 
-我使用了一个预定义的Plotly调色板来设置颜色，但你也可以通过字符串列表指定自定义颜色。以下是Plotly中可用的调色板：
+我使用了一个预定义的 Plotly 调色板来设置颜色，但你也可以通过字符串列表指定自定义颜色。以下是 Plotly 中可用的调色板：
 
 +   [离散色调调色板](https://plotly.com/python/discrete-color/)主要包括分离色，这些颜色在需要区分不同群体时非常有用。
 
@@ -243,7 +243,7 @@ px.imshow(
 )
 ```
 
-![](../Images/5e0d667a42afc375966bec54d945395e.png)
+![](img/5e0d667a42afc375966bec54d945395e.png)
 
 图表由作者提供
 
@@ -287,7 +287,7 @@ fig.add_trace(
 fig.show()
 ```
 
-![](../Images/b2e6ca69afd6d5939d4565c5689d0502.png)
+![](img/b2e6ca69afd6d5939d4565c5689d0502.png)
 
 图表由作者提供
 
@@ -299,7 +299,7 @@ fig.update_layout(
 )
 ```
 
-![](../Images/61d28febb1463f93b507e10dfc31ae16.png)
+![](img/61d28febb1463f93b507e10dfc31ae16.png)
 
 图表由作者提供
 
@@ -315,7 +315,7 @@ px.line(ts_df, width = 600,
     title = 'Monthly sessions over time')
 ```
 
-![](../Images/69e1dd20770f5a008a1443db786bf9eb.png)
+![](img/69e1dd20770f5a008a1443db786bf9eb.png)
 
 图表由作者提供
 
@@ -347,17 +347,17 @@ px.line(ts_df, width = 600,
     title = format_string_by_lines(chart_title))
 ```
 
-![](../Images/83fdd9503d6f35386ab131c6d19e7933.png)
+![](img/83fdd9503d6f35386ab131c6d19e7933.png)
 
 图表由作者提供
 
 此外，我们可能还想展示一些度量的数值。我们已经讨论过，标记所有数据点会导致过多的杂乱，但显示最后的数值似乎是合理的。
 
-我将展示在Plotly中实现这一目标的两种方法：使用`text`字段和注释功能。我通常偏好使用`text`，但这还是相当主观的。
+我将展示在 Plotly 中实现这一目标的两种方法：使用`text`字段和注释功能。我通常偏好使用`text`，但这还是相当主观的。
 
 让我们从`text`选项开始。首先，让我们查看原始数据集。
 
-![](../Images/5e72c146a3b55f5f40be2d41f469415f.png)
+![](img/5e72c146a3b55f5f40be2d41f469415f.png)
 
 图片来自作者
 
@@ -385,7 +385,7 @@ fig.update_layout(legend=dict(orientation="h", yanchor="bottom",
     y=0.05, xanchor="right", x=1))
 ```
 
-![](../Images/7d0d737fd0304900de5e77c756331e6f.png)
+![](img/7d0d737fd0304900de5e77c756331e6f.png)
 
 作者绘制的图表
 
@@ -400,7 +400,7 @@ annotations['text'] = annotations.y.map(lambda v: '%.1fK' % (v/1000))
 annotations = annotations.drop('platform', axis = 1)
 ```
 
-让我们添加更多我们将在注释格式化中使用的参数，并将数据框转换为我们可以传递给Plotly的列表。
+让我们添加更多我们将在注释格式化中使用的参数，并将数据框转换为我们可以传递给 Plotly 的列表。
 
 ```py
 annotations['showarrow'] = False
@@ -423,9 +423,9 @@ fig.update_layout(annotations = annotations_list,
     y=0.05, xanchor="right", x=1))
 ```
 
-垂直或水平线也可以为你的观众提供所需的上下文。例如，你可以突出显示重要的日期，比如营销活动的启动日期，或者展示你的指标的SLA。让我们在图表中添加一条垂直线。
+垂直或水平线也可以为你的观众提供所需的上下文。例如，你可以突出显示重要的日期，比如营销活动的启动日期，或者展示你的指标的 SLA。让我们在图表中添加一条垂直线。
 
-你可以通过使用`fig.add_vline`轻松实现这一点。不幸的是，Plotly存在一个BUG，无法与日期一起使用。不过，我们可以使用[解决方法](https://github.com/plotly/plotly.py/issues/3065)：看起来有点奇怪，但它有效。
+你可以通过使用`fig.add_vline`轻松实现这一点。不幸的是，Plotly 存在一个 BUG，无法与日期一起使用。不过，我们可以使用[解决方法](https://github.com/plotly/plotly.py/issues/3065)：看起来有点奇怪，但它有效。
 
 ```py
 fig.add_vline(
@@ -435,7 +435,7 @@ fig.add_vline(
 )
 ```
 
-![](../Images/15c75f6f31fcea2673afd0ba00d66fa2.png)
+![](img/15c75f6f31fcea2673afd0ba00d66fa2.png)
 
 作者绘制的图表
 
@@ -455,4 +455,4 @@ fig.add_vline(
 
 # 参考资料
 
-本文受到了有关数据可视化的优秀书籍《*Storytelling with Data: A Data Visualization Guide for Business Professionals*》的极大影响，作者是Cole Nussbaumer Knaflic。
+本文受到了有关数据可视化的优秀书籍《*Storytelling with Data: A Data Visualization Guide for Business Professionals*》的极大影响，作者是 Cole Nussbaumer Knaflic。

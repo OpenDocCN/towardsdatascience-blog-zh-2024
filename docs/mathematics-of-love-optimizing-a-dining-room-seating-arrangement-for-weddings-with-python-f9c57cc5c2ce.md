@@ -1,16 +1,16 @@
 # 爱的数学：使用 Python 优化婚礼宴会厅座位安排
 
-> 原文：[https://towardsdatascience.com/mathematics-of-love-optimizing-a-dining-room-seating-arrangement-for-weddings-with-python-f9c57cc5c2ce?source=collection_archive---------3-----------------------#2024-09-02](https://towardsdatascience.com/mathematics-of-love-optimizing-a-dining-room-seating-arrangement-for-weddings-with-python-f9c57cc5c2ce?source=collection_archive---------3-----------------------#2024-09-02)
+> 原文：[`towardsdatascience.com/mathematics-of-love-optimizing-a-dining-room-seating-arrangement-for-weddings-with-python-f9c57cc5c2ce?source=collection_archive---------3-----------------------#2024-09-02`](https://towardsdatascience.com/mathematics-of-love-optimizing-a-dining-room-seating-arrangement-for-weddings-with-python-f9c57cc5c2ce?source=collection_archive---------3-----------------------#2024-09-02)
 
 ## 使用数学编程和 Python 解决限制性二次多重背包问题（RQMKP）
 
-[](https://medium.com/@luisfernandopa1212?source=post_page---byline--f9c57cc5c2ce--------------------------------)[![Luis Fernando PÉREZ ARMAS, Ph.D.](../Images/ca1b4775c2b278769c38542ea989ac92.png)](https://medium.com/@luisfernandopa1212?source=post_page---byline--f9c57cc5c2ce--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f9c57cc5c2ce--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f9c57cc5c2ce--------------------------------) [Luis Fernando PÉREZ ARMAS, Ph.D.](https://medium.com/@luisfernandopa1212?source=post_page---byline--f9c57cc5c2ce--------------------------------)
+[](https://medium.com/@luisfernandopa1212?source=post_page---byline--f9c57cc5c2ce--------------------------------)![Luis Fernando PÉREZ ARMAS, Ph.D.](https://medium.com/@luisfernandopa1212?source=post_page---byline--f9c57cc5c2ce--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f9c57cc5c2ce--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f9c57cc5c2ce--------------------------------) [Luis Fernando PÉREZ ARMAS, Ph.D.](https://medium.com/@luisfernandopa1212?source=post_page---byline--f9c57cc5c2ce--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f9c57cc5c2ce--------------------------------) ·16 分钟阅读·2024年9月2日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f9c57cc5c2ce--------------------------------) ·16 分钟阅读·2024 年 9 月 2 日
 
 --
 
-![](../Images/b5fc001e7e65f793b533ae5d6dc12713.png)
+![](img/b5fc001e7e65f793b533ae5d6dc12713.png)
 
 请跟随我来到屋顶接待会……（图像由 DALLE-3 生成）
 

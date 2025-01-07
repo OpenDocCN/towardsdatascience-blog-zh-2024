@@ -1,16 +1,16 @@
 # 小型神经网络如何表示基本函数
 
-> 原文：[https://towardsdatascience.com/how-tiny-neural-networks-represent-basic-functions-8a24fce0e2d5?source=collection_archive---------4-----------------------#2024-09-10](https://towardsdatascience.com/how-tiny-neural-networks-represent-basic-functions-8a24fce0e2d5?source=collection_archive---------4-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/how-tiny-neural-networks-represent-basic-functions-8a24fce0e2d5?source=collection_archive---------4-----------------------#2024-09-10`](https://towardsdatascience.com/how-tiny-neural-networks-represent-basic-functions-8a24fce0e2d5?source=collection_archive---------4-----------------------#2024-09-10)
 
 ## 通过简单的算法示例，温和地介绍机械解释性
 
-[](https://medium.com/@taubenfeld9?source=post_page---byline--8a24fce0e2d5--------------------------------)[![Amir Taubenfeld](../Images/524631457f02f7193aeb2d4b03c5c3a4.png)](https://medium.com/@taubenfeld9?source=post_page---byline--8a24fce0e2d5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8a24fce0e2d5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8a24fce0e2d5--------------------------------) [Amir Taubenfeld](https://medium.com/@taubenfeld9?source=post_page---byline--8a24fce0e2d5--------------------------------)
+[](https://medium.com/@taubenfeld9?source=post_page---byline--8a24fce0e2d5--------------------------------)![Amir Taubenfeld](https://medium.com/@taubenfeld9?source=post_page---byline--8a24fce0e2d5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8a24fce0e2d5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8a24fce0e2d5--------------------------------) [Amir Taubenfeld](https://medium.com/@taubenfeld9?source=post_page---byline--8a24fce0e2d5--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8a24fce0e2d5--------------------------------) ·阅读时长 9 分钟 ·2024年9月10日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8a24fce0e2d5--------------------------------) ·阅读时长 9 分钟 ·2024 年 9 月 10 日
 
 --
 
-![](../Images/b630b068a5309d3c370c60452a0eab18.png)
+![](img/b630b068a5309d3c370c60452a0eab18.png)
 
 # 介绍
 
@@ -40,7 +40,7 @@
 
 1.  运行一个（非线性）激活函数。
 
-![](../Images/e09ea44f923e70c557601eb3f9fec623.png)
+![](img/e09ea44f923e70c557601eb3f9fec623.png)
 
 我仅提供最简洁的代码片段，以便阅读更加流畅。这个 [Colab 笔记本](https://colab.research.google.com/drive/1zt9lVUH9jH2zx5nsFA_4Taq6Ic-ve09C?usp=sharing) 包含了完整的代码。
 
@@ -57,7 +57,7 @@ X = [[i] for i in range(-20, 40)]
 Y = [1 if z[0] < 10 else 0 for z in X]
 ```
 
-![](../Images/ce6a710b63592e3c4a81d994798b4d0b.png)
+![](img/ce6a710b63592e3c4a81d994798b4d0b.png)
 
 创建并可视化“< 操作符”的训练数据
 
@@ -74,7 +74,7 @@ model.load_state_dict(d)
 y_pred = model(x).detach().reshape(-1)
 ```
 
-![](../Images/6fa1dfe433dfc0d2ff2709f8d11ca509.png)
+![](img/6fa1dfe433dfc0d2ff2709f8d11ca509.png)
 
 Sigmoid(10-x)
 
@@ -82,13 +82,13 @@ Sigmoid(10-x)
 
 对于 Sigmoid 函数，当输入接近 -∞ / ∞ 时，输出分别接近 0 / 1。因此，我们需要让我们的 10 - x 函数返回较大的数值，这可以通过将其乘以一个更大的数，比如 100，来实现，得到 F=Sigmoid(100(10-x))，现在我们会得到 F(9.5) =~1。
 
-![](../Images/51a9a623419207f3eb6a22cbb29d49c2.png)
+![](img/51a9a623419207f3eb6a22cbb29d49c2.png)
 
 Sigmoid(100(10-x))
 
 的确，当使用一个神经元训练网络时，它会收敛到 F=Sigmoid(M(10-x))，其中 M 是一个标量，在训练过程中不断增大，使得近似更加精确。
 
-![](../Images/0dcb409478843393739eecd0584364c6.png)
+![](img/0dcb409478843393739eecd0584364c6.png)
 
 Tensorboard 图 — X 轴表示训练轮次，Y 轴表示网络的偏置和权重值。偏置和权重成反比例增加/减少。也就是说，网络可以写成 M(10-x)，其中 M 是一个在训练过程中不断增长的参数。
 
@@ -111,7 +111,7 @@ X_2D = [
 Y = [min(a, b) for a, b in X_2D]
 ```
 
-![](../Images/18366ae36e3e23b2e17677c371e9177b.png)
+![](img/18366ae36e3e23b2e17677c371e9177b.png)
 
 可视化 Min(a, b) 的训练数据。两个横轴表示输入的坐标。垂直轴标记为“Ground Truth”，即预期输出——即两个输入坐标的最小值
 
@@ -151,7 +151,7 @@ class MinModel(nn.Module):
       )
 ```
 
-![](../Images/dc630403474bf9b5e81f7943d638e384.png)
+![](img/dc630403474bf9b5e81f7943d638e384.png)
 
 MinModel 计算图的可视化。绘图使用了 [Torchview](https://github.com/mert-kurttutan/torchview) 库
 
@@ -246,7 +246,7 @@ X = [[i] for i in range(0, 16)]
 Y = [z[0] % 2 for z in X]
 ```
 
-![](../Images/86b27d598900ae146704f82eb3407f1a.png)
+![](img/86b27d598900ae146704f82eb3407f1a.png)
 
 在小范围 [0, 15] 上的 is_even 数据和标签
 
@@ -280,28 +280,28 @@ model.state_dict()
 
 如预期的那样，我们可以看到该模型在 [0,15] 范围内做出了完美的预测。
 
-![](../Images/718cd603a22d3873bcdf0ec0e4fa2563.png)
+![](img/718cd603a22d3873bcdf0ec0e4fa2563.png)
 
 正如预期的那样，它无法推广到新的数据点。
 
-![](../Images/e790223ec60b4810cba422450a248582.png)
+![](img/e790223ec60b4810cba422450a248582.png)
 
 我们看到我们可以硬编码该模型，但使用梯度下降法时，模型是否会收敛到相同的解呢？
 
-![](../Images/bd16479c84a320c2f4132e891dfb5f7d.png)
+![](img/bd16479c84a320c2f4132e891dfb5f7d.png)
 
 答案是——并非如此简单！相反，它卡在了一个局部最小值——预测均值。
 
 这是一个已知现象，其中梯度下降可能会卡在局部最小值。它在非光滑的错误面上，特别是对于高度非线性的函数（如 is_even）更为常见。
 
-更多细节超出了本文的范围，但为了获得更多直观理解，可以参考许多研究经典XOR问题的工作。即使是这样一个简单的问题，我们也可以看到梯度下降法在找到解决方案时可能会遇到困难。特别是，我推荐理查德·布兰德的短篇[书籍](https://www.cs.stir.ac.uk/~kjt/techreps/pdf/TR148.pdf)《学习XOR：探索经典问题的空间》——这是对XOR问题误差表面的严谨分析。
+更多细节超出了本文的范围，但为了获得更多直观理解，可以参考许多研究经典 XOR 问题的工作。即使是这样一个简单的问题，我们也可以看到梯度下降法在找到解决方案时可能会遇到困难。特别是，我推荐理查德·布兰德的短篇[书籍](https://www.cs.stir.ac.uk/~kjt/techreps/pdf/TR148.pdf)《学习 XOR：探索经典问题的空间》——这是对 XOR 问题误差表面的严谨分析。
 
 ## 结语
 
 希望这篇文章帮助你理解了小型神经网络的基本结构。分析大型语言模型要复杂得多，但这是一个快速发展的研究领域，充满了引人入胜的挑战。
 
-在使用大型语言模型时，很容易专注于提供数据和计算能力，以实现令人印象深刻的结果，而不理解它们的运作方式。然而，解释性提供了关键的洞察力，能够帮助解决公平性、包容性和准确性等问题，这些问题在我们越来越依赖LLM做决策时变得愈加重要。
+在使用大型语言模型时，很容易专注于提供数据和计算能力，以实现令人印象深刻的结果，而不理解它们的运作方式。然而，解释性提供了关键的洞察力，能够帮助解决公平性、包容性和准确性等问题，这些问题在我们越来越依赖 LLM 做决策时变得愈加重要。
 
-为了进一步探索，我推荐关注[AI对齐论坛](https://www.alignmentforum.org/)。
+为了进一步探索，我推荐关注[AI 对齐论坛](https://www.alignmentforum.org/)。
 
-*所有图片均由作者创作。介绍图是使用ChatGPT创作的，其余图像是使用Python库创建的。
+*所有图片均由作者创作。介绍图是使用 ChatGPT 创作的，其余图像是使用 Python 库创建的。

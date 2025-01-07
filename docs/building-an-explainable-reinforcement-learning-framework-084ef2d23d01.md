@@ -1,16 +1,16 @@
 # 构建一个可解释的强化学习框架
 
-> 原文：[https://towardsdatascience.com/building-an-explainable-reinforcement-learning-framework-084ef2d23d01?source=collection_archive---------9-----------------------#2024-03-13](https://towardsdatascience.com/building-an-explainable-reinforcement-learning-framework-084ef2d23d01?source=collection_archive---------9-----------------------#2024-03-13)
+> 原文：[`towardsdatascience.com/building-an-explainable-reinforcement-learning-framework-084ef2d23d01?source=collection_archive---------9-----------------------#2024-03-13`](https://towardsdatascience.com/building-an-explainable-reinforcement-learning-framework-084ef2d23d01?source=collection_archive---------9-----------------------#2024-03-13)
 
-![](../Images/7b8e8fae19e2beff62bb005375135544.png)
+![](img/7b8e8fae19e2beff62bb005375135544.png)
 
 ## 通过符号化策略发现可解释的结果
 
 ## 符号化遗传算法、动作电位和方程树
 
-[](https://medium.com/@Dani_Lisle?source=post_page---byline--084ef2d23d01--------------------------------)[![Dani Lisle](../Images/2933bbbca26cf198e7964547a91b2751.png)](https://medium.com/@Dani_Lisle?source=post_page---byline--084ef2d23d01--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--084ef2d23d01--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--084ef2d23d01--------------------------------) [Dani Lisle](https://medium.com/@Dani_Lisle?source=post_page---byline--084ef2d23d01--------------------------------)
+[](https://medium.com/@Dani_Lisle?source=post_page---byline--084ef2d23d01--------------------------------)![Dani Lisle](https://medium.com/@Dani_Lisle?source=post_page---byline--084ef2d23d01--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--084ef2d23d01--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--084ef2d23d01--------------------------------) [Dani Lisle](https://medium.com/@Dani_Lisle?source=post_page---byline--084ef2d23d01--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--084ef2d23d01--------------------------------) ·阅读时长 9 分钟 ·2024年3月13日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--084ef2d23d01--------------------------------) ·阅读时长 9 分钟 ·2024 年 3 月 13 日
 
 --
 
@@ -22,7 +22,7 @@
 
 最可行的选择之一是使用微分方程（在离散情况下为差分方程）。这些方程的特点是它们定义了导数，或者量的变化率，提供了一种有效的方式来传达并直观地理解几乎任何系统的动态。这里有一个著名的例子，它描述了系统中热量在时间和空间上的导数：
 
-![](../Images/88ee96e7f8c15f63480837e562b8be1d.png)
+![](img/88ee96e7f8c15f63480837e562b8be1d.png)
 
 “n”维热方程（[维基百科：“热方程”](https://en.wikipedia.org/wiki/Heat_equation)）
 
@@ -34,19 +34,19 @@
 
 # 让我们开始
 
-*本文讨论的所有Python代码都可以在我的项目的GitHub仓库中访问：* [*https://github.com/dreamchef/abm-dynamics-viz*](https://github.com/dreamchef/abm-dynamics-viz)*。*
+*本文讨论的所有 Python 代码都可以在我的项目的 GitHub 仓库中访问：* [*https://github.com/dreamchef/abm-dynamics-viz*](https://github.com/dreamchef/abm-dynamics-viz)*。*
 
-在我最近撰写的一篇文章中，我讨论了在一个理论游戏中模拟动态行为的智能体。尽管我非常希望通过符号进化来处理这样的多智能体游戏，但从原子化的角度出发，拓展我们的视野，并利用一些前人的工作是明智之举。像DeepMind这样的团队在创建具有世界级技能的竞争性棋盘游戏模型时，背后有一个机器学习的子学科：强化学习。在这一范式中，智能体有一个观察空间（可以测量并作为值使用的环境变量），一个动作空间（与环境互动或在环境中移动/变化的方式），以及一个奖励系统。通过反复实验，奖励动态使智能体能够构建出一个策略或政策，从而最大化奖励。
+在我最近撰写的一篇文章中，我讨论了在一个理论游戏中模拟动态行为的智能体。尽管我非常希望通过符号进化来处理这样的多智能体游戏，但从原子化的角度出发，拓展我们的视野，并利用一些前人的工作是明智之举。像 DeepMind 这样的团队在创建具有世界级技能的竞争性棋盘游戏模型时，背后有一个机器学习的子学科：强化学习。在这一范式中，智能体有一个观察空间（可以测量并作为值使用的环境变量），一个动作空间（与环境互动或在环境中移动/变化的方式），以及一个奖励系统。通过反复实验，奖励动态使智能体能够构建出一个策略或政策，从而最大化奖励。
 
-我们可以将符号遗传算法应用于一些经典的强化学习问题，以便探索和微调它们。Gymnasium库提供了一系列适合强化学习实验的游戏和任务。我确定的一个非常适合我们目标的游戏是“月球着陆器”。
+我们可以将符号遗传算法应用于一些经典的强化学习问题，以便探索和微调它们。Gymnasium 库提供了一系列适合强化学习实验的游戏和任务。我确定的一个非常适合我们目标的游戏是“月球着陆器”。
 
-![](../Images/1c4f6127527a81d09e1da5ca69df3b78.png)
+![](img/1c4f6127527a81d09e1da5ca69df3b78.png)
 
 月球着陆器（来源：Gymnasium）
 
 游戏的定义如下：
 
-+   观察空间（8）：x，y位置，x，y速度，角度，角速度，左脚，右脚接触地面。连续。
++   观察空间（8）：x，y 位置，x，y 速度，角度，角速度，左脚，右脚接触地面。连续。
 
 +   动作空间（4）：无引擎，底部，左侧，右侧引擎点火。离散。
 
@@ -62,7 +62,7 @@
 
 +   输出为 False 如下所示。
 
-在我们的问题中，我们实际上需要获得一个4个可能值的离散输出。我们可以在设计这个系统时仔细考虑任务的动态，但我选择了一种简单的方式，作为一种半对抗性的努力，给我们的SGA算法施加更多的压力，从而最终展现其优势。它使用了一个普遍的直觉：接近目标时，我们可能不应该过多使用侧推力：
+在我们的问题中，我们实际上需要获得一个 4 个可能值的离散输出。我们可以在设计这个系统时仔细考虑任务的动态，但我选择了一种简单的方式，作为一种半对抗性的努力，给我们的 SGA 算法施加更多的压力，从而最终展现其优势。它使用了一个普遍的直觉：接近目标时，我们可能不应该过多使用侧推力：
 
 ```py
  def potential_to_action(potential):
@@ -115,7 +115,7 @@ for i in range(GENS):
     last_gen = next_gen
 ```
 
-最终，它选择表现最好的策略，并通过另一轮测试（与Lunar Lander仿真回合进行对比）来验证它们：
+最终，它选择表现最好的策略，并通过另一轮测试（与 Lunar Lander 仿真回合进行对比）来验证它们：
 
 ```py
 last_gen.sort(key=lambda x: x['score'])
@@ -148,7 +148,7 @@ UN_OPS = ['abs','exp','log','sqrt','sin','cos']
 OPNDS = ['x','y','dx','dy','angle','dangle','L','R']
 ```
 
-然后，我们借鉴了Chen等人的思想，将方程编码为树的形式。这将允许我们遍历方程并将符号作为独立对象进行变异。具体来说，我选择使用嵌套数组来完成这个任务。这段代码编码了 *x*y + dx*dy*：
+然后，我们借鉴了 Chen 等人的思想，将方程编码为树的形式。这将允许我们遍历方程并将符号作为独立对象进行变异。具体来说，我选择使用嵌套数组来完成这个任务。这段代码编码了 *x*y + dx*dy*：
 
 ```py
 F = {'AP': ['add', 
@@ -158,7 +158,7 @@ F = {'AP': ['add',
         }
 ```
 
-每个方程包括定义其形式的树结构，以及一个得分对象，用来存储它在Lander任务中的评估得分。
+每个方程包括定义其形式的树结构，以及一个得分对象，用来存储它在 Lander 任务中的评估得分。
 
 ## 符号变异算法
 
@@ -210,23 +210,23 @@ def mutate_recursive(target, probability=MUTATE_P):
 
 ```py
  +----------+
-                | x + dy^2 |
+                | x + dy² |
                 +----------+
                      |
           +----------+----------+
           |                     |
      +----v----+           +----v----+
-     | y + dy^2|           | x / dy^2|
+     | y + dy²|           | x / dy²|
      +---------+           +---------+
           |                      |
      +----+----+            +----+-----+
      |         |            |          |
  +---v--+-+ +--v---+-+   +--v-----+ +--v-----+
- |y - dy^2| |y - dy^2|   |x / dx^2| |y - dy^3|
+ |y - dy²| |y - dy²|   |x / dx²| |y - dy³|
  +--------+ +--------+   +--------+ +--------+
 ```
 
-在对方程式进行评分后，每批方程式将被排名，最佳的N个会继续参与，其他的则被丢弃：
+在对方程式进行评分后，每批方程式将被排名，最佳的 N 个会继续参与，其他的则被丢弃：
 
 ```py
 def cull(batch):
@@ -241,7 +241,7 @@ def cull(batch):
 
 ## 通过模拟回合进行评分的方法
 
-为了决定哪些方程式编码了最佳策略，我们使用Gymnasium框架进行Lunar Lander任务。
+为了决定哪些方程式编码了最佳策略，我们使用 Gymnasium 框架进行 Lunar Lander 任务。
 
 ```py
 def score_policy(policy, ep=10, render=False):
@@ -355,8 +355,8 @@ def policy_compute(policy, values):
 
 这就是实现的全部内容。在本系列的下一篇文章中，我将解释训练结果，激励实验框架中的变动，并探索通过改进变异和选择算法来扩展训练框架的路径。
 
-与此同时，你可以通过[此链接](https://publish.obsidian.md/danilisle/2024+SIAM+Front+Range+Student+Conference+-+GENETIC+REINFORCEMENT+LEARNING+OF+OPTIMAL+STRATEGY+DYNAMICS+IN+SYMBOLIC+FORM)访问我在2024年科罗拉多大学丹佛分校举行的SIAM前沿学生会议上所做的一次讲座的幻灯片，讲座中讨论了初步的训练结果。
+与此同时，你可以通过[此链接](https://publish.obsidian.md/danilisle/2024+SIAM+Front+Range+Student+Conference+-+GENETIC+REINFORCEMENT+LEARNING+OF+OPTIMAL+STRATEGY+DYNAMICS+IN+SYMBOLIC+FORM)访问我在 2024 年科罗拉多大学丹佛分校举行的 SIAM 前沿学生会议上所做的一次讲座的幻灯片，讲座中讨论了初步的训练结果。
 
-所有关于这个项目的代码都在我的仓库：[https://github.com/dreamchef/abm-dynamics-viz](https://github.com/dreamchef/abm-dynamics-viz)。如果你有任何发现，或者对我的工作有任何想法，欢迎在评论中与我交流！也可以通过[Twitter](https://twitter.com/dani_lisle)和[LinkedIn](https://www.linkedin.com/in/danilisle/)联系我。
+所有关于这个项目的代码都在我的仓库：[`github.com/dreamchef/abm-dynamics-viz`](https://github.com/dreamchef/abm-dynamics-viz)。如果你有任何发现，或者对我的工作有任何想法，欢迎在评论中与我交流！也可以通过[Twitter](https://twitter.com/dani_lisle)和[LinkedIn](https://www.linkedin.com/in/danilisle/)联系我。
 
 *除非另有注明，所有图片均由作者创作。*

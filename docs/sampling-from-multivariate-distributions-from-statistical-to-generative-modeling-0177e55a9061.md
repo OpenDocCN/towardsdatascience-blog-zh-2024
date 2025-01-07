@@ -1,16 +1,16 @@
 # 从多变量分布中采样：从统计模型到生成模型
 
-> 原文：[https://towardsdatascience.com/sampling-from-multivariate-distributions-from-statistical-to-generative-modeling-0177e55a9061?source=collection_archive---------9-----------------------#2024-07-15](https://towardsdatascience.com/sampling-from-multivariate-distributions-from-statistical-to-generative-modeling-0177e55a9061?source=collection_archive---------9-----------------------#2024-07-15)
+> 原文：[`towardsdatascience.com/sampling-from-multivariate-distributions-from-statistical-to-generative-modeling-0177e55a9061?source=collection_archive---------9-----------------------#2024-07-15`](https://towardsdatascience.com/sampling-from-multivariate-distributions-from-statistical-to-generative-modeling-0177e55a9061?source=collection_archive---------9-----------------------#2024-07-15)
 
 ## 连接经典统计方法和前沿生成式人工智能模型，用于从多变量分布中采样
 
-[](https://medium.com/@yangwconion?source=post_page---byline--0177e55a9061--------------------------------)[![Wencong Yang, PhD](../Images/9fc2c73c81473637365adb234e2a042b.png)](https://medium.com/@yangwconion?source=post_page---byline--0177e55a9061--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0177e55a9061--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0177e55a9061--------------------------------) [Wencong Yang, PhD](https://medium.com/@yangwconion?source=post_page---byline--0177e55a9061--------------------------------)
+[](https://medium.com/@yangwconion?source=post_page---byline--0177e55a9061--------------------------------)![Wencong Yang, PhD](https://medium.com/@yangwconion?source=post_page---byline--0177e55a9061--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0177e55a9061--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0177e55a9061--------------------------------) [Wencong Yang, PhD](https://medium.com/@yangwconion?source=post_page---byline--0177e55a9061--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0177e55a9061--------------------------------) ·阅读时长：8分钟·2024年7月15日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0177e55a9061--------------------------------) ·阅读时长：8 分钟·2024 年 7 月 15 日
 
 --
 
-![](../Images/f02bc060770f4ceb43cdb0d7a1726180.png)
+![](img/f02bc060770f4ceb43cdb0d7a1726180.png)
 
 来源：[Ideogram](https://ideogram.ai/).
 

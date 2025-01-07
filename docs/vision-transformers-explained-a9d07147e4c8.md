@@ -1,96 +1,96 @@
 # Vision Transformers 解析
 
-> 原文：[https://towardsdatascience.com/vision-transformers-explained-a9d07147e4c8?source=collection_archive---------1-----------------------#2024-02-27](https://towardsdatascience.com/vision-transformers-explained-a9d07147e4c8?source=collection_archive---------1-----------------------#2024-02-27)
+> 原文：[`towardsdatascience.com/vision-transformers-explained-a9d07147e4c8?source=collection_archive---------1-----------------------#2024-02-27`](https://towardsdatascience.com/vision-transformers-explained-a9d07147e4c8?source=collection_archive---------1-----------------------#2024-02-27)
 
 ## Vision Transformer 解析系列
 
 ## 完整的*Vision Transformers in PyTorch*演示
 
-[](https://medium.com/@sjcallis?source=post_page---byline--a9d07147e4c8--------------------------------)[![Skylar Jean Callis](../Images/db4d07b27d7feb86bfbb73b1065aa3a0.png)](https://medium.com/@sjcallis?source=post_page---byline--a9d07147e4c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a9d07147e4c8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a9d07147e4c8--------------------------------) [Skylar Jean Callis](https://medium.com/@sjcallis?source=post_page---byline--a9d07147e4c8--------------------------------)
+[](https://medium.com/@sjcallis?source=post_page---byline--a9d07147e4c8--------------------------------)![Skylar Jean Callis](https://medium.com/@sjcallis?source=post_page---byline--a9d07147e4c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a9d07147e4c8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a9d07147e4c8--------------------------------) [Skylar Jean Callis](https://medium.com/@sjcallis?source=post_page---byline--a9d07147e4c8--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a9d07147e4c8--------------------------------) ·18分钟阅读·2024年2月27日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a9d07147e4c8--------------------------------) ·18 分钟阅读·2024 年 2 月 27 日
 
 --
 
-*自从2017年随着《Attention is All You Need》*¹的推出，transformer模型已成为自然语言处理（NLP）领域的最先进技术。2021年，*An Image is Worth 16x16 Words*²成功将transformer模型应用于计算机视觉任务。从那时起，许多基于transformer的架构已被提出，用于计算机视觉。*
+*自从 2017 年随着《Attention is All You Need》*¹的推出，transformer 模型已成为自然语言处理（NLP）领域的最先进技术。2021 年，*An Image is Worth 16x16 Words*²成功将 transformer 模型应用于计算机视觉任务。从那时起，许多基于 transformer 的架构已被提出，用于计算机视觉。*
 
-**本文详细介绍了《An Image is Worth 16x16 Words*²》中的Vision Transformer（ViT）。它包括ViT的开源代码，以及对各个组件的概念性解释。所有代码均使用PyTorch Python包。**
+**本文详细介绍了《An Image is Worth 16x16 Words*²》中的 Vision Transformer（ViT）。它包括 ViT 的开源代码，以及对各个组件的概念性解释。所有代码均使用 PyTorch Python 包。**
 
-![](../Images/cb8f3e52a6e63f4ae89de2cb443aa76d.png)
+![](img/cb8f3e52a6e63f4ae89de2cb443aa76d.png)
 
 图片来自[Sahand Babali](https://unsplash.com/@sahandbabali?utm_source=medium&utm_medium=referral)拍摄，[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-本文是系列文章的一部分，深入探讨了Vision Transformer的内部工作原理。这些文章也可以作为Jupyter Notebook下载并运行。该系列的其他文章包括：
+本文是系列文章的一部分，深入探讨了 Vision Transformer 的内部工作原理。这些文章也可以作为 Jupyter Notebook 下载并运行。该系列的其他文章包括：
 
-+   [**Vision Transformers 解析**](/vision-transformers-explained-a9d07147e4c8)→ [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/VisionTransformersExplained.ipynb)
++   **Vision Transformers 解析**→ [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/VisionTransformersExplained.ipynb)
 
-+   [Vision Transformer 解析中的Attention部分](/attention-for-vision-transformers-explained-70f83984c673)
++   Vision Transformer 解析中的 Attention 部分
 
     → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/AttentionExplained.ipynb)
 
-+   [Vision Transformers位置嵌入解析](/position-embeddings-for-vision-transformers-explained-a6f9add341d5)
++   Vision Transformers 位置嵌入解析
 
     → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/PositionEmbeddingExplained.ipynb)
 
-+   [Tokens-to-Token 视觉变换器解析](/tokens-to-token-vision-transformers-explained-2fa4e2002daa)
++   Tokens-to-Token 视觉变换器解析
 
     → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/TokensToTokenViTExplained.ipynb)
 
-+   [视觉变换器系列的GitHub代码库](https://github.com/lanl/vision_transformers_explained)
++   [视觉变换器系列的 GitHub 代码库](https://github.com/lanl/vision_transformers_explained)
 
 ## 目录
 
-+   [什么是视觉变换器？](#1d10)
++   什么是视觉变换器？
 
-+   [模型演示](#bce9)
++   模型演示
 
-    — [图像Token化](#691b)
+    — 图像 Token 化
 
-    — [Token处理](#a32e)
+    — Token 处理
 
-    — [编码模块](#962c)
+    — 编码模块
 
-    — [神经网络模块](#c80b)
+    — 神经网络模块
 
-    — [预测处理](#d3ad)
+    — 预测处理
 
-+   [完整代码](#3fdb)
++   完整代码
 
-+   [结论](#caea)
++   结论
 
-    — [进一步阅读](#96ea)
+    — 进一步阅读
 
-    — [引用](#dc9b)
+    — 引用
 
 # 什么是视觉变换器？
 
 正如*《Attention is All You Need》*¹中介绍的，变换器是一种利用注意力机制作为主要学习方式的机器学习模型。变换器迅速成为处理序列到序列任务（如语言翻译）的最先进模型。
 
-*《一张图片等于16x16个词》*²成功地修改了[1]中的变换器，以解决图像分类任务，从而创建了**视觉**变换器（ViT）。ViT基于与[1]中的变换器相同的注意力机制。然而，虽然NLP任务的变换器包含一个编码器注意力分支和一个解码器注意力分支，ViT仅使用一个编码器。编码器的输出随后传递给一个神经网络“头部”，进行预测。
+*《一张图片等于 16x16 个词》*²成功地修改了[1]中的变换器，以解决图像分类任务，从而创建了**视觉**变换器（ViT）。ViT 基于与[1]中的变换器相同的注意力机制。然而，虽然 NLP 任务的变换器包含一个编码器注意力分支和一个解码器注意力分支，ViT 仅使用一个编码器。编码器的输出随后传递给一个神经网络“头部”，进行预测。
 
-[2]中实现的ViT的缺点是，其最佳性能需要在大型数据集上进行预训练。最佳的模型是在专有的JFT-300M数据集上进行预训练的。在较小的、开源的ImageNet-21k数据集上进行预训练的模型，其表现与最先进的卷积ResNet模型不相上下。
+[2]中实现的 ViT 的缺点是，其最佳性能需要在大型数据集上进行预训练。最佳的模型是在专有的 JFT-300M 数据集上进行预训练的。在较小的、开源的 ImageNet-21k 数据集上进行预训练的模型，其表现与最先进的卷积 ResNet 模型不相上下。
 
-*Tokens-to-Token ViT：从头开始在ImageNet上训练视觉变换器*³试图通过引入一种新的预处理方法来消除预训练的需求， 将输入图像转换成一系列Token。有关此方法的更多信息，请参见[这里](/tokens-to-token-vision-transformers-explained-2fa4e2002daa)。本文将重点介绍[2]中实现的ViT。
+*Tokens-to-Token ViT：从头开始在 ImageNet 上训练视觉变换器*³试图通过引入一种新的预处理方法来消除预训练的需求， 将输入图像转换成一系列 Token。有关此方法的更多信息，请参见这里。本文将重点介绍[2]中实现的 ViT。
 
 # 模型演示
 
-本文遵循了*《一张图片等于16x16个词》*²中概述的模型结构。然而，本文中所用的代码并未公开。更近期的*Tokens-to-Token ViT*³的代码已在GitHub上公开。Tokens-to-Token ViT（T2T-ViT）模型在普通的ViT主干网络前添加了一个Tokens-to-Token（T2T）模块。本文中的代码基于*Tokens-to-Token ViT*³ GitHub代码中的ViT组件。本文所做的修改包括但不限于，修改以支持非方形输入图像，并移除dropout层。
+本文遵循了*《一张图片等于 16x16 个词》*²中概述的模型结构。然而，本文中所用的代码并未公开。更近期的*Tokens-to-Token ViT*³的代码已在 GitHub 上公开。Tokens-to-Token ViT（T2T-ViT）模型在普通的 ViT 主干网络前添加了一个 Tokens-to-Token（T2T）模块。本文中的代码基于*Tokens-to-Token ViT*³ GitHub 代码中的 ViT 组件。本文所做的修改包括但不限于，修改以支持非方形输入图像，并移除 dropout 层。
 
-下图展示了ViT模型。
+下图展示了 ViT 模型。
 
-![](../Images/e78867b93d211770cf4444ad59c6f8b5.png)
+![](img/e78867b93d211770cf4444ad59c6f8b5.png)
 
-ViT模型图（图片来源：作者）
+ViT 模型图（图片来源：作者）
 
 ## 图像标记化
 
-ViT的第一步是从输入图像创建标记（tokens）。Transformer处理的是*标记*的*序列*；在自然语言处理（NLP）中，这通常是一个*单词*的*句子*。对于计算机视觉而言，如何将输入分割成标记并不那么明确。
+ViT 的第一步是从输入图像创建标记（tokens）。Transformer 处理的是*标记*的*序列*；在自然语言处理（NLP）中，这通常是一个*单词*的*句子*。对于计算机视觉而言，如何将输入分割成标记并不那么明确。
 
-ViT将图像转换为标记，每个标记表示图像的一个局部区域——或称*补丁*。它们描述了如何将高度为*H*、宽度为*W*、通道数为*C*的图像重塑为*N*个补丁大小为*P*的标记：
+ViT 将图像转换为标记，每个标记表示图像的一个局部区域——或称*补丁*。它们描述了如何将高度为*H*、宽度为*W*、通道数为*C*的图像重塑为*N*个补丁大小为*P*的标记：
 
 每个标记的长度为*P²∗C*。
 
-让我们看看在这幅由Luis Zuno创作的像素艺术*《黄昏中的山脉》*（[@ansimuz](http://twitter.com/ansimuz)）⁴上进行的补丁标记化示例。原始艺术作品已被裁剪并转换为单通道图像。这意味着每个像素的值在0和1之间。单通道图像通常以灰度显示；然而，我们将使用紫色配色方案进行展示，因为这样更容易看清。
+让我们看看在这幅由 Luis Zuno 创作的像素艺术*《黄昏中的山脉》*（[@ansimuz](http://twitter.com/ansimuz)）⁴上进行的补丁标记化示例。原始艺术作品已被裁剪并转换为单通道图像。这意味着每个像素的值在 0 和 1 之间。单通道图像通常以灰度显示；然而，我们将使用紫色配色方案进行展示，因为这样更容易看清。
 
 请注意，补丁标记化并未包含在与[3]相关的代码中。本节中的所有代码均为作者原创。
 
@@ -117,7 +117,7 @@ plt.colorbar(cax=cbar_ax);
 Mountain at Dusk is H = 60 and W = 100 pixels.
 ```
 
-![](../Images/bac19092e0adc6376b2a9f26c9bcc604.png)
+![](img/bac19092e0adc6376b2a9f26c9bcc604.png)
 
 代码输出（图片来源：作者）
 
@@ -147,11 +147,11 @@ plt.text(x_text[2], y_text[2], str(3), color='k', fontsize='xx-large', ha='cente
 There will be 15 patches, each 20 by 20.
 ```
 
-![](../Images/88fd07364a89357fe4edb4af137ee20d.png)
+![](img/88fd07364a89357fe4edb4af137ee20d.png)
 
 代码输出（图片来源：作者）
 
-通过展开这些补丁，我们可以看到生成的标记。以补丁12为例，因为它包含四种不同的阴影。
+通过展开这些补丁，我们可以看到生成的标记。以补丁 12 为例，因为它包含四种不同的阴影。
 
 ```py
 print('Each patch will make a token of length', str(P**2)+'.')
@@ -172,7 +172,7 @@ plt.yticks([]);
 Each patch will make a token of length 400.
 ```
 
-![](../Images/d20a481555baf48c6ee77002eb4e003d.png)
+![](img/d20a481555baf48c6ee77002eb4e003d.png)
 
 代码输出（图片来源：作者）
 
@@ -216,9 +216,9 @@ class Patch_Tokenization(nn.Module):
 
 请注意，两个`assert`语句确保图像尺寸能被补丁大小整除。实际的补丁拆分是通过`torch.nn.Unfold`⁵层来实现的。
 
-我们将使用裁剪后的单通道*《黄昏中的山脉》*⁴版本运行此代码示例。我们应该能看到与之前相同的标记数和初始标记大小。我们将使用*token_len=768*作为投影后的长度，这是ViT²基础版本的大小。
+我们将使用裁剪后的单通道*《黄昏中的山脉》*⁴版本运行此代码示例。我们应该能看到与之前相同的标记数和初始标记大小。我们将使用*token_len=768*作为投影后的长度，这是 ViT²基础版本的大小。
 
-以下代码块的第一行将*《黄昏中的山脉》*⁴的数据类型从NumPy数组更改为Torch张量。我们还需要对张量进行`unsqueeze`⁶操作，以创建通道维度和批次大小维度。如上所述，我们有一个通道。由于只有一张图片，*batchsize=1*。
+以下代码块的第一行将*《黄昏中的山脉》*⁴的数据类型从 NumPy 数组更改为 Torch 张量。我们还需要对张量进行`unsqueeze`⁶操作，以创建通道维度和批次大小维度。如上所述，我们有一个通道。由于只有一张图片，*batchsize=1*。
 
 ```py
 x = torch.from_numpy(mountains).unsqueeze(0).unsqueeze(0).to(torch.float32)
@@ -272,7 +272,7 @@ After projection, dimensions are
 
 我们将 ViT 的接下来的两个步骤，在编码块之前，称为“token 处理”。ViT 图中的 token 处理组件如下所示。
 
-![](../Images/12ccf966ee3c533f10d3a53652cb4fdf.png)
+![](img/12ccf966ee3c533f10d3a53652cb4fdf.png)
 
 ViT 图中的 Token 处理组件（图片由作者提供）
 
@@ -311,7 +311,7 @@ Dimensions with Prediction Token are
    token length: 768
 ```
 
-现在，我们为我们的 token 添加一个位置嵌入。位置嵌入使 Transformer 能够理解图像 token 的顺序。请注意，这是一种加法操作，而不是拼接。位置嵌入的具体细节是一个偏题，最好留待[另一个时间](/position-embeddings-for-vision-transformers-explained-a6f9add341d5)讨论。
+现在，我们为我们的 token 添加一个位置嵌入。位置嵌入使 Transformer 能够理解图像 token 的顺序。请注意，这是一种加法操作，而不是拼接。位置嵌入的具体细节是一个偏题，最好留待另一个时间讨论。
 
 ```py
 def get_sinusoid_encoding(num_tokens, token_len):
@@ -357,7 +357,7 @@ Dimensions with Position Embedding are
 
 编码块是模型实际从图像 token 中学习的地方。编码块的数量是由用户设置的超参数。编码块的图示如下。
 
-![](../Images/1200a46f21d3d72d0176d291146d2dd1.png)
+![](img/1200a46f21d3d72d0176d291146d2dd1.png)
 
 编码块（图片由作者提供）
 
@@ -409,9 +409,9 @@ class Encoding(nn.Module):
         return x
 ```
 
-*num_heads, qkv_bias,* 和 *qk_scale* 参数定义了 *注意力* 模块的组件。关于视觉 Transformer 中的注意力机制的深入讨论留待[另一个时间](/attention-for-vision-transformers-explained-70f83984c673)。
+*num_heads, qkv_bias,* 和 *qk_scale* 参数定义了 *注意力* 模块的组件。关于视觉 Transformer 中的注意力机制的深入讨论留待另一个时间。
 
-*hidden_chan_mul* 和 *act_layer* 参数定义了 *神经网络* 模块的组件。激活层可以是任何 `torch.nn.modules.activation`⁷ 层。我们稍后会更详细地介绍 *神经网络* 模块[更多内容](#c80b)。
+*hidden_chan_mul* 和 *act_layer* 参数定义了 *神经网络* 模块的组件。激活层可以是任何 `torch.nn.modules.activation`⁷ 层。我们稍后会更详细地介绍 *神经网络* 模块更多内容。
 
 *norm_layer* 可以从任何 `torch.nn.modules.normalization`⁸ 层中选择。
 
@@ -536,7 +536,7 @@ class NeuralNet(nn.Module):
 
 通过编码块后，模型必须做的最后一件事就是进行预测。ViT 图示中的“预测处理”组件如下所示。
 
-![](../Images/d09768832b3f7457cf3cf0ac45e80310.png)
+![](img/d09768832b3f7457cf3cf0ac45e80310.png)
 
 ViT 图示中的预测处理组件（图片由作者提供）
 
@@ -604,7 +604,7 @@ Prediction: -0.5474240779876709
 
 # 完整代码
 
-为了创建完整的 ViT 模块，我们使用[上面](#691b)定义的*补丁标记化*模块和*ViT 主干*模块。*ViT 主干*定义如下，并包含[*标记处理*](#a32e)、[*编码块*](#962c)和[*预测处理*](http://d3ad)组件。
+为了创建完整的 ViT 模块，我们使用上面定义的*补丁标记化*模块和*ViT 主干*模块。*ViT 主干*定义如下，并包含*标记处理*、*编码块*和[*预测处理*](http://d3ad)组件。
 
 ```py
 class ViT_Backbone(nn.Module):
@@ -680,7 +680,7 @@ class ViT_Backbone(nn.Module):
         return x
 ```
 
-从*ViT Backbone*模块，我们可以定义完整的ViT模型。
+从*ViT Backbone*模块，我们可以定义完整的 ViT 模型。
 
 ```py
 class ViT_Model(nn.Module):
@@ -771,17 +771,17 @@ class ViT_Model(nn.Module):
   return x
 ```
 
-在*ViT模型*中，*img_size*、*patch_size*和*token_len*定义了*Patch Tokenization*模块。
+在*ViT 模型*中，*img_size*、*patch_size*和*token_len*定义了*Patch Tokenization*模块。
 
 *num_heads*、*Encoding_hidden_channel_mul*、*qkv_bias*、*qk_scale*和*act_layer*参数定义了*Encoding Block*模块。*act_layer*可以是任何`torch.nn.modules.activation`⁷层。*depth*参数决定了模型中编码块的数量。
 
 *norm_layer*参数设置了*Encoding Block*模块内外的规范化层。可以从任何`torch.nn.modules.normalization`⁸层中选择。
 
-*\_init_weights*方法来源于T2T-ViT³代码。此方法可以删除，以随机初始化所有学习的权重和偏差。按实现方式，线性层的权重初始化为截断的正态分布；线性层的偏差初始化为零；归一化层的权重初始化为一；归一化层的偏差初始化为零。
+*\_init_weights*方法来源于 T2T-ViT³代码。此方法可以删除，以随机初始化所有学习的权重和偏差。按实现方式，线性层的权重初始化为截断的正态分布；线性层的偏差初始化为零；归一化层的权重初始化为一；归一化层的偏差初始化为零。
 
 # 结论
 
-现在，您可以带着对ViT模型机制的深刻理解，去训练ViT模型了！下面是可以下载ViT模型代码的地方列表，其中一些比其他的允许更多的模型修改。祝您转换愉快！
+现在，您可以带着对 ViT 模型机制的深刻理解，去训练 ViT 模型了！下面是可以下载 ViT 模型代码的地方列表，其中一些比其他的允许更多的模型修改。祝您转换愉快！
 
 +   [GitHub 仓库](https://github.com/lanl/vision_transformers_explained)用于本系列文章
 
@@ -789,44 +789,44 @@ class ViT_Model(nn.Module):
 
     → 包含预训练模型和微调代码；不包含模型定义
 
-+   ViT在[PyTorch Image Models](https://github.com/huggingface/pytorch-image-models)（`timm`）中的实现⁹
++   ViT 在[PyTorch Image Models](https://github.com/huggingface/pytorch-image-models)（`timm`）中的实现⁹
 
     `timm.create_model('vit_base_patch16_224', pretrained=True)`
 
-+   Phil Wang的`vit-pytorch` [包](https://github.com/lucidrains/vit-pytorch)
++   Phil Wang 的`vit-pytorch` [包](https://github.com/lucidrains/vit-pytorch)
 
-本文已由洛斯阿拉莫斯国家实验室批准发布，批准编号为LA-UR-23–33876。相关代码已获得BSD-3开源许可证，批准编号为O#4693。
+本文已由洛斯阿拉莫斯国家实验室批准发布，批准编号为 LA-UR-23–33876。相关代码已获得 BSD-3 开源许可证，批准编号为 O#4693。
 
 ## 进一步阅读
 
-要了解更多关于NLP上下文中transformer的信息，请参见
+要了解更多关于 NLP 上下文中 transformer 的信息，请参见
 
-+   Transformers视觉化解析第1部分：功能概述：[https://towardsdatascience.com/transformers-explained-visually-part-1-overview-of-functionality-95a6dd460452](/transformers-explained-visually-part-1-overview-of-functionality-95a6dd460452)
++   Transformers 视觉化解析第一部分：功能概述：`towardsdatascience.com/transformers-explained-visually-part-1-overview-of-functionality-95a6dd460452`
 
-+   Transformers视觉化解析第2部分：如何一步步工作：[https://towardsdatascience.com/transformers-explained-visually-part-2-how-it-works-step-by-step-b49fa4a64f34](/transformers-explained-visually-part-2-how-it-works-step-by-step-b49fa4a64f34)
++   Transformers 视觉化解析第二部分：如何一步步工作：`towardsdatascience.com/transformers-explained-visually-part-2-how-it-works-step-by-step-b49fa4a64f34`
 
-有关Vision Transformers的广泛视频讲座，请参见
+有关 Vision Transformers 的广泛视频讲座，请参见
 
-+   Vision Transformer及其应用：[https://youtu.be/hPb6A92LROc?si=GaGYiZoyDg0PcdSP](https://youtu.be/hPb6A92LROc?si=GaGYiZoyDg0PcdSP)
++   Vision Transformer 及其应用：[`youtu.be/hPb6A92LROc?si=GaGYiZoyDg0PcdSP`](https://youtu.be/hPb6A92LROc?si=GaGYiZoyDg0PcdSP)
 
 ## 引用
 
-[1] Vaswani等（2017）。*Attention Is All You Need.* [https://doi.org/10.48550/arXiv.1706.03762](https://doi.org/10.48550/arXiv.1706.03762)
+[1] Vaswani 等（2017）。*Attention Is All You Need.* [`doi.org/10.48550/arXiv.1706.03762`](https://doi.org/10.48550/arXiv.1706.03762)
 
-[2] Dosovitskiy 等人（2020）。*一张图片值16x16个词：用于大规模图像识别的 Transformer。* [https://doi.org/10.48550/arXiv.2010.11929](https://doi.org/10.48550/arXiv.2010.11929)
+[2] Dosovitskiy 等人（2020）。*一张图片值 16x16 个词：用于大规模图像识别的 Transformer。* [`doi.org/10.48550/arXiv.2010.11929`](https://doi.org/10.48550/arXiv.2010.11929)
 
-[3] Yuan 等人（2021）。*Tokens-to-Token ViT：从零开始在 ImageNet 上训练视觉 Transformer。* [https://doi.org/10.48550/arXiv.2101.11986](https://doi.org/10.48550/arXiv.2101.11986)
+[3] Yuan 等人（2021）。*Tokens-to-Token ViT：从零开始在 ImageNet 上训练视觉 Transformer。* [`doi.org/10.48550/arXiv.2101.11986`](https://doi.org/10.48550/arXiv.2101.11986)
 
-→ GitHub 代码: [https://github.com/yitu-opensource/T2T-ViT](https://github.com/yitu-opensource/T2T-ViT)
+→ GitHub 代码: [`github.com/yitu-opensource/T2T-ViT`](https://github.com/yitu-opensource/T2T-ViT)
 
-[4] Luis Zuno ([@ansimuz](http://twitter.com/ansimuz)). *黄昏山脉背景图。* 许可 CC0: [https://opengameart.org/content/mountain-at-dusk-background](https://opengameart.org/content/mountain-at-dusk-background)
+[4] Luis Zuno ([@ansimuz](http://twitter.com/ansimuz)). *黄昏山脉背景图。* 许可 CC0: [`opengameart.org/content/mountain-at-dusk-background`](https://opengameart.org/content/mountain-at-dusk-background)
 
-[5] PyTorch. *展开操作（Unfold）。* [https://pytorch.org/docs/stable/generated/torch.nn.Unfold.html#torch.nn.Unfold](https://pytorch.org/docs/stable/generated/torch.nn.Unfold.html#torch.nn.Unfold)
+[5] PyTorch. *展开操作（Unfold）。* [`pytorch.org/docs/stable/generated/torch.nn.Unfold.html#torch.nn.Unfold`](https://pytorch.org/docs/stable/generated/torch.nn.Unfold.html#torch.nn.Unfold)
 
-[6] PyTorch. *扩展维度（Unsqueeze）。* [https://pytorch.org/docs/stable/generated/torch.unsqueeze.html#torch.unsqueeze](https://pytorch.org/docs/stable/generated/torch.unsqueeze.html#torch.unsqueeze)
+[6] PyTorch. *扩展维度（Unsqueeze）。* [`pytorch.org/docs/stable/generated/torch.unsqueeze.html#torch.unsqueeze`](https://pytorch.org/docs/stable/generated/torch.unsqueeze.html#torch.unsqueeze)
 
-[7] PyTorch. *非线性激活（加权和，非线性）。* [https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity](https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity)
+[7] PyTorch. *非线性激活（加权和，非线性）。* [`pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity`](https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity)
 
-[8] PyTorch. *归一化层（Normalization Layers）。* [https://pytorch.org/docs/stable/nn.html#normalization-layers](https://pytorch.org/docs/stable/nn.html#normalization-layers)
+[8] PyTorch. *归一化层（Normalization Layers）。* [`pytorch.org/docs/stable/nn.html#normalization-layers`](https://pytorch.org/docs/stable/nn.html#normalization-layers)
 
-[9] Ross Wightman. *PyTorch 图像模型。* [https://github.com/huggingface/pytorch-image-models](https://github.com/huggingface/pytorch-image-models)
+[9] Ross Wightman. *PyTorch 图像模型。* [`github.com/huggingface/pytorch-image-models`](https://github.com/huggingface/pytorch-image-models)

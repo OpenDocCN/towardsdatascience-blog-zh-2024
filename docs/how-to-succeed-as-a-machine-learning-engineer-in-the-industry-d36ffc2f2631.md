@@ -1,24 +1,24 @@
 # 如何在工业界成为一名成功的机器学习工程师
 
-> 原文：[https://towardsdatascience.com/how-to-succeed-as-a-machine-learning-engineer-in-the-industry-d36ffc2f2631?source=collection_archive---------0-----------------------#2024-07-17](https://towardsdatascience.com/how-to-succeed-as-a-machine-learning-engineer-in-the-industry-d36ffc2f2631?source=collection_archive---------0-----------------------#2024-07-17)
+> 原文：[`towardsdatascience.com/how-to-succeed-as-a-machine-learning-engineer-in-the-industry-d36ffc2f2631?source=collection_archive---------0-----------------------#2024-07-17`](https://towardsdatascience.com/how-to-succeed-as-a-machine-learning-engineer-in-the-industry-d36ffc2f2631?source=collection_archive---------0-----------------------#2024-07-17)
 
-## 5个帮助我在大型科技公司中始终超越预期的技巧
+## 5 个帮助我在大型科技公司中始终超越预期的技巧
 
-[](https://medium.com/@kgk.singhal?source=post_page---byline--d36ffc2f2631--------------------------------)[![Kartik Singhal](../Images/be61a4cf2cee09213a9e1db5c3850dbc.png)](https://medium.com/@kgk.singhal?source=post_page---byline--d36ffc2f2631--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d36ffc2f2631--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d36ffc2f2631--------------------------------) [Kartik Singhal](https://medium.com/@kgk.singhal?source=post_page---byline--d36ffc2f2631--------------------------------)
+[](https://medium.com/@kgk.singhal?source=post_page---byline--d36ffc2f2631--------------------------------)![Kartik Singhal](https://medium.com/@kgk.singhal?source=post_page---byline--d36ffc2f2631--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d36ffc2f2631--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d36ffc2f2631--------------------------------) [Kartik Singhal](https://medium.com/@kgk.singhal?source=post_page---byline--d36ffc2f2631--------------------------------)
 
-·发布于[数据科学之路](https://towardsdatascience.com/?source=post_page---byline--d36ffc2f2631--------------------------------) ·阅读时长5分钟·2024年7月17日
+·发布于[数据科学之路](https://towardsdatascience.com/?source=post_page---byline--d36ffc2f2631--------------------------------) ·阅读时长 5 分钟·2024 年 7 月 17 日
 
 --
 
 你是否曾经想过成为一名成功的机器学习工程师需要什么？你是否在定义自己在这个动态领域中的角色时感到困惑？我也曾经经历过这一切！
 
-嗨！我是Kartik Singhal，Meta的高级机器学习工程师。虽然在这个领域已有六年的经验，但我仍然每天都在学习。今天，我将分享五个帮助我在大型科技公司中获得“超越预期”评价的技巧。
+嗨！我是 Kartik Singhal，Meta 的高级机器学习工程师。虽然在这个领域已有六年的经验，但我仍然每天都在学习。今天，我将分享五个帮助我在大型科技公司中获得“超越预期”评价的技巧。
 
 # 💻 打好基础
 
-![](../Images/7c4941a7163a2c323f6e3cb021e355b6.png)
+![](img/7c4941a7163a2c323f6e3cb021e355b6.png)
 
-图片来源：作者，基于ChatGPT 4o创建
+图片来源：作者，基于 ChatGPT 4o 创建
 
 你需要对机器学习的基础概念有很好的理解，并且意识到它在实际应用中的局限性。
 
@@ -30,27 +30,27 @@
 
 > **专业建议**：
 > 
-> 从[coursera机器学习课程](https://www.coursera.org/specializations/machine-learning-introduction)开始，它将介绍所有核心概念。
+> 从[coursera 机器学习课程](https://www.coursera.org/specializations/machine-learning-introduction)开始，它将介绍所有核心概念。
 > 
 > 我还建议阅读**《百页机器学习书》**和**《机器学习工程》**，这些书籍是**Andriy Burkov**编写的，可以帮助你深入了解应用机器学习。
 > 
-> 如果你对深度学习更感兴趣，可以查看Coursera上的[深度学习专业课程](https://www.coursera.org/specializations/deep-learning)。建议先通过基础课程掌握机器学习的基本知识，再学习这一课程。
+> 如果你对深度学习更感兴趣，可以查看 Coursera 上的[深度学习专业课程](https://www.coursera.org/specializations/deep-learning)。建议先通过基础课程掌握机器学习的基本知识，再学习这一课程。
 
 **了解库的使用**：
 
-+   了解核心机器学习库，如TensorFlow、PyTorch和scikit-learn。
++   了解核心机器学习库，如 TensorFlow、PyTorch 和 scikit-learn。
 
-+   在像Kaggle这样的平台上做小项目，将帮助你在职业生涯早期就能熟悉这些库。
++   在像 Kaggle 这样的平台上做小项目，将帮助你在职业生涯早期就能熟悉这些库。
 
 > **小贴士：**
 > 
-> 强烈推荐educative.io的[机器学习工程师](https://www.educative.io/path/become-a-machine-learning-engineer?utm_campaign=%5BTopics%5D+Machine+Learning&utm_source=adwords&utm_medium=ppc&utm_content=search&utm_term=educative+io+machine+learning&eid=5082902844932096&hsa_acc=5451446008&hsa_cam=16394614703&hsa_grp=155540086263&hsa_ad=685023929167&hsa_src=g&hsa_tgt=kwd-960874615804&hsa_kw=educative+io+machine+learning&hsa_mt=e&hsa_net=adwords&hsa_ver=3&gad_source=1&gclid=CjwKCAjw7NmzBhBLEiwAxrHQ-QdJgDonu0ia7IWvqvXSvuU3WgafFdxgPM2_zsp0r1p74Z5MU9GfMBoCVKAQAvD_BwE)课程，它介绍了大部分库和功能。
+> 强烈推荐 educative.io 的[机器学习工程师](https://www.educative.io/path/become-a-machine-learning-engineer?utm_campaign=%5BTopics%5D+Machine+Learning&utm_source=adwords&utm_medium=ppc&utm_content=search&utm_term=educative+io+machine+learning&eid=5082902844932096&hsa_acc=5451446008&hsa_cam=16394614703&hsa_grp=155540086263&hsa_ad=685023929167&hsa_src=g&hsa_tgt=kwd-960874615804&hsa_kw=educative+io+machine+learning&hsa_mt=e&hsa_net=adwords&hsa_ver=3&gad_source=1&gclid=CjwKCAjw7NmzBhBLEiwAxrHQ-QdJgDonu0ia7IWvqvXSvuU3WgafFdxgPM2_zsp0r1p74Z5MU9GfMBoCVKAQAvD_BwE)课程，它介绍了大部分库和功能。
 
 **保持对前沿研究的关注**
 
 通过阅读最新的论文和参加像[KDD](https://www.kdd.org/)这样的会议，保持对你所在领域最新研究的了解。这将增强你的信心，并确保你了解当前的趋势。
 
-> *由于我对搜索中的NLP应用感兴趣，我熟悉了一些具有里程碑意义的论文，如* [*Word2Vec*](https://arxiv.org/abs/1301.3781)*，* [*BERT*](https://arxiv.org/abs/1810.04805) *和最新的大型语言模型发展。*
+> *由于我对搜索中的 NLP 应用感兴趣，我熟悉了一些具有里程碑意义的论文，如* [*Word2Vec*](https://arxiv.org/abs/1301.3781)*，* [*BERT*](https://arxiv.org/abs/1810.04805) *和最新的大型语言模型发展。*
 
 # 💪 发挥你的优势
 
@@ -76,11 +76,11 @@
 
 **3) 模型部署与可扩展性**：
 
-+   **理解规模**：了解模型将在哪个规模上运行，以及你需要哪些技术来满足这些要求。像Amazon Sagemaker和Tensorflow Serving这样的技术提供了大规模的模型部署框架。
++   **理解规模**：了解模型将在哪个规模上运行，以及你需要哪些技术来满足这些要求。像 Amazon Sagemaker 和 Tensorflow Serving 这样的技术提供了大规模的模型部署框架。
 
 +   **鲁棒性**：确保模型推理与现有系统良好集成，并能处理实际流量。
 
-+   **专业提示**：查看Udacity的[机器学习工程师](https://www.udacity.com/course/aws-machine-learning-engineer-nanodegree--nd189?_gl=1*1w3mu9w*_up*MQ..&gclid=CjwKCAjw7NmzBhBLEiwAxrHQ-d16HZ0UtTmR2_32esOXVcE73KMn9jYSazGg7FEAUe3I85EGwdblRRoCWBgQAvD_BwE)纳米学位课程，学习如何使用Sagemaker进行部署。对于Tensorflow Serving，他们的[用户指南](https://www.tensorflow.org/tfx/tutorials/serving/rest_simple)非常好。
++   **专业提示**：查看 Udacity 的[机器学习工程师](https://www.udacity.com/course/aws-machine-learning-engineer-nanodegree--nd189?_gl=1*1w3mu9w*_up*MQ..&gclid=CjwKCAjw7NmzBhBLEiwAxrHQ-d16HZ0UtTmR2_32esOXVcE73KMn9jYSazGg7FEAUe3I85EGwdblRRoCWBgQAvD_BwE)纳米学位课程，学习如何使用 Sagemaker 进行部署。对于 Tensorflow Serving，他们的[用户指南](https://www.tensorflow.org/tfx/tutorials/serving/rest_simple)非常好。
 
 # 🎯 聚焦于业务目标和数据
 
@@ -102,7 +102,7 @@
 
 # 🔍 理解投资回报（ROI）和权衡
 
-你能在一个用户界面应用程序中部署一个拥有数百万参数的大型语言模型（LLM），并且保证100毫秒的延迟吗？可能不能。资源约束是关键考虑因素，往往被忽视。
+你能在一个用户界面应用程序中部署一个拥有数百万参数的大型语言模型（LLM），并且保证 100 毫秒的延迟吗？可能不能。资源约束是关键考虑因素，往往被忽视。
 
 +   **权衡**：理解项目的权衡并设定明确的里程碑。平衡时间、资源和模型性能。
 
@@ -110,7 +110,7 @@
 
 +   **投资回报（ROI）**：评估模型的投资回报。选择平衡性能和预算约束的模型。
 
-> 示例*: 如果一个最先进的模型需要数百个GPU，而一个更简单的模型可以在更少的资源上高效运行，那么后者可能更实用。*
+> 示例*: 如果一个最先进的模型需要数百个 GPU，而一个更简单的模型可以在更少的资源上高效运行，那么后者可能更实用。*
 
 +   **迭代过程**：从资源高效的模型开始，并进行迭代改进。
 

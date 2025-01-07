@@ -1,18 +1,18 @@
 # 神经网络的消融测试：补偿性伪装
 
-> 原文：[https://towardsdatascience.com/ablation-testing-neural-networks-the-compensatory-masquerade-ba27d0037a88?source=collection_archive---------5-----------------------#2024-01-07](https://towardsdatascience.com/ablation-testing-neural-networks-the-compensatory-masquerade-ba27d0037a88?source=collection_archive---------5-----------------------#2024-01-07)
+> 原文：[`towardsdatascience.com/ablation-testing-neural-networks-the-compensatory-masquerade-ba27d0037a88?source=collection_archive---------5-----------------------#2024-01-07`](https://towardsdatascience.com/ablation-testing-neural-networks-the-compensatory-masquerade-ba27d0037a88?source=collection_archive---------5-----------------------#2024-01-07)
 
 ## 破坏性地测试神经网络和其他机器学习架构的部分，目的是使其变得更加健壮
 
-[](https://squoraishee.medium.com/?source=post_page---byline--ba27d0037a88--------------------------------)[![Shafik Quoraishee](../Images/439d3502b98af4d994a8fab33b8bb428.png)](https://squoraishee.medium.com/?source=post_page---byline--ba27d0037a88--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ba27d0037a88--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ba27d0037a88--------------------------------) [Shafik Quoraishee](https://squoraishee.medium.com/?source=post_page---byline--ba27d0037a88--------------------------------)
+[](https://squoraishee.medium.com/?source=post_page---byline--ba27d0037a88--------------------------------)![Shafik Quoraishee](https://squoraishee.medium.com/?source=post_page---byline--ba27d0037a88--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ba27d0037a88--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ba27d0037a88--------------------------------) [Shafik Quoraishee](https://squoraishee.medium.com/?source=post_page---byline--ba27d0037a88--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ba27d0037a88--------------------------------) ·8分钟阅读·2024年1月7日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ba27d0037a88--------------------------------) ·8 分钟阅读·2024 年 1 月 7 日
 
 --
 
-![](../Images/17facce6e4c4b29da7fcbbde246cf1b7.png)
+![](img/17facce6e4c4b29da7fcbbde246cf1b7.png)
 
-（图片由作者使用DALL-E生成）。有趣的是AI如何看待它自己的大脑。
+（图片由作者使用 DALL-E 生成）。有趣的是 AI 如何看待它自己的大脑。
 
 类似于一个人的智力如何经受压力测试，人工神经网络也可以通过进行所谓的受控消融测试，来评估它们对不同类型干扰的鲁棒性。
 
@@ -30,7 +30,7 @@
 
 这也被称为[补偿性伪装](https://www.britannica.com/science/compensatory-masquerade)。
 
-![](../Images/38cb217c01889fc9be7aaf32bad46223.png)
+![](img/38cb217c01889fc9be7aaf32bad46223.png)
 
 左侧是一个全连接神经网络，右侧是随机丢弃版本。在许多情况下，这些网络实际上可能表现得相对较好（图片由作者提供）
 
@@ -62,13 +62,13 @@
 
 这是我们将要进行的第一种切除测试，它最简单且容易观察其效果并扩展。我们将简单地从神经网络中去除不同比例的神经元。
 
-对于我们的实验，我们设置了一个简单的ANN来测试随机字符预测的准确性，使用我们老朋友的[MNIST数据集](https://en.wikipedia.org/wiki/MNIST_database)。
+对于我们的实验，我们设置了一个简单的 ANN 来测试随机字符预测的准确性，使用我们老朋友的[MNIST 数据集](https://en.wikipedia.org/wiki/MNIST_database)。
 
-![](../Images/193196488e4f29b9aee031723542889b.png)
+![](img/193196488e4f29b9aee031723542889b.png)
 
-来自MNIST数据集的数字数据快照（作者提供）
+来自 MNIST 数据集的数字数据快照（作者提供）
 
-这是我写的代码，作为一个简单的ANN测试工具，测试数字分类的准确性。
+这是我写的代码，作为一个简单的 ANN 测试工具，测试数字分类的准确性。
 
 ```py
 import tensorflow as tf
@@ -112,13 +112,13 @@ plt.grid(True)
 plt.show()
 ```
 
-所以如果我们运行上述代码，我们会看到如下结果：逐步停用我们128节点MLP的一定比例。
+所以如果我们运行上述代码，我们会看到如下结果：逐步停用我们 128 节点 MLP 的一定比例。
 
-在这个简单的示例中，结果相当有趣，正如你所看到的，丢弃80%的神经元几乎不影响准确性，这意味着去除多余的神经元肯定是我们在构建这个网络时可以考虑的一种优化方法。
+在这个简单的示例中，结果相当有趣，正如你所看到的，丢弃 80%的神经元几乎不影响准确性，这意味着去除多余的神经元肯定是我们在构建这个网络时可以考虑的一种优化方法。
 
-![](../Images/8804627f95e4e423a2bdd894aef0979b.png)
+![](img/8804627f95e4e423a2bdd894aef0979b.png)
 
-为dropout切除测试生成的图表（作者提供）
+为 dropout 切除测试生成的图表（作者提供）
 
 **功能性切除**
 
@@ -143,7 +143,7 @@ for activation in activation_functions:
 
 当我们运行上述代码时，我们得到以下激活函数与准确度的比较。
 
-![](../Images/a428a18957cb11484ff2823a55c3a840.png)
+![](img/a428a18957cb11484ff2823a55c3a840.png)
 
 为功能性切除测试生成的图表（作者提供）
 
@@ -155,7 +155,7 @@ for activation in activation_functions:
 
 通常在做机器学习或数据科学项目之前，我们通常会进行探索性数据分析（EDA）和特征选择，以确定哪些特征可能对我们的分类问题很重要。
 
-但是有时我们可以观察到有趣的效果，特别是在处理神秘的神经网络时，通过在消融研究中移除特征并观察其对分类的影响。使用以下代码，我们可以按4列一组地从字母中移除像素列。
+但是有时我们可以观察到有趣的效果，特别是在处理神秘的神经网络时，通过在消融研究中移除特征并观察其对分类的影响。使用以下代码，我们可以按 4 列一组地从字母中移除像素列。
 
 显然，消融特征有多种方式，除了按列扭曲字符之外，还可以通过其他方式。但我们可以从这个简单的例子开始并观察其效果。
 
@@ -176,19 +176,19 @@ for i in range(0, 28, 4):  # Remove columns of pixels groups of 4
 
 在运行上述特征消融代码后，我们看到：
 
-![](../Images/07a74f18d9fe0131f2c7bfc8f29ebea7.png)
+![](img/07a74f18d9fe0131f2c7bfc8f29ebea7.png)
 
-为4列输入特征消融测试生成的图表（图片来自作者）
+为 4 列输入特征消融测试生成的图表（图片来自作者）
 
-有趣的是，当我们移除第8到第12列时，准确度略有下降，然后再次上升。这表明平均而言，更“敏感”的字符几何形状位于这些中心列中，但其他列，特别是接近开始和结束的列，可能会被移除以优化效果。
+有趣的是，当我们移除第 8 到第 12 列时，准确度略有下降，然后再次上升。这表明平均而言，更“敏感”的字符几何形状位于这些中心列中，但其他列，特别是接近开始和结束的列，可能会被移除以优化效果。
 
-这是对每次移除7列的相同测试，以及相应的列。通过可视化实际的扭曲字符数据，我们可以更好地理解结果，因为我们看到移除前几列对结果的影响较小，这是因为它们大多只是填充！
+这是对每次移除 7 列的相同测试，以及相应的列。通过可视化实际的扭曲字符数据，我们可以更好地理解结果，因为我们看到移除前几列对结果的影响较小，这是因为它们大多只是填充！
 
-![](../Images/5fe4ea84cf30abc94770488eff6c5111.png)
+![](img/5fe4ea84cf30abc94770488eff6c5111.png)
 
-为4列像素移除结果生成的图表（图片来自作者）
+为 4 列像素移除结果生成的图表（图片来自作者）
 
-另一个有趣的消融研究例子是测试不同类型的噪声配置文件。下面是我写的代码，用于使用上述ANN模型渐进地为图像加噪声。
+另一个有趣的消融研究例子是测试不同类型的噪声配置文件。下面是我写的代码，用于使用上述 ANN 模型渐进地为图像加噪声。
 
 ```py
 # Ablation study with noise
@@ -218,7 +218,7 @@ for i, noise_level in enumerate(noise_levels):
 
 我们已经为网络在增加强度的[高斯噪声](https://en.wikipedia.org/wiki/Gaussian_noise#:~:text=In%20signal%20processing%20theory%2C%20Gaussian,can%20take%20are%20Gaussian%2Ddistributed.)环境中的稳健性创建了一个消融研究。请注意，随着噪声水平的增加，预测准确度预期并显著下降。
 
-![](../Images/0f3ccd17fd6e9b8bc4ad14b5df6b461d.png)
+![](img/0f3ccd17fd6e9b8bc4ad14b5df6b461d.png)
 
 为渐进噪声结果生成的图表（图片来自作者）
 

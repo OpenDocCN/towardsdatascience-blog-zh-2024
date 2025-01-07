@@ -1,16 +1,16 @@
 # 语言模型的规模定律
 
-> 原文：[https://towardsdatascience.com/scaling-law-of-language-models-5759de7f830c?source=collection_archive---------5-----------------------#2024-07-09](https://towardsdatascience.com/scaling-law-of-language-models-5759de7f830c?source=collection_archive---------5-----------------------#2024-07-09)
+> 原文：[`towardsdatascience.com/scaling-law-of-language-models-5759de7f830c?source=collection_archive---------5-----------------------#2024-07-09`](https://towardsdatascience.com/scaling-law-of-language-models-5759de7f830c?source=collection_archive---------5-----------------------#2024-07-09)
 
 ## 语言模型如何随模型规模、训练数据和训练计算的变化而扩展
 
-[](https://medium.com/@mina.ghashami?source=post_page---byline--5759de7f830c--------------------------------)[![Mina Ghashami](../Images/745f53b94f5667a485299b49913c7a21.png)](https://medium.com/@mina.ghashami?source=post_page---byline--5759de7f830c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5759de7f830c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5759de7f830c--------------------------------) [Mina Ghashami](https://medium.com/@mina.ghashami?source=post_page---byline--5759de7f830c--------------------------------)
+[](https://medium.com/@mina.ghashami?source=post_page---byline--5759de7f830c--------------------------------)![Mina Ghashami](https://medium.com/@mina.ghashami?source=post_page---byline--5759de7f830c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5759de7f830c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5759de7f830c--------------------------------) [Mina Ghashami](https://medium.com/@mina.ghashami?source=post_page---byline--5759de7f830c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5759de7f830c--------------------------------) ·阅读时间：8分钟·2024年7月9日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5759de7f830c--------------------------------) ·阅读时间：8 分钟·2024 年 7 月 9 日
 
 --
 
-![](../Images/42f834a47c313958efded7b803f5c12d.png)
+![](img/42f834a47c313958efded7b803f5c12d.png)
 
 LLMs 的规模定律行为 — 图片来源：[1]
 

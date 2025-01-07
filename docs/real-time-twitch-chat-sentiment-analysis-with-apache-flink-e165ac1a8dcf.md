@@ -1,62 +1,62 @@
-# 实时Twitch聊天情感分析与Apache Flink
+# 实时 Twitch 聊天情感分析与 Apache Flink
 
-> 原文：[https://towardsdatascience.com/real-time-twitch-chat-sentiment-analysis-with-apache-flink-e165ac1a8dcf?source=collection_archive---------5-----------------------#2024-03-27](https://towardsdatascience.com/real-time-twitch-chat-sentiment-analysis-with-apache-flink-e165ac1a8dcf?source=collection_archive---------5-----------------------#2024-03-27)
+> 原文：[`towardsdatascience.com/real-time-twitch-chat-sentiment-analysis-with-apache-flink-e165ac1a8dcf?source=collection_archive---------5-----------------------#2024-03-27`](https://towardsdatascience.com/real-time-twitch-chat-sentiment-analysis-with-apache-flink-e165ac1a8dcf?source=collection_archive---------5-----------------------#2024-03-27)
 
-## 学习如何通过实时情感分析与Apache Flink赋能创作者，解读观众情绪，调整内容以提高观众满意度
+## 学习如何通过实时情感分析与 Apache Flink 赋能创作者，解读观众情绪，调整内容以提高观众满意度
 
-[](https://vojay.medium.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)[![Volker Janz](../Images/0825160d6d521f4152948f0187cf354b.png)](https://vojay.medium.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e165ac1a8dcf--------------------------------) [Volker Janz](https://vojay.medium.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)
+[](https://vojay.medium.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)![Volker Janz](https://vojay.medium.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e165ac1a8dcf--------------------------------) [Volker Janz](https://vojay.medium.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e165ac1a8dcf--------------------------------) ·22分钟阅读·2024年3月27日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e165ac1a8dcf--------------------------------) ·22 分钟阅读·2024 年 3 月 27 日
 
 --
 
-![](../Images/e55f68a621ce60805ded66c172ab01cb.png)
+![](img/e55f68a621ce60805ded66c172ab01cb.png)
 
 由 [Joey kwok](https://unsplash.com/@spideyjoey?utm_source=medium&utm_medium=referral) 提供的照片，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-> 🚀 让我们通过构建一个实时情感分析流应用程序，学习Apache Flink和情感分析，为Twitch聊天提供支持。
+> 🚀 让我们通过构建一个实时情感分析流应用程序，学习 Apache Flink 和情感分析，为 Twitch 聊天提供支持。
 
-– [介绍与演示](#cbac)
+– 介绍与演示
 
-– [Apache Flink](#590a)
+– Apache Flink
 
-– [NLP与情感分析](#0d10)
+– NLP 与情感分析
 
-– [设置Flink项目](#138d)
+– 设置 Flink 项目
 
-– [准备项目](#acf0)
+– 准备项目
 
-−− [IntelliJ中的项目设置](#d36b)
+−− IntelliJ 中的项目设置
 
-−− [重命名并简化主类](#5b50)
+−− 重命名并简化主类
 
-−− [pom.xml项目设置](#9c6a)
+−− pom.xml 项目设置
 
-−− [运行配置](#88d6)
+−− 运行配置
 
-−− [本地Flink Web UI](#d646)
+−− 本地 Flink Web UI
 
-– [读取Twitch聊天](#cc63)
+– 读取 Twitch 聊天
 
-−− [添加Twitch4J依赖](#db06)
+−− 添加 Twitch4J 依赖
 
-−− [为Twitch聊天消息创建POJO](#9ce2)
+−− 为 Twitch 聊天消息创建 POJO
 
-−− [为Flink创建自定义Twitch源函数](#b69b)
+−− 为 Flink 创建自定义 Twitch 源函数
 
-−− [使用source函数](#78d2)
+−− 使用 source 函数
 
-– [Twitch聊天情感分析](#b566)
+– Twitch 聊天情感分析
 
-−− [添加Stanford CoreNLP依赖](#600f)
+−− 添加 Stanford CoreNLP 依赖
 
-−− [创建情感分析map函数](#eea7)
+−− 创建情感分析 map 函数
 
-−− [使用map函数](#75ee)
+−− 使用 map 函数
 
-– [结论](#35a9)
+– 结论
 
-***免责声明***：在本文和演示中，我仅分析我自己的聊天消息，未存储数据或处理其他用户的消息。在将其用于其他目的之前，请咨询Twitch的[*服务条款*](https://www.twitch.tv/p/en/legal/terms-of-service/)和[*开发者服务协议*](https://www.twitch.tv/p/en/legal/developer-agreement/)，以及官方的[*Twitch API文档*](https://dev.twitch.tv/docs/api/)。
+***免责声明***：在本文和演示中，我仅分析我自己的聊天消息，未存储数据或处理其他用户的消息。在将其用于其他目的之前，请咨询 Twitch 的[*服务条款*](https://www.twitch.tv/p/en/legal/terms-of-service/)和[*开发者服务协议*](https://www.twitch.tv/p/en/legal/developer-agreement/)，以及官方的[*Twitch API 文档*](https://dev.twitch.tv/docs/api/)。
 
 # 介绍与演示
 
@@ -70,7 +70,7 @@
 
 +   **Flink**：1.17.2
 
-![](../Images/e46b1477e09e4b3e113640ed6cebc535.png)
+![](img/e46b1477e09e4b3e113640ed6cebc535.png)
 
 实时 Twitch 聊天情感分析与 Apache Flink（作者）
 
@@ -80,7 +80,7 @@
 
 到这篇博客文章结束时，你将拥有一个可以实时跟踪 Twitch 聊天情感的工作应用程序。它可以用于一个或多个 Twitch 频道。你还将学习 [Apache Flink](https://flink.apache.org/) 和 Java 中的情感分析基础。
 
-**你还可以在 Github 上找到最终结果** 🪄：[https://github.com/vojay-dev/flitch](https://github.com/vojay-dev/flitch)
+**你还可以在 Github 上找到最终结果** 🪄：[`github.com/vojay-dev/flitch`](https://github.com/vojay-dev/flitch)
 
 # Apache Flink
 
@@ -92,39 +92,39 @@
 
 [Apache Flink](https://flink.apache.org/) 不仅是一个框架，还是一个分布式处理引擎。它允许在**有状态**的计算中对**无界**和**有界**数据流进行创建和执行。**无界**数据流有一个明确的开始，但没有明确的结束，而**有界**数据流则有明确的开始和结束。这个概念可能听起来有点熟悉，因为这也可以被视为一个数据批次，只不过它是以流的形式呈现的。
 
-![](../Images/c65239a997c588ae867dcc6bfa8a2beb.png)
+![](img/c65239a997c588ae867dcc6bfa8a2beb.png)
 
 Flink 概念（作者）
 
 Flink 提供了定义流应用程序的 API。通过这些 API，你可以控制数据源、数据转换和数据接收端。通过 SQL / Table API，你可以使用 SQL 定义流应用程序，这是一个非常棒的功能，但请记住，流 SQL 与批处理 SQL 行为不同，这可能要求你改变解决问题的方法。接下来，还有 DataStream API，可以用来通过预定义的函数组合你的流管道。它可以在 Python、Java 和 Scala 中使用。如果你需要完全控制事件、状态和时间，那么 ProcessFunction 层是你的最佳选择。
 
-![](../Images/d485c1cf66873673c44c2b23823c9f90.png)
+![](img/d485c1cf66873673c44c2b23823c9f90.png)
 
 Flink API（作者）
 
-对于这个用例，我们将在Java中使用DataStream API来定义一个自定义源，以便将Twitch聊天作为数据流读取。此外，我们还将定义一个自定义的map函数，它将每条Twitch消息作为输入，对其进行情感分析，并返回一个包含消息和分析结果的元组。最后，我们仅使用一个预定义的sink来打印结果。在这个特定的案例中，我们一次只查看一个事件，这被称为**无状态流处理**。请记住，Flink的一个关键特性是能够跨多个事件记住信息，例如通过窗口函数的形式。这被称为**有状态流处理**。
+对于这个用例，我们将在 Java 中使用 DataStream API 来定义一个自定义源，以便将 Twitch 聊天作为数据流读取。此外，我们还将定义一个自定义的 map 函数，它将每条 Twitch 消息作为输入，对其进行情感分析，并返回一个包含消息和分析结果的元组。最后，我们仅使用一个预定义的 sink 来打印结果。在这个特定的案例中，我们一次只查看一个事件，这被称为**无状态流处理**。请记住，Flink 的一个关键特性是能够跨多个事件记住信息，例如通过窗口函数的形式。这被称为**有状态流处理**。
 
-![](../Images/b08d47365c06f9e10a96bd63298dfe55.png)
+![](img/b08d47365c06f9e10a96bd63298dfe55.png)
 
-Flink状态（作者）
+Flink 状态（作者）
 
-如果你对更高级的Flink用例感兴趣，包括状态管理和其他高级技术（如广播状态模式），可以看看我在2023年欧洲大数据大会上的演讲：
+如果你对更高级的 Flink 用例感兴趣，包括状态管理和其他高级技术（如广播状态模式），可以看看我在 2023 年欧洲大数据大会上的演讲：
 
-📼 [使用Kafka和Flink实现游戏中的实时客户互动](https://www.youtube.com/watch?v=djikIGOm90U)
+📼 [使用 Kafka 和 Flink 实现游戏中的实时客户互动](https://www.youtube.com/watch?v=djikIGOm90U)
 
-# NLP和情感分析
+# NLP 和情感分析
 
 想象一下，自然语言处理（NLP）就像是你电脑大脑的超级翻译器。它让计算机能够理解人类语言的细微差别，就像你能分辨出讽刺的“好工作”和真诚的“好工作”之间的不同。这不仅仅是简单的关键词匹配，而是深入探讨语法、句法和语义的复杂性。
 
-你可能遇到的一些NLP应用包括：
+你可能遇到的一些 NLP 应用包括：
 
-+   **垃圾邮件过滤**：NLP可以识别电子邮件中的可疑模式，帮助将合法邮件与垃圾邮件区分开来。
++   **垃圾邮件过滤**：NLP 可以识别电子邮件中的可疑模式，帮助将合法邮件与垃圾邮件区分开来。
 
-+   **机器翻译**：NLP通过分析句子的结构和意义来帮助弥合语言鸿沟，确保翻译的准确性。
++   **机器翻译**：NLP 通过分析句子的结构和意义来帮助弥合语言鸿沟，确保翻译的准确性。
 
-+   **语音助手**：Siri、Alexa和Google Assistant都利用NLP来理解你的语音命令并智能回应。
++   **语音助手**：Siri、Alexa 和 Google Assistant 都利用 NLP 来理解你的语音命令并智能回应。
 
-NLP的另一个应用是情感分析。可以把它想象成文本的情感指南针。它为一段文本分配一个情感分数（积极、消极或中性），帮助我们衡量文本背后的整体情感。
+NLP 的另一个应用是情感分析。可以把它想象成文本的情感指南针。它为一段文本分配一个情感分数（积极、消极或中性），帮助我们衡量文本背后的整体情感。
 
 情感分析有两种主要方法：
 
@@ -132,11 +132,11 @@ NLP的另一个应用是情感分析。可以把它想象成文本的情感指�
 
 +   **基于机器学习**：这种方法利用在大量标注情感的文本数据集上训练的机器学习算法。这些算法能够学习单词之间及其情感内涵的复杂关系，从而实现更细致的情感分析。
 
-![](../Images/4e822594adf58749fb9ba3ba5ef4470e.png)
+![](img/4e822594adf58749fb9ba3ba5ef4470e.png)
 
 情感分析示例（作者）
 
-这对于解读Twitch聊天中的氛围非常有用！
+这对于解读 Twitch 聊天中的氛围非常有用！
 
 在我们的 Twitch 聊天示例中，我们可以使用情感分析来查看聊天是否充满了快乐，或者是否因为错过一局而情绪低落。这对于主播来说，可以帮助他们了解观众的实时反应，甚至根据反馈调整内容！它可以用于实时监控社区的情绪。
 
@@ -175,7 +175,7 @@ package: de.vojay.flitch
 
 按 `enter` 确认，你将得到一个以 `artifactId` 命名的文件夹，里面包含生成的项目模板。
 
-![](../Images/145bdd5fb2440c1c8d0e5dae9add44da.png)
+![](img/145bdd5fb2440c1c8d0e5dae9add44da.png)
 
 Flink 的 Maven 原型（由作者提供）
 
@@ -193,13 +193,13 @@ Flink 的 Maven 原型（由作者提供）
 
 在 *Project Structure* 窗口中，进入 *Project* 并确保使用 **Java 11 SDK**。
 
-![](../Images/a5b31219b3207121e668789a569e111a.png)
+![](img/a5b31219b3207121e668789a569e111a.png)
 
 项目设置（由作者提供）
 
 最后，进入 *Modules* 并将语言级别更改为 **11**。
 
-![](../Images/cb22316ceadf7e852814bf460bb8b45b.png)
+![](img/cb22316ceadf7e852814bf460bb8b45b.png)
 
 模块设置（由作者提供）
 
@@ -207,7 +207,7 @@ Flink 的 Maven 原型（由作者提供）
 
 将生成的类 `DataStreamJob` 简单地重命名为 `App`。
 
-![](../Images/276f020259185a0efb176433f7c80f0e.png)
+![](img/276f020259185a0efb176433f7c80f0e.png)
 
 重命名类（由作者提供）
 
@@ -267,7 +267,7 @@ IntelliJ 中的运行配置是指定如何启动和调试项目的设置。它�
 
 **应用程序将失败，这是故意的。**
 
-![](../Images/fa265b3c95e57d588ad77d2be842ab5e.png)
+![](img/fa265b3c95e57d588ad77d2be842ab5e.png)
 
 运行应用程序（作者）
 
@@ -304,7 +304,7 @@ IntelliJ 中的运行配置是指定如何启动和调试项目的设置。它�
 
 为了解决`java.lang.NoClassDefFoundError`，我们现在需要启用选项*将“provided”范围的依赖项添加到类路径*。
 
-![](../Images/341fbe9ef1b6dd2e3f33420ce528f6bd.png)
+![](img/341fbe9ef1b6dd2e3f33420ce528f6bd.png)
 
 运行配置（作者）
 
@@ -312,15 +312,15 @@ IntelliJ 中的运行配置是指定如何启动和调试项目的设置。它�
 
 它运行了🎉。该流应用程序将在处理完边界流之前一直运行。你还将在日志中找到你流中的两个元素的输出。
 
-![](../Images/0718a522b627323d624d088c065c7b98.png)
+![](img/0718a522b627323d624d088c065c7b98.png)
 
 第一次成功运行（作者）
 
-# 本地Flink Web UI
+# 本地 Flink Web UI
 
-在我们将注意力转向有趣的部分之前，还有一件事需要做。Flink Web UI是一个用户友好的界面，允许开发人员和管理员监控和管理他们的Apache Flink应用程序。它提供了正在运行或已完成作业的实时概览，显示了吞吐量和延迟等度量指标，并提供了作业执行计划的详细洞察。基本上，它是一个方便的仪表盘，你可以在其中可视化Flink应用程序的性能和状态，使得调试、优化和管理流处理或批处理作业的过程变得更加简单和直观。
+在我们将注意力转向有趣的部分之前，还有一件事需要做。Flink Web UI 是一个用户友好的界面，允许开发人员和管理员监控和管理他们的 Apache Flink 应用程序。它提供了正在运行或已完成作业的实时概览，显示了吞吐量和延迟等度量指标，并提供了作业执行计划的详细洞察。基本上，它是一个方便的仪表盘，你可以在其中可视化 Flink 应用程序的性能和状态，使得调试、优化和管理流处理或批处理作业的过程变得更加简单和直观。
 
-当你像本例中那样在本地运行Flink应用程序时，通常没有启用Flink Web UI。然而，有一种方法可以在本地执行环境中也获得Flink Web UI。我觉得这很有用，特别是在运行生产环境中的流应用程序之前，能够了解执行计划。
+当你像本例中那样在本地运行 Flink 应用程序时，通常没有启用 Flink Web UI。然而，有一种方法可以在本地执行环境中也获得 Flink Web UI。我觉得这很有用，特别是在运行生产环境中的流应用程序之前，能够了解执行计划。
 
 让我们从添加依赖项到`pom.xml`开始：
 
@@ -354,21 +354,21 @@ public class App {
 }
 ```
 
-现在，流应用程序将处理一系列数字，因此它不会立即完成。此外，使用`createLocalEnvironmentWithWebUI`，我们将在应用程序运行时通过端口`8081`在本地提供Flink Web UI。
+现在，流应用程序将处理一系列数字，因此它不会立即完成。此外，使用`createLocalEnvironmentWithWebUI`，我们将在应用程序运行时通过端口`8081`在本地提供 Flink Web UI。
 
-重新启动并在浏览器中打开[http://localhost:8081/](http://localhost:8081/)。除了各种度量指标，你还可以看到你的Flink应用程序的执行计划。
+重新启动并在浏览器中打开[`localhost:8081/`](http://localhost:8081/)。除了各种度量指标，你还可以看到你的 Flink 应用程序的执行计划。
 
-![](../Images/d241e32e3d4e642fcb33f54117488f69.png)
+![](img/d241e32e3d4e642fcb33f54117488f69.png)
 
 Flink Web UI（作者）
 
-现在我们已经有了一个合适的本地设置，可以开始将我们的应用程序连接到Twitch并对聊天消息进行情感分析。
+现在我们已经有了一个合适的本地设置，可以开始将我们的应用程序连接到 Twitch 并对聊天消息进行情感分析。
 
-# 阅读Twitch聊天
+# 阅读 Twitch 聊天
 
-[Twitch](https://www.twitch.tv/)，领先的游戏玩家直播平台，提供全面的API和一个与互联网中继聊天（IRC）协议深度集成的聊天功能。
+[Twitch](https://www.twitch.tv/)，领先的游戏玩家直播平台，提供全面的 API 和一个与互联网中继聊天（IRC）协议深度集成的聊天功能。
 
-![](../Images/31fb16b46f763b431e6eb957b698c3f5.png)
+![](img/31fb16b46f763b431e6eb957b698c3f5.png)
 
 图片来自[Caspar Camille Rubin](https://unsplash.com/@casparrubin?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -440,7 +440,7 @@ public class TwitchMessage {
 
 旁白：你不必自己编写像 `toString()` 这样的基本函数，你可以使用 IntelliJ 让它为你生成。只需点击 *代码* → *生成…* → `toString()` 即可得到上面的结果。
 
-![](../Images/b3202075c87edca8319d6db7ae8379d1.png)
+![](img/b3202075c87edca8319d6db7ae8379d1.png)
 
 生成 toString（由作者提供）
 
@@ -649,9 +649,9 @@ public class App {
 
 使用 `addSource` 我们可以添加我们的源函数。元素随后将由流中的下一个步骤进行处理，该步骤是 `print()`。通过这个接收器，我们将再次将每个元素输出到 STDOUT。
 
-现在运行应用程序并在[https://twitch.tv/vojay](https://www.twitch.tv/popout/vojay/chat)的聊天室中发送消息时，这些消息将由我们的流媒体应用程序处理并打印出来🎉。
+现在运行应用程序并在[`twitch.tv/vojay`](https://www.twitch.tv/popout/vojay/chat)的聊天室中发送消息时，这些消息将由我们的流媒体应用程序处理并打印出来🎉。
 
-![](../Images/a308cbba3475c4b7ba1ab2b77ef0178c.png)
+![](img/a308cbba3475c4b7ba1ab2b77ef0178c.png)
 
 Flink 的 Twitch 源（作者提供）
 
@@ -665,23 +665,23 @@ Tuple2<TwitchMessage, Tuple2<List<Integer>, List<String>>>
 
 让我们来分解一下：结果包含 Twitch 聊天消息的原始 POJO，以及另一个包含 2 个元素的元组：
 
-+   一个**情感分数列表**（`List<Integer>`），包含消息中每个句子的分数，范围从0（非常负面）到4（非常积极）。
++   一个**情感分数列表**（`List<Integer>`），包含消息中每个句子的分数，范围从 0（非常负面）到 4（非常积极）。
 
 +   一个**情感类别列表**（`List<String>`），包含消息中每个句子的可读类别，例如：中性或负面。
 
-![](../Images/370607a498f8c196cf9fb7a621cec6e0.png)
+![](img/370607a498f8c196cf9fb7a621cec6e0.png)
 
 情感映射函数（作者提供）
 
-# 添加Stanford CoreNLP依赖项
+# 添加 Stanford CoreNLP 依赖项
 
-为了执行情感分析，我们将使用[CoreNLP库](https://stanfordnlp.github.io/CoreNLP/)由[斯坦福NLP组](https://nlp.stanford.edu/)提供。也有像[Apache OpenNLP](https://opennlp.apache.org/)或[Deep Java Library](https://djl.ai/)这样的替代方案。在这个项目中，我们将专注于CoreNLP，但也可以随意使用其他库创建替代版本，这也是学习更多相关内容的好方法。
+为了执行情感分析，我们将使用[CoreNLP 库](https://stanfordnlp.github.io/CoreNLP/)由[斯坦福 NLP 组](https://nlp.stanford.edu/)提供。也有像[Apache OpenNLP](https://opennlp.apache.org/)或[Deep Java Library](https://djl.ai/)这样的替代方案。在这个项目中，我们将专注于 CoreNLP，但也可以随意使用其他库创建替代版本，这也是学习更多相关内容的好方法。
 
-CoreNLP是一个全面的Java NLP工具，支持多种语言，包括阿拉伯语、中文、英语、法语、德语、匈牙利语、意大利语和西班牙语。它通过一个**管道系统**处理文本，提供语言学标注，如句子边界、词性、命名实体等，并生成**CoreDocuments**。这些文档包含所有的标注信息，可以轻松访问或导出。
+CoreNLP 是一个全面的 Java NLP 工具，支持多种语言，包括阿拉伯语、中文、英语、法语、德语、匈牙利语、意大利语和西班牙语。它通过一个**管道系统**处理文本，提供语言学标注，如句子边界、词性、命名实体等，并生成**CoreDocuments**。这些文档包含所有的标注信息，可以轻松访问或导出。
 
-在CoreNLP的上下文中，**管道**本质上是一系列用于分析文本的处理步骤。当你将原始文本输入到CoreNLP时，管道会将文本通过不同的**标注器**（*处理单元*）传递，每个标注器负责NLP的不同方面。这些标注器可能会识别句子边界、识别词性、检测命名实体、解析句子结构等，具体取决于你想要执行的任务。
+在 CoreNLP 的上下文中，**管道**本质上是一系列用于分析文本的处理步骤。当你将原始文本输入到 CoreNLP 时，管道会将文本通过不同的**标注器**（*处理单元*）传递，每个标注器负责 NLP 的不同方面。这些标注器可能会识别句子边界、识别词性、检测命名实体、解析句子结构等，具体取决于你想要执行的任务。
 
-在我们的案例中，我们将使用**句子标注**将Twitch消息拆分成句子，然后对每个句子使用**情感核心标注**以获取其情感。但首先，我们需要将所需的依赖项添加到我们项目的`pom.xml`中：
+在我们的案例中，我们将使用**句子标注**将 Twitch 消息拆分成句子，然后对每个句子使用**情感核心标注**以获取其情感。但首先，我们需要将所需的依赖项添加到我们项目的`pom.xml`中：
 
 ```py
 <dependency>
@@ -697,11 +697,11 @@ CoreNLP是一个全面的Java NLP工具，支持多种语言，包括阿拉伯�
 </dependency>
 ```
 
-第一个依赖项代表库本身，而第二个依赖项将把所有相关的预训练模型拉取到你的本地`.m2`文件夹中。不要惊讶，第一次Maven解析依赖项时需要一些时间，因为它需要下载模型。
+第一个依赖项代表库本身，而第二个依赖项将把所有相关的预训练模型拉取到你的本地`.m2`文件夹中。不要惊讶，第一次 Maven 解析依赖项时需要一些时间，因为它需要下载模型。
 
 # 创建情感分析映射函数
 
-对于map函数，我们将使用抽象类`RichMapFunction`作为基础，以便我们可以重写`open`函数，只在每个实例中初始化一次情感分析管道。在扩展`RichMapFunction`时，我们需要指定两个泛型，一个用于输入类型，另一个用于输出类型。输入将是一个Twitch消息的POJO，即`TwitchMessage`，输出将是包含情感分数列表和类别列表的消息，正如之前所述。
+对于 map 函数，我们将使用抽象类`RichMapFunction`作为基础，以便我们可以重写`open`函数，只在每个实例中初始化一次情感分析管道。在扩展`RichMapFunction`时，我们需要指定两个泛型，一个用于输入类型，另一个用于输出类型。输入将是一个 Twitch 消息的 POJO，即`TwitchMessage`，输出将是包含情感分数列表和类别列表的消息，正如之前所述。
 
 让我们先创建一个名为 `AnalyzeSentiment` 的新类，并扩展 `RichMapFunction`：
 
@@ -915,41 +915,41 @@ public class App {
 
 作为程序参数。**你可以在这里使用任何 Twitch 频道，随时浏览 Twitch 查看更大的频道并观察发生的情况。**
 
-![](../Images/1af0e4eb58a9d5447c2310ac491f19a0.png)
+![](img/1af0e4eb58a9d5447c2310ac491f19a0.png)
 
 使用带有 twitchChannels 参数的运行配置（作者）
 
 现在是时候再次运行你的流应用并享受整个过程了！
 
-![](../Images/9fa3cbde399e5bc2d238f4b3919a2d84.png)
+![](img/9fa3cbde399e5bc2d238f4b3919a2d84.png)
 
 摄影：由 [Stanley Li](https://unsplash.com/@djravine?utm_source=medium&utm_medium=referral) 拍摄，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 结论
 
-就这样！我们已经构建了一个实时情感分析应用，适用于Twitch聊天，使用的是Apache Flink。现在你不仅可以看到聊天流，还能理解观众的情感脉动。这可能是更高级版本的基础。追踪整个直播过程中的情感，看看观众如何反应于重大操作或有趣时刻，并利用这些知识创造更具吸引力的内容。
+就这样！我们已经构建了一个实时情感分析应用，适用于 Twitch 聊天，使用的是 Apache Flink。现在你不仅可以看到聊天流，还能理解观众的情感脉动。这可能是更高级版本的基础。追踪整个直播过程中的情感，看看观众如何反应于重大操作或有趣时刻，并利用这些知识创造更具吸引力的内容。
 
 以下是一些灵感，帮助你将这个原型转化为一个有价值的、可投入生产的项目：
 
 ⚙️ **调整模型**
 
-使用专门针对社交媒体数据训练的模型（例如，[RoBERTa](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment)），或者更好的方式是，直接用历史的Twitch聊天数据训练模型，来融入Twitch特有的交流元素，如特定的表情符号代码。
+使用专门针对社交媒体数据训练的模型（例如，[RoBERTa](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment)），或者更好的方式是，直接用历史的 Twitch 聊天数据训练模型，来融入 Twitch 特有的交流元素，如特定的表情符号代码。
 
 🧮 **应用窗口函数**
 
-通过窗口函数扩展Flink管道，例如每分钟的滚动窗口，并计算每分钟的情感分数平均值。
+通过窗口函数扩展 Flink 管道，例如每分钟的滚动窗口，并计算每分钟的情感分数平均值。
 
 📦 **持久化结果**
 
-将结果流以每分钟聚合的形式持久化到Kafka或时间序列数据库（TSDB）中。
+将结果流以每分钟聚合的形式持久化到 Kafka 或时间序列数据库（TSDB）中。
 
 📊 **创建仪表盘**
 
 在汇总数据上创建一个仪表盘，绘制每分钟的平均情感图表。
 
-通过这些建议，你可以将结果与其他元数据结合起来，比如流媒体的实际分类/游戏类型或时间，以此来创建更复杂的推荐系统，帮助你了解哪些内容能带来积极的Twitch聊天体验。
+通过这些建议，你可以将结果与其他元数据结合起来，比如流媒体的实际分类/游戏类型或时间，以此来创建更复杂的推荐系统，帮助你了解哪些内容能带来积极的 Twitch 聊天体验。
 
-所以下次当你观看你最喜欢的主播时，不妨留意一下后台运行的情感分析。它可能会揭示关于Twitch聊天这个充满激情的世界的一些有趣见解！
+所以下次当你观看你最喜欢的主播时，不妨留意一下后台运行的情感分析。它可能会揭示关于 Twitch 聊天这个充满激情的世界的一些有趣见解！
 
 但这篇文章最重要的一点是：获取灵感，学习并启发他人。数据工程及相关领域最酷的地方在于：
 
@@ -957,7 +957,7 @@ public class App {
 
 所以，总会有下一个有趣的问题等待你去探索，并可以用来学习，理想情况下将你的灵感与他人分享。
 
-![](../Images/258f31d4a003728a74203f1bdb1d1f6f.png)
+![](img/258f31d4a003728a74203f1bdb1d1f6f.png)
 
 图片由[Alexander Sinn](https://unsplash.com/@swimstaralex?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

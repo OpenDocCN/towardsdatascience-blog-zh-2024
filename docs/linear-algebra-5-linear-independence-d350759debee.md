@@ -1,14 +1,14 @@
 # 线性代数 5：线性无关
 
-> 原文：[https://towardsdatascience.com/linear-algebra-5-linear-independence-d350759debee?source=collection_archive---------4-----------------------#2024-03-21](https://towardsdatascience.com/linear-algebra-5-linear-independence-d350759debee?source=collection_archive---------4-----------------------#2024-03-21)
+> 原文：[`towardsdatascience.com/linear-algebra-5-linear-independence-d350759debee?source=collection_archive---------4-----------------------#2024-03-21`](https://towardsdatascience.com/linear-algebra-5-linear-independence-d350759debee?source=collection_archive---------4-----------------------#2024-03-21)
 
-![](../Images/4d3d3691c84ee497c3611cd1a8245093.png)
+![](img/4d3d3691c84ee497c3611cd1a8245093.png)
 
 ## Ax = 0 和证明一组向量线性无关
 
-[](https://medium.com/@t9nz?source=post_page---byline--d350759debee--------------------------------)[![tenzin migmar (t9nz)](../Images/d9a3e1fe10afba1f1dc0fc7e4d241d73.png)](https://medium.com/@t9nz?source=post_page---byline--d350759debee--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d350759debee--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d350759debee--------------------------------) [tenzin migmar (t9nz)](https://medium.com/@t9nz?source=post_page---byline--d350759debee--------------------------------)
+[](https://medium.com/@t9nz?source=post_page---byline--d350759debee--------------------------------)![tenzin migmar (t9nz)](https://medium.com/@t9nz?source=post_page---byline--d350759debee--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d350759debee--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d350759debee--------------------------------) [tenzin migmar (t9nz)](https://medium.com/@t9nz?source=post_page---byline--d350759debee--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d350759debee--------------------------------) ·阅读时间 6 分钟·2024年3月21日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d350759debee--------------------------------) ·阅读时间 6 分钟·2024 年 3 月 21 日
 
 --
 
@@ -24,19 +24,19 @@
 
 之前，我们学习了矩阵乘法和形如 *A***x** = **b** 的矩阵方程。我们讲解了当 **b** 是矩阵 *A* 中一组向量（列）的线性组合时，*A***x** = **b** 有解 **x**。
 
-![](../Images/11dcd81a10712976ba1c5b355fb8f55c.png)
+![](img/11dcd81a10712976ba1c5b355fb8f55c.png)
 
 在线性代数中，有一个特殊的矩阵方程 *A***x** = **0**，我们称之为齐次线性系统。*A***x** = **0** 总是至少有一个解，其中 **x** = **0**，这个解称为平凡解，因为很容易证明任何矩阵 *A* 与 **0** 向量 **x** 相乘都会得到 **0** 向量。
 
-![](../Images/df93b59487211315eb5ddc8763d6c2ce.png)
+![](img/df93b59487211315eb5ddc8763d6c2ce.png)
 
-我们真正关心的是学习矩阵方程*A**x** = **0**是否**仅有**平凡解。如果*A**x** = **0**只有平凡解**x** = 0，那么构成矩阵*A*列的向量集合是线性无关的。换句话说：v₁ + c₂v₂ + … + cₐvₐ = 0，其中c₁, c₂, …, cₐ必须全为0。另一种思考方式是，这个集合中的任何一个向量都不能表示为其他向量的线性组合。
+我们真正关心的是学习矩阵方程*A**x** = **0**是否**仅有**平凡解。如果*A**x** = **0**只有平凡解**x** = 0，那么构成矩阵*A*列的向量集合是线性无关的。换句话说：v₁ + c₂v₂ + … + cₐvₐ = 0，其中 c₁, c₂, …, cₐ必须全为 0。另一种思考方式是，这个集合中的任何一个向量都不能表示为其他向量的线性组合。
 
-另一方面，如果存在解使得**x** ≠ 0，那么该向量集合是线性相关的。由此可得，该集合中至少有一个向量可以表示为其他向量的线性组合：c₁v₁ + c₂v₂ + … + cₐvₐ = 0，其中不是所有的c₁, c₂, …, cₐ都为0。
+另一方面，如果存在解使得**x** ≠ 0，那么该向量集合是线性相关的。由此可得，该集合中至少有一个向量可以表示为其他向量的线性组合：c₁v₁ + c₂v₂ + … + cₐvₐ = 0，其中不是所有的 c₁, c₂, …, cₐ都为 0。
 
-一个简洁且直观的思考线性无关概念的方式是：你能否找到一组权重，将一组向量的线性组合压缩到原点？如果一组向量是线性无关的，那么唯一能应用到每个向量的权重是0，才能使得线性组合等于零向量。如果这些向量是线性相关的，那么就存在至少一组非零权重，使得向量的线性组合等于零。
+一个简洁且直观的思考线性无关概念的方式是：你能否找到一组权重，将一组向量的线性组合压缩到原点？如果一组向量是线性无关的，那么唯一能应用到每个向量的权重是 0，才能使得线性组合等于零向量。如果这些向量是线性相关的，那么就存在至少一组非零权重，使得向量的线性组合等于零。
 
-![](../Images/4d3d3691c84ee497c3611cd1a8245093.png)
+![](img/4d3d3691c84ee497c3611cd1a8245093.png)
 
 ## 判断线性无关性
 
@@ -44,7 +44,7 @@
 
 如果一个集合包含两个向量，当且仅当其中一个向量是另一个向量的倍数时，向量集合是线性相关的。否则，它们是线性无关的。
 
-![](../Images/6963ce12226b1c0a8319dc6b31b4d01e.png)
+![](img/6963ce12226b1c0a8319dc6b31b4d01e.png)
 
 对于包含超过两个向量的集合，需要进行更多的计算。令这些向量构成矩阵*A*的列，并对矩阵*A*进行行约简，得到简化行阶梯形矩阵。如果简化行阶梯形矩阵的每一列都有一个主元，则该向量集合是线性无关的。否则，该向量集合是线性相关的。为什么会这样呢？考虑将矩阵行约简为简化行阶梯形矩阵的过程。我们执行一系列基本的行变换，如将行乘以常数、交换行、将一行加到另一行，以便得到一个更简单形式的矩阵，从而使其基本属性变得清晰，同时解空间得以保持。
 
@@ -54,11 +54,11 @@
 
 如果矩阵的列数等于秩，那么矩阵是线性独立的。否则，矩阵是线性相关的。
 
-![](../Images/17ac6310fd0aa55970cd8158d56b60c0.png)![](../Images/c351975238f19cabce9ef5fa7b90eab2.png)
+![](img/17ac6310fd0aa55970cd8158d56b60c0.png)![](img/c351975238f19cabce9ef5fa7b90eab2.png)
 
-## 使用Numpy进行线性独立性检测
+## 使用 Numpy 进行线性独立性检测
 
-尝试手工计算是更好理解线性独立性的有价值练习，但更实用的方法是利用Numpy库中内置的功能，既可以测试线性独立性，也可以推导给定矩阵的*A***x** = **0**的解空间。
+尝试手工计算是更好理解线性独立性的有价值练习，但更实用的方法是利用 Numpy 库中内置的功能，既可以测试线性独立性，也可以推导给定矩阵的*A***x** = **0**的解空间。
 
 我们可以通过矩阵的秩来检查一个矩阵是否线性独立。如前所述，矩阵线性独立当且仅当矩阵的秩等于列数，因此我们的代码将围绕这个标准编写。
 
@@ -78,10 +78,10 @@
 
 +   线性相关的向量是指集合中的至少一个向量可以表示为其他向量的线性组合。
 
-+   Numpy是一个用于处理数组的Python库，提供了出色的支持，可以检查一个矩阵是否线性独立，并且还可以解给定矩阵的Ax = 0。
++   Numpy 是一个用于处理数组的 Python 库，提供了出色的支持，可以检查一个矩阵是否线性独立，并且还可以解给定矩阵的 Ax = 0。
 
 ## 注意事项
 
 *除非另有说明，否则所有图片均由作者创作。*
 
-![](../Images/74c2602358c7142bde6453236c11dad5.png)
+![](img/74c2602358c7142bde6453236c11dad5.png)

@@ -1,16 +1,16 @@
 # 使用 vLLM 运行和提供服务给更快的 VLM，如 Pixtral 和 Phi-3.5 Vision
 
-> 原文：[https://towardsdatascience.com/run-and-serve-faster-vlms-like-pixtral-and-phi-3-5-vision-with-vllm-1db7226c2035?source=collection_archive---------4-----------------------#2024-09-23](https://towardsdatascience.com/run-and-serve-faster-vlms-like-pixtral-and-phi-3-5-vision-with-vllm-1db7226c2035?source=collection_archive---------4-----------------------#2024-09-23)
+> 原文：[`towardsdatascience.com/run-and-serve-faster-vlms-like-pixtral-and-phi-3-5-vision-with-vllm-1db7226c2035?source=collection_archive---------4-----------------------#2024-09-23`](https://towardsdatascience.com/run-and-serve-faster-vlms-like-pixtral-and-phi-3-5-vision-with-vllm-1db7226c2035?source=collection_archive---------4-----------------------#2024-09-23)
 
 ## 了解为 VLM 提供服务所需的内存量
 
-[](https://medium.com/@bnjmn_marie?source=post_page---byline--1db7226c2035--------------------------------)[![Benjamin Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--1db7226c2035--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1db7226c2035--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1db7226c2035--------------------------------) [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--1db7226c2035--------------------------------)
+[](https://medium.com/@bnjmn_marie?source=post_page---byline--1db7226c2035--------------------------------)![Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--1db7226c2035--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1db7226c2035--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1db7226c2035--------------------------------) [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--1db7226c2035--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1db7226c2035--------------------------------) ·阅读时间 10 分钟·2024年9月23日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1db7226c2035--------------------------------) ·阅读时间 10 分钟·2024 年 9 月 23 日
 
 --
 
-![](../Images/9383dc47c9e69050884d5582cbb02bb1.png)
+![](img/9383dc47c9e69050884d5582cbb02bb1.png)
 
 由 Pixtral 编码的图像 — 图片来源于作者
 

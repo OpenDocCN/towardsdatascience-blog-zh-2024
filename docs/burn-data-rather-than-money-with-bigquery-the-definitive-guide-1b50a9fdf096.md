@@ -1,64 +1,64 @@
-# 一份关于如何高效使用BigQuery的终极指南
+# 一份关于如何高效使用 BigQuery 的终极指南
 
-> 原文：[https://towardsdatascience.com/burn-data-rather-than-money-with-bigquery-the-definitive-guide-1b50a9fdf096?source=collection_archive---------2-----------------------#2024-03-03](https://towardsdatascience.com/burn-data-rather-than-money-with-bigquery-the-definitive-guide-1b50a9fdf096?source=collection_archive---------2-----------------------#2024-03-03)
+> 原文：[`towardsdatascience.com/burn-data-rather-than-money-with-bigquery-the-definitive-guide-1b50a9fdf096?source=collection_archive---------2-----------------------#2024-03-03`](https://towardsdatascience.com/burn-data-rather-than-money-with-bigquery-the-definitive-guide-1b50a9fdf096?source=collection_archive---------2-----------------------#2024-03-03)
 
-## 充分利用你的BigQuery使用，烧掉数据而不是烧掉钱，用一些实用技巧创造真正的价值。
+## 充分利用你的 BigQuery 使用，烧掉数据而不是烧掉钱，用一些实用技巧创造真正的价值。
 
-[](https://vojay.medium.com/?source=post_page---byline--1b50a9fdf096--------------------------------)[![Volker Janz](../Images/0825160d6d521f4152948f0187cf354b.png)](https://vojay.medium.com/?source=post_page---byline--1b50a9fdf096--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1b50a9fdf096--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1b50a9fdf096--------------------------------) [Volker Janz](https://vojay.medium.com/?source=post_page---byline--1b50a9fdf096--------------------------------)
+[](https://vojay.medium.com/?source=post_page---byline--1b50a9fdf096--------------------------------)![Volker Janz](https://vojay.medium.com/?source=post_page---byline--1b50a9fdf096--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1b50a9fdf096--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1b50a9fdf096--------------------------------) [Volker Janz](https://vojay.medium.com/?source=post_page---byline--1b50a9fdf096--------------------------------)
 
-· 发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1b50a9fdf096--------------------------------) · 20分钟阅读 · 2024年3月3日
+· 发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1b50a9fdf096--------------------------------) · 20 分钟阅读 · 2024 年 3 月 3 日
 
 --
 
-· [📝 引言](#b5f1)
+· 📝 引言
 
-· [💎 BigQuery基础和理解成本](#ecac)
+· 💎 BigQuery 基础和理解成本
 
-∘ [存储](#2451)
+∘ 存储
 
-∘ [计算](#73e8)
+∘ 计算
 
-· [📐 数据建模](#c6f3)
+· 📐 数据建模
 
-∘ [数据类型](#5d43)
+∘ 数据类型
 
-∘ [向去规范化转变](#20ab)
+∘ 向去规范化转变
 
-∘ [分区](#acf8)
+∘ 分区
 
-∘ [聚类](#8d1d)
+∘ 聚类
 
-∘ [嵌套重复列](#2c8a)
+∘ 嵌套重复列
 
-∘ [索引](#7ed9)
+∘ 索引
 
-∘ [物理字节存储计费](#507a)
+∘ 物理字节存储计费
 
-∘ [使用主键和外键的连接优化](#258d)
+∘ 使用主键和外键的连接优化
 
-· [⚙️ 数据操作](#6bae)
+· ⚙️ 数据操作
 
-∘ [复制数据/表](#28ad)
+∘ 复制数据/表
 
-∘ [加载数据](#da01)
+∘ 加载数据
 
-∘ [删除分区](#0ef6)
+∘ 删除分区
 
-∘ [获取表的不同分区](#0c4d)
+∘ 获取表的不同分区
 
-∘ [不要持久化计算的度量](#3ae7)
+∘ 不要持久化计算的度量
 
-· [📚 摘要](#59d4)
+· 📚 摘要
 
-∘ [遵循数据建模最佳实践](#165f)
+∘ 遵循数据建模最佳实践
 
-∘ [掌握数据操作以实现成本效益](#8018)
+∘ 掌握数据操作以实现成本效益
 
-∘ [为了效率而设计，避免不必要的数据持久化](#af6f)
+∘ 为了效率而设计，避免不必要的数据持久化
 
-**免责声明**：BigQuery是一个不断发展的产品，定价可能随时变化，本文基于我个人的经验。
+**免责声明**：BigQuery 是一个不断发展的产品，定价可能随时变化，本文基于我个人的经验。
 
-![](../Images/ad3d101dc043e43fc1b8f1c82871e0d7.png)
+![](img/ad3d101dc043e43fc1b8f1c82871e0d7.png)
 
 由[Konstantin Evdokimov](https://unsplash.com/@constantinevdokimov?utm_source=medium&utm_medium=referral)拍摄，照片来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -68,7 +68,7 @@
 
 在本文中，我们将揭开 BigQuery 魔法的艺术，旨在在提高效率的同时降低成本，甚至更多。加入我们，一同探索成本优化的深度，在这里，每个字节都是珍贵的硬币。
 
-![](../Images/26edd2af9f5eda4849e2b289d311ab64.png)
+![](img/26edd2af9f5eda4849e2b289d311ab64.png)
 
 图片由 [Jonathan Kemper](https://unsplash.com/@jupp?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -80,13 +80,13 @@ BigQuery 不仅仅是一个工具，而是一整套可扩展的计算和存储�
 
 以下插图展示了 BigQuery 架构的基本结构：
 
-![](../Images/348b1c767b85af6fbb00e012327b8993.png)
+![](img/348b1c767b85af6fbb00e012327b8993.png)
 
 BigQuery 架构（作者）
 
 数据可以存储在 Colossus 中，但也可以在 Google Cloud Storage 中创建 BigQuery 表。在这种情况下，查询仍然通过 BigQuery 计算基础设施处理，但读取的数据来自 GCS。此类 `外部表` 有一些缺点，但在某些情况下，将数据存储在 GCS 中可能更具成本效益。另外，有时候并不是关于大数据，而仅仅是从现有的 CSV 文件中读取数据，这些文件以某种方式被导入到 GCS。为了简便起见，使用这种表格也可能带来好处。
 
-![](../Images/f263f69736f23df70761a9222df7e3b2.png)
+![](img/f263f69736f23df70761a9222df7e3b2.png)
 
 BigQuery 外部表（作者）
 
@@ -106,13 +106,13 @@ BigQuery 按扫描的数据量收费，而不是查询的运行时，也不会�
 
 > ***我们希望最小化每个查询要扫描的数据量！***
 
-![](../Images/fb555e76a253c89bb09904ccc83e1e24.png)
+![](img/fb555e76a253c89bb09904ccc83e1e24.png)
 
 左： [Jp Valery](https://unsplash.com/de/@jpvalery?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在 [Unsplash](https://unsplash.com/de/fotos/zeitrafferfotografie-mehrerer-brennender-us-dollar-banknoten-blOLCO2K4M0?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)，右： [Gabriel Jimenez](https://unsplash.com/de/@gabrielj_photography?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在 [Unsplash](https://unsplash.com/de/fotos/bokeh-fotografie-einer-person-die-erde-tragt-jin4W1HqgL4?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
 在执行查询时，BigQuery 会估算要处理的数据量。在 BigQuery Studio 查询编辑器中输入查询后，你可以在右上角看到估算值。
 
-![](../Images/51bf962d037887c304ce20cda8662211.png)
+![](img/51bf962d037887c304ce20cda8662211.png)
 
 BigQuery Studio
 
@@ -126,11 +126,11 @@ BigQuery Studio
 
 你也可以为查询设置最大计费字节数。如果查询超过该限制，它将失败，并且不会产生任何费用。这个设置可以通过导航到 更多 -> 查询设置 -> 高级选项 -> 最大计费字节数 来更改。
 
-![](../Images/31c6507a2b70acf6778a6ef827a030bd.png)
+![](img/31c6507a2b70acf6778a6ef827a030bd.png)
 
 BigQuery 查询设置
 
-![](../Images/cbe8c884ffa43f6cf07d42f442d90060.png)
+![](img/cbe8c884ffa43f6cf07d42f442d90060.png)
 
 BigQuery 超过了计费字节数的限制
 
@@ -167,7 +167,7 @@ TIME       | 8 logical bytes
 TIMESTAMP  | 8 logical bytes
 ```
 
-`*NULL*` *被计算为0逻辑字节*
+`*NULL*` *被计算为 0 逻辑字节*
 
 **示例**：
 
@@ -182,7 +182,7 @@ CREATE TABLE gold.some_table (
 );
 ```
 
-通过这个定义和数据类型表，能够估算100,000,000行数据的逻辑大小：
+通过这个定义和数据类型表，能够估算 100,000,000 行数据的逻辑大小：
 
 ```py
 100.000.000 rows * (
@@ -196,29 +196,29 @@ CREATE TABLE gold.some_table (
   = 5.78 GB
 ```
 
-假设我们在这个表上执行`SELECT *`，它将花费我们5.78 GB / 1024 = 0.0056 TB * $8.13 = $0.05，在`europe-west3`区域。
+假设我们在这个表上执行`SELECT *`，它将花费我们 5.78 GB / 1024 = 0.0056 TB * $8.13 = $0.05，在`europe-west3`区域。
 
 在设计数据模型之前进行这些计算是一个好主意，这不仅有助于优化数据类型的使用，还能估算你所从事项目的成本。
 
 ## 向反规范化转变
 
-在数据库设计和管理领域，数据规范化和反规范化是旨在优化数据结构以实现高效存储、检索和操作的基本概念。传统上，规范化被誉为最佳实践，强调减少冗余并保持数据完整性。然而，在BigQuery和其他现代数据仓库的背景下，动态发生变化，反规范化往往成为首选的方法。
+在数据库设计和管理领域，数据规范化和反规范化是旨在优化数据结构以实现高效存储、检索和操作的基本概念。传统上，规范化被誉为最佳实践，强调减少冗余并保持数据完整性。然而，在 BigQuery 和其他现代数据仓库的背景下，动态发生变化，反规范化往往成为首选的方法。
 
 在规范化数据库中，数据被组织成多个表，每个表代表一个独立的实体或概念，并通过一对一、一对多或多对多等关系进行连接。这种方法遵循数据库规范化形式的原则，如第一范式（1NF）、第二范式（2NF）和第三范式（3NF）等。
 
 这带来了减少冗余、数据完整性以及因此减少存储使用的优势。
 
-![](../Images/da2e4c1933ff53547b874460d16bfabc.png)
+![](img/da2e4c1933ff53547b874460d16bfabc.png)
 
 图片由[Shubham Dhage](https://unsplash.com/@theshubhamdhage?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-尽管数据规范化在传统关系型数据库中具有优势，但在处理像BigQuery这样的现代分析平台时，范式发生了转变。BigQuery旨在处理海量数据并执行大规模的复杂分析查询。在这种环境下，重点从最小化存储空间转向优化查询性能。
+尽管数据规范化在传统关系型数据库中具有优势，但在处理像 BigQuery 这样的现代分析平台时，范式发生了转变。BigQuery 旨在处理海量数据并执行大规模的复杂分析查询。在这种环境下，重点从最小化存储空间转向优化查询性能。
 
-在BigQuery中，反规范化成为首选策略有几个原因：
+在 BigQuery 中，反规范化成为首选策略有几个原因：
 
-+   **查询性能**：BigQuery的分布式架构在并行扫描大量数据方面表现出色。反规范化表减少了复杂连接的需求，从而缩短查询执行时间。
++   **查询性能**：BigQuery 的分布式架构在并行扫描大量数据方面表现出色。反规范化表减少了复杂连接的需求，从而缩短查询执行时间。
 
-+   **成本效益**：通过减少查询处理所需的计算资源，反规范化可以带来成本节省，因为BigQuery中的查询成本是基于处理的数据量计算的。
++   **成本效益**：通过减少查询处理所需的计算资源，反规范化可以带来成本节省，因为 BigQuery 中的查询成本是基于处理的数据量计算的。
 
 +   **简化数据建模**：非规范化表简化了数据建模过程，使设计和维护分析用途的架构变得更加容易。
 
@@ -228,7 +228,7 @@ CREATE TABLE gold.some_table (
 
 > ***对于预先连接的数据集，你可以用存储资源换取计算资源！***
 
-![](../Images/37e6cbd109fc824810306d381286db7c.png)
+![](img/37e6cbd109fc824810306d381286db7c.png)
 
 非规范化（作者观点）
 
@@ -240,7 +240,7 @@ CREATE TABLE gold.some_table (
 
 如果你发现自己处于哈希连接被使用的情况，仍然有方法可能改善性能。至少可以将连接列定义为集群列。这样可以将数据放置在同一列存储文件中，减少洗牌的影响。
 
-最终，最佳方法取决于数据模型的具体情况以及规范化表的大小。如果通过规范化结构可以减少冗余，同时保持`JOIN`表的大小较小，从而使用广播连接，那么这比强制执行非规范化方法更为优越。然而，对于大于10GB的表，应该通过具体的基准测试来评估，这也引出了黄金法则：
+最终，最佳方法取决于数据模型的具体情况以及规范化表的大小。如果通过规范化结构可以减少冗余，同时保持`JOIN`表的大小较小，从而使用广播连接，那么这比强制执行非规范化方法更为优越。然而，对于大于 10GB 的表，应该通过具体的基准测试来评估，这也引出了黄金法则：
 
 **基准测试是关键！** 不要仅仅依赖理论。测试不同的方法（规范化、非规范化、嵌套/重复），以找到最适合你具体用例的高效解决方案。
 
@@ -256,7 +256,7 @@ CREATE TABLE gold.some_table (
 
 由你来定义分区列，但强烈建议明智地选择该列，因为这可以减少处理/计费的字节数。
 
-![](../Images/ab874087ba6efbc653ba93c0707b36c0.png)
+![](img/ab874087ba6efbc653ba93c0707b36c0.png)
 
 分区示例（按作者）
 
@@ -305,7 +305,7 @@ OPTIONS (
 
 与其为每次登录存储一行数据，使用嵌套重复列，你可以为每个用户存储一行数据，并在一个类型为 `ARRAY<STRUCT<...>>` 的列中存储该用户的所有登录记录。该结构体包含与登录相关的所有属性，例如日期和设备。以下插图可视化了这个示例：
 
-![](../Images/f6562058c8182f92d6a5db94c78706eb.png)
+![](img/f6562058c8182f92d6a5db94c78706eb.png)
 
 嵌套重复列示例（按作者）
 
@@ -350,15 +350,15 @@ CREATE SEARCH INDEX example_index ON silver.some_table(ALL COLUMNS);
 SELECT * FROM silver.some_table WHERE SEARCH(some_table, 'needle');
 ```
 
-一项新功能，在撰写本文时处于预览状态，允许将索引用于如`=`、`IN`、`LIKE`和`STARTS_WITH`等操作符。这对于那些通过像PowerBI或Excel这样的第三方工具直接供最终用户使用的数据结构非常有利，可以进一步提高速度并降低某些过滤操作的成本。
+一项新功能，在撰写本文时处于预览状态，允许将索引用于如`=`、`IN`、`LIKE`和`STARTS_WITH`等操作符。这对于那些通过像 PowerBI 或 Excel 这样的第三方工具直接供最终用户使用的数据结构非常有利，可以进一步提高速度并降低某些过滤操作的成本。
 
 关于这一点的更多信息可以在[官方搜索索引文档](https://cloud.google.com/bigquery/docs/search-index)中找到。
 
 ## 物理字节存储计费
 
-BigQuery提供了两种存储计费模型：标准模型和物理字节存储计费模型。选择合适的模型取决于你的数据访问模式和压缩能力。
+BigQuery 提供了两种存储计费模型：标准模型和物理字节存储计费模型。选择合适的模型取决于你的数据访问模式和压缩能力。
 
-标准模型非常直接。你按每GB数据支付固定费用，如果数据在90天内未修改，还会有轻微的折扣。这种方式简单易用，不需要管理不同的存储类别。然而，如果你的数据高度压缩，或者你不经常访问它，这种模型可能会更昂贵。
+标准模型非常直接。你按每 GB 数据支付固定费用，如果数据在 90 天内未修改，还会有轻微的折扣。这种方式简单易用，不需要管理不同的存储类别。然而，如果你的数据高度压缩，或者你不经常访问它，这种模型可能会更昂贵。
 
 物理字节存储计费采用不同的方法。你支付的费用是基于数据在磁盘上占据的物理空间，而不是基于存储的逻辑数据量，无论你访问它的频率如何，或者它压缩得有多好。对于高度压缩的数据或不经常访问的数据，这种模型**可能会便宜得多**。然而，它要求你管理两种独立的存储类别：一种是频繁访问的数据，另一种是长期存储的数据，这可能会增加复杂性。
 
@@ -370,7 +370,7 @@ BigQuery提供了两种存储计费模型：标准模型和物理字节存储计
 
 +   你更倾向于选择简单且易于管理的方法。
 
-**如果选择PBSB模型**：
+**如果选择 PBSB 模型**：
 
 +   你的数据高度压缩。
 
@@ -378,13 +378,13 @@ BigQuery提供了两种存储计费模型：标准模型和物理字节存储计
 
 你可以在数据集的高级选项中更改计费模型。你还可以在表格详细信息视图中检查逻辑字节与物理字节的差异，这使得选择模型更为方便。
 
-![](../Images/4cb2180cfd099101aac3829db377d55c.png)
+![](img/4cb2180cfd099101aac3829db377d55c.png)
 
 存储计费模型的数据集高级选项
 
 ## 主键和外键的连接优化
 
-自[2023年7月起，BigQuery引入了非强制性的主键和外键约束](https://cloud.google.com/blog/products/data-analytics/join-optimizations-with-bigquery-primary-and-foreign-keys?hl=en)。请记住，BigQuery并不是一个经典的关系数据库管理系统，尽管使用此功能定义数据模型可能会让你觉得它是。
+自[2023 年 7 月起，BigQuery 引入了非强制性的主键和外键约束](https://cloud.google.com/blog/products/data-analytics/join-optimizations-with-bigquery-primary-and-foreign-keys?hl=en)。请记住，BigQuery 并不是一个经典的关系数据库管理系统，尽管使用此功能定义数据模型可能会让你觉得它是。
 
 如果这些键没有强制执行，并且这不是我们熟悉的关系数据库，那么意义何在？答案是：查询优化器可以利用这些信息来更好地优化查询，特别是在内部连接消除、外部连接消除和连接重排序等概念上。
 
@@ -429,7 +429,7 @@ COPY project_x.bronze.login_count;
 bq cp project_x:bronze.login_count project_x:silver.login_count
 ```
 
-通过这种方式，你可以以**0费用**复制数据。
+通过这种方式，你可以以**0 费用**复制数据。
 
 ## 加载数据
 
@@ -461,7 +461,7 @@ OPTIONS(
 
 它将从 ORC 文件中推导出模式，甚至检测分区列。将这些数据从 GCS 移动到 BigQuery 存储的简单方法现在可能是，在 BigQuery 中创建一个表，然后按照务实的 `INSERT INTO ... SELECT FROM` 方法操作。
 
-然而，类似于前面的例子，计费的字节数将反映存储在 `gs://project_x/ingest/some_orc_table` 中的数据量。还有另一种方式，可以通过使用 `LOAD DATA` SQL 语句以**0费用**实现相同的结果。
+然而，类似于前面的例子，计费的字节数将反映存储在 `gs://project_x/ingest/some_orc_table` 中的数据量。还有另一种方式，可以通过使用 `LOAD DATA` SQL 语句以**0 费用**实现相同的结果。
 
 ```py
 LOAD DATA OVERWRITE project_x.silver.some_orc_table (
@@ -487,13 +487,13 @@ WITH PARTITION COLUMNS (
 
 ## 删除分区
 
-在某些ETL或ELT场景中，典型的工作流是将表按天分区，然后根据来自临时/摄取表的新数据替换特定分区。
+在某些 ETL 或 ELT 场景中，典型的工作流是将表按天分区，然后根据来自临时/摄取表的新数据替换特定分区。
 
-![](../Images/c0c962a5f17c681e88a437f318b19468.png)
+![](img/c0c962a5f17c681e88a437f318b19468.png)
 
 分区摄取示例（作者）
 
-BigQuery提供了`MERGE`语句，但简单的方法是先从目标表中删除受影响的分区，然后插入数据。
+BigQuery 提供了`MERGE`语句，但简单的方法是先从目标表中删除受影响的分区，然后插入数据。
 
 在这种情况下，删除分区可以这样实现：
 
@@ -512,7 +512,7 @@ DROP TABLE silver.target$20240101
 
 使用`DROP TABLE`，你实际上也可以通过附加后缀`$<partition_id>`来删除单个分区。
 
-当然，上面的示例只是删除一个分区。然而，使用BigQuery的过程语言，我们可以轻松地在循环中执行该语句。
+当然，上面的示例只是删除一个分区。然而，使用 BigQuery 的过程语言，我们可以轻松地在循环中执行该语句。
 
 ```py
 FOR x IN (SELECT DISTINCT day FROM bronze.ingest)
@@ -521,7 +521,7 @@ DO
 END FOR;
 ```
 
-或者，可以使用Airflow和/或dbt，先选择分区，然后在循环中运行某个模板化查询。
+或者，可以使用 Airflow 和/或 dbt，先选择分区，然后在循环中运行某个模板化查询。
 
 然而，获取分区表的不同分区可以像上述示例那样进行，但即使我们只读取单一列，这仍然会产生一些成本。但再次强调，有一种几乎**免费**的方法来实现这一点，我们将在下一章中探讨。
 
@@ -540,7 +540,7 @@ FROM bronze.ingest
 Bytes billed: 149.14 GB (= $1.18 depending on location)
 ```
 
-BigQuery维护了大量关于表、列和分区的有价值元数据。这些信息可以通过`INFORMATION_SCHEMA`访问。我们可以通过简单地使用这些元数据来实现完全相同的结果：
+BigQuery 维护了大量关于表、列和分区的有价值元数据。这些信息可以通过`INFORMATION_SCHEMA`访问。我们可以通过简单地使用这些元数据来实现完全相同的结果：
 
 ```py
 SELECT PARSE_DATE('%Y%m%d', partition_id) AS day
@@ -554,15 +554,15 @@ WHERE table_name = 'ingest'
 Bytes billed: 10 MB (= $0.00008 depending on location)
 ```
 
-如你所见，149GB与10MB之间的差距非常大。通过这种方法，即使是巨大的表，你也可以以**几乎零成本**获取不同的分区。
+如你所见，149GB 与 10MB 之间的差距非常大。通过这种方法，即使是巨大的表，你也可以以**几乎零成本**获取不同的分区。
 
 ## 不要持久化计算的度量
 
-当你开始使用BigQuery进行第一个项目时，你很可能会选择按需计算定价模式。使用按需定价，你通常可以访问最多2000个并发槽位，所有查询共享这些槽位。但即使使用容量定价，你也会至少拥有100个槽位。
+当你开始使用 BigQuery 进行第一个项目时，你很可能会选择按需计算定价模式。使用按需定价，你通常可以访问最多 2000 个并发槽位，所有查询共享这些槽位。但即使使用容量定价，你也会至少拥有 100 个槽位。
 
 对于大部分日常的 ETL/ELT 工作负载，这些插槽实际上并不是性能的瓶颈。你可以通过进入 BigQuery -> 管理 -> 监控，选择正确的位置，并在“图表配置”下将图表改为 *插槽使用情况* 来自行检查。在很多情况下，你会惊讶于实际使用的插槽是多么少。
 
-![](../Images/3b574cfdb6e528945373257885f71b59.png)
+![](img/3b574cfdb6e528945373257885f71b59.png)
 
 BigQuery 插槽监控
 

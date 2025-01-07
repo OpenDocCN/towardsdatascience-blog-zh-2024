@@ -1,16 +1,16 @@
-# 在Excel中进行报告可能正在比您想象的还要更多地损害您的业务——以下是如何修复它...
+# 在 Excel 中进行报告可能正在比您想象的还要更多地损害您的业务——以下是如何修复它...
 
-> 原文：[https://towardsdatascience.com/reporting-in-excel-could-be-costing-your-business-more-than-you-think-heres-how-to-fix-it-aa40c0020131?source=collection_archive---------8-----------------------#2024-11-12](https://towardsdatascience.com/reporting-in-excel-could-be-costing-your-business-more-than-you-think-heres-how-to-fix-it-aa40c0020131?source=collection_archive---------8-----------------------#2024-11-12)
+> 原文：[`towardsdatascience.com/reporting-in-excel-could-be-costing-your-business-more-than-you-think-heres-how-to-fix-it-aa40c0020131?source=collection_archive---------8-----------------------#2024-11-12`](https://towardsdatascience.com/reporting-in-excel-could-be-costing-your-business-more-than-you-think-heres-how-to-fix-it-aa40c0020131?source=collection_archive---------8-----------------------#2024-11-12)
 
 ## 了解如何节省时间，消除昂贵的数据错误，并让您的团队专注于推动真正商业增长的洞察。
 
-[](https://datagatorsolutions.medium.com/?source=post_page---byline--aa40c0020131--------------------------------)[![Hattie Biddlecombe](../Images/8410aee901d262142d90975a0b688f1f.png)](https://datagatorsolutions.medium.com/?source=post_page---byline--aa40c0020131--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aa40c0020131--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--aa40c0020131--------------------------------) [Hattie Biddlecombe](https://datagatorsolutions.medium.com/?source=post_page---byline--aa40c0020131--------------------------------)
+[](https://datagatorsolutions.medium.com/?source=post_page---byline--aa40c0020131--------------------------------)![Hattie Biddlecombe](https://datagatorsolutions.medium.com/?source=post_page---byline--aa40c0020131--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aa40c0020131--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aa40c0020131--------------------------------) [Hattie Biddlecombe](https://datagatorsolutions.medium.com/?source=post_page---byline--aa40c0020131--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aa40c0020131--------------------------------) ·阅读时间6分钟·2024年11月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aa40c0020131--------------------------------) ·阅读时间 6 分钟·2024 年 11 月 12 日
 
 --
 
-![](../Images/fa4284768329d1eff800c1b7ac6745f6.png)
+![](img/fa4284768329d1eff800c1b7ac6745f6.png)
 
 *免责声明：我与本文提到的任何工具无关；我分享它们是因为我发现它们在处理当前任务时非常有效。*
 
@@ -22,15 +22,15 @@
 
 # 以下是这些机构在报告过程中面临的主要挑战
 
-![](../Images/d8ea293c2963bb589baf780f5c79b6ce.png)
+![](img/d8ea293c2963bb589baf780f5c79b6ce.png)
 
-## 1\. 这些机构花费了过多的时间将报告编制到Excel中
+## 1\. 这些机构花费了过多的时间将报告编制到 Excel 中
 
 报告有时需要花费*几天*时间才能完成。一家机构需要从多个全球市场收集报告，而另一家则依赖于跨部门的几名员工来更新并发送来自他们系统的数据。如果有人休年假，该数据点就会在报告中被标记为“待确认”。
 
 ## 2\. 尝试进行更深层次的分析证明是一个挑战
 
-***Excel的稳定性和可扩展性问题：***
+***Excel 的稳定性和可扩展性问题：***
 
 两家代理商都在处理大量数据，而正如我们许多人都知道的那样，Excel 在这种工作负载下往往会出现卡顿或崩溃。Excel 在创建数据透视表时频繁卡顿和崩溃，使得深入分析变得非常繁琐。团队常常不得不强制重启 Excel，有时还会面临丢失工作的风险。
 
@@ -56,31 +56,31 @@ Excel 提供的可视化范围相对有限，这使得数据的多样化和有�
 
 ***这个例子来自其中一个客户，因为他们的案例更为全面：***
 
-![](../Images/44218ed4015fded680280b4b986448ed.png)
+![](img/44218ed4015fded680280b4b986448ed.png)
 
 图片来源：作者自有
 
 [**Dropbox**](https://www.dropbox.com/) **/ Excel:**
 
-该机构的主要Excel文件包含多个标签页，存储在Dropbox中，以便团队成员能够全球访问。
+该机构的主要 Excel 文件包含多个标签页，存储在 Dropbox 中，以便团队成员能够全球访问。
 
 **2\. Python in** [**Deepnote**](https://deepnote.com/)**:**
 
-这是我花费大部分时间的地方，我在Deepnote笔记本中使用Python彻底清理数据，然后每月自动化这个过程。下面是一个Deepnote Python笔记本的快照。我在单元格中概述了我提取、清理和推送数据的步骤：
+这是我花费大部分时间的地方，我在 Deepnote 笔记本中使用 Python 彻底清理数据，然后每月自动化这个过程。下面是一个 Deepnote Python 笔记本的快照。我在单元格中概述了我提取、清理和推送数据的步骤：
 
-![](../Images/c62b805e2761b965d43a4b7875164da1.png)
+![](img/c62b805e2761b965d43a4b7875164da1.png)
 
 图片来源：Deepnote
 
 **3\.** [**BigQuery**](https://cloud.google.com/bigquery/docs/bigquery-web-ui)
 
-对于两个机构，我确保将清理过的数据存储在数据库中，并且将数据推送回Excel文件中的Dropbox，供那些希望以Excel格式访问数据的人使用。将数据存储在数据库中提供了几个关键优势，包括：
+对于两个机构，我确保将清理过的数据存储在数据库中，并且将数据推送回 Excel 文件中的 Dropbox，供那些希望以 Excel 格式访问数据的人使用。将数据存储在数据库中提供了几个关键优势，包括：
 
-**a. 安全性：** 高级功能如基于用户的权限、加密和审计跟踪，确保敏感数据受到保护，且访问权限严格控制。由于Power BI不允许对某些用户隐藏敏感列，因此我在BigQuery中创建了相关视图来管理隐私，控制哪些数据在仪表板级别暴露。
+**a. 安全性：** 高级功能如基于用户的权限、加密和审计跟踪，确保敏感数据受到保护，且访问权限严格控制。由于 Power BI 不允许对某些用户隐藏敏感列，因此我在 BigQuery 中创建了相关视图来管理隐私，控制哪些数据在仪表板级别暴露。
 
 **b. 速度：** 即使多个用户同时通过仪表板访问数据，查询也能快速运行。
 
-**c. 可扩展性：** 随着数据量的增长，数据库将无缝处理这些数据，避免了两个机构在使用Excel时遇到的上述问题。
+**c. 可扩展性：** 随着数据量的增长，数据库将无缝处理这些数据，避免了两个机构在使用 Excel 时遇到的上述问题。
 
 # 快进到今天：自动化报告和仪表板如何改变了这些机构的工作流程
 
@@ -88,7 +88,7 @@ Excel 提供的可视化范围相对有限，这使得数据的多样化和有�
 
 他们的月度和季度报告现在可以在几分钟内自动刷新，消除了曾经花费大量时间和精力手动整理数据的过程。即使有人在年假期间，流程也能顺利运行，不会中断。团队们不再依赖我的输入，使整个系统变得完全自给自足🎉。
 
-![](../Images/bb83f24c735f13cbcd206fc040810fe8.png)
+![](img/bb83f24c735f13cbcd206fc040810fe8.png)
 
 图片来源：Midjourney
 
@@ -96,7 +96,7 @@ Excel 提供的可视化范围相对有限，这使得数据的多样化和有�
 
 两个机构都对结果感到非常兴奋，使用了“惊人”和“我痴迷”这样的词汇来形容他们客户的新仪表板（抱歉，我有点自夸，但有时候就是得这么做）。虽然我不能分享实际的仪表板，但这里有一个非常接近其中之一的模拟图：
 
-![](../Images/7734d7c88c8d9cc1d8f4b1ef31213d29.png)
+![](img/7734d7c88c8d9cc1d8f4b1ef31213d29.png)
 
 图片来源：[Mokkup.ai](https://www.mokkup.ai/)
 
@@ -106,18 +106,18 @@ Excel 提供的可视化范围相对有限，这使得数据的多样化和有�
 
 **数据准确**
 
-关键是，现在的数字准确无误，摆脱了Excel常见的怪癖和限制。
+关键是，现在的数字准确无误，摆脱了 Excel 常见的怪癖和限制。
 
 **无需外包设计师或依赖第三方工具**
 
-现在，令人惊艳的品牌化可视化可以直接在PowerBI中创建，并轻松嵌入到PowerPoint中，从而不再需要设计师或外部可视化工具。
+现在，令人惊艳的品牌化可视化可以直接在 PowerBI 中创建，并轻松嵌入到 PowerPoint 中，从而不再需要设计师或外部可视化工具。
 
 **现在各机构对数据的潜力有了更深的了解**
 
-和我所有的客户一样，我花时间向他们讲解Excel、Power BI和Python的全部潜力。通过与他们的团队共同工作，我帮助弥合了数据技能的差距，指出了Excel的一些怪癖，同时介绍了Python和笔记本的强大功能，以揭示更深层次的见解。
+和我所有的客户一样，我花时间向他们讲解 Excel、Power BI 和 Python 的全部潜力。通过与他们的团队共同工作，我帮助弥合了数据技能的差距，指出了 Excel 的一些怪癖，同时介绍了 Python 和笔记本的强大功能，以揭示更深层次的见解。
 
 **总之**，Excel 是一个非常出色的工具，但也有其局限性。就像一辆可靠的汽车，它大多数时候可以带你到达目的地。但是当路况变得更加复杂时，有时候你需要一辆更强大的车辆才能继续前进。
 
-截至2023年8月，尽管Excel现在可以集成Python，但它仍然有一些限制，您可以在[这里](https://www.xlwings.org/blog/my-thoughts-on-python-in-excel)了解更多。依我看，通过Python笔记本与Excel合作，进行分析和数据清理要高效得多。
+截至 2023 年 8 月，尽管 Excel 现在可以集成 Python，但它仍然有一些限制，您可以在[这里](https://www.xlwings.org/blog/my-thoughts-on-python-in-excel)了解更多。依我看，通过 Python 笔记本与 Excel 合作，进行分析和数据清理要高效得多。
 
 *想了解您的企业如何受益于类似的自动化和仪表板吗？随时联系我们：* [*https://www.datagatorsolutions.com/*](https://www.datagatorsolutions.com/)

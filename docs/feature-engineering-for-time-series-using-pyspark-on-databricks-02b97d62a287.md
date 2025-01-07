@@ -1,18 +1,18 @@
-# 使用PySpark在Databricks上进行时间序列特征工程
+# 使用 PySpark 在 Databricks 上进行时间序列特征工程
 
-> 原文：[https://towardsdatascience.com/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=collection_archive---------3-----------------------#2024-05-15](https://towardsdatascience.com/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=collection_archive---------3-----------------------#2024-05-15)
+> 原文：[`towardsdatascience.com/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=collection_archive---------3-----------------------#2024-05-15`](https://towardsdatascience.com/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=collection_archive---------3-----------------------#2024-05-15)
 
-## 探索PySpark在时间序列数据中的潜力：获取、提取和可视化数据，并附有实际实施代码
+## 探索 PySpark 在时间序列数据中的潜力：获取、提取和可视化数据，并附有实际实施代码
 
-[](https://medium.com/@johnleungTJ?source=post_page---byline--02b97d62a287--------------------------------)[![John Leung](../Images/ef45063e759e3450fa7f3c32b2f292c3.png)](https://medium.com/@johnleungTJ?source=post_page---byline--02b97d62a287--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--02b97d62a287--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--02b97d62a287--------------------------------) [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--02b97d62a287--------------------------------)
+[](https://medium.com/@johnleungTJ?source=post_page---byline--02b97d62a287--------------------------------)![John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--02b97d62a287--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--02b97d62a287--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02b97d62a287--------------------------------) [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--02b97d62a287--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02b97d62a287--------------------------------) ·阅读时长：9分钟·2024年5月15日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02b97d62a287--------------------------------) ·阅读时长：9 分钟·2024 年 5 月 15 日
 
 --
 
-随着对大规模数据集进行高速查询和分析需求的增加，[Apache Spark](https://spark.apache.org/)已经成为近年来最流行的分析引擎之一。由于其[主-从架构](/a-beginners-guide-to-apache-spark-ff301cb4cd92)，它在分布式数据处理方面非常强大。这包括一个与集群管理器（主节点）协调的驱动程序，并控制将较小任务分配给工作节点的执行。此外，作为一个内存数据处理引擎，Spark主要使用RAM来存储和处理数据，而不是依赖磁盘存储。这些协同作用加速了整体任务的执行。
+随着对大规模数据集进行高速查询和分析需求的增加，[Apache Spark](https://spark.apache.org/)已经成为近年来最流行的分析引擎之一。由于其主-从架构，它在分布式数据处理方面非常强大。这包括一个与集群管理器（主节点）协调的驱动程序，并控制将较小任务分配给工作节点的执行。此外，作为一个内存数据处理引擎，Spark 主要使用 RAM 来存储和处理数据，而不是依赖磁盘存储。这些协同作用加速了整体任务的执行。
 
-![](../Images/f5ba1a26d9aa68b032e07ceb2446dd09.png)
+![](img/f5ba1a26d9aa68b032e07ceb2446dd09.png)
 
 照片由[Dawid Zawiła](https://unsplash.com/@davealmine?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -24,35 +24,35 @@
 
 +   有向无环图（[DAG](https://sparkbyexamples.com/spark/what-is-dag-in-spark/)) — 一种有助于优化和调度任务依赖关系及执行顺序的表示方法。
 
-在更高层次上，我们可以使用Scala、Python或R语言利用丰富的高级工具集。工具示例包括用于SQL和DataFrame的[Spark SQL](https://spark.apache.org/sql/)、用于Pandas工作负载的[Spark上的Pandas API](https://spark.apache.org/docs/latest/api/python/user_guide/pandas_on_spark/index.html)，以及用于流处理的[结构化流式处理](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)。
+在更高层次上，我们可以使用 Scala、Python 或 R 语言利用丰富的高级工具集。工具示例包括用于 SQL 和 DataFrame 的[Spark SQL](https://spark.apache.org/sql/)、用于 Pandas 工作负载的[Spark 上的 Pandas API](https://spark.apache.org/docs/latest/api/python/user_guide/pandas_on_spark/index.html)，以及用于流处理的[结构化流式处理](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)。
 
-然而，在享受这些功能之前，我们可能需要花费大量精力来自行管理一个Spark集群，包括基础设施的设置和一堆复杂的工具，这可能会让人头疼。
+然而，在享受这些功能之前，我们可能需要花费大量精力来自行管理一个 Spark 集群，包括基础设施的设置和一堆复杂的工具，这可能会让人头疼。
 
-## PySpark在Databricks上的应用
+## PySpark 在 Databricks 上的应用
 
-为了应对这些挑战，[PySpark](https://spark.apache.org/docs/latest/api/python/index.html)在[Databricks](https://docs.databricks.com/en/introduction/index.html)上最近成为了行业中一种高级解决方案。PySpark是Spark的Python API，而Databricks是一个基于Spark构建的完整软件平台。它包括笔记本、基础设施编排（自动配置和扩展）、流程编排（作业提交和调度）、托管集群，甚至源代码控制。
+为了应对这些挑战，[PySpark](https://spark.apache.org/docs/latest/api/python/index.html)在[Databricks](https://docs.databricks.com/en/introduction/index.html)上最近成为了行业中一种高级解决方案。PySpark 是 Spark 的 Python API，而 Databricks 是一个基于 Spark 构建的完整软件平台。它包括笔记本、基础设施编排（自动配置和扩展）、流程编排（作业提交和调度）、托管集群，甚至源代码控制。
 
-在Databricks中使用PySpark API，我们将展示并执行一个时间序列数据的特征工程项目。在这个实践过程中，我们将模拟Pandas库在数据处理中的常规行为，同时享受可扩展性和并行处理的额外优势。
+在 Databricks 中使用 PySpark API，我们将展示并执行一个时间序列数据的特征工程项目。在这个实践过程中，我们将模拟 Pandas 库在数据处理中的常规行为，同时享受可扩展性和并行处理的额外优势。
 
-*注意：如果你想进一步了解如何在Azure中使用PySpark API动态编排这个Databricks笔记本，你可以点击* [*这里*](https://medium.com/towards-data-science/orchestrating-a-dynamic-time-series-pipeline-with-azure-data-factory-and-databricks-810819608231)*。*
+*注意：如果你想进一步了解如何在 Azure 中使用 PySpark API 动态编排这个 Databricks 笔记本，你可以点击* [*这里*](https://medium.com/towards-data-science/orchestrating-a-dynamic-time-series-pipeline-with-azure-data-factory-and-databricks-810819608231)*。*
 
-![](../Images/65a0654ef823dc1def1a7caf5abd5b30.png)
+![](img/65a0654ef823dc1def1a7caf5abd5b30.png)
 
 图片由[Alexandru Boicu](https://unsplash.com/@boiq?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-假设你手头有一份家庭电力消耗数据，数据是从2006年12月到2010年11月按一分钟的频率采样的。我们的目标是处理并操作数据，提取特征，并生成可视化结果。
+假设你手头有一份家庭电力消耗数据，数据是从 2006 年 12 月到 2010 年 11 月按一分钟的频率采样的。我们的目标是处理并操作数据，提取特征，并生成可视化结果。
 
-这个[数据集](https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set/data) [根据许可证[数据库：开放数据库，内容：数据库内容](https://opendatacommons.org/licenses/dbcl/1-0/)]，来自Kaggle，包含多个字段，例如日期、时间、全局功率（有功和无功）、电压、全局电流和子计量（1、2和3）。我们现在可以开始分析。
+这个[数据集](https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set/data) [根据许可证[数据库：开放数据库，内容：数据库内容](https://opendatacommons.org/licenses/dbcl/1-0/)]，来自 Kaggle，包含多个字段，例如日期、时间、全局功率（有功和无功）、电压、全局电流和子计量（1、2 和 3）。我们现在可以开始分析。
 
 ## 初始设置
 
-首先，我们需要为[Databricks Community Edition](https://www.databricks.com/product/faq/community-edition)创建一个用户账户，该版本提供了适合我们概念验证目的的Databricks环境。之后，我们可以将输入数据文件上传到FileStore，这是Databricks的专用路径。点击“在笔记本中创建表”后，您将获得一个代码模板以启动数据导入。
+首先，我们需要为[Databricks Community Edition](https://www.databricks.com/product/faq/community-edition)创建一个用户账户，该版本提供了适合我们概念验证目的的 Databricks 环境。之后，我们可以将输入数据文件上传到 FileStore，这是 Databricks 的专用路径。点击“在笔记本中创建表”后，您将获得一个代码模板以启动数据导入。
 
-![](../Images/c5e6d630d059bb13a169a9fdc1e5e9e6.png)
+![](img/c5e6d630d059bb13a169a9fdc1e5e9e6.png)
 
 初始设置 (1/2) — 创建用户账户（图源：作者）
 
-![](../Images/f3f45f84fb426e8deba717b1e847a53c.png)
+![](img/f3f45f84fb426e8deba717b1e847a53c.png)
 
 初始设置 (2/2) — 创建新表（图源：作者）
 
@@ -62,7 +62,7 @@
 
 +   静态数据
 
-我们使用方法`spark.read()`读取数据源并返回一个数据框，这是一个关系表。它支持多种数据源，如CSV、JSON、Parquet等。在此示例中，我们以CSV格式读取电力消耗数据，并定义了模式，其中第一行作为表头，分隔符为“;”。
+我们使用方法`spark.read()`读取数据源并返回一个数据框，这是一个关系表。它支持多种数据源，如 CSV、JSON、Parquet 等。在此示例中，我们以 CSV 格式读取电力消耗数据，并定义了模式，其中第一行作为表头，分隔符为“;”。
 
 ```py
 # File location and type
@@ -86,13 +86,13 @@ display(org_df)
 
 数据框输出的前几行：
 
-![](../Images/0625e5a7006818e72ebba9b31738edb4.png)
+![](img/0625e5a7006818e72ebba9b31738edb4.png)
 
 数据框输出（图源：作者）
 
 +   流数据
 
-在数据持续生成的场景中，我们使用流处理技术来逐步读取数据。为了演示Spark的行为，我将原始数据集划分为10个子集，并预先存储在路径“/FileStore/tables/stream/”下。然后我们使用另一个方法`spark.readStream()`来处理流数据。
+在数据持续生成的场景中，我们使用流处理技术来逐步读取数据。为了演示 Spark 的行为，我将原始数据集划分为 10 个子集，并预先存储在路径“/FileStore/tables/stream/”下。然后我们使用另一个方法`spark.readStream()`来处理流数据。
 
 ```py
 sourceStream=spark.readStream.format("csv") \
@@ -151,7 +151,7 @@ df = df.withColumn("hour", hour("DateTime"))
 
 +   数据探索
 
-我们可以通过各种基本的[PySpark方法](https://spark.apache.org/docs/3.1.1/api/python/reference/api/pyspark.sql.DataFrame.html)来探索数据。
+我们可以通过各种基本的[PySpark 方法](https://spark.apache.org/docs/3.1.1/api/python/reference/api/pyspark.sql.DataFrame.html)来探索数据。
 
 (1) 选择
 
@@ -161,7 +161,7 @@ df = df.withColumn("hour", hour("DateTime"))
 df.select(“DateTime”, “Global_active_power”, “Global_intensity”).sort(“Global_active_power”, ascending=False).show(5)
 ```
 
-![](../Images/63e2ed1f5139466002ac988a985dccd1.png)
+![](img/63e2ed1f5139466002ac988a985dccd1.png)
 
 “select”方法的输出（图源：作者）
 
@@ -191,7 +191,7 @@ df.groupby("month").agg(
 ).sort(["month"]).show(5)
 ```
 
-![](../Images/0c23b506d6091e313838198cd696ef74.png)
+![](img/0c23b506d6091e313838198cd696ef74.png)
 
 “groupby”方法的输出（图像来自作者）
 
@@ -216,7 +216,7 @@ df2 = df2.withColumn("power_lag1", round(lag(col("Total_global_active_power"), 1
 display(df2)
 ```
 
-![](../Images/434e8ccfb2bb2a4fb421b8df83620e29.png)
+![](img/434e8ccfb2bb2a4fb421b8df83620e29.png)
 
 输出 — 滞后特征（图像来自作者）
 
@@ -231,7 +231,7 @@ df2 = df2.withColumn("power_lag1_delta", round(col("power_lag1") - col("Total_gl
 display(df2)
 ```
 
-![](../Images/7a55306d33c5684e2d67047a8f5ece93.png)
+![](img/7a55306d33c5684e2d67047a8f5ece93.png)
 
 输出 — Delta 特征（图像来自作者）
 
@@ -254,7 +254,7 @@ df2 = add_window_avg_features(df2, window_sizes)
 df2.select("Date", "Total_global_active_power", "avg_power_l14", "avg_power_l30").sort("Date", ascending=False).show(5)
 ```
 
-![](../Images/6da0266dc8acdc4ecba82eea68778a0e.png)
+![](img/6da0266dc8acdc4ecba82eea68778a0e.png)
 
 输出 — 窗口平均特征（图像来自作者）
 
@@ -283,7 +283,7 @@ df2 = df2_pd.to_spark()
 df2.select("Date", "Total_global_active_power", "ewma_power_w02", "ewma_power_w08").sort("Date", ascending=False).show(5)
 ```
 
-![](../Images/6f8d723516896fea4200c35e0e10f34a.png)
+![](img/6f8d723516896fea4200c35e0e10f34a.png)
 
 输出 — EWMA 特征（图像来自作者）
 
@@ -295,52 +295,52 @@ df2.select("Date", "Total_global_active_power", "ewma_power_w02", "ewma_power_w0
 
 *解释：这两个字段之间有高度的正相关。*
 
-![](../Images/91d07a8535fb209f7e67989232457ed8.png)
+![](img/91d07a8535fb209f7e67989232457ed8.png)
 
 散点图，使用可视化编辑器（图像来自作者）
 
 +   箱形图：全球有功功率在各个小时的分布
 
-*解释：全球有功功率在7:00到21:00之间有较大的波动。*
+*解释：全球有功功率在 7:00 到 21:00 之间有较大的波动。*
 
-![](../Images/d737bb1829863d28a0311a0a48f2dafd.png)
+![](img/d737bb1829863d28a0311a0a48f2dafd.png)
 
 箱形图（图像来自作者）
 
-+   折线图：2008年1月到2008年3月，全球有功功率的变化，EWMA（alpha = 0.2）和EWMA（alpha = 0.8）
++   折线图：2008 年 1 月到 2008 年 3 月，全球有功功率的变化，EWMA（alpha = 0.2）和 EWMA（alpha = 0.8）
 
-*解释：使用alpha为0.8的EWMA比使用alpha为0.2的EWMA更接近原始时间序列。*
+*解释：使用 alpha 为 0.8 的 EWMA 比使用 alpha 为 0.2 的 EWMA 更接近原始时间序列。*
 
-![](../Images/6505478ffa3793a4eb8a874d7cb56713.png)
+![](img/6505478ffa3793a4eb8a874d7cb56713.png)
 
 折线图（图片来自作者）
 
-此外，我们可以生成默认数据概况，显示诸如计数、缺失值百分比和数据分布等汇总统计信息。这确保了整个特征工程过程中的数据质量。上述可视化也可以通过Databricks SQL查询输出生成。
+此外，我们可以生成默认数据概况，显示诸如计数、缺失值百分比和数据分布等汇总统计信息。这确保了整个特征工程过程中的数据质量。上述可视化也可以通过 Databricks SQL 查询输出生成。
 
 ## 总结
 
-在我们的实践探索中，我们使用PySpark进行时间序列数据的特征工程，使用的是Databricks平台：
+在我们的实践探索中，我们使用 PySpark 进行时间序列数据的特征工程，使用的是 Databricks 平台：
 
 +   通过分别使用` spark.read()`和`spark.readStream()`方法来处理静态和流式数据。
 
-+   通过使用`pyspark.sql.functions`中的一系列基本PySpark函数和DataFrame方法来操作和探索数据。
++   通过使用`pyspark.sql.functions`中的一系列基本 PySpark 函数和 DataFrame 方法来操作和探索数据。
 
 +   通过计算数据组之间的关系，使用`pyspark.sql.Window`提取趋势相关特征。
 
-+   可视化，使用Databricks Notebook中的内置功能。
++   可视化，使用 Databricks Notebook 中的内置功能。
 
-在处理大规模数据集时，PySpark通常比Pandas更受青睐，因为它具有可扩展性和性能优势。PySpark支持懒评估，这意味着只有在必要时才会执行计算，从而减少了开销。然而，有时Scala可能是更好的选择，因为Spark本身是用Scala编写的，因此可以更紧密地跟进最新特性。而且，使用不可变对象的系统更不容易出错。因此，不同的语言或库各有其优势。最终的选择取决于企业的需求、开发者的学习曲线以及与其他系统的集成。
+在处理大规模数据集时，PySpark 通常比 Pandas 更受青睐，因为它具有可扩展性和性能优势。PySpark 支持懒评估，这意味着只有在必要时才会执行计算，从而减少了开销。然而，有时 Scala 可能是更好的选择，因为 Spark 本身是用 Scala 编写的，因此可以更紧密地跟进最新特性。而且，使用不可变对象的系统更不容易出错。因此，不同的语言或库各有其优势。最终的选择取决于企业的需求、开发者的学习曲线以及与其他系统的集成。
 
 ## 在你离开之前
 
-如果你喜欢这篇文章，欢迎关注我的[Medium页面](https://medium.com/@johnleungTJ)和[LinkedIn页面](https://www.linkedin.com/in/john-leung-639800115/)。这样，你可以及时了解与数据科学副项目和机器学习运维（MLOps）演示方法相关的精彩内容。
+如果你喜欢这篇文章，欢迎关注我的[Medium 页面](https://medium.com/@johnleungTJ)和[LinkedIn 页面](https://www.linkedin.com/in/john-leung-639800115/)。这样，你可以及时了解与数据科学副项目和机器学习运维（MLOps）演示方法相关的精彩内容。
 
-[](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----02b97d62a287--------------------------------) [## 使用LangChain和LLMs进行客户分析
+[](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----02b97d62a287--------------------------------) ## 使用 LangChain 和 LLMs 进行客户分析
 
-### 探索LangChain在客户分析中的潜力与限制，并附有实际实现…
+### 探索 LangChain 在客户分析中的潜力与限制，并附有实际实现…
 
-towardsdatascience.com](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----02b97d62a287--------------------------------) [](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----02b97d62a287--------------------------------) [## 管理机器学习系统的技术债务
+towardsdatascience.com [](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----02b97d62a287--------------------------------) ## 管理机器学习系统的技术债务
 
 ### 探索通过实施代码可持续减轻快速交付成本的做法
 
-[towardsdatascience.com](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----02b97d62a287--------------------------------)
+[towardsdatascience.com

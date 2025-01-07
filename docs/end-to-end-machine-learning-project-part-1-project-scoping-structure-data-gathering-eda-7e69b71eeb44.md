@@ -1,18 +1,18 @@
 # 启动你的机器学习之旅：范围确定、结构设计和数据探索（第一部分）
 
-> 原文：[https://towardsdatascience.com/end-to-end-machine-learning-project-part-1-project-scoping-structure-data-gathering-eda-7e69b71eeb44?source=collection_archive---------18-----------------------#2024-06-18](https://towardsdatascience.com/end-to-end-machine-learning-project-part-1-project-scoping-structure-data-gathering-eda-7e69b71eeb44?source=collection_archive---------18-----------------------#2024-06-18)
+> 原文：[`towardsdatascience.com/end-to-end-machine-learning-project-part-1-project-scoping-structure-data-gathering-eda-7e69b71eeb44?source=collection_archive---------18-----------------------#2024-06-18`](https://towardsdatascience.com/end-to-end-machine-learning-project-part-1-project-scoping-structure-data-gathering-eda-7e69b71eeb44?source=collection_archive---------18-----------------------#2024-06-18)
 
 ## 一份关于规划和组织机器学习项目的实用指南，从数据收集到探索性分析。
 
-[](https://medium.com/@Pratha_P?source=post_page---byline--7e69b71eeb44--------------------------------)[![Pratha Pawar](../Images/a0fcfa5742b473273e089863d7c68a0e.png)](https://medium.com/@Pratha_P?source=post_page---byline--7e69b71eeb44--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7e69b71eeb44--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7e69b71eeb44--------------------------------) [Pratha Pawar](https://medium.com/@Pratha_P?source=post_page---byline--7e69b71eeb44--------------------------------)
+[](https://medium.com/@Pratha_P?source=post_page---byline--7e69b71eeb44--------------------------------)![Pratha Pawar](https://medium.com/@Pratha_P?source=post_page---byline--7e69b71eeb44--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7e69b71eeb44--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e69b71eeb44--------------------------------) [Pratha Pawar](https://medium.com/@Pratha_P?source=post_page---byline--7e69b71eeb44--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e69b71eeb44--------------------------------) ·10分钟阅读·2024年6月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e69b71eeb44--------------------------------) ·10 分钟阅读·2024 年 6 月 18 日
 
 --
 
-![](../Images/b3d54d45ea93df193b545449210f9448.png)
+![](img/b3d54d45ea93df193b545449210f9448.png)
 
-在Streamlit中进行交互式可视化，使用Bokeh（图像由作者提供）
+在 Streamlit 中进行交互式可视化，使用 Bokeh（图像由作者提供）
 
 ## **本文将涵盖以下主题**
 
@@ -20,9 +20,9 @@
 
 +   设置工作环境和目录结构
 
-+   收集数据（使用多线程提高2到4倍的速度）
++   收集数据（使用多线程提高 2 到 4 倍的速度）
 
-+   预处理数据（使用向量化提高10倍速度）
++   预处理数据（使用向量化提高 10 倍速度）
 
 +   通过探索性数据分析（EDA）获得有价值的见解
 

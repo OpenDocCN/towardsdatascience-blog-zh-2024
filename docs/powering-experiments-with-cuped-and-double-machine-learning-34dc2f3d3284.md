@@ -1,44 +1,44 @@
-# 使用CUPED和双重机器学习为实验赋能
+# 使用 CUPED 和双重机器学习为实验赋能
 
-> 原文：[https://towardsdatascience.com/powering-experiments-with-cuped-and-double-machine-learning-34dc2f3d3284?source=collection_archive---------2-----------------------#2024-08-15](https://towardsdatascience.com/powering-experiments-with-cuped-and-double-machine-learning-34dc2f3d3284?source=collection_archive---------2-----------------------#2024-08-15)
+> 原文：[`towardsdatascience.com/powering-experiments-with-cuped-and-double-machine-learning-34dc2f3d3284?source=collection_archive---------2-----------------------#2024-08-15`](https://towardsdatascience.com/powering-experiments-with-cuped-and-double-machine-learning-34dc2f3d3284?source=collection_archive---------2-----------------------#2024-08-15)
 
-## 因果AI，探索因果推理与机器学习的结合
+## 因果 AI，探索因果推理与机器学习的结合
 
-[](https://medium.com/@raz1470?source=post_page---byline--34dc2f3d3284--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--34dc2f3d3284--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--34dc2f3d3284--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--34dc2f3d3284--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--34dc2f3d3284--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--34dc2f3d3284--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--34dc2f3d3284--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--34dc2f3d3284--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--34dc2f3d3284--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--34dc2f3d3284--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--34dc2f3d3284--------------------------------) ·阅读时长17分钟·2024年8月15日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--34dc2f3d3284--------------------------------) ·阅读时长 17 分钟·2024 年 8 月 15 日
 
 --
 
-![](../Images/9853e8cbe533bacb89e3bddd32cb8708.png)
+![](img/9853e8cbe533bacb89e3bddd32cb8708.png)
 
 图片来源：[Karsten Würth](https://unsplash.com/@karsten_wuerth?utm_source=medium&utm_medium=referral) 于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 这系列文章讲的是什么？
 
-欢迎来到我的因果AI系列文章，我们将在这里探索因果推理如何融入机器学习模型。你将看到跨多个业务场景的多种实际应用。
+欢迎来到我的因果 AI 系列文章，我们将在这里探索因果推理如何融入机器学习模型。你将看到跨多个业务场景的多种实际应用。
 
-在上一篇文章中，我们介绍了*如何通过因果图保护需求预测*。今天，我们将重点讨论如何使用CUPED和双重机器学习为实验赋能。
+在上一篇文章中，我们介绍了*如何通过因果图保护需求预测*。今天，我们将重点讨论如何使用 CUPED 和双重机器学习为实验赋能。
 
 如果你错过了上一篇关于保护需求预测的文章，可以在这里查看：
 
-[](/safeguarding-demand-forecasting-with-causal-graphs-591511fc8e0e?source=post_page-----34dc2f3d3284--------------------------------) [## 使用因果图保护需求预测
+[](/safeguarding-demand-forecasting-with-causal-graphs-591511fc8e0e?source=post_page-----34dc2f3d3284--------------------------------) ## 使用因果图保护需求预测
 
-### 因果AI，探索因果推理与机器学习的结合
+### 因果 AI，探索因果推理与机器学习的结合
 
-towardsdatascience.com](/safeguarding-demand-forecasting-with-causal-graphs-591511fc8e0e?source=post_page-----34dc2f3d3284--------------------------------)
+towardsdatascience.com
 
 # 引言
 
-在本文中，我们将评估CUPED和双重机器学习是否能够增强你的实验效果。我们将通过案例研究来探索以下几个方面：
+在本文中，我们将评估 CUPED 和双重机器学习是否能够增强你的实验效果。我们将通过案例研究来探索以下几个方面：
 
 +   实验的构建模块：假设检验、功效分析、自助法。
 
-+   什么是CUPED，它如何帮助增强实验效果？
++   什么是 CUPED，它如何帮助增强实验效果？
 
-+   CUPED和双重机器学习在概念上有哪些相似之处？
++   CUPED 和双重机器学习在概念上有哪些相似之处？
 
-+   什么时候我们应该使用双重机器学习，而不是CUPED？
++   什么时候我们应该使用双重机器学习，而不是 CUPED？
 
 完整的笔记本可以在这里找到：
 
@@ -60,21 +60,21 @@ towardsdatascience.com](/safeguarding-demand-forecasting-with-causal-graphs-5915
 
 我们首先创建一些实验前的数据。我们使用的数据生成过程具有以下特点：
 
-+   3个观察到的协变量与先前销售的近期性（x_recency）、频率（x_frequency）和价值（x_value）相关。
++   3 个观察到的协变量与先前销售的近期性（x_recency）、频率（x_frequency）和价值（x_value）相关。
 
-+   1个未观察到的协变量，用户的月收入（u_income）。
++   1 个未观察到的协变量，用户的月收入（u_income）。
 
-![](../Images/bac77761d4e1524256fb74b839f98e5c.png)
+![](img/bac77761d4e1524256fb74b839f98e5c.png)
 
 用户生成的图像
 
 +   使用协变量之间的复杂关系来估计我们的目标指标——销售值：
 
-![](../Images/34a926a337c172ee066ca3cd38c4ce74.png)
+![](img/34a926a337c172ee066ca3cd38c4ce74.png)
 
 用户生成的图像
 
-下面的python代码用于创建实验前的数据：
+下面的 python 代码用于创建实验前的数据：
 
 ```py
 np.random.seed(123)
@@ -117,13 +117,13 @@ plt.title('Sales Value')
 plt.show()
 ```
 
-![](../Images/69b2bc0d3c5278b6ed231416969a3a30.png)
+![](img/69b2bc0d3c5278b6ed231416969a3a30.png)
 
 用户生成的图像
 
 # 实验的基本构建块：假设检验、效能分析、自助法
 
-在我们进入CUPED之前，我认为有必要先讲解一些关于实验的基础知识。
+在我们进入 CUPED 之前，我认为有必要先讲解一些关于实验的基础知识。
 
 ## 假设检验
 
@@ -145,9 +145,9 @@ plt.show()
 
 +   **第二类错误（Beta，假阴性）**：如果实验未能发现推荐系统在收入上有显著增加，尽管它实际上确实带来了有意义的增长。
 
-+   **显著性水平（Alpha）**：如果将显著性水平设置为0.05，则意味着你接受5%的概率错误地得出推荐系统提高收入的结论，尽管实际上并没有提升（假阳性）。
++   **显著性水平（Alpha）**：如果将显著性水平设置为 0.05，则意味着你接受 5%的概率错误地得出推荐系统提高收入的结论，尽管实际上并没有提升（假阳性）。
 
-+   **功效（1 — Beta）**：达到0.80的功效意味着在推荐系统确实有作用的情况下，你有80%的机会检测到收入的显著增长。较高的功效可以降低假阴性的风险。
++   **功效（1 — Beta）**：达到 0.80 的功效意味着在推荐系统确实有作用的情况下，你有 80%的机会检测到收入的显著增长。较高的功效可以降低假阴性的风险。
 
 当你开始思考实验设计时，你会设定一些初步目标：
 
@@ -161,23 +161,23 @@ plt.show()
 
 ## 功效分析
 
-当我们讨论实验的功效时，通常是指确定在给定置信度下，检测到某一特定大小效应所需的最小样本量的过程。功效分析包括3个组件：
+当我们讨论实验的功效时，通常是指确定在给定置信度下，检测到某一特定大小效应所需的最小样本量的过程。功效分析包括 3 个组件：
 
-+   **效应大小** — H₀和Hₐ的平均值之间的差异。我们通常需要根据对业务/行业的理解，做出合理的假设。
++   **效应大小** — H₀和 Hₐ的平均值之间的差异。我们通常需要根据对业务/行业的理解，做出合理的假设。
 
-+   **显著性水平** — 错误得出存在效应结论的概率，通常设定为0.05。
++   **显著性水平** — 错误得出存在效应结论的概率，通常设定为 0.05。
 
-+   **功效** — 正确检测到效果的概率，通常设定为0.80。
++   **功效** — 正确检测到效果的概率，通常设定为 0.80。
 
-我最初发现这些直觉很难理解，但可视化真的可以帮助理解。让我们试试吧！关键区域是H₀和Hₐ交叉的地方——看看它是否能帮助你将上面讨论的各个组件联系起来……
+我最初发现这些直觉很难理解，但可视化真的可以帮助理解。让我们试试吧！关键区域是 H₀和 Hₐ交叉的地方——看看它是否能帮助你将上面讨论的各个组件联系起来……
 
-![](../Images/01eaf60212908ac7aab73804366e2e8d.png)
+![](img/01eaf60212908ac7aab73804366e2e8d.png)
 
 用户生成的图片
 
-更大的样本量会导致更小的**标准误差**。标准误差较小时，H₀和Hₐ的抽样分布变得更窄，重叠部分减少。这种重叠的减少使得检测差异变得更加容易，从而提高了统计功效。
+更大的样本量会导致更小的**标准误差**。标准误差较小时，H₀和 Hₐ的抽样分布变得更窄，重叠部分减少。这种重叠的减少使得检测差异变得更加容易，从而提高了统计功效。
 
-以下函数展示了如何使用statsmodels Python包来进行功效分析：
+以下函数展示了如何使用 statsmodels Python 包来进行功效分析：
 
 ```py
 from typing import Union
@@ -236,17 +236,17 @@ exp_perc_change = 0.05 # Set the expected percentage change in the chosen metric
 min_sample_size = power_analysis(df_pre["y_value"], exp_perc_change
 ```
 
-![](../Images/e766581806e322906648a66eb2e665bc.png)
+![](img/e766581806e322906648a66eb2e665bc.png)
 
 用户生成图像
 
-我们可以看到，鉴于我们目标指标的分布，要检测出5%的增加，我们需要的样本量是1,645。
+我们可以看到，鉴于我们目标指标的分布，要检测出 5%的增加，我们需要的样本量是 1,645。
 
 ## 数据生成过程：实验数据
 
 在你急于设置实验之前，你决定利用实验前的数据来模拟实验。
 
-以下函数随机选择用户进行治疗，并应用治疗效应。在函数的最后，我们记录治疗前后均值的差异以及真实的ATE（平均治疗效应）：
+以下函数随机选择用户进行治疗，并应用治疗效应。在函数的最后，我们记录治疗前后均值的差异以及真实的 ATE（平均治疗效应）：
 
 ```py
 def exp_data_generator(t_perc_change, t_samples):
@@ -299,19 +299,19 @@ df_exp_1 = exp_data_generator(exp_perc_change, min_sample_size)
 
 让我们首先检查一下我们为接受治疗的用户创建的数据，帮助你理解该函数的作用：
 
-![](../Images/d5448f96a7709846f3ac08aad74204b5.png)
+![](img/d5448f96a7709846f3ac08aad74204b5.png)
 
 用户生成图像
 
 接下来，让我们看一下该函数打印的结果：
 
-![](../Images/e68cb71f6cabe6971c08e46b1d947b0b.png)
+![](img/e68cb71f6cabe6971c08e46b1d947b0b.png)
 
 用户生成图像
 
-有趣的是，我们看到在选择需要治疗的用户后，但在我们进行治疗之前，已经存在均值的差异。这个差异是由随机因素造成的。这意味着，当我们查看治疗后的用户差异时，我们并没有正确估计ATE（平均治疗效应）。当我们讲解CUPED时，会回到这一点。
+有趣的是，我们看到在选择需要治疗的用户后，但在我们进行治疗之前，已经存在均值的差异。这个差异是由随机因素造成的。这意味着，当我们查看治疗后的用户差异时，我们并没有正确估计 ATE（平均治疗效应）。当我们讲解 CUPED 时，会回到这一点。
 
-![](../Images/874eed4c5f7388d5a8c7717f0613b3bd.png)
+![](img/874eed4c5f7388d5a8c7717f0613b3bd.png)
 
 用户生成图像
 
@@ -321,23 +321,23 @@ df_exp_1 = exp_data_generator(exp_perc_change, min_sample_size)
 
 自助法是一种强大的统计技术，涉及带有放回的重抽样数据。这些重抽样的数据集被称为自助法样本，帮助我们估计从原始数据中提取统计量（如均值或中位数）的变异性。在实验中，这种方法尤其具有吸引力，因为它使我们能够计算置信区间。让我们通过一个简单的例子一步步演示…
 
-你已经进行了一个实验，控制组和治疗组各有1k用户。
+你已经进行了一个实验，控制组和治疗组各有 1k 用户。
 
-1.  创建自助法样本 —— 从控制组和治疗组中随机选择（有放回）1k用户。这为控制组和治疗组各提供一个自助法样本。
+1.  创建自助法样本 —— 从控制组和治疗组中随机选择（有放回）1k 用户。这为控制组和治疗组各提供一个自助法样本。
 
-1.  重复这个过程n次（例如10k次）。
+1.  重复这个过程 n 次（例如 10k 次）。
 
 1.  对每一对自助法样本，计算控制组和治疗组之间的均值差异。
 
-1.  现在我们有了一个分布（由10k个自助法样本的均值差异组成），我们可以使用它来计算置信区间。
+1.  现在我们有了一个分布（由 10k 个自助法样本的均值差异组成），我们可以使用它来计算置信区间。
 
-![](../Images/3346768ff5436682708eccc93ac03db7.png)
+![](img/3346768ff5436682708eccc93ac03db7.png)
 
 用户生成图像
 
 ## 将其应用于我们的案例研究
 
-让我们通过案例研究来说明它是如何工作的。下面我们使用sciPy stats Python包来帮助计算自助法置信区间：
+让我们通过案例研究来说明它是如何工作的。下面我们使用 sciPy stats Python 包来帮助计算自助法置信区间：
 
 ```py
 from typing import Union
@@ -398,23 +398,23 @@ def bootstrapping(df: pd.DataFrame, adjusted_metric: str, n_resamples: int = 100
 bootstrap_og_1 = bootstrapping(df_exp_1, "y_value_exp")
 ```
 
-![](../Images/95dea5cf92e093d0a197aec611dafefb.png)
+![](img/95dea5cf92e093d0a197aec611dafefb.png)
 
 用户生成图像
 
-我们的真实ATE（平均处理效应）是143（来自我们实验数据生成函数的实际处理效应），该值位于我们的置信区间内。然而，值得注意的是，均值差异并没有发生变化（它仍然是93，就像我们在仅计算控制组和处理组均值差异时一样），并且处理前的差异仍然存在。
+我们的真实 ATE（平均处理效应）是 143（来自我们实验数据生成函数的实际处理效应），该值位于我们的置信区间内。然而，值得注意的是，均值差异并没有发生变化（它仍然是 93，就像我们在仅计算控制组和处理组均值差异时一样），并且处理前的差异仍然存在。
 
-那么，如果我们想要得出更窄的置信区间怎么办？有没有办法处理处理前的差异呢？这将我们引导到CUPED……
+那么，如果我们想要得出更窄的置信区间怎么办？有没有办法处理处理前的差异呢？这将我们引导到 CUPED……
 
-# 什么是CUPED，它如何帮助提升实验效能？
+# 什么是 CUPED，它如何帮助提升实验效能？
 
 ## 背景
 
 CUPED（使用实验前数据的控制实验）是一种强大的技术，旨在通过微软研究人员开发的技术来提高实验的准确性。原始论文对于任何对实验感兴趣的人来说，都是一篇具有洞察力的阅读材料：
 
-[https://ai.stanford.edu/~ronnyk/2009controlledExperimentsOnTheWebSurvey.pdf](https://ai.stanford.edu/~ronnyk/2009controlledExperimentsOnTheWebSurvey.pdf)
+[`ai.stanford.edu/~ronnyk/2009controlledExperimentsOnTheWebSurvey.pdf`](https://ai.stanford.edu/~ronnyk/2009controlledExperimentsOnTheWebSurvey.pdf)
 
-CUPED的核心思想是使用实验开始前收集的数据来减少目标指标的方差。通过这样做，你可以使实验更敏感，从而获得两个主要好处：
+CUPED 的核心思想是使用实验开始前收集的数据来减少目标指标的方差。通过这样做，你可以使实验更敏感，从而获得两个主要好处：
 
 1.  你可以在相同的样本量下检测到更小的效果。
 
@@ -424,7 +424,7 @@ CUPED的核心思想是使用实验开始前收集的数据来减少目标指标
 
 ## 方差、标准差、标准误差
 
-当你了解CUPED时，可能会听到人们谈论它如何减少方差、标准差或标准误。如果你像我一样，可能会忘记这些概念之间的关系，因此在我们继续深入之前，让我们回顾一下这些概念！
+当你了解 CUPED 时，可能会听到人们谈论它如何减少方差、标准差或标准误。如果你像我一样，可能会忘记这些概念之间的关系，因此在我们继续深入之前，让我们回顾一下这些概念！
 
 +   **方差**：方差衡量每个数据点与均值的平方偏差的平均值，反映了数据集内的整体分布或离散程度。
 
@@ -432,17 +432,17 @@ CUPED的核心思想是使用实验开始前收集的数据来减少目标指标
 
 +   **标准误差**：标准误差量化了样本均值作为总体均值估计的精度，计算方法是将标准差除以样本大小的平方根。
 
-## CUPED是如何工作的？
+## CUPED 是如何工作的？
 
-为了理解CUPED是如何工作的，我们先来分解一下……
+为了理解 CUPED 是如何工作的，我们先来分解一下……
 
-**实验前协变量** — 在CUPED的最简单实现中，实验前协变量是实验开始前的一段时间内测量的目标指标。因此，如果你的目标指标是销售额，那么你的协变量可以是每个客户在实验前4周的销售额。
+**实验前协变量** — 在 CUPED 的最简单实现中，实验前协变量是实验开始前的一段时间内测量的目标指标。因此，如果你的目标指标是销售额，那么你的协变量可以是每个客户在实验前 4 周的销售额。
 
 你的协变量与目标指标相关，并且不受处理的影响，这一点非常重要。这也是为什么我们通常使用控制组的处理前数据。
 
 **回归调整** — 使用线性回归来建模协变量（实验前测量）与目标指标（实验期间测量）之间的关系。然后，我们可以通过去除协变量的影响来计算 CUPED 调整后的目标指标：
 
-![](../Images/ee1f5375c1228403ad307b357c55788c.png)
+![](img/ee1f5375c1228403ad307b357c55788c.png)
 
 用户生成的图片
 
@@ -510,7 +510,7 @@ plt.ylabel("Density")
 plt.legend(title="Distribution")
 ```
 
-![](../Images/979220e2d8fa0775cb942bf17a1d1505.png)
+![](img/979220e2d8fa0775cb942bf17a1d1505.png)
 
 用户生成的图片
 
@@ -522,7 +522,7 @@ plt.legend(title="Distribution")
 bootstrap_cuped_1 = bootstrapping(df_exp_1, "adjusted_target")
 ```
 
-![](../Images/7e4f9adbcabe4f1f983b968fa2ced17c.png)
+![](img/7e4f9adbcabe4f1f983b968fa2ced17c.png)
 
 用户生成的图片
 
@@ -554,7 +554,7 @@ plt.legend()
 plt.show()
 ```
 
-![](../Images/2ca14804954a90f551baa3be1187c7a4.png)
+![](img/2ca14804954a90f551baa3be1187c7a4.png)
 
 用户生成的图片
 
@@ -569,7 +569,7 @@ treatment_effect_1 = round(df_exp_1[df_exp_1["treatment"]==1]["treatment_effect"
 cuped_sample_size = power_analysis(df_exp_1[df_exp_1['treatment'] == 0]['adjusted_target'], treatment_effect_1 / df_exp_1[df_exp_1['treatment'] == 0]['adjusted_target'].mean())
 ```
 
-![](../Images/5c4826146a3028c94472f710ed1844fa.png)
+![](img/5c4826146a3028c94472f710ed1844fa.png)
 
 用户生成的图片
 
@@ -581,19 +581,19 @@ cuped_sample_size = power_analysis(df_exp_1[df_exp_1['treatment'] == 0]['adjuste
 
 当我第一次读到 CUPED 时，我就想到了双重机器学习及其相似之处。如果你不熟悉双重机器学习，查看我在系列文章中的早期内容：
 
-[](/de-biasing-treatment-effects-with-double-machine-learning-63b16fcb3e97?source=post_page-----34dc2f3d3284--------------------------------) [## 使用双重机器学习消除处理效应偏差
+[](/de-biasing-treatment-effects-with-double-machine-learning-63b16fcb3e97?source=post_page-----34dc2f3d3284--------------------------------) ## 使用双重机器学习消除处理效应偏差
 
 ### 因果 AI，探索因果推理与机器学习的结合
 
-towardsdatascience.com](/de-biasing-treatment-effects-with-double-machine-learning-63b16fcb3e97?source=post_page-----34dc2f3d3284--------------------------------)
+towardsdatascience.com
 
 请注意双重机器学习中的第一阶段结果模型：
 
 +   ***结果模型（去噪）：*** 用于仅使用控制特征估计结果的机器学习模型。然后计算结果模型的残差。
 
-这在概念上与我们使用CUPED的做法非常相似！
+这在概念上与我们使用 CUPED 的做法非常相似！
 
-## 它与CUPED相比如何？
+## 它与 CUPED 相比如何？
 
 让我们通过案例研究数据，看看是否得到类似的结果：
 
@@ -610,13 +610,13 @@ print(f'DML confidence interval upper bound: {ate_dml_ub}')
 print(f'DML ate: {ate_dml}')
 ```
 
-![](../Images/edd156ca7a8178703d554a058002f2aa.png)
+![](img/edd156ca7a8178703d554a058002f2aa.png)
 
 用户生成的图像
 
 我们得到几乎完全相同的结果！
 
-当我们绘制残差时，可以看到方差像在CUPED中一样减少（尽管我们没有添加均值来进行缩放以便于解释）：
+当我们绘制残差时，可以看到方差像在 CUPED 中一样减少（尽管我们没有添加均值来进行缩放以便于解释）：
 
 ```py
 # Fit model outcome model using pre-experiment covariates
@@ -640,19 +640,19 @@ plt.legend(title="Distribution")
 plt.show()
 ```
 
-![](../Images/895d86f01f26912525e039620b535abc.png)
+![](img/895d86f01f26912525e039620b535abc.png)
 
 用户生成的图像
 
 “那又怎么样？”我听到你问！
 
-首先，我认为这对任何使用双重机器学习的人来说是一个有趣的观察——第一阶段结果模型有助于减少方差，因此我们应该能够获得类似CUPED的好处。
+首先，我认为这对任何使用双重机器学习的人来说是一个有趣的观察——第一阶段结果模型有助于减少方差，因此我们应该能够获得类似 CUPED 的好处。
 
 其次，它提出了一个问题：每种方法什么时候合适？让我们通过回答这个问题来结束本部分…
 
-# 我们什么时候应该使用双重机器学习而不是CUPED？
+# 我们什么时候应该使用双重机器学习而不是 CUPED？
 
-有几个原因说明为什么倾向于使用CUPED可能是合理的：
+有几个原因说明为什么倾向于使用 CUPED 可能是合理的：
 
 +   这更容易理解。
 
@@ -660,13 +660,13 @@ plt.show()
 
 +   这是一个模型，而不是三个模型，这意味着你会面临更少的过拟合挑战。
 
-然而，也有一些例外情况，双重机器学习优于CUPED：
+然而，也有一些例外情况，双重机器学习优于 CUPED：
 
 +   **偏倚的处理分配**——当处理分配存在偏倚时，例如使用观察数据时，双重机器学习可以处理这个问题。我的上一篇文章深入探讨了这一点：
 
 [](/de-biasing-treatment-effects-with-double-machine-learning-63b16fcb3e97?source=post_page-----34dc2f3d3284--------------------------------) [## 使用双重机器学习去偏治疗效果](https://example.org)
 
-### 因果AI，探索因果推理与机器学习的结合
+### 因果 AI，探索因果推理与机器学习的结合
 
 towardsdatascience.com](/de-biasing-treatment-effects-with-double-machine-learning-63b16fcb3e97?source=post_page-----34dc2f3d3284--------------------------------)
 
@@ -674,7 +674,7 @@ towardsdatascience.com](/de-biasing-treatment-effects-with-double-machine-learni
 
 [](/using-double-machine-learning-and-linear-programming-to-optimise-treatment-strategies-920c20a29553?source=post_page-----34dc2f3d3284--------------------------------) [## 使用双重机器学习和线性编程优化治疗策略](https://example.org)
 
-### 因果AI，探索因果推理与机器学习的结合
+### 因果 AI，探索因果推理与机器学习的结合
 
 towardsdatascience.com](/using-double-machine-learning-and-linear-programming-to-optimise-treatment-strategies-920c20a29553?source=post_page-----34dc2f3d3284--------------------------------)
 

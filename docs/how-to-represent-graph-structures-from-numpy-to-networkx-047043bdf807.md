@@ -1,14 +1,14 @@
 # 如何表示图结构 — 从 NumPy 到 NetworkX
 
-> 原文：[https://towardsdatascience.com/how-to-represent-graph-structures-from-numpy-to-networkx-047043bdf807?source=collection_archive---------5-----------------------#2024-08-14](https://towardsdatascience.com/how-to-represent-graph-structures-from-numpy-to-networkx-047043bdf807?source=collection_archive---------5-----------------------#2024-08-14)
+> 原文：[`towardsdatascience.com/how-to-represent-graph-structures-from-numpy-to-networkx-047043bdf807?source=collection_archive---------5-----------------------#2024-08-14`](https://towardsdatascience.com/how-to-represent-graph-structures-from-numpy-to-networkx-047043bdf807?source=collection_archive---------5-----------------------#2024-08-14)
 
 ## 图形机器学习 — 从零到英雄
 
 ## 让我们了解如何使用 Python 创建和可视化网络信息
 
-[](https://medium.com/@giuseppefutia?source=post_page---byline--047043bdf807--------------------------------)[![Giuseppe Futia](../Images/4d1d3b3766eca9ae8220dc5eb480a4cf.png)](https://medium.com/@giuseppefutia?source=post_page---byline--047043bdf807--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--047043bdf807--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--047043bdf807--------------------------------) [Giuseppe Futia](https://medium.com/@giuseppefutia?source=post_page---byline--047043bdf807--------------------------------)
+[](https://medium.com/@giuseppefutia?source=post_page---byline--047043bdf807--------------------------------)![Giuseppe Futia](https://medium.com/@giuseppefutia?source=post_page---byline--047043bdf807--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--047043bdf807--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--047043bdf807--------------------------------) [Giuseppe Futia](https://medium.com/@giuseppefutia?source=post_page---byline--047043bdf807--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--047043bdf807--------------------------------) ·10 分钟阅读·2024年8月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--047043bdf807--------------------------------) ·10 分钟阅读·2024 年 8 月 14 日
 
 --
 

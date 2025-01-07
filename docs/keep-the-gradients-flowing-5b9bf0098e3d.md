@@ -1,16 +1,16 @@
 # 保持梯度流动
 
-> 原文：[https://towardsdatascience.com/keep-the-gradients-flowing-5b9bf0098e3d?source=collection_archive---------4-----------------------#2024-10-09](https://towardsdatascience.com/keep-the-gradients-flowing-5b9bf0098e3d?source=collection_archive---------4-----------------------#2024-10-09)
+> 原文：[`towardsdatascience.com/keep-the-gradients-flowing-5b9bf0098e3d?source=collection_archive---------4-----------------------#2024-10-09`](https://towardsdatascience.com/keep-the-gradients-flowing-5b9bf0098e3d?source=collection_archive---------4-----------------------#2024-10-09)
 
 ## 优化稀疏神经网络：理解梯度流动以加速训练、提高效率，并在深度学习模型中提升性能
 
-[](https://medium.com/@cristianleo120?source=post_page---byline--5b9bf0098e3d--------------------------------)[![Cristian Leo](../Images/99074292e7dfda50cf50a790b8deda79.png)](https://medium.com/@cristianleo120?source=post_page---byline--5b9bf0098e3d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5b9bf0098e3d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5b9bf0098e3d--------------------------------) [Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--5b9bf0098e3d--------------------------------)
+[](https://medium.com/@cristianleo120?source=post_page---byline--5b9bf0098e3d--------------------------------)![Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--5b9bf0098e3d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5b9bf0098e3d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5b9bf0098e3d--------------------------------) [Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--5b9bf0098e3d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5b9bf0098e3d--------------------------------) ·22分钟阅读·2024年10月9日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5b9bf0098e3d--------------------------------) ·22 分钟阅读·2024 年 10 月 9 日
 
 --
 
-![](../Images/e6ffb4275682d74e70e4b11882020c8c.png)
+![](img/e6ffb4275682d74e70e4b11882020c8c.png)
 
 人工智能图像生成，展示了神经网络中梯度流动的情况
 

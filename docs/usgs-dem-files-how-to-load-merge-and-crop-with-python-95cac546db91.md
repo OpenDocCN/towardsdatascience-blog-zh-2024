@@ -1,18 +1,18 @@
 # USGS DEM 文件：如何使用 Python 加载、合并和裁剪
 
-> 原文：[https://towardsdatascience.com/usgs-dem-files-how-to-load-merge-and-crop-with-python-95cac546db91?source=collection_archive---------10-----------------------#2024-12-17](https://towardsdatascience.com/usgs-dem-files-how-to-load-merge-and-crop-with-python-95cac546db91?source=collection_archive---------10-----------------------#2024-12-17)
+> 原文：[`towardsdatascience.com/usgs-dem-files-how-to-load-merge-and-crop-with-python-95cac546db91?source=collection_archive---------10-----------------------#2024-12-17`](https://towardsdatascience.com/usgs-dem-files-how-to-load-merge-and-crop-with-python-95cac546db91?source=collection_archive---------10-----------------------#2024-12-17)
 
 ## 快速成功数据科学
 
 ## 数字高程数据准备的快速指南
 
-[](https://medium.com/@lee_vaughan?source=post_page---byline--95cac546db91--------------------------------)[![Lee Vaughan](../Images/9f6b90bb76102f438ab0b9a4a62ffa3f.png)](https://medium.com/@lee_vaughan?source=post_page---byline--95cac546db91--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95cac546db91--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--95cac546db91--------------------------------) [Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--95cac546db91--------------------------------)
+[](https://medium.com/@lee_vaughan?source=post_page---byline--95cac546db91--------------------------------)![Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--95cac546db91--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95cac546db91--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95cac546db91--------------------------------) [Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--95cac546db91--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95cac546db91--------------------------------) ·阅读时间 11 分钟·2024年12月17日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95cac546db91--------------------------------) ·阅读时间 11 分钟·2024 年 12 月 17 日
 
 --
 
-![](../Images/c2bf9d00b208ed8f068ab31c24a5896d.png)
+![](img/c2bf9d00b208ed8f068ab31c24a5896d.png)
 
 美国地质调查局数字高程模型（作者提供）
 

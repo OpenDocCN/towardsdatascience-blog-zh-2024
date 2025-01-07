@@ -1,16 +1,16 @@
 # 使用 Rust 生成地图瓦片
 
-> 原文：[https://towardsdatascience.com/generating-map-tiles-with-rust-dbdb0eb09b6b?source=collection_archive---------3-----------------------#2024-05-19](https://towardsdatascience.com/generating-map-tiles-with-rust-dbdb0eb09b6b?source=collection_archive---------3-----------------------#2024-05-19)
+> 原文：[`towardsdatascience.com/generating-map-tiles-with-rust-dbdb0eb09b6b?source=collection_archive---------3-----------------------#2024-05-19`](https://towardsdatascience.com/generating-map-tiles-with-rust-dbdb0eb09b6b?source=collection_archive---------3-----------------------#2024-05-19)
 
 ## 从 Python 转向 Rust 有多容易？
 
-[](https://medium.com/@joao.figueira?source=post_page---byline--dbdb0eb09b6b--------------------------------)[![João Paulo Figueira](../Images/54e4176f66e4ab0324d86ec71d8b033d.png)](https://medium.com/@joao.figueira?source=post_page---byline--dbdb0eb09b6b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dbdb0eb09b6b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dbdb0eb09b6b--------------------------------) [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--dbdb0eb09b6b--------------------------------)
+[](https://medium.com/@joao.figueira?source=post_page---byline--dbdb0eb09b6b--------------------------------)![João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--dbdb0eb09b6b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dbdb0eb09b6b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dbdb0eb09b6b--------------------------------) [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--dbdb0eb09b6b--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dbdb0eb09b6b--------------------------------) ·阅读时间：6 分钟 ·2024年5月19日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dbdb0eb09b6b--------------------------------) ·阅读时间：6 分钟 ·2024 年 5 月 19 日
 
 --
 
-![](../Images/b583922b0a97dcbb9e258d7e6538ecf4.png)
+![](img/b583922b0a97dcbb9e258d7e6538ecf4.png)
 
 图片来自 [Diego García](https://unsplash.com/@diegogarcia?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -18,11 +18,11 @@
 
 几年前，我通过使用 Python 和 [车辆能源数据集](https://github.com/gsoh/VED) 编写了一个自定义地图瓦片生成器来解决这个问题。这个项目展示了如何通过在地图上使用自定义瓦片层来显示大量信息。这个过程包括使用一个 Web 应用程序来生成、缓存并提供瓦片。
 
-[](/displaying-geographic-information-using-custom-map-tiles-c0e3344909a4?source=post_page-----dbdb0eb09b6b--------------------------------) [## 使用自定义地图瓦片显示地理信息
+[](/displaying-geographic-information-using-custom-map-tiles-c0e3344909a4?source=post_page-----dbdb0eb09b6b--------------------------------) ## 使用自定义地图瓦片显示地理信息
 
 ### 了解如何为你的互动地图创建自定义瓦片。
 
-towardsdatascience.com](/displaying-geographic-information-using-custom-map-tiles-c0e3344909a4?source=post_page-----dbdb0eb09b6b--------------------------------)
+towardsdatascience.com
 
 如你所知，Python 运行速度较慢，因此在生成每个瓷砖时，Web 应用程序的性能会受到显著影响。当瓷砖被缓存后，服务过程很快，在与地图交互时不会有明显的延迟。
 
@@ -58,23 +58,23 @@ Rust 编程语言已经在我的视野中有一段时间了。由于我有 C、C
 
 # 一直是瓦片
 
-地图瓦片通常由256x256的方形位图组成。我们可以通过结合 *x* 和 *y* 坐标、一个“缩放”级别或一个[四分键](https://learn.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system)代码来表示每个瓦片。每个缩放级别对应于不同维度瓦片的方形拼贴。整个地球在最上层的一个瓦片上进行描绘。通过缩放，原始瓦片被拆分为四个瓦片。以下**图 2**和**图 3**说明了缩放的过程。
+地图瓦片通常由 256x256 的方形位图组成。我们可以通过结合 *x* 和 *y* 坐标、一个“缩放”级别或一个[四分键](https://learn.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system)代码来表示每个瓦片。每个缩放级别对应于不同维度瓦片的方形拼贴。整个地球在最上层的一个瓦片上进行描绘。通过缩放，原始瓦片被拆分为四个瓦片。以下**图 2**和**图 3**说明了缩放的过程。
 
-![](../Images/08cd217d49c1c13aa9be0d531111f7d7.png)
+![](img/08cd217d49c1c13aa9be0d531111f7d7.png)
 
 **图 3** — 在缩放级别 0 上，整个世界呈现在单个瓦片中。（图片来源：OpenStreetMap）
 
-![](../Images/1bce5b6812ce6acc77850baf5c6f4b5c.png)
+![](img/1bce5b6812ce6acc77850baf5c6f4b5c.png)
 
 **图 4** — 对之前的瓦片进行缩放，我们得到了四个具有相同单独维度的瓦片。（图片来源：OpenStreetMap）
 
 如果我们继续缩放，在八次迭代后，每个生成的瓦片将对应第一个瓦片上的一个像素。这一观察结果提供了我们计算并在瓦片上显示交通密度信息的洞见。
 
-如[上一篇文章](/displaying-geographic-information-using-custom-map-tiles-c0e3344909a4)所述，瓦片信息已经准备好并存储在数据库中。有关如何从[车辆能量数据集](https://github.com/gsoh/VED)生成密度数据库的说明，请参见该文章。
+如上一篇文章所述，瓦片信息已经准备好并存储在数据库中。有关如何从[车辆能量数据集](https://github.com/gsoh/VED)生成密度数据库的说明，请参见该文章。
 
-# 使用Rust提供瓦片
+# 使用 Rust 提供瓦片
 
-现在我们可以讨论生成、缓存和提供瓦片的Rust服务器代码。当前的解决方案紧密地遵循了之前的瓦片服务器设计。下面的**图 5**显示了主要入口点，它决定在解析并接受查询参数后，是否提供绘制过的瓦片或默认的透明瓦片。
+现在我们可以讨论生成、缓存和提供瓦片的 Rust 服务器代码。当前的解决方案紧密地遵循了之前的瓦片服务器设计。下面的**图 5**显示了主要入口点，它决定在解析并接受查询参数后，是否提供绘制过的瓦片或默认的透明瓦片。
 
 **图 5** — 主要入口点。（图片来源：作者）
 
@@ -84,7 +84,7 @@ Rust 编程语言已经在我的视野中有一段时间了。由于我有 C、C
 
 **图 6** — 上述函数生成瓦片（如果未缓存到磁盘），并返回瓦片文件名。（图片来源：作者）
 
-如上面的列表所示，瓦片绘制过程有三个步骤。首先，在第12行，我们收集瓦片的每像素密度信息。接下来，我们检索瓦片的级别范围，即瓦片“缩放”级别的最小和最大密度值。最后，在第14行，我们绘制瓦片的位图。该函数通过将瓦片位图保存到文件缓存来完成。
+如上面的列表所示，瓦片绘制过程有三个步骤。首先，在第 12 行，我们收集瓦片的每像素密度信息。接下来，我们检索瓦片的级别范围，即瓦片“缩放”级别的最小和最大密度值。最后，在第 14 行，我们绘制瓦片的位图。该函数通过将瓦片位图保存到文件缓存来完成。
 
 **图 7** — 上述函数在位图上绘制单个瓦片。注意，密度信息是如何通过基于对数的转换转化为颜色渐变中的条目的。（图片来源：作者）
 
@@ -102,7 +102,7 @@ cargo run --release
 
 就是这样！下面的**图 9**展示了结果。
 
-![](../Images/26c9beb6a497ae643455d5109f51168f.png)
+![](img/26c9beb6a497ae643455d5109f51168f.png)
 
 **图 9** — 上面的图片展示了叠加了交通密度瓦片的基础地图。（图片来源：OpenStreetMap 和作者生成的瓦片）
 

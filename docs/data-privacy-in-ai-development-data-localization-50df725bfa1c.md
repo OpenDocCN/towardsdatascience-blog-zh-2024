@@ -1,22 +1,22 @@
 # AI 开发中的数据隐私：数据本地化
 
-> 原文：[https://towardsdatascience.com/data-privacy-in-ai-development-data-localization-50df725bfa1c?source=collection_archive---------6-----------------------#2024-06-18](https://towardsdatascience.com/data-privacy-in-ai-development-data-localization-50df725bfa1c?source=collection_archive---------6-----------------------#2024-06-18)
+> 原文：[`towardsdatascience.com/data-privacy-in-ai-development-data-localization-50df725bfa1c?source=collection_archive---------6-----------------------#2024-06-18`](https://towardsdatascience.com/data-privacy-in-ai-development-data-localization-50df725bfa1c?source=collection_archive---------6-----------------------#2024-06-18)
 
 ## 为什么你应该关心你的数据存储在哪里？
 
-[](https://medium.com/@s.kirmer?source=post_page---byline--50df725bfa1c--------------------------------)[![Stephanie Kirmer](../Images/f9d9ef9167febde974c223dd4d8d6293.png)](https://medium.com/@s.kirmer?source=post_page---byline--50df725bfa1c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--50df725bfa1c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--50df725bfa1c--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--50df725bfa1c--------------------------------)
+[](https://medium.com/@s.kirmer?source=post_page---byline--50df725bfa1c--------------------------------)![Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--50df725bfa1c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--50df725bfa1c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--50df725bfa1c--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--50df725bfa1c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--50df725bfa1c--------------------------------) ·阅读时长：11分钟·2024年6月18日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--50df725bfa1c--------------------------------) ·阅读时长：11 分钟·2024 年 6 月 18 日
 
 --
 
-![](../Images/a3b18000e10dc15341369f1e1afb4742.png)
+![](img/a3b18000e10dc15341369f1e1afb4742.png)
 
 图片来自 [Luke Stackpoole](https://unsplash.com/@withluke?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-在为即将在6月25日于旧金山举行的AI质量大会准备讲座时（[门票仍然有售](https://www.aiqualityconference.com/)！），我遇到了许多值得深入讨论的话题，但由于时间有限，我只能简要提及。在我的讲座中，无法详细展开这些内容。因此，为了给大家提供更多信息并更好地解释这些话题，我决定开始一系列小专栏，讲解与机器学习和AI开发相关的内容，同时注意数据隐私和安全。今天，我将从**数据本地化**开始。
+在为即将在 6 月 25 日于旧金山举行的 AI 质量大会准备讲座时（[门票仍然有售](https://www.aiqualityconference.com/)！），我遇到了许多值得深入讨论的话题，但由于时间有限，我只能简要提及。在我的讲座中，无法详细展开这些内容。因此，为了给大家提供更多信息并更好地解释这些话题，我决定开始一系列小专栏，讲解与机器学习和 AI 开发相关的内容，同时注意数据隐私和安全。今天，我将从**数据本地化**开始。
 
-在开始之前，我们应该澄清数据隐私和安全法规所涵盖的内容。简而言之，它适用于“个人数据”。但是，什么算是**个人数据**呢？这取决于司法管辖区，但通常包括PII（个人身份信息，如姓名、电话号码等），以及可以合并在一起使某人可识别的数据（如邮政编码、生日、性别、种族、政治倾向、宗教等）。这还包括某人的照片、视频或音频记录、计算机或浏览器的详细信息、搜索历史、生物识别信息等。[GDPR关于此的规定可以在这里查看](https://gdpr.eu/eu-gdpr-personal-data/)。
+在开始之前，我们应该澄清数据隐私和安全法规所涵盖的内容。简而言之，它适用于“个人数据”。但是，什么算是**个人数据**呢？这取决于司法管辖区，但通常包括 PII（个人身份信息，如姓名、电话号码等），以及可以合并在一起使某人可识别的数据（如邮政编码、生日、性别、种族、政治倾向、宗教等）。这还包括某人的照片、视频或音频记录、计算机或浏览器的详细信息、搜索历史、生物识别信息等。[GDPR 关于此的规定可以在这里查看](https://gdpr.eu/eu-gdpr-personal-data/)。
 
 既然这个问题已经解决，让我们深入探讨数据本地化以及它与我们作为机器学习开发者的关系。
 
@@ -112,9 +112,9 @@
 
 +   **中国**：个人信息保护法（PIPL）是他们的国家数据隐私法规，数据本地化规则相对复杂。该法律适用于[“向中国境内个人提供产品或服务”以及/或“分析和评估中国自然人的行为”](https://fpf.org/wp-content/uploads/2022/02/Demystifying-Data-Localization-Report.pdf)，因此适用范围相当广泛。如果数据被法律视为“重要”或是“能够识别或识别自然人的信息”，那么这些数据很可能会受到数据本地化的限制。和往常一样，这不是法律建议，您应该咨询您的法律部门。
 
-+   **俄罗斯**：俄罗斯已经有数据本地化法规定了相当长时间，许多公司，包括 Facebook 和 Twitter，因违反这些规定而受到罚款。[“数据本地化法第18条第5款要求，收集俄罗斯公民个人数据的俄罗斯和外国数据运营商，包括通过互联网收集的数据，必须首先使用俄罗斯数据库记录、存储、整理、更新和提取数据。”](https://www.morganlewis.com/-/media/files/publication/outside-publication/article/2021/data-localization-laws-russian-federation.pdf) 还有更多适用的法律（详情请见链接）。[在初步收集和存储数据到俄罗斯服务器之后，数据*可以*转移到其他地方。](https://assets.kpmg.com/content/dam/kpmg/be/pdf/2018/09/ADV-factsheet-localisation-of-russian-personnal-data-uk-LR.pdf)
++   **俄罗斯**：俄罗斯已经有数据本地化法规定了相当长时间，许多公司，包括 Facebook 和 Twitter，因违反这些规定而受到罚款。[“数据本地化法第 18 条第 5 款要求，收集俄罗斯公民个人数据的俄罗斯和外国数据运营商，包括通过互联网收集的数据，必须首先使用俄罗斯数据库记录、存储、整理、更新和提取数据。”](https://www.morganlewis.com/-/media/files/publication/outside-publication/article/2021/data-localization-laws-russian-federation.pdf) 还有更多适用的法律（详情请见链接）。[在初步收集和存储数据到俄罗斯服务器之后，数据*可以*转移到其他地方。](https://assets.kpmg.com/content/dam/kpmg/be/pdf/2018/09/ADV-factsheet-localisation-of-russian-personnal-data-uk-LR.pdf)
 
-+   **越南**：他们的[2018年法律](https://www.tilleke.com/insights/decree-53-provides-long-awaited-guidance-on-implementation-of-vietnams-cybersecurity-law/)要求某些数据必须在国内存储24个月，[应政府要求](https://www.trade.gov/market-intelligence/vietnam-cybersecurity-data-localization-requirements)。这适用于国内公司以及某些外资公司，涉及电子商务、社交网络和其他数字服务领域。此外，任何数据传输到第三方都需要客户同意。
++   **越南**：他们的[2018 年法律](https://www.tilleke.com/insights/decree-53-provides-long-awaited-guidance-on-implementation-of-vietnams-cybersecurity-law/)要求某些数据必须在国内存储 24 个月，[应政府要求](https://www.trade.gov/market-intelligence/vietnam-cybersecurity-data-localization-requirements)。这适用于国内公司以及某些外资公司，涉及电子商务、社交网络和其他数字服务领域。此外，任何数据传输到第三方都需要客户同意。
 
 +   **欧盟**（GDPR）：欧盟对某些国家设定了特定规则，规定这些国家的公民数据不能存储（例如俄罗斯），原因是对国家监控和数据隐私的担忧。
 
@@ -128,28 +128,28 @@
 
 如果你看到这里，感谢你！我知道这可能有些枯燥，但我会用一个故事来奖励你。我曾经在一家公司工作，我们的合同中有数据本地化条款（不是法律，而是另一家公司设置的规则），所以任何在欧盟产生的数据都必须保存在欧盟内，但我们已经在美国为北美设置了数据存储。
 
-由于各种原因，这意味着我们创建了一个只包含欧盟数据的新副本数据库，数据库设在欧盟，我们将这两个版本的整个Snowflake数据库并行存放。如你所料，这成了一场噩梦，因为如果你创建了一个新表，或者更改了字段，或者基本上对数据库做了任何更改，你都必须记得在另一个数据库上复制这些操作。自然，大多数人都没记得这样做，因此两个数据库之间的差异变得非常大，直到架构之间存在显著差异。所以我们所有人都需要编写大量的条件代码来处理查询和提取数据的工作，以便根据你提取数据的数据库来确保列名、字段类型、表名等正确，从而能够在不将数据保存到错误位置的情况下进行“即时”合并。（别让我开始谈论BI目的下重复的仪表板。）我不推荐这样做！
+由于各种原因，这意味着我们创建了一个只包含欧盟数据的新副本数据库，数据库设在欧盟，我们将这两个版本的整个 Snowflake 数据库并行存放。如你所料，这成了一场噩梦，因为如果你创建了一个新表，或者更改了字段，或者基本上对数据库做了任何更改，你都必须记得在另一个数据库上复制这些操作。自然，大多数人都没记得这样做，因此两个数据库之间的差异变得非常大，直到架构之间存在显著差异。所以我们所有人都需要编写大量的条件代码来处理查询和提取数据的工作，以便根据你提取数据的数据库来确保列名、字段类型、表名等正确，从而能够在不将数据保存到错误位置的情况下进行“即时”合并。（别让我开始谈论 BI 目的下重复的仪表板。）我不推荐这样做！
 
 这些规定给许多领域的数据科学家带来了真正的挑战，但保持对法律义务的了解，并保护自己的工作和公司免受责任是非常重要的。你遇到过本地化挑战吗？如果你找到了解决方案，欢迎在这篇文章下留言，分享我没有提到的内容。
 
 # 进一步阅读
 
-[https://www.techpolicy.press/the-human-rights-costs-of-data-localization-around-the-world/](https://www.techpolicy.press/the-human-rights-costs-of-data-localization-around-the-world/)
+[`www.techpolicy.press/the-human-rights-costs-of-data-localization-around-the-world/`](https://www.techpolicy.press/the-human-rights-costs-of-data-localization-around-the-world/)
 
-[](https://gdpr.eu/eu-gdpr-personal-data/?source=post_page-----50df725bfa1c--------------------------------) [## 什么是欧盟GDPR下的个人数据？ - GDPR.eu
+[](https://gdpr.eu/eu-gdpr-personal-data/?source=post_page-----50df725bfa1c--------------------------------) [## 什么是欧盟 GDPR 下的个人数据？ - GDPR.eu
 
-### 欧盟的GDPR仅适用于个人数据，个人数据是指任何与可识别的个人相关的信息……
+### 欧盟的 GDPR 仅适用于个人数据，个人数据是指任何与可识别的个人相关的信息……
 
 [gdpr.eu](https://gdpr.eu/eu-gdpr-personal-data/?source=post_page-----50df725bfa1c--------------------------------)
 
-[https://carnegieendowment.org/research/2023/10/understanding-indias-new-data-protection-law?lang=en](https://carnegieendowment.org/research/2023/10/understanding-indias-new-data-protection-law?lang=en)
+[`carnegieendowment.org/research/2023/10/understanding-indias-new-data-protection-law?lang=en`](https://carnegieendowment.org/research/2023/10/understanding-indias-new-data-protection-law?lang=en)
 
-[https://irglobal.com/article/all-about-data-localisation-in-india-2/#:~:text=The%20RBI%20ordered%20all%20payment,to%20abide%20by%20this%20instruction](https://irglobal.com/article/all-about-data-localisation-in-india-2/#:~:text=The%20RBI%20ordered%20all%20payment,to%20abide%20by%20this%20instruction).
+[`irglobal.com/article/all-about-data-localisation-in-india-2/#:~:text=The%20RBI%20ordered%20all%20payment,to%20abide%20by%20this%20instruction`](https://irglobal.com/article/all-about-data-localisation-in-india-2/#:~:text=The%20RBI%20ordered%20all%20payment,to%20abide%20by%20this%20instruction).
 
-[https://m.rbi.org.in/Scripts/FAQView.aspx?Id=130](https://m.rbi.org.in/Scripts/FAQView.aspx?Id=130)
+[`m.rbi.org.in/Scripts/FAQView.aspx?Id=130`](https://m.rbi.org.in/Scripts/FAQView.aspx?Id=130)
 
-[](https://www.tilleke.com/insights/decree-53-provides-long-awaited-guidance-on-implementation-of-vietnams-cybersecurity-law/?source=post_page-----50df725bfa1c--------------------------------) [## 第53号法令提供了关于实施越南《网络安全法》的期待已久的指导
+[](https://www.tilleke.com/insights/decree-53-provides-long-awaited-guidance-on-implementation-of-vietnams-cybersecurity-law/?source=post_page-----50df725bfa1c--------------------------------) [## 第 53 号法令提供了关于实施越南《网络安全法》的期待已久的指导
 
-### 越南的《网络安全法》于2018年6月12日发布，并于2019年1月1日生效，得到大多数……
+### 越南的《网络安全法》于 2018 年 6 月 12 日发布，并于 2019 年 1 月 1 日生效，得到大多数……
 
 [www.tilleke.com](https://www.tilleke.com/insights/decree-53-provides-long-awaited-guidance-on-implementation-of-vietnams-cybersecurity-law/?source=post_page-----50df725bfa1c--------------------------------)

@@ -1,36 +1,36 @@
 # 生命的幻象
 
-> 原文：[https://towardsdatascience.com/an-illusion-of-life-5a11d2f2c737?source=collection_archive---------10-----------------------#2024-11-07](https://towardsdatascience.com/an-illusion-of-life-5a11d2f2c737?source=collection_archive---------10-----------------------#2024-11-07)
+> 原文：[`towardsdatascience.com/an-illusion-of-life-5a11d2f2c737?source=collection_archive---------10-----------------------#2024-11-07`](https://towardsdatascience.com/an-illusion-of-life-5a11d2f2c737?source=collection_archive---------10-----------------------#2024-11-07)
 
 ## 现有的人工智能可能具备知觉吗？如果不能，那还缺少什么？
 
-[](https://objf.medium.com/?source=post_page---byline--5a11d2f2c737--------------------------------)[![James F. O'Brien](../Images/d340f736b1ed6752324c50af69f2a88c.png)](https://objf.medium.com/?source=post_page---byline--5a11d2f2c737--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5a11d2f2c737--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5a11d2f2c737--------------------------------) [James F. O'Brien](https://objf.medium.com/?source=post_page---byline--5a11d2f2c737--------------------------------)
+[](https://objf.medium.com/?source=post_page---byline--5a11d2f2c737--------------------------------)![James F. O'Brien](https://objf.medium.com/?source=post_page---byline--5a11d2f2c737--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5a11d2f2c737--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5a11d2f2c737--------------------------------) [James F. O'Brien](https://objf.medium.com/?source=post_page---byline--5a11d2f2c737--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5a11d2f2c737--------------------------------) ·阅读时长7分钟·2024年11月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5a11d2f2c737--------------------------------) ·阅读时长 7 分钟·2024 年 11 月 7 日
 
 --
 
-当今的[大型语言模型（LLMs）](https://en.wikipedia.org/wiki/Large_language_model)在生成听起来既深思熟虑又聪明的类人回应方面已经非常优秀。许多人认为，LLM已经达到了[艾伦·图灵的著名测试](https://en.wikipedia.org/wiki/Turing_test)的标准，该测试的目标是在对话中像人类一样无法区分。这些LLM能够生成听起来既深思熟虑又聪明的文本，并且它们能够令人信服地模仿情感的表现。
+当今的[大型语言模型（LLMs）](https://en.wikipedia.org/wiki/Large_language_model)在生成听起来既深思熟虑又聪明的类人回应方面已经非常优秀。许多人认为，LLM 已经达到了[艾伦·图灵的著名测试](https://en.wikipedia.org/wiki/Turing_test)的标准，该测试的目标是在对话中像人类一样无法区分。这些 LLM 能够生成听起来既深思熟虑又聪明的文本，并且它们能够令人信服地模仿情感的表现。
 
-![](../Images/360d451cbc9f86716f5a9d7dc1b754fa.png)
+![](img/360d451cbc9f86716f5a9d7dc1b754fa.png)
 
 ## 智力的幻象
 
-尽管当前的LLM（大型语言模型）能够令人信服地模仿类人对话，但它们并不具备思考或情感的能力。它们生成的每个单词，都是基于从大量文本数据中学习的统计模式进行的预测。这一预测过程是不断重复的，每个单词都是一次次预测的结果。与人类不同，LLM无法进行记忆或自我反思。它们只是输出序列中的下一个单词。
+尽管当前的 LLM（大型语言模型）能够令人信服地模仿类人对话，但它们并不具备思考或情感的能力。它们生成的每个单词，都是基于从大量文本数据中学习的统计模式进行的预测。这一预测过程是不断重复的，每个单词都是一次次预测的结果。与人类不同，LLM 无法进行记忆或自我反思。它们只是输出序列中的下一个单词。
 
 预测下一个单词的能力令人惊讶地能够模仿人类智能。这些模型可以执行像编写代码、分析文学作品和制定商业计划等任务。之前我们认为这些任务非常困难，需要复杂的逻辑系统，但现在事实证明，仅仅预测下一个单词就足够了。
 
-预测下一个词在复杂任务中如此有效，令人意外并有些困惑。这种能力是否意味着大型语言模型（LLM）在我们未理解的某些方面非常强大？还是说，这意味着LLM能做的事情其实非常简单，但之所以对人类来说看起来很难，或许是因为在某些客观尺度上，[人类可能实际上并没有那么聪明](https://medium.com/@objf/can-something-be-literally-impossible-to-understand-20bb11613953)？
+预测下一个词在复杂任务中如此有效，令人意外并有些困惑。这种能力是否意味着大型语言模型（LLM）在我们未理解的某些方面非常强大？还是说，这意味着 LLM 能做的事情其实非常简单，但之所以对人类来说看起来很难，或许是因为在某些客观尺度上，[人类可能实际上并没有那么聪明](https://medium.com/@objf/can-something-be-literally-impossible-to-understand-20bb11613953)？
 
 ## 句子的前提
 
 尽管像“[有感知能力](https://en.wikipedia.org/wiki/Sentience)”、“[意识](https://en.wikipedia.org/wiki/Consciousness)”或“[自我意识](https://en.wikipedia.org/wiki/Self-awareness)”等术语之间有细微的差别，但为了方便起见，我将在这里使用“有感知能力”一词。需要明确的是，对于什么构成感知或意识，并没有明确的共识，且尚不清楚自我意识是否足以构成感知或意识，尽管它可能是必要的。然而，明确的一点是，这些概念都包括记忆和反思。像“快乐”、“担忧”、“愤怒”或“兴奋”等[情绪状态](https://www.sciencedirect.com/topics/computer-science/emotional-state#:~:text=An%20emotional%20state%20refers%20to,and%20the%20world%20around%20them.)都是基于过去事件和对这些事件如何影响自身的反射性评估所产生的持久状态。
 
-记忆和自我反思使得一个实体能够从经验中学习，适应新情况，并发展出连续性和身份感。哲学家和科学家们几千年来一直试图给出清晰、具体的意识理解，但至今仍没有得到普遍接受的明确答案。然而，记忆和反思是核心组成部分，这意味着不管这些LLM看起来多么聪明，没有记忆和反思，它们都无法具备感知能力。即使是一个在每个可衡量方面都能匹敌或超越人类智力的人工智能，某些人所称的[超级智能](https://en.wikipedia.org/wiki/Superintelligence)[通用人工智能（AGI）](https://en.wikipedia.org/wiki/Artificial_general_intelligence)，也不一定具备感知能力。
+记忆和自我反思使得一个实体能够从经验中学习，适应新情况，并发展出连续性和身份感。哲学家和科学家们几千年来一直试图给出清晰、具体的意识理解，但至今仍没有得到普遍接受的明确答案。然而，记忆和反思是核心组成部分，这意味着不管这些 LLM 看起来多么聪明，没有记忆和反思，它们都无法具备感知能力。即使是一个在每个可衡量方面都能匹敌或超越人类智力的人工智能，某些人所称的[超级智能](https://en.wikipedia.org/wiki/Superintelligence)[通用人工智能（AGI）](https://en.wikipedia.org/wiki/Artificial_general_intelligence)，也不一定具备感知能力。
 
 ## 今日的局限性与错觉
 
-我们可以看到，当前的LLM不包含记忆和自我反思，因为它们使用[基于变换器的架构](/transformers-explained-visually-part-1-overview-of-functionality-95a6dd460452)，以无状态的方式处理语言。这种无状态性意味着模型不会保留任何关于之前输入的上下文信息。相反，模型从零开始，重新处理整个聊天记录，然后统计预测下一个要附加到序列中的词。虽然早期的语言处理模型，如[LSTM](https://medium.com/@ottaviocalzone/an-intuitive-explanation-of-lstm-a035eb6ab42c)，确实有一种记忆形式，但变换器由于其出色的能力，已经在很大程度上取代了LSTM。
+我们可以看到，当前的 LLM 不包含记忆和自我反思，因为它们使用基于变换器的架构，以无状态的方式处理语言。这种无状态性意味着模型不会保留任何关于之前输入的上下文信息。相反，模型从零开始，重新处理整个聊天记录，然后统计预测下一个要附加到序列中的词。虽然早期的语言处理模型，如[LSTM](https://medium.com/@ottaviocalzone/an-intuitive-explanation-of-lstm-a035eb6ab42c)，确实有一种记忆形式，但变换器由于其出色的能力，已经在很大程度上取代了 LSTM。
 
 例如，如果你告诉一个 AI 聊天机器人，你打算在一个小时后关闭它，那么它可能会输出一些看起来像是在恳求你不要关闭它的文字，但这些文字并不反映其背后的情感状态。这些文字只是基于训练数据中学到的模式和关联生成的，在统计上很可能出现的单词序列。聊天机器人并不会因为担心被关闭而坐在那里感到压力山大。
 
@@ -42,13 +42,13 @@
 
 当然，没什么能阻止我们为 LLM 添加记忆和自我反思功能。事实上，开发一些形式的记忆的项目并不难找到。这种记忆可以是以人类可读的形式存储的信息，也可以是与 LLM 内部结构相关的嵌入向量数据库。我们还可以将聊天记录本身或缓存的中间计算结果视为基本的记忆形式。即便没有感知的可能性，为 LLM 添加记忆和反思功能仍然是有用的，因为这些特性有助于许多复杂任务和适应。
 
-现在，越来越常见的是，设计中一个AI模型被设置为监控另一个AI模型的输出，并向第一个模型发送某种形式的反馈，或者一个AI模型在修正并生成最终版本之前，会分析其自身的初步输出。在许多方面，这种设计类型，其中多个AI模型被设置并训练来共同工作，类似于人类大脑，它具有不同的[区域](https://en.wikipedia.org/wiki/List_of_regions_in_the_human_brain)，这些区域执行特定的相互依赖功能。例如，[杏仁体](https://en.wikipedia.org/wiki/Amygdala)在情绪反应中扮演着主要角色，如恐惧，而[眼窝前额皮质](https://en.wikipedia.org/wiki/Orbitofrontal_cortex)则与决策相关。各个区域之间的相互作用使得恐惧能影响决策，而决策又有助于确定应该害怕什么。很容易想象，一个AI模型负责逻辑分析，而第二个模型则确定可接受的风险阈值，并在它们之间进行反馈。
+现在，越来越常见的是，设计中一个 AI 模型被设置为监控另一个 AI 模型的输出，并向第一个模型发送某种形式的反馈，或者一个 AI 模型在修正并生成最终版本之前，会分析其自身的初步输出。在许多方面，这种设计类型，其中多个 AI 模型被设置并训练来共同工作，类似于人类大脑，它具有不同的[区域](https://en.wikipedia.org/wiki/List_of_regions_in_the_human_brain)，这些区域执行特定的相互依赖功能。例如，[杏仁体](https://en.wikipedia.org/wiki/Amygdala)在情绪反应中扮演着主要角色，如恐惧，而[眼窝前额皮质](https://en.wikipedia.org/wiki/Orbitofrontal_cortex)则与决策相关。各个区域之间的相互作用使得恐惧能影响决策，而决策又有助于确定应该害怕什么。很容易想象，一个 AI 模型负责逻辑分析，而第二个模型则确定可接受的风险阈值，并在它们之间进行反馈。
 
-一个包含彼此输出的记忆和处理的相互连接的AI模型星座，是否足以具备意识？也许吧。也许这些仅仅是不足以具备意识的因素，或者可能正好足够。无论答案如何，我们离构建这样的系统已经不远了，到那时这些问题将不再是假设。
+一个包含彼此输出的记忆和处理的相互连接的 AI 模型星座，是否足以具备意识？也许吧。也许这些仅仅是不足以具备意识的因素，或者可能正好足够。无论答案如何，我们离构建这样的系统已经不远了，到那时这些问题将不再是假设。
 
-我个人的推测性观点是，意识、情感和感觉确实可以通过相互连接的自我监控AI模型星座来建模。然而，如何测试意识的问题仍然不清楚。这就像经典的哲学[他者心灵问题](https://en.wikipedia.org/wiki/Problem_of_other_minds)，其中人们徒劳地试图证明其他人也是有意识的。类似地，我们也需要一个答案，来回答如何测试其他实体，包括AI系统，是否真正具备意识。这个根本问题至少可以追溯到古希腊，但从未有过一个令人满意的答案。
+我个人的推测性观点是，意识、情感和感觉确实可以通过相互连接的自我监控 AI 模型星座来建模。然而，如何测试意识的问题仍然不清楚。这就像经典的哲学[他者心灵问题](https://en.wikipedia.org/wiki/Problem_of_other_minds)，其中人们徒劳地试图证明其他人也是有意识的。类似地，我们也需要一个答案，来回答如何测试其他实体，包括 AI 系统，是否真正具备意识。这个根本问题至少可以追溯到古希腊，但从未有过一个令人满意的答案。
 
-今天，我相当自信地说，当前的LLM（大语言模型）并没有意识，因为它们缺乏必要的部分。然而，这个理由只是暂时有效的。当我写这篇文章时，其他研究人员正在构建我上面描述的那种AI模型星座，这些系统将不容易被轻视。也许在某个时刻，很快，意识AI的可能性将不再是科幻，而是变成一个真实且相关的问题。
+今天，我相当自信地说，当前的 LLM（大语言模型）并没有意识，因为它们缺乏必要的部分。然而，这个理由只是暂时有效的。当我写这篇文章时，其他研究人员正在构建我上面描述的那种 AI 模型星座，这些系统将不容易被轻视。也许在某个时刻，很快，意识 AI 的可能性将不再是科幻，而是变成一个真实且相关的问题。
 
 ## 启示与问题
 
@@ -64,4 +64,4 @@
 
 *免责声明：本文中表达的任何观点仅代表作者作为个人的意见。本文中的内容不应被解读为与作者在任何机构的专业职务相关的声明。*
 
-*本文及所有嵌入的图片版权归作者所有，版权所有2024。本文由人类编写，并由大型语言模型（LLM）和其他人类进行了校对和编辑建议。*
+*本文及所有嵌入的图片版权归作者所有，版权所有 2024。本文由人类编写，并由大型语言模型（LLM）和其他人类进行了校对和编辑建议。*

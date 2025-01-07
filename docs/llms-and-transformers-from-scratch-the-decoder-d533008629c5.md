@@ -1,12 +1,12 @@
 # 从零开始学习 LLMs 和 Transformer：解码器
 
-> 原文：[https://towardsdatascience.com/llms-and-transformers-from-scratch-the-decoder-d533008629c5?source=collection_archive---------2-----------------------#2024-01-10](https://towardsdatascience.com/llms-and-transformers-from-scratch-the-decoder-d533008629c5?source=collection_archive---------2-----------------------#2024-01-10)
+> 原文：[`towardsdatascience.com/llms-and-transformers-from-scratch-the-decoder-d533008629c5?source=collection_archive---------2-----------------------#2024-01-10`](https://towardsdatascience.com/llms-and-transformers-from-scratch-the-decoder-d533008629c5?source=collection_archive---------2-----------------------#2024-01-10)
 
 ## 探索 Transformer 的解码器架构：掩蔽的多头注意力、编码器-解码器注意力以及实际实现
 
-[](https://medium.com/@luisroque?source=post_page---byline--d533008629c5--------------------------------)[![Luís Roque](../Images/e281d470b403375ba3c6f521b1ccf915.png)](https://medium.com/@luisroque?source=post_page---byline--d533008629c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d533008629c5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d533008629c5--------------------------------) [Luís Roque](https://medium.com/@luisroque?source=post_page---byline--d533008629c5--------------------------------)
+[](https://medium.com/@luisroque?source=post_page---byline--d533008629c5--------------------------------)![Luís Roque](https://medium.com/@luisroque?source=post_page---byline--d533008629c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d533008629c5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d533008629c5--------------------------------) [Luís Roque](https://medium.com/@luisroque?source=post_page---byline--d533008629c5--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d533008629c5--------------------------------) ·13分钟阅读·2024年1月10日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d533008629c5--------------------------------) ·13 分钟阅读·2024 年 1 月 10 日
 
 --
 

@@ -1,16 +1,16 @@
 # 直观指南：将 SQL 与 Python 融合以进行数据科学
 
-> 原文：[https://towardsdatascience.com/an-intuitive-guide-to-integrate-sql-and-python-for-data-science-9557df61069e?source=collection_archive---------2-----------------------#2024-09-21](https://towardsdatascience.com/an-intuitive-guide-to-integrate-sql-and-python-for-data-science-9557df61069e?source=collection_archive---------2-----------------------#2024-09-21)
+> 原文：[`towardsdatascience.com/an-intuitive-guide-to-integrate-sql-and-python-for-data-science-9557df61069e?source=collection_archive---------2-----------------------#2024-09-21`](https://towardsdatascience.com/an-intuitive-guide-to-integrate-sql-and-python-for-data-science-9557df61069e?source=collection_archive---------2-----------------------#2024-09-21)
 
 ## 学习掌握 MySQL 连接器，这是一个使 Python 能够与 MySQL 数据库交互的库
 
-[](https://eugenia-anello.medium.com/?source=post_page---byline--9557df61069e--------------------------------)[![Eugenia Anello](../Images/537f444252cdc60709e7a19e37734c7b.png)](https://eugenia-anello.medium.com/?source=post_page---byline--9557df61069e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9557df61069e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9557df61069e--------------------------------) [Eugenia Anello](https://eugenia-anello.medium.com/?source=post_page---byline--9557df61069e--------------------------------)
+[](https://eugenia-anello.medium.com/?source=post_page---byline--9557df61069e--------------------------------)![Eugenia Anello](https://eugenia-anello.medium.com/?source=post_page---byline--9557df61069e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9557df61069e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9557df61069e--------------------------------) [Eugenia Anello](https://eugenia-anello.medium.com/?source=post_page---byline--9557df61069e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9557df61069e--------------------------------) ·10分钟阅读·2024年9月21日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9557df61069e--------------------------------) ·10 分钟阅读·2024 年 9 月 21 日
 
 --
 
-![](../Images/3b1ccd0b23662963204dfa0c27397690.png)
+![](img/3b1ccd0b23662963204dfa0c27397690.png)
 
 照片来源：[ThisisEngineering](https://unsplash.com/it/@thisisengineering) 来自 [Unsplash](https://unsplash.com/it/foto/donna-in-camicia-verde-che-si-siede-davanti-al-computer-64YrPKiguAE)
 

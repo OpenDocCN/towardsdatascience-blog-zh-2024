@@ -1,16 +1,16 @@
 # 完整指南：如何使用 Python、Markdown、Git 和 GitHub Pages 构建专业作品集
 
-> 原文：[https://towardsdatascience.com/full-guide-to-build-a-professionnal-portfolio-with-python-markdown-git-and-github-page-for-66d12f7859f0?source=collection_archive---------0-----------------------#2024-07-20](https://towardsdatascience.com/full-guide-to-build-a-professionnal-portfolio-with-python-markdown-git-and-github-page-for-66d12f7859f0?source=collection_archive---------0-----------------------#2024-07-20)
+> 原文：[`towardsdatascience.com/full-guide-to-build-a-professionnal-portfolio-with-python-markdown-git-and-github-page-for-66d12f7859f0?source=collection_archive---------0-----------------------#2024-07-20`](https://towardsdatascience.com/full-guide-to-build-a-professionnal-portfolio-with-python-markdown-git-and-github-page-for-66d12f7859f0?source=collection_archive---------0-----------------------#2024-07-20)
 
 ## 如何通过高质量的作品集来提升你作为开发者或数据工作者的形象
 
-[](https://medium.com/@petoulemonde?source=post_page---byline--66d12f7859f0--------------------------------)[![Pierre-Etienne Toulemonde](../Images/95fdda47e79e3c194fc96ef29f3a2188.png)](https://medium.com/@petoulemonde?source=post_page---byline--66d12f7859f0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--66d12f7859f0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--66d12f7859f0--------------------------------) [Pierre-Etienne Toulemonde](https://medium.com/@petoulemonde?source=post_page---byline--66d12f7859f0--------------------------------)
+[](https://medium.com/@petoulemonde?source=post_page---byline--66d12f7859f0--------------------------------)![Pierre-Etienne Toulemonde](https://medium.com/@petoulemonde?source=post_page---byline--66d12f7859f0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--66d12f7859f0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--66d12f7859f0--------------------------------) [Pierre-Etienne Toulemonde](https://medium.com/@petoulemonde?source=post_page---byline--66d12f7859f0--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--66d12f7859f0--------------------------------) ·阅读时长 9 分钟·2024年7月20日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--66d12f7859f0--------------------------------) ·阅读时长 9 分钟·2024 年 7 月 20 日
 
 --
 
-![](../Images/9205955a834dc7af6a9ba134a2325593.png)
+![](img/9205955a834dc7af6a9ba134a2325593.png)
 
 图片来源：[Product School](https://unsplash.com/@productschool?utm_source=medium&utm_medium=referral) 于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -48,7 +48,7 @@
 
 # **我的前一个作品集**
 
-2023年，我已经编写数据项目代码两年，开始着手创建我的第一个作品集，以展示我的数据科学项目。我发现了[Matt Chapman 的 TDS 文章](/the-portfolio-that-got-me-a-data-scientist-job-513cc821bfe4)和[Matt Chapman 的作品集](https://mattschapman.github.io/)。这篇文章与我当时的技术知识（Python、Git）完全吻合。感谢 Matt Chapman 的文章，我开始了我的第一个作品集！于是我决定深入探索这个方案，并弄清楚如何实现。我发现了[Matt Chapman 使用的参考资料](https://medium.com/@evanca/set-up-your-portfolio-website-in-less-than-10-minutes-with-github-pages-d0efa8ff56fd)和[相应的仓库](https://github.com/evanca/quick-portfolio)。我利用这个参考资料创建了我的作品集。
+2023 年，我已经编写数据项目代码两年，开始着手创建我的第一个作品集，以展示我的数据科学项目。我发现了 Matt Chapman 的 TDS 文章和[Matt Chapman 的作品集](https://mattschapman.github.io/)。这篇文章与我当时的技术知识（Python、Git）完全吻合。感谢 Matt Chapman 的文章，我开始了我的第一个作品集！于是我决定深入探索这个方案，并弄清楚如何实现。我发现了[Matt Chapman 使用的参考资料](https://medium.com/@evanca/set-up-your-portfolio-website-in-less-than-10-minutes-with-github-pages-d0efa8ff56fd)和[相应的仓库](https://github.com/evanca/quick-portfolio)。我利用这个参考资料创建了我的作品集。
 
 到 2024 年，我发现我的旧作品集相比现有的作品集显得有些过时，并且对数据爱好者或招聘人员吸引力不足。通过探索社区中已有的项目，我发现了几个文档非常棒的项目。以下是激励我的 2 个链接：[基于 GitHub Pages 的多页面文档](https://github.com/aphp/edsnlp)，以及 [基于 GitHub Pages 的 JavaScript 作品集](https://github.com/KeeganFernandesWork/KeeganFernandesDataScience) 和 [相关 Medium 文章](https://keeganfdes03.medium.com/making-a-data-science-portfolio-using-github-pages-for-free-ee831d4dec68)。
 
@@ -196,7 +196,7 @@ nav:
   …
 ```
 
-*主页*元素很重要：这是网站的主页。你可以选择将*readme.md*文件复制到*index.md*文件中，这样在GitHub仓库和网站上都会有相同的主页，或者编写一个新的*index.md*文件，为你的作品集提供一个特定的主页。
+*主页*元素很重要：这是网站的主页。你可以选择将*readme.md*文件复制到*index.md*文件中，这样在 GitHub 仓库和网站上都会有相同的主页，或者编写一个新的*index.md*文件，为你的作品集提供一个特定的主页。
 
 让我们来拆解一下下面的块：
 
@@ -206,7 +206,7 @@ nav:
   …
 ```
 
-*先前的数据科学项目*：将代表导航栏中的一组页面的名称。*“预测马匹健康结果”*将是所指示文件菜单中显示的名称，在本例中是：*horse_health_prediction_project/readme.md*。Mkdocs会自动找到docs文件夹中需要显示的页面，因此无需在路径中指定。然而，由于马匹健康预测项目位于一个同名文件夹中，你必须指定显示该文件的文件夹位置。
+*先前的数据科学项目*：将代表导航栏中的一组页面的名称。*“预测马匹健康结果”*将是所指示文件菜单中显示的名称，在本例中是：*horse_health_prediction_project/readme.md*。Mkdocs 会自动找到 docs 文件夹中需要显示的页面，因此无需在路径中指定。然而，由于马匹健康预测项目位于一个同名文件夹中，你必须指定显示该文件的文件夹位置。
 
 在*docs/*文件夹中，我添加了我之前的项目：
 
@@ -223,15 +223,15 @@ working_folder
         |- notebook.html
 ```
 
-然后，我用以下语法将每个项目的展示添加到导航栏中：`*“<显示名称>”: <从docs到项目文件的路径>/<项目展示>.md`。
+然后，我用以下语法将每个项目的展示添加到导航栏中：`*“<显示名称>”: <从 docs 到项目文件的路径>/<项目展示>.md`。
 
-这里的缩进非常重要：它定义了导航栏的文件夹。并非所有docs文件夹中的文件都需要列在导航栏中。然而，如果它们没有列出，访客将无法直接访问。
+这里的缩进非常重要：它定义了导航栏的文件夹。并非所有 docs 文件夹中的文件都需要列在导航栏中。然而，如果它们没有列出，访客将无法直接访问。
 
 ## **网站配置**
 
 然后我配置了我网站上不可见但非常重要的方面：
 
-+   mkdocs-material要求的基本网站信息：
++   mkdocs-material 要求的基本网站信息：
 
 ```py
 # Project information
@@ -245,7 +245,7 @@ site_description: >-
 
 *site_name*对应浏览器标签上的名称。
 
-+   一些仓库信息，允许mkdocs-material在托管网站的仓库右上角显示信息：
++   一些仓库信息，允许 mkdocs-material 在托管网站的仓库右上角显示信息：
 
 ```py
 # Repository: necessary to display the repo on the top right corner
@@ -261,7 +261,7 @@ theme:
   name: material
 ```
 
-这是一个非常重要的步骤，因为这一行告诉mkdocs：“使用mkdocs-material包来构建网站”。如果漏掉这一步，GitHub Pages将不会拥有mkdocs-material的视觉效果和功能！
+这是一个非常重要的步骤，因为这一行告诉 mkdocs：“使用 mkdocs-material 包来构建网站”。如果漏掉这一步，GitHub Pages 将不会拥有 mkdocs-material 的视觉效果和功能！
 
 我添加了一些额外的信息，以追踪我网站上的流量：
 
@@ -273,7 +273,7 @@ extra:
     property: <your google analystics code>
 ```
 
-*property*是来自Google Analytics的代码，用于追踪我作品集上的流量。该代码由Google Analytics生成并与我的Google帐户关联（你可以在[这里](https://www.w3schools.com/howto/howto_google_analytics.asp)找到创建代码的教程）。
+*property*是来自 Google Analytics 的代码，用于追踪我作品集上的流量。该代码由 Google Analytics 生成并与我的 Google 帐户关联（你可以在[这里](https://www.w3schools.com/howto/howto_google_analytics.asp)找到创建代码的教程）。
 
 当然，我不是一次性写完整个文件的。我先添加一个项目文件和信息到文件架构和导航栏中，然后是配置，再添加另一个项目，然后再配置，……
 
@@ -343,7 +343,7 @@ petoulemonde.github.io
 
 ## **部署工作**
 
-Mkdocs允许通过一条命令生成网站的代码：
+Mkdocs 允许通过一条命令生成网站的代码：
 
 ```py
 mkdocs gh-deploy

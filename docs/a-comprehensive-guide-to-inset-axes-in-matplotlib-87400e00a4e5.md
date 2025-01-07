@@ -1,26 +1,26 @@
-# 《Matplotlib插入坐标轴的全面指南》
+# 《Matplotlib 插入坐标轴的全面指南》
 
-> 原文：[https://towardsdatascience.com/a-comprehensive-guide-to-inset-axes-in-matplotlib-87400e00a4e5?source=collection_archive---------9-----------------------#2024-01-30](https://towardsdatascience.com/a-comprehensive-guide-to-inset-axes-in-matplotlib-87400e00a4e5?source=collection_archive---------9-----------------------#2024-01-30)
+> 原文：[`towardsdatascience.com/a-comprehensive-guide-to-inset-axes-in-matplotlib-87400e00a4e5?source=collection_archive---------9-----------------------#2024-01-30`](https://towardsdatascience.com/a-comprehensive-guide-to-inset-axes-in-matplotlib-87400e00a4e5?source=collection_archive---------9-----------------------#2024-01-30)
 
-## 包括4种创建方式和2种样式设置方式
+## 包括 4 种创建方式和 2 种样式设置方式
 
-[](https://medium.com/@mmore500?source=post_page---byline--87400e00a4e5--------------------------------)[![Matthew Andres Moreno](../Images/ca7da9fd9e5c744ee0ebd2aa5d979eb5.png)](https://medium.com/@mmore500?source=post_page---byline--87400e00a4e5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--87400e00a4e5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--87400e00a4e5--------------------------------) [Matthew Andres Moreno](https://medium.com/@mmore500?source=post_page---byline--87400e00a4e5--------------------------------)
+[](https://medium.com/@mmore500?source=post_page---byline--87400e00a4e5--------------------------------)![Matthew Andres Moreno](https://medium.com/@mmore500?source=post_page---byline--87400e00a4e5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--87400e00a4e5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87400e00a4e5--------------------------------) [Matthew Andres Moreno](https://medium.com/@mmore500?source=post_page---byline--87400e00a4e5--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87400e00a4e5--------------------------------) ·8分钟阅读·2024年1月30日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87400e00a4e5--------------------------------) ·8 分钟阅读·2024 年 1 月 30 日
 
 --
 
-![](../Images/c3c99ec05194828d72a5d44982ef711f.png)
+![](img/c3c99ec05194828d72a5d44982ef711f.png)
 
 带有四个插入坐标轴的示例图
 
 插入坐标轴是一种强大的数据可视化技术，可以突出特定的图形区域或添加详细的子图。它们是有效利用本来空白的图形空间的绝佳方式。
 
-本教程展示了**4种在*matplotlib*中创建插入坐标轴的方法**，这些方法可以让你根据坐标轴、整体图形、绝对单位（如英寸）或使用网格系统定位插入坐标轴——后者在处理多个插入坐标轴时特别有用。
+本教程展示了**4 种在*matplotlib*中创建插入坐标轴的方法**，这些方法可以让你根据坐标轴、整体图形、绝对单位（如英寸）或使用网格系统定位插入坐标轴——后者在处理多个插入坐标轴时特别有用。
 
-我们还将介绍**2种设置缩放插入图样式的方法**：使用经典的引导线和使用颜色编码覆盖层。
+我们还将介绍**2 种设置缩放插入图样式的方法**：使用经典的引导线和使用颜色编码覆盖层。
 
-![](../Images/58d7ae54c96c03ad4ab62d5ec2122004.png)
+![](img/58d7ae54c96c03ad4ab62d5ec2122004.png)
 
 带有颜色编码覆盖层的插入坐标轴
 
@@ -44,9 +44,9 @@
 
 6\. *颜色编码的覆盖层*：`OutsetGrid.marqueeplot`。
 
-第4节和第6节使用了我最近发布的开源*Outset*库中的新工具，专门用于多尺度数据可视化，我很高兴能与社区分享。
+第四部分和第六部分使用了我最近发布的开源*Outset*库中的新工具，专门用于多尺度数据可视化，我很高兴能与社区分享。
 
-# 方法1：使用``*mpl_toolkits.axes_grid1.inset_axes`*``
+# 方法 1：使用``*mpl_toolkits.axes_grid1.inset_axes`*``
 
 这个函数简化了插入的添加。以下是如何使用它的说明，包括`loc`参数用于定位：
 
@@ -65,7 +65,7 @@ plt.xticks([]); plt.yticks([])  # strip ticks, which collide w/ main ax
 
 请注意，坐标轴的大小可以*相对于父坐标轴*指定，或者如这里所示，可以*以英寸*为单位指定`宽度`和`高度`。
 
-![](../Images/98d9003e021750c68c7cb49d03c2a352.png)
+![](img/98d9003e021750c68c7cb49d03c2a352.png)
 
 `loc`的支持位置代码如下：
 
@@ -77,7 +77,7 @@ plt.xticks([]); plt.yticks([])  # strip ticks, which collide w/ main ax
 
 # 方法 2：使用`Axes.inset_axes`
 
-Matplotlib的`Axes`类提供了`inset_axes`成员函数，这是一个简单的方法来创建相对于父坐标轴的插入坐标轴：
+Matplotlib 的`Axes`类提供了`inset_axes`成员函数，这是一个简单的方法来创建相对于父坐标轴的插入坐标轴：
 
 ```py
 import matplotlib.pyplot as plt
@@ -90,9 +90,9 @@ ins_ax = ax.inset_axes([.6, .15, .3, .3])  # [x, y, width, height] w.r.t. ax
 ins_ax.plot([9, 0], [0, 9], color="r")
 ```
 
-![](../Images/fe04a108b514e4df745817db1060d4ff.png)
+![](img/fe04a108b514e4df745817db1060d4ff.png)
 
-坐标是相对于父坐标轴指定的，因此——例如——(0, 0, 0.5, 0.2)将会在左下角创建一个坐标轴，宽度占父坐标轴的一半，高度占父坐标轴的0.2。
+坐标是相对于父坐标轴指定的，因此——例如——(0, 0, 0.5, 0.2)将会在左下角创建一个坐标轴，宽度占父坐标轴的一半，高度占父坐标轴的 0.2。
 
 要相对于父坐标轴`ax`以英寸为单位定位插入坐标轴，我们必须首先计算父坐标轴的尺寸（以英寸为单位）。
 
@@ -108,7 +108,7 @@ ax.inset_axes([x/w_inch, y/h_inch, w/w_inch, h/h_inch])
 
 # 方法 3：使用`Figure.add_axes`
 
-Matplotlib的`Figure`类提供了类似的`add_axes`成员函数，它允许你相对于整体图形定位插入坐标轴。
+Matplotlib 的`Figure`类提供了类似的`add_axes`成员函数，它允许你相对于整体图形定位插入坐标轴。
 
 ```py
 import matplotlib.pyplot as plt
@@ -121,9 +121,9 @@ ins_ax = fig.add_axes([.2, .5, .2, .2])  # [x, y, width, height] w.r.t. fig
 ins_ax.plot([9, 0], [0, 9], color="r") 
 ```
 
-![](../Images/a9c336fd223df3d47c7dd933c78ccfa2.png)
+![](img/a9c336fd223df3d47c7dd933c78ccfa2.png)
 
-与之前类似，坐标是相对于父坐标轴指定的，因此——例如——(0.5, 0.5, 0.3, 0.2)将创建一个坐标轴，其高度为整体图形的2/10，宽度为3/10，左下角在图形内居中。
+与之前类似，坐标是相对于父坐标轴指定的，因此——例如——(0.5, 0.5, 0.3, 0.2)将创建一个坐标轴，其高度为整体图形的 2/10，宽度为 3/10，左下角在图形内居中。
 
 # 方法 4：`` `Axes.inset_axes ```py with `` `outset.layout_corner_insets` ``
 
@@ -141,7 +141,7 @@ fig, ax = plt.subplots(); ax.set_box_aspect(0.5)  # 主图形和坐标轴
 
 ax.plot([0, 9], [0, 9])  # 示例图形
 
-# ------ 选择插入坐标轴位置：左上角放3个，右下角放一个
+# ------ 选择插入坐标轴位置：左上角放 3 个，右下角放一个
 
 inset_positions = outset.util.layout_corner_insets(  # 左上角位置
 
@@ -159,7 +159,7 @@ inset_positions.append(  # 生成右下角位置并添加到列表中
 
 inset_axes = [*map(ax.inset_axes, inset_positions)]  # 创建插入坐标轴
 
-对于inset_axes中的iax：  # 示例绘图
+对于 inset_axes 中的 iax：  # 示例绘图
 
 iax.plot([9, 0], [0, 9], color="r")
 
@@ -167,7 +167,7 @@ iax.plot([9, 0], [0, 9], color="r")
 
 Note the optional customizations to inset positioning made through keyword arguments to `outset.util.layout_corner_insets`. Here, “pad” refers to spacing between insets, “margin” refers to space between the insets and the main axes, and “grid size” refers to the overall fraction of axes space that insets are stacked into.
 
-![](../Images/c3c99ec05194828d72a5d44982ef711f.png)
+![](img/c3c99ec05194828d72a5d44982ef711f.png)
 
 That covers it for techniques to place inset axes!
 
@@ -199,7 +199,7 @@ inset_ax = main_ax.inset_axes(
 
 # 添加绘图内容
 
-对于ax在main_ax和inset_ax中：
+对于 ax 在 main_ax 和 inset_ax 中：
 
     ax.plot([0, 9], [0, 9])  # 第一个示例线
 
@@ -217,7 +217,7 @@ if not isclose(inset_ax._get_aspect_ratio(), main_ax._get_aspect_ratio()):
 
 ```py
 
-![](../Images/e7e0941ac965828032dbdb8c35332085.png)
+![](img/e7e0941ac965828032dbdb8c35332085.png)
 
 Note that to use `Axes.indicate_inset_zoom`, inset axes must be created using `Axes.inset_axes`.
 
@@ -235,11 +235,11 @@ import numpy as np
 
 import outset
 
-# 示例改编自 [https://matplotlib.org/stable/gallery/](https://matplotlib.org/stable/gallery/)
+# 示例改编自 [`matplotlib.org/stable/gallery/`](https://matplotlib.org/stable/gallery/)
 
 i, a, b, c, d = np.arange(0.0, 2 * np.pi, 0.01), 1, 7, 3, 11
 
-# 3个坐标轴网格：源图和两个缩放框
+# 3 个坐标轴网格：源图和两个缩放框
 
 grid = outset.OutsetGrid([  # 缩放部分的数据坐标...
 
@@ -265,7 +265,7 @@ grid.marqueeplot()  # 渲染叠加注释
 
 ```py
 
-![](../Images/aa84177b6c0c709c89142af8471c599f.png)
+![](img/aa84177b6c0c709c89142af8471c599f.png)
 
 Note that inset positioning can be more finely controlled via `outset.util.layout_corner_insets`, as used for Method 4 above:
 
@@ -275,7 +275,7 @@ Note that inset positioning can be more finely controlled via `outset.util.layou
 
 customized_placements = outset.util.layout_corner_insets(
 
-    2, "SW",  # 在左下角放置2个嵌套框
+    2, "SW",  # 在左下角放置 2 个嵌套框
 
     inset_margin_size=0.05, inset_grid_size=(0.8, 0.55)  # 布局参数
 
@@ -287,7 +287,7 @@ grid.marqueeplot()  # 渲染叠加注释
 
 ```py
 
-![](../Images/c836552442fb1aa1346f4c2a496a64f9.png)
+![](img/c836552442fb1aa1346f4c2a496a64f9.png)
 
 Inset placements can also be manually specified to `outset.inset_outsets`using axes-relative coordinates, too:
 
@@ -307,11 +307,11 @@ grid.marqueeplot()  # 渲染叠加注释
 
 ```py
 
-![](../Images/159e656d44376bcdd405434fe0ebc2b8.png)
+![](img/159e656d44376bcdd405434fe0ebc2b8.png)
 
 And, finally, to use bigger, side-by-side magnification panels instead of insets, just omit the call to `outset.inset_outsets`.
 
-![](../Images/4b8fcba150f2955568561d91775bdf79.png)
+![](img/4b8fcba150f2955568561d91775bdf79.png)
 
 # Conclusion
 
@@ -330,7 +330,7 @@ Now go make something informative and beautiful! Happy plotting :)
 
 *outset* also provides some good example materials, notably one on [zoom plots over rain guage time series data](https://mmore500.com/outset/example-rain.html). *outset* also provides a useful [quickstart guide](https://mmore500.com/outset/quickstart.html) and [gallery page](https://mmore500.com/outset/gallery.html).
 
-![](../Images/8567e4f3bf0573fc897b9f29d3c36b2f.png)
+![](img/8567e4f3bf0573fc897b9f29d3c36b2f.png)
 
 images from the outset gallery
 
@@ -338,13 +338,13 @@ Formal argument-by-argument listings for all code covered here can be found in t
 
 Both projects are open source on GitHub, *m*a*tplotlib* under a PSF license at [matplotlib/matplotlib](https://github.com/matplotlib/matplotlib) and *outset* under the MIT License at [mmore500/outset](https://github.com/mmore500/outset) — *outset* is a new project, consider leaving a ⭐️!
 
-Joseph Early also has an excellent medium article on inset axes in matplotlib, which you can read [here](/mastering-inset-axes-in-matplotlib-458d2fdfd0c0).
+Joseph Early also has an excellent medium article on inset axes in matplotlib, which you can read here.
 
 # Authorship
 
 This tutorial is contributed by me, [Matthew Andres Moreno](https://mmore500.com/).
 
-![](../Images/ed1a0cffeed1577a791942f2768ce582.png)
+![](img/ed1a0cffeed1577a791942f2768ce582.png)
 
 I currently serve as a postdoctoral scholar at the [University of Michigan](https://umich.edu), where my work is supported by the Eric and Wendy Schmidt AI in Science Postdoctoral Fellowship, a Schmidt Futures program.
 

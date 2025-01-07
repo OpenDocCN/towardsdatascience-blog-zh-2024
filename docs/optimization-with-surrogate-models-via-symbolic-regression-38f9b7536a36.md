@@ -1,20 +1,20 @@
 # 使用替代模型进行优化，通过符号回归实现
 
-> 原文：[https://towardsdatascience.com/optimization-with-surrogate-models-via-symbolic-regression-38f9b7536a36?source=collection_archive---------3-----------------------#2024-01-19](https://towardsdatascience.com/optimization-with-surrogate-models-via-symbolic-regression-38f9b7536a36?source=collection_archive---------3-----------------------#2024-01-19)
+> 原文：[`towardsdatascience.com/optimization-with-surrogate-models-via-symbolic-regression-38f9b7536a36?source=collection_archive---------3-----------------------#2024-01-19`](https://towardsdatascience.com/optimization-with-surrogate-models-via-symbolic-regression-38f9b7536a36?source=collection_archive---------3-----------------------#2024-01-19)
 
 ## **通过符号回归方法识别代数替代模型来优化黑箱系统的一种可能性。**
 
-[](https://medium.com/@mit.forster?source=post_page---byline--38f9b7536a36--------------------------------)[![Tim Forster](../Images/0159a256b7fa28c674a1d5e1489e0df6.png)](https://medium.com/@mit.forster?source=post_page---byline--38f9b7536a36--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--38f9b7536a36--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--38f9b7536a36--------------------------------) [Tim Forster](https://medium.com/@mit.forster?source=post_page---byline--38f9b7536a36--------------------------------)
+[](https://medium.com/@mit.forster?source=post_page---byline--38f9b7536a36--------------------------------)![Tim Forster](https://medium.com/@mit.forster?source=post_page---byline--38f9b7536a36--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--38f9b7536a36--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--38f9b7536a36--------------------------------) [Tim Forster](https://medium.com/@mit.forster?source=post_page---byline--38f9b7536a36--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--38f9b7536a36--------------------------------) ·16分钟阅读·2024年1月19日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--38f9b7536a36--------------------------------) ·16 分钟阅读·2024 年 1 月 19 日
 
 --
 
-![](../Images/f9de50a25cdc455a33647209b4aa3dc2.png)
+![](img/f9de50a25cdc455a33647209b4aa3dc2.png)
 
-图片由Jeremy Bishop提供，来自Unsplash
+图片由 Jeremy Bishop 提供，来自 Unsplash
 
-> 注：如果你没有Medium订阅，你可以[免费阅读本文](https://towardsdatascience.com/optimization-with-surrogate-models-via-symbolic-regression-38f9b7536a36?source=collection_archive---------3-----------------------#2024-01-19)（如果你有订阅，请继续阅读，谢谢！🥰）
+> 注：如果你没有 Medium 订阅，你可以[免费阅读本文](https://towardsdatascience.com/optimization-with-surrogate-models-via-symbolic-regression-38f9b7536a36?source=collection_archive---------3-----------------------#2024-01-19)（如果你有订阅，请继续阅读，谢谢！🥰）
 
 执行优化是一个非常有趣的任务。在我们的日常生活中，我们可能会对如何以最短的时间到达工作地点感兴趣，或者可能会关注如何调整我们研磨咖啡的最佳颗粒大小，以制作一杯非常美味的咖啡 ☕。各行各业也在关注优化，例如供应链、碳排放或废物积累等问题。
 

@@ -1,16 +1,16 @@
 # 什么是“Eval”，为什么产品经理需要关注它？
 
-> 原文：[https://towardsdatascience.com/what-exactly-is-an-eval-and-why-should-product-managers-care-b596dca275a7?source=collection_archive---------5-----------------------#2024-07-25](https://towardsdatascience.com/what-exactly-is-an-eval-and-why-should-product-managers-care-b596dca275a7?source=collection_archive---------5-----------------------#2024-07-25)
+> 原文：[`towardsdatascience.com/what-exactly-is-an-eval-and-why-should-product-managers-care-b596dca275a7?source=collection_archive---------5-----------------------#2024-07-25`](https://towardsdatascience.com/what-exactly-is-an-eval-and-why-should-product-managers-care-b596dca275a7?source=collection_archive---------5-----------------------#2024-07-25)
 
 ## 如何停止担忧并爱上数据
 
-[](https://medium.com/@4thewinn?source=post_page---byline--b596dca275a7--------------------------------)[![Julia Winn](../Images/9ca44e7be7c308a0bcaf797c6fa76a8c.png)](https://medium.com/@4thewinn?source=post_page---byline--b596dca275a7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b596dca275a7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b596dca275a7--------------------------------) [Julia Winn](https://medium.com/@4thewinn?source=post_page---byline--b596dca275a7--------------------------------)
+[](https://medium.com/@4thewinn?source=post_page---byline--b596dca275a7--------------------------------)![Julia Winn](https://medium.com/@4thewinn?source=post_page---byline--b596dca275a7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b596dca275a7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b596dca275a7--------------------------------) [Julia Winn](https://medium.com/@4thewinn?source=post_page---byline--b596dca275a7--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b596dca275a7--------------------------------) ·阅读时间 9 分钟 ·2024 年 7 月 25 日
 
 --
 
-![](../Images/41e596ffe7f34561ad84068942dafbeb.png)
+![](img/41e596ffe7f34561ad84068942dafbeb.png)
 
 由作者使用 Midjourney 版本 6 生成
 
@@ -22,7 +22,7 @@
 
 然而，我相信在大多数情况下，eval 应该由产品经理来密切定义。
 
-![](../Images/d36ed89785ce91d50e8731cade2eb7ab.png)
+![](img/d36ed89785ce91d50e8731cade2eb7ab.png)
 
 图片由作者使用 Midjourney 版本 6 生成
 
@@ -42,13 +42,13 @@ Evals 旨在回答以下问题：
 
 但你应该如何考虑为模型设定“目标”呢？简短的回答是，这取决于你正在构建的是什么类型的模型。
 
-+   [评估目标：一刀切并不适用](#6345)
++   评估目标：一刀切并不适用
 
-+   [评估实战：对用户体验的影响](#da34)
++   评估实战：对用户体验的影响
 
-+   [评估中产品经理输入较少相关的情况](#73dc)
++   评估中产品经理输入较少相关的情况
 
-+   [评估以启动 — 什么是足够好？](#b1eb)
++   评估以启动 — 什么是足够好？
 
 # 评估目标：一刀切并不适用
 
@@ -88,7 +88,7 @@ Evals 旨在回答以下问题：
 
 +   目标 → 评估翻译：尝试预览用户在模型发布第一天看到的内容，考虑到最常见的用户体验、边缘案例，并尽量预测任何可能出现严重问题的例子（比如在“为您的宝宝”标签下推荐危险或非法的产品）。
 
-+   评估组成：为了进行离线检查，你需要让人工审查结果，看它们是否合理。示例可以是100个多样化客户档案和购买历史的列表，每个客户配上前10个推荐产品。对于在线评估，A/B 测试可以让你将模型的表现与简单启发式（比如推荐畅销产品）或当前模型进行对比。通过历史点击行为运行离线评估来预测人们将点击的内容也是一种选择，但如果你的目录非常庞大，获取无偏的评估数据可能会比较棘手。想了解更多关于在线和离线评估的信息，可以查看[这篇文章](https://www.shaped.ai/blog/evaluating-recommender-models-offline-vs-online-evaluation)或向你最喜欢的大型语言模型咨询。
++   评估组成：为了进行离线检查，你需要让人工审查结果，看它们是否合理。示例可以是 100 个多样化客户档案和购买历史的列表，每个客户配上前 10 个推荐产品。对于在线评估，A/B 测试可以让你将模型的表现与简单启发式（比如推荐畅销产品）或当前模型进行对比。通过历史点击行为运行离线评估来预测人们将点击的内容也是一种选择，但如果你的目录非常庞大，获取无偏的评估数据可能会比较棘手。想了解更多关于在线和离线评估的信息，可以查看[这篇文章](https://www.shaped.ai/blog/evaluating-recommender-models-offline-vs-online-evaluation)或向你最喜欢的大型语言模型咨询。
 
 这些当然是简化的例子，每个模型都有产品和数据的细微差别，应该在设计评估时加以考虑。如果你不确定如何开始设计自己的评估，我建议向你最喜欢的大型语言模型描述模型和目标，并请其提供建议。
 
@@ -96,17 +96,17 @@ Evals 旨在回答以下问题：
 
 这是一个（简化的）邮件垃圾检测模型评估数据集示例。
 
-![](../Images/af06cfd4aa1b3effcf25f9a805682915.png)
+![](img/af06cfd4aa1b3effcf25f9a805682915.png)
 
 作者提供的图片
 
-那么……PM的角色在哪里？他们为什么需要关注数据？
+那么……PM 的角色在哪里？他们为什么需要关注数据？
 
 想象以下场景：
 
-模型开发者：“嘿，PM，我们的新模型在评估中的准确率是96%，我们可以发布它吗？当前的模型只有93%。”
+模型开发者：“嘿，PM，我们的新模型在评估中的准确率是 96%，我们可以发布它吗？当前的模型只有 93%。”
 
-糟糕的AI产品经理：“96%比93%更高，所以是的，我们发布它吧。”
+糟糕的 AI 产品经理：“96%比 93%更高，所以是的，我们发布它吧。”
 
 更好的 AI：“这是一个很大的改进！我能查看一下 eval 数据吗？我想了解一下有多少关键邮件被误标为垃圾邮件，以及哪些类型的垃圾邮件被允许通过。”
 
@@ -138,11 +138,11 @@ Evals 旨在回答以下问题：
 
 发布后，产品经理必须确保有监控机制，以确保关键使用场景持续按预期工作，并且将来工作应着力于改进任何表现不佳的领域。
 
-同样，没有任何一个生产就绪的垃圾邮件过滤器能达到100%的精准率和100%的召回率（即使它能做到，垃圾邮件技术也会持续演变），但了解模型失败的地方可以为产品改进和未来的模型投资提供参考。
+同样，没有任何一个生产就绪的垃圾邮件过滤器能达到 100%的精准率和 100%的召回率（即使它能做到，垃圾邮件技术也会持续演变），但了解模型失败的地方可以为产品改进和未来的模型投资提供参考。
 
-推荐系统通常需要进行多次评估，包括[线上和线下评估](https://www.shaped.ai/blog/evaluating-recommender-models-offline-vs-online-evaluation)，才能在生产中向100%的用户推出。如果您正在处理一个高风险的产品，您还需要在发布后进行评估，以观察其对用户行为的影响，并识别新的评估样本。
+推荐系统通常需要进行多次评估，包括[线上和线下评估](https://www.shaped.ai/blog/evaluating-recommender-models-offline-vs-online-evaluation)，才能在生产中向 100%的用户推出。如果您正在处理一个高风险的产品，您还需要在发布后进行评估，以观察其对用户行为的影响，并识别新的评估样本。
 
-优秀的AI产品管理并不是追求完美，而是向用户交付最佳的产品，这需要：
+优秀的 AI 产品管理并不是追求完美，而是向用户交付最佳的产品，这需要：
 
 +   为模型如何影响用户体验设定具体目标 -> 确保关键使用场景在评估中得到体现
 

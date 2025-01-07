@@ -1,18 +1,18 @@
 # 🧠🧹 因果性——数据科学的心理卫生
 
-> 原文：[https://towardsdatascience.com/causality-mental-hygiene-for-data-science-b7efc302eb72?source=collection_archive---------2-----------------------#2024-11-28](https://towardsdatascience.com/causality-mental-hygiene-for-data-science-b7efc302eb72?source=collection_archive---------2-----------------------#2024-11-28)
+> 原文：[`towardsdatascience.com/causality-mental-hygiene-for-data-science-b7efc302eb72?source=collection_archive---------2-----------------------#2024-11-28`](https://towardsdatascience.com/causality-mental-hygiene-for-data-science-b7efc302eb72?source=collection_archive---------2-----------------------#2024-11-28)
 
 ## 利用因果工具激发*为什么*的力量。
 
-[](https://eyal-kazin.medium.com/?source=post_page---byline--b7efc302eb72--------------------------------)[![Eyal Kazin](../Images/3860e6f1f63d732ce3af939d6681f542.png)](https://eyal-kazin.medium.com/?source=post_page---byline--b7efc302eb72--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b7efc302eb72--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b7efc302eb72--------------------------------) [Eyal Kazin](https://eyal-kazin.medium.com/?source=post_page---byline--b7efc302eb72--------------------------------)
+[](https://eyal-kazin.medium.com/?source=post_page---byline--b7efc302eb72--------------------------------)![Eyal Kazin](https://eyal-kazin.medium.com/?source=post_page---byline--b7efc302eb72--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b7efc302eb72--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b7efc302eb72--------------------------------) [Eyal Kazin](https://eyal-kazin.medium.com/?source=post_page---byline--b7efc302eb72--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b7efc302eb72--------------------------------) ·37分钟阅读·2024年11月28日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b7efc302eb72--------------------------------) ·37 分钟阅读·2024 年 11 月 28 日
 
 --
 
-![](../Images/3f42f9efb8d57d7c6417cb07dd8c3b95.png)
+![](img/3f42f9efb8d57d7c6417cb07dd8c3b95.png)
 
-使用Gemini Imagen 3生成。除非另有说明，所有图片均由作者创作。
+使用 Gemini Imagen 3 生成。除非另有说明，所有图片均由作者创作。
 
 > 数据无法替代假设——犹太·佩尔（Judea Pearl）
 

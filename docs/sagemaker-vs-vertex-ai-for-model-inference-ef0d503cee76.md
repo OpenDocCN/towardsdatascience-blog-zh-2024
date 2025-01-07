@@ -1,12 +1,12 @@
 # SageMaker 与 Vertex AI 在模型推理方面的对比
 
-> 原文：[https://towardsdatascience.com/sagemaker-vs-vertex-ai-for-model-inference-ef0d503cee76?source=collection_archive---------2-----------------------#2024-06-06](https://towardsdatascience.com/sagemaker-vs-vertex-ai-for-model-inference-ef0d503cee76?source=collection_archive---------2-----------------------#2024-06-06)
+> 原文：[`towardsdatascience.com/sagemaker-vs-vertex-ai-for-model-inference-ef0d503cee76?source=collection_archive---------2-----------------------#2024-06-06`](https://towardsdatascience.com/sagemaker-vs-vertex-ai-for-model-inference-ef0d503cee76?source=collection_archive---------2-----------------------#2024-06-06)
 
 ## 比较 AWS 和 GCP 在机器学习工作流中的全托管服务
 
-[](https://medium.com/@turc.raluca?source=post_page---byline--ef0d503cee76--------------------------------)[![Julia Turc](../Images/1ca27d7db36799dec53b8daf4099f5cb.png)](https://medium.com/@turc.raluca?source=post_page---byline--ef0d503cee76--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ef0d503cee76--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ef0d503cee76--------------------------------) [Julia Turc](https://medium.com/@turc.raluca?source=post_page---byline--ef0d503cee76--------------------------------)
+[](https://medium.com/@turc.raluca?source=post_page---byline--ef0d503cee76--------------------------------)![Julia Turc](https://medium.com/@turc.raluca?source=post_page---byline--ef0d503cee76--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ef0d503cee76--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ef0d503cee76--------------------------------) [Julia Turc](https://medium.com/@turc.raluca?source=post_page---byline--ef0d503cee76--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ef0d503cee76--------------------------------) ·12 分钟阅读·2024年6月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ef0d503cee76--------------------------------) ·12 分钟阅读·2024 年 6 月 6 日
 
 --
 
@@ -16,27 +16,27 @@
 
 > TL;DR：SageMaker 在整体表现上占优。如果你从零开始，并且对任何一个云提供商没有偏好（因为免费积分、现有锁定或者对其工具的强烈熟悉），那就选择 SageMaker。然而，如果 GCP 已经让你深深着迷，还是留在那里吧：Vertex AI 提供了足够强有力的竞争。
 
-![](../Images/3e1eee4fed051c6b3ae2fa1569a74d04.png)![](../Images/239206169cd8817b3efb60141b58dddc.png)
+![](img/3e1eee4fed051c6b3ae2fa1569a74d04.png)![](img/239206169cd8817b3efb60141b58dddc.png)
 
 来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)的照片（左图：[Christian Wiediger](https://unsplash.com/@christianw?utm_source=medium&utm_medium=referral)，右图：[Kai Wenzel](https://unsplash.com/@kai_wenzel?utm_source=medium&utm_medium=referral)）
 
-# 什么是SageMaker和Vertex AI？
+# 什么是 SageMaker 和 Vertex AI？
 
-[SageMaker](https://aws.amazon.com/pm/sagemaker/)和[Vertex AI](https://cloud.google.com/vertex-ai?hl=en)是来自AWS和GCP的两项竞争服务，用于训练和部署机器学习模型。它们通过云原生组件（虚拟机、加速器和存储）来简化构建和部署ML模型的过程。它们的目标是防止开发者手动并反复设置在大多数机器学习工作流中常见的操作。
+[SageMaker](https://aws.amazon.com/pm/sagemaker/)和[Vertex AI](https://cloud.google.com/vertex-ai?hl=en)是来自 AWS 和 GCP 的两项竞争服务，用于训练和部署机器学习模型。它们通过云原生组件（虚拟机、加速器和存储）来简化构建和部署 ML 模型的过程。它们的目标是防止开发者手动并反复设置在大多数机器学习工作流中常见的操作。
 
-例如，构建训练管道需要一些通用步骤：将训练数据存储到一个存储系统中，启动一个或多个启用了加速器的虚拟机，确保它们不被I/O瓶颈限制（即，更多时间花费在传播梯度而不是读取训练数据上），定期进行检查点保存和评估等。
+例如，构建训练管道需要一些通用步骤：将训练数据存储到一个存储系统中，启动一个或多个启用了加速器的虚拟机，确保它们不被 I/O 瓶颈限制（即，更多时间花费在传播梯度而不是读取训练数据上），定期进行检查点保存和评估等。
 
-SageMaker和Vertex AI使开发者仅通过配置文件或几个bash命令便可设置如此复杂的工作流。其结果是一个自愈系统，能够在无需大量监控的情况下完成任务。这就是为什么它们常被称为*完全托管服务*的原因。
+SageMaker 和 Vertex AI 使开发者仅通过配置文件或几个 bash 命令便可设置如此复杂的工作流。其结果是一个自愈系统，能够在无需大量监控的情况下完成任务。这就是为什么它们常被称为*完全托管服务*的原因。
 
-## SageMaker和Vertex AI在模型推理中的应用
+## SageMaker 和 Vertex AI 在模型推理中的应用
 
-在本文中，我们特别从*模型推理*的角度比较了SageMaker和Vertex AI。在这里，它们的主要价值主张是确保（a）推理服务器始终保持运行，以及（b）根据传入的流量*自动扩展*。后者在今天的大型模型时代尤其重要，这些模型需要强大的加速器。由于GPU稀缺且价格昂贵，我们无法承受它们处于闲置状态，因此需要根据流量的多少来动态地启用或停用它们。
+在本文中，我们特别从*模型推理*的角度比较了 SageMaker 和 Vertex AI。在这里，它们的主要价值主张是确保（a）推理服务器始终保持运行，以及（b）根据传入的流量*自动扩展*。后者在今天的大型模型时代尤其重要，这些模型需要强大的加速器。由于 GPU 稀缺且价格昂贵，我们无法承受它们处于闲置状态，因此需要根据流量的多少来动态地启用或停用它们。
 
 虽然本文重点讨论推理，但值得注意的是，这些服务涵盖了工作流的许多其他部分。特别是，除了支持模型训练外，它们还包括以笔记本为中心的功能，供数据科学家分析训练数据（参见[SageMaker Notebooks](https://aws.amazon.com/sagemaker/notebooks/)和[Vertex AI Notebooks](https://cloud.google.com/vertex-ai-notebooks?hl=en)）。
 
 ## 开发者工作流
 
-在使用SageMaker或VertexAI进行模型部署时，开发者需要执行以下三个步骤：
+在使用 SageMaker 或 VertexAI 进行模型部署时，开发者需要执行以下三个步骤：
 
 1.  创建模型。
 
@@ -44,7 +44,7 @@ SageMaker和Vertex AI使开发者仅通过配置文件或几个bash命令便可�
 
 1.  将模型部署到端点。
 
-这些操作可以通过网页界面、特定于云平台的CLI或支持多种编程语言的云平台SDK来执行。
+这些操作可以通过网页界面、特定于云平台的 CLI 或支持多种编程语言的云平台 SDK 来执行。
 
 ## 创建模型
 
@@ -130,36 +130,36 @@ SageMaker 多模型端点的一个限制是它要求所有模型使用相同的�
 
 1.  **缩减到 0**。Vertex AI 和同步的 SageMaker 端点不支持此功能，但 SageMaker 的异步端点支持。
 
-1.  **附加共享文件系统**。SageMaker和Vertex AI都不允许挂载外部文件存储系统（AWS中的[EFS](https://aws.amazon.com/efs/)或[FSx](https://aws.amazon.com/fsx/)以及GCP中的[Filestore](https://cloud.google.com/filestore?hl=en)）。这对于存储和共享跨服务器副本的模型工件，或实现像[这个](https://cloud.google.com/blog/products/containers-kubernetes/stable-diffusion-containers-on-gke)这样的技巧以节省Docker镜像空间（并减少启动时间）可能很有用。需要注意的是，它们确实支持访问常规对象存储（S3和GCS）。
+1.  **附加共享文件系统**。SageMaker 和 Vertex AI 都不允许挂载外部文件存储系统（AWS 中的[EFS](https://aws.amazon.com/efs/)或[FSx](https://aws.amazon.com/fsx/)以及 GCP 中的[Filestore](https://cloud.google.com/filestore?hl=en)）。这对于存储和共享跨服务器副本的模型工件，或实现像[这个](https://cloud.google.com/blog/products/containers-kubernetes/stable-diffusion-containers-on-gke)这样的技巧以节省 Docker 镜像空间（并减少启动时间）可能很有用。需要注意的是，它们确实支持访问常规对象存储（S3 和 GCS）。
 
 # 总结
 
 已经说了很多，这里有一个简洁的表格，将所有内容压缩在一起：
 
-![](../Images/5f43e208910b9b59dc8d0385fc44a7ab.png)
+![](img/5f43e208910b9b59dc8d0385fc44a7ab.png)
 
 图片由作者提供。✅ = 支持，❌ = 不支持，⚠️ = 有限支持。
 
 # 替代方案
 
-SageMaker和Vertex是最受欢迎的模型服务解决方案，能够满足大多数用例。如果你对其中任何一个不满意，那么你可能需要做一些自我反思。你是想要更多的灵活性吗？你是想要以牺牲更多灵活性为代价的简化吗？还是你只是想要通过减少冷启动来降低成本？
+SageMaker 和 Vertex 是最受欢迎的模型服务解决方案，能够满足大多数用例。如果你对其中任何一个不满意，那么你可能需要做一些自我反思。你是想要更多的灵活性吗？你是想要以牺牲更多灵活性为代价的简化吗？还是你只是想要通过减少冷启动来降低成本？
 
-如果你渴望灵活性，那么可能无法避免使用[Kubernetes](https://kubernetes.io/)——亚马逊的[EKS](https://aws.amazon.com/eks/)和谷歌的[GKE](https://cloud.google.com/kubernetes-engine?hl=en)是托管的Kubernetes服务，可能是一个不错的起点。额外的优势是Kubernetes是与云平台无关的，因此你可以在AWS / GCP / Azure上重复使用相同的配置，配合像[Terraform](https://www.terraform.io/)这样的基础设施自动化工具。
+如果你渴望灵活性，那么可能无法避免使用[Kubernetes](https://kubernetes.io/)——亚马逊的[EKS](https://aws.amazon.com/eks/)和谷歌的[GKE](https://cloud.google.com/kubernetes-engine?hl=en)是托管的 Kubernetes 服务，可能是一个不错的起点。额外的优势是 Kubernetes 是与云平台无关的，因此你可以在 AWS / GCP / Azure 上重复使用相同的配置，配合像[Terraform](https://www.terraform.io/)这样的基础设施自动化工具。
 
-相比之下，如果你追求简便，有一些服务如[Replicate](https://replicate.com/)、[Baseten](https://www.baseten.co/)、[Modal](https://modal.com/)或[Mystic](https://www.mystic.ai/)，它们比SageMaker和Vertex多了一层抽象。它们有不同的权衡；例如，Replicate让你在实验阶段极其容易地创建模型端点，但在冷启动方面存在显著的困难。
+相比之下，如果你追求简便，有一些服务如[Replicate](https://replicate.com/)、[Baseten](https://www.baseten.co/)、[Modal](https://modal.com/)或[Mystic](https://www.mystic.ai/)，它们比 SageMaker 和 Vertex 多了一层抽象。它们有不同的权衡；例如，Replicate 让你在实验阶段极其容易地创建模型端点，但在冷启动方面存在显著的困难。
 
 # 联系方式
 
-*如果你正在考虑高效的模型服务，我们很想听听你的意见！你可以在Twitter上找到我* [*@juliarturc*](https://x.com/juliarturc) *或在* [*LinkedIn*](https://www.linkedin.com/in/iulia-raluca-turc/) *联系我。*
+*如果你正在考虑高效的模型服务，我们很想听听你的意见！你可以在 Twitter 上找到我* [*@juliarturc*](https://x.com/juliarturc) *或在* [*LinkedIn*](https://www.linkedin.com/in/iulia-raluca-turc/) *联系我。*
 
 # 深入阅读
 
-+   [官方SageMaker文档](https://docs.aws.amazon.com/sagemaker/)
++   [官方 SageMaker 文档](https://docs.aws.amazon.com/sagemaker/)
 
-+   [官方Vertex AI文档](https://cloud.google.com/vertex-ai/docs/predictions/overview)
++   [官方 Vertex AI 文档](https://cloud.google.com/vertex-ai/docs/predictions/overview)
 
-+   [使用Amazon SageMaker多模型端点与TorchServe加速GPU上的AI模型，节省多达75%的推理成本](https://pytorch.org/blog/amazon-sagemaker-w-torchserve/)
++   [使用 Amazon SageMaker 多模型端点与 TorchServe 加速 GPU 上的 AI 模型，节省多达 75%的推理成本](https://pytorch.org/blog/amazon-sagemaker-w-torchserve/)
 
-+   [使用Google Vertex AI服务机器学习模型](https://medium.com/google-cloud/serving-machine-learning-models-with-google-vertex-ai-5d9644ededa3)
++   [使用 Google Vertex AI 服务机器学习模型](https://medium.com/google-cloud/serving-machine-learning-models-with-google-vertex-ai-5d9644ededa3)
 
 +   [通过 Google Kubernetes Engine (GKE) 将 Stable Diffusion 启动时间提高 4 倍](https://cloud.google.com/blog/products/containers-kubernetes/stable-diffusion-containers-on-gke)

@@ -1,30 +1,30 @@
 # 地理空间智能和相似性分析在数据映射中的应用
 
-> 原文：[https://towardsdatascience.com/the-power-of-geospatial-intelligence-and-similarity-analysis-for-data-mapping-3ebae73a7e27?source=collection_archive---------7-----------------------#2024-02-17](https://towardsdatascience.com/the-power-of-geospatial-intelligence-and-similarity-analysis-for-data-mapping-3ebae73a7e27?source=collection_archive---------7-----------------------#2024-02-17)
+> 原文：[`towardsdatascience.com/the-power-of-geospatial-intelligence-and-similarity-analysis-for-data-mapping-3ebae73a7e27?source=collection_archive---------7-----------------------#2024-02-17`](https://towardsdatascience.com/the-power-of-geospatial-intelligence-and-similarity-analysis-for-data-mapping-3ebae73a7e27?source=collection_archive---------7-----------------------#2024-02-17)
 
 ## 在数据集成过程中，通过地理编码和字符串匹配战略性地增强地址映射
 
-[](https://medium.com/@jiayipan999?source=post_page---byline--3ebae73a7e27--------------------------------)[![Kirsten Jiayi Pan](../Images/d4f661ae3cb34d5cee9df5f201c72eb9.png)](https://medium.com/@jiayipan999?source=post_page---byline--3ebae73a7e27--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3ebae73a7e27--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3ebae73a7e27--------------------------------) [Kirsten Jiayi Pan](https://medium.com/@jiayipan999?source=post_page---byline--3ebae73a7e27--------------------------------)
+[](https://medium.com/@jiayipan999?source=post_page---byline--3ebae73a7e27--------------------------------)![Kirsten Jiayi Pan](https://medium.com/@jiayipan999?source=post_page---byline--3ebae73a7e27--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3ebae73a7e27--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3ebae73a7e27--------------------------------) [Kirsten Jiayi Pan](https://medium.com/@jiayipan999?source=post_page---byline--3ebae73a7e27--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3ebae73a7e27--------------------------------) ·4分钟阅读·2024年2月17日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3ebae73a7e27--------------------------------) ·4 分钟阅读·2024 年 2 月 17 日
 
 --
 
 大数据行业的许多人可能会遇到以下场景：在从不同系统中提取这两条记录时，缩写词“TIL”是否等同于“Today I learned”（今天我学到了）这个短语？当记录以不同的名称出现，但意思相同，您的程序也可能会感到困惑。当我们将来自不同操作系统的有差异的数据汇聚在一起时，数据采集过程可能比原先预想的更耗时！
 
-![](../Images/0de52bb74048c8450bc7651e644dc70d.png)
+![](img/0de52bb74048c8450bc7651e644dc70d.png)
 
-图片来自：[https://unsplash.com/photos/turned-on-canopy-lights-g_V2rt6iG7A](https://unsplash.com/photos/turned-on-canopy-lights-g_V2rt6iG7A)
+图片来自：[`unsplash.com/photos/turned-on-canopy-lights-g_V2rt6iG7A`](https://unsplash.com/photos/turned-on-canopy-lights-g_V2rt6iG7A)
 
 现在，您正在为一家食品供应链公司工作，该公司的客户来自餐饮行业。公司提供了来自不同操作系统的关于客户联系方式和餐厅详情的两份数据提取。您需要将它们链接在一起，以便前端仪表板团队能够从填充的数据中获得更多信息。不幸的是，这两个数据源没有唯一的主键来进行链接，只有一些地理信息和餐厅名称。本文将通过结合`geopy`和`fuzzywuzzy`，在手动映射的基础上增强您的地理映射解决方案。
 
 使用`pandas`读取两个数据源：
 
-![](../Images/a347301f74e55c65c3cab943e8d86519.png)
+![](img/a347301f74e55c65c3cab943e8d86519.png)
 
 作者提供的图片：custom_master.csv
 
-![](../Images/e57ba899745c1cf57a1c0765aa2f01c3.png)
+![](img/e57ba899745c1cf57a1c0765aa2f01c3.png)
 
 作者提供的图片：client_profile.csv
 
@@ -54,7 +54,7 @@
 
 `Fuzzywuzzy` 是另一个 Python 库，旨在通过提供一组工具来进行模糊字符串匹配，比较和测量字符串之间的相似性。该库使用如 Levenshtein 距离等算法来量化字符串之间的相似度，特别适用于包含拼写错误或不一致的数据。每次地址比较时，都会生成一个信心得分，这是一个介于 0 和 100 之间的数值。得分越高表示字符串之间的相似度越强，而得分较低则表示相似度较低。在我们的案例中，我们可以使用 `fuzzywuzzy` 来处理剩余的无法通过 `geopy` 映射的行。
 
-![](../Images/9687393d2b9a9dfecf5d163ed0959728.png)
+![](img/9687393d2b9a9dfecf5d163ed0959728.png)
 
 作者提供的图片：使用 fuzzywuzzy 展示对剩余未映射行的信心得分。
 

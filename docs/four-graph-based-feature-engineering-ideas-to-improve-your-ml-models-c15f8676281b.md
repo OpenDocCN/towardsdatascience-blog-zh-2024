@@ -1,12 +1,12 @@
 # 四个基于图的特征工程思路，提升你的机器学习模型表现
 
-> 原文：[https://towardsdatascience.com/four-graph-based-feature-engineering-ideas-to-improve-your-ml-models-c15f8676281b?source=collection_archive---------1-----------------------#2024-03-18](https://towardsdatascience.com/four-graph-based-feature-engineering-ideas-to-improve-your-ml-models-c15f8676281b?source=collection_archive---------1-----------------------#2024-03-18)
+> 原文：[`towardsdatascience.com/four-graph-based-feature-engineering-ideas-to-improve-your-ml-models-c15f8676281b?source=collection_archive---------1-----------------------#2024-03-18`](https://towardsdatascience.com/four-graph-based-feature-engineering-ideas-to-improve-your-ml-models-c15f8676281b?source=collection_archive---------1-----------------------#2024-03-18)
 
-## 探索使用Python中networkx的创新图形特征工程技术，揭示表格数据中的隐藏洞察
+## 探索使用 Python 中 networkx 的创新图形特征工程技术，揭示表格数据中的隐藏洞察
 
-[](https://ds-claudia.medium.com/?source=post_page---byline--c15f8676281b--------------------------------)[![Claudia Ng](../Images/81d7927943f38f6303690cfd5676c8fd.png)](https://ds-claudia.medium.com/?source=post_page---byline--c15f8676281b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c15f8676281b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c15f8676281b--------------------------------) [Claudia Ng](https://ds-claudia.medium.com/?source=post_page---byline--c15f8676281b--------------------------------)
+[](https://ds-claudia.medium.com/?source=post_page---byline--c15f8676281b--------------------------------)![Claudia Ng](https://ds-claudia.medium.com/?source=post_page---byline--c15f8676281b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c15f8676281b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c15f8676281b--------------------------------) [Claudia Ng](https://ds-claudia.medium.com/?source=post_page---byline--c15f8676281b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c15f8676281b--------------------------------) ·11分钟阅读·2024年3月18日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c15f8676281b--------------------------------) ·11 分钟阅读·2024 年 3 月 18 日
 
 --
 

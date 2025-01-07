@@ -1,16 +1,16 @@
 # 使用 Python 进行聊天数据分析的技巧
 
-> 原文：[https://towardsdatascience.com/techniques-for-chat-data-analytics-with-python-4c15d3f5498c?source=collection_archive---------8-----------------------#2024-10-25](https://towardsdatascience.com/techniques-for-chat-data-analytics-with-python-4c15d3f5498c?source=collection_archive---------8-----------------------#2024-10-25)
+> 原文：[`towardsdatascience.com/techniques-for-chat-data-analytics-with-python-4c15d3f5498c?source=collection_archive---------8-----------------------#2024-10-25`](https://towardsdatascience.com/techniques-for-chat-data-analytics-with-python-4c15d3f5498c?source=collection_archive---------8-----------------------#2024-10-25)
 
 ## 第一部分：沟通密度分析
 
-[](https://medium.com/@robinvm?source=post_page---byline--4c15d3f5498c--------------------------------)[![Robin von Malottki](../Images/f5724e8eecb4925706a83f353caa303a.png)](https://medium.com/@robinvm?source=post_page---byline--4c15d3f5498c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4c15d3f5498c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4c15d3f5498c--------------------------------) [Robin von Malottki](https://medium.com/@robinvm?source=post_page---byline--4c15d3f5498c--------------------------------)
+[](https://medium.com/@robinvm?source=post_page---byline--4c15d3f5498c--------------------------------)![Robin von Malottki](https://medium.com/@robinvm?source=post_page---byline--4c15d3f5498c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4c15d3f5498c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c15d3f5498c--------------------------------) [Robin von Malottki](https://medium.com/@robinvm?source=post_page---byline--4c15d3f5498c--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c15d3f5498c--------------------------------) ·8分钟阅读·2024年10月25日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c15d3f5498c--------------------------------) ·8 分钟阅读·2024 年 10 月 25 日
 
 --
 
-![](../Images/8608cb9f248cad26d75a263111613caf.png)
+![](img/8608cb9f248cad26d75a263111613caf.png)
 
 图片由[Mikechie Esparagoza](https://www.pexels.com/de-de/foto/foto-des-zitierten-brief-brett-zitats-das-an-der-wand-gehangt-wird-1742370/)提供
 

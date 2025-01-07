@@ -1,18 +1,18 @@
 # 朝着 Mamba 状态空间模型迈进：图像、视频和时间序列
 
-> 原文：[https://towardsdatascience.com/towards-mamba-state-space-models-for-images-videos-and-time-series-1e0bfdb5933a?source=collection_archive---------2-----------------------#2024-08-14](https://towardsdatascience.com/towards-mamba-state-space-models-for-images-videos-and-time-series-1e0bfdb5933a?source=collection_archive---------2-----------------------#2024-08-14)
+> 原文：[`towardsdatascience.com/towards-mamba-state-space-models-for-images-videos-and-time-series-1e0bfdb5933a?source=collection_archive---------2-----------------------#2024-08-14`](https://towardsdatascience.com/towards-mamba-state-space-models-for-images-videos-and-time-series-1e0bfdb5933a?source=collection_archive---------2-----------------------#2024-08-14)
 
 ## [🐍 朝着 Mamba 状态空间模型迈进：图像、视频和时间序列](https://towardsdatascience.com/tagged/mamba-image-video-signal)
 
-## 第1部分
+## 第一部分
 
-[](https://medium.com/@SaschaKirch?source=post_page---byline--1e0bfdb5933a--------------------------------)[![Sascha Kirch](../Images/a0d45da9dc9c602075b2810786c660c9.png)](https://medium.com/@SaschaKirch?source=post_page---byline--1e0bfdb5933a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1e0bfdb5933a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1e0bfdb5933a--------------------------------) [Sascha Kirch](https://medium.com/@SaschaKirch?source=post_page---byline--1e0bfdb5933a--------------------------------)
+[](https://medium.com/@SaschaKirch?source=post_page---byline--1e0bfdb5933a--------------------------------)![Sascha Kirch](https://medium.com/@SaschaKirch?source=post_page---byline--1e0bfdb5933a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1e0bfdb5933a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1e0bfdb5933a--------------------------------) [Sascha Kirch](https://medium.com/@SaschaKirch?source=post_page---byline--1e0bfdb5933a--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1e0bfdb5933a--------------------------------) ·16分钟阅读·2024年8月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1e0bfdb5933a--------------------------------) ·16 分钟阅读·2024 年 8 月 14 日
 
 --
 
-![](../Images/8e699ad3e8e2b18d79f099a7d89788ac.png)
+![](img/8e699ad3e8e2b18d79f099a7d89788ac.png)
 
 图片由 [Sascha Kirch](https://medium.com/@SaschaKirch) 提供
 

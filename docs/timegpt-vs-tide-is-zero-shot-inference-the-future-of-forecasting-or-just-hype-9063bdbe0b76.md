@@ -1,16 +1,16 @@
 # TimeGPT vs TiDE：零样本推理是预测的未来还是仅仅是噱头？
 
-> 原文：[https://towardsdatascience.com/timegpt-vs-tide-is-zero-shot-inference-the-future-of-forecasting-or-just-hype-9063bdbe0b76?source=collection_archive---------3-----------------------#2024-03-14](https://towardsdatascience.com/timegpt-vs-tide-is-zero-shot-inference-the-future-of-forecasting-or-just-hype-9063bdbe0b76?source=collection_archive---------3-----------------------#2024-03-14)
+> 原文：[`towardsdatascience.com/timegpt-vs-tide-is-zero-shot-inference-the-future-of-forecasting-or-just-hype-9063bdbe0b76?source=collection_archive---------3-----------------------#2024-03-14`](https://towardsdatascience.com/timegpt-vs-tide-is-zero-shot-inference-the-future-of-forecasting-or-just-hype-9063bdbe0b76?source=collection_archive---------3-----------------------#2024-03-14)
 
-## 基础模型：时间序列预测中TimeGPT与TiDE的全面比较
+## 基础模型：时间序列预测中 TimeGPT 与 TiDE 的全面比较
 
-[](https://medium.com/@luisroque?source=post_page---byline--9063bdbe0b76--------------------------------)[![Luís Roque](../Images/e281d470b403375ba3c6f521b1ccf915.png)](https://medium.com/@luisroque?source=post_page---byline--9063bdbe0b76--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9063bdbe0b76--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9063bdbe0b76--------------------------------) [Luís Roque](https://medium.com/@luisroque?source=post_page---byline--9063bdbe0b76--------------------------------)
+[](https://medium.com/@luisroque?source=post_page---byline--9063bdbe0b76--------------------------------)![Luís Roque](https://medium.com/@luisroque?source=post_page---byline--9063bdbe0b76--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9063bdbe0b76--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9063bdbe0b76--------------------------------) [Luís Roque](https://medium.com/@luisroque?source=post_page---byline--9063bdbe0b76--------------------------------)
 
-·发表于[《Towards Data Science》](https://towardsdatascience.com/?source=post_page---byline--9063bdbe0b76--------------------------------) ·阅读时间12分钟·2024年3月14日
+·发表于[《Towards Data Science》](https://towardsdatascience.com/?source=post_page---byline--9063bdbe0b76--------------------------------) ·阅读时间 12 分钟·2024 年 3 月 14 日
 
 --
 
-*本文由Rafael Guedes与我共同撰写。*
+*本文由 Rafael Guedes 与我共同撰写。*
 
 # 介绍
 

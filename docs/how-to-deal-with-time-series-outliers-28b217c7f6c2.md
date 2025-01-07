@@ -1,16 +1,16 @@
 # 如何处理时间序列中的异常值
 
-> 原文：[https://towardsdatascience.com/how-to-deal-with-time-series-outliers-28b217c7f6c2?source=collection_archive---------3-----------------------#2024-08-31](https://towardsdatascience.com/how-to-deal-with-time-series-outliers-28b217c7f6c2?source=collection_archive---------3-----------------------#2024-08-31)
+> 原文：[`towardsdatascience.com/how-to-deal-with-time-series-outliers-28b217c7f6c2?source=collection_archive---------3-----------------------#2024-08-31`](https://towardsdatascience.com/how-to-deal-with-time-series-outliers-28b217c7f6c2?source=collection_archive---------3-----------------------#2024-08-31)
 
 ## 理解、检测和替换时间序列中的异常值
 
-[](https://vcerq.medium.com/?source=post_page---byline--28b217c7f6c2--------------------------------)[![Vitor Cerqueira](../Images/9e52f462c6bc20453d3ea273eb52114b.png)](https://vcerq.medium.com/?source=post_page---byline--28b217c7f6c2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--28b217c7f6c2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--28b217c7f6c2--------------------------------) [Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--28b217c7f6c2--------------------------------)
+[](https://vcerq.medium.com/?source=post_page---byline--28b217c7f6c2--------------------------------)![Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--28b217c7f6c2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--28b217c7f6c2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28b217c7f6c2--------------------------------) [Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--28b217c7f6c2--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28b217c7f6c2--------------------------------) ·阅读时长：6分钟·2024年8月31日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28b217c7f6c2--------------------------------) ·阅读时长：6 分钟·2024 年 8 月 31 日
 
 --
 
-![](../Images/11ffe30adafc083a5ec656101fa38def.png)
+![](img/11ffe30adafc083a5ec656101fa38def.png)
 
 图片由[Milton Villemar](https://unsplash.com/@villemar?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,16 +1,16 @@
 # Proxy SHAP：通过更简单的模型加速可解释性
 
-> 原文：[https://towardsdatascience.com/proxy-shap-speed-up-explainability-with-simpler-models-1aab91b79f9f?source=collection_archive---------5-----------------------#2024-09-21](https://towardsdatascience.com/proxy-shap-speed-up-explainability-with-simpler-models-1aab91b79f9f?source=collection_archive---------5-----------------------#2024-09-21)
+> 原文：[`towardsdatascience.com/proxy-shap-speed-up-explainability-with-simpler-models-1aab91b79f9f?source=collection_archive---------5-----------------------#2024-09-21`](https://towardsdatascience.com/proxy-shap-speed-up-explainability-with-simpler-models-1aab91b79f9f?source=collection_archive---------5-----------------------#2024-09-21)
 
-## 高效计算SHAP值的实用指南
+## 高效计算 SHAP 值的实用指南
 
-[](https://medium.com/@cerlymarco?source=post_page---byline--1aab91b79f9f--------------------------------)[![Marco Cerliani](../Images/ddc7943bfef3a7d59e36cc525dd5442e.png)](https://medium.com/@cerlymarco?source=post_page---byline--1aab91b79f9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1aab91b79f9f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1aab91b79f9f--------------------------------) [Marco Cerliani](https://medium.com/@cerlymarco?source=post_page---byline--1aab91b79f9f--------------------------------)
+[](https://medium.com/@cerlymarco?source=post_page---byline--1aab91b79f9f--------------------------------)![Marco Cerliani](https://medium.com/@cerlymarco?source=post_page---byline--1aab91b79f9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1aab91b79f9f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1aab91b79f9f--------------------------------) [Marco Cerliani](https://medium.com/@cerlymarco?source=post_page---byline--1aab91b79f9f--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1aab91b79f9f--------------------------------) ·阅读时长6分钟·2024年9月21日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1aab91b79f9f--------------------------------) ·阅读时长 6 分钟·2024 年 9 月 21 日
 
 --
 
-![](../Images/ed677e24385458c745abf30861375dc7.png)
+![](img/ed677e24385458c745abf30861375dc7.png)
 
 图片来自[Joel Muniz](https://unsplash.com/@jmuniz?utm_source=medium&utm_medium=referral)提供，[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

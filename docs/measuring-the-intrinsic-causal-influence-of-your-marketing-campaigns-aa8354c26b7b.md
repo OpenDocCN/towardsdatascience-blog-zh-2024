@@ -1,32 +1,32 @@
 # 衡量你市场营销活动的内在因果影响
 
-> 原文：[https://towardsdatascience.com/measuring-the-intrinsic-causal-influence-of-your-marketing-campaigns-aa8354c26b7b?source=collection_archive---------1-----------------------#2024-06-02](https://towardsdatascience.com/measuring-the-intrinsic-causal-influence-of-your-marketing-campaigns-aa8354c26b7b?source=collection_archive---------1-----------------------#2024-06-02)
+> 原文：[`towardsdatascience.com/measuring-the-intrinsic-causal-influence-of-your-marketing-campaigns-aa8354c26b7b?source=collection_archive---------1-----------------------#2024-06-02`](https://towardsdatascience.com/measuring-the-intrinsic-causal-influence-of-your-marketing-campaigns-aa8354c26b7b?source=collection_archive---------1-----------------------#2024-06-02)
 
-## 因果AI，探索因果推理与机器学习的结合
+## 因果 AI，探索因果推理与机器学习的结合
 
-[](https://medium.com/@raz1470?source=post_page---byline--aa8354c26b7b--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--aa8354c26b7b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aa8354c26b7b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--aa8354c26b7b--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--aa8354c26b7b--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--aa8354c26b7b--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--aa8354c26b7b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aa8354c26b7b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aa8354c26b7b--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--aa8354c26b7b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aa8354c26b7b--------------------------------) ·阅读时间：10分钟·2024年6月2日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aa8354c26b7b--------------------------------) ·阅读时间：10 分钟·2024 年 6 月 2 日
 
 --
 
-![](../Images/53a2610606f77459b2f6d61dc9fa2372.png)
+![](img/53a2610606f77459b2f6d61dc9fa2372.png)
 
 图片由 [Melanie Deziel](https://unsplash.com/@storyfuel?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 这篇系列文章讲的是什么？
 
-欢迎来到我的因果AI系列文章，我们将在其中探索因果推理如何融入机器学习模型。你将了解在不同商业环境中的一些实际应用。
+欢迎来到我的因果 AI 系列文章，我们将在其中探索因果推理如何融入机器学习模型。你将了解在不同商业环境中的一些实际应用。
 
 在上一篇文章中，我们探讨了*定价和促销中的非线性处理效果优化*。这次我们将讨论*衡量你的市场营销活动的内在因果影响*。
 
 如果你错过了上一篇关于定价和促销中非线性处理效果的文章，可以点击这里查看：
 
-[](/optimising-non-linear-treatment-effects-in-pricing-and-promotions-011ce140d180?source=post_page-----aa8354c26b7b--------------------------------) [## 定价和促销中的非线性处理效果优化
+[](/optimising-non-linear-treatment-effects-in-pricing-and-promotions-011ce140d180?source=post_page-----aa8354c26b7b--------------------------------) ## 定价和促销中的非线性处理效果优化
 
-### 因果AI，探索因果推理与机器学习的结合
+### 因果 AI，探索因果推理与机器学习的结合
 
-towardsdatascience.com](/optimising-non-linear-treatment-effects-in-pricing-and-promotions-011ce140d180?source=post_page-----aa8354c26b7b--------------------------------)
+towardsdatascience.com
 
 # 介绍
 
@@ -90,7 +90,7 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/understandi
 
 下图是一个激励性的（但简化的）示例，展示了获取营销的工作原理：  
 
-![](../Images/10701f0d7ea8bedd7cc6187be62b73da.png)  
+![](img/10701f0d7ea8bedd7cc6187be62b73da.png)  
 
 用户生成的图像  
 
@@ -122,15 +122,15 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/understandi
 
 在我们试图理解内在因果影响之前，了解因果图、结构因果模型（SCM）和加性噪声模型（ANM）非常重要。我在系列文章中的一篇应该能帮助你快速理解：  
 
-[](/using-causal-graphs-to-answer-causal-questions-5fd1dd82fa90?source=post_page-----aa8354c26b7b--------------------------------) [## 使用因果图来回答因果问题  
+[](/using-causal-graphs-to-answer-causal-questions-5fd1dd82fa90?source=post_page-----aa8354c26b7b--------------------------------) ## 使用因果图来回答因果问题  
 
 ### 因果 AI，探索因果推理与机器学习的整合  
 
-[towardsdatascience.com](/using-causal-graphs-to-answer-causal-questions-5fd1dd82fa90?source=post_page-----aa8354c26b7b--------------------------------)  
+[towardsdatascience.com  
 
 提醒一下，因果图中的每个节点可以视为一个模型中的目标，其中它的直接父节点作为特征。通常会为每个非根节点使用加性噪声模型：
 
-![](../Images/7a53c88f3047851b720211ef9a58afd4.png)
+![](img/7a53c88f3047851b720211ef9a58afd4.png)
 
 用户生成的图像
 
@@ -142,19 +142,19 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/understandi
 
 让我们看下面的示例图，以帮助我们进一步解开内在因果影响：
 
-![](../Images/881d59714c222dacbf265e92471283e5.png)
+![](img/881d59714c222dacbf265e92471283e5.png)
 
 用户生成的图像
 
-+   A、B和C是根节点。
++   A、B 和 C 是根节点。
 
-+   D是一个非根节点，我们可以通过它的直接父节点（A、B、C）和一个噪声项来建模。
++   D 是一个非根节点，我们可以通过它的直接父节点（A、B、C）和一个噪声项来建模。
 
-+   E是一个非根节点，类似于D，我们可以通过它的直接父节点（A、B、C）和一个噪声项来建模。
++   E 是一个非根节点，类似于 D，我们可以通过它的直接父节点（A、B、C）和一个噪声项来建模。
 
-+   F是我们的目标节点，我们可以通过它的直接父节点（D、E）和一个噪声项来建模。
++   F 是我们的目标节点，我们可以通过它的直接父节点（D、E）和一个噪声项来建模。
 
-让我们聚焦于节点D。它从节点A、B和C继承了一部分对节点F的影响。它对节点F的内在影响，部分并非仅仅从A、B和C“继承”而来，而是来自噪声项。因此，我们可以说每个节点的噪声项可以用来估算对目标节点的内在因果影响。值得注意的是，根节点仅由噪声组成。
+让我们聚焦于节点 D。它从节点 A、B 和 C 继承了一部分对节点 F 的影响。它对节点 F 的内在影响，部分并非仅仅从 A、B 和 C“继承”而来，而是来自噪声项。因此，我们可以说每个节点的噪声项可以用来估算对目标节点的内在因果影响。值得注意的是，根节点仅由噪声组成。
 
 在案例研究中，我们将深入探讨如何精确计算内在因果影响。
 
@@ -172,7 +172,7 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/understandi
 
 ## 设置图（DAG）
 
-我们从使用专家领域知识来设置一个DAG开始，重复使用之前的营销获取示例：
+我们从使用专家领域知识来设置一个 DAG 开始，重复使用之前的营销获取示例：
 
 ```py
 # Create node lookup for channels
@@ -202,19 +202,19 @@ graph_actual[4, 5] = 1.0 # Social clicks -> Revenue
 
 本质上，财务团队使用的最后点击模型只使用收入的直接父节点来衡量营销效果。
 
-![](../Images/10701f0d7ea8bedd7cc6187be62b73da.png)
+![](img/10701f0d7ea8bedd7cc6187be62b73da.png)
 
 用户生成的图像
 
 ## 数据生成过程
 
-我们根据DAG的数据生成过程创建一些数据样本：
+我们根据 DAG 的数据生成过程创建一些数据样本：
 
-+   3个根节点，由噪声项组成；需求、品牌支出和社交支出。
++   3 个根节点，由噪声项组成；需求、品牌支出和社交支出。
 
-+   2个非根节点，均继承自3个根节点的影响力，并加上一些噪声项；有机点击，社交点击。
++   2 个非根节点，均继承自 3 个根节点的影响力，并加上一些噪声项；有机点击，社交点击。
 
-+   1个目标节点，继承自2个非根节点的影响力，并加上一个噪声项；收入
++   1 个目标节点，继承自 2 个非根节点的影响力，并加上一个噪声项；收入
 
 ```py
 # Create dataframe with 1 column per code
@@ -229,9 +229,9 @@ df[node_lookup[4]] = 0.30 * df[node_lookup[0]] + 0.50 * df[node_lookup[1]] + 0.7
 df[node_lookup[5]] = df[node_lookup[3]] + df[node_lookup[4]] + np.random.normal(loc=0, scale=2000, size=20000) # Revenue
 ```
 
-## 训练SCM
+## 训练 SCM
 
-现在我们可以使用python包DoWhy中的GCM模块来训练SCM。我们设置数据生成过程时采用线性关系，因此可以使用岭回归作为每个非根节点的因果机制：
+现在我们可以使用 python 包 DoWhy 中的 GCM 模块来训练 SCM。我们设置数据生成过程时采用线性关系，因此可以使用岭回归作为每个非根节点的因果机制：
 
 ```py
 # Setup graph
@@ -252,11 +252,11 @@ causal_model.set_causal_mechanism('Revenue', gcm.AdditiveNoiseModel(gcm.ml.creat
 gcm.fit(causal_model, df)
 ```
 
-或者，我们可以使用auto_assignment函数来自动分配模型（而不是手动定义它们）。
+或者，我们可以使用 auto_assignment 函数来自动分配模型（而不是手动定义它们）。
 
-我将跳过模型评估部分，因为这不是我文章的重点。然而，我们也可以使用GCM评估因果模型：
+我将跳过模型评估部分，因为这不是我文章的重点。然而，我们也可以使用 GCM 评估因果模型：
 
-[](https://www.pywhy.org/dowhy/v0.11.1/user_guide/modeling_gcm/model_evaluation.html?source=post_page-----aa8354c26b7b--------------------------------#evaluating-a-fitted-gcm) [## 评估GCM - DoWhy文档
+[](https://www.pywhy.org/dowhy/v0.11.1/user_guide/modeling_gcm/model_evaluation.html?source=post_page-----aa8354c26b7b--------------------------------#evaluating-a-fitted-gcm) [## 评估 GCM - DoWhy 文档
 
 ### 建立图形因果模型（GCM）需要做出各种假设和模型选择，这些都可能影响……
 
@@ -264,7 +264,7 @@ gcm.fit(causal_model, df)
 
 ## 内在因果影响
 
-我们可以轻松地使用GCM模块计算内在因果影响。我们这样做并将贡献转换为百分比：
+我们可以轻松地使用 GCM 模块计算内在因果影响。我们这样做并将贡献转换为百分比：
 
 ```py
 # calculate intrinsic causal influence
@@ -277,7 +277,7 @@ def convert_to_percentage(value_dictionary):
 convert_to_percentage(ici)
 ```
 
-![](../Images/c14365497df9456fd24f942070d8c77f.png)
+![](img/c14365497df9456fd24f942070d8c77f.png)
 
 用户生成的图片
 
@@ -297,7 +297,7 @@ plt.title('Bar Plot from Dictionary Data')
 plt.show()
 ```
 
-![](../Images/5088e850f9e4750a68c05e563914e555.png)
+![](img/5088e850f9e4750a68c05e563914e555.png)
 
 用户生成的图片
 
@@ -319,7 +319,7 @@ plt.show()
 
 +   该模型用于估算目标节点在给定噪声变量子集下的条件分布。
 
-+   然后使用Shapley值来估计每个噪声项的贡献——如果改变噪声项对目标的影响很小，那么内在因果影响将非常小。
++   然后使用 Shapley 值来估计每个噪声项的贡献——如果改变噪声项对目标的影响很小，那么内在因果影响将非常小。
 
 # 总结性思考
 
@@ -329,7 +329,7 @@ plt.show()
 
 +   理解其内在机制将帮助你更有效地应用这一概念。
 
-+   准确识别DAG并正确估计图形是获得合理内在因果影响估计的关键。
++   准确识别 DAG 并正确估计图形是获得合理内在因果影响估计的关键。
 
 +   在营销获取示例中，你可能需要考虑为品牌营销添加滞后效应。
 
@@ -337,6 +337,6 @@ plt.show()
 
 # 参考文献
 
-*Dominik Janzing, Patrick Blöbaum, Atalanti A Mastakouri, Philipp M Faller, Lenon Minorics, Kailash Budhathoki. “通过结构保持干预量化内在因果贡献”; 第27届国际人工智能与统计学会议论文集, PMLR 238:2188–2196:* [https://proceedings.mlr.press/v238/janzing24a.html](https://proceedings.mlr.press/v238/janzing24a.html)
+*Dominik Janzing, Patrick Blöbaum, Atalanti A Mastakouri, Philipp M Faller, Lenon Minorics, Kailash Budhathoki. “通过结构保持干预量化内在因果贡献”; 第 27 届国际人工智能与统计学会议论文集, PMLR 238:2188–2196:* [`proceedings.mlr.press/v238/janzing24a.html`](https://proceedings.mlr.press/v238/janzing24a.html)
 
-*Patrick Blöbaum, Peter Götz, Kailash Budhathoki, Atalanti A. Mastakouri, Dominik Janzing. “DoWhy-GCM: DoWhy在图形因果模型中因果推断的扩展”; 机器学习研究杂志, MLOSS 25(147):1−7, 2024:* [https://jmlr.org/papers/v25/22-1258.html](https://jmlr.org/papers/v25/22-1258.html)
+*Patrick Blöbaum, Peter Götz, Kailash Budhathoki, Atalanti A. Mastakouri, Dominik Janzing. “DoWhy-GCM: DoWhy 在图形因果模型中因果推断的扩展”; 机器学习研究杂志, MLOSS 25(147):1−7, 2024:* [`jmlr.org/papers/v25/22-1258.html`](https://jmlr.org/papers/v25/22-1258.html)

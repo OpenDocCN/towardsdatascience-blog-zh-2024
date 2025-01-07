@@ -1,16 +1,16 @@
 # 《企业数据质量“谁做什么”指南》
 
-> 原文：[https://towardsdatascience.com/the-who-does-what-guide-to-enterprise-data-quality-32c4ef99294f?source=collection_archive---------1-----------------------#2024-09-12](https://towardsdatascience.com/the-who-does-what-guide-to-enterprise-data-quality-32c4ef99294f?source=collection_archive---------1-----------------------#2024-09-12)
+> 原文：[`towardsdatascience.com/the-who-does-what-guide-to-enterprise-data-quality-32c4ef99294f?source=collection_archive---------1-----------------------#2024-09-12`](https://towardsdatascience.com/the-who-does-what-guide-to-enterprise-data-quality-32c4ef99294f?source=collection_archive---------1-----------------------#2024-09-12)
 
 ## 一个答案，以及许多最佳实践，说明大型组织如何在现代数据平台上实现数据质量管理。
 
-[](https://medium.com/@michaelrsegner?source=post_page---byline--32c4ef99294f--------------------------------)[![Michael Segner](../Images/b302642a7c8929ac155a0b51f9997e46.png)](https://medium.com/@michaelrsegner?source=post_page---byline--32c4ef99294f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--32c4ef99294f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--32c4ef99294f--------------------------------) [Michael Segner](https://medium.com/@michaelrsegner?source=post_page---byline--32c4ef99294f--------------------------------)
+[](https://medium.com/@michaelrsegner?source=post_page---byline--32c4ef99294f--------------------------------)![Michael Segner](https://medium.com/@michaelrsegner?source=post_page---byline--32c4ef99294f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--32c4ef99294f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--32c4ef99294f--------------------------------) [Michael Segner](https://medium.com/@michaelrsegner?source=post_page---byline--32c4ef99294f--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--32c4ef99294f--------------------------------) ·9分钟阅读·2024年9月12日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--32c4ef99294f--------------------------------) ·9 分钟阅读·2024 年 9 月 12 日
 
 --
 
-![](../Images/88206014fa9d29be39b84438ae771a0d.png)
+![](img/88206014fa9d29be39b84438ae771a0d.png)
 
 关于“谁做什么”的企业数据质量答案。图片由作者提供。
 
@@ -18,13 +18,13 @@
 
 这是有原因的。数据质量就像是一场接力赛。每一阶段——检测、分诊、解决和衡量——的成功都依赖于其他阶段。每次接力棒传递时，失败的可能性会急剧上升。
 
-![](../Images/6515b60355e98edfb48bc2b64da04412.png)
+![](img/6515b60355e98edfb48bc2b64da04412.png)
 
 图片来源：[Zach Lucero](https://unsplash.com/@zlucerophoto?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来自[Unsplash](https://unsplash.com/photos/woman-running-on-field-x_x3RPpDbII?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
 实际问题需要实际的答案。
 
-然而，每个组织围绕数据的组织方式略有不同。我曾见过一些拥有15,000名员工的组织将所有关键数据的所有权集中化，而一些规模只有其一半的组织则决定完全在业务领域之间分散数据所有权。
+然而，每个组织围绕数据的组织方式略有不同。我曾见过一些拥有 15,000 名员工的组织将所有关键数据的所有权集中化，而一些规模只有其一半的组织则决定完全在业务领域之间分散数据所有权。
 
 就本文而言，我将参考最常见的企业架构，它是两者的混合体。这也是大多数数据团队的目标，它还具有许多跨团队责任，使其特别复杂且值得讨论。
 
@@ -32,17 +32,17 @@
 
 **本文内容：**
 
-+   [数据产品的重要性](#4b22)
++   数据产品的重要性
 
-+   [检测](#21e5)
++   检测
 
-+   [分诊](#40f6)
++   分诊
 
-+   [解决](#3214)
++   解决
 
-+   [衡量](#0d0f)
++   衡量
 
-+   [追求数据质量的金标准](#770a)
++   追求数据质量的金标准
 
 # 数据产品的重要性
 
@@ -56,7 +56,7 @@
 
 例如，“单一客户视图”是一个常见的基础数据产品，它可能为派生数据产品提供支持，比如产品追加销售模型、流失预测和企业仪表盘。
 
-![](../Images/03505ee2abee8871605647a90e39df83.png)
+![](img/03505ee2abee8871605647a90e39df83.png)
 
 基础数据产品与派生数据产品的区别对于大型组织至关重要。图片由作者提供。
 
@@ -68,7 +68,7 @@
 
 在变得可发现之前，每个基础数据产品应该有一个指定的**数据平台工程负责人**。这是负责对整个数据管道进行端到端监控的团队，监控内容包括新鲜度、数据量、模式和基准质量。大多数团队遵循的一个基本规则是：“你构建它，你拥有它。”
 
-**所谓基准质量，我指的是能够广泛地在许多数据集和领域中进行泛化的要求。**这些要求通常由中央治理团队定义，针对关键数据元素，并且通常符合[数据质量的六个维度](https://www.montecarlodata.com/blog-6-data-quality-dimensions-examples/#:~:text=The%20six%20dimensions%20of%20data,validity%2C%20timeliness%2C%20and%20uniqueness.)。例如：“id列应始终是唯一的”或“该字段始终应格式化为有效的美国州代码”。
+**所谓基准质量，我指的是能够广泛地在许多数据集和领域中进行泛化的要求。**这些要求通常由中央治理团队定义，针对关键数据元素，并且通常符合[数据质量的六个维度](https://www.montecarlodata.com/blog-6-data-quality-dimensions-examples/#:~:text=The%20six%20dimensions%20of%20data,validity%2C%20timeliness%2C%20and%20uniqueness.)。例如：“id 列应始终是唯一的”或“该字段始终应格式化为有效的美国州代码”。
 
 换句话说，基础数据产品所有者不能仅仅确保数据按时到达。他们需要确保源数据完整且有效；数据在各个来源和随后的加载中保持一致；并且关键字段没有错误。在这方面，机器学习异常检测模型可能特别有效。
 
@@ -78,7 +78,7 @@
 
 数据质量监控也需要在派生数据产品层级进行，因为不良数据可以在数据生命周期的任何阶段渗透。
 
-![](../Images/c87a1cf02c8932d1128c9e04f420b6e5.png)
+![](img/c87a1cf02c8932d1128c9e04f420b6e5.png)
 
 即使在基础数据产品层级数据质量良好，也不能保证在派生数据产品层级数据不会出现问题。图片由作者提供。
 
@@ -92,7 +92,7 @@
 
 在派生数据产品层级的检测工作流中，另一个关键的区别是业务规则。
 
-**有一些数据质量规则是无法通过自动化或从中央标准生成的，它们只能来自业务。** 例如，“当account_type等于商业且customer_region等于EMEA时，discount_percentage字段不能大于10。”
+**有一些数据质量规则是无法通过自动化或从中央标准生成的，它们只能来自业务。** 例如，“当 account_type 等于商业且 customer_region 等于 EMEA 时，discount_percentage 字段不能大于 10。”
 
 **这些规则最好由分析师，特别是表格所有者，根据他们的经验和业务反馈来应用。** 并不是每一条规则都需要触发数据产品的创建，这样做太重且繁琐。这个过程应该是完全去中心化、自服务且轻量的。
 
@@ -106,7 +106,7 @@
 
 每个基础数据产品应该至少在 Slack 或 Teams 中有一个专门的警报渠道。
 
-![](../Images/7f39751dd336683465ebc851beb7d385.png)
+![](img/7f39751dd336683465ebc851beb7d385.png)
 
 有很多方法可以组织数据质量通知策略，但最佳实践是确保每个基础数据产品都有自己的专用渠道。图片由作者提供。
 
@@ -118,7 +118,7 @@
 
 让每个衍生数据产品负责人负责分诊警报是一种常见的策略（见下图），但随着依赖关系的增加，这种方法也可能会失效。
 
-![](../Images/da69865d76efe43a63a7973eeae19f98.png)
+![](img/da69865d76efe43a63a7973eeae19f98.png)
 
 衍生数据产品负责人的数据分诊流程。图片由作者提供。[来源](https://www.montecarlodata.com/blog-data-triage-4-best-practices-for-stronger-data-incident-management/)。
 
@@ -132,9 +132,9 @@
 
 # 解决方案
 
-[Wakefield Research 调查了](https://resources.montecarlodata.com/ebooks/data-quality-survey-1?lx=LPgDLW&__hstc=100283906.1177f469b48424af615d36cf8a7e9cc6.1712675931315.1725908676211.1725976965950.239&__hssc=100283906.4.1725976965950&__hsfp=3977887954)超过200名数据专业人士，调查显示每月平均发生60次事件，每次检测到事件后的中位解决时间为15小时。很容易看出，数据工程师是如何被积压的任务埋没的。
+[Wakefield Research 调查了](https://resources.montecarlodata.com/ebooks/data-quality-survey-1?lx=LPgDLW&__hstc=100283906.1177f469b48424af615d36cf8a7e9cc6.1712675931315.1725908676211.1725976965950.239&__hssc=100283906.4.1725976965950&__hsfp=3977887954)超过 200 名数据专业人士，调查显示每月平均发生 60 次事件，每次检测到事件后的中位解决时间为 15 小时。很容易看出，数据工程师是如何被积压的任务埋没的。
 
-造成这种情况的因素有很多，但最大的问题是我们在技术和流程上都将异常与根本原因分开了。数据工程师照看他们的管道，分析师照看他们的指标。数据工程师设置他们的Airflow警报，分析师编写他们的SQL规则。
+造成这种情况的因素有很多，但最大的问题是我们在技术和流程上都将异常与根本原因分开了。数据工程师照看他们的管道，分析师照看他们的指标。数据工程师设置他们的 Airflow 警报，分析师编写他们的 SQL 规则。
 
 **但管道——数据源、移动数据的系统以及转化数据的代码——是导致指标异常发生的根本原因**。
 
@@ -158,11 +158,11 @@
 
 **数据治理团队可以通过揭示这些常见需求和** [**关键数据元素**](https://www.dataversity.net/critical-data-elements-explained/) **来提供帮助，以帮助在市场或目录中设定并呈现智能的服务水平协议（更多的实施细节可以在** [**这里**](https://www.thoughtworks.com/en-us/insights/blog/data-strategy/building-an-amazon-com-for-your-data-products) **找到）**。
 
-![](../Images/040657f680e4b1df4fa1bec5dbc59320.png)
+![](img/040657f680e4b1df4fa1bec5dbc59320.png)
 
 图片由作者提供。
 
-这是[罗氏数据团队的方法](https://www.montecarlodata.com/blog-how-roche-uses-dataops-to-build-data-products-and-data-mesh/)，他们创建了世界上最成功的企业数据网格之一，[他们估计](https://www.prnewswire.com/news-releases/roche-is-awarded-idc-best-in-future-of-intelligence-award-for-implementing-data-mesh-strategy-at-scale-with-immuta-302047722.html)已经生成了约200个数据产品，估计为公司带来了5000万美元的价值。
+这是[罗氏数据团队的方法](https://www.montecarlodata.com/blog-how-roche-uses-dataops-to-build-data-products-and-data-mesh/)，他们创建了世界上最成功的企业数据网格之一，[他们估计](https://www.prnewswire.com/news-releases/roche-is-awarded-idc-best-in-future-of-intelligence-award-for-implementing-data-mesh-strategy-at-scale-with-immuta-302047722.html)已经生成了约 200 个数据产品，估计为公司带来了 5000 万美元的价值。
 
 ## 派生数据产品
 
@@ -190,4 +190,4 @@
 
 …你会发现你的团队正在跨越数据质量的终点线。
 
-[***在Medium上关注我***](https://medium.com/@michaelrsegner) ***了解更多关于数据工程、数据质量和相关话题的故事。***
+[***在 Medium 上关注我***](https://medium.com/@michaelrsegner) ***了解更多关于数据工程、数据质量和相关话题的故事。***

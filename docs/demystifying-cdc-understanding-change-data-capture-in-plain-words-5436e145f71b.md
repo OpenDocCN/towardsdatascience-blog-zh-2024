@@ -1,22 +1,22 @@
-# 破解CDC：用简单的语言理解变更数据捕获
+# 破解 CDC：用简单的语言理解变更数据捕获
 
-> 原文：[https://towardsdatascience.com/demystifying-cdc-understanding-change-data-capture-in-plain-words-5436e145f71b?source=collection_archive---------8-----------------------#2024-03-18](https://towardsdatascience.com/demystifying-cdc-understanding-change-data-capture-in-plain-words-5436e145f71b?source=collection_archive---------8-----------------------#2024-03-18)
+> 原文：[`towardsdatascience.com/demystifying-cdc-understanding-change-data-capture-in-plain-words-5436e145f71b?source=collection_archive---------8-----------------------#2024-03-18`](https://towardsdatascience.com/demystifying-cdc-understanding-change-data-capture-in-plain-words-5436e145f71b?source=collection_archive---------8-----------------------#2024-03-18)
 
 ## 你必备的变更数据捕获指南
 
-[](https://medium.com/@antoniograndinetti91?source=post_page---byline--5436e145f71b--------------------------------)[![Antonio Grandinetti](../Images/f97ba21a6eb1bf1f66174953511afcd2.png)](https://medium.com/@antoniograndinetti91?source=post_page---byline--5436e145f71b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5436e145f71b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5436e145f71b--------------------------------) [Antonio Grandinetti](https://medium.com/@antoniograndinetti91?source=post_page---byline--5436e145f71b--------------------------------)
+[](https://medium.com/@antoniograndinetti91?source=post_page---byline--5436e145f71b--------------------------------)![Antonio Grandinetti](https://medium.com/@antoniograndinetti91?source=post_page---byline--5436e145f71b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5436e145f71b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5436e145f71b--------------------------------) [Antonio Grandinetti](https://medium.com/@antoniograndinetti91?source=post_page---byline--5436e145f71b--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5436e145f71b--------------------------------) ·阅读时间：4分钟·2024年3月18日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5436e145f71b--------------------------------) ·阅读时间：4 分钟·2024 年 3 月 18 日
 
 --
 
 在我的工作经验中（大数据分析和数据工程领域），项目通常各不相同，但它们总是遵循一个已确立的架构：目标是创建一个**数据平台**，从不同的数据源收集数据，执行一系列处理，然后将汇总后的数据提供给那些需要使用它的人。
 
-![](../Images/44bfda3016082f6036af858cc968c41a.png)
+![](img/44bfda3016082f6036af858cc968c41a.png)
 
 图片来自[ian dooley](https://unsplash.com/@sadswim?utm_source=medium&utm_medium=referral)在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-上述描述的架构通常总结为数据湖（Data Lake）/数据湖屋（Data Lakehouse）和ETL（提取-转换-加载）流程。提取数据的不同方式可以分为两类：
+上述描述的架构通常总结为数据湖（Data Lake）/数据湖屋（Data Lakehouse）和 ETL（提取-转换-加载）流程。提取数据的不同方式可以分为两类：
 
 +   **批处理**：整个数据集在一次操作中从源系统提取
 

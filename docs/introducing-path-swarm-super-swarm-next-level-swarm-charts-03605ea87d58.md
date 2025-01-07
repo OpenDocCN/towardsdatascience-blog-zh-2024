@@ -1,16 +1,16 @@
 # 介绍 Path-Swarm 和 Super-Swarm：下一代蜂群图
 
-> 原文：[https://towardsdatascience.com/introducing-path-swarm-super-swarm-next-level-swarm-charts-03605ea87d58?source=collection_archive---------4-----------------------#2024-07-18](https://towardsdatascience.com/introducing-path-swarm-super-swarm-next-level-swarm-charts-03605ea87d58?source=collection_archive---------4-----------------------#2024-07-18)
+> 原文：[`towardsdatascience.com/introducing-path-swarm-super-swarm-next-level-swarm-charts-03605ea87d58?source=collection_archive---------4-----------------------#2024-07-18`](https://towardsdatascience.com/introducing-path-swarm-super-swarm-next-level-swarm-charts-03605ea87d58?source=collection_archive---------4-----------------------#2024-07-18)
 
 ## 了解 Path-Swarm 图表，并使用 Python 创建你自己的图表
 
-[](https://medium.com/@nickgerend?source=post_page---byline--03605ea87d58--------------------------------)[![Nick Gerend](../Images/716eb183008674ac46c6aee96093c4b3.png)](https://medium.com/@nickgerend?source=post_page---byline--03605ea87d58--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03605ea87d58--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--03605ea87d58--------------------------------) [Nick Gerend](https://medium.com/@nickgerend?source=post_page---byline--03605ea87d58--------------------------------)
+[](https://medium.com/@nickgerend?source=post_page---byline--03605ea87d58--------------------------------)![Nick Gerend](https://medium.com/@nickgerend?source=post_page---byline--03605ea87d58--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03605ea87d58--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03605ea87d58--------------------------------) [Nick Gerend](https://medium.com/@nickgerend?source=post_page---byline--03605ea87d58--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03605ea87d58--------------------------------) ·37分钟阅读·2024年7月18日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03605ea87d58--------------------------------) ·37 分钟阅读·2024 年 7 月 18 日
 
 --
 
-![](../Images/9a14e796643e10cc8991f7b31fef75e5.png)
+![](img/9a14e796643e10cc8991f7b31fef75e5.png)
 
 Nick Gerend 的 Path Swarm 和 Super Swarm 图表
 

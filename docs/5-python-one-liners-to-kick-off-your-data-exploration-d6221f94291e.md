@@ -1,16 +1,16 @@
 # 启动数据探索的 5 个 Python 一行代码
 
-> 原文：[https://towardsdatascience.com/5-python-one-liners-to-kick-off-your-data-exploration-d6221f94291e?source=collection_archive---------0-----------------------#2024-12-06](https://towardsdatascience.com/5-python-one-liners-to-kick-off-your-data-exploration-d6221f94291e?source=collection_archive---------0-----------------------#2024-12-06)
+> 原文：[`towardsdatascience.com/5-python-one-liners-to-kick-off-your-data-exploration-d6221f94291e?source=collection_archive---------0-----------------------#2024-12-06`](https://towardsdatascience.com/5-python-one-liners-to-kick-off-your-data-exploration-d6221f94291e?source=collection_archive---------0-----------------------#2024-12-06)
 
 ## 如何使用一行代码启动你的 EDA
 
-[](https://medium.com/@pelletierhaden?source=post_page---byline--d6221f94291e--------------------------------)[![Haden Pelletier](../Images/8f73fc8222e783883c4ebcaee14513e0.png)](https://medium.com/@pelletierhaden?source=post_page---byline--d6221f94291e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d6221f94291e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d6221f94291e--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--d6221f94291e--------------------------------)
+[](https://medium.com/@pelletierhaden?source=post_page---byline--d6221f94291e--------------------------------)![Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--d6221f94291e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d6221f94291e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d6221f94291e--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--d6221f94291e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d6221f94291e--------------------------------) ·6 分钟阅读 ·2024年12月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d6221f94291e--------------------------------) ·6 分钟阅读 ·2024 年 12 月 6 日
 
 --
 
-![](../Images/11a2589005ed21547bde9f021ab72f6a.png)
+![](img/11a2589005ed21547bde9f021ab72f6a.png)
 
 图片来自 [Lukas Blazek](https://www.paypal.me/goumbik) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral) 上
 

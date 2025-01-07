@@ -1,16 +1,16 @@
 # 深入探讨多线程、多进程和 Asyncio
 
-> 原文：[https://towardsdatascience.com/deep-dive-into-multithreading-multiprocessing-and-asyncio-94fdbe0c91f0?source=collection_archive---------0-----------------------#2024-12-28](https://towardsdatascience.com/deep-dive-into-multithreading-multiprocessing-and-asyncio-94fdbe0c91f0?source=collection_archive---------0-----------------------#2024-12-28)
+> 原文：[`towardsdatascience.com/deep-dive-into-multithreading-multiprocessing-and-asyncio-94fdbe0c91f0?source=collection_archive---------0-----------------------#2024-12-28`](https://towardsdatascience.com/deep-dive-into-multithreading-multiprocessing-and-asyncio-94fdbe0c91f0?source=collection_archive---------0-----------------------#2024-12-28)
 
 ## 如何选择正确的并发模型
 
-[](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)[![Clara Chong](../Images/94c482bc7e35135f104fbfd08a45eef1.png)](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------) [Clara Chong](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)
+[](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)![Clara Chong](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------) [Clara Chong](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------) ·8 分钟阅读·2024年12月28日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------) ·8 分钟阅读·2024 年 12 月 28 日
 
 --
 
-![](../Images/7c7943e9ffec1c0fd533c4ffcb697285.png)
+![](img/7c7943e9ffec1c0fd533c4ffcb697285.png)
 
 图片由 [Paul Esch-Laurent](https://unsplash.com/@pinjasaur) 提供，来源于 [Unsplash](https://unsplash.com/)
 
@@ -54,7 +54,7 @@ Python 提供了三种主要的方式来同时处理多个任务：多线程、�
 
 ## 1\. 并发与并行
 
-![](../Images/c82f7d13c46396775ef98ce15aa559c7.png)
+![](img/c82f7d13c46396775ef98ce15aa559c7.png)
 
 并发与并行的视觉表现（由我绘制）
 
@@ -66,7 +66,7 @@ Python 提供了三种主要的方式来同时处理多个任务：多线程、�
 
 现在让我们继续探讨一些基础的操作系统概念——程序、进程和线程。
 
-![](../Images/c3aa191a728825dae828926b5c384a45.png)
+![](img/c3aa191a728825dae828926b5c384a45.png)
 
 在单一进程内可以同时存在多个线程——这就是多线程（由我绘制）。
 
@@ -126,7 +126,7 @@ CPU 每次只能执行***一个核心上的任务***。为了处理多个任务�
 
 现在让我们探讨 Python 特定的并发模型。
 
-![](../Images/4aa327a57c30f849fea84547f3f53fb9.png)
+![](img/4aa327a57c30f849fea84547f3f53fb9.png)
 
 不同并发模型的总结（由我绘制）
 
@@ -178,21 +178,21 @@ GIL 的引入是为了简化 Python 中的内存管理，因为许多内部操�
 
 ## ***它是如何工作的***
 
-Asyncio运行一个事件循环，调度任务。当任务在等待某些东西时，如网络响应或文件读取，它会自愿“暂停”。当任务暂停时，事件循环会切换到另一个任务，确保不会浪费等待的时间。
+Asyncio 运行一个事件循环，调度任务。当任务在等待某些东西时，如网络响应或文件读取，它会自愿“暂停”。当任务暂停时，事件循环会切换到另一个任务，确保不会浪费等待的时间。
 
-这使得asyncio非常适用于**需要等待大量时间的小任务**的场景，如处理成千上万的Web请求或管理数据库查询。由于所有操作都在一个线程上运行，asyncio避免了线程切换的开销和复杂性。
+这使得 asyncio 非常适用于**需要等待大量时间的小任务**的场景，如处理成千上万的 Web 请求或管理数据库查询。由于所有操作都在一个线程上运行，asyncio 避免了线程切换的开销和复杂性。
 
-> **asyncio和多线程的关键区别在于它们如何处理等待任务。**
+> **asyncio 和多线程的关键区别在于它们如何处理等待任务。**
 
 +   多线程依赖操作系统在一个线程等待时切换线程（***抢占式上下文切换***）。
 
     当一个线程在等待时，操作系统会自动切换到另一个线程。
 
-+   Asyncio使用单个线程，并依赖任务通过在需要等待时“合作”来暂停（***协作式多任务处理***）。
++   Asyncio 使用单个线程，并依赖任务通过在需要等待时“合作”来暂停（***协作式多任务处理***）。
 
-## 编写async代码的两种方式：
+## 编写 async 代码的两种方式：
 
-`**方法1：await协程**`
+`**方法 1：await 协程**`
 
 当你直接`await`一个协程时，***当前协程会在`await`语句处暂停***，直到被`await`的协程执行完毕。任务在当前协程内是***按顺序执行的***。
 
@@ -200,7 +200,7 @@ Asyncio运行一个事件循环，调度任务。当任务在等待某些东西�
 
 虽然这听起来像是同步代码，但其实不是。在同步代码中，整个程序会在暂停期间被阻塞。
 
-> 使用asyncio时，只有当前协程会暂停，而程序的其余部分可以继续运行。这使得asyncio在程序级别上是非阻塞的。
+> 使用 asyncio 时，只有当前协程会暂停，而程序的其余部分可以继续运行。这使得 asyncio 在程序级别上是非阻塞的。
 
 **示例：**
 
@@ -220,7 +220,7 @@ async def main():
 asyncio.run(main())
 ```
 
-`**方法2：asyncio.create_task(协程)**`
+`**方法 2：asyncio.create_task(协程)**`
 
 协程被安排在后台***并发运行***。与`await`不同，当前协程会立即继续执行，而无需等待已调度的任务完成。
 
@@ -279,36 +279,36 @@ async def main():
 asyncio.run(main())
 ```
 
-+   你应该将计算密集型的CPU绑定任务分配到一个单独的进程中。
++   你应该将计算密集型的 CPU 绑定任务分配到一个单独的进程中。
 
 # 我应该在什么时候使用哪种并发模型？
 
 这个流程是一个很好的决策方式，帮助你决定何时使用哪种方法。
 
-![](../Images/1cbf5604feb451093217df351ec93878.png)
+![](img/1cbf5604feb451093217df351ec93878.png)
 
 流程图（由我绘制），参考了这个[stackoverflow](https://stackoverflow.com/questions/27435284/multiprocessing-vs-multithreading-vs-asyncio/52498068#52498068)讨论
 
 1.  **多进程**
 
-    - 最适合计算密集型的CPU绑定任务。
+    - 最适合计算密集型的 CPU 绑定任务。
 
-    - 当你需要绕过GIL时——每个进程都有自己的Python解释器，允许真正的并行处理。
+    - 当你需要绕过 GIL 时——每个进程都有自己的 Python 解释器，允许真正的并行处理。
 
 1.  **多线程**
 
-    - 最适合快速I/O绑定任务，因为减少了上下文切换的频率，Python解释器会长时间保持在一个线程中。
+    - 最适合快速 I/O 绑定任务，因为减少了上下文切换的频率，Python 解释器会长时间保持在一个线程中。
 
-    - 由于全局解释器锁（GIL），不适合CPU绑定任务。
+    - 由于全局解释器锁（GIL），不适合 CPU 绑定任务。
 
 1.  **异步编程（Asyncio）**
 
-    - 适用于慢速I/O绑定任务，例如长时间的网络请求或数据库查询，因为它高效地处理等待，使得程序具有可扩展性。
+    - 适用于慢速 I/O 绑定任务，例如长时间的网络请求或数据库查询，因为它高效地处理等待，使得程序具有可扩展性。
 
-    - 如果不将工作分配到其他进程，不适合CPU绑定任务。
+    - 如果不将工作分配到其他进程，不适合 CPU 绑定任务。
 
 # 总结
 
 就这些了，大家。这一话题还有很多内容要讨论，但我希望我已经向你介绍了各种概念，以及何时使用每种方法。
 
-感谢阅读！我定期写关于Python、软件开发和我构建的项目的文章，所以关注我，不要错过。下篇文章见 :)
+感谢阅读！我定期写关于 Python、软件开发和我构建的项目的文章，所以关注我，不要错过。下篇文章见 :)

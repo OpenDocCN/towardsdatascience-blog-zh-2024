@@ -1,16 +1,16 @@
 # 向 Plotly 图表添加渐变背景。
 
-> 原文：[https://towardsdatascience.com/adding-gradient-backgrounds-to-plotly-charts-1dec85dd3227?source=collection_archive---------10-----------------------#2024-10-08](https://towardsdatascience.com/adding-gradient-backgrounds-to-plotly-charts-1dec85dd3227?source=collection_archive---------10-----------------------#2024-10-08)
+> 原文：[`towardsdatascience.com/adding-gradient-backgrounds-to-plotly-charts-1dec85dd3227?source=collection_archive---------10-----------------------#2024-10-08`](https://towardsdatascience.com/adding-gradient-backgrounds-to-plotly-charts-1dec85dd3227?source=collection_archive---------10-----------------------#2024-10-08)
 
 ## 使用 Plotly 矩形形状来改善数据可视化。
 
-[](https://andymcdonaldgeo.medium.com/?source=post_page---byline--1dec85dd3227--------------------------------)[![Andy McDonald](../Images/df11d647be032aeb3d31852affb33a64.png)](https://andymcdonaldgeo.medium.com/?source=post_page---byline--1dec85dd3227--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1dec85dd3227--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1dec85dd3227--------------------------------) [Andy McDonald](https://andymcdonaldgeo.medium.com/?source=post_page---byline--1dec85dd3227--------------------------------)
+[](https://andymcdonaldgeo.medium.com/?source=post_page---byline--1dec85dd3227--------------------------------)![Andy McDonald](https://andymcdonaldgeo.medium.com/?source=post_page---byline--1dec85dd3227--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1dec85dd3227--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1dec85dd3227--------------------------------) [Andy McDonald](https://andymcdonaldgeo.medium.com/?source=post_page---byline--1dec85dd3227--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1dec85dd3227--------------------------------) ·5 分钟阅读·2024年10月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1dec85dd3227--------------------------------) ·5 分钟阅读·2024 年 10 月 8 日
 
 --
 
-![](../Images/233463b5f4f084fab3cc1d1466b8b9c4.png)
+![](img/233463b5f4f084fab3cc1d1466b8b9c4.png)
 
 使用 Plotly Express 绘制带有渐变背景的折线图，强调高温和低温。图片来源：作者。
 

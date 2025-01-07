@@ -1,16 +1,16 @@
 # 初学者的机器学习操作（MLOps）
 
-> 原文：[https://towardsdatascience.com/machine-learning-operations-mlops-for-beginners-a5686bfe02b2?source=collection_archive---------0-----------------------#2024-08-29](https://towardsdatascience.com/machine-learning-operations-mlops-for-beginners-a5686bfe02b2?source=collection_archive---------0-----------------------#2024-08-29)
+> 原文：[`towardsdatascience.com/machine-learning-operations-mlops-for-beginners-a5686bfe02b2?source=collection_archive---------0-----------------------#2024-08-29`](https://towardsdatascience.com/machine-learning-operations-mlops-for-beginners-a5686bfe02b2?source=collection_archive---------0-----------------------#2024-08-29)
 
 ## 端到端项目实施
 
-[](https://medium.com/@prasadmahamulkar?source=post_page---byline--a5686bfe02b2--------------------------------)[![Prasad Mahamulkar](../Images/ed895003bf372f0c109f70e08458dad8.png)](https://medium.com/@prasadmahamulkar?source=post_page---byline--a5686bfe02b2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a5686bfe02b2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a5686bfe02b2--------------------------------) [Prasad Mahamulkar](https://medium.com/@prasadmahamulkar?source=post_page---byline--a5686bfe02b2--------------------------------)
+[](https://medium.com/@prasadmahamulkar?source=post_page---byline--a5686bfe02b2--------------------------------)![Prasad Mahamulkar](https://medium.com/@prasadmahamulkar?source=post_page---byline--a5686bfe02b2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a5686bfe02b2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5686bfe02b2--------------------------------) [Prasad Mahamulkar](https://medium.com/@prasadmahamulkar?source=post_page---byline--a5686bfe02b2--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5686bfe02b2--------------------------------) ·阅读时间19分钟·2024年8月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5686bfe02b2--------------------------------) ·阅读时间 19 分钟·2024 年 8 月 29 日
 
 --
 
-![](../Images/4e4347f61e9dc1b6ed4aaddf273822a0.png)
+![](img/4e4347f61e9dc1b6ed4aaddf273822a0.png)
 
 图片由作者创建
 
@@ -34,13 +34,13 @@
 
 # 什么是 MLOps？
 
-MLOps是一套旨在简化和自动化机器学习（ML）系统生命周期的技术和实践。MLOps的目标是通过为专业人员和研究人员提供清晰的指南和职责，提升将机器学习模型部署到生产环境中的效率和可靠性。它弥合了机器学习开发和生产之间的鸿沟，确保机器学习模型可以在真实环境中高效地开发、部署、管理和维护。这种方法有助于减少系统设计错误，使得在实际环境中能够做出更强大和准确的预测。
+MLOps 是一套旨在简化和自动化机器学习（ML）系统生命周期的技术和实践。MLOps 的目标是通过为专业人员和研究人员提供清晰的指南和职责，提升将机器学习模型部署到生产环境中的效率和可靠性。它弥合了机器学习开发和生产之间的鸿沟，确保机器学习模型可以在真实环境中高效地开发、部署、管理和维护。这种方法有助于减少系统设计错误，使得在实际环境中能够做出更强大和准确的预测。
 
-![](../Images/433e86c6688830bd32fc52cd42c760bf.png)
+![](img/433e86c6688830bd32fc52cd42c760bf.png)
 
 图像由作者创建
 
-**我们为什么需要MLOps？**
+**我们为什么需要 MLOps？**
 
 通常，任何机器学习项目从定义业务问题开始。问题定义后，进行数据提取、数据准备、特征工程和模型训练步骤，以开发模型。模型开发完成后，通常会将其存储在某个地方，以便工程和运维团队可以将其部署到生产环境中。
 
@@ -48,9 +48,9 @@ MLOps是一套旨在简化和自动化机器学习（ML）系统生命周期的�
 
 它在开发和部署阶段之间创造了一个鸿沟，导致低效和潜在的错误。如果数据科学家和工程师之间缺乏合作，模型可能无法针对生产环境进行优化，从而导致性能下降、缺乏可扩展性和维护困难等问题。
 
-MLOps通过创建一个统一的工作流程，集成开发和运维，解决了这些问题。它确保模型可靠、可扩展，并且更容易维护。这种方法减少了错误的风险，加快了部署速度，并通过持续监控保持模型的有效性和最新性。
+MLOps 通过创建一个统一的工作流程，集成开发和运维，解决了这些问题。它确保模型可靠、可扩展，并且更容易维护。这种方法减少了错误的风险，加快了部署速度，并通过持续监控保持模型的有效性和最新性。
 
-现在我们对MLOps有了一个基本的了解，接下来进入实现部分。
+现在我们对 MLOps 有了一个基本的了解，接下来进入实现部分。
 
 # 项目设置
 
@@ -58,7 +58,7 @@ MLOps通过创建一个统一的工作流程，集成开发和运维，解决了
 
 对于这个项目，我们将使用一个非常基础的结构，帮助我们管理机器学习项目的整个生命周期，包括数据摄取、预处理、模型训练、评估、部署和监控。
 
-首先，从[GitHub](https://github.com/prsdm/mlops-project)克隆mlops-project仓库并跟随操作。
+首先，从[GitHub](https://github.com/prsdm/mlops-project)克隆 mlops-project 仓库并跟随操作。
 
 ```py
 #clone repository from github
@@ -119,33 +119,33 @@ git clone https://github.com/prsdm/mlops-project.git
 
 +   **models**：存储训练好的机器学习模型。
 
-+   **mlruns**：包含MLflow生成的日志和工件。
++   **mlruns**：包含 MLflow 生成的日志和工件。
 
 +   **steps**：包括用于数据摄取、清理和模型训练的源代码。
 
 +   **tests**：包括单元测试，以验证代码的功能。
 
-+   **app.py**：包含用于部署模型的FastAPI应用代码。
++   **app.py**：包含用于部署模型的 FastAPI 应用代码。
 
 +   **config.yml**：用于存储项目参数和路径的配置文件。
 
-+   **data.dvc**：使用DVC跟踪数据文件及其版本。
++   **data.dvc**：使用 DVC 跟踪数据文件及其版本。
 
 +   **dataset.py**：用于下载或生成数据的脚本。
 
-+   **dockerfile**：用于构建容器化FastAPI应用程序的Docker镜像。
++   **dockerfile**：用于构建容器化 FastAPI 应用程序的 Docker 镜像。
 
 +   **main.py**：自动化模型训练过程。
 
 +   **Makefile**：包含用于自动化任务的命令，例如训练或测试。
 
-+   **mkdocs.yml**：用于生成项目文档的MkDocs配置文件。
++   **mkdocs.yml**：用于生成项目文档的 MkDocs 配置文件。
 
 +   **requirements.txt**：包含项目所需的所有包。
 
 +   **samples.json**：包含用于测试的示例数据。
 
-+   **monitor.ipynb**：用于监控模型性能的Jupyter笔记本。
++   **monitor.ipynb**：用于监控模型性能的 Jupyter 笔记本。
 
 +   **production_data.html**和**test_data.html**：存储测试数据和生产数据的监控结果。
 
@@ -153,7 +153,7 @@ git clone https://github.com/prsdm/mlops-project.git
 
 现在，让我们创建一个虚拟环境并使用以下命令激活它：
 
-**对于bash：**
+**对于 bash：**
 
 ```py
 #create venv
@@ -165,7 +165,7 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-**对于cmd：**
+**对于 cmd：**
 
 ```py
 #create venv
@@ -186,7 +186,7 @@ pip install -r requirements.txt
 
 ## 示例：
 
-![](../Images/488421180facfca41024fb0e159dc7fd.png)
+![](img/488421180facfca41024fb0e159dc7fd.png)
 
 项目设置示例
 
@@ -205,7 +205,7 @@ python3 dataset.py
 
 ## 示例：
 
-![](../Images/8efa34dfc2f40d4e48f1356718dbffe0.png)
+![](img/8efa34dfc2f40d4e48f1356718dbffe0.png)
 
 数据提取示例
 
@@ -292,46 +292,46 @@ if __name__ == "__main__":
 
 ## **示例：**
 
-![](../Images/6c5658496e301f579e1ff3d2b6d49497.png)
+![](img/6c5658496e301f579e1ff3d2b6d49497.png)
 
 模型训练示例
 
-现在，让我们看看如何使用像DVC和MLflow这样的工具来改进这个项目。
+现在，让我们看看如何使用像 DVC 和 MLflow 这样的工具来改进这个项目。
 
 # 数据版本控制（DVC）
 
 让我们从数据版本控制（DVC）开始，它是一个免费的开源工具，旨在管理大型数据集、自动化机器学习管道并处理实验。它帮助数据科学和机器学习团队更有效地管理数据，确保可重复性，并提高协作。
 
-**为什么使用DVC而不是GitHub？**
+**为什么使用 DVC 而不是 GitHub？**
 
-Git在源代码和文本文件的版本控制方面表现出色，但在处理大型二进制文件（如数据集）时存在局限性。Git无法对二进制文件的版本进行有意义的比较；它仅存储新版本，而不显示详细差异，这使得随着时间推移跟踪更改变得具有挑战性。此外，将大型数据集或敏感数据存储在GitHub中并不理想，因为这可能导致代码库膨胀，并带来潜在的安全风险。
+Git 在源代码和文本文件的版本控制方面表现出色，但在处理大型二进制文件（如数据集）时存在局限性。Git 无法对二进制文件的版本进行有意义的比较；它仅存储新版本，而不显示详细差异，这使得随着时间推移跟踪更改变得具有挑战性。此外，将大型数据集或敏感数据存储在 GitHub 中并不理想，因为这可能导致代码库膨胀，并带来潜在的安全风险。
 
-DVC通过元数据和外部存储（如S3、Google Cloud Storage或Azure Blob Storage）管理大文件，同时保持对数据更改和版本历史的详细跟踪，从而解决了这些问题。DVC使用人类可读的元文件来定义数据版本，并与Git或任何源代码管理（SCM）工具集成，以便对整个项目（包括数据资产）进行版本控制和共享。此外，它通过控制项目组件的访问权限并与指定的团队和个人共享，提供了安全的协作方式。
+DVC 通过元数据和外部存储（如 S3、Google Cloud Storage 或 Azure Blob Storage）管理大文件，同时保持对数据更改和版本历史的详细跟踪，从而解决了这些问题。DVC 使用人类可读的元文件来定义数据版本，并与 Git 或任何源代码管理（SCM）工具集成，以便对整个项目（包括数据资产）进行版本控制和共享。此外，它通过控制项目组件的访问权限并与指定的团队和个人共享，提供了安全的协作方式。
 
-要开始使用DVC，首先安装它（如果尚未安装）：
+要开始使用 DVC，首先安装它（如果尚未安装）：
 
 ```py
 #install DVC via pip
 pip install dvc
 ```
 
-然后，初始化DVC：
+然后，初始化 DVC：
 
 ```py
 #initialize a DVC
 dvc init
 ```
 
-这将设置必要的DVC配置文件。
+这将设置必要的 DVC 配置文件。
 
-现在，将数据文件添加到DVC：
+现在，将数据文件添加到 DVC：
 
 ```py
 #add data
 dvc add data
 ```
 
-这通过DVC跟踪数据文件，并将实际数据存储在外部存储中。
+这通过 DVC 跟踪数据文件，并将实际数据存储在外部存储中。
 
 配置远程存储：
 
@@ -356,7 +356,7 @@ dvc push
 
 这将数据上传到配置的远程存储。
 
-将所有已提交的更改推送到git：
+将所有已提交的更改推送到 git：
 
 ```py
 #push all committed changes to the Git repository
@@ -365,9 +365,9 @@ git push origin main
 
 ## 示例：
 
-![](../Images/621cfc48be2931844cdb2bfd443bf86f.png)
+![](img/621cfc48be2931844cdb2bfd443bf86f.png)
 
-DVC push示例
+DVC push 示例
 
 要从远程存储拉取最新的数据版本到本地目录，请使用以下命令：
 
@@ -378,17 +378,17 @@ dvc pull
 
 ## 示例：
 
-![](../Images/486c09f9c048043971f6ceccee56fd54.png)
+![](img/486c09f9c048043971f6ceccee56fd54.png)
 
-DVC pull示例
+DVC pull 示例
 
-通过集成DVC，我们可以高效地管理大型数据集，同时保持Git仓库专注于源代码。
+通过集成 DVC，我们可以高效地管理大型数据集，同时保持 Git 仓库专注于源代码。
 
-> **注意：** 我们可以像数据文件一样使用DVC对模型进行版本控制。
+> **注意：** 我们可以像数据文件一样使用 DVC 对模型进行版本控制。
 
 # MLflow
 
-在使用DVC对数据进行版本控制之后，维护模型训练、版本变化和参数配置的清晰记录至关重要，即使我们并不主动进行多个模型的实验。
+在使用 DVC 对数据进行版本控制之后，维护模型训练、版本变化和参数配置的清晰记录至关重要，即使我们并不主动进行多个模型的实验。
 
 如果没有系统地进行跟踪，可能会出现几个问题：
 
@@ -398,9 +398,9 @@ DVC pull示例
 
 1.  **协作挑战**：在团队中，如果没有明确的方式来管理模型版本，可能会导致混乱和不小心覆盖彼此的工作，从而使协作过程更加复杂。
 
-这就是MLflow发挥作用的地方。MLflow不仅仅用于实验，它在跟踪机器学习模型的生命周期中也扮演着至关重要的角色。它记录指标、工件和参数，确保每次版本更改都有文档记录，并且容易检索。通过MLflow，我们可以监控每次运行，并比较不同的版本。这样最有效的模型始终可以被识别并准备好进行部署。
+这就是 MLflow 发挥作用的地方。MLflow 不仅仅用于实验，它在跟踪机器学习模型的生命周期中也扮演着至关重要的角色。它记录指标、工件和参数，确保每次版本更改都有文档记录，并且容易检索。通过 MLflow，我们可以监控每次运行，并比较不同的版本。这样最有效的模型始终可以被识别并准备好进行部署。
 
-若要集成MLflow，首先安装MLflow（如果尚未安装）：
+若要集成 MLflow，首先安装 MLflow（如果尚未安装）：
 
 ```py
 #install mlfow
@@ -494,25 +494,25 @@ if __name__ == "__main__":
 mlflow ui
 ```
 
-在浏览器中打开提供的URL `http://127.0.0.1:5000`，探索并比较记录的参数、指标和模型。
+在浏览器中打开提供的 URL `http://127.0.0.1:5000`，探索并比较记录的参数、指标和模型。
 
 ## 示例：
 
-![](../Images/2b0c5e829afeb61208545943899ba635.png)
+![](img/2b0c5e829afeb61208545943899ba635.png)
 
-MLflow跟踪示例
+MLflow 跟踪示例
 
-![](../Images/76fa71c6428e417e297efad96fbdc37b.png)
+![](img/76fa71c6428e417e297efad96fbdc37b.png)
 
-MLflow模型比较示例
+MLflow 模型比较示例
 
-通过使用MLflow，我们可以轻松地跟踪模型版本并管理变更，确保可重复性并能够选择最有效的模型进行部署。
+通过使用 MLflow，我们可以轻松地跟踪模型版本并管理变更，确保可重复性并能够选择最有效的模型进行部署。
 
 在进入部署部分之前，先看看项目中存在的`Makefile`和`config.yml`文件。这些文件有助于简化工作流程，并确保项目设置和配置的一致性。
 
 # Makefile
 
-使用`make`文件对于管理Python项目非常有帮助。许多数据科学家和机器学习工程师可能没有意识到这一点，但`make`可以自动化例行任务，如设置环境、安装依赖项、模型训练、运行测试和清理文件，这样可以节省时间并减少错误。`make`文件在软件开发中被广泛使用，因为它帮助管理那些难以记住的长命令和复杂命令。
+使用`make`文件对于管理 Python 项目非常有帮助。许多数据科学家和机器学习工程师可能没有意识到这一点，但`make`可以自动化例行任务，如设置环境、安装依赖项、模型训练、运行测试和清理文件，这样可以节省时间并减少错误。`make`文件在软件开发中被广泛使用，因为它帮助管理那些难以记住的长命令和复杂命令。
 
 本项目中的`make`文件大致如下：
 
@@ -546,7 +546,7 @@ remove:
  rm -rf venv
 ```
 
-对于Windows（**cmd**），文件需要稍作修改。
+对于 Windows（**cmd**），文件需要稍作修改。
 
 ```py
 python = venv/Scripts/python
@@ -580,7 +580,7 @@ remove:
 
 +   **make setup**：创建虚拟环境（`venv`），升级`pip`，并从`requirements.txt`安装所需的软件包。这样可以确保在不同环境中始终如一地安装所有依赖项。
 
-+   **make run**：使用虚拟环境中的Python解释器执行`main.py`。
++   **make run**：使用虚拟环境中的 Python 解释器执行`main.py`。
 
 +   **make mlflow**：启动`mlflow ui`，用于跟踪实验和模型指标。
 
@@ -607,7 +607,7 @@ make test
 
 ## 示例：
 
-![](../Images/41fc482a0cc487231ca3bf1574c4647b.png)
+![](img/41fc482a0cc487231ca3bf1574c4647b.png)
 
 Make 命令示例
 
@@ -664,7 +664,7 @@ model:
 
 在以下示例中，`model` 被更改为**‘**GradientBoostingClassifier**’**，这是根据 `config.yml` 文件中指定的配置进行的。
 
-![](../Images/ece4352cdd5170ffa837850b64d05f68.png)
+![](img/ece4352cdd5170ffa837850b64d05f68.png)
 
 config.yml 文件示例
 
@@ -715,7 +715,7 @@ async def predict(input_data: InputData):
         return {"predicted_class": int(pred[0])}
 ```
 
-然后，使用以下命令在本地测试 FastAPI 服务器：[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)。
+然后，使用以下命令在本地测试 FastAPI 服务器：[`127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs)。
 
 ```py
 #run the FastAPI app
@@ -724,7 +724,7 @@ uvicorn app:app --reload
 
 ## 示例：
 
-![](../Images/ff6022408bfec3ee5ca68f5b95dbdc63.png)
+![](img/ff6022408bfec3ee5ca68f5b95dbdc63.png)
 
 FastAPI 示例
 
@@ -772,11 +772,11 @@ docker build -t <image_name> <path_to_dockerfile>
 
 ## 示例：
 
-![](../Images/6a4b94e713432e4dd043e616c9252956.png)
+![](img/6a4b94e713432e4dd043e616c9252956.png)
 
 Docker build 示例
 
-最后，运行 Docker 容器以测试 API，访问 `[http://localhost:80/predict](http://localhost:8000/predict)`：
+最后，运行 Docker 容器以测试 API，访问 `[`localhost:80/predict`](http://localhost:8000/predict)`：
 
 ```py
 # To run docker container
@@ -785,7 +785,7 @@ docker run -d -p 80:80 <image_name>
 
 ## 示例：
 
-![](../Images/987e60966002426488027646f2a2da9c.png)
+![](img/987e60966002426488027646f2a2da9c.png)
 
 Docker 运行示例
 
@@ -805,7 +805,7 @@ docker stop <container_id_or_name>
 
 ## 示例：
 
-![](../Images/17f265eb272f9f80a8365c4045e2be0e.png)
+![](img/17f265eb272f9f80a8365c4045e2be0e.png)
 
 停止运行中的容器示例
 
@@ -836,11 +836,11 @@ docker push <dockerhub_username>/<docker-repo-name>:latest
 
 ## 示例：
 
-![](../Images/6cbeca077321b30125b63f03cf8c8cca.png)
+![](img/6cbeca077321b30125b63f03cf8c8cca.png)
 
 Docker Push 命令示例
 
-![](../Images/cd391dafbbf7faacc837a7544a304b52.png)
+![](img/cd391dafbbf7faacc837a7544a304b52.png)
 
 Docker Hub 仓库示例
 
@@ -856,7 +856,7 @@ AWS ECS 是一个完全托管的容器编排服务，允许在 AWS 上轻松运�
 
 +   **步骤 2：** 给集群命名，选择 AWS Fargate（无服务器），然后点击“创建”。（这将需要几分钟时间。）
 
-![](../Images/73c0a880af4734335fbe9f7195681157.png)
+![](img/73c0a880af4734335fbe9f7195681157.png)
 
 AWS 集群示例
 
@@ -868,7 +868,7 @@ AWS 集群示例
 
 +   **步骤 3：** 在容器定义中填写来自 Docker Hub 的 Docker 镜像 URL，并保持容器端口映射为默认值。点击“创建”。
 
-![](../Images/19ce792b71f55a9c6a2631e354032621.png)
+![](img/19ce792b71f55a9c6a2631e354032621.png)
 
 任务定义示例
 
@@ -878,7 +878,7 @@ AWS 集群示例
 
 +   **步骤 2：** 在入站规则中，首先选择 HTTP 类型并设置来源为 Anywhere-IPv4，然后对 Anywhere-IPv6 做相同的设置。点击“创建安全组”。
 
-![](../Images/c84e4e7149e7fe304b8dc251c35ec1af.png)
+![](img/c84e4e7149e7fe304b8dc251c35ec1af.png)
 
 AWS 安全组示例
 
@@ -890,7 +890,7 @@ AWS 安全组示例
 
 +   **步骤 3：** 最后，在网络设置下选择之前创建的安全组，然后点击“创建”。（创建服务大约需要 5-8 分钟。）
 
-![](../Images/a98607ff0fc23752d7c68c3b904ba920.png)
+![](img/a98607ff0fc23752d7c68c3b904ba920.png)
 
 服务示例
 
@@ -898,11 +898,11 @@ AWS 安全组示例
 
 服务部署完成后，进入 ECS 集群的“服务”选项卡。找到该服务，进入“任务”选项卡，选择一个正在运行的任务。打开该任务的公共 IP 地址，即可访问 FastAPI 应用。它会显示如下内容：
 
-![](../Images/2e699102eb90f96d1c722da9f5ba8dfb.png)
+![](img/2e699102eb90f96d1c722da9f5ba8dfb.png)
 
 公共 IP 示例
 
-![](../Images/c29015d8e8feecab646eeb5264dd2d3c.png)
+![](img/c29015d8e8feecab646eeb5264dd2d3c.png)
 
 部署的服务示例
 
@@ -991,13 +991,13 @@ data_drift_report.save_html("test_drift.html")
 
 ## 测试数据示例：
 
-![](../Images/909559efedea6b04a1634846dc5d2385.png)
+![](img/909559efedea6b04a1634846dc5d2385.png)
 
 测试数据质量和漂移检测示例
 
 ## 生产数据示例：
 
-![](../Images/1f9483ebcf1b453e4e82edb3bd5c0699.png)
+![](img/1f9483ebcf1b453e4e82edb3bd5c0699.png)
 
 生产数据质量和漂移检测示例
 
@@ -1011,17 +1011,17 @@ data_drift_report.save_html("test_drift.html")
 
 # 参考文献
 
-1.  机器学习操作（MLOps）：概述、定义和架构。([https://arxiv.org/pdf/2205.02302](https://arxiv.org/pdf/2205.02302))
+1.  机器学习操作（MLOps）：概述、定义和架构。([`arxiv.org/pdf/2205.02302`](https://arxiv.org/pdf/2205.02302))
 
-1.  数据版本控制（DVC）：[https://dvc.org/doc](https://dvc.org/doc)
+1.  数据版本控制（DVC）：[`dvc.org/doc`](https://dvc.org/doc)
 
-1.  MLflow: [https://mlflow.org/docs/latest/index.html](https://mlflow.org/docs/latest/index.html)
+1.  MLflow: [`mlflow.org/docs/latest/index.html`](https://mlflow.org/docs/latest/index.html)
 
-1.  FastAPI: [https://fastapi.tiangolo.com/tutorial/](https://fastapi.tiangolo.com/tutorial/)
+1.  FastAPI: [`fastapi.tiangolo.com/tutorial/`](https://fastapi.tiangolo.com/tutorial/)
 
-1.  Docker: [https://docs.docker.com/](https://docs.docker.com/)
+1.  Docker: [`docs.docker.com/`](https://docs.docker.com/)
 
-1.  Evidently AI: [https://docs.evidentlyai.com/tutorials-and-examples/examples](https://docs.evidentlyai.com/tutorials-and-examples/examples)
+1.  Evidently AI: [`docs.evidentlyai.com/tutorials-and-examples/examples`](https://docs.evidentlyai.com/tutorials-and-examples/examples)
 
 免费订阅，以便在我发布新文章时收到通知。
 

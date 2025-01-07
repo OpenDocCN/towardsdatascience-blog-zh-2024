@@ -1,16 +1,16 @@
 # 为什么基于位置的分块会导致 RAG 性能差？
 
-> 原文：[https://towardsdatascience.com/semantic-chunking-for-rag-35b7675ffafd?source=collection_archive---------7-----------------------#2024-08-22](https://towardsdatascience.com/semantic-chunking-for-rag-35b7675ffafd?source=collection_archive---------7-----------------------#2024-08-22)
+> 原文：[`towardsdatascience.com/semantic-chunking-for-rag-35b7675ffafd?source=collection_archive---------7-----------------------#2024-08-22`](https://towardsdatascience.com/semantic-chunking-for-rag-35b7675ffafd?source=collection_archive---------7-----------------------#2024-08-22)
 
 ## 如何实现语义分块并获得更好的结果。
 
-[](https://thuwarakesh.medium.com/?source=post_page---byline--35b7675ffafd--------------------------------)[![Thuwarakesh Murallie](../Images/44f1a14a899426592bbd8c7f73ce169d.png)](https://thuwarakesh.medium.com/?source=post_page---byline--35b7675ffafd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--35b7675ffafd--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--35b7675ffafd--------------------------------) [Thuwarakesh Murallie](https://thuwarakesh.medium.com/?source=post_page---byline--35b7675ffafd--------------------------------)
+[](https://thuwarakesh.medium.com/?source=post_page---byline--35b7675ffafd--------------------------------)![Thuwarakesh Murallie](https://thuwarakesh.medium.com/?source=post_page---byline--35b7675ffafd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--35b7675ffafd--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--35b7675ffafd--------------------------------) [Thuwarakesh Murallie](https://thuwarakesh.medium.com/?source=post_page---byline--35b7675ffafd--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--35b7675ffafd--------------------------------) ·阅读时间 11 分钟·2024年8月22日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--35b7675ffafd--------------------------------) ·阅读时间 11 分钟·2024 年 8 月 22 日
 
 --
 
-![](../Images/cab396b365bca88a9b5329d247790974.png)
+![](img/cab396b365bca88a9b5329d247790974.png)
 
 图片来自 [vackground.com](https://unsplash.com/@vackground?utm_source=medium&utm_medium=referral) ，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

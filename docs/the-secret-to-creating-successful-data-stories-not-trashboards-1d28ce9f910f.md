@@ -1,16 +1,16 @@
 # 成功创建数据故事的秘诀，而非垃圾仪表盘
 
-> 原文：[https://towardsdatascience.com/the-secret-to-creating-successful-data-stories-not-trashboards-1d28ce9f910f?source=collection_archive---------14-----------------------#2024-01-04](https://towardsdatascience.com/the-secret-to-creating-successful-data-stories-not-trashboards-1d28ce9f910f?source=collection_archive---------14-----------------------#2024-01-04)
+> 原文：[`towardsdatascience.com/the-secret-to-creating-successful-data-stories-not-trashboards-1d28ce9f910f?source=collection_archive---------14-----------------------#2024-01-04`](https://towardsdatascience.com/the-secret-to-creating-successful-data-stories-not-trashboards-1d28ce9f910f?source=collection_archive---------14-----------------------#2024-01-04)
 
 ## 了解用数据讲故事如何改变游戏规则！
 
-[](https://rashidesai2424.medium.com/?source=post_page---byline--1d28ce9f910f--------------------------------)[![Rashi Desai](../Images/0a706eb6bb2407c83c67a874e3747e36.png)](https://rashidesai2424.medium.com/?source=post_page---byline--1d28ce9f910f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1d28ce9f910f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1d28ce9f910f--------------------------------) [Rashi Desai](https://rashidesai2424.medium.com/?source=post_page---byline--1d28ce9f910f--------------------------------)
+[](https://rashidesai2424.medium.com/?source=post_page---byline--1d28ce9f910f--------------------------------)![Rashi Desai](https://rashidesai2424.medium.com/?source=post_page---byline--1d28ce9f910f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1d28ce9f910f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1d28ce9f910f--------------------------------) [Rashi Desai](https://rashidesai2424.medium.com/?source=post_page---byline--1d28ce9f910f--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1d28ce9f910f--------------------------------) ·阅读时长5分钟·2024年1月4日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1d28ce9f910f--------------------------------) ·阅读时长 5 分钟·2024 年 1 月 4 日
 
 --
 
-![](../Images/b59139a60d67834255ea5b7ec7d0fa45.png)
+![](img/b59139a60d67834255ea5b7ec7d0fa45.png)
 
 图片来自[Path Digital](https://unsplash.com/@pathdigital?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)在[Unsplash](https://unsplash.com/photos/black-and-silver-laptop-computer-tR0jvlsmCuQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

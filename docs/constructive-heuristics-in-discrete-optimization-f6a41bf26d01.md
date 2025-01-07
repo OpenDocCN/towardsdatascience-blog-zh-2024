@@ -1,16 +1,16 @@
 # **离散优化中的构造性启发式**
 
-> 原文：[https://towardsdatascience.com/constructive-heuristics-in-discrete-optimization-f6a41bf26d01?source=collection_archive---------5-----------------------#2024-05-30](https://towardsdatascience.com/constructive-heuristics-in-discrete-optimization-f6a41bf26d01?source=collection_archive---------5-----------------------#2024-05-30)
+> 原文：[`towardsdatascience.com/constructive-heuristics-in-discrete-optimization-f6a41bf26d01?source=collection_archive---------5-----------------------#2024-05-30`](https://towardsdatascience.com/constructive-heuristics-in-discrete-optimization-f6a41bf26d01?source=collection_archive---------5-----------------------#2024-05-30)
 
-## 使用Python示例为组合优化问题获得初始解
+## 使用 Python 示例为组合优化问题获得初始解
 
-[](https://medium.com/@bruscalia12?source=post_page---byline--f6a41bf26d01--------------------------------)[![Bruno Scalia C. F. Leite](../Images/1042cd04be047c0811fef79ecd04e69c.png)](https://medium.com/@bruscalia12?source=post_page---byline--f6a41bf26d01--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f6a41bf26d01--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f6a41bf26d01--------------------------------) [Bruno Scalia C. F. Leite](https://medium.com/@bruscalia12?source=post_page---byline--f6a41bf26d01--------------------------------)
+[](https://medium.com/@bruscalia12?source=post_page---byline--f6a41bf26d01--------------------------------)![Bruno Scalia C. F. Leite](https://medium.com/@bruscalia12?source=post_page---byline--f6a41bf26d01--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f6a41bf26d01--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f6a41bf26d01--------------------------------) [Bruno Scalia C. F. Leite](https://medium.com/@bruscalia12?source=post_page---byline--f6a41bf26d01--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f6a41bf26d01--------------------------------) ·阅读时间11分钟·2024年5月30日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f6a41bf26d01--------------------------------) ·阅读时间 11 分钟·2024 年 5 月 30 日
 
 --
 
-![](../Images/a97a50e5ff6012c41ccf3d6b3143c9d5.png)
+![](img/a97a50e5ff6012c41ccf3d6b3143c9d5.png)
 
 表示构造性启发式从基集选择元素的过程。（图像来源：作者）
 
@@ -18,7 +18,7 @@
 
 **构造性启发式**不仅可以作为独立的技术使用，还可以与其他算法结合，以提高它们的运行时间、成本函数或其他性能方面。例如，为混合整数规划（MIP）求解器提供初始解，可以建立一个双重界限，帮助剪枝搜索空间。此外，这个初始解还可以使求解器更有效地结合局部搜索启发式方法，从而可能加速收敛并提升整体解的质量。
 
-在这篇文章中，你将找到离散优化的基本定义，并介绍了**构造性启发式**方法。文章将通过Python示例来阐释相关主题，并应用于*背包问题*和*最大独立集*问题。我们将分析随机选择和贪婪选择元素的过程，并通过这些方法来创建解决方案。
+在这篇文章中，你将找到离散优化的基本定义，并介绍了**构造性启发式**方法。文章将通过 Python 示例来阐释相关主题，并应用于*背包问题*和*最大独立集*问题。我们将分析随机选择和贪婪选择元素的过程，并通过这些方法来创建解决方案。
 
 除了几个其他优化示例外，针对这些问题的完整代码可以在我的[GitHub 仓库](https://github.com/bruscalia/optimization-demo-files)中找到。
 
@@ -81,7 +81,7 @@ class Item:
         return cls(index, weight, value)
 ```
 
-我们还创建了属性`density`，表示给定物品的“每单位重量的价值”比率，`index`表示它的标识符，`selected`表示该物品是否为我们最终解的一部分。*classmethod* `from_dict`用于从一个包含*index*、*weight*和*value*键的Python `dict`初始化一个新物品。
+我们还创建了属性`density`，表示给定物品的“每单位重量的价值”比率，`index`表示它的标识符，`selected`表示该物品是否为我们最终解的一部分。*classmethod* `from_dict`用于从一个包含*index*、*weight*和*value*键的 Python `dict`初始化一个新物品。
 
 现在，让我们考虑背包问题的一种构造性启发式抽象。它的初始化参数是背包容量和一个物品列表（以字典形式提供）。这两个参数应作为我们类的属性，以便在解决过程中使用。
 
@@ -130,7 +130,7 @@ class BaseConstructive:
 
 > 贪心近似算法是一种迭代算法，通过逐步构建部分解来产生结果。每次迭代都会对当前部分解进行局部最优或次优的增量，从而在算法结束时得到一个全局次优解*(Wan, 2013)*。
 
-在背包问题的背景下，我们可以像之前建议的那样，基于*密度*优先选择下一个元素。在这种情况下，贪心方法并不能保证解的最优性，但它可以成为快速且高质量结果的有趣替代方案。在我们的Python代码中，我们可以通过在应用解法之前对物品进行排序来实现这一点。
+在背包问题的背景下，我们可以像之前建议的那样，基于*密度*优先选择下一个元素。在这种情况下，贪心方法并不能保证解的最优性，但它可以成为快速且高质量结果的有趣替代方案。在我们的 Python 代码中，我们可以通过在应用解法之前对物品进行排序来实现这一点。
 
 ```py
 class GreedyConstructive(BaseConstructive):
@@ -140,7 +140,7 @@ class GreedyConstructive(BaseConstructive):
         super().solve()
 ```
 
-在我的[GitHub 仓库](https://github.com/bruscalia/optimization-demo-files/tree/main/mip/knapsack/heuristics)中，你可能会找到一个包含10个物品的实例，我对这些物品应用了两种方法。基于原始输入序列的选择产生的解总价值为68，而基于密度的选择则得到了总价值91。我会选择贪心方法，因为它能够提供高质量且快速的解。
+在我的[GitHub 仓库](https://github.com/bruscalia/optimization-demo-files/tree/main/mip/knapsack/heuristics)中，你可能会找到一个包含 10 个物品的实例，我对这些物品应用了两种方法。基于原始输入序列的选择产生的解总价值为 68，而基于密度的选择则得到了总价值 91。我会选择贪心方法，因为它能够提供高质量且快速的解。
 
 # 最大独立集问题
 
@@ -335,7 +335,7 @@ class RandomChoice(BaseConstructive):
 
 ## 自适应贪心
 
-或者，在每一步中，我们可以选择对“可行元素池”影响最小的下一个节点。这意味着选择子图中邻居数量最少的下一个元素。换句话说，选择具有最小`degree`属性的下一个元素。这是Feo等人（1994）采用的相同方法。
+或者，在每一步中，我们可以选择对“可行元素池”影响最小的下一个节点。这意味着选择子图中邻居数量最少的下一个元素。换句话说，选择具有最小`degree`属性的下一个元素。这是 Feo 等人（1994）采用的相同方法。
 
 请注意，我们节点的`degree`可能会随着部分解的变化和元素从子图中移除而变化。因此，它可以定义为一个*自适应贪心*过程。
 
@@ -370,9 +370,9 @@ class MultiRandom(RandomChoice):
         return best_sol
 ```
 
-在我的[GitHub 仓库](https://github.com/bruscalia/optimization-demo-files/blob/5546625793917492f4abe1aca0a571527e256e32/graph-coloring/max_independent_set.ipynb)中，您将找到一个32节点图的例子，其中*自适应贪婪*方法找到了一个5个顶点的子集，但使用多启动的随机框架找到了一个包含6个顶点的解。解决过程如下所示。
+在我的[GitHub 仓库](https://github.com/bruscalia/optimization-demo-files/blob/5546625793917492f4abe1aca0a571527e256e32/graph-coloring/max_independent_set.ipynb)中，您将找到一个 32 节点图的例子，其中*自适应贪婪*方法找到了一个 5 个顶点的子集，但使用多启动的随机框架找到了一个包含 6 个顶点的解。解决过程如下所示。
 
-![](../Images/abb86a60627ac000096137ee77138ed8.png)
+![](img/abb86a60627ac000096137ee77138ed8.png)
 
 解决构造性启发式应用于最大独立集问题的过程。（由作者制作的动画）。
 
@@ -380,19 +380,19 @@ class MultiRandom(RandomChoice):
 
 在本文开头，我提到过构造性启发式可以与局部搜索技术结合。一种探索这一方法的极具潜力的元启发式方法叫做*贪婪随机自适应搜索过程*（GRASP）。
 
-GRASP的思路是使用一个多启动框架，其中随机元素将引导构造阶段生成不同的初始解，接着对其应用局部搜索。这样，解决过程能够避免局部最优解。对于那些有兴趣更详细探讨启发式和元启发式方法的人，值得访问[毛里西奥·雷森德教授的官网](https://mauricio.resende.info/)，他是最初提出GRASP的作者之一。在该网站上，他列出了自己的一些工作和对运筹学学术界的贡献。
+GRASP 的思路是使用一个多启动框架，其中随机元素将引导构造阶段生成不同的初始解，接着对其应用局部搜索。这样，解决过程能够避免局部最优解。对于那些有兴趣更详细探讨启发式和元启发式方法的人，值得访问[毛里西奥·雷森德教授的官网](https://mauricio.resende.info/)，他是最初提出 GRASP 的作者之一。在该网站上，他列出了自己的一些工作和对运筹学学术界的贡献。
 
-对于有兴趣了解GRASP代码示例的人，也可以查看我的[GitHub 仓库](https://github.com/bruscalia/jobshop)，其中包含用于作业车间调度问题的应用。
+对于有兴趣了解 GRASP 代码示例的人，也可以查看我的[GitHub 仓库](https://github.com/bruscalia/jobshop)，其中包含用于作业车间调度问题的应用。
 
-对于那些有兴趣深入探讨更多优化问题和解决技术的人，我在Medium上有一些其他故事，可以在一个综合列表中找到。
+对于那些有兴趣深入探讨更多优化问题和解决技术的人，我在 Medium 上有一些其他故事，可以在一个综合列表中找到。
 
-![Bruno Scalia C. F. Leite](../Images/0c7396e41d4b598be2349eaea982c984.png)
+![Bruno Scalia C. F. Leite](img/0c7396e41d4b598be2349eaea982c984.png)
 
 [Bruno Scalia C. F. Leite](https://medium.com/@bruscalia12?source=post_page-----f6a41bf26d01--------------------------------)
 
 ## 优化时代的故事
 
-[查看列表](https://medium.com/@bruscalia12/list/tales-of-the-optimization-age-c15faf64a6ca?source=post_page-----f6a41bf26d01--------------------------------)15个故事![](../Images/848ca03a7d7366b8a040f720f5d51f5c.png)![](../Images/b79fd62ce301f6295199d983f7633588.png)![](../Images/a6e8cbe0e088f4e7b1edcf27c524b072.png)
+[查看列表](https://medium.com/@bruscalia12/list/tales-of-the-optimization-age-c15faf64a6ca?source=post_page-----f6a41bf26d01--------------------------------)15 个故事![](img/848ca03a7d7366b8a040f720f5d51f5c.png)![](img/b79fd62ce301f6295199d983f7633588.png)![](img/a6e8cbe0e088f4e7b1edcf27c524b072.png)
 
 # 结论
 

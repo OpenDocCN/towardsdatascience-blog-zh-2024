@@ -1,16 +1,16 @@
 # 实验追踪与超参数调整：使用 DVC 组织你的试验
 
-> 原文：[https://towardsdatascience.com/experiment-tracking-hyperparameter-tuning-organize-your-trials-with-dvc-d17f47f38754?source=collection_archive---------16-----------------------#2024-03-14](https://towardsdatascience.com/experiment-tracking-hyperparameter-tuning-organize-your-trials-with-dvc-d17f47f38754?source=collection_archive---------16-----------------------#2024-03-14)
+> 原文：[`towardsdatascience.com/experiment-tracking-hyperparameter-tuning-organize-your-trials-with-dvc-d17f47f38754?source=collection_archive---------16-----------------------#2024-03-14`](https://towardsdatascience.com/experiment-tracking-hyperparameter-tuning-organize-your-trials-with-dvc-d17f47f38754?source=collection_archive---------16-----------------------#2024-03-14)
 
-![](../Images/9e681cf7e96a2be868e783a6ff21fcc0.png)
+![](img/9e681cf7e96a2be868e783a6ff21fcc0.png)
 
 图像由 Midjourney 生成
 
 ## 学习如何在调整模型超参数时避免迷失在众多实验中
 
-[](https://eryk-lewinson.medium.com/?source=post_page---byline--d17f47f38754--------------------------------)[![Eryk Lewinson](../Images/56e09e19c0bbfecc582da58761d15078.png)](https://eryk-lewinson.medium.com/?source=post_page---byline--d17f47f38754--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d17f47f38754--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d17f47f38754--------------------------------) [Eryk Lewinson](https://eryk-lewinson.medium.com/?source=post_page---byline--d17f47f38754--------------------------------)
+[](https://eryk-lewinson.medium.com/?source=post_page---byline--d17f47f38754--------------------------------)![Eryk Lewinson](https://eryk-lewinson.medium.com/?source=post_page---byline--d17f47f38754--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d17f47f38754--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d17f47f38754--------------------------------) [Eryk Lewinson](https://eryk-lewinson.medium.com/?source=post_page---byline--d17f47f38754--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d17f47f38754--------------------------------) ·13分钟阅读·2024年3月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d17f47f38754--------------------------------) ·13 分钟阅读·2024 年 3 月 14 日
 
 --
 

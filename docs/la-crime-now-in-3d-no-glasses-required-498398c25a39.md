@@ -1,30 +1,30 @@
-# 为什么你不需要JS来制作3D图表
+# 为什么你不需要 JS 来制作 3D 图表
 
-> 原文：[https://towardsdatascience.com/la-crime-now-in-3d-no-glasses-required-498398c25a39?source=collection_archive---------2-----------------------#2024-06-01](https://towardsdatascience.com/la-crime-now-in-3d-no-glasses-required-498398c25a39?source=collection_archive---------2-----------------------#2024-06-01)
+> 原文：[`towardsdatascience.com/la-crime-now-in-3d-no-glasses-required-498398c25a39?source=collection_archive---------2-----------------------#2024-06-01`](https://towardsdatascience.com/la-crime-now-in-3d-no-glasses-required-498398c25a39?source=collection_archive---------2-----------------------#2024-06-01)
 
-## 在Python中可视化犯罪地理数据
+## 在 Python 中可视化犯罪地理数据
 
-[](https://medium.com/@alexroz?source=post_page---byline--498398c25a39--------------------------------)[![Aleksei Rozanov](../Images/748b69bfaccf39c9aa568a9e6f41eec3.png)](https://medium.com/@alexroz?source=post_page---byline--498398c25a39--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--498398c25a39--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--498398c25a39--------------------------------) [Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--498398c25a39--------------------------------)
+[](https://medium.com/@alexroz?source=post_page---byline--498398c25a39--------------------------------)![Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--498398c25a39--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--498398c25a39--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--498398c25a39--------------------------------) [Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--498398c25a39--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--498398c25a39--------------------------------) ·6分钟阅读·2024年6月1日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--498398c25a39--------------------------------) ·6 分钟阅读·2024 年 6 月 1 日
 
 --
 
-![](../Images/41f0fd59d6221d6335f1d9b4c92ba959.png)
+![](img/41f0fd59d6221d6335f1d9b4c92ba959.png)
 
 图片来自 [作者](https://medium.com/@alexroz)。
 
-在我看来，地理数据最棒的特点之一就是它能够进行3D可视化。然而，由于进行此类计算所需的大量计算资源，这在Python中是非常罕见的（通常*JavaScript*及其相关库被用作替代方案）。在我之前的一篇文章中，我分享了六个Python包，可以创建美丽的静态和交互式地图，但仅限于2D空间。
+在我看来，地理数据最棒的特点之一就是它能够进行 3D 可视化。然而，由于进行此类计算所需的大量计算资源，这在 Python 中是非常罕见的（通常*JavaScript*及其相关库被用作替代方案）。在我之前的一篇文章中，我分享了六个 Python 包，可以创建美丽的静态和交互式地图，但仅限于 2D 空间。
 
-[](https://medium.com/@alexroz/6-python-libraries-to-make-beautiful-maps-9fb9edb28b27?source=post_page-----498398c25a39--------------------------------) [## 6种用于制作美丽地图的Python库
+[](https://medium.com/@alexroz/6-python-libraries-to-make-beautiful-maps-9fb9edb28b27?source=post_page-----498398c25a39--------------------------------) [## 6 种用于制作美丽地图的 Python 库
 
 ### 每个数据科学家都会在某个时刻面临分析或建模地理空间数据的需求，而这无法在没有...
 
 medium.com](https://medium.com/@alexroz/6-python-libraries-to-make-beautiful-maps-9fb9edb28b27?source=post_page-----498398c25a39--------------------------------)
 
-今天，我想弥合这个差距，与大家一起探讨一个非常时尚且高效的框架，用于高性能的基于Web的可视化[**deck.jl**](https://deck.gl/)，它也有一个Python库 **PyDeck**。
+今天，我想弥合这个差距，与大家一起探讨一个非常时尚且高效的框架，用于高性能的基于 Web 的可视化[**deck.jl**](https://deck.gl/)，它也有一个 Python 库 **PyDeck**。
 
-要在Python中充分探索其功能，我们需要一个大型的地理空间数据集。一个理想的候选数据集是[Kaggle上的洛杉矶犯罪数据2010-2020](https://www.kaggle.com/datasets/sumaiaparveenshupti/los-angeles-crime-data-20102020)数据集。幸运的是，它具有[开放许可证](https://creativecommons.org/publicdomain/zero/1.0/)，因此我们可以自由使用它来进行我们的分析。
+要在 Python 中充分探索其功能，我们需要一个大型的地理空间数据集。一个理想的候选数据集是[Kaggle 上的洛杉矶犯罪数据 2010-2020](https://www.kaggle.com/datasets/sumaiaparveenshupti/los-angeles-crime-data-20102020)数据集。幸运的是，它具有[开放许可证](https://creativecommons.org/publicdomain/zero/1.0/)，因此我们可以自由使用它来进行我们的分析。
 
 作者们分发了两个 *csv* 文件，我们将把它们合并为一个，同时过滤掉所有除了经纬度（即犯罪发生地点的坐标）以外的列。
 
@@ -57,17 +57,17 @@ df = df[(df.LON!=0) & (df.LAT!=0)] #zeros are Nans according to meta info
 
 在 pandas 中加载数据后，我想使用 *cartopy* 做一个静态的二维可视化，只是为了有一个可靠的参考。如果我们仅仅绘制数据，我们将得到一堆数据点，对我们没有任何帮助。
 
-![](../Images/e4c1d339c756c6b642af6d8ab0088150.png)
+![](img/e4c1d339c756c6b642af6d8ab0088150.png)
 
 图片来源：[作者](https://medium.com/@alexroz)。
 
 相反，让我们使用 NN 方法进行空间插值（你可以在我的另一篇文章中阅读更多关于它的内容）。
 
-[](/3-best-methods-for-spatial-interpolation-912cab7aee47?source=post_page-----498398c25a39--------------------------------) [## 3 种最佳空间插值方法
+[](/3-best-methods-for-spatial-interpolation-912cab7aee47?source=post_page-----498398c25a39--------------------------------) ## 3 种最佳空间插值方法
 
 ### 从头开始，在 Python 中
 
-[towardsdatascience.com](/3-best-methods-for-spatial-interpolation-912cab7aee47?source=post_page-----498398c25a39--------------------------------)
+[towardsdatascience.com
 
 基本上，这意味着我们将稀疏的观测数据转化为一个地理网格（PyDeck 将做同样的事情，在这种情况下可以称之为数据聚合）。
 
@@ -110,7 +110,7 @@ states_provinces = cfeature.NaturalEarthFeature(
 plt.show()
 ```
 
-![](../Images/4cb04396ef5a88ff66debcc1afa1e262.png)
+![](img/4cb04396ef5a88ff66debcc1afa1e262.png)
 
 图片来源：[作者](https://medium.com/@alexroz)。
 
@@ -176,7 +176,7 @@ view_state = pdk.ViewState(
 
 如果你选择第二个，你将得到这个：
 
-![](../Images/39e06c87e81077954efe4dc5f62ec734.png)
+![](img/39e06c87e81077954efe4dc5f62ec734.png)
 
 图片来源：[作者](https://medium.com/@alexroz)。
 
@@ -184,7 +184,7 @@ view_state = pdk.ViewState(
 
 # 2\. 列
 
-现在让我们尝试创建一个类似的可视化，但是使用柱状图。但在这种情况下，我们需要将之前创建的xarray数据集传递给函数，并指定颜色和要可视化的变量：
+现在让我们尝试创建一个类似的可视化，但是使用柱状图。但在这种情况下，我们需要将之前创建的 xarray 数据集传递给函数，并指定颜色和要可视化的变量：
 
 ```py
 layer = pdk.Layer(
@@ -200,15 +200,15 @@ layer = pdk.Layer(
     )
 ```
 
-![](../Images/cc30a98b5ee2146008744d31b6a2df27.png)
+![](img/cc30a98b5ee2146008744d31b6a2df27.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
 # 3\. 散点图
 
-本质上，散点图是由点云组成的，但PyDeck的作者们开发了独特的圆柱体，它们看起来非常与众不同：
+本质上，散点图是由点云组成的，但 PyDeck 的作者们开发了独特的圆柱体，它们看起来非常与众不同：
 
-![](../Images/02f97b260ea3c59ba0ad2e115cea005f.png)
+![](img/02f97b260ea3c59ba0ad2e115cea005f.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
@@ -223,13 +223,13 @@ layer = pdk.Layer(
     pickable=True)
 ```
 
-![](../Images/b181b49d8fcccb41ab7b2117138ad0d5.png)
+![](img/b181b49d8fcccb41ab7b2117138ad0d5.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
 # 4\. 地图样式
 
-PyDeck的一个非常酷的特点是，像plotly、geemap、folium等交互式映射工具一样，它允许用户更改底图，这意味着你可以根据项目的背景设计地图：
+PyDeck 的一个非常酷的特点是，像 plotly、geemap、folium 等交互式映射工具一样，它允许用户更改底图，这意味着你可以根据项目的背景设计地图：
 
 ```py
 r = pdk.Deck(layers=[layer],
@@ -238,15 +238,15 @@ r = pdk.Deck(layers=[layer],
              )
 ```
 
-![](../Images/50b2a8f66e10ec360688621211efbdd0.png)
+![](img/50b2a8f66e10ec360688621211efbdd0.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
 # 5\. 标题
 
-下一个我认为非常有用的特性是改变交互式数据描述。通过将光标放在某个柱状图/六边形/点上，你可以获取元数据信息，但有时看起来有些荒谬。但在PyDeck中，你可以轻松克服这一点：
+下一个我认为非常有用的特性是改变交互式数据描述。通过将光标放在某个柱状图/六边形/点上，你可以获取元数据信息，但有时看起来有些荒谬。但在 PyDeck 中，你可以轻松克服这一点：
 
-![](../Images/582e1ea8485234ef1a68a63fe9fa529c.png)
+![](img/582e1ea8485234ef1a68a63fe9fa529c.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
@@ -262,7 +262,7 @@ r = pdk.Deck(layers=[layer],
              )
 ```
 
-![](../Images/8ea69b8f10ab3eed20ae63fcbfcfb08b.png)
+![](img/8ea69b8f10ab3eed20ae63fcbfcfb08b.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
@@ -286,17 +286,17 @@ def filter_by_viewport(widget_instance, payload):
 r.deck_widget.on_click(filter_by_viewport)
 ```
 
-![](../Images/0d126df99ce2a038c2d6a607ca604a79.png)
+![](img/0d126df99ce2a038c2d6a607ca604a79.png)
 
 图片由[作者](https://medium.com/@alexroz)提供。
 
-我确实很喜欢**PyDeck**，并计划深入了解**deck.jl**框架。它的语法既简单又直观，能够让用户在保证能效的前提下构建出令人印象深刻的可视化。Python在一定程度上限制了这个包的功能，所以你可以查看他们的[画廊](https://deck.gl/examples)，真的非常震撼，尤其是他们的实验性GlobalView功能…
+我确实很喜欢**PyDeck**，并计划深入了解**deck.jl**框架。它的语法既简单又直观，能够让用户在保证能效的前提下构建出令人印象深刻的可视化。Python 在一定程度上限制了这个包的功能，所以你可以查看他们的[画廊](https://deck.gl/examples)，真的非常震撼，尤其是他们的实验性 GlobalView 功能…
 
 希望这篇文章对你有启发并且信息量十足！
 
 ===========================================
 
-***我在Medium上的所有出版物都是免费且开放获取的，因此如果你能在这里关注我，我将非常感激！***
+***我在 Medium 上的所有出版物都是免费且开放获取的，因此如果你能在这里关注我，我将非常感激！***
 
 备注：我对（地理）数据科学、机器学习/人工智能以及气候变化充满极大的热情。如果你想一起合作进行某个项目，请通过[LinkedIn](https://www.linkedin.com/in/alexxxroz/)与我联系。
 

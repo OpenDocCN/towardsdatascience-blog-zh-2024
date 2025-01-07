@@ -1,12 +1,12 @@
 # 统计学必知：双变量正态投影解析
 
-> 原文：[https://towardsdatascience.com/must-know-in-statistics-the-bivariate-normal-projection-explained-ace7b2f70b5b?source=collection_archive---------8-----------------------#2024-08-14](https://towardsdatascience.com/must-know-in-statistics-the-bivariate-normal-projection-explained-ace7b2f70b5b?source=collection_archive---------8-----------------------#2024-08-14)
+> 原文：[`towardsdatascience.com/must-know-in-statistics-the-bivariate-normal-projection-explained-ace7b2f70b5b?source=collection_archive---------8-----------------------#2024-08-14`](https://towardsdatascience.com/must-know-in-statistics-the-bivariate-normal-projection-explained-ace7b2f70b5b?source=collection_archive---------8-----------------------#2024-08-14)
 
 ## 该强大概念的推导与实践例子
 
-[](https://medium.com/@lu.battistoni?source=post_page---byline--ace7b2f70b5b--------------------------------)[![Luigi Battistoni](../Images/2577427b0e46329870794a9c7ef61714.png)](https://medium.com/@lu.battistoni?source=post_page---byline--ace7b2f70b5b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ace7b2f70b5b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ace7b2f70b5b--------------------------------) [Luigi Battistoni](https://medium.com/@lu.battistoni?source=post_page---byline--ace7b2f70b5b--------------------------------)
+[](https://medium.com/@lu.battistoni?source=post_page---byline--ace7b2f70b5b--------------------------------)![Luigi Battistoni](https://medium.com/@lu.battistoni?source=post_page---byline--ace7b2f70b5b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ace7b2f70b5b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ace7b2f70b5b--------------------------------) [Luigi Battistoni](https://medium.com/@lu.battistoni?source=post_page---byline--ace7b2f70b5b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ace7b2f70b5b--------------------------------) ·8分钟阅读·2024年8月14日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ace7b2f70b5b--------------------------------) ·8 分钟阅读·2024 年 8 月 14 日
 
 --
 

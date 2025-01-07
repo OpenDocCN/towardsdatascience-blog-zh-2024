@@ -1,26 +1,26 @@
-# 分词的艺术：为AI分解文本
+# 分词的艺术：为 AI 分解文本
 
-> 原文：[https://towardsdatascience.com/the-art-of-tokenization-breaking-down-text-for-ai-43c7bccaed25?source=collection_archive---------0-----------------------#2024-09-26](https://towardsdatascience.com/the-art-of-tokenization-breaking-down-text-for-ai-43c7bccaed25?source=collection_archive---------0-----------------------#2024-09-26)
+> 原文：[`towardsdatascience.com/the-art-of-tokenization-breaking-down-text-for-ai-43c7bccaed25?source=collection_archive---------0-----------------------#2024-09-26`](https://towardsdatascience.com/the-art-of-tokenization-breaking-down-text-for-ai-43c7bccaed25?source=collection_archive---------0-----------------------#2024-09-26)
 
-## 揭开NLP的神秘面纱：从文本到嵌入
+## 揭开 NLP 的神秘面纱：从文本到嵌入
 
-[](https://medium.com/@murilogustineli?source=post_page---byline--43c7bccaed25--------------------------------)[![Murilo Gustineli](../Images/2a56c10e79b4810c7bf5e511300bfc34.png)](https://medium.com/@murilogustineli?source=post_page---byline--43c7bccaed25--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--43c7bccaed25--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--43c7bccaed25--------------------------------) [Murilo Gustineli](https://medium.com/@murilogustineli?source=post_page---byline--43c7bccaed25--------------------------------)
+[](https://medium.com/@murilogustineli?source=post_page---byline--43c7bccaed25--------------------------------)![Murilo Gustineli](https://medium.com/@murilogustineli?source=post_page---byline--43c7bccaed25--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--43c7bccaed25--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43c7bccaed25--------------------------------) [Murilo Gustineli](https://medium.com/@murilogustineli?source=post_page---byline--43c7bccaed25--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43c7bccaed25--------------------------------) ·10分钟阅读·2024年9月26日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43c7bccaed25--------------------------------) ·10 分钟阅读·2024 年 9 月 26 日
 
 --
 
-![](../Images/10347347f8af7b1b60b09cc2d9a55932.png)
+![](img/10347347f8af7b1b60b09cc2d9a55932.png)
 
-由Llama-3-8B生成的分词示例。每个不同颜色的子词代表一个独立的标记（token）。
+由 Llama-3-8B 生成的分词示例。每个不同颜色的子词代表一个独立的标记（token）。
 
 # **什么是分词（Tokenization）？**
 
-在计算机科学中，我们将像英语和普通话这样的语言称为“自然”语言。相反，像汇编语言和LISP这样的语言，专为与计算机交互而设计，被称为“机器”语言，遵循严格的句法规则，几乎没有解释的余地。尽管计算机擅长处理自身高度结构化的语言，但它们在处理人类语言的混乱性方面却表现得相当挣扎。
+在计算机科学中，我们将像英语和普通话这样的语言称为“自然”语言。相反，像汇编语言和 LISP 这样的语言，专为与计算机交互而设计，被称为“机器”语言，遵循严格的句法规则，几乎没有解释的余地。尽管计算机擅长处理自身高度结构化的语言，但它们在处理人类语言的混乱性方面却表现得相当挣扎。
 
 语言——尤其是文本——构成了我们大部分的沟通和知识存储。例如，互联网主要由文本组成。像[ChatGPT](https://openai.com/chatgpt/)、[Claude](https://www.anthropic.com/claude)和[Llama](https://www.llama.com/)这样的大型语言模型，都是通过使用复杂的计算技术，在海量的文本上进行训练——本质上是互联网上所有可用的文本。然而，计算机处理的是数字，而不是单词或句子。那么，我们如何弥合人类语言与机器理解之间的差距呢？
 
-这就是**自然语言处理（NLP）**的作用所在。NLP是一个结合语言学、计算机科学和人工智能的领域，旨在使计算机能够理解、解释和生成自然语言。无论是将文本从英语翻译成法语、总结文章，还是进行对话，NLP都能让机器从文本输入中生成有意义的输出。
+这就是**自然语言处理（NLP）**的作用所在。NLP 是一个结合语言学、计算机科学和人工智能的领域，旨在使计算机能够理解、解释和生成自然语言。无论是将文本从英语翻译成法语、总结文章，还是进行对话，NLP 都能让机器从文本输入中生成有意义的输出。
 
 自然语言处理的第一步是将原始文本转化为计算机能够有效处理的格式。这个过程称为**分词**。分词是将文本分解成更小、易于处理的单位，称为***词元***，这些词元可以是单词、子词甚至是单个字符。以下是该过程的典型工作方式：
 
@@ -34,9 +34,9 @@
 
 +   **数值表示：** 由于计算机处理的是数值数据，每个词元会被转换为数值表示。这可以是简单地为每个词元分配一个唯一标识符，也可以是创建多维向量来捕捉词元的意义和上下文。
 
-![](../Images/404ea4ba951265efc54d7a42d444724f.png)
+![](img/404ea4ba951265efc54d7a42d444724f.png)
 
-*插图灵感来源于《**Python深度学习** *作者：François Chollet*](https://www.manning.com/books/deep-learning-with-python-second-edition)中的“图11.1 从文本到向量”*
+*插图灵感来源于《**Python 深度学习** *作者：François Chollet*](https://www.manning.com/books/deep-learning-with-python-second-edition)中的“图 11.1 从文本到向量”*
 
 分词不仅仅是拆分文本；它是以一种保留意义和上下文的方式准备语言数据，以便计算模型使用。不同的分词方法会显著影响模型理解和处理语言的效果。
 
@@ -186,7 +186,7 @@ print(tokens)
 
 请注意，标准化步骤通常会集成到分词器本身。大型语言模型在处理文本时，使用标记作为输入和输出。以下是由 Llama-3–8B 在[Tiktokenizer](https://tiktokenizer.vercel.app/)上生成的标记的可视化表示：
 
-![](../Images/9dc6a0f02ad1b56bfc550734d2ff6555.png)
+![](img/9dc6a0f02ad1b56bfc550734d2ff6555.png)
 
 **Tiktokenizer** 示例使用 **Llama-3–8B**。每个标记都用不同的颜色表示。
 

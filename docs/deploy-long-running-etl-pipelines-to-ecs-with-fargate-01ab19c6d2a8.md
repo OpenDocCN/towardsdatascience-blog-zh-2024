@@ -1,18 +1,18 @@
 # 将长时间运行的 ETL 流水线部署到 ECS 与 Fargate
 
-> 原文：[https://towardsdatascience.com/deploy-long-running-etl-pipelines-to-ecs-with-fargate-01ab19c6d2a8?source=collection_archive---------4-----------------------#2024-03-03](https://towardsdatascience.com/deploy-long-running-etl-pipelines-to-ecs-with-fargate-01ab19c6d2a8?source=collection_archive---------4-----------------------#2024-03-03)
+> 原文：[`towardsdatascience.com/deploy-long-running-etl-pipelines-to-ecs-with-fargate-01ab19c6d2a8?source=collection_archive---------4-----------------------#2024-03-03`](https://towardsdatascience.com/deploy-long-running-etl-pipelines-to-ecs-with-fargate-01ab19c6d2a8?source=collection_archive---------4-----------------------#2024-03-03)
 
 ## 构建后端应用程序
 
 ## 为了保持简单并将成本降到最低
 
-[](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)[![Ida Silfverskiöld](../Images/a2c0850bc0198688f70a5eca858cf8b5.png)](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------) [Ida Silfverskiöld](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)
+[](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)![Ida Silfverskiöld](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------) [Ida Silfverskiöld](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------) ·阅读时间 17 分钟·2024 年 3 月 3 日
 
 --
 
-![](../Images/52f9ed67c372c5d6c4c962a6d7fc66e3.png)
+![](img/52f9ed67c372c5d6c4c962a6d7fc66e3.png)
 
 ETL 流水线 | 作者提供的图像
 
@@ -22,7 +22,7 @@ ETL 代表 **提取**、**转换** 和 **加载**。ETL 流水线本质上就是
 
 **这里的选择是将代码部署为容器**，该容器可以根据需要运行并按计划执行。因此，与使用 Lambda 启动一个函数不同，我们可以启动一个容器，在 ECS 集群中使用 Fargate 运行。
 
-![](../Images/0d9dbc9be8b617e2240b774166b931f7.png)
+![](img/0d9dbc9be8b617e2240b774166b931f7.png)
 
 我们可以将 EventBridge 用于 Lambda 和 ECS | 作者提供的图像
 
@@ -48,7 +48,7 @@ ETL 代表 **提取**、**转换** 和 **加载**。ETL 流水线本质上就是
 
 从这里开始，我们可以使用 AWS Fargate 创建一个任务定义，并在 ECS 集群中按计划运行它。
 
-![](../Images/7af5c5507689fd2d1264de7a77474a3d.png)
+![](img/7af5c5507689fd2d1264de7a77474a3d.png)
 
 我们用来将代码部署到 AWS 的所有工具 | 图片来自作者
 
@@ -60,7 +60,7 @@ ETL 代表 **提取**、**转换** 和 **加载**。ETL 流水线本质上就是
 
 另一方面，Fargate 帮助我们简化了容器的管理和设置，使用 Docker 镜像 —— 在 AWS 中这些被称为任务。
 
-![](../Images/6dccf5457f14e0ef24279dabbb9b75e8.png)
+![](img/6dccf5457f14e0ef24279dabbb9b75e8.png)
 
 一个非常简化的图示 —— 任务运行的基础设施由 Fargate 管理 | 图片来自作者
 
@@ -78,7 +78,7 @@ ETL 代表 **提取**、**转换** 和 **加载**。ETL 流水线本质上就是
 
 大致来说，运行一个任务的总 [成本](https://aws.amazon.com/fargate/pricing/) 大约为每小时 $0.01384，具体费用取决于你配置的资源（适用于 EU 区域）。
 
-![](../Images/d258be4174b91c3966914d2a34913aa1.png)
+![](img/d258be4174b91c3966914d2a34913aa1.png)
 
 Fargate 和 ECS 的小时定价（EU 区域）| 图片来自作者
 
@@ -139,7 +139,7 @@ git clone https://github.com/ilsilfverskiold/etl-pipeline-fargate.git
 
 首先查看 ***main.py*** 文件，了解我如何构建代码，以便理解它的功能。
 
-![](../Images/63327e5f4b603b37a1228e14e85fe8c1.png)
+![](img/63327e5f4b603b37a1228e14e85fe8c1.png)
 
 你的根文件夹中的 main.py 代码 | 图片来自作者
 
@@ -167,19 +167,19 @@ git clone https://github.com/ilsilfverskiold/etl-pipeline-fargate.git
 
 创建后，您需要通过 IAM 为您的服务账户提供 **BigQuery 用户** 的全局访问权限。
 
-![](../Images/8fb3f1783c18352ce18d73aea0b28f4e.png)
+![](img/8fb3f1783c18352ce18d73aea0b28f4e.png)
 
 在 IAM 中授予对服务账户的访问权限 | 图片来源：作者
 
 您还需要为此服务账户提供对数据集本身的访问权限，您可以直接在 BigQuery 中通过数据集的 **共享** 按钮进行操作，然后按 **添加主体**。
 
-![](../Images/b9cb1463a9b5ae89f4777af1c796efc2.png)
+![](img/b9cb1463a9b5ae89f4777af1c796efc2.png)
 
 为 BigQuery 中的数据集添加权限给服务账户 | 图片来源：作者
 
 在您给用户适当权限后，确保返回到服务账户并下载一个密钥。这将为您提供一个 json 文件，您需要将其放在根文件夹中。
 
-![](../Images/e6f873e95ca6e39f87bbd00517f0ddd4.png)
+![](img/e6f873e95ca6e39f87bbd00517f0ddd4.png)
 
 获取服务账户密钥以进行身份验证 | 图片来源：作者
 
@@ -187,7 +187,7 @@ git clone https://github.com/ilsilfverskiold/etl-pipeline-fargate.git
 
 您需要将您下载的包含 Google 凭证的 json 文件放在根文件夹中，命名为 *google_credentials.json*，然后指定正确的表 ID。
 
-![](../Images/2cb5c008b9902b48e0d803ec65159ddd.png)
+![](img/2cb5c008b9902b48e0d803ec65159ddd.png)
 
 更改代码中的表 ID 和服务账户密钥 json 文件 | 图片来源：作者
 
@@ -313,7 +313,7 @@ aws ecr create-repository --repository-name bigquery-etl-pipeline
 
 为此，你可以进入 AWS 控制台，找到我们刚刚创建的 ECR 仓库。在这里，AWS 会让我们看到我们需要运行的所有推送命令，用以认证、构建并将 Docker 镜像推送到这个 ECR 仓库。
 
-![](../Images/638fe2916b5fd5a8136c36a78884b8b7.png)
+![](img/638fe2916b5fd5a8136c36a78884b8b7.png)
 
 在 ECR 中直接找到推送命令 | 图片来源：作者
 
@@ -456,7 +456,7 @@ aws ecs register-task-definition --cli-input-json file://task-definition.json
 
 现在你应该能够进入[**Amazon 弹性容器服务**](https://eu-north-1.console.aws.amazon.com/ecs/v2/getStarted?region=eu-north-1)，然后在**任务定义**中找到我们创建的任务。
 
-![](../Images/738b981ded54f053375efbd240cd32cd.png)
+![](img/738b981ded54f053375efbd240cd32cd.png)
 
 在 ECS 中找到你创建的任务定义 | 作者提供的图片
 
@@ -515,7 +515,7 @@ aws ecs run-task \
 
 现在，你可以导航到 AWS 控制台查看正在运行的任务。
 
-![](../Images/c900f958079df0c32a1f170e3568613b.png)
+![](img/c900f958079df0c32a1f170e3568613b.png)
 
 查看你 ECS 集群中正在运行的任务 | 作者提供的图片
 
@@ -529,11 +529,11 @@ aws ecs run-task \
 
 EventBridge 将设置我们的计划事件，我们也可以使用 CLI 来设置它。然而，在设置计划之前，我们首先需要创建一个新的角色。
 
-> 这就是在使用AWS时的现实，每个服务都需要有相互交互的权限。
+> 这就是在使用 AWS 时的现实，每个服务都需要有相互交互的权限。
 
-在这种情况下，EventBridge需要权限代表我们调用ECS集群。
+在这种情况下，EventBridge 需要权限代表我们调用 ECS 集群。
 
-在仓库中，你有一个名为*trust-policy-for-eventbridge.json*的文件，我已经放在那里，我们将使用这个文件来创建EventBridge角色。
+在仓库中，你有一个名为*trust-policy-for-eventbridge.json*的文件，我已经放在那里，我们将使用这个文件来创建 EventBridge 角色。
 
 将此粘贴到终端并运行。
 
@@ -553,7 +553,7 @@ aws iam attach-role-policy \
 
 我们需要至少让它能够执行***ecs:RunTask***，但我们已经赋予它完全访问权限。如果你更喜欢限制权限，你可以创建一个只包含必要权限的自定义策略。
 
-现在，让我们设置规则，安排任务在每个UTC时间上午5点使用任务定义运行。这通常是我希望它为我处理数据的时间，这样如果失败了，我可以在早餐后再查看。
+现在，让我们设置规则，安排任务在每个 UTC 时间上午 5 点使用任务定义运行。这通常是我希望它为我处理数据的时间，这样如果失败了，我可以在早餐后再查看。
 
 ```py
 aws events put-rule \
@@ -564,7 +564,7 @@ aws events put-rule \
 
 你应该会收到一个包含*RuleArn*字段的对象。这只是为了确认它是否成功。
 
-下一步是将规则与ECS任务定义关联。
+下一步是将规则与 ECS 任务定义关联。
 
 ```py
 aws events put-targets --rule "ETLPipelineDailyRun" \
@@ -575,25 +575,25 @@ aws events put-targets --rule "ETLPipelineDailyRun" \
 
 *使用我们之前获得的子网和安全组。你可以设置多个子网。*
 
-一旦你运行了命令，任务将会被安排在每天的UTC时间5点执行，你可以在AWS控制台的“定时任务”中找到它。
+一旦你运行了命令，任务将会被安排在每天的 UTC 时间 5 点执行，你可以在 AWS 控制台的“定时任务”中找到它。
 
-你也可以直接在控制台中设置你的定时任务，这样更简单，因为子网ID和安全组已经为你设置好了。
+你也可以直接在控制台中设置你的定时任务，这样更简单，因为子网 ID 和安全组已经为你设置好了。
 
 ## AWS Secrets Manager（可选）
 
-所以，将你的Google凭证保存在根文件夹中并不是理想的做法，即使你已经限制了Google服务账户对数据集的访问权限。
+所以，将你的 Google 凭证保存在根文件夹中并不是理想的做法，即使你已经限制了 Google 服务账户对数据集的访问权限。
 
-在这里，我们可以选择将这些凭证移动到另一个AWS服务，然后从我们的容器中访问它。
+在这里，我们可以选择将这些凭证移动到另一个 AWS 服务，然后从我们的容器中访问它。
 
-为了使其工作，你需要将凭证文件移动到Secrets Manager，调整代码以便它能够获取凭证进行身份验证，并确保任务角色有权限代表你访问AWS Secrets Manager。
+为了使其工作，你需要将凭证文件移动到 Secrets Manager，调整代码以便它能够获取凭证进行身份验证，并确保任务角色有权限代表你访问 AWS Secrets Manager。
 
-完成后，你可以将更新的docker镜像推送到之前设置的ECR仓库。
+完成后，你可以将更新的 docker 镜像推送到之前设置的 ECR 仓库。
 
 ## 最终结果
 
-现在，你已经在AWS上按计划运行了一个非常简单的ETL管道。目的是你可以在此基础上添加自己的数据转换。
+现在，你已经在 AWS 上按计划运行了一个非常简单的 ETL 管道。目的是你可以在此基础上添加自己的数据转换。
 
-希望这对任何过渡到简单、成本效益高且直接的方式在ECS上设置长期运行的数据转换脚本的人来说是有帮助的。
+希望这对任何过渡到简单、成本效益高且直接的方式在 ECS 上设置长期运行的数据转换脚本的人来说是有帮助的。
 
 如果你遇到任何问题，请告诉我，以防我遗漏了什么。
 

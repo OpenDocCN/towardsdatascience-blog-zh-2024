@@ -1,16 +1,16 @@
 # 系统设计：负载均衡器
 
-> 原文：[https://towardsdatascience.com/system-design-load-balancer-9a3582176f9b?source=collection_archive---------2-----------------------#2024-06-28](https://towardsdatascience.com/system-design-load-balancer-9a3582176f9b?source=collection_archive---------2-----------------------#2024-06-28)
+> 原文：[`towardsdatascience.com/system-design-load-balancer-9a3582176f9b?source=collection_archive---------2-----------------------#2024-06-28`](https://towardsdatascience.com/system-design-load-balancer-9a3582176f9b?source=collection_archive---------2-----------------------#2024-06-28)
 
 ## 为微服务应用中的工作负载分配设计最佳策略
 
-[](https://medium.com/@slavahead?source=post_page---byline--9a3582176f9b--------------------------------)[![Vyacheslav Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--9a3582176f9b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9a3582176f9b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9a3582176f9b--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--9a3582176f9b--------------------------------)
+[](https://medium.com/@slavahead?source=post_page---byline--9a3582176f9b--------------------------------)![Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--9a3582176f9b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9a3582176f9b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9a3582176f9b--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--9a3582176f9b--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9a3582176f9b--------------------------------) ·阅读时长 8分钟·2024年6月28日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9a3582176f9b--------------------------------) ·阅读时长 8 分钟·2024 年 6 月 28 日
 
 --
 
-![](../Images/9a8a79cdb65ca29e27c1632b40969703.png)
+![](img/9a8a79cdb65ca29e27c1632b40969703.png)
 
 # 介绍
 
@@ -20,7 +20,7 @@
 
 # 负载均衡器的使用
 
-**负载均衡器**可以出现在不同的应用层次中。例如，大多数Web应用程序由前端、后端和数据库层组成。因此，可以在不同的应用部分使用多个负载均衡器来优化请求路由：
+**负载均衡器**可以出现在不同的应用层次中。例如，大多数 Web 应用程序由前端、后端和数据库层组成。因此，可以在不同的应用部分使用多个负载均衡器来优化请求路由：
 
 +   在用户（客户端）和前端服务器之间；
 

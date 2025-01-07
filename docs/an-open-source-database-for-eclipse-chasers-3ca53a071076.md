@@ -1,16 +1,16 @@
 # 面向日全食追逐者的开源数据库
 
-> 原文：[https://towardsdatascience.com/an-open-source-database-for-eclipse-chasers-3ca53a071076?source=collection_archive---------7-----------------------#2024-04-14](https://towardsdatascience.com/an-open-source-database-for-eclipse-chasers-3ca53a071076?source=collection_archive---------7-----------------------#2024-04-14)
+> 原文：[`towardsdatascience.com/an-open-source-database-for-eclipse-chasers-3ca53a071076?source=collection_archive---------7-----------------------#2024-04-14`](https://towardsdatascience.com/an-open-source-database-for-eclipse-chasers-3ca53a071076?source=collection_archive---------7-----------------------#2024-04-14)
 
-[](https://medium.com/@rohitpandey576?source=post_page---byline--3ca53a071076--------------------------------)[![Rohit Pandey](../Images/af817d8f68f2984058f0afb8fd7ecbe9.png)](https://medium.com/@rohitpandey576?source=post_page---byline--3ca53a071076--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3ca53a071076--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3ca53a071076--------------------------------) [Rohit Pandey](https://medium.com/@rohitpandey576?source=post_page---byline--3ca53a071076--------------------------------)
+[](https://medium.com/@rohitpandey576?source=post_page---byline--3ca53a071076--------------------------------)![Rohit Pandey](https://medium.com/@rohitpandey576?source=post_page---byline--3ca53a071076--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3ca53a071076--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3ca53a071076--------------------------------) [Rohit Pandey](https://medium.com/@rohitpandey576?source=post_page---byline--3ca53a071076--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3ca53a071076--------------------------------) ·阅读时长11分钟·2024年4月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3ca53a071076--------------------------------) ·阅读时长 11 分钟·2024 年 4 月 14 日
 
 --
 
-![](../Images/6da7432baac3eda50b18350b593ed21e.png)
+![](img/6da7432baac3eda50b18350b593ed21e.png)
 
-图像由midjourney生成
+图像由 midjourney 生成
 
 # 开放数据的动机
 

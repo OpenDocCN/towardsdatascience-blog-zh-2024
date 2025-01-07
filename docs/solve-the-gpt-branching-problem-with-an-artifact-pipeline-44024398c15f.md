@@ -1,28 +1,28 @@
-# 通过工件流水线解决GPT分支问题
+# 通过工件流水线解决 GPT 分支问题
 
-> 原文：[https://towardsdatascience.com/solve-the-gpt-branching-problem-with-an-artifact-pipeline-44024398c15f?source=collection_archive---------11-----------------------#2024-01-09](https://towardsdatascience.com/solve-the-gpt-branching-problem-with-an-artifact-pipeline-44024398c15f?source=collection_archive---------11-----------------------#2024-01-09)
+> 原文：[`towardsdatascience.com/solve-the-gpt-branching-problem-with-an-artifact-pipeline-44024398c15f?source=collection_archive---------11-----------------------#2024-01-09`](https://towardsdatascience.com/solve-the-gpt-branching-problem-with-an-artifact-pipeline-44024398c15f?source=collection_archive---------11-----------------------#2024-01-09)
 
-## 使用自定义GPT设计一个饮食规划应用
+## 使用自定义 GPT 设计一个饮食规划应用
 
-[](https://medium.com/@andrew.tyler.lucas?source=post_page---byline--44024398c15f--------------------------------)[![Andrew Lucas](../Images/0b5841e17d7bd1959f6d0bc05312dba6.png)](https://medium.com/@andrew.tyler.lucas?source=post_page---byline--44024398c15f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--44024398c15f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--44024398c15f--------------------------------) [Andrew Lucas](https://medium.com/@andrew.tyler.lucas?source=post_page---byline--44024398c15f--------------------------------)
+[](https://medium.com/@andrew.tyler.lucas?source=post_page---byline--44024398c15f--------------------------------)![Andrew Lucas](https://medium.com/@andrew.tyler.lucas?source=post_page---byline--44024398c15f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--44024398c15f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--44024398c15f--------------------------------) [Andrew Lucas](https://medium.com/@andrew.tyler.lucas?source=post_page---byline--44024398c15f--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--44024398c15f--------------------------------) ·14分钟阅读·2024年1月9日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--44024398c15f--------------------------------) ·14 分钟阅读·2024 年 1 月 9 日
 
 --
 
-![](../Images/2566e3aa4af39c38b5ce25abe0dfeb5c.png)
+![](img/2566e3aa4af39c38b5ce25abe0dfeb5c.png)
 
-“分支问题”，由作者使用ChatGPT创建
+“分支问题”，由作者使用 ChatGPT 创建
 
 **“创建一个应用帮助我规划一周的饮食。”**
 
-想象一下，如果你可以要求ChatGPT实现一个完整的应用并提供下载链接。尽管目前的技术还不足以实现这一点，但AI已经能够自动化一些工作流程的部分内容，例如需求定义、任务规划，甚至是编码。
+想象一下，如果你可以要求 ChatGPT 实现一个完整的应用并提供下载链接。尽管目前的技术还不足以实现这一点，但 AI 已经能够自动化一些工作流程的部分内容，例如需求定义、任务规划，甚至是编码。
 
-当提供正确的指示时，ChatGPT（或自定义GPT）可以帮助递归地分解问题。当我们将问题划分为子问题时，我们需要跟踪所有生成的不同“分支”。这些分支会进一步分裂成更多的分支，形成一个复杂的树状结构。我称之为**分支问题**。
+当提供正确的指示时，ChatGPT（或自定义 GPT）可以帮助递归地分解问题。当我们将问题划分为子问题时，我们需要跟踪所有生成的不同“分支”。这些分支会进一步分裂成更多的分支，形成一个复杂的树状结构。我称之为**分支问题**。
 
-我们将探讨几种方法，使用基于GPT的工具创建明确输出的工件，作为应用设计流程的一部分。最后，我将解释这如何帮助克服分支问题。
+我们将探讨几种方法，使用基于 GPT 的工具创建明确输出的工件，作为应用设计流程的一部分。最后，我将解释这如何帮助克服分支问题。
 
-*AI免责声明：除了在我明确引用ChatGPT以阐述观点时，本故事的文字内容并未使用AI生成。*
+*AI 免责声明：除了在我明确引用 ChatGPT 以阐述观点时，本故事的文字内容并未使用 AI 生成。*
 
 # 像人类一样思考
 
@@ -32,21 +32,21 @@
 
 **什么样的应用？**
 
-它可以是一个网站，一个移动应用，甚至是类似于Slack的机器人。在这种情况下，我更倾向于一个移动应用*以及*一个适配手机的网页应用，但我也可以接受其中任何一个。
+它可以是一个网站，一个移动应用，甚至是类似于 Slack 的机器人。在这种情况下，我更倾向于一个移动应用*以及*一个适配手机的网页应用，但我也可以接受其中任何一个。
 
 **我希望如何进行餐单规划？**
 
-事实证明，我已经思考了这一点。对于我来说，有一些食材是我偏好购买并使用的，所以我希望这个应用能利用AI，根据我提供的食材清单生成食谱。我已经用ChatGPT做过这件事，所以我知道这是可行的。
+事实证明，我已经思考了这一点。对于我来说，有一些食材是我偏好购买并使用的，所以我希望这个应用能利用 AI，根据我提供的食材清单生成食谱。我已经用 ChatGPT 做过这件事，所以我知道这是可行的。
 
-我通过实验知道，ChatGPT可以估算食材的卡路里和宏量营养素含量，所以我希望这能被包含在内。我还知道ChatGPT倾向于低估这些量，因此我希望有某种方式来处理这个问题，无论是通过手动审核（更安全）还是通过某种百分比自动调整这些值（更懒）。
+我通过实验知道，ChatGPT 可以估算食材的卡路里和宏量营养素含量，所以我希望这能被包含在内。我还知道 ChatGPT 倾向于低估这些量，因此我希望有某种方式来处理这个问题，无论是通过手动审核（更安全）还是通过某种百分比自动调整这些值（更懒）。
 
 当我向软件公司提出请求时，我早就已经考虑到了所有这些内容，但我不会把它们直接作为信息块呈现给他们。我会让他们在对话过程中逐步提取细节。这减少了我的认知负担，并且让公司的代表能在适当的速度下整合这些信息，记笔记或按照他们自己的接收流程进行。
 
-这是人类自然的沟通方式，但ChatGPT并不知道我希望它问我澄清性问题。
+这是人类自然的沟通方式，但 ChatGPT 并不知道我希望它问我澄清性问题。
 
-# ChatGPT并不知道自己不知道什么
+# ChatGPT 并不知道自己不知道什么
 
-这是当我问“创建一个帮助我制定一周餐单的应用”时，GPT-4的回答。为了简洁，回答已被缩短。
+这是当我问“创建一个帮助我制定一周餐单的应用”时，GPT-4 的回答。为了简洁，回答已被缩短。
 
 > 创建一个应用涉及几个关键步骤：
 > 
@@ -66,25 +66,25 @@
 > 
 > 这是一个简化的概述。每个步骤都包含基于你具体需求和资源的详细过程和决策。
 
-ChatGPT的回答令人沮丧且无用。
+ChatGPT 的回答令人沮丧且无用。
 
-我已经知道了所有这些。更糟糕的是，ChatGPT会对每一点进行痛苦的详细解释，告诉我什么是开发一个应用。
+我已经知道了所有这些。更糟糕的是，ChatGPT 会对每一点进行痛苦的详细解释，告诉我什么是开发一个应用。
 
-如果我在这里停下来，可能会得出结论认为AI很笨，不懂得如何真正构建一个应用，但我会错的。
+如果我在这里停下来，可能会得出结论认为 AI 很笨，不懂得如何真正构建一个应用，但我会错的。
 
 # 告诉它你想要的
 
-显而易见的第一个解决方案就是直接告诉ChatGPT你希望它做什么。OpenAI为我们提供了一个方便的功能叫做**自定义指令**，允许我们在与它开始对话之前，给ChatGPT额外的指令，*以便它能够更好地理解我们的需求*。
+显而易见的第一个解决方案就是直接告诉 ChatGPT 你希望它做什么。OpenAI 为我们提供了一个方便的功能叫做**自定义指令**，允许我们在与它开始对话之前，给 ChatGPT 额外的指令，*以便它能够更好地理解我们的需求*。
 
 这是[Andrew Mayne](https://andrewmayne.com/blog/)（前[Prompt Whisper](https://medium.com/stackademic/the-prompt-whisperer-1613511c067e)）推荐的几条自定义指令：
 
-![](../Images/c54d628c53139ad7b1ab4b7c26fe8c0c.png)
+![](img/c54d628c53139ad7b1ab4b7c26fe8c0c.png)
 
-由作者拍摄的ChatGPT自定义指令截图
+由作者拍摄的 ChatGPT 自定义指令截图
 
-Mayne的指令简洁而有用，提供了三个有价值的功能：
+Mayne 的指令简洁而有用，提供了三个有价值的功能：
 
-+   这些指令建议ChatGPT应该问你澄清性问题。也许更好的是将“应该”明确指出。
++   这些指令建议 ChatGPT 应该问你澄清性问题。也许更好的是将“应该”明确指出。
 
 +   它们要求 ChatGPT 提供多种澄清方式。这减少了您澄清想法时所需的认知负担，通过让您从列表中选择而非从零开始生成。
 
@@ -152,7 +152,7 @@ Mayne的指令简洁而有用，提供了三个有价值的功能：
 
 [GPT Pilot](https://github.com/Pythagora-io/gpt-pilot) 项目通过创建多个具有明确角色和输出的 AI 代理，实现了一个概念验证的软件开发流程。
 
-![](../Images/ef1e34bbc9c0a191bebd8e7db2a75b86.png)
+![](img/ef1e34bbc9c0a191bebd8e7db2a75b86.png)
 
 来自 GPT Pilot Github 页面（链接见上）的截图
 

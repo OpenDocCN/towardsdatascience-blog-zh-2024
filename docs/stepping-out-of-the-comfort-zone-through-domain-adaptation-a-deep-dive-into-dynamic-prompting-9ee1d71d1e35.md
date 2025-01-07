@@ -1,28 +1,28 @@
 # 深入探讨上下文学习
 
-> 原文：[https://towardsdatascience.com/stepping-out-of-the-comfort-zone-through-domain-adaptation-a-deep-dive-into-dynamic-prompting-9ee1d71d1e35?source=collection_archive---------4-----------------------#2024-05-31](https://towardsdatascience.com/stepping-out-of-the-comfort-zone-through-domain-adaptation-a-deep-dive-into-dynamic-prompting-9ee1d71d1e35?source=collection_archive---------4-----------------------#2024-05-31)
+> 原文：[`towardsdatascience.com/stepping-out-of-the-comfort-zone-through-domain-adaptation-a-deep-dive-into-dynamic-prompting-9ee1d71d1e35?source=collection_archive---------4-----------------------#2024-05-31`](https://towardsdatascience.com/stepping-out-of-the-comfort-zone-through-domain-adaptation-a-deep-dive-into-dynamic-prompting-9ee1d71d1e35?source=collection_archive---------4-----------------------#2024-05-31)
 
-## 跳出“舒适区” — 深入探索LLM领域适应方法的第二部分/共三部分
+## 跳出“舒适区” — 深入探索 LLM 领域适应方法的第二部分/共三部分
 
-[](https://medium.com/@aris.tsakpinis?source=post_page---byline--9ee1d71d1e35--------------------------------)[![Aris Tsakpinis](../Images/2cc1101aed68e1f71a0026bfdec28f58.png)](https://medium.com/@aris.tsakpinis?source=post_page---byline--9ee1d71d1e35--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ee1d71d1e35--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9ee1d71d1e35--------------------------------) [Aris Tsakpinis](https://medium.com/@aris.tsakpinis?source=post_page---byline--9ee1d71d1e35--------------------------------)
+[](https://medium.com/@aris.tsakpinis?source=post_page---byline--9ee1d71d1e35--------------------------------)![Aris Tsakpinis](https://medium.com/@aris.tsakpinis?source=post_page---byline--9ee1d71d1e35--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ee1d71d1e35--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ee1d71d1e35--------------------------------) [Aris Tsakpinis](https://medium.com/@aris.tsakpinis?source=post_page---byline--9ee1d71d1e35--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ee1d71d1e35--------------------------------) ·阅读时间：10分钟·2024年5月31日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ee1d71d1e35--------------------------------) ·阅读时间：10 分钟·2024 年 5 月 31 日
 
 --
 
-![](../Images/feba82d03e60bed39dd91e250a8234eb.png)
+![](img/feba82d03e60bed39dd91e250a8234eb.png)
 
-图片由StableDiffusionXL提供，托管于Amazon Web Services
+图片由 StableDiffusionXL 提供，托管于 Amazon Web Services
 
 探索将大语言模型（LLMs）适应特定领域或用例？这篇**三部分博客系列**解释了领域适应的动机，并深入探讨了实现这一目标的各种选项。此外，还提供了一份详细的指南，帮助掌握整个领域适应过程，并涵盖了常见的权衡取舍。
 
-[*第1部分：领域适应简介 — 动机、选项、权衡*](/stepping-out-of-the-comfort-zone-through-domain-adaptation-a-deep-dive-into-dynamic-prompting-47a865b16740) *第2部分：深入探讨上下文学习* ***— 你现在就在这里！***[*第3部分：深入探讨微调*](/stepping-out-of-the-comfort-zone-through-domain-adaptation-a-deep-dive-into-dynamic-prompting-4860c6d16224)
+*第一部分：领域适应简介 — 动机、选项、权衡* *第二部分：深入探讨上下文学习* ***— 你现在就在这里！****第三部分：深入探讨微调*
 
 注意：除非另有说明，所有图片均为作者提供。
 
 # 回顾
 
-在本博客系列的第一部分，我们讨论了生成性人工智能的快速发展，以及像Claude、GPT-4、Meta LLaMA和Stable Diffusion这样的语言模型的出现。这些模型在内容创作中展示了出色的能力，引发了对潜在风险的热情与担忧。我们强调，虽然这些人工智能模型非常强大，但它们也有固有的局限性和“舒适区”——即它们擅长的领域和当它们被推向超出其专业领域时，表现可能下降的领域。这可能导致模型的响应质量低于预期，进而产生幻觉、偏见输出或其他不良行为。
+在本博客系列的第一部分，我们讨论了生成性人工智能的快速发展，以及像 Claude、GPT-4、Meta LLaMA 和 Stable Diffusion 这样的语言模型的出现。这些模型在内容创作中展示了出色的能力，引发了对潜在风险的热情与担忧。我们强调，虽然这些人工智能模型非常强大，但它们也有固有的局限性和“舒适区”——即它们擅长的领域和当它们被推向超出其专业领域时，表现可能下降的领域。这可能导致模型的响应质量低于预期，进而产生幻觉、偏见输出或其他不良行为。
 
 为了应对这些挑战，并使企业能够战略性地使用生成性人工智能，我们提出了三个关键设计原则：有益性、诚实性和无害性。我们还讨论了如何通过领域适配技术，如上下文学习和微调，克服这些模型的“舒适区”局限性，创建符合企业标准的生成性人工智能应用程序。在第二部分中，我们将深入探索上下文学习的世界，研究如何利用这些技术转变任务，并将其带回模型的舒适区。
 
@@ -30,33 +30,33 @@
 
 上下文学习旨在利用外部工具修改要解决的任务，以一种使任务回到（或更接近）模型舒适区的方式。在大型语言模型（LLM）的世界中，这可以通过提示工程来实现，提示工程涉及通过模型提示注入源知识，从而改变任务的整体复杂度。它可以以一种相对静态的方式执行（例如少量提示），但更复杂的动态提示工程技术，如检索增强生成（RAG）或代理，已被证明具有强大的能力。
 
-![](../Images/af2cd3d6a0c4550d298df7eee4da2c26.png)
+![](img/af2cd3d6a0c4550d298df7eee4da2c26.png)
 
-图1：利用上下文学习克服幻觉——来源：Claude 3 Sonnet via Amazon Bedrock
+图 1：利用上下文学习克服幻觉——来源：Claude 3 Sonnet via Amazon Bedrock
 
-在本博客系列的第一部分，我们注意到，通过图1中展示的例子，添加一个静态上下文（如演讲者简介）可以帮助减少任务复杂度，使得模型更容易解决，从而获得更好的模型结果。接下来，我们将深入探讨上下文学习的更高级概念。
+在本博客系列的第一部分，我们注意到，通过图 1 中展示的例子，添加一个静态上下文（如演讲者简介）可以帮助减少任务复杂度，使得模型更容易解决，从而获得更好的模型结果。接下来，我们将深入探讨上下文学习的更高级概念。
 
 # 从静态到动态的上下文注入
 
 > “智慧的衡量标准是改变的能力。”（阿尔伯特·爱因斯坦）
 
-虽然上述静态上下文注入的示例对于静态用例效果良好，但它缺乏在不同和复杂领域之间扩展的能力。假设我们封闭问答任务的范围不仅仅局限于我个人，而是扩展到一个大型会议的所有发言人，因此涉及到数百个发言人简历。在这种情况下，手动识别和插入相关的上下文片段（即发言人简历）变得繁琐、容易出错且不实际。从理论上讲，最近的模型支持高达200k个token或更多的巨大上下文大小，不仅能容纳这些数百个发言人简历，还能容纳整个书籍和知识库。然而，这种方法并不理想，原因有很多，比如按token计费的成本、计算需求、延迟等。
+虽然上述静态上下文注入的示例对于静态用例效果良好，但它缺乏在不同和复杂领域之间扩展的能力。假设我们封闭问答任务的范围不仅仅局限于我个人，而是扩展到一个大型会议的所有发言人，因此涉及到数百个发言人简历。在这种情况下，手动识别和插入相关的上下文片段（即发言人简历）变得繁琐、容易出错且不实际。从理论上讲，最近的模型支持高达 200k 个 token 或更多的巨大上下文大小，不仅能容纳这些数百个发言人简历，还能容纳整个书籍和知识库。然而，这种方法并不理想，原因有很多，比如按 token 计费的成本、计算需求、延迟等。
 
-幸运的是，针对动态方法中最适合吸收的上下文片段的优化内容检索方法有很多——其中一些是确定性的（例如在结构化数据上进行SQL查询），其他则依赖于概率系统（例如语义搜索）。将这两种组件结合在一起，形成一个集成的封闭问答方法，带有动态上下文检索和注入，已经证明极其强大。通过这种方式，可以连接来自各种数据源的大量（甚至是无限的？）数据——从关系数据库或图数据库到向量存储，再到企业系统或实时API等。为实现这一目标，识别出的最相关的上下文片段将被提取，并动态地注入到用于生成解码器模型的提示模板中，以完成所需任务。图2展示了这一过程，举例说明了一个面向用户的问答应用（例如聊天机器人）。
+幸运的是，针对动态方法中最适合吸收的上下文片段的优化内容检索方法有很多——其中一些是确定性的（例如在结构化数据上进行 SQL 查询），其他则依赖于概率系统（例如语义搜索）。将这两种组件结合在一起，形成一个集成的封闭问答方法，带有动态上下文检索和注入，已经证明极其强大。通过这种方式，可以连接来自各种数据源的大量（甚至是无限的？）数据——从关系数据库或图数据库到向量存储，再到企业系统或实时 API 等。为实现这一目标，识别出的最相关的上下文片段将被提取，并动态地注入到用于生成解码器模型的提示模板中，以完成所需任务。图 2 展示了这一过程，举例说明了一个面向用户的问答应用（例如聊天机器人）。
 
-![](../Images/76fc0f823150897871aee5d6447008aa.png)
+![](img/76fc0f823150897871aee5d6447008aa.png)
 
-图2：与各种数据源的动态上下文注入
+图 2：与各种数据源的动态上下文注入
 
 # 检索增强生成（RAG）
 
-目前最流行的动态提示工程方法是RAG（检索增强生成）。当试图动态地吸收来自大型全文知识库的上下文时，这种方法表现得很好。它通过将语义搜索检索到的动态上下文增强开放问答任务，从而将开放问答任务转变为封闭问答任务，结合了两种概率方法。
+目前最流行的动态提示工程方法是 RAG（检索增强生成）。当试图动态地吸收来自大型全文知识库的上下文时，这种方法表现得很好。它通过将语义搜索检索到的动态上下文增强开放问答任务，从而将开放问答任务转变为封闭问答任务，结合了两种概率方法。
 
-![](../Images/aed9c284bb4b2458d880765186a463b4.png)
+![](img/aed9c284bb4b2458d880765186a463b4.png)
 
-图3：AWS上的检索增强生成（RAG）
+图 3：AWS 上的检索增强生成（RAG）
 
-首先，文档被切分成易于处理的块。然后，使用编码器LLM来创建这些片段的上下文化嵌入，将每个片段的语义以向量的形式编码到数学空间中。该信息存储在向量数据库中，作为我们的知识库。这样，向量作为主键使用，而文本本身及其可选元数据将一同存储。
+首先，文档被切分成易于处理的块。然后，使用编码器 LLM 来创建这些片段的上下文化嵌入，将每个片段的语义以向量的形式编码到数学空间中。该信息存储在向量数据库中，作为我们的知识库。这样，向量作为主键使用，而文本本身及其可选元数据将一同存储。
 
 (0) 如果是用户提问，提交的输入将通过相同的嵌入模型进行清洗和编码，创建用户问题在知识库向量空间中的语义表示。
 
@@ -70,7 +70,7 @@
 
 知识图谱增强生成（KGAG）是另一种动态提示方法，它将结构化的知识图谱与任务进行结合，从而增强语言模型输出的事实准确性和信息丰富性。集成知识图谱可以通过多种方法实现。
 
-![](../Images/e6cda83730a69f96b25f48c08749580b.png)
+![](img/e6cda83730a69f96b25f48c08749580b.png)
 
 图 4：知识图谱增强生成（KGAG）——来源：Kang 等人（2023）
 
@@ -90,7 +90,7 @@ KGAG 特别适用于对话系统、问答系统以及其他需要生成信息丰
 
 思维链（CoT）是一种由[Wei 等人于 2023 年](https://arxiv.org/pdf/2201.11903)提出的提示工程方法。通过向模型提供指令或少量结构化推理步骤的示例，帮助解决问题，这大大降低了问题的复杂度，使得模型能够更有效地求解。
 
-![](../Images/902dbd6bfbc95eaa6192da4157030645.png)
+![](img/902dbd6bfbc95eaa6192da4157030645.png)
 
 图 5：思维链提示（CoT）——来源：Wei 等人（2023）
 
@@ -108,11 +108,11 @@ ReAct 将大语言模型在多步骤推理（如递归思维链提示）方面�
 
 论文证明，ReAct 在问答、事实验证、文本游戏和网页导航任务中实现了强大的少样本性能。与仅依赖模型内部知识的思维链提示不同，ReAct 允许模型通过行动将外部来源的最新信息融入其推理过程中。行动执行动态上下文检索，整合如 RAG、KGAG，甚至网页搜索或 API 调用等数据源。这使得推理过程更加稳健，且不容易产生幻觉。相反，将推理注入仅有行动的方式，可以实现更智能的长期规划、进度跟踪和灵活调整策略——超越了简单的行动预测。
 
-![](../Images/69a3e38fb09d2436cd91a23143203a55.png)
+![](img/69a3e38fb09d2436cd91a23143203a55.png)
 
-图6：推理与行动（ReAct）提示——来源：Google
+图 6：推理与行动（ReAct）提示——来源：Google
 
-图6（[由Google插图](https://research.google/blog/react-synergizing-reasoning-and-acting-in-language-models/)）展示了不同的提示工程技术示例（包括少量示例和指令的系统提示被隐藏），这些技术尝试解决源自 HotpotQA 数据集的问答问题（[Yang等，2018](https://arxiv.org/pdf/1809.09600)）。与其他选项相比，ReAct 通过将推理与行动以递归方式结合，展示了该任务的强大性能。
+图 6（[由 Google 插图](https://research.google/blog/react-synergizing-reasoning-and-acting-in-language-models/)）展示了不同的提示工程技术示例（包括少量示例和指令的系统提示被隐藏），这些技术尝试解决源自 HotpotQA 数据集的问答问题（[Yang 等，2018](https://arxiv.org/pdf/1809.09600)）。与其他选项相比，ReAct 通过将推理与行动以递归方式结合，展示了该任务的强大性能。
 
 # 接下来：
 
@@ -120,4 +120,4 @@ ReAct 将大语言模型在多步骤推理（如递归思维链提示）方面�
 
 在本系列博文的第三部分，我们将通过微调讨论不同的微调方法。
 
-[*第1部分：领域适应介绍 — 动机、选项、权衡*](/stepping-out-of-the-comfort-zone-through-domain-adaptation-a-deep-dive-into-dynamic-prompting-47a865b16740) *第2部分：深入探讨上下文学习* ***— 你现在正在阅读此部分！*** [*第3部分：深入探讨微调*](/stepping-out-of-the-comfort-zone-through-domain-adaptation-a-deep-dive-into-dynamic-prompting-4860c6d16224)
+*第一部分：领域适应介绍 — 动机、选项、权衡* *第二部分：深入探讨上下文学习* ***— 你现在正在阅读此部分！*** *第三部分：深入探讨微调*

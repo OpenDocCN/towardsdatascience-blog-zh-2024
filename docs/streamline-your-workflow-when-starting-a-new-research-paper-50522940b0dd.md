@@ -1,16 +1,16 @@
 # 启动新研究论文时优化工作流程
 
-> 原文：[https://towardsdatascience.com/streamline-your-workflow-when-starting-a-new-research-paper-50522940b0dd?source=collection_archive---------2-----------------------#2024-12-08](https://towardsdatascience.com/streamline-your-workflow-when-starting-a-new-research-paper-50522940b0dd?source=collection_archive---------2-----------------------#2024-12-08)
+> 原文：[`towardsdatascience.com/streamline-your-workflow-when-starting-a-new-research-paper-50522940b0dd?source=collection_archive---------2-----------------------#2024-12-08`](https://towardsdatascience.com/streamline-your-workflow-when-starting-a-new-research-paper-50522940b0dd?source=collection_archive---------2-----------------------#2024-12-08)
 
 ## ***Python 代码用于创建生物医学科学研究论文的文件夹和 Word 文档——只需两个输入，立即完成所有操作***
 
-[](https://medium.com/@rcarrillo90?source=post_page---byline--50522940b0dd--------------------------------)[![Rodrigo M Carrillo Larco, MD, PhD](../Images/458ed24625ded66ef47c5af718db3659.png)](https://medium.com/@rcarrillo90?source=post_page---byline--50522940b0dd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--50522940b0dd--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--50522940b0dd--------------------------------) [Rodrigo M Carrillo Larco, MD, PhD](https://medium.com/@rcarrillo90?source=post_page---byline--50522940b0dd--------------------------------)
+[](https://medium.com/@rcarrillo90?source=post_page---byline--50522940b0dd--------------------------------)![Rodrigo M Carrillo Larco, MD, PhD](https://medium.com/@rcarrillo90?source=post_page---byline--50522940b0dd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--50522940b0dd--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--50522940b0dd--------------------------------) [Rodrigo M Carrillo Larco, MD, PhD](https://medium.com/@rcarrillo90?source=post_page---byline--50522940b0dd--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--50522940b0dd--------------------------------) ·6分钟阅读·2024年12月8日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--50522940b0dd--------------------------------) ·6 分钟阅读·2024 年 12 月 8 日
 
 --
 
-![](../Images/c9aa1d91de1076956838a6284b0ec791.png)
+![](img/c9aa1d91de1076956838a6284b0ec791.png)
 
 图片来源：[Maksym Kaharlytskyi](https://unsplash.com/@qwitka?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

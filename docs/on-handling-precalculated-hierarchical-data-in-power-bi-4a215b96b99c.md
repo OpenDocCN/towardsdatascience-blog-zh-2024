@@ -1,16 +1,16 @@
-# 在Power BI中处理预计算层次数据
+# 在 Power BI 中处理预计算层次数据
 
-> 原文：[https://towardsdatascience.com/on-handling-precalculated-hierarchical-data-in-power-bi-4a215b96b99c?source=collection_archive---------12-----------------------#2024-05-03](https://towardsdatascience.com/on-handling-precalculated-hierarchical-data-in-power-bi-4a215b96b99c?source=collection_archive---------12-----------------------#2024-05-03)
+> 原文：[`towardsdatascience.com/on-handling-precalculated-hierarchical-data-in-power-bi-4a215b96b99c?source=collection_archive---------12-----------------------#2024-05-03`](https://towardsdatascience.com/on-handling-precalculated-hierarchical-data-in-power-bi-4a215b96b99c?source=collection_archive---------12-----------------------#2024-05-03)
 
 ## **虽然层次结构是数据中的常见概念，但一些来源以不寻常的格式提供数据。通常，我们在最低层级获取值。但当我们得到预先聚合的值时，会发生什么呢？在这里，我将深入探讨这个话题。**
 
-[](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)[![Salvatore Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)
+[](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)![Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------) ·8分钟阅读·2024年5月3日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------) ·8 分钟阅读·2024 年 5 月 3 日
 
 --
 
-![](../Images/45a1401ef7a0f5ec3fdf498000e02d6b.png)
+![](img/45a1401ef7a0f5ec3fdf498000e02d6b.png)
 
 照片由[ThisisEngineering](https://unsplash.com/@thisisengineering?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,9 +22,9 @@
 
 请看以下表格：
 
-![](../Images/dce67aeea8c01e4ae3050904b2f33e34.png)
+![](img/dce67aeea8c01e4ae3050904b2f33e34.png)
 
-图1 — 数据在预期位置的值（图源：作者）
+图 1 — 数据在预期位置的值（图源：作者）
 
 我们看到两行分别是两家商店的费用，一行是南卡罗来纳州的组织费用。
 
@@ -34,17 +34,17 @@
 
 例如，像这样：
 
-![](../Images/ddddf77439bedfee5575a5da2680a495.png)
+![](img/ddddf77439bedfee5575a5da2680a495.png)
 
-图2 — 南卡罗来纳州预先聚合的值数据（图源：作者）
+图 2 — 南卡罗来纳州预先聚合的值数据（图源：作者）
 
 第三行包含了南卡罗来纳州两家商店的预先聚合的总和，以及南卡罗来纳州的组织费用。
 
 简单地将这三行相加会得到错误的结果，因为结果中会重复计算这两家商店的费用：
 
-![](../Images/134946f9f906a1cabb2f97d570761f53.png)
+![](img/134946f9f906a1cabb2f97d570761f53.png)
 
-图3 — 聚合包含预先聚合值的数据时的错误结果（图源：作者）
+图 3 — 聚合包含预先聚合值的数据时的错误结果（图源：作者）
 
 挑战是：如何计算每个层级中的正确结果？
 
@@ -74,7 +74,7 @@
 
 因此，我添加了两列新列，以便更好地导航层级：
 
-![](../Images/b632fd803b5bd49043bcd3f945b5a8c1.png)
+![](img/b632fd803b5bd49043bcd3f945b5a8c1.png)
 
 图 4 — 用于层级导航的额外计算列（作者提供的图）
 
@@ -132,15 +132,15 @@ RETURN
 
 如果你不熟悉上下文转换的概念，确保阅读我解释它的文章：
 
-[](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----4a215b96b99c--------------------------------) [## DAX 中上下文转换的精彩之处
+[](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----4a215b96b99c--------------------------------) ## DAX 中上下文转换的精彩之处
 
 ### 行上下文和筛选上下文是 DAX 中的常见概念。但我们可以通过上下文转换在这两者之间切换。
 
-towardsdatascience.com](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----4a215b96b99c--------------------------------)
+towardsdatascience.com
 
 这是该列的结果：
 
-![](../Images/27ec7282310a6d995e3c4357a76feb3a.png)
+![](img/27ec7282310a6d995e3c4357a76feb3a.png)
 
 图 5 — 计算列的结果以获得正确的结果（作者提供的图）
 
@@ -150,7 +150,7 @@ towardsdatascience.com](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c0
 
 现在，我可以直观地创建报告了：
 
-![](../Images/e76f5adc863aa25672ceb98b9dcdfcd4.png)
+![](img/e76f5adc863aa25672ceb98b9dcdfcd4.png)
 
 图 6 — Power BI 中重命名的原始 Expenses 列和计算列并排显示（作者提供的图）
 
@@ -290,7 +290,7 @@ RETURN
 
 这是这个公式的结果：
 
-![](../Images/07e9815be2b0f5a70546481d7198baa0.png)
+![](img/07e9815be2b0f5a70546481d7198baa0.png)
 
 图 7 — 可视化计算的结果（图由作者提供）
 
@@ -318,11 +318,11 @@ medium.com](https://medium.com/microsoft-power-bi/understanding-visual-calculati
 
 一段时间前，我写了一篇简短的文章，讲解了为什么预聚合数据对我们不利：
 
-[](/pre-calculated-aggregations-for-power-bi-why-should-you-avoid-them-371abdec5bb4?source=post_page-----4a215b96b99c--------------------------------) [## Power BI 的预计算聚合—为什么你应该避免它们
+[](/pre-calculated-aggregations-for-power-bi-why-should-you-avoid-them-371abdec5bb4?source=post_page-----4a215b96b99c--------------------------------) ## Power BI 的预计算聚合—为什么你应该避免它们
 
 ### 我的一个客户总是希望在他的 Excel 文件中为报告预计算聚合。以下是我们应该避免的原因...
 
-towardsdatascience.com](/pre-calculated-aggregations-for-power-bi-why-should-you-avoid-them-371abdec5bb4?source=post_page-----4a215b96b99c--------------------------------)
+towardsdatascience.com
 
 现在，我有一个更多的例子，证明我之前写的那句话是对的。
 
@@ -332,7 +332,7 @@ towardsdatascience.com](/pre-calculated-aggregations-for-power-bi-why-should-you
 
 下面是一些关于新可视化计算功能的参考资料：
 
-[MS Power 博客上的可视化计算（预览）（2024年2月）](https://powerbi.microsoft.com/en-us/blog/visual-calculations-preview/)
+[MS Power 博客上的可视化计算（预览）（2024 年 2 月）](https://powerbi.microsoft.com/en-us/blog/visual-calculations-preview/)
 
 [使用可视化计算（预览）](https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-visual-calculations-overview)
 
@@ -356,11 +356,11 @@ medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page----
 
 你可以通过以下方式支持我的工作，这是我在空闲时间进行的工作：
 
-[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)
+[`buymeacoffee.com/salvatorecagliari`](https://buymeacoffee.com/salvatorecagliari)
 
 或扫描此二维码：
 
-![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)
+![](img/e7ac062070dcd7a00dcf995ad7e95434.png)
 
 任何支持都非常感谢，这能帮助我腾出更多时间为你创造更多内容。
 

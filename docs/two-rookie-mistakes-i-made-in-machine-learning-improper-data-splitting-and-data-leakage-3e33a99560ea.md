@@ -1,22 +1,22 @@
 # 我的机器学习之旅中的经验教训：数据划分与数据泄漏
 
-> 原文：[https://towardsdatascience.com/two-rookie-mistakes-i-made-in-machine-learning-improper-data-splitting-and-data-leakage-3e33a99560ea?source=collection_archive---------1-----------------------#2024-02-25](https://towardsdatascience.com/two-rookie-mistakes-i-made-in-machine-learning-improper-data-splitting-and-data-leakage-3e33a99560ea?source=collection_archive---------1-----------------------#2024-02-25)
+> 原文：[`towardsdatascience.com/two-rookie-mistakes-i-made-in-machine-learning-improper-data-splitting-and-data-leakage-3e33a99560ea?source=collection_archive---------1-----------------------#2024-02-25`](https://towardsdatascience.com/two-rookie-mistakes-i-made-in-machine-learning-improper-data-splitting-and-data-leakage-3e33a99560ea?source=collection_archive---------1-----------------------#2024-02-25)
 
 ## 从统计建模转向机器学习时需要避免的常见错误
 
-[](https://medium.com/@khinydnlin_310?source=post_page---byline--3e33a99560ea--------------------------------)[![Khin Yadanar Lin](../Images/1018a44583239dfd33901b6d392d257f.png)](https://medium.com/@khinydnlin_310?source=post_page---byline--3e33a99560ea--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3e33a99560ea--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3e33a99560ea--------------------------------) [Khin Yadanar Lin](https://medium.com/@khinydnlin_310?source=post_page---byline--3e33a99560ea--------------------------------)
+[](https://medium.com/@khinydnlin_310?source=post_page---byline--3e33a99560ea--------------------------------)![Khin Yadanar Lin](https://medium.com/@khinydnlin_310?source=post_page---byline--3e33a99560ea--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3e33a99560ea--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e33a99560ea--------------------------------) [Khin Yadanar Lin](https://medium.com/@khinydnlin_310?source=post_page---byline--3e33a99560ea--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e33a99560ea--------------------------------) ·7 分钟阅读·2024年2月25日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e33a99560ea--------------------------------) ·7 分钟阅读·2024 年 2 月 25 日
 
 --
 
-![](../Images/61b1e12ac5adb638a6f48a7ce5d93b04.png)
+![](img/61b1e12ac5adb638a6f48a7ce5d93b04.png)
 
 图片由 [Susan Q Yin](https://unsplash.com/@syinq?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 我的故事
 
-**数据科学、机器学习和人工智能**无疑是当今的流行词汇。我的LinkedIn充满了分享学习路线图的数据专家，供那些渴望进入数据领域的人参考。
+**数据科学、机器学习和人工智能**无疑是当今的流行词汇。我的 LinkedIn 充满了分享学习路线图的数据专家，供那些渴望进入数据领域的人参考。
 
 然而，从我的个人经验来看，我发现走向数据科学的道路并不像单纯按照固定路线图前进那样线性，尤其是对于那些从不同职业背景转型的人来说。数据科学需要多种技能的结合，如编程、统计学、数学、分析、软技能和领域知识。这意味着每个人根据自己的先前经验和技能集，从不同的起点开始学习。
 
@@ -62,17 +62,17 @@
 
 模型可以在第一个块上进行训练和验证。第二个块（测试集）不应参与任何模型训练过程。将测试集视为禁区！
 
-数据拆分的方式取决于数据集的大小。行业标准是训练集（第一个块）占60% — 80%，测试集占20% — 40%。验证集通常从第一个块中划分出来，因此实际的训练集将占第一个块的70% — 90%，其余部分为验证集。
+数据拆分的方式取决于数据集的大小。行业标准是训练集（第一个块）占 60% — 80%，测试集占 20% — 40%。验证集通常从第一个块中划分出来，因此实际的训练集将占第一个块的 70% — 90%，其余部分为验证集。
 
 理解这个概念的最好方式是通过一个图示：
 
-![](../Images/6105336a31da32444fe35c89d8af593c.png)
+![](img/6105336a31da32444fe35c89d8af593c.png)
 
 留一法（LOOV）方法（图像来自作者）
 
-除了LOOV（图中所示），还有其他多种数据拆分技术：
+除了 LOOV（图中所示），还有其他多种数据拆分技术：
 
-+   K折交叉验证，将数据分成‘K’个折叠，并相应地迭代训练过程
++   K 折交叉验证，将数据分成‘K’个折叠，并相应地迭代训练过程
 
 +   滚动窗口交叉验证（适用于时间序列数据）
 
@@ -104,7 +104,7 @@
 
 让我们以我所处理的数据为例。在这里，我试图根据广告活动预测销售表现。我尝试加入转化率。我忽略了转化率仅在活动结束后才会得知。换句话说，我在预测时无法获得这些信息。此外，因为转化率与销售数据相关联，这就引入了典型的目标泄漏案例。包括转化率会导致模型学习到通常无法访问的数据，从而产生过于乐观的预测。
 
-![](../Images/770a023e6724fb3763738400109bd951.png)
+![](img/770a023e6724fb3763738400109bd951.png)
 
 示例（虚构）数据集（图片由作者提供）
 
@@ -126,7 +126,7 @@
 
 ## 参考文献：
 
-[Daniel Lee Datainterview.com LinkedIn帖子](https://www.linkedin.com/posts/danleedata_choosing-your-model-on-%3F%3F%3F%3F%3F-%3F%3F-activity-7158131388976693248-FXUT?utm_source=share&utm_medium=member_desktop)
+[Daniel Lee Datainterview.com LinkedIn 帖子](https://www.linkedin.com/posts/danleedata_choosing-your-model-on-%3F%3F%3F%3F%3F-%3F%3F-activity-7158131388976693248-FXUT?utm_source=share&utm_medium=member_desktop)
 
 [Kaggle — 数据泄漏解释](https://www.kaggle.com/code/alexisbcook/data-leakage)
 

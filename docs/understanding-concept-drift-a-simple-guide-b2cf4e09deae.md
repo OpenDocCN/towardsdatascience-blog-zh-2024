@@ -1,20 +1,20 @@
 # 理解概念漂移：一个简单的指南
 
-> 原文：[https://towardsdatascience.com/understanding-concept-drift-a-simple-guide-b2cf4e09deae?source=collection_archive---------8-----------------------#2024-03-05](https://towardsdatascience.com/understanding-concept-drift-a-simple-guide-b2cf4e09deae?source=collection_archive---------8-----------------------#2024-03-05)
+> 原文：[`towardsdatascience.com/understanding-concept-drift-a-simple-guide-b2cf4e09deae?source=collection_archive---------8-----------------------#2024-03-05`](https://towardsdatascience.com/understanding-concept-drift-a-simple-guide-b2cf4e09deae?source=collection_archive---------8-----------------------#2024-03-05)
 
 ## 分布变化如何发生，以及验证延迟的影响。
 
-[](https://vcerq.medium.com/?source=post_page---byline--b2cf4e09deae--------------------------------)[![Vitor Cerqueira](../Images/9e52f462c6bc20453d3ea273eb52114b.png)](https://vcerq.medium.com/?source=post_page---byline--b2cf4e09deae--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b2cf4e09deae--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b2cf4e09deae--------------------------------) [Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--b2cf4e09deae--------------------------------)
+[](https://vcerq.medium.com/?source=post_page---byline--b2cf4e09deae--------------------------------)![Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--b2cf4e09deae--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b2cf4e09deae--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b2cf4e09deae--------------------------------) [Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--b2cf4e09deae--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b2cf4e09deae--------------------------------) ·阅读时长6分钟·2024年3月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b2cf4e09deae--------------------------------) ·阅读时长 6 分钟·2024 年 3 月 5 日
 
 --
 
-![](../Images/96df4e7d55c6e2d7c54efe53f3a06817.png)
+![](img/96df4e7d55c6e2d7c54efe53f3a06817.png)
 
 图片由[Rui Alves](https://unsplash.com/@asfotosde1enorme?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-概念漂移的检测与适应是AI系统监控的关键步骤。
+概念漂移的检测与适应是 AI 系统监控的关键步骤。
 
 在本文中，我们将：
 
@@ -22,7 +22,7 @@
 
 +   探讨验证延迟及其对变化检测过程的影响
 
-+   使用scikit-multiflow展示一个变化检测的例子
++   使用 scikit-multiflow 展示一个变化检测的例子
 
 # 引言
 

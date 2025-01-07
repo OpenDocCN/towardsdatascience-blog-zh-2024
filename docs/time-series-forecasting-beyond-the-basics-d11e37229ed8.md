@@ -1,16 +1,16 @@
 # 时间序列预测：超越基础
 
-> 原文：[https://towardsdatascience.com/time-series-forecasting-beyond-the-basics-d11e37229ed8?source=collection_archive---------3-----------------------#2024-03-09](https://towardsdatascience.com/time-series-forecasting-beyond-the-basics-d11e37229ed8?source=collection_archive---------3-----------------------#2024-03-09)
+> 原文：[`towardsdatascience.com/time-series-forecasting-beyond-the-basics-d11e37229ed8?source=collection_archive---------3-----------------------#2024-03-09`](https://towardsdatascience.com/time-series-forecasting-beyond-the-basics-d11e37229ed8?source=collection_archive---------3-----------------------#2024-03-09)
 
 ## 解锁时间序列预测在现实世界中的真正潜力的技巧和窍门
 
-[](https://medium.com/@thauridattadeen?source=post_page---byline--d11e37229ed8--------------------------------)[![Thauri Dattadeen](../Images/e1d467d488733b487cae9e0ac0199bd1.png)](https://medium.com/@thauridattadeen?source=post_page---byline--d11e37229ed8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d11e37229ed8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d11e37229ed8--------------------------------) [Thauri Dattadeen](https://medium.com/@thauridattadeen?source=post_page---byline--d11e37229ed8--------------------------------)
+[](https://medium.com/@thauridattadeen?source=post_page---byline--d11e37229ed8--------------------------------)![Thauri Dattadeen](https://medium.com/@thauridattadeen?source=post_page---byline--d11e37229ed8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d11e37229ed8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d11e37229ed8--------------------------------) [Thauri Dattadeen](https://medium.com/@thauridattadeen?source=post_page---byline--d11e37229ed8--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d11e37229ed8--------------------------------) ·8分钟阅读·2024年3月9日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d11e37229ed8--------------------------------) ·8 分钟阅读·2024 年 3 月 9 日
 
 --
 
-![](../Images/049a193017fcc5ba54d86c692100f9a1.png)
+![](img/049a193017fcc5ba54d86c692100f9a1.png)
 
 图片来源：[Alex Chumak](https://unsplash.com/@ralexnder?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -28,7 +28,7 @@
 > 
 > **4\. 利益相关者管理**
 
-![](../Images/483c3034aaf86abb587adcfcbc84e9f2.png)
+![](img/483c3034aaf86abb587adcfcbc84e9f2.png)
 
 图片来源：[rc.xyz NFT gallery](https://unsplash.com/@moneyphotos?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -38,15 +38,15 @@
 
 数据科学项目往往需要大量的时间和资源。因此，你必须不断问自己一个关键问题：“通过利用数据科学，组织能获得多少附加价值？”
 
-令人惊讶的是，这个问题的答案并非总是显而易见。有时候，选择一个“快捷而粗糙”的解决方案——符合帕累托法则，即20%的努力产生80%的结果——就能解决大部分日常问题。那么，如果一个更简单的解决方案就能满足需求，为什么要花费额外的时间和精力呢？
+令人惊讶的是，这个问题的答案并非总是显而易见。有时候，选择一个“快捷而粗糙”的解决方案——符合帕累托法则，即 20%的努力产生 80%的结果——就能解决大部分日常问题。那么，如果一个更简单的解决方案就能满足需求，为什么要花费额外的时间和精力呢？
 
-这时，PIE框架就派上了用场。在令人兴奋的数据科学技术背后，有一个重要的决策：使用更高级技术的边际收益是否真的值得额外的成本和努力？在大多数情况下，答案是响亮的“不是”。
+这时，PIE 框架就派上了用场。在令人兴奋的数据科学技术背后，有一个重要的决策：使用更高级技术的边际收益是否真的值得额外的成本和努力？在大多数情况下，答案是响亮的“不是”。
 
-尽管它看起来可能很令人兴奋，但在直接进入数据科学项目之前，重要的是要进行批判性思考。通过遵循PIE框架，你可以自信地决定要承担哪些项目，确保你的努力既有意义又富有影响力。
+尽管它看起来可能很令人兴奋，但在直接进入数据科学项目之前，重要的是要进行批判性思考。通过遵循 PIE 框架，你可以自信地决定要承担哪些项目，确保你的努力既有意义又富有影响力。
 
-![](../Images/82d47a0379f7d58c15cbc44bbd93ec35.png)
+![](img/82d47a0379f7d58c15cbc44bbd93ec35.png)
 
-PIE框架中的饼图。
+PIE 框架中的饼图。
 
 # **2.** **领域知识**
 
@@ -54,7 +54,7 @@ PIE框架中的饼图。
 
 例如，想象一下，如果你试图在松散的沙地上建造梦想中的房子。你可以找到最好的建筑师和施工队，设计出最复杂的蓝图，但最终，这座房子注定会倒塌。同样地，如果在无关数据或者充满错误和不一致的数据上构建强大的预测模型，就像是在不稳定的地基上建房子。模型的输出将是不可靠的，容易崩溃。
 
-![](../Images/4f51d2c2492985397aca6d88be687075.png)
+![](img/4f51d2c2492985397aca6d88be687075.png)
 
 [John Hult](https://unsplash.com/@iamjohnhult?utm_source=medium&utm_medium=referral) 摄影，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -92,11 +92,11 @@ PIE框架中的饼图。
 
 **选择正确的模型远远超越了识别最精确的算法。**
 
-的确，黑箱模型可能对我们数据科学家来说是最准确和最具吸引力的，但它们通常不透明或难以解释，这使得利益相关者很难信任结果。在这种情况下，选择像ARIMA或指数平滑这样简单的模型可能更好，虽然可能会降低准确性，但能提高可解释性。最好还是对现有的各种模型进行研究。
+的确，黑箱模型可能对我们数据科学家来说是最准确和最具吸引力的，但它们通常不透明或难以解释，这使得利益相关者很难信任结果。在这种情况下，选择像 ARIMA 或指数平滑这样简单的模型可能更好，虽然可能会降低准确性，但能提高可解释性。最好还是对现有的各种模型进行研究。
 
 这是一些最常见的预测模型及其可解释性的示例；
 
-![](../Images/77ebce2a7db7130b1bd1a0bab0c18272.png)
+![](img/77ebce2a7db7130b1bd1a0bab0c18272.png)
 
 ## 2\. 清晰的可视化
 
@@ -108,11 +108,11 @@ PIE框架中的饼图。
 
 高层管理人员可能偏好高层次的仪表盘，而经理可能需要包含误差度量的详细报告。消费者通常从清晰且可操作的可视化中受益，将预测转化为实际应用。
 
-就个人而言，我从Prophet的基本可视化中汲取了很多灵感，因为它清楚地展示了实际值与模型预测值的对比。我通常会添加注释或突出某些点（包括未来和过去的关键时刻）。
+就个人而言，我从 Prophet 的基本可视化中汲取了很多灵感，因为它清楚地展示了实际值与模型预测值的对比。我通常会添加注释或突出某些点（包括未来和过去的关键时刻）。
 
-![](../Images/324bd3ae71e63e3fcfd78c556098317e.png)
+![](img/324bd3ae71e63e3fcfd78c556098317e.png)
 
-Prophet输出的示例。
+Prophet 输出的示例。
 
 ## **3\. 讲故事**
 

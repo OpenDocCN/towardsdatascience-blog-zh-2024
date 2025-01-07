@@ -1,10 +1,10 @@
-# ChatGPT 与 Claude 与 Gemini 对数据分析的比较（第 3 部分）：最佳机器学习 AI 助手
+# ChatGPT 与 Claude 与 Gemini 对数据分析的比较（第三部分）：最佳机器学习 AI 助手
 
-> 原文：[https://towardsdatascience.com/chatgpt-vs-claude-vs-gemini-for-data-analysis-part-3-best-ai-assistant-for-machine-learning-a2078793e4fa?source=collection_archive---------10-----------------------#2024-08-30](https://towardsdatascience.com/chatgpt-vs-claude-vs-gemini-for-data-analysis-part-3-best-ai-assistant-for-machine-learning-a2078793e4fa?source=collection_archive---------10-----------------------#2024-08-30)
+> 原文：[`towardsdatascience.com/chatgpt-vs-claude-vs-gemini-for-data-analysis-part-3-best-ai-assistant-for-machine-learning-a2078793e4fa?source=collection_archive---------10-----------------------#2024-08-30`](https://towardsdatascience.com/chatgpt-vs-claude-vs-gemini-for-data-analysis-part-3-best-ai-assistant-for-machine-learning-a2078793e4fa?source=collection_archive---------10-----------------------#2024-08-30)
 
 ## *AI 如何* 加速 *从特征工程到模型训练的机器学习项目*
 
-[](https://ydong029.medium.com/?source=post_page---byline--a2078793e4fa--------------------------------)[![Yu Dong](../Images/55c3c11c76cde72c65eb81a60384a436.png)](https://ydong029.medium.com/?source=post_page---byline--a2078793e4fa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a2078793e4fa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a2078793e4fa--------------------------------) [Yu Dong](https://ydong029.medium.com/?source=post_page---byline--a2078793e4fa--------------------------------)
+[](https://ydong029.medium.com/?source=post_page---byline--a2078793e4fa--------------------------------)![Yu Dong](https://ydong029.medium.com/?source=post_page---byline--a2078793e4fa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a2078793e4fa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a2078793e4fa--------------------------------) [Yu Dong](https://ydong029.medium.com/?source=post_page---byline--a2078793e4fa--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a2078793e4fa--------------------------------) ·11 分钟阅读 ·2024 年 8 月 30 日
 
@@ -16,7 +16,7 @@
 
 在本文中，我们将转变话题，重点讨论这些 AI 工具如何帮助机器学习项目。机器学习是数据科学的基石。虽然使用大规模语言模型（LLM）完全自动化建模过程仍具有挑战性，但这些 AI 工具仍然可以显著简化许多机器学习步骤的过程。
 
-![](../Images/7b87c56f431ba23b79bc48d5b53dc41f.png)
+![](img/7b87c56f431ba23b79bc48d5b53dc41f.png)
 
 图片由 DALL·E 提供
 

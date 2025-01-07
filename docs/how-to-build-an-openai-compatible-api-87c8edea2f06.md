@@ -1,16 +1,16 @@
 # 如何构建一个 OpenAI 兼容的 API
 
-> 原文：[https://towardsdatascience.com/how-to-build-an-openai-compatible-api-87c8edea2f06?source=collection_archive---------0-----------------------#2024-03-24](https://towardsdatascience.com/how-to-build-an-openai-compatible-api-87c8edea2f06?source=collection_archive---------0-----------------------#2024-03-24)
+> 原文：[`towardsdatascience.com/how-to-build-an-openai-compatible-api-87c8edea2f06?source=collection_archive---------0-----------------------#2024-03-24`](https://towardsdatascience.com/how-to-build-an-openai-compatible-api-87c8edea2f06?source=collection_archive---------0-----------------------#2024-03-24)
 
 ## 创建一个服务器来复制 OpenAI 的 Chat Completions API，使任何 LLM 都能与为 OpenAI API 编写的工具集成
 
-[](https://medium.com/@saarb?source=post_page---byline--87c8edea2f06--------------------------------)[![Saar Berkovich](../Images/8a834597e8c6cce1b948f6aa17bfe8be.png)](https://medium.com/@saarb?source=post_page---byline--87c8edea2f06--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--87c8edea2f06--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--87c8edea2f06--------------------------------) [Saar Berkovich](https://medium.com/@saarb?source=post_page---byline--87c8edea2f06--------------------------------)
+[](https://medium.com/@saarb?source=post_page---byline--87c8edea2f06--------------------------------)![Saar Berkovich](https://medium.com/@saarb?source=post_page---byline--87c8edea2f06--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--87c8edea2f06--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87c8edea2f06--------------------------------) [Saar Berkovich](https://medium.com/@saarb?source=post_page---byline--87c8edea2f06--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87c8edea2f06--------------------------------) ·阅读时长 6 分钟·2024 年 3 月 24 日
 
 --
 
-![](../Images/3678fe82d7cec7940e7288da517234fa.png)
+![](img/3678fe82d7cec7940e7288da517234fa.png)
 
 图片由作者使用 OpenAI DALL-E 生成
 
@@ -119,15 +119,15 @@ print(chat_completion.choices[0].message.content)
 
 如果你一切操作正确，服务器的响应应该会正确打印。检查`chat_completion`对象也很有价值，可以确认所有相关属性是否与我们服务器发送的一致。你应该能看到类似下面的内容：
 
-![](../Images/b41ac9b9749709c7180ac0bf9d59a281.png)
+![](img/b41ac9b9749709c7180ac0bf9d59a281.png)
 
 由作者编写的代码，使用[Carbon](https://carbon.now.sh/)格式化
 
 # 升级——支持流式传输
 
-由于LLM生成通常较慢（计算开销大），将生成的内容流式传输回客户端是值得的，这样用户可以在生成过程中看到响应，而不必等到它完全生成完毕。如果你记得，我们给`ChatCompletionRequest`添加了一个布尔型的`stream`属性——这让客户端可以请求将数据流式传输回去，而不是一次性发送。
+由于 LLM 生成通常较慢（计算开销大），将生成的内容流式传输回客户端是值得的，这样用户可以在生成过程中看到响应，而不必等到它完全生成完毕。如果你记得，我们给`ChatCompletionRequest`添加了一个布尔型的`stream`属性——这让客户端可以请求将数据流式传输回去，而不是一次性发送。
 
-这使得事情变得稍微复杂了一些。我们将创建一个[生成器函数](https://wiki.python.org/moin/Generators)来包装我们的模拟响应（在实际场景中，我们将需要一个连接到LLM生成的生成器）
+这使得事情变得稍微复杂了一些。我们将创建一个[生成器函数](https://wiki.python.org/moin/Generators)来包装我们的模拟响应（在实际场景中，我们将需要一个连接到 LLM 生成的生成器）
 
 ```py
 import asyncio
@@ -150,7 +150,7 @@ async def _resp_async_generator(text_resp: str):
     yield "data: [DONE]\n\n"
 ```
 
-现在，我们将修改原始的端点，当`stream==True`时返回一个StreamingResponse
+现在，我们将修改原始的端点，当`stream==True`时返回一个 StreamingResponse
 
 ```py
 import time
@@ -181,7 +181,7 @@ async def chat_completions(request: ChatCompletionRequest):
 
 ## 测试流式传输实现
 
-重启uvicorn服务器后，我们将打开Python控制台并输入这段代码（同样是来自OpenAI的文档）
+重启 uvicorn 服务器后，我们将打开 Python 控制台并输入这段代码（同样是来自 OpenAI 的文档）
 
 ```py
 from openai import OpenAI
@@ -203,7 +203,7 @@ for chunk in stream:
 
 你应该看到服务器响应中的每个单词都被慢慢打印出来，模拟标记生成。我们可以检查最后一个`chunk`对象，看到类似下面的内容：
 
-![](../Images/ad32225e29fca2ff7ea30226264ff67f.png)
+![](img/ad32225e29fca2ff7ea30226264ff67f.png)
 
 由作者编写的代码，使用[Carbon](https://carbon.now.sh/)格式化
 
@@ -213,6 +213,6 @@ for chunk in stream:
 
 # 最后的注意事项
 
-+   这里我们可以做很多其他有趣的事情，比如支持其他请求参数，和其他OpenAI的抽象，如函数调用和助手API。
++   这里我们可以做很多其他有趣的事情，比如支持其他请求参数，和其他 OpenAI 的抽象，如函数调用和助手 API。
 
-+   LLM API 缺乏标准化使得切换提供商变得困难，既对于公司也对于开发LLM封装包的开发者而言。在没有任何标准的情况下，我在这里采取的做法是将LLM抽象化，基于最大且最成熟的API的规格进行封装。
++   LLM API 缺乏标准化使得切换提供商变得困难，既对于公司也对于开发 LLM 封装包的开发者而言。在没有任何标准的情况下，我在这里采取的做法是将 LLM 抽象化，基于最大且最成熟的 API 的规格进行封装。

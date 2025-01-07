@@ -1,26 +1,26 @@
 # TensorFlow Transform：确保生产中的数据准备无缝进行
 
-> 原文：[https://towardsdatascience.com/tensorflow-transform-ensuring-seamless-data-preparation-in-production-99ffcf49f535?source=collection_archive---------7-----------------------#2024-07-08](https://towardsdatascience.com/tensorflow-transform-ensuring-seamless-data-preparation-in-production-99ffcf49f535?source=collection_archive---------7-----------------------#2024-07-08)
+> 原文：[`towardsdatascience.com/tensorflow-transform-ensuring-seamless-data-preparation-in-production-99ffcf49f535?source=collection_archive---------7-----------------------#2024-07-08`](https://towardsdatascience.com/tensorflow-transform-ensuring-seamless-data-preparation-in-production-99ffcf49f535?source=collection_archive---------7-----------------------#2024-07-08)
 
-## 利用TensorFlow Transform来扩展生产环境中的数据管道
+## 利用 TensorFlow Transform 来扩展生产环境中的数据管道
 
-[](https://medium.com/@akila29?source=post_page---byline--99ffcf49f535--------------------------------)[![Akila Somasundaram](../Images/5f3c58de8057c9c7ef42f6f5729fb395.png)](https://medium.com/@akila29?source=post_page---byline--99ffcf49f535--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--99ffcf49f535--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--99ffcf49f535--------------------------------) [Akila Somasundaram](https://medium.com/@akila29?source=post_page---byline--99ffcf49f535--------------------------------)
+[](https://medium.com/@akila29?source=post_page---byline--99ffcf49f535--------------------------------)![Akila Somasundaram](https://medium.com/@akila29?source=post_page---byline--99ffcf49f535--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--99ffcf49f535--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99ffcf49f535--------------------------------) [Akila Somasundaram](https://medium.com/@akila29?source=post_page---byline--99ffcf49f535--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99ffcf49f535--------------------------------) ·阅读时长10分钟·2024年7月8日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99ffcf49f535--------------------------------) ·阅读时长 10 分钟·2024 年 7 月 8 日
 
 --
 
-![](../Images/95b3c8120fb4d55756d5e7eb9f7f8d50.png)
+![](img/95b3c8120fb4d55756d5e7eb9f7f8d50.png)
 
 图片来自[Suzanne D. Williams](https://unsplash.com/@scw1217?utm_source=medium&utm_medium=referral) 在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-数据预处理是任何机器学习管道中的主要步骤之一。TensorFlow Transform帮助我们在分布式环境中处理庞大的数据集。
+数据预处理是任何机器学习管道中的主要步骤之一。TensorFlow Transform 帮助我们在分布式环境中处理庞大的数据集。
 
-在深入探讨数据转换之前，数据验证是生产管道过程的第一步，我在我的文章[生产管道中的数据验证：TFX方式](https://medium.com/towards-data-science/validating-data-in-a-production-pipeline-the-tfx-way-9770311eb7ce)中已经讲解过。请阅读这篇文章，以便更好地理解本文内容。
+在深入探讨数据转换之前，数据验证是生产管道过程的第一步，我在我的文章[生产管道中的数据验证：TFX 方式](https://medium.com/towards-data-science/validating-data-in-a-production-pipeline-the-tfx-way-9770311eb7ce)中已经讲解过。请阅读这篇文章，以便更好地理解本文内容。
 
-我在这个演示中使用了Colab，因为它配置环境更简单（且更快）。如果你正处于探索阶段，我也建议使用Colab，因为它能帮助你专注于更重要的内容。
+我在这个演示中使用了 Colab，因为它配置环境更简单（且更快）。如果你正处于探索阶段，我也建议使用 Colab，因为它能帮助你专注于更重要的内容。
 
-机器学习管道操作从数据摄取和验证开始，然后是数据转换。转换后的数据进行训练并部署。我在之前的[文章](https://medium.com/towards-data-science/validating-data-in-a-production-pipeline-the-tfx-way-9770311eb7ce)中已经讲解了验证部分，现在我们将讨论数据转换部分。为了更好地理解TensorFlow中的管道，请查看下面的文章。
+机器学习管道操作从数据摄取和验证开始，然后是数据转换。转换后的数据进行训练并部署。我在之前的[文章](https://medium.com/towards-data-science/validating-data-in-a-production-pipeline-the-tfx-way-9770311eb7ce)中已经讲解了验证部分，现在我们将讨论数据转换部分。为了更好地理解 TensorFlow 中的管道，请查看下面的文章。
 
 [](https://www.tensorflow.org/tfx?source=post_page-----99ffcf49f535--------------------------------) [## TFX | 机器学习生产管道 | TensorFlow
 
@@ -36,7 +36,7 @@
 
 > 安装完成后，重启会话以继续。
 
-![](../Images/9e7831e0446e0018e3319cf4a224a3cd.png)
+![](img/9e7831e0446e0018e3319cf4a224a3cd.png)
 
 接下来是导入部分。
 
@@ -60,7 +60,7 @@ import os
 
 我们将使用来自 Kaggle 的太空船泰坦尼克数据集，如数据验证文章中所示。该数据集可以用于商业和非商业目的，且免费使用。你可以从[这里](https://www.kaggle.com/competitions/spaceship-titanic)访问它。数据集的描述见下图。
 
-![](../Images/b7f72d9f83df9040e86e6d07ea33beac.png)
+![](img/b7f72d9f83df9040e86e6d07ea33beac.png)
 
 为了开始数据转换部分，建议创建文件夹来存放管道组件（否则它们将被放置在默认目录中）。我创建了两个文件夹，一个用于管道组件，另一个用于我们的训练数据。
 
@@ -113,15 +113,15 @@ context.run(example_gen)
 
 运行组件后，这将是我们的输出。它提供了执行 ID、组件详情以及组件输出保存的位置。
 
-![](../Images/f0b4d3c3cf0fc4c129d54772f83d7180.png)
+![](img/f0b4d3c3cf0fc4c129d54772f83d7180.png)
 
 展开后，我们应该能够看到这些详情。
 
-![](../Images/49e56a8f1feee2d880ff89ff157e3530.png)
+![](img/49e56a8f1feee2d880ff89ff157e3530.png)
 
-目录结构如下图所示。所有这些工件都是由TFX为我们创建的，它们也会自动进行版本控制，详细信息存储在metadata.sqlite中。sqlite文件有助于维护数据来源或数据血统。
+目录结构如下图所示。所有这些工件都是由 TFX 为我们创建的，它们也会自动进行版本控制，详细信息存储在 metadata.sqlite 中。sqlite 文件有助于维护数据来源或数据血统。
 
-![](../Images/2cb0dfd4007f0e3b58d2557279ec9744.png)
+![](img/2cb0dfd4007f0e3b58d2557279ec9744.png)
 
 要以编程方式探索这些工件，可以使用以下代码。
 
@@ -134,11 +134,11 @@ print(f'split names: {artifact.split_names}')
 print(f'artifact uri: {artifact.uri}')
 ```
 
-输出将是文件名和uri。
+输出将是文件名和 uri。
 
-![](../Images/26670b069b3c950fdfe9b6c7e8b2bb55.png)
+![](img/26670b069b3c950fdfe9b6c7e8b2bb55.png)
 
-让我们复制训练的uri，并查看文件中的详细信息。该文件以zip格式存储，并以TFRecordDataset格式存储。
+让我们复制训练的 uri，并查看文件中的详细信息。该文件以 zip 格式存储，并以 TFRecordDataset 格式存储。
 
 ```py
 # Get the URI of the output artifact representing the training examples
@@ -152,7 +152,7 @@ tfrecord_filenames = [os.path.join(train_uri, name)
 dataset = tf.data.TFRecordDataset(tfrecord_filenames, compression_type="GZIP")
 ```
 
-以下代码来自Tensorflow，这是一个标准代码，可以用来从TFRecordDataset中获取记录，并返回供我们检查的结果。
+以下代码来自 Tensorflow，这是一个标准代码，可以用来从 TFRecordDataset 中获取记录，并返回供我们检查的结果。
 
 ```py
 # Helper function to get individual examples
@@ -195,13 +195,13 @@ sample_records = get_records(dataset, 3)
 pp.pprint(sample_records)
 ```
 
-我们请求了3条记录，输出如下。每条记录及其元数据都以字典格式存储。
+我们请求了 3 条记录，输出如下。每条记录及其元数据都以字典格式存储。
 
-![](../Images/3e08f502cbd1f52b2f642b0b57efee07.png)
+![](img/3e08f502cbd1f52b2f642b0b57efee07.png)
 
-接下来，我们进入下一个步骤，即使用StatisticsGen生成数据的统计信息。我们将example_gen对象的输出作为参数传递。
+接下来，我们进入下一个步骤，即使用 StatisticsGen 生成数据的统计信息。我们将 example_gen 对象的输出作为参数传递。
 
-我们使用statistics.run来执行组件，并将statistics_gen作为参数。
+我们使用 statistics.run 来执行组件，并将 statistics_gen 作为参数。
 
 ```py
 # Generate dataset statistics with StatisticsGen using the example_gen object
@@ -213,7 +213,7 @@ statistics_gen = StatisticsGen(
 context.run(statistics_gen)
 ```
 
-我们可以使用context.show来查看结果。
+我们可以使用 context.show 来查看结果。
 
 ```py
 # Show the output statistics
@@ -221,11 +221,11 @@ context.run(statistics_gen)
 context.show(statistics_gen.outputs['statistics'])
 ```
 
-你可以看到，这与我们在TFDV文章中讨论的统计生成非常相似。原因是，TFX在底层使用TFDV来执行这些操作。熟悉TFDV有助于更好地理解这些过程。
+你可以看到，这与我们在 TFDV 文章中讨论的统计生成非常相似。原因是，TFX 在底层使用 TFDV 来执行这些操作。熟悉 TFDV 有助于更好地理解这些过程。
 
-![](../Images/ae1ebef42a6b57be00552e36e651e490.png)
+![](img/ae1ebef42a6b57be00552e36e651e490.png)
 
-下一步是创建schema。这是通过使用SchemaGen并传递statistics_gen对象来完成的。运行组件并使用context.show来可视化它。
+下一步是创建 schema。这是通过使用 SchemaGen 并传递 statistics_gen 对象来完成的。运行组件并使用 context.show 来可视化它。
 
 ```py
 # Generate schema using SchemaGen with the statistics_gen object
@@ -242,18 +242,18 @@ context.run(schema_gen)
 context.show(schema_gen.outputs['schema'])
 ```
 
-输出显示了数据底层模式的详细信息。同样，这与TFDV中的内容类似。
+输出显示了数据底层模式的详细信息。同样，这与 TFDV 中的内容类似。
 
-![](../Images/1f0aa75e2731fff473b691354d3683a7.png)
+![](img/1f0aa75e2731fff473b691354d3683a7.png)
 
-如果需要修改这里提供的schema，请使用tfdv进行修改，并创建一个schema文件。你可以通过ImportSchemaGen传递它，并要求tfx使用新文件。
+如果需要修改这里提供的 schema，请使用 tfdv 进行修改，并创建一个 schema 文件。你可以通过 ImportSchemaGen 传递它，并要求 tfx 使用新文件。
 
 ```py
 # Adding a schema file manually 
 schema_gen = ImportSchemaGen(schema_file="path_to_schema_file/schema.pbtxt")
 ```
 
-接下来，我们使用ExampleValidator来验证示例。我们将statistics_gen和schema_gen作为参数传递。
+接下来，我们使用 ExampleValidator 来验证示例。我们将 statistics_gen 和 schema_gen 作为参数传递。
 
 ```py
 # Validate the examples using the ExampleValidator
@@ -269,13 +269,13 @@ context.run(example_validator)
 
 这应该是你的理想输出，以显示一切正常。
 
-![](../Images/c53b89c5ea10cc197c14f557d20ba447.png)
+![](img/c53b89c5ea10cc197c14f557d20ba447.png)
 
 在这一点上，我们的目录结构如下图所示。我们可以看到，在每个过程步骤中，都会创建相应的工件。
 
-![](../Images/764a04c84ebe42ad48477cbab52d717c.png)
+![](img/764a04c84ebe42ad48477cbab52d717c.png)
 
-让我们进入实际的转换部分。我们现在将创建constants.py文件，以添加处理过程中所需的所有常量。
+让我们进入实际的转换部分。我们现在将创建 constants.py 文件，以添加处理过程中所需的所有常量。
 
 ```py
 # Creating the file containing all constants that are to be used for this project
@@ -283,7 +283,7 @@ context.run(example_validator)
 _constants_module_file = 'constants.py'
 ```
 
-我们将创建所有常量并写入constants.py文件。请看“%%writefile {_constants_module_file}”，此命令并不会让代码运行，而是将给定单元格中的所有代码写入指定的文件。
+我们将创建所有常量并写入 constants.py 文件。请看“%%writefile {_constants_module_file}”，此命令并不会让代码运行，而是将给定单元格中的所有代码写入指定的文件。
 
 ```py
 %%writefile {_constants_module_file}
@@ -308,7 +308,7 @@ def transformed_name(key):
     return key + '_xf'
 ```
 
-让我们创建transform.py文件，其中将包含用于转换数据的实际代码。
+让我们创建 transform.py 文件，其中将包含用于转换数据的实际代码。
 
 ```py
 # Creating a file that contains all preprocessing code for the project
@@ -316,7 +316,7 @@ def transformed_name(key):
 _transform_module_file = 'transform.py'
 ```
 
-在这里，我们将使用tensorflow_transform库。变换过程的代码将在preprocessing_fn函数下编写。我们必须使用相同的名称，因为tfx在变换过程中会在内部查找它。
+在这里，我们将使用 tensorflow_transform 库。变换过程的代码将在 preprocessing_fn 函数下编写。我们必须使用相同的名称，因为 tfx 在变换过程中会在内部查找它。
 
 ```py
 %%writefile {_transform_module_file}
@@ -363,11 +363,11 @@ def preprocessing_fn(inputs):
 
 [](https://www.tensorflow.org/tfx/transform/api_docs/python/tft?source=post_page-----99ffcf49f535--------------------------------) [## 模块：tft | TFX | TensorFlow
 
-### TF.Transform的初始化模块。
+### TF.Transform 的初始化模块。
 
 www.tensorflow.org](https://www.tensorflow.org/tfx/transform/api_docs/python/tft?source=post_page-----99ffcf49f535--------------------------------)
 
-现在是时候查看变换过程的实际操作了。我们创建一个Transform对象，并传入example_gen和schema_gen对象，以及我们创建的transform.py文件的路径。
+现在是时候查看变换过程的实际操作了。我们创建一个 Transform 对象，并传入 example_gen 和 schema_gen 对象，以及我们创建的 transform.py 文件的路径。
 
 ```py
 # Ignore TF warning messages
@@ -389,9 +389,9 @@ context.run(transform)
 
 看一下下面图像中显示的变换数据。
 
-![](../Images/1303ef6e4514391c58823b9c199134b4.png)
+![](img/1303ef6e4514391c58823b9c199134b4.png)
 
-# 为什么不直接使用scikit-learn库或pandas来做这些？
+# 为什么不直接使用 scikit-learn 库或 pandas 来做这些？
 
 这就是你现在的问题，对吧？
 
@@ -399,17 +399,17 @@ context.run(transform)
 
 应用变换后，你的文件夹结构如下所示：
 
-![](../Images/605cd1b6d460c9c789304a9f8bd56bc8.png)
+![](img/605cd1b6d460c9c789304a9f8bd56bc8.png)
 
 它包含了变换前后的详细信息。此外，还创建了一个变换图。
 
-请记住，我们使用tft.scale_to_0_1对数值特征进行了缩放。像这样的函数需要计算一些细节，这些细节需要分析整个数据（例如特征的均值、最小值和最大值）。分析分布在多台机器上的数据以获取这些细节是性能密集型的（特别是如果多次执行时）。这些细节只会计算一次，并保存在transform_graph中。任何时候一个函数需要它们时，它都会直接从transform_graph中获取。这还有助于将训练阶段创建的变换直接应用于服务数据，确保预处理阶段的一致性。
+请记住，我们使用 tft.scale_to_0_1 对数值特征进行了缩放。像这样的函数需要计算一些细节，这些细节需要分析整个数据（例如特征的均值、最小值和最大值）。分析分布在多台机器上的数据以获取这些细节是性能密集型的（特别是如果多次执行时）。这些细节只会计算一次，并保存在 transform_graph 中。任何时候一个函数需要它们时，它都会直接从 transform_graph 中获取。这还有助于将训练阶段创建的变换直接应用于服务数据，确保预处理阶段的一致性。
 
-使用Tensorflow Transform库的另一个主要优势是，每个阶段都会被记录为工件，从而保持数据的血缘关系。当数据发生变化时，数据版本控制也会自动进行。因此，它使得在生产环境中进行实验、部署和回滚变得更加容易。
+使用 Tensorflow Transform 库的另一个主要优势是，每个阶段都会被记录为工件，从而保持数据的血缘关系。当数据发生变化时，数据版本控制也会自动进行。因此，它使得在生产环境中进行实验、部署和回滚变得更加容易。
 
 就是这样。如果你有任何问题，请在评论区写下来。
 
-你可以从我的GitHub仓库下载本文章中使用的笔记本和数据文件，点击这个[链接](https://github.com/akila29/TF_Transform_Demo)。
+你可以从我的 GitHub 仓库下载本文章中使用的笔记本和数据文件，点击这个[链接](https://github.com/akila29/TF_Transform_Demo)。
 
 # 接下来做什么？
 

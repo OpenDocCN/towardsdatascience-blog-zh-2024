@@ -1,16 +1,16 @@
 # 如何高效逼近一个或多个变量的函数
 
-> 原文：[https://towardsdatascience.com/how-to-efficiently-approximate-a-function-of-one-or-more-variables-fc702c9c9431?source=collection_archive---------12-----------------------#2024-06-28](https://towardsdatascience.com/how-to-efficiently-approximate-a-function-of-one-or-more-variables-fc702c9c9431?source=collection_archive---------12-----------------------#2024-06-28)
+> 原文：[`towardsdatascience.com/how-to-efficiently-approximate-a-function-of-one-or-more-variables-fc702c9c9431?source=collection_archive---------12-----------------------#2024-06-28`](https://towardsdatascience.com/how-to-efficiently-approximate-a-function-of-one-or-more-variables-fc702c9c9431?source=collection_archive---------12-----------------------#2024-06-28)
 
 ## 使用稀疏网格和切比雪夫插值法来构建多变量函数的精确近似。
 
-[](https://medium.com/@ryan.burn?source=post_page---byline--fc702c9c9431--------------------------------)[![Ryan Burn](../Images/5d45aa3c86bbcd5f30e92f2cb6a484f6.png)](https://medium.com/@ryan.burn?source=post_page---byline--fc702c9c9431--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc702c9c9431--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fc702c9c9431--------------------------------) [Ryan Burn](https://medium.com/@ryan.burn?source=post_page---byline--fc702c9c9431--------------------------------)
+[](https://medium.com/@ryan.burn?source=post_page---byline--fc702c9c9431--------------------------------)![Ryan Burn](https://medium.com/@ryan.burn?source=post_page---byline--fc702c9c9431--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc702c9c9431--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc702c9c9431--------------------------------) [Ryan Burn](https://medium.com/@ryan.burn?source=post_page---byline--fc702c9c9431--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc702c9c9431--------------------------------) ·阅读时长13分钟·2024年6月28日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc702c9c9431--------------------------------) ·阅读时长 13 分钟·2024 年 6 月 28 日
 
 --
 
-![](../Images/0e3468c2328badb693022bf54ebd9c3e.png)
+![](img/0e3468c2328badb693022bf54ebd9c3e.png)
 
 在切比雪夫-高斯-洛巴托节点上的自适应稀疏网格。图由作者提供。
 

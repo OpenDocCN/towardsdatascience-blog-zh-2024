@@ -1,18 +1,18 @@
 # 手动深度探讨 LlaMA 3 ✍️
 
-> 原文：[https://towardsdatascience.com/deep-dive-into-llama-3-by-hand-%EF%B8%8F-6c6b23dc92b2?source=collection_archive---------0-----------------------#2024-05-03](https://towardsdatascience.com/deep-dive-into-llama-3-by-hand-%EF%B8%8F-6c6b23dc92b2?source=collection_archive---------0-----------------------#2024-05-03)
+> 原文：[`towardsdatascience.com/deep-dive-into-llama-3-by-hand-%EF%B8%8F-6c6b23dc92b2?source=collection_archive---------0-----------------------#2024-05-03`](https://towardsdatascience.com/deep-dive-into-llama-3-by-hand-%EF%B8%8F-6c6b23dc92b2?source=collection_archive---------0-----------------------#2024-05-03)
 
 ## 探索 Llama 3 背后的变压器架构及其在 GenAI 生态系统中的前景
 
-[](https://medium.com/@srijanie.dey?source=post_page---byline--6c6b23dc92b2--------------------------------)[![Srijanie Dey, PhD](../Images/2b3292a3b22d712d91d0bfc14df64446.png)](https://medium.com/@srijanie.dey?source=post_page---byline--6c6b23dc92b2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6c6b23dc92b2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6c6b23dc92b2--------------------------------) [Srijanie Dey, 博士](https://medium.com/@srijanie.dey?source=post_page---byline--6c6b23dc92b2--------------------------------)
+[](https://medium.com/@srijanie.dey?source=post_page---byline--6c6b23dc92b2--------------------------------)![Srijanie Dey, PhD](https://medium.com/@srijanie.dey?source=post_page---byline--6c6b23dc92b2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6c6b23dc92b2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6c6b23dc92b2--------------------------------) [Srijanie Dey, 博士](https://medium.com/@srijanie.dey?source=post_page---byline--6c6b23dc92b2--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6c6b23dc92b2--------------------------------) ·11 分钟阅读·2024年5月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6c6b23dc92b2--------------------------------) ·11 分钟阅读·2024 年 5 月 3 日
 
 --
 
-![](../Images/74386917c561d9966bec6d17337785ea.png)
+![](img/74386917c561d9966bec6d17337785ea.png)
 
-图片由作者提供（这幅 LlaMA 3 的闪亮图像是我的4岁孩子创作的。）
+图片由作者提供（这幅 LlaMA 3 的闪亮图像是我的 4 岁孩子创作的。）
 
 *在安第斯山脉的崎岖山巅，生活着三只非常美丽的生物——Rio、Rocky 和 Sierra。凭借着光亮的毛皮和闪烁的眼睛，他们成了力量与韧性的象征。*
 
@@ -26,7 +26,7 @@
 
 # Meta 的 LlaMA 3
 
-这个故事与 Meta 的开源大型语言模型（LLM）— LlaMA 3（Large Language Model Meta AI）的故事并不遥远。2024 年 4 月 18 日，Meta 发布了他们的 LlaMa 3 家族的大型语言模型，参数规模为 8B 和 70B，声称比 LlaMA 2 有了重大进展，并力争成为该规模下最先进的LLM模型。
+这个故事与 Meta 的开源大型语言模型（LLM）— LlaMA 3（Large Language Model Meta AI）的故事并不遥远。2024 年 4 月 18 日，Meta 发布了他们的 LlaMa 3 家族的大型语言模型，参数规模为 8B 和 70B，声称比 LlaMA 2 有了重大进展，并力争成为该规模下最先进的 LLM 模型。
 
 [根据 Meta](https://ai.meta.com/blog/meta-llama-3/)，在构建 LlaMA 3 时有四个关键焦点 — **模型架构、预训练数据、扩大预训练规模和指导微调**。这让我们思考如何在企业规模和基层水平上充分利用这个非常有竞争力的模型。
 
@@ -42,9 +42,9 @@
 
 *(本节中的所有图片均由* [*Eduardo Ordax*](https://www.linkedin.com/in/eordax/)* 提供。)*
 
-![](../Images/b29e0419cc9a36c5c3c9145bf4ddb1e2.png)
+![](img/b29e0419cc9a36c5c3c9145bf4ddb1e2.png)
 
-用户与 LlaMA 3 互动的主要**6个阶段**。
+用户与 LlaMA 3 互动的主要**6 个阶段**。
 
 **第 1 阶段**：通过直接使用模型来满足广泛的用例。
 
@@ -52,7 +52,7 @@
 
 **第 3 阶段**：使用提示工程来训练模型以产生期望的输出。
 
-**第 4 阶段**：在用户端使用提示工程，同时深入研究数据检索和微调，这仍然主要由LLM提供商管理。
+**第 4 阶段**：在用户端使用提示工程，同时深入研究数据检索和微调，这仍然主要由 LLM 提供商管理。
 
 **第 5 阶段**：将大部分事务交给用户自己，从提示工程到数据检索和微调（RAG 模型，PEFT 模型等）。
 
@@ -62,7 +62,7 @@
 
 为了做到这一点，以下是可能会有用的**工具的高层视图**：
 
-![](../Images/ceab170abce46869b15be12ab3991fb7.png)
+![](img/ceab170abce46869b15be12ab3991fb7.png)
 
 图片表明，为了从模型中获得最大利益，关键是需要一个结构和路线图。它包括三个组成部分：
 
@@ -82,7 +82,7 @@
 > 
 > **FMOps（基础模型运维）**则专注于生成式 AI 场景，通过选择、评估和微调 LLMs 来工作。
 
-![](../Images/36ba41369196954718fea36559770015.png)
+![](img/36ba41369196954718fea36559770015.png)
 
 话虽如此，然而有一件事是恒定不变的，那就是 LlaMA 3 毕竟是一个 LLM，只有在基础要素得到充分设置并经过严格验证后，其企业级的实现才有可能并且具有实际的好处。为了做到这一点，我们来探索一下 LlaMA 3 背后的技术细节。
 
@@ -108,7 +108,7 @@
 
 下面是架构的基本形式以及其功能方式。
 
-![](../Images/7b96e71b0f0dd4611e9f881c39b6e4d9.png)
+![](img/7b96e71b0f0dd4611e9f881c39b6e4d9.png)
 
 包含注意力和前馈块的变压器架构。
 
@@ -136,7 +136,7 @@
 
 定义了这些术语后，让我们参考 LlaMA 3 模型中这些参数的实际数字。（这些数字所在的原始源代码可以在[这里](https://github.com/meta-llama/llama3/tree/main/llama)找到。）
 
-![](../Images/62f350ed1621ce15eba3af4eec174c8a.png)
+![](img/62f350ed1621ce15eba3af4eec174c8a.png)
 
 这些数字所在的原始源代码可以在[这里](https://github.com/meta-llama/llama3/tree/main/llama)找到。
 
@@ -144,49 +144,49 @@
 
 ## [1] 上下文窗口
 
-在实例化**LlaMa类**时，变量*max_seq_len*定义了**上下文窗口**。类中还有其他参数，但这个参数与变压器模型相关。这里的*max_seq_len*是8K，这意味着注意力头能够一次扫描8K个标记。
+在实例化**LlaMa 类**时，变量*max_seq_len*定义了**上下文窗口**。类中还有其他参数，但这个参数与变压器模型相关。这里的*max_seq_len*是 8K，这意味着注意力头能够一次扫描 8K 个标记。
 
-![](../Images/52fa47f3cc7a98b0058601d3c95f8fb2.png)
+![](img/52fa47f3cc7a98b0058601d3c95f8fb2.png)
 
 ## [2] 词汇量和注意力层
 
-接下来是**Transformer类**，它定义了词汇量和层数。再次强调，这里的**词汇量**指的是模型可以识别和处理的单词（和标记）集合。这里的**注意力层**指的是模型中使用的变压器块（注意力和前馈层的组合）。
+接下来是**Transformer 类**，它定义了词汇量和层数。再次强调，这里的**词汇量**指的是模型可以识别和处理的单词（和标记）集合。这里的**注意力层**指的是模型中使用的变压器块（注意力和前馈层的组合）。
 
-![](../Images/b2cbb782a640277df59b729321fa2316.png)
+![](img/b2cbb782a640277df59b729321fa2316.png)
 
-根据这些数字，LlaMA 3的词汇量为128K，相当大。此外，它有32个变压器块的副本。
+根据这些数字，LlaMA 3 的词汇量为 128K，相当大。此外，它有 32 个变压器块的副本。
 
 ## [3] 特征维度和注意力头
 
-特征维度和注意力头进入**自注意力模块**。**特征维度**指的是嵌入空间中标记的向量大小，**注意力头**包括QK模块，它为变压器中的自注意力机制提供动力。
+特征维度和注意力头进入**自注意力模块**。**特征维度**指的是嵌入空间中标记的向量大小，**注意力头**包括 QK 模块，它为变压器中的自注意力机制提供动力。
 
-![](../Images/a50f5d8790c3be92fb78661299d1bad5.png)
+![](img/a50f5d8790c3be92fb78661299d1bad5.png)
 
 ## [4] 隐藏维度
 
-**隐藏维度**出现在**前馈类**中，指定模型中隐藏层的数量。对于LlaMa 3，隐藏层是特征维度的1.3倍。更多的隐藏层允许网络在将它们投影回较小的输出维度之前在内部创建和操作更丰富的表示。
+**隐藏维度**出现在**前馈类**中，指定模型中隐藏层的数量。对于 LlaMa 3，隐藏层是特征维度的 1.3 倍。更多的隐藏层允许网络在将它们投影回较小的输出维度之前在内部创建和操作更丰富的表示。
 
-![](../Images/0c19e00a159f5dd5675336897e548db4.png)
+![](img/0c19e00a159f5dd5675336897e548db4.png)
 
 ## [5] 将上述参数组合成变压器
 
-+   第一个矩阵是输入特征矩阵，通过**注意力层**创建注意力加权特征。在这个图像中，输入特征矩阵只有一个5 x 3的矩阵，但在现实世界的Llama 3模型中，它增长到8K x 4096，这是巨大的。
++   第一个矩阵是输入特征矩阵，通过**注意力层**创建注意力加权特征。在这个图像中，输入特征矩阵只有一个 5 x 3 的矩阵，但在现实世界的 Llama 3 模型中，它增长到 8K x 4096，这是巨大的。
 
-+   接下来是前馈网络中的隐藏层，它从5325增长到最终层的4096再回落。
++   接下来是前馈网络中的隐藏层，它从 5325 增长到最终层的 4096 再回落。
 
-![](../Images/9f56c01797cb45c4ac6070e565d25041.png)
+![](img/9f56c01797cb45c4ac6070e565d25041.png)
 
 ## [6] 变压器块的多层
 
-LlaMA 3将这32个以上的变压器块组合在一起，其中一个的输出传递到下一个块，直到达到最后一个块。
+LlaMA 3 将这 32 个以上的变压器块组合在一起，其中一个的输出传递到下一个块，直到达到最后一个块。
 
-![](../Images/3c9da18de90dc59b4833b593c0e84fc1.png)
+![](img/3c9da18de90dc59b4833b593c0e84fc1.png)
 
 ## **[7] 让我们把所有东西放在一起**
 
-一旦我们启动了上述所有部分，就是时候把它们放在一起，看看它们如何产生LlaMA效果。
+一旦我们启动了上述所有部分，就是时候把它们放在一起，看看它们如何产生 LlaMA 效果。
 
-![](../Images/e2d916ff16aba1d6fef6d19b698e0475.png)
+![](img/e2d916ff16aba1d6fef6d19b698e0475.png)
 
 那么，这里发生了什么？
 
@@ -218,6 +218,6 @@ LlaMA 模型的命名可能只是巧合，但根据安第斯山脉的传说，�
 
 现在，去享受乐趣吧，创造一些 LlaMA 3 效应！
 
-![](../Images/143da434496829910a76dbfe868dce8f.png)
+![](img/143da434496829910a76dbfe868dce8f.png)
 
 图片由作者提供

@@ -1,16 +1,16 @@
 # 神经网络中的激活函数：如何选择合适的激活函数
 
-> 原文：[https://towardsdatascience.com/activation-functions-in-neural-networks-how-to-choose-the-right-one-cb20414c04e5?source=collection_archive---------10-----------------------#2024-12-12](https://towardsdatascience.com/activation-functions-in-neural-networks-how-to-choose-the-right-one-cb20414c04e5?source=collection_archive---------10-----------------------#2024-12-12)
+> 原文：[`towardsdatascience.com/activation-functions-in-neural-networks-how-to-choose-the-right-one-cb20414c04e5?source=collection_archive---------10-----------------------#2024-12-12`](https://towardsdatascience.com/activation-functions-in-neural-networks-how-to-choose-the-right-one-cb20414c04e5?source=collection_archive---------10-----------------------#2024-12-12)
 
 ## 激活函数简介及最著名函数的概览
 
-[](https://medium.com/@niklas_lang?source=post_page---byline--cb20414c04e5--------------------------------)[![Niklas Lang](../Images/5fa71386db00d248438c588c5ae79c67.png)](https://medium.com/@niklas_lang?source=post_page---byline--cb20414c04e5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cb20414c04e5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cb20414c04e5--------------------------------) [Niklas Lang](https://medium.com/@niklas_lang?source=post_page---byline--cb20414c04e5--------------------------------)
+[](https://medium.com/@niklas_lang?source=post_page---byline--cb20414c04e5--------------------------------)![Niklas Lang](https://medium.com/@niklas_lang?source=post_page---byline--cb20414c04e5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cb20414c04e5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb20414c04e5--------------------------------) [Niklas Lang](https://medium.com/@niklas_lang?source=post_page---byline--cb20414c04e5--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb20414c04e5--------------------------------) ·15分钟阅读·2024年12月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb20414c04e5--------------------------------) ·15 分钟阅读·2024 年 12 月 12 日
 
 --
 
-![](../Images/86c1d96fd9990ce347569964a4b92cf0.png)
+![](img/86c1d96fd9990ce347569964a4b92cf0.png)
 
 图片由[engin akyurt](https://unsplash.com/@enginakyurt?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

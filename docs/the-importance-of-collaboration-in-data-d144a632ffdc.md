@@ -1,16 +1,16 @@
 # 数据协作的重要性
 
-> 原文：[https://towardsdatascience.com/the-importance-of-collaboration-in-data-d144a632ffdc?source=collection_archive---------10-----------------------#2024-05-17](https://towardsdatascience.com/the-importance-of-collaboration-in-data-d144a632ffdc?source=collection_archive---------10-----------------------#2024-05-17)
+> 原文：[`towardsdatascience.com/the-importance-of-collaboration-in-data-d144a632ffdc?source=collection_archive---------10-----------------------#2024-05-17`](https://towardsdatascience.com/the-importance-of-collaboration-in-data-d144a632ffdc?source=collection_archive---------10-----------------------#2024-05-17)
 
 ## 请求反馈是数据工作中的一种悄然强大的工具。让我们来谈谈为什么以及如何做得好。
 
-[](https://medium.com/@s.kirmer?source=post_page---byline--d144a632ffdc--------------------------------)[![Stephanie Kirmer](../Images/f9d9ef9167febde974c223dd4d8d6293.png)](https://medium.com/@s.kirmer?source=post_page---byline--d144a632ffdc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d144a632ffdc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d144a632ffdc--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--d144a632ffdc--------------------------------)
+[](https://medium.com/@s.kirmer?source=post_page---byline--d144a632ffdc--------------------------------)![Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--d144a632ffdc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d144a632ffdc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d144a632ffdc--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--d144a632ffdc--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d144a632ffdc--------------------------------) ·阅读时间6分钟·2024年5月17日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d144a632ffdc--------------------------------) ·阅读时间 6 分钟·2024 年 5 月 17 日
 
 --
 
-![](../Images/da148a2507c9ab41fbe467337c761a9f.png)
+![](img/da148a2507c9ab41fbe467337c761a9f.png)
 
 照片来自[Priscilla Du Preez 🇨🇦](https://unsplash.com/@priscilladupreez?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -24,7 +24,7 @@
 
 不论你得到的是哪种反馈，重要的是你已经完成了相当多的工作。这不是让别人帮你做工作的时机。你应该有一个扎实的项目计划，并且已经取得了显著的进展（例如加载数据、仔细查看数据、进行至少部分分析，至少要有可以展示的工作成果），然后才开始引入其他人。如果你做好了这些，联系一位同事，看看他们是否有时间看一下你的工作并给出反馈——不一定是此时此刻，而是他们日程允许时。如果他们无法提供帮助，就去找另一个人，并且在心里记下这件事。担心打扰别人是很自然的，这也是为什么我通常会限制每个项目只进行一次这样的反馈请求，并且尽量避免连续多次找同一个人，特别是在不同的项目中。将请求分散开来，不要总是占用一个人的时间。如果你需要更多人帮忙，那是下一个部分的内容。
 
-还需要注意的是，向他人寻求反馈的方式应该是有结构的。不要仅仅说“你觉得怎么样？”或者把一大段脚本扔给别人，而是要准备简洁、易读的内容，并提出具体的问题。“这是草稿幻灯片。你觉得这个EDA完整吗？你能看到我做的有哪里不合理吗？”或者“我尝试了不同的超参数组合，但模型的表现超过X后就不再提高了。你觉得这合理吗，还是我应该尝试别的方式来提高？”正如你可能猜到的，这意味着你需要展示结果，可能是一些可视化图表或至少一些数据表。
+还需要注意的是，向他人寻求反馈的方式应该是有结构的。不要仅仅说“你觉得怎么样？”或者把一大段脚本扔给别人，而是要准备简洁、易读的内容，并提出具体的问题。“这是草稿幻灯片。你觉得这个 EDA 完整吗？你能看到我做的有哪里不合理吗？”或者“我尝试了不同的超参数组合，但模型的表现超过 X 后就不再提高了。你觉得这合理吗，还是我应该尝试别的方式来提高？”正如你可能猜到的，这意味着你需要展示结果，可能是一些可视化图表或至少一些数据表。
 
 如果你问某个人，他们没有给出很有帮助的反馈，也要在心里记住这一点——也许他们很忙，或者你的问题不够清晰，亦或是你的工作难以阅读。尝试了解不同的评审者和同事最容易处理的方式，并且不断提升你提问的技巧。你也应该主动提出以后回报他们，给予反馈，并且在合适的时候执行并做好这项工作。正如大多数工作或生活中的关系一样，你从中得到的，正是你投入的。
 
@@ -48,8 +48,8 @@
 
 第三，反馈会变得更容易接受。我知道很多人，包括我自己，有时会对接收反馈感到焦虑。当别人评估你的工作时，很容易觉得那些反馈令人生畏，或者只听到负面的评价，而忽略了积极的部分。但你做得越多，接受反馈就会变得越容易。在一个充满积极性和建设性的文化中反复请求反馈，会使你不再对批评或改进方法产生敏感，并且你会变得更擅长吸收并从中学习。
 
-所以，当你进行数据工作时，要刻意创造机会，请求建设性的建议以改进你的成果。如果你没有数据方面的同行，加入数据科学家的聚会或Slack小组，在那里你可以请求建议（当然，前提是不违反任何保密协议），并建立一个你信任的人脉网络，同时也为他们提供反馈。我保证，你会在职业和技能上看到好处，更不用说你的模型和数据分析了。
+所以，当你进行数据工作时，要刻意创造机会，请求建设性的建议以改进你的成果。如果你没有数据方面的同行，加入数据科学家的聚会或 Slack 小组，在那里你可以请求建议（当然，前提是不违反任何保密协议），并建立一个你信任的人脉网络，同时也为他们提供反馈。我保证，你会在职业和技能上看到好处，更不用说你的模型和数据分析了。
 
 阅读更多我的作品，访问[www.stephaniekirmer.com.](http://www.stephaniekirmer.com.)
 
-此外，你还可以看到我在[旧金山6月25日的AIQ大会](https://www.aiqualityconference.com/)上演讲，讨论在构建机器学习解决方案时的数据隐私问题。
+此外，你还可以看到我在[旧金山 6 月 25 日的 AIQ 大会](https://www.aiqualityconference.com/)上演讲，讨论在构建机器学习解决方案时的数据隐私问题。

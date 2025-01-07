@@ -1,18 +1,18 @@
 # A/B 测试的前后合成控制样本
 
-> 原文：[https://towardsdatascience.com/synthetic-control-sample-for-before-and-after-a-b-test-683bac36ffc1?source=collection_archive---------7-----------------------#2024-12-19](https://towardsdatascience.com/synthetic-control-sample-for-before-and-after-a-b-test-683bac36ffc1?source=collection_archive---------7-----------------------#2024-12-19)
+> 原文：[`towardsdatascience.com/synthetic-control-sample-for-before-and-after-a-b-test-683bac36ffc1?source=collection_archive---------7-----------------------#2024-12-19`](https://towardsdatascience.com/synthetic-control-sample-for-before-and-after-a-b-test-683bac36ffc1?source=collection_archive---------7-----------------------#2024-12-19)
 
 ## 学习一种简单的方法，使用线性回归为您的 A/B 测试创建一个合成控制样本
 
-[](https://gustavorsantos.medium.com/?source=post_page---byline--683bac36ffc1--------------------------------)[![Gustavo R Santos](../Images/a19a9f4525cdeb6e7a76cd05246aa622.png)](https://gustavorsantos.medium.com/?source=post_page---byline--683bac36ffc1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--683bac36ffc1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--683bac36ffc1--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--683bac36ffc1--------------------------------)
+[](https://gustavorsantos.medium.com/?source=post_page---byline--683bac36ffc1--------------------------------)![Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--683bac36ffc1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--683bac36ffc1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--683bac36ffc1--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--683bac36ffc1--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--683bac36ffc1--------------------------------) ·阅读时间 11 分钟 ·2024 年 12 月 19 日
 
 --
 
-![](../Images/31558bdea35ecfe6f55a3cc0012aee29.png)
+![](img/31558bdea35ecfe6f55a3cc0012aee29.png)
 
-前后测试 | 图片由 AI 生成。Meta Llama，2024\. [https://meta.ai](https://meta.ai)
+前后测试 | 图片由 AI 生成。Meta Llama，2024\. [`meta.ai`](https://meta.ai)
 
 # 介绍
 

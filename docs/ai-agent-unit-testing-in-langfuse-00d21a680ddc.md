@@ -1,18 +1,18 @@
-# Langfuse中的AI代理单元测试
+# Langfuse 中的 AI 代理单元测试
 
-> 原文：[https://towardsdatascience.com/ai-agent-unit-testing-in-langfuse-00d21a680ddc?source=collection_archive---------5-----------------------#2024-06-13](https://towardsdatascience.com/ai-agent-unit-testing-in-langfuse-00d21a680ddc?source=collection_archive---------5-----------------------#2024-06-13)
+> 原文：[`towardsdatascience.com/ai-agent-unit-testing-in-langfuse-00d21a680ddc?source=collection_archive---------5-----------------------#2024-06-13`](https://towardsdatascience.com/ai-agent-unit-testing-in-langfuse-00d21a680ddc?source=collection_archive---------5-----------------------#2024-06-13)
 
-## 为AI代理创建一个可扩展的测试解决方案，供非编码人员使用
+## 为 AI 代理创建一个可扩展的测试解决方案，供非编码人员使用
 
-[](https://jacknotjohn.medium.com/?source=post_page---byline--00d21a680ddc--------------------------------)[![Jack Moore](../Images/a2354c65edc7fa01f5fa2bfa22fe6b34.png)](https://jacknotjohn.medium.com/?source=post_page---byline--00d21a680ddc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--00d21a680ddc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--00d21a680ddc--------------------------------) [Jack Moore](https://jacknotjohn.medium.com/?source=post_page---byline--00d21a680ddc--------------------------------)
+[](https://jacknotjohn.medium.com/?source=post_page---byline--00d21a680ddc--------------------------------)![Jack Moore](https://jacknotjohn.medium.com/?source=post_page---byline--00d21a680ddc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--00d21a680ddc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00d21a680ddc--------------------------------) [Jack Moore](https://jacknotjohn.medium.com/?source=post_page---byline--00d21a680ddc--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00d21a680ddc--------------------------------) ·8分钟阅读·2024年6月13日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00d21a680ddc--------------------------------) ·8 分钟阅读·2024 年 6 月 13 日
 
 --
 
-![](../Images/bd9c62b0e085d4c850f81382ec1e69cf.png)
+![](img/bd9c62b0e085d4c850f81382ec1e69cf.png)
 
-Langfuse是一个用于灵活测试AI代理的有用工具。最近，我们着手实现一个框架来测试基于聊天的AI代理。以下是我们在探索可用工具过程中所经历的过程。
+Langfuse 是一个用于灵活测试 AI 代理的有用工具。最近，我们着手实现一个框架来测试基于聊天的 AI 代理。以下是我们在探索可用工具过程中所经历的过程。
 
 我们将主要集中讨论如何完成这项任务，但在最后，我们会谈到一些仍然面临的挑战，以及现有工具如何更好地支持这种用例的前景。
 
@@ -20,13 +20,13 @@ Langfuse是一个用于灵活测试AI代理的有用工具。最近，我们着�
 
 在回顾我们如何构建系统之前，我们将快速介绍我们的目标和成功标准。
 
-生成式AI的用例通常容易部署，但难以控制。当部署带有大上下文模型的代理时，模型提示、温度设置、内容审核政策等上游的变化可能会大幅影响其性能。
+生成式 AI 的用例通常容易部署，但难以控制。当部署带有大上下文模型的代理时，模型提示、温度设置、内容审核政策等上游的变化可能会大幅影响其性能。
 
 挑战在于创建一个系统，可以评估代理在不产生幻觉或违反内容政策的情况下完成特定任务的能力。我们将其等同于单元测试，确保你的代理即使在团队可能专注于特定改进的情况下，也能保持完成广泛任务的能力。手动进行这种测试可能不准确、耗时且难以追踪。
 
 因此，我们着手创建一个能够轻松创建这些测试并监控其结果的系统。重要的是，我们希望这个系统能够在最小的代码更改频率下操作，以便产品经理或质量测试人员可以在不接触代码的情况下参与其中。
 
-# 为什么选择Langfuse
+# 为什么选择 Langfuse
 
 我们为搜索设定了几个关键参数：
 
@@ -68,15 +68,15 @@ HIPAA 合规性，因为我们构建的产品以及许多我们的咨询合作�
 
 # 一个无代码单元测试框架
 
-![](../Images/8af623759549191db38e38e8865ccdef.png)
+![](img/8af623759549191db38e38e8865ccdef.png)
 
-我们如何利用系统提示配置在Langfuse中创建一个中央的、无代码的测试系统的示意图
+我们如何利用系统提示配置在 Langfuse 中创建一个中央的、无代码的测试系统的示意图
 
-经过几周的工作，我们建立了一个端到端测试系统。Langfuse提供的功能超出了我们目前的使用范围，但我们重点使用了提示、会话和追踪。
+经过几周的工作，我们建立了一个端到端测试系统。Langfuse 提供的功能超出了我们目前的使用范围，但我们重点使用了提示、会话和追踪。
 
 # 将聊天历史作为测试的上下文
 
-在对基于聊天的代理进行测试时，我们的一个关键需求是能够将代理插入到聊天场景的中间，使用之前交换的消息作为上下文。任何自定义提示都可以包括聊天历史，但Langfuse特别简便地实现了这一点。
+在对基于聊天的代理进行测试时，我们的一个关键需求是能够将代理插入到聊天场景的中间，使用之前交换的消息作为上下文。任何自定义提示都可以包括聊天历史，但 Langfuse 特别简便地实现了这一点。
 
 此外，我们为代理构建了一个聊天界面，使用户能够实时测试并生成新的测试提示以进行评估。这解决了其中一个问题。
 
@@ -88,11 +88,11 @@ HIPAA 合规性，因为我们构建的产品以及许多我们的咨询合作�
 
 我们解决的另一个关键挑战是如何在不需要代码的情况下创建一个完整的测试套件。首先，为了定义测试集，我们在系统提示中为代理创建了一个配置对象，其中定义了要运行的测试列表。
 
-这也使我们能够在运行一套测试时将系统提示作为变量传入。像Langfuse这样的系统的主要好处之一是，它能够在其UI中实现提示管理作为代码。为此，可能会注入系统中的后续系统提示也会与配置中的系统提示关联，从而使我们能够在测试过程中强制底层模型进入特定状态，同时增强系统对主提示和后续提示变化的抵抗力。
+这也使我们能够在运行一套测试时将系统提示作为变量传入。像 Langfuse 这样的系统的主要好处之一是，它能够在其 UI 中实现提示管理作为代码。为此，可能会注入系统中的后续系统提示也会与配置中的系统提示关联，从而使我们能够在测试过程中强制底层模型进入特定状态，同时增强系统对主提示和后续提示变化的抵抗力。
 
-通过将要运行的测试列表作为系统提示中的配置来管理，我们只需要每个代理一次代码更改。要运行的测试列表可以在Langfuse UI中进行更改和扩展。
+通过将要运行的测试列表作为系统提示中的配置来管理，我们只需要每个代理一次代码更改。要运行的测试列表可以在 Langfuse UI 中进行更改和扩展。
 
-每个测试提示都与其评估者作为配置的一部分相关联。每个测试提示至少有一个自定义评估运行，并且这些提示大致遵循以下模板：一个有用的AI评估者，将提供反馈和评分。
+每个测试提示都与其评估者作为配置的一部分相关联。每个测试提示至少有一个自定义评估运行，并且这些提示大致遵循以下模板：一个有用的 AI 评估者，将提供反馈和评分。
 
 ```py
 You are a helpful AI evaluator who will provide feedback and scoring on the task below.[Describe the scenario and how the agent has been instructed to behave in said scenario]Based on the transcript output, you will determine whether this task was successfully completed.  You will return a JSON object in the following form:-------------Example outputs:{"score": -1, "comment": [Description of an example negative case}{“score”: 1, “comment”: [Description of an example positive case]}------------In this object, score is a number between -1 and 1, with 1 indicating complete success and a -1 indicating complete failure.  The comment is a string indicating your reasoning for the score.-------------BEGIN TRANSCRIPT:{{transcript}}END TRANSCRIPT--------------Do not return any output except the JSON object referenced above.
@@ -128,8 +128,8 @@ Langfuse 的用户体验缺乏一些打磨，若进行改进，将大大提升�
 
 Langfuse 数据集是一个有趣的工具功能，允许用户将特定的追踪部分链接为模型的输入和预期输出。虽然我们本可以在单元测试中使用类似的工具，但我们发现创建聊天提示作为输入，并一般描述我们在评估提示中寻找的内容，比制作“预期输出”用于数据集评估要更简单。我们认为数据集是用于代码中可评估的测试（例如，聊天机器人在被问到时是否返回了正确的年份？聊天机器人是否返回了有效的 JSON？）的明确方向。我们可能会在未来用于更通用的测试，但我们发现通过分别创建提示来生成新测试会更快。
 
-*感谢阅读！我是* [*Jack Moore*](https://medium.com/u/266c1c6aac8?source=post_page---user_mention--00d21a680ddc--------------------------------)*，* [*Auril.ai*](http://auril.ai)*的创始人兼CEO。这篇文章最初发布在我们的技术博客上，我们将在这里探讨与将生成式AI从概念性的兴趣带到实际价值应用相关的主题。*
+*感谢阅读！我是* [*Jack Moore*](https://medium.com/u/266c1c6aac8?source=post_page---user_mention--00d21a680ddc--------------------------------)*，* [*Auril.ai*](http://auril.ai)*的创始人兼 CEO。这篇文章最初发布在我们的技术博客上，我们将在这里探讨与将生成式 AI 从概念性的兴趣带到实际价值应用相关的主题。*
 
-*所有观点仅代表我们个人。我们与Langfuse没有任何关联或合作关系。*
+*所有观点仅代表我们个人。我们与 Langfuse 没有任何关联或合作关系。*
 
 *除非另有说明，所有图片均由作者提供。*

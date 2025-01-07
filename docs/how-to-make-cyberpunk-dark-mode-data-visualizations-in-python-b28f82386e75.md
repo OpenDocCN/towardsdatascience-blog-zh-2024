@@ -1,12 +1,12 @@
 # 如何在 Python 中制作赛博朋克“暗黑模式”数据可视化
 
-> 原文：[https://towardsdatascience.com/how-to-make-cyberpunk-dark-mode-data-visualizations-in-python-b28f82386e75?source=collection_archive---------3-----------------------#2024-04-08](https://towardsdatascience.com/how-to-make-cyberpunk-dark-mode-data-visualizations-in-python-b28f82386e75?source=collection_archive---------3-----------------------#2024-04-08)
+> 原文：[`towardsdatascience.com/how-to-make-cyberpunk-dark-mode-data-visualizations-in-python-b28f82386e75?source=collection_archive---------3-----------------------#2024-04-08`](https://towardsdatascience.com/how-to-make-cyberpunk-dark-mode-data-visualizations-in-python-b28f82386e75?source=collection_archive---------3-----------------------#2024-04-08)
 
 ## 霓虹线条与暗黑设计，简介
 
-[](https://medium.com/@mia_dwyer?source=post_page---byline--b28f82386e75--------------------------------)[![Mia Dwyer](../Images/e3b6899877e5cc5e4961a6d1dd6954d6.png)](https://medium.com/@mia_dwyer?source=post_page---byline--b28f82386e75--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b28f82386e75--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b28f82386e75--------------------------------) [Mia Dwyer](https://medium.com/@mia_dwyer?source=post_page---byline--b28f82386e75--------------------------------)
+[](https://medium.com/@mia_dwyer?source=post_page---byline--b28f82386e75--------------------------------)![Mia Dwyer](https://medium.com/@mia_dwyer?source=post_page---byline--b28f82386e75--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b28f82386e75--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b28f82386e75--------------------------------) [Mia Dwyer](https://medium.com/@mia_dwyer?source=post_page---byline--b28f82386e75--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b28f82386e75--------------------------------) ·阅读时间 4分钟·2024年4月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b28f82386e75--------------------------------) ·阅读时间 4 分钟·2024 年 4 月 8 日
 
 --
 
@@ -14,7 +14,7 @@
 
 （附注：感谢我的一位早期分析经理，他曾说我的图表丑且不专业——你肯定会讨厌这篇文章！👋）
 
-![](../Images/b7bfb7fea63d7b19bf45262b25a1cedf.png)
+![](img/b7bfb7fea63d7b19bf45262b25a1cedf.png)
 
 图片由我创作，使用 DALL-E
 

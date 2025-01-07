@@ -1,16 +1,16 @@
 # 空间索引：镶嵌
 
-> 原文：[https://towardsdatascience.com/spatial-index-tessellation-aca39463fe9f?source=collection_archive---------4-----------------------#2024-06-17](https://towardsdatascience.com/spatial-index-tessellation-aca39463fe9f?source=collection_archive---------4-----------------------#2024-06-17)
+> 原文：[`towardsdatascience.com/spatial-index-tessellation-aca39463fe9f?source=collection_archive---------4-----------------------#2024-06-17`](https://towardsdatascience.com/spatial-index-tessellation-aca39463fe9f?source=collection_archive---------4-----------------------#2024-06-17)
 
-## 镶嵌在空间索引中的应用以及Uber H3如何工作
+## 镶嵌在空间索引中的应用以及 Uber H3 如何工作
 
-[](https://pyblog.medium.com/?source=post_page---byline--aca39463fe9f--------------------------------)[![Adesh Nalpet Adimurthy](../Images/fb3e0c4d3c3f829fd95bde08f0a4cd57.png)](https://pyblog.medium.com/?source=post_page---byline--aca39463fe9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aca39463fe9f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--aca39463fe9f--------------------------------) [Adesh Nalpet Adimurthy](https://pyblog.medium.com/?source=post_page---byline--aca39463fe9f--------------------------------)
+[](https://pyblog.medium.com/?source=post_page---byline--aca39463fe9f--------------------------------)![Adesh Nalpet Adimurthy](https://pyblog.medium.com/?source=post_page---byline--aca39463fe9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aca39463fe9f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aca39463fe9f--------------------------------) [Adesh Nalpet Adimurthy](https://pyblog.medium.com/?source=post_page---byline--aca39463fe9f--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aca39463fe9f--------------------------------) ·15分钟阅读·2024年6月17日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aca39463fe9f--------------------------------) ·15 分钟阅读·2024 年 6 月 17 日
 
 --
 
-![](../Images/2bc3bc1fd639d4300e9b7ae5f33ae9e3.png)
+![](img/2bc3bc1fd639d4300e9b7ae5f33ae9e3.png)
 
 本文是[空间索引：网格系统](https://medium.com/@pyblog/spatial-index-grid-systems-f02880fb147a)的延续，我们将在其中为镶嵌奠定基础，并深入探讨[Uber H3](https://github.com/uber/h3)的细节。
 

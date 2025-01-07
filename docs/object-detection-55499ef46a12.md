@@ -1,12 +1,12 @@
 # 自定义物体检测：探索 YOLO 基本原理并在自定义数据上训练
 
-> 原文：[https://towardsdatascience.com/object-detection-55499ef46a12?source=collection_archive---------8-----------------------#2024-01-08](https://towardsdatascience.com/object-detection-55499ef46a12?source=collection_archive---------8-----------------------#2024-01-08)
+> 原文：[`towardsdatascience.com/object-detection-55499ef46a12?source=collection_archive---------8-----------------------#2024-01-08`](https://towardsdatascience.com/object-detection-55499ef46a12?source=collection_archive---------8-----------------------#2024-01-08)
 
 ## 利用预训练模型、增强图像与边界框，揭示卷积神经网络在物体检测中的强大力量
 
-[](https://guenterroehrich.medium.com/?source=post_page---byline--55499ef46a12--------------------------------)[![Günter Röhrich](../Images/31a1d0dc835c7ad31197f8c387023d10.png)](https://guenterroehrich.medium.com/?source=post_page---byline--55499ef46a12--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--55499ef46a12--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--55499ef46a12--------------------------------) [Günter Röhrich](https://guenterroehrich.medium.com/?source=post_page---byline--55499ef46a12--------------------------------)
+[](https://guenterroehrich.medium.com/?source=post_page---byline--55499ef46a12--------------------------------)![Günter Röhrich](https://guenterroehrich.medium.com/?source=post_page---byline--55499ef46a12--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--55499ef46a12--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--55499ef46a12--------------------------------) [Günter Röhrich](https://guenterroehrich.medium.com/?source=post_page---byline--55499ef46a12--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--55499ef46a12--------------------------------) ·15 分钟阅读·2024年1月8日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--55499ef46a12--------------------------------) ·15 分钟阅读·2024 年 1 月 8 日
 
 --
 

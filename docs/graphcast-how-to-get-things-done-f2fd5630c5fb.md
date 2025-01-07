@@ -1,16 +1,16 @@
 # Graphcast：如何完成任务
 
-> 原文：[https://towardsdatascience.com/graphcast-how-to-get-things-done-f2fd5630c5fb?source=collection_archive---------0-----------------------#2024-01-29](https://towardsdatascience.com/graphcast-how-to-get-things-done-f2fd5630c5fb?source=collection_archive---------0-----------------------#2024-01-29)
+> 原文：[`towardsdatascience.com/graphcast-how-to-get-things-done-f2fd5630c5fb?source=collection_archive---------0-----------------------#2024-01-29`](https://towardsdatascience.com/graphcast-how-to-get-things-done-f2fd5630c5fb?source=collection_archive---------0-----------------------#2024-01-29)
 
 ## 本文介绍了如何使用谷歌最新的工具进行预测，从获取数据到格式化等等。
 
-[](https://abhinavyesss.medium.com/?source=post_page---byline--f2fd5630c5fb--------------------------------)[![Abhinav Kumar](../Images/96f52cd59bc0dcfc91a500c965c0d5a2.png)](https://abhinavyesss.medium.com/?source=post_page---byline--f2fd5630c5fb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f2fd5630c5fb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f2fd5630c5fb--------------------------------) [Abhinav Kumar](https://abhinavyesss.medium.com/?source=post_page---byline--f2fd5630c5fb--------------------------------)
+[](https://abhinavyesss.medium.com/?source=post_page---byline--f2fd5630c5fb--------------------------------)![Abhinav Kumar](https://abhinavyesss.medium.com/?source=post_page---byline--f2fd5630c5fb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f2fd5630c5fb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f2fd5630c5fb--------------------------------) [Abhinav Kumar](https://abhinavyesss.medium.com/?source=post_page---byline--f2fd5630c5fb--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f2fd5630c5fb--------------------------------) ·14分钟阅读·2024年1月29日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f2fd5630c5fb--------------------------------) ·14 分钟阅读·2024 年 1 月 29 日
 
 --
 
-![](../Images/588d8016408891c86301bee99f160e65.png)
+![](img/588d8016408891c86301bee99f160e65.png)
 
 图片由 [NOAA](https://unsplash.com/@noaa?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -20,7 +20,7 @@
 
 > 这就像一盒巧克力，你永远不知道自己会得到什么。
 
-最近，Deepmind发布了一款新工具：[**Graphcast，一个用于更快、更准确的全球天气预报的AI模型**](https://deepmind.google/discover/blog/graphcast-ai-model-for-faster-and-more-accurate-global-weather-forecasting/)，试图让这包巧克力变得更加美味和高效。在谷歌TPU v4机器上，使用Graphcast，可以在不到一分钟的时间内，以0.25度的空间分辨率获取预测。它解决了使用传统方法预测时可能面临的许多问题：
+最近，Deepmind 发布了一款新工具：[**Graphcast，一个用于更快、更准确的全球天气预报的 AI 模型**](https://deepmind.google/discover/blog/graphcast-ai-model-for-faster-and-more-accurate-global-weather-forecasting/)，试图让这包巧克力变得更加美味和高效。在谷歌 TPU v4 机器上，使用 Graphcast，可以在不到一分钟的时间内，以 0.25 度的空间分辨率获取预测。它解决了使用传统方法预测时可能面临的许多问题：
 
 +   预测结果是针对所有坐标一次性生成的，
 
@@ -30,11 +30,11 @@
 
 不那么令人费解的是使用上述工具获取预测所需的数据准备。
 
-![](../Images/375e9e1395130580aa5d391c57e3527e.png)
+![](img/375e9e1395130580aa5d391c57e3527e.png)
 
 [Ali Kokab](https://unsplash.com/@_alikokab_?utm_source=medium&utm_medium=referral) 的照片，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-然而，不用担心，我将成为你黑暗且阴郁盔甲下的骑士，在本文中解释准备和格式化数据所需的步骤，最后使用Graphcast获取预测。
+然而，不用担心，我将成为你黑暗且阴郁盔甲下的骑士，在本文中解释准备和格式化数据所需的步骤，最后使用 Graphcast 获取预测。
 
 **注意**：如今使用“AI”这个词让我非常想起在漫威电影中使用“量子”一词的方式。
 
@@ -50,13 +50,13 @@
 
 1.  将它们整合在一起并进行预测。
 
-Graphcast表示，使用当前的天气数据和6小时前的数据，可以预测未来6小时的情况。为了简单起见，举个例子：
+Graphcast 表示，使用当前的天气数据和 6 小时前的数据，可以预测未来 6 小时的情况。为了简单起见，举个例子：
 
 +   **如果需要预测**：2024–01–01 18:00，
 
 +   **然后输入数据**：2024–01–01 12:00 和 2024–01–01 06:00。
 
-需要注意的是，**2024–01–01 18:00将是第一个被获取的预测**。Graphcast还可以额外获取未来10天的数据，每次预测之间间隔6小时。因此，其他可以获取预测的时间戳为：
+需要注意的是，**2024–01–01 18:00 将是第一个被获取的预测**。Graphcast 还可以额外获取未来 10 天的数据，每次预测之间间隔 6 小时。因此，其他可以获取预测的时间戳为：
 
 +   2024–01–02 00:00，06:00，12:00，18:00，
 
@@ -64,7 +64,7 @@ Graphcast表示，使用当前的天气数据和6小时前的数据，可以预�
 
 +   2024–01–10 06:00，12:00。
 
-总结来说，**可以通过两个时间戳的输入** **预测40个时间戳的数据**。
+总结来说，**可以通过两个时间戳的输入** **预测 40 个时间戳的数据**。
 
 # 假设和重要参数
 
@@ -76,7 +76,7 @@ Graphcast表示，使用当前的天气数据和6小时前的数据，可以预�
 
 +   **预测数量**：4。
 
-+   **空间分辨率**：1度。
++   **空间分辨率**：1 度。
 
 +   **压力水平**：13。
 
@@ -164,13 +164,13 @@ def toDatetime(dt) -> datetime.datetime:
 
 +   他们的净资产是多少？
 
-同样，Graphcast也需要某些输入，这些输入通过[**CDS**](https://cds.climate.copernicus.eu/cdsapp#!/home)获得，使用其Python库：[**cdsapi**](https://pypi.org/project/cdsapi/)。目前，数据发布者[**使用创作共用 4.0 国际许可协议**](https://publications.copernicus.org/for_authors/licence_and_copyright.html)，这意味着任何人都可以复制、分发、传输和修改该作品，只要注明原作者。
+同样，Graphcast 也需要某些输入，这些输入通过[**CDS**](https://cds.climate.copernicus.eu/cdsapp#!/home)获得，使用其 Python 库：[**cdsapi**](https://pypi.org/project/cdsapi/)。目前，数据发布者[**使用创作共用 4.0 国际许可协议**](https://publications.copernicus.org/for_authors/licence_and_copyright.html)，这意味着任何人都可以复制、分发、传输和修改该作品，只要注明原作者。
 
-然而，在使用cdsapi获取数据之前，需要进行身份验证，[**具体说明见此**](https://cds.climate.copernicus.eu/api-how-to)，CDS提供了相关说明，且过程相对简单。
+然而，在使用 cdsapi 获取数据之前，需要进行身份验证，[**具体说明见此**](https://cds.climate.copernicus.eu/api-how-to)，CDS 提供了相关说明，且过程相对简单。
 
-假设你现在已经获得CDS认证，可以创建输入数据，具体步骤如下：
+假设你现在已经获得 CDS 认证，可以创建输入数据，具体步骤如下：
 
-1.  **获取单层值**：这些值依赖于***坐标***和***时间***。所需的输入字段之一是***total_precipitation_6hr***。顾名思义，这是指从该特定时间戳开始的过去6小时的降水量。因此，我们不仅仅获取两个输入时间戳的值，而是需要获取从**2024-01-01 00:00到12:00**的时间戳数据。
+1.  **获取单层值**：这些值依赖于***坐标***和***时间***。所需的输入字段之一是***total_precipitation_6hr***。顾名思义，这是指从该特定时间戳开始的过去 6 小时的降水量。因此，我们不仅仅获取两个输入时间戳的值，而是需要获取从**2024-01-01 00:00 到 12:00**的时间戳数据。
 
 1.  **获取压力层值**：除了依赖于***坐标***外，还依赖于***压力层***。因此，在请求数据时，我们会指定所需的压力层数据。在这种情况下，我们只会获取两个输入时间戳的值。
 
@@ -180,13 +180,13 @@ def toDatetime(dt) -> datetime.datetime:
 
 其他小步骤包括：
 
-+   从CDS获取数据后重命名列，因为CDS输出的是天气变量的简化形式。
++   从 CDS 获取数据后重命名列，因为 CDS 输出的是天气变量的简化形式。
 
 +   将***geopotential***变量重命名为***geopotential_at_surface***，用于单层数据，因为压力层有相同的字段名。
 
-+   使用[**math**](https://docs.python.org/3/library/math.html)库中的函数，在从graphcast获得***progress***值后，计算sin和cos值。
++   使用[**math**](https://docs.python.org/3/library/math.html)库中的函数，在从 graphcast 获得***progress***值后，计算 sin 和 cos 值。
 
-+   将***latitude***重命名为***lat***，将***longitude***重命名为***lon***，并引入另一个索引：***batch***，其值为0。
++   将***latitude***重命名为***lat***，将***longitude***重命名为***lon***，并引入另一个索引：***batch***，其值为 0。
 
 创建输入数据的代码如下。
 
@@ -289,7 +289,7 @@ if __name__ == '__main__':
 
 # Targets
 
-有11个预测字段：
+有 11 个预测字段：
 
 +   u_component_of_wind,
 
@@ -313,7 +313,7 @@ if __name__ == '__main__':
 
 +   total_precipitation.
 
-![](../Images/812a9485ce1659178f38f686944419c2.png)
+![](img/812a9485ce1659178f38f686944419c2.png)
 
 由 [Ricardo Arce](https://unsplash.com/@jrarce?utm_source=medium&utm_medium=referral) 拍摄，图片来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -457,7 +457,7 @@ if __name__ == '__main__':
 
 > 工作还没有完成。
 
-![](../Images/e70074bb06ef6d6bd94183c390f84b2f.png)
+![](img/e70074bb06ef6d6bd94183c390f84b2f.png)
 
 由 [Mike Von](https://unsplash.com/@thevoncomplex?utm_source=medium&utm_medium=referral) 拍摄，图片来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -535,7 +535,7 @@ if __name__ == '__main__':
 
 计算、处理和组装好 **inputs**、**targets** 和 **forcings** 后，接下来就是进行 **predictions** 的时候了。
 
-现在我们需要模型权重和归一化统计文件，这些文件是[**由Deepmind提供**](https://console.cloud.google.com/storage/browser/dm_graphcast;tab=objects?prefix=&forceOnObjectsSortingFiltering=false)的。
+现在我们需要模型权重和归一化统计文件，这些文件是[**由 Deepmind 提供**](https://console.cloud.google.com/storage/browser/dm_graphcast;tab=objects?prefix=&forceOnObjectsSortingFiltering=false)的。
 
 需要下载的文件包括：
 
@@ -561,7 +561,7 @@ if __name__ == '__main__':
         ├── stddev_by_level.nc
 ```
 
-使用[**Deepmind提供的预测代码**](https://colab.research.google.com/drive/1X9WcRis_PC_DyuHYIiUwKWCAIr8T-4Pd#scrollTo=Sd99tPA3TBa4)，上述所有功能最终通过下面的代码片段完成预测。
+使用[**Deepmind 提供的预测代码**](https://colab.research.google.com/drive/1X9WcRis_PC_DyuHYIiUwKWCAIr8T-4Pd#scrollTo=Sd99tPA3TBa4)，上述所有功能最终通过下面的代码片段完成预测。
 
 ```py
 # Includes the packages imported and constants assigned.
@@ -633,19 +633,19 @@ if __name__ == '__main__':
 
 在执行过程中，将所有过程整合在一起，以实现无缝的实施是非常重要的。
 
-为了简单起见，我[**上传了代码**](https://github.com/abhinavyesss/graphcast-predict)，以及Docker镜像和容器文件，可以用来创建一个环境来执行预测程序。
+为了简单起见，我[**上传了代码**](https://github.com/abhinavyesss/graphcast-predict)，以及 Docker 镜像和容器文件，可以用来创建一个环境来执行预测程序。
 
-在天气预测领域，目前我们有像Accuweather、IBM以及多个meteomatics模型等贡献者。Graphcast证明是这一系列中一个有趣且在许多情况下更高效的补充。然而，它也有一些远未达到最佳状态的属性。在某个难得的思考时刻，我总结出以下几点见解：
+在天气预测领域，目前我们有像 Accuweather、IBM 以及多个 meteomatics 模型等贡献者。Graphcast 证明是这一系列中一个有趣且在许多情况下更高效的补充。然而，它也有一些远未达到最佳状态的属性。在某个难得的思考时刻，我总结出以下几点见解：
 
-+   与其他天气预测服务相比，Graphcast更高效且速度更快，能够在几分钟内为整个世界提供预测。
++   与其他天气预测服务相比，Graphcast 更高效且速度更快，能够在几分钟内为整个世界提供预测。
 
-+   这使得通过API进行成百上千次地理位置调用变得多余。
++   这使得通过 API 进行成百上千次地理位置调用变得多余。
 
-+   然而，要在几分钟内完成上述操作，必须拥有非常强大的机器，至少是Google TPU v4或更好的机器。这种机器并不容易获取。即便选择使用AWS、Google或Azure的虚拟机，费用也会迅速累积。
++   然而，要在几分钟内完成上述操作，必须拥有非常强大的机器，至少是 Google TPU v4 或更好的机器。这种机器并不容易获取。即便选择使用 AWS、Google 或 Azure 的虚拟机，费用也会迅速累积。
 
 +   目前没有办法使用小范围的地理数据或坐标子集并获得相应的预测。始终需要所有坐标的数据。
 
-+   CDS提供的数据有五天的延迟期，这意味着在“x”日期，CDS只能提供到“x-5”日期的数据。这使得未来天气预测变得有些复杂，因为在进行未来预测之前，必须先覆盖延迟期。
++   CDS 提供的数据有五天的延迟期，这意味着在“x”日期，CDS 只能提供到“x-5”日期的数据。这使得未来天气预测变得有些复杂，因为在进行未来预测之前，必须先覆盖延迟期。
 
 需要注意的是，Graphcast 是天气预测领域中相对较新的工具，未来肯定会进行更改和新增功能，以提高易用性和可访问性。考虑到它在效率和性能方面的领先优势，Graphcast 一定会加以利用。
 

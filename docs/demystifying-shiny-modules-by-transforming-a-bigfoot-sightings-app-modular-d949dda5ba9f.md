@@ -1,16 +1,16 @@
 # 通过大脚怪目击应用程序转型揭开 R Shiny 模块的神秘面纱
 
-> 原文：[https://towardsdatascience.com/demystifying-shiny-modules-by-transforming-a-bigfoot-sightings-app-modular-d949dda5ba9f?source=collection_archive---------10-----------------------#2024-05-03](https://towardsdatascience.com/demystifying-shiny-modules-by-transforming-a-bigfoot-sightings-app-modular-d949dda5ba9f?source=collection_archive---------10-----------------------#2024-05-03)
+> 原文：[`towardsdatascience.com/demystifying-shiny-modules-by-transforming-a-bigfoot-sightings-app-modular-d949dda5ba9f?source=collection_archive---------10-----------------------#2024-05-03`](https://towardsdatascience.com/demystifying-shiny-modules-by-transforming-a-bigfoot-sightings-app-modular-d949dda5ba9f?source=collection_archive---------10-----------------------#2024-05-03)
 
 ## 深入学习如何使用模块构建 Shiny 应用程序的指南
 
-[](https://medium.com/@menghani.deepsha?source=post_page---byline--d949dda5ba9f--------------------------------)[![Deepsha Menghani](../Images/56a6ed8597c36e8c76d8a29a449325a4.png)](https://medium.com/@menghani.deepsha?source=post_page---byline--d949dda5ba9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d949dda5ba9f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d949dda5ba9f--------------------------------) [Deepsha Menghani](https://medium.com/@menghani.deepsha?source=post_page---byline--d949dda5ba9f--------------------------------)
+[](https://medium.com/@menghani.deepsha?source=post_page---byline--d949dda5ba9f--------------------------------)![Deepsha Menghani](https://medium.com/@menghani.deepsha?source=post_page---byline--d949dda5ba9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d949dda5ba9f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d949dda5ba9f--------------------------------) [Deepsha Menghani](https://medium.com/@menghani.deepsha?source=post_page---byline--d949dda5ba9f--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d949dda5ba9f--------------------------------) ·9 分钟阅读·2024年5月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d949dda5ba9f--------------------------------) ·9 分钟阅读·2024 年 5 月 3 日
 
 --
 
-![](../Images/3528c96646cbc51862cb2a7418cf6b86.png)
+![](img/3528c96646cbc51862cb2a7418cf6b86.png)
 
 图片由 [Luke Chesser](https://unsplash.com/@lukechesser?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源于 [Unsplash](https://unsplash.com/photos/graphs-of-performance-analytics-on-a-laptop-screen-JKUTrJ4vK00?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

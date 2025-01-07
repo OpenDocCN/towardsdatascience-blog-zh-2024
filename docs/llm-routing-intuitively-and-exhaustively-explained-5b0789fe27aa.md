@@ -1,16 +1,16 @@
 # LLM 路由 — 直观且详尽的解释
 
-> 原文：[https://towardsdatascience.com/llm-routing-intuitively-and-exhaustively-explained-5b0789fe27aa?source=collection_archive---------0-----------------------#2024-11-22](https://towardsdatascience.com/llm-routing-intuitively-and-exhaustively-explained-5b0789fe27aa?source=collection_archive---------0-----------------------#2024-11-22)
+> 原文：[`towardsdatascience.com/llm-routing-intuitively-and-exhaustively-explained-5b0789fe27aa?source=collection_archive---------0-----------------------#2024-11-22`](https://towardsdatascience.com/llm-routing-intuitively-and-exhaustively-explained-5b0789fe27aa?source=collection_archive---------0-----------------------#2024-11-22)
 
 ## 在每个查询上动态选择合适的语言模型
 
-[](https://medium.com/@danielwarfield1?source=post_page---byline--5b0789fe27aa--------------------------------)[![Daniel Warfield](../Images/c1c8b4dd514f6813e08e401401324bca.png)](https://medium.com/@danielwarfield1?source=post_page---byline--5b0789fe27aa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5b0789fe27aa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5b0789fe27aa--------------------------------) [Daniel Warfield](https://medium.com/@danielwarfield1?source=post_page---byline--5b0789fe27aa--------------------------------)
+[](https://medium.com/@danielwarfield1?source=post_page---byline--5b0789fe27aa--------------------------------)![Daniel Warfield](https://medium.com/@danielwarfield1?source=post_page---byline--5b0789fe27aa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5b0789fe27aa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5b0789fe27aa--------------------------------) [Daniel Warfield](https://medium.com/@danielwarfield1?source=post_page---byline--5b0789fe27aa--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5b0789fe27aa--------------------------------) ·阅读时间 49 分钟·2024年11月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5b0789fe27aa--------------------------------) ·阅读时间 49 分钟·2024 年 11 月 22 日
 
 --
 
-![](../Images/f2a70c84e7930d40d1b4dcfeca757f73.png)
+![](img/f2a70c84e7930d40d1b4dcfeca757f73.png)
 
 “和谐”，由 Daniel Warfield 使用 Midjourney 创作。除非另有说明，所有图片均由作者提供。本文最初发布于 [直观且详尽的解释](https://iaee.substack.com/)。
 

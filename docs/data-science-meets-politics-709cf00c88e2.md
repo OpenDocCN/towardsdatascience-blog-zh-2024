@@ -1,16 +1,16 @@
 # 数据科学与政治的结合
 
-> 原文：[https://towardsdatascience.com/data-science-meets-politics-709cf00c88e2?source=collection_archive---------3-----------------------#2024-09-27](https://towardsdatascience.com/data-science-meets-politics-709cf00c88e2?source=collection_archive---------3-----------------------#2024-09-27)
+> 原文：[`towardsdatascience.com/data-science-meets-politics-709cf00c88e2?source=collection_archive---------3-----------------------#2024-09-27`](https://towardsdatascience.com/data-science-meets-politics-709cf00c88e2?source=collection_archive---------3-----------------------#2024-09-27)
 
 ## 揭示国会动态与网络
 
-[](https://medium.com/@luizvenosa21?source=post_page---byline--709cf00c88e2--------------------------------)[![Luiz Venosa](../Images/774b47debfbebf8478916b1d4b3d523b.png)](https://medium.com/@luizvenosa21?source=post_page---byline--709cf00c88e2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--709cf00c88e2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--709cf00c88e2--------------------------------) [Luiz Venosa](https://medium.com/@luizvenosa21?source=post_page---byline--709cf00c88e2--------------------------------)
+[](https://medium.com/@luizvenosa21?source=post_page---byline--709cf00c88e2--------------------------------)![Luiz Venosa](https://medium.com/@luizvenosa21?source=post_page---byline--709cf00c88e2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--709cf00c88e2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--709cf00c88e2--------------------------------) [Luiz Venosa](https://medium.com/@luizvenosa21?source=post_page---byline--709cf00c88e2--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--709cf00c88e2--------------------------------) ·阅读时间：8分钟·2024年9月27日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--709cf00c88e2--------------------------------) ·阅读时间：8 分钟·2024 年 9 月 27 日
 
 --
 
-![](../Images/9af040b869334895da9f2291e16d8894.png)
+![](img/9af040b869334895da9f2291e16d8894.png)
 
 巴西国会 — [Gustavo Leighton](https://unsplash.com/@g_leighton?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)拍摄的照片，来自[Unsplash](https://unsplash.com/photos/a-black-and-white-photo-of-a-building-YS03LgfZs-k?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -26,14 +26,14 @@
 
 首先，我们需要数据。
 
-我下载了2023年至2024年5月18日之间所有投票法案的数据，以及每位国会议员的投票记录。所有数据都可以在巴西国会的[开放数据门户](https://dadosabertos.camara.leg.br/)找到。然后，我创建了两个不同的pandas数据框，一个包含所有投票法案，另一个记录了每个国会议员在每次投票中的投票情况。
+我下载了 2023 年至 2024 年 5 月 18 日之间所有投票法案的数据，以及每位国会议员的投票记录。所有数据都可以在巴西国会的[开放数据门户](https://dadosabertos.camara.leg.br/)找到。然后，我创建了两个不同的 pandas 数据框，一个包含所有投票法案，另一个记录了每个国会议员在每次投票中的投票情况。
 
 ```py
 votacoes = pd.concat([pd.read_csv('votacoes-2023.csv', header=0, sep=';'),  pd.read_csv('votacoes-2024.csv', header=0, sep=';')])
 votacoes_votos_dep = pd.concat([pd.read_csv('votacoesVotos-2023.csv', sep=';', quoting=1) ,  pd.read_csv('votacoesVotos-2024.csv', sep=';', on_bad_lines='warn', quoting=1, encoding='utf-8')])
 ```
 
-对于***votacoes***数据框，我只选择了**idOrgao**为180的条目，这意味着它们是在国会的主会议厅投票的。所以，我们有大部分国会议员的投票数据。然后，我使用*votacoes_Ids*列表来过滤***votacoes_votos_dep***数据框。
+对于***votacoes***数据框，我只选择了**idOrgao**为 180 的条目，这意味着它们是在国会的主会议厅投票的。所以，我们有大部分国会议员的投票数据。然后，我使用*votacoes_Ids*列表来过滤***votacoes_votos_dep***数据框。
 
 ```py
 plen = votacoes[votacoes['idOrgao'] == 180]
@@ -41,14 +41,14 @@ votacoes_ids = plen['id'].unique()
 votacoes_votos_dep = votacoes_votos_dep[votacoes_votos_dep['idVotacao'].isin(votacoes_ids)]
 ```
 
-现在，在***votacoes_votos_dep***中，每个投票都是一行，包含国会议员的姓名和投票会话ID，用于识别谁进行了投票以及投票的内容。因此，我创建了一个透视表，使每行代表一位国会议员，每列表示一项投票，将“是”编码为1，“否”编码为0，并删除了超过280位代表没有投票的投票。
+现在，在***votacoes_votos_dep***中，每个投票都是一行，包含国会议员的姓名和投票会话 ID，用于识别谁进行了投票以及投票的内容。因此，我创建了一个透视表，使每行代表一位国会议员，每列表示一项投票，将“是”编码为 1，“否”编码为 0，并删除了超过 280 位代表没有投票的投票。
 
 ```py
 votacoes_votos_dep['voto_numerico'] = votacoes_votos_dep['voto'].map({'Sim': 1, 'Não':0})
 votes_pivot = votacoes_votos_dep.pivot_table(index='deputado_nome', columns='idVotacao', values='voto_numerico').dropna(axis=1, thresh=280)
 ```
 
-在计算相似度矩阵之前，我将所有剩余的NAs填充为0.5，以避免干扰国会议员的位置设置。最后，我们计算每个代表的向量之间的余弦相似度，并将其存储在数据框中。
+在计算相似度矩阵之前，我将所有剩余的 NAs 填充为 0.5，以避免干扰国会议员的位置设置。最后，我们计算每个代表的向量之间的余弦相似度，并将其存储在数据框中。
 
 ```py
 from sklearn.metrics.pairwise import cosine_similarity
@@ -56,7 +56,7 @@ similarity_matrix = cosine_similarity(votes_pivot)
 similarity_df = pd.DataFrame(similarity_matrix, index=votes_pivot.index, columns=votes_pivot.index)
 ```
 
-![](../Images/4a02832cf27088342d75c781c3701b12.png)
+![](img/4a02832cf27088342d75c781c3701b12.png)
 
 相似度矩阵 - 图片由作者提供
 
@@ -74,7 +74,7 @@ for i, name in enumerate(names):
     G.add_node(name)
 ```
 
-然后，连接两个节点的边代表这两位国会议员投票行为相似度至少为75%。此外，为了解决一些国会议员与其他高相似度成员的关系问题，我只选择了前25位相似度最高的国会议员来添加边。
+然后，连接两个节点的边代表这两位国会议员投票行为相似度至少为 75%。此外，为了解决一些国会议员与其他高相似度成员的关系问题，我只选择了前 25 位相似度最高的国会议员来添加边。
 
 ```py
 threshold = 0.75
@@ -95,7 +95,7 @@ for source, target in counter.items():
 pos = nx.spring_layout(G, k=0.1,  iterations=50, seed=29)
 ```
 
-最后，我们使用Go图形绘制网络，并根据节点的位置单独添加边和节点。
+最后，我们使用 Go 图形绘制网络，并根据节点的位置单独添加边和节点。
 
 ```py
  # Create Edges
@@ -132,7 +132,7 @@ fig.show()
 
 结果：
 
-![](../Images/494a4a9672aba0f1a1c9e1ca59247948.png)
+![](img/494a4a9672aba0f1a1c9e1ca59247948.png)
 
 图片由作者提供
 
@@ -140,7 +140,7 @@ fig.show()
 
 为了改善可视化效果，我设置只有在鼠标悬停在节点上时才显示名称。同时，我根据国会网站上的政党和联盟为节点着色，并根据它们连接的边数调整大小。
 
-![](../Images/f30e6d1372e1a4398e1c0b0227126ca8.png)
+![](img/f30e6d1372e1a4398e1c0b0227126ca8.png)
 
 图片由作者提供
 
@@ -148,31 +148,31 @@ fig.show()
 
 # 解释结果
 
-首先，让我解释一下颜色的含义。红色代表当前左翼政府的基础，也就是总统所在党派的国会议员或公共盟友，PT、PSOL、PCdoB等。蓝色代表反对派，由PL（前总统所在党派）领导，另有一个右翼党派，NOVO。
+首先，让我解释一下颜色的含义。红色代表当前左翼政府的基础，也就是总统所在党派的国会议员或公共盟友，PT、PSOL、PCdoB 等。蓝色代表反对派，由 PL（前总统所在党派）领导，另有一个右翼党派，NOVO。
 
-绿色和黄色代表巴西政治中的一种现象，称为“中间派”或“大中间”。中间派由未与任何党派结盟的政党组成，这些政党总是与当前政府结盟，并将他们的支持交换为政府职位或国有企业的任命。黄色代表以UNIAO为中心的群体，UNIAO是巴西最大的政党。绿色则是以MDB为中心的群体，MDB是一个历史悠久的党派，曾经掌握大部分“中间派”的控制权。
+绿色和黄色代表巴西政治中的一种现象，称为“中间派”或“大中间”。中间派由未与任何党派结盟的政党组成，这些政党总是与当前政府结盟，并将他们的支持交换为政府职位或国有企业的任命。黄色代表以 UNIAO 为中心的群体，UNIAO 是巴西最大的政党。绿色则是以 MDB 为中心的群体，MDB 是一个历史悠久的党派，曾经掌握大部分“中间派”的控制权。
 
 那么，我们回到图表：
 
-![](../Images/b6e45ccd9fd8453458d2ae0adf747ca6.png)
+![](img/b6e45ccd9fd8453458d2ae0adf747ca6.png)
 
 图像来源：作者
 
-第一组似乎主要由红色组成，代表当前政府及其最亲密的盟友。内部的黄色点主要来自AVNATE，尽管他们公开与UNIAO在同一个联盟中，但似乎在政治上更多地倾向于左翼。
+第一组似乎主要由红色组成，代表当前政府及其最亲密的盟友。内部的黄色点主要来自 AVNATE，尽管他们公开与 UNIAO 在同一个联盟中，但似乎在政治上更多地倾向于左翼。
 
-网络模型捕捉到的另一个有趣的动态是每个更大群体内部特定党派和意识形态的分组。在第一组中，紧靠第一号基础的下方，有七个节点非常接近。这些节点代表PSOL的国会议员，PSOL是一个激进的左翼党派。有趣的是，即使在左翼阵营内部，他们也被表示为网络中的一个子群体。
+网络模型捕捉到的另一个有趣的动态是每个更大群体内部特定党派和意识形态的分组。在第一组中，紧靠第一号基础的下方，有七个节点非常接近。这些节点代表 PSOL 的国会议员，PSOL 是一个激进的左翼党派。有趣的是，即使在左翼阵营内部，他们也被表示为网络中的一个子群体。
 
 第二组似乎主要由我们之前所称的“中间派”（Centrao）构成。和往常一样，他们是政府的基础部分；他们比第三组更接近第一组，我们可以看到预期中的绿色和黄色混合，以及一些蓝色的点。这意味着许多本应在反对派的国会议员投票方式与政府相似。为什么？嗯，PL，现在的“反对派”党，曾经是一个典型的“中间派”党派。因此，历史上的成员仍然像典型的“中间派”那样行事。
 
 值得注意的是，我们在第二组中看到了最大的节点。一个是黄色的，代表政府在众议院的领袖瓦尔德马尔·奥利维拉（Waldemar Oliveira）。他在国会中非常重要，因为大部分议员会根据他的指示投票。其他两个最大的节点也在第二组中，但位于我所称的第二组半（Group 2.5）中。
 
-![](../Images/c43810d7aa779f94ab4f5cda3fb4c681.png)
+![](img/c43810d7aa779f94ab4f5cda3fb4c681.png)
 
 图像来源：作者
 
 第二组半（Group 2.5）行为背后的原因超出了本文讨论的范围；简单来说，这是一个由标榜为“右翼”的国会议员组成的群体，但他们的行为更像是“中间派”。他们只有在偶尔与右翼投票时才会接近第三组，但每当涉及第二组关心的投票时，他们会脱离并与第二组投票。
 
-最后，第三组与另外两组的分布不同。它是国会中最小的一组，且主要由PL党派的代表组成。它呈现出更“分散”的特点，因为其成员和第二组之间有很多空隙，表明他们并非总是一起投票。同时，没有超大的节点，因此没有明确的领导者对整个区块施加影响。这种模式是合理的，并与现实相符，因为反对派在当前国会中未能取得太多成功。
+最后，第三组与另外两组的分布不同。它是国会中最小的一组，且主要由 PL 党派的代表组成。它呈现出更“分散”的特点，因为其成员和第二组之间有很多空隙，表明他们并非总是一起投票。同时，没有超大的节点，因此没有明确的领导者对整个区块施加影响。这种模式是合理的，并与现实相符，因为反对派在当前国会中未能取得太多成功。
 
 # 结论
 

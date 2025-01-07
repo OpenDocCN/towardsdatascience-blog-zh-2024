@@ -1,16 +1,16 @@
 # 强化学习，第一部分：简介与主要概念
 
-> 原文：[https://towardsdatascience.com/reinforcement-learning-introduction-and-main-concepts-48ea997c850c?source=collection_archive---------2-----------------------#2024-04-09](https://towardsdatascience.com/reinforcement-learning-introduction-and-main-concepts-48ea997c850c?source=collection_archive---------2-----------------------#2024-04-09)
+> 原文：[`towardsdatascience.com/reinforcement-learning-introduction-and-main-concepts-48ea997c850c?source=collection_archive---------2-----------------------#2024-04-09`](https://towardsdatascience.com/reinforcement-learning-introduction-and-main-concepts-48ea997c850c?source=collection_archive---------2-----------------------#2024-04-09)
 
 ## 迈出进入强化学习世界的第一步
 
-[](https://medium.com/@slavahead?source=post_page---byline--48ea997c850c--------------------------------)[![Vyacheslav Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--48ea997c850c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--48ea997c850c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--48ea997c850c--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--48ea997c850c--------------------------------)
+[](https://medium.com/@slavahead?source=post_page---byline--48ea997c850c--------------------------------)![Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--48ea997c850c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--48ea997c850c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--48ea997c850c--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--48ea997c850c--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--48ea997c850c--------------------------------) ·阅读时间11分钟·2024年4月9日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--48ea997c850c--------------------------------) ·阅读时间 11 分钟·2024 年 4 月 9 日
 
 --
 
-![](../Images/2e6592d197bb45d036c0adabc24facf3.png)
+![](img/2e6592d197bb45d036c0adabc24facf3.png)
 
 # 介绍
 

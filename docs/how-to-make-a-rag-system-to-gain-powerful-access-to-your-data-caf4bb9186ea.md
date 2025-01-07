@@ -1,20 +1,20 @@
 # 如何构建一个 RAG 系统，以便轻松访问您的数据
 
-> 原文：[https://towardsdatascience.com/how-to-make-a-rag-system-to-gain-powerful-access-to-your-data-caf4bb9186ea?source=collection_archive---------3-----------------------#2024-03-19](https://towardsdatascience.com/how-to-make-a-rag-system-to-gain-powerful-access-to-your-data-caf4bb9186ea?source=collection_archive---------3-----------------------#2024-03-19)
+> 原文：[`towardsdatascience.com/how-to-make-a-rag-system-to-gain-powerful-access-to-your-data-caf4bb9186ea?source=collection_archive---------3-----------------------#2024-03-19`](https://towardsdatascience.com/how-to-make-a-rag-system-to-gain-powerful-access-to-your-data-caf4bb9186ea?source=collection_archive---------3-----------------------#2024-03-19)
 
 ## 本文将展示如何构建一个 RAG 系统，使您的数据通过提示轻松访问。
 
-[](https://oieivind.medium.com/?source=post_page---byline--caf4bb9186ea--------------------------------)[![Eivind Kjosbakken](../Images/5f91b74428e1202fc4a176a3dd1cb1c7.png)](https://oieivind.medium.com/?source=post_page---byline--caf4bb9186ea--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--caf4bb9186ea--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--caf4bb9186ea--------------------------------) [Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--caf4bb9186ea--------------------------------)
+[](https://oieivind.medium.com/?source=post_page---byline--caf4bb9186ea--------------------------------)![Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--caf4bb9186ea--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--caf4bb9186ea--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--caf4bb9186ea--------------------------------) [Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--caf4bb9186ea--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--caf4bb9186ea--------------------------------) ·阅读时间 13 分钟·2024年3月19日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--caf4bb9186ea--------------------------------) ·阅读时间 13 分钟·2024 年 3 月 19 日
 
 --
 
 RAG 系统是一种创新的信息检索方法。它结合了传统的信息检索方法，如向量相似度搜索，以及最先进的大型语言模型技术。这些技术的结合，构成了一个强大的系统，能够通过简单的提示访问大量信息。
 
-![](../Images/c86151834b18ecded76f2e1f3ff81f8b.png)
+![](img/c86151834b18ecded76f2e1f3ff81f8b.png)
 
-ChatGPT 生成的 RAG 系统图像。图像来自 ChatGPT。“你能画一个 RAG 系统的插图，展示计算机如何访问知识库？”这个提示。*ChatGPT*，4，OpenAI，2024年3月17日。[https://chat.openai.com.](https://chat.openai.com.)
+ChatGPT 生成的 RAG 系统图像。图像来自 ChatGPT。“你能画一个 RAG 系统的插图，展示计算机如何访问知识库？”这个提示。*ChatGPT*，4，OpenAI，2024 年 3 月 17 日。[`chat.openai.com.`](https://chat.openai.com.)
 
 # 动机
 

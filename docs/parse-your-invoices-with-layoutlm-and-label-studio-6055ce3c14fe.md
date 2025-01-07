@@ -1,12 +1,12 @@
-# 使用LayoutLM和Label Studio解析您的发票
+# 使用 LayoutLM 和 Label Studio 解析您的发票
 
-> 原文：[https://towardsdatascience.com/parse-your-invoices-with-layoutlm-and-label-studio-6055ce3c14fe?source=collection_archive---------1-----------------------#2024-04-16](https://towardsdatascience.com/parse-your-invoices-with-layoutlm-and-label-studio-6055ce3c14fe?source=collection_archive---------1-----------------------#2024-04-16)
+> 原文：[`towardsdatascience.com/parse-your-invoices-with-layoutlm-and-label-studio-6055ce3c14fe?source=collection_archive---------1-----------------------#2024-04-16`](https://towardsdatascience.com/parse-your-invoices-with-layoutlm-and-label-studio-6055ce3c14fe?source=collection_archive---------1-----------------------#2024-04-16)
 
-## 使用Transformers库、Label Studio和AWS S3对您的发票进行LayoutLM的微调。
+## 使用 Transformers 库、Label Studio 和 AWS S3 对您的发票进行 LayoutLM 的微调。
 
-[](https://medium.com/@jeremyarancio?source=post_page---byline--6055ce3c14fe--------------------------------)[![Jeremy Arancio](../Images/37c4c41e71eb91cfffc7e4ff2bb4394a.png)](https://medium.com/@jeremyarancio?source=post_page---byline--6055ce3c14fe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6055ce3c14fe--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6055ce3c14fe--------------------------------) [Jeremy Arancio](https://medium.com/@jeremyarancio?source=post_page---byline--6055ce3c14fe--------------------------------)
+[](https://medium.com/@jeremyarancio?source=post_page---byline--6055ce3c14fe--------------------------------)![Jeremy Arancio](https://medium.com/@jeremyarancio?source=post_page---byline--6055ce3c14fe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6055ce3c14fe--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6055ce3c14fe--------------------------------) [Jeremy Arancio](https://medium.com/@jeremyarancio?source=post_page---byline--6055ce3c14fe--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6055ce3c14fe--------------------------------) ·阅读时长34分钟·2024年4月16日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6055ce3c14fe--------------------------------) ·阅读时长 34 分钟·2024 年 4 月 16 日
 
 --
 
@@ -26,8 +26,8 @@
 
 让我们开始吧！
 
-![](../Images/663af8bdda741cb606e90c82ef79bb0f.png)
+![](img/663af8bdda741cb606e90c82ef79bb0f.png)
 
-使用Label Studio进行发票标注，以便进行LayoutLM训练（图片来自作者）
+使用 Label Studio 进行发票标注，以便进行 LayoutLM 训练（图片来自作者）
 
 # LayoutLM：文档图像理解的布局

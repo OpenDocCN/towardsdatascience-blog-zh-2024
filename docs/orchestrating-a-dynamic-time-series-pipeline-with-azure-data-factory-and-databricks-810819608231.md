@@ -1,26 +1,26 @@
-# 在Azure中编排动态时间序列管道
+# 在 Azure 中编排动态时间序列管道
 
-> 原文：[https://towardsdatascience.com/orchestrating-a-dynamic-time-series-pipeline-with-azure-data-factory-and-databricks-810819608231?source=collection_archive---------9-----------------------#2024-05-31](https://towardsdatascience.com/orchestrating-a-dynamic-time-series-pipeline-with-azure-data-factory-and-databricks-810819608231?source=collection_archive---------9-----------------------#2024-05-31)
+> 原文：[`towardsdatascience.com/orchestrating-a-dynamic-time-series-pipeline-with-azure-data-factory-and-databricks-810819608231?source=collection_archive---------9-----------------------#2024-05-31`](https://towardsdatascience.com/orchestrating-a-dynamic-time-series-pipeline-with-azure-data-factory-and-databricks-810819608231?source=collection_archive---------9-----------------------#2024-05-31)
 
-## 探索如何使用Azure Data Factory（ADF）和Databricks构建、触发和参数化一个时间序列数据管道，并附有逐步教程。
+## 探索如何使用 Azure Data Factory（ADF）和 Databricks 构建、触发和参数化一个时间序列数据管道，并附有逐步教程。
 
-[](https://medium.com/@johnleungTJ?source=post_page---byline--810819608231--------------------------------)[![John Leung](../Images/ef45063e759e3450fa7f3c32b2f292c3.png)](https://medium.com/@johnleungTJ?source=post_page---byline--810819608231--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--810819608231--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--810819608231--------------------------------) [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--810819608231--------------------------------)
+[](https://medium.com/@johnleungTJ?source=post_page---byline--810819608231--------------------------------)![John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--810819608231--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--810819608231--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--810819608231--------------------------------) [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--810819608231--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--810819608231--------------------------------) ·阅读时间8分钟·2024年5月31日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--810819608231--------------------------------) ·阅读时间 8 分钟·2024 年 5 月 31 日
 
 --
 
-在[上一篇故事](https://medium.com/towards-data-science/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287)中，我们回顾了PySpark在Databricks上处理时间序列数据的潜力。我鼓励你通过[这里](https://medium.com/towards-data-science/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287)了解更多内容。在不配置独立Spark实例的情况下，我们可以通过Databricks上的PySpark摄取静态和流数据，执行数据转换，提取有用的时间相关特征，并构建可视化。当处理企业级数据的大规模复杂转换时，PySpark的可扩展性和性能特别具有优势，甚至可以处理PB级别的数据。
+在[上一篇故事](https://medium.com/towards-data-science/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287)中，我们回顾了 PySpark 在 Databricks 上处理时间序列数据的潜力。我鼓励你通过[这里](https://medium.com/towards-data-science/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287)了解更多内容。在不配置独立 Spark 实例的情况下，我们可以通过 Databricks 上的 PySpark 摄取静态和流数据，执行数据转换，提取有用的时间相关特征，并构建可视化。当处理企业级数据的大规模复杂转换时，PySpark 的可扩展性和性能特别具有优势，甚至可以处理 PB 级别的数据。
 
-所有特征工程任务都成功地在一个Databricks笔记本中完成。然而，这只是构建数据中心系统时数据工程故事的一部分。数据管道的核心部分在于数据编排。
+所有特征工程任务都成功地在一个 Databricks 笔记本中完成。然而，这只是构建数据中心系统时数据工程故事的一部分。数据管道的核心部分在于数据编排。
 
 > 数据编排通常指的是对数据流进行集中控制，以便我们可以自动化、管理和监控整个数据管道。
 
-![](../Images/2a39ebad8db26cfd20e2a647df768903.png)
+![](img/2a39ebad8db26cfd20e2a647df768903.png)
 
 图片由[Julio Rionaldo](https://unsplash.com/@juliorionaldo?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-## Azure Data Factory (ADF)与Azure Databricks
+## Azure Data Factory (ADF)与 Azure Databricks
 
 为了满足这些需求，行业中最流行的解决方案之一是从[ADF](https://azure.microsoft.com/en-us/products/data-factory#features)平台运行[Azure Databricks](https://azure.microsoft.com/en-gb/products/databricks/#content-card-list-oc803c)笔记本。
 
@@ -36,7 +36,7 @@ ADF 是一个基于云的、无服务器且完全托管的数据集成服务。�
 
 这个容器用于保存和分组 Azure 解决方案的资源。我们将把必要的云服务组件放入这个逻辑组中，以便更容易进行构建或部署。
 
-![](../Images/0b3a948d5cc07b62727ff956da16e18d.png)
+![](img/0b3a948d5cc07b62727ff956da16e18d.png)
 
 Azure 资源组（作者提供的图片）
 
@@ -44,7 +44,7 @@ Azure 资源组（作者提供的图片）
 
 你可以根据性能和复制需求选择合适的存储账户。在高级选项卡中，我们启用了分层命名空间以设置[Data Lake Storage Gen 2](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction)。这使得既可以存储结构化数据，也可以存储非结构化数据。
 
-![](../Images/1a6a8f5c3ba036f8056555f2f1328079.png)
+![](img/1a6a8f5c3ba036f8056555f2f1328079.png)
 
 存储账户（作者提供的图片）
 
@@ -52,7 +52,7 @@ Azure 资源组（作者提供的图片）
 
 如果你之前使用过 Databricks，Azure Databricks 服务大体相同。此外，它与其他 Azure 服务原生集成，并提供统一的计费平台。这里有两个[层级](https://azure.microsoft.com/en-us/pricing/details/databricks/)：(1) 标准层——足以满足我们在此的概念验证需求；(2) 高级层——具有标准层的功能，额外提供[Unity Catalog](https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/)和可能对于拥有多个 Databricks 工作区的大型企业所需的高级网络功能。
 
-![](../Images/508e7c988c5787278492f29a7cb7c45b.png)
+![](img/508e7c988c5787278492f29a7cb7c45b.png)
 
 Azure Databricks 工作区（图片来源：作者）
 
@@ -60,29 +60,29 @@ Azure Databricks 工作区（图片来源：作者）
 
 该服务将帮助将 Azure 存储挂载到 Databricks，因此请确保记下应用 ID 和租户 ID，最重要的是应用的密钥值，在你重新访问时是无法查看的。
 
-![](../Images/71347d79943224942a4c8b3849793827.png)
+![](img/71347d79943224942a4c8b3849793827.png)
 
 应用注册 — 设置（图片来源：作者）
 
-![](../Images/899152e47dc2eb94104d5fbe94d58e6e.png)
+![](img/899152e47dc2eb94104d5fbe94d58e6e.png)
 
 应用注册 — 信息（图片来源：作者）
 
-![](../Images/39029473003e288a43c854dd3933028b.png)
+![](img/39029473003e288a43c854dd3933028b.png)
 
 应用注册 — 客户端密钥（图片来源：作者）
 
 然后，授予应用服务对应用服务的访问权限。这是通过将“Storage Blob Data Contributor”角色分配给我们刚注册的应用来实现的。
 
-![](../Images/4307ac970035d3de1b0ff44f080fcd4d.png)
+![](img/4307ac970035d3de1b0ff44f080fcd4d.png)
 
 存储账户 — 授予访问权限（1/3）（图片来源：作者）
 
-![](../Images/9e803eab9aa056940edad8db00b91982.png)
+![](img/9e803eab9aa056940edad8db00b91982.png)
 
 存储账户 — 授予访问权限（2/3）（图片来源：作者）
 
-![](../Images/8a7941f7932f3f085535d7aa5b247c1c.png)
+![](img/8a7941f7932f3f085535d7aa5b247c1c.png)
 
 存储账户 — 授予访问权限（3/3）（图片来源：作者）
 
@@ -90,11 +90,11 @@ Azure Databricks 工作区（图片来源：作者）
 
 为了存储转换后的数据框，我们搜索 Azure SQL 资源并选择“单一数据库”作为资源类型。SQL 数据库服务器提供了不同的计算硬件、最大数据大小等选项。你可以在调整服务器配置时即时查看估算的费用摘要。
 
-![](../Images/d1f6640b38d66f1ecf3bc1e31089c0c4.png)
+![](img/d1f6640b38d66f1ecf3bc1e31089c0c4.png)
 
 创建 SQL 数据库（1/2）（图片来源：作者）
 
-![](../Images/bf6eaa445f2dbef9ff9a3aef44dd5ef3.png)
+![](img/bf6eaa445f2dbef9ff9a3aef44dd5ef3.png)
 
 创建 SQL 数据库（2/2）（图片来源：作者）
 
@@ -106,7 +106,7 @@ Azure Databricks 工作区（图片来源：作者）
 
 我们首先将电力消耗数据上传到 Azure Data Lake Gen2。这个[数据集](https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set/data)[许可证为[数据库：开放数据库，内容：数据库内容](https://opendatacommons.org/licenses/dbcl/1-0/)]，来自 Kaggle，采样频率为每分钟一次，数据时间从 2006 年 12 月到 2010 年 11 月。
 
-![](../Images/da8e38c40f958471e0fecc8f8f2c5ea3.png)
+![](img/da8e38c40f958471e0fecc8f8f2c5ea3.png)
 
 上传输入数据（图片来源：作者）
 
@@ -137,7 +137,7 @@ dbutils.fs.ls(“/mnt/adlstsdp/input”)
 
 **#2 在 Azure Databricks 中嵌入 Notebook**
 
-本节中的大部分源代码基于我的[上一篇文章](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287)。其思路是进行数据清理、转换和特征工程（创建时间相关特征和移动平均特征）。转换后的数据最终写入 Azure 数据库表中。
+本节中的大部分源代码基于我的上一篇文章。其思路是进行数据清理、转换和特征工程（创建时间相关特征和移动平均特征）。转换后的数据最终写入 Azure 数据库表中。
 
 你可以查看下面的完整代码，了解其实现过程。
 
@@ -221,37 +221,37 @@ df.write.format("jdbc") \
 
 **#3 在 ADF 中构建基本管道**
 
-在ADF中，我们将“Notebook”活动添加到管道环境中，然后配置它以引用Databricks文件夹中的所需Notebook。设置Databricks连接服务，然后在ADF中验证并发布整个活动管道。然后，您可以在“调试”模式下运行管道。
+在 ADF 中，我们将“Notebook”活动添加到管道环境中，然后配置它以引用 Databricks 文件夹中的所需 Notebook。设置 Databricks 连接服务，然后在 ADF 中验证并发布整个活动管道。然后，您可以在“调试”模式下运行管道。
 
-![](../Images/77f80f4bd8dac29b014997ad560cb4d7.png)
+![](img/77f80f4bd8dac29b014997ad560cb4d7.png)
 
 管道运行的成功状态（图片由作者提供）
 
-活动状态显示为“已成功”，这意味着数据应该已迁移并插入到Azure SQL数据库表中。我们可以使用查询编辑器查看结果以进行验证。
+活动状态显示为“已成功”，这意味着数据应该已迁移并插入到 Azure SQL 数据库表中。我们可以使用查询编辑器查看结果以进行验证。
 
-![](../Images/f9a3cbd5c05477cfd6c63700ff13670f.png)
+![](img/f9a3cbd5c05477cfd6c63700ff13670f.png)
 
-查询Azure SQL数据库的结果（图片由作者提供）
+查询 Azure SQL 数据库的结果（图片由作者提供）
 
 **#4 自动化管道**
 
-ADF提供的功能远超上述简单实现。例如，我们可以通过创建[基于存储的事件触发器](https://learn.microsoft.com/en-us/azure/data-factory/how-to-create-event-trigger?tabs=data-factory)来自动化管道。确保`Microsoft.EventGrid`已注册为您账户订阅中的资源提供者之一，然后设置触发器：每当新数据集上传到存储帐户时，管道将自动执行。
+ADF 提供的功能远超上述简单实现。例如，我们可以通过创建[基于存储的事件触发器](https://learn.microsoft.com/en-us/azure/data-factory/how-to-create-event-trigger?tabs=data-factory)来自动化管道。确保`Microsoft.EventGrid`已注册为您账户订阅中的资源提供者之一，然后设置触发器：每当新数据集上传到存储帐户时，管道将自动执行。
 
-![](../Images/cd7dbcf9ffdcf90150c136a408b6bf58.png)
+![](img/cd7dbcf9ffdcf90150c136a408b6bf58.png)
 
-在ADF中设置新的触发器（图片由作者提供）
+在 ADF 中设置新的触发器（图片由作者提供）
 
 这种类型的触发器在行业中有各种应用场景，例如监控库存水平以补充供应链订单，或追踪客户互动以实现数字营销中的个性化推荐。
 
-**#5 参数化Notebook变量**
+**#5 参数化 Notebook 变量**
 
 为了进一步构建更具动态性的数据信息管道，我们可以使变量更加参数化。例如，在时间序列数据的特征工程中，数据特征的窗口大小最初可能并未优化。窗口大小可能需要根据季节性模式或下游模型微调进行调整。对于这种情况，我们可以通过以下设置进行修改。
 
-![](../Images/3c3140b421b91d991eb48967cfdc610b.png)
+![](img/3c3140b421b91d991eb48967cfdc610b.png)
 
 设置管道运行的参数（图片由作者提供）
 
-在Notebook中，添加以下代码以创建一个小部件，可以从ADF管道获取参数输入：
+在 Notebook 中，添加以下代码以创建一个小部件，可以从 ADF 管道获取参数输入：
 
 ```py
 # Additional code: Access the current value of the widget
@@ -262,17 +262,17 @@ window_sizes = inputWindowSizes.split(",")
 df = add_window_avg_fields(df, window_sizes)
 ```
 
-在调整设置和Notebook代码后，我们可以通过提供窗口大小参数值，如30和60，来运行管道。
+在调整设置和 Notebook 代码后，我们可以通过提供窗口大小参数值，如 30 和 60，来运行管道。
 
-![](../Images/77ce6fbed57e233a919818d647fdfc8b.png)
+![](img/77ce6fbed57e233a919818d647fdfc8b.png)
 
 为管道运行输入窗口大小值（图片由作者提供）
 
-最后，我们可以通过ADF或Databricks工作区再次监控管道状态。
+最后，我们可以通过 ADF 或 Databricks 工作区再次监控管道状态。
 
 ## 总结
 
-在我们的实践探索中，我们主要使用ADF与Azure Databricks来编排一个动态的时间序列数据管道：
+在我们的实践探索中，我们主要使用 ADF 与 Azure Databricks 来编排一个动态的时间序列数据管道：
 
 +   设置云资源用于计算、分析和存储。
 
@@ -284,14 +284,14 @@ df = add_window_avg_fields(df, window_sizes)
 
 ## 在您离开之前
 
-如果您喜欢这篇文章，我邀请您关注我的[Medium页面](https://medium.com/@johnleungTJ)和[LinkedIn页面](https://www.linkedin.com/in/john-leung-639800115/)。通过这样做，您可以随时了解与数据科学侧项目和机器学习运维（MLOps）演示方法相关的精彩内容。
+如果您喜欢这篇文章，我邀请您关注我的[Medium 页面](https://medium.com/@johnleungTJ)和[LinkedIn 页面](https://www.linkedin.com/in/john-leung-639800115/)。通过这样做，您可以随时了解与数据科学侧项目和机器学习运维（MLOps）演示方法相关的精彩内容。
 
-[](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----810819608231--------------------------------) [## 使用LangChain和LLMs进行客户分析
+[](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----810819608231--------------------------------) ## 使用 LangChain 和 LLMs 进行客户分析
 
-### 发现LangChain在客户分析中的潜力与局限性，并附带实际的实施案例…
+### 发现 LangChain 在客户分析中的潜力与局限性，并附带实际的实施案例…
 
-towardsdatascience.com](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----810819608231--------------------------------) [](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----810819608231--------------------------------) [## 管理机器学习系统的技术债务
+towardsdatascience.com [](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----810819608231--------------------------------) ## 管理机器学习系统的技术债务
 
 ### 探索通过实施代码持续降低快速交付成本的实践
 
-towardsdatascience.com](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----810819608231--------------------------------)
+towardsdatascience.com

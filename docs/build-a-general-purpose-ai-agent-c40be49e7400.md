@@ -1,34 +1,34 @@
 # 如何构建一个通用的大型语言模型（LLM）智能体
 
-> 原文：[https://towardsdatascience.com/build-a-general-purpose-ai-agent-c40be49e7400?source=collection_archive---------0-----------------------#2024-12-05](https://towardsdatascience.com/build-a-general-purpose-ai-agent-c40be49e7400?source=collection_archive---------0-----------------------#2024-12-05)
+> 原文：[`towardsdatascience.com/build-a-general-purpose-ai-agent-c40be49e7400?source=collection_archive---------0-----------------------#2024-12-05`](https://towardsdatascience.com/build-a-general-purpose-ai-agent-c40be49e7400?source=collection_archive---------0-----------------------#2024-12-05)
 
 ## 一步步指南
 
-[](https://medium.com/@mayamurad?source=post_page---byline--c40be49e7400--------------------------------)[![Maya Murad](../Images/ef2b6ee189faf7cf50a9ed738d837c4b.png)](https://medium.com/@mayamurad?source=post_page---byline--c40be49e7400--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c40be49e7400--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c40be49e7400--------------------------------) [Maya Murad](https://medium.com/@mayamurad?source=post_page---byline--c40be49e7400--------------------------------)
+[](https://medium.com/@mayamurad?source=post_page---byline--c40be49e7400--------------------------------)![Maya Murad](https://medium.com/@mayamurad?source=post_page---byline--c40be49e7400--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c40be49e7400--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c40be49e7400--------------------------------) [Maya Murad](https://medium.com/@mayamurad?source=post_page---byline--c40be49e7400--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c40be49e7400--------------------------------) ·阅读时间11分钟·2024年12月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c40be49e7400--------------------------------) ·阅读时间 11 分钟·2024 年 12 月 5 日
 
 --
 
-![](../Images/42cfd9265f8bf7647a3faccc2fbe4a92.png)
+![](img/42cfd9265f8bf7647a3faccc2fbe4a92.png)
 
-**LLM智能体的高级概览。** （图片由作者提供）
+**LLM 智能体的高级概览。** （图片由作者提供）
 
 **为什么要构建一个通用智能体？** 因为它是一个出色的工具，可以快速原型化你的使用案例，并为设计你自己的定制智能架构奠定基础。
 
-在我们深入之前，先简要介绍一下LLM智能体。*可以随时跳过。*
+在我们深入之前，先简要介绍一下 LLM 智能体。*可以随时跳过。*
 
-# 什么是LLM智能体？
+# 什么是 LLM 智能体？
 
-> LLM智能体是一种程序，其执行逻辑由其底层模型控制。
+> LLM 智能体是一种程序，其执行逻辑由其底层模型控制。
 
-![](../Images/96012c20a3e723166e01d95cc009bda4.png)
+![](img/96012c20a3e723166e01d95cc009bda4.png)
 
-**从独立的LLM到智能系统。** （*图片由作者提供*）
+**从独立的 LLM 到智能系统。** （*图片由作者提供*）
 
-LLM智能体与类似少量提示（few-shot prompting）或固定工作流的方法的区别在于它能够定义并适应执行用户查询所需的步骤。通过访问一组工具（如代码执行或网页搜索），智能体可以决定使用哪种工具，如何使用它，并根据输出对结果进行迭代。这种适应性使系统能够在最少配置的情况下处理多样化的使用场景。
+LLM 智能体与类似少量提示（few-shot prompting）或固定工作流的方法的区别在于它能够定义并适应执行用户查询所需的步骤。通过访问一组工具（如代码执行或网页搜索），智能体可以决定使用哪种工具，如何使用它，并根据输出对结果进行迭代。这种适应性使系统能够在最少配置的情况下处理多样化的使用场景。
 
-![](../Images/8d08ae4583742848adec12ed3bc2a7a9.png)
+![](img/8d08ae4583742848adec12ed3bc2a7a9.png)
 
 **智能架构的谱系。** （图片由作者提供）
 
@@ -36,11 +36,11 @@ LLM智能体与类似少量提示（few-shot prompting）或固定工作流的�
 
 若要深入了解，请查看[这个视频](https://www.youtube.com/watch?v=F8NKVhkZZWI&t=1s)。
 
-# 让我们从零开始构建一个通用的LLM代理吧！
+# 让我们从零开始构建一个通用的 LLM 代理吧！
 
-## 第1步：选择合适的LLM
+## 第 1 步：选择合适的 LLM
 
-选择正确的模型对于实现预期的性能至关重要。需要考虑的因素包括许可、成本和语言支持。构建LLM代理时最重要的考虑因素是模型在关键任务上的表现，例如编码、工具调用和推理。可以评估的基准包括：
+选择正确的模型对于实现预期的性能至关重要。需要考虑的因素包括许可、成本和语言支持。构建 LLM 代理时最重要的考虑因素是模型在关键任务上的表现，例如编码、工具调用和推理。可以评估的基准包括：
 
 +   [大规模多任务语言理解（MMLU）](https://paperswithcode.com/sota/multi-task-language-understanding-on-mmlu)（推理）
 
@@ -48,7 +48,7 @@ LLM智能体与类似少量提示（few-shot prompting）或固定工作流的�
 
 +   [HumanEval](https://evalplus.github.io/leaderboard.html)和[BigCodeBench](https://huggingface.co/spaces/bigcode/bigcode-models-leaderboard)（编码）
 
-另一个关键因素是模型的上下文窗口。代理工作流可能会消耗大量的token——有时达到10万或更多——因此较大的上下文窗口非常有帮助。
+另一个关键因素是模型的上下文窗口。代理工作流可能会消耗大量的 token——有时达到 10 万或更多——因此较大的上下文窗口非常有帮助。
 
 **值得考虑的模型**（写作时）
 
@@ -58,23 +58,23 @@ LLM智能体与类似少量提示（few-shot prompting）或固定工作流的�
 
 通常来说，较大的模型往往能够提供更好的性能，但能够在本地运行的小型模型仍然是一个可靠的选择。使用小型模型时，你将受限于更简单的应用场景，并且可能只能将代理连接到一两个基础工具。
 
-## 第2步：定义代理的控制逻辑（即通信结构）
+## 第 2 步：定义代理的控制逻辑（即通信结构）
 
-![](../Images/fbcc79f1334b27e03e7a7701fb7780c0.png)
+![](img/fbcc79f1334b27e03e7a7701fb7780c0.png)
 
 **单一代理架构**。（图像来源：作者）
 
-简单的LLM与代理之间的主要区别在于**系统提示**。
+简单的 LLM 与代理之间的主要区别在于**系统提示**。
 
-> 在LLM的背景下，[系统提示](https://promptengineering.org/system-prompts-in-large-language-models/)是一组在模型与用户查询互动之前提供给模型的指令和上下文信息。
+> 在 LLM 的背景下，[系统提示](https://promptengineering.org/system-prompts-in-large-language-models/)是一组在模型与用户查询互动之前提供给模型的指令和上下文信息。
 
-LLM期望的代理行为可以在系统提示中进行编码。
+LLM 期望的代理行为可以在系统提示中进行编码。
 
 这里是一些常见的代理模式，可以根据需要进行自定义：
 
 +   **工具使用**：代理决定何时将查询路由到合适的工具或依赖其自身的知识。
 
-+   **反思**：代理在回应用户之前回顾并修正其回答。大多数LLM系统中也可以加入一个反思步骤。
++   **反思**：代理在回应用户之前回顾并修正其回答。大多数 LLM 系统中也可以加入一个反思步骤。
 
 +   **先推理后行动（**[**ReAct**](https://www.promptingguide.ai/techniques/react)**）**：代理反复推理如何解决查询，执行一个行动，观察结果，并决定是否采取另一个行动或提供响应。
 
@@ -82,13 +82,13 @@ LLM期望的代理行为可以在系统提示中进行编码。
 
 最后两种模式——**ReAct**和**计划后执行**——通常是构建通用单一代理的最佳起点。
 
-![](../Images/fcc5f1655367edc786adf8f32957c5de.png)
+![](img/fcc5f1655367edc786adf8f32957c5de.png)
 
 **常见代理模式概述**。（图片由作者提供）
 
-为了有效实施这些行为，你需要进行一些提示工程。你也许还想使用[**结构化生成**](https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/)技术。这基本上意味着将LLM的输出格式化为特定的格式或模式，以便代理的回应保持一致，符合你期望的沟通风格。
+为了有效实施这些行为，你需要进行一些提示工程。你也许还想使用[**结构化生成**](https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/)技术。这基本上意味着将 LLM 的输出格式化为特定的格式或模式，以便代理的回应保持一致，符合你期望的沟通风格。
 
-**示例**：以下是来自[Bee Agent Framework](https://github.com/i-am-bee/bee-agent-framework/blob/main/src/agents/bee/prompts.ts)的ReAct风格代理系统提示摘录。
+**示例**：以下是来自[Bee Agent Framework](https://github.com/i-am-bee/bee-agent-framework/blob/main/src/agents/bee/prompts.ts)的 ReAct 风格代理系统提示摘录。
 
 ```py
 # Communication structure
@@ -110,7 +110,7 @@ Thought: The user wants to translate a text into French. I can do that.
 Final Answer: Comment vas-tu?
 ```
 
-## 第3步。定义代理的核心指令
+## 第 3 步。定义代理的核心指令
 
 我们常常理所当然地认为，大型语言模型（LLMs）自带许多功能。虽然其中一些功能很棒，但也有些可能并不是你真正需要的。为了获得理想的表现，重要的是在系统提示中明确列出你想要的——以及不想要的——功能。
 
@@ -151,7 +151,7 @@ Prefer to use these capabilities over functions.
 - You cannot do complex calculations, computations, or data manipulations without using functions.m
 ```
 
-## 第4步。定义并优化核心工具
+## 第 4 步。定义并优化核心工具
 
 工具赋予了代理超能力。通过一组定义明确的窄工具，你可以实现广泛的功能。需要包括的关键工具有代码执行、网页搜索、文件读取和数据分析。
 
@@ -217,7 +217,7 @@ LLM 的上下文窗口有限——它们每次能“记住”的标记数量。�
 
 到目前为止，我们所涵盖的五个步骤为设置代理奠定了基础。那么，如果我们在这个阶段通过我们的 LLM 运行用户查询，会发生什么呢？
 
-![](../Images/c03aedb4ced401c01f08dee317cf332f.png)
+![](img/c03aedb4ced401c01f08dee317cf332f.png)
 
 **答案：你得到的是原始文本输出。**（图片来源：作者）
 
@@ -238,23 +238,23 @@ Function Output:
 
 > **解析器** 是一种将原始数据转换为应用程序可以理解和使用的格式（例如具有属性的对象）的功能。
 
-对于我们正在构建的代理，解析器需要识别我们在**步骤 2**中定义的通信结构，并返回结构化输出，例如JSON。这使得应用程序能够更容易地处理并执行代理的下一步操作。
+对于我们正在构建的代理，解析器需要识别我们在**步骤 2**中定义的通信结构，并返回结构化输出，例如 JSON。这使得应用程序能够更容易地处理并执行代理的下一步操作。
 
 *注意：一些模型提供商，如* [*OpenAI*](https://openai.com/index/introducing-structured-outputs-in-the-api/)， *默认情况下可以返回可解析的输出。对于其他模型，尤其是开源模型，需要进行配置。*
 
-## 第7步：协调代理的下一步
+## 第 7 步：协调代理的下一步
 
-最后一步是设置协调逻辑。这决定了LLM输出结果后的处理方式。根据输出，你将：
+最后一步是设置协调逻辑。这决定了 LLM 输出结果后的处理方式。根据输出，你将：
 
 1.  **执行工具调用**，或者
 
 1.  **返回答案**——这是用户查询的最终响应，或是请求更多信息的后续请求。
 
-![](../Images/2cf3fbfd9faabab0ab8405345f963ce5.png)
+![](img/2cf3fbfd9faabab0ab8405345f963ce5.png)
 
 **扩展的单代理架构。**（图片由作者提供）
 
-如果触发了工具调用，工具的输出将被发送回LLM（作为其工作记忆的一部分）。然后，LLM将决定如何处理这些新信息：要么执行另一个工具调用，要么返回答案给用户。
+如果触发了工具调用，工具的输出将被发送回 LLM（作为其工作记忆的一部分）。然后，LLM 将决定如何处理这些新信息：要么执行另一个工具调用，要么返回答案给用户。
 
 下面是这段协调逻辑在代码中的一个示例：
 
@@ -283,7 +283,7 @@ def orchestrator(llm_agent, llm_output, tools, user_query):
             if tool_name in tools:
                 try:
                     # Execute the tool
-                    tool_result = tools[tool_name](**tool_params)
+                    tool_result = toolstool_name
                     # Send tool output back to the LLM agent for further processing
                     llm_output = llm_agent({"tool_output": tool_result})
                 except Exception as e:
@@ -303,9 +303,9 @@ def orchestrator(llm_agent, llm_output, tools, user_query):
 
 # 多代理系统何时发挥作用？
 
-虽然这一代LLM非常强大，但它们有一个关键的限制：[它们在信息过载方面存在困难](https://arxiv.org/html/2410.18745v1)。过多的上下文或过多的工具可能会压倒模型，从而导致性能问题。通用单代理最终会达到这个瓶颈，尤其是代理往往非常消耗 token。
+虽然这一代 LLM 非常强大，但它们有一个关键的限制：[它们在信息过载方面存在困难](https://arxiv.org/html/2410.18745v1)。过多的上下文或过多的工具可能会压倒模型，从而导致性能问题。通用单代理最终会达到这个瓶颈，尤其是代理往往非常消耗 token。
 
-对于某些用例，使用多代理设置可能更有意义。通过将职责分配给多个代理，你可以避免单一LLM代理的上下文过载，从而提高整体效率。
+对于某些用例，使用多代理设置可能更有意义。通过将职责分配给多个代理，你可以避免单一 LLM 代理的上下文过载，从而提高整体效率。
 
 话虽如此，**通用单一代理设置是原型设计的绝佳起点**。它可以帮助你快速测试用例并找出问题所在。通过这个过程，你可以：
 

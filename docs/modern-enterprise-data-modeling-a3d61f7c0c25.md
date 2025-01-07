@@ -1,16 +1,16 @@
 # 现代企业数据建模
 
-> 原文：[https://towardsdatascience.com/modern-enterprise-data-modeling-a3d61f7c0c25?source=collection_archive---------3-----------------------#2024-07-20](https://towardsdatascience.com/modern-enterprise-data-modeling-a3d61f7c0c25?source=collection_archive---------3-----------------------#2024-07-20)
+> 原文：[`towardsdatascience.com/modern-enterprise-data-modeling-a3d61f7c0c25?source=collection_archive---------3-----------------------#2024-07-20`](https://towardsdatascience.com/modern-enterprise-data-modeling-a3d61f7c0c25?source=collection_archive---------3-----------------------#2024-07-20)
 
 ## 如何解决浅薄、过时的模型的不足，并使您的建模策略具有未来适应性
 
-[](https://medium.com/@bernd.wessely?source=post_page---byline--a3d61f7c0c25--------------------------------)[![Bernd Wessely](../Images/e60e01c19412d8af8f8bddf78e561275.png)](https://medium.com/@bernd.wessely?source=post_page---byline--a3d61f7c0c25--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a3d61f7c0c25--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a3d61f7c0c25--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--a3d61f7c0c25--------------------------------)
+[](https://medium.com/@bernd.wessely?source=post_page---byline--a3d61f7c0c25--------------------------------)![Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--a3d61f7c0c25--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a3d61f7c0c25--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a3d61f7c0c25--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--a3d61f7c0c25--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a3d61f7c0c25--------------------------------) ·阅读时长 11 分钟·2024 年 7 月 20 日
 
 --
 
-![](../Images/0b7c6f6e4b2e99b0b4849cf09d6f3333.png)
+![](img/0b7c6f6e4b2e99b0b4849cf09d6f3333.png)
 
 图片来自 [Justin Chrn](https://unsplash.com/@justinchrn?utm_source=medium&utm_medium=referral) ，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

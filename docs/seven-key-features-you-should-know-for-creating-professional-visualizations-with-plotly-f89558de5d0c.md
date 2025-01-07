@@ -1,16 +1,16 @@
 # 使用 Plotly 创建专业可视化的七个关键特性
 
-> 原文：[https://towardsdatascience.com/seven-key-features-you-should-know-for-creating-professional-visualizations-with-plotly-f89558de5d0c?source=collection_archive---------9-----------------------#2024-08-06](https://towardsdatascience.com/seven-key-features-you-should-know-for-creating-professional-visualizations-with-plotly-f89558de5d0c?source=collection_archive---------9-----------------------#2024-08-06)
+> 原文：[`towardsdatascience.com/seven-key-features-you-should-know-for-creating-professional-visualizations-with-plotly-f89558de5d0c?source=collection_archive---------9-----------------------#2024-08-06`](https://towardsdatascience.com/seven-key-features-you-should-know-for-creating-professional-visualizations-with-plotly-f89558de5d0c?source=collection_archive---------9-----------------------#2024-08-06)
 
 ## 在像领先报纸一样的水平上创建可视化
 
-[](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--f89558de5d0c--------------------------------)[![Amanda Iglesias Moreno](../Images/9cff03d0c0caaa9a8aa53c4c34c90cac.png)](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--f89558de5d0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f89558de5d0c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f89558de5d0c--------------------------------) [Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--f89558de5d0c--------------------------------)
+[](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--f89558de5d0c--------------------------------)![Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--f89558de5d0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f89558de5d0c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f89558de5d0c--------------------------------) [Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--f89558de5d0c--------------------------------)
 
 ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f89558de5d0c--------------------------------) ·5 min read·Aug 6, 2024
 
 --
 
-![](../Images/a719c367338799275a5e5d6368fe3be4.png)
+![](img/a719c367338799275a5e5d6368fe3be4.png)
 
 [Aleks Dorohovich](https://unsplash.com/es/@doctype) in Unsplash
 
@@ -18,4 +18,4 @@
 
 # 原始可视化
 
-本文中，我们将使用简单的可视化，比如某一变量的时间演变。要可视化的数据对应于1800年至2020年的德国人口。首先，我们将使用 Plotly 创建最简单的数据可视化，没有任何定制。随后，我们将逐步解释所有使用的定制内容，并在文章末尾提供改进可视化的代码。
+本文中，我们将使用简单的可视化，比如某一变量的时间演变。要可视化的数据对应于 1800 年至 2020 年的德国人口。首先，我们将使用 Plotly 创建最简单的数据可视化，没有任何定制。随后，我们将逐步解释所有使用的定制内容，并在文章末尾提供改进可视化的代码。

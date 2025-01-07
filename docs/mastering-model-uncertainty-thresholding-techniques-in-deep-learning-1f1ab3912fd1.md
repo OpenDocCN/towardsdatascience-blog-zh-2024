@@ -1,16 +1,16 @@
 # 掌握模型不确定性：深度学习中的阈值技术
 
-> 原文：[https://towardsdatascience.com/mastering-model-uncertainty-thresholding-techniques-in-deep-learning-1f1ab3912fd1?source=collection_archive---------4-----------------------#2024-12-30](https://towardsdatascience.com/mastering-model-uncertainty-thresholding-techniques-in-deep-learning-1f1ab3912fd1?source=collection_archive---------4-----------------------#2024-12-30)
+> 原文：[`towardsdatascience.com/mastering-model-uncertainty-thresholding-techniques-in-deep-learning-1f1ab3912fd1?source=collection_archive---------4-----------------------#2024-12-30`](https://towardsdatascience.com/mastering-model-uncertainty-thresholding-techniques-in-deep-learning-1f1ab3912fd1?source=collection_archive---------4-----------------------#2024-12-30)
 
-![](../Images/362f6c4b9a404f01233bdc391dd4bce7.png)
+![](img/362f6c4b9a404f01233bdc391dd4bce7.png)
 
-图像由Dall-e生成
+图像由 Dall-e 生成
 
-## 一些关于阈值处理、softmax激活函数、引入额外标签以及关于输出激活函数的考虑事项。
+## 一些关于阈值处理、softmax 激活函数、引入额外标签以及关于输出激活函数的考虑事项。
 
-[](https://medium.com/@hampusg?source=post_page---byline--1f1ab3912fd1--------------------------------)[![Hampus Gustavsson](../Images/a22f27fc40e4a612058379928d30f609.png)](https://medium.com/@hampusg?source=post_page---byline--1f1ab3912fd1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1f1ab3912fd1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1f1ab3912fd1--------------------------------) [Hampus Gustavsson](https://medium.com/@hampusg?source=post_page---byline--1f1ab3912fd1--------------------------------)
+[](https://medium.com/@hampusg?source=post_page---byline--1f1ab3912fd1--------------------------------)![Hampus Gustavsson](https://medium.com/@hampusg?source=post_page---byline--1f1ab3912fd1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1f1ab3912fd1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1f1ab3912fd1--------------------------------) [Hampus Gustavsson](https://medium.com/@hampusg?source=post_page---byline--1f1ab3912fd1--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1f1ab3912fd1--------------------------------) ·6分钟阅读·5天前
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1f1ab3912fd1--------------------------------) ·6 分钟阅读·5 天前
 
 --
 
@@ -34,7 +34,7 @@
 
 在神经网络中实现阈值化步骤时，放在哪个层并不明显。在分类设置中，可以实现输出转换。sigmoid 函数是一种选择，但也可以使用 softmax 函数。Softmax 提供了一种非常实用的转换，使得 logits 符合某些良好的统计性质。这些性质确保了 logits 的和为 1，并且它们都在 0 和 1 之间。
 
-![](../Images/1a79c75ed309e956b5de3d6d00cd0871.png)
+![](img/1a79c75ed309e956b5de3d6d00cd0871.png)
 
 Softmax 函数。图片由作者提供。
 
@@ -42,31 +42,31 @@ Softmax 函数。图片由作者提供。
 
 本文不会深入探讨模型架构的细节，因为这些内容将在未来的文章中讨论，供感兴趣的读者参考。本文使用的只是模型在进行 softmax 转换前后的输出结果，作为最终层。这里展示了输出的一个示例。
 
-![](../Images/823ba6e84288bea4f7529fc4e4ea1589.png)
+![](img/823ba6e84288bea4f7529fc4e4ea1589.png)
 
 二十个预测样本，软最大（softmax）应用之后。
 
-如图所示，输出相当均匀。没有了解softmax的机制时，看起来模型对于分类相当确定。但正如我们将在文章后面看到的那样，我们在这里捕捉到的强关系并非标签的真正确定性。实际上，这应当被解释为一个标签相对于其他标签的预测。在我们的例子中，这意味着模型可能会捕捉到某些标签的概率明显高于其他标签，但这并不反映模型的整体确定性。
+如图所示，输出相当均匀。没有了解 softmax 的机制时，看起来模型对于分类相当确定。但正如我们将在文章后面看到的那样，我们在这里捕捉到的强关系并非标签的真正确定性。实际上，这应当被解释为一个标签相对于其他标签的预测。在我们的例子中，这意味着模型可能会捕捉到某些标签的概率明显高于其他标签，但这并不反映模型的整体确定性。
 
 在理解了输出的解释后，让我们探讨一下模型在实际中的表现。查看混淆矩阵。
 
-![](../Images/6c8238de46a1322572c563248f2d7e54.png)
+![](img/6c8238de46a1322572c563248f2d7e54.png)
 
 整个未经过阈值处理的测试数据集的混淆矩阵。
 
 模型的表现并不差，尽管远非完美。有了这些基础结果，我们将探讨如何实现阈值处理。
 
-我们将从进入网络的一层开始——检查最终激活函数之前的值。这些值呈现出以下logits。
+我们将从进入网络的一层开始——检查最终激活函数之前的值。这些值呈现出以下 logits。
 
-![](../Images/aaf508678b1d63c8b07461d6962425af.png)
+![](img/aaf508678b1d63c8b07461d6962425af.png)
 
 二十个预测样本，软最大（softmax）变换应用之前。
 
 在这里，我们看到更丰富的数值种类。这一层提供了模型在预测中的不确定性的更详细视图，这也是阈值层被插入的位置。
 
-通过引入上下置信度阈值，模型仅对大约34%的数据集进行标记，集中关注最确定的预测。然而，反过来，结果更加确定，如下所示的混淆矩阵所示。值得注意的是，阈值处理不一定是统一的。例如，某些标签可能比其他标签更难预测，标签不平衡也可能影响阈值策略。
+通过引入上下置信度阈值，模型仅对大约 34%的数据集进行标记，集中关注最确定的预测。然而，反过来，结果更加确定，如下所示的混淆矩阵所示。值得注意的是，阈值处理不一定是统一的。例如，某些标签可能比其他标签更难预测，标签不平衡也可能影响阈值策略。
 
-![](../Images/b778128979b220c8af4da135407381a1.png)
+![](img/b778128979b220c8af4da135407381a1.png)
 
 阈值处理应用后的混淆矩阵。
 

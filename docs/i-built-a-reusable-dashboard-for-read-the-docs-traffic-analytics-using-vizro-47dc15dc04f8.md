@@ -1,32 +1,32 @@
-# 我为“Read the Docs”流量分析构建了一个可重复使用的仪表板，使用了Vizro-AI
+# 我为“Read the Docs”流量分析构建了一个可重复使用的仪表板，使用了 Vizro-AI
 
-> 原文：[https://towardsdatascience.com/i-built-a-reusable-dashboard-for-read-the-docs-traffic-analytics-using-vizro-47dc15dc04f8?source=collection_archive---------1-----------------------#2024-05-17](https://towardsdatascience.com/i-built-a-reusable-dashboard-for-read-the-docs-traffic-analytics-using-vizro-47dc15dc04f8?source=collection_archive---------1-----------------------#2024-05-17)
+> 原文：[`towardsdatascience.com/i-built-a-reusable-dashboard-for-read-the-docs-traffic-analytics-using-vizro-47dc15dc04f8?source=collection_archive---------1-----------------------#2024-05-17`](https://towardsdatascience.com/i-built-a-reusable-dashboard-for-read-the-docs-traffic-analytics-using-vizro-47dc15dc04f8?source=collection_archive---------1-----------------------#2024-05-17)
 
-## （不到50行代码）
+## （不到 50 行代码）
 
-[](https://stichbury.medium.com/?source=post_page---byline--47dc15dc04f8--------------------------------)[![Jo Stichbury](../Images/c72e6f969467e9dfcaa156924ebf061e.png)](https://stichbury.medium.com/?source=post_page---byline--47dc15dc04f8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--47dc15dc04f8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--47dc15dc04f8--------------------------------) [Jo Stichbury](https://stichbury.medium.com/?source=post_page---byline--47dc15dc04f8--------------------------------)
+[](https://stichbury.medium.com/?source=post_page---byline--47dc15dc04f8--------------------------------)![Jo Stichbury](https://stichbury.medium.com/?source=post_page---byline--47dc15dc04f8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--47dc15dc04f8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--47dc15dc04f8--------------------------------) [Jo Stichbury](https://stichbury.medium.com/?source=post_page---byline--47dc15dc04f8--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--47dc15dc04f8--------------------------------) ·阅读时间7分钟·2024年5月17日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--47dc15dc04f8--------------------------------) ·阅读时间 7 分钟·2024 年 5 月 17 日
 
 --
 
-![](../Images/540bdff879af04e5dad6ac1ae7ddefcc.png)
+![](img/540bdff879af04e5dad6ac1ae7ddefcc.png)
 
 来自典型流量数据的最终仪表板
 
-在这篇文章中，我将解释我是如何构建一个仪表板来可视化我作为技术作家维护的一些文档的流量数据的。我设计技能有限，Python经验也不多，所以我需要一个简单的、低代码的方法来展示我所维护文档的影响和使用情况。最终，我找到了一个开源解决方案：[Vizro](https://github.com/mckinsey/vizro)作为低代码仪表板的模板，和[Vizro-AI](https://vizro.readthedocs.io/projects/vizro-ai/en/latest/)来使用生成性AI构建单独的图表。
+在这篇文章中，我将解释我是如何构建一个仪表板来可视化我作为技术作家维护的一些文档的流量数据的。我设计技能有限，Python 经验也不多，所以我需要一个简单的、低代码的方法来展示我所维护文档的影响和使用情况。最终，我找到了一个开源解决方案：[Vizro](https://github.com/mckinsey/vizro)作为低代码仪表板的模板，和[Vizro-AI](https://vizro.readthedocs.io/projects/vizro-ai/en/latest/)来使用生成性 AI 构建单独的图表。
 
 ## TL;DR?
 
-如果你想直接开始，可以在我的[GitHub仓库](https://github.com/stichbury/documentation_project)中找到仪表板的Jupyter Notebook代码。
+如果你想直接开始，可以在我的[GitHub 仓库](https://github.com/stichbury/documentation_project)中找到仪表板的 Jupyter Notebook 代码。
 
-## 一个Read the Docs仪表板项目
+## 一个 Read the Docs 仪表板项目
 
-如果像我一样，你管理着一个使用[Read the Docs (RTD)](https://docs.readthedocs.io/en/stable/)的开源文档项目，你可能已经发现，你可以从项目仪表板中下载过去90天的流量数据，文件格式为CSV。仪表板还会显示一个每日页面浏览量总计的图表，像下面这个图。
+如果像我一样，你管理着一个使用[Read the Docs (RTD)](https://docs.readthedocs.io/en/stable/)的开源文档项目，你可能已经发现，你可以从项目仪表板中下载过去 90 天的流量数据，文件格式为 CSV。仪表板还会显示一个每日页面浏览量总计的图表，像下面这个图。
 
-![](../Images/a52c2996c34389553866d91c6c49758b.png)
+![](img/a52c2996c34389553866d91c6c49758b.png)
 
-一个典型的RTD页面浏览量图表（唯一提供的图形流量数据）
+一个典型的 RTD 页面浏览量图表（唯一提供的图形流量数据）
 
 如果需要额外的可视化输出，您可以使用 Google Analytics (GA)。然而，某些项目不愿意使用 GA，因为它是否符合通用数据保护条例（GDPR）在[欧盟](https://usercentrics.com/knowledge-hub/google-analytics-and-gdpr-compliance-rulings/)等地区存在争议。
 
@@ -50,27 +50,27 @@
 
 ## **构建图表**
 
-此时，您可以[打开Jupyter Notebook制作您的第一个图表，](https://vizro.readthedocs.io/projects/vizro-ai/en/latest/pages/tutorials/quickstart/#2-open-a-jupyter-notebook)或者只需打开[我的存储库中的Notebook](https://github.com/stichbury/documentation_project/tree/main)来逐步执行我创建的代码，并将您的RTD数据（或我提供的虚假数据）加载到一个名为`df`的pandas DataFrame中，如下面的代码所示。
+此时，您可以[打开 Jupyter Notebook 制作您的第一个图表，](https://vizro.readthedocs.io/projects/vizro-ai/en/latest/pages/tutorials/quickstart/#2-open-a-jupyter-notebook)或者只需打开[我的存储库中的 Notebook](https://github.com/stichbury/documentation_project/tree/main)来逐步执行我创建的代码，并将您的 RTD 数据（或我提供的虚假数据）加载到一个名为`df`的 pandas DataFrame 中，如下面的代码所示。
 
-以下代码显示了如何向Vizro-AI提交请求，以构建一个类似于Read the Docs项目仪表板中显示的图表，显示按日期查看的图表，但将数据分为两个跟踪，用于[文档的稳定和最新版本](https://docs.readthedocs.io/en/stable/versions.html)： 
+以下代码显示了如何向 Vizro-AI 提交请求，以构建一个类似于 Read the Docs 项目仪表板中显示的图表，显示按日期查看的图表，但将数据分为两个跟踪，用于[文档的稳定和最新版本](https://docs.readthedocs.io/en/stable/versions.html)： 
 
-“为最新和稳定版本的每个日期组合Views行。绘制一条平滑的线图，比较最新和稳定版本每个日期的Views。”
+“为最新和稳定版本的每个日期组合 Views 行。绘制一条平滑的线图，比较最新和稳定版本每个日期的 Views。”
 
-Vizro-AI将自然语言查询“**为最新和稳定版本的每个日期组合Views行。绘制一条比较最新和稳定版本每个日期Views的线图**”和数据框传递给模型。请注意，在上面的示例中，我指定了一个gpt-4模型。Vizro-AI将[默认使用gpt-3.5-turbo](https://vizro.readthedocs.io/projects/vizro-ai/en/latest/pages/user-guides/customize-vizro-ai/)，因为它提供了更低的价格和更高的速度来提供答案，但它并不提供最复杂的图表功能，因此我选择明确请求使用gpt-4模型。
+Vizro-AI 将自然语言查询“**为最新和稳定版本的每个日期组合 Views 行。绘制一条比较最新和稳定版本每个日期 Views 的线图**”和数据框传递给模型。请注意，在上面的示例中，我指定了一个 gpt-4 模型。Vizro-AI 将[默认使用 gpt-3.5-turbo](https://vizro.readthedocs.io/projects/vizro-ai/en/latest/pages/user-guides/customize-vizro-ai/)，因为它提供了更低的价格和更高的速度来提供答案，但它并不提供最复杂的图表功能，因此我选择明确请求使用 gpt-4 模型。
 
-图表输出将取决于您的数据，以及在提交查询时从OpenAI收到的输出。参数`explain=True`请求Vizro-AI解释生成的图表是如何获得的，解释将显示在Jupyter Notebook的输出中，同时使用`show()`命令显示的图表也会显示出来。
+图表输出将取决于您的数据，以及在提交查询时从 OpenAI 收到的输出。参数`explain=True`请求 Vizro-AI 解释生成的图表是如何获得的，解释将显示在 Jupyter Notebook 的输出中，同时使用`show()`命令显示的图表也会显示出来。
 
-Vizro-AI返回的Insights文本解释了如何操作流量数据。代码部分描述了代码片段遵循的步骤，以生成所请求的线图。
+Vizro-AI 返回的 Insights 文本解释了如何操作流量数据。代码部分描述了代码片段遵循的步骤，以生成所请求的线图。
 
-![](../Images/01e9aec5fc54dae71510d4b1ca24b752.png)
+![](img/01e9aec5fc54dae71510d4b1ca24b752.png)
 
-通过调用plot()返回的Insights部分带有指令“为最新和稳定版本的每个日期组合Views行。绘制一条平滑的线图，比较最新和稳定版本每个日期的Views。”
+通过调用 plot()返回的 Insights 部分带有指令“为最新和稳定版本的每个日期组合 Views 行。绘制一条平滑的线图，比较最新和稳定版本每个日期的 Views。”
 
 返回的图表如下所示：
 
-![](../Images/183d6d66f15d5403b42d6e4d87730231.png)
+![](img/183d6d66f15d5403b42d6e4d87730231.png)
 
-通过调用plot()返回的图表带有指令“为最新和稳定版本的每个日期组合Views行。绘制一条平滑的线图，比较最新和稳定版本每个日期的Views。”
+通过调用 plot()返回的图表带有指令“为最新和稳定版本的每个日期组合 Views 行。绘制一条平滑的线图，比较最新和稳定版本每个日期的 Views。”
 
 ## **构建更多图表**
 
@@ -100,7 +100,7 @@ Vizro-AI 通过生成操作数据和生成一组图表的代码为我减轻了�
 
 您可以下载 Jupyter Notebook 来尝试使用您自己的 Read the Docs 数据查看仪表板。使用我提供的虚假数据，它看起来如下。
 
-![](../Images/21aad4bf348f8e913cfff9c1d0d9666e.png)
+![](img/21aad4bf348f8e913cfff9c1d0d9666e.png)
 
 使用第 2 种方法构建的最终输出，这使我能够调整第一个图表中的颜色。
 

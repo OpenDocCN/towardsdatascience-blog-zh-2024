@@ -1,34 +1,34 @@
-# 探索DRESS Kit V2
+# 探索 DRESS Kit V2
 
-> 原文：[https://towardsdatascience.com/exploring-dress-kit-v2-75fa4cf74582?source=collection_archive---------7-----------------------#2024-10-16](https://towardsdatascience.com/exploring-dress-kit-v2-75fa4cf74582?source=collection_archive---------7-----------------------#2024-10-16)
+> 原文：[`towardsdatascience.com/exploring-dress-kit-v2-75fa4cf74582?source=collection_archive---------7-----------------------#2024-10-16`](https://towardsdatascience.com/exploring-dress-kit-v2-75fa4cf74582?source=collection_archive---------7-----------------------#2024-10-16)
 
-## **探索DRESS Kit最新版本中的新特性和显著变化**
+## **探索 DRESS Kit 最新版本中的新特性和显著变化**
 
-[](https://medium.com/@waihongchung?source=post_page---byline--75fa4cf74582--------------------------------)[![Waihong Chung](../Images/7e9f2bbb026abcf36e4430e920e61ee1.png)](https://medium.com/@waihongchung?source=post_page---byline--75fa4cf74582--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--75fa4cf74582--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--75fa4cf74582--------------------------------) [Waihong Chung](https://medium.com/@waihongchung?source=post_page---byline--75fa4cf74582--------------------------------)
+[](https://medium.com/@waihongchung?source=post_page---byline--75fa4cf74582--------------------------------)![Waihong Chung](https://medium.com/@waihongchung?source=post_page---byline--75fa4cf74582--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--75fa4cf74582--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--75fa4cf74582--------------------------------) [Waihong Chung](https://medium.com/@waihongchung?source=post_page---byline--75fa4cf74582--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--75fa4cf74582--------------------------------) ·12分钟阅读·2024年10月16日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--75fa4cf74582--------------------------------) ·12 分钟阅读·2024 年 10 月 16 日
 
 --
 
-![](../Images/c1c41836cf3a157090eb66b46f452e14.png)
+![](img/c1c41836cf3a157090eb66b46f452e14.png)
 
 图片来自[Google DeepMind](https://unsplash.com/@googledeepmind?utm_source=medium&utm_medium=referral)在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## **概述**
 
-自从原始[DRESS Kit](https://github.com/waihongchung/dress)在2021年首次发布以来，它已经成功应用于若干生物医学研究项目。如果你之前从未听说过DRESS Kit，可能会对它感兴趣——它是一个完全开源、无依赖、纯ES6 JavaScript库，专为执行高级统计分析和机器学习任务而设计。DRESS Kit的目标是服务那些没有生物统计学训练、且无法使用专门统计软件的生物医学研究人员。
+自从原始[DRESS Kit](https://github.com/waihongchung/dress)在 2021 年首次发布以来，它已经成功应用于若干生物医学研究项目。如果你之前从未听说过 DRESS Kit，可能会对它感兴趣——它是一个完全开源、无依赖、纯 ES6 JavaScript 库，专为执行高级统计分析和机器学习任务而设计。DRESS Kit 的目标是服务那些没有生物统计学训练、且无法使用专门统计软件的生物医学研究人员。
 
-DRESS Kit不仅被证明是分析复杂数据集和构建机器学习模型的实用有效工具，而且这些现实世界的经验还为我们提供了宝贵的机会，帮助我们识别DRESS Kit潜在的改进领域。然而，为了支持某些新功能并实现显著的性能提升，原始代码库的许多部分必须从头开始重写。经过无数个不眠之夜和几杯咖啡后，我们终于准备好与大家分享——DRESS Kit ***V2***。
+DRESS Kit 不仅被证明是分析复杂数据集和构建机器学习模型的实用有效工具，而且这些现实世界的经验还为我们提供了宝贵的机会，帮助我们识别 DRESS Kit 潜在的改进领域。然而，为了支持某些新功能并实现显著的性能提升，原始代码库的许多部分必须从头开始重写。经过无数个不眠之夜和几杯咖啡后，我们终于准备好与大家分享——DRESS Kit ***V2***。
 
-尽管DRESS Kit的新版本不再与之前的版本向后兼容，我们仍尽力保持方法签名（即方法名称和预期的参数）尽可能不变。这意味着，使用DRESS Kit V1实现的研究项目可以通过少量修改迁移到V2。然而，这也意味着许多功能增强可能仅通过浏览源代码并不容易发现。因此，我们将在本文中花些时间探讨DRESS Kit最新版本中的新特性和显著变化。
+尽管 DRESS Kit 的新版本不再与之前的版本向后兼容，我们仍尽力保持方法签名（即方法名称和预期的参数）尽可能不变。这意味着，使用 DRESS Kit V1 实现的研究项目可以通过少量修改迁移到 V2。然而，这也意味着许多功能增强可能仅通过浏览源代码并不容易发现。因此，我们将在本文中花些时间探讨 DRESS Kit 最新版本中的新特性和显著变化。
 
 ## **新特性**
 
 **增量训练**
 
-DRESS Kit V2中最令人兴奋的一个新特性是可以在任何回归或分类机器学习算法上执行增量训练。在DRESS Kit的先前版本中，只有kNN算法和多层感知机算法支持这一功能。此特性使得模型能够使用更大的数据集进行训练，同时以高效的资源方式运行，或者实时适应不断变化的数据源。
+DRESS Kit V2 中最令人兴奋的一个新特性是可以在任何回归或分类机器学习算法上执行增量训练。在 DRESS Kit 的先前版本中，只有 kNN 算法和多层感知机算法支持这一功能。此特性使得模型能够使用更大的数据集进行训练，同时以高效的资源方式运行，或者实时适应不断变化的数据源。
 
-![](../Images/18a62a106f7946e89cea663324a415c7.png)
+![](img/18a62a106f7946e89cea663324a415c7.png)
 
 图片来自[Alessia Cocconi](https://unsplash.com/@alessia_cocconi?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -41,11 +41,11 @@ let model = DRESS.randomForst([], outcome, numericals, categoricals);
 model.train(samples);
 ```
 
-增量训练在不同的机器学习算法中有不同的实现方式。对于kNN算法，新的样本会被添加到现有的训练样本中，结果是模型会随着时间的推移而变大。对于逻辑回归或线性回归算法，现有的回归系数会使用新的训练样本进行更新。对于随机森林或梯度提升算法，现有的决策树或决策树的分支可以被修剪，并且可以根据新的训练样本添加新的树或新分支。对于多层感知机算法，神经网络的权重和偏置会随着新训练样本的加入而更新。
+增量训练在不同的机器学习算法中有不同的实现方式。对于 kNN 算法，新的样本会被添加到现有的训练样本中，结果是模型会随着时间的推移而变大。对于逻辑回归或线性回归算法，现有的回归系数会使用新的训练样本进行更新。对于随机森林或梯度提升算法，现有的决策树或决策树的分支可以被修剪，并且可以根据新的训练样本添加新的树或新分支。对于多层感知机算法，神经网络的权重和偏置会随着新训练样本的加入而更新。
 
 **模型调优**
 
-DRESS Kit V2中的另一个令人兴奋的新特性是增加了`dress-modeling.js`模块，该模块包含了一些方法，用以简化机器学习模型微调这一繁琐过程。这些方法设计用于与使用`dress-regression.js`模块、`dress-tree.js`模块和`dress-neural.js`模块创建的任何回归或分类模型一起工作。由于所有这些任务都相当计算密集，因此这些方法默认是异步工作的。
+DRESS Kit V2 中的另一个令人兴奋的新特性是增加了`dress-modeling.js`模块，该模块包含了一些方法，用以简化机器学习模型微调这一繁琐过程。这些方法设计用于与使用`dress-regression.js`模块、`dress-tree.js`模块和`dress-neural.js`模块创建的任何回归或分类模型一起工作。由于所有这些任务都相当计算密集，因此这些方法默认是异步工作的。
 
 +   **排列特征重要性**
 
@@ -64,7 +64,7 @@ DRESS.print(
 
 +   **交叉验证**
 
-    本模块中的第二种方法是`DRESS.crossValidate`，它执行k折交叉验证。该方法自动将数据集分成k个（默认是5）大小相等的折，并在训练机器学习模型时，使用其中一个折作为验证集，其他k-1个折用于训练。它有助于更稳健地评估模型的性能。
+    本模块中的第二种方法是`DRESS.crossValidate`，它执行 k 折交叉验证。该方法自动将数据集分成 k 个（默认是 5）大小相等的折，并在训练机器学习模型时，使用其中一个折作为验证集，其他 k-1 个折用于训练。它有助于更稳健地评估模型的性能。
 
 ```py
 // Training parameters
@@ -105,7 +105,7 @@ DRESS.print(
 )
 ```
 
-**模型导入与导出** 创建DRESS Kit的主要动机之一是使用纯JavaScript，而不是其他高性能语言，以确保跨平台兼容性并方便与其他技术的集成。因此，DRESS Kit V2现在包括了一些方法，以便于训练模型的分发。同时，模型的内部表示也已优化，以最大化其可移植性。
+**模型导入与导出** 创建 DRESS Kit 的主要动机之一是使用纯 JavaScript，而不是其他高性能语言，以确保跨平台兼容性并方便与其他技术的集成。因此，DRESS Kit V2 现在包括了一些方法，以便于训练模型的分发。同时，模型的内部表示也已优化，以最大化其可移植性。
 
 ```py
 // To export a model in JSON format.
@@ -118,7 +118,7 @@ DRESS.local('model.json').then(json => {
 
 **数据集检查**
 
-DRESS Kit V2最常被请求的功能之一是类似于Python中`pandas.DataFrame.info`的方法。因此，我们在`dress-descriptive.js`模块中发布了一种新方法`DRESS.summary`，用于从数据集中生成简洁的摘要。只需将对象数组作为参数传入，该方法会自动识别可枚举特征、数据类型（数值型或类别型），以及在这些对象中找到的`null`值的数量。
+DRESS Kit V2 最常被请求的功能之一是类似于 Python 中`pandas.DataFrame.info`的方法。因此，我们在`dress-descriptive.js`模块中发布了一种新方法`DRESS.summary`，用于从数据集中生成简洁的摘要。只需将对象数组作为参数传入，该方法会自动识别可枚举特征、数据类型（数值型或类别型），以及在这些对象中找到的`null`值的数量。
 
 ```py
 // Print a concise summary of the specified dataset.
@@ -129,11 +129,11 @@ DRESS.print(
 
 **玩具数据集**
 
-![](../Images/a9f7c1ab6f18fec05e873c4fd910ed56.png)
+![](img/a9f7c1ab6f18fec05e873c4fd910ed56.png)
 
 图片来源：[Rick Mason](https://unsplash.com/@egnaro?utm_source=medium&utm_medium=referral)来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-最后但同样重要的是，DRESS Kit V2 配备了一个全新的玩具数据集，用于测试和学习各种统计方法和机器学习算法。这个玩具数据集包含了6000个合成样本，这些样本是基于一组患有各种慢性肝病的患者群体建模的。每个样本包含23个特征，这些特征包括数值型和分类特征的组合，且具有不同的基数。以下是每个样本的结构：
+最后但同样重要的是，DRESS Kit V2 配备了一个全新的玩具数据集，用于测试和学习各种统计方法和机器学习算法。这个玩具数据集包含了 6000 个合成样本，这些样本是基于一组患有各种慢性肝病的患者群体建模的。每个样本包含 23 个特征，这些特征包括数值型和分类特征的组合，且具有不同的基数。以下是每个样本的结构：
 
 ```py
 {
@@ -201,7 +201,7 @@ Stage : numeric null: 0 unique: 4 [3, 4, 2, …]
 
 **倾向与接近匹配**
 
-`DRESS.propensity`方法，执行倾向评分匹配，现在支持将数值型和分类特征作为混杂变量。内部，该方法使用`DRESS.logistic`来估计倾向评分（如果只指定数值型特征）；否则，使用`DRESS.gradientBoosting`。我们还引入了一个新方法`DRESS.proximity`，该方法使用`DRESS.kNN`执行K最近邻匹配。
+`DRESS.propensity`方法，执行倾向评分匹配，现在支持将数值型和分类特征作为混杂变量。内部，该方法使用`DRESS.logistic`来估计倾向评分（如果只指定数值型特征）；否则，使用`DRESS.gradientBoosting`。我们还引入了一个新方法`DRESS.proximity`，该方法使用`DRESS.kNN`执行 K 最近邻匹配。
 
 ```py
 // Split samples to controls and subjects.
@@ -229,7 +229,7 @@ DRESS.numericize(samples, [feature], categories);
 
 **线性、逻辑回归与多项回归**
 
-在DRESS Kit V1中，`DRESS.logistic`回归算法是通过牛顿法实现的，而`DRESS.linear`回归算法则使用矩阵方法。在DRESS Kit V2中，这两种回归算法都使用了相同的优化梯度下降回归方法，并且该方法支持学习率和岭回归（L2正则化）等超参数。我们还引入了一个新方法`DRESS.polytomous`，该方法内部使用`DRESS.logistic`，通过一对多的方法执行多类分类。
+在 DRESS Kit V1 中，`DRESS.logistic`回归算法是通过牛顿法实现的，而`DRESS.linear`回归算法则使用矩阵方法。在 DRESS Kit V2 中，这两种回归算法都使用了相同的优化梯度下降回归方法，并且该方法支持学习率和岭回归（L2 正则化）等超参数。我们还引入了一个新方法`DRESS.polytomous`，该方法内部使用`DRESS.logistic`，通过一对多的方法执行多类分类。
 
 **精准率-召回率曲线**
 
@@ -292,6 +292,6 @@ kNN 填补功能已从 `DRESS.kNN` 方法返回的模型对象移至名为 `DRES
 
 ## 最后的说明
 
-除了前面提到的主要新特性外，DRESS工具包中的几乎每个方法都进行了大量增强。大多数操作比以前明显更快，而压缩后的代码库几乎保持不变。如果您之前使用过 DRESS Kit V1，强烈建议升级到 V2。对于那些尚未将 DRESS Kit 纳入研究项目的人，现在是探索其功能的绝佳时机。我们非常感谢您对 DRESS Kit 的关注和持续支持。请随时分享您的反馈和评论，以便我们不断改进这个库。
+除了前面提到的主要新特性外，DRESS 工具包中的几乎每个方法都进行了大量增强。大多数操作比以前明显更快，而压缩后的代码库几乎保持不变。如果您之前使用过 DRESS Kit V1，强烈建议升级到 V2。对于那些尚未将 DRESS Kit 纳入研究项目的人，现在是探索其功能的绝佳时机。我们非常感谢您对 DRESS Kit 的关注和持续支持。请随时分享您的反馈和评论，以便我们不断改进这个库。
 
 请随时从其 [GitHub 仓库](https://github.com/waihongchung/dress) 获取 DRESS Kit 的最新版本并开始构建。

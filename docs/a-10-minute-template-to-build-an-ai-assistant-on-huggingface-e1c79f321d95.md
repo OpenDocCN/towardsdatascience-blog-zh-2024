@@ -1,20 +1,20 @@
-# 构建AI助手的10分钟模板
+# 构建 AI 助手的 10 分钟模板
 
-> 原文：[https://towardsdatascience.com/a-10-minute-template-to-build-an-ai-assistant-on-huggingface-e1c79f321d95?source=collection_archive---------2-----------------------#2024-05-05](https://towardsdatascience.com/a-10-minute-template-to-build-an-ai-assistant-on-huggingface-e1c79f321d95?source=collection_archive---------2-----------------------#2024-05-05)
+> 原文：[`towardsdatascience.com/a-10-minute-template-to-build-an-ai-assistant-on-huggingface-e1c79f321d95?source=collection_archive---------2-----------------------#2024-05-05`](https://towardsdatascience.com/a-10-minute-template-to-build-an-ai-assistant-on-huggingface-e1c79f321d95?source=collection_archive---------2-----------------------#2024-05-05)
 
-## 以及你今天为什么应该开始构建自己的AI助手
+## 以及你今天为什么应该开始构建自己的 AI 助手
 
-[](https://nabil-alouani.medium.com/?source=post_page---byline--e1c79f321d95--------------------------------)[![Nabil Alouani](../Images/8ceea018e9b15413d318bfb710bb0011.png)](https://nabil-alouani.medium.com/?source=post_page---byline--e1c79f321d95--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e1c79f321d95--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e1c79f321d95--------------------------------) [Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--e1c79f321d95--------------------------------)
+[](https://nabil-alouani.medium.com/?source=post_page---byline--e1c79f321d95--------------------------------)![Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--e1c79f321d95--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e1c79f321d95--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e1c79f321d95--------------------------------) [Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--e1c79f321d95--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e1c79f321d95--------------------------------) ·阅读时长10分钟·2024年5月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e1c79f321d95--------------------------------) ·阅读时长 10 分钟·2024 年 5 月 5 日
 
 --
 
-![](../Images/bd9b248b1f12384f90d12e83647331e5.png)
+![](img/bd9b248b1f12384f90d12e83647331e5.png)
 
-所有图片均由作者通过截图和Midjourney提供。
+所有图片均由作者通过截图和 Midjourney 提供。
 
-AI代理是[人工智能领域的下一个大趋势](https://www.technologyreview.com/2024/05/01/1091979/sam-altman-says-helpful-agents-are-poised-to-become-ais-killer-function/)。想象一下，完全自动驾驶的汽车，机器人帮你报税，还有AI导师在教你的孩子。
+AI 代理是[人工智能领域的下一个大趋势](https://www.technologyreview.com/2024/05/01/1091979/sam-altman-says-helpful-agents-are-poised-to-become-ais-killer-function/)。想象一下，完全自动驾驶的汽车，机器人帮你报税，还有 AI 导师在教你的孩子。
 
 “嘿，Jarvis！请遛狗，预定下周末的旅行，顺便把我的收入翻倍。”
 

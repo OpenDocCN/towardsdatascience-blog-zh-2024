@@ -1,16 +1,16 @@
 # Scikit-learn 可视化指南：让模型“开口说话”
 
-> 原文：[https://towardsdatascience.com/scikit-learn-visualization-guide-making-models-speak-6ee32a3c5c04?source=collection_archive---------0-----------------------#2024-03-21](https://towardsdatascience.com/scikit-learn-visualization-guide-making-models-speak-6ee32a3c5c04?source=collection_archive---------0-----------------------#2024-03-21)
+> 原文：[`towardsdatascience.com/scikit-learn-visualization-guide-making-models-speak-6ee32a3c5c04?source=collection_archive---------0-----------------------#2024-03-21`](https://towardsdatascience.com/scikit-learn-visualization-guide-making-models-speak-6ee32a3c5c04?source=collection_archive---------0-----------------------#2024-03-21)
 
 ## 使用 Display API 替代复杂的 Matplotlib 代码
 
-[](https://qtalen.medium.com/?source=post_page---byline--6ee32a3c5c04--------------------------------)[![Peng Qian](../Images/9ce9aeb381ec6b017c1ee5d4714937e2.png)](https://qtalen.medium.com/?source=post_page---byline--6ee32a3c5c04--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6ee32a3c5c04--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6ee32a3c5c04--------------------------------) [Peng Qian](https://qtalen.medium.com/?source=post_page---byline--6ee32a3c5c04--------------------------------)
+[](https://qtalen.medium.com/?source=post_page---byline--6ee32a3c5c04--------------------------------)![Peng Qian](https://qtalen.medium.com/?source=post_page---byline--6ee32a3c5c04--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6ee32a3c5c04--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6ee32a3c5c04--------------------------------) [Peng Qian](https://qtalen.medium.com/?source=post_page---byline--6ee32a3c5c04--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6ee32a3c5c04--------------------------------) ·8分钟阅读·2024年3月21日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6ee32a3c5c04--------------------------------) ·8 分钟阅读·2024 年 3 月 21 日
 
 --
 
-![](../Images/09ab1b6b53fb41085d191387c929d06e.png)
+![](img/09ab1b6b53fb41085d191387c929d06e.png)
 
 Scikit-learn 可视化指南：让模型“开口说话”。图片来自作者
 
@@ -20,7 +20,7 @@ Scikit-learn 可视化指南：让模型“开口说话”。图片来自作者
 
 一张好的图表可以以易于理解的方式展示模型的行为。以下是一个示例：
 
-![](../Images/cfbe8020958e2769aa34692b11c18c93.png)
+![](img/cfbe8020958e2769aa34692b11c18c93.png)
 
 两种不同泛化性能的决策边界。图片来自作者
 

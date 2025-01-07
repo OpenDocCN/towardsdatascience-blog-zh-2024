@@ -1,18 +1,18 @@
 # 精通数据可视化与 Altair 的图形语法
 
-> 原文：[https://towardsdatascience.com/altair-and-the-powerful-vega-lite-grammar-of-graphics-d1d864c3e08e?source=collection_archive---------7-----------------------#2024-02-27](https://towardsdatascience.com/altair-and-the-powerful-vega-lite-grammar-of-graphics-d1d864c3e08e?source=collection_archive---------7-----------------------#2024-02-27)
+> 原文：[`towardsdatascience.com/altair-and-the-powerful-vega-lite-grammar-of-graphics-d1d864c3e08e?source=collection_archive---------7-----------------------#2024-02-27`](https://towardsdatascience.com/altair-and-the-powerful-vega-lite-grammar-of-graphics-d1d864c3e08e?source=collection_archive---------7-----------------------#2024-02-27)
 
 ## 数据可视化
 
 ## 使用 Altair 强大的 Python 库将数据转化为可视化图形。
 
-[](https://medium.com/@alan-jones?source=post_page---byline--d1d864c3e08e--------------------------------)[![Alan Jones](../Images/359379fab1d6685ff08080b98173e67c.png)](https://medium.com/@alan-jones?source=post_page---byline--d1d864c3e08e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d1d864c3e08e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d1d864c3e08e--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--d1d864c3e08e--------------------------------)
+[](https://medium.com/@alan-jones?source=post_page---byline--d1d864c3e08e--------------------------------)![Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--d1d864c3e08e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d1d864c3e08e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d1d864c3e08e--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--d1d864c3e08e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d1d864c3e08e--------------------------------) ·阅读时间：20 分钟·2024年2月27日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d1d864c3e08e--------------------------------) ·阅读时间：20 分钟·2024 年 2 月 27 日
 
 --
 
-![](../Images/ef5651e85d6ce9e99f406012546b1fd0.png)
+![](img/ef5651e85d6ce9e99f406012546b1fd0.png)
 
 图形语法就像一套构建模块 —— 图片来自 [Nik Shuliahin 💛💙](https://unsplash.com/@tjump?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

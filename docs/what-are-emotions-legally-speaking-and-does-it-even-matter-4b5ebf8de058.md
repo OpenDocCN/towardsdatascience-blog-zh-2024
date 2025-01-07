@@ -1,20 +1,20 @@
 # 情绪在法律上的定义是什么？这真重要吗？
 
-> 原文：[https://towardsdatascience.com/what-are-emotions-legally-speaking-and-does-it-even-matter-4b5ebf8de058?source=collection_archive---------9-----------------------#2024-03-01](https://towardsdatascience.com/what-are-emotions-legally-speaking-and-does-it-even-matter-4b5ebf8de058?source=collection_archive---------9-----------------------#2024-03-01)
+> 原文：[`towardsdatascience.com/what-are-emotions-legally-speaking-and-does-it-even-matter-4b5ebf8de058?source=collection_archive---------9-----------------------#2024-03-01`](https://towardsdatascience.com/what-are-emotions-legally-speaking-and-does-it-even-matter-4b5ebf8de058?source=collection_archive---------9-----------------------#2024-03-01)
 
 ## 情绪环路
 
 ## 探索情绪识别技术中的情绪法律框架
 
-[](https://medium.com/@tea.mustac?source=post_page---byline--4b5ebf8de058--------------------------------)[![Tea Mustać](../Images/6921322fa264868c02e3787de1716142.png)](https://medium.com/@tea.mustac?source=post_page---byline--4b5ebf8de058--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4b5ebf8de058--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4b5ebf8de058--------------------------------) [Tea Mustać](https://medium.com/@tea.mustac?source=post_page---byline--4b5ebf8de058--------------------------------)
+[](https://medium.com/@tea.mustac?source=post_page---byline--4b5ebf8de058--------------------------------)![Tea Mustać](https://medium.com/@tea.mustac?source=post_page---byline--4b5ebf8de058--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4b5ebf8de058--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b5ebf8de058--------------------------------) [Tea Mustać](https://medium.com/@tea.mustac?source=post_page---byline--4b5ebf8de058--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b5ebf8de058--------------------------------) ·阅读时间9分钟·2024年3月1日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b5ebf8de058--------------------------------) ·阅读时间 9 分钟·2024 年 3 月 1 日
 
 --
 
-![](../Images/03bce257c53f822c92f3ae3161f0e218.png)
+![](img/03bce257c53f822c92f3ae3161f0e218.png)
 
-图片由Comuzi提供 / © BBC / 更好的人工智能图片 / Mirror D / CC-BY 4.0
+图片由 Comuzi 提供 / © BBC / 更好的人工智能图片 / Mirror D / CC-BY 4.0
 
 最近我开始写一系列名为《情绪环路》的文章，在首篇文章（“[分析（扫描版）简的生活](https://medium.com/towards-data-science/emotions-in-the-loop-1a68268a8823)”）中，我设想了一个终极个人助理，它与各种个人设备互联，并配备多种情绪识别系统。我写下第一篇文章，尽管它带有浓厚的科幻色彩，原因有以下几点：
 
@@ -44,9 +44,9 @@
 
 最简单的例子当然是各种可穿戴设备和个人设备中的情感识别系统，比如简的设备，在这些系统中，数据与她的用户档案和社交媒体数据直接相关，使得识别变得更加简单。然而，即使我们不处理个人设备，仍然有可能间接识别个人。例如，一个站在智能广告牌前的人，根据他们的情感状态和其他显著特征，收到一则广告[[5]](#_ftn5)。为什么？因为身份识别是相对的，并且高度依赖于上下文。例如，如果我说“我看到一个看起来很难过的女孩”，和我说“看看街对面那个看起来很难过的女孩”并不相同。通过缩小上下文范围和可能涉及的其他人群体，身份识别变得非常有可能，即使我所使用的只是非常通用的信息[[6]](#_ftn6)。
 
-此外，是否能*辨识*一个人也将大大取决于我们对这个词的定义。换句话说，我们可能指的是‘通过名字和/或其他公民数据来识别’。然而，这样的定义是荒谬的，因为这些数据是可变的，可能被伪造和操控，更不用说并非所有人都有这些数据了。（想想那些[通常没有任何官方身份证明](https://www.americanprogress.org/article/providing-identification-to-unauthorized-immigrants/)的非法移民。）没有身份证的人就无法被识别吗？我认为不是。或者，如果可以识别，那我们对身份识别的理解就有严重问题。这也成为了越来越多的作者将数据处理操作视为符合GDPR相关性的常见论点，许多人将身份识别广泛理解为‘个体化’[[7]](#_ftn7)，“区分”[[8]](#_ftn8)，甚至是‘定向’[[9]](#_ftn9)，这些都是这些系统设计之初的目标。
+此外，是否能*辨识*一个人也将大大取决于我们对这个词的定义。换句话说，我们可能指的是‘通过名字和/或其他公民数据来识别’。然而，这样的定义是荒谬的，因为这些数据是可变的，可能被伪造和操控，更不用说并非所有人都有这些数据了。（想想那些[通常没有任何官方身份证明](https://www.americanprogress.org/article/providing-identification-to-unauthorized-immigrants/)的非法移民。）没有身份证的人就无法被识别吗？我认为不是。或者，如果可以识别，那我们对身份识别的理解就有严重问题。这也成为了越来越多的作者将数据处理操作视为符合 GDPR 相关性的常见论点，许多人将身份识别广泛理解为‘个体化’[[7]](#_ftn7)，“区分”[[8]](#_ftn8)，甚至是‘定向’[[9]](#_ftn9)，这些都是这些系统设计之初的目标。
 
-所以，看起来情感和情感数据很可能也在GDPR的范围内，无论处理这些数据的公司是否利用它来识别个人。然而，即使它们不被用于识别，推断情感的数据肯定总是个人数据。这反过来使GDPR适用。我们现在并不打算深入探讨这意味着什么，或者GDPR的条款在大多数（甚至所有？）情感识别技术提供商中如何被侵犯。毕竟，他们仍在忙于辩称情感数据本来就不是个人数据。
+所以，看起来情感和情感数据很可能也在 GDPR 的范围内，无论处理这些数据的公司是否利用它来识别个人。然而，即使它们不被用于识别，推断情感的数据肯定总是个人数据。这反过来使 GDPR 适用。我们现在并不打算深入探讨这意味着什么，或者 GDPR 的条款在大多数（甚至所有？）情感识别技术提供商中如何被侵犯。毕竟，他们仍在忙于辩称情感数据本来就不是个人数据。
 
 ## 3\. 这真的重要吗？
 
@@ -54,11 +54,11 @@
 
 当然，其中一些销售健康设备，这些设备然后推测你的情感和心理状态以达到健康目的。就像扫描简（Jane）那样，很多人可能正是为了这个目的购买这些设备。然而，大多数（所有？）设备并不仅仅是这么做的。为什么要让这些宝贵的数据浪费掉呢？当它也可以被用来与其他商业实体合作，为你提供个性化的广告，甚至为你省去麻烦，直接为你下单。毕竟，他们所合作的实体，只不过是你（推测上）需要的东西的其中一个靠谱的选择。
 
-最后，考虑到这些目的，特别是当涉及到其他非健康设备的情感识别系统时，识别特定情感的意义也变得越来越不重要。这使得关于是否‘*解读*’情感是科学还是伪科学的辩论在很大程度上变得无关紧要。以及之前讨论过的情感是什么的问题，因为那时我们必须进行同样的思维练习，去识别和使用任何他们最终能够识别的状态。例如，现如今，将你放在PAD（愉悦-激动-支配）量表上的位置要更为重要。[ [10]](#_ftn10) 这足以评估你对特定信息、情况、广告或其他事物的整体态度。它是引发积极还是消极的感觉，它是否吸引了你的注意力，是否让你变得积极主动或是被动接收？而这些足以让你在恰当的时刻看到恰到好处的广告。如果你仍然在看到广告的话，而不是直接把东西送到你门口。
+最后，考虑到这些目的，特别是当涉及到其他非健康设备的情感识别系统时，识别特定情感的意义也变得越来越不重要。这使得关于是否‘*解读*’情感是科学还是伪科学的辩论在很大程度上变得无关紧要。以及之前讨论过的情感是什么的问题，因为那时我们必须进行同样的思维练习，去识别和使用任何他们最终能够识别的状态。例如，现如今，将你放在 PAD（愉悦-激动-支配）量表上的位置要更为重要。[ [10]](#_ftn10) 这足以评估你对特定信息、情况、广告或其他事物的整体态度。它是引发积极还是消极的感觉，它是否吸引了你的注意力，是否让你变得积极主动或是被动接收？而这些足以让你在恰当的时刻看到恰到好处的广告。如果你仍然在看到广告的话，而不是直接把东西送到你门口。
 
 ## 4\. 最后的思考
 
-那么，情感是什么？它们是很多东西。它们是我们当前状态和环境的内在感知，是这些感知的外部表现形式，以及对这些表现形式的计算性读取。这个冗长的过程也使得它们成为一种数据。当与其他数据点结合，或在足够狭窄的背景下使用时，这些数据在某些情况下可能是个人的。而这无关情感在心理学意义上的定义。除非我们希望卷入对*注意力*和*兴奋*是什么的讨论，或者让系统提供商通过声称他们并不真正识别情感，而仅仅是在PAD量表上追踪用户反应，从而逃避GDPR的范畴。
+那么，情感是什么？它们是很多东西。它们是我们当前状态和环境的内在感知，是这些感知的外部表现形式，以及对这些表现形式的计算性读取。这个冗长的过程也使得它们成为一种数据。当与其他数据点结合，或在足够狭窄的背景下使用时，这些数据在某些情况下可能是个人的。而这无关情感在心理学意义上的定义。除非我们希望卷入对*注意力*和*兴奋*是什么的讨论，或者让系统提供商通过声称他们并不真正识别情感，而仅仅是在 PAD 量表上追踪用户反应，从而逃避 GDPR 的范畴。
 
 这个结论使得任何单一实体识别和使用通过“*读取*”我们的面部表情和身体信号获得的数据时，也要对它所做的事情负责。其最低的义务位于数据收集目的的全面披露和提供一个易于访问的反对处理的可能性之间。当前，这远未成为普遍做法。
 
@@ -66,28 +66,28 @@
 
 最后，当考虑其他非个人设备时，情况当然变得更糟。无论是基于情绪的社交媒体算法，还是智能广告牌，它们都处理个人数据，以生成更多（如我们已确定的）个人数据，并用它来影响我们的行为。完全意识到在个人经过广告牌或浏览社交媒体时，透明度要求很难实现，但它们依然是要求，而非仅仅是有帮助的建议。设想实现有意义透明度的新方法是必须的。思考情绪和情感数据的健全方式也是必须的，避免心理学上的技巧和讨论。否则，我们可能很快就会失去所有剩余的决策权。
 
-![](../Images/65ddaaaacf35a60330657c821da76557.png)
+![](img/65ddaaaacf35a60330657c821da76557.png)
 
-图片来自[Nik](https://unsplash.com/@helloimnik)于Unsplash
+图片来自[Nik](https://unsplash.com/@helloimnik)于 Unsplash
 
-[[1]](#_ftnref1) 亚里士多德，《修辞学》，公元前350年，由W. Rhys Roberts翻译，见[https://classics.mit.edu/Aristotle/rhetoric.2.ii.html](https://classics.mit.edu/Aristotle/rhetoric.2.ii.html)。
+[[1]](#_ftnref1) 亚里士多德，《修辞学》，公元前 350 年，由 W. Rhys Roberts 翻译，见[`classics.mit.edu/Aristotle/rhetoric.2.ii.html`](https://classics.mit.edu/Aristotle/rhetoric.2.ii.html)。
 
-[[2]](#_ftnref2) P. Ekman，《达尔文对我们理解情绪表达的贡献》，《哲学会刊：伦敦皇家学会B卷生物学科学辑》，2009年12月12日；364(1535)：3449–3451。doi: 10.1098/rstb.2009.0189，[https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2781895/](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2781895/)。
+[[2]](#_ftnref2) P. Ekman，《达尔文对我们理解情绪表达的贡献》，《哲学会刊：伦敦皇家学会 B 卷生物学科学辑》，2009 年 12 月 12 日；364(1535)：3449–3451。doi: 10.1098/rstb.2009.0189，[`www.ncbi.nlm.nih.gov/pmc/articles/PMC2781895/`](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2781895/)。
 
-[[3]](#_ftnref3) L. Sposini，《神经营销与眼动追踪技术在欧洲框架下：走向GDPR及其未来》，《消费者政策杂志》，[https://doi.org/10.1007/s10603-023-09559-2](https://doi.org/10.1007/s10603-023-09559-2)
+[[3]](#_ftnref3) L. Sposini，《神经营销与眼动追踪技术在欧洲框架下：走向 GDPR 及其未来》，《消费者政策杂志》，[`doi.org/10.1007/s10603-023-09559-2`](https://doi.org/10.1007/s10603-023-09559-2)
 
-[[4]](#_ftnref4) 第29工作组，关于个人数据概念的第4/2007号意见，01248/07/EN WP 136，[https://www.clinicalstudydatarequest.com/Documents/Privacy-European-guidance.pdf](https://www.clinicalstudydatarequest.com/Documents/Privacy-European-guidance.pdf%20p.32) 第32页，第38页；2016年10月19日判决，C-582/14 Breyer，ECLI:EU:C:2016:779，第32段。
+[[4]](#_ftnref4) 第 29 工作组，关于个人数据概念的第 4/2007 号意见，01248/07/EN WP 136，[`www.clinicalstudydatarequest.com/Documents/Privacy-European-guidance.pdf`](https://www.clinicalstudydatarequest.com/Documents/Privacy-European-guidance.pdf%20p.32) 第 32 页，第 38 页；2016 年 10 月 19 日判决，C-582/14 Breyer，ECLI:EU:C:2016:779，第 32 段。
 
-[[5]](#_ftnref5) J. Metcalfe，《一块会咳嗽并对吸烟者发起攻击的智能广告牌》，《彭博社》，2017年1月17日，[https://www.bloomberg.com/news/articles/2017-01-17/a-smart-billboard-that-detects-and-coughs-at-smokers?embedded-checkout=true](https://www.bloomberg.com/news/articles/2017-01-17/a-smart-billboard-that-detects-and-coughs-at-smokers?embedded-checkout=true)
+[[5]](#_ftnref5) J. Metcalfe，《一块会咳嗽并对吸烟者发起攻击的智能广告牌》，《彭博社》，2017 年 1 月 17 日，[`www.bloomberg.com/news/articles/2017-01-17/a-smart-billboard-that-detects-and-coughs-at-smokers?embedded-checkout=true`](https://www.bloomberg.com/news/articles/2017-01-17/a-smart-billboard-that-detects-and-coughs-at-smokers?embedded-checkout=true)
 
-[[6]](#_ftnref6) 第29条工作组，《关于个人数据概念的意见 4/2007》，01248/07/EN WP 136，[https://www.clinicalstudydatarequest.com/Documents/Privacy-European-guidance.pdf](https://www.clinicalstudydatarequest.com/Documents/Privacy-European-guidance.pdf) 第13页。
+[[6]](#_ftnref6) 第 29 条工作组，《关于个人数据概念的意见 4/2007》，01248/07/EN WP 136，[`www.clinicalstudydatarequest.com/Documents/Privacy-European-guidance.pdf`](https://www.clinicalstudydatarequest.com/Documents/Privacy-European-guidance.pdf) 第 13 页。
 
 [[7]](#_ftnref7) Vidal-Hall v Google, Inc. [2015] EWCA Civ 311
 
-[[8]](#_ftnref8) P. Davis，《面部识别与智能广告牌：分析GDPR中“已识别”个人数据标准》（2020年1月21日）。奥斯陆大学法学院研究论文№2020–01，SSRN可获取：[https://ssrn.com/abstract=3523109](https://ssrn.com/abstract=3523109) 或 [http://dx.doi.org/10.2139/ssrn.3523109](http://dx.doi.org/10.2139/ssrn.3523109)
+[[8]](#_ftnref8) P. Davis，《面部识别与智能广告牌：分析 GDPR 中“已识别”个人数据标准》（2020 年 1 月 21 日）。奥斯陆大学法学院研究论文№2020–01，SSRN 可获取：[`ssrn.com/abstract=3523109`](https://ssrn.com/abstract=3523109) 或 [`dx.doi.org/10.2139/ssrn.3523109`](http://dx.doi.org/10.2139/ssrn.3523109)
 
-[[9]](#_ftnref9) N. Purtova，《从知名到定向：GDPR下的身份识别意义》，《国际数据隐私法》，第12卷，第3期，2022年8月，163–183页，[https://doi.org/10.1093/idpl/ipac013](https://doi.org/10.1093/idpl/ipac013)
+[[9]](#_ftnref9) N. Purtova，《从知名到定向：GDPR 下的身份识别意义》，《国际数据隐私法》，第 12 卷，第 3 期，2022 年 8 月，163–183 页，[`doi.org/10.1093/idpl/ipac013`](https://doi.org/10.1093/idpl/ipac013)
 
-[[10]](#_ftnref10) Kalinin, A., Kolmogorova, A.（2019）。基于Lövheim情感模型的虚构书籍自动化原声带生成。在：Eismont, P., Mitrenina, O., Pereltsvaig, A.（编）《语言、音乐与计算》。LMAC 2017。计算机与信息科学通信，第943卷。Springer, Cham。[https://doi.org/10.1007/978-3-030-05594-3_13](https://doi.org/10.1007/978-3-030-05594-3_13)，B. J. Lance 和 S. Marsella，《凝视行为与情感归因的关系：一项实证研究》，2008年9月，第8届国际智能虚拟代理大会论文集
+[[10]](#_ftnref10) Kalinin, A., Kolmogorova, A.（2019）。基于 Lövheim 情感模型的虚构书籍自动化原声带生成。在：Eismont, P., Mitrenina, O., Pereltsvaig, A.（编）《语言、音乐与计算》。LMAC 2017。计算机与信息科学通信，第 943 卷。Springer, Cham。[`doi.org/10.1007/978-3-030-05594-3_13`](https://doi.org/10.1007/978-3-030-05594-3_13)，B. J. Lance 和 S. Marsella，《凝视行为与情感归因的关系：一项实证研究》，2008 年 9 月，第 8 届国际智能虚拟代理大会论文集
 
-[https://www.researchgate.net/publication/225115460_The_Relation_between_Gaze_Behavior_and_the_Attribution_of_Emotion_An_Empirical_Study](https://www.researchgate.net/publication/225115460_The_Relation_between_Gaze_Behavior_and_the_Attribution_of_Emotion_An_Empirical_Study)
+[`www.researchgate.net/publication/225115460_The_Relation_between_Gaze_Behavior_and_the_Attribution_of_Emotion_An_Empirical_Study`](https://www.researchgate.net/publication/225115460_The_Relation_between_Gaze_Behavior_and_the_Attribution_of_Emotion_An_Empirical_Study)

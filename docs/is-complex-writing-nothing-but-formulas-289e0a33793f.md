@@ -1,16 +1,16 @@
 # 复杂写作仅仅是公式吗？
 
-> 原文：[https://towardsdatascience.com/is-complex-writing-nothing-but-formulas-289e0a33793f?source=collection_archive---------2-----------------------#2024-12-13](https://towardsdatascience.com/is-complex-writing-nothing-but-formulas-289e0a33793f?source=collection_archive---------2-----------------------#2024-12-13)
+> 原文：[`towardsdatascience.com/is-complex-writing-nothing-but-formulas-289e0a33793f?source=collection_archive---------2-----------------------#2024-12-13`](https://towardsdatascience.com/is-complex-writing-nothing-but-formulas-289e0a33793f?source=collection_archive---------2-----------------------#2024-12-13)
 
 ## 文本分析揭示了大量写作是如何产生的
 
-[](https://medium.com/@vered.t.zimmerman?source=post_page---byline--289e0a33793f--------------------------------)[![Vered Zimmerman](../Images/a4fba3ef7c807c4b6e86c62b89acc768.png)](https://medium.com/@vered.t.zimmerman?source=post_page---byline--289e0a33793f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--289e0a33793f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--289e0a33793f--------------------------------) [Vered Zimmerman](https://medium.com/@vered.t.zimmerman?source=post_page---byline--289e0a33793f--------------------------------)
+[](https://medium.com/@vered.t.zimmerman?source=post_page---byline--289e0a33793f--------------------------------)![Vered Zimmerman](https://medium.com/@vered.t.zimmerman?source=post_page---byline--289e0a33793f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--289e0a33793f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--289e0a33793f--------------------------------) [Vered Zimmerman](https://medium.com/@vered.t.zimmerman?source=post_page---byline--289e0a33793f--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--289e0a33793f--------------------------------)·阅读时长8分钟·2024年12月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--289e0a33793f--------------------------------)·阅读时长 8 分钟·2024 年 12 月 13 日
 
 --
 
-广义上来说，自然语言处理将语言转化为可以有效操作的结构。由于深度学习的嵌入方法已经证明其强大，它们也成为了默认选择：选择一个模型，嵌入数据，选择一个指标，进行一些RAG操作。为了创造新的价值，采用一种不同的方式来处理语言会有帮助。
+广义上来说，自然语言处理将语言转化为可以有效操作的结构。由于深度学习的嵌入方法已经证明其强大，它们也成为了默认选择：选择一个模型，嵌入数据，选择一个指标，进行一些 RAG 操作。为了创造新的价值，采用一种不同的方式来处理语言会有帮助。
 
 今天我要分享的故事始于多年前，一本书。
 
@@ -22,13 +22,13 @@
 
 “很多”是关键词。
 
-在现代化的职业服务外表下，英国工业依然活跃于其古老的工厂和船厂。它雇佣Alice来做某项工作，然后交给Bob；他拧动一些螺丝，再交给Charlie。一月后，我们又开始了同样的工作。作为一个新来者，我发现这里的习惯不那么像一个会让人掉进去的沟渠，更像是一个可以立足的小山丘。
+在现代化的职业服务外表下，英国工业依然活跃于其古老的工厂和船厂。它雇佣 Alice 来做某项工作，然后交给 Bob；他拧动一些螺丝，再交给 Charlie。一月后，我们又开始了同样的工作。作为一个新来者，我发现这里的习惯不那么像一个会让人掉进去的沟渠，更像是一个可以立足的小山丘。
 
-我也在读很多书。好吧，我读的是*《纽约客》*。我最喜欢的事情就是把一本新杂志翻到封面，倒过来从后面开始阅读其中一篇，作者Anthony Lane写的是电影评论。多年来，我从来没有去看过一部电影。
+我也在读很多书。好吧，我读的是*《纽约客》*。我最喜欢的事情就是把一本新杂志翻到封面，倒过来从后面开始阅读其中一篇，作者 Anthony Lane 写的是电影评论。多年来，我从来没有去看过一部电影。
 
 不时地，一个闪光点会让我措手不及。*《纽约客》*语料库和我那些非普利策奖作品之间的微弱联系。在这两个语料库中，每一篇作品都与它的兄弟姐妹不同，但也……*并不完全不同*。相似之处回响。而我知道，我的作品中的相似之处是由一个重复过程产生的。
 
-在2017年，我开始冥思苦想，探索那条将*感觉公式化*的写作与能够*明确写出公式*的写作之间的界限。
+在 2017 年，我开始冥思苦想，探索那条将*感觉公式化*的写作与能够*明确写出公式*的写作之间的界限。
 
 这个论点是这样的：重复的量暗示了某种（通常是隐性）算法决策的形式。但是过程性重复会留下指纹。追踪这些指纹就能揭示出过程；推测出算法；软件几乎就能自己写出来。
 
@@ -38,7 +38,7 @@
 
 例如，我的上司，后来我的客户，一直希望他们的员工能够模仿*《经济学人》*的家风。但你如何找出*《经济学人》*是如何写出这些文章的？
 
-![](../Images/4f685dd622c1d3f61dcd1c1287a17309.png)
+![](img/4f685dd622c1d3f61dcd1c1287a17309.png)
 
 作者提供的图片
 
@@ -52,7 +52,7 @@
 
 仅仅两个函数，看看我们得到的见解！
 
-![](../Images/6031bdcd5b4fc97f5c33cb3d5e821e05.png)
+![](img/6031bdcd5b4fc97f5c33cb3d5e821e05.png)
 
 可读性分析图。来源：FinText
 
@@ -64,11 +64,11 @@
 
 我曾期待过这些图表。我曾在纸上胡乱画过它们。但当真正的图表第一次出现在我的屏幕上时，就像语言本身笑了出来。
 
-现在，我并不是第一个出现在这个领域的人。早在1964年，统计学家Frederick Mosteller和David Wallace就登上了*Time*杂志封面，他们的法医文学分析[解决了一个长达140年的争议](https://web.stanford.edu/group/cslipublications/cslipublications/site/1575865521.shtml)，争议的焦点是关于一系列匿名写作的文章作者归属问题。
+现在，我并不是第一个出现在这个领域的人。早在 1964 年，统计学家 Frederick Mosteller 和 David Wallace 就登上了*Time*杂志封面，他们的法医文学分析[解决了一个长达 140 年的争议](https://web.stanford.edu/group/cslipublications/cslipublications/site/1575865521.shtml)，争议的焦点是关于一系列匿名写作的文章作者归属问题。
 
 但法医分析总是将单一项目与两个语料库进行比较：一个是怀疑的作者创作的，另一个是零假设。比较分析只关心比较文本集合。
 
-![](../Images/5afa6ddc65ea2a963edd4178746798c5.png)
+![](img/5afa6ddc65ea2a963edd4178746798c5.png)
 
 作者提供的图片
 
@@ -76,15 +76,15 @@
 
 让我们回顾一下我们的步骤：给定一个语料库，我们对每个文本应用相同的函数（可读性函数）。这将语料库映射到一个集合（在这种情况下是数字）。在这个集合上，我们应用了另一个函数（直方图）。最后，我们对两个不同的语料库做了同样的操作——并比较了结果。
 
-如果你眯起眼睛，你会发现我刚刚描述的是Excel。
+如果你眯起眼睛，你会发现我刚刚描述的是 Excel。
 
 看起来像是一个表格，实际上是**一个 *管道***，依次处理列数据。首先沿列进行处理，然后对结果应用函数，再进行比较分析函数。
 
-好吧，我想要的是Excel，但它是针对文本的。
+好吧，我想要的是 Excel，但它是针对文本的。
 
 不是字符串——是文本。我想应用像`Count Verbs`（统计动词）或`First Paragraph Subject`（第一段主题）或`First Important Sentence`（第一重要句子）这样的函数。而且它必须足够灵活，这样我可以问*任何问题*；谁知道什么最终会变得重要？
 
-到2020年，这种解决方案并不存在，所以我自己构建了它。哇，这个软件可真不是‘自己写出来的’！为了能够问任何问题，需要一些好的架构决策，而我在纠正问题之前错了两次。
+到 2020 年，这种解决方案并不存在，所以我自己构建了它。哇，这个软件可真不是‘自己写出来的’！为了能够问任何问题，需要一些好的架构决策，而我在纠正问题之前错了两次。
 
 最终，函数是一次性定义的，通过它们对单个输入文本所做的处理来定义。然后，你选择和挑选管道步骤，以及它们作用的语料库。
 
@@ -96,11 +96,11 @@
 
 任何第一个软件客户都会感觉特别，但[这个客户](https://www.fintext.io/case-studies/benchmarking/help-them-buy-your-esg-funds/)让我感到兴奋，因为我的创意确实帮助了真实的人走出困境：
 
-在筹备一个大型活动时，他们计划推出一份旗舰报告，报告数据来自一项付费的YouGov调查。但调查结果平平。因此，他们用剩余的预算购买了FinText研究报告。正是我们的发现被他们放在了[最终报告](https://uksif.org/public-and-investor-attitudes-to-good-money-2020/)的核心位置。
+在筹备一个大型活动时，他们计划推出一份旗舰报告，报告数据来自一项付费的 YouGov 调查。但调查结果平平。因此，他们用剩余的预算购买了 FinText 研究报告。正是我们的发现被他们放在了[最终报告](https://uksif.org/public-and-investor-attitudes-to-good-money-2020/)的核心位置。
 
-![](../Images/4bbe75cbc97b44173678fc15b0fb1a65.png)
+![](img/4bbe75cbc97b44173678fc15b0fb1a65.png)
 
-Reddit‘投资’板块的社交聆听，2020年。来源：FinText
+Reddit‘投资’板块的社交聆听，2020 年。来源：FinText
 
 但社交聆听并没有起飞。投资领域有其特殊性，因为资金池总是需要一个归宿；唯一的问题是，谁是房东。我与业内人士交谈时，大多数人只是想知道他们的竞争对手在做什么。
 
@@ -134,8 +134,8 @@ Reddit‘投资’板块的社交聆听，2020年。来源：FinText
 
 此外，我已经失去了对*《纽约客》*的兴趣。某个时候，它的所有内容都变得过于公式化，魔力也随之消失。
 
-现在，文字正处于它们的大规模时代，比如像ChatGPT这样的语言模型。早期，我曾考虑应用管道来辨别文本是否由机器生成，但那有什么意义呢？
+现在，文字正处于它们的大规模时代，比如像 ChatGPT 这样的语言模型。早期，我曾考虑应用管道来辨别文本是否由机器生成，但那有什么意义呢？
 
-相反，在2023年底，我开始致力于一个解决方案，帮助公司扩展为专家客户写作的能力。这是一次完全不同的冒险，仍处于起步阶段。
+相反，在 2023 年底，我开始致力于一个解决方案，帮助公司扩展为专家客户写作的能力。这是一次完全不同的冒险，仍处于起步阶段。
 
 最终，我开始把文本分析看作是一副额外的眼镜。偶尔，它能把模糊的东西变得清晰。我把它随身携带，以备不时之需。

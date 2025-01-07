@@ -1,24 +1,24 @@
 # 如何实现基于 Amazon EC2 的定制训练解决方案
 
-> 原文：[https://towardsdatascience.com/how-to-implement-a-custom-training-solution-based-on-amazon-ec2-c91fcc2b145a?source=collection_archive---------15-----------------------#2024-01-30](https://towardsdatascience.com/how-to-implement-a-custom-training-solution-based-on-amazon-ec2-c91fcc2b145a?source=collection_archive---------15-----------------------#2024-01-30)
+> 原文：[`towardsdatascience.com/how-to-implement-a-custom-training-solution-based-on-amazon-ec2-c91fcc2b145a?source=collection_archive---------15-----------------------#2024-01-30`](https://towardsdatascience.com/how-to-implement-a-custom-training-solution-based-on-amazon-ec2-c91fcc2b145a?source=collection_archive---------15-----------------------#2024-01-30)
 
-## 云端 ML 训练管理的简单解决方案 — 第2部分
+## 云端 ML 训练管理的简单解决方案 — 第二部分
 
-[](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[![Chaim Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------) [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)
+[](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)![Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------) [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------) ·11分钟阅读·2024年1月30日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------) ·11 分钟阅读·2024 年 1 月 30 日
 
 --
 
-![](../Images/811d45664ed39ded00ae5b3892017d18.png)
+![](img/811d45664ed39ded00ae5b3892017d18.png)
 
 图片由 [Vlad D](https://unsplash.com/@hiking_corgi?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-这是对[上一篇文章](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)的续集，上一篇文章讨论了如何使用低级实例配置服务构建定制的云端机器学习（ML）模型开发解决方案。在本文中，我们的重点将放在 [Amazon EC2](https://aws.amazon.com/ec2/) 上。
+这是对上一篇文章的续集，上一篇文章讨论了如何使用低级实例配置服务构建定制的云端机器学习（ML）模型开发解决方案。在本文中，我们的重点将放在 [Amazon EC2](https://aws.amazon.com/ec2/) 上。
 
-云服务提供商（CSP）通常会提供完全托管的解决方案，用于在云端训练机器学习模型。例如，[Amazon SageMaker](https://aws.amazon.com/sagemaker/)是亚马逊提供的机器学习开发托管服务，它显著简化了训练过程。SageMaker不仅自动化了端到端的训练执行 —— 从自动配置所需的实例类型、设置训练环境、执行训练任务，到保存训练产物并关闭所有服务 —— 还提供了多个辅助服务，支持机器学习开发，如[自动模型调优](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning.html)、[平台优化的分布式训练库](https://docs.aws.amazon.com/sagemaker/latest/dg/distributed-training.html)等。然而，正如高层次解决方案常有的情况，SageMaker的易用性提高的同时，也伴随着对底层流程控制的一定丧失。
+云服务提供商（CSP）通常会提供完全托管的解决方案，用于在云端训练机器学习模型。例如，[Amazon SageMaker](https://aws.amazon.com/sagemaker/)是亚马逊提供的机器学习开发托管服务，它显著简化了训练过程。SageMaker 不仅自动化了端到端的训练执行 —— 从自动配置所需的实例类型、设置训练环境、执行训练任务，到保存训练产物并关闭所有服务 —— 还提供了多个辅助服务，支持机器学习开发，如[自动模型调优](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning.html)、[平台优化的分布式训练库](https://docs.aws.amazon.com/sagemaker/latest/dg/distributed-training.html)等。然而，正如高层次解决方案常有的情况，SageMaker 的易用性提高的同时，也伴随着对底层流程控制的一定丧失。
 
-在我们的[上一篇文章](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)中，我们提到了一些由托管训练服务（如 SageMaker）有时强加的限制，包括用户权限减少、某些实例类型无法访问、对多节点设备放置的控制减少等。一些场景需要对环境规范和训练流程有更高的自主权。在本文中，我们通过在 Amazon EC2 上构建一个自定义训练解决方案，展示了解决这些情况的一种方法。
+在我们的上一篇文章中，我们提到了一些由托管训练服务（如 SageMaker）有时强加的限制，包括用户权限减少、某些实例类型无法访问、对多节点设备放置的控制减少等。一些场景需要对环境规范和训练流程有更高的自主权。在本文中，我们通过在 Amazon EC2 上构建一个自定义训练解决方案，展示了解决这些情况的一种方法。
 
 非常感谢 [Max Rabin](https://www.linkedin.com/in/maxrabin/) 对本文的贡献。
 
@@ -135,7 +135,7 @@ script = """#!/bin/bash
 
 # 4\. 为 EC2 实例应用自定义标签
 
-Amazon EC2允许你通过[使用EC2实例标签](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html)为实例应用自定义元数据。这使得你可以将关于训练工作负载和/或训练环境的信息传递给实例。在这里，我们使用*TagSpecifications*设置传入实例名称和唯一的训练任务ID。我们使用该唯一ID来为我们的任务工件定义一个专用的S3路径。请注意，我们需要通过*MetadataOptions*设置显式启用实例访问元数据标签的功能。
+Amazon EC2 允许你通过[使用 EC2 实例标签](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html)为实例应用自定义元数据。这使得你可以将关于训练工作负载和/或训练环境的信息传递给实例。在这里，我们使用*TagSpecifications*设置传入实例名称和唯一的训练任务 ID。我们使用该唯一 ID 来为我们的任务工件定义一个专用的 S3 路径。请注意，我们需要通过*MetadataOptions*设置显式启用实例访问元数据标签的功能。
 
 ```py
 import boto3
@@ -200,7 +200,7 @@ instances = ec2.create_instances(
 
 # 5\. 将应用程序日志写入持久存储
 
-自然，我们需要能够分析训练过程中的和训练后的应用程序输出日志。这要求日志能够定期同步到持久化日志中。在这篇文章中，我们使用[Amazon CloudWatch](https://docs.aws.amazon.com/cloudwatch/)来实现这一点。以下我们定义了一个最小的JSON配置文件，用于启用CloudWatch日志收集，并将其添加到我们的源代码tar包中，文件名为*cw_config.json*。有关[CloudWatch 设置和配置](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html)的详细信息，请参阅官方文档。
+自然，我们需要能够分析训练过程中的和训练后的应用程序输出日志。这要求日志能够定期同步到持久化日志中。在这篇文章中，我们使用[Amazon CloudWatch](https://docs.aws.amazon.com/cloudwatch/)来实现这一点。以下我们定义了一个最小的 JSON 配置文件，用于启用 CloudWatch 日志收集，并将其添加到我们的源代码 tar 包中，文件名为*cw_config.json*。有关[CloudWatch 设置和配置](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html)的详细信息，请参阅官方文档。
 
 ```py
 {
@@ -220,7 +220,7 @@ instances = ec2.create_instances(
 }
 ```
 
-在实际操作中，我们希望*log_stream_name*能够唯一标识训练任务。为此，我们使用[sed](https://www.gnu.org/software/sed/manual/sed.html)命令将通用的“job-id”字符串替换为上一节中的作业ID元数据标签。我们增强后的脚本还包括CloudWatch启动命令，并修改了将标准输出管道到CloudWatch配置文件中定义的*output.log*的部分。
+在实际操作中，我们希望*log_stream_name*能够唯一标识训练任务。为此，我们使用[sed](https://www.gnu.org/software/sed/manual/sed.html)命令将通用的“job-id”字符串替换为上一节中的作业 ID 元数据标签。我们增强后的脚本还包括 CloudWatch 启动命令，并修改了将标准输出管道到 CloudWatch 配置文件中定义的*output.log*的部分。
 
 ```py
 script = """#!/bin/bash
@@ -262,14 +262,14 @@ script = """#!/bin/bash
 
 现在，训练任务在多个节点并行运行已经相当常见。修改我们的实例请求代码以支持多个节点，只需简单修改*num_instances*设置即可。挑战在于如何以支持分布式训练的方式配置环境，即一种能够 — 并且优化 — 实例之间数据传输的方式。
 
-为了最小化实例之间的网络延迟并最大化吞吐量，我们在ec2实例请求的*Placement*字段中添加了一个指向预定义的[集群放置组](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html#placement-groups-cluster)的指针。以下命令行演示了如何创建一个集群放置组。
+为了最小化实例之间的网络延迟并最大化吞吐量，我们在 ec2 实例请求的*Placement*字段中添加了一个指向预定义的[集群放置组](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html#placement-groups-cluster)的指针。以下命令行演示了如何创建一个集群放置组。
 
 ```py
 aws ec2 create-placement-group --group-name cluster-placement-group \
     --strategy cluster
 ```
 
-为了让我们的实例能够相互通信，它们需要知道彼此的存在。在这篇文章中，我们将演示运行[数据并行训练](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)所需的最小环境配置，使用[PyTorch](https://pytorch.org/)。对于PyTorch的[DistributedDataParallel](https://pytorch.org/docs/stable/nn.html#module-torch.nn.parallel)（DDP），每个实例需要知道主节点的IP地址、主端口、实例总数以及在所有节点中的序列*rank*。下面的脚本展示了如何使用环境变量*MASTER_ADDR*、*MASTER_PORT*、*NUM_NODES*和*NODE_RANK*配置[数据并行训练](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)作业。
+为了让我们的实例能够相互通信，它们需要知道彼此的存在。在这篇文章中，我们将演示运行[数据并行训练](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)所需的最小环境配置，使用[PyTorch](https://pytorch.org/)。对于 PyTorch 的[DistributedDataParallel](https://pytorch.org/docs/stable/nn.html#module-torch.nn.parallel)（DDP），每个实例需要知道主节点的 IP 地址、主端口、实例总数以及在所有节点中的序列*rank*。下面的脚本展示了如何使用环境变量*MASTER_ADDR*、*MASTER_PORT*、*NUM_NODES*和*NODE_RANK*配置[数据并行训练](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)作业。
 
 ```py
 import os, ast, socket
@@ -302,7 +302,7 @@ if __name__ == '__main__':
              nprocs=torch.cuda.device_count())
 ```
 
-节点的rank可以从[ami-launch-index](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMI-launch-index-examples.html)中获取。节点的数量和主端口在[create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)调用时已知，并可以作为EC2实例标签传递。然而，主节点的IP地址仅在主实例创建后确定，并且只能在[create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)调用之后传递给其他实例。在下面的代码块中，我们选择通过专门调用[AWS Python SDK](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)的[create_tags](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/client/create_tags.html)API将主节点地址传递给每个实例。我们还使用相同的调用根据每个实例的启动索引值更新它们的名称标签。
+节点的 rank 可以从[ami-launch-index](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMI-launch-index-examples.html)中获取。节点的数量和主端口在[create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)调用时已知，并可以作为 EC2 实例标签传递。然而，主节点的 IP 地址仅在主实例创建后确定，并且只能在[create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)调用之后传递给其他实例。在下面的代码块中，我们选择通过专门调用[AWS Python SDK](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)的[create_tags](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/client/create_tags.html)API 将主节点地址传递给每个实例。我们还使用相同的调用根据每个实例的启动索引值更新它们的名称标签。
 
 多节点训练的完整解决方案如下：
 
@@ -406,9 +406,9 @@ if num_instances > 1:
         )
 ```
 
-# 7\. 支持使用Spot实例
+# 7\. 支持使用 Spot 实例
 
-一种减少训练成本的流行方法是使用折扣[Amazon EC2 Spot实例](https://aws.amazon.com/ec2/spot/?cards.sort-by=item.additionalFields.startDateTime&cards.sort-order=asc)。有效地利用Spot实例要求你实现一种检测中断的方式（例如，通过监听[终止通知](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-instance-termination-notices.html)）并采取适当的行动（例如，恢复未完成的工作负载）。在下面，我们展示了如何修改脚本，使用*InstanceMarketOptions* API设置来使用Spot实例。
+一种减少训练成本的流行方法是使用折扣[Amazon EC2 Spot 实例](https://aws.amazon.com/ec2/spot/?cards.sort-by=item.additionalFields.startDateTime&cards.sort-order=asc)。有效地利用 Spot 实例要求你实现一种检测中断的方式（例如，通过监听[终止通知](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-instance-termination-notices.html)）并采取适当的行动（例如，恢复未完成的工作负载）。在下面，我们展示了如何修改脚本，使用*InstanceMarketOptions* API 设置来使用 Spot 实例。
 
 ```py
 import boto3
@@ -446,10 +446,10 @@ instances = ec2.create_instances(
 )
 ```
 
-请查看我们之前的文章（例如，[这里](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)和[这里](/using-server-less-functions-to-govern-and-monitor-cloud-based-training-experiments-755c43fba26b)），了解一些如何实现Spot实例生命周期管理解决方案的思路。
+请查看我们之前的文章（例如，这里和这里），了解一些如何实现 Spot 实例生命周期管理解决方案的思路。
 
 # 概要
 
-针对AI开发的托管云服务可以简化模型训练，并降低潜在从业者的入门门槛。然而，在某些情况下，需要对训练过程有更大的控制权。在这篇文章中，我们展示了一种基于Amazon EC2构建定制化托管训练环境的方法。当然，解决方案的具体细节将大大依赖于具体项目的需求。
+针对 AI 开发的托管云服务可以简化模型训练，并降低潜在从业者的入门门槛。然而，在某些情况下，需要对训练过程有更大的控制权。在这篇文章中，我们展示了一种基于 Amazon EC2 构建定制化托管训练环境的方法。当然，解决方案的具体细节将大大依赖于具体项目的需求。
 
 一如既往，欢迎随时通过评论、提问或修改来回复此帖子。

@@ -1,32 +1,32 @@
-# 作为数据科学家，你应该加入FAANG还是创业公司？
+# 作为数据科学家，你应该加入 FAANG 还是创业公司？
 
-> 原文：[https://towardsdatascience.com/should-you-join-faang-or-a-startup-as-a-data-scientist-030e3b8a7080?source=collection_archive---------2-----------------------#2024-06-20](https://towardsdatascience.com/should-you-join-faang-or-a-startup-as-a-data-scientist-030e3b8a7080?source=collection_archive---------2-----------------------#2024-06-20)
+> 原文：[`towardsdatascience.com/should-you-join-faang-or-a-startup-as-a-data-scientist-030e3b8a7080?source=collection_archive---------2-----------------------#2024-06-20`](https://towardsdatascience.com/should-you-join-faang-or-a-startup-as-a-data-scientist-030e3b8a7080?source=collection_archive---------2-----------------------#2024-06-20)
 
-## 来自Uber和Meta的工作经验教训：一个成长中的公司与一个微型创业公司
+## 来自 Uber 和 Meta 的工作经验教训：一个成长中的公司与一个微型创业公司
 
-[](https://medium.com/@twalbaum?source=post_page---byline--030e3b8a7080--------------------------------)[![Torsten Walbaum](../Images/27964d8095af45642f152a0ce4fa2681.png)](https://medium.com/@twalbaum?source=post_page---byline--030e3b8a7080--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--030e3b8a7080--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--030e3b8a7080--------------------------------) [Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--030e3b8a7080--------------------------------)
+[](https://medium.com/@twalbaum?source=post_page---byline--030e3b8a7080--------------------------------)![Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--030e3b8a7080--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--030e3b8a7080--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--030e3b8a7080--------------------------------) [Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--030e3b8a7080--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--030e3b8a7080--------------------------------) ·阅读时间9分钟·2024年6月20日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--030e3b8a7080--------------------------------) ·阅读时间 9 分钟·2024 年 6 月 20 日
 
 --
 
-![](../Images/93bb262da76bc6052ad31d66345bec10.png)
+![](img/93bb262da76bc6052ad31d66345bec10.png)
 
-作者提供的图像（通过Midjourney制作）
+作者提供的图像（通过 Midjourney 制作）
 
 你加入什么类型的公司是一个极其重要的决定。即使公司很有声望，薪水也很高，如果工作环境不适合你，最终你也会感到筋疲力尽。
 
-很多人加入创业公司或大型科技公司时，并没有真正了解在那里工作的实际情况，最终往往会感到失望。在这篇文章中，我将根据我在从小型10人创业公司到Uber和Meta等大型科技公司工作的经验，讲述关键的区别。希望这能帮助你决定自己想要去哪个地方。
+很多人加入创业公司或大型科技公司时，并没有真正了解在那里工作的实际情况，最终往往会感到失望。在这篇文章中，我将根据我在从小型 10 人创业公司到 Uber 和 Meta 等大型科技公司工作的经验，讲述关键的区别。希望这能帮助你决定自己想要去哪个地方。
 
-**如果你想快速浏览文章，我会在每一部分的结尾添加简短的总结（“TL;DR” = “太长，不看”）（这是我在Uber学到的）。**
+**如果你想快速浏览文章，我会在每一部分的结尾添加简短的总结（“TL;DR” = “太长，不看”）（这是我在 Uber 学到的）。**
 
 # 因素#1：公司有多有声望
 
-想象一下你知道的一家科技公司。你可能会想到Google、Meta、Amazon、Apple或类似的大公司。
+想象一下你知道的一家科技公司。你可能会想到 Google、Meta、Amazon、Apple 或类似的大公司。
 
 根据这些公司的声誉，大多数人认为任何在那里工作的人都符合非常高的优秀标准。虽然这不一定正确（更多内容见下文），这种所谓的“[光环效应](https://en.wikipedia.org/wiki/Halo_effect)”能对你有所帮助。一旦你的简历上有了大科技公司“批准印章”，之后找工作就会容易得多。
 
-> 许多公司认为：“如果那个人足够优秀能在Google做数据科学家，他们对我们也会足够优秀。我确信Google已经做过充分的尽职调查。”
+> 许多公司认为：“如果那个人足够优秀能在 Google 做数据科学家，他们对我们也会足够优秀。我确信 Google 已经做过充分的尽职调查。”
 
 从德国来到美国时，大多数招聘经理和招聘人员并不认识我曾经工作过的公司。一旦我在 Uber 得到一份工作，我便收到了大量的工作邀请，包括一些之前曾经拒绝过我的公司。
 
@@ -46,7 +46,7 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----030e3b8a
 
 事实上，情况并非如此。多年来我学到的一件事是，世界上任何地方的人才和技能分布都会遵循正态分布，只要它达到一定的规模。虽然分布可能在 X 轴上稍微偏移，但仍然是正态分布。
 
-![](../Images/f1856e84932385837f2df3848e888a50.png)
+![](img/f1856e84932385837f2df3848e888a50.png)
 
 图片来源：作者
 
@@ -68,7 +68,7 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----030e3b8a
 
 +   **大科技公司：** 另一方面，大型科技公司的薪酬更具可预测性。基本工资较高（例如，请参阅[O'Reilly 2016 数据科学薪资调查](https://www.oreilly.com/radar/2016-data-science-salary-survey-results/)），而且股权通常是流动的（即，你可以在股权归属后立即出售），并且波动较小。这是一个很大的优势，因为在上市前的公司，你可能需要等待数年才能使你的股权真正变得有价值。
 
-+   **成长阶段：** 成长阶段的公司可以是一个有趣的折衷方案；它们成功退出的机会要大得多，但你的股权仍然有很大的上升空间。如果你在多年内加入了2-3家顶级成长阶段公司，很有可能你会至少得到一次稳固的财务结果。这些公司中的薪酬可能非常有竞争力；当我从Meta转到Rippling时，我的薪酬实际上增加了。
++   **成长阶段：** 成长阶段的公司可以是一个有趣的折衷方案；它们成功退出的机会要大得多，但你的股权仍然有很大的上升空间。如果你在多年内加入了 2-3 家顶级成长阶段公司，很有可能你会至少得到一次稳固的财务结果。这些公司中的薪酬可能非常有竞争力；当我从 Meta 转到 Rippling 时，我的薪酬实际上增加了。
 
 **简而言之：不要仅仅关注薪水，而是选择适合你风险承受能力和流动性需求的薪酬包。**
 
@@ -78,9 +78,9 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----030e3b8a
 
 我们可能不会在一份工作中待一辈子，但至少我们希望能在离开时自己做出选择。
 
-初创公司本质上比大公司更具风险。创始人是否能胜任工作？你能否筹集到下一轮融资？这些大多数风险都是生死存亡的；换句话说，你加入的公司阶段越早，它在6到12个月后可能就不再存在的可能性越大。
+初创公司本质上比大公司更具风险。创始人是否能胜任工作？你能否筹集到下一轮融资？这些大多数风险都是生死存亡的；换句话说，你加入的公司阶段越早，它在 6 到 12 个月后可能就不再存在的可能性越大。
 
-![](../Images/4da899f2690dda2a36e248bef0c3546b.png)
+![](img/4da899f2690dda2a36e248bef0c3546b.png)
 
 图片来自作者
 
@@ -108,11 +108,11 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----030e3b8a
 
 # 因素 #6：你将拥有的学习机会
 
-当我在2018年加入UberEats时，并没有接受任何入职培训。相反，我被交给了一系列问题，并要求尽快开始工作。
+当我在 2018 年加入 UberEats 时，并没有接受任何入职培训。相反，我被交给了一系列问题，并要求尽快开始工作。
 
 如果你习惯于以结构化的方式学习，例如通过大学的讲座，这一切一开始可能会让你感到不适应。你怎么知道该怎么做呢？你从哪里开始呢？
 
-但根据我的经验，解决各种具有挑战性的问题是学习公司运作方式、提高硬技能和软技能的最佳途径。例如，刚从学校毕业时，我的SQL技能最基础，但在UberEats的挑战中，我迫使自己在几周内就掌握了它。
+但根据我的经验，解决各种具有挑战性的问题是学习公司运作方式、提高硬技能和软技能的最佳途径。例如，刚从学校毕业时，我的 SQL 技能最基础，但在 UberEats 的挑战中，我迫使自己在几周内就掌握了它。
 
 这种做法的主要缺点是，你无法学到很多最佳实践。一个一流的数据基础设施是什么样的？最优秀的公司如何设计他们的指标？如何在保持严格要求的同时，毫不费力地执行成千上万的实验？即使你最终想加入一家初创公司，看到“优秀”的标准是什么样子，依然对你有帮助，这样你就知道自己应该朝哪个方向努力。
 
@@ -126,7 +126,7 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----030e3b8a
 
 在初创公司，你的成长机会直接来源于公司的成长。如果你作为早期的数据员工加入公司，并且你和公司都做得很好，你很可能会有机会建立并领导一个数据团队。
 
-大多数你看到的年轻副总裁和C级高管之所以能走到今天，都是因为他们通过加入“火箭型”公司加速了自己的职业生涯。
+大多数你看到的年轻副总裁和 C 级高管之所以能走到今天，都是因为他们通过加入“火箭型”公司加速了自己的职业生涯。
 
 然而，大公司有一个很大的好处：你通常有更广泛的职业选择。想要换一个产品做？不用离开公司，直接换团队。想要搬到另一个城市或国家？也有可能。
 
@@ -168,6 +168,6 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----030e3b8a
 
 # 最后思考
 
-在小型初创公司、成长型公司或FAANG科技公司工作，并不本质上比其他更好或更差。每个公司阶段都有其优缺点；你需要自己决定你看重什么，什么样的环境最适合你。
+在小型初创公司、成长型公司或 FAANG 科技公司工作，并不本质上比其他更好或更差。每个公司阶段都有其优缺点；你需要自己决定你看重什么，什么样的环境最适合你。
 
 欲了解更多关于如何在数据与分析领域扩展职业生涯的实用建议，考虑在这里关注我，或在[LinkedIn](http://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=torsten-walbaum)上关注我，或在[Substack](https://www.operatorshandbook.com/)上关注我。

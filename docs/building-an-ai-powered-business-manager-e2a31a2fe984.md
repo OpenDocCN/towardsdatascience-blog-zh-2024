@@ -1,16 +1,16 @@
-# 构建一个AI驱动的业务管理系统
+# 构建一个 AI 驱动的业务管理系统
 
-> 原文：[https://towardsdatascience.com/building-an-ai-powered-business-manager-e2a31a2fe984?source=collection_archive---------3-----------------------#2024-04-23](https://towardsdatascience.com/building-an-ai-powered-business-manager-e2a31a2fe984?source=collection_archive---------3-----------------------#2024-04-23)
+> 原文：[`towardsdatascience.com/building-an-ai-powered-business-manager-e2a31a2fe984?source=collection_archive---------3-----------------------#2024-04-23`](https://towardsdatascience.com/building-an-ai-powered-business-manager-e2a31a2fe984?source=collection_archive---------3-----------------------#2024-04-23)
 
-![](../Images/dc602a5cdef860b9a6b382b91264e95b.png)
+![](img/dc602a5cdef860b9a6b382b91264e95b.png)
 
 使用 [DALL·E](https://labs.openai.com/s/1rNDsRujptitO6sPd57aWyZp) 创建
 
-## 将AI代理与SQL数据库连接的逐步指南——系列文章的第二部分
+## 将 AI 代理与 SQL 数据库连接的逐步指南——系列文章的第二部分
 
-[](https://medium.com/@lukas.kowejsza?source=post_page---byline--e2a31a2fe984--------------------------------)[![Lukasz Kowejsza](../Images/8d920478bee9ad674a6c79462128b0db.png)](https://medium.com/@lukas.kowejsza?source=post_page---byline--e2a31a2fe984--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2a31a2fe984--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e2a31a2fe984--------------------------------) [Lukasz Kowejsza](https://medium.com/@lukas.kowejsza?source=post_page---byline--e2a31a2fe984--------------------------------)
+[](https://medium.com/@lukas.kowejsza?source=post_page---byline--e2a31a2fe984--------------------------------)![Lukasz Kowejsza](https://medium.com/@lukas.kowejsza?source=post_page---byline--e2a31a2fe984--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2a31a2fe984--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2a31a2fe984--------------------------------) [Lukasz Kowejsza](https://medium.com/@lukas.kowejsza?source=post_page---byline--e2a31a2fe984--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2a31a2fe984--------------------------------) ·29分钟阅读·2024年4月23日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2a31a2fe984--------------------------------) ·29 分钟阅读·2024 年 4 月 23 日
 
 --
 
@@ -28,7 +28,7 @@
 
 +   结构化项目仓库
 
-+   创建能够使用自然语言命令与多个SQL数据库表交互的工具
++   创建能够使用自然语言命令与多个 SQL 数据库表交互的工具
 
 到本教程结束时，你将清楚地理解如何设计一个基于聊天界面的架构，利用大语言模型（LLM）简化数据管理任务。无论你是希望优化运营的小企业主，还是寻求个人组织优化的个体，这里讲解的原则将为你的项目提供一个坚实的起点。
 
@@ -36,7 +36,7 @@
 
 # 回顾
 
-[在本系列的第一部分](/leverage-openai-tool-calling-building-a-reliable-ai-agent-from-scratch-4e21fcd15b62)中，我们构建了一个原型代理工作流，能够与工具对象进行交互。我们的目标是减少底层语言模型生成的工具参数中的幻觉现象，在我们的案例中是`gpt-3.5-turbo`。
+在本系列的第一部分中，我们构建了一个原型代理工作流，能够与工具对象进行交互。我们的目标是减少底层语言模型生成的工具参数中的幻觉现象，在我们的案例中是`gpt-3.5-turbo`。
 
 为了实现这一目标，我们实施了两个关键变更：
 
@@ -56,13 +56,13 @@
 
 这些组件构成了我们代理系统的基础，使其能够处理用户请求，选择合适的工具，并生成响应。
 
-如果你想要更详细的解释或了解特定设计选择背后的原因，可以查看上一篇文章：[利用OpenAI工具调用：从零开始构建可靠的AI代理](https://medium.com/towards-data-science/leverage-openai-tool-calling-building-a-reliable-ai-agent-from-scratch-4e21fcd15b62)
+如果你想要更详细的解释或了解特定设计选择背后的原因，可以查看上一篇文章：[利用 OpenAI 工具调用：从零开始构建可靠的 AI 代理](https://medium.com/towards-data-science/leverage-openai-tool-calling-building-a-reliable-ai-agent-from-scratch-4e21fcd15b62)
 
 记住这些回顾内容后，让我们进入项目的下一阶段——集成数据库功能以存储和管理业务数据。
 
 # 为什么为小企业数据管理提供聊天界面
 
-小企业在数据维护方面经常面临独特的挑战。与大公司一样，它们需要定期更新和维护各种类型的数据，如会计记录、时间跟踪、发票等。然而，现代ERP（企业资源规划）系统的复杂性和成本对小企业而言可能是一个障碍。因此，许多小企业不得不依赖一系列Excel电子表格来捕捉和维护关键数据。
+小企业在数据维护方面经常面临独特的挑战。与大公司一样，它们需要定期更新和维护各种类型的数据，如会计记录、时间跟踪、发票等。然而，现代 ERP（企业资源规划）系统的复杂性和成本对小企业而言可能是一个障碍。因此，许多小企业不得不依赖一系列 Excel 电子表格来捕捉和维护关键数据。
 
 这种方法的问题在于，小企业主通常并非完全专注于行政任务，无法投入大量时间和精力进行复杂的行政管理和控制流程。关键在于定义精简的流程，并在数据出现时及时更新，最小化数据管理的开销。
 
@@ -121,7 +121,7 @@ project-root/
 
 # 2.1 数据库模型
 
-为了开始构建我们的原型应用程序，我们将定义基本的数据库表和相应的SQLModel定义。对于本教程，我们将重点介绍三个核心表：
+为了开始构建我们的原型应用程序，我们将定义基本的数据库表和相应的 SQLModel 定义。对于本教程，我们将重点介绍三个核心表：
 
 +   支出
 
@@ -131,7 +131,7 @@ project-root/
 
 这些表将作为我们应用程序的基础，允许我们演示关键功能和交互。
 
-在`database`目录下创建一个名为`models.py`的新文件，并使用SQLModel定义表格：
+在`database`目录下创建一个名为`models.py`的新文件，并使用 SQLModel 定义表格：
 
 ```py
 # database\models.py
@@ -192,7 +192,7 @@ class Expense(SQLModel, table=True):
     date: DateFormat
 ```
 
-除了标准的SQLModel字段外，我们还定义了三个自定义类型注解：`DateFormat`、`TimeFormat`和`Numeric`。这些注解利用了Pydantic的`BeforeValidator`，以确保在将输入数据存储到数据库之前，它们被正确格式化。`validate_date`函数处理将字符串输入转换为适当的`datetime`。这种方法允许我们接受来自大型语言模型的各种日期格式，从而减少了在提示中对格式的严格要求。
+除了标准的 SQLModel 字段外，我们还定义了三个自定义类型注解：`DateFormat`、`TimeFormat`和`Numeric`。这些注解利用了 Pydantic 的`BeforeValidator`，以确保在将输入数据存储到数据库之前，它们被正确格式化。`validate_date`函数处理将字符串输入转换为适当的`datetime`。这种方法允许我们接受来自大型语言模型的各种日期格式，从而减少了在提示中对格式的严格要求。
 
 # 2.2 数据库引擎
 
@@ -215,27 +215,27 @@ def create_db_and_tables():
 create_db_and_tables()
 ```
 
-在这个脚本中，我们导入了我们的模型和必要的SQLModel组件。我们定义了`DATABASE_URL`，它指向名为`app.db`的本地SQLite数据库文件。我们使用SQLModel的`create_engine`创建了一个`engine`，并传入`DATABASE_URL`。`echo=True`参数启用了详细输出，便于调试。
+在这个脚本中，我们导入了我们的模型和必要的 SQLModel 组件。我们定义了`DATABASE_URL`，它指向名为`app.db`的本地 SQLite 数据库文件。我们使用 SQLModel 的`create_engine`创建了一个`engine`，并传入`DATABASE_URL`。`echo=True`参数启用了详细输出，便于调试。
 
 `create_db_and_tables`函数使用`SQLModel.metadata.create_all`根据我们定义的模型生成相应的数据库表。最后，我们调用这个函数以确保在运行脚本时创建数据库和表格。
 
-数据库设置完成后，我们现在可以专注于更新我们的`Tool`类，使其与SQLModel无缝协作，并增强我们的工具架构转换过程。
+数据库设置完成后，我们现在可以专注于更新我们的`Tool`类，使其与 SQLModel 无缝协作，并增强我们的工具架构转换过程。
 
 # 3. 工具类
 
-在这一部分，我们将讨论对`Tool`类所做的更新，以处理SQLModel实例并改进验证过程。如需更详细的`Tool`类说明，请访问我之前的文章。
+在这一部分，我们将讨论对`Tool`类所做的更新，以处理 SQLModel 实例并改进验证过程。如需更详细的`Tool`类说明，请访问我之前的文章。
 
-首先，我们通过`Union`类型提示将`Type[SQLModel]`作为`model`字段的可能类型。这使得`Tool`类能够接受Pydantic的`BaseModel`和SQLModel的`SQLModel`作为有效的模型类型。
+首先，我们通过`Union`类型提示将`Type[SQLModel]`作为`model`字段的可能类型。这使得`Tool`类能够接受 Pydantic 的`BaseModel`和 SQLModel 的`SQLModel`作为有效的模型类型。
 
-接下来，我们引入了一个新的属性`exclude_keys`，其类型为`list[str]`，默认值为`["id"]`。这个属性的目的是指定哪些键应该从验证过程和OpenAI工具架构生成中排除。在这种情况下，默认排除的键是`id`，因为在使用`SqlModel`进行数据录入时，`id`会在数据导入过程中自动生成。
+接下来，我们引入了一个新的属性`exclude_keys`，其类型为`list[str]`，默认值为`["id"]`。这个属性的目的是指定哪些键应该从验证过程和 OpenAI 工具架构生成中排除。在这种情况下，默认排除的键是`id`，因为在使用`SqlModel`进行数据录入时，`id`会在数据导入过程中自动生成。
 
-此外，我们在`Tool`类中引入了`parse_model`布尔属性。通过这个属性，我们可以决定工具函数是通过Pydantic/SQLModel调用，还是通过关键字参数调用。
+此外，我们在`Tool`类中引入了`parse_model`布尔属性。通过这个属性，我们可以决定工具函数是通过 Pydantic/SQLModel 调用，还是通过关键字参数调用。
 
-在`validate_input()`方法中，我们添加了一个检查，以确保在验证过程中，`exclude_keys`中指定的键不会被视为缺失键。这对于像`id`这样的字段特别有用，因为这些字段是由SQLModel自动生成的，不应作为输入的必需项。
+在`validate_input()`方法中，我们添加了一个检查，以确保在验证过程中，`exclude_keys`中指定的键不会被视为缺失键。这对于像`id`这样的字段特别有用，因为这些字段是由 SQLModel 自动生成的，不应作为输入的必需项。
 
-同样，在`openai_tool_schema`属性中，我们添加了一个循环，以从生成的模式中移除被排除的键。这确保了排除的键不会被包括在发送到OpenAI API的模式中。为了总结，我们使用`openai_tool_schema`属性从我们的工具模式中移除`required`参数。这是为了消除语言模型的幻觉。
+同样，在`openai_tool_schema`属性中，我们添加了一个循环，以从生成的模式中移除被排除的键。这确保了排除的键不会被包括在发送到 OpenAI API 的模式中。为了总结，我们使用`openai_tool_schema`属性从我们的工具模式中移除`required`参数。这是为了消除语言模型的幻觉。
 
-此外，我们将导入语句从`from pydantic.v1 import BaseModel`更改为`from pydantic import BaseModel`。由于`SQLModel`基于Pydantic v2，我们希望在此时保持一致，使用Pydantic v2。
+此外，我们将导入语句从`from pydantic.v1 import BaseModel`更改为`from pydantic import BaseModel`。由于`SQLModel`基于 Pydantic v2，我们希望在此时保持一致，使用 Pydantic v2。
 
 这是`Tool`类的更新代码：
 
@@ -304,11 +304,11 @@ class Tool(BaseModel):
         return schema
 ```
 
-这些对`Tool`类的更新提供了更多的灵活性和控制力，能够在处理SQLModel实例时进行更精细的验证过程和模式生成。
+这些对`Tool`类的更新提供了更多的灵活性和控制力，能够在处理 SQLModel 实例时进行更精细的验证过程和模式生成。
 
 # 3.1 自定义工具模式转换
 
-在我们的`Tool`类中，我们使用`convert_to_openai_tool`函数从Langchain创建一个Pydantic模型的模式。然而，这个函数是基于Pydantic v1的，而SQLModel使用的是Pydantic v2。为了使转换函数兼容，我们需要对其进行调整。让我们创建一个新的脚本，命名为`convert.py`：
+在我们的`Tool`类中，我们使用`convert_to_openai_tool`函数从 Langchain 创建一个 Pydantic 模型的模式。然而，这个函数是基于 Pydantic v1 的，而 SQLModel 使用的是 Pydantic v2。为了使转换函数兼容，我们需要对其进行调整。让我们创建一个新的脚本，命名为`convert.py`：
 
 ```py
 # tools/convert.py
@@ -351,7 +351,7 @@ def convert_pydantic_to_openai_function(
     }
 ```
 
-这个调整后的转换函数处理了Pydantic v1和v2之间的差异，确保我们的`Tool`类能够生成与OpenAI API兼容的模式。
+这个调整后的转换函数处理了 Pydantic v1 和 v2 之间的差异，确保我们的`Tool`类能够生成与 OpenAI API 兼容的模式。
 
 接下来，在`tools/base.py`中更新导入语句，以使用新的`convert_to_openai_tool`函数：
 
@@ -365,19 +365,19 @@ from sqlmodel import SQLModel
 #...rest of the code ...
 ```
 
-通过这些更改，我们的`Tool`类现在可以处理SQLModel实例并生成与OpenAI API兼容的模式。
+通过这些更改，我们的`Tool`类现在可以处理 SQLModel 实例并生成与 OpenAI API 兼容的模式。
 
-> *注意：如果遇到依赖问题，您可以考虑完全移除Langchain依赖，并直接在`convert.py`文件中包含`*_rm_titles*`和`*dereference_refs*`函数。*
+> *注意：如果遇到依赖问题，您可以考虑完全移除 Langchain 依赖，并直接在`convert.py`文件中包含`*_rm_titles*`和`*dereference_refs*`函数。*
 
-通过调整工具模式转换过程，我们确保了我们的应用能够与SQLModel和Pydantic v2无缝协作，使我们能够在保持与OpenAI API兼容的同时，利用这些库的优势。
+通过调整工具模式转换过程，我们确保了我们的应用能够与 SQLModel 和 Pydantic v2 无缝协作，使我们能够在保持与 OpenAI API 兼容的同时，利用这些库的优势。
 
-# 4. 定义SQL工具
+# 4. 定义 SQL 工具
 
-在本节中，我们将创建函数和工具，以便使用SQL与我们的数据库表进行交互。
+在本节中，我们将创建函数和工具，以便使用 SQL 与我们的数据库表进行交互。
 
 ## 4.1 添加数据工具
 
-首先，让我们定义一个通用函数`add_row_to_table`，它接受一个SQLModel实例并将其添加到相应的表中：
+首先，让我们定义一个通用函数`add_row_to_table`，它接受一个 SQLModel 实例并将其添加到相应的表中：
 
 ```py
 # tools/add.py
@@ -401,9 +401,9 @@ def add_expense_to_table(**kwargs):
     return add_row_to_table(model_instance)
 ```
 
-在`add_expense_to_table`中，我们使用`model_validate()`方法触发之前定义的BeforeValidator的执行，并确保数据验证。
+在`add_expense_to_table`中，我们使用`model_validate()`方法触发之前定义的 BeforeValidator 的执行，并确保数据验证。
 
-为了避免为每个表或SQLModel编写单独的函数，我们可以动态生成这些函数：
+为了避免为每个表或 SQLModel 编写单独的函数，我们可以动态生成这些函数：
 
 ```py
 # example usage
@@ -417,7 +417,7 @@ add_expense_to_table = add_entry_to_table(Expense)
 
 这种方法产生相同的结果，并且可以用来动态生成所有其他模型的函数。
 
-在这些功能就位后，我们可以使用我们的`Tool`类创建工具，通过OpenAIAgent向数据库表中添加条目：
+在这些功能就位后，我们可以使用我们的`Tool`类创建工具，通过 OpenAIAgent 向数据库表中添加条目：
 
 ```py
 add_expense_tool = Tool(
@@ -439,17 +439,17 @@ add_revenue_tool = Tool(
 
 # 4.2 查询工具
 
-虽然我们需要为每个表创建一个add_xxx_tool，因为输入模式不同，但我们只需要一个查询工具来查询所有表。为了消除SQL注入的风险，我们将使用SQLAlchemy和SQLModel提供的SQL清理功能。这意味着我们将通过标准的Python类和对象来查询数据库，而不是直接解析SQL语句。
+虽然我们需要为每个表创建一个 add_xxx_tool，因为输入模式不同，但我们只需要一个查询工具来查询所有表。为了消除 SQL 注入的风险，我们将使用 SQLAlchemy 和 SQLModel 提供的 SQL 清理功能。这意味着我们将通过标准的 Python 类和对象来查询数据库，而不是直接解析 SQL 语句。
 
 对于我们想在表上执行的查询，我们需要以下逻辑：
 
-1.  **select语句** -> `SELECT * FROM table_name` 参数：`columns`、`table_name`
+1.  **select 语句** -> `SELECT * FROM table_name` 参数：`columns`、`table_name`
 
-1.  **where语句** -> `WHERE column_name = value`
+1.  **where 语句** -> `WHERE column_name = value`
 
     参数：`column`、`operator`、`value`
 
-在SQLModel中，当我们想在`Expense`表中查找所有咖啡的支出时，这对应于以下清理过的代码：
+在 SQLModel 中，当我们想在`Expense`表中查找所有咖啡的支出时，这对应于以下清理过的代码：
 
 ```py
 result = database.execute(
@@ -457,7 +457,7 @@ result = database.execute(
 )
 ```
 
-将其抽象为一个pydantic模型：
+将其抽象为一个 pydantic 模型：
 
 ```py
 # tools/query.py
@@ -557,7 +557,7 @@ def sql_query_from_config(
 
 `query_data_function`作为从`TABLES`字典中选择我们的表模型的高级抽象，而`sql_query_from_config`是执行`QueryConfig`查询表（SQLModel）的底层函数。
 
-> 在`QueryConfig`中，你可以选择将`table_names`定义为Literal类型，其中将可用的表名硬编码进去。你甚至可以通过我们的TABLES字典动态定义Literal。通过这样做，可以减少对`table_name`的错误传参。目前我选择不使用枚举对象，因为我将向代理提供关于当前可用表及其底层ORM架构的上下文信息。我计划为我们未来的代理添加一个工具，使其能够自己创建新表。虽然我可以动态更改代理的提示，但在运行中的服务器中更改`QueryConfig`中的枚举对象将不是一件简单的事。
+> 在`QueryConfig`中，你可以选择将`table_names`定义为 Literal 类型，其中将可用的表名硬编码进去。你甚至可以通过我们的 TABLES 字典动态定义 Literal。通过这样做，可以减少对`table_name`的错误传参。目前我选择不使用枚举对象，因为我将向代理提供关于当前可用表及其底层 ORM 架构的上下文信息。我计划为我们未来的代理添加一个工具，使其能够自己创建新表。虽然我可以动态更改代理的提示，但在运行中的服务器中更改`QueryConfig`中的枚举对象将不是一件简单的事。
 
 最后，我们可以定义我们的查询工具：
 
@@ -570,7 +570,7 @@ query_data_tool = Tool(
 )
 ```
 
-有了这些工具，我们的OpenAIAgent现在能够使用自然语言命令向数据库表中添加和查询数据。
+有了这些工具，我们的 OpenAIAgent 现在能够使用自然语言命令向数据库表中添加和查询数据。
 
 # 5. 配置代理
 
@@ -854,15 +854,15 @@ You can access the following tables in database:
 
 随着我们添加更多的工具，我们的设置复杂性可能会开始限制像“gpt-3.5-turbo”这样的便宜模型的可用性。在下一篇文章中，我们可能会考虑切换到 Anthropic Claude，因为它们新发布的工具使用 API 功能似乎在同时处理多个工具时很有前景，甚至适用于更便宜的 HAIKU 模型。然而，目前我们将继续使用 OpenAI 的 GPT 模型。
 
-在进行个人使用的开发并创建生产就绪应用程序之前，我发现优化工作流程以适应较小的模型（如本例中的`gpt-3.5-turbo`）是非常有用的。这种方法迫使我们创建一个精简的处理逻辑和提示系统。虽然我们可能无法在不使用最强大模型的情况下实现100%的可靠性，但我们能够发现缺陷并识别不清晰的指令。如果您的应用在10次中有9次能在较小模型下正常工作，您就拥有了一套生产就绪的逻辑，并且使用更强大的模型时，系统的表现会更好。
+在进行个人使用的开发并创建生产就绪应用程序之前，我发现优化工作流程以适应较小的模型（如本例中的`gpt-3.5-turbo`）是非常有用的。这种方法迫使我们创建一个精简的处理逻辑和提示系统。虽然我们可能无法在不使用最强大模型的情况下实现 100%的可靠性，但我们能够发现缺陷并识别不清晰的指令。如果您的应用在 10 次中有 9 次能在较小模型下正常工作，您就拥有了一套生产就绪的逻辑，并且使用更强大的模型时，系统的表现会更好。
 
-为了使多工具处理在`gpt-3.5-turbo`下更可靠，我们将实现一个路由代理，它的唯一目的是将用户查询路由到适当的任务代理。这使我们能够分离执行逻辑，减少复杂性。每个代理将有一个有限的范围，使我们能够在未来分离访问角色和操作。我观察到即使在使用gpt-4时，也会出现代理不知道何时任务完成的情况。
+为了使多工具处理在`gpt-3.5-turbo`下更可靠，我们将实现一个路由代理，它的唯一目的是将用户查询路由到适当的任务代理。这使我们能够分离执行逻辑，减少复杂性。每个代理将有一个有限的范围，使我们能够在未来分离访问角色和操作。我观察到即使在使用 gpt-4 时，也会出现代理不知道何时任务完成的情况。
 
 通过引入路由代理，我们可以将问题分解成更小、更易管理的部分。路由代理将负责理解用户的意图，并将查询引导到相关的任务代理。这种方法不仅简化了各个代理的职责，还使系统更加模块化，更易于维护。
 
 此外，分离执行逻辑和复杂性将为未来实现基于角色的访问控制铺平道路。每个任务代理可以被分配特定的权限和访问级别，确保敏感操作仅由授权代理执行。
 
-虽然路由代理在流程中增加了一个额外的步骤，但它最终会导致一个更强大、更具可扩展性的系统。通过优化较小的模型并专注于清晰、简洁的提示，我们可以创建一个坚实的基础，在切换到更强大的模型如Claude Opus或GPT-4时，系统的性能会更好。
+虽然路由代理在流程中增加了一个额外的步骤，但它最终会导致一个更强大、更具可扩展性的系统。通过优化较小的模型并专注于清晰、简洁的提示，我们可以创建一个坚实的基础，在切换到更强大的模型如 Claude Opus 或 GPT-4 时，系统的性能会更好。
 
 让我们来看看路由代理的实现
 
@@ -1058,7 +1058,7 @@ class TaskAgent(BaseModel):
 
 此外，我们将所有相关属性添加到我们的`TaskAgent`类中，这是我们需要为底层专用`OpenAIAgent`所做的：
 
-+   `create_context` / `create_user_context`：在这里，我们可以传递一个函数来创建上下文或用户上下文，就像在第5.1节中一样。
++   `create_context` / `create_user_context`：在这里，我们可以传递一个函数来创建上下文或用户上下文，就像在第 5.1 节中一样。
 
 +   `tool_loader`是另一个可调用函数，我们可能需要它来设置底层代理。正如我们之前解释的动态工具构建，我们可能需要根据用户输入或路由代理输入动态构建的工具。
 
@@ -1070,9 +1070,9 @@ class TaskAgent(BaseModel):
 
 +   `routing_example`：包括在路由代理消息历史中的示例。
 
-此外，我们有一个空的BaseModel，叫做`EmptyArgModel`，它是我们`TaskAgent`中的默认`arg_model`。
+此外，我们有一个空的 BaseModel，叫做`EmptyArgModel`，它是我们`TaskAgent`中的默认`arg_model`。
 
-![](../Images/296be241ea21139c029a09fa600081de.png)
+![](img/296be241ea21139c029a09fa600081de.png)
 
 作者创建：[mermaid](https://mermaid.live/)
 
@@ -1279,7 +1279,7 @@ Final Result: The revenue made this month is $1000.00.
 
 所有工具都按预期工作。路由代理运行得非常完美。对于任务代理，我不得不多次更新提示。
 
-我建议在没有使用像gpt-4这样的最新模型时，为每个任务代理添加一些示例工具调用。一般来说，我建议通过示例和更直观的设计来解决缺陷，而不是使用提示工程。重复出现的缺陷是设计不够直观的信号。例如，当代理在计算毛额或净额时遇到困难，只需添加一个‘calculate_gross_amount_tool’或‘calculate_net_amount_tool’。另一方面，GPT-4会毫不犹豫地处理这种用例。
+我建议在没有使用像 gpt-4 这样的最新模型时，为每个任务代理添加一些示例工具调用。一般来说，我建议通过示例和更直观的设计来解决缺陷，而不是使用提示工程。重复出现的缺陷是设计不够直观的信号。例如，当代理在计算毛额或净额时遇到困难，只需添加一个‘calculate_gross_amount_tool’或‘calculate_net_amount_tool’。另一方面，GPT-4 会毫不犹豫地处理这种用例。
 
 # 结论
 
@@ -1299,10 +1299,10 @@ Final Result: The revenue made this month is $1000.00.
 
 ## 下一步
 
-在本系列的下一部分，我们将重点通过添加对更多工具的支持，并可能将Claude测试作为新的默认语言模型，来增强我们代理的能力。我们还将探索将我们的应用程序与流行的通讯平台（如 WhatsApp）集成，使其更加易于访问和用户友好。
+在本系列的下一部分，我们将重点通过添加对更多工具的支持，并可能将 Claude 测试作为新的默认语言模型，来增强我们代理的能力。我们还将探索将我们的应用程序与流行的通讯平台（如 WhatsApp）集成，使其更加易于访问和用户友好。
 
 随着我们不断完善和扩展应用程序，可能性是无穷无尽的。通过利用大语言模型的力量并创建直观的基于聊天的界面，我们可以彻底改变小型企业管理数据和简化操作的方式。敬请期待本系列的下一部分！
 
 # 源代码
 
-此外，所有涉及的项目源代码都可以在 GitHub 上找到。您可以通过 [https://github.com/elokus/ArticleDemo2](https://github.com/elokus/ArticleDemo2) 访问它。
+此外，所有涉及的项目源代码都可以在 GitHub 上找到。您可以通过 [`github.com/elokus/ArticleDemo2`](https://github.com/elokus/ArticleDemo2) 访问它。

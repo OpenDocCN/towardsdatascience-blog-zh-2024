@@ -1,12 +1,12 @@
 # 设置和监控 RDS Proxy
 
-> 原文：[https://towardsdatascience.com/setting-up-and-monitoring-rds-proxy-a7afd6b026c3?source=collection_archive---------6-----------------------#2024-09-17](https://towardsdatascience.com/setting-up-and-monitoring-rds-proxy-a7afd6b026c3?source=collection_archive---------6-----------------------#2024-09-17)
+> 原文：[`towardsdatascience.com/setting-up-and-monitoring-rds-proxy-a7afd6b026c3?source=collection_archive---------6-----------------------#2024-09-17`](https://towardsdatascience.com/setting-up-and-monitoring-rds-proxy-a7afd6b026c3?source=collection_archive---------6-----------------------#2024-09-17)
 
 ## 反思使用 AWS 管理的 DB Proxy 时的经验教训
 
-[](https://trrhodes.medium.com/?source=post_page---byline--a7afd6b026c3--------------------------------)[![Ross Rhodes](../Images/3e3b13c125093030615cc6114f0f18f7.png)](https://trrhodes.medium.com/?source=post_page---byline--a7afd6b026c3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a7afd6b026c3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a7afd6b026c3--------------------------------) [Ross Rhodes](https://trrhodes.medium.com/?source=post_page---byline--a7afd6b026c3--------------------------------)
+[](https://trrhodes.medium.com/?source=post_page---byline--a7afd6b026c3--------------------------------)![Ross Rhodes](https://trrhodes.medium.com/?source=post_page---byline--a7afd6b026c3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a7afd6b026c3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a7afd6b026c3--------------------------------) [Ross Rhodes](https://trrhodes.medium.com/?source=post_page---byline--a7afd6b026c3--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a7afd6b026c3--------------------------------) ·7分钟阅读·2024年9月17日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a7afd6b026c3--------------------------------) ·7 分钟阅读·2024 年 9 月 17 日
 
 --
 
@@ -14,7 +14,7 @@
 
 RDS Proxy 已经由优秀的文档提供支持——[亚马逊自家的产品文档](https://aws.amazon.com/rds/proxy/)是一个有用的参考。本文基于现有资料，重点介绍了设置和监控 Proxy 时的经验教训。这些观察来自于在 Aurora MySQL 上使用 Proxy 的经验，但无论数据库引擎的目标是什么，都适用。
 
-![](../Images/6a9321e06e8f97bb1f0b5a753c0a3cb3.png)
+![](img/6a9321e06e8f97bb1f0b5a753c0a3cb3.png)
 
 图片来自 [Growtikavia Unsplash](https://unsplash.com/photos/a-blue-and-white-logo-ahgsuFHlIFo).
 

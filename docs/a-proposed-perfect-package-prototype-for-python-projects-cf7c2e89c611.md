@@ -1,16 +1,16 @@
 # 提议的 Python 项目完美包原型
 
-> 原文：[https://towardsdatascience.com/a-proposed-perfect-package-prototype-for-python-projects-cf7c2e89c611?source=collection_archive---------7-----------------------#2024-06-18](https://towardsdatascience.com/a-proposed-perfect-package-prototype-for-python-projects-cf7c2e89c611?source=collection_archive---------7-----------------------#2024-06-18)
+> 原文：[`towardsdatascience.com/a-proposed-perfect-package-prototype-for-python-projects-cf7c2e89c611?source=collection_archive---------7-----------------------#2024-06-18`](https://towardsdatascience.com/a-proposed-perfect-package-prototype-for-python-projects-cf7c2e89c611?source=collection_archive---------7-----------------------#2024-06-18)
 
 ## 如何构建 Python 包项目的结构，以确保效率、效果和未来的可扩展性
 
-[](https://grahamharrison-86487.medium.com/?source=post_page---byline--cf7c2e89c611--------------------------------)[![Graham Harrison](../Images/c6bfe00c6e0cfcdf3bd042c7fdc03554.png)](https://grahamharrison-86487.medium.com/?source=post_page---byline--cf7c2e89c611--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cf7c2e89c611--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cf7c2e89c611--------------------------------) [Graham Harrison](https://grahamharrison-86487.medium.com/?source=post_page---byline--cf7c2e89c611--------------------------------)
+[](https://grahamharrison-86487.medium.com/?source=post_page---byline--cf7c2e89c611--------------------------------)![Graham Harrison](https://grahamharrison-86487.medium.com/?source=post_page---byline--cf7c2e89c611--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cf7c2e89c611--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cf7c2e89c611--------------------------------) [Graham Harrison](https://grahamharrison-86487.medium.com/?source=post_page---byline--cf7c2e89c611--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cf7c2e89c611--------------------------------) ·14分钟阅读·2024年6月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cf7c2e89c611--------------------------------) ·14 分钟阅读·2024 年 6 月 18 日
 
 --
 
-![](../Images/8129e996abf25c961497accf8962d8bc.png)
+![](img/8129e996abf25c961497accf8962d8bc.png)
 
 图片由 [Luke Heibert](https://unsplash.com/@lukeheibert?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源于 [Unsplash](https://unsplash.com/photos/a-lot-of-brown-boxes-that-are-open-gthSas4oYC0?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

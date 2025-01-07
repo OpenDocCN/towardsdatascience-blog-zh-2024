@@ -1,16 +1,16 @@
 # 采用 Spark Connect
 
-> 原文：[https://towardsdatascience.com/adopting-spark-connect-cdd6de69fa98?source=collection_archive---------7-----------------------#2024-11-07](https://towardsdatascience.com/adopting-spark-connect-cdd6de69fa98?source=collection_archive---------7-----------------------#2024-11-07)
+> 原文：[`towardsdatascience.com/adopting-spark-connect-cdd6de69fa98?source=collection_archive---------7-----------------------#2024-11-07`](https://towardsdatascience.com/adopting-spark-connect-cdd6de69fa98?source=collection_archive---------7-----------------------#2024-11-07)
 
 ## 我们如何使用共享的 Spark 服务器来提高 Spark 基础设施的效率
 
-[](https://medium.com/@sergey.kotlov?source=post_page---byline--cdd6de69fa98--------------------------------)[![Sergey Kotlov](../Images/63dd13c266505832b4cd6242b75f4968.png)](https://medium.com/@sergey.kotlov?source=post_page---byline--cdd6de69fa98--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cdd6de69fa98--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cdd6de69fa98--------------------------------) [Sergey Kotlov](https://medium.com/@sergey.kotlov?source=post_page---byline--cdd6de69fa98--------------------------------)
+[](https://medium.com/@sergey.kotlov?source=post_page---byline--cdd6de69fa98--------------------------------)![Sergey Kotlov](https://medium.com/@sergey.kotlov?source=post_page---byline--cdd6de69fa98--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cdd6de69fa98--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdd6de69fa98--------------------------------) [Sergey Kotlov](https://medium.com/@sergey.kotlov?source=post_page---byline--cdd6de69fa98--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdd6de69fa98--------------------------------) ·15 分钟阅读·2024年11月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdd6de69fa98--------------------------------) ·15 分钟阅读·2024 年 11 月 7 日
 
 --
 
-![](../Images/80211dfce51f1158143441e6eba80f48.png)
+![](img/80211dfce51f1158143441e6eba80f48.png)
 
 图片由[Kanenori](https://pixabay.com/users/kanenori-4749850/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=5313115)提供，来自[Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=5313115)
 
@@ -22,7 +22,7 @@
 
 Spark 是 Joom 分析平台的关键组成部分之一。我们有大量的内部用户和超过 1000 个自定义的 Spark 应用程序。这些应用程序在不同的时间运行，具有不同的复杂性，并且需要非常不同的计算资源（从几核几分钟到多达 250 核几个小时不等）。之前，所有应用程序都是作为独立的 Spark 应用程序执行的（每个应用程序都有自己的 driver 和 executor），这对于小型和中型应用程序（我们历史上有很多此类应用程序）来说，会导致明显的开销。引入 Spark Connect 后，现在可以设置一个共享的 Spark Connect 服务器，并在其上运行多个 Spark 客户端应用程序。从技术上讲，Spark Connect 服务器是一个包含 Spark Connect 端点的 Spark 应用程序。
 
-![](../Images/0e9180f1354e8349d8b2b09848867414.png)
+![](img/0e9180f1354e8349d8b2b09848867414.png)
 
 作者图片
 
@@ -355,7 +355,7 @@ spark.scheduler.mode: FAIR  // default: FIFO
 
 例如，在我们调整了 `idle timeout` 属性后，资源利用率发生了如下变化：
 
-![](../Images/ea2bebad36ec8b519bfb5cfc004c4e11.png)
+![](img/ea2bebad36ec8b519bfb5cfc004c4e11.png)
 
 图片来源：作者
 

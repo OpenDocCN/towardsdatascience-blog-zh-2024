@@ -1,12 +1,12 @@
 # 预测准确度的机器学习指南：插值与外推
 
-> 原文：[https://towardsdatascience.com/the-machine-learning-guide-for-predictive-accuracy-interpolation-and-extrapolation-45dd270ee871?source=collection_archive---------4-----------------------#2024-07-04](https://towardsdatascience.com/the-machine-learning-guide-for-predictive-accuracy-interpolation-and-extrapolation-45dd270ee871?source=collection_archive---------4-----------------------#2024-07-04)
+> 原文：[`towardsdatascience.com/the-machine-learning-guide-for-predictive-accuracy-interpolation-and-extrapolation-45dd270ee871?source=collection_archive---------4-----------------------#2024-07-04`](https://towardsdatascience.com/the-machine-learning-guide-for-predictive-accuracy-interpolation-and-extrapolation-45dd270ee871?source=collection_archive---------4-----------------------#2024-07-04)
 
 ## 评估超越训练数据的机器学习模型
 
-[](https://rkiuchir.medium.com/?source=post_page---byline--45dd270ee871--------------------------------)[![Ryota Kiuchi, Ph.D.](../Images/5459c434848898345d932320c4a01312.png)](https://rkiuchir.medium.com/?source=post_page---byline--45dd270ee871--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--45dd270ee871--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--45dd270ee871--------------------------------) [Ryota Kiuchi, Ph.D.](https://rkiuchir.medium.com/?source=post_page---byline--45dd270ee871--------------------------------)
+[](https://rkiuchir.medium.com/?source=post_page---byline--45dd270ee871--------------------------------)![Ryota Kiuchi, Ph.D.](https://rkiuchir.medium.com/?source=post_page---byline--45dd270ee871--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--45dd270ee871--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--45dd270ee871--------------------------------) [Ryota Kiuchi, Ph.D.](https://rkiuchir.medium.com/?source=post_page---byline--45dd270ee871--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--45dd270ee871--------------------------------) ·13 分钟阅读·2024年7月4日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--45dd270ee871--------------------------------) ·13 分钟阅读·2024 年 7 月 4 日
 
 --
 
@@ -14,21 +14,21 @@
 
 近年来，数据驱动的方法，如机器学习（ML）和深度学习（DL），已经被应用于广泛的任务，包括机器翻译和个性化推荐。这些技术通过分析大量数据，从给定的训练数据集中揭示出一些模式。然而，如果给定的数据集存在偏差，并且不包含你希望了解或预测的数据，那么从训练后的模型中获得正确答案可能会很困难。
 
-![](../Images/941658a16eabebab03560ebfa237dbf8.png)
+![](img/941658a16eabebab03560ebfa237dbf8.png)
 
 图片由 [Stephen Dawson](https://unsplash.com/@dawson2406?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-让我们思考一下ChatGPT的案例。此时最新版本的ChatGPT是ChatGPT 4o，该模型是在2023年6月之前的数据上进行训练的（本文发布时的情况）。因此，如果你询问2024年发生的、训练数据中未包含的事情，你将无法获得准确的答案。这种情况被称为“幻觉”，OpenAI已经增加了预处理程序，在此类问题上返回固定的“无法回答”答案。另一方面，ChatGPT的训练数据基本上是基于英文文档的，因此它在非英语母语国家（如日本和法国）中的地方性领域知识上不太擅长。因此，许多公司和研究团队投入大量精力，通过使用RAG（检索增强生成）或微调，将地区或领域特定的知识融入到他们的LLM中。
+让我们思考一下 ChatGPT 的案例。此时最新版本的 ChatGPT 是 ChatGPT 4o，该模型是在 2023 年 6 月之前的数据上进行训练的（本文发布时的情况）。因此，如果你询问 2024 年发生的、训练数据中未包含的事情，你将无法获得准确的答案。这种情况被称为“幻觉”，OpenAI 已经增加了预处理程序，在此类问题上返回固定的“无法回答”答案。另一方面，ChatGPT 的训练数据基本上是基于英文文档的，因此它在非英语母语国家（如日本和法国）中的地方性领域知识上不太擅长。因此，许多公司和研究团队投入大量精力，通过使用 RAG（检索增强生成）或微调，将地区或领域特定的知识融入到他们的 LLM 中。
 
-因此，识别所使用的训练数据对于理解AI模型的适用性和局限性非常重要。另一方面，数据驱动方法面临的最大挑战之一是，这些技术通常需要在训练数据集的范围之外进行操作。这些需求通常出现在新产品开发、材料科学中的新药物化合物效果预测，以及在市场上推出产品时预测消费者行为等领域。这些场景要求在稀疏区域和训练数据之外做出正确的预测，这涉及到插值和外推。
+因此，识别所使用的训练数据对于理解 AI 模型的适用性和局限性非常重要。另一方面，数据驱动方法面临的最大挑战之一是，这些技术通常需要在训练数据集的范围之外进行操作。这些需求通常出现在新产品开发、材料科学中的新药物化合物效果预测，以及在市场上推出产品时预测消费者行为等领域。这些场景要求在稀疏区域和训练数据之外做出正确的预测，这涉及到插值和外推。
 
-![](../Images/4fc75309a8d53d6ae33f3b7315e6bf84.png)
+![](img/4fc75309a8d53d6ae33f3b7315e6bf84.png)
 
 图片来自 [Elevate](https://unsplash.com/@elevatebeer?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 插值是指在已知数据范围内进行预测。如果训练数据分布密集且均匀，则可以在该范围内获得准确的预测。然而，在实际应用中，准备这种数据并不常见。另一方面，外推是指在已知数据点范围之外进行预测。尽管在这些区域内的预测是高度期望的，但数据驱动的方法通常在此方面最为困难。因此，理解每个算法在插值和外推方面的表现非常重要。
 
-![](../Images/60d5eb36eebb5fa24ed0c4f4c92269d2.png)
+![](img/60d5eb36eebb5fa24ed0c4f4c92269d2.png)
 
 作者创建
 
@@ -56,27 +56,27 @@
 
 [](https://github.com/rkiuchir/blog_TDS/tree/main/02_compare_regression?source=post_page-----45dd270ee871--------------------------------) [## blog_TDS/02_compare_regression at main · rkiuchir/blog_TDS
 
-### 数据科学之道博客内容。通过在GitHub上创建帐户，贡献于rkiuchir/blog_TDS的开发。
+### 数据科学之道博客内容。通过在 GitHub 上创建帐户，贡献于 rkiuchir/blog_TDS 的开发。
 
 [github.com](https://github.com/rkiuchir/blog_TDS/tree/main/02_compare_regression?source=post_page-----45dd270ee871--------------------------------)
 
 # 数据生成与预处理
 
-首先，我们使用一个简单的非线性函数生成人工数据，该函数是从[gplearn中的符号回归教程](https://gplearn.readthedocs.io/en/stable/examples.html)稍作修改而来，修改部分为添加了指数项。该函数包含线性、二次和指数项，定义如下：
+首先，我们使用一个简单的非线性函数生成人工数据，该函数是从[gplearn 中的符号回归教程](https://gplearn.readthedocs.io/en/stable/examples.html)稍作修改而来，修改部分为添加了指数项。该函数包含线性、二次和指数项，定义如下：
 
-![](../Images/0172ad132b748c46722140f59278115d.png)
+![](img/0172ad132b748c46722140f59278115d.png)
 
-其中，*x₀*和*x₁*的范围为-1到1。实际值的平面如下所示：
+其中，*x₀*和*x₁*的范围为-1 到 1。实际值的平面如下所示：
 
 由于我们在插值和外推方面评估每个机器学习模型的表现，因此每种情况都需要不同的数据集。
 
-对于插值，我们在与训练数据集相同的范围内评估模型的表现。因此，每个模型都将在-1到1的范围内使用离散化的数据点进行训练，并在相同的范围内评估预测表面。
+对于插值，我们在与训练数据集相同的范围内评估模型的表现。因此，每个模型都将在-1 到 1 的范围内使用离散化的数据点进行训练，并在相同的范围内评估预测表面。
 
-另一方面，对于外推，模型在训练数据集范围外的能力是必需的。我们将使用在-0.5到1的范围内离散化的数据点来训练模型，涵盖*x₀*和*x₁*，并在-1到1的范围内评估预测表面。因此，在-1到-0.5的范围内，*x₀*和*x₁*的实际值与预测表面之间的差异揭示了模型在外推方面的能力。
+另一方面，对于外推，模型在训练数据集范围外的能力是必需的。我们将使用在-0.5 到 1 的范围内离散化的数据点来训练模型，涵盖*x₀*和*x₁*，并在-1 到 1 的范围内评估预测表面。因此，在-1 到-0.5 的范围内，*x₀*和*x₁*的实际值与预测表面之间的差异揭示了模型在外推方面的能力。
 
-在本文中，还将通过检查20个点和100个点这两种情况，评估训练数据集点数的影响。
+在本文中，还将通过检查 20 个点和 100 个点这两种情况，评估训练数据集点数的影响。
 
-例如，100个数据点如下生成：
+例如，100 个数据点如下生成：
 
 ```py
 import numpy as np
@@ -107,25 +107,25 @@ y_train = target_function(X_train[:, 0], X_train[:, 1])
 
 +   擅长插值，但在外推方面可能有一定的潜力。
 
-[](/find-hidden-laws-within-your-data-with-symbolic-regression-ebe55c1a4922?source=post_page-----45dd270ee871--------------------------------) [## 使用符号回归发现数据中的隐藏规律
+[](/find-hidden-laws-within-your-data-with-symbolic-regression-ebe55c1a4922?source=post_page-----45dd270ee871--------------------------------) ## 使用符号回归发现数据中的隐藏规律
 
 ### 自动发现基本公式，如开普勒定律和牛顿定律
 
-towardsdatascience.com](/find-hidden-laws-within-your-data-with-symbolic-regression-ebe55c1a4922?source=post_page-----45dd270ee871--------------------------------)
+towardsdatascience.com
 
 **2\. 支持向量回归（SVR）**
 
 +   基于支持向量机（SVM），可以通过核方法有效处理高维空间中的非线性关系
 
-+   使用不同类型的核函数，如线性核、RBF核、多项式核和 sigmoid 核，模型可以表达复杂的数据模式
++   使用不同类型的核函数，如线性核、RBF 核、多项式核和 sigmoid 核，模型可以表达复杂的数据模式
 
 +   擅长插值，但在外推时稳定性较差
 
-[](/the-complete-guide-to-support-vector-machine-svm-f1a820d8af0b?source=post_page-----45dd270ee871--------------------------------) [## 支持向量机（SVM）完全指南
+[](/the-complete-guide-to-support-vector-machine-svm-f1a820d8af0b?source=post_page-----45dd270ee871--------------------------------) ## 支持向量机（SVM）完全指南
 
 ### 理解其内部原理，并在四种不同场景下实现支持向量机（SVM）
 
-towardsdatascience.com](/the-complete-guide-to-support-vector-machine-svm-f1a820d8af0b?source=post_page-----45dd270ee871--------------------------------)
+towardsdatascience.com
 
 **3\. 高斯过程回归（GPR）**
 
@@ -133,15 +133,15 @@ towardsdatascience.com](/the-complete-guide-to-support-vector-machine-svm-f1a820
 
 +   由于不确定性估计，GPR 被用于贝叶斯优化
 
-+   使用不同类型的核函数，如线性核、RBF核、多项式核和 sigmoid 核，模型可以表达复杂的数据模式
++   使用不同类型的核函数，如线性核、RBF 核、多项式核和 sigmoid 核，模型可以表达复杂的数据模式
 
 +   擅长插值，选择合适的核函数后，也具有一定的外推潜力
 
-[](/quick-start-to-gaussian-process-regression-36d838810319?source=post_page-----45dd270ee871--------------------------------) [## 高斯过程回归快速入门
+[](/quick-start-to-gaussian-process-regression-36d838810319?source=post_page-----45dd270ee871--------------------------------) ## 高斯过程回归快速入门
 
 ### 一份快速指南，帮助理解高斯过程回归（GPR）并使用 scikit-learn 的 GPR 包
 
-towardsdatascience.com](/quick-start-to-gaussian-process-regression-36d838810319?source=post_page-----45dd270ee871--------------------------------)
+towardsdatascience.com
 
 **4\. 决策树**
 
@@ -151,11 +151,11 @@ towardsdatascience.com](/quick-start-to-gaussian-process-regression-36d838810319
 
 +   步骤状估计适用于插值，但不擅长外推
 
-[](/decision-tree-in-machine-learning-e380942a4c96?source=post_page-----45dd270ee871--------------------------------) [## 机器学习中的决策树
+[](/decision-tree-in-machine-learning-e380942a4c96?source=post_page-----45dd270ee871--------------------------------) ## 机器学习中的决策树
 
 ### 决策树是一种类似流程图的结构，其中每个内部节点表示对特征的测试（例如是否…
 
-towardsdatascience.com](/decision-tree-in-machine-learning-e380942a4c96?source=post_page-----45dd270ee871--------------------------------)
+towardsdatascience.com
 
 **5\. 随机森林**
 
@@ -165,17 +165,17 @@ towardsdatascience.com](/decision-tree-in-machine-learning-e380942a4c96?source=p
 
 +   比单个决策树具有更稳定的预测，但不擅长外推
 
-[](/understanding-random-forest-58381e0602d2?source=post_page-----45dd270ee871--------------------------------) [## 理解随机森林
+[](/understanding-random-forest-58381e0602d2?source=post_page-----45dd270ee871--------------------------------) ## 理解随机森林
 
 ### 算法如何工作以及为什么如此有效
 
-towardsdatascience.com](/understanding-random-forest-58381e0602d2?source=post_page-----45dd270ee871--------------------------------)
+towardsdatascience.com
 
 **6\. XGBoost**
 
 +   一种基于集成的算法，叫做“提升法”，通过顺序减少错误将多个决策树结合起来
 
-+   由于优秀的预测性能，通常用于Kaggle等竞赛
++   由于优秀的预测性能，通常用于 Kaggle 等竞赛
 
 +   比单个决策树具有更稳定的预测，但不擅长外推
 
@@ -187,11 +187,11 @@ medium.com](https://medium.com/sfu-cspmp/xgboost-a-deep-dive-into-boosting-f06c9
 
 **7\. LightGBM**
 
-+   类似于XGBoost，但具有更快的训练速度和更高的内存效率，更适用于较大的数据集
++   类似于 XGBoost，但具有更快的训练速度和更高的内存效率，更适用于较大的数据集
 
 +   比单个决策树具有更稳定的预测，但不擅长外推
 
-[](https://medium.com/@pushkarmandot/https-medium-com-pushkarmandot-what-is-lightgbm-how-to-implement-it-how-to-fine-tune-the-parameters-60347819b7fc?source=post_page-----45dd270ee871--------------------------------) [## 什么是LightGBM，如何实现它？如何调整参数？
+[](https://medium.com/@pushkarmandot/https-medium-com-pushkarmandot-what-is-lightgbm-how-to-implement-it-how-to-fine-tune-the-parameters-60347819b7fc?source=post_page-----45dd270ee871--------------------------------) [## 什么是 LightGBM，如何实现它？如何调整参数？
 
 ### 你好，
 
@@ -243,7 +243,7 @@ scikit-learn.org](https://scikit-learn.org/stable/modules/generated/sklearn.ense
 
 ## 预处理
 
-基本上，除了基于树的方法，如随机森林、XGBoost 和 LightGBM，大多数机器学习算法都需要特征缩放。然而，由于我们在这个实践中只使用了两个特征，如*x₀*和*x₁*，它们的范围相同，分别为-1到1（插值）或-0.5到1（外推），因此我们将跳过特征缩放。
+基本上，除了基于树的方法，如随机森林、XGBoost 和 LightGBM，大多数机器学习算法都需要特征缩放。然而，由于我们在这个实践中只使用了两个特征，如*x₀*和*x₁*，它们的范围相同，分别为-1 到 1（插值）或-0.5 到 1（外推），因此我们将跳过特征缩放。
 
 ## 模型训练
 
@@ -253,7 +253,7 @@ scikit-learn.org](https://scikit-learn.org/stable/modules/generated/sklearn.ense
 
 ## 评估与可视化
 
-在模型训练后，我们将使用非常细致的数据进行预测。基于这些预测值，将使用[Plotly表面函数](https://plotly.com/python/3d-surface-plots/)绘制预测曲面。
+在模型训练后，我们将使用非常细致的数据进行预测。基于这些预测值，将使用[Plotly 表面函数](https://plotly.com/python/3d-surface-plots/)绘制预测曲面。
 
 这些过程由以下代码完成：
 
@@ -435,67 +435,67 @@ class ModelFitterAndVisualizer:
 
 # 插值性能评估
 
-每个算法的预测曲面分别展示了100个和20个训练数据点的情况。
+每个算法的预测曲面分别展示了 100 个和 20 个训练数据点的情况。
 
 ## 100 个训练点：
 
 原始交互式图形可以从[这里](https://chart-studio.plotly.com/~rkiuchi/87)查看
 
-![](../Images/d6738a6729ec30307118a6d37ce47b23.png)
+![](img/d6738a6729ec30307118a6d37ce47b23.png)
 
 ## 20 个训练点：
 
 原始交互式图形可以从[这里](https://chart-studio.plotly.com/~rkiuchi/89)查看
 
-![](../Images/a5f138d525a873a3a2daeb3f6986afb3.png)
+![](img/a5f138d525a873a3a2daeb3f6986afb3.png)
 
 以下是每个算法的总结特征：
 
 ## 符号回归
 
-该算法在使用100个数据点进行插值时几乎完美，但在使用20个数据点时表现中等。这是因为符号回归近似数学表达式，并且在这个实践中使用了简单的函数形式。由于这个特性，预测曲面显得特别平滑，这与后面介绍的基于树的算法有所不同。
+该算法在使用 100 个数据点进行插值时几乎完美，但在使用 20 个数据点时表现中等。这是因为符号回归近似数学表达式，并且在这个实践中使用了简单的函数形式。由于这个特性，预测曲面显得特别平滑，这与后面介绍的基于树的算法有所不同。
 
 ## 支持向量回归（SVR）、高斯过程回归（GPR）
 
-对于基于核的算法SVR和GPR，尽管预测的表面与真实值略有不同，但在100个数据点的情况下，插值性能通常较好。此外，这些模型得到的预测表面平滑，类似于符号回归器估算的表面。然而，在20个数据点的情况下，尤其是对于SVR，预测表面与真实值之间存在显著差异。
+对于基于核的算法 SVR 和 GPR，尽管预测的表面与真实值略有不同，但在 100 个数据点的情况下，插值性能通常较好。此外，这些模型得到的预测表面平滑，类似于符号回归器估算的表面。然而，在 20 个数据点的情况下，尤其是对于 SVR，预测表面与真实值之间存在显著差异。
 
 ## 决策树、随机森林、XGBoost、LightGBM
 
 首先，这五个基于树的模型估算的预测表面并不平滑，而是呈现出更多阶梯状的形态。这一特征源于决策树的结构和学习方法。决策树通过基于某一特征的阈值递归地划分数据。每个数据点会被分配到某个叶节点，节点内的值表示该节点中数据点的平均值。因此，预测值在每个叶节点内是恒定的，导致了阶梯状的预测表面。
 
-单个决策树的估算清楚地展示了这一特性。另一方面，像随机森林、XGBoost和LightGBM等集成方法，由于每个模型内部包含许多决策树，生成的预测表面相对平滑，因为许多不同形状的决策树基于不同的阈值。
+单个决策树的估算清楚地展示了这一特性。另一方面，像随机森林、XGBoost 和 LightGBM 等集成方法，由于每个模型内部包含许多决策树，生成的预测表面相对平滑，因为许多不同形状的决策树基于不同的阈值。
 
 ## Voting Regressor, Stacking Regressor
 
-Voting Regressor通过平均两个算法的结果来组合它们。对于如随机森林+SVR和随机森林+GPR的组合，预测表面反映了基于核和基于树的模型特性的混合。另一方面，像随机森林和XGBoost这样的树基模型组合相较于单一模型估算的预测表面，相对减少了阶梯状形态。
+Voting Regressor 通过平均两个算法的结果来组合它们。对于如随机森林+SVR 和随机森林+GPR 的组合，预测表面反映了基于核和基于树的模型特性的混合。另一方面，像随机森林和 XGBoost 这样的树基模型组合相较于单一模型估算的预测表面，相对减少了阶梯状形态。
 
-Stacking Regressor使用一个元模型基于多个模型的输出计算最终预测，表现出阶梯状的预测表面，因为其元模型使用的是随机森林。若使用基于核的算法，如SVR或GPR，作为元模型，则此特性会发生变化。
+Stacking Regressor 使用一个元模型基于多个模型的输出计算最终预测，表现出阶梯状的预测表面，因为其元模型使用的是随机森林。若使用基于核的算法，如 SVR 或 GPR，作为元模型，则此特性会发生变化。
 
 # 外推性能评估
 
 如前所述，每个模型的训练数据都包含 *x₀* 和 *x₁* 范围从 -0.5 到 1 的值，且这些性能将在 -1 到 1 的范围内进行评估。因此，我们可以通过检查预测表面在 *x₀* 和 *x₁* 范围从 -1 到 -0.5 的外推能力来了解模型的外推表现。
 
-每个算法的预测表面分别显示了100和20个训练数据点的情况。
+每个算法的预测表面分别显示了 100 和 20 个训练数据点的情况。
 
-## 100个训练点：
+## 100 个训练点：
 
 原始的互动图表可以从[这里](https://chart-studio.plotly.com/~rkiuchi/91)查看
 
-![](../Images/a2352079e0966edba848a71e21f702ba.png)
+![](img/a2352079e0966edba848a71e21f702ba.png)
 
-## 20个训练点：
+## 20 个训练点：
 
 原始的互动图表可以从[这里](https://chart-studio.plotly.com/~rkiuchi/93)查看
 
-![](../Images/8b2bef5db2a4e1cf26276c879f3848cf.png)
+![](img/8b2bef5db2a4e1cf26276c879f3848cf.png)
 
 ## 符号回归器
 
-使用100个数据点训练的符号回归器在外推范围内获得的预测曲面几乎与插值评估相似，准确地估算。然而，仅使用20个训练数据点时，预测曲面与真实值存在较大差异，尤其是在曲面边缘，表明得到的函数形式估算不准确。
+使用 100 个数据点训练的符号回归器在外推范围内获得的预测曲面几乎与插值评估相似，准确地估算。然而，仅使用 20 个训练数据点时，预测曲面与真实值存在较大差异，尤其是在曲面边缘，表明得到的函数形式估算不准确。
 
 ## 支持向量回归器（SVR），高斯过程回归器（GPR）
 
-尽管SVR和GPR都是基于核的算法，但得到的结果完全不同。对于20个和100个数据点，SVR的预测曲面估算得不理想，而GPR即使在外推范围内也几乎完美地预测了。
+尽管 SVR 和 GPR 都是基于核的算法，但得到的结果完全不同。对于 20 个和 100 个数据点，SVR 的预测曲面估算得不理想，而 GPR 即使在外推范围内也几乎完美地预测了。
 
 ## 决策树，随机森林，XGBoost，LightGBM
 
@@ -503,7 +503,7 @@ Stacking Regressor使用一个元模型基于多个模型的输出计算最终�
 
 ## 投票回归器，堆叠回归器
 
-如上所示，基于核的算法相比于基于树的算法具有更好的性能。结合随机森林和XGBoost的投票回归器，以及所有三个以随机森林为元模型的堆叠回归器在外推范围内预测稳定。另一方面，结合随机森林+SVR和随机森林+GPR的投票回归器的预测曲面，具有基于核和基于树的模型的混合特征。
+如上所示，基于核的算法相比于基于树的算法具有更好的性能。结合随机森林和 XGBoost 的投票回归器，以及所有三个以随机森林为元模型的堆叠回归器在外推范围内预测稳定。另一方面，结合随机森林+SVR 和随机森林+GPR 的投票回归器的预测曲面，具有基于核和基于树的模型的混合特征。
 
 # 总结
 
@@ -517,19 +517,19 @@ Stacking Regressor使用一个元模型基于多个模型的输出计算最终�
 
 ## 其他文章
 
-[](/how-openais-sora-is-changing-the-game-an-insight-into-its-core-technologies-bd1ad17170df?source=post_page-----45dd270ee871--------------------------------) [## OpenAI的Sora如何改变游戏规则：深入了解其核心技术
+[](/how-openais-sora-is-changing-the-game-an-insight-into-its-core-technologies-bd1ad17170df?source=post_page-----45dd270ee871--------------------------------) ## OpenAI 的 Sora 如何改变游戏规则：深入了解其核心技术
 
 ### 一项尖端技术的杰作
 
-towardsdatascience.com](/how-openais-sora-is-changing-the-game-an-insight-into-its-core-technologies-bd1ad17170df?source=post_page-----45dd270ee871--------------------------------) [](/create-interactive-globe-earthquake-plot-in-python-b0b52b646f27?source=post_page-----45dd270ee871--------------------------------) [## 在 Python 中创建“交互式地球仪 + 地震图”
+towardsdatascience.com [](/create-interactive-globe-earthquake-plot-in-python-b0b52b646f27?source=post_page-----45dd270ee871--------------------------------) ## 在 Python 中创建“交互式地球仪 + 地震图”
 
 ### 如何在 Python 中创建一个酷炫的交互式图形：由 Plotly 绘制的地球仪。
 
-towardsdatascience.com](/create-interactive-globe-earthquake-plot-in-python-b0b52b646f27?source=post_page-----45dd270ee871--------------------------------) [](/pandas-cheat-sheet-for-data-preprocessing-cd1bcd607426?source=post_page-----45dd270ee871--------------------------------) [## Pandas 数据预处理备忘单
+towardsdatascience.com [](/pandas-cheat-sheet-for-data-preprocessing-cd1bcd607426?source=post_page-----45dd270ee871--------------------------------) ## Pandas 数据预处理备忘单
 
 ### 关于如何使用 Pandas 预处理数据的实用指南
 
-towardsdatascience.com](/pandas-cheat-sheet-for-data-preprocessing-cd1bcd607426?source=post_page-----45dd270ee871--------------------------------)
+towardsdatascience.com
 
 ## 个人网站
 

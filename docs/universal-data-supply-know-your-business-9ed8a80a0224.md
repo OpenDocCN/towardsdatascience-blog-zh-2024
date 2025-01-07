@@ -1,12 +1,12 @@
 # 通用数据供应：了解你的业务
 
-> 原文：[https://towardsdatascience.com/universal-data-supply-know-your-business-9ed8a80a0224?source=collection_archive---------11-----------------------#2024-10-22](https://towardsdatascience.com/universal-data-supply-know-your-business-9ed8a80a0224?source=collection_archive---------11-----------------------#2024-10-22)
+> 原文：[`towardsdatascience.com/universal-data-supply-know-your-business-9ed8a80a0224?source=collection_archive---------11-----------------------#2024-10-22`](https://towardsdatascience.com/universal-data-supply-know-your-business-9ed8a80a0224?source=collection_archive---------11-----------------------#2024-10-22)
 
 ## 一个行业示例，用以强调理解业务案例的重要性
 
-[](https://medium.com/@bernd.wessely?source=post_page---byline--9ed8a80a0224--------------------------------)[![Bernd Wessely](../Images/e60e01c19412d8af8f8bddf78e561275.png)](https://medium.com/@bernd.wessely?source=post_page---byline--9ed8a80a0224--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ed8a80a0224--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9ed8a80a0224--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--9ed8a80a0224--------------------------------)
+[](https://medium.com/@bernd.wessely?source=post_page---byline--9ed8a80a0224--------------------------------)![Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--9ed8a80a0224--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ed8a80a0224--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ed8a80a0224--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--9ed8a80a0224--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ed8a80a0224--------------------------------) ·9分钟阅读·2024年10月22日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ed8a80a0224--------------------------------) ·9 分钟阅读·2024 年 10 月 22 日
 
 --
 
@@ -14,7 +14,7 @@
 
 你可能会觉得阅读关于业务事务的内容冗长且令人疲惫。你更想直接进入迁移传统数据架构到新方法的详细步骤。但让我尝试说服你，[**彻底理解你的业务对于任何架构变更至关重要**](https://medium.com/towards-data-science/data-empowers-business-3120a6632081)，这才是真正创造业务价值的关键。
 
-你不必立刻爱上你的业务。但我可以向你保证，如果你真正投入到你想为其开发IT解决方案的事情中，你的解决方案会更好。
+你不必立刻爱上你的业务。但我可以向你保证，如果你真正投入到你想为其开发 IT 解决方案的事情中，你的解决方案会更好。
 
 在我多年来参与的所有项目中——包括为银行和保险公司提供激动人心但有时相当抽象的解决方案——以下这个项目最让我感同身受。
 

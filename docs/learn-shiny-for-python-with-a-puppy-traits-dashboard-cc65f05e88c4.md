@@ -1,16 +1,16 @@
 # 使用小狗特征 web 应用探索 Shiny for Python
 
-> 原文：[https://towardsdatascience.com/learn-shiny-for-python-with-a-puppy-traits-dashboard-cc65f05e88c4?source=collection_archive---------9-----------------------#2024-05-08](https://towardsdatascience.com/learn-shiny-for-python-with-a-puppy-traits-dashboard-cc65f05e88c4?source=collection_archive---------9-----------------------#2024-05-08)
+> 原文：[`towardsdatascience.com/learn-shiny-for-python-with-a-puppy-traits-dashboard-cc65f05e88c4?source=collection_archive---------9-----------------------#2024-05-08`](https://towardsdatascience.com/learn-shiny-for-python-with-a-puppy-traits-dashboard-cc65f05e88c4?source=collection_archive---------9-----------------------#2024-05-08)
 
 ## 使用 Shiny for Python 创建“谁是最棒的小狗”应用的逐步指南，从基础到样式
 
-[](https://medium.com/@menghani.deepsha?source=post_page---byline--cc65f05e88c4--------------------------------)[![Deepsha Menghani](../Images/56a6ed8597c36e8c76d8a29a449325a4.png)](https://medium.com/@menghani.deepsha?source=post_page---byline--cc65f05e88c4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cc65f05e88c4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cc65f05e88c4--------------------------------) [Deepsha Menghani](https://medium.com/@menghani.deepsha?source=post_page---byline--cc65f05e88c4--------------------------------)
+[](https://medium.com/@menghani.deepsha?source=post_page---byline--cc65f05e88c4--------------------------------)![Deepsha Menghani](https://medium.com/@menghani.deepsha?source=post_page---byline--cc65f05e88c4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cc65f05e88c4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cc65f05e88c4--------------------------------) [Deepsha Menghani](https://medium.com/@menghani.deepsha?source=post_page---byline--cc65f05e88c4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cc65f05e88c4--------------------------------) ·阅读时间 11 分钟·2024年5月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cc65f05e88c4--------------------------------) ·阅读时间 11 分钟·2024 年 5 月 8 日
 
 --
 
-![](../Images/11371edbe2ffc6c7ea1072ff44f916d8.png)
+![](img/11371edbe2ffc6c7ea1072ff44f916d8.png)
 
 图像来自作者
 

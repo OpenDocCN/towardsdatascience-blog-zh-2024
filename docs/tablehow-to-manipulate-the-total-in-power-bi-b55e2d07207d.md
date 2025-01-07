@@ -1,16 +1,16 @@
 # 如何在 Power BI 中操作总计
 
-> 原文：[https://towardsdatascience.com/tablehow-to-manipulate-the-total-in-power-bi-b55e2d07207d?source=collection_archive---------10-----------------------#2024-07-16](https://towardsdatascience.com/tablehow-to-manipulate-the-total-in-power-bi-b55e2d07207d?source=collection_archive---------10-----------------------#2024-07-16)
+> 原文：[`towardsdatascience.com/tablehow-to-manipulate-the-total-in-power-bi-b55e2d07207d?source=collection_archive---------10-----------------------#2024-07-16`](https://towardsdatascience.com/tablehow-to-manipulate-the-total-in-power-bi-b55e2d07207d?source=collection_archive---------10-----------------------#2024-07-16)
 
 ## *在大多数情况下，总计会将可视化中的详细行汇总，比如在表格中。但是，如果总计应该显示不同的内容呢？我将在这里详细讨论这个挑战。*
 
-[](https://medium.com/@salvatorecagliari?source=post_page---byline--b55e2d07207d--------------------------------)[![Salvatore Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--b55e2d07207d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b55e2d07207d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b55e2d07207d--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--b55e2d07207d--------------------------------)
+[](https://medium.com/@salvatorecagliari?source=post_page---byline--b55e2d07207d--------------------------------)![Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--b55e2d07207d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b55e2d07207d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b55e2d07207d--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--b55e2d07207d--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b55e2d07207d--------------------------------) ·8分钟阅读·2024年7月16日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b55e2d07207d--------------------------------) ·8 分钟阅读·2024 年 7 月 16 日
 
 --
 
-![](../Images/7cfa6e5823f1e78eedc322869996e772.png)
+![](img/7cfa6e5823f1e78eedc322869996e772.png)
 
 图片来源：[UX Indonesia](https://unsplash.com/@uxindo?utm_source=medium&utm_medium=referral) [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -18,9 +18,9 @@
 
 首先，让我们看一下这个报告页面：
 
-![](../Images/e528cf14f8fb8e78d2c5f4c2511c8887.png)
+![](img/e528cf14f8fb8e78d2c5f4c2511c8887.png)
 
-图1 — 基础报告，包含求和和平均值度量（图由作者提供）
+图 1 — 基础报告，包含求和和平均值度量（图由作者提供）
 
 这个矩阵可视化没有什么特别之处。
 
@@ -44,9 +44,9 @@
 
 我选择任意单元格来解释它们的详细情况：
 
-![](../Images/7df314d48e48d773c55c880d44ed87da.png)
+![](img/7df314d48e48d773c55c880d44ed87da.png)
 
-图2 — 基础报告，突出显示的单元格（图由作者提供）
+图 2 — 基础报告，突出显示的单元格（图由作者提供）
 
 标记单元格的结果是在应用以下过滤器以定义过滤上下文后计算得出的。
 
@@ -54,7 +54,7 @@
 
 +   城市：巴黎
 
-+   商店：Contoso巴黎店
++   商店：Contoso 巴黎店
 
 +   产品类别：经济型
 
@@ -72,9 +72,9 @@
 
 当我们将矩阵“内部”过滤器与周围切片器的过滤器分开时，我们可以定义“内部”和“外部”过滤器：
 
-![](../Images/9ce6c3f8c73d3cefdf9ca2c8fe309e27.png)
+![](img/9ce6c3f8c73d3cefdf9ca2c8fe309e27.png)
 
-图3 — 带有内部和外部过滤器的基础报告（图由作者提供）
+图 3 — 带有内部和外部过滤器的基础报告（图由作者提供）
 
 你可以看到内部过滤器用红色箭头标记，外部过滤器用蓝色箭头标记。
 
@@ -108,17 +108,17 @@
 Avg Retail Sales = 1
 ```
 
-这个度量的结果将始终为1，无论过滤上下文如何，因为它没有使用过滤器。
+这个度量的结果将始终为 1，无论过滤上下文如何，因为它没有使用过滤器。
 
 实际上，这正是我们得到的结果：
 
-![](../Images/2c4ec056fb034abaa5543bdc6bc2fc04.png)
+![](img/2c4ec056fb034abaa5543bdc6bc2fc04.png)
 
-图4 — 操作后的度量结果（图由作者提供）
+图 4 — 操作后的度量结果（图由作者提供）
 
-如果Power BI通过对可视化中的值求和来计算总计，结果将会非常不同。
+如果 Power BI 通过对可视化中的值求和来计算总计，结果将会非常不同。
 
-由于度量的表达式中没有使用过滤上下文，因此始终返回1，无论是否有销售。
+由于度量的表达式中没有使用过滤上下文，因此始终返回 1，无论是否有销售。
 
 记住这一点，当你稍后查看结果时。
 
@@ -128,7 +128,7 @@ Avg Retail Sales = 1
 
 我可以使用[ISFILTERED()](https://dax.guide/isfiltered/)函数来实现这一点。
 
-例如，当我想得到列总计为1，行总计为2时：
+例如，当我想得到列总计为 1，行总计为 2 时：
 
 ```py
 Avg Retail Sales =
@@ -141,7 +141,7 @@ SWITCH(TRUE()
 
 这个度量执行以下检查：
 
-1.  如果列“State”没有被过滤，位置是列总计，我希望它为1。
+1.  如果列“State”没有被过滤，位置是列总计，我希望它为 1。
 
 1.  如果产品类别没有被过滤，位置是行总计，我希望它为
 
@@ -149,9 +149,9 @@ SWITCH(TRUE()
 
 这是结果：
 
-![](../Images/76b41ab2c6006151016a55b23d05577a.png)
+![](img/76b41ab2c6006151016a55b23d05577a.png)
 
-图5 — 操控总计的度量结果。我移除了销售总和以简化可视化（图由作者提供）
+图 5 — 操控总计的度量结果。我移除了销售总和以简化可视化（图由作者提供）
 
 如你所见，这是一个非常特定于可视化的解决方案。
 
@@ -163,11 +163,11 @@ SWITCH(TRUE()
 
 例如，像这样：
 
-![](../Images/a9cc35f7bbda777c3ae5b6b6eab87ac7.png)
+![](img/a9cc35f7bbda777c3ae5b6b6eab87ac7.png)
 
 图 6 — 修改后的零售销售报告，按产品类别层级和商店类型分类（图由作者提供）
 
-在这种情况下，我可以设计两个度量值来检查这些列和层级上是否存在现有过滤器，并在SWITCH()调用中使用它们。
+在这种情况下，我可以设计两个度量值来检查这些列和层级上是否存在现有过滤器，并在 SWITCH()调用中使用它们。
 
 这里是行过滤器：
 
@@ -195,13 +195,13 @@ ISFILTERED('Product'[ClassName])
 
 如果我将这两个度量值添加到矩阵中，我可以看到结果：
 
-![](../Images/b4eb587e5840bc69fe783e965968d582.png)
+![](img/b4eb587e5840bc69fe783e965968d582.png)
 
 图 7 — 过滤器检查度量值的结果（图由作者提供）
 
-“列过滤器检查”度量值按预期工作。它始终返回True，除了总计之外。
+“列过滤器检查”度量值按预期工作。它始终返回 True，除了总计之外。
 
-但是，“行过滤器检查”度量值并未按预期工作，因为即使是总计它也返回True。
+但是，“行过滤器检查”度量值并未按预期工作，因为即使是总计它也返回 True。
 
 原因是列“商店类型”也来自商店表。
 
@@ -223,7 +223,7 @@ ISFILTERED('Product'[ProductName])
 
 现在，结果如预期所示：
 
-![](../Images/b4eb587e5840bc69fe783e965968d582.png)
+![](img/b4eb587e5840bc69fe783e965968d582.png)
 
 图 8 — 过滤器检查度量值的正确结果（图由作者提供）
 
@@ -240,7 +240,7 @@ SWITCH(TRUE()
 
 结果如预期所示：
 
-![](../Images/2f8209f9f363a9effc95277aadf42364.png)
+![](img/2f8209f9f363a9effc95277aadf42364.png)
 
 图 9 — 使用目标度量值的结果（图由作者提供）
 
@@ -250,11 +250,11 @@ SWITCH(TRUE()
 
 我甚至可以选择以不同的方式操作总计，而不是行和列总计：
 
-![](../Images/a85f933d6ea99766c93ffccb8fbd9564.png)
+![](img/a85f933d6ea99766c93ffccb8fbd9564.png)
 
-图 10 — 操作总计的DAX表达式和结果（图由作者提供）
+图 10 — 操作总计的 DAX 表达式和结果（图由作者提供）
 
-由于SWITCH()逐一评估检查，并返回第一个符合条件的表达式的给定结果，我必须注意每个变体检查的顺序。
+由于 SWITCH()逐一评估检查，并返回第一个符合条件的表达式的给定结果，我必须注意每个变体检查的顺序。
 
 # 最后一个小的调整
 
@@ -262,7 +262,7 @@ SWITCH(TRUE()
 
 上面的度量值检查表达式 = FALSE。
 
-我可以将检查度量值更改为以下内容。然后，我可以避免在度量值中使用NOT：
+我可以将检查度量值更改为以下内容。然后，我可以避免在度量值中使用 NOT：
 
 ```py
 Column filter Check =
@@ -297,7 +297,7 @@ IF(
 )
 ```
 
-现在我可以去掉度量值中的NOT反转：
+现在我可以去掉度量值中的 NOT 反转：
 
 ```py
 Avg Retail Sales =
@@ -315,7 +315,7 @@ SWITCH(TRUE()
 
 有时，我遇到必须操作总计结果的情况。
 
-在这种情况下，了解Power BI的工作原理、过滤器上下文的应用以及总计的计算方式至关重要。
+在这种情况下，了解 Power BI 的工作原理、过滤器上下文的应用以及总计的计算方式至关重要。
 
 我尝试解释在查看矩阵时，过滤上下文是如何工作的。
 
@@ -325,17 +325,17 @@ SWITCH(TRUE()
 
 我强烈建议你也阅读它，因为这可能会为你提供更多的工具来正确检查过滤上下文：
 
-[](/exploring-the-filter-context-with-dax-functions-422211c1118e?source=post_page-----b55e2d07207d--------------------------------) [## 使用 DAX 函数探索过滤上下文
+[](/exploring-the-filter-context-with-dax-functions-422211c1118e?source=post_page-----b55e2d07207d--------------------------------) ## 使用 DAX 函数探索过滤上下文
 
 ### 在查看当前过滤上下文时，DAX 中有几个有用的函数。以下是一些例子：
 
-towardsdatascience.com](/exploring-the-filter-context-with-dax-functions-422211c1118e?source=post_page-----b55e2d07207d--------------------------------)
+towardsdatascience.com
 
 然而，一个重要的经验是避免过于特定的度量值，这些度量值只能用于一个可视化。相反，跳出框框思考，构建更通用和可重用的代码。
 
 这肯定会对你未来的工作有所帮助。
 
-![](../Images/77b7b5481f36750525919e296f813f9f.png)
+![](img/77b7b5481f36750525919e296f813f9f.png)
 
 图片由 [krakenimages](https://unsplash.com/@krakenimages?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -343,11 +343,11 @@ towardsdatascience.com](/exploring-the-filter-context-with-dax-functions-422211c
 
 这里是最初提到的关于计算加权平均值的文章链接：
 
-[](/to-weigh-or-not-to-weigh-this-is-the-average-question-ece33fad9180?source=post_page-----b55e2d07207d--------------------------------) [## 称重还是不称重——这是一个平均值的问题
+[](/to-weigh-or-not-to-weigh-this-is-the-average-question-ece33fad9180?source=post_page-----b55e2d07207d--------------------------------) ## 称重还是不称重——这是一个平均值的问题
 
 ### 平均值是一个简单的计算。但有时，背后还有更多可以探索的内容。让我们来看看这个被低估的话题。
 
-towardsdatascience.com](/to-weigh-or-not-to-weigh-this-is-the-average-question-ece33fad9180?source=post_page-----b55e2d07207d--------------------------------)
+towardsdatascience.com
 
 和我之前的文章一样，我使用了 Contoso 示例数据集。你可以从微软的[这里](https://www.microsoft.com/en-us/download/details.aspx?id=18279)免费下载 ContosoRetailDW 数据集。
 
@@ -365,15 +365,15 @@ Contoso 数据可以在 MIT 许可证下自由使用，详情请见[这里](http
 
 medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----b55e2d07207d--------------------------------)
 
-尽管Medium有付费墙，我依然让我的文章对所有人开放。这让我能从每位读者那里赚取一些收入，但我关闭了付费墙，因此你可以免费阅读我的作品。
+尽管 Medium 有付费墙，我依然让我的文章对所有人开放。这让我能从每位读者那里赚取一些收入，但我关闭了付费墙，因此你可以免费阅读我的作品。
 
 你可以通过以下方式支持我的工作，这些工作是我在空闲时间进行的：
 
-[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)
+[`buymeacoffee.com/salvatorecagliari`](https://buymeacoffee.com/salvatorecagliari)
 
 或者扫描此二维码：
 
-![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)
+![](img/e7ac062070dcd7a00dcf995ad7e95434.png)
 
 任何支持都将不胜感激，并帮助我找到更多时间为你创作更多内容。
 

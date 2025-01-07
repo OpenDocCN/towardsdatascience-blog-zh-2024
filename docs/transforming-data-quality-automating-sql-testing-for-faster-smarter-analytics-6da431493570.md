@@ -1,16 +1,16 @@
 # 数据质量转型：自动化 SQL 测试以实现更快速、更智能的分析
 
-> 原文：[https://towardsdatascience.com/transforming-data-quality-automating-sql-testing-for-faster-smarter-analytics-6da431493570?source=collection_archive---------0-----------------------#2024-10-26](https://towardsdatascience.com/transforming-data-quality-automating-sql-testing-for-faster-smarter-analytics-6da431493570?source=collection_archive---------0-----------------------#2024-10-26)
+> 原文：[`towardsdatascience.com/transforming-data-quality-automating-sql-testing-for-faster-smarter-analytics-6da431493570?source=collection_archive---------0-----------------------#2024-10-26`](https://towardsdatascience.com/transforming-data-quality-automating-sql-testing-for-faster-smarter-analytics-6da431493570?source=collection_archive---------0-----------------------#2024-10-26)
 
 ## 如何测试 SQL 和结果数据集的质量，以回答业务问题并增加客户信任
 
-[](https://medium.com/@hello.akashm?source=post_page---byline--6da431493570--------------------------------)[![Akash Mukherjee](../Images/b083a1dd6d07935792eae58edd563ebf.png)](https://medium.com/@hello.akashm?source=post_page---byline--6da431493570--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6da431493570--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6da431493570--------------------------------) [Akash Mukherjee](https://medium.com/@hello.akashm?source=post_page---byline--6da431493570--------------------------------)
+[](https://medium.com/@hello.akashm?source=post_page---byline--6da431493570--------------------------------)![Akash Mukherjee](https://medium.com/@hello.akashm?source=post_page---byline--6da431493570--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6da431493570--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6da431493570--------------------------------) [Akash Mukherjee](https://medium.com/@hello.akashm?source=post_page---byline--6da431493570--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6da431493570--------------------------------) ·阅读时长 11 分钟·2024年10月26日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6da431493570--------------------------------) ·阅读时长 11 分钟·2024 年 10 月 26 日
 
 --
 
-![](../Images/4436d79ec654db529fca075e12919af5.png)
+![](img/4436d79ec654db529fca075e12919af5.png)
 
 图片由[Caspar Camille Rubin](https://unsplash.com/@casparrubin?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来自[Unsplash](https://unsplash.com/photos/macbook-pro-with-images-of-computer-language-codes-fPkvU7RDmCo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -26,49 +26,49 @@
 
 +   对数据库和 SQL 有扎实的理解
 
-+   有使用Python进行API调用和数据处理的经验
++   有使用 Python 进行 API 调用和数据处理的经验
 
-+   访问GPT-4 API令牌
++   访问 GPT-4 API 令牌
 
 +   用于测试的业务问题数据集
 
 # 设计系统架构
 
-为了构建一个自动化QA系统来评估SQL查询，架构必须集成基于规则的逻辑、LLM验证和自动评分。这个设置非常适合处理那些开放式的业务问题，帮助您将测试从手动过程扩展到自动化。
+为了构建一个自动化 QA 系统来评估 SQL 查询，架构必须集成基于规则的逻辑、LLM 验证和自动评分。这个设置非常适合处理那些开放式的业务问题，帮助您将测试从手动过程扩展到自动化。
 
 关键组件包括：
 
-+   **查询引擎**：接收并执行SQL查询的地方。
++   **查询引擎**：接收并执行 SQL 查询的地方。
 
-+   **评估模块**：结合静态规则与基于LLM的验证结果。
++   **评估模块**：结合静态规则与基于 LLM 的验证结果。
 
 +   **评分系统**：根据不同用户角色（如数据科学家、商业领袖和最终用户）对结果进行评分。
 
-该架构包括一个反馈回路，记录问题类型——例如缺失数据、错误粒度或性能缓慢等。这些信息将存储在一个集中式数据库中，以便您可以随时间持续优化系统。我们将使用Python进行脚本编写，使用SQL跟踪后端问题，使用OpenAI的LLM解读自然语言输入。通过定期安排这些测试的运行，您将保持一致的数据质量和可扩展性，同时微调查询性能，以与商业目标对齐。
+该架构包括一个反馈回路，记录问题类型——例如缺失数据、错误粒度或性能缓慢等。这些信息将存储在一个集中式数据库中，以便您可以随时间持续优化系统。我们将使用 Python 进行脚本编写，使用 SQL 跟踪后端问题，使用 OpenAI 的 LLM 解读自然语言输入。通过定期安排这些测试的运行，您将保持一致的数据质量和可扩展性，同时微调查询性能，以与商业目标对齐。
 
-下图展示了数据如何流经系统——从SQL摄取到自动化测试、评分和问题跟踪——以便在大规模下保持高数据质量。
+下图展示了数据如何流经系统——从 SQL 摄取到自动化测试、评分和问题跟踪——以便在大规模下保持高数据质量。
 
 最终，这个系统不仅仅是发现错误——它推动持续改进，并使您的技术执行与业务目标保持一致。
 
-![](../Images/64922a96612de5060deab240c1c68a64.png)
+![](img/64922a96612de5060deab240c1c68a64.png)
 
 作者提供的图像：用来说明技术架构的图示
 
 # 教程
 
-## 第1步：准备测试问题与答案数据集
+## 第 1 步：准备测试问题与答案数据集
 
 要开始，收集内部团队或客户经常向分析团队提出的真实业务问题。许多问题可能是临时的数据请求，因此通过准备多种问题，您可以确保测试具有相关性。以下是一些例子，帮助您入手：
 
-+   **问题 #1**：“我们的Pro Plan用户中有多少是从试用版转化的？”
++   **问题 #1**：“我们的 Pro Plan 用户中有多少是从试用版转化的？”
 
-+   **问题 #2**：“2024年6月我们吸引了多少新用户？”
++   **问题 #2**：“2024 年 6 月我们吸引了多少新用户？”
 
 +   **问题 #3**：“目前哪些产品正在流行？”
 
 +   **问题 #4**：“我们最畅销的产品目前的销售量是多少？”
 
-## 第2步：构建您的评估与评分标准
+## 第 2 步：构建您的评估与评分标准
 
 **2a：定义您的评分员**
 
@@ -208,7 +208,7 @@ print(json.dumps(evaluation, indent=4))
 
 优先处理需要立即采取行动的问题，例如那些影响查询性能或关键数据集准确性的问题，并列出明确的后续步骤以解决它们。
 
-![](../Images/b2484b2780ed989ca27648b77d518b00.png)
+![](img/b2484b2780ed989ca27648b77d518b00.png)
 
 作者提供的图像：使用示例测试数据创建的图表
 
@@ -319,7 +319,7 @@ CREATE TABLE issue_catalog (
 
 1.  **持续改进**：通过跟踪问题，随着时间的推移，你将能够细化 SQL 查询，并稳步提高其质量。每次测试运行都会提供可操作的洞察，通过针对最常见的问题，你的系统会随着每次运行变得更高效和更具弹性。
 
-1.  **数据质量保证**：定期对更新的SQL查询进行测试，帮助你验证它们是否正确处理新数据和测试用例。这个持续的过程展示了你的调整是否真正提高了数据质量，并保持与业务需求的一致性，从而降低未来问题的风险。
+1.  **数据质量保证**：定期对更新的 SQL 查询进行测试，帮助你验证它们是否正确处理新数据和测试用例。这个持续的过程展示了你的调整是否真正提高了数据质量，并保持与业务需求的一致性，从而降低未来问题的风险。
 
 1.  **与业务需求的一致性**：根据提出问题的人进行排序——无论是终端用户、数据科学家还是业务领导者——都能让你专注于对技术准确性和业务相关性都有重要意义的改进。随着时间的推移，这将建立一个技术努力直接支持有意义的业务洞察的系统。
 
@@ -327,6 +327,6 @@ CREATE TABLE issue_catalog (
 
 # 总结
 
-自动化SQL测试是分析团队的游戏规则改变者，它帮助他们早期发现数据问题并精确地解决它们。通过建立一个结合规则逻辑和大语言模型（LLM）的结构化反馈循环，你可以扩展测试，处理即使是最复杂的业务问题。
+自动化 SQL 测试是分析团队的游戏规则改变者，它帮助他们早期发现数据问题并精确地解决它们。通过建立一个结合规则逻辑和大语言模型（LLM）的结构化反馈循环，你可以扩展测试，处理即使是最复杂的业务问题。
 
 这种方法不仅提高了数据的准确性，而且使你的洞察与业务目标保持一致。分析的未来依赖于自动化与洞察之间的平衡——你准备好迈出这一步吗？

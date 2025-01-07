@@ -1,16 +1,16 @@
 # 如何使用 OpenAI + Python 构建 AI 助手
 
-> 原文：[https://towardsdatascience.com/how-to-build-an-ai-assistant-with-openai-python-8b3b5a636f69?source=collection_archive---------0-----------------------#2024-02-08](https://towardsdatascience.com/how-to-build-an-ai-assistant-with-openai-python-8b3b5a636f69?source=collection_archive---------0-----------------------#2024-02-08)
+> 原文：[`towardsdatascience.com/how-to-build-an-ai-assistant-with-openai-python-8b3b5a636f69?source=collection_archive---------0-----------------------#2024-02-08`](https://towardsdatascience.com/how-to-build-an-ai-assistant-with-openai-python-8b3b5a636f69?source=collection_archive---------0-----------------------#2024-02-08)
 
 ## 使用 Assistants API 和 Fine-tuning 的逐步指南
 
-[](https://shawhin.medium.com/?source=post_page---byline--8b3b5a636f69--------------------------------)[![Shaw Talebi](../Images/1449cc7c08890e2078f9e5d07897e3df.png)](https://shawhin.medium.com/?source=post_page---byline--8b3b5a636f69--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8b3b5a636f69--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8b3b5a636f69--------------------------------) [Shaw Talebi](https://shawhin.medium.com/?source=post_page---byline--8b3b5a636f69--------------------------------)
+[](https://shawhin.medium.com/?source=post_page---byline--8b3b5a636f69--------------------------------)![Shaw Talebi](https://shawhin.medium.com/?source=post_page---byline--8b3b5a636f69--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8b3b5a636f69--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8b3b5a636f69--------------------------------) [Shaw Talebi](https://shawhin.medium.com/?source=post_page---byline--8b3b5a636f69--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8b3b5a636f69--------------------------------) ·阅读时间13分钟·2024年2月8日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8b3b5a636f69--------------------------------) ·阅读时间 13 分钟·2024 年 2 月 8 日
 
 --
 
-![](../Images/422822b7ef30d18357a84c8fbb3a2ca5.png)
+![](img/422822b7ef30d18357a84c8fbb3a2ca5.png)
 
 图片来自 Canva。
 

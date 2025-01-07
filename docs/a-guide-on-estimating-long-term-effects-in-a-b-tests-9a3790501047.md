@@ -1,16 +1,16 @@
 # A/B 测试中估算长期效应的指南
 
-> 原文：[https://towardsdatascience.com/a-guide-on-estimating-long-term-effects-in-a-b-tests-9a3790501047?source=collection_archive---------9-----------------------#2024-02-24](https://towardsdatascience.com/a-guide-on-estimating-long-term-effects-in-a-b-tests-9a3790501047?source=collection_archive---------9-----------------------#2024-02-24)
+> 原文：[`towardsdatascience.com/a-guide-on-estimating-long-term-effects-in-a-b-tests-9a3790501047?source=collection_archive---------9-----------------------#2024-02-24`](https://towardsdatascience.com/a-guide-on-estimating-long-term-effects-in-a-b-tests-9a3790501047?source=collection_archive---------9-----------------------#2024-02-24)
 
 ## 解决在在线实验中识别和衡量长期效应的复杂性
 
-[](https://medium.com/@kseniia.baidina?source=post_page---byline--9a3790501047--------------------------------)[![Kseniia Baidina](../Images/a6ee80021fb9b319d463006ce5952634.png)](https://medium.com/@kseniia.baidina?source=post_page---byline--9a3790501047--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9a3790501047--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9a3790501047--------------------------------) [Kseniia Baidina](https://medium.com/@kseniia.baidina?source=post_page---byline--9a3790501047--------------------------------)
+[](https://medium.com/@kseniia.baidina?source=post_page---byline--9a3790501047--------------------------------)![Kseniia Baidina](https://medium.com/@kseniia.baidina?source=post_page---byline--9a3790501047--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9a3790501047--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9a3790501047--------------------------------) [Kseniia Baidina](https://medium.com/@kseniia.baidina?source=post_page---byline--9a3790501047--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9a3790501047--------------------------------) ·阅读时间 9 分钟 ·2024年2月24日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9a3790501047--------------------------------) ·阅读时间 9 分钟 ·2024 年 2 月 24 日
 
 --
 
-![](../Images/57e1dbb6b650f6237f9d43bad54dec94.png)
+![](img/57e1dbb6b650f6237f9d43bad54dec94.png)
 
 图片由[Isaac Smith](https://unsplash.com/@isaacmsmith?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源于[Unsplash](https://unsplash.com/photos/pen-on-paper-6EnTPvPPL6I?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -30,7 +30,7 @@
 
 +   新颖效应 —— 想象一下：你向产品中引入了新的游戏化机制。最初，用户会感到好奇，但这一效应通常会随着时间的推移而减少。
 
-+   初始效应 —— 想象一下，当Facebook将排名算法从按时间顺序显示改为推荐时。最初，用户可能会因为无法找到预期内容而导致信息流中的时间减少，产生挫败感。然而，随着时间的推移，随着用户逐渐适应新算法并发现有趣的帖子，互动可能会恢复。用户最初可能反应消极，但最终会适应，从而导致互动增加。
++   初始效应 —— 想象一下，当 Facebook 将排名算法从按时间顺序显示改为推荐时。最初，用户可能会因为无法找到预期内容而导致信息流中的时间减少，产生挫败感。然而，随着时间的推移，随着用户逐渐适应新算法并发现有趣的帖子，互动可能会恢复。用户最初可能反应消极，但最终会适应，从而导致互动增加。
 
 在本文中，我们的重点将放在回答两个问题：
 
@@ -44,15 +44,15 @@
 
 初始步骤是观察测试组与控制组之间的差异如何随时间变化。如果你注意到类似的模式，就需要深入细节，理解长期效应。
 
-![](../Images/ebe54510b9c4c097b8e52642dc962476.png)
+![](img/ebe54510b9c4c097b8e52642dc962476.png)
 
-[我](https://arxiv.org/pdf/2102.12893.pdf)来自Sadeghi等人（2021）的插图[2]
+[我](https://arxiv.org/pdf/2102.12893.pdf)来自 Sadeghi 等人（2021）的插图[2]
 
 你可能也会觉得有诱惑去绘制实验效果，不仅基于实验的日期，还基于自第一次接触以来的天数。
 
-![](../Images/fab48d1bbf252e97184834534a975f8c.png)
+![](img/fab48d1bbf252e97184834534a975f8c.png)
 
-[我](https://arxiv.org/pdf/2102.12893.pdf)来自Sadeghi等人（2021）的插图[2]
+[我](https://arxiv.org/pdf/2102.12893.pdf)来自 Sadeghi 等人（2021）的插图[2]
 
 然而，当你查看自第一次接触以来的天数时，有几个陷阱需要注意：
 
@@ -66,19 +66,19 @@
 
 ## 阶梯实验任务[2]
 
-这种方法背后的概念如下：在开始实验之前，我们将用户分为*k*个队列，并逐步将他们引入实验。例如，如果我们将用户分为4个队列，*k_1*为对照组，*k_2*从第1周开始接受处理，*k_3*从第2周开始接受处理，*k_4*从第3周开始接受处理。
+这种方法背后的概念如下：在开始实验之前，我们将用户分为*k*个队列，并逐步将他们引入实验。例如，如果我们将用户分为 4 个队列，*k_1*为对照组，*k_2*从第 1 周开始接受处理，*k_3*从第 2 周开始接受处理，*k_4*从第 3 周开始接受处理。
 
-![](../Images/b23011c3e7a8b1121eb5cfdae3603e4a.png)
+![](img/b23011c3e7a8b1121eb5cfdae3603e4a.png)
 
-[我](https://arxiv.org/pdf/2102.12893.pdf)摘自Sadeghi等人（2021年）²
+[我](https://arxiv.org/pdf/2102.12893.pdf)摘自 Sadeghi 等人（2021 年）²
 
 用户学习率可以通过比较不同时间段的处理效果来估计。
 
-![](../Images/5496aab0b7ccdaedc93a2e7a05aa0cd8.png)
+![](img/5496aab0b7ccdaedc93a2e7a05aa0cd8.png)
 
-[我](https://arxiv.org/pdf/2102.12893.pdf)摘自Sadeghi等人（2021年）[2]
+[我](https://arxiv.org/pdf/2102.12893.pdf)摘自 Sadeghi 等人（2021 年）[2]
 
-例如，如果你想估计第4周的用户学习情况，你可以比较值*T4_5*和*T4_2*。
+例如，如果你想估计第 4 周的用户学习情况，你可以比较值*T4_5*和*T4_2*。
 
 这种方法的挑战非常明显。首先，它为实验设计引入了额外的操作复杂性。其次，需要大量用户才能有效地将其分成不同的队列，并获得合理的统计显著性水平。第三，应该提前预期到不同的长期效应，并准备在这种复杂环境中进行实验。
 
@@ -86,15 +86,15 @@
 
 这种方法是前一种方法的简化版。我们将实验分成两个（或更一般的，分成*k*）时间段，并比较第一个时间段和第*k*个时间段的处理效果。
 
-![](../Images/7317a638c2acd81df3f46586f503d599.png)
+![](img/7317a638c2acd81df3f46586f503d599.png)
 
-[我](https://arxiv.org/pdf/2102.12893.pdf)摘自Sadeghi等人（2021年）[2]
+[我](https://arxiv.org/pdf/2102.12893.pdf)摘自 Sadeghi 等人（2021 年）[2]
 
 在这种方法中，一个关键问题是如何估计估计值的方差，以便得出关于统计显著性的结论。作者建议使用以下公式（详细信息请参阅文章）：
 
-![](../Images/8009f071299337c4fc666708239b8859.png)
+![](img/8009f071299337c4fc666708239b8859.png)
 
-[我](https://arxiv.org/pdf/2102.12893.pdf)摘自Sadeghi等人（2021年）[2]
+[我](https://arxiv.org/pdf/2102.12893.pdf)摘自 Sadeghi 等人（2021 年）[2]
 
 *σ2* — 每个实验单元在每个时间窗口内的方差
 
@@ -118,7 +118,7 @@
 
 一种方法是尝试使用短期数据预测长期结果 *Y*。最简单的方法是使用 *Y* 的滞后值，这被称为“自动替代”模型。假设你想预测实验结果在两个月后的表现，但目前只有两周的数据。在这种情况下，你可以训练一个线性回归（或其他）模型：
 
-![](../Images/dad84ab54798e76c9f05f7e1b0b618aa.png)
+![](img/dad84ab54798e76c9f05f7e1b0b618aa.png)
 
 [我](https://arxiv.org/pdf/2102.12893.pdf)来自张等人（2023）的插图 [5]
 
@@ -128,7 +128,7 @@
 
 在这种情况下，长期治疗效果是通过使用替代模型，测试组和对照组的度量预测值之间的差异来决定的。
 
-![](../Images/b7241935cba06b8faac86270b181f439.png)
+![](img/b7241935cba06b8faac86270b181f439.png)
 
 [我](https://arxiv.org/pdf/2102.12893.pdf)来自张等人（2023）的插图 [5]
 
@@ -156,12 +156,12 @@
 
 # 参考文献
 
-1.  N. Larsen, J. Stallrich, S. Sengupta, A. Deng, R. Kohavi, N. T. Stevens, *在线控制实验中的统计挑战：A/B 测试方法综述*（2023），[https://arxiv.org/pdf/2212.11366.pdf](https://arxiv.org/pdf/2212.11366.pdf)
+1.  N. Larsen, J. Stallrich, S. Sengupta, A. Deng, R. Kohavi, N. T. Stevens, *在线控制实验中的统计挑战：A/B 测试方法综述*（2023），[`arxiv.org/pdf/2212.11366.pdf`](https://arxiv.org/pdf/2212.11366.pdf)
 
-1.  S. Sadeghi, S. Gupta, S. Gramatovici, J. Lu, H. Ai, R. Zhang, *新颖性与首因效应：一种长期在线实验估算方法*（2021），[https://arxiv.org/pdf/2102.12893.pdf](https://arxiv.org/pdf/2102.12893.pdf)
+1.  S. Sadeghi, S. Gupta, S. Gramatovici, J. Lu, H. Ai, R. Zhang, *新颖性与首因效应：一种长期在线实验估算方法*（2021），[`arxiv.org/pdf/2102.12893.pdf`](https://arxiv.org/pdf/2102.12893.pdf)
 
-1.  H. Hohnhold, D. O’Brien, D. Tang, *聚焦长期：这对用户和商业都有好处*（2015），[https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/43887.pdf](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/43887.pdf)
+1.  H. Hohnhold, D. O’Brien, D. Tang, *聚焦长期：这对用户和商业都有好处*（2015），[`static.googleusercontent.com/media/research.google.com/en//pubs/archive/43887.pdf`](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/43887.pdf)
 
-1.  S. Athey, R. Chetty, G. W. Imbens, H. Kang, *代理指数：结合短期代理快速而精确地估算长期处理效应*（2019），[https://www.nber.org/system/files/working_papers/w26463/w26463.pdf](https://www.nber.org/system/files/working_papers/w26463/w26463.pdf)
+1.  S. Athey, R. Chetty, G. W. Imbens, H. Kang, *代理指数：结合短期代理快速而精确地估算长期处理效应*（2019），[`www.nber.org/system/files/working_papers/w26463/w26463.pdf`](https://www.nber.org/system/files/working_papers/w26463/w26463.pdf)
 
-1.  V. Zhang, M. Zhao, A. Le, M. Dimakopoulou, N. Kallus, *使用 Netflix 上的 200 次 A/B 测试评估代理指数作为决策工具*（2023），[https://arxiv.org/pdf/2311.11922.pdf](https://arxiv.org/pdf/2311.11922.pdf)
+1.  V. Zhang, M. Zhao, A. Le, M. Dimakopoulou, N. Kallus, *使用 Netflix 上的 200 次 A/B 测试评估代理指数作为决策工具*（2023），[`arxiv.org/pdf/2311.11922.pdf`](https://arxiv.org/pdf/2311.11922.pdf)

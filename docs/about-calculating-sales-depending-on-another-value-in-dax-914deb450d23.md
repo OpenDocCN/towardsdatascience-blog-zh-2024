@@ -1,16 +1,16 @@
 # 关于在 DAX 中根据另一个值计算销售额
 
-> 原文：[https://towardsdatascience.com/about-calculating-sales-depending-on-another-value-in-dax-914deb450d23?source=collection_archive---------9-----------------------#2024-01-18](https://towardsdatascience.com/about-calculating-sales-depending-on-another-value-in-dax-914deb450d23?source=collection_archive---------9-----------------------#2024-01-18)
+> 原文：[`towardsdatascience.com/about-calculating-sales-depending-on-another-value-in-dax-914deb450d23?source=collection_archive---------9-----------------------#2024-01-18`](https://towardsdatascience.com/about-calculating-sales-depending-on-another-value-in-dax-914deb450d23?source=collection_archive---------9-----------------------#2024-01-18)
 
 ## *我们通常的度量值会聚合来自一个事实表中列的值。那么，计算一个依赖于另一个事实表中数据的结果需要什么？让我们来看一个可能的解决方案。*
 
-[](https://medium.com/@salvatorecagliari?source=post_page---byline--914deb450d23--------------------------------)[![Salvatore Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--914deb450d23--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--914deb450d23--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--914deb450d23--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--914deb450d23--------------------------------)
+[](https://medium.com/@salvatorecagliari?source=post_page---byline--914deb450d23--------------------------------)![Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--914deb450d23--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--914deb450d23--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--914deb450d23--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--914deb450d23--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--914deb450d23--------------------------------) ·8分钟阅读·2024年1月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--914deb450d23--------------------------------) ·8 分钟阅读·2024 年 1 月 18 日
 
 --
 
-![](../Images/45ea30c39f5de4fab1569c22c2102c56.png)
+![](img/45ea30c39f5de4fab1569c22c2102c56.png)
 
 图片由 [Isaac Smith](https://unsplash.com/@isaacmsmith?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -24,19 +24,19 @@
 
 幸运的是，我已经知道如何在 DAX 度量值中使用表格：
 
-[](/on-using-intermediary-results-in-dax-measures-9971efa72ae?source=post_page-----914deb450d23--------------------------------) [## 在 DAX 度量值中使用中间结果
+[](/on-using-intermediary-results-in-dax-measures-9971efa72ae?source=post_page-----914deb450d23--------------------------------) ## 在 DAX 度量值中使用中间结果
 
 ### 我们在 DAX 中经常使用表变量。如果我们必须计算中间结果并在 DAX 中重复使用它们，怎么办呢……
 
-towardsdatascience.com](/on-using-intermediary-results-in-dax-measures-9971efa72ae?source=post_page-----914deb450d23--------------------------------)
+towardsdatascience.com
 
 现在，我的客户给了我一个挑战，让我把我的知识付诸实践：
 
 看看以下报告：
 
-![](../Images/16bf481118051d54e12d94515a99c9d2.png)
+![](img/16bf481118051d54e12d94515a99c9d2.png)
 
-图1 — 在线销售与零售销售及销售的产品（图由作者提供）
+图 1 — 在线销售与零售销售及销售的产品（图由作者提供）
 
 如你所见，在线销售和零售销售的产品数量有所不同。
 
@@ -50,9 +50,9 @@ towardsdatascience.com](/on-using-intermediary-results-in-dax-measures-9971efa72
 
 我能通过像这样在左侧表格上应用过滤器来回答第一个问题吗？
 
-![](../Images/2049a3eec6ee685b06bdaa88035954df.png)
+![](img/2049a3eec6ee685b06bdaa88035954df.png)
 
-图2 — 在Power BI中应用基于零售销售度量值的过滤器（作者提供的图）
+图 2 — 在 Power BI 中应用基于零售销售度量值的过滤器（作者提供的图）
 
 不幸的是，这并不起作用。
 
@@ -62,9 +62,9 @@ towardsdatascience.com](/on-using-intermediary-results-in-dax-measures-9971efa72
 
 另一种方法是添加多个度量值，并为可视化添加一个过滤器：
 
-![](../Images/acf08f12a75a2596a631b7e0a7324d79.png)
+![](img/acf08f12a75a2596a631b7e0a7324d79.png)
 
-图3 — 在Power BI中应用多个度量值的过滤器（作者提供的图）
+图 3 — 在 Power BI 中应用多个度量值的过滤器（作者提供的图）
 
 这样可以得到所需的结果。
 
@@ -72,7 +72,7 @@ towardsdatascience.com](/on-using-intermediary-results-in-dax-measures-9971efa72
 
 但生成的可视化包含了我不想看到的“Sum Retail Sales”度量值。而且，当我想获取仅在线销售的产品数量时，这个度量值会显示空列，这也不是我想看到的结果。
 
-所以，我必须创建一个明确的DAX度量值来解决上述问题。
+所以，我必须创建一个明确的 DAX 度量值来解决上述问题。
 
 # 从源数据库获取结果
 
@@ -80,7 +80,7 @@ towardsdatascience.com](/on-using-intermediary-results-in-dax-measures-9971efa72
 
 我可以使用这个参考结果在构建解决方案时验证结果。
 
-我编写以下SQL查询来获取此参考结果：
+我编写以下 SQL 查询来获取此参考结果：
 
 ```py
 WITH [RetailProductsByMonth]
@@ -106,11 +106,11 @@ SELECT [D].[EnglishYearMonthShortName]
 
 这是结果：
 
-![](../Images/d016e912a8539eba2492eb3391832c6a.png)
+![](img/d016e912a8539eba2492eb3391832c6a.png)
 
-图4 — 获取仅在线和门店销售的产品的SQL查询结果（作者提供的图）
+图 4 — 获取仅在线和门店销售的产品的 SQL 查询结果（作者提供的图）
 
-要获取仅在线销售的产品数量，我使用以下SQL查询：
+要获取仅在线销售的产品数量，我使用以下 SQL 查询：
 
 ```py
 WITH [RetailProductsByMonth]
@@ -137,9 +137,9 @@ SELECT [D].[EnglishYearMonthShortName]
 
 这个查询的结果如下：
 
-![](../Images/208abc208c96c901f1458d80815b0b7c.png)
+![](img/208abc208c96c901f1458d80815b0b7c.png)
 
-图5 — 获取仅在线销售产品的SQL查询结果（作者提供的图）
+图 5 — 获取仅在线销售产品的 SQL 查询结果（作者提供的图）
 
 在这两种情况下，首先，我会获取每个月零售销售中所有销售产品的列表。
 
@@ -147,15 +147,15 @@ SELECT [D].[EnglishYearMonthShortName]
 
 在第二个查询中，我排除了所有零售销售数据中的产品。
 
-在这两种情况下，我得到了所需的参考结果，并且可以继续在Power BI中编写DAX代码。
+在这两种情况下，我得到了所需的参考结果，并且可以继续在 Power BI 中编写 DAX 代码。
 
 # 查询数据模型
 
-我没有尝试在Power BI中构建度量值，而是使用[DAX Studio](https://www.sqlbi.com/tools/dax-studio/)编写DAX查询，逐步构建解决方案。
+我没有尝试在 Power BI 中构建度量值，而是使用[DAX Studio](https://www.sqlbi.com/tools/dax-studio/)编写 DAX 查询，逐步构建解决方案。
 
 首先，我想获取所有在零售店销售的产品。
 
-由于我的SQL查询按月分组结果，我将第一个查询限制为仅一月。这也简化了所需的代码：
+由于我的 SQL 查询按月分组结果，我将第一个查询限制为仅一月。这也简化了所需的代码：
 
 ```py
 DEFINE
@@ -170,11 +170,11 @@ EVALUATE
 
 这是结果：
 
-![](../Images/3fa909d205cd46aa1e52821480a29fec.png)
+![](img/3fa909d205cd46aa1e52821480a29fec.png)
 
-图6 — DAX查询结果，列出在零售店销售的产品（作者提供的图）
+图 6 — DAX 查询结果，列出在零售店销售的产品（作者提供的图）
 
-所以，我得到了2023年11月销售的2504个产品。
+所以，我得到了 2023 年 11 月销售的 2504 个产品。
 
 下一步是将此结果作为过滤器注入到查询中，以统计仅在线销售的产品数量：
 
@@ -199,9 +199,9 @@ EVALUATE
  }
 ```
 
-现在我有2498个产品：
+现在我有 2498 个产品：
 
-![](../Images/2bdfafdc20ad8973b801114873ec65a9.png)
+![](img/2bdfafdc20ad8973b801114873ec65a9.png)
 
 图 7 — 计算在线销售和零售商店销售产品的 DAX 查询结果（图源：作者）
 
@@ -256,7 +256,7 @@ EVALUATE
 
 这是结果，与上述 SQL 查询的结果相同：
 
-![](../Images/2b15846d21995f24f8d9352f27ec6894.png)
+![](img/2b15846d21995f24f8d9352f27ec6894.png)
 
 图 8 — 使用查询派生的度量值的 DAX 查询结果（图源：作者）
 
@@ -268,7 +268,7 @@ EVALUATE
 
 结果与上述第二个 SQL 查询的结果相同：
 
-![](../Images/d16e149debb8aeb4005423d4bab8b77b.png)
+![](img/d16e149debb8aeb4005423d4bab8b77b.png)
 
 图 9 — 使用仅在线销售的度量值的 DAX 查询结果（图源：作者）
 
@@ -288,7 +288,7 @@ EVALUATE
 
 此外，对于那些来自关系型数据库工作背景并开始使用 DAX 的人来说，这一点很有意思：我需要显式地在 SQL 查询中添加月份，以便按月份对结果进行分组。而在 DAX 中，添加月份到查询时分组会自动完成，我不需要做额外的操作。
 
-![](../Images/ade78146acb63e47f1347db6543c4dc8.png)
+![](img/ade78146acb63e47f1347db6543c4dc8.png)
 
 照片由 [Firmbee.com](https://unsplash.com/@firmbee?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -296,11 +296,11 @@ EVALUATE
 
 几个月前，我写了一篇关于在 DAX 度量中使用中介表的文章。你可以在这里找到它：
 
-[](/on-using-intermediary-results-in-dax-measures-9971efa72ae?source=post_page-----914deb450d23--------------------------------) [## 在 DAX 度量中使用中介结果
+[](/on-using-intermediary-results-in-dax-measures-9971efa72ae?source=post_page-----914deb450d23--------------------------------) ## 在 DAX 度量中使用中介结果
 
 ### 我们在 DAX 中经常使用表变量。如果我们必须计算中介结果并在 DAX 中重用它们怎么办……
 
-towardsdatascience.com](/on-using-intermediary-results-in-dax-measures-9971efa72ae?source=post_page-----914deb450d23--------------------------------)
+towardsdatascience.com
 
 我使用 Contoso 示例数据集，就像在我之前的文章中一样。你可以从微软 [这里](https://www.microsoft.com/en-us/download/details.aspx?id=18279) 免费下载 ContosoRetailDW 数据集。
 
@@ -322,11 +322,11 @@ medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page----
 
 你可以通过以下方式支持我的工作，我在空闲时间做这些工作：
 
-[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)
+[`buymeacoffee.com/salvatorecagliari`](https://buymeacoffee.com/salvatorecagliari)
 
 或者扫描这个二维码：
 
-![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)
+![](img/e7ac062070dcd7a00dcf995ad7e95434.png)
 
 任何支持都将不胜感激，并帮助我找到更多时间为你创作更多内容。
 

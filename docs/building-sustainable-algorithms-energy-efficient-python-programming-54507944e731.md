@@ -1,16 +1,16 @@
 # 构建可持续算法：节能高效的 Python 编程
 
-> 原文：[https://towardsdatascience.com/building-sustainable-algorithms-energy-efficient-python-programming-54507944e731?source=collection_archive---------2-----------------------#2024-11-23](https://towardsdatascience.com/building-sustainable-algorithms-energy-efficient-python-programming-54507944e731?source=collection_archive---------2-----------------------#2024-11-23)
+> 原文：[`towardsdatascience.com/building-sustainable-algorithms-energy-efficient-python-programming-54507944e731?source=collection_archive---------2-----------------------#2024-11-23`](https://towardsdatascience.com/building-sustainable-algorithms-energy-efficient-python-programming-54507944e731?source=collection_archive---------2-----------------------#2024-11-23)
 
 ## 降低 Python 算法计算成本的 6 种技巧
 
-[](https://arijoury.medium.com/?source=post_page---byline--54507944e731--------------------------------)[![Ari Joury, PhD](../Images/5b9e49279fb3f26373b393f29a4daaf7.png)](https://arijoury.medium.com/?source=post_page---byline--54507944e731--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--54507944e731--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--54507944e731--------------------------------) [Ari Joury, PhD](https://arijoury.medium.com/?source=post_page---byline--54507944e731--------------------------------)
+[](https://arijoury.medium.com/?source=post_page---byline--54507944e731--------------------------------)![Ari Joury, PhD](https://arijoury.medium.com/?source=post_page---byline--54507944e731--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--54507944e731--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54507944e731--------------------------------) [Ari Joury, PhD](https://arijoury.medium.com/?source=post_page---byline--54507944e731--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54507944e731--------------------------------) ·9 分钟阅读·2024年11月23日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54507944e731--------------------------------) ·9 分钟阅读·2024 年 11 月 23 日
 
 --
 
-![](../Images/40f83342a9ea2ab631d4d1138fc843e3.png)
+![](img/40f83342a9ea2ab631d4d1138fc843e3.png)
 
 你可以通过使用这些技巧来提高 Python 的性能。图像由 Leonardo AI 生成
 

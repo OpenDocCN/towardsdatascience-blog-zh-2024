@@ -1,18 +1,18 @@
 # 如何通过 GPU 强化 Pandas
 
-> 原文：[https://towardsdatascience.com/how-to-empower-pandas-with-gpus-43909ad59e75?source=collection_archive---------3-----------------------#2024-04-07](https://towardsdatascience.com/how-to-empower-pandas-with-gpus-43909ad59e75?source=collection_archive---------3-----------------------#2024-04-07)
+> 原文：[`towardsdatascience.com/how-to-empower-pandas-with-gpus-43909ad59e75?source=collection_archive---------3-----------------------#2024-04-07`](https://towardsdatascience.com/how-to-empower-pandas-with-gpus-43909ad59e75?source=collection_archive---------3-----------------------#2024-04-07)
 
 ## 数据科学
 
 ## 简要介绍 cuDF，一个 NVIDIA 框架，用于加速 Pandas
 
-[](https://tamimi-naser.medium.com/?source=post_page---byline--43909ad59e75--------------------------------)[![Naser Tamimi](../Images/8d43c66ea3c0ef9b49c7d33dbc008c28.png)](https://tamimi-naser.medium.com/?source=post_page---byline--43909ad59e75--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--43909ad59e75--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--43909ad59e75--------------------------------) [Naser Tamimi](https://tamimi-naser.medium.com/?source=post_page---byline--43909ad59e75--------------------------------)
+[](https://tamimi-naser.medium.com/?source=post_page---byline--43909ad59e75--------------------------------)![Naser Tamimi](https://tamimi-naser.medium.com/?source=post_page---byline--43909ad59e75--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--43909ad59e75--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43909ad59e75--------------------------------) [Naser Tamimi](https://tamimi-naser.medium.com/?source=post_page---byline--43909ad59e75--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43909ad59e75--------------------------------) ·6分钟阅读·2024年4月7日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43909ad59e75--------------------------------) ·6 分钟阅读·2024 年 4 月 7 日
 
 --
 
-![](../Images/b6627256185bd4f50aba530070176b5e.png)
+![](img/b6627256185bd4f50aba530070176b5e.png)
 
 图片由 [BoliviaInteligente](https://unsplash.com/@boliviainteligente?utm_source=medium&utm_medium=referral) 提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

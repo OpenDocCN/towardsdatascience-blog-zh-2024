@@ -1,18 +1,18 @@
 # 使用层次聚类进行可解释模型的特征选择
 
-> 原文：[https://towardsdatascience.com/feature-selection-with-hierarchical-clustering-for-interpretable-models-a091802f24e0?source=collection_archive---------0-----------------------#2024-04-01](https://towardsdatascience.com/feature-selection-with-hierarchical-clustering-for-interpretable-models-a091802f24e0?source=collection_archive---------0-----------------------#2024-04-01)
+> 原文：[`towardsdatascience.com/feature-selection-with-hierarchical-clustering-for-interpretable-models-a091802f24e0?source=collection_archive---------0-----------------------#2024-04-01`](https://towardsdatascience.com/feature-selection-with-hierarchical-clustering-for-interpretable-models-a091802f24e0?source=collection_archive---------0-----------------------#2024-04-01)
 
-## 使用这种统计方法创建特征的简短列表（Python教程）
+## 使用这种统计方法创建特征的简短列表（Python 教程）
 
-[](https://conorosullyds.medium.com/?source=post_page---byline--a091802f24e0--------------------------------)[![Conor O'Sullivan](../Images/2dc50a24edb12e843651d01ed48a3c3f.png)](https://conorosullyds.medium.com/?source=post_page---byline--a091802f24e0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a091802f24e0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a091802f24e0--------------------------------) [Conor O'Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--a091802f24e0--------------------------------)
+[](https://conorosullyds.medium.com/?source=post_page---byline--a091802f24e0--------------------------------)![Conor O'Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--a091802f24e0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a091802f24e0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a091802f24e0--------------------------------) [Conor O'Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--a091802f24e0--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a091802f24e0--------------------------------) ·阅读时间：11分钟·2024年4月1日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a091802f24e0--------------------------------) ·阅读时间：11 分钟·2024 年 4 月 1 日
 
 --
 
-![](../Images/af61a1cb60bfddfc919edd8e8b4be0cf.png)
+![](img/af61a1cb60bfddfc919edd8e8b4be0cf.png)
 
-在工业界，你的数据集中可能有成百上千个潜在的模型特征。使用降维方法，如PCA，可能会留下很难解释的特征。幸运的是，特征聚类可以帮助创建一个特征简短列表，并构建一个可解释的模型。
+在工业界，你的数据集中可能有成百上千个潜在的模型特征。使用降维方法，如 PCA，可能会留下很难解释的特征。幸运的是，特征聚类可以帮助创建一个特征简短列表，并构建一个可解释的模型。
 
 我们将：
 

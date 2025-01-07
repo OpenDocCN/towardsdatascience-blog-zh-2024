@@ -1,16 +1,16 @@
 # 在 Python 中理解竞争条件
 
-> 原文：[https://towardsdatascience.com/understanding-race-conditions-in-the-context-of-python-c76740a214d0?source=collection_archive---------3-----------------------#2024-05-06](https://towardsdatascience.com/understanding-race-conditions-in-the-context-of-python-c76740a214d0?source=collection_archive---------3-----------------------#2024-05-06)
+> 原文：[`towardsdatascience.com/understanding-race-conditions-in-the-context-of-python-c76740a214d0?source=collection_archive---------3-----------------------#2024-05-06`](https://towardsdatascience.com/understanding-race-conditions-in-the-context-of-python-c76740a214d0?source=collection_archive---------3-----------------------#2024-05-06)
 
-![](../Images/0231a75fb6d343547ed24fa477b2d4f8.png)
+![](img/0231a75fb6d343547ed24fa477b2d4f8.png)
 
 该图片由作者在 Canva 中创建
 
 ## Python 的 GIL 无法保证线程安全
 
-[](https://christophertao.medium.com/?source=post_page---byline--c76740a214d0--------------------------------)[![Christopher Tao](../Images/bea1e3c81cc62eb28bdba9275d6b326f.png)](https://christophertao.medium.com/?source=post_page---byline--c76740a214d0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c76740a214d0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c76740a214d0--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--c76740a214d0--------------------------------)
+[](https://christophertao.medium.com/?source=post_page---byline--c76740a214d0--------------------------------)![Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--c76740a214d0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c76740a214d0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c76740a214d0--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--c76740a214d0--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c76740a214d0--------------------------------) ·阅读时长：8分钟·2024年5月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c76740a214d0--------------------------------) ·阅读时长：8 分钟·2024 年 5 月 6 日
 
 --
 

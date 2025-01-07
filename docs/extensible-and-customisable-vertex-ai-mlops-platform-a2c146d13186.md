@@ -1,18 +1,18 @@
 # 可扩展和可定制的 Vertex AI MLOps 平台
 
-> 原文：[https://towardsdatascience.com/extensible-and-customisable-vertex-ai-mlops-platform-a2c146d13186?source=collection_archive---------6-----------------------#2024-02-29](https://towardsdatascience.com/extensible-and-customisable-vertex-ai-mlops-platform-a2c146d13186?source=collection_archive---------6-----------------------#2024-02-29)
+> 原文：[`towardsdatascience.com/extensible-and-customisable-vertex-ai-mlops-platform-a2c146d13186?source=collection_archive---------6-----------------------#2024-02-29`](https://towardsdatascience.com/extensible-and-customisable-vertex-ai-mlops-platform-a2c146d13186?source=collection_archive---------6-----------------------#2024-02-29)
 
 ## MLOps 平台
 
 ## 在 Vertex AI 上构建可扩展的 Kubeflow ML 管道，并“越狱”Google 预构建容器
 
-[](https://koakande.medium.com/?source=post_page---byline--a2c146d13186--------------------------------)[![Kabeer Akande](../Images/5e1f083e75741690ae27b00d1e5f1dd3.png)](https://koakande.medium.com/?source=post_page---byline--a2c146d13186--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a2c146d13186--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a2c146d13186--------------------------------) [Kabeer Akande](https://koakande.medium.com/?source=post_page---byline--a2c146d13186--------------------------------)
+[](https://koakande.medium.com/?source=post_page---byline--a2c146d13186--------------------------------)![Kabeer Akande](https://koakande.medium.com/?source=post_page---byline--a2c146d13186--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a2c146d13186--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a2c146d13186--------------------------------) [Kabeer Akande](https://koakande.medium.com/?source=post_page---byline--a2c146d13186--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a2c146d13186--------------------------------) ·18 分钟阅读·2024年2月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a2c146d13186--------------------------------) ·18 分钟阅读·2024 年 2 月 29 日
 
 --
 
-![](../Images/dc70146f0e90bd86c36b2bb56e9e0506.png)
+![](img/dc70146f0e90bd86c36b2bb56e9e0506.png)
 
 支持 MLOps 平台的工具及相应操作
 
@@ -20,17 +20,17 @@
 
 这就是促使 [mlops-platform](https://github.com/kbakande/mlops-platform) 项目的发展的原因，该项目旨在展示如何利用 Kubeflow 管道在 VertexAI 上构建可扩展且具备操作能力的机器学习模型的简化、端到端流程。该平台的主要特点可以归纳为四个方面：首先，它封装了一个模块化且灵活的管道架构，能够支持机器学习生命周期的各个阶段，从数据加载和预处理到模型训练、评估、部署和推理。其次，它利用 Google Cloud 的 Vertex AI 服务实现无缝集成，确保最佳的性能、可扩展性和资源效率。第三，它构建了一系列常用操作，用于自动化机器学习工作流。最后，它记录了在构建此类规模项目时常见的挑战及其相应的解决方案。
 
-我构建了这个*mlops平台*，有两个主要目的：
+我构建了这个*mlops 平台*，有两个主要目的：
 
-1.  作为一个教育平台，社区成员可以在这里了解MLOps平台的基本组成部分，包括使该平台得以运行的各种操作。
+1.  作为一个教育平台，社区成员可以在这里了解 MLOps 平台的基本组成部分，包括使该平台得以运行的各种操作。
 
-1.  作为没有或几乎没有工程支持的团队的构建模块，使他们在开发数据科学和ML工程项目时能够自助服务
+1.  作为没有或几乎没有工程支持的团队的构建模块，使他们在开发数据科学和 ML 工程项目时能够自助服务
 
 我希望这个平台能够通过社区的贡献继续成长。
 
-尽管Google有一个包含大量使用Vertex AI流水线示例的[GitHub仓库](https://github.com/GoogleCloudPlatform/vertex-ai-samples/tree/main)，但这个仓库难以浏览。而且，通常你需要在应用程序周围加上多个操作封装器来进行组织，因为会有多个团队使用该平台。而且在开发过程中，常常会出现一些问题没有得到足够的解决，导致开发者感到沮丧。尤其是在追赶生产周期时，Google的支持可能不足。根据我的个人经验，即使我的公司有增强的支持，我也曾向Google Vertex工程团队提出一个问题，结果拖延了四个多月。此外，由于技术更新的速度非常快，论坛上的帖子可能无法得到期望的解决方案，因为只有少数人可能遇到过该问题。因此，拥有一个可用的端到端平台，并且能够获得社区支持是非常宝贵的。
+尽管 Google 有一个包含大量使用 Vertex AI 流水线示例的[GitHub 仓库](https://github.com/GoogleCloudPlatform/vertex-ai-samples/tree/main)，但这个仓库难以浏览。而且，通常你需要在应用程序周围加上多个操作封装器来进行组织，因为会有多个团队使用该平台。而且在开发过程中，常常会出现一些问题没有得到足够的解决，导致开发者感到沮丧。尤其是在追赶生产周期时，Google 的支持可能不足。根据我的个人经验，即使我的公司有增强的支持，我也曾向 Google Vertex 工程团队提出一个问题，结果拖延了四个多月。此外，由于技术更新的速度非常快，论坛上的帖子可能无法得到期望的解决方案，因为只有少数人可能遇到过该问题。因此，拥有一个可用的端到端平台，并且能够获得社区支持是非常宝贵的。
 
-顺便问一下，你听说过“痛点驱动开发”（PDD）吗？它类似于测试驱动开发或行为驱动开发。在PDD中，开发是由痛点驱动的。这意味着当团队感到受到影响并且能够合理化折衷时，就会对代码库进行更改。它遵循这样的原则：*如果它没有坏，别修*。不用担心，这篇文章将帮助你解决一些在使用Google Vertex AI时（特别是预构建容器）遇到的痛点，尤其是在构建可扩展的ML流水线时带来的困惑。不过，更准确地说，遵循PDD原则，我有意将它做成一个包含一些痛点的工作平台。我已详细列出了这些痛点，希望有兴趣的社区成员能够加入我，共同逐步整合解决方案。废话不多说，接下来我们切入正题！
+顺便问一下，你听说过“痛点驱动开发”（PDD）吗？它类似于测试驱动开发或行为驱动开发。在 PDD 中，开发是由痛点驱动的。这意味着当团队感到受到影响并且能够合理化折衷时，就会对代码库进行更改。它遵循这样的原则：*如果它没有坏，别修*。不用担心，这篇文章将帮助你解决一些在使用 Google Vertex AI 时（特别是预构建容器）遇到的痛点，尤其是在构建可扩展的 ML 流水线时带来的困惑。不过，更准确地说，遵循 PDD 原则，我有意将它做成一个包含一些痛点的工作平台。我已详细列出了这些痛点，希望有兴趣的社区成员能够加入我，共同逐步整合解决方案。废话不多说，接下来我们切入正题！
 
 Google Vertex AI 流程提供了一个框架，通过使用 Kubeflow 或 Tensorflow Extended 框架设计的流程来运行 ML 工作流。通过这种方式，Vertex AI 充当一个**编排平台**，允许将多个 ML 任务组合起来，并在 GCP 基础设施上自动执行它们。这是一个重要的区分点，因为我们并不是使用 Vertex AI 编写流程，而是它作为编排流程的平台。底层的 Kubeflow 或 Tensorflow Extended 流程遵循用于现代架构中编排任务的常见框架。该框架将逻辑与计算环境分开。在 ML 工作流的情况下，逻辑是 ML 代码，而计算环境是容器。两者合起来称为**组件**。当多个组件被组合在一起时，它们被称为流程。在这些编排平台中，类似的机制被用来在组件之间传递数据。关于流程的深入学习最好参考[Kubeflow](https://www.kubeflow.org/docs/components/pipelines/v2/)的文档以及我在参考文献部分链接的几篇博客文章。
 
@@ -38,7 +38,7 @@ Google Vertex AI 流程提供了一个框架，通过使用 Kubeflow 或 Tensorf
 
 我将避免在这篇文章中大量展示代码，因为这些代码可以从平台的[代码库](https://github.com/kbakande/mlops-platform)轻松获取。不过，我会简要介绍 mlops 平台架构中的重要部分。请参考代码库以便跟进。
 
-![](../Images/c5bcc700a6db07cc2b0eb6ae80ffae6a.png)
+![](img/c5bcc700a6db07cc2b0eb6ae80ffae6a.png)
 
 MLOps 平台
 
@@ -162,17 +162,17 @@ if __name__ == "__main__":
 
 **项目依赖**
 
-在开发企业级应用时，管理[依赖](https://www.linkedin.com/posts/maria-vechtomova_python-softwaredevelopment-activity-7157288974921662464-q7kR?utm_source=share&utm_medium=member_desktop)可能是一个噩梦。考虑到机器学习工作流中需要的各种包，以及为了使其能够运行所需的各种软件应用程序，管理这些依赖关系可能变成一项艰巨的任务。一个正在逐渐获得关注的包是[Poetry](https://python-poetry.org/docs/)。它是一个用于Python中的依赖管理和打包的工具。Poetry生成的关键文件是`pyproject.toml`和`poetry.lock`。`pyproject.toml`文件是一个配置文件，用于存储项目元数据和依赖关系，而`poetry.lock`文件则锁定依赖项的确切版本，确保在不同环境中的构建具有一致性和可重现性。这两个文件共同增强了依赖关系解析。我已经演示了如何使用这两个文件替代容器中的`requirement.txt`，并使用它们生成此项目的训练容器镜像。
+在开发企业级应用时，管理[依赖](https://www.linkedin.com/posts/maria-vechtomova_python-softwaredevelopment-activity-7157288974921662464-q7kR?utm_source=share&utm_medium=member_desktop)可能是一个噩梦。考虑到机器学习工作流中需要的各种包，以及为了使其能够运行所需的各种软件应用程序，管理这些依赖关系可能变成一项艰巨的任务。一个正在逐渐获得关注的包是[Poetry](https://python-poetry.org/docs/)。它是一个用于 Python 中的依赖管理和打包的工具。Poetry 生成的关键文件是`pyproject.toml`和`poetry.lock`。`pyproject.toml`文件是一个配置文件，用于存储项目元数据和依赖关系，而`poetry.lock`文件则锁定依赖项的确切版本，确保在不同环境中的构建具有一致性和可重现性。这两个文件共同增强了依赖关系解析。我已经演示了如何使用这两个文件替代容器中的`requirement.txt`，并使用它们生成此项目的训练容器镜像。
 
 **Makefile**
 
-Makefile是一个构建自动化工具，通过一组预定义的规则促进项目任务的编译和执行。开发人员通常使用Makefile来简化工作流程，自动化重复任务，并确保一致和可重现的构建。*mlops-platform*中的Makefile具有预定义的命令，可以无缝运行整个管道并确保组件的可靠性。例如，指定为默认目标的`all`目标有效地编排了ML管道（`run_pipeline`）和测试（`run_tests`）的执行。此外，Makefile还提供了一个`clean`目标，用于清理临时文件，而`help`目标则提供了一个可用命令的快速参考。
+Makefile 是一个构建自动化工具，通过一组预定义的规则促进项目任务的编译和执行。开发人员通常使用 Makefile 来简化工作流程，自动化重复任务，并确保一致和可重现的构建。*mlops-platform*中的 Makefile 具有预定义的命令，可以无缝运行整个管道并确保组件的可靠性。例如，指定为默认目标的`all`目标有效地编排了 ML 管道（`run_pipeline`）和测试（`run_tests`）的执行。此外，Makefile 还提供了一个`clean`目标，用于清理临时文件，而`help`目标则提供了一个可用命令的快速参考。
 
 ## **文档**
 
-项目的文档记录在*README.md*文件中，提供了项目的全面指南。它包括有关安装、使用以及设置Google Cloud Platform服务的详细说明。
+项目的文档记录在*README.md*文件中，提供了项目的全面指南。它包括有关安装、使用以及设置 Google Cloud Platform 服务的详细说明。
 
-**CI/CD编排**
+**CI/CD 编排**
 
 GitHub Actions 工作流定义在 *.github/workflows* 目录中，对于自动化测试、构建和将机器学习管道部署到 Vertex AI 的过程至关重要。该 CI/CD 方法确保对代码库的每次更改都能被持续验证和部署，从而提高项目的可靠性并减少错误发生的可能性。工作流会在每次推送到主分支时触发，或者可以手动执行，提供无缝且可靠的集成过程。
 
@@ -238,7 +238,7 @@ source ~/.zshrc
 
 2\. **预构建容器镜像中的版本冲突：** Google 为[预测](https://cloud.google.com/vertex-ai/docs/predictions/pre-built-containers)和[训练](https://cloud.google.com/vertex-ai/docs/training/pre-built-containers)任务维护了一系列预构建镜像。这些容器镜像为常见的机器学习框架提供了不同版本。然而，我发现文档中列出的版本有时与实际版本不符，这在使用这些容器镜像时是一个主要的失败点。鉴于社区在标准化版本和依赖关系方面的努力，以及容器技术主要是为了解决应用程序可靠执行的问题，我认为 Google 应该致力于解决预构建容器镜像中的版本冲突。不要误会，版本不匹配的斗争可能让人沮丧，这也是为什么我鼓励在使用这些镜像之前进行“越狱”。在编写这个教程时，我决定使用`europe-docker.pkg.dev/vertex-ai/training/sklearn-gpu.1-0:latest`和`europe-docker.pkg.dev/vertex-ai/prediction/sklearn-cpu.1-0:latest`。从命名约定来看，两个镜像应该是兼容的，并且都应该包含`sklearn==1.0`。事实上，网站上确认了这一点，如下图所示，容器镜像的 artifact registry 也显示了这一点。
 
-![](../Images/5012d1770574c50d6fd8c1f36cf158f5.png)
+![](img/5012d1770574c50d6fd8c1f36cf158f5.png)
 
 来自训练预构建镜像的截图，[页面](https://cloud.google.com/vertex-ai/docs/training/pre-built-containers)
 
@@ -270,7 +270,7 @@ python -c "import sklearn; print(sklearn.__version__)"
 
 截至本文撰写时，输出如下截图所示：
 
-![](../Images/6bc357ff054b1654dd689ff1c96a8097.png)
+![](img/6bc357ff054b1654dd689ff1c96a8097.png)
 
 对于 `europe-docker.pkg.dev/vertex-ai/prediction/sklearn-cpu.1-3:latest` 执行类似的操作时，sklearn 版本是 `1.3.2`，而 `1.2` 版本则是 `1.2.2`。更让人困惑的是，`pandas` 在版本 `1–2` 和 `1-3` 中都缺失了，这让人质疑预构建容器是否得到了积极维护。当然，问题不在于小更新，而在于相应的预测镜像没有类似的更新，这导致了上述的版本不匹配错误。
 
@@ -334,9 +334,9 @@ docker push {region}-docker.pkg.dev/{gcp-project-id}/{gcp-artifact-repo}/{image-
 
 这个项目需要添加许多扩展，我将邀请有意的贡献者积极参与。以下是我一些详细的想法，但也欢迎提出其他改进建议。通过 PR 欢迎贡献。我希望这个仓库能够得到那些想学习端到端 MLOps 的人的积极开发，并且作为小团队构建基础的基石。
 
-+   **监控管道：** 可观察性是MLOps平台的核心功能。它使团队能够主动监控平台的状态和行为，并在出现异常时采取适当的行动。`mlops-platform`缺少一个监控管道，这将是一个不错的补充。我计划写一篇关于自定义监控管道实现的文章，但与此同时，Vertex AI有一个可以集成的[监控管道](https://cloud.google.com/vertex-ai/docs/model-monitoring/overview)。
++   **监控管道：** 可观察性是 MLOps 平台的核心功能。它使团队能够主动监控平台的状态和行为，并在出现异常时采取适当的行动。`mlops-platform`缺少一个监控管道，这将是一个不错的补充。我计划写一篇关于自定义监控管道实现的文章，但与此同时，Vertex AI 有一个可以集成的[监控管道](https://cloud.google.com/vertex-ai/docs/model-monitoring/overview)。
 
-+   **推理管道：** Vertex AI 有一个[批量预测](https://cloud.google.com/vertex-ai/docs/predictions/get-batch-predictions)方法，可以进行集成。可以提出一个论点，当前在mlops平台上的自定义批量预测是否具备可扩展性。主要问题是预测特征被加载到预测环境中，可能会在非常大的数据集上遇到内存问题。我之前没有遇到过这个问题，但可以预见到它的发生。在Google将aiplatform更名为Vertex AI之前，我一直将模型部署到aiplatform，以便利用其模型版本管理，但会在Composer中运行批量预测管道。我更喜欢这种方法，因为它在预处理和后处理方面提供了灵活性。此外，Google的批量预测方法在[调试](https://datatonic.com/insights/vertex-ai-improving-debugging-batch-prediction/)时比较繁琐和棘手。当出现问题时，调试过程比较困难。不过，我认为随着时间的推移，它会有所改进，因此会成为平台的一个不错的补充。
++   **推理管道：** Vertex AI 有一个[批量预测](https://cloud.google.com/vertex-ai/docs/predictions/get-batch-predictions)方法，可以进行集成。可以提出一个论点，当前在 mlops 平台上的自定义批量预测是否具备可扩展性。主要问题是预测特征被加载到预测环境中，可能会在非常大的数据集上遇到内存问题。我之前没有遇到过这个问题，但可以预见到它的发生。在 Google 将 aiplatform 更名为 Vertex AI 之前，我一直将模型部署到 aiplatform，以便利用其模型版本管理，但会在 Composer 中运行批量预测管道。我更喜欢这种方法，因为它在预处理和后处理方面提供了灵活性。此外，Google 的批量预测方法在[调试](https://datatonic.com/insights/vertex-ai-improving-debugging-batch-prediction/)时比较繁琐和棘手。当出现问题时，调试过程比较困难。不过，我认为随着时间的推移，它会有所改进，因此会成为平台的一个不错的补充。
 
 +   **重构：** 尽管我在实现中将计算和逻辑代码耦合在同一文件中，但我认为如果将它们分开会更清晰。解耦这两者将提高代码的模块化，并增强代码的可重用性。此外，应为不同的管道文件创建一个管道目录，并可能集成监控管道。
 
@@ -344,40 +344,40 @@ docker push {region}-docker.pkg.dev/{gcp-project-id}/{gcp-artifact-repo}/{image-
 
 +   **测试：** 我已经集成了一个测试框架，它在平台内成功运行，但它不是一个功能性测试逻辑。它确实提供了一个框架，用于构建覆盖数据质量、组件和管道功能测试的适当测试。
 
-+   **容器化集成：** 容器基础镜像的创建目前是手动进行的，但应该集成到makefile和GitHub action工作流中。
++   **容器化集成：** 容器基础镜像的创建目前是手动进行的，但应该集成到 makefile 和 GitHub action 工作流中。
 
-+   **文档：** 文档需要更新，以反映新增的功能，并确保不同技能的人可以轻松浏览平台。目前请更新READ.me文件，但该项目长期应使用[Sphinx](https://www.sphinx-doc.org/en/master/)。
++   **文档：** 文档需要更新，以反映新增的功能，并确保不同技能的人可以轻松浏览平台。目前请更新 READ.me 文件，但该项目长期应使用[Sphinx](https://www.sphinx-doc.org/en/master/)。
 
-+   **预提交钩子**：这是一个可以很好利用的重要自动化工具。预提交钩子是配置脚本，在执行提交之前运行，帮助强制执行代码风格和策略。例如，平台中的钩子强制执行代码风格检查，防止提交大文件以及提交到主分支。然而，我的主要想法是使用它来动态更新来自`.env`文件的GitHub秘密。当前实现中，GitHub秘密是静态类型的，因此当某些变量发生变化时，它们不会自动传播到GitHub秘密。当添加新变量时，也需要手动将其传播到GitHub。可以使用预提交钩子来解决这个问题，指示其自动将本地`.env`文件中的更改传播到GitHub秘密。
++   **预提交钩子**：这是一个可以很好利用的重要自动化工具。预提交钩子是配置脚本，在执行提交之前运行，帮助强制执行代码风格和策略。例如，平台中的钩子强制执行代码风格检查，防止提交大文件以及提交到主分支。然而，我的主要想法是使用它来动态更新来自`.env`文件的 GitHub 秘密。当前实现中，GitHub 秘密是静态类型的，因此当某些变量发生变化时，它们不会自动传播到 GitHub 秘密。当添加新变量时，也需要手动将其传播到 GitHub。可以使用预提交钩子来解决这个问题，指示其自动将本地`.env`文件中的更改传播到 GitHub 秘密。
 
-+   **基础设施配置**：Artifact Registry、GCP Bucket、BigQuery表和服务账户目前都需要手动配置，但它们的创建应该通过[Terraform](https://cloud.google.com/docs/terraform)进行自动化。
++   **基础设施配置**：Artifact Registry、GCP Bucket、BigQuery 表和服务账户目前都需要手动配置，但它们的创建应该通过[Terraform](https://cloud.google.com/docs/terraform)进行自动化。
 
-+   **调度程序**：如果这是一个批量预测或持续训练管道，我们希望将其安排在特定的时间和频率运行。Vertex AI提供了多种选项来[配置](https://cloud.google.com/vertex-ai/docs/pipelines/schedule-pipeline-run#aiplatform_create_pipeline_schedule_sample-python_vertex_ai_sdk)调度。事实上，没有这个功能，一个编排平台就不完整。
++   **调度程序**：如果这是一个批量预测或持续训练管道，我们希望将其安排在特定的时间和频率运行。Vertex AI 提供了多种选项来[配置](https://cloud.google.com/vertex-ai/docs/pipelines/schedule-pipeline-run#aiplatform_create_pipeline_schedule_sample-python_vertex_ai_sdk)调度。事实上，没有这个功能，一个编排平台就不完整。
 
-+   **附加模型**：目前平台内有两个模型（随机森林和决策树），但应该可以直接添加其他框架，例如xgboost和light GBM，用于建模表格数据。
++   **附加模型**：目前平台内有两个模型（随机森林和决策树），但应该可以直接添加其他框架，例如 xgboost 和 light GBM，用于建模表格数据。
 
-+   **安全性**：GitHub操作使用服务账户来进行GCP服务的身份验证，但理想情况下应该使用[工作流身份联合](https://cloud.google.com/iam/docs/workload-identity-federation)。
++   **安全性**：GitHub 操作使用服务账户来进行 GCP 服务的身份验证，但理想情况下应该使用[工作流身份联合](https://cloud.google.com/iam/docs/workload-identity-federation)。
 
-+   **分发**：该平台在当前状态下适用于教育目的以及可能的个人项目。然而，对于更大的团队，它需要进行适配。考虑到由具有不同技能和面临不同挑战的个体组成的团队。在这方面，平台界面可以通过使用[click](https://click.palletsprojects.com/en/8.1.x/)进行改进，具体细节见[这篇](https://medium.com/@vmo2techteam/the-journey-to-streamlining-our-ml-platform-interface-using-our-cli-tool-fd4735474cd5)文章。之后，可以将其打包并[分发](https://packaging.python.org/en/latest/tutorials/packaging-projects/)以确保简便的安装。同时，分发使我们能够对包进行更改并集中更新，以便根据需要传播。可以使用Poetry进行打包和分发，因此，使用它进行依赖管理为我们奠定了良好的基础。
++   **分发**：该平台在当前状态下适用于教育目的以及可能的个人项目。然而，对于更大的团队，它需要进行适配。考虑到由具有不同技能和面临不同挑战的个体组成的团队。在这方面，平台界面可以通过使用[click](https://click.palletsprojects.com/en/8.1.x/)进行改进，具体细节见[这篇](https://medium.com/@vmo2techteam/the-journey-to-streamlining-our-ml-platform-interface-using-our-cli-tool-fd4735474cd5)文章。之后，可以将其打包并[分发](https://packaging.python.org/en/latest/tutorials/packaging-projects/)以确保简便的安装。同时，分发使我们能够对包进行更改并集中更新，以便根据需要传播。可以使用 Poetry 进行打包和分发，因此，使用它进行依赖管理为我们奠定了良好的基础。
 
 # **总结**
 
-MLOps平台提供了一个模块化和可扩展的管道架构，用于实现不同的机器学习生命周期阶段。它包含各种操作，使得该平台能够无缝运行。最重要的是，它为潜在的贡献者提供了学习机会，并应作为团队在其机器学习任务中构建的良好基础。
+MLOps 平台提供了一个模块化和可扩展的管道架构，用于实现不同的机器学习生命周期阶段。它包含各种操作，使得该平台能够无缝运行。最重要的是，它为潜在的贡献者提供了学习机会，并应作为团队在其机器学习任务中构建的良好基础。
 
 # 结论
 
-好了，就是这些！如果你能看到这里，恭喜你，做得很好。我希望你能从这篇文章中获益。欢迎留下评论和反馈，也请与我在[LinkedIn](https://www.linkedin.com/in/koakande/)上联系。如果你觉得这篇文章有价值，不要忘了点赞并为[MLOps平台](https://github.com/kbakande/MLOPS-Platform)仓库加个星。
+好了，就是这些！如果你能看到这里，恭喜你，做得很好。我希望你能从这篇文章中获益。欢迎留下评论和反馈，也请与我在[LinkedIn](https://www.linkedin.com/in/koakande/)上联系。如果你觉得这篇文章有价值，不要忘了点赞并为[MLOps 平台](https://github.com/kbakande/MLOPS-Platform)仓库加个星。
 
 **参考文献**
 
-MLOps仓库: [https://github.com/kbakande/mlops-platform](https://github.com/kbakande/mlops-platform)
+MLOps 仓库: [`github.com/kbakande/mlops-platform`](https://github.com/kbakande/mlops-platform)
 
-[https://medium.com/google-cloud/machine-learning-pipeline-development-on-google-cloud-5cba36819058](https://medium.com/google-cloud/machine-learning-pipeline-development-on-google-cloud-5cba36819058)
+[`medium.com/google-cloud/machine-learning-pipeline-development-on-google-cloud-5cba36819058`](https://medium.com/google-cloud/machine-learning-pipeline-development-on-google-cloud-5cba36819058)
 
-[https://medium.com/@piyushpandey282/model-serving-at-scale-with-vertex-ai-custom-container-deployment-with-pre-and-post-processing-12ac62f4ce76](https://medium.com/@piyushpandey282/model-serving-at-scale-with-vertex-ai-custom-container-deployment-with-pre-and-post-processing-12ac62f4ce76)
+[`medium.com/@piyushpandey282/model-serving-at-scale-with-vertex-ai-custom-container-deployment-with-pre-and-post-processing-12ac62f4ce76`](https://medium.com/@piyushpandey282/model-serving-at-scale-with-vertex-ai-custom-container-deployment-with-pre-and-post-processing-12ac62f4ce76)
 
-[https://medium.com/mlearning-ai/serverless-prediction-at-scale-part-2-custom-container-deployment-on-vertex-ai-103a43d0a290](https://medium.com/mlearning-ai/serverless-prediction-at-scale-part-2-custom-container-deployment-on-vertex-ai-103a43d0a290)
+[`medium.com/mlearning-ai/serverless-prediction-at-scale-part-2-custom-container-deployment-on-vertex-ai-103a43d0a290`](https://medium.com/mlearning-ai/serverless-prediction-at-scale-part-2-custom-container-deployment-on-vertex-ai-103a43d0a290)
 
-[https://datatonic.com/insights/vertex-ai-improving-debugging-batch-prediction/](https://datatonic.com/insights/vertex-ai-improving-debugging-batch-prediction/)
+[`datatonic.com/insights/vertex-ai-improving-debugging-batch-prediction/`](https://datatonic.com/insights/vertex-ai-improving-debugging-batch-prediction/)
 
-[https://econ-project-templates.readthedocs.io/en/v0.5.2/pre-commit.html](https://econ-project-templates.readthedocs.io/en/v0.5.2/pre-commit.html)
+[`econ-project-templates.readthedocs.io/en/v0.5.2/pre-commit.html`](https://econ-project-templates.readthedocs.io/en/v0.5.2/pre-commit.html)

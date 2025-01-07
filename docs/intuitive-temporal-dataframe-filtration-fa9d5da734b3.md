@@ -1,16 +1,16 @@
 # 直观的时间序列数据框过滤
 
-> 原文：[https://towardsdatascience.com/intuitive-temporal-dataframe-filtration-fa9d5da734b3?source=collection_archive---------8-----------------------#2024-05-27](https://towardsdatascience.com/intuitive-temporal-dataframe-filtration-fa9d5da734b3?source=collection_archive---------8-----------------------#2024-05-27)
+> 原文：[`towardsdatascience.com/intuitive-temporal-dataframe-filtration-fa9d5da734b3?source=collection_archive---------8-----------------------#2024-05-27`](https://towardsdatascience.com/intuitive-temporal-dataframe-filtration-fa9d5da734b3?source=collection_archive---------8-----------------------#2024-05-27)
 
 ## 摆脱你那无效的时间序列数据过滤代码
 
-[](https://namiyousef96.medium.com/?source=post_page---byline--fa9d5da734b3--------------------------------)[![Yousef Nami](../Images/09a0baa3fe20c858ace5b7923b7c753a.png)](https://namiyousef96.medium.com/?source=post_page---byline--fa9d5da734b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fa9d5da734b3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fa9d5da734b3--------------------------------) [Yousef Nami](https://namiyousef96.medium.com/?source=post_page---byline--fa9d5da734b3--------------------------------)
+[](https://namiyousef96.medium.com/?source=post_page---byline--fa9d5da734b3--------------------------------)![Yousef Nami](https://namiyousef96.medium.com/?source=post_page---byline--fa9d5da734b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fa9d5da734b3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fa9d5da734b3--------------------------------) [Yousef Nami](https://namiyousef96.medium.com/?source=post_page---byline--fa9d5da734b3--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fa9d5da734b3--------------------------------) ·阅读时间10分钟·2024年5月27日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fa9d5da734b3--------------------------------) ·阅读时间 10 分钟·2024 年 5 月 27 日
 
 --
 
-![](../Images/1bdedd7a197a2764d9cb5c875fee21d4.png)
+![](img/1bdedd7a197a2764d9cb5c875fee21d4.png)
 
 图片来源：[Carlos Muza](https://unsplash.com/@kmuza) 供职于[Unsplash](https://unsplash.com/photos/laptop-computer-on-glass-top-table-hpjSkU2UYSU)
 
@@ -20,7 +20,7 @@
 
 下面是一个它在实践中如何工作的示例：
 
-+   在工作日，我想移除早于6点和晚于8点的时间段，而在周末，我想移除早于8点和晚于10点的时间段。
++   在工作日，我想移除早于 6 点和晚于 8 点的时间段，而在周末，我想移除早于 8 点和晚于 10 点的时间段。
 
 ```py
  df = pl.DataFrame(
@@ -103,9 +103,9 @@ pattern = '>=06:00,<14:00'
 pattern = ‘>=X-X-X 06:00:X, <X-X-X 20:00:X’
 ```
 
-上述方法可以帮助选择特定的月份或年份，但无法提供像星期几这样的灵活性。此外，使用所有的X符号使得它不太具有表现力，而且非常冗长。
+上述方法可以帮助选择特定的月份或年份，但无法提供像星期几这样的灵活性。此外，使用所有的 X 符号使得它不太具有表现力，而且非常冗长。
 
-我知道我需要一种允许链式连接单独时间序列组件或单位的模式。实际上，这种模式就像一个if语句：
+我知道我需要一种允许链式连接单独时间序列组件或单位的模式。实际上，这种模式就像一个 if 语句：
 
 +   如果日期 == 星期六
 
@@ -113,7 +113,7 @@ pattern = ‘>=X-X-X 06:00:X, <X-X-X 20:00:X’
 
 +   且时间 < 14:00
 
-所以我想，为什么不使用一种可以为时间组件添加任何条件的模式，并隐含假设它们都是AND条件呢？
+所以我想，为什么不使用一种可以为时间组件添加任何条件的模式，并隐含假设它们都是 AND 条件呢？
 
 ```py
 # -- remove values in [6am, 2pm) on Saturday
@@ -127,16 +127,16 @@ pattern = 'day==6,time>=06:00,time<14:00'
 pattern = 'day==6,hour>=6,hour<14'
 ```
 
-现在为了减少冗余，我借用了Polars的持续时间字符串[格式](https://docs.pola.rs/py-polars/html/reference/dataframe/api/polars.DataFrame.group_by_dynamic.html)（如果你更熟悉Pandas的话，这等同于“频率”），于是就有了这个：
+现在为了减少冗余，我借用了 Polars 的持续时间字符串[格式](https://docs.pola.rs/py-polars/html/reference/dataframe/api/polars.DataFrame.group_by_dynamic.html)（如果你更熟悉 Pandas 的话，这等同于“频率”），于是就有了这个：
 
 ```py
 # -- remove values in [6am, 2pm) on Saturday
 pattern = '==6wd,>=6h,<14h'
 ```
 
-## 那么，关于需要OR运算符的时间条件呢？
+## 那么，关于需要 OR 运算符的时间条件呢？
 
-让我们考虑一个不同的条件：过滤所有小于6 am（包含）且大于2 pm（不包含）的时间。如下的模式会失败：
+让我们考虑一个不同的条件：过滤所有小于 6 am（包含）且大于 2 pm（不包含）的时间。如下的模式会失败：
 
 ```py
 # -- remove values in (-inf, 6am], and (2pm, inf)
@@ -147,7 +147,7 @@ pattern = '<=6h,>14h'
 
 没有满足这两个条件的值存在！
 
-但解决方案很简单：在一个模式内应用AND条件，在不同模式之间应用OR条件。所以：
+但解决方案很简单：在一个模式内应用 AND 条件，在不同模式之间应用 OR 条件。所以：
 
 ```py
 # -- remove values in (-inf, 6am], and (2pm, inf)
@@ -156,15 +156,15 @@ patterns = ['<=6h', '>14h']
 
 这将被解读为：≤ 6 am 或 > 2 pm
 
-## 为什么不允许在模式内使用OR语句呢？
+## 为什么不允许在模式内使用 OR 语句呢？
 
-我确实考虑过在模式内添加支持OR语句，例如使用`|`，或者让`,`表示“左”条件和“右”条件之间的区别。然而，我发现这些会增加解析模式的复杂性，却并没有使代码更加简洁。
+我确实考虑过在模式内添加支持 OR 语句，例如使用`|`，或者让`,`表示“左”条件和“右”条件之间的区别。然而，我发现这些会增加解析模式的复杂性，却并没有使代码更加简洁。
 
-我更喜欢简单：在一个模式内我们应用AND，在不同模式之间我们应用OR。
+我更喜欢简单：在一个模式内我们应用 AND，在不同模式之间我们应用 OR。
 
 ## 边缘案例
 
-这里有一个值得讨论的边缘案例。类似“if语句”的模式并不总是有效。
+这里有一个值得讨论的边缘案例。类似“if 语句”的模式并不总是有效。
 
 让我们考虑过滤大于`06:00`的时间戳。如果我们仅定义：
 
@@ -300,9 +300,9 @@ pattern = '==1m>6d6h' # remove if month = Jan, and day > 6 and hour > 6
 
 ## 从元数据创建规则
 
-创建了每个模式的元数据后，现在进入有趣的部分——创建Polars规则！
+创建了每个模式的元数据后，现在进入有趣的部分——创建 Polars 规则！
 
-请记住，在每个模式内部，我们应用的是AND条件，但在不同模式之间，我们应用的是OR条件。所以在最简单的情况下，我们需要一个包装器，它可以接受特定模式的所有元数据列表，然后对其应用AND条件。我们可以将这个表达式存储在一个列表中，和所有其他模式的表达式一起，之后再应用OR条件。
+请记住，在每个模式内部，我们应用的是 AND 条件，但在不同模式之间，我们应用的是 OR 条件。所以在最简单的情况下，我们需要一个包装器，它可以接受特定模式的所有元数据列表，然后对其应用 AND 条件。我们可以将这个表达式存储在一个列表中，和所有其他模式的表达式一起，之后再应用 OR 条件。
 
 ```py
 # -- dictionary to contain each unit along with the polars method to extract it's value
@@ -378,7 +378,7 @@ overall_rule_expression = generate_polars_condition(
 
 ## 为级联操作符创建规则
 
-在上面的代码中，我只为“简单”条件设置了if条件……那么我们该如何处理级联条件呢？
+在上面的代码中，我只为“简单”条件设置了 if 条件……那么我们该如何处理级联条件呢？
 
 请记住，在我们上面的讨论中，“>6h*”的模式意味着：
 
@@ -406,7 +406,7 @@ POLARS_DURATIONS_TO_IMMEDIATE_CHILD_MAPPING = {
 }
 ```
 
-启动值是必要的，因为任何条件不一定总是 > 0。因为如果我想过滤掉所有大于二月的值，那么2023-02-02应该包含在内，而2023-02-01则不应该。
+启动值是必要的，因为任何条件不一定总是 > 0。因为如果我想过滤掉所有大于二月的值，那么 2023-02-02 应该包含在内，而 2023-02-01 则不应该。
 
 有了这个字典，我们就可以轻松创建任何条件：
 
@@ -459,7 +459,7 @@ overall_condition = generate_polars_condition(all_conditions, "or_")
 
 # 结语
 
-在本文中，我概述了一个处理器，使得在Polars数据集上进行简便、灵活和简洁的时间序列过滤成为可能。所讨论的逻辑可以通过一些小的修改扩展到你最喜欢的数据框处理库，比如Pandas。
+在本文中，我概述了一个处理器，使得在 Polars 数据集上进行简便、灵活和简洁的时间序列过滤成为可能。所讨论的逻辑可以通过一些小的修改扩展到你最喜欢的数据框处理库，比如 Pandas。
 
 这个处理器不仅对临时的时间序列分析有用，还可以成为数据处理的核心，如果与其他操作（如重采样）链式使用，或者用于为建模创建额外特征时。
 
@@ -475,11 +475,11 @@ overall_condition = generate_polars_condition(all_conditions, "or_")
 
 ## 如何查找代码
 
-这个项目还处于初期阶段，因此项目内容可能会有所变动。截止2024年5月23日，你可以在`mix_n_match/main.py`中找到`FilterDataBasedOnTime`。
+这个项目还处于初期阶段，因此项目内容可能会有所变动。截止 2024 年 5 月 23 日，你可以在`mix_n_match/main.py`中找到`FilterDataBasedOnTime`。
 
 [](https://github.com/namiyousef/mix-n-match?source=post_page-----fa9d5da734b3--------------------------------) [## GitHub - namiyousef/mix-n-match: 数据框处理的代码库
 
-### 数据框处理的代码库。通过在GitHub上创建帐户，参与namiyousef/mix-n-match开发…
+### 数据框处理的代码库。通过在 GitHub 上创建帐户，参与 namiyousef/mix-n-match 开发…
 
 github.com](https://github.com/namiyousef/mix-n-match?source=post_page-----fa9d5da734b3--------------------------------)
 

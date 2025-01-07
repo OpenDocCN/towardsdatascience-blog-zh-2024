@@ -1,18 +1,18 @@
 # Pandas 操作链式连接：优点与局限
 
-> 原文：[https://towardsdatascience.com/chaining-pandas-operations-strengths-and-limitations-3ac02bbaf482?source=collection_archive---------0-----------------------#2024-07-15](https://towardsdatascience.com/chaining-pandas-operations-strengths-and-limitations-3ac02bbaf482?source=collection_archive---------0-----------------------#2024-07-15)
+> 原文：[`towardsdatascience.com/chaining-pandas-operations-strengths-and-limitations-3ac02bbaf482?source=collection_archive---------0-----------------------#2024-07-15`](https://towardsdatascience.com/chaining-pandas-operations-strengths-and-limitations-3ac02bbaf482?source=collection_archive---------0-----------------------#2024-07-15)
 
 ## PYTHON 编程
 
 ## 学习何时值得将 Pandas 操作链式连接。
 
-[](https://medium.com/@nyggus?source=post_page---byline--3ac02bbaf482--------------------------------)[![Marcin Kozak](../Images/d7faf62e48ed81dab5d8ad92819fff54.png)](https://medium.com/@nyggus?source=post_page---byline--3ac02bbaf482--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3ac02bbaf482--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3ac02bbaf482--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--3ac02bbaf482--------------------------------)
+[](https://medium.com/@nyggus?source=post_page---byline--3ac02bbaf482--------------------------------)![Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--3ac02bbaf482--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3ac02bbaf482--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3ac02bbaf482--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--3ac02bbaf482--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3ac02bbaf482--------------------------------) ·阅读时间：17 分钟·2024年7月15日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3ac02bbaf482--------------------------------) ·阅读时间：17 分钟·2024 年 7 月 15 日
 
 --
 
-![](../Images/29f78ce353d83e8fb57167f11bed3e7f.png)
+![](img/29f78ce353d83e8fb57167f11bed3e7f.png)
 
 图片由 [Dulcey Lima](https://unsplash.com/@dulceylima?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

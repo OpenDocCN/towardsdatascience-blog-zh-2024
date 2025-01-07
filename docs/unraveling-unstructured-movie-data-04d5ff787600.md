@@ -1,14 +1,14 @@
 # 解开无结构的电影数据
 
-> 原文：[https://towardsdatascience.com/unraveling-unstructured-movie-data-04d5ff787600?source=collection_archive---------8-----------------------#2024-02-09](https://towardsdatascience.com/unraveling-unstructured-movie-data-04d5ff787600?source=collection_archive---------8-----------------------#2024-02-09)
+> 原文：[`towardsdatascience.com/unraveling-unstructured-movie-data-04d5ff787600?source=collection_archive---------8-----------------------#2024-02-09`](https://towardsdatascience.com/unraveling-unstructured-movie-data-04d5ff787600?source=collection_archive---------8-----------------------#2024-02-09)
 
-![](../Images/9bcaa0e799d0ad12c1c54169c510968f.png)
+![](img/9bcaa0e799d0ad12c1c54169c510968f.png)
 
 ## 如何使用 LLMs 和受控词汇来增强相似度模型
 
-[](https://stevehedden.medium.com/?source=post_page---byline--04d5ff787600--------------------------------)[![Steve Hedden](../Images/af7bec4a191ab857eccd885dd89e88b4.png)](https://stevehedden.medium.com/?source=post_page---byline--04d5ff787600--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04d5ff787600--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--04d5ff787600--------------------------------) [Steve Hedden](https://stevehedden.medium.com/?source=post_page---byline--04d5ff787600--------------------------------)
+[](https://stevehedden.medium.com/?source=post_page---byline--04d5ff787600--------------------------------)![Steve Hedden](https://stevehedden.medium.com/?source=post_page---byline--04d5ff787600--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04d5ff787600--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04d5ff787600--------------------------------) [Steve Hedden](https://stevehedden.medium.com/?source=post_page---byline--04d5ff787600--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04d5ff787600--------------------------------) ·阅读时长 16 分钟·2024年2月9日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04d5ff787600--------------------------------) ·阅读时长 16 分钟·2024 年 2 月 9 日
 
 --
 
@@ -18,9 +18,9 @@
 
 > “一种信息过滤系统的子类，为特定用户提供最相关的项目建议。”——维基百科
 
-我们日常互动的推荐系统的一些例子包括 Netflix、Spotify、Amazon 和社交媒体。所有这些推荐系统都在尝试回答同一个问题：根据用户的历史行为，哪些其他产品或内容最有可能受到他们的喜爱？这些系统为公司带来了大量的收入 —— [麦肯锡2013年的一项研究](https://www.mckinsey.com/industries/retail/our-insights/how-retailers-can-keep-up-with-consumers)发现，“35% 的亚马逊购物和 75% 的 Netflix 观看内容来自于产品推荐。”Netflix 在 2006 年著名地启动了一个公开竞赛，向任何能够显著改善其推荐系统的人提供 [100 万美元奖金](https://en.wikipedia.org/wiki/Netflix_Prize)。有关推荐系统的更多信息，请参阅[这篇](https://towardsdatascience.com/unraveling-unstructured-movie-data-04d5ff787600?source=collection_archive---------8-----------------------#2024-02-09)文章。
+我们日常互动的推荐系统的一些例子包括 Netflix、Spotify、Amazon 和社交媒体。所有这些推荐系统都在尝试回答同一个问题：根据用户的历史行为，哪些其他产品或内容最有可能受到他们的喜爱？这些系统为公司带来了大量的收入 —— [麦肯锡 2013 年的一项研究](https://www.mckinsey.com/industries/retail/our-insights/how-retailers-can-keep-up-with-consumers)发现，“35% 的亚马逊购物和 75% 的 Netflix 观看内容来自于产品推荐。”Netflix 在 2006 年著名地启动了一个公开竞赛，向任何能够显著改善其推荐系统的人提供 [100 万美元奖金](https://en.wikipedia.org/wiki/Netflix_Prize)。有关推荐系统的更多信息，请参阅[这篇](https://towardsdatascience.com/unraveling-unstructured-movie-data-04d5ff787600?source=collection_archive---------8-----------------------#2024-02-09)文章。
 
-通常，有三种类型的推荐系统：基于内容的推荐、协同过滤推荐和基于内容与协同过滤的混合推荐。协同过滤推荐系统侧重于用户的行为和偏好，依据其他相似用户的喜好来预测用户可能喜欢什么。基于内容的过滤系统则侧重于产品本身的相似性，而不是用户之间的相似性。有关这些系统的更多信息，请参见[这篇Nvidia文章](https://www.nvidia.com/en-us/glossary/recommendation-system/#:~:text=A%20recommendation%20system%20is%20an,demographic%20information%2C%20and%20other%20factors)
+通常，有三种类型的推荐系统：基于内容的推荐、协同过滤推荐和基于内容与协同过滤的混合推荐。协同过滤推荐系统侧重于用户的行为和偏好，依据其他相似用户的喜好来预测用户可能喜欢什么。基于内容的过滤系统则侧重于产品本身的相似性，而不是用户之间的相似性。有关这些系统的更多信息，请参见[这篇 Nvidia 文章](https://www.nvidia.com/en-us/glossary/recommendation-system/#:~:text=A%20recommendation%20system%20is%20an,demographic%20information%2C%20and%20other%20factors)
 
 在结构化数据集中，计算产品之间的相似性相对简单。我们可以确定我们认为最重要的产品属性，并根据这些属性的差异来衡量任意两个产品之间的“距离”。但是，如果我们想在唯一的数据是非结构化文本的情况下比较项目怎么办？例如，给定一个电影和电视节目描述的数据集，我们该如何计算哪些描述最相似？
 
@@ -28,7 +28,7 @@
 
 1.  展示一个基本的相似性模型（没有受控词汇表），使用自然语言处理（NLP）技术对非结构化文本进行处理
 
-1.  使用LLM创建一个类型列表
+1.  使用 LLM 创建一个类型列表
 
 1.  使用类型列表为电影打上类型标签
 
@@ -36,35 +36,35 @@
 
 1.  使用类型标签创建网络可视化
 
-对我来说，写这篇文章的目标是学习两件事：一是受控词汇表（taxonomy）是否显著改善了非结构化数据相似性模型的效果，二是LLM是否能显著改善构建受控词汇表所需的质量和/或时间。
+对我来说，写这篇文章的目标是学习两件事：一是受控词汇表（taxonomy）是否显著改善了非结构化数据相似性模型的效果，二是 LLM 是否能显著改善构建受控词汇表所需的质量和/或时间。
 
 如果你不想阅读全部内容，这里是我主要的发现：
 
-+   基本的NLP模型（没有受控词汇表）确实存在一些问题——它有时会使用与识别相似电影无关的词汇（例如，主角的名字或地点）。
++   基本的 NLP 模型（没有受控词汇表）确实存在一些问题——它有时会使用与识别相似电影无关的词汇（例如，主角的名字或地点）。
 
 +   使用受控词汇表确实显著改善了相似性模型的效果，至少基于我用来测试模型的一些示例来看是这样的。
 
-+   使用LLM构建一个简单、基本的类型列表很容易——但构建一个有用和/或详细的类型词汇表很困难，也就是说，这需要更多的迭代或更具描述性的提示。我最终构建了一个大约200个类型的快速粗略列表，没有定义，足够用于做简单的相似性计算。
++   使用 LLM 构建一个简单、基本的类型列表很容易——但构建一个有用和/或详细的类型词汇表很困难，也就是说，这需要更多的迭代或更具描述性的提示。我最终构建了一个大约 200 个类型的快速粗略列表，没有定义，足够用于做简单的相似性计算。
 
-+   然而，即使是这个非常基本的使用LLM构建的类型列表，也存在一些问题。例如，有些类型有轻微的拼写差异，导致重复。
++   然而，即使是这个非常基本的使用 LLM 构建的类型列表，也存在一些问题。例如，有些类型有轻微的拼写差异，导致重复。
 
-+   使用LLM为电影和电视节目打标签花费了很长时间。这个问题可能只是我在构建代码时的方式导致的。
++   使用 LLM 为电影和电视节目打标签花费了很长时间。这个问题可能只是我在构建代码时的方式导致的。
 
 +   可能并不令人惊讶的是，分类的深度和广度很重要。就像我上面说的，构建一个详细的电影类型分类是困难的，而且需要比我愿意为这个教程所做的更多的工作。但根据使用场景，可能不需要那么详细。我最初构建了一个包含成千上万种类型、同义词和定义的分类体系，但这也有缺点——标注变得更加困难，相似度计算也常常不如预期。因为我只看了几千部电影，所以有成千上万种类型的列表使得每部电影都变得独特，几乎没有什么相似之处。
 
 +   将电影和类型可视化为图形总是非常棒。
 
-# 使用NLP技术的非结构化文本基本相似度模型
+# 使用 NLP 技术的非结构化文本基本相似度模型
 
-我们可以使用自然语言处理（NLP）来提取文本中的关键词，识别这些词的重要性，然后在其他描述中找到匹配的词。[这里](https://medium.com/mlearning-ai/basic-content-based-recommendation-system-with-python-code-be920b412067)有一个关于如何在Python中实现的教程。我不会在这里重新创建整个教程，但这里有一个简要的概述：
+我们可以使用自然语言处理（NLP）来提取文本中的关键词，识别这些词的重要性，然后在其他描述中找到匹配的词。[这里](https://medium.com/mlearning-ai/basic-content-based-recommendation-system-with-python-code-be920b412067)有一个关于如何在 Python 中实现的教程。我不会在这里重新创建整个教程，但这里有一个简要的概述：
 
 首先，我们从电影情节描述中提取关键词。例如，下面是电影《印第安纳·琼斯与失落的方舟》的描述。
 
 > “当印第安纳·琼斯被政府雇佣去寻找传说中的‘约柜’时，他发现自己正面对整个纳粹政权。”
 
-然后我们使用sklearn的现成库来提取关键词并对其‘重要性’进行排名。为了计算重要性，我们使用了词频-逆文档频率（tf-idf）。其思想是平衡单个电影描述中词语的频率与在我们数据集中所有电影描述中该词的普遍性。例如，‘finds’这个词在这个描述中出现，但它是一个常见词，出现在许多其他电影描述中，因此它的权重比‘covenant’低。
+然后我们使用 sklearn 的现成库来提取关键词并对其‘重要性’进行排名。为了计算重要性，我们使用了词频-逆文档频率（tf-idf）。其思想是平衡单个电影描述中词语的频率与在我们数据集中所有电影描述中该词的普遍性。例如，‘finds’这个词在这个描述中出现，但它是一个常见词，出现在许多其他电影描述中，因此它的权重比‘covenant’低。
 
-![](../Images/26363683659234d8de294e2a80095aaa.png)
+![](img/26363683659234d8de294e2a80095aaa.png)
 
 作者提供的图片
 
@@ -74,7 +74,7 @@
 
 另一个此模型失败的例子是，如果我想找到与《吃、祷、爱》相似的电影或电视节目，排名第一的结果是《极端邪恶、震惊恶心》。《吃、祷、爱》是一部浪漫喜剧，朱莉娅·罗伯茨饰演莉兹·吉尔伯特，一个刚离婚的女人，正在世界各地旅行，进行自我发现的旅程。而《极端邪恶、震惊恶心》是一部讲述连环杀手特德·邦迪的真实犯罪剧情片。这两部电影有什么共同之处呢？特德·邦迪的恋人也叫莉兹。
 
-![](../Images/7bed12ca5db9daac58186a0cc548d848.png)
+![](img/7bed12ca5db9daac58186a0cc548d848.png)
 
 图片由作者提供
 
@@ -90,15 +90,15 @@
 
 ***术语说明：*** *本体论与分类法相似，但有所不同。正如* [*这篇*](https://www.forbes.com/sites/cognitiveworld/2019/03/24/taxonomies-vs-ontologies/?sh=35eb9c327d53) *文章所解释的，分类法用于分类，而本体论则用于指定。“本体论是描述数据结构的类和关系的系统，是制定新类别或实体创建规则、定义属性的规则，以及建立约束的规则。”因为我们专注于对电影进行分类，所以我们将构建一个分类法。然而，出于本教程的目的，我只需要一个非常基础的类型列表，这甚至不能算是一个分类法。一个类型列表仅仅是一个标签集，或者说是一个受控词汇表。*
 
-本教程中，我们将只关注电影类型。我们需要的是一个可以用来“标记”每部电影的类型列表。试想，如果不是把电影《吃，祷，爱》标记为‘Liz’和‘true’，而是标记为‘浪漫喜剧’，‘剧情’和‘旅行/冒险’，那么我们就可以使用这些类型来找到其他与《吃，祷，爱》相似的电影，即使主角不叫Liz。下面是我们所做工作的图示。我们使用一部分非结构化的电影数据，并结合GPT 3.5，创建类型列表。然后我们使用类型列表和GPT 3.5对非结构化的电影数据进行标记。一旦我们的数据被标记，我们就可以使用这些标签作为输入，运行相似度模型。
+本教程中，我们将只关注电影类型。我们需要的是一个可以用来“标记”每部电影的类型列表。试想，如果不是把电影《吃，祷，爱》标记为‘Liz’和‘true’，而是标记为‘浪漫喜剧’，‘剧情’和‘旅行/冒险’，那么我们就可以使用这些类型来找到其他与《吃，祷，爱》相似的电影，即使主角不叫 Liz。下面是我们所做工作的图示。我们使用一部分非结构化的电影数据，并结合 GPT 3.5，创建类型列表。然后我们使用类型列表和 GPT 3.5 对非结构化的电影数据进行标记。一旦我们的数据被标记，我们就可以使用这些标签作为输入，运行相似度模型。
 
-![](../Images/a57c3870bee7f19b01f99cd7029a0148.png)
+![](img/a57c3870bee7f19b01f99cd7029a0148.png)
 
 作者提供的图片
 
-我在线上没有找到任何免费的电影类型分类法，所以我使用一个大型语言模型（LLM）构建了自己的分类法。我从[这个](https://medium.com/@elias_69893/an-llm-agent-that-builds-and-maintains-a-job-title-taxonomy-77d02c4c6100)教程开始，教程中使用了一个LLM代理来构建工作职称分类法。这个LLM代理从职位描述中提取职位名称，为每个职位名称创建定义和职责，并列出同义词。我使用这个教程创建了一个电影类型分类法，但这有些过度——我们并不需要为本教程做这么复杂的工作。我们只需要一个非常基础的类型列表，用于标记电影。以下是我用来创建该类型列表的代码。
+我在线上没有找到任何免费的电影类型分类法，所以我使用一个大型语言模型（LLM）构建了自己的分类法。我从[这个](https://medium.com/@elias_69893/an-llm-agent-that-builds-and-maintains-a-job-title-taxonomy-77d02c4c6100)教程开始，教程中使用了一个 LLM 代理来构建工作职称分类法。这个 LLM 代理从职位描述中提取职位名称，为每个职位名称创建定义和职责，并列出同义词。我使用这个教程创建了一个电影类型分类法，但这有些过度——我们并不需要为本教程做这么复杂的工作。我们只需要一个非常基础的类型列表，用于标记电影。以下是我用来创建该类型列表的代码。
 
-我使用了Netflix的电影和电视节目描述数据，这些数据可以在[此处](https://www.kaggle.com/datasets/shivamb/netflix-shows?resource=download)获得（许可证 [CC0: 公共领域](https://creativecommons.org/publicdomain/zero/1.0/)）。
+我使用了 Netflix 的电影和电视节目描述数据，这些数据可以在[此处](https://www.kaggle.com/datasets/shivamb/netflix-shows?resource=download)获得（许可证 [CC0: 公共领域](https://creativecommons.org/publicdomain/zero/1.0/)）。
 
 导入所需的包并加载英语语言的 NLP 模型。
 
@@ -191,7 +191,7 @@ all_unique_genres.to_csv("genres_taxonomy_quick.csv")
 
 # 使用类型列表给电影打上类型标签
 
-既然我们已经有了类型列表，我们需要给数据集中的每部电影和电视节目（超过8,000部）打上标签。为了能够使用这些标签计算两个实体之间的相似度，我们需要给每部电影和电视节目打上多个类型标签。如果我们只使用一个类型标签，那么所有动作片将被认为是完全相似的，尽管有些可能更侧重于体育，另一些则可能更偏向恐怖片。
+既然我们已经有了类型列表，我们需要给数据集中的每部电影和电视节目（超过 8,000 部）打上标签。为了能够使用这些标签计算两个实体之间的相似度，我们需要给每部电影和电视节目打上多个类型标签。如果我们只使用一个类型标签，那么所有动作片将被认为是完全相似的，尽管有些可能更侧重于体育，另一些则可能更偏向恐怖片。
 
 首先，我们读取我们的类型列表和电影数据集：
 
@@ -273,13 +273,13 @@ movies = movies.set_index('title')
 
 如果我们打印 DataFrame 的头部，它应该是这样：
 
-![](../Images/1eecf770581a33e10b76f6d2a77063de.png)
+![](img/1eecf770581a33e10b76f6d2a77063de.png)
 
 图片由作者提供
 
 # 使用类型标签构建相似度模型
 
-现在，我们将类型列转换为虚拟变量——每个类型变成一列，如果电影或电视节目被标记为该类型，那么该列的值为1，否则为0。
+现在，我们将类型列转换为虚拟变量——每个类型变成一列，如果电影或电视节目被标记为该类型，那么该列的值为 1，否则为 0。
 
 ```py
 # Combine genre columns into a single column
@@ -297,7 +297,7 @@ movies.drop(['all_genres', 'genre1', 'genre2', 'genre3'], axis=1, inplace=True)
 
 如果我们打印这个 DataFrame 的头部，它看起来像这样：
 
-![](../Images/6a403777c5b4922440ac69a840305ede.png)
+![](img/6a403777c5b4922440ac69a840305ede.png)
 
 图片由作者提供
 
@@ -336,9 +336,9 @@ similar_movies = find_similar_movies("Eat Pray Love", movie_genre_matrix, num_si
 print(similar_movies)
 ```
 
-这次查询的输出对我来说是“完美的一天”、“Love Dot Com: 社会实验”和“50次初恋”。所有这些电影都被标记为浪漫喜剧和剧情片，就像《美味祈祷爱》一样。
+这次查询的输出对我来说是“完美的一天”、“Love Dot Com: 社会实验”和“50 次初恋”。所有这些电影都被标记为浪漫喜剧和剧情片，就像《美味祈祷爱》一样。
 
-![](../Images/c760e9f8b5ef45a4bcb4df301050b036.png)
+![](img/c760e9f8b5ef45a4bcb4df301050b036.png)
 
 图片由作者提供
 
@@ -377,7 +377,7 @@ combinations_df.to_csv("genreCombos.csv")
 
 这将生成一个如下所示的 DataFrame：
 
-![](../Images/8a3894ceaabed0ec7f86dba4bfeeae78.png)
+![](img/8a3894ceaabed0ec7f86dba4bfeeae78.png)
 
 图片来源：作者
 
@@ -385,7 +385,7 @@ combinations_df.to_csv("genreCombos.csv")
 
 我使用了[Gephi](https://gephi.org/)来构建了如下所示的可视化：
 
-![](../Images/9bcaa0e799d0ad12c1c54169c510968f.png)
+![](img/9bcaa0e799d0ad12c1c54169c510968f.png)
 
 图片来源：作者
 

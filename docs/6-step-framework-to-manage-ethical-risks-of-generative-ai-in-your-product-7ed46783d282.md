@@ -1,54 +1,54 @@
-# 管理生成性AI产品中声誉与伦理风险的六步框架
+# 管理生成性 AI 产品中声誉与伦理风险的六步框架
 
-> 原文：[https://towardsdatascience.com/6-step-framework-to-manage-ethical-risks-of-generative-ai-in-your-product-7ed46783d282?source=collection_archive---------7-----------------------#2024-02-19](https://towardsdatascience.com/6-step-framework-to-manage-ethical-risks-of-generative-ai-in-your-product-7ed46783d282?source=collection_archive---------7-----------------------#2024-02-19)
+> 原文：[`towardsdatascience.com/6-step-framework-to-manage-ethical-risks-of-generative-ai-in-your-product-7ed46783d282?source=collection_archive---------7-----------------------#2024-02-19`](https://towardsdatascience.com/6-step-framework-to-manage-ethical-risks-of-generative-ai-in-your-product-7ed46783d282?source=collection_archive---------7-----------------------#2024-02-19)
 
-## 一份务实的指南，帮助理解AI风险，并通过负责任的AI开发与用户建立信任
+## 一份务实的指南，帮助理解 AI 风险，并通过负责任的 AI 开发与用户建立信任
 
-[](https://medium.com/@sarthakh330?source=post_page---byline--7ed46783d282--------------------------------)[![Sarthak Handa](../Images/0c75ba0f085fdb22a221705450047c40.png)](https://medium.com/@sarthakh330?source=post_page---byline--7ed46783d282--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7ed46783d282--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7ed46783d282--------------------------------) [Sarthak Handa](https://medium.com/@sarthakh330?source=post_page---byline--7ed46783d282--------------------------------)
+[](https://medium.com/@sarthakh330?source=post_page---byline--7ed46783d282--------------------------------)![Sarthak Handa](https://medium.com/@sarthakh330?source=post_page---byline--7ed46783d282--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7ed46783d282--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7ed46783d282--------------------------------) [Sarthak Handa](https://medium.com/@sarthakh330?source=post_page---byline--7ed46783d282--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7ed46783d282--------------------------------) ·阅读时间：9分钟·2024年2月19日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7ed46783d282--------------------------------) ·阅读时间：9 分钟·2024 年 2 月 19 日
 
 --
 
-![](../Images/a0471e3425a437220dcefcbd1449eb78.png)
+![](img/a0471e3425a437220dcefcbd1449eb78.png)
 
 来源：Dalle-3
 
-在快速发展的技术领域，产品团队感受到将创新型AI产品迅速推向市场的巨大压力。然而，将速度置于伦理和安全考虑之上可能会带来严重的负面后果。当AI系统违反社会规范和价值观时，组织面临的风险包括长时间的声誉损害和失去用户信任。
+在快速发展的技术领域，产品团队感受到将创新型 AI 产品迅速推向市场的巨大压力。然而，将速度置于伦理和安全考虑之上可能会带来严重的负面后果。当 AI 系统违反社会规范和价值观时，组织面临的风险包括长时间的声誉损害和失去用户信任。
 
-企业正处于AI时代的现实“*囚徒困境*”之中——虽然集体遵循伦理开发是理想的，但公司往往更倾向于通过妥协这些关键标准来获得先发优势。这一紧张局势通过臭名昭著的**Facebook-Cambridge Analytica**丑闻得到了体现，在该丑闻中，采取伦理上的捷径导致了严重且持久的声誉损害。随着AI在我们日常生活中的进一步渗透，这种伦理赌博的风险只会加剧，行业中的每个参与者都在权衡短期利益与长期信任和责任的价值。
+企业正处于 AI 时代的现实“*囚徒困境*”之中——虽然集体遵循伦理开发是理想的，但公司往往更倾向于通过妥协这些关键标准来获得先发优势。这一紧张局势通过臭名昭著的**Facebook-Cambridge Analytica**丑闻得到了体现，在该丑闻中，采取伦理上的捷径导致了严重且持久的声誉损害。随着 AI 在我们日常生活中的进一步渗透，这种伦理赌博的风险只会加剧，行业中的每个参与者都在权衡短期利益与长期信任和责任的价值。
 
-自2018年以来，随着各行业AI应用的增加，高曝光度的伦理违规事件急剧上升。现在，识别这些风险并制定缓解策略变得至关重要。本文探讨了AI风险的主要来源，回顾了几个高曝光度的失败案例，并提出了一个六步框架，用于构建能应对这些威胁的产品。
+自 2018 年以来，随着各行业 AI 应用的增加，高曝光度的伦理违规事件急剧上升。现在，识别这些风险并制定缓解策略变得至关重要。本文探讨了 AI 风险的主要来源，回顾了几个高曝光度的失败案例，并提出了一个六步框架，用于构建能应对这些威胁的产品。
 
-# 识别AI的风险
+# 识别 AI 的风险
 
 ## ***1\. 隐私侵犯与同意问题***
 
-**风险：** 可以说，最普遍的AI陷阱是侵犯隐私和版权法。这涉及两种不同的失败：未能获得数据使用的同意，以及将数据用于超出同意范围的目的。
+**风险：** 可以说，最普遍的 AI 陷阱是侵犯隐私和版权法。这涉及两种不同的失败：未能获得数据使用的同意，以及将数据用于超出同意范围的目的。
 
-**示例：** 艺术家和作家已对**OpenAI**和**MidJourney**提起集体诉讼，指控这些公司未经同意使用他们的作品来训练模型。同样，**Getty Images**也在起诉**Stability AI**，指控其使用其数据进行模型训练。即便在给予同意的情况下，如果数据被用于未预料的目的，也可能发生隐私泄露。例如，**Google DeepMind**使用了**皇家伦敦NHS基金会信托**的160万患者数据，构建了一个新的医疗应用程序。尽管存在隐性同意，即这些数据可以用于改善患者健康，但信托和DeepMind未明确告知患者他们的信息被用于构建应用程序。
+**示例：** 艺术家和作家已对**OpenAI**和**MidJourney**提起集体诉讼，指控这些公司未经同意使用他们的作品来训练模型。同样，**Getty Images**也在起诉**Stability AI**，指控其使用其数据进行模型训练。即便在给予同意的情况下，如果数据被用于未预料的目的，也可能发生隐私泄露。例如，**Google DeepMind**使用了**皇家伦敦 NHS 基金会信托**的 160 万患者数据，构建了一个新的医疗应用程序。尽管存在隐性同意，即这些数据可以用于改善患者健康，但信托和 DeepMind 未明确告知患者他们的信息被用于构建应用程序。
 
-[](https://www.reuters.com/legal/litigation/artists-take-new-shot-stability-midjourney-updated-copyright-lawsuit-2023-11-30/?source=post_page-----7ed46783d282--------------------------------) [## 艺术家再次起诉Stability，Midjourney，更新后的版权诉讼
+[](https://www.reuters.com/legal/litigation/artists-take-new-shot-stability-midjourney-updated-copyright-lawsuit-2023-11-30/?source=post_page-----7ed46783d282--------------------------------) [## 艺术家再次起诉 Stability，Midjourney，更新后的版权诉讼
 
-### 一群视觉艺术家已经对Stability AI、Midjourney和其他公司提起了修改后的版权诉讼…
+### 一群视觉艺术家已经对 Stability AI、Midjourney 和其他公司提起了修改后的版权诉讼…
 
-[为什么Google收购DeepMind Health让隐私专家感到恐惧](https://www.reuters.com/legal/litigation/artists-take-new-shot-stability-midjourney-updated-copyright-lawsuit-2023-11-30/?source=post_page-----7ed46783d282--------------------------------) [](https://www.wired.co.uk/article/google-deepmind-nhs-health-data?source=post_page-----7ed46783d282--------------------------------) [## 为什么Google收购DeepMind Health让隐私专家感到恐惧
+[为什么 Google 收购 DeepMind Health 让隐私专家感到恐惧](https://www.reuters.com/legal/litigation/artists-take-new-shot-stability-midjourney-updated-copyright-lawsuit-2023-11-30/?source=post_page-----7ed46783d282--------------------------------) [](https://www.wired.co.uk/article/google-deepmind-nhs-health-data?source=post_page-----7ed46783d282--------------------------------) [## 为什么 Google 收购 DeepMind Health 让隐私专家感到恐惧
 
-### DeepMind Health曾遇到过数据保护问题，其完全并入Google后，问题可能更加严重…
+### DeepMind Health 曾遇到过数据保护问题，其完全并入 Google 后，问题可能更加严重…
 
 [www.wired.co.uk](https://www.wired.co.uk/article/google-deepmind-nhs-health-data?source=post_page-----7ed46783d282--------------------------------)
 
 ## ***2. 算法偏见***
 
-**风险**：此风险涉及AI系统做出有偏见的预测，这种预测会系统性地使某些群体处于不利或排除地位，基于如种族、性别或社会经济背景等特征。这类偏见可能对社会产生重大影响，特别是当AI被用来做出影响个人生活的关键决策时。
+**风险**：此风险涉及 AI 系统做出有偏见的预测，这种预测会系统性地使某些群体处于不利或排除地位，基于如种族、性别或社会经济背景等特征。这类偏见可能对社会产生重大影响，特别是当 AI 被用来做出影响个人生活的关键决策时。
 
-**示例：** 2019年，苹果因涉嫌男性在**Apple Credit Cards**的信用额度高于女性而遭到反对，尽管在某些情况下女性的信用评分更高。其他显著的例子包括AI驱动的招聘软件和刑事司法应用程序，例如**COMPAS**工具，因表现出种族和性别偏见而受到批评。
+**示例：** 2019 年，苹果因涉嫌男性在**Apple Credit Cards**的信用额度高于女性而遭到反对，尽管在某些情况下女性的信用评分更高。其他显著的例子包括 AI 驱动的招聘软件和刑事司法应用程序，例如**COMPAS**工具，因表现出种族和性别偏见而受到批评。
 
-[https://www.cnn.com/2019/11/12/business/apple-card-gender-bias/index.html?source=post_page-----7ed46783d282--------------------------------](https://www.cnn.com/2019/11/12/business/apple-card-gender-bias/index.html?source=post_page-----7ed46783d282--------------------------------) [## 苹果卡被指控存在性别偏见。它是如何发生的 | CNN商业
+[`www.cnn.com/2019/11/12/business/apple-card-gender-bias/index.html?source=post_page-----7ed46783d282--------------------------------`](https://www.cnn.com/2019/11/12/business/apple-card-gender-bias/index.html?source=post_page-----7ed46783d282--------------------------------) [## 苹果卡被指控存在性别偏见。它是如何发生的 | CNN 商业
 
 ### 一些苹果卡用户表示，该信用卡的发行方高盛银行为女性设置了远低于男性的信用额度，即使…
 
-[www.cnn.com](https://www.cnn.com/2019/11/12/business/apple-card-gender-bias/index.html?source=post_page-----7ed46783d282--------------------------------) [## 观点 | 当算法帮助你被送进监狱时（2017年发布）
+[www.cnn.com](https://www.cnn.com/2019/11/12/business/apple-card-gender-bias/index.html?source=post_page-----7ed46783d282--------------------------------) [## 观点 | 当算法帮助你被送进监狱时（2017 年发布）
 
 ### 将判刑的责任交给计算机程序并不能消除偏见。
 
@@ -58,11 +58,11 @@
 
 **风险：** 当用于做出重大决策的人工智能系统提供不准确的结果，或未能为其输出提供清晰的理由时，可能会产生重大风险。人工智能的“黑箱”性质使得用户难以理解和验证其结果，这模糊了问责制并导致信任丧失。
 
-**例子：** **IBM沃森肿瘤学**旨在为临床医生提供个性化的癌症治疗推荐。然而，有报告显示沃森给出了不安全和不正确的治疗建议，这导致了对技术的信任丧失，并损害了IBM的声誉。
+**例子：** **IBM 沃森肿瘤学**旨在为临床医生提供个性化的癌症治疗推荐。然而，有报告显示沃森给出了不安全和不正确的治疗建议，这导致了对技术的信任丧失，并损害了 IBM 的声誉。
 
-[## IBM的沃森超级计算机推荐了“危险且不正确”的癌症治疗方案，内部文件…](https://www.statnews.com/2018/07/25/ibm-watson-recommended-unsafe-incorrect-treatments/?source=post_page-----7ed46783d282--------------------------------)
+[## IBM 的沃森超级计算机推荐了“危险且不正确”的癌症治疗方案，内部文件…](https://www.statnews.com/2018/07/25/ibm-watson-recommended-unsafe-incorrect-treatments/?source=post_page-----7ed46783d282--------------------------------)
 
-### 去年夏天，IBM沃森健康部门的高管展示的幻灯片大多将问题归咎于…
+### 去年夏天，IBM 沃森健康部门的高管展示的幻灯片大多将问题归咎于…
 
 [www.statnews.com](https://www.statnews.com/2018/07/25/ibm-watson-recommended-unsafe-incorrect-treatments/?source=post_page-----7ed46783d282--------------------------------)
 
@@ -86,7 +86,7 @@ www.trendmicro.com](https://www.trendmicro.com/vinfo/mx/security/news/cyber-atta
 
 管理 AI 风险需要在整个产品生命周期中采取深思熟虑的方法。下面是一个六步框架，按 AI 开发的不同阶段组织，供组织采纳，以确保其产品中 AI 技术的负责任使用。
 
-![](../Images/ef48c5b206b4ec5173e6f452dc24bc0b.png)
+![](img/ef48c5b206b4ec5173e6f452dc24bc0b.png)
 
 来源：作者
 
@@ -100,7 +100,7 @@ www.trendmicro.com](https://www.trendmicro.com/vinfo/mx/security/news/cyber-atta
 
 此外，应该从用于训练模型的敏感数据集中删除个人身份信息（PII），以防止潜在伤害。对这些数据集的访问应适当设置门槛并进行跟踪，以保护隐私。同样重要的是，确保数据集能够代表用户群体的多样性和使用场景的广度，从而减少偏见和公平性风险。像**Runway** 这样的公司已经使用合成数据集训练其文本到图像模型，这些数据集包含了来自不同种族、性别、职业和年龄段的人工智能生成的人的图像，以确保其人工智能模型在生成内容时体现多样性。
 
-[](https://www.nasdaq.com/articles/how-adobes-copyright-protection-will-make-it-an-ai-leader?source=post_page-----7ed46783d282--------------------------------) [## Adobe的版权保护如何使其成为AI领导者
+[](https://www.nasdaq.com/articles/how-adobes-copyright-protection-will-make-it-an-ai-leader?source=post_page-----7ed46783d282--------------------------------) [## Adobe 的版权保护如何使其成为 AI 领导者
 
 ### 人工智能（AI）正在从根本上改变许多行业。人工智能将带来许多好处，但它也…
 
@@ -118,35 +118,35 @@ www.trendmicro.com](https://www.trendmicro.com/vinfo/mx/security/news/cyber-atta
 
 +   代表不同人口统计群体并涵盖各种使用场景（包括边缘情况）的**评估数据**，
 
-除了性能测试，实施防护措施同样至关重要，以防止人工智能产生有害结果。例如，**ImageFX**，**Google** 的图像生成服务，主动阻止用户生成可能被认为不适当或用于传播虚假信息的内容。同样，**Anthropic** 已主动设定了防护措施，以避免其人工智能服务在2024年选举中被滥用。
+除了性能测试，实施防护措施同样至关重要，以防止人工智能产生有害结果。例如，**ImageFX**，**Google** 的图像生成服务，主动阻止用户生成可能被认为不适当或用于传播虚假信息的内容。同样，**Anthropic** 已主动设定了防护措施，以避免其人工智能服务在 2024 年选举中被滥用。
 
-[](https://blog.google/technology/ai/google-imagen-2/?source=post_page-----7ed46783d282--------------------------------#:~:text=Our%20responsible%20approach%20to%20building%20Imagen%202) [## 用Imagen 2创造图像的新方式和更好的方式
+[](https://blog.google/technology/ai/google-imagen-2/?source=post_page-----7ed46783d282--------------------------------#:~:text=Our%20responsible%20approach%20to%20building%20Imagen%202) [## 用 Imagen 2 创造图像的新方式和更好的方式
 
-### 我们正在推出Imagen 2，这是我们图像生成技术的重大更新。今天就可以在Bard、Image FX中试用它……
+### 我们正在推出 Imagen 2，这是我们图像生成技术的重大更新。今天就可以在 Bard、Image FX 中试用它……
 
-blog.google](https://blog.google/technology/ai/google-imagen-2/?source=post_page-----7ed46783d282--------------------------------#:~:text=Our%20responsible%20approach%20to%20building%20Imagen%202) [](https://www.linkedin.com/posts/anthropicresearch_preparing-for-global-elections-in-2024-activity-7164707718656643073-VcaW?utm_source=share&utm_medium=member_desktop&source=post_page-----7ed46783d282--------------------------------) [## Anthropic在LinkedIn：为2024年全球选举做准备
+blog.google](https://blog.google/technology/ai/google-imagen-2/?source=post_page-----7ed46783d282--------------------------------#:~:text=Our%20responsible%20approach%20to%20building%20Imagen%202) [](https://www.linkedin.com/posts/anthropicresearch_preparing-for-global-elections-in-2024-activity-7164707718656643073-VcaW?utm_source=share&utm_medium=member_desktop&source=post_page-----7ed46783d282--------------------------------) [## Anthropic 在 LinkedIn：为 2024 年全球选举做准备
 
-### 随着全球2024年高风险选举的临近，我们正在揭示我们的一些工作……
+### 随着全球 2024 年高风险选举的临近，我们正在揭示我们的一些工作……
 
 [www.linkedin.com](https://www.linkedin.com/posts/anthropicresearch_preparing-for-global-elections-in-2024-activity-7164707718656643073-VcaW?utm_source=share&utm_medium=member_desktop&source=post_page-----7ed46783d282--------------------------------)
 
 ## ***4\. 开发：可解释性与赋能***
 
-在需要建立信任的关键行业应用中，AI应当帮助人类担任辅助角色。这可以通过以下方式实现：
+在需要建立信任的关键行业应用中，AI 应当帮助人类担任辅助角色。这可以通过以下方式实现：
 
-+   提供AI洞察来源的引文。
++   提供 AI 洞察来源的引文。
 
-+   强调AI预测的 不确定性 或 信心级别。
++   强调 AI 预测的 不确定性 或 信心级别。
 
-+   提供让用户选择退出使用AI的选项。
++   提供让用户选择退出使用 AI 的选项。
 
 +   创建应用程序工作流，确保人工监督并防止某些任务被完全自动化。
 
 ## ***5\. 部署：渐进式推出与透明度***
 
-当你将AI系统从开发阶段过渡到实际部署时，采用渐进式的发布策略至关重要，这有助于在受控环境中评估风险并收集反馈。同时，清晰地向用户和利益相关者传达AI的预期使用案例、能力和局限性也非常重要。此阶段的透明度有助于管理期望，并减少与AI系统意外失败相关的声誉风险。
+当你将 AI 系统从开发阶段过渡到实际部署时，采用渐进式的发布策略至关重要，这有助于在受控环境中评估风险并收集反馈。同时，清晰地向用户和利益相关者传达 AI 的预期使用案例、能力和局限性也非常重要。此阶段的透明度有助于管理期望，并减少与 AI 系统意外失败相关的声誉风险。
 
-**OpenAI**，例如，通过其最新的文本转视频服务**Sora**展示了这种方法，最初仅向部分红队成员和创意专业人士提供该服务。它已经公开了Sora的能力和当前的局限性，比如在生成涉及复杂物理交互的视频时面临的挑战。这种程度的透明度确保了用户了解该技术的优势和可能失败的地方，从而管理期望，赢得用户的信任，并促进AI技术的负责任采用。
+**OpenAI**，例如，通过其最新的文本转视频服务**Sora**展示了这种方法，最初仅向部分红队成员和创意专业人士提供该服务。它已经公开了 Sora 的能力和当前的局限性，比如在生成涉及复杂物理交互的视频时面临的挑战。这种程度的透明度确保了用户了解该技术的优势和可能失败的地方，从而管理期望，赢得用户的信任，并促进 AI 技术的负责任采用。
 
 [](https://openai.com/sora?source=post_page-----7ed46783d282--------------------------------#safety) [## Sora：从文本创建视频
 

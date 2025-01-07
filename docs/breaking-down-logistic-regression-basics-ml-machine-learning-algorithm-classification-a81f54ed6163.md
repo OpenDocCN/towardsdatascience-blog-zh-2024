@@ -1,22 +1,22 @@
 # 将逻辑回归拆解到最基本的部分
 
-> 原文：[https://towardsdatascience.com/breaking-down-logistic-regression-basics-ml-machine-learning-algorithm-classification-a81f54ed6163?source=collection_archive---------2-----------------------#2024-01-21](https://towardsdatascience.com/breaking-down-logistic-regression-basics-ml-machine-learning-algorithm-classification-a81f54ed6163?source=collection_archive---------2-----------------------#2024-01-21)
+> 原文：[`towardsdatascience.com/breaking-down-logistic-regression-basics-ml-machine-learning-algorithm-classification-a81f54ed6163?source=collection_archive---------2-----------------------#2024-01-21`](https://towardsdatascience.com/breaking-down-logistic-regression-basics-ml-machine-learning-algorithm-classification-a81f54ed6163?source=collection_archive---------2-----------------------#2024-01-21)
 
 ## MLBasics #2：用逻辑回归的简洁性揭开机器学习算法的神秘面纱
 
-[](https://medium.com/@rfeers?source=post_page---byline--a81f54ed6163--------------------------------)[![Josep Ferrer](../Images/dee7e2248a813eb2da5847efee159330.png)](https://medium.com/@rfeers?source=post_page---byline--a81f54ed6163--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a81f54ed6163--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a81f54ed6163--------------------------------) [Josep Ferrer](https://medium.com/@rfeers?source=post_page---byline--a81f54ed6163--------------------------------)
+[](https://medium.com/@rfeers?source=post_page---byline--a81f54ed6163--------------------------------)![Josep Ferrer](https://medium.com/@rfeers?source=post_page---byline--a81f54ed6163--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a81f54ed6163--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a81f54ed6163--------------------------------) [Josep Ferrer](https://medium.com/@rfeers?source=post_page---byline--a81f54ed6163--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a81f54ed6163--------------------------------) ·阅读时长7分钟·2024年1月21日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a81f54ed6163--------------------------------) ·阅读时长 7 分钟·2024 年 1 月 21 日
 
 --
 
-![](../Images/7a90a1ebc3000841e4b51984f5bb3eb5.png)
+![](img/7a90a1ebc3000841e4b51984f5bb3eb5.png)
 
-图像由作者提供。ML基础。逻辑回归。
+图像由作者提供。ML 基础。逻辑回归。
 
 在数据和计算机程序的世界里，机器学习的概念可能听起来像是一个难解的难题，充满了复杂的数学和抽象的概念。
 
-这就是为什么今天我想放慢速度，看看使这一切工作的基本内容，并通过我的[MLBasics系列](https://medium.com/towards-data-science/mlbasics-simple-linear-regression-machine-learning-algorithm-predict-programming-8d83cac9873a)来讨论。
+这就是为什么今天我想放慢速度，看看使这一切工作的基本内容，并通过我的[MLBasics 系列](https://medium.com/towards-data-science/mlbasics-simple-linear-regression-machine-learning-algorithm-predict-programming-8d83cac9873a)来讨论。
 
 我们将重新审视这些简单但极为重要的模型，它们是机器学习的基础。可以把它当作从一个大拼图的简单部分开始。我们回到简单的东西，从中轻松理解正在发生的事情。
 

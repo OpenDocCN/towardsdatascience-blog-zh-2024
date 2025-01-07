@@ -1,18 +1,18 @@
 # 我将区块链和人工智能结合起来生成艺术作品。接下来发生了什么？
 
-> 原文：[https://towardsdatascience.com/i-combined-the-blockchain-and-ai-to-generate-art-heres-what-happened-next-859309c5d4c6?source=collection_archive---------5-----------------------#2024-12-30](https://towardsdatascience.com/i-combined-the-blockchain-and-ai-to-generate-art-heres-what-happened-next-859309c5d4c6?source=collection_archive---------5-----------------------#2024-12-30)
+> 原文：[`towardsdatascience.com/i-combined-the-blockchain-and-ai-to-generate-art-heres-what-happened-next-859309c5d4c6?source=collection_archive---------5-----------------------#2024-12-30`](https://towardsdatascience.com/i-combined-the-blockchain-and-ai-to-generate-art-heres-what-happened-next-859309c5d4c6?source=collection_archive---------5-----------------------#2024-12-30)
 
 ## 教程
 
 ## 使用大型语言模型创建数据的艺术表示
 
-[](https://medium.com/@KoryBecker?source=post_page---byline--859309c5d4c6--------------------------------)[![Kory Becker](../Images/53a2493fe53f215d3e715d456b36c553.png)](https://medium.com/@KoryBecker?source=post_page---byline--859309c5d4c6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--859309c5d4c6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--859309c5d4c6--------------------------------) [Kory Becker](https://medium.com/@KoryBecker?source=post_page---byline--859309c5d4c6--------------------------------)
+[](https://medium.com/@KoryBecker?source=post_page---byline--859309c5d4c6--------------------------------)![Kory Becker](https://medium.com/@KoryBecker?source=post_page---byline--859309c5d4c6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--859309c5d4c6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--859309c5d4c6--------------------------------) [Kory Becker](https://medium.com/@KoryBecker?source=post_page---byline--859309c5d4c6--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--859309c5d4c6--------------------------------) ·7分钟阅读·6天前
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--859309c5d4c6--------------------------------) ·7 分钟阅读·6 天前
 
 --
 
-![](../Images/1eac9faf83397d2ba2fab98d9f2d118c.png)
+![](img/1eac9faf83397d2ba2fab98d9f2d118c.png)
 
 想象一下一个场景，代表了这些实体之间价值流动和连接的图像。包括一朵小花、一棵单独的树，使用柔和的粉彩色调。来源：Stable Diffusion。
 

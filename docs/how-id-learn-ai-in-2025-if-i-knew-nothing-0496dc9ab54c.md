@@ -1,18 +1,18 @@
 # 如果我能从头开始，如何在 2025 年学习 AI
 
-> 原文：[https://towardsdatascience.com/how-id-learn-ai-in-2025-if-i-knew-nothing-0496dc9ab54c?source=collection_archive---------1-----------------------#2024-12-13](https://towardsdatascience.com/how-id-learn-ai-in-2025-if-i-knew-nothing-0496dc9ab54c?source=collection_archive---------1-----------------------#2024-12-13)
+> 原文：[`towardsdatascience.com/how-id-learn-ai-in-2025-if-i-knew-nothing-0496dc9ab54c?source=collection_archive---------1-----------------------#2024-12-13`](https://towardsdatascience.com/how-id-learn-ai-in-2025-if-i-knew-nothing-0496dc9ab54c?source=collection_archive---------1-----------------------#2024-12-13)
 
 ## 今天领域的 5 步路线图
 
-[](https://shawhin.medium.com/?source=post_page---byline--0496dc9ab54c--------------------------------)[![Shaw Talebi](../Images/1449cc7c08890e2078f9e5d07897e3df.png)](https://shawhin.medium.com/?source=post_page---byline--0496dc9ab54c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0496dc9ab54c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0496dc9ab54c--------------------------------) [Shaw Talebi](https://shawhin.medium.com/?source=post_page---byline--0496dc9ab54c--------------------------------)
+[](https://shawhin.medium.com/?source=post_page---byline--0496dc9ab54c--------------------------------)![Shaw Talebi](https://shawhin.medium.com/?source=post_page---byline--0496dc9ab54c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0496dc9ab54c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0496dc9ab54c--------------------------------) [Shaw Talebi](https://shawhin.medium.com/?source=post_page---byline--0496dc9ab54c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0496dc9ab54c--------------------------------) ·6 分钟阅读·2024年12月13日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0496dc9ab54c--------------------------------) ·6 分钟阅读·2024 年 12 月 13 日
 
 --
 
 如今，越来越多的人尝试学习 AI。尽管网上有无数免费的学习资源，但在这个快速发展的领域中，导航可能让人感到不知所措（尤其是对于初学者）。在本文中，我将讨论，如果从现在开始学习 AI，基于我当前的知识和现有的工具，我会如何着手。
 
-![](../Images/adcccf8d7bf4a9b49ac3d057d0af7156.png)
+![](img/adcccf8d7bf4a9b49ac3d057d0af7156.png)
 
 图片来自 Canva。
 

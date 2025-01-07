@@ -1,16 +1,16 @@
-# 初学者数据科学学生常犯的6个错误
+# 初学者数据科学学生常犯的 6 个错误
 
-> 原文：[https://towardsdatascience.com/6-mistakes-beginner-data-science-students-make-db6f570f8a0e?source=collection_archive---------7-----------------------#2024-02-05](https://towardsdatascience.com/6-mistakes-beginner-data-science-students-make-db6f570f8a0e?source=collection_archive---------7-----------------------#2024-02-05)
+> 原文：[`towardsdatascience.com/6-mistakes-beginner-data-science-students-make-db6f570f8a0e?source=collection_archive---------7-----------------------#2024-02-05`](https://towardsdatascience.com/6-mistakes-beginner-data-science-students-make-db6f570f8a0e?source=collection_archive---------7-----------------------#2024-02-05)
 
 ## 进入数据科学时要避免这些陷阱
 
-[](https://medium.com/@egorhowell?source=post_page---byline--db6f570f8a0e--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--db6f570f8a0e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--db6f570f8a0e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--db6f570f8a0e--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--db6f570f8a0e--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--db6f570f8a0e--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--db6f570f8a0e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--db6f570f8a0e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--db6f570f8a0e--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--db6f570f8a0e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--db6f570f8a0e--------------------------------) ·8分钟阅读·2024年2月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--db6f570f8a0e--------------------------------) ·8 分钟阅读·2024 年 2 月 5 日
 
 --
 
-![](../Images/0db52646c421af221e22e1460f62500f.png)
+![](img/0db52646c421af221e22e1460f62500f.png)
 
 图片由作者制作。
 
@@ -20,6 +20,6 @@
 
 # 跳过基础数学
 
-许多人认为现在不需要了解数学，因为所有现代的 Python 包都将其需求抽象化了。你几乎永远不会手动进行[**反向传播**](/forward-pass-backpropagation-neural-networks-101-3a75996ada3b)或从头开始构建决策树（尽管尝试一下其实很有趣！）。
+许多人认为现在不需要了解数学，因为所有现代的 Python 包都将其需求抽象化了。你几乎永远不会手动进行**反向传播**或从头开始构建决策树（尽管尝试一下其实很有趣！）。
 
 很容易把这一点视为理所当然，从而避免学习任何相关的背景理论……

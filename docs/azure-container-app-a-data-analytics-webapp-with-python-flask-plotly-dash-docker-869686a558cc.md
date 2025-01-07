@@ -1,16 +1,16 @@
 # 构建 Azure 容器应用：一个使用 Python Flask、Plotly Dash 和 Docker 的数据分析应用
 
-> 原文：[https://towardsdatascience.com/azure-container-app-a-data-analytics-webapp-with-python-flask-plotly-dash-docker-869686a558cc?source=collection_archive---------6-----------------------#2024-02-19](https://towardsdatascience.com/azure-container-app-a-data-analytics-webapp-with-python-flask-plotly-dash-docker-869686a558cc?source=collection_archive---------6-----------------------#2024-02-19)
+> 原文：[`towardsdatascience.com/azure-container-app-a-data-analytics-webapp-with-python-flask-plotly-dash-docker-869686a558cc?source=collection_archive---------6-----------------------#2024-02-19`](https://towardsdatascience.com/azure-container-app-a-data-analytics-webapp-with-python-flask-plotly-dash-docker-869686a558cc?source=collection_archive---------6-----------------------#2024-02-19)
 
 ## 部署可扩展的数据分析 web 应用程序：利用 Flask、Dash 和 Azure 容器应用程序实现更高的灵活性
 
-[](https://medium.com/@numersoz?source=post_page---byline--869686a558cc--------------------------------)[![Mert Ersoz](../Images/c715158e420ce7c5a3904178db90a8b7.png)](https://medium.com/@numersoz?source=post_page---byline--869686a558cc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--869686a558cc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--869686a558cc--------------------------------) [Mert Ersoz](https://medium.com/@numersoz?source=post_page---byline--869686a558cc--------------------------------)
+[](https://medium.com/@numersoz?source=post_page---byline--869686a558cc--------------------------------)![Mert Ersoz](https://medium.com/@numersoz?source=post_page---byline--869686a558cc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--869686a558cc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--869686a558cc--------------------------------) [Mert Ersoz](https://medium.com/@numersoz?source=post_page---byline--869686a558cc--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--869686a558cc--------------------------------) ·阅读时长 16 分钟·2024年2月19日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--869686a558cc--------------------------------) ·阅读时长 16 分钟·2024 年 2 月 19 日
 
 --
 
-![](../Images/3d39011d2f3d9bfef0078a34a5fef0ab.png)
+![](img/3d39011d2f3d9bfef0078a34a5fef0ab.png)
 
 图片由[Tima Miroshnichenko](https://www.pexels.com/@tima-miroshnichenko/)提供，来自[Pexels](https://www.pexels.com/photo/a-man-in-white-long-sleeves-looking-at-the-screen-7567522/)
 

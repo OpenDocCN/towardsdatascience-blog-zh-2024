@@ -1,16 +1,16 @@
 # 建模缓慢变化维度（SCD）
 
-> 原文：[https://towardsdatascience.com/slowly-changing-dimensions-6a08dc0386ae?source=collection_archive---------11-----------------------#2024-05-03](https://towardsdatascience.com/slowly-changing-dimensions-6a08dc0386ae?source=collection_archive---------11-----------------------#2024-05-03)
+> 原文：[`towardsdatascience.com/slowly-changing-dimensions-6a08dc0386ae?source=collection_archive---------11-----------------------#2024-05-03`](https://towardsdatascience.com/slowly-changing-dimensions-6a08dc0386ae?source=collection_archive---------11-----------------------#2024-05-03)
 
-## 深入探讨各种SCD类型以及如何在数据仓库中实施它们
+## 深入探讨各种 SCD 类型以及如何在数据仓库中实施它们
 
-[](https://gmyrianthous.medium.com/?source=post_page---byline--6a08dc0386ae--------------------------------)[![Giorgos Myrianthous](../Images/ff4b116e4fb9a095ce45eb064fde5af3.png)](https://gmyrianthous.medium.com/?source=post_page---byline--6a08dc0386ae--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a08dc0386ae--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6a08dc0386ae--------------------------------) [Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--6a08dc0386ae--------------------------------)
+[](https://gmyrianthous.medium.com/?source=post_page---byline--6a08dc0386ae--------------------------------)![Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--6a08dc0386ae--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a08dc0386ae--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a08dc0386ae--------------------------------) [Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--6a08dc0386ae--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a08dc0386ae--------------------------------) ·13分钟阅读·2024年5月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a08dc0386ae--------------------------------) ·13 分钟阅读·2024 年 5 月 3 日
 
 --
 
-![](../Images/d8d89faa80eee3a7bdfeb486bb64db8b.png)
+![](img/d8d89faa80eee3a7bdfeb486bb64db8b.png)
 
 图片来源：[Pawel Czerwinski](https://unsplash.com/@pawel_czerwinski?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在 [Unsplash](https://unsplash.com/photos/pink-and-white-abstract-painting-0UMy_4q6QQE?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

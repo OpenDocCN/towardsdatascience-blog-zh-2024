@@ -1,14 +1,14 @@
 # 通过网络可视化展示健美的历史
 
-> 原文：[https://towardsdatascience.com/the-history-of-bodybuilding-through-network-visualization-2527f81c1f01?source=collection_archive---------10-----------------------#2024-05-30](https://towardsdatascience.com/the-history-of-bodybuilding-through-network-visualization-2527f81c1f01?source=collection_archive---------10-----------------------#2024-05-30)
+> 原文：[`towardsdatascience.com/the-history-of-bodybuilding-through-network-visualization-2527f81c1f01?source=collection_archive---------10-----------------------#2024-05-30`](https://towardsdatascience.com/the-history-of-bodybuilding-through-network-visualization-2527f81c1f01?source=collection_archive---------10-----------------------#2024-05-30)
 
-![](../Images/f086978a8f730cd7dbc5c05bf9658310.png)
+![](img/f086978a8f730cd7dbc5c05bf9658310.png)
 
 ## 使用 Python 和 Gephi 构建奥林匹亚先生获奖者共享领奖台图（1965–2023）。
 
-[](https://medium.com/@janosovm?source=post_page---byline--2527f81c1f01--------------------------------)[![Milan Janosov](../Images/b7ede67b165cdd368d96f13f46c68ccb.png)](https://medium.com/@janosovm?source=post_page---byline--2527f81c1f01--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2527f81c1f01--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2527f81c1f01--------------------------------) [Milan Janosov](https://medium.com/@janosovm?source=post_page---byline--2527f81c1f01--------------------------------)
+[](https://medium.com/@janosovm?source=post_page---byline--2527f81c1f01--------------------------------)![Milan Janosov](https://medium.com/@janosovm?source=post_page---byline--2527f81c1f01--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2527f81c1f01--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2527f81c1f01--------------------------------) [Milan Janosov](https://medium.com/@janosovm?source=post_page---byline--2527f81c1f01--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2527f81c1f01--------------------------------) ·5分钟阅读·2024年5月30日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2527f81c1f01--------------------------------) ·5 分钟阅读·2024 年 5 月 30 日
 
 --
 

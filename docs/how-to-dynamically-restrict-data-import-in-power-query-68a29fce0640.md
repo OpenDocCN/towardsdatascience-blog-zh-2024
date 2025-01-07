@@ -1,16 +1,16 @@
 # 如何在 Power Query 中动态限制数据导入
 
-> 原文：[https://towardsdatascience.com/how-to-dynamically-restrict-data-import-in-power-query-68a29fce0640?source=collection_archive---------10-----------------------#2024-08-06](https://towardsdatascience.com/how-to-dynamically-restrict-data-import-in-power-query-68a29fce0640?source=collection_archive---------10-----------------------#2024-08-06)
+> 原文：[`towardsdatascience.com/how-to-dynamically-restrict-data-import-in-power-query-68a29fce0640?source=collection_archive---------10-----------------------#2024-08-06`](https://towardsdatascience.com/how-to-dynamically-restrict-data-import-in-power-query-68a29fce0640?source=collection_archive---------10-----------------------#2024-08-06)
 
 ## *当我们存储大量数据时，我们可能会问自己：我真的需要所有这些数据来进行报告吗？如果你有这个问题，并且想了解如何控制 Power BI 文件中的数据量，那么这篇文章是你需要阅读的。*
 
-[](https://medium.com/@salvatorecagliari?source=post_page---byline--68a29fce0640--------------------------------)[![Salvatore Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--68a29fce0640--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--68a29fce0640--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--68a29fce0640--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--68a29fce0640--------------------------------)
+[](https://medium.com/@salvatorecagliari?source=post_page---byline--68a29fce0640--------------------------------)![Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--68a29fce0640--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--68a29fce0640--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--68a29fce0640--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--68a29fce0640--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--68a29fce0640--------------------------------) ·阅读时间 8 分钟·2024年8月6日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--68a29fce0640--------------------------------) ·阅读时间 8 分钟·2024 年 8 月 6 日
 
 --
 
-![](../Images/be1a76f7b3dac12b0445af16cc220af0.png)
+![](img/be1a76f7b3dac12b0445af16cc220af0.png)
 
 图片来源：[Claudio Schwarz](https://unsplash.com/@purzlbaum?utm_source=medium&utm_medium=referral) via [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -42,7 +42,7 @@
 
 在这里，启用“显示公式栏”选项：
 
-![](../Images/4bb15b293231d4c825e9c52034880804.png)
+![](img/4bb15b293231d4c825e9c52034880804.png)
 
 图 1 — 启用 Power Query 编辑器的公式栏（图由作者提供）
 
@@ -66,7 +66,7 @@ Power Query 的参数本身并不是动态的。
 
 打开 Power Query 后，我创建一个新的空白查询：
 
-![](../Images/69922758f602a1075a5d5ba3f3928ca9.png)
+![](img/69922758f602a1075a5d5ba3f3928ca9.png)
 
 图 2 — 在 Power Query 中创建一个空白查询（图由作者提供）
 
@@ -88,7 +88,7 @@ Power Query 的参数本身并不是动态的。
 
 但是结果并不像预期的那样：
 
-![](../Images/33441bd01f8f807a8b58ca543597329e.png)
+![](img/33441bd01f8f807a8b58ca543597329e.png)
 
 图 3 — 空白查询中的 M 表达式结果（图由作者提供）
 
@@ -96,7 +96,7 @@ Power Query 的参数本身并不是动态的。
 
 我们必须移除引号，然后它就能正常工作：
 
-![](../Images/bad77b815f213dd31b3c942384076dbf.png)
+![](img/bad77b815f213dd31b3c942384076dbf.png)
 
 图 4 — 移除引号以按预期设置表达式（图由作者提供）
 
@@ -120,13 +120,13 @@ Date.EndOfMonth(Date.AddMonths(DateTime.LocalNow(), -1))
 
 结果如下：
 
-![](../Images/d7496bd6e5fa948d9ff450e646e52723.png)
+![](img/d7496bd6e5fa948d9ff450e646e52723.png)
 
 图 5 — 获取结束日期的表达式结果（图由作者提供）
 
 由于我只需要日期，可以通过将结果转换为日期来去除时间部分：
 
-![](../Images/a6405772ab4f6151f2c2ab028e6bc2b5.png)
+![](img/a6405772ab4f6151f2c2ab028e6bc2b5.png)
 
 图 6 — 将日期/时间输出转换为仅日期（图由作者提供）
 
@@ -138,15 +138,15 @@ Date.EndOfMonth(Date.AddMonths(DateTime.LocalNow(), -1))
 
 我找到我的数据的日期列，并选择一个“between”筛选器：
 
-![](../Images/f934c0c3a89da5bb19c3942ca5e25a7a.png)
+![](img/f934c0c3a89da5bb19c3942ca5e25a7a.png)
 
-图7 — 为日期列选择“between”筛选器（图由作者提供）
+图 7 — 为日期列选择“between”筛选器（图由作者提供）
 
 接下来，我在两个字段中输入两个任意日期（稍后我会将它们替换为新创建的查询）：
 
-![](../Images/a77c34167fba0b4ec1beee32990308ed.png)
+![](img/a77c34167fba0b4ec1beee32990308ed.png)
 
-图8 — 在“between”筛选器中添加任意日期（图由作者提供）
+图 8 — 在“between”筛选器中添加任意日期（图由作者提供）
 
 点击确定后，数据已经被筛选。
 
@@ -154,7 +154,7 @@ Date.EndOfMonth(Date.AddMonths(DateTime.LocalNow(), -1))
 
 为此，我替换筛选器表达式中的日期以使用它们：
 
-当我查看Power Query编辑器顶部的公式栏时，我看到选定步骤的表达式。
+当我查看 Power Query 编辑器顶部的公式栏时，我看到选定步骤的表达式。
 
 我将表达式从以下内容更改为：
 
@@ -172,33 +172,33 @@ Table.SelectRows(#"Renamed Columns", each [Date] >= **StartDate** and [Date] <= 
 
 由于我有两个事实表，我复制这个表达式并将其添加到另一个表中：
 
-我选择表格，并点击fx按钮。之后，我可以将与之前相同的表达式粘贴到公式栏中：
+我选择表格，并点击 fx 按钮。之后，我可以将与之前相同的表达式粘贴到公式栏中：
 
-![](../Images/7f0f0f72b817b337511fe1e0aff9f5ef.png)
+![](img/7f0f0f72b817b337511fe1e0aff9f5ef.png)
 
-图9 — 为第二个表格添加新表达式以进行筛选（图由作者提供）
+图 9 — 为第二个表格添加新表达式以进行筛选（图由作者提供）
 
 最后，我将两个表格的步骤名称更改为更有意义的名称：
 
-![](../Images/e0a9a340d779f102aead7abb575e28a0.png)
+![](img/e0a9a340d779f102aead7abb575e28a0.png)
 
-图10 — 更改步骤名称以筛选数据（图由作者提供）
+图 10 — 更改步骤名称以筛选数据（图由作者提供）
 
 # 添加一个参数来控制年份数
 
-最后，我可以添加一个Power Query参数，以控制我要在Power BI中导入的年份。
+最后，我可以添加一个 Power Query 参数，以控制我要在 Power BI 中导入的年份。
 
-![](../Images/d01621619f23d278e6500c75f05b0735.png)
+![](img/d01621619f23d278e6500c75f05b0735.png)
 
-图11 — 创建一个新参数来存储年份数（图由作者提供）
+图 11 — 创建一个新参数来存储年份数（图由作者提供）
 
-我输入一个名称，将类型设置为十进制数字，并为当前值输入2：
+我输入一个名称，将类型设置为十进制数字，并为当前值输入 2：
 
-![](../Images/b8138176ad2d829ccb6148b4012a1ae2.png)
+![](img/b8138176ad2d829ccb6148b4012a1ae2.png)
 
-图12 — 设置新参数（图由作者提供）
+图 12 — 设置新参数（图由作者提供）
 
-接下来，我更改StartDate查询的M表达式，以使用此参数：
+接下来，我更改 StartDate 查询的 M 表达式，以使用此参数：
 
 ```py
 #date(Date.Year(DateTime.LocalNow())- **NumberOfYearsToImport**, 1, 1)
@@ -206,35 +206,35 @@ Table.SelectRows(#"Renamed Columns", each [Date] >= **StartDate** and [Date] <= 
 
 结果不会改变，因为我之前使用过两个。
 
-现在，我可以通过Power BI更改参数和数据量，而无需更改Power Query中的表达式。
+现在，我可以通过 Power BI 更改参数和数据量，而无需更改 Power Query 中的表达式。
 
-此外，在将报告发布到Power BI云端后，我可以更改此参数：
+此外，在将报告发布到 Power BI 云端后，我可以更改此参数：
 
 打开语义模型的设置，打开“参数”部分，并更改值。
 
-在Power BI中加载数据后，我只看到从2022年1月1日到2024年7月末的数据：
+在 Power BI 中加载数据后，我只看到从 2022 年 1 月 1 日到 2024 年 7 月末的数据：
 
-![](../Images/5affd53933446b4685549d8392c18204.png)
+![](img/5affd53933446b4685549d8392c18204.png)
 
-图13 — 加载到Power BI后的筛选数据（图由作者提供）
+图 13 — 加载到 Power BI 后的筛选数据（图由作者提供）
 
-# 那么，DateId呢？
+# 那么，DateId 呢？
 
-如果你的数据不包含日期列，而是包含数字DateId列，那么上述表达式将不再有效。
+如果你的数据不包含日期列，而是包含数字 DateId 列，那么上述表达式将不再有效。
 
-对于不熟悉DateId的人来说，它是日期的数字表示。
+对于不熟悉 DateId 的人来说，它是日期的数字表示。
 
-例如，2024–07–15会被转换为20240715。
+例如，2024–07–15 会被转换为 20240715。
 
-在这种情况下，使用这些表达式来计算DateId：
+在这种情况下，使用这些表达式来计算 DateId：
 
-对于StartDate：
+对于 StartDate：
 
 ```py
 (Date.Year(DateTime.LocalNow())- NumberOfYearsToImport) * 10000 + 101
 ```
 
-对于EndDate，这是完整的M脚本（在创建空查询后，将脚本替换到高级编辑器中）：
+对于 EndDate，这是完整的 M 脚本（在创建空查询后，将脚本替换到高级编辑器中）：
 
 ```py
 let
@@ -248,75 +248,75 @@ in
 
 # 关闭新查询的加载
 
-没有进一步的操作，两个新查询已被加载到Power BI中：
+没有进一步的操作，两个新查询已被加载到 Power BI 中：
 
-![](../Images/04a75b0381653ff4ec8f5574683675dc.png)
+![](img/04a75b0381653ff4ec8f5574683675dc.png)
 
-图14 — Power BI中的Start-和EndDate表（图由作者提供）
+图 14 — Power BI 中的 Start-和 EndDate 表（图由作者提供）
 
-由于这两张表在Power BI中用途不大（除非你想在报告中展示这两个值作为信息），我将禁用Power Query中这两张表的加载：
+由于这两张表在 Power BI 中用途不大（除非你想在报告中展示这两个值作为信息），我将禁用 Power Query 中这两张表的加载：
 
-![](../Images/0bdec8218ca8ef319292ed520935985a.png)
+![](img/0bdec8218ca8ef319292ed520935985a.png)
 
-图15 — 禁用不需要的表加载到Power BI中（图由作者提供）
+图 15 — 禁用不需要的表加载到 Power BI 中（图由作者提供）
 
 你将收到一个关于可能数据丢失的警告。你可以确认它。
 
-这些表的名称将以斜体显示，并且它们不再被加载到Power BI中。
+这些表的名称将以斜体显示，并且它们不再被加载到 Power BI 中。
 
 # 结论
 
-这里展示的方法非常有用，可以动态定义导入到Power BI中的数据的时间范围。
+这里展示的方法非常有用，可以动态定义导入到 Power BI 中的数据的时间范围。
 
-在我的案例中，我使用SQL Server作为我的数据源。
+在我的案例中，我使用 SQL Server 作为我的数据源。
 
-Power Query可以将数据过滤转换为SQL，并将查询发送（折叠）到数据源。
+Power Query 可以将数据过滤转换为 SQL，并将查询发送（折叠）到数据源。
 
 如果你想了解更多关于查询折叠的信息，请阅读这个：
 
-[](/exploring-query-folding-in-power-query-8288fb3c9c2f?source=post_page-----68a29fce0640--------------------------------) [## 探索Power Query中的查询折叠
+[](/exploring-query-folding-in-power-query-8288fb3c9c2f?source=post_page-----68a29fce0640--------------------------------) ## 探索 Power Query 中的查询折叠
 
-### 查询折叠是Power Query中的一个重要功能，它将处理步骤转移到源端。这里我们进一步探讨…
+### 查询折叠是 Power Query 中的一个重要功能，它将处理步骤转移到源端。这里我们进一步探讨…
 
-towardsdatascience.com](/exploring-query-folding-in-power-query-8288fb3c9c2f?source=post_page-----68a29fce0640--------------------------------)
+towardsdatascience.com
 
 然而，这种通用的方法也适用于任何其他数据源。
 
-但要注意：如果Power Query无法将过滤器传递给数据源，它将首先加载整个数据集，然后在加载完所有数据后过滤掉不需要的行。
+但要注意：如果 Power Query 无法将过滤器传递给数据源，它将首先加载整个数据集，然后在加载完所有数据后过滤掉不需要的行。
 
 如果你拥有大量数据，这可能会成为一个问题。
 
 尽管这种方法很有用，但将所需数据放在源端是至关重要的。请向你的数据提供者寻求帮助。
 
-然而，在开发过程中，限制加载到Power BI中的数据量可能会有所帮助，等解决方案发布后再加载整个数据集。
+然而，在开发过程中，限制加载到 Power BI 中的数据量可能会有所帮助，等解决方案发布后再加载整个数据集。
 
-无论如何，我希望你能学到一些Power Query的新知识。
+无论如何，我希望你能学到一些 Power Query 的新知识。
 
 # 参考文献
 
-和我之前的文章一样，我使用了Contoso示例数据集。你可以从微软[这里](https://www.microsoft.com/en-us/download/details.aspx?id=18279)免费下载ContosoRetailDW数据集。
+和我之前的文章一样，我使用了 Contoso 示例数据集。你可以从微软[这里](https://www.microsoft.com/en-us/download/details.aspx?id=18279)免费下载 ContosoRetailDW 数据集。
 
-Contoso数据可以根据MIT许可自由使用，详情见[这里](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo)。
+Contoso 数据可以根据 MIT 许可自由使用，详情见[这里](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo)。
 
-我扩大了数据集，以便让DAX引擎处理得更加繁重。
+我扩大了数据集，以便让 DAX 引擎处理得更加繁重。
 
-Online Sales表包含7100万行（而不是1260万行），而Retail Sales表包含1850万行（而不是340万行）。
+Online Sales 表包含 7100 万行（而不是 1260 万行），而 Retail Sales 表包含 1850 万行（而不是 340 万行）。
 
-[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----68a29fce0640--------------------------------) [## 每当Salvatore Cagliari发布时，订阅电子邮件。
+[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----68a29fce0640--------------------------------) [## 每当 Salvatore Cagliari 发布时，订阅电子邮件。
 
-### 每当萨尔瓦托雷·卡利亚里发布新内容时，您将收到电子邮件通知。通过注册，您将创建一个Medium账户，如果您还没有的话…
+### 每当萨尔瓦托雷·卡利亚里发布新内容时，您将收到电子邮件通知。通过注册，您将创建一个 Medium 账户，如果您还没有的话…
 
 [medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----68a29fce0640--------------------------------)
 
-尽管Medium有付费墙，我仍然让我的文章对所有人开放。这使我可以为每位读者赚取少许收入，但我关闭了付费墙，您可以免费阅读我的文章。
+尽管 Medium 有付费墙，我仍然让我的文章对所有人开放。这使我可以为每位读者赚取少许收入，但我关闭了付费墙，您可以免费阅读我的文章。
 
 您可以通过以下方式支持我的工作，我是在空闲时间完成这些工作的：
 
-[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)
+[`buymeacoffee.com/salvatorecagliari`](https://buymeacoffee.com/salvatorecagliari)
 
 或扫描此二维码：
 
-![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)
+![](img/e7ac062070dcd7a00dcf995ad7e95434.png)
 
 任何支持都将不胜感激，并帮助我找到更多时间为您创作更多内容。
 

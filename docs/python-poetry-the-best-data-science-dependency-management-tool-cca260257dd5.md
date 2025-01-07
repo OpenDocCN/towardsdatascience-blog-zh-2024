@@ -1,16 +1,16 @@
 # Python Poetry —— 最佳数据科学依赖管理工具？
 
-> 原文：[https://towardsdatascience.com/python-poetry-the-best-data-science-dependency-management-tool-cca260257dd5?source=collection_archive---------3-----------------------#2024-07-30](https://towardsdatascience.com/python-poetry-the-best-data-science-dependency-management-tool-cca260257dd5?source=collection_archive---------3-----------------------#2024-07-30)
+> 原文：[`towardsdatascience.com/python-poetry-the-best-data-science-dependency-management-tool-cca260257dd5?source=collection_archive---------3-----------------------#2024-07-30`](https://towardsdatascience.com/python-poetry-the-best-data-science-dependency-management-tool-cca260257dd5?source=collection_archive---------3-----------------------#2024-07-30)
 
 ## Poetry 使得部署机器学习应用变得轻而易举 —— 快来了解如何操作！
 
-[](https://medium.com/@radecicdario?source=post_page---byline--cca260257dd5--------------------------------)[![Dario Radečić](../Images/41882a3b30bab9da43d66a59f1df366b.png)](https://medium.com/@radecicdario?source=post_page---byline--cca260257dd5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cca260257dd5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cca260257dd5--------------------------------) [Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--cca260257dd5--------------------------------)
+[](https://medium.com/@radecicdario?source=post_page---byline--cca260257dd5--------------------------------)![Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--cca260257dd5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cca260257dd5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cca260257dd5--------------------------------) [Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--cca260257dd5--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cca260257dd5--------------------------------) ·8分钟阅读·2024年7月30日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cca260257dd5--------------------------------) ·8 分钟阅读·2024 年 7 月 30 日
 
 --
 
-![](../Images/fd16f9d0c8e9893fa0e0b3e104f9469d.png)
+![](img/fd16f9d0c8e9893fa0e0b3e104f9469d.png)
 
 图片由 [Prachi Gautam](https://unsplash.com/@prachi30gautam?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

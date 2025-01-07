@@ -1,18 +1,18 @@
 # 声明式与命令式绘图
 
-> 原文：[https://towardsdatascience.com/declarative-vs-imperative-plotting-3ee9952d6bf3?source=collection_archive---------9-----------------------#2024-01-10](https://towardsdatascience.com/declarative-vs-imperative-plotting-3ee9952d6bf3?source=collection_archive---------9-----------------------#2024-01-10)
+> 原文：[`towardsdatascience.com/declarative-vs-imperative-plotting-3ee9952d6bf3?source=collection_archive---------9-----------------------#2024-01-10`](https://towardsdatascience.com/declarative-vs-imperative-plotting-3ee9952d6bf3?source=collection_archive---------9-----------------------#2024-01-10)
 
 ## 快速成功的数据科学
 
 ## 为 Python 初学者提供概览
 
-[](https://medium.com/@lee_vaughan?source=post_page---byline--3ee9952d6bf3--------------------------------)[![Lee Vaughan](../Images/9f6b90bb76102f438ab0b9a4a62ffa3f.png)](https://medium.com/@lee_vaughan?source=post_page---byline--3ee9952d6bf3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3ee9952d6bf3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3ee9952d6bf3--------------------------------) [Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--3ee9952d6bf3--------------------------------)
+[](https://medium.com/@lee_vaughan?source=post_page---byline--3ee9952d6bf3--------------------------------)![Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--3ee9952d6bf3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3ee9952d6bf3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3ee9952d6bf3--------------------------------) [Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--3ee9952d6bf3--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3ee9952d6bf3--------------------------------) ·阅读时间 11 分钟 ·2024年1月10日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3ee9952d6bf3--------------------------------) ·阅读时间 11 分钟 ·2024 年 1 月 10 日
 
 --
 
-![](../Images/ad785aa5605ee5542cbfea4535622f7e.png)
+![](img/ad785aa5605ee5542cbfea4535622f7e.png)
 
 声明式与命令式由列奥纳多的绝对现实 v16 进行想象
 

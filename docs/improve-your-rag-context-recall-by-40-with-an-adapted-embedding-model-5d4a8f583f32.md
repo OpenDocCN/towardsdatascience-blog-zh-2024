@@ -1,12 +1,12 @@
 # 使用改进的嵌入模型将你的 RAG 上下文召回率提升 95%
 
-> 原文：[https://towardsdatascience.com/improve-your-rag-context-recall-by-40-with-an-adapted-embedding-model-5d4a8f583f32?source=collection_archive---------0-----------------------#2024-10-12](https://towardsdatascience.com/improve-your-rag-context-recall-by-40-with-an-adapted-embedding-model-5d4a8f583f32?source=collection_archive---------0-----------------------#2024-10-12)
+> 原文：[`towardsdatascience.com/improve-your-rag-context-recall-by-40-with-an-adapted-embedding-model-5d4a8f583f32?source=collection_archive---------0-----------------------#2024-10-12`](https://towardsdatascience.com/improve-your-rag-context-recall-by-40-with-an-adapted-embedding-model-5d4a8f583f32?source=collection_archive---------0-----------------------#2024-10-12)
 
 ## 附上逐步模型适配代码和结果
 
-[](https://medium.com/@vignesh865?source=post_page---byline--5d4a8f583f32--------------------------------)[![Vignesh Baskaran](../Images/52afb4a7a3cd0329dc1ba9d931413788.png)](https://medium.com/@vignesh865?source=post_page---byline--5d4a8f583f32--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5d4a8f583f32--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5d4a8f583f32--------------------------------) [Vignesh Baskaran](https://medium.com/@vignesh865?source=post_page---byline--5d4a8f583f32--------------------------------)
+[](https://medium.com/@vignesh865?source=post_page---byline--5d4a8f583f32--------------------------------)![Vignesh Baskaran](https://medium.com/@vignesh865?source=post_page---byline--5d4a8f583f32--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5d4a8f583f32--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d4a8f583f32--------------------------------) [Vignesh Baskaran](https://medium.com/@vignesh865?source=post_page---byline--5d4a8f583f32--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d4a8f583f32--------------------------------) ·阅读时间 10 分钟·2024年10月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d4a8f583f32--------------------------------) ·阅读时间 10 分钟·2024 年 10 月 12 日
 
 --
 
@@ -16,4 +16,4 @@
 
 对于每个管道步骤，我们将进行大量实验，协同提高 RAG 的准确性。你可以参考下方的图片，其中列出了（但不限于）每个步骤中执行的实验。
 
-![](../Images/72472ed36ec30d6d1ab16d6d3dc1b23a.png)
+![](img/72472ed36ec30d6d1ab16d6d3dc1b23a.png)

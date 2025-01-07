@@ -1,16 +1,16 @@
 # 释放 Triton 的力量：掌握 Python 中的 GPU 核心优化
 
-> 原文：[https://towardsdatascience.com/unleashing-the-power-of-triton-mastering-gpu-kernel-optimization-in-python-160a3f52701e?source=collection_archive---------7-----------------------#2024-08-13](https://towardsdatascience.com/unleashing-the-power-of-triton-mastering-gpu-kernel-optimization-in-python-160a3f52701e?source=collection_archive---------7-----------------------#2024-08-13)
+> 原文：[`towardsdatascience.com/unleashing-the-power-of-triton-mastering-gpu-kernel-optimization-in-python-160a3f52701e?source=collection_archive---------7-----------------------#2024-08-13`](https://towardsdatascience.com/unleashing-the-power-of-triton-mastering-gpu-kernel-optimization-in-python-160a3f52701e?source=collection_archive---------7-----------------------#2024-08-13)
 
 ## 加速 AI/ML 模型训练与自定义运算符——第二部分
 
-[](https://chaimrand.medium.com/?source=post_page---byline--160a3f52701e--------------------------------)[![Chaim Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--160a3f52701e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--160a3f52701e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--160a3f52701e--------------------------------) [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--160a3f52701e--------------------------------)
+[](https://chaimrand.medium.com/?source=post_page---byline--160a3f52701e--------------------------------)![Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--160a3f52701e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--160a3f52701e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--160a3f52701e--------------------------------) [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--160a3f52701e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--160a3f52701e--------------------------------) ·10 分钟阅读·2024年8月13日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--160a3f52701e--------------------------------) ·10 分钟阅读·2024 年 8 月 13 日
 
 --
 
-![](../Images/e2dd5b644c445a53fd9b98179de44e93.png)
+![](img/e2dd5b644c445a53fd9b98179de44e93.png)
 
 图片来源：[Jas Rolyn](https://unsplash.com/@jasrolyn?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -24,15 +24,15 @@ Triton 库旨在通过两种主要方式使 GPU 内核开发民主化并简化�
 
 当然，正如在提升 API 时通常会遇到的情况一样，Triton 编程模型确实存在一些缺点。有些内核可能会从 CUDA 提供的线程级控制中受益（例如，它们可能会从我们[上一篇文章](https://chaimrand.medium.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)中讨论的条件执行流程中受益）。其他内核可能需要非常专业和精细的处理才能达到最佳性能，并可能受到 Triton 编译器自动生成结果的影响。但即使在这种情况下，当最终可能需要开发一个 CUDA 内核时，能够快速轻松地创建一个临时的 Triton 内核也能极大地促进开发并提高生产力。
 
-若想了解更多关于Triton背后的动机以及其编程模型的细节，请参见[Triton公告](https://openai.com/index/triton/)、官方[Triton文档](https://triton-lang.org/main/programming-guide/chapter-1/introduction.html#motivations)和原始[Triton白皮书](https://www.eecs.harvard.edu/~htk/publication/2019-mapl-tillet-kung-cox.pdf)。
+若想了解更多关于 Triton 背后的动机以及其编程模型的细节，请参见[Triton 公告](https://openai.com/index/triton/)、官方[Triton 文档](https://triton-lang.org/main/programming-guide/chapter-1/introduction.html#motivations)和原始[Triton 白皮书](https://www.eecs.harvard.edu/~htk/publication/2019-mapl-tillet-kung-cox.pdf)。
 
 ## 免责声明
 
-类似于我们[之前的帖子](https://chaimrand.medium.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)，我们的目的是提供一个简单的示范，展示Triton所提供的机会。请不要将这篇文章视为官方[Triton文档](https://triton-lang.org/main/index.html)或其[相关教程](https://triton-lang.org/main/getting-started/tutorials/index.html)的替代。我们将使用与我们[之前的帖子](https://chaimrand.medium.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)相同的面部检测模型作为演示的基础，并在相同的Google Cloud环境中进行实验——一台[g2-standard-16](https://cloud.google.com/compute/docs/gpus#l4-gpus)虚拟机（配备单个L4 GPU），使用专用[深度学习虚拟机镜像](https://cloud.google.com/deep-learning-vm/docs/release-notes)和PyTorch 2.4.0。像之前一样，我们并未优化我们的示例和/或验证其稳定性、持久性或准确性。需要注意的是，虽然我们将在PyTorch模型和NVIDIA GPU上执行实验，但Triton内核开发得到了额外框架和底层硬件的支持。
+类似于我们[之前的帖子](https://chaimrand.medium.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)，我们的目的是提供一个简单的示范，展示 Triton 所提供的机会。请不要将这篇文章视为官方[Triton 文档](https://triton-lang.org/main/index.html)或其[相关教程](https://triton-lang.org/main/getting-started/tutorials/index.html)的替代。我们将使用与我们[之前的帖子](https://chaimrand.medium.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)相同的面部检测模型作为演示的基础，并在相同的 Google Cloud 环境中进行实验——一台[g2-standard-16](https://cloud.google.com/compute/docs/gpus#l4-gpus)虚拟机（配备单个 L4 GPU），使用专用[深度学习虚拟机镜像](https://cloud.google.com/deep-learning-vm/docs/release-notes)和 PyTorch 2.4.0。像之前一样，我们并未优化我们的示例和/或验证其稳定性、持久性或准确性。需要注意的是，虽然我们将在 PyTorch 模型和 NVIDIA GPU 上执行实验，但 Triton 内核开发得到了额外框架和底层硬件的支持。
 
-# Triton作为Torch编译的组成部分
+# Triton 作为 Torch 编译的组成部分
 
-在之前的帖子中（例如，[这里](/pytorch-model-performance-analysis-and-optimization-10c3c5822869)），我们展示了[PyTorch编译](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)的使用以及它对运行时性能的潜在影响。[torch.compiler](https://pytorch.org/docs/stable/torch.compiler.html#torch-compiler)使用的默认编译器是[TorchInductor](https://dev-discuss.pytorch.org/t/torchinductor-a-pytorch-native-compiler-with-define-by-run-ir-and-symbolic-shapes/747)，它在GPU加速中严重依赖Triton内核。因此，似乎非常合适，我们通过评估[torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html)提供的自动Triton优化来开始我们的Triton探索。下面的代码块包括我们在之前的帖子中介绍的面部检测模型的相同前向传递，以及编译后的GIOU损失函数。为了简洁起见，我们省略了一些支持代码。有关完整实现，请参见我们的[之前帖子](https://chaimrand.medium.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)。
+在之前的帖子中（例如，这里），我们展示了[PyTorch 编译](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)的使用以及它对运行时性能的潜在影响。[torch.compiler](https://pytorch.org/docs/stable/torch.compiler.html#torch-compiler)使用的默认编译器是[TorchInductor](https://dev-discuss.pytorch.org/t/torchinductor-a-pytorch-native-compiler-with-define-by-run-ir-and-symbolic-shapes/747)，它在 GPU 加速中严重依赖 Triton 内核。因此，似乎非常合适，我们通过评估[torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html)提供的自动 Triton 优化来开始我们的 Triton 探索。下面的代码块包括我们在之前的帖子中介绍的面部检测模型的相同前向传递，以及编译后的 GIOU 损失函数。为了简洁起见，我们省略了一些支持代码。有关完整实现，请参见我们的[之前帖子](https://chaimrand.medium.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)。
 
 ```py
  def loss_with_padding(pred, targets):
@@ -183,8 +183,7 @@ def loss_with_triton(pred, targets):
                                 device = pred.device)
 
     # call Triton kernel
-    giou_kernel[(batch_size,)](pred, targets, output, valid,
-                               BLOCK_SIZE=n_boxes)
+    giou_kernel(batch_size,)
 
     total_valid = valid.sum()
     loss_sum = output.sum()
@@ -215,7 +214,7 @@ def loss_with_triton(pred, targets):
 -------------  ------------  ------------
 ```
 
-在开发[我们自定义的GIOU CUDA内核](/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)时，我们注意到将输入张量转换为float32的开销，并且需要增强我们的内核，以支持各种输入类型，避免这种转换。在我们的Triton内核中，这可以通过简单地去除转换操作来轻松完成。自定义内核将使用原始类型自动生成（JIT编译）。
+在开发我们自定义的 GIOU CUDA 内核时，我们注意到将输入张量转换为 float32 的开销，并且需要增强我们的内核，以支持各种输入类型，避免这种转换。在我们的 Triton 内核中，这可以通过简单地去除转换操作来轻松完成。自定义内核将使用原始类型自动生成（JIT 编译）。
 
 ```py
 -------------  ------------  ------------
@@ -227,21 +226,21 @@ def loss_with_triton(pred, targets):
 -------------  ------------  ------------
 ```
 
-我们的最终结果与我们在[上一篇文章](https://chaimrand.medium.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)中看到的CUDA内核结果相当。
+我们的最终结果与我们在[上一篇文章](https://chaimrand.medium.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)中看到的 CUDA 内核结果相当。
 
 # 结果
 
-下表总结了我们的实验结果。由于观察到一些变化，结果是多次运行的平均值。我们还包括了我们自定义CUDA内核的结果，参见我们的[上一篇文章](https://chaimrand.medium.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)，供参考。请记住，比较结果很可能会根据内核的细节和运行时环境有很大差异。
+下表总结了我们的实验结果。由于观察到一些变化，结果是多次运行的平均值。我们还包括了我们自定义 CUDA 内核的结果，参见我们的[上一篇文章](https://chaimrand.medium.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)，供参考。请记住，比较结果很可能会根据内核的细节和运行时环境有很大差异。
 
-![](../Images/0e85a9ec9d7a80826abc22c86f922dd6.png)
+![](img/0e85a9ec9d7a80826abc22c86f922dd6.png)
 
 平均损失运行时摘要（按作者分类）
 
-尽管我们第一次的Triton内核实验在性能上较自定义CUDA操作符有所下降，但通过应用编译并去除数据类型转换，我们成功地达到了相同的速度。
+尽管我们第一次的 Triton 内核实验在性能上较自定义 CUDA 操作符有所下降，但通过应用编译并去除数据类型转换，我们成功地达到了相同的速度。
 
-这些发现与人们对Triton的预期一致：一方面，它的高级API抽象意味着对低级流程的某种控制丧失，这可能导致运行时性能下降。另一方面，其API的（相对）简单性和强大功能使得用户可以通过更容易的实现来弥补性能差距，远比在CUDA中实现功能更加轻松。
+这些发现与人们对 Triton 的预期一致：一方面，它的高级 API 抽象意味着对低级流程的某种控制丧失，这可能导致运行时性能下降。另一方面，其 API 的（相对）简单性和强大功能使得用户可以通过更容易的实现来弥补性能差距，远比在 CUDA 中实现功能更加轻松。
 
-有人可能会强烈认为我们选择评估的Triton内核是[文档](https://openai.com/index/triton/)中所称的“明显并行”，即由逐元素操作组成，因此，作为展示Triton价值的示范内核，这是一个糟糕的选择。事实上，可能需要一个更复杂的程序，涉及更复杂的内存管理、调度、同步等，才能展示Triton的全部潜力。
+有人可能会强烈认为我们选择评估的 Triton 内核是[文档](https://openai.com/index/triton/)中所称的“明显并行”，即由逐元素操作组成，因此，作为展示 Triton 价值的示范内核，这是一个糟糕的选择。事实上，可能需要一个更复杂的程序，涉及更复杂的内存管理、调度、同步等，才能展示 Triton 的全部潜力。
 
 # 下一步
 
@@ -261,4 +260,4 @@ Triton 无疑是近年来最重要且最具影响力的 AI/ML 库之一。虽然
 
 Triton 的流行归功于其创新的内核开发编程模型。曾经仅限于 CUDA 专家的领域，Triton 使每个 Python 开发者都能够轻松创建定制的深度学习原语。
 
-在这篇文章中，我们仅仅触及了Triton及其功能的表面。务必查看Triton的在线[文档](https://triton-lang.org/main/index.html)和其他[资源](https://github.com/triton-lang/triton)以了解更多。
+在这篇文章中，我们仅仅触及了 Triton 及其功能的表面。务必查看 Triton 的在线[文档](https://triton-lang.org/main/index.html)和其他[资源](https://github.com/triton-lang/triton)以了解更多。

@@ -1,16 +1,16 @@
 # 什么是因果推断？
 
-> 原文：[https://towardsdatascience.com/what-is-causal-inference-48c57d848242?source=collection_archive---------5-----------------------#2024-07-22](https://towardsdatascience.com/what-is-causal-inference-48c57d848242?source=collection_archive---------5-----------------------#2024-07-22)
+> 原文：[`towardsdatascience.com/what-is-causal-inference-48c57d848242?source=collection_archive---------5-----------------------#2024-07-22`](https://towardsdatascience.com/what-is-causal-inference-48c57d848242?source=collection_archive---------5-----------------------#2024-07-22)
 
-## 初学者的因果推断方法指南：随机对照试验、差分中的差分法、合成控制法和A/B测试
+## 初学者的因果推断方法指南：随机对照试验、差分中的差分法、合成控制法和 A/B 测试
 
-[](https://medium.com/@khinydnlin_310?source=post_page---byline--48c57d848242--------------------------------)[![Khin Yadanar Lin](../Images/1018a44583239dfd33901b6d392d257f.png)](https://medium.com/@khinydnlin_310?source=post_page---byline--48c57d848242--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--48c57d848242--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--48c57d848242--------------------------------) [Khin Yadanar Lin](https://medium.com/@khinydnlin_310?source=post_page---byline--48c57d848242--------------------------------)
+[](https://medium.com/@khinydnlin_310?source=post_page---byline--48c57d848242--------------------------------)![Khin Yadanar Lin](https://medium.com/@khinydnlin_310?source=post_page---byline--48c57d848242--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--48c57d848242--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--48c57d848242--------------------------------) [Khin Yadanar Lin](https://medium.com/@khinydnlin_310?source=post_page---byline--48c57d848242--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--48c57d848242--------------------------------) ·阅读时长：11分钟·2024年7月22日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--48c57d848242--------------------------------) ·阅读时长：11 分钟·2024 年 7 月 22 日
 
 --
 
-![](../Images/f8409c205db10358744df0ca23a00b43.png)
+![](img/f8409c205db10358744df0ca23a00b43.png)
 
 摄影：由[Delano Ramdas](https://unsplash.com/@delanodzr?utm_source=medium&utm_medium=referral)提供，刊登于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

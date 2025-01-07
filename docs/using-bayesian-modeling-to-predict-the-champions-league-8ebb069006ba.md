@@ -1,18 +1,18 @@
 # 使用贝叶斯建模预测欧冠联赛
 
-> 原文：[https://towardsdatascience.com/using-bayesian-modeling-to-predict-the-champions-league-8ebb069006ba?source=collection_archive---------1-----------------------#2024-02-20](https://towardsdatascience.com/using-bayesian-modeling-to-predict-the-champions-league-8ebb069006ba?source=collection_archive---------1-----------------------#2024-02-20)
+> 原文：[`towardsdatascience.com/using-bayesian-modeling-to-predict-the-champions-league-8ebb069006ba?source=collection_archive---------1-----------------------#2024-02-20`](https://towardsdatascience.com/using-bayesian-modeling-to-predict-the-champions-league-8ebb069006ba?source=collection_archive---------1-----------------------#2024-02-20)
 
 ## 体育分析
 
 ## 贝叶斯推断在现实世界中的应用
 
-[](https://polmarin.medium.com/?source=post_page---byline--8ebb069006ba--------------------------------)[![Pol Marin](../Images/a4f69a96717d453db9791f27b8f85e86.png)](https://polmarin.medium.com/?source=post_page---byline--8ebb069006ba--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8ebb069006ba--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8ebb069006ba--------------------------------) [Pol Marin](https://polmarin.medium.com/?source=post_page---byline--8ebb069006ba--------------------------------)
+[](https://polmarin.medium.com/?source=post_page---byline--8ebb069006ba--------------------------------)![Pol Marin](https://polmarin.medium.com/?source=post_page---byline--8ebb069006ba--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8ebb069006ba--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8ebb069006ba--------------------------------) [Pol Marin](https://polmarin.medium.com/?source=post_page---byline--8ebb069006ba--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8ebb069006ba--------------------------------) ·15分钟阅读·2024年2月20日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8ebb069006ba--------------------------------) ·15 分钟阅读·2024 年 2 月 20 日
 
 --
 
-![](../Images/c0ec9b4f73faaa9545dceb150ef11d16.png)
+![](img/c0ec9b4f73faaa9545dceb150ef11d16.png)
 
 图片由[Anders Krøgh Jørgensen](https://unsplash.com/@anders_kj1?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -20,7 +20,7 @@
 
 但这不应该阻止我们去尝试。
 
-前几天我在翻看旧的大学作业时，发现了一篇激发我写这篇文章的评估报告，我们将利用贝叶斯推断创建一个模型，尝试预测接下来的欧冠联赛比赛：16强的首回合（说实话，这个模型也可以用来预测任何阶段的比赛）。
+前几天我在翻看旧的大学作业时，发现了一篇激发我写这篇文章的评估报告，我们将利用贝叶斯推断创建一个模型，尝试预测接下来的欧冠联赛比赛：16 强的首回合（说实话，这个模型也可以用来预测任何阶段的比赛）。
 
 目标是通过贝叶斯统计在一个我认为既有趣又有娱乐性的实际案例中建立一个模型。
 

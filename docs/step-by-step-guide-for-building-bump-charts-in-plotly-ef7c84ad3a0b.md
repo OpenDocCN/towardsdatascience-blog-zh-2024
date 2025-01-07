@@ -1,16 +1,16 @@
 # 在 Plotly 中构建排名图的逐步指南
 
-> 原文：[https://towardsdatascience.com/step-by-step-guide-for-building-bump-charts-in-plotly-ef7c84ad3a0b?source=collection_archive---------8-----------------------#2024-12-04](https://towardsdatascience.com/step-by-step-guide-for-building-bump-charts-in-plotly-ef7c84ad3a0b?source=collection_archive---------8-----------------------#2024-12-04)
+> 原文：[`towardsdatascience.com/step-by-step-guide-for-building-bump-charts-in-plotly-ef7c84ad3a0b?source=collection_archive---------8-----------------------#2024-12-04`](https://towardsdatascience.com/step-by-step-guide-for-building-bump-charts-in-plotly-ef7c84ad3a0b?source=collection_archive---------8-----------------------#2024-12-04)
 
 ## 学习如何使用 Plotly 在 Python 中创建自定义排名图进行数据可视化
 
-[](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--ef7c84ad3a0b--------------------------------)[![Amanda Iglesias Moreno](../Images/9cff03d0c0caaa9a8aa53c4c34c90cac.png)](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--ef7c84ad3a0b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ef7c84ad3a0b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ef7c84ad3a0b--------------------------------) [Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--ef7c84ad3a0b--------------------------------)
+[](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--ef7c84ad3a0b--------------------------------)![Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--ef7c84ad3a0b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ef7c84ad3a0b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ef7c84ad3a0b--------------------------------) [Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--ef7c84ad3a0b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ef7c84ad3a0b--------------------------------) ·阅读时间：11 分钟·2024年12月4日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ef7c84ad3a0b--------------------------------) ·阅读时间：11 分钟·2024 年 12 月 4 日
 
 --
 
-![](../Images/2c17589d3ad44c33aaee70fb4de9ef64.png)
+![](img/2c17589d3ad44c33aaee70fb4de9ef64.png)
 
 Plotly 中的排名图（图片来源：作者）
 

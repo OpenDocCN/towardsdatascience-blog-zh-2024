@@ -1,10 +1,10 @@
 # ChatGPT 与 Claude 与 Gemini 在数据分析中的比较（第一部分）
 
-> 原文：[https://towardsdatascience.com/chatgpt-vs-claude-vs-gemini-for-data-analysis-part-1-821086810318?source=collection_archive---------0-----------------------#2024-08-05](https://towardsdatascience.com/chatgpt-vs-claude-vs-gemini-for-data-analysis-part-1-821086810318?source=collection_archive---------0-----------------------#2024-08-05)
+> 原文：[`towardsdatascience.com/chatgpt-vs-claude-vs-gemini-for-data-analysis-part-1-821086810318?source=collection_archive---------0-----------------------#2024-08-05`](https://towardsdatascience.com/chatgpt-vs-claude-vs-gemini-for-data-analysis-part-1-821086810318?source=collection_archive---------0-----------------------#2024-08-05)
 
 ## 十个问题，用来测试哪个 AI 助手写的 SQL 最好
 
-[](https://ydong029.medium.com/?source=post_page---byline--821086810318--------------------------------)[![Yu Dong](../Images/55c3c11c76cde72c65eb81a60384a436.png)](https://ydong029.medium.com/?source=post_page---byline--821086810318--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--821086810318--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--821086810318--------------------------------) [Yu Dong](https://ydong029.medium.com/?source=post_page---byline--821086810318--------------------------------)
+[](https://ydong029.medium.com/?source=post_page---byline--821086810318--------------------------------)![Yu Dong](https://ydong029.medium.com/?source=post_page---byline--821086810318--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--821086810318--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--821086810318--------------------------------) [Yu Dong](https://ydong029.medium.com/?source=post_page---byline--821086810318--------------------------------)
 
 · 发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--821086810318--------------------------------) ·阅读时间：18 分钟 ·2024 年 8 月 5 日
 
@@ -12,19 +12,19 @@
 
 # 目录
 
-· [上下文](#b483)
+· 上下文
 
-· [让我们比较它们的 SQL 技能！](#f39c)
+· 让我们比较它们的 SQL 技能！
 
-· [第一回合：问题解决（LeetCode SQL）](#c188)
+· 第一回合：问题解决（LeetCode SQL）
 
-· [第二回合：商业逻辑](#7c22)
+· 第二回合：商业逻辑
 
-· [第三回合：查询优化](#d1b9)
+· 第三回合：查询优化
 
-· [总结](#6c1e)
+· 总结
 
-· [接下来是什么](#b6fb)
+· 接下来是什么
 
 # 上下文
 

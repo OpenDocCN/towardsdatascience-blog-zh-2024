@@ -1,18 +1,18 @@
 # 为人民而建，由人民主导的语义层
 
-> 原文：[https://towardsdatascience.com/semantic-layer-for-the-people-and-by-the-people-ce9ecbd0a6f6?source=collection_archive---------6-----------------------#2024-09-23](https://towardsdatascience.com/semantic-layer-for-the-people-and-by-the-people-ce9ecbd0a6f6?source=collection_archive---------6-----------------------#2024-09-23)
+> 原文：[`towardsdatascience.com/semantic-layer-for-the-people-and-by-the-people-ce9ecbd0a6f6?source=collection_archive---------6-----------------------#2024-09-23`](https://towardsdatascience.com/semantic-layer-for-the-people-and-by-the-people-ce9ecbd0a6f6?source=collection_archive---------6-----------------------#2024-09-23)
 
-## 我的3个[+1] Joker与构建强大分析语义层的模板
+## 我的 3 个[+1] Joker 与构建强大分析语义层的模板
 
-[](https://medium.com/@martosi?source=post_page---byline--ce9ecbd0a6f6--------------------------------)[![Marina Tosic](../Images/5e50c62f54caa6aca417dc9f1e593d05.png)](https://medium.com/@martosi?source=post_page---byline--ce9ecbd0a6f6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ce9ecbd0a6f6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ce9ecbd0a6f6--------------------------------) [Marina Tosic](https://medium.com/@martosi?source=post_page---byline--ce9ecbd0a6f6--------------------------------)
+[](https://medium.com/@martosi?source=post_page---byline--ce9ecbd0a6f6--------------------------------)![Marina Tosic](https://medium.com/@martosi?source=post_page---byline--ce9ecbd0a6f6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ce9ecbd0a6f6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ce9ecbd0a6f6--------------------------------) [Marina Tosic](https://medium.com/@martosi?source=post_page---byline--ce9ecbd0a6f6--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ce9ecbd0a6f6--------------------------------) ·阅读时长12分钟·2024年9月23日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ce9ecbd0a6f6--------------------------------) ·阅读时长 12 分钟·2024 年 9 月 23 日
 
 --
 
 **简而言之：**
 
-我的3个直白的和1个隐藏的Joker是：
+我的 3 个直白的和 1 个隐藏的 Joker 是：
 
 +   ***Joker #1:***模式驱动的仓库结构 🗂️
 
@@ -20,9 +20,9 @@
 
 +   ***Joker #3:***（非）嵌入式文档 📜
 
-+   [🃏 ***隐藏的Joker:*** *改进循环* 🃏]
++   [🃏 ***隐藏的 Joker:*** *改进循环* 🃏]
 
-![](../Images/d3198531655e161184d01d7b6e8a2c7a.png)
+![](img/d3198531655e161184d01d7b6e8a2c7a.png)
 
 “***简单*** *且* ***一致。***——这是我在构建语义层时向他人描述的两个最重要的维度。” [照片由[Zuzana Ruttkay](https://unsplash.com/@zuzi_ruttkay?utm_source=medium&utm_medium=referral)拍摄，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)]
 

@@ -1,16 +1,16 @@
 # 绘制宝可梦世界：基于栖息地的遭遇网络分析
 
-> 原文：[https://towardsdatascience.com/mapping-the-pok%C3%A9mon-world-a-network-analysis-of-habitat-based-encounters-9b8e5fe4db0a?source=collection_archive---------4-----------------------#2024-06-14](https://towardsdatascience.com/mapping-the-pok%C3%A9mon-world-a-network-analysis-of-habitat-based-encounters-9b8e5fe4db0a?source=collection_archive---------4-----------------------#2024-06-14)
+> 原文：[`towardsdatascience.com/mapping-the-pok%C3%A9mon-world-a-network-analysis-of-habitat-based-encounters-9b8e5fe4db0a?source=collection_archive---------4-----------------------#2024-06-14`](https://towardsdatascience.com/mapping-the-pok%C3%A9mon-world-a-network-analysis-of-habitat-based-encounters-9b8e5fe4db0a?source=collection_archive---------4-----------------------#2024-06-14)
 
 ## 本文将介绍在 Python 中进行网络分析，并通过使用来自 PokeApi 的宝可梦数据进行实际示例
 
-[](https://medium.com/@jaingle77?source=post_page---byline--9b8e5fe4db0a--------------------------------)[![Jacob Ingle](../Images/f2543a1c4b12ef28a83c30c1667ee032.png)](https://medium.com/@jaingle77?source=post_page---byline--9b8e5fe4db0a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9b8e5fe4db0a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9b8e5fe4db0a--------------------------------) [Jacob Ingle](https://medium.com/@jaingle77?source=post_page---byline--9b8e5fe4db0a--------------------------------)
+[](https://medium.com/@jaingle77?source=post_page---byline--9b8e5fe4db0a--------------------------------)![Jacob Ingle](https://medium.com/@jaingle77?source=post_page---byline--9b8e5fe4db0a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9b8e5fe4db0a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9b8e5fe4db0a--------------------------------) [Jacob Ingle](https://medium.com/@jaingle77?source=post_page---byline--9b8e5fe4db0a--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9b8e5fe4db0a--------------------------------) ·15分钟阅读·2024年6月14日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9b8e5fe4db0a--------------------------------) ·15 分钟阅读·2024 年 6 月 14 日
 
 --
 
-![](../Images/480e0de76a48647d9c891d17f1789913.png)
+![](img/480e0de76a48647d9c891d17f1789913.png)
 
 图片由[Michael Rivera](https://unsplash.com/@gojomike?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,6 +22,6 @@
 
 # 什么是网络分析
 
-![](../Images/ab11887e7247d15ab79d1bb86eed86fe.png)
+![](img/ab11887e7247d15ab79d1bb86eed86fe.png)
 
-图片由DALL-E生成
+图片由 DALL-E 生成

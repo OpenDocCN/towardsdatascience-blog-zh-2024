@@ -1,16 +1,16 @@
 # 时间序列预测中的不确定性量化
 
-> 原文：[https://towardsdatascience.com/uncertainty-quantification-in-time-series-forecasting-c9599d15b08b?source=collection_archive---------2-----------------------#2024-12-09](https://towardsdatascience.com/uncertainty-quantification-in-time-series-forecasting-c9599d15b08b?source=collection_archive---------2-----------------------#2024-12-09)
+> 原文：[`towardsdatascience.com/uncertainty-quantification-in-time-series-forecasting-c9599d15b08b?source=collection_archive---------2-----------------------#2024-12-09`](https://towardsdatascience.com/uncertainty-quantification-in-time-series-forecasting-c9599d15b08b?source=collection_archive---------2-----------------------#2024-12-09)
 
-## 深入探讨EnbPI，这是一种用于时间序列预测的符合预测方法
+## 深入探讨 EnbPI，这是一种用于时间序列预测的符合预测方法
 
-[](https://medium.com/@jodancker?source=post_page---byline--c9599d15b08b--------------------------------)[![Jonte Dancker](../Images/29e37a1a1cabc15cfb90a860b2931f03.png)](https://medium.com/@jodancker?source=post_page---byline--c9599d15b08b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c9599d15b08b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c9599d15b08b--------------------------------) [Jonte Dancker](https://medium.com/@jodancker?source=post_page---byline--c9599d15b08b--------------------------------)
+[](https://medium.com/@jodancker?source=post_page---byline--c9599d15b08b--------------------------------)![Jonte Dancker](https://medium.com/@jodancker?source=post_page---byline--c9599d15b08b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c9599d15b08b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c9599d15b08b--------------------------------) [Jonte Dancker](https://medium.com/@jodancker?source=post_page---byline--c9599d15b08b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c9599d15b08b--------------------------------) ·阅读时间 10 分钟 ·2024年12月9日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c9599d15b08b--------------------------------) ·阅读时间 10 分钟 ·2024 年 12 月 9 日
 
 --
 
-![](../Images/5098798089e55a35502d6f47fc141ba3.png)
+![](img/5098798089e55a35502d6f47fc141ba3.png)
 
 作者提供的图片
 

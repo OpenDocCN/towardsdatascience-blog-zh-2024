@@ -1,12 +1,12 @@
 # 机器学习/人工智能中的学习证明
 
-> 原文：[https://towardsdatascience.com/the-proof-of-learning-in-machine-learning-ai-4faae3c85fe6?source=collection_archive---------0-----------------------#2024-05-17](https://towardsdatascience.com/the-proof-of-learning-in-machine-learning-ai-4faae3c85fe6?source=collection_archive---------0-----------------------#2024-05-17)
+> 原文：[`towardsdatascience.com/the-proof-of-learning-in-machine-learning-ai-4faae3c85fe6?source=collection_archive---------0-----------------------#2024-05-17`](https://towardsdatascience.com/the-proof-of-learning-in-machine-learning-ai-4faae3c85fe6?source=collection_archive---------0-----------------------#2024-05-17)
 
 ## 在进行任何数学推导之前，我们必须首先理解学习的基础，并且了解它如何与误差的概念紧密相关。
 
-[](https://medium.com/@romulo_pauliv?source=post_page---byline--4faae3c85fe6--------------------------------)[![Rômulo Pauliv](../Images/2a2d648d3ac84cf300bc7113b839c4b5.png)](https://medium.com/@romulo_pauliv?source=post_page---byline--4faae3c85fe6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4faae3c85fe6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4faae3c85fe6--------------------------------) [Rômulo Pauliv](https://medium.com/@romulo_pauliv?source=post_page---byline--4faae3c85fe6--------------------------------)
+[](https://medium.com/@romulo_pauliv?source=post_page---byline--4faae3c85fe6--------------------------------)![Rômulo Pauliv](https://medium.com/@romulo_pauliv?source=post_page---byline--4faae3c85fe6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4faae3c85fe6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4faae3c85fe6--------------------------------) [Rômulo Pauliv](https://medium.com/@romulo_pauliv?source=post_page---byline--4faae3c85fe6--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4faae3c85fe6--------------------------------) ·9分钟阅读·2024年5月17日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4faae3c85fe6--------------------------------) ·9 分钟阅读·2024 年 5 月 17 日
 
 --
 
@@ -48,13 +48,13 @@
 
 评估结果与预期结果之间差异的函数是*成本函数*。将食材和烹饪方法转化为美食的函数是我们的模型，这可以是人工神经网络或其他机器学习模型。
 
-![](../Images/81c8069c15e37623b48e52f0d4d47639.png)
+![](img/81c8069c15e37623b48e52f0d4d47639.png)
 
 来源：作者。公式（1）
 
 在公式（1）中，成本函数*E*的定义依赖于*n*个权重*w*。换句话说，这是一个基于*w*的值指示误差的函数。在一个特定的情况下，当所有*n*个权重*w*都没有调整时，误差*E*的值将很大。相反，在权重适当调整的情况下，误差*E*的值将很小或为零。
 
-![](../Images/a9881fc9e2264c7e7090d4622f42596f.png)
+![](img/a9881fc9e2264c7e7090d4622f42596f.png)
 
 来源：作者。公式（2）
 
@@ -64,7 +64,7 @@
 
 为了便于理解我们将如何进行，接下来我们将定义以下函数：
 
-![](../Images/3f31937eb0c958d9a052d0c932592352.png)
+![](img/3f31937eb0c958d9a052d0c932592352.png)
 
 来源：作者。图像（1）
 
@@ -72,7 +72,7 @@
 
 为了实现这一点，我们可以使用函数的梯度。在向量微积分中，梯度是一个向量，表示通过从指定点位移，可以获得某一量值的最大可能增量的方向和大小。
 
-![](../Images/6b0a4bc945f0bc3b6c5593ea6afea079.png)
+![](img/6b0a4bc945f0bc3b6c5593ea6afea079.png)
 
 来源：作者。公式（3）
 
@@ -80,7 +80,7 @@
 
 以下是函数*f(x, y)*在二维空间中的表示，颜色显示了*z*的值。使用负梯度，我们可以看到指向函数最小值的向量。
 
-![](../Images/a0bb5dd854ce8c7cd8056e5bc0dcf2e6.png)
+![](img/a0bb5dd854ce8c7cd8056e5bc0dcf2e6.png)
 
 来源：作者。图像（2）
 
@@ -90,7 +90,7 @@
 
 我们将定义一个简单的函数*f(x)*进行算法测试。我们的目标是找到这个函数的最小值。为此，我们可以应用*f(x)*的梯度。
 
-![](../Images/2e5c69f07244b0fc525671c391f4667c.png)
+![](img/2e5c69f07244b0fc525671c391f4667c.png)
 
 来源：作者。公式（4）
 
@@ -98,19 +98,19 @@
 
 知道*h*趋向于零，我们可以如下表示*f(x)*的梯度：
 
-![](../Images/aacc5bc9b490877922185777eb5704ee.png)
+![](img/aacc5bc9b490877922185777eb5704ee.png)
 
 来源：作者。公式（5）
 
 基于此，我们可以用以下项替代*h*：
 
-![](../Images/38547a0b1525f66f6c154596eff08895.png)
+![](img/38547a0b1525f66f6c154596eff08895.png)
 
 来源：作者。公式（6）
 
 我们定义元素*alpha*来保持*h*项的必要性，其中*alpha*必须严格为正，并且始终趋向于零，和*h*项相同。将这一新的关系代入导数定义中，我们得到：
 
-![](../Images/d2855f453f451dc2a29c66fe68e26d12.png)
+![](img/d2855f453f451dc2a29c66fe68e26d12.png)
 
 来源：作者。公式（7）
 
@@ -118,43 +118,43 @@
 
 所以：
 
-![](../Images/eda81fa6ccc6d5f3476ae70aaf7b74fd.png)
+![](img/eda81fa6ccc6d5f3476ae70aaf7b74fd.png)
 
 来源：作者。公式（8）
 
 因此，我们可以判断，当 *alpha* 始终为正值时，条件（8）成立。
 
-![](../Images/3252475d5891fd3c42050d356336ae5f.png)
+![](img/3252475d5891fd3c42050d356336ae5f.png)
 
 来源：作者。公式（9）
 
 也就是说，*f(x)* 的值减去一个严格正的值将总是小于 *f(x)* 的原始值。因此，我们可以使用公式（7）和（9）替换为以下关系：
 
-![](../Images/9196a08c8585b7dabac2f3681905d4cb.png)
+![](img/9196a08c8585b7dabac2f3681905d4cb.png)
 
 来源：作者。公式（10）
 
 因此，我们已经证明了如何更新 *x* 的值，以确保函数 *f(x)* 至少小于其先前的值的关系。
 
-![](../Images/38dc51d4143b3e80cc9a4c707e7278e4.png)
+![](img/38dc51d4143b3e80cc9a4c707e7278e4.png)
 
 来源：作者。公式（11）
 
 因此，我们知道如何减少当前的 *x* 以满足不等式（11）：
 
-![](../Images/f860f57ff92a6314dc8800177c2adb56.png)
+![](img/f860f57ff92a6314dc8800177c2adb56.png)
 
 来源：作者。公式（12）
 
 为了确认这个关系的有效性，我们可以将这种方法应用于图像（1）中的函数 *f(x, y)*，我们已知该函数的行为。因此：
 
-![](../Images/d07ea17cab43755bdebf0265bf359b27.png)
+![](img/d07ea17cab43755bdebf0265bf359b27.png)
 
 来源：作者。公式（13）
 
 将此算法多次应用于函数 *f(x, y)*，我们预期看到函数值下降，直到达到最小值。为此，我们进行了模拟，并在其中对更新后的 *x* 和 *y* 赋值施加了噪声，以便可视化 *f(x, y)* 的值的下降。
 
-![](../Images/54af915ff42ea099c2429f8cca2a7043.png)
+![](img/54af915ff42ea099c2429f8cca2a7043.png)
 
 来源：作者。图像（3）
 
@@ -168,19 +168,19 @@
 
 现在，将其应用于依赖于 *n* 个权重 *w* 的代价函数 *E*，我们得到：
 
-![](../Images/efddc76046b63efd822e311b8e49e13e.png)
+![](img/efddc76046b63efd822e311b8e49e13e.png)
 
 来源：作者。公式（14）
 
 要基于梯度下降法更新所有元素 *W*，我们有：
 
-![](../Images/a714a82bbf8aa6a8fecdbcb25f225b76.png)
+![](img/a714a82bbf8aa6a8fecdbcb25f225b76.png)
 
 来源：作者。公式（15）
 
-对于向量 *W* 的任何 *n* 第n个元素 𝑤， 我们有：
+对于向量 *W* 的任何 *n* 第 n 个元素 𝑤， 我们有：
 
-![](../Images/3e9670c17c0ae010568107356bcca08d.png)
+![](img/3e9670c17c0ae010568107356bcca08d.png)
 
 来源：作者。公式（16）
 
@@ -188,20 +188,20 @@
 
 # 结论
 
-基于我们所看到的内容，我们可以得出结论，理论学习算法的演示和数学证明。这样的结构被应用于许多学习方法，如AdaGrad、Adam和随机梯度下降（SGD）。
+基于我们所看到的内容，我们可以得出结论，理论学习算法的演示和数学证明。这样的结构被应用于许多学习方法，如 AdaGrad、Adam 和随机梯度下降（SGD）。
 
 这种方法不能保证找到使*成本函数*的结果为零或接近零的*n*-权重值*w*，但它能保证找到成本函数的局部最小值。
 
-为了解决局部最小值的问题，有几种更为稳健的方法，例如SGD和Adam，这些方法在深度学习中常被使用。
+为了解决局部最小值的问题，有几种更为稳健的方法，例如 SGD 和 Adam，这些方法在深度学习中常被使用。
 
 然而，理解基于梯度下降的理论学习算法的结构和数学证明，将有助于理解更复杂的算法。
 
 ## 参考文献
 
-Carreira-Perpinan, M. A., & Hinton, G. E. (2005). 关于对比散度学习。在R. G. Cowell & Z. Ghahramani（编辑），人工智能与统计学，2005。（第33–41页）。佛罗里达州劳德代尔堡：人工智能与统计学学会。
+Carreira-Perpinan, M. A., & Hinton, G. E. (2005). 关于对比散度学习。在 R. G. Cowell & Z. Ghahramani（编辑），人工智能与统计学，2005。（第 33–41 页）。佛罗里达州劳德代尔堡：人工智能与统计学学会。
 
 García Cabello, J. 数学神经网络。Axioms 2022, 11, 80。
 
 Geoffrey E. Hinton, Simon Osindero, Yee-Whye Teh. A Fast Learning Algorithm for Deep Belief Nets. Neural Computation 18, 1527–1554. 麻省理工学院
 
-LeCun, Y., Bottou, L., & Haffner, P. (1998). 基于梯度的学习应用于文档识别。IEEE学报，86(11)，2278–2324。
+LeCun, Y., Bottou, L., & Haffner, P. (1998). 基于梯度的学习应用于文档识别。IEEE 学报，86(11)，2278–2324。

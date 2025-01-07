@@ -1,16 +1,16 @@
 # 将你的数据作为产品交付，但不是作为应用
 
-> 原文：[https://towardsdatascience.com/deliver-your-data-as-a-product-but-not-as-an-application-99c4af23c0fb?source=collection_archive---------0-----------------------#2024-07-12](https://towardsdatascience.com/deliver-your-data-as-a-product-but-not-as-an-application-99c4af23c0fb?source=collection_archive---------0-----------------------#2024-07-12)
+> 原文：[`towardsdatascience.com/deliver-your-data-as-a-product-but-not-as-an-application-99c4af23c0fb?source=collection_archive---------0-----------------------#2024-07-12`](https://towardsdatascience.com/deliver-your-data-as-a-product-but-not-as-an-application-99c4af23c0fb?source=collection_archive---------0-----------------------#2024-07-12)
 
 ## 数据作为产品是一个有趣的概念，但要小心应用陷阱
 
-[](https://medium.com/@bernd.wessely?source=post_page---byline--99c4af23c0fb--------------------------------)[![Bernd Wessely](../Images/e60e01c19412d8af8f8bddf78e561275.png)](https://medium.com/@bernd.wessely?source=post_page---byline--99c4af23c0fb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--99c4af23c0fb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--99c4af23c0fb--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--99c4af23c0fb--------------------------------)
+[](https://medium.com/@bernd.wessely?source=post_page---byline--99c4af23c0fb--------------------------------)![Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--99c4af23c0fb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--99c4af23c0fb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99c4af23c0fb--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--99c4af23c0fb--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99c4af23c0fb--------------------------------) ·9分钟阅读·2024年7月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99c4af23c0fb--------------------------------) ·9 分钟阅读·2024 年 7 月 12 日
 
 --
 
-![](../Images/89765e1f238ff37fe49fa79f13ec7bde.png)
+![](img/89765e1f238ff37fe49fa79f13ec7bde.png)
 
 数据作为产品可以以两种形式提供 — 作者提供的图片
 
@@ -18,4 +18,4 @@
 
 # 数据作为产品
 
-将数据转化为产品的概念在数据工程领域并不新鲜，甚至在数据网格框架定义之前就已被使用。然而，在创建一个由数据驱动的产品和将数据本身视为产品之间，有一个重要的区别 — 这里有一个很好的解释，说明了“数据作为产品”和“数据产品”之间的微妙[差异](/data-as-a-product-vs-data-products-what-are-the-differences-b43ddbb0f123)。在本文中，我专注于“数据作为产品”，即使我为了简洁也使用了“数据产品”这个术语。
+将数据转化为产品的概念在数据工程领域并不新鲜，甚至在数据网格框架定义之前就已被使用。然而，在创建一个由数据驱动的产品和将数据本身视为产品之间，有一个重要的区别 — 这里有一个很好的解释，说明了“数据作为产品”和“数据产品”之间的微妙差异。在本文中，我专注于“数据作为产品”，即使我为了简洁也使用了“数据产品”这个术语。

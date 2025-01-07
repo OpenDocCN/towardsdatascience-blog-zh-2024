@@ -1,24 +1,24 @@
 # 情感回路
 
-> 原文：[https://towardsdatascience.com/emotions-in-the-loop-1a68268a8823?source=collection_archive---------12-----------------------#2024-02-16](https://towardsdatascience.com/emotions-in-the-loop-1a68268a8823?source=collection_archive---------12-----------------------#2024-02-16)
+> 原文：[`towardsdatascience.com/emotions-in-the-loop-1a68268a8823?source=collection_archive---------12-----------------------#2024-02-16`](https://towardsdatascience.com/emotions-in-the-loop-1a68268a8823?source=collection_archive---------12-----------------------#2024-02-16)
 
 ## 分析（扫描过的）简的生活
 
-[](https://medium.com/@tea.mustac?source=post_page---byline--1a68268a8823--------------------------------)[![Tea Mustać](../Images/6921322fa264868c02e3787de1716142.png)](https://medium.com/@tea.mustac?source=post_page---byline--1a68268a8823--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1a68268a8823--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1a68268a8823--------------------------------) [Tea Mustać](https://medium.com/@tea.mustac?source=post_page---byline--1a68268a8823--------------------------------)
+[](https://medium.com/@tea.mustac?source=post_page---byline--1a68268a8823--------------------------------)![Tea Mustać](https://medium.com/@tea.mustac?source=post_page---byline--1a68268a8823--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1a68268a8823--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1a68268a8823--------------------------------) [Tea Mustać](https://medium.com/@tea.mustac?source=post_page---byline--1a68268a8823--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1a68268a8823--------------------------------) ·阅读时长11分钟·2024年2月16日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1a68268a8823--------------------------------) ·阅读时长 11 分钟·2024 年 2 月 16 日
 
 --
 
-![](../Images/0b79c120c1545ee868fc7146539f28e6.png)
+![](img/0b79c120c1545ee868fc7146539f28e6.png)
 
-图片由[Etienne Girardet](https://unsplash.com/@etiennegirardet)提供，来源于Unsplash
+图片由[Etienne Girardet](https://unsplash.com/@etiennegirardet)提供，来源于 Unsplash
 
-随着《人工智能法案》在1月底正式通过，我陷入了它的一些条款。特别是其中涉及情感识别技术的部分，坦率地说，这让我比我原先预期的更为纠结。也许我只是想找个借口重新研究一些我个人最喜欢的话题：人类心理学、动机和操控。无论如何，我发现了许多新颖且有趣的技术，但令人失望的是，关于它们所提出问题的法律分析远没有我预期的那么精彩。随着我脑海中的思维如同“仓鼠轮”般旋转，我忍不住把一些想法写了下来。
+随着《人工智能法案》在 1 月底正式通过，我陷入了它的一些条款。特别是其中涉及情感识别技术的部分，坦率地说，这让我比我原先预期的更为纠结。也许我只是想找个借口重新研究一些我个人最喜欢的话题：人类心理学、动机和操控。无论如何，我发现了许多新颖且有趣的技术，但令人失望的是，关于它们所提出问题的法律分析远没有我预期的那么精彩。随着我脑海中的思维如同“仓鼠轮”般旋转，我忍不住把一些想法写了下来。
 
 《情感回路》系列计划如下：我将首先设定场景，假设一个早晨的生活情景（虽然在某种程度上已经是可能的），这个情景是关于（扫描过的）简·多恩的生活。接着，我将描述可以用于使这个假设场景成为现实的技术，并引用相关专利和论文，证明我们已经达到了能够让扫描版简·多恩存在于某个地方的技术水平。第一部分的重点是展示这些技术能走多远，并希望能引发读者思考，究竟在什么时候，这个场景从一个理想社会变成了一个反乌托邦。至少对于他们个人而言。
 
-在接下来的系列中，我将分析这个虚构情境中的法律情况。希望能帮助展示我们法律框架中，在哪些方面仍然存在着保护个人的空白。我将通过聚焦于GDPR、最近通过的数据法案（Data Act）以及即将出台的人工智能法案（AI Act），来进行分析。关键在于：这些法规在保护个人免受一些（可能是）最有用、但又最容易被滥用的技术方面，表现得非常糟糕。尤其是当这些技术被组合使用时，就像在这个（坦白说有点像《黑镜》）的设想情境中。
+在接下来的系列中，我将分析这个虚构情境中的法律情况。希望能帮助展示我们法律框架中，在哪些方面仍然存在着保护个人的空白。我将通过聚焦于 GDPR、最近通过的数据法案（Data Act）以及即将出台的人工智能法案（AI Act），来进行分析。关键在于：这些法规在保护个人免受一些（可能是）最有用、但又最容易被滥用的技术方面，表现得非常糟糕。尤其是当这些技术被组合使用时，就像在这个（坦白说有点像《黑镜》）的设想情境中。
 
 由于我在边做边开发这个系列的构思，我完全不知道它最终会把我带到哪里。不过，如果你也愿意进行一些危险的推测，配合一些牵强附会的说法，再加上一点法律分析，欢迎加入，享受这段旅程！
 
@@ -32,11 +32,11 @@
 
 — 早安，简！ — 一个温柔的女性声音说道。
 
-— 看来你昨晚睡得不太好。 — 那个声音继续说道 — 你应该考虑买一张新的符合人体工学的床垫。我在网上找到12款非常适合你的。我可以为你设置一个提醒，提醒你查看它们。还是我直接根据用户评价给你订购一款性价比最高的？ — 声音停顿了一下。
+— 看来你昨晚睡得不太好。 — 那个声音继续说道 — 你应该考虑买一张新的符合人体工学的床垫。我在网上找到 12 款非常适合你的。我可以为你设置一个提醒，提醒你查看它们。还是我直接根据用户评价给你订购一款性价比最高的？ — 声音停顿了一下。
 
 — 就订吧 — 简听见自己喃喃自语道，还没来得及仔细思考。（毕竟太早了。还是说，不是吗？今天是什么日子？）
 
-— 今天是2027年7月12日，星期日，早上8:30。今天也是你母亲的生日，我买了你想要的那只古董中国花瓶给她。— 短暂停顿 — 你应该在12点之前离开家，这样你就能准时到达。天气会很阳光明媚且温暖。
+— 今天是 2027 年 7 月 12 日，星期日，早上 8:30。今天也是你母亲的生日，我买了你想要的那只古董中国花瓶给她。— 短暂停顿 — 你应该在 12 点之前离开家，这样你就能准时到达。天气会很阳光明媚且温暖。
 
 — 哦，对了 — 简心里想着。— 是的，谢谢，我现在就起床。
 
@@ -74,7 +74,7 @@
 
 — 是的，我想这听起来有道理。
 
-— 太好了，药物已经在路上，明天就会送到。现在你可以放松一下，喝你的咖啡了。我还准备了一份可能对你有兴趣的新闻清单，出租车会在12点15分准时到这里，送你去你母亲家。
+— 太好了，药物已经在路上，明天就会送到。现在你可以放松一下，喝你的咖啡了。我还准备了一份可能对你有兴趣的新闻清单，出租车会在 12 点 15 分准时到这里，送你去你母亲家。
 
 （太完美了！）
 
@@ -118,7 +118,7 @@
 
 之前描述的情境变得不那么吸引人而更加令人担忧的具体点，会因人而异。虽然有些人会非常乐意将那些日常的琐碎决定交给算法来处理，但也有一些人可能会对失去控制感和这种情境可能带来的去人性化效应产生疑虑。而当涉及到划定界限、决定什么可以或不可以、什么应该或不应该被容忍时，做出这些决策的时钟正慢慢但稳定地滴答作响。
 
-在我们扫描版简和她的好朋友——互联、无所不知的人工智能*露西*（与[电影](https://www.imdb.com/title/tt2872732/)的关联是故意的）设想的早晨里，所描述的场景不再是不可想象的，实际上它很可能很快就会变成现实。智能手表[测量各种活动并处理大量身体数据流](https://patents.google.com/patent/US9712629B2/en?q=%28health+tracking+watch%29&oq=health+tracking+watch)（甚至包括[血液采样](https://patents.google.com/patent/US10194862B2/en?q=%28health+tracking+watch%29&oq=health+tracking+watch)）已经不是什么新鲜事了。更不用说[通过多个设备连接收集到的数据流的可能性](https://patents.google.com/patent/US9712629B2/en?q=%28health+tracking+watch%29&oq=health+tracking+watch)。 （只需想一想，[物联网（IoT）](https://www.dataversity.net/brief-history-internet-things/)最早可以追溯到1999年。）关于“高质量睡眠”的科学也变得越来越可预测，因此也变得可调节。如此以至于你甚至可以连接传感器，允许数据自由流动到你的‘[智能床垫](https://patents.google.com/patent/US11812859B2/en?q=%28sleep+analyitics%29&oq=sleep+analyitics)’，从而调整温度、硬度以及其他特性。最后，所有收集到的数据也可以[帮助你的设备预测你的心理和认知状态](https://patents.google.com/patent/US11872041B1/en?q=%28smart+watch+health+analytics%29&oq=smart+watch+health+analytics)（尤其是有了[特殊的智能眼镜来跟踪你的眼动和脑波](https://patents.google.com/patent/CN112034977B/en?q=%28samrt+interactive+glasses%29&oq=samrt+interactive+glasses)）。这反过来使得根据你可能采取的行动来改善你的健康状况提供建议成为可能，同时也能[帮助医疗工作者提供更好的治疗](https://arxiv.org/pdf/2107.05989.pdf)。从这里开始，实际上就是一个小步骤，可以将所有有用的数据连接起来，结合你[智能眼镜](https://patents.google.com/patent/US10176783B2/en?q=%28samrt+interactive+glasses%29&oq=samrt+interactive+glasses)收集到的数据，提供超级个性化的预测和建议。眼镜还能提供无缝的用户体验。当然，所有[最新款的智能眼镜](https://about.fb.com/news/2023/09/new-ray-ban-meta-smart-glasses/)也具备完整的互联网接入和自己的人工智能语音助手，基本上充当你的意识。（或者说，代替它？）最后，这些语音助手不仅能够[为你做决定并执行这些决定](https://medium.com/@cognidownunder/the-rise-of-large-action-models-beyond-predictions-towards-actionable-ai-0510112e3500)，当然前提是你给它们足够的权限，并对它们的决定有足够的信心。更不用提[智能冰箱](https://patents.google.com/patent/US20210383457A1/en?q=%28connected+refrigerator+automated+grocery+shopping%29&oq=connected+refrigerator+automated+grocery+shopping)已经可以为你做购物，而且还能自动优化你的健康和营养。
+在我们扫描版简和她的好朋友——互联、无所不知的人工智能*露西*（与[电影](https://www.imdb.com/title/tt2872732/)的关联是故意的）设想的早晨里，所描述的场景不再是不可想象的，实际上它很可能很快就会变成现实。智能手表[测量各种活动并处理大量身体数据流](https://patents.google.com/patent/US9712629B2/en?q=%28health+tracking+watch%29&oq=health+tracking+watch)（甚至包括[血液采样](https://patents.google.com/patent/US10194862B2/en?q=%28health+tracking+watch%29&oq=health+tracking+watch)）已经不是什么新鲜事了。更不用说[通过多个设备连接收集到的数据流的可能性](https://patents.google.com/patent/US9712629B2/en?q=%28health+tracking+watch%29&oq=health+tracking+watch)。 （只需想一想，[物联网（IoT）](https://www.dataversity.net/brief-history-internet-things/)最早可以追溯到 1999 年。）关于“高质量睡眠”的科学也变得越来越可预测，因此也变得可调节。如此以至于你甚至可以连接传感器，允许数据自由流动到你的‘[智能床垫](https://patents.google.com/patent/US11812859B2/en?q=%28sleep+analyitics%29&oq=sleep+analyitics)’，从而调整温度、硬度以及其他特性。最后，所有收集到的数据也可以[帮助你的设备预测你的心理和认知状态](https://patents.google.com/patent/US11872041B1/en?q=%28smart+watch+health+analytics%29&oq=smart+watch+health+analytics)（尤其是有了[特殊的智能眼镜来跟踪你的眼动和脑波](https://patents.google.com/patent/CN112034977B/en?q=%28samrt+interactive+glasses%29&oq=samrt+interactive+glasses)）。这反过来使得根据你可能采取的行动来改善你的健康状况提供建议成为可能，同时也能[帮助医疗工作者提供更好的治疗](https://arxiv.org/pdf/2107.05989.pdf)。从这里开始，实际上就是一个小步骤，可以将所有有用的数据连接起来，结合你[智能眼镜](https://patents.google.com/patent/US10176783B2/en?q=%28samrt+interactive+glasses%29&oq=samrt+interactive+glasses)收集到的数据，提供超级个性化的预测和建议。眼镜还能提供无缝的用户体验。当然，所有[最新款的智能眼镜](https://about.fb.com/news/2023/09/new-ray-ban-meta-smart-glasses/)也具备完整的互联网接入和自己的人工智能语音助手，基本上充当你的意识。（或者说，代替它？）最后，这些语音助手不仅能够[为你做决定并执行这些决定](https://medium.com/@cognidownunder/the-rise-of-large-action-models-beyond-predictions-towards-actionable-ai-0510112e3500)，当然前提是你给它们足够的权限，并对它们的决定有足够的信心。更不用提[智能冰箱](https://patents.google.com/patent/US20210383457A1/en?q=%28connected+refrigerator+automated+grocery+shopping%29&oq=connected+refrigerator+automated+grocery+shopping)已经可以为你做购物，而且还能自动优化你的健康和营养。
 
 我们是否愿意接受这些技术，通常取决于我们对技术的亲和力以及我们愿意放弃多少控制权。（以及在所描绘的场景中，缺乏自我控制来真正按照我们的决定去执行。）就我而言，我确信我不会很快依赖这些技术，但我也确定有些人会。而且我认为，应该有某种类似于人类尊严和选择自由的界限，我们永远不应该（即便是有意地）放弃，或者应该永远无法放弃。此刻，这似乎并不是主流的思维方式。
 
@@ -132,12 +132,12 @@
 
 1.  虽然有些人对技术潜意识地改变他们的行为没有问题（只要它是让他们变得更好），但这并不是一种普遍现象。我们每个人都应该拥有[决定如何塑造我们的观点](https://arxiv.org/pdf/2203.10525.pdf)、信仰和决策的权利，并且能够在之后改变我们的决定。
 
-1.  这些技术提出了多个伦理问题，涉及到训练算法所需的数据处理，以及它们生成假设和预测所需的数据处理，最终还包括它们可能带来的影响。这些问题已经足以让我们对超级智能手表、冰箱、手机、汽车和眼镜（尤其是它们相互协作时）给予更多关注。人们是否能够就此达成共识？更准确地说，我是否能同意一个算法在潜意识中操控我去吃得更健康？许多人愿意毫不犹豫地与“魔鬼”签订协议，只为让他们的智能手表和冰箱协作，阻止他们在“消耗”完一天的卡路里后再打开冰箱，或者当时钟已过晚上8点时。对另一些人来说，这听起来像是一集《黑镜》的情节，直到情节反转使得这项有用的技术变得完全反乌托邦。
+1.  这些技术提出了多个伦理问题，涉及到训练算法所需的数据处理，以及它们生成假设和预测所需的数据处理，最终还包括它们可能带来的影响。这些问题已经足以让我们对超级智能手表、冰箱、手机、汽车和眼镜（尤其是它们相互协作时）给予更多关注。人们是否能够就此达成共识？更准确地说，我是否能同意一个算法在潜意识中操控我去吃得更健康？许多人愿意毫不犹豫地与“魔鬼”签订协议，只为让他们的智能手表和冰箱协作，阻止他们在“消耗”完一天的卡路里后再打开冰箱，或者当时钟已过晚上 8 点时。对另一些人来说，这听起来像是一集《黑镜》的情节，直到情节反转使得这项有用的技术变得完全反乌托邦。
 
 1.  鉴于我们正面临这些新的伦理困境，我们是否也需要建立新的权利？我们是否都应该有*失去控制*的权利，去违背*对我们有益*的事物？即使这些决策与我们的总体偏好相悖，我们是否应该有权*做出自己的决定*？如果我们的目标相互冲突，该怎么办？那么，我们应该如何处理那些提供技术或依赖于提供数据者的商业利益呢？
 
 1.  我们应该如何处理那些希望将这些技术用于恶意目的的行为者？人类一直容易受骗，并且如果有助于推动他们的议程，总是有操控他人的弱点。除了商业利益和“过度个性化广告”的“危险”之外，如果这些系统开始被国家用来支持现有的政治体制，我们该怎么办？（[你好，中国。](https://www.theguardian.com/global-development/2021/mar/03/china-positive-energy-emotion-surveillance-recognition-tech)）如果我们甚至不知道自己正在被操控，我们又如何与操控作斗争呢？在社会中，哪个行为者会让我们足够信任，以便对这些系统及其使用进行监控？
 
-本博客系列的假设是，现行法律不足以应对许多（如果不是全部）这些问题，以及它们对个人和社会所带来的新风险。该系列首先将尝试通过将场景与GDPR的要求进行对比，说明为什么会出现这种情况，然后是数据法（Data Act），最后是即将出台的人工智能法案（AI Act）。希望通过从适用的法律框架角度分析这些问题，我们能够识别出其中的一些空白，并共同思考如何弥补这些空白。
+本博客系列的假设是，现行法律不足以应对许多（如果不是全部）这些问题，以及它们对个人和社会所带来的新风险。该系列首先将尝试通过将场景与 GDPR 的要求进行对比，说明为什么会出现这种情况，然后是数据法（Data Act），最后是即将出台的人工智能法案（AI Act）。希望通过从适用的法律框架角度分析这些问题，我们能够识别出其中的一些空白，并共同思考如何弥补这些空白。
 
 祝我们大家好运！

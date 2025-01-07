@@ -1,18 +1,18 @@
-# 可视化101：选择最佳的可视化类型
+# 可视化 101：选择最佳的可视化类型
 
-> 原文：[https://towardsdatascience.com/visualisation-101-choosing-the-best-visualisation-type-3a10838b150d?source=collection_archive---------0-----------------------#2024-01-12](https://towardsdatascience.com/visualisation-101-choosing-the-best-visualisation-type-3a10838b150d?source=collection_archive---------0-----------------------#2024-01-12)
+> 原文：[`towardsdatascience.com/visualisation-101-choosing-the-best-visualisation-type-3a10838b150d?source=collection_archive---------0-----------------------#2024-01-12`](https://towardsdatascience.com/visualisation-101-choosing-the-best-visualisation-type-3a10838b150d?source=collection_archive---------0-----------------------#2024-01-12)
 
 ## 不同可视化应用场景的综合指南
 
-[](https://miptgirl.medium.com/?source=post_page---byline--3a10838b150d--------------------------------)[![Mariya Mansurova](../Images/b1dd377b0a1887db900cc5108bca8ea8.png)](https://miptgirl.medium.com/?source=post_page---byline--3a10838b150d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3a10838b150d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3a10838b150d--------------------------------) [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--3a10838b150d--------------------------------)
+[](https://miptgirl.medium.com/?source=post_page---byline--3a10838b150d--------------------------------)![Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--3a10838b150d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3a10838b150d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a10838b150d--------------------------------) [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--3a10838b150d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a10838b150d--------------------------------) ·16分钟阅读·2024年1月12日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a10838b150d--------------------------------) ·16 分钟阅读·2024 年 1 月 12 日
 
 --
 
-![](../Images/faf6d89696dd0f596ffa5a5ab4b2ced9.png)
+![](img/faf6d89696dd0f596ffa5a5ab4b2ced9.png)
 
-图片来自DALL-E 3
+图片来自 DALL-E 3
 
 我认为分析师的主要目标是帮助产品团队基于数据做出正确的决策。这意味着，分析师工作的主要结果不仅仅是得到一些数字或仪表盘，而是影响合理的数据驱动决策。因此，展示我们研究的结果是分析师日常工作中至关重要的一部分。
 
@@ -26,7 +26,7 @@
 
 其中一个最著名的例子是[安斯科姆四重奏](https://en.wikipedia.org/wiki/Anscombe%27s_quartet)。它由统计学家弗朗西斯·安斯科姆创建，包含四个数据集，这些数据集的描述性统计几乎相同：均值、方差和相关性。然而，当我们查看数据时，我们可以看到这些数据集是多么不同。
 
-![](../Images/93b7d87c94d12f2a4c9e101b4dc437ae.png)
+![](img/93b7d87c94d12f2a4c9e101b4dc437ae.png)
 
 作者提供的可视化
 
@@ -56,7 +56,7 @@
 
 +   我是否展示了全貌？我是否需要从另一个角度来看这个问题，以便为观众提供所有信息，帮助他们做出明智的决定？
 
-此外，你对可视化的决定可能会取决于传播媒介，不管你是做现场演示，还是仅仅通过Slack或电子邮件发送。以下是一些例子：
+此外，你对可视化的决定可能会取决于传播媒介，不管你是做现场演示，还是仅仅通过 Slack 或电子邮件发送。以下是一些例子：
 
 +   在现场演示的情况下，你可以对图表做较少的注释，因为你可以谈论所有必要的背景信息，而在电子邮件中，最好提供所有的细节。
 
@@ -68,7 +68,7 @@
 
 你知道多少种不同类型的图表？我敢打赌你能说出不少：线性图、条形图、桑基图、热力图、箱线图、气泡图等。但你有没有更细致地思考过可视化：它们的构建模块是什么？你的读者是如何感知这些图表的？
 
-William S. Cleveland 和 Robert McGill 在他们的文章中调查了这个问题，[《Graphical Perception: Theory, Experimentation, and Application to the Development of Graphical Methods》](https://doi.org/10.2307/2288400)，发表于 *《美国统计学会杂志》*，1984年9月。这篇文章聚焦于视觉感知——解码图表中呈现信息的能力。作者们提出了一组可视化构建模块——视觉编码——例如，位置、长度、面积或颜色饱和度。不出所料，不同的视觉编码对人们的解读难度不同。
+William S. Cleveland 和 Robert McGill 在他们的文章中调查了这个问题，[《Graphical Perception: Theory, Experimentation, and Application to the Development of Graphical Methods》](https://doi.org/10.2307/2288400)，发表于 *《美国统计学会杂志》*，1984 年 9 月。这篇文章聚焦于视觉感知——解码图表中呈现信息的能力。作者们提出了一组可视化构建模块——视觉编码——例如，位置、长度、面积或颜色饱和度。不出所料，不同的视觉编码对人们的解读难度不同。
 
 作者们尝试通过实验假设并测试人们从图表中提取信息的准确性，测试不同元素使用下，人们判断的有效性。他们的目标是验证人们判断的准确度。
 
@@ -144,17 +144,17 @@ William S. Cleveland 和 Robert McGill 在他们的文章中调查了这个问�
 
 最直接的选择（尤其是当你有多个指标时）是使用折线图。它突出了趋势，并为观众提供了数据的全面概览。
 
-例如，我使用了折线图来展示每个平台的会话数量随时间变化的情况。我们可以看到，iOS是增长最快的部分，而其他平台的增长则相对停滞不前。
+例如，我使用了折线图来展示每个平台的会话数量随时间变化的情况。我们可以看到，iOS 是增长最快的部分，而其他平台的增长则相对停滞不前。
 
-![](../Images/aa98b641f2b188f6240cb6274e091a1f.png)
+![](img/aa98b641f2b188f6240cb6274e091a1f.png)
 
 按作者分类的可视化
 
 使用折线图（而不是散点图）至关重要，因为折线图通过斜率强调趋势。
 
-使用Plotly，你可以轻松创建这样的图表。我们有一个包含每月会话数量的数据集。
+使用 Plotly，你可以轻松创建这样的图表。我们有一个包含每月会话数量的数据集。
 
-![](../Images/7849b0668d2791d14ab9f648f83f40cb.png)
+![](img/7849b0668d2791d14ab9f648f83f40cb.png)
 
 然后，我们可以使用[Plotly Express](https://plotly.com/python/plotly-express/)来创建折线图，传入数据、标题，并覆盖标签。
 
@@ -173,29 +173,29 @@ px.line(
 )
 ```
 
-> 这里我们不会详细讨论设计以及如何在Plotly中调整它，因为这是一个相当庞大的话题，值得单独撰写一篇文章。
+> 这里我们不会详细讨论设计以及如何在 Plotly 中调整它，因为这是一个相当庞大的话题，值得单独撰写一篇文章。
 
-我们通常将时间放在折线图的x轴上，并在数据点之间使用相等的时间间隔。
+我们通常将时间放在折线图的 x 轴上，并在数据点之间使用相等的时间间隔。
 
-常见的误解之一是我们必须让y轴从零开始（必须包含0）。然而，对于折线图而言，这并不适用。在某些情况下，这样做甚至可能会妨碍你从数据中获得洞察。
+常见的误解之一是我们必须让 y 轴从零开始（必须包含 0）。然而，对于折线图而言，这并不适用。在某些情况下，这样做甚至可能会妨碍你从数据中获得洞察。
 
-例如，比较下面的两张图表。在第一张图表中，会话数量看起来相当稳定，而在第二张图表中，12月中旬的下降非常明显。然而，这完全是同一个数据集，唯一不同的是y轴的范围。
+例如，比较下面的两张图表。在第一张图表中，会话数量看起来相当稳定，而在第二张图表中，12 月中旬的下降非常明显。然而，这完全是同一个数据集，唯一不同的是 y 轴的范围。
 
-![](../Images/02964e548df194cb1810651ab5f5ffd6.png)
+![](img/02964e548df194cb1810651ab5f5ffd6.png)
 
 按作者分类的可视化
 
-![](../Images/710b27d49b56227b831718ba3f62d0e5.png)
+![](img/710b27d49b56227b831718ba3f62d0e5.png)
 
 按作者分类的可视化
 
 对于时间序列数据，你的选择不仅限于折线图。有时，柱状图可能是更好的选择，例如，当你有较少的数据点，并且希望强调单个值而不是趋势时。
 
-![](../Images/318dadb71f086863f5bc9185d8a01977.png)
+![](img/318dadb71f086863f5bc9185d8a01977.png)
 
 作者提供的可视化
 
-在Plotly中创建柱状图也非常简单。
+在 Plotly 中创建柱状图也非常简单。
 
 ```py
 fig = px.bar(
@@ -219,7 +219,7 @@ fig.update_layout(showlegend = False)
 
 如果你只有几个数据点，你可以仅使用文本中的数字，而不是图表。我喜欢这种方法，因为它简洁而不杂乱。
 
-![](../Images/f4e5c5311721a35300d3bb82697e39da.png)
+![](img/f4e5c5311721a35300d3bb82697e39da.png)
 
 作者提供的可视化
 
@@ -227,7 +227,7 @@ fig.update_layout(showlegend = False)
 
 例如，我们可以比较不同地区每个客户的年[GMVs](https://en.wikipedia.org/wiki/Gross_merchandise_volume)（总商品价值）。
 
-![](../Images/c1e2ede25d2ed4f1fd71d29951894206.png)
+![](img/c1e2ede25d2ed4f1fd71d29951894206.png)
 
 作者提供的可视化
 
@@ -247,13 +247,13 @@ fig.update_xaxes(visible = False) # to hide x-axes
 
 重要提示：始终为柱状图使用零为基准的坐标轴。否则，你可能会误导观众。
 
-当柱状图中的数字过多时，我更喜欢使用热力图。在这种情况下，我们使用颜色饱和度来编码数字，这样并不是非常精确，因此我们还会保留标签。例如，让我们为我们的平均GMV视图添加另一个维度。
+当柱状图中的数字过多时，我更喜欢使用热力图。在这种情况下，我们使用颜色饱和度来编码数字，这样并不是非常精确，因此我们还会保留标签。例如，让我们为我们的平均 GMV 视图添加另一个维度。
 
-![](../Images/26148de8ea2c456ef8ae61dd8b17c46c.png)
+![](img/26148de8ea2c456ef8ae61dd8b17c46c.png)
 
 作者提供的可视化
 
-毫不奇怪，你也可以在Plotly中创建热力图。
+毫不奇怪，你也可以在 Plotly 中创建热力图。
 
 ```py
 fig = px.imshow(
@@ -277,13 +277,13 @@ fig.show()
 
 在比较不同细分市场的指标时，使用图表传达这个想法的最佳方式是结合柱状图和基准线。
 
-我们在[我之前的一篇文章](/topics-per-class-using-bertopic-252314f2640)中做了这样的可视化，研究了酒店评论中的主题建模。我比较了每个酒店连锁与基准线（所有评论的平均评分）相比，提及特定主题的客户评论比例。我还用颜色突出显示了与其他部分显著不同的部分。
+我们在我之前的一篇文章中做了这样的可视化，研究了酒店评论中的主题建模。我比较了每个酒店连锁与基准线（所有评论的平均评分）相比，提及特定主题的客户评论比例。我还用颜色突出显示了与其他部分显著不同的部分。
 
-![](../Images/fa3f6b0d3e7f9708719889738a4036cf.png)
+![](img/fa3f6b0d3e7f9708719889738a4036cf.png)
 
 此外，我们经常需要展示与预测的偏差。我们可以使用折线图来比较预测数据和实际数据的动态变化。我更喜欢将预测展示为虚线，以突出它不像实际数据那样确定。
 
-![](../Images/42e322bba5cc3a7b0cee358211f89e6e.png)
+![](img/42e322bba5cc3a7b0cee358211f89e6e.png)
 
 作者提供的可视化
 
@@ -339,7 +339,7 @@ fig.update_yaxes(title = 'number of users')
 
 毫不意外，我们可以使用与名义比较相似的柱状图。唯一需要记住的重要细节是按你关心的指标对图表上的各细分领域进行排序。例如，我们可以可视化年均 GMV 最高的前三个地区。
 
-![](../Images/59721b2e2d60436c0e10e04ed32a8b44.png)
+![](img/59721b2e2d60436c0e10e04ed32a8b44.png)
 
 作者提供的可视化
 
@@ -351,13 +351,13 @@ fig.update_yaxes(title = 'number of users')
 
 最直接的解决方案是使用柱状图显示每个类别或子区的份额。值得注意的是，将类别按降序排列会使可视化更容易解读。
 
-![](../Images/2aa176d558d69f49612ae1d902e3614e.png)
+![](img/2aa176d558d69f49612ae1d902e3614e.png)
 
 作者提供的可视化
 
 上述方法适用于一个或多个细分领域。然而，有时使用堆积柱状图来比较结构会更简单。例如，我们可以查看不同地区按年龄段划分的客户份额。
 
-![](../Images/4b23e76f7f867d30cccc2a90ae13a78f.png)
+![](img/4b23e76f7f867d30cccc2a90ae13a78f.png)
 
 作者提供的可视化
 
@@ -365,7 +365,7 @@ fig.update_yaxes(title = 'number of users')
 
 此外，我们可能需要查看随时间变化的结构。理想的选择是区域图。它将同时显示各子区的分布和趋势的斜率（这就是为什么它比单纯的柱状图（以月份为类别）更好的原因）。
 
-![](../Images/2ef065b93344d940094b48a7b3bf8136.png)
+![](img/2ef065b93344d940094b48a7b3bf8136.png)
 
 作者提供的可视化
 
@@ -397,13 +397,13 @@ px.area(
 
 如果你想查看多个指标的频率分布，你可以同时绘制多个直方图。在这种情况下，使用标准化直方图非常关键。否则，如果组内的对象数量不同，你将无法比较分布。
 
-例如，我们可以可视化来自英国和瑞士客户的年度GMV分布。
+例如，我们可以可视化来自英国和瑞士客户的年度 GMV 分布。
 
-![](../Images/0fbd61f59c7343229795a290c32abe5f.png)
+![](img/0fbd61f59c7343229795a290c32abe5f.png)
 
 作者提供的可视化
 
-对于这个可视化，我使用了`matplotlib`。相比Plotly，我更喜欢`matplotlib`绘制直方图，因为我喜欢它们的默认设计。
+对于这个可视化，我使用了`matplotlib`。相比 Plotly，我更喜欢`matplotlib`绘制直方图，因为我喜欢它们的默认设计。
 
 ```py
 from matplotlib import pyplot
@@ -439,27 +439,27 @@ pyplot.show()
 
 例如，我们来看一下按地区划分的站点停留时间分布。
 
-![](../Images/4ab7391a49fe4a02582674ba2fbf24b6.png)
+![](img/4ab7391a49fe4a02582674ba2fbf24b6.png)
 
 作者提供的可视化
 
 如果你不记得如何解读箱线图，这里有一个图示可以给你一些提示。
 
-![](../Images/a071357468998d488e54ce3dc08bea0c.png)
+![](img/a071357468998d488e54ce3dc08bea0c.png)
 
 图片来自维基百科（[来源](https://en.wikipedia.org/wiki/Box_plot#/media/File:Boxplot_vs_PDF.svg)）| [CC BY-SA 2.5](https://creativecommons.org/licenses/by-sa/2.5) 许可
 
 那么，让我们一起来看看箱线图可视化的所有构建块：
 
-+   可视化中的框表示IQR（四分位间距）——25%和75%的分位数，
++   可视化中的框表示 IQR（四分位间距）——25%和 75%的分位数，
 
 +   盒子中间的线表示中位数（50%的分位数），
 
-+   须状线等于1.5 * IQR，或者如果数据集中的最小/最大值较小，则等于最小/最大值，
++   须状线等于 1.5 * IQR，或者如果数据集中的最小/最大值较小，则等于最小/最大值，
 
-+   如果有任何数字超过1.5 * IQR（异常值），它们将以点的形式显示在图表上。
++   如果有任何数字超过 1.5 * IQR（异常值），它们将以点的形式显示在图表上。
 
-这是生成箱线图的Plotly代码。我使用了图形对象（Graphical Objects）而不是Plotly Express，以消除可视化中的异常值。当你的数据集有极端异常值或异常值过多时，这种方法会非常有用。
+这是生成箱线图的 Plotly 代码。我使用了图形对象（Graphical Objects）而不是 Plotly Express，以消除可视化中的异常值。当你的数据集有极端异常值或异常值过多时，这种方法会非常有用。
 
 ```py
 fig = go.Figure()
@@ -509,7 +509,7 @@ fig.show()
 
 散点图是显示值之间相关性的最佳解决方案。你也可以添加趋势线来突出指标之间的关系。
 
-![](../Images/4e0b0b503f99fd92cbd6fc0ed2d3d3e0.png)
+![](img/4e0b0b503f99fd92cbd6fc0ed2d3d3e0.png)
 
 作者提供的可视化
 
@@ -517,7 +517,7 @@ fig.show()
 
 例如，比较下面的两个图表。第二个图表能更好地理解数据分布。
 
-![](../Images/d1f908492ade2f11eca77b2c68344f90.png)
+![](img/d1f908492ade2f11eca77b2c68344f90.png)
 
 作者提供的可视化
 
@@ -573,7 +573,7 @@ g = sns.jointplot(
 g.set_axis_labels('months since registration', 'monthly revenue, GBP')
 ```
 
-![](../Images/0b0bcf300335cf194d0c9183b08cb9f6.png)
+![](img/0b0bcf300335cf194d0c9183b08cb9f6.png)
 
 作者可视化图
 
@@ -597,7 +597,7 @@ g.set_axis_labels('months since registration', 'monthly revenue, GBP')
 
 此外，你可以随时询问 ChatGPT 关于展示数据的可能选项，它会提供相当合理的指导。
 
-![](../Images/27f4572ef9a091c84f60623f35775bea.png)
+![](img/27f4572ef9a091c84f60623f35775bea.png)
 
 作者截图
 

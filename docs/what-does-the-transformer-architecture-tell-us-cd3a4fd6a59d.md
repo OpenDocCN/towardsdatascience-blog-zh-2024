@@ -1,14 +1,14 @@
 # Transformer 架构告诉我们什么？ 
 
-> 原文：[https://towardsdatascience.com/what-does-the-transformer-architecture-tell-us-cd3a4fd6a59d?source=collection_archive---------1-----------------------#2024-07-25](https://towardsdatascience.com/what-does-the-transformer-architecture-tell-us-cd3a4fd6a59d?source=collection_archive---------1-----------------------#2024-07-25)
+> 原文：[`towardsdatascience.com/what-does-the-transformer-architecture-tell-us-cd3a4fd6a59d?source=collection_archive---------1-----------------------#2024-07-25`](https://towardsdatascience.com/what-does-the-transformer-architecture-tell-us-cd3a4fd6a59d?source=collection_archive---------1-----------------------#2024-07-25)
 
-[](https://jshen9889.medium.com/?source=post_page---byline--cd3a4fd6a59d--------------------------------)[![Stephanie Shen](../Images/857cccbe84f0d3a9886c84acfbbac03e.png)](https://jshen9889.medium.com/?source=post_page---byline--cd3a4fd6a59d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cd3a4fd6a59d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cd3a4fd6a59d--------------------------------) [Stephanie Shen](https://jshen9889.medium.com/?source=post_page---byline--cd3a4fd6a59d--------------------------------)
+[](https://jshen9889.medium.com/?source=post_page---byline--cd3a4fd6a59d--------------------------------)![Stephanie Shen](https://jshen9889.medium.com/?source=post_page---byline--cd3a4fd6a59d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cd3a4fd6a59d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd3a4fd6a59d--------------------------------) [Stephanie Shen](https://jshen9889.medium.com/?source=post_page---byline--cd3a4fd6a59d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd3a4fd6a59d--------------------------------) ·14分钟阅读·2024年7月25日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd3a4fd6a59d--------------------------------) ·14 分钟阅读·2024 年 7 月 25 日
 
 --
 
-![](../Images/1e6b426d63204ba7ecd56058e51ba1a5.png)
+![](img/1e6b426d63204ba7ecd56058e51ba1a5.png)
 
 图片由 [narciso1](https://pixabay.com/users/narciso1-608227/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=639303) 提供，来源于 [Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=639303)
 

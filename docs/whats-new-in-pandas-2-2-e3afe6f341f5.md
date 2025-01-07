@@ -1,28 +1,28 @@
 # Pandas 2.2 新特性
 
-> 原文：[https://towardsdatascience.com/whats-new-in-pandas-2-2-e3afe6f341f5?source=collection_archive---------3-----------------------#2024-01-30](https://towardsdatascience.com/whats-new-in-pandas-2-2-e3afe6f341f5?source=collection_archive---------3-----------------------#2024-01-30)
+> 原文：[`towardsdatascience.com/whats-new-in-pandas-2-2-e3afe6f341f5?source=collection_archive---------3-----------------------#2024-01-30`](https://towardsdatascience.com/whats-new-in-pandas-2-2-e3afe6f341f5?source=collection_archive---------3-----------------------#2024-01-30)
 
 ## 关于新版本最有趣的内容
 
-[](https://medium.com/@patrick_hoefler?source=post_page---byline--e3afe6f341f5--------------------------------)[![Patrick Hoefler](../Images/35ca9ef1100d8c93dbadd374f0569fe1.png)](https://medium.com/@patrick_hoefler?source=post_page---byline--e3afe6f341f5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e3afe6f341f5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e3afe6f341f5--------------------------------) [Patrick Hoefler](https://medium.com/@patrick_hoefler?source=post_page---byline--e3afe6f341f5--------------------------------)
+[](https://medium.com/@patrick_hoefler?source=post_page---byline--e3afe6f341f5--------------------------------)![Patrick Hoefler](https://medium.com/@patrick_hoefler?source=post_page---byline--e3afe6f341f5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e3afe6f341f5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e3afe6f341f5--------------------------------) [Patrick Hoefler](https://medium.com/@patrick_hoefler?source=post_page---byline--e3afe6f341f5--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e3afe6f341f5--------------------------------) ·5分钟阅读·2024年1月30日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e3afe6f341f5--------------------------------) ·5 分钟阅读·2024 年 1 月 30 日
 
 --
 
-![](../Images/9eaf581fc856e2a9299e0181e4191394.png)
+![](img/9eaf581fc856e2a9299e0181e4191394.png)
 
 由[Zoe Nicolaou](https://unsplash.com/@lekneuro?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)拍摄，图片来源于[Unsplash](https://unsplash.com/photos/panda-climbing-on-tree-44g_jwn3JzY?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
-pandas 2.2于2024年1月22日发布。让我们看看这一版本带来了哪些新特性，以及它如何帮助我们改善pandas工作负载。它包含了一系列提升用户体验的改进。
+pandas 2.2 于 2024 年 1 月 22 日发布。让我们看看这一版本带来了哪些新特性，以及它如何帮助我们改善 pandas 工作负载。它包含了一系列提升用户体验的改进。
 
-pandas 2.2带来了一些额外的改进，这些改进依赖于Apache Arrow生态系统。此外，我们还增加了一些弃用内容，为pandas 3.0中将“写时复制”（Copy-on-Write）设置为默认选项所做的必要更改做准备。让我们深入了解这对你意味着什么。我们将详细探讨一些最重要的更改。
+pandas 2.2 带来了一些额外的改进，这些改进依赖于 Apache Arrow 生态系统。此外，我们还增加了一些弃用内容，为 pandas 3.0 中将“写时复制”（Copy-on-Write）设置为默认选项所做的必要更改做准备。让我们深入了解这对你意味着什么。我们将详细探讨一些最重要的更改。
 
-我是pandas核心团队的一员，同时也是[Coiled](https://www.coiled.io)的开源工程师，我在这里负责Dask的工作，包括改进pandas的集成。
+我是 pandas 核心团队的一员，同时也是[Coiled](https://www.coiled.io)的开源工程师，我在这里负责 Dask 的工作，包括改进 pandas 的集成。
 
-## 改进的PyArrow支持
+## 改进的 PyArrow 支持
 
-我们在pandas 2.0中引入了基于PyArrow的DataFrame，并且从那时起持续改进集成，以实现与pandas API的无缝对接。pandas为某些数据类型提供了访问器，支持特定的操作，例如字符串访问器，提供了许多字符串方法。过去，列表和结构体是作为NumPy对象数据类型表示的，这使得处理这些数据类型变得非常繁琐。现在，Arrow数据类型后端为列表和结构体提供了定制的访问器，使得处理这些对象变得更加简便。
+我们在 pandas 2.0 中引入了基于 PyArrow 的 DataFrame，并且从那时起持续改进集成，以实现与 pandas API 的无缝对接。pandas 为某些数据类型提供了访问器，支持特定的操作，例如字符串访问器，提供了许多字符串方法。过去，列表和结构体是作为 NumPy 对象数据类型表示的，这使得处理这些数据类型变得非常繁琐。现在，Arrow 数据类型后端为列表和结构体提供了定制的访问器，使得处理这些对象变得更加简便。
 
 让我们看一个例子：
 

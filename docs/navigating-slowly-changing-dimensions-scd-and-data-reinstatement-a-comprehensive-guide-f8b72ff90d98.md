@@ -1,20 +1,20 @@
 # 导航慢变维度（SCD）与数据重述：全面指南
 
-> 原文：[https://towardsdatascience.com/navigating-slowly-changing-dimensions-scd-and-data-reinstatement-a-comprehensive-guide-f8b72ff90d98?source=collection_archive---------10-----------------------#2024-02-05](https://towardsdatascience.com/navigating-slowly-changing-dimensions-scd-and-data-reinstatement-a-comprehensive-guide-f8b72ff90d98?source=collection_archive---------10-----------------------#2024-02-05)
+> 原文：[`towardsdatascience.com/navigating-slowly-changing-dimensions-scd-and-data-reinstatement-a-comprehensive-guide-f8b72ff90d98?source=collection_archive---------10-----------------------#2024-02-05`](https://towardsdatascience.com/navigating-slowly-changing-dimensions-scd-and-data-reinstatement-a-comprehensive-guide-f8b72ff90d98?source=collection_archive---------10-----------------------#2024-02-05)
 
 ## 在企业数据仓库中高效管理维度变化和数据重述的策略
 
-[](https://medium.com/@jiayipan999?source=post_page---byline--f8b72ff90d98--------------------------------)[![Kirsten Jiayi Pan](../Images/d4f661ae3cb34d5cee9df5f201c72eb9.png)](https://medium.com/@jiayipan999?source=post_page---byline--f8b72ff90d98--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f8b72ff90d98--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f8b72ff90d98--------------------------------) [Kirsten Jiayi Pan](https://medium.com/@jiayipan999?source=post_page---byline--f8b72ff90d98--------------------------------)
+[](https://medium.com/@jiayipan999?source=post_page---byline--f8b72ff90d98--------------------------------)![Kirsten Jiayi Pan](https://medium.com/@jiayipan999?source=post_page---byline--f8b72ff90d98--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f8b72ff90d98--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f8b72ff90d98--------------------------------) [Kirsten Jiayi Pan](https://medium.com/@jiayipan999?source=post_page---byline--f8b72ff90d98--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f8b72ff90d98--------------------------------) ·6 分钟阅读·2024年2月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f8b72ff90d98--------------------------------) ·6 分钟阅读·2024 年 2 月 5 日
 
 --
 
 想象一下，你是一名数据工程师，为一家大型零售公司工作，该公司在数据仓库中使用增量加载技术。该技术涉及选择性地仅更新或加载自上次更新以来新增或修改的数据。当产品研发部门决定更改当前产品的名称或描述时，可能会发生什么情况？这些更新将如何影响你现有的数据管道和数据仓库？你打算如何解决这些挑战？本文提供了一份全面指南，结合使用慢变维度（SCD），来解决数据重述过程中可能遇到的问题。
 
-![](../Images/8cf9a201f783803ed166244371c6450e.png)
+![](img/8cf9a201f783803ed166244371c6450e.png)
 
-图片来源：[https://unsplash.com/photos/macbook-pro-with-images-of-computer-language-codes-fPkvU7RDmCo](https://unsplash.com/photos/macbook-pro-with-images-of-computer-language-codes-fPkvU7RDmCo)
+图片来源：[`unsplash.com/photos/macbook-pro-with-images-of-computer-language-codes-fPkvU7RDmCo`](https://unsplash.com/photos/macbook-pro-with-images-of-computer-language-codes-fPkvU7RDmCo)
 
 **什么是慢变维度（SCD）？**
 
@@ -34,7 +34,7 @@
 
 这种方法被推荐作为解决维度值变化的主要技术，涉及为维度创建第二行，包含开始日期、结束日期，并可能有一个“当前/过期”标志。它适用于我们像产品描述或地址变更等场景，确保历史数据的清晰划分。新的维度行会与新插入的事实行相关联，每个维度记录会根据插入时间与一部分事实行相关联——变更之前的行与旧的维度行相关联，变更之后的行与新的维度行相关联。
 
-![](../Images/350d87da883d0c7ade45a6f0154d773b.png)
+![](img/350d87da883d0c7ade45a6f0154d773b.png)
 
 图 1（作者提供的图片）：`PRODUCT_KEY` = “cd3004” 是对 `PRODUCT_KEY` = “cd3002” 的重新表述。
 
@@ -42,7 +42,7 @@
 
 当旧值和新值都相关时，此方法适用，用户可能希望使用任一值进行历史分析。然而，将这种技术应用于所有维度属性并不实际，因为这将涉及为每个维度属性提供两列，或者如果需要保留多个“PREV”值，则需要更多列。应在合适的地方选择性使用。
 
-![](../Images/527709765e8ebf86e0eaf05a1e502ede.png)
+![](img/527709765e8ebf86e0eaf05a1e502ede.png)
 
 图 2（作者提供的图片）：`PRODUCT_KEY` = “cd3002” 被重新表述为新的 `PRODUCT_NAME`，旧的 `PRODUCT_NAME` 存储在 `NAME_PREV` 列中。
 
@@ -56,7 +56,7 @@
 
 我们需要为这个维度表生成 `surrogate_key`，并在事实表中建立与新外键的连接。当其中一个维度类别发生修改时，无需向客户维度中添加新行。相反，我们生成一行新的事实数据，并将其与客户维度和新的客户档案维度关联起来。
 
-![](../Images/d7f8320657b119068b9947cea29eb0c6.png)
+![](img/d7f8320657b119068b9947cea29eb0c6.png)
 
 图 3（作者提供的图片）：“全覆盖维度”表的实体关系图
 
@@ -64,7 +64,7 @@
 
 为了增强前面提到的类型 4 方法，我们可以在客户维度和客户档案维度之间建立连接。这种连接能够追踪特定客户的“当前”客户档案。该关键连接将客户与最新的客户档案相连接，允许从客户维度无缝地跳转到最新的客户档案维度，而无需通过事实表进行链接。
 
-![](../Images/33d30a8b6305cc405e25e7297253ff69.png)
+![](img/33d30a8b6305cc405e25e7297253ff69.png)
 
 图 4（作者提供的图片）：实体关系图显示了客户维度到客户档案维度的链接
 
@@ -72,7 +72,7 @@
 
 通过这种方法，您可以将类型 2（新行）和类型 3（“PREV”列）结合在一起。这种混合方法融合了两种方法的优点。您可以通过“PREV”列来检索事实，它提供了历史值，并展示与特定时间点的产品类别相关的事实。同时，通过“new”列进行查询，可以获得当前和所有之前的产品类别的所有事实。
 
-![](../Images/9bce833cad0b17e0b43c81a02e270751.png)
+![](img/9bce833cad0b17e0b43c81a02e270751.png)
 
 图 5（作者提供的图片）：PRODUCT_ID = “cd3004” 是 PRODUCT_ID = “cd3002” 的重述，PRODUCT_ID = “cd3001” 在 LAST_ACTION 列中标记为“EXPIRED”
 
@@ -80,9 +80,9 @@
 
 通常，数据提取采用星型模式（STAR schema），其中包括一个事实表和多个维度表。在企业中，维度表存储所有描述性数据和主键，而事实表包含引用每个维度的主键的数字和加法数据。
 
-![](../Images/25762be7003d77ef85342b9e98f48b7d.png)
+![](img/25762be7003d77ef85342b9e98f48b7d.png)
 
-图6（作者提供的图片）：星型模式的示意图
+图 6（作者提供的图片）：星型模式的示意图
 
 然而，如果您的营销销售数据提取是作为一个单一的去规范化表提供的，且没有独立的维度表，并且缺乏描述性数据的主键，那么将来更新产品名称可能会带来挑战。在现有的管道中处理这种情况会更为复杂。
 

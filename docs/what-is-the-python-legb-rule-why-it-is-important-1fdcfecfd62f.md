@@ -1,16 +1,16 @@
 # Python 中的 LEGB 规则是什么？为什么它很重要？
 
-> 原文：[https://towardsdatascience.com/what-is-the-python-legb-rule-why-it-is-important-1fdcfecfd62f?source=collection_archive---------2-----------------------#2024-04-22](https://towardsdatascience.com/what-is-the-python-legb-rule-why-it-is-important-1fdcfecfd62f?source=collection_archive---------2-----------------------#2024-04-22)
+> 原文：[`towardsdatascience.com/what-is-the-python-legb-rule-why-it-is-important-1fdcfecfd62f?source=collection_archive---------2-----------------------#2024-04-22`](https://towardsdatascience.com/what-is-the-python-legb-rule-why-it-is-important-1fdcfecfd62f?source=collection_archive---------2-----------------------#2024-04-22)
 
-![](../Images/56634f6d455e4db026522206bf11a43e.png)
+![](img/56634f6d455e4db026522206bf11a43e.png)
 
 由作者在 Canva 创建的图片
 
 ## 命名空间和解析顺序有助于提高 Python 编程的性能和健壮性
 
-[](https://christophertao.medium.com/?source=post_page---byline--1fdcfecfd62f--------------------------------)[![Christopher Tao](../Images/bea1e3c81cc62eb28bdba9275d6b326f.png)](https://christophertao.medium.com/?source=post_page---byline--1fdcfecfd62f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1fdcfecfd62f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1fdcfecfd62f--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--1fdcfecfd62f--------------------------------)
+[](https://christophertao.medium.com/?source=post_page---byline--1fdcfecfd62f--------------------------------)![Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--1fdcfecfd62f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1fdcfecfd62f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1fdcfecfd62f--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--1fdcfecfd62f--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1fdcfecfd62f--------------------------------) ·10 分钟阅读·2024年4月22日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1fdcfecfd62f--------------------------------) ·10 分钟阅读·2024 年 4 月 22 日
 
 --
 

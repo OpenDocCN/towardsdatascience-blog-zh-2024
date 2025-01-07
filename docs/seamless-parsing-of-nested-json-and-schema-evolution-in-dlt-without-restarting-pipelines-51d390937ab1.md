@@ -1,16 +1,16 @@
 # 无需重启管道，Delta Live Tables 中嵌套 JSON 和架构演化的无缝解析
 
-> 原文：[https://towardsdatascience.com/seamless-parsing-of-nested-json-and-schema-evolution-in-dlt-without-restarting-pipelines-51d390937ab1?source=collection_archive---------5-----------------------#2024-10-05](https://towardsdatascience.com/seamless-parsing-of-nested-json-and-schema-evolution-in-dlt-without-restarting-pipelines-51d390937ab1?source=collection_archive---------5-----------------------#2024-10-05)
+> 原文：[`towardsdatascience.com/seamless-parsing-of-nested-json-and-schema-evolution-in-dlt-without-restarting-pipelines-51d390937ab1?source=collection_archive---------5-----------------------#2024-10-05`](https://towardsdatascience.com/seamless-parsing-of-nested-json-and-schema-evolution-in-dlt-without-restarting-pipelines-51d390937ab1?source=collection_archive---------5-----------------------#2024-10-05)
 
 ## 基于一个客户案例研究，本教程介绍了如何使用 Delta Live Tables 处理 JSON 架构演化，而无需重启。
 
-[](https://medium.com/@elahi_irfan?source=post_page---byline--51d390937ab1--------------------------------)[![Irfan Elahi](../Images/f31feb75a9fc8f58d82de12c3d372b83.png)](https://medium.com/@elahi_irfan?source=post_page---byline--51d390937ab1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--51d390937ab1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--51d390937ab1--------------------------------) [Irfan Elahi](https://medium.com/@elahi_irfan?source=post_page---byline--51d390937ab1--------------------------------)
+[](https://medium.com/@elahi_irfan?source=post_page---byline--51d390937ab1--------------------------------)![Irfan Elahi](https://medium.com/@elahi_irfan?source=post_page---byline--51d390937ab1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--51d390937ab1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--51d390937ab1--------------------------------) [Irfan Elahi](https://medium.com/@elahi_irfan?source=post_page---byline--51d390937ab1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--51d390937ab1--------------------------------) ·阅读时间：15 分钟·2024年10月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--51d390937ab1--------------------------------) ·阅读时间：15 分钟·2024 年 10 月 5 日
 
 --
 
-![](../Images/1b6f46531a4eddd4e3d01f650d342ab6.png)
+![](img/1b6f46531a4eddd4e3d01f650d342ab6.png)
 
 由 DALL-E 生成
 

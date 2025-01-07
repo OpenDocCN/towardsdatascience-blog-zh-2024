@@ -1,16 +1,16 @@
 # 如何使用 Python 阅读和分析 GDAT 文件
 
-> 原文：[https://towardsdatascience.com/how-to-read-and-analyze-gdat-files-using-python-5c8dece157d4?source=collection_archive---------10-----------------------#2024-04-18](https://towardsdatascience.com/how-to-read-and-analyze-gdat-files-using-python-5c8dece157d4?source=collection_archive---------10-----------------------#2024-04-18)
+> 原文：[`towardsdatascience.com/how-to-read-and-analyze-gdat-files-using-python-5c8dece157d4?source=collection_archive---------10-----------------------#2024-04-18`](https://towardsdatascience.com/how-to-read-and-analyze-gdat-files-using-python-5c8dece157d4?source=collection_archive---------10-----------------------#2024-04-18)
 
 ## 这是一份关于如何处理这些计算机建模的二进制文件的快速教程。
 
-[](https://madison13.medium.com/?source=post_page---byline--5c8dece157d4--------------------------------)[![Madison Hunter](../Images/fa84176a13175e75944b49e110b92e14.png)](https://madison13.medium.com/?source=post_page---byline--5c8dece157d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5c8dece157d4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5c8dece157d4--------------------------------) [Madison Hunter](https://madison13.medium.com/?source=post_page---byline--5c8dece157d4--------------------------------)
+[](https://madison13.medium.com/?source=post_page---byline--5c8dece157d4--------------------------------)![Madison Hunter](https://madison13.medium.com/?source=post_page---byline--5c8dece157d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5c8dece157d4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5c8dece157d4--------------------------------) [Madison Hunter](https://madison13.medium.com/?source=post_page---byline--5c8dece157d4--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5c8dece157d4--------------------------------) ·阅读时间 9 分钟·2024年4月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5c8dece157d4--------------------------------) ·阅读时间 9 分钟·2024 年 4 月 18 日
 
 --
 
-![](../Images/58606c4133be520f96406ac6d15f979c.png)
+![](img/58606c4133be520f96406ac6d15f979c.png)
 
 图片来源：[Werclive 👹](https://unsplash.com/@werclive?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -32,7 +32,7 @@
 
 +   数据值的网格有固定的行列数，可用于索引单元格。
 
-![](../Images/1d2bd1f4334c609319a16f93f7d4f316.png)
+![](img/1d2bd1f4334c609319a16f93f7d4f316.png)
 
 数据的网格化二进制表示，每个值的网格表示一个按天组织的研究区域（对应研究期内的每一天）。每个网格中的单元格可以通过行列索引来访问。图示由作者使用 [Canva](https://www.canva.com/) 创建。
 
@@ -75,9 +75,9 @@ number_columns, number_days):
 
 1.  **row_data = []**：这一行初始化一个空的 Python 列表，将用于存储指定日期内当前行的二进制数据。
 
-1.  **for _ in range(number_columns):** 这个for循环会遍历指定行中指定列数的数据。
+1.  **for _ in range(number_columns):** 这个 for 循环会遍历指定行中指定列数的数据。
 
-1.  **value = struct.unpack(format_string, f.read(4))[0]**：这一行初始化了一个名为**value**的变量，并使用**struct**模块中的**unpack**函数，每次从GDAT文件中读取一定数量的二进制数据，并根据指定的**format_string**进行解析（阅读[“格式字符”](https://docs.python.org/3/library/struct.html)部分以了解需要指定的格式字符串）。**unpack**函数返回一个元组。在这一行代码中，**[0]**放在末尾，表示函数应该只返回元组中的第一个（在某些情况下是唯一的）值。如果每个单元格中包含一个有多个值的元组，则除非你只对其中一个单元格的值感兴趣，否则末尾无需加上**[0]**。例如，当单元格中的值包含x和y分量（例如风速）时，可能会有多个值的元组。
+1.  **value = struct.unpack(format_string, f.read(4))[0]**：这一行初始化了一个名为**value**的变量，并使用**struct**模块中的**unpack**函数，每次从 GDAT 文件中读取一定数量的二进制数据，并根据指定的**format_string**进行解析（阅读[“格式字符”](https://docs.python.org/3/library/struct.html)部分以了解需要指定的格式字符串）。**unpack**函数返回一个元组。在这一行代码中，**[0]**放在末尾，表示函数应该只返回元组中的第一个（在某些情况下是唯一的）值。如果每个单元格中包含一个有多个值的元组，则除非你只对其中一个单元格的值感兴趣，否则末尾无需加上**[0]**。例如，当单元格中的值包含 x 和 y 分量（例如风速）时，可能会有多个值的元组。
 
 1.  **row_data.append(value):** 这一行将解包后的浮动值附加到**row_data**中，**row_data**代表当前行。
 
@@ -85,7 +85,7 @@ number_columns, number_days):
 
 1.  **data.append(day_data):** 这一行将当前一天的数据附加到**data**中，**data**代表整个数据集。
 
-1.  **return data**：这个函数将继续遍历二进制数据文件，直到它将每一天的网格数据读取到整体数据集**data**中。这一行返回整体数据集，将二进制文件转换为Python列表。**data**返回的是按天划分的网格数据。现在可以对这个数据集进行分析了。
+1.  **return data**：这个函数将继续遍历二进制数据文件，直到它将每一天的网格数据读取到整体数据集**data**中。这一行返回整体数据集，将二进制文件转换为 Python 列表。**data**返回的是按天划分的网格数据。现在可以对这个数据集进行分析了。
 
 # 返回研究区域网格中特定单元格的整个研究期间的数据。
 
@@ -93,7 +93,7 @@ number_columns, number_days):
 
 比如说，你想看看计算机模型生成的风速值与观测的风速值之间的匹配度。存在一个气象站，它在某个特定单元格中提供风速观测数据。我们将提取该包含气象站的单元格数据，覆盖整个研究周期，之后你可以绘制观测数据与模型数据的对比图，以确定模型的准确度。
 
-下面的Python函数使用了从之前的函数返回的Python列表数据。
+下面的 Python 函数使用了从之前的函数返回的 Python 列表数据。
 
 ```py
 def read_cell_data_for_study_period(data, row_index, column_index):
@@ -107,13 +107,13 @@ def read_cell_data_for_study_period(data, row_index, column_index):
 
 上述代码提取了整个研究期间内指定单元格的数据。
 
-1.  **def read_cell_data_for_study_period(data, row_index, column_index)**：这一行定义了一个函数，该函数将使用行索引和列索引提取指定单元格的数据。**data**参数接收包含以最终网格格式存储的GDAT数据的列表（这是通过前面的函数创建的）。**row_index**和**column_index**参数接收指定单元格所在行和列的整数值。
+1.  **def read_cell_data_for_study_period(data, row_index, column_index)**：这一行定义了一个函数，该函数将使用行索引和列索引提取指定单元格的数据。**data**参数接收包含以最终网格格式存储的 GDAT 数据的列表（这是通过前面的函数创建的）。**row_index**和**column_index**参数接收指定单元格所在行和列的整数值。
 
-1.  **cell_data = []**：这一行初始化了一个空的Python列表，用于存储整个研究期间的单元格数据。
+1.  **cell_data = []**：这一行初始化了一个空的 Python 列表，用于存储整个研究期间的单元格数据。
 
-1.  **for day_data in data:** 这个for循环遍历研究期间每一天的网格数据。
+1.  **for day_data in data:** 这个 for 循环遍历研究期间每一天的网格数据。
 
-1.  **reversed_day_data = day_data[::-1]**：这一行是可选的，如果在打印指定研究期间的单元格数据时发现网格数据没有从正确的起始点读取，可以使用这一行。在大多数情况下，网格数据是从左上角读取的，因此是“0索引”。然而，在某些情况下，网格数据是从左下角读取的。这种现象会导致网格索引错误，从而导致使用指定的**row_index**和**column_index**访问到错误的单元格。因此，这一行代码将网格数据垂直翻转，使其从左上角开始读取。**注意：此行代码只应在确定数据网格是从左下角读取时使用。如果你的数据网格被正确读取，避免使用此行以防止错误的数据读取。**
+1.  **reversed_day_data = day_data[::-1]**：这一行是可选的，如果在打印指定研究期间的单元格数据时发现网格数据没有从正确的起始点读取，可以使用这一行。在大多数情况下，网格数据是从左上角读取的，因此是“0 索引”。然而，在某些情况下，网格数据是从左下角读取的。这种现象会导致网格索引错误，从而导致使用指定的**row_index**和**column_index**访问到错误的单元格。因此，这一行代码将网格数据垂直翻转，使其从左上角开始读取。**注意：此行代码只应在确定数据网格是从左下角读取时使用。如果你的数据网格被正确读取，避免使用此行以防止错误的数据读取。**
 
 1.  **cell_value = reversed_day_data[row_index][column_index]**：这一行初始化了一个名为**cell_value**的变量，它将存储每一天研究期间指定行和列索引位置的单元格数据。如你所见，指定的**row_index**和**column_index**参数用于访问网格数据中的正确单元格。
 

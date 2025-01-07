@@ -1,18 +1,18 @@
 # 九个 Rust Cargo.toml 的 Wat 和 Wat Not
 
-> 原文：[https://towardsdatascience.com/nine-rust-cargo-toml-wats-and-wat-nots-1e5e02e41648?source=collection_archive---------1-----------------------#2024-07-24](https://towardsdatascience.com/nine-rust-cargo-toml-wats-and-wat-nots-1e5e02e41648?source=collection_archive---------1-----------------------#2024-07-24)
+> 原文：[`towardsdatascience.com/nine-rust-cargo-toml-wats-and-wat-nots-1e5e02e41648?source=collection_archive---------1-----------------------#2024-07-24`](https://towardsdatascience.com/nine-rust-cargo-toml-wats-and-wat-nots-1e5e02e41648?source=collection_archive---------1-----------------------#2024-07-24)
 
 ## 掌握 Cargo.toml 格式规则，避免挫败感
 
-[](https://medium.com/@carlmkadie?source=post_page---byline--1e5e02e41648--------------------------------)[![Carl M. Kadie](../Images/9dbe27c76e9567136e5a7dc587f1fb15.png)](https://medium.com/@carlmkadie?source=post_page---byline--1e5e02e41648--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1e5e02e41648--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1e5e02e41648--------------------------------) [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--1e5e02e41648--------------------------------)
+[](https://medium.com/@carlmkadie?source=post_page---byline--1e5e02e41648--------------------------------)![Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--1e5e02e41648--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1e5e02e41648--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1e5e02e41648--------------------------------) [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--1e5e02e41648--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1e5e02e41648--------------------------------) ·阅读时长 8 分钟 ·2024年7月24日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1e5e02e41648--------------------------------) ·阅读时长 8 分钟 ·2024 年 7 月 24 日
 
 --
 
-![](../Images/811e179337d8b0229e8200ca753b3c86.png)
+![](img/811e179337d8b0229e8200ca753b3c86.png)
 
-Rust Cargo 惊讶 — 来源: [https://openai.com/dall-e-2/](https://openai.com/dall-e-2/)。所有其他图表来自作者。
+Rust Cargo 惊讶 — 来源: [`openai.com/dall-e-2/`](https://openai.com/dall-e-2/)。所有其他图表来自作者。
 
 在 JavaScript 和其他语言中，我们称 [这种令人惊讶或不一致的行为为“Wat!”](https://www.destroyallsoftware.com/talks/wat) [即“什么!?”]。例如，在 JavaScript 中，一个空数组加上一个空数组会产生一个空字符串，`[] + [] === ""`。Wat!
 
@@ -43,7 +43,7 @@ serde = "1.0"
 
 `[dev-profile]`比`[profile.dev]`更好吗？`[dependencies.dev]`比`[dev-dependencies]`更好吗？
 
-我个人更喜欢带点的名称。（在“什么？不是9”中，我们将看到点的强大功能。）不过，我也愿意记住依赖项和配置文件的工作方式不同。
+我个人更喜欢带点的名称。（在“什么？不是 9”中，我们将看到点的强大功能。）不过，我也愿意记住依赖项和配置文件的工作方式不同。
 
 # 什么？2：依赖继承
 
@@ -69,11 +69,11 @@ serde = { version = "1.0" }
 serde = "1.0"
 ```
 
-这里的原则是什么？在一般的TOML中，如何指定一个键为默认键？
+这里的原则是什么？在一般的 TOML 中，如何指定一个键为默认键？
 
-你不能！一般的TOML没有默认键。什么？
+你不能！一般的 TOML 没有默认键。什么？
 
-Cargo TOML对`[dependencies]`部分中的`version`键进行特殊处理。这是Cargo特有的功能，而不是一般的TOML功能。据我所知，Cargo TOML没有其他默认键。
+Cargo TOML 对`[dependencies]`部分中的`version`键进行特殊处理。这是 Cargo 特有的功能，而不是一般的 TOML 功能。据我所知，Cargo TOML 没有其他默认键。
 
 # 什么？4：子特性
 
@@ -97,7 +97,7 @@ optional = true
 features = ["js"]
 ```
 
-在这个示例中，`wasm`是我们项目的一个特性，依赖于别名`getrandom-rs`，它表示带有`js`子特性的`getrandom` crate的版本。
+在这个示例中，`wasm`是我们项目的一个特性，依赖于别名`getrandom-rs`，它表示带有`js`子特性的`getrandom` crate 的版本。
 
 那么，我们如何在避免冗长的`[dependencies.getrandom-js]`部分的同时，给出相同的规范呢？
 
@@ -125,7 +125,7 @@ getrandom = { version = "0.2", optional = true }
 
 +   一个或多个依赖项“斜杠”一个子特性
 
-这不是标准TOML，而是`Cargo.toml`特有的简写。
+这不是标准 TOML，而是`Cargo.toml`特有的简写。
 
 奖励：猜猜你如何使用简写来表示 `wasm` 特性应该包括 `getrandom`，并且有两个子特性：`js` 和 `test-in-browser`？
 
@@ -332,7 +332,7 @@ name = "another"
 path = "src/bin/another.rs"
 ```
 
-我们能把它重写成100%内联的形式吗？可以。
+我们能把它重写成 100%内联的形式吗？可以。
 
 ```py
 package = { name = "cargo-wat", version = "0.1.0", edition = "2021" }
@@ -380,7 +380,7 @@ name = "another"
 path = "src/bin/another.rs"
 ```
 
-最后，让我们谈谈点号。在TOML中，点号用于分隔嵌套表中的键。例如，`a.b.c`表示表`a`中的表`b`中的键`c`。我们能用“很多点号”重写我们的例子吗？可以：
+最后，让我们谈谈点号。在 TOML 中，点号用于分隔嵌套表中的键。例如，`a.b.c`表示表`a`中的表`b`中的键`c`。我们能用“很多点号”重写我们的例子吗？可以：
 
 ```py
 package.name = "cargo-wat"
@@ -397,16 +397,16 @@ bins = [
 ]
 ```
 
-我很欣赏TOML在处理部分、内联和点号方面的灵活性。我将这种灵活性视为一种“wat not”。你可能会觉得它提供的所有选择令人困惑。不过，我喜欢`Cargo.toml`让我们能够充分发挥TOML的强大功能。
+我很欣赏 TOML 在处理部分、内联和点号方面的灵活性。我将这种灵活性视为一种“wat not”。你可能会觉得它提供的所有选择令人困惑。不过，我喜欢`Cargo.toml`让我们能够充分发挥 TOML 的强大功能。
 
-> 你可以在[GitHub上查看这个例子](https://github.com/CarlKCarlK/cargo-wat)。
+> 你可以在[GitHub 上查看这个例子](https://github.com/CarlKCarlK/cargo-wat)。
 
 # 结论
 
-`Cargo.toml`是Rust生态系统中的一个重要工具，它提供了简单性和灵活性的平衡，既适合初学者，也适合经验丰富的开发者。通过我们探索的九个wats和wat nots，我们看到这个配置文件有时因其怪癖而令人惊讶，但也因其一致性和强大功能而让人印象深刻。
+`Cargo.toml`是 Rust 生态系统中的一个重要工具，它提供了简单性和灵活性的平衡，既适合初学者，也适合经验丰富的开发者。通过我们探索的九个 wats 和 wat nots，我们看到这个配置文件有时因其怪癖而令人惊讶，但也因其一致性和强大功能而让人印象深刻。
 
 理解这些怪癖可以帮助你避免潜在的挫折，并使你能够最大化地利用`Cargo.toml`。从管理依赖关系和配置文件到处理特定目标的配置和特性，在这里获得的洞察将帮助你编写更高效、更有效的`Cargo.toml`文件。
 
-本质上，虽然`Cargo.toml`可能有些特殊性，但这些特性通常根源于实际的设计选择，优先考虑功能性和可读性。接受这些怪癖，你会发现`Cargo.toml`不仅能满足你项目的需求，还能提升你的Rust开发体验。
+本质上，虽然`Cargo.toml`可能有些特殊性，但这些特性通常根源于实际的设计选择，优先考虑功能性和可读性。接受这些怪癖，你会发现`Cargo.toml`不仅能满足你项目的需求，还能提升你的 Rust 开发体验。
 
-*请* [*关注Carl在Medium上的文章*](https://medium.com/@carlmkadie)*。我在Rust和Python的科学编程、机器学习以及统计学方面写作。我通常每个月写一篇文章。*
+*请* [*关注 Carl 在 Medium 上的文章*](https://medium.com/@carlmkadie)*。我在 Rust 和 Python 的科学编程、机器学习以及统计学方面写作。我通常每个月写一篇文章。*

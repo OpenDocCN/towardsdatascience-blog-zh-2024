@@ -1,16 +1,16 @@
 # 使用卫星影像量化野火的烧毁区域
 
-> 原文：[https://towardsdatascience.com/quantifying-burned-areas-from-wildfires-using-satellite-imagery-97683d025767?source=collection_archive---------7-----------------------#2024-07-22](https://towardsdatascience.com/quantifying-burned-areas-from-wildfires-using-satellite-imagery-97683d025767?source=collection_archive---------7-----------------------#2024-07-22)
+> 原文：[`towardsdatascience.com/quantifying-burned-areas-from-wildfires-using-satellite-imagery-97683d025767?source=collection_archive---------7-----------------------#2024-07-22`](https://towardsdatascience.com/quantifying-burned-areas-from-wildfires-using-satellite-imagery-97683d025767?source=collection_archive---------7-----------------------#2024-07-22)
 
 ## 使用 Google Colab 中的 Python 和 Sentinel-2 图像来确定由于野火造成的森林烧毁面积
 
-[](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--97683d025767--------------------------------)[![Mahyar Aboutalebi, Ph.D. 🎓](../Images/83d62352800f8a2932db8a07997c8059.png)](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--97683d025767--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--97683d025767--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--97683d025767--------------------------------) [Mahyar Aboutalebi, Ph.D. 🎓](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--97683d025767--------------------------------)
+[](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--97683d025767--------------------------------)![Mahyar Aboutalebi, Ph.D. 🎓](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--97683d025767--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--97683d025767--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--97683d025767--------------------------------) [Mahyar Aboutalebi, Ph.D. 🎓](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--97683d025767--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--97683d025767--------------------------------) ·阅读时间 9 分钟·2024 年 7 月 22 日
 
 --
 
-![](../Images/dbb9a62f379d82bc1f6f7a89e3a47dc5.png)
+![](img/dbb9a62f379d82bc1f6f7a89e3a47dc5.png)
 
 由作者可视化的 Walbridge 火灾事件期间捕获的不同波段的 Sentinel-2 图像
 

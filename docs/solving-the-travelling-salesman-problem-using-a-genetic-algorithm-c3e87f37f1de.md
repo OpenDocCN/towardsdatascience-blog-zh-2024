@@ -1,20 +1,20 @@
 # 使用遗传算法解决旅行商问题
 
-> 原文：[https://towardsdatascience.com/solving-the-travelling-salesman-problem-using-a-genetic-algorithm-c3e87f37f1de?source=collection_archive---------0-----------------------#2024-08-25](https://towardsdatascience.com/solving-the-travelling-salesman-problem-using-a-genetic-algorithm-c3e87f37f1de?source=collection_archive---------0-----------------------#2024-08-25)
+> 原文：[`towardsdatascience.com/solving-the-travelling-salesman-problem-using-a-genetic-algorithm-c3e87f37f1de?source=collection_archive---------0-----------------------#2024-08-25`](https://towardsdatascience.com/solving-the-travelling-salesman-problem-using-a-genetic-algorithm-c3e87f37f1de?source=collection_archive---------0-----------------------#2024-08-25)
 
-## 使用Python的探索
+## 使用 Python 的探索
 
-[](https://medium.com/@jdhwilkins?source=post_page---byline--c3e87f37f1de--------------------------------)[![James Wilkins](../Images/fcdad070781b6e1d2cc2c293194a6f1a.png)](https://medium.com/@jdhwilkins?source=post_page---byline--c3e87f37f1de--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c3e87f37f1de--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c3e87f37f1de--------------------------------) [James Wilkins](https://medium.com/@jdhwilkins?source=post_page---byline--c3e87f37f1de--------------------------------)
+[](https://medium.com/@jdhwilkins?source=post_page---byline--c3e87f37f1de--------------------------------)![James Wilkins](https://medium.com/@jdhwilkins?source=post_page---byline--c3e87f37f1de--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c3e87f37f1de--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c3e87f37f1de--------------------------------) [James Wilkins](https://medium.com/@jdhwilkins?source=post_page---byline--c3e87f37f1de--------------------------------)
 
-·发布于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--c3e87f37f1de--------------------------------) ·阅读时间15分钟·2024年8月25日
+·发布于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--c3e87f37f1de--------------------------------) ·阅读时间 15 分钟·2024 年 8 月 25 日
 
 --
 
 你可以在[***这里***](https://github.com/jdhwilkins/Genetic-Algorithm-Experiments)查看此项目的笔记本***。***
 
-![](../Images/7837887c8f6056581fa65614904827c5.png)
+![](img/7837887c8f6056581fa65614904827c5.png)
 
-图片由DALL-E生成，OpenAI
+图片由 DALL-E 生成，OpenAI
 
 ## 旅行商问题
 

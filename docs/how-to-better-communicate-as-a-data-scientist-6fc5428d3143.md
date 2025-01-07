@@ -1,16 +1,16 @@
 # 如何作为数据科学家更好地沟通
 
-> 原文：[https://towardsdatascience.com/how-to-better-communicate-as-a-data-scientist-6fc5428d3143?source=collection_archive---------1-----------------------#2024-05-29](https://towardsdatascience.com/how-to-better-communicate-as-a-data-scientist-6fc5428d3143?source=collection_archive---------1-----------------------#2024-05-29)
+> 原文：[`towardsdatascience.com/how-to-better-communicate-as-a-data-scientist-6fc5428d3143?source=collection_archive---------1-----------------------#2024-05-29`](https://towardsdatascience.com/how-to-better-communicate-as-a-data-scientist-6fc5428d3143?source=collection_archive---------1-----------------------#2024-05-29)
 
 ## 我在麦肯锡的经历中学到的最宝贵的教训
 
-[](https://medium.com/@tessaxie?source=post_page---byline--6fc5428d3143--------------------------------)[![Tessa Xie](../Images/f1028e5c639c1d11177e0fa174afcee0.png)](https://medium.com/@tessaxie?source=post_page---byline--6fc5428d3143--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6fc5428d3143--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6fc5428d3143--------------------------------) [Tessa Xie](https://medium.com/@tessaxie?source=post_page---byline--6fc5428d3143--------------------------------)
+[](https://medium.com/@tessaxie?source=post_page---byline--6fc5428d3143--------------------------------)![Tessa Xie](https://medium.com/@tessaxie?source=post_page---byline--6fc5428d3143--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6fc5428d3143--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6fc5428d3143--------------------------------) [Tessa Xie](https://medium.com/@tessaxie?source=post_page---byline--6fc5428d3143--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6fc5428d3143--------------------------------) ·阅读时间6分钟·2024年5月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6fc5428d3143--------------------------------) ·阅读时间 6 分钟·2024 年 5 月 29 日
 
 --
 
-![](../Images/e6a41628070f4d43d8ffaf643117a396.png)
+![](img/e6a41628070f4d43d8ffaf643117a396.png)
 
 图片由作者提供
 

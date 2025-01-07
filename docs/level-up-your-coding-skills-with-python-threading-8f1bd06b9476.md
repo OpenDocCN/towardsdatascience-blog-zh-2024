@@ -1,16 +1,16 @@
 # 使用 Python 线程提升你的编码技能
 
-> 原文：[https://towardsdatascience.com/level-up-your-coding-skills-with-python-threading-8f1bd06b9476?source=collection_archive---------3-----------------------#2024-11-27](https://towardsdatascience.com/level-up-your-coding-skills-with-python-threading-8f1bd06b9476?source=collection_archive---------3-----------------------#2024-11-27)
+> 原文：[`towardsdatascience.com/level-up-your-coding-skills-with-python-threading-8f1bd06b9476?source=collection_archive---------3-----------------------#2024-11-27`](https://towardsdatascience.com/level-up-your-coding-skills-with-python-threading-8f1bd06b9476?source=collection_archive---------3-----------------------#2024-11-27)
 
-![](../Images/c0583e9f19a60078de7cb7565c397b23.png)
+![](img/c0583e9f19a60078de7cb7565c397b23.png)
 
 图片由[Sonika Agarwal](https://unsplash.com/@sonika_agarwal?utm_source=medium&utm_medium=referral)拍摄，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 学习如何在机器学习项目中使用队列、守护线程和事件
 
-[](https://medium.com/@marcellopoliti?source=post_page---byline--8f1bd06b9476--------------------------------)[![Marcello Politi](../Images/484e44571bd2e75acfe5fef3146ab3c2.png)](https://medium.com/@marcellopoliti?source=post_page---byline--8f1bd06b9476--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8f1bd06b9476--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8f1bd06b9476--------------------------------) [Marcello Politi](https://medium.com/@marcellopoliti?source=post_page---byline--8f1bd06b9476--------------------------------)
+[](https://medium.com/@marcellopoliti?source=post_page---byline--8f1bd06b9476--------------------------------)![Marcello Politi](https://medium.com/@marcellopoliti?source=post_page---byline--8f1bd06b9476--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8f1bd06b9476--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8f1bd06b9476--------------------------------) [Marcello Politi](https://medium.com/@marcellopoliti?source=post_page---byline--8f1bd06b9476--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8f1bd06b9476--------------------------------) ·阅读时间：7分钟·2024年11月27日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8f1bd06b9476--------------------------------) ·阅读时间：7 分钟·2024 年 11 月 27 日
 
 --
 

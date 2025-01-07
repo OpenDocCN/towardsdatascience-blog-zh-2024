@@ -1,16 +1,16 @@
 # 理解张量：通过 3 个令人头疼的错误学习数据结构
 
-> 原文：[https://towardsdatascience.com/understanding-tensors-learning-a-data-structure-through-3-pesky-errors-6d674776be0c?source=collection_archive---------4-----------------------#2024-03-13](https://towardsdatascience.com/understanding-tensors-learning-a-data-structure-through-3-pesky-errors-6d674776be0c?source=collection_archive---------4-----------------------#2024-03-13)
+> 原文：[`towardsdatascience.com/understanding-tensors-learning-a-data-structure-through-3-pesky-errors-6d674776be0c?source=collection_archive---------4-----------------------#2024-03-13`](https://towardsdatascience.com/understanding-tensors-learning-a-data-structure-through-3-pesky-errors-6d674776be0c?source=collection_archive---------4-----------------------#2024-03-13)
 
 ## 通过解决 TensorFlow 错误，我学到的关于张量的知识
 
-[](https://medium.com/@erevear?source=post_page---byline--6d674776be0c--------------------------------)[![Eva Revear](../Images/675266fccb503690d50d83b8c92f48b8.png)](https://medium.com/@erevear?source=post_page---byline--6d674776be0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6d674776be0c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6d674776be0c--------------------------------) [Eva Revear](https://medium.com/@erevear?source=post_page---byline--6d674776be0c--------------------------------)
+[](https://medium.com/@erevear?source=post_page---byline--6d674776be0c--------------------------------)![Eva Revear](https://medium.com/@erevear?source=post_page---byline--6d674776be0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6d674776be0c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6d674776be0c--------------------------------) [Eva Revear](https://medium.com/@erevear?source=post_page---byline--6d674776be0c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6d674776be0c--------------------------------) ·11分钟阅读·2024年3月13日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6d674776be0c--------------------------------) ·11 分钟阅读·2024 年 3 月 13 日
 
 --
 
-![](../Images/feff5a593eac65c3656a2db9bd90c879.png)
+![](img/feff5a593eac65c3656a2db9bd90c879.png)
 
 图片来源：[Michael Dziedzic](https://unsplash.com/@lazycreekimages?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -36,9 +36,9 @@
 
 这些都是非常有用的信息，但它们并没有帮助我们理解数据中到底发生了什么。
 
-要打印执行图中的单个张量，我们可以利用tf.print。如果你打算经常使用它，我强烈推荐这篇深入探讨tf.print的文章：[在TensorFlow中使用tf.Print()](https://wiki.example.org/feynmans_learning_method)。
+要打印执行图中的单个张量，我们可以利用 tf.print。如果你打算经常使用它，我强烈推荐这篇深入探讨 tf.print 的文章：[在 TensorFlow 中使用 tf.Print()](https://wiki.example.org/feynmans_learning_method)。
 
-但在开发过程中使用TensorFlow数据集时，有时我们需要一次查看几个值。为此，我们可以像这样循环并打印单个数据片段：
+但在开发过程中使用 TensorFlow 数据集时，有时我们需要一次查看几个值。为此，我们可以像这样循环并打印单个数据片段：
 
 ```py
  # Generate dummy 2D data
@@ -56,7 +56,7 @@ for i, (features, label) in enumerate(dataset.take(10)):
   print(f"Row {i + 1}: Features - {features.numpy()}, Label - {label.numpy()}")
 ```
 
-我们也可以使用skip跳到特定的索引：
+我们也可以使用 skip 跳到特定的索引：
 
 ```py
 mini_dataset = dataset.skip(100).take(20)
@@ -99,7 +99,7 @@ Tensor Shape: (2, 3)
 Tensor Dimensions: [2, 3]
 ```
 
-## **增强model.summary()**
+## **增强 model.summary()**
 
 最后，能够看到数据如何在模型中流动，以及在各层之间输入输出的形状如何变化，总是很有帮助。许多错误的根源通常是输入和输出形状之间的不匹配，以及给定张量的形状。
 
@@ -120,9 +120,9 @@ print("###################Layer Input Shape and Datatype#####################")
 
 ## 秩
 
-> ValueError: 形状必须是秩x，但却是秩y……
+> ValueError: 形状必须是秩 x，但却是秩 y……
 
-好的，首先，什么是秩？秩就是我们用来描述张量的维度单位。秩为0的张量是一个标量值；秩为1的张量是一个向量；秩为2的张量是一个矩阵，依此类推，对于所有n维结构。
+好的，首先，什么是秩？秩就是我们用来描述张量的维度单位。秩为 0 的张量是一个标量值；秩为 1 的张量是一个向量；秩为 2 的张量是一个矩阵，依此类推，对于所有 n 维结构。
 
 以一个五维张量为例。
 
@@ -136,7 +136,7 @@ print("\nRank 5 Tensor:", rank_5_tensor.shape)
 Rank 5 Tensor: (2, 2, 2, 2, 2)
 ```
 
-上面的代码显示，每个维度的大小为2。如果我们想索引它，可以沿着这些轴中的任何一个进行。为了获取最后一个元素32，我们可以运行类似以下的代码：
+上面的代码显示，每个维度的大小为 2。如果我们想索引它，可以沿着这些轴中的任何一个进行。为了获取最后一个元素 32，我们可以运行类似以下的代码：
 
 ```py
 rank_5_tensor.numpy()[1][1][1][1][1]
@@ -144,9 +144,9 @@ rank_5_tensor.numpy()[1][1][1][1][1]
 
 [官方张量文档](https://www.tensorflow.org/guide/tensor#basics)中有一些非常有用的可视化，能够帮助你更容易地理解这一点。
 
-回到错误：它只是标记了提供的张量与某个特定函数预期的维度不同。例如，如果错误声明“形状必须是秩1，但却是秩0…”，这意味着我们提供的是一个标量值，而它期望的是一个一维张量。
+回到错误：它只是标记了提供的张量与某个特定函数预期的维度不同。例如，如果错误声明“形状必须是秩 1，但却是秩 0…”，这意味着我们提供的是一个标量值，而它期望的是一个一维张量。
 
-下面是一个示例，我们试图使用matmul方法将张量相乘。
+下面是一个示例，我们试图使用 matmul 方法将张量相乘。
 
 ```py
 import tensorflow as tf
@@ -165,10 +165,10 @@ def matmul_function(matrix):
 result_dataset = dataset.map(matmul_function)
 ```
 
-如果我们查看[文档](https://www.tensorflow.org/api_docs/python/tf/linalg/matmul)，matmul函数至少需要一个秩为2的张量，因此将矩阵与[1,2,3,4,5,6]（这只是一个数组）相乘会引发此错误。
+如果我们查看[文档](https://www.tensorflow.org/api_docs/python/tf/linalg/matmul)，matmul 函数至少需要一个秩为 2 的张量，因此将矩阵与[1,2,3,4,5,6]（这只是一个数组）相乘会引发此错误。
 
 ```py
-ValueError: Shape must be rank 2 but is rank 1 for '{{node MatMul}} = MatMul[T=DT_DOUBLE, transpose_a=false, transpose_b=false](args_0, MatMul/b)' with input shapes: [3,3], [2].
+ValueError: Shape must be rank 2 but is rank 1 for '{{node MatMul}} = MatMulT=DT_DOUBLE, transpose_a=false, transpose_b=false' with input shapes: [3,3], [2].
 ```
 
 解决这个错误的一个好方法是深入文档，理解你正在使用的函数期望什么（这里有一个关于张量的函数列表：[raw_ops](https://www.tensorflow.org/api_docs/python/tf/raw_ops)）。
@@ -183,9 +183,9 @@ print(tf.rank(mul))
 tf.Tensor(1, shape=(), dtype=int32)
 ```
 
-至于解决方法，tf.reshape通常是一个不错的起点。让我们稍微谈一下tf.reshape，因为它将是我们整个Tensorflow旅程中的忠实伙伴：[tf.reshape(tensor, shape, name=None)](https://www.tensorflow.org/api_docs/python/tf/reshape)
+至于解决方法，tf.reshape 通常是一个不错的起点。让我们稍微谈一下 tf.reshape，因为它将是我们整个 Tensorflow 旅程中的忠实伙伴：[tf.reshape(tensor, shape, name=None)](https://www.tensorflow.org/api_docs/python/tf/reshape)
 
-reshape简单地接受我们想要重塑的张量，和另一个包含我们希望输出形状的张量。例如，让我们重塑我们的乘法输入：
+reshape 简单地接受我们想要重塑的张量，和另一个包含我们希望输出形状的张量。例如，让我们重塑我们的乘法输入：
 
 ```py
 mul = [1,2,3,4,5,6]
@@ -198,7 +198,7 @@ array([[1, 2],
        [5, 6]], dtype=int32)
 ```
 
-我们的变量将变成一个(3,2)的张量（3行，2列）。快速提示，tf.reshape(t, [3, -1]).numpy()也会产生相同的结果，因为-1告诉Tensorflow计算该维度的大小，以确保总大小保持不变。形状张量中的元素数量即为秩。
+我们的变量将变成一个(3,2)的张量（3 行，2 列）。快速提示，tf.reshape(t, [3, -1]).numpy()也会产生相同的结果，因为-1 告诉 Tensorflow 计算该维度的大小，以确保总大小保持不变。形状张量中的元素数量即为秩。
 
 一旦我们创建了具有正确秩的张量，我们的乘法就能顺利进行！
 
@@ -208,11 +208,11 @@ array([[1, 2],
 
 对张量形状的直观理解，以及它如何在模型各层之间相互作用和变化，已经使得深度学习的生活变得更加轻松。
 
-首先，先了解基本的词汇：张量的形状指的是沿张量每个维度或轴的元素数量。例如，一个3行4列的二维张量，其形状为(3, 4)。
+首先，先了解基本的词汇：张量的形状指的是沿张量每个维度或轴的元素数量。例如，一个 3 行 4 列的二维张量，其形状为(3, 4)。
 
 那么，形状可能会出什么问题呢？很高兴你问了，问题可多了！
 
-首先，训练数据的形状和秩必须与输入层期望的输入形状匹配。让我们看一个例子，一个基本的CNN：
+首先，训练数据的形状和秩必须与输入层期望的输入形状匹配。让我们看一个例子，一个基本的 CNN：
 
 ```py
 import tensorflow as tf
@@ -253,7 +253,7 @@ ValueError: Input 0 of layer "sequential_5" is incompatible with the layer: expe
 
 这是因为我们的模型期望输入张量的形状为(128, 128, 3)，而我们生成的数据是(64, 64, 3)。
 
-在这种情况下，我们的好朋友reshape，或者Tensorflow的另一个函数resize，可以帮助我们。如果像上面那样我们在处理图像，我们可以简单地运行resize，或者改变模型输入的期望：
+在这种情况下，我们的好朋友 reshape，或者 Tensorflow 的另一个函数 resize，可以帮助我们。如果像上面那样我们在处理图像，我们可以简单地运行 resize，或者改变模型输入的期望：
 
 ```py
 def resize_image(image, label):
@@ -266,15 +266,15 @@ resized_dataset = sample_dataset.map(resize_image)
 
 在这种情况下，了解常见类型的模型和模型层如何期望不同形状的输入是有帮助的，所以让我们稍微绕个弯。
 
-深度神经网络的全连接层接受的是一维张量（或者是二维的，取决于是否包括批次大小，不过我们稍后会讨论批次大小），格式为(feature_size, )，其中feature_size是每个样本的特征数量。
+深度神经网络的全连接层接受的是一维张量（或者是二维的，取决于是否包括批次大小，不过我们稍后会讨论批次大小），格式为(feature_size, )，其中 feature_size 是每个样本的特征数量。
 
-卷积神经网络接受表示图像的数据，使用三维张量（宽度，高度，通道），其中通道是颜色方案，1表示灰度，3表示RGB。
+卷积神经网络接受表示图像的数据，使用三维张量（宽度，高度，通道），其中通道是颜色方案，1 表示灰度，3 表示 RGB。
 
-最后，递归神经网络（如LTSM）接受的是二维张量（时间步，特征大小）。
+最后，递归神经网络（如 LTSM）接受的是二维张量（时间步，特征大小）。
 
-但回到错误！Tensorflow形状错误的另一个常见原因与数据通过模型层时形状的变化有关。如前所述，不同的层接受不同形状的输入，并且它们也可以重新调整输出的形状。
+但回到错误！Tensorflow 形状错误的另一个常见原因与数据通过模型层时形状的变化有关。如前所述，不同的层接受不同形状的输入，并且它们也可以重新调整输出的形状。
 
-返回到我们上面的CNN示例，让我们再次破坏它，看看当我们移除Flatten层时会发生什么。如果我们尝试运行代码，我们将看到
+返回到我们上面的 CNN 示例，让我们再次破坏它，看看当我们移除 Flatten 层时会发生什么。如果我们尝试运行代码，我们将看到
 
 ```py
 ValueError: Shapes (None, 10) and (None, 28, 28, 10) are incompatible
@@ -320,15 +320,15 @@ dense_13 KerasTensor(type_spec=TensorSpec(shape=(None, 50176), dtype=tf.float32,
 dense_14 KerasTensor(type_spec=TensorSpec(shape=(None, 64), dtype=tf.float32, name=None), name='dense_13/Relu:0', description="created by layer 'dense_13'") float32
 ```
 
-输出信息很多，但我们可以看到dense_13层正在寻找形状为(None, 50176)的输入。然而，conv2d_17层输出的是(None, 28, 28, 64)。
+输出信息很多，但我们可以看到 dense_13 层正在寻找形状为(None, 50176)的输入。然而，conv2d_17 层输出的是(None, 28, 28, 64)。
 
-Flatten层将前面层的多维输出转换为Dense层期望的一维（平坦）向量。
+Flatten 层将前面层的多维输出转换为 Dense 层期望的一维（平坦）向量。
 
-Conv2d和Max Pooling层也以其他有趣的方式改变它们的输入数据，但这些超出了本文的范围。要了解更多详细信息，可以查看：[神经网络中输入形状和模型复杂度的终极指南](/ultimate-guide-to-input-shape-and-model-complexity-in-neural-networks-ae665c728f4b)
+Conv2d 和 Max Pooling 层也以其他有趣的方式改变它们的输入数据，但这些超出了本文的范围。要了解更多详细信息，可以查看：神经网络中输入形状和模型复杂度的终极指南
 
 那批量大小呢？！我没有忘记！
 
-如果我们再一次通过从model.fit中的数据集移除.batch(32)来破坏我们的代码，我们将得到如下错误：
+如果我们再一次通过从 model.fit 中的数据集移除.batch(32)来破坏我们的代码，我们将得到如下错误：
 
 ```py
 ValueError: Input 0 of layer "sequential_10" is incompatible with the layer: expected shape=(None, 128, 128, 3), found shape=(128, 128, 3)
@@ -336,17 +336,17 @@ ValueError: Input 0 of layer "sequential_10" is incompatible with the layer: exp
 
 这是因为，层输入的第一个维度是为批量大小或我们希望模型一次处理的样本数保留的。要深入了解，可以阅读[批量和轮次之间的区别](https://machinelearningmastery.com/difference-between-a-batch-and-an-epoch/)。
 
-批量大小在拟合之前默认为None，正如我们在模型摘要输出中看到的那样，我们的模型期望我们在其他地方设置它，具体取决于我们如何调整超参数。我们也可以通过使用batch_input_size而不是input_size在输入层强制设置它，但这样会降低我们在测试不同值时的灵活性。
+批量大小在拟合之前默认为 None，正如我们在模型摘要输出中看到的那样，我们的模型期望我们在其他地方设置它，具体取决于我们如何调整超参数。我们也可以通过使用 batch_input_size 而不是 input_size 在输入层强制设置它，但这样会降低我们在测试不同值时的灵活性。
 
 ## 类型
 
 > TypeError: 无法将类型的对象转换为张量。不支持的对象类型。
 
-最后，让我们简单谈谈Tensor中一些数据类型的具体细节。
+最后，让我们简单谈谈 Tensor 中一些数据类型的具体细节。
 
 上述错误是另一个，如果你习惯于在使用各种数据构建表格的数据库系统中工作，可能会让人有些困惑，但它是比较容易诊断和修复的，尽管有几个常见原因需要注意。
 
-主要问题是，尽管张量支持多种[数据类型](https://www.tensorflow.org/api_docs/python/tf/dtypes)，但当我们将NumPy数组转换为张量时（这是深度学习中的常见流程），数据类型必须是浮动类型。下面的脚本初始化了一个包含None和字符串数据点的虚拟数据框。让我们一起分析这个示例中的问题并修复它：
+主要问题是，尽管张量支持多种[数据类型](https://www.tensorflow.org/api_docs/python/tf/dtypes)，但当我们将 NumPy 数组转换为张量时（这是深度学习中的常见流程），数据类型必须是浮动类型。下面的脚本初始化了一个包含 None 和字符串数据点的虚拟数据框。让我们一起分析这个示例中的问题并修复它：
 
 ```py
 import numpy as np
@@ -378,9 +378,9 @@ model.fit(train_dataset.batch(3), epochs=3)
 ValueError: Failed to convert a NumPy array to a Tensor (Unsupported object type float).
 ```
 
-最明显的问题是你传入的是一个包含某些非浮动类型（即对象）的NumPy数组。如果你有一个实际的类别数据列，有很多方法可以将其转换为数值数据（如独热编码等），但这超出了本讨论的范围。
+最明显的问题是你传入的是一个包含某些非浮动类型（即对象）的 NumPy 数组。如果你有一个实际的类别数据列，有很多方法可以将其转换为数值数据（如独热编码等），但这超出了本讨论的范围。
 
-我们可以通过运行`print(X_train.dtypes)`来确定，这会告诉我们数据框中Tensorflow不喜欢的内容。
+我们可以通过运行`print(X_train.dtypes)`来确定，这会告诉我们数据框中 Tensorflow 不喜欢的内容。
 
 ```py
 x1 float64
@@ -405,7 +405,7 @@ null_rows = X_train[null_mask]
 print(null_rows)
 ```
 
-这告诉我们，第0行和第1行中有空值：
+这告诉我们，第 0 行和第 1 行中有空值：
 
 ```py
 x1 x2 x3
@@ -419,10 +419,10 @@ x1 x2 x3
 X_train.fillna(value=0, inplace=True)
 ```
 
-通过下面对代码的这些修改，我们的NumPy数组将成功转换为张量数据集，我们可以训练我们的模型！
+通过下面对代码的这些修改，我们的 NumPy 数组将成功转换为张量数据集，我们可以训练我们的模型！
 
 # 总结
 
 我常常发现，当我不得不处理错误时，我对某项技术的理解最深，希望这对你也有所帮助！
 
-如果你有一些有趣的技巧或Tensorflow错误，请分享给我！
+如果你有一些有趣的技巧或 Tensorflow 错误，请分享给我！

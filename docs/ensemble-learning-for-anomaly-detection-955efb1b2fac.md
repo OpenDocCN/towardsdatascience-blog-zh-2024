@@ -1,12 +1,12 @@
 # 集成学习在异常检测中的应用
 
-> 原文：[https://towardsdatascience.com/ensemble-learning-for-anomaly-detection-955efb1b2fac?source=collection_archive---------5-----------------------#2024-10-30](https://towardsdatascience.com/ensemble-learning-for-anomaly-detection-955efb1b2fac?source=collection_archive---------5-----------------------#2024-10-30)
+> 原文：[`towardsdatascience.com/ensemble-learning-for-anomaly-detection-955efb1b2fac?source=collection_archive---------5-----------------------#2024-10-30`](https://towardsdatascience.com/ensemble-learning-for-anomaly-detection-955efb1b2fac?source=collection_archive---------5-----------------------#2024-10-30)
 
 ## *深入探讨隔离森林模型，用于检测时间序列数据中的异常值*
 
-[](https://medium.com/@adavis08?source=post_page---byline--955efb1b2fac--------------------------------)[![Alex Davis](../Images/f773cce9438a68856cb8ba486ac8b051.png)](https://medium.com/@adavis08?source=post_page---byline--955efb1b2fac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--955efb1b2fac--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--955efb1b2fac--------------------------------) [Alex Davis](https://medium.com/@adavis08?source=post_page---byline--955efb1b2fac--------------------------------)
+[](https://medium.com/@adavis08?source=post_page---byline--955efb1b2fac--------------------------------)![Alex Davis](https://medium.com/@adavis08?source=post_page---byline--955efb1b2fac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--955efb1b2fac--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--955efb1b2fac--------------------------------) [Alex Davis](https://medium.com/@adavis08?source=post_page---byline--955efb1b2fac--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--955efb1b2fac--------------------------------) ·阅读时间：7分钟·2024年10月30日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--955efb1b2fac--------------------------------) ·阅读时间：7 分钟·2024 年 10 月 30 日
 
 --
 
@@ -18,9 +18,9 @@
 
 集成学习是一种机器学习技术，它通过结合多个独立模型的预测，来获得比任何单一模型更好的预测性能。每个模型被视为一个“弱学习器”，并在数据的一个小子集上进行训练以进行预测。然后它进行投票。每个弱学习器都会被调查，最终通过多数票决定预测结果。
 
-![](../Images/68ea0c492fe208b9a5695a9c1515eda7.png)
+![](img/68ea0c492fe208b9a5695a9c1515eda7.png)
 
-图片来源：Wikimedia Commons（[https://commons.wikimedia.org/wiki/File:Random_forest_explain.png](https://commons.wikimedia.org/wiki/File:Random_forest_explain.png)）
+图片来源：Wikimedia Commons（[`commons.wikimedia.org/wiki/File:Random_forest_explain.png`](https://commons.wikimedia.org/wiki/File:Random_forest_explain.png)）
 
 集成模型（在高质量数据上训练）具有鲁棒性、准确性、高效性，且能够有效避免过拟合。它们有许多应用场景，如分类、优化，以及在我们这个案例中的异常检测。
 
@@ -30,25 +30,25 @@
 
 那么它是如何工作的呢？让我们来看一棵孤立树。
 
-![](../Images/673e94aca10cdd4218bd7d158965e237.png)
+![](img/673e94aca10cdd4218bd7d158965e237.png)
 
 图片由作者提供
 
 看一下上面的数据。我们可以看到一个数据点离其他数据较远（我们怀疑是异常值）。**每棵孤立树会随机选择一个“分割值”来开始隔离观测值。** 在这个例子中，怀疑的异常值会立即被隔离。由于它与其他数据点的距离较远，这种情况在大多数孤立树中都会发生。
 
-![](../Images/6aca0034350e7247a47cbe55fb66a21e.png)
+![](img/6aca0034350e7247a47cbe55fb66a21e.png)
 
 图片由作者提供
 
 接下来，它选择另一个分割。这次，怀疑是“正常”数据的部分开始被切分。**这个过程会重复，直到每个观测值被隔离。** 最终，模型通过随机选择一个特征，并在该特征的最大值和最小值之间随机选择一个分割值来“隔离”观测值。
 
-![](../Images/0ffa29702aebb86c93866eec8b90d6e7.png)
+![](img/0ffa29702aebb86c93866eec8b90d6e7.png)
 
 图片由作者提供
 
 现在每个观测值都已经被隔离，我们需要问：**隔离每个观测值需要多少次分割？** 换句话说，每个数据点的分割路径有多长？假设结果如下：
 
-![](../Images/e6f94e6695942edff26916a20c5fd124.png)
+![](img/e6f94e6695942edff26916a20c5fd124.png)
 
 图片由作者提供
 
@@ -83,7 +83,7 @@ revenue = sales[['Order Date', 'Sales']]
 revenue.head()
 ```
 
-![](../Images/78621fd24438dc0ad35003bbcd78ff71.png)
+![](img/78621fd24438dc0ad35003bbcd78ff71.png)
 
 图片由作者提供
 
@@ -122,7 +122,7 @@ plt.xticks(rotation = 90)
 plt.show()
 ```
 
-![](../Images/af77b3a53519ce3fe0cc456da4e61675.png)
+![](img/af77b3a53519ce3fe0cc456da4e61675.png)
 
 图片来自作者
 
@@ -132,11 +132,11 @@ plt.show()
 
 +   **n_estimators**：集成中基础估计器的数量。
 
-+   **max_samples**：从X中选择用于训练每个基础估计器的样本数量（如果为“auto”，则`max_samples = min(256, n_samples)`）。
++   **max_samples**：从 X 中选择用于训练每个基础估计器的样本数量（如果为“auto”，则`max_samples = min(256, n_samples)`）。
 
 +   **contamination**：数据集的污染程度，即数据集中异常值的比例。用于拟合时定义样本得分的阈值。
 
-+   **max_features**：从X中选择用于训练每个基础估计器的特征数量。
++   **max_features**：从 X 中选择用于训练每个基础估计器的特征数量。
 
 ```py
 #set isolation forest model and fit to the sales
@@ -152,23 +152,23 @@ revenue['scores'] = model.decision_function(revenue[['Sales']])
 revenue['anomaly'] = model.predict(revenue[['Sales']])
 ```
 
-![](../Images/ca56501e9d6e920ba5ccf90664793ca8.png)
+![](img/ca56501e9d6e920ba5ccf90664793ca8.png)
 
 图片来自作者
 
-最后，让我们展示之前的相同折线图，但用plt.scatter突出显示异常值。
+最后，让我们展示之前的相同折线图，但用 plt.scatter 突出显示异常值。
 
-![](../Images/4f5c5e6e39a801c2abed486f849e43b1.png)
+![](img/4f5c5e6e39a801c2abed486f849e43b1.png)
 
 图片来自作者
 
 模型似乎表现不错。由于数据在月度间波动较大，一个担忧是可能会将正常值标记为异常，但由于**模型的自助采样**，这种情况并未发生。异常值似乎是销售额偏离趋势较“显著”的较大波动。
 
-然而，了解数据在这里非常重要，因为一些异常应该附带警告。我们来看第一个（2015年2月）和最后一个（2018年11月）检测到的异常。首先，我们可以看到它们都与平均值存在较大的波动。
+然而，了解数据在这里非常重要，因为一些异常应该附带警告。我们来看第一个（2015 年 2 月）和最后一个（2018 年 11 月）检测到的异常。首先，我们可以看到它们都与平均值存在较大的波动。
 
-然而，第一个异常（2015年2月）只是我们记录销售的第二个月，且业务可能刚刚开始运营。销售额肯定很低，接下来一个月出现了大幅上涨。但仅仅因为销售额低就将业务的第二个月标记为异常，是否合理？还是这对一个新企业来说是正常现象？
+然而，第一个异常（2015 年 2 月）只是我们记录销售的第二个月，且业务可能刚刚开始运营。销售额肯定很低，接下来一个月出现了大幅上涨。但仅仅因为销售额低就将业务的第二个月标记为异常，是否合理？还是这对一个新企业来说是正常现象？
 
-对于我们最后一个异常（2018年11月），我们看到销售量出现了巨大的波动，似乎偏离了整体趋势。然而，我们已经没有更多的数据。随着数据的持续记录，这可能并不是一个异常，而可能是一个识别出更陡峭上升趋势的信号。
+对于我们最后一个异常（2018 年 11 月），我们看到销售量出现了巨大的波动，似乎偏离了整体趋势。然而，我们已经没有更多的数据。随着数据的持续记录，这可能并不是一个异常，而可能是一个识别出更陡峭上升趋势的信号。
 
 ## 结论
 

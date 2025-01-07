@@ -1,20 +1,20 @@
 # 人工智能首个诺贝尔奖背后的科学
 
-> 原文：[https://towardsdatascience.com/the-science-behind-ais-first-nobel-prize-829c788f2202?source=collection_archive---------1-----------------------#2024-10-16](https://towardsdatascience.com/the-science-behind-ais-first-nobel-prize-829c788f2202?source=collection_archive---------1-----------------------#2024-10-16)
+> 原文：[`towardsdatascience.com/the-science-behind-ais-first-nobel-prize-829c788f2202?source=collection_archive---------1-----------------------#2024-10-16`](https://towardsdatascience.com/the-science-behind-ais-first-nobel-prize-829c788f2202?source=collection_archive---------1-----------------------#2024-10-16)
 
-## 物理学与机器学习如何携手赢得2024年诺贝尔物理学奖
+## 物理学与机器学习如何携手赢得 2024 年诺贝尔物理学奖
 
-[](https://tim-lou.medium.com/?source=post_page---byline--829c788f2202--------------------------------)[![Tim Lou博士](../Images/e4931bb6d59e27730529ceaf00a23822.png)](https://tim-lou.medium.com/?source=post_page---byline--829c788f2202--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--829c788f2202--------------------------------)[![数据科学之路](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--829c788f2202--------------------------------) [Tim Lou博士](https://tim-lou.medium.com/?source=post_page---byline--829c788f2202--------------------------------)
+[](https://tim-lou.medium.com/?source=post_page---byline--829c788f2202--------------------------------)![Tim Lou 博士](https://tim-lou.medium.com/?source=post_page---byline--829c788f2202--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--829c788f2202--------------------------------)![数据科学之路](https://towardsdatascience.com/?source=post_page---byline--829c788f2202--------------------------------) [Tim Lou 博士](https://tim-lou.medium.com/?source=post_page---byline--829c788f2202--------------------------------)
 
-·发表于[数据科学之路](https://towardsdatascience.com/?source=post_page---byline--829c788f2202--------------------------------) ·阅读时长11分钟·2024年10月16日
+·发表于[数据科学之路](https://towardsdatascience.com/?source=post_page---byline--829c788f2202--------------------------------) ·阅读时长 11 分钟·2024 年 10 月 16 日
 
 --
 
-![](../Images/632fc33f80fafcd9923aa21ac9aaad44.png)
+![](img/632fc33f80fafcd9923aa21ac9aaad44.png)
 
 作者本人创作的作品，展示了霍普菲尔德网络中的诺贝尔奖。背景图像来源：[Maxim Tajer](https://unsplash.com/photos/burning-wood-x3S1aGQNgro)，诺贝尔奖金币图像来源：[hyperionforge](https://sketchfab.com/3d-models/nobel-coin-6bfcee0e4c2f4c02a1739d6f5a307d7d)
 
-2024年诺贝尔物理学奖已于2024年10月4日公布，今年的奖项颁给了霍普菲尔德教授和杰弗里·辛顿教授。但这次略有不同，奖项并非授予关于自然世界的通常发现，而是颁给了一些更具人工性质的东西：
+2024 年诺贝尔物理学奖已于 2024 年 10 月 4 日公布，今年的奖项颁给了霍普菲尔德教授和杰弗里·辛顿教授。但这次略有不同，奖项并非授予关于自然世界的通常发现，而是颁给了一些更具人工性质的东西：
 
 > “因奠定了通过人工神经网络实现机器学习的基础性发现和发明。”
 > 

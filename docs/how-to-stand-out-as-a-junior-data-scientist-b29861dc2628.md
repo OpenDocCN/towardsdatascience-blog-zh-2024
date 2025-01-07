@@ -1,16 +1,16 @@
 # 如何在初级数据科学家中脱颖而出
 
-> 原文：[https://towardsdatascience.com/how-to-stand-out-as-a-junior-data-scientist-b29861dc2628?source=collection_archive---------5-----------------------#2024-12-18](https://towardsdatascience.com/how-to-stand-out-as-a-junior-data-scientist-b29861dc2628?source=collection_archive---------5-----------------------#2024-12-18)
+> 原文：[`towardsdatascience.com/how-to-stand-out-as-a-junior-data-scientist-b29861dc2628?source=collection_archive---------5-----------------------#2024-12-18`](https://towardsdatascience.com/how-to-stand-out-as-a-junior-data-scientist-b29861dc2628?source=collection_archive---------5-----------------------#2024-12-18)
 
 ## 7 个即使没有任何经验也能展示你技能的方法
 
-[](https://idit-cohen.medium.com/?source=post_page---byline--b29861dc2628--------------------------------)[![Idit Cohen](../Images/4853317e3aea6e96b9f4ac0622d49445.png)](https://idit-cohen.medium.com/?source=post_page---byline--b29861dc2628--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b29861dc2628--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b29861dc2628--------------------------------) [Idit Cohen](https://idit-cohen.medium.com/?source=post_page---byline--b29861dc2628--------------------------------)
+[](https://idit-cohen.medium.com/?source=post_page---byline--b29861dc2628--------------------------------)![Idit Cohen](https://idit-cohen.medium.com/?source=post_page---byline--b29861dc2628--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b29861dc2628--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b29861dc2628--------------------------------) [Idit Cohen](https://idit-cohen.medium.com/?source=post_page---byline--b29861dc2628--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b29861dc2628--------------------------------) ·阅读时间：5分钟·2024年12月18日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b29861dc2628--------------------------------) ·阅读时间：5 分钟·2024 年 12 月 18 日
 
 --
 
-![](../Images/fa257f1d05fd5b72b337274f21174eb9.png)
+![](img/fa257f1d05fd5b72b337274f21174eb9.png)
 
 图片来源：ChetGPT
 

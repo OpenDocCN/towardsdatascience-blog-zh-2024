@@ -1,18 +1,18 @@
 # 数据演讲者的蓝图：将分析转化为掌声
 
-> 原文：[https://towardsdatascience.com/the-data-speakers-blueprint-turning-analytics-into-applause-96fb12a0ef39?source=collection_archive---------5-----------------------#2024-01-21](https://towardsdatascience.com/the-data-speakers-blueprint-turning-analytics-into-applause-96fb12a0ef39?source=collection_archive---------5-----------------------#2024-01-21)
+> 原文：[`towardsdatascience.com/the-data-speakers-blueprint-turning-analytics-into-applause-96fb12a0ef39?source=collection_archive---------5-----------------------#2024-01-21`](https://towardsdatascience.com/the-data-speakers-blueprint-turning-analytics-into-applause-96fb12a0ef39?source=collection_archive---------5-----------------------#2024-01-21)
 
 ## 我作为数据科学领域的公众演讲者的经验与学习。
 
-[](https://alerom90.medium.com/?source=post_page---byline--96fb12a0ef39--------------------------------)[![Alessandro Romano](../Images/d03c9add8c1138770da250b0ab964900.png)](https://alerom90.medium.com/?source=post_page---byline--96fb12a0ef39--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--96fb12a0ef39--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--96fb12a0ef39--------------------------------) [Alessandro Romano](https://alerom90.medium.com/?source=post_page---byline--96fb12a0ef39--------------------------------)
+[](https://alerom90.medium.com/?source=post_page---byline--96fb12a0ef39--------------------------------)![Alessandro Romano](https://alerom90.medium.com/?source=post_page---byline--96fb12a0ef39--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--96fb12a0ef39--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--96fb12a0ef39--------------------------------) [Alessandro Romano](https://alerom90.medium.com/?source=post_page---byline--96fb12a0ef39--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--96fb12a0ef39--------------------------------) ·7分钟阅读·2024年1月21日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--96fb12a0ef39--------------------------------) ·7 分钟阅读·2024 年 1 月 21 日
 
 --
 
-![](../Images/74fccf152faf3952f895da422df96c1f.png)
+![](img/74fccf152faf3952f895da422df96c1f.png)
 
-我在2023年柏林的Applydata Summit大会上
+我在 2023 年柏林的 Applydata Summit 大会上
 
 在我的数据科学家生涯中，我参加了许多会议和聚会。当我刚开始工作时，很多人还在为理解什么是数据科学以及如何利用不断发展的云计算解决方案而苦恼。**那时总感觉像是在丛林中求生！**
 
@@ -30,17 +30,17 @@
 
 *数据*真的很难！公司往往不知道他们真正需要什么，这迫使数据爱好者去为一些有时根本无法解决的问题找到解决方案。**现在，想象一下，与一个面临相同挑战的人建立联系，并可能提供你一直在寻找的答案，是多么有帮助啊**。或者，或许只是找到一个你能够产生共鸣的人，可以和你一起分享并深入探讨你正在做的工作。
 
-这正是为什么我们在这个领域需要优秀的沟通者。我仍然清楚地记得那位了不起的数据工程师在演讲中分享了他如何解决AWS Lambda部署问题的经历。这个问题困扰了我几个星期。
+这正是为什么我们在这个领域需要优秀的沟通者。我仍然清楚地记得那位了不起的数据工程师在演讲中分享了他如何解决 AWS Lambda 部署问题的经历。这个问题困扰了我几个星期。
 
 另一方面，听别人展示一个用例可以是一次启发。它是一种发现某些解决方案并理解如何应用它们的方式。此外，如果你对自己的工作充满热情，展示你的想法并开放讨论是非常愉快的。这是一个从各方听到反馈的机会。
 
-我也坚信，在AI技术，如应用的大型语言模型（LLMs）取得显著进展的今天，沟通的需求愈加迫切。这对于解释我们与技术之间的复杂层次至关重要，而这些技术已经成为我们生活的一部分。
+我也坚信，在 AI 技术，如应用的大型语言模型（LLMs）取得显著进展的今天，沟通的需求愈加迫切。这对于解释我们与技术之间的复杂层次至关重要，而这些技术已经成为我们生活的一部分。
 
 ## 我没有什么可说的
 
-![](../Images/d82be552e12ceabeda318eb3a58a663d.png)
+![](img/d82be552e12ceabeda318eb3a58a663d.png)
 
-由Dall-E生成
+由 Dall-E 生成
 
 可惜，这种情绪我常常遇到。在我看来，它总是像这样回响：
 
@@ -48,7 +48,7 @@
 
 但事实远非如此。总是有话可说，特别是当你每天都沉浸在数据的世界中时。你被挑战和故事包围，这些挑战无法通过简单的确定性解决方案来解决。对我而言，这正是做出非凡成果的完美起点！
 
-我们有时会忽视自己工作的意义，仅仅因为它是我们日常对话的一部分。我们与老板、同事讨论它，却忘记了在我们的圈子之外，许多公司和个人仍在摸索数据和AI的基础知识。例如，我知道有很多人并不熟悉ChatGPT，尽管它越来越受欢迎。把你的见解带到更广泛的圈子，你会意识到你的受众有多广泛！
+我们有时会忽视自己工作的意义，仅仅因为它是我们日常对话的一部分。我们与老板、同事讨论它，却忘记了在我们的圈子之外，许多公司和个人仍在摸索数据和 AI 的基础知识。例如，我知道有很多人并不熟悉 ChatGPT，尽管它越来越受欢迎。把你的见解带到更广泛的圈子，你会意识到你的受众有多广泛！
 
 最后，如果你从事数据工作，那么你本质上就是一个讲故事的人。要在这个领域工作，无法避免将复杂的背景转化为更易理解的叙述。你可能是在下意识地做这件事，但你一定是在做。
 
@@ -76,17 +76,17 @@
 
 1.  **分享这些信息对他人有益吗？**
 
-这些问题是我确定理想主题的起点。接下来的步骤是研究其他人是否在讨论类似的主题，渠道可以是出版物、演讲或Medium文章等。这个阶段至关重要，因为它需要对当前趋势和发展有透彻的了解，从而确保我的贡献以某种独特的方式脱颖而出。
+这些问题是我确定理想主题的起点。接下来的步骤是研究其他人是否在讨论类似的主题，渠道可以是出版物、演讲或 Medium 文章等。这个阶段至关重要，因为它需要对当前趋势和发展有透彻的了解，从而确保我的贡献以某种独特的方式脱颖而出。
 
-例如，几年前我写过一篇[Medium文章](/how-i-made-my-girlfriend-happy-with-a-simple-telegram-bot-2be8e4b150e7)。我并不是在介绍一些全新的东西；创新之处在于我如何将现有的技术结合起来，解决一个特定的挑战。这个经历随后成为我在汉堡当地Python社区演讲的核心内容。
+例如，几年前我写过一篇 Medium 文章。我并不是在介绍一些全新的东西；创新之处在于我如何将现有的技术结合起来，解决一个特定的挑战。这个经历随后成为我在汉堡当地 Python 社区演讲的核心内容。
 
 ## 制作你的演示文稿
 
-![](../Images/043d78e9a457cc0c50971e87ee6ad8be.png)
+![](img/043d78e9a457cc0c50971e87ee6ad8be.png)
 
 图片来源：作者
 
-我坚信“**少即是多**”的理念，尽管我对不同观点保持开放态度，但我在这个信念上相当坚定！与其过度依赖文字，我建议使用简洁的视觉效果来解释你的算法，或者采用简短的要点作为指导。当你面对的观众可能对主题不如你那样熟悉，并且很可能已经听过其他类似演讲时，过多的文字会适得其反。结果是什么呢？观众失去兴趣，且感到你的信息未能传达出去。试想一下，在这种情况下，听一场30分钟的演讲会是怎样的体验！
+我坚信“**少即是多**”的理念，尽管我对不同观点保持开放态度，但我在这个信念上相当坚定！与其过度依赖文字，我建议使用简洁的视觉效果来解释你的算法，或者采用简短的要点作为指导。当你面对的观众可能对主题不如你那样熟悉，并且很可能已经听过其他类似演讲时，过多的文字会适得其反。结果是什么呢？观众失去兴趣，且感到你的信息未能传达出去。试想一下，在这种情况下，听一场 30 分钟的演讲会是怎样的体验！
 
 在演示文稿中保持简约，展示仅能补充你讲述内容的关键信息。要明白，无法覆盖每一个细节。因此，为那些有兴趣进一步探索主题的观众提供一些相关链接。
 
@@ -104,7 +104,7 @@
 
 # 最后的思考
 
-![](../Images/4dec018a046c473fb3a8f06d0615d1bb.png)
+![](img/4dec018a046c473fb3a8f06d0615d1bb.png)
 
 由 Dall-E 生成
 
@@ -112,4 +112,4 @@
 
 所以，跳出你的舒适区，找到最适合你的舞台。无论是数据科学的主题，还是数据工程的案例，收集你所有的见解，走出去，与世界分享。
 
-如果你需要支持或想要联系，可以随时访问：[https://www.aromano.dev/](https://www.aromano.dev/)
+如果你需要支持或想要联系，可以随时访问：[`www.aromano.dev/`](https://www.aromano.dev/)

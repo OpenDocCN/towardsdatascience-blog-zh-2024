@@ -1,16 +1,16 @@
-# 一位Python工程师的3D高斯喷溅入门（第3部分）
+# 一位 Python 工程师的 3D 高斯喷溅入门（第三部分）
 
-> 原文：[https://towardsdatascience.com/a-python-engineers-introduction-to-3d-gaussian-splatting-part-3-398d36ccdd90?source=collection_archive---------5-----------------------#2024-07-18](https://towardsdatascience.com/a-python-engineers-introduction-to-3d-gaussian-splatting-part-3-398d36ccdd90?source=collection_archive---------5-----------------------#2024-07-18)
+> 原文：[`towardsdatascience.com/a-python-engineers-introduction-to-3d-gaussian-splatting-part-3-398d36ccdd90?source=collection_archive---------5-----------------------#2024-07-18`](https://towardsdatascience.com/a-python-engineers-introduction-to-3d-gaussian-splatting-part-3-398d36ccdd90?source=collection_archive---------5-----------------------#2024-07-18)
 
-## 高斯喷溅教程的第3部分，展示如何将喷溅渲染到2D图像上
+## 高斯喷溅教程的第三部分，展示如何将喷溅渲染到 2D 图像上
 
-[](https://medium.com/@dcaustin33?source=post_page---byline--398d36ccdd90--------------------------------)[![Derek Austin](../Images/1bcc5955f32cb798988af5713baae212.png)](https://medium.com/@dcaustin33?source=post_page---byline--398d36ccdd90--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--398d36ccdd90--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--398d36ccdd90--------------------------------) [Derek Austin](https://medium.com/@dcaustin33?source=post_page---byline--398d36ccdd90--------------------------------)
+[](https://medium.com/@dcaustin33?source=post_page---byline--398d36ccdd90--------------------------------)![Derek Austin](https://medium.com/@dcaustin33?source=post_page---byline--398d36ccdd90--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--398d36ccdd90--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--398d36ccdd90--------------------------------) [Derek Austin](https://medium.com/@dcaustin33?source=post_page---byline--398d36ccdd90--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--398d36ccdd90--------------------------------) ·8分钟阅读·2024年7月18日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--398d36ccdd90--------------------------------) ·8 分钟阅读·2024 年 7 月 18 日
 
 --
 
-最后，我们进入了高斯喷溅过程中的最有趣的阶段：渲染！这一步可以说是最关键的，因为它决定了我们模型的真实感。然而，它也可能是最简单的。在我们系列的[第一部分](https://medium.com/towards-data-science/a-python-engineers-introduction-to-3d-gaussian-splatting-part-1-e133b0449fc6)和[第二部分](https://medium.com/towards-data-science/a-python-engineers-introduction-to-3d-gaussian-splatting-part-2-7e45b270c1df)中，我们展示了如何将原始的喷溅数据转换为可以渲染的格式，但现在我们实际上要做的是渲染工作，将其绘制到固定的像素集上。作者们使用CUDA开发了一个快速渲染引擎，虽然这个引擎有些难以跟随。因此，我认为首先通过Python代码讲解，使用简单的`for`循环来保持清晰，是非常有益的。对于那些渴望深入了解的人，所有必要的代码都可以在我们的[GitHub](https://github.com/dcaustin33/intro_to_gaussian_splatting)上找到。
+最后，我们进入了高斯喷溅过程中的最有趣的阶段：渲染！这一步可以说是最关键的，因为它决定了我们模型的真实感。然而，它也可能是最简单的。在我们系列的[第一部分](https://medium.com/towards-data-science/a-python-engineers-introduction-to-3d-gaussian-splatting-part-1-e133b0449fc6)和[第二部分](https://medium.com/towards-data-science/a-python-engineers-introduction-to-3d-gaussian-splatting-part-2-7e45b270c1df)中，我们展示了如何将原始的喷溅数据转换为可以渲染的格式，但现在我们实际上要做的是渲染工作，将其绘制到固定的像素集上。作者们使用 CUDA 开发了一个快速渲染引擎，虽然这个引擎有些难以跟随。因此，我认为首先通过 Python 代码讲解，使用简单的`for`循环来保持清晰，是非常有益的。对于那些渴望深入了解的人，所有必要的代码都可以在我们的[GitHub](https://github.com/dcaustin33/intro_to_gaussian_splatting)上找到。
 
 让我们讨论如何渲染每一个独立的像素。从我们之前的[文章](https://medium.com/towards-data-science/a-python-engineers-introduction-to-3d-gaussian-splatting-part-2-7e45b270c1df)中，我们已经具备了所有必要的组件：2D 点、关联的颜色、协方差、排序后的深度顺序、2D 逆协方差、每个溅射的最小和最大 x 和 y 值，以及关联的不透明度。借助这些组件，我们可以渲染任何像素。给定特定的像素坐标，我们会遍历所有的溅射，直到达到饱和度阈值，按照溅射的深度顺序相对于相机平面（先投影到相机平面，然后按深度排序）。对于每个溅射，我们首先检查像素坐标是否在由最小和最大 x 和 y 值定义的范围内。这个检查决定了我们是继续渲染还是忽略这些坐标的溅射。接下来，我们使用溅射的均值、溅射的协方差和像素坐标来计算该像素位置的高斯溅射强度。
 
@@ -135,7 +135,7 @@ def render_image(self, image_idx: int, tile_size: int = 16) -> torch.Tensor:
 
 最终，既然我们已经具备了所有必要的组件，我们就可以渲染图像了。我们从 treehill 数据集中获取所有的 3D 点，并将它们初始化为高斯溅射。为了避免代价高昂的最近邻搜索，我们将所有的尺度变量初始化为 0.01（注意，使用如此小的方差时，我们需要在一个位置上有较强的溅射集中才能使其可见。较大的方差会使得过程变得相当缓慢）。然后我们所需要做的就是调用 render_image，传入我们尝试模拟的图像编号，正如你所看到的，我们得到了一个稀疏的点云集，看起来像我们的图像！（查看底部的附加部分，了解使用 pyTorch 的便捷工具编译 CUDA 代码的等效 CUDA 内核！）
 
-![](../Images/e598799a3b44d0da6514a6f8399487a4.png)
+![](img/e598799a3b44d0da6514a6f8399487a4.png)
 
 实际图像，CPU 实现，CUDA 实现。图片来自作者。
 
@@ -143,9 +143,9 @@ def render_image(self, image_idx: int, tile_size: int = 16) -> torch.Tensor:
 
 尽管反向传递不在本教程的范围内，但需要注意的是，虽然我们一开始只有几个点，但很快在大多数场景中会有数十万个 splats。这一增加是由于将大 splats（在轴上具有较大方差）拆分成更小的 splats，并移除透明度非常低的 splats。例如，如果我们最初将缩放设置为三个最近邻点的均值，大部分空间会被覆盖。为了实现更细致的细节，我们需要将这些大 splats 分解成更小的 splats。此外，少数高斯分布的区域也需要填充。这些场景被称为过度重建和欠重建，特征是各种 splats 的大梯度值。根据它们的大小，splats 会被拆分或克隆（见下图），优化过程继续进行。
 
-![](../Images/1028ac2dcb239fa565cc73156eef6e93.png)
+![](img/1028ac2dcb239fa565cc73156eef6e93.png)
 
-来自作者原始论文，讨论在训练过程中如何对高斯分布进行拆分或克隆。来源：[https://arxiv.org/abs/2308.04079](https://arxiv.org/abs/2308.04079)
+来自作者原始论文，讨论在训练过程中如何对高斯分布进行拆分或克隆。来源：[`arxiv.org/abs/2308.04079`](https://arxiv.org/abs/2308.04079)
 
 这就是高斯 Splatting 的简单介绍！你现在应该对高斯场景渲染的前向传递过程有了很好的直觉。虽然它有点复杂，并不完全是神经网络，但只需一点线性代数，我们就能在 2D 中渲染 3D 几何！
 

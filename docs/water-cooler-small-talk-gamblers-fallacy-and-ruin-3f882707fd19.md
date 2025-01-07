@@ -1,16 +1,16 @@
 # 水冷器闲聊：赌徒谬误与破产
 
-> 原文：[https://towardsdatascience.com/water-cooler-small-talk-gamblers-fallacy-and-ruin-3f882707fd19?source=collection_archive---------3-----------------------#2024-09-12](https://towardsdatascience.com/water-cooler-small-talk-gamblers-fallacy-and-ruin-3f882707fd19?source=collection_archive---------3-----------------------#2024-09-12)
+> 原文：[`towardsdatascience.com/water-cooler-small-talk-gamblers-fallacy-and-ruin-3f882707fd19?source=collection_archive---------3-----------------------#2024-09-12`](https://towardsdatascience.com/water-cooler-small-talk-gamblers-fallacy-and-ruin-3f882707fd19?source=collection_archive---------3-----------------------#2024-09-12)
 
 ## 对赌博、运气和风险的直观而深入的解释，帮助你避免显得愚蠢
 
-[](https://medium.com/@m.mouschoutzi?source=post_page---byline--3f882707fd19--------------------------------)[![Maria Mouschoutzi, PhD](../Images/66f8cf036b6e4db2e24eae3e9f492db8.png)](https://medium.com/@m.mouschoutzi?source=post_page---byline--3f882707fd19--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f882707fd19--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3f882707fd19--------------------------------) [Maria Mouschoutzi, PhD](https://medium.com/@m.mouschoutzi?source=post_page---byline--3f882707fd19--------------------------------)
+[](https://medium.com/@m.mouschoutzi?source=post_page---byline--3f882707fd19--------------------------------)![Maria Mouschoutzi, PhD](https://medium.com/@m.mouschoutzi?source=post_page---byline--3f882707fd19--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f882707fd19--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f882707fd19--------------------------------) [Maria Mouschoutzi, PhD](https://medium.com/@m.mouschoutzi?source=post_page---byline--3f882707fd19--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f882707fd19--------------------------------) ·阅读时长：11分钟·2024年9月12日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f882707fd19--------------------------------) ·阅读时长：11 分钟·2024 年 9 月 12 日
 
 --
 
-![](../Images/83f81bf1e8b714e8cbf95959dde37788.png)
+![](img/83f81bf1e8b714e8cbf95959dde37788.png)
 
 图片由[Amanda Jones](https://unsplash.com/@amandagraphc?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -18,7 +18,7 @@
 
 以下是今天这篇文章的水冷器闲聊观点：
 
-*“在轮盘赌中，如果你一开始输钱，但有足够的钱继续赌博——每次加倍下注以弥补之前的损失——你最终会赢。换句话说，如果你输掉了，比如100次，你的运气最终会好转，你将赢得胜利——而这 supposedly 被认为是一种好策略。”*
+*“在轮盘赌中，如果你一开始输钱，但有足够的钱继续赌博——每次加倍下注以弥补之前的损失——你最终会赢。换句话说，如果你输掉了，比如 100 次，你的运气最终会好转，你将赢得胜利——而这 supposedly 被认为是一种好策略。”*
 
 🤪🎲
 

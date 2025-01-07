@@ -1,14 +1,14 @@
 # 贝叶斯推断：感知、推理与决策的统一框架
 
-> 原文：[https://towardsdatascience.com/bayesian-inference-a-unified-framework-for-perception-reasoning-and-decision-making-bb9c47448f8f?source=collection_archive---------3-----------------------#2024-01-04](https://towardsdatascience.com/bayesian-inference-a-unified-framework-for-perception-reasoning-and-decision-making-bb9c47448f8f?source=collection_archive---------3-----------------------#2024-01-04)
+> 原文：[`towardsdatascience.com/bayesian-inference-a-unified-framework-for-perception-reasoning-and-decision-making-bb9c47448f8f?source=collection_archive---------3-----------------------#2024-01-04`](https://towardsdatascience.com/bayesian-inference-a-unified-framework-for-perception-reasoning-and-decision-making-bb9c47448f8f?source=collection_archive---------3-----------------------#2024-01-04)
 
-[](https://jshen9889.medium.com/?source=post_page---byline--bb9c47448f8f--------------------------------)[![Stephanie Shen](../Images/857cccbe84f0d3a9886c84acfbbac03e.png)](https://jshen9889.medium.com/?source=post_page---byline--bb9c47448f8f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bb9c47448f8f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bb9c47448f8f--------------------------------) [Stephanie Shen](https://jshen9889.medium.com/?source=post_page---byline--bb9c47448f8f--------------------------------)
+[](https://jshen9889.medium.com/?source=post_page---byline--bb9c47448f8f--------------------------------)![Stephanie Shen](https://jshen9889.medium.com/?source=post_page---byline--bb9c47448f8f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bb9c47448f8f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb9c47448f8f--------------------------------) [Stephanie Shen](https://jshen9889.medium.com/?source=post_page---byline--bb9c47448f8f--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb9c47448f8f--------------------------------) ·14分钟阅读·2024年1月4日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb9c47448f8f--------------------------------) ·14 分钟阅读·2024 年 1 月 4 日
 
 --
 
-![](../Images/d9fd9dbd2a7d7e352877a0f27847dd27.png)
+![](img/d9fd9dbd2a7d7e352877a0f27847dd27.png)
 
 由[🇸🇮 Janko Ferlič](https://unsplash.com/@itfeelslikefilm?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)拍摄，[在 Unsplash](https://unsplash.com/photos/photo-of-library-with-turned-on-lights-sfL_QOnmy00?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

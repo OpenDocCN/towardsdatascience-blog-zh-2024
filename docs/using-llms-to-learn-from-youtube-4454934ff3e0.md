@@ -1,16 +1,16 @@
-# 使用LLMs从YouTube学习
+# 使用 LLMs 从 YouTube 学习
 
-> 原文：[https://towardsdatascience.com/using-llms-to-learn-from-youtube-4454934ff3e0?source=collection_archive---------1-----------------------#2024-05-21](https://towardsdatascience.com/using-llms-to-learn-from-youtube-4454934ff3e0?source=collection_archive---------1-----------------------#2024-05-21)
+> 原文：[`towardsdatascience.com/using-llms-to-learn-from-youtube-4454934ff3e0?source=collection_archive---------1-----------------------#2024-05-21`](https://towardsdatascience.com/using-llms-to-learn-from-youtube-4454934ff3e0?source=collection_archive---------1-----------------------#2024-05-21)
 
-![](../Images/e89496c5a1c58b96a670f468d04c9c69.png)
+![](img/e89496c5a1c58b96a670f468d04c9c69.png)
 
-图片由作者使用Midjourney制作
+图片由作者使用 Midjourney 制作
 
-## 一个使用LangChain、Pinecone、Flask、React和AWS构建的对话式问答工具
+## 一个使用 LangChain、Pinecone、Flask、React 和 AWS 构建的对话式问答工具
 
-[](https://medium.com/@suresha?source=post_page---byline--4454934ff3e0--------------------------------)[![Alok Suresh](../Images/13c5a5d18cff88db8d5c6e903177c03b.png)](https://medium.com/@suresha?source=post_page---byline--4454934ff3e0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4454934ff3e0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4454934ff3e0--------------------------------) [Alok Suresh](https://medium.com/@suresha?source=post_page---byline--4454934ff3e0--------------------------------)
+[](https://medium.com/@suresha?source=post_page---byline--4454934ff3e0--------------------------------)![Alok Suresh](https://medium.com/@suresha?source=post_page---byline--4454934ff3e0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4454934ff3e0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4454934ff3e0--------------------------------) [Alok Suresh](https://medium.com/@suresha?source=post_page---byline--4454934ff3e0--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4454934ff3e0--------------------------------) ·阅读时间17分钟·2024年5月21日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4454934ff3e0--------------------------------) ·阅读时间 17 分钟·2024 年 5 月 21 日
 
 --
 
@@ -18,37 +18,37 @@
 
 你是否曾遇到过想要观看的播客或视频，但因其长度而难以找到时间？你是否希望能有一种简单的方法来回顾该内容的特定部分？
 
-这是我在处理像《CEO日记》这样的流行播客的YouTube视频时经常遇到的问题。实际上，这类播客中涵盖的很多信息，通过快速的Google搜索就能轻松找到。但听作者谈论他们对某些话题的看法，或者听一位成功企业家从他们的视角讲述自己的经历，往往能提供更多的见解和清晰度。
+这是我在处理像《CEO 日记》这样的流行播客的 YouTube 视频时经常遇到的问题。实际上，这类播客中涵盖的很多信息，通过快速的 Google 搜索就能轻松找到。但听作者谈论他们对某些话题的看法，或者听一位成功企业家从他们的视角讲述自己的经历，往往能提供更多的见解和清晰度。
 
-受这一问题以及希望自我教育有关LLM驱动应用及其开发的愿望的驱动，我决定构建一个聊天机器人，允许用户使用RAG（检索增强生成）框架询问有关YouTube视频内容的问题。在本文的其余部分，我将介绍我使用LangChain、Pinecone、Flask、React开发此应用程序，并使用AWS进行部署的经验：
+受这一问题以及希望自我教育有关 LLM 驱动应用及其开发的愿望的驱动，我决定构建一个聊天机器人，允许用户使用 RAG（检索增强生成）框架询问有关 YouTube 视频内容的问题。在本文的其余部分，我将介绍我使用 LangChain、Pinecone、Flask、React 开发此应用程序，并使用 AWS 进行部署的经验：
 
-![](../Images/dabe57eb81469c898bca326bc2e88548.png)
+![](img/dabe57eb81469c898bca326bc2e88548.png)
 
 > 我将代码片段限制为我认为最有用的那些。对于有兴趣的人，应用程序的完整代码库可以在[这里](https://github.com/suresha97/ChatYTT/tree/main)找到。
 
 # 后端
 
-我们将使用YouTube视频的转录文本作为源，从中生成LLM对用户定义问题的答案。为了实现这一点，后端需要一种方法来实时检索并适当存储这些文本，以便用于生成答案。同时，我们还需要一种存储聊天历史记录的方法，以便用户能够在后续时间查看。现在，看看如何开发后端以满足所有这些需求。
+我们将使用 YouTube 视频的转录文本作为源，从中生成 LLM 对用户定义问题的答案。为了实现这一点，后端需要一种方法来实时检索并适当存储这些文本，以便用于生成答案。同时，我们还需要一种存储聊天历史记录的方法，以便用户能够在后续时间查看。现在，看看如何开发后端以满足所有这些需求。
 
 ## 回应生成
 
 由于这是一个对话式问答工具，应用程序必须能够在考虑到相关上下文*和*聊天历史的情况下生成问题的答案。可以通过使用带有对话记忆的检索增强生成（RAG）方法来实现这一点，如下所示：
 
-![](../Images/d42fbc44892a532842fd1efa30543943.png)
+![](img/d42fbc44892a532842fd1efa30543943.png)
 
 为了清晰起见，涉及的步骤如下：
 
-1.  **问题总结**：当前问题和聊天历史将通过适当的提示缩减为一个独立的问题，要求LLM执行这一操作。
+1.  **问题总结**：当前问题和聊天历史将通过适当的提示缩减为一个独立的问题，要求 LLM 执行这一操作。
 
-1.  **语义搜索**：接下来，必须检索与简化问题最相关的YouTube转录文本块。转录文本本身被存储为嵌入，嵌入是单词和短语的数值表示，由嵌入模型学习，这个模型捕捉它们的内容和语义。在语义搜索过程中，每个转录文本的组件，其嵌入与简化问题的嵌入最为相似，会被检索出来。
+1.  **语义搜索**：接下来，必须检索与简化问题最相关的 YouTube 转录文本块。转录文本本身被存储为嵌入，嵌入是单词和短语的数值表示，由嵌入模型学习，这个模型捕捉它们的内容和语义。在语义搜索过程中，每个转录文本的组件，其嵌入与简化问题的嵌入最为相似，会被检索出来。
 
-1.  **上下文感知生成**：这些检索到的转录文本块随后作为上下文出现在另一个向LLM发送的提示中，要求它回答简化后的问题。使用简化问题可以确保生成的答案不仅与当前问题相关，还与用户在对话中先前提出的问题相关。
+1.  **上下文感知生成**：这些检索到的转录文本块随后作为上下文出现在另一个向 LLM 发送的提示中，要求它回答简化后的问题。使用简化问题可以确保生成的答案不仅与当前问题相关，还与用户在对话中先前提出的问题相关。
 
 ## 数据管道
 
-在继续实施上述过程之前，让我们先回顾一下YouTube视频的转录文本。正如前面讨论的，这些文本必须以嵌入的形式存储，以便在RAG过程的语义搜索阶段高效检索和使用它们。现在，让我们一起了解这些转录文本的来源、检索方法和存储方法。
+在继续实施上述过程之前，让我们先回顾一下 YouTube 视频的转录文本。正如前面讨论的，这些文本必须以嵌入的形式存储，以便在 RAG 过程的语义搜索阶段高效检索和使用它们。现在，让我们一起了解这些转录文本的来源、检索方法和存储方法。
 
-1.  **来源**：YouTube通过其数据API提供视频ID等元数据，并提供自动生成的转录文本。首先，我选择了[这个](https://www.youtube.com/watch?v=vOvLFT4v4LQ&list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2)来自《CEO日记》播客的播放列表，其中多位财经专家和企业家讨论个人财务、投资以及如何建立成功的企业。
+1.  **来源**：YouTube 通过其数据 API 提供视频 ID 等元数据，并提供自动生成的转录文本。首先，我选择了[这个](https://www.youtube.com/watch?v=vOvLFT4v4LQ&list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2)来自《CEO 日记》播客的播放列表，其中多位财经专家和企业家讨论个人财务、投资以及如何建立成功的企业。
 
 1.  **检索：** 我使用一个类，通过直接与 YouTube 数据 API 交互来[检索 YouTube 视频的元数据](https://github.com/suresha97/ChatYTT/blob/main/chatytt/youtube_data/playlist_data_loader.py)，例如视频 ID；另外一个类则使用 [youtube-transcript-API](https://pypi.org/project/youtube-transcript-api/) Python 包来[获取视频的字幕](https://github.com/suresha97/ChatYTT/blob/main/chatytt/youtube_data/transcript_fetcher.py)。这些字幕随后以原始形式存储为 JSON 文件在 S3 存储桶中。
 
@@ -98,13 +98,13 @@ vector_store.add_documents(documents=transcript_chunks)
 
 我们还可以利用一些 AWS 服务，通过配置定期运行的工作流来自动化这些步骤。我通过将上述提到的三个步骤分别实现为 AWS Lambda 函数（这是一种无服务器计算方式，根据需要在运行时调配和利用资源），并使用 AWS Step Functions（无服务器编排工具）定义它们的执行顺序来实现这一点。然后，使用我设置为每周运行一次的 Amazon EventBridge 调度来执行该工作流，以便自动获取并处理任何新添加到播放列表中的视频：
 
-![](../Images/9d3baac2678cfdc95ae37ac3461e78e6.png)
+![](img/9d3baac2678cfdc95ae37ac3461e78e6.png)
 
 > 请注意，我已经获得了《CEO 日记》频道的许可，使用上述播放列表中视频的字幕。任何希望以这种方式使用第三方内容的人，都应首先获得原始所有者的许可。
 
 ## 实现 RAG
 
-现在，我们的播放列表转录本正在定期被检索、转换为嵌入并存储，我们可以继续实现应用程序的核心后端功能，即使用RAG生成用户定义问题的答案的过程。幸运的是，LangChain 提供了一个内置的 ConversationalRetrievalChain 来完成这一任务！所需做的仅仅是将查询、聊天历史、一个可以用来检索转录本片段的向量存储对象以及一个选择的LLM传递到这个链中，如下所示：
+现在，我们的播放列表转录本正在定期被检索、转换为嵌入并存储，我们可以继续实现应用程序的核心后端功能，即使用 RAG 生成用户定义问题的答案的过程。幸运的是，LangChain 提供了一个内置的 ConversationalRetrievalChain 来完成这一任务！所需做的仅仅是将查询、聊天历史、一个可以用来检索转录本片段的向量存储对象以及一个选择的 LLM 传递到这个链中，如下所示：
 
 ```py
 import pinecone
@@ -246,7 +246,7 @@ if __name__ == "__main__":
 
 最后，我使用 AWS Lambda 将三个端点包装成一个 [单一函数](https://github.com/suresha97/ChatYTT/blob/main/server/lambda_handler.py)，然后通过 API Gateway 资源触发该函数，API Gateway 会根据需要构造适当的负载，将请求路由到正确的端点。这种设置的流程如下所示：
 
-![](../Images/4c9a5431cecd5d35c0d1530b6378003e.png)
+![](img/4c9a5431cecd5d35c0d1530b6378003e.png)
 
 # 前端
 
@@ -262,7 +262,7 @@ if __name__ == "__main__":
 
 这些组件之间的交互以及数据流的过程如下图所示：
 
-![](../Images/f765c74fd06a1ee00f201f96d3216938.png)
+![](img/f765c74fd06a1ee00f201f96d3216938.png)
 
 对每个端点的 API 调用及相关变量在客户端状态的变化，都在独立的功能组件中定义：
 
@@ -433,11 +433,11 @@ export default getUserChatHistory
 
 对于用户界面，我选择了一个与 ChatGPT 界面非常相似的设计，中央是一个聊天流组件，旁边是一个包含聊天历史等支持内容的侧边栏。为了提升用户体验，一些功能包括自动滚动到最近创建的聊天项，以及在登录时加载之前的聊天记录（这些内容我没有在文章中包含，但你可以在相关的功能组件中找到其实现[在这里](https://github.com/suresha97/ChatYTT/tree/main/client/src/components)）。最终的用户界面如下所示：
 
-![](../Images/a86a50109291a9161564dee2fdacf26b.png)
+![](img/a86a50109291a9161564dee2fdacf26b.png)
 
 现在我们已经拥有了一个功能完全的用户界面，剩下的就是将它部署到在线使用，我选择使用 AWS Amplify 来托管。除了其他功能外，Amplify 是一个完全托管的 web 托管服务，它负责资源配置和 web 应用程序的托管。应用程序的用户身份验证由 Amazon Cognito 管理，允许用户注册和登录，同时处理凭证存储和管理：
 
-![](../Images/deea70d1bf5d430b0bb988e66223257c.png)
+![](img/deea70d1bf5d430b0bb988e66223257c.png)
 
 # 与 ChatGPT 回复的对比
 
@@ -451,37 +451,37 @@ export default getUserChatHistory
 
 你可以通过观看[这个视频](https://www.youtube.com/watch?v=vOvLFT4v4LQ&list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2&index=1)来了解内容，视频中 Steven Bartlett 与财经作家及投资者 Morgan Housel 进行对话。从视频的标题来看，似乎他反对买房——但假设你没有时间观看完整的视频来找出原因。以下是我在应用程序中询问该问题时得到的对话片段：
 
-![](../Images/3b7266647d4afd4f998fdbfe7fed81e4.png)
+![](img/3b7266647d4afd4f998fdbfe7fed81e4.png)
 
-你还可以在这里看到对话记忆的实际应用，在后续的问题中，我没有明确提到Morgan Housel，甚至没有提到“房子”或“购买”这两个词。由于总结的查询会考虑到先前的聊天记录，LLM的回答反映了之前的问题及其答案。Housel提到上述观点的部分大约在播客开始一个半小时后，可以在[1:33:00–1:41:00时间戳](https://youtu.be/vOvLFT4v4LQ?list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2&t=5586)找到。
+你还可以在这里看到对话记忆的实际应用，在后续的问题中，我没有明确提到 Morgan Housel，甚至没有提到“房子”或“购买”这两个词。由于总结的查询会考虑到先前的聊天记录，LLM 的回答反映了之前的问题及其答案。Housel 提到上述观点的部分大约在播客开始一个半小时后，可以在[1:33:00–1:41:00 时间戳](https://youtu.be/vOvLFT4v4LQ?list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2&t=5586)找到。
 
-我问了ChatGPT同样的问题，正如预期的那样，得到了一个非常通用的回答，并没有针对Housel的观点进行具体阐述。
+我问了 ChatGPT 同样的问题，正如预期的那样，得到了一个非常通用的回答，并没有针对 Housel 的观点进行具体阐述。
 
-![](../Images/5dd70a411ea8fd9f0becebf84bfd0012.png)
+![](img/5dd70a411ea8fd9f0becebf84bfd0012.png)
 
-可以说，由于该视频是在模型的最后一次“知识更新”之后发布的，因此比较结果可能有偏差，但Housel的观点在他2020年出版的《金钱心理学》一书中也有详细记录。无论如何，这些对知识更新的依赖进一步突显了基于上下文的答案生成相比独立模型的优势。
+可以说，由于该视频是在模型的最后一次“知识更新”之后发布的，因此比较结果可能有偏差，但 Housel 的观点在他 2020 年出版的《金钱心理学》一书中也有详细记录。无论如何，这些对知识更新的依赖进一步突显了基于上下文的答案生成相比独立模型的优势。
 
 ## 示例 2
 
-以下是与Alex Hormozi的[这次讨论](https://www.youtube.com/watch?v=x3e73Qn6NOo&list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2&index=4)中的一些片段，Alex Hormozi是一位货币化和收购专家。从视频标题来看，他似乎对如何成功扩展企业有一定的了解，因此我向他询问了更多的细节：
+以下是与 Alex Hormozi 的[这次讨论](https://www.youtube.com/watch?v=x3e73Qn6NOo&list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2&index=4)中的一些片段，Alex Hormozi 是一位货币化和收购专家。从视频标题来看，他似乎对如何成功扩展企业有一定的了解，因此我向他询问了更多的细节：
 
-![](../Images/75e9ad41f70927529044b2b9a1a7454f.png)
+![](img/75e9ad41f70927529044b2b9a1a7454f.png)
 
 这个回答看起来合情合理，但让我们看看是否能从同样的问题中提取更多信息。
 
-![](../Images/27f33a139167e3a5a4db013ca0875b15.png)![](../Images/8369575cafd74f7be63e054395d263fe.png)
+![](img/27f33a139167e3a5a4db013ca0875b15.png)![](img/8369575cafd74f7be63e054395d263fe.png)
 
-请注意，LLM能够从YouTube文字记录中提取的细节水平。上述内容可以在视频的15到20分钟部分找到，大约在[17:00–35:00时间戳](https://www.youtube.com/watch?v=x3e73Qn6NOo&t=2106s)。
+请注意，LLM 能够从 YouTube 文字记录中提取的细节水平。上述内容可以在视频的 15 到 20 分钟部分找到，大约在[17:00–35:00 时间戳](https://www.youtube.com/watch?v=x3e73Qn6NOo&t=2106s)。
 
-再次，向ChatGPT提出相同的问题得到了关于企业家的通用回答，但缺乏视频文字记录中的背景信息细节。
+再次，向 ChatGPT 提出相同的问题得到了关于企业家的通用回答，但缺乏视频文字记录中的背景信息细节。
 
-![](../Images/f582a9f5f2b328ab6d0c402435afcf6a.png)
+![](img/f582a9f5f2b328ab6d0c402435afcf6a.png)
 
 # 部署
 
-最后，我们将讨论在AWS上部署每个组件的过程。数据管道、后端和前端分别包含在各自的CloudFormation堆栈中（AWS资源集合）。像这样允许它们独立部署，确保在开发过程中不会不必要地重新部署整个应用。我使用AWS SAM（无服务器应用模型）将每个组件的基础设施作为代码进行部署，利用SAM模板规范和CLI：
+最后，我们将讨论在 AWS 上部署每个组件的过程。数据管道、后端和前端分别包含在各自的 CloudFormation 堆栈中（AWS 资源集合）。像这样允许它们独立部署，确保在开发过程中不会不必要地重新部署整个应用。我使用 AWS SAM（无服务器应用模型）将每个组件的基础设施作为代码进行部署，利用 SAM 模板规范和 CLI：
 
-+   SAM模板规范 — 一种简写语法，作为AWS CloudFormation的扩展，用于定义和配置AWS资源集合、它们如何交互以及所需的权限。
++   SAM 模板规范 — 一种简写语法，作为 AWS CloudFormation 的扩展，用于定义和配置 AWS 资源集合、它们如何交互以及所需的权限。
 
 +   SAM CLI — 一个命令行工具，除了用于构建和部署按照 SAM 模板定义的资源外，还处理应用程序代码和依赖项的打包、将 SAM 模板转换为 CloudFormation 语法，并将模板部署为 CloudFormation 上的单独堆栈。
 
@@ -683,6 +683,6 @@ AmplifyBranch:
 
 # 致谢
 
-我要感谢《CEO日记》团队，感谢他们允许在本项目中使用来自这个[播放列表](https://www.youtube.com/playlist?list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2)的视频转录内容，并为撰写本文提供支持。
+我要感谢《CEO 日记》团队，感谢他们允许在本项目中使用来自这个[播放列表](https://www.youtube.com/playlist?list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2)的视频转录内容，并为撰写本文提供支持。
 
 所有图片，除非另有注明，均由作者提供。

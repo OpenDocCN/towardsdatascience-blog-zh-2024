@@ -1,16 +1,16 @@
 # Pandas 图表的威力：后端
 
-> 原文：[https://towardsdatascience.com/the-power-of-pandas-plots-backends-6a08d52071d2?source=collection_archive---------9-----------------------#2024-08-30](https://towardsdatascience.com/the-power-of-pandas-plots-backends-6a08d52071d2?source=collection_archive---------9-----------------------#2024-08-30)
+> 原文：[`towardsdatascience.com/the-power-of-pandas-plots-backends-6a08d52071d2?source=collection_archive---------9-----------------------#2024-08-30`](https://towardsdatascience.com/the-power-of-pandas-plots-backends-6a08d52071d2?source=collection_archive---------9-----------------------#2024-08-30)
 
 ## 从 Pandas 中轻松创建交互式图形
 
-[](https://medium.com/@petoulemonde?source=post_page---byline--6a08d52071d2--------------------------------)[![Pierre-Etienne Toulemonde](../Images/95fdda47e79e3c194fc96ef29f3a2188.png)](https://medium.com/@petoulemonde?source=post_page---byline--6a08d52071d2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a08d52071d2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6a08d52071d2--------------------------------) [Pierre-Etienne Toulemonde](https://medium.com/@petoulemonde?source=post_page---byline--6a08d52071d2--------------------------------)
+[](https://medium.com/@petoulemonde?source=post_page---byline--6a08d52071d2--------------------------------)![Pierre-Etienne Toulemonde](https://medium.com/@petoulemonde?source=post_page---byline--6a08d52071d2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a08d52071d2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a08d52071d2--------------------------------) [Pierre-Etienne Toulemonde](https://medium.com/@petoulemonde?source=post_page---byline--6a08d52071d2--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a08d52071d2--------------------------------) ·5分钟阅读·2024年8月30日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a08d52071d2--------------------------------) ·5 分钟阅读·2024 年 8 月 30 日
 
 --
 
-![](../Images/d5b796700b79a971847f9d847e9373d9.png)
+![](img/d5b796700b79a971847f9d847e9373d9.png)
 
 图片由[Lukas Blazek](https://unsplash.com/@goumbik?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -34,7 +34,7 @@
 
 Python 有许多可视化包，其中三个最著名的是：[Matplotlib](https://matplotlib.org/)（以及 seaborn）、[Plotly](https://plotly.com/) 和 [Hvplot](https://hvplot.holoviz.org/)。这三种包各有其优点，但都需要付出学习成本，甚至有时相当可观。
 
-本文的灵感来源于我发现的[《Pandas 方法思维导图》](https://blog.dailydoseofds.com/p/interactive-mind-map-of-all-pandas)，该导图由[Daily Dose of Data science newsletter](https://blog.dailydoseofds.com/)提供（这是我强烈推荐的一个通讯）。当时，我正好在探索Hvplot可视化包。我认为，像Hvplot这样轻松切换不同可视化后端的想法非常棒（[这里](https://hvplot.holoviz.org/user_guide/Plotting_with_Plotly.html)有一个示例，展示如何从Hvplot切换到Plotly）。看到我们也可以用pandas实现这一点，我觉得这个想法太有趣，不能不分享出来。
+本文的灵感来源于我发现的[《Pandas 方法思维导图》](https://blog.dailydoseofds.com/p/interactive-mind-map-of-all-pandas)，该导图由[Daily Dose of Data science newsletter](https://blog.dailydoseofds.com/)提供（这是我强烈推荐的一个通讯）。当时，我正好在探索 Hvplot 可视化包。我认为，像 Hvplot 这样轻松切换不同可视化后端的想法非常棒（[这里](https://hvplot.holoviz.org/user_guide/Plotting_with_Plotly.html)有一个示例，展示如何从 Hvplot 切换到 Plotly）。看到我们也可以用 pandas 实现这一点，我觉得这个想法太有趣，不能不分享出来。
 
 Pandas 是 Python 数据科学的核心，我们都知道如何使用它。但集成到 Pandas 中的 Matplotlib 已经显得有些老旧，并且在易用性和展示效果上被其他包超越。Pandas 可视化后端的强大之处在于，它让你能够利用最新的可视化包进行数据探索和结果呈现，而无需花时间学习这些包，尽管这些包非常强大！
 

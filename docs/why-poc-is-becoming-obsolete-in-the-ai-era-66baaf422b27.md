@@ -1,26 +1,26 @@
-# 为什么在AI时代，PoC逐渐过时？
+# 为什么在 AI 时代，PoC 逐渐过时？
 
-> 原文：[https://towardsdatascience.com/why-poc-is-becoming-obsolete-in-the-ai-era-66baaf422b27?source=collection_archive---------6-----------------------#2024-11-07](https://towardsdatascience.com/why-poc-is-becoming-obsolete-in-the-ai-era-66baaf422b27?source=collection_archive---------6-----------------------#2024-11-07)
+> 原文：[`towardsdatascience.com/why-poc-is-becoming-obsolete-in-the-ai-era-66baaf422b27?source=collection_archive---------6-----------------------#2024-11-07`](https://towardsdatascience.com/why-poc-is-becoming-obsolete-in-the-ai-era-66baaf422b27?source=collection_archive---------6-----------------------#2024-11-07)
 
-[](https://medium.com/@andrea.rosales08?source=post_page---byline--66baaf422b27--------------------------------)[![Andrea Rosales](../Images/1dd7c8056f356fe4e5385871bbce7f37.png)](https://medium.com/@andrea.rosales08?source=post_page---byline--66baaf422b27--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--66baaf422b27--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--66baaf422b27--------------------------------) [Andrea Rosales](https://medium.com/@andrea.rosales08?source=post_page---byline--66baaf422b27--------------------------------)
+[](https://medium.com/@andrea.rosales08?source=post_page---byline--66baaf422b27--------------------------------)![Andrea Rosales](https://medium.com/@andrea.rosales08?source=post_page---byline--66baaf422b27--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--66baaf422b27--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--66baaf422b27--------------------------------) [Andrea Rosales](https://medium.com/@andrea.rosales08?source=post_page---byline--66baaf422b27--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--66baaf422b27--------------------------------) ·阅读时长8分钟·2024年11月7日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--66baaf422b27--------------------------------) ·阅读时长 8 分钟·2024 年 11 月 7 日
 
 --
 
-![](../Images/f47c41cc69f7a7570eb803a770d6a564.png)
+![](img/f47c41cc69f7a7570eb803a770d6a564.png)
 
 图片由 [Canva AI Image Generator](https://www.canva.com/ai-image-generator/) 创建
 
-最近，我有机会参加了 [**OxML 2024**](https://www.oxfordml.school/) 计划，该计划汇集了从事机器学习的人们，共同讨论AI领域的最新进展。在活动期间，我聆听了 [**Reza Khorshidi**](https://www.linkedin.com/in/rezakhorshidi/) 发表的鼓舞人心的演讲，他是牛津大学的机器学习研究员，也是**ELANDI**的首席产品与AI官员。他谈到了一个新概念——AI中的“第一代产品”，这让我思考AI如何改变我们工作的方式。
+最近，我有机会参加了 [**OxML 2024**](https://www.oxfordml.school/) 计划，该计划汇集了从事机器学习的人们，共同讨论 AI 领域的最新进展。在活动期间，我聆听了 [**Reza Khorshidi**](https://www.linkedin.com/in/rezakhorshidi/) 发表的鼓舞人心的演讲，他是牛津大学的机器学习研究员，也是**ELANDI**的首席产品与 AI 官员。他谈到了一个新概念——AI 中的“第一代产品”，这让我思考 AI 如何改变我们工作的方式。
 
-随着AI的不断发展，显然传统方法，如**概念验证（PoC）**，正在让位于更具意义的框架，如**价值验证（PoV）**，因为公司不仅寻求技术可行性，还需要在这个快速变化的环境中衡量商业影响。
+随着 AI 的不断发展，显然传统方法，如**概念验证（PoC）**，正在让位于更具意义的框架，如**价值验证（PoV）**，因为公司不仅寻求技术可行性，还需要在这个快速变化的环境中衡量商业影响。
 
-我将简要总结他关于**PoC与PoV**的分享。
+我将简要总结他关于**PoC 与 PoV**的分享。
 
 任何熟悉产品构建的人都见过这张图——通常是构建产品的基础。每个公司都希望构建既具吸引力、可行又可持续的产品。
 
-![](../Images/396b5f2c3e9697053992ee15e4fb2545.png)
+![](img/396b5f2c3e9697053992ee15e4fb2545.png)
 
 图表展示了构建产品的基础——图片来自作者
 
@@ -54,88 +54,88 @@ PoC 通常是**时间有限且范围狭窄**的，旨在实现短期结果。然
 
 **从 PoC 到 PoV 的转变至关重要**，因为组织需要明确的证据来证明其 AI 投资能够带来有意义的结果。例如，以文档智能解决方案为例。PoV 可以衡量文档处理中的时间节省，以及这些改进带来的运营成本降低——这些度量直接影响公司的盈亏。
 
-> 根据最近麦肯锡的[报告](https://www.mckinsey.com/featured-insights/artificial-intelligence/ai-adoption-advances-but-foundational-barriers-remain)，虽然50%的企业声称已经“整合了某种形式的AI”，但只有21%的企业成功地在多个业务单元中嵌入了AI。许多这些项目失败，因为AI解决方案未能达到业务预期。
+> 根据最近麦肯锡的[报告](https://www.mckinsey.com/featured-insights/artificial-intelligence/ai-adoption-advances-but-foundational-barriers-remain)，虽然 50%的企业声称已经“整合了某种形式的 AI”，但只有 21%的企业成功地在多个业务单元中嵌入了 AI。许多这些项目失败，因为 AI 解决方案未能达到业务预期。
 
-同样，[智能自动化交流会美国2023报告](https://www.intelligentautomation.network/events-intelligentautomationexchangena/downloads/the-proof-of-value-pulse-report)对50位行业领导者进行了调查，了解他们在证明AI投资价值和将PoC转化为实际应用中的挑战。**最大的挑战是可视化这些投资的全程端到端影响。**
+同样，[智能自动化交流会美国 2023 报告](https://www.intelligentautomation.network/events-intelligentautomationexchangena/downloads/the-proof-of-value-pulse-report)对 50 位行业领导者进行了调查，了解他们在证明 AI 投资价值和将 PoC 转化为实际应用中的挑战。**最大的挑战是可视化这些投资的全程端到端影响。**
 
-报告中提到的另一个重大挑战是**如何量化AI的收益以及决定追踪哪些指标**。近41%的受访者将成本节省视为证明AI价值的关键指标，而25%的人强调了时间效率的提升。
+报告中提到的另一个重大挑战是**如何量化 AI 的收益以及决定追踪哪些指标**。近 41%的受访者将成本节省视为证明 AI 价值的关键指标，而 25%的人强调了时间效率的提升。
 
-## 公司如何确保PoV（价值证明）的成功？
+## 公司如何确保 PoV（价值证明）的成功？
 
-在将AI应用于现实世界时，我们需要确保它确实为业务提供价值。
+在将 AI 应用于现实世界时，我们需要确保它确实为业务提供价值。
 
-> 数字化转型公司[Mindtree](https://www.ltimindtree.info/gen-ai)进行的一项研究调查了IT领导者对AI采纳的看法，结果显示，尽管85%的组织已经实施了数据战略，77%的组织已经投资于与AI相关的技术，**但只有31%的公司看到了投资回报。**
+> 数字化转型公司[Mindtree](https://www.ltimindtree.info/gen-ai)进行的一项研究调查了 IT 领导者对 AI 采纳的看法，结果显示，尽管 85%的组织已经实施了数据战略，77%的组织已经投资于与 AI 相关的技术，**但只有 31%的公司看到了投资回报。**
 
-那么，公司如何确保PoV（价值证明）的成功呢？
+那么，公司如何确保 PoV（价值证明）的成功呢？
 
-这里是我从[**OxML 2024**](https://www.oxfordml.school/)项目的各种讲座中汇编出的8个简单策略：
+这里是我从[**OxML 2024**](https://www.oxfordml.school/)项目的各种讲座中汇编出的 8 个简单策略：
 
-![](../Images/d154270d9399248002c0148017376853.png)
+![](img/d154270d9399248002c0148017376853.png)
 
 图片来自作者
 
 **#1 定义应用案例**
 
-在制定AI战略时，许多公司**聚焦于痛点**并定义应用案例。思维方式必须发生转变，重点应放在识别成功的定义上——无论是更快的文档处理、更好的欺诈检测，还是更准确的预测。
+在制定 AI 战略时，许多公司**聚焦于痛点**并定义应用案例。思维方式必须发生转变，重点应放在识别成功的定义上——无论是更快的文档处理、更好的欺诈检测，还是更准确的预测。
 
-*例子*：一家银行识别到需要加速贷款审批，聚焦于**诸如手动文档审核和易出错的数据输入**等痛点。他们定义了一个特定的AI应用案例，用于自动化文档处理，以减少审批时间并提高客户满意度。
+*例子*：一家银行识别到需要加速贷款审批，聚焦于**诸如手动文档审核和易出错的数据输入**等痛点。他们定义了一个特定的 AI 应用案例，用于自动化文档处理，以减少审批时间并提高客户满意度。
 
 **#2 定义价值标准**
 
-定义利益相关者、客户和用户的价值。**价值标准是公司希望通过AI解决方案实现的具体、可衡量且可达成的成果。**它们可以与收入、成本、质量、客户满意度或任何其他相关指标相关。价值标准应与业务目标和战略一致，并根据其重要性和可行性进行优先排序。
+定义利益相关者、客户和用户的价值。**价值标准是公司希望通过 AI 解决方案实现的具体、可衡量且可达成的成果。**它们可以与收入、成本、质量、客户满意度或任何其他相关指标相关。价值标准应与业务目标和战略一致，并根据其重要性和可行性进行优先排序。
 
-*示例*：一家电子商务公司为推荐系统AI项目定义了**价值标准**，**设定了可衡量的目标**，例如将平均订单价值提高10%并提升点击率15%。这与推动收入增长和客户参与的商业目标保持一致。
+*示例*：一家电子商务公司为推荐系统 AI 项目定义了**价值标准**，**设定了可衡量的目标**，例如将平均订单价值提高 10%并提升点击率 15%。这与推动收入增长和客户参与的商业目标保持一致。
 
 **#3 跟踪价值指标**
 
-**价值指标是衡量AI项目进展和影响的关键绩效指标（KPI）。** 它们可以是定量的，如准确性、速度或转化率，也可以是定性的，如用户反馈、推荐或评价。这些指标应定期监控，并用于调整项目范围、功能和优先级。
+**价值指标是衡量 AI 项目进展和影响的关键绩效指标（KPI）。** 它们可以是定量的，如准确性、速度或转化率，也可以是定性的，如用户反馈、推荐或评价。这些指标应定期监控，并用于调整项目范围、功能和优先级。
 
-*示例*：一家医疗保健提供商使用AI进行预测患者结果，并跟踪关键指标，如预测准确性、响应时间和患者反馈。**定期监控这些KPI使公司能够调整模型，以改善临床决策支持和患者护理质量。**
+*示例*：一家医疗保健提供商使用 AI 进行预测患者结果，并跟踪关键指标，如预测准确性、响应时间和患者反馈。**定期监控这些 KPI 使公司能够调整模型，以改善临床决策支持和患者护理质量。**
 
 **#4 展示价值交付**
 
-仅仅跟踪价值指标是不够的。公司还必须展示AI项目如何为利益相关者、客户和用户创造有意义的价值。**价值交付包括清晰、简洁且具有说服力地展示AI项目的成果和效益。** 这可以通过报告、仪表盘、演示或案例研究等多种方式实现。
+仅仅跟踪价值指标是不够的。公司还必须展示 AI 项目如何为利益相关者、客户和用户创造有意义的价值。**价值交付包括清晰、简洁且具有说服力地展示 AI 项目的成果和效益。** 这可以通过报告、仪表盘、演示或案例研究等多种方式实现。
 
-*示例*：一家物流公司通过仪表盘展示AI项目的成功，显示交货时间缩短和延误减少。案例研究详细描述了AI如何改善路线优化，展示了为利益相关者带来的成本节省和服务改善。
+*示例*：一家物流公司通过仪表盘展示 AI 项目的成功，显示交货时间缩短和延误减少。案例研究详细描述了 AI 如何改善路线优化，展示了为利益相关者带来的成本节省和服务改善。
 
 **#5 对齐价值期望**
 
-价值对齐确保AI项目与商业环境和目标保持一致，符合利益相关者、客户和用户的期望。AI项目并非孤立运行，它们是更广泛商业环境的一部分，并且受到市场趋势、客户行为和竞争者行动等因素的影响，同时也能反作用于这些因素。
+价值对齐确保 AI 项目与商业环境和目标保持一致，符合利益相关者、客户和用户的期望。AI 项目并非孤立运行，它们是更广泛商业环境的一部分，并且受到市场趋势、客户行为和竞争者行动等因素的影响，同时也能反作用于这些因素。
 
-*示例*：一家零售公司实施了AI驱动的需求预测工具，但将项目目标与公司的季节性营销策略和客户购买趋势对齐。与利益相关者的定期更新确保项目始终与市场需求和客户期望保持一致。
+*示例*：一家零售公司实施了 AI 驱动的需求预测工具，但将项目目标与公司的季节性营销策略和客户购买趋势对齐。与利益相关者的定期更新确保项目始终与市场需求和客户期望保持一致。
 
 **#6 优化价值创造**
 
-**价值优化涉及基于数据和反馈对AI项目进行增强、扩展或延伸**。AI项目从未真正完成——它们在不断发展、学习和改进。为了最大化其价值，这些项目需要持续优化，这可能包括提升性能、可靠性、可用性和可访问性，或降低成本、风险和局限性。
+**价值优化涉及基于数据和反馈对 AI 项目进行增强、扩展或延伸**。AI 项目从未真正完成——它们在不断发展、学习和改进。为了最大化其价值，这些项目需要持续优化，这可能包括提升性能、可靠性、可用性和可访问性，或降低成本、风险和局限性。
 
-*示例*：一家SaaS提供商持续收集关于AI驱动的支持聊天机器人的用户反馈，优化其准确性和响应速度。这一持续的改进帮助减少了支持成本，同时提升了用户满意度和留存率。
+*示例*：一家 SaaS 提供商持续收集关于 AI 驱动的支持聊天机器人的用户反馈，优化其准确性和响应速度。这一持续的改进帮助减少了支持成本，同时提升了用户满意度和留存率。
 
 **#7 邀请合适的人**
 
-不要仅仅将AI项目交给技术团队。跨团队协作确保了PoV涵盖业务的各个方面，而不仅仅是技术表现。如果需要，可以提升团队的技能，以增加价值。
+不要仅仅将 AI 项目交给技术团队。跨团队协作确保了 PoV 涵盖业务的各个方面，而不仅仅是技术表现。如果需要，可以提升团队的技能，以增加价值。
 
 > 在[Mindtree](https://www.ltimindtree.info/gen-ai)调查的受访者中，44%报告从外部招聘顶尖人才，30%与学术机构建立了合作关系，22%组织黑客马拉松活动以应对新挑战。
 
-*示例*：一家保险公司在开发用于欺诈检测的AI模型时，邀请了其风险、合规和IT团队参与。通过涉及这些部门，他们确保AI解决方案符合监管标准，最小化风险，并有效解决技术和业务需求。
+*示例*：一家保险公司在开发用于欺诈检测的 AI 模型时，邀请了其风险、合规和 IT 团队参与。通过涉及这些部门，他们确保 AI 解决方案符合监管标准，最小化风险，并有效解决技术和业务需求。
 
 **#8 放眼未来，但从小做起**
 
-一家公司可能对AI如何转变其业务流程有明确的愿景，但明智的做法是从一个小而可控的用例开始。小规模启动有助于快速取得成功，同时确保解决方案能够扩展以满足未来需求。
+一家公司可能对 AI 如何转变其业务流程有明确的愿景，但明智的做法是从一个小而可控的用例开始。小规模启动有助于快速取得成功，同时确保解决方案能够扩展以满足未来需求。
 
-*示例*：一家全球制造商设想一个AI解决方案，用于监控全球所有工厂的设备健康状况。然而，他们首先在一个设施中实施该方案，以展示在减少设备停机时间方面的快速成果。在试点成功后，他们将其推广到整个公司，并根据小规模推广所获得的见解进行扩展。
+*示例*：一家全球制造商设想一个 AI 解决方案，用于监控全球所有工厂的设备健康状况。然而，他们首先在一个设施中实施该方案，以展示在减少设备停机时间方面的快速成果。在试点成功后，他们将其推广到整个公司，并根据小规模推广所获得的见解进行扩展。
 
-## AI项目的未来
+## AI 项目的未来
 
-在AI驱动的世界中，技术可行性往往不是最紧迫的问题，PoC（概念验证）已不再足以证明大规模投资的合理性。价值证明（PoV）提供了一个更为强大的框架，专注于实际结果、可衡量的商业价值和战略对齐。从PoC到PoV的过渡使公司能够降低AI项目的风险，确保利益相关者的支持，并实现可扩展的成功。
+在 AI 驱动的世界中，技术可行性往往不是最紧迫的问题，PoC（概念验证）已不再足以证明大规模投资的合理性。价值证明（PoV）提供了一个更为强大的框架，专注于实际结果、可衡量的商业价值和战略对齐。从 PoC 到 PoV 的过渡使公司能够降低 AI 项目的风险，确保利益相关者的支持，并实现可扩展的成功。
 
-通过专注于价值而不仅仅是可行性，组织能够更好地定位自己，利用AI的真正潜力，确保其投资带来有意义的业务转型。
+通过专注于价值而不仅仅是可行性，组织能够更好地定位自己，利用 AI 的真正潜力，确保其投资带来有意义的业务转型。
 
 ## 资源
 
-[https://www.linkedin.com/advice/3/how-do-you-prove-business-value-ai-delivered](https://www.linkedin.com/advice/3/how-do-you-prove-business-value-ai-delivered)
+[`www.linkedin.com/advice/3/how-do-you-prove-business-value-ai-delivered`](https://www.linkedin.com/advice/3/how-do-you-prove-business-value-ai-delivered)
 
-[https://www.ltimindtree.info/gen-ai](https://www.ltimindtree.info/gen-ai)
+[`www.ltimindtree.info/gen-ai`](https://www.ltimindtree.info/gen-ai)
 
-[https://www.intelligentautomation.network/](https://www.intelligentautomation.network/)
+[`www.intelligentautomation.network/`](https://www.intelligentautomation.network/)
 
-[https://www.mckinsey.com/featured-insights/artificial-intelligence/ai-adoption-advances-but-foundational-barriers-remain](https://www.mckinsey.com/featured-insights/artificial-intelligence/ai-adoption-advances-but-foundational-barriers-remain)
+[`www.mckinsey.com/featured-insights/artificial-intelligence/ai-adoption-advances-but-foundational-barriers-remain`](https://www.mckinsey.com/featured-insights/artificial-intelligence/ai-adoption-advances-but-foundational-barriers-remain)

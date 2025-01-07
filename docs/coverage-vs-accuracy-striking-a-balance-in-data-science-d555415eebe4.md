@@ -1,18 +1,18 @@
 # 覆盖率与准确性：在数据科学中找到平衡
 
-> 原文：[https://towardsdatascience.com/coverage-vs-accuracy-striking-a-balance-in-data-science-d555415eebe4?source=collection_archive---------7-----------------------#2024-04-16](https://towardsdatascience.com/coverage-vs-accuracy-striking-a-balance-in-data-science-d555415eebe4?source=collection_archive---------7-----------------------#2024-04-16)
+> 原文：[`towardsdatascience.com/coverage-vs-accuracy-striking-a-balance-in-data-science-d555415eebe4?source=collection_archive---------7-----------------------#2024-04-16`](https://towardsdatascience.com/coverage-vs-accuracy-striking-a-balance-in-data-science-d555415eebe4?source=collection_archive---------7-----------------------#2024-04-16)
 
 ## 快速获得成果的敏捷模型生产艺术
 
-[](https://medium.com/@nadavgoo?source=post_page---byline--d555415eebe4--------------------------------)[![Nadav Har-Tuv](../Images/981fadd23cdfb60cfe0fa02dbb8edca6.png)](https://medium.com/@nadavgoo?source=post_page---byline--d555415eebe4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d555415eebe4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d555415eebe4--------------------------------) [Nadav Har-Tuv](https://medium.com/@nadavgoo?source=post_page---byline--d555415eebe4--------------------------------)
+[](https://medium.com/@nadavgoo?source=post_page---byline--d555415eebe4--------------------------------)![Nadav Har-Tuv](https://medium.com/@nadavgoo?source=post_page---byline--d555415eebe4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d555415eebe4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d555415eebe4--------------------------------) [Nadav Har-Tuv](https://medium.com/@nadavgoo?source=post_page---byline--d555415eebe4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d555415eebe4--------------------------------) ·阅读时间：7分钟·2024年4月16日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d555415eebe4--------------------------------) ·阅读时间：7 分钟·2024 年 4 月 16 日
 
 --
 
-![](../Images/b5982740ce463719d4a444ab51fa163a.png)
+![](img/b5982740ce463719d4a444ab51fa163a.png)
 
-封面图由chatGPT提供
+封面图由 chatGPT 提供
 
 本文由[Nadav Har-Tuv](https://medium.com/@nadavgoo?source=post_page---byline--d555415eebe4--------------------------------)与[Yuval Cohen](https://www.linkedin.com/in/yucohen/)共同撰写并获得启发
 
@@ -46,7 +46,7 @@
 
 这时，**覆盖率**的概念就变得至关重要。覆盖率指的是模型能够高精度或高置信度成功预测或分类的数据部分。研究人员可以选择专注于那些预测相对简单的数据子集，而不是追求在整个数据集上实现高精度。通过这样做，他们可以在这个子集上实现高精度，同时承认数据中存在更加具有挑战性、尚未覆盖的部分。
 
-举个例子，考虑一个在测试数据集上准确率为50%的训练模型。在这种情况下，如果我们能够识别并只选择我们非常确定的预测（虽然我们需要定义“非常确定”是什么意思），我们可能会得到一个覆盖较少案例的模型，假设只有60%的数据被覆盖，但其准确率可能会显著提高，达到85%。
+举个例子，考虑一个在测试数据集上准确率为 50%的训练模型。在这种情况下，如果我们能够识别并只选择我们非常确定的预测（虽然我们需要定义“非常确定”是什么意思），我们可能会得到一个覆盖较少案例的模型，假设只有 60%的数据被覆盖，但其准确率可能会显著提高，达到 85%。
 
 **我不知道有哪个产品经理会在这种情况下说不，尤其是当没有生产中的模型时，这还是第一个模型。**
 
@@ -87,7 +87,7 @@ cov_C = [[2, 0.5], [0.5, 2]]  # Larger variance with some overlap with class B
 class_C = np.random.multivariate_normal(mean_C, cov_C, num_samples_C)
 ```
 
-![](../Images/3648a3956ec8fd8748307b3ea1554cf7.png)
+![](img/3648a3956ec8fd8748307b3ea1554cf7.png)
 
 来自三个类别的二维数据
 
@@ -151,19 +151,19 @@ print(results_df)
 
 然后我们得到
 
-![](../Images/bfe0f866be84c0e1aa19327441e52162.png)
+![](img/bfe0f866be84c0e1aa19327441e52162.png)
 
 按阈值划分的覆盖率和精度表
 
 或者如果我们想更详细地查看，我们可以创建一个关于阈值的覆盖率和精度的图表：
 
-![](../Images/e0e042bd92ac5bd5df2a02a1efa160a1.png)
+![](img/e0e042bd92ac5bd5df2a02a1efa160a1.png)
 
 精度和覆盖率与阈值的关系
 
-我们现在可以选择适合我们业务逻辑的阈值。例如，如果我们公司的政策是保证至少90%的精度，那么我们可以选择0.75的阈值，并在62%的数据上获得90%的精度。这比完全抛弃模型要好得多，特别是如果我们没有任何在生产中的模型！
+我们现在可以选择适合我们业务逻辑的阈值。例如，如果我们公司的政策是保证至少 90%的精度，那么我们可以选择 0.75 的阈值，并在 62%的数据上获得 90%的精度。这比完全抛弃模型要好得多，特别是如果我们没有任何在生产中的模型！
 
-既然我们的模型在60%的数据上已经成功运行，我们可以将注意力转向其余的数据。我们可以收集更多数据，进行更多特征工程，尝试更复杂的模型，或者寻求领域专家的帮助。
+既然我们的模型在 60%的数据上已经成功运行，我们可以将注意力转向其余的数据。我们可以收集更多数据，进行更多特征工程，尝试更复杂的模型，或者寻求领域专家的帮助。
 
 ## 权衡
 

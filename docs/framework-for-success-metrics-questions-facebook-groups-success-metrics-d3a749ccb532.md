@@ -1,26 +1,26 @@
-# 成功指标问题的框架 | Facebook Groups成功指标
+# 成功指标问题的框架 | Facebook Groups 成功指标
 
-> 原文：[https://towardsdatascience.com/framework-for-success-metrics-questions-facebook-groups-success-metrics-d3a749ccb532?source=collection_archive---------4-----------------------#2024-07-01](https://towardsdatascience.com/framework-for-success-metrics-questions-facebook-groups-success-metrics-d3a749ccb532?source=collection_archive---------4-----------------------#2024-07-01)
+> 原文：[`towardsdatascience.com/framework-for-success-metrics-questions-facebook-groups-success-metrics-d3a749ccb532?source=collection_archive---------4-----------------------#2024-07-01`](https://towardsdatascience.com/framework-for-success-metrics-questions-facebook-groups-success-metrics-d3a749ccb532?source=collection_archive---------4-----------------------#2024-07-01)
 
 ## 这个框架将帮助你在即将到来的面试中取得成功
 
-[](https://medium.com/@ntetsika.magda?source=post_page---byline--d3a749ccb532--------------------------------)[![Magda Ntetsika](../Images/00160af79eca1a27f908566b6586e037.png)](https://medium.com/@ntetsika.magda?source=post_page---byline--d3a749ccb532--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d3a749ccb532--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d3a749ccb532--------------------------------) [Magda Ntetsika](https://medium.com/@ntetsika.magda?source=post_page---byline--d3a749ccb532--------------------------------)
+[](https://medium.com/@ntetsika.magda?source=post_page---byline--d3a749ccb532--------------------------------)![Magda Ntetsika](https://medium.com/@ntetsika.magda?source=post_page---byline--d3a749ccb532--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d3a749ccb532--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d3a749ccb532--------------------------------) [Magda Ntetsika](https://medium.com/@ntetsika.magda?source=post_page---byline--d3a749ccb532--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d3a749ccb532--------------------------------) ·5分钟阅读·2024年7月1日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d3a749ccb532--------------------------------) ·5 分钟阅读·2024 年 7 月 1 日
 
 --
 
-![](../Images/e8482b2390d115255c6d2d339b29b684.png)
+![](img/e8482b2390d115255c6d2d339b29b684.png)
 
 照片由[Dima Solomin](http://instagram.com/d.g.solomin)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-> 当我准备我的产品数据科学家面试时，我在网上寻找处理“成功指标”面试问题的技巧和框架。尽管找到了零碎的信息，但仍然缺乏一份完整的、从头到尾的指南。这就是为什么我很兴奋与大家分享我在准备过程中制定的终极框架，这个框架帮助我获得了Meta的录用通知！深入了解一下，希望它对你也有帮助！
+> 当我准备我的产品数据科学家面试时，我在网上寻找处理“成功指标”面试问题的技巧和框架。尽管找到了零碎的信息，但仍然缺乏一份完整的、从头到尾的指南。这就是为什么我很兴奋与大家分享我在准备过程中制定的终极框架，这个框架帮助我获得了 Meta 的录用通知！深入了解一下，希望它对你也有帮助！
 
-## **框架 — 假设你是Facebook Groups的DS团队成员，你会如何定义成功指标？**
+## **框架 — 假设你是 Facebook Groups 的 DS 团队成员，你会如何定义成功指标？**
 
 **澄清问题 —** 总是先从提问澄清问题开始。确保将问题的每一个字都搞清楚，最重要的是明确产品的范围。如果你没有提问，那绝对是一个红旗，务必记得提问！
 
-*让我先问几个澄清问题。我们讨论的是Facebook核心应用中的Groups吗？我理解是否正确，Groups可以是私密的或公开的？*
+*让我先问几个澄清问题。我们讨论的是 Facebook 核心应用中的 Groups 吗？我理解是否正确，Groups 可以是私密的或公开的？*
 
 一旦问题清晰了，就深呼吸一口气，然后开始你的回答，**绕一个大弯**。是的，你没看错——不要急着直接回答问题。在回答之前，首先必须谈论产品、公司的使命，以及这两者是如何相互关联的，这是至关重要且被期待的。所以，请确保你谈到了下面的几点。
 
@@ -28,31 +28,31 @@
 
 **公司的使命**
 
-*首先，Meta的使命是将人们联系在一起，并赋予他们建立社区的力量。*
+*首先，Meta 的使命是将人们联系在一起，并赋予他们建立社区的力量。*
 
 **产品目标+如何与公司使命相连接**
 
-*FB群组的目标是将有共同兴趣的人们聚集在一起，它是Facebook非常重要的产品，因为它的目标与Meta的整体使命——将人们联系在一起——紧密相关。*
+*FB 群组的目标是将有共同兴趣的人们聚集在一起，它是 Facebook 非常重要的产品，因为它的目标与 Meta 的整体使命——将人们联系在一起——紧密相关。*
 
 **用户**——始终关注用户。几乎每个产品都有两类用户：生产者和消费者。讨论这两类用户的用户旅程非常重要，更重要的是在回答中提供涵盖两类用户的指标。
 
-*对于FB群组，我们有两类用户，一类是群组的管理员，他们是内容的生产者，另一类是群组的成员，他们是内容的消费者。*
+*对于 FB 群组，我们有两类用户，一类是群组的管理员，他们是内容的生产者，另一类是群组的成员，他们是内容的消费者。*
 
 *管理员创建群组，决定群组是公开的还是私密的，发送邀请让用户加入，发布链接/媒体/信息并在群组中启动对话。*
 
-*成员们通过Feed、搜索或被邀请加入群组（取决于是公开群组还是私密群组），一旦加入，他们可以通过发布、评论、点赞、分享等方式与群组互动。*
+*成员们通过 Feed、搜索或被邀请加入群组（取决于是公开群组还是私密群组），一旦加入，他们可以通过发布、评论、点赞、分享等方式与群组互动。*
 
 **好处+成本（对用户和公司双方）**——在进入指标之前，简要讨论一下该产品对用户和公司双方的好处和成本是有益的。
 
-*FB群组的一个主要好处是，有共同兴趣的用户可以聚集在一起，这与Meta的使命相关，并且有助于提升FB应用的整体互动。FB群组还允许Meta通过观察用户加入的群组，来更好地理解用户的兴趣，从而帮助提供更精准的推荐和更具互动性的Feed。*
+*FB 群组的一个主要好处是，有共同兴趣的用户可以聚集在一起，这与 Meta 的使命相关，并且有助于提升 FB 应用的整体互动。FB 群组还允许 Meta 通过观察用户加入的群组，来更好地理解用户的兴趣，从而帮助提供更精准的推荐和更具互动性的 Feed。*
 
-*另一方面，FB群组可能会导致用户减少与FB新闻 Feed 的互动，而新闻 Feed 是FB应用的“核心”，也是通过广告产生收入的地方。另一个潜在的负面影响是，当群组没有足够的成员或互动时，这可能会让管理员气馁，造成“空壳”群组。*
+*另一方面，FB 群组可能会导致用户减少与 FB 新闻 Feed 的互动，而新闻 Feed 是 FB 应用的“核心”，也是通过广告产生收入的地方。另一个潜在的负面影响是，当群组没有足够的成员或互动时，这可能会让管理员气馁，造成“空壳”群组。*
 
 **关注的指标类型**——现在是时候开始谈论指标了。从获取/激活/留存/互动/货币化中选择两个重点关注。
 
-*现在谈论指标，由于FB群组是一个成熟的产品，我认为重点关注互动和留存是有意义的。*
+*现在谈论指标，由于 FB 群组是一个成熟的产品，我认为重点关注互动和留存是有意义的。*
 
-**提到公司的NSM（北极星指标）+报告数据**——为了选择主要的指标，重要的是时刻牢记NSM和报告数据。
+**提到公司的 NSM（北极星指标）+报告数据**——为了选择主要的指标，重要的是时刻牢记 NSM 和报告数据。
 
 *在讨论产品的成功指标之前，让我先简单谈一下 Meta 的 NSM，即每位用户每天的会话次数。除此之外，Meta 向华尔街报告 DAU 和 MAU。因此，当我们讨论成功指标，特别是选择主要指标时，保持上述内容在心中非常重要。*
 

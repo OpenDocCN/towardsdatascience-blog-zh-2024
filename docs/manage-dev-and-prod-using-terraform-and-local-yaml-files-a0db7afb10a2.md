@@ -1,18 +1,18 @@
 # 使用 Terraform 和本地 yaml 文件管理开发和生产环境
 
-> 原文：[https://towardsdatascience.com/manage-dev-and-prod-using-terraform-and-local-yaml-files-a0db7afb10a2?source=collection_archive---------4-----------------------#2024-06-24](https://towardsdatascience.com/manage-dev-and-prod-using-terraform-and-local-yaml-files-a0db7afb10a2?source=collection_archive---------4-----------------------#2024-06-24)
+> 原文：[`towardsdatascience.com/manage-dev-and-prod-using-terraform-and-local-yaml-files-a0db7afb10a2?source=collection_archive---------4-----------------------#2024-06-24`](https://towardsdatascience.com/manage-dev-and-prod-using-terraform-and-local-yaml-files-a0db7afb10a2?source=collection_archive---------4-----------------------#2024-06-24)
 
 ## 使用 yaml 文件让你的 terraform 在多个项目中运作
 
-[](https://medium.com/@danlowgw?source=post_page---byline--a0db7afb10a2--------------------------------)[![Daniel Low](../Images/60b8deeb913548bbba0ed22239196d93.png)](https://medium.com/@danlowgw?source=post_page---byline--a0db7afb10a2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a0db7afb10a2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a0db7afb10a2--------------------------------) [Daniel Low](https://medium.com/@danlowgw?source=post_page---byline--a0db7afb10a2--------------------------------)
+[](https://medium.com/@danlowgw?source=post_page---byline--a0db7afb10a2--------------------------------)![Daniel Low](https://medium.com/@danlowgw?source=post_page---byline--a0db7afb10a2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a0db7afb10a2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a0db7afb10a2--------------------------------) [Daniel Low](https://medium.com/@danlowgw?source=post_page---byline--a0db7afb10a2--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a0db7afb10a2--------------------------------) ·3分钟阅读·2024年6月24日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a0db7afb10a2--------------------------------) ·3 分钟阅读·2024 年 6 月 24 日
 
 --
 
 在企业生产环境中，通常会将云项目分为开发（dev）和生产（prod）环境，以隔离这两个环境。作为工程师，能够在（dev）环境中进行必要的测试和开发，并在批准后快速高效地将它们移到（prod）环境中，是非常重要的。
 
-![](../Images/d804850b95a696cc600926446ef80166.png)
+![](img/d804850b95a696cc600926446ef80166.png)
 
 图片来源：[Alvaro Reyes](https://unsplash.com/@alvarordesign?utm_source=medium&utm_medium=referral) 通过 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -61,7 +61,7 @@ locals {
 
 **2\. 为开发和生产环境创建配置文件**
 
-在环境目录中，创建你的配置文件。请确保在命名时，文件名与Terraform工作区的名称一致，因为我们将使用变量`${terraform.workspace}`来区分这两个文件。
+在环境目录中，创建你的配置文件。请确保在命名时，文件名与 Terraform 工作区的名称一致，因为我们将使用变量`${terraform.workspace}`来区分这两个文件。
 
 ```py
 # filename: dev-config.yaml
@@ -82,9 +82,9 @@ terraform_state_bucket_name: "terraform_state_bucket-name"
 
 **3. 模块**
 
-我使用模块块来分隔所使用的资源。对于模块中应包含哪些内容没有严格的规则，但我通常会将为同一服务启动的资源组合在一起（例如，一个将数据写入SQL表的Airflow任务，或者一个虚拟机及其关联的负载均衡器）。
+我使用模块块来分隔所使用的资源。对于模块中应包含哪些内容没有严格的规则，但我通常会将为同一服务启动的资源组合在一起（例如，一个将数据写入 SQL 表的 Airflow 任务，或者一个虚拟机及其关联的负载均衡器）。
 
-这里的关键是你的模块指向本地的config，这里指的是我们创建的yaml文件。然后，locals.tf文件应处理其余的部分。
+这里的关键是你的模块指向本地的 config，这里指的是我们创建的 yaml 文件。然后，locals.tf 文件应处理其余的部分。
 
 ```py
 # filename: main.tf

@@ -1,20 +1,20 @@
 # 如何测试图形质量以提高图形机器学习性能
 
-> 原文：[https://towardsdatascience.com/how-to-test-graph-quality-to-improve-graph-machine-learning-performance-ad63f4e5b3dc?source=collection_archive---------9-----------------------#2024-02-28](https://towardsdatascience.com/how-to-test-graph-quality-to-improve-graph-machine-learning-performance-ad63f4e5b3dc?source=collection_archive---------9-----------------------#2024-02-28)
+> 原文：[`towardsdatascience.com/how-to-test-graph-quality-to-improve-graph-machine-learning-performance-ad63f4e5b3dc?source=collection_archive---------9-----------------------#2024-02-28`](https://towardsdatascience.com/how-to-test-graph-quality-to-improve-graph-machine-learning-performance-ad63f4e5b3dc?source=collection_archive---------9-----------------------#2024-02-28)
 
 ## 测试图形质量对于确保其在机器学习系统中的性能至关重要。本文将向您展示如何测试拓扑图的质量。
 
-[](https://oieivind.medium.com/?source=post_page---byline--ad63f4e5b3dc--------------------------------)[![Eivind Kjosbakken](../Images/5f91b74428e1202fc4a176a3dd1cb1c7.png)](https://oieivind.medium.com/?source=post_page---byline--ad63f4e5b3dc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ad63f4e5b3dc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ad63f4e5b3dc--------------------------------) [Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--ad63f4e5b3dc--------------------------------)
+[](https://oieivind.medium.com/?source=post_page---byline--ad63f4e5b3dc--------------------------------)![Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--ad63f4e5b3dc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ad63f4e5b3dc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ad63f4e5b3dc--------------------------------) [Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--ad63f4e5b3dc--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ad63f4e5b3dc--------------------------------) ·14分钟阅读·2024年2月28日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ad63f4e5b3dc--------------------------------) ·14 分钟阅读·2024 年 2 月 28 日
 
 --
 
 图形是能够表示大量信息的数据结构。除了单独地将数据样本表示为节点，图形还表示数据之间的关系，封装了数据集中更多的信息。然而，在创建图形时，验证图形质量非常重要，这也是本文讨论的内容。
 
-![](../Images/e9dd3f33f8fb62645fa7c2ac42658d3f.png)
+![](img/e9dd3f33f8fb62645fa7c2ac42658d3f.png)
 
-通过本文了解如何确保图形质量。图片由ChatGPT提供。“使用放大镜查看一些节点的图形”提示。*ChatGPT*，4，OpenAI，2024年2月25日。[https://chat.openai.com.](https://chat.openai.com.)
+通过本文了解如何确保图形质量。图片由 ChatGPT 提供。“使用放大镜查看一些节点的图形”提示。*ChatGPT*，4，OpenAI，2024 年 2 月 25 日。[`chat.openai.com.`](https://chat.openai.com.)
 
 # 动机
 

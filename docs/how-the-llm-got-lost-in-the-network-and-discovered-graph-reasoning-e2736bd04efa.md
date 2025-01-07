@@ -1,18 +1,18 @@
 # 大语言模型如何在网络中迷失并发现图形推理
 
-> 原文：[https://towardsdatascience.com/how-the-llm-got-lost-in-the-network-and-discovered-graph-reasoning-e2736bd04efa?source=collection_archive---------5-----------------------#2024-09-12](https://towardsdatascience.com/how-the-llm-got-lost-in-the-network-and-discovered-graph-reasoning-e2736bd04efa?source=collection_archive---------5-----------------------#2024-09-12)
+> 原文：[`towardsdatascience.com/how-the-llm-got-lost-in-the-network-and-discovered-graph-reasoning-e2736bd04efa?source=collection_archive---------5-----------------------#2024-09-12`](https://towardsdatascience.com/how-the-llm-got-lost-in-the-network-and-discovered-graph-reasoning-e2736bd04efa?source=collection_archive---------5-----------------------#2024-09-12)
 
 ## |图形|大语言模型|推理|图形推理|
 
 ## 提升大语言模型：通过图形推理与指令调优的旅程
 
-[](https://salvatore-raieli.medium.com/?source=post_page---byline--e2736bd04efa--------------------------------)[![Salvatore Raieli](../Images/6bb4520e2df40d20283e7283141b5e06.png)](https://salvatore-raieli.medium.com/?source=post_page---byline--e2736bd04efa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2736bd04efa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e2736bd04efa--------------------------------) [Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--e2736bd04efa--------------------------------)
+[](https://salvatore-raieli.medium.com/?source=post_page---byline--e2736bd04efa--------------------------------)![Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--e2736bd04efa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2736bd04efa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2736bd04efa--------------------------------) [Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--e2736bd04efa--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2736bd04efa--------------------------------) ·阅读时间10分钟·2024年9月12日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2736bd04efa--------------------------------) ·阅读时间 10 分钟·2024 年 9 月 12 日
 
 --
 
-![](../Images/fd85685e726eb0e5b4ab19198729788d.png)
+![](img/fd85685e726eb0e5b4ab19198729788d.png)
 
 该图像由作者使用人工智能创建
 

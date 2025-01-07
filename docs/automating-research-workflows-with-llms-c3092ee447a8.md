@@ -1,16 +1,16 @@
 # 使用大型语言模型（LLMs）自动化研究工作流程
 
-> 原文：[https://towardsdatascience.com/automating-research-workflows-with-llms-c3092ee447a8?source=collection_archive---------13-----------------------#2024-09-10](https://towardsdatascience.com/automating-research-workflows-with-llms-c3092ee447a8?source=collection_archive---------13-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/automating-research-workflows-with-llms-c3092ee447a8?source=collection_archive---------13-----------------------#2024-09-10`](https://towardsdatascience.com/automating-research-workflows-with-llms-c3092ee447a8?source=collection_archive---------13-----------------------#2024-09-10)
 
-![](../Images/d88b9481f70c92f2265977a99737bab1.png)
+![](img/d88b9481f70c92f2265977a99737bab1.png)
 
 图片由作者使用[midjourney](https://www.midjourney.com/)制作
 
-## 使用AI的原子级应用来增强研究人员
+## 使用 AI 的原子级应用来增强研究人员
 
-[](https://lucas-soares.medium.com/?source=post_page---byline--c3092ee447a8--------------------------------)[![Lucas Soares](../Images/205b650cc15f93ddee1c2888e09715d5.png)](https://lucas-soares.medium.com/?source=post_page---byline--c3092ee447a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c3092ee447a8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c3092ee447a8--------------------------------) [Lucas Soares](https://lucas-soares.medium.com/?source=post_page---byline--c3092ee447a8--------------------------------)
+[](https://lucas-soares.medium.com/?source=post_page---byline--c3092ee447a8--------------------------------)![Lucas Soares](https://lucas-soares.medium.com/?source=post_page---byline--c3092ee447a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c3092ee447a8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c3092ee447a8--------------------------------) [Lucas Soares](https://lucas-soares.medium.com/?source=post_page---byline--c3092ee447a8--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c3092ee447a8--------------------------------) ·阅读时间：13分钟·2024年9月10日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c3092ee447a8--------------------------------) ·阅读时间：13 分钟·2024 年 9 月 10 日
 
 --
 
@@ -22,7 +22,7 @@
 
 我在研讨会上提出的问题是：
 
-> 我们如何利用LLMs来增强或扩展研究工作流程，而不降低研究人员的认知参与度？
+> 我们如何利用 LLMs 来增强或扩展研究工作流程，而不降低研究人员的认知参与度？
 
 触及增强这一话题总是充满挑战，并且可能导致一些令人不舒服的对话，谈论人工智能如何在不久的将来取代人类。因此，为了更清晰地表达，我想**从更具体的角度开始定义它：**
 

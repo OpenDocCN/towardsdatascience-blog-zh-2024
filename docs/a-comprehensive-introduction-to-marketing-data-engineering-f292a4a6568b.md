@@ -1,18 +1,18 @@
 # 市场数据工程的全面介绍
 
-> 原文：[https://towardsdatascience.com/a-comprehensive-introduction-to-marketing-data-engineering-f292a4a6568b?source=collection_archive---------12-----------------------#2024-08-30](https://towardsdatascience.com/a-comprehensive-introduction-to-marketing-data-engineering-f292a4a6568b?source=collection_archive---------12-----------------------#2024-08-30)
+> 原文：[`towardsdatascience.com/a-comprehensive-introduction-to-marketing-data-engineering-f292a4a6568b?source=collection_archive---------12-----------------------#2024-08-30`](https://towardsdatascience.com/a-comprehensive-introduction-to-marketing-data-engineering-f292a4a6568b?source=collection_archive---------12-----------------------#2024-08-30)
 
 ## 数据工程
 
 ## 基础知识、职责和挑战
 
-[](https://tamimi-naser.medium.com/?source=post_page---byline--f292a4a6568b--------------------------------)[![Naser Tamimi](../Images/8d43c66ea3c0ef9b49c7d33dbc008c28.png)](https://tamimi-naser.medium.com/?source=post_page---byline--f292a4a6568b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f292a4a6568b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f292a4a6568b--------------------------------) [Naser Tamimi](https://tamimi-naser.medium.com/?source=post_page---byline--f292a4a6568b--------------------------------)
+[](https://tamimi-naser.medium.com/?source=post_page---byline--f292a4a6568b--------------------------------)![Naser Tamimi](https://tamimi-naser.medium.com/?source=post_page---byline--f292a4a6568b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f292a4a6568b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f292a4a6568b--------------------------------) [Naser Tamimi](https://tamimi-naser.medium.com/?source=post_page---byline--f292a4a6568b--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f292a4a6568b--------------------------------) ·16分钟阅读·2024年8月30日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f292a4a6568b--------------------------------) ·16 分钟阅读·2024 年 8 月 30 日
 
 --
 
-![](../Images/a1a208f2adf808ce9a362e9831854b0b.png)
+![](img/a1a208f2adf808ce9a362e9831854b0b.png)
 
 图片由作者生成。
 

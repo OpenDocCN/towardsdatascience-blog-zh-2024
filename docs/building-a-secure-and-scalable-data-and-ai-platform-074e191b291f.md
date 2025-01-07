@@ -1,32 +1,32 @@
-# 构建安全且可扩展的数据与AI平台
+# 构建安全且可扩展的数据与 AI 平台
 
-> 原文：[https://towardsdatascience.com/building-a-secure-and-scalable-data-and-ai-platform-074e191b291f?source=collection_archive---------7-----------------------#2024-02-22](https://towardsdatascience.com/building-a-secure-and-scalable-data-and-ai-platform-074e191b291f?source=collection_archive---------7-----------------------#2024-02-22)
+> 原文：[`towardsdatascience.com/building-a-secure-and-scalable-data-and-ai-platform-074e191b291f?source=collection_archive---------7-----------------------#2024-02-22`](https://towardsdatascience.com/building-a-secure-and-scalable-data-and-ai-platform-074e191b291f?source=collection_archive---------7-----------------------#2024-02-22)
 
 ## 通过数据驱动的决策赋能业务
 
-[](https://medium.com/@rizviadil?source=post_page---byline--074e191b291f--------------------------------)[![Adil Rizvi](../Images/fd11151beb5f2ff4b4d909c0d7c8c93e.png)](https://medium.com/@rizviadil?source=post_page---byline--074e191b291f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--074e191b291f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--074e191b291f--------------------------------) [Adil Rizvi](https://medium.com/@rizviadil?source=post_page---byline--074e191b291f--------------------------------)
+[](https://medium.com/@rizviadil?source=post_page---byline--074e191b291f--------------------------------)![Adil Rizvi](https://medium.com/@rizviadil?source=post_page---byline--074e191b291f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--074e191b291f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--074e191b291f--------------------------------) [Adil Rizvi](https://medium.com/@rizviadil?source=post_page---byline--074e191b291f--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--074e191b291f--------------------------------) ·7分钟阅读·2024年2月22日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--074e191b291f--------------------------------) ·7 分钟阅读·2024 年 2 月 22 日
 
 --
 
-![](../Images/e5b4d7ee051881df1ffd88ff1f904f35.png)
+![](img/e5b4d7ee051881df1ffd88ff1f904f35.png)
 
 图片由[Igor Omilaev](https://unsplash.com/@omilaev?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-在过去的四年里，我有幸领导了全球规模的大数据和AI平台的战略、设计和实施，涉及的不仅是一个而是两个公共云平台——AWS和GCP。此外，我的团队使70多个数据科学/机器学习（DSML）用例和10个数字应用得以投入运营，为公司贡献了约1亿美元的收入增长。
+在过去的四年里，我有幸领导了全球规模的大数据和 AI 平台的战略、设计和实施，涉及的不仅是一个而是两个公共云平台——AWS 和 GCP。此外，我的团队使 70 多个数据科学/机器学习（DSML）用例和 10 个数字应用得以投入运营，为公司贡献了约 1 亿美元的收入增长。
 
 这段旅程充满了令人兴奋的挑战和一些陡峭的学习曲线，但最终的结果非常有影响力。通过这篇文章，我想分享我的学习和经验，这将帮助其他技术创新者思考他们的规划过程，并使他们的实施能够跨越式发展。
 
 本文将主要集中在基础构建上，以提供整体生产生态系统的全貌。在之后的文章中，我将讨论技术选择，并分享更详细的规范性建议。
 
-让我先给你展示一下数据和AI平台的构建模块。
+让我先给你展示一下数据和 AI 平台的构建模块。
 
-![](../Images/86a1dd7bada1866684f12b808c45d4bc.png)
+![](img/86a1dd7bada1866684f12b808c45d4bc.png)
 
-数据和AI平台的端到端区块级架构
+数据和 AI 平台的端到端区块级架构
 
-思考从端到端架构是一个极好的主意，因为这样你可以避免快速而粗糙完成工作的常见陷阱。毕竟，你的ML模型输出的质量取决于你输入的数据。而且，你不想在数据安全性和完整性上做出妥协。
+思考从端到端架构是一个极好的主意，因为这样你可以避免快速而粗糙完成工作的常见陷阱。毕竟，你的 ML 模型输出的质量取决于你输入的数据。而且，你不想在数据安全性和完整性上做出妥协。
 
 ## **1\. 数据采集与摄取**
 
@@ -96,7 +96,7 @@
 
 在数据后处理后，机器学习采用两步走的方式——模型开发和模型部署与治理。
 
-![](../Images/aeaae0f8c47b83ce441d4021957e4aa2.png)
+![](img/aeaae0f8c47b83ce441d4021957e4aa2.png)
 
 操作化 AI 平台
 
@@ -118,11 +118,11 @@
 
 分离管理平面并创建共享服务层，这将成为你的云账户的主要进出口点。它也将是你组织内外部公有/私有云的会面室。
 
-![](../Images/66fd8684ad6efe3f6d0072fa65d7d688.png)
+![](img/66fd8684ad6efe3f6d0072fa65d7d688.png)
 
 共享服务 — 谷歌云平台
 
-![](../Images/157f6a0c9d8014462aa3477419aa670b.png)
+![](img/157f6a0c9d8014462aa3477419aa670b.png)
 
 共享服务 — 亚马逊 Web 服务
 
@@ -132,13 +132,13 @@
 
 明智的做法是提前选择云账户的结构。您可以根据业务线（LOB）、产品领域或两者的混合来构建账户结构。同时，设计并分隔您的开发、测试和生产环境。
 
-最好将您的DevOps工具链集中化。我更倾向于使用一个与云平台无关的工具集，以支持在混合多云生态系统之间的无缝集成和过渡。
+最好将您的 DevOps 工具链集中化。我更倾向于使用一个与云平台无关的工具集，以支持在混合多云生态系统之间的无缝集成和过渡。
 
-对于开发者IDE，可能会有个人IDE和共享IDE的混合。确保开发者经常将代码提交到代码库，否则他们可能会丢失工作进度。
+对于开发者 IDE，可能会有个人 IDE 和共享 IDE 的混合。确保开发者经常将代码提交到代码库，否则他们可能会丢失工作进度。
 
-![](../Images/96e0096a111f2540ccd38d6132fb3b77.png)
+![](img/96e0096a111f2540ccd38d6132fb3b77.png)
 
-使用云无关的DevSecOps工具链进行GCP设置
+使用云无关的 DevSecOps 工具链进行 GCP 设置
 
 ## **端到端数据科学过程**
 
@@ -146,7 +146,7 @@
 
 我正在分享使这个复杂系统顺畅运行的跨职能工作流和流程。
 
-![](../Images/3325cc3d0412a0b644d4a2dceff6779b.png)
+![](img/3325cc3d0412a0b644d4a2dceff6779b.png)
 
 从头到尾的数据科学模型部署过程
 
@@ -156,7 +156,7 @@
 
 最后的建议：不要仅仅因为某项技术解决方案看起来很酷就去创建它。首先要理解业务问题，并评估潜在的投资回报。最终目标是创造业务价值，并为公司的收入增长做出贡献。
 
-祝你在构建或完善数据和AI平台的过程中好运。
+祝你在构建或完善数据和 AI 平台的过程中好运。
 
 一路顺风！
 

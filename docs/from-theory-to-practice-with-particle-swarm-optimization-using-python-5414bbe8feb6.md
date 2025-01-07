@@ -1,16 +1,16 @@
 # 从理论到实践：使用 Python 进行粒子群优化
 
-> 原文：[https://towardsdatascience.com/from-theory-to-practice-with-particle-swarm-optimization-using-python-5414bbe8feb6?source=collection_archive---------1-----------------------#2024-09-07](https://towardsdatascience.com/from-theory-to-practice-with-particle-swarm-optimization-using-python-5414bbe8feb6?source=collection_archive---------1-----------------------#2024-09-07)
+> 原文：[`towardsdatascience.com/from-theory-to-practice-with-particle-swarm-optimization-using-python-5414bbe8feb6?source=collection_archive---------1-----------------------#2024-09-07`](https://towardsdatascience.com/from-theory-to-practice-with-particle-swarm-optimization-using-python-5414bbe8feb6?source=collection_archive---------1-----------------------#2024-09-07)
 
 ## 这里有一个关于什么是 PSO 以及如何使用它的教程
 
-[](https://piero-paialunga.medium.com/?source=post_page---byline--5414bbe8feb6--------------------------------)[![Piero Paialunga](../Images/de2185596a49484698733e85114dd1ff.png)](https://piero-paialunga.medium.com/?source=post_page---byline--5414bbe8feb6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5414bbe8feb6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5414bbe8feb6--------------------------------) [Piero Paialunga](https://piero-paialunga.medium.com/?source=post_page---byline--5414bbe8feb6--------------------------------)
+[](https://piero-paialunga.medium.com/?source=post_page---byline--5414bbe8feb6--------------------------------)![Piero Paialunga](https://piero-paialunga.medium.com/?source=post_page---byline--5414bbe8feb6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5414bbe8feb6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5414bbe8feb6--------------------------------) [Piero Paialunga](https://piero-paialunga.medium.com/?source=post_page---byline--5414bbe8feb6--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5414bbe8feb6--------------------------------) ·阅读时间 9 分钟 ·2024年9月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5414bbe8feb6--------------------------------) ·阅读时间 9 分钟 ·2024 年 9 月 7 日
 
 --
 
-![](../Images/0d19f1940ca7ab8ad2bd436f7b4d2479.png)
+![](img/0d19f1940ca7ab8ad2bd436f7b4d2479.png)
 
 照片来自 [James Wainscoat](https://unsplash.com/@tumbao1949?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 于 [Unsplash](https://unsplash.com/photos/a-large-flock-of-birds-flying-over-a-field-b7MZ6iGIoSI?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

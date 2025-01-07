@@ -1,14 +1,14 @@
 # DSLP——改变我团队的数据显示科学项目管理框架
 
-> 原文：[https://towardsdatascience.com/dslp-the-data-science-project-management-framework-that-transformed-my-team-1b6727d009aa?source=collection_archive---------1-----------------------#2024-08-28](https://towardsdatascience.com/dslp-the-data-science-project-management-framework-that-transformed-my-team-1b6727d009aa?source=collection_archive---------1-----------------------#2024-08-28)
+> 原文：[`towardsdatascience.com/dslp-the-data-science-project-management-framework-that-transformed-my-team-1b6727d009aa?source=collection_archive---------1-----------------------#2024-08-28`](https://towardsdatascience.com/dslp-the-data-science-project-management-framework-that-transformed-my-team-1b6727d009aa?source=collection_archive---------1-----------------------#2024-08-28)
 
-![](../Images/43d17b135d3e62ab418300925b132500.png)
+![](img/43d17b135d3e62ab418300925b132500.png)
 
 ## 这是目前为止最适合数据科学的框架。无论是为你的团队还是仅仅为自己使用，它都非常有效。以下是我如何使用它的。
 
-[](https://medium.com/@bl3e967?source=post_page---byline--1b6727d009aa--------------------------------)[![Benjamin Lee](../Images/a369931c73019143609812354c773151.png)](https://medium.com/@bl3e967?source=post_page---byline--1b6727d009aa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1b6727d009aa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1b6727d009aa--------------------------------) [Benjamin Lee](https://medium.com/@bl3e967?source=post_page---byline--1b6727d009aa--------------------------------)
+[](https://medium.com/@bl3e967?source=post_page---byline--1b6727d009aa--------------------------------)![Benjamin Lee](https://medium.com/@bl3e967?source=post_page---byline--1b6727d009aa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1b6727d009aa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1b6727d009aa--------------------------------) [Benjamin Lee](https://medium.com/@bl3e967?source=post_page---byline--1b6727d009aa--------------------------------)
 
-·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--1b6727d009aa--------------------------------)·阅读时间16分钟·2024年8月28日
+·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--1b6727d009aa--------------------------------)·阅读时间 16 分钟·2024 年 8 月 28 日
 
 --
 
@@ -22,7 +22,7 @@
 
 +   **数据科学生命周期过程（DSLP）**
 
-+   **DSL的五个步骤**
++   **DSL 的五个步骤**
 
 +   **示例项目：检测信用卡欺诈**
 

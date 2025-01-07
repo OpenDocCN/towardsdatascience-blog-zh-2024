@@ -1,16 +1,16 @@
 # 一种混合方法的新闻推荐系统离线评估
 
-> 原文：[https://towardsdatascience.com/a-mixed-methods-approach-to-offline-evaluation-of-news-recommender-systems-7dc7e9f0b501?source=collection_archive---------5-----------------------#2024-10-11](https://towardsdatascience.com/a-mixed-methods-approach-to-offline-evaluation-of-news-recommender-systems-7dc7e9f0b501?source=collection_archive---------5-----------------------#2024-10-11)
+> 原文：[`towardsdatascience.com/a-mixed-methods-approach-to-offline-evaluation-of-news-recommender-systems-7dc7e9f0b501?source=collection_archive---------5-----------------------#2024-10-11`](https://towardsdatascience.com/a-mixed-methods-approach-to-offline-evaluation-of-news-recommender-systems-7dc7e9f0b501?source=collection_archive---------5-----------------------#2024-10-11)
 
 ## 结合读者调查反馈和行为点击数据，以优化内容个性化。
 
-[](https://medium.com/@helloheld?source=post_page---byline--7dc7e9f0b501--------------------------------)[![Alex Held](../Images/be76f042807c4816944531780d14a73d.png)](https://medium.com/@helloheld?source=post_page---byline--7dc7e9f0b501--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7dc7e9f0b501--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7dc7e9f0b501--------------------------------) [Alex Held](https://medium.com/@helloheld?source=post_page---byline--7dc7e9f0b501--------------------------------)
+[](https://medium.com/@helloheld?source=post_page---byline--7dc7e9f0b501--------------------------------)![Alex Held](https://medium.com/@helloheld?source=post_page---byline--7dc7e9f0b501--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7dc7e9f0b501--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7dc7e9f0b501--------------------------------) [Alex Held](https://medium.com/@helloheld?source=post_page---byline--7dc7e9f0b501--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7dc7e9f0b501--------------------------------) ·阅读时间：8分钟·2024年10月11日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7dc7e9f0b501--------------------------------) ·阅读时间：8 分钟·2024 年 10 月 11 日
 
 --
 
-![](../Images/6f908cdcd0d5d85086313e741bba6dbb.png)
+![](img/6f908cdcd0d5d85086313e741bba6dbb.png)
 
 在合适的时间为读者提供相关内容。图片由作者提供。
 
@@ -32,19 +32,19 @@
 
 1.  **文章选择**：我们开发了一种基于发布日期和最近流量来选择调查文章的方法。这种方法确保了新文章和仍然相关的旧文章的混合。
 
-1.  **用户调查**：我们对约1500名[SPIEGEL.de](https://www.spiegel.de/)读者进行了调查。每位参与者对15篇文章预览进行了评分，评分范围从0（低兴趣）到1000（高兴趣），并且可以标注出曾经阅读过的文章。
+1.  **用户调查**：我们对约 1500 名[SPIEGEL.de](https://www.spiegel.de/)读者进行了调查。每位参与者对 15 篇文章预览进行了评分，评分范围从 0（低兴趣）到 1000（高兴趣），并且可以标注出曾经阅读过的文章。
 
 1.  **行为数据分析**：对于每个参与者，我们分析了他们在调查之前的历史点击数据。[我们将文章转换为数值嵌入，以计算平均用户嵌入，代表读者的全球口味](https://arxiv.org/pdf/2308.12767)。然后，我们计算了用户偏好向量与调查中评分文章的嵌入之间的余弦距离。[6]
 
-![](../Images/25a29a3f3304b75770a2d678c759b742.png)
+![](img/25a29a3f3304b75770a2d678c759b742.png)
 
 用户调查截图。
 
-在整个过程中，我们识别了几个显著影响模型效果的参数。这些包括：点击历史中要包含的文章类型（是否有付费墙）、每篇文章的最低阅读时长阈值、用户点击历史的回溯期、嵌入模型的选择、内容的嵌入方式、以及使用每篇文章的总体访问量进行重新排序。为了评估我们的方法并优化这些参数，我们使用了两个主要指标：[Spearman相关系数](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html)，它衡量文章评分与用户偏好向量之间的关系；以及[Precision@K](https://www.evidentlyai.com/ranking-metrics/precision-recall-at-k)，它衡量我们的模型将最高评分的文章放入前K个推荐中的效果。
+在整个过程中，我们识别了几个显著影响模型效果的参数。这些包括：点击历史中要包含的文章类型（是否有付费墙）、每篇文章的最低阅读时长阈值、用户点击历史的回溯期、嵌入模型的选择、内容的嵌入方式、以及使用每篇文章的总体访问量进行重新排序。为了评估我们的方法并优化这些参数，我们使用了两个主要指标：[Spearman 相关系数](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html)，它衡量文章评分与用户偏好向量之间的关系；以及[Precision@K](https://www.evidentlyai.com/ranking-metrics/precision-recall-at-k)，它衡量我们的模型将最高评分的文章放入前 K 个推荐中的效果。
 
-![](../Images/8f2210d3dc7732afd8dbe2e3d9223ed3.png)
+![](img/8f2210d3dc7732afd8dbe2e3d9223ed3.png)
 
-比较调查中的前5篇文章与不同排序方法的效果。图像来源：作者。
+比较调查中的前 5 篇文章与不同排序方法的效果。图像来源：作者。
 
 为了说明我们的评估方法，我们可以为每个用户想象出四个相同文章的列表，每个列表的排序方式不同：
 
@@ -60,21 +60,21 @@
 
 ## 结果与关键发现
 
-我们的混合方法离线评估显示出有前景的结果，证明了我们的推荐系统的有效性。随机基准，如预期的那样，表现最差，precision@1为0.086。基于覆盖度的方法，通过按文章的整体受欢迎程度排序，略有改善，precision@1为0.091。然而，我们的个性化模型相较于随机基准和基于覆盖度的方法，展示了显著的改进。该模型达到了precision@1为0.147，比随机基准提高了70.7%。这种性能提升在不同的k值下持续存在。
+我们的混合方法离线评估显示出有前景的结果，证明了我们的推荐系统的有效性。随机基准，如预期的那样，表现最差，precision@1 为 0.086。基于覆盖度的方法，通过按文章的整体受欢迎程度排序，略有改善，precision@1 为 0.091。然而，我们的个性化模型相较于随机基准和基于覆盖度的方法，展示了显著的改进。该模型达到了 precision@1 为 0.147，比随机基准提高了 70.7%。这种性能提升在不同的 k 值下持续存在。
 
-![](../Images/aef02d3128795a47157a5e142cbe67a2.png)
+![](img/aef02d3128795a47157a5e142cbe67a2.png)
 
-另一个例子：如果我们从展示的15篇文章预览中随机选择5篇，并将其与用户评分最高的5篇文章进行比较，我们的平均precision为5/15 = 33%。由于并非每个用户都实际评分了15篇文章（有些将文章标记为已读），因此我们数据中的实际Precision@5为38%（见上图）。个性化模型的平均Precision@5为45%。与随机模型相比，这提升了17%（见下图）。注意：随着K值的增加，随机相关元素被纳入推荐集的概率也会增加。完美精度的收敛：如果K达到或超过15（相关元素的总数），每种方法（包括随机方法）都将包含所有相关元素，并达到1.0的精度。
+另一个例子：如果我们从展示的 15 篇文章预览中随机选择 5 篇，并将其与用户评分最高的 5 篇文章进行比较，我们的平均 precision 为 5/15 = 33%。由于并非每个用户都实际评分了 15 篇文章（有些将文章标记为已读），因此我们数据中的实际 Precision@5 为 38%（见上图）。个性化模型的平均 Precision@5 为 45%。与随机模型相比，这提升了 17%（见下图）。注意：随着 K 值的增加，随机相关元素被纳入推荐集的概率也会增加。完美精度的收敛：如果 K 达到或超过 15（相关元素的总数），每种方法（包括随机方法）都将包含所有相关元素，并达到 1.0 的精度。
 
-![](../Images/396cd4503c95a0359e90d530b6ee4a77.png)
+![](img/396cd4503c95a0359e90d530b6ee4a77.png)
 
-除了Precision@K，Spearman相关系数也突显了我们个性化方法的优势。我们的模型达到了0.17的相关性，且p值小于0.05。这表明我们的模型预测与实际用户偏好之间存在一致性。
+除了 Precision@K，Spearman 相关系数也突显了我们个性化方法的优势。我们的模型达到了 0.17 的相关性，且 p 值小于 0.05。这表明我们的模型预测与实际用户偏好之间存在一致性。
 
-所描述的结果表明，项目评分与用户偏好向量之间的距离存在相关性。尽管所有模型的精度都相对较低，但提升幅度相当高，尤其是在低K值时。由于在生产环境中，我们每个用户的候选池中将有显著超过15篇文章，因此低K值的提升尤为重要。
+所描述的结果表明，项目评分与用户偏好向量之间的距离存在相关性。尽管所有模型的精度都相对较低，但提升幅度相当高，尤其是在低 K 值时。由于在生产环境中，我们每个用户的候选池中将有显著超过 15 篇文章，因此低 K 值的提升尤为重要。
 
 ## 结论
 
-尽管我们的混合方法离线评估提供了坚实的基础，我们认识到，真正的考验将在上线时到来。我们将离线评估中的洞察和优化参数作为在线A/B测试的起点。此方法使我们能够弥合离线评估与在线表现之间的差距，为更有效的转向实时测试和迭代奠定基础。
+尽管我们的混合方法离线评估提供了坚实的基础，我们认识到，真正的考验将在上线时到来。我们将离线评估中的洞察和优化参数作为在线 A/B 测试的起点。此方法使我们能够弥合离线评估与在线表现之间的差距，为更有效的转向实时测试和迭代奠定基础。
 
 随着我们不断优化方法，我们始终致力于在技术创新和新闻诚信之间找到平衡。我们的目标是开发一个新闻推荐系统，确保个性化推荐不仅准确，而且[对多样性进行排名](https://www.semanticscholar.org/paper/Diversity%2C-Serendipity%2C-Novelty%2C-and-Coverage-Kaminskas-Bridge/0a2a1bfeea7a572a78cd12a79f3b00911aa9bba4)。这确保了在优化个体偏好的同时，我们也能保持广泛的视角和话题，维护[DER SPIEGEL](https://www.spiegel.de/)以全面和公正的新闻标准著称。
 

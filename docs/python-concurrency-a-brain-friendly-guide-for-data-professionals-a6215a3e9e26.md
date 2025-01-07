@@ -1,16 +1,16 @@
 # Python 并发 —— 数据专业人员的脑力友好指南
 
-> 原文：[https://towardsdatascience.com/python-concurrency-a-brain-friendly-guide-for-data-professionals-a6215a3e9e26?source=collection_archive---------2-----------------------#2024-07-26](https://towardsdatascience.com/python-concurrency-a-brain-friendly-guide-for-data-professionals-a6215a3e9e26?source=collection_archive---------2-----------------------#2024-07-26)
+> 原文：[`towardsdatascience.com/python-concurrency-a-brain-friendly-guide-for-data-professionals-a6215a3e9e26?source=collection_archive---------2-----------------------#2024-07-26`](https://towardsdatascience.com/python-concurrency-a-brain-friendly-guide-for-data-professionals-a6215a3e9e26?source=collection_archive---------2-----------------------#2024-07-26)
 
 ## 数据传输可能很慢。以下是如何从 Python 中挤压出每一丝性能优化。
 
-[](https://medium.com/@radecicdario?source=post_page---byline--a6215a3e9e26--------------------------------)[![Dario Radečić](../Images/41882a3b30bab9da43d66a59f1df366b.png)](https://medium.com/@radecicdario?source=post_page---byline--a6215a3e9e26--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a6215a3e9e26--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a6215a3e9e26--------------------------------) [Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--a6215a3e9e26--------------------------------)
+[](https://medium.com/@radecicdario?source=post_page---byline--a6215a3e9e26--------------------------------)![Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--a6215a3e9e26--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a6215a3e9e26--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a6215a3e9e26--------------------------------) [Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--a6215a3e9e26--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a6215a3e9e26--------------------------------) ·阅读时长 9 分钟·2024年7月26日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a6215a3e9e26--------------------------------) ·阅读时长 9 分钟·2024 年 7 月 26 日
 
 --
 
-![](../Images/25762017e1f33ee69c80812c4b6e21c1.png)
+![](img/25762017e1f33ee69c80812c4b6e21c1.png)
 
 图片来自 [Matthew Brodeur](https://unsplash.com/@mrbrodeur?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,20 +1,20 @@
-# 用AI为冰球增添趣味：利用计算机视觉进行球员追踪
+# 用 AI 为冰球增添趣味：利用计算机视觉进行球员追踪
 
-> 原文：[https://towardsdatascience.com/spicing-up-ice-hockey-with-ai-player-tracking-with-computer-vision-ce9ceec9122a?source=collection_archive---------0-----------------------#2024-07-09](https://towardsdatascience.com/spicing-up-ice-hockey-with-ai-player-tracking-with-computer-vision-ce9ceec9122a?source=collection_archive---------0-----------------------#2024-07-09)
+> 原文：[`towardsdatascience.com/spicing-up-ice-hockey-with-ai-player-tracking-with-computer-vision-ce9ceec9122a?source=collection_archive---------0-----------------------#2024-07-09`](https://towardsdatascience.com/spicing-up-ice-hockey-with-ai-player-tracking-with-computer-vision-ce9ceec9122a?source=collection_archive---------0-----------------------#2024-07-09)
 
-![](../Images/c26f194ba6b3bcdd31b1a7dfbad44347.png)
+![](img/c26f194ba6b3bcdd31b1a7dfbad44347.png)
 
-## 使用PyTorch、计算机视觉技术和卷积神经网络（CNN），我开发了一个模型，可以追踪球员、球队以及基本的表现统计数据
+## 使用 PyTorch、计算机视觉技术和卷积神经网络（CNN），我开发了一个模型，可以追踪球员、球队以及基本的表现统计数据
 
-[](https://medium.com/@raul.vizcarrach?source=post_page---byline--ce9ceec9122a--------------------------------)[![Raul Vizcarra Chirinos](../Images/9f507c6b9542809b9a32ab185e953ca1.png)](https://medium.com/@raul.vizcarrach?source=post_page---byline--ce9ceec9122a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ce9ceec9122a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ce9ceec9122a--------------------------------) [Raul Vizcarra Chirinos](https://medium.com/@raul.vizcarrach?source=post_page---byline--ce9ceec9122a--------------------------------)
+[](https://medium.com/@raul.vizcarrach?source=post_page---byline--ce9ceec9122a--------------------------------)![Raul Vizcarra Chirinos](https://medium.com/@raul.vizcarrach?source=post_page---byline--ce9ceec9122a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ce9ceec9122a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ce9ceec9122a--------------------------------) [Raul Vizcarra Chirinos](https://medium.com/@raul.vizcarrach?source=post_page---byline--ce9ceec9122a--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ce9ceec9122a--------------------------------) ·30分钟阅读·2024年7月9日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ce9ceec9122a--------------------------------) ·30 分钟阅读·2024 年 7 月 9 日
 
 --
 
-现在，我不像以前那样频繁地打冰球了，但从小冰球就是我生活的一部分。最近，我有机会在利马举办的首届冰球锦标赛（3对3）中，协助裁判台并记录一些统计数据。此次活动得到了秘鲁滑冰曲棍球协会（APHL）的巨大支持，并且[友谊联盟](https://friendshipleague.org/)也亲切地参与其中。为了加入一些AI元素，我使用了**PyTorch**、**计算机视觉**技术和**卷积神经网络（CNN）**来构建一个模型，追踪球员和球队，并收集一些基本的表现数据。
+现在，我不像以前那样频繁地打冰球了，但从小冰球就是我生活的一部分。最近，我有机会在利马举办的首届冰球锦标赛（3 对 3）中，协助裁判台并记录一些统计数据。此次活动得到了秘鲁滑冰曲棍球协会（APHL）的巨大支持，并且[友谊联盟](https://friendshipleague.org/)也亲切地参与其中。为了加入一些 AI 元素，我使用了**PyTorch**、**计算机视觉**技术和**卷积神经网络（CNN）**来构建一个模型，追踪球员和球队，并收集一些基本的表现数据。
 
-本文旨在成为设计和部署该模型的**快速指南**。尽管模型仍需进行一些微调，但我希望它能帮助任何人入门计算机视觉在体育中的应用。我还要特别感谢并感谢[秘鲁滑冰曲棍球协会（APHL）](https://www.instagram.com/aphl.pe/?igsh=MThvZWxhNThwdXpibA%3D%3D)允许我使用比赛的40秒视频样本进行此项目（*你可以在*[*项目的GitHub仓库*](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch)*找到视频输入样本*）。
+本文旨在成为设计和部署该模型的**快速指南**。尽管模型仍需进行一些微调，但我希望它能帮助任何人入门计算机视觉在体育中的应用。我还要特别感谢并感谢[秘鲁滑冰曲棍球协会（APHL）](https://www.instagram.com/aphl.pe/?igsh=MThvZWxhNThwdXpibA%3D%3D)允许我使用比赛的 40 秒视频样本进行此项目（*你可以在*[*项目的 GitHub 仓库*](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch)*找到视频输入样本*）。
 
 # 架构
 
@@ -22,7 +22,7 @@
 
 在覆盖了跟踪 ID 后，我开始构建自己的路径。在本文的过程中，我们将看到这个项目是如何从一个简单的物体检测任务发展成一个能够全面检测球员、球队并提供一些基本表现指标的模型的（*示例剪辑从 01 到 08，作者自创*）。
 
-![](../Images/e100ca9ea1c1eb7ab22675a9de0f18ef.png)
+![](img/e100ca9ea1c1eb7ab22675a9de0f18ef.png)
 
 模型架构。作者自创
 
@@ -32,7 +32,7 @@
 
 1.  **YOLO（You Only Look Once）：** 它是一种强大的实时物体检测算法，最初在 2015 年的论文“[You Only Look Once: Unified, Real-Time Object Detection](https://arxiv.org/abs/1506.02640)”中提出。它以速度和在大约 80 个预训练类别中的通用性为特点（*值得注意的是，它还可以在自定义数据集上进行训练，以检测特定物体*）。对于我们的使用案例，我们将依赖 YOLOv8x，这是一种由 Ultralytics 基于之前版本的 YOLO 构建的计算机视觉模型。你可以在[这里](https://github.com/ultralytics/ultralytics)下载它。
 
-1.  **ByteTrack 跟踪器：** 要理解 ByteTrack，我们必须先了解多目标跟踪（MOT，Multiple Object Tracking），它涉及在视频序列中追踪多个物体的运动，并将当前帧中检测到的物体与前一帧中的相应物体进行关联。为了实现这一目标，我们将使用 ByteTrack（*2021年在论文“[*ByteTrack: Multi-Object Tracking by Associating Every Detection Box*](https://arxiv.org/abs/2110.06864)”中提出*）。为了实现 ByteTrack 跟踪器并为检测到的物体分配轨迹 ID，我们将依赖 Python 的 supervision 库。
+1.  **ByteTrack 跟踪器：** 要理解 ByteTrack，我们必须先了解多目标跟踪（MOT，Multiple Object Tracking），它涉及在视频序列中追踪多个物体的运动，并将当前帧中检测到的物体与前一帧中的相应物体进行关联。为了实现这一目标，我们将使用 ByteTrack（*2021 年在论文“[*ByteTrack: Multi-Object Tracking by Associating Every Detection Box*](https://arxiv.org/abs/2110.06864)”中提出*）。为了实现 ByteTrack 跟踪器并为检测到的物体分配轨迹 ID，我们将依赖 Python 的 supervision 库。
 
 1.  **OpenCV：** 是一个广泛应用于各种计算机视觉任务的 Python 库。对于我们的用例，我们将依赖[OpenCV](https://opencv.org/)来可视化并标注视频帧中的边界框和每个检测物体的文本信息。
 
@@ -181,7 +181,7 @@ out.release()
 
 如果你的代码一切正常，你应该会得到一个类似于**示例剪辑 01**的视频输出。
 
-![](../Images/d5caaaa073f19f9f874cb779de45aa22.png)
+![](img/d5caaaa073f19f9f874cb779de45aa22.png)
 
 示例剪辑 01：基础追踪机制（物体与追踪 ID）
 
@@ -246,7 +246,7 @@ out.release()
         return frame
 ```
 
-我们还需要更新注释步骤，通过调用椭圆方法来替换边界框和ID：
+我们还需要更新注释步骤，通过调用椭圆方法来替换边界框和 ID：
 
 ```py
 #***********************BOUNDING BOXES AND TRACK-IDs**************************#
@@ -271,15 +271,15 @@ out.release()
         return output_video_frames
 ```
 
-通过这些修改，你的视频输出应该看起来更整洁，如**示例剪辑02**所示。
+通过这些修改，你的视频输出应该看起来更整洁，如**示例剪辑 02**所示。
 
-![](../Images/0e17fb82b7df8f4b41e25e34b5da15d6.png)
+![](img/0e17fb82b7df8f4b41e25e34b5da15d6.png)
 
-示例剪辑02：用椭圆替代边界框
+示例剪辑 02：用椭圆替代边界框
 
-现在，为了处理冰场边界，我们需要对计算机视觉中的分辨率有一些基本了解。在我们的使用场景中，我们使用的是720p（1280x720像素）格式，这意味着我们处理的每一帧图像的尺寸为1280像素（宽度）乘720像素（高度）。
+现在，为了处理冰场边界，我们需要对计算机视觉中的分辨率有一些基本了解。在我们的使用场景中，我们使用的是 720p（1280x720 像素）格式，这意味着我们处理的每一帧图像的尺寸为 1280 像素（宽度）乘 720 像素（高度）。
 
-***使用720p（1280x720像素）格式意味着什么？*** 这意味着图像由1280个水平像素和720个垂直像素组成。在这种格式下，坐标从图像的左上角（0, 0）开始，x坐标随着向右移动而增加，y坐标随着向下移动而增加。这些坐标用于标记图像中的特定区域，比如使用（x1, y1）表示左上角，使用（x2, y2）表示矩形框的右下角。理解这一点有助于我们测量距离和速度，并决定在视频中关注的分析区域。
+***使用 720p（1280x720 像素）格式意味着什么？*** 这意味着图像由 1280 个水平像素和 720 个垂直像素组成。在这种格式下，坐标从图像的左上角（0, 0）开始，x 坐标随着向右移动而增加，y 坐标随着向下移动而增加。这些坐标用于标记图像中的特定区域，比如使用（x1, y1）表示左上角，使用（x2, y2）表示矩形框的右下角。理解这一点有助于我们测量距离和速度，并决定在视频中关注的分析区域。
 
 也就是说，我们将使用以下代码开始标记帧边框为绿色线条：
 
@@ -309,11 +309,11 @@ cv2.imwrite(output_image_path, frame)
 print("Rink area saved:", output_image_path)
 ```
 
-结果应该是一个绿色矩形，如**示例剪辑03**中（a）所示。但为了只追踪冰场内的移动物体，我们需要一个更像（b）中的边界。
+结果应该是一个绿色矩形，如**示例剪辑 03**中（a）所示。但为了只追踪冰场内的移动物体，我们需要一个更像（b）中的边界。
 
-![](../Images/e6de1323015e8fa64b0a9667df89ff1c.png)
+![](img/e6de1323015e8fa64b0a9667df89ff1c.png)
 
-图03：冰场边界定义（作者自创）
+图 03：冰场边界定义（作者自创）
 
 得到（b）的正确边界就像一个反复试验的过程，你需要测试不同的坐标，直到找到最适合你模型的边界。最初，我的目标是完全匹配冰场边界。然而，跟踪系统在边缘附近存在困难。为了提高准确性，我稍微扩大了边界，以确保所有冰场内的跟踪物体都被捕捉到，同时排除场外的物体。最终的结果，如（b）所示，是我能得到的最好的结果*(你仍然可以尝试更好的情况)*，由这些坐标定义：
 
@@ -327,9 +327,9 @@ print("Rink area saved:", output_image_path)
 
 最后，我们将定义两个额外的区域：白队和黄队的**进攻区**（*每个队伍的目标区域*）。这将使我们能够收集每个队伍在其对手区域内的一些基本位置统计数据和压力指标。
 
-![](../Images/b8ea5a739ce6098b9345c2d7cfe8b332.png)
+![](img/b8ea5a739ce6098b9345c2d7cfe8b332.png)
 
-图04：进攻区（作者自创）
+图 04：进攻区（作者自创）
 
 ```py
 #**************YELLOW TEAM OFFENSIVE ZONE****************
@@ -349,13 +349,13 @@ Upper Right Corner: (900, 61)
 
 # 使用深度学习进行团队预测
 
-自从1943年Warren McCulloch和Walter Pitts发表了《*[*神经活动中固有思想的逻辑演算*](https://www.cs.cmu.edu/~./epxing/Class/10715/reading/McCulloch.and.Pitts.pdf)*》一文以来，已经过去了80多年。这篇论文为早期的神经网络研究奠定了坚实的基础。后来，在1957年，一个简化的神经元数学模型（*接收输入、对这些输入应用权重、对其求和并输出二进制结果*）启发了[Frank Rosenblatt构建了Mark I](https://news.cornell.edu/stories/2019/09/professors-perceptron-paved-way-ai-60-years-too-soon)。这是第一个硬件实现，旨在展示[感知机](https://www.ling.upenn.edu/courses/cogs501/Rosenblatt1958.pdf)的概念，这是一种能够从数据中学习并进行二分类的神经网络模型。从那时起，让计算机像我们一样思考的追求就没有停歇。如果这是你第一次深入学习神经网络，或者你想要刷新并巩固你的知识，我推荐阅读[Shreya Rao的这系列文章](https://medium.com/@shreya.rao/list/deep-learning-illustrated-ae6c27de1640)，作为深度学习的一个很好的起点。此外，你还可以访问我收集的[这系列故事（不同的贡献者）](https://medium.com/@raul.vizcarrach/list/neural-networks-098e9b594f19)，你可能会发现它们有用。
+自从 1943 年 Warren McCulloch 和 Walter Pitts 发表了《*[*神经活动中固有思想的逻辑演算*](https://www.cs.cmu.edu/~./epxing/Class/10715/reading/McCulloch.and.Pitts.pdf)*》一文以来，已经过去了 80 多年。这篇论文为早期的神经网络研究奠定了坚实的基础。后来，在 1957 年，一个简化的神经元数学模型（*接收输入、对这些输入应用权重、对其求和并输出二进制结果*）启发了[Frank Rosenblatt 构建了 Mark I](https://news.cornell.edu/stories/2019/09/professors-perceptron-paved-way-ai-60-years-too-soon)。这是第一个硬件实现，旨在展示[感知机](https://www.ling.upenn.edu/courses/cogs501/Rosenblatt1958.pdf)的概念，这是一种能够从数据中学习并进行二分类的神经网络模型。从那时起，让计算机像我们一样思考的追求就没有停歇。如果这是你第一次深入学习神经网络，或者你想要刷新并巩固你的知识，我推荐阅读[Shreya Rao 的这系列文章](https://medium.com/@shreya.rao/list/deep-learning-illustrated-ae6c27de1640)，作为深度学习的一个很好的起点。此外，你还可以访问我收集的[这系列故事（不同的贡献者）](https://medium.com/@raul.vizcarrach/list/neural-networks-098e9b594f19)，你可能会发现它们有用。
 
-***为什么选择卷积神经网络（CNN）？*** 说实话，这并不是我最初的选择。最初，我尝试使用[LandingAI](https://landing.ai/)，一个适合云部署的用户友好平台，并且支持通过[Python API连接](https://landing.ai/blog/build-your-custom-computer-vision-app-with-python-library)。然而，出现了延迟问题（*需要处理超过1,000帧的数据*）。即便是在[Roboflow](https://universe.roboflow.com/)的预训练模型中，尽管它们提供了高质量的数据集和模型，仍然遇到了类似的延迟问题。意识到必须在本地运行后，我尝试了基于均方误差（MSE）的方法来分类队伍和裁判的球衣颜色。尽管这种方法看似是最终解决方案，但其准确性较低。经过几天的反复试验，我最终转向了CNN。在众多深度学习方法中，CNN非常适合进行物体检测，而LSTM或RNN更适用于像语言转录或翻译等序列数据。
+***为什么选择卷积神经网络（CNN）？*** 说实话，这并不是我最初的选择。最初，我尝试使用[LandingAI](https://landing.ai/)，一个适合云部署的用户友好平台，并且支持通过[Python API 连接](https://landing.ai/blog/build-your-custom-computer-vision-app-with-python-library)。然而，出现了延迟问题（*需要处理超过 1,000 帧的数据*）。即便是在[Roboflow](https://universe.roboflow.com/)的预训练模型中，尽管它们提供了高质量的数据集和模型，仍然遇到了类似的延迟问题。意识到必须在本地运行后，我尝试了基于均方误差（MSE）的方法来分类队伍和裁判的球衣颜色。尽管这种方法看似是最终解决方案，但其准确性较低。经过几天的反复试验，我最终转向了 CNN。在众多深度学习方法中，CNN 非常适合进行物体检测，而 LSTM 或 RNN 更适用于像语言转录或翻译等序列数据。
 
 在深入研究代码之前，让我们先了解一些关于其架构的基本概念：
 
-+   **学习的样本数据集：** 数据集已被分为三类：**裁判**、**客队**（白色球衣的球员）和**主队**（黄色球衣的球员）。每一类的样本被分为两个子集：训练数据和验证数据。训练数据将在每次迭代（Epoch）中被CNN使用，用以“学习”多个层次中的模式。验证数据将在每次迭代结束时用来评估模型的表现，并衡量模型对新数据的泛化能力。创建样本数据集并不困难；我大约花了30到40分钟的时间，从视频中裁剪出每一类的样本图像并将它们整理到子目录中。我成功创建了一个约90张图像的样本数据集，你可以在[项目的GitHub仓库](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch)中找到。
++   **学习的样本数据集：** 数据集已被分为三类：**裁判**、**客队**（白色球衣的球员）和**主队**（黄色球衣的球员）。每一类的样本被分为两个子集：训练数据和验证数据。训练数据将在每次迭代（Epoch）中被 CNN 使用，用以“学习”多个层次中的模式。验证数据将在每次迭代结束时用来评估模型的表现，并衡量模型对新数据的泛化能力。创建样本数据集并不困难；我大约花了 30 到 40 分钟的时间，从视频中裁剪出每一类的样本图像并将它们整理到子目录中。我成功创建了一个约 90 张图像的样本数据集，你可以在[项目的 GitHub 仓库](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch)中找到。
 
 +   **模型是如何学习的？** 输入数据会通过神经网络的每一层，每一层可以是一个或多个相互连接的层，用来进行预测。每一层都使用激活函数来处理数据，从而进行预测或对数据进行更改。这些层之间的每个连接都有一个权重，决定了一个层的输出对下一个层的影响程度。目标是找到这些权重的正确组合，以最小化预测结果的错误。通过一个叫做反向传播的过程和损失函数，模型会调整这些权重，以减少误差并提高准确性。这个过程会在所谓的**Epoch（前向传播 + 反向传播）**中重复进行，随着每个周期模型从错误中学习，它在预测上的表现也会逐渐变好。
 
@@ -443,9 +443,9 @@ class CNNModel(nn.Module):
         return x
 ```
 
-你会注意到我们的CNN模型有三层（conv1，conv2，conv3）。数据首先进入卷积层（conv），在这里应用了激活函数（ReLU）。该函数使得网络能够学习数据中的复杂模式和关系。接着，池化层被激活。***什么是最大池化？***它是一种减少图像大小的技术，同时保留重要特征，有助于高效训练并优化内存资源。这个过程在conv1到conv3之间重复进行。最后，数据通过全连接层（fc1，fc2）进行最终分类（或决策）。
+你会注意到我们的 CNN 模型有三层（conv1，conv2，conv3）。数据首先进入卷积层（conv），在这里应用了激活函数（ReLU）。该函数使得网络能够学习数据中的复杂模式和关系。接着，池化层被激活。***什么是最大池化？***它是一种减少图像大小的技术，同时保留重要特征，有助于高效训练并优化内存资源。这个过程在 conv1 到 conv3 之间重复进行。最后，数据通过全连接层（fc1，fc2）进行最终分类（或决策）。
 
-下一步，我们初始化模型，配置类别交叉熵为损失函数*(通常用于分类任务)*，并将Adam作为优化器。如前所述，我们将在10个周期内执行模型。
+下一步，我们初始化模型，配置类别交叉熵为损失函数*(通常用于分类任务)*，并将 Adam 作为优化器。如前所述，我们将在 10 个周期内执行模型。
 
 ```py
 #********************************CNN TRAINING**********************************************
@@ -517,11 +517,11 @@ plt.show()
 torch.save(model.state_dict(), 'D:/PYTHON/hockey_team_classifier.pth')
 ```
 
-此外，除了你的“pth”文件，在完成上述所有步骤后*(你可以在[*项目的GitHub仓库*](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch)中找到完整代码)*，你应该能看到如下输出（指标可能略有不同）：
+此外，除了你的“pth”文件，在完成上述所有步骤后*(你可以在[*项目的 GitHub 仓库*](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch)中找到完整代码)*，你应该能看到如下输出（指标可能略有不同）：
 
-![](../Images/91ff066093e4c561b0f5b20528f75f57.png)
+![](img/91ff066093e4c561b0f5b20528f75f57.png)
 
-图 05：CNN模型性能指标
+图 05：CNN 模型性能指标
 
 ```py
 #**************CNN PERFORMANCE ACROSS TRAINING EPOCHS************************
@@ -538,9 +538,9 @@ Epoch [9/10], Loss: 0.3959, Val Loss: 0.3824, Val Acc: 92.11%, Val Precision: 0.
 Epoch [10/10], Loss: 0.2509, Val Loss: 0.2651, Val Acc: 97.37%, Val Precision: 0.9762, Val Recall: 0.9792, Val F1 Score: 0.9769 
 ```
 
-完成10个训练周期后，CNN模型的性能指标有所改善。最初，在第1个周期时，模型的训练损失为1.5346，验证准确率为47.37%。***我们应如何理解这个初始点？***
+完成 10 个训练周期后，CNN 模型的性能指标有所改善。最初，在第 1 个周期时，模型的训练损失为 1.5346，验证准确率为 47.37%。***我们应如何理解这个初始点？***
 
-**准确率**是评估分类性能最常见的指标之一。在我们的案例中，它表示正确预测的类别占总类别的比例。**然而，单靠高准确率并不能保证整体模型的表现**；你仍然可能在某些类别上做出不好的预测（正如我在早期实验中所经历的那样）。关于**训练损失**，它衡量模型将输入数据映射到正确标签的效果。由于我们使用的是分类函数，**交叉熵损失**量化了预测的类别概率与实际标签之间的差异。像1.5346这样的初始值表示预测类别与实际类别之间存在显著差异；理想情况下，随着训练的进行，这个值应该趋近于0。随着训练周期的进行，我们观察到训练损失显著下降，验证准确率提高。到最后一个训练周期时，训练损失和验证损失分别降到0.2509和0.2651的最低点。
+**准确率**是评估分类性能最常见的指标之一。在我们的案例中，它表示正确预测的类别占总类别的比例。**然而，单靠高准确率并不能保证整体模型的表现**；你仍然可能在某些类别上做出不好的预测（正如我在早期实验中所经历的那样）。关于**训练损失**，它衡量模型将输入数据映射到正确标签的效果。由于我们使用的是分类函数，**交叉熵损失**量化了预测的类别概率与实际标签之间的差异。像 1.5346 这样的初始值表示预测类别与实际类别之间存在显著差异；理想情况下，随着训练的进行，这个值应该趋近于 0。随着训练周期的进行，我们观察到训练损失显著下降，验证准确率提高。到最后一个训练周期时，训练损失和验证损失分别降到 0.2509 和 0.2651 的最低点。
 
 为了测试我们的 CNN 模型，我们可以选择一部分球员图像并评估其预测能力。为了测试，你可以运行以下代码并使用 [项目的 GitHub 仓库](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch)中的**validation_dataset 文件夹**。
 
@@ -897,17 +897,17 @@ analyzer.analyze_video(video_path, output_path, tracks_path)
 
 运行所有步骤后，你的视频输出应该如下所示：
 
-![](../Images/98890f2c70834d1f61d97b6135b3afe5.png)
+![](img/98890f2c70834d1f61d97b6135b3afe5.png)
 
 示例片段 06：跟踪球员和队伍
 
-请注意，在这次更新中，物体检测仅限于冰球场内，且队伍和裁判已被区分开来。虽然CNN模型仍需微调，并且偶尔在一些球员身上会失去稳定性，但在整个视频中，它仍然大部分时间是可靠且准确的。
+请注意，在这次更新中，物体检测仅限于冰球场内，且队伍和裁判已被区分开来。虽然 CNN 模型仍需微调，并且偶尔在一些球员身上会失去稳定性，但在整个视频中，它仍然大部分时间是可靠且准确的。
 
 # **速度、距离和进攻压力**
 
 跟踪队伍和球员的能力为衡量表现开辟了令人兴奋的可能性，例如生成热图、分析速度和覆盖的距离、跟踪如区域进入或退出等动作，以及深入研究球员的详细指标。为了让我们能感受这一点，我们将添加三项表现指标：**每个球员的平均速度**、每支队伍滑行的**距离**，以及**进攻压力**（*以每支队伍在对方区域内所花费的距离占总距离的百分比来衡量*）。我将把更详细的统计数据留给你们！
 
-我们开始将冰场的坐标从基于像素的度量转换为近似米数。这一调整使我们能够以米为单位读取数据，而非像素。视频中看到的冰场的实际尺寸大约为15mx30m（宽度为15米，高度为30米）。为了方便这一转换，我们引入了一种将像素坐标转换为米的方式。通过定义冰场的实际尺寸，并使用其角落的像素坐标（从左到右，从上到下），我们获得了转换因子。这些因子将支持我们估算米数和每秒米数速度的过程。*（另一个有趣的技术是透视变换，你可以探索并应用它）*
+我们开始将冰场的坐标从基于像素的度量转换为近似米数。这一调整使我们能够以米为单位读取数据，而非像素。视频中看到的冰场的实际尺寸大约为 15mx30m（宽度为 15 米，高度为 30 米）。为了方便这一转换，我们引入了一种将像素坐标转换为米的方式。通过定义冰场的实际尺寸，并使用其角落的像素坐标（从左到右，从上到下），我们获得了转换因子。这些因子将支持我们估算米数和每秒米数速度的过程。*（另一个有趣的技术是透视变换，你可以探索并应用它）*
 
 ```py
 #*********************Loads models and rink coordinates*****************#
@@ -942,9 +942,9 @@ class HockeyAnalyzer:
         return distance_pixels / self.pixels_per_meter_x, distance_pixels / self.pixels_per_meter_y
 ```
 
-我们现在准备好**以每秒米数为单位添加每个球员的速度**。为了做到这一点，我们需要进行三处修改。首先，在**HockeyAnalyzer类**中初始化一个名为**previous_positions**的空字典，以帮助我们比较球员的当前和前一个位置。同样，我们还将创建一个**team_stats**结构来存储每支队伍的统计数据，以便进一步可视化。
+我们现在准备好**以每秒米数为单位添加每个球员的速度**。为了做到这一点，我们需要进行三处修改。首先，在**HockeyAnalyzer 类**中初始化一个名为**previous_positions**的空字典，以帮助我们比较球员的当前和前一个位置。同样，我们还将创建一个**team_stats**结构来存储每支队伍的统计数据，以便进一步可视化。
 
-接下来，我们将添加一个**速度方法**来估算球员的速度（以每秒像素数为单位），然后使用前面解释的转换因子将其转换为每秒米数。最后，在**analyze_video方法**中，我们将调用新的速度方法，并将速度添加到每个追踪的对象（球员和裁判）中。这就是这些更改的效果：
+接下来，我们将添加一个**速度方法**来估算球员的速度（以每秒像素数为单位），然后使用前面解释的转换因子将其转换为每秒米数。最后，在**analyze_video 方法**中，我们将调用新的速度方法，并将速度添加到每个追踪的对象（球员和裁判）中。这就是这些更改的效果：
 
 ```py
 #*********************Loads models and rink coordinates*****************#
@@ -1031,11 +1031,11 @@ class HockeyAnalyzer:
           out.release()
 ```
 
-如果你在添加这些新代码时遇到问题，你可以随时访问[项目的GitHub仓库](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch)，在这里你可以找到完整的集成代码。此时，你的视频输出应该如下所示（*注意速度已添加到每个球员的标签上*）：
+如果你在添加这些新代码时遇到问题，你可以随时访问[项目的 GitHub 仓库](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch)，在这里你可以找到完整的集成代码。此时，你的视频输出应该如下所示（*注意速度已添加到每个球员的标签上*）：
 
-![](../Images/56fe2cf37374ce478a5baaa91c6c66a7.png)
+![](img/56fe2cf37374ce478a5baaa91c6c66a7.png)
 
-示例片段07：跟踪球员和速度
+示例片段 07：跟踪球员和速度
 
 最后，让我们添加一个统计板，跟踪每支队伍每个球员的平均速度，并显示其他数据，例如行进的距离和在对方区域内的进攻压力。
 
@@ -1139,7 +1139,7 @@ class HockeyAnalyzer:
                     self.team_stats[team]['offensive_pressure'] += distance
 ```
 
-为了在视频中显示统计数据，我们需要调用**analyze_video方法**，因此请确保在定义速度标签后、处理输出视频之前，添加这些额外的代码行：
+为了在视频中显示统计数据，我们需要调用**analyze_video 方法**，因此请确保在定义速度标签后、处理输出视频之前，添加这些额外的代码行：
 
 ```py
 *
@@ -1177,13 +1177,13 @@ class HockeyAnalyzer:
 
 每个球员所覆盖的距离（单位：米）是通过将其速度（以米/秒为单位）除以帧率（以帧/秒为单位）来计算的。这个计算方法使我们能够估算每个球员在视频中每次帧变化之间移动的距离。如果一切顺利，最终的视频输出应该是这样的：
 
-![](../Images/7a960baa2383b62cff2c4cf942ad002a.png)
+![](img/7a960baa2383b62cff2c4cf942ad002a.png)
 
 示例片段 08：最终输出
 
 # 考虑事项与未来工作
 
-该模型是使用计算机视觉追踪冰球比赛中球员的基本设置（或任何团队运动）。然而，还有许多精细调优可以改进，并且可以添加新功能。以下是我正在研究的一些想法，用于下一版本2.0，你也可以考虑这些想法：
+该模型是使用计算机视觉追踪冰球比赛中球员的基本设置（或任何团队运动）。然而，还有许多精细调优可以改进，并且可以添加新功能。以下是我正在研究的一些想法，用于下一版本 2.0，你也可以考虑这些想法：
 
 ***跟踪冰球的挑战：*** 根据相机的朝向和分辨率，跟踪冰球是具有挑战性的，因为它的尺寸相较于足球或篮球球来说较小。但如果你能够实现这一点，便能开启一些有趣的可能性来追踪表现，例如控球时间、进攻机会或射门数据。这同样适用于个别球员的表现；在冰球中，球员的换人频率远高于其他团队运动，因此，在一个时段内追踪每个球员的表现也是一种挑战。
 

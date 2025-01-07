@@ -1,18 +1,18 @@
 # 🚪🚪🐐 从蒙提霍尔问题中学习决策技巧
 
-> 原文：[https://towardsdatascience.com/lessons-in-decision-making-from-the-monty-hall-problem-a6032f4b1032?source=collection_archive---------1-----------------------#2024-10-24](https://towardsdatascience.com/lessons-in-decision-making-from-the-monty-hall-problem-a6032f4b1032?source=collection_archive---------1-----------------------#2024-10-24)
+> 原文：[`towardsdatascience.com/lessons-in-decision-making-from-the-monty-hall-problem-a6032f4b1032?source=collection_archive---------1-----------------------#2024-10-24`](https://towardsdatascience.com/lessons-in-decision-making-from-the-monty-hall-problem-a6032f4b1032?source=collection_archive---------1-----------------------#2024-10-24)
 
 ## 三种直觉的探索：常识、贝叶斯和因果
 
-[](https://eyal-kazin.medium.com/?source=post_page---byline--a6032f4b1032--------------------------------)[![Eyal Kazin](../Images/3860e6f1f63d732ce3af939d6681f542.png)](https://eyal-kazin.medium.com/?source=post_page---byline--a6032f4b1032--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a6032f4b1032--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a6032f4b1032--------------------------------) [Eyal Kazin](https://eyal-kazin.medium.com/?source=post_page---byline--a6032f4b1032--------------------------------)
+[](https://eyal-kazin.medium.com/?source=post_page---byline--a6032f4b1032--------------------------------)![Eyal Kazin](https://eyal-kazin.medium.com/?source=post_page---byline--a6032f4b1032--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a6032f4b1032--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a6032f4b1032--------------------------------) [Eyal Kazin](https://eyal-kazin.medium.com/?source=post_page---byline--a6032f4b1032--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a6032f4b1032--------------------------------) ·25分钟阅读·2024年10月24日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a6032f4b1032--------------------------------) ·25 分钟阅读·2024 年 10 月 24 日
 
 --
 
-![](../Images/a3d45650ff7d47314680564588529126.png)
+![](img/a3d45650ff7d47314680564588529126.png)
 
-通过Gemini Imagen 3生成
+通过 Gemini Imagen 3 生成
 
 蒙提霍尔问题是一个著名的脑筋急转弯，我们可以从中学习到重要的决策技巧，这些技巧对于数据科学家尤其有用。
 

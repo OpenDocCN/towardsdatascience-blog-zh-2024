@@ -1,16 +1,16 @@
 # 使用 Python 裁剪 Landsat 场景的边界框
 
-> 原文：[https://towardsdatascience.com/cropping-landsat-scenes-from-their-bounding-box-using-python-eef353d8cc67?source=collection_archive---------6-----------------------#2024-02-04](https://towardsdatascience.com/cropping-landsat-scenes-from-their-bounding-box-using-python-eef353d8cc67?source=collection_archive---------6-----------------------#2024-02-04)
+> 原文：[`towardsdatascience.com/cropping-landsat-scenes-from-their-bounding-box-using-python-eef353d8cc67?source=collection_archive---------6-----------------------#2024-02-04`](https://towardsdatascience.com/cropping-landsat-scenes-from-their-bounding-box-using-python-eef353d8cc67?source=collection_archive---------6-----------------------#2024-02-04)
 
 ## 使用 stac 文件移除 Landsat 卫星图像的外边框
 
-[](https://conorosullyds.medium.com/?source=post_page---byline--eef353d8cc67--------------------------------)[![Conor O'Sullivan](../Images/2dc50a24edb12e843651d01ed48a3c3f.png)](https://conorosullyds.medium.com/?source=post_page---byline--eef353d8cc67--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eef353d8cc67--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--eef353d8cc67--------------------------------) [Conor O'Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--eef353d8cc67--------------------------------)
+[](https://conorosullyds.medium.com/?source=post_page---byline--eef353d8cc67--------------------------------)![Conor O'Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--eef353d8cc67--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eef353d8cc67--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eef353d8cc67--------------------------------) [Conor O'Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--eef353d8cc67--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eef353d8cc67--------------------------------) ·阅读时间 8 分钟·2024年2月4日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eef353d8cc67--------------------------------) ·阅读时间 8 分钟·2024 年 2 月 4 日
 
 --
 
-![](../Images/e24114e1234d4f320821503ce31fd6ed.png)
+![](img/e24114e1234d4f320821503ce31fd6ed.png)
 
 （来源：作者）
 
@@ -26,10 +26,10 @@
 
 我们首先下载一个 Landsat 场景。你可以通过 [EarthExplorer](https://earthexplorer.usgs.gov/) 门户网站来实现。如果你想使用 Python，下面的文章会指导你完成整个过程：
 
-[](/downloading-landsat-satellite-images-with-python-a2d2b5183fb7?source=post_page-----eef353d8cc67--------------------------------) [## 使用 Python 下载 Landsat 卫星图像
+[](/downloading-landsat-satellite-images-with-python-a2d2b5183fb7?source=post_page-----eef353d8cc67--------------------------------) ## 使用 Python 下载 Landsat 卫星图像
 
 ### 使用 landsatxplore Python 包简化 Landsat 场景下载
 
-towardsdatascience.com](/downloading-landsat-satellite-images-with-python-a2d2b5183fb7?source=post_page-----eef353d8cc67--------------------------------)
+towardsdatascience.com
 
-最终，你应该会有一个像**图1**这样的文件夹。这里面包含了所有文件…
+最终，你应该会有一个像**图 1**这样的文件夹。这里面包含了所有文件…

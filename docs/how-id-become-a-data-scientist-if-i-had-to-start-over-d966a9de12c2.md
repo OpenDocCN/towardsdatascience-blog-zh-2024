@@ -1,16 +1,16 @@
 # 如何成为一名数据科学家（如果我需要重新开始的话）
 
-> 原文：[https://towardsdatascience.com/how-id-become-a-data-scientist-if-i-had-to-start-over-d966a9de12c2?source=collection_archive---------2-----------------------#2024-06-14](https://towardsdatascience.com/how-id-become-a-data-scientist-if-i-had-to-start-over-d966a9de12c2?source=collection_archive---------2-----------------------#2024-06-14)
+> 原文：[`towardsdatascience.com/how-id-become-a-data-scientist-if-i-had-to-start-over-d966a9de12c2?source=collection_archive---------2-----------------------#2024-06-14`](https://towardsdatascience.com/how-id-become-a-data-scientist-if-i-had-to-start-over-d966a9de12c2?source=collection_archive---------2-----------------------#2024-06-14)
 
 ## 数据科学求职路线图和技巧
 
-[](https://medium.com/@egorhowell?source=post_page---byline--d966a9de12c2--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--d966a9de12c2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d966a9de12c2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d966a9de12c2--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--d966a9de12c2--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--d966a9de12c2--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--d966a9de12c2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d966a9de12c2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d966a9de12c2--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--d966a9de12c2--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d966a9de12c2--------------------------------) ·阅读时间：11分钟·2024年6月14日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d966a9de12c2--------------------------------) ·阅读时间：11 分钟·2024 年 6 月 14 日
 
 --
 
-![](../Images/6e56d73bc9a9a431bca6a46dfa4ab174.png)
+![](img/6e56d73bc9a9a431bca6a46dfa4ab174.png)
 
 图片来自[AltumCode](https://unsplash.com/@altumcode?utm_source=medium&utm_medium=referral)，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -18,7 +18,7 @@
 
 # 数学
 
-![](../Images/bee41c7099996912dfbc40389ea7cc83.png)
+![](img/bee41c7099996912dfbc40389ea7cc83.png)
 
 图片来自[Antoine Dautry](https://unsplash.com/@antoine1003?utm_source=medium&utm_medium=referral)，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

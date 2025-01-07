@@ -1,12 +1,12 @@
 # 从视频构建知识图谱的入门指南
 
-> 原文：[https://towardsdatascience.com/a-beginners-guide-to-building-knowledge-graphs-from-videos-6cafcba5f3e5?source=collection_archive---------5-----------------------#2024-01-17](https://towardsdatascience.com/a-beginners-guide-to-building-knowledge-graphs-from-videos-6cafcba5f3e5?source=collection_archive---------5-----------------------#2024-01-17)
+> 原文：[`towardsdatascience.com/a-beginners-guide-to-building-knowledge-graphs-from-videos-6cafcba5f3e5?source=collection_archive---------5-----------------------#2024-01-17`](https://towardsdatascience.com/a-beginners-guide-to-building-knowledge-graphs-from-videos-6cafcba5f3e5?source=collection_archive---------5-----------------------#2024-01-17)
 
 ## 构建一个管道来分析并存储视频中的数据。
 
-[](https://mohammed249.medium.com/?source=post_page---byline--6cafcba5f3e5--------------------------------)[![Mohammed Mohammed](../Images/33e1776db18c6f71c5b4138fd4536043.png)](https://mohammed249.medium.com/?source=post_page---byline--6cafcba5f3e5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6cafcba5f3e5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6cafcba5f3e5--------------------------------) [Mohammed Mohammed](https://mohammed249.medium.com/?source=post_page---byline--6cafcba5f3e5--------------------------------)
+[](https://mohammed249.medium.com/?source=post_page---byline--6cafcba5f3e5--------------------------------)![Mohammed Mohammed](https://mohammed249.medium.com/?source=post_page---byline--6cafcba5f3e5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6cafcba5f3e5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6cafcba5f3e5--------------------------------) [Mohammed Mohammed](https://mohammed249.medium.com/?source=post_page---byline--6cafcba5f3e5--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6cafcba5f3e5--------------------------------) ·阅读时间：10分钟·2024年1月17日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6cafcba5f3e5--------------------------------) ·阅读时间：10 分钟·2024 年 1 月 17 日
 
 --
 
@@ -14,7 +14,7 @@
 
 为了回答这个问题，想象一下，不是将知识存储在文件柜中，而是将它们存储在一张织网中。每一个事实、概念、关于人、地点、事件甚至抽象概念的信息都是一个节点，而将它们连接在一起的线条则是它们之间的关系。这张错综复杂的网络，朋友们，就是知识图谱的精髓。
 
-![](../Images/1ecf3cc7e1b15408e2b01383c3a18df7.png)
+![](img/1ecf3cc7e1b15408e2b01383c3a18df7.png)
 
 图片由[Shubham Dhage](https://unsplash.com/@theshubhamdhage?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -36,7 +36,7 @@
 
 到了本文的最后，你将构建一个如下所示的图谱。
 
-![](../Images/06861e8c6ec369ade11ea179528932f2.png)
+![](img/06861e8c6ec369ade11ea179528932f2.png)
 
 作者提供的图片
 
@@ -268,11 +268,11 @@ def start():
 
 如果你正确地按照步骤操作，运行 *start()* 函数后，你应该能看到类似的可视化效果。
 
-![](../Images/06861e8c6ec369ade11ea179528932f2.png)
+![](img/06861e8c6ec369ade11ea179528932f2.png)
 
 图片来源：作者
 
-你当然可以将这个知识图谱保存到Neo4j数据库中，并进一步拓展。
+你当然可以将这个知识图谱保存到 Neo4j 数据库中，并进一步拓展。
 
 注意：此工作流仅适用于你拥有的视频，或其条款允许这种下载/处理的情况。
 
@@ -280,6 +280,6 @@ def start():
 
 知识图谱利用语义关系来表示数据，从而实现更细致和具有上下文意识的理解。这种语义丰富性使得查询和分析更加复杂，因为实体之间的关系被明确地定义了。
 
-在本文中，我概述了如何构建一个流程，包括从视频中提取音频，使用OpenAI的Whisper ASR进行转录，以及构建知识图谱的详细步骤。作为对这一领域感兴趣的人，我希望本文能使初学者更容易理解，展示知识图谱应用的潜力和多样性。
+在本文中，我概述了如何构建一个流程，包括从视频中提取音频，使用 OpenAI 的 Whisper ASR 进行转录，以及构建知识图谱的详细步骤。作为对这一领域感兴趣的人，我希望本文能使初学者更容易理解，展示知识图谱应用的潜力和多样性。
 
 这段代码的完整版本可以在[GitHub](https://github.com/mohammed-249/Data_Science_Projects/tree/main/NLP%20%7C%20Building%20Knowledge%20Graph%20from%20videos)找到。

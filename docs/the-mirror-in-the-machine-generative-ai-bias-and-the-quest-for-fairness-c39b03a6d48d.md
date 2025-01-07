@@ -1,16 +1,16 @@
 # 机器中的镜像：生成性 AI、偏见与追求公平
 
-> 原文：[https://towardsdatascience.com/the-mirror-in-the-machine-generative-ai-bias-and-the-quest-for-fairness-c39b03a6d48d?source=collection_archive---------10-----------------------#2024-01-16](https://towardsdatascience.com/the-mirror-in-the-machine-generative-ai-bias-and-the-quest-for-fairness-c39b03a6d48d?source=collection_archive---------10-----------------------#2024-01-16)
+> 原文：[`towardsdatascience.com/the-mirror-in-the-machine-generative-ai-bias-and-the-quest-for-fairness-c39b03a6d48d?source=collection_archive---------10-----------------------#2024-01-16`](https://towardsdatascience.com/the-mirror-in-the-machine-generative-ai-bias-and-the-quest-for-fairness-c39b03a6d48d?source=collection_archive---------10-----------------------#2024-01-16)
 
 ## 生成性 AI 在招聘决策中的偏见实验
 
-[](https://brandoncosley.medium.com/?source=post_page---byline--c39b03a6d48d--------------------------------)[![Brandon Cosley](../Images/7c356ca71fe6a3aae5084eb1fe646948.png)](https://brandoncosley.medium.com/?source=post_page---byline--c39b03a6d48d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c39b03a6d48d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c39b03a6d48d--------------------------------) [Brandon Cosley](https://brandoncosley.medium.com/?source=post_page---byline--c39b03a6d48d--------------------------------)
+[](https://brandoncosley.medium.com/?source=post_page---byline--c39b03a6d48d--------------------------------)![Brandon Cosley](https://brandoncosley.medium.com/?source=post_page---byline--c39b03a6d48d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c39b03a6d48d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c39b03a6d48d--------------------------------) [Brandon Cosley](https://brandoncosley.medium.com/?source=post_page---byline--c39b03a6d48d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c39b03a6d48d--------------------------------) ·12分钟阅读·2024年1月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c39b03a6d48d--------------------------------) ·12 分钟阅读·2024 年 1 月 16 日
 
 --
 
-![](../Images/795ad95f37a32506b60741fca7663ec8.png)
+![](img/795ad95f37a32506b60741fca7663ec8.png)
 
 图片由 [Jr Korpa](https://unsplash.com/@jrkorpa?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

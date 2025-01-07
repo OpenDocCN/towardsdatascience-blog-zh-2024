@@ -1,16 +1,16 @@
 # MLOps — MLflow Pipelines 的温和入门
 
-> 原文：[https://towardsdatascience.com/mlops-a-gentle-introduction-to-mlflow-pipelines-c7bcec88a6ec?source=collection_archive---------0-----------------------#2024-03-13](https://towardsdatascience.com/mlops-a-gentle-introduction-to-mlflow-pipelines-c7bcec88a6ec?source=collection_archive---------0-----------------------#2024-03-13)
+> 原文：[`towardsdatascience.com/mlops-a-gentle-introduction-to-mlflow-pipelines-c7bcec88a6ec?source=collection_archive---------0-----------------------#2024-03-13`](https://towardsdatascience.com/mlops-a-gentle-introduction-to-mlflow-pipelines-c7bcec88a6ec?source=collection_archive---------0-----------------------#2024-03-13)
 
-![](../Images/2a1eb375a43d2db38d0e8e49dd56848a.png)
+![](img/2a1eb375a43d2db38d0e8e49dd56848a.png)
 
 图片由[Sean Robertson](https://unsplash.com/@knuknuk?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 使用 MLflow 管理您的端到端机器学习生命周期
 
-[](https://medium.com/@marcellopoliti?source=post_page---byline--c7bcec88a6ec--------------------------------)[![Marcello Politi](../Images/484e44571bd2e75acfe5fef3146ab3c2.png)](https://medium.com/@marcellopoliti?source=post_page---byline--c7bcec88a6ec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c7bcec88a6ec--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c7bcec88a6ec--------------------------------) [Marcello Politi](https://medium.com/@marcellopoliti?source=post_page---byline--c7bcec88a6ec--------------------------------)
+[](https://medium.com/@marcellopoliti?source=post_page---byline--c7bcec88a6ec--------------------------------)![Marcello Politi](https://medium.com/@marcellopoliti?source=post_page---byline--c7bcec88a6ec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c7bcec88a6ec--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c7bcec88a6ec--------------------------------) [Marcello Politi](https://medium.com/@marcellopoliti?source=post_page---byline--c7bcec88a6ec--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c7bcec88a6ec--------------------------------) ·8分钟阅读·2024年3月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c7bcec88a6ec--------------------------------) ·8 分钟阅读·2024 年 3 月 13 日
 
 --
 

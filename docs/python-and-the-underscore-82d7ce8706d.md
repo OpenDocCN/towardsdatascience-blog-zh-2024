@@ -1,18 +1,18 @@
 # Python 与下划线 (_)
 
-> 原文：[https://towardsdatascience.com/python-and-the-underscore-82d7ce8706d?source=collection_archive---------3-----------------------#2024-04-30](https://towardsdatascience.com/python-and-the-underscore-82d7ce8706d?source=collection_archive---------3-----------------------#2024-04-30)
+> 原文：[`towardsdatascience.com/python-and-the-underscore-82d7ce8706d?source=collection_archive---------3-----------------------#2024-04-30`](https://towardsdatascience.com/python-and-the-underscore-82d7ce8706d?source=collection_archive---------3-----------------------#2024-04-30)
 
 ## PYTHON 编程
 
 ## 本文讨论了下划线在 Python 中所扮演的各种角色。
 
-[](https://medium.com/@nyggus?source=post_page---byline--82d7ce8706d--------------------------------)[![Marcin Kozak](../Images/d7faf62e48ed81dab5d8ad92819fff54.png)](https://medium.com/@nyggus?source=post_page---byline--82d7ce8706d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--82d7ce8706d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--82d7ce8706d--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--82d7ce8706d--------------------------------)
+[](https://medium.com/@nyggus?source=post_page---byline--82d7ce8706d--------------------------------)![Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--82d7ce8706d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--82d7ce8706d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--82d7ce8706d--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--82d7ce8706d--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--82d7ce8706d--------------------------------) ·10分钟阅读·2024年4月30日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--82d7ce8706d--------------------------------) ·10 分钟阅读·2024 年 4 月 30 日
 
 --
 
-![](../Images/7c706d662cecaf8befe3f7446ac4fcfe.png)
+![](img/7c706d662cecaf8befe3f7446ac4fcfe.png)
 
 你会在 Python 代码中看到很多下划线形式的横线。图片由[Jussara Romão](https://unsplash.com/@jussararomao?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)。
 

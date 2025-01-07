@@ -1,16 +1,16 @@
 # 使用 OpenAI 和 PandasAI 进行 Series 操作
 
-> 原文：[https://towardsdatascience.com/using-openai-and-pandasai-for-series-operations-2978d539fb66?source=collection_archive---------1-----------------------#2024-06-29](https://towardsdatascience.com/using-openai-and-pandasai-for-series-operations-2978d539fb66?source=collection_archive---------1-----------------------#2024-06-29)
+> 原文：[`towardsdatascience.com/using-openai-and-pandasai-for-series-operations-2978d539fb66?source=collection_archive---------1-----------------------#2024-06-29`](https://towardsdatascience.com/using-openai-and-pandasai-for-series-operations-2978d539fb66?source=collection_archive---------1-----------------------#2024-06-29)
 
 ## 将自然语言查询和操作融入到你的 Python 数据清洗工作流中。
 
-[](https://michaelbrucewalker.medium.com/?source=post_page---byline--2978d539fb66--------------------------------)[![Michael B Walker](../Images/c8537da4fca3c542e1729771675bc059.png)](https://michaelbrucewalker.medium.com/?source=post_page---byline--2978d539fb66--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2978d539fb66--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2978d539fb66--------------------------------) [Michael B Walker](https://michaelbrucewalker.medium.com/?source=post_page---byline--2978d539fb66--------------------------------)
+[](https://michaelbrucewalker.medium.com/?source=post_page---byline--2978d539fb66--------------------------------)![Michael B Walker](https://michaelbrucewalker.medium.com/?source=post_page---byline--2978d539fb66--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2978d539fb66--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2978d539fb66--------------------------------) [Michael B Walker](https://michaelbrucewalker.medium.com/?source=post_page---byline--2978d539fb66--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2978d539fb66--------------------------------) ·阅读时间：6分钟·2024年6月29日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2978d539fb66--------------------------------) ·阅读时间：6 分钟·2024 年 6 月 29 日
 
 --
 
-![](../Images/ba6fcadd6ed048d35c8b0a0ea7df7a48.png)
+![](img/ba6fcadd6ed048d35c8b0a0ea7df7a48.png)
 
 红熊猫画作由艺术家 Karen Walker 捐赠。
 

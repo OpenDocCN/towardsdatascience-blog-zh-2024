@@ -1,16 +1,16 @@
 # 数据工程师领导职业指南
 
-> 原文：[https://towardsdatascience.com/lead-data-engineer-career-guide-699e806111b4?source=collection_archive---------2-----------------------#2024-01-06](https://towardsdatascience.com/lead-data-engineer-career-guide-699e806111b4?source=collection_archive---------2-----------------------#2024-01-06)
+> 原文：[`towardsdatascience.com/lead-data-engineer-career-guide-699e806111b4?source=collection_archive---------2-----------------------#2024-01-06`](https://towardsdatascience.com/lead-data-engineer-career-guide-699e806111b4?source=collection_archive---------2-----------------------#2024-01-06)
 
 ## 成功的数据领导力所需的知识和技能
 
-[](https://mshakhomirov.medium.com/?source=post_page---byline--699e806111b4--------------------------------)[![💡Mike Shakhomirov](../Images/bc6895c7face3244d488feb97ba0f68e.png)](https://mshakhomirov.medium.com/?source=post_page---byline--699e806111b4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--699e806111b4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--699e806111b4--------------------------------) [💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--699e806111b4--------------------------------)
+[](https://mshakhomirov.medium.com/?source=post_page---byline--699e806111b4--------------------------------)![💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--699e806111b4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--699e806111b4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--699e806111b4--------------------------------) [💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--699e806111b4--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--699e806111b4--------------------------------) ·13分钟阅读·2024年1月6日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--699e806111b4--------------------------------) ·13 分钟阅读·2024 年 1 月 6 日
 
 --
 
-![](../Images/6dad9db0224bf3330db88a49f1b5ace5.png)
+![](img/6dad9db0224bf3330db88a49f1b5ace5.png)
 
 照片由[Árpád Czapp](https://unsplash.com/@czapp_arpad?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

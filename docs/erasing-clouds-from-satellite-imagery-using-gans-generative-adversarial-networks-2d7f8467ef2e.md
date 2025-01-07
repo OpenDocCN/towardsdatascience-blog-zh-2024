@@ -1,16 +1,16 @@
 # 使用 GAN（生成对抗网络）去除卫星图像中的云
 
-> 原文：[https://towardsdatascience.com/erasing-clouds-from-satellite-imagery-using-gans-generative-adversarial-networks-2d7f8467ef2e?source=collection_archive---------2-----------------------#2024-06-15](https://towardsdatascience.com/erasing-clouds-from-satellite-imagery-using-gans-generative-adversarial-networks-2d7f8467ef2e?source=collection_archive---------2-----------------------#2024-06-15)
+> 原文：[`towardsdatascience.com/erasing-clouds-from-satellite-imagery-using-gans-generative-adversarial-networks-2d7f8467ef2e?source=collection_archive---------2-----------------------#2024-06-15`](https://towardsdatascience.com/erasing-clouds-from-satellite-imagery-using-gans-generative-adversarial-networks-2d7f8467ef2e?source=collection_archive---------2-----------------------#2024-06-15)
 
 ## **从零开始在 Python 中构建 GAN**
 
-[](https://medium.com/@alexroz?source=post_page---byline--2d7f8467ef2e--------------------------------)[![Aleksei Rozanov](../Images/748b69bfaccf39c9aa568a9e6f41eec3.png)](https://medium.com/@alexroz?source=post_page---byline--2d7f8467ef2e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2d7f8467ef2e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2d7f8467ef2e--------------------------------) [Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--2d7f8467ef2e--------------------------------)
+[](https://medium.com/@alexroz?source=post_page---byline--2d7f8467ef2e--------------------------------)![Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--2d7f8467ef2e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2d7f8467ef2e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2d7f8467ef2e--------------------------------) [Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--2d7f8467ef2e--------------------------------)
 
 ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2d7f8467ef2e--------------------------------) ·12 分钟阅读·2024 年 6 月 15 日
 
 --
 
-![](../Images/a8ae5b6d4e446b5af4e38c5c19ed1129.png)
+![](img/a8ae5b6d4e446b5af4e38c5c19ed1129.png)
 
 图片由 [Michael & Diane Weidner](https://unsplash.com/@michaelbweidner?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,15 +22,15 @@
 
 ### 数据集包含来自 Sentinel-2 的所有 RGB 和波段图像
 
-[www.kaggle.com](https://www.kaggle.com/datasets/apollo2506/eurosat-dataset/data?source=post_page-----2d7f8467ef2e--------------------------------) ![](../Images/78b9510aa3c9c7e3a95911929f732e88.png)
+[www.kaggle.com](https://www.kaggle.com/datasets/apollo2506/eurosat-dataset/data?source=post_page-----2d7f8467ef2e--------------------------------) ![](img/78b9510aa3c9c7e3a95911929f732e88.png)
 
-EuroSat数据集的图像示例。[许可](https://github.com/phelber/eurosat)。
+EuroSat 数据集的图像示例。[许可](https://github.com/phelber/eurosat)。
 
-我们对分类本身并不感兴趣，但EuroSat数据集的一个主要特点是，所有图像都有清晰的天空。这正是我们需要的。借用[3]中的方法，我们将这些Sentinel-2影像作为目标，通过向它们添加噪声（云朵）来创建输入。
+我们对分类本身并不感兴趣，但 EuroSat 数据集的一个主要特点是，所有图像都有清晰的天空。这正是我们需要的。借用[3]中的方法，我们将这些 Sentinel-2 影像作为目标，通过向它们添加噪声（云朵）来创建输入。
 
-那么在真正讨论GANs之前，我们先准备一下数据。首先，我们需要下载数据，并将所有类别合并到一个目录中。
+那么在真正讨论 GANs 之前，我们先准备一下数据。首先，我们需要下载数据，并将所有类别合并到一个目录中。
 
-**🐍完整的Python代码：** [**GitHub**](https://github.com/alexxxroz/Medium/blob/main/GANs%26Clouds.ipynb)**.**
+**🐍完整的 Python 代码：** [**GitHub**](https://github.com/alexxxroz/Medium/blob/main/GANs%26Clouds.ipynb)**.**
 
 ```py
 import numpy as np
@@ -69,7 +69,7 @@ for kind in classes:
     k += 1
 ```
 
-第二个重要步骤是生成噪声。虽然你可以使用不同的方法，例如随机遮罩一些像素、添加一些高斯噪声，但在这篇文章中，我想尝试一个对我来说新颖的东西——Perlin噪声。它是由Ken Perlin在80年代发明的[4]，用于开发电影中的烟雾效果。这种噪声与普通的随机噪声相比，具有更自然的外观。让我来证明一下。
+第二个重要步骤是生成噪声。虽然你可以使用不同的方法，例如随机遮罩一些像素、添加一些高斯噪声，但在这篇文章中，我想尝试一个对我来说新颖的东西——Perlin 噪声。它是由 Ken Perlin 在 80 年代发明的[4]，用于开发电影中的烟雾效果。这种噪声与普通的随机噪声相比，具有更自然的外观。让我来证明一下。
 
 ```py
 def generate_perlin_noise(width, height, scale, octaves, persistence, lacunarity):
@@ -143,25 +143,25 @@ ax[1].axis('off')
 plt.show()
 ```
 
-![](../Images/663c3610117fdf1d41c60edb0e5a06e6.png)
+![](img/663c3610117fdf1d41c60edb0e5a06e6.png)
 
 图片来源：[作者](https://medium.com/@alexroz)。
 
 如上所示，图像中的云朵非常逼真，它们具有不同的“密度”和类似真实云朵的纹理。
 
-如果你像我一样对Perlin噪声感兴趣，这里有一个非常酷的视频，展示了这种噪声如何应用于游戏开发行业：
+如果你像我一样对 Perlin 噪声感兴趣，这里有一个非常酷的视频，展示了这种噪声如何应用于游戏开发行业：
 
 既然我们现在有了一个现成可用的数据集，那么让我们来谈谈生成对抗网络（GANs）。
 
 # 生成对抗网络（GAN）
 
-为了更好地说明这个概念，假设你正在东南亚旅行，突然需要一件连帽衫，因为外面太冷了。你来到最近的街头市场，发现一家小店有一些品牌服装。卖家拿来一件不错的连帽衫让你试穿，并说它是著名品牌ExpensiveButNotWorthIt。你仔细一看，得出结论，这显然是假的。卖家说：“等一下，我有真的。”然后他带着另一件连帽衫回来，看起来更像是品牌的，但依旧是假货。经过几轮这样的尝试后，卖家带来了一件无法分辨的传奇品牌ExpensiveButNotWorthIt的复制品，你便高兴地买下了它。这基本上就是生成对抗网络（GANs）的工作原理！
+为了更好地说明这个概念，假设你正在东南亚旅行，突然需要一件连帽衫，因为外面太冷了。你来到最近的街头市场，发现一家小店有一些品牌服装。卖家拿来一件不错的连帽衫让你试穿，并说它是著名品牌 ExpensiveButNotWorthIt。你仔细一看，得出结论，这显然是假的。卖家说：“等一下，我有真的。”然后他带着另一件连帽衫回来，看起来更像是品牌的，但依旧是假货。经过几轮这样的尝试后，卖家带来了一件无法分辨的传奇品牌 ExpensiveButNotWorthIt 的复制品，你便高兴地买下了它。这基本上就是生成对抗网络（GANs）的工作原理！
 
-在GANs的情况下，你被称为判别器（D）。判别器的目标是区分真实物体和虚假物体，或者解决二分类任务。卖家被称为生成器（G），因为他在尝试生成高质量的假货。判别器和生成器是独立训练的，目的是互相超越。因此，最终我们得到一个高质量的假货。
+在 GANs 的情况下，你被称为判别器（D）。判别器的目标是区分真实物体和虚假物体，或者解决二分类任务。卖家被称为生成器（G），因为他在尝试生成高质量的假货。判别器和生成器是独立训练的，目的是互相超越。因此，最终我们得到一个高质量的假货。
 
-![](../Images/dd222e2e675a330b6217b13ea4acc8d4.png)
+![](img/dd222e2e675a330b6217b13ea4acc8d4.png)
 
-GANs架构。[许可](https://paperswithcode.com/method/gan)。
+GANs 架构。[许可](https://paperswithcode.com/method/gan)。
 
 训练过程最初看起来是这样的：
 
@@ -181,13 +181,13 @@ GANs架构。[许可](https://paperswithcode.com/method/gan)。
 
 1.  更新 G 的权重。
 
-![](../Images/788502677c2e805ddd67f00aa1010601.png)
+![](img/788502677c2e805ddd67f00aa1010601.png)
 
 GANs 训练循环。来源：[1]。
 
 换句话说，我们可以定义一个值函数 V(G,D)：
 
-![](../Images/ba0147e691508a1cee54eda81aec27ca.png)
+![](img/ba0147e691508a1cee54eda81aec27ca.png)
 
 来源：[1]。
 
@@ -617,7 +617,7 @@ plt.show()
 # ax[1].set_axis_off()
 ```
 
-![](../Images/413ed7942d93aa8dfd0134cb587b28e8.png)
+![](img/413ed7942d93aa8dfd0134cb587b28e8.png)
 
 图片来源：[作者](https://medium.com/@alexroz)。
 
@@ -656,7 +656,7 @@ for X, y in subset_loader:
     break 
 ```
 
-![](../Images/a16b1e301ecc94fe2928a33cc3216350.png)
+![](img/a16b1e301ecc94fe2928a33cc3216350.png)
 
 图片来源：[作者](https://medium.com/@alexroz)。
 
@@ -668,21 +668,21 @@ for X, y in subset_loader:
 
 ***参考文献：***
 
-1\. Goodfellow, Ian, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville 和 Yoshua Bengio。“生成对抗网络。” *神经信息处理系统进展* 27（2014年）。[https://proceedings.neurips.cc/paper_files/paper/2014/file/5ca3e9b122f61f8f06494c97b1afccf3-Paper.pdf](https://proceedings.neurips.cc/paper_files/paper/2014/file/5ca3e9b122f61f8f06494c97b1afccf3-Paper.pdf)
+1\. Goodfellow, Ian, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville 和 Yoshua Bengio。“生成对抗网络。” *神经信息处理系统进展* 27（2014 年）。[`proceedings.neurips.cc/paper_files/paper/2014/file/5ca3e9b122f61f8f06494c97b1afccf3-Paper.pdf`](https://proceedings.neurips.cc/paper_files/paper/2014/file/5ca3e9b122f61f8f06494c97b1afccf3-Paper.pdf)
 
-2\. Helber, Patrick, Benjamin Bischke, Andreas Dengel 和 Damian Borth。“Eurosat：一个用于土地利用和土地覆盖分类的全新数据集和深度学习基准。” *IEEE应用地球观测与遥感精选主题期刊* 12卷，第7期（2019年）：2217–2226。[https://arxiv.org/pdf/1709.00029](https://arxiv.org/pdf/1709.00029)
+2\. Helber, Patrick, Benjamin Bischke, Andreas Dengel 和 Damian Borth。“Eurosat：一个用于土地利用和土地覆盖分类的全新数据集和深度学习基准。” *IEEE 应用地球观测与遥感精选主题期刊* 12 卷，第 7 期（2019 年）：2217–2226。[`arxiv.org/pdf/1709.00029`](https://arxiv.org/pdf/1709.00029)
 
-3\. Wen, Xue, Zongxu Pan, Yuxin Hu 和 Jiayin Liu。“基于YUV颜色空间的生成对抗学习用于卫星图像中的薄云去除。” *遥感* 13卷，第6期（2021年）：1079。[https://www.mdpi.com/2072-4292/13/6/1079](https://www.mdpi.com/2072-4292/13/6/1079)
+3\. Wen, Xue, Zongxu Pan, Yuxin Hu 和 Jiayin Liu。“基于 YUV 颜色空间的生成对抗学习用于卫星图像中的薄云去除。” *遥感* 13 卷，第 6 期（2021 年）：1079。[`www.mdpi.com/2072-4292/13/6/1079`](https://www.mdpi.com/2072-4292/13/6/1079)
 
-4\. Perlin, Ken。“图像合成器。” *ACM Siggraph计算机图形学* 19卷，第3期（1985年）：287–296。[https://dl.acm.org/doi/pdf/10.1145/325165.325247](https://dl.acm.org/doi/pdf/10.1145/325165.325247)
+4\. Perlin, Ken。“图像合成器。” *ACM Siggraph 计算机图形学* 19 卷，第 3 期（1985 年）：287–296。[`dl.acm.org/doi/pdf/10.1145/325165.325247`](https://dl.acm.org/doi/pdf/10.1145/325165.325247)
 
-5\. Ronneberger, Olaf, Philipp Fischer 和 Thomas Brox。“U-net：用于生物医学图像分割的卷积网络。” 见 *医学图像计算与计算机辅助干预–MICCAI 2015：第18届国际会议，德国慕尼黑，2015年10月5日至9日，会议录，第三部分 18*，第234–241页。施普林格国际出版公司，2015年。[https://arxiv.org/pdf/1505.04597](https://arxiv.org/pdf/1505.04597)
+5\. Ronneberger, Olaf, Philipp Fischer 和 Thomas Brox。“U-net：用于生物医学图像分割的卷积网络。” 见 *医学图像计算与计算机辅助干预–MICCAI 2015：第 18 届国际会议，德国慕尼黑，2015 年 10 月 5 日至 9 日，会议录，第三部分 18*，第 234–241 页。施普林格国际出版公司，2015 年。[`arxiv.org/pdf/1505.04597`](https://arxiv.org/pdf/1505.04597)
 
-6\. He, Kaiming 等人。“深度残差学习用于图像识别。” *IEEE计算机视觉与模式识别会议论文集*。2016。[https://openaccess.thecvf.com/content_cvpr_2016/papers/He_Deep_Residual_Learning_CVPR_2016_paper.pdf](https://openaccess.thecvf.com/content_cvpr_2016/papers/He_Deep_Residual_Learning_CVPR_2016_paper.pdf)
+6\. He, Kaiming 等人。“深度残差学习用于图像识别。” *IEEE 计算机视觉与模式识别会议论文集*。2016。[`openaccess.thecvf.com/content_cvpr_2016/papers/He_Deep_Residual_Learning_CVPR_2016_paper.pdf`](https://openaccess.thecvf.com/content_cvpr_2016/papers/He_Deep_Residual_Learning_CVPR_2016_paper.pdf)
 
 ===========================================
 
-***我在Medium上的所有出版物都是免费的并且开放访问的，因此如果你在这里关注我，我将非常感激！***
+***我在 Medium 上的所有出版物都是免费的并且开放访问的，因此如果你在这里关注我，我将非常感激！***
 
 P.s. 我对（地理）数据科学、机器学习/人工智能和气候变化充满热情。如果你想合作进行某些项目，请在[LinkedIn](https://www.linkedin.com/in/alexxxroz/)上联系我。
 

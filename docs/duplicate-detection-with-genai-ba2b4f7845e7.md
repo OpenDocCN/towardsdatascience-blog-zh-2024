@@ -1,24 +1,24 @@
-# 使用GenAI进行重复检测
+# 使用 GenAI 进行重复检测
 
-> 原文：[https://towardsdatascience.com/duplicate-detection-with-genai-ba2b4f7845e7?source=collection_archive---------1-----------------------#2024-07-01](https://towardsdatascience.com/duplicate-detection-with-genai-ba2b4f7845e7?source=collection_archive---------1-----------------------#2024-07-01)
+> 原文：[`towardsdatascience.com/duplicate-detection-with-genai-ba2b4f7845e7?source=collection_archive---------1-----------------------#2024-07-01`](https://towardsdatascience.com/duplicate-detection-with-genai-ba2b4f7845e7?source=collection_archive---------1-----------------------#2024-07-01)
 
-## 如何利用LLM和GenAI技术改进去重
+## 如何利用 LLM 和 GenAI 技术改进去重
 
-[](https://medium.com/@ianormy?source=post_page---byline--ba2b4f7845e7--------------------------------)[![Ian Ormesher](../Images/a5b25ae4b6242d91b9752bf9719bcb0a.png)](https://medium.com/@ianormy?source=post_page---byline--ba2b4f7845e7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ba2b4f7845e7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ba2b4f7845e7--------------------------------) [Ian Ormesher](https://medium.com/@ianormy?source=post_page---byline--ba2b4f7845e7--------------------------------)
+[](https://medium.com/@ianormy?source=post_page---byline--ba2b4f7845e7--------------------------------)![Ian Ormesher](https://medium.com/@ianormy?source=post_page---byline--ba2b4f7845e7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ba2b4f7845e7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ba2b4f7845e7--------------------------------) [Ian Ormesher](https://medium.com/@ianormy?source=post_page---byline--ba2b4f7845e7--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ba2b4f7845e7--------------------------------) ·阅读时间5分钟·2024年7月1日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ba2b4f7845e7--------------------------------) ·阅读时间 5 分钟·2024 年 7 月 1 日
 
 --
 
-![](../Images/6d3ebdec98b1edebbfc275bcd00775e1.png)
+![](img/6d3ebdec98b1edebbfc275bcd00775e1.png)
 
-2D UMAP Musicbrainz 200K最近邻图
+2D UMAP Musicbrainz 200K 最近邻图
 
-客户数据通常作为记录存储在客户关系管理系统（CRM）中。数据由一个或多个用户随着时间的推移手动输入到这些系统中，导致数据复制、部分重复或模糊重复。这意味着对于客户、联系人、账户等，已经不再有一个单一的真实数据来源。没有唯一的CRM记录与目标客户之间的映射，下游的业务流程会变得越来越复杂和难以操作。目前用于检测和去重记录的方法使用的是传统的自然语言处理技术，称为实体匹配（Entity Matching）。但可以利用大型语言模型（LLM）和生成式AI的最新进展，显著改善重复记录的识别和修复。在常见的基准数据集上，我发现我的方法使数据去重准确率从传统NLP技术的30%提升到接近60%。
+客户数据通常作为记录存储在客户关系管理系统（CRM）中。数据由一个或多个用户随着时间的推移手动输入到这些系统中，导致数据复制、部分重复或模糊重复。这意味着对于客户、联系人、账户等，已经不再有一个单一的真实数据来源。没有唯一的 CRM 记录与目标客户之间的映射，下游的业务流程会变得越来越复杂和难以操作。目前用于检测和去重记录的方法使用的是传统的自然语言处理技术，称为实体匹配（Entity Matching）。但可以利用大型语言模型（LLM）和生成式 AI 的最新进展，显著改善重复记录的识别和修复。在常见的基准数据集上，我发现我的方法使数据去重准确率从传统 NLP 技术的 30%提升到接近 60%。
 
-我希望在这里解释这一技术，期望其他人能发现它的帮助并用它来解决他们自己的去重需求。它对其他场景也很有用，比如你希望识别重复记录，而不仅仅是客户数据。我还撰写并发布了一篇关于这个话题的研究论文，如果你想深入了解，可以在Arxiv上查看：
+我希望在这里解释这一技术，期望其他人能发现它的帮助并用它来解决他们自己的去重需求。它对其他场景也很有用，比如你希望识别重复记录，而不仅仅是客户数据。我还撰写并发布了一篇关于这个话题的研究论文，如果你想深入了解，可以在 Arxiv 上查看：
 
-[](https://arxiv.org/abs/2406.15483?source=post_page-----ba2b4f7845e7--------------------------------) [## 使用GenAI进行重复检测
+[](https://arxiv.org/abs/2406.15483?source=post_page-----ba2b4f7845e7--------------------------------) [## 使用 GenAI 进行重复检测
 
 ### 客户数据通常作为记录存储在客户关系管理系统（CRM）中。通过手动输入的数据…
 
@@ -40,11 +40,11 @@
 
 ## 数据准备
 
-数据准备是对数据进行清理，包括去除非ASCII字符、大小写转换和分词等。这是一个重要且必要的步骤，为后续的NLP匹配算法提供支持，因为这些算法处理不同的大小写或非ASCII字符时效果不好。
+数据准备是对数据进行清理，包括去除非 ASCII 字符、大小写转换和分词等。这是一个重要且必要的步骤，为后续的 NLP 匹配算法提供支持，因为这些算法处理不同的大小写或非 ASCII 字符时效果不好。
 
 ## 候选生成
 
-在常规的EM方法中，我们会通过将表中的所有记录与自身结合，产生一个笛卡尔积。然后会去除所有与自身的组合。对于许多NLP匹配算法来说，将行A与行B进行比较等同于将行B与行A进行比较。在这种情况下，可以只保留其中一对。但是，即便如此，仍然会剩下很多候选记录。为了减少这个数量，通常会使用一种叫做“阻塞”的技术。
+在常规的 EM 方法中，我们会通过将表中的所有记录与自身结合，产生一个笛卡尔积。然后会去除所有与自身的组合。对于许多 NLP 匹配算法来说，将行 A 与行 B 进行比较等同于将行 B 与行 A 进行比较。在这种情况下，可以只保留其中一对。但是，即便如此，仍然会剩下很多候选记录。为了减少这个数量，通常会使用一种叫做“阻塞”的技术。
 
 ## 阻塞
 
@@ -52,7 +52,7 @@
 
 ## 匹配
 
-在阻塞之后，我们现在检查所有候选记录，并使用来自两行的字段计算传统的基于相似性的NLP属性值度量。利用这些度量，我们可以确定是否存在潜在的匹配或不匹配。
+在阻塞之后，我们现在检查所有候选记录，并使用来自两行的字段计算传统的基于相似性的 NLP 属性值度量。利用这些度量，我们可以确定是否存在潜在的匹配或不匹配。
 
 ## 聚类
 
@@ -72,7 +72,7 @@
 
 首先，通过将我们感兴趣的属性连接起来，并用空格分隔它们，创建一个“匹配句子”。举个例子，假设我们有一个客户记录，格式如下：
 
-我们将通过将name1、name2、name3、地址和城市属性用空格连接来创建一个“匹配句子”，得到如下内容：
+我们将通过将 name1、name2、name3、地址和城市属性用空格连接来创建一个“匹配句子”，得到如下内容：
 
 > “John Hartley Smith 20 Main Street London”
 
@@ -98,7 +98,7 @@
 
 我为 Musicbrainz 200K 数据集生成了最近邻簇图，并使用 UMAP 降维算法将其渲染为 2D 图：
 
-![](../Images/6d3ebdec98b1edebbfc275bcd00775e1.png)
+![](img/6d3ebdec98b1edebbfc275bcd00775e1.png)
 
 2D UMAP Musicbrainz 200K 最近邻图
 
@@ -114,14 +114,14 @@
 
 1.  GenAI 重复检测论文: [[2406.15483] Duplicate Detection with GenAI](https://arxiv.org/abs/2406.15483)
 
-1.  GitHub 资源: [https://github.com/ianormy/genai_duplicate_detection_paper](https://github.com/ianormy/genai_duplicate_detection_paper)
+1.  GitHub 资源: [`github.com/ianormy/genai_duplicate_detection_paper`](https://github.com/ianormy/genai_duplicate_detection_paper)
 
-1.  all-mpnet-base-v2 嵌入模型: [https://huggingface.co/sentence-transformers/all-mpnet-base-v2/](https://huggingface.co/sentence-transformers/all-mpnet-base-v2/)
+1.  all-mpnet-base-v2 嵌入模型: [`huggingface.co/sentence-transformers/all-mpnet-base-v2/`](https://huggingface.co/sentence-transformers/all-mpnet-base-v2/)
 
-1.  句子转换器：[https://huggingface.co/sentence-transformers/](https://huggingface.co/sentence-transformers/)
+1.  句子转换器：[`huggingface.co/sentence-transformers/`](https://huggingface.co/sentence-transformers/)
 
-1.  UMAP Python 包：[https://pypi.org/project/umap-learn/](https://pypi.org/project/umap-learn/)
+1.  UMAP Python 包：[`pypi.org/project/umap-learn/`](https://pypi.org/project/umap-learn/)
 
-1.  实体解析基准数据集：[https://dbs.uni-leipzig.de/research/projects/benchmark-datasets-for-entity-resolution/](https://dbs.uni-leipzig.de/research/projects/benchmark-datasets-for-entity-resolution/)
+1.  实体解析基准数据集：[`dbs.uni-leipzig.de/research/projects/benchmark-datasets-for-entity-resolution/`](https://dbs.uni-leipzig.de/research/projects/benchmark-datasets-for-entity-resolution/)
 
-1.  Musicbrainz 200K 数据集：[https://dbs.uni-leipzig.de/files/datasets/saeedi/musicbrainz-200-A01.csv.dapo](https://dbs.uni-leipzig.de/files/datasets/saeedi/musicbrainz-200-A01.csv.dapo)
+1.  Musicbrainz 200K 数据集：[`dbs.uni-leipzig.de/files/datasets/saeedi/musicbrainz-200-A01.csv.dapo`](https://dbs.uni-leipzig.de/files/datasets/saeedi/musicbrainz-200-A01.csv.dapo)

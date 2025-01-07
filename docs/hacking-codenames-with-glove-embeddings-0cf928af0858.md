@@ -1,12 +1,12 @@
-# 使用GloVe嵌入破解《代号》
+# 使用 GloVe 嵌入破解《代号》
 
-> 原文：[https://towardsdatascience.com/hacking-codenames-with-glove-embeddings-0cf928af0858?source=collection_archive---------7-----------------------#2024-07-16](https://towardsdatascience.com/hacking-codenames-with-glove-embeddings-0cf928af0858?source=collection_archive---------7-----------------------#2024-07-16)
+> 原文：[`towardsdatascience.com/hacking-codenames-with-glove-embeddings-0cf928af0858?source=collection_archive---------7-----------------------#2024-07-16`](https://towardsdatascience.com/hacking-codenames-with-glove-embeddings-0cf928af0858?source=collection_archive---------7-----------------------#2024-07-16)
 
-## 使用基于GloVe嵌入的算法，在流行派对游戏《代号》中实现100%的准确性。
+## 使用基于 GloVe 嵌入的算法，在流行派对游戏《代号》中实现 100%的准确性。
 
-[](https://jiangzh.medium.com/?source=post_page---byline--0cf928af0858--------------------------------)[![Zhiheng Jiang](../Images/a83400a64f7ec5f1d579c6fba6da05b9.png)](https://jiangzh.medium.com/?source=post_page---byline--0cf928af0858--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0cf928af0858--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0cf928af0858--------------------------------) [Zhiheng Jiang](https://jiangzh.medium.com/?source=post_page---byline--0cf928af0858--------------------------------)
+[](https://jiangzh.medium.com/?source=post_page---byline--0cf928af0858--------------------------------)![Zhiheng Jiang](https://jiangzh.medium.com/?source=post_page---byline--0cf928af0858--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0cf928af0858--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0cf928af0858--------------------------------) [Zhiheng Jiang](https://jiangzh.medium.com/?source=post_page---byline--0cf928af0858--------------------------------)
 
-·发表于[数据科学之路](https://towardsdatascience.com/?source=post_page---byline--0cf928af0858--------------------------------)·阅读时间7分钟·2024年7月16日
+·发表于[数据科学之路](https://towardsdatascience.com/?source=post_page---byline--0cf928af0858--------------------------------)·阅读时间 7 分钟·2024 年 7 月 16 日
 
 --
 
@@ -18,11 +18,11 @@
 
 以下是游戏板的示例：
 
-![](../Images/ef91552569e8509704b3ca7648c0890c.png)
+![](img/ef91552569e8509704b3ca7648c0890c.png)
 
 间谍主人视图（图片来源：作者）
 
-![](../Images/b4f8e55702cf738cf5afb1d412926980.png)
+![](img/b4f8e55702cf738cf5afb1d412926980.png)
 
 操作员视图（图片来源：作者）
 
@@ -30,15 +30,15 @@
 
 # 自动化间谍主人和操作员
 
-我们将创建一个[算法](https://github.com/jzh001/codenames)，它可以扮演间谍主人和操作员的角色，自动进行游戏。在一个包含25张卡片的游戏板上，会有9张“好”卡和16张“坏”卡（其中包括1张“刺客”卡）。
+我们将创建一个[算法](https://github.com/jzh001/codenames)，它可以扮演间谍主人和操作员的角色，自动进行游戏。在一个包含 25 张卡片的游戏板上，会有 9 张“好”卡和 16 张“坏”卡（其中包括 1 张“刺客”卡）。
 
-## 使用GloVe嵌入表示意义
+## 使用 GloVe 嵌入表示意义
 
 为了使间谍头目能够给操作员提供好的线索，我们的模型需要能够理解每个词的含义。表示词义的一种流行方法是通过词嵌入。在这个任务中，我们将使用预训练的 [GloVe 嵌入](https://nlp.stanford.edu/projects/glove/)，其中每个词由一个 100 维的向量表示。
 
 然后，我们使用余弦相似度来计算两个词之间的相似性，余弦相似度是两个向量的点积除以它们的模长：
 
-![](../Images/cdac39603dd26713dca9dfbdad647b5c.png)
+![](img/cdac39603dd26713dca9dfbdad647b5c.png)
 
 图片来源：作者
 
@@ -54,7 +54,7 @@
 
 在这一点上，我们可以观察到线索 *c* 是一个信息瓶颈，因为它必须将 *n* 个词总结为一个单一的词 *c* 供操作员解码。编码后的线索的词向量与每个原始词向量位于同一个向量空间中。
 
-![](../Images/4fcc5c4d51b44ad6289128c84d3ca814.png)
+![](img/4fcc5c4d51b44ad6289128c84d3ca814.png)
 
 编码器-解码器系统的机制（图片来源：作者）
 
@@ -83,15 +83,15 @@ candidates = glove.most_similar(positive=good_words,negative=bad_words,topn=20)
 
 接下来，我们从剩余的 *k* 个“*好*”单词中，按照 *k, k*-1, …, 1 的顺序生成所有可能的单词组合，并为每个组合生成相应的线索词候选 *c*，从 *k* 开始向回推。为了选择最佳的 *{c, n}*，我们通过解码算法对剩余的“好”单词的每个可能组合中的所有候选进行评分。然后，我们通过知道操作员将使用的策略，获得给定线索 *c* 时正确猜出的最大单词数量 count(c)。
 
-![](../Images/0cd6af4e7a2d8b9295a2106e24ca4ea8.png)
+![](img/0cd6af4e7a2d8b9295a2106e24ca4ea8.png)
 
 图片由作者提供
 
 # 结果
 
-在每局游戏中，从 [一份包含400个常见Codenames单词的列表](https://github.com/Gullesnuffs/Codenames/blob/master/wordlist-eng.txt) 中抽取25个单词。总体而言，经过100次实验，我们的方法能够100%正确选择单词，在平均1.98回合内完成游戏，或者每回合4.55次猜测（对于9个正确单词），最多需要2回合。
+在每局游戏中，从 [一份包含 400 个常见 Codenames 单词的列表](https://github.com/Gullesnuffs/Codenames/blob/master/wordlist-eng.txt) 中抽取 25 个单词。总体而言，经过 100 次实验，我们的方法能够 100%正确选择单词，在平均 1.98 回合内完成游戏，或者每回合 4.55 次猜测（对于 9 个正确单词），最多需要 2 回合。
 
-![](../Images/676819238b000e10030980d1d45ef3de.png)
+![](img/676819238b000e10030980d1d45ef3de.png)
 
 游戏进行时每回合的平均猜测次数（图片由作者提供）
 
@@ -99,9 +99,9 @@ candidates = glove.most_similar(positive=good_words,negative=bad_words,topn=20)
 
 让我们查看一下我们所做的线索和猜测的词嵌入分布示例。
 
-![](../Images/a2aae26b63061bcc794fd17b6a7421e1.png)
+![](img/a2aae26b63061bcc794fd17b6a7421e1.png)
 
-1局游戏的词嵌入散点图，经过PCA降维（图片由作者提供）
+1 局游戏的词嵌入散点图，经过 PCA 降维（图片由作者提供）
 
 尽管生成的线索确实在某种程度上提供了操作员最终正确猜出的单词的语义摘要，但这些线索与猜测之间的关系从人类的角度来看可能并不明显。使线索更易于解释的一种方法是限制每回合最大猜测次数，这样可以生成更接近猜测语义的线索。
 
@@ -109,22 +109,22 @@ candidates = glove.most_similar(positive=good_words,negative=bad_words,topn=20)
 
 # 结论
 
-总结来说，这种基于贪婪的 GloVe 算法在Codenames游戏中作为间谍首领和操作员都表现得很好，它提供了一种有效的方式通过线索和数字来编码和解码单词。
+总结来说，这种基于贪婪的 GloVe 算法在 Codenames 游戏中作为间谍首领和操作员都表现得很好，它提供了一种有效的方式通过线索和数字来编码和解码单词。
 
 在我们的模型中，编码器和解码器共享一个共同的策略，这个策略的工作原理与共享加密密钥类似。一个可能的限制是，编码器和解码器分开使用时效果不佳，因为人类玩家可能无法有效地解读生成的线索。
 
 理解词嵌入和向量操作背后的机制是开始自然语言处理的一个极好方式。看到简单的方法也能在语义聚类和分类任务中表现出色，确实很有趣。为了进一步提升游戏体验，可以考虑加入强化学习元素或训练自编码器以获得更好的结果。
 
-Github 仓库: [https://github.com/jzh001/codenames](https://github.com/jzh001/codenames)
+Github 仓库: [`github.com/jzh001/codenames`](https://github.com/jzh001/codenames)
 
 # 参考文献
 
-1.  Koyyalagunta, D., Sun, A., Draelos, R. L., & Rudin, C. (2021). 使用语言图和词嵌入玩 Codenames。*人工智能研究期刊*，*71*，319–346\. [https://doi.org/10.1613/jair.1.12665](https://doi.org/10.1613/jair.1.12665)
+1.  Koyyalagunta, D., Sun, A., Draelos, R. L., & Rudin, C. (2021). 使用语言图和词嵌入玩 Codenames。*人工智能研究期刊*，*71*，319–346\. [`doi.org/10.1613/jair.1.12665`](https://doi.org/10.1613/jair.1.12665)
 
-1.  Pennington, J., Socher, R., & Manning, C. (2014). Glove：用于词表示的全局向量。*2014年自然语言处理经验方法会议（EMNLP）论文集*。 [https://doi.org/10.3115/v1/d14-1162](https://doi.org/10.3115/v1/d14-1162)
+1.  Pennington, J., Socher, R., & Manning, C. (2014). Glove：用于词表示的全局向量。*2014 年自然语言处理经验方法会议（EMNLP）论文集*。 [`doi.org/10.3115/v1/d14-1162`](https://doi.org/10.3115/v1/d14-1162)
 
-1.  Li, Y., Yan, X., & Shaw, C. (2022). Codenames AI [https://xueweiyan.github.io/codenames-ai-website/](https://xueweiyan.github.io/codenames-ai-website/)
+1.  Li, Y., Yan, X., & Shaw, C. (2022). Codenames AI [`xueweiyan.github.io/codenames-ai-website/`](https://xueweiyan.github.io/codenames-ai-website/)
 
-1.  Friedman, D., & Panigrahi, A. (2021). Codenames 算法 [https://www.cs.princeton.edu/~smattw/Teaching/521FA21/FinalProjectReports/FriedmanPanigrahi.pdf](https://www.cs.princeton.edu/~smattw/Teaching/521FA21/FinalProjectReports/FriedmanPanigrahi.pdf)
+1.  Friedman, D., & Panigrahi, A. (2021). Codenames 算法 [`www.cs.princeton.edu/~smattw/Teaching/521FA21/FinalProjectReports/FriedmanPanigrahi.pdf`](https://www.cs.princeton.edu/~smattw/Teaching/521FA21/FinalProjectReports/FriedmanPanigrahi.pdf)
 
-1.  Jaramillo, C., Charity, M., Canaan, R., & Togelius, J. (2020). 词自机器人：使用变换器进行 Codenames 游戏中的词关联。*人工智能与互动数字娱乐会议论文集*，*16*(1)，231–237\. [https://doi.org/10.1609/aiide.v16i1.7435](https://doi.org/10.1609/aiide.v16i1.7435)
+1.  Jaramillo, C., Charity, M., Canaan, R., & Togelius, J. (2020). 词自机器人：使用变换器进行 Codenames 游戏中的词关联。*人工智能与互动数字娱乐会议论文集*，*16*(1)，231–237\. [`doi.org/10.1609/aiide.v16i1.7435`](https://doi.org/10.1609/aiide.v16i1.7435)

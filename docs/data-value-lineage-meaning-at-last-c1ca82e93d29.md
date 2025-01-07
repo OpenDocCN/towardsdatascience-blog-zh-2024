@@ -1,16 +1,16 @@
 # 数据价值血统，终于有了意义？
 
-> 原文：[https://towardsdatascience.com/data-value-lineage-meaning-at-last-c1ca82e93d29?source=collection_archive---------2-----------------------#2024-08-04](https://towardsdatascience.com/data-value-lineage-meaning-at-last-c1ca82e93d29?source=collection_archive---------2-----------------------#2024-08-04)
+> 原文：[`towardsdatascience.com/data-value-lineage-meaning-at-last-c1ca82e93d29?source=collection_archive---------2-----------------------#2024-08-04`](https://towardsdatascience.com/data-value-lineage-meaning-at-last-c1ca82e93d29?source=collection_archive---------2-----------------------#2024-08-04)
 
 ## 最大化你数据的商业价值
 
-[](https://medium.com/@marcdelbaere?source=post_page---byline--c1ca82e93d29--------------------------------)[![Marc Delbaere](../Images/6986bf11d190fffaa73e862a942e38fc.png)](https://medium.com/@marcdelbaere?source=post_page---byline--c1ca82e93d29--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c1ca82e93d29--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c1ca82e93d29--------------------------------) [Marc Delbaere](https://medium.com/@marcdelbaere?source=post_page---byline--c1ca82e93d29--------------------------------)
+[](https://medium.com/@marcdelbaere?source=post_page---byline--c1ca82e93d29--------------------------------)![Marc Delbaere](https://medium.com/@marcdelbaere?source=post_page---byline--c1ca82e93d29--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c1ca82e93d29--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c1ca82e93d29--------------------------------) [Marc Delbaere](https://medium.com/@marcdelbaere?source=post_page---byline--c1ca82e93d29--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c1ca82e93d29--------------------------------) ·8分钟阅读·2024年8月4日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c1ca82e93d29--------------------------------) ·8 分钟阅读·2024 年 8 月 4 日
 
 --
 
-![](../Images/26c07c56f6168ebac0407363afd85a5b.png)
+![](img/26c07c56f6168ebac0407363afd85a5b.png)
 
 图片由作者提供（其中一些我已经读过！）
 
@@ -116,17 +116,17 @@
 
 数据价值血统的第一个实际层面是定义这三个层级之间的关系。
 
-![](../Images/18b9cc4e2bdf1334ef0720194a5b9134.png)
+![](img/18b9cc4e2bdf1334ef0720194a5b9134.png)
 
-连接点 — 由Gilles Lenoble为Kindata.io创作的图片
+连接点 — 由 Gilles Lenoble 为 Kindata.io 创作的图片
 
 让我们举一个非常简单的例子：
 
 你希望通过数据驱动的方法优化能源消耗。商业用例（降低能源成本）从两个数据产品（公司能源消耗和公用事业账单及费用）中获取数据。它为两个商业驱动因素做出贡献：成本降低和可持续性。
 
-![](../Images/b69db36ecff194edcdbac116b7abff1f.png)
+![](img/b69db36ecff194edcdbac116b7abff1f.png)
 
-一个数据价值血统的例子 — 作者通过Kindata.io的截图制作
+一个数据价值血统的例子 — 作者通过 Kindata.io 的截图制作
 
 数据产品、商业用例和价值驱动因素之间的箭头是数据价值血统的骨干。它们将三个基本问题连接起来。你会注意到这些箭头是双向的：
 

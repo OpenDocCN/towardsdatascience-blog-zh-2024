@@ -1,12 +1,12 @@
 # 深度学习中的非线性全新视角
 
-> 原文：[https://towardsdatascience.com/a-fresh-look-at-nonlinearity-in-deep-learning-a79b6955d2ad?source=collection_archive---------1-----------------------#2024-08-15](https://towardsdatascience.com/a-fresh-look-at-nonlinearity-in-deep-learning-a79b6955d2ad?source=collection_archive---------1-----------------------#2024-08-15)
+> 原文：[`towardsdatascience.com/a-fresh-look-at-nonlinearity-in-deep-learning-a79b6955d2ad?source=collection_archive---------1-----------------------#2024-08-15`](https://towardsdatascience.com/a-fresh-look-at-nonlinearity-in-deep-learning-a79b6955d2ad?source=collection_archive---------1-----------------------#2024-08-15)
 
 ## 我们需要非线性激活函数的传统理由只是这个故事的一个维度。
 
-[](https://medium.com/@crackalamoo?source=post_page---byline--a79b6955d2ad--------------------------------)[![Harys Dalvi](../Images/cf7fa3865063408efd1fd4c0b4b603db.png)](https://medium.com/@crackalamoo?source=post_page---byline--a79b6955d2ad--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a79b6955d2ad--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a79b6955d2ad--------------------------------) [Harys Dalvi](https://medium.com/@crackalamoo?source=post_page---byline--a79b6955d2ad--------------------------------)
+[](https://medium.com/@crackalamoo?source=post_page---byline--a79b6955d2ad--------------------------------)![Harys Dalvi](https://medium.com/@crackalamoo?source=post_page---byline--a79b6955d2ad--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a79b6955d2ad--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a79b6955d2ad--------------------------------) [Harys Dalvi](https://medium.com/@crackalamoo?source=post_page---byline--a79b6955d2ad--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a79b6955d2ad--------------------------------) ·阅读时间8分钟·2024年8月15日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a79b6955d2ad--------------------------------) ·阅读时间 8 分钟·2024 年 8 月 15 日
 
 --
 
@@ -26,7 +26,7 @@ softmax、ReLU、sigmoid 和 tanh 函数有什么共同点？它们都是**激�
 
 让我们通过一个例子来重新审视传统的非线性激活函数的理由。我们将看一个简单的案例：**XOR**。
 
-![](../Images/f0424716ac2c88fc1fc19f5e79acdea2.png)
+![](img/f0424716ac2c88fc1fc19f5e79acdea2.png)
 
 一个带有彩色真实值的 XOR 函数图。背景颜色代表线性回归的预测值。图片由作者提供。
 
@@ -34,13 +34,13 @@ softmax、ReLU、sigmoid 和 tanh 函数有什么共同点？它们都是**激�
 
 现在，我将训练一个非常基础的深度学习模型，使用 MSE 损失函数。只有**一个具有两个神经元的线性层**，接着是 **ReLU** 激活函数，最后是输出神经元。为了简化起见，我只使用权重，不使用偏置。
 
-![](../Images/0bb7b0034adfc776cefb578791227eae.png)
+![](img/0bb7b0034adfc776cefb578791227eae.png)
 
 我们基本神经网络的示意图。由作者使用 [draw.io](https://draw.io) 制作。
 
 现在会发生什么？
 
-![](../Images/310f6466f2f98cb2e64bccc17299aaaa.png)
+![](img/310f6466f2f98cb2e64bccc17299aaaa.png)
 
 另一个 XOR 函数的图，这次是用一个简单的深度学习模型的预测结果绘制的。图片由作者提供。
 
@@ -57,11 +57,11 @@ Layer 2 weight: [[0.8707, 0.9815]]
 
 所以对于两个输入 *x* 和 *y*，我们的输出是：
 
-![](../Images/4cab0448d796f359f93fa820b785f7ec.png)
+![](img/4cab0448d796f359f93fa820b785f7ec.png)
 
 这真的很像
 
-![](../Images/333873bfa4a427577ae863213d520414.png)
+![](img/333873bfa4a427577ae863213d520414.png)
 
 你可以验证，这是对于输入 *x* 和 *y* 在 {0, 1} 中的 XOR 函数。
 
@@ -73,27 +73,27 @@ Layer 2 weight: [[0.8707, 0.9815]]
 
 什么是归纳偏差？面对任何问题，都有许多解决方法。本质上，归纳偏差是模型架构中内建的一种特性，使得模型倾向于选择某种特定的方法来解决问题，而不是其他方法。
 
-在这个深度学习模型中，我们的最终层是一个简单的线性层。这意味着，除非模型在最终层之前的输出能够通过线性回归求解，否则模型完全无法工作。换句话说，**输出前的最后一个隐藏状态必须是线性可分的，模型才能正常工作。**这种归纳偏差是我们模型架构的特性，而不是XOR函数的特性。
+在这个深度学习模型中，我们的最终层是一个简单的线性层。这意味着，除非模型在最终层之前的输出能够通过线性回归求解，否则模型完全无法工作。换句话说，**输出前的最后一个隐藏状态必须是线性可分的，模型才能正常工作。**这种归纳偏差是我们模型架构的特性，而不是 XOR 函数的特性。
 
 幸运的是，在这个模型中，我们的隐藏状态只有两个神经元。因此，我们可以在二维空间中进行可视化。它看起来是什么样子？
 
-![](../Images/76f551b445afda3a4c213c30b7058d14.png)
+![](img/76f551b445afda3a4c213c30b7058d14.png)
 
-XOR函数的输入表示通过深度学习转化为隐藏表示（经过一层线性层和ReLU激活）。背景颜色表示线性回归模型的预测。图片来源：作者。
+XOR 函数的输入表示通过深度学习转化为隐藏表示（经过一层线性层和 ReLU 激活）。背景颜色表示线性回归模型的预测。图片来源：作者。
 
-如我们之前所见，单独的线性回归模型对XOR输入并不有效。但是，一旦我们将输入通过神经网络的第一层和ReLU激活函数，输出类别就可以被**一条线**整齐地*分开*（**线性可分**）。这意味着线性回归现在可以起作用，实际上我们最终的层只是在执行这种线性回归。
+如我们之前所见，单独的线性回归模型对 XOR 输入并不有效。但是，一旦我们将输入通过神经网络的第一层和 ReLU 激活函数，输出类别就可以被**一条线**整齐地*分开*（**线性可分**）。这意味着线性回归现在可以起作用，实际上我们最终的层只是在执行这种线性回归。
 
 那么，这告诉我们关于归纳偏差什么信息呢？由于我们最后一层是一个线性层，因此该层之前的表示**必须**至少大致是线性可分的。否则，作为线性回归功能的最后一层将会失败。
 
 # 线性分类器探针
 
-对于XOR模型，这看起来可能只是我们之前看到的传统观点的一个微不足道的扩展。但是，如何处理更复杂的模型呢？随着模型的加深，我们可以通过这种方式观察非线性，从而获得更多的洞察。[这篇论文](https://arxiv.org/pdf/1610.01644)由Guillaume Alain和Yoshua Bengio撰写，探讨了这个思想，并使用**线性分类器探针**进行研究。[1]
+对于 XOR 模型，这看起来可能只是我们之前看到的传统观点的一个微不足道的扩展。但是，如何处理更复杂的模型呢？随着模型的加深，我们可以通过这种方式观察非线性，从而获得更多的洞察。[这篇论文](https://arxiv.org/pdf/1610.01644)由 Guillaume Alain 和 Yoshua Bengio 撰写，探讨了这个思想，并使用**线性分类器探针**进行研究。[1]
 
-![](../Images/5d4de7a0a208ab7263c4051305bd8758.png)
+![](img/5d4de7a0a208ab7263c4051305bd8758.png)
 
-“左侧的十六进制转储包含的信息内容比右侧的图像多。只有其中之一可以被人脑处理，以便及时挽救他们的生命。计算的便利性很重要。不仅仅是熵。” 图示和说明来自Alain & Bengio, 2018（[链接](https://arxiv.org/pdf/1610.01644)）。[1]
+“左侧的十六进制转储包含的信息内容比右侧的图像多。只有其中之一可以被人脑处理，以便及时挽救他们的生命。计算的便利性很重要。不仅仅是熵。” 图示和说明来自 Alain & Bengio, 2018（[链接](https://arxiv.org/pdf/1610.01644)）。[1]
 
-对于像MNIST手写数字这样的许多情况，做出预测所需的所有信息已经存在于输入中：只是需要处理这些信息。Alain和Bengio观察到，随着模型的加深，我们实际上在每一层的可用信息**减少**，而不是增加。但好处是，在每一层，已有的信息变得“更容易使用”。我们所指的是，每一层之后，信息变得越来越**线性可分**。
+对于像 MNIST 手写数字这样的许多情况，做出预测所需的所有信息已经存在于输入中：只是需要处理这些信息。Alain 和 Bengio 观察到，随着模型的加深，我们实际上在每一层的可用信息**减少**，而不是增加。但好处是，在每一层，已有的信息变得“更容易使用”。我们所指的是，每一层之后，信息变得越来越**线性可分**。
 
 我们如何找出每一层之后模型的表示有多线性可分？Alain 和 Bengio 建议使用他们所称的**线性分类器探针**。其想法是在每一层之后，我们训练一个**线性回归模型，使用该层的隐状态作为输入来预测最终输出**。
 
@@ -115,7 +115,7 @@ Alain 和 Bengio 将这一方法应用于一个在 MNIST 手写数字数据集�
 
 希望这个新的非线性思维模型对你有所帮助，并且你现在能够为黑箱深度神经网络带来更多的启示！
 
-![](../Images/cfef086479d2ed4ae94c1923d8bc86c2.png)
+![](img/cfef086479d2ed4ae94c1923d8bc86c2.png)
 
 图片来源：[Nashad Abdu](https://unsplash.com/@nashadabdu?utm_source=medium&utm_medium=referral) via [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,16 +1,16 @@
 # XPER：揭示预测性能的驱动因素
 
-> 原文：[https://towardsdatascience.com/xper-unveiling-the-driving-forces-of-predictive-performance-309ce4f10b0a?source=collection_archive---------12-----------------------#2024-09-10](https://towardsdatascience.com/xper-unveiling-the-driving-forces-of-predictive-performance-309ce4f10b0a?source=collection_archive---------12-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/xper-unveiling-the-driving-forces-of-predictive-performance-309ce4f10b0a?source=collection_archive---------12-----------------------#2024-09-10`](https://towardsdatascience.com/xper-unveiling-the-driving-forces-of-predictive-performance-309ce4f10b0a?source=collection_archive---------12-----------------------#2024-09-10)
 
 ## 一种分解您喜爱性能指标的新方法
 
-[](https://medium.com/@seb.saurin?source=post_page---byline--309ce4f10b0a--------------------------------)[![Sébastien Saurin](../Images/18c4fac70a326896f095a44e8f48b929.png)](https://medium.com/@seb.saurin?source=post_page---byline--309ce4f10b0a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--309ce4f10b0a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--309ce4f10b0a--------------------------------) [Sébastien Saurin](https://medium.com/@seb.saurin?source=post_page---byline--309ce4f10b0a--------------------------------)
+[](https://medium.com/@seb.saurin?source=post_page---byline--309ce4f10b0a--------------------------------)![Sébastien Saurin](https://medium.com/@seb.saurin?source=post_page---byline--309ce4f10b0a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--309ce4f10b0a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--309ce4f10b0a--------------------------------) [Sébastien Saurin](https://medium.com/@seb.saurin?source=post_page---byline--309ce4f10b0a--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--309ce4f10b0a--------------------------------) ·9分钟阅读·2024年9月10日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--309ce4f10b0a--------------------------------) ·9 分钟阅读·2024 年 9 月 10 日
 
 --
 
-![](../Images/4f1d2a607b94cdbf45159deedd2d0f0e.png)
+![](img/4f1d2a607b94cdbf45159deedd2d0f0e.png)
 
 图片由[Sira Anamwong](https://www.123rf.com/profile_siraanamwong)提供，来源于[123RF](https://www.123rf.com/)
 
@@ -22,17 +22,17 @@
 
 除了单一预测外，本文展示了如何使用可解释性能（XPER）方法识别任何分类或回归模型的性能指标（例如 AUC、R2）的驱动因素。能够识别预测模型统计或经济性能的驱动因素是建模的核心，对于数据科学家以及根据这些模型做决策的专家来说都具有重要意义。下文所述的 XPER 库已被证明是一个高效的工具，可以将性能指标分解为各个特征的贡献。
 
-虽然XPER和SHAP都基于相同的数学原理，但它们在本质上是不同的，目标也各不相同。SHAP重点识别显著影响模型单个预测的特征，而XPER则识别对模型性能贡献最大的特征。后者的分析可以在全局（模型）层面或局部（实例）层面进行。实际上，单个预测中影响最大的特征（例如特征A）可能不是对性能影响最大的特征。实际上，当模型做出正确预测时，特征A会驱动单个决策，但当模型发生错误时也会如此。从概念上讲，如果特征A主要影响错误预测，那么在XPER中的排名可能低于在SHAP中的排名。
+虽然 XPER 和 SHAP 都基于相同的数学原理，但它们在本质上是不同的，目标也各不相同。SHAP 重点识别显著影响模型单个预测的特征，而 XPER 则识别对模型性能贡献最大的特征。后者的分析可以在全局（模型）层面或局部（实例）层面进行。实际上，单个预测中影响最大的特征（例如特征 A）可能不是对性能影响最大的特征。实际上，当模型做出正确预测时，特征 A 会驱动单个决策，但当模型发生错误时也会如此。从概念上讲，如果特征 A 主要影响错误预测，那么在 XPER 中的排名可能低于在 SHAP 中的排名。
 
-性能分解用于什么？首先，它可以通过提供更全面的模型内部工作原理洞察来增强任何后期可解释性分析。这使得我们能更深入地理解模型为何有效或无效。其次，XPER可以帮助识别并解决异质性问题。通过分析单个XPER值，能够找出特征对性能有相似影响的子样本。然后，可以为每个子样本估算一个单独的模型，以提升预测性能。第三，XPER有助于理解过拟合的来源。实际上，XPER允许我们识别在训练样本中对模型性能贡献更大的特征，而这些特征在测试样本中贡献较小。
+性能分解用于什么？首先，它可以通过提供更全面的模型内部工作原理洞察来增强任何后期可解释性分析。这使得我们能更深入地理解模型为何有效或无效。其次，XPER 可以帮助识别并解决异质性问题。通过分析单个 XPER 值，能够找出特征对性能有相似影响的子样本。然后，可以为每个子样本估算一个单独的模型，以提升预测性能。第三，XPER 有助于理解过拟合的来源。实际上，XPER 允许我们识别在训练样本中对模型性能贡献更大的特征，而这些特征在测试样本中贡献较小。
 
-# **II - XPER值**
+# **II - XPER 值**
 
-XPER框架是一种理论上有依据的方法，基于Shapley值（Shapley, 1953），Shapley值是一种源自联盟博弈论的分解方法。虽然Shapley值将博弈中的收益分配给玩家，XPER值则将模型中各特征的性能度量（例如AUC，R2）进行分解。
+XPER 框架是一种理论上有依据的方法，基于 Shapley 值（Shapley, 1953），Shapley 值是一种源自联盟博弈论的分解方法。虽然 Shapley 值将博弈中的收益分配给玩家，XPER 值则将模型中各特征的性能度量（例如 AUC，R2）进行分解。
 
-假设我们使用三个特征训练一个分类模型，并通过AUC为0.78来衡量其预测性能。以下是XPER分解的一个例子：
+假设我们使用三个特征训练一个分类模型，并通过 AUC 为 0.78 来衡量其预测性能。以下是 XPER 分解的一个例子：
 
-![](../Images/ed19686e81aac20f5f77192ce2e89c3a.png)
+![](img/ed19686e81aac20f5f77192ce2e89c3a.png)
 
 第一个 XPER 值 𝜙₀ 被称为基准值，代表模型在三个特征未提供任何相关信息来预测目标变量时的表现。当使用 AUC 来评估模型的预测性能时，基准值对应于随机分类。由于模型的 AUC 大于 0.50，这意味着至少有一个特征包含了有用的信息来预测目标变量。模型的 AUC 与基准值之间的差异表示特征对模型性能的贡献，而这种贡献可以通过 XPER 值进行分解。在这个示例中，分解结果表明，第一个特征是模型预测性能的主要驱动因素，因为它解释了模型的 AUC 与随机分类之间差异的一半（𝜙₁），其次是第二个特征（𝜙₂）和第三个特征（𝜙₃）。这些结果衡量了每个特征对模型预测性能的全球性影响，并按重要性从最不重要的特征（第三个特征）到最重要的特征（第一个特征）进行排名。
 
@@ -70,7 +70,7 @@ display(loan.head())
 display(loan.shape)
 ```
 
-![](../Images/0cd5be96b19de9169cd43441a17ecb35.png)
+![](img/0cd5be96b19de9169cd43441a17ecb35.png)
 
 由于包含的变量，这个数据集的主要目标似乎是构建一个预测模型来确定潜在借款人的“贷款状态”。换句话说，我们想要根据申请人提供的信息预测贷款申请是否会被批准（“1”）或不批准（“0”）。
 
@@ -153,7 +153,7 @@ labels = list(loan.drop(columns='Loan_Status').columns)
 viz.bar_plot(XPER_values=XPER_values, X_test=X_test, labels=labels, p=5,percentage=True)
 ```
 
-![](../Images/96d2f3b66c151c225f3bab9e8e57c57b.png)
+![](img/96d2f3b66c151c225f3bab9e8e57c57b.png)
 
 为了简化展示，特征贡献以 AUC 和其基准（即 0.5）之间的差距百分比表示，并按从大到小的顺序排列。从这张图中，我们可以看到，模型相对于随机预测器的过度表现中，超过 78% 来自于*信用历史*，其次是*申请人收入*，贡献约为 16%，*共同申请人收入*和*贷款金额期限*的贡献分别不到 6%。另一方面，我们可以看到，变量*贷款金额*几乎对模型预测违约概率没有帮助，其贡献接近于 0。
 
@@ -163,21 +163,21 @@ XPER 库还提供了图形化表示，以在局部层面分析 XPER 值。首先
 viz.force_plot(XPER_values=XPER_values, instance=1, X_test=X_test, variable_name=labels, figsize=(16,4))
 ```
 
-![](../Images/9b282ac045d0fc6657a119937bfa7e7a.png)
+![](img/9b282ac045d0fc6657a119937bfa7e7a.png)
 
 上述代码绘制了观测 #10 的正（负）XPER 值，其中正值用红色（负值用蓝色）表示，同时还显示了该观测对模型 AUC 的基准（0.33）和贡献（0.46）。借款人 #10 的过度表现归因于*贷款金额期限*、*申请人收入*和*信用历史*的正 XPER 值。另一方面，*共同申请人收入*和*贷款金额*产生了负面影响，减少了该借款人的贡献。
 
-我们可以看到，虽然*申请人收入*和*贷款金额*在全球层面上对AUC有正向影响，但这些变量对借款人#10有负面影响。因此，分析单个XPER值可以识别出特征对性能有不同影响的观测值组，可能揭示异质性问题。
+我们可以看到，虽然*申请人收入*和*贷款金额*在全球层面上对 AUC 有正向影响，但这些变量对借款人#10 有负面影响。因此，分析单个 XPER 值可以识别出特征对性能有不同影响的观测值组，可能揭示异质性问题。
 
-其次，可以在单个图中表示每个观测值和特征的XPER值。为此，可以依赖于**蜂群图**，该图将每个特征的XPER值作为特征值的函数进行表示。
+其次，可以在单个图中表示每个观测值和特征的 XPER 值。为此，可以依赖于**蜂群图**，该图将每个特征的 XPER 值作为特征值的函数进行表示。
 
 ```py
 viz.beeswarn_plot(XPER_values=XPER_values,X_test=X_test,labels=labels)
 ```
 
-![](../Images/92e09764e5f1dd8a52e04657e33ecb80.png)
+![](img/92e09764e5f1dd8a52e04657e33ecb80.png)
 
-在此图中，每个点代表一个观测值。横轴表示每个观测值对模型性能的贡献，而纵轴表示特征值的大小。与之前展示的条形图类似，特征按其对模型性能的贡献从大到小排列。然而，通过蜂群图，还可以分析特征值对XPER值的影响。在这个例子中，我们可以看到较大的*信用历史*值与相对较小的贡献（绝对值）相关，而较低的值则导致较大的贡献（绝对值）。
+在此图中，每个点代表一个观测值。横轴表示每个观测值对模型性能的贡献，而纵轴表示特征值的大小。与之前展示的条形图类似，特征按其对模型性能的贡献从大到小排列。然而，通过蜂群图，还可以分析特征值对 XPER 值的影响。在这个例子中，我们可以看到较大的*信用历史*值与相对较小的贡献（绝对值）相关，而较低的值则导致较大的贡献（绝对值）。
 
 *除非另有说明，否则所有图片均由作者提供。*
 
@@ -199,8 +199,8 @@ viz.beeswarn_plot(XPER_values=XPER_values,X_test=X_test,labels=labels)
 
 # V - 参考文献
 
-[1] L. Shapley, [**n人博弈的价值**](https://www.degruyter.com/document/doi/10.1515/9781400829156-012/pdf?licenseType=restricted) **(1953),** 博弈论贡献，2:307–317
+[1] L. Shapley, [**n 人博弈的价值**](https://www.degruyter.com/document/doi/10.1515/9781400829156-012/pdf?licenseType=restricted) **(1953),** 博弈论贡献，2:307–317
 
 [2] S. Lundberg, S. Lee, [**统一的模型预测解释方法**](https://dl.acm.org/doi/10.5555/3295222.3295230) **(2017)**, 神经信息处理系统进展
 
-[3] S. Hué, C. Hurlin, C. Pérignon, S. Saurin, [**衡量预测性能的驱动因素：应用于信用评分**](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4280563) **(2023),** HEC巴黎研究论文编号 FIN-2022–1463
+[3] S. Hué, C. Hurlin, C. Pérignon, S. Saurin, [**衡量预测性能的驱动因素：应用于信用评分**](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4280563) **(2023),** HEC 巴黎研究论文编号 FIN-2022–1463

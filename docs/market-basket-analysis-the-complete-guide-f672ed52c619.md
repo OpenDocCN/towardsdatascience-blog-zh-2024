@@ -1,16 +1,16 @@
 # 市场篮分析：完整项目
 
-> 原文：[https://towardsdatascience.com/market-basket-analysis-the-complete-guide-f672ed52c619?source=collection_archive---------5-----------------------#2024-12-02](https://towardsdatascience.com/market-basket-analysis-the-complete-guide-f672ed52c619?source=collection_archive---------5-----------------------#2024-12-02)
+> 原文：[`towardsdatascience.com/market-basket-analysis-the-complete-guide-f672ed52c619?source=collection_archive---------5-----------------------#2024-12-02`](https://towardsdatascience.com/market-basket-analysis-the-complete-guide-f672ed52c619?source=collection_archive---------5-----------------------#2024-12-02)
 
 ## 🛒✨ 如何揭示隐藏的客户行为模式。
 
-[](https://medium.com/@panData?source=post_page---byline--f672ed52c619--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--f672ed52c619--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f672ed52c619--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f672ed52c619--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--f672ed52c619--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--f672ed52c619--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--f672ed52c619--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f672ed52c619--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f672ed52c619--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--f672ed52c619--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f672ed52c619--------------------------------) ·58分钟阅读·2024年12月2日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f672ed52c619--------------------------------) ·58 分钟阅读·2024 年 12 月 2 日
 
 --
 
-![](../Images/3cdf1a884e7de55458ce4db236fe67dc.png)
+![](img/3cdf1a884e7de55458ce4db236fe67dc.png)
 
 图片由 [Leo Anello](https://medium.com/u/1c040843e458?source=post_page---user_mention--f672ed52c619--------------------------------) 创建。
 

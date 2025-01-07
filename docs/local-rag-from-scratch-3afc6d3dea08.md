@@ -1,26 +1,26 @@
 # 本地 RAG 从零开始
 
-> 原文：[https://towardsdatascience.com/local-rag-from-scratch-3afc6d3dea08?source=collection_archive---------0-----------------------#2024-05-11](https://towardsdatascience.com/local-rag-from-scratch-3afc6d3dea08?source=collection_archive---------0-----------------------#2024-05-11)
+> 原文：[`towardsdatascience.com/local-rag-from-scratch-3afc6d3dea08?source=collection_archive---------0-----------------------#2024-05-11`](https://towardsdatascience.com/local-rag-from-scratch-3afc6d3dea08?source=collection_archive---------0-----------------------#2024-05-11)
 
-## 开发并部署一个完全本地化的RAG系统
+## 开发并部署一个完全本地化的 RAG 系统
 
-[](https://sassonjoe66.medium.com/?source=post_page---byline--3afc6d3dea08--------------------------------)[![Joe Sasson](../Images/f0edde425f64b6b09d3d8d4adc953d2d.png)](https://sassonjoe66.medium.com/?source=post_page---byline--3afc6d3dea08--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3afc6d3dea08--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3afc6d3dea08--------------------------------) [Joe Sasson](https://sassonjoe66.medium.com/?source=post_page---byline--3afc6d3dea08--------------------------------)
+[](https://sassonjoe66.medium.com/?source=post_page---byline--3afc6d3dea08--------------------------------)![Joe Sasson](https://sassonjoe66.medium.com/?source=post_page---byline--3afc6d3dea08--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3afc6d3dea08--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3afc6d3dea08--------------------------------) [Joe Sasson](https://sassonjoe66.medium.com/?source=post_page---byline--3afc6d3dea08--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3afc6d3dea08--------------------------------) ·18分钟阅读·2024年5月11日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3afc6d3dea08--------------------------------) ·18 分钟阅读·2024 年 5 月 11 日
 
 --
 
-![](../Images/bcaa6134389831879fbac286af8d1c13.png)
+![](img/bcaa6134389831879fbac286af8d1c13.png)
 
 图片由[Kevin Ku](https://unsplash.com/@ikukevk?utm_source=medium&utm_medium=referral)提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 引言
 
-类似于[llama-index](https://docs.llamaindex.ai/en/stable/)和[Langchain](https://www.langchain.com)等库所提供的高级抽象，简化了检索增强生成（RAG）系统的开发。然而，要完全发挥这些库的潜力，深入理解其背后的机制仍然至关重要，尤其是对于任何机器学习工程师来说。在本文中，我将引导你从零开始开发一个RAG系统。我还将进一步带你走得更远，我们将创建一个容器化的Flask API。我设计这篇教程时，注重实际应用：整个过程灵感来源于真实的使用案例，确保你获得的见解不仅是理论性的，而且是可以立即应用的。
+类似于[llama-index](https://docs.llamaindex.ai/en/stable/)和[Langchain](https://www.langchain.com)等库所提供的高级抽象，简化了检索增强生成（RAG）系统的开发。然而，要完全发挥这些库的潜力，深入理解其背后的机制仍然至关重要，尤其是对于任何机器学习工程师来说。在本文中，我将引导你从零开始开发一个 RAG 系统。我还将进一步带你走得更远，我们将创建一个容器化的 Flask API。我设计这篇教程时，注重实际应用：整个过程灵感来源于真实的使用案例，确保你获得的见解不仅是理论性的，而且是可以立即应用的。
 
-***用例概述*** — 该实现设计用于处理各种文档类型。虽然当前示例使用了许多小型文档，每个文档描述了一个独立的产品，包含SKU、名称、描述、价格和尺寸等细节，但这种方法具有高度的适应性。无论任务是涉及对多样化书籍库的索引，还是从大量合同中挖掘数据，亦或其他任何一类文档，该系统都可以根据这些不同情境的具体需求进行调整。这种灵活性使得不同类型的信息能够无缝集成和处理。
+***用例概述*** — 该实现设计用于处理各种文档类型。虽然当前示例使用了许多小型文档，每个文档描述了一个独立的产品，包含 SKU、名称、描述、价格和尺寸等细节，但这种方法具有高度的适应性。无论任务是涉及对多样化书籍库的索引，还是从大量合同中挖掘数据，亦或其他任何一类文档，该系统都可以根据这些不同情境的具体需求进行调整。这种灵活性使得不同类型的信息能够无缝集成和处理。
 
-***快速提示***——此实现仅适用于文本数据。你可以按照类似的步骤，使用多模态模型如CLIP将图像转换为嵌入，然后进行索引和查询。
+***快速提示***——此实现仅适用于文本数据。你可以按照类似的步骤，使用多模态模型如 CLIP 将图像转换为嵌入，然后进行索引和查询。
 
 # 目录
 
@@ -32,7 +32,7 @@
 
 +   大语言模型组件
 
-+   构建并部署API
++   构建并部署 API
 
 +   结论
 
@@ -48,19 +48,19 @@
 
 +   向量存储
 
-将这些服务集成到你的项目中非常灵活，允许你根据特定需求进行定制。在这个示例实现中，我从一个初始数据为JSON格式的场景开始，它方便地将数据以字符串形式提供。然而，你可能会遇到其他格式的数据，如PDF、电子邮件或Excel电子表格。在这种情况下，必须通过将数据转换为字符串格式来“规范化”这些数据。根据项目需求，你可以选择将数据转为内存中的字符串，或者将其保存到文本文件中，以便进一步细化或下游处理。
+将这些服务集成到你的项目中非常灵活，允许你根据特定需求进行定制。在这个示例实现中，我从一个初始数据为 JSON 格式的场景开始，它方便地将数据以字符串形式提供。然而，你可能会遇到其他格式的数据，如 PDF、电子邮件或 Excel 电子表格。在这种情况下，必须通过将数据转换为字符串格式来“规范化”这些数据。根据项目需求，你可以选择将数据转为内存中的字符串，或者将其保存到文本文件中，以便进一步细化或下游处理。
 
 同样，嵌入模型、向量存储和大语言模型（LLM）的选择可以根据你的项目需求进行定制。无论你需要一个更小或更大的模型，还是可能需要一个外部模型，这种方法的灵活性使你能够轻松地替换合适的选项。这个即插即用的能力确保了你的项目可以在不对核心架构进行重大修改的情况下，适应各种需求。
 
-![](../Images/5d5f665f981a4a9c6797f0669a2daf07.png)
+![](img/5d5f665f981a4a9c6797f0669a2daf07.png)
 
 简化的模块化框架。图片来自作者。
 
-我将主要组件用灰色高亮显示。在这个实现中，我们的向量存储将仅仅是一个JSON文件。再一次，根据你的使用场景，如果你一次只处理一个文件，你可能只想使用内存中的向量存储（Python字典）。如果你需要持久化这些数据，就像我们这个用例中那样，你可以将它们保存在本地JSON文件中。如果你需要存储数十万或数百万个向量，你需要一个外部的向量存储（如Pinecone、Azure Cognitive Search等）。
+我将主要组件用灰色高亮显示。在这个实现中，我们的向量存储将仅仅是一个 JSON 文件。再一次，根据你的使用场景，如果你一次只处理一个文件，你可能只想使用内存中的向量存储（Python 字典）。如果你需要持久化这些数据，就像我们这个用例中那样，你可以将它们保存在本地 JSON 文件中。如果你需要存储数十万或数百万个向量，你需要一个外部的向量存储（如 Pinecone、Azure Cognitive Search 等）。
 
 # 准备数据
 
-如上所述，这个实现从JSON数据开始。我使用了GPT-4和Claude生成了这些数据。数据包含了不同家具产品的描述，每个描述都有其对应的SKU。以下是一个示例：
+如上所述，这个实现从 JSON 数据开始。我使用了 GPT-4 和 Claude 生成了这些数据。数据包含了不同家具产品的描述，每个描述都有其对应的 SKU。以下是一个示例：
 
 ```py
 {
@@ -94,9 +94,9 @@
 }
 ```
 
-在实际场景中，我们可以将其推断到数百万个SKU和描述，可能这些数据都存储在不同的地方。在这个场景中，聚合和组织这些数据看起来微不足道，但通常情况下，野外数据需要像这样组织成结构。
+在实际场景中，我们可以将其推断到数百万个 SKU 和描述，可能这些数据都存储在不同的地方。在这个场景中，聚合和组织这些数据看起来微不足道，但通常情况下，野外数据需要像这样组织成结构。
 
-下一步是将每个SKU转换为单独的文本文件。总共有105个文本文件（SKUs）。***注意——你可以在文章底部的我的GitHub中找到所有的数据/代码链接。***
+下一步是将每个 SKU 转换为单独的文本文件。总共有 105 个文本文件（SKUs）。***注意——你可以在文章底部的我的 GitHub 中找到所有的数据/代码链接。***
 
 我使用这个提示生成数据，并多次发送：
 
@@ -117,13 +117,13 @@ Every response should follow this format and should be only JSON:
 - finished basement
 ```
 
-为了继续前进，您应该有一个包含产品描述的文本文件的目录，其中SKU作为文件名。
+为了继续前进，您应该有一个包含产品描述的文本文件的目录，其中 SKU 作为文件名。
 
 # 分块、索引和检索
 
 ## 分块
 
-给定一段文本，我们需要有效地将其分块，以便优化检索。我试图根据llama-index的[SentenceSplitter](https://docs.llamaindex.ai/en/stable/api_reference/node_parsers/sentence_splitter/)类来建模这个过程。
+给定一段文本，我们需要有效地将其分块，以便优化检索。我试图根据 llama-index 的[SentenceSplitter](https://docs.llamaindex.ai/en/stable/api_reference/node_parsers/sentence_splitter/)类来建模这个过程。
 
 ```py
 import re
@@ -213,7 +213,7 @@ def document_chunker(directory_path,
     return documents
 ```
 
-这里最重要的参数是“chunk_size”。如您所见，我们正在使用[transformers](https://huggingface.co/docs/transformers/en/index)库来计算给定字符串中的标记数量。因此，chunk_size表示一个块中的标记数量。
+这里最重要的参数是“chunk_size”。如您所见，我们正在使用[transformers](https://huggingface.co/docs/transformers/en/index)库来计算给定字符串中的标记数量。因此，chunk_size 表示一个块中的标记数量。
 
 以下是该函数内部操作的详细说明：
 
@@ -231,7 +231,7 @@ def document_chunker(directory_path,
 
 1.  ***优化块：***
 
-    - 如果任何块超过了chunk_size，则使用基于标点的正则表达式进一步拆分它。
+    - 如果任何块超过了 chunk_size，则使用基于标点的正则表达式进一步拆分它。
 
     - 如果需要，合并子块以优化块大小。
 
@@ -241,7 +241,7 @@ def document_chunker(directory_path,
 
 1.  ***编译并返回块：***
 
-    - 遍历每个最终的块，给它分配一个唯一的ID，该ID映射到该块的文本和元数据，最后将该块字典分配给文档ID。
+    - 遍历每个最终的块，给它分配一个唯一的 ID，该 ID 映射到该块的文本和元数据，最后将该块字典分配给文档 ID。
 
 在这个例子中，我们正在对大量较小的文档进行索引，分块过程相对简单。每个文档较为简短，因此只需少量分割。这与处理更大文本的场景形成鲜明对比，例如从冗长的合同中提取特定部分或对整本小说进行索引。为了适应不同大小和复杂度的文档，我开发了`document_chunker`函数。这使得您可以输入数据——无论其长度或格式如何——并应用相同高效的分块过程。无论是处理简洁的产品描述，还是广袤的文学作品，`document_chunker`都能确保您的数据经过适当分块，以实现最佳的索引和检索效果。
 
@@ -261,7 +261,7 @@ Out -->
 {'61d6318e-644b-48cd-a635-9490a1d84711': {'text': 'Gaming console storage unit in sleek black, featuring designated compartments for systems, controllers, and games. Ventilated to prevent overheating. Manufactured by GameHub. Dimensions: 42"W x 16"D x 24"H.', 'metadata': {'file_name': 'ENT-5002'}}}
 ```
 
-现在，我们有了一个映射，具有唯一的文档ID，指向该文档中的所有块，每个块都有自己的唯一ID，指向该块的文本和元数据。
+现在，我们有了一个映射，具有唯一的文档 ID，指向该文档中的所有块，每个块都有自己的唯一 ID，指向该块的文本和元数据。
 
 元数据可以包含任意的键/值对。在这里，我将文件名（SKU）设置为元数据，以便我们可以将模型的结果追溯到原始产品。
 
@@ -312,7 +312,7 @@ def create_vector_store(doc_store):
     return vector_store
 ```
 
-我们所做的只是简单地将文档库中的块转换为嵌入。你可以插入任何嵌入模型，以及任何向量存储。由于我们的向量存储只是一个字典，所以我们所需要做的就是将其保存为JSON文件以便持久化。
+我们所做的只是简单地将文档库中的块转换为嵌入。你可以插入任何嵌入模型，以及任何向量存储。由于我们的向量存储只是一个字典，所以我们所需要做的就是将其保存为 JSON 文件以便持久化。
 
 ## 检索
 
@@ -352,19 +352,19 @@ def compute_matches(vector_store, query_str, top_k):
     return top_results
 ```
 
-`compute_matches`函数旨在从存储的文本嵌入集合中识别与给定查询字符串最相似的前k个文本块。下面是详细说明：
+`compute_matches`函数旨在从存储的文本嵌入集合中识别与给定查询字符串最相似的前 k 个文本块。下面是详细说明：
 
 1.  嵌入查询字符串
 
-1.  计算余弦相似度。对于每个块，计算查询向量和块向量之间的余弦相似度。在这里，`np.linalg.norm`计算的是向量的欧几里得范数（L2范数），这是计算余弦相似度所必需的。
+1.  计算余弦相似度。对于每个块，计算查询向量和块向量之间的余弦相似度。在这里，`np.linalg.norm`计算的是向量的欧几里得范数（L2 范数），这是计算余弦相似度所必需的。
 
 1.  处理规范化并计算点积。余弦相似度定义为：
 
-![](../Images/f4129e0066236017d5a7c9d1de0ed65e.png)
+![](img/f4129e0066236017d5a7c9d1de0ed65e.png)
 
 **A**和**B**是向量，**||A||**和**||B||**是它们的范数。
 
-4. 对得分进行排序和选择。得分按降序排列，选取前k个结果。
+4. 对得分进行排序和选择。得分按降序排列，选取前 k 个结果。
 
 **用法：**
 
@@ -392,19 +392,19 @@ docs['d56bc8ca-9bbc-4edb-9f57-d1ea2b62362f']['3086bed2-65e7-46cc-8266-f9099085e9
  'metadata': {'file_name': 'ENT-4001'}}
 ```
 
-每个元组包含文档ID，其后是块ID，再后是得分。
+每个元组包含文档 ID，其后是块 ID，再后是得分。
 
-太棒了，已经成功！接下来要做的就是连接LLM组件并运行完整的端到端测试，然后我们就可以部署了！
+太棒了，已经成功！接下来要做的就是连接 LLM 组件并运行完整的端到端测试，然后我们就可以部署了！
 
-# LLM组件
+# LLM 组件
 
-为了通过使我们的RAG系统更加互动来增强用户体验，我们将使用`llama-cpp-python`库。我们的设置将使用带有GGUF 3位量化的mistral-7B参数模型，这一配置在计算效率和性能之间提供了良好的平衡。经过大量测试，这种模型大小已被证明在资源有限的机器上特别有效，例如我的M2 8GB Mac。通过采用这种方法，我们确保我们的RAG系统不仅能提供精确和相关的响应，还能保持对话语气，使其更加引人入胜和易于接触，便于最终用户使用。
+为了通过使我们的 RAG 系统更加互动来增强用户体验，我们将使用`llama-cpp-python`库。我们的设置将使用带有 GGUF 3 位量化的 mistral-7B 参数模型，这一配置在计算效率和性能之间提供了良好的平衡。经过大量测试，这种模型大小已被证明在资源有限的机器上特别有效，例如我的 M2 8GB Mac。通过采用这种方法，我们确保我们的 RAG 系统不仅能提供精确和相关的响应，还能保持对话语气，使其更加引人入胜和易于接触，便于最终用户使用。
 
-在Mac上本地设置LLM的快速说明——我更倾向于使用anaconda或miniconda。确保你安装了arm64版本，并按照库中的‘metal’设置说明进行操作，[这里](https://pypi.org/project/llama-cpp-python/)。
+在 Mac 上本地设置 LLM 的快速说明——我更倾向于使用 anaconda 或 miniconda。确保你安装了 arm64 版本，并按照库中的‘metal’设置说明进行操作，[这里](https://pypi.org/project/llama-cpp-python/)。
 
-现在，非常简单。我们需要做的就是定义一个函数，构建一个包含检索到的文档和用户查询的提示。LLM的响应将返回给用户。
+现在，非常简单。我们需要做的就是定义一个函数，构建一个包含检索到的文档和用户查询的提示。LLM 的响应将返回给用户。
 
-我定义了以下函数来流式传输LLM的文本响应并构建最终的提示。
+我定义了以下函数来流式传输 LLM 的文本响应并构建最终的提示。
 
 ```py
 from llama_cpp import Llama
@@ -471,19 +471,19 @@ stream_and_buffer(prompt, llm)
 
 返回给用户的最终输出：
 
-> “基于检索到的上下文和用户的查询，Hearth & Home电壁炉配有逼真的LED火焰，符合描述。该型号宽50英寸，深6英寸，高21英寸，附带遥控器，便于操作。”
+> “基于检索到的上下文和用户的查询，Hearth & Home 电壁炉配有逼真的 LED 火焰，符合描述。该型号宽 50 英寸，深 6 英寸，高 21 英寸，附带遥控器，便于操作。”
 
-我们现在准备部署我们的RAG系统。请继续阅读下一部分，我们将把这段近乎“意大利面”的代码转换为可供用户使用的API。
+我们现在准备部署我们的 RAG 系统。请继续阅读下一部分，我们将把这段近乎“意大利面”的代码转换为可供用户使用的 API。
 
-# 构建与部署API
+# 构建与部署 API
 
-为了扩展我们系统的覆盖范围和可用性，我们将把它打包成一个容器化的Flask应用程序。此方法确保我们的模型被封装在一个Docker容器内，无论计算环境如何，都能提供稳定性和一致性。
+为了扩展我们系统的覆盖范围和可用性，我们将把它打包成一个容器化的 Flask 应用程序。此方法确保我们的模型被封装在一个 Docker 容器内，无论计算环境如何，都能提供稳定性和一致性。
 
-你应该已经下载了上述的嵌入模型和分词器。将这些文件与应用代码、依赖项和Dockerfile放在同一目录下。你可以在[此处](https://huggingface.co/TheBloke)下载LLM。
+你应该已经下载了上述的嵌入模型和分词器。将这些文件与应用代码、依赖项和 Dockerfile 放在同一目录下。你可以在[此处](https://huggingface.co/TheBloke)下载 LLM。
 
 你应该有以下的目录结构：
 
-![](../Images/3aae7ab37e37c53b7e65d5e7ca516cd7.png)
+![](img/3aae7ab37e37c53b7e65d5e7ca516cd7.png)
 
 部署目录结构。图片由作者提供。
 
@@ -638,9 +638,9 @@ EXPOSE 5001
 CMD ["python", "app.py"]
 ```
 
-需要注意的一点是——我们在Dockerfile的第二行设置了工作目录为‘/app’。因此，任何本地路径（模型、向量或文档存储），应该在你的应用代码中以‘/app’为前缀。
+需要注意的一点是——我们在 Dockerfile 的第二行设置了工作目录为‘/app’。因此，任何本地路径（模型、向量或文档存储），应该在你的应用代码中以‘/app’为前缀。
 
-此外，当你在容器中运行应用程序（在Mac上时），它将无法访问GPU，参见[这个](https://github.com/pytorch/pytorch/issues/81224)讨论。我注意到使用CPU时，通常需要大约20分钟才能得到响应。
+此外，当你在容器中运行应用程序（在 Mac 上时），它将无法访问 GPU，参见[这个](https://github.com/pytorch/pytorch/issues/81224)讨论。我注意到使用 CPU 时，通常需要大约 20 分钟才能得到响应。
 
 **构建与运行：**
 
@@ -648,11 +648,11 @@ CMD ["python", "app.py"]
 
 `docker run -p 5001:5001 <image-name>:<tag>`
 
-运行容器会自动启动应用程序（见Dockerfile的最后一行）。你现在可以通过以下URL访问你的端点：
+运行容器会自动启动应用程序（见 Dockerfile 的最后一行）。你现在可以通过以下 URL 访问你的端点：
 
 `http://127.0.0.1:5001/rag_endpoint`
 
-**调用API：**
+**调用 API：**
 
 ```py
 import requests, json
@@ -689,7 +689,7 @@ print(result)
 
 # 结论
 
-我想回顾一下所有达到这一点所需的步骤，以及将其调整为适应任何数据/嵌入/LLM的工作流程。
+我想回顾一下所有达到这一点所需的步骤，以及将其调整为适应任何数据/嵌入/LLM 的工作流程。
 
 1.  将你的文本文件目录传递给`document_chunker`函数，以创建文档存储。
 
@@ -697,12 +697,12 @@ print(result)
 
 1.  将文档存储转换为向量存储。并将这两个文件保存在本地。
 
-1.  从HF Hub下载LLM。
+1.  从 HF Hub 下载 LLM。
 
-1.  将文件移动到应用目录（嵌入模型、LLM、文档存储和向量存储JSON文件）。
+1.  将文件移动到应用目录（嵌入模型、LLM、文档存储和向量存储 JSON 文件）。
 
-1.  构建并运行Docker容器。
+1.  构建并运行 Docker 容器。
 
-本质上可以总结为这一点——使用`build`笔记本生成doc_store和vector_store，并将这些文件放置到你的应用中。
+本质上可以总结为这一点——使用`build`笔记本生成 doc_store 和 vector_store，并将这些文件放置到你的应用中。
 
 GitHub [链接](https://github.com/j0sephsasson/rag-from-scratch)。感谢阅读！

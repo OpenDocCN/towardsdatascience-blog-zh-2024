@@ -1,16 +1,16 @@
 # requirements.txt 已过时
 
-> 原文：[https://towardsdatascience.com/ditch-requirements-use-poetry-00a936fe9b6d?source=collection_archive---------0-----------------------#2024-08-06](https://towardsdatascience.com/ditch-requirements-use-poetry-00a936fe9b6d?source=collection_archive---------0-----------------------#2024-08-06)
+> 原文：[`towardsdatascience.com/ditch-requirements-use-poetry-00a936fe9b6d?source=collection_archive---------0-----------------------#2024-08-06`](https://towardsdatascience.com/ditch-requirements-use-poetry-00a936fe9b6d?source=collection_archive---------0-----------------------#2024-08-06)
 
 ## 使用 Poetry 管理 Python 项目的依赖关系和元数据
 
-[](https://gmyrianthous.medium.com/?source=post_page---byline--00a936fe9b6d--------------------------------)[![Giorgos Myrianthous](../Images/ff4b116e4fb9a095ce45eb064fde5af3.png)](https://gmyrianthous.medium.com/?source=post_page---byline--00a936fe9b6d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--00a936fe9b6d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--00a936fe9b6d--------------------------------) [Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--00a936fe9b6d--------------------------------)
+[](https://gmyrianthous.medium.com/?source=post_page---byline--00a936fe9b6d--------------------------------)![Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--00a936fe9b6d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--00a936fe9b6d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00a936fe9b6d--------------------------------) [Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--00a936fe9b6d--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00a936fe9b6d--------------------------------) ·阅读时间 9 分钟·2024年8月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--00a936fe9b6d--------------------------------) ·阅读时间 9 分钟·2024 年 8 月 6 日
 
 --
 
-![](../Images/5bba39a22dcab96f27d25e796f004528.png)
+![](img/5bba39a22dcab96f27d25e796f004528.png)
 
 图片来源：[Pawel Czerwinski](https://unsplash.com/@pawel_czerwinski?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在 [Unsplash](https://unsplash.com/photos/green-illustration-X4PSwltIx9c?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

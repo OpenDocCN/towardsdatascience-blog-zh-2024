@@ -1,22 +1,22 @@
-# 温度如何影响LLMs中的下一个标记预测？
+# 温度如何影响 LLMs 中的下一个标记预测？
 
-> 原文：[https://towardsdatascience.com/how-does-temperature-impact-next-token-prediction-in-llms-779bd908f2cf?source=collection_archive---------1-----------------------#2024-05-06](https://towardsdatascience.com/how-does-temperature-impact-next-token-prediction-in-llms-779bd908f2cf?source=collection_archive---------1-----------------------#2024-05-06)
+> 原文：[`towardsdatascience.com/how-does-temperature-impact-next-token-prediction-in-llms-779bd908f2cf?source=collection_archive---------1-----------------------#2024-05-06`](https://towardsdatascience.com/how-does-temperature-impact-next-token-prediction-in-llms-779bd908f2cf?source=collection_archive---------1-----------------------#2024-05-06)
 
-[](https://ankur-m.medium.com/?source=post_page---byline--779bd908f2cf--------------------------------)[![Ankur Manikandan](../Images/3b84353a1979a484a46ee443c0a5bfb6.png)](https://ankur-m.medium.com/?source=post_page---byline--779bd908f2cf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--779bd908f2cf--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--779bd908f2cf--------------------------------) [Ankur Manikandan](https://ankur-m.medium.com/?source=post_page---byline--779bd908f2cf--------------------------------)
+[](https://ankur-m.medium.com/?source=post_page---byline--779bd908f2cf--------------------------------)![Ankur Manikandan](https://ankur-m.medium.com/?source=post_page---byline--779bd908f2cf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--779bd908f2cf--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--779bd908f2cf--------------------------------) [Ankur Manikandan](https://ankur-m.medium.com/?source=post_page---byline--779bd908f2cf--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--779bd908f2cf--------------------------------) ·阅读时间4分钟·2024年5月6日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--779bd908f2cf--------------------------------) ·阅读时间 4 分钟·2024 年 5 月 6 日
 
 --
 
 **简而言之**
 
-1\. 在温度为1时，概率值与标准softmax函数得出的概率值相同。
+1\. 在温度为 1 时，概率值与标准 softmax 函数得出的概率值相同。
 
 2\. 提高温度会增加较不可能的标记的概率，从而扩展模型预测下一个标记的潜在候选范围（或多样性）。
 
-3\. 降低温度则会使最可能标记的概率接近1.0，从而增强模型的信心。减少温度有效地消除了模型中的不确定性。
+3\. 降低温度则会使最可能标记的概率接近 1.0，从而增强模型的信心。减少温度有效地消除了模型中的不确定性。
 
-[**Google Colab笔记本**](https://colab.research.google.com/drive/1G6XZ_0DsHTZQBppjlgVM-ICdR6yz4g7m?usp=sharing)**.**
+[**Google Colab 笔记本**](https://colab.research.google.com/drive/1G6XZ_0DsHTZQBppjlgVM-ICdR6yz4g7m?usp=sharing)**.**
 
 **介绍**
 
@@ -24,7 +24,7 @@
 
 让我们通过一个假设的例子来理解温度对下一个标记预测的影响。
 
-我们让一个大型语言模型（LLM）完成句子**“这是一个美妙的_____。”** 假设潜在的候选标记是：
+我们让一个大型语言模型（LLM）完成句子**“这是一个美妙的 _____。”** 假设潜在的候选标记是：
 
 ```py
 |   token    | logit |
@@ -37,13 +37,13 @@
 | challenge  |    15 |
 ```
 
-对数值通过softmax函数处理，使得值的总和等于1。实际上，softmax函数为每个标记生成概率估计。
+对数值通过 softmax 函数处理，使得值的总和等于 1。实际上，softmax 函数为每个标记生成概率估计。
 
-![](../Images/d581b23a99b01e18aef8ec99d1dabb2b.png)
+![](img/d581b23a99b01e18aef8ec99d1dabb2b.png)
 
-标准softmax函数
+标准 softmax 函数
 
-让我们在Python中计算概率估计值。
+让我们在 Python 中计算概率估计值。
 
 ```py
 import numpy as np
@@ -88,11 +88,11 @@ for bar in ax.patches:
 plt.show()
 ```
 
-![](../Images/ed3c4b8677cc0f1065ceb18f6e73ccc1.png)
+![](img/ed3c4b8677cc0f1065ceb18f6e73ccc1.png)
 
-**带温度的softmax函数**定义如下：
+**带温度的 softmax 函数**定义如下：
 
-![](../Images/0805fb3b6ec66ae8072b0ecacbd3fdd0.png)
+![](img/0805fb3b6ec66ae8072b0ecacbd3fdd0.png)
 
 其中 (T) 是温度，(x_i) 是输入向量 (logits) 的第 (i) 个分量，(n) 是向量中分量的数量。
 
@@ -124,19 +124,19 @@ interactive_plot
 
 当 T = 1 时，
 
-![](../Images/4250d9a5ebcd02c95d879ccd132cc5a3.png)
+![](img/4250d9a5ebcd02c95d879ccd132cc5a3.png)
 
 在温度为 1 时，概率值与标准 softmax 函数推导出的概率值相同。
 
 当 T > 1 时，
 
-![](../Images/28a0ff2d89cddc0ce05b88819422a3b3.png)
+![](img/28a0ff2d89cddc0ce05b88819422a3b3.png)
 
 提高温度会膨胀不太可能出现的标记的概率，从而扩大模型下一个标记预测的潜在候选范围（或多样性）。
 
 当 T < 1 时，
 
-![](../Images/0803db21504f8d41d771b1ed63ea7350.png)
+![](img/0803db21504f8d41d771b1ed63ea7350.png)
 
 降低温度则会使最可能的标记的概率接近 1.0，从而提高模型的信心。降低温度有效地消除了模型中的不确定性。
 

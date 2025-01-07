@@ -1,16 +1,16 @@
 # 使用 CUDA 加速你的 Python 代码
 
-> 原文：[https://towardsdatascience.com/boost-your-python-code-with-cuda-8bbdd08fc51e?source=collection_archive---------0-----------------------#2024-11-20](https://towardsdatascience.com/boost-your-python-code-with-cuda-8bbdd08fc51e?source=collection_archive---------0-----------------------#2024-11-20)
+> 原文：[`towardsdatascience.com/boost-your-python-code-with-cuda-8bbdd08fc51e?source=collection_archive---------0-----------------------#2024-11-20`](https://towardsdatascience.com/boost-your-python-code-with-cuda-8bbdd08fc51e?source=collection_archive---------0-----------------------#2024-11-20)
 
-![](../Images/6a15b64bfda96e07e6345fd958932d25.png)
+![](img/6a15b64bfda96e07e6345fd958932d25.png)
 
 图像来源：AI (Dalle-3)
 
 ## 轻松使用 Numba 的 CUDA JIT 来定位 GPU
 
-[](https://medium.com/@thomas_reid?source=post_page---byline--8bbdd08fc51e--------------------------------)[![Thomas Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--8bbdd08fc51e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8bbdd08fc51e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8bbdd08fc51e--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--8bbdd08fc51e--------------------------------)
+[](https://medium.com/@thomas_reid?source=post_page---byline--8bbdd08fc51e--------------------------------)![Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--8bbdd08fc51e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8bbdd08fc51e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8bbdd08fc51e--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--8bbdd08fc51e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8bbdd08fc51e--------------------------------) ·阅读时间 11 分钟·2024年11月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8bbdd08fc51e--------------------------------) ·阅读时间 11 分钟·2024 年 11 月 20 日
 
 --
 

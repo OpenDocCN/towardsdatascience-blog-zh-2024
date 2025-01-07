@@ -1,16 +1,16 @@
 # 如何构建一个用于从收据中提取信息的生成式 AI 工具
 
-> 原文：[https://towardsdatascience.com/how-to-build-a-generative-ai-tool-for-information-extraction-from-receipts-516424327f66?source=collection_archive---------2-----------------------#2024-04-10](https://towardsdatascience.com/how-to-build-a-generative-ai-tool-for-information-extraction-from-receipts-516424327f66?source=collection_archive---------2-----------------------#2024-04-10)
+> 原文：[`towardsdatascience.com/how-to-build-a-generative-ai-tool-for-information-extraction-from-receipts-516424327f66?source=collection_archive---------2-----------------------#2024-04-10`](https://towardsdatascience.com/how-to-build-a-generative-ai-tool-for-information-extraction-from-receipts-516424327f66?source=collection_archive---------2-----------------------#2024-04-10)
 
-![](../Images/486a5de0d5063d0a6db0c23a138ff29d.png)
+![](img/486a5de0d5063d0a6db0c23a138ff29d.png)
 
 DALLE-2 对“未来主义的工业文档扫描设施”的诠释
 
 ## 使用 LangChain 和 OpenAI 工具从存储在 Google Drive 中的收据图片中提取结构化信息
 
-[](https://medium.com/@rmartinshort?source=post_page---byline--516424327f66--------------------------------)[![Robert Martin-Short](../Images/e3910071b72a914255b185b850579a5a.png)](https://medium.com/@rmartinshort?source=post_page---byline--516424327f66--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--516424327f66--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--516424327f66--------------------------------) [Robert Martin-Short](https://medium.com/@rmartinshort?source=post_page---byline--516424327f66--------------------------------)
+[](https://medium.com/@rmartinshort?source=post_page---byline--516424327f66--------------------------------)![Robert Martin-Short](https://medium.com/@rmartinshort?source=post_page---byline--516424327f66--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--516424327f66--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--516424327f66--------------------------------) [Robert Martin-Short](https://medium.com/@rmartinshort?source=post_page---byline--516424327f66--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--516424327f66--------------------------------) ·阅读时间 15 分钟·2024年4月10日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--516424327f66--------------------------------) ·阅读时间 15 分钟·2024 年 4 月 10 日
 
 --
 
@@ -18,33 +18,33 @@ DALLE-2 对“未来主义的工业文档扫描设施”的诠释
 
 纸质收据有各种风格和格式，代表了一个有趣的自动化信息提取目标。它们还提供了大量逐项列出的费用，如果将这些费用汇总到数据库中，将非常有助于那些希望比银行对账单提供的更详细地追踪支出的人。
 
-如果你能拍一张收据的照片，上传到某个应用程序，然后提取其信息并将其附加到你的个人支出数据库中，接着可以用自然语言查询这些信息，那不是很酷吗？你可以像“我上次去宜家时买了什么？”或者“我在Safeway花最多钱买了哪些物品？”这样提问。这种系统也可能自然地扩展到公司财务和支出跟踪。在本文中，我们将构建一个简单的应用程序，处理这个过程的第一部分——即提取收据中的信息，准备存储到数据库中。我们的系统将监控一个Google Drive文件夹中新添加的收据，处理它们并将结果附加到.csv文件中。
+如果你能拍一张收据的照片，上传到某个应用程序，然后提取其信息并将其附加到你的个人支出数据库中，接着可以用自然语言查询这些信息，那不是很酷吗？你可以像“我上次去宜家时买了什么？”或者“我在 Safeway 花最多钱买了哪些物品？”这样提问。这种系统也可能自然地扩展到公司财务和支出跟踪。在本文中，我们将构建一个简单的应用程序，处理这个过程的第一部分——即提取收据中的信息，准备存储到数据库中。我们的系统将监控一个 Google Drive 文件夹中新添加的收据，处理它们并将结果附加到.csv 文件中。
 
 # **1\. 背景和动机**
 
-从技术角度讲，我们将进行一种自动化的信息提取，称为模板填充。我们有一个预定义的字段架构，旨在从收据中提取这些字段，任务是填写这些字段，或者在适当的地方留空。这里的一个主要问题是，收据图像或扫描中的信息是非结构化的，尽管光学字符识别（OCR）或PDF文本提取库在查找文本时可能做得相当好，但它们在保留文档中单词相对位置方面做得不够好，这可能会使得例如将某个项目的价格与其成本匹配变得困难。
+从技术角度讲，我们将进行一种自动化的信息提取，称为模板填充。我们有一个预定义的字段架构，旨在从收据中提取这些字段，任务是填写这些字段，或者在适当的地方留空。这里的一个主要问题是，收据图像或扫描中的信息是非结构化的，尽管光学字符识别（OCR）或 PDF 文本提取库在查找文本时可能做得相当好，但它们在保留文档中单词相对位置方面做得不够好，这可能会使得例如将某个项目的价格与其成本匹配变得困难。
 
 传统上，这个问题通过模板匹配来解决，其中会创建一个预定义的文档几何模板，然后只在已知包含重要信息的区域进行提取。关于这个方法的一个很好的描述可以在[这里](https://aicha-fatrah.medium.com/how-to-extract-information-from-documents-template-matching-e0540ae79599)找到。然而，这个系统缺乏灵活性。如果添加了新的收据格式怎么办？
 
-为了绕过这个问题，像[AWS Textract](https://docs.aws.amazon.com/textract/latest/dg/invoices-receipts.html)和[AWS Rekognition](https://aws.amazon.com/rekognition/image-features/?nc=sn&loc=3&dn=3&refid=f5358c45-1ee6-4a07-b08d-0f669e6cd865)这样的更高级服务使用了预训练的深度学习模型结合物体检测、边界框生成和命名实体识别（NER）。我实际上还没有在手头的问题上尝试过这些服务，但如果能进行尝试，比较它们与我们使用OpenAI的LLMs构建的结果将会非常有趣。
+为了绕过这个问题，像[AWS Textract](https://docs.aws.amazon.com/textract/latest/dg/invoices-receipts.html)和[AWS Rekognition](https://aws.amazon.com/rekognition/image-features/?nc=sn&loc=3&dn=3&refid=f5358c45-1ee6-4a07-b08d-0f669e6cd865)这样的更高级服务使用了预训练的深度学习模型结合物体检测、边界框生成和命名实体识别（NER）。我实际上还没有在手头的问题上尝试过这些服务，但如果能进行尝试，比较它们与我们使用 OpenAI 的 LLMs 构建的结果将会非常有趣。
 
-像gpt-3.5-turbo这样的“大型语言模型”（LLM）在从非结构化文本中进行信息提取和模板填充方面也表现出色，尤其是在给定一些示例后。这使得它们比模板匹配或微调更加灵活，因为添加一些新的收据格式示例比重新训练模型或构建新的几何模板要快得多且更便宜。
+像 gpt-3.5-turbo 这样的“大型语言模型”（LLM）在从非结构化文本中进行信息提取和模板填充方面也表现出色，尤其是在给定一些示例后。这使得它们比模板匹配或微调更加灵活，因为添加一些新的收据格式示例比重新训练模型或构建新的几何模板要快得多且更便宜。
 
-如果我们要在从收据中提取的文本上使用gpt-3.5-turbo，那么问题就是如何构建它可以学习的示例？当然我们可以手动完成，但这样做的扩展性不好。这里我们将探索使用gpt-4-vision的选项。这个版本的gpt-4可以处理包含图像的对话，并且[特别擅长描述图像内容](https://medium.com/@nageshmashette32/gpt4-vision-and-its-alternatives-6ed9d39508cd)。给定一张收据的图像和我们想要提取的关键信息的描述，gpt-4-vision应该能够一举完成任务，前提是图像足够清晰。
+如果我们要在从收据中提取的文本上使用 gpt-3.5-turbo，那么问题就是如何构建它可以学习的示例？当然我们可以手动完成，但这样做的扩展性不好。这里我们将探索使用 gpt-4-vision 的选项。这个版本的 gpt-4 可以处理包含图像的对话，并且[特别擅长描述图像内容](https://medium.com/@nageshmashette32/gpt4-vision-and-its-alternatives-6ed9d39508cd)。给定一张收据的图像和我们想要提取的关键信息的描述，gpt-4-vision 应该能够一举完成任务，前提是图像足够清晰。
 
-为什么我们不单独使用gpt-4-vision来完成这个任务，而是放弃gpt-3.5-turbo或其他较小的LLM？从技术上讲，我们当然可以这样做，而且结果可能会更准确。但gpt-4-vision非常昂贵，且API调用次数有限，因此该系统也无法扩展。或许在不远的未来，视觉LLM会成为从文档中提取信息这一领域的标准工具。
+为什么我们不单独使用 gpt-4-vision 来完成这个任务，而是放弃 gpt-3.5-turbo 或其他较小的 LLM？从技术上讲，我们当然可以这样做，而且结果可能会更准确。但 gpt-4-vision 非常昂贵，且 API 调用次数有限，因此该系统也无法扩展。或许在不远的未来，视觉 LLM 会成为从文档中提取信息这一领域的标准工具。
 
-这篇文章的另一个动机是探索如何使用Langchain构建这个系统，Langchain是一个流行的开源LLM编排库。为了强制LLM返回结构化输出，需要进行提示工程，而Langchain有一些非常棒的工具可以做到这一点。我们还将尝试确保我们的系统构建得具有可扩展性，因为这只是可能成为更大“与收据对话”项目的第一部分。
+这篇文章的另一个动机是探索如何使用 Langchain 构建这个系统，Langchain 是一个流行的开源 LLM 编排库。为了强制 LLM 返回结构化输出，需要进行提示工程，而 Langchain 有一些非常棒的工具可以做到这一点。我们还将尝试确保我们的系统构建得具有可扩展性，因为这只是可能成为更大“与收据对话”项目的第一部分。
 
-简要的背景介绍完毕后，让我们开始写代码吧！在这里，我将使用Python3.9和Langchain 0.1.14，完整的细节可以在[仓库](https://github.com/rmartinshort/receiptchat/tree/main)中找到。
+简要的背景介绍完毕后，让我们开始写代码吧！在这里，我将使用 Python3.9 和 Langchain 0.1.14，完整的细节可以在[仓库](https://github.com/rmartinshort/receiptchat/tree/main)中找到。
 
-# **2. 连接到Google Drive**
+# **2. 连接到 Google Drive**
 
-我们需要一个方便的地方来存储我们的原始收据数据。Google Drive是一个选择，它提供了相对易于使用的Python API。为了捕捉收据，我使用了[GeniusScan](https://thegrizzlylabs.com/genius-scan/)应用，它可以将.pdf、.jpeg或其他文件类型从手机直接上传到Google Drive文件夹。该应用还进行一些有用的预处理，如自动裁剪文档，这有助于提取过程。
+我们需要一个方便的地方来存储我们的原始收据数据。Google Drive 是一个选择，它提供了相对易于使用的 Python API。为了捕捉收据，我使用了[GeniusScan](https://thegrizzlylabs.com/genius-scan/)应用，它可以将.pdf、.jpeg 或其他文件类型从手机直接上传到 Google Drive 文件夹。该应用还进行一些有用的预处理，如自动裁剪文档，这有助于提取过程。
 
-要设置Google Drive的API访问权限，您需要创建服务账户凭据，可以按照[这里](https://developers.google.com/drive/api/quickstart/python)的说明生成。作为参考，我在我的驱动器中创建了一个名为“receiptchat”的文件夹，并设置了一个密钥对，使其能够读取该文件夹中的数据。
+要设置 Google Drive 的 API 访问权限，您需要创建服务账户凭据，可以按照[这里](https://developers.google.com/drive/api/quickstart/python)的说明生成。作为参考，我在我的驱动器中创建了一个名为“receiptchat”的文件夹，并设置了一个密钥对，使其能够读取该文件夹中的数据。
 
-以下代码可以用来设置一个驱动服务对象，它提供了访问各种方法来查询Google Drive的功能：
+以下代码可以用来设置一个驱动服务对象，它提供了访问各种方法来查询 Google Drive 的功能：
 
 ```py
 import os
@@ -184,7 +184,7 @@ pdf_bytes = loader.download_file({some_id}) #returns bytes for that file
 
 # 3\. 从 PDF 和图像中提取原始文本
 
-有多个文档化良好的开源库可以从 PDF 和图像中提取原始文本。对于 PDF，我们将在这里使用 `PyPDF`，尽管为了更全面地了解类似的包，我推荐这篇[文章](/extracting-text-from-pdf-files-with-python-a-comprehensive-guide-9fc4003d517)。对于 JPEG 格式的图像，我们将使用 `pytesseract`，它是 `tesseract` OCR 引擎的包装器。关于如何安装它的说明可以在[这里](https://tesseract-ocr.github.io/tessdoc/Installation.html)找到。最后，我们还希望能够将 PDF 转换为 JPEG 格式。这可以通过 `pdf2image` 包实现。
+有多个文档化良好的开源库可以从 PDF 和图像中提取原始文本。对于 PDF，我们将在这里使用 `PyPDF`，尽管为了更全面地了解类似的包，我推荐这篇文章。对于 JPEG 格式的图像，我们将使用 `pytesseract`，它是 `tesseract` OCR 引擎的包装器。关于如何安装它的说明可以在[这里](https://tesseract-ocr.github.io/tessdoc/Installation.html)找到。最后，我们还希望能够将 PDF 转换为 JPEG 格式。这可以通过 `pdf2image` 包实现。
 
 `PyPDF` 和 `pytesseract` 都提供了从文档中提取文本的高级方法。它们也都提供了调优的选项。例如，`pytesseract` 可以提取文本和边界框（请参见[这里](https://pypi.org/project/pytesseract/)），如果我们将来想要为 LLM 提供有关其处理的收据文本格式的更多信息，这可能会很有用。`pdf2image` 提供了一种将 PDF 字节转换为 JPEG 图像的方法，这正是我们在这里想做的。为了将 JPEG 字节转换为可视化的图像，我们将使用 `PIL` 包。
 
@@ -255,7 +255,7 @@ image = PDFBytesToImage.convert_bytes_to_jpeg(pdf_bytes)
 text = PDFBytesToImage.convert_bytes_to_jpeg(pdf_bytes)
 ```
 
-![](../Images/9eeed45beddda0c8af8e2d5deaf3917c.png)
+![](img/9eeed45beddda0c8af8e2d5deaf3917c.png)
 
 使用上述代码从 PDF 文档中提取的文本示例。由于收据包含个人身份信息（PII），这里我们仅使用上传到 Google Drive 的随机文档进行演示。图像由作者生成。
 
@@ -454,7 +454,7 @@ Total Cost (USD): $0.01302
 
 # 5\. 使用 gpt-3.5-turbo 进行信息提取
 
-假设我们已经使用第 4 部分中的步骤生成了一些示例并将它们保存为 json 文件。每个示例包含一些提取的文本和根据我们的 `ReceiptInformation` Pydantic 模型定义的相应关键信息。现在，我们想将这些示例注入到对 gpt-3.5-turbo 的调用中，期望它能将从这些示例中学到的东西推广到新的收据。少量示例学习是提示工程中的一种强大工具，如果它有效，对于这个用例将非常有用，因为每当检测到新的收据格式时，我们可以使用 gpt-4-vision 生成一个示例，并将其附加到用于提示 gpt-3.5-turbo 的示例列表中。然后，当出现类似格式的收据时，可以使用 gpt-3.5-turbo 来提取其内容。从某种程度上说，这就像模板匹配，但不需要手动定义模板。
+假设我们已经使用第四部分中的步骤生成了一些示例并将它们保存为 json 文件。每个示例包含一些提取的文本和根据我们的 `ReceiptInformation` Pydantic 模型定义的相应关键信息。现在，我们想将这些示例注入到对 gpt-3.5-turbo 的调用中，期望它能将从这些示例中学到的东西推广到新的收据。少量示例学习是提示工程中的一种强大工具，如果它有效，对于这个用例将非常有用，因为每当检测到新的收据格式时，我们可以使用 gpt-4-vision 生成一个示例，并将其附加到用于提示 gpt-3.5-turbo 的示例列表中。然后，当出现类似格式的收据时，可以使用 gpt-3.5-turbo 来提取其内容。从某种程度上说，这就像模板匹配，但不需要手动定义模板。
 
 有很多方法可以促使基于文本的 LLM 从一段文本中提取结构化信息。我发现的最新且最强大的方法之一可以在 Langchain 文档的 [此处](https://python.langchain.com/docs/use_cases/extraction/how_to/examples/) 找到。其思路是创建一个包含占位符的提示语，用于存放一些示例，然后将这些示例注入到提示语中，就像它们是通过某个 LLM 调用的函数返回的一样。这是通过 `model.with_structured_output()` 功能实现的，您可以在 [此处](https://python.langchain.com/docs/modules/model_io/chat/structured_output/) 阅读相关信息。请注意，目前这个功能还处于测试阶段，可能会发生变化！
 
@@ -495,7 +495,7 @@ class TextReceiptExtractionPrompt:
     )
 ```
 
-提示语文本与第 4 节中的完全相同，只是我们现在有了一个 `MessagesPlaceholder` 来保存我们即将插入的示例。
+提示语文本与第四部分中的完全相同，只是我们现在有了一个 `MessagesPlaceholder` 来保存我们即将插入的示例。
 
 ```py
 class Example(TypedDict):
@@ -656,12 +656,12 @@ extracted_information, cb = extractor.run_and_count_tokens(
 
 # 输出数据集
 
-收集了一些收据后，您可以运行第 4 和第 5 节中描述的提取方法，并将结果收集到一个数据框中。然后，它将被存储，并且每当 Google Drive 中出现新的收据时，可以将其附加到这个数据框中。
+收集了一些收据后，您可以运行第 4 和第五部分中描述的提取方法，并将结果收集到一个数据框中。然后，它将被存储，并且每当 Google Drive 中出现新的收据时，可以将其附加到这个数据框中。
 
-![](../Images/07908e8c252f1d406db696da159899c3.png)
+![](img/07908e8c252f1d406db696da159899c3.png)
 
 输出数据集的示例，显示了从多个收据中提取的字段。图片由作者生成
 
 一旦我的提取的收据信息数据库变得更大一些，我计划在此基础上探索基于 LLM 的问答功能，敬请期待相关的文章！我还对为这个项目探索一种更正式的评估方法并将其与 AWS Textract 或类似产品的结果进行比较感到好奇。
 
-感谢您看到最后！请随时在此处探索完整的代码库 [https://github.com/rmartinshort/receiptchat](https://github.com/rmartinshort/receiptchat)。任何关于改进或扩展功能的建议都将不胜感激！
+感谢您看到最后！请随时在此处探索完整的代码库 [`github.com/rmartinshort/receiptchat`](https://github.com/rmartinshort/receiptchat)。任何关于改进或扩展功能的建议都将不胜感激！

@@ -1,36 +1,36 @@
-# Self-Instruct框架，解释
+# Self-Instruct 框架，解释
 
-> 原文：[https://towardsdatascience.com/self-instruct-framework-explained-16bce90f4683?source=collection_archive---------10-----------------------#2024-03-05](https://towardsdatascience.com/self-instruct-framework-explained-16bce90f4683?source=collection_archive---------10-----------------------#2024-03-05)
+> 原文：[`towardsdatascience.com/self-instruct-framework-explained-16bce90f4683?source=collection_archive---------10-----------------------#2024-03-05`](https://towardsdatascience.com/self-instruct-framework-explained-16bce90f4683?source=collection_archive---------10-----------------------#2024-03-05)
 
 ## 或者说，如何“消除”人工标注者
 
-[](https://medium.com/@dmitry.tsyuzhentsin?source=post_page---byline--16bce90f4683--------------------------------)[![Tsiu-zhen-tsin Dmitrii](../Images/e210c94ae2a6415cba7189c59f7eafa5.png)](https://medium.com/@dmitry.tsyuzhentsin?source=post_page---byline--16bce90f4683--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16bce90f4683--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--16bce90f4683--------------------------------) [Tsiu-zhen-tsin Dmitrii](https://medium.com/@dmitry.tsyuzhentsin?source=post_page---byline--16bce90f4683--------------------------------)
+[](https://medium.com/@dmitry.tsyuzhentsin?source=post_page---byline--16bce90f4683--------------------------------)![Tsiu-zhen-tsin Dmitrii](https://medium.com/@dmitry.tsyuzhentsin?source=post_page---byline--16bce90f4683--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16bce90f4683--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16bce90f4683--------------------------------) [Tsiu-zhen-tsin Dmitrii](https://medium.com/@dmitry.tsyuzhentsin?source=post_page---byline--16bce90f4683--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16bce90f4683--------------------------------) ·10分钟阅读·2024年3月5日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16bce90f4683--------------------------------) ·10 分钟阅读·2024 年 3 月 5 日
 
 --
 
-![](../Images/a2032623dfbb4f53b21fa2fade0a02d4.png)
+![](img/a2032623dfbb4f53b21fa2fade0a02d4.png)
 
-图像由DALL·E生成
+图像由 DALL·E 生成
 
 # 动机
 
-![](../Images/846718fbfb023aecc4441a424b81e209.png)
+![](img/846718fbfb023aecc4441a424b81e209.png)
 
-InstructGPT的高级概述，包括人工标注输出和监督学习及奖励模型训练的排名 | 来源：[Training language models to follow instructions with human feedback](https://arxiv.org/pdf/2203.02155).
+InstructGPT 的高级概述，包括人工标注输出和监督学习及奖励模型训练的排名 | 来源：[Training language models to follow instructions with human feedback](https://arxiv.org/pdf/2203.02155).
 
-随着大语言模型（LLMs）彻底改变我们的生活，指令调优LLMs的增长面临着显著挑战：对大量、多样且高质量数据集的迫切需求。传统方法，如使用人工标注者生成数据集——这也是InstructGPT（上图）采用的策略——面临着高成本、有限的多样性、创造性和一致性挑战。为了应对这些局限性，Self-Instruct框架²应运而生。其核心理念简单而强大：让语言模型（LM）生成训练数据，从而实现更具成本效益、多样性和创造性的数据集。
+随着大语言模型（LLMs）彻底改变我们的生活，指令调优 LLMs 的增长面临着显著挑战：对大量、多样且高质量数据集的迫切需求。传统方法，如使用人工标注者生成数据集——这也是 InstructGPT（上图）采用的策略——面临着高成本、有限的多样性、创造性和一致性挑战。为了应对这些局限性，Self-Instruct 框架²应运而生。其核心理念简单而强大：让语言模型（LM）生成训练数据，从而实现更具成本效益、多样性和创造性的数据集。
 
 因此，在本文中，我将引导你逐步了解框架的各个方面，展示所有细节，以便你在阅读后能够自己重现这些结果 :)
 
-❗ 本文从代码的角度提供了所有步骤，因此请随时访问原始的[GitHub仓库](https://github.com/yizhongw/self-instruct#) 。❗
+❗ 本文从代码的角度提供了所有步骤，因此请随时访问原始的[GitHub 仓库](https://github.com/yizhongw/self-instruct#) 。❗
 
-# Self-Instruct框架
+# Self-Instruct 框架
 
-![](../Images/c52708b5f5a0ce82c6b7da94255ad7e1.png)
+![](img/c52708b5f5a0ce82c6b7da94255ad7e1.png)
 
-Self-Instruct框架的高级概述
+Self-Instruct 框架的高级概述
 
 该方法相对简单明了：
 
@@ -64,7 +64,7 @@ Voilà，这就是 Self-Instruct 的工作原理，但关键在于细节，所�
 
 ## 步骤 0 — 定义指令数据  
 
-![](../Images/c1ad6c077176a803126a54ade25f05bf.png)  
+![](img/c1ad6c077176a803126a54ade25f05bf.png)  
 
 步骤 0  
 
@@ -72,11 +72,11 @@ Voilà，这就是 Self-Instruct 的工作原理，但关键在于细节，所�
 
 这里有一些带有空输入字段和非空输入字段的分类和非分类任务示例：  
 
-![](../Images/445da55a377333a447a8e31681447d2c.png)  
+![](img/445da55a377333a447a8e31681447d2c.png)  
 
 分类任务的非空输入示例
 
-![](../Images/45fde17cc82f3f58851167a597992e3f.png)  
+![](img/45fde17cc82f3f58851167a597992e3f.png)  
 
 非分类任务的空输入示例  
 
@@ -88,7 +88,7 @@ Voilà，这就是 Self-Instruct 的工作原理，但关键在于细节，所�
 
 ## 步骤 1 — 指令生成  
 
-![](../Images/3ddb5fb00f8753b2ce69ee59bfec769e.png)  
+![](img/3ddb5fb00f8753b2ce69ee59bfec769e.png)  
 
 步骤 1  
 
@@ -96,7 +96,7 @@ Voilà，这就是 Self-Instruct 的工作原理，但关键在于细节，所�
 
 通过向任务池添加人工编写的种子任务集，我们可以开始指令生成。为此，我们需要从任务池中采样 8 个指令（6 个人工编写和 2 个机器生成），并将它们编码为以下提示：  
 
-![](../Images/3fe0f35250659fbce7e3c14511796cd6.png)  
+![](img/3fe0f35250659fbce7e3c14511796cd6.png)  
 
 提示生成新指令  
 
@@ -104,7 +104,7 @@ Voilà，这就是 Self-Instruct 的工作原理，但关键在于细节，所�
 
 生成后，我们从语言模型的响应中提取指令（通过正则表达式），过滤掉它们，并将过滤后的指令添加到任务池中：
 
-![](../Images/56ae357136a1310a25a128bc1cf65cc2.png)
+![](img/56ae357136a1310a25a128bc1cf65cc2.png)
 
 指令生成步骤的伪代码
 
@@ -122,35 +122,35 @@ Voilà，这就是 Self-Instruct 的工作原理，但关键在于细节，所�
 
 +   过滤掉那些以非英语字符开头的指令；
 
-+   当其ROUGE-L相似度与任何现有指令的相似度大于0.7时，过滤掉这些指令；
++   当其 ROUGE-L 相似度与任何现有指令的相似度大于 0.7 时，过滤掉这些指令；
 
 ## 第二步 — 分类任务识别
 
-![](../Images/c6ffd4aca9d8e7ec419a64b2f5c7b11e.png)
+![](img/c6ffd4aca9d8e7ec419a64b2f5c7b11e.png)
 
 第二步
 
-Self-Instruct的作者注意到，根据不同的指令，语言模型可能会对某一个标签产生偏向，特别是在分类任务中。因此，为了消除这种偏向，我们需要通过少量示例提示对每个指令进行分类：
+Self-Instruct 的作者注意到，根据不同的指令，语言模型可能会对某一个标签产生偏向，特别是在分类任务中。因此，为了消除这种偏向，我们需要通过少量示例提示对每个指令进行分类：
 
-![](../Images/af86a11dae91aa778edbb0a0b6f0bb1a.png)
+![](img/af86a11dae91aa778edbb0a0b6f0bb1a.png)
 
-用于分类任务是否为分类任务或非分类任务的提示（此模板中使用了12个分类指令和19个非分类指令）
+用于分类任务是否为分类任务或非分类任务的提示（此模板中使用了 12 个分类指令和 19 个非分类指令）
 
 ## 第三步 — 实例生成
 
-![](../Images/c1f43525948bb2d7bb6ef780a01d3f63.png)
+![](img/c1f43525948bb2d7bb6ef780a01d3f63.png)
 
 第三步
 
 在识别了指令类型后，我们最终可以生成输入和输出，考虑到我们有两种类型的指令（分类或非分类）。怎么做呢？**少量示例提示！**
 
-对于非分类指令，我们要求模型首先生成输入，然后生成输出（**先输入法**），但对于分类任务，我们要求模型先生成输出（类别标签），然后基于输出生成输入（**先输出法**）。与第0步相比，我们不限制每个指令生成的实例数量。
+对于非分类指令，我们要求模型首先生成输入，然后生成输出（**先输入法**），但对于分类任务，我们要求模型先生成输出（类别标签），然后基于输出生成输入（**先输出法**）。与第 0 步相比，我们不限制每个指令生成的实例数量。
 
-![](../Images/936041e4deb8138940508512b2d2fc22.png)
+![](img/936041e4deb8138940508512b2d2fc22.png)
 
 用于实例生成的输入优先法提示
 
-![](../Images/81ce9945254ce624197510383efa8904.png)
+![](img/81ce9945254ce624197510383efa8904.png)
 
 用于输出优先法实例生成的提示
 
@@ -164,99 +164,99 @@ Self-Instruct的作者注意到，根据不同的指令，语言模型可能会�
 
 +   这些通常是生成不完整的指令，如果输入或输出以冒号结尾；
 
-还有一些其他的启发式方法。最后，我们得到了以下示例，其中包含1条指令和1个实例：
+还有一些其他的启发式方法。最后，我们得到了以下示例，其中包含 1 条指令和 1 个实例：
 
-![](../Images/e66b61fa15e4b849411a66a67414099d.png)
+![](img/e66b61fa15e4b849411a66a67414099d.png)
 
 实例生成示例
 
-这就是Self-Instruct的主要思想！
+这就是 Self-Instruct 的主要思想！
 
-## 步骤4——对语言模型进行微调以遵循指令
+## 步骤 4——对语言模型进行微调以遵循指令
 
 完成所有前述步骤后，我们可以采用一个预训练的语言模型，并对其在生成的数据集上进行指令微调，从而获得更好的指标。
 
 # 克服挑战
 
-在文章的开头，我提到了一些“指令微调”语言模型面临的挑战；现在，让我们看看Self-Instruct如何帮助克服这些挑战。
+在文章的开头，我提到了一些“指令微调”语言模型面临的挑战；现在，让我们看看 Self-Instruct 如何帮助克服这些挑战。
 
 ## 数量
 
-在仅有175个初始人工编写的任务的帮助下，生成了52K条指令和82K个实例：
+在仅有 175 个初始人工编写的任务的帮助下，生成了 52K 条指令和 82K 个实例：
 
-![](../Images/7c26e7706615a94f7c70e392cccd8c52.png)
+![](img/7c26e7706615a94f7c70e392cccd8c52.png)
 
 来源：[Self-Instruct: Aligning Language Models with Self-Generated Instructions](https://arxiv.org/pdf/2212.10560)
 
 ## 多样性
 
-为了调查生成数据集的多样性，《Self-Instruct》的作者使用了伯克利神经解析器（Berkley Neural Parser）来解析指令，然后提取与根词最接近的动词及其第一个直接名词对象。在52K条指令中，有26K条具有动词-名词格式，但另外26K条指令具有更复杂的结构（例如，“判断这条推文是否包含政治内容。”）或被构造为问题（例如，“以下哪些陈述是正确的？”）。
+为了调查生成数据集的多样性，《Self-Instruct》的作者使用了伯克利神经解析器（Berkley Neural Parser）来解析指令，然后提取与根词最接近的动词及其第一个直接名词对象。在 52K 条指令中，有 26K 条具有动词-名词格式，但另外 26K 条指令具有更复杂的结构（例如，“判断这条推文是否包含政治内容。”）或被构造为问题（例如，“以下哪些陈述是正确的？”）。
 
-![](../Images/3321770df0415c9c20e8478a05891469.png)
+![](img/3321770df0415c9c20e8478a05891469.png)
 
-在生成的指令中，最常见的前20个根动词（内圈）及其前4个直接名词对象（外圈）| 来源：[Self-Instruct: Aligning Language Models with Self-Generated Instructions](https://arxiv.org/pdf/2212.10560)
+在生成的指令中，最常见的前 20 个根动词（内圈）及其前 4 个直接名词对象（外圈）| 来源：[Self-Instruct: Aligning Language Models with Self-Generated Instructions](https://arxiv.org/pdf/2212.10560)
 
 ## 质量
 
-为了证明Self-Instruct能够生成高质量的任务，随机选择了200条生成的指令，并为每条指令抽取1个实例，然后框架的作者对这些任务进行了评估，得出了以下结果：
+为了证明 Self-Instruct 能够生成高质量的任务，随机选择了 200 条生成的指令，并为每条指令抽取 1 个实例，然后框架的作者对这些任务进行了评估，得出了以下结果：
 
-![](../Images/75c61fdf98529ce8b391c552b4fe9f56.png)
+![](img/75c61fdf98529ce8b391c552b4fe9f56.png)
 
 来源：[Self-Instruct: Aligning Language Models with Self-Generated Instructions](https://arxiv.org/pdf/2212.10560)
 
-如我们所见，92%的任务描述了有效的任务，且54%的任务包含了所有有效字段（考虑到我们生成了52K个任务，至少26K个将代表高质量数据，这是非常棒的！）
+如我们所见，92%的任务描述了有效的任务，且 54%的任务包含了所有有效字段（考虑到我们生成了 52K 个任务，至少 26K 个将代表高质量数据，这是非常棒的！）
 
 ## **成本**
 
-Self-Instruct框架也带来了显著的成本优势。任务生成的初始阶段（步骤1-3）仅需600美元，而最后一步使用GPT-3模型进行微调的成本为338美元。我们在查看结果时，必须记住这一点！
+Self-Instruct 框架也带来了显著的成本优势。任务生成的初始阶段（步骤 1-3）仅需 600 美元，而最后一步使用 GPT-3 模型进行微调的成本为 338 美元。我们在查看结果时，必须记住这一点！
 
 # 结果
 
-Self-Instruct如何提高在SuperNI（**超级自然指令**）数据集上的ROUGE-L指标？为此，我们可以比较以下几种情况的结果：1) 没有任何指令微调的预训练语言模型（普通语言模型），2) 指令微调的模型（没有SuperNI的指令微调），以及3) 在SuperNI数据集上训练的指令微调模型（有SuperNI的指令微调）：
+Self-Instruct 如何提高在 SuperNI（**超级自然指令**）数据集上的 ROUGE-L 指标？为此，我们可以比较以下几种情况的结果：1) 没有任何指令微调的预训练语言模型（普通语言模型），2) 指令微调的模型（没有 SuperNI 的指令微调），以及 3) 在 SuperNI 数据集上训练的指令微调模型（有 SuperNI 的指令微调）：
 
-![](../Images/998b6798d954b2297b79ba9b0c2aa56c.png)
+![](img/998b6798d954b2297b79ba9b0c2aa56c.png)
 
-来自SuperNI的***未见***任务的评估结果 | 来源：[Self-Instruct: Aligning Language Models with Self-Generated Instructions](https://arxiv.org/pdf/2212.10560)
+来自 SuperNI 的***未见***任务的评估结果 | 来源：[Self-Instruct: Aligning Language Models with Self-Generated Instructions](https://arxiv.org/pdf/2212.10560)
 
-正如我们所见，使用Self-Instruct在数据集（1）上展示了比原始模型高出33%的绝对改进；同时，它还表明，使用该框架在微调SuperNI数据集（3）后，也能略微提高指标。
+正如我们所见，使用 Self-Instruct 在数据集（1）上展示了比原始模型高出 33%的绝对改进；同时，它还表明，使用该框架在微调 SuperNI 数据集（3）后，也能略微提高指标。
 
-此外，如果我们创建一个新的（=未见的）数据集，包含252条指令和每条指令1个实例，并评估一系列指令调优版本，可以看到以下结果：
+此外，如果我们创建一个新的（=未见的）数据集，包含 252 条指令和每条指令 1 个实例，并评估一系列指令调优版本，可以看到以下结果：
 
-![](../Images/8a00ab05695c5026ef4cc894e16e4a93.png)
+![](img/8a00ab05695c5026ef4cc894e16e4a93.png)
 
-GPT3模型及其指令调优版本，在我们252条用户导向的指令上经过人类专家评估的表现 | 来源：[Self-Instruct: Aligning Language Models with Self-Generated Instructions](https://arxiv.org/pdf/2212.10560)
+GPT3 模型及其指令调优版本，在我们 252 条用户导向的指令上经过人类专家评估的表现 | 来源：[Self-Instruct: Aligning Language Models with Self-Generated Instructions](https://arxiv.org/pdf/2212.10560)
 
-GPT3 + Self-Instruct与其他指令调优版本相比，表现出了令人印象深刻的结果，但与InstructGPT（OpenAI之前发布的LLM）版本相比，仍有提升空间。
+GPT3 + Self-Instruct 与其他指令调优版本相比，表现出了令人印象深刻的结果，但与 InstructGPT（OpenAI 之前发布的 LLM）版本相比，仍有提升空间。
 
 # 增强功能
 
-Self-Instruct背后的理念简单直接，但同时也非常有说服力，因此让我们看看如何在不同的场景中使用它。
+Self-Instruct 背后的理念简单直接，但同时也非常有说服力，因此让我们看看如何在不同的场景中使用它。
 
-## 斯坦福Alpaca³
+## 斯坦福 Alpaca³
 
-2023年，斯坦福大学的Alpaca LLM因其低廉的成本、易得性以及开发成本不到600美元而引起了极大的关注，同时，它结合了LLaMA和Self-Instruct的理念。
+2023 年，斯坦福大学的 Alpaca LLM 因其低廉的成本、易得性以及开发成本不到 600 美元而引起了极大的关注，同时，它结合了 LLaMA 和 Self-Instruct 的理念。
 
-![](../Images/b4d952b864fe39083fd674bcca9c7f51.png)
+![](img/b4d952b864fe39083fd674bcca9c7f51.png)
 
-Alpaca的高层概述 | 来源：[Alpaca: A Strong, Replicable Instruction-Following Model](https://crfm.stanford.edu/2023/03/13/alpaca.html)
+Alpaca 的高层概述 | 来源：[Alpaca: A Strong, Replicable Instruction-Following Model](https://crfm.stanford.edu/2023/03/13/alpaca.html)
 
-Alpaca版本的Self-Instruct略有修改：
+Alpaca 版本的 Self-Instruct 略有修改：
 
-+   第一步（指令生成）：应用了更为激进的批量解码，即一次生成20条指令
++   第一步（指令生成）：应用了更为激进的批量解码，即一次生成 20 条指令
 
 +   第二步（分类任务）：此步骤完全被排除
 
 +   第三步（实例生成）：每条指令仅生成一个实例
 
-最终，斯坦福大学的研究人员通过在Self-Instruct中的设置取得了显著的改进，并且进行了盲对比测试，比较了text-davinci-003（InstructGPT-003）和Alpaca 7B：在90对89的比较中，Alpaca战胜了text-davinci-003。
+最终，斯坦福大学的研究人员通过在 Self-Instruct 中的设置取得了显著的改进，并且进行了盲对比测试，比较了 text-davinci-003（InstructGPT-003）和 Alpaca 7B：在 90 对 89 的比较中，Alpaca 战胜了 text-davinci-003。
 
 ## 自奖励语言模型⁴
 
-![](../Images/0219851ef32d6d7ffd7ab7fa267ece14.png)
+![](img/0219851ef32d6d7ffd7ab7fa267ece14.png)
 
 来源：[Self-Rewarding Language Models](https://arxiv.org/pdf/2401.10020)
 
-在2024年，Self-Instruct 是一种在更复杂的设置中使用的实用框架，比如 Meta 的自奖励语言模型中。如同 Self-Instruct 一样，最初我们有一组人工编写的任务；然后我们生成新的指令 {xᵢ} 并提示模型 Mₜ 生成输出 {yᵢ¹, …, yᵢᵏ}，接着生成奖励 {rᵢ¹, …, rᵢᵏ} — 这就是通过自指令过程在 InstructGPT 中“消除”人工标注员的方式。Self-Rewarding 模型的最后一个步骤是指令跟随训练——在这个步骤中，我们构造偏好对并通过 DPO 训练 Mₜ₊₁ —— 下一代模型。因此，我们可以反复执行这个过程，以丰富数据集并改善初始的预训练模型。
+在 2024 年，Self-Instruct 是一种在更复杂的设置中使用的实用框架，比如 Meta 的自奖励语言模型中。如同 Self-Instruct 一样，最初我们有一组人工编写的任务；然后我们生成新的指令 {xᵢ} 并提示模型 Mₜ 生成输出 {yᵢ¹, …, yᵢᵏ}，接着生成奖励 {rᵢ¹, …, rᵢᵏ} — 这就是通过自指令过程在 InstructGPT 中“消除”人工标注员的方式。Self-Rewarding 模型的最后一个步骤是指令跟随训练——在这个步骤中，我们构造偏好对并通过 DPO 训练 Mₜ₊₁ —— 下一代模型。因此，我们可以反复执行这个过程，以丰富数据集并改善初始的预训练模型。
 
 # 探索局限性
 
@@ -264,7 +264,7 @@ Alpaca版本的Self-Instruct略有修改：
 
 ## 数据质量
 
-尽管在生成合成数据方面展现了令人印象深刻的能力，但质量——在“克服挑战”部分标注为54%的有效性——仍然是一个关注点。这凸显了一个关键问题：预训练模型中固有的偏差可能在生成的数据集中复制，甚至放大。
+尽管在生成合成数据方面展现了令人印象深刻的能力，但质量——在“克服挑战”部分标注为 54%的有效性——仍然是一个关注点。这凸显了一个关键问题：预训练模型中固有的偏差可能在生成的数据集中复制，甚至放大。
 
 ## 尾现象
 
@@ -282,6 +282,6 @@ Alpaca版本的Self-Instruct略有修改：
 
 [2] Wang, Y., Kordi, Y., Mishra, S., Liu, A., Smith, N.A., Khashabi, D. 和 Hajishirzi, H., 2022\. [Self-Instruct：使语言模型与自生成指令对齐](https://arxiv.org/pdf/2212.10560)。 *arXiv 预印本 arXiv:2212.10560*。
 
-[3] Taori, R., Gulrajani, I., Zhang, T., Dubois, Y., Li, X., Guestrin, C., Liang, P. 和 Hashimoto, T.B., 2023\. [斯坦福Alpaca：一种指令跟随的Llama模型](https://crfm.stanford.edu/2023/03/13/alpaca.html)。
+[3] Taori, R., Gulrajani, I., Zhang, T., Dubois, Y., Li, X., Guestrin, C., Liang, P. 和 Hashimoto, T.B., 2023\. [斯坦福 Alpaca：一种指令跟随的 Llama 模型](https://crfm.stanford.edu/2023/03/13/alpaca.html)。
 
 [4] Yuan, W., Pang, R.Y., Cho, K., Sukhbaatar, S., Xu, J. 和 Weston, J., 2024\. [自奖励语言模型](https://arxiv.org/pdf/2401.10020)。 *arXiv 预印本 arXiv:2401.10020*。

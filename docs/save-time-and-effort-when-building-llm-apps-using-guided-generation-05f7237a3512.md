@@ -1,16 +1,16 @@
 # 使用引导生成法构建 LLM 应用，节省时间和精力
 
-> 原文：[https://towardsdatascience.com/save-time-and-effort-when-building-llm-apps-using-guided-generation-05f7237a3512?source=collection_archive---------13-----------------------#2024-07-29](https://towardsdatascience.com/save-time-and-effort-when-building-llm-apps-using-guided-generation-05f7237a3512?source=collection_archive---------13-----------------------#2024-07-29)
+> 原文：[`towardsdatascience.com/save-time-and-effort-when-building-llm-apps-using-guided-generation-05f7237a3512?source=collection_archive---------13-----------------------#2024-07-29`](https://towardsdatascience.com/save-time-and-effort-when-building-llm-apps-using-guided-generation-05f7237a3512?source=collection_archive---------13-----------------------#2024-07-29)
 
 ## 使用 Guidance 使 LLM 输出符合你的期望
 
-[](https://medium.com/@CVxTz?source=post_page---byline--05f7237a3512--------------------------------)[![Youness Mansar](../Images/b68fe2cbbe219ab0231922c7165f2b6a.png)](https://medium.com/@CVxTz?source=post_page---byline--05f7237a3512--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--05f7237a3512--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--05f7237a3512--------------------------------) [Youness Mansar](https://medium.com/@CVxTz?source=post_page---byline--05f7237a3512--------------------------------)
+[](https://medium.com/@CVxTz?source=post_page---byline--05f7237a3512--------------------------------)![Youness Mansar](https://medium.com/@CVxTz?source=post_page---byline--05f7237a3512--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--05f7237a3512--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05f7237a3512--------------------------------) [Youness Mansar](https://medium.com/@CVxTz?source=post_page---byline--05f7237a3512--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05f7237a3512--------------------------------) ·8分钟阅读·2024年7月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05f7237a3512--------------------------------) ·8 分钟阅读·2024 年 7 月 29 日
 
 --
 
-![](../Images/2dc86ebfea3eaee2537bd2de771e414e.png)
+![](img/2dc86ebfea3eaee2537bd2de771e414e.png)
 
 图片由 [Markus Spiske](https://unsplash.com/@markusspiske?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

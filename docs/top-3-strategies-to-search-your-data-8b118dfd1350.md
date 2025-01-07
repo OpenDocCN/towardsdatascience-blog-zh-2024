@@ -1,12 +1,12 @@
 # 搜索数据的三大策略
 
-> 原文：[https://towardsdatascience.com/top-3-strategies-to-search-your-data-8b118dfd1350?source=collection_archive---------4-----------------------#2024-12-21](https://towardsdatascience.com/top-3-strategies-to-search-your-data-8b118dfd1350?source=collection_archive---------4-----------------------#2024-12-21)
+> 原文：[`towardsdatascience.com/top-3-strategies-to-search-your-data-8b118dfd1350?source=collection_archive---------4-----------------------#2024-12-21`](https://towardsdatascience.com/top-3-strategies-to-search-your-data-8b118dfd1350?source=collection_archive---------4-----------------------#2024-12-21)
 
 ## 从传统索引寻求到基于 AI 的语义搜索，每个软件工程师都应该知道的策略！
 
-[](https://shawn-shi.medium.com/?source=post_page---byline--8b118dfd1350--------------------------------)[![Shawn Shi](../Images/f2125e0b312735f158e9930a7a4a6f83.png)](https://shawn-shi.medium.com/?source=post_page---byline--8b118dfd1350--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8b118dfd1350--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8b118dfd1350--------------------------------) [Shawn Shi](https://shawn-shi.medium.com/?source=post_page---byline--8b118dfd1350--------------------------------)
+[](https://shawn-shi.medium.com/?source=post_page---byline--8b118dfd1350--------------------------------)![Shawn Shi](https://shawn-shi.medium.com/?source=post_page---byline--8b118dfd1350--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8b118dfd1350--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8b118dfd1350--------------------------------) [Shawn Shi](https://shawn-shi.medium.com/?source=post_page---byline--8b118dfd1350--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8b118dfd1350--------------------------------) ·阅读时长 7 分钟·2024年12月21日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8b118dfd1350--------------------------------) ·阅读时长 7 分钟·2024 年 12 月 21 日
 
 --
 

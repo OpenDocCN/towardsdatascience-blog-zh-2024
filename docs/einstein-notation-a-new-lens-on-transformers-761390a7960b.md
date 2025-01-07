@@ -1,16 +1,16 @@
 # 爱因斯坦符号：Transformer 新视角
 
-> 原文：[https://towardsdatascience.com/einstein-notation-a-new-lens-on-transformers-761390a7960b?source=collection_archive---------1-----------------------#2024-11-20](https://towardsdatascience.com/einstein-notation-a-new-lens-on-transformers-761390a7960b?source=collection_archive---------1-----------------------#2024-11-20)
+> 原文：[`towardsdatascience.com/einstein-notation-a-new-lens-on-transformers-761390a7960b?source=collection_archive---------1-----------------------#2024-11-20`](https://towardsdatascience.com/einstein-notation-a-new-lens-on-transformers-761390a7960b?source=collection_archive---------1-----------------------#2024-11-20)
 
 ## 转换 Transformer 模型的数学
 
-[](https://medium.com/@ch.mittendorf?source=post_page---byline--761390a7960b--------------------------------)[![Dr. Christoph Mittendorf](../Images/466a7a53b8261f4df61461090dcfc743.png)](https://medium.com/@ch.mittendorf?source=post_page---byline--761390a7960b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--761390a7960b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--761390a7960b--------------------------------) [Dr. Christoph Mittendorf](https://medium.com/@ch.mittendorf?source=post_page---byline--761390a7960b--------------------------------)
+[](https://medium.com/@ch.mittendorf?source=post_page---byline--761390a7960b--------------------------------)![Dr. Christoph Mittendorf](https://medium.com/@ch.mittendorf?source=post_page---byline--761390a7960b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--761390a7960b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--761390a7960b--------------------------------) [Dr. Christoph Mittendorf](https://medium.com/@ch.mittendorf?source=post_page---byline--761390a7960b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--761390a7960b--------------------------------) ·8 分钟阅读·2024年11月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--761390a7960b--------------------------------) ·8 分钟阅读·2024 年 11 月 20 日
 
 --
 
-![](../Images/27d78cf2967592bbfc4e2308237ab91d.png)
+![](img/27d78cf2967592bbfc4e2308237ab91d.png)
 
 Transformer（由作者使用 FLUX1-schnell 创建）
 

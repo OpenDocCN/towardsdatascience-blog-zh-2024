@@ -1,12 +1,12 @@
 # LLM 超参数的视觉解释
 
-> 原文：[https://towardsdatascience.com/a-visual-explanation-of-llm-hyperparameters-daf61d3b006e?source=collection_archive---------3-----------------------#2024-08-29](https://towardsdatascience.com/a-visual-explanation-of-llm-hyperparameters-daf61d3b006e?source=collection_archive---------3-----------------------#2024-08-29)
+> 原文：[`towardsdatascience.com/a-visual-explanation-of-llm-hyperparameters-daf61d3b006e?source=collection_archive---------3-----------------------#2024-08-29`](https://towardsdatascience.com/a-visual-explanation-of-llm-hyperparameters-daf61d3b006e?source=collection_archive---------3-----------------------#2024-08-29)
 
 ## 彻底理解温度、Top-k、Top-p、频率和存在惩罚。
 
-[](https://medium.com/@jenn-j-dev?source=post_page---byline--daf61d3b006e--------------------------------)[![Jenn J.](../Images/d2ef3b8f454d4f7a974edd5a965a80e8.png)](https://medium.com/@jenn-j-dev?source=post_page---byline--daf61d3b006e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--daf61d3b006e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--daf61d3b006e--------------------------------) [Jenn J.](https://medium.com/@jenn-j-dev?source=post_page---byline--daf61d3b006e--------------------------------)
+[](https://medium.com/@jenn-j-dev?source=post_page---byline--daf61d3b006e--------------------------------)![Jenn J.](https://medium.com/@jenn-j-dev?source=post_page---byline--daf61d3b006e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--daf61d3b006e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--daf61d3b006e--------------------------------) [Jenn J.](https://medium.com/@jenn-j-dev?source=post_page---byline--daf61d3b006e--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--daf61d3b006e--------------------------------) ·阅读时间 7 分钟 ·2024年8月29日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--daf61d3b006e--------------------------------) ·阅读时间 7 分钟 ·2024 年 8 月 29 日
 
 --
 
@@ -34,7 +34,7 @@
 
 在我们的“杯中的…”示例中，将温度设置为 0 会使模型倾向于选择最可能的单词，即“咖啡”。
 
-![](../Images/869825d95b5bfdc9c79b14e9d1b13356.png)
+![](img/869825d95b5bfdc9c79b14e9d1b13356.png)
 
 图片由作者提供。
 
@@ -70,31 +70,31 @@ Top-k 采样限制模型从最可能的*k*个下一个单词中进行选择。�
 
 在下图中，如果我们将*k*设置为 2，模型只会考虑两个最可能的下一个单词——在这种情况下，“咖啡”和“勇气”。然后，这两个单词会被重新抽样，调整它们的概率使其总和为 1，从而确保选择其中一个。
 
-![](../Images/72bad6505f466125adcde5e07054ea70.png)
+![](img/72bad6505f466125adcde5e07054ea70.png)
 
 图片由作者提供。
 
 **使用场景：**
 
-+   低k（例如，k=10）：最适合结构化任务，在这些任务中你希望保持焦点和连贯性，例如总结或编码。
++   低 k（例如，k=10）：最适合结构化任务，在这些任务中你希望保持焦点和连贯性，例如总结或编码。
 
-+   高k（例如，k=50）：适用于创造性或探索性任务，在这些任务中你希望引入更多变化而不失去连贯性。
++   高 k（例如，k=50）：适用于创造性或探索性任务，在这些任务中你希望引入更多变化而不失去连贯性。
 
 # Top-p
 
 Top-p 采样选择那些其联合概率超过阈值*p*（例如，0.9）的最小单词集，从而允许根据上下文进行更敏感的词语选择。
 
-在下面的图表中，我们从最可能的单词“coffee”开始，它的概率是0.6。由于这个概率低于我们的阈值*p* = 0.9，我们加入下一个单词“courage”，它的概率是0.2。加起来，这两个词的总概率是0.8，仍然低于0.9。最后，我们考虑单词“dreams”，它的概率是0.13，总概率达到0.93，超过了0.9。此时，我们停止选择，选择了前两个最可能的单词。
+在下面的图表中，我们从最可能的单词“coffee”开始，它的概率是 0.6。由于这个概率低于我们的阈值*p* = 0.9，我们加入下一个单词“courage”，它的概率是 0.2。加起来，这两个词的总概率是 0.8，仍然低于 0.9。最后，我们考虑单词“dreams”，它的概率是 0.13，总概率达到 0.93，超过了 0.9。此时，我们停止选择，选择了前两个最可能的单词。
 
-![](../Images/9444be711d7c56d878173c9fa83df048.png)
+![](img/9444be711d7c56d878173c9fa83df048.png)
 
 图片由作者提供。
 
 **用例：**
 
-+   低p值（例如，p=0.5）：适用于需要简洁且直截了当的输出的任务，如新闻标题或说明性文本。
++   低 p 值（例如，p=0.5）：适用于需要简洁且直截了当的输出的任务，如新闻标题或说明性文本。
 
-+   高p值（例如，p=0.95）：适用于更开放的任务，如对话生成或创意内容生成，这类任务需要更多样化的回应。
++   高 p 值（例如，p=0.95）：适用于更开放的任务，如对话生成或创意内容生成，这类任务需要更多样化的回应。
 
 # 频率惩罚
 
@@ -104,11 +104,11 @@ Top-p 采样选择那些其联合概率超过阈值*p*（例如，0.9）的最�
 
 **调整后的概率 = 初始概率 / (1 + 频率惩罚 * 出现次数)**
 
-例如，假设“sun”这个词的概率为0.5，并且它在文本中已经出现了两次。如果我们将频率惩罚设置为1，那么“sun”的调整概率将是：
+例如，假设“sun”这个词的概率为 0.5，并且它在文本中已经出现了两次。如果我们将频率惩罚设置为 1，那么“sun”的调整概率将是：
 
 调整后的概率 = 0.5 / (1 + 1 * 2) = 0.5 / 3 = 0.16
 
-![](../Images/416077203419aadf31c7749d6fa2f540.png)
+![](img/416077203419aadf31c7749d6fa2f540.png)
 
 图片由作者提供。
 
@@ -122,21 +122,21 @@ Top-p 采样选择那些其联合概率超过阈值*p*（例如，0.9）的最�
 
 存在惩罚与频率惩罚类似，但有一个关键区别：它惩罚模型重复使用任何已经出现的单词或短语，*不管它出现了多少次*。
 
-换句话说，重复2次单词和重复20次单词的后果是一样的。
+换句话说，重复 2 次单词和重复 20 次单词的后果是一样的。
 
 调整概率的公式为：
 
 **调整后的概率 = 初始概率 / (1 + 存在惩罚 * 存在次数)**
 
-让我们回顾之前使用“sun”这个词的例子。我们不是将惩罚乘以“sun”出现的频率，而是简单地检查它是否已经出现过——在这种情况下，它已经出现过，因此我们将其计为1。
+让我们回顾之前使用“sun”这个词的例子。我们不是将惩罚乘以“sun”出现的频率，而是简单地检查它是否已经出现过——在这种情况下，它已经出现过，因此我们将其计为 1。
 
-如果我们将存在惩罚设置为1，那么调整后的概率将是：
+如果我们将存在惩罚设置为 1，那么调整后的概率将是：
 
 调整后的概率 = 0.5 / (1 + 1 * 1) = 0.5 / 2 = 0.25
 
 这种减少使得模型不太可能再次选择“sun”，即使“sun”只在文本中出现过一次，也会鼓励使用新的单词或短语。
 
-![](../Images/ebaf6807ca9661e8deec2354ea0a7683.png)
+![](img/ebaf6807ca9661e8deec2354ea0a7683.png)
 
 图片由作者提供。
 
@@ -164,4 +164,4 @@ Top-p 采样选择那些其联合概率超过阈值*p*（例如，0.9）的最�
 
 到现在为止，你应该对温度、Top-k、Top-p、频率和出现惩罚是如何协同作用，塑造语言模型的输出有了更清晰的理解。如果你仍然觉得有点复杂，没关系——这些概念需要一些时间才能完全理解。只要不断实验和探索，你会很快掌握的。
 
-如果你觉得像这样的视觉内容有帮助，并希望看到更多，我们很高兴在我们的[Discord社区](https://discord.gg/ETGYYsswTb)见到你。这里是一个我们分享想法、互相帮助并一起学习的空间。
+如果你觉得像这样的视觉内容有帮助，并希望看到更多，我们很高兴在我们的[Discord 社区](https://discord.gg/ETGYYsswTb)见到你。这里是一个我们分享想法、互相帮助并一起学习的空间。

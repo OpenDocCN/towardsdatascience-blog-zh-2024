@@ -1,20 +1,20 @@
 # 用机器学习预测金融行业的欺诈：一位数据科学家的经验
 
-> 原文：[https://towardsdatascience.com/fraud-prediction-with-machine-learning-in-financial-industry-a-data-scientists-experience-b3ffc32d27cc?source=collection_archive---------7-----------------------#2024-06-07](https://towardsdatascience.com/fraud-prediction-with-machine-learning-in-financial-industry-a-data-scientists-experience-b3ffc32d27cc?source=collection_archive---------7-----------------------#2024-06-07)
+> 原文：[`towardsdatascience.com/fraud-prediction-with-machine-learning-in-financial-industry-a-data-scientists-experience-b3ffc32d27cc?source=collection_archive---------7-----------------------#2024-06-07`](https://towardsdatascience.com/fraud-prediction-with-machine-learning-in-financial-industry-a-data-scientists-experience-b3ffc32d27cc?source=collection_archive---------7-----------------------#2024-06-07)
 
 ## 数据科学家在前线的见解和经验
 
-[](https://medium.com/@ebrahimian.mahsaa?source=post_page---byline--b3ffc32d27cc--------------------------------)[![Mahsa Ebrahimian](../Images/bb68cdef7c553823e1aba66dfb2ac4a4.png)](https://medium.com/@ebrahimian.mahsaa?source=post_page---byline--b3ffc32d27cc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b3ffc32d27cc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b3ffc32d27cc--------------------------------) [Mahsa Ebrahimian](https://medium.com/@ebrahimian.mahsaa?source=post_page---byline--b3ffc32d27cc--------------------------------)
+[](https://medium.com/@ebrahimian.mahsaa?source=post_page---byline--b3ffc32d27cc--------------------------------)![Mahsa Ebrahimian](https://medium.com/@ebrahimian.mahsaa?source=post_page---byline--b3ffc32d27cc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b3ffc32d27cc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b3ffc32d27cc--------------------------------) [Mahsa Ebrahimian](https://medium.com/@ebrahimian.mahsaa?source=post_page---byline--b3ffc32d27cc--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b3ffc32d27cc--------------------------------) ·阅读时间：5分钟·2024年6月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b3ffc32d27cc--------------------------------) ·阅读时间：5 分钟·2024 年 6 月 7 日
 
 --
 
-![](../Images/261057ea51428af824f8c01c1fe5a598.png)
+![](img/261057ea51428af824f8c01c1fe5a598.png)
 
 图片来源：Growtika，来自 Unsplash
 
-你好，亲爱的数据爱好者！我很高兴通过几篇文章与大家分享我在过去三年里，开发机器学习模型预测金融行业欺诈的经验。因此，如果你在欺诈检测项目中担任项目经理、数据科学家、机器学习工程师、数据工程师、Mlops工程师、欺诈分析师或产品经理等角色，你可能会觉得这篇文章对你有帮助。
+你好，亲爱的数据爱好者！我很高兴通过几篇文章与大家分享我在过去三年里，开发机器学习模型预测金融行业欺诈的经验。因此，如果你在欺诈检测项目中担任项目经理、数据科学家、机器学习工程师、数据工程师、Mlops 工程师、欺诈分析师或产品经理等角色，你可能会觉得这篇文章对你有帮助。
 
 在本系列的第一篇文章中，我想讨论以下几个要点：
 
@@ -24,7 +24,7 @@
 
 # **业务问题**
 
-每天，全球有数百万人使用汇款服务。这些服务帮助我们将钱汇给亲人，并让购物变得更方便。但是，欺诈者利用这些系统欺骗他人将钱转给他们，或接管他们的账户进行欺诈。这不仅会伤害受害者，还会导致参与公司遭受财务损失并损害声誉。此外，系统中的公司和责任方还面临监管和合规风险（[例如，2017年西联汇款因未能保持有效的反洗钱和消费者欺诈系统而被罚款5.86亿美元](https://www.ftc.gov/news-events/news/press-releases/2017/01/western-union-admits-anti-money-laundering-violations-settles-consumer-fraud-charges-forfeits-586)）。在资金落入欺诈者手中之前预测欺诈交易对于公司至关重要。这正是人工智能/机器学习驱动的欺诈管理工具发挥作用的地方。
+每天，全球有数百万人使用汇款服务。这些服务帮助我们将钱汇给亲人，并让购物变得更方便。但是，欺诈者利用这些系统欺骗他人将钱转给他们，或接管他们的账户进行欺诈。这不仅会伤害受害者，还会导致参与公司遭受财务损失并损害声誉。此外，系统中的公司和责任方还面临监管和合规风险（[例如，2017 年西联汇款因未能保持有效的反洗钱和消费者欺诈系统而被罚款 5.86 亿美元](https://www.ftc.gov/news-events/news/press-releases/2017/01/western-union-admits-anti-money-laundering-violations-settles-consumer-fraud-charges-forfeits-586)）。在资金落入欺诈者手中之前预测欺诈交易对于公司至关重要。这正是人工智能/机器学习驱动的欺诈管理工具发挥作用的地方。
 
 公司的目标主要是最小化运营成本、提升客户体验或减少欺诈和损失。
 
@@ -50,7 +50,7 @@
 
 # **项目步骤**
 
-机器学习/人工智能项目通常以迭代方式进行。但根据我的经验，以下9个步骤是项目的良好起点。
+机器学习/人工智能项目通常以迭代方式进行。但根据我的经验，以下 9 个步骤是项目的良好起点。
 
 ## 1\. 理解现有系统
 
@@ -86,7 +86,7 @@
 
 ## 7. 实时运营化
 
-所有之前的步骤都是在离线批处理环境中进行的。一旦模型准备好，就必须部署到生产环境中，以便其预测能够实时服务下游系统（在我们的项目中，响应时间低于一秒）。MLOps团队负责这一步骤，优化管道的运行时并确保与其他系统的无缝集成。
+所有之前的步骤都是在离线批处理环境中进行的。一旦模型准备好，就必须部署到生产环境中，以便其预测能够实时服务下游系统（在我们的项目中，响应时间低于一秒）。MLOps 团队负责这一步骤，优化管道的运行时并确保与其他系统的无缝集成。
 
 ## 8. 实时监控
 

@@ -1,30 +1,30 @@
 # 了解去重方法：保护数据完整性的方法
 
-> 原文：[https://towardsdatascience.com/understanding-deduplication-methods-ways-to-preserve-the-integrity-of-your-data-545651313c12?source=collection_archive---------3-----------------------#2024-12-20](https://towardsdatascience.com/understanding-deduplication-methods-ways-to-preserve-the-integrity-of-your-data-545651313c12?source=collection_archive---------3-----------------------#2024-12-20)
+> 原文：[`towardsdatascience.com/understanding-deduplication-methods-ways-to-preserve-the-integrity-of-your-data-545651313c12?source=collection_archive---------3-----------------------#2024-12-20`](https://towardsdatascience.com/understanding-deduplication-methods-ways-to-preserve-the-integrity-of-your-data-545651313c12?source=collection_archive---------3-----------------------#2024-12-20)
 
 ## *增长和数据复杂性的增加使得数据去重变得更加重要*
 
-[](https://medium.com/@rendysatriadalimunthe?source=post_page---byline--545651313c12--------------------------------)[![Rendy Dalimunthe](../Images/efcd8304211d187271847f4ecc5fb1b1.png)](https://medium.com/@rendysatriadalimunthe?source=post_page---byline--545651313c12--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--545651313c12--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--545651313c12--------------------------------) [Rendy Dalimunthe](https://medium.com/@rendysatriadalimunthe?source=post_page---byline--545651313c12--------------------------------)
+[](https://medium.com/@rendysatriadalimunthe?source=post_page---byline--545651313c12--------------------------------)![Rendy Dalimunthe](https://medium.com/@rendysatriadalimunthe?source=post_page---byline--545651313c12--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--545651313c12--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--545651313c12--------------------------------) [Rendy Dalimunthe](https://medium.com/@rendysatriadalimunthe?source=post_page---byline--545651313c12--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--545651313c12--------------------------------) ·阅读时长6分钟·2024年12月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--545651313c12--------------------------------) ·阅读时长 6 分钟·2024 年 12 月 20 日
 
 --
 
 数据重复仍然是许多组织面临的问题。尽管数据处理和存储系统随着技术进步快速发展，但所产生的数据复杂性也在增加。此外，随着大数据的普及和基于云的应用程序的使用，今天的组织必须越来越多地处理碎片化的数据源。
 
-![](../Images/4f51c3e5611e9f4e0163f4f378461105.png)
+![](img/4f51c3e5611e9f4e0163f4f378461105.png)
 
-由Damir拍摄： [https://www.pexels.com/photo/serene-lakeside-reflection-with-birch-trees-29167854/](https://www.pexels.com/photo/serene-lakeside-reflection-with-birch-trees-29167854/)
+由 Damir 拍摄： [`www.pexels.com/photo/serene-lakeside-reflection-with-birch-trees-29167854/`](https://www.pexels.com/photo/serene-lakeside-reflection-with-birch-trees-29167854/)
 
 忽视大量重复数据的现象将对组织产生负面影响。例如：
 
-+   决策过程的中断。不干净的数据会偏差指标，无法反映实际情况。例如：如果一个客户实际上是同一个人，但在客户关系管理系统（CRM）中被表示为2或3个客户的数据，这可能会导致在预测收入时的扭曲。
++   决策过程的中断。不干净的数据会偏差指标，无法反映实际情况。例如：如果一个客户实际上是同一个人，但在客户关系管理系统（CRM）中被表示为 2 或 3 个客户的数据，这可能会导致在预测收入时的扭曲。
 
 +   存储成本膨胀，因为每一位数据都会占用存储空间。
 
 +   客户体验的中断。例如：如果系统需要向客户提供通知或发送电子邮件，数据重复的客户很可能会收到多条通知。
 
-+   这使得AI训练过程不够理想。当一个组织开始开发AI解决方案时，其中一个要求是使用干净的数据进行训练。如果数据中仍然有很多重复项，那么数据就不能算是干净的，而在强制用于AI训练时，可能会产生偏见的AI。
++   这使得 AI 训练过程不够理想。当一个组织开始开发 AI 解决方案时，其中一个要求是使用干净的数据进行训练。如果数据中仍然有很多重复项，那么数据就不能算是干净的，而在强制用于 AI 训练时，可能会产生偏见的 AI。
 
 考虑到当一个组织未尝试减少或消除数据重复时所产生的重大影响，数据去重过程变得越来越重要。确保数据质量也至关重要。系统的日益复杂性和精密性必须伴随适当的去重技术的演变。
 
@@ -34,15 +34,15 @@
 
 这是消除多个存储位置中重复数据的过程。现在，许多组织将数据存储在多个服务器、数据中心或云端。全局去重确保仅存储数据的一个副本。
 
-该方法通过创建一个全局索引来工作，全球索引是以唯一代码（哈希）的形式列出所有现有数据，使用如SHA256等算法表示每一条数据。当新文件被上传到服务器（例如服务器1）时，系统将为该文件存储一个唯一代码。
+该方法通过创建一个全局索引来工作，全球索引是以唯一代码（哈希）的形式列出所有现有数据，使用如 SHA256 等算法表示每一条数据。当新文件被上传到服务器（例如服务器 1）时，系统将为该文件存储一个唯一代码。
 
-在另一天，当用户向服务器2上传文件时，系统将把新文件的唯一代码与全局索引进行比较。如果新文件的唯一代码/哈希与全局索引相同，那么系统将不再将相同的文件存储在两个地方，而是会用指向服务器1上已有文件副本的引用/指针替换存储在服务器2上的重复文件。
+在另一天，当用户向服务器 2 上传文件时，系统将把新文件的唯一代码与全局索引进行比较。如果新文件的唯一代码/哈希与全局索引相同，那么系统将不再将相同的文件存储在两个地方，而是会用指向服务器 1 上已有文件副本的引用/指针替换存储在服务器 2 上的重复文件。
 
 使用这种方法，可以明显节省存储空间。如果结合数据虚拟化技术，当文件需要时，系统将从原始位置获取该文件，但所有用户仍然会感觉数据存在各自的服务器上。
 
 下面的插图展示了全局去重的工作方式，其中每个服务器只存储原始数据的一份副本，其他服务器上的重复文件则被替换为指向原始文件的引用。
 
-![](../Images/3f4e9488dfd094fa8ae70dfc88dab168.png)
+![](img/3f4e9488dfd094fa8ae70dfc88dab168.png)
 
 来源：作者
 
@@ -52,7 +52,7 @@
 
 与全局去重不同，这种方法在数据写入存储系统时实时工作。使用内联去重技术，重复数据会立即被替换为引用，而无需经过物理存储过程。
 
-该过程从数据即将进入系统或文件上传开始，系统会立即将文件分成几个小块或数据块。使用如SHA-256等算法，每个数据块将被赋予一个哈希值作为唯一代码。例如：
+该过程从数据即将进入系统或文件上传开始，系统会立即将文件分成几个小块或数据块。使用如 SHA-256 等算法，每个数据块将被赋予一个哈希值作为唯一代码。例如：
 
 Chunk1 -> hashA
 
@@ -66,21 +66,21 @@ Chunk3 -> hashC
 
 后续，当用户想要访问文件时，系统会根据引用重新排列现有数据块中的数据，从而使用户能够使用完整的文件。
 
-内联去重被亚马逊S3或Google Drive等云服务提供商广泛使用。此方法对于优化存储容量非常有用。
+内联去重被亚马逊 S3 或 Google Drive 等云服务提供商广泛使用。此方法对于优化存储容量非常有用。
 
 下图简要说明了内联去重过程，从数据分块到数据如何访问。
 
-![](../Images/f2b7a8e0350a52dae6c633320882d999.png)
+![](img/f2b7a8e0350a52dae6c633320882d999.png)
 
 来源：作者
 
 # **增强型机器学习去重**
 
-基于机器学习的去重技术利用AI来检测和删除重复数据，即使它们并不完全相同。
+基于机器学习的去重技术利用 AI 来检测和删除重复数据，即使它们并不完全相同。
 
 该过程从传入数据（如文件/文档/记录）发送到去重系统进行分析开始。例如，系统接收两个扫描的文档，乍一看它们看起来相似，但实际上在布局或文本格式上有细微差异。
 
-系统随后会智能地提取重要特征，通常以元数据或视觉模式的形式。这些重要特征会被分析并进行相似性比较。特征的相似度将以数值/分数的形式表示。每个系统/组织可以根据相似度分数来定义数据是否为重复数据。例如：只有相似度分数高于90%的数据才可以认为是潜在重复的。
+系统随后会智能地提取重要特征，通常以元数据或视觉模式的形式。这些重要特征会被分析并进行相似性比较。特征的相似度将以数值/分数的形式表示。每个系统/组织可以根据相似度分数来定义数据是否为重复数据。例如：只有相似度分数高于 90%的数据才可以认为是潜在重复的。
 
 基于相似度评分，系统可以判断数据是否为重复数据。如果确定为重复数据，则可以采取类似其他去重方法的步骤，对于重复数据仅存储引用。
 
@@ -92,7 +92,7 @@ Chunk3 -> hashC
 
 以下是机器学习增强去重步骤的说明及示例。
 
-![](../Images/9cee97d18c47fd9ff775e81a9583af79.png)
+![](img/9cee97d18c47fd9ff775e81a9583af79.png)
 
 来源：作者
 
@@ -102,7 +102,7 @@ Chunk3 -> hashC
 
 应注意，组织可以选择灵活的选项，例如将内联去重与机器学习增强方法相结合的混合方法。通过这种方式，可以获得更广泛的收益。
 
-数据管理法规，如GDPR和HIPAA，规范了敏感信息的处理。因此，组织需要确保去重过程不会违反隐私政策。例如：在发现重复数据后，组织可以合并来自两个不同系统的客户数据，而无需获得用户同意。组织必须确保此类事情不会发生。
+数据管理法规，如 GDPR 和 HIPAA，规范了敏感信息的处理。因此，组织需要确保去重过程不会违反隐私政策。例如：在发现重复数据后，组织可以合并来自两个不同系统的客户数据，而无需获得用户同意。组织必须确保此类事情不会发生。
 
 无论面临什么挑战，去重仍然必须进行，组织需要从一开始就付出努力。不要等到数据变得更大，去重工作变得更加昂贵和复杂时才行动。
 

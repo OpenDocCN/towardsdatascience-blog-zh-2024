@@ -1,18 +1,18 @@
-# 探索性数据分析的11个步骤
+# 探索性数据分析的 11 个步骤
 
-> 原文：[https://towardsdatascience.com/exploratory-data-analysis-in-11-steps-31a36ae0b407?source=collection_archive---------4-----------------------#2024-06-19](https://towardsdatascience.com/exploratory-data-analysis-in-11-steps-31a36ae0b407?source=collection_archive---------4-----------------------#2024-06-19)
+> 原文：[`towardsdatascience.com/exploratory-data-analysis-in-11-steps-31a36ae0b407?source=collection_archive---------4-----------------------#2024-06-19`](https://towardsdatascience.com/exploratory-data-analysis-in-11-steps-31a36ae0b407?source=collection_archive---------4-----------------------#2024-06-19)
 
 ## 如何建立具有强大沟通和设定期望实践的流程
 
-[](https://medium.com/@lorenh516?source=post_page---byline--31a36ae0b407--------------------------------)[![Loren Hinkson](../Images/387320e7d223de9846f6770a02a4144c.png)](https://medium.com/@lorenh516?source=post_page---byline--31a36ae0b407--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--31a36ae0b407--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--31a36ae0b407--------------------------------) [Loren Hinkson](https://medium.com/@lorenh516?source=post_page---byline--31a36ae0b407--------------------------------)
+[](https://medium.com/@lorenh516?source=post_page---byline--31a36ae0b407--------------------------------)![Loren Hinkson](https://medium.com/@lorenh516?source=post_page---byline--31a36ae0b407--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--31a36ae0b407--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31a36ae0b407--------------------------------) [Loren Hinkson](https://medium.com/@lorenh516?source=post_page---byline--31a36ae0b407--------------------------------)
 
-·发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31a36ae0b407--------------------------------) ·5分钟阅读·2024年6月19日
+·发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31a36ae0b407--------------------------------) ·5 分钟阅读·2024 年 6 月 19 日
 
 --
 
 *开始探索性数据分析可能令人望而生畏。你如何知道要查看什么？如何知道何时结束？如果漏掉了重要内容怎么办？根据我的经验，通过沟通和设定期望，可以减轻一些担忧。我在这里分享探索性数据分析的过程，供刚刚开始数据工作的人参考，也供更有经验的分析师和数据科学家用来完善他们自己的流程。*
 
-![](../Images/0ecf78c5360336b9c492ef77bccd867d.png)
+![](img/0ecf78c5360336b9c492ef77bccd867d.png)
 
 *图片由* [*Elf-Moondance*](https://pixabay.com/users/elf-moondance-19728901/) *通过* [*Pixabay*](https://pixabay.com/illustrations/graphs-report-statistics-analyses-6778372/) *提供*
 
@@ -20,7 +20,7 @@
 
 在开始探索性分析时，首先要与负责使用分析结果做决策的产品经理/领导/利益相关者进行沟通。深入了解他们需要做出的决策，或者需要做出决策的变化/干预类型。
 
-如果您支持产品迭代，与UX研究人员、设计师或与客户互动或接收最终用户反馈的客户服务代表交谈可能也会有所帮助。通过了解客户请求是否可行，或者识别用户行为中的模式，表明需要特定功能，您可以增加很多价值。
+如果您支持产品迭代，与 UX 研究人员、设计师或与客户互动或接收最终用户反馈的客户服务代表交谈可能也会有所帮助。通过了解客户请求是否可行，或者识别用户行为中的模式，表明需要特定功能，您可以增加很多价值。
 
 # 2\. 总结分析目标并取得一致性
 
@@ -40,7 +40,7 @@
 
 注意是否有历史答案可以解答你的一些分析问题。*注意*：当你确定这些答案的相关性时，考虑自上次分析以来的时间长度，以及分析人群或产品/服务是否发生了重大变化。
 
-*例如：保持新的用户活动想法，可能两年前有人做过分析，发现用户活动在账户创建后5周开始下降并趋于平稳。如果公司在一年前为新用户推出了一个6周的滴灌活动，那么这个洞察可能不再相关。*
+*例如：保持新的用户活动想法，可能两年前有人做过分析，发现用户活动在账户创建后 5 周开始下降并趋于平稳。如果公司在一年前为新用户推出了一个 6 周的滴灌活动，那么这个洞察可能不再相关。*
 
 # 5\. 理解你所拥有的数据能做什么
 
@@ -78,6 +78,6 @@
 
 # 11\. 分享你的发现
 
-当你的分析准备好与原始利益相关者分享时，请考虑选择的格式。根据受众的不同，他们可能最喜欢Slack帖子、演示文稿、分析文档的演示，或以上几种方式的组合。最后，在内部渠道推广你的分析，以防你的发现对你未曾合作的团队有用。
+当你的分析准备好与原始利益相关者分享时，请考虑选择的格式。根据受众的不同，他们可能最喜欢 Slack 帖子、演示文稿、分析文档的演示，或以上几种方式的组合。最后，在内部渠道推广你的分析，以防你的发现对你未曾合作的团队有用。
 
 *恭喜，你完成了你的分析！*

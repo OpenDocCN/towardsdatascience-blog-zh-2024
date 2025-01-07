@@ -1,12 +1,12 @@
 # 如何实现最先进的掩码自编码器（MAE）
 
-> 原文：[https://towardsdatascience.com/how-to-implement-state-of-the-art-masked-autoencoders-mae-6f454b736087?source=collection_archive---------9-----------------------#2024-09-16](https://towardsdatascience.com/how-to-implement-state-of-the-art-masked-autoencoders-mae-6f454b736087?source=collection_archive---------9-----------------------#2024-09-16)
+> 原文：[`towardsdatascience.com/how-to-implement-state-of-the-art-masked-autoencoders-mae-6f454b736087?source=collection_archive---------9-----------------------#2024-09-16`](https://towardsdatascience.com/how-to-implement-state-of-the-art-masked-autoencoders-mae-6f454b736087?source=collection_archive---------9-----------------------#2024-09-16)
 
 ## **使用视觉变换器（Vision Transformers）构建 MAE 的一步步指南**
 
-[](https://medium.com/@francoisporcher?source=post_page---byline--6f454b736087--------------------------------)[![François Porcher](../Images/9ddb233f8cadbd69026bd79e2bd62dea.png)](https://medium.com/@francoisporcher?source=post_page---byline--6f454b736087--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6f454b736087--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6f454b736087--------------------------------) [François Porcher](https://medium.com/@francoisporcher?source=post_page---byline--6f454b736087--------------------------------)
+[](https://medium.com/@francoisporcher?source=post_page---byline--6f454b736087--------------------------------)![François Porcher](https://medium.com/@francoisporcher?source=post_page---byline--6f454b736087--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6f454b736087--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6f454b736087--------------------------------) [François Porcher](https://medium.com/@francoisporcher?source=post_page---byline--6f454b736087--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6f454b736087--------------------------------) ·阅读时间：7分钟·2024年9月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6f454b736087--------------------------------) ·阅读时间：7 分钟·2024 年 9 月 16 日
 
 --
 
@@ -24,7 +24,7 @@ github.com](https://github.com/FrancoisPorcher/awesome-ai-tutorials?source=post_
 
 这里简要提醒一下其工作原理：
 
-![](../Images/4bb371ea36f5a017424c55d6032f01dd.png)
+![](img/4bb371ea36f5a017424c55d6032f01dd.png)
 
 图像来自文章 [MAE 是可扩展的学习器](https://arxiv.org/abs/2111.06377)
 

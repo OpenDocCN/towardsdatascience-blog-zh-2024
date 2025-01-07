@@ -1,18 +1,18 @@
 # 我雇佣了三批数据科学实习生——这是我对获得实习机会的建议
 
-> 原文：[https://towardsdatascience.com/ive-hired-3-cohorts-of-data-science-interns-here-s-my-advice-on-getting-an-offer-036bdba7d4b2?source=collection_archive---------1-----------------------#2024-09-24](https://towardsdatascience.com/ive-hired-3-cohorts-of-data-science-interns-here-s-my-advice-on-getting-an-offer-036bdba7d4b2?source=collection_archive---------1-----------------------#2024-09-24)
+> 原文：[`towardsdatascience.com/ive-hired-3-cohorts-of-data-science-interns-here-s-my-advice-on-getting-an-offer-036bdba7d4b2?source=collection_archive---------1-----------------------#2024-09-24`](https://towardsdatascience.com/ive-hired-3-cohorts-of-data-science-interns-here-s-my-advice-on-getting-an-offer-036bdba7d4b2?source=collection_archive---------1-----------------------#2024-09-24)
 
 ## 获取数据科学实习机会的简历和面试技巧
 
-[](https://medium.com/@jarom.hulet?source=post_page---byline--036bdba7d4b2--------------------------------)[![Jarom Hulet](../Images/0fdeb1a2df90cccdd8f2f4b84d5e54eb.png)](https://medium.com/@jarom.hulet?source=post_page---byline--036bdba7d4b2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--036bdba7d4b2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--036bdba7d4b2--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--036bdba7d4b2--------------------------------)
+[](https://medium.com/@jarom.hulet?source=post_page---byline--036bdba7d4b2--------------------------------)![Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--036bdba7d4b2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--036bdba7d4b2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--036bdba7d4b2--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--036bdba7d4b2--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--036bdba7d4b2--------------------------------) ·阅读时长13分钟·2024年9月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--036bdba7d4b2--------------------------------) ·阅读时长 13 分钟·2024 年 9 月 24 日
 
 --
 
-![](../Images/1df40f28fb2d26becf0b052968c48287.png)
+![](img/1df40f28fb2d26becf0b052968c48287.png)
 
-图片来源：Djordje Samkov，来自Pexels.com
+图片来源：Djordje Samkov，来自 Pexels.com
 
 在我目前的工作中，我负责审阅简历、进行面试，并做出数据科学实习生的聘用决策，已经有三年时间了。随着我的团队为第四批夏季实习生做准备，我认为基于我的经验和观察，发布一些建议可能会对你有所帮助。
 

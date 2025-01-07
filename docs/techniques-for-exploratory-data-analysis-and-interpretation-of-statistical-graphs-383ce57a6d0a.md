@@ -1,18 +1,18 @@
 # 探索性数据分析技巧与统计图形的解释
 
-> 原文：[https://towardsdatascience.com/techniques-for-exploratory-data-analysis-and-interpretation-of-statistical-graphs-383ce57a6d0a?source=collection_archive---------1-----------------------#2024-11-12](https://towardsdatascience.com/techniques-for-exploratory-data-analysis-and-interpretation-of-statistical-graphs-383ce57a6d0a?source=collection_archive---------1-----------------------#2024-11-12)
+> 原文：[`towardsdatascience.com/techniques-for-exploratory-data-analysis-and-interpretation-of-statistical-graphs-383ce57a6d0a?source=collection_archive---------1-----------------------#2024-11-12`](https://towardsdatascience.com/techniques-for-exploratory-data-analysis-and-interpretation-of-statistical-graphs-383ce57a6d0a?source=collection_archive---------1-----------------------#2024-11-12)
 
 ## 发现统计可视化中的洞察和模式的实用方法
 
-[](https://medium.com/@panData?source=post_page---byline--383ce57a6d0a--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--383ce57a6d0a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--383ce57a6d0a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--383ce57a6d0a--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--383ce57a6d0a--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--383ce57a6d0a--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--383ce57a6d0a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--383ce57a6d0a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--383ce57a6d0a--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--383ce57a6d0a--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--383ce57a6d0a--------------------------------) ·49分钟阅读·2024年11月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--383ce57a6d0a--------------------------------) ·49 分钟阅读·2024 年 11 月 12 日
 
 --
 
-![](../Images/7775b6ff3ed1ba182e242b97a4fae9f2.png)
+![](img/7775b6ff3ed1ba182e242b97a4fae9f2.png)
 
-[https://datascience.stackexchange.com/questions/66356/machine-learning-methods-for-finding-outliers](https://datascience.stackexchange.com/questions/66356/machine-learning-methods-for-finding-outliers) (CC BY-SA)
+[`datascience.stackexchange.com/questions/66356/machine-learning-methods-for-finding-outliers`](https://datascience.stackexchange.com/questions/66356/machine-learning-methods-for-finding-outliers) (CC BY-SA)
 
 # **概述**
 

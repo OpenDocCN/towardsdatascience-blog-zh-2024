@@ -1,12 +1,12 @@
 # 可视化 Torch 中的梯度下降参数
 
-> 原文：[https://towardsdatascience.com/visualizing-gradient-descent-parameters-in-torch-332a63d1e5c5?source=collection_archive---------0-----------------------#2024-02-26](https://towardsdatascience.com/visualizing-gradient-descent-parameters-in-torch-332a63d1e5c5?source=collection_archive---------0-----------------------#2024-02-26)
+> 原文：[`towardsdatascience.com/visualizing-gradient-descent-parameters-in-torch-332a63d1e5c5?source=collection_archive---------0-----------------------#2024-02-26`](https://towardsdatascience.com/visualizing-gradient-descent-parameters-in-torch-332a63d1e5c5?source=collection_archive---------0-----------------------#2024-02-26)
 
 ## 探索界面背后，查看 SGD 参数对模型训练的影响
 
-[](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[![P.G. Baumstarck](../Images/b23cb187c99cc30201ad8028afca72ed.png)](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------) [P.G. Baumstarck](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)
+[](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)![P.G. Baumstarck](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------) [P.G. Baumstarck](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------) ·阅读时长 7 分钟·2024年2月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------) ·阅读时长 7 分钟·2024 年 2 月 26 日
 
 --
 
@@ -27,7 +27,7 @@ def torch.optim.SGD(
 
 首先，我们构造了一个简单的玩具问题，即在一组点上执行线性回归。为了增加趣味性，我们使用了一个二次函数加噪声，这样神经网络就必须做出权衡——同时我们也能观察到更多损失函数的影响：
 
-![](../Images/46819efbc1942caad0ed06096226be7a.png)
+![](img/46819efbc1942caad0ed06096226be7a.png)
 
 我们首先仅使用 `numpy` 和 `matplotlib` 来可视化数据——此时还不需要 `torch`：
 
@@ -47,7 +47,7 @@ plt.scatter(x, y, c='r')
 plt.show()
 ```
 
-![](../Images/fc9a458f92c166abbba3805523a44f56.png)
+![](img/fc9a458f92c166abbba3805523a44f56.png)
 
 图 1\. 玩具问题集的点。
 
@@ -109,13 +109,13 @@ plt.plot(
 plt.show()
 ```
 
-![](../Images/b45c711099dd52f177b3ff13e8098502.png)
+![](img/b45c711099dd52f177b3ff13e8098502.png)
 
-图 2\. 在玩具问题上L2学习到的线性边界。
+图 2\. 在玩具问题上 L2 学习到的线性边界。
 
 # 可视化损失函数
 
-上述结果看起来是合理的，但到目前为止，一切都是通过高层次的Torch函数处理的，如`optimizer.zero_grad()`、`loss.backward()`和`optimizer.step()`。为了理解接下来的步骤，我们需要可视化模型在损失函数中的变化过程。为了可视化损失，我们将在101×101的网格中对其进行采样，然后使用`imshow`进行绘制：
+上述结果看起来是合理的，但到目前为止，一切都是通过高层次的 Torch 函数处理的，如`optimizer.zero_grad()`、`loss.backward()`和`optimizer.step()`。为了理解接下来的步骤，我们需要可视化模型在损失函数中的变化过程。为了可视化损失，我们将在 101×101 的网格中对其进行采样，然后使用`imshow`进行绘制：
 
 ```py
 def get_loss_map(loss_fn, x, y):
@@ -146,9 +146,9 @@ fig.colorbar(i)
 plt.show()
 ```
 
-![](../Images/f827e4cc908fde0c3706cb7893924698.png)
+![](img/f827e4cc908fde0c3706cb7893924698.png)
 
-图 3\. 在玩具问题上的L2损失函数。
+图 3\. 在玩具问题上的 L2 损失函数。
 
 现在我们可以在运行梯度下降时捕捉模型参数，以展示优化器的表现：
 
@@ -176,7 +176,7 @@ fig.colorbar(i)
 plt.show()
 ```
 
-![](../Images/9d08ab225a9b8cba02f255503b700ef4.png)
+![](img/9d08ab225a9b8cba02f255503b700ef4.png)
 
 图 4\. 可视化梯度下降在损失函数下的变化。
 
@@ -186,25 +186,25 @@ plt.show()
 
 ## 损失函数
 
-现在我们将开始检查其他参数对梯度下降的影响。首先是损失函数，我们使用的是标准的L2损失：
+现在我们将开始检查其他参数对梯度下降的影响。首先是损失函数，我们使用的是标准的 L2 损失：
 
-![](../Images/fb8c557e293869de99c1499dbcf614e2.png)
+![](img/fb8c557e293869de99c1499dbcf614e2.png)
 
-L2损失（`torch.nn.MSELoss`）累积平方误差。来源：[link](https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html)。作者截图。
+L2 损失（`torch.nn.MSELoss`）累积平方误差。来源：[link](https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html)。作者截图。
 
 但是，我们还可以使用其他几种损失函数：
 
-![](../Images/4bddd81b3c6d0dedc452902c6366a2f1.png)
+![](img/4bddd81b3c6d0dedc452902c6366a2f1.png)
 
-L1损失（`torch.nn.L1Loss`）`累积绝对`误差。`来源：[link](https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html)。作者截图。`
+L1 损失（`torch.nn.L1Loss`）`累积绝对`误差。`来源：[link](https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html)。作者截图。`
 
-![](../Images/3a64709da24887fc575dd61e2d012c98.png)
+![](img/3a64709da24887fc575dd61e2d012c98.png)
 
-Huber损失（`torch.nn.HuberLoss`）对小误差使用L2，对大误差使用L1。`来源：[link](https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html)。作者截图。`
+Huber 损失（`torch.nn.HuberLoss`）对小误差使用 L2，对大误差使用 L1。`来源：[link](https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html)。作者截图。`
 
-![](../Images/a52df315f2839329b503ba215290e53b.png)
+![](img/a52df315f2839329b503ba215290e53b.png)
 
-平滑L1损失（`torch.nn.SmoothL1Loss`）大致相当于Huber损失，但有一个额外的beta参数。`来源：[link](https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html)。作者截图。`
+平滑 L1 损失（`torch.nn.SmoothL1Loss`）大致相当于 Huber 损失，但有一个额外的 beta 参数。`来源：[link](https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html)。作者截图。`
 
 我们将到目前为止所做的工作包装在一个循环中，尝试所有损失函数并一起绘制它们：
 
@@ -234,67 +234,67 @@ def multi_plot(lr=0.1, epochs=100, momentum=0, weight_decay=0, dampening=0, nest
 multi_plot(lr=0.1, epochs=100)
 ```
 
-![](../Images/2a7f3f2a63ba5652ce65510a4a010915.png)
+![](img/2a7f3f2a63ba5652ce65510a4a010915.png)
 
 图 5\. 可视化梯度下降在所有损失函数下的变化。
 
-在这里，我们可以看到非L2损失函数的有趣轮廓。L2损失函数平滑且值较大，最大可达100，而其他损失函数的值较小，因为它们仅反映了绝对误差。但L2损失的陡峭梯度意味着优化器更快接近全局最小值，正如其初期点之间较大的间距所示。与此同时，L1损失函数则表现出更为缓慢的接近最小值的过程。
+在这里，我们可以看到非 L2 损失函数的有趣轮廓。L2 损失函数平滑且值较大，最大可达 100，而其他损失函数的值较小，因为它们仅反映了绝对误差。但 L2 损失的陡峭梯度意味着优化器更快接近全局最小值，正如其初期点之间较大的间距所示。与此同时，L1 损失函数则表现出更为缓慢的接近最小值的过程。
 
 ## 动量
 
-接下来最有趣的参数是动量，它决定了多少上一步的梯度将被加入到当前梯度更新中。通常非常小的动量值就足够了，但为了可视化的目的，我们将其设置为0.9的极端值——孩子们，请勿在家尝试：
+接下来最有趣的参数是动量，它决定了多少上一步的梯度将被加入到当前梯度更新中。通常非常小的动量值就足够了，但为了可视化的目的，我们将其设置为 0.9 的极端值——孩子们，请勿在家尝试：
 
 ```py
 multi_plot(lr=0.1, epochs=100, momentum=0.9)
 ```
 
-![](../Images/3f5d67a6c7da5fe4e6be615b5e5eba6a.png)
+![](img/3f5d67a6c7da5fe4e6be615b5e5eba6a.png)
 
-图6\. 可视化的梯度下降过程，展示了所有损失函数在高动量下的表现。
+图 6\. 可视化的梯度下降过程，展示了所有损失函数在高动量下的表现。
 
-由于极高的动量值，我们可以清楚地看到它对优化器的影响：它超过了全局最小值，必须不规则地转回。这种效应在L2损失中最为明显，其陡峭的梯度使得它越过了最小值，并且非常接近发散。
+由于极高的动量值，我们可以清楚地看到它对优化器的影响：它超过了全局最小值，必须不规则地转回。这种效应在 L2 损失中最为明显，其陡峭的梯度使得它越过了最小值，并且非常接近发散。
 
-## Nesterov动量
+## Nesterov 动量
 
-Nesterov动量是对普通动量的一个有趣调整。普通动量将上一步的部分梯度加到当前步骤的梯度上，得到下面图7(a)的情景。但如果我们已经知道上一步的梯度将带我们到哪里，那么Nesterov动量则通过预判我们将落在哪里来计算当前梯度，得到下面图7(b)的情景：
+Nesterov 动量是对普通动量的一个有趣调整。普通动量将上一步的部分梯度加到当前步骤的梯度上，得到下面图 7(a)的情景。但如果我们已经知道上一步的梯度将带我们到哪里，那么 Nesterov 动量则通过预判我们将落在哪里来计算当前梯度，得到下面图 7(b)的情景：
 
-![](../Images/1fef60334367760ff9aedcab24d46ab5.png)
+![](img/1fef60334367760ff9aedcab24d46ab5.png)
 
-图7\. (a) 普通动量与 (b) Nesterov动量。
+图 7\. (a) 普通动量与 (b) Nesterov 动量。
 
 ```py
 multi_plot(lr=0.1, epochs=100, momentum=0.9, nesterov=True)
 ```
 
-![](../Images/af2be22828b89deacf074725c7de16cb.png)
+![](img/af2be22828b89deacf074725c7de16cb.png)
 
-图8\. 可视化的梯度下降过程，展示了所有损失函数在高Nesterov动量下的表现。
+图 8\. 可视化的梯度下降过程，展示了所有损失函数在高 Nesterov 动量下的表现。
 
-从图形上看，我们可以看到Nesterov动量减少了我们在普通动量下观察到的过冲现象。特别是在L2的情况下，由于我们的动量使得我们越过了全局最小值，使用Nesterov动量提前查看我们将要落点的位置，允许我们从目标函数的另一侧混合反向梯度，从而更早地进行修正。
+从图形上看，我们可以看到 Nesterov 动量减少了我们在普通动量下观察到的过冲现象。特别是在 L2 的情况下，由于我们的动量使得我们越过了全局最小值，使用 Nesterov 动量提前查看我们将要落点的位置，允许我们从目标函数的另一侧混合反向梯度，从而更早地进行修正。
 
 ## 权重衰减
 
-接下来，权重衰减对参数值（我们线性网络的权重和偏置）施加了正则化的L2惩罚：
+接下来，权重衰减对参数值（我们线性网络的权重和偏置）施加了正则化的 L2 惩罚：
 
 ```py
 multi_plot(lr=0.1, epochs=100, momentum=0.9, nesterov=True, weight_decay=2.0)
 ```
 
-![](../Images/0ac8ddd706e0e1814dd328b503652295.png)
+![](img/0ac8ddd706e0e1814dd328b503652295.png)
 
-图9\. 可视化的梯度下降过程，展示了所有损失函数在高Nesterov动量和权重衰减下的表现。
+图 9\. 可视化的梯度下降过程，展示了所有损失函数在高 Nesterov 动量和权重衰减下的表现。
 
-在所有情况下，正则化因子都将解拉离了它们应有的全局最小值，并将其拉近了原点（0，0）。然而，这种效应在L2损失下最不明显，因为损失值足够大，能够抵消对权重的L2惩罚。
+在所有情况下，正则化因子都将解拉离了它们应有的全局最小值，并将其拉近了原点（0，0）。然而，这种效应在 L2 损失下最不明显，因为损失值足够大，能够抵消对权重的 L2 惩罚。
 
 ## 阻尼
 
-最后是阻尼，它通过阻尼因子来减少动量的影响。使用0.8的阻尼因子，我们可以看到它如何有效地调节动量路径通过损失函数。
+最后是阻尼，它通过阻尼因子来减少动量的影响。使用 0.8 的阻尼因子，我们可以看到它如何有效地调节动量路径通过损失函数。
 
 ```py
 multi_plot(lr=0.1, epochs=100, momentum=0.9, dampening=0.8)
 ```
 
-![](../Images/d81b751b1cbc2d155e7eec6e8757802c.png)
+![](img/d81b751b1cbc2d155e7eec6e8757802c.png)
 
 图 10\. 可视化的梯度下降，展示了在高动量和高阻尼下的所有损失函数。
 
@@ -302,22 +302,22 @@ multi_plot(lr=0.1, epochs=100, momentum=0.9, dampening=0.8)
 
 # 参考文献
 
-+   [https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html](https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html)
++   [`pytorch.org/docs/stable/generated/torch.nn.MSELoss.html`](https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html)
 
-+   [https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html](https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html)
++   [`pytorch.org/docs/stable/generated/torch.nn.L1Loss.html`](https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html)
 
-+   [https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html](https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html)
++   [`pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html`](https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html)
 
-+   [https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html](https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html)
++   [`pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html`](https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html)
 
-+   [https://pytorch.org/docs/stable/generated/torch.optim.SGD.html](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html)
++   [`pytorch.org/docs/stable/generated/torch.optim.SGD.html`](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html)
 
 ## 另见
 
-+   [https://towardsdatascience.com/extending-context-length-in-large-language-models-74e59201b51f](/extending-context-length-in-large-language-models-74e59201b51f)
++   `towardsdatascience.com/extending-context-length-in-large-language-models-74e59201b51f`
 
-+   代码可在以下地址找到：[https://github.com/pbaumstarck/scaling-invention/blob/main/code/torch_loss.py](https://github.com/pbaumstarck/scaling-invention/blob/main/code/torch_loss.py)
++   代码可在以下地址找到：[`github.com/pbaumstarck/scaling-invention/blob/main/code/torch_loss.py`](https://github.com/pbaumstarck/scaling-invention/blob/main/code/torch_loss.py)
 
-+   [https://github.com/tomgoldstein/loss-landscape](https://github.com/tomgoldstein/loss-landscape)
++   [`github.com/tomgoldstein/loss-landscape`](https://github.com/tomgoldstein/loss-landscape)
 
-+   [https://neptune.ai/blog/pytorch-loss-functions](https://neptune.ai/blog/pytorch-loss-functions)
++   [`neptune.ai/blog/pytorch-loss-functions`](https://neptune.ai/blog/pytorch-loss-functions)

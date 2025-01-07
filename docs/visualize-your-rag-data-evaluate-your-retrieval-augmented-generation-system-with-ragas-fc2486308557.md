@@ -1,24 +1,24 @@
-# 可视化你的RAG数据——使用Ragas评估你的检索增强生成系统
+# 可视化你的 RAG 数据——使用 Ragas 评估你的检索增强生成系统
 
-> 原文：[https://towardsdatascience.com/visualize-your-rag-data-evaluate-your-retrieval-augmented-generation-system-with-ragas-fc2486308557?source=collection_archive---------0-----------------------#2024-03-03](https://towardsdatascience.com/visualize-your-rag-data-evaluate-your-retrieval-augmented-generation-system-with-ragas-fc2486308557?source=collection_archive---------0-----------------------#2024-03-03)
+> 原文：[`towardsdatascience.com/visualize-your-rag-data-evaluate-your-retrieval-augmented-generation-system-with-ragas-fc2486308557?source=collection_archive---------0-----------------------#2024-03-03`](https://towardsdatascience.com/visualize-your-rag-data-evaluate-your-retrieval-augmented-generation-system-with-ragas-fc2486308557?source=collection_archive---------0-----------------------#2024-03-03)
 
-## 如何使用UMAP降维技术展示嵌入的多个评估问题及其与源文档的关系，使用Ragas、OpenAI、Langchain和ChromaDB
+## 如何使用 UMAP 降维技术展示嵌入的多个评估问题及其与源文档的关系，使用 Ragas、OpenAI、Langchain 和 ChromaDB
 
-[](https://medium.com/@markus.stoll?source=post_page---byline--fc2486308557--------------------------------)[![Markus Stoll](../Images/236ce5901f817a72c6cceb40e0ca2fc5.png)](https://medium.com/@markus.stoll?source=post_page---byline--fc2486308557--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc2486308557--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fc2486308557--------------------------------) [Markus Stoll](https://medium.com/@markus.stoll?source=post_page---byline--fc2486308557--------------------------------)
+[](https://medium.com/@markus.stoll?source=post_page---byline--fc2486308557--------------------------------)![Markus Stoll](https://medium.com/@markus.stoll?source=post_page---byline--fc2486308557--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc2486308557--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc2486308557--------------------------------) [Markus Stoll](https://medium.com/@markus.stoll?source=post_page---byline--fc2486308557--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc2486308557--------------------------------) ·13分钟阅读·2024年3月3日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc2486308557--------------------------------) ·13 分钟阅读·2024 年 3 月 3 日
 
 --
 
-检索增强生成（RAG）在大语言模型（LLM）的工作流程中增加了一个检索步骤，使其能够在回答问题时，从额外的来源（如私人文档）查询相关数据[1]。这一工作流程不需要对LLM进行昂贵的训练或微调来适应额外的文档。文档被拆分成片段，然后进行索引，通常使用紧凑的机器学习生成的向量表示（嵌入）。具有相似内容的片段会在这个嵌入空间中彼此接近。
+检索增强生成（RAG）在大语言模型（LLM）的工作流程中增加了一个检索步骤，使其能够在回答问题时，从额外的来源（如私人文档）查询相关数据[1]。这一工作流程不需要对 LLM 进行昂贵的训练或微调来适应额外的文档。文档被拆分成片段，然后进行索引，通常使用紧凑的机器学习生成的向量表示（嵌入）。具有相似内容的片段会在这个嵌入空间中彼此接近。
 
-RAG应用将用户提供的问题投影到嵌入空间中，以根据其与问题的距离检索相关的文档片段。LLM可以使用检索到的信息来回答查询，并通过展示片段作为参考来证明其结论。
+RAG 应用将用户提供的问题投影到嵌入空间中，以根据其与问题的距离检索相关的文档片段。LLM 可以使用检索到的信息来回答查询，并通过展示片段作为参考来证明其结论。
 
-![](../Images/ab15fb445c5c48c93aa871fc42c61295.png)
+![](img/ab15fb445c5c48c93aa871fc42c61295.png)
 
-通过UMAP[3]降维对维基百科F1公式文章的嵌入空间进行迭代动画展示，并对聚类进行人工标注——由作者创建。
+通过 UMAP[3]降维对维基百科 F1 公式文章的嵌入空间进行迭代动画展示，并对聚类进行人工标注——由作者创建。
 
-评估RAG应用程序是一个挑战[2]。存在不同的方法：一方面，有些方法需要开发者提供作为真实答案的基础；另一方面，答案（和问题）也可以由另一个LLM生成。支持LLM回答的最大开源系统之一是Ragas[4]（检索增强生成评估），它提供
+评估 RAG 应用程序是一个挑战[2]。存在不同的方法：一方面，有些方法需要开发者提供作为真实答案的基础；另一方面，答案（和问题）也可以由另一个 LLM 生成。支持 LLM 回答的最大开源系统之一是 Ragas[4]（检索增强生成评估），它提供
 
 +   基于文档生成测试数据的方法
 
@@ -26,48 +26,48 @@ RAG应用将用户提供的问题投影到嵌入空间中，以根据其与问�
 
 在本文中，你将学到
 
-+   如何简要构建一个用于一级方程式的RAG系统（详细描述请参见上一篇文章[可视化您的RAG数据——检索增强生成的EDA](https://medium.com/itnext/visualize-your-rag-data-eda-for-retrieval-augmented-generation-0701ee98768f)）
++   如何简要构建一个用于一级方程式的 RAG 系统（详细描述请参见上一篇文章[可视化您的 RAG 数据——检索增强生成的 EDA](https://medium.com/itnext/visualize-your-rag-data-eda-for-retrieval-augmented-generation-0701ee98768f)）
 
 +   生成问题和答案
 
-+   使用[Ragas](https://github.com/explodinggradients/ragas)评估RAG系统
++   使用[Ragas](https://github.com/explodinggradients/ragas)评估 RAG 系统
 
 +   最重要的是，如何使用[Renumics Spotlight](https://github.com/Renumics/spotlight)可视化结果并解释结果。
 
-> *该* [*代码可在Github上获取*](https://github.com/Renumics/renumics-rag/blob/main/notebooks/visualize_rag_tutorial_qs.ipynb)
+> *该* [*代码可在 Github 上获取*](https://github.com/Renumics/renumics-rag/blob/main/notebooks/visualize_rag_tutorial_qs.ipynb)
 
 # 准备好你的环境
 
-启动一个笔记本并安装所需的Python包
+启动一个笔记本并安装所需的 Python 包
 
 ```py
 !pip install langchain langchain-openai chromadb renumics-spotlight
 %env OPENAI_API_KEY=<your-api-key>
 ```
 
-本教程使用以下Python包：
+本教程使用以下 Python 包：
 
-+   [**Langchain**](https://github.com/langchain-ai/langchain)：一个集成语言模型和RAG组件的框架，使得设置过程更加顺畅。
++   [**Langchain**](https://github.com/langchain-ai/langchain)：一个集成语言模型和 RAG 组件的框架，使得设置过程更加顺畅。
 
 +   [**Renumics-Spotlight**](https://github.com/Renumics/spotlight)：一个用于交互式探索非结构化机器学习数据集的可视化工具。
 
-+   [**Ragas**](https://github.com/explodinggradients/ragas)：一个帮助你评估RAG管道的框架
++   [**Ragas**](https://github.com/explodinggradients/ragas)：一个帮助你评估 RAG 管道的框架
 
-*免责声明：本文的作者也是Spotlight的开发者之一。*
+*免责声明：本文的作者也是 Spotlight 的开发者之一。*
 
 # 为数据集准备文档和嵌入
 
-你可以使用你自己的RAG应用程序，跳到下一部分学习如何评估、提取和可视化。
+你可以使用你自己的 RAG 应用程序，跳到下一部分学习如何评估、提取和可视化。
 
-或者，你可以使用[上一篇文章](https://medium.com/itnext/visualize-your-rag-data-eda-for-retrieval-augmented-generation-0701ee98768f)中的RAG应用程序，并使用[我们准备的所有一级方程式维基百科文章的数据集](https://spotlightpublic.blob.core.windows.net/docs-data/rag_demo/docs.zip)。在这里，你还可以将自己的文档插入到‘docs/’子文件夹中。
+或者，你可以使用[上一篇文章](https://medium.com/itnext/visualize-your-rag-data-eda-for-retrieval-augmented-generation-0701ee98768f)中的 RAG 应用程序，并使用[我们准备的所有一级方程式维基百科文章的数据集](https://spotlightpublic.blob.core.windows.net/docs-data/rag_demo/docs.zip)。在这里，你还可以将自己的文档插入到‘docs/’子文件夹中。
 
 > 本数据集基于[维基百科](https://www.wikipedia.org/)的文章，并遵循创作共用署名-相同方式共享许可证。原始文章及作者列表可在相应的维基百科页面找到。
 
-现在，你可以使用Langchain的`DirectoryLoader`加载所有来自docs子目录的文件，并使用`RecursiveCharacterTextSpliter`将文档分割为片段。使用`OpenAIEmbeddings`你可以创建嵌入并将其存储在`ChromaDB`作为向量存储。对于链本身，你可以使用LangChain的`ChatOpenAI`和`ChatPromptTemplate`。
+现在，你可以使用 Langchain 的`DirectoryLoader`加载所有来自 docs 子目录的文件，并使用`RecursiveCharacterTextSpliter`将文档分割为片段。使用`OpenAIEmbeddings`你可以创建嵌入并将其存储在`ChromaDB`作为向量存储。对于链本身，你可以使用 LangChain 的`ChatOpenAI`和`ChatPromptTemplate`。
 
 本文的[链接代码](https://github.com/Renumics/rag-demo/blob/main/notebooks/visualize_rag_tutorial_qs.ipynb)包含了所有必要的步骤，你可以在[上一篇文章](https://medium.com/itnext/visualize-your-rag-data-eda-for-retrieval-augmented-generation-0701ee98768f)中找到对所有步骤的详细描述。
 
-一个重要的点是，你应该使用哈希函数为`ChromaDB`中的片段创建ID。这使得如果你只有包含其内容和元数据的文档时，仍然能够在数据库中找到嵌入。这使得可以跳过那些已经存在于数据库中的文档。
+一个重要的点是，你应该使用哈希函数为`ChromaDB`中的片段创建 ID。这使得如果你只有包含其内容和元数据的文档时，仍然能够在数据库中找到嵌入。这使得可以跳过那些已经存在于数据库中的文档。
 
 ```py
 import hashlib
@@ -98,23 +98,23 @@ docs_vectorstore.persist()
 
 # 评估问题
 
-对于像一级方程式这样的常见话题，你也可以直接使用ChatGPT生成一般性问题。在本文中，使用了四种问题生成方法：
+对于像一级方程式这样的常见话题，你也可以直接使用 ChatGPT 生成一般性问题。在本文中，使用了四种问题生成方法：
 
-+   **GPT4**：使用以下提示“写30个关于一级方程式的问题”，通过ChatGPT 4生成了30个问题。
++   **GPT4**：使用以下提示“写 30 个关于一级方程式的问题”，通过 ChatGPT 4 生成了 30 个问题。
 
     – 随机示例：“哪支一级方程式车队以其跃马标志而闻名？”
 
-+   **GPT3.5**：使用以下提示“写100个关于一级方程式的问题”，并重复“谢谢，请再写100个”通过ChatGPT 3.5生成了另外199个问题。
++   **GPT3.5**：使用以下提示“写 100 个关于一级方程式的问题”，并重复“谢谢，请再写 100 个”通过 ChatGPT 3.5 生成了另外 199 个问题。
 
-    – 示例：“1950年，哪位车手赢得了首届一级方程式世界锦标赛？”
+    – 示例：“1950 年，哪位车手赢得了首届一级方程式世界锦标赛？”
 
-+   **Ragas_GPT4**：使用Ragas生成了113个问题。Ragas再次利用文档和其自己的嵌入模型构建一个向量数据库，然后用GPT4生成问题。
++   **Ragas_GPT4**：使用 Ragas 生成了 113 个问题。Ragas 再次利用文档和其自己的嵌入模型构建一个向量数据库，然后用 GPT4 生成问题。
 
-    – 示例：“你能告诉我更多关于1998年世界锦标赛中，乔丹198一级方程式赛车表现的信息吗？”
+    – 示例：“你能告诉我更多关于 1998 年世界锦标赛中，乔丹 198 一级方程式赛车表现的信息吗？”
 
-+   **Rags_GPT3.5**：使用Ragas生成了226个额外的问题——这里我们使用GPT3.5。
++   **Rags_GPT3.5**：使用 Ragas 生成了 226 个额外的问题——这里我们使用 GPT3.5。
 
-    – 示例：“2014年比利时大奖赛中发生了什么事件，导致汉密尔顿退赛？”
+    – 示例：“2014 年比利时大奖赛中发生了什么事件，导致汉密尔顿退赛？”
 
 ```py
 from ragas.testset import TestsetGenerator
@@ -129,9 +129,9 @@ testset_ragas_gpt35 = generator.generate(docs, 100)
 
 问题和答案没有经过任何审查或修改。所有问题都被合并到一个单一的数据框中，包含`id`、`question`、`ground_truth`、`question_by`和`answer`列。
 
-![](../Images/4e3c079da63fa016b279acfea51bef1a.png)
+![](img/4e3c079da63fa016b279acfea51bef1a.png)
 
-接下来，问题将被提问给RAG系统。对于超过500个问题，这可能需要一些时间并产生费用。如果你按行提问，你可以暂停并继续处理，或者在崩溃后恢复，而不会丢失迄今为止的结果：
+接下来，问题将被提问给 RAG 系统。对于超过 500 个问题，这可能需要一些时间并产生费用。如果你按行提问，你可以暂停并继续处理，或者在崩溃后恢复，而不会丢失迄今为止的结果：
 
 ```py
 for i, row in df_questions_answers.iterrows():
@@ -147,15 +147,15 @@ for i, row in df_questions_answers.iterrows():
         ] 
 ```
 
-不仅答案会被存储，还会存储检索到的文档片段的源ID，以及它们的文本内容作为上下文：
+不仅答案会被存储，还会存储检索到的文档片段的源 ID，以及它们的文本内容作为上下文：
 
-![](../Images/5fc1f88bf931c7f85b2f884635d5ce03.png)
+![](img/5fc1f88bf931c7f85b2f884635d5ce03.png)
 
 此外，所有问题的嵌入也会生成并存储在数据框中。这使得可以将其与文档一起可视化。
 
-# 使用Ragas进行评估
+# 使用 Ragas 进行评估
 
-[Ragas](https://github.com/explodinggradients/ragas)提供了用于单独评估RAG管道中每个组件的指标，以及用于整体性能的端到端指标：
+[Ragas](https://github.com/explodinggradients/ragas)提供了用于单独评估 RAG 管道中每个组件的指标，以及用于整体性能的端到端指标：
 
 1.  **上下文精准度：** 使用`问题`和检索到的`上下文`，衡量信噪比。
 
@@ -173,7 +173,7 @@ for i, row in df_questions_answers.iterrows():
 
 1.  **方面评价：** 分析`答案`，根据预定义或自定义方面（如正确性或有害性）评估提交。
 
-目前，我们关注的是答案正确性的端到端指标。数据框中的列名和内容已被复制并调整，以符合Ragas API的命名和格式要求：
+目前，我们关注的是答案正确性的端到端指标。数据框中的列名和内容已被复制并调整，以符合 Ragas API 的命名和格式要求：
 
 ```py
 # prepare the dataframe for evaluation
@@ -186,7 +186,7 @@ df_qa_eval["ground_truths"] = [
 ]
 ```
 
-这可能需要一些时间，甚至比仅仅查询你的RAG系统还要花费更多的金钱。让我们按行应用评估，以便在崩溃后能够恢复，而不丢失迄今为止的结果：
+这可能需要一些时间，甚至比仅仅查询你的 RAG 系统还要花费更多的金钱。让我们按行应用评估，以便在崩溃后能够恢复，而不丢失迄今为止的结果：
 
 ```py
 # evaluate the answer correctness if not already done
@@ -247,15 +247,15 @@ df_documents_agg["num_questions"] = df_documents_agg["num_questions"].fillna(0)
 df = pd.concat([df_qa_eval, df_documents_agg], axis=0)
 ```
 
-此外，让我们准备一些不同的UMAP [3] 映射。你也可以稍后在Spotlight GUI中做同样的事情，但事先做这一步可以节省时间。
+此外，让我们准备一些不同的 UMAP [3] 映射。你也可以稍后在 Spotlight GUI 中做同样的事情，但事先做这一步可以节省时间。
 
-+   umap_all: 对所有文档和问题嵌入应用了拟合和变换的UMAP
++   umap_all: 对所有文档和问题嵌入应用了拟合和变换的 UMAP
 
-+   umap_questions: 仅对问题嵌入应用了拟合的UMAP，并对两者应用了变换
++   umap_questions: 仅对问题嵌入应用了拟合的 UMAP，并对两者应用了变换
 
-+   umap_docs: 仅对文档嵌入应用了拟合的UMAP，并对两者应用了变换
++   umap_docs: 仅对文档嵌入应用了拟合的 UMAP，并对两者应用了变换
 
-我们准备每个UMAP变换的方式如下：
+我们准备每个 UMAP 变换的方式如下：
 
 ```py
  umap = UMAP(n_neighbors=20, min_dist=0.15, metric="cosine", random_state=42).fit
@@ -275,7 +275,7 @@ df["nearest_question_dist"] = [  # brute force, could be optimized using ChromaD
 
 这个指标对于找到未被问题引用的文档很有帮助。
 
-![](../Images/0ec8f60de7d7a00c65c3c4a825bec1e3.png)
+![](img/0ec8f60de7d7a00c65c3c4a825bec1e3.png)
 
 # 可视化结果
 
@@ -301,7 +301,7 @@ spotlight.show(
 
 它将打开一个新的浏览器窗口：
 
-![](../Images/6e6da163c2994fe3ee68adcf015fed02.png)
+![](img/6e6da163c2994fe3ee68adcf015fed02.png)
 
 公式一文档与评估问题的统计与相似性图 — 由作者使用[Renumics Spotlight](https://github.com/Renumics/spotlight)创建
 
@@ -313,7 +313,7 @@ spotlight.show(
 
 第二个相似性图显示了基于仅应用于文档的转换（`umap_docs`）的问题和文档。这有助于在文档的上下文中查看问题。当问题数量较多时，同时转换问题和文档的相似性图显示效果较差，因为问题会聚集在一起或分离开，往往与文档分开。因此，这里省略了这种表示方式。
 
-![](../Images/15014bcc7e0dc0ea4f7b99ca395d4993.png)
+![](img/15014bcc7e0dc0ea4f7b99ca395d4993.png)
 
 公式一评估问题统计与相似性图 — 由作者使用[Renumics Spotlight](https://github.com/Renumics/spotlight)创建
 
@@ -321,31 +321,31 @@ spotlight.show(
 
 在相似性图`umap_docs`中，您可以识别出文档嵌入空间中没有邻近问题的区域。当选择`nearest_question_dist`进行着色时，这一点会更加明显。
 
-![](../Images/0d498a101193db93856b2220584aa1c5.png)
+![](img/0d498a101193db93856b2220584aa1c5.png)
 
 公式一文档与问题的相似性图（高亮显示）— 由作者使用[Renumics Spotlight](https://github.com/Renumics/spotlight)创建
 
 可以识别出一些集群，其中包含仅包含标题的片段或包含仅有数字的表格数据，逐页拆分后其意义丧失。此外，许多特定于维基百科的文本添加，如指向其他语言的链接或编辑注释，形成了没有相邻问题的集群。
 
-使用Wikipedia API删除维基百科相关文本中的噪音非常简单。可能并不是特别必要，因为它主要占用了一些空间——并不预期会显著恶化RAG的结果。然而，RAG系统很难捕捉到包含在大型表格中的数据，因此使用高级预处理方法进行表格提取并将其连接到RAG系统可能是有益的。
+使用 Wikipedia API 删除维基百科相关文本中的噪音非常简单。可能并不是特别必要，因为它主要占用了一些空间——并不预期会显著恶化 RAG 的结果。然而，RAG 系统很难捕捉到包含在大型表格中的数据，因此使用高级预处理方法进行表格提取并将其连接到 RAG 系统可能是有益的。
 
 在`umap_docs`相似性图中，另一个可以观察到的点是来自不同来源的问题的分布情况。
 
-![](../Images/16c4d18dec8db36dc504497edf4a09a4.png)![](../Images/e6efde6c3a40a1bdf15ae12e744d07f2.png)
+![](img/16c4d18dec8db36dc504497edf4a09a4.png)![](img/e6efde6c3a40a1bdf15ae12e744d07f2.png)
 
-左：由ChatGPT生成的问题（GPT-3.5和GPT-4），右：通过ragas生成的问题，使用GPT-3.5和GPT-4 — 由作者使用[Renumics Spotlight](https://github.com/Renumics/spotlight)创建
+左：由 ChatGPT 生成的问题（GPT-3.5 和 GPT-4），右：通过 ragas 生成的问题，使用 GPT-3.5 和 GPT-4 — 由作者使用[Renumics Spotlight](https://github.com/Renumics/spotlight)创建
 
-直接由ChatGPT生成（GPT-3.5，GPT-4）的问题位于中心的一个更局限的区域，而基于文档通过ragas生成的问题则覆盖了更大的区域。
+直接由 ChatGPT 生成（GPT-3.5，GPT-4）的问题位于中心的一个更局限的区域，而基于文档通过 ragas 生成的问题则覆盖了更大的区域。
 
 ## 答案正确性直方图
 
-直方图可以作为起点，帮助初步了解数据的全局统计信息。总体而言，所有问题的`答案正确性`为0.45。对于没有使用ragas生成的问题，答案正确性为0.36，而使用ragas生成的问题则为0.52。预计系统在使用ragas生成的问题上的表现会更好，因为这些问题是基于可用数据生成的，而直接由ChatGPT生成的问题可能来自ChatGPT训练时所使用的所有数据。
+直方图可以作为起点，帮助初步了解数据的全局统计信息。总体而言，所有问题的`答案正确性`为 0.45。对于没有使用 ragas 生成的问题，答案正确性为 0.36，而使用 ragas 生成的问题则为 0.52。预计系统在使用 ragas 生成的问题上的表现会更好，因为这些问题是基于可用数据生成的，而直接由 ChatGPT 生成的问题可能来自 ChatGPT 训练时所使用的所有数据。
 
-![](../Images/0823d03c0ade2f06c1123e122c0311a9.png)
+![](img/0823d03c0ade2f06c1123e122c0311a9.png)
 
 按问题来源着色的答案正确性直方图 - 由作者创建
 
-对一些问题/答案及其真实答案的快速随机人工审查显示，在`答案正确性`为0.3到0.4的区间内，大多数问题仍然根据真实答案被正确回答。在0.2到0.3的区间内，出现了许多错误答案。在0.1到0.2的区间内，大多数答案是错误的。值得注意的是，几乎所有该范围内的问题都来自GPT-3.5。虽然这两个由GPT-4生成的问题的`答案正确性`低于0.2，但它们仍然被正确回答。
+对一些问题/答案及其真实答案的快速随机人工审查显示，在`答案正确性`为 0.3 到 0.4 的区间内，大多数问题仍然根据真实答案被正确回答。在 0.2 到 0.3 的区间内，出现了许多错误答案。在 0.1 到 0.2 的区间内，大多数答案是错误的。值得注意的是，几乎所有该范围内的问题都来自 GPT-3.5。虽然这两个由 GPT-4 生成的问题的`答案正确性`低于 0.2，但它们仍然被正确回答。
 
 ## 问题嵌入相似性图：观察结果
 
@@ -359,17 +359,17 @@ spotlight.show(
 
 +   **聚类“谁保持记录…”**：平均`回答正确率`0.44，类似于全局`回答正确率`。
 
-+   **聚类“赢得冠军的…”**：平均`回答正确率`0.26 —— 看起来具有挑战性。带有多个条件的问题，例如：“唯一获胜的车手是谁，他拥有英国赛车执照，驾驶意大利车队的赛车，搭载美国发动机。” 类似多查询的扩展RAG方法可能有助于改进这一点。
++   **聚类“赢得冠军的…”**：平均`回答正确率`0.26 —— 看起来具有挑战性。带有多个条件的问题，例如：“唯一获胜的车手是谁，他拥有英国赛车执照，驾驶意大利车队的赛车，搭载美国发动机。” 类似多查询的扩展 RAG 方法可能有助于改进这一点。
 
-+   **聚类“唯一获胜的车手是…并且车上挂有号码<number>”**：平均`回答正确率`0.23 —— 看起来GPT-3.5在这里有些懒惰，尽管大多数真实答案是错误的，但它反复使用相同的问题并更改数字！
++   **聚类“唯一获胜的车手是…并且车上挂有号码<number>”**：平均`回答正确率`0.23 —— 看起来 GPT-3.5 在这里有些懒惰，尽管大多数真实答案是错误的，但它反复使用相同的问题并更改数字！
 
-![](../Images/fe6a9f7fe12e115d68dc9cf1906b1461.png)
+![](img/fe6a9f7fe12e115d68dc9cf1906b1461.png)
 
 公式一问题的相似性图（高亮部分）与文档 —— 作者制作
 
 # 结论
 
-总结而言，利用基于UMAP的可视化方法提供了一种有趣的方式，能够深入挖掘，远超单纯的全局度量分析。文档嵌入相似性图提供了一个良好的概览，展示了相似文档的聚类及其与评估问题的关系。问题相似性图揭示了模式，允许通过质量度量区分和分析问题，从而生成洞察。请参阅“可视化结果”部分，将可视化应用于你的评估策略——你将发现什么洞察？
+总结而言，利用基于 UMAP 的可视化方法提供了一种有趣的方式，能够深入挖掘，远超单纯的全局度量分析。文档嵌入相似性图提供了一个良好的概览，展示了相似文档的聚类及其与评估问题的关系。问题相似性图揭示了模式，允许通过质量度量区分和分析问题，从而生成洞察。请参阅“可视化结果”部分，将可视化应用于你的评估策略——你将发现什么洞察？
 
 *我是一位专业人士，专注于为非结构化数据的互动探索创建先进的软件解决方案。我撰写关于非结构化数据的文章，并使用强大的可视化工具进行分析，以便做出明智的决策。*
 

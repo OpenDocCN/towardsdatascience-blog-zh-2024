@@ -1,10 +1,10 @@
 # 在 AWS 私有环境中使用 Terraform 设置 Pypi 镜像
 
-> 原文：[https://towardsdatascience.com/set-up-a-pypi-mirror-in-an-aws-private-environment-with-terraform-f0fcc1b67cc0?source=collection_archive---------7-----------------------#2024-03-06](https://towardsdatascience.com/set-up-a-pypi-mirror-in-an-aws-private-environment-with-terraform-f0fcc1b67cc0?source=collection_archive---------7-----------------------#2024-03-06)
+> 原文：[`towardsdatascience.com/set-up-a-pypi-mirror-in-an-aws-private-environment-with-terraform-f0fcc1b67cc0?source=collection_archive---------7-----------------------#2024-03-06`](https://towardsdatascience.com/set-up-a-pypi-mirror-in-an-aws-private-environment-with-terraform-f0fcc1b67cc0?source=collection_archive---------7-----------------------#2024-03-06)
 
-[](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)[![Florent Pajot](../Images/ff375f53bcfdec60e84a24068431361d.png)](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------) [Florent Pajot](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)
+[](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)![Florent Pajot](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------) [Florent Pajot](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------) ·5 分钟阅读·2024年3月6日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------) ·5 分钟阅读·2024 年 3 月 6 日
 
 --
 
@@ -18,7 +18,7 @@
 
 这特别适用于限制暴露于安全风险，尤其是在处理个人信息或必须遵守某些安全标准时。
 
-![](../Images/980cca82296b30632ecaa6058b1111f4.png)
+![](img/980cca82296b30632ecaa6058b1111f4.png)
 
 图片来自 [Nadir sYzYgY](https://unsplash.com/@nadir_syzygy?utm_source=medium&utm_medium=referral) 通过 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

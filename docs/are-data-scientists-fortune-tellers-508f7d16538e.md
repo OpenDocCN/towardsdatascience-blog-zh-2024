@@ -1,16 +1,16 @@
 # 数据科学家是算命师吗？
 
-> 原文：[https://towardsdatascience.com/are-data-scientists-fortune-tellers-508f7d16538e?source=collection_archive---------12-----------------------#2024-05-09](https://towardsdatascience.com/are-data-scientists-fortune-tellers-508f7d16538e?source=collection_archive---------12-----------------------#2024-05-09)
+> 原文：[`towardsdatascience.com/are-data-scientists-fortune-tellers-508f7d16538e?source=collection_archive---------12-----------------------#2024-05-09`](https://towardsdatascience.com/are-data-scientists-fortune-tellers-508f7d16538e?source=collection_archive---------12-----------------------#2024-05-09)
 
-![](../Images/075d7516eea9b2924ba858b2973a8557.png)
+![](img/075d7516eea9b2924ba858b2973a8557.png)
 
 图片由[petr sidorov](https://unsplash.com/@m_malkovich?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 我们是否应该努力成为其中之一？
 
-[](https://zzhu17.medium.com/?source=post_page---byline--508f7d16538e--------------------------------)[![Zijing Zhu, PhD](../Images/436b22e28798b87261c4814a7e2b20e3.png)](https://zzhu17.medium.com/?source=post_page---byline--508f7d16538e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--508f7d16538e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--508f7d16538e--------------------------------) [Zijing Zhu, PhD](https://zzhu17.medium.com/?source=post_page---byline--508f7d16538e--------------------------------)
+[](https://zzhu17.medium.com/?source=post_page---byline--508f7d16538e--------------------------------)![Zijing Zhu, PhD](https://zzhu17.medium.com/?source=post_page---byline--508f7d16538e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--508f7d16538e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--508f7d16538e--------------------------------) [Zijing Zhu, PhD](https://zzhu17.medium.com/?source=post_page---byline--508f7d16538e--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--508f7d16538e--------------------------------) ·8分钟阅读·2024年5月9日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--508f7d16538e--------------------------------) ·8 分钟阅读·2024 年 5 月 9 日
 
 --
 

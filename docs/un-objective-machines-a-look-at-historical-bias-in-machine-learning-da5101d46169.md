@@ -1,12 +1,12 @@
 # （非）客观机器：探讨机器学习中的历史偏见
 
-> 原文：[https://towardsdatascience.com/un-objective-machines-a-look-at-historical-bias-in-machine-learning-da5101d46169?source=collection_archive---------6-----------------------#2024-04-17](https://towardsdatascience.com/un-objective-machines-a-look-at-historical-bias-in-machine-learning-da5101d46169?source=collection_archive---------6-----------------------#2024-04-17)
+> 原文：[`towardsdatascience.com/un-objective-machines-a-look-at-historical-bias-in-machine-learning-da5101d46169?source=collection_archive---------6-----------------------#2024-04-17`](https://towardsdatascience.com/un-objective-machines-a-look-at-historical-bias-in-machine-learning-da5101d46169?source=collection_archive---------6-----------------------#2024-04-17)
 
 ## 深入探讨机器学习中的偏见，重点关注历史性（或社会性）偏见。
 
-[](https://medium.com/@greteltan21?source=post_page---byline--da5101d46169--------------------------------)[![Gretel Tan](../Images/dba8c83e3c13f94a99d9a8c33688c153.png)](https://medium.com/@greteltan21?source=post_page---byline--da5101d46169--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--da5101d46169--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--da5101d46169--------------------------------) [Gretel Tan](https://medium.com/@greteltan21?source=post_page---byline--da5101d46169--------------------------------)
+[](https://medium.com/@greteltan21?source=post_page---byline--da5101d46169--------------------------------)![Gretel Tan](https://medium.com/@greteltan21?source=post_page---byline--da5101d46169--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--da5101d46169--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da5101d46169--------------------------------) [Gretel Tan](https://medium.com/@greteltan21?source=post_page---byline--da5101d46169--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da5101d46169--------------------------------) ·10分钟阅读·2024年4月17日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da5101d46169--------------------------------) ·10 分钟阅读·2024 年 4 月 17 日
 
 --
 
@@ -18,7 +18,7 @@
 
 由于统计在机器学习模型中的作用很大，这些模型会受到统计偏见的影响。然而，这些模型也是由人类设计的，并且使用由人类生成的数据进行训练，这使得它们容易学习并延续人类的偏见。因此，或许反直觉的是，机器学习模型可能比人类更容易受到偏见的影响，而不是更少。
 
-专家们对于算法偏见的具体数量存在分歧，但至少有7种潜在的有害偏见来源（[Suresh & Guttag, 2021](https://dl.acm.org/doi/fullHtml/10.1145/3465416.3483305)），它们在数据分析流程的不同阶段产生：
+专家们对于算法偏见的具体数量存在分歧，但至少有 7 种潜在的有害偏见来源（[Suresh & Guttag, 2021](https://dl.acm.org/doi/fullHtml/10.1145/3465416.3483305)），它们在数据分析流程的不同阶段产生：
 
 1.  历史偏见，源于数据生成阶段的世界；
 
@@ -34,7 +34,7 @@
 
 1.  部署偏见，模型没有按照开发者原本预期的方式被使用。
 
-![](../Images/d0e09d1aefa3353ee704e3e612c63403.png)
+![](img/d0e09d1aefa3353ee704e3e612c63403.png)
 
 由[Hunter Harritt](https://unsplash.com/@hharritt?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)拍摄的照片，来源于[Unsplash](https://unsplash.com/photos/red-and-blue-lights-from-tower-steel-wool-photography-Ype9sdOPdYc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -50,15 +50,15 @@
 
 大多数社会都有反歧视法，旨在保护历史上受压迫的脆弱群体的权利。如果我们不小心，过去的歧视行为可能会因为历史偏见被我们的机器学习模型所学习并延续。随着机器学习模型在我们生活中的普及，从琐事到改变人生的重大决策，这带来了特别隐蔽的威胁——历史性偏见的机器学习模型有可能在前所未有的规模上延续不平等。数据科学家和数学家凯西·奥尼尔（Cathy O’Neil）将这样的模型称为“大规模数学毁灭性武器”（WMDs）——这些模型的工作机制是神秘的，产生的有害结果是受害者无法辩驳的，并且通常会惩罚社会中贫穷和受压迫的人群，同时让那些已经富有的人受益（奥尼尔，2017）。
 
-![](../Images/3097e830cf16e7342353e058b0142e69.png)
+![](img/3097e830cf16e7342353e058b0142e69.png)
 
 图片来源：[engin akyurt](https://unsplash.com/@enginakyurt?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 来自 [Unsplash](https://unsplash.com/photos/woman-with-hands-tied-l1clu1ZKjSw?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
-这样的WMD（大规模毁灭性武器）已经开始影响全球的脆弱群体。尽管我们会认为亚马逊，作为一家从向我们推荐我们从未听说过、但突然渴望的商品中获利的公司，应该已经掌握了机器学习，[研究发现](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8830968/)他们用来扫描简历的算法学会了性别偏见，因为科技领域中女性的数量历史上较少。更令人不寒而栗的是，[预测性警务工具](https://www.technologyreview.com/2021/02/05/1017560/predictive-policing-racist-algorithmic-bias-data-crime-predpol/#:~:text=It%27s%20no%20secret%20that%20predictive,lessen%20bias%20has%20little%20effect.)也被证明存在种族偏见，医疗领域使用的算法也是如此，[法院](https://www.technologyreview.com/2020/07/17/1005396/predictive-policing-algorithms-racist-dismantled-machine-learning-bias-criminal-justice/)的算法也是如此。这类工具的广泛传播显然会带来巨大的影响，特别是因为它们可能成为加固我们社会中根深蒂固的不平等现象的一种手段。我认为，与有偏见的人类相比，这些WMD在我们集体努力消除不平等方面构成了更大的障碍，原因有两个：
+这样的 WMD（大规模毁灭性武器）已经开始影响全球的脆弱群体。尽管我们会认为亚马逊，作为一家从向我们推荐我们从未听说过、但突然渴望的商品中获利的公司，应该已经掌握了机器学习，[研究发现](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8830968/)他们用来扫描简历的算法学会了性别偏见，因为科技领域中女性的数量历史上较少。更令人不寒而栗的是，[预测性警务工具](https://www.technologyreview.com/2021/02/05/1017560/predictive-policing-racist-algorithmic-bias-data-crime-predpol/#:~:text=It%27s%20no%20secret%20that%20predictive,lessen%20bias%20has%20little%20effect.)也被证明存在种族偏见，医疗领域使用的算法也是如此，[法院](https://www.technologyreview.com/2020/07/17/1005396/predictive-policing-algorithms-racist-dismantled-machine-learning-bias-criminal-justice/)的算法也是如此。这类工具的广泛传播显然会带来巨大的影响，特别是因为它们可能成为加固我们社会中根深蒂固的不平等现象的一种手段。我认为，与有偏见的人类相比，这些 WMD 在我们集体努力消除不平等方面构成了更大的障碍，原因有两个：
 
 首先，很难深入了解为什么机器学习（ML）模型会做出某些预测。深度学习似乎是当下的流行词，复杂的神经网络风靡全球。虽然这些模型令人兴奋，因为它们有潜力模拟人类无法理解的复杂现象，但它们被认为是黑盒模型，因为它们的工作原理往往不透明，即便是它们的创造者也未必能完全理解。没有针对历史（以及其他）偏见的集中努力，很难判断它们是否无意中歧视了受保护群体。
 
-其次，我认为，由于历史性偏见模型可能造成的损害规模是前所未有且被忽视的。由于人类需要休息，并需要时间有效地处理信息，单个有偏见的人所能造成的伤害是有限的。然而，仅一个有偏见的机器学习模型就能在几分钟内作出成千上万的歧视性判断，而且不需要休息。更危险的是，许多人还认为机器比人类更客观，这导致对潜在问题模型的监管减少。这让我特别担忧，因为随着像ChatGPT这样的大型语言模型取得巨大成功，越来越多的人对将机器学习模型应用于工作流程产生了兴趣，这可能会自动化地促进大规模杀伤性武器在我们社会中的兴起，带来灾难性的后果。
+其次，我认为，由于历史性偏见模型可能造成的损害规模是前所未有且被忽视的。由于人类需要休息，并需要时间有效地处理信息，单个有偏见的人所能造成的伤害是有限的。然而，仅一个有偏见的机器学习模型就能在几分钟内作出成千上万的歧视性判断，而且不需要休息。更危险的是，许多人还认为机器比人类更客观，这导致对潜在问题模型的监管减少。这让我特别担忧，因为随着像 ChatGPT 这样的大型语言模型取得巨大成功，越来越多的人对将机器学习模型应用于工作流程产生了兴趣，这可能会自动化地促进大规模杀伤性武器在我们社会中的兴起，带来灾难性的后果。
 
 # 我们能做些什么？
 
@@ -66,11 +66,11 @@
 
 ## 统计学解决方案
 
-由于问题源于现实世界数据中的不成比例结果，为什么不通过使我们收集的数据更加成比例来解决这个问题呢？这是Suresh, H.和Guttag, J.（2021）提出的处理历史偏见的统计方法。简单来说，它包括从某些群体收集更多数据，而从其他群体收集较少数据（系统性的过采样或欠采样），从而在我们的训练数据集中得到更为平衡的结果分布。
+由于问题源于现实世界数据中的不成比例结果，为什么不通过使我们收集的数据更加成比例来解决这个问题呢？这是 Suresh, H.和 Guttag, J.（2021）提出的处理历史偏见的统计方法。简单来说，它包括从某些群体收集更多数据，而从其他群体收集较少数据（系统性的过采样或欠采样），从而在我们的训练数据集中得到更为平衡的结果分布。
 
 ## 基于模型的解决方案
 
-根据FATE AI的目标，模型的可解释性可以被构建进去，使其决策过程更加透明。可解释性使数据科学家能够看到模型做出决策的原因，从而提供机会发现并减轻模型中潜在的历史偏见。在现实世界中，这也意味着，机器歧视的受害者可以挑战之前无法理解的模型所做出的决策，并希望能够促使这些决策重新考虑。这将有助于增加我们模型的信任度。
+根据 FATE AI 的目标，模型的可解释性可以被构建进去，使其决策过程更加透明。可解释性使数据科学家能够看到模型做出决策的原因，从而提供机会发现并减轻模型中潜在的历史偏见。在现实世界中，这也意味着，机器歧视的受害者可以挑战之前无法理解的模型所做出的决策，并希望能够促使这些决策重新考虑。这将有助于增加我们模型的信任度。
 
 更技术性地说，针对机器学习模型中的偏见，算法和模型也在不断开发中。[对抗去偏（Adversarial debiasing）](https://dl.acm.org/doi/pdf/10.1145/3278721.3278779) 是一个有趣的解决方案。这类模型本质上由两部分组成：一个预测器，旨在预测结果，比如可聘用性；一个对抗者，试图根据预测的结果预测受保护的属性。就像拳击手在拳台上一样，这两个部分来回交锋，争夺表现得比对方更好，当对抗者无法根据预测结果检测出受保护的属性时，模型就被认为已经去偏。这类模型与没有去偏的模型相比表现得相当好，表明我们在优先考虑公平时不必牺牲性能。[算法](https://dl.acm.org/doi/10.1145/3468264.3468537)也已经被开发出来，用于减少机器学习模型中的偏见，同时保持良好的性能。
 
@@ -118,34 +118,34 @@
 
 # 参考资料：
 
-AI Now Institute. (2024年1月10日). *Ai now 2017报告*. [https://ainowinstitute.org/publication/ai-now-2017-report-2](https://ainowinstitute.org/publication/ai-now-2017-report-2)
+AI Now Institute. (2024 年 1 月 10 日). *Ai now 2017 报告*. [`ainowinstitute.org/publication/ai-now-2017-report-2`](https://ainowinstitute.org/publication/ai-now-2017-report-2)
 
-Belenguer, L. (2022). 人工智能偏见：探索歧视性算法决策模型及其在制药行业的可能机器中心解决方案应用。*人工智能与伦理*，*2*(4)，771–787。 [https://doi.org/10.1007/s43681-022-00138-8](https://doi.org/10.1007/s43681-022-00138-8)
+Belenguer, L. (2022). 人工智能偏见：探索歧视性算法决策模型及其在制药行业的可能机器中心解决方案应用。*人工智能与伦理*，*2*(4)，771–787。 [`doi.org/10.1007/s43681-022-00138-8`](https://doi.org/10.1007/s43681-022-00138-8)
 
-Bolukbasi, T., Chang, K.-W., Zou, J., Saligrama, V., & Kalai, A. (2016, July 21). *男人与计算机程序员的关系就像女人与家庭主妇的关系？消除词向量的偏见*。arXiv.org。 [https://doi.org/10.48550/arXiv.1607.06520](https://doi.org/10.48550/arXiv.1607.06520)
+Bolukbasi, T., Chang, K.-W., Zou, J., Saligrama, V., & Kalai, A. (2016, July 21). *男人与计算机程序员的关系就像女人与家庭主妇的关系？消除词向量的偏见*。arXiv.org。 [`doi.org/10.48550/arXiv.1607.06520`](https://doi.org/10.48550/arXiv.1607.06520)
 
-Chakraborty, J., Majumder, S., & Menzies, T. (2021). 机器学习软件中的偏见：为什么？怎么做？应该怎么办？*第29届ACM联合会议：欧洲软件工程会议与软件工程基础研讨会论文集*。 [https://doi.org/10.1145/3468264.3468537](https://doi.org/10.1145/3468264.3468537)
+Chakraborty, J., Majumder, S., & Menzies, T. (2021). 机器学习软件中的偏见：为什么？怎么做？应该怎么办？*第 29 届 ACM 联合会议：欧洲软件工程会议与软件工程基础研讨会论文集*。 [`doi.org/10.1145/3468264.3468537`](https://doi.org/10.1145/3468264.3468537)
 
-Gutbezahl, J. (2017, June 13). *在分析中避免的5种统计偏差*。商业洞察博客。 [https://online.hbs.edu/blog/post/types-of-statistical-bias](https://online.hbs.edu/blog/post/types-of-statistical-bias)
+Gutbezahl, J. (2017, June 13). *在分析中避免的 5 种统计偏差*。商业洞察博客。 [`online.hbs.edu/blog/post/types-of-statistical-bias`](https://online.hbs.edu/blog/post/types-of-statistical-bias)
 
-Heaven, W. D. (2023a, June 21). *预测性警务算法存在种族歧视，它们需要被拆除。* MIT科技评论。 [https://www.technologyreview.com/2020/07/17/1005396/predictive-policing-algorithms-racist-dismantled-machine-learning-bias-criminal-justice/](https://www.technologyreview.com/2020/07/17/1005396/predictive-policing-algorithms-racist-dismantled-machine-learning-bias-criminal-justice/)
+Heaven, W. D. (2023a, June 21). *预测性警务算法存在种族歧视，它们需要被拆除。* MIT 科技评论。 [`www.technologyreview.com/2020/07/17/1005396/predictive-policing-algorithms-racist-dismantled-machine-learning-bias-criminal-justice/`](https://www.technologyreview.com/2020/07/17/1005396/predictive-policing-algorithms-racist-dismantled-machine-learning-bias-criminal-justice/)
 
-Heaven, W. D. (2023b, June 21). *预测性警务依然存在种族歧视——无论它使用何种数据*。MIT科技评论。 [https://www.technologyreview.com/2021/02/05/1017560/predictive-policing-racist-algorithmic-bias-data-crime-predpol/#:~:text=It%27s%20no%20secret%20that%20predictive,lessen%20bias%20has%20little%20effect.](https://www.technologyreview.com/2021/02/05/1017560/predictive-policing-racist-algorithmic-bias-data-crime-predpol/#:~:text=It%27s%20no%20secret%20that%20predictive,lessen%20bias%20has%20little%20effect.)
+Heaven, W. D. (2023b, June 21). *预测性警务依然存在种族歧视——无论它使用何种数据*。MIT 科技评论。 [`www.technologyreview.com/2021/02/05/1017560/predictive-policing-racist-algorithmic-bias-data-crime-predpol/#:~:text=It%27s%20no%20secret%20that%20predictive,lessen%20bias%20has%20little%20effect.`](https://www.technologyreview.com/2021/02/05/1017560/predictive-policing-racist-algorithmic-bias-data-crime-predpol/#:~:text=It%27s%20no%20secret%20that%20predictive,lessen%20bias%20has%20little%20effect.)
 
-Hellström, T., Dignum, V., & Bensch, S. (2020, September 20). *机器学习中的偏见——它有什么用？*。arXiv.org。 [https://arxiv.org/abs/2004.00686](https://arxiv.org/abs/2004.00686)
+Hellström, T., Dignum, V., & Bensch, S. (2020, September 20). *机器学习中的偏见——它有什么用？*。arXiv.org。 [`arxiv.org/abs/2004.00686`](https://arxiv.org/abs/2004.00686)
 
-*人工智能系统中的历史偏见*。澳大利亚人权委员会。（2020年11月24日）。 [https://humanrights.gov.au/about/news/media-releases/historical-bias-ai-systems#:~:text=Historical%20bias%20arises%20when%20the,by%20women%20was%20even%20worse.](https://humanrights.gov.au/about/news/media-releases/historical-bias-ai-systems#:~:text=Historical%20bias%20arises%20when%20the,by%20women%20was%20even%20worse.)
+*人工智能系统中的历史偏见*。澳大利亚人权委员会。（2020 年 11 月 24 日）。 [`humanrights.gov.au/about/news/media-releases/historical-bias-ai-systems#:~:text=Historical%20bias%20arises%20when%20the,by%20women%20was%20even%20worse.`](https://humanrights.gov.au/about/news/media-releases/historical-bias-ai-systems#:~:text=Historical%20bias%20arises%20when%20the,by%20women%20was%20even%20worse.)
 
-Memarian, B., & Doleck, T. (2023). 人工智能（AI）与高等教育中的公平、问责、透明度和伦理（FATE）：一项系统评审。*计算机与教育：人工智能*，*5*，100152\. [https://doi.org/10.1016/j.caeai.2023.100152](https://doi.org/10.1016/j.caeai.2023.100152)
+Memarian, B., & Doleck, T. (2023). 人工智能（AI）与高等教育中的公平、问责、透明度和伦理（FATE）：一项系统评审。*计算机与教育：人工智能*，*5*，100152\. [`doi.org/10.1016/j.caeai.2023.100152`](https://doi.org/10.1016/j.caeai.2023.100152)
 
-Obermeyer, Z., Powers, B., Vogeli, C., & Mullainathan, S. (2019). 解剖用于管理群体健康的算法中的种族偏见。*科学*，*366*（6464），447–453\. [https://doi.org/10.1126/science.aax2342](https://doi.org/10.1126/science.aax2342)
+Obermeyer, Z., Powers, B., Vogeli, C., & Mullainathan, S. (2019). 解剖用于管理群体健康的算法中的种族偏见。*科学*，*366*（6464），447–453\. [`doi.org/10.1126/science.aax2342`](https://doi.org/10.1126/science.aax2342)
 
 O'Neil, C. (2017). *数学毁灭武器：大数据如何加剧不平等并威胁民主*。企鹅兰登书屋。
 
-Roselli, D., Matthews, J., & Talagala, N. (2019). 管理人工智能中的偏见。*2019年全球信息网大会的伴随论文集*。[https://doi.org/10.1145/3308560.3317590](https://doi.org/10.1145/3308560.3317590)
+Roselli, D., Matthews, J., & Talagala, N. (2019). 管理人工智能中的偏见。*2019 年全球信息网大会的伴随论文集*。[`doi.org/10.1145/3308560.3317590`](https://doi.org/10.1145/3308560.3317590)
 
-Suresh, H., & Guttag, J. (2021). 理解机器学习生命周期中伤害来源的框架。*算法、机制与优化中的公平性与可访问性*。[https://doi.org/10.1145/3465416.3483305](https://doi.org/10.1145/3465416.3483305)
+Suresh, H., & Guttag, J. (2021). 理解机器学习生命周期中伤害来源的框架。*算法、机制与优化中的公平性与可访问性*。[`doi.org/10.1145/3465416.3483305`](https://doi.org/10.1145/3465416.3483305)
 
-van Giffen, B., Herhausen, D., & Fahse, T. (2022). 克服算法的陷阱与危机：机器学习偏见及其缓解方法的分类。*商业研究杂志*，*144*，93–106\. [https://doi.org/10.1016/j.jbusres.2022.01.076](https://doi.org/10.1016/j.jbusres.2022.01.076)
+van Giffen, B., Herhausen, D., & Fahse, T. (2022). 克服算法的陷阱与危机：机器学习偏见及其缓解方法的分类。*商业研究杂志*，*144*，93–106\. [`doi.org/10.1016/j.jbusres.2022.01.076`](https://doi.org/10.1016/j.jbusres.2022.01.076)
 
-Zhang, B. H., Lemoine, B., & Mitchell, M. (2018). 通过对抗学习减轻不必要的偏见。*2018年AAAI/ACM人工智能、伦理与社会会议论文集*。[https://doi.org/10.1145/3278721.3278779](https://doi.org/10.1145/3278721.3278779)
+Zhang, B. H., Lemoine, B., & Mitchell, M. (2018). 通过对抗学习减轻不必要的偏见。*2018 年 AAAI/ACM 人工智能、伦理与社会会议论文集*。[`doi.org/10.1145/3278721.3278779`](https://doi.org/10.1145/3278721.3278779)

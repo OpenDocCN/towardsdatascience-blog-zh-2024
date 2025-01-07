@@ -1,16 +1,16 @@
 # 从数据科学到应用的七项必备技能
 
-> 原文：[https://towardsdatascience.com/seven-requisite-skills-for-navigating-from-data-science-to-applications-d23e04f7ee1f?source=collection_archive---------7-----------------------#2024-04-12](https://towardsdatascience.com/seven-requisite-skills-for-navigating-from-data-science-to-applications-d23e04f7ee1f?source=collection_archive---------7-----------------------#2024-04-12)
+> 原文：[`towardsdatascience.com/seven-requisite-skills-for-navigating-from-data-science-to-applications-d23e04f7ee1f?source=collection_archive---------7-----------------------#2024-04-12`](https://towardsdatascience.com/seven-requisite-skills-for-navigating-from-data-science-to-applications-d23e04f7ee1f?source=collection_archive---------7-----------------------#2024-04-12)
 
 ## 帮助初级数据科学家将创意转化为工业级应用
 
-[](https://medium.com/@yangwconion?source=post_page---byline--d23e04f7ee1f--------------------------------)[![Wencong Yang, PhD](../Images/9fc2c73c81473637365adb234e2a042b.png)](https://medium.com/@yangwconion?source=post_page---byline--d23e04f7ee1f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d23e04f7ee1f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d23e04f7ee1f--------------------------------) [Wencong Yang, PhD](https://medium.com/@yangwconion?source=post_page---byline--d23e04f7ee1f--------------------------------)
+[](https://medium.com/@yangwconion?source=post_page---byline--d23e04f7ee1f--------------------------------)![Wencong Yang, PhD](https://medium.com/@yangwconion?source=post_page---byline--d23e04f7ee1f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d23e04f7ee1f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d23e04f7ee1f--------------------------------) [Wencong Yang, PhD](https://medium.com/@yangwconion?source=post_page---byline--d23e04f7ee1f--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d23e04f7ee1f--------------------------------) ·阅读时间：10分钟·2024年4月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d23e04f7ee1f--------------------------------) ·阅读时间：10 分钟·2024 年 4 月 12 日
 
 --
 
-![](../Images/00d71d4fa46efc5bb07467484bd27c43.png)
+![](img/00d71d4fa46efc5bb07467484bd27c43.png)
 
 图片由作者提供 (Ideogram)
 

@@ -1,16 +1,16 @@
 # 如何从头开始用 Python 构建遗传算法
 
-> 原文：[https://towardsdatascience.com/how-to-build-a-genetic-algorithm-from-scratch-in-python-289d895787e2?source=collection_archive---------6-----------------------#2024-08-30](https://towardsdatascience.com/how-to-build-a-genetic-algorithm-from-scratch-in-python-289d895787e2?source=collection_archive---------6-----------------------#2024-08-30)
+> 原文：[`towardsdatascience.com/how-to-build-a-genetic-algorithm-from-scratch-in-python-289d895787e2?source=collection_archive---------6-----------------------#2024-08-30`](https://towardsdatascience.com/how-to-build-a-genetic-algorithm-from-scratch-in-python-289d895787e2?source=collection_archive---------6-----------------------#2024-08-30)
 
 ## 一步步讲解如何从头开始用 Python 构建遗传算法，并附带实际用例
 
-[](https://medium.com/@jaingle77?source=post_page---byline--289d895787e2--------------------------------)[![Jacob Ingle](../Images/f2543a1c4b12ef28a83c30c1667ee032.png)](https://medium.com/@jaingle77?source=post_page---byline--289d895787e2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--289d895787e2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--289d895787e2--------------------------------) [Jacob Ingle](https://medium.com/@jaingle77?source=post_page---byline--289d895787e2--------------------------------)
+[](https://medium.com/@jaingle77?source=post_page---byline--289d895787e2--------------------------------)![Jacob Ingle](https://medium.com/@jaingle77?source=post_page---byline--289d895787e2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--289d895787e2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--289d895787e2--------------------------------) [Jacob Ingle](https://medium.com/@jaingle77?source=post_page---byline--289d895787e2--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--289d895787e2--------------------------------) ·15分钟阅读·2024年8月30日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--289d895787e2--------------------------------) ·15 分钟阅读·2024 年 8 月 30 日
 
 --
 
-![](../Images/0c3a1d120324e73951d2d90cc051270c.png)
+![](img/0c3a1d120324e73951d2d90cc051270c.png)
 
 图像由 DALL-E 生成
 

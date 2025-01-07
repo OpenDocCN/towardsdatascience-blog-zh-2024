@@ -1,16 +1,16 @@
 # 创建一个由 AI 驱动的产品，结合计算机视觉和 ChatGPT
 
-> 原文：[https://towardsdatascience.com/create-an-a-i-driven-product-with-computer-vision-and-chatgpt-070a34ab9877?source=collection_archive---------5-----------------------#2024-05-02](https://towardsdatascience.com/create-an-a-i-driven-product-with-computer-vision-and-chatgpt-070a34ab9877?source=collection_archive---------5-----------------------#2024-05-02)
+> 原文：[`towardsdatascience.com/create-an-a-i-driven-product-with-computer-vision-and-chatgpt-070a34ab9877?source=collection_archive---------5-----------------------#2024-05-02`](https://towardsdatascience.com/create-an-a-i-driven-product-with-computer-vision-and-chatgpt-070a34ab9877?source=collection_archive---------5-----------------------#2024-05-02)
 
 ## 使用深度学习和 GenAI 创建一个用于皮肤癌黑色素瘤的医学仪表板的教程。
 
-[](https://databeast.medium.com/?source=post_page---byline--070a34ab9877--------------------------------)[![Alexander Barriga](../Images/3bc55828dfa05df635c2ed6572528fd7.png)](https://databeast.medium.com/?source=post_page---byline--070a34ab9877--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--070a34ab9877--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--070a34ab9877--------------------------------) [Alexander Barriga](https://databeast.medium.com/?source=post_page---byline--070a34ab9877--------------------------------)
+[](https://databeast.medium.com/?source=post_page---byline--070a34ab9877--------------------------------)![Alexander Barriga](https://databeast.medium.com/?source=post_page---byline--070a34ab9877--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--070a34ab9877--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--070a34ab9877--------------------------------) [Alexander Barriga](https://databeast.medium.com/?source=post_page---byline--070a34ab9877--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--070a34ab9877--------------------------------) ·14分钟阅读·2024年5月2日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--070a34ab9877--------------------------------) ·14 分钟阅读·2024 年 5 月 2 日
 
 --
 
-![](../Images/f6f55f64dc2e9be4b0f4ed30adce242b.png)
+![](img/f6f55f64dc2e9be4b0f4ed30adce242b.png)
 
 由 AI 驱动的医学软件产品（图片来自作者）
 

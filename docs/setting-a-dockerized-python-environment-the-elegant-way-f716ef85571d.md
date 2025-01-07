@@ -1,10 +1,10 @@
 # 设置 Docker 化的 Python 环境 — 优雅的方式
 
-> 原文：[https://towardsdatascience.com/setting-a-dockerized-python-environment-the-elegant-way-f716ef85571d?source=collection_archive---------1-----------------------#2024-04-02](https://towardsdatascience.com/setting-a-dockerized-python-environment-the-elegant-way-f716ef85571d?source=collection_archive---------1-----------------------#2024-04-02)
+> 原文：[`towardsdatascience.com/setting-a-dockerized-python-environment-the-elegant-way-f716ef85571d?source=collection_archive---------1-----------------------#2024-04-02`](https://towardsdatascience.com/setting-a-dockerized-python-environment-the-elegant-way-f716ef85571d?source=collection_archive---------1-----------------------#2024-04-02)
 
 ## 本文提供了一个逐步指南，介绍如何使用 VScode 和 Dev Containers 扩展设置一个 Python Docker 化开发环境。
 
-[](https://medium.com/@rami.krispin?source=post_page---byline--f716ef85571d--------------------------------)[![Rami Krispin](../Images/8af28c282d42a2a27c28aa8af4c8d482.png)](https://medium.com/@rami.krispin?source=post_page---byline--f716ef85571d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f716ef85571d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f716ef85571d--------------------------------) [Rami Krispin](https://medium.com/@rami.krispin?source=post_page---byline--f716ef85571d--------------------------------)
+[](https://medium.com/@rami.krispin?source=post_page---byline--f716ef85571d--------------------------------)![Rami Krispin](https://medium.com/@rami.krispin?source=post_page---byline--f716ef85571d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f716ef85571d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f716ef85571d--------------------------------) [Rami Krispin](https://medium.com/@rami.krispin?source=post_page---byline--f716ef85571d--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f716ef85571d--------------------------------) ·阅读时间 9 分钟·2024 年 4 月 2 日
 
@@ -14,15 +14,15 @@
 
 相关文章：
 
-[](/setting-a-dockerized-python-environment-the-hard-way-e62531bca7a0?source=post_page-----f716ef85571d--------------------------------) [## 设置 Docker 化的 Python 环境 — 较为困难的方式
+[](/setting-a-dockerized-python-environment-the-hard-way-e62531bca7a0?source=post_page-----f716ef85571d--------------------------------) ## 设置 Docker 化的 Python 环境 — 较为困难的方式
 
 ### 本文将回顾通过命令行（CLI）运行 Docker 化的 Python 环境的不同方法。我是否……
 
-towardsdatascience.com](/setting-a-dockerized-python-environment-the-hard-way-e62531bca7a0?source=post_page-----f716ef85571d--------------------------------)
+towardsdatascience.com
 
 到本教程结束时，你将能够使用 VScode 和 Dev Containers 扩展设置一个简单的 Python 开发环境。
 
-![](../Images/8cbb25bfdc0e8741de15e6c984e79491.png)
+![](img/8cbb25bfdc0e8741de15e6c984e79491.png)
 
 VScode 插图（由作者使用 Midjourney 创建）
 
@@ -68,7 +68,7 @@ github.com](https://github.com/RamiKrispin/vscode-python-medium?source=post_page
 
 以下图示描述了 Dev Containers 的总体架构：
 
-![](../Images/fd24fddd18b426e7269fa83217b55ce0.png)
+![](img/fd24fddd18b426e7269fa83217b55ce0.png)
 
 Dev Containers 扩展架构（致谢 Rami Krispin）
 
@@ -135,13 +135,13 @@ Dev Containers 扩展架构（致谢 Rami Krispin）
 
 要启动会话，请点击左下角的 Dev Container `><` 图标，并选择下方截图所示的 `Reopen in Container` 选项：
 
-![](../Images/9f199cefb98a0b705fb23d9eadfcc058.png)
+![](img/9f199cefb98a0b705fb23d9eadfcc058.png)
 
 使用 Dev Containers 扩展启动容器内部的会话（作者截图）
 
 请注意，在首次启动会话时，Dev Containers 扩展将查找由 `image` 参数定义的镜像（在此例中是 `python:3.10`）。如果镜像在本地不可用，它将从 Docker Hub 拉取，可能需要几分钟时间。之后，启动会话通常只需几秒钟。
 
-![](../Images/b4479a50c69ef05d66d4b3fb41943214.png)
+![](img/b4479a50c69ef05d66d4b3fb41943214.png)
 
 容器内的 VScode 会话（作者截图）
 
@@ -260,19 +260,19 @@ print("Hello World!")
 
 现在，让我们使用新设置启动会话，并使用 `test1.py` 文件进行测试：
 
-![](../Images/839afb5683f5adfe2c5732bd9a28f5bd.png)
+![](img/839afb5683f5adfe2c5732bd9a28f5bd.png)
 
 运行一个 Python 脚本以测试环境（截图来自作者）
 
 如上图所示，我们成功地从终端（标记为紫色）运行了测试脚本，并且它按预期打印出了**Hello World!**消息（标记为绿色）。此外，我们在镜像中设置的虚拟环境（`my_python_dev`）默认已加载（标记为黄色）。
 
-在下一部分中，我们将看到如何自定义Dev Containers会话的VScode设置。
+在下一部分中，我们将看到如何自定义 Dev Containers 会话的 VScode 设置。
 
-## 自定义VScode设置
+## 自定义 VScode 设置
 
-Dev Containers扩展的一个重要特点是，它将会话设置与主要的VScode设置隔离开来。这意味着你可以在项目级别完全自定义VScode设置。它扩展了开发环境的可复现性，不仅限于Python或操作系统设置。最后但同样重要的是，它使得与他人协作或在多台机器上工作变得无缝且高效。
+Dev Containers 扩展的一个重要特点是，它将会话设置与主要的 VScode 设置隔离开来。这意味着你可以在项目级别完全自定义 VScode 设置。它扩展了开发环境的可复现性，不仅限于 Python 或操作系统设置。最后但同样重要的是，它使得与他人协作或在多台机器上工作变得无缝且高效。
 
-我们将在接下来的示例中结束本教程，看看如何使用`customizations`参数自定义VScode设置。我们将向前面的示例添加该参数，并使用`vscode`子参数设置环境默认的Python解释器和所需的扩展：
+我们将在接下来的示例中结束本教程，看看如何使用`customizations`参数自定义 VScode 设置。我们将向前面的示例添加该参数，并使用`vscode`子参数设置环境默认的 Python 解释器和所需的扩展：
 
 `devcontainer.json`
 
@@ -303,17 +303,17 @@ Dev Containers扩展的一个重要特点是，它将会话设置与主要的VSc
 
 该示例的文件可以在[这里](https://github.com/RamiKrispin/vscode-python-medium/tree/main/03_final_example)找到。
 
-我们使用`settings`参数来定义镜像中定义的Python虚拟环境。此外，我们使用`extensions`参数安装[Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)和[Jupyter](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)支持扩展。
+我们使用`settings`参数来定义镜像中定义的 Python 虚拟环境。此外，我们使用`extensions`参数安装[Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python)和[Jupyter](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter)支持扩展。
 
 > **注意：** 虚拟环境的路径由用于设置环境的应用程序类型定义。当我们使用`venv`并将其命名为`my_python_dev`时，路径为`opt/my_python_dev/bin/python3`。
 
-在添加Python扩展后，我们可以使用扩展插件启动Python脚本，如下图所示。此外，我们还可以利用Jupyter扩展以交互模式执行Python代码：
+在添加 Python 扩展后，我们可以使用扩展插件启动 Python 脚本，如下图所示。此外，我们还可以利用 Jupyter 扩展以交互模式执行 Python 代码：
 
-![](../Images/4c8bda14019b0f7f505bb1532d14321c.png)
+![](img/4c8bda14019b0f7f505bb1532d14321c.png)
 
 # 总结
 
-在本教程中，我们回顾了如何使用VScode和Dev Containers扩展设置一个Docker化的Python环境。Dev Containers扩展使得容器与开发工作流的集成变得无缝且高效。我们了解了如何通过几个简单的步骤，使用`devcontainer.json`文件来设置和自定义Docker化的Python环境。我们回顾了两种设置会话镜像的方法：通过`image`和`build`参数，以及通过`customizations`参数来设置扩展。还有其他自定义选项未在本教程中涉及，我建议查看这些选项：
+在本教程中，我们回顾了如何使用 VScode 和 Dev Containers 扩展设置一个 Docker 化的 Python 环境。Dev Containers 扩展使得容器与开发工作流的集成变得无缝且高效。我们了解了如何通过几个简单的步骤，使用`devcontainer.json`文件来设置和自定义 Docker 化的 Python 环境。我们回顾了两种设置会话镜像的方法：通过`image`和`build`参数，以及通过`customizations`参数来设置扩展。还有其他自定义选项未在本教程中涉及，我建议查看这些选项：
 
 +   定义环境变量
 
@@ -333,10 +333,10 @@ github.com](https://github.com/RamiKrispin/vscode-python?source=post_page-----f7
 
 # 资源
 
-+   代码示例 — [https://github.com/RamiKrispin/vscode-python-medium](https://github.com/RamiKrispin/vscode-python-medium)
++   代码示例 — [`github.com/RamiKrispin/vscode-python-medium`](https://github.com/RamiKrispin/vscode-python-medium)
 
-+   VScode — [https://code.visualstudio.com/](https://code.visualstudio.com/)
++   VScode — [`code.visualstudio.com/`](https://code.visualstudio.com/)
 
-+   开发容器 — [https://code.visualstudio.com/docs/devcontainers/containers](https://code.visualstudio.com/docs/devcontainers/containers)
++   开发容器 — [`code.visualstudio.com/docs/devcontainers/containers`](https://code.visualstudio.com/docs/devcontainers/containers)
 
-+   设置一个 Docker 化的 Python 开发环境，使用 GitHub 模板 — [https://medium.com/@rami.krispin/setting-a-dockerized-python-development-environment-template-de2400c4812b](https://medium.com/@rami.krispin/setting-a-dockerized-python-development-environment-template-de2400c4812b)
++   设置一个 Docker 化的 Python 开发环境，使用 GitHub 模板 — [`medium.com/@rami.krispin/setting-a-dockerized-python-development-environment-template-de2400c4812b`](https://medium.com/@rami.krispin/setting-a-dockerized-python-development-environment-template-de2400c4812b)

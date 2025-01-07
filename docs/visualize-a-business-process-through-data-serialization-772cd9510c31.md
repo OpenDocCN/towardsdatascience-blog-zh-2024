@@ -1,16 +1,16 @@
 # 通过数据序列化可视化业务流程
 
-> 原文：[https://towardsdatascience.com/visualize-a-business-process-through-data-serialization-772cd9510c31?source=collection_archive---------4-----------------------#2024-03-15](https://towardsdatascience.com/visualize-a-business-process-through-data-serialization-772cd9510c31?source=collection_archive---------4-----------------------#2024-03-15)
+> 原文：[`towardsdatascience.com/visualize-a-business-process-through-data-serialization-772cd9510c31?source=collection_archive---------4-----------------------#2024-03-15`](https://towardsdatascience.com/visualize-a-business-process-through-data-serialization-772cd9510c31?source=collection_archive---------4-----------------------#2024-03-15)
 
 ## *有时，我们希望在 Power BI 中可视化一个业务流程。根据所需的可视化效果以及我们通常方式建模数据时，这可能是一个挑战。让我们通过改变建模方式来看如何实现这一目标。*
 
-[](https://medium.com/@salvatorecagliari?source=post_page---byline--772cd9510c31--------------------------------)[![Salvatore Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--772cd9510c31--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--772cd9510c31--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--772cd9510c31--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--772cd9510c31--------------------------------)
+[](https://medium.com/@salvatorecagliari?source=post_page---byline--772cd9510c31--------------------------------)![Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--772cd9510c31--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--772cd9510c31--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--772cd9510c31--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--772cd9510c31--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--772cd9510c31--------------------------------) ·阅读时长 11 分钟·2024年3月15日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--772cd9510c31--------------------------------) ·阅读时长 11 分钟·2024 年 3 月 15 日
 
 --
 
-![](../Images/22db2a16d53f8700de706c762587112a.png)
+![](img/22db2a16d53f8700de706c762587112a.png)
 
 图片由 [Lukas Blazek](https://unsplash.com/@goumbik?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -28,9 +28,9 @@
 
 这是我在 Excel 中创建的一个类似的模型：
 
-![](../Images/5aa82746a44574f63a1beb6b8595cb1a.png)
+![](img/5aa82746a44574f63a1beb6b8595cb1a.png)
 
-图1 — 我的利润构成的目标可视化（图由作者提供）
+图 1 — 我的利润构成的目标可视化（图由作者提供）
 
 我从销售金额开始，逐步扣除所有费用，直到得到利润。
 
@@ -54,7 +54,7 @@
 
 类似这样的：
 
-![](../Images/57fd4a92340a2c92cabb0101c1ebcf3b.png)
+![](img/57fd4a92340a2c92cabb0101c1ebcf3b.png)
 
 图 2 — 标准的事实建模方式（交易）（图由作者提供）
 
@@ -70,7 +70,7 @@
 
 类似这样的：
 
-![](../Images/373edf1d6fe7a7c7e39cb45c9ccd8cec.png)
+![](img/373edf1d6fe7a7c7e39cb45c9ccd8cec.png)
 
 图 3 — 取消透视后的（序列化的）数据（图由作者提供）
 
@@ -82,7 +82,7 @@
 
 为了实现这一点，我创建一个包含度量的表，如下所示：
 
-![](../Images/60b983f71c8eac1f07c1b29b00ad4ee2.png)
+![](img/60b983f71c8eac1f07c1b29b00ad4ee2.png)
 
 图 4 — 度量列表表（图由作者提供）
 
@@ -100,7 +100,7 @@
 
 我选择所有包含值的列（度量列），然后点击“取消透视”按钮。在这里，我选择“仅取消透视选定的列”：
 
-![](../Images/20e5bbb179fb569f21ee5fd3ca82ab76.png)
+![](img/20e5bbb179fb569f21ee5fd3ca82ab76.png)
 
 图 5 — 取消透视所有度量列（图由作者提供）
 
@@ -108,13 +108,13 @@
 
 我修改了 M 代码，将“属性”列重命名为“度量”：
 
-![](../Images/d2fbbab919a66ac0134f55c4f3fb99d2.png)
+![](img/d2fbbab919a66ac0134f55c4f3fb99d2.png)
 
 图 6 — 更改属性列的名称（图由作者提供）
 
 要在 Power Query 中查看公式栏，必须启用以下选项：
 
-![](../Images/db9f265141cd40547006cbd8e10ad46b.png)
+![](img/db9f265141cd40547006cbd8e10ad46b.png)
 
 图 7 — 在 Power Query 中启用公式栏（图由作者提供）
 
@@ -130,7 +130,7 @@
 
 我只需要 Measure 列。因此，我右键点击 Measure 列并点击“删除其他列”：
 
-![](../Images/d6eca80e4a3fd6a073c36880a0ba7a61.png)
+![](img/d6eca80e4a3fd6a073c36880a0ba7a61.png)
 
 图 8 — 从引用表中删除所有列（图由作者提供）
 
@@ -138,13 +138,13 @@
 
 这个表将被附加到 MeasureList 表格。所以，我关闭了该表的加载功能：
 
-![](../Images/ca5651a25d3e8260e630d2efae94feab.png)
+![](img/ca5651a25d3e8260e630d2efae94feab.png)
 
 图 9 — 禁用第二个引用表的 Power BI 加载（图由作者提供）
 
 现在，我将第二个引用表附加到“MeasureList”表：
 
-![](../Images/9960dd5ec93cb9cfe140382f6bd1fb06.png)
+![](img/9960dd5ec93cb9cfe140382f6bd1fb06.png)
 
 图 10 — 将第二张表附加到“MeasureList”表（图由作者提供）
 
@@ -152,19 +152,19 @@
 
 这里的最后一步是从结果表中删除重复项：
 
-![](../Images/d22cedb4e0653cf63e2e57f66e629585.png)
+![](img/d22cedb4e0653cf63e2e57f66e629585.png)
 
 图 11 — 从“MeasureList”表中删除重复项（图由作者提供）
 
 结果是两个表中的所有 Measure 的组合列表：
 
-![](../Images/ad7f0ddba2cec1724bb02f395b1480b4.png)
+![](img/ad7f0ddba2cec1724bb02f395b1480b4.png)
 
 图 12 — 结果的“MeasureList”表格（图由作者提供）
 
 现在，我必须添加一个条件列来添加 MeasureSort 列：
 
-![](../Images/6462d5afd47cd09cd9c387bee35cfe4d.png)
+![](img/6462d5afd47cd09cd9c387bee35cfe4d.png)
 
 图 13 — 添加条件列以创建 MeasureOrder（图由作者提供）
 
@@ -216,13 +216,13 @@ Factor = IF('MeasureList'[Measure] IN {"SalesAmount", "SalesQuantity", "UnitPric
 
 隐藏 MeasureOrder 列后，MeasureList 表现在看起来是这样的：
 
-![](../Images/c570ea3275ca1f52ab18ce0d9404bf59.png)
+![](img/c570ea3275ca1f52ab18ce0d9404bf59.png)
 
 图 14 — 完成的“MeasureList”表（图表由作者提供）
 
 现在，我必须将 Measure 列的“Sort by Column”设置为 MeasureOrder 列：
 
-![](../Images/0708876c223a9f73bd51f0eab31bbe42.png)
+![](img/0708876c223a9f73bd51f0eab31bbe42.png)
 
 图 15 — 通过 MeasureOrder 列设置顺序（图表由作者提供）
 
@@ -263,7 +263,7 @@ RETURN
 
 我为 Y 轴设置了 Measure [Value with Factor]，并将 MeasureList 表中的 Measure 列设置为分类：
 
-![](../Images/96a1b28d8d49179195c425babb3bd8e1.png)
+![](img/96a1b28d8d49179195c425babb3bd8e1.png)
 
 图 16 — 设置瀑布图（图表由作者提供）
 
@@ -271,13 +271,13 @@ RETURN
 
 由于我只想查看它们的子集，所以我使用筛选面板来缩小到所需的 Measure：
 
-![](../Images/59aa555be8abea65a2d014360f5193f9.png)
+![](img/59aa555be8abea65a2d014360f5193f9.png)
 
 图 17 — 为瀑布图设置筛选器（图表由作者提供）
 
-在添加了一个筛选器（Slicer），用于筛选2008年的日历年，并按 Measure 名称对图表进行排序后，我得到了我想要的结果（启用了数据标签并移除了轴标签等）：
+在添加了一个筛选器（Slicer），用于筛选 2008 年的日历年，并按 Measure 名称对图表进行排序后，我得到了我想要的结果（启用了数据标签并移除了轴标签等）：
 
-![](../Images/d651ca9f774e5d283a2882f7ae6ce579.png)
+![](img/d651ca9f774e5d283a2882f7ae6ce579.png)
 
 图 18 — 完成的瀑布图（图表由作者提供）
 
@@ -313,7 +313,7 @@ RETURN
 
 然后，当我们查看表格统计信息时，我们看到发生了什么：
 
-![](../Images/6aa6e7295fdf8b967a0861ccb31956de.png)
+![](img/6aa6e7295fdf8b967a0861ccb31956de.png)
 
 图 19 — 两个模型的表格统计信息（图由作者提供）
 
@@ -335,11 +335,11 @@ RETURN
 
 我使用 [DAX Studio](https://www.sqlbi.com/tools/dax-studio/) 和这里描述的方法来获取性能数据：
 
-[](/how-to-get-performance-data-from-power-bi-with-dax-studio-b7f11b9dd9f9?source=post_page-----772cd9510c31--------------------------------) [## 如何使用 DAX Studio 获取 Power BI 的性能数据
+[](/how-to-get-performance-data-from-power-bi-with-dax-studio-b7f11b9dd9f9?source=post_page-----772cd9510c31--------------------------------) ## 如何使用 DAX Studio 获取 Power BI 的性能数据
 
 ### 有时我们会遇到报告变慢的情况，我们需要找出原因。我们将看到如何收集性能数据以及……
 
-towardsdatascience.com](/how-to-get-performance-data-from-power-bi-with-dax-studio-b7f11b9dd9f9?source=post_page-----772cd9510c31--------------------------------)
+towardsdatascience.com
 
 第一个测试是比较在线销售金额：
 
@@ -347,13 +347,13 @@ towardsdatascience.com](/how-to-get-performance-data-from-power-bi-with-dax-stud
 
 原始数据模型的执行统计信息如下：
 
-![](../Images/b7ae03ef74a0b612c3e79102fe38124f.png)
+![](img/b7ae03ef74a0b612c3e79102fe38124f.png)
 
 图 20 — 简单的销售金额计算（原始）（图由作者提供）
 
 以下是修改后的数据模型的执行统计信息：
 
-![](../Images/1822523eb2f7a46275c3ced4e36b7f68.png)
+![](img/1822523eb2f7a46275c3ced4e36b7f68.png)
 
 图 21 — 简单的销售金额计算（修改后的数据模型）（图由作者提供）
 
@@ -361,21 +361,21 @@ towardsdatascience.com](/how-to-get-performance-data-from-power-bi-with-dax-stud
 
 现在，我添加更多的度量。例如，利润率、去年、同比变化等等：
 
-![](../Images/79b07fd95c24f15f12898965f2585e20.png)
+![](img/79b07fd95c24f15f12898965f2585e20.png)
 
 图 22 — 多度量计算（原始）（图由作者提供）
 
 这是修改后的数据模型：
 
-![](../Images/12fd3a68cd5c425f209abe5986e53337.png)
+![](img/12fd3a68cd5c425f209abe5986e53337.png)
 
-图23 — 多度量计算（修改后的数据模型）（作者提供的图示）
+图 23 — 多度量计算（修改后的数据模型）（作者提供的图示）
 
 正如你所看到的，两个数据模型之间的性能差异再次非常大。
 
 而且这些只是非常简单的计算。
 
-当我查看更复杂的计算时，差异会更大。我观察到性能差异为原来的3到4倍。
+当我查看更复杂的计算时，差异会更大。我观察到性能差异为原来的 3 到 4 倍。
 
 # 结论
 
@@ -387,7 +387,7 @@ towardsdatascience.com](/how-to-get-performance-data-from-power-bi-with-dax-stud
 
 不要被这种思维误导：“我只有几千行数据。”
 
-根据我的经验，Power BI中的数据量并不重要。
+根据我的经验，Power BI 中的数据量并不重要。
 
 更重要的是数据中的不同值的数量，也就是所谓的“基数”。
 
@@ -403,41 +403,41 @@ towardsdatascience.com](/how-to-get-performance-data-from-power-bi-with-dax-stud
 
 我的一个客户有一份数据，他希望根据这些数据创建两个类似上面展示的瀑布图。
 
-然而，他的业务案例中涉及的两张表有25个度量列，这意味着数据行数将增加25倍。
+然而，他的业务案例中涉及的两张表有 25 个度量列，这意味着数据行数将增加 25 倍。
 
 在这种情况下，他需要为八个度量创建两个瀑布图。我将保留原始表，并仅复制所需的数据来创建请求的图表。
 
 因此，所有“正常”的计算将在能够满足其要求的同时，保持正常的性能。
 
-另外一个采用这种方式的积极原因是，我可以将事实表（在Power Query中追加）合并成一张表。在这种情况下，我会在合并之前添加一个包含来源的列，例如“在线销售”和“零售销售”。这样可以简化数据模型。
+另外一个采用这种方式的积极原因是，我可以将事实表（在 Power Query 中追加）合并成一张表。在这种情况下，我会在合并之前添加一个包含来源的列，例如“在线销售”和“零售销售”。这样可以简化数据模型。
 
 但正如我们现在所知道的，我们需要进行测试，重复测试，并进行其他场景的测试，直到我们了解这种建模方法的后果。
 
-![](../Images/9de8d0e476c140781b8400f034dfb6f8.png)
+![](img/9de8d0e476c140781b8400f034dfb6f8.png)
 
 由[Jan Kopřiva](https://unsplash.com/@jxk?utm_source=medium&utm_medium=referral)拍摄，图片来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 参考文献
 
-我使用的是Contoso示例数据集，正如我在之前的文章中所做的那样。你可以从微软[这里](https://www.microsoft.com/en-us/download/details.aspx?id=18279)免费下载ContosoRetailDW数据集。
+我使用的是 Contoso 示例数据集，正如我在之前的文章中所做的那样。你可以从微软[这里](https://www.microsoft.com/en-us/download/details.aspx?id=18279)免费下载 ContosoRetailDW 数据集。
 
-Contoso数据可以在MIT许可证下自由使用，具体描述请见[这里](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo)。
+Contoso 数据可以在 MIT 许可证下自由使用，具体描述请见[这里](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo)。
 
-[](https://medium.com/subscribe/@salvatorecagliari?source=post_page-----772cd9510c31--------------------------------) [## 每当Salvatore Cagliari发布文章时，获取电子邮件通知。
+[](https://medium.com/subscribe/@salvatorecagliari?source=post_page-----772cd9510c31--------------------------------) [## 每当 Salvatore Cagliari 发布文章时，获取电子邮件通知。
 
-### 每当Salvatore Cagliari发布文章时，都会收到电子邮件通知。通过注册，如果你还没有Medium账户，你将会创建一个账户…
+### 每当 Salvatore Cagliari 发布文章时，都会收到电子邮件通知。通过注册，如果你还没有 Medium 账户，你将会创建一个账户…
 
 medium.com](https://medium.com/subscribe/@salvatorecagliari?source=post_page-----772cd9510c31--------------------------------)
 
-尽管Medium有付费墙，我还是让我的文章对每个人都可访问。这让我可以从每个读者那里赚取一些收入，但我将其关闭，以便你可以免费阅读我的文章。
+尽管 Medium 有付费墙，我还是让我的文章对每个人都可访问。这让我可以从每个读者那里赚取一些收入，但我将其关闭，以便你可以免费阅读我的文章。
 
 你可以通过以下方式支持我的工作，这是我在空闲时间进行的工作，
 
-[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)
+[`buymeacoffee.com/salvatorecagliari`](https://buymeacoffee.com/salvatorecagliari)
 
 或者扫描这个二维码：
 
-![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)
+![](img/e7ac062070dcd7a00dcf995ad7e95434.png)
 
 任何支持都将不胜感激，并帮助我找到更多时间为你创造更多内容。
 

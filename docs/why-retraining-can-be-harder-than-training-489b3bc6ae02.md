@@ -1,16 +1,16 @@
 # 为什么再训练比训练更难
 
-> 原文：[https://towardsdatascience.com/why-retraining-can-be-harder-than-training-489b3bc6ae02?source=collection_archive---------11-----------------------#2024-01-23](https://towardsdatascience.com/why-retraining-can-be-harder-than-training-489b3bc6ae02?source=collection_archive---------11-----------------------#2024-01-23)
+> 原文：[`towardsdatascience.com/why-retraining-can-be-harder-than-training-489b3bc6ae02?source=collection_archive---------11-----------------------#2024-01-23`](https://towardsdatascience.com/why-retraining-can-be-harder-than-training-489b3bc6ae02?source=collection_archive---------11-----------------------#2024-01-23)
 
 ## 从神经网络的角度看学习、去学习和再学习
 
-[](https://medium.com/@c4ristian?source=post_page---byline--489b3bc6ae02--------------------------------)[![Christian Koch](../Images/6daf756236838069bf79f1078b03ae6d.png)](https://medium.com/@c4ristian?source=post_page---byline--489b3bc6ae02--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--489b3bc6ae02--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--489b3bc6ae02--------------------------------) [Christian Koch](https://medium.com/@c4ristian?source=post_page---byline--489b3bc6ae02--------------------------------)
+[](https://medium.com/@c4ristian?source=post_page---byline--489b3bc6ae02--------------------------------)![Christian Koch](https://medium.com/@c4ristian?source=post_page---byline--489b3bc6ae02--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--489b3bc6ae02--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--489b3bc6ae02--------------------------------) [Christian Koch](https://medium.com/@c4ristian?source=post_page---byline--489b3bc6ae02--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--489b3bc6ae02--------------------------------) ·12分钟阅读·2024年1月23日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--489b3bc6ae02--------------------------------) ·12 分钟阅读·2024 年 1 月 23 日
 
 --
 
-![](../Images/f1f726a7f843bd800db8f9f08a90fd96.png)
+![](img/f1f726a7f843bd800db8f9f08a90fd96.png)
 
 图片由 [Mary Blackwey](https://unsplash.com/@belokonenko?utm_source=medium&utm_medium=referral) 提供，来源 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -18,39 +18,39 @@
 
 # 引言
 
-人工智能（AI）的一个积极副作用是，它可以帮助我们更好地理解我们自己的人的智能。具有讽刺意味的是，AI也是挑战我们认知能力的技术之一。与其他创新技术一起，它以惊人的速度转变现代社会。在他的书《Think Again》中，亚当·格兰特指出，在动荡的环境中，重新思考和去学习可能比思考和学习更为重要[1]。
+人工智能（AI）的一个积极副作用是，它可以帮助我们更好地理解我们自己的人的智能。具有讽刺意味的是，AI 也是挑战我们认知能力的技术之一。与其他创新技术一起，它以惊人的速度转变现代社会。在他的书《Think Again》中，亚当·格兰特指出，在动荡的环境中，重新思考和去学习可能比思考和学习更为重要[1]。
 
 对于老龄化社会来说，这可能是一个挑战。在德国有一句话：“Was Hänschen nicht lernt, lernt Hans nimmermehr。”英语中类似的说法是：“A tree must be bent while it is young” 或者更不客气地说：“You can’t teach an old dog new tricks。”本质上，这些说法都暗示着年轻人比老年人更容易学习。但这真的正确吗？如果是，背后的原因是什么？
 
 显然，从生理学角度来看，年轻人与年长者的大脑结构是不同的。然而，在个体层面上，这些差异变化很大[2]。根据 Creasy 和 Rapoport 的研究，"即使在年老时，大脑的整体功能也可以保持在高效的水平"[3]。除了生理学因素，动机和情感似乎在学习过程中扮演着至关重要的角色[4][5]。Kim 和 Marriam 在一家退休机构的研究表明，认知兴趣和社会互动是强大的学习动力[6]。
 
-我们的文章从数学和计算机科学的角度讨论了这个问题。受到Hinton和Sejnowski [7]的启发，我们进行了一项关于人工神经网络（ANN）的实验。我们的测试表明，在变化的环境中，重新训练比从头开始训练更具挑战性。原因在于，网络必须先忘记之前学到的概念，才能适应新的训练数据。假设人工智能与人类智能有相似之处，我们可以从这一洞察中得出一些有趣的结论。
+我们的文章从数学和计算机科学的角度讨论了这个问题。受到 Hinton 和 Sejnowski [7]的启发，我们进行了一项关于人工神经网络（ANN）的实验。我们的测试表明，在变化的环境中，重新训练比从头开始训练更具挑战性。原因在于，网络必须先忘记之前学到的概念，才能适应新的训练数据。假设人工智能与人类智能有相似之处，我们可以从这一洞察中得出一些有趣的结论。
 
 # 人工神经网络
 
 人工神经网络类似于我们大脑神经元的结构和行为。通常，人工神经网络由接收外界信号的输入单元组成。通过处理这些信号，网络能够对接收到的输入做出响应。感知器是人工神经网络的一个简单变体[8]。它由 Rosenblatt 于 1958 年提出[9]。图 1 概述了感知器的基本结构。在最近几十年里，已经开发出了更为先进的人工神经网络类型。然而，针对我们的实验，感知器非常适用，因为它容易解释和理解。
 
-![](../Images/121e879b0940369cca18609f272d31a3.png)
+![](img/121e879b0940369cca18609f272d31a3.png)
 
-图 1：单层感知器的结构。基于[8，第284页]的自定义表示。
+图 1：单层感知器的结构。基于[8，第 284 页]的自定义表示。
 
 图 1 显示了单层感知器的架构。作为输入，网络接收*n n*umbers（*i₁..iₙ*）。与学习到的权重（*w₁..wₙ*）一起，这些输入被传递到一个阈值逻辑单元（TLU）。该 TLU 通过将输入（*i*）与权重（*w*）相乘来计算加权和（*z*）。在下一步，激活函数（*f*）根据加权和（*z*）来确定输出（*o*）。最后，输出（*o*）使得网络能够做出响应接收到的输入的决策。Rosenblatt 已证明，这种简单形式的人工神经网络能够解决多种问题。
 
 感知器可以使用不同的激活函数来决定其输出（*o*）。常见的函数有*二进制阶跃函数*和*符号*函数，如图 2 所示。顾名思义，二进制函数生成一个二进制输出*{0,1*}，可以用来做是/否决策。为此，二进制函数检查给定输入的加权和（*z*）是否小于或等于零。如果是这种情况，则输出（*o*）为零，否则为一。相比之下，符号函数区分三个不同的输出值*{-1,0,+1*}。
 
-![](../Images/5aebab4258528b304d9599b8e9629ac2.png)
+![](img/5aebab4258528b304d9599b8e9629ac2.png)
 
 图 2：激活函数的示例。根据[8, p. 285]的内容制作。
 
-为了基于给定数据集训练感知器，我们需要提供一个样本，其中包括与期望输出（目标）相关联的输入信号（特征）。在训练过程中，算法反复处理输入数据，以学习最适合的权重，从而生成输出。训练所需的迭代次数是衡量学习努力的标准。对于我们的实验，我们训练一个感知器来判断客户是否会购买某款手机。源代码可在[GitHub](https://github.com/c4ristian/retrain) [10]上找到。我们使用的是Python v3.10和scikit-learn v1.2.2版本。
+为了基于给定数据集训练感知器，我们需要提供一个样本，其中包括与期望输出（目标）相关联的输入信号（特征）。在训练过程中，算法反复处理输入数据，以学习最适合的权重，从而生成输出。训练所需的迭代次数是衡量学习努力的标准。对于我们的实验，我们训练一个感知器来判断客户是否会购买某款手机。源代码可在[GitHub](https://github.com/c4ristian/retrain) [10]上找到。我们使用的是 Python v3.10 和 scikit-learn v1.2.2 版本。
 
 # 学习客户偏好
 
-我们的实验灵感来源于一个著名的（失败的）重新学习案例。假设我们在2000年为一家手机制造商工作。我们的目标是训练一个感知器，学习客户是否会购买某款手机型号。在2000年，触摸屏仍然是一项不成熟的技术。因此，客户更喜欢带有键盘的设备。此外，客户关注价格，并选择价格较低的型号，而不是更昂贵的手机。这些特征使得诺基亚3310成为2000年全球销量最高的手机[11]。
+我们的实验灵感来源于一个著名的（失败的）重新学习案例。假设我们在 2000 年为一家手机制造商工作。我们的目标是训练一个感知器，学习客户是否会购买某款手机型号。在 2000 年，触摸屏仍然是一项不成熟的技术。因此，客户更喜欢带有键盘的设备。此外，客户关注价格，并选择价格较低的型号，而不是更昂贵的手机。这些特征使得诺基亚 3310 成为 2000 年全球销量最高的手机[11]。
 
-![](../Images/c7ef4fbe0879c2ab85d775e07a317441.png)
+![](img/c7ef4fbe0879c2ab85d775e07a317441.png)
 
-图 3：诺基亚 3310，由LucaLuca拍摄，CC BY-SA 3.0，[维基共享资源](https://commons.wikimedia.org/w/index.php?curid=6349715)
+图 3：诺基亚 3310，由 LucaLuca 拍摄，CC BY-SA 3.0，[维基共享资源](https://commons.wikimedia.org/w/index.php?curid=6349715)
 
 在训练感知器时，我们使用如表 1 所示的假设数据集。每一行代表一个特定的手机型号，“keypad”、“touch”和“low_price”列表示其特征。为了简化，我们使用二进制变量。客户是否会购买设备在“sale”列中定义。如上所述，客户会购买带有键盘且价格低的手机（*keypad=1* 和 *low_price=1*）。相反，他们会拒绝高价的型号（*low_price=0*）和带触摸屏的手机（*touch=1*）。
 
@@ -69,13 +69,13 @@ Table 1: Hypothetical phone sales dataset from 2000
 
 为了训练感知器，我们多次输入上述数据集。从 scikit-learn 的角度来看，我们反复调用函数 `partial_fit`（源代码见[这里](https://github.com/c4ristian/retrain/blob/master/retrain_phones.ipynb)）。在每次迭代中，算法会尝试逐渐调整网络的权重，以最小化预测“sale”变量的误差。图 4 展示了前十次迭代中的训练过程。
 
-![](../Images/a493715c4df1a69080ffa8508fee5fcc.png)
+![](img/a493715c4df1a69080ffa8508fee5fcc.png)
 
 图 4：使用来自 2000 年的数据训练手机销售感知器
 
 正如上述图示所示，感知器的权重逐渐被优化，以适应数据集。在第六次迭代中，网络学习到了最佳的拟合权重，随后数字保持稳定。图 5 可视化了学习过程后的感知器。
 
-![](../Images/00ae300c640a69751c8e6eac04a1bf06.png)
+![](img/00ae300c640a69751c8e6eac04a1bf06.png)
 
 图 5：使用来自 2000 年的数据训练的手机销售感知器
 
@@ -100,19 +100,19 @@ Table 2: Hypothetical phone sales dataset from 2007
 
 根据表 2，客户会购买带有触摸屏的手机（*touch=1*），并且不太关注价格。相反，他们拒绝购买带有按键的设备。实际上，苹果公司于 2007 年进入了手机市场，推出了其 iPhone。凭借高质量的触摸屏，它挑战了传统品牌。到 2014 年，iPhone 最终成为了全球销量最高的手机，推动诺基亚退出市场[11]。
 
-![](../Images/cc56991bfe684ce975172b5d802d2c1e.png)
+![](img/cc56991bfe684ce975172b5d802d2c1e.png)
 
 图 6：iPhone 第一代，Carl Berkeley — CC BY-SA 2.0，[维基共享资源](https://commons.wikimedia.org/w/index.php?curid=41718431)
 
 为了将之前训练的感知器调整到新的客户偏好，我们必须使用 2007 年的数据集重新训练它。图 7 展示了在前十次迭代中的重新训练过程。
 
-![](../Images/f01fbfe2b3051af16a4777388f5f7582.png)
+![](img/f01fbfe2b3051af16a4777388f5f7582.png)
 
 图 7：使用来自 2007 年的数据重新训练手机销售感知器
 
 如图 7 所示，重新训练需要三次迭代。然后，找到最佳的拟合权重，网络就学习到了 2007 年的新客户偏好。图 8 展示了重新学习后的网络。
 
-![](../Images/b1c5ebf96aeaa5c6a4f9ef4d8e80a05a.png)
+![](img/b1c5ebf96aeaa5c6a4f9ef4d8e80a05a.png)
 
 图 8：经过 2007 年数据重新训练后的手机销售感知机
 
@@ -120,11 +120,11 @@ Table 2: Hypothetical phone sales dataset from 2007
 
 从图 7 中我们可以看出，使用 2007 年数据进行重新训练需要三次迭代。但是如果我们从零开始训练一个新的感知机呢？图 9 比较了使用 2007 年数据集重新训练旧网络与完全从零开始训练一个新感知机的情况。
 
-![](../Images/0d58217634d34fc040eb2b82230d4139.png)
+![](img/0d58217634d34fc040eb2b82230d4139.png)
 
 图 9：基于 2007 年数据的重新训练与从零开始训练的对比
 
-在我们的例子中，从零开始训练一个新的感知机比重新训练旧网络更加高效。根据图 9，训练只需要一次迭代，而重新训练需要三倍的步骤。原因在于，旧感知机必须首先“遗忘”2000年时学习的权重，只有这样，它才能调整到2007年新的训练数据。以“触摸”特征的权重为例，旧网络必须将其从 -3 调整到 +1。相比之下，新的感知机可以从零开始，直接将权重从 0 增加到 +1。因此，新的网络学习速度更快，并且最终会达到一个略有不同的设置。
+在我们的例子中，从零开始训练一个新的感知机比重新训练旧网络更加高效。根据图 9，训练只需要一次迭代，而重新训练需要三倍的步骤。原因在于，旧感知机必须首先“遗忘”2000 年时学习的权重，只有这样，它才能调整到 2007 年新的训练数据。以“触摸”特征的权重为例，旧网络必须将其从 -3 调整到 +1。相比之下，新的感知机可以从零开始，直接将权重从 0 增加到 +1。因此，新的网络学习速度更快，并且最终会达到一个略有不同的设置。
 
 # 结果讨论
 
@@ -144,9 +144,9 @@ Table 2: Hypothetical phone sales dataset from 2007
 
 # 关于作者
 
-*Christian Koch* 是BWI GmbH的企业首席架构师，并且是纽伦堡理工学院乔治·西蒙·欧姆学院的讲师。
+*Christian Koch* 是 BWI GmbH 的企业首席架构师，并且是纽伦堡理工学院乔治·西蒙·欧姆学院的讲师。
 
-*Markus Stadi* 是Dehn SE的高级云数据工程师，多年来一直在数据工程、数据科学和数据分析领域工作。
+*Markus Stadi* 是 Dehn SE 的高级云数据工程师，多年来一直在数据工程、数据科学和数据分析领域工作。
 
 # 参考文献
 
@@ -158,22 +158,22 @@ Table 2: Hypothetical phone sales dataset from 2007
 
 1.  Welford AT. Motivation, Capacity, Learning and Age. *国际老龄化与人类发展期刊*. 1976;7(3):189–199.
 
-1.  Carstensen, L. L., Mikels, J. A., & Mather, M. (2006). 衰老与认知、动机、情感的交集。见 *老年心理学手册* (第343–362页)。学术出版社。
+1.  Carstensen, L. L., Mikels, J. A., & Mather, M. (2006). 衰老与认知、动机、情感的交集。见 *老年心理学手册* (第 343–362 页)。学术出版社。
 
 1.  Kim, A., & Merriam, S. B. (2004). 退休学习机构中老年人学习动机。*教育老年学*, *30*(6), 441–455.
 
 1.  Hinton, G. E., & Sejnowski, T. J. (1986). 学习与重学在玻尔兹曼机中的应用。*并行分布式处理：认知微观结构的探索*, *1*(282–317), 2.
 
-1.  Géron, A. (2022). *动手学习机器学习：使用Scikit-Learn、Keras和TensorFlow*. O'Reilly Media, Inc.
+1.  Géron, A. (2022). *动手学习机器学习：使用 Scikit-Learn、Keras 和 TensorFlow*. O'Reilly Media, Inc.
 
 1.  Rosenblatt, F. (1958). The perceptron: a probabilistic model for information storage and organization in the brain. *心理学评论*, *65*(6), 386.
 
-1.  Koch, C. (2024). Retrain Python项目。网址：[https://github.com/c4ristian/retrain](https://github.com/c4ristian/retrain)。访问时间：2024年1月11日。
+1.  Koch, C. (2024). Retrain Python 项目。网址：[`github.com/c4ristian/retrain`](https://github.com/c4ristian/retrain)。访问时间：2024 年 1 月 11 日。
 
-1.  Wikipedia. 热销手机列表。网址：[https://en.wikipedia.org/wiki/List_of_best-selling_mobile_phones](https://en.wikipedia.org/wiki/List_of_best-selling_mobile_phones)。访问时间：2024年1月11日。
+1.  Wikipedia. 热销手机列表。网址：[`en.wikipedia.org/wiki/List_of_best-selling_mobile_phones`](https://en.wikipedia.org/wiki/List_of_best-selling_mobile_phones)。访问时间：2024 年 1 月 11 日。
 
 1.  Christensen, C. M. (2013). *创新者的窘境：当新技术导致大公司失败时*. 哈佛商业评论出版社。
 
 1.  Brynjolfsson, E., & McAfee, A. (2014). *第二次机器时代：在辉煌技术时代的工作、进步与繁荣*. WW Norton & Company。
 
-1.  Chen, M., Zhang, Z., Wang, T., Backes, M., Humbert, M., & Zhang, Y. (2022, November). 图形反学习。见 *2022年ACM SIGSAC计算机与通信安全大会论文集* (第499–513页)。
+1.  Chen, M., Zhang, Z., Wang, T., Backes, M., Humbert, M., & Zhang, Y. (2022, November). 图形反学习。见 *2022 年 ACM SIGSAC 计算机与通信安全大会论文集* (第 499–513 页)。

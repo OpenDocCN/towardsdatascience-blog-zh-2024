@@ -1,16 +1,16 @@
 # 数据分析与预处理实用指南
 
-> 原文：[https://towardsdatascience.com/practical-guide-to-data-analysis-and-preprocessing-080815548173?source=collection_archive---------3-----------------------#2024-10-31](https://towardsdatascience.com/practical-guide-to-data-analysis-and-preprocessing-080815548173?source=collection_archive---------3-----------------------#2024-10-31)
+> 原文：[`towardsdatascience.com/practical-guide-to-data-analysis-and-preprocessing-080815548173?source=collection_archive---------3-----------------------#2024-10-31`](https://towardsdatascience.com/practical-guide-to-data-analysis-and-preprocessing-080815548173?source=collection_archive---------3-----------------------#2024-10-31)
 
 ## 数据清理、转换和验证技术，以确保数据质量
 
-[](https://medium.com/@panData?source=post_page---byline--080815548173--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--080815548173--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--080815548173--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--080815548173--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--080815548173--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--080815548173--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--080815548173--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--080815548173--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--080815548173--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--080815548173--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--080815548173--------------------------------) ·49分钟阅读·2024年10月31日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--080815548173--------------------------------) ·49 分钟阅读·2024 年 10 月 31 日
 
 --
 
-![](../Images/174ab06fc8adc48aed1ccfacd9b444ee.png)
+![](img/174ab06fc8adc48aed1ccfacd9b444ee.png)
 
 图片来自[Danist Soh](https://unsplash.com/@danist07?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

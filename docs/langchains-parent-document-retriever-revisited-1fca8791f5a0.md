@@ -1,30 +1,30 @@
-# LangChain的父文档检索器 — 重新审视
+# LangChain 的父文档检索器 — 重新审视
 
-> 原文：[https://towardsdatascience.com/langchains-parent-document-retriever-revisited-1fca8791f5a0?source=collection_archive---------4-----------------------#2024-07-22](https://towardsdatascience.com/langchains-parent-document-retriever-revisited-1fca8791f5a0?source=collection_archive---------4-----------------------#2024-07-22)
+> 原文：[`towardsdatascience.com/langchains-parent-document-retriever-revisited-1fca8791f5a0?source=collection_archive---------4-----------------------#2024-07-22`](https://towardsdatascience.com/langchains-parent-document-retriever-revisited-1fca8791f5a0?source=collection_archive---------4-----------------------#2024-07-22)
 
 ## 仅使用你的向量数据库增强上下文检索
 
-[](https://medium.com/@omri-levy?source=post_page---byline--1fca8791f5a0--------------------------------)[![Omri Eliyahu Levy](../Images/7200edb7c45b097970034fc6f740a8bd.png)](https://medium.com/@omri-levy?source=post_page---byline--1fca8791f5a0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1fca8791f5a0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1fca8791f5a0--------------------------------) [Omri Eliyahu Levy](https://medium.com/@omri-levy?source=post_page---byline--1fca8791f5a0--------------------------------)
+[](https://medium.com/@omri-levy?source=post_page---byline--1fca8791f5a0--------------------------------)![Omri Eliyahu Levy](https://medium.com/@omri-levy?source=post_page---byline--1fca8791f5a0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1fca8791f5a0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1fca8791f5a0--------------------------------) [Omri Eliyahu Levy](https://medium.com/@omri-levy?source=post_page---byline--1fca8791f5a0--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1fca8791f5a0--------------------------------) ·6分钟阅读·2024年7月22日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1fca8791f5a0--------------------------------) ·6 分钟阅读·2024 年 7 月 22 日
 
 --
 
-**TL;DR** — 我们通过使用元数据查询实现与LangChain的父文档检索器相同的功能（[链接](https://python.langchain.com/v0.1/docs/modules/data_connection/retrievers/parent_document_retriever/)）。你可以在[这里](https://gist.github.com/omriel1/7243ce233eb2986ed2749de6ae79ecb7)查看代码。
+**TL;DR** — 我们通过使用元数据查询实现与 LangChain 的父文档检索器相同的功能（[链接](https://python.langchain.com/v0.1/docs/modules/data_connection/retrievers/parent_document_retriever/)）。你可以在[这里](https://gist.github.com/omriel1/7243ce233eb2986ed2749de6ae79ecb7)查看代码。
 
-# RAG简介
+# RAG 简介
 
-检索增强生成（RAG）目前是LLM和AI应用领域最热门的话题之一。
+检索增强生成（RAG）目前是 LLM 和 AI 应用领域最热门的话题之一。
 
-简而言之，RAG是一种将生成模型的响应基于选定知识源进行“立足”的技术。它包括两个阶段：检索和生成。
+简而言之，RAG 是一种将生成模型的响应基于选定知识源进行“立足”的技术。它包括两个阶段：检索和生成。
 
 1.  在检索阶段，给定用户的查询，我们从预定义的知识源中检索相关信息。
 
-1.  然后，我们将检索到的信息插入到发送给LLM的提示中，该模型（理想情况下）根据提供的上下文生成对用户问题的回答。
+1.  然后，我们将检索到的信息插入到发送给 LLM 的提示中，该模型（理想情况下）根据提供的上下文生成对用户问题的回答。
 
 一种常用的方法来实现高效准确的检索是通过使用嵌入。在这种方法中，我们通过将文档拆分成块（例如页面、段落或句子）来预处理用户的数据（假设为纯文本）。然后，我们使用嵌入模型为这些块创建有意义的数值表示，并将它们存储在向量数据库中。现在，当查询到来时，我们也对其进行嵌入，并使用向量数据库执行相似性搜索，以检索相关信息。
 
-![](../Images/bba1888e550d749b3f7d751f75b4661a.png)
+![](img/bba1888e550d749b3f7d751f75b4661a.png)
 
 图片由作者提供
 
@@ -215,7 +215,7 @@ def parent_document_retrieval(
 
 ## Pinecone（及其他）
 
-据我所知，Pinecone 没有原生方法来执行此类元数据查询，但你可以通过它们的 ID 原生地获取向量（[https://docs.pinecone.io/guides/data/fetch-data](https://docs.pinecone.io/guides/data/fetch-data)）。
+据我所知，Pinecone 没有原生方法来执行此类元数据查询，但你可以通过它们的 ID 原生地获取向量（[`docs.pinecone.io/guides/data/fetch-data`](https://docs.pinecone.io/guides/data/fetch-data)）。
 
 因此，我们可以做以下操作：每个块将获得一个唯一 ID，该 ID 本质上是文档 ID 和序列号的连接。然后，给定通过相似性搜索检索到的向量，你可以动态创建周围块的 ID 列表，从而实现相同的结果。
 
@@ -229,20 +229,20 @@ def parent_document_retrieval(
 
 # 结论
 
-在这篇博客中，我们介绍了一种实现方式，用于实现句子窗口检索，这是一种在许多RAG应用中都非常有用的检索技术。在这个实现中，我们仅使用了已经在使用中的向量数据库，并且还支持动态修改检索到的周围窗口大小的选项。
+在这篇博客中，我们介绍了一种实现方式，用于实现句子窗口检索，这是一种在许多 RAG 应用中都非常有用的检索技术。在这个实现中，我们仅使用了已经在使用中的向量数据库，并且还支持动态修改检索到的周围窗口大小的选项。
 
 # 参考文献
 
-[1] ARAGOG: 高级RAG输出评分，[https://arxiv.org/pdf/2404.01037](https://arxiv.org/pdf/2404.01037)，第4.2.2节
+[1] ARAGOG: 高级 RAG 输出评分，[`arxiv.org/pdf/2404.01037`](https://arxiv.org/pdf/2404.01037)，第 4.2.2 节
 
-[2] [https://python.langchain.com/v0.1/docs/modules/data_connection/retrievers/parent_document_retriever/](https://python.langchain.com/v0.1/docs/modules/data_connection/retrievers/parent_document_retriever/)
+[2] [`python.langchain.com/v0.1/docs/modules/data_connection/retrievers/parent_document_retriever/`](https://python.langchain.com/v0.1/docs/modules/data_connection/retrievers/parent_document_retriever/)
 
 [3] 一些相关问题：
 
-- [https://github.com/langchain-ai/langchain/issues/14267](https://github.com/langchain-ai/langchain/issues/14267)
+- [`github.com/langchain-ai/langchain/issues/14267`](https://github.com/langchain-ai/langchain/issues/14267)
 
-- [https://github.com/langchain-ai/langchain/issues/20315](https://github.com/langchain-ai/langchain/issues/20315)
+- [`github.com/langchain-ai/langchain/issues/20315`](https://github.com/langchain-ai/langchain/issues/20315)
 
-- [https://stackoverflow.com/questions/77385587/persist-parentdocumentretriever-of-langchain](https://stackoverflow.com/questions/77385587/persist-parentdocumentretriever-of-langchain)
+- [`stackoverflow.com/questions/77385587/persist-parentdocumentretriever-of-langchain`](https://stackoverflow.com/questions/77385587/persist-parentdocumentretriever-of-langchain)
 
-[4] [https://docs.llamaindex.ai/en/stable/api_reference/node_parsers/sentence_window/](https://docs.llamaindex.ai/en/stable/api_reference/node_parsers/sentence_window/)
+[4] [`docs.llamaindex.ai/en/stable/api_reference/node_parsers/sentence_window/`](https://docs.llamaindex.ai/en/stable/api_reference/node_parsers/sentence_window/)

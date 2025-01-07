@@ -1,28 +1,28 @@
-# 使用LangGraph和LangChain创建任务导向对话系统
+# 使用 LangGraph 和 LangChain 创建任务导向对话系统
 
-> 原文：[https://towardsdatascience.com/creating-task-oriented-dialog-systems-with-langgraph-and-langchain-fada6c9c4983?source=collection_archive---------2-----------------------#2024-09-14](https://towardsdatascience.com/creating-task-oriented-dialog-systems-with-langgraph-and-langchain-fada6c9c4983?source=collection_archive---------2-----------------------#2024-09-14)
+> 原文：[`towardsdatascience.com/creating-task-oriented-dialog-systems-with-langgraph-and-langchain-fada6c9c4983?source=collection_archive---------2-----------------------#2024-09-14`](https://towardsdatascience.com/creating-task-oriented-dialog-systems-with-langgraph-and-langchain-fada6c9c4983?source=collection_archive---------2-----------------------#2024-09-14)
 
-## 又一篇LangGraph教程
+## 又一篇 LangGraph 教程
 
-[](https://medium.com/@mesquitadeh?source=post_page---byline--fada6c9c4983--------------------------------)[![Déborah Mesquita](../Images/3b77b7eb569e24f2679875429173daf1.png)](https://medium.com/@mesquitadeh?source=post_page---byline--fada6c9c4983--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fada6c9c4983--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fada6c9c4983--------------------------------) [Déborah Mesquita](https://medium.com/@mesquitadeh?source=post_page---byline--fada6c9c4983--------------------------------)
+[](https://medium.com/@mesquitadeh?source=post_page---byline--fada6c9c4983--------------------------------)![Déborah Mesquita](https://medium.com/@mesquitadeh?source=post_page---byline--fada6c9c4983--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fada6c9c4983--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fada6c9c4983--------------------------------) [Déborah Mesquita](https://medium.com/@mesquitadeh?source=post_page---byline--fada6c9c4983--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fada6c9c4983--------------------------------) ·阅读时间11分钟·2024年9月14日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fada6c9c4983--------------------------------) ·阅读时间 11 分钟·2024 年 9 月 14 日
 
 --
 
-![](../Images/df4dbf4e422ff2e27cc77246f75e6d94.png)
+![](img/df4dbf4e422ff2e27cc77246f75e6d94.png)
 
 图片来源：[Kaleidico](https://unsplash.com/pt-br/@kaleidico?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 于[Unsplash](https://unsplash.com/pt-br/fotografias/duas-pessoas-desenhando-no-quadro-branco-26MJGnCM0Wc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
 任务导向对话系统（ToD）是帮助用户**完成特定任务**的系统，例如预定餐厅、规划旅行行程或订餐。
 
-我们知道，使用提示语（prompts）来指导大型语言模型（LLMs），但我们如何实现这些任务导向对话系统（ToD），使得**对话始终围绕我们希望用户完成的任务**展开呢？一种方法是使用**提示语**、**记忆**和**工具调用**。幸运的是，LangChain + LangGraph可以帮助我们将这些要素结合起来。
+我们知道，使用提示语（prompts）来指导大型语言模型（LLMs），但我们如何实现这些任务导向对话系统（ToD），使得**对话始终围绕我们希望用户完成的任务**展开呢？一种方法是使用**提示语**、**记忆**和**工具调用**。幸运的是，LangChain + LangGraph 可以帮助我们将这些要素结合起来。
 
-在这篇文章中，您将学习如何构建一个任务导向对话系统，帮助用户以高质量创建用户故事。该系统完全基于LangGraph的[根据用户需求生成提示](https://langchain-ai.github.io/langgraph/tutorials/chatbots/information-gather-prompting/)教程。
+在这篇文章中，您将学习如何构建一个任务导向对话系统，帮助用户以高质量创建用户故事。该系统完全基于 LangGraph 的[根据用户需求生成提示](https://langchain-ai.github.io/langgraph/tutorials/chatbots/information-gather-prompting/)教程。
 
-# 为什么我们需要使用LangGraph？
+# 为什么我们需要使用 LangGraph？
 
-在本教程中，我们假设您已经知道如何使用LangChain。用户故事包含一些组件，如目标、成功标准、执行计划和交付物。用户应提供每一个组件，而我们需要一步步地“引导”他们逐个提供。仅使用LangChain实现这一点会需要大量的条件判断语句（if/else）。
+在本教程中，我们假设您已经知道如何使用 LangChain。用户故事包含一些组件，如目标、成功标准、执行计划和交付物。用户应提供每一个组件，而我们需要一步步地“引导”他们逐个提供。仅使用 LangChain 实现这一点会需要大量的条件判断语句（if/else）。
 
 使用 LangGraph，我们可以使用图抽象来**创建循环**来控制对话。它还具有**内置持久性**，因此我们无需担心主动追踪图内发生的交互。
 
@@ -68,7 +68,7 @@ while True:
         print("Done!")
 ```
 
-在每次交互时（如果用户没有输入“q”或“Q”退出），我们运行 graph.stream()，传递用户消息，并使用“updates” stream_mode，它会流式传输图每一步后状态的更新（[https://langchain-ai.github.io/langgraph/concepts/low_level/#stream-and-astream](https://langchain-ai.github.io/langgraph/concepts/low_level/#stream-and-astream)）。然后我们从 state_schema 获取最后一条消息并打印出来。
+在每次交互时（如果用户没有输入“q”或“Q”退出），我们运行 graph.stream()，传递用户消息，并使用“updates” stream_mode，它会流式传输图每一步后状态的更新（[`langchain-ai.github.io/langgraph/concepts/low_level/#stream-and-astream`](https://langchain-ai.github.io/langgraph/concepts/low_level/#stream-and-astream)）。然后我们从 state_schema 获取最后一条消息并打印出来。
 
 在本教程中，我们仍然会学习如何创建图的节点和边，但首先让我们更多地了解 ToD 系统的架构，并学习如何用**LLMs**、**提示**和**工具调用**实现一个系统。
 
@@ -84,13 +84,13 @@ while True:
 
 1.  自然语言生成（NLG）用于**生成对话系统响应**
 
-![](../Images/a4be2cd1978b86ea567eaae32cea0cf2.png)
+![](img/a4be2cd1978b86ea567eaae32cea0cf2.png)
 
 ToD 系统的主要组件（图片来自秦立波等人 [1]）
 
-通过使用LLM，我们可以将这些组件中的一些组合成一个。**NLP**和**NLG**组件使用LLM实现起来轻而易举，因为理解和生成对话回应正是它们的专长。
+通过使用 LLM，我们可以将这些组件中的一些组合成一个。**NLP**和**NLG**组件使用 LLM 实现起来轻而易举，因为理解和生成对话回应正是它们的专长。
 
-我们可以通过使用LangChain的**SystemMessage**来实现对话状态跟踪（**DST**）和对话策略学习（**DPL**），以引导AI行为，并在每次与LLM互动时始终传递此消息。对话的状态也应始终在每次与模型互动时传递给LLM。这意味着我们将确保对话始终围绕我们希望用户完成的任务进行，**通过始终告诉LLM对话的目标是什么以及它应如何行为**。我们首先通过使用提示来做到这一点：
+我们可以通过使用 LangChain 的**SystemMessage**来实现对话状态跟踪（**DST**）和对话策略学习（**DPL**），以引导 AI 行为，并在每次与 LLM 互动时始终传递此消息。对话的状态也应始终在每次与模型互动时传递给 LLM。这意味着我们将确保对话始终围绕我们希望用户完成的任务进行，**通过始终告诉 LLM 对话的目标是什么以及它应如何行为**。我们首先通过使用提示来做到这一点：
 
 ```py
 prompt_system_task = """Your job is to gather information from the user about the User Story they need to create.
@@ -110,20 +110,20 @@ Always remind them that if they do not know how to answer something, you can hel
 After you are able to discern all the information, call the relevant tool."""
 ```
 
-然后每次我们向LLM发送消息时，都附加这个提示：
+然后每次我们向 LLM 发送消息时，都附加这个提示：
 
 ```py
 def domain_state_tracker(messages):
     return [SystemMessage(content=prompt_system_task)] + messages
 ```
 
-我们ToD系统LLM实现的另一个重要概念是**工具调用**。如果你再次阅读**prompt_system_task**的最后一句话，它说：“*在你能够辨识出所有信息后，调用相关工具*”。通过这种方式，我们在告诉LLM，当它判断用户提供了所有用户故事参数时，**它应该调用工具来创建用户故事**。我们为此创建的工具将使用Pydantic模型与用户故事参数来构建。
+我们 ToD 系统 LLM 实现的另一个重要概念是**工具调用**。如果你再次阅读**prompt_system_task**的最后一句话，它说：“*在你能够辨识出所有信息后，调用相关工具*”。通过这种方式，我们在告诉 LLM，当它判断用户提供了所有用户故事参数时，**它应该调用工具来创建用户故事**。我们为此创建的工具将使用 Pydantic 模型与用户故事参数来构建。
 
-通过仅使用提示和工具调用，我们可以控制我们的ToD系统。很棒对吧？实际上，我们还需要使用**图的状态**来使这一切正常工作。我们将在下一节中完成这一部分，届时我们将最终构建ToD系统。
+通过仅使用提示和工具调用，我们可以控制我们的 ToD 系统。很棒对吧？实际上，我们还需要使用**图的状态**来使这一切正常工作。我们将在下一节中完成这一部分，届时我们将最终构建 ToD 系统。
 
 # 创建对话系统以构建用户故事
 
-好的，开始编码吧。首先我们将指定使用哪个LLM模型，然后设置提示并绑定工具来生成用户故事：
+好的，开始编码吧。首先我们将指定使用哪个 LLM 模型，然后设置提示并绑定工具来生成用户故事：
 
 ```py
 import os
@@ -180,9 +180,9 @@ workflow = StateGraph(StateSchema)
 
 下一张图展示了最终图的结构：
 
-![](../Images/a2eb92c3d942ba8fb79c921ee2362301.png)
+![](img/a2eb92c3d942ba8fb79c921ee2362301.png)
 
-用于创建用户故事的ToD图的结构（图像由作者创建）
+用于创建用户故事的 ToD 图的结构（图像由作者创建）
 
 在顶部我们有一个**talk_to_user**节点。这个节点可以是：
 
@@ -190,9 +190,9 @@ workflow = StateGraph(StateSchema)
 
 +   决定是时候等待用户输入了（跳转到**END**节点）
 
-由于主循环是永远运行的（*while True*），每当图到达END节点时，它会再次等待用户输入。等到我们创建循环时，这一点会变得更加清晰。
+由于主循环是永远运行的（*while True*），每当图到达 END 节点时，它会再次等待用户输入。等到我们创建循环时，这一点会变得更加清晰。
 
-让我们从**talk_to_user**节点开始创建图中的节点。这个节点需要跟踪任务（在整个对话中保持主要提示），并且还需要保持消息交换，因为它是存储对话状态的地方。这个状态还会跟踪哪些用户故事的参数已经填写，哪些还没有，使用的是消息。因此，每次此节点应该添加**SystemMessage**并附加来自LLM的新消息：
+让我们从**talk_to_user**节点开始创建图中的节点。这个节点需要跟踪任务（在整个对话中保持主要提示），并且还需要保持消息交换，因为它是存储对话状态的地方。这个状态还会跟踪哪些用户故事的参数已经填写，哪些还没有，使用的是消息。因此，每次此节点应该添加**SystemMessage**并附加来自 LLM 的新消息：
 
 ```py
 def domain_state_tracker(messages):
@@ -222,13 +222,13 @@ workflow.add_edge(START, "talk_to_user")
 
 到目前为止，图是这样的：
 
-![](../Images/da757765b057ce82f01f6af98a41e93b.png)
+![](img/da757765b057ce82f01f6af98a41e93b.png)
 
 这是只有一个节点的图（由作者创建的图像）
 
-为了控制图的流程，我们还将使用LangChain中的消息类。我们有四种类型的消息：
+为了控制图的流程，我们还将使用 LangChain 中的消息类。我们有四种类型的消息：
 
-+   **SystemMessage：** 用于引导AI行为的消息
++   **SystemMessage：** 用于引导 AI 行为的消息
 
 +   **HumanMessage：** 来自人类的消息
 
@@ -257,7 +257,7 @@ def finalize_dialogue(state: StateSchema):
 workflow.add_node("finalize_dialogue", finalize_dialogue)
 ```
 
-现在让我们创建最后一个节点，**create_user_story**节点。此节点将使用提示调用LLM来创建用户故事，并将对话过程中收集到的信息包含在内。如果模型决定该是调用工具的时机，那么**tool_calls**键的值应该包含创建用户故事所需的所有信息。
+现在让我们创建最后一个节点，**create_user_story**节点。此节点将使用提示调用 LLM 来创建用户故事，并将对话过程中收集到的信息包含在内。如果模型决定该是调用工具的时机，那么**tool_calls**键的值应该包含创建用户故事所需的所有信息。
 
 ```py
 prompt_generate_user_story = """Based on the following requirements, write a good user story:
@@ -290,7 +290,7 @@ workflow.add_node("create_user_story", call_model_to_generate_user_story)
 
 +   决定我们需要收集用户输入（跳转到**END**节点）
 
-这意味着我们只检查最后一条消息是否是AIMessage，并且是否包含tool_calls键；否则我们应该跳转到END节点。让我们创建一个函数来检查这个，并将它作为一条边添加：
+这意味着我们只检查最后一条消息是否是 AIMessage，并且是否包含 tool_calls 键；否则我们应该跳转到 END 节点。让我们创建一个函数来检查这个，并将它作为一条边添加：
 
 ```py
 def define_next_action(state) -> Literal["finalize_dialogue", END]:
@@ -337,7 +337,7 @@ while True:
 
 最后让我们测试系统：
 
-![](../Images/f88a5dbb64636f7ecc2afae4a90569d9.png)
+![](img/f88a5dbb64636f7ecc2afae4a90569d9.png)
 
 助手在行动中（图片由作者创建）
 
@@ -357,4 +357,4 @@ while True:
 
 [1] Qin, Libo, 等人。“端到端任务导向对话：任务、方法及未来方向的调查。” *arXiv 预印本 arXiv:2311.09008* (2023)。
 
-[2] *从用户需求生成提示*。可在以下地址查看：[https://langchain-ai.github.io/langgraph/tutorials/chatbots/information-gather-prompting](https://langchain-ai.github.io/langgraph/tutorials/chatbots/information-gather-prompting)
+[2] *从用户需求生成提示*。可在以下地址查看：[`langchain-ai.github.io/langgraph/tutorials/chatbots/information-gather-prompting`](https://langchain-ai.github.io/langgraph/tutorials/chatbots/information-gather-prompting)

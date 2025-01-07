@@ -1,16 +1,16 @@
 # 解锁图表中的数据：如何使用 WebPlotDigitizer 数字化图表和图形
 
-> 原文：[https://towardsdatascience.com/unlocking-data-from-graphs-how-to-digitise-plots-and-figures-with-webplotdigitizer-2dad17e6e073?source=collection_archive---------3-----------------------#2024-01-14](https://towardsdatascience.com/unlocking-data-from-graphs-how-to-digitise-plots-and-figures-with-webplotdigitizer-2dad17e6e073?source=collection_archive---------3-----------------------#2024-01-14)
+> 原文：[`towardsdatascience.com/unlocking-data-from-graphs-how-to-digitise-plots-and-figures-with-webplotdigitizer-2dad17e6e073?source=collection_archive---------3-----------------------#2024-01-14`](https://towardsdatascience.com/unlocking-data-from-graphs-how-to-digitise-plots-and-figures-with-webplotdigitizer-2dad17e6e073?source=collection_archive---------3-----------------------#2024-01-14)
 
 ## 从静态图像数据中解锁数字潜力
 
-[](https://andymcdonaldgeo.medium.com/?source=post_page---byline--2dad17e6e073--------------------------------)[![Andy McDonald](../Images/df11d647be032aeb3d31852affb33a64.png)](https://andymcdonaldgeo.medium.com/?source=post_page---byline--2dad17e6e073--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2dad17e6e073--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2dad17e6e073--------------------------------) [Andy McDonald](https://andymcdonaldgeo.medium.com/?source=post_page---byline--2dad17e6e073--------------------------------)
+[](https://andymcdonaldgeo.medium.com/?source=post_page---byline--2dad17e6e073--------------------------------)![Andy McDonald](https://andymcdonaldgeo.medium.com/?source=post_page---byline--2dad17e6e073--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2dad17e6e073--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2dad17e6e073--------------------------------) [Andy McDonald](https://andymcdonaldgeo.medium.com/?source=post_page---byline--2dad17e6e073--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2dad17e6e073--------------------------------) ·阅读时间 6 分钟 ·2024年1月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2dad17e6e073--------------------------------) ·阅读时间 6 分钟 ·2024 年 1 月 14 日
 
 --
 
-![](../Images/91edda0de7036aafff0ee4228fb7e211.png)
+![](img/91edda0de7036aafff0ee4228fb7e211.png)
 
 从纸质到数字化。图像由作者使用 DALLE 生成。
 

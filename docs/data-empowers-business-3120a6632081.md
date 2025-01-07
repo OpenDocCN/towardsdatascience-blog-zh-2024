@@ -1,16 +1,16 @@
 # 数据赋能商业
 
-> 原文：[https://towardsdatascience.com/data-empowers-business-3120a6632081?source=collection_archive---------3-----------------------#2024-09-22](https://towardsdatascience.com/data-empowers-business-3120a6632081?source=collection_archive---------3-----------------------#2024-09-22)
+> 原文：[`towardsdatascience.com/data-empowers-business-3120a6632081?source=collection_archive---------3-----------------------#2024-09-22`](https://towardsdatascience.com/data-empowers-business-3120a6632081?source=collection_archive---------3-----------------------#2024-09-22)
 
 ## 发掘普遍数据供应的全部潜力
 
-[](https://medium.com/@bernd.wessely?source=post_page---byline--3120a6632081--------------------------------)[![Bernd Wessely](../Images/e60e01c19412d8af8f8bddf78e561275.png)](https://medium.com/@bernd.wessely?source=post_page---byline--3120a6632081--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3120a6632081--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3120a6632081--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--3120a6632081--------------------------------)
+[](https://medium.com/@bernd.wessely?source=post_page---byline--3120a6632081--------------------------------)![Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--3120a6632081--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3120a6632081--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3120a6632081--------------------------------) [Bernd Wessely](https://medium.com/@bernd.wessely?source=post_page---byline--3120a6632081--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3120a6632081--------------------------------) ·8分钟阅读·2024年9月22日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3120a6632081--------------------------------) ·8 分钟阅读·2024 年 9 月 22 日
 
 --
 
-![](../Images/8655aef857319b387bd5442da1ec617f.png)
+![](img/8655aef857319b387bd5442da1ec617f.png)
 
 图片由[NASA](https://unsplash.com/@nasa?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

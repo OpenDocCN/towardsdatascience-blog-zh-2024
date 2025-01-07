@@ -1,26 +1,26 @@
-# Python水质 — 基线分类模型
+# Python 水质 — 基线分类模型
 
-> 原文：[https://towardsdatascience.com/python-water-quality-baseline-classification-model-bb5584226a82?source=collection_archive---------10-----------------------#2024-01-08](https://towardsdatascience.com/python-water-quality-baseline-classification-model-bb5584226a82?source=collection_archive---------10-----------------------#2024-01-08)
+> 原文：[`towardsdatascience.com/python-water-quality-baseline-classification-model-bb5584226a82?source=collection_archive---------10-----------------------#2024-01-08`](https://towardsdatascience.com/python-water-quality-baseline-classification-model-bb5584226a82?source=collection_archive---------10-----------------------#2024-01-08)
 
 ## 评估在使用参考基线模型估算水质时的特征重要性
 
-[](https://jamesmcneill06.medium.com/?source=post_page---byline--bb5584226a82--------------------------------)[![James McNeill](../Images/5f71dfac8d1d37a1232d88c4ac04bf84.png)](https://jamesmcneill06.medium.com/?source=post_page---byline--bb5584226a82--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bb5584226a82--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bb5584226a82--------------------------------) [James McNeill](https://jamesmcneill06.medium.com/?source=post_page---byline--bb5584226a82--------------------------------)
+[](https://jamesmcneill06.medium.com/?source=post_page---byline--bb5584226a82--------------------------------)![James McNeill](https://jamesmcneill06.medium.com/?source=post_page---byline--bb5584226a82--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bb5584226a82--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb5584226a82--------------------------------) [James McNeill](https://jamesmcneill06.medium.com/?source=post_page---byline--bb5584226a82--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb5584226a82--------------------------------) ·11 分钟阅读 ·2024年1月8日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb5584226a82--------------------------------) ·11 分钟阅读 ·2024 年 1 月 8 日
 
 --
 
-![](../Images/14dc02e38c52e177eb13286d0101fc97.png)
+![](img/14dc02e38c52e177eb13286d0101fc97.png)
 
 图片由 [Unseen Studio](https://unsplash.com/@craftedbygc?utm_source=medium&utm_medium=referral) 提供，上传至 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 理解可以用来分类水质的因素可能是一个挑战。掌握不同地区的专业知识可以为水流动的最佳方式提供本地见解。如果没有足够的时间来全面审查这些细节，就减少了从错误中学习并惠及他人的可能性。通过收集影响水质的特征数据集，可以采取量化的方法。量化后，用户可以运用计算机科学技术来获得基于数据的洞察。本文旨在应用一个基线机器学习分类模型，帮助突出关键特征。通过使用未见过的数据，通常称为测试数据，来生成模型预测结果，从而验证模型的表现。
 
-关于输入数据集的初步探索性数据分析的更多细节，请参考本文末尾分享的“Python水质EDA与饮用性分析”文章。
+关于输入数据集的初步探索性数据分析的更多细节，请参考本文末尾分享的“Python 水质 EDA 与饮用性分析”文章。
 
 # 数据集
 
-本文分析使用的水质数据集来源于Kaggle¹。
+本文分析使用的水质数据集来源于 Kaggle¹。
 
 [](https://www.kaggle.com/datasets/adityakadiwal/water-potability?source=post_page-----bb5584226a82--------------------------------) [## 水质
 
@@ -28,7 +28,7 @@
 
 [www.kaggle.com](https://www.kaggle.com/datasets/adityakadiwal/water-potability?source=post_page-----bb5584226a82--------------------------------)
 
-使用Jupyter notebook实例并配合Python代码进行处理。
+使用 Jupyter notebook 实例并配合 Python 代码进行处理。
 
 ```py
 import sys
@@ -73,7 +73,7 @@ df = pd.read_csv("../input/water-potability/water_potability.csv")
 )
 ```
 
-![](../Images/60e295c97e554da4fcd4b57fb16f2ded.png)
+![](img/60e295c97e554da4fcd4b57fb16f2ded.png)
 
 输出 1.1 DataFrame 中每列的缺失值
 
@@ -89,7 +89,7 @@ df['Trihalomethanes'].fillna(df['Trihalomethanes'].mean(), inplace=True)
 df.isnull().sum()
 ```
 
-使用所有非缺失值的均值提供了一个良好的初步近似。多个变量需要更新，并且方法中的关键字（KW）参数 `fillna` 可用于内联更新。包含关键字 `inplace` 将该方法应用于输入的DataFrame `df`，无需创建副本。
+使用所有非缺失值的均值提供了一个良好的初步近似。多个变量需要更新，并且方法中的关键字（KW）参数 `fillna` 可用于内联更新。包含关键字 `inplace` 将该方法应用于输入的 DataFrame `df`，无需创建副本。
 
 方法 #2
 
@@ -109,13 +109,13 @@ df1 = (
 df1.isnull().sum()
 ```
 
-第二种方法是使用链式方法来执行变量更新。仍然应用均值调整。使用带有单行lambda函数的赋值方法可以提高可读性。另一个重要的方面是，之前的行可以被（取消）注释。如果需要对前后处理进行检查，只需在代码中取消注释并注释掉相应行即可。下面的输出突出了所有缺失值已经被更新。
+第二种方法是使用链式方法来执行变量更新。仍然应用均值调整。使用带有单行 lambda 函数的赋值方法可以提高可读性。另一个重要的方面是，之前的行可以被（取消）注释。如果需要对前后处理进行检查，只需在代码中取消注释并注释掉相应行即可。下面的输出突出了所有缺失值已经被更新。
 
-![](../Images/7c579c1925c8494ee6bb3e0e5ff5207a.png)
+![](img/7c579c1925c8494ee6bb3e0e5ff5207a.png)
 
 输出 1.2 后处理更新，解决缺失值问题，显示没有缺失值
 
-在预处理完成后，我们现在可以将DataFrame分为依赖变量（目标或 `y`）和独立变量（`X`）。
+在预处理完成后，我们现在可以将 DataFrame 分为依赖变量（目标或 `y`）和独立变量（`X`）。
 
 ```py
 # Separate into X and y variables
@@ -125,21 +125,21 @@ X, y = df1.drop(['Potability'], axis=1), df1['Potability'].values
 X.head()
 ```
 
-Python允许在公式的同一行内产生多个变量。通过在公式两边的变量之间添加逗号，Python会解释为正在创建两个新变量。
+Python 允许在公式的同一行内产生多个变量。通过在公式两边的变量之间添加逗号，Python 会解释为正在创建两个新变量。
 
-![](../Images/d74211e4240dcfc9b1ca8f31ea454698.png)
+![](img/d74211e4240dcfc9b1ca8f31ea454698.png)
 
-输出 1.3 DataFrame的前5行只显示独立变量
+输出 1.3 DataFrame 的前 5 行只显示独立变量
 
-使用 `head` 方法显示了前5行。一个numpy数组变量包含了 `y` 的二元值。
+使用 `head` 方法显示了前 5 行。一个 numpy 数组变量包含了 `y` 的二元值。
 
 ## 分类模型 — 基准线
 
-开发机器学习模型时常用的Python库是scikit-learn。该库提供了大量的技术帮助模型开发。多年的开发成果使得这个库已经成熟，并且不断进步。
+开发机器学习模型时常用的 Python 库是 scikit-learn。该库提供了大量的技术帮助模型开发。多年的开发成果使得这个库已经成熟，并且不断进步。
 
 在构建分类模型时，许多用户会直接使用最新的机器学习技术开始开发。然而，一个更好的方法是首先开发一个基准模型。它可以作为参考点，任何低于该基准线的模型估计都显示了效果较差的技术。在尝试调整模型的超参数之前，可以先得到一个良好的初步近似。超参数是可以调整的关键字（KW）变量，目的是提升机器学习模型的表现。
 
-Scikit-learn包含一个虚拟分类器算法，它可以提供一个基准模型。通过模型输出，可以将其与更复杂的分类器进行比较。
+Scikit-learn 包含一个虚拟分类器算法，它可以提供一个基准模型。通过模型输出，可以将其与更复杂的分类器进行比较。
 
 ```py
 # Dummy classifier - create a baseline accuracy score
@@ -162,9 +162,9 @@ print(score)
 0.6098901098901099
 ```
 
-上述模型步骤创建了一个分类器模型，然后可以将其拟合到输入数据中。使用predict方法生成目标（y）的预测。最后，评分将显示模型的准确性。
+上述模型步骤创建了一个分类器模型，然后可以将其拟合到输入数据中。使用 predict 方法生成目标（y）的预测。最后，评分将显示模型的准确性。
 
-由于虚拟分类器应用了最频繁的值，我们实际上是在预测目标值为0。需要注意的是，应用此方法可以为未来的预测提供良好的背景。
+由于虚拟分类器应用了最频繁的值，我们实际上是在预测目标值为 0。需要注意的是，应用此方法可以为未来的预测提供良好的背景。
 
 ```py
 # Review the dependent variable frequency and percentage
@@ -176,9 +176,9 @@ print(score)
 )
 ```
 
-为了验证预测值0.60989的输出，我们可以对目标变量进行value_counts。下面的输出显示，与得分预测一致的百分比结果。
+为了验证预测值 0.60989 的输出，我们可以对目标变量进行 value_counts。下面的输出显示，与得分预测一致的百分比结果。
 
-![](../Images/67f000f732fd5950b934d2272f8b03ac.png)
+![](img/67f000f732fd5950b934d2272f8b03ac.png)
 
 输出 1.4 显示二分类目标变量的百分比部分
 
@@ -186,7 +186,7 @@ print(score)
 
 ## 分类模型 — 复杂方法
 
-现在让我们尝试构建一个更复杂的模型来理解机器学习（ML）挑战。我们将通过梯度提升模型（GBM）来寻求提高性能。GBM是一种基于树的模型，允许构建多个树。在每棵树中，输入数据会被评估，以了解模型特征如何预测目标变量。在这个练习中，我们将使用轻量级GBM分类器。未来的开发中可以使用XGBoost（极端梯度提升）等替代方法。
+现在让我们尝试构建一个更复杂的模型来理解机器学习（ML）挑战。我们将通过梯度提升模型（GBM）来寻求提高性能。GBM 是一种基于树的模型，允许构建多个树。在每棵树中，输入数据会被评估，以了解模型特征如何预测目标变量。在这个练习中，我们将使用轻量级 GBM 分类器。未来的开发中可以使用 XGBoost（极端梯度提升）等替代方法。
 
 ```py
 # Lets try a Light GBM
@@ -205,7 +205,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 ```
 
-对于上面的ML模型，展示了常见的库导入。每个部分展示了在模型构建和测试过程中使用的相关步骤。预处理旨在确保可以构建一个步骤管道，以促进未来的开发。
+对于上面的 ML 模型，展示了常见的库导入。每个部分展示了在模型构建和测试过程中使用的相关步骤。预处理旨在确保可以构建一个步骤管道，以促进未来的开发。
 
 ```py
 # Split into training and test set
@@ -227,17 +227,17 @@ print(classification_report(y_test, y_pred))
 print(confusion_matrix(y_test, y_pred))
 ```
 
-首先，我们需要将输入数据拆分为训练集和测试集。这样拆分可以减少过拟合数据的机会。目标是创建一个在未见数据上表现最佳的模型，即模型如何在实际数据中使用。使用测试数据评估训练模型在未见值上的表现，旨在展示改进的空间。包括关键字参数stratify确保目标变量的分布在训练和测试数据中保持一致。应用此步骤旨在确保底层变量分布的特征不会丢失。模型预测应该与数据中观察到的情况一致。
+首先，我们需要将输入数据拆分为训练集和测试集。这样拆分可以减少过拟合数据的机会。目标是创建一个在未见数据上表现最佳的模型，即模型如何在实际数据中使用。使用测试数据评估训练模型在未见值上的表现，旨在展示改进的空间。包括关键字参数 stratify 确保目标变量的分布在训练和测试数据中保持一致。应用此步骤旨在确保底层变量分布的特征不会丢失。模型预测应该与数据中观察到的情况一致。
 
-将分类器应用于变量lgbm，使得用户可以使用Python对象的所有方法（函数）和属性（数据）。遵循标准步骤来训练模型并对测试数据进行评分。
+将分类器应用于变量 lgbm，使得用户可以使用 Python 对象的所有方法（函数）和属性（数据）。遵循标准步骤来训练模型并对测试数据进行评分。
 
 以下显示的结果突出了相对于基准模型模型性能的提升。应用于测试数据后，提供了预测效果良好的保证。准确性通过评分方法生成，显示了所有可能结果中正确预测的总数。
 
-使用分类报告突出显示最感兴趣的分类度量。精准度显示了相对于所有正类预测（真正和假正）的真正正类值预测得有多好。过多的假正值会导致Type 1错误，即错误地将实例分类为正类，例如医学筛查产生误诊。召回率评估相对于所有实际正类（真正和假负）的真正正类值。如果假负值过多，会导致Type II错误，即错误地将实例分类为负类，例如欺诈检测可能导致经济损失。
+使用分类报告突出显示最感兴趣的分类度量。精准度显示了相对于所有正类预测（真正和假正）的真正正类值预测得有多好。过多的假正值会导致 Type 1 错误，即错误地将实例分类为正类，例如医学筛查产生误诊。召回率评估相对于所有实际正类（真正和假负）的真正正类值。如果假负值过多，会导致 Type II 错误，即错误地将实例分类为负类，例如欺诈检测可能导致经济损失。
 
-![](../Images/f378eb1978d792b5de19e3fec6e8bb7c.png)
+![](img/f378eb1978d792b5de19e3fec6e8bb7c.png)
 
-输出1.5 提供准确性和分类度量的细节
+输出 1.5 提供准确性和分类度量的细节
 
 在使用机器学习算法时，包含一组默认的关键参数值，以生成基准结果。优化这些初始参数将生成更好的模型预测。
 
@@ -246,11 +246,11 @@ print(confusion_matrix(y_test, y_pred))
 lgbm.get_params()
 ```
 
-使用lgbm变量的get_params方法将显示如下所示的输出。有关每个变量含义的更多细节，用户可以在线查阅文档。
+使用 lgbm 变量的 get_params 方法将显示如下所示的输出。有关每个变量含义的更多细节，用户可以在线查阅文档。
 
-![](../Images/0ae64e42c2e7bd519b725628f6e9439e.png)
+![](img/0ae64e42c2e7bd519b725628f6e9439e.png)
 
-输出1.6 默认关键字参数值
+输出 1.6 默认关键字参数值
 
 机器学习模型开发中的下一个重要步骤是审查超参数空间的潜在值。通过在相关选项空间中执行超参数调优，可以有效地生成改进的预测。
 
@@ -283,11 +283,11 @@ cv.fit(X_train, y_train)
 y_pred = cv.predict(X_test)
 ```
 
-引入一个管道，按比例缩放数值变量以对齐相似的尺度，将减少具有较大数值范围的变量主导的潜力。管道中包含了两步，首先生成经过缩放的独立变量，然后应用LGBM分类器。以这种格式编写代码有助于其他用户理解预处理步骤。根据所需步骤的复杂性，管道可以包含更多步骤。
+引入一个管道，按比例缩放数值变量以对齐相似的尺度，将减少具有较大数值范围的变量主导的潜力。管道中包含了两步，首先生成经过缩放的独立变量，然后应用 LGBM 分类器。以这种格式编写代码有助于其他用户理解预处理步骤。根据所需步骤的复杂性，管道可以包含更多步骤。
 
-已生成一个参数字典，以便测试超参数输入的组合。包括引用lgbm模型的变量，并使用双下划线将让Python识别lgbm变量需要调整。
+已生成一个参数字典，以便测试超参数输入的组合。包括引用 lgbm 模型的变量，并使用双下划线将让 Python 识别 lgbm 变量需要调整。
 
-gridsearchCV方法将审查输入参数的每种组合，以生成所有组合的模型。通过包含CV（交叉验证）参数，它将执行三次交叉验证程序。每次验证运行将选择一个不同的样本来训练模型。目的是确保模型不会过拟合仅在一个样本中展示的独特方面。
+gridsearchCV 方法将审查输入参数的每种组合，以生成所有组合的模型。通过包含 CV（交叉验证）参数，它将执行三次交叉验证程序。每次验证运行将选择一个不同的样本来训练模型。目的是确保模型不会过拟合仅在一个样本中展示的独特方面。
 
 ```py
 # Display best score and params
@@ -301,7 +301,7 @@ print(classification_report(y_test, y_pred))
 
 一旦处理完成，可以查看 lgbm 的最佳得分和超参数。由于我们仅审查了少数潜在的超参数，用户可以使用更为粗暴的手动方法来确定最佳模型。然而，网格搜索的真正好处在于可以包含一个更大的超参数输入空间。
 
-![](../Images/a86efd27e2fed31fc100b636a7a6163e.png)
+![](img/a86efd27e2fed31fc100b636a7a6163e.png)
 
 输出 1.7 LGBM 分类器超参数调优结果
 
@@ -331,4 +331,4 @@ print(classification_report(y_test, y_pred))
 
 [入门 Python 中的 NLP](https://towardsdatascience.com/getting-started-with-nlp-in-python-6a14d0bf4cfe?source=post_page-----bb5584226a82--------------------------------) 
 
-[1] : 来自[Kaggle数据集水质](https://www.kaggle.com/datasets/adityakadiwal/water-potability)的数据，许可协议为[https://creativecommons.org/publicdomain/zero/1.0/](https://creativecommons.org/publicdomain/zero/1.0/)
+[1] : 来自[Kaggle 数据集水质](https://www.kaggle.com/datasets/adityakadiwal/water-potability)的数据，许可协议为[`creativecommons.org/publicdomain/zero/1.0/`](https://creativecommons.org/publicdomain/zero/1.0/)

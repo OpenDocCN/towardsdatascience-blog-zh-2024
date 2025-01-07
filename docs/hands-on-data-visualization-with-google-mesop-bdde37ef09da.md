@@ -1,16 +1,16 @@
 # 使用 Google Mesop 进行数据可视化实战
 
-> 原文：[https://towardsdatascience.com/hands-on-data-visualization-with-google-mesop-bdde37ef09da?source=collection_archive---------3-----------------------#2024-10-25](https://towardsdatascience.com/hands-on-data-visualization-with-google-mesop-bdde37ef09da?source=collection_archive---------3-----------------------#2024-10-25)
+> 原文：[`towardsdatascience.com/hands-on-data-visualization-with-google-mesop-bdde37ef09da?source=collection_archive---------3-----------------------#2024-10-25`](https://towardsdatascience.com/hands-on-data-visualization-with-google-mesop-bdde37ef09da?source=collection_archive---------3-----------------------#2024-10-25)
 
 ## Google Mesop 是一个易于使用的 Python UI 框架。我们将展示如何利用它与 Plotly 一起创建数据可视化应用。
 
-[](https://medium.com/@alan-jones?source=post_page---byline--bdde37ef09da--------------------------------)[![Alan Jones](../Images/359379fab1d6685ff08080b98173e67c.png)](https://medium.com/@alan-jones?source=post_page---byline--bdde37ef09da--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdde37ef09da--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bdde37ef09da--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--bdde37ef09da--------------------------------)
+[](https://medium.com/@alan-jones?source=post_page---byline--bdde37ef09da--------------------------------)![Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--bdde37ef09da--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdde37ef09da--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdde37ef09da--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--bdde37ef09da--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdde37ef09da--------------------------------) ·阅读时间 14 分钟·2024年10月25日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdde37ef09da--------------------------------) ·阅读时间 14 分钟·2024 年 10 月 25 日
 
 --
 
-![](../Images/35a7dcaa2a796ad221be57015f05f045.png)
+![](img/35a7dcaa2a796ad221be57015f05f045.png)
 
 通过将 Mesop 简单而强大的 UI 组件与 Plotly 强大的图表功能相结合，你可以构建一个动态、互动的应用，展示 Python 中的数据可视化效果。
 

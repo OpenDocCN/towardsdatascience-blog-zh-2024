@@ -1,24 +1,24 @@
-# 使用TensorFlow进行时间序列预测和通过可视化技术进行验证期外预测
+# 使用 TensorFlow 进行时间序列预测和通过可视化技术进行验证期外预测
 
-> 原文：[https://towardsdatascience.com/time-series-forecasting-with-tensorflow-neural-networks-and-visualization-techniques-06ad14fd082b?source=collection_archive---------11-----------------------#2024-02-24](https://towardsdatascience.com/time-series-forecasting-with-tensorflow-neural-networks-and-visualization-techniques-06ad14fd082b?source=collection_archive---------11-----------------------#2024-02-24)
+> 原文：[`towardsdatascience.com/time-series-forecasting-with-tensorflow-neural-networks-and-visualization-techniques-06ad14fd082b?source=collection_archive---------11-----------------------#2024-02-24`](https://towardsdatascience.com/time-series-forecasting-with-tensorflow-neural-networks-and-visualization-techniques-06ad14fd082b?source=collection_archive---------11-----------------------#2024-02-24)
 
 ## 如何将预测扩展到验证期之外
 
-[](https://medium.com/@paulamaranon?source=post_page---byline--06ad14fd082b--------------------------------)[![Paula Maranon](../Images/40b163c740105e0d7506eea3335aa268.png)](https://medium.com/@paulamaranon?source=post_page---byline--06ad14fd082b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--06ad14fd082b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--06ad14fd082b--------------------------------) [Paula Maranon](https://medium.com/@paulamaranon?source=post_page---byline--06ad14fd082b--------------------------------)
+[](https://medium.com/@paulamaranon?source=post_page---byline--06ad14fd082b--------------------------------)![Paula Maranon](https://medium.com/@paulamaranon?source=post_page---byline--06ad14fd082b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--06ad14fd082b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--06ad14fd082b--------------------------------) [Paula Maranon](https://medium.com/@paulamaranon?source=post_page---byline--06ad14fd082b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--06ad14fd082b--------------------------------) ·阅读时长8分钟·2024年2月24日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--06ad14fd082b--------------------------------) ·阅读时长 8 分钟·2024 年 2 月 24 日
 
 --
 
-![](../Images/947426607d6525714baa868ba36c92e6.png)
+![](img/947426607d6525714baa868ba36c92e6.png)
 
 作者提供的图片
 
-在本文中，我将带领你通过使用TensorFlow构建时间序列模型的过程。TensorFlow是一个强大的框架，用于构建和训练神经网络。我将展示多种用于时间序列预测的神经网络架构，从简单的模型如SimpleRNN到更复杂的模型如LSTM。此外，我还将介绍我用来进行验证期外预测的高级可视化技术。
+在本文中，我将带领你通过使用 TensorFlow 构建时间序列模型的过程。TensorFlow 是一个强大的框架，用于构建和训练神经网络。我将展示多种用于时间序列预测的神经网络架构，从简单的模型如 SimpleRNN 到更复杂的模型如 LSTM。此外，我还将介绍我用来进行验证期外预测的高级可视化技术。
 
 # 设置环境
 
-我使用了以下库：TensorFlow与Keras用于构建神经网络，Matplotlib用于可视化，NumPy用于数值计算，Scikit-Learn用于数据预处理。
+我使用了以下库：TensorFlow 与 Keras 用于构建神经网络，Matplotlib 用于可视化，NumPy 用于数值计算，Scikit-Learn 用于数据预处理。
 
 ```py
 import numpy as np
@@ -43,7 +43,7 @@ dummy_data = np.array([1, 2, 3,...])
 time_step = np.arange(len(dummy_data))
 ```
 
-**对于存储在文件中的大型数据集（例如CSV文件）：**我们可以从文件中读取数据及其对应的时间步：
+**对于存储在文件中的大型数据集（例如 CSV 文件）：**我们可以从文件中读取数据及其对应的时间步：
 
 ```py
 #For larger datasets stored in files, such as CSV files
@@ -143,7 +143,7 @@ RNN 是用于处理数据序列的神经网络，能够保留来自早期时间�
 
 在每个时间步，不同批次的输入数据被送入 RNN 单元。每个时间步的 RNN 单元输出不仅依赖于当前的输入批次，还依赖于单元的前一个状态，而前一个状态捕捉了早期时间步的信息。
 
-![](../Images/bab7657e545017b31a99ad53b7947bd7.png)
+![](img/bab7657e545017b31a99ad53b7947bd7.png)
 
 图片由作者提供
 
@@ -163,7 +163,7 @@ model = tf.keras.models.Sequential([
 
 LSTM 网络是一种递归神经网络，以能够在多个时间步内保留信息而闻名。LSTM 通过结合一个记忆单元，使信息能够从一个单元传递到另一个单元，并在网络内从一个时间步传递到另一个时间步来实现这一点。
 
-![](../Images/e4eb866a9f2085b0f0ded5f9d7eec462.png)
+![](img/e4eb866a9f2085b0f0ded5f9d7eec462.png)
 
 图片由作者提供
 
@@ -204,7 +204,7 @@ evaluation_result = model.evaluate(dataset_valid)
 print("Validation Loss:", evaluation_result)
 ```
 
-在时间序列预测中，通常使用均方误差（MSE）或平均绝对误差（MAE）来验证模型的性能。与MSE不同，MAE不对误差进行平方处理，而是使用误差的绝对值。这种方法不会对较大的误差进行过度惩罚，因此适用于那些需要平等对待所有误差的场景。
+在时间序列预测中，通常使用均方误差（MSE）或平均绝对误差（MAE）来验证模型的性能。与 MSE 不同，MAE 不对误差进行平方处理，而是使用误差的绝对值。这种方法不会对较大的误差进行过度惩罚，因此适用于那些需要平等对待所有误差的场景。
 
 # 可视化训练和验证损失
 
@@ -238,13 +238,13 @@ plt.show()
 
 这是可以得到的图表示例：
 
-![](../Images/d084eaafc808a0e2290818a0ae08743c.png)
+![](img/d084eaafc808a0e2290818a0ae08743c.png)
 
 图片由作者提供
 
 # 在验证数据集上进行预测
 
-现在我已经训练了模型，并使用MSE指标验证了其性能，是时候将模型应用于验证数据集进行预测了。
+现在我已经训练了模型，并使用 MSE 指标验证了其性能，是时候将模型应用于验证数据集进行预测了。
 
 以下是对验证数据集进行预测的代码。此外，我还包括了如何打印验证期之外的预测结果，并将其与实际数据在每个时间步骤进行对比。
 
@@ -322,7 +322,7 @@ plt.show()
 
 这是一个基于虚拟数据集的示例，展示了上面代码生成的图像。
 
-![](../Images/601fa0cb259e516bb75d316fdbfe1ed1.png)
+![](img/601fa0cb259e516bb75d316fdbfe1ed1.png)
 
 图片由作者提供
 
@@ -332,6 +332,6 @@ plt.show()
 
 # 参考文献
 
-[1]SimpleRNN:[https://www.tensorflow.org/api_docs/python/tf/keras/layers/SimpleRNN#call_arguments](https://www.tensorflow.org/api_docs/python/tf/keras/layers/SimpleRNN)
+[1]SimpleRNN:[`www.tensorflow.org/api_docs/python/tf/keras/layers/SimpleRNN#call_arguments`](https://www.tensorflow.org/api_docs/python/tf/keras/layers/SimpleRNN)
 
-[2]LSTM:[https://www.tensorflow.org/api_docs/python/tf/keras/layers/LSTM](https://www.tensorflow.org/api_docs/python/tf/keras/layers/LSTM)
+[2]LSTM:[`www.tensorflow.org/api_docs/python/tf/keras/layers/LSTM`](https://www.tensorflow.org/api_docs/python/tf/keras/layers/LSTM)

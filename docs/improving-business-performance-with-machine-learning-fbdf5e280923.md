@@ -1,34 +1,34 @@
 # 使用机器学习提升商业表现
 
-> 原文：[https://towardsdatascience.com/improving-business-performance-with-machine-learning-fbdf5e280923?source=collection_archive---------3-----------------------#2024-06-13](https://towardsdatascience.com/improving-business-performance-with-machine-learning-fbdf5e280923?source=collection_archive---------3-----------------------#2024-06-13)
+> 原文：[`towardsdatascience.com/improving-business-performance-with-machine-learning-fbdf5e280923?source=collection_archive---------3-----------------------#2024-06-13`](https://towardsdatascience.com/improving-business-performance-with-machine-learning-fbdf5e280923?source=collection_archive---------3-----------------------#2024-06-13)
 
 ## 无论你是数据科学家、分析师，还是业务分析师，你的目标都是交付能够提升商业表现的项目。
 
-[](https://medium.com/@juanjosemunozp?source=post_page---byline--fbdf5e280923--------------------------------)[![Juan Jose Munoz](../Images/b42d72e9e2a2eaf11da5465e9b041d53.png)](https://medium.com/@juanjosemunozp?source=post_page---byline--fbdf5e280923--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fbdf5e280923--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fbdf5e280923--------------------------------) [Juan Jose Munoz](https://medium.com/@juanjosemunozp?source=post_page---byline--fbdf5e280923--------------------------------)
+[](https://medium.com/@juanjosemunozp?source=post_page---byline--fbdf5e280923--------------------------------)![Juan Jose Munoz](https://medium.com/@juanjosemunozp?source=post_page---byline--fbdf5e280923--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fbdf5e280923--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fbdf5e280923--------------------------------) [Juan Jose Munoz](https://medium.com/@juanjosemunozp?source=post_page---byline--fbdf5e280923--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fbdf5e280923--------------------------------) ·阅读时间15分钟·2024年6月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fbdf5e280923--------------------------------) ·阅读时间 15 分钟·2024 年 6 月 13 日
 
 --
 
-![](../Images/d28fb9d54d5dd553dc3c6563016f0125.png)
+![](img/d28fb9d54d5dd553dc3c6563016f0125.png)
 
 图片来源：[Daria Nepriakhina 🇺🇦](https://unsplash.com/@epicantus?utm_source=medium&utm_medium=referral) 在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 可能会有诱惑专注于最新的机器学习发展或解决大问题。然而，通过使用简单的机器学习算法解决一些容易实现的低价值问题，通常也能带来很大的价值。
 
-基准测试就是其中一个低价值问题。它是将业务KPI与类似组织进行对比的过程。它使企业能够从最优秀的企业中学习，并不断提高业绩。
+基准测试就是其中一个低价值问题。它是将业务 KPI 与类似组织进行对比的过程。它使企业能够从最优秀的企业中学习，并不断提高业绩。
 
 基准测试有两种类型：
 
-> **1\. 内部**：与公司内的单位/产品对比衡量KPI
+> **1\. 内部**：与公司内的单位/产品对比衡量 KPI
 > 
-> **2\. 外部**：与竞争对手对比衡量KPI
+> **2\. 外部**：与竞争对手对比衡量 KPI
 
-在我从事酒店行业的日常工作中，我们常常依赖于收集酒店数据的第三方公司来进行外部基准测试。然而，我们从他们那里获得的数据是有限的。另一方面，我们管理着超过500家酒店，拥有大量潜在的基准测试数据。
+在我从事酒店行业的日常工作中，我们常常依赖于收集酒店数据的第三方公司来进行外部基准测试。然而，我们从他们那里获得的数据是有限的。另一方面，我们管理着超过 500 家酒店，拥有大量潜在的基准测试数据。
 
 这是我们最近设定来解决的低价值问题。
 
-无论你正在进行哪种类型的基准测试，第一步都是选择一组与目标酒店相似的酒店。在酒店行业，我们通常依赖于位置指标、品牌等级、房间数量、价格范围和市场需求。对于一两家酒店，我们通常是手动进行这样的操作，但对500家酒店进行手动操作是不可行的。
+无论你正在进行哪种类型的基准测试，第一步都是选择一组与目标酒店相似的酒店。在酒店行业，我们通常依赖于位置指标、品牌等级、房间数量、价格范围和市场需求。对于一两家酒店，我们通常是手动进行这样的操作，但对 500 家酒店进行手动操作是不可行的。
 
 一旦确定了需要解决的问题，下一步就是选择使用的工具。机器学习提供了许多工具。然而，这个问题可以通过一个简单的算法族来解决：最近邻算法。
 
@@ -74,7 +74,7 @@
 
 +   `经度`: 酒店的经度位置
 
-+   `机场代码`: 最近国际机场的3字母代码
++   `机场代码`: 最近国际机场的 3 字母代码
 
 +   `市场层级`: 定义市场的发展水平。
 
@@ -84,7 +84,7 @@
 
 +   `价格区间`: 表示酒店的平均价格
 
-我们还知道，酒店的表现可能会受到可达性的影响。为了衡量可达性，我们可以测量酒店距离主要国际机场的远近。机场数据来自世界银行：[https://datacatalog.worldbank.org/search/dataset/0038117](https://datacatalog.worldbank.org/search/dataset/0038117)
+我们还知道，酒店的表现可能会受到可达性的影响。为了衡量可达性，我们可以测量酒店距离主要国际机场的远近。机场数据来自世界银行：[`datacatalog.worldbank.org/search/dataset/0038117`](https://datacatalog.worldbank.org/search/dataset/0038117)
 
 +   `Orig`: 3 个字母的机场代码
 
@@ -110,11 +110,11 @@ data = pd.read_excel("mock_data.xlsx")
 airport_data = pd.read_csv("airport_volume_airport_locations.csv")
 ```
 
-![](../Images/5a02a04415f60ae25407698a38693530.png)
+![](img/5a02a04415f60ae25407698a38693530.png)
 
 酒店数据样本。图片由作者提供
 
-![](../Images/1d2b250de192743886e633b4d2eb9f60.png)
+![](img/1d2b250de192743886e633b4d2eb9f60.png)
 
 机场数据样本。图片由作者提供
 
@@ -152,7 +152,7 @@ data["distance_to_airport"] = data.apply(lambda row: distance_to_airport(row["La
 data.head()
 ```
 
-![](../Images/f42916249a4d86d75892a53743b9a4f2.png)
+![](img/f42916249a4d86d75892a53743b9a4f2.png)
 
 包含机场距离特征的结果数据框。图片由作者提供
 
@@ -197,7 +197,7 @@ encoders ={"BRAND" : brand_encoder,
 data_clean.head()
 ```
 
-![](../Images/765d8ac866bab658217e85f9dde837cb.png)
+![](img/765d8ac866bab658217e85f9dde837cb.png)
 
 编码数据。图片由作者提供
 
@@ -210,7 +210,7 @@ data_scaled = scaler.fit_transform(data_clean)
 data_scaled
 ```
 
-![](../Images/a885e446568eb13a0c3a01d119cf4258.png)
+![](img/a885e446568eb13a0c3a01d119cf4258.png)
 
 标准化数据。图片由作者提供
 
@@ -226,7 +226,7 @@ nns_results_model_0 = nns.kneighbors(data_scaled)[1]
 nns_results_model_0
 ```
 
-![](../Images/c1e08da417e6a83c4a372f5b5c1436df.png)
+![](img/c1e08da417e6a83c4a372f5b5c1436df.png)
 
 模型输出。图片由作者提供
 
@@ -273,7 +273,7 @@ results_model_0 = clean_results(nns_results=nns_results_model_0,
 results_model_0.head()
 ```
 
-![](../Images/4d295e60f17cf12d9ffb4270c94a3250.png)
+![](img/4d295e60f17cf12d9ffb4270c94a3250.png)
 
 初步基准分组。图片由作者提供
 
@@ -385,7 +385,7 @@ model_0_score= model_score(results_model_0,scoring_weights)
 model_0_score
 ```
 
-![](../Images/07f338459cb382b9bf734562b11c454b.png)
+![](img/07f338459cb382b9bf734562b11c454b.png)
 
 基准模型结果。
 
@@ -526,7 +526,7 @@ class NearestNeighbors_(KNeighborsMixin, RadiusNeighborsMixin, NeighborsBase):
 
 如果我们查看公式，会看到参数 `p`。该参数影响算法计算距离时采取的“路径”。**默认情况下，p=2，这代表欧几里得距离。**
 
-你可以将欧几里得距离理解为通过在两个点之间画一条直线来计算距离。这通常是最短的距离，但在高维空间中，这并不总是计算距离的最理想方式。如需了解为什么是这样，可以参考这篇很棒的在线论文：[https://bib.dbvis.de/uploadedFiles/155.pdf](https://www.google.com/url?q=https%3A%2F%2Fbib.dbvis.de%2FuploadedFiles%2F155.pdf)
+你可以将欧几里得距离理解为通过在两个点之间画一条直线来计算距离。这通常是最短的距离，但在高维空间中，这并不总是计算距离的最理想方式。如需了解为什么是这样，可以参考这篇很棒的在线论文：[`bib.dbvis.de/uploadedFiles/155.pdf`](https://www.google.com/url?q=https%3A%2F%2Fbib.dbvis.de%2FuploadedFiles%2F155.pdf)
 
 **另一个常见的 p 值是 1\. 这代表曼哈顿距离。** 可以将其理解为在类似网格的路径上测量两个点之间的距离。
 
@@ -549,7 +549,7 @@ model_1_score= model_score(results_model_1,scoring_weights,model_name="baseline_
 model_1_score
 ```
 
-![](../Images/573845ae760e04d4c0d1b3a414bd3e40.png)
+![](img/573845ae760e04d4c0d1b3a414bd3e40.png)
 
 我们的主要特征有所改善。图片由作者提供
 
@@ -581,7 +581,7 @@ model_2_score= model_score(results_model_2,scoring_weights,model_name="baseline_
 model_2_score
 ```
 
-![](../Images/a0c93e3306379ea2efef56846f0f095f.png)
+![](img/a0c93e3306379ea2efef56846f0f095f.png)
 
 主要特征得分持续提高。图片由作者提供
 
@@ -602,7 +602,7 @@ model_3_score= model_score(results_model_3,scoring_weights,model_name="Manhattan
 model_3_score
 ```
 
-![](../Images/2139801c701f67fa1332a9ac59be5543.png)
+![](img/2139801c701f67fa1332a9ac59be5543.png)
 
 主要得分显著下降。图片由作者提供
 
@@ -628,7 +628,7 @@ model_4_score= model_score(results_model_4,scoring_weights,model_name="Chebyshev
 model_4_score
 ```
 
-![](../Images/17c6cda0b99cf5ebd7ac39902c0cf08f.png)
+![](img/17c6cda0b99cf5ebd7ac39902c0cf08f.png)
 
 比基准模型要好，但比之前的实验高。图片由作者提供
 
@@ -641,7 +641,7 @@ results_df = pd.DataFrame([model_0_score,model_1_score,model_2_score,model_3_sco
 results_df.plot(kind='barh')
 ```
 
-![](../Images/e5deb0e34f1ce91bf97eb1f80d7ec4cd.png)
+![](img/e5deb0e34f1ce91bf97eb1f80d7ec4cd.png)
 
 实验结果。图片由作者提供
 
@@ -654,7 +654,7 @@ results_df.plot(kind='barh')
 results_model_3["cat_weighted_variance_score"].plot(kind="hist")
 ```
 
-![](../Images/9fe38e3b7fcdc89974b7cebd25e6e230.png)
+![](img/9fe38e3b7fcdc89974b7cebd25e6e230.png)
 
 得分分布。图片由作者提供
 
@@ -664,13 +664,13 @@ exceptions = results_model_3[results_model_3["cat_weighted_variance_score"]>=0.4
 print(f" There are {exceptions.shape[0]} benchmark sets with significant variance across the primary features")
 ```
 
-![](../Images/1c862f02f1fa83283cbd36ef588e4292.png)
+![](img/1c862f02f1fa83283cbd36ef588e4292.png)
 
 图片由作者提供
 
 这 18 个案例需要复审，以确保基准集是相关的。
 
-正如你所见，凭借几行代码和对最近邻搜索的一些理解，我们成功地设置了内部基准集。我们现在可以分发这些基准集，并开始衡量酒店的KPI与其基准集的对比。
+正如你所见，凭借几行代码和对最近邻搜索的一些理解，我们成功地设置了内部基准集。我们现在可以分发这些基准集，并开始衡量酒店的 KPI 与其基准集的对比。
 
 你不一定总是需要专注于最前沿的机器学习方法来提供价值。很多时候，简单的机器学习也能带来巨大价值。
 
@@ -678,12 +678,12 @@ print(f" There are {exceptions.shape[0]} benchmark sets with significant varianc
 
 # 参考文献
 
-世界银行. “世界发展指标.” 访问日期：2024年6月11日，来源：[https://datacatalog.worldbank.org/search/dataset/0038117](https://datacatalog.worldbank.org/search/dataset/0038117)
+世界银行. “世界发展指标.” 访问日期：2024 年 6 月 11 日，来源：[`datacatalog.worldbank.org/search/dataset/0038117`](https://datacatalog.worldbank.org/search/dataset/0038117)
 
-Aggarwal, C. C., Hinneburg, A., & Keim, D. A. (n.d.). 高维空间中距离度量的惊人行为. IBM T. J. Watson 研究中心和哈雷大学计算机科学研究所. 来源：[https://bib.dbvis.de/uploadedFiles/155.pdf](https://bib.dbvis.de/uploadedFiles/155.pdf)
+Aggarwal, C. C., Hinneburg, A., & Keim, D. A. (n.d.). 高维空间中距离度量的惊人行为. IBM T. J. Watson 研究中心和哈雷大学计算机科学研究所. 来源：[`bib.dbvis.de/uploadedFiles/155.pdf`](https://bib.dbvis.de/uploadedFiles/155.pdf)
 
-SciPy v1.10.1 手册. `scipy.spatial.distance.minkowski`. 访问日期：2024年6月11日，来源：[https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.minkowski.html](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.minkowski.html)
+SciPy v1.10.1 手册. `scipy.spatial.distance.minkowski`. 访问日期：2024 年 6 月 11 日，来源：[`docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.minkowski.html`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.minkowski.html)
 
-GeeksforGeeks. 哈弗辛公式计算球面上两点之间的距离. 访问日期：2024年6月11日，来源：[https://www.geeksforgeeks.org/haversine-formula-to-find-distance-between-two-points-on-a-sphere/](https://www.geeksforgeeks.org/haversine-formula-to-find-distance-between-two-points-on-a-sphere/)
+GeeksforGeeks. 哈弗辛公式计算球面上两点之间的距离. 访问日期：2024 年 6 月 11 日，来源：[`www.geeksforgeeks.org/haversine-formula-to-find-distance-between-two-points-on-a-sphere/`](https://www.geeksforgeeks.org/haversine-formula-to-find-distance-between-two-points-on-a-sphere/)
 
-scikit-learn. 邻居模块. 访问日期：2024年6月11日，来源：[https://scikit-learn.org/stable/modules/classes.html#module-sklearn.neighbors](https://scikit-learn.org/stable/modules/classes.html#module-sklearn.neighbors)
+scikit-learn. 邻居模块. 访问日期：2024 年 6 月 11 日，来源：[`scikit-learn.org/stable/modules/classes.html#module-sklearn.neighbors`](https://scikit-learn.org/stable/modules/classes.html#module-sklearn.neighbors)

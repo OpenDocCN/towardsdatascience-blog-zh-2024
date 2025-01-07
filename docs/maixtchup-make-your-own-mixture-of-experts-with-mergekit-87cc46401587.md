@@ -1,16 +1,16 @@
 # Maixtchup：使用 Mergekit 创建你自己的专家混合模型
 
-> 原文：[https://towardsdatascience.com/maixtchup-make-your-own-mixture-of-experts-with-mergekit-87cc46401587?source=collection_archive---------11-----------------------#2024-01-29](https://towardsdatascience.com/maixtchup-make-your-own-mixture-of-experts-with-mergekit-87cc46401587?source=collection_archive---------11-----------------------#2024-01-29)
+> 原文：[`towardsdatascience.com/maixtchup-make-your-own-mixture-of-experts-with-mergekit-87cc46401587?source=collection_archive---------11-----------------------#2024-01-29`](https://towardsdatascience.com/maixtchup-make-your-own-mixture-of-experts-with-mergekit-87cc46401587?source=collection_archive---------11-----------------------#2024-01-29)
 
 ## MoE 的崛起
 
-[](https://medium.com/@bnjmn_marie?source=post_page---byline--87cc46401587--------------------------------)[![Benjamin Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--87cc46401587--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--87cc46401587--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--87cc46401587--------------------------------) [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--87cc46401587--------------------------------)
+[](https://medium.com/@bnjmn_marie?source=post_page---byline--87cc46401587--------------------------------)![Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--87cc46401587--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--87cc46401587--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87cc46401587--------------------------------) [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--87cc46401587--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87cc46401587--------------------------------) ·阅读时长：8分钟·2024年1月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87cc46401587--------------------------------) ·阅读时长：8 分钟·2024 年 1 月 29 日
 
 --
 
-![](../Images/ce341668f026e81e27282ec3085bba1a.png)
+![](img/ce341668f026e81e27282ec3085bba1a.png)
 
 作者提供的图片 — 通过 DALL-E 生成
 

@@ -1,16 +1,16 @@
 # **策略梯度方法**在强化学习中的应用
 
-> 原文：[https://towardsdatascience.com/policy-gradient-methods-in-reinforcement-learning-31f8a9659398?source=collection_archive---------7-----------------------#2024-05-29](https://towardsdatascience.com/policy-gradient-methods-in-reinforcement-learning-31f8a9659398?source=collection_archive---------7-----------------------#2024-05-29)
+> 原文：[`towardsdatascience.com/policy-gradient-methods-in-reinforcement-learning-31f8a9659398?source=collection_archive---------7-----------------------#2024-05-29`](https://towardsdatascience.com/policy-gradient-methods-in-reinforcement-learning-31f8a9659398?source=collection_archive---------7-----------------------#2024-05-29)
 
 ## 使用策略梯度方法在 Python 中教车穿越山脉：强化学习的数学深度分析
 
-[](https://medium.com/@cristianleo120?source=post_page---byline--31f8a9659398--------------------------------)[![Cristian Leo](../Images/99074292e7dfda50cf50a790b8deda79.png)](https://medium.com/@cristianleo120?source=post_page---byline--31f8a9659398--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--31f8a9659398--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--31f8a9659398--------------------------------) [Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--31f8a9659398--------------------------------)
+[](https://medium.com/@cristianleo120?source=post_page---byline--31f8a9659398--------------------------------)![Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--31f8a9659398--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--31f8a9659398--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31f8a9659398--------------------------------) [Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--31f8a9659398--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31f8a9659398--------------------------------) ·阅读时长 26 分钟·2024年5月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31f8a9659398--------------------------------) ·阅读时长 26 分钟·2024 年 5 月 29 日
 
 --
 
-![](../Images/bc78b119f99f1be51b59bf704491944c.png)
+![](img/bc78b119f99f1be51b59bf704491944c.png)
 
 图像由 DALL-E 生成
 

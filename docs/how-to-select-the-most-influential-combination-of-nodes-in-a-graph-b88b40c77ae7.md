@@ -1,20 +1,20 @@
 # 如何选择图中最具影响力的节点组合
 
-> 原文：[https://towardsdatascience.com/how-to-select-the-most-influential-combination-of-nodes-in-a-graph-b88b40c77ae7?source=collection_archive---------7-----------------------#2024-03-13](https://towardsdatascience.com/how-to-select-the-most-influential-combination-of-nodes-in-a-graph-b88b40c77ae7?source=collection_archive---------7-----------------------#2024-03-13)
+> 原文：[`towardsdatascience.com/how-to-select-the-most-influential-combination-of-nodes-in-a-graph-b88b40c77ae7?source=collection_archive---------7-----------------------#2024-03-13`](https://towardsdatascience.com/how-to-select-the-most-influential-combination-of-nodes-in-a-graph-b88b40c77ae7?source=collection_archive---------7-----------------------#2024-03-13)
 
 ## 本文讨论了如何选择一组对图具有最大综合影响力的节点。
 
-[](https://oieivind.medium.com/?source=post_page---byline--b88b40c77ae7--------------------------------)[![Eivind Kjosbakken](../Images/5f91b74428e1202fc4a176a3dd1cb1c7.png)](https://oieivind.medium.com/?source=post_page---byline--b88b40c77ae7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b88b40c77ae7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b88b40c77ae7--------------------------------) [Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--b88b40c77ae7--------------------------------)
+[](https://oieivind.medium.com/?source=post_page---byline--b88b40c77ae7--------------------------------)![Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--b88b40c77ae7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b88b40c77ae7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b88b40c77ae7--------------------------------) [Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--b88b40c77ae7--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b88b40c77ae7--------------------------------) ·16分钟阅读·2024年3月13日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b88b40c77ae7--------------------------------) ·16 分钟阅读·2024 年 3 月 13 日
 
 --
 
 在寻找图中的影响力节点时，您可以考虑一些图度量，如中心性或度数，这些指标可以告诉你单个节点的影响力有多大。然而，要找到图中最具影响力的节点集，您必须考虑哪种节点组合对图具有最高影响力，这个问题是非常具有挑战性的。本文探讨了如何解决从图中选择最具影响力节点集的问题。
 
-![](../Images/914b7cf2244c5c26d25cf193078d0dfb.png)
+![](img/914b7cf2244c5c26d25cf193078d0dfb.png)
 
-通过本文了解如何选择图中最具影响力的节点组合。图片由ChatGPT提供。 “制作一张关于‘选择图中最具影响力节点组合’的图片”提示。*ChatGPT*，4，OpenAI，2024年3月10日。 [https://chat.openai.com.](https://chat.openai.com.)
+通过本文了解如何选择图中最具影响力的节点组合。图片由 ChatGPT 提供。 “制作一张关于‘选择图中最具影响力节点组合’的图片”提示。*ChatGPT*，4，OpenAI，2024 年 3 月 10 日。 [`chat.openai.com.`](https://chat.openai.com.)
 
 # 动机
 

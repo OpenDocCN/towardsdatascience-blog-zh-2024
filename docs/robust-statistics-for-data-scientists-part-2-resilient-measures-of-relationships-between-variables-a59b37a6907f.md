@@ -1,18 +1,18 @@
 # 稳健统计方法：数据科学家的第二部分——变量之间关系的稳健度量
 
-> 原文：[https://towardsdatascience.com/robust-statistics-for-data-scientists-part-2-resilient-measures-of-relationships-between-variables-a59b37a6907f?source=collection_archive---------7-----------------------#2024-03-09](https://towardsdatascience.com/robust-statistics-for-data-scientists-part-2-resilient-measures-of-relationships-between-variables-a59b37a6907f?source=collection_archive---------7-----------------------#2024-03-09)
+> 原文：[`towardsdatascience.com/robust-statistics-for-data-scientists-part-2-resilient-measures-of-relationships-between-variables-a59b37a6907f?source=collection_archive---------7-----------------------#2024-03-09`](https://towardsdatascience.com/robust-statistics-for-data-scientists-part-2-resilient-measures-of-relationships-between-variables-a59b37a6907f?source=collection_archive---------7-----------------------#2024-03-09)
 
 ## 从基础到高级的异常值丰富数据分析技术。
 
-[](https://medium.com/@le_Tomassini?source=post_page---byline--a59b37a6907f--------------------------------)[![Alessandro Tomassini](../Images/e5bf527fafd933239bff6b87005ba457.png)](https://medium.com/@le_Tomassini?source=post_page---byline--a59b37a6907f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a59b37a6907f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a59b37a6907f--------------------------------) [Alessandro Tomassini](https://medium.com/@le_Tomassini?source=post_page---byline--a59b37a6907f--------------------------------)
+[](https://medium.com/@le_Tomassini?source=post_page---byline--a59b37a6907f--------------------------------)![Alessandro Tomassini](https://medium.com/@le_Tomassini?source=post_page---byline--a59b37a6907f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a59b37a6907f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a59b37a6907f--------------------------------) [Alessandro Tomassini](https://medium.com/@le_Tomassini?source=post_page---byline--a59b37a6907f--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a59b37a6907f--------------------------------) ·15分钟阅读·2024年3月9日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a59b37a6907f--------------------------------) ·15 分钟阅读·2024 年 3 月 9 日
 
 --
 
-![](../Images/066cfc14d21f73f333f7751fdf56dc66.png)
+![](img/066cfc14d21f73f333f7751fdf56dc66.png)
 
-图片由DALL-E生成
+图片由 DALL-E 生成
 
 理解变量之间的相互关系对于做出基于数据的决策至关重要。当我们准确评估这些联系时，可以增强我们发现的可信度和合法性，这在学术和实践中都至关重要。
 

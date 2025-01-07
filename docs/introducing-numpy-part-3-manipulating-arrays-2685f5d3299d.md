@@ -1,16 +1,16 @@
 # 介绍 NumPy，第三部分：操作数组
 
-> 原文：[https://towardsdatascience.com/introducing-numpy-part-3-manipulating-arrays-2685f5d3299d?source=collection_archive---------2-----------------------#2024-09-15](https://towardsdatascience.com/introducing-numpy-part-3-manipulating-arrays-2685f5d3299d?source=collection_archive---------2-----------------------#2024-09-15)
+> 原文：[`towardsdatascience.com/introducing-numpy-part-3-manipulating-arrays-2685f5d3299d?source=collection_archive---------2-----------------------#2024-09-15`](https://towardsdatascience.com/introducing-numpy-part-3-manipulating-arrays-2685f5d3299d?source=collection_archive---------2-----------------------#2024-09-15)
 
 ## 数组的形状、转置、连接与拆分
 
-[](https://medium.com/@lee_vaughan?source=post_page---byline--2685f5d3299d--------------------------------)[![Lee Vaughan](../Images/9f6b90bb76102f438ab0b9a4a62ffa3f.png)](https://medium.com/@lee_vaughan?source=post_page---byline--2685f5d3299d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2685f5d3299d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2685f5d3299d--------------------------------) [Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--2685f5d3299d--------------------------------)
+[](https://medium.com/@lee_vaughan?source=post_page---byline--2685f5d3299d--------------------------------)![Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--2685f5d3299d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2685f5d3299d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2685f5d3299d--------------------------------) [Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--2685f5d3299d--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2685f5d3299d--------------------------------) ·阅读时间 8 分钟·2024年9月15日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2685f5d3299d--------------------------------) ·阅读时间 8 分钟·2024 年 9 月 15 日
 
 --
 
-![](../Images/42ed35b32f19b5781cd0dca5990f9d4d.png)
+![](img/42ed35b32f19b5781cd0dca5990f9d4d.png)
 
 DALL-E3 想象的数组操作
 

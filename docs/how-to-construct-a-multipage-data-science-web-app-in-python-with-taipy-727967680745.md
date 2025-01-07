@@ -1,16 +1,16 @@
 # 如何使用 Taipy 在 Python 中构建多页面数据科学 Web 应用
 
-> 原文：[https://towardsdatascience.com/how-to-construct-a-multipage-data-science-web-app-in-python-with-taipy-727967680745?source=collection_archive---------2-----------------------#2024-09-05](https://towardsdatascience.com/how-to-construct-a-multipage-data-science-web-app-in-python-with-taipy-727967680745?source=collection_archive---------2-----------------------#2024-09-05)
+> 原文：[`towardsdatascience.com/how-to-construct-a-multipage-data-science-web-app-in-python-with-taipy-727967680745?source=collection_archive---------2-----------------------#2024-09-05`](https://towardsdatascience.com/how-to-construct-a-multipage-data-science-web-app-in-python-with-taipy-727967680745?source=collection_archive---------2-----------------------#2024-09-05)
 
 ## Taipy 支持在 Python Web 应用中轻松进行页面间导航——我们创建了一个简单的 CO2 排放应用
 
-[](https://medium.com/@alan-jones?source=post_page---byline--727967680745--------------------------------)[![Alan Jones](../Images/359379fab1d6685ff08080b98173e67c.png)](https://medium.com/@alan-jones?source=post_page---byline--727967680745--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--727967680745--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--727967680745--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--727967680745--------------------------------)
+[](https://medium.com/@alan-jones?source=post_page---byline--727967680745--------------------------------)![Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--727967680745--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--727967680745--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--727967680745--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--727967680745--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--727967680745--------------------------------) ·13 分钟阅读·2024年9月5日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--727967680745--------------------------------) ·13 分钟阅读·2024 年 9 月 5 日
 
 --
 
-![](../Images/d30b6b7b901a3b729f074eab65e61bc3.png)
+![](img/d30b6b7b901a3b729f074eab65e61bc3.png)
 
 *照片由* [*Ria*](https://unsplash.com/@riapuskas?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) *提供，发布于* [*Unsplash*](https://unsplash.com/photos/factory-chimney-emitting-smoke-CvTaPeo3NRk?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

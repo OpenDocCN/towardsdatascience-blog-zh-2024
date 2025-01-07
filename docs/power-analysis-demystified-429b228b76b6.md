@@ -1,12 +1,12 @@
 # 统计功效分析，解密
 
-> 原文：[https://towardsdatascience.com/power-analysis-demystified-429b228b76b6?source=collection_archive---------10-----------------------#2024-12-03](https://towardsdatascience.com/power-analysis-demystified-429b228b76b6?source=collection_archive---------10-----------------------#2024-12-03)
+> 原文：[`towardsdatascience.com/power-analysis-demystified-429b228b76b6?source=collection_archive---------10-----------------------#2024-12-03`](https://towardsdatascience.com/power-analysis-demystified-429b228b76b6?source=collection_archive---------10-----------------------#2024-12-03)
 
 ## 从基础原理推导样本量方程
 
-[](https://medium.com/@rezwan.islam99?source=post_page---byline--429b228b76b6--------------------------------)[![Rezwan Hoppe-Islam](../Images/2eed0c9a15285a80dc6b9c130bf6bcc8.png)](https://medium.com/@rezwan.islam99?source=post_page---byline--429b228b76b6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--429b228b76b6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--429b228b76b6--------------------------------) [Rezwan Hoppe-Islam](https://medium.com/@rezwan.islam99?source=post_page---byline--429b228b76b6--------------------------------)
+[](https://medium.com/@rezwan.islam99?source=post_page---byline--429b228b76b6--------------------------------)![Rezwan Hoppe-Islam](https://medium.com/@rezwan.islam99?source=post_page---byline--429b228b76b6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--429b228b76b6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--429b228b76b6--------------------------------) [Rezwan Hoppe-Islam](https://medium.com/@rezwan.islam99?source=post_page---byline--429b228b76b6--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--429b228b76b6--------------------------------) ·9分钟阅读·2024年12月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--429b228b76b6--------------------------------) ·9 分钟阅读·2024 年 12 月 3 日
 
 --
 
@@ -24,7 +24,7 @@
 
 假设我们想评估重新设计的主页对***注册账户的访客比例***的影响。我们设计了一个实验，使得实验组的访客看到新主页，而对照组的访客看到旧主页。
 
-![](../Images/3d73f3e5668be5857d9e4ad7927a4718.png)
+![](img/3d73f3e5668be5857d9e4ad7927a4718.png)
 
 作者生成的图像
 

@@ -1,16 +1,16 @@
 # 如何使用机器学习来指导设计决策并进行预测
 
-> 原文：[https://towardsdatascience.com/how-to-use-machine-learning-to-inform-design-decisions-and-make-predictions-838106acf639?source=collection_archive---------2-----------------------#2024-08-08](https://towardsdatascience.com/how-to-use-machine-learning-to-inform-design-decisions-and-make-predictions-838106acf639?source=collection_archive---------2-----------------------#2024-08-08)
+> 原文：[`towardsdatascience.com/how-to-use-machine-learning-to-inform-design-decisions-and-make-predictions-838106acf639?source=collection_archive---------2-----------------------#2024-08-08`](https://towardsdatascience.com/how-to-use-machine-learning-to-inform-design-decisions-and-make-predictions-838106acf639?source=collection_archive---------2-----------------------#2024-08-08)
 
 ## 数据科学应用入门指南及用例
 
-[](https://medium.com/@kurt.klingensmith?source=post_page---byline--838106acf639--------------------------------)[![Kurt Klingensmith](../Images/2249e99f12d10f81598c754b1aaf76cc.png)](https://medium.com/@kurt.klingensmith?source=post_page---byline--838106acf639--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--838106acf639--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--838106acf639--------------------------------) [Kurt Klingensmith](https://medium.com/@kurt.klingensmith?source=post_page---byline--838106acf639--------------------------------)
+[](https://medium.com/@kurt.klingensmith?source=post_page---byline--838106acf639--------------------------------)![Kurt Klingensmith](https://medium.com/@kurt.klingensmith?source=post_page---byline--838106acf639--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--838106acf639--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--838106acf639--------------------------------) [Kurt Klingensmith](https://medium.com/@kurt.klingensmith?source=post_page---byline--838106acf639--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--838106acf639--------------------------------) ·13分钟阅读·2024年8月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--838106acf639--------------------------------) ·13 分钟阅读·2024 年 8 月 8 日
 
 --
 
-![](../Images/bd454fe1d91657ce3e948d77b879302a.png)
+![](img/bd454fe1d91657ce3e948d77b879302a.png)
 
 图片来源：[Ant Rozetsky](https://unsplash.com/@rozetsky?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 于 [Unsplash](https://unsplash.com/photos/black-metal-empty-building-SLIFI67jv5k?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -28,4 +28,4 @@
 
 ## 场景：
 
-你在一家汽车公司担任数据科学家。该公司以制造运动型和快速的汽车而闻名，目前正在为1983年款开发一款新车。设计团队有几种新的动力系统配置可供选择，每种配置对性能和燃油经济性都有不同的影响。
+你在一家汽车公司担任数据科学家。该公司以制造运动型和快速的汽车而闻名，目前正在为 1983 年款开发一款新车。设计团队有几种新的动力系统配置可供选择，每种配置对性能和燃油经济性都有不同的影响。

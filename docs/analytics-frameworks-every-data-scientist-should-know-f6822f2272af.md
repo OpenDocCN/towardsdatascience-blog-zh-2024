@@ -1,18 +1,18 @@
 # 每个数据科学家应该了解的分析框架
 
-> 原文：[https://towardsdatascience.com/analytics-frameworks-every-data-scientist-should-know-f6822f2272af?source=collection_archive---------0-----------------------#2024-08-28](https://towardsdatascience.com/analytics-frameworks-every-data-scientist-should-know-f6822f2272af?source=collection_archive---------0-----------------------#2024-08-28)
+> 原文：[`towardsdatascience.com/analytics-frameworks-every-data-scientist-should-know-f6822f2272af?source=collection_archive---------0-----------------------#2024-08-28`](https://towardsdatascience.com/analytics-frameworks-every-data-scientist-should-know-f6822f2272af?source=collection_archive---------0-----------------------#2024-08-28)
 
 ## 为什么我认为我在麦肯锡的经历让我成为了一名更好的数据科学家
 
-[](https://medium.com/@tessaxie?source=post_page---byline--f6822f2272af--------------------------------)[![Tessa Xie](../Images/f1028e5c639c1d11177e0fa174afcee0.png)](https://medium.com/@tessaxie?source=post_page---byline--f6822f2272af--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f6822f2272af--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f6822f2272af--------------------------------) [Tessa Xie](https://medium.com/@tessaxie?source=post_page---byline--f6822f2272af--------------------------------)
+[](https://medium.com/@tessaxie?source=post_page---byline--f6822f2272af--------------------------------)![Tessa Xie](https://medium.com/@tessaxie?source=post_page---byline--f6822f2272af--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f6822f2272af--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f6822f2272af--------------------------------) [Tessa Xie](https://medium.com/@tessaxie?source=post_page---byline--f6822f2272af--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f6822f2272af--------------------------------) ·11分钟阅读·2024年8月28日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f6822f2272af--------------------------------) ·11 分钟阅读·2024 年 8 月 28 日
 
 --
 
-![](../Images/ef5ff5eb16e21f43380c290c60b50c93.png)
+![](img/ef5ff5eb16e21f43380c290c60b50c93.png)
 
-图片由作者提供（通过Midjourney辅助创作）
+图片由作者提供（通过 Midjourney 辅助创作）
 
 与许多科技领域的数据科学家不同，我的数据科学职业生涯始于咨询行业，我认为这是我做出的最佳职业选择。不管你怎么评价咨询文化和工作时长，我在麦肯锡的两年里学到了很多，至今每天都从中受益。
 

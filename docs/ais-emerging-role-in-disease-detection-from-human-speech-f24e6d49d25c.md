@@ -1,18 +1,18 @@
 # 人工智能在通过人类语音检测疾病中的新兴角色
 
-> 原文：[https://towardsdatascience.com/ais-emerging-role-in-disease-detection-from-human-speech-f24e6d49d25c?source=collection_archive---------3-----------------------#2024-04-22](https://towardsdatascience.com/ais-emerging-role-in-disease-detection-from-human-speech-f24e6d49d25c?source=collection_archive---------3-----------------------#2024-04-22)
+> 原文：[`towardsdatascience.com/ais-emerging-role-in-disease-detection-from-human-speech-f24e6d49d25c?source=collection_archive---------3-----------------------#2024-04-22`](https://towardsdatascience.com/ais-emerging-role-in-disease-detection-from-human-speech-f24e6d49d25c?source=collection_archive---------3-----------------------#2024-04-22)
 
 ## |人工智能| 医疗保健| 语音|
 
 ## 通过语音进行疾病预测可能成为医疗保健领域的下一场革命
 
-[](https://salvatore-raieli.medium.com/?source=post_page---byline--f24e6d49d25c--------------------------------)[![Salvatore Raieli](../Images/6bb4520e2df40d20283e7283141b5e06.png)](https://salvatore-raieli.medium.com/?source=post_page---byline--f24e6d49d25c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f24e6d49d25c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f24e6d49d25c--------------------------------) [Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--f24e6d49d25c--------------------------------)
+[](https://salvatore-raieli.medium.com/?source=post_page---byline--f24e6d49d25c--------------------------------)![Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--f24e6d49d25c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f24e6d49d25c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f24e6d49d25c--------------------------------) [Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--f24e6d49d25c--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f24e6d49d25c--------------------------------) ·阅读时间：11分钟·2024年4月22日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f24e6d49d25c--------------------------------) ·阅读时间：11 分钟·2024 年 4 月 22 日
 
 --
 
-![](../Images/427784fab3bb3da8178016998f4dc1f7.png)
+![](img/427784fab3bb3da8178016998f4dc1f7.png)
 
 图片来自[Volodymyr Hryshchenko](https://unsplash.com/@lunarts?utm_source=medium&utm_medium=referral) 于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

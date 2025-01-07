@@ -1,24 +1,24 @@
-# 使用lme4的多层次建模：分析电子商务销售
+# 使用 lme4 的多层次建模：分析电子商务销售
 
-> 原文：[https://towardsdatascience.com/multilevel-modelling-with-lme4-analysing-e-commerce-sales-4a36436c1e66?source=collection_archive---------12-----------------------#2024-07-23](https://towardsdatascience.com/multilevel-modelling-with-lme4-analysing-e-commerce-sales-4a36436c1e66?source=collection_archive---------12-----------------------#2024-07-23)
+> 原文：[`towardsdatascience.com/multilevel-modelling-with-lme4-analysing-e-commerce-sales-4a36436c1e66?source=collection_archive---------12-----------------------#2024-07-23`](https://towardsdatascience.com/multilevel-modelling-with-lme4-analysing-e-commerce-sales-4a36436c1e66?source=collection_archive---------12-----------------------#2024-07-23)
 
 ## 多层次建模可以分析具有层级或聚类结构的数据。
 
-[](https://mgcodesandstats.medium.com/?source=post_page---byline--4a36436c1e66--------------------------------)[![Michael Grogan](../Images/af9ce19e2f61efb07664124e664c7e81.png)](https://mgcodesandstats.medium.com/?source=post_page---byline--4a36436c1e66--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4a36436c1e66--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4a36436c1e66--------------------------------) [Michael Grogan](https://mgcodesandstats.medium.com/?source=post_page---byline--4a36436c1e66--------------------------------)
+[](https://mgcodesandstats.medium.com/?source=post_page---byline--4a36436c1e66--------------------------------)![Michael Grogan](https://mgcodesandstats.medium.com/?source=post_page---byline--4a36436c1e66--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4a36436c1e66--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4a36436c1e66--------------------------------) [Michael Grogan](https://mgcodesandstats.medium.com/?source=post_page---byline--4a36436c1e66--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4a36436c1e66--------------------------------) ·阅读时间 7分钟·2024年7月23日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4a36436c1e66--------------------------------) ·阅读时间 7 分钟·2024 年 7 月 23 日
 
 --
 
-![](../Images/44312d14652e51b47feece36bec86eb6.png)
+![](img/44312d14652e51b47feece36bec86eb6.png)
 
-来源：作者使用R生成的输出。
+来源：作者使用 R 生成的输出。
 
 *注意：原文可在此处查看* [*这里*](https://michael-grogan.com/articles/multilevel-modelling-lme4-ecommerce-sales.html)*.*
 
 多层次建模在市场研究中尤为有用，通过对顾客按类别（如人口统计、购买习惯）进行细分，有助于理解企业如何吸引新顾客并提高现有顾客的忠诚度。
 
-R中的[lme4](https://cran.r-project.org/web/packages/lme4/lme4.pdf)库用于创建多层次模型。在该库中，一个重要的多层次建模实例是[sleepstudy](https://cdsbasel.github.io/dataanalytics_rsessions/_sessions/CausalInference/intro_lme4.html)示例，其中使用多层次模型分析了在睡眠剥夺条件下，不同睡眠剥夺天数对参与者反应时间的影响。
+R 中的[lme4](https://cran.r-project.org/web/packages/lme4/lme4.pdf)库用于创建多层次模型。在该库中，一个重要的多层次建模实例是[sleepstudy](https://cdsbasel.github.io/dataanalytics_rsessions/_sessions/CausalInference/intro_lme4.html)示例，其中使用多层次模型分析了在睡眠剥夺条件下，不同睡眠剥夺天数对参与者反应时间的影响。
 
 我们如何将这样的模型应用于分析顾客数据呢？让我们来看一下！
 

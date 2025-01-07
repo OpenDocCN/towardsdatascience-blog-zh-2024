@@ -1,12 +1,12 @@
 # 狗狗排便指南针
 
-> 原文：[https://towardsdatascience.com/dog-poop-compass-bayesian-analysis-of-canine-business-f95a4b9f2bf9?source=collection_archive---------3-----------------------#2024-11-25](https://towardsdatascience.com/dog-poop-compass-bayesian-analysis-of-canine-business-f95a4b9f2bf9?source=collection_archive---------3-----------------------#2024-11-25)
+> 原文：[`towardsdatascience.com/dog-poop-compass-bayesian-analysis-of-canine-business-f95a4b9f2bf9?source=collection_archive---------3-----------------------#2024-11-25`](https://towardsdatascience.com/dog-poop-compass-bayesian-analysis-of-canine-business-f95a4b9f2bf9?source=collection_archive---------3-----------------------#2024-11-25)
 
 ## 狗狗行为的贝叶斯分析
 
-[](https://datawondering.com/?source=post_page---byline--f95a4b9f2bf9--------------------------------)[![Dima Sergeev](../Images/62e582badeef3041a535414ac5b79048.png)](https://datawondering.com/?source=post_page---byline--f95a4b9f2bf9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f95a4b9f2bf9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f95a4b9f2bf9--------------------------------) [Dima Sergeev](https://datawondering.com/?source=post_page---byline--f95a4b9f2bf9--------------------------------)
+[](https://datawondering.com/?source=post_page---byline--f95a4b9f2bf9--------------------------------)![Dima Sergeev](https://datawondering.com/?source=post_page---byline--f95a4b9f2bf9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f95a4b9f2bf9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f95a4b9f2bf9--------------------------------) [Dima Sergeev](https://datawondering.com/?source=post_page---byline--f95a4b9f2bf9--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f95a4b9f2bf9--------------------------------) ·阅读时间：22分钟·2024年11月25日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f95a4b9f2bf9--------------------------------) ·阅读时间：22 分钟·2024 年 11 月 25 日
 
 --
 
@@ -16,43 +16,43 @@
 
 # 引言
 
-这是我的狗。它的名字叫Auri，是一只5岁的凯文犬（Cavalier King Charles Spaniel）。
+这是我的狗。它的名字叫 Auri，是一只 5 岁的凯文犬（Cavalier King Charles Spaniel）。
 
-![](../Images/5f8a4dec752dfd712c3586dc50a6a50c.png)
+![](img/5f8a4dec752dfd712c3586dc50a6a50c.png)
 
 Auri（图由作者提供）
 
-和许多其他狗主人一样，在我们散步时，我注意到Auri在需要去厕所时有一个非常独特的仪式。当他找到一个合适的地点时，他会开始围绕某个东西转圈，就像一个指南针。
+和许多其他狗主人一样，在我们散步时，我注意到 Auri 在需要去厕所时有一个非常独特的仪式。当他找到一个合适的地点时，他会开始围绕某个东西转圈，就像一个指南针。
 
-起初，我只是觉得这种行为很有趣。毕竟，谁知道狗狗在想些什么呢？但过了一段时间，我记得曾读过一篇2013年的研究论文，标题是[“Dogs are sensitive to small variations of the Earth’s magnetic field”](https://frontiersinzoology.biomedcentral.com/counter/pdf/10.1186/1742-9994-10-80.pdf)。这项研究在相对较大的狗狗样本中进行，证实了“狗狗倾向于在北南轴对齐的情况下排便”。
+起初，我只是觉得这种行为很有趣。毕竟，谁知道狗狗在想些什么呢？但过了一段时间，我记得曾读过一篇 2013 年的研究论文，标题是[“Dogs are sensitive to small variations of the Earth’s magnetic field”](https://frontiersinzoology.biomedcentral.com/counter/pdf/10.1186/1742-9994-10-80.pdf)。这项研究在相对较大的狗狗样本中进行，证实了“狗狗倾向于在北南轴对齐的情况下排便”。
 
-*这似乎是个有趣的研究课题！* 我心想。多么幸运，我正好有一个完美的实验对象——我自己心爱的狗狗。我决定复现这些发现，并通过Auri这个N=1的意外研究参与者来验证（或推翻！）这个假设。
+*这似乎是个有趣的研究课题！* 我心想。多么幸运，我正好有一个完美的实验对象——我自己心爱的狗狗。我决定复现这些发现，并通过 Auri 这个 N=1 的意外研究参与者来验证（或推翻！）这个假设。
 
-就这样，我开始了长达几个月的数据收集之旅，记录了超过150次的“对齐”行为，如果你明白我的意思的话。
+就这样，我开始了长达几个月的数据收集之旅，记录了超过 150 次的“对齐”行为，如果你明白我的意思的话。
 
 # 数据收集
 
-对于我的研究，我需要记录每次Auri排便时的指南针数据。得益于现代科技的进步，我们不仅有[iPad的计算器应用](https://www.theverge.com/2024/6/10/24175487/ipad-calculator-app-ipados18-pencil-apple-wwdc2024)，还可以在手机上使用[相当精确的](https://www.simplymac.com/apps/how-accurate-is-the-iphone-compass)指南针。于是我决定使用这个。
+对于我的研究，我需要记录每次 Auri 排便时的指南针数据。得益于现代科技的进步，我们不仅有[iPad 的计算器应用](https://www.theverge.com/2024/6/10/24175487/ipad-calculator-app-ipados18-pencil-apple-wwdc2024)，还可以在手机上使用[相当精确的](https://www.simplymac.com/apps/how-accurate-is-the-iphone-compass)指南针。于是我决定使用这个。
 
-方法非常简单。每次我的狗安静下来准备享受私人时光时，我就打开指南针应用程序，把手机与Auri的身体对齐，并截图。在原始论文中，作者优雅地将这种对齐称为*胸椎（肩胛骨之间）朝向头部的指南针方向*。非常科学。其实就是意味着指南针的箭头应指向与狗头相同的方向。
+方法非常简单。每次我的狗安静下来准备享受私人时光时，我就打开指南针应用程序，把手机与 Auri 的身体对齐，并截图。在原始论文中，作者优雅地将这种对齐称为*胸椎（肩胛骨之间）朝向头部的指南针方向*。非常科学。其实就是意味着指南针的箭头应指向与狗头相同的方向。
 
-![](../Images/40d6a8344373312ad0c80743e791b191.png)
+![](img/40d6a8344373312ad0c80743e791b191.png)
 
-[狗对地球磁场微小变化非常敏感，Vlastimil Hart等人](https://frontiersinzoology.biomedcentral.com/counter/pdf/10.1186/1742-9994-10-80.pdf)
+[狗对地球磁场微小变化非常敏感，Vlastimil Hart 等人](https://frontiersinzoology.biomedcentral.com/counter/pdf/10.1186/1742-9994-10-80.pdf)
 
-总之，这就是我在几个月的时间里总共做了大约150次的事情。每当我似乎在拍摄我家狗狗的排泄行为时，我几乎能感觉到路人们混合着困惑和好奇的目光。但这值得吗？让我们来看看吧！
+总之，这就是我在几个月的时间里总共做了大约 150 次的事情。每当我似乎在拍摄我家狗狗的排泄行为时，我几乎能感觉到路人们混合着困惑和好奇的目光。但这值得吗？让我们来看看吧！
 
 # 分析
 
 我将在这里简要讨论数据提取和预处理，然后直接进入圆形分布和假设检验的部分。
 
-和往常一样，所有代码都可以在我的GitHub上找到：[Data Wondering](https://github.com/DmitrySerg/data-wondering/tree/main/bayesian-dog-poop)。
+和往常一样，所有代码都可以在我的 GitHub 上找到：[Data Wondering](https://github.com/DmitrySerg/data-wondering/tree/main/bayesian-dog-poop)。
 
 ## 如何处理应用截图？
 
 数据收集后，我得到了若干张指南针应用截图：
 
-![](../Images/d2b8c3a46070b0eb2047d7317029992d.png)
+![](img/d2b8c3a46070b0eb2047d7317029992d.png)
 
 指南针应用截图（作者提供的图片）
 
@@ -75,7 +75,7 @@ plt.imshow(img)
 plt.show()
 ```
 
-![](../Images/c42af7627123c9f8bf71f71b333cbb6a.png)
+![](img/c42af7627123c9f8bf71f71b333cbb6a.png)
 
 图片由作者提供
 
@@ -87,13 +87,13 @@ plt.imshow(gray, cmap='gray')
 plt.show()
 ```
 
-![](../Images/eb2cd69c076f290f6deee122198215a6.png)
+![](img/eb2cd69c076f290f6deee122198215a6.png)
 
 图片由作者提供
 
 接着，我将放大感兴趣的区域：
 
-![](../Images/6e9f14b9749c3719bfde09111822d570.png)
+![](img/6e9f14b9749c3719bfde09111822d570.png)
 
 图片来源：作者
 
@@ -112,11 +112,11 @@ for bbox, text, prob in result:
 >> Detected text: 340 with confidence 0.999995182215476
 ```
 
-就是这样！我写了一个简单的for循环来遍历所有截图，并将结果保存到CSV文件中。
+就是这样！我写了一个简单的 for 循环来遍历所有截图，并将结果保存到 CSV 文件中。
 
 这是完整预处理笔记本的链接：[数据预处理](https://github.com/DmitrySerg/data-wondering/blob/main/bayesian-dog-poop/notebooks/0-data-preprocessing.ipynb)。
 
-![](../Images/a068fb6851bf4c3f1511a667403b7d8b.png)
+![](img/a068fb6851bf4c3f1511a667403b7d8b.png)
 
 图片来源：作者
 
@@ -124,9 +124,9 @@ for bbox, text, prob in result:
 
 我通常不处理圆形分布，因此我必须做一些阅读。与我们常见的常规数据不同，圆形数据有一个特殊的属性：分布的“端点”是连接的。
 
-例如，如果你考虑一天中的小时分布，你会发现23:00到00:00之间的距离与00:00到01:00之间的距离是相同的。或者，在指南针角度的情况下，359°和0°之间的距离与0°和1°之间的距离是相同的。
+例如，如果你考虑一天中的小时分布，你会发现 23:00 到 00:00 之间的距离与 00:00 到 01:00 之间的距离是相同的。或者，在指南针角度的情况下，359°和 0°之间的距离与 0°和 1°之间的距离是相同的。
 
-即使计算样本均值也不是直截了当的。360°和0°之间的标准算术均值将是180°，尽管360°和0°指向完全相同的方向。
+即使计算样本均值也不是直截了当的。360°和 0°之间的标准算术均值将是 180°，尽管 360°和 0°指向完全相同的方向。
 
 在我的情况下，计算算术均值和正确的均值时，我得到了几乎完全相反的估算。我使用这个不错的库中的辅助函数将角度转换为弧度：[pingouin](https://pingouin-stats.org/build/html/generated/pingouin.convert_angles.html#pingouin.convert_angles)，并使用`circ_mean`函数计算均值。
 
@@ -145,7 +145,7 @@ print(f"Arithmetic mean: {arithmetic_mean:.3f}; Circular mean: {circular_mean:.3
 
 接下来，我想可视化指南针分布。我使用[冯·米塞斯分布](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.vonmises.html)来建模圆形数据，并使用[matplotlib](https://matplotlib.org/stable/gallery/pie_and_polar_charts/polar_demo.html)绘制极坐标图。
 
-> **冯·米塞斯**分布是圆形分布的正态分布类比。它由两个参数定义：均值位置μ和集中度κ。集中度参数控制分布的扩展，类似于方差的倒数。当κ为0时，分布是均匀的，随着κ的增加，分布会围绕均值收缩。
+> **冯·米塞斯**分布是圆形分布的正态分布类比。它由两个参数定义：均值位置μ和集中度κ。集中度参数控制分布的扩展，类似于方差的倒数。当κ为 0 时，分布是均匀的，随着κ的增加，分布会围绕均值收缩。
 
 让我们导入必要的库并定义辅助函数：
 
@@ -274,17 +274,17 @@ plot_circular_distribution(data, plot_type='histogram', figsize=(6, 6))
 plot_circular_distribution(data, plot_type='kde', figsize=(5, 5))
 ```
 
-![](../Images/c24f301cacfa262e4d67cac6d7174a2e.png)
+![](img/c24f301cacfa262e4d67cac6d7174a2e.png)
 
 狗狗排便的圆形直方图（图片来源：作者）
 
-从直方图中可以明显看出，Auri在选择缓解方向时有自己的偏好。北方方向有明显的峰值，南方方向则有一个低谷。很棒！
+从直方图中可以明显看出，Auri 在选择缓解方向时有自己的偏好。北方方向有明显的峰值，南方方向则有一个低谷。很棒！
 
-![](../Images/222d793339b8090e7ae2514350de4bef.png)
+![](img/222d793339b8090e7ae2514350de4bef.png)
 
-狗狗排便的圆形KDE（图片来源：作者）
+狗狗排便的圆形 KDE（图片来源：作者）
 
-通过KDE图，我们可以获得分布的更平滑表示。好消息是，它离均匀圆形非常远。
+通过 KDE 图，我们可以获得分布的更平滑表示。好消息是，它离均匀圆形非常远。
 
 该是进行统计验证的时候了！
 
@@ -305,13 +305,13 @@ print(f"Z-statistics: {z:.3f}; p-value: {pval:.6f}")
 >> Z-statistics: 3.893; p-value: 0.020128
 ```
 
-好消息，大家！p值小于 0.05，我们拒绝原假设。Auri 的战略性排便位置并非随机的！
+好消息，大家！p 值小于 0.05，我们拒绝原假设。Auri 的战略性排便位置并非随机的！
 
 唯一的缺点是该测试[假设](https://pingouin-stats.org/build/html/generated/pingouin.circ_rayleigh.html#:~:text=The%20assumptions%20for%20the%20Rayleigh%20test%20are%20that%20(1)%20the%20distribution%20has%20only%20one%20mode%20and%20(2)%20the%20data%20is%20sampled%20from%20a%20von%20Mises%20distribution.)分布只有一个模态，并且数据是从冯·米塞斯分布中采样的。唉，那我们换个方法试试吧。Auri 的数据显然有多个模态。
 
 接下来是 [V 检验](https://pingouin-stats.org/build/html/generated/pingouin.circ_vtest.html)。该测试检查数据是否具有特定的均值方向且非均匀。从文档中我们得知：
 
-> V 检验比雷leigh检验有更高的效能，并且如果有理由相信某个特定的均值方向，推荐使用 V 检验。
+> V 检验比雷 leigh 检验有更高的效能，并且如果有理由相信某个特定的均值方向，推荐使用 V 检验。
 
 完美！让我们试试。
 
@@ -328,7 +328,7 @@ print(f"V-statistics: {v:.3f}; p-value: {pval:.6f}")
 >> V-statistics: 24.127; p-value: 0.002904
 ```
 
-现在我们开始有进展了！p值接近零，我们拒绝原假设。Auri 是一个统计学上显著的南向排便者！
+现在我们开始有进展了！p 值接近零，我们拒绝原假设。Auri 是一个统计学上显著的南向排便者！
 
 # 贝叶斯排便：数学部分
 
@@ -342,7 +342,7 @@ print(f"V-statistics: {v:.3f}; p-value: {pval:.6f}")
 
 冯·米塞斯分布 *p*(*θ*∣*μ*,*κ*) 的概率密度函数为：
 
-![](../Images/153d3e75814e41fee3e319b418c92d04.png)
+![](img/153d3e75814e41fee3e319b418c92d04.png)
 
 其中：
 
@@ -358,19 +358,19 @@ print(f"V-statistics: {v:.3f}; p-value: {pval:.6f}")
 
 +   **先验** 分布：
 
-![](../Images/8010e8d19defce9596996125e37e3f10.png)
+![](img/8010e8d19defce9596996125e37e3f10.png)
 
 +   **似然性** 对于一个新的观察值 *θₙ*​：
 
-![](../Images/c9d1d390c5ee0568b67651f9e0c25829.png)
+![](img/c9d1d390c5ee0568b67651f9e0c25829.png)
 
 我们想使用贝叶斯定理更新我们的先验：
 
-![](../Images/1d8f4c98f3ecf59bb25c702fea2008a5.png)
+![](img/1d8f4c98f3ecf59bb25c702fea2008a5.png)
 
 其中
 
-![](../Images/809ddcb2163e11ec9ed62d25c60d82ea.png)
+![](img/809ddcb2163e11ec9ed62d25c60d82ea.png)
 
 ## 3\. 在 von Mises 形式中乘以先验和似然
 
@@ -378,23 +378,23 @@ print(f"V-statistics: {v:.3f}; p-value: {pval:.6f}")
 
 给定：
 
-![](../Images/92d4f8bcc8d3c734ff8f511f99a8ba00.png)
+![](img/92d4f8bcc8d3c734ff8f511f99a8ba00.png)
 
 并且
 
-![](../Images/d8f77c2f341da83aa3755011b4a9ce09.png)
+![](img/d8f77c2f341da83aa3755011b4a9ce09.png)
 
 后验与乘积成正比：
 
-![](../Images/a74b4917ed7e0983db2e356c1ff07ab8.png)
+![](img/a74b4917ed7e0983db2e356c1ff07ab8.png)
 
 使用余弦和公式的三角恒等式：
 
-![](../Images/8d1a83615e3beff9bdfdd82522036c45.png)
+![](img/8d1a83615e3beff9bdfdd82522036c45.png)
 
 这变为：
 
-![](../Images/97d5cac76fba491d58565a68ad31a8d6.png)
+![](img/97d5cac76fba491d58565a68ad31a8d6.png)
 
 ## 4\. 转换为极坐标形式以获得后验
 
@@ -402,49 +402,49 @@ print(f"V-statistics: {v:.3f}; p-value: {pval:.6f}")
 
 令：
 
-![](../Images/38e1ec079dac7c897cfc0d05cc05dfb4.png)
+![](img/38e1ec079dac7c897cfc0d05cc05dfb4.png)
 
 现在后验表达式简化为：
 
-![](../Images/fa65729c47adb45aeb8f1f47ec179f5b.png)
+![](img/fa65729c47adb45aeb8f1f47ec179f5b.png)
 
 让我们暂停一下，仔细看看这个简化的表达式。
 
 1.  请注意，*C cos⁡(θ)+S sin⁡(θ)* 是两个向量 *(C,S)* 和 *(cos⁡(θ),sin⁡(θ))* 的点积，我们可以将其表示为：
 
-![](../Images/e55fa1f7ad146a555e8d99c3ccae9565.png)
+![](img/e55fa1f7ad146a555e8d99c3ccae9565.png)
 
 其中 *ϕ* 是向量 *(C,S)* 和 *(cos⁡(θ),sin⁡(θ))* 之间的角度。
 
 2\. 向量的大小是：
 
-![](../Images/1269d39f1d6f2a13fb79e3ee462307fe.png)
+![](img/1269d39f1d6f2a13fb79e3ee462307fe.png)
 
 3\. 向量 *(cos⁡(θ),sin⁡(θ))* 和正 x 轴之间的角度就是 *θ*，而 (*C*,*S*) 和正 x 轴之间的角度，由定义为：
 
-![](../Images/8d5262110a8eb0510b7fb1535870124c.png)
+![](img/8d5262110a8eb0510b7fb1535870124c.png)
 
 4\. 那么两个向量之间的角度是：
 
-![](../Images/9add255caf9dec0d8e5df60d5562c82f.png)
+![](img/9add255caf9dec0d8e5df60d5562c82f.png)
 
 将我们的发现代入简化后的后验表达式：
 
-![](../Images/1c148acca19a7dcbcaccc482d3492e97.png)
+![](img/1c148acca19a7dcbcaccc482d3492e97.png)
 
 或者
 
-![](../Images/279236a278e5a9f1aa533be01b8966b9.png)
+![](img/279236a278e5a9f1aa533be01b8966b9.png)
 
 其中
 
 +   *kappa_post*​ 是后验的集中度参数：
 
-![](../Images/af71fa7345762ab766cbd3321ca5c5e5.png)
+![](img/af71fa7345762ab766cbd3321ca5c5e5.png)
 
 +   *mu_post* 是后验的平均方向
 
-![](../Images/89a801944a9a6d545204de03fc64779e.png)
+![](img/89a801944a9a6d545204de03fc64779e.png)
 
 哇，我们做到了！后验也是一个 von Mises 分布，具有更新后的参数 (*mu_post*, *kappa_post*)。现在，我们可以通过每个新的观测值更新先验，并观察平均方向的变化。
 
@@ -611,7 +611,7 @@ imageio.mimsave('../images/posterior_updates.gif', frames, fps=fps)
 
 就是这样！该代码将生成一个 GIF，展示每次新观测后，后验分布的更新。这里是辉煌的结果：
 
-![](../Images/d5a76b28902d12b5ed3cf7d2a22721d0.png)
+![](img/d5a76b28902d12b5ed3cf7d2a22721d0.png)
 
 后验分布更新（图像由作者提供）
 
@@ -648,7 +648,7 @@ plt.title('Evolution of Posterior Mean Direction and Concentration Over Time')
 plt.show()
 ```
 
-![](../Images/d4c8d5d53048ea1461be6445f5414f86.png)
+![](img/d4c8d5d53048ea1461be6445f5414f86.png)
 
 后验均值、kappa 演变（图像由作者提供）
 
@@ -660,7 +660,7 @@ plt.show()
 
 通常，贝叶斯因子定义为：
 
-![](../Images/6710866b0a2e923660c1aabceea9cc6e.png)
+![](img/6710866b0a2e923660c1aabceea9cc6e.png)
 
 其中：
 
@@ -672,7 +672,7 @@ plt.show()
 
 结果是一个数值，告诉我们一个假设比另一个假设更有可能。解释贝叶斯因子的方式有很多种，其中一种常见的方法是使用[哈罗德·杰弗里斯](https://en.wikipedia.org/wiki/Harold_Jeffreys)的杰弗里斯尺度：
 
-![](../Images/0eaf9f40b882a7a1620073bbf551998e.png)
+![](img/0eaf9f40b882a7a1620073bbf551998e.png)
 
 你可能会问，模型是什么？很简单！它们是具有不同参数的分布。我将使用 PyMC 来定义模型，并从中采样后验分布。
 
@@ -683,11 +683,11 @@ plt.show()
 log_likelihood_h0 = vonmises.logpdf(data['radians'], kappa=0, loc=0).sum()
 ```
 
-接下来，是时候构建备择模型了。首先从一个简单的场景开始：**单峰南方**方向，在这个场景下，我假设分布集中在180°或π弧度处。
+接下来，是时候构建备择模型了。首先从一个简单的场景开始：**单峰南方**方向，在这个场景下，我假设分布集中在 180°或π弧度处。
 
 # 单峰南方
 
-让我们在PyMC中定义模型。我们将使用冯·米塞斯分布，并设置固定位置参数*μ*=*π*，同时为非负浓度参数*κ*设置半正态先验。这使得模型能够从数据中学习浓度参数，并检查南方方向是否更受偏好。
+让我们在 PyMC 中定义模型。我们将使用冯·米塞斯分布，并设置固定位置参数*μ*=*π*，同时为非负浓度参数*κ*设置半正态先验。这使得模型能够从数据中学习浓度参数，并检查南方方向是否更受偏好。
 
 ```py
 import pymc as pm
@@ -714,9 +714,9 @@ with pm.Model() as model_uni:
 pm.model_to_graphviz(model_uni)
 ```
 
-![](../Images/593f54b39c0eee81f5a23a73261c574a.png)
+![](img/593f54b39c0eee81f5a23a73261c574a.png)
 
-PyMC模型图（作者提供的图片）
+PyMC 模型图（作者提供的图片）
 
 这是浓度参数*κ*的后验分布：
 
@@ -725,9 +725,9 @@ az.plot_posterior(trace_uni, var_names=['kappa'])
 plt.show()
 ```
 
-![](../Images/3fa40f32492d0ce6d1e920ef4f734a3f.png)
+![](img/3fa40f32492d0ce6d1e920ef4f734a3f.png)
 
-后验kappa分布（作者提供的图片）
+后验 kappa 分布（作者提供的图片）
 
 剩下的就是计算备择模型的对数似然值和贝叶斯因子。
 
@@ -753,15 +753,15 @@ print(f"Probability kappa > 0.5: {np.mean(kappa_samples > 0.5):.4f}")
 >> Probability kappa > 0.5: 0.0649
 ```
 
-因为我们是将备择模型的似然除以原假设模型的似然，所以贝叶斯因子表明数据在备择假设下的可能性增加了多少。在这种情况下，我们得到了32.46，这是非常强的证据，表明数据**不是均匀分布**在圆周上，而是**偏向南方方向**。
+因为我们是将备择模型的似然除以原假设模型的似然，所以贝叶斯因子表明数据在备择假设下的可能性增加了多少。在这种情况下，我们得到了 32.46，这是非常强的证据，表明数据**不是均匀分布**在圆周上，而是**偏向南方方向**。
 
-然而，我们还计算了浓度参数*kappa*大于0.5的概率。这是一种简单的方法，用来检查分布是否显著不同于均匀分布。在单峰南方模型下，这个概率只有0.0649，意味着分布仍然相当分散。
+然而，我们还计算了浓度参数*kappa*大于 0.5 的概率。这是一种简单的方法，用来检查分布是否显著不同于均匀分布。在单峰南方模型下，这个概率只有 0.0649，意味着分布仍然相当分散。
 
 让我们尝试另一个模型：**双峰南北混合模型**。
 
 # 双峰南北混合模型
 
-这次我假设分布是双峰的，峰值分别位于0°和180°，正如我们在罗盘玫瑰图上看到的那样。
+这次我假设分布是双峰的，峰值分别位于 0°和 180°，正如我们在罗盘玫瑰图上看到的那样。
 
 为了实现这一点，我需要使用两个具有不同固定均值方向和共享浓度参数的冯·米塞斯分布的混合。
 
@@ -913,9 +913,9 @@ with pm.Model() as model_mixture_bimodal_NS:
 pm.model_to_graphviz(model_mixture_bimodal_NS)
 ```
 
-![](../Images/222efe40ea36448f214e2a79f610f7f4.png)
+![](img/222efe40ea36448f214e2a79f610f7f4.png)
 
-PyMC模型图（作者提供的图片）
+PyMC 模型图（作者提供的图片）
 
 ```py
 # Posterior Analysis
@@ -923,11 +923,11 @@ az.plot_posterior(trace_mixture_bimodal_NS, var_names=['kappa'])
 plt.show()
 ```
 
-![](../Images/207caa35505a70f08a1b9cc1e25fe3c8.png)
+![](img/207caa35505a70f08a1b9cc1e25fe3c8.png)
 
-后验kappa分布（作者提供的图片）
+后验 kappa 分布（作者提供的图片）
 
-最后，让我们计算贝叶斯因子和浓度参数*κ*大于0.5的概率：
+最后，让我们计算贝叶斯因子和浓度参数*κ*大于 0.5 的概率：
 
 ```py
 log_likelihood_h1 = compute_log_likelihoods(trace_mixture_bimodal_NS, data['radians'], [mu1, mu2])
@@ -939,13 +939,13 @@ print(posterior_report(log_likelihood_h0, log_likelihood_h1, kappa_samples))
 >> Probability kappa > 0.5: 0.9110
 ```
 
-**太棒了！** 我们的两个指标都表明这个模型更适合数据。贝叶斯因子表明**有决定性证据**，并且大多数后验*κ*样本大于0.5，均值为0.99，正如我们在分布图上看到的那样。
+**太棒了！** 我们的两个指标都表明这个模型更适合数据。贝叶斯因子表明**有决定性证据**，并且大多数后验*κ*样本大于 0.5，均值为 0.99，正如我们在分布图上看到的那样。
 
 在结束之前，让我们再试试其他几个模型。
 
 # 双峰西南混合模型
 
-这个模型再次假设一个双峰分布，但这次峰值位于270°和180°，这些方向在罗盘玫瑰图中较为常见。
+这个模型再次假设一个双峰分布，但这次峰值位于 270°和 180°，这些方向在罗盘玫瑰图中较为常见。
 
 ```py
 mu1 = np.pi          # 180 degrees
@@ -990,15 +990,15 @@ print(posterior_report(log_likelihood_h0, log_likelihood_h1, kappa_samples))
 >> Probability kappa > 0.5: 0.1329
 ```
 
-![](../Images/5219e45a7ce051409efb73ec8d109d41.png)
+![](img/5219e45a7ce051409efb73ec8d109d41.png)
 
-后验kappa分布（作者提供的图片）
+后验 kappa 分布（作者提供的图片）
 
 不，明显不如之前的模型好。下一个！
 
 # 四态混合模型
 
-最后一轮。也许我的狗确实喜欢与基准方向对齐？让我们尝试一个四态分布，峰值分别位于0°、90°、180°和270°。
+最后一轮。也许我的狗确实喜欢与基准方向对齐？让我们尝试一个四态分布，峰值分别位于 0°、90°、180°和 270°。
 
 ```py
 mu1 = 0            # 0 degrees
@@ -1045,17 +1045,17 @@ print(posterior_report(log_likelihood_h0, log_likelihood_h1, kappa_samples))
 >> Probability kappa > 0.5: 0.9644
 ```
 
-![](../Images/7255e38fa56766715c59510730e66198.png)
+![](img/7255e38fa56766715c59510730e66198.png)
 
-后验kappa分布（作者提供的图片）
+后验 kappa 分布（作者提供的图片）
 
-嗯… 其实并不是。尽管集中参数κ*κ*大于0.5的概率相当高，但贝叶斯因子却是0.0。
+嗯… 其实并不是。尽管集中参数κ*κ*大于 0.5 的概率相当高，但贝叶斯因子却是 0.0。
 
 贝叶斯因子的优点在于它有效地惩罚过度复杂的模型，有效防止过拟合。
 
 # 模型比较
 
-让我们用信息准则总结所有模型的结果。我们将使用[Widely Applicable Information Criterion](https://en.wikipedia.org/wiki/Watanabe%E2%80%93Akaike_information_criterion#:~:text=In%20statistics%2C%20the%20Widely%20Applicable,it%20wasn't%20trained%20on.)（WAIC）和Leave-One-Out Cross-Validation（LOO）来比较这些模型。
+让我们用信息准则总结所有模型的结果。我们将使用[Widely Applicable Information Criterion](https://en.wikipedia.org/wiki/Watanabe%E2%80%93Akaike_information_criterion#:~:text=In%20statistics%2C%20the%20Widely%20Applicable,it%20wasn't%20trained%20on.)（WAIC）和 Leave-One-Out Cross-Validation（LOO）来比较这些模型。
 
 ```py
 # Compute WAIC for each model
@@ -1075,7 +1075,7 @@ waic_comparison = az.compare(model_dict, ic='waic')
 waic_comparison
 ```
 
-![](../Images/933f6bcd2e583901690ea52c834927aa.png)
+![](img/933f6bcd2e583901690ea52c834927aa.png)
 
 ```py
 # Compare models using LOO
@@ -1083,7 +1083,7 @@ loo_comparison = az.compare(model_dict, ic='loo')
 loo_comparison
 ```
 
-![](../Images/9efe5507cc67224a3d34af59f266bc41.png)
+![](img/9efe5507cc67224a3d34af59f266bc41.png)
 
 ```py
 # Visualize the comparison
@@ -1091,15 +1091,15 @@ az.plot_compare(waic_comparison)
 plt.show()
 ```
 
-![](../Images/043cc2eaa59b47d70b13d446fdb79308.png)
+![](img/043cc2eaa59b47d70b13d446fdb79308.png)
 
-WAIC比较（作者提供的图片）
+WAIC 比较（作者提供的图片）
 
-我们找到了优胜者！根据WAIC和LOO，**双模态南北模型**是数据的最佳拟合模型。
+我们找到了优胜者！根据 WAIC 和 LOO，**双模态南北模型**是数据的最佳拟合模型。
 
 # 结论
 
-![](../Images/b56b077782d1353c637f65c70d300be5.png)
+![](img/b56b077782d1353c637f65c70d300be5.png)
 
 Christmas Auri（作者提供的图片）
 
@@ -1107,11 +1107,11 @@ Christmas Auri（作者提供的图片）
 
 在本文中，我展示了如何建模圆形数据，估计平均方向和集中参数，并通过新观察更新后验分布。我们还看到如何使用贝叶斯因子进行假设检验，并使用信息准则比较模型。
 
-结果非常有趣！Auri确实有自己的喜好，并且在南北轴上能够对齐。如果我和我的狗迷失在树林中，我知道该往哪个方向走了。只需足够大的样本量来确认！
+结果非常有趣！Auri 确实有自己的喜好，并且在南北轴上能够对齐。如果我和我的狗迷失在树林中，我知道该往哪个方向走了。只需足够大的样本量来确认！
 
 希望您像我一样享受这段旅程。如果您有任何问题或建议，请随时联系。如果您想支持我的工作，请考虑给我买杯咖啡 ❤️
 
-[![](../Images/961c46077716eccc51e2bd91a0299d05.png)](https://www.buymeacoffee.com/datawondering)
+![](https://www.buymeacoffee.com/datawondering)
 
 我的社交媒体账号：
 
@@ -1121,8 +1121,8 @@ Christmas Auri（作者提供的图片）
 
 参考文献：
 
-+   狗对地球磁场的微小变化很敏感，Vlastimil Hart等人，[[链接]](https://frontiersinzoology.biomedcentral.com/counter/pdf/10.1186/1742-9994-10-80.pdf)
++   狗对地球磁场的微小变化很敏感，Vlastimil Hart 等人，[[链接]](https://frontiersinzoology.biomedcentral.com/counter/pdf/10.1186/1742-9994-10-80.pdf)
 
 +   生物统计分析，第五版，Jerrold H. Zar，[[链接]](https://bayesmath.com/wp-content/uploads/2021/05/Jerrold-H.-Zar-Biostatistical-Analysis-5th-Edition-Prentice-Hall-2009.pdf)
 
-+   PyMC，Python中的概率编程，[[link]](https://www.pymc.io/welcome.html)
++   PyMC，Python 中的概率编程，[[link]](https://www.pymc.io/welcome.html)

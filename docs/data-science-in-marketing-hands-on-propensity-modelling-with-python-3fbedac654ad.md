@@ -1,16 +1,16 @@
-# 营销中的数据科学：使用Python进行倾向性建模实战
+# 营销中的数据科学：使用 Python 进行倾向性建模实战
 
-> 原文：[https://towardsdatascience.com/data-science-in-marketing-hands-on-propensity-modelling-with-python-3fbedac654ad?source=collection_archive---------1-----------------------#2024-11-23](https://towardsdatascience.com/data-science-in-marketing-hands-on-propensity-modelling-with-python-3fbedac654ad?source=collection_archive---------1-----------------------#2024-11-23)
+> 原文：[`towardsdatascience.com/data-science-in-marketing-hands-on-propensity-modelling-with-python-3fbedac654ad?source=collection_archive---------1-----------------------#2024-11-23`](https://towardsdatascience.com/data-science-in-marketing-hands-on-propensity-modelling-with-python-3fbedac654ad?source=collection_archive---------1-----------------------#2024-11-23)
 
 ## 所有你需要的代码，用于预测客户购买你产品的可能性
 
-[](https://rebeccalvickery.medium.com/?source=post_page---byline--3fbedac654ad--------------------------------)[![Rebecca Vickery](../Images/89fbce6868afc6c0309f0ebf722034dd.png)](https://rebeccalvickery.medium.com/?source=post_page---byline--3fbedac654ad--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3fbedac654ad--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3fbedac654ad--------------------------------) [Rebecca Vickery](https://rebeccalvickery.medium.com/?source=post_page---byline--3fbedac654ad--------------------------------)
+[](https://rebeccalvickery.medium.com/?source=post_page---byline--3fbedac654ad--------------------------------)![Rebecca Vickery](https://rebeccalvickery.medium.com/?source=post_page---byline--3fbedac654ad--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3fbedac654ad--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3fbedac654ad--------------------------------) [Rebecca Vickery](https://rebeccalvickery.medium.com/?source=post_page---byline--3fbedac654ad--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3fbedac654ad--------------------------------) ·8分钟阅读·2024年11月23日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3fbedac654ad--------------------------------) ·8 分钟阅读·2024 年 11 月 23 日
 
 --
 
-![](../Images/17ac63b2f76ed9cf01cdb423fdeac5ad.png)
+![](img/17ac63b2f76ed9cf01cdb423fdeac5ad.png)
 
 图片来自[Campaign Creators](https://unsplash.com/@campaign_creators?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在[Unsplash](https://unsplash.com/photos/white-printing-paper-with-marketing-strategy-text-yktK2qaiVHI?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -22,4 +22,4 @@
 
 在本文中，我将提供一个从头到尾的实用教程，描述如何构建一个准备好供营销团队使用的倾向性模型。
 
-*这是我将写的一系列实用Python教程中的第一篇*…
+*这是我将写的一系列实用 Python 教程中的第一篇*…

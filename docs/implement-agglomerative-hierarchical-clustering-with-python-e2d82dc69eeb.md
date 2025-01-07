@@ -1,18 +1,18 @@
-# 使用Python实现凝聚型层次聚类
+# 使用 Python 实现凝聚型层次聚类
 
-> 原文：[https://towardsdatascience.com/implement-agglomerative-hierarchical-clustering-with-python-e2d82dc69eeb?source=collection_archive---------7-----------------------#2024-01-18](https://towardsdatascience.com/implement-agglomerative-hierarchical-clustering-with-python-e2d82dc69eeb?source=collection_archive---------7-----------------------#2024-01-18)
+> 原文：[`towardsdatascience.com/implement-agglomerative-hierarchical-clustering-with-python-e2d82dc69eeb?source=collection_archive---------7-----------------------#2024-01-18`](https://towardsdatascience.com/implement-agglomerative-hierarchical-clustering-with-python-e2d82dc69eeb?source=collection_archive---------7-----------------------#2024-01-18)
 
 ## 无监督学习
 
-## 在这篇文章中，我简要介绍了无监督学习方法、层次聚类的概念以及其在Python中的实现。
+## 在这篇文章中，我简要介绍了无监督学习方法、层次聚类的概念以及其在 Python 中的实现。
 
-[](https://jianan-lin.medium.com/?source=post_page---byline--e2d82dc69eeb--------------------------------)[![Yufeng](../Images/8b1a4c165aaac045ea819f850017b7cd.png)](https://jianan-lin.medium.com/?source=post_page---byline--e2d82dc69eeb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2d82dc69eeb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e2d82dc69eeb--------------------------------) [Yufeng](https://jianan-lin.medium.com/?source=post_page---byline--e2d82dc69eeb--------------------------------)
+[](https://jianan-lin.medium.com/?source=post_page---byline--e2d82dc69eeb--------------------------------)![Yufeng](https://jianan-lin.medium.com/?source=post_page---byline--e2d82dc69eeb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2d82dc69eeb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2d82dc69eeb--------------------------------) [Yufeng](https://jianan-lin.medium.com/?source=post_page---byline--e2d82dc69eeb--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2d82dc69eeb--------------------------------) ·阅读时间9分钟·2024年1月18日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2d82dc69eeb--------------------------------) ·阅读时间 9 分钟·2024 年 1 月 18 日
 
 --
 
-![](../Images/80bc176dcb160313eccc0f50bbf0a290.png)
+![](img/80bc176dcb160313eccc0f50bbf0a290.png)
 
 图片来源：[Bee Balogun](https://unsplash.com/@bee_balogun?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

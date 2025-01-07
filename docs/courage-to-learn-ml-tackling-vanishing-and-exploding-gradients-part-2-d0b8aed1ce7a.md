@@ -1,12 +1,12 @@
 # 学习机器学习的勇气：解决梯度消失与爆炸问题（第二部分）
 
-> 原文：[https://towardsdatascience.com/courage-to-learn-ml-tackling-vanishing-and-exploding-gradients-part-2-d0b8aed1ce7a?source=collection_archive---------9-----------------------#2024-05-03](https://towardsdatascience.com/courage-to-learn-ml-tackling-vanishing-and-exploding-gradients-part-2-d0b8aed1ce7a?source=collection_archive---------9-----------------------#2024-05-03)
+> 原文：[`towardsdatascience.com/courage-to-learn-ml-tackling-vanishing-and-exploding-gradients-part-2-d0b8aed1ce7a?source=collection_archive---------9-----------------------#2024-05-03`](https://towardsdatascience.com/courage-to-learn-ml-tackling-vanishing-and-exploding-gradients-part-2-d0b8aed1ce7a?source=collection_archive---------9-----------------------#2024-05-03)
 
 ## 激活函数、权重初始化、批归一化及其在 PyTorch 中的应用的全面调查
 
-[](https://amyma101.medium.com/?source=post_page---byline--d0b8aed1ce7a--------------------------------)[![Amy Ma](../Images/2edf55456a1f92724535a1441fa2bef5.png)](https://amyma101.medium.com/?source=post_page---byline--d0b8aed1ce7a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d0b8aed1ce7a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d0b8aed1ce7a--------------------------------) [Amy Ma](https://amyma101.medium.com/?source=post_page---byline--d0b8aed1ce7a--------------------------------)
+[](https://amyma101.medium.com/?source=post_page---byline--d0b8aed1ce7a--------------------------------)![Amy Ma](https://amyma101.medium.com/?source=post_page---byline--d0b8aed1ce7a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d0b8aed1ce7a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0b8aed1ce7a--------------------------------) [Amy Ma](https://amyma101.medium.com/?source=post_page---byline--d0b8aed1ce7a--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0b8aed1ce7a--------------------------------) ·37分钟阅读·2024年5月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0b8aed1ce7a--------------------------------) ·37 分钟阅读·2024 年 5 月 3 日
 
 --
 

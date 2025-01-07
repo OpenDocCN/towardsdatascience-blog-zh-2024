@@ -1,16 +1,16 @@
 # PyEnv & Poetry 教程：终极数据科学设置
 
-> 原文：[https://towardsdatascience.com/pyenv-poetry-tutorial-ultimate-data-science-setup-af0de6d47355?source=collection_archive---------1-----------------------#2024-07-15](https://towardsdatascience.com/pyenv-poetry-tutorial-ultimate-data-science-setup-af0de6d47355?source=collection_archive---------1-----------------------#2024-07-15)
+> 原文：[`towardsdatascience.com/pyenv-poetry-tutorial-ultimate-data-science-setup-af0de6d47355?source=collection_archive---------1-----------------------#2024-07-15`](https://towardsdatascience.com/pyenv-poetry-tutorial-ultimate-data-science-setup-af0de6d47355?source=collection_archive---------1-----------------------#2024-07-15)
 
 ## 如何在数据科学项目中使用 PyEnv 和 Poetry 一起进行环境和包管理
 
-[](https://medium.com/@egorhowell?source=post_page---byline--af0de6d47355--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--af0de6d47355--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--af0de6d47355--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--af0de6d47355--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--af0de6d47355--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--af0de6d47355--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--af0de6d47355--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--af0de6d47355--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--af0de6d47355--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--af0de6d47355--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--af0de6d47355--------------------------------) ·8分钟阅读·2024年7月15日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--af0de6d47355--------------------------------) ·8 分钟阅读·2024 年 7 月 15 日
 
 --
 
-![](../Images/ebf815de64125576f9454add70ca1a17.png)
+![](img/ebf815de64125576f9454add70ca1a17.png)
 
 图片由[Danial Igdery](https://unsplash.com/@ricaros?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

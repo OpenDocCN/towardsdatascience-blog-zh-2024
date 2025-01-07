@@ -1,22 +1,22 @@
 # 粒子群优化
 
-> 原文：[https://towardsdatascience.com/particle-swarm-optimization-b869231c57fe?source=collection_archive---------7-----------------------#2024-01-10](https://towardsdatascience.com/particle-swarm-optimization-b869231c57fe?source=collection_archive---------7-----------------------#2024-01-10)
+> 原文：[`towardsdatascience.com/particle-swarm-optimization-b869231c57fe?source=collection_archive---------7-----------------------#2024-01-10`](https://towardsdatascience.com/particle-swarm-optimization-b869231c57fe?source=collection_archive---------7-----------------------#2024-01-10)
 
 ## 优化任意函数的最迷人的方式
 
-[](https://dr-robert-kuebler.medium.com/?source=post_page---byline--b869231c57fe--------------------------------)[![Dr. Robert Kübler](../Images/3b8d8b88f76c0c43d9c305e3885e7ab9.png)](https://dr-robert-kuebler.medium.com/?source=post_page---byline--b869231c57fe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b869231c57fe--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b869231c57fe--------------------------------) [Dr. Robert Kübler](https://dr-robert-kuebler.medium.com/?source=post_page---byline--b869231c57fe--------------------------------)
+[](https://dr-robert-kuebler.medium.com/?source=post_page---byline--b869231c57fe--------------------------------)![Dr. Robert Kübler](https://dr-robert-kuebler.medium.com/?source=post_page---byline--b869231c57fe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b869231c57fe--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b869231c57fe--------------------------------) [Dr. Robert Kübler](https://dr-robert-kuebler.medium.com/?source=post_page---byline--b869231c57fe--------------------------------)
 
-·发布于[数据科学探索](https://towardsdatascience.com/?source=post_page---byline--b869231c57fe--------------------------------) ·阅读时间7分钟·2024年1月10日
+·发布于[数据科学探索](https://towardsdatascience.com/?source=post_page---byline--b869231c57fe--------------------------------) ·阅读时间 7 分钟·2024 年 1 月 10 日
 
 --
 
-![](../Images/f3784a1f79a963705c99d445f0ad998d.png)
+![](img/f3784a1f79a963705c99d445f0ad998d.png)
 
 图片由[James Wainscoat](https://unsplash.com/@tumbao1949?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 无论我们处理的是机器学习、运筹学还是其他数值领域，我们都有一个共同的任务，那就是**优化函数**。根据不同的领域，出现了一些常用的方法：
 
-+   在机器学习中，当训练神经网络时，我们通常使用梯度下降。这之所以有效，是因为我们处理的函数是可微的（至少在几乎所有地方——见ReLU）。
++   在机器学习中，当训练神经网络时，我们通常使用梯度下降。这之所以有效，是因为我们处理的函数是可微的（至少在几乎所有地方——见 ReLU）。
 
 +   在运筹学中，我们经常处理可以通过线性（或凸）规划解决的线性（或凸）优化问题。
 

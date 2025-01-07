@@ -1,16 +1,16 @@
 # 探索公共存储轨迹
 
-> 原文：[https://towardsdatascience.com/exploring-public-storage-traces-16ef7ac9e038?source=collection_archive---------6-----------------------#2024-01-26](https://towardsdatascience.com/exploring-public-storage-traces-16ef7ac9e038?source=collection_archive---------6-----------------------#2024-01-26)
+> 原文：[`towardsdatascience.com/exploring-public-storage-traces-16ef7ac9e038?source=collection_archive---------6-----------------------#2024-01-26`](https://towardsdatascience.com/exploring-public-storage-traces-16ef7ac9e038?source=collection_archive---------6-----------------------#2024-01-26)
 
 ## 它们是什么？它们在哪里？它们适合你吗？
 
-[](https://medium.com/@raluca.diaconu?source=post_page---byline--16ef7ac9e038--------------------------------)[![Raluca Diaconu](../Images/b7034d375d86616420c15a85b167af26.png)](https://medium.com/@raluca.diaconu?source=post_page---byline--16ef7ac9e038--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16ef7ac9e038--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--16ef7ac9e038--------------------------------) [Raluca Diaconu](https://medium.com/@raluca.diaconu?source=post_page---byline--16ef7ac9e038--------------------------------)
+[](https://medium.com/@raluca.diaconu?source=post_page---byline--16ef7ac9e038--------------------------------)![Raluca Diaconu](https://medium.com/@raluca.diaconu?source=post_page---byline--16ef7ac9e038--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16ef7ac9e038--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16ef7ac9e038--------------------------------) [Raluca Diaconu](https://medium.com/@raluca.diaconu?source=post_page---byline--16ef7ac9e038--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16ef7ac9e038--------------------------------) ·15分钟阅读·2024年1月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16ef7ac9e038--------------------------------) ·15 分钟阅读·2024 年 1 月 26 日
 
 --
 
-![](../Images/c421b769fc389b95546b6a888076c27d.png)
+![](img/c421b769fc389b95546b6a888076c27d.png)
 
 图片由 [Hongwei FAN](https://unsplash.com/@yokonoito0512?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -32,21 +32,21 @@
 
 虽然追踪数据可以从 I/O 堆栈的任何位置获取，并且包含来自多个层次的信息，但我选择根据下面显示的[Linux I/O 堆栈](https://www.thomas-krenn.com/en/wiki/Linux_Storage_Stack_Diagram)来构建以下分类。
 
-![](../Images/9bdecfc908b6feecf8151cb0cd072337.png)
+![](img/9bdecfc908b6feecf8151cb0cd072337.png)
 
 I/O 堆栈图（改编自 [[1]](https://www.mimuw.edu.pl/~lichota/09-10/Optymalizacja-open-source/Materialy/10%20-%20Dysk/gelato_ICE06apr_blktrace_brunelle_hp.pdf)、[[2]](https://www.thomas-krenn.com/en/wiki/Linux_Storage_Stack_Diagram) 和 [[3]](https://www.researchgate.net/publication/317952281_Host_managed_contention_avoidance_storage_solutions_for_Big_Data)）
 
 ## **块存储追踪**
 
-这些追踪数据代表了块层的操作。在Linux中，这些数据通常通过[blktrace](https://linux.die.net/man/8/blktrace)（并通过[blkparse](https://linux.die.net/man/1/blkparse)渲染为可读格式）、[iostat](https://www.man7.org/linux/man-pages/man1/iostat.1.html)或[dtrace](https://dtrace.org/about/)进行收集。追踪数据包含有关操作、设备、CPU、进程和存储位置的信息。列出的第一个追踪示例是blktrace的输出。
+这些追踪数据代表了块层的操作。在 Linux 中，这些数据通常通过[blktrace](https://linux.die.net/man/8/blktrace)（并通过[blkparse](https://linux.die.net/man/1/blkparse)渲染为可读格式）、[iostat](https://www.man7.org/linux/man-pages/man1/iostat.1.html)或[dtrace](https://dtrace.org/about/)进行收集。追踪数据包含有关操作、设备、CPU、进程和存储位置的信息。列出的第一个追踪示例是 blktrace 的输出。
 
 追踪程序生成的典型信息可能对于分析和发布目的来说过于详细，因此通常会进行简化。典型的公共追踪数据包含*操作*、*偏移量*、*大小*，有时还包括*时间信息*。在此层级，*操作*仅限于读写操作。每个操作访问从*偏移量*开始的地址，并应用于指定大小的连续内存（按块数计算，4KiB NTFS）。例如，读取操作的追踪条目包含读取开始的地址（偏移量）和读取的块数（大小）。时间信息可能包括请求发起的时间（*开始时间*）、完成时间（*结束时间*）、处理过程中的延迟（*延迟*）和请求等待的时间（*排队时间*）。
 
 可用的追踪数据具有不同的特性，大小差异巨大，并且是各种工作负载的输出。选择合适的追踪数据将取决于你寻找的内容。例如，追踪重放只需要操作的顺序和大小；而性能分析则需要时间信息。
 
-![](../Images/864226aa3ebb3c6213b5fec32e9ef286.png)
+![](img/864226aa3ebb3c6213b5fec32e9ef286.png)
 
-使用iowatcher进行磁盘访问可视化（[来源](https://www.heise.de/hintergrund/Kernel-Log-Nvidia-aktualisiert-Grafiktreiber-1677800.html?seite=2)）
+使用 iowatcher 进行磁盘访问可视化（[来源](https://www.heise.de/hintergrund/Kernel-Log-Nvidia-aktualisiert-Grafiktreiber-1677800.html?seite=2)）
 
 ## **对象存储追踪数据**
 
@@ -54,31 +54,31 @@ I/O 堆栈图（改编自 [[1]](https://www.mimuw.edu.pl/~lichota/09-10/Optymali
 
 尽管文件和对象追踪数据之间存在微妙的差异，我会将它们归为一类。文件遵循文件系统的命名约定，通常是结构化的（通常是分层的）。文件的扩展名通常会暗示文件的内容类型和用途。另一方面，对象用于处理大量不同数据的大规模存储系统。在对象存储系统中，结构不是固有的，而是由用户通过特定的元数据文件以及他们的工作负载外部定义的。
 
-由于对象追踪是在应用程序空间内生成的，通常是应用程序日志机制的结果，因此在格式和内容方面更加多样化。记录的信息可能更具体，例如，*操作*还可以是*删除*、*复制*或*追加*。对象通常具有可变的*大小*，即使是同一个对象的大小，经过追加和覆盖后也可能随时间发生变化。*对象标识符*可以是一个大小可变的字符串，可能会编码额外的信息，例如指示内容类型的扩展名。其他*元信息*可能来自访问的范围，例如，它可以告诉我们是访问了图像、Parquet或CSV文件的头部、尾部还是主体。
+由于对象追踪是在应用程序空间内生成的，通常是应用程序日志机制的结果，因此在格式和内容方面更加多样化。记录的信息可能更具体，例如，*操作*还可以是*删除*、*复制*或*追加*。对象通常具有可变的*大小*，即使是同一个对象的大小，经过追加和覆盖后也可能随时间发生变化。*对象标识符*可以是一个大小可变的字符串，可能会编码额外的信息，例如指示内容类型的扩展名。其他*元信息*可能来自访问的范围，例如，它可以告诉我们是访问了图像、Parquet 或 CSV 文件的头部、尾部还是主体。
 
-对象存储追踪更适合用于理解用户访问模式。在块访问方面，视频流和对整个文件的顺序读取生成相同的模式：在规律的时间间隔内执行多个顺序IO。但如果我们要重放这些追踪数据，应该对这些追踪项做不同的处理。访问视频流的块需要保持相同的时间间隔，而不管每个块的延迟；而读取整个文件应该尽快完成。
+对象存储追踪更适合用于理解用户访问模式。在块访问方面，视频流和对整个文件的顺序读取生成相同的模式：在规律的时间间隔内执行多个顺序 IO。但如果我们要重放这些追踪数据，应该对这些追踪项做不同的处理。访问视频流的块需要保持相同的时间间隔，而不管每个块的延迟；而读取整个文件应该尽快完成。
 
 ## **访问追踪**
 
-针对每个应用，数据可能会进一步抽象化。数据单元可以是类的实例、数据库中的记录或文件中的范围。单次数据访问如果涉及缓存，甚至可能不会生成文件打开或磁盘IO。我选择包含这些追踪数据，因为它们可能被用来理解和优化存储访问，特别是云存储。例如，Twitter Memcache的访问追踪数据有助于理解流行度分布，因此可能对数据格式化和放置决策有帮助。通常这些并不是存储追踪本身，但在缓存模拟、IO减少或数据布局（索引）等上下文中，它们可以非常有用。
+针对每个应用，数据可能会进一步抽象化。数据单元可以是类的实例、数据库中的记录或文件中的范围。单次数据访问如果涉及缓存，甚至可能不会生成文件打开或磁盘 IO。我选择包含这些追踪数据，因为它们可能被用来理解和优化存储访问，特别是云存储。例如，Twitter Memcache 的访问追踪数据有助于理解流行度分布，因此可能对数据格式化和放置决策有帮助。通常这些并不是存储追踪本身，但在缓存模拟、IO 减少或数据布局（索引）等上下文中，它们可以非常有用。
 
-这些追踪数据的格式可以更加多样化，因为引入了新的抽象层，例如，通过Memcached中的推文标识符。
+这些追踪数据的格式可以更加多样化，因为引入了新的抽象层，例如，通过 Memcached 中的推文标识符。
 
 # 追踪示例
 
-让我们来看一下上述每个类别中的一些追踪数据。该列表详细列出了部分较新的追踪数据——不超过10年——但绝不是详尽无遗的。
+让我们来看一下上述每个类别中的一些追踪数据。该列表详细列出了部分较新的追踪数据——不超过 10 年——但绝不是详尽无遗的。
 
 ## **块追踪**
 
 **YCSB RocksDB SSD 2020**
 
-这些是收集自一台28核、128 GB主机上的SSD追踪数据，该主机配有*两块512 GB NVMe SSD硬盘*，并运行Ubuntu操作系统。该数据集是通过运行[YCSB-0.15.0基准测试](https://en.wikipedia.org/wiki/YCSB)和[RocksDB](https://rocksdb.org/docs/support/faq.html)生成的。
+这些是收集自一台 28 核、128 GB 主机上的 SSD 追踪数据，该主机配有*两块 512 GB NVMe SSD 硬盘*，并运行 Ubuntu 操作系统。该数据集是通过运行[YCSB-0.15.0 基准测试](https://en.wikipedia.org/wiki/YCSB)和[RocksDB](https://rocksdb.org/docs/support/faq.html)生成的。
 
-第一块SSD存储所有的blktrace输出，而第二块则托管YCSB和RocksDB。YCSB工作负载A由50%的读取和50%的更新组成，涉及250M条记录的10亿次操作。运行时为9.7小时，生成了超过3.52亿个文件系统级的块I/O请求，总共写入了6.8 TB数据，读取吞吐量为90 MBps，写入吞吐量为196 MBps。
+第一块 SSD 存储所有的 blktrace 输出，而第二块则托管 YCSB 和 RocksDB。YCSB 工作负载 A 由 50%的读取和 50%的更新组成，涉及 250M 条记录的 10 亿次操作。运行时为 9.7 小时，生成了超过 3.52 亿个文件系统级的块 I/O 请求，总共写入了 6.8 TB 数据，读取吞吐量为 90 MBps，写入吞吐量为 196 MBps。
 
 与列表中的所有其他数据集相比，这个数据集较小，工作负载有限，但由于其可管理的大小，是一个很好的起点。另一个优点是可复现性：它使用开源追踪工具和基于相对便宜硬件设置的基准测试平台。
 
-**格式：** 这些是通过`blktrace`捕获的SSD痕迹，在使用`blkparse`解析后具有典型格式：[设备主编号,设备次编号] [CPU核心ID] [记录ID] [时间戳（以纳秒为单位）] [进程ID] [追踪操作] [操作类型] [扇区号 + I/O大小] [进程名称]
+**格式：** 这些是通过`blktrace`捕获的 SSD 痕迹，在使用`blkparse`解析后具有典型格式：[设备主编号,设备次编号] [CPU 核心 ID] [记录 ID] [时间戳（以纳秒为单位）] [进程 ID] [追踪操作] [操作类型] [扇区号 + I/O 大小] [进程名称]
 
 ```py
 259,2    0        1     0.000000000  4020  Q   R 282624 + 8 [java]
@@ -90,27 +90,27 @@ I/O 堆栈图（改编自 [[1]](https://www.mimuw.edu.pl/~lichota/09-10/Optymali
 259,2    0        7     0.013359202  4020  Q   R 286720 + 128 [java]
 ```
 
-**获取方式：** [http://iotta.snia.org/traces/block-io/28568](http://iotta.snia.org/traces/block-io/28568)
+**获取方式：** [`iotta.snia.org/traces/block-io/28568`](http://iotta.snia.org/traces/block-io/28568)
 
-**许可证：** [SNIA追踪数据文件下载许可证](http://iotta.snia.org/repository/download_license)
+**许可证：** [SNIA 追踪数据文件下载许可证](http://iotta.snia.org/repository/download_license)
 
 **阿里巴巴区块痕迹 2020**
 
-数据集由“从1000个卷中收集的块级I/O请求组成，每个卷的原始容量从40 GiB到5 TiB不等。工作负载涵盖了多种类型的云应用。每个收集的I/O请求指定了卷号、请求类型、请求偏移、请求大小和时间戳。”
+数据集由“从 1000 个卷中收集的块级 I/O 请求组成，每个卷的原始容量从 40 GiB 到 5 TiB 不等。工作负载涵盖了多种类型的云应用。每个收集的 I/O 请求指定了卷号、请求类型、请求偏移、请求大小和时间戳。”
 
 **限制**（来自[学术论文](http://www.cse.cuhk.edu.hk/~pclee/www/pubs/iiswc20.pdf)）
 
-+   这些痕迹未记录I/O请求的响应时间，因此不适合进行I/O请求的延迟分析。
++   这些痕迹未记录 I/O 请求的响应时间，因此不适合进行 I/O 请求的延迟分析。
 
-+   没有提及运行在其上的特定应用，因此无法提取应用工作负载及其I/O模式。
++   没有提及运行在其上的特定应用，因此无法提取应用工作负载及其 I/O 模式。
 
 +   这些痕迹捕获了对虚拟设备的访问，因此不能代表物理块存储设备的性能和可靠性（例如，数据放置和故障统计）。
 
-这个数据集的缺点是其大小。解压后生成一个751GB的文件，难以存储和管理。
+这个数据集的缺点是其大小。解压后生成一个 751GB 的文件，难以存储和管理。
 
 **格式：** `device_id,opcode,offset,length,timestamp`
 
-+   `device_id`虚拟磁盘的ID，`uint32`
++   `device_id`虚拟磁盘的 ID，`uint32`
 
 +   `opcode`‘R’或‘W’，表示该操作是读取或写入
 
@@ -129,15 +129,15 @@ I/O 堆栈图（改编自 [[1]](https://www.mimuw.edu.pl/~lichota/09-10/Optymali
 12,R,348404277248,8192,1577808144361031
 ```
 
-此外，还有一个额外的文件，包含每个虚拟设备的ID `device_id`及其总容量。
+此外，还有一个额外的文件，包含每个虚拟设备的 ID `device_id`及其总容量。
 
-**获取方式：** [https://github.com/alibaba/block-traces](https://github.com/alibaba/block-traces)
+**获取方式：** [`github.com/alibaba/block-traces`](https://github.com/alibaba/block-traces)
 
 **许可证：** [CC-4.0](https://creativecommons.org/licenses/by/4.0/)。
 
 **腾讯区块存储 2018**
 
-该数据集包含“来自一个生产云块存储系统（CBS）仓库（也称为故障域）的216个I/O痕迹。这些痕迹是来自5584个云虚拟卷（CVV）的I/O请求，时间跨度为十天（从2018年10月1日到10月10日）。来自这些CVV的I/O请求被映射并重定向到由40个存储节点（即磁盘）组成的存储集群。”
+该数据集包含“来自一个生产云块存储系统（CBS）仓库（也称为故障域）的 216 个 I/O 痕迹。这些痕迹是来自 5584 个云虚拟卷（CVV）的 I/O 请求，时间跨度为十天（从 2018 年 10 月 1 日到 10 月 10 日）。来自这些 CVV 的 I/O 请求被映射并重定向到由 40 个存储节点（即磁盘）组成的存储集群。”
 
 限制：
 
@@ -149,15 +149,15 @@ I/O 堆栈图（改编自 [[1]](https://www.mimuw.edu.pl/~lichota/09-10/Optymali
 
 **格式:** `Timestamp,Offset,Size,IOType,VolumeID`
 
-+   `Timestamp`是I/O请求发出的Unix时间戳，单位为秒。
++   `Timestamp`是 I/O 请求发出的 Unix 时间戳，单位为秒。
 
-+   `Offset`是逻辑虚拟卷起始位置的I/O偏移量，以扇区为单位。1个扇区 = 512字节
++   `Offset`是逻辑虚拟卷起始位置的 I/O 偏移量，以扇区为单位。1 个扇区 = 512 字节
 
-+   `Size`是I/O请求的传输大小，以扇区为单位。
++   `Size`是 I/O 请求的传输大小，以扇区为单位。
 
 +   `IOType`表示“读取(0)”或“写入(1)”。
 
-+   `VolumeID`是CVV的ID号。
++   `VolumeID`是 CVV 的 ID 号。
 
 ```py
 1538323200,12910952,128,0,1063
@@ -171,15 +171,15 @@ I/O 堆栈图（改编自 [[1]](https://www.mimuw.edu.pl/~lichota/09-10/Optymali
 1538323200,5331600,4,1,3171
 ```
 
-**在哪里找到它:** [http://iotta.snia.org/traces/parallel/27917](http://iotta.snia.org/traces/parallel/27917)
+**在哪里找到它:** [`iotta.snia.org/traces/parallel/27917`](http://iotta.snia.org/traces/parallel/27917)
 
 **许可协议:** [NIA Trace Data Files Download License](http://iotta.snia.org/repository/download_license)
 
 **K5cloud 跟踪 2018**
 
-该数据集包含来自富士通K5云服务的虚拟云存储跟踪数据。数据收集历时一周，但并非连续收集，因为“某一天的I/O访问日志通常会消耗捕获系统的存储容量。”该数据集包含来自3088个虚拟存储节点的240亿条记录。
+该数据集包含来自富士通 K5 云服务的虚拟云存储跟踪数据。数据收集历时一周，但并非连续收集，因为“某一天的 I/O 访问日志通常会消耗捕获系统的存储容量。”该数据集包含来自 3088 个虚拟存储节点的 240 亿条记录。
 
-数据通过TCP/IP网络在运行在虚拟化平台上的服务器和位于日本K5数据中心的存储系统之间捕获。数据按每个虚拟存储卷ID分为三个数据集。每个数据集中的每个虚拟存储卷ID是唯一的，而不同数据集之间的虚拟存储卷ID并非唯一。
+数据通过 TCP/IP 网络在运行在虚拟化平台上的服务器和位于日本 K5 数据中心的存储系统之间捕获。数据按每个虚拟存储卷 ID 分为三个数据集。每个数据集中的每个虚拟存储卷 ID 是唯一的，而不同数据集之间的虚拟存储卷 ID 并非唯一。
 
 限制：
 
@@ -189,17 +189,17 @@ I/O 堆栈图（改编自 [[1]](https://www.mimuw.edu.pl/~lichota/09-10/Optymali
 
 +   一些应用程序可能需要完整的数据集，而由于数据缺失，本数据集不适合此类需求。
 
-I/O访问日志中的字段包括：`ID,Timestamp,Type,Offset,Length`
+I/O 访问日志中的字段包括：`ID,Timestamp,Type,Offset,Length`
 
-+   `ID`是虚拟存储卷ID。
++   `ID`是虚拟存储卷 ID。
 
-+   `Timestamp`是从所有I/O访问日志的第一个I/O请求开始以来的时间，单位为秒，但粒度为微秒。
++   `Timestamp`是从所有 I/O 访问日志的第一个 I/O 请求开始以来的时间，单位为秒，但粒度为微秒。
 
 +   `Type`表示读取（R）或写入（W）。
 
-+   `Offset`是虚拟存储起始位置的I/O访问偏移量，以字节为单位。
++   `Offset`是虚拟存储起始位置的 I/O 访问偏移量，以字节为单位。
 
-+   `Length`是I/O请求的传输大小，以字节为单位。
++   `Length`是 I/O 请求的传输大小，以字节为单位。
 
 ```py
 1157,3.828359000,W,7155568640,4096
@@ -210,15 +210,15 @@ I/O访问日志中的字段包括：`ID,Timestamp,Type,Offset,Length`
 1157,9.752752000,W,7155568640,4096
 ```
 
-**在哪里找到它:** [http://iotta.snia.org/traces/parallel/27917](http://iotta.snia.org/traces/parallel/26663)
+**在哪里找到它:** [`iotta.snia.org/traces/parallel/27917`](http://iotta.snia.org/traces/parallel/26663)
 
 **许可协议:** [CC-4.0](https://creativecommons.org/licenses/by/4.0/)。
 
 ## **对象跟踪**
 
-**服务器端I/O请求到达跟踪 2019**
+**服务器端 I/O 请求到达跟踪 2019**
 
-该存储库包含两个I/O块跟踪数据集，附加了文件标识符：1/ 并行文件系统（PFS）和2/ I/O节点。
+该存储库包含两个 I/O 块跟踪数据集，附加了文件标识符：1/ 并行文件系统（PFS）和 2/ I/O 节点。
 
 注：
 
@@ -262,7 +262,7 @@ PFS 场景中有两个并发应用程序，“app1”和“app2”，其追踪�
 [D 01:11:03.153676] REQ SCHED SCHEDULING, handle: 5764607523034233445, queue_element: 0x102d6e0, type: 1, offset: 637534208, len: 1048576 
 ```
 
-**在哪里可以找到：** [https://zenodo.org/records/3340631#.XUNa-uhKg2x](https://zenodo.org/records/3340631#.XUNa-uhKg2x)
+**在哪里可以找到：** [`zenodo.org/records/3340631#.XUNa-uhKg2x`](https://zenodo.org/records/3340631#.XUNa-uhKg2x)
 
 **许可协议：** [CC-4.0](https://creativecommons.org/licenses/by/4.0/)。
 
@@ -270,19 +270,19 @@ PFS 场景中有两个并发应用程序，“app1”和“app2”，其追踪�
 
 这些是来自 IBM Cloud Object Storage 服务的匿名化追踪数据，主要用于研究数据流向对象存储的情况。
 
-该数据集由98个追踪组成，包含约16亿个请求，涉及342百万个独特的对象。追踪本身约为88GB。每个追踪包含在2019年某一周内针对IBM Cloud Object Storage中的单个桶发出的REST操作。每个追踪包含从22,000到187,000,000个对象请求。所有追踪数据均在2019年同一周内收集。追踪数据包含了一个服务租户在一周内发出的所有数据访问请求。对象名称已进行匿名化处理。
+该数据集由 98 个追踪组成，包含约 16 亿个请求，涉及 342 百万个独特的对象。追踪本身约为 88GB。每个追踪包含在 2019 年某一周内针对 IBM Cloud Object Storage 中的单个桶发出的 REST 操作。每个追踪包含从 22,000 到 187,000,000 个对象请求。所有追踪数据均在 2019 年同一周内收集。追踪数据包含了一个服务租户在一周内发出的所有数据访问请求。对象名称已进行匿名化处理。
 
 工作负载的一些特征已在[本文](https://www.usenix.org/system/files/hotstorage20_paper_eytan.pdf)中发布，尽管使用的数据集更大：
 
-+   作者“能够识别一些工作负载为SQL查询、深度学习工作负载、自然语言处理（NLP）、Apache Spark数据分析以及文档和媒体服务器。但许多工作负载的类型仍然未知。”
++   作者“能够识别一些工作负载为 SQL 查询、深度学习工作负载、自然语言处理（NLP）、Apache Spark 数据分析以及文档和媒体服务器。但许多工作负载的类型仍然未知。”
 
 +   “追踪中的大多数对象（85%）都较小。”
 
-    小于1MB，但这些对象仅占总存储容量的3%。
+    小于 1MB，但这些对象仅占总存储容量的 3%。
 
-    “存储容量的3%。”这使得该数据适合进行缓存分析。
+    “存储容量的 3%。”这使得该数据适合进行缓存分析。
 
-**格式**：`<请求时间戳> <请求类型> <对象ID> <可选：对象大小> <可选：起始偏移> <可选：结束偏移>` 时间戳是从开始收集追踪数据的时刻起的毫秒数。
+**格式**：`<请求时间戳> <请求类型> <对象 ID> <可选：对象大小> <可选：起始偏移> <可选：结束偏移>` 时间戳是从开始收集追踪数据的时刻起的毫秒数。
 
 ```py
 1219008 REST.PUT.OBJECT 8d4fcda3d675bac9 1056
@@ -294,17 +294,17 @@ PFS 场景中有两个并发应用程序，“app1”和“app2”，其追踪�
 1256491 REST.HEAD.OBJECT 13943e909692962f 9760
 ```
 
-**获取地址**：[http://iotta.snia.org/traces/key-value/36305](http://iotta.snia.org/traces/key-value/36305)
+**获取地址**：[`iotta.snia.org/traces/key-value/36305`](http://iotta.snia.org/traces/key-value/36305)
 
-**许可证**：[SNIA追踪数据文件下载许可证](http://iotta.snia.org/repository/download_license)
+**许可证**：[SNIA 追踪数据文件下载许可证](http://iotta.snia.org/repository/download_license)
 
 ## **访问追踪**
 
 **维基分析数据集 2019**
 
-维基数据集包含了1/ Wikimedia的上传（图片）Web请求数据和2/ Wikipedia的一个CDN缓存服务器的文本（HTML页面浏览）Web请求数据。最新的数据集来自2019年，包含21个上传数据文件和21个文本数据文件。
+维基数据集包含了 1/ Wikimedia 的上传（图片）Web 请求数据和 2/ Wikipedia 的一个 CDN 缓存服务器的文本（HTML 页面浏览）Web 请求数据。最新的数据集来自 2019 年，包含 21 个上传数据文件和 21 个文本数据文件。
 
-**格式**：每个上传数据文件，标记为`cache-u`，包含连续24小时的数据。这些文件的大小大约为1.5GB，每个文件解压后的数据大约为4GB。
+**格式**：每个上传数据文件，标记为`cache-u`，包含连续 24 小时的数据。这些文件的大小大约为 1.5GB，每个文件解压后的数据大约为 4GB。
 
 该数据集来源于单一类型的工作负载，这可能限制其适用性，但由于其数据量大且完整，因此成为一个很好的测试平台。
 
@@ -314,7 +314,7 @@ PFS 场景中有两个并发应用程序，“app1”和“app2”，其追踪�
 
 +   `hashed_path_query`: 请求路径和查询的加盐哈希值，类型为大整数
 
-+   `image_type`: 响应的Content-Type头中的图片类型，类型为字符串
++   `image_type`: 响应的 Content-Type 头中的图片类型，类型为字符串
 
 +   `response_size`: 响应大小（字节数），类型为整数
 
@@ -327,7 +327,7 @@ PFS 场景中有两个并发应用程序，“app1”和“app2”，其追踪�
 0 -1125242883 jpeg 4733 1.57E-4
 ```
 
-每个文本数据文件，标记为`cache-t`，包含连续24小时的数据。这些文件的大小大约为100MB，每个文件解压后的数据大约为300MB。
+每个文本数据文件，标记为`cache-t`，包含连续 24 小时的数据。这些文件的大小大约为 100MB，每个文件解压后的数据大约为 300MB。
 
 每个解压上传的数据文件具有以下格式：`relative_unix hashed_host_path_query response_size time_firstbyte`
 
@@ -338,15 +338,15 @@ PFS 场景中有两个并发应用程序，“app1”和“app2”，其追踪�
 4619 74293765 14154 2.92E-4
 ```
 
-**在哪里可以找到**：[https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Traffic/Caching](https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Traffic/Caching)
+**在哪里可以找到**：[`wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Traffic/Caching`](https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Traffic/Caching)
 
 **许可证**：[CC-4.0](https://creativecommons.org/licenses/by/4.0/)。
 
 ## Memcached 2020
 
-该数据集包含来自Twitter内存缓存的为期一周的追踪数据（[Twemcache](https://github.com/twitter/twemcache) / [Pelikan](https://github.com/twitter/pelikan)）集群。数据来自2020年3月的54个最大集群，来自Twitter生产环境的匿名化缓存请求追踪记录。
+该数据集包含来自 Twitter 内存缓存的为期一周的追踪数据（[Twemcache](https://github.com/twitter/twemcache) / [Pelikan](https://github.com/twitter/pelikan)）集群。数据来自 2020 年 3 月的 54 个最大集群，来自 Twitter 生产环境的匿名化缓存请求追踪记录。
 
-**格式**：每个追踪文件是一个CSV文件，格式为：`timestamp,anonymized key,key size,value size,client id,operation,TTL`
+**格式**：每个追踪文件是一个 CSV 文件，格式为：`timestamp,anonymized key,key size,value size,client id,operation,TTL`
 
 +   `时间戳`：缓存接收请求的时间，单位为秒
 
@@ -356,11 +356,11 @@ PFS 场景中有两个并发应用程序，“app1”和“app2”，其追踪�
 
 +   `值大小`：值的大小，单位为字节
 
-+   `客户端ID`：发送请求的匿名化客户端（前端服务）
++   `客户端 ID`：发送请求的匿名化客户端（前端服务）
 
-+   `操作`：操作类型，包括get/gets/set/add/replace/cas/append/prepend/delete/incr/decr
++   `操作`：操作类型，包括 get/gets/set/add/replace/cas/append/prepend/delete/incr/decr
 
-+   `TTL`：客户端设置的对象生存时间（TTL），如果请求不是写入请求，则为0。
++   `TTL`：客户端设置的对象生存时间（TTL），如果请求不是写入请求，则为 0。
 
 ```py
 0,q:q:1:8WTfjZU14ee,17,213,4,get,0

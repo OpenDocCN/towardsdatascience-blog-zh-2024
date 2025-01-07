@@ -1,16 +1,16 @@
 # 使你成为更优秀数据科学家的一个心态转变
 
-> 原文：[https://towardsdatascience.com/one-mindset-shift-that-will-make-you-a-better-data-scientist-a015f8000ad7?source=collection_archive---------2-----------------------#2024-04-15](https://towardsdatascience.com/one-mindset-shift-that-will-make-you-a-better-data-scientist-a015f8000ad7?source=collection_archive---------2-----------------------#2024-04-15)
+> 原文：[`towardsdatascience.com/one-mindset-shift-that-will-make-you-a-better-data-scientist-a015f8000ad7?source=collection_archive---------2-----------------------#2024-04-15`](https://towardsdatascience.com/one-mindset-shift-that-will-make-you-a-better-data-scientist-a015f8000ad7?source=collection_archive---------2-----------------------#2024-04-15)
 
 ## 事实上，任何优秀的员工都应该采纳这种心态
 
-[](https://medium.com/@tessaxie?source=post_page---byline--a015f8000ad7--------------------------------)[![Tessa Xie](../Images/f1028e5c639c1d11177e0fa174afcee0.png)](https://medium.com/@tessaxie?source=post_page---byline--a015f8000ad7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a015f8000ad7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a015f8000ad7--------------------------------) [Tessa Xie](https://medium.com/@tessaxie?source=post_page---byline--a015f8000ad7--------------------------------)
+[](https://medium.com/@tessaxie?source=post_page---byline--a015f8000ad7--------------------------------)![Tessa Xie](https://medium.com/@tessaxie?source=post_page---byline--a015f8000ad7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a015f8000ad7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a015f8000ad7--------------------------------) [Tessa Xie](https://medium.com/@tessaxie?source=post_page---byline--a015f8000ad7--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a015f8000ad7--------------------------------) ·6分钟阅读·2024年4月15日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a015f8000ad7--------------------------------) ·6 分钟阅读·2024 年 4 月 15 日
 
 --
 
-![](../Images/a47832a25c8d33c26e888f5d12c3d8e7.png)
+![](img/a47832a25c8d33c26e888f5d12c3d8e7.png)
 
 图片来自[Katerina May](https://unsplash.com/@kat_vagary?utm_source=medium&utm_medium=referral)的作品，发布于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

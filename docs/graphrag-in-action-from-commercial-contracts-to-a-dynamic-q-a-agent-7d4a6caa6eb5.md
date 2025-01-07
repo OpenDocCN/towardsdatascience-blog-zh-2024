@@ -1,20 +1,20 @@
 # GraphRAG 实践：从商业合同到动态问答代理
 
-> 原文：[https://towardsdatascience.com/graphrag-in-action-from-commercial-contracts-to-a-dynamic-q-a-agent-7d4a6caa6eb5?source=collection_archive---------0-----------------------#2024-11-04](https://towardsdatascience.com/graphrag-in-action-from-commercial-contracts-to-a-dynamic-q-a-agent-7d4a6caa6eb5?source=collection_archive---------0-----------------------#2024-11-04)
+> 原文：[`towardsdatascience.com/graphrag-in-action-from-commercial-contracts-to-a-dynamic-q-a-agent-7d4a6caa6eb5?source=collection_archive---------0-----------------------#2024-11-04`](https://towardsdatascience.com/graphrag-in-action-from-commercial-contracts-to-a-dynamic-q-a-agent-7d4a6caa6eb5?source=collection_archive---------0-----------------------#2024-11-04)
 
 ## 一种基于问题的提取方法
 
-[](https://medium.com/@edward.sandoval.2000?source=post_page---byline--7d4a6caa6eb5--------------------------------)[![Ed Sandoval](../Images/2bdc5126db03add63b2ee251db2c3e0b.png)](https://medium.com/@edward.sandoval.2000?source=post_page---byline--7d4a6caa6eb5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7d4a6caa6eb5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7d4a6caa6eb5--------------------------------) [Ed Sandoval](https://medium.com/@edward.sandoval.2000?source=post_page---byline--7d4a6caa6eb5--------------------------------)
+[](https://medium.com/@edward.sandoval.2000?source=post_page---byline--7d4a6caa6eb5--------------------------------)![Ed Sandoval](https://medium.com/@edward.sandoval.2000?source=post_page---byline--7d4a6caa6eb5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7d4a6caa6eb5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7d4a6caa6eb5--------------------------------) [Ed Sandoval](https://medium.com/@edward.sandoval.2000?source=post_page---byline--7d4a6caa6eb5--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7d4a6caa6eb5--------------------------------) ·23分钟阅读·2024年11月4日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7d4a6caa6eb5--------------------------------) ·23 分钟阅读·2024 年 11 月 4 日
 
 --
 
 在这篇博客文章中，我们介绍了一种方法，利用图形检索增强生成（GraphRAG）方法——简化商业合同数据的摄取过程，并构建一个问答代理。
 
-这种方法与传统的RAG（检索增强生成）方法不同，它强调数据提取的效率，而不是像传统RAG方法那样随意拆解和向量化整个文档。
+这种方法与传统的 RAG（检索增强生成）方法不同，它强调数据提取的效率，而不是像传统 RAG 方法那样随意拆解和向量化整个文档。
 
-在传统的RAG中，每个文档都会被拆分成多个块并向量化以供检索，这可能导致大量不必要的数据被拆分、分块并存储在向量索引中。然而，在这里，重点是从每份合同中提取最相关的信息，以满足特定的应用场景——商业合同审核。然后，这些数据会被结构化成一个知识图谱，图谱组织了关键实体和关系，从而通过Cypher查询和向量检索实现更精确的图数据检索。
+在传统的 RAG 中，每个文档都会被拆分成多个块并向量化以供检索，这可能导致大量不必要的数据被拆分、分块并存储在向量索引中。然而，在这里，重点是从每份合同中提取最相关的信息，以满足特定的应用场景——商业合同审核。然后，这些数据会被结构化成一个知识图谱，图谱组织了关键实体和关系，从而通过 Cypher 查询和向量检索实现更精确的图数据检索。
 
 通过最小化向量化内容的数量，并专注于提取高度相关的知识，这种方法提高了问答代理的准确性和性能，使其能够处理复杂和特定领域的问题。
 
@@ -22,9 +22,9 @@
 
 下图展示了该方法的实现方式
 
-![](../Images/c97973ee81561dc36141cd7bcad3a15d.png)
+![](img/c97973ee81561dc36141cd7bcad3a15d.png)
 
-四阶段GraphRAG方法：从基于问题的提取 -> 知识图谱模型 -> GraphRAG检索 -> 问答代理。图像由Sebastian Nilsson @ Neo4J提供，并获得作者许可在此重制。
+四阶段 GraphRAG 方法：从基于问题的提取 -> 知识图谱模型 -> GraphRAG 检索 -> 问答代理。图像由 Sebastian Nilsson @ Neo4J 提供，并获得作者许可在此重制。
 
 但首先，对于那些不熟悉商业法的人来说，让我们先简要介绍一下合同审查问题。
 
@@ -34,19 +34,19 @@
 
 > “合同审查是全面阅读合同的过程，目的是理解签署合同的个人或公司所承担的权利和义务，并评估相关影响。”
 > 
-> Hendrycks, Burns 等人，NeurIPS 2021, 见[CUAD：一个专家标注的法律合同审查NLP数据集](https://arxiv.org/pdf/2103.06268)
+> Hendrycks, Burns 等人，NeurIPS 2021, 见[CUAD：一个专家标注的法律合同审查 NLP 数据集](https://arxiv.org/pdf/2103.06268)
 
 合同审查的第一阶段包括审查数百页合同，寻找相关条款或义务。合同审查员必须确定是否存在相关条款，若存在，这些条款的内容是什么，并且跟踪它们的位置。
 
 > 例如，他们必须确定合同是三年期合同还是一年期合同。他们必须确定合同的结束日期。他们必须确定某个条款是否是反转让条款或排他性条款……
 > 
-> Hendrycks, Burns 等人，NeurIPS 2021, 见[CUAD：一个专家标注的法律合同审查NLP数据集](https://arxiv.org/pdf/2103.06268)
+> Hendrycks, Burns 等人，NeurIPS 2021, 见[CUAD：一个专家标注的法律合同审查 NLP 数据集](https://arxiv.org/pdf/2103.06268)
 
 这是一个需要仔细审查的任务，但通常效率低下，但它非常适合大语言模型！
 
-一旦完成第一阶段，高级法律从业者可以开始审查合同中的弱点和风险。这是一个领域，在这个领域中，由LLM支持并通过存储在知识图谱中的信息为基础的问答代理是法律专家的完美副驾驶。
+一旦完成第一阶段，高级法律从业者可以开始审查合同中的弱点和风险。这是一个领域，在这个领域中，由 LLM 支持并通过存储在知识图谱中的信息为基础的问答代理是法律专家的完美副驾驶。
 
-# 使用LLMs、功能调用和GraphRAG构建商业合同审查代理的四步方法
+# 使用 LLMs、功能调用和 GraphRAG 构建商业合同审查代理的四步方法
 
 本文的其余部分将描述这个过程中的每个步骤。在此过程中，我将使用代码片段来说明主要概念。
 
@@ -56,19 +56,19 @@
 
 1.  **将提取的信息存储到知识图谱中（Neo4j）**
 
-1.  **开发简单的KG数据检索功能（Python）**
+1.  **开发简单的 KG 数据检索功能（Python）**
 
 1.  **构建处理复杂问题的问答代理（语义内核，LLM，Neo4j）**
 
 # 数据集：
 
-[CUAD（合同理解阿提克斯数据集）](https://www.atticusprojectai.org/cuad)是一个采用CC BY 4.0许可的公开数据集，包含超过13,000个专家标注的条款，跨越510份法律合同，旨在帮助构建用于合同审查的AI模型。它涵盖了广泛的重要法律条款，例如保密条款、终止条款和赔偿条款，这些对于合同分析至关重要。
+[CUAD（合同理解阿提克斯数据集）](https://www.atticusprojectai.org/cuad)是一个采用 CC BY 4.0 许可的公开数据集，包含超过 13,000 个专家标注的条款，跨越 510 份法律合同，旨在帮助构建用于合同审查的 AI 模型。它涵盖了广泛的重要法律条款，例如保密条款、终止条款和赔偿条款，这些对于合同分析至关重要。
 
 我们将使用这个数据集中的三个合同，展示我们如何有效地提取和分析关键的法律信息，构建知识图谱，并利用它进行精确的复杂问题回答。
 
 三个合同合计包含 95 页。
 
-# 第1步：从合同中提取相关信息
+# 第 1 步：从合同中提取相关信息
 
 向大型语言模型（LLM）请求提取合同中的精确信息并生成 JSON 输出，表示合同中的相关信息，是相对直接的。
 
@@ -263,7 +263,7 @@ def process_pdf(pdf_filename):
 }
 ```
 
-# 第2步：创建知识图谱
+# 第 2 步：创建知识图谱
 
 现在，每个合同都是一个 JSON 文件，下一步是在 Neo4J 中创建知识图谱。
 
@@ -281,7 +281,7 @@ def process_pdf(pdf_filename):
 
 下方显示的是模式的可视化表示。
 
-![](../Images/28f50df8abdbf7e7816523de25b5bfaf.png)
+![](img/28f50df8abdbf7e7816523de25b5bfaf.png)
 
 作者提供的图片
 
@@ -303,9 +303,9 @@ HAS_CLAUSE {type: STRING}
 INCORPORATED_IN {state: STRING} 
 ```
 
-只有“摘录”——在步骤1中由LLM识别的短文本片段——需要文本嵌入。这种方法显著减少了表示每个合同所需的向量数量和向量索引的大小，从而提高了处理效率和可扩展性。
+只有“摘录”——在步骤 1 中由 LLM 识别的短文本片段——需要文本嵌入。这种方法显著减少了表示每个合同所需的向量数量和向量索引的大小，从而提高了处理效率和可扩展性。
 
-一个简化版的Python脚本，通过上述模式将每个JSON加载到知识图谱中的示例如下：
+一个简化版的 Python 脚本，通过上述模式将每个 JSON 加载到知识图谱中的示例如下：
 
 ```py
 NEO4J_URI=os.getenv('NEO4J_URI', 'bolt://localhost:7687')
@@ -334,9 +334,9 @@ print ("Generating Embeddings for Contract Excerpts...")
 driver.execute_query(EMBEDDINGS_STATEMENT, token = OPENAI_API_KEY)
 ```
 
-这里的“**CREATE_GRAPH_STATEMENT**”是唯一的“复杂”部分。它是一个CYPHER语句，将合同（JSON）映射到知识图谱中的节点和关系。
+这里的“**CREATE_GRAPH_STATEMENT**”是唯一的“复杂”部分。它是一个 CYPHER 语句，将合同（JSON）映射到知识图谱中的节点和关系。
 
-完整的Cypher语句如下：
+完整的 Cypher 语句如下：
 
 ```py
 CREATE_GRAPH_STATEMENT = """
@@ -392,7 +392,7 @@ WITH $data AS data
 WITH data.agreement as a
 ```
 
-+   `$data`是以JSON格式传入查询的输入数据，包含有关协议（合同）的信息。
++   `$data`是以 JSON 格式传入查询的输入数据，包含有关协议（合同）的信息。
 
 +   第二行将`data.agreement`赋值给别名`a`，以便在后续查询中引用合同详情。
 
@@ -411,7 +411,7 @@ ON CREATE SET
 
 +   `MERGE`尝试查找具有指定`contract_id`的现有`Agreement`节点。如果没有这样的节点，它会创建一个。
 
-+   `ON CREATE SET`子句设置新创建的`Agreement`节点的各种属性，如`contract_id`、`agreement_name`、`effective_date`和来自JSON输入的其他协议相关字段。
++   `ON CREATE SET`子句设置新创建的`Agreement`节点的各种属性，如`contract_id`、`agreement_name`、`effective_date`和来自 JSON 输入的其他协议相关字段。
 
 ## **创建适用法律关系**
 
@@ -466,7 +466,7 @@ FOREACH (clause IN valid_clauses |
 )
 ```
 
-+   这一部分首先筛选条款列表（`a.clauses`），仅包括`clause.exists = true`的条款（即在步骤1中由LLM识别的包含摘录的条款）。
++   这一部分首先筛选条款列表（`a.clauses`），仅包括`clause.exists = true`的条款（即在步骤 1 中由 LLM 识别的包含摘录的条款）。
 
 +   对于每个条款：
 
@@ -478,21 +478,21 @@ FOREACH (clause IN valid_clauses |
 
 +   最后，为条款的类型创建（或合并）一个`ClauseType`节点，并通过`HAS_TYPE`关系将`ContractClause`与`ClauseType`链接。
 
-一旦导入脚本运行完毕，单个合同就可以在Neo4J中以知识图谱的形式可视化
+一旦导入脚本运行完毕，单个合同就可以在 Neo4J 中以知识图谱的形式可视化
 
-![](../Images/f3dd8827f94f0b3130da91d1104f56b0.png)
+![](img/f3dd8827f94f0b3130da91d1104f56b0.png)
 
 单一合同的知识图谱表示：组织（各方）用绿色表示，合同条款用蓝色表示，摘录用浅棕色表示，国家用橙色表示。图片来源：作者
 
-知识图谱中的三个合同仅需要一个小型图（不到100个节点，少于200个关系）。最重要的是，仅需要40-50个摘录的向量嵌入。这个拥有少量向量的知识图谱现在可以用来支持一个相当强大的问答代理。
+知识图谱中的三个合同仅需要一个小型图（不到 100 个节点，少于 200 个关系）。最重要的是，仅需要 40-50 个摘录的向量嵌入。这个拥有少量向量的知识图谱现在可以用来支持一个相当强大的问答代理。
 
-# 第3步：为GraphRAG开发数据检索功能
+# 第 3 步：为 GraphRAG 开发数据检索功能
 
-现在，合同已被结构化为知识图谱，下一步是创建一组小型图数据检索功能。这些功能作为核心构建块，使我们能够在第4步开发问答代理。
+现在，合同已被结构化为知识图谱，下一步是创建一组小型图数据检索功能。这些功能作为核心构建块，使我们能够在第 4 步开发问答代理。
 
 我们将定义几个基本的数据检索功能：
 
-1.  检索合同的基本信息（给定合同ID）
+1.  检索合同的基本信息（给定合同 ID）
 
 1.  查找涉及特定组织的合同（给定部分组织名称）
 
@@ -504,11 +504,11 @@ FOREACH (clause IN valid_clauses |
 
 1.  对数据库中的所有合同执行自然语言查询。例如，执行聚合查询，统计“有多少合同符合特定条件”。
 
-在第4步，我们将使用[Microsoft Semantic Kernel库](https://learn.microsoft.com/en-us/semantic-kernel/overview/)构建问答系统。该库简化了代理构建过程，允许开发人员定义代理可用的功能和工具，以便回答问题。
+在第 4 步，我们将使用[Microsoft Semantic Kernel 库](https://learn.microsoft.com/en-us/semantic-kernel/overview/)构建问答系统。该库简化了代理构建过程，允许开发人员定义代理可用的功能和工具，以便回答问题。
 
-为了简化Neo4J与Semantic Kernel库之间的集成，我们将定义一个`ContractPlugin`，该插件定义了每个数据检索功能的“签名”。请注意每个函数的`@kernel_function`装饰器，以及为每个函数提供的类型信息和描述。
+为了简化 Neo4J 与 Semantic Kernel 库之间的集成，我们将定义一个`ContractPlugin`，该插件定义了每个数据检索功能的“签名”。请注意每个函数的`@kernel_function`装饰器，以及为每个函数提供的类型信息和描述。
 
-Semantic Kernel使用“**插件**”类的概念来封装代理可用的一组功能。它将使用装饰器函数、类型信息和文档来通知LLM函数调用能力，以了解可用的功能。
+Semantic Kernel 使用“**插件**”类的概念来封装代理可用的一组功能。它将使用装饰器函数、类型信息和文档来通知 LLM 函数调用能力，以了解可用的功能。
 
 ```py
 from typing import List, Optional, Annotated
@@ -858,9 +858,9 @@ Would you like to know more details about this contract?
 
 首先，它执行**“获取带有[价格限制]条款的合同”**功能，然后执行**“获取不含[保险]条款的合同”**功能。接着，规划器将这两个功能的结果结合起来，找到交集，最终得出正确答案。
 
-如果你查看调试信息，你可以确认LLM执行的调用顺序，以及调用中消耗的token数量。注意具有两个数据检索功能的调用。
+如果你查看调试信息，你可以确认 LLM 执行的调用顺序，以及调用中消耗的 token 数量。注意具有两个数据检索功能的调用。
 
-![](../Images/fab333a8a824e1d0ce2c3367bcfa10ce.png)
+![](img/fab333a8a824e1d0ce2c3367bcfa10ce.png)
 
 > **2\. 是的，请提供更多细节**
 
@@ -905,7 +905,7 @@ Assistant > Here are the detailed information about the contract:
 Is there anything specific you would like to know or any particular clause details you are interested in?
 ```
 
-在这种情况下，背后，LLM使用了**“按ID查找合同”**。你可能已经注意到，显示给用户的输出并未包含合同的ID。然而，语义内核已经将之前调用返回的所有信息存储在对话记忆中！
+在这种情况下，背后，LLM 使用了**“按 ID 查找合同”**。你可能已经注意到，显示给用户的输出并未包含合同的 ID。然而，语义内核已经将之前调用返回的所有信息存储在对话记忆中！
 
 这种代理决定调用哪个功能、使用记忆以及将用户查询自动转换为具有正确参数的功能调用的强大组合，解释了构建于语义内核上的代理背后的**“魔力”**！
 
@@ -922,7 +922,7 @@ Here is the relevant excerpt:
    - **Excerpt:**
      ```
 
-    公司保留随时根据其单独且绝对的判断更改流程和/或费用的权利。如果技术价格和/或费用发生变化，公司应在任何此类变更生效日期前九十（90）天书面通知MA。所有其他价格和/或费用可在无需提前通知MA的情况下进行调整。
+    公司保留随时根据其单独且绝对的判断更改流程和/或费用的权利。如果技术价格和/或费用发生变化，公司应在任何此类变更生效日期前九十（90）天书面通知 MA。所有其他价格和/或费用可在无需提前通知 MA 的情况下进行调整。
 
     ```py
 
@@ -946,24 +946,24 @@ Assistant > Yes, there is a contract that mentions the ability to make price cha
    - **Excerpt:**
      ```
 
-    公司保留随时根据其单独且绝对的判断更改流程和/或费用的权利。如果技术价格和/或费用发生变化，公司应在任何此类变更生效日期前九十（90）天书面通知MA。所有其他价格和/或费用可在无需提前通知MA的情况下进行调整。
+    公司保留随时根据其单独且绝对的判断更改流程和/或费用的权利。如果技术价格和/或费用发生变化，公司应在任何此类变更生效日期前九十（90）天书面通知 MA。所有其他价格和/或费用可在无需提前通知 MA 的情况下进行调整。
 
     ```py
 ```
 
-如前所述，该功能使用向量搜索和Cypher查询来检索不仅在语义上相似的摘录，还包括包含它们的相关合同和条款。
+如前所述，该功能使用向量搜索和 Cypher 查询来检索不仅在语义上相似的摘录，还包括包含它们的相关合同和条款。
 
 最后，让我们询问数据库中有多少合同
 
 > 4\. 数据库中有多少个合同？
 
-这个问题要求LLM使用Text2Cypher数据检索器
+这个问题要求 LLM 使用 Text2Cypher 数据检索器
 
 ```py
 Assistant > There are a total of 3 contracts in the database.
 ```
 
-调试信息确认语义内核运行了Text2Cypher数据检索功能，且“user_question” = “数据库中有多少个合同？”
+调试信息确认语义内核运行了 Text2Cypher 数据检索功能，且“user_question” = “数据库中有多少个合同？”
 
 ```py
 User >  how many contracts are there on the database?
@@ -982,29 +982,29 @@ Assistant > There are a total of 3 contracts in the database.
 
 # **亲自尝试**
 
-[github 仓库](https://github.com/neo4j-product-examples/graphrag-contract-review)包含一个Streamlit应用程序，提供了一个更优雅的代理UI。我们鼓励你与代理互动，并对ContractPlugin进行修改，以提升代理处理更多问题的能力！
+[github 仓库](https://github.com/neo4j-product-examples/graphrag-contract-review)包含一个 Streamlit 应用程序，提供了一个更优雅的代理 UI。我们鼓励你与代理互动，并对 ContractPlugin 进行修改，以提升代理处理更多问题的能力！
 
 # 结论
 
-在这篇博客中，我们探讨了一个Graph Retrieval Augmented Generation（GraphRAG）方法，将商业合同审查这一劳动密集型任务转化为更高效、更智能的AI驱动过程。
+在这篇博客中，我们探讨了一个 Graph Retrieval Augmented Generation（GraphRAG）方法，将商业合同审查这一劳动密集型任务转化为更高效、更智能的 AI 驱动过程。
 
-通过利用大型语言模型（LLMs）和提示进行针对性的信息提取，使用Neo4j构建结构化知识图谱，实现简单的数据检索功能，并最终开发出问答代理，我们创建了一种能够有效处理复杂问题的智能解决方案。
+通过利用大型语言模型（LLMs）和提示进行针对性的信息提取，使用 Neo4j 构建结构化知识图谱，实现简单的数据检索功能，并最终开发出问答代理，我们创建了一种能够有效处理复杂问题的智能解决方案。
 
-这种方法减少了传统基于向量搜索的RAG中发现的低效问题，而是专注于提取相关信息，减少了不必要的向量嵌入，简化了整体过程。我们希望从合同导入到互动问答代理的这段旅程能激励你在自己的项目中使用GraphRAG，以提高效率和更智能的AI驱动决策。
+这种方法减少了传统基于向量搜索的 RAG 中发现的低效问题，而是专注于提取相关信息，减少了不必要的向量嵌入，简化了整体过程。我们希望从合同导入到互动问答代理的这段旅程能激励你在自己的项目中使用 GraphRAG，以提高效率和更智能的 AI 驱动决策。
 
-今天就开始构建你自己的商业合同审查代理，并亲身体验GraphRAG的强大功能！
+今天就开始构建你自己的商业合同审查代理，并亲身体验 GraphRAG 的强大功能！
 
 # 资源
 
 对于那些渴望深入了解的人，请查看以下链接的资源：
 
-+   [带有代码和详细说明的GitHub仓库](https://github.com/neo4j-product-examples/graphrag-contract-review)
++   [带有代码和详细说明的 GitHub 仓库](https://github.com/neo4j-product-examples/graphrag-contract-review)
 
-+   [法律合同的合同理解Atticus数据集(CUAD)](https://github.com/TheAtticusProject/cuad)（Github）
++   [法律合同的合同理解 Atticus 数据集(CUAD)](https://github.com/TheAtticusProject/cuad)（Github）
 
-+   [CUAD：一个专家注释的法律合同审查NLP数据集。Hendrycks，Burns，Chen，Ball。NeurIPS 2021](https://arxiv.org/pdf/2103.06268)
++   [CUAD：一个专家注释的法律合同审查 NLP 数据集。Hendrycks，Burns，Chen，Ball。NeurIPS 2021](https://arxiv.org/pdf/2103.06268)
 
-+   [Neo4j GraphRAG包发布博客](https://neo4j.com/blog/graphrag-python-package/)
++   [Neo4j GraphRAG 包发布博客](https://neo4j.com/blog/graphrag-python-package/)
 
 +   [微软语义内核库](https://learn.microsoft.com/en-us/semantic-kernel/overview/)
 

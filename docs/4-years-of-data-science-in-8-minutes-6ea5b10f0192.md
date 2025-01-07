@@ -1,16 +1,16 @@
-# 8分钟看完4年的数据科学
+# 8 分钟看完 4 年的数据科学
 
-> 原文：[https://towardsdatascience.com/4-years-of-data-science-in-8-minutes-6ea5b10f0192?source=collection_archive---------0-----------------------#2024-10-24](https://towardsdatascience.com/4-years-of-data-science-in-8-minutes-6ea5b10f0192?source=collection_archive---------0-----------------------#2024-10-24)
+> 原文：[`towardsdatascience.com/4-years-of-data-science-in-8-minutes-6ea5b10f0192?source=collection_archive---------0-----------------------#2024-10-24`](https://towardsdatascience.com/4-years-of-data-science-in-8-minutes-6ea5b10f0192?source=collection_archive---------0-----------------------#2024-10-24)
 
 ## 我在这四年多的学习数据科学的旅程中所学到的
 
-[](https://medium.com/@egorhowell?source=post_page---byline--6ea5b10f0192--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--6ea5b10f0192--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6ea5b10f0192--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6ea5b10f0192--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--6ea5b10f0192--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--6ea5b10f0192--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--6ea5b10f0192--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6ea5b10f0192--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6ea5b10f0192--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--6ea5b10f0192--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6ea5b10f0192--------------------------------) ·8分钟阅读·2024年10月24日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6ea5b10f0192--------------------------------) ·8 分钟阅读·2024 年 10 月 24 日
 
 --
 
-![](../Images/1332102ffa6d94702db75565f7921f14.png)
+![](img/1332102ffa6d94702db75565f7921f14.png)
 
 图片由 [Greg Rosenke](https://unsplash.com/@greg_rosenke?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -26,4 +26,4 @@
 
 正如你们中的一些人可能知道的，我最初的计划是攻读物理学博士，最终目标是成为一名职业研究员！
 
-在我的硕士课程中，我需要从第三年的下半年到第四年的上半年进行一年的研究。这基本上就是2020年。
+在我的硕士课程中，我需要从第三年的下半年到第四年的上半年进行一年的研究。这基本上就是 2020 年。

@@ -1,24 +1,24 @@
 # 如何最大化你作为数据科学家的影响力
 
-> 原文：[https://towardsdatascience.com/how-to-maximize-your-impact-as-a-data-scientist-3881995a9cb1?source=collection_archive---------0-----------------------#2024-06-11](https://towardsdatascience.com/how-to-maximize-your-impact-as-a-data-scientist-3881995a9cb1?source=collection_archive---------0-----------------------#2024-06-11)
+> 原文：[`towardsdatascience.com/how-to-maximize-your-impact-as-a-data-scientist-3881995a9cb1?source=collection_archive---------0-----------------------#2024-06-11`](https://towardsdatascience.com/how-to-maximize-your-impact-as-a-data-scientist-3881995a9cb1?source=collection_archive---------0-----------------------#2024-06-11)
 
 ## 加速你职业生涯的可操作性建议
 
-[](https://medium.com/@twalbaum?source=post_page---byline--3881995a9cb1--------------------------------)[![Torsten Walbaum](../Images/27964d8095af45642f152a0ce4fa2681.png)](https://medium.com/@twalbaum?source=post_page---byline--3881995a9cb1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3881995a9cb1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3881995a9cb1--------------------------------) [Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--3881995a9cb1--------------------------------)
+[](https://medium.com/@twalbaum?source=post_page---byline--3881995a9cb1--------------------------------)![Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--3881995a9cb1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3881995a9cb1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3881995a9cb1--------------------------------) [Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--3881995a9cb1--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3881995a9cb1--------------------------------) ·11分钟阅读·2024年6月11日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3881995a9cb1--------------------------------) ·11 分钟阅读·2024 年 6 月 11 日
 
 --
 
-![](../Images/b4bfc246e46bcf573ff4e3cf426c9018.png)
+![](img/b4bfc246e46bcf573ff4e3cf426c9018.png)
 
-图片来源：作者（部分通过Midjourney制作）
+图片来源：作者（部分通过 Midjourney 制作）
 
 作为个人贡献者（IC），最难接受的事实之一就是没人关心你投入的辛勤工作。他们甚至不关心你的输出；他们关心的是你所带来的影响力。
 
-**这有什么区别？** 你的输出是你交付的分析结果，或是你编写的代码行数。你的影响力是你的分析帮助CEO做出的决策，或是新产品特性带来的收入。
+**这有什么区别？** 你的输出是你交付的分析结果，或是你编写的代码行数。你的影响力是你的分析帮助 CEO 做出的决策，或是新产品特性带来的收入。
 
-![](../Images/7d23c136e9313971a56852ec2346ec8b.png)
+![](img/7d23c136e9313971a56852ec2346ec8b.png)
 
 图片来源：作者
 
@@ -36,9 +36,9 @@
 
 让我们深入探讨一下。
 
-[](https://medium.com/@twalbaum/subscribe?source=post_page-----3881995a9cb1--------------------------------) [## 每当Torsten Walbaum发布文章时，获取电子邮件通知。
+[](https://medium.com/@twalbaum/subscribe?source=post_page-----3881995a9cb1--------------------------------) [## 每当 Torsten Walbaum 发布文章时，获取电子邮件通知。
 
-### 每当Torsten Walbaum发布文章时，获取电子邮件通知。通过注册，你将创建一个Medium账户（如果你还没有的话）……
+### 每当 Torsten Walbaum 发布文章时，获取电子邮件通知。通过注册，你将创建一个 Medium 账户（如果你还没有的话）……
 
 medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----3881995a9cb1--------------------------------)
 
@@ -50,7 +50,7 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----3881995a
 
 +   **晋升：** 晋升与影响力息息相关。如果你想成为一名经理，你需要展示你理解什么驱动业务成果，并能够相应地分配资源。
 
-+   **内部机会：** 如果你产生了巨大的影响，身边的人会注意到你，你获得内部机会的几率也会增加。我晋升为总监是因为CMO注意到了我在业务运营团队的工作，并要求我转入市场营销部门，建立战略与分析团队。
++   **内部机会：** 如果你产生了巨大的影响，身边的人会注意到你，你获得内部机会的几率也会增加。我晋升为总监是因为 CMO 注意到了我在业务运营团队的工作，并要求我转入市场营销部门，建立战略与分析团队。
 
 +   **外部机会：** 潜在雇主关注的不是你承担了什么责任，而是你的影响力。毕竟，他们是想弄清楚你如何能帮助他们的业务。
 
@@ -70,13 +70,13 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----3881995a
 
 ## 第一步：了解对你角色的影响是什么，并根据此衡量你的成功
 
-不要再思考像“我做了5个实验”或“我构建了这个模型”这样的生产力指标，而要让自己对推动影响力负责。
+不要再思考像“我做了 5 个实验”或“我构建了这个模型”这样的生产力指标，而要让自己对推动影响力负责。
 
 那么数据科学家的影响力是什么样的呢？其他角色很容易定义；客户经理有销售配额，增长营销经理有潜在客户生成目标。
 
 但数据科学本质上是一个支持其他团队的职能。因此，影响力有两个层面：
 
-![](../Images/117784cbefb0105269cc51bd6bed4c43.png)
+![](img/117784cbefb0105269cc51bd6bed4c43.png)
 
 图片来自作者
 
@@ -100,7 +100,7 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----3881995a
 
 一旦你开始这样做，你会发现更多的低效问题可以帮助解决，或者发现新的增长机会。
 
-# 第2步：确保你的工作解决了一个真正的业务问题
+# 第 2 步：确保你的工作解决了一个真正的业务问题
 
 你很可能遇到过这种情况：人们不直接向你提出问题，而是要求你提供一个具体的交付物。一个分析、一份模型、一个仪表盘。
 
@@ -112,9 +112,9 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----3881995a
 
 如果你处于职业生涯的早期，你的经理应该理想地帮助你完成这一点。***但不要完全依赖这个：***经理并不总是做到完美，而你将是那个感受到工作范围不清晰后果的人。
 
-这要求你了解公司层面的优先事项以及其他组织和团队的优先事项。在全员大会等会议上做笔记，了解大局，获取其他团队的规划材料，以了解他们在接下来1到2个季度里想要实现的目标。
+这要求你了解公司层面的优先事项以及其他组织和团队的优先事项。在全员大会等会议上做笔记，了解大局，获取其他团队的规划材料，以了解他们在接下来 1 到 2 个季度里想要实现的目标。
 
-# 第3步：确保你的工作获得支持
+# 第 3 步：确保你的工作获得支持
 
 即使你的工作直接支持公司层面的优先事项，如果关键利益相关者没有认同，你也将面临困难。
 
@@ -126,7 +126,7 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----3881995a
 
 这是一个复杂的话题；我将在不久的将来写一篇单独的深度分析，讲解如何推动对齐并获得其他团队的支持。
 
-# 第4步：将时间集中在最具影响力的事情上
+# 第 4 步：将时间集中在最具影响力的事情上
 
 不论你处于什么角色，你很可能需要处理多个优先事项。为了最大化你的影响力，你需要确保将大部分时间花在最重要的事情上。
 
@@ -140,7 +140,7 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----3881995a
 
 然而，如果你发现自己花费***大部分***时间处理这些临时事务，那么是时候和你的经理谈谈了。我相信你的经理宁愿帮助你保护工作时间，而不是让你 1）错过关键项目的截止日期，和 2）最终因挫败感而辞职。
 
-![](../Images/149b44b6be83e6a83f3df6180e9080ac.png)
+![](img/149b44b6be83e6a83f3df6180e9080ac.png)
 
 作者插图
 
@@ -158,7 +158,7 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----3881995a
 
 +   **“学术”项目：** 每当有项目向你提出“这个问题值得研究一下”这样的提议时，你就应该小心了；那些纯粹提升对问题理解而没有将其与业务联系起来的项目，按照我的经验，是浪费时间并且会带来挫败感的来源。
 
-+   **过于雄心勃勃的项目范围：** 在Uber，每个人都想知道什么是“最好的”司机奖励类型。多年来，很多人都在研究这个问题，但始终没有结果。这个问题没有简单的“通用”的答案，真正产生实际影响的项目，往往是更具体、更具战术性的优化。
++   **过于雄心勃勃的项目范围：** 在 Uber，每个人都想知道什么是“最好的”司机奖励类型。多年来，很多人都在研究这个问题，但始终没有结果。这个问题没有简单的“通用”的答案，真正产生实际影响的项目，往往是更具体、更具战术性的优化。
 
 +   **客户或交付物没有明确界定：** 如果不清楚你的工作的最终用户是谁（你是为你的经理、领导层，还是其他团队做这个工作？），或者你不确定到底应该交付什么内容，那么这应该引起警觉。通常这意味着项目在启动之前需要更多的范围定义工作。
 
@@ -168,7 +168,7 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----3881995a
 
 很多时候，项目在快完成时会失败。影响不会自动显现，因此你需要投入最后一点工作，确保你的工作能够被采纳。这样做能带来极高的时间回报，因为你已经完成了艰难的工作，制作出了交付物，并且“仅仅”需要与相关方闭环。
 
-![](../Images/597bd4ffe34fa0824958a8da5d001f79.png)
+![](img/597bd4ffe34fa0824958a8da5d001f79.png)
 
 图片由作者提供
 
@@ -198,7 +198,7 @@ medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----3881995a
 
 ***问题：*** 当预测模型未被使用时，往往是因为缺乏对模型输出的信任。
 
-ML模型本身往往是“黑箱”，如果团队不理解输出是如何生成的，或者输出是否可靠，他们会对依赖它们感到犹豫。即使你的模型没有使用机器学习，只是在电子表格中：如果人们不知道它是如何工作的，他们也会产生怀疑。
+ML 模型本身往往是“黑箱”，如果团队不理解输出是如何生成的，或者输出是否可靠，他们会对依赖它们感到犹豫。即使你的模型没有使用机器学习，只是在电子表格中：如果人们不知道它是如何工作的，他们也会产生怀疑。
 
 ***解决方案：*** 这完全取决于在整个过程中涉及利益相关者并建立信任。
 
@@ -220,9 +220,9 @@ ML模型本身往往是“黑箱”，如果团队不理解输出是如何生成
 
 1.  仪表盘很复杂，而你的用户不懂得如何获取他们所需的信息
 
-***解决方案：*** 为了解决第1点和第2点，首先进行用户研究，了解仪表盘的痛点和潜在用例，并在开发过程中让相关利益方参与其中。
+***解决方案：*** 为了解决第 1 点和第 2 点，首先进行用户研究，了解仪表盘的痛点和潜在用例，并在开发过程中让相关利益方参与其中。
 
-关于第3点，用户熟悉的简单仪表盘比一个更复杂但未被使用的仪表盘更好。如果你无法（或不想）进一步简化仪表盘，你需要对用户进行功能培训，并在旁观察他们，了解使用中的摩擦点。
+关于第 3 点，用户熟悉的简单仪表盘比一个更复杂但未被使用的仪表盘更好。如果你无法（或不想）进一步简化仪表盘，你需要对用户进行功能培训，并在旁观察他们，了解使用中的摩擦点。
 
 仪表盘并不是你第一次发布时就完成了，它需要根据用户的需求和反馈不断改进。
 
@@ -232,4 +232,4 @@ ML模型本身往往是“黑箱”，如果团队不理解输出是如何生成
 
 当你的工作真正感觉到有成效时，难道不是很棒吗？
 
-如果你想获得更多实际操作方面的分析建议，可以考虑在Medium上关注我，或者在[LinkedIn](http://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=torsten-walbaum)和[Substack](https://www.operatorshandbook.com/)上关注我。
+如果你想获得更多实际操作方面的分析建议，可以考虑在 Medium 上关注我，或者在[LinkedIn](http://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=torsten-walbaum)和[Substack](https://www.operatorshandbook.com/)上关注我。

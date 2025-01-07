@@ -1,16 +1,16 @@
-# 数据质量错误检测由LLM驱动
+# 数据质量错误检测由 LLM 驱动
 
-> 原文：[https://towardsdatascience.com/automated-detection-of-data-quality-issues-54a3cb283a91?source=collection_archive---------0-----------------------#2024-03-22](https://towardsdatascience.com/automated-detection-of-data-quality-issues-54a3cb283a91?source=collection_archive---------0-----------------------#2024-03-22)
+> 原文：[`towardsdatascience.com/automated-detection-of-data-quality-issues-54a3cb283a91?source=collection_archive---------0-----------------------#2024-03-22`](https://towardsdatascience.com/automated-detection-of-data-quality-issues-54a3cb283a91?source=collection_archive---------0-----------------------#2024-03-22)
 
-[](https://medium.com/@simon.grah?source=post_page---byline--54a3cb283a91--------------------------------)[![Simon Grah](../Images/f8fd00600db79bc910ff51e9f64503d0.png)](https://medium.com/@simon.grah?source=post_page---byline--54a3cb283a91--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--54a3cb283a91--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--54a3cb283a91--------------------------------) [Simon Grah](https://medium.com/@simon.grah?source=post_page---byline--54a3cb283a91--------------------------------)
+[](https://medium.com/@simon.grah?source=post_page---byline--54a3cb283a91--------------------------------)![Simon Grah](https://medium.com/@simon.grah?source=post_page---byline--54a3cb283a91--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--54a3cb283a91--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54a3cb283a91--------------------------------) [Simon Grah](https://medium.com/@simon.grah?source=post_page---byline--54a3cb283a91--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54a3cb283a91--------------------------------) ·阅读时间17分钟·2024年3月22日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54a3cb283a91--------------------------------) ·阅读时间 17 分钟·2024 年 3 月 22 日
 
 --
 
 本文是关于使用大型语言模型（LLM）清理数据系列文章的第二篇，重点介绍在表格数据集中识别错误。
 
-![](../Images/7ad60ce10b812d10c4d79cec6c7b7cce.png)
+![](img/7ad60ce10b812d10c4d79cec6c7b7cce.png)
 
 本文概述了我们将要探索的方法论，重点是评估表格数据集的脏污分数，且几乎不需要人工干预。
 
@@ -40,7 +40,7 @@
 
 +   **数据从业者对这项繁琐工作的热情缺乏**：数据清洗被许多业内人士视为工作中不太吸引人的部分，这并不是什么秘密。数据清洗通常被视为比建模、构建现代数据架构或回答业务查询等更具吸引力活动的前奏，因此它常常排在优先级较低的位置，导致拖延，甚至在某些情况下，直到出现重大问题才被完全忽视。
 
-+   **领域专家的局限性**：领域专家（SMEs）拥有宝贵的知识，但可能缺乏像SQL或编程这样的技术技能。虽然无代码和低代码工具在某种程度上有所帮助，但它们尚未被完全采用，且可能无法覆盖所有数据管理方面，比如版本控制。
++   **领域专家的局限性**：领域专家（SMEs）拥有宝贵的知识，但可能缺乏像 SQL 或编程这样的技术技能。虽然无代码和低代码工具在某种程度上有所帮助，但它们尚未被完全采用，且可能无法覆盖所有数据管理方面，比如版本控制。
 
 +   **专业知识差距**：有效的数据清洗超越了基本技能，要求具备专门的专业知识。缺乏培训和数据准备方面的普遍冷漠意味着许多从业者只能识别表面错误，忽视了需要更深层次理解的数据清洗中更复杂的问题。
 
@@ -50,11 +50,11 @@
 
 大语言模型正成为自动化检测数据质量问题的宝贵工具，作为高效的起点，推动富有成效的人机协作迭代过程。诸如[Jellyfish: A Large Language Model for Data Preprocessing](https://www.semanticscholar.org/reader/7e17ef56273063dfa838de30b7cc0546b2e5ee10)、[Can language models automate data wrangling?](http://josephorallo.webs.upv.es/escrits/MLJ-DataWranglingAutomation.pdf) 和[Large Language Models as Data Preprocessors](https://arxiv.org/abs/2308.16361)等论文中讨论的模型，展示了它们在自动化约束生成和数据错误检测方面的潜力。这种自动化并不取代人工干预，而是增强了它，使得人们可以审查和调整自动化约束，通过直接处理问题或调整置信度分数来反映数据错误检测中的不确定性。
 
-LLM（大语言模型）特别适用于检测数据质量问题，因为它们在多样化的互联网内容上进行了广泛的训练，涵盖了大量领域知识和与数据质量问题相关的代码审查示例。这种训练使得LLM能够基于文本内容识别数据错误，而无需显式定义规则。通过将表格数据集转换为纯文本（称为*序列化*），LLM能够像一支经验丰富的团队一样仔细审查数据，利用其“压缩”的互联网知识来定位错误。这种广泛的训练使得它们能够以类似人类专家的直觉水平，识别出CSV文件等人类可读数据集中的潜在错误。此外，任何领域特定知识的空白都可以通过检索增强生成（RAG）等技术，或者通过根据数据集的特定性质调整模型的提示来弥补。
+LLM（大语言模型）特别适用于检测数据质量问题，因为它们在多样化的互联网内容上进行了广泛的训练，涵盖了大量领域知识和与数据质量问题相关的代码审查示例。这种训练使得 LLM 能够基于文本内容识别数据错误，而无需显式定义规则。通过将表格数据集转换为纯文本（称为*序列化*），LLM 能够像一支经验丰富的团队一样仔细审查数据，利用其“压缩”的互联网知识来定位错误。这种广泛的训练使得它们能够以类似人类专家的直觉水平，识别出 CSV 文件等人类可读数据集中的潜在错误。此外，任何领域特定知识的空白都可以通过检索增强生成（RAG）等技术，或者通过根据数据集的特定性质调整模型的提示来弥补。
 
-在数据错误检测中使用LLM的另一个关键优势是它们能够处理与数据质量问题相关的固有不确定性。并非所有错误都是直观的，甚至专家有时也会对什么构成数据问题产生分歧。LLM能够像人类一样，根据直觉和经验的结合，为其发现的错误分配置信度分数，从而反映错误发生的可能性。
+在数据错误检测中使用 LLM 的另一个关键优势是它们能够处理与数据质量问题相关的固有不确定性。并非所有错误都是直观的，甚至专家有时也会对什么构成数据问题产生分歧。LLM 能够像人类一样，根据直觉和经验的结合，为其发现的错误分配置信度分数，从而反映错误发生的可能性。
 
-在不同数据集和潜在问题中推广错误检测的挑战相当巨大。传统方法通常依赖一套广泛的决策规则或结合专门的机器学习模型来处理各种场景，比如检查地址和电话号码的有效性或进行异常检测。这正是LLM的优势所在，它们提供了一种更具适应性且劳动强度更低的替代方案。LLM能够理解并识别各种数据质量问题，而无需庞大的基于规则的系统或领域特定的模型，这使得它们成为一种无价的工具。与传统商业规则或统计方法相比，机器学习方法的优势相当引人注目。机器学习的采用是由于其相对易用性和在不同用例中的适应性，不需要过多的领域特定知识，也无需花费大量时间进行实施。
+在不同数据集和潜在问题中推广错误检测的挑战相当巨大。传统方法通常依赖一套广泛的决策规则或结合专门的机器学习模型来处理各种场景，比如检查地址和电话号码的有效性或进行异常检测。这正是 LLM 的优势所在，它们提供了一种更具适应性且劳动强度更低的替代方案。LLM 能够理解并识别各种数据质量问题，而无需庞大的基于规则的系统或领域特定的模型，这使得它们成为一种无价的工具。与传统商业规则或统计方法相比，机器学习方法的优势相当引人注目。机器学习的采用是由于其相对易用性和在不同用例中的适应性，不需要过多的领域特定知识，也无需花费大量时间进行实施。
 
 接下来，我们将通过一个实际示例演示这种方法。
 
@@ -72,11 +72,11 @@ Student#,Last Name,First Name,Favorite Color,Age
 6,,Robinson,,Sophia,,blue,,12
 ```
 
-数据错误已经被指出。现在，我们想探索如何使用大型语言模型，特别是`GPT-4`，自动发现这些错误。这种新方法提供了一种现代化的方式来发现数据集中的问题，但也带来了可能的风险，如使用外部API时的隐私问题。然而，这种方法不仅适用于`GPT-4`，还可以与任何LLM配合使用，尽管效果可能会因模型的能力而有所不同。
+数据错误已经被指出。现在，我们想探索如何使用大型语言模型，特别是`GPT-4`，自动发现这些错误。这种新方法提供了一种现代化的方式来发现数据集中的问题，但也带来了可能的风险，如使用外部 API 时的隐私问题。然而，这种方法不仅适用于`GPT-4`，还可以与任何 LLM 配合使用，尽管效果可能会因模型的能力而有所不同。
 
 # 初步步骤：检索表格注释
 
-为了帮助模型识别数据不一致性，提供有关数据框的额外上下文信息是很有帮助的。这正是[data catalog](https://www.datagalaxy.com/en/blog/what-is-a-data-catalog/)（数据目录）的作用，尽管这个话题非常广泛，我们将简化为仅关注LLM在检查数据集行批次时识别数据错误所需的基本上下文信息。
+为了帮助模型识别数据不一致性，提供有关数据框的额外上下文信息是很有帮助的。这正是[data catalog](https://www.datagalaxy.com/en/blog/what-is-a-data-catalog/)（数据目录）的作用，尽管这个话题非常广泛，我们将简化为仅关注 LLM 在检查数据集行批次时识别数据错误所需的基本上下文信息。
 
 所需的关键元数据包括：
 
@@ -84,7 +84,7 @@ Student#,Last Name,First Name,Favorite Color,Age
 
 +   对每个**列的含义和类型**有清晰的**理解**。
 
-鉴于在组织中常常缺乏数据目录或可靠的文档，我们将探讨如何使用LLM加速这一过程。这个过程被称为*表格注释*，它涉及识别表格元素的语义信息，包括列、列之间的关系以及单元格中的实体。欲了解更多详细信息，请参考以下资源：[使用ChatGPT进行列类型注释](https://arxiv.org/abs/2306.00745)、[使用预训练语言模型进行列注释](https://paperswithcode.com/paper/annotating-columns-with-pre-trained-language)或[SOTAB：WDC Schema.org表格注释基准](https://paperswithcode.com/paper/sotab-the-wdc-schema-org-table-annotation)。
+鉴于在组织中常常缺乏数据目录或可靠的文档，我们将探讨如何使用 LLM 加速这一过程。这个过程被称为*表格注释*，它涉及识别表格元素的语义信息，包括列、列之间的关系以及单元格中的实体。欲了解更多详细信息，请参考以下资源：[使用 ChatGPT 进行列类型注释](https://arxiv.org/abs/2306.00745)、[使用预训练语言模型进行列注释](https://paperswithcode.com/paper/annotating-columns-with-pre-trained-language)或[SOTAB：WDC Schema.org 表格注释基准](https://paperswithcode.com/paper/sotab-the-wdc-schema-org-table-annotation)。
 
 这是我使用的提示：
 
@@ -116,7 +116,7 @@ Summarise the table schema as follows:
 
 +   每个**列**的简要**描述**
 
-+   来自Schema.org的**列注释类型**，如适用
++   来自 Schema.org 的**列注释类型**，如适用
 
 +   每列的理想或最佳匹配的**数据类型**，无论提供的文本序列化中是否存在数据问题
 
@@ -145,7 +145,7 @@ Summarise the table schema as follows:
 
 现在，了解了一些表格的上下文后，让我们探讨如何自动识别数据质量问题。
 
-# 使用LLMs检测数据错误
+# 使用 LLMs 检测数据错误
 
 首先，我建议使用一个提示，帮助识别给定表格中的数据质量问题。
 
@@ -256,11 +256,11 @@ Detected Data Issues:
    - Specific Location: Index 5, Entire row
 ```
 
-下一步是将这些识别出的问题转换为Python对象，以便更容易计算*数据脏度评分*。
+下一步是将这些识别出的问题转换为 Python 对象，以便更容易计算*数据脏度评分*。
 
 # 将识别的数据问题转换为正确格式
 
-本节重点讲解如何将先前识别的数据问题从简单文本描述转换为Python对象。这些对象应遵循`DataIssue`类定义的结构：
+本节重点讲解如何将先前识别的数据问题从简单文本描述转换为 Python 对象。这些对象应遵循`DataIssue`类定义的结构：
 
 ```py
 @dataclass
@@ -457,7 +457,7 @@ And here is the matrix of probabilities estimated by the model:
 
 Though the matrices appear similar at first glance, we can apply threshold-based metrics such as `accuracy`, `recall`, `precision`, and `F1-score` to get a clearer picture. These metrics provide a straightforward evaluation of the model's performance by considering a cell problematic if the model's likelihood exceeds 0\. Here are the metrics obtained:
 
-![](../Images/42ea3c3fee789daa72ba4af6d4548abe.png)
+![](img/42ea3c3fee789daa72ba4af6d4548abe.png)
 
 The model correctly identified 91% of problematic cells (`recall`), and all of its error predictions were accurate (`precision`).
 

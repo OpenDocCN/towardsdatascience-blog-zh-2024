@@ -1,16 +1,16 @@
 # 顶级数据科学职业问题，答案揭晓
 
-> 原文：[https://towardsdatascience.com/top-data-science-career-questions-answered-abd3e3c085cc?source=collection_archive---------1-----------------------#2024-11-09](https://towardsdatascience.com/top-data-science-career-questions-answered-abd3e3c085cc?source=collection_archive---------1-----------------------#2024-11-09)
+> 原文：[`towardsdatascience.com/top-data-science-career-questions-answered-abd3e3c085cc?source=collection_archive---------1-----------------------#2024-11-09`](https://towardsdatascience.com/top-data-science-career-questions-answered-abd3e3c085cc?source=collection_archive---------1-----------------------#2024-11-09)
 
 ## 我已经做了三年多的数据科学家。这是大多数人想知道的关于这个领域的事情。
 
-[](https://medium.com/@pelletierhaden?source=post_page---byline--abd3e3c085cc--------------------------------)[![Haden Pelletier](../Images/8f73fc8222e783883c4ebcaee14513e0.png)](https://medium.com/@pelletierhaden?source=post_page---byline--abd3e3c085cc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--abd3e3c085cc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--abd3e3c085cc--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--abd3e3c085cc--------------------------------)
+[](https://medium.com/@pelletierhaden?source=post_page---byline--abd3e3c085cc--------------------------------)![Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--abd3e3c085cc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--abd3e3c085cc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--abd3e3c085cc--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--abd3e3c085cc--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--abd3e3c085cc--------------------------------) ·阅读时间：6分钟·2024年11月9日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--abd3e3c085cc--------------------------------) ·阅读时间：6 分钟·2024 年 11 月 9 日
 
 --
 
-![](../Images/653842d1ec3125fe65a39767675bbffb.png)
+![](img/653842d1ec3125fe65a39767675bbffb.png)
 
 图片由[Clay Banks](http://claybanks.info)提供，发布于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -28,6 +28,6 @@
 
 但通常来说，数据科学涵盖了以下几个工作类别：
 
-+   **数据库与数据工程** — 许多数据科学家与数据库紧密合作，无论是加载和查询大量数据、构建数据管道，还是清理和准备数据以供分析。在我之前的公司，我经常使用SQL访问我们的数据库，查询构建机器学习模型所需的数据。我还发现自己在创建和修改表格，以便存储模型和其他分析的结果。
++   **数据库与数据工程** — 许多数据科学家与数据库紧密合作，无论是加载和查询大量数据、构建数据管道，还是清理和准备数据以供分析。在我之前的公司，我经常使用 SQL 访问我们的数据库，查询构建机器学习模型所需的数据。我还发现自己在创建和修改表格，以便存储模型和其他分析的结果。
 
 +   **数据分析与可视化** — 数据可视化不仅仅是分析数据，还包括…

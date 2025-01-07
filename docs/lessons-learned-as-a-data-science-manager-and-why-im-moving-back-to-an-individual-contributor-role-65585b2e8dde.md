@@ -1,16 +1,16 @@
 # 通过实践领导：作为数据科学经理的经验教训，以及为何我决定回归个人贡献者角色
 
-> 原文：[https://towardsdatascience.com/lessons-learned-as-a-data-science-manager-and-why-im-moving-back-to-an-individual-contributor-role-65585b2e8dde?source=collection_archive---------0-----------------------#2024-07-13](https://towardsdatascience.com/lessons-learned-as-a-data-science-manager-and-why-im-moving-back-to-an-individual-contributor-role-65585b2e8dde?source=collection_archive---------0-----------------------#2024-07-13)
+> 原文：[`towardsdatascience.com/lessons-learned-as-a-data-science-manager-and-why-im-moving-back-to-an-individual-contributor-role-65585b2e8dde?source=collection_archive---------0-----------------------#2024-07-13`](https://towardsdatascience.com/lessons-learned-as-a-data-science-manager-and-why-im-moving-back-to-an-individual-contributor-role-65585b2e8dde?source=collection_archive---------0-----------------------#2024-07-13)
 
 ## 我问自己三个问题，帮助我选择了职业路径
 
-[](https://robodasha.medium.com/?source=post_page---byline--65585b2e8dde--------------------------------)[![Dasha Herrmannova 博士](../Images/9432ddd04a96034ea3974b4b0685c756.png)](https://robodasha.medium.com/?source=post_page---byline--65585b2e8dde--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--65585b2e8dde--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--65585b2e8dde--------------------------------) [Dasha Herrmannova 博士](https://robodasha.medium.com/?source=post_page---byline--65585b2e8dde--------------------------------)
+[](https://robodasha.medium.com/?source=post_page---byline--65585b2e8dde--------------------------------)![Dasha Herrmannova 博士](https://robodasha.medium.com/?source=post_page---byline--65585b2e8dde--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--65585b2e8dde--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--65585b2e8dde--------------------------------) [Dasha Herrmannova 博士](https://robodasha.medium.com/?source=post_page---byline--65585b2e8dde--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--65585b2e8dde--------------------------------) ·阅读时间9分钟·2024年7月13日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--65585b2e8dde--------------------------------) ·阅读时间 9 分钟·2024 年 7 月 13 日
 
 --
 
-![](../Images/11e8ff181b36cf9c7e15ecbc8c9821f1.png)
+![](img/11e8ff181b36cf9c7e15ecbc8c9821f1.png)
 
 图片由[罗伯特·鲁杰罗](https://unsplash.com/@robert2301?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

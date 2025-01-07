@@ -1,34 +1,34 @@
-# 强制执行商业大语言模型中的JSON输出
+# 强制执行商业大语言模型中的 JSON 输出
 
-> 原文：[https://towardsdatascience.com/enforcing-json-outputs-in-commercial-llms-3db590b9b3c8?source=collection_archive---------2-----------------------#2024-08-28](https://towardsdatascience.com/enforcing-json-outputs-in-commercial-llms-3db590b9b3c8?source=collection_archive---------2-----------------------#2024-08-28)
+> 原文：[`towardsdatascience.com/enforcing-json-outputs-in-commercial-llms-3db590b9b3c8?source=collection_archive---------2-----------------------#2024-08-28`](https://towardsdatascience.com/enforcing-json-outputs-in-commercial-llms-3db590b9b3c8?source=collection_archive---------2-----------------------#2024-08-28)
 
 ## 一份综合指南
 
-[](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)[![Daniel Kharitonov](../Images/7d81129c1f88e4a0700462a342137227.png)](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------) [Daniel Kharitonov](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)
+[](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)![Daniel Kharitonov](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------) [Daniel Kharitonov](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------) ·9分钟阅读·2024年8月28日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------) ·9 分钟阅读·2024 年 8 月 28 日
 
 --
 
 > **简短总结**
 > 
-> 我们测试了Google Gemini Pro、Anthropic Claude和OpenAI GPT的结构化输出能力。在它们最佳的配置下，三种模型都能够生成数千个JSON对象的结构化输出。然而，在促使模型生成JSON以及遵循数据模型的能力方面，API的能力差异显著。
+> 我们测试了 Google Gemini Pro、Anthropic Claude 和 OpenAI GPT 的结构化输出能力。在它们最佳的配置下，三种模型都能够生成数千个 JSON 对象的结构化输出。然而，在促使模型生成 JSON 以及遵循数据模型的能力方面，API 的能力差异显著。
 
-更具体来说，唯一一个能够直接提供一致结构化输出的商业供应商似乎是OpenAI，他们在2024年8月6日发布了最新的[结构化输出API](https://openai.com/index/introducing-structured-outputs-in-the-api/)。OpenAI的GPT-4o可以直接与Pydantic数据模型集成，根据所需字段和字段描述格式化JSON。
+更具体来说，唯一一个能够直接提供一致结构化输出的商业供应商似乎是 OpenAI，他们在 2024 年 8 月 6 日发布了最新的[结构化输出 API](https://openai.com/index/introducing-structured-outputs-in-the-api/)。OpenAI 的 GPT-4o 可以直接与 Pydantic 数据模型集成，根据所需字段和字段描述格式化 JSON。
 
-Anthropic的Claude Sonnet 3.5排在第二位，因为它需要使用“工具调用”技巧才能可靠地产生JSON。尽管Claude能够解释字段描述，但它并不直接支持Pydantic模型。
+Anthropic 的 Claude Sonnet 3.5 排在第二位，因为它需要使用“工具调用”技巧才能可靠地产生 JSON。尽管 Claude 能够解释字段描述，但它并不直接支持 Pydantic 模型。
 
-最后，Google Gemini 1.5 Pro排在第三位，因为它的API笨重，需要使用文档不完善的*genai.protos.Schema*类作为可靠生成JSON的模型。此外，似乎没有直接的方法可以通过字段描述来引导Gemini的输出。
+最后，Google Gemini 1.5 Pro 排在第三位，因为它的 API 笨重，需要使用文档不完善的*genai.protos.Schema*类作为可靠生成 JSON 的模型。此外，似乎没有直接的方法可以通过字段描述来引导 Gemini 的输出。
 
 以下是测试结果的汇总表：
 
-![](../Images/2eb322369cc005af5499424b8f71545e.png)
+![](img/2eb322369cc005af5499424b8f71545e.png)
 
-结构化输出错误的近似率（数据来源：作者的Jupyter笔记本，见下文）
+结构化输出错误的近似率（数据来源：作者的 Jupyter 笔记本，见下文）
 
 这里是测试平台笔记本的链接：
 
-[https://github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb](https://github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb)
+[`github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb`](https://github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb)
 
 **问题简介**
 
@@ -192,7 +192,7 @@ Human: I want you to analyze the conversation I just shared
 
 这意味着 Sonnet 3.5 模型可能无法遵循指令，并且会产生不必要的对话延续。因此，模型仍然不能始终如一地达到预期输出。
 
-幸运的是，在Claude API中还有另一种方法可以探索：利用函数调用。这些函数在Anthropic的API中被称为‘工具’，本质上需要结构化的输入才能操作。为了利用这个选项，我们可以创建一个模拟函数，并配置调用签名与我们期望的JSON对象完全一致：
+幸运的是，在 Claude API 中还有另一种方法可以探索：利用函数调用。这些函数在 Anthropic 的 API 中被称为‘工具’，本质上需要结构化的输入才能操作。为了利用这个选项，我们可以创建一个模拟函数，并配置调用签名与我们期望的 JSON 对象完全一致：
 
 ```py
 import os
@@ -259,7 +259,7 @@ tool_chain = DataChain.from_storage(source_files, type="text")          \
               .exec()
 ```
 
-在运行这个代码50次后，我们遇到了一次异常的响应，内容如下：
+在运行这个代码 50 次后，我们遇到了一次异常的响应，内容如下：
 
 ```py
 IndexError: list index out of range
@@ -279,13 +279,13 @@ stop_sequence=None, type='message',
 usage=Usage(input_tokens=1676, output_tokens=95))
 ```
 
-在这种情况下，模型变得困惑，未能执行函数调用，而是仅返回了一个文本块，并提前停止（停止原因 = 'end_turn'）。幸运的是，Claude API提供了一种解决方案来防止这种行为，并强制模型始终发出工具调用，而不是文本块。通过将以下行添加到配置中，你可以确保模型遵循预期的函数调用行为：
+在这种情况下，模型变得困惑，未能执行函数调用，而是仅返回了一个文本块，并提前停止（停止原因 = 'end_turn'）。幸运的是，Claude API 提供了一种解决方案来防止这种行为，并强制模型始终发出工具调用，而不是文本块。通过将以下行添加到配置中，你可以确保模型遵循预期的函数调用行为：
 
 ```py
 tool_choice = {"type": "tool", "name": "send_to_manager"}
 ```
 
-在强制选择工具后，Claude Sonnet 3.5能够成功返回超过1,000次有效的JSON对象，没有任何错误。如果你不想自己构建这个函数调用，[LangChain](https://www.langchain.com)提供了一个Anthropic包装器，通过简单易用的调用格式简化了这个过程：
+在强制选择工具后，Claude Sonnet 3.5 能够成功返回超过 1,000 次有效的 JSON 对象，没有任何错误。如果你不想自己构建这个函数调用，[LangChain](https://www.langchain.com)提供了一个 Anthropic 包装器，通过简单易用的调用格式简化了这个过程：
 
 ```py
 from langchain_anthropic import ChatAnthropic
@@ -295,7 +295,7 @@ structured_llm = model.with_structured_output(Joke)
 structured_llm.invoke("Tell me a joke about cats. Make sure to call the Joke function.")
 ```
 
-作为额外的好处，Claude似乎能有效地解释字段描述。这意味着如果你从一个像这样的Pydantic类中转储JSON模式……
+作为额外的好处，Claude 似乎能有效地解释字段描述。这意味着如果你从一个像这样的 Pydantic 类中转储 JSON 模式……
 
 ```py
 class EvalResponse(BaseModel):
@@ -310,7 +310,7 @@ class EvalResponse(BaseModel):
 
 **Google Gemini Pro 1.5**
 
-Google的文档[明确指出基于提示的方法生成JSON是不可靠的](https://ai.google.dev/gemini-api/docs/json-mode?lang=python)，并且将更高级的配置（如使用OpenAPI模式）限制为旗舰版的Gemini Pro系列模型。事实上，Gemini在生成JSON输出时的基于提示的表现相当差。当仅仅要求生成JSON时，模型通常会将输出包装在Markdown的前导部分：
+Google 的文档[明确指出基于提示的方法生成 JSON 是不可靠的](https://ai.google.dev/gemini-api/docs/json-mode?lang=python)，并且将更高级的配置（如使用 OpenAPI 模式）限制为旗舰版的 Gemini Pro 系列模型。事实上，Gemini 在生成 JSON 输出时的基于提示的表现相当差。当仅仅要求生成 JSON 时，模型通常会将输出包装在 Markdown 的前导部分：
 
 ```py
 ```json
@@ -321,9 +321,9 @@ Google的文档[明确指出基于提示的方法生成JSON是不可靠的](http
 
 "key_issues": [
 
-    "Bot误解了用户的确认。",
+    "Bot 误解了用户的确认。",
 
-    "推荐的计划不符合用户需求（更多MB，较少分钟，价格限制）。"
+    "推荐的计划不符合用户需求（更多 MB，较少分钟，价格限制）。"
 
 ],
 
@@ -379,7 +379,7 @@ class EvalResponse(BaseModel):
 
     sentiment: str = Field(description="对话情感（正面/负面/中性）")
 
-    key_issues: list[str] = Field(description="对话中发现的3个问题列表")
+    key_issues: list[str] = Field(description="对话中发现的 3 个问题列表")
 
     action_items: list[ActionItem] = Field(description="包含‘team’和‘task’字典的列表")
 
@@ -501,7 +501,7 @@ def eval_dialogue(client, file: File) -> Evaluation:
 
 ```
 
-在健壮性方面，OpenAI 文档引用了一张图表，比较了其“结构化输出”API与基于提示的解决方案的成功率，前者[实现了接近 100% 的成功率](https://openai.com/index/introducing-structured-outputs-in-the-api/)。
+在健壮性方面，OpenAI 文档引用了一张图表，比较了其“结构化输出”API 与基于提示的解决方案的成功率，前者[实现了接近 100% 的成功率](https://openai.com/index/introducing-structured-outputs-in-the-api/)。
 
 然而，细节决定成败。
 
@@ -519,34 +519,34 @@ def eval_dialogue(client, file: File) -> Evaluation:
 
 [](https://github.com/iterative/datachain-examples/blob/main/llm/llm_brute_force.ipynb?source=post_page-----3db590b9b3c8--------------------------------) [## datachain-examples/llm/llm_brute_force.ipynb at main · iterative/datachain-examples
 
-### LLM、计算机视觉（CV）、大规模多模态。在GitHub上创建账户，贡献于迭代式/datachain-examples开发。
+### LLM、计算机视觉（CV）、大规模多模态。在 GitHub 上创建账户，贡献于迭代式/datachain-examples 开发。
 
 [github.com](https://github.com/iterative/datachain-examples/blob/main/llm/llm_brute_force.ipynb?source=post_page-----3db590b9b3c8--------------------------------)
 
 **Anthropic JSON API：**
 
-[https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency](https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency)
+[`docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency`](https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency)
 
 **Anthropic 函数调用：**
 
-[https://docs.anthropic.com/en/docs/build-with-claude/tool-use#forcing-tool-use](https://docs.anthropic.com/en/docs/build-with-claude/tool-use#forcing-tool-use)
+[`docs.anthropic.com/en/docs/build-with-claude/tool-use#forcing-tool-use`](https://docs.anthropic.com/en/docs/build-with-claude/tool-use#forcing-tool-use)
 
 **LangChain 结构化输出 API：**
 
-[https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/](https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/)
+[`python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/`](https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/)
 
 **Google Gemini JSON API：**
 
-[https://ai.google.dev/gemini-api/docs/json-mode?lang=python](https://ai.google.dev/gemini-api/docs/json-mode?lang=python)
+[`ai.google.dev/gemini-api/docs/json-mode?lang=python`](https://ai.google.dev/gemini-api/docs/json-mode?lang=python)
 
 **Google genai.protos.Schema 示例：**
 
-[https://ai.google.dev/gemini-api/docs/function-calling/tutorial?lang=python#optional_low_level_access](https://ai.google.dev/gemini-api/docs/function-calling/tutorial?lang=python#optional_low_level_access)
+[`ai.google.dev/gemini-api/docs/function-calling/tutorial?lang=python#optional_low_level_access`](https://ai.google.dev/gemini-api/docs/function-calling/tutorial?lang=python#optional_low_level_access)
 
 **OpenAI “结构化输出”公告：**
 
-[https://openai.com/index/introducing-structured-outputs-in-the-api/](https://openai.com/index/introducing-structured-outputs-in-the-api/)
+[`openai.com/index/introducing-structured-outputs-in-the-api/`](https://openai.com/index/introducing-structured-outputs-in-the-api/)
 
 **OpenAI 的结构化输出 API：**
 
-[https://platform.openai.com/docs/guides/structured-outputs/introduction](https://platform.openai.com/docs/guides/structured-outputs/introduction)
+[`platform.openai.com/docs/guides/structured-outputs/introduction`](https://platform.openai.com/docs/guides/structured-outputs/introduction)

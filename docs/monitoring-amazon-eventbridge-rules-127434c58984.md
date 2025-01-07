@@ -1,12 +1,12 @@
 # 监控 Amazon EventBridge 规则
 
-> 原文：[https://towardsdatascience.com/monitoring-amazon-eventbridge-rules-127434c58984?source=collection_archive---------11-----------------------#2024-08-30](https://towardsdatascience.com/monitoring-amazon-eventbridge-rules-127434c58984?source=collection_archive---------11-----------------------#2024-08-30)
+> 原文：[`towardsdatascience.com/monitoring-amazon-eventbridge-rules-127434c58984?source=collection_archive---------11-----------------------#2024-08-30`](https://towardsdatascience.com/monitoring-amazon-eventbridge-rules-127434c58984?source=collection_archive---------11-----------------------#2024-08-30)
 
 ## 探索指标产品并提出改进建议
 
-[](https://trrhodes.medium.com/?source=post_page---byline--127434c58984--------------------------------)[![Ross Rhodes](../Images/3e3b13c125093030615cc6114f0f18f7.png)](https://trrhodes.medium.com/?source=post_page---byline--127434c58984--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--127434c58984--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--127434c58984--------------------------------) [Ross Rhodes](https://trrhodes.medium.com/?source=post_page---byline--127434c58984--------------------------------)
+[](https://trrhodes.medium.com/?source=post_page---byline--127434c58984--------------------------------)![Ross Rhodes](https://trrhodes.medium.com/?source=post_page---byline--127434c58984--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--127434c58984--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--127434c58984--------------------------------) [Ross Rhodes](https://trrhodes.medium.com/?source=post_page---byline--127434c58984--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--127434c58984--------------------------------) ·6 分钟阅读·2024年8月30日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--127434c58984--------------------------------) ·6 分钟阅读·2024 年 8 月 30 日
 
 --
 
@@ -20,7 +20,7 @@
 
 网上有大量资料解释 EventBridge 的工作原理。[产品文档](https://docs.aws.amazon.com/eventbridge/)是一个宝贵的起点。在这篇文章中，我们将深入探讨 EventBridge 规则的监控。
 
-![](../Images/586963f72400ba0146638ae9e793e24d.png)
+![](img/586963f72400ba0146638ae9e793e24d.png)
 
 图片来源：[berko via Unsplash](https://unsplash.com/@berko)。
 

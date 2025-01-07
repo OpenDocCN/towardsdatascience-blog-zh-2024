@@ -1,16 +1,16 @@
 # PostgreSQL：仅为普通人优化查询
 
-> 原文：[https://towardsdatascience.com/query-optimization-for-mere-humans-in-postgresql-875ab864390a?source=collection_archive---------4-----------------------#2024-12-03](https://towardsdatascience.com/query-optimization-for-mere-humans-in-postgresql-875ab864390a?source=collection_archive---------4-----------------------#2024-12-03)
+> 原文：[`towardsdatascience.com/query-optimization-for-mere-humans-in-postgresql-875ab864390a?source=collection_archive---------4-----------------------#2024-12-03`](https://towardsdatascience.com/query-optimization-for-mere-humans-in-postgresql-875ab864390a?source=collection_archive---------4-----------------------#2024-12-03)
 
 ## 理解 PostgreSQL 执行计划并通过实际示例讲解
 
-[](https://medium.com/@Eyaltra?source=post_page---byline--875ab864390a--------------------------------)[![Eyal Trabelsi](../Images/60562caa76b824eac9e21f1c0a2933fc.png)](https://medium.com/@Eyaltra?source=post_page---byline--875ab864390a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--875ab864390a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--875ab864390a--------------------------------) [Eyal Trabelsi](https://medium.com/@Eyaltra?source=post_page---byline--875ab864390a--------------------------------)
+[](https://medium.com/@Eyaltra?source=post_page---byline--875ab864390a--------------------------------)![Eyal Trabelsi](https://medium.com/@Eyaltra?source=post_page---byline--875ab864390a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--875ab864390a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--875ab864390a--------------------------------) [Eyal Trabelsi](https://medium.com/@Eyaltra?source=post_page---byline--875ab864390a--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--875ab864390a--------------------------------) ·阅读时间 8 分钟 ·2024年12月3日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--875ab864390a--------------------------------) ·阅读时间 8 分钟 ·2024 年 12 月 3 日
 
 --
 
-![](../Images/4f384f53a80ad0fe12427dcc5b83524a.png)
+![](img/4f384f53a80ad0fe12427dcc5b83524a.png)
 
 图片来源：[Greg Rakozy](https://unsplash.com/@grakozy?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 于 [Unsplash](https://unsplash.com/photos/silhouette-photography-of-person-oMpAz-DN-9I?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -60,7 +60,7 @@
 
 对于更细致的人，你可以在下图中看到 *Explain* 子句的语法：
 
-![](../Images/61acb4497b1c5ad8f1db4fcd7a3597b8.png)
+![](img/61acb4497b1c5ad8f1db4fcd7a3597b8.png)
 
 PostgreSQL Explain 子句语法。
 
@@ -73,21 +73,21 @@ EXPLAIN ANALYZE
 SELECT COUNT(*) FROM users WHERE twitter != '';
 ```
 
-![](../Images/9a8f28ed38a9fe982ff8f92ce75497f5.png)
+![](img/9a8f28ed38a9fe982ff8f92ce75497f5.png)
 
 我们可以看到从 EXPLAIN ANALYZE 子句返回的执行计划。
 
 起初它看起来很神秘，而且比我们的查询还长，甚至在一个小的实际执行计划示例中，如果不集中注意力，它会让人感到压倒。
 
-**但它确实提供了有用的信息。** 我们可以看到查询执行花费了1.27秒，而查询计划只花费了0.4毫秒（可忽略的时间）。
+**但它确实提供了有用的信息。** 我们可以看到查询执行花费了 1.27 秒，而查询计划只花费了 0.4 毫秒（可忽略的时间）。
 
-![](../Images/d5e57f45b5c3501eb7d865b1efe9c8d4.png)
+![](img/d5e57f45b5c3501eb7d865b1efe9c8d4.png)
 
 我们可以看到查询计划和执行所花费的时间。
 
 执行计划的结构是一个反向树。在下图中，你可以看到执行计划被分成不同的节点，每个节点代表不同的操作，不管是 *聚合* 还是 *扫描*。
 
-![](../Images/6a7ccef3d946eef093a5bca9a3c0c39d.png)
+![](img/6a7ccef3d946eef093a5bca9a3c0c39d.png)
 
 我们可以看到查询计划和执行所花费的时间。
 
@@ -99,7 +99,7 @@ SELECT COUNT(*) FROM users WHERE twitter != '';
 
 现在，让我们深入探讨如何识别出问题节点。
 
-![](../Images/5765a24e17bb9ae9361b2481951954f0.png)
+![](img/5765a24e17bb9ae9361b2481951954f0.png)
 
 我们可以在每个节点中看到大量信息。
 
@@ -134,7 +134,7 @@ EXPLAIN ANALYZE
 SELECT COUNT(*) FROM users WHERE twitter != '';
 ```
 
-![](../Images/c9d940c226ab0b75dc4f477da4b96027.png)
+![](img/c9d940c226ab0b75dc4f477da4b96027.png)
 
 我们将聚焦于实际时间最长的 Seq Scan 节点。
 
@@ -142,7 +142,7 @@ SELECT COUNT(*) FROM users WHERE twitter != '';
 
 **但我们毕竟只是人类，这并没有给我们带来任何线索。**让我们用 Google 搜索一下（你也可以使用 ChatGPT）!!!。
 
-![](../Images/e202c10e9f78a7914c4ec6e1224da7c4.png)
+![](img/e202c10e9f78a7914c4ec6e1224da7c4.png)
 
 在 Google 上搜索如何加速 PostgreSQL 中的顺序扫描。
 
@@ -150,7 +150,7 @@ SELECT COUNT(*) FROM users WHERE twitter != '';
 CREATE INDEX twitter_test ON users (twitter)
 ```
 
-![](../Images/2dbebcdb3d427e75d385fb1194604613.png)
+![](img/2dbebcdb3d427e75d385fb1194604613.png)
 
 我们的表现已经好多了，但“扫描”节点在实际时间上仍然是最慢的。
 
@@ -167,13 +167,13 @@ EXPLAIN (ANALYZE, BUFFERS)
 SELECT COUNT(*) FROM users WHERE twitter != ''
 ```
 
-![](../Images/93d19daed446727c8e7c2a33d3a8c6c9.png)
+![](img/93d19daed446727c8e7c2a33d3a8c6c9.png)
 
 我们可以看到很多关于数据命中缓存或磁盘的信息。
 
-我们有51,854页需要从缓存中读取（400 MB），因此改进配置可能不会带来剧烈变化。
+我们有 51,854 页需要从缓存中读取（400 MB），因此改进配置可能不会带来剧烈变化。
 
-但是，我们并非没有选择。由于扫描排除了2,487,813行数据，我们可以将索引更改为部分索引，但这并不是免费的。这会导致写入时间变长，并且需要额外的存储，这对垂直扩展的系统影响较大。
+但是，我们并非没有选择。由于扫描排除了 2,487,813 行数据，我们可以将索引更改为部分索引，但这并不是免费的。这会导致写入时间变长，并且需要额外的存储，这对垂直扩展的系统影响较大。
 
 **专业提示 #8** 💃：世上没有免费的午餐。
 
@@ -189,7 +189,7 @@ SELECT COUNT(*) FROM users WHERE twitter != ''
 
 +   尽早推送过滤器。
 
-+   在需要时减少磁盘IO操作。
++   在需要时减少磁盘 IO 操作。
 
 为了手动检查特定的优化，可以启用/禁用一些设置。
 
@@ -199,7 +199,7 @@ EXPLAIN (ANALYZE) SELECT * FROM foo WHERE c1 > 500;
 SET enable_seqscan TO on;
 ```
 
-**警告 #3** ⚠️：只有在你尝试过最基本的优化之后，才可以启用/禁用设置，因为大多数情况下，PostgreSQL知道自己在做什么。
+**警告 #3** ⚠️：只有在你尝试过最基本的优化之后，才可以启用/禁用设置，因为大多数情况下，PostgreSQL 知道自己在做什么。
 
 # 难道没有更简单的方法吗？！🙏
 
@@ -211,19 +211,19 @@ SET enable_seqscan TO on;
 
 **调优复杂查询并非一项简单任务，尤其是使用“裸执行计划”**，因为它们通常很长且难以阅读。此外，它们往往无法提供为何某个特定优化未被利用的洞察，也不能提供如何有效重写查询以提升性能的指导。
 
-然而，这一挑战可以通过采用高度特定结构和元数据，并使用专业工具来解决。**这些工具帮助你/LLM专注于重要事项**（无论是架构、瓶颈等）。一些最著名的工具包括：
+然而，这一挑战可以通过采用高度特定结构和元数据，并使用专业工具来解决。**这些工具帮助你/LLM 专注于重要事项**（无论是架构、瓶颈等）。一些最著名的工具包括：
 
 +   [eversql](https://www.eversql.com/) — 一款成熟的解决方案，旨在为你的*PostgreSQL*查询提供变更建议。
 
-+   [metis](https://www.metisdata.io/) — 旨在为你的*PostgreSQL*数据库提供变更建议，作为开发和CI/CD过程中的一项防护机制。
++   [metis](https://www.metisdata.io/) — 旨在为你的*PostgreSQL*数据库提供变更建议，作为开发和 CI/CD 过程中的一项防护机制。
 
 +   [QueryFlow](https://github.com/eyaltrabelsi/query-flow) — 一款开源工具，允许识别多个查询的错误和性能调优（因为最难调试的查询在孤立时表现得很平稳）。
 
 **专业提示 #9** 💃：使用工具让你的生活更轻松。
 
-我将给你展示使用像QueryFlow这样的工具有多方便（更多细节可以阅读下面的内容）。
+我将给你展示使用像 QueryFlow 这样的工具有多方便（更多细节可以阅读下面的内容）。
 
-![](../Images/8b7368c085df0fdc6607ce2201a3a0b9.png)
+![](img/8b7368c085df0fdc6607ce2201a3a0b9.png)
 
 QueryFlow 执行计划的可视化，专注于持续时间
 

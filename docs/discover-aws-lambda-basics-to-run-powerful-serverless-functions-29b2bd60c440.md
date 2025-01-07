@@ -1,18 +1,18 @@
 # 发现 AWS Lambda 基础，运行强大的无服务器函数
 
-> 原文：[https://towardsdatascience.com/discover-aws-lambda-basics-to-run-powerful-serverless-functions-29b2bd60c440?source=collection_archive---------6-----------------------#2024-10-07](https://towardsdatascience.com/discover-aws-lambda-basics-to-run-powerful-serverless-functions-29b2bd60c440?source=collection_archive---------6-----------------------#2024-10-07)
+> 原文：[`towardsdatascience.com/discover-aws-lambda-basics-to-run-powerful-serverless-functions-29b2bd60c440?source=collection_archive---------6-----------------------#2024-10-07`](https://towardsdatascience.com/discover-aws-lambda-basics-to-run-powerful-serverless-functions-29b2bd60c440?source=collection_archive---------6-----------------------#2024-10-07)
 
 ## 学习我如何首次设置 AWS Lambda
 
-[](https://oieivind.medium.com/?source=post_page---byline--29b2bd60c440--------------------------------)[![Eivind Kjosbakken](../Images/5f91b74428e1202fc4a176a3dd1cb1c7.png)](https://oieivind.medium.com/?source=post_page---byline--29b2bd60c440--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--29b2bd60c440--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--29b2bd60c440--------------------------------) [Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--29b2bd60c440--------------------------------)
+[](https://oieivind.medium.com/?source=post_page---byline--29b2bd60c440--------------------------------)![Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--29b2bd60c440--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--29b2bd60c440--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29b2bd60c440--------------------------------) [Eivind Kjosbakken](https://oieivind.medium.com/?source=post_page---byline--29b2bd60c440--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29b2bd60c440--------------------------------) ·阅读时长10分钟·2024年10月7日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29b2bd60c440--------------------------------) ·阅读时长 10 分钟·2024 年 10 月 7 日
 
 --
 
 本文带你走过我如何开始使用 AWS Lambda 的过程。文章旨在展示如何设置 AWS Lambda 函数，并且展示我解决问题的方法，如何首次设置 Lambda 函数。希望这能帮助你了解如何处理计算机科学中的新问题，并找到解决方案。能够自己解决问题是编程中的一项关键技能，培养这项技能是本文的主要动机之一。
 
-![](../Images/7a238f56fb1bd1f3d4359db5760b7c48.png)
+![](img/7a238f56fb1bd1f3d4359db5760b7c48.png)
 
 本教程将展示如何设置 AWS Lambda 函数，同时也会介绍我首次解决如何完成这一任务的问题的方式。图片由 ChatGPT 提供。
 

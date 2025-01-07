@@ -1,16 +1,16 @@
 # 增强数据科学工作流：掌握 Jupyter Notebook 的版本控制
 
-> 原文：[https://towardsdatascience.com/enhancing-data-science-workflows-mastering-version-control-for-jupyter-notebooks-b03c839e25ec?source=collection_archive---------3-----------------------#2024-01-11](https://towardsdatascience.com/enhancing-data-science-workflows-mastering-version-control-for-jupyter-notebooks-b03c839e25ec?source=collection_archive---------3-----------------------#2024-01-11)
+> 原文：[`towardsdatascience.com/enhancing-data-science-workflows-mastering-version-control-for-jupyter-notebooks-b03c839e25ec?source=collection_archive---------3-----------------------#2024-01-11`](https://towardsdatascience.com/enhancing-data-science-workflows-mastering-version-control-for-jupyter-notebooks-b03c839e25ec?source=collection_archive---------3-----------------------#2024-01-11)
 
 ## 一份实践指南，帮助通过 Jupytext、nbstripout 和 nbconvert 实现协作与可复现性
 
-[](https://medium.com/@le_Tomassini?source=post_page---byline--b03c839e25ec--------------------------------)[![Alessandro Tomassini](../Images/e5bf527fafd933239bff6b87005ba457.png)](https://medium.com/@le_Tomassini?source=post_page---byline--b03c839e25ec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b03c839e25ec--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b03c839e25ec--------------------------------) [Alessandro Tomassini](https://medium.com/@le_Tomassini?source=post_page---byline--b03c839e25ec--------------------------------)
+[](https://medium.com/@le_Tomassini?source=post_page---byline--b03c839e25ec--------------------------------)![Alessandro Tomassini](https://medium.com/@le_Tomassini?source=post_page---byline--b03c839e25ec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b03c839e25ec--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b03c839e25ec--------------------------------) [Alessandro Tomassini](https://medium.com/@le_Tomassini?source=post_page---byline--b03c839e25ec--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b03c839e25ec--------------------------------) ·8分钟阅读·2024年1月11日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b03c839e25ec--------------------------------) ·8 分钟阅读·2024 年 1 月 11 日
 
 --
 
-![](../Images/a4d0c2b233241726f6bb8978d78ffd82.png)
+![](img/a4d0c2b233241726f6bb8978d78ffd82.png)
 
 图像由 DALL-E 生成
 

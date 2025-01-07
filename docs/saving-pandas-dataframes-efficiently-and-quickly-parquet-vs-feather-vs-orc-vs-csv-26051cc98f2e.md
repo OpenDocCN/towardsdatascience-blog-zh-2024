@@ -1,18 +1,18 @@
 # 高效快速保存 Pandas DataFrame — Parquet 与 Feather 与 ORC 与 CSV
 
-> 原文：[https://towardsdatascience.com/saving-pandas-dataframes-efficiently-and-quickly-parquet-vs-feather-vs-orc-vs-csv-26051cc98f2e?source=collection_archive---------4-----------------------#2024-11-27](https://towardsdatascience.com/saving-pandas-dataframes-efficiently-and-quickly-parquet-vs-feather-vs-orc-vs-csv-26051cc98f2e?source=collection_archive---------4-----------------------#2024-11-27)
+> 原文：[`towardsdatascience.com/saving-pandas-dataframes-efficiently-and-quickly-parquet-vs-feather-vs-orc-vs-csv-26051cc98f2e?source=collection_archive---------4-----------------------#2024-11-27`](https://towardsdatascience.com/saving-pandas-dataframes-efficiently-and-quickly-parquet-vs-feather-vs-orc-vs-csv-26051cc98f2e?source=collection_archive---------4-----------------------#2024-11-27)
 
 ## 优化
 
 ## 速度、内存、大小和便利性。哪种存储方法最好？
 
-[](https://medium.com/@maclayton?source=post_page---byline--26051cc98f2e--------------------------------)[![Mike Clayton](../Images/2d37746b13b7d2ff1c6515893914da97.png)](https://medium.com/@maclayton?source=post_page---byline--26051cc98f2e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--26051cc98f2e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--26051cc98f2e--------------------------------) [Mike Clayton](https://medium.com/@maclayton?source=post_page---byline--26051cc98f2e--------------------------------)
+[](https://medium.com/@maclayton?source=post_page---byline--26051cc98f2e--------------------------------)![Mike Clayton](https://medium.com/@maclayton?source=post_page---byline--26051cc98f2e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--26051cc98f2e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26051cc98f2e--------------------------------) [Mike Clayton](https://medium.com/@maclayton?source=post_page---byline--26051cc98f2e--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26051cc98f2e--------------------------------) ·阅读时间 13 分钟·2024年11月27日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26051cc98f2e--------------------------------) ·阅读时间 13 分钟·2024 年 11 月 27 日
 
 --
 
-![](../Images/66e3198281c637421982c2800cfec328.png)
+![](img/66e3198281c637421982c2800cfec328.png)
 
 混合数据的输出文件大小 — 图片来源：作者
 

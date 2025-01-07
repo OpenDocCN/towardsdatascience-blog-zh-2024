@@ -1,16 +1,16 @@
 # CV VideoPlayer — 一劳永逸
 
-> 原文：[https://towardsdatascience.com/cv-videoplayer-once-and-for-all-b7e1b3349975?source=collection_archive---------6-----------------------#2024-12-12](https://towardsdatascience.com/cv-videoplayer-once-and-for-all-b7e1b3349975?source=collection_archive---------6-----------------------#2024-12-12)
+> 原文：[`towardsdatascience.com/cv-videoplayer-once-and-for-all-b7e1b3349975?source=collection_archive---------6-----------------------#2024-12-12`](https://towardsdatascience.com/cv-videoplayer-once-and-for-all-b7e1b3349975?source=collection_archive---------6-----------------------#2024-12-12)
 
 ## 为计算机视觉研究专门开发的 Python 视频播放器包
 
-[](https://medium.com/@daniel_92063?source=post_page---byline--b7e1b3349975--------------------------------)[![Daniel Tomer](../Images/872d23ccef8f51ab54d69c99cb654955.png)](https://medium.com/@daniel_92063?source=post_page---byline--b7e1b3349975--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b7e1b3349975--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b7e1b3349975--------------------------------) [Daniel Tomer](https://medium.com/@daniel_92063?source=post_page---byline--b7e1b3349975--------------------------------)
+[](https://medium.com/@daniel_92063?source=post_page---byline--b7e1b3349975--------------------------------)![Daniel Tomer](https://medium.com/@daniel_92063?source=post_page---byline--b7e1b3349975--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b7e1b3349975--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b7e1b3349975--------------------------------) [Daniel Tomer](https://medium.com/@daniel_92063?source=post_page---byline--b7e1b3349975--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b7e1b3349975--------------------------------) ·6 分钟阅读·2024年12月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b7e1b3349975--------------------------------) ·6 分钟阅读·2024 年 12 月 12 日
 
 --
 
-![](../Images/fe525d3da0b40b616d63db54a0c0a9fc.png)
+![](img/fe525d3da0b40b616d63db54a0c0a9fc.png)
 
 图片由作者提供
 
@@ -18,7 +18,7 @@
 
 有一天，我决定不再忍受，于是我创建了 [**CV VideoPlayer**](https://pypi.org/project/cvvideoplayer/)，这是一个基于 Python 的开源视频播放器包，专为计算机视觉从业者设计，旨在一劳永逸地解决这个问题。
 
-![](../Images/fb722b9a39bac8d52043f3f1eedd1ce4.png)
+![](img/fb722b9a39bac8d52043f3f1eedd1ce4.png)
 
 CV 视频播放器“双帧模式”加入了可视化和键盘快捷键。图片由作者提供
 
@@ -53,9 +53,9 @@ while ret:
 
 这个过程既繁琐又令人疲惫。
 
-# 进入CV VideoPlayer
+# 进入 CV VideoPlayer
 
-![](../Images/321d31566897a63f73c1694372814775.png)
+![](img/321d31566897a63f73c1694372814775.png)
 
 作者提供的图片
 
@@ -80,7 +80,7 @@ video_player.run()
 
 这将打开视频播放器，并允许你使用空格键或箭头键播放视频，还会添加一些默认的内置`frame-edit-callbacks`，我们将在接下来的部分详细阐述。
 
-![](../Images/0f99aa9cb9dbb81615f8607d90bafae6.png)
+![](img/0f99aa9cb9dbb81615f8607d90bafae6.png)
 
 作者提供的图片
 
@@ -116,7 +116,7 @@ video_player.run()
 
 +   `KeyMapOverlay` — 自动检测并打印所有可用的快捷键（包括用户自定义的快捷键）。
 
-+   `DetectionCsvPlotter` — 绘制CSV文件中指定的边界框，CSV的表头为：frame_id, label, x1, y1, width, height, score
++   `DetectionCsvPlotter` — 绘制 CSV 文件中指定的边界框，CSV 的表头为：frame_id, label, x1, y1, width, height, score
 
 +   `FrameNormlizer` — 允许用户调整图像的动态范围。
 
@@ -186,7 +186,7 @@ class MyCallback(BaseFrameEditCallback):
 
 # 添加自定义快捷键
 
-对于每个回调，CV Video Player允许你添加自定义快捷键，这些快捷键可以在运行时改变可视化效果。
+对于每个回调，CV Video Player 允许你添加自定义快捷键，这些快捷键可以在运行时改变可视化效果。
 
 最基本的快捷键是启用/禁用回调，它是通过 `enable_disable_key` 参数创建的，像这样：
 

@@ -1,16 +1,16 @@
 # 话题建模你的个人数据
 
-> 原文：[https://towardsdatascience.com/topic-modelling-your-personal-data-9561e25a042e?source=collection_archive---------6-----------------------#2024-09-21](https://towardsdatascience.com/topic-modelling-your-personal-data-9561e25a042e?source=collection_archive---------6-----------------------#2024-09-21)
+> 原文：[`towardsdatascience.com/topic-modelling-your-personal-data-9561e25a042e?source=collection_archive---------6-----------------------#2024-09-21`](https://towardsdatascience.com/topic-modelling-your-personal-data-9561e25a042e?source=collection_archive---------6-----------------------#2024-09-21)
 
 ## 使用传统模型和变换器模型探索由数据经纪人存储的个人数据
 
-[](https://medium.com/@jbraun_44616?source=post_page---byline--9561e25a042e--------------------------------)[![Jeff Braun](../Images/c630fa32dde9d861ab9b2dcf11bff1e3.png)](https://medium.com/@jbraun_44616?source=post_page---byline--9561e25a042e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9561e25a042e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9561e25a042e--------------------------------) [Jeff Braun](https://medium.com/@jbraun_44616?source=post_page---byline--9561e25a042e--------------------------------)
+[](https://medium.com/@jbraun_44616?source=post_page---byline--9561e25a042e--------------------------------)![Jeff Braun](https://medium.com/@jbraun_44616?source=post_page---byline--9561e25a042e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9561e25a042e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9561e25a042e--------------------------------) [Jeff Braun](https://medium.com/@jbraun_44616?source=post_page---byline--9561e25a042e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9561e25a042e--------------------------------) ·阅读时长 24 分钟·2024年9月21日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9561e25a042e--------------------------------) ·阅读时长 24 分钟·2024 年 9 月 21 日
 
 --
 
-![](../Images/4a9ad3270d2311c09eb1539f2af8e7d0.png)
+![](img/4a9ad3270d2311c09eb1539f2af8e7d0.png)
 
 图像由作者使用 ChatGPT 4o 和 DALL-E-3 创建
 

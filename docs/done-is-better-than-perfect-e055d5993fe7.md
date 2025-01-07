@@ -1,18 +1,18 @@
 # 做好比完美更重要
 
-> 原文：[https://towardsdatascience.com/done-is-better-than-perfect-e055d5993fe7?source=collection_archive---------0-----------------------#2024-07-30](https://towardsdatascience.com/done-is-better-than-perfect-e055d5993fe7?source=collection_archive---------0-----------------------#2024-07-30)
+> 原文：[`towardsdatascience.com/done-is-better-than-perfect-e055d5993fe7?source=collection_archive---------0-----------------------#2024-07-30`](https://towardsdatascience.com/done-is-better-than-perfect-e055d5993fe7?source=collection_archive---------0-----------------------#2024-07-30)
 
 ## 如何成为一名更务实的数据科学家，以及这对你职业发展的重要性
 
-[](https://medium.com/@twalbaum?source=post_page---byline--e055d5993fe7--------------------------------)[![Torsten Walbaum](../Images/27964d8095af45642f152a0ce4fa2681.png)](https://medium.com/@twalbaum?source=post_page---byline--e055d5993fe7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e055d5993fe7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e055d5993fe7--------------------------------) [Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--e055d5993fe7--------------------------------)
+[](https://medium.com/@twalbaum?source=post_page---byline--e055d5993fe7--------------------------------)![Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--e055d5993fe7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e055d5993fe7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e055d5993fe7--------------------------------) [Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--e055d5993fe7--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e055d5993fe7--------------------------------) ·10分钟阅读·2024年7月30日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e055d5993fe7--------------------------------) ·10 分钟阅读·2024 年 7 月 30 日
 
 --
 
-![](../Images/d24197c19442838c025e6750c646fc21.png)
+![](img/d24197c19442838c025e6750c646fc21.png)
 
-作者提供的图片（通过Midjourney生成）
+作者提供的图片（通过 Midjourney 生成）
 
 你在工作中表现出色，且以自己知道做事的最佳方式为荣。既然你希望提升标准，你也要求他人达到同样的标准。这肯定会让你引起注意并晋升，对吧？
 
@@ -20,7 +20,7 @@
 
 如果你是一个高绩效者，很容易陷入完美主义的陷阱。这种情况从很早就开始了：学校和大学教育我们使用科学方法，任何偏离理想解决方案的做法都会被扣分。
 
-![](../Images/8777b8cbf2c2cbda6ec6cf82ac2e1732.png)
+![](img/8777b8cbf2c2cbda6ec6cf82ac2e1732.png)
 
 作者提供的图片
 
@@ -40,9 +40,9 @@
 
 1.  如何变得更加务实
 
-[](https://medium.com/@twalbaum/subscribe?source=post_page-----e055d5993fe7--------------------------------) [## 每当Torsten Walbaum发布新文章时，获取邮件通知。
+[](https://medium.com/@twalbaum/subscribe?source=post_page-----e055d5993fe7--------------------------------) [## 每当 Torsten Walbaum 发布新文章时，获取邮件通知。
 
-### 每当Torsten Walbaum发布新文章时，获取邮件通知。通过注册，如果你还没有Medium账号，你将创建一个新账号…
+### 每当 Torsten Walbaum 发布新文章时，获取邮件通知。通过注册，如果你还没有 Medium 账号，你将创建一个新账号…
 
 [medium.com](https://medium.com/@twalbaum/subscribe?source=post_page-----e055d5993fe7--------------------------------)
 
@@ -62,7 +62,7 @@
 
 +   完美主义者会竭尽全力去减少错误的可能性。自然的后果是，他们往往会待在自己的舒适区内。
 
-+   如果你从事市场营销数据科学工作，做B2B SaaS？最好继续专注于你已经掌握的知识，即使你发现自己更有兴趣做消费金融产品分析。如果你转行，你将不得不从头学起新行业，而且更有可能犯错；为什么要冒这个险呢？
++   如果你从事市场营销数据科学工作，做 B2B SaaS？最好继续专注于你已经掌握的知识，即使你发现自己更有兴趣做消费金融产品分析。如果你转行，你将不得不从头学起新行业，而且更有可能犯错；为什么要冒这个险呢？
 
 根据我的经验，完美主义在高度分析型的人或有高级学术背景的人中尤其常见。[而且它变得越来越普遍](https://www.apa.org/pubs/journals/releases/bul-bul0000138.pdf)。然而：
 
@@ -72,7 +72,7 @@
 
 做工作时想到“我本可以做出更复杂的版本”是痛苦的；有时候，你甚至会为自己随便拼凑出来的粗糙方案感到羞愧。但要记住，你在一个交付物上投入的时间很快就会出现收益递减的情况：
 
-![](../Images/26937da9eeb487f43d345f5d351c753e.png)
+![](img/26937da9eeb487f43d345f5d351c753e.png)
 
 图片来源：作者
 
@@ -132,7 +132,7 @@
 
 *附注：这并不意味着你应该提交完全没有格式的东西。花五分钟时间使文档* ***易于理解*** *(不一定要漂亮)是值得的。*
 
-![](../Images/eecc17a45094d5871c6457c88f1de163.png)
+![](img/eecc17a45094d5871c6457c88f1de163.png)
 
 作者提供的图片
 
@@ -142,13 +142,13 @@
 
 +   **如果这就是你：** 专注于关键见解，并将支持信息放在附录中。使用简单的英语；你希望来自不同团队和背景的人都能理解你的工作。只有当别人理解你的分析结论时，你才能[真正实现影响力作为数据科学家](https://medium.com/towards-data-science/how-to-maximize-your-impact-as-a-data-scientist-3881995a9cb1)。
 
-> ***对我有帮助的是：*** *不要试图预先预测所有问题并提前回答。将最可能的问题放在FAQ部分，并准备现场回答任何剩余问题；这实际上让你看起来比在文档中包含所有内容更有能力。*
+> ***对我有帮助的是：*** *不要试图预先预测所有问题并提前回答。将最可能的问题放在 FAQ 部分，并准备现场回答任何剩余问题；这实际上让你看起来比在文档中包含所有内容更有能力。*
 
 +   **如果你遇到这种情况：** 请要求报告人提供五分钟的执行摘要，迫使他们专注于关键点。然后根据需要提出有针对性的后续问题。
 
 # 什么时候应该务实，什么时候不应该
 
-有时候，做到100%准确是必要的，而有时候，速度比完美更重要。但是，什么时候应该务实，什么时候又是一个坏主意呢？
+有时候，做到 100%准确是必要的，而有时候，速度比完美更重要。但是，什么时候应该务实，什么时候又是一个坏主意呢？
 
 **以下是你应该考虑的因素，以指导这个决策：**
 
@@ -158,11 +158,11 @@
 
 +   **⚖️ 如果你犯错，会有声誉损害或法律后果吗？** 必须收回你在内部做出的声明是尴尬的；如果你向监管机构承认自己犯了错误，可能会有严重的后果。作为经验法则，任何涉及监管机构、华尔街、董事会或客户的事务，都应该接受最严格的审查。
 
-+   **📈 这个决策对分析的敏感性有多大？** 一个常见的错误是，即使额外的准确性不会改变决策，也不断投入时间进行分析。例如，如果你想估算一个新商业机会的潜在收入，知道这个机会的范围是1亿美元还是10亿美元，可能足以做出是否继续的决策。
++   **📈 这个决策对分析的敏感性有多大？** 一个常见的错误是，即使额外的准确性不会改变决策，也不断投入时间进行分析。例如，如果你想估算一个新商业机会的潜在收入，知道这个机会的范围是 1 亿美元还是 10 亿美元，可能足以做出是否继续的决策。
 
 +   **🗑️ 这是一项可以丢弃的工作吗？** 将时间投资于那些将长期使用的工作，比那些仅用于一次性决策的分析更有益。对于当前问题，可以将临时分析做得“足够好”，而将大部分精力集中在优化那些将被内部或外部客户广泛使用的工作上。
 
-![](../Images/8e9234e399c93f3494ddc529be661c1d.png)
+![](img/8e9234e399c93f3494ddc529be661c1d.png)
 
 图片由作者提供
 
@@ -180,4 +180,4 @@
 
 变得更加务实是一个过程；它需要时间，因此不要指望一夜之间改变自己的思维方式。但这是值得的；它不仅会增加你的影响力，还会减少你的压力，因为你将花更少的时间去追求那难以捉摸的完美。
 
-**想要获取更多实用的分析建议，可以考虑在Medium、** [**LinkedIn**](http://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=torsten-walbaum) **或** [**Substack**](https://www.operatorshandbook.com/) **上关注我。**
+**想要获取更多实用的分析建议，可以考虑在 Medium、** [**LinkedIn**](http://www.linkedin.com/comm/mynetwork/discovery-see-all?usecase=PEOPLE_FOLLOWS&followMember=torsten-walbaum) **或** [**Substack**](https://www.operatorshandbook.com/) **上关注我。**

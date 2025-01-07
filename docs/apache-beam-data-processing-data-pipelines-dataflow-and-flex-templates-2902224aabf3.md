@@ -1,16 +1,16 @@
 # Apache Beam：数据处理、数据管道、Dataflow 和 Flex 模板
 
-> 原文：[https://towardsdatascience.com/apache-beam-data-processing-data-pipelines-dataflow-and-flex-templates-2902224aabf3?source=collection_archive---------6-----------------------#2024-02-12](https://towardsdatascience.com/apache-beam-data-processing-data-pipelines-dataflow-and-flex-templates-2902224aabf3?source=collection_archive---------6-----------------------#2024-02-12)
+> 原文：[`towardsdatascience.com/apache-beam-data-processing-data-pipelines-dataflow-and-flex-templates-2902224aabf3?source=collection_archive---------6-----------------------#2024-02-12`](https://towardsdatascience.com/apache-beam-data-processing-data-pipelines-dataflow-and-flex-templates-2902224aabf3?source=collection_archive---------6-----------------------#2024-02-12)
 
 ## 在这篇文章中，我们将探索 Apache Beam，从一个简单的管道到更复杂的管道，使用 GCP Dataflow。让我们学习什么是 `PTransform`、`PCollection`、`GroupByKey` 以及 Dataflow Flex 模板。
 
-[](https://stefanobosisio1.medium.com/?source=post_page---byline--2902224aabf3--------------------------------)[![Stefano Bosisio](../Images/450d904024a4cbf1adf8a625886d852e.png)](https://stefanobosisio1.medium.com/?source=post_page---byline--2902224aabf3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2902224aabf3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2902224aabf3--------------------------------) [Stefano Bosisio](https://stefanobosisio1.medium.com/?source=post_page---byline--2902224aabf3--------------------------------)
+[](https://stefanobosisio1.medium.com/?source=post_page---byline--2902224aabf3--------------------------------)![Stefano Bosisio](https://stefanobosisio1.medium.com/?source=post_page---byline--2902224aabf3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2902224aabf3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2902224aabf3--------------------------------) [Stefano Bosisio](https://stefanobosisio1.medium.com/?source=post_page---byline--2902224aabf3--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2902224aabf3--------------------------------) ·阅读时间：19 分钟 ·2024年2月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2902224aabf3--------------------------------) ·阅读时间：19 分钟 ·2024 年 2 月 12 日
 
 --
 
-![](../Images/96f116eca600003355d4c0254aff611a.png)
+![](img/96f116eca600003355d4c0254aff611a.png)
 
 图片由 [Faruk Kaymak](https://unsplash.com/@fkaymak) 提供，来源于 [Unsplash](https://unsplash.com/photos/brown-concrete-building-close-up-photography-P_Ne56WEe5s)
 

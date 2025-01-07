@@ -1,22 +1,22 @@
-# 让我们用 JAX 重建 NanoGPT！（第1部分）
+# 让我们用 JAX 重建 NanoGPT！（第一部分）
 
-> 原文：[https://towardsdatascience.com/lets-reproduce-nanogpt-with-jax-part-1-95bec4630eb4?source=collection_archive---------2-----------------------#2024-07-21](https://towardsdatascience.com/lets-reproduce-nanogpt-with-jax-part-1-95bec4630eb4?source=collection_archive---------2-----------------------#2024-07-21)
+> 原文：[`towardsdatascience.com/lets-reproduce-nanogpt-with-jax-part-1-95bec4630eb4?source=collection_archive---------2-----------------------#2024-07-21`](https://towardsdatascience.com/lets-reproduce-nanogpt-with-jax-part-1-95bec4630eb4?source=collection_archive---------2-----------------------#2024-07-21)
 
-## [第1部分：使用 JAX 构建 124M GPT2。](https://medium.com/@lou1swang/lets-reproduce-nanogpt-with-jax-part-1-95bec4630eb4)
+## [第一部分：使用 JAX 构建 124M GPT2。](https://medium.com/@lou1swang/lets-reproduce-nanogpt-with-jax-part-1-95bec4630eb4)
 
-[第2部分：在单GPU中优化训练速度。](https://medium.com/@lou1swang/lets-reproduce-nanogpt-with-jax-part-2-175k-1350k-tokens-sec-in-single-gpu-ff2664ef18d3)
+[第二部分：在单 GPU 中优化训练速度。](https://medium.com/@lou1swang/lets-reproduce-nanogpt-with-jax-part-2-175k-1350k-tokens-sec-in-single-gpu-ff2664ef18d3)
 
-第3部分：在 JAX 中进行多GPU训练。
+第三部分：在 JAX 中进行多 GPU 训练。
 
-[](https://lou1swang.medium.com/?source=post_page---byline--95bec4630eb4--------------------------------)[![Louis Wang](../Images/259879ae7cd20b7843936d1f4cdbec52.png)](https://lou1swang.medium.com/?source=post_page---byline--95bec4630eb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95bec4630eb4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--95bec4630eb4--------------------------------) [Louis Wang](https://lou1swang.medium.com/?source=post_page---byline--95bec4630eb4--------------------------------)
+[](https://lou1swang.medium.com/?source=post_page---byline--95bec4630eb4--------------------------------)![Louis Wang](https://lou1swang.medium.com/?source=post_page---byline--95bec4630eb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95bec4630eb4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95bec4630eb4--------------------------------) [Louis Wang](https://lou1swang.medium.com/?source=post_page---byline--95bec4630eb4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95bec4630eb4--------------------------------) ·阅读时间：8分钟·2024年7月21日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95bec4630eb4--------------------------------) ·阅读时间：8 分钟·2024 年 7 月 21 日
 
 --
 
-受到 Andrej Karpathy 最近的 YouTube 视频[让我们重建 GPT-2（124M）](https://www.youtube.com/watch?v=l8pRSuU81PU&t=1646s)的启发，我想用 JAX 重建它，并进行大多数训练优化。JAX 专为高效计算速度而构建，非常有趣的是，可以将 Pytorch 与其最近的训练优化以及 JAX 与其相关库（如 Flax：JAX 的神经网络训练层 API 和 Optax：JAX 的梯度处理和优化库）进行对比。我们将迅速了解 JAX，并用 JAX 重建 GPT。最后，我们将比较 Pytorch 和 JAX 在多GPU训练中的 token/sec。
+受到 Andrej Karpathy 最近的 YouTube 视频[让我们重建 GPT-2（124M）](https://www.youtube.com/watch?v=l8pRSuU81PU&t=1646s)的启发，我想用 JAX 重建它，并进行大多数训练优化。JAX 专为高效计算速度而构建，非常有趣的是，可以将 Pytorch 与其最近的训练优化以及 JAX 与其相关库（如 Flax：JAX 的神经网络训练层 API 和 Optax：JAX 的梯度处理和优化库）进行对比。我们将迅速了解 JAX，并用 JAX 重建 GPT。最后，我们将比较 Pytorch 和 JAX 在多 GPU 训练中的 token/sec。
 
-![](../Images/327bdd2b1dfc0479960467df61f2d5da.png)
+![](img/327bdd2b1dfc0479960467df61f2d5da.png)
 
 AI 生成的 GPT
 
@@ -24,17 +24,17 @@ AI 生成的 GPT
 
 根据其[readthedoc](https://jax.readthedocs.io/en/latest/index.html)，JAX 是一个面向加速器的数组计算和程序转换的 Python 库，旨在实现高性能的数值计算和大规模机器学习。我想用它的名字来介绍 JAX。虽然有人称它为 Just Another [XLA](https://github.com/openxla/xla)（加速线性代数），我更愿意称其为 J(it) A(utograd) X(LA)，以展示它的高效能力。
 
-J — Just-in-time (JIT) 编译。当你运行Python函数时，Jax将其转换为一组基本操作，称为Jaxpr。然后，Jaxpr表达式会被转换为XLA的输入，XLA将其编译成底层脚本，从而为目标设备（CPU、GPU或TPU）生成优化后的可执行文件。
+J — Just-in-time (JIT) 编译。当你运行 Python 函数时，Jax 将其转换为一组基本操作，称为 Jaxpr。然后，Jaxpr 表达式会被转换为 XLA 的输入，XLA 将其编译成底层脚本，从而为目标设备（CPU、GPU 或 TPU）生成优化后的可执行文件。
 
 A — Autograd。计算梯度是现代机器学习方法中的一个关键部分，你只需要调用`jax.grad()`来获取梯度，从而优化模型。
 
-X — XLA。这是一个开源的机器学习编译器，支持CPU、GPU和ML加速器。通常，XLA会对[StableHLO](https://github.com/openxla/stablehlo)图进行几个内建的优化和分析传递，然后将HLO计算发送到后端进行进一步的HLO级别优化。后端再进行特定目标的代码生成。
+X — XLA。这是一个开源的机器学习编译器，支持 CPU、GPU 和 ML 加速器。通常，XLA 会对[StableHLO](https://github.com/openxla/stablehlo)图进行几个内建的优化和分析传递，然后将 HLO 计算发送到后端进行进一步的 HLO 级别优化。后端再进行特定目标的代码生成。
 
-这些只是JAX的一些关键特性，但它还有许多类似于numpy的用户友好API，如`jax.numpy`，以及通过`jax.vmap`进行的自动向量化，和通过`jax.pmap`将代码并行化到多个设备上。我们将在以后的博客中介绍更多Jax的概念和应用，但现在让我们用Jax复现NanoGPT！
+这些只是 JAX 的一些关键特性，但它还有许多类似于 numpy 的用户友好 API，如`jax.numpy`，以及通过`jax.vmap`进行的自动向量化，和通过`jax.pmap`将代码并行化到多个设备上。我们将在以后的博客中介绍更多 Jax 的概念和应用，但现在让我们用 Jax 复现 NanoGPT！
 
 ## 从注意力机制到变换器（Transformer）
 
-GPT 是一种仅解码的变换器模型，关键构建模块是注意力模块。我们可以首先定义一个模型配置数据类来保存模型的超参数，这样模型模块就能高效地使用它来初始化模型架构。类似于124M GPT模型，在这里我们初始化一个12层的变换器解码器，具有12个头和50257个词汇表大小，每个词汇表项有768维嵌入向量。注意力计算的块大小为1024。
+GPT 是一种仅解码的变换器模型，关键构建模块是注意力模块。我们可以首先定义一个模型配置数据类来保存模型的超参数，这样模型模块就能高效地使用它来初始化模型架构。类似于 124M GPT 模型，在这里我们初始化一个 12 层的变换器解码器，具有 12 个头和 50257 个词汇表大小，每个词汇表项有 768 维嵌入向量。注意力计算的块大小为 1024。
 
 ```py
 from dataclasses import dataclass
@@ -49,9 +49,9 @@ class ModelConfig:
   dropout_rate: float = 0.1
 ```
 
-接下来是变换器模型的关键构建模块——注意力机制（Attention）。其思想是将输入处理成三个权重矩阵：Key、Query和Value。在这里，我们依赖于`flax`，这是一个Jax层和训练API库，用来初始化这三个权重矩阵，只需要调用`[flax.linen.Dense](https://flax.readthedocs.io/en/v0.5.3/_autosummary/flax.linen.Dense.html)`。如前所述，Jax有许多类似numpy的API，因此我们使用`[jax.numpy.reshape](https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.reshape.html)`将权重矩阵后的输出从[batch_size, sequence_length, embedding_dim]重塑为[batch_size, sequence_length, num_head, embedding_dim / num_head]。由于我们需要对Key和Value矩阵执行矩阵乘法，jax还提供了`[jax.numpy.matmul](https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.matmul.html)`和`[jax.numpy.transpose](https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.transpose.html)` API（用于转置Key矩阵以进行乘法运算）。
+接下来是变换器模型的关键构建模块——注意力机制（Attention）。其思想是将输入处理成三个权重矩阵：Key、Query 和 Value。在这里，我们依赖于`flax`，这是一个 Jax 层和训练 API 库，用来初始化这三个权重矩阵，只需要调用`[flax.linen.Dense](https://flax.readthedocs.io/en/v0.5.3/_autosummary/flax.linen.Dense.html)`。如前所述，Jax 有许多类似 numpy 的 API，因此我们使用`[jax.numpy.reshape](https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.reshape.html)`将权重矩阵后的输出从[batch_size, sequence_length, embedding_dim]重塑为[batch_size, sequence_length, num_head, embedding_dim / num_head]。由于我们需要对 Key 和 Value 矩阵执行矩阵乘法，jax 还提供了`[jax.numpy.matmul](https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.matmul.html)`和`[jax.numpy.transpose](https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.transpose.html)` API（用于转置 Key 矩阵以进行乘法运算）。
 
-![](../Images/8f2916bfb42338ef17e1526a677e4f85.png)
+![](img/8f2916bfb42338ef17e1526a677e4f85.png)
 
 多头注意力（Multihead Attention）
 
@@ -157,11 +157,11 @@ class GPT(nn.Module):
 
 现在让我们验证一下参数的数量：我们首先初始化模型配置的数据类和随机密钥，然后创建一个虚拟输入并将其输入到 GPT 模型中。接着，我们利用 `jax.util.treemap` API 创建一个计数参数函数。我们得到了 **124439808**（124M）个参数，与 Huggingface 的 GPT2 相同，哇！
 
-![](../Images/513bfdf90096dcb03e3cd4a76910d2d7.png)
+![](img/513bfdf90096dcb03e3cd4a76910d2d7.png)
 
 Colab 结果：参数数量
 
-![](../Images/576fc03b5cb1912c0ba770b510de7b73.png)
+![](img/576fc03b5cb1912c0ba770b510de7b73.png)
 
 验证 Huggingface 的 GPT2 参数数量
 
@@ -193,7 +193,7 @@ class DataLoader:
     return x,y
 ```
 
-![](../Images/da59795faf894d9f4bd6f4d1ed782ece.png)
+![](img/da59795faf894d9f4bd6f4d1ed782ece.png)
 
 Colab 结果：简单的数据加载器，批量大小为 4，序列长度为 128
 
@@ -228,7 +228,7 @@ def train_step(state: TrainState, x: jnp.ndarray, y: jnp.ndarray) -> Tuple[jnp.n
 
 现在一切准备就绪，可以开始进行简单的训练循环了……让我们检查损失值。模型的预测应该优于随机猜测，因此损失值应该低于 -ln(1/50257)≈10.825。我们对单批次过拟合的预期是：一开始损失接近 10.825，然后下降到接近 0。让我们取一批（x，y）并运行训练循环 50 次。我还添加了类似的日志来计算训练速度。
 
-![](../Images/add7d951685406ff5cfce20cccb41414.png)
+![](img/add7d951685406ff5cfce20cccb41414.png)
 
 如我们所见，损失值正是我们预期的，训练吞吐量大约是 400–500 k token/sec。这已经比 Andrej 视频中没有任何优化的 Pytorch 初始版本快了 40 倍。请注意，我们是在 1 个 A100 GPU 上运行 Jax 脚本，这应该消除了硬件差异对速度比较的影响。这里没有 `.to(device)` 的操作来将模型或数据从主机 CPU 移动到设备 GPU，这正是 Jax 的一个优势！
 

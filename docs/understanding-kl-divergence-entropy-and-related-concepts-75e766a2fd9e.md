@@ -1,16 +1,16 @@
 # 理解 KL 散度、熵及相关概念
 
-> 原文：[https://towardsdatascience.com/understanding-kl-divergence-entropy-and-related-concepts-75e766a2fd9e?source=collection_archive---------8-----------------------#2024-10-08](https://towardsdatascience.com/understanding-kl-divergence-entropy-and-related-concepts-75e766a2fd9e?source=collection_archive---------8-----------------------#2024-10-08)
+> 原文：[`towardsdatascience.com/understanding-kl-divergence-entropy-and-related-concepts-75e766a2fd9e?source=collection_archive---------8-----------------------#2024-10-08`](https://towardsdatascience.com/understanding-kl-divergence-entropy-and-related-concepts-75e766a2fd9e?source=collection_archive---------8-----------------------#2024-10-08)
 
 ## 信息理论、机器学习和统计学中的重要概念
 
-[](https://saankhya.medium.com/?source=post_page---byline--75e766a2fd9e--------------------------------)[![Saankhya Mondal](../Images/b22ffe3b52c6c3bcfafaeed3812811d8.png)](https://saankhya.medium.com/?source=post_page---byline--75e766a2fd9e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--75e766a2fd9e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--75e766a2fd9e--------------------------------) [Saankhya Mondal](https://saankhya.medium.com/?source=post_page---byline--75e766a2fd9e--------------------------------)
+[](https://saankhya.medium.com/?source=post_page---byline--75e766a2fd9e--------------------------------)![Saankhya Mondal](https://saankhya.medium.com/?source=post_page---byline--75e766a2fd9e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--75e766a2fd9e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--75e766a2fd9e--------------------------------) [Saankhya Mondal](https://saankhya.medium.com/?source=post_page---byline--75e766a2fd9e--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--75e766a2fd9e--------------------------------) ·阅读时间 8 分钟·2024 年 10 月 8 日
 
 --
 
-![](../Images/eea0002633893dd7eab17a08678acd3f.png)
+![](img/eea0002633893dd7eab17a08678acd3f.png)
 
 图像由 Gemini AI 生成
 

@@ -1,12 +1,12 @@
 # 蒙特卡洛方法解析
 
-> 原文：[https://towardsdatascience.com/monte-carlo-methods-decoded-d63301bde7ce?source=collection_archive---------2-----------------------#2024-02-16](https://towardsdatascience.com/monte-carlo-methods-decoded-d63301bde7ce?source=collection_archive---------2-----------------------#2024-02-16)
+> 原文：[`towardsdatascience.com/monte-carlo-methods-decoded-d63301bde7ce?source=collection_archive---------2-----------------------#2024-02-16`](https://towardsdatascience.com/monte-carlo-methods-decoded-d63301bde7ce?source=collection_archive---------2-----------------------#2024-02-16)
 
 ## 用模拟解决复杂问题
 
-[](https://hennie-de-harder.medium.com/?source=post_page---byline--d63301bde7ce--------------------------------)[![Hennie de Harder](../Images/20a1be0ed2ac4b535397973ad6148e6b.png)](https://hennie-de-harder.medium.com/?source=post_page---byline--d63301bde7ce--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d63301bde7ce--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d63301bde7ce--------------------------------) [Hennie de Harder](https://hennie-de-harder.medium.com/?source=post_page---byline--d63301bde7ce--------------------------------)
+[](https://hennie-de-harder.medium.com/?source=post_page---byline--d63301bde7ce--------------------------------)![Hennie de Harder](https://hennie-de-harder.medium.com/?source=post_page---byline--d63301bde7ce--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d63301bde7ce--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d63301bde7ce--------------------------------) [Hennie de Harder](https://hennie-de-harder.medium.com/?source=post_page---byline--d63301bde7ce--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d63301bde7ce--------------------------------) ·阅读时间16分钟·2024年2月16日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d63301bde7ce--------------------------------) ·阅读时间 16 分钟·2024 年 2 月 16 日
 
 --
 
@@ -14,7 +14,7 @@
 
 现实世界中的系统和过程通常涉及不确定的参数和变量。使用蒙特卡洛方法，你可以明确地对这些不确定性进行建模。企业可以通过理解不同风险的概率和影响，做出更明智的决策。除了决策支持外，你还可以将其用于增强预测模型和/或沟通。
 
-![](../Images/1f4575cff4c6012c73bcbb1b857ffd2b.png)
+![](img/1f4575cff4c6012c73bcbb1b857ffd2b.png)
 
 装有玻璃球的瓶子。图像由作者使用 Dall·E 创建。
 

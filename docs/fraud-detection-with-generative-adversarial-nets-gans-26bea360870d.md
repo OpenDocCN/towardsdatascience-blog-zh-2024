@@ -1,30 +1,30 @@
 # 使用生成对抗网络（GANs）进行欺诈检测
 
-> 原文：[https://towardsdatascience.com/fraud-detection-with-generative-adversarial-nets-gans-26bea360870d?source=collection_archive---------5-----------------------#2024-01-29](https://towardsdatascience.com/fraud-detection-with-generative-adversarial-nets-gans-26bea360870d?source=collection_archive---------5-----------------------#2024-01-29)
+> 原文：[`towardsdatascience.com/fraud-detection-with-generative-adversarial-nets-gans-26bea360870d?source=collection_archive---------5-----------------------#2024-01-29`](https://towardsdatascience.com/fraud-detection-with-generative-adversarial-nets-gans-26bea360870d?source=collection_archive---------5-----------------------#2024-01-29)
 
-## 使用GANs进行数据增强以调整不平衡数据集
+## 使用 GANs 进行数据增强以调整不平衡数据集
 
-[](https://deeporigami.medium.com/?source=post_page---byline--26bea360870d--------------------------------)[![Michio Suginoo](../Images/15e4a70d17d163889cc902bf4409931a.png)](https://deeporigami.medium.com/?source=post_page---byline--26bea360870d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--26bea360870d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--26bea360870d--------------------------------) [Michio Suginoo](https://deeporigami.medium.com/?source=post_page---byline--26bea360870d--------------------------------)
+[](https://deeporigami.medium.com/?source=post_page---byline--26bea360870d--------------------------------)![Michio Suginoo](https://deeporigami.medium.com/?source=post_page---byline--26bea360870d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--26bea360870d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26bea360870d--------------------------------) [Michio Suginoo](https://deeporigami.medium.com/?source=post_page---byline--26bea360870d--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26bea360870d--------------------------------) ·阅读时间：18分钟·2024年1月29日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26bea360870d--------------------------------) ·阅读时间：18 分钟·2024 年 1 月 29 日
 
 --
 
-![](../Images/b701f889a034bd2b3b6ca7bfd994721c.png)
+![](img/b701f889a034bd2b3b6ca7bfd994721c.png)
 
 图片来源：[Brett Jordan](https://unsplash.com/@brett_jordan?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-[“生成对抗网络](https://arxiv.org/abs/1406.2661)”（GANs）在过去展示了生成逼真合成数据的出色表现，这些数据与真实数据几乎无法区分。不幸的是，GANs因其不道德的应用，尤其是[深度伪造](https://www.technologyreview.com/2018/08/17/240305/fake-america-great-again/)（Knight，2018），而引起了公众的关注。
+[“生成对抗网络](https://arxiv.org/abs/1406.2661)”（GANs）在过去展示了生成逼真合成数据的出色表现，这些数据与真实数据几乎无法区分。不幸的是，GANs 因其不道德的应用，尤其是[深度伪造](https://www.technologyreview.com/2018/08/17/240305/fake-america-great-again/)（Knight，2018），而引起了公众的关注。
 
-本文阐述了GANs在欺诈检测领域应用的一个有良好动机的案例。
+本文阐述了 GANs 在欺诈检测领域应用的一个有良好动机的案例。
 
 欺诈检测是一个二分类预测应用。欺诈案件仅占交易总量的一小部分，构成了一个少数类别，使得数据集高度不平衡。通常，生成的模型往往偏向于多数类，并且容易对少数类欠拟合。因此，数据集不平衡的程度越高，分类预测器的表现就会越差。
 
-我的动机是在尝试解决与不平衡数据集相关的经典欺诈检测问题时，将GANs作为数据增强工具来使用。更具体地说，GANs可以生成少数欺诈类的逼真合成数据，并使不平衡的数据集达到完美平衡。
+我的动机是在尝试解决与不平衡数据集相关的经典欺诈检测问题时，将 GANs 作为数据增强工具来使用。更具体地说，GANs 可以生成少数欺诈类的逼真合成数据，并使不平衡的数据集达到完美平衡。
 
 我希望这个复杂的算法能对欺诈检测的性能产生实质性贡献。换句话说，我最初的期望是：算法越复杂，性能越好。
 
-一个相关的问题是，使用GANs是否能保证在欺诈检测性能上取得显著改善，并满足我的动机。让我们来看看。
+一个相关的问题是，使用 GANs 是否能保证在欺诈检测性能上取得显著改善，并满足我的动机。让我们来看看。
 
 # ***简介***
 
@@ -46,33 +46,33 @@
 
 本文分为以下几个部分：
 
-+   第一部分：算法概述：GANs的双层优化架构
++   第一部分：算法概述：GANs 的双层优化架构
 
 +   第二部分：欺诈数据集
 
-+   第三部分：GANs用于数据增强的Python代码解析
++   第三部分：GANs 用于数据增强的 Python 代码解析
 
-+   第四部分：欺诈检测概述（基准场景与GANs场景对比）
++   第四部分：欺诈检测概述（基准场景与 GANs 场景对比）
 
 +   第五部分：结论
 
-总体而言，我将主要关注GANs的话题（包括算法和代码）。至于模型开发中的其他话题，如数据预处理和分类器算法，我将仅简要概述过程，并避免深入细节。在这个背景下，本文假设读者已经具备关于二分类算法（特别是我为欺诈检测选择的集成分类器）以及数据清洗和预处理的一般性知识。
+总体而言，我将主要关注 GANs 的话题（包括算法和代码）。至于模型开发中的其他话题，如数据预处理和分类器算法，我将仅简要概述过程，并避免深入细节。在这个背景下，本文假设读者已经具备关于二分类算法（特别是我为欺诈检测选择的集成分类器）以及数据清洗和预处理的一般性知识。
 
-对于详细代码，读者可以访问以下链接：[https://github.com/deeporigami/Portfolio/blob/6538fcaad1bf58c5f63d6320ca477fa867edb1df/GAN_FraudDetection_Medium_2.ipynb](https://github.com/deeporigami/Portfolio/blob/6538fcaad1bf58c5f63d6320ca477fa867edb1df/GAN_FraudDetection_Medium_2.ipynb)
+对于详细代码，读者可以访问以下链接：[`github.com/deeporigami/Portfolio/blob/6538fcaad1bf58c5f63d6320ca477fa867edb1df/GAN_FraudDetection_Medium_2.ipynb`](https://github.com/deeporigami/Portfolio/blob/6538fcaad1bf58c5f63d6320ca477fa867edb1df/GAN_FraudDetection_Medium_2.ipynb)
 
-# ***第一部分：算法概述：GANs的双层优化架构***
+# ***第一部分：算法概述：GANs 的双层优化架构***
 
-GAN是一种特殊类型的生成算法。正如其名称所示，生成对抗网络（GAN）由两个神经网络组成：生成网络（生成器）和对抗网络（判别器）。GAN将这两个代理放在一起进行竞争，其中生成器试图生成逼真的合成数据，而判别器则试图区分合成数据和真实数据。
+GAN 是一种特殊类型的生成算法。正如其名称所示，生成对抗网络（GAN）由两个神经网络组成：生成网络（生成器）和对抗网络（判别器）。GAN 将这两个代理放在一起进行竞争，其中生成器试图生成逼真的合成数据，而判别器则试图区分合成数据和真实数据。
 
-原始的GAN在一篇开创性的论文中提出：[“生成对抗网络”（Generative Adversarial Nets](https://arxiv.org/abs/1406.2661))（Goodfellow等人，生成对抗网络，2014年）。原始GAN的联合作者用伪造者-警察的类比来描述GAN：这是一场迭代博弈，其中生成器扮演伪造者，判别器扮演警察的角色，检测生成器伪造的假货。
+原始的 GAN 在一篇开创性的论文中提出：[“生成对抗网络”（Generative Adversarial Nets](https://arxiv.org/abs/1406.2661))（Goodfellow 等人，生成对抗网络，2014 年）。原始 GAN 的联合作者用伪造者-警察的类比来描述 GAN：这是一场迭代博弈，其中生成器扮演伪造者，判别器扮演警察的角色，检测生成器伪造的假货。
 
-原始GAN具有创新性，因为它解决并克服了过去训练深度生成算法的常见困难。而且，作为其核心，它采用了二级优化框架，具有寻求平衡的目标设置（与最大似然目标设置相对）。
+原始 GAN 具有创新性，因为它解决并克服了过去训练深度生成算法的常见困难。而且，作为其核心，它采用了二级优化框架，具有寻求平衡的目标设置（与最大似然目标设置相对）。
 
-从那时起，已经探索了许多GAN的变体架构。作为一种预防措施，本文仅参考原始GAN的原型架构。
+从那时起，已经探索了许多 GAN 的变体架构。作为一种预防措施，本文仅参考原始 GAN 的原型架构。
 
 ***生成器与判别器***
 
-在GAN架构中，这两个神经网络——生成器和判别器——相互竞争。具体来说，这种竞争通过前向传播和反向传播的迭代进行（遵循神经网络的一般框架）。
+在 GAN 架构中，这两个神经网络——生成器和判别器——相互竞争。具体来说，这种竞争通过前向传播和反向传播的迭代进行（遵循神经网络的一般框架）。
 
 一方面，显而易见，判别器本质上是一个二分类器：它将每个样本分类为真实（标签：1）或伪造/合成（标签：0）。判别器在前向传播过程中接收真实样本和合成样本。然后，在反向传播过程中，它学习从混合数据中检测合成数据。
 
@@ -82,79 +82,79 @@ GAN是一种特殊类型的生成算法。正如其名称所示，生成对抗�
 
 ***二级训练机制（二级优化方法）***
 
-在原始的GAN论文中，为了训练这两个目标完全对立的代理，联合作者设计了一个“二级优化（训练）”架构，其中一个内部训练模块（判别器的训练）被嵌套在另一个高级训练模块（生成器的训练）中。
+在原始的 GAN 论文中，为了训练这两个目标完全对立的代理，联合作者设计了一个“二级优化（训练）”架构，其中一个内部训练模块（判别器的训练）被嵌套在另一个高级训练模块（生成器的训练）中。
 
 下图展示了“二级优化”在嵌套训练循环中的结构。判别器在嵌套的内部循环中进行训练，而生成器在更高层级的主循环中进行训练。
 
-![](../Images/ee36b648bf82a7b9e95df5ddb35f87b9.png)
+![](img/ee36b648bf82a7b9e95df5ddb35f87b9.png)
 
 图片来源：作者
 
-GAN通过这种二级训练架构交替训练这两个代理（Goodfellow等，生成对抗网络，2014年，第3页）。换句话说，在交替训练一个代理的过程中，我们需要冻结另一个代理的学习过程（Goodfellow I.，2015年，第3页）。
+GAN 通过这种二级训练架构交替训练这两个代理（Goodfellow 等，生成对抗网络，2014 年，第 3 页）。换句话说，在交替训练一个代理的过程中，我们需要冻结另一个代理的学习过程（Goodfellow I.，2015 年，第 3 页）。
 
 ***极小极大优化目标***
 
-除了使这两个代理可以交替训练的“二级优化”机制外，GAN与传统神经网络原型的另一个独特特征是其极小极大优化目标。简单来说，与传统的最大化方法（例如最大似然）不同，GAN追求的是一个寻求平衡的优化目标。
+除了使这两个代理可以交替训练的“二级优化”机制外，GAN 与传统神经网络原型的另一个独特特征是其极小极大优化目标。简单来说，与传统的最大化方法（例如最大似然）不同，GAN 追求的是一个寻求平衡的优化目标。
 
 什么是寻求平衡的优化目标？
 
 让我们逐步解析。
 
-GAN的两个代理有着截然相反的目标。判别器作为一个二分类器，旨在最大化正确分类真实样本和合成样本混合体的概率，而生成器的目标则是最小化判别器正确分类合成数据的概率：因为生成器需要欺骗判别器。
+GAN 的两个代理有着截然相反的目标。判别器作为一个二分类器，旨在最大化正确分类真实样本和合成样本混合体的概率，而生成器的目标则是最小化判别器正确分类合成数据的概率：因为生成器需要欺骗判别器。
 
-在这个背景下，原始GAN的合著者称整体目标为“***极小极大博弈***”。（Goodfellow等，2014年，第3页）
+在这个背景下，原始 GAN 的合著者称整体目标为“***极小极大博弈***”。（Goodfellow 等，2014 年，第 3 页）
 
-总体来说，GAN的最终***极小极大优化目标***不是寻找这些目标函数的全局最大值/最小值。而是设定为寻求一个平衡点，可以理解为：
+总体来说，GAN 的最终***极小极大优化目标***不是寻找这些目标函数的全局最大值/最小值。而是设定为寻求一个平衡点，可以理解为：
 
-+   “一个鞍点，对于分类器来说是局部最大值，对于生成器来说是局部最小值”（Goodfellow I.，2015年，第2页）
++   “一个鞍点，对于分类器来说是局部最大值，对于生成器来说是局部最小值”（Goodfellow I.，2015 年，第 2 页）
 
 +   其中，任何一个代理都无法再提高其性能。
 
 +   其中，生成器学会创造的合成数据已经足够真实，能够欺骗判别器。
 
-平衡点可以在概念上通过判别器的随机猜测概率0.5（50%）来表示：D(z) => 0.5。
+平衡点可以在概念上通过判别器的随机猜测概率 0.5（50%）来表示：D(z) => 0.5。
 
-让我们根据GAN的目标函数来转述其极小极大优化的概念框架。
+让我们根据 GAN 的目标函数来转述其极小极大优化的概念框架。
 
 判别器的目标是最大化下图中的目标函数：
 
-![](../Images/5b3ace53f4fcc19374406302839ec188.png)
+![](img/5b3ace53f4fcc19374406302839ec188.png)
 
 图片来源：作者
 
 为了解决可能的饱和问题，他们将生成器原始对数似然目标函数中的第二项转换如下，并建议将转换后的版本作为生成器的目标来最大化：
 
-![](../Images/1047088989096cf0cee24f1e93409952.png)
+![](img/1047088989096cf0cee24f1e93409952.png)
 
 图片来源：作者
 
-总的来说，GANs的“二级优化”架构可以转化为以下算法。
+总的来说，GANs 的“二级优化”架构可以转化为以下算法。
 
-![](../Images/1c7d25fd63b2c1395701db01c688802a.png)
+![](img/1c7d25fd63b2c1395701db01c688802a.png)
 
 图片来自作者
 
-有关GANs算法设计的更多细节，请阅读我另一篇文章：[生成对抗网络的极小极大优化设计](/mini-max-optimization-design-of-generative-adversarial-networks-gan-dc1b9ea44a02)。
+有关 GANs 算法设计的更多细节，请阅读我另一篇文章：生成对抗网络的极小极大优化设计。
 
 现在，让我们开始使用数据集进行实际编码。
 
-为了突出GANs算法，我将在这里主要聚焦于GANs的代码，并仅概述其余过程。
+为了突出 GANs 算法，我将在这里主要聚焦于 GANs 的代码，并仅概述其余过程。
 
-# 第2部分：欺诈数据集
+# 第二部分：欺诈数据集
 
-为了进行欺诈检测，我从Kaggle选择了以下信用卡交易数据集：[https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)
+为了进行欺诈检测，我从 Kaggle 选择了以下信用卡交易数据集：[`www.kaggle.com/datasets/mlg-ulb/creditcardfraud`](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)
 
 数据许可：[数据库内容许可（DbCL）v1.0](https://opendatacommons.org/licenses/dbcl/1-0/)
 
 这是数据集的总结。
 
-数据集包含284,807笔交易。在该数据集中，我们只有492个欺诈案例（其中包括29个重复案例）。
+数据集包含 284,807 笔交易。在该数据集中，我们只有 492 个欺诈案例（其中包括 29 个重复案例）。
 
-由于欺诈类别仅占所有交易的0.172%，它构成了一个极其小的少数类。这个数据集非常适合用来说明与不平衡数据集相关的经典欺诈检测问题。
+由于欺诈类别仅占所有交易的 0.172%，它构成了一个极其小的少数类。这个数据集非常适合用来说明与不平衡数据集相关的经典欺诈检测问题。
 
-它包含以下30个特征：
+它包含以下 30 个特征：
 
-+   V1, V2, … V28：通过PCA获得的28个主成分。数据来源未公开，以保护隐私。
++   V1, V2, … V28：通过 PCA 获得的 28 个主成分。数据来源未公开，以保护隐私。
 
 +   ‘Time’：每笔交易与数据集第一笔交易之间经过的秒数。
 
@@ -162,37 +162,37 @@ GAN的两个代理有着截然相反的目标。判别器作为一个二分类�
 
 标签设置为“Class”。
 
-+   ‘Class’：如果是欺诈，则为1；否则为0。
++   ‘Class’：如果是欺诈，则为 1；否则为 0。
 
 ## ***数据预处理：特征选择***
 
 由于数据集已经相当干净（如果不是完全干净的话），我只需做一些数据清理工作：去除重复数据和剔除异常值。
 
-之后，鉴于数据集中有30个特征，我决定进行特征选择，通过剔除不太重要的特征来减少特征数量，准备训练过程。我选择了scikit-learn随机森林分类器的内置[***特征重要性评分***](https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectFromModel.html#sklearn.feature_selection.SelectFromModel)，用来估算所有30个特征的评分。
+之后，鉴于数据集中有 30 个特征，我决定进行特征选择，通过剔除不太重要的特征来减少特征数量，准备训练过程。我选择了 scikit-learn 随机森林分类器的内置[***特征重要性评分***](https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectFromModel.html#sklearn.feature_selection.SelectFromModel)，用来估算所有 30 个特征的评分。
 
 以下图表显示了结果的摘要。如果您对详细过程感兴趣，请访问我上面列出的代码。
 
-![](../Images/2ce0c2fdd9ede86e0b09d75dea23a6e0.png)
+![](img/2ce0c2fdd9ede86e0b09d75dea23a6e0.png)
 
 图片来自作者
 
-根据上面条形图中显示的结果，我做出了主观判断，选择了6个最重要的特征进行分析，并从模型构建过程中移除了其余不重要的特征。
+根据上面条形图中显示的结果，我做出了主观判断，选择了 6 个最重要的特征进行分析，并从模型构建过程中移除了其余不重要的特征。
 
-这是选定的6个重要特征。
+这是选定的 6 个重要特征。
 
-![](../Images/69b736742bf84f1f6d3608082ba86018.png)
+![](img/69b736742bf84f1f6d3608082ba86018.png)
 
 图片来自作者
 
-在后续的模型构建中，我专注于这6个选择的特征。在数据预处理之后，我们得到了如下形状的工作数据框df：
+在后续的模型构建中，我专注于这 6 个选择的特征。在数据预处理之后，我们得到了如下形状的工作数据框 df：
 
 +   df.shape = (282513, 7)
 
 希望特征选择能够减少最终模型的复杂性并稳定其性能，同时保留优化二分类器所需的关键信息。
 
-# ***场景3：*** GANs数据增强代码解析
+# ***场景 3：*** GANs 数据增强代码解析
 
-最后，是时候使用GANs进行数据增强了。
+最后，是时候使用 GANs 进行数据增强了。
 
 ***那么我们需要创建多少合成数据呢？***
 
@@ -200,7 +200,7 @@ GAN的两个代理有着截然相反的目标。判别器作为一个二分类�
 
 简单来说，我们只希望增加少数欺诈类的训练数据集，而不是其他任何数据。
 
-现在，使用分层数据拆分方法，将工作数据框拆分为80/20比例的训练数据集和测试数据集。
+现在，使用分层数据拆分方法，将工作数据框拆分为 80/20 比例的训练数据集和测试数据集。
 
 ```py
 # Separate features and target variable
@@ -237,9 +237,9 @@ print("# of Synthetic Fraud required:", num_synthetic_samples)
 # of Synthetic Fraud required: 225254
 ```
 
-这告诉我们，训练数据集（226,010）由225,632个非欺诈数据和378个欺诈数据组成。换句话说，它们之间的差异是225,254。这个数字是我们需要增加的合成欺诈数据（*num_synthetic_samples*）的数量，以便在训练数据集中完美地匹配这两个类别的数量：提醒一下，我们保留了原始的测试数据集。
+这告诉我们，训练数据集（226,010）由 225,632 个非欺诈数据和 378 个欺诈数据组成。换句话说，它们之间的差异是 225,254。这个数字是我们需要增加的合成欺诈数据（*num_synthetic_samples*）的数量，以便在训练数据集中完美地匹配这两个类别的数量：提醒一下，我们保留了原始的测试数据集。
 
-***接下来，让我们编写GANs代码。***
+***接下来，让我们编写 GANs 代码。***
 
 首先，让我们创建自定义函数来确定两个代理：判别器和生成器。
 
@@ -267,7 +267,7 @@ def build_discriminator(input_dim):
     return model
 ```
 
-然后，我们可以调用这些函数来创建生成器和判别器。在这里，对于生成器，我随意将*latent_dim*设置为32：你可以尝试其他值。
+然后，我们可以调用这些函数来创建生成器和判别器。在这里，对于生成器，我随意将*latent_dim*设置为 32：你可以尝试其他值。
 
 ```py
 # Dimensionality of the input noise for the generator
@@ -294,7 +294,7 @@ discriminator.compile(optimizer=Adam(learning_rate=0.0002, beta_1=0.5), loss='bi
 
 在这个阶段，我们可以定义生成器的自定义目标函数如下。记住，推荐的目标是最大化以下公式：
 
-![](../Images/1047088989096cf0cee24f1e93409952.png)
+![](img/1047088989096cf0cee24f1e93409952.png)
 
 图片来源：作者
 
@@ -408,21 +408,21 @@ fake_df = pd.DataFrame(synthetic_fraud_data, columns=features.to_list())
 
 在下一节中，我们可以将这些合成的欺诈数据与原始训练数据集结合，确保整个训练数据集达到完美平衡。我希望这个完美平衡的训练数据集能提高欺诈检测分类模型的性能。
 
-# 第4节：欺诈检测概述（有无 GAN 数据增强）
+# 第四部分：欺诈检测概述（有无 GAN 数据增强）
 
 一再强调，本项目中使用 GAN 的唯一目的是数据增强，而不是分类。
 
 首先，我们需要基准模型作为比较的基础，以便我们评估基于 GAN 数据增强的欺诈检测模型性能的提升。
 
-作为一个二分类算法，我选择了集成方法来构建欺诈检测模型。作为基准场景，我仅使用原始不平衡数据集来开发欺诈检测模型：也就是没有数据增强。然后，在第二个使用GAN进行数据增强的场景中，我可以使用包含GAN生成的合成欺诈数据的完美平衡训练数据集来训练相同的算法。
+作为一个二分类算法，我选择了集成方法来构建欺诈检测模型。作为基准场景，我仅使用原始不平衡数据集来开发欺诈检测模型：也就是没有数据增强。然后，在第二个使用 GAN 进行数据增强的场景中，我可以使用包含 GAN 生成的合成欺诈数据的完美平衡训练数据集来训练相同的算法。
 
 +   基准场景：没有数据增强的集成分类器
 
-+   GAN场景：使用GAN进行数据增强的集成分类器
++   GAN 场景：使用 GAN 进行数据增强的集成分类器
 
 ***基准场景：没有数据增强的集成***
 
-接下来，让我们定义基准场景（没有数据增强）。我决定选择集成分类器：投票法作为元学习器，使用以下3个基础学习器。
+接下来，让我们定义基准场景（没有数据增强）。我决定选择集成分类器：投票法作为元学习器，使用以下 3 个基础学习器。
 
 +   梯度提升
 
@@ -430,7 +430,7 @@ fake_df = pd.DataFrame(synthetic_fraud_data, columns=features.to_list())
 
 +   随机森林
 
-由于原始数据集高度不平衡，除了准确率之外，我将从以下三个选项中选择评估指标：精确率、召回率和F1-Score。
+由于原始数据集高度不平衡，除了准确率之外，我将从以下三个选项中选择评估指标：精确率、召回率和 F1-Score。
 
 以下自定义函数，*ensemble_training(X_train, y_train)*，定义了训练和验证过程。
 
@@ -491,13 +491,13 @@ Training Precision: 0.9811, Recall: 0.9603, F1-score: 0.9706
 Test Precision: 0.9351, Recall: 0.7579, F1-score: 0.8372
 ```
 
-在元学习器层面，基准模型生成的F1-Score在合理的水平0.8372。
+在元学习器层面，基准模型生成的 F1-Score 在合理的水平 0.8372。
 
-接下来，让我们进入使用GAN进行数据增强的场景。我们想看看使用GAN的场景是否能超越基准场景的表现。
+接下来，让我们进入使用 GAN 进行数据增强的场景。我们想看看使用 GAN 的场景是否能超越基准场景的表现。
 
-***GAN场景：使用GAN进行数据增强的欺诈检测***
+***GAN 场景：使用 GAN 进行数据增强的欺诈检测***
 
-最终，我们通过将原始不平衡训练数据集（包括非欺诈和欺诈案例）、*train_df* 和通过GAN生成的合成欺诈数据集 *fake_df* 结合起来，构建了一个完美平衡的数据集。在这里，我们将原始测试数据集保留不变，不参与这个过程。
+最终，我们通过将原始不平衡训练数据集（包括非欺诈和欺诈案例）、*train_df* 和通过 GAN 生成的合成欺诈数据集 *fake_df* 结合起来，构建了一个完美平衡的数据集。在这里，我们将原始测试数据集保留不变，不参与这个过程。
 
 ```py
 wdf = pd.concat([train_df, fake_df], axis=0)
@@ -514,7 +514,7 @@ y_mixed = wdf["Class"]
 
 记住，当我之前运行基准场景时，我已经定义了必要的自定义函数模块来训练和评估集成分类器。我也可以在这里使用这些自定义函数来训练相同的集成算法，使用合成的平衡数据集。
 
-我们可以将特征和标签（X_mixed, y_mixed）传入自定义的集成分类器函数ensemble_training()。
+我们可以将特征和标签（X_mixed, y_mixed）传入自定义的集成分类器函数 ensemble_training()。
 
 ```py
 meta_learner_GANs, train_f1_scores_GANs, val_f1_scores_GANs, base_models_GANs=ensemble_training(X_mixed, y_mixed)
@@ -536,9 +536,9 @@ Test Precision: 0.9714, Recall: 0.7158, F1-score: 0.8242
 
 # ***结论***
 
-最后，我们可以评估通过GAN进行数据增强是否提高了分类器的表现，正如我所预期的那样。
+最后，我们可以评估通过 GAN 进行数据增强是否提高了分类器的表现，正如我所预期的那样。
 
-让我们比较基准场景和GAN场景的评估指标。
+让我们比较基准场景和 GAN 场景的评估指标。
 
 这是来自基准场景的结果。
 
@@ -548,24 +548,24 @@ Training Precision: 0.9811, Recall: 0.9603, F1-score: 0.9706
 Test Precision: 0.9351, Recall: 0.7579, F1-score: 0.8372
 ```
 
-这是来自GANs场景的结果。
+这是来自 GANs 场景的结果。
 
 ```py
 Training Precision: 1.0000, Recall: 0.9999, F1-score: 0.9999
 Test Precision: 0.9714, Recall: 0.7158, F1-score: 0.8242
 ```
 
-当我们回顾训练数据集上的评估结果时，显然GANs场景在所有三个评估指标上都超过了基准场景。
+当我们回顾训练数据集上的评估结果时，显然 GANs 场景在所有三个评估指标上都超过了基准场景。
 
-然而，当我们关注样本外测试数据的结果时，GANs场景仅在精确度上超过了基准场景（基准：0.935 vs GANs场景：0.9714）；在召回率和F1得分上（基准：0.7579；0.8372 vs GANs场景：0.7158；0.8242）却未能超越。
+然而，当我们关注样本外测试数据的结果时，GANs 场景仅在精确度上超过了基准场景（基准：0.935 vs GANs 场景：0.9714）；在召回率和 F1 得分上（基准：0.7579；0.8372 vs GANs 场景：0.7158；0.8242）却未能超越。
 
 +   更高的精确度意味着模型对欺诈案例的预测中，包含的非欺诈案例比例低于基准场景。
 
 +   更低的召回率意味着模型未能检测到某些实际欺诈案例的变种。
 
-这两项对比表明：尽管GANs通过数据增强成功地在训练数据集中模拟了真实的欺诈数据，但它未能捕捉到实际欺诈案例在样本外测试数据集中的多样性。
+这两项对比表明：尽管 GANs 通过数据增强成功地在训练数据集中模拟了真实的欺诈数据，但它未能捕捉到实际欺诈案例在样本外测试数据集中的多样性。
 
-GANs在模拟训练数据的特定概率分布方面表现得太好。具有讽刺意味的是，作为数据增强工具使用GANs，由于过度拟合训练数据，导致欺诈检测（分类）模型的泛化能力较差。
+GANs 在模拟训练数据的特定概率分布方面表现得太好。具有讽刺意味的是，作为数据增强工具使用 GANs，由于过度拟合训练数据，导致欺诈检测（分类）模型的泛化能力较差。
 
 具有讽刺意味的是，这个特定的例子提出了一个反直觉的观点，即一个更复杂的算法不一定能保证比简单的传统算法更好的表现。
 
@@ -573,11 +573,11 @@ GANs在模拟训练数据的特定概率分布方面表现得太好。具有讽�
 
 这里我留给你一些关于机器学习能源消耗的链接。
 
-+   [https://spectrum.ieee.org/ai-energy-consumption](https://spectrum.ieee.org/ai-energy-consumption)
++   [`spectrum.ieee.org/ai-energy-consumption`](https://spectrum.ieee.org/ai-energy-consumption)
 
-+   [https://www.cell.com/joule/fulltext/S2542-4351(23)00365-3?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2542435123003653%3Fshowall%3Dtrue](https://www.cell.com/joule/fulltext/S2542-4351(23)00365-3?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2542435123003653%3Fshowall%3Dtrue)
++   [`www.cell.com/joule/fulltext/S2542-4351(23)00365-3?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2542435123003653%3Fshowall%3Dtrue`](https://www.cell.com/joule/fulltext/S2542-4351(23)00365-3?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2542435123003653%3Fshowall%3Dtrue)
 
-今天，我们有许多GAN的变种。在未来的文章中，我想探索其他GAN的变种，看看是否有任何变种能够捕捉到原始样本的更广泛多样性，从而提高欺诈检测器的性能。
+今天，我们有许多 GAN 的变种。在未来的文章中，我想探索其他 GAN 的变种，看看是否有任何变种能够捕捉到原始样本的更广泛多样性，从而提高欺诈检测器的性能。
 
 感谢阅读。
 
@@ -585,14 +585,14 @@ GANs在模拟训练数据的特定概率分布方面表现得太好。具有讽�
 
 # 参考文献
 
-+   Borji, A.（2018年10月24日）。*GAN评估指标的利与弊*。取自ArXiv：[https://arxiv.org/abs/1802.03446](https://arxiv.org/abs/1802.03446)
++   Borji, A.（2018 年 10 月 24 日）。*GAN 评估指标的利与弊*。取自 ArXiv：[`arxiv.org/abs/1802.03446`](https://arxiv.org/abs/1802.03446)
 
-+   Goodfellow, I. (2015年5月21日). *估计生成模型的可区分性标准.* 从 ArXiv 获取: [https://arxiv.org/abs/1412.6515](https://arxiv.org/abs/1412.6515)
++   Goodfellow, I. (2015 年 5 月 21 日). *估计生成模型的可区分性标准.* 从 ArXiv 获取: [`arxiv.org/abs/1412.6515`](https://arxiv.org/abs/1412.6515)
 
-+   Goodfellow, I. J., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D., Ozairy, S., . . . Bengioz, Y. (2014年6月10日). *生成对抗网络.* 从 arXiv 获取: [https://arxiv.org/abs/1406.2661](https://arxiv.org/abs/1406.2661)
++   Goodfellow, I. J., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D., Ozairy, S., . . . Bengioz, Y. (2014 年 6 月 10 日). *生成对抗网络.* 从 arXiv 获取: [`arxiv.org/abs/1406.2661`](https://arxiv.org/abs/1406.2661)
 
-+   Goodfellow, I. J., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D., Ozairy, S., . . . Bengioz, Y. (2014年6月10日). *生成对抗网络.* 从 arXiv 获取: [https://arxiv.org/abs/1406.2661](https://arxiv.org/abs/1406.2661)
++   Goodfellow, I. J., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D., Ozairy, S., . . . Bengioz, Y. (2014 年 6 月 10 日). *生成对抗网络.* 从 arXiv 获取: [`arxiv.org/abs/1406.2661`](https://arxiv.org/abs/1406.2661)
 
-+   Knight, W. (2018年8月17日). *让美国再次变得伟大（假）.* 从 MIT Technology Review 获取: [https://www.technologyreview.com/2018/08/17/240305/fake-america-great-again/](https://www.technologyreview.com/2018/08/17/240305/fake-america-great-again/)
++   Knight, W. (2018 年 8 月 17 日). *让美国再次变得伟大（假）.* 从 MIT Technology Review 获取: [`www.technologyreview.com/2018/08/17/240305/fake-america-great-again/`](https://www.technologyreview.com/2018/08/17/240305/fake-america-great-again/)
 
-+   Suginoo, M. (2024年1月13日). *生成对抗网络（GAN）的极小极大优化设计.* 从 Towards Data Science 获取: [https://towardsdatascience.com/mini-max-optimization-design-of-generative-adversarial-networks-gan-dc1b9ea44a02](/mini-max-optimization-design-of-generative-adversarial-networks-gan-dc1b9ea44a02)
++   Suginoo, M. (2024 年 1 月 13 日). *生成对抗网络（GAN）的极小极大优化设计.* 从 Towards Data Science 获取: `towardsdatascience.com/mini-max-optimization-design-of-generative-adversarial-networks-gan-dc1b9ea44a02`

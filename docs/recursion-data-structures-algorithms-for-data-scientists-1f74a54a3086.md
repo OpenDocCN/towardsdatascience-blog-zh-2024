@@ -1,16 +1,16 @@
 # 递归 — 数据结构与算法为数据科学家
 
-> 原文：[https://towardsdatascience.com/recursion-data-structures-algorithms-for-data-scientists-1f74a54a3086?source=collection_archive---------3-----------------------#2024-11-03](https://towardsdatascience.com/recursion-data-structures-algorithms-for-data-scientists-1f74a54a3086?source=collection_archive---------3-----------------------#2024-11-03)
+> 原文：[`towardsdatascience.com/recursion-data-structures-algorithms-for-data-scientists-1f74a54a3086?source=collection_archive---------3-----------------------#2024-11-03`](https://towardsdatascience.com/recursion-data-structures-algorithms-for-data-scientists-1f74a54a3086?source=collection_archive---------3-----------------------#2024-11-03)
 
 ## 递归，递归，递归，递归，递归，等等。
 
-[](https://medium.com/@egorhowell?source=post_page---byline--1f74a54a3086--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--1f74a54a3086--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1f74a54a3086--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1f74a54a3086--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--1f74a54a3086--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--1f74a54a3086--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--1f74a54a3086--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1f74a54a3086--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1f74a54a3086--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--1f74a54a3086--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1f74a54a3086--------------------------------) ·阅读时间：5分钟·2024年11月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1f74a54a3086--------------------------------) ·阅读时间：5 分钟·2024 年 11 月 3 日
 
 --
 
-![](../Images/93d128b8dc4f8f1e838c2bd0031bab27.png)
+![](img/93d128b8dc4f8f1e838c2bd0031bab27.png)
 
 摄影师：[Voicu Apostol](https://unsplash.com/@cerpow?utm_source=medium&utm_medium=referral) 摄影，图片来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,16 +1,16 @@
 # 5 个你可以在这个周末用 Python 构建的 AI 项目
 
-> 原文：[https://towardsdatascience.com/5-ai-projects-you-can-build-this-weekend-with-python-c57724e9c461?source=collection_archive---------0-----------------------#2024-10-09](https://towardsdatascience.com/5-ai-projects-you-can-build-this-weekend-with-python-c57724e9c461?source=collection_archive---------0-----------------------#2024-10-09)
+> 原文：[`towardsdatascience.com/5-ai-projects-you-can-build-this-weekend-with-python-c57724e9c461?source=collection_archive---------0-----------------------#2024-10-09`](https://towardsdatascience.com/5-ai-projects-you-can-build-this-weekend-with-python-c57724e9c461?source=collection_archive---------0-----------------------#2024-10-09)
 
 ## 从适合初学者到高级
 
-[](https://shawhin.medium.com/?source=post_page---byline--c57724e9c461--------------------------------)[![Shaw Talebi](../Images/1449cc7c08890e2078f9e5d07897e3df.png)](https://shawhin.medium.com/?source=post_page---byline--c57724e9c461--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c57724e9c461--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c57724e9c461--------------------------------) [Shaw Talebi](https://shawhin.medium.com/?source=post_page---byline--c57724e9c461--------------------------------)
+[](https://shawhin.medium.com/?source=post_page---byline--c57724e9c461--------------------------------)![Shaw Talebi](https://shawhin.medium.com/?source=post_page---byline--c57724e9c461--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c57724e9c461--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c57724e9c461--------------------------------) [Shaw Talebi](https://shawhin.medium.com/?source=post_page---byline--c57724e9c461--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c57724e9c461--------------------------------) ·阅读时间 7 分钟·2024年10月9日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c57724e9c461--------------------------------) ·阅读时间 7 分钟·2024 年 10 月 9 日
 
 --
 
-![](../Images/22632a1e96898cf513f040d8599bcf8d.png)
+![](img/22632a1e96898cf513f040d8599bcf8d.png)
 
 图片来自 Canva。
 

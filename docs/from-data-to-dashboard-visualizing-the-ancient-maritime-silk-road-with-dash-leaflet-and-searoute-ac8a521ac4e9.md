@@ -1,16 +1,16 @@
 # 从数据到仪表盘：使用 Dash Leaflet 和 SeaRoute 库可视化古代海上丝绸之路
 
-> 原文：[https://towardsdatascience.com/from-data-to-dashboard-visualizing-the-ancient-maritime-silk-road-with-dash-leaflet-and-searoute-ac8a521ac4e9?source=collection_archive---------5-----------------------#2024-05-22](https://towardsdatascience.com/from-data-to-dashboard-visualizing-the-ancient-maritime-silk-road-with-dash-leaflet-and-searoute-ac8a521ac4e9?source=collection_archive---------5-----------------------#2024-05-22)
+> 原文：[`towardsdatascience.com/from-data-to-dashboard-visualizing-the-ancient-maritime-silk-road-with-dash-leaflet-and-searoute-ac8a521ac4e9?source=collection_archive---------5-----------------------#2024-05-22`](https://towardsdatascience.com/from-data-to-dashboard-visualizing-the-ancient-maritime-silk-road-with-dash-leaflet-and-searoute-ac8a521ac4e9?source=collection_archive---------5-----------------------#2024-05-22)
 
 ## 在 Python Dash 框架中构建一个交互式地图可视化，展示海上两点之间的最短路径
 
-[](https://medium.com/@m.mouschoutzi?source=post_page---byline--ac8a521ac4e9--------------------------------)[![Maria Mouschoutzi, 博士](../Images/66f8cf036b6e4db2e24eae3e9f492db8.png)](https://medium.com/@m.mouschoutzi?source=post_page---byline--ac8a521ac4e9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ac8a521ac4e9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ac8a521ac4e9--------------------------------) [Maria Mouschoutzi, 博士](https://medium.com/@m.mouschoutzi?source=post_page---byline--ac8a521ac4e9--------------------------------)
+[](https://medium.com/@m.mouschoutzi?source=post_page---byline--ac8a521ac4e9--------------------------------)![Maria Mouschoutzi, 博士](https://medium.com/@m.mouschoutzi?source=post_page---byline--ac8a521ac4e9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ac8a521ac4e9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ac8a521ac4e9--------------------------------) [Maria Mouschoutzi, 博士](https://medium.com/@m.mouschoutzi?source=post_page---byline--ac8a521ac4e9--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ac8a521ac4e9--------------------------------) ·14分钟阅读·2024年5月22日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ac8a521ac4e9--------------------------------) ·14 分钟阅读·2024 年 5 月 22 日
 
 --
 
-![](../Images/e430711b8b2d802a344d46754c39f7f1.png)
+![](img/e430711b8b2d802a344d46754c39f7f1.png)
 
 图片来自 [Annie Spratt](https://unsplash.com/@anniespratt?utm_source=medium&utm_medium=referral) 提供的 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

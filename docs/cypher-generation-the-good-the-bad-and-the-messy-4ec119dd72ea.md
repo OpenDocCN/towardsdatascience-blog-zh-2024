@@ -1,16 +1,16 @@
 # Cypher 生成：好、坏与混乱
 
-> 原文：[https://towardsdatascience.com/cypher-generation-the-good-the-bad-and-the-messy-4ec119dd72ea?source=collection_archive---------6-----------------------#2024-01-29](https://towardsdatascience.com/cypher-generation-the-good-the-bad-and-the-messy-4ec119dd72ea?source=collection_archive---------6-----------------------#2024-01-29)
+> 原文：[`towardsdatascience.com/cypher-generation-the-good-the-bad-and-the-messy-4ec119dd72ea?source=collection_archive---------6-----------------------#2024-01-29`](https://towardsdatascience.com/cypher-generation-the-good-the-bad-and-the-messy-4ec119dd72ea?source=collection_archive---------6-----------------------#2024-01-29)
 
 ## *创建用于文本到 Cypher 生成的微调数据集的方法。*
 
-[](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)[![Silvia Onofrei](../Images/198b04b2063b4269eaff52402dc5f8d5.png)](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------) [Silvia Onofrei](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)
+[](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)![Silvia Onofrei](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------) [Silvia Onofrei](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------) ·13分钟阅读·2024年1月29日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------) ·13 分钟阅读·2024 年 1 月 29 日
 
 --
 
-![](../Images/ad8b418ba27894f9c93e3debc77b318b.png)
+![](img/ad8b418ba27894f9c93e3debc77b318b.png)
 
 由 ChatGPT-DALLE 创建
 
@@ -26,27 +26,27 @@ Cypher 是 Neo4j 的图查询语言。它的灵感来源于 SQL，并且与 SQL 
 
 # 知识图谱模型
 
-我喜欢使用ArXiv科学文章数据集，因为它具有干净且易于集成到知识图谱中的格式。利用我最近的[Medium博客文章](https://medium.com/towards-data-science/leverage-keybert-hdbscan-and-zephyr-7b-beta-to-build-a-knowledge-graph-33d7534ee01b)中的技术，我通过添加关键词和聚类增强了这个数据集。由于我的主要关注点是构建一个微调数据集，我将省略构建该图谱的具体细节。对于感兴趣的读者，详细信息可以在这个[Github仓库](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)中找到。
+我喜欢使用 ArXiv 科学文章数据集，因为它具有干净且易于集成到知识图谱中的格式。利用我最近的[Medium 博客文章](https://medium.com/towards-data-science/leverage-keybert-hdbscan-and-zephyr-7b-beta-to-build-a-knowledge-graph-33d7534ee01b)中的技术，我通过添加关键词和聚类增强了这个数据集。由于我的主要关注点是构建一个微调数据集，我将省略构建该图谱的具体细节。对于感兴趣的读者，详细信息可以在这个[Github 仓库](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)中找到。
 
-该图谱的规模合理，包含超过38K个节点和近96K个关系，拥有9种节点标签和8种关系类型。其架构如下图所示：
+该图谱的规模合理，包含超过 38K 个节点和近 96K 个关系，拥有 9 种节点标签和 8 种关系类型。其架构如下图所示：
 
-![](../Images/9d2e0017b08013546e0efeae020a78c9.png)
+![](img/9d2e0017b08013546e0efeae020a78c9.png)
 
 图片来源：作者
 
-虽然这个知识图谱尚未完全优化，还可以进一步改进，但它在这篇博客文章中能够有效地实现目的。如果你更倾向于直接测试查询而不构建图谱，我已将数据转储文件上传至这个[Github仓库](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)。
+虽然这个知识图谱尚未完全优化，还可以进一步改进，但它在这篇博客文章中能够有效地实现目的。如果你更倾向于直接测试查询而不构建图谱，我已将数据转储文件上传至这个[Github 仓库](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)。
 
-# 使用LLM生成训练对
+# 使用 LLM 生成训练对
 
-我实现的第一种方法灵感来自Tomaz Bratanic的博客文章，关于[构建知识图谱聊天机器人](https://medium.com/neo4j/knowledge-graph-based-chatbot-with-gpt-3-and-neo4j-c4ebbd325ed)和[使用H2O Studio微调LLM模型](/fine-tuning-an-llm-model-with-h2o-llm-studio-to-generate-cypher-statements-3f34822ad5)。最初，在提示中提供了一些示例查询。然而，最近的一些模型增强了直接从图谱架构生成Cypher查询的能力。因此，除了GPT-4或GPT-4-turbo之外，现在还有可访问的开源替代方案，如Mixtral-8x7B，我预期它能够有效生成高质量的训练数据。
+我实现的第一种方法灵感来自 Tomaz Bratanic 的博客文章，关于[构建知识图谱聊天机器人](https://medium.com/neo4j/knowledge-graph-based-chatbot-with-gpt-3-and-neo4j-c4ebbd325ed)和使用 H2O Studio 微调 LLM 模型。最初，在提示中提供了一些示例查询。然而，最近的一些模型增强了直接从图谱架构生成 Cypher 查询的能力。因此，除了 GPT-4 或 GPT-4-turbo 之外，现在还有可访问的开源替代方案，如 Mixtral-8x7B，我预期它能够有效生成高质量的训练数据。
 
-在这个项目中，我尝试了两种模型。为了方便起见，我决定将GPT-4-turbo与ChatGPT结合使用，详情请见这个[Colab笔记本](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/4_ArXiv_KG_Synthetic_Data_OpenAI.ipynb)。然而，在这个[笔记本](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/5_ArXiv_KG_Synthetic_Data_Mixtral.ipynb)中，我对Mixtral-7x2B-GPTQ模型进行了一些测试，它是一个足够小的量化模型，可以在Google Colab上运行，并且能够提供令人满意的结果。
+在这个项目中，我尝试了两种模型。为了方便起见，我决定将 GPT-4-turbo 与 ChatGPT 结合使用，详情请见这个[Colab 笔记本](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/4_ArXiv_KG_Synthetic_Data_OpenAI.ipynb)。然而，在这个[笔记本](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/5_ArXiv_KG_Synthetic_Data_Mixtral.ipynb)中，我对 Mixtral-7x2B-GPTQ 模型进行了一些测试，它是一个足够小的量化模型，可以在 Google Colab 上运行，并且能够提供令人满意的结果。
 
-为了保持数据的多样性并有效监控生成的提问和Cypher语句对，我采用了一个两步法：
+为了保持数据的多样性并有效监控生成的提问和 Cypher 语句对，我采用了一个两步法：
 
-+   第1步：提供完整的架构给LLM，并请求其生成10–15种不同类别的与图谱相关的潜在问题及其描述。
++   第 1 步：提供完整的架构给 LLM，并请求其生成 10–15 种不同类别的与图谱相关的潜在问题及其描述。
 
-+   第2步：提供架构信息并指示LLM为每个识别的类别创建特定数量N的训练对。
++   第 2 步：提供架构信息并指示 LLM 为每个识别的类别创建特定数量 N 的训练对。
 
 ## 提取样本类别：
 
@@ -317,7 +317,7 @@ qc = g('Topic', 'description', 'Jordan normal form')
 
 主要挑战在于创建一个足够多样化的查询列表，覆盖与图谱相关的广泛方面。由于专有和开源的大型语言模型（LLM）能够生成基本的 Cypher 语法，我们的重点可以转向生成有关图谱中节点和关系的查询，而忽略特定语法的查询。为了收集查询示例并将其转换为功能形式，可以参考任何 Cypher 语言书籍或访问[Neo4j Cypher 文档网站](https://neo4j.com/docs/cypher-manual/current/introduction/)。
 
-在[GitHub 仓库](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)中，有大约60种此类查询，它们被应用于 ArXiv 知识图谱。这些查询具有多功能性，适用于任何图谱模式。
+在[GitHub 仓库](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)中，有大约 60 种此类查询，它们被应用于 ArXiv 知识图谱。这些查询具有多功能性，适用于任何图谱模式。
 
 以下是创建一组相似查询并将其纳入微调数据集的完整 Python 函数：
 
@@ -341,7 +341,7 @@ def find_nodes_connected_to_node_via_relation():
     return sampler
 ```
 
-+   函数find_nodes_connected_to_node_via_relation()接受生成的提示并对all_rels中的所有元素进行评估，all_rels是提取和处理后的关系实例集合，条目的形式为：
++   函数 find_nodes_connected_to_node_via_relation()接受生成的提示并对 all_rels 中的所有元素进行评估，all_rels 是提取和处理后的关系实例集合，条目的形式为：
 
 ```py
 ['Keyword',
@@ -355,7 +355,7 @@ def find_nodes_connected_to_node_via_relation():
 
 +   `message`包含了相应条目在微调数据集中的提示组件，
 
-+   `subschema`提取表示`label_1`和`label_2`的两个节点的第一邻居，这意味着：列出的两个节点，它们所有相关的节点（图中的距离为1），以及关系和所有对应的属性。
++   `subschema`提取表示`label_1`和`label_2`的两个节点的第一邻居，这意味着：列出的两个节点，它们所有相关的节点（图中的距离为 1），以及关系和所有对应的属性。
 
 💡**提示**💡
 

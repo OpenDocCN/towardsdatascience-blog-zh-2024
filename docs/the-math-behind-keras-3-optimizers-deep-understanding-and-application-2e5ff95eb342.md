@@ -1,16 +1,16 @@
 # Keras 3 优化器背后的数学原理：深入理解与应用
 
-> 原文：[https://towardsdatascience.com/the-math-behind-keras-3-optimizers-deep-understanding-and-application-2e5ff95eb342?source=collection_archive---------1-----------------------#2024-08-17](https://towardsdatascience.com/the-math-behind-keras-3-optimizers-deep-understanding-and-application-2e5ff95eb342?source=collection_archive---------1-----------------------#2024-08-17)
+> 原文：[`towardsdatascience.com/the-math-behind-keras-3-optimizers-deep-understanding-and-application-2e5ff95eb342?source=collection_archive---------1-----------------------#2024-08-17`](https://towardsdatascience.com/the-math-behind-keras-3-optimizers-deep-understanding-and-application-2e5ff95eb342?source=collection_archive---------1-----------------------#2024-08-17)
 
 ## 这与书中所说的有些不同。
 
-[](https://qtalen.medium.com/?source=post_page---byline--2e5ff95eb342--------------------------------)[![Peng Qian](../Images/9ce9aeb381ec6b017c1ee5d4714937e2.png)](https://qtalen.medium.com/?source=post_page---byline--2e5ff95eb342--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e5ff95eb342--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2e5ff95eb342--------------------------------) [Peng Qian](https://qtalen.medium.com/?source=post_page---byline--2e5ff95eb342--------------------------------)
+[](https://qtalen.medium.com/?source=post_page---byline--2e5ff95eb342--------------------------------)![Peng Qian](https://qtalen.medium.com/?source=post_page---byline--2e5ff95eb342--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e5ff95eb342--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e5ff95eb342--------------------------------) [Peng Qian](https://qtalen.medium.com/?source=post_page---byline--2e5ff95eb342--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e5ff95eb342--------------------------------) ·9 分钟阅读·2024年8月17日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e5ff95eb342--------------------------------) ·9 分钟阅读·2024 年 8 月 17 日
 
 --
 
-![](../Images/855821dc84e119a117917e81974098e9.png)
+![](img/855821dc84e119a117917e81974098e9.png)
 
 Keras 3 优化器背后的数学原理：深入理解与应用。图片来自 DALL-E-3
 

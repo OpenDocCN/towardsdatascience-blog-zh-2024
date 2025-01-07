@@ -1,16 +1,16 @@
 # 贝叶斯定理：用证据理解商业结果
 
-> 原文：[https://towardsdatascience.com/bayes-theorem-understanding-outcomes-with-evidence-9e23e18b0912?source=collection_archive---------1-----------------------#2024-12-12](https://towardsdatascience.com/bayes-theorem-understanding-outcomes-with-evidence-9e23e18b0912?source=collection_archive---------1-----------------------#2024-12-12)
+> 原文：[`towardsdatascience.com/bayes-theorem-understanding-outcomes-with-evidence-9e23e18b0912?source=collection_archive---------1-----------------------#2024-12-12`](https://towardsdatascience.com/bayes-theorem-understanding-outcomes-with-evidence-9e23e18b0912?source=collection_archive---------1-----------------------#2024-12-12)
 
 ## 贝叶斯定理的实际介绍：数据科学系列中的概率（2）
 
-[](https://medium.com/@sahn1998?source=post_page---byline--9e23e18b0912--------------------------------)[![Sunghyun Ahn](../Images/e8efe3b5d7f0267713ab66149a8de5f7.png)](https://medium.com/@sahn1998?source=post_page---byline--9e23e18b0912--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9e23e18b0912--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9e23e18b0912--------------------------------) [Sunghyun Ahn](https://medium.com/@sahn1998?source=post_page---byline--9e23e18b0912--------------------------------)
+[](https://medium.com/@sahn1998?source=post_page---byline--9e23e18b0912--------------------------------)![Sunghyun Ahn](https://medium.com/@sahn1998?source=post_page---byline--9e23e18b0912--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9e23e18b0912--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9e23e18b0912--------------------------------) [Sunghyun Ahn](https://medium.com/@sahn1998?source=post_page---byline--9e23e18b0912--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9e23e18b0912--------------------------------) ·阅读时间：10分钟·2024年12月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9e23e18b0912--------------------------------) ·阅读时间：10 分钟·2024 年 12 月 12 日
 
 --
 
-![](../Images/70de8eac55764858c50935df27bc6eee.png)
+![](img/70de8eac55764858c50935df27bc6eee.png)
 
 图片由 [Markus Spiske](https://unsplash.com/@markusspiske?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源于 [Unsplash](https://unsplash.com/photos/padlocks-on-gray-steel-fence-UphDp1J3kWo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

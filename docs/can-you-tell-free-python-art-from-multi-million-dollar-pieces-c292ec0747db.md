@@ -1,28 +1,28 @@
-# 你能从免费的Python艺术作品和价值数百万美元的艺术品中分辨出区别吗？
+# 你能从免费的 Python 艺术作品和价值数百万美元的艺术品中分辨出区别吗？
 
-> 原文：[https://towardsdatascience.com/can-you-tell-free-python-art-from-multi-million-dollar-pieces-c292ec0747db?source=collection_archive---------6-----------------------#2024-11-13](https://towardsdatascience.com/can-you-tell-free-python-art-from-multi-million-dollar-pieces-c292ec0747db?source=collection_archive---------6-----------------------#2024-11-13)
+> 原文：[`towardsdatascience.com/can-you-tell-free-python-art-from-multi-million-dollar-pieces-c292ec0747db?source=collection_archive---------6-----------------------#2024-11-13`](https://towardsdatascience.com/can-you-tell-free-python-art-from-multi-million-dollar-pieces-c292ec0747db?source=collection_archive---------6-----------------------#2024-11-13)
 
-## 跟随我一起，进行一次Python生成艺术的教程，灵感来自皮特·蒙德里安和约瑟夫·阿尔伯斯。从代码到画布，第1部分。
+## 跟随我一起，进行一次 Python 生成艺术的教程，灵感来自皮特·蒙德里安和约瑟夫·阿尔伯斯。从代码到画布，第一部分。
 
-[](https://medium.com/@gordunanna?source=post_page---byline--c292ec0747db--------------------------------)[![Anna Gordun Peiro](../Images/874ec5096d61e6345104026a4cf602e9.png)](https://medium.com/@gordunanna?source=post_page---byline--c292ec0747db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c292ec0747db--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c292ec0747db--------------------------------) [Anna Gordun Peiro](https://medium.com/@gordunanna?source=post_page---byline--c292ec0747db--------------------------------)
+[](https://medium.com/@gordunanna?source=post_page---byline--c292ec0747db--------------------------------)![Anna Gordun Peiro](https://medium.com/@gordunanna?source=post_page---byline--c292ec0747db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c292ec0747db--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c292ec0747db--------------------------------) [Anna Gordun Peiro](https://medium.com/@gordunanna?source=post_page---byline--c292ec0747db--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c292ec0747db--------------------------------) ·阅读时间：6分钟·2024年11月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c292ec0747db--------------------------------) ·阅读时间：6 分钟·2024 年 11 月 13 日
 
 --
 
-![](../Images/e5c8f2acf35495527ed7830b88b6d0a9.png)
+![](img/e5c8f2acf35495527ed7830b88b6d0a9.png)
 
-哪三幅作品是真的？图像由作者从[Ioana Cristiana](https://unsplash.com/es/@yoyoqua)的照片创作而来。皮特·蒙德里安的作品属于公共领域。艺术作品在艺术家去世70年后进入**公共领域**。
+哪三幅作品是真的？图像由作者从[Ioana Cristiana](https://unsplash.com/es/@yoyoqua)的照片创作而来。皮特·蒙德里安的作品属于公共领域。艺术作品在艺术家去世 70 年后进入**公共领域**。
 
-其中一幅作品是由Python生成的，其余的则是皮特·蒙德里安的原作。哪一幅是与众不同的？我将在几段后给你答案，但首先我需要告诉你为什么我使用Python来创作艺术，而不是使用某个高级的生成式AI工具。
+其中一幅作品是由 Python 生成的，其余的则是皮特·蒙德里安的原作。哪一幅是与众不同的？我将在几段后给你答案，但首先我需要告诉你为什么我使用 Python 来创作艺术，而不是使用某个高级的生成式 AI 工具。
 
-作为一个天生没有艺术天赋的创意艺术爱好者，我把DALL-E和其他工具的发布视为一个机会，让我无需掌握画笔就能在我的整间公寓里挂上“我的”杰作。
+作为一个天生没有艺术天赋的创意艺术爱好者，我把 DALL-E 和其他工具的发布视为一个机会，让我无需掌握画笔就能在我的整间公寓里挂上“我的”杰作。
 
-事实并非如此，我的墙依然是空白的画布。我没能创作出任何值得展示的作品，但最重要的是——DALL-E破坏了创作的氛围。
+事实并非如此，我的墙依然是空白的画布。我没能创作出任何值得展示的作品，但最重要的是——DALL-E 破坏了创作的氛围。
 
 为什么？
 
-因为艺术的魔力大多数来自于我们在创作过程中通过感觉去探索的过程。这是一个旅程——而不仅仅是一个结果。AI艺术对我来说显得太过机械，太过随机，太冷冰冰的。
+因为艺术的魔力大多数来自于我们在创作过程中通过感觉去探索的过程。这是一个旅程——而不仅仅是一个结果。AI 艺术对我来说显得太过机械，太过随机，太冷冰冰的。
 
 这让我开始思考：是否存在一个理想的中间点？是否有办法创作出既随机又可控的生成艺术，同时还能获得完成作品时的那份多巴胺/自豪感？更重要的是——没有实际的艺术技巧？
 
@@ -34,15 +34,15 @@
 
 这是他一些最具代表性的作品的小样本：
 
-![](../Images/dd87d7b154512660e181305b8079d5ec.png)
+![](img/dd87d7b154512660e181305b8079d5ec.png)
 
 图片由作者创建。皮特·蒙德里安的作品属于公有领域。
 
 > 你已经知道哪个是冒名顶替者了吗？
 
-如果你有兴趣尝试，只需安装“[mondrian-maker](https://pypi.org/project/mondrian-maker/#description)”Python包，就能像这样绘制新的作品：
+如果你有兴趣尝试，只需安装“[mondrian-maker](https://pypi.org/project/mondrian-maker/#description)”Python 包，就能像这样绘制新的作品：
 
-> mondrian-maker包由Andrew Bowen创建，并在GNU通用公共许可证下发布。
+> mondrian-maker 包由 Andrew Bowen 创建，并在 GNU 通用公共许可证下发布。
 
 ```py
 from mondrian_maker.mondrian import mondrian
@@ -51,11 +51,11 @@ m = mondrian()
 m.make_mondrian()
 ```
 
-![](../Images/b546b73a88ce231dfb4c4c3d66240222.png)
+![](img/b546b73a88ce231dfb4c4c3d66240222.png)
 
 由作者生成的构成
 
-乐趣的一部分在于每次调用`make_mondrian()`时都会生成一幅新的作品。并非所有作品都“值得画出来”，所以我生成了100个并选择了我最喜欢的。
+乐趣的一部分在于每次调用`make_mondrian()`时都会生成一幅新的作品。并非所有作品都“值得画出来”，所以我生成了 100 个并选择了我最喜欢的。
 
 ```py
 for i in range(0,100):
@@ -63,9 +63,9 @@ for i in range(0,100):
     f.savefig(f"{i}_mondrian.png")
 ```
 
-那么Python或原始游戏的答案是什么？冒名顶替者是**从左边数起的第三个**😉。剩下的作品是（从左到右）：*红蓝构成一号（1938）*；*红黄蓝构成（1942）*；*构成十号（1939）*
+那么 Python 或原始游戏的答案是什么？冒名顶替者是**从左边数起的第三个**😉。剩下的作品是（从左到右）：*红蓝构成一号（1938）*；*红黄蓝构成（1942）*；*构成十号（1939）*
 
-![](../Images/540fdff222e4e84711eed0e0899e6e73.png)
+![](img/540fdff222e4e84711eed0e0899e6e73.png)
 
 拼图解决方案！图片由作者生成。皮特·蒙德里安的作品属于公有领域
 
@@ -77,7 +77,7 @@ for i in range(0,100):
 
 虽然蒙德里安的作品确实引起了我的注意，但我想从零开始，做一些属于我自己的东西。这就是为什么我转向了约瑟夫·阿尔伯斯的*《方形的致敬》*系列。我被他玩弄透视和色彩的方式所吸引，而且他的“简单”外观给人一种感觉，仿佛是进入的正确地方。自己判断一下吧：
 
-现在，在我们开始绘制方块之前，有两个关于Python生成艺术的关键秘密你应该知道：
+现在，在我们开始绘制方块之前，有两个关于 Python 生成艺术的关键秘密你应该知道：
 
 +   **可重复性：** 我们希望我们的艺术作品具有随机性，但同时也能再次生成完全相同的画作。通过使用*numpy.random.seed()*，我们可以确保随机数在不同的运行中保持一致。
 
@@ -91,9 +91,9 @@ np.random.seed(constant)
 # To get different random numbers, choose a new constant
 ```
 
-+   **色彩理论：** 艺术家使用色彩组合来生成视觉上令人愉悦的色彩调色板。实现这一目标的编程秘密是使用[*MetBrewer*](https://github.com/BlakeRMills/MetBrewer)——一个Python库，包含56种美丽的调色板，灵感来自纽约大都会艺术博物馆的作品。
++   **色彩理论：** 艺术家使用色彩组合来生成视觉上令人愉悦的色彩调色板。实现这一目标的编程秘密是使用[*MetBrewer*](https://github.com/BlakeRMills/MetBrewer)——一个 Python 库，包含 56 种美丽的调色板，灵感来自纽约大都会艺术博物馆的作品。
 
-![](../Images/496a58fb224ac8df7d72207c266c8f0e.png)
+![](img/496a58fb224ac8df7d72207c266c8f0e.png)
 
 来自[MetBrewer](https://github.com/BlakeRMills/MetBrewer)的截图（创作共用许可证）
 
@@ -185,7 +185,7 @@ pio.write_image(fig, "73morgensternplot.png", format="png", width=800, height=80
 
 这是最终的作品！
 
-![](../Images/e01969a8020f49d9b21c4baf14d2ca89.png)  
+![](img/e01969a8020f49d9b21c4baf14d2ca89.png)  
 
 我称这幅画为：阳光明媚的一天的冰激凌。图片由作者提供  
 
@@ -193,17 +193,17 @@ pio.write_image(fig, "73morgensternplot.png", format="png", width=800, height=80
 
 首先，我必须破解正方形尺寸的代码，确保它们与原作的透视相匹配。接着是有趣（且略微有些痴迷）的部分：玩弄颜色调色板，等待那个魔法般的“啊哈”时刻，直到一切都恰如其分地融合在一起。  
 
-我并没有停在那里。我生成了超过100幅不同种子常数的画作，基本上成了自己的艺术策展人，找到“那幅画”。  
+我并没有停在那里。我生成了超过 100 幅不同种子常数的画作，基本上成了自己的艺术策展人，找到“那幅画”。  
 
-最棒的部分？我跳过了几个小时的画画挫败感，最终得到了一个“还不错”的作品。而且，我没有被一个被过度炒作的生成AI工具所打击。相反，我让自己的想象力驰骋，创作出了我愿意自豪地挂在墙上的作品——甚至可能会购买。  
+最棒的部分？我跳过了几个小时的画画挫败感，最终得到了一个“还不错”的作品。而且，我没有被一个被过度炒作的生成 AI 工具所打击。相反，我让自己的想象力驰骋，创作出了我愿意自豪地挂在墙上的作品——甚至可能会购买。  
 
 在我看来，艺术品加上画框看起来更加高雅，也更显贵气：  
 
-![](../Images/b8c25fa2dd9f102d561aca3ca58d48e8.png)  
+![](img/b8c25fa2dd9f102d561aca3ca58d48e8.png)  
 
 装框画作，顺便提一下，我用 levelframes.com 生成了这幅画。图片由作者提供  
 
-![](../Images/1d74d070fbb88b16045bd0fbe047330a.png)  
+![](img/1d74d070fbb88b16045bd0fbe047330a.png)  
 
 图片由作者生成  
 

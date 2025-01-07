@@ -1,16 +1,16 @@
 # 提升生产力：利用 AWS 生成 AI 在几秒钟内总结会议记录
 
-> 原文：[https://towardsdatascience.com/scale-your-productivity-leveraging-aws-gen-ai-to-summarize-meeting-notes-in-seconds-31f348879dc2?source=collection_archive---------11-----------------------#2024-08-06](https://towardsdatascience.com/scale-your-productivity-leveraging-aws-gen-ai-to-summarize-meeting-notes-in-seconds-31f348879dc2?source=collection_archive---------11-----------------------#2024-08-06)
+> 原文：[`towardsdatascience.com/scale-your-productivity-leveraging-aws-gen-ai-to-summarize-meeting-notes-in-seconds-31f348879dc2?source=collection_archive---------11-----------------------#2024-08-06`](https://towardsdatascience.com/scale-your-productivity-leveraging-aws-gen-ai-to-summarize-meeting-notes-in-seconds-31f348879dc2?source=collection_archive---------11-----------------------#2024-08-06)
 
 ## 这是一份关于如何利用 AWS Lambda、Bedrock 和 S3 创建一个工作流来总结会议记录的全面指南
 
-[](https://medium.com/@jaingle77?source=post_page---byline--31f348879dc2--------------------------------)[![Jacob Ingle](../Images/f2543a1c4b12ef28a83c30c1667ee032.png)](https://medium.com/@jaingle77?source=post_page---byline--31f348879dc2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--31f348879dc2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--31f348879dc2--------------------------------) [Jacob Ingle](https://medium.com/@jaingle77?source=post_page---byline--31f348879dc2--------------------------------)
+[](https://medium.com/@jaingle77?source=post_page---byline--31f348879dc2--------------------------------)![Jacob Ingle](https://medium.com/@jaingle77?source=post_page---byline--31f348879dc2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--31f348879dc2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31f348879dc2--------------------------------) [Jacob Ingle](https://medium.com/@jaingle77?source=post_page---byline--31f348879dc2--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31f348879dc2--------------------------------) ·阅读时长16分钟·2024年8月6日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31f348879dc2--------------------------------) ·阅读时长 16 分钟·2024 年 8 月 6 日
 
 --
 
-![](../Images/5562012447b5e96753696101c3ee8595.png)
+![](img/5562012447b5e96753696101c3ee8595.png)
 
 图片由 DALL-E 生成
 

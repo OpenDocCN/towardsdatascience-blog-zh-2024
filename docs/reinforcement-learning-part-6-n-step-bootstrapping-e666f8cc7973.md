@@ -1,16 +1,16 @@
-# 强化学习，第6部分：n步自举法
+# 强化学习，第六部分：n 步自举法
 
-> 原文：[https://towardsdatascience.com/reinforcement-learning-part-6-n-step-bootstrapping-e666f8cc7973?source=collection_archive---------7-----------------------#2024-08-07](https://towardsdatascience.com/reinforcement-learning-part-6-n-step-bootstrapping-e666f8cc7973?source=collection_archive---------7-----------------------#2024-08-07)
+> 原文：[`towardsdatascience.com/reinforcement-learning-part-6-n-step-bootstrapping-e666f8cc7973?source=collection_archive---------7-----------------------#2024-08-07`](https://towardsdatascience.com/reinforcement-learning-part-6-n-step-bootstrapping-e666f8cc7973?source=collection_archive---------7-----------------------#2024-08-07)
 
 ## **拓展边界：泛化时间差分算法**
 
-[](https://medium.com/@slavahead?source=post_page---byline--e666f8cc7973--------------------------------)[![Vyacheslav Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--e666f8cc7973--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e666f8cc7973--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e666f8cc7973--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--e666f8cc7973--------------------------------)
+[](https://medium.com/@slavahead?source=post_page---byline--e666f8cc7973--------------------------------)![Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--e666f8cc7973--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e666f8cc7973--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e666f8cc7973--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--e666f8cc7973--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e666f8cc7973--------------------------------) ·6分钟阅读·2024年8月7日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e666f8cc7973--------------------------------) ·6 分钟阅读·2024 年 8 月 7 日
 
 --
 
-![](../Images/0532e48851a49d92a2d95a3ab4025a30.png)
+![](img/0532e48851a49d92a2d95a3ab4025a30.png)
 
 # 介绍
 
@@ -20,8 +20,8 @@
 
 > **注意**：为了充分理解本文中包含的概念，强烈建议熟悉之前文章中介绍的[蒙特卡洛方法](https://medium.com/towards-data-science/reinforcement-learning-part-3-monte-carlo-methods-7ce2828a1fdb)和[时间差分学习](https://medium.com/towards-data-science/reinforcement-learning-part-5-temporal-difference-learning-cacf7854fe0c)的基础知识。
 
-[](/reinforcement-learning-part-3-monte-carlo-methods-7ce2828a1fdb?source=post_page-----e666f8cc7973--------------------------------) [## 强化学习，第3部分：蒙特卡洛方法
+[](/reinforcement-learning-part-3-monte-carlo-methods-7ce2828a1fdb?source=post_page-----e666f8cc7973--------------------------------) ## 强化学习，第三部分：蒙特卡洛方法
 
 ### 从赌场到人工智能：揭示蒙特卡洛方法在复杂环境中的威力
 
-towardsdatascience.com](/reinforcement-learning-part-3-monte-carlo-methods-7ce2828a1fdb?source=post_page-----e666f8cc7973--------------------------------)
+towardsdatascience.com

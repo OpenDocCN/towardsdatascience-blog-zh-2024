@@ -1,16 +1,16 @@
 # 离群点更难预测吗？
 
-> 原文：[https://towardsdatascience.com/are-outliers-harder-to-predict-ae84dd4be465?source=collection_archive---------3-----------------------#2024-02-04](https://towardsdatascience.com/are-outliers-harder-to-predict-ae84dd4be465?source=collection_archive---------3-----------------------#2024-02-04)
+> 原文：[`towardsdatascience.com/are-outliers-harder-to-predict-ae84dd4be465?source=collection_archive---------3-----------------------#2024-02-04`](https://towardsdatascience.com/are-outliers-harder-to-predict-ae84dd4be465?source=collection_archive---------3-----------------------#2024-02-04)
 
 ## 一项关于机器学习模型在预测离群点时是否更容易出错的实证分析
 
-[](https://medium.com/@mazzanti.sam?source=post_page---byline--ae84dd4be465--------------------------------)[![Samuele Mazzanti](../Images/432477d6418a3f79bf25dec42755d364.png)](https://medium.com/@mazzanti.sam?source=post_page---byline--ae84dd4be465--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ae84dd4be465--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ae84dd4be465--------------------------------) [Samuele Mazzanti](https://medium.com/@mazzanti.sam?source=post_page---byline--ae84dd4be465--------------------------------)
+[](https://medium.com/@mazzanti.sam?source=post_page---byline--ae84dd4be465--------------------------------)![Samuele Mazzanti](https://medium.com/@mazzanti.sam?source=post_page---byline--ae84dd4be465--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ae84dd4be465--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ae84dd4be465--------------------------------) [Samuele Mazzanti](https://medium.com/@mazzanti.sam?source=post_page---byline--ae84dd4be465--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ae84dd4be465--------------------------------) ·阅读时间：8分钟·2024年2月4日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ae84dd4be465--------------------------------) ·阅读时间：8 分钟·2024 年 2 月 4 日
 
 --
 
-![](../Images/38fef5ef56cad68af3fda61fd41732be.png)
+![](img/38fef5ef56cad68af3fda61fd41732be.png)
 
 [图像由作者提供]
 

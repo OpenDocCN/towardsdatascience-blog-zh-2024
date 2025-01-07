@@ -1,32 +1,32 @@
 # 虚拟分类器详解：面向初学者的视觉指南与代码示例
 
-> 原文：[https://towardsdatascience.com/dummy-classifier-explained-a-visual-guide-with-code-examples-for-beginners-009ff95fc86e?source=collection_archive---------3-----------------------#2024-08-14](https://towardsdatascience.com/dummy-classifier-explained-a-visual-guide-with-code-examples-for-beginners-009ff95fc86e?source=collection_archive---------3-----------------------#2024-08-14)
+> 原文：[`towardsdatascience.com/dummy-classifier-explained-a-visual-guide-with-code-examples-for-beginners-009ff95fc86e?source=collection_archive---------3-----------------------#2024-08-14`](https://towardsdatascience.com/dummy-classifier-explained-a-visual-guide-with-code-examples-for-beginners-009ff95fc86e?source=collection_archive---------3-----------------------#2024-08-14)
 
 ## 分类算法
 
 ## 在机器学习中，通过简单的基线模型设定标准
 
-[](https://medium.com/@samybaladram?source=post_page---byline--009ff95fc86e--------------------------------)[![Samy Baladram](../Images/715cb7af97c57601966c5d2f9edd0066.png)](https://medium.com/@samybaladram?source=post_page---byline--009ff95fc86e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--009ff95fc86e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--009ff95fc86e--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--009ff95fc86e--------------------------------)
+[](https://medium.com/@samybaladram?source=post_page---byline--009ff95fc86e--------------------------------)![Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--009ff95fc86e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--009ff95fc86e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--009ff95fc86e--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--009ff95fc86e--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--009ff95fc86e--------------------------------) ·阅读时间：7分钟·2024年8月14日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--009ff95fc86e--------------------------------) ·阅读时间：7 分钟·2024 年 8 月 14 日
 
 --
 
-![](../Images/7d5f5043f52cd1660f09ce3ca7c6cdca.png)
+![](img/7d5f5043f52cd1660f09ce3ca7c6cdca.png)
 
-`⛳️ 更多分类算法，详解： ▶ [虚拟分类器](/dummy-classifier-explained-a-visual-guide-with-code-examples-for-beginners-009ff95fc86e) · [K近邻分类器](/k-nearest-neighbor-classifier-explained-a-visual-guide-with-code-examples-for-beginners-a3d85cad00e1) · [伯努利朴素贝叶斯](/bernoulli-naive-bayes-explained-a-visual-guide-with-code-examples-for-beginners-aec39771ddd6) · [高斯朴素贝叶斯](/gaussian-naive-bayes-explained-a-visual-guide-with-code-examples-for-beginners-04949cef383c) · [决策树分类器](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e) · [逻辑回归](/logistic-regression-explained-a-visual-guide-with-code-examples-for-beginners-81baf5871505) · [支持向量分类器](/support-vector-classifier-explained-a-visual-guide-with-mini-2d-dataset-62e831e7b9e9) · [多层感知机](/multilayer-perceptron-explained-a-visual-guide-with-mini-2d-dataset-0ae8100c5d1c)`
+`⛳️ 更多分类算法，详解： ▶ 虚拟分类器 · K 近邻分类器 · 伯努利朴素贝叶斯 · 高斯朴素贝叶斯 · 决策树分类器 · 逻辑回归 · 支持向量分类器 · 多层感知机`
 
 你是否曾经想过数据科学家是如何衡量他们的机器学习模型性能的？让我们来看一下虚拟分类器——一个简单却强大的数据科学工具。可以把它看作是游戏中的基线玩家，设定了其他更复杂模型需要超越的最低标准。
 
-![](../Images/0a0897b06ce54ce8e54d961956cd7d50.png)
+![](img/0a0897b06ce54ce8e54d961956cd7d50.png)
 
-所有视觉效果：作者使用Canva Pro制作。优化了移动端显示；在桌面端可能显示过大。
+所有视觉效果：作者使用 Canva Pro 制作。优化了移动端显示；在桌面端可能显示过大。
 
 # 定义
 
 虚拟分类器是一个简单的机器学习模型，它使用基本规则进行预测，而不是真正地从输入数据中学习。它作为一个基准，用于比较更复杂模型的性能。虚拟分类器帮助我们了解我们的复杂模型是否真的在学习有用的模式，还是只是在猜测。
 
-![](../Images/834c5b63a06e05517583e5ef01f746fd.png)
+![](img/834c5b63a06e05517583e5ef01f746fd.png)
 
 虚拟分类器是机器学习中的基础关键算法之一。
 
@@ -34,7 +34,7 @@
 
 在本文中，我们将使用这个简单的人工高尔夫数据集（灵感来源于[1]）作为示例。这个数据集根据天气条件预测一个人是否会打高尔夫。它包括如展望、温度、湿度和风等特征，目标变量是是否打高尔夫。
 
-![](../Images/e66ab987f34572e8d046e05b218444ab.png)
+![](img/e66ab987f34572e8d046e05b218444ab.png)
 
 列：‘展望’、‘温度’、‘湿度’、‘风’ 和 ‘打球’（目标特征）
 
@@ -77,7 +77,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.5, shuffl
 
 1.  始终预测一个特定类别
 
-![](../Images/e1b4e2a1f75224a4bcd2ba1463a3f662.png)
+![](img/e1b4e2a1f75224a4bcd2ba1463a3f662.png)
 
 对于我们的高尔夫数据集，如果“是”——即打高尔夫是训练数据中最常见的结果，那么一个虚拟分类器可能始终预测“是”。
 
@@ -95,7 +95,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.5, shuffl
 
 +   **均匀**：随机选择任何类别。
 
-![](../Images/193f2e00ddd807b5bfa47b80495d4bf2.png)
+![](img/193f2e00ddd807b5bfa47b80495d4bf2.png)
 
 根据策略的不同，虚拟分类器会做出不同的预测。
 
@@ -110,7 +110,7 @@ strategy = 'most_frequent'
 
 从训练数据集收集类别标签以确定策略参数。
 
-![](../Images/958c4951d13c4f031f4c031406d4d28d.png)
+![](img/958c4951d13c4f031f4c031406d4d28d.png)
 
 该算法只是获取训练数据集中“最频繁”类别的信息——在这个例子中是“是”。
 
@@ -126,7 +126,7 @@ dummy_clf.fit(X_train, y_train)
 
 使用选择的策略**生成测试数据的预测标签列表**。
 
-![](../Images/7fef1b9ca434ce80d241417b6b352ff5.png)
+![](img/7fef1b9ca434ce80d241417b6b352ff5.png)
 
 如果我们选择“最频繁”策略，并发现“是”（打高尔夫）在训练数据中出现得更频繁，虚拟分类器将简单地记住始终预测“是”。
 
@@ -139,9 +139,9 @@ print("Prediction:",list(y_pred))
 
 ## 评估模型
 
-![](../Images/1215f23c0f13b608c805f8ade38364ad.png)
+![](img/1215f23c0f13b608c805f8ade38364ad.png)
 
-虚拟分类器提供64%的准确率作为未来模型的基准。
+虚拟分类器提供 64%的准确率作为未来模型的基准。
 
 ```py
 # Evaluate the DummyClassifier's accuracy
@@ -169,7 +169,7 @@ print(f"Dummy Classifier Accuracy: {round(accuracy,4)*100}%")
 
 1.  **常量**：使用‘常量’策略时，此参数指定始终预测的类别。
 
-![](../Images/da1d5ccd4035c1ab005bddf2f648b443.png)
+![](img/da1d5ccd4035c1ab005bddf2f648b443.png)
 
 对于我们的高尔夫数据集，我们可能会选择‘最常见’策略，它不需要额外的参数。
 
@@ -243,46 +243,46 @@ print(f"Accuracy: {accuracy_score(y_test, y_pred)*100:.4f}%")
 
 ## 进一步阅读
 
-对于[DummyClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.dummy.DummyClassifier.html)及其在scikit-learn中的实现的详细说明，读者可以参考官方文档[2]，该文档提供了有关其使用和参数的全面信息。
+对于[DummyClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.dummy.DummyClassifier.html)及其在 scikit-learn 中的实现的详细说明，读者可以参考官方文档[2]，该文档提供了有关其使用和参数的全面信息。
 
 ## 技术环境
 
-本文使用Python 3.7和scikit-learn 1.5。尽管所讨论的概念一般适用，但不同版本的具体代码实现可能会有所不同。
+本文使用 Python 3.7 和 scikit-learn 1.5。尽管所讨论的概念一般适用，但不同版本的具体代码实现可能会有所不同。
 
 ## 关于插图
 
-除非另有说明，所有图片均由作者创作，并结合了Canva Pro的授权设计元素。
+除非另有说明，所有图片均由作者创作，并结合了 Canva Pro 的授权设计元素。
 
-![](../Images/408bdcc3b6471d42cad83e91e574d97e.png)
+![](img/408bdcc3b6471d42cad83e91e574d97e.png)
 
-若要查看虚拟分类器的简洁视觉总结，请访问[配套Instagram帖子](https://www.instagram.com/p/C-ssgsAyFSI/)。
+若要查看虚拟分类器的简洁视觉总结，请访问[配套 Instagram 帖子](https://www.instagram.com/p/C-ssgsAyFSI/)。
 
 ## 参考文献
 
-[1] T. M. Mitchell, [机器学习](https://www.cs.cmu.edu/afs/cs.cmu.edu/user/mitchell/ftp/mlbook.html)（1997），McGraw-Hill Science/Engineering/Math，第59页
+[1] T. M. Mitchell, [机器学习](https://www.cs.cmu.edu/afs/cs.cmu.edu/user/mitchell/ftp/mlbook.html)（1997），McGraw-Hill Science/Engineering/Math，第 59 页
 
 在此查看更多**分类算法**：
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----009ff95fc86e--------------------------------)
 
 ## **分类算法**
 
-[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----009ff95fc86e--------------------------------)8篇故事！[](../Images/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](../Images/6ea70d9d2d9456e0c221388dbb253be8.png)![](../Images/7221f0777228e7bcf08c1adb44a8eb76.png)
+[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----009ff95fc86e--------------------------------)8 篇故事！[](../Images/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](img/6ea70d9d2d9456e0c221388dbb253be8.png)![](img/7221f0777228e7bcf08c1adb44a8eb76.png)
 
 你可能还喜欢：
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----009ff95fc86e--------------------------------)
 
 ## 回归算法
 
-[查看列表](https://medium.com/@samybaladram/list/regression-algorithms-b0b6959f1b39?source=post_page-----009ff95fc86e--------------------------------)5篇故事！![一个卡通娃娃，扎着辫子，戴着粉色的帽子。这个“傀儡”娃娃，设计简单，穿着带心形图案的T恤，直观地代表了机器学习中的傀儡回归器的概念。就像这个玩具般的人物是一个简化的、静态的人物代表，傀儡回归器是一个基础模型，作为更复杂分析的基准。](../Images/aa7eeaa18e4bb093f5ce4ab9b93a8a27.png)![](../Images/44e6d84e61c895757ff31e27943ee597.png)![](../Images/7f3e5f3e2aca2feec035ca92e1bc440a.png)![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+[查看列表](https://medium.com/@samybaladram/list/regression-algorithms-b0b6959f1b39?source=post_page-----009ff95fc86e--------------------------------)5 篇故事！![一个卡通娃娃，扎着辫子，戴着粉色的帽子。这个“傀儡”娃娃，设计简单，穿着带心形图案的 T 恤，直观地代表了机器学习中的傀儡回归器的概念。就像这个玩具般的人物是一个简化的、静态的人物代表，傀儡回归器是一个基础模型，作为更复杂分析的基准。](img/aa7eeaa18e4bb093f5ce4ab9b93a8a27.png)![](img/44e6d84e61c895757ff31e27943ee597.png)![](img/7f3e5f3e2aca2feec035ca92e1bc440a.png)![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----009ff95fc86e--------------------------------)
 
 ## 集成学习
 
-[查看列表](https://medium.com/@samybaladram/list/ensemble-learning-673fc83cd7db?source=post_page-----009ff95fc86e--------------------------------)4篇故事！[](../Images/1bd2995b5cb6dcc956ceadadc5ee3036.png)![](../Images/22a5d43568e70222eb89fd36789a9333.png)![](../Images/8ea1a2f29053080a5feffc709f5b8669.png)
+[查看列表](https://medium.com/@samybaladram/list/ensemble-learning-673fc83cd7db?source=post_page-----009ff95fc86e--------------------------------)4 篇故事！[](../Images/1bd2995b5cb6dcc956ceadadc5ee3036.png)![](img/22a5d43568e70222eb89fd36789a9333.png)![](img/8ea1a2f29053080a5feffc709f5b8669.png)

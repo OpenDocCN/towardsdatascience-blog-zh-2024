@@ -1,16 +1,16 @@
 # 机器学习实验做得对
 
-> 原文：[https://towardsdatascience.com/machine-learning-experiments-done-right-6ed04f5e959b?source=collection_archive---------8-----------------------#2024-12-02](https://towardsdatascience.com/machine-learning-experiments-done-right-6ed04f5e959b?source=collection_archive---------8-----------------------#2024-12-02)
+> 原文：[`towardsdatascience.com/machine-learning-experiments-done-right-6ed04f5e959b?source=collection_archive---------8-----------------------#2024-12-02`](https://towardsdatascience.com/machine-learning-experiments-done-right-6ed04f5e959b?source=collection_archive---------8-----------------------#2024-12-02)
 
 ## *设计机器学习实验的详细指南，旨在产生可靠、可重复的结果。*
 
-[](https://medium.com/@nurakawa?source=post_page---byline--6ed04f5e959b--------------------------------)[![Nura Kawa](../Images/916de01808035f05a1c96ac416a117a5.png)](https://medium.com/@nurakawa?source=post_page---byline--6ed04f5e959b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6ed04f5e959b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6ed04f5e959b--------------------------------) [Nura Kawa](https://medium.com/@nurakawa?source=post_page---byline--6ed04f5e959b--------------------------------)
+[](https://medium.com/@nurakawa?source=post_page---byline--6ed04f5e959b--------------------------------)![Nura Kawa](https://medium.com/@nurakawa?source=post_page---byline--6ed04f5e959b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6ed04f5e959b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6ed04f5e959b--------------------------------) [Nura Kawa](https://medium.com/@nurakawa?source=post_page---byline--6ed04f5e959b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6ed04f5e959b--------------------------------) ·7分钟阅读·2024年12月2日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6ed04f5e959b--------------------------------) ·7 分钟阅读·2024 年 12 月 2 日
 
 --
 
-![](../Images/38487f77eff1f740ac111d30711f00a7.png)
+![](img/38487f77eff1f740ac111d30711f00a7.png)
 
 图片由[Vedrana Filipović](https://unsplash.com/@vedranafilipovic?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -30,7 +30,7 @@
 
 实践者旨在最大化某个*响应函数*的输出——在我们花园的例子中，这可能是开花的数量，而在机器学习系统中，这通常是模型的准确性。这个响应函数依赖于可控因素和不可控因素。园艺师可以控制土壤质量和日常浇水，但无法控制天气。机器学习实践者可以控制大多数机器学习系统中的参数，如训练过程、参数和预处理步骤，而随机性则来自数据选择。
 
-![](../Images/59f28c280fc552d4f305ce0358efff87.png)
+![](img/59f28c280fc552d4f305ce0358efff87.png)
 
 *实验示意图，基于 [*[*2*](https://www.youtube.com/watch?v=1I4Hudel5mk)*]*
 
@@ -68,7 +68,7 @@
 
 ## 1\. 陈述实验目标
 
-目标应明确说明为什么要进行该实验。同样重要的是，**指定一个有意义的效应大小**。例如，如果实验的目标是“确定使用数据增强技术是否能提高模型的准确性”，那么我们必须补充说，“显著改进是大于或等于5%。”
+目标应明确说明为什么要进行该实验。同样重要的是，**指定一个有意义的效应大小**。例如，如果实验的目标是“确定使用数据增强技术是否能提高模型的准确性”，那么我们必须补充说，“显著改进是大于或等于 5%。”
 
 ## 2\. 选择响应函数，或你想要测量的内容
 
@@ -82,7 +82,7 @@
 
 *实验*是实验的单次实例，其中一个过程应用于一组因素的单一配置。在我们的示例实验中，目标是“确定使用数据增强技术是否能提高我的模型准确性”，单次实验将是：“使用一种数据增强技术在训练数据集上训练模型，并在保留的测试集上测量其准确性。”
 
-在这一步骤中，我们还要选择实验的数据。当选择数据集时，我们必须考虑我们的实验是针对特定领域应用，还是用于通用目的。特定领域的实验通常需要一个能够代表该领域的单一数据集，而旨在展示通用结果的实验则应在多个数据集上评估方法，这些数据集包含多种数据类型 [[1](/a-quick-guide-to-designing-rigorous-machine-learning-experiments-21b19f067703)]。
+在这一步骤中，我们还要选择实验的数据。当选择数据集时，我们必须考虑我们的实验是针对特定领域应用，还是用于通用目的。特定领域的实验通常需要一个能够代表该领域的单一数据集，而旨在展示通用结果的实验则应在多个数据集上评估方法，这些数据集包含多种数据类型 [1]。
 
 在这两种情况下，我们必须具体定义训练集、验证集和测试集。如果我们将一个数据集进行拆分，我们应记录数据拆分。这是避免意外污染的关键步骤！
 
@@ -120,14 +120,14 @@
 
 # 参考文献
 
-[1] Joris Guerin “设计严格的机器学习实验快速指南。” *Towards Data Science.* [在线阅读](/a-quick-guide-to-designing-rigorous-machine-learning-experiments-21b19f067703)。
+[1] Joris Guerin “设计严格的机器学习实验快速指南。” *Towards Data Science.* 在线阅读。
 
-[2] 机器学习实验的设计与分析 — 机器学习 — 2016年春季 — Kogan教授。[YouTube视频](https://www.youtube.com/watch?v=1I4Hudel5mk)。
+[2] 机器学习实验的设计与分析 — 机器学习 — 2016 年春季 — Kogan 教授。[YouTube 视频](https://www.youtube.com/watch?v=1I4Hudel5mk)。
 
-[3] Lawson, John. *使用R进行实验设计与分析*。[在线获取](https://elearning.unite.it/pluginfile.php/221606/mod_resource/content/1/BookDOEwithR.pdf)。
+[3] Lawson, John. *使用 R 进行实验设计与分析*。[在线获取](https://elearning.unite.it/pluginfile.php/221606/mod_resource/content/1/BookDOEwithR.pdf)。
 
-[4] 机器学习中的可疑做法。[ArXiv预印本](https://arxiv.org/pdf/2407.12220v1)。
+[4] 机器学习中的可疑做法。[ArXiv 预印本](https://arxiv.org/pdf/2407.12220v1)。
 
-[5] 提高机器学习研究的可重复性。*《机器学习研究期刊》*，2022年。[在线获取](https://www.jmlr.org/papers/volume22/20-303/20-303.pdf)。
+[5] 提高机器学习研究的可重复性。*《机器学习研究期刊》*，2022 年。[在线获取](https://www.jmlr.org/papers/volume22/20-303/20-303.pdf)。
 
-[6] 向量化独立可重复的机器学习研究迈出的一步。[ArXiv预印本](https://arxiv.org/pdf/1909.06674)。
+[6] 向量化独立可重复的机器学习研究迈出的一步。[ArXiv 预印本](https://arxiv.org/pdf/1909.06674)。

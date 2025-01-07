@@ -1,18 +1,18 @@
 # 外出邮件很无聊：用生成式 AI 让它们更生动
 
-> 原文：[https://towardsdatascience.com/making-out-of-office-emails-pop-with-generative-ai-876d4fb81342?source=collection_archive---------10-----------------------#2024-01-09](https://towardsdatascience.com/making-out-of-office-emails-pop-with-generative-ai-876d4fb81342?source=collection_archive---------10-----------------------#2024-01-09)
+> 原文：[`towardsdatascience.com/making-out-of-office-emails-pop-with-generative-ai-876d4fb81342?source=collection_archive---------10-----------------------#2024-01-09`](https://towardsdatascience.com/making-out-of-office-emails-pop-with-generative-ai-876d4fb81342?source=collection_archive---------10-----------------------#2024-01-09)
 
 ## 我实在是写不下去另一封外出邮件了，于是我开发了一个由 AI 驱动的应用，在我度过一个月长假期间，依然能够保持我的数字存在感。
 
-[](https://osheikhomar.medium.com/?source=post_page---byline--876d4fb81342--------------------------------)[![Omar Ali Sheikh](../Images/e4fe8498d467204e79a562cd0491e581.png)](https://osheikhomar.medium.com/?source=post_page---byline--876d4fb81342--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--876d4fb81342--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--876d4fb81342--------------------------------) [Omar Ali Sheikh](https://osheikhomar.medium.com/?source=post_page---byline--876d4fb81342--------------------------------)
+[](https://osheikhomar.medium.com/?source=post_page---byline--876d4fb81342--------------------------------)![Omar Ali Sheikh](https://osheikhomar.medium.com/?source=post_page---byline--876d4fb81342--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--876d4fb81342--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--876d4fb81342--------------------------------) [Omar Ali Sheikh](https://osheikhomar.medium.com/?source=post_page---byline--876d4fb81342--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--876d4fb81342--------------------------------) ·18分钟阅读·2024年1月9日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--876d4fb81342--------------------------------) ·18 分钟阅读·2024 年 1 月 9 日
 
 --
 
 *TLDR; 本文概述了一个用生成式 AI 编写非传统外出邮件的 Web 应用的开发过程。如果亲爱的读者选择继续阅读，您将会收获一大堆文字，详细描述我如何设计并构建了一个利用 GPT-4 和 DALL-E 3 生成自动回复邮件和配图的 Python 应用。另一方面，如果您只想亲自试试这个应用，我为您准备好了；源代码可以在* [*GitHub*](https://github.com/sheikhomar/roll)* 上找到。*
 
-![](../Images/85ff7ba640459bff178059f0d2b8124e.png)
+![](img/85ff7ba640459bff178059f0d2b8124e.png)
 
 我为构建带有生成式 AI 的外出邮件所开发的应用截图。此用户界面允许用户管理自动回复的创建，并以编程方式设置 Outlook 的外出设置。尽管显示的文本是丹麦语，但生成模型可以通过稍微修改提示语来生成其他语言的文本。文章的最后可以找到一个短小的用户界面演示视频。图片来自作者。
 
@@ -56,31 +56,31 @@ github.com](https://github.com/sheikhomar/roll?source=post_page-----876d4fb81342
 
 在《C# 4.0 完全参考》一书的空白页上快速画了一张图——顺便提一句，这本书对于调整电脑显示器高度非常有用——图中显示了一个有三层的结构：
 
-![](../Images/8682194c03c0fabd7260f1037f1e5e1d.png)
+![](img/8682194c03c0fabd7260f1037f1e5e1d.png)
 
 一张图展示了我们如何将代码组织成独立单元的策略，[每个单元都有自己的责任。](https://en.wikipedia.org/wiki/Single_responsibility_principle) 图片由我亲自制作。
 
 在底层是处理外部系统的组件：
 
-+   **生成AI API**是生成模型的抽象单元。在这个项目中，我们将依赖OpenAI的模型。具体来说，使用GPT-4来起草文本，使用DALL-E 3来生成我们的自动回复中的视觉内容。
++   **生成 AI API**是生成模型的抽象单元。在这个项目中，我们将依赖 OpenAI 的模型。具体来说，使用 GPT-4 来起草文本，使用 DALL-E 3 来生成我们的自动回复中的视觉内容。
 
 +   **数据仓库**是我们的数字图书馆，用来存储我们的创作。我们将保持简单，所有内容都作为文件存储在磁盘上。
 
-+   **Outlook客户端**是我们与Microsoft Outlook的接口。它允许我们以编程方式设置外出设置，从而自动化原本需要反复点击的过程，简直可以媲美英雄联盟锦标赛中的点击盛宴。
++   **Outlook 客户端**是我们与 Microsoft Outlook 的接口。它允许我们以编程方式设置外出设置，从而自动化原本需要反复点击的过程，简直可以媲美英雄联盟锦标赛中的点击盛宴。
 
 在中间层，我们有一个服务层，其中包含执行所有繁重任务的组件：
 
-+   **内容生成器**生成文本，同时也生成伴随文本的图像。它依赖生成AI组件来提供输出。
++   **内容生成器**生成文本，同时也生成伴随文本的图像。它依赖生成 AI 组件来提供输出。
 
-+   **文件下载器**是必要的，因为DALL-E的创作只能保存24小时。这个组件将在它们消失之前将这些稍纵即逝的杰作从互联网上下载下来。
++   **文件下载器**是必要的，因为 DALL-E 的创作只能保存 24 小时。这个组件将在它们消失之前将这些稍纵即逝的杰作从互联网上下载下来。
 
-+   **图像优化器**会去除DALL-E生成的图像中的多余字节。这可以通过调整图像大小，或许还可以应用量化算法来实现。目标是使包含图像的电子邮件在传输时更为高效。
++   **图像优化器**会去除 DALL-E 生成的图像中的多余字节。这可以通过调整图像大小，或许还可以应用量化算法来实现。目标是使包含图像的电子邮件在传输时更为高效。
 
-+   **HTML创建器**负责将给定的文本信息和优化后的图像格式化为HTML文本，准备作为自动回复电子邮件发送。
++   **HTML 创建器**负责将给定的文本信息和优化后的图像格式化为 HTML 文本，准备作为自动回复电子邮件发送。
 
-在最顶层是**用户界面**，我们的指挥控制中心，在这里我们可以监督一切。我们确保当LLM（大语言模型）决定生成包含虚构词汇的文本时，这些词汇几乎看起来像是丹麦语，但又不完全是，我们可以及时介入并拯救局面。
+在最顶层是**用户界面**，我们的指挥控制中心，在这里我们可以监督一切。我们确保当 LLM（大语言模型）决定生成包含虚构词汇的文本时，这些词汇几乎看起来像是丹麦语，但又不完全是，我们可以及时介入并拯救局面。
 
-用户界面还允许我们根据文本生成新的图像。最重要的是，在这里我们可以通过点击按钮配置Outlook的外出设置——为其他愉快的认知活动腾出宝贵的秒数，比如优化精确的*k*-最近邻搜索算法。
+用户界面还允许我们根据文本生成新的图像。最重要的是，在这里我们可以通过点击按钮配置 Outlook 的外出设置——为其他愉快的认知活动腾出宝贵的秒数，比如优化精确的*k*-最近邻搜索算法。
 
 现在我们已经设计好了软件架构，接下来是编码阶段。
 
@@ -90,21 +90,21 @@ github.com](https://github.com/sheikhomar/roll?source=post_page-----876d4fb81342
 
 本节大致介绍了如何实现上一节中描述的每个组件。目标不是详细解释每一行代码，而是提供足够的上下文来澄清代码背后的意图。代码中的注释和命名应该涵盖剩下的部分。如果还有不清楚的地方，欢迎向我提出意见。
 
-## 生成AI API
+## 生成 AI API
 
-为了实现生成式AI组件，我们可以走一条众所周知的道路，利用像[LangChain](https://github.com/langchain-ai/langchain)和[OpenAI官方Python SDK](https://github.com/openai/openai-python)这样的库。相反，让我们偏离传统路径，走一条更有结构的路线，使用[AIConfig](https://github.com/lastmile-ai/aiconfig)。
+为了实现生成式 AI 组件，我们可以走一条众所周知的道路，利用像[LangChain](https://github.com/langchain-ai/langchain)和[OpenAI 官方 Python SDK](https://github.com/openai/openai-python)这样的库。相反，让我们偏离传统路径，走一条更有结构的路线，使用[AIConfig](https://github.com/lastmile-ai/aiconfig)。
 
-有趣的是，AIConfig强调通过配置文件管理系统中的生成式AI部分。这应该会引起资深软件工程师的共鸣。通过将AI的行为与应用代码解耦，我们获得了一个更易维护的代码库，这是高质量软件工程的基石。而且，基于配置的方法结构化了我们的实验，使我们能够更快地调整提示，而无需修改代码。
+有趣的是，AIConfig 强调通过配置文件管理系统中的生成式 AI 部分。这应该会引起资深软件工程师的共鸣。通过将 AI 的行为与应用代码解耦，我们获得了一个更易维护的代码库，这是高质量软件工程的基石。而且，基于配置的方法结构化了我们的实验，使我们能够更快地调整提示，而无需修改代码。
 
-如果这引起了你的兴趣，看看Sarmad的深刻文章：
+如果这引起了你的兴趣，看看 Sarmad 的深刻文章：
 
-[](https://blog.lastmileai.dev/open-sourcing-aiconfig-6fbab53a59f7?source=post_page-----876d4fb81342--------------------------------) [## 开源AIConfig
+[](https://blog.lastmileai.dev/open-sourcing-aiconfig-6fbab53a59f7?source=post_page-----876d4fb81342--------------------------------) [## 开源 AIConfig
 
-### 基于配置驱动、适合源代码管理的AI应用开发框架
+### 基于配置驱动、适合源代码管理的 AI 应用开发框架
 
 blog.lastmileai.dev](https://blog.lastmileai.dev/open-sourcing-aiconfig-6fbab53a59f7?source=post_page-----876d4fb81342--------------------------------)
 
-使用AIConfig，与AI交互的代码变得异常简单。我们只需要从配置文件实例化一个`AIConfigRuntime`对象，然后使用命名设置调用相应的模型：
+使用 AIConfig，与 AI 交互的代码变得异常简单。我们只需要从配置文件实例化一个`AIConfigRuntime`对象，然后使用命名设置调用相应的模型：
 
 ```py
 import anyio
@@ -127,11 +127,11 @@ if __name__ == "__main__":
     anyio.run(main)
 ```
 
-在我们的项目中依赖AIConfig，生成式AI组件只需几行代码。正因如此，我们不会为这个组件编写自定义封装代码，像我们在使用LangChain时那样。少了麻烦，也不需要因为LangChain复杂的设计和不稳定的抽象而对其进行吐槽。使用AIConfig的另一个愉快优势是，我们不必自己实现配置逻辑，例如使用[Hydra](https://github.com/facebookresearch/hydra)。
+在我们的项目中依赖 AIConfig，生成式 AI 组件只需几行代码。正因如此，我们不会为这个组件编写自定义封装代码，像我们在使用 LangChain 时那样。少了麻烦，也不需要因为 LangChain 复杂的设计和不稳定的抽象而对其进行吐槽。使用 AIConfig 的另一个愉快优势是，我们不必自己实现配置逻辑，例如使用[Hydra](https://github.com/facebookresearch/hydra)。
 
 ## 数据仓库
 
-数据仓库确保我们的内容可以作为文件可靠地存储和检索。它使用一个名为`AutoReplyRecord`的数据类来组织信息，并使用JSON作为序列化格式。我们的实现`DataRepository`暴露了CRU操作，即标准的CRUD操作，但不允许删除：
+数据仓库确保我们的内容可以作为文件可靠地存储和检索。它使用一个名为`AutoReplyRecord`的数据类来组织信息，并使用 JSON 作为序列化格式。我们的实现`DataRepository`暴露了 CRU 操作，即标准的 CRUD 操作，但不允许删除：
 
 ```py
 import shutil
@@ -238,11 +238,11 @@ class DataRepository:
         return AutoReplyRecord.from_json(json_data=json_data)
 ```
 
-## Outlook客户端
+## Outlook 客户端
 
-当你拥有像[exchangelib](https://github.com/ecederstrand/exchangelib)这样的工具时，自动化Outlook变得轻而易举。它是一个Python库，可以像高手一样与Microsoft Exchange API进行交互。这是一个优秀的软件，我们将在本项目中使用它。
+当你拥有像[exchangelib](https://github.com/ecederstrand/exchangelib)这样的工具时，自动化 Outlook 变得轻而易举。它是一个 Python 库，可以像高手一样与 Microsoft Exchange API 进行交互。这是一个优秀的软件，我们将在本项目中使用它。
 
-对于这个特定的应用，我们只想玩弄Outlook的外出设置。因此，我们将编写一个封装类，提供两个功能：备份当前的外出设置和应用新的设置。
+对于这个特定的应用，我们只想玩弄 Outlook 的外出设置。因此，我们将编写一个封装类，提供两个功能：备份当前的外出设置和应用新的设置。
 
 ```py
 import json
@@ -784,7 +784,7 @@ if __name__ == "__main__":
 
 以下是用户界面的屏幕录制。左侧的侧边栏是一个画廊，展示了我们过去的作品。点击侧边栏中的编辑（✏️）按钮会将内容带到右侧的主界面。在这里，我们可以调整现有的消息，或创造一个新消息，以及它的视觉对应物。你可以轻松地让 LLM 生成其他语言的文本，只需按文章中讨论的方式调整 AIConfig 文件中的提示。`设置外出消息`按钮会将显示的内容作为我们的 Outlook 外出自动回复消息进行设置。
 
-![](../Images/e622741baaabb1c6bf3a07fd21bec94d.png)
+![](img/e622741baaabb1c6bf3a07fd21bec94d.png)
 
 一段简短的用户界面屏幕录制，由我亲自提供。
 
@@ -796,10 +796,10 @@ if __name__ == "__main__":
 
 本能地，我们回想起软件工程更多的是关于深思熟虑的设计，而非单纯的编码。因此，我们从仔细考虑如何结构化代码开始了这项工作。
 
-我们尝试将代码组织成类，使用描述性名称和类型提示以提高代码的清晰度。在尽量编写最少代码的同时，我们通过使用其他工程师的Python库来解决问题。
+我们尝试将代码组织成类，使用描述性名称和类型提示以提高代码的清晰度。在尽量编写最少代码的同时，我们通过使用其他工程师的 Python 库来解决问题。
 
-虽然我们已将调度方面的工作推迟到一个未来未确定的日期，但我们已经打下了坚实的基础。我们的应用程序可以生成富有创意却又专业的自动回复，并附带相关图片。此外，它还允许我们通过一键操作将邮件无缝地集成到Outlook中。
+虽然我们已将调度方面的工作推迟到一个未来未确定的日期，但我们已经打下了坚实的基础。我们的应用程序可以生成富有创意却又专业的自动回复，并附带相关图片。此外，它还允许我们通过一键操作将邮件无缝地集成到 Outlook 中。
 
-所以，下次你不在时——无论是在度假、全天研讨会中，还是在丰盛午餐后小睡片刻——何不让生成式AI为你生成自动回复，或许这会让你的同事们会心一笑，甚至还想要更多。
+所以，下次你不在时——无论是在度假、全天研讨会中，还是在丰盛午餐后小睡片刻——何不让生成式 AI 为你生成自动回复，或许这会让你的同事们会心一笑，甚至还想要更多。
 
-*感谢阅读。如果你以后喜欢类似的文章，可以在Medium上关注我，或通过* [*LinkedIn*](https://www.linkedin.com/in/osheikhomar/)*与我联系。*
+*感谢阅读。如果你以后喜欢类似的文章，可以在 Medium 上关注我，或通过* [*LinkedIn*](https://www.linkedin.com/in/osheikhomar/)*与我联系。*

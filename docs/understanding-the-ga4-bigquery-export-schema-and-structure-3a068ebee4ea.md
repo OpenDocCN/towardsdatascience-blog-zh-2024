@@ -1,16 +1,16 @@
 # 理解 GA4 BigQuery 导出架构和结构
 
-> 原文：[https://towardsdatascience.com/understanding-the-ga4-bigquery-export-schema-and-structure-3a068ebee4ea?source=collection_archive---------9-----------------------#2024-06-21](https://towardsdatascience.com/understanding-the-ga4-bigquery-export-schema-and-structure-3a068ebee4ea?source=collection_archive---------9-----------------------#2024-06-21)
+> 原文：[`towardsdatascience.com/understanding-the-ga4-bigquery-export-schema-and-structure-3a068ebee4ea?source=collection_archive---------9-----------------------#2024-06-21`](https://towardsdatascience.com/understanding-the-ga4-bigquery-export-schema-and-structure-3a068ebee4ea?source=collection_archive---------9-----------------------#2024-06-21)
 
 ## 一项定性研究，探讨了一个最奇怪的数据结构，这个数据结构强迫数百万无辜且毫无察觉的分析师使用。
 
-[](https://jim-barlow.medium.com/?source=post_page---byline--3a068ebee4ea--------------------------------)[![Jim Barlow](../Images/1494580717cb92defb17328e4bae1b13.png)](https://jim-barlow.medium.com/?source=post_page---byline--3a068ebee4ea--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3a068ebee4ea--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3a068ebee4ea--------------------------------) [Jim Barlow](https://jim-barlow.medium.com/?source=post_page---byline--3a068ebee4ea--------------------------------)
+[](https://jim-barlow.medium.com/?source=post_page---byline--3a068ebee4ea--------------------------------)![Jim Barlow](https://jim-barlow.medium.com/?source=post_page---byline--3a068ebee4ea--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3a068ebee4ea--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a068ebee4ea--------------------------------) [Jim Barlow](https://jim-barlow.medium.com/?source=post_page---byline--3a068ebee4ea--------------------------------)
 
 ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3a068ebee4ea--------------------------------) ·阅读时间 11 分钟·2024 年 6 月 21 日
 
 --
 
-![](../Images/16fb35619de336e01dbd7b4b7da9c038.png)
+![](img/16fb35619de336e01dbd7b4b7da9c038.png)
 
 你想要的数据肯定在某个地方，你只需要找出如何解开它……照片由 [Dean Ward](https://unsplash.com/@deanward?utm_source=medium&utm_medium=referral) 提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

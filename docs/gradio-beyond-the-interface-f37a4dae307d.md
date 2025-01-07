@@ -1,14 +1,14 @@
 # Gradio: 高级布局
 
-> 原文：[https://towardsdatascience.com/gradio-beyond-the-interface-f37a4dae307d?source=collection_archive---------9-----------------------#2024-04-30](https://towardsdatascience.com/gradio-beyond-the-interface-f37a4dae307d?source=collection_archive---------9-----------------------#2024-04-30)
+> 原文：[`towardsdatascience.com/gradio-beyond-the-interface-f37a4dae307d?source=collection_archive---------9-----------------------#2024-04-30`](https://towardsdatascience.com/gradio-beyond-the-interface-f37a4dae307d?source=collection_archive---------9-----------------------#2024-04-30)
 
-![](../Images/e2ffcfddba171e60f70d274bf0702430.png)
+![](img/e2ffcfddba171e60f70d274bf0702430.png)
 
 图片由 AI 创建（Ideogram）
 
 ## 不要使用 Interface，改用 Blocks
 
-[](https://medium.com/@thomas_reid?source=post_page---byline--f37a4dae307d--------------------------------)[![Thomas Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--f37a4dae307d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f37a4dae307d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f37a4dae307d--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--f37a4dae307d--------------------------------)
+[](https://medium.com/@thomas_reid?source=post_page---byline--f37a4dae307d--------------------------------)![Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--f37a4dae307d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f37a4dae307d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f37a4dae307d--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--f37a4dae307d--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f37a4dae307d--------------------------------) ·6 分钟阅读·2024 年 4 月 30 日
 

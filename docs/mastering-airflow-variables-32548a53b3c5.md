@@ -1,16 +1,16 @@
 # 掌握 Airflow 变量
 
-> 原文：[https://towardsdatascience.com/mastering-airflow-variables-32548a53b3c5?source=collection_archive---------6-----------------------#2024-01-27](https://towardsdatascience.com/mastering-airflow-variables-32548a53b3c5?source=collection_archive---------6-----------------------#2024-01-27)
+> 原文：[`towardsdatascience.com/mastering-airflow-variables-32548a53b3c5?source=collection_archive---------6-----------------------#2024-01-27`](https://towardsdatascience.com/mastering-airflow-variables-32548a53b3c5?source=collection_archive---------6-----------------------#2024-01-27)
 
 ## 你从 Airflow 检索变量的方式会影响你的 DAG 性能
 
-[](https://gmyrianthous.medium.com/?source=post_page---byline--32548a53b3c5--------------------------------)[![Giorgos Myrianthous](../Images/ff4b116e4fb9a095ce45eb064fde5af3.png)](https://gmyrianthous.medium.com/?source=post_page---byline--32548a53b3c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--32548a53b3c5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--32548a53b3c5--------------------------------) [Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--32548a53b3c5--------------------------------)
+[](https://gmyrianthous.medium.com/?source=post_page---byline--32548a53b3c5--------------------------------)![Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--32548a53b3c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--32548a53b3c5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--32548a53b3c5--------------------------------) [Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--32548a53b3c5--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--32548a53b3c5--------------------------------) ·10分钟阅读·2024年1月27日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--32548a53b3c5--------------------------------) ·10 分钟阅读·2024 年 1 月 27 日
 
 --
 
-![](../Images/3e444659f19295a7eafa5424427bb6e4.png)
+![](img/3e444659f19295a7eafa5424427bb6e4.png)
 
 图片来源：[Daniele Franchi](https://unsplash.com/@daniele_franchi?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在 [Unsplash](https://unsplash.com/photos/white-and-blue-square-illustration-dt0yhDQmJ4k?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

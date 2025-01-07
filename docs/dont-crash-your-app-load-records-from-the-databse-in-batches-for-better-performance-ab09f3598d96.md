@@ -1,16 +1,16 @@
 # 别让你的应用崩溃：以批次的形式从数据库加载记录以提升性能
 
-> 原文：[https://towardsdatascience.com/dont-crash-your-app-load-records-from-the-databse-in-batches-for-better-performance-ab09f3598d96?source=collection_archive---------6-----------------------#2024-04-18](https://towardsdatascience.com/dont-crash-your-app-load-records-from-the-databse-in-batches-for-better-performance-ab09f3598d96?source=collection_archive---------6-----------------------#2024-04-18)
+> 原文：[`towardsdatascience.com/dont-crash-your-app-load-records-from-the-databse-in-batches-for-better-performance-ab09f3598d96?source=collection_archive---------6-----------------------#2024-04-18`](https://towardsdatascience.com/dont-crash-your-app-load-records-from-the-databse-in-batches-for-better-performance-ab09f3598d96?source=collection_archive---------6-----------------------#2024-04-18)
 
 ## 通过高效加载查询来提升你的 Python 应用性能
 
-[](https://mikehuls.medium.com/?source=post_page---byline--ab09f3598d96--------------------------------)[![Mike Huls](../Images/8f9f55a0d25db00799c5d37383b7f5b6.png)](https://mikehuls.medium.com/?source=post_page---byline--ab09f3598d96--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ab09f3598d96--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ab09f3598d96--------------------------------) [Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--ab09f3598d96--------------------------------)
+[](https://mikehuls.medium.com/?source=post_page---byline--ab09f3598d96--------------------------------)![Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--ab09f3598d96--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ab09f3598d96--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ab09f3598d96--------------------------------) [Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--ab09f3598d96--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ab09f3598d96--------------------------------) ·7 分钟阅读·2024年4月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ab09f3598d96--------------------------------) ·7 分钟阅读·2024 年 4 月 18 日
 
 --
 
-![](../Images/5f4bed285bcfbe44453241b68a82e675.png)
+![](img/5f4bed285bcfbe44453241b68a82e675.png)
 
 Python 传输小批量数据（由 ChatGPT 生成的图像）
 

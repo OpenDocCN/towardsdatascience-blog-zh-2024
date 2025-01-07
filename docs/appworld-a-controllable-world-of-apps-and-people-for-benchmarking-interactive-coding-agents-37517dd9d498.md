@@ -1,12 +1,12 @@
 # AI 代理能否完成你在应用上的日常任务？
 
-> 原文：[https://towardsdatascience.com/appworld-a-controllable-world-of-apps-and-people-for-benchmarking-interactive-coding-agents-37517dd9d498?source=collection_archive---------2-----------------------#2024-07-28](https://towardsdatascience.com/appworld-a-controllable-world-of-apps-and-people-for-benchmarking-interactive-coding-agents-37517dd9d498?source=collection_archive---------2-----------------------#2024-07-28)
+> 原文：[`towardsdatascience.com/appworld-a-controllable-world-of-apps-and-people-for-benchmarking-interactive-coding-agents-37517dd9d498?source=collection_archive---------2-----------------------#2024-07-28`](https://towardsdatascience.com/appworld-a-controllable-world-of-apps-and-people-for-benchmarking-interactive-coding-agents-37517dd9d498?source=collection_archive---------2-----------------------#2024-07-28)
 
 ## 在一个由应用和人组成的世界中对编码代理进行基准测试
 
-[](https://medium.com/@harshjtrivedi94?source=post_page---byline--37517dd9d498--------------------------------)[![Harsh Trivedi](../Images/d1b40b336bd757cceab41d5f1ec64aa2.png)](https://medium.com/@harshjtrivedi94?source=post_page---byline--37517dd9d498--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--37517dd9d498--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--37517dd9d498--------------------------------) [Harsh Trivedi](https://medium.com/@harshjtrivedi94?source=post_page---byline--37517dd9d498--------------------------------)
+[](https://medium.com/@harshjtrivedi94?source=post_page---byline--37517dd9d498--------------------------------)![Harsh Trivedi](https://medium.com/@harshjtrivedi94?source=post_page---byline--37517dd9d498--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--37517dd9d498--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--37517dd9d498--------------------------------) [Harsh Trivedi](https://medium.com/@harshjtrivedi94?source=post_page---byline--37517dd9d498--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--37517dd9d498--------------------------------) ·阅读时间：7分钟·2024年7月28日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--37517dd9d498--------------------------------) ·阅读时间：7 分钟·2024 年 7 月 28 日
 
 --
 
@@ -18,7 +18,7 @@
 
 在未来，它们将能够在我们的应用程序上自主完成更复杂的任务。例如，你可以说：“嘿，我的一些同事通过电子邮件取消了会议，请删除我对应的手机提醒。” 代理会自主地检查你的邮箱，弄清楚哪些同事取消了会议，然后打开日历应用，确定哪些会议是和这些同事的，并将其取消。
 
-![](../Images/a9acda03fd66c49d04858fbcb62f1710.png)
+![](img/a9acda03fd66c49d04858fbcb62f1710.png)
 
 包含像亚马逊、Venmo、Gmail 等应用的日常任务示例
 
@@ -26,7 +26,7 @@ AI 模型可以通过**交互式**编写**代码**并调用**API**来解决这�
 
 请看下图中的示例，代理的任务是启动一个播放列表，确保其中的歌曲足够覆盖用户今天的运动时长。为此，代理首先需要编写代码调用 SimpleNote **API**（第一个代码块），找到并“读取”（打印）包含运动计划的笔记。只有在进行这次**交互**以观察笔记的结构后——看到时长按天列出——代理才能编写必要的代码（第二个代码块），这包括查找今天的星期几并提取相关时长。为了选择播放列表，代理必须编写丰富的**代码**，使用 for 循环和其他控制流来遍历播放列表，计算播放列表的时长，并播放一个涵盖运动时长的列表（第三个代码块）。
 
-![](../Images/bee66dc18e20c12d499be11238c7f226.png)
+![](img/bee66dc18e20c12d499be11238c7f226.png)
 
 一个代理代表用户通过交互式编写包含各种应用程序 API 调用的丰富代码来解决任务。
 
@@ -42,7 +42,7 @@ AI 模型可以通过**交互式**编写**代码**并调用**API**来解决这�
 
 为了解决这一差距，我们引入了 **AppWorld**，它包括（1）一个可控且模拟的世界环境（**引擎**），在这个环境中，编码代理可以通过 API 代表人们操作各种应用程序，（2）一个在此环境上定义的复杂任务的**基准**，以及（3）一个强大的**评估**框架，用于评估代理的性能。
 
-![](../Images/c2ec329bf4e6e60d19f8b8c05cefe6d1.png)
+![](img/c2ec329bf4e6e60d19f8b8c05cefe6d1.png)
 
 AppWorld 的概述，包括一个模拟的应用程序和人类世界环境，一个建立在其上的复杂任务基准，以及一个强大的评估框架。
 
@@ -60,41 +60,41 @@ AppWorld 基准测试在此引擎基础上构建了 750 个日常任务（如上
 
 所有任务的实现都是由我们设计和开发的（不是众包的）。它们的实现代码总行数超过 40K 行（是的，任务开发投入了大量工作；请参阅论文）。
 
-![](../Images/df888266009fd4e8d5b751fba06a4cba.png)
+![](img/df888266009fd4e8d5b751fba06a4cba.png)
 
 AppWorld 基准测试中任务的难度等级分布，以及我们编写的解决方案的特性，如应用程序数量、唯一 API 和代码行数、评估测试的数量等。
 
 **✔️ 2.3\. 强大的评估框架**
 
-在AppWorld中，复杂任务可以通过多种方式完成（例如，可以通过其Amazon API或确认邮件下载订单收据）。此外，解决任务的代理可能以多种不同的方式造成附带损害（例如，发起一个并未要求的退货）。因此，基于***过程***的方式，将代理生成的代码与参考代码或API调用进行比较，是不足以评估任务完成情况的。
+在 AppWorld 中，复杂任务可以通过多种方式完成（例如，可以通过其 Amazon API 或确认邮件下载订单收据）。此外，解决任务的代理可能以多种不同的方式造成附带损害（例如，发起一个并未要求的退货）。因此，基于***过程***的方式，将代理生成的代码与参考代码或 API 调用进行比较，是不足以评估任务完成情况的。
 
-相反，AppWorld采用了***基于状态***的方法。具体来说，对于每个任务，我们定义了一套程序化的单元测试，利用数据库状态快照作为输入：(1) 代理开始前的状态和(2) 代理结束后的状态。然后，我们检查是否只进行了预期的数据库更改，并确保没有发生意外更改。这使我们能够*可靠地*检查代理是否正确完成任务而未造成附带损害。
+相反，AppWorld 采用了***基于状态***的方法。具体来说，对于每个任务，我们定义了一套程序化的单元测试，利用数据库状态快照作为输入：(1) 代理开始前的状态和(2) 代理结束后的状态。然后，我们检查是否只进行了预期的数据库更改，并确保没有发生意外更改。这使我们能够*可靠地*检查代理是否正确完成任务而未造成附带损害。
 
 最后，为确保任务是可解的，我们编写验证解决方案代码，并通过程序化的方式验证其运行是否通过所有评估测试。
 
 # **🧪 3\. 代理的表现如何？**
 
-我们使用多种少量样本提示方法对多种LLM进行了基准测试，方法包括ReAct、计划与执行、生成带反思的完整代码和函数调用。即便是最好的LLM，GPT-4o，也表现得相当差劲。例如，它在挑战测试集中的任务仅正确完成约30%。GPT-4 Turbo和开放LLM则更为落后。
+我们使用多种少量样本提示方法对多种 LLM 进行了基准测试，方法包括 ReAct、计划与执行、生成带反思的完整代码和函数调用。即便是最好的 LLM，GPT-4o，也表现得相当差劲。例如，它在挑战测试集中的任务仅正确完成约 30%。GPT-4 Turbo 和开放 LLM 则更为落后。
 
 此外，在我们的严格鲁棒性度量下，得分要低得多，该度量检查代理是否能够在不同的初始条件和指令扰动下可靠地完成所有任务变化。
 
-![](../Images/cdd4249667f1040387d25ca09a75912a.png)
+![](img/cdd4249667f1040387d25ca09a75912a.png)
 
-展示了使用各种提示方法的最先进大型语言模型（LLMs）的分数。AppWorld对当前模型来说是具有挑战性的。例如，GPT-4o仅能正确解决大约30%的Test-Challenge任务，且在我们的鲁棒性度量中得分下降至13.0。
+展示了使用各种提示方法的最先进大型语言模型（LLMs）的分数。AppWorld 对当前模型来说是具有挑战性的。例如，GPT-4o 仅能正确解决大约 30%的 Test-Challenge 任务，且在我们的鲁棒性度量中得分下降至 13.0。
 
-此外，分数随着难度的增加而显著下降，依据我们提供的标签以及其他难度指标（例如，基于我们书面验证解决方案的API数量和代码行数）。
+此外，分数随着难度的增加而显著下降，依据我们提供的标签以及其他难度指标（例如，基于我们书面验证解决方案的 API 数量和代码行数）。
 
-![](../Images/7e113ced561f5493dcba3248aad4307a.png)
+![](img/7e113ced561f5493dcba3248aad4307a.png)
 
-展示了在各种任务难度指标下，最佳模型GPT4-o的分数曲线。随着任务难度的增加，模型的分数显著下降。
+展示了在各种任务难度指标下，最佳模型 GPT4-o 的分数曲线。随着任务难度的增加，模型的分数显著下降。
 
-# **🔮 4\. AppWorld的未来是什么？**
+# **🔮 4\. AppWorld 的未来是什么？**
 
-AppWorld是一个模块化且可扩展的基础平台，为自动化数字任务开辟了许多激动人心的可能性。例如，未来的工作可以：
+AppWorld 是一个模块化且可扩展的基础平台，为自动化数字任务开辟了许多激动人心的可能性。例如，未来的工作可以：
 
-1.  将AppWorld引擎扩展为支持基于浏览器/移动UI的控制，以便为现有任务提供统一的基准，涵盖代码、API和UI基础的自主代理。
+1.  将 AppWorld 引擎扩展为支持基于浏览器/移动 UI 的控制，以便为现有任务提供统一的基准，涵盖代码、API 和 UI 基础的自主代理。
 
-1.  将AppWorld基准扩展为需要多代理（和人类）协调与合作的任务（例如，通过与朋友的代理在电子邮件中协调，安排一次日历会议）。
+1.  将 AppWorld 基准扩展为需要多代理（和人类）协调与合作的任务（例如，通过与朋友的代理在电子邮件中协调，安排一次日历会议）。
 
 1.  将我们的数字世界引擎叠加到一个物理世界引擎上，比如 [Simulacra](https://arxiv.org/abs/2304.03442)，并通过角色扮演代理在一个受控环境中研究社会动态和行为。
 
@@ -108,7 +108,7 @@ AppWorld是一个模块化且可扩展的基础平台，为自动化数字任务
 
 AppWorld 易于使用且速度快。你可以通过 pip 安装其开源 Python 包并开始构建和测试你的代理。如果你已经有了代理，下面的代码就是你在 AppWorld 上运行并评估它所需要的全部内容。
 
-![](../Images/6fb57e36d63cb2f0a396c2202024fe6d.png)
+![](img/6fb57e36d63cb2f0a396c2202024fe6d.png)
 
 AppWorld 环境的最小使用示例。
 

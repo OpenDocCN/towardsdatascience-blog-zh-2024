@@ -1,16 +1,16 @@
 # 将您的关系型数据库转化为图形数据库
 
-> 原文：[https://towardsdatascience.com/turning-your-relational-database-into-a-graph-database-c4cee3d5c6d2?source=collection_archive---------3-----------------------#2024-04-14](https://towardsdatascience.com/turning-your-relational-database-into-a-graph-database-c4cee3d5c6d2?source=collection_archive---------3-----------------------#2024-04-14)
+> 原文：[`towardsdatascience.com/turning-your-relational-database-into-a-graph-database-c4cee3d5c6d2?source=collection_archive---------3-----------------------#2024-04-14`](https://towardsdatascience.com/turning-your-relational-database-into-a-graph-database-c4cee3d5c6d2?source=collection_archive---------3-----------------------#2024-04-14)
 
 ## 利用大型语言模型（LLMs）增强您的数据
 
-[](https://blog.katia.gg/?source=post_page---byline--c4cee3d5c6d2--------------------------------)[![Katia Gil Guzman](../Images/6b452c3d337e9355c56d84583dc03fda.png)](https://blog.katia.gg/?source=post_page---byline--c4cee3d5c6d2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4cee3d5c6d2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c4cee3d5c6d2--------------------------------) [Katia Gil Guzman](https://blog.katia.gg/?source=post_page---byline--c4cee3d5c6d2--------------------------------)
+[](https://blog.katia.gg/?source=post_page---byline--c4cee3d5c6d2--------------------------------)![Katia Gil Guzman](https://blog.katia.gg/?source=post_page---byline--c4cee3d5c6d2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4cee3d5c6d2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4cee3d5c6d2--------------------------------) [Katia Gil Guzman](https://blog.katia.gg/?source=post_page---byline--c4cee3d5c6d2--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4cee3d5c6d2--------------------------------) ·6分钟阅读·2024年4月14日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4cee3d5c6d2--------------------------------) ·6 分钟阅读·2024 年 4 月 14 日
 
 --
 
-![](../Images/40677816bdd75f15998e4a562074c143.png)
+![](img/40677816bdd75f15998e4a562074c143.png)
 
 图像由作者生成
 

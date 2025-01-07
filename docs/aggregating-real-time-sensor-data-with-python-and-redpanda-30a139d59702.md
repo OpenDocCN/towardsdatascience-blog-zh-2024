@@ -1,16 +1,16 @@
 # 使用 Python 和 Redpanda 聚合实时传感器数据
 
-> 原文：[https://towardsdatascience.com/aggregating-real-time-sensor-data-with-python-and-redpanda-30a139d59702?source=collection_archive---------0-----------------------#2024-05-20](https://towardsdatascience.com/aggregating-real-time-sensor-data-with-python-and-redpanda-30a139d59702?source=collection_archive---------0-----------------------#2024-05-20)
+> 原文：[`towardsdatascience.com/aggregating-real-time-sensor-data-with-python-and-redpanda-30a139d59702?source=collection_archive---------0-----------------------#2024-05-20`](https://towardsdatascience.com/aggregating-real-time-sensor-data-with-python-and-redpanda-30a139d59702?source=collection_archive---------0-----------------------#2024-05-20)
 
 ## 使用 Python 和翻转窗口进行简单流处理
 
-[](https://medium.com/@tomasatquix?source=post_page---byline--30a139d59702--------------------------------)[![Tomáš Neubauer](../Images/5eb14b73cfe100ef9a43148db6abd3a9.png)](https://medium.com/@tomasatquix?source=post_page---byline--30a139d59702--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--30a139d59702--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--30a139d59702--------------------------------) [Tomáš Neubauer](https://medium.com/@tomasatquix?source=post_page---byline--30a139d59702--------------------------------)
+[](https://medium.com/@tomasatquix?source=post_page---byline--30a139d59702--------------------------------)![Tomáš Neubauer](https://medium.com/@tomasatquix?source=post_page---byline--30a139d59702--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--30a139d59702--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--30a139d59702--------------------------------) [Tomáš Neubauer](https://medium.com/@tomasatquix?source=post_page---byline--30a139d59702--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--30a139d59702--------------------------------) ·12 分钟阅读·2024年5月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--30a139d59702--------------------------------) ·12 分钟阅读·2024 年 5 月 20 日
 
 --
 
-![](../Images/d2873ac220cc6d905be3b31e86a270c8.png)
+![](img/d2873ac220cc6d905be3b31e86a270c8.png)
 
 图片来源：作者
 
@@ -30,27 +30,27 @@ pip install quixstreams
 
 你将构建一个简单的应用程序，用来计算来自各种传感器的温度读数的滚动聚合。温度读数将以较高的频率进入，而这个应用程序将对读数进行聚合，并以较低的时间分辨率输出（每 10 秒一次）。你可以将其视为一种压缩形式，因为我们不希望在不必要的高分辨率数据上进行处理。
 
-你可以在[这个GitHub仓库](https://github.com/quixio/template-windowing-reduce.git)中访问完整代码。
+你可以在[这个 GitHub 仓库](https://github.com/quixio/template-windowing-reduce.git)中访问完整代码。
 
 这个应用包含生成合成传感器数据的代码，但在实际场景中，这些数据可能来自多种传感器，例如安装在车队中的传感器或满载机器的仓库。
 
 这里是基本架构的示意图：
 
-![](../Images/c31694705376dcfea8141f0d9341bf62.png)
+![](img/c31694705376dcfea8141f0d9341bf62.png)
 
 作者绘制的图
 
 # 流处理管道的组件
 
-上图展示了流处理管道的主要组件：传感器是**数据生产者**，Redpanda是**流数据平台**，Quix是**流处理器**。
+上图展示了流处理管道的主要组件：传感器是**数据生产者**，Redpanda 是**流数据平台**，Quix 是**流处理器**。
 
 **数据生产者**
 
-这些是附加到生成数据的系统上的代码片段，例如ECU（发动机控制单元）上的固件、云平台的监控模块，或者记录用户活动的Web服务器。它们将原始数据以该平台能够理解的格式发送到流数据平台。
+这些是附加到生成数据的系统上的代码片段，例如 ECU（发动机控制单元）上的固件、云平台的监控模块，或者记录用户活动的 Web 服务器。它们将原始数据以该平台能够理解的格式发送到流数据平台。
 
 **流数据平台**
 
-这是你存放流数据的地方。它在功能上与数据库处理静态数据类似。但与数据库的表不同，流数据使用主题（topics）。否则，它的特性与静态数据库相似。你需要管理谁可以消费和生成数据，数据应该遵循什么样的模式。不同于数据库的是，流数据是不断变化的，所以它并不设计为可以查询。你通常会使用流处理器来转换数据，并将其放到其他地方供数据科学家探索，或者将原始数据存入一个优化过的查询系统，如RisingWave或Apache Pinot，以便进行查询。然而，对于那些由流数据模式触发的自动化系统（如推荐引擎），这并不是理想的解决方案。在这种情况下，你肯定会使用专用的流处理器。
+这是你存放流数据的地方。它在功能上与数据库处理静态数据类似。但与数据库的表不同，流数据使用主题（topics）。否则，它的特性与静态数据库相似。你需要管理谁可以消费和生成数据，数据应该遵循什么样的模式。不同于数据库的是，流数据是不断变化的，所以它并不设计为可以查询。你通常会使用流处理器来转换数据，并将其放到其他地方供数据科学家探索，或者将原始数据存入一个优化过的查询系统，如 RisingWave 或 Apache Pinot，以便进行查询。然而，对于那些由流数据模式触发的自动化系统（如推荐引擎），这并不是理想的解决方案。在这种情况下，你肯定会使用专用的流处理器。
 
 **流处理器**
 
@@ -70,9 +70,9 @@ pip install quixstreams
 
 首先，你将创建单独的文件来生成和处理你的流数据。这使得管理运行中的进程变得更容易。例如，你可以在不停止流处理器的情况下停止生产者。以下是你将创建的两个文件的概述：
 
-+   **流数据生产者：** `sensor_stream_producer.py` 生成合成的温度数据，并将数据生产（即写入）到 Redpanda 中的“原始数据”源主题中。就像 Faust 示例一样，它以大约每5秒20次读取的分辨率生成数据，或者每秒大约4次读取。
++   **流数据生产者：** `sensor_stream_producer.py` 生成合成的温度数据，并将数据生产（即写入）到 Redpanda 中的“原始数据”源主题中。就像 Faust 示例一样，它以大约每 5 秒 20 次读取的分辨率生成数据，或者每秒大约 4 次读取。
 
-+   **流处理器：** `sensor_stream_processor.py` 从“源”主题中消费（读取）原始温度数据，执行滚动窗口计算以降低数据的分辨率。它计算每10秒窗口中接收到数据的平均值，以便每10秒获得一次读取。然后，它将这些聚合后的读数生成到 Redpanda 中的 `agg-temperatures` 主题。
++   **流处理器：** `sensor_stream_processor.py` 从“源”主题中消费（读取）原始温度数据，执行滚动窗口计算以降低数据的分辨率。它计算每 10 秒窗口中接收到数据的平均值，以便每 10 秒获得一次读取。然后，它将这些聚合后的读数生成到 Redpanda 中的 `agg-temperatures` 主题。
 
 如你所见，流处理器完成了大部分繁重的工作，是本教程的核心。流数据生产者是一个用于模拟数据摄取过程的替代品。例如，在生产环境中，你可能会使用像这样的 [MQTT 连接器](https://github.com/quixio/quix-samples/tree/main/python/sources/MQTT) 从传感器获取数据并将其生产到主题中。
 
@@ -331,9 +331,9 @@ python sensor_stream_processor.py
 
 注意每个窗口中的日志输出，以确保一切运行顺利。
 
-您还可以检查 Redpanda 控制台，以确保聚合数据正确地流式传输到目标主题（您可以在这里找到主题浏览器：[http://localhost:8080/topics](http://localhost:8080/topics)）。
+您还可以检查 Redpanda 控制台，以确保聚合数据正确地流式传输到目标主题（您可以在这里找到主题浏览器：[`localhost:8080/topics`](http://localhost:8080/topics)）。
 
-![](../Images/46c639a04de0e311f01229b2061fdb4a.png)
+![](img/46c639a04de0e311f01229b2061fdb4a.png)
 
 作者截图
 

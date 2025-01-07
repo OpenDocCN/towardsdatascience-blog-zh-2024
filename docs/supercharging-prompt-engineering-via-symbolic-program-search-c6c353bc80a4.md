@@ -1,20 +1,20 @@
 # 通过符号程序搜索超充提示工程
 
-> 原文：[https://towardsdatascience.com/supercharging-prompt-engineering-via-symbolic-program-search-c6c353bc80a4?source=collection_archive---------1-----------------------#2024-04-22](https://towardsdatascience.com/supercharging-prompt-engineering-via-symbolic-program-search-c6c353bc80a4?source=collection_archive---------1-----------------------#2024-04-22)
+> 原文：[`towardsdatascience.com/supercharging-prompt-engineering-via-symbolic-program-search-c6c353bc80a4?source=collection_archive---------1-----------------------#2024-04-22`](https://towardsdatascience.com/supercharging-prompt-engineering-via-symbolic-program-search-c6c353bc80a4?source=collection_archive---------1-----------------------#2024-04-22)
 
 ## 通过自动探索大量提示变体来找到更好的提示
 
-[](https://medium.com/@toschnab?source=post_page---byline--c6c353bc80a4--------------------------------)[![Tobias Schnabel](../Images/92a6c1addc602dae8e8d54fec5116385.png)](https://medium.com/@toschnab?source=post_page---byline--c6c353bc80a4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6c353bc80a4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c6c353bc80a4--------------------------------) [Tobias Schnabel](https://medium.com/@toschnab?source=post_page---byline--c6c353bc80a4--------------------------------)
+[](https://medium.com/@toschnab?source=post_page---byline--c6c353bc80a4--------------------------------)![Tobias Schnabel](https://medium.com/@toschnab?source=post_page---byline--c6c353bc80a4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6c353bc80a4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6c353bc80a4--------------------------------) [Tobias Schnabel](https://medium.com/@toschnab?source=post_page---byline--c6c353bc80a4--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6c353bc80a4--------------------------------) ·阅读时间8分钟·2024年4月22日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6c353bc80a4--------------------------------) ·阅读时间 8 分钟·2024 年 4 月 22 日
 
 --
 
-![](../Images/bfbe607a7b9395877d23744afe241481.png)
+![](img/bfbe607a7b9395877d23744afe241481.png)
 
 图片由[Icons8 Team](https://unsplash.com/@icons8?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-不是什么秘密，LLM（大规模语言模型）的成功很大程度上依赖于我们能够为它们提供正确的提示和示例。随着新一代LLM变得越来越强大，提示已经变得足够复杂，以至于可以被视为[程序本身](/intro-to-dspy-goodbye-prompting-hello-programming-4ca1c6ce3eb9)。这些提示程序与食谱非常相似——它们都有一组需要遵循的指令，并将原材料（无论是数据还是食材）转化为最终的成果。
+不是什么秘密，LLM（大规模语言模型）的成功很大程度上依赖于我们能够为它们提供正确的提示和示例。随着新一代 LLM 变得越来越强大，提示已经变得足够复杂，以至于可以被视为程序本身。这些提示程序与食谱非常相似——它们都有一组需要遵循的指令，并将原材料（无论是数据还是食材）转化为最终的成果。
 
 提示工程类似于改进一个食谱。家庭厨师通常会遵循整体食谱，但会做一些小的修改——例如在意面菜肴中去掉大蒜或加入香菜。[DSPy](https://github.com/stanfordnlp/dspy)这样的框架在优化上下文示例时遵循了这种总体范式。然而，专业厨师将食谱视为灵感来源，并且经常完全重新解释菜肴的组成部分。例如，他们可能会将意面视为富含淀粉的组成部分，并将其换成新鲜制作的意大利饺子，以达到类似的效果。
 
@@ -33,15 +33,15 @@ Output:
 
 假设，暂时我们有一个抽象的提示表示，它提取出单独的组件并且易于操作。也许是这样的：
 
-![](../Images/f419eb3d7a2cb20fc0c6a90b9918af6a.png)
+![](img/f419eb3d7a2cb20fc0c6a90b9918af6a.png)
 
 一个简单的分类任务提示，以抽象符号程序表示。图片由作者提供。
 
-通过这个，你可以自动化在提示原型过程中需要进行的大量（半）手动调整。像改写这样的简单编辑只是开始。想试试[链式思维推理](https://chain-of-thought-prompting-for-llms-33c963eead38)吗？添加一段话说“让我们一步一步思考”。怎么样更改数据格式为JSON？只需更改`format`参数的属性。你还可以探索
+通过这个，你可以自动化在提示原型过程中需要进行的大量（半）手动调整。像改写这样的简单编辑只是开始。想试试[链式思维推理](https://chain-of-thought-prompting-for-llms-33c963eead38)吗？添加一段话说“让我们一步一步思考”。怎么样更改数据格式为 JSON？只需更改`format`参数的属性。你还可以探索
 
 +   从单一示例到批量注释
 
-+   在RAG场景中更改你的检索器和排序函数
++   在 RAG 场景中更改你的检索器和排序函数
 
 +   重新排序一些段落
 
@@ -57,7 +57,7 @@ Output:
 > 
 > [David J. Wheeler](https://en.wikipedia.org/wiki/David_Wheeler_(computer_scientist))
 
-为了表示抽象提示，首先让我们将其转换为*非符号提示程序*，通过将它们拆解为单独的组件，并作为Python类实现：
+为了表示抽象提示，首先让我们将其转换为*非符号提示程序*，通过将它们拆解为单独的组件，并作为 Python 类实现：
 
 ```py
 class Component:
@@ -80,11 +80,11 @@ prompt = Metaprompt(
 )
 ```
 
-到目前为止，进展不错。这类似于DSpy所做的，尽管更加通用，因为我们还表示了提示的内部结构。
+到目前为止，进展不错。这类似于 DSpy 所做的，尽管更加通用，因为我们还表示了提示的内部结构。
 
-接下来，我们将其转换为*符号提示程序*，以便可以进行任意更改（这也超出了静态DSPy程序的范围）。这可以通过[pyGlove](https://pyglove.readthedocs.io/en/latest/notebooks/intro/birdview.html)库完成，这是一个用于符号面向对象编程（SOOP）的库。pyGlove将Python类转化为可操作的符号对象，其属性在实例化后仍然可以完全编辑。
+接下来，我们将其转换为*符号提示程序*，以便可以进行任意更改（这也超出了静态 DSPy 程序的范围）。这可以通过[pyGlove](https://pyglove.readthedocs.io/en/latest/notebooks/intro/birdview.html)库完成，这是一个用于符号面向对象编程（SOOP）的库。pyGlove 将 Python 类转化为可操作的符号对象，其属性在实例化后仍然可以完全编辑。
 
-使用pyGlove，我们只需要添加`pg.symbolize`装饰器：
+使用 pyGlove，我们只需要添加`pg.symbolize`装饰器：
 
 ```py
 import pyglove as pg
@@ -93,13 +93,13 @@ class Component:
     def __init__(self, **kwargs): pass
 ```
 
-我们现在可以通过一系列说明符查询和修改提示程序，类似于操作DOM树。假设我们希望将上面的程序转换成以下内容：
+我们现在可以通过一系列说明符查询和修改提示程序，类似于操作 DOM 树。假设我们希望将上面的程序转换成以下内容：
 
-![](../Images/7df9a7710a1fb272046f66ae8c63ad21.png)
+![](img/7df9a7710a1fb272046f66ae8c63ad21.png)
 
 我们希望实现的目标提示程序。图片来源：作者。
 
-注意，我们现在在问“回应是表示肯定吗？”而不是提供肯定和否定的输出标签。要做到这一点，我们需要（i）更改指令文本，和（ii）删除第三个节点。使用pyGlove，这非常简单：
+注意，我们现在在问“回应是表示肯定吗？”而不是提供肯定和否定的输出标签。要做到这一点，我们需要（i）更改指令文本，和（ii）删除第三个节点。使用 pyGlove，这非常简单：
 
 ```py
 prompt.rebind({'children[1].text': 'Does the response mean yes?'})
@@ -127,17 +127,17 @@ Metaprompt(
 )
 ```
 
-瞧！本质上，pyGlove为我们提供了一种方式，可以像操作源代码一样使用Python类（和函数），几乎没有额外的开销。现在我们有了灵活且易于操作的表示方式，让我们开始使用它们吧。
+瞧！本质上，pyGlove 为我们提供了一种方式，可以像操作源代码一样使用 Python 类（和函数），几乎没有额外的开销。现在我们有了灵活且易于操作的表示方式，让我们开始使用它们吧。
 
 等一下。我们现在可能有了一种表示和修改提示的方法，但我们仍然缺少一个自动优化它们的过程。
 
 一旦厨师理解了食谱的抽象和组成部分，他们就会尝试多种变体，精炼味道、成本或外观，直到感觉合适。要做同样的事情来优化提示抽象，我们需要一个搜索算法、一个目标以及一组标注样本，以便知道我们在取得进展。
 
-听起来需要自己实现很多东西？认识一下[SAMMO](https://github.com/microsoft/sammo)，一个用于构建和优化符号提示程序的Python库。
+听起来需要自己实现很多东西？认识一下[SAMMO](https://github.com/microsoft/sammo)，一个用于构建和优化符号提示程序的 Python 库。
 
-# 热身：使用SAMMO进行指令调优
+# 热身：使用 SAMMO 进行指令调优
 
-为了说明SAMMO的核心工作流程，我们现在将展示如何调整上述提示示例中的指令部分。一旦我们完成了这个简单示例，我们就可以准备讨论更高级的应用，比如RAG优化或压缩。
+为了说明 SAMMO 的核心工作流程，我们现在将展示如何调整上述提示示例中的指令部分。一旦我们完成了这个简单示例，我们就可以准备讨论更高级的应用，比如 RAG 优化或压缩。
 
 关键步骤是
 
@@ -151,9 +151,9 @@ Metaprompt(
 
 1.  运行优化
 
-## 步骤1：定义你的初始提示
+## 步骤 1：定义你的初始提示
 
-我们基本上已经做到了这一点。SAMMO期望一个函数，所以我们必须将其包装在一个函数中。如果你想存储额外的信息，可以将其包装在[可调用对象](/python-callables-the-basics-and-the-secrets-ba88bf0729aa)中。我们还会将它包装在一个输出组件中以运行它。
+我们基本上已经做到了这一点。SAMMO 期望一个函数，所以我们必须将其包装在一个函数中。如果你想存储额外的信息，可以将其包装在可调用对象中。我们还会将它包装在一个输出组件中以运行它。
 
 ```py
 def starting_prompt():
@@ -170,9 +170,9 @@ def starting_prompt():
     return Output(instructions.with_extractor())
 ```
 
-## 步骤2：准备你的数据
+## 步骤 2：准备你的数据
 
-SAMMO使用一种简单的数据结构，称为DataTable，用于将输入与输出（标签）配对。这将帮助我们进行评估和记账。
+SAMMO 使用一种简单的数据结构，称为 DataTable，用于将输入与输出（标签）配对。这将帮助我们进行评估和记账。
 
 ```py
 mydata = DataTable.from_records(
@@ -181,7 +181,7 @@ mydata = DataTable.from_records(
 )
 ```
 
-## 步骤3：定义目标
+## 步骤 3：定义目标
 
 我们的目标是优化准确性，所以我们将在下面实现这个目标：
 
@@ -193,9 +193,9 @@ def accuracy(y_true: DataTable, y_pred: DataTable) -> EvaluationScore:
     return EvaluationScore(n_correct / len(y_true))
 ```
 
-## 步骤4：选择一组变异器
+## 步骤 4：选择一组变异器
 
-在这里，你可以尽情发挥创造力。你可以实现自己的运算符来生成新的提示变体，或者仅仅依赖于SAMMO提供的预构建突变运算符。
+在这里，你可以尽情发挥创造力。你可以实现自己的运算符来生成新的提示变体，或者仅仅依赖于 SAMMO 提供的预构建突变运算符。
 
 在下面，我们采用后者，混合使用释义和从一些标注示例中引导指令，实质上是在实现[自动提示工程（APE）](https://cobusgreyling.medium.com/automatic-prompt-engineering-907e230ece0)。
 
@@ -219,7 +219,7 @@ prompt_optimizer = BeamSearch(runner, mutation_operators, accuracy, depth=6)
 transformed = prompt_optimizer.fit_transform(d_train)
 ```
 
-介绍性示例提示实际上取自于[BigBench含义任务](https://github.com/google/BIG-bench/tree/main/bigbench/benchmark_tasks/implicatures)，我们将使用它来运行本次实验。如果您使用100个样本进行训练和测试，并设置48个候选项评估预算，您将看到SAMMO将起始提示的准确率从**0.56**提升到**0.77**——提高了**37.5%**。哪些指令效果最好？
+介绍性示例提示实际上取自于[BigBench 含义任务](https://github.com/google/BIG-bench/tree/main/bigbench/benchmark_tasks/implicatures)，我们将使用它来运行本次实验。如果您使用 100 个样本进行训练和测试，并设置 48 个候选项评估预算，您将看到 SAMMO 将起始提示的准确率从**0.56**提升到**0.77**——提高了**37.5%**。哪些指令效果最好？
 
 ```py
 ...
@@ -231,7 +231,7 @@ Paragraph(
 ...
 ```
 
-有趣的是，不同的LLM偏好不同的指令。如上所见，GPT-3.5最喜欢通用指令。SAMMO为Llama-2选择的最佳提示，在相同的训练和预算设置下，指令部分使用了一个空字符串：
+有趣的是，不同的 LLM 偏好不同的指令。如上所见，GPT-3.5 最喜欢通用指令。SAMMO 为 Llama-2 选择的最佳提示，在相同的训练和预算设置下，指令部分使用了一个空字符串：
 
 ```py
 ...
@@ -242,11 +242,11 @@ Paragraph(
 ...
 ```
 
-# 实践操作：RAG调优
+# 实践操作：RAG 调优
 
-我们现在将展示如何将RAG管道转换为符号程序，并使用SAMMO进行调优。我们将使用语义解析作为应用任务，在该任务中，我们希望将用户查询转换为领域特定语言（DSL）结构，例如查询某些数据库或调用外部API。
+我们现在将展示如何将 RAG 管道转换为符号程序，并使用 SAMMO 进行调优。我们将使用语义解析作为应用任务，在该任务中，我们希望将用户查询转换为领域特定语言（DSL）结构，例如查询某些数据库或调用外部 API。
 
-为了创建起始提示，我们包括了所有操作符的列表，使用基于嵌入的检索器获取五个少样本示例，然后指示LLM按与示例相同的格式输出答案。
+为了创建起始提示，我们包括了所有操作符的列表，使用基于嵌入的检索器获取五个少样本示例，然后指示 LLM 按与示例相同的格式输出答案。
 
 ```py
 class RagStartingPrompt:
@@ -286,25 +286,25 @@ class RagStartingPrompt:
 
 +   为少样本示例提供不同格式（XML、JSON、逐行格式）
 
-+   是否提供关于DSL的额外信息
++   是否提供关于 DSL 的额外信息
 
 +   显示输入输出对或输入输出组
 
-使用这些并尝试总共24个候选项时，我们可以看到一个明显的趋势。以下是三个不同数据集在四个不同LLM上的测试集准确率。在绝大多数情况下，我们可以看到SAMMO显著提升了性能，即使对于表现最好的LLM也是如此。
+使用这些并尝试总共 24 个候选项时，我们可以看到一个明显的趋势。以下是三个不同数据集在四个不同 LLM 上的测试集准确率。在绝大多数情况下，我们可以看到 SAMMO 显著提升了性能，即使对于表现最好的 LLM 也是如此。
 
-![](../Images/b8b5eb0779ecd8d30ded3ab902eba027.png)
+![](img/b8b5eb0779ecd8d30ded3ab902eba027.png)
 
-即使预算只有24个候选项的评估，我们也能在性能上获得显著提升。图片由作者提供。
+即使预算只有 24 个候选项的评估，我们也能在性能上获得显著提升。图片由作者提供。
 
 # 结论
 
 将提示转换为符号程序是一个非常强大的想法，可以探索大量可能的提示和设置设计空间。就像一位专业厨师解构并重新诠释食谱以创造烹饪创新一样，符号编程让我们能够将同样的创造力和实验精神应用于自动化提示工程。
 
-SAMMO通过一组突变操作符和搜索例程实现了符号程序搜索。根据经验，这可以在指令调优和RAG调优中带来准确率的大幅提升，与后端LLM无关。
+SAMMO 通过一组突变操作符和搜索例程实现了符号程序搜索。根据经验，这可以在指令调优和 RAG 调优中带来准确率的大幅提升，与后端 LLM 无关。
 
-您可以通过自定义突变操作符扩展SAMMO，加入您最喜欢的提示工程技巧，或实现超越准确度（例如，成本）的目标。祝您愉快地进行提示创作！
+您可以通过自定义突变操作符扩展 SAMMO，加入您最喜欢的提示工程技巧，或实现超越准确度（例如，成本）的目标。祝您愉快地进行提示创作！
 
-*免责声明：* 我是SAMMO的作者。
+*免责声明：* 我是 SAMMO 的作者。
 
 ## 资源
 

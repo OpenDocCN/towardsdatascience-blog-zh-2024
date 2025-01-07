@@ -1,16 +1,16 @@
 # 逐步基础：代码自动文档生成
 
-> 原文：[https://towardsdatascience.com/step-by-step-basics-code-autodocumentation-fa0d9ae4ac71?source=collection_archive---------2-----------------------#2024-03-22](https://towardsdatascience.com/step-by-step-basics-code-autodocumentation-fa0d9ae4ac71?source=collection_archive---------2-----------------------#2024-03-22)
+> 原文：[`towardsdatascience.com/step-by-step-basics-code-autodocumentation-fa0d9ae4ac71?source=collection_archive---------2-----------------------#2024-03-22`](https://towardsdatascience.com/step-by-step-basics-code-autodocumentation-fa0d9ae4ac71?source=collection_archive---------2-----------------------#2024-03-22)
 
 ## 使用 Sphinx 生成完美的 Python 代码文档
 
-[](https://medium.com/@lucydickinson?source=post_page---byline--fa0d9ae4ac71--------------------------------)[![Lucy Dickinson](../Images/5a075bb38f9133678d55a26b2683729f.png)](https://medium.com/@lucydickinson?source=post_page---byline--fa0d9ae4ac71--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fa0d9ae4ac71--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fa0d9ae4ac71--------------------------------) [Lucy Dickinson](https://medium.com/@lucydickinson?source=post_page---byline--fa0d9ae4ac71--------------------------------)
+[](https://medium.com/@lucydickinson?source=post_page---byline--fa0d9ae4ac71--------------------------------)![Lucy Dickinson](https://medium.com/@lucydickinson?source=post_page---byline--fa0d9ae4ac71--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fa0d9ae4ac71--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fa0d9ae4ac71--------------------------------) [Lucy Dickinson](https://medium.com/@lucydickinson?source=post_page---byline--fa0d9ae4ac71--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fa0d9ae4ac71--------------------------------) ·阅读时间：9分钟·2024年3月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fa0d9ae4ac71--------------------------------) ·阅读时间：9 分钟·2024 年 3 月 22 日
 
 --
 
-![](../Images/0aa56838fa603355f02b854e8a8f9352.png)
+![](img/0aa56838fa603355f02b854e8a8f9352.png)
 
 图片来源：[Dustin Humes](https://unsplash.com/@dustinhumes_photography?utm_source=medium&utm_medium=referral) 通过 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -49,7 +49,7 @@ Raises:
 
 为了演示的目的，我创建了一个名为 `demo.py` 的 Python 模块，其中包含一个类和三个基本函数（除了一个函数，其他都注释了 docstring）。就是这个模块，我将在本文中为其编写文档。以下是 demo.py 模块的内容：
 
-![](../Images/ea51927a8000f6c5b5725d577acb8c78.png)
+![](img/ea51927a8000f6c5b5725d577acb8c78.png)
 
 demo.py 模块的内容需要记录。使用 VS Code 中的 CodeSnap 扩展截图。
 
@@ -84,7 +84,7 @@ sphinx-quickstart
 
 在你通过上述方式安装了 Sphinx 之后，项目中的文档目录下会出现一些文件。`conf.py` 文件是关键的配置文件，你需要编辑它以定制你的文档 —— 详细内容将在下一节介绍。`index.rst` 文件作为文档的目录。你可以在[这里](https://sphinx-rtd-tutorial.readthedocs.io/en/latest/build-the-docs.html)找到关于 `index.rst` 文件的更多信息。`getting-started.rst` 和 `commands.rst` 文件是推荐的文档模板。如果需要，你可以删除这些文件。`make` 文件（`make.bat` 和 `Makefile`）用于实际生成文档。你无需编辑这些文件，但在准备好生成文档时会在终端窗口调用它们。
 
-![](../Images/34322e8b906de18a36631968b18687fb.png)
+![](img/34322e8b906de18a36631968b18687fb.png)
 
 默认安装的 Sphinx 文件
 
@@ -112,7 +112,7 @@ sys.path.insert(0,  os.path.abspath('../src'))
 """
 ```
 
-![](../Images/24776be77700370824f484404b8be450.png)
+![](img/24776be77700370824f484404b8be450.png)
 
 文档文件夹中包含 Python 模块的目录的相对位置。在这个示例中，‘demo.py’ 是要记录的模块，位于 `src/data/` 目录中。
 
@@ -173,7 +173,7 @@ sphinx-apidoc -f -o output_dir module_dir/
 
 运行该命令后，docs 文件夹中应该会生成新的 .rst 文件。
 
-![](../Images/84b4615becbbe6f7809c3c9c02672edf.png)
+![](img/84b4615becbbe6f7809c3c9c02672edf.png)
 
 运行 sphinx-apidoc 命令生成 .rst 文件后，文档文件夹的内容
 
@@ -187,7 +187,7 @@ sphinx-apidoc -f -o output_dir module_dir/
 
 *注意。‘getting-started’ 和 ‘commands’ 将已经出现在 `index.rst` 文件中。如果你不希望生成 HTML 页面，可以将它们从文件中删除（尽管 ‘getting-started’ 页面可能是个好主意！）*
 
-![](../Images/8e03e40dede70fa331d9dc1a90c7fef3.png)
+![](img/8e03e40dede70fa331d9dc1a90c7fef3.png)
 
 `index.rst` 文件的内容。我已添加‘modules’，以便在 HTML 生成过程中使用 `modules.rst` 文件。
 
@@ -227,7 +227,7 @@ make clean html
 
 +   所有函数和类的文档字符串组件的详细列表，位于总结下方
 
-![](../Images/c7e255289a5c54caa52b9ecefa753d20.png)![](../Images/e7850408e20f8add5d9dbac68615fe35.png)
+![](img/c7e255289a5c54caa52b9ecefa753d20.png)![](img/e7850408e20f8add5d9dbac68615fe35.png)
 
 使用默认主题（左侧图片）和 Read the Docs 主题（右侧图片）的 Python 模块文档页面示例，通过 Sphinx 生成。
 

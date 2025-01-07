@@ -1,8 +1,8 @@
 # 从零开始创建你自己的提示增强器
 
-> 原文：[https://towardsdatascience.com/create-your-own-prompt-enhancer-from-scratch-b870963a1ca0?source=collection_archive---------7-----------------------#2024-10-17](https://towardsdatascience.com/create-your-own-prompt-enhancer-from-scratch-b870963a1ca0?source=collection_archive---------7-----------------------#2024-10-17)
+> 原文：[`towardsdatascience.com/create-your-own-prompt-enhancer-from-scratch-b870963a1ca0?source=collection_archive---------7-----------------------#2024-10-17`](https://towardsdatascience.com/create-your-own-prompt-enhancer-from-scratch-b870963a1ca0?source=collection_archive---------7-----------------------#2024-10-17)
 
-![](../Images/5f7386ad07429a8086b032597f05732a.png)
+![](img/5f7386ad07429a8086b032597f05732a.png)
 
 AI 生成的图片（Dalle-3）
 
@@ -10,9 +10,9 @@ AI 生成的图片（Dalle-3）
 
 ## 如何模拟 OpenAI 的系统提示生成器功能
 
-[](https://medium.com/@thomas_reid?source=post_page---byline--b870963a1ca0--------------------------------)[![Thomas Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--b870963a1ca0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b870963a1ca0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b870963a1ca0--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--b870963a1ca0--------------------------------)
+[](https://medium.com/@thomas_reid?source=post_page---byline--b870963a1ca0--------------------------------)![Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--b870963a1ca0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b870963a1ca0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b870963a1ca0--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--b870963a1ca0--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b870963a1ca0--------------------------------) ·10分钟阅读·2024年10月17日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b870963a1ca0--------------------------------) ·10 分钟阅读·2024 年 10 月 17 日
 
 --
 
@@ -22,11 +22,11 @@ AI 生成的图片（Dalle-3）
 
 要测试此功能，请点击下面的链接访问 playground，并使用你的 openAI 凭据登录，如果你尚未登录的话。
 
-[https://platform.openai.com/playground/](https://platform.openai.com/playground/)
+[`platform.openai.com/playground/`](https://platform.openai.com/playground/)
 
 你应该会看到如下屏幕。
 
-![](../Images/111402c6027d77fcdce21eb04d7e0d8e.png)
+![](img/111402c6027d77fcdce21eb04d7e0d8e.png)
 
 来自 OpenAI 网站的图片
 

@@ -1,12 +1,12 @@
 # 从检索到智能：探索 RAG、Agent+RAG 和 TruLens 的评估
 
-> 原文：[https://towardsdatascience.com/from-retrieval-to-intelligence-exploring-rag-agent-rag-and-evaluation-with-trulens-3c518af836ce?source=collection_archive---------3-----------------------#2024-12-03](https://towardsdatascience.com/from-retrieval-to-intelligence-exploring-rag-agent-rag-and-evaluation-with-trulens-3c518af836ce?source=collection_archive---------3-----------------------#2024-12-03)
+> 原文：[`towardsdatascience.com/from-retrieval-to-intelligence-exploring-rag-agent-rag-and-evaluation-with-trulens-3c518af836ce?source=collection_archive---------3-----------------------#2024-12-03`](https://towardsdatascience.com/from-retrieval-to-intelligence-exploring-rag-agent-rag-and-evaluation-with-trulens-3c518af836ce?source=collection_archive---------3-----------------------#2024-12-03)
 
 ## 解锁 GPT 生成的私有语料库的潜力
 
-[](https://medium.com/@vladyslav.fliahin_1709?source=post_page---byline--3c518af836ce--------------------------------)[![Vladyslav Fliahin](../Images/9ef0a1bc4adaf23c887fa8a9a8563384.png)](https://medium.com/@vladyslav.fliahin_1709?source=post_page---byline--3c518af836ce--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3c518af836ce--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3c518af836ce--------------------------------) [Vladyslav Fliahin](https://medium.com/@vladyslav.fliahin_1709?source=post_page---byline--3c518af836ce--------------------------------)
+[](https://medium.com/@vladyslav.fliahin_1709?source=post_page---byline--3c518af836ce--------------------------------)![Vladyslav Fliahin](https://medium.com/@vladyslav.fliahin_1709?source=post_page---byline--3c518af836ce--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3c518af836ce--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3c518af836ce--------------------------------) [Vladyslav Fliahin](https://medium.com/@vladyslav.fliahin_1709?source=post_page---byline--3c518af836ce--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3c518af836ce--------------------------------) ·阅读时间：21 分钟·2024年12月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3c518af836ce--------------------------------) ·阅读时间：21 分钟·2024 年 12 月 3 日
 
 --
 
@@ -14,7 +14,7 @@
 
 如今，世界上有许多优秀的基础模型可以用来启动您的自定义应用程序（如 gpt-4o、Sonnet、Gemini、Llama3.2、Gemma、Ministral 等）。这些模型了解关于历史、地理和 Wikipedia 文章的方方面面，但仍然存在一些弱点。主要有两个问题：细节层次（例如，模型知道 BMW 的品牌、它的功能、车型名称以及一些更一般的信息；但如果你询问欧洲的销售数量或某个具体发动机部件的细节，模型就无法回答）以及最近的知识（例如，Llama3.2 模型或 Ministral 发布；基础模型是在某个特定时间点训练的，且具有知识截止日期，之后模型对任何新信息都无知）。
 
-![](../Images/c2c6dbbf6a87facdbce8a1d9d85528df.png)
+![](img/c2c6dbbf6a87facdbce8a1d9d85528df.png)
 
 摄影：由 [Jaredd Craig](https://unsplash.com/@jaredd?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,7 +22,7 @@
 
 为了应对这两个问题，我们将使用 RAG 技术和 LlamaIndex 框架。检索增强生成（Retrieval Augmented Generation, RAG）的理念是，在回答生成过程中为模型提供最相关的信息。通过这种方式，我们可以拥有一个包含自定义数据的数据库，模型可以利用这些数据。为了进一步评估系统的表现，我们将结合 TruLens 库和 RAG 三重度量标准（RAG Triad metrics）。
 
-> 提到知识截止日期，这个问题通过谷歌搜索工具得到了解决。然而，我们不能完全用搜索工具来替代知识截止日期。为了理解这一点，想象有两个机器学习专家：第一个专家了解当前GenAI的所有知识，第二个专家6个月前从GenAI转向了经典计算机视觉。如果你问他们两个同样的问题，关于如何使用最近的GenAI模型，所需的搜索请求数量会大不相同。第一个专家会知道所有的内容，可能只会检查一些特定的命令。而第二个专家则必须阅读大量详细的文章，首先了解发生了什么，模型在做什么，内部机制如何，只有在此之后，他才有可能给出答案。
+> 提到知识截止日期，这个问题通过谷歌搜索工具得到了解决。然而，我们不能完全用搜索工具来替代知识截止日期。为了理解这一点，想象有两个机器学习专家：第一个专家了解当前 GenAI 的所有知识，第二个专家 6 个月前从 GenAI 转向了经典计算机视觉。如果你问他们两个同样的问题，关于如何使用最近的 GenAI 模型，所需的搜索请求数量会大不相同。第一个专家会知道所有的内容，可能只会检查一些特定的命令。而第二个专家则必须阅读大量详细的文章，首先了解发生了什么，模型在做什么，内部机制如何，只有在此之后，他才有可能给出答案。
 > 
 > 基本上，它就像是领域专家与一些普通专家之间的比较，一个可以快速回答，另一个则需要去谷歌搜索，因为他并不清楚第一个专家所了解的所有细节。
 > 
@@ -32,11 +32,11 @@
 
 现在可能很难找到一个没有在基础模型训练数据中使用过的数据集。几乎所有的数据都已被索引并在大规模模型的预训练阶段使用。
 
-![](../Images/7ef81bd855098bc93007f6790f622f9d.png)
+![](img/7ef81bd855098bc93007f6790f622f9d.png)
 
-来源：作者使用AI（Bing）生成的图像
+来源：作者使用 AI（Bing）生成的图像
 
-这就是为什么我决定自己生成一个。为此，我通过OpenAI的UI和多个连续的提示（它们都类似于下面的内容）使用了*chatgpt-4o-latest*：
+这就是为什么我决定自己生成一个。为此，我通过 OpenAI 的 UI 和多个连续的提示（它们都类似于下面的内容）使用了*chatgpt-4o-latest*：
 
 ```py
 Generate me a private corpus with some details mentioning the imagined Ukraine Boats Inc.
@@ -54,7 +54,7 @@ Maybe info about where we manufacture our boats (and add some custom ones)
 add client use studies
 ```
 
-结果，我为4家公司生成了一个私人语料库。以下是计算的标记数，以更好地体现数据集的大小。
+结果，我为 4 家公司生成了一个私人语料库。以下是计算的标记数，以更好地体现数据集的大小。
 
 ```py
 # Number of tokens using the `o200k_base` tokenizer (gpt-4o/gpt-4o-mini)
@@ -105,7 +105,7 @@ Ukraine Boats Inc. is a premier manufacturer and supplier of high-quality boats 
 
 完整的私人语料库可以在[GitHub](https://github.com/Vlad-Fliahin/rag-llamaindex)上找到。
 
-为了评估数据集的目的，我还要求模型基于给定的语料库生成了10个问题（仅关于乌克兰船业公司）。
+为了评估数据集的目的，我还要求模型基于给定的语料库生成了 10 个问题（仅关于乌克兰船业公司）。
 
 ```py
 based on the whole corpus above, generate 10 questions and answers for them pass them into the python native data structure
@@ -158,13 +158,13 @@ based on the whole corpus above, generate 10 questions and answers for them pass
 ]
 ```
 
-现在，当我们拥有了私人语料库和Q&A对的数据集时，我们可以将我们的数据插入到一些合适的存储中。
+现在，当我们拥有了私人语料库和 Q&A 对的数据集时，我们可以将我们的数据插入到一些合适的存储中。
 
 # 数据传播
 
-我们可以为RAG用例利用多种数据库，但对于这个项目以及可能处理未来关系的需求，我将Neo4j数据库集成到我们的解决方案中。此外，Neo4j在注册后提供免费的实例。
+我们可以为 RAG 用例利用多种数据库，但对于这个项目以及可能处理未来关系的需求，我将 Neo4j 数据库集成到我们的解决方案中。此外，Neo4j 在注册后提供免费的实例。
 
-现在，让我们开始准备节点。首先，我们实例化一个嵌入模型。我们使用了256维的向量，因为一些最近的测试表明，较大的向量维度会导致得分的方差较小（这不是我们需要的）。作为嵌入模型，我们使用了*text-embedding-3-small*模型。
+现在，让我们开始准备节点。首先，我们实例化一个嵌入模型。我们使用了 256 维的向量，因为一些最近的测试表明，较大的向量维度会导致得分的方差较小（这不是我们需要的）。作为嵌入模型，我们使用了*text-embedding-3-small*模型。
 
 ```py
 # initialize models
@@ -212,7 +212,7 @@ index = VectorStoreIndex(nodes, storage_context=storage_context, show_progress=T
 
 一切就绪，现在我们准备进入查询流水线。
 
-![](../Images/bc8ff5e24813361091f8339a8bdf89fc.png)
+![](img/bc8ff5e24813361091f8339a8bdf89fc.png)
 
 来源：图像由作者创建
 
@@ -394,9 +394,9 @@ agent_worker = OpenAIAgentWorker.from_tools(
 agent = AgentRunner(agent_worker=agent_worker)
 ```
 
-![](../Images/04e3fcb64f2ec18ce7919ec1e2cf1c71.png)
+![](img/04e3fcb64f2ec18ce7919ec1e2cf1c71.png)
 
-来源：图片来自于[LlamaIndex文档](https://docs.llamaindex.ai/en/stable/module_guides/deploying/agents/agent_runner/)
+来源：图片来自于[LlamaIndex 文档](https://docs.llamaindex.ai/en/stable/module_guides/deploying/agents/agent_runner/)
 
 为了有效测试用户与代理的交互，我实现了一个简单的聊天式界面：
 
@@ -460,14 +460,14 @@ Added user message to memory: Thanks
 
 # 开源
 
-作为一个开源模型，我们使用了*meta-llama/Llama-3.2–3B-Instruct*。这个选择是基于模型延迟和性能的权衡。首先，我们需要通过访问令牌认证我们的HuggingFace账户。
+作为一个开源模型，我们使用了*meta-llama/Llama-3.2–3B-Instruct*。这个选择是基于模型延迟和性能的权衡。首先，我们需要通过访问令牌认证我们的 HuggingFace 账户。
 
 ```py
 # Use your token here
 login(token=CFG['configuration']['models']['hf_token'])
 ```
 
-为了在LlamaIndex中将Llama作为LLM使用，我们需要创建一个模型包装器。我们将使用一台单独的NVIDIA GeForce RTX 3090来服务我们的Llama 3.2模型。
+为了在 LlamaIndex 中将 Llama 作为 LLM 使用，我们需要创建一个模型包装器。我们将使用一台单独的 NVIDIA GeForce RTX 3090 来服务我们的 Llama 3.2 模型。
 
 ```py
 SYSTEM_PROMPT = """You are an AI assistant that answers questions in a friendly manner, based on the given source documents. Here are some rules you always follow:
@@ -509,7 +509,7 @@ The primary focus of Ukraine Boats Inc. is designing, manufacturing, and selling
 
 # 代理
 
-对于OpenAI模型，LlamaIndex设计了一个专门的代理包装器，但对于开源模型，我们应该使用另一种包装器。我们选择了ReActAgent，它通过反复推理和行动直到最终响应准备好。
+对于 OpenAI 模型，LlamaIndex 设计了一个专门的代理包装器，但对于开源模型，我们应该使用另一种包装器。我们选择了 ReActAgent，它通过反复推理和行动直到最终响应准备好。
 
 ```py
 agent_worker = ReActAgentWorker.from_tools(
@@ -626,35 +626,35 @@ Answer: CitySolve Municipal Services is a government-owned and operated company 
 16:06:35.734|Agent: CitySolve Municipal Services is a government-owned and operated company that serves as the backbone of New Urbania's civic infrastructure, addressing a wide range of city-level concerns.
 ```
 
-如我们所见，代理的推理方式不同。面对相同的问题，两个模型决定以不同的方式查询工具。第二个代理在使用该工具时失败过一次，但这更多是工具描述的问题，而非代理本身。两者都为用户提供了有价值的答案，这正是RAG方法的最终目标。
+如我们所见，代理的推理方式不同。面对相同的问题，两个模型决定以不同的方式查询工具。第二个代理在使用该工具时失败过一次，但这更多是工具描述的问题，而非代理本身。两者都为用户提供了有价值的答案，这正是 RAG 方法的最终目标。
 
-> 此外，还有许多不同的代理包装器可以应用于您的LLM。它们可能会显著改变模型与世界交互的方式。
+> 此外，还有许多不同的代理包装器可以应用于您的 LLM。它们可能会显著改变模型与世界交互的方式。
 
 # 评估
 
-现在有许多框架可用于评估RAG。其中之一是TruLens。总体RAG性能通过所谓的RAG三要素（答案相关性、上下文相关性和基础性）来评估。
+现在有许多框架可用于评估 RAG。其中之一是 TruLens。总体 RAG 性能通过所谓的 RAG 三要素（答案相关性、上下文相关性和基础性）来评估。
 
-为了评估相关性和基础性，我们将利用LLMs。LLMs将充当裁判，根据提供的信息对答案进行评分。
+为了评估相关性和基础性，我们将利用 LLMs。LLMs 将充当裁判，根据提供的信息对答案进行评分。
 
-TruLens本身是一个方便的工具，用于在度量级别上衡量系统性能，并分析特定记录的评估。以下是排行榜UI视图：
+TruLens 本身是一个方便的工具，用于在度量级别上衡量系统性能，并分析特定记录的评估。以下是排行榜 UI 视图：
 
-![](../Images/2e1c68ce16e4ac9f4241f8c34976dc31.png)
+![](img/2e1c68ce16e4ac9f4241f8c34976dc31.png)
 
 来源：图片由作者制作
 
 以下是每条记录的评估表，您可以在其中查看所有被调用的内部过程。
 
-![](../Images/5ea278b031342962a1ef3402002cab0d.png)
+![](img/5ea278b031342962a1ef3402002cab0d.png)
 
 来源：图片由作者制作
 
 若要获取更多细节，您可以查看特定记录的执行过程。
 
-![](../Images/1cb2793fe322a2f00f79e0d864937cb5.png)
+![](img/1cb2793fe322a2f00f79e0d864937cb5.png)
 
 来源：图片由作者制作
 
-要实现RAG三要素评估，首先，我们必须定义实验名称和模型提供者。我们将使用*gpt-4o-mini*模型进行评估。
+要实现 RAG 三要素评估，首先，我们必须定义实验名称和模型提供者。我们将使用*gpt-4o-mini*模型进行评估。
 
 ```py
 experiment_name = "llama-3.2-3B-custom-retriever"
@@ -696,7 +696,7 @@ f_qa_relevance = (
 )
 ```
 
-此外，我们实例化了一个TruLlama对象，它将在代理调用期间处理反馈计算。
+此外，我们实例化了一个 TruLlama 对象，它将在代理调用期间处理反馈计算。
 
 ```py
 # Create TruLlama agent
@@ -727,30 +727,30 @@ for item in tqdm(dataset):
         traceback.format_exc()
 ```
 
-我们进行了实验，使用了这两种模型、默认/自定义查询引擎以及额外的工具输入参数描述（ReAct代理在没有明确工具输入参数描述时表现较差，试图调用不存在的工具来重构输入）。我们可以使用get_leaderboard()方法将结果以DataFrame形式进行回顾。
+我们进行了实验，使用了这两种模型、默认/自定义查询引擎以及额外的工具输入参数描述（ReAct 代理在没有明确工具输入参数描述时表现较差，试图调用不存在的工具来重构输入）。我们可以使用 get_leaderboard()方法将结果以 DataFrame 形式进行回顾。
 
-![](../Images/f70a0571918030d447d1cf343023d50c.png)
+![](img/f70a0571918030d447d1cf343023d50c.png)
 
 来源：图片由作者创作
 
 # 结论
 
-![](../Images/3388eb9d59dc0de70d7834da343d89e5.png)
+![](img/3388eb9d59dc0de70d7834da343d89e5.png)
 
-来源：图片由作者使用AI（Bing）生成
+来源：图片由作者使用 AI（Bing）生成
 
-我们获得了一个私有语料库，结合了GPT模型用于自定义数据集生成。实际语料内容相当有趣且多样化。这也是为什么现在很多模型能够成功地利用GPT生成的样本进行微调的原因。
+我们获得了一个私有语料库，结合了 GPT 模型用于自定义数据集生成。实际语料内容相当有趣且多样化。这也是为什么现在很多模型能够成功地利用 GPT 生成的样本进行微调的原因。
 
-Neo4j数据库为许多框架提供了方便的接口，并具有业内最佳的UI能力（Aura）。在实际项目中，我们通常会有数据之间的关系，图形数据库在这种用例中是一个完美的选择。
+Neo4j 数据库为许多框架提供了方便的接口，并具有业内最佳的 UI 能力（Aura）。在实际项目中，我们通常会有数据之间的关系，图形数据库在这种用例中是一个完美的选择。
 
-在私有语料库的基础上，我们实现了不同的RAG方法（独立的和作为代理的一部分）。根据RAG三元组指标，我们观察到基于OpenAI的代理工作得非常完美，而经过良好提示的ReAct代理表现相对相同。一个显著的差异出现在自定义查询引擎的使用上。这是合理的，因为我们配置了一些特定的程序和阈值，符合我们的数据需求。此外，两个解决方案都有很高的可靠性，这对RAG应用非常重要。
+在私有语料库的基础上，我们实现了不同的 RAG 方法（独立的和作为代理的一部分）。根据 RAG 三元组指标，我们观察到基于 OpenAI 的代理工作得非常完美，而经过良好提示的 ReAct 代理表现相对相同。一个显著的差异出现在自定义查询引擎的使用上。这是合理的，因为我们配置了一些特定的程序和阈值，符合我们的数据需求。此外，两个解决方案都有很高的可靠性，这对 RAG 应用非常重要。
 
-另一个有趣的发现是，Llama3.2 3B和gpt-4o-mini API的代理调用延迟几乎相同（当然，最多的时间花费在数据库调用上，但差异仍然不大）。
+另一个有趣的发现是，Llama3.2 3B 和 gpt-4o-mini API 的代理调用延迟几乎相同（当然，最多的时间花费在数据库调用上，但差异仍然不大）。
 
-尽管我们的系统运行得相当不错，但仍有许多需要改进的地方，比如关键词搜索、重排序器、邻接块选择以及与地面真值标签的比较。这些话题将在下一篇关于RAG应用的文章中讨论。
+尽管我们的系统运行得相当不错，但仍有许多需要改进的地方，比如关键词搜索、重排序器、邻接块选择以及与地面真值标签的比较。这些话题将在下一篇关于 RAG 应用的文章中讨论。
 
 私有语料库以及代码和提示可以在[GitHub](https://github.com/Vlad-Fliahin/rag-llamaindex)上找到。
 
 # 附言：
 
-我要感谢我的同事：[Alex Simkiv](https://medium.com/u/831f45a955ff)、[Andy Bosyi](https://medium.com/u/8bc8d2a62041) 和 [Nazar Savchenko](https://www.linkedin.com/in/nazar-savchenko/)，感谢他们富有成效的对话、合作与宝贵的建议，以及整个MindCraft.ai团队的持续支持。
+我要感谢我的同事：[Alex Simkiv](https://medium.com/u/831f45a955ff)、[Andy Bosyi](https://medium.com/u/8bc8d2a62041) 和 [Nazar Savchenko](https://www.linkedin.com/in/nazar-savchenko/)，感谢他们富有成效的对话、合作与宝贵的建议，以及整个 MindCraft.ai 团队的持续支持。

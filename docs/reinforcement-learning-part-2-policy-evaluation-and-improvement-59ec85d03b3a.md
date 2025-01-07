@@ -1,16 +1,16 @@
 # 强化学习第二部分：策略评估与改进
 
-> 原文：[https://towardsdatascience.com/reinforcement-learning-part-2-policy-evaluation-and-improvement-59ec85d03b3a?source=collection_archive---------1-----------------------#2024-04-23](https://towardsdatascience.com/reinforcement-learning-part-2-policy-evaluation-and-improvement-59ec85d03b3a?source=collection_archive---------1-----------------------#2024-04-23)
+> 原文：[`towardsdatascience.com/reinforcement-learning-part-2-policy-evaluation-and-improvement-59ec85d03b3a?source=collection_archive---------1-----------------------#2024-04-23`](https://towardsdatascience.com/reinforcement-learning-part-2-policy-evaluation-and-improvement-59ec85d03b3a?source=collection_archive---------1-----------------------#2024-04-23)
 
 ## 从数据到决策：通过策略改进方法最大化奖励以获得最佳策略
 
-[](https://medium.com/@slavahead?source=post_page---byline--59ec85d03b3a--------------------------------)[![Vyacheslav Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--59ec85d03b3a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--59ec85d03b3a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--59ec85d03b3a--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--59ec85d03b3a--------------------------------)
+[](https://medium.com/@slavahead?source=post_page---byline--59ec85d03b3a--------------------------------)![Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--59ec85d03b3a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--59ec85d03b3a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--59ec85d03b3a--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--59ec85d03b3a--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--59ec85d03b3a--------------------------------) ·13分钟阅读·2024年4月23日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--59ec85d03b3a--------------------------------) ·13 分钟阅读·2024 年 4 月 23 日
 
 --
 
-![](../Images/9d0b6d24534b97065ed2a415650d931e.png)
+![](img/9d0b6d24534b97065ed2a415650d931e.png)
 
 # 引言
 

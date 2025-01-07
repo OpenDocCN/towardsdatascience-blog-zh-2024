@@ -1,22 +1,22 @@
 # 使用 LLM 图变换器构建知识图谱
 
-> 原文：[https://towardsdatascience.com/building-knowledge-graphs-with-llm-graph-transformer-a91045c49b59?source=collection_archive---------0-----------------------#2024-11-05](https://towardsdatascience.com/building-knowledge-graphs-with-llm-graph-transformer-a91045c49b59?source=collection_archive---------0-----------------------#2024-11-05)
+> 原文：[`towardsdatascience.com/building-knowledge-graphs-with-llm-graph-transformer-a91045c49b59?source=collection_archive---------0-----------------------#2024-11-05`](https://towardsdatascience.com/building-knowledge-graphs-with-llm-graph-transformer-a91045c49b59?source=collection_archive---------0-----------------------#2024-11-05)
 
 ## 深入探讨 LangChain 在使用 LLM 构建图谱方面的实现
 
-[](https://bratanic-tomaz.medium.com/?source=post_page---byline--a91045c49b59--------------------------------)[![Tomaz Bratanic](../Images/d5821aa70918fcb3fc1ff0013497b3d5.png)](https://bratanic-tomaz.medium.com/?source=post_page---byline--a91045c49b59--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a91045c49b59--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a91045c49b59--------------------------------) [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--a91045c49b59--------------------------------)
+[](https://bratanic-tomaz.medium.com/?source=post_page---byline--a91045c49b59--------------------------------)![Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--a91045c49b59--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a91045c49b59--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a91045c49b59--------------------------------) [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--a91045c49b59--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a91045c49b59--------------------------------) ·阅读时长17分钟·2024年11月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a91045c49b59--------------------------------) ·阅读时长 17 分钟·2024 年 11 月 5 日
 
 --
 
-![](../Images/c100d65f7368e26e05871fc243e2c8d2.png)
+![](img/c100d65f7368e26e05871fc243e2c8d2.png)
 
 构建知识图谱。图像来自 ChatGPT。
 
 从文本创建图谱令人非常兴奋，但无疑也充满挑战。本质上，这就是将非结构化文本转化为结构化数据。虽然这种方法已经存在一段时间，但随着大型语言模型（LLMs）的出现，它获得了显著的关注，逐渐走向主流。
 
-![](../Images/391f15d81764d9d695809c24cb771da0.png)
+![](img/391f15d81764d9d695809c24cb771da0.png)
 
 从文本中提取实体和关系来构建知识图谱。图像来自作者。
 
@@ -47,23 +47,23 @@ graph = Neo4jGraph(
 
 LLM 图形转换器被设计为提供一个灵活的框架，用于使用任何 LLM 构建图形。由于有如此多不同的提供商和模型可用，这个任务远非简单。幸运的是，LangChain 介入处理了大部分标准化过程。至于 LLM 图形转换器本身，它就像是两只猫堆叠在一件外套里——具有在两种完全独立的模式下操作的能力。
 
-![](../Images/6657e49d4e353000a1cc75cda74536e7.png)
+![](img/6657e49d4e353000a1cc75cda74536e7.png)
 
 LLM 图形转换器由两种不同的模式组成，用于从文本中提取图形。图片由用户提供。
 
 LLM 图形转换器在两种不同的模式下操作，每种模式都旨在在不同场景下使用 LLM 从文档中生成图形。
 
-1.  **基于工具的模式（默认）：** 当LLM支持结构化输出或函数调用时，这种模式利用[LLM内建的](https://python.langchain.com/docs/how_to/structured_output/)`[with_structured_output](https://python.langchain.com/docs/how_to/structured_output/)`[来使用工具](https://python.langchain.com/docs/how_to/structured_output/)。工具规范定义了输出格式，确保实体和关系以结构化、预定义的方式被提取。这在图像的左侧显示，其中展示了`Node`和`Relationship`类的代码。
+1.  **基于工具的模式（默认）：** 当 LLM 支持结构化输出或函数调用时，这种模式利用[LLM 内建的](https://python.langchain.com/docs/how_to/structured_output/)`[with_structured_output](https://python.langchain.com/docs/how_to/structured_output/)`[来使用工具](https://python.langchain.com/docs/how_to/structured_output/)。工具规范定义了输出格式，确保实体和关系以结构化、预定义的方式被提取。这在图像的左侧显示，其中展示了`Node`和`Relationship`类的代码。
 
-1.  **基于提示的模式（回退模式）：** 当LLM不支持工具或函数调用时，LLM图形转换器会回退到纯粹由提示驱动的方法。这种模式使用少量提示来定义输出格式，引导LLM以基于文本的方式提取实体和关系。然后，结果会通过一个自定义函数进行解析，该函数将LLM的输出转换为JSON格式。这个JSON会用来填充节点和关系，就像在基于工具的模式中一样，但在这里LLM完全由提示引导，而不是通过结构化工具。这在图像的右侧显示，其中提供了一个示例提示和相应的JSON输出。
+1.  **基于提示的模式（回退模式）：** 当 LLM 不支持工具或函数调用时，LLM 图形转换器会回退到纯粹由提示驱动的方法。这种模式使用少量提示来定义输出格式，引导 LLM 以基于文本的方式提取实体和关系。然后，结果会通过一个自定义函数进行解析，该函数将 LLM 的输出转换为 JSON 格式。这个 JSON 会用来填充节点和关系，就像在基于工具的模式中一样，但在这里 LLM 完全由提示引导，而不是通过结构化工具。这在图像的右侧显示，其中提供了一个示例提示和相应的 JSON 输出。
 
-这两种模式确保LLM图形转换器可以适应不同的LLM，使其能够通过工具直接构建图形，或者通过解析基于文本的提示输出构建图形。
+这两种模式确保 LLM 图形转换器可以适应不同的 LLM，使其能够通过工具直接构建图形，或者通过解析基于文本的提示输出构建图形。
 
 *请注意，即使是支持工具/函数的模型，你也可以通过设置属性`*ignore_tools_usage=True*`来使用基于提示的提取。*
 
 ## 基于工具的提取
 
-我们最初选择了基于工具的提取方法，因为它减少了大量提示工程和自定义解析函数的需求。在LangChain中，`with_structured_output`方法允许你使用工具或函数提取信息，输出可以通过JSON结构或Pydantic对象来定义。就个人而言，我发现Pydantic对象更清晰，因此我们选择了这种方式。
+我们最初选择了基于工具的提取方法，因为它减少了大量提示工程和自定义解析函数的需求。在 LangChain 中，`with_structured_output`方法允许你使用工具或函数提取信息，输出可以通过 JSON 结构或 Pydantic 对象来定义。就个人而言，我发现 Pydantic 对象更清晰，因此我们选择了这种方式。
 
 我们首先定义一个`Node`类。
 
@@ -74,7 +74,7 @@ class Node(BaseNode):
     properties: Optional[List[Property]]
 ```
 
-每个节点都有一个`id`、一个`label`和可选的`properties`。为了简洁起见，我在这里没有包含详细的描述。描述ID作为人类可读的唯一标识符很重要，因为一些大型语言模型（LLMs）往往以更传统的方式理解ID属性，例如随机字符串或递增的整数。而我们希望实体的名称作为ID属性来使用。我们还通过在`label`描述中简单列出可用的标签类型来限制可用的标签类型。此外，像OpenAI这样的LLM支持`enum`参数，我们也在使用这个参数。
+每个节点都有一个`id`、一个`label`和可选的`properties`。为了简洁起见，我在这里没有包含详细的描述。描述 ID 作为人类可读的唯一标识符很重要，因为一些大型语言模型（LLMs）往往以更传统的方式理解 ID 属性，例如随机字符串或递增的整数。而我们希望实体的名称作为 ID 属性来使用。我们还通过在`label`描述中简单列出可用的标签类型来限制可用的标签类型。此外，像 OpenAI 这样的 LLM 支持`enum`参数，我们也在使用这个参数。
 
 接下来，我们来看一下`Relationship`类。
 
@@ -88,7 +88,7 @@ class Relationship(BaseRelationship):
     properties: Optional[List[Property]]
 ```
 
-这是`Relationship`类的第二次迭代。最初，我们使用嵌套的`Node`对象表示源节点和目标节点，但我们很快发现嵌套对象降低了提取过程的准确性和质量。因此，我们决定将源节点和目标节点平铺为独立的字段——例如，`source_node_id`和`source_node_label`，以及`target_node_id`和`target_node_label`。此外，我们在节点标签和关系类型的描述中定义了允许的值，以确保LLM遵守指定的图形模式。
+这是`Relationship`类的第二次迭代。最初，我们使用嵌套的`Node`对象表示源节点和目标节点，但我们很快发现嵌套对象降低了提取过程的准确性和质量。因此，我们决定将源节点和目标节点平铺为独立的字段——例如，`source_node_id`和`source_node_label`，以及`target_node_id`和`target_node_label`。此外，我们在节点标签和关系类型的描述中定义了允许的值，以确保 LLM 遵守指定的图形模式。
 
 基于工具的提取方法使我们能够为节点和关系定义属性。以下是我们用来定义这些属性的类。
 
@@ -103,11 +103,11 @@ class Property(BaseModel):
 
 我们还实现了一个[详细的系统提示](https://github.com/langchain-ai/langchain-experimental/blob/main/libs/experimental/langchain_experimental/graph_transformers/llm.py#L72)，帮助指导提取过程。不过根据我的经验，功能和参数描述往往比系统消息更具影响力。
 
-不幸的是，目前没有简单的方法来定制LLM图形变换器中的功能或参数描述。
+不幸的是，目前没有简单的方法来定制 LLM 图形变换器中的功能或参数描述。
 
 ## 基于提示的提取
 
-由于只有少数商业化的LLM和LLaMA 3支持本地工具，我们为不支持工具的模型实现了回退机制。即使使用支持工具的模型，你也可以设置`ignore_tool_usage=True`来切换到基于提示的方法。
+由于只有少数商业化的 LLM 和 LLaMA 3 支持本地工具，我们为不支持工具的模型实现了回退机制。即使使用支持工具的模型，你也可以设置`ignore_tool_usage=True`来切换到基于提示的方法。
 
 大部分基于提示方法的提示工程和示例由[Geraldus Wilsen](https://www.linkedin.com/in/geraldus-wilsen/)贡献。
 
@@ -130,7 +130,7 @@ Extract as many entities and relationships as possible.
 - Do not add any extra explanations or text.
 ```
 
-在基于提示的方法中，一个关键区别是我们要求LLM仅提取关系，而不是单独的节点。这意味着我们不会有任何*孤立节点*，与基于工具的方法不同。此外，由于缺乏本地工具支持的模型通常表现较差，我们不允许提取任何属性——无论是节点还是关系，以保持提取结果的简洁性。
+在基于提示的方法中，一个关键区别是我们要求 LLM 仅提取关系，而不是单独的节点。这意味着我们不会有任何*孤立节点*，与基于工具的方法不同。此外，由于缺乏本地工具支持的模型通常表现较差，我们不允许提取任何属性——无论是节点还是关系，以保持提取结果的简洁性。
 
 接下来，我们向模型添加了一些少量示例。
 
@@ -263,7 +263,7 @@ LLM 图谱转换器的响应将是一个图谱文档，其结构如下：
 
 我们可以使用 Neo4j 浏览器来可视化输出，从而更清晰、更直观地理解数据。
 
-![](../Images/a13874667bfc937faf32649450a465a7.png)
+![](img/a13874667bfc937faf32649450a465a7.png)
 
 没有定义图谱架构的情况下，对同一数据集进行两次提取的可视化。图片来自作者。
 
@@ -278,7 +278,7 @@ data = await no_schema.aconvert_to_graph_documents(documents)
 
 同样，我们可以在 Neo4j 浏览器中可视化两次独立的执行。
 
-![](../Images/a68da1cdfec428b4b7f1d626e032f4eb.png)
+![](img/a68da1cdfec428b4b7f1d626e032f4eb.png)
 
 使用基于提示的方法，在没有定义图模式的情况下对相同数据集进行两次提取的可视化。图像来源：作者。
 
@@ -298,15 +298,15 @@ nodes_defined = LLMGraphTransformer(llm=llm, allowed_nodes=allowed_nodes)
 data = await allowed_nodes.aconvert_to_graph_documents(documents)
 ```
 
-在这里，我们定义了LLM应提取五种类型的节点，如*人*、*组织*、*地点*等。我们在Neo4j浏览器中可视化了两次独立的执行结果以进行比较。
+在这里，我们定义了 LLM 应提取五种类型的节点，如*人*、*组织*、*地点*等。我们在 Neo4j 浏览器中可视化了两次独立的执行结果以进行比较。
 
-![](../Images/4eb80ac824a94649476f98d7bd4cf60b.png)
+![](img/4eb80ac824a94649476f98d7bd4cf60b.png)
 
 使用预定义的节点类型进行两次提取的可视化。图像来源：作者。
 
 通过指定预期的节点类型，我们实现了更一致的节点提取。然而，仍然可能会出现一些变化。例如，在第一次运行中，“放射性”被提取为研究领域，而在第二次运行中则没有。
 
-由于我们没有定义关系，因此它们的类型也可能在不同的运行中有所不同。此外，一些提取可能比其他提取捕获更多的信息。例如，Marie和Pierre之间的`MARRIED_TO`关系在两次提取中都没有出现。
+由于我们没有定义关系，因此它们的类型也可能在不同的运行中有所不同。此外，一些提取可能比其他提取捕获更多的信息。例如，Marie 和 Pierre 之间的`MARRIED_TO`关系在两次提取中都没有出现。
 
 现在，让我们探索如何通过定义关系类型来进一步提高一致性。
 
@@ -327,7 +327,7 @@ data = await rels_defined.aconvert_to_graph_documents(documents)
 
 让我们再次检查两次独立的提取。
 
-![](../Images/b8834e9764cd6bf340a7e99377b2dd47.png)
+![](img/b8834e9764cd6bf340a7e99377b2dd47.png)
 
 使用预定义的节点和关系类型进行两次提取的可视化。图像来源：作者。
 
@@ -356,15 +356,15 @@ data = await rels_defined.aconvert_to_graph_documents(documents)
 
 让我们再次可视化结果。
 
-![](../Images/c26aee8a8356ce6ad2d431cf826e499d.png)
+![](img/c26aee8a8356ce6ad2d431cf826e499d.png)
 
 使用预定义节点和高级关系类型的两次提取过程的可视化。图像来自作者。
 
-使用三元组方法提供了一个更加一致的图谱模式，适用于多次执行的提取。然而，由于LLM的特性，提取的细节层次仍可能存在一些差异。例如，在右侧，皮埃尔被显示为获奖，而左侧则缺少这条信息。
+使用三元组方法提供了一个更加一致的图谱模式，适用于多次执行的提取。然而，由于 LLM 的特性，提取的细节层次仍可能存在一些差异。例如，在右侧，皮埃尔被显示为获奖，而左侧则缺少这条信息。
 
 ## 定义属性
 
-我们可以对图谱模式做的最后一个增强是为节点和关系定义属性。在这里，我们有两个选择。第一个是设置`node_properties`或`relationship_properties`为`true`，允许LLM自主决定提取哪些属性。
+我们可以对图谱模式做的最后一个增强是为节点和关系定义属性。在这里，我们有两个选择。第一个是设置`node_properties`或`relationship_properties`为`true`，允许 LLM 自主决定提取哪些属性。
 
 ```py
 allowed_nodes = ["Person", "Organization", "Location", "Award", "ResearchField"]
@@ -390,11 +390,11 @@ graph.add_graph_documents(data)
 
 让我们检查一下结果。
 
-![](../Images/a49d80b92ca86d853d8a4856a6f67e89.png)
+![](img/a49d80b92ca86d853d8a4856a6f67e89.png)
 
 提取的节点和关系属性。图像来自作者。
 
-我们已经允许LLM添加它认为相关的任何节点或关系属性。例如，它选择包括玛丽·居里的出生和死亡日期、她在巴黎大学担任教授的身份，以及她两次获得诺贝尔奖的事实。这些附加属性显著丰富了提取的信息。
+我们已经允许 LLM 添加它认为相关的任何节点或关系属性。例如，它选择包括玛丽·居里的出生和死亡日期、她在巴黎大学担任教授的身份，以及她两次获得诺贝尔奖的事实。这些附加属性显著丰富了提取的信息。
 
 我们的第二个选择是定义我们想要提取的节点和关系属性。
 
@@ -420,13 +420,13 @@ data = await props_defined.aconvert_to_graph_documents(documents)
 graph.add_graph_documents(data)
 ```
 
-属性仅仅是通过两个列表来定义的。让我们看看LLM提取了什么。
+属性仅仅是通过两个列表来定义的。让我们看看 LLM 提取了什么。
 
-![](../Images/e10e408dd76aaa10d841f25d6b30922b.png)
+![](img/e10e408dd76aaa10d841f25d6b30922b.png)
 
 提取的预定义节点和关系属性。图像来自作者。
 
-出生和死亡日期与先前的提取结果一致。然而，这一次，LLM还提取了玛丽在巴黎大学担任教授的起始日期。
+出生和死亡日期与先前的提取结果一致。然而，这一次，LLM 还提取了玛丽在巴黎大学担任教授的起始日期。
 
 属性确实为提取的信息增加了有价值的深度，尽管目前这种实现存在一些限制：
 
@@ -436,11 +436,11 @@ graph.add_graph_documents(data)
 
 +   属性只能全局定义，而不能按节点标签或关系类型定义。
 
-+   没有选项可以自定义属性描述，以指导LLM进行更精确的提取。
++   没有选项可以自定义属性描述，以指导 LLM 进行更精确的提取。
 
 ## 严格模式
 
-如果您认为我们已经完善了一种方法，让LLM完美遵循定义的模式，我必须澄清一下。尽管我们在提示工程上投入了相当多的努力，但要让LLM，尤其是性能较差的LLM，完全准确地遵循指令是具有挑战性的。为了解决这个问题，我们引入了一个后处理步骤，称为`strict_mode`，它会去除任何不符合定义图模式的信息，从而确保更清洁、更一致的结果。
+如果您认为我们已经完善了一种方法，让 LLM 完美遵循定义的模式，我必须澄清一下。尽管我们在提示工程上投入了相当多的努力，但要让 LLM，尤其是性能较差的 LLM，完全准确地遵循指令是具有挑战性的。为了解决这个问题，我们引入了一个后处理步骤，称为`strict_mode`，它会去除任何不符合定义图模式的信息，从而确保更清洁、更一致的结果。
 
 默认情况下，`strict_mode`设置为`True`，但您可以使用以下代码禁用它：
 
@@ -453,29 +453,29 @@ LLMGraphTransformer(
 )
 ```
 
-在关闭严格模式的情况下，您可能会遇到图模式之外的节点或关系类型，因为LLM有时会在输出结构上采取创造性自由。
+在关闭严格模式的情况下，您可能会遇到图模式之外的节点或关系类型，因为 LLM 有时会在输出结构上采取创造性自由。
 
 # 将图文档导入图数据库
 
-从LLM图转换器中提取的图文档可以使用`add_graph_documents`方法导入到像Neo4j这样的图数据库中，以便进行进一步的分析和应用。我们将探讨不同的导入选项，以适应不同的使用场景。
+从 LLM 图转换器中提取的图文档可以使用`add_graph_documents`方法导入到像 Neo4j 这样的图数据库中，以便进行进一步的分析和应用。我们将探讨不同的导入选项，以适应不同的使用场景。
 
 ## **默认导入**
 
-您可以使用以下代码将节点和关系导入到Neo4j中。
+您可以使用以下代码将节点和关系导入到 Neo4j 中。
 
 ```py
 graph.add_graph_documents(graph_documents)
 ```
 
-该方法直接将所有节点和关系从提供的图文档导入。我们在整篇博客中使用了这种方法，以回顾不同LLM和模式配置的结果。
+该方法直接将所有节点和关系从提供的图文档导入。我们在整篇博客中使用了这种方法，以回顾不同 LLM 和模式配置的结果。
 
-![](../Images/670cba1162b9e041fba881433e0dc851.png)
+![](img/670cba1162b9e041fba881433e0dc851.png)
 
 默认导入设置。图片由作者提供。
 
 ## 基础实体标签
 
-大多数图数据库支持索引，以优化数据的导入和检索。在Neo4j中，索引只能为特定的节点标签设置。由于我们可能无法提前知道所有的节点标签，我们可以通过使用`baseEntityLabel`参数为每个节点添加一个次级基础标签来处理这个问题。这样，我们仍然可以利用索引来实现高效的导入和检索，而不需要为图中每个可能的节点标签设置索引。
+大多数图数据库支持索引，以优化数据的导入和检索。在 Neo4j 中，索引只能为特定的节点标签设置。由于我们可能无法提前知道所有的节点标签，我们可以通过使用`baseEntityLabel`参数为每个节点添加一个次级基础标签来处理这个问题。这样，我们仍然可以利用索引来实现高效的导入和检索，而不需要为图中每个可能的节点标签设置索引。
 
 ```py
 graph.add_graph_documents(graph_documents, baseEntityLabel=True)
@@ -483,7 +483,7 @@ graph.add_graph_documents(graph_documents, baseEntityLabel=True)
 
 如前所述，使用`baseEntityLabel`参数会导致每个节点拥有额外的`__Entity__`标签。
 
-![](../Images/2c5f7c083ec1ad026b69ac274b98c052.png)
+![](img/2c5f7c083ec1ad026b69ac274b98c052.png)
 
 每个节点都使用`baseEntityLabel`参数获得一个次级标签。图片由作者提供。
 
@@ -497,7 +497,7 @@ graph.add_graph_documents(graph_documents, include_source=True)
 
 在检查导入的图时，我们应该看到类似以下的结果。
 
-![](../Images/c2cd17506e7328a3bfc5fe28cd56a00d.png)
+![](img/c2cd17506e7328a3bfc5fe28cd56a00d.png)
 
 导入的源文档。图片由作者提供。
 

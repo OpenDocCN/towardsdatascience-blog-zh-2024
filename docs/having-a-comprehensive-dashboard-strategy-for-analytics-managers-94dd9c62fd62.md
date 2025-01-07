@@ -1,12 +1,12 @@
 # 为分析经理制定全面的仪表板策略
 
-> 原文：[https://towardsdatascience.com/having-a-comprehensive-dashboard-strategy-for-analytics-managers-94dd9c62fd62?source=collection_archive---------8-----------------------#2024-01-29](https://towardsdatascience.com/having-a-comprehensive-dashboard-strategy-for-analytics-managers-94dd9c62fd62?source=collection_archive---------8-----------------------#2024-01-29)
+> 原文：[`towardsdatascience.com/having-a-comprehensive-dashboard-strategy-for-analytics-managers-94dd9c62fd62?source=collection_archive---------8-----------------------#2024-01-29`](https://towardsdatascience.com/having-a-comprehensive-dashboard-strategy-for-analytics-managers-94dd9c62fd62?source=collection_archive---------8-----------------------#2024-01-29)
 
 ## 如何解决探索与利用之间的张力，并确保你拥有忠实的用户，他们对你的可视化工具感到满意。
 
-[](https://medium.com/@jordangom?source=post_page---byline--94dd9c62fd62--------------------------------)[![Jordan Gomes](../Images/d08bb9fd8b084687599a67a2221ec68c.png)](https://medium.com/@jordangom?source=post_page---byline--94dd9c62fd62--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--94dd9c62fd62--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--94dd9c62fd62--------------------------------) [Jordan Gomes](https://medium.com/@jordangom?source=post_page---byline--94dd9c62fd62--------------------------------)
+[](https://medium.com/@jordangom?source=post_page---byline--94dd9c62fd62--------------------------------)![Jordan Gomes](https://medium.com/@jordangom?source=post_page---byline--94dd9c62fd62--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--94dd9c62fd62--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94dd9c62fd62--------------------------------) [Jordan Gomes](https://medium.com/@jordangom?source=post_page---byline--94dd9c62fd62--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94dd9c62fd62--------------------------------) ·阅读时间6分钟·2024年1月29日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94dd9c62fd62--------------------------------) ·阅读时间 6 分钟·2024 年 1 月 29 日
 
 --
 
@@ -30,13 +30,13 @@
 
 这种策略同样可以被分析经理应用。
 
-![](../Images/09635e1ce568aac57f5a7fd4796ea44a.png)
+![](img/09635e1ce568aac57f5a7fd4796ea44a.png)
 
 将开放世界视频游戏中的学习应用到仪表板的构建中——图片来自作者
 
 # 你的用户的主线任务是什么？
 
-想象一下：你是一个销售人员，你正在试图了解即将见面的客户在过去2年里与公司交易的金额。你尝试在手机上打开一个仪表板——它不支持手机端。你尝试调整屏幕大小，以找到合适的过滤器——你的客户有多个业务地点，所以你需要按这些地点全部筛选。然后，仪表板加载过去6个月的数据花了2分钟，但你实际上需要的是过去2年的数据，而你忘记更新筛选器……
+想象一下：你是一个销售人员，你正在试图了解即将见面的客户在过去 2 年里与公司交易的金额。你尝试在手机上打开一个仪表板——它不支持手机端。你尝试调整屏幕大小，以找到合适的过滤器——你的客户有多个业务地点，所以你需要按这些地点全部筛选。然后，仪表板加载过去 6 个月的数据花了 2 分钟，但你实际上需要的是过去 2 年的数据，而你忘记更新筛选器……
 
 很有可能，在某个时刻，你放弃了，直接联系了你的数据分析师朋友。
 
@@ -44,7 +44,7 @@
 
 放眼全局：每个团队都有一套需要定期跟踪的指标，并且这些指标有预定的粒度。对于这些指标，他们需要一些简单易用的仪表板，仪表板中只包含有限数量的指标和过滤器。
 
-一旦他们建立了能有效满足主要需求的仪表板，他们就会开始提出一些功能请求（“啊，如果我们也能看到X、Y、Z就好了”）。在你将这些请求添加到现有仪表板之前，重要的是要保持第一性原理的思维：这个仪表板最初是为了满足什么样的用例？
+一旦他们建立了能有效满足主要需求的仪表板，他们就会开始提出一些功能请求（“啊，如果我们也能看到 X、Y、Z 就好了”）。在你将这些请求添加到现有仪表板之前，重要的是要保持第一性原理的思维：这个仪表板最初是为了满足什么样的用例？
 
 根据经验，最好采取以下方法：
 
@@ -54,11 +54,11 @@
 
 然而，要警惕仪表板膨胀，因为这会在未来引发很多问题（从维护到数据冲突）。重要的是要始终跟踪每个仪表板解决了哪些用例——并确保可以合并的部分已经合并。你的“仪表板生态系统”（即你的仪表板套件）只有在你采取整体方法，确保每个工具都有区分并且没有重叠时，才能蓬勃发展。
 
-通过这种方法，你可以解决大约50%的最常见仪表板问题，而你的仪表板也能够有效地开始补充并简化用户的日常工作（而不是使其更加复杂）。
+通过这种方法，你可以解决大约 50%的最常见仪表板问题，而你的仪表板也能够有效地开始补充并简化用户的日常工作（而不是使其更加复杂）。
 
 # 通过一个强大的知识管理系统来支持你的仪表板生态系统
 
-你新建立的系统只有在大家理解它并开始使用它时才会成功。对于前者，构建一个强大的知识管理系统（KMS）至关重要。这个KMS确保每个人都能找到关于你仪表板的相关信息：它们在哪里，它们包含哪些信息，数据变换是如何进行的，等等。一个有效的知识管理系统应该具备：
+你新建立的系统只有在大家理解它并开始使用它时才会成功。对于前者，构建一个强大的知识管理系统（KMS）至关重要。这个 KMS 确保每个人都能找到关于你仪表板的相关信息：它们在哪里，它们包含哪些信息，数据变换是如何进行的，等等。一个有效的知识管理系统应该具备：
 
 +   **集中式：** 在一个单一的位置
 
@@ -104,18 +104,18 @@
 
 **如果你想读更多我的文章，以下是一些你可能会喜欢的文章**：
 
-[](/how-to-build-a-successful-dashboard-359c8cb0f610?source=post_page-----94dd9c62fd62--------------------------------) [## 如何构建成功的仪表板
+[](/how-to-build-a-successful-dashboard-359c8cb0f610?source=post_page-----94dd9c62fd62--------------------------------) ## 如何构建成功的仪表板
 
 ### 一个曾经打造过一些不成功仪表板的人的检查清单
 
-[towardsdatascience.com](/how-to-build-a-successful-dashboard-359c8cb0f610?source=post_page-----94dd9c62fd62--------------------------------) [](/building-analytically-mature-organizations-amo-b54f8243ef3a?source=post_page-----94dd9c62fd62--------------------------------) [## 构建具有分析成熟度的组织 (AMO)
+[towardsdatascience.com [](/building-analytically-mature-organizations-amo-b54f8243ef3a?source=post_page-----94dd9c62fd62--------------------------------) ## 构建具有分析成熟度的组织 (AMO)
 
 ### 一些简单的框架，帮助你明确组织的分析需求，并让它变得更加……
 
-[towardsdatascience.com](/building-analytically-mature-organizations-amo-b54f8243ef3a?source=post_page-----94dd9c62fd62--------------------------------) [](/what-sets-great-data-analysts-apart-c91bbaff67aa?source=post_page-----94dd9c62fd62--------------------------------) [## 什么使优秀的数据分析师与众不同
+[towardsdatascience.com [](/what-sets-great-data-analysts-apart-c91bbaff67aa?source=post_page-----94dd9c62fd62--------------------------------) ## 什么使优秀的数据分析师与众不同
 
-### 还在寻找新年决心吗？这里有6项技能可以帮助你和你的团队变得极其高效。
+### 还在寻找新年决心吗？这里有 6 项技能可以帮助你和你的团队变得极其高效。
 
-[towardsdatascience.com](/what-sets-great-data-analysts-apart-c91bbaff67aa?source=post_page-----94dd9c62fd62--------------------------------)
+[towardsdatascience.com
 
 *PS：这篇文章同时发布在* [*Analytics Explained*](https://analyticsexplained.substack.com/)*，这是一个新闻通讯，在这里我总结了自己在不同分析岗位上学到的经验（从新加坡的初创公司到旧金山的大型科技公司），并回答读者关于分析、增长和职业发展的提问。*

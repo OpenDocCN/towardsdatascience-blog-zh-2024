@@ -1,16 +1,16 @@
 # 我如何应对 AI 初创公司中的幻觉问题
 
-> 原文：[https://towardsdatascience.com/how-i-deal-with-hallucinations-at-an-ai-startup-9fc4121295cc?source=collection_archive---------0-----------------------#2024-09-22](https://towardsdatascience.com/how-i-deal-with-hallucinations-at-an-ai-startup-9fc4121295cc?source=collection_archive---------0-----------------------#2024-09-22)
+> 原文：[`towardsdatascience.com/how-i-deal-with-hallucinations-at-an-ai-startup-9fc4121295cc?source=collection_archive---------0-----------------------#2024-09-22`](https://towardsdatascience.com/how-i-deal-with-hallucinations-at-an-ai-startup-9fc4121295cc?source=collection_archive---------0-----------------------#2024-09-22)
 
 ## 以及弱基础与强基础的区别
 
-[](https://medium.com/@TarikDzekman?source=post_page---byline--9fc4121295cc--------------------------------)[![Tarik Dzekman](../Images/0c66b22ecbdbbce79b2516e555c67432.png)](https://medium.com/@TarikDzekman?source=post_page---byline--9fc4121295cc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9fc4121295cc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9fc4121295cc--------------------------------) [Tarik Dzekman](https://medium.com/@TarikDzekman?source=post_page---byline--9fc4121295cc--------------------------------)
+[](https://medium.com/@TarikDzekman?source=post_page---byline--9fc4121295cc--------------------------------)![Tarik Dzekman](https://medium.com/@TarikDzekman?source=post_page---byline--9fc4121295cc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9fc4121295cc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9fc4121295cc--------------------------------) [Tarik Dzekman](https://medium.com/@TarikDzekman?source=post_page---byline--9fc4121295cc--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9fc4121295cc--------------------------------) ·6分钟阅读·2024年9月22日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9fc4121295cc--------------------------------) ·6 分钟阅读·2024 年 9 月 22 日
 
 --
 
-![](../Images/39ae2c52e7738b8d6311b35c04226fd5.png)
+![](img/39ae2c52e7738b8d6311b35c04226fd5.png)
 
 图片由作者提供
 
@@ -26,7 +26,7 @@
 
 2\. 查找和集成，例如在会计系统中验证总金额是否与采购订单一致，或验证付款细节是否与供应商的历史记录匹配。
 
-![](../Images/d374b961f36a3502d81dcd65f1450504.png)
+![](img/d374b961f36a3502d81dcd65f1450504.png)
 
 需要人工介入时的一个示例验证错误。来源：Affinda
 
@@ -58,21 +58,21 @@
 
 > **如果从文档中提取文本，则必须与文档中找到的文本完全一致。**
 
-当信息是结构化的（例如表格）时，这变得很棘手，尤其是因为PDF文件没有任何关于页面上单词顺序的信息。例如，某个条目的描述可能会跨越多行，因此目标是围绕提取的文本绘制一个连贯的框，而不考虑单词的左右顺序（或在一些语言中是从右到左的顺序）。
+当信息是结构化的（例如表格）时，这变得很棘手，尤其是因为 PDF 文件没有任何关于页面上单词顺序的信息。例如，某个条目的描述可能会跨越多行，因此目标是围绕提取的文本绘制一个连贯的框，而不考虑单词的左右顺序（或在一些语言中是从右到左的顺序）。
 
 强制模型指向文档中的精确文本被称为“强绑定”。强绑定不限于信息提取。例如，客户服务聊天机器人可能需要从内部知识库中的标准化回复中逐字引用（照搬）。鉴于标准化回复可能无法真正回答客户的问题，这种做法并不总是理想的。
 
-另一个棘手的情况是当信息需要从上下文中推断时。例如，医疗助手AI可能会根据症状推断出某种疾病的存在，而没有明确指出该疾病。识别出这些症状提到的地方将是一种“弱绑定”。回应的理由必须存在于上下文中，但确切的输出只能从提供的信息中合成。进一步的绑定步骤可能是强制模型查找医疗状况，并证明这些症状是相关的。即使如此，仍可能需要弱绑定，因为症状通常可以以多种方式表达。
+另一个棘手的情况是当信息需要从上下文中推断时。例如，医疗助手 AI 可能会根据症状推断出某种疾病的存在，而没有明确指出该疾病。识别出这些症状提到的地方将是一种“弱绑定”。回应的理由必须存在于上下文中，但确切的输出只能从提供的信息中合成。进一步的绑定步骤可能是强制模型查找医疗状况，并证明这些症状是相关的。即使如此，仍可能需要弱绑定，因为症状通常可以以多种方式表达。
 
 # 复杂问题的绑定
 
-使用AI解决日益复杂的问题可能使得使用绑定变得困难。例如，如果模型需要进行“推理”或从上下文中推断信息，如何进行绑定呢？以下是向复杂问题添加绑定时的一些考虑事项：
+使用 AI 解决日益复杂的问题可能使得使用绑定变得困难。例如，如果模型需要进行“推理”或从上下文中推断信息，如何进行绑定呢？以下是向复杂问题添加绑定时的一些考虑事项：
 
 1.  识别可以分解成一组规则的复杂决策。与其让模型生成最终决策的答案，不如让它生成该决策的组成部分。然后，使用规则来显示结果。（警告——这有时会加剧幻觉问题。向模型提出多个问题会给它多个产生幻觉的机会。只问一个问题可能会更好。但我们发现目前的模型在复杂的多步骤推理中通常表现较差。）
 
 1.  如果某个内容可以用多种方式表达（例如症状的描述），第一步可以是让模型对文本进行标注并标准化它（通常称为“编码”）。这可能为更强的基础打下基础。
 
-1.  为模型设置“工具”以调用，约束输出到非常特定的结构。我们不希望执行LLM生成的任意代码。我们希望创建模型可以调用并对这些工具中的内容设定限制的工具。
+1.  为模型设置“工具”以调用，约束输出到非常特定的结构。我们不希望执行 LLM 生成的任意代码。我们希望创建模型可以调用并对这些工具中的内容设定限制的工具。
 
 1.  在可能的情况下，包括工具使用的基础支持——例如，在将响应发送到下游系统之前，先验证它们与上下文的一致性。
 
@@ -86,20 +86,20 @@
 
 +   我们所做的一切，超出此范围的内容，都是关于风险评估和风险最小化。
 
-+   将复杂问题分解成更小的步骤，并识别是否需要LLM。
++   将复杂问题分解成更小的步骤，并识别是否需要 LLM。
 
 +   对于复杂问题，使用系统化的方法来识别可验证的任务：
 
-— 强基础支持迫使LLM从可信来源逐字引用。总是首选使用强基础支持。
+— 强基础支持迫使 LLM 从可信来源逐字引用。总是首选使用强基础支持。
 
-— 弱基础支持迫使LLM引用可信来源，但允许合成和推理。
+— 弱基础支持迫使 LLM 引用可信来源，但允许合成和推理。
 
 — 当一个问题可以分解成更小的任务时，尽可能在任务上进行强基础支持。
 
-# **Affinda AI平台**
+# **Affinda AI 平台**
 
-我们已经构建了一个强大的[AI文档处理](https://www.affinda.com/platform)平台，全球各地的组织都在使用它。
+我们已经构建了一个强大的[AI 文档处理](https://www.affinda.com/platform)平台，全球各地的组织都在使用它。
 
 # 关于作者
 
-我是Affinda的首席AI工程师。我花了10年时间做出职业转型，从UX转向AI。[关于我从UX到AI的职业转型](https://medium.com/@TarikDzekman/my-career-change-to-ai-from-ux-b1ed6690c09a)。想深入了解生成式AI吗？阅读我的深度分析：[大型语言模型实际上理解什么](https://medium.com/towards-data-science/what-do-large-language-models-understand-befdb4411b77)。
+我是 Affinda 的首席 AI 工程师。我花了 10 年时间做出职业转型，从 UX 转向 AI。[关于我从 UX 到 AI 的职业转型](https://medium.com/@TarikDzekman/my-career-change-to-ai-from-ux-b1ed6690c09a)。想深入了解生成式 AI 吗？阅读我的深度分析：[大型语言模型实际上理解什么](https://medium.com/towards-data-science/what-do-large-language-models-understand-befdb4411b77)。

@@ -1,18 +1,18 @@
 # 为什么图灵测试变得过时
 
-> 原文：[https://towardsdatascience.com/why-the-turing-test-became-obsolete-efe941cb7aec?source=collection_archive---------3-----------------------#2024-02-01](https://towardsdatascience.com/why-the-turing-test-became-obsolete-efe941cb7aec?source=collection_archive---------3-----------------------#2024-02-01)
+> 原文：[`towardsdatascience.com/why-the-turing-test-became-obsolete-efe941cb7aec?source=collection_archive---------3-----------------------#2024-02-01`](https://towardsdatascience.com/why-the-turing-test-became-obsolete-efe941cb7aec?source=collection_archive---------3-----------------------#2024-02-01)
 
 ## 以及应该使用的替代方法
 
-[](https://rafebrena.medium.com/?source=post_page---byline--efe941cb7aec--------------------------------)[![Rafe Brena, Ph.D.](../Images/6bf622a8ce9b3d06d1cb989fd8d625c6.png)](https://rafebrena.medium.com/?source=post_page---byline--efe941cb7aec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--efe941cb7aec--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--efe941cb7aec--------------------------------) [Rafe Brena, Ph.D.](https://rafebrena.medium.com/?source=post_page---byline--efe941cb7aec--------------------------------)
+[](https://rafebrena.medium.com/?source=post_page---byline--efe941cb7aec--------------------------------)![Rafe Brena, Ph.D.](https://rafebrena.medium.com/?source=post_page---byline--efe941cb7aec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--efe941cb7aec--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--efe941cb7aec--------------------------------) [Rafe Brena, Ph.D.](https://rafebrena.medium.com/?source=post_page---byline--efe941cb7aec--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--efe941cb7aec--------------------------------) ·9分钟阅读·2024年2月1日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--efe941cb7aec--------------------------------) ·9 分钟阅读·2024 年 2 月 1 日
 
 --
 
-![](../Images/4d2706db3f1ac9792ebacfbd7b810cf7.png)
+![](img/4d2706db3f1ac9792ebacfbd7b810cf7.png)
 
-作者提供的图像，使用了Microsoft Designer
+作者提供的图像，使用了 Microsoft Designer
 
 通常所谓的“图灵测试”是用来区分人类和假装成人类的机器的。区分“人工制造”和“机器制造”的界限似乎每天都更加相关，不是吗？
 

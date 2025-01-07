@@ -1,18 +1,18 @@
 # 合成数据：好、坏与未整理
 
-> 原文：[https://towardsdatascience.com/synthetic-data-the-good-the-bad-and-the-unsorted-8220de6aac40?source=collection_archive---------7-----------------------#2024-01-13](https://towardsdatascience.com/synthetic-data-the-good-the-bad-and-the-unsorted-8220de6aac40?source=collection_archive---------7-----------------------#2024-01-13)
+> 原文：[`towardsdatascience.com/synthetic-data-the-good-the-bad-and-the-unsorted-8220de6aac40?source=collection_archive---------7-----------------------#2024-01-13`](https://towardsdatascience.com/synthetic-data-the-good-the-bad-and-the-unsorted-8220de6aac40?source=collection_archive---------7-----------------------#2024-01-13)
 
 ## 关于使用合成数据进行 AI 训练的法律视角
 
-[](https://medium.com/@tea.mustac?source=post_page---byline--8220de6aac40--------------------------------)[![Tea Mustać](../Images/6921322fa264868c02e3787de1716142.png)](https://medium.com/@tea.mustac?source=post_page---byline--8220de6aac40--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8220de6aac40--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8220de6aac40--------------------------------) [Tea Mustać](https://medium.com/@tea.mustac?source=post_page---byline--8220de6aac40--------------------------------)
+[](https://medium.com/@tea.mustac?source=post_page---byline--8220de6aac40--------------------------------)![Tea Mustać](https://medium.com/@tea.mustac?source=post_page---byline--8220de6aac40--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8220de6aac40--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8220de6aac40--------------------------------) [Tea Mustać](https://medium.com/@tea.mustac?source=post_page---byline--8220de6aac40--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8220de6aac40--------------------------------) ·阅读时间 9 分钟·2024年1月13日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8220de6aac40--------------------------------) ·阅读时间 9 分钟·2024 年 1 月 13 日
 
 --
 
 > 免责声明：这不是另一篇关于利弊的文章合集。
 
-![](../Images/c9f082dad196502d4d0dcd7679dca8bb.png)
+![](img/c9f082dad196502d4d0dcd7679dca8bb.png)
 
 Anne Fehres 和 Luke Conroy & AI4Media / 更好的 AI 图像 / 人类负责繁重的数据搬运 / CC-BY 4.0
 
@@ -40,13 +40,13 @@ Anne Fehres 和 Luke Conroy & AI4Media / 更好的 AI 图像 / 人类负责繁�
 
 而且在谈论合成数据时，隐私问题往往没有被提及。再次指出，合成数据有其独立的生命。它作为一种技术和策略被应用于各种场合，包括当真实数据稀缺、敏感，或其使用涉及法律问题和不确定性的情形。例如，使用合成数据的一个重要目的（虽然在公众讨论中很少提及）就是在军事背景下训练人工智能系统。在那里，合成数据可以用于数据集多样化和数据属性精细控制的目的，这两个目的对于提升质量以及缩短训练周期在这一稀缺、难以获取且高度敏感的真实数据领域非常重要。[ [11] ](#_ftn11) 你很少在流行文献中看到这些类型的权衡，然而它们确实存在，并且同样重要，甚至在其他背景下也值得考虑。
 
-另一方面，即使在隐私的背景下提到和关联合成数据，我们依然在过度概括事情，并混淆了两个不同的基本权利。因为，尽管隐私和数据保护在很大程度上有重叠，但它们不能作为同义词使用。而且，在讨论合成数据的背景下，尽管我们通常可以将其作为一种隐私保护技术，但在数据保护方面的情况则更为复杂。主要是因为它可能引发的一些问题，例如偏差或准确性不足。现在，虽然这乍一看可能是件坏事，数据保护再次让另一种有前景的方法受阻，但这可能仅仅是我们对好老GDPR做出了不必要的悲观看法。也就是说，这些问题同样困扰着人工智能开发者，他们经常提到数据分布偏差、不完整和不准确的数据、噪声缺乏、过度平滑或递归等问题，都是在使用合成数据时降低模型性能的因素。无论这个模型最终是否影响到人类，没有人愿意使用一个不准确且有偏见的模型。最后，这些问题的严重性仍然在很大程度上取决于训练的模型类型及其预定用途。不过，这确实意味着，律师和人工智能开发者实际上关心的许多问题是一样的，只是乍一看不太明显。这是件好事。它意味着我们只需要相互交流，共同解决问题。
+另一方面，即使在隐私的背景下提到和关联合成数据，我们依然在过度概括事情，并混淆了两个不同的基本权利。因为，尽管隐私和数据保护在很大程度上有重叠，但它们不能作为同义词使用。而且，在讨论合成数据的背景下，尽管我们通常可以将其作为一种隐私保护技术，但在数据保护方面的情况则更为复杂。主要是因为它可能引发的一些问题，例如偏差或准确性不足。现在，虽然这乍一看可能是件坏事，数据保护再次让另一种有前景的方法受阻，但这可能仅仅是我们对好老 GDPR 做出了不必要的悲观看法。也就是说，这些问题同样困扰着人工智能开发者，他们经常提到数据分布偏差、不完整和不准确的数据、噪声缺乏、过度平滑或递归等问题，都是在使用合成数据时降低模型性能的因素。无论这个模型最终是否影响到人类，没有人愿意使用一个不准确且有偏见的模型。最后，这些问题的严重性仍然在很大程度上取决于训练的模型类型及其预定用途。不过，这确实意味着，律师和人工智能开发者实际上关心的许多问题是一样的，只是乍一看不太明显。这是件好事。它意味着我们只需要相互交流，共同解决问题。
 
 # 最后思考
 
 那么，合成数据是朋友还是敌人？它既不是也同时是。事实上，这里是一个经典的双刃剑例子。合成数据在解决一些现有问题的同时，也带来了新的问题。这不仅仅适用于隐私，它同样适用于性能目标，例如*可扩展性*和*数据增强*可能与*偏见放大*或*泛化*问题相对立。这并不是让我们放弃或重复那些过于泛化或只聚焦于某个微小点的利弊文章与分析的理由。这种做法也使得任何阅读某篇文章的人都无法看到树后面的森林。
 
-在训练机器学习模型的过程中，合成数据的效用和适用性将始终取决于具体情况。它将取决于我们需要用于训练模型的数据类型（个人数据、受版权保护的数据、高度敏感的数据），所需数据的数量、数据的可用性以及模型的预期用途（因为不准确或偏见放大在评估信用worthiness的模型和优化供应链的模型中的权重是不同的）。所以，也许我们可以通过回答这些问题来开始任何特定情境，然后在更合适的环境中考虑各种现有的权衡。
+在训练机器学习模型的过程中，合成数据的效用和适用性将始终取决于具体情况。它将取决于我们需要用于训练模型的数据类型（个人数据、受版权保护的数据、高度敏感的数据），所需数据的数量、数据的可用性以及模型的预期用途（因为不准确或偏见放大在评估信用 worthiness 的模型和优化供应链的模型中的权重是不同的）。所以，也许我们可以通过回答这些问题来开始任何特定情境，然后在更合适的环境中考虑各种现有的权衡。
 
 ## 关键要点：
 
@@ -64,30 +64,30 @@ Anne Fehres 和 Luke Conroy & AI4Media / 更好的 AI 图像 / 人类负责繁�
 
 · 与合成数据相关的所有权衡都非常依赖于具体情境，并应在相关背景下进行讨论。
 
-![](../Images/174cba21e2bb1022f620d3da808fb37f.png)
+![](img/174cba21e2bb1022f620d3da808fb37f.png)
 
 Max Gruber / 更好的人工智能图像 / Ceci n’est pas une banane / CC-BY 4.0
 
-[[1]](#_ftnref1) 探索合成数据：优势与应用场景，Intuit Mailchimp，[https://mailchimp.com/resources/what-is-synthetic-data/](https://mailchimp.com/resources/what-is-synthetic-data/)
+[[1]](#_ftnref1) 探索合成数据：优势与应用场景，Intuit Mailchimp，[`mailchimp.com/resources/what-is-synthetic-data/`](https://mailchimp.com/resources/what-is-synthetic-data/)
 
-[[2]](#_ftnref2) John Anthony R, 关于人工智能——合成数据有一个不为人知的小秘密，[https://www.linkedin.com/pulse/when-comes-aisynthetic-data-has-dirty-little-secret-radosta/](https://www.linkedin.com/pulse/when-comes-aisynthetic-data-has-dirty-little-secret-radosta/)
+[[2]](#_ftnref2) John Anthony R, 关于人工智能——合成数据有一个不为人知的小秘密，[`www.linkedin.com/pulse/when-comes-aisynthetic-data-has-dirty-little-secret-radosta/`](https://www.linkedin.com/pulse/when-comes-aisynthetic-data-has-dirty-little-secret-radosta/)
 
-[[3]](#_ftnref3) Michael Yurushkin, 合成数据如何解决人工智能偏见问题？，Brouton Lab 博客，[https://broutonlab.com/blog/ai-bias-solved-with-synthetic-data-generation/](https://broutonlab.com/blog/ai-bias-solved-with-synthetic-data-generation/)
+[[3]](#_ftnref3) Michael Yurushkin, 合成数据如何解决人工智能偏见问题？，Brouton Lab 博客，[`broutonlab.com/blog/ai-bias-solved-with-synthetic-data-generation/`](https://broutonlab.com/blog/ai-bias-solved-with-synthetic-data-generation/)
 
-[[4]](#_ftnref4) Giuffrè, M., Shung, D.L. 在医疗保健中利用合成数据的力量：创新、应用和隐私。npj数字医学，6，186（2023）。[https://doi.org/10.1038/s41746-023-00927-3](https://doi.org/10.1038/s41746-023-00927-3)
+[[4]](#_ftnref4) Giuffrè, M., Shung, D.L. 在医疗保健中利用合成数据的力量：创新、应用和隐私。npj 数字医学，6，186（2023）。[`doi.org/10.1038/s41746-023-00927-3`](https://doi.org/10.1038/s41746-023-00927-3)
 
 [[5]](#_ftnref5) GDPR
 
-[[6]](#_ftnref6) AEDP，关于匿名化的10个误解，[https://edps.europa.eu/system/files/2021-04/21-04-27_aepd-edps_anonymisation_en_5.pdf](https://edps.europa.eu/system/files/2021-04/21-04-27_aepd-edps_anonymisation_en_5.pdf)
+[[6]](#_ftnref6) AEDP，关于匿名化的 10 个误解，[`edps.europa.eu/system/files/2021-04/21-04-27_aepd-edps_anonymisation_en_5.pdf`](https://edps.europa.eu/system/files/2021-04/21-04-27_aepd-edps_anonymisation_en_5.pdf)
 
-[[7]](#_ftnref7) GDPR第26条说明
+[[7]](#_ftnref7) GDPR 第 26 条说明
 
-[[8]](#_ftnref8) AEDP，关于匿名化的10个误解，[https://edps.europa.eu/system/files/2021-04/21-04-27_aepd-edps_anonymisation_en_5.pdf](https://edps.europa.eu/system/files/2021-04/21-04-27_aepd-edps_anonymisation_en_5.pdf)
+[[8]](#_ftnref8) AEDP，关于匿名化的 10 个误解，[`edps.europa.eu/system/files/2021-04/21-04-27_aepd-edps_anonymisation_en_5.pdf`](https://edps.europa.eu/system/files/2021-04/21-04-27_aepd-edps_anonymisation_en_5.pdf)
 
 [[9]](#_ftnref9) Robert Riemann，合成数据，欧洲数据保护监督员。
 
-[[10]](#_ftnref10) Alex Hern，《“匿名化”数据永远不可能完全匿名，研究表明》，《卫报》，2019年7月23日，[https://www.theguardian.com/technology/2019/jul/23/anonymised-data-never-be-anonymous-enough-study-finds](https://www.theguardian.com/technology/2019/jul/23/anonymised-data-never-be-anonymous-enough-study-finds)；Emily M Weitzenboeck, Pierre Lison, Malgorzata Cyndecka, Malcolm Langford, GDPR与非结构化数据：匿名化是否可能？，《国际数据隐私法》，第12卷，第3期，2022年8月，184–206页，[https://doi.org/10.1093/idpl/ipac008](https://doi.org/10.1093/idpl/ipac008)
+[[10]](#_ftnref10) Alex Hern，《“匿名化”数据永远不可能完全匿名，研究表明》，《卫报》，2019 年 7 月 23 日，[`www.theguardian.com/technology/2019/jul/23/anonymised-data-never-be-anonymous-enough-study-finds`](https://www.theguardian.com/technology/2019/jul/23/anonymised-data-never-be-anonymous-enough-study-finds)；Emily M Weitzenboeck, Pierre Lison, Malgorzata Cyndecka, Malcolm Langford, GDPR 与非结构化数据：匿名化是否可能？，《国际数据隐私法》，第 12 卷，第 3 期，2022 年 8 月，184–206 页，[`doi.org/10.1093/idpl/ipac008`](https://doi.org/10.1093/idpl/ipac008)
 
 [[11]](#_ftnref11) H. Deng, 探索用于人工智能和自主系统的合成数据：入门指南，
 
-瑞士日内瓦：UNIDIR，2023，[https://unidir.org/wp-content/uploads/2023/11/UNIDIR_Exploring_Synthetic_Data_for_Artificial_Intelligence_and_Autonomous_Systems_A_Primer.pdf](https://unidir.org/wp-content/uploads/2023/11/UNIDIR_Exploring_Synthetic_Data_for_Artificial_Intelligence_and_Autonomous_Systems_A_Primer.pdf)。
+瑞士日内瓦：UNIDIR，2023，[`unidir.org/wp-content/uploads/2023/11/UNIDIR_Exploring_Synthetic_Data_for_Artificial_Intelligence_and_Autonomous_Systems_A_Primer.pdf`](https://unidir.org/wp-content/uploads/2023/11/UNIDIR_Exploring_Synthetic_Data_for_Artificial_Intelligence_and_Autonomous_Systems_A_Primer.pdf)。

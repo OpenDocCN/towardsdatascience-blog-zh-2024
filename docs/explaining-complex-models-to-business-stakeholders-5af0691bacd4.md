@@ -1,16 +1,16 @@
 # 向商业利益相关者解释复杂模型
 
-> 原文：[https://towardsdatascience.com/explaining-complex-models-to-business-stakeholders-5af0691bacd4?source=collection_archive---------11-----------------------#2024-04-30](https://towardsdatascience.com/explaining-complex-models-to-business-stakeholders-5af0691bacd4?source=collection_archive---------11-----------------------#2024-04-30)
+> 原文：[`towardsdatascience.com/explaining-complex-models-to-business-stakeholders-5af0691bacd4?source=collection_archive---------11-----------------------#2024-04-30`](https://towardsdatascience.com/explaining-complex-models-to-business-stakeholders-5af0691bacd4?source=collection_archive---------11-----------------------#2024-04-30)
 
-![](../Images/10b1475735b39b40c9cbea27c8cbf262.png)
+![](img/10b1475735b39b40c9cbea27c8cbf262.png)
 
 图片来自[niko photos](https://unsplash.com/@niko_photos?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)于[Unsplash](https://unsplash.com/photos/green-leaf-tree-under-blue-sky-tGTVxeOr_Rs?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
-## 解释LightGBM模型
+## 解释 LightGBM 模型
 
-[](https://medium.com/@fkarvoun?source=post_page---byline--5af0691bacd4--------------------------------)[![Frida Karvouni](../Images/49aad19f6bdd7ffdc68c212722079c6f.png)](https://medium.com/@fkarvoun?source=post_page---byline--5af0691bacd4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5af0691bacd4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5af0691bacd4--------------------------------) [Frida Karvouni](https://medium.com/@fkarvoun?source=post_page---byline--5af0691bacd4--------------------------------)
+[](https://medium.com/@fkarvoun?source=post_page---byline--5af0691bacd4--------------------------------)![Frida Karvouni](https://medium.com/@fkarvoun?source=post_page---byline--5af0691bacd4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5af0691bacd4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5af0691bacd4--------------------------------) [Frida Karvouni](https://medium.com/@fkarvoun?source=post_page---byline--5af0691bacd4--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5af0691bacd4--------------------------------) ·阅读时间：5分钟·2024年4月30日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5af0691bacd4--------------------------------) ·阅读时间：5 分钟·2024 年 4 月 30 日
 
 --
 
@@ -24,15 +24,15 @@
 
 +   深入了解模型超参数调整如何影响其结构，
 
-+   确保模型的公平性，特别是符合像GDPR（该法规禁止以可能对客户造成伤害或误导的方式使用个人数据）等法规的要求，**[1]**
++   确保模型的公平性，特别是符合像 GDPR（该法规禁止以可能对客户造成伤害或误导的方式使用个人数据）等法规的要求，**[1]**
 
 +   识别模型中的漏洞。
 
 # 全球和局部可解释性
 
-LightGBM是一种基于树的提升模型，能够提供精确的结果，但由于其固有的复杂性，理解起来存在挑战。
+LightGBM 是一种基于树的提升模型，能够提供精确的结果，但由于其固有的复杂性，理解起来存在挑战。
 
-我们将构建一个LightGBM模型，并深入探讨其内部机制。首先，我们将对来自scikit-learn的糖尿病数据集进行预处理。
+我们将构建一个 LightGBM 模型，并深入探讨其内部机制。首先，我们将对来自 scikit-learn 的糖尿病数据集进行预处理。
 
 ```py
 from sklearn.datasets import load_diabetes
@@ -59,9 +59,9 @@ pdf = pdf.rename(columns= {"bp": "blood_pressure",
 
 数据集已经进行了标准化，在这种情况下，目标变量将表示糖尿病的进展，作为回归值。特征包括各种患者特征以及血液水平的测量值。
 
-![](../Images/f256e220a4513ffeec1a8dd1edc4fe49.png)
+![](img/f256e220a4513ffeec1a8dd1edc4fe49.png)
 
-使用的糖尿病数据集由scikit-learn提供： [3]
+使用的糖尿病数据集由 scikit-learn 提供： [3]
 
 假设是较高的血压会导致糖尿病进展加剧：
 
@@ -74,22 +74,22 @@ sns.lmplot(x="blood_sugar", y="progression", data=pdf)
 plt.show()
 ```
 
-![](../Images/987f228828f8260c999cb4d87f046b2b.png)
+![](img/987f228828f8260c999cb4d87f046b2b.png)
 
 血糖与糖尿病进展之间的关系
 
-对于较高的BMI指数，也存在相同的假设。
+对于较高的 BMI 指数，也存在相同的假设。
 
 ```py
 # same for BMI
 sns.lmplot(x="bmi", y="progression", data=pdf)
 ```
 
-![](../Images/2d0b0e963b4041976cd774aadd958c36.png)
+![](img/2d0b0e963b4041976cd774aadd958c36.png)
 
-BMI与糖尿病进展之间的关系
+BMI 与糖尿病进展之间的关系
 
-如我们所见，标准化后的特征已经很难解释，并向相关方说明。LightGBM模型拟合如下：
+如我们所见，标准化后的特征已经很难解释，并向相关方说明。LightGBM 模型拟合如下：
 
 ```py
 from sklearn.model_selection import train_test_split
@@ -125,7 +125,7 @@ y_train, y_test, y_pred, fitted_model = fit_lightgbm(
 
 ## 全局可解释性
 
-评估LightGBM模型的全局可解释性需要计算特征重要性或Shapley值的均值。
+评估 LightGBM 模型的全局可解释性需要计算特征重要性或 Shapley 值的均值。
 
 ## 特征重要性
 
@@ -138,15 +138,15 @@ lightgbm.plot_importance(fitted_model, importance_type="gain",
                          precision=2)
 ```
 
-![](../Images/800e0761a663a8a8db8f37b332aff06a.png)
+![](img/800e0761a663a8a8db8f37b332aff06a.png)
 
-LightGBM模型的特征重要性
+LightGBM 模型的特征重要性
 
-BMI指数是通过显著改进模型划分来提升模型预测的特征。甘油三酯水平、血糖和血压也是模型中的关键特征。这些发现是合理的，因为一个人的BMI指数，以及血糖和甘油三酯水平，很可能是糖尿病的贡献因素。
+BMI 指数是通过显著改进模型划分来提升模型预测的特征。甘油三酯水平、血糖和血压也是模型中的关键特征。这些发现是合理的，因为一个人的 BMI 指数，以及血糖和甘油三酯水平，很可能是糖尿病的贡献因素。
 
-## Shapley值
+## Shapley 值
 
-Shapley值的均值应当与上述情况非常相似：
+Shapley 值的均值应当与上述情况非常相似：
 
 ```py
 # plot shap values, include intercept in the shap values
@@ -154,17 +154,17 @@ shap_values = shap.TreeExplainer(fitted_model).shap_values(X_train)
 shap.summary_plot(shap_values, X_train, plot_type="bar", color="grey")
 ```
 
-![](../Images/cbf7ccee357d6a385f53b1888582d83e.png)
+![](img/cbf7ccee357d6a385f53b1888582d83e.png)
 
-每个特征对LightGBM模型的边际贡献的均值
+每个特征对 LightGBM 模型的边际贡献的均值
 
 确实，使用这两种技术时，结果非常相似。
 
 ## 局部可解释性
 
-这些工具对于评估模型的整体性能非常宝贵。通过Shapley值，我们还可以对每个特征在数据点级别上的边际贡献进行深入分析。
+这些工具对于评估模型的整体性能非常宝贵。通过 Shapley 值，我们还可以对每个特征在数据点级别上的边际贡献进行深入分析。
 
-![](../Images/a6cce9dfb1a834c513c76d8b459dd060.png)
+![](img/a6cce9dfb1a834c513c76d8b459dd060.png)
 
 非线性模型中的边际贡献。来源：[2]
 
@@ -181,11 +181,11 @@ shap.force_plot(
 )
 ```
 
-![](../Images/89b363a7abfaef3a25e56651630401a2.png)
+![](img/89b363a7abfaef3a25e56651630401a2.png)
 
-每个特征对单个患者的LightGBM模型预测的边际贡献
+每个特征对单个患者的 LightGBM 模型预测的边际贡献
 
-这种视角将使我们能够为患者提供量身定制的建议，建议专注于优化其BMI指数。
+这种视角将使我们能够为患者提供量身定制的建议，建议专注于优化其 BMI 指数。
 
 # **摘要**
 
@@ -195,12 +195,12 @@ shap.force_plot(
 
 *除非另有说明，所有图像均由作者生成*
 
-**[1]**[https://ico.org.uk/for-organisations/guide-to-data-protection/guide-to-the-general-data-protection-regulation-gdpr/principles/lawfulness-fairness-and-transparency/#:~:text=In%20general%2C%20fairness%20means%20that,also%20about%20whether%20you%20should](https://ico.org.uk/for-organisations/guide-to-data-protection/guide-to-the-general-data-protection-regulation-gdpr/principles/lawfulness-fairness-and-transparency/#:~:text=In%20general%2C%20fairness%20means%20that,also%20about%20whether%20you%20should)。
+**[1]**[`ico.org.uk/for-organisations/guide-to-data-protection/guide-to-the-general-data-protection-regulation-gdpr/principles/lawfulness-fairness-and-transparency/#:~:text=In%20general%2C%20fairness%20means%20that,also%20about%20whether%20you%20should`](https://ico.org.uk/for-organisations/guide-to-data-protection/guide-to-the-general-data-protection-regulation-gdpr/principles/lawfulness-fairness-and-transparency/#:~:text=In%20general%2C%20fairness%20means%20that,also%20about%20whether%20you%20should)。
 
-**[2]**[https://shap.readthedocs.io/en/latest/example_notebooks/overviews/An%20introduction%20to%20explainable%20AI%20with%20Shapley%20values.html](https://shap.readthedocs.io/en/latest/example_notebooks/overviews/An%20introduction%20to%20explainable%20AI%20with%20Shapley%20values.html) © 版权 2018，Scott Lundberg。修订版 dffc346f
+**[2]**[`shap.readthedocs.io/en/latest/example_notebooks/overviews/An%20introduction%20to%20explainable%20AI%20with%20Shapley%20values.html`](https://shap.readthedocs.io/en/latest/example_notebooks/overviews/An%20introduction%20to%20explainable%20AI%20with%20Shapley%20values.html) © 版权 2018，Scott Lundberg。修订版 dffc346f
 
-**[3]**[https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_diabetes.html](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_diabetes.html) © 2007–2024，scikit-learn 开发者（BSD 许可）
+**[3]**[`scikit-learn.org/stable/modules/generated/sklearn.datasets.load_diabetes.html`](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_diabetes.html) © 2007–2024，scikit-learn 开发者（BSD 许可）
 
-LightGBM 文档：[https://lightgbm.readthedocs.io/en/stable/](https://lightgbm.readthedocs.io/en/stable/)
+LightGBM 文档：[`lightgbm.readthedocs.io/en/stable/`](https://lightgbm.readthedocs.io/en/stable/)
 
-SHAP 文档：[https://shap.readthedocs.io/en/latest/index.html](https://shap.readthedocs.io/en/latest/index.html)
+SHAP 文档：[`shap.readthedocs.io/en/latest/index.html`](https://shap.readthedocs.io/en/latest/index.html)

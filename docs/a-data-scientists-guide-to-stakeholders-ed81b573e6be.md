@@ -1,16 +1,16 @@
 # 数据科学家指南：相关方
 
-> 原文：[https://towardsdatascience.com/a-data-scientists-guide-to-stakeholders-ed81b573e6be?source=collection_archive---------13-----------------------#2024-09-26](https://towardsdatascience.com/a-data-scientists-guide-to-stakeholders-ed81b573e6be?source=collection_archive---------13-----------------------#2024-09-26)
+> 原文：[`towardsdatascience.com/a-data-scientists-guide-to-stakeholders-ed81b573e6be?source=collection_archive---------13-----------------------#2024-09-26`](https://towardsdatascience.com/a-data-scientists-guide-to-stakeholders-ed81b573e6be?source=collection_archive---------13-----------------------#2024-09-26)
 
 ## 数据科学家如何与非数据科学人员有效沟通
 
-[](https://medium.com/@pelletierhaden?source=post_page---byline--ed81b573e6be--------------------------------)[![Haden Pelletier](../Images/8f73fc8222e783883c4ebcaee14513e0.png)](https://medium.com/@pelletierhaden?source=post_page---byline--ed81b573e6be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ed81b573e6be--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ed81b573e6be--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--ed81b573e6be--------------------------------)
+[](https://medium.com/@pelletierhaden?source=post_page---byline--ed81b573e6be--------------------------------)![Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--ed81b573e6be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ed81b573e6be--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ed81b573e6be--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--ed81b573e6be--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ed81b573e6be--------------------------------) ·阅读时长 7 分钟 ·2024年9月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ed81b573e6be--------------------------------) ·阅读时长 7 分钟 ·2024 年 9 月 26 日
 
 --
 
-![](../Images/0552c154622568c9b5c2a8552e3bb274.png)
+![](img/0552c154622568c9b5c2a8552e3bb274.png)
 
 图片来源：[Campaign Creators](https://unsplash.com/@campaign_creators?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -26,7 +26,7 @@
 
 +   在现场工作并参与项目的工程师
 
-+   你组织中的同事，他们将向客户交付结果（例如，负责创建仪表盘的软件工程师或BI分析师）
++   你组织中的同事，他们将向客户交付结果（例如，负责创建仪表盘的软件工程师或 BI 分析师）
 
 大多数相关方并没有数据科学背景。他们可能是商业分析师、销售人员或工程师，对机器学习、人工智能和数据科学的理解程度各不相同。
 

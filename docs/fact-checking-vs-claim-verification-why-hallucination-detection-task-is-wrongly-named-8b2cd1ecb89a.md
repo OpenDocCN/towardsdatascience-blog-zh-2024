@@ -1,20 +1,20 @@
 # 事实核查与声明验证
 
-> 原文：[https://towardsdatascience.com/fact-checking-vs-claim-verification-why-hallucination-detection-task-is-wrongly-named-8b2cd1ecb89a?source=collection_archive---------5-----------------------#2024-04-03](https://towardsdatascience.com/fact-checking-vs-claim-verification-why-hallucination-detection-task-is-wrongly-named-8b2cd1ecb89a?source=collection_archive---------5-----------------------#2024-04-03)
+> 原文：[`towardsdatascience.com/fact-checking-vs-claim-verification-why-hallucination-detection-task-is-wrongly-named-8b2cd1ecb89a?source=collection_archive---------5-----------------------#2024-04-03`](https://towardsdatascience.com/fact-checking-vs-claim-verification-why-hallucination-detection-task-is-wrongly-named-8b2cd1ecb89a?source=collection_archive---------5-----------------------#2024-04-03)
 
 ## 为什么幻觉检测任务被错误命名
 
-[](https://datawarrior.medium.com/?source=post_page---byline--8b2cd1ecb89a--------------------------------)[![Nikola Milosevic (Data Warrior)](../Images/ebea6501c00030561a59a4a12ab7a79a.png)](https://datawarrior.medium.com/?source=post_page---byline--8b2cd1ecb89a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8b2cd1ecb89a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8b2cd1ecb89a--------------------------------) [Nikola Milosevic (Data Warrior)](https://datawarrior.medium.com/?source=post_page---byline--8b2cd1ecb89a--------------------------------)
+[](https://datawarrior.medium.com/?source=post_page---byline--8b2cd1ecb89a--------------------------------)![Nikola Milosevic (Data Warrior)](https://datawarrior.medium.com/?source=post_page---byline--8b2cd1ecb89a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8b2cd1ecb89a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8b2cd1ecb89a--------------------------------) [Nikola Milosevic (Data Warrior)](https://datawarrior.medium.com/?source=post_page---byline--8b2cd1ecb89a--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8b2cd1ecb89a--------------------------------) ·阅读时间：7分钟·2024年4月3日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8b2cd1ecb89a--------------------------------) ·阅读时间：7 分钟·2024 年 4 月 3 日
 
 --
 
-在过去的一年里，我一直在从事两个与大型语言模型的幻觉检测和验证它们产生的声明相关的项目。与任何研究一样，尤其是涉及声明验证的研究，它促使我进行了一些文献回顾，在此过程中，我了解到许多作者将验证某些声明是否基于来自权威来源（例如，之前的科学出版物、百科全书文章等）证据的任务，通常称为事实核查（例如，诸如此类的出版物包括[Google Deep Mind](https://arxiv.org/abs/2403.18802)、[宾夕法尼亚大学、华盛顿大学](https://arxiv.org/pdf/2309.07852.pdf)、[艾伦人工智能研究所](https://arxiv.org/pdf/2004.14974.pdf)、[OpenAI](https://arxiv.org/pdf/2303.08774.pdf)等）。即便是像SciFact这样的数据集，也在名称中带有“事实性”。
+在过去的一年里，我一直在从事两个与大型语言模型的幻觉检测和验证它们产生的声明相关的项目。与任何研究一样，尤其是涉及声明验证的研究，它促使我进行了一些文献回顾，在此过程中，我了解到许多作者将验证某些声明是否基于来自权威来源（例如，之前的科学出版物、百科全书文章等）证据的任务，通常称为事实核查（例如，诸如此类的出版物包括[Google Deep Mind](https://arxiv.org/abs/2403.18802)、[宾夕法尼亚大学、华盛顿大学](https://arxiv.org/pdf/2309.07852.pdf)、[艾伦人工智能研究所](https://arxiv.org/pdf/2004.14974.pdf)、[OpenAI](https://arxiv.org/pdf/2303.08774.pdf)等）。即便是像 SciFact 这样的数据集，也在名称中带有“事实性”。
 
-我认为，将大型语言模型中的某种度量称为事实性（factuality）源于谷歌的[LaMDA](https://arxiv.org/pdf/2201.08239.pdf)论文，这篇论文发布于2022年2月，据我所知，它是首次在LLM中提到这种度量。在此之前，偶尔会找到事实核查的实例，例如在2020年的一篇[SciFact](https://arxiv.org/pdf/2004.14974.pdf)论文中，但LaMDA是首次与LLM相关的提法。在LaMDA论文中，这种度量被称为事实基础（factual grounding），比后来的简化版本，如“事实性”（factuality）或“忠实度”（faithfulness）要更好。在本文中，我想讨论为什么这个度量的名称应该是“声明验证”（claim verification），以及为什么我认为像忠实度、事实性和事实核查这样的名称在实际和哲学角度上都是错误的。
+我认为，将大型语言模型中的某种度量称为事实性（factuality）源于谷歌的[LaMDA](https://arxiv.org/pdf/2201.08239.pdf)论文，这篇论文发布于 2022 年 2 月，据我所知，它是首次在 LLM 中提到这种度量。在此之前，偶尔会找到事实核查的实例，例如在 2020 年的一篇[SciFact](https://arxiv.org/pdf/2004.14974.pdf)论文中，但 LaMDA 是首次与 LLM 相关的提法。在 LaMDA 论文中，这种度量被称为事实基础（factual grounding），比后来的简化版本，如“事实性”（factuality）或“忠实度”（faithfulness）要更好。在本文中，我想讨论为什么这个度量的名称应该是“声明验证”（claim verification），以及为什么我认为像忠实度、事实性和事实核查这样的名称在实际和哲学角度上都是错误的。
 
-![](../Images/d61f5eab199a15a8ae2e3a6c8e59263d.png)
+![](img/d61f5eab199a15a8ae2e3a6c8e59263d.png)
 
 机器人检查文本（图像由 ideogram.ai 生成）
 
@@ -24,7 +24,7 @@
 
 从哲学的角度来看，我们很难知道什么是真正的事实。尽管科学家们都怀着最好的意图，追求真理，但他们在出版物中常常写下的内容可能并非事实，而且这些内容也很容易通过同行评审。我在这里要强调的是，人们在科学出版中尽力做到尽可能事实准确。然而，这往往是失败的。由于各种因素，比如文化偏见、政治议程或缺乏可靠的证据，出版物中可能包含扭曲、夸大或误解的信息。常常，科学只是通过产生新的证据和信息，慢慢而自然地向事实靠近。
 
-历史上发生了许多事件，在这些事件中，某一领域的普遍共识被建立起来，却又被从根基上动摇。例如，哥白尼：在哥白尼之前，大多数人相信地球是宇宙的中心，太阳、月亮和行星都围绕着它旋转。这是地心说模型，它得到了天主教会教义和古希腊哲学家亚里士多德的支持。然而，哥白尼，一位波兰天文学家和数学家，提出了一个激进的替代方案：日心说模型，认为地球和其他行星围绕太阳运转。他基于数学计算和天体运动的观察提出了这一理论。1543年，他在临终前不久出版了他的著作《天体的运动论》。尽管他的理论遭到了宗教当局和一些同时代人的强烈反对和批评，但它逐渐得到了其他科学家的认可和影响，例如伽利略、开普勒和牛顿。日心说为现代天文学和物理学的发展铺平了道路，并改变了人们对地球在宇宙中位置的认知。
+历史上发生了许多事件，在这些事件中，某一领域的普遍共识被建立起来，却又被从根基上动摇。例如，哥白尼：在哥白尼之前，大多数人相信地球是宇宙的中心，太阳、月亮和行星都围绕着它旋转。这是地心说模型，它得到了天主教会教义和古希腊哲学家亚里士多德的支持。然而，哥白尼，一位波兰天文学家和数学家，提出了一个激进的替代方案：日心说模型，认为地球和其他行星围绕太阳运转。他基于数学计算和天体运动的观察提出了这一理论。1543 年，他在临终前不久出版了他的著作《天体的运动论》。尽管他的理论遭到了宗教当局和一些同时代人的强烈反对和批评，但它逐渐得到了其他科学家的认可和影响，例如伽利略、开普勒和牛顿。日心说为现代天文学和物理学的发展铺平了道路，并改变了人们对地球在宇宙中位置的认知。
 
 与达尔文类似的事情也发生过。在达尔文之前，大多数人相信所有生物物种是由上帝创造的，并且自诞生以来未曾改变。这是创世论观点，基于圣经中的《创世纪》记载以及英国自然学家约翰·雷的自然神学。然而，达尔文，一位英国自然学家和地质学家，提出了一个激进的替代方案：自然选择进化论，认为生物物种来自共同的祖先，并且由于环境压力和“适者生存”而随时间发生变化。还有一些其他例子，比如爱因斯坦的相对论、引力、坎恩的科学革命理论等，均属于此类。
 
@@ -34,7 +34,7 @@
 
 因此，与其使用“事实核查”这一术语（它暗示了一个二元且明确的真或假的判断），我们应当使用“主张验证”这一术语，它反映了对支持或不支持、可信或可疑、一致或矛盾的更为细致和暂时的评估。主张验证不是最终的判决，而是一种持续的探索，邀请我们在面对新证据、新来源和新视角时，质疑、挑战和修正我们的信念和假设。
 
-![](../Images/df9c0a89679314cef7ef45bf5fe7e014.png)
+![](img/df9c0a89679314cef7ef45bf5fe7e014.png)
 
 通过使用增强检索生成（RAG）方法生成尽可能少的幻觉回答，这将显著减少幻觉的数量，并通过主张验证模型标记任何剩余的幻觉。该方法已发表在[Košprdić, M., Ljajić, A., Bašaragin, B., Medvecki, D., & Milošević, N. “Verif. ai: Towards an Open-Source Scientific Generative Question-Answering System with Referenced and Verifiable Answers.” The Sixteenth International Conference on Evolving Internet INTERNET 2024 (2024).](https://arxiv.org/pdf/2402.18589.pdf)
 

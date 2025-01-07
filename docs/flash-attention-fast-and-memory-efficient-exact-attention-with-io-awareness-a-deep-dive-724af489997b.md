@@ -1,16 +1,16 @@
 # 闪存注意力（快速且内存高效的精确注意力与 I/O 感知）：深入探讨
 
-> 原文：[https://towardsdatascience.com/flash-attention-fast-and-memory-efficient-exact-attention-with-io-awareness-a-deep-dive-724af489997b?source=collection_archive---------3-----------------------#2024-05-29](https://towardsdatascience.com/flash-attention-fast-and-memory-efficient-exact-attention-with-io-awareness-a-deep-dive-724af489997b?source=collection_archive---------3-----------------------#2024-05-29)
+> 原文：[`towardsdatascience.com/flash-attention-fast-and-memory-efficient-exact-attention-with-io-awareness-a-deep-dive-724af489997b?source=collection_archive---------3-----------------------#2024-05-29`](https://towardsdatascience.com/flash-attention-fast-and-memory-efficient-exact-attention-with-io-awareness-a-deep-dive-724af489997b?source=collection_archive---------3-----------------------#2024-05-29)
 
 ## 闪存注意力是一种优化能耗的变换器注意力机制，提供了 15% 的效率提升
 
-[](https://medium.com/@anishdubey?source=post_page---byline--724af489997b--------------------------------)[![Anish Dubey](../Images/f85f17fb79718c819b4bd1c9a16338a7.png)](https://medium.com/@anishdubey?source=post_page---byline--724af489997b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--724af489997b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--724af489997b--------------------------------) [Anish Dubey](https://medium.com/@anishdubey?source=post_page---byline--724af489997b--------------------------------)
+[](https://medium.com/@anishdubey?source=post_page---byline--724af489997b--------------------------------)![Anish Dubey](https://medium.com/@anishdubey?source=post_page---byline--724af489997b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--724af489997b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--724af489997b--------------------------------) [Anish Dubey](https://medium.com/@anishdubey?source=post_page---byline--724af489997b--------------------------------)
 
 ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--724af489997b--------------------------------) ·阅读时间：7 分钟·2024 年 5 月 29 日
 
 --
 
-![](../Images/bcd08ecda3389e4ce550e4a823d5c333.png)
+![](img/bcd08ecda3389e4ce550e4a823d5c333.png)
 
 图片由 [sander traa](https://unsplash.com/@sandertraa?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来自 [Unsplash](https://unsplash.com/photos/a-field-with-trees-and-mountains-in-the-background-KV2giR3tbX4?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -38,23 +38,23 @@
 
 理想情况下，我们希望 gCPU 始终执行矩阵乘法，而不受内存的限制。但实际上，计算进展比内存更快，我们处在一个 gCPU 静待数据加载的世界。这通常被称为 **内存瓶颈** 操作。请参见下面的示意图以说明这一点。矩阵乘法被认为是计算，而内存则负责存储数据（可以将其视为仓库）。计算需要数据来处理，内存带宽必须支持这一操作。
 
-![](../Images/fcc27ebfc81919bdb9d016a9290180ed.png)
+![](img/fcc27ebfc81919bdb9d016a9290180ed.png)
 
-图片来自 [https://horace.io/brrr_intro.html](https://horace.io/brrr_intro.html)
+图片来自 [`horace.io/brrr_intro.html`](https://horace.io/brrr_intro.html)
 
 ## 什么是内存层次结构？
 
 A100 GPU 拥有 **40–80GB** 的高带宽内存，带宽为 **1.5–2.0 TB/s**，并且每个 108 个流式多处理器有 **192KB** 的片上 SRAM，带宽估计约为 **19TB/s**。
 
-![](../Images/9b566bc7147d9ac2cc580a884d4259fc.png)
+![](img/9b566bc7147d9ac2cc580a884d4259fc.png)
 
-图片来自 [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
+图片来自 [`arxiv.org/abs/2205.14135`](https://arxiv.org/abs/2205.14135)
 
 # 自注意力架构的问题是什么？
 
 在上述背景下，自注意力架构是 **内存瓶颈**。
 
-![](../Images/ad69afb8ec7fde9260e39d68b245318e.png)
+![](img/ad69afb8ec7fde9260e39d68b245318e.png)
 
 图片由作者提供
 
@@ -62,9 +62,9 @@ A100 GPU 拥有 **40–80GB** 的高带宽内存，带宽为 **1.5–2.0 TB/s**�
 
 +   定量证据：如下所示，与矩阵乘法（Matmul）相比，像 softmax、dropout、masking 等操作占用了大部分时间。
 
-![](../Images/383bf678304f14ad24715ef6a2c2d324.png)
+![](img/383bf678304f14ad24715ef6a2c2d324.png)
 
-图片来自 [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
+图片来自 [`arxiv.org/abs/2205.14135`](https://arxiv.org/abs/2205.14135)
 
 ## 为什么 softmax 成为内存瓶颈操作？
 
@@ -76,7 +76,7 @@ A100 GPU 拥有 **40–80GB** 的高带宽内存，带宽为 **1.5–2.0 TB/s**�
 
 +   当 Query 和 Key’ 相乘时，注意力矩阵会爆炸到 N * N，这需要大量内存。作为参考（d ~128；N ~128k 令牌；谷歌 Gemini: ~100 万令牌）
 
-![](../Images/14c37c8a0960f8b4efef2858021b8a24.png)
+![](img/14c37c8a0960f8b4efef2858021b8a24.png)
 
 图片来自 [FlashAttention — Tri Dao | Stanford MLSys #67](https://www.youtube.com/watch?v=gMOAud7hZg4&ab_channel=StanfordMLSysSeminars)
 
@@ -84,9 +84,9 @@ A100 GPU 拥有 **40–80GB** 的高带宽内存，带宽为 **1.5–2.0 TB/s**�
 
 以下是实现自注意力机制的算法
 
-![](../Images/8a4ac1211ce636bae0007eb2f0462a8c.png)
+![](img/8a4ac1211ce636bae0007eb2f0462a8c.png)
 
-图片来自 [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
+图片来自 [`arxiv.org/abs/2205.14135`](https://arxiv.org/abs/2205.14135)
 
 如上节所述，将信息传输到 HBM（将 S 写入 HBM），然后从 HBM 加载回 gCPU 计算 softmax，再写回 HBM，涉及大量信息传输，导致它成为 **内存瓶颈操作**。
 
@@ -116,7 +116,7 @@ A100 GPU 拥有 **40–80GB** 的高带宽内存，带宽为 **1.5–2.0 TB/s**�
 
 +   对其余的其他行同样操作
 
-![](../Images/eaefc012968e0a6a8cfdc38a808b28e2.png)
+![](img/eaefc012968e0a6a8cfdc38a808b28e2.png)
 
 作者提供的照片：自注意力机制工作原理的示意图
 
@@ -126,9 +126,9 @@ A100 GPU 拥有 **40–80GB** 的高带宽内存，带宽为 **1.5–2.0 TB/s**�
 
 通过此实现，论文能够通过访问块中的信息来减少壁钟时间，而不会牺牲正确性。
 
-![](../Images/9d12c7f05ad017b1df7db1f66667f067.png)
+![](img/9d12c7f05ad017b1df7db1f66667f067.png)
 
-来自 [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135) 的照片
+来自 [`arxiv.org/abs/2205.14135`](https://arxiv.org/abs/2205.14135) 的照片
 
 ## 论文背后的算法：Flash Attention 是如何实现的？
 
@@ -140,9 +140,9 @@ A100 GPU 拥有 **40–80GB** 的高带宽内存，带宽为 **1.5–2.0 TB/s**�
 
 +   Key：4（标记）X 3（维度），Query：4（标记）X 3（维度）和 Value：4（标记）X 3（维度）
 
-![](../Images/bb787277f6cd09c9f7741daa795bc448.png)
+![](img/bb787277f6cd09c9f7741daa795bc448.png)
 
-图片由作者修改。原图来自 [https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)
+图片由作者修改。原图来自 [`arxiv.org/abs/2205.14135`](https://arxiv.org/abs/2205.14135)
 
 第 0 步
 
@@ -162,13 +162,13 @@ A100 GPU 拥有 **40–80GB** 的高带宽内存，带宽为 **1.5–2.0 TB/s**�
 
 第一步和第二步：下面添加了一个表格，说明了第一步和第二步，展示了 flash attention 如何工作，并比较了其内存和计算方面的差异。
 
-![](../Images/1f3283d51b3061c764359ef361e8e74a.png)
+![](img/1f3283d51b3061c764359ef361e8e74a.png)
 
 作者提供的照片：一步步拆解 flash attention 中的内存和计算使用。
 
 下面的图表帮助可视化 flash attention 中逐块使用的矩阵乘法。
 
-![](../Images/e22bba7a834d0f89407473bbae1181ef.png)
+![](img/e22bba7a834d0f89407473bbae1181ef.png)
 
 作者提供的照片：展示了 flash attention 机制如何工作的示意图。
 
@@ -186,7 +186,7 @@ A100 GPU 拥有 **40–80GB** 的高带宽内存，带宽为 **1.5–2.0 TB/s**�
 
 逻辑相当复杂，因此下面提供了一个示例供大家学习。熟悉该示例后，上述直觉将变得非常有意义。
 
-![](../Images/fa60177ed659c487bcb14b653e1919c6.png)
+![](img/fa60177ed659c487bcb14b653e1919c6.png)
 
 作者提供的照片：示例演示了如何将矩阵分解为子组件，最终将它们组合起来计算 softmax。
 
@@ -222,4 +222,4 @@ Flash attention
 
 +   Tri Dao 的讲座: [FlashAttention — Tri Dao | Stanford MLSys #67](https://www.youtube.com/watch?v=gMOAud7hZg4&ab_channel=StanfordMLSysSeminars)
 
-+   Medium 文章: [https://gordicaleksa.medium.com/eli5-flash-attention-5c44017022ad](https://gordicaleksa.medium.com/eli5-flash-attention-5c44017022ad)
++   Medium 文章: [`gordicaleksa.medium.com/eli5-flash-attention-5c44017022ad`](https://gordicaleksa.medium.com/eli5-flash-attention-5c44017022ad)

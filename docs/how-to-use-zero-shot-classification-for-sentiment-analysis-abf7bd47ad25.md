@@ -1,20 +1,20 @@
 # 如何使用零样本分类进行情感分析
 
-> 原文：[https://towardsdatascience.com/how-to-use-zero-shot-classification-for-sentiment-analysis-abf7bd47ad25?source=collection_archive---------5-----------------------#2024-01-30](https://towardsdatascience.com/how-to-use-zero-shot-classification-for-sentiment-analysis-abf7bd47ad25?source=collection_archive---------5-----------------------#2024-01-30)
+> 原文：[`towardsdatascience.com/how-to-use-zero-shot-classification-for-sentiment-analysis-abf7bd47ad25?source=collection_archive---------5-----------------------#2024-01-30`](https://towardsdatascience.com/how-to-use-zero-shot-classification-for-sentiment-analysis-abf7bd47ad25?source=collection_archive---------5-----------------------#2024-01-30)
 
 ## 通过零样本分类探索心理健康见解
 
-[](https://medium.com/@akaba_51202?source=post_page---byline--abf7bd47ad25--------------------------------)[![Aminata Kaba](../Images/7c96699f24ce3d4c5346d6993db786e0.png)](https://medium.com/@akaba_51202?source=post_page---byline--abf7bd47ad25--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--abf7bd47ad25--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--abf7bd47ad25--------------------------------) [Aminata Kaba](https://medium.com/@akaba_51202?source=post_page---byline--abf7bd47ad25--------------------------------)
+[](https://medium.com/@akaba_51202?source=post_page---byline--abf7bd47ad25--------------------------------)![Aminata Kaba](https://medium.com/@akaba_51202?source=post_page---byline--abf7bd47ad25--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--abf7bd47ad25--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--abf7bd47ad25--------------------------------) [Aminata Kaba](https://medium.com/@akaba_51202?source=post_page---byline--abf7bd47ad25--------------------------------)
 
-·发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--abf7bd47ad25--------------------------------) ·阅读9分钟·2024年1月30日
+·发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--abf7bd47ad25--------------------------------) ·阅读 9 分钟·2024 年 1 月 30 日
 
 --
 
-![](../Images/5c82732f630d9c80cd801aaa631045b0.png)
+![](img/5c82732f630d9c80cd801aaa631045b0.png)
 
 **艺术作品由** [**Vivian Peng**](https://medium.com/@create_self) **创作 — 获得授权转载**
 
-情感分析是自然语言处理（NLP）中的强大工具，用于探索文本中的公众意见和情绪。在心理健康领域，它可以为个体的整体健康提供引人入胜的见解。作为洛克菲勒基金会的暑期数据科学助理，我[进行了一个研究项目](https://github.com/akaba09/redditmentalhealth)，使用NLP技术探索了COVID-19大流行前后Reddit上关于抑郁症的讨论。为了更好地理解与心理健康和抑郁症相关的性别禁忌，我选择分析男性和女性发表的帖子之间的区别。
+情感分析是自然语言处理（NLP）中的强大工具，用于探索文本中的公众意见和情绪。在心理健康领域，它可以为个体的整体健康提供引人入胜的见解。作为洛克菲勒基金会的暑期数据科学助理，我[进行了一个研究项目](https://github.com/akaba09/redditmentalhealth)，使用 NLP 技术探索了 COVID-19 大流行前后 Reddit 上关于抑郁症的讨论。为了更好地理解与心理健康和抑郁症相关的性别禁忌，我选择分析男性和女性发表的帖子之间的区别。
 
 **不同类型的情感分析**
 
@@ -30,7 +30,7 @@
 
 像 HuggingFace 这样的平台简化了这些模型的实现。你可以探索不同的模型并测试结果，以找出最适合使用的模型：
 
-1.  访问[https://huggingface.co](https://huggingface.co)
+1.  访问[`huggingface.co`](https://huggingface.co)
 
 1.  点击“模型”选项卡，选择你感兴趣的 NLP 任务类型
 
@@ -44,7 +44,7 @@
 
 这些模型将文本分类为消极、中立和积极三类。
 
-![](../Images/6cf49e13881fd3230c333d3adb3bfe26.png)
+![](img/6cf49e13881fd3230c333d3adb3bfe26.png)
 
 你可以看到，这里对情感的细微差别把握非常有限，几乎没有太多解释空间。你可以通过[这里](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment-latest?text=I+dont+understand+what+going+on+with+me.+I%27ve+been+thinking+too+hard+lately.)访问上述模型进行测试或运行。
 
@@ -54,7 +54,7 @@
 
 这些模型通过将类别标签作为输入，将文本分类到你想要的任何类别中。由于我关注的是心理健康相关的文本，因此我包括了情绪作为标签，包括紧急、快乐、悲伤、疲劳和焦虑。
 
-![](../Images/9ac737e7590ffd3927e007b4e363f3b2.png)
+![](img/9ac737e7590ffd3927e007b4e363f3b2.png)
 
 你可以看到，使用零-shot 分类模型，我们可以轻松地将文本分类为更全面的人类情感表现，而无需任何标注数据。模型可以通过为每个标签提供准确度分数，识别文本中的情感细微差异和变化。这在心理健康应用中非常有用，因为情绪通常是一个连续的谱系。
 
@@ -75,7 +75,7 @@ numpy
 
 **步骤 1\. 导入所需的库**
 
-在这个例子中，我使用了来自Hugging Face的[DeBERTa-v3-base-mnli-fever-anli](https://huggingface.co/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli)零样本分类器。
+在这个例子中，我使用了来自 Hugging Face 的[DeBERTa-v3-base-mnli-fever-anli](https://huggingface.co/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli)零样本分类器。
 
 ```py
  # load hugging face library and model
@@ -88,15 +88,15 @@ import pandas as pd
 import numpy as np
 ```
 
-Pipeline是用于调用HuggingFace中预训练模型的函数。在这里，我传递了两个参数。你可以从模型卡中获取这些参数的值：
+Pipeline 是用于调用 HuggingFace 中预训练模型的函数。在这里，我传递了两个参数。你可以从模型卡中获取这些参数的值：
 
 +   `task`：模型正在执行的任务类型，以字符串形式传递
 
 +   `model`：你正在使用的模型名称，以字符串形式传递
 
-**步骤2：读取你的数据**
+**步骤 2：读取你的数据**
 
-你的数据可以是任何形式，只要有一个文本列，其中每一行包含一段文本字符串。为了跟随这个例子，你可以在这里读取[Reddit抑郁数据集](https://raw.githubusercontent.com/akaba09/redditmentalhealth/main/code/dep.csv)。该数据集是根据《公共领域捐赠与许可证v1.0》发布的。
+你的数据可以是任何形式，只要有一个文本列，其中每一行包含一段文本字符串。为了跟随这个例子，你可以在这里读取[Reddit 抑郁数据集](https://raw.githubusercontent.com/akaba09/redditmentalhealth/main/code/dep.csv)。该数据集是根据《公共领域捐赠与许可证 v1.0》发布的。
 
 ```py
 #reading in data 
@@ -105,9 +105,9 @@ df = pd.read_csv("https://raw.githubusercontent.com/akaba09/redditmentalhealth/m
 
 这是我们将使用的数据集的预览：
 
-![](../Images/2a916a26aebba2abd0d0a8b28ecc940d.png)
+![](img/2a916a26aebba2abd0d0a8b28ecc940d.png)
 
-**步骤3：创建一个类列表，用于预测情感**
+**步骤 3：创建一个类列表，用于预测情感**
 
 这个列表将作为标签，供模型预测每一段文本。例如，这段文本是否在探索诸如愤怒或厌恶等情感？在这个例子中，我传递了一个情感标签的列表。你可以根据需要使用任意数量的标签。
 
@@ -116,7 +116,7 @@ df = pd.read_csv("https://raw.githubusercontent.com/akaba09/redditmentalhealth/m
 text_labels = ["anticipation", "anger", "disgust", "fear", "joy", "trust"]
 ```
 
-**步骤4：首先在一段文本上运行模型预测**
+**步骤 4：首先在一段文本上运行模型预测**
 
 首先在一段文本上运行模型，以了解模型返回的结果以及你希望如何根据你的数据集来调整它。
 
@@ -128,13 +128,13 @@ sample_text = "still have depression symptoms not as bad as they used to be in f
 classifier(sample_text, text_labels, multi_label = False)
 ```
 
-**classifier**函数是HuggingFace中的Transformers库的一部分，用于调用你想使用的模型。在这个例子中，我们使用的是[“DeBERTa-V4-base-mnli-fever-anli”](https://huggingface.co/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli)，它接受三个位置参数：
+**classifier**函数是 HuggingFace 中的 Transformers 库的一部分，用于调用你想使用的模型。在这个例子中，我们使用的是[“DeBERTa-V4-base-mnli-fever-anli”](https://huggingface.co/MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli)，它接受三个位置参数：
 
 +   第一个位置：以字符串格式表示的文本。这个变量可以取任何名称。在这个例子中，我将它命名为`sample_text`
 
 +   第二个位置：你希望预测的标签列表。这个变量可以取任何名称。在这个例子中，我将它命名为`text_labels`
 
-+   第三个位置：`multi_label`接受布尔值（true或false）。它决定每段文本是否可以有多个标签，还是每段文本只有一个标签。在这个例子中，我只关心每段文本有一个标签。
++   第三个位置：`multi_label`接受布尔值（true 或 false）。它决定每段文本是否可以有多个标签，还是每段文本只有一个标签。在这个例子中，我只关心每段文本有一个标签。
 
 **这是你从示例文本中得到的输出：**
 
@@ -156,7 +156,7 @@ classifier(sample_text, text_labels, multi_label = False)
 
 +   “labels”：模型预测的标签列表，按置信度降序排列。
 
-+   “scores”：这会返回一个分数列表，表示模型对其预测的置信度，按降序排列。顺序与标签相关联，因此分数列表中的第一个元素与标签列表中的第一个元素相对应。在这个例子中，模型以0.604的置信度预测了“anticipation”（期待）情感。
++   “scores”：这会返回一个分数列表，表示模型对其预测的置信度，按降序排列。顺序与标签相关联，因此分数列表中的第一个元素与标签列表中的第一个元素相对应。在这个例子中，模型以 0.604 的置信度预测了“anticipation”（期待）情感。
 
 **步骤 5：编写一个自定义函数，对整个数据集进行预测，并将标签作为数据框的一部分** 通过查看模型的字典输出结构，我可以编写一个自定义函数，将预测应用于我的所有数据。在这个例子中，我只关心保留每段文本的一个情感。这个函数将接收你的数据框，并返回一个新的数据框，其中包括两个新列——一个用于情感标签，另一个用于模型得分。
 
@@ -195,7 +195,7 @@ def predict_sentiment(df, text_column, text_labels):
     return result_df
 ```
 
-这个函数遍历你的数据框，并解析每一行的字典结果。由于我只关心得分最高的情感，我通过索引result['labels'][0]来选择第一个标签。如果你想要获取前面三个情感，比如，你可以更新为一个范围result['labels'][0:3]。同样，如果你想要获取前三个得分，可以更新为范围result['scores'][0:3]。
+这个函数遍历你的数据框，并解析每一行的字典结果。由于我只关心得分最高的情感，我通过索引 result['labels'][0]来选择第一个标签。如果你想要获取前面三个情感，比如，你可以更新为一个范围 result['labels'][0:3]。同样，如果你想要获取前三个得分，可以更新为范围 result['scores'][0:3]。
 
 **现在你可以在你的数据框上运行这个函数了！**
 
@@ -215,7 +215,7 @@ results_df = predict_sentiment(df=df, text_column ="text", text_labels= text_lab
 
 这是你返回的数据框的预览：
 
-![](../Images/3acf5ad446d2589b6a5dfe4f3aefa0cb.png)
+![](img/3acf5ad446d2589b6a5dfe4f3aefa0cb.png)
 
 对于每一段文本，你都可以获得相关的情感及其模型得分。
 

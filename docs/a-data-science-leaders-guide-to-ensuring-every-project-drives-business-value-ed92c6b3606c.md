@@ -1,16 +1,16 @@
 # 数据科学领导者确保每个项目推动业务价值的指南
 
-> 原文：[https://towardsdatascience.com/a-data-science-leaders-guide-to-ensuring-every-project-drives-business-value-ed92c6b3606c?source=collection_archive---------3-----------------------#2024-08-22](https://towardsdatascience.com/a-data-science-leaders-guide-to-ensuring-every-project-drives-business-value-ed92c6b3606c?source=collection_archive---------3-----------------------#2024-08-22)
+> 原文：[`towardsdatascience.com/a-data-science-leaders-guide-to-ensuring-every-project-drives-business-value-ed92c6b3606c?source=collection_archive---------3-----------------------#2024-08-22`](https://towardsdatascience.com/a-data-science-leaders-guide-to-ensuring-every-project-drives-business-value-ed92c6b3606c?source=collection_archive---------3-----------------------#2024-08-22)
 
-## 来自管理一个8人团队的人的经验
+## 来自管理一个 8 人团队的人的经验
 
-[](https://medium.com/@raicik.zach?source=post_page---byline--ed92c6b3606c--------------------------------)[![Zachary Raicik](../Images/860760b53fcc75013007067190e8ca65.png)](https://medium.com/@raicik.zach?source=post_page---byline--ed92c6b3606c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ed92c6b3606c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ed92c6b3606c--------------------------------) [Zachary Raicik](https://medium.com/@raicik.zach?source=post_page---byline--ed92c6b3606c--------------------------------)
+[](https://medium.com/@raicik.zach?source=post_page---byline--ed92c6b3606c--------------------------------)![Zachary Raicik](https://medium.com/@raicik.zach?source=post_page---byline--ed92c6b3606c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ed92c6b3606c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ed92c6b3606c--------------------------------) [Zachary Raicik](https://medium.com/@raicik.zach?source=post_page---byline--ed92c6b3606c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ed92c6b3606c--------------------------------) ·阅读时间：8分钟·2024年8月22日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ed92c6b3606c--------------------------------) ·阅读时间：8 分钟·2024 年 8 月 22 日
 
 --
 
-![](../Images/e26e27ec0f6fb7fa2f533a482649d1cf.png)
+![](img/e26e27ec0f6fb7fa2f533a482649d1cf.png)
 
 图片由 OpenAI ChatGPT 生成
 

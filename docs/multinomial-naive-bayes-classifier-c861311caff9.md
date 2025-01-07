@@ -1,18 +1,18 @@
 # 多项式朴素贝叶斯分类器
 
-> 原文：[https://towardsdatascience.com/multinomial-naive-bayes-classifier-c861311caff9?source=collection_archive---------10-----------------------#2024-03-14](https://towardsdatascience.com/multinomial-naive-bayes-classifier-c861311caff9?source=collection_archive---------10-----------------------#2024-03-14)
+> 原文：[`towardsdatascience.com/multinomial-naive-bayes-classifier-c861311caff9?source=collection_archive---------10-----------------------#2024-03-14`](https://towardsdatascience.com/multinomial-naive-bayes-classifier-c861311caff9?source=collection_archive---------10-----------------------#2024-03-14)
 
 ## 一个完整的文本评论分类工作示例
 
-[](https://mocquin.medium.com/?source=post_page---byline--c861311caff9--------------------------------)[![Yoann Mocquin](../Images/b30a0f70c56972aabd2bc0a74baa90bb.png)](https://mocquin.medium.com/?source=post_page---byline--c861311caff9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c861311caff9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c861311caff9--------------------------------) [Yoann Mocquin](https://mocquin.medium.com/?source=post_page---byline--c861311caff9--------------------------------)
+[](https://mocquin.medium.com/?source=post_page---byline--c861311caff9--------------------------------)![Yoann Mocquin](https://mocquin.medium.com/?source=post_page---byline--c861311caff9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c861311caff9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c861311caff9--------------------------------) [Yoann Mocquin](https://mocquin.medium.com/?source=post_page---byline--c861311caff9--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c861311caff9--------------------------------) ·阅读时间16分钟·2024年3月14日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c861311caff9--------------------------------) ·阅读时间 16 分钟·2024 年 3 月 14 日
 
 --
 
-在这篇新文章中，我们将尝试理解多项式朴素贝叶斯分类器是如何工作的，并提供使用Python和scikit-learn的实际示例。
+在这篇新文章中，我们将尝试理解多项式朴素贝叶斯分类器是如何工作的，并提供使用 Python 和 scikit-learn 的实际示例。
 
-![](../Images/37047ac2f750f67b6e11d69758539264.png)
+![](img/37047ac2f750f67b6e11d69758539264.png)
 
 我们将看到：
 

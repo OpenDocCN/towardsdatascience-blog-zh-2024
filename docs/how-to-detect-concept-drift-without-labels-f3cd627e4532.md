@@ -1,16 +1,16 @@
 # 如何在没有标签的情况下检测概念漂移
 
-> 原文：[https://towardsdatascience.com/how-to-detect-concept-drift-without-labels-f3cd627e4532?source=collection_archive---------6-----------------------#2024-03-12](https://towardsdatascience.com/how-to-detect-concept-drift-without-labels-f3cd627e4532?source=collection_archive---------6-----------------------#2024-03-12)
+> 原文：[`towardsdatascience.com/how-to-detect-concept-drift-without-labels-f3cd627e4532?source=collection_archive---------6-----------------------#2024-03-12`](https://towardsdatascience.com/how-to-detect-concept-drift-without-labels-f3cd627e4532?source=collection_archive---------6-----------------------#2024-03-12)
 
-## 使用参考窗口进行无监督变化检测，并附有Python示例
+## 使用参考窗口进行无监督变化检测，并附有 Python 示例
 
-[](https://vcerq.medium.com/?source=post_page---byline--f3cd627e4532--------------------------------)[![Vitor Cerqueira](../Images/9e52f462c6bc20453d3ea273eb52114b.png)](https://vcerq.medium.com/?source=post_page---byline--f3cd627e4532--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f3cd627e4532--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f3cd627e4532--------------------------------) [Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--f3cd627e4532--------------------------------)
+[](https://vcerq.medium.com/?source=post_page---byline--f3cd627e4532--------------------------------)![Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--f3cd627e4532--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f3cd627e4532--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f3cd627e4532--------------------------------) [Vitor Cerqueira](https://vcerq.medium.com/?source=post_page---byline--f3cd627e4532--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f3cd627e4532--------------------------------) ·6分钟阅读·2024年3月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f3cd627e4532--------------------------------) ·6 分钟阅读·2024 年 3 月 12 日
 
 --
 
-![](../Images/378e03f383f18e6b0a55f0f9733ec2c4.png)
+![](img/378e03f383f18e6b0a55f0f9733ec2c4.png)
 
 图片由[Chris Czermak](https://unsplash.com/@chris_czermak?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

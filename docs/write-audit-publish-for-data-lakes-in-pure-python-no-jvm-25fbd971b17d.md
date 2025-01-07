@@ -1,34 +1,34 @@
-# 用纯Python（无JVM）实现的数据湖写入-审计-发布
+# 用纯 Python（无 JVM）实现的数据湖写入-审计-发布
 
-> 原文：[https://towardsdatascience.com/write-audit-publish-for-data-lakes-in-pure-python-no-jvm-25fbd971b17d?source=collection_archive---------4-----------------------#2024-04-12](https://towardsdatascience.com/write-audit-publish-for-data-lakes-in-pure-python-no-jvm-25fbd971b17d?source=collection_archive---------4-----------------------#2024-04-12)
+> 原文：[`towardsdatascience.com/write-audit-publish-for-data-lakes-in-pure-python-no-jvm-25fbd971b17d?source=collection_archive---------4-----------------------#2024-04-12`](https://towardsdatascience.com/write-audit-publish-for-data-lakes-in-pure-python-no-jvm-25fbd971b17d?source=collection_archive---------4-----------------------#2024-04-12)
 
-## 使用Apache Iceberg、Lambdas和Project Nessie的开源WAP实现，全部通过Python运行
+## 使用 Apache Iceberg、Lambdas 和 Project Nessie 的开源 WAP 实现，全部通过 Python 运行
 
-[](https://medium.com/@ciro.greco?source=post_page---byline--25fbd971b17d--------------------------------)[![Ciro Greco](../Images/4a20e5d435998e8d8ff7aeac1f8ff60d.png)](https://medium.com/@ciro.greco?source=post_page---byline--25fbd971b17d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--25fbd971b17d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--25fbd971b17d--------------------------------) [Ciro Greco](https://medium.com/@ciro.greco?source=post_page---byline--25fbd971b17d--------------------------------)
+[](https://medium.com/@ciro.greco?source=post_page---byline--25fbd971b17d--------------------------------)![Ciro Greco](https://medium.com/@ciro.greco?source=post_page---byline--25fbd971b17d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--25fbd971b17d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--25fbd971b17d--------------------------------) [Ciro Greco](https://medium.com/@ciro.greco?source=post_page---byline--25fbd971b17d--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--25fbd971b17d--------------------------------) ·阅读时间9分钟·2024年4月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--25fbd971b17d--------------------------------) ·阅读时间 9 分钟·2024 年 4 月 12 日
 
 --
 
-![](../Images/3f6c7fd882cb9f69244db1e5fe0bc7b6.png)
+![](img/3f6c7fd882cb9f69244db1e5fe0bc7b6.png)
 
-看，妈妈：没有JVM！图片来自[Zac Ong](https://unsplash.com/@zacong?utm_source=medium&utm_medium=referral)在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+看，妈妈：没有 JVM！图片来自[Zac Ong](https://unsplash.com/@zacong?utm_source=medium&utm_medium=referral)在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 引言
 
-在这篇博客文章中，我们提供了一个简明的参考实现，用于在数据湖上实施写入-审计-发布（WAP）模式，使用[Apache Iceberg](https://iceberg.apache.org/)作为开放表格格式，并使用[Project Nessie](https://projectnessie.org/)作为支持类似git语义的数据目录。
+在这篇博客文章中，我们提供了一个简明的参考实现，用于在数据湖上实施写入-审计-发布（WAP）模式，使用[Apache Iceberg](https://iceberg.apache.org/)作为开放表格格式，并使用[Project Nessie](https://projectnessie.org/)作为支持类似 git 语义的数据目录。
 
-我们选择[Nessie](https://projectnessie.org/)是因为它的分支功能提供了一个良好的抽象，能够实现WAP设计。最重要的是，我们选择在[PyIceberg](https://py.iceberg.apache.org/)上构建，以消除开发者体验中对JVM的需求。事实上，要运行整个项目，包括集成的应用程序，我们只需要Python和AWS。
+我们选择[Nessie](https://projectnessie.org/)是因为它的分支功能提供了一个良好的抽象，能够实现 WAP 设计。最重要的是，我们选择在[PyIceberg](https://py.iceberg.apache.org/)上构建，以消除开发者体验中对 JVM 的需求。事实上，要运行整个项目，包括集成的应用程序，我们只需要 Python 和 AWS。
 
-虽然[Nessie](https://projectnessie.org/)在技术上是用Java构建的，但在本项目中，数据目录通过[AWS Lightsail](https://aws.amazon.com/lightsail/)作为容器运行，我们将仅通过其端点与之交互。因此，我们可以仅使用Python表达整个WAP逻辑，包括下游查询！
+虽然[Nessie](https://projectnessie.org/)在技术上是用 Java 构建的，但在本项目中，数据目录通过[AWS Lightsail](https://aws.amazon.com/lightsail/)作为容器运行，我们将仅通过其端点与之交互。因此，我们可以仅使用 Python 表达整个 WAP 逻辑，包括下游查询！
 
-由于[PyIceberg](https://py.iceberg.apache.org/)相对较新，实际上很多功能并不直接支持。特别是，写入功能仍处于初期阶段，Iceberg表的分支仍不被支持。因此，您在这里看到的内容是我们自己进行的一些原创工作，以便直接从Python中使[Nessie](https://projectnessie.org/)支持Iceberg表的分支。
+由于[PyIceberg](https://py.iceberg.apache.org/)相对较新，实际上很多功能并不直接支持。特别是，写入功能仍处于初期阶段，Iceberg 表的分支仍不被支持。因此，您在这里看到的内容是我们自己进行的一些原创工作，以便直接从 Python 中使[Nessie](https://projectnessie.org/)支持 Iceberg 表的分支。
 
 所以，这一切或多或少地发生了。
 
-# WAP到底是什么？
+# WAP 到底是什么？
 
-2017年，Netflix的Michelle Winters在[talked](https://www.youtube.com/watch?v=fXHdeBnpXrg)中谈到了一个名为“写入-审计-发布”（Write-Audit-Publish，WAP）的数据设计模式。WAP本质上是一种功能性设计，旨在使数据质量检查在数据提供给下游消费者之前**更容易实现**。
+2017 年，Netflix 的 Michelle Winters 在[talked](https://www.youtube.com/watch?v=fXHdeBnpXrg)中谈到了一个名为“写入-审计-发布”（Write-Audit-Publish，WAP）的数据设计模式。WAP 本质上是一种功能性设计，旨在使数据质量检查在数据提供给下游消费者之前**更容易实现**。
 
 例如，一个非典型的用例是数据摄取时的数据质量。流程看起来像是创建一个临时环境，并对新摄取的数据进行质量测试，然后再将这些数据提供给任何下游应用程序。
 
@@ -36,23 +36,23 @@
 
 1.  ***写入。*** 将数据放在一个下游消费者无法访问的位置（例如，暂存环境或分支）。
 
-1.  ***审计。*** 转换和测试数据，确保它符合规格（例如，检查模式是否突然变化，或是否存在意外值，如NULL）。
+1.  ***审计。*** 转换和测试数据，确保它符合规格（例如，检查模式是否突然变化，或是否存在意外值，如 NULL）。
 
 1.  ***发布。*** 将数据放在消费者可以读取的地方（例如，生产数据湖）。
 
-![](../Images/fed5dd1e2f2e05ee22ab00dc9438b184.png)
+![](img/fed5dd1e2f2e05ee22ab00dc9438b184.png)
 
 图片来自作者
 
-这只是WAP模式应用的一种可能示例。很容易看出，它如何应用于数据生命周期的不同阶段，从ETL和数据摄取，到支持分析和机器学习应用的复杂数据管道。
+这只是 WAP 模式应用的一种可能示例。很容易看出，它如何应用于数据生命周期的不同阶段，从 ETL 和数据摄取，到支持分析和机器学习应用的复杂数据管道。
 
-尽管非常有用，[WAP仍然不太普及](https://lakefs.io/blog/data-engineering-patterns-write-audit-publish/)，而且直到最近，企业才开始更系统地思考它。开放表格格式和像[Nessie](https://projectnessie.org/)和[LakeFS](https://lakefs.io/)这样的项目的兴起正在加速这一过程，但它仍然有些*前卫*。
+尽管非常有用，[WAP 仍然不太普及](https://lakefs.io/blog/data-engineering-patterns-write-audit-publish/)，而且直到最近，企业才开始更系统地思考它。开放表格格式和像[Nessie](https://projectnessie.org/)和[LakeFS](https://lakefs.io/)这样的项目的兴起正在加速这一过程，但它仍然有些*前卫*。
 
 无论如何，它是一种非常好的数据思维方式，并且在驯服一些让工程师夜不能寐的最广泛的问题时极为有用。那么，接下来我们来看看如何实现它。
 
-# 在Python中的数据湖上实现WAP
+# 在 Python 中的数据湖上实现 WAP
 
-我们不会进行关于WAP的理论讨论，也不会提供实现它的各种方式的详尽调查（[Alex Merced](https://www.linkedin.com/in/alexmerced/)来自[Dremio](https://www.dremio.com/)和[Einat Orr](https://www.linkedin.com/in/einat-orr-359ba6/)来自[LakeFs](https://lakefs.io/)已经做得非常出色）。相反，我们将提供一个关于数据湖中WAP的参考实现。
+我们不会进行关于 WAP 的理论讨论，也不会提供实现它的各种方式的详尽调查（[Alex Merced](https://www.linkedin.com/in/alexmerced/)来自[Dremio](https://www.dremio.com/)和[Einat Orr](https://www.linkedin.com/in/einat-orr-359ba6/)来自[LakeFs](https://lakefs.io/)已经做得非常出色）。相反，我们将提供一个关于数据湖中 WAP 的参考实现。
 
 > 👉 **系好安全带，克隆** [Repo](https://github.com/BauplanLabs/no-jvm-wap-with-iceberg)**，然后试试看！**
 > 
@@ -60,21 +60,21 @@
 
 # 架构和工作流
 
-这里的想法是模拟一个数据摄取工作流，并通过分支数据湖来实现WAP模式，在决定是否将数据放入数据湖的最终表之前，先运行数据质量测试。
+这里的想法是模拟一个数据摄取工作流，并通过分支数据湖来实现 WAP 模式，在决定是否将数据放入数据湖的最终表之前，先运行数据质量测试。
 
-我们使用Nessie的分支功能来获取我们的沙箱环境，在该环境中，数据无法被下游消费者读取，同时使用AWS Lambda来运行WAP逻辑。
+我们使用 Nessie 的分支功能来获取我们的沙箱环境，在该环境中，数据无法被下游消费者读取，同时使用 AWS Lambda 来运行 WAP 逻辑。
 
-本质上，每当一个新的parquet文件上传时，一个Lambda函数会被触发，创建一个数据目录中的分支，并将数据追加到Iceberg表中。然后，使用PyIceberg执行一个简单的数据质量测试，检查表中的某一列是否包含NULL值。
+本质上，每当一个新的 parquet 文件上传时，一个 Lambda 函数会被触发，创建一个数据目录中的分支，并将数据追加到 Iceberg 表中。然后，使用 PyIceberg 执行一个简单的数据质量测试，检查表中的某一列是否包含 NULL 值。
 
 **如果答案是肯定的，**则数据质量测试失败。新的分支将不会被合并到数据目录的主分支中，从而使数据无法在数据湖的主分支中被读取。相反，警报消息将被发送到 [Slack](https://slack.com/)。
 
-**如果答案是否定的，**并且数据中不包含任何NULL值，那么数据质量测试通过。新的分支将被合并到数据目录的*main*分支中，数据将被追加到数据湖中的Iceberg表，以便其他流程读取。
+**如果答案是否定的，**并且数据中不包含任何 NULL 值，那么数据质量测试通过。新的分支将被合并到数据目录的*main*分支中，数据将被追加到数据湖中的 Iceberg 表，以便其他流程读取。
 
-![](../Images/0cec8ad1994f7ffe5eea60bbdbf027ea.png)
+![](img/0cec8ad1994f7ffe5eea60bbdbf027ea.png)
 
-我们的WAP工作流：图来自作者
+我们的 WAP 工作流：图来自作者
 
-所有数据都是完全合成的，只需运行项目即可自动生成。当然，我们提供了选择是否生成符合数据质量规范的数据，或者生成包含NULL值的数据的可能性。
+所有数据都是完全合成的，只需运行项目即可自动生成。当然，我们提供了选择是否生成符合数据质量规范的数据，或者生成包含 NULL 值的数据的可能性。
 
 为了实现完整的端到端流程，我们将使用以下组件：
 
@@ -92,11 +92,11 @@
 
 +   警报系统：[Slack](https://slack.com/)
 
-![](../Images/50bd27c1f3c729677ca7ab2ea24ac596.png)
+![](img/50bd27c1f3c729677ca7ab2ea24ac596.png)
 
 项目架构：图来自作者
 
-这个项目是相当自包含的，带有设置整个基础设施的脚本，因此只需要对AWS和Python有基础的了解即可。
+这个项目是相当自包含的，带有设置整个基础设施的脚本，因此只需要对 AWS 和 Python 有基础的了解即可。
 
 这并不打算作为一个生产级的解决方案，而是作为一个参考实现，是更复杂场景的起点：代码非常详细且有大量注释，便于修改和扩展基本概念，以更好地适应任何人的用例。
 
@@ -106,7 +106,7 @@
 
 我们可以使用该应用检查不同分支中的表格有多少行，对于 *main* 之外的分支，可以轻松地查看数据质量测试在哪一列和多少行中失败。
 
-![](../Images/62d00f29924ccf899b8755c6a8e842ec.png)
+![](img/62d00f29924ccf899b8755c6a8e842ec.png)
 
 数据质量应用——当你检查某个上传分支（即 *emereal-keen-shame*）时会看到这种情况，在该分支中，3000 行数据被附加进来，但由于 *my_col_1* 中的一个值为 NULL，数据质量检查未通过。图片来自作者。
 
@@ -114,7 +114,7 @@
 
 一旦我们基于 Iceberg 构建了 WAP 流程，就可以利用它为下游消费者实现一个可组合的设计。在我们的仓库中，我们提供了 [Snowflake](https://www.snowflake.com/en/) 集成的说明，以便探索这一架构可能性。
 
-![](../Images/b2208722df95aa1b1fbbeefe9c18dcc3.png)
+![](img/b2208722df95aa1b1fbbeefe9c18dcc3.png)
 
 向 Lakehouse 迈出的第一步：图片来自作者
 
@@ -154,8 +154,8 @@ WAP 模式要求一种写入数据的位置，以避免消费者不小心读取�
 
 最后，完全基于 Python 的端到端体验显著简化了系统的设置和与之交互的过程。我们所知道的任何其他系统，都需要 JVM 或额外的托管服务来将数据写回到 Iceberg 表格中的不同分支，而在这个实现中，整个 WAP 逻辑可以在单个 lambda 函数内运行。
 
-JVM本身并没有什么固有的缺陷。它是许多大数据框架的核心组件，提供了一个通用API，以便与平台特定资源进行交互，同时确保安全性和正确性。然而，从开发者体验的角度来看，JVM带来了一定的代价。任何与Spark打过交道的人都知道，基于JVM的系统往往脆弱，容易出现神秘的错误。对于许多从事数据工作并将Python视为其*通用语言*的人来说，JVM的优势是以可用性为代价的。
+JVM 本身并没有什么固有的缺陷。它是许多大数据框架的核心组件，提供了一个通用 API，以便与平台特定资源进行交互，同时确保安全性和正确性。然而，从开发者体验的角度来看，JVM 带来了一定的代价。任何与 Spark 打过交道的人都知道，基于 JVM 的系统往往脆弱，容易出现神秘的错误。对于许多从事数据工作并将 Python 视为其*通用语言*的人来说，JVM 的优势是以可用性为代价的。
 
-我们希望更多的人能像我们一样对可组合设计充满热情，我们希望像Iceberg和Arrow这样的开放标准能成为主流，但最重要的是，我们希望这对大家有所帮助。
+我们希望更多的人能像我们一样对可组合设计充满热情，我们希望像 Iceberg 和 Arrow 这样的开放标准能成为主流，但最重要的是，我们希望这对大家有所帮助。
 
 就是这样。

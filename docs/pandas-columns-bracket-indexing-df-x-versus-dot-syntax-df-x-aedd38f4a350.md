@@ -1,18 +1,18 @@
 # Pandas 列：括号索引（df[‘x’]）与点语法（df.x）
 
-> 原文：[https://towardsdatascience.com/pandas-columns-bracket-indexing-df-x-versus-dot-syntax-df-x-aedd38f4a350?source=collection_archive---------1-----------------------#2024-03-01](https://towardsdatascience.com/pandas-columns-bracket-indexing-df-x-versus-dot-syntax-df-x-aedd38f4a350?source=collection_archive---------1-----------------------#2024-03-01)
+> 原文：[`towardsdatascience.com/pandas-columns-bracket-indexing-df-x-versus-dot-syntax-df-x-aedd38f4a350?source=collection_archive---------1-----------------------#2024-03-01`](https://towardsdatascience.com/pandas-columns-bracket-indexing-df-x-versus-dot-syntax-df-x-aedd38f4a350?source=collection_archive---------1-----------------------#2024-03-01)
 
 ## PANDAS 数据科学应用
 
 ## 使用哪种方式有区别吗？也许某种方式比另一种更快？
 
-[](https://medium.com/@nyggus?source=post_page---byline--aedd38f4a350--------------------------------)[![Marcin Kozak](../Images/d7faf62e48ed81dab5d8ad92819fff54.png)](https://medium.com/@nyggus?source=post_page---byline--aedd38f4a350--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aedd38f4a350--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--aedd38f4a350--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--aedd38f4a350--------------------------------)
+[](https://medium.com/@nyggus?source=post_page---byline--aedd38f4a350--------------------------------)![Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--aedd38f4a350--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aedd38f4a350--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aedd38f4a350--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--aedd38f4a350--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aedd38f4a350--------------------------------) ·阅读时间：5分钟·2024年3月1日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aedd38f4a350--------------------------------) ·阅读时间：5 分钟·2024 年 3 月 1 日
 
 --
 
-![](../Images/33495307aa2cf1f1805eaad074017b2c.png)
+![](img/33495307aa2cf1f1805eaad074017b2c.png)
 
 点语法在 Python 中非常流行，在 Pandas 中也广泛使用。图片来源：[Alejandro Barba](https://unsplash.com/@albrb?utm_source=medium&utm_medium=referral) 提供的 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

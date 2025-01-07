@@ -1,14 +1,14 @@
-# GNN的表达能力 — 消息传递神经网络
+# GNN 的表达能力 — 消息传递神经网络
 
-> 原文：[https://towardsdatascience.com/the-expressive-power-of-gnns-the-message-passing-neural-network-e4b5f8f6c01f?source=collection_archive---------5-----------------------#2024-09-02](https://towardsdatascience.com/the-expressive-power-of-gnns-the-message-passing-neural-network-e4b5f8f6c01f?source=collection_archive---------5-----------------------#2024-09-02)
+> 原文：[`towardsdatascience.com/the-expressive-power-of-gnns-the-message-passing-neural-network-e4b5f8f6c01f?source=collection_archive---------5-----------------------#2024-09-02`](https://towardsdatascience.com/the-expressive-power-of-gnns-the-message-passing-neural-network-e4b5f8f6c01f?source=collection_archive---------5-----------------------#2024-09-02)
 
-## 表达性GNN系列
+## 表达性 GNN 系列
 
-## 引入MPNN架构与PyTorch Geometric，连接点滴，进行图神经网络模型的理论分析
+## 引入 MPNN 架构与 PyTorch Geometric，连接点滴，进行图神经网络模型的理论分析
 
-[](https://medium.com/@giuseppefutia?source=post_page---byline--e4b5f8f6c01f--------------------------------)[![Giuseppe Futia](../Images/4d1d3b3766eca9ae8220dc5eb480a4cf.png)](https://medium.com/@giuseppefutia?source=post_page---byline--e4b5f8f6c01f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e4b5f8f6c01f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e4b5f8f6c01f--------------------------------) [Giuseppe Futia](https://medium.com/@giuseppefutia?source=post_page---byline--e4b5f8f6c01f--------------------------------)
+[](https://medium.com/@giuseppefutia?source=post_page---byline--e4b5f8f6c01f--------------------------------)![Giuseppe Futia](https://medium.com/@giuseppefutia?source=post_page---byline--e4b5f8f6c01f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e4b5f8f6c01f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e4b5f8f6c01f--------------------------------) [Giuseppe Futia](https://medium.com/@giuseppefutia?source=post_page---byline--e4b5f8f6c01f--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e4b5f8f6c01f--------------------------------) ·18分钟阅读·2024年9月2日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e4b5f8f6c01f--------------------------------) ·18 分钟阅读·2024 年 9 月 2 日
 
 --
 
@@ -18,11 +18,11 @@
 
 在本系列的上一篇文章中，我们介绍了*图同构*的概念，这对于阐明不同或等价关系结构的概念至关重要。
 
-[](/the-expressive-power-of-gnns-introduction-and-foundations-5cdb4bca6ae3?source=post_page-----e4b5f8f6c01f--------------------------------) [## GNN的表达能力 — 介绍与基础
+[](/the-expressive-power-of-gnns-introduction-and-foundations-5cdb4bca6ae3?source=post_page-----e4b5f8f6c01f--------------------------------) ## GNN 的表达能力 — 介绍与基础
 
 ### 连接点滴，进行图神经网络模型的理论分析
 
-towardsdatascience.com](/the-expressive-power-of-gnns-introduction-and-foundations-5cdb4bca6ae3?source=post_page-----e4b5f8f6c01f--------------------------------)
+towardsdatascience.com
 
 根据图同构原则，我们可以为任何在图上运行的机器学习模型设定要求：
 

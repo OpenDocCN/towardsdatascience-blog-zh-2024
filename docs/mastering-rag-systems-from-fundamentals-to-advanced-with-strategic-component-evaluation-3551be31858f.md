@@ -1,66 +1,66 @@
-# 精通RAG系统：从基础到高级，通过战略性组件评估
+# 精通 RAG 系统：从基础到高级，通过战略性组件评估
 
-> 原文：[https://towardsdatascience.com/mastering-rag-systems-from-fundamentals-to-advanced-with-strategic-component-evaluation-3551be31858f?source=collection_archive---------3-----------------------#2024-04-09](https://towardsdatascience.com/mastering-rag-systems-from-fundamentals-to-advanced-with-strategic-component-evaluation-3551be31858f?source=collection_archive---------3-----------------------#2024-04-09)
+> 原文：[`towardsdatascience.com/mastering-rag-systems-from-fundamentals-to-advanced-with-strategic-component-evaluation-3551be31858f?source=collection_archive---------3-----------------------#2024-04-09`](https://towardsdatascience.com/mastering-rag-systems-from-fundamentals-to-advanced-with-strategic-component-evaluation-3551be31858f?source=collection_archive---------3-----------------------#2024-04-09)
 
-## 提升你的RAG系统：通过LLM评估进行高级增强的逐步指南，附带实际数据使用案例
+## 提升你的 RAG 系统：通过 LLM 评估进行高级增强的逐步指南，附带实际数据使用案例
 
-[](https://medium.com/@hamzagharbi_19502?source=post_page---byline--3551be31858f--------------------------------)[![Hamza Gharbi](../Images/da96d29dfde486875d9a4ed932879aef.png)](https://medium.com/@hamzagharbi_19502?source=post_page---byline--3551be31858f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3551be31858f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3551be31858f--------------------------------) [Hamza Gharbi](https://medium.com/@hamzagharbi_19502?source=post_page---byline--3551be31858f--------------------------------)
+[](https://medium.com/@hamzagharbi_19502?source=post_page---byline--3551be31858f--------------------------------)![Hamza Gharbi](https://medium.com/@hamzagharbi_19502?source=post_page---byline--3551be31858f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3551be31858f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3551be31858f--------------------------------) [Hamza Gharbi](https://medium.com/@hamzagharbi_19502?source=post_page---byline--3551be31858f--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3551be31858f--------------------------------) ·29分钟阅读·2024年4月9日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3551be31858f--------------------------------) ·29 分钟阅读·2024 年 4 月 9 日
 
 --
 
-![](../Images/7a0272c5930ac85a330d3af9c48fb8c1.png)
+![](img/7a0272c5930ac85a330d3af9c48fb8c1.png)
 
-由DALL-E生成的图像。
+由 DALL-E 生成的图像。
 
 本文将引导你通过使用`llama-index`框架构建一个先进的检索增强生成（RAG）管道。
 
-检索增强生成（RAG）系统是一个框架，它通过使用外部来源的信息，使生成性AI模型更准确、更可靠。在本项目中，法律文档将作为外部知识库使用。
+检索增强生成（RAG）系统是一个框架，它通过使用外部来源的信息，使生成性 AI 模型更准确、更可靠。在本项目中，法律文档将作为外部知识库使用。
 
-在本教程中，我们将从建立一个基本的RAG系统开始，然后再说明如何加入高级特性。构建此类系统的挑战之一是决定管道中最佳的组件。我们将通过评估管道中的关键组件来尝试回答这个问题。
+在本教程中，我们将从建立一个基本的 RAG 系统开始，然后再说明如何加入高级特性。构建此类系统的挑战之一是决定管道中最佳的组件。我们将通过评估管道中的关键组件来尝试回答这个问题。
 
-本文作为实现RAG系统的实用教程，包括它们的评估。尽管它没有深入探讨理论方面的内容，但它会尽可能详细地解释文章中使用的概念。
+本文作为实现 RAG 系统的实用教程，包括它们的评估。尽管它没有深入探讨理论方面的内容，但它会尽可能详细地解释文章中使用的概念。
 
 # 材料表
 
-· [概述](#690f)
+· 概述
 
-· [设置](#6324)
+· 设置
 
-∘ [1- 代码](#e9f3)
+∘ 1- 代码
 
-∘ [2- 数据](#83e0)
+∘ 2- 数据
 
-∘ [3- 原始数据转换](#ab50)
+∘ 3- 原始数据转换
 
-· [基础RAG系统](#6587)
+· 基础 RAG 系统
 
-∘ [1- 数据摄取](#0e34)
+∘ 1- 数据摄取
 
-∘ [2- 索引和存储](#64f9)
+∘ 2- 索引和存储
 
-∘ [3- 查询](#a526)
+∘ 3- 查询
 
-∘ [4- 评估](#dd2b)
+∘ 4- 评估
 
-· [评估嵌入](#5e0e)
+· 评估嵌入
 
-· [评估高级特性](#d423)
+· 评估高级特性
 
-∘ [1- 窗口化](#f5f5)
+∘ 1- 窗口化
 
-∘ [2- 混合搜索](#6ee9)
+∘ 2- 混合搜索
 
-∘ [3- 查询重写](#2b7c)
+∘ 3- 查询重写
 
-· [路由](#f638)
+· 路由
 
-· [结论](#24c9)
+· 结论
 
-· [参考资料](#7830)
+· 参考资料
 
-· [联系](#3cdf)
+· 联系
 
 # 概述
 
@@ -116,25 +116,25 @@ poetry install
 
 对于本项目，你有两种方法可以创建知识库：
 
-+   从Legifrance API加载最新数据，该API具有[开放数据状态](https://www.legifrance.gouv.fr/contenu/pied-de-page/open-data-et-api)。你可以在[这里](https://github.com/HamzaG737/legal-code-rag/tree/main?tab=readme-ov-file#get-legifrance-api-keys)找到创建API密钥的说明。然后，我们将使用Python库[pylegifrance](https://github.com/rdassignies/pylegifrance)从API请求特定的法律条文。
++   从 Legifrance API 加载最新数据，该 API 具有[开放数据状态](https://www.legifrance.gouv.fr/contenu/pied-de-page/open-data-et-api)。你可以在[这里](https://github.com/HamzaG737/legal-code-rag/tree/main?tab=readme-ov-file#get-legifrance-api-keys)找到创建 API 密钥的说明。然后，我们将使用 Python 库[pylegifrance](https://github.com/rdassignies/pylegifrance)从 API 请求特定的法律条文。
 
 +   从`./data/legifrance/{code_name}.json`加载处理后的数据。
 
-由于法律条文频繁变化，我们建议直接从API加载数据，如果你希望获取最新版本的法律条文。然而，创建API密钥可能有些繁琐。如果你时间紧迫且不需要最新内容，可以选择本地加载数据，这是默认设置。
+由于法律条文频繁变化，我们建议直接从 API 加载数据，如果你希望获取最新版本的法律条文。然而，创建 API 密钥可能有些繁琐。如果你时间紧迫且不需要最新内容，可以选择本地加载数据，这是默认设置。
 
-如果你有API密钥并且希望重新加载数据，可以在创建查询引擎时将`reload_data`参数设置为`True`。该引擎代表我们的端到端RAG管道（稍后我们会解释查询引擎的概念）。
+如果你有 API 密钥并且希望重新加载数据，可以在创建查询引擎时将`reload_data`参数设置为`True`。该引擎代表我们的端到端 RAG 管道（稍后我们会解释查询引擎的概念）。
 
 ## 3- 原始数据转换
 
-本节面向那些有兴趣了解我们如何从Legifrance API转换数据的读者。
+本节面向那些有兴趣了解我们如何从 Legifrance API 转换数据的读者。
 
-在`./data_ingestion/preprocess_legifrance_data.py`中，我们使用以下步骤对来自API的数据进行预处理：
+在`./data_ingestion/preprocess_legifrance_data.py`中，我们使用以下步骤对来自 API 的数据进行预处理：
 
-+   我们从API请求某个法律条文的内容。
++   我们从 API 请求某个法律条文的内容。
 
-+   我们递归地从API响应的JSON中检索文章内容。
++   我们递归地从 API 响应的 JSON 中检索文章内容。
 
-+   我们去重文章并进行一些清理，如去除部分HTML标签、修剪文本等……
++   我们去重文章并进行一些清理，如去除部分 HTML 标签、修剪文本等……
 
 我们在此过程中最终获得的数据是一系列文章，其中每篇文章由其内容、元数据（例如标题、章节、段落等）以及其编号表示。例如：
 
@@ -162,19 +162,19 @@ poetry install
 
 一篇文章将作为数据的基本单元，并将封装在我们称之为`节点`的结构中。更多内容将在下一节讨论。
 
-# 基本的RAG系统
+# 基本的 RAG 系统
 
-一个基本的RAG系统包含**四个**重要步骤。我们将逐一考察这些步骤，并说明它们在我们项目中的应用。
+一个基本的 RAG 系统包含**四个**重要步骤。我们将逐一考察这些步骤，并说明它们在我们项目中的应用。
 
-![](../Images/dd2c73bcf52db6d8e915faa4f1fe0a54.png)
+![](img/dd2c73bcf52db6d8e915faa4f1fe0a54.png)
 
-法律条文上应用的基本RAG系统示意图。图片由作者使用[**Diagrams: Show Me GPT**](https://helpful.dev/)生成。
+法律条文上应用的基本 RAG 系统示意图。图片由作者使用[**Diagrams: Show Me GPT**](https://helpful.dev/)生成。
 
 ## 1- 数据摄取
 
-此阶段涉及从各种来源（如PDF文件、数据库、API、网站等）收集和预处理相关数据。此阶段与两个关键概念密切相关：**文档**和**节点**。
+此阶段涉及从各种来源（如 PDF 文件、数据库、API、网站等）收集和预处理相关数据。此阶段与两个关键概念密切相关：**文档**和**节点**。
 
-在LlamaIndex的术语中，`文档`是指封装任何数据源的容器，如PDF文件、API输出或从数据库中检索的数据。而`节点`则是LlamaIndex中数据的基本单元，代表文档源的一个“块”。节点携带元数据，将它们与所属的文档以及其他节点关联起来。
+在 LlamaIndex 的术语中，`文档`是指封装任何数据源的容器，如 PDF 文件、API 输出或从数据库中检索的数据。而`节点`则是 LlamaIndex 中数据的基本单元，代表文档源的一个“块”。节点携带元数据，将它们与所属的文档以及其他节点关联起来。
 
 在我们的项目中，文档将是完整的《民法典》文本，而节点则是该法典的一条条文。然而，由于我们通过 API 已经获得了按条文划分的不同文章数据，因此不需要对文档进行分块，从而避免了由此过程引起的所有错误。
 
@@ -393,7 +393,7 @@ def index_given_nodes(
 
 +   首先，我们创建 Qdrant 客户端来与向量数据库进行交互。
 
-+   我们检查所需集合中的节点数量。该集合名称由`code_nodes.nodes_config`提供，代表当前实验（即代码名称、嵌入方法以及可能的高级RAG技术，如*base, window-nodes, hybrid search…* 更多关于这些实验的内容稍后介绍）。如果节点数量与当前数量不同，我们将创建一个新索引：
++   我们检查所需集合中的节点数量。该集合名称由`code_nodes.nodes_config`提供，代表当前实验（即代码名称、嵌入方法以及可能的高级 RAG 技术，如*base, window-nodes, hybrid search…* 更多关于这些实验的内容稍后介绍）。如果节点数量与当前数量不同，我们将创建一个新索引：
 
 ```py
 storage_context = StorageContext.from_defaults(vector_store=vector_store)
@@ -419,7 +419,7 @@ index = VectorStoreIndex.from_vector_store(
 
 给定用户查询，我们计算查询嵌入与索引节点嵌入之间的相似度，以找到最相似的数据。这些相似节点的内容随后被用来生成上下文。这个上下文使得语言模型能够为用户合成一个响应。
 
-我们基于上一节创建的索引定义一个`查询引擎`。这个引擎是一个端到端管道，接收自然语言查询并返回响应，以及检索到并传递给LLM的上下文。
+我们基于上一节创建的索引定义一个`查询引擎`。这个引擎是一个端到端管道，接收自然语言查询并返回响应，以及检索到并传递给 LLM 的上下文。
 
 ```py
 from llama_index.core.query_engine import BaseQueryEngine
@@ -437,7 +437,7 @@ def get_query_engine_based_on_index(
     return query_engine
 ```
 
-`update_prompts_for_query_engine`是一个函数，允许我们更改响应合成器的提示，即负责将上下文作为输入并为用户生成答案的LLM。
+`update_prompts_for_query_engine`是一个函数，允许我们更改响应合成器的提示，即负责将上下文作为输入并为用户生成答案的 LLM。
 
 ```py
 def update_prompts_for_query_engine(query_engine: BaseQueryEngine) -> BaseQueryEngine:
@@ -457,9 +457,9 @@ def update_prompts_for_query_engine(query_engine: BaseQueryEngine) -> BaseQueryE
     return query_engine
 ```
 
-在这个新模板中，我们强调防止幻觉的必要性。我们还指示LLM在提供响应之前始终参考代码名称，如民法典，以及条文号。此外，我们指示它用查询的语言进行回复，以支持多语言查询。
+在这个新模板中，我们强调防止幻觉的必要性。我们还指示 LLM 在提供响应之前始终参考代码名称，如民法典，以及条文号。此外，我们指示它用查询的语言进行回复，以支持多语言查询。
 
-`create_query_engine`函数在`query_engine`模块中是创建RAG管道的入口。此函数的参数定义了RAG配置参数。
+`create_query_engine`函数在`query_engine`模块中是创建 RAG 管道的入口。此函数的参数定义了 RAG 配置参数。
 
 以下代码创建一个基本的查询引擎，并根据特定查询生成响应：
 
@@ -473,15 +473,15 @@ response = query_engine.query("What are the conditions required for a marriage t
 print(response)
 ```
 
-你可以在`./query/query_engine.py`中找到创建查询引擎的完整代码。更多关于llama-index查询引擎的信息可以在[这里](https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine/)找到。
+你可以在`./query/query_engine.py`中找到创建查询引擎的完整代码。更多关于 llama-index 查询引擎的信息可以在[这里](https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine/)找到。
 
 ## 4- 评估
 
-[评估](https://docs.llamaindex.ai/en/stable/understanding/evaluating/evaluating/)对于评估RAG管道的性能至关重要，并验证关于其组件所做的决策。
+[评估](https://docs.llamaindex.ai/en/stable/understanding/evaluating/evaluating/)对于评估 RAG 管道的性能至关重要，并验证关于其组件所做的决策。
 
-在这个项目中，我们将采用基于LLM的评估方法来评估结果的质量。这项评估将涉及一个金标准LLM，按照一定的指标分析一组响应，以确保RAG管道的有效性和准确性。
+在这个项目中，我们将采用基于 LLM 的评估方法来评估结果的质量。这项评估将涉及一个金标准 LLM，按照一定的指标分析一组响应，以确保 RAG 管道的有效性和准确性。
 
-通常，RAG系统可以通过两种方式进行评估：
+通常，RAG 系统可以通过两种方式进行评估：
 
 +   **响应评估**：响应是否与检索到的上下文和查询一致？
 
@@ -491,9 +491,9 @@ print(response)
 
 这是在此项目中创建评估器的过程：
 
-+   最初，我们使用LLM（在我们这个案例中是gpt-4）生成`n`个问题，关于我们想要评估的法律代码。出于成本考虑，我们设置了`n=50`，但更大的问题数量可能会提供对系统性能更有信心的评估。一个LLM生成的问题示例是：“法国重婚的法律后果是什么？”或者法语版本：“Quelles sont les conséquences juridiques de la bigamie en France ?”。请注意，这种方法有其局限性，因为LLM生成的问题可能无法反映真实用户提问的实际分布。您可以在`evaluation/generate_questions.py`找到问题生成模块。
++   最初，我们使用 LLM（在我们这个案例中是 gpt-4）生成`n`个问题，关于我们想要评估的法律代码。出于成本考虑，我们设置了`n=50`，但更大的问题数量可能会提供对系统性能更有信心的评估。一个 LLM 生成的问题示例是：“法国重婚的法律后果是什么？”或者法语版本：“Quelles sont les conséquences juridiques de la bigamie en France ?”。请注意，这种方法有其局限性，因为 LLM 生成的问题可能无法反映真实用户提问的实际分布。您可以在`evaluation/generate_questions.py`找到问题生成模块。
 
-+   使用生成的问题列表、评估指标和查询引擎，我们生成响应列表。每个响应由评估器在0到1之间打分，评估器还提供反馈文本来解释其评分。
++   使用生成的问题列表、评估指标和查询引擎，我们生成响应列表。每个响应由评估器在 0 到 1 之间打分，评估器还提供反馈文本来解释其评分。
 
 +   `llama-index`提供了不同指标的评估器，例如`ContextRelevancyEvaluator`用于计算上下文相关性。此外，我们重写了这些评估器的`evaluate_response`方法，以在嵌入和创建上下文时考虑元数据。
 
@@ -534,7 +534,7 @@ class CustomContextRelevancyEvaluator(ContextRelevancyEvaluator):
         )
 ```
 
-+   以下是从特定评估器（例如上下文相关性评估器）获取评估结果的代码。值得注意的是，您可以以异步模式生成这些评估，以便更快地获得结果。然而，由于OpenAI的速率限制，我们是按顺序执行这些评估的。
++   以下是从特定评估器（例如上下文相关性评估器）获取评估结果的代码。值得注意的是，您可以以异步模式生成这些评估，以便更快地获得结果。然而，由于 OpenAI 的速率限制，我们是按顺序执行这些评估的。
 
 ```py
 from typing import Literal, List
@@ -580,21 +580,21 @@ def evaluate_one_metric(
 
 评估的完整代码位于`evaluation/eval_with_llamaindex.py`。
 
-对于即将进行的RAG管道评估，我们将使用由GPT-4基于法国民法典生成的50个问题。这些问题可以在`./data/questions_code_civil.json`找到。用于评估的金标准LLM是`gpt-3.5-turbo`。
+对于即将进行的 RAG 管道评估，我们将使用由 GPT-4 基于法国民法典生成的 50 个问题。这些问题可以在`./data/questions_code_civil.json`找到。用于评估的金标准 LLM 是`gpt-3.5-turbo`。
 
 # 评估嵌入
 
 **所有的评估实验可以在这个** [**notebook**](https://github.com/HamzaG737/legal-code-rag/blob/main/notebooks/evaluate_with_llamaindex.ipynb) **中找到。**
 
-我们将首先评估民法典条文（或节点）的嵌入。为了选择我们将要评估的嵌入模型集，我们依赖于Huggingface的[排行榜](https://huggingface.co/spaces/mteb/leaderboard)，用于在法语数据上的检索。因此，我们将评估这三种模型：
+我们将首先评估民法典条文（或节点）的嵌入。为了选择我们将要评估的嵌入模型集，我们依赖于 Huggingface 的[排行榜](https://huggingface.co/spaces/mteb/leaderboard)，用于在法语数据上的检索。因此，我们将评估这三种模型：
 
-+   **Text-Embedding-Ada-002**来自OpenAI，是目前（撰写本文时）在此任务中最先进的技术。
++   **Text-Embedding-Ada-002**来自 OpenAI，是目前（撰写本文时）在此任务中最先进的技术。
 
-+   **mistral-embed**来自Mistral AI，紧随其后。
++   **mistral-embed**来自 Mistral AI，紧随其后。
 
-+   **multilingual-e5-large**来自Infloat，作为开源候选者。我们还将使用Qdrant的[**fast-embed**](https://qdrant.tech/articles/fastembed/)框架来提高嵌入创建的效率，主要通过量化权重并使用ONNX作为运行时。
++   **multilingual-e5-large**来自 Infloat，作为开源候选者。我们还将使用 Qdrant 的[**fast-embed**](https://qdrant.tech/articles/fastembed/)框架来提高嵌入创建的效率，主要通过量化权重并使用 ONNX 作为运行时。
 
-我们可以通过导入相应的集成来使用llama-index生成这些嵌入。例如，我们导入`FastEmbedEmbedding`模块，使用`fast-embed`框架生成`e5-large`嵌入：
+我们可以通过导入相应的集成来使用 llama-index 生成这些嵌入。例如，我们导入`FastEmbedEmbedding`模块，使用`fast-embed`框架生成`e5-large`嵌入：
 
 ```py
 from llama_index.embeddings.fastembed import FastEmbedEmbedding
@@ -635,7 +635,7 @@ scores_df, deeps_df = evaluate_multiple_experiments(
 
 我们观察到，`text-embedding-data-002`在得分和嵌入时间上都优于其他两个嵌入模型。`mistral-embed`和`ada`与`multilingual-e5-large`之间的差距相当显著。请注意，这些嵌入方法的排名与之前提到的排行榜一致。
 
-然而，请记住，我们的评估仅基于由LLM生成的50个问题。因此，它可能无法完全代表真实场景中的表现，尤其是在区分`mistral-embed`和`ada`时，因为这两者之间的差距相对较小。
+然而，请记住，我们的评估仅基于由 LLM 生成的 50 个问题。因此，它可能无法完全代表真实场景中的表现，尤其是在区分`mistral-embed`和`ada`时，因为这两者之间的差距相对较小。
 
 # 评估高级功能
 
@@ -649,7 +649,7 @@ scores_df, deeps_df = evaluate_multiple_experiments(
 
 下面是我们如何进行节点窗口化的：
 
-+   我们创建了一个自定义函数来生成增强后的节点。尽管Llama-index有其`SentenceWindowNodeParser`类来执行此任务，但它要求输入的是完整文档，然后进行分割以创建节点。因此，我们从这个类获得灵感，创建了自己的窗口解析器。
++   我们创建了一个自定义函数来生成增强后的节点。尽管 Llama-index 有其`SentenceWindowNodeParser`类来执行此任务，但它要求输入的是完整文档，然后进行分割以创建节点。因此，我们从这个类获得灵感，创建了自己的窗口解析器。
 
 ```py
 from typing import List
@@ -734,7 +734,7 @@ class CodeNodes:
     def _chunk_long_articles(self, articles: List[dict]) -> List[dict]: ...
 ```
 
-+   一个关键点是`MetadataReplacementPostProcessor`。这个类用于指示我们需要在将检索到的数据传递给LLM之前，将节点内容替换为在`target_metadata_key`字段中找到的内容。因此，这个字段将包含增强后的内容。
++   一个关键点是`MetadataReplacementPostProcessor`。这个类用于指示我们需要在将检索到的数据传递给 LLM 之前，将节点内容替换为在`target_metadata_key`字段中找到的内容。因此，这个字段将包含增强后的内容。
 
 +   最后，我们需要将后处理器集成到查询引擎中：
 
@@ -788,7 +788,7 @@ vector_store = QdrantVectorStore(
 )
 ```
 
-+   在定义`query_engine = index.as_query_engine(**kwargs)`时，我们需要同时定义`sparse_top_k`和`similarity_top_k`。`sparse_top_k`表示每个稀疏和密集查询将检索多少个节点。例如，设置`sparse_top_k=5`意味着我们将使用稀疏向量检索5个节点，使用密集向量检索5个节点。`similarity_top_k`控制返回节点的最终数量。在上述设置中，我们最终会得到10个节点。接着，应用一种融合算法来对来自不同向量空间的节点进行排序和排列（此处使用的是[相对评分融合](https://weaviate.io/blog/hybrid-search-fusion-algorithms#relative-score-fusion)）。`similarity_top_k=5`意味着返回融合后的前五个节点。以下是添加这些选项后的`query_engine`的新定义：
++   在定义`query_engine = index.as_query_engine(**kwargs)`时，我们需要同时定义`sparse_top_k`和`similarity_top_k`。`sparse_top_k`表示每个稀疏和密集查询将检索多少个节点。例如，设置`sparse_top_k=5`意味着我们将使用稀疏向量检索 5 个节点，使用密集向量检索 5 个节点。`similarity_top_k`控制返回节点的最终数量。在上述设置中，我们最终会得到 10 个节点。接着，应用一种融合算法来对来自不同向量空间的节点进行排序和排列（此处使用的是[相对评分融合](https://weaviate.io/blog/hybrid-search-fusion-algorithms#relative-score-fusion)）。`similarity_top_k=5`意味着返回融合后的前五个节点。以下是添加这些选项后的`query_engine`的新定义：
 
 ```py
 query_engine = index.as_query_engine(
@@ -799,7 +799,7 @@ query_engine = index.as_query_engine(
 )
 ```
 
-+   我们可以通过调整`alpha`参数来调整向量搜索和关键词搜索的权重。`alpha`等于1表示纯向量搜索，而`alpha`等于0表示纯关键词搜索。以下是结合此`alpha`参数后的`query_engine`最终定义：
++   我们可以通过调整`alpha`参数来调整向量搜索和关键词搜索的权重。`alpha`等于 1 表示纯向量搜索，而`alpha`等于 0 表示纯关键词搜索。以下是结合此`alpha`参数后的`query_engine`最终定义：
 
 ```py
 query_engine = index.as_query_engine(
@@ -813,19 +813,19 @@ query_engine = index.as_query_engine(
 
 为了评估混合搜索的相关性，我们进行了三次不同`alpha`参数的实验：`alpha = 0.2, 0.5, 0.8`。请注意，基础实验对应`alpha=1`，表示纯向量搜索。
 
-这是关于上下文相关性和忠实度指标的最终结果。请注意，使用`"naver/efficient-splade-VI-BT-large-doc"`模型嵌入`~2800`个节点大约花费了我们`27分钟`，并且该过程在没有GPU的M1 Mac上进行，几乎占用了所有系统内存。因此，您可能需要GPU来加速嵌入过程。
+这是关于上下文相关性和忠实度指标的最终结果。请注意，使用`"naver/efficient-splade-VI-BT-large-doc"`模型嵌入`~2800`个节点大约花费了我们`27 分钟`，并且该过程在没有 GPU 的 M1 Mac 上进行，几乎占用了所有系统内存。因此，您可能需要 GPU 来加速嵌入过程。
 
 `alpha=0.8`的混合搜索在上下文相关性评分上略有提升，但将更多权重放在关键词搜索上会降低评分。忠实度评分总体保持不变。
 
-请记住，评估问题相对一般，更偏向语义搜索而非精确匹配搜索。然而，在现实场景中，用户可能会要求查找代码中的特定文章，例如“文章x.y讨论了什么？”在这种情况下，关键词搜索可能会有所帮助。因此，尽管与纯向量搜索相比增加了额外的幻觉案例，我们仍将保留`alpha=0.8`的混合搜索供未来实验使用。
+请记住，评估问题相对一般，更偏向语义搜索而非精确匹配搜索。然而，在现实场景中，用户可能会要求查找代码中的特定文章，例如“文章 x.y 讨论了什么？”在这种情况下，关键词搜索可能会有所帮助。因此，尽管与纯向量搜索相比增加了额外的幻觉案例，我们仍将保留`alpha=0.8`的混合搜索供未来实验使用。
 
 ## 3- 查询重写
 
-[查询重写](https://docs.llamaindex.ai/en/stable/examples/retrievers/reciprocal_rerank_fusion/)涉及生成与特定查询相似的各种问题。此过程可用于消歧义、错误修正或将查询适应于支持RAG系统的特定知识库。
+[查询重写](https://docs.llamaindex.ai/en/stable/examples/retrievers/reciprocal_rerank_fusion/)涉及生成与特定查询相似的各种问题。此过程可用于消歧义、错误修正或将查询适应于支持 RAG 系统的特定知识库。
 
-我们将使用来自llama-index的`QueryFusionRetriever`进行查询重写。这个模块生成与用户查询相似的查询，从每个生成的查询中检索并重新排序前`n`个节点，包括原始查询，使用`Reciprocal Rerank Fusion`算法。该方法在这篇[论文](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf)中有详细介绍，提供了一种高效的方式来重新排序检索到的节点，而不会产生过多的计算或依赖外部模型。
+我们将使用来自 llama-index 的`QueryFusionRetriever`进行查询重写。这个模块生成与用户查询相似的查询，从每个生成的查询中检索并重新排序前`n`个节点，包括原始查询，使用`Reciprocal Rerank Fusion`算法。该方法在这篇[论文](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf)中有详细介绍，提供了一种高效的方式来重新排序检索到的节点，而不会产生过多的计算或依赖外部模型。
 
-以下是此任务的Python代码（位于`query/query_engine.py`）：
+以下是此任务的 Python 代码（位于`query/query_engine.py`）：
 
 ```py
 from llama_index.core.query_engine import BaseQueryEngine, RetrieverQueryEngine
@@ -887,7 +887,7 @@ QUERY_GEN_PROMPT = (
 )
 ```
 
-直到现在，我们使用的评估问题已经很干净，并且针对民法典进行了定制，因为我们指示GPT-4按照这种方式生成它们。然而，正如我们之前提到的，这可能无法准确代表现实中的用户，因为他们可能会提出模糊、容易出错或简短的问题。因此，我们使用GPT-4生成了另外`50`个问题，并指示LLM生成具有这些更现实特征的问题。以下是一些例子：
+直到现在，我们使用的评估问题已经很干净，并且针对民法典进行了定制，因为我们指示 GPT-4 按照这种方式生成它们。然而，正如我们之前提到的，这可能无法准确代表现实中的用户，因为他们可能会提出模糊、容易出错或简短的问题。因此，我们使用 GPT-4 生成了另外`50`个问题，并指示 LLM 生成具有这些更现实特征的问题。以下是一些例子：
 
 ```py
 [
@@ -913,9 +913,9 @@ QUERY_GEN_PROMPT = (
 ]
 ```
 
-我们将使用这个新的评估数据集来比较带有和不带有查询重写的管道的表现。比较将基于两个指标：**准确性**和**答案相关性**。类似于上下文相关性，答案相关性衡量答案与用户查询的相关性，得分范围从0到1。结果如下：
+我们将使用这个新的评估数据集来比较带有和不带有查询重写的管道的表现。比较将基于两个指标：**准确性**和**答案相关性**。类似于上下文相关性，答案相关性衡量答案与用户查询的相关性，得分范围从 0 到 1。结果如下：
 
-我们观察到，查询重写不仅提高了准确性，模型在50个问题中完全没有虚构内容，而且稍微提高了答案相关性得分。
+我们观察到，查询重写不仅提高了准确性，模型在 50 个问题中完全没有虚构内容，而且稍微提高了答案相关性得分。
 
 下面是一个示例，展示了原始问题如何被重写成另外三个问题：
 
@@ -931,19 +931,19 @@ QUERY_GEN_PROMPT = (
 
 # 路由
 
-到目前为止，我们的知识库中每个RAG管道只包含一个合法代码。自然地，人们可能会想，如何添加更多的合法代码，例如刑法或交通法规，以及如何构建一个系统，当给定查询时，能够从正确的法律代码中检索数据。我们可以通过至少三种方式使用llama-index来实现这一目标：
+到目前为止，我们的知识库中每个 RAG 管道只包含一个合法代码。自然地，人们可能会想，如何添加更多的合法代码，例如刑法或交通法规，以及如何构建一个系统，当给定查询时，能够从正确的法律代码中检索数据。我们可以通过至少三种方式使用 llama-index 来实现这一目标：
 
 +   将不同法律代码中的所有数据存储在同一个索引中，并像以前一样构建查询引擎。
 
-+   将所有数据存储在同一个索引中，但将法律代码名称作为元数据。在查询时，llama-index的`[Auto-retriever](https://docs.llamaindex.ai/en/stable/examples/vector_stores/chroma_auto_retriever/)`模块推断出一组元数据过滤器和适当的查询字符串，以传递给向量数据库。`auto-retriever`必须确定正确的代码名称，然后在相应的节点上执行相似度搜索以检索数据。
++   将所有数据存储在同一个索引中，但将法律代码名称作为元数据。在查询时，llama-index 的`[Auto-retriever](https://docs.llamaindex.ai/en/stable/examples/vector_stores/chroma_auto_retriever/)`模块推断出一组元数据过滤器和适当的查询字符串，以传递给向量数据库。`auto-retriever`必须确定正确的代码名称，然后在相应的节点上执行相似度搜索以检索数据。
 
-+   将每个法律代码节点存储在单独的索引中，并使用llama-index的`Routing`功能选择最相关的索引或多个索引。
++   将每个法律代码节点存储在单独的索引中，并使用 llama-index 的`Routing`功能选择最相关的索引或多个索引。
 
 在这个项目中，我们选择了最后一个选项。更有效的方法是评估这三种选择并选出最佳方案。然而，由于时间和空间的限制，我们没有进行这个评估，因为这篇文章已经相当详细。
 
 [路由器](https://docs.llamaindex.ai/en/stable/module_guides/querying/router/)是接受查询和一组**选择**并返回一个或多个选择的模块。
 
-选择过程由LLM执行。在我们的用例中，选择器接收法律代码描述作为输入，并返回一个或多个查询引擎。每个引擎代表一个单一代码的RAG系统。
+选择过程由 LLM 执行。在我们的用例中，选择器接收法律代码描述作为输入，并返回一个或多个查询引擎。每个引擎代表一个单一代码的 RAG 系统。
 
 这是我们在这个项目中进行路由实验的方式：
 
@@ -978,7 +978,7 @@ def get_tools():
     return tools
 ```
 
-+   最后，我们使用工具列表和llama-index的`LLMMultiSelector`模块创建了路由查询引擎。LLM选择器将选项作为文本转储放入提示中，并使用LLM文本完成端点来做出决策。
++   最后，我们使用工具列表和 llama-index 的`LLMMultiSelector`模块创建了路由查询引擎。LLM 选择器将选项作为文本转储放入提示中，并使用 LLM 文本完成端点来做出决策。
 
 ```py
 from llama_index.core.query_engine import RouterQueryEngine
@@ -1049,48 +1049,48 @@ What are the conditions to qualify for a sabbatical leave? \n How are capital ga
 }
 ```
 
-这里的重要结果是`selector_result`，它显示多选择器正确地识别了劳动法（索引4）和税法（索引1）作为回答用户查询的相关数据源。
+这里的重要结果是`selector_result`，它显示多选择器正确地识别了劳动法（索引 4）和税法（索引 1）作为回答用户查询的相关数据源。
 
 你可以在笔记本`./notebooks/evaluate_with_llamaindex.ipynb`中找到所有的评估实验和路由查询引擎定义。
 
 # 结论
 
-在本文中，我们讨论了如何从一个基础的RAG系统过渡到一个高级系统，采用窗口化、混合搜索和查询重写，并使用`llama-index`框架。我们还探讨了如何评估RAG管道的某些组件，如嵌入和前述功能，从而做出关于其相关性的知情决策，而不是仅凭直觉。
+在本文中，我们讨论了如何从一个基础的 RAG 系统过渡到一个高级系统，采用窗口化、混合搜索和查询重写，并使用`llama-index`框架。我们还探讨了如何评估 RAG 管道的某些组件，如嵌入和前述功能，从而做出关于其相关性的知情决策，而不是仅凭直觉。
 
-我们还研究了路由如何通过LLM决策使我们能够选择相关的索引。
+我们还研究了路由如何通过 LLM 决策使我们能够选择相关的索引。
 
 以下是一些进一步优化管道的建议：
 
-+   在这个项目中，我们使用了`gpt-3.5-turbo`作为LLM来生成响应，因为它易于使用且成本较低。与我们评估RAG系统的各个组件类似，我们也可以根据如答案相关性和准确性等指标来评估LLM。
++   在这个项目中，我们使用了`gpt-3.5-turbo`作为 LLM 来生成响应，因为它易于使用且成本较低。与我们评估 RAG 系统的各个组件类似，我们也可以根据如答案相关性和准确性等指标来评估 LLM。
 
 +   同样的评论适用于将`gpt-3.5-turbo`作为评估器。使用更强大的语言模型可能会提高评估的准确性。
 
-+   理想情况下，我们会使用各种指标评估RAG管道的所有组合。然而，这可能代价高昂，并且可能不可行。
++   理想情况下，我们会使用各种指标评估 RAG 管道的所有组合。然而，这可能代价高昂，并且可能不可行。
 
 +   也许值得考虑在我们的系统中评估其他先进技术，例如使用外部模型进行重排序、使用代理等。
 
-+   我们还可以增强RAG管道的多语言支持。一个方法是建立一个LLM链，执行以下任务：首先将查询从原始语言翻译成法语，然后像往常一样生成响应，最后将响应翻译回原始语言。
++   我们还可以增强 RAG 管道的多语言支持。一个方法是建立一个 LLM 链，执行以下任务：首先将查询从原始语言翻译成法语，然后像往常一样生成响应，最后将响应翻译回原始语言。
 
-总结来说，考虑集成类似RAG系统来处理法律查询的读者应该谨慎行事，因为法律建议的复杂性和潜在影响。此类系统生成**虚假信息**的风险是一个需要关注的问题。尽管我们的评估在忠实度方面得分较高，但由于问题数量较少，且问题范围有限，加上评估模块本身的局限性，评估结果仍然存在不足。
+总结来说，考虑集成类似 RAG 系统来处理法律查询的读者应该谨慎行事，因为法律建议的复杂性和潜在影响。此类系统生成**虚假信息**的风险是一个需要关注的问题。尽管我们的评估在忠实度方面得分较高，但由于问题数量较少，且问题范围有限，加上评估模块本身的局限性，评估结果仍然存在不足。
 
-为了应对这一问题，我们建议增加额外的评估层次和安全协议。此外，尽管该项目展示了高级RAG设置在生产中的能力，但它还不是一个最终定型的系统。这凸显了在全面部署之前进行持续完善和彻底测试的重要性。最后，用户还应当被提醒，系统的建议并不能替代专业的法律咨询。
+为了应对这一问题，我们建议增加额外的评估层次和安全协议。此外，尽管该项目展示了高级 RAG 设置在生产中的能力，但它还不是一个最终定型的系统。这凸显了在全面部署之前进行持续完善和彻底测试的重要性。最后，用户还应当被提醒，系统的建议并不能替代专业的法律咨询。
 
 # 参考文献
 
-+   [llama-index高级概念](https://docs.llamaindex.ai/en/stable/getting_started/concepts/)
++   [llama-index 高级概念](https://docs.llamaindex.ai/en/stable/getting_started/concepts/)
 
-+   [llama-index评估](https://docs.llamaindex.ai/en/stable/optimizing/evaluation/evaluation/)
++   [llama-index 评估](https://docs.llamaindex.ai/en/stable/optimizing/evaluation/evaluation/)
 
-+   [Qdrant混合搜索](https://docs.llamaindex.ai/en/v0.10.20/examples/vector_stores/qdrant_hybrid.html)
++   [Qdrant 混合搜索](https://docs.llamaindex.ai/en/v0.10.20/examples/vector_stores/qdrant_hybrid.html)
 
-+   [Qdrant快速嵌入](https://qdrant.tech/articles/fastembed/)
++   [Qdrant 快速嵌入](https://qdrant.tech/articles/fastembed/)
 
-+   [llama-index路由器](https://docs.llamaindex.ai/en/stable/module_guides/querying/router/)
++   [llama-index 路由器](https://docs.llamaindex.ai/en/stable/module_guides/querying/router/)
 
 +   [互惠排名融合方法优于康多塞方法和单独的排名学习方法](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf) 论文
 
 # 联系方式
 
-+   LinkedIn : [https://www.linkedin.com/in/hamza-gharbi-043045151/](https://www.linkedin.com/in/hamza-gharbi-043045151/)
++   LinkedIn : [`www.linkedin.com/in/hamza-gharbi-043045151/`](https://www.linkedin.com/in/hamza-gharbi-043045151/)
 
-+   Twitter : [https://twitter.com/HamzaGh25079790](https://twitter.com/HamzaGh25079790)
++   Twitter : [`twitter.com/HamzaGh25079790`](https://twitter.com/HamzaGh25079790)

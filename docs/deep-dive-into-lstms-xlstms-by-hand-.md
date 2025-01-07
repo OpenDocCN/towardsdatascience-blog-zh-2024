@@ -1,38 +1,38 @@
-# 手动深入探讨LSTMs和xLSTMs ✍️
+# 手动深入探讨 LSTMs 和 xLSTMs ✍️
 
-> 原文：[https://towardsdatascience.com/deep-dive-into-lstms-xlstms-by-hand-%EF%B8%8F-c33e638bebb1?source=collection_archive---------1-----------------------#2024-07-09](https://towardsdatascience.com/deep-dive-into-lstms-xlstms-by-hand-%EF%B8%8F-c33e638bebb1?source=collection_archive---------1-----------------------#2024-07-09)
+> 原文：[`towardsdatascience.com/deep-dive-into-lstms-xlstms-by-hand-%EF%B8%8F-c33e638bebb1?source=collection_archive---------1-----------------------#2024-07-09`](https://towardsdatascience.com/deep-dive-into-lstms-xlstms-by-hand-%EF%B8%8F-c33e638bebb1?source=collection_archive---------1-----------------------#2024-07-09)
 
-## 探索LSTM的智慧，通向xLSTMs——一个可能成为当今LLMs竞争对手的技术
+## 探索 LSTM 的智慧，通向 xLSTMs——一个可能成为当今 LLMs 竞争对手的技术
 
-[](https://medium.com/@srijanie.dey?source=post_page---byline--c33e638bebb1--------------------------------)[![Srijanie Dey, PhD](../Images/2b3292a3b22d712d91d0bfc14df64446.png)](https://medium.com/@srijanie.dey?source=post_page---byline--c33e638bebb1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c33e638bebb1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c33e638bebb1--------------------------------) [Srijanie Dey, 博士](https://medium.com/@srijanie.dey?source=post_page---byline--c33e638bebb1--------------------------------)
+[](https://medium.com/@srijanie.dey?source=post_page---byline--c33e638bebb1--------------------------------)![Srijanie Dey, PhD](https://medium.com/@srijanie.dey?source=post_page---byline--c33e638bebb1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c33e638bebb1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c33e638bebb1--------------------------------) [Srijanie Dey, 博士](https://medium.com/@srijanie.dey?source=post_page---byline--c33e638bebb1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c33e638bebb1--------------------------------) ·阅读时间：12分钟·2024年7月9日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c33e638bebb1--------------------------------) ·阅读时间：12 分钟·2024 年 7 月 9 日
 
 --
 
-![](../Images/49ffa3c9ea9d92e16c715ce00259c89f.png)
+![](img/49ffa3c9ea9d92e16c715ce00259c89f.png)
 
 作者提供的图片（古老的巫师，由我的四岁孩子创作）
 
 *“在塞伦蒂亚的神秘领域中，那里古老的森林低语着久已遗忘的咒语，居住着谜行者——一位尊敬的巫师，永恒智慧的守护者。”*
 
-*“有一天，当塞伦蒂亚面临巨大危险时，谜行者使用赋予过去、现在与未来精华的本质之石，编织了一场神秘的仪式。借助古老的魔法，他召唤出了LSTM，一个知识的传导体，能够保存塞伦蒂亚的历史并预见其命运。犹如一条无尽的智慧之河，LSTM流动着，超越了当下，揭示了地平线之外的未来。”*
+*“有一天，当塞伦蒂亚面临巨大危险时，谜行者使用赋予过去、现在与未来精华的本质之石，编织了一场神秘的仪式。借助古老的魔法，他召唤出了 LSTM，一个知识的传导体，能够保存塞伦蒂亚的历史并预见其命运。犹如一条无尽的智慧之河，LSTM 流动着，超越了当下，揭示了地平线之外的未来。”*
 
 *“从他隐居的住所，谜行者观察着塞伦蒂亚的重生，向新的高峰攀升。他知道，正是他那深奥的智慧和不懈的努力，再一次在这个神奇的世界中守护了一个遗产。”*
 
 随着这个故事，我们开始了对最吸引人的递归神经网络之一——长短期记忆网络（LSTMs）的深入探讨。为什么我们要再次回顾这个经典？因为随着语言建模中长上下文长度的重要性日益增长，它们可能再次变得非常有用。
 
-# LSTMs能否再次超越LLMs？
+# LSTMs 能否再次超越 LLMs？
 
-最近，奥地利的研究人员提出了一个有前景的举措，旨在复兴LSTM的失落辉煌——通过发展更为进化的扩展长短期记忆网络（Extended Long-short Term Memory，简称xLSTM）。可以说，在变压器（Transformers）出现之前，LSTM曾经在深度学习的成功中独占鳌头。现在的问题是，随着其能力的最大化和缺点的最小化，LSTM能否与当今的大型语言模型（LLM）竞争？
+最近，奥地利的研究人员提出了一个有前景的举措，旨在复兴 LSTM 的失落辉煌——通过发展更为进化的扩展长短期记忆网络（Extended Long-short Term Memory，简称 xLSTM）。可以说，在变压器（Transformers）出现之前，LSTM 曾经在深度学习的成功中独占鳌头。现在的问题是，随着其能力的最大化和缺点的最小化，LSTM 能否与当今的大型语言模型（LLM）竞争？
 
-为了得到答案，我们不妨回顾一下LSTM的历史，并回顾一下它们的独特之处：
+为了得到答案，我们不妨回顾一下 LSTM 的历史，并回顾一下它们的独特之处：
 
-长短期记忆网络（LSTM）最早由[Hochreiter 和 Schmidhuber](https://www.bioinf.jku.at/publications/older/2604.pdf)于1997年提出——旨在解决循环神经网络（RNN）面临的长期依赖问题。该论文已被引用约106518次，LSTM成为经典也就不足为奇了。
+长短期记忆网络（LSTM）最早由[Hochreiter 和 Schmidhuber](https://www.bioinf.jku.at/publications/older/2604.pdf)于 1997 年提出——旨在解决循环神经网络（RNN）面临的长期依赖问题。该论文已被引用约 106518 次，LSTM 成为经典也就不足为奇了。
 
-LSTM的核心思想是能够学习在任意时间间隔内，何时记住和何时忘记相关信息。这就像我们人类一样。我们不会从零开始每次想法——我们依赖于更久远的信息，并能非常巧妙地将它们联系起来。当然，说到LSTM时，大家会问——RNN不也做一样的事情吗？
+LSTM 的核心思想是能够学习在任意时间间隔内，何时记住和何时忘记相关信息。这就像我们人类一样。我们不会从零开始每次想法——我们依赖于更久远的信息，并能非常巧妙地将它们联系起来。当然，说到 LSTM 时，大家会问——RNN 不也做一样的事情吗？
 
-简短的答案是：可以。然而，存在一个很大的区别。RNN架构并不支持过多关注过去的内容——只能关注即时的过去。而这并不太有帮助。
+简短的答案是：可以。然而，存在一个很大的区别。RNN 架构并不支持过多关注过去的内容——只能关注即时的过去。而这并不太有帮助。
 
 举个例子，我们来看约翰·济慈在《秋天》中的这些诗句：
 
@@ -40,43 +40,43 @@ LSTM的核心思想是能够学习在任意时间间隔内，何时记住和何�
 
 *Close bosom-friend of the maturing sun;”*
 
-作为人类，我们理解“mists”（雾气）和“mellow fruitfulness”（丰盈的果实）这两个词与秋季的季节是概念上相关的，唤起了特定时节的想法。同样，LSTM可以捕捉到这种概念，并利用它进一步理解“maturing sun”（成熟的太阳）一词的上下文。尽管这些词在序列中分隔开，LSTM网络依然能够学习到它们之间的关联，并保持前面的联系不变。这与原始的循环神经网络（RNN）框架有着明显的区别。
+作为人类，我们理解“mists”（雾气）和“mellow fruitfulness”（丰盈的果实）这两个词与秋季的季节是概念上相关的，唤起了特定时节的想法。同样，LSTM 可以捕捉到这种概念，并利用它进一步理解“maturing sun”（成熟的太阳）一词的上下文。尽管这些词在序列中分隔开，LSTM 网络依然能够学习到它们之间的关联，并保持前面的联系不变。这与原始的循环神经网络（RNN）框架有着明显的区别。
 
-LSTM之所以能做到这一点，是通过一个门控机制。如果我们对比RNN和LSTM的架构，差异非常明显。RNN的架构非常简单——过去的状态和当前的输入通过一个激活函数传递，输出下一个状态。另一方面，LSTM块在RNN块的基础上添加了三个门控：输入门、遗忘门和输出门，它们共同处理过去的状态和当前的输入。这种门控机制正是所有区别的所在。
+LSTM 之所以能做到这一点，是通过一个门控机制。如果我们对比 RNN 和 LSTM 的架构，差异非常明显。RNN 的架构非常简单——过去的状态和当前的输入通过一个激活函数传递，输出下一个状态。另一方面，LSTM 块在 RNN 块的基础上添加了三个门控：输入门、遗忘门和输出门，它们共同处理过去的状态和当前的输入。这种门控机制正是所有区别的所在。
 
-为了进一步理解，让我们深入探讨这些令人惊叹的关于[LSTM](https://www.linkedin.com/posts/tom-yeh_lstm-aibyhand-deeplearning-activity-7206573043425447936-IYqt?utm_source=share&utm_medium=member_desktop)和[xLSTM](https://www.linkedin.com/posts/tom-yeh_lstm-aibyhand-activity-7194319329536978945-VP6W?utm_source=share&utm_medium=member_desktop)的杰出作品，作者是[Tom Yeh教授](https://www.linkedin.com/in/tom-yeh/)。
+为了进一步理解，让我们深入探讨这些令人惊叹的关于[LSTM](https://www.linkedin.com/posts/tom-yeh_lstm-aibyhand-deeplearning-activity-7206573043425447936-IYqt?utm_source=share&utm_medium=member_desktop)和[xLSTM](https://www.linkedin.com/posts/tom-yeh_lstm-aibyhand-activity-7194319329536978945-VP6W?utm_source=share&utm_medium=member_desktop)的杰出作品，作者是[Tom Yeh 教授](https://www.linkedin.com/in/tom-yeh/)。
 
-首先，让我们了解LSTM背后的数学机制，然后再探讨其更新版本。
+首先，让我们了解 LSTM 背后的数学机制，然后再探讨其更新版本。
 
-（下方的所有图片，除非另有说明，均来自Tom Yeh教授的LinkedIn帖子，我已获得他的许可进行编辑。）
+（下方的所有图片，除非另有说明，均来自 Tom Yeh 教授的 LinkedIn 帖子，我已获得他的许可进行编辑。）
 
 所以，接下来我们开始：
 
-# LSTM是如何工作的？
+# LSTM 是如何工作的？
 
 ## [1] 初始化
 
-第一步从随机分配先前的隐藏状态h0和记忆单元C0的值开始。为了与图示同步，我们设置：
+第一步从随机分配先前的隐藏状态 h0 和记忆单元 C0 的值开始。为了与图示同步，我们设置：
 
 h0 → [1,1]
 
 C0 → [0.3, -0.5]
 
-![](../Images/8dfd7b032b37f204451c17d02584e40b.png)
+![](img/8dfd7b032b37f204451c17d02584e40b.png)
 
 ## [2] 线性变换
 
-在下一步中，我们通过将四个权重矩阵（*Wf*，*Wc*，*Wi*和*Wo*）与当前输入X1和先前隐藏状态进行拼接后相乘，来执行线性变换。
+在下一步中，我们通过将四个权重矩阵（*Wf*，*Wc*，*Wi*和*Wo*）与当前输入 X1 和先前隐藏状态进行拼接后相乘，来执行线性变换。
 
 结果值称为**特征值**，它们是当前输入和隐藏状态的组合。
 
-![](../Images/6dccf0a8b5c7eba2afac97f64c89e09d.png)
+![](img/6dccf0a8b5c7eba2afac97f64c89e09d.png)
 
 ## [3] 非线性变换
 
-这一步在LSTM过程中至关重要。它是一个非线性变换，包含两个部分——**sigmoid σ**和**tanh**。
+这一步在 LSTM 过程中至关重要。它是一个非线性变换，包含两个部分——**sigmoid σ**和**tanh**。
 
-sigmoid用于获取介于0和1之间的门值。这个层实际上决定了保留哪些信息，遗忘哪些信息。值始终在0和1之间——‘0’表示完全删除信息，而‘1’表示保留信息。
+sigmoid 用于获取介于 0 和 1 之间的门值。这个层实际上决定了保留哪些信息，遗忘哪些信息。值始终在 0 和 1 之间——‘0’表示完全删除信息，而‘1’表示保留信息。
 
 +   忘记门 (f1)：[-4, -6] → [0, 0]
 
@@ -84,11 +84,11 @@ sigmoid用于获取介于0和1之间的门值。这个层实际上决定了保�
 
 +   输出门 (o1)：[4, -5] → [1, 0]
 
-在下一部分中，应用tanh来获得新的候选记忆值，这些值可以添加到先前的信息上。
+在下一部分中，应用 tanh 来获得新的候选记忆值，这些值可以添加到先前的信息上。
 
 +   候选记忆 (C’1)：[1, -6] → [0.8, -1]
 
-![](../Images/b76632ff806ae0df8b13d605cc6f0421.png)
+![](img/b76632ff806ae0df8b13d605cc6f0421.png)
 
 ## [4] 更新记忆
 
@@ -102,9 +102,9 @@ sigmoid用于获取介于0和1之间的门值。这个层实际上决定了保�
 
 1.  **输入**：将更新后的记忆值 (C’1) 与输入门值按元素相乘，得到‘输入缩放’后的记忆值。→ C’1 .* i1
 
-最后，我们将上述两项相加，得到更新后的记忆C1，即**C0 .* f1 + C’1 .* i1 = C1**
+最后，我们将上述两项相加，得到更新后的记忆 C1，即**C0 .* f1 + C’1 .* i1 = C1**
 
-![](../Images/eea4538ecb24d07770a0f06e8e1fba75.png)
+![](img/eea4538ecb24d07770a0f06e8e1fba75.png)
 
 ## [5] 候选输出
 
@@ -112,13 +112,13 @@ sigmoid用于获取介于0和1之间的门值。这个层实际上决定了保�
 
 首先，我们像之前一样对新的记忆 C1 应用 tanh，得到候选输出 o’1。这样会将值压缩到 -1 到 1 之间。
 
-![](../Images/c234f20db05f4d7c603a7c44bdd4ce92.png)
+![](img/c234f20db05f4d7c603a7c44bdd4ce92.png)
 
 ## [6] 更新隐藏状态
 
 为了得到最终输出，我们将之前步骤中获得的候选输出 o’1 与步骤 3 中输出门 o1 的 sigmoid 结果相乘，得到的结果就是网络的第一个输出，也是更新后的隐藏状态 h1，即 **o’1 * o1 = h1**。
 
-![](../Images/b95c5a03295b502387b9d2a982d62e9c.png)
+![](img/b95c5a03295b502387b9d2a982d62e9c.png)
 
 ## — — 过程 t = 2 — -
 
@@ -128,25 +128,25 @@ sigmoid用于获取介于0和1之间的门值。这个层实际上决定了保�
 
 首先，我们复制来自前面步骤的更新结果，即更新后的隐藏状态 h1 和记忆 C1。
 
-![](../Images/142061e2ce495b94eaeaf251c8aae472.png)
+![](img/142061e2ce495b94eaeaf251c8aae472.png)
 
 ## [8] 线性变换
 
 重复步骤 [2]，即逐元素的权重和偏置矩阵乘法。
 
-![](../Images/2ad7d59f612d08f21401728ca8af4702.png)
+![](img/2ad7d59f612d08f21401728ca8af4702.png)
 
 ## [9] 更新记忆 (C2)
 
 重复步骤 [3] 和 [4]，即使用 sigmoid 和 tanh 层进行非线性变换，随后决定遗忘相关部分并引入新信息——这将给我们更新后的记忆 C2。
 
-![](../Images/30b79ad19fe3908c5867691cc98137b7.png)
+![](img/30b79ad19fe3908c5867691cc98137b7.png)
 
 ## [10] 更新隐藏状态 (h2)
 
 最后，我们重复步骤 [5] 和 [6]，这会将结果加起来得到第二个隐藏状态 h2。
 
-![](../Images/e81ce3f9aea26b308f1da056116e47fd.png)
+![](img/e81ce3f9aea26b308f1da056116e47fd.png)
 
 ## 接下来，我们进入最后的迭代。
 
@@ -156,25 +156,25 @@ sigmoid用于获取介于0和1之间的门值。这个层实际上决定了保�
 
 再次，我们复制来自上一迭代的隐藏状态和记忆值，即 h2 和 C2。
 
-![](../Images/9199f1c501b328aa1dbd243a632507a0.png)
+![](img/9199f1c501b328aa1dbd243a632507a0.png)
 
 ## [12] 线性变换
 
 我们执行与步骤 2 相同的线性变换。
 
-![](../Images/91822b2527646253a536451432811b8c.png)
+![](img/91822b2527646253a536451432811b8c.png)
 
 ## [13] 更新记忆 (C3)
 
 接下来，我们执行非线性变换，并根据变换中获得的值执行记忆更新。
 
-![](../Images/dc328875f1265c3352b7b0d2c6054e1e.png)
+![](img/dc328875f1265c3352b7b0d2c6054e1e.png)
 
 ## [14] 更新隐藏状态 (h3)
 
 完成后，我们使用这些值来获得最终的隐藏状态 h3。
 
-![](../Images/528e2b7e2eb1ac3137fda08e5f46b73b.png)
+![](img/528e2b7e2eb1ac3137fda08e5f46b73b.png)
 
 # 总结：
 
@@ -192,49 +192,49 @@ sigmoid用于获取介于0和1之间的门值。这个层实际上决定了保�
 
 1.  接下来，我们根据前一步骤中获得的记忆更新来确定输出的样子。我们在这里获得一个候选输出。
 
-1.  我们将候选输出与步骤3中获得的门控输出值结合，最终得出中间隐藏状态。
+1.  我们将候选输出与步骤 3 中获得的门控输出值结合，最终得出中间隐藏状态。
 
 这个循环将根据需要继续进行多次迭代。
 
 # 扩展长短期记忆（xLSTM）
 
-## xLSTM的需求
+## xLSTM 的需求
 
-当LSTM出现时，它们无疑为做一些之前无法做到的事情奠定了基础。循环神经网络可以具有记忆，但它的记忆非常有限，因此诞生了LSTM——为了支持长期依赖。然而，这还不够。因为将输入分析为序列阻碍了并行计算的使用，而且由于长期依赖，还导致了性能下降。
+当 LSTM 出现时，它们无疑为做一些之前无法做到的事情奠定了基础。循环神经网络可以具有记忆，但它的记忆非常有限，因此诞生了 LSTM——为了支持长期依赖。然而，这还不够。因为将输入分析为序列阻碍了并行计算的使用，而且由于长期依赖，还导致了性能下降。
 
-因此，作为所有问题的解决方案，transformers诞生了。但问题仍然存在——我们是否可以通过解决LSTM的局限性，再次利用LSTM实现transformers的功能？为了解答这个问题，xLSTM架构应运而生。
+因此，作为所有问题的解决方案，transformers 诞生了。但问题仍然存在——我们是否可以通过解决 LSTM 的局限性，再次利用 LSTM 实现 transformers 的功能？为了解答这个问题，xLSTM 架构应运而生。
 
-## xLSTM与LSTM有何不同？
+## xLSTM 与 LSTM 有何不同？
 
-xLSTM可以看作是LSTM的一个非常进化的版本。xLSTM保留了LSTM的基础结构，但引入了新的元素，这些元素有助于处理原始形式的缺点。
+xLSTM 可以看作是 LSTM 的一个非常进化的版本。xLSTM 保留了 LSTM 的基础结构，但引入了新的元素，这些元素有助于处理原始形式的缺点。
 
 ## 指数门控与标量记忆混合——sLSTM
 
-最关键的区别是引入了**指数门控**。在LSTM中，当我们执行步骤[3]时，会对所有门进行sigmoid门控，而对于xLSTM，它已经被指数门控所替代。
+最关键的区别是引入了**指数门控**。在 LSTM 中，当我们执行步骤[3]时，会对所有门进行 sigmoid 门控，而对于 xLSTM，它已经被指数门控所替代。
 
-例如：对于输入门i1-
+例如：对于输入门 i1-
 
-![](../Images/04def2fa390328178528101562981194.png)
+![](img/04def2fa390328178528101562981194.png)
 
 现在，
 
-![](../Images/36ccf4af44d1978c697aabd5314a8320.png)
+![](img/36ccf4af44d1978c697aabd5314a8320.png)
 
 图片由作者提供
 
-由于指数门控提供了更大的范围，xLSTM能够比sigmoid函数更好地处理更新，因为sigmoid函数将输入压缩到（0, 1）的范围内。然而，有一个问题——指数值可能会变得非常大。为了缓解这个问题，xLSTM引入了归一化，并且下面方程中出现的对数函数在这里发挥了重要作用。
+由于指数门控提供了更大的范围，xLSTM 能够比 sigmoid 函数更好地处理更新，因为 sigmoid 函数将输入压缩到（0, 1）的范围内。然而，有一个问题——指数值可能会变得非常大。为了缓解这个问题，xLSTM 引入了归一化，并且下面方程中出现的对数函数在这里发挥了重要作用。
 
-![](../Images/7a79124479a3fd526ba17241e252b6d8.png)
+![](img/7a79124479a3fd526ba17241e252b6d8.png)
 
 图像来源于参考文献[1]
 
-现在，对数确实逆转了指数的效果，但正如[xLSTM论文](https://arxiv.org/abs/2405.04517)所声称的，它们的结合应用为平衡状态指明了方向。
+现在，对数确实逆转了指数的效果，但正如[xLSTM 论文](https://arxiv.org/abs/2405.04517)所声称的，它们的结合应用为平衡状态指明了方向。
 
-这种指数门控以及不同门之间的记忆混合（如原始LSTM中所示）形成了**sLSTM**块。
+这种指数门控以及不同门之间的记忆混合（如原始 LSTM 中所示）形成了**sLSTM**块。
 
 # 矩阵记忆单元——mLSTM
 
-xLSTM架构的另一个新特点是将标量记忆扩展为矩阵记忆，这使得它能够并行处理更多信息。它还通过引入键、查询和值向量，并将它们作为加权的键向量之和使用在归一化器状态中，从而与transformer架构相似，其中每个键向量的权重由输入门和遗忘门确定。
+xLSTM 架构的另一个新特点是将标量记忆扩展为矩阵记忆，这使得它能够并行处理更多信息。它还通过引入键、查询和值向量，并将它们作为加权的键向量之和使用在归一化器状态中，从而与 transformer 架构相似，其中每个键向量的权重由输入门和遗忘门确定。
 
 一旦 sLSTM 和 mLSTM 模块准备好后，它们会通过残差连接一个个堆叠在一起，形成 xLSTM 模块，最终构成 xLSTM 架构。
 
@@ -270,12 +270,12 @@ LSTM 总体上属于循环神经网络家族，它们以递归的方式按顺序
 
 现在去玩得开心，创造一些长短期效应吧！
 
-![](../Images/eefcdf7e690e6ecece1242a79f2acd5d.png)
+![](img/eefcdf7e690e6ecece1242a79f2acd5d.png)
 
 图片来源：作者
 
 ## 参考文献：
 
-1.  xLSTM：扩展的长短期记忆，Maximilian 等，2024年5月 [https://arxiv.org/abs/2405.04517](https://arxiv.org/abs/2405.04517)
+1.  xLSTM：扩展的长短期记忆，Maximilian 等，2024 年 5 月 [`arxiv.org/abs/2405.04517`](https://arxiv.org/abs/2405.04517)
 
-1.  长短期记忆，Sepp Hochreiter 和 Jürgen Schmidhuber，1997年，Neural Comput. 9, 8（1997年11月15日），1735–1780。 [https://doi.org/10.1162/neco.1997.9.8.1735](https://doi.org/10.1162/neco.1997.9.8.1735)
+1.  长短期记忆，Sepp Hochreiter 和 Jürgen Schmidhuber，1997 年，Neural Comput. 9, 8（1997 年 11 月 15 日），1735–1780。 [`doi.org/10.1162/neco.1997.9.8.1735`](https://doi.org/10.1162/neco.1997.9.8.1735)

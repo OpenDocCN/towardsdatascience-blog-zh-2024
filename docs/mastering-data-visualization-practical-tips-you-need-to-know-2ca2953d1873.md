@@ -1,18 +1,18 @@
 # 掌握数据可视化：你需要知道的实用技巧
 
-> 原文：[https://towardsdatascience.com/mastering-data-visualization-practical-tips-you-need-to-know-2ca2953d1873?source=collection_archive---------1-----------------------#2024-10-02](https://towardsdatascience.com/mastering-data-visualization-practical-tips-you-need-to-know-2ca2953d1873?source=collection_archive---------1-----------------------#2024-10-02)
+> 原文：[`towardsdatascience.com/mastering-data-visualization-practical-tips-you-need-to-know-2ca2953d1873?source=collection_archive---------1-----------------------#2024-10-02`](https://towardsdatascience.com/mastering-data-visualization-practical-tips-you-need-to-know-2ca2953d1873?source=collection_archive---------1-----------------------#2024-10-02)
 
 ## 数据科学
 
 ## 掌握有效数据可视化的艺术，传递有影响力的见解，真正吸引你的观众。
 
-[](https://medium.com/@17.rsuraj?source=post_page---byline--2ca2953d1873--------------------------------)[![Suraj Gurav](../Images/f5dca32861f8c1c428e66fbe2174c04b.png)](https://medium.com/@17.rsuraj?source=post_page---byline--2ca2953d1873--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2ca2953d1873--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2ca2953d1873--------------------------------) [Suraj Gurav](https://medium.com/@17.rsuraj?source=post_page---byline--2ca2953d1873--------------------------------)
+[](https://medium.com/@17.rsuraj?source=post_page---byline--2ca2953d1873--------------------------------)![Suraj Gurav](https://medium.com/@17.rsuraj?source=post_page---byline--2ca2953d1873--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2ca2953d1873--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2ca2953d1873--------------------------------) [Suraj Gurav](https://medium.com/@17.rsuraj?source=post_page---byline--2ca2953d1873--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2ca2953d1873--------------------------------) ·阅读时间8分钟·2024年10月2日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2ca2953d1873--------------------------------) ·阅读时间 8 分钟·2024 年 10 月 2 日
 
 --
 
-![](../Images/efa121c50eca8ce95081cc90f58ad00b.png)
+![](img/efa121c50eca8ce95081cc90f58ad00b.png)
 
 该照片由作者在德国林德霍夫宫拍摄
 

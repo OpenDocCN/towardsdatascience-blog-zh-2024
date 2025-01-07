@@ -1,18 +1,18 @@
 # Excel 电子表格对于大数据来说已经死了。公司需要更多的 Python 来代替。
 
-> 原文：[https://towardsdatascience.com/excel-spreadsheets-are-dead-for-big-data-companies-need-more-python-instead-71b8b3dbe19a?source=collection_archive---------3-----------------------#2024-11-18](https://towardsdatascience.com/excel-spreadsheets-are-dead-for-big-data-companies-need-more-python-instead-71b8b3dbe19a?source=collection_archive---------3-----------------------#2024-11-18)
+> 原文：[`towardsdatascience.com/excel-spreadsheets-are-dead-for-big-data-companies-need-more-python-instead-71b8b3dbe19a?source=collection_archive---------3-----------------------#2024-11-18`](https://towardsdatascience.com/excel-spreadsheets-are-dead-for-big-data-companies-need-more-python-instead-71b8b3dbe19a?source=collection_archive---------3-----------------------#2024-11-18)
 
 ## 意见
 
 ## 数据变得太复杂，Excel 已经跟不上了
 
-[](https://arijoury.medium.com/?source=post_page---byline--71b8b3dbe19a--------------------------------)[![Ari Joury, PhD](../Images/5b9e49279fb3f26373b393f29a4daaf7.png)](https://arijoury.medium.com/?source=post_page---byline--71b8b3dbe19a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--71b8b3dbe19a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--71b8b3dbe19a--------------------------------) [Ari Joury, PhD](https://arijoury.medium.com/?source=post_page---byline--71b8b3dbe19a--------------------------------)
+[](https://arijoury.medium.com/?source=post_page---byline--71b8b3dbe19a--------------------------------)![Ari Joury, PhD](https://arijoury.medium.com/?source=post_page---byline--71b8b3dbe19a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--71b8b3dbe19a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--71b8b3dbe19a--------------------------------) [Ari Joury, PhD](https://arijoury.medium.com/?source=post_page---byline--71b8b3dbe19a--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--71b8b3dbe19a--------------------------------) ·11分钟阅读·2024年11月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--71b8b3dbe19a--------------------------------) ·11 分钟阅读·2024 年 11 月 18 日
 
 --
 
-![](../Images/12db713b13759928d1e086bedf6f549a.png)
+![](img/12db713b13759928d1e086bedf6f549a.png)
 
 Python 正在接管曾经由 Excel 主导的领域。图片由 Leonardo AI 生成
 

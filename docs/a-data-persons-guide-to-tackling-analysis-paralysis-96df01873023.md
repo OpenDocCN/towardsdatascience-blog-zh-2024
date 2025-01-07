@@ -1,12 +1,12 @@
 # 数据人员应对分析瘫痪的指南
 
-> 原文：[https://towardsdatascience.com/a-data-persons-guide-to-tackling-analysis-paralysis-96df01873023?source=collection_archive---------1-----------------------#2024-02-14](https://towardsdatascience.com/a-data-persons-guide-to-tackling-analysis-paralysis-96df01873023?source=collection_archive---------1-----------------------#2024-02-14)
+> 原文：[`towardsdatascience.com/a-data-persons-guide-to-tackling-analysis-paralysis-96df01873023?source=collection_archive---------1-----------------------#2024-02-14`](https://towardsdatascience.com/a-data-persons-guide-to-tackling-analysis-paralysis-96df01873023?source=collection_archive---------1-----------------------#2024-02-14)
 
 ## **一个简单且有效的框架，帮助你建立数据展示的信心**
 
-[](https://medium.com/@nithhyaa_talks_data?source=post_page---byline--96df01873023--------------------------------)[![Nithhyaa Ramamoorthy](../Images/ddd922bb95d55cd94392babf69f02661.png)](https://medium.com/@nithhyaa_talks_data?source=post_page---byline--96df01873023--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--96df01873023--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--96df01873023--------------------------------) [Nithhyaa Ramamoorthy](https://medium.com/@nithhyaa_talks_data?source=post_page---byline--96df01873023--------------------------------)
+[](https://medium.com/@nithhyaa_talks_data?source=post_page---byline--96df01873023--------------------------------)![Nithhyaa Ramamoorthy](https://medium.com/@nithhyaa_talks_data?source=post_page---byline--96df01873023--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--96df01873023--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--96df01873023--------------------------------) [Nithhyaa Ramamoorthy](https://medium.com/@nithhyaa_talks_data?source=post_page---byline--96df01873023--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--96df01873023--------------------------------) ·阅读时间 9 分钟·2024年2月14日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--96df01873023--------------------------------) ·阅读时间 9 分钟·2024 年 2 月 14 日
 
 --
 
@@ -16,7 +16,7 @@
 
 > **注意：** 在整篇文章中，我将使用“数据人员”这一术语，而不是交替使用数据分析师、数据科学家、数据专家、数据主题专家等术语。不论我们的职称如何，毕竟我们都是充满好奇心的人，拥有丰富的信息资源，试图利用手头的数据资源创造影响。
 
-![](../Images/883b3dca281536326f511ac6e311feaf.png)
+![](img/883b3dca281536326f511ac6e311feaf.png)
 
 图片由作者提供
 
@@ -58,7 +58,7 @@
 
 +   清晰地标明共享的关键数据点是好兆头还是坏兆头，可以通过使用箭头和颜色来表示。（例如：低跳出率是好事，而低转化率是坏兆头。）
 
-+   始终为幻灯片中共享的任何数字（数据点）添加背景信息，包括基准细节或趋势分析。（例如：本月的转化率为12%，这一数据与同一产品线的其他SKU一致，且高于过去三年同月的平均转化率。）
++   始终为幻灯片中共享的任何数字（数据点）添加背景信息，包括基准细节或趋势分析。（例如：本月的转化率为 12%，这一数据与同一产品线的其他 SKU 一致，且高于过去三年同月的平均转化率。）
 
 +   将洞察与每个幻灯片中原始业务问题的某个部分联系起来。
 
@@ -72,7 +72,7 @@
 
 提升的简单有效方式就是通过失败并记录下所学的经验。随着你获得更多展示数据工作的机会，别忘了记录下哪些做法有效，哪些无效。很快，你将会根据你的观众和利益相关者群体，拥有一份关于可视化、分析和建议的类型清单。这个清单越大，你的数据演示就会变得越有影响力。
 
-> 在我作为分析实习生的最初几周，我感到非常不自在，因为我在迎新期间结识的大多数同伴都选择了与数据科学完全无关的轮岗方向。这是2012年，所以我当时并不懂得将自己的感受标记为“冒名顶替综合症”，但我在 One Note 上创建了一个小部分，记录了所有我的分析被好评的情况，以及那些我需要花大量时间通过电子邮件反复解释幻灯片内容的情况。这项练习帮助我意识到：
+> 在我作为分析实习生的最初几周，我感到非常不自在，因为我在迎新期间结识的大多数同伴都选择了与数据科学完全无关的轮岗方向。这是 2012 年，所以我当时并不懂得将自己的感受标记为“冒名顶替综合症”，但我在 One Note 上创建了一个小部分，记录了所有我的分析被好评的情况，以及那些我需要花大量时间通过电子邮件反复解释幻灯片内容的情况。这项练习帮助我意识到：
 
 +   如果你与组织的优先事项没有对齐，那么你（作为数据人员）所兴奋的内容，很可能与观众所兴奋的内容不同。
 
@@ -86,11 +86,11 @@
 
 让我们看一个假设的业务问题，以及使用或不使用这些策略时分析解决过程的不同。
 
-**业务问题：** 一个电子商务办公用品商店的桌面和移动网页版体验存在差异。（假设这是2000年代末，那时响应式网页设计还不是主流。）你部门的领导在考虑应该优先重设计哪一部分，并且这个决定是否会影响收入指标。
+**业务问题：** 一个电子商务办公用品商店的桌面和移动网页版体验存在差异。（假设这是 2000 年代末，那时响应式网页设计还不是主流。）你部门的领导在考虑应该优先重设计哪一部分，并且这个决定是否会影响收入指标。
 
 **新手数据人员版：**
 
-![](../Images/f1a82b10963014639168040143f8db08.png)
+![](img/f1a82b10963014639168040143f8db08.png)
 
 1.  数据人员接手问题。
 
@@ -112,7 +112,7 @@
 
 **资深数据人员的版本：**
 
-![](../Images/05d2d6658a56a4cbf7d50f4fbdcac908.png)
+![](img/05d2d6658a56a4cbf7d50f4fbdcac908.png)
 
 1.  数据人员接手问题。
 
@@ -138,4 +138,4 @@
 
 **关于作者：**
 
-Nithhyaa Ramamoorthy 是一位数据领域专家，拥有超过12年的分析和大数据经验，尤其专注于医疗健康与消费者行为的交集。她拥有信息科学的硕士学位，并且最近获得了CSPO证书以及其他多个认证。她热衷于运用自己的分析技能推动商业决策，创建根植于同理心的包容性和公平的数字产品。她目前在梅奥诊所——数字健康中心担任分析主管。
+Nithhyaa Ramamoorthy 是一位数据领域专家，拥有超过 12 年的分析和大数据经验，尤其专注于医疗健康与消费者行为的交集。她拥有信息科学的硕士学位，并且最近获得了 CSPO 证书以及其他多个认证。她热衷于运用自己的分析技能推动商业决策，创建根植于同理心的包容性和公平的数字产品。她目前在梅奥诊所——数字健康中心担任分析主管。

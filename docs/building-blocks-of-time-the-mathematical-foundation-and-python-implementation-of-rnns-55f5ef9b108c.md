@@ -1,30 +1,30 @@
-# 时间的构建模块：RNN的数学基础与Python实现
+# 时间的构建模块：RNN 的数学基础与 Python 实现
 
-> 原文：[https://towardsdatascience.com/building-blocks-of-time-the-mathematical-foundation-and-python-implementation-of-rnns-55f5ef9b108c?source=collection_archive---------3-----------------------#2024-01-20](https://towardsdatascience.com/building-blocks-of-time-the-mathematical-foundation-and-python-implementation-of-rnns-55f5ef9b108c?source=collection_archive---------3-----------------------#2024-01-20)
+> 原文：[`towardsdatascience.com/building-blocks-of-time-the-mathematical-foundation-and-python-implementation-of-rnns-55f5ef9b108c?source=collection_archive---------3-----------------------#2024-01-20`](https://towardsdatascience.com/building-blocks-of-time-the-mathematical-foundation-and-python-implementation-of-rnns-55f5ef9b108c?source=collection_archive---------3-----------------------#2024-01-20)
 
-[](https://medium.com/@ns650?source=post_page---byline--55f5ef9b108c--------------------------------)[![Najib Sharifi, Ph.D.](../Images/d94932c5e3633e32247d98a3c221b181.png)](https://medium.com/@ns650?source=post_page---byline--55f5ef9b108c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--55f5ef9b108c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--55f5ef9b108c--------------------------------) [Najib Sharifi, Ph.D.](https://medium.com/@ns650?source=post_page---byline--55f5ef9b108c--------------------------------)
+[](https://medium.com/@ns650?source=post_page---byline--55f5ef9b108c--------------------------------)![Najib Sharifi, Ph.D.](https://medium.com/@ns650?source=post_page---byline--55f5ef9b108c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--55f5ef9b108c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--55f5ef9b108c--------------------------------) [Najib Sharifi, Ph.D.](https://medium.com/@ns650?source=post_page---byline--55f5ef9b108c--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--55f5ef9b108c--------------------------------) ·阅读时间：7分钟·2024年1月20日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--55f5ef9b108c--------------------------------) ·阅读时间：7 分钟·2024 年 1 月 20 日
 
 --
 
-仅仅能够使用流行库构建和训练机器学习模型，对于机器学习用户来说足够吗？可能不久后就不够了。随着像AutoAI这样的工具崛起，许多传统的机器学习技能，如使用常见库如Pytorch构建模型架构，可能会变得不那么重要。
+仅仅能够使用流行库构建和训练机器学习模型，对于机器学习用户来说足够吗？可能不久后就不够了。随着像 AutoAI 这样的工具崛起，许多传统的机器学习技能，如使用常见库如 Pytorch 构建模型架构，可能会变得不那么重要。
 
 可能会持续存在的是对具备深厚机器学习（ML）基本原理理解的熟练用户的需求，特别是在那些需要新颖挑战、定制和优化的任务中。为了更具创新性和新颖性，深入理解这些算法的数学基础至关重要。在本文中，我们将研究一个重要模型——循环神经网络（RNN）的数学描述。
 
-时间序列数据（或任何顺序数据，如语言）具有时间依赖性，并广泛应用于各个领域，从天气预测到医学应用。RNN是一个强大的工具，用于捕捉此类数据中的顺序模式。在本文中，我们将深入探讨RNN的数学基础，并使用Python从零实现这些方程。
+时间序列数据（或任何顺序数据，如语言）具有时间依赖性，并广泛应用于各个领域，从天气预测到医学应用。RNN 是一个强大的工具，用于捕捉此类数据中的顺序模式。在本文中，我们将深入探讨 RNN 的数学基础，并使用 Python 从零实现这些方程。
 
-**理解RNN：数学描述**
+**理解 RNN：数学描述**
 
 序列数据的一个重要元素是时间依赖性，其中过去的值决定了当前和未来的值（就像我们生活在一个预定的世界中，但我们不谈哲学，继续讨论 RNN 模型）。时间序列预测利用了序列数据的这一特性，重点在于根据前 n 个值预测下一个值。根据模型的不同，这包括对过去值的映射或回归。
 
-![](../Images/0e3a7e8e017f7ba6f95225d897042f65.png)
+![](img/0e3a7e8e017f7ba6f95225d897042f65.png)
 
 图 1. 时间序列数据示例
 
 考虑黑箭所指示的点 y 和 y 前面的点（位于红色虚线之间），记作 *X = {x1 , x2 , ….xt …..xT}*，其中 T 是总时间步数。RNN 通过将每个输入传递到隐状态（有时称为记忆状态）来处理输入序列（X），并输出 y。这些隐状态使得模型能够捕捉并记住序列中早期点的模式。
 
-![](../Images/48e402a9de5ad3a7c9390aa0ca74650d.png)
+![](img/48e402a9de5ad3a7c9390aa0ca74650d.png)
 
 图 2. RNN 模型的示意图，展示了输入、隐状态和输出
 
@@ -34,25 +34,25 @@
 
 前向传播相当直接，如下所示：
 
-![](../Images/ec00274d244ae652d203e44f54b13a44.png)
+![](img/ec00274d244ae652d203e44f54b13a44.png)
 
 **时间反向传播**
 
 在机器学习中，优化（变量更新）是通过梯度下降法进行的：
 
-![](../Images/dd4700c9a1c5a0614ad4ea4351d998e1.png)
+![](img/dd4700c9a1c5a0614ad4ea4351d998e1.png)
 
 因此，所有在训练过程中需要更新的参数都需要它们的偏导数。这里我们将推导损失函数对前向传播方程中每个变量的偏导数：
 
-![](../Images/4411243d3731ffa01a9bd02c9c338287.png)
+![](img/4411243d3731ffa01a9bd02c9c338287.png)
 
 通过注意前向传播方程和图 2 中的网络示意图，我们可以看到，在时间 T 时，L 仅通过 y_T 依赖于 a_T，即：
 
-![](../Images/25fbb6ecd623f6e156fab86813069655.png)
+![](img/25fbb6ecd623f6e156fab86813069655.png)
 
 然而，对于 t < T，L 通过 y_T 和 a_(T+1) 依赖于 a_T，因此我们使用链式法则对两者进行处理：
 
-![](../Images/18427bf16f7c05a722b20a4fef9ebe1f.png)
+![](img/18427bf16f7c05a722b20a4fef9ebe1f.png)
 
 现在我们得到了损失函数对前向传播方程中所有参数的梯度方程。这种算法称为时间反向传播。需要澄清的是，对于时间序列数据，通常只有最后一个值对损失函数有贡献，即所有其他输出会被忽略，其对损失函数的贡献为 0。数学描述与上述相同。现在让我们用 Python 编写这些方程，并将其应用于一个示例数据集。
 
@@ -257,8 +257,8 @@ figure = go.Figure(data = [trace1,trace2], layout = layout)
 iplot(figure)
 ```
 
-![](../Images/781dec6b1aa00a30f39191138c70b7f2.png)
+![](img/781dec6b1aa00a30f39191138c70b7f2.png)
 
-这就带我们结束了本次演示，但希望这只是你深入阅读这些强大模型的开始。你可以通过尝试在前向传递中使用不同的激活函数来测试你的理解。或者进一步阅读像LSTM和Transformer这样的顺序模型，它们是非常强大的工具，特别是在与语言相关的任务中。探索这些模型可以加深你对处理时间依赖关系的更复杂机制的理解。最后，感谢你花时间阅读本文，希望它对你理解RNN及其数学背景有所帮助。
+这就带我们结束了本次演示，但希望这只是你深入阅读这些强大模型的开始。你可以通过尝试在前向传递中使用不同的激活函数来测试你的理解。或者进一步阅读像 LSTM 和 Transformer 这样的顺序模型，它们是非常强大的工具，特别是在与语言相关的任务中。探索这些模型可以加深你对处理时间依赖关系的更复杂机制的理解。最后，感谢你花时间阅读本文，希望它对你理解 RNN 及其数学背景有所帮助。
 
 *除非另有说明，所有图片均由作者提供*

@@ -1,12 +1,12 @@
 # 从零开始学习高斯过程
 
-> 原文：[https://towardsdatascience.com/gaussian-processes-from-scratch-cfc11715730c?source=collection_archive---------4-----------------------#2024-01-06](https://towardsdatascience.com/gaussian-processes-from-scratch-cfc11715730c?source=collection_archive---------4-----------------------#2024-01-06)
+> 原文：[`towardsdatascience.com/gaussian-processes-from-scratch-cfc11715730c?source=collection_archive---------4-----------------------#2024-01-06`](https://towardsdatascience.com/gaussian-processes-from-scratch-cfc11715730c?source=collection_archive---------4-----------------------#2024-01-06)
 
 ## 通过仅用 NumPy 实现高斯过程，深入理解它们。
 
-[](https://medium.com/@theo.wolf?source=post_page---byline--cfc11715730c--------------------------------)[![Theo Wolf](../Images/39e9d886e74e456989eccd60328264c8.png)](https://medium.com/@theo.wolf?source=post_page---byline--cfc11715730c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cfc11715730c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cfc11715730c--------------------------------) [Theo Wolf](https://medium.com/@theo.wolf?source=post_page---byline--cfc11715730c--------------------------------)
+[](https://medium.com/@theo.wolf?source=post_page---byline--cfc11715730c--------------------------------)![Theo Wolf](https://medium.com/@theo.wolf?source=post_page---byline--cfc11715730c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cfc11715730c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cfc11715730c--------------------------------) [Theo Wolf](https://medium.com/@theo.wolf?source=post_page---byline--cfc11715730c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cfc11715730c--------------------------------) ·阅读时间 6 分钟 ·2024年1月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cfc11715730c--------------------------------) ·阅读时间 6 分钟 ·2024 年 1 月 6 日
 
 --
 

@@ -1,18 +1,18 @@
 # 解码 Medium 上的写作成功
 
-> 原文：[https://towardsdatascience.com/decoding-writing-success-on-medium-c78972d91375?source=collection_archive---------10-----------------------#2024-05-07](https://towardsdatascience.com/decoding-writing-success-on-medium-c78972d91375?source=collection_archive---------10-----------------------#2024-05-07)
+> 原文：[`towardsdatascience.com/decoding-writing-success-on-medium-c78972d91375?source=collection_archive---------10-----------------------#2024-05-07`](https://towardsdatascience.com/decoding-writing-success-on-medium-c78972d91375?source=collection_archive---------10-----------------------#2024-05-07)
 
 ## 快速成功的数据科学
 
 ## **数据驱动的方法**
 
-[](https://medium.com/@lee_vaughan?source=post_page---byline--c78972d91375--------------------------------)[![Lee Vaughan](../Images/9f6b90bb76102f438ab0b9a4a62ffa3f.png)](https://medium.com/@lee_vaughan?source=post_page---byline--c78972d91375--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c78972d91375--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c78972d91375--------------------------------) [Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--c78972d91375--------------------------------)
+[](https://medium.com/@lee_vaughan?source=post_page---byline--c78972d91375--------------------------------)![Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--c78972d91375--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c78972d91375--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c78972d91375--------------------------------) [Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--c78972d91375--------------------------------)
 
 ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c78972d91375--------------------------------) ·12 分钟阅读·2024 年 5 月 7 日
 
 --
 
-![](../Images/bb13eb783ea0f3c0cf798cd05aa06bbe.png)
+![](img/bb13eb783ea0f3c0cf798cd05aa06bbe.png)
 
 Medium 关注者和收入的折线图（按作者）
 

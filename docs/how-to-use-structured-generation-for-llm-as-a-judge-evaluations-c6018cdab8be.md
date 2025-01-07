@@ -1,36 +1,36 @@
-# 如何使用结构化生成进行LLM作为裁判的评估
+# 如何使用结构化生成进行 LLM 作为裁判的评估
 
-> 原文：[https://towardsdatascience.com/how-to-use-structured-generation-for-llm-as-a-judge-evaluations-c6018cdab8be?source=collection_archive---------10-----------------------#2024-11-27](https://towardsdatascience.com/how-to-use-structured-generation-for-llm-as-a-judge-evaluations-c6018cdab8be?source=collection_archive---------10-----------------------#2024-11-27)
+> 原文：[`towardsdatascience.com/how-to-use-structured-generation-for-llm-as-a-judge-evaluations-c6018cdab8be?source=collection_archive---------10-----------------------#2024-11-27`](https://towardsdatascience.com/how-to-use-structured-generation-for-llm-as-a-judge-evaluations-c6018cdab8be?source=collection_archive---------10-----------------------#2024-11-27)
 
-## 结构化生成是构建复杂的多步骤推理代理的基础，尤其是在LLM评估中——尤其是对于开源模型
+## 结构化生成是构建复杂的多步骤推理代理的基础，尤其是在 LLM 评估中——尤其是对于开源模型
 
-[](https://medium.com/@calebkaiser?source=post_page---byline--c6018cdab8be--------------------------------)[![Caleb Kaiser](../Images/c33ef43df24242501cb9e797e8d67a6c.png)](https://medium.com/@calebkaiser?source=post_page---byline--c6018cdab8be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6018cdab8be--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c6018cdab8be--------------------------------) [Caleb Kaiser](https://medium.com/@calebkaiser?source=post_page---byline--c6018cdab8be--------------------------------)
+[](https://medium.com/@calebkaiser?source=post_page---byline--c6018cdab8be--------------------------------)![Caleb Kaiser](https://medium.com/@calebkaiser?source=post_page---byline--c6018cdab8be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6018cdab8be--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6018cdab8be--------------------------------) [Caleb Kaiser](https://medium.com/@calebkaiser?source=post_page---byline--c6018cdab8be--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6018cdab8be--------------------------------) ·阅读时间 20分钟·2024年11月27日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6018cdab8be--------------------------------) ·阅读时间 20 分钟·2024 年 11 月 27 日
 
 --
 
-![](../Images/f8849a88a2dfb9c66defaadbb3f70dbb.png)
+![](img/f8849a88a2dfb9c66defaadbb3f70dbb.png)
 
-来源：[通过SDXL 1.0生成](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)
+来源：[通过 SDXL 1.0 生成](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)
 
 *声明：我是* [*Opik*](https://github.com/comet-ml/opik)*的维护者之一，该项目是本文后面提到的开源项目。*
 
-在过去的几个月里，我一直在致力于基于大型语言模型（LLM）的评估（“LLM作为裁判”指标）。到目前为止，结果非常令人鼓舞，特别是在一些难以通过启发式方法量化的评估中，比如幻觉检测或内容审核。
+在过去的几个月里，我一直在致力于基于大型语言模型（LLM）的评估（“LLM 作为裁判”指标）。到目前为止，结果非常令人鼓舞，特别是在一些难以通过启发式方法量化的评估中，比如幻觉检测或内容审核。
 
-然而，基于LLM的度量工程一直出奇地具有挑战性。评估和单元测试，特别是那些包含更复杂逻辑的测试，要求你了解数据的结构。而对于LLM及其概率输出，可靠地输出特定格式和结构是非常困难的。一些托管模型提供商现在提供`结构化输出`模式，但这些模式仍然存在限制，并且如果你使用的是开源或本地模型，这些模式对你帮助不大。
+然而，基于 LLM 的度量工程一直出奇地具有挑战性。评估和单元测试，特别是那些包含更复杂逻辑的测试，要求你了解数据的结构。而对于 LLM 及其概率输出，可靠地输出特定格式和结构是非常困难的。一些托管模型提供商现在提供`结构化输出`模式，但这些模式仍然存在限制，并且如果你使用的是开源或本地模型，这些模式对你帮助不大。
 
-这个问题的解决方案是使用**结构化生成**。除了使基于LLM的评估更可靠之外，它还解锁了一个全新的复杂且强大的多阶段评估类别。
+这个问题的解决方案是使用**结构化生成**。除了使基于 LLM 的评估更可靠之外，它还解锁了一个全新的复杂且强大的多阶段评估类别。
 
-在这一部分，我想介绍一下结构化生成及其背后的一些大思想，然后再深入探讨使用LLM评判器进行幻觉检测的具体示例。下面所有的代码示例都可以在这个[Colab笔记本](https://colab.research.google.com/drive/1-lQn0qvJMN1BBuDjRuCzySA7gLhpcdBo#scrollTo=8QOySg8J5AcT)中运行，因此在跟随的过程中，欢迎你运行这些示例。
+在这一部分，我想介绍一下结构化生成及其背后的一些大思想，然后再深入探讨使用 LLM 评判器进行幻觉检测的具体示例。下面所有的代码示例都可以在这个[Colab 笔记本](https://colab.research.google.com/drive/1-lQn0qvJMN1BBuDjRuCzySA7gLhpcdBo#scrollTo=8QOySg8J5AcT)中运行，因此在跟随的过程中，欢迎你运行这些示例。
 
 # 使用上下文无关文法（CFG）进行结构化生成简要介绍
 
-结构化生成是机器学习的一个子领域，专注于通过将输出限制为符合某个特定模式来引导生成模型的输出。举个例子，与其微调一个模型使其输出有效的JSON，你可能会限制一个更通用模型的输出，只匹配有效的JSON模式。
+结构化生成是机器学习的一个子领域，专注于通过将输出限制为符合某个特定模式来引导生成模型的输出。举个例子，与其微调一个模型使其输出有效的 JSON，你可能会限制一个更通用模型的输出，只匹配有效的 JSON 模式。
 
 你可以通过不同的策略来限制模型的输出，但最常见的方法是在采样阶段直接干预，使用某些外部模式来防止采样到“不正确”的标记。
 
-此时，结构化生成已经成为LLM服务器中相当常见的特性。vLLM、NVIDIA NIM、llama.cpp和Ollama都支持它。如果你没有在使用模型服务器，像[Outlines](https://github.com/dottxt-ai/outlines)这样的库使得对任何模型的实现变得非常简单。OpenAI也提供了一种“结构化输出”模式，类似地，允许你从他们的API中指定响应模式。
+此时，结构化生成已经成为 LLM 服务器中相当常见的特性。vLLM、NVIDIA NIM、llama.cpp 和 Ollama 都支持它。如果你没有在使用模型服务器，像[Outlines](https://github.com/dottxt-ai/outlines)这样的库使得对任何模型的实现变得非常简单。OpenAI 也提供了一种“结构化输出”模式，类似地，允许你从他们的 API 中指定响应模式。
 
 不过，我发现尝试从零开始做一个简单的实现有助于我对概念的直观理解，所以我们将从这里开始。
 
@@ -40,9 +40,9 @@
 
 +   解析输出
 
-对于模式，我将使用上下文无关文法（CFG）。如果你不熟悉，文法是解析语言的一种模式。简单地说，它定义了在语言中什么是“有效”的，什么不是。如果你有兴趣深入了解，*极好的*兔子洞是，上下文无关语言是乔姆斯基语言层级的一部分。令人惊叹的Kay Lack在[这里](https://www.youtube.com/watch?v=ENKT0Z3gldE)有一段关于文法和解析的精彩入门视频，感兴趣的话可以观看。
+对于模式，我将使用上下文无关文法（CFG）。如果你不熟悉，文法是解析语言的一种模式。简单地说，它定义了在语言中什么是“有效”的，什么不是。如果你有兴趣深入了解，*极好的*兔子洞是，上下文无关语言是乔姆斯基语言层级的一部分。令人惊叹的 Kay Lack 在[这里](https://www.youtube.com/watch?v=ENKT0Z3gldE)有一段关于文法和解析的精彩入门视频，感兴趣的话可以观看。
 
-用于解析和构建上下文无关文法（CFG）的最流行的库是Lark。在下面的代码中，我使用该库编写了一个简单的JSON语法：
+用于解析和构建上下文无关文法（CFG）的最流行的库是 Lark。在下面的代码中，我使用该库编写了一个简单的 JSON 语法：
 
 ```py
 from lark import Lark
@@ -239,25 +239,25 @@ Parsed JSON Object:
 
 这种方法显然会给你的代码增加一些计算开销，但一些更优化的实现实际上能够在最小的延迟影响下结构化模型的输出。下面是使用 llama.cpp 的语法结构化生成功能进行非结构化生成与结构化生成的并排对比：
 
-![](../Images/ef64ac9c814a3975332ad0bd4f4f6ac3.png)
+![](img/ef64ac9c814a3975332ad0bd4f4f6ac3.png)
 
 来源：[语法结构化生成的速度有多快？](https://blog.dottxt.co/how-fast-cfg.html)
 
-这个对比是由Brandon Willard从.txt（Outlines背后的公司）记录的，作为[他关于结构化生成延迟的精彩文章的一部分](https://blog.dottxt.co/how-fast-cfg.html)。如果你有兴趣深入了解这个领域，我强烈推荐阅读这篇文章。
+这个对比是由 Brandon Willard 从.txt（Outlines 背后的公司）记录的，作为[他关于结构化生成延迟的精彩文章的一部分](https://blog.dottxt.co/how-fast-cfg.html)。如果你有兴趣深入了解这个领域，我强烈推荐阅读这篇文章。
 
-好的，在这个简单介绍之后，让我们来看看如何将结构化生成应用于LLM作为评判标准的度量，比如幻觉检测。
+好的，在这个简单介绍之后，让我们来看看如何将结构化生成应用于 LLM 作为评判标准的度量，比如幻觉检测。
 
 # 如何通过结构化生成来检测幻觉
 
-幻觉检测是基于LLM评估的“经典”应用之一。传统的启发式方法在幻觉的细微差别上存在困难，这在很大程度上是因为“幻觉”并没有一个普遍公认的定义。为了本文的目的，我们将采用[伊利诺伊大学香槟分校最近发表的一篇论文中的定义](https://arxiv.org/html/2403.16527v1)，我认为它既具描述性又具有可用性：
+幻觉检测是基于 LLM 评估的“经典”应用之一。传统的启发式方法在幻觉的细微差别上存在困难，这在很大程度上是因为“幻觉”并没有一个普遍公认的定义。为了本文的目的，我们将采用[伊利诺伊大学香槟分校最近发表的一篇论文中的定义](https://arxiv.org/html/2403.16527v1)，我认为它既具描述性又具有可用性：
 
 *幻觉是模型生成的输出，与实际部署中的约束冲突，或偏离期望行为，或者与当前任务完全无关，但在特定情况下可能被认为在语法上是可行的。*
 
 换句话说，幻觉是一个看起来似乎合理的输出。它语法正确，参考了周围的上下文，看起来符合任务的“流程”。然而，它也与任务的一些基本指令相矛盾。这可能意味着得出错误的结论，引用不存在的数据，或者完全忽视任务的实际指令。
 
-显然，为了分析像幻觉这样模糊的概念，需要编码一个离散的规则系统，这本身就是一个挑战。然而，LLM非常适合这种复杂的任务。
+显然，为了分析像幻觉这样模糊的概念，需要编码一个离散的规则系统，这本身就是一个挑战。然而，LLM 非常适合这种复杂的任务。
 
-使用LLM来执行幻觉分析并不难设置。我们需要做的只是提示模型分析输出文本中的幻觉。在[Opik内置的Hallucination()度量](https://github.com/comet-ml/opik)中，我们使用了以下提示：
+使用 LLM 来执行幻觉分析并不难设置。我们需要做的只是提示模型分析输出文本中的幻觉。在[Opik 内置的 Hallucination()度量](https://github.com/comet-ml/opik)中，我们使用了以下提示：
 
 ```py
 context_hallucination_template = """You are an expert judge tasked with evaluating the faithfulness of an AI-generated answer to the given context. Analyze the provided INPUT, CONTEXT, and OUTPUT to determine if the OUTPUT contains any hallucinations or unfaithful information.
@@ -294,13 +294,13 @@ Provide your verdict in JSON format:
 }}"""
 ```
 
-然而，困难的部分是如何通过程序化的方式进行分析。在实际应用中，我们希望能够自动解析模型的输出，并收集幻觉得分，无论是作为模型评估的一部分，还是作为推理管道的一部分。做到这一点将需要我们编写针对模型输出的代码，而如果LLM的输出格式不正确，评估过程将会中断。
+然而，困难的部分是如何通过程序化的方式进行分析。在实际应用中，我们希望能够自动解析模型的输出，并收集幻觉得分，无论是作为模型评估的一部分，还是作为推理管道的一部分。做到这一点将需要我们编写针对模型输出的代码，而如果 LLM 的输出格式不正确，评估过程将会中断。
 
 这是一个即使对于最先进的基础模型来说也存在的问题，但在使用较小的语言模型时，这个问题会被大大夸大。它们的输出是概率性的，无论你在提示中多么细致，都不能保证它们总是以正确的结构做出回应。
 
 *除非*，当然，你使用的是结构化生成。
 
-让我们通过一个简单的例子来使用Outlines和Opik。首先，我们希望使用Outlines初始化我们的模型。在这个示例中，我们将使用Qwen2.5的5亿参数版本。虽然这个模型的规模令人印象深刻，且足够小，可以在Colab笔记本中快速运行，但为了更准确的结果，你可能希望使用更大的模型。
+让我们通过一个简单的例子来使用 Outlines 和 Opik。首先，我们希望使用 Outlines 初始化我们的模型。在这个示例中，我们将使用 Qwen2.5 的 5 亿参数版本。虽然这个模型的规模令人印象深刻，且足够小，可以在 Colab 笔记本中快速运行，但为了更准确的结果，你可能希望使用更大的模型。
 
 ```py
 import outlines
@@ -312,7 +312,7 @@ model_kwargs = {
 model = outlines.models.transformers("Qwen/Qwen2.5-0.5B-Instruct", model_kwargs=model_kwargs)
 ```
 
-当你的模型下载完成后，你可以创建一个`generator`。在Outlines中，`generator`是一个推理管道，它将输出模式与模型结合。在下面的代码中，我们将使用Pydantic定义一个模式，并初始化我们的生成器：
+当你的模型下载完成后，你可以创建一个`generator`。在 Outlines 中，`generator`是一个推理管道，它将输出模式与模型结合。在下面的代码中，我们将使用 Pydantic 定义一个模式，并初始化我们的生成器：
 
 ```py
 import pydantic
@@ -327,7 +327,7 @@ generator = outlines.generate.json(model, HallucinationResponse)
 
 现在，如果我们将一个字符串传递给生成器，它将输出一个格式正确的对象。
 
-接下来，让我们在Opik中设置我们的幻觉度量。使用Opik的baseMetric类创建度量非常简单：
+接下来，让我们在 Opik 中设置我们的幻觉度量。使用 Opik 的 baseMetric 类创建度量非常简单：
 
 ```py
 from typing import Optional, List, Any
@@ -372,7 +372,7 @@ class HallucinationWithOutlines(base_metric.BaseMetric):
 
 我们在上面所做的实际上只是使用先前定义的模板字符串生成我们的提示，然后将其传递给生成器。
 
-现在，让我们在一个实际的幻觉数据集上试试我们的度量，了解它是如何工作的。我们将使用HaluEval数据集中的一个拆分，这个数据集可以通过HuggingFace免费下载并具有宽松的许可，我们将把它上传为Opik数据集用于实验。我们会使用一些额外的逻辑，确保数据集在幻觉和非幻觉样本之间保持平衡：
+现在，让我们在一个实际的幻觉数据集上试试我们的度量，了解它是如何工作的。我们将使用 HaluEval 数据集中的一个拆分，这个数据集可以通过 HuggingFace 免费下载并具有宽松的许可，我们将把它上传为 Opik 数据集用于实验。我们会使用一些额外的逻辑，确保数据集在幻觉和非幻觉样本之间保持平衡：
 
 ```py
 import opik
@@ -412,7 +412,7 @@ dataset_records = [
 dataset.insert(dataset_records)
 ```
 
-现在，我们只需使用我们的HallucinationWithOutlines()度量定义一个评估任务，并将其应用于我们的数据集：
+现在，我们只需使用我们的 HallucinationWithOutlines()度量定义一个评估任务，并将其应用于我们的数据集：
 
 ```py
 from opik.evaluation import evaluate
@@ -469,7 +469,7 @@ View the results in your Opik dashboard.
 generator = outlines.generate.text(model)
 ```
 
-并修改我们的度量来解析模型输出中的JSON：
+并修改我们的度量来解析模型输出中的 JSON：
 
 ```py
 from typing import Optional, List, Any
@@ -528,27 +528,27 @@ Evaluation:  12%|█▏        | 6/200 [00:57<03:01,  4.12s/it]Unterminated stri
 
 没有结构化生成，这种评估就无法实现，尤其是在一个这么小的模型上。作为实验，尝试用更大的模型运行这段代码，看看平均准确度分数是如何提高的。
 
-# 我们能否通过结构化生成构建更复杂的LLM法官？
+# 我们能否通过结构化生成构建更复杂的 LLM 法官？
 
-上面的幻觉检测示例非常直接。然而，结构化生成给LLM法官带来的真正价值在于，它使我们能够构建更复杂的多轮评估。
+上面的幻觉检测示例非常直接。然而，结构化生成给 LLM 法官带来的真正价值在于，它使我们能够构建更复杂的多轮评估。
 
-为了给出一个极端的多步骤评估示例，最近有一篇论文通过为不同的LLM代理构建多个“人格”，并让[代理在实际法庭结构中辩论](https://arxiv.org/html/2405.20267v4)，在LLM评估中取得了成功：
+为了给出一个极端的多步骤评估示例，最近有一篇论文通过为不同的 LLM 代理构建多个“人格”，并让[代理在实际法庭结构中辩论](https://arxiv.org/html/2405.20267v4)，在 LLM 评估中取得了成功：
 
-![](../Images/dde936a55ce3335b4578f945199af6f4.png)
+![](img/dde936a55ce3335b4578f945199af6f4.png)
 
-[来源：Auto-Arena: 用代理对抗战和委员会讨论自动化LLM评估](https://arxiv.org/html/2405.20267v4)
+[来源：Auto-Arena: 用代理对抗战和委员会讨论自动化 LLM 评估](https://arxiv.org/html/2405.20267v4)
 
 强制不同的代理支持不同的立场并审查彼此的论点，同时让另一个代理充当“法官”做出最终决定，显著提高了评估的准确性。
 
-为了使这种系统正常工作，不同代理之间的交接必须顺利。如果一个代理需要在5个可能的行动中做出选择，我们必须100%确信模型只会输出这5个有效行动中的一个。通过结构化生成，我们可以实现这种可靠性。
+为了使这种系统正常工作，不同代理之间的交接必须顺利。如果一个代理需要在 5 个可能的行动中做出选择，我们必须 100%确信模型只会输出这 5 个有效行动中的一个。通过结构化生成，我们可以实现这种可靠性。
 
 让我们尝试一个实际示例，扩展我们之前的幻觉度量方法。我们将尝试以下改进：
 
-+   在第一次运行时，模型将生成3个候选的幻觉，并为每个幻觉提供推理过程。
++   在第一次运行时，模型将生成 3 个候选的幻觉，并为每个幻觉提供推理过程。
 
 +   对于每个候选项，模型将单独评估它们，并判断它们是否为幻觉，同时提供扩展的推理过程。
 
-+   如果模型发现任何候选项是幻觉，它将为整个样本返回1.0。
++   如果模型发现任何候选项是幻觉，它将为整个样本返回 1.0。
 
 通过赋予模型生成更长上下文链的能力，我们为它提供了更多的“中介计算”空间，并希望能得到更准确的最终输出。
 
@@ -663,7 +663,7 @@ Now, please proceed with your analysis and evaluation.
 """ 
 ```
 
-现在，我们可以为不同的模型输出定义一些Pydantic模型：
+现在，我们可以为不同的模型输出定义一些 Pydantic 模型：
 
 ```py
 # Generated by generate_candidates_prompt
@@ -695,7 +695,7 @@ candidate_generator = outlines.generate.json(model, HallucinationCandidates)
 generator = outlines.generate.json(model, HallucinationScore)
 ```
 
-最后，我们可以构建一个Opik度量方法。我们将使其代码保持简洁：
+最后，我们可以构建一个 Opik 度量方法。我们将使其代码保持简洁：
 
 ```py
 class HallucinationMultistep(base_metric.BaseMetric):
@@ -784,22 +784,22 @@ Uploading results to Opik ...
 View the results in your Opik dashboard.
 ```
 
-我们看到了很大的改进。记住，在相同数据集上运行这个相同的模型，并使用非常相似的初始提示，得到了0.46的评分。通过简单地添加这个额外的候选评估步骤，我们立即将评分提高到了0.52。对于这么小的模型，这是非常好的！
+我们看到了很大的改进。记住，在相同数据集上运行这个相同的模型，并使用非常相似的初始提示，得到了 0.46 的评分。通过简单地添加这个额外的候选评估步骤，我们立即将评分提高到了 0.52。对于这么小的模型，这是非常好的！
 
-# 结构化生成在LLM评估未来中的作用
+# 结构化生成在 LLM 评估未来中的作用
 
-大多数基础模型提供商，如OpenAI和Anthropic，提供某种类型的`结构化输出`模式，通过预定义的模式响应您的查询。然而，LLM评估的领域远远超出了这些提供商API的封闭生态系统。
+大多数基础模型提供商，如 OpenAI 和 Anthropic，提供某种类型的`结构化输出`模式，通过预定义的模式响应您的查询。然而，LLM 评估的领域远远超出了这些提供商 API 的封闭生态系统。
 
 例如：
 
-+   所谓的“白盒”评估，通过将模型的内部状态纳入评估，是不可能在像GPT-4o这样的托管模型中实现的。
++   所谓的“白盒”评估，通过将模型的内部状态纳入评估，是不可能在像 GPT-4o 这样的托管模型中实现的。
 
 +   针对您的特定评估用例对模型进行微调，要求您使用开源模型。
 
-+   如果您需要在本地运行评估管道，显然不能使用托管API。
++   如果您需要在本地运行评估管道，显然不能使用托管 API。
 
 这还不包括对特定开源模型与流行基础模型的比较。
 
-LLM评估的未来将涉及更复杂的评估套件，将白盒指标、经典启发式方法和LLM评审结合成强大的多回合系统。开源，或者至少是本地可用的LLM，是这一未来的重要组成部分——而结构化生成是实现这一未来的基础设施的关键部分。
+LLM 评估的未来将涉及更复杂的评估套件，将白盒指标、经典启发式方法和 LLM 评审结合成强大的多回合系统。开源，或者至少是本地可用的 LLM，是这一未来的重要组成部分——而结构化生成是实现这一未来的基础设施的关键部分。
 
-*最初发表于* [*https://www.comet.com*](https://www.comet.com/site/blog/structured-generation-llm-as-a-judge/) *2024年11月27日。*
+*最初发表于* [*https://www.comet.com*](https://www.comet.com/site/blog/structured-generation-llm-as-a-judge/) *2024 年 11 月 27 日。*

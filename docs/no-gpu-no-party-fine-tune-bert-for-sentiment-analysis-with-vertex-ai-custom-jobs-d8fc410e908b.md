@@ -1,22 +1,22 @@
-# 没有GPU，没派对：使用Vertex AI自定义作业微调BERT进行情感分析
+# 没有 GPU，没派对：使用 Vertex AI 自定义作业微调 BERT 进行情感分析
 
-> 原文：[https://towardsdatascience.com/no-gpu-no-party-fine-tune-bert-for-sentiment-analysis-with-vertex-ai-custom-jobs-d8fc410e908b?source=collection_archive---------5-----------------------#2024-06-03](https://towardsdatascience.com/no-gpu-no-party-fine-tune-bert-for-sentiment-analysis-with-vertex-ai-custom-jobs-d8fc410e908b?source=collection_archive---------5-----------------------#2024-06-03)
+> 原文：[`towardsdatascience.com/no-gpu-no-party-fine-tune-bert-for-sentiment-analysis-with-vertex-ai-custom-jobs-d8fc410e908b?source=collection_archive---------5-----------------------#2024-06-03`](https://towardsdatascience.com/no-gpu-no-party-fine-tune-bert-for-sentiment-analysis-with-vertex-ai-custom-jobs-d8fc410e908b?source=collection_archive---------5-----------------------#2024-06-03)
 
 ## 通过无服务器作业加速训练过程
 
-[](https://medium.com/@benjamin_47408?source=post_page---byline--d8fc410e908b--------------------------------)[![Benjamin Etienne](../Images/cad8bc2d4b900575e76b7cf9debc9eea.png)](https://medium.com/@benjamin_47408?source=post_page---byline--d8fc410e908b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d8fc410e908b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d8fc410e908b--------------------------------) [Benjamin Etienne](https://medium.com/@benjamin_47408?source=post_page---byline--d8fc410e908b--------------------------------)
+[](https://medium.com/@benjamin_47408?source=post_page---byline--d8fc410e908b--------------------------------)![Benjamin Etienne](https://medium.com/@benjamin_47408?source=post_page---byline--d8fc410e908b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d8fc410e908b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8fc410e908b--------------------------------) [Benjamin Etienne](https://medium.com/@benjamin_47408?source=post_page---byline--d8fc410e908b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8fc410e908b--------------------------------) ·13分钟阅读·2024年6月3日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8fc410e908b--------------------------------) ·13 分钟阅读·2024 年 6 月 3 日
 
 --
 
-![](../Images/de04296aee8fcd10eae449ceb2f6d4ce.png)
+![](img/de04296aee8fcd10eae449ceb2f6d4ce.png)
 
 图片来源：[yns plt](https://unsplash.com/@ynsplt?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-*TL;DR：如何在Vertex上使用GPU启动Pytorch训练作业。包含示例代码。*
+*TL;DR：如何在 Vertex 上使用 GPU 启动 Pytorch 训练作业。包含示例代码。*
 
-在我[之前的文章](/machine-learning-on-gcp-from-dev-to-prod-with-vertex-ai-c9e42c4b366f)中，我提到过，当本地训练大规模模型时，如果资源有限，这并不是一个好习惯。有时候你根本没有选择，但有时候，你可以使用像 Google Cloud Platform 这样的云服务提供商，它能够显著加速你的训练过程，方法如下：
+在我之前的文章中，我提到过，当本地训练大规模模型时，如果资源有限，这并不是一个好习惯。有时候你根本没有选择，但有时候，你可以使用像 Google Cloud Platform 这样的云服务提供商，它能够显著加速你的训练过程，方法如下：
 
 +   提供您定制配置（内存、GPU 等）的先进机器
 
@@ -24,43 +24,43 @@
 
 *更不用说，将训练任务卸载到云端将减轻您个人机器的负担。我已经亲眼看到，个人笔记本电脑训练模型一周后电池几乎融化。假期回来后，我的触控板居然快要掉出来了。*
 
-**在本文中，我们将以一个具体的用例为例，展示如何在社交媒体评论上微调BERT模型进行情感分析。正如我们所看到的，使用CPU训练这种模型是非常繁琐且不理想的。因此，我们将探讨如何利用Google Cloud Platform通过仅花费60美分来加速这一过程，使用GPU进行训练。**
+**在本文中，我们将以一个具体的用例为例，展示如何在社交媒体评论上微调 BERT 模型进行情感分析。正如我们所看到的，使用 CPU 训练这种模型是非常繁琐且不理想的。因此，我们将探讨如何利用 Google Cloud Platform 通过仅花费 60 美分来加速这一过程，使用 GPU 进行训练。**
 
 # 总结
 
-+   什么是BERT
++   什么是 BERT
 
 +   什么是情感分析
 
 +   获取并准备数据
 
-+   使用小型BERT预训练模型
++   使用小型 BERT 预训练模型
 
 +   创建数据加载器。
 
 +   编写主要脚本以训练模型。
 
-+   将脚本Docker化。
++   将脚本 Docker 化。
 
-+   构建并推送镜像到Google Cloud。
++   构建并推送镜像到 Google Cloud。
 
-+   在Vertex AI上创建一个作业。
++   在 Vertex AI 上创建一个作业。
 
-## 什么是BERT？
+## 什么是 BERT？
 
-BERT代表双向编码器表示（Bidirectional Encoder Representations from Transformers），由Google于2018年开源。它主要用于NLP任务，因为它被训练用来捕捉句子的语义并提供丰富的词向量（表示）。与其他模型如Word2Vec和Glove的不同之处在于，它使用Transformers来处理文本。Transformers（如果你想了解更多，可以参考我之前的文章）是一类神经网络，它们有点像RNN，可以双向处理序列，因此能够捕捉到例如一个词的上下文。
+BERT 代表双向编码器表示（Bidirectional Encoder Representations from Transformers），由 Google 于 2018 年开源。它主要用于 NLP 任务，因为它被训练用来捕捉句子的语义并提供丰富的词向量（表示）。与其他模型如 Word2Vec 和 Glove 的不同之处在于，它使用 Transformers 来处理文本。Transformers（如果你想了解更多，可以参考我之前的文章）是一类神经网络，它们有点像 RNN，可以双向处理序列，因此能够捕捉到例如一个词的上下文。
 
 ## 什么是情感分析？
 
-情感分析是NLP领域中的一项特定任务，目标是将文本分类为与其情感色彩相关的类别。情感色彩通常表现为*积极*、*消极*或*中立*。它通常用于分析文字记录、社交媒体上的帖子、产品评论等。
+情感分析是 NLP 领域中的一项特定任务，目标是将文本分类为与其情感色彩相关的类别。情感色彩通常表现为*积极*、*消极*或*中立*。它通常用于分析文字记录、社交媒体上的帖子、产品评论等。
 
-## 在社交媒体数据上微调BERT模型。
+## 在社交媒体数据上微调 BERT 模型。
 
 ## 获取和准备数据。
 
-我们将使用的数据集来自Kaggle，你可以在这里下载：[https://www.kaggle.com/datasets/farisdurrani/sentimentsearch](https://www.kaggle.com/datasets/farisdurrani/sentimentsearch)（CC BY 4.0许可证）。在我的实验中，我只选择了来自Facebook和Twitter的数据集。
+我们将使用的数据集来自 Kaggle，你可以在这里下载：[`www.kaggle.com/datasets/farisdurrani/sentimentsearch`](https://www.kaggle.com/datasets/farisdurrani/sentimentsearch)（CC BY 4.0 许可证）。在我的实验中，我只选择了来自 Facebook 和 Twitter 的数据集。
 
-以下代码片段将处理csv文件，并将数据分割为3部分（训练集、验证集和测试集），然后保存到你指定的位置。我建议将它们保存在Google Cloud Storage中。
+以下代码片段将处理 csv 文件，并将数据分割为 3 部分（训练集、验证集和测试集），然后保存到你指定的位置。我建议将它们保存在 Google Cloud Storage 中。
 
 你可以使用以下命令运行脚本：
 
@@ -103,15 +103,15 @@ if __name__ == '__main__':
 
 数据大致应如下所示：
 
-![](../Images/bd678c8886d35aadd886a31d031ad2ed.png)
+![](img/bd678c8886d35aadd886a31d031ad2ed.png)
 
 （作者提供的图片）
 
-## 使用小型BERT预训练模型。
+## 使用小型 BERT 预训练模型。
 
-对于我们的模型，我们将使用轻量级BERT模型BERT-Tiny。该模型已经在大量数据上进行了预训练，但不一定是社交媒体数据，也不一定是为了进行情感分析而预训练的。因此，我们将对其进行微调。
+对于我们的模型，我们将使用轻量级 BERT 模型 BERT-Tiny。该模型已经在大量数据上进行了预训练，但不一定是社交媒体数据，也不一定是为了进行情感分析而预训练的。因此，我们将对其进行微调。
 
-它仅包含2层，每层有128个单元，完整的模型列表可以在[这里](https://github.com/google-research/bert)查看，如果你想使用更大的模型。
+它仅包含 2 层，每层有 128 个单元，完整的模型列表可以在[这里](https://github.com/google-research/bert)查看，如果你想使用更大的模型。
 
 首先让我们创建一个`main.py`文件，包含所有必要的模块：
 
@@ -142,11 +142,11 @@ gcsfs
 
 我们现在将加载两部分数据来训练我们的模型：
 
-+   ***分词器***，它将负责将文本输入拆分为BERT训练时使用的词元。
++   ***分词器***，它将负责将文本输入拆分为 BERT 训练时使用的词元。
 
 +   ***模型***本身。
 
-你可以从Huggingface[这里](http://google/bert_uncased_L-2_H-128_A-2)获得这两者。你也可以将它们下载到Cloud Storage中。我就是这么做的，因此会通过以下方式加载它们：
+你可以从 Huggingface[这里](http://google/bert_uncased_L-2_H-128_A-2)获得这两者。你也可以将它们下载到 Cloud Storage 中。我就是这么做的，因此会通过以下方式加载它们：
 
 ```py
  # Load pretrained tokenizers and bert model
@@ -180,23 +180,23 @@ class SentimentBERT(nn.Module):
 
 在这里稍作休息。我们在重用现有模型时有几种选择。
 
-+   **迁移学习**：我们冻结模型的权重，并将其作为“特征提取器”。因此，我们可以在后续添加额外的层。这在计算机视觉中非常常见，比如VGG、Xception等模型可以在小数据集上被重新训练，作为自定义模型的一部分。
++   **迁移学习**：我们冻结模型的权重，并将其作为“特征提取器”。因此，我们可以在后续添加额外的层。这在计算机视觉中非常常见，比如 VGG、Xception 等模型可以在小数据集上被重新训练，作为自定义模型的一部分。
 
-+   **微调**：我们解冻模型的全部或部分权重，并在自定义数据集上重新训练模型。这是在训练自定义LLM时的首选方法。
++   **微调**：我们解冻模型的全部或部分权重，并在自定义数据集上重新训练模型。这是在训练自定义 LLM 时的首选方法。
 
 关于迁移学习和微调的更多细节，请参见[这里](https://www.tensorflow.org/tutorials/images/transfer_learning)：
 
-在模型中，我们选择解冻整个模型，但也可以选择冻结预训练BERT模块中的一层或多层，看看它对性能的影响。
+在模型中，我们选择解冻整个模型，但也可以选择冻结预训练 BERT 模块中的一层或多层，看看它对性能的影响。
 
-这里的关键是，在BERT模块后添加一个全连接层，将其“连接”到我们的分类任务，因此最终的层有3个单元。这将使我们能够重用预训练BERT的权重，并将我们的模型调整到我们的任务。
+这里的关键是，在 BERT 模块后添加一个全连接层，将其“连接”到我们的分类任务，因此最终的层有 3 个单元。这将使我们能够重用预训练 BERT 的权重，并将我们的模型调整到我们的任务。
 
 ## 创建数据加载器
 
-要创建数据加载器，我们将需要上述加载的Tokenizer。Tokenizer接受一个字符串作为输入，并返回多个输出，其中包括我们可以找到的标记（在我们的案例中是‘input_ids’）：
+要创建数据加载器，我们将需要上述加载的 Tokenizer。Tokenizer 接受一个字符串作为输入，并返回多个输出，其中包括我们可以找到的标记（在我们的案例中是‘input_ids’）：
 
-![](../Images/894b0cbe3aec033e162d3be5ca1ddc3d.png)
+![](img/894b0cbe3aec033e162d3be5ca1ddc3d.png)
 
-BERT的分词器有点特殊，它会返回多个输出，但最重要的是`input_ids`：它们是用于编码我们句子的标记。它们可能是单词，或者单词的一部分。例如，单词“looking”可能由两个标记组成：“look”和“##ing”。
+BERT 的分词器有点特殊，它会返回多个输出，但最重要的是`input_ids`：它们是用于编码我们句子的标记。它们可能是单词，或者单词的一部分。例如，单词“looking”可能由两个标记组成：“look”和“##ing”。
 
 现在让我们创建一个数据加载器模块来处理我们的数据集：
 
@@ -295,7 +295,7 @@ def evaluate(model, dataloader, loss_fn):
 
 +   一个`BertDataset`类，用于处理数据的加载
 
-+   一个`SentimentBERT`模型，它基于我们的Tiny-BERT模型并添加了一个额外的层来适应我们的自定义用例
++   一个`SentimentBERT`模型，它基于我们的 Tiny-BERT 模型并添加了一个额外的层来适应我们的自定义用例
 
 +   `train()`和`eval()`函数，用于处理这些步骤
 
@@ -532,17 +532,17 @@ if __name__ == '__main__':
     train_and_evaluate(**vars(args))
 ```
 
-这很好，但不幸的是，这个模型需要很长时间才能训练完成。实际上，训练约470万参数时，每一步大约需要3秒，在一台配备Intel芯片、16GB内存的MacBook Pro上进行训练。
+这很好，但不幸的是，这个模型需要很长时间才能训练完成。实际上，训练约 470 万参数时，每一步大约需要 3 秒，在一台配备 Intel 芯片、16GB 内存的 MacBook Pro 上进行训练。
 
-![](../Images/b5a00cef328f5d4ab3879f010a18ff24.png)
+![](img/b5a00cef328f5d4ab3879f010a18ff24.png)
 
-每步3秒，对于1238步和10个epoch的训练来说，可能是相当长的时间…
+每步 3 秒，对于 1238 步和 10 个 epoch 的训练来说，可能是相当长的时间…
 
-没有GPU，就没有派对。
+没有 GPU，就没有派对。
 
-# 如何使用Vertex AI并启动派对？
+# 如何使用 Vertex AI 并启动派对？
 
-*简短回答：Docker和gcloud。*
+*简短回答：Docker 和 gcloud。*
 
 如果您的笔记本电脑没有强大的 GPU（就像我们大多数人一样），和/或您不想烧坏笔记本电脑的散热风扇，您可能希望将脚本移至 Google Cloud 等云平台（免责声明：我在工作中使用 Google Cloud）。
 
@@ -593,11 +593,11 @@ gcloud builds submit --tag $IMAGE_URI .
 
 费用详情请见 [这里](https://cloud.google.com/vertex-ai/pricing#custom-trained_models)。在我们的案例中，我们将选择每小时 0.24 美元的 *n1-standard-4* 机器，并附加每小时 0.40 美元的 *NVIDIA T4* GPU。
 
-![](../Images/8405cc80d311c01147fa5b3ed826a415.png)
+![](img/8405cc80d311c01147fa5b3ed826a415.png)
 
 （来源：Google Cloud）
 
-![](../Images/0cd5fc0930e342b345abb1060e0593f1.png)
+![](img/0cd5fc0930e342b345abb1060e0593f1.png)
 
 （来源：Google Cloud）
 
@@ -646,7 +646,7 @@ gcloud ai custom-jobs create \
 
 启动脚本并进入你的 GCP 项目，在 Vertex 菜单下的“训练”部分。
 
-![](../Images/d622336b28fc8d7f5f60fbb0431498ca.png)
+![](img/d622336b28fc8d7f5f60fbb0431498ca.png)
 
 （图片来自作者）
 
@@ -654,23 +654,23 @@ gcloud ai custom-jobs create \
 
 为了确保正在使用 GPU，你可以检查任务及其资源：
 
-![](../Images/4f18577283659330ba871d2d88baf21b.png)
+![](img/4f18577283659330ba871d2d88baf21b.png)
 
 （图片来自作者）
 
 这表明我们正在使用 GPU 进行训练，因此现在应该能够显著加速！让我们来看一下日志：
 
-![](../Images/959225237e7b4fa03ac158ba31a68e23.png)
+![](img/959225237e7b4fa03ac158ba31a68e23.png)
 
 运行 1 个周期不到 10 分钟，而在 CPU 上需要 1 小时/周期！我们已经将训练任务转移到 Vertex，并加速了训练过程。我们可以选择启动其他配置不同的任务，而不会超载我们笔记本的能力。
 
 那么模型的最终准确率如何呢？在经过 10 个周期后，它大约为 94% 到 95%。我们可以让它继续运行更长时间，看看分数是否提高（我们还可以添加早停回调来避免过拟合）
 
-![](../Images/40b37ce0f0bb8c48db7b04e1152a1ef2.png)
+![](img/40b37ce0f0bb8c48db7b04e1152a1ef2.png)
 
 ## 我们的模型表现如何？
 
-![](../Images/b3808a8189226c3c73eacc46470f071c.png)
+![](img/b3808a8189226c3c73eacc46470f071c.png)
 
 （图片来自作者）
 

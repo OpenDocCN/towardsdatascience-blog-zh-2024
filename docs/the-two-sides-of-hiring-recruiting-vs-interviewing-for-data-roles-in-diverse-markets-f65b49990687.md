@@ -1,16 +1,16 @@
 # 招聘的两面性：在多元化市场中招聘与面试数据角色
 
-> 原文：[https://towardsdatascience.com/the-two-sides-of-hiring-recruiting-vs-interviewing-for-data-roles-in-diverse-markets-f65b49990687?source=collection_archive---------3-----------------------#2024-10-13](https://towardsdatascience.com/the-two-sides-of-hiring-recruiting-vs-interviewing-for-data-roles-in-diverse-markets-f65b49990687?source=collection_archive---------3-----------------------#2024-10-13)
+> 原文：[`towardsdatascience.com/the-two-sides-of-hiring-recruiting-vs-interviewing-for-data-roles-in-diverse-markets-f65b49990687?source=collection_archive---------3-----------------------#2024-10-13`](https://towardsdatascience.com/the-two-sides-of-hiring-recruiting-vs-interviewing-for-data-roles-in-diverse-markets-f65b49990687?source=collection_archive---------3-----------------------#2024-10-13)
 
-## 申请超过150个职位并审阅500多份简历后，招聘和面试成功的因素，涵盖4个不同国家
+## 申请超过 150 个职位并审阅 500 多份简历后，招聘和面试成功的因素，涵盖 4 个不同国家
 
-[](https://medium.com/@martosi?source=post_page---byline--f65b49990687--------------------------------)[![Marina Tosic](../Images/5e50c62f54caa6aca417dc9f1e593d05.png)](https://medium.com/@martosi?source=post_page---byline--f65b49990687--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f65b49990687--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f65b49990687--------------------------------) [Marina Tosic](https://medium.com/@martosi?source=post_page---byline--f65b49990687--------------------------------)
+[](https://medium.com/@martosi?source=post_page---byline--f65b49990687--------------------------------)![Marina Tosic](https://medium.com/@martosi?source=post_page---byline--f65b49990687--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f65b49990687--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f65b49990687--------------------------------) [Marina Tosic](https://medium.com/@martosi?source=post_page---byline--f65b49990687--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f65b49990687--------------------------------) ·阅读时长10分钟·2024年10月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f65b49990687--------------------------------) ·阅读时长 10 分钟·2024 年 10 月 13 日
 
 --
 
-![](../Images/352cb2526c1e089588f86bb5950bee12.png)
+![](img/352cb2526c1e089588f86bb5950bee12.png)
 
 “我在**不同国家、行业和角色**中的经验塑造了**我对招聘两面成功的理解**。” [照片由[Christina @ wocintechchat.com](https://unsplash.com/@wocintechchat?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)]
 

@@ -1,24 +1,24 @@
 # 解密 Azure 存储账户网络访问
 
-> 原文：[https://towardsdatascience.com/demystifying-azure-storage-account-network-access-9e024d2f02c6?source=collection_archive---------7-----------------------#2024-10-30](https://towardsdatascience.com/demystifying-azure-storage-account-network-access-9e024d2f02c6?source=collection_archive---------7-----------------------#2024-10-30)
+> 原文：[`towardsdatascience.com/demystifying-azure-storage-account-network-access-9e024d2f02c6?source=collection_archive---------7-----------------------#2024-10-30`](https://towardsdatascience.com/demystifying-azure-storage-account-network-access-9e024d2f02c6?source=collection_archive---------7-----------------------#2024-10-30)
 
 ## 服务端点和私有端点实操：包括 Azure 主干网、存储账户防火墙、DNS、VNET 和 NSG
 
-[](https://rebremer.medium.com/?source=post_page---byline--9e024d2f02c6--------------------------------)[![René Bremer](../Images/e422c4b84e225d2a949251ebc24dbd2c.png)](https://rebremer.medium.com/?source=post_page---byline--9e024d2f02c6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9e024d2f02c6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9e024d2f02c6--------------------------------) [René Bremer](https://rebremer.medium.com/?source=post_page---byline--9e024d2f02c6--------------------------------)
+[](https://rebremer.medium.com/?source=post_page---byline--9e024d2f02c6--------------------------------)![René Bremer](https://rebremer.medium.com/?source=post_page---byline--9e024d2f02c6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9e024d2f02c6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9e024d2f02c6--------------------------------) [René Bremer](https://rebremer.medium.com/?source=post_page---byline--9e024d2f02c6--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9e024d2f02c6--------------------------------) ·阅读时间：7分钟·2024年10月30日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9e024d2f02c6--------------------------------) ·阅读时间：7 分钟·2024 年 10 月 30 日
 
 --
 
-![](../Images/1ba562f56240d9aa0bbdb6586c4bcf49.png)
+![](img/1ba562f56240d9aa0bbdb6586c4bcf49.png)
 
 连接的网络 — 图片来自 [Nastya Dulhiier on Unsplash](https://unsplash.com/@dulhiier)
 
 # 1\. 引言
 
-存储账户在建立企业数据湖的勋章架构中发挥着至关重要的作用。它们充当中心化的存储库，促进数据生产者与消费者之间的无缝数据交换。这种设置使得消费者能够执行数据科学任务并构建机器学习（ML）模型。此外，消费者还可以利用数据进行检索增强生成（RAG），通过类似ChatGPT的大型语言模型（LLM）与公司数据进行交互。
+存储账户在建立企业数据湖的勋章架构中发挥着至关重要的作用。它们充当中心化的存储库，促进数据生产者与消费者之间的无缝数据交换。这种设置使得消费者能够执行数据科学任务并构建机器学习（ML）模型。此外，消费者还可以利用数据进行检索增强生成（RAG），通过类似 ChatGPT 的大型语言模型（LLM）与公司数据进行交互。
 
-高度敏感的数据通常存储在存储账户中。在数据科学家和机器学习管道能够访问数据之前，必须采取深度防御措施。为了实现深度防御，必须采取多种措施，例如：1) 高级威胁防护以检测恶意软件，2) 使用 Microsoft Entra 进行身份验证，3) 通过授权进行精细化访问控制，4) 审计跟踪以监控访问，5) 数据外泄防护，6) 加密，最后但同样重要的7) 使用服务端点或私有端点进行 [网络访问控制](https://learn.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal)。
+高度敏感的数据通常存储在存储账户中。在数据科学家和机器学习管道能够访问数据之前，必须采取深度防御措施。为了实现深度防御，必须采取多种措施，例如：1) 高级威胁防护以检测恶意软件，2) 使用 Microsoft Entra 进行身份验证，3) 通过授权进行精细化访问控制，4) 审计跟踪以监控访问，5) 数据外泄防护，6) 加密，最后但同样重要的 7) 使用服务端点或私有端点进行 [网络访问控制](https://learn.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal)。
 
 本文重点讨论存储账户的网络访问控制。在下一章中，将解释（解密）存储账户网络访问的不同概念。之后，将进行服务端点与私有端点的实践比较。最后，得出结论。
 
@@ -26,7 +26,7 @@
 
 一个典型场景是虚拟机需要访问存储帐户的网络。这台虚拟机通常充当 Spark 集群来分析来自存储帐户的数据。下图提供了可用网络访问控制的概览。
 
-![](../Images/14d6f97aadd4649a3bea18d53eac1c62.png)
+![](img/14d6f97aadd4649a3bea18d53eac1c62.png)
 
 2.1 虚拟机和存储帐户之间的网络概述 — 作者提供的图片
 
@@ -44,9 +44,9 @@
 
 **私有端点：** 将存储帐户的网络接口卡 (NIC) 集成到虚拟机所在的 VNET 中。这一集成为存储帐户分配了一个私有 IP 地址，使其成为 VNET 的一部分。
 
-**私有DNS存储账户：** 在VNET内，可以创建一个私有DNS区域，其中存储账户的DNS解析到私有端点。这是为了确保虚拟机仍能连接到存储账户的URL，并且存储账户的URL解析为私有IP地址，而不是公共地址。
+**私有 DNS 存储账户：** 在 VNET 内，可以创建一个私有 DNS 区域，其中存储账户的 DNS 解析到私有端点。这是为了确保虚拟机仍能连接到存储账户的 URL，并且存储账户的 URL 解析为私有 IP 地址，而不是公共地址。
 
-**网络安全组 (NSG)：** 部署一个NSG以限制虚拟机所在VNET的入站和出站访问。这可以防止数据外泄。然而，NSG仅与IP地址或标签一起工作，而不与URL一起工作。要实现更高级的数据外泄保护，请使用Azure防火墙。为简便起见，本文省略了这一部分，改用NSG来阻止出站流量。
+**网络安全组 (NSG)：** 部署一个 NSG 以限制虚拟机所在 VNET 的入站和出站访问。这可以防止数据外泄。然而，NSG 仅与 IP 地址或标签一起工作，而不与 URL 一起工作。要实现更高级的数据外泄保护，请使用 Azure 防火墙。为简便起见，本文省略了这一部分，改用 NSG 来阻止出站流量。
 
 在下一章节中，将讨论服务端点和私有端点。
 
@@ -58,19 +58,19 @@
 
 假设以下场景，其中创建了一个虚拟机和一个存储账户。存储账户的防火墙启用了公共访问，见下图。
 
-![](../Images/1a057d9dbc94295d8495995be9ac1f82.png)
+![](img/1a057d9dbc94295d8495995be9ac1f82.png)
 
 3.1.1 创建具有公共访问权限的虚拟机和存储账户
 
-使用此配置，虚拟机可以通过网络访问存储账户。由于虚拟机也部署在Azure中，流量将通过Azure骨干网络并被接受，见下图。
+使用此配置，虚拟机可以通过网络访问存储账户。由于虚拟机也部署在 Azure 中，流量将通过 Azure 骨干网络并被接受，见下图。
 
-![](../Images/231aa5fcc1b03505d777c43bffd6efe2.png)
+![](img/231aa5fcc1b03505d777c43bffd6efe2.png)
 
 3.1.2 流量未被阻止 — 启用公共网络访问
 
 企业通常会建立防火墙规则来限制网络访问。这涉及禁用公共访问，或仅允许特定网络并将其列入白名单。下图展示了禁用公共访问并通过防火墙阻止流量的情况。
 
-![](../Images/838f16578b761f5fb196e24bb1c29936.png)
+![](img/838f16578b761f5fb196e24bb1c29936.png)
 
 3.1.3 流量被阻止 — 在存储账户防火墙中阻止流量
 
@@ -78,17 +78,17 @@
 
 ## 3.2 通过服务端点限制网络访问
 
-要启用虚拟机VNET访问存储账户，请在VNET上激活服务端点。对于同一区域，使用Microsoft.Storage；对于跨区域，使用Microsoft.Storage.Global。接下来，在存储账户防火墙中将VNET/子网列入白名单。流量再次被允许，见下图。
+要启用虚拟机 VNET 访问存储账户，请在 VNET 上激活服务端点。对于同一区域，使用 Microsoft.Storage；对于跨区域，使用 Microsoft.Storage.Global。接下来，在存储账户防火墙中将 VNET/子网列入白名单。流量再次被允许，见下图。
 
-![](../Images/c079cf5b6378888d1396a69cfd6b06fa.png)
+![](img/c079cf5b6378888d1396a69cfd6b06fa.png)
 
 3.2.1 流量未被阻止 — 启用服务端点并添加到存储账户防火墙
 
-现在流量被接受。当VNET/子网从Azure存储账户防火墙中移除或禁用公共访问时，流量将再次被阻止。
+现在流量被接受。当 VNET/子网从 Azure 存储账户防火墙中移除或禁用公共访问时，流量将再次被阻止。
 
 如果在虚拟机的 VNET 中使用 NSG 阻止公共出站 IP，则流量也会被再次阻止。这是因为使用了存储帐户的公共 DNS，另请参见下图。
 
-![](../Images/f8dee05c9e264753c886ec18f8b55fb4.png)
+![](img/f8dee05c9e264753c886ec18f8b55fb4.png)
 
 3.2.2 流量被阻止 — 虚拟机的 NSG 阻止公共出站流量
 
@@ -98,13 +98,13 @@
 
 要为虚拟机恢复对存储帐户的网络访问，请使用私有端点。此操作将在虚拟机的 VNET 内为存储帐户创建一个网络接口卡（NIC），确保流量保持在 VNET 内。下图提供了进一步的说明。
 
-![](../Images/55e3c7454a5f70d276cf02ecd4632363.png)
+![](img/55e3c7454a5f70d276cf02ecd4632363.png)
 
 3.3.1 流量未被阻止 — 已为存储帐户创建私有端点，禁用了公共访问
 
 再次强调，可以使用 NSG 阻止所有流量，见下图。
 
-![](../Images/2d529e46de9ce76339446d51c7ff5ac6.png)
+![](img/2d529e46de9ce76339446d51c7ff5ac6.png)
 
 3.3.2 流量被阻止 — 虚拟机的 NSG 阻止所有出站流量
 

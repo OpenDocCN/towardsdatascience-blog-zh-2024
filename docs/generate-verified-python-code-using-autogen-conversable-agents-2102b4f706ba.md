@@ -1,38 +1,38 @@
-# 使用AutoGen可交互代理生成“验证过的”Python代码
+# 使用 AutoGen 可交互代理生成“验证过的”Python 代码
 
-> 原文：[https://towardsdatascience.com/generate-verified-python-code-using-autogen-conversable-agents-2102b4f706ba?source=collection_archive---------9-----------------------#2024-04-09](https://towardsdatascience.com/generate-verified-python-code-using-autogen-conversable-agents-2102b4f706ba?source=collection_archive---------9-----------------------#2024-04-09)
+> 原文：[`towardsdatascience.com/generate-verified-python-code-using-autogen-conversable-agents-2102b4f706ba?source=collection_archive---------9-----------------------#2024-04-09`](https://towardsdatascience.com/generate-verified-python-code-using-autogen-conversable-agents-2102b4f706ba?source=collection_archive---------9-----------------------#2024-04-09)
 
 ## 利用多代理工作流进行代码测试和调试
 
-[](https://medium.com/@shahzebnaveed?source=post_page---byline--2102b4f706ba--------------------------------)[![Shahzeb Naveed](../Images/cdf5a3f205eac63306d1f8384fa634ab.png)](https://medium.com/@shahzebnaveed?source=post_page---byline--2102b4f706ba--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2102b4f706ba--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2102b4f706ba--------------------------------) [Shahzeb Naveed](https://medium.com/@shahzebnaveed?source=post_page---byline--2102b4f706ba--------------------------------)
+[](https://medium.com/@shahzebnaveed?source=post_page---byline--2102b4f706ba--------------------------------)![Shahzeb Naveed](https://medium.com/@shahzebnaveed?source=post_page---byline--2102b4f706ba--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2102b4f706ba--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2102b4f706ba--------------------------------) [Shahzeb Naveed](https://medium.com/@shahzebnaveed?source=post_page---byline--2102b4f706ba--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2102b4f706ba--------------------------------) ·阅读时长：8分钟·2024年4月9日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2102b4f706ba--------------------------------) ·阅读时长：8 分钟·2024 年 4 月 9 日
 
 --
 
-![](../Images/743dc56e1a6501a8f27b1ed2ffcf407f.png)
+![](img/743dc56e1a6501a8f27b1ed2ffcf407f.png)
 
-“两个AI机器人解决一个错误” — 来源：Adobe Firefly（图片由作者生成）
+“两个 AI 机器人解决一个错误” — 来源：Adobe Firefly（图片由作者生成）
 
-现在是2024年4月，自从我们开始使用像ChatGPT这样的LLM来辅助代码生成和调试任务，已经过去了大约17个月。虽然这极大提高了生产力，但确实有时候生成的代码充满了错误，让我们不得不走老路——StackOverflow。
+现在是 2024 年 4 月，自从我们开始使用像 ChatGPT 这样的 LLM 来辅助代码生成和调试任务，已经过去了大约 17 个月。虽然这极大提高了生产力，但确实有时候生成的代码充满了错误，让我们不得不走老路——StackOverflow。
 
-在本文中，我将简要演示如何使用AutoGen提供的可交互代理来解决缺乏“验证”的问题。
+在本文中，我将简要演示如何使用 AutoGen 提供的可交互代理来解决缺乏“验证”的问题。
 
-完整的AutoGen课程：[https://www.youtube.com/playlist?list=PLlHeJrpDA0jXy_zgfzt2aUvQu3_VS5Yx_](https://www.youtube.com/playlist?list=PLlHeJrpDA0jXy_zgfzt2aUvQu3_VS5Yx_)
+完整的 AutoGen 课程：[`www.youtube.com/playlist?list=PLlHeJrpDA0jXy_zgfzt2aUvQu3_VS5Yx_`](https://www.youtube.com/playlist?list=PLlHeJrpDA0jXy_zgfzt2aUvQu3_VS5Yx_)
 
-**什么是AutoGen？**
+**什么是 AutoGen？**
 
-> “AutoGen是一个框架，能够使用多个能够相互对话的代理来开发LLM应用，以解决任务。”
+> “AutoGen 是一个框架，能够使用多个能够相互对话的代理来开发 LLM 应用，以解决任务。”
 
-**展示LeetCode问题求解器：**
+**展示 LeetCode 问题求解器：**
 
-从静默安装autogen开始：
+从静默安装 autogen 开始：
 
 ```py
 !pip install pyautogen -q --progress-bar off
 ```
 
-我正在使用Google Colab，因此我在Secrets标签页中输入了我的OPENAI_API_KEY，并与其他模块一起安全加载
+我正在使用 Google Colab，因此我在 Secrets 标签页中输入了我的 OPENAI_API_KEY，并与其他模块一起安全加载
 
 ```py
 import os
@@ -53,7 +53,7 @@ llm_config = {
 }
 ```
 
-现在，我将从我最喜欢的LeetCode问题[*Two Sum*](https://leetcode.com/problems/two-sum/description/)中复制问题陈述。它是Leetcode风格面试中最常见的题目之一，涵盖了诸如使用哈希映射进行缓存和基本方程式处理等基本概念。
+现在，我将从我最喜欢的 LeetCode 问题[*Two Sum*](https://leetcode.com/problems/two-sum/description/)中复制问题陈述。它是 Leetcode 风格面试中最常见的题目之一，涵盖了诸如使用哈希映射进行缓存和基本方程式处理等基本概念。
 
 ```py
 LEETCODE_QUESTION = """
@@ -159,7 +159,7 @@ assistant (to user_proxy):
 
 To solve this problem efficiently, we can use a dictionary to store the elements we have seen so far along with their indices. While iterating through the array, we can check if the complement of the current element (target - current element) is already in the dictionary. If it is, we have found the pair that sums up to the target.
 
-Here's the Python code to solve the Two Sum problem with a time complexity less than O(n^2):
+Here's the Python code to solve the Two Sum problem with a time complexity less than O(n²):
 
 ```python
 

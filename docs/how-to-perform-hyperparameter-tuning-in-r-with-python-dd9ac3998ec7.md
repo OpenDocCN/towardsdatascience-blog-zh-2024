@@ -1,16 +1,16 @@
 # 如何在 R 中使用 Python 执行超参数调优
 
-> 原文：[https://towardsdatascience.com/how-to-perform-hyperparameter-tuning-in-r-with-python-dd9ac3998ec7?source=collection_archive---------2-----------------------#2024-09-27](https://towardsdatascience.com/how-to-perform-hyperparameter-tuning-in-r-with-python-dd9ac3998ec7?source=collection_archive---------2-----------------------#2024-09-27)
+> 原文：[`towardsdatascience.com/how-to-perform-hyperparameter-tuning-in-r-with-python-dd9ac3998ec7?source=collection_archive---------2-----------------------#2024-09-27`](https://towardsdatascience.com/how-to-perform-hyperparameter-tuning-in-r-with-python-dd9ac3998ec7?source=collection_archive---------2-----------------------#2024-09-27)
 
 ## 使用 Reticulate 和 Optuna 优化你的机器学习模型
 
-[](https://devashree-madhugiri.medium.com/?source=post_page---byline--dd9ac3998ec7--------------------------------)[![Devashree Madhugiri](../Images/f466ddeb3a704985a89ca487cc3cfaca.png)](https://devashree-madhugiri.medium.com/?source=post_page---byline--dd9ac3998ec7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dd9ac3998ec7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dd9ac3998ec7--------------------------------) [Devashree Madhugiri](https://devashree-madhugiri.medium.com/?source=post_page---byline--dd9ac3998ec7--------------------------------)
+[](https://devashree-madhugiri.medium.com/?source=post_page---byline--dd9ac3998ec7--------------------------------)![Devashree Madhugiri](https://devashree-madhugiri.medium.com/?source=post_page---byline--dd9ac3998ec7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dd9ac3998ec7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dd9ac3998ec7--------------------------------) [Devashree Madhugiri](https://devashree-madhugiri.medium.com/?source=post_page---byline--dd9ac3998ec7--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dd9ac3998ec7--------------------------------) ·阅读时间 17 分钟 ·2024年9月27日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dd9ac3998ec7--------------------------------) ·阅读时间 17 分钟 ·2024 年 9 月 27 日
 
 --
 
-![](../Images/2962411eb2e4f07e1b6a844ed28d307c.png)
+![](img/2962411eb2e4f07e1b6a844ed28d307c.png)
 
 图片来自 [James Coleman](https://unsplash.com/@jhc?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

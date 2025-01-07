@@ -1,18 +1,18 @@
 # Python 中的函数接口
 
-> 原文：[https://towardsdatascience.com/function-interfaces-in-python-4846ede71cd9?source=collection_archive---------4-----------------------#2024-03-19](https://towardsdatascience.com/function-interfaces-in-python-4846ede71cd9?source=collection_archive---------4-----------------------#2024-03-19)
+> 原文：[`towardsdatascience.com/function-interfaces-in-python-4846ede71cd9?source=collection_archive---------4-----------------------#2024-03-19`](https://towardsdatascience.com/function-interfaces-in-python-4846ede71cd9?source=collection_archive---------4-----------------------#2024-03-19)
 
 ## PYTHON 编程
 
 ## 在 Python 中，函数接口可以通过类型提示和协议来实现。
 
-[](https://medium.com/@nyggus?source=post_page---byline--4846ede71cd9--------------------------------)[![Marcin Kozak](../Images/d7faf62e48ed81dab5d8ad92819fff54.png)](https://medium.com/@nyggus?source=post_page---byline--4846ede71cd9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4846ede71cd9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4846ede71cd9--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--4846ede71cd9--------------------------------)
+[](https://medium.com/@nyggus?source=post_page---byline--4846ede71cd9--------------------------------)![Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--4846ede71cd9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4846ede71cd9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4846ede71cd9--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--4846ede71cd9--------------------------------)
 
 ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4846ede71cd9--------------------------------) ·阅读时间 18 分钟 ·2024 年 3 月 19 日
 
 --
 
-![](../Images/ad64319b4ec547bf3013a6c0a4185166.png)
+![](img/ad64319b4ec547bf3013a6c0a4185166.png)
 
 图片由 [Rubaitul Azad](https://unsplash.com/@rubaitulazad?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

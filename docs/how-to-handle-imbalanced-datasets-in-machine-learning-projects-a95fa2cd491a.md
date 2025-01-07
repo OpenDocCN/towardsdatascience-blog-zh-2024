@@ -1,22 +1,22 @@
 # 如何处理机器学习项目中的不平衡数据集
 
-> 原文：[https://towardsdatascience.com/how-to-handle-imbalanced-datasets-in-machine-learning-projects-a95fa2cd491a?source=collection_archive---------8-----------------------#2024-10-03](https://towardsdatascience.com/how-to-handle-imbalanced-datasets-in-machine-learning-projects-a95fa2cd491a?source=collection_archive---------8-----------------------#2024-10-03)
+> 原文：[`towardsdatascience.com/how-to-handle-imbalanced-datasets-in-machine-learning-projects-a95fa2cd491a?source=collection_archive---------8-----------------------#2024-10-03`](https://towardsdatascience.com/how-to-handle-imbalanced-datasets-in-machine-learning-projects-a95fa2cd491a?source=collection_archive---------8-----------------------#2024-10-03)
 
-## 处理不平衡数据集的技术、示例及Python代码片段
+## 处理不平衡数据集的技术、示例及 Python 代码片段
 
-[](https://medium.com/@jiayanyin.simba?source=post_page---byline--a95fa2cd491a--------------------------------)[![Jiayan Yin](../Images/1a67e16a388877478366a8c6b2736dda.png)](https://medium.com/@jiayanyin.simba?source=post_page---byline--a95fa2cd491a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a95fa2cd491a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a95fa2cd491a--------------------------------) [Jiayan Yin](https://medium.com/@jiayanyin.simba?source=post_page---byline--a95fa2cd491a--------------------------------)
+[](https://medium.com/@jiayanyin.simba?source=post_page---byline--a95fa2cd491a--------------------------------)![Jiayan Yin](https://medium.com/@jiayanyin.simba?source=post_page---byline--a95fa2cd491a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a95fa2cd491a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a95fa2cd491a--------------------------------) [Jiayan Yin](https://medium.com/@jiayanyin.simba?source=post_page---byline--a95fa2cd491a--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a95fa2cd491a--------------------------------) ·阅读时长9分钟·2024年10月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a95fa2cd491a--------------------------------) ·阅读时长 9 分钟·2024 年 10 月 3 日
 
 --
 
-![](../Images/343cab07909551acab9da44713a73bdd.png)
+![](img/343cab07909551acab9da44713a73bdd.png)
 
 图片来源：[Nick Fewings](https://unsplash.com/@jannerboy62?utm_source=medium&utm_medium=referral) 来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-假设你训练了一个预测模型，准确率高达0.9。像精确度、召回率和F1分数等评估指标看起来也很有前景。但你的经验和直觉告诉你事情并不对劲，于是你进行了进一步调查，发现了以下情况：
+假设你训练了一个预测模型，准确率高达 0.9。像精确度、召回率和 F1 分数等评估指标看起来也很有前景。但你的经验和直觉告诉你事情并不对劲，于是你进行了进一步调查，发现了以下情况：
 
-![](../Images/86c5299ee5a6d712c32563bc2eb0c8c4.png)
+![](img/86c5299ee5a6d712c32563bc2eb0c8c4.png)
 
 Image_1 — 作者截图
 

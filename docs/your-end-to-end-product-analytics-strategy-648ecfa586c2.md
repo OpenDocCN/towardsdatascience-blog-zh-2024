@@ -1,16 +1,16 @@
 # 你的端到端产品分析策略
 
-> 原文：[https://towardsdatascience.com/your-end-to-end-product-analytics-strategy-648ecfa586c2?source=collection_archive---------2-----------------------#2024-05-28](https://towardsdatascience.com/your-end-to-end-product-analytics-strategy-648ecfa586c2?source=collection_archive---------2-----------------------#2024-05-28)
+> 原文：[`towardsdatascience.com/your-end-to-end-product-analytics-strategy-648ecfa586c2?source=collection_archive---------2-----------------------#2024-05-28`](https://towardsdatascience.com/your-end-to-end-product-analytics-strategy-648ecfa586c2?source=collection_archive---------2-----------------------#2024-05-28)
 
-[](https://bondicrypto.medium.com/?source=post_page---byline--648ecfa586c2--------------------------------)[![Robbie Geoghegan](../Images/c56405447ad89b1c2aa7b7e4aac09f21.png)](https://bondicrypto.medium.com/?source=post_page---byline--648ecfa586c2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--648ecfa586c2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--648ecfa586c2--------------------------------) [Robbie Geoghegan](https://bondicrypto.medium.com/?source=post_page---byline--648ecfa586c2--------------------------------)
+[](https://bondicrypto.medium.com/?source=post_page---byline--648ecfa586c2--------------------------------)![Robbie Geoghegan](https://bondicrypto.medium.com/?source=post_page---byline--648ecfa586c2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--648ecfa586c2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--648ecfa586c2--------------------------------) [Robbie Geoghegan](https://bondicrypto.medium.com/?source=post_page---byline--648ecfa586c2--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--648ecfa586c2--------------------------------) ·阅读时间：8分钟·2024年5月28日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--648ecfa586c2--------------------------------) ·阅读时间：8 分钟·2024 年 5 月 28 日
 
 --
 
 # 你所测量的，便是你所管理的
 
-“你所测量的，便是你所管理的”这一说法由现代管理学之父彼得·德鲁克（Peter Drucker）于1954年提出。这是一句经常被引用的名言，但实际上它是更长、更有力的一句话的一部分：“你所测量的，便是你所管理的——即使测量和管理它是没有意义的，甚至可能会损害组织的目标。”
+“你所测量的，便是你所管理的”这一说法由现代管理学之父彼得·德鲁克（Peter Drucker）于 1954 年提出。这是一句经常被引用的名言，但实际上它是更长、更有力的一句话的一部分：“你所测量的，便是你所管理的——即使测量和管理它是没有意义的，甚至可能会损害组织的目标。”
 
 德鲁克的洞察力强调了，虽然收集和衡量数据至关重要，但真正的挑战在于识别和优先考虑那些能够将业务引向正确方向的关键指标。通过专注于并优先考虑正确的指标，你可以确保所测量和管理的内容是真正有影响力的。
 
@@ -18,11 +18,11 @@
 
 # 你应该如何优先考虑指标？
 
-对于一个公司来说，最重要的指标会随着时间变化而变化。Uber大约15年未实现盈利，但该公司仍被认为是近年来最成功的企业之一。为什么？Uber在初期集中精力于快速增长，而不是立刻追求盈利。公司优先关注用户增长和用户留存等指标，以便在共享出行市场中建立主导地位。然后，当Uber成为主导的共享出行公司后，它的重点转向盈利和财务可持续性。像许多其他公司一样，它们将指标与产品生命周期的阶段紧密挂钩。
+对于一个公司来说，最重要的指标会随着时间变化而变化。Uber 大约 15 年未实现盈利，但该公司仍被认为是近年来最成功的企业之一。为什么？Uber 在初期集中精力于快速增长，而不是立刻追求盈利。公司优先关注用户增长和用户留存等指标，以便在共享出行市场中建立主导地位。然后，当 Uber 成为主导的共享出行公司后，它的重点转向盈利和财务可持续性。像许多其他公司一样，它们将指标与产品生命周期的阶段紧密挂钩。
 
 你应该根据产品生命周期阶段来优先考虑指标。
 
-![](../Images/4fb6600d9833007ca42abab92125a2f2.png)
+![](img/4fb6600d9833007ca42abab92125a2f2.png)
 
 产品生命周期阶段（图片来自作者）
 
@@ -42,11 +42,11 @@
 
 有三个指标可以帮助你清晰地判断是否达到了产品与市场的契合。这些指标按重要性排序如下：
 
-1.  **留存：** 用户是否从产品中找到价值？**示例指标：** D30留存，用户群体留存曲线。
+1.  **留存：** 用户是否从产品中找到价值？**示例指标：** D30 留存，用户群体留存曲线。
 
 1.  **活跃用户：** 产品拥有多少用户？这个数字在增加吗？**示例指标：** 日活跃用户（DAU），月活跃用户（MAU），增长会计。
 
-1.  **粘性：** 产品是否具有吸引力且经常被使用？**示例指标：** DAU/MAU，活动频率直方图（有时称为L28直方图）。
+1.  **粘性：** 产品是否具有吸引力且经常被使用？**示例指标：** DAU/MAU，活动频率直方图（有时称为 L28 直方图）。
 
 这三项指标结合使用，可以定量衡量是否存在产品与市场的契合，或者指出最关键的产品问题。你可能会遇到以下五种情境：
 
@@ -64,7 +64,7 @@
 
 # 第二阶段 — 增长：我们如何有效扩展？
 
-增长阶段是产品从有前景走向主导地位的潜力所在。Facebook著名的“10天内交8个朋友”规则是有效扩展的完美例子。通过漏斗分析和实验，Facebook发现，首次10天内与至少8个朋友建立联系的新用户更可能保持活跃。这一洞察力促使Facebook集中精力优化用户引导并鼓励朋友间建立联系，显著提高了用户留存率和粘性。在这个阶段，关键问题是：我们如何在保持产品质量和用户满意度的同时有效扩展？
+增长阶段是产品从有前景走向主导地位的潜力所在。Facebook 著名的“10 天内交 8 个朋友”规则是有效扩展的完美例子。通过漏斗分析和实验，Facebook 发现，首次 10 天内与至少 8 个朋友建立联系的新用户更可能保持活跃。这一洞察力促使 Facebook 集中精力优化用户引导并鼓励朋友间建立联系，显著提高了用户留存率和粘性。在这个阶段，关键问题是：我们如何在保持产品质量和用户满意度的同时有效扩展？
 
 这一阶段的分析应扩大，包括三种类型：
 
@@ -78,7 +78,7 @@
 
 实验是需要练习的技能。你应该在产品和公司生命周期的早期就开始建立这一能力，因为它比一组指标更难实施。通过让产品、工程和数据团队参与实验设计来建立这一能力。实验不仅在“第二阶段 — 成长”中至关重要，还应贯穿整个产品生命周期，始终作为分析的基础部分。
 
-“Aha”分析帮助识别可以加速增长的关键时刻。这些是用户意识到产品价值的关键互动时刻，从而带来忠诚度和粘性。Facebook 的“10天内结交8个朋友”就是他们用户的‘aha’时刻。此分析要求分析师探索多种潜在特征，并且可能很难识别并提炼出一个简单的‘aha’时刻。务必使用[假设驱动的方法](https://www.linkedin.com/pulse/what-i-learned-mckinsey-part-3-how-hypothesis-driven-devin-kasper/)以避免一开始就全面展开。
+“Aha”分析帮助识别可以加速增长的关键时刻。这些是用户意识到产品价值的关键互动时刻，从而带来忠诚度和粘性。Facebook 的“10 天内结交 8 个朋友”就是他们用户的‘aha’时刻。此分析要求分析师探索多种潜在特征，并且可能很难识别并提炼出一个简单的‘aha’时刻。务必使用[假设驱动的方法](https://www.linkedin.com/pulse/what-i-learned-mckinsey-part-3-how-hypothesis-driven-devin-kasper/)以避免一开始就全面展开。
 
 # 第三阶段 — 成熟期：我们如何实现盈利？
 
@@ -132,12 +132,12 @@
 
 +   [产品指标：终极指南](https://huryn.medium.com/product-metrics-the-ultimate-guide-00e3201a6303)
 
-+   [重要的SaaS指标](https://sacks.substack.com/p/the-saas-metrics-that-matter)
++   [重要的 SaaS 指标](https://sacks.substack.com/p/the-saas-metrics-that-matter)
 
 +   [产品分析指标：增长的综合指南](https://andremourapm.medium.com/product-analytics-metrics-comprehensive-guide-for-growth-c1c30f9157a)
 
-+   [15个你应该跟踪的重要产品指标](https://amplitude.com/blog/product-metrics-guide)
++   [15 个你应该跟踪的重要产品指标](https://amplitude.com/blog/product-metrics-guide)
 
 +   [产品分析指标：什么需要跟踪以及如何优化？](https://userpilot.com/blog/product-analytics-metrics/)
 
-+   [15个重要的产品指标，你应该跟踪的，如何做以及为什么](https://www.fullview.io/blog/product-metrics)
++   [15 个重要的产品指标，你应该跟踪的，如何做以及为什么](https://www.fullview.io/blog/product-metrics)

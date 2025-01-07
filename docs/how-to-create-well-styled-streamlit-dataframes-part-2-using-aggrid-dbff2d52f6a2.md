@@ -1,18 +1,18 @@
 # 如何创建漂亮的 Streamlit 数据框，第二部分：使用 AgGrid
 
-> 原文：[https://towardsdatascience.com/how-to-create-well-styled-streamlit-dataframes-part-2-using-aggrid-dbff2d52f6a2?source=collection_archive---------7-----------------------#2024-08-21](https://towardsdatascience.com/how-to-create-well-styled-streamlit-dataframes-part-2-using-aggrid-dbff2d52f6a2?source=collection_archive---------7-----------------------#2024-08-21)
+> 原文：[`towardsdatascience.com/how-to-create-well-styled-streamlit-dataframes-part-2-using-aggrid-dbff2d52f6a2?source=collection_archive---------7-----------------------#2024-08-21`](https://towardsdatascience.com/how-to-create-well-styled-streamlit-dataframes-part-2-using-aggrid-dbff2d52f6a2?source=collection_archive---------7-----------------------#2024-08-21)
 
 ## pandas Styler 很酷，但 AgGrid 更酷。让你的 Streamlit 数据框更加互动和惊艳。
 
-[](https://medium.com/@joparga3?source=post_page---byline--dbff2d52f6a2--------------------------------)[![Jose Parreño](../Images/707d5179926d36fba257f5476494e10e.png)](https://medium.com/@joparga3?source=post_page---byline--dbff2d52f6a2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dbff2d52f6a2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dbff2d52f6a2--------------------------------) [Jose Parreño](https://medium.com/@joparga3?source=post_page---byline--dbff2d52f6a2--------------------------------)
+[](https://medium.com/@joparga3?source=post_page---byline--dbff2d52f6a2--------------------------------)![Jose Parreño](https://medium.com/@joparga3?source=post_page---byline--dbff2d52f6a2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dbff2d52f6a2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dbff2d52f6a2--------------------------------) [Jose Parreño](https://medium.com/@joparga3?source=post_page---byline--dbff2d52f6a2--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dbff2d52f6a2--------------------------------) ·阅读时间 12 分钟·2024年8月21日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dbff2d52f6a2--------------------------------) ·阅读时间 12 分钟·2024 年 8 月 21 日
 
 --
 
-![](../Images/7b3409afe6ae120698dd70b81faf795b.png)
+![](img/7b3409afe6ae120698dd70b81faf795b.png)
 
-在我上一篇文章中，[我们讲解了如何使用 pandas Styler 对象创建漂亮的数据框](/how-to-create-well-styled-streamlit-dataframes-part-1-using-the-pandas-styler-e239c0fbe145)。在这篇文章中，我想告诉你第二种选择：**Streamlit AgGrid**。我将分享如何构建像上面展示的那样的数据框。阅读完本文后，你将学到：
+在我上一篇文章中，我们讲解了如何使用 pandas Styler 对象创建漂亮的数据框。在这篇文章中，我想告诉你第二种选择：**Streamlit AgGrid**。我将分享如何构建像上面展示的那样的数据框。阅读完本文后，你将学到：
 
 1.  **AgGrid 内的关键组件。** 这些包括 `gridOptions()`、`configure_column()`、`configure_default_column()` 和 `configure_side_bar()`*。
 

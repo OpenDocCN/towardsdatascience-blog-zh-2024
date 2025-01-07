@@ -1,12 +1,12 @@
 # Apple M2 Max GPU vs Nvidia V100（第二部分）：大模型与能效
 
-> 原文：[https://towardsdatascience.com/apple-m2-max-gpu-vs-nvidia-v100-part-2-big-models-and-energy-efficiency-3377000472d2?source=collection_archive---------0-----------------------#2024-02-07](https://towardsdatascience.com/apple-m2-max-gpu-vs-nvidia-v100-part-2-big-models-and-energy-efficiency-3377000472d2?source=collection_archive---------0-----------------------#2024-02-07)
+> 原文：[`towardsdatascience.com/apple-m2-max-gpu-vs-nvidia-v100-part-2-big-models-and-energy-efficiency-3377000472d2?source=collection_archive---------0-----------------------#2024-02-07`](https://towardsdatascience.com/apple-m2-max-gpu-vs-nvidia-v100-part-2-big-models-and-energy-efficiency-3377000472d2?source=collection_archive---------0-----------------------#2024-02-07)
 
 ## 比较 Apple Silicon M2 Max GPU 在训练大规模 CNN 模型时的性能和能效，并与 Nvidia V100 进行对比。
 
-[](https://fabrice-daniel.medium.com/?source=post_page---byline--3377000472d2--------------------------------)[![Fabrice Daniel](../Images/c13598211944934b5565fad97f152700.png)](https://fabrice-daniel.medium.com/?source=post_page---byline--3377000472d2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3377000472d2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3377000472d2--------------------------------) [Fabrice Daniel](https://fabrice-daniel.medium.com/?source=post_page---byline--3377000472d2--------------------------------)
+[](https://fabrice-daniel.medium.com/?source=post_page---byline--3377000472d2--------------------------------)![Fabrice Daniel](https://fabrice-daniel.medium.com/?source=post_page---byline--3377000472d2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3377000472d2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3377000472d2--------------------------------) [Fabrice Daniel](https://fabrice-daniel.medium.com/?source=post_page---byline--3377000472d2--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3377000472d2--------------------------------) ·阅读时间16分钟·2024年2月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3377000472d2--------------------------------) ·阅读时间 16 分钟·2024 年 2 月 7 日
 
 --
 

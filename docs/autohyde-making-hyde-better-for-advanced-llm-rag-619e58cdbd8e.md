@@ -1,16 +1,16 @@
 # AutoHyDE：使 HyDE 在高级 LLM RAG 中更加出色
 
-> 原文：[https://towardsdatascience.com/autohyde-making-hyde-better-for-advanced-llm-rag-619e58cdbd8e?source=collection_archive---------0-----------------------#2024-04-04](https://towardsdatascience.com/autohyde-making-hyde-better-for-advanced-llm-rag-619e58cdbd8e?source=collection_archive---------0-----------------------#2024-04-04)
+> 原文：[`towardsdatascience.com/autohyde-making-hyde-better-for-advanced-llm-rag-619e58cdbd8e?source=collection_archive---------0-----------------------#2024-04-04`](https://towardsdatascience.com/autohyde-making-hyde-better-for-advanced-llm-rag-619e58cdbd8e?source=collection_archive---------0-----------------------#2024-04-04)
 
 ## 🔎 深入探讨 HyDE 在高级 LLM RAG 中的应用 + 💡 介绍 AutoHyDE，一种半监督框架，旨在提高 HyDE 的效果、覆盖面和适用性
 
-[](https://ianhojy.medium.com/?source=post_page---byline--619e58cdbd8e--------------------------------)[![Ian Ho](../Images/1b56c25ee3bedfb5c7369d4bfc93aa91.png)](https://ianhojy.medium.com/?source=post_page---byline--619e58cdbd8e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--619e58cdbd8e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--619e58cdbd8e--------------------------------) [Ian Ho](https://ianhojy.medium.com/?source=post_page---byline--619e58cdbd8e--------------------------------)
+[](https://ianhojy.medium.com/?source=post_page---byline--619e58cdbd8e--------------------------------)![Ian Ho](https://ianhojy.medium.com/?source=post_page---byline--619e58cdbd8e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--619e58cdbd8e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--619e58cdbd8e--------------------------------) [Ian Ho](https://ianhojy.medium.com/?source=post_page---byline--619e58cdbd8e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--619e58cdbd8e--------------------------------) ·阅读时间 19 分钟 ·2024年4月4日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--619e58cdbd8e--------------------------------) ·阅读时间 19 分钟 ·2024 年 4 月 4 日
 
 --
 
-![](../Images/5e5d67d7b328dcb0334146a63e6ba258.png)
+![](img/5e5d67d7b328dcb0334146a63e6ba258.png)
 
 图片由作者与 DALL-E 协助制作
 

@@ -1,16 +1,16 @@
 # 我是如何成为一名数据科学家的——没有计算机科学学位，没有训练营
 
-> 原文：[https://towardsdatascience.com/how-i-became-a-data-scientist-no-cs-degree-no-bootcamp-82c321904986?source=collection_archive---------0-----------------------#2024-01-06](https://towardsdatascience.com/how-i-became-a-data-scientist-no-cs-degree-no-bootcamp-82c321904986?source=collection_archive---------0-----------------------#2024-01-06)
+> 原文：[`towardsdatascience.com/how-i-became-a-data-scientist-no-cs-degree-no-bootcamp-82c321904986?source=collection_archive---------0-----------------------#2024-01-06`](https://towardsdatascience.com/how-i-became-a-data-scientist-no-cs-degree-no-bootcamp-82c321904986?source=collection_archive---------0-----------------------#2024-01-06)
 
 ## 我是如何从厌恶编程到成为一名完全合格的数据科学家的
 
-[](https://medium.com/@egorhowell?source=post_page---byline--82c321904986--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--82c321904986--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--82c321904986--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--82c321904986--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--82c321904986--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--82c321904986--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--82c321904986--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--82c321904986--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--82c321904986--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--82c321904986--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--82c321904986--------------------------------) ·阅读时间11分钟·2024年1月6日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--82c321904986--------------------------------) ·阅读时间 11 分钟·2024 年 1 月 6 日
 
 --
 
-![](../Images/794a3af7a391f6cf390773762812bf64.png)
+![](img/794a3af7a391f6cf390773762812bf64.png)
 
 毋庸置疑，成为一名数据科学家可以说是（以我谦虚的观点）目前最酷的工作之一，尤其是在今年人工智能的热潮之下。
 

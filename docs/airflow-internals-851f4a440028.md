@@ -1,16 +1,16 @@
 # 深入探索：更详细地了解 4 个 Airflow 内部细节
 
-> 原文：[https://towardsdatascience.com/airflow-internals-851f4a440028?source=collection_archive---------7-----------------------#2024-02-03](https://towardsdatascience.com/airflow-internals-851f4a440028?source=collection_archive---------7-----------------------#2024-02-03)
+> 原文：[`towardsdatascience.com/airflow-internals-851f4a440028?source=collection_archive---------7-----------------------#2024-02-03`](https://towardsdatascience.com/airflow-internals-851f4a440028?source=collection_archive---------7-----------------------#2024-02-03)
 
 ## 你可能错过的四个 Apache Airflow 内部细节
 
-[](https://gmyrianthous.medium.com/?source=post_page---byline--851f4a440028--------------------------------)[![Giorgos Myrianthous](../Images/ff4b116e4fb9a095ce45eb064fde5af3.png)](https://gmyrianthous.medium.com/?source=post_page---byline--851f4a440028--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--851f4a440028--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--851f4a440028--------------------------------) [Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--851f4a440028--------------------------------)
+[](https://gmyrianthous.medium.com/?source=post_page---byline--851f4a440028--------------------------------)![Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--851f4a440028--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--851f4a440028--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--851f4a440028--------------------------------) [Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--851f4a440028--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--851f4a440028--------------------------------) ·6分钟阅读·2024年2月3日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--851f4a440028--------------------------------) ·6 分钟阅读·2024 年 2 月 3 日
 
 --
 
-![](../Images/1269d9de6e00493515bf3f1a54dd25ab.png)
+![](img/1269d9de6e00493515bf3f1a54dd25ab.png)
 
 通过 DALL-E 生成的图像
 

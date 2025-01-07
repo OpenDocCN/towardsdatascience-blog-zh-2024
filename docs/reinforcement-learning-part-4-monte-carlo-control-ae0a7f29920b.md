@@ -1,16 +1,16 @@
 # 强化学习，第四部分：蒙特卡洛控制
 
-> 原文：[https://towardsdatascience.com/reinforcement-learning-part-4-monte-carlo-control-ae0a7f29920b?source=collection_archive---------4-----------------------#2024-06-11](https://towardsdatascience.com/reinforcement-learning-part-4-monte-carlo-control-ae0a7f29920b?source=collection_archive---------4-----------------------#2024-06-11)
+> 原文：[`towardsdatascience.com/reinforcement-learning-part-4-monte-carlo-control-ae0a7f29920b?source=collection_archive---------4-----------------------#2024-06-11`](https://towardsdatascience.com/reinforcement-learning-part-4-monte-carlo-control-ae0a7f29920b?source=collection_archive---------4-----------------------#2024-06-11)
 
 ## 利用蒙特卡洛算法发现最佳策略
 
-[](https://medium.com/@slavahead?source=post_page---byline--ae0a7f29920b--------------------------------)[![Vyacheslav Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--ae0a7f29920b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ae0a7f29920b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ae0a7f29920b--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--ae0a7f29920b--------------------------------)
+[](https://medium.com/@slavahead?source=post_page---byline--ae0a7f29920b--------------------------------)![Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--ae0a7f29920b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ae0a7f29920b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ae0a7f29920b--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--ae0a7f29920b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ae0a7f29920b--------------------------------) ·阅读时间：13分钟·2024年6月11日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ae0a7f29920b--------------------------------) ·阅读时间：13 分钟·2024 年 6 月 11 日
 
 --
 
-![](../Images/ccda9eebd2feeb01b4ef59b81b9dabcb.png)
+![](img/ccda9eebd2feeb01b4ef59b81b9dabcb.png)
 
 # 引言
 

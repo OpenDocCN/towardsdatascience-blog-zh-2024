@@ -1,16 +1,16 @@
 # 从头创建 SMOTE 过采样
 
-> 原文：[https://towardsdatascience.com/creating-smote-oversampling-from-scratch-64af1712a3be?source=collection_archive---------5-----------------------#2024-12-31](https://towardsdatascience.com/creating-smote-oversampling-from-scratch-64af1712a3be?source=collection_archive---------5-----------------------#2024-12-31)
+> 原文：[`towardsdatascience.com/creating-smote-oversampling-from-scratch-64af1712a3be?source=collection_archive---------5-----------------------#2024-12-31`](https://towardsdatascience.com/creating-smote-oversampling-from-scratch-64af1712a3be?source=collection_archive---------5-----------------------#2024-12-31)
 
 ## 一篇关于如何实现过采样以及如何制作自定义变体的 Python 教程
 
-[](https://hd2zm.medium.com/?source=post_page---byline--64af1712a3be--------------------------------)[![Hari Devanathan](../Images/9c793030ed7d21a2ed2955c57fa19273.png)](https://hd2zm.medium.com/?source=post_page---byline--64af1712a3be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--64af1712a3be--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--64af1712a3be--------------------------------) [Hari Devanathan](https://hd2zm.medium.com/?source=post_page---byline--64af1712a3be--------------------------------)
+[](https://hd2zm.medium.com/?source=post_page---byline--64af1712a3be--------------------------------)![Hari Devanathan](https://hd2zm.medium.com/?source=post_page---byline--64af1712a3be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--64af1712a3be--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--64af1712a3be--------------------------------) [Hari Devanathan](https://hd2zm.medium.com/?source=post_page---byline--64af1712a3be--------------------------------)
 
 ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--64af1712a3be--------------------------------) ·8 分钟阅读·4 天前
 
 --
 
-![](../Images/a1d2c373a08a563ff89cb1d4611727be.png)
+![](img/a1d2c373a08a563ff89cb1d4611727be.png)
 
 图片来源：[By Topo](https://unsplash.com/@bytopo?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,16 +1,16 @@
 # 早停法：为什么你的机器学习模型停止训练？
 
-> 原文：[https://towardsdatascience.com/early-stopping-why-did-your-machine-learning-model-stop-training-c6b1d64e009e?source=collection_archive---------7-----------------------#2024-05-11](https://towardsdatascience.com/early-stopping-why-did-your-machine-learning-model-stop-training-c6b1d64e009e?source=collection_archive---------7-----------------------#2024-05-11)
+> 原文：[`towardsdatascience.com/early-stopping-why-did-your-machine-learning-model-stop-training-c6b1d64e009e?source=collection_archive---------7-----------------------#2024-05-11`](https://towardsdatascience.com/early-stopping-why-did-your-machine-learning-model-stop-training-c6b1d64e009e?source=collection_archive---------7-----------------------#2024-05-11)
 
 ## 为什么大多数模型较小，而大型语言模型（LLMs）较大
 
-[](https://harrisonfhoffman.medium.com/?source=post_page---byline--c6b1d64e009e--------------------------------)[![Harrison Hoffman](../Images/ebd5a797314dc9ef3da4c55acc3f0254.png)](https://harrisonfhoffman.medium.com/?source=post_page---byline--c6b1d64e009e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6b1d64e009e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c6b1d64e009e--------------------------------) [Harrison Hoffman](https://harrisonfhoffman.medium.com/?source=post_page---byline--c6b1d64e009e--------------------------------)
+[](https://harrisonfhoffman.medium.com/?source=post_page---byline--c6b1d64e009e--------------------------------)![Harrison Hoffman](https://harrisonfhoffman.medium.com/?source=post_page---byline--c6b1d64e009e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6b1d64e009e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6b1d64e009e--------------------------------) [Harrison Hoffman](https://harrisonfhoffman.medium.com/?source=post_page---byline--c6b1d64e009e--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6b1d64e009e--------------------------------) ·15分钟阅读·2024年5月11日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6b1d64e009e--------------------------------) ·15 分钟阅读·2024 年 5 月 11 日
 
 --
 
-![](../Images/b41ca7537911f65a13f567179aaac1d0.png)
+![](img/b41ca7537911f65a13f567179aaac1d0.png)
 
 PL**AI**OFFS24\. 图片来源：作者。
 

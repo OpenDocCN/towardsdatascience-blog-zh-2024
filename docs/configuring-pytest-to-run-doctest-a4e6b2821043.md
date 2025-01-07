@@ -1,18 +1,18 @@
 # 配置 Pytest 以运行 Doctest
 
-> 原文：[https://towardsdatascience.com/configuring-pytest-to-run-doctest-a4e6b2821043?source=collection_archive---------8-----------------------#2024-04-02](https://towardsdatascience.com/configuring-pytest-to-run-doctest-a4e6b2821043?source=collection_archive---------8-----------------------#2024-04-02)
+> 原文：[`towardsdatascience.com/configuring-pytest-to-run-doctest-a4e6b2821043?source=collection_archive---------8-----------------------#2024-04-02`](https://towardsdatascience.com/configuring-pytest-to-run-doctest-a4e6b2821043?source=collection_archive---------8-----------------------#2024-04-02)
 
 ## PYTHON 编程
 
 ## 学习如何在 pyproject.toml 中配置 pytest 以运行 doctests
 
-[](https://medium.com/@nyggus?source=post_page---byline--a4e6b2821043--------------------------------)[![Marcin Kozak](../Images/d7faf62e48ed81dab5d8ad92819fff54.png)](https://medium.com/@nyggus?source=post_page---byline--a4e6b2821043--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a4e6b2821043--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a4e6b2821043--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--a4e6b2821043--------------------------------)
+[](https://medium.com/@nyggus?source=post_page---byline--a4e6b2821043--------------------------------)![Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--a4e6b2821043--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a4e6b2821043--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a4e6b2821043--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--a4e6b2821043--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a4e6b2821043--------------------------------) ·10分钟阅读·2024年4月2日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a4e6b2821043--------------------------------) ·10 分钟阅读·2024 年 4 月 2 日
 
 --
 
-![](../Images/ee4a6fb822fa87ee6cc352b66ad225c4.png)
+![](img/ee4a6fb822fa87ee6cc352b66ad225c4.png)
 
 由 [Paul Hanaoka](https://unsplash.com/@plhnk?utm_source=medium&utm_medium=referral) 提供的照片，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,18 +1,18 @@
 # 如何使用弹性网回归
 
-> 原文：[https://towardsdatascience.com/how-to-use-elastic-net-regression-85a6a393222b?source=collection_archive---------9-----------------------#2024-03-14](https://towardsdatascience.com/how-to-use-elastic-net-regression-85a6a393222b?source=collection_archive---------9-----------------------#2024-03-14)
+> 原文：[`towardsdatascience.com/how-to-use-elastic-net-regression-85a6a393222b?source=collection_archive---------9-----------------------#2024-03-14`](https://towardsdatascience.com/how-to-use-elastic-net-regression-85a6a393222b?source=collection_archive---------9-----------------------#2024-03-14)
 
 ## 投放一个灵活的网，只保留大鱼
 
-[](https://medium.com/@cjtayl2?source=post_page---byline--85a6a393222b--------------------------------)[![Chris Taylor](../Images/a5a0b096777cc262cc5adc3350fadab4.png)](https://medium.com/@cjtayl2?source=post_page---byline--85a6a393222b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--85a6a393222b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--85a6a393222b--------------------------------) [Chris Taylor](https://medium.com/@cjtayl2?source=post_page---byline--85a6a393222b--------------------------------)
+[](https://medium.com/@cjtayl2?source=post_page---byline--85a6a393222b--------------------------------)![Chris Taylor](https://medium.com/@cjtayl2?source=post_page---byline--85a6a393222b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--85a6a393222b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--85a6a393222b--------------------------------) [Chris Taylor](https://medium.com/@cjtayl2?source=post_page---byline--85a6a393222b--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--85a6a393222b--------------------------------) ·阅读时长9分钟·2024年3月14日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--85a6a393222b--------------------------------) ·阅读时长 9 分钟·2024 年 3 月 14 日
 
 --
 
 *注意：本文使用的代码利用了三个自定义脚本，*`data_cleaning`*，*`data_review`*，和*`eda`*，这些脚本可以通过公共的[*GitHub 仓库*](https://github.com/CJTAYL/elastic_net_medium)访问。*
 
-![](../Images/22442aa74d6abaf90e723802601a8a45.png)
+![](img/22442aa74d6abaf90e723802601a8a45.png)
 
 图片由[Eric BARBEAU](https://unsplash.com/@ericbarbeau?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -24,11 +24,11 @@
 
 为了应对一些算法的局限性，提出了惩罚或正则化技术[1]。两种常见的正则化方法是岭回归和套索回归，但对于数据科学新手来说，选择这两种方法可能会很困难。
 
-选择岭回归和套索回归的一种方法是检查特征与响应变量之间的相关性[2]。当模型中的大多数特征是相关的（即有助于模型的预测能力）时，应在线性回归中添加岭回归惩罚（或L2惩罚）。
+选择岭回归和套索回归的一种方法是检查特征与响应变量之间的相关性[2]。当模型中的大多数特征是相关的（即有助于模型的预测能力）时，应在线性回归中添加岭回归惩罚（或 L2 惩罚）。
 
 当添加岭回归惩罚时，模型的代价函数为：
 
-![](../Images/b298d8d69cbf1957e25f9cda2caa8eb6.png)
+![](img/b298d8d69cbf1957e25f9cda2caa8eb6.png)
 
 图片由作者提供
 
@@ -40,11 +40,11 @@
 
 +   *n* = 数据集中特征的数量
 
-当大多数特征无关时（即不贡献于模型的预测能力），应将套索回归惩罚项（或L1惩罚项）添加到线性回归中。
+当大多数特征无关时（即不贡献于模型的预测能力），应将套索回归惩罚项（或 L1 惩罚项）添加到线性回归中。
 
 当添加套索回归惩罚项时，模型的成本函数为：
 
-![](../Images/57e2c8bd0be6960ce028e9aff73d468d.png)
+![](img/57e2c8bd0be6960ce028e9aff73d468d.png)
 
 图片来源：作者
 
@@ -54,13 +54,13 @@
 
 弹性网回归的成本函数为：
 
-![](../Images/4a2c4e3f8965f8a2fd3e1895e4d90293.png)
+![](img/4a2c4e3f8965f8a2fd3e1895e4d90293.png)
 
 图片来源：作者
 
 +   r = 岭回归和套索回归之间的混合比率。
 
-当r为1时，仅使用套索惩罚项；当r为0时，仅使用岭惩罚项。当r介于0和1之间时，使用两种惩罚项的混合。
+当 r 为 1 时，仅使用套索惩罚项；当 r 为 0 时，仅使用岭惩罚项。当 r 介于 0 和 1 之间时，使用两种惩罚项的混合。
 
 除了非常适合包含多个特征的数据集外，弹性网回归还具有其他使其成为数据科学家有吸引力的特性[1]：
 
@@ -70,15 +70,15 @@
 
 +   能够选择相关特征的组，而不是随意选择组中的一个特征
 
-由于其效用和灵活性，Zou和Hastie（2005）将该模型与“…一种可拉伸的渔网，能够捕捉所有的大鱼”进行了比较（第302页），其中“大鱼”类比为相关特征。
+由于其效用和灵活性，Zou 和 Hastie（2005）将该模型与“…一种可拉伸的渔网，能够捕捉所有的大鱼”进行了比较（第 302 页），其中“大鱼”类比为相关特征。
 
 现在我们有了一些背景知识，可以继续在实际数据集上实现弹性网回归。
 
 # **实现**
 
-一个很好的数据资源是加利福尼亚大学欧文分校的机器学习库（UCI ML Repo）。在本教程中，我们将使用葡萄酒质量数据集[3]，该数据集采用[创作共用4.0国际许可协议](https://creativecommons.org/licenses/by/4.0/legalcode)。
+一个很好的数据资源是加利福尼亚大学欧文分校的机器学习库（UCI ML Repo）。在本教程中，我们将使用葡萄酒质量数据集[3]，该数据集采用[创作共用 4.0 国际许可协议](https://creativecommons.org/licenses/by/4.0/legalcode)。
 
-下方显示的函数可以通过输入识别号作为参数，从UCI机器学习库中获取数据集和变量信息。
+下方显示的函数可以通过输入识别号作为参数，从 UCI 机器学习库中获取数据集和变量信息。
 
 ```py
 pip install ucimlrepo # unless already installed
@@ -121,7 +121,7 @@ def fetch_uci_data(id):
 df = fetch_uci_data(186)
 ```
 
-一个pandas数据框已被分配给变量“df”，并打印了数据集的信息。
+一个 pandas 数据框已被分配给变量“df”，并打印了数据集的信息。
 
 ## 探索性数据分析
 
@@ -159,9 +159,9 @@ Variable Information
 12            red or white  None             no
 ```
 
-根据变量信息，我们可以看到数据集中有11个“特征”、1个“目标”和1个“其他”变量。这是一个有趣的信息——如果我们没有提取变量信息，我们可能不知道有关于葡萄酒家族（或颜色）的数据。目前，我们不会将“颜色”变量纳入模型，但知道它存在对于项目未来的迭代很有帮助。
+根据变量信息，我们可以看到数据集中有 11 个“特征”、1 个“目标”和 1 个“其他”变量。这是一个有趣的信息——如果我们没有提取变量信息，我们可能不知道有关于葡萄酒家族（或颜色）的数据。目前，我们不会将“颜色”变量纳入模型，但知道它存在对于项目未来的迭代很有帮助。
 
-变量信息中的“描述”列表明，“质量”变量是类别型的。数据可能是有序的，这意味着它们有层级结构，但数据之间的间隔不一定相等或已知。实际上，这意味着一个评分为4的葡萄酒并不比评分为2的葡萄酒好两倍。为了解决这个问题，我们将把数据转换为正确的数据类型。
+变量信息中的“描述”列表明，“质量”变量是类别型的。数据可能是有序的，这意味着它们有层级结构，但数据之间的间隔不一定相等或已知。实际上，这意味着一个评分为 4 的葡萄酒并不比评分为 2 的葡萄酒好两倍。为了解决这个问题，我们将把数据转换为正确的数据类型。
 
 ```py
 df['quality'] = df['quality'].astype('category')
@@ -182,11 +182,11 @@ plt.ylabel('Count')
 plt.show()
 ```
 
-![](../Images/b6af5dd87b5f361d902a404c7bc06f25.png)
+![](img/b6af5dd87b5f361d902a404c7bc06f25.png)
 
 图像来源：作者
 
-在进行探索性数据分析时，为数值型特征绘制直方图是非常有益的。此外，将变量按类别变量分组可以提供新的见解。最好的分组方式是“质量”。然而，考虑到质量有7个组别，图表可能会变得难以阅读。为了简化分组，我们可以创建一个新的特征，“评级”，将“质量”分为三个类别：低、中、高。
+在进行探索性数据分析时，为数值型特征绘制直方图是非常有益的。此外，将变量按类别变量分组可以提供新的见解。最好的分组方式是“质量”。然而，考虑到质量有 7 个组别，图表可能会变得难以阅读。为了简化分组，我们可以创建一个新的特征，“评级”，将“质量”分为三个类别：低、中、高。
 
 ```py
 def categorize_quality(value):
@@ -217,7 +217,7 @@ Name: count, dtype: int64
 
 根据代码输出，我们可以看到大多数葡萄酒被归类为“中等”。
 
-现在，我们可以绘制按“评级”分组的数值特征的直方图。为了绘制直方图，我们需要使用`eda`脚本中的`gen_histograms_by_category()`方法，GitHub上共享的该脚本在文章开头已提供。
+现在，我们可以绘制按“评级”分组的数值特征的直方图。为了绘制直方图，我们需要使用`eda`脚本中的`gen_histograms_by_category()`方法，GitHub 上共享的该脚本在文章开头已提供。
 
 ```py
 import eda 
@@ -225,7 +225,7 @@ import eda
 eda.gen_histograms_by_category(df, 'rating')
 ```
 
-![](../Images/2e1491e6afb60c5a265de19bd1f2b853.png)
+![](img/2e1491e6afb60c5a265de19bd1f2b853.png)
 
 图像来源：作者
 
@@ -254,7 +254,7 @@ skew           1.723290          1.495097     0.471731        1.435404     5.399
 kurtosis       5.061161          2.825372     2.397239        4.359272    50.898051             7.906238             -0.371664     6.606067     0.367657     8.653699    -0.531687     0.23232
 ```
 
-与直方图一致，标记为“fixed_acidity”的特征具有1.72的偏斜度，表明存在显著的右偏。
+与直方图一致，标记为“fixed_acidity”的特征具有 1.72 的偏斜度，表明存在显著的右偏。
 
 为了确定变量之间是否存在相关性，我们可以使用`eda`脚本中的另一个函数。
 
@@ -262,7 +262,7 @@ kurtosis       5.061161          2.825372     2.397239        4.359272    50.898
 eda.gen_corr_matrix_hmap(df)
 ```
 
-![](../Images/271e84969b393ccdde17bfde8c8860f9.png)
+![](img/271e84969b393ccdde17bfde8c8860f9.png)
 
 图像来源：作者
 
@@ -356,8 +356,8 @@ R-squared value: 0.7142939720612289
 
 # 参考文献
 
-[1] H. Zou 和 T. Hastie，Elastic Net 通过正则化和变量选择，《皇家统计学会系列B：统计方法论》期刊，第67卷，第2期，2005年4月，第301–320页，[https://doi.org/10.1111/j.1467-9868.2005.00503.x](https://doi.org/10.1111/j.1467-9868.2005.00503.x)
+[1] H. Zou 和 T. Hastie，Elastic Net 通过正则化和变量选择，《皇家统计学会系列 B：统计方法论》期刊，第 67 卷，第 2 期，2005 年 4 月，第 301–320 页，[`doi.org/10.1111/j.1467-9868.2005.00503.x`](https://doi.org/10.1111/j.1467-9868.2005.00503.x)
 
-[2] A. Géron，《动手学深度学习：使用 Scikit-Learn、Keras 和 TensorFlow 构建智能系统的概念、工具和技术》（2021），O’Reilly出版。
+[2] A. Géron，《动手学深度学习：使用 Scikit-Learn、Keras 和 TensorFlow 构建智能系统的概念、工具和技术》（2021），O’Reilly 出版。
 
-[3] P. Cortez, A. Cerdeira, F. Almeida, T. Matos 和 Reis, J.（2009）。葡萄酒质量数据集。UCI 机器学习库。[https://doi.org/10.24432/C56S3T](https://doi.org/10.24432/C56S3T)。
+[3] P. Cortez, A. Cerdeira, F. Almeida, T. Matos 和 Reis, J.（2009）。葡萄酒质量数据集。UCI 机器学习库。[`doi.org/10.24432/C56S3T`](https://doi.org/10.24432/C56S3T)。

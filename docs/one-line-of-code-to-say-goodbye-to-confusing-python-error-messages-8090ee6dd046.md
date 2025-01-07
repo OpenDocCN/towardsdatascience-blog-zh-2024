@@ -1,14 +1,14 @@
 # 告别令人困惑的 Python 错误信息
 
-> 原文：[https://towardsdatascience.com/one-line-of-code-to-say-goodbye-to-confusing-python-error-messages-8090ee6dd046?source=collection_archive---------1-----------------------#2024-03-03](https://towardsdatascience.com/one-line-of-code-to-say-goodbye-to-confusing-python-error-messages-8090ee6dd046?source=collection_archive---------1-----------------------#2024-03-03)
+> 原文：[`towardsdatascience.com/one-line-of-code-to-say-goodbye-to-confusing-python-error-messages-8090ee6dd046?source=collection_archive---------1-----------------------#2024-03-03`](https://towardsdatascience.com/one-line-of-code-to-say-goodbye-to-confusing-python-error-messages-8090ee6dd046?source=collection_archive---------1-----------------------#2024-03-03)
 
-![](../Images/276b9b731470da1b3c6f34f847d78b68.png)
+![](img/276b9b731470da1b3c6f34f847d78b68.png)
 
 图片来源：[15548337](https://pixabay.com/users/15548337-15548337/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=4918187) 来自 [Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=4918187)
 
 ## 灵活的错误信息增强库 — PrettyError
 
-[](https://christophertao.medium.com/?source=post_page---byline--8090ee6dd046--------------------------------)[![Christopher Tao](../Images/bea1e3c81cc62eb28bdba9275d6b326f.png)](https://christophertao.medium.com/?source=post_page---byline--8090ee6dd046--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8090ee6dd046--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8090ee6dd046--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--8090ee6dd046--------------------------------)
+[](https://christophertao.medium.com/?source=post_page---byline--8090ee6dd046--------------------------------)![Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--8090ee6dd046--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8090ee6dd046--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8090ee6dd046--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--8090ee6dd046--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8090ee6dd046--------------------------------) ·阅读时长 8 分钟 ·2024 年 3 月 3 日
 
@@ -22,6 +22,6 @@
 
 # 1\. 安装与快速入门
 
-![](../Images/239987fa1bf9951261075d384b2e3ba0.png)
+![](img/239987fa1bf9951261075d384b2e3ba0.png)
 
 图片来源：[Pexels](https://pixabay.com/users/pexels-2286921/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=1841550) 来自 [Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=1841550)

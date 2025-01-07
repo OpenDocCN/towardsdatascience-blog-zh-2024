@@ -1,16 +1,16 @@
 # 时间序列 — 从分析过去到预测未来
 
-> 原文：[https://towardsdatascience.com/time-series-from-analyzing-the-past-to-predicting-the-future-249ab99ec52d?source=collection_archive---------0-----------------------#2024-10-23](https://towardsdatascience.com/time-series-from-analyzing-the-past-to-predicting-the-future-249ab99ec52d?source=collection_archive---------0-----------------------#2024-10-23)
+> 原文：[`towardsdatascience.com/time-series-from-analyzing-the-past-to-predicting-the-future-249ab99ec52d?source=collection_archive---------0-----------------------#2024-10-23`](https://towardsdatascience.com/time-series-from-analyzing-the-past-to-predicting-the-future-249ab99ec52d?source=collection_archive---------0-----------------------#2024-10-23)
 
 ## 如何通过时间序列从过去学习。
 
-[](https://medium.com/@fmnobar?source=post_page---byline--249ab99ec52d--------------------------------)[![Farzad Nobar](../Images/2d75209693b712300e6f0796bd2487d0.png)](https://medium.com/@fmnobar?source=post_page---byline--249ab99ec52d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--249ab99ec52d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--249ab99ec52d--------------------------------) [Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--249ab99ec52d--------------------------------)
+[](https://medium.com/@fmnobar?source=post_page---byline--249ab99ec52d--------------------------------)![Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--249ab99ec52d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--249ab99ec52d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--249ab99ec52d--------------------------------) [Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--249ab99ec52d--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--249ab99ec52d--------------------------------) ·阅读时间19分钟·2024年10月23日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--249ab99ec52d--------------------------------) ·阅读时间 19 分钟·2024 年 10 月 23 日
 
 --
 
-![](../Images/c6fed2a147330660ffa50d12b614c8cd.png)
+![](img/c6fed2a147330660ffa50d12b614c8cd.png)
 
 图片由[DAVIDCOHEN](https://unsplash.com/@davcohpho?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源于[Unsplash](https://unsplash.com/photos/a-group-of-clocks-mounted-to-the-side-of-a-wall-nZL80Di-YAg?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -20,4 +20,4 @@
 
 1.  **建立基础：** 我们不会假设读者对时间序列已有了解，而是将深入介绍与时间序列相关的基础概念，以便更好地理解这一主题并跟上内容。
 
-1.  **扩展深度：** 一旦读者熟悉了理解时间序列所需的基础知识，我们将介绍10种不同的时间序列预测方法…
+1.  **扩展深度：** 一旦读者熟悉了理解时间序列所需的基础知识，我们将介绍 10 种不同的时间序列预测方法…

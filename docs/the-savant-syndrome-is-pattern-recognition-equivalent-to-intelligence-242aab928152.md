@@ -1,18 +1,18 @@
 # 天才综合症：模式识别是否等同于智能？
 
-> 原文：[https://towardsdatascience.com/the-savant-syndrome-is-pattern-recognition-equivalent-to-intelligence-242aab928152?source=collection_archive---------1-----------------------#2024-10-31](https://towardsdatascience.com/the-savant-syndrome-is-pattern-recognition-equivalent-to-intelligence-242aab928152?source=collection_archive---------1-----------------------#2024-10-31)
+> 原文：[`towardsdatascience.com/the-savant-syndrome-is-pattern-recognition-equivalent-to-intelligence-242aab928152?source=collection_archive---------1-----------------------#2024-10-31`](https://towardsdatascience.com/the-savant-syndrome-is-pattern-recognition-equivalent-to-intelligence-242aab928152?source=collection_archive---------1-----------------------#2024-10-31)
 
 ## |LLM|智能|推理|
 
 ## 探索人工智能的极限：为什么掌握模式并不等同于真正的推理
 
-[](https://salvatore-raieli.medium.com/?source=post_page---byline--242aab928152--------------------------------)[![Salvatore Raieli](../Images/6bb4520e2df40d20283e7283141b5e06.png)](https://salvatore-raieli.medium.com/?source=post_page---byline--242aab928152--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--242aab928152--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--242aab928152--------------------------------) [Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--242aab928152--------------------------------)
+[](https://salvatore-raieli.medium.com/?source=post_page---byline--242aab928152--------------------------------)![Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--242aab928152--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--242aab928152--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--242aab928152--------------------------------) [Salvatore Raieli](https://salvatore-raieli.medium.com/?source=post_page---byline--242aab928152--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--242aab928152--------------------------------) ·阅读时间 13 分钟·2024年10月31日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--242aab928152--------------------------------) ·阅读时间 13 分钟·2024 年 10 月 31 日
 
 --
 
-![](../Images/2e883230c061df1a160db48d68d82334.png)
+![](img/2e883230c061df1a160db48d68d82334.png)
 
 该图像由作者使用 DALL-E 生成
 

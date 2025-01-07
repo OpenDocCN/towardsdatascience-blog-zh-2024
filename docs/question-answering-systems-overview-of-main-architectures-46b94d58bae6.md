@@ -1,16 +1,16 @@
 # 问答系统：主要架构概览
 
-> 原文：[https://towardsdatascience.com/question-answering-systems-overview-of-main-architectures-46b94d58bae6?source=collection_archive---------5-----------------------#2024-02-28](https://towardsdatascience.com/question-answering-systems-overview-of-main-architectures-46b94d58bae6?source=collection_archive---------5-----------------------#2024-02-28)
+> 原文：[`towardsdatascience.com/question-answering-systems-overview-of-main-architectures-46b94d58bae6?source=collection_archive---------5-----------------------#2024-02-28`](https://towardsdatascience.com/question-answering-systems-overview-of-main-architectures-46b94d58bae6?source=collection_archive---------5-----------------------#2024-02-28)
 
 ## 探索构建可扩展信息检索系统的设计方法
 
-[](https://medium.com/@slavahead?source=post_page---byline--46b94d58bae6--------------------------------)[![Vyacheslav Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--46b94d58bae6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--46b94d58bae6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--46b94d58bae6--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--46b94d58bae6--------------------------------)
+[](https://medium.com/@slavahead?source=post_page---byline--46b94d58bae6--------------------------------)![Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--46b94d58bae6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--46b94d58bae6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--46b94d58bae6--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--46b94d58bae6--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--46b94d58bae6--------------------------------) ·阅读时间6分钟·2024年2月28日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--46b94d58bae6--------------------------------) ·阅读时间 6 分钟·2024 年 2 月 28 日
 
 --
 
-![](../Images/6128b698c58807ef1c94da783d09640a.png)
+![](img/6128b698c58807ef1c94da783d09640a.png)
 
 # 介绍
 
@@ -20,7 +20,7 @@
 
 本文涵盖了构建现代化、可扩展的问答应用程序的三种主要设计方法。
 
-![](../Images/16ae9107d2fef1f12a0522e90c495a2c.png)
+![](img/16ae9107d2fef1f12a0522e90c495a2c.png)
 
 问答系统架构类型
 

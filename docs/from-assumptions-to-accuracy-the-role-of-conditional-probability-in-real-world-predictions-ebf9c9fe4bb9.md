@@ -1,16 +1,16 @@
 # 从假设到准确性：条件概率在现实世界预测中的作用
 
-> 原文：[https://towardsdatascience.com/from-assumptions-to-accuracy-the-role-of-conditional-probability-in-real-world-predictions-ebf9c9fe4bb9?source=collection_archive---------2-----------------------#2024-05-25](https://towardsdatascience.com/from-assumptions-to-accuracy-the-role-of-conditional-probability-in-real-world-predictions-ebf9c9fe4bb9?source=collection_archive---------2-----------------------#2024-05-25)
+> 原文：[`towardsdatascience.com/from-assumptions-to-accuracy-the-role-of-conditional-probability-in-real-world-predictions-ebf9c9fe4bb9?source=collection_archive---------2-----------------------#2024-05-25`](https://towardsdatascience.com/from-assumptions-to-accuracy-the-role-of-conditional-probability-in-real-world-predictions-ebf9c9fe4bb9?source=collection_archive---------2-----------------------#2024-05-25)
 
 ## ***条件概率优于概率；前提是你有相关的信息***
 
-[](https://medium.com/@atisharajpurohit?source=post_page---byline--ebf9c9fe4bb9--------------------------------)[![Atisha Rajpurohit](../Images/4a546a800ef8bf9b17684dd00cde0c40.png)](https://medium.com/@atisharajpurohit?source=post_page---byline--ebf9c9fe4bb9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ebf9c9fe4bb9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ebf9c9fe4bb9--------------------------------) [Atisha Rajpurohit](https://medium.com/@atisharajpurohit?source=post_page---byline--ebf9c9fe4bb9--------------------------------)
+[](https://medium.com/@atisharajpurohit?source=post_page---byline--ebf9c9fe4bb9--------------------------------)![Atisha Rajpurohit](https://medium.com/@atisharajpurohit?source=post_page---byline--ebf9c9fe4bb9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ebf9c9fe4bb9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ebf9c9fe4bb9--------------------------------) [Atisha Rajpurohit](https://medium.com/@atisharajpurohit?source=post_page---byline--ebf9c9fe4bb9--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ebf9c9fe4bb9--------------------------------) ·5分钟阅读·2024年5月25日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ebf9c9fe4bb9--------------------------------) ·5 分钟阅读·2024 年 5 月 25 日
 
 --
 
-![](../Images/1f6efb043aed0500e12b0b8939bd0851.png)
+![](img/1f6efb043aed0500e12b0b8939bd0851.png)
 
 图片来源：[Unsplash](https://unsplash.com/s/photos/dice)
 
@@ -22,7 +22,7 @@
 
 引入“**条件**”就像是通过多种条件，将你原本的有利结果的数量划分成不同的切片，给你一个更真实代表有利结果数量的切片。下面的图片试图简要地描绘这个概念。
 
-![](../Images/1512c53f282abead9a1af6e0b39ffde4.png)
+![](img/1512c53f282abead9a1af6e0b39ffde4.png)
 
 图片由作者创作
 
@@ -32,7 +32,7 @@
 
 ***第二个条件：*** *此外，加入* ***第二个条件*** *“****国籍/公民身份****”的因素，进一步精细化了这一部分。*
 
-***第3个条件*** *：最右侧图表中的小深蓝色部分代表了最准确的可用工作数量（即有利结果的数量）。*
+***第 3 个条件*** *：最右侧图表中的小深蓝色部分代表了最准确的可用工作数量（即有利结果的数量）。*
 
 在深入探讨为什么条件概率可能比普通概率更有用之前，让我们快速回顾一下定义。
 
@@ -60,9 +60,9 @@ P(A 与 B 的交集)* 被定义为事件 A 和事件 B 同时发生的概率。
 
 让我介绍一些关于这个场景的更多信息：
 
-+   **第1个朋友**：**警察**，来自孟买市，前往卡林蓬（Kalimpong）——一个小镇，处理一起案件。
++   **第 1 个朋友**：**警察**，来自孟买市，前往卡林蓬（Kalimpong）——一个小镇，处理一起案件。
 
-+   **第2个朋友**：**数学教授**，是卡林蓬镇的居民。
++   **第 2 个朋友**：**数学教授**，是卡林蓬镇的居民。
 
 这两个朋友彼此认识，因为他们曾经在**同一所大学**学习。
 
@@ -104,13 +104,13 @@ P(A 与 B 的交集)* 被定义为事件 A 和事件 B 同时发生的概率。
 
 **II. 条件事件：**
 
-**事件A**：教授和警察在卡林蓬见面。
+**事件 A**：教授和警察在卡林蓬见面。
 
-**事件B**：这位警察从孟买旅行到卡林蓬。
+**事件 B**：这位警察从孟买旅行到卡林蓬。
 
 两位朋友见面的概率：
 
-![](../Images/e25a3a0714fcff2ef5bb6260efa63248.png)
+![](img/e25a3a0714fcff2ef5bb6260efa63248.png)
 
 1. 警察从孟买到卡林蓬旅行的概率，取决于以下因素：
 
@@ -118,7 +118,7 @@ P(A 与 B 的交集)* 被定义为事件 A 和事件 B 同时发生的概率。
 
 +   他有多频繁被分配去处理小镇的案件？
 
-+   假设这个概率是0.1%。
++   假设这个概率是 0.1%。
 
 2. 两位朋友见面的概率取决于以下因素：
 
@@ -128,13 +128,13 @@ P(A 与 B 的交集)* 被定义为事件 A 和事件 B 同时发生的概率。
 
 +   教授定期去这家咖啡馆。
 
-+   假设这个概率是1%。
++   假设这个概率是 1%。
 
 **最终计算：**
 
-![](../Images/17ebe385d5356ef5c636d4f1879617fb.png)
+![](img/17ebe385d5356ef5c636d4f1879617fb.png)
 
-+   在警察已经在卡林蓬的情况下，两位朋友在卡林蓬见面的概率是0.001%。
++   在警察已经在卡林蓬的情况下，两位朋友在卡林蓬见面的概率是 0.001%。
 
 +   这是对这个概念的简化表示，但我想表达的是，要始终寻找更多相关的信息来细化你的概率。
 

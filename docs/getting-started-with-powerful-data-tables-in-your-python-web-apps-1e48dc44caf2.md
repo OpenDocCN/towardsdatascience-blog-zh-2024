@@ -1,16 +1,16 @@
 # 在你的 Python Web 应用中入门强大的数据表格
 
-> 原文：[https://towardsdatascience.com/getting-started-with-powerful-data-tables-in-your-python-web-apps-1e48dc44caf2?source=collection_archive---------1-----------------------#2024-10-06](https://towardsdatascience.com/getting-started-with-powerful-data-tables-in-your-python-web-apps-1e48dc44caf2?source=collection_archive---------1-----------------------#2024-10-06)
+> 原文：[`towardsdatascience.com/getting-started-with-powerful-data-tables-in-your-python-web-apps-1e48dc44caf2?source=collection_archive---------1-----------------------#2024-10-06`](https://towardsdatascience.com/getting-started-with-powerful-data-tables-in-your-python-web-apps-1e48dc44caf2?source=collection_archive---------1-----------------------#2024-10-06)
 
 ## 使用 AG Grid 在纯 Python 中与 Reflex 构建金融应用
 
-[](https://medium.com/@tgotsman12?source=post_page---byline--1e48dc44caf2--------------------------------)[![Tom Gotsman](../Images/c19e7853986a9b242c91b7479765fddf.png)](https://medium.com/@tgotsman12?source=post_page---byline--1e48dc44caf2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1e48dc44caf2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1e48dc44caf2--------------------------------) [Tom Gotsman](https://medium.com/@tgotsman12?source=post_page---byline--1e48dc44caf2--------------------------------)
+[](https://medium.com/@tgotsman12?source=post_page---byline--1e48dc44caf2--------------------------------)![Tom Gotsman](https://medium.com/@tgotsman12?source=post_page---byline--1e48dc44caf2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1e48dc44caf2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1e48dc44caf2--------------------------------) [Tom Gotsman](https://medium.com/@tgotsman12?source=post_page---byline--1e48dc44caf2--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1e48dc44caf2--------------------------------) ·6分钟阅读·2024年10月6日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1e48dc44caf2--------------------------------) ·6 分钟阅读·2024 年 10 月 6 日
 
 --
 
-![](../Images/a43f1c7b91e88cd20e85272af6acbe18.png)
+![](img/a43f1c7b91e88cd20e85272af6acbe18.png)
 
 在过去几个月里，我一直在探索用于 Web 应用的各种数据可视化和操作工具。作为一名 Python 开发者，我经常需要处理大规模数据集并将其显示在交互式、可定制的表格中。一直困扰我的一个问题是：如何构建一个强大的数据网格 UI，与我的 Python 后端无缝集成？
 
@@ -106,7 +106,7 @@ rx.button(
 
 **定义 AG Grid 列**
 
-![](../Images/410489edcdb8b2cad6343e9d68d6e819.png)
+![](img/410489edcdb8b2cad6343e9d68d6e819.png)
 
 按作者显示的 AG Grid 列
 
@@ -126,7 +126,7 @@ column_defs = [
 
 **显示 AG Grid**
 
-![](../Images/3e62e5927a59fff92bcf2004f089b96e.png)
+![](img/3e62e5927a59fff92bcf2004f089b96e.png)
 
 按作者展示 AG Grid
 
@@ -159,7 +159,7 @@ ag_grid(
 
 **更改 AG Grid 主题**
 
-![](../Images/7f28782cd14effe58aa9a24b70c22562.png)
+![](img/7f28782cd14effe58aa9a24b70c22562.png)
 
 按作者更改 AG Grid 主题
 
@@ -185,9 +185,9 @@ rx.select(
 
 **以图表显示公司数据**
 
-![](../Images/5acd3ed80718d6d637cb82546383d0ea.png)
+![](img/5acd3ed80718d6d637cb82546383d0ea.png)
 
-按作者显示所选公司过去6个月的数据
+按作者显示所选公司过去 6 个月的数据
 
 上面 AG Grid 代码中显示的 `on_selection_changed` 事件触发器，在用户选择网格中的一行时调用。这会调用 `State` 类中的 `handle_selection` 方法，将 `selected_rows` 状态变量设置为新选择的行，并调用 `update_line_graph` 方法。
 

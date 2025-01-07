@@ -1,16 +1,16 @@
 # PySpark 解析：`explode` 和 `collect_list` 函数
 
-> 原文：[https://towardsdatascience.com/pyspark-explained-the-explode-and-collect-list-functions-834f45ff5ac5?source=collection_archive---------11-----------------------#2024-06-18](https://towardsdatascience.com/pyspark-explained-the-explode-and-collect-list-functions-834f45ff5ac5?source=collection_archive---------11-----------------------#2024-06-18)
+> 原文：[`towardsdatascience.com/pyspark-explained-the-explode-and-collect-list-functions-834f45ff5ac5?source=collection_archive---------11-----------------------#2024-06-18`](https://towardsdatascience.com/pyspark-explained-the-explode-and-collect-list-functions-834f45ff5ac5?source=collection_archive---------11-----------------------#2024-06-18)
 
-![](../Images/fd0d72b6315cad72a4bb2149198bcb30.png)
+![](img/fd0d72b6315cad72a4bb2149198bcb30.png)
 
 图片来源：AI（Dalle-3）
 
 ## 两个在 PySpark 中嵌套和解嵌数据集的有用函数
 
-[](https://medium.com/@thomas_reid?source=post_page---byline--834f45ff5ac5--------------------------------)[![Thomas Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--834f45ff5ac5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--834f45ff5ac5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--834f45ff5ac5--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--834f45ff5ac5--------------------------------)
+[](https://medium.com/@thomas_reid?source=post_page---byline--834f45ff5ac5--------------------------------)![Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--834f45ff5ac5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--834f45ff5ac5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--834f45ff5ac5--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--834f45ff5ac5--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--834f45ff5ac5--------------------------------) ·阅读时间：9分钟·2024年6月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--834f45ff5ac5--------------------------------) ·阅读时间：9 分钟·2024 年 6 月 18 日
 
 --
 

@@ -1,16 +1,16 @@
-# 精通CatBoost的不确定性
+# 精通 CatBoost 的不确定性
 
-> 原文：[https://towardsdatascience.com/mastering-uncertainty-with-catboost-cdb330bc00cf?source=collection_archive---------5-----------------------#2024-03-29](https://towardsdatascience.com/mastering-uncertainty-with-catboost-cdb330bc00cf?source=collection_archive---------5-----------------------#2024-03-29)
+> 原文：[`towardsdatascience.com/mastering-uncertainty-with-catboost-cdb330bc00cf?source=collection_archive---------5-----------------------#2024-03-29`](https://towardsdatascience.com/mastering-uncertainty-with-catboost-cdb330bc00cf?source=collection_archive---------5-----------------------#2024-03-29)
 
 ## 揭示预测区间的力量
 
-[](https://medium.com/@ilia.teimouri?source=post_page---byline--cdb330bc00cf--------------------------------)[![Ilia Teimouri博士](../Images/0eb948c4d3f81c116cd16fa4d5016629.png)](https://medium.com/@ilia.teimouri?source=post_page---byline--cdb330bc00cf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cdb330bc00cf--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cdb330bc00cf--------------------------------) [Ilia Teimouri博士](https://medium.com/@ilia.teimouri?source=post_page---byline--cdb330bc00cf--------------------------------)
+[](https://medium.com/@ilia.teimouri?source=post_page---byline--cdb330bc00cf--------------------------------)![Ilia Teimouri 博士](https://medium.com/@ilia.teimouri?source=post_page---byline--cdb330bc00cf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cdb330bc00cf--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdb330bc00cf--------------------------------) [Ilia Teimouri 博士](https://medium.com/@ilia.teimouri?source=post_page---byline--cdb330bc00cf--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdb330bc00cf--------------------------------) ·6分钟阅读·2024年3月29日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdb330bc00cf--------------------------------) ·6 分钟阅读·2024 年 3 月 29 日
 
 --
 
-![](../Images/60c99d8fbc4f7bde1f6721d3727d574b.png)
+![](img/60c99d8fbc4f7bde1f6721d3727d574b.png)
 
 照片由[Ian Taylor](https://unsplash.com/@carrier_lost)提供，来源于[Unsplash](http://unsplash.com)。
 

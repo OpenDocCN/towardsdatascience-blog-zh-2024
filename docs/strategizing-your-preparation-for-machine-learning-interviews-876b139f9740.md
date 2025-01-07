@@ -1,12 +1,12 @@
 # 为机器学习面试制定准备策略
 
-> 原文：[https://towardsdatascience.com/strategizing-your-preparation-for-machine-learning-interviews-876b139f9740?source=collection_archive---------3-----------------------#2024-08-07](https://towardsdatascience.com/strategizing-your-preparation-for-machine-learning-interviews-876b139f9740?source=collection_archive---------3-----------------------#2024-08-07)
+> 原文：[`towardsdatascience.com/strategizing-your-preparation-for-machine-learning-interviews-876b139f9740?source=collection_archive---------3-----------------------#2024-08-07`](https://towardsdatascience.com/strategizing-your-preparation-for-machine-learning-interviews-876b139f9740?source=collection_archive---------3-----------------------#2024-08-07)
 
 ## 解码职位角色并识别重点领域
 
-[](https://medium.com/@kgk.singhal?source=post_page---byline--876b139f9740--------------------------------)[![Kartik Singhal](../Images/be61a4cf2cee09213a9e1db5c3850dbc.png)](https://medium.com/@kgk.singhal?source=post_page---byline--876b139f9740--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--876b139f9740--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--876b139f9740--------------------------------) [Kartik Singhal](https://medium.com/@kgk.singhal?source=post_page---byline--876b139f9740--------------------------------)
+[](https://medium.com/@kgk.singhal?source=post_page---byline--876b139f9740--------------------------------)![Kartik Singhal](https://medium.com/@kgk.singhal?source=post_page---byline--876b139f9740--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--876b139f9740--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--876b139f9740--------------------------------) [Kartik Singhal](https://medium.com/@kgk.singhal?source=post_page---byline--876b139f9740--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--876b139f9740--------------------------------) ·阅读时长 8 分钟 ·2024年8月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--876b139f9740--------------------------------) ·阅读时长 8 分钟 ·2024 年 8 月 7 日
 
 --
 
@@ -18,7 +18,7 @@
 
 # 机器学习角色的范畴
 
-![](../Images/470f2e1c10fa33861593e4ccc953ebe2.png)
+![](img/470f2e1c10fa33861593e4ccc953ebe2.png)
 
 作者图片：机器学习角色范畴中的职位名称示例。不幸的是，每家公司对这些职位名称的定义不同，因此查看职位描述至关重要。
 
@@ -56,9 +56,9 @@ ML 角色的技术职责和专业领域可以有很大差异。
 
 以下是我如何在职位描述中识别关键字，以将职位与机器学习领域匹配的一些例子。
 
-![](../Images/873e38385782f2802339f7786e28c18a.png)
+![](img/873e38385782f2802339f7786e28c18a.png)
 
-图片来自作者：示例职位描述，摘自公开的Google职位搜索工具，并突出显示关键词，以识别核心的机器学习职责。
+图片来自作者：示例职位描述，摘自公开的 Google 职位搜索工具，并突出显示关键词，以识别核心的机器学习职责。
 
 > **注意：** 职位描述通常缺乏细节，因此如果不清楚，始终向招聘人员寻求更多信息。
 
@@ -66,13 +66,13 @@ ML 角色的技术职责和专业领域可以有很大差异。
 
 # 机器学习面试轮次
 
-在深入准备不同角色的策略之前，让我们快速了解机器学习面试中的4种不同类型的面试轮次。
+在深入准备不同角色的策略之前，让我们快速了解机器学习面试中的 4 种不同类型的面试轮次。
 
 1.  **机器学习基础/广度**：这一轮考察工程师对机器学习基础知识的理解，涵盖多个主题。通常是快速问答环节，面试官可能会在不同主题之间跳跃，或者在某个领域内提出一般性问题。
 
 1.  **机器学习案例研究/深度**：这一轮侧重于专门领域和详细的案例研究，来自你的过去项目和/或特定领域知识。这一轮尤其有趣，是所有面试类型中最开放的，通常面向具有一定经验的中级职位。
 
-1.  **机器学习系统设计**：这一轮面试类似于典型的软件工程系统设计面试，应用相似的原则。你会被给定一个产品领域（例如，设计一个YouTube推荐系统的机器学习模型），并要求你定义问题、概述设计过程，并传达你的思路，包括权衡。面试官会关注你的问题解决方法、思维过程和高层设计能力。
+1.  **机器学习系统设计**：这一轮面试类似于典型的软件工程系统设计面试，应用相似的原则。你会被给定一个产品领域（例如，设计一个 YouTube 推荐系统的机器学习模型），并要求你定义问题、概述设计过程，并传达你的思路，包括权衡。面试官会关注你的问题解决方法、思维过程和高层设计能力。
 
 1.  **机器学习编程：** 这一轮并不常见，但在初创公司中更为常见。策略很简单：将机器学习编程准备与机器学习基础知识结合起来，练习基本模型的编程。
 
@@ -86,7 +86,7 @@ ML 角色的技术职责和专业领域可以有很大差异。
 
 确保你扎实掌握基础知识（例如[主题列表](https://mlengineerinsights.substack.com/i/146189281/fundamental-topics-all-levels)），你甚至可以在申请面试之前就开始准备这些内容。无论你目标的是哪个机器学习角色或层级，这个基础都是至关重要的。
 
-![](../Images/873b57758d2c84c64156d22eee67690e.png)
+![](img/873b57758d2c84c64156d22eee67690e.png)
 
 作者提供的图像：我基于核心机器学习职责和职位层级的最关键面试环节的经验。请注意，这并不意味着其他环节不重要，但它给出了一个关于在哪里集中准备的方向。
 
@@ -104,7 +104,7 @@ ML 角色的技术职责和专业领域可以有很大差异。
 > 
 > **— 通才角色：** 通常需要掌握机器学习基础和深度学习知识，包括多层感知器、反向传播、卷积神经网络（CNNs）、递归神经网络（RNNs）和长短时记忆网络（LSTMs）。
 > 
-> **— 专才角色：** 例如，在自然语言处理（NLP）中，要熟悉像word2vec这样的技术。在一次NLP面试中，我特别被问到了word2vec的基本理论。
+> **— 专才角色：** 例如，在自然语言处理（NLP）中，要熟悉像 word2vec 这样的技术。在一次 NLP 面试中，我特别被问到了 word2vec 的基本理论。
 
 了解职位和团队的具体要求将帮助你定制准备策略，并提高成功的机会。
 
@@ -116,9 +116,9 @@ ML 角色的技术职责和专业领域可以有很大差异。
 
 +   **排名/推荐：** 对于搜索（例如：谷歌、亚马逊）和发现（例如：Facebook、Instagram、Netflix）至关重要。这些角色通常提供最多的机会。我建议每个机器学习科学家/工程师都要理解排名和推荐系统，因为有很多职位空缺。
 
-+   **广告：** 了解与广告相关的挑战，如校准和竞价。广告系统需要平衡最大化收入与保持用户体验之间的关系。像谷歌和Pinterest这样的公司在优化点击率和转化率等因素方面投入大量资金，确保广告既对广告商有效，又对用户具有相关性。
++   **广告：** 了解与广告相关的挑战，如校准和竞价。广告系统需要平衡最大化收入与保持用户体验之间的关系。像谷歌和 Pinterest 这样的公司在优化点击率和转化率等因素方面投入大量资金，确保广告既对广告商有效，又对用户具有相关性。
 
-+   **自然语言处理（NLP）：** 了解变压器（transformers）、注意力机制（attention mechanisms）和大型语言模型（LLMs）。自然语言处理支持像谷歌搜索自动完成、亚马逊的Alexa和苹果的Siri等功能。最近，随着ChatGPT和LLMs的出现，自然语言处理变得非常抢手。
++   **自然语言处理（NLP）：** 了解变压器（transformers）、注意力机制（attention mechanisms）和大型语言模型（LLMs）。自然语言处理支持像谷歌搜索自动完成、亚马逊的 Alexa 和苹果的 Siri 等功能。最近，随着 ChatGPT 和 LLMs 的出现，自然语言处理变得非常抢手。
 
 +   **计算机视觉：** 了解卷积神经网络（CNNs）、递归神经网络（RNNs）、长短期记忆网络（LSTMs）、图像特征表示、物体检测和分类。计算机视觉应用广泛，从人脸识别到自动驾驶。
 
@@ -140,13 +140,13 @@ ML 角色的技术职责和专业领域可以有很大差异。
 
 示例：
 
-+   **流媒体服务（例如Netflix）：** 学习视频推荐系统、流数据处理和内容分发网络（CDNs）。
++   **流媒体服务（例如 Netflix）：** 学习视频推荐系统、流数据处理和内容分发网络（CDNs）。
 
-+   **搜索/推荐类岗位（如Google、Amazon、Doordash、Instagram）：** 聚焦于用户内容推荐和常见问题，例如“在外卖应用上推荐餐馆”或“设计用户推荐流”。***提示：*** *设计推荐系统组件是机器学习系统设计面试中最常被问到的问题之一。*
++   **搜索/推荐类岗位（如 Google、Amazon、Doordash、Instagram）：** 聚焦于用户内容推荐和常见问题，例如“在外卖应用上推荐餐馆”或“设计用户推荐流”。***提示：*** *设计推荐系统组件是机器学习系统设计面试中最常被问到的问题之一。*
 
-+   **广告（例如Pinterest、Snapchat、Facebook、YouTube）：** 了解广告排名及相关挑战，如多阶段排名、实时竞价和用户细分。
++   **广告（例如 Pinterest、Snapchat、Facebook、YouTube）：** 了解广告排名及相关挑战，如多阶段排名、实时竞价和用户细分。
 
-> ***推荐这门课程来全面准备机器学习系统设计***：Educative.io的[机器学习系统设计](https://www.educative.io/courses/machine-learning-system-design)
+> ***推荐这门课程来全面准备机器学习系统设计***：Educative.io 的[机器学习系统设计](https://www.educative.io/courses/machine-learning-system-design)
 
 **2. 理解领域特定的权衡**
 
@@ -186,7 +186,7 @@ ML 角色的技术职责和专业领域可以有很大差异。
 
 +   你研究的关键要点
 
-持续的跟踪不仅帮助你保持组织性，还能提高你的信心，因为你可以看到自己的知识和技能在不断成长。花了我一段时间才意识到其价值，但现在我一直在使用Google文档来记录这些内容。
+持续的跟踪不仅帮助你保持组织性，还能提高你的信心，因为你可以看到自己的知识和技能在不断成长。花了我一段时间才意识到其价值，但现在我一直在使用 Google 文档来记录这些内容。
 
 记住，机器学习研究进展迅速，新的突破可能会改变面试问题，因此跟踪最新动态是关键。
 
@@ -198,14 +198,14 @@ ML 角色的技术职责和专业领域可以有很大差异。
 
 +   [用户行为序列建模](https://medium.com/towards-data-science/user-action-sequence-modeling-from-attention-to-transformers-and-beyond-5f280268b399) by [Samuel Flender](https://medium.com/u/ce56d9dcd568?source=post_page---user_mention--876b139f9740--------------------------------)
 
-+   [微调Llama 3.1](/fine-tune-llama-3-1-ultra-efficiently-with-unsloth-7196c7165bab) by [Maxime Labonne](https://medium.com/u/dc89da634938?source=post_page---user_mention--876b139f9740--------------------------------)
++   微调 Llama 3.1 by [Maxime Labonne](https://medium.com/u/dc89da634938?source=post_page---user_mention--876b139f9740--------------------------------)
 
-+   [做好比完美更重要](/done-is-better-than-perfect-e055d5993fe7) by [Torsten Walbaum](https://medium.com/u/4e291ce6380c?source=post_page---user_mention--876b139f9740--------------------------------)
++   做好比完美更重要 by [Torsten Walbaum](https://medium.com/u/4e291ce6380c?source=post_page---user_mention--876b139f9740--------------------------------)
 
-+   [如何开始使用LLM](https://medium.com/databites/get-started-llm-and-genai-artificial-intelligence-large-language-model-gen-openai-gpt-ai5e598ec06666-5e598ec06666) by [Josep Ferrer](https://medium.com/u/8213af8f3ccf?source=post_page---user_mention--876b139f9740--------------------------------)
++   [如何开始使用 LLM](https://medium.com/databites/get-started-llm-and-genai-artificial-intelligence-large-language-model-gen-openai-gpt-ai5e598ec06666-5e598ec06666) by [Josep Ferrer](https://medium.com/u/8213af8f3ccf?source=post_page---user_mention--876b139f9740--------------------------------)
 
-+   [Pytorch与TensorFlow的区别](https://www.vineetdhanawat.com/blog/2022/03/comparing-tensorflow-and-pytorch-for-machine-learning/) by Vineet Dhanawat
++   [Pytorch 与 TensorFlow 的区别](https://www.vineetdhanawat.com/blog/2022/03/comparing-tensorflow-and-pytorch-for-machine-learning/) by Vineet Dhanawat
 
-如果这篇文章对你有所帮助，并且你想了解更多关于机器学习的实际技巧，欢迎订阅我的[**新闻通讯**](https://mlengineerinsights.substack.com/)**，**在Medium上[关注我](https://medium.com/@kgk.singhal)，或者在[LinkedIn](https://www.linkedin.com/in/kartiks93/)上与我联系*。*我对机器学习充满热情，这是我与你分享这份热情和切实可行建议的方式，无论你是刚入门还是已经是一位有经验的专业人士。
+如果这篇文章对你有所帮助，并且你想了解更多关于机器学习的实际技巧，欢迎订阅我的[**新闻通讯**](https://mlengineerinsights.substack.com/)**，**在 Medium 上[关注我](https://medium.com/@kgk.singhal)，或者在[LinkedIn](https://www.linkedin.com/in/kartiks93/)上与我联系*。*我对机器学习充满热情，这是我与你分享这份热情和切实可行建议的方式，无论你是刚入门还是已经是一位有经验的专业人士。
 
 ***免责声明***：本博客基于个人经验和公开资源。请注意，所表达的观点仅代表我个人，不代表我过去或现在雇主的立场。有关最准确的信息，请始终参考雇主公司的官方资源和指南。

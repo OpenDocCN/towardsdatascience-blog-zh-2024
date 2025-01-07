@@ -1,18 +1,18 @@
 # 工程师和数据专业人士提问的艺术
 
-> 原文：[https://towardsdatascience.com/the-art-of-asking-questions-for-engineers-c7253fe4e284?source=collection_archive---------16-----------------------#2024-09-10](https://towardsdatascience.com/the-art-of-asking-questions-for-engineers-c7253fe4e284?source=collection_archive---------16-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/the-art-of-asking-questions-for-engineers-c7253fe4e284?source=collection_archive---------16-----------------------#2024-09-10`](https://towardsdatascience.com/the-art-of-asking-questions-for-engineers-c7253fe4e284?source=collection_archive---------16-----------------------#2024-09-10)
 
 ## 工程
 
 ## 在会议中提出有影响力问题的指导原则
 
-[](https://tamimi-naser.medium.com/?source=post_page---byline--c7253fe4e284--------------------------------)[![Naser Tamimi](../Images/8d43c66ea3c0ef9b49c7d33dbc008c28.png)](https://tamimi-naser.medium.com/?source=post_page---byline--c7253fe4e284--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c7253fe4e284--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c7253fe4e284--------------------------------) [Naser Tamimi](https://tamimi-naser.medium.com/?source=post_page---byline--c7253fe4e284--------------------------------)
+[](https://tamimi-naser.medium.com/?source=post_page---byline--c7253fe4e284--------------------------------)![Naser Tamimi](https://tamimi-naser.medium.com/?source=post_page---byline--c7253fe4e284--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c7253fe4e284--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c7253fe4e284--------------------------------) [Naser Tamimi](https://tamimi-naser.medium.com/?source=post_page---byline--c7253fe4e284--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c7253fe4e284--------------------------------) ·阅读时间：5分钟·2024年9月10日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c7253fe4e284--------------------------------) ·阅读时间：5 分钟·2024 年 9 月 10 日
 
 --
 
-![](../Images/376b4e5379c087e3994a182f60e96ba9.png)
+![](img/376b4e5379c087e3994a182f60e96ba9.png)
 
 这张图片是作者通过 Meta AI 创作的。
 

@@ -1,18 +1,18 @@
 # 多头注意力 — 形式化解释与定义
 
-> 原文：[https://towardsdatascience.com/multi-head-attention-formally-explained-and-defined-89dc70ce84bd?source=collection_archive---------9-----------------------#2024-06-11](https://towardsdatascience.com/multi-head-attention-formally-explained-and-defined-89dc70ce84bd?source=collection_archive---------9-----------------------#2024-06-11)
+> 原文：[`towardsdatascience.com/multi-head-attention-formally-explained-and-defined-89dc70ce84bd?source=collection_archive---------9-----------------------#2024-06-11`](https://towardsdatascience.com/multi-head-attention-formally-explained-and-defined-89dc70ce84bd?source=collection_archive---------9-----------------------#2024-06-11)
 
 ## 多头注意力的全面且详细的形式化
 
-[](https://medium.com/@jmpion?source=post_page---byline--89dc70ce84bd--------------------------------)[![Jean Meunier-Pion](../Images/2d97f6d450ad143cbcb75a701204cc72.png)](https://medium.com/@jmpion?source=post_page---byline--89dc70ce84bd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--89dc70ce84bd--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--89dc70ce84bd--------------------------------) [Jean Meunier-Pion](https://medium.com/@jmpion?source=post_page---byline--89dc70ce84bd--------------------------------)
+[](https://medium.com/@jmpion?source=post_page---byline--89dc70ce84bd--------------------------------)![Jean Meunier-Pion](https://medium.com/@jmpion?source=post_page---byline--89dc70ce84bd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--89dc70ce84bd--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--89dc70ce84bd--------------------------------) [Jean Meunier-Pion](https://medium.com/@jmpion?source=post_page---byline--89dc70ce84bd--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--89dc70ce84bd--------------------------------) ·阅读时长9分钟·2024年6月11日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--89dc70ce84bd--------------------------------) ·阅读时长 9 分钟·2024 年 6 月 11 日
 
 --
 
-![](../Images/06dd5a838c54bd29e7e3bcf3512bced8.png)
+![](img/06dd5a838c54bd29e7e3bcf3512bced8.png)
 
-带有多个头部的机器人，正在集中注意力 — 作者提供的图像（由AI生成，Microsoft Copilot）
+带有多个头部的机器人，正在集中注意力 — 作者提供的图像（由 AI 生成，Microsoft Copilot）
 
 多头注意力在变换器（Transformers）中扮演着至关重要的角色，而变换器已经彻底改变了自然语言处理（NLP）。理解这个机制是了解当前最先进语言模型的必要步骤。
 
@@ -22,6 +22,6 @@
 
 由于要更好地理解新概念，关键是要自己动手实践，本文附带了几个练习/问题（*以及解答*），以帮助你准确理解多头注意力机制的作用。
 
-**免责声明：** 在开始多头注意力的定义和解释之前，请注意，由于缺乏对LaTeX的支持，我不得不将方程转化为图像，以显示不同的数学对象。
+**免责声明：** 在开始多头注意力的定义和解释之前，请注意，由于缺乏对 LaTeX 的支持，我不得不将方程转化为图像，以显示不同的数学对象。
 
 # 输入

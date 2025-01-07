@@ -1,16 +1,16 @@
-# 使用自编码器进行时间序列异常检测，Python实战
+# 使用自编码器进行时间序列异常检测，Python 实战
 
-> 原文：[https://towardsdatascience.com/hands-on-time-series-anomaly-detection-using-autoencoders-with-python-7cd893bbc122?source=collection_archive---------3-----------------------#2024-08-21](https://towardsdatascience.com/hands-on-time-series-anomaly-detection-using-autoencoders-with-python-7cd893bbc122?source=collection_archive---------3-----------------------#2024-08-21)
+> 原文：[`towardsdatascience.com/hands-on-time-series-anomaly-detection-using-autoencoders-with-python-7cd893bbc122?source=collection_archive---------3-----------------------#2024-08-21`](https://towardsdatascience.com/hands-on-time-series-anomaly-detection-using-autoencoders-with-python-7cd893bbc122?source=collection_archive---------3-----------------------#2024-08-21)
 
 ## 这里是如何用几行代码使用自编码器来检测含有异常的信号
 
-[](https://piero-paialunga.medium.com/?source=post_page---byline--7cd893bbc122--------------------------------)[![Piero Paialunga](../Images/de2185596a49484698733e85114dd1ff.png)](https://piero-paialunga.medium.com/?source=post_page---byline--7cd893bbc122--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7cd893bbc122--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7cd893bbc122--------------------------------) [Piero Paialunga](https://piero-paialunga.medium.com/?source=post_page---byline--7cd893bbc122--------------------------------)
+[](https://piero-paialunga.medium.com/?source=post_page---byline--7cd893bbc122--------------------------------)![Piero Paialunga](https://piero-paialunga.medium.com/?source=post_page---byline--7cd893bbc122--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7cd893bbc122--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7cd893bbc122--------------------------------) [Piero Paialunga](https://piero-paialunga.medium.com/?source=post_page---byline--7cd893bbc122--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7cd893bbc122--------------------------------) ·10分钟阅读·2024年8月21日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7cd893bbc122--------------------------------) ·10 分钟阅读·2024 年 8 月 21 日
 
 --
 
-![](../Images/251a13a7ec986cf0706c0a18822430a1.png)
+![](img/251a13a7ec986cf0706c0a18822430a1.png)
 
 图片由[davisuko](https://unsplash.com/@davisuko?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源于[Unsplash](https://unsplash.com/photos/blue-lemon-sliced-into-two-halves-5E5N49RWtbA?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -18,7 +18,7 @@
 
 如果你想到**地震**，**异常**就是数据中突然的峰值或下降的**地震信号**，这些信号暗示着某些不好的事情正在发生。
 
-在**金融**数据中，大家都记得1929年的[华尔街崩盘](https://en.wikipedia.org/wiki/Wall_Street_Crash_of_1929)，那是金融领域中一个信号**带有异常**的明显例子。在**工程学**中，信号中的尖峰可能代表超声波反射到墙壁或人的情况。
+在**金融**数据中，大家都记得 1929 年的[华尔街崩盘](https://en.wikipedia.org/wiki/Wall_Street_Crash_of_1929)，那是金融领域中一个信号**带有异常**的明显例子。在**工程学**中，信号中的尖峰可能代表超声波反射到墙壁或人的情况。
 
 所有这些故事都源于一个非常明确的问题：
 

@@ -1,12 +1,12 @@
 # 我如何使用 LlamaIndex 工作流简化我的研究和演示过程
 
-> 原文：[https://towardsdatascience.com/how-i-streamline-my-research-and-presentation-with-llamaindex-workflows-3d75a9a10564?source=collection_archive---------3-----------------------#2024-09-10](https://towardsdatascience.com/how-i-streamline-my-research-and-presentation-with-llamaindex-workflows-3d75a9a10564?source=collection_archive---------3-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/how-i-streamline-my-research-and-presentation-with-llamaindex-workflows-3d75a9a10564?source=collection_archive---------3-----------------------#2024-09-10`](https://towardsdatascience.com/how-i-streamline-my-research-and-presentation-with-llamaindex-workflows-3d75a9a10564?source=collection_archive---------3-----------------------#2024-09-10)
 
 ## 一个通过 AI 工作流实现可靠性、灵活性和可控性的示例
 
-[](https://medium.com/@lzchen.cs?source=post_page---byline--3d75a9a10564--------------------------------)[![Lingzhen Chen](../Images/9014cbac032238d8a5c9f4708ba6ffcb.png)](https://medium.com/@lzchen.cs?source=post_page---byline--3d75a9a10564--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3d75a9a10564--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3d75a9a10564--------------------------------) [Lingzhen Chen](https://medium.com/@lzchen.cs?source=post_page---byline--3d75a9a10564--------------------------------)
+[](https://medium.com/@lzchen.cs?source=post_page---byline--3d75a9a10564--------------------------------)![Lingzhen Chen](https://medium.com/@lzchen.cs?source=post_page---byline--3d75a9a10564--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3d75a9a10564--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d75a9a10564--------------------------------) [Lingzhen Chen](https://medium.com/@lzchen.cs?source=post_page---byline--3d75a9a10564--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d75a9a10564--------------------------------) ·16分钟阅读·2024年9月10日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d75a9a10564--------------------------------) ·16 分钟阅读·2024 年 9 月 10 日
 
 --
 
@@ -40,9 +40,9 @@ www.llamaindex.ai](https://www.llamaindex.ai/blog/introducing-workflows-beta-a-n
 
 +   `步骤`：步骤是工作流的构建块。它们是代表工作流各个组件的 Python 函数。每个步骤执行特定任务，如发送网页查询、获取 LLM 响应或处理数据。步骤可以通过接收和发出事件与其他步骤进行交互。步骤还可以访问共享的上下文，从而实现跨不同步骤的状态管理。
 
-+   `Event`：事件作为数据承载体和工作流的流程控制器，以Pydantic对象的形式实现。它们控制工作流的执行路径，使工作流具有动态性和灵活性。用户可以自定义事件的属性。两个预定义的特殊事件类型`StartEvent`和`StopEvent`控制工作流的开始和结束点。
++   `Event`：事件作为数据承载体和工作流的流程控制器，以 Pydantic 对象的形式实现。它们控制工作流的执行路径，使工作流具有动态性和灵活性。用户可以自定义事件的属性。两个预定义的特殊事件类型`StartEvent`和`StopEvent`控制工作流的开始和结束点。
 
-LlamaIndex提供了[几个笔记本示例](https://docs.llamaindex.ai/en/stable/understanding/workflows/)和[视频系列](https://www.youtube.com/@LlamaIndex/videos)，详细介绍了这些概念。
+LlamaIndex 提供了[几个笔记本示例](https://docs.llamaindex.ai/en/stable/understanding/workflows/)和[视频系列](https://www.youtube.com/@LlamaIndex/videos)，详细介绍了这些概念。
 
 除了基本组件外，我的工作流还使用了：
 
@@ -50,43 +50,43 @@ LlamaIndex提供了[几个笔记本示例](https://docs.llamaindex.ai/en/stable/
 
 +   **嵌套工作流**：工作流中更复杂的层级结构。
 
-+   **LLM的结构化输出**：为了确保数据在步骤之间传递时是结构化的。
++   **LLM 的结构化输出**：为了确保数据在步骤之间传递时是结构化的。
 
-+   **不同的LLM模型**：为了在步骤之间使用具有不同能力和推理速度的模型（`gpt-4o`和`gpt-4o-mini`）。
++   **不同的 LLM 模型**：为了在步骤之间使用具有不同能力和推理速度的模型（`gpt-4o`和`gpt-4o-mini`）。
 
 +   **代码执行的动态会话**：为了允许在隔离环境中执行代码。
 
 +   **不同步骤的独立代理**：在过程中使用特定的代理来处理特定任务。
 
-你可以在[Github](https://github.com/lz-chen/research-agent)上找到这个工作流的完整代码。要运行它，你需要Tavily搜索、Semantic Scholar和Azure OpenAI的API密钥（由于这个实现使用了Azure资源，但你可以很容易地将其切换为OpenAI或其他模型，使用LlamaIndex）。在接下来的部分，我将介绍一些构建这个工作流的关键细节和步骤。
+你可以在[Github](https://github.com/lz-chen/research-agent)上找到这个工作流的完整代码。要运行它，你需要 Tavily 搜索、Semantic Scholar 和 Azure OpenAI 的 API 密钥（由于这个实现使用了 Azure 资源，但你可以很容易地将其切换为 OpenAI 或其他模型，使用 LlamaIndex）。在接下来的部分，我将介绍一些构建这个工作流的关键细节和步骤。
 
 # 主工作流
 
 主工作流由两个嵌套的子工作流组成：
 
-+   `summary_gen`：这个子工作流会查找给定主题的研究论文并生成摘要。它通过网页查询进行文献检索，并利用LLM根据指示获取见解和摘要。
++   `summary_gen`：这个子工作流会查找给定主题的研究论文并生成摘要。它通过网页查询进行文献检索，并利用 LLM 根据指示获取见解和摘要。
 
-+   `slide_gen`：这个子工作流负责使用前一步的摘要生成PowerPoint幻灯片。它使用提供的PowerPoint模板格式化幻灯片，并通过创建和执行Python代码（使用`python-pptx`库）生成幻灯片。
++   `slide_gen`：这个子工作流负责使用前一步的摘要生成 PowerPoint 幻灯片。它使用提供的 PowerPoint 模板格式化幻灯片，并通过创建和执行 Python 代码（使用`python-pptx`库）生成幻灯片。
 
-![](../Images/96f12d1104e4621f16076bdf2db26ea8.png)
+![](img/96f12d1104e4621f16076bdf2db26ea8.png)
 
 主工作流概述（作者提供的图像）
 
 # 摘要生成子工作流
 
-让我们仔细看看这些子工作流。首先是`summary_gen`工作流，它相当简单。它遵循一个简单的线性过程。它基本上作为一个“数据处理”工作流，某些步骤会向LLM发送请求。
+让我们仔细看看这些子工作流。首先是`summary_gen`工作流，它相当简单。它遵循一个简单的线性过程。它基本上作为一个“数据处理”工作流，某些步骤会向 LLM 发送请求。
 
-![](../Images/6b509b343f1fef98f8c97632785d934f.png)
+![](img/6b509b343f1fef98f8c97632785d934f.png)
 
 摘要生成工作流（作者提供的图像）
 
 工作流首先通过获取用户输入（一个研究主题）开始，并经过以下步骤：
 
-+   `tavily_query`：使用Tavily API查询与主题相关的学术论文，并返回结构化的响应。
++   `tavily_query`：使用 Tavily API 查询与主题相关的学术论文，并返回结构化的响应。
 
-+   `get_paper_with_citations`：对于从Tavily查询返回的每篇论文，此步骤使用SemanticScholar API获取论文元数据以及被引用论文的元数据。
++   `get_paper_with_citations`：对于从 Tavily 查询返回的每篇论文，此步骤使用 SemanticScholar API 获取论文元数据以及被引用论文的元数据。
 
-+   `filter_papers`：由于并非所有检索到的引用都与原始主题直接相关，因此此步骤对结果进行精炼。每篇论文的标题和摘要会被发送到LLM，以评估它们的相关性。此步骤定义如下：
++   `filter_papers`：由于并非所有检索到的引用都与原始主题直接相关，因此此步骤对结果进行精炼。每篇论文的标题和摘要会被发送到 LLM，以评估它们的相关性。此步骤定义如下：
 
 ```py
 @step(num_workers=4)
@@ -96,7 +96,7 @@ async def filter_papers(self, ev: PaperEvent) -> FilteredPaperEvent:
     return FilteredPaperEvent(paper=ev.paper, is_relevant=response)
 ```
 
-在`process_citation()`函数中，我们使用[LlamaIndex的FunctionCallingProgram](https://docs.llamaindex.ai/en/stable/examples/output_parsing/function_program/)来获取结构化的响应：
+在`process_citation()`函数中，我们使用[LlamaIndex 的 FunctionCallingProgram](https://docs.llamaindex.ai/en/stable/examples/output_parsing/function_program/)来获取结构化的响应：
 
 ```py
 IS_CITATION_RELEVANT_PMT = """
@@ -133,7 +133,7 @@ async def process_citation(citation, llm):
     return response
 ```
 
-+   `download_papers`：此步骤收集所有筛选后的论文，根据相关性得分和在ArXiv上的可用性对它们进行优先级排序，并下载最相关的论文。
++   `download_papers`：此步骤收集所有筛选后的论文，根据相关性得分和在 ArXiv 上的可用性对它们进行优先级排序，并下载最相关的论文。
 
 +   `paper2summary_dispatcher`：每篇下载的论文都会为生成摘要进行准备，通过设置存储图像和摘要的路径。此步骤使用`self.send_event()`来启用每篇论文的`paper2summary`步骤并行执行。它还通过变量`ctx.data[“n_pdfs”]`设置工作流上下文中的论文数量，以便后续步骤知道需要处理的论文总数。
 
@@ -157,7 +157,7 @@ async def paper2summary_dispatcher(
         )
 ```
 
-+   `paper2summary`：对于每篇论文，它将PDF转换为图像，然后将图像发送到LLM进行摘要生成。一旦生成摘要，它会保存在一个Markdown文件中，以供将来参考。特别地，这里生成的摘要非常详细，像一篇小文章，因此还不太适合直接放入演示文稿中。但它会被保留下来，以便用户查看这些中间结果。在后续的步骤中，我们将使这些信息更具可展示性。提供给LLM的提示包含关键指令，以确保生成准确且简明的摘要：
++   `paper2summary`：对于每篇论文，它将 PDF 转换为图像，然后将图像发送到 LLM 进行摘要生成。一旦生成摘要，它会保存在一个 Markdown 文件中，以供将来参考。特别地，这里生成的摘要非常详细，像一篇小文章，因此还不太适合直接放入演示文稿中。但它会被保留下来，以便用户查看这些中间结果。在后续的步骤中，我们将使这些信息更具可展示性。提供给 LLM 的提示包含关键指令，以确保生成准确且简明的摘要：
 
 ```py
 SUMMARIZE_PAPER_PMT = """
@@ -200,15 +200,15 @@ Ensure that the summary is clear and concise, avoiding unnecessary jargon or ove
 
 此工作流基于前一步骤中创建的摘要生成幻灯片。以下是`slide_gen`工作流的概述：
 
-![](../Images/573a6a77435fb934c9b90afff1c6acce.png)
+![](img/573a6a77435fb934c9b90afff1c6acce.png)
 
 幻灯片生成工作流（图片来自作者）
 
-当前一个子工作流完成且摘要Markdown文件准备好时，启动以下工作流：
+当前一个子工作流完成且摘要 Markdown 文件准备好时，启动以下工作流：
 
 +   `get_summaries`：此步骤读取摘要文件的内容，针对每个文件触发`SummaryEvent`，再次使用`self.send_event()`以便启用并行执行，促进更快速的处理。
 
-+   `summary2outline`：此步骤通过使用LLM将摘要转化为幻灯片大纲文本。它将摘要缩短为句子或项目符号，以便放入演示文稿中。
++   `summary2outline`：此步骤通过使用 LLM 将摘要转化为幻灯片大纲文本。它将摘要缩短为句子或项目符号，以便放入演示文稿中。
 
 +   `gather_feedback_outline`：在此步骤中，它将提议的幻灯片大纲与论文摘要一起呈现给用户以供他们审阅。用户提供反馈，如果需要修改，可能会触发`OutlineFeedbackEvent`。这个反馈循环会继续进行，直到用户批准最终大纲为止，届时会触发`OutlineOkEvent`。  
 
@@ -232,9 +232,9 @@ async def gather_feedback_outline(
         )
 ```
 
-+   `outlines_with_layout`：它通过包括来自给定PowerPoint模板的页面布局细节，使用LLM增强每个幻灯片大纲。在这个阶段，所有幻灯片页面的内容和设计都会保存在一个JSON文件中。  
++   `outlines_with_layout`：它通过包括来自给定 PowerPoint 模板的页面布局细节，使用 LLM 增强每个幻灯片大纲。在这个阶段，所有幻灯片页面的内容和设计都会保存在一个 JSON 文件中。  
 
-+   `slide_gen`：它使用**ReAct代理**根据给定的大纲和布局细节制作幻灯片文档。这个代理具有一个[代码解释器工具](https://llamahub.ai/l/tools/llama-index-tools-azure-code-interpreter?from=all)，可以在隔离环境中运行和修正代码，还具有一个布局检查工具，用来查看给定的PowerPoint模板信息。该代理会使用`python-pptx`来创建幻灯片，并能观察并修正错误。  
++   `slide_gen`：它使用**ReAct 代理**根据给定的大纲和布局细节制作幻灯片文档。这个代理具有一个[代码解释器工具](https://llamahub.ai/l/tools/llama-index-tools-azure-code-interpreter?from=all)，可以在隔离环境中运行和修正代码，还具有一个布局检查工具，用来查看给定的 PowerPoint 模板信息。该代理会使用`python-pptx`来创建幻灯片，并能观察并修正错误。  
 
 ```py
  @step(pass_context=True)
@@ -273,7 +273,7 @@ async def slide_gen(
     )
 ```
 
-+   `validate_slides`：检查幻灯片文档，确保它符合给定的标准。这个步骤包括将幻灯片转化为图像，并让LLM根据指南对其进行视觉检查，以确保内容正确且风格一致。根据LLM的发现，如果有问题，它会发送`SlideValidationEvent`，如果一切看起来良好，则会发送`StopEvent`。  
++   `validate_slides`：检查幻灯片文档，确保它符合给定的标准。这个步骤包括将幻灯片转化为图像，并让 LLM 根据指南对其进行视觉检查，以确保内容正确且风格一致。根据 LLM 的发现，如果有问题，它会发送`SlideValidationEvent`，如果一切看起来良好，则会发送`StopEvent`。  
 
 ```py
 @step(pass_context=True)
@@ -323,7 +323,7 @@ If any of the above rules are violated, you need to provide the index of the sli
 """
 ```
 
-+   `modify_slides`：如果幻灯片未通过验证检查，上一阶段会发送`SlideValidationEvent`事件。在这里，另一个**ReAct代理**会根据验证反馈更新幻灯片，更新后的幻灯片将被保存并返回进行再次验证。根据`SlideGenWorkflow`类的`max_validation_retries`变量属性，这个验证循环可能会多次发生。  
++   `modify_slides`：如果幻灯片未通过验证检查，上一阶段会发送`SlideValidationEvent`事件。在这里，另一个**ReAct 代理**会根据验证反馈更新幻灯片，更新后的幻灯片将被保存并返回进行再次验证。根据`SlideGenWorkflow`类的`max_validation_retries`变量属性，这个验证循环可能会多次发生。  
 
 为了运行完整的端到端工作流，我们通过以下步骤启动过程：  
 
@@ -409,15 +409,15 @@ The evaluation involves:
 The authors conclude that LayoutGPT effectively integrates LLMs for visual planning and scene generation, achieving state-of-the-art performance in 2D and 3D layout tasks. The framework's ability to handle numerical and spatial reasoning is highlighted as a significant advancement. Limitations include the focus on specific scene types and the need for further exploration of additional visual reasoning tasks. Future work suggests expanding the model's capabilities to more diverse and complex visual scenarios.
 ```
 
-毋庸置疑，总结对于LLM来说并不是一个特别具有挑战性的任务。只需提供论文的图像，LLM便能有效地捕捉到提示中概述的所有关键内容，并且相当好地遵循了样式要求。  
+毋庸置疑，总结对于 LLM 来说并不是一个特别具有挑战性的任务。只需提供论文的图像，LLM 便能有效地捕捉到提示中概述的所有关键内容，并且相当好地遵循了样式要求。  
 
 至于最终结果，以下是生成的几张演示文稿幻灯片示例：  
 
-![](../Images/2fb32b9b194336ba795dc312262a1d0b.png)  
+![](img/2fb32b9b194336ba795dc312262a1d0b.png)  
 
 生成的幻灯片（图片由作者提供）  
 
-![](../Images/1ca329172991fe913dde582b525f045c.png)  
+![](img/1ca329172991fe913dde582b525f045c.png)  
 
 生成的幻灯片（图片由作者提供）
 
@@ -425,15 +425,15 @@ The authors conclude that LayoutGPT effectively integrates LLMs for visual plann
 
 # 最后的想法
 
-在本文中，我展示了如何使用LlamaIndex工作流程来简化我的研究和展示过程，从查询学术论文到生成最终的PowerPoint幻灯片。以下是我在实施该工作流程时的一些想法和观察，以及我认为可能改进的方面。
+在本文中，我展示了如何使用 LlamaIndex 工作流程来简化我的研究和展示过程，从查询学术论文到生成最终的 PowerPoint 幻灯片。以下是我在实施该工作流程时的一些想法和观察，以及我认为可能改进的方面。
 
-`**gpt-4o**` **模型与** `**gpt-4o-mini**` **模型**：虽然声称`gpt-4o-mini`的性能与`gpt-4o`相当，但我发现`gpt-4o-mini`在完成复杂任务时明显存在问题，如在工作流程中作为ReAct代理进行规划和修正错误。然而，它在简单任务（如内容摘要）中表现得足够好。
+`**gpt-4o**` **模型与** `**gpt-4o-mini**` **模型**：虽然声称`gpt-4o-mini`的性能与`gpt-4o`相当，但我发现`gpt-4o-mini`在完成复杂任务时明显存在问题，如在工作流程中作为 ReAct 代理进行规划和修正错误。然而，它在简单任务（如内容摘要）中表现得足够好。
 
-**创建中间文件**：生成中间文件（摘要的Markdown文件和摘要布局的JSON文件）是一个有用的方法，它减轻了代理必须跟踪内容和幻灯片样式的负担，同时生成幻灯片的代码。
+**创建中间文件**：生成中间文件（摘要的 Markdown 文件和摘要布局的 JSON 文件）是一个有用的方法，它减轻了代理必须跟踪内容和幻灯片样式的负担，同时生成幻灯片的代码。
 
 **处理边缘案例**：从头到尾运行工作流程揭示了许多边缘案例，特别是在验证幻灯片样式时。目前，通过迭代修改相关提示来处理这些问题。但我认为，促进某种类型的协作和人类参与机制将大大有助于此，同时也能提供更高的准确性。
 
-**python-pptx的局限性**。工作流程受限于python-pptx在PowerPoint幻灯片中能够实际渲染和操作的内容。因此，值得进一步考虑其他高效的幻灯片生成方式，例如使用VBA。
+**python-pptx 的局限性**。工作流程受限于 python-pptx 在 PowerPoint 幻灯片中能够实际渲染和操作的内容。因此，值得进一步考虑其他高效的幻灯片生成方式，例如使用 VBA。
 
 **用于摘要生成的代理和工具**：与严格的逐步摘要生成过程不同，使用一个或多个具有工具访问权限的代理（目前是步骤函数）可以使工作流程更灵活，更适应未来的变化。
 

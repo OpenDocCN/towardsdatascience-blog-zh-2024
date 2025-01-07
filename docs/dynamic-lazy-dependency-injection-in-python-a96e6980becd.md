@@ -1,16 +1,16 @@
 # Python 中的动态、延迟依赖注入
 
-> 原文：[https://towardsdatascience.com/dynamic-lazy-dependency-injection-in-python-a96e6980becd?source=collection_archive---------10-----------------------#2024-11-22](https://towardsdatascience.com/dynamic-lazy-dependency-injection-in-python-a96e6980becd?source=collection_archive---------10-----------------------#2024-11-22)
+> 原文：[`towardsdatascience.com/dynamic-lazy-dependency-injection-in-python-a96e6980becd?source=collection_archive---------10-----------------------#2024-11-22`](https://towardsdatascience.com/dynamic-lazy-dependency-injection-in-python-a96e6980becd?source=collection_archive---------10-----------------------#2024-11-22)
 
 ## 自动 Python 依赖注入，使您的代码更具可测试性、解耦性、简单性和可读性
 
-[](https://mikehuls.medium.com/?source=post_page---byline--a96e6980becd--------------------------------)[![Mike Huls](../Images/8f9f55a0d25db00799c5d37383b7f5b6.png)](https://mikehuls.medium.com/?source=post_page---byline--a96e6980becd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a96e6980becd--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a96e6980becd--------------------------------) [Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--a96e6980becd--------------------------------)
+[](https://mikehuls.medium.com/?source=post_page---byline--a96e6980becd--------------------------------)![Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--a96e6980becd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a96e6980becd--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a96e6980becd--------------------------------) [Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--a96e6980becd--------------------------------)
 
 ·发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a96e6980becd--------------------------------)·6 分钟阅读·2024 年 11 月 22 日
 
 --
 
-![](../Images/48dbe91b9e0d4d3e5489fac91cf2f169.png)
+![](img/48dbe91b9e0d4d3e5489fac91cf2f169.png)
 
 照片由[Rapha Wilde](https://unsplash.com/@veloradio?utm_source=ghost&utm_medium=referral&utm_campaign=api-credit) / [Unsplash](https://unsplash.com/?utm_source=ghost&utm_medium=referral&utm_campaign=api-credit)拍摄
 

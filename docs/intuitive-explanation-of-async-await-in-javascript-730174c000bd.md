@@ -1,16 +1,16 @@
 # JavaScript 中 async/await 的直观解释
 
-> 原文：[https://towardsdatascience.com/intuitive-explanation-of-async-await-in-javascript-730174c000bd?source=collection_archive---------1-----------------------#2024-09-08](https://towardsdatascience.com/intuitive-explanation-of-async-await-in-javascript-730174c000bd?source=collection_archive---------1-----------------------#2024-09-08)
+> 原文：[`towardsdatascience.com/intuitive-explanation-of-async-await-in-javascript-730174c000bd?source=collection_archive---------1-----------------------#2024-09-08`](https://towardsdatascience.com/intuitive-explanation-of-async-await-in-javascript-730174c000bd?source=collection_archive---------1-----------------------#2024-09-08)
 
 ## 设计高效数据处理的异步管道
 
-[](https://medium.com/@slavahead?source=post_page---byline--730174c000bd--------------------------------)[![Vyacheslav Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--730174c000bd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--730174c000bd--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--730174c000bd--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--730174c000bd--------------------------------)
+[](https://medium.com/@slavahead?source=post_page---byline--730174c000bd--------------------------------)![Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--730174c000bd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--730174c000bd--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--730174c000bd--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--730174c000bd--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--730174c000bd--------------------------------) ·阅读时长 10 分钟·2024年9月8日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--730174c000bd--------------------------------) ·阅读时长 10 分钟·2024 年 9 月 8 日
 
 --
 
-![](../Images/b5cfe111c12bf37450e018b376f9c41b.png)
+![](img/b5cfe111c12bf37450e018b376f9c41b.png)
 
 > **注意。** 本文假设你已经熟悉回调函数、Promise，并且对 JavaScript 中的异步编程模式有基本的理解。
 

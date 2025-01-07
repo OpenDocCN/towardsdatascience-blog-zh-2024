@@ -1,20 +1,20 @@
 # 小而强大——小型语言模型的崛起
 
-> 原文：[https://towardsdatascience.com/small-mighty-rise-large-language-models-sml-llm-data-artificial-intelligence-gemma-mistral-future-d812938f2c2a?source=collection_archive---------4-----------------------#2024-05-21](https://towardsdatascience.com/small-mighty-rise-large-language-models-sml-llm-data-artificial-intelligence-gemma-mistral-future-d812938f2c2a?source=collection_archive---------4-----------------------#2024-05-21)
+> 原文：[`towardsdatascience.com/small-mighty-rise-large-language-models-sml-llm-data-artificial-intelligence-gemma-mistral-future-d812938f2c2a?source=collection_archive---------4-----------------------#2024-05-21`](https://towardsdatascience.com/small-mighty-rise-large-language-models-sml-llm-data-artificial-intelligence-gemma-mistral-future-d812938f2c2a?source=collection_archive---------4-----------------------#2024-05-21)
 
 ## **为什么人工智能正在缩小以产生更大的影响**
 
-[](https://medium.com/@rfeers?source=post_page---byline--d812938f2c2a--------------------------------)[![Josep Ferrer](../Images/dee7e2248a813eb2da5847efee159330.png)](https://medium.com/@rfeers?source=post_page---byline--d812938f2c2a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d812938f2c2a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d812938f2c2a--------------------------------) [Josep Ferrer](https://medium.com/@rfeers?source=post_page---byline--d812938f2c2a--------------------------------)
+[](https://medium.com/@rfeers?source=post_page---byline--d812938f2c2a--------------------------------)![Josep Ferrer](https://medium.com/@rfeers?source=post_page---byline--d812938f2c2a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d812938f2c2a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d812938f2c2a--------------------------------) [Josep Ferrer](https://medium.com/@rfeers?source=post_page---byline--d812938f2c2a--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d812938f2c2a--------------------------------) ·6分钟阅读·2024年5月21日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d812938f2c2a--------------------------------) ·6 分钟阅读·2024 年 5 月 21 日
 
 --
 
-![](../Images/4df193a80d270ba1651b9593aa30ce39.png)
+![](img/4df193a80d270ba1651b9593aa30ce39.png)
 
-图片来自[Guillaume de Germain](https://unsplash.com/es/@guillaumedegermain)于Unsplash发布。
+图片来自[Guillaume de Germain](https://unsplash.com/es/@guillaumedegermain)于 Unsplash 发布。
 
-我们的世界深受大型语言模型（LLM）发布的影响。它们一经推出，就迅速席卷了市场，GPT-3.5在五天内就吸引了百万用户——这是它们初步成功的一个证明。
+我们的世界深受大型语言模型（LLM）发布的影响。它们一经推出，就迅速席卷了市场，GPT-3.5 在五天内就吸引了百万用户——这是它们初步成功的一个证明。
 
 但蜜月期已经结束。
 

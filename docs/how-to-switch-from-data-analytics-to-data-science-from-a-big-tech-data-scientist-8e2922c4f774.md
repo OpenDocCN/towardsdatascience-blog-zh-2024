@@ -1,22 +1,22 @@
 # 如何从数据分析转向数据科学——来自大科技公司数据科学家的经验分享
 
-> 原文：[https://towardsdatascience.com/how-to-switch-from-data-analytics-to-data-science-from-a-big-tech-data-scientist-8e2922c4f774?source=collection_archive---------0-----------------------#2024-07-22](https://towardsdatascience.com/how-to-switch-from-data-analytics-to-data-science-from-a-big-tech-data-scientist-8e2922c4f774?source=collection_archive---------0-----------------------#2024-07-22)
+> 原文：[`towardsdatascience.com/how-to-switch-from-data-analytics-to-data-science-from-a-big-tech-data-scientist-8e2922c4f774?source=collection_archive---------0-----------------------#2024-07-22`](https://towardsdatascience.com/how-to-switch-from-data-analytics-to-data-science-from-a-big-tech-data-scientist-8e2922c4f774?source=collection_archive---------0-----------------------#2024-07-22)
 
-## 你需要的唯一5步路线图。你新的职业旅程从这里开始！
+## 你需要的唯一 5 步路线图。你新的职业旅程从这里开始！
 
-[](https://medium.com/@elalamik?source=post_page---byline--8e2922c4f774--------------------------------)[![Khouloud El Alami](../Images/58840bfe28a60892b51d40ad6ba7f5e8.png)](https://medium.com/@elalamik?source=post_page---byline--8e2922c4f774--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8e2922c4f774--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8e2922c4f774--------------------------------) [Khouloud El Alami](https://medium.com/@elalamik?source=post_page---byline--8e2922c4f774--------------------------------)
+[](https://medium.com/@elalamik?source=post_page---byline--8e2922c4f774--------------------------------)![Khouloud El Alami](https://medium.com/@elalamik?source=post_page---byline--8e2922c4f774--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8e2922c4f774--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8e2922c4f774--------------------------------) [Khouloud El Alami](https://medium.com/@elalamik?source=post_page---byline--8e2922c4f774--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8e2922c4f774--------------------------------) ·阅读时间11分钟·2024年7月22日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8e2922c4f774--------------------------------) ·阅读时间 11 分钟·2024 年 7 月 22 日
 
 --
 
-我是[Khouloud El Alami，Spotify的 数据科学家](https://www.linkedin.com/in/elalamik/)，我将自己作为大科技公司数据专业人士的学习经验记录下来。
+我是[Khouloud El Alami，Spotify 的 数据科学家](https://www.linkedin.com/in/elalamik/)，我将自己作为大科技公司数据专业人士的学习经验记录下来。
 
 所以我经常收到许多来自有志成为数据科学家的消息，这是我最常收到的问题之一：
 
 > 我如何从数据分析师转型为数据科学家？
 
-![](../Images/6c7f2470b390353fd386ba2eaed664f4.png)
+![](img/6c7f2470b390353fd386ba2eaed664f4.png)
 
 图片由[Alex Radelich](https://unsplash.com/@alexradelich?utm_source=medium&utm_medium=referral)拍摄，发布于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

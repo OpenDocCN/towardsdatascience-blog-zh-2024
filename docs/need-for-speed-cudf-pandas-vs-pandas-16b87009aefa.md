@@ -1,14 +1,14 @@
 # 速度需求：cuDF Pandas vs. Pandas
 
-> 原文：[https://towardsdatascience.com/need-for-speed-cudf-pandas-vs-pandas-16b87009aefa?source=collection_archive---------4-----------------------#2024-04-05](https://towardsdatascience.com/need-for-speed-cudf-pandas-vs-pandas-16b87009aefa?source=collection_archive---------4-----------------------#2024-04-05)
+> 原文：[`towardsdatascience.com/need-for-speed-cudf-pandas-vs-pandas-16b87009aefa?source=collection_archive---------4-----------------------#2024-04-05`](https://towardsdatascience.com/need-for-speed-cudf-pandas-vs-pandas-16b87009aefa?source=collection_archive---------4-----------------------#2024-04-05)
 
-![](../Images/70932d5df5e198c49c910589e638d218.png)
+![](img/70932d5df5e198c49c910589e638d218.png)
 
 图片由作者提供（Dalle-3）
 
 ## 比较概述
 
-[](https://medium.com/@thomas_reid?source=post_page---byline--16b87009aefa--------------------------------)[![Thomas Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--16b87009aefa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16b87009aefa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--16b87009aefa--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--16b87009aefa--------------------------------)
+[](https://medium.com/@thomas_reid?source=post_page---byline--16b87009aefa--------------------------------)![Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--16b87009aefa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16b87009aefa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16b87009aefa--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--16b87009aefa--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16b87009aefa--------------------------------) ·阅读时间 11 分钟·2024 年 4 月 5 日
 

@@ -1,22 +1,22 @@
-# 需求预测——以价值驱动的方法提供5个洞察
+# 需求预测——以价值驱动的方法提供 5 个洞察
 
-> 原文：[https://towardsdatascience.com/demand-forecast-a-value-driven-approach-with-5-key-insights-addc22e2e3e4?source=collection_archive---------4-----------------------#2024-01-25](https://towardsdatascience.com/demand-forecast-a-value-driven-approach-with-5-key-insights-addc22e2e3e4?source=collection_archive---------4-----------------------#2024-01-25)
+> 原文：[`towardsdatascience.com/demand-forecast-a-value-driven-approach-with-5-key-insights-addc22e2e3e4?source=collection_archive---------4-----------------------#2024-01-25`](https://towardsdatascience.com/demand-forecast-a-value-driven-approach-with-5-key-insights-addc22e2e3e4?source=collection_archive---------4-----------------------#2024-01-25)
 
-## 预测的最终目标不是准确性，而是切实的价值创造。让我们一起探索5个洞察，最大化需求预测的价值。
+## 预测的最终目标不是准确性，而是切实的价值创造。让我们一起探索 5 个洞察，最大化需求预测的价值。
 
-[](https://medium.com/@lingyi_99090?source=post_page---byline--addc22e2e3e4--------------------------------)[![Lingyi Tan](../Images/76858d6b2dabfdbc06cd7d0e6ad05a14.png)](https://medium.com/@lingyi_99090?source=post_page---byline--addc22e2e3e4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--addc22e2e3e4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--addc22e2e3e4--------------------------------) [Lingyi Tan](https://medium.com/@lingyi_99090?source=post_page---byline--addc22e2e3e4--------------------------------)
+[](https://medium.com/@lingyi_99090?source=post_page---byline--addc22e2e3e4--------------------------------)![Lingyi Tan](https://medium.com/@lingyi_99090?source=post_page---byline--addc22e2e3e4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--addc22e2e3e4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--addc22e2e3e4--------------------------------) [Lingyi Tan](https://medium.com/@lingyi_99090?source=post_page---byline--addc22e2e3e4--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--addc22e2e3e4--------------------------------) ·7分钟阅读·2024年1月25日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--addc22e2e3e4--------------------------------) ·7 分钟阅读·2024 年 1 月 25 日
 
 --
 
-![](../Images/de257a689ef9e1d21ae13ec4962131eb.png)
+![](img/de257a689ef9e1d21ae13ec4962131eb.png)
 
 图片由[Daoudi Aissa](https://unsplash.com/@dannyeve?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 介绍
 
-嗨！1月是规划和产生重大影响的最佳时机。作为一名数据科学家，你经常被要求构建预测模型，可能你认为准确性始终是黄金标准。然而，事情有个转折：真正的魔力不仅仅在于准确性，而在于理解更大的画面，专注于价值和影响。让我们一起来揭示这些重要的方面吧。
+嗨！1 月是规划和产生重大影响的最佳时机。作为一名数据科学家，你经常被要求构建预测模型，可能你认为准确性始终是黄金标准。然而，事情有个转折：真正的魔力不仅仅在于准确性，而在于理解更大的画面，专注于价值和影响。让我们一起来揭示这些重要的方面吧。
 
 # 1\. 价值是需求预测的终极目标
 
@@ -28,7 +28,7 @@
 
 +   创建一个简单的商业案例，将预测准确度指标（偏差、MAPE）转化为财务术语。如果这项任务看起来很有挑战性，可以向你在业务领域的朋友寻求帮助。这样，你将学到很多关于业务和需求预测价值的知识。
 
-+   评估你的商业案例，找出预测过程中的最关键方面。是减少偏差（特别是过度预测）来降低库存水平吗？是评估折扣对各类产品的影响（这可能更适合用弹性模型）吗？还是更侧重于降低MAPE，防止供应团队在危机中不断应对不可预测的采购订单？
++   评估你的商业案例，找出预测过程中的最关键方面。是减少偏差（特别是过度预测）来降低库存水平吗？是评估折扣对各类产品的影响（这可能更适合用弹性模型）吗？还是更侧重于降低 MAPE，防止供应团队在危机中不断应对不可预测的采购订单？
 
 通过清晰地将预测要素与其价值关联起来，你会更有信心知道该将精力和智力集中在哪些部分。
 
@@ -66,7 +66,7 @@
 
 +   思考一下预测过程，并考虑人们是否希望和需要更好地理解你的预测模型。我认为，如果预测是供人们做中长期决策使用的（例如预算、定价或产能规划），那么解释它对于建立对数据的信任并促成决策至关重要。
 
-+   你还需要理解决策者如何直观地解读或预期预测数据。然后，**调整你的解释，使其符合他们的语言**。这部分比较棘手——你需要将特征重要性、Shap值和回归系数重新表述为“1%的价格上涨的影响”等术语。不要犹豫，向你那些有商业头脑的朋友寻求帮助，并在他们身上测试你的解释，看看是否合理。
++   你还需要理解决策者如何直观地解读或预期预测数据。然后，**调整你的解释，使其符合他们的语言**。这部分比较棘手——你需要将特征重要性、Shap 值和回归系数重新表述为“1%的价格上涨的影响”等术语。不要犹豫，向你那些有商业头脑的朋友寻求帮助，并在他们身上测试你的解释，看看是否合理。
 
 # 5\. 模拟场景以促进决策制定
 

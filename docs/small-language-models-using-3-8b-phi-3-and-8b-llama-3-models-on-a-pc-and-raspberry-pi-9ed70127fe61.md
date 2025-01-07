@@ -1,16 +1,16 @@
 # 小型语言模型：在 PC 和树莓派上使用 38 亿 Phi-3 和 80 亿 Llama-3 模型
 
-> 原文：[https://towardsdatascience.com/small-language-models-using-3-8b-phi-3-and-8b-llama-3-models-on-a-pc-and-raspberry-pi-9ed70127fe61?source=collection_archive---------2-----------------------#2024-05-23](https://towardsdatascience.com/small-language-models-using-3-8b-phi-3-and-8b-llama-3-models-on-a-pc-and-raspberry-pi-9ed70127fe61?source=collection_archive---------2-----------------------#2024-05-23)
+> 原文：[`towardsdatascience.com/small-language-models-using-3-8b-phi-3-and-8b-llama-3-models-on-a-pc-and-raspberry-pi-9ed70127fe61?source=collection_archive---------2-----------------------#2024-05-23`](https://towardsdatascience.com/small-language-models-using-3-8b-phi-3-and-8b-llama-3-models-on-a-pc-and-raspberry-pi-9ed70127fe61?source=collection_archive---------2-----------------------#2024-05-23)
 
 ## 使用 LlamaCpp 和 ONNX 测试模型
 
-[](https://dmitryelj.medium.com/?source=post_page---byline--9ed70127fe61--------------------------------)[![Dmitrii Eliuseev](../Images/7c48f0c016930ead59ddb785eaf3e0e6.png)](https://dmitryelj.medium.com/?source=post_page---byline--9ed70127fe61--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ed70127fe61--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9ed70127fe61--------------------------------) [Dmitrii Eliuseev](https://dmitryelj.medium.com/?source=post_page---byline--9ed70127fe61--------------------------------)
+[](https://dmitryelj.medium.com/?source=post_page---byline--9ed70127fe61--------------------------------)![Dmitrii Eliuseev](https://dmitryelj.medium.com/?source=post_page---byline--9ed70127fe61--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ed70127fe61--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ed70127fe61--------------------------------) [Dmitrii Eliuseev](https://dmitryelj.medium.com/?source=post_page---byline--9ed70127fe61--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ed70127fe61--------------------------------) ·阅读时间 17 分钟·2024 年 5 月 23 日
 
 --
 
-![](../Images/e1c080c33ba6ea79ec97849e1d394374.png)
+![](img/e1c080c33ba6ea79ec97849e1d394374.png)
 
 图片来自 [Jelleke Vanooteghem](https://unsplash.com/@ilumire)，Unsplash
 

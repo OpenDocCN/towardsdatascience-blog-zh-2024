@@ -1,16 +1,16 @@
 # 如何在数据科学中提升技能
 
-> 原文：[https://towardsdatascience.com/how-to-up-skill-in-data-science-3f71fafeaab7?source=collection_archive---------3-----------------------#2024-11-14](https://towardsdatascience.com/how-to-up-skill-in-data-science-3f71fafeaab7?source=collection_archive---------3-----------------------#2024-11-14)
+> 原文：[`towardsdatascience.com/how-to-up-skill-in-data-science-3f71fafeaab7?source=collection_archive---------3-----------------------#2024-11-14`](https://towardsdatascience.com/how-to-up-skill-in-data-science-3f71fafeaab7?source=collection_archive---------3-----------------------#2024-11-14)
 
 ## 我持续成为更好的数据科学家的框架
 
-[](https://medium.com/@egorhowell?source=post_page---byline--3f71fafeaab7--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--3f71fafeaab7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f71fafeaab7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3f71fafeaab7--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--3f71fafeaab7--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--3f71fafeaab7--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--3f71fafeaab7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f71fafeaab7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f71fafeaab7--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--3f71fafeaab7--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f71fafeaab7--------------------------------) ·6分钟阅读·2024年11月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f71fafeaab7--------------------------------) ·6 分钟阅读·2024 年 11 月 14 日
 
 --
 
-![](../Images/aafc55331a9c1bcdabe639d64076eea6.png)
+![](img/aafc55331a9c1bcdabe639d64076eea6.png)
 
 图片来源：[Mohammad Rahmani](https://unsplash.com/@afgprogrammer?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

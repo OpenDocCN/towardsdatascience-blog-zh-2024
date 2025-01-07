@@ -1,16 +1,16 @@
 # 大多数数据质量项目在启动之前就已经失败。原因如下。
 
-> 原文：[https://towardsdatascience.com/most-data-quality-initiatives-fail-before-they-start-heres-why-e66123b7bb3b?source=collection_archive---------6-----------------------#2024-07-23](https://towardsdatascience.com/most-data-quality-initiatives-fail-before-they-start-heres-why-e66123b7bb3b?source=collection_archive---------6-----------------------#2024-07-23)
+> 原文：[`towardsdatascience.com/most-data-quality-initiatives-fail-before-they-start-heres-why-e66123b7bb3b?source=collection_archive---------6-----------------------#2024-07-23`](https://towardsdatascience.com/most-data-quality-initiatives-fail-before-they-start-heres-why-e66123b7bb3b?source=collection_archive---------6-----------------------#2024-07-23)
 
 ## 展示你的数据质量评分卡，我可以告诉你一年前是否能成功。
 
-[](https://barrmoses.medium.com/?source=post_page---byline--e66123b7bb3b--------------------------------)[![Barr Moses](../Images/4c74558ee692a85196d5a55ac1920718.png)](https://barrmoses.medium.com/?source=post_page---byline--e66123b7bb3b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e66123b7bb3b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e66123b7bb3b--------------------------------) [Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--e66123b7bb3b--------------------------------)
+[](https://barrmoses.medium.com/?source=post_page---byline--e66123b7bb3b--------------------------------)![Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--e66123b7bb3b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e66123b7bb3b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e66123b7bb3b--------------------------------) [Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--e66123b7bb3b--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e66123b7bb3b--------------------------------) ·阅读时间 7 分钟·2024年7月23日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e66123b7bb3b--------------------------------) ·阅读时间 7 分钟·2024 年 7 月 23 日
 
 --
 
-![](../Images/fac1a14f378fe70f85ffa69e64cb0a93.png)
+![](img/fac1a14f378fe70f85ffa69e64cb0a93.png)
 
 图片由 [Braden Collum](https://unsplash.com/@bradencollum?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -26,15 +26,15 @@
 
 尽管这个问题可能永远无法完全解决，但我看到一些组织采取了最佳实践，这些实践成为了推动项目成功与另一轮启动会议之间的分水岭。
 
-这是构建数据质量评分卡的4个关键教训：
+这是构建数据质量评分卡的 4 个关键教训：
 
-+   [知道哪些数据重要](#cbd9)
++   知道哪些数据重要
 
-+   [衡量机器](#aeb8)
++   衡量机器
 
-+   [正确地运用奖励与惩罚](#30dd)
++   正确地运用奖励与惩罚
 
-+   [自动化评估与发现](#0a63)
++   自动化评估与发现
 
 # 知道哪些数据是重要的
 
@@ -72,7 +72,7 @@ Red Ventures 的 Brendon Beidel [阐明了一个好的起点](https://www.montec
 
 数据是多用途的，并在不同的使用场景中共享。不仅一个人的“黄色”质量评分是另一个人的“绿色”，而且数据消费者通常也很难理解“黄色”评分意味着什么，或者它是如何被评定的。他们也经常忽略由红色数据表提供数据给绿色数据表的影响（你懂的，垃圾进，垃圾出……）。
 
-![](../Images/7d957c3159e4a5ced40d4953fdf140f0.png)
+![](img/7d957c3159e4a5ced40d4953fdf140f0.png)
 
 “黄色”评分卡的意义是什么？照片由 [Keiron Crasktellanos](https://unsplash.com/@crasktellanos?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -90,7 +90,7 @@ Red Ventures 的 Brendon Beidel [阐明了一个好的起点](https://www.montec
 
 换句话说，数据生产和交付中通常导致高质量的组成部分。这些部分更容易标准化，也更容易跨业务单元和团队理解。
 
-[Airbnb Midas](https://medium.com/airbnb-engineering/data-quality-score-the-next-chapter-of-data-quality-at-airbnb-851dccda19c3)是一个知名的内部数据质量评分和认证项目，这也理所当然。他们在这个概念上投入了大量精力。**他们衡量数据准确性，但可靠性、管理和可用性实际上占总评分的60%。**
+[Airbnb Midas](https://medium.com/airbnb-engineering/data-quality-score-the-next-chapter-of-data-quality-at-airbnb-851dccda19c3)是一个知名的内部数据质量评分和认证项目，这也理所当然。他们在这个概念上投入了大量精力。**他们衡量数据准确性，但可靠性、管理和可用性实际上占总评分的 60%。**
 
 许多数据团队仍在制定自己标准的过程中，但我们发现与数据健康高度相关的组成部分包括：
 
@@ -124,7 +124,7 @@ Red Ventures 的 Brendon Beidel [阐明了一个好的起点](https://www.montec
 
 # 把你的胡萝卜和棒子调整好
 
-![](../Images/7dfb99e634365a2601ca0dd9c77aa74e.png)
+![](img/7dfb99e634365a2601ca0dd9c77aa74e.png)
 
 激励生产者和消费者提供高质量数据。照片由[Jonathan Pielmayer](https://unsplash.com/@jonathanpielmayer?utm_source=medium&utm_medium=referral)拍摄，图片来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -138,17 +138,17 @@ Red Ventures 的 Brendon Beidel [阐明了一个好的起点](https://www.montec
 
 # 自动化评估与发现
 
-数据管理中几乎没有什么能在没有一定程度的自动化和自助服务能力的情况下成功。Airbnb丢弃了任何1) 无法立即理解的评分标准，和2) 无法自动衡量的评分标准。
+数据管理中几乎没有什么能在没有一定程度的自动化和自助服务能力的情况下成功。Airbnb 丢弃了任何 1) 无法立即理解的评分标准，和 2) 无法自动衡量的评分标准。
 
 你的组织也必须做到这一点。即使这是史上最好的评分标准，如果你没有一套能够自动收集和展示数据的解决方案，那它就必须被丢进垃圾桶。
 
-![](../Images/31528d08e2f71cbeffbe29fa4642d848.png)
+![](img/31528d08e2f71cbeffbe29fa4642d848.png)
 
 图片由作者提供。
 
 我看到的最常见方式是通过[data observability and quality solutions，和数据目录](https://www.thoughtworks.com/en-us/insights/blog/data-strategy/building-an-amazon-com-for-your-data-products)。例如，罗氏就是这样做的，并且在创建、发布和治理可信数据产品时，增加了访问管理。
 
-![](../Images/e275902f9bce7f2f7b6c906762f24b90.png)
+![](img/e275902f9bce7f2f7b6c906762f24b90.png)
 
 [来源](https://www.montecarlodata.com/blog-how-roche-uses-dataops-to-build-data-products-and-data-mesh/)。
 

@@ -1,16 +1,16 @@
 # 从数据到可视化：使用 OpenAI 助理 API 和 GPT-4o
 
-> 原文：[https://towardsdatascience.com/from-data-to-visualization-with-the-openai-assistants-api-and-gpt-4o-69af0cac5118?source=collection_archive---------5-----------------------#2024-06-12](https://towardsdatascience.com/from-data-to-visualization-with-the-openai-assistants-api-and-gpt-4o-69af0cac5118?source=collection_archive---------5-----------------------#2024-06-12)
+> 原文：[`towardsdatascience.com/from-data-to-visualization-with-the-openai-assistants-api-and-gpt-4o-69af0cac5118?source=collection_archive---------5-----------------------#2024-06-12`](https://towardsdatascience.com/from-data-to-visualization-with-the-openai-assistants-api-and-gpt-4o-69af0cac5118?source=collection_archive---------5-----------------------#2024-06-12)
 
 ## 我们将探索 OpenAI 助理 API 中的代码补全工具，直接从数据创建可视化图表
 
-[](https://medium.com/@alan-jones?source=post_page---byline--69af0cac5118--------------------------------)[![Alan Jones](../Images/359379fab1d6685ff08080b98173e67c.png)](https://medium.com/@alan-jones?source=post_page---byline--69af0cac5118--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--69af0cac5118--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--69af0cac5118--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--69af0cac5118--------------------------------)
+[](https://medium.com/@alan-jones?source=post_page---byline--69af0cac5118--------------------------------)![Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--69af0cac5118--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--69af0cac5118--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--69af0cac5118--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--69af0cac5118--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--69af0cac5118--------------------------------) ·阅读时间：13 分钟·2024年6月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--69af0cac5118--------------------------------) ·阅读时间：13 分钟·2024 年 6 月 12 日
 
 --
 
-![](../Images/0d88c75d5a2e01843c0c621aaff8f8d7.png)
+![](img/0d88c75d5a2e01843c0c621aaff8f8d7.png)
 
 **编程工具** — 图片由 [Quaritsch Photography](https://unsplash.com/@quaritsch?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 和 [Anton Savinov](https://unsplash.com/@tonchik?utm_source=medium&utm_medium=referral) 提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

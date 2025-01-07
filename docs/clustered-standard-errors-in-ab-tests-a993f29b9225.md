@@ -1,18 +1,18 @@
 # A/B 测试中的聚类标准误
 
-> 原文：[https://towardsdatascience.com/clustered-standard-errors-in-ab-tests-a993f29b9225?source=collection_archive---------7-----------------------#2024-03-17](https://towardsdatascience.com/clustered-standard-errors-in-ab-tests-a993f29b9225?source=collection_archive---------7-----------------------#2024-03-17)
+> 原文：[`towardsdatascience.com/clustered-standard-errors-in-ab-tests-a993f29b9225?source=collection_archive---------7-----------------------#2024-03-17`](https://towardsdatascience.com/clustered-standard-errors-in-ab-tests-a993f29b9225?source=collection_archive---------7-----------------------#2024-03-17)
 
 ## [因果数据科学](https://towardsdatascience.com/tagged/causal-data-science)
 
 ## *当观察单位与随机化单位不同该怎么办*
 
-[](https://medium.com/@matteo.courthoud?source=post_page---byline--a993f29b9225--------------------------------)[![Matteo Courthoud](../Images/d873eab35a0cf9fc696658c0bee16b33.png)](https://medium.com/@matteo.courthoud?source=post_page---byline--a993f29b9225--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a993f29b9225--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a993f29b9225--------------------------------) [Matteo Courthoud](https://medium.com/@matteo.courthoud?source=post_page---byline--a993f29b9225--------------------------------)
+[](https://medium.com/@matteo.courthoud?source=post_page---byline--a993f29b9225--------------------------------)![Matteo Courthoud](https://medium.com/@matteo.courthoud?source=post_page---byline--a993f29b9225--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a993f29b9225--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a993f29b9225--------------------------------) [Matteo Courthoud](https://medium.com/@matteo.courthoud?source=post_page---byline--a993f29b9225--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a993f29b9225--------------------------------) ·阅读时间 13 分钟·2024年3月17日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a993f29b9225--------------------------------) ·阅读时间 13 分钟·2024 年 3 月 17 日
 
 --
 
-![](../Images/be0586977014aaf6a6483c247d8cf50c.png)
+![](img/be0586977014aaf6a6483c247d8cf50c.png)
 
 封面，图片来自作者
 

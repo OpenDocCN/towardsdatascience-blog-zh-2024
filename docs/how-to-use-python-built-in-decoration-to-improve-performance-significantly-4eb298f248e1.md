@@ -1,16 +1,16 @@
 # 如何使用 Python 内置装饰器显著提高性能
 
-> 原文：[https://towardsdatascience.com/how-to-use-python-built-in-decoration-to-improve-performance-significantly-4eb298f248e1?source=collection_archive---------1-----------------------#2024-04-14](https://towardsdatascience.com/how-to-use-python-built-in-decoration-to-improve-performance-significantly-4eb298f248e1?source=collection_archive---------1-----------------------#2024-04-14)
+> 原文：[`towardsdatascience.com/how-to-use-python-built-in-decoration-to-improve-performance-significantly-4eb298f248e1?source=collection_archive---------1-----------------------#2024-04-14`](https://towardsdatascience.com/how-to-use-python-built-in-decoration-to-improve-performance-significantly-4eb298f248e1?source=collection_archive---------1-----------------------#2024-04-14)
 
-![](../Images/acf931a3f073533c8b63abe39f1ca11f.png)
+![](img/acf931a3f073533c8b63abe39f1ca11f.png)
 
 图像由作者在 Canva 中制作
 
 ## 如何在 Python 中实现缓存机制，及何时不使用它？
 
-[](https://christophertao.medium.com/?source=post_page---byline--4eb298f248e1--------------------------------)[![Christopher Tao](../Images/bea1e3c81cc62eb28bdba9275d6b326f.png)](https://christophertao.medium.com/?source=post_page---byline--4eb298f248e1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4eb298f248e1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4eb298f248e1--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--4eb298f248e1--------------------------------)
+[](https://christophertao.medium.com/?source=post_page---byline--4eb298f248e1--------------------------------)![Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--4eb298f248e1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4eb298f248e1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4eb298f248e1--------------------------------) [Christopher Tao](https://christophertao.medium.com/?source=post_page---byline--4eb298f248e1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4eb298f248e1--------------------------------) ·阅读时长 9 分钟·2024年4月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4eb298f248e1--------------------------------) ·阅读时长 9 分钟·2024 年 4 月 14 日
 
 --
 
@@ -22,6 +22,6 @@
 
 # 1\. 缓存装饰器的使用案例
 
-![](../Images/8637bc8266d041917341faae6dbc628a.png)
+![](img/8637bc8266d041917341faae6dbc628a.png)
 
 图像由作者在 Canva 中制作

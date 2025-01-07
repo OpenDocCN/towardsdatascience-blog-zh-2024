@@ -1,16 +1,16 @@
 # K-最近邻的数学原理
 
-> 原文：[https://towardsdatascience.com/the-math-behind-knn-3d34050efb71?source=collection_archive---------0-----------------------#2024-02-06](https://towardsdatascience.com/the-math-behind-knn-3d34050efb71?source=collection_archive---------0-----------------------#2024-02-06)
+> 原文：[`towardsdatascience.com/the-math-behind-knn-3d34050efb71?source=collection_archive---------0-----------------------#2024-02-06`](https://towardsdatascience.com/the-math-behind-knn-3d34050efb71?source=collection_archive---------0-----------------------#2024-02-06)
 
 ## 为什么 K-最近邻（K-Nearest Neighbors, KNN）是最流行的机器学习算法之一？让我们通过深入了解其数学原理，从零开始构建它来理解它。
 
-[](https://medium.com/@cristianleo120?source=post_page---byline--3d34050efb71--------------------------------)[![Cristian Leo](../Images/99074292e7dfda50cf50a790b8deda79.png)](https://medium.com/@cristianleo120?source=post_page---byline--3d34050efb71--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3d34050efb71--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3d34050efb71--------------------------------) [Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--3d34050efb71--------------------------------)
+[](https://medium.com/@cristianleo120?source=post_page---byline--3d34050efb71--------------------------------)![Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--3d34050efb71--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3d34050efb71--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d34050efb71--------------------------------) [Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--3d34050efb71--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d34050efb71--------------------------------) ·阅读时间 18 分钟·2024年2月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d34050efb71--------------------------------) ·阅读时间 18 分钟·2024 年 2 月 6 日
 
 --
 
-![](../Images/05b8a90cad5a6ede795e4c0e91c44084.png)
+![](img/05b8a90cad5a6ede795e4c0e91c44084.png)
 
 图片由 DALL-E 生成
 
@@ -18,28 +18,28 @@ K-最近邻（KNN）是最流行的机器学习算法之一。它的简单性、
 
 **目录**
 
-·[**1: 理解基础知识**](#d65d)
+·**1: 理解基础知识**
 
-∘ [1.1: 什么是 K-最近邻？](#35b5)
+∘ 1.1: 什么是 K-最近邻？
 
-∘ [1.2: KNN 是如何工作的？](#96a3)
+∘ 1.2: KNN 是如何工作的？
 
-**·** [**2: 实现 KNN**](#3b76)
+**·** **2: 实现 KNN**
 
-∘ [2.1: KNN 背后的数学](#bce2)
+∘ 2.1: KNN 背后的数学
 
-∘ [2.2: 选择正确的 K 值](#7399)
+∘ 2.2: 选择正确的 K 值
 
-∘ [2.3: 如何选择合适的距离度量](#90f6)
+∘ 2.3: 如何选择合适的距离度量
 
-**·** [**3: KNN 的实践应用**](#e8a6)
+**·** **3: KNN 的实践应用**
 
-∘ [3.1 从零开始在 Python 中实现 KNN](#1fd4)
+∘ 3.1 从零开始在 Python 中实现 KNN
 
-∘ [3.2 使用 Scikit-Learn 实现 KNN](#d59b)
+∘ 3.2 使用 Scikit-Learn 实现 KNN
 
-**·** [**4: 优势与挑战**](#520c)
+**·** **4: 优势与挑战**
 
-∘ [4.1 使用 KNN 的好处](#c033)
+∘ 4.1 使用 KNN 的好处
 
-∘ [4.2](#ec84)…
+∘ 4.2…

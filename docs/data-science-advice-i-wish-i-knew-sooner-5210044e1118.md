@@ -1,18 +1,18 @@
 # 我希望早点知道的数据科学建议
 
-> 原文：[https://towardsdatascience.com/data-science-advice-i-wish-i-knew-sooner-5210044e1118?source=collection_archive---------2-----------------------#2024-04-29](https://towardsdatascience.com/data-science-advice-i-wish-i-knew-sooner-5210044e1118?source=collection_archive---------2-----------------------#2024-04-29)
+> 原文：[`towardsdatascience.com/data-science-advice-i-wish-i-knew-sooner-5210044e1118?source=collection_archive---------2-----------------------#2024-04-29`](https://towardsdatascience.com/data-science-advice-i-wish-i-knew-sooner-5210044e1118?source=collection_archive---------2-----------------------#2024-04-29)
 
 ## 关于如何学习和实践数据科学的建议
 
-[](https://medium.com/@egorhowell?source=post_page---byline--5210044e1118--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--5210044e1118--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5210044e1118--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5210044e1118--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--5210044e1118--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--5210044e1118--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--5210044e1118--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5210044e1118--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5210044e1118--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--5210044e1118--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5210044e1118--------------------------------) ·阅读时长8分钟·2024年4月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5210044e1118--------------------------------) ·阅读时长 8 分钟·2024 年 4 月 29 日
 
 --
 
-![](../Images/09673ecf6c4bcddbc7c8a96215dec105.png)
+![](img/09673ecf6c4bcddbc7c8a96215dec105.png)
 
-图片来自 energepic.com：[https://www.pexels.com/photo/woman-sitting-in-front-of-macbook-313690/](https://www.pexels.com/photo/woman-sitting-in-front-of-macbook-313690/)
+图片来自 energepic.com：[`www.pexels.com/photo/woman-sitting-in-front-of-macbook-313690/`](https://www.pexels.com/photo/woman-sitting-in-front-of-macbook-313690/)
 
 学习和实践数据科学可能会很具挑战性——相信我，我已经做了超过四年！我经历了所有复杂的数学方程式和复杂的代码。不过，我现在知道如何通过我一路上积累的技巧和建议来更好地应对这一切，这些我将在本文中与大家分享。
 

@@ -1,36 +1,36 @@
-# GPT是优秀的嵌入模型吗？
+# GPT 是优秀的嵌入模型吗？
 
-> 原文：[https://towardsdatascience.com/are-gpts-good-embedding-models-28d8ef6f3f63?source=collection_archive---------0-----------------------#2024-05-18](https://towardsdatascience.com/are-gpts-good-embedding-models-28d8ef6f3f63?source=collection_archive---------0-----------------------#2024-05-18)
+> 原文：[`towardsdatascience.com/are-gpts-good-embedding-models-28d8ef6f3f63?source=collection_archive---------0-----------------------#2024-05-18`](https://towardsdatascience.com/are-gpts-good-embedding-models-28d8ef6f3f63?source=collection_archive---------0-----------------------#2024-05-18)
 
 ## 一个令人惊讶的实验，表明细节决定成败
 
-[](https://medium.com/@yuchengtsai84?source=post_page---byline--28d8ef6f3f63--------------------------------)[![Yu-Cheng Tsai](../Images/c0ec2d4b9fea512040c8e6e0250670fc.png)](https://medium.com/@yuchengtsai84?source=post_page---byline--28d8ef6f3f63--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--28d8ef6f3f63--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--28d8ef6f3f63--------------------------------) [Yu-Cheng Tsai](https://medium.com/@yuchengtsai84?source=post_page---byline--28d8ef6f3f63--------------------------------)
+[](https://medium.com/@yuchengtsai84?source=post_page---byline--28d8ef6f3f63--------------------------------)![Yu-Cheng Tsai](https://medium.com/@yuchengtsai84?source=post_page---byline--28d8ef6f3f63--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--28d8ef6f3f63--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28d8ef6f3f63--------------------------------) [Yu-Cheng Tsai](https://medium.com/@yuchengtsai84?source=post_page---byline--28d8ef6f3f63--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28d8ef6f3f63--------------------------------) ·6分钟阅读·2024年5月18日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28d8ef6f3f63--------------------------------) ·6 分钟阅读·2024 年 5 月 18 日
 
 --
 
-![](../Images/0f89f4b2c267496534e57792622439db.png)
+![](img/0f89f4b2c267496534e57792622439db.png)
 
-图像由作者使用DALL-E生成
+图像由作者使用 DALL-E 生成
 
-随着可用的嵌入模型数量不断增加，选择适合自己机器学习应用的模型可能变得具有挑战性。幸运的是，[MTEB排行榜](https://huggingface.co/spaces/mteb/leaderboard)为各种自然语言处理任务提供了全面的排名指标。
+随着可用的嵌入模型数量不断增加，选择适合自己机器学习应用的模型可能变得具有挑战性。幸运的是，[MTEB 排行榜](https://huggingface.co/spaces/mteb/leaderboard)为各种自然语言处理任务提供了全面的排名指标。
 
-![](../Images/608efe4c9a370b4f9a08332196481dfd.png)
+![](img/608efe4c9a370b4f9a08332196481dfd.png)
 
-截至2024年5月17日，来自[MTEB排行榜](https://huggingface.co/spaces/mteb/leaderboard)的前五大嵌入模型
+截至 2024 年 5 月 17 日，来自[MTEB 排行榜](https://huggingface.co/spaces/mteb/leaderboard)的前五大嵌入模型
 
-当你访问这个网站时，你会注意到排名前五的嵌入模型是生成式预训练变换模型（GPTs）。这可能让你认为GPT模型是最适合用于嵌入的模型。但这是真的吗？让我们进行一个实验来找出答案。
+当你访问这个网站时，你会注意到排名前五的嵌入模型是生成式预训练变换模型（GPTs）。这可能让你认为 GPT 模型是最适合用于嵌入的模型。但这是真的吗？让我们进行一个实验来找出答案。
 
-# GPT嵌入
+# GPT 嵌入
 
-嵌入是文本的张量表示，它将文本标记ID转换并投影到张量空间中。
+嵌入是文本的张量表示，它将文本标记 ID 转换并投影到张量空间中。
 
 通过将文本输入到神经网络模型中并执行前向传递，你可以获得嵌入向量。然而，实际过程要复杂一些。让我们一步一步分解：
 
-1.  将文本转换为标记ID
+1.  将文本转换为标记 ID
 
-1.  将标记ID传递到神经网络中
+1.  将标记 ID 传递到神经网络中
 
 1.  返回神经网络的输出
 
@@ -52,7 +52,7 @@ encodeds = tokenizer.apply_chat_template(messages, return_tensors="pt")
 model_inputs = encodeds.to("cuda")
 ```
 
-第二步很简单，将`model_inputs`前向传递给神经网络。生成的标记的logits可以通过`.logits`访问。`torch.no_grad()`表示我不希望模型的权重被更新，因为模型处于推理模式。
+第二步很简单，将`model_inputs`前向传递给神经网络。生成的标记的 logits 可以通过`.logits`访问。`torch.no_grad()`表示我不希望模型的权重被更新，因为模型处于推理模式。
 
 ```py
 import torch
@@ -61,11 +61,11 @@ with torch.no_grad():
     return model(model_inputs).logits
 ```
 
-第三步有点棘手。GPT模型是解码器-only，其token生成是自回归的。简单来说，已完成句子的最后一个token已经看到了句子中的所有前面的tokens。因此，最后一个token的输出包含了来自前面tokens的所有相关性分数（注意力）。
+第三步有点棘手。GPT 模型是解码器-only，其 token 生成是自回归的。简单来说，已完成句子的最后一个 token 已经看到了句子中的所有前面的 tokens。因此，最后一个 token 的输出包含了来自前面 tokens 的所有相关性分数（注意力）。
 
-> 完美！你最感兴趣的是最后一个token，因为在transformer中的注意力机制。
+> 完美！你最感兴趣的是最后一个 token，因为在 transformer 中的注意力机制。
 
-在Hugging Face中实现的GPT的输出维度是（批量大小，输入token大小，词汇表数量）。为了获取所有批次的最后一个token输出，我可以执行张量切片。
+在 Hugging Face 中实现的 GPT 的输出维度是（批量大小，输入 token 大小，词汇表数量）。为了获取所有批次的最后一个 token 输出，我可以执行张量切片。
 
 ```py
 import torch
@@ -73,9 +73,9 @@ with torch.no_grad():
     return model(model_inputs).logits[:, -1, :]
 ```
 
-# 这些GPT嵌入的质量
+# 这些 GPT 嵌入的质量
 
-要衡量这些GPT嵌入的质量，可以使用[余弦相似度](https://pytorch.org/docs/stable/generated/torch.nn.CosineSimilarity.html)。余弦相似度越高，句子的语义越接近。
+要衡量这些 GPT 嵌入的质量，可以使用[余弦相似度](https://pytorch.org/docs/stable/generated/torch.nn.CosineSimilarity.html)。余弦相似度越高，句子的语义越接近。
 
 ```py
 import torch
@@ -128,7 +128,7 @@ answers = [
 get_similarities(questions, answers)
 ```
 
-![](../Images/c99fb95672048c42a47ba01ae6599ec2.png)
+![](img/c99fb95672048c42a47ba01ae6599ec2.png)
 
 Mistral 7b v0.1 指令的余弦相似度（图像来源：作者）
 
@@ -136,15 +136,15 @@ Mistral 7b v0.1 指令的余弦相似度（图像来源：作者）
 
 对于第一个问题和答案对：
 
-+   问题：“OpenAI的总部是什么？”
++   问题：“OpenAI 的总部是什么？”
 
-+   答案：“OpenAI总部位于旧金山。”
++   答案：“OpenAI 总部位于旧金山。”
 
 +   余弦相似度：0.96
 
 对于第二个问题和答案对：
 
-+   问题：“什么是GPU？”
++   问题：“什么是 GPU？”
 
 +   答案：“图形处理单元（GPU）是一个能够快速执行数学计算的电子电路。”
 
@@ -152,7 +152,7 @@ Mistral 7b v0.1 指令的余弦相似度（图像来源：作者）
 
 对于不相关的对：
 
-+   问题：“OpenAI的总部在哪里？”
++   问题：“OpenAI 的总部在哪里？”
 
 +   答案：“图形处理单元（GPU）是一个能够快速执行数学计算的电子电路。”
 
@@ -160,13 +160,13 @@ Mistral 7b v0.1 指令的余弦相似度（图像来源：作者）
 
 对于最差的对：
 
-+   问题：“什么是GPU？”
++   问题：“什么是 GPU？”
 
-+   答案：“OpenAI总部位于旧金山。”
++   答案：“OpenAI 总部位于旧金山。”
 
 +   余弦相似度：0.93
 
-这些结果表明，在这种情况下，使用GPT模型（如mistral 7b instruct v0.1）作为嵌入模型可能不会在区分相关和不相关的对方面产生很好的结果。但为什么GPT模型仍然位居前五名嵌入模型呢？
+这些结果表明，在这种情况下，使用 GPT 模型（如 mistral 7b instruct v0.1）作为嵌入模型可能不会在区分相关和不相关的对方面产生很好的结果。但为什么 GPT 模型仍然位居前五名嵌入模型呢？
 
 # 对比损失来解救
 
@@ -177,31 +177,31 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 ```
 
-![](../Images/a7d9806157a8c611ddf1ee437d3e12be.png)
+![](img/a7d9806157a8c611ddf1ee437d3e12be.png)
 
 `e5-mistral-7b-instruct`的余弦相似度（图像来源：作者）
 
-使用不同的模型`e[5-mistral-7b-instruct](http://intfloat/e5-mistral-7b-instruct)`重复相同的评估过程，该模型是MTEB排行榜上排名前列的开源模型之一，并从mistral 7b instruct微调而来。我发现，相关问题和对之间的余弦相似度分别为OpenAI和GPU问题为0.88和0.84。对于不相关的问题和答案对，相似度降至0.56和0.67。这个发现表明，`e5-mistral-7b-instruct`是一个在嵌入方面有显著改进的模型。这种改进是如何实现的呢？
+使用不同的模型`e[5-mistral-7b-instruct](http://intfloat/e5-mistral-7b-instruct)`重复相同的评估过程，该模型是 MTEB 排行榜上排名前列的开源模型之一，并从 mistral 7b instruct 微调而来。我发现，相关问题和对之间的余弦相似度分别为 OpenAI 和 GPU 问题为 0.88 和 0.84。对于不相关的问题和答案对，相似度降至 0.56 和 0.67。这个发现表明，`e5-mistral-7b-instruct`是一个在嵌入方面有显著改进的模型。这种改进是如何实现的呢？
 
-![](../Images/08fb21f2da6dcfa55fa80bdea3f81999.png)
+![](img/08fb21f2da6dcfa55fa80bdea3f81999.png)
 
-[对比损失函数](/contrastive-loss-explaned-159f2d4a87ec)
+对比损失函数
 
-深入研究`e5-mistral-7b-instruct`背后的[论文](https://arxiv.org/pdf/2401.00368)，关键在于使用[对比损失](https://lilianweng.github.io/posts/2021-05-31-contrastive/)进一步微调mistral模型。
+深入研究`e5-mistral-7b-instruct`背后的[论文](https://arxiv.org/pdf/2401.00368)，关键在于使用[对比损失](https://lilianweng.github.io/posts/2021-05-31-contrastive/)进一步微调 mistral 模型。
 
-> 与使用[交叉熵损失](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)对预测标记和标签标记进行训练或进一步微调的GPT模型不同，对比损失旨在最大化负样本对之间的距离，同时最小化正样本对之间的距离。
+> 与使用[交叉熵损失](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)对预测标记和标签标记进行训练或进一步微调的 GPT 模型不同，对比损失旨在最大化负样本对之间的距离，同时最小化正样本对之间的距离。
 
-这篇[博客文章](/contrastive-loss-explaned-159f2d4a87ec)详细介绍了这一概念。`sim`函数计算两个向量之间的余弦距离。对于对比损失，分母表示正例和负例之间的余弦距离。对比损失背后的原理是，我们希望相似的向量尽可能接近1，因为log(1) = 0表示最优损失。
+这篇博客文章详细介绍了这一概念。`sim`函数计算两个向量之间的余弦距离。对于对比损失，分母表示正例和负例之间的余弦距离。对比损失背后的原理是，我们希望相似的向量尽可能接近 1，因为 log(1) = 0 表示最优损失。
 
 # 结论
 
-在这篇文章中，我强调了使用GPT作为嵌入模型而没有微调的常见陷阱。我的评估表明，通过对GPT进行对比损失微调，嵌入可以更加有意义和具有区分性。通过了解GPT模型的优缺点，并利用定制的损失函数，如对比损失，你可以在选择和使用嵌入模型时做出更明智的决策。希望这篇文章能帮助你为应用程序明智地选择GPT模型，并期待听到你的反馈！ :)
+在这篇文章中，我强调了使用 GPT 作为嵌入模型而没有微调的常见陷阱。我的评估表明，通过对 GPT 进行对比损失微调，嵌入可以更加有意义和具有区分性。通过了解 GPT 模型的优缺点，并利用定制的损失函数，如对比损失，你可以在选择和使用嵌入模型时做出更明智的决策。希望这篇文章能帮助你为应用程序明智地选择 GPT 模型，并期待听到你的反馈！ :)
 
-如果你对大规模微调LLM感兴趣，我还有另一篇相关的文章，可以帮助你实现这一目标。 :)
+如果你对大规模微调 LLM 感兴趣，我还有另一篇相关的文章，可以帮助你实现这一目标。 :)
 
-[](https://medium.com/sage-ai/fine-tuning-large-language-models-a-guide-into-distributed-parallel-training-with-deepspeed-ray-784914926a17?source=post_page-----28d8ef6f3f63--------------------------------) [## 微调大型语言模型：分布式并行训练指南（使用DeepSpeed和Ray）
+[](https://medium.com/sage-ai/fine-tuning-large-language-models-a-guide-into-distributed-parallel-training-with-deepspeed-ray-784914926a17?source=post_page-----28d8ef6f3f63--------------------------------) [## 微调大型语言模型：分布式并行训练指南（使用 DeepSpeed 和 Ray）
 
-### 开源LLM的路径
+### 开源 LLM 的路径
 
 medium.com](https://medium.com/sage-ai/fine-tuning-large-language-models-a-guide-into-distributed-parallel-training-with-deepspeed-ray-784914926a17?source=post_page-----28d8ef6f3f63--------------------------------)
 

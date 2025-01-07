@@ -1,18 +1,18 @@
 # 向数据科学应用添加时间弹性
 
-> 原文：[https://towardsdatascience.com/adding-temporal-resiliency-to-data-science-applications-6b052d7b81af?source=collection_archive---------5-----------------------#2024-03-26](https://towardsdatascience.com/adding-temporal-resiliency-to-data-science-applications-6b052d7b81af?source=collection_archive---------5-----------------------#2024-03-26)
+> 原文：[`towardsdatascience.com/adding-temporal-resiliency-to-data-science-applications-6b052d7b81af?source=collection_archive---------5-----------------------#2024-03-26`](https://towardsdatascience.com/adding-temporal-resiliency-to-data-science-applications-6b052d7b81af?source=collection_archive---------5-----------------------#2024-03-26)
 
 ## 我们的应用能否在不花费任何冗余资源的情况下，获得冗余所带来的可靠性好处？
 
-[](https://medium.com/@rohitpandey576?source=post_page---byline--6b052d7b81af--------------------------------)[![Rohit Pandey](../Images/af817d8f68f2984058f0afb8fd7ecbe9.png)](https://medium.com/@rohitpandey576?source=post_page---byline--6b052d7b81af--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6b052d7b81af--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6b052d7b81af--------------------------------) [Rohit Pandey](https://medium.com/@rohitpandey576?source=post_page---byline--6b052d7b81af--------------------------------)
+[](https://medium.com/@rohitpandey576?source=post_page---byline--6b052d7b81af--------------------------------)![Rohit Pandey](https://medium.com/@rohitpandey576?source=post_page---byline--6b052d7b81af--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6b052d7b81af--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6b052d7b81af--------------------------------) [Rohit Pandey](https://medium.com/@rohitpandey576?source=post_page---byline--6b052d7b81af--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6b052d7b81af--------------------------------) ·13 分钟阅读·2024年3月26日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6b052d7b81af--------------------------------) ·13 分钟阅读·2024 年 3 月 26 日
 
 --
 
-![](../Images/0e6319aa63a42a694776ce5c00399319.png)
+![](img/0e6319aa63a42a694776ce5c00399319.png)
 
-图片来自midjourney
+图片来自 midjourney
 
 现代应用几乎完全将其状态存储在数据库中，并从数据库中读取执行任务所需的状态。我们将关注如何为从这些数据库读取和写入的过程添加弹性，使其变得高度可靠。
 

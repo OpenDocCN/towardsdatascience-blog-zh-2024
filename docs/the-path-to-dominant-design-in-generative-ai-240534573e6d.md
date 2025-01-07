@@ -1,28 +1,28 @@
 # 生成性人工智能中的主导设计路径
 
-> 原文：[https://towardsdatascience.com/the-path-to-dominant-design-in-generative-ai-240534573e6d?source=collection_archive---------8-----------------------#2024-05-15](https://towardsdatascience.com/the-path-to-dominant-design-in-generative-ai-240534573e6d?source=collection_archive---------8-----------------------#2024-05-15)
+> 原文：[`towardsdatascience.com/the-path-to-dominant-design-in-generative-ai-240534573e6d?source=collection_archive---------8-----------------------#2024-05-15`](https://towardsdatascience.com/the-path-to-dominant-design-in-generative-ai-240534573e6d?source=collection_archive---------8-----------------------#2024-05-15)
 
 ## 对于主导设计的思考，以及推动生成性人工智能技术在争夺主导地位中的成功或失败的战略因素
 
-[](https://medium.com/@geoffrey.m.williams1?source=post_page---byline--240534573e6d--------------------------------)[![Geoffrey Williams](../Images/8f888d123ef551083ae186944470aac6.png)](https://medium.com/@geoffrey.m.williams1?source=post_page---byline--240534573e6d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--240534573e6d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--240534573e6d--------------------------------) [Geoffrey Williams](https://medium.com/@geoffrey.m.williams1?source=post_page---byline--240534573e6d--------------------------------)
+[](https://medium.com/@geoffrey.m.williams1?source=post_page---byline--240534573e6d--------------------------------)![Geoffrey Williams](https://medium.com/@geoffrey.m.williams1?source=post_page---byline--240534573e6d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--240534573e6d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--240534573e6d--------------------------------) [Geoffrey Williams](https://medium.com/@geoffrey.m.williams1?source=post_page---byline--240534573e6d--------------------------------)
 
-·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--240534573e6d--------------------------------) ·阅读时长10分钟·2024年5月15日
+·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--240534573e6d--------------------------------) ·阅读时长 10 分钟·2024 年 5 月 15 日
 
 --
 
-![](../Images/345dffbdc4c7fa9a60478ea74d05d5e7.png)
+![](img/345dffbdc4c7fa9a60478ea74d05d5e7.png)
 
-来源：作者使用DALL-E生成的图片
+来源：作者使用 DALL-E 生成的图片
 
 **I. 引言**
 
-在过去半个世纪中，技术创新生命周期内争取主导设计的斗争一直是研究的重点。这些争斗发生在研究与开发（R&D）实验室中，围绕商业化和市场营销战略的讨论中，以及在媒体和消费者领域，但最终是在客户的心中，这些客户通过日常选择能力，左右了市场份额和产品的接受度。这也是历史为何记住了VHS而非Betamax，为什么我们使用QWERTY键盘，以及谷歌搜索引擎和苹果iPhone的推出如何改变了行业的原因。ChatGPT的出现向市场发出了一个信号，表明我们正处于另一场关于主导设计的争夺战之中，这一次是围绕生成性人工智能展开的。
+在过去半个世纪中，技术创新生命周期内争取主导设计的斗争一直是研究的重点。这些争斗发生在研究与开发（R&D）实验室中，围绕商业化和市场营销战略的讨论中，以及在媒体和消费者领域，但最终是在客户的心中，这些客户通过日常选择能力，左右了市场份额和产品的接受度。这也是历史为何记住了 VHS 而非 Betamax，为什么我们使用 QWERTY 键盘，以及谷歌搜索引擎和苹果 iPhone 的推出如何改变了行业的原因。ChatGPT 的出现向市场发出了一个信号，表明我们正处于另一场关于主导设计的争夺战之中，这一次是围绕生成性人工智能展开的。
 
 生成性人工智能能够创造新内容并执行复杂任务，具有颠覆各行业的潜力，能够通过增强创造力、自动化任务和提升客户体验来推动变革。因此，各组织正在迅速投资于这个充满潜力的生态系统，以保持其相关性和竞争力。随着商业领袖、政府机构和投资者在这个迅速发展的生成性人工智能领域作出关于芯片、平台和模型等技术的决策，他们应该时刻牢记主导设计的概念，并理解技术如何在逐步成熟过程中围绕这一概念汇聚。
 
 **II. 主导设计之战**
 
-主导设计的概念最早由阿伯纳西-厄特巴克模型[[i]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn1)[[ii]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn2)在1975年提出，尽管这一术语直到二十年后才被正式创造[[iii]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn3)。这一概念已经变得如此基础，以至于它至今仍然是全国各地商学院MBA课程的教学内容。在其最基本的核心中，这一商业模型描述了产品的设计和制造过程如何通过三个不同的阶段随着时间的推移而发展：一个初步的**流动阶段**，其特点是在产品设计和过程改进中进行大量的实验，并且随着不同方法的开发和完善以满足市场需求，带来显著的创新；一个**过渡阶段**，在这个阶段，一个主导的产品设计开始出现，市场逐渐转向日益标准化的产品，但仍有显著的过程创新；以及一个**特定阶段**，其特点是产品和过程设计的标准化。
+主导设计的概念最早由阿伯纳西-厄特巴克模型[[i]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn1)[[ii]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn2)在 1975 年提出，尽管这一术语直到二十年后才被正式创造[[iii]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn3)。这一概念已经变得如此基础，以至于它至今仍然是全国各地商学院 MBA 课程的教学内容。在其最基本的核心中，这一商业模型描述了产品的设计和制造过程如何通过三个不同的阶段随着时间的推移而发展：一个初步的**流动阶段**，其特点是在产品设计和过程改进中进行大量的实验，并且随着不同方法的开发和完善以满足市场需求，带来显著的创新；一个**过渡阶段**，在这个阶段，一个主导的产品设计开始出现，市场逐渐转向日益标准化的产品，但仍有显著的过程创新；以及一个**特定阶段**，其特点是产品和过程设计的标准化。
 
 此后，这项工作得到了扩展，最著名的是由费尔南多·苏亚雷斯（Fernando Suarez）进行的扩展，旨在解释在产品进入市场之前，技术主导地位的动态，并为导航这一过程提供路线图。在他整合性的技术主导框架[[iv]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn4)中，苏亚雷斯阐述了产品创新如何通过五个阶段发展，具体如下。
 
@@ -40,17 +40,17 @@
 
 一家公司在成功度过这些阶段并实现技术主导地位的过程中，会受到多个公司层面因素（例如，技术优势、互补资产、已安装用户基础、战略操作）和环境因素（例如，行业监管、网络效应、转换成本、可获得性制度、市场特征）的影响。这些因素在不同阶段的重要性各不相同，过早或过晚的行动可能会产生削弱或意外的效果。也有研究探讨了如何通过对三个关键方面（即市场、技术、互补资产）进行连续决策，来帮助确定在争夺主导地位中的成功或失败[[](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn1)[v](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref5)[]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn1)。第一个决策与市场相关，涉及如何正确识别市场并推动采取行动以实现较大的已安装用户基础。第二个决策关系到市场标准是由政府还是市场推动，并包括对专有控制策略与开放策略之间的考虑。第三个也是最后一个决策，涉及如何制定策略来获取竞争所需的互补资产，从而在主流市场中保持竞争力。
 
-另一个必须考虑的因素是技术路径依赖性以及先前结果（例如云计算大战、AI芯片投资）对未来事件进程的影响。现代复杂技术通常在逐步提高的采纳回报机制中运作，也就是说，技术被采纳的越多，它变得越有利，且更加根深蒂固[[vi]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn6)。在这种背景下，一些小的历史事件可能对哪种技术最终成为主导技术产生强烈影响，尽管竞争技术可能具备潜在优势。这是由多种强化机制所导致的，例如学习效应、协调效应和适应性预期，这些机制使得切换到其他技术变得成本高昂且复杂。此外，企业级生成性人工智能从研发到商业化产品、并具备业务和操作价值的过渡，与云基础设施的主导地位密切相关[[vii]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn7)。这是由于需要一套共同的能力，配合大规模的计算资源。为了提供这样的能力，超大规模云服务商已经将云基础设施、模型和应用无缝集成到云AI技术栈中——加速了互补资产的创建。正是通过这些考量的视角，生成性人工智能的进展得以审视。
+另一个必须考虑的因素是技术路径依赖性以及先前结果（例如云计算大战、AI 芯片投资）对未来事件进程的影响。现代复杂技术通常在逐步提高的采纳回报机制中运作，也就是说，技术被采纳的越多，它变得越有利，且更加根深蒂固[[vi]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn6)。在这种背景下，一些小的历史事件可能对哪种技术最终成为主导技术产生强烈影响，尽管竞争技术可能具备潜在优势。这是由多种强化机制所导致的，例如学习效应、协调效应和适应性预期，这些机制使得切换到其他技术变得成本高昂且复杂。此外，企业级生成性人工智能从研发到商业化产品、并具备业务和操作价值的过渡，与云基础设施的主导地位密切相关[[vii]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_edn7)。这是由于需要一套共同的能力，配合大规模的计算资源。为了提供这样的能力，超大规模云服务商已经将云基础设施、模型和应用无缝集成到云 AI 技术栈中——加速了互补资产的创建。正是通过这些考量的视角，生成性人工智能的进展得以审视。
 
 **III. ChatGPT: 改变世界的一声枪响**
 
-2022年11月，ChatGPT的出现清楚地传递了一个信号：大规模语言模型（LLM）在广泛领域内具有实际的商业应用。几周内，“生成性人工智能”一词在不同世代的用户中，无论是技术人员还是非技术人员，都已广为人知。更为深刻的是，市场中其他参与者意识到，他们要么需要启动，要么需要大幅加速自己的努力，才能提供生成性人工智能能力。这标志着从阶段2：技术可行性到阶段3：市场创建的过渡。从那时起，竞赛正式开始。
+2022 年 11 月，ChatGPT 的出现清楚地传递了一个信号：大规模语言模型（LLM）在广泛领域内具有实际的商业应用。几周内，“生成性人工智能”一词在不同世代的用户中，无论是技术人员还是非技术人员，都已广为人知。更为深刻的是，市场中其他参与者意识到，他们要么需要启动，要么需要大幅加速自己的努力，才能提供生成性人工智能能力。这标志着从阶段 2：技术可行性到阶段 3：市场创建的过渡。从那时起，竞赛正式开始。
 
-在相当短的时间内，主要技术提供商开始发布自己的生成性AI平台和相关模型（例如，Meta AI — 2023年2月，AWS Bedrock — 2023年4月，Palantir人工智能平台 — 2023年4月，Google Vertex AI — 2023年6月，IBM WatsonX.ai — 2023年7月）。在技术和技术人才对于证明技术可行性至关重要的时期，这一需求已转变为战略性操作，因为公司们正在努力通过专注于建立现有用户基础、开发互补资产和生态系统以及增强网络效应来为增长做好布局。这导致了当前这一时期内，跨超大规模平台生态系统和关键AI提供商之间战略合作伙伴关系的迅速扩展，因为组织寻求建立将帮助它们应对主导地位决战的联盟。我们还看到，超大规模公司正利用其现有的云基础设施资产，推动其生成性AI资产在竞争极少甚至没有竞争的细分市场中快速通过监管障碍。
+在相当短的时间内，主要技术提供商开始发布自己的生成性 AI 平台和相关模型（例如，Meta AI — 2023 年 2 月，AWS Bedrock — 2023 年 4 月，Palantir 人工智能平台 — 2023 年 4 月，Google Vertex AI — 2023 年 6 月，IBM WatsonX.ai — 2023 年 7 月）。在技术和技术人才对于证明技术可行性至关重要的时期，这一需求已转变为战略性操作，因为公司们正在努力通过专注于建立现有用户基础、开发互补资产和生态系统以及增强网络效应来为增长做好布局。这导致了当前这一时期内，跨超大规模平台生态系统和关键 AI 提供商之间战略合作伙伴关系的迅速扩展，因为组织寻求建立将帮助它们应对主导地位决战的联盟。我们还看到，超大规模公司正利用其现有的云基础设施资产，推动其生成性 AI 资产在竞争极少甚至没有竞争的细分市场中快速通过监管障碍。
 
-随着这一进程的发展，组织应当保持对各种风险的敏感性。首先，那些投资于未能成为主导设计的替代方法的AI公司，可能会发现自己处于不利地位。因此，适应或采纳主导设计可能需要在战略、开发和投资方面做出重大的调整，超出当前已投入的成本。此外，随着生成性AI市场潜力的逐渐显现，竞争将持续加剧，这将对所有市场参与者施加更大的压力，并最终导致市场整合和退出。最后，AI的普及促使全球政府和机构开始更新监管框架，以促进安全性和AI的负责任部署。这带来了额外的不确定性，因为组织可能面临新的合规要求，这些要求可能会消耗大量资源来实施。在那些高度监管的市场中，如果生成性AI工具不符合基本要求，可能会成为提供这些工具的障碍。
+随着这一进程的发展，组织应当保持对各种风险的敏感性。首先，那些投资于未能成为主导设计的替代方法的 AI 公司，可能会发现自己处于不利地位。因此，适应或采纳主导设计可能需要在战略、开发和投资方面做出重大的调整，超出当前已投入的成本。此外，随着生成性 AI 市场潜力的逐渐显现，竞争将持续加剧，这将对所有市场参与者施加更大的压力，并最终导致市场整合和退出。最后，AI 的普及促使全球政府和机构开始更新监管框架，以促进安全性和 AI 的负责任部署。这带来了额外的不确定性，因为组织可能面临新的合规要求，这些要求可能会消耗大量资源来实施。在那些高度监管的市场中，如果生成性 AI 工具不符合基本要求，可能会成为提供这些工具的障碍。
 
-然而，这一时期并非没有机会。随着市场开始识别出主导设计之战的领先者，能够迅速与主导设计对接或在这些框架内进行创新的组织，更有可能获得显著的市场份额。此外，即使市场开始围绕主导设计进行标准化，AI领域仍然可能会出现新的细分市场。如果能够及早识别并加以利用，公司可以建立强大的市场存在感，并享有先行者优势。
+然而，这一时期并非没有机会。随着市场开始识别出主导设计之战的领先者，能够迅速与主导设计对接或在这些框架内进行创新的组织，更有可能获得显著的市场份额。此外，即使市场开始围绕主导设计进行标准化，AI 领域仍然可能会出现新的细分市场。如果能够及早识别并加以利用，公司可以建立强大的市场存在感，并享有先行者优势。
 
 **IV. 技术主导地位的指标**
 
@@ -82,16 +82,16 @@
 
 **参考文献：**
 
-[[i]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref1) J. Utterback, W. Abernathy, “过程与产品创新的动态模型”，《欧米伽》，第3卷，第6期，1975年
+[[i]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref1) J. Utterback, W. Abernathy, “过程与产品创新的动态模型”，《欧米伽》，第 3 卷，第 6 期，1975 年
 
-[[ii]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref2) W. Abernathy, J. Utterback, “创新模式”，《技术评论》，第80卷，第7期，1978年
+[[ii]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref2) W. Abernathy, J. Utterback, “创新模式”，《技术评论》，第 80 卷，第 7 期，1978 年
 
-[[iii]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref3) F. Suárez, J. Utterback, “主导设计与企业生存,” 战略管理杂志，第16卷，第6期，1995年，415–430
+[[iii]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref3) F. Suárez, J. Utterback, “主导设计与企业生存,” 战略管理杂志，第 16 卷，第 6 期，1995 年，415–430
 
-[[iv]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref4) F. Suárez, “技术主导权之争：一个整合框架,” 研究政策，第33卷，2004年，271–286
+[[iv]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref4) F. Suárez, “技术主导权之争：一个整合框架,” 研究政策，第 33 卷，2004 年，271–286
 
-[[v]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref5) E. Fernández, S. Valle, “主导设计之争：决策模型,” 欧洲管理与商业经济研究，第25卷，第2期，2019年，72–78
+[[v]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref5) E. Fernández, S. Valle, “主导设计之争：决策模型,” 欧洲管理与商业经济研究，第 25 卷，第 2 期，2019 年，72–78
 
-[[vi]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref6) W.B. Arthur, “竞争技术、收益递增与历史事件带来的锁定效应,” 经济学杂志，第99卷，第394期，1989年，116–131
+[[vi]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref6) W.B. Arthur, “竞争技术、收益递增与历史事件带来的锁定效应,” 经济学杂志，第 99 卷，第 394 期，1989 年，116–131
 
-[[vii]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref7) F. van der Vlist, A. Helmond, F. Ferrari, “大规模人工智能：云基础设施依赖与人工智能的工业化,” 大数据与社会，2024年1-3月期：I-16，第1、2、5、6页
+[[vii]](https://medium.com/@geoffrey.m.williams1/the-business-implications-of-dominant-design-on-the-trajectory-of-generative-ai-a1240bea6eb3#_ednref7) F. van der Vlist, A. Helmond, F. Ferrari, “大规模人工智能：云基础设施依赖与人工智能的工业化,” 大数据与社会，2024 年 1-3 月期：I-16，第 1、2、5、6 页

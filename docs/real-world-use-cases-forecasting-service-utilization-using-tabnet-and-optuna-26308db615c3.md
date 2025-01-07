@@ -1,16 +1,16 @@
 # 真实世界的应用案例：使用 Tabnet 和 Optuna 进行服务利用率预测
 
-> 原文：[https://towardsdatascience.com/real-world-use-cases-forecasting-service-utilization-using-tabnet-and-optuna-26308db615c3?source=collection_archive---------8-----------------------#2024-08-15](https://towardsdatascience.com/real-world-use-cases-forecasting-service-utilization-using-tabnet-and-optuna-26308db615c3?source=collection_archive---------8-----------------------#2024-08-15)
+> 原文：[`towardsdatascience.com/real-world-use-cases-forecasting-service-utilization-using-tabnet-and-optuna-26308db615c3?source=collection_archive---------8-----------------------#2024-08-15`](https://towardsdatascience.com/real-world-use-cases-forecasting-service-utilization-using-tabnet-and-optuna-26308db615c3?source=collection_archive---------8-----------------------#2024-08-15)
 
-![](../Images/316bd735324a679d8146caf7b72e8144.png)
+![](img/316bd735324a679d8146caf7b72e8144.png)
 
 图片由 Dall-e 生成
 
 ## 数据科学在实际应用中最为出色。我打算分享一些我参与的各种生产化项目中的见解。
 
-[](https://medium.com/@hampusg?source=post_page---byline--26308db615c3--------------------------------)[![Hampus Gustavsson](../Images/a22f27fc40e4a612058379928d30f609.png)](https://medium.com/@hampusg?source=post_page---byline--26308db615c3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--26308db615c3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--26308db615c3--------------------------------) [Hampus Gustavsson](https://medium.com/@hampusg?source=post_page---byline--26308db615c3--------------------------------)
+[](https://medium.com/@hampusg?source=post_page---byline--26308db615c3--------------------------------)![Hampus Gustavsson](https://medium.com/@hampusg?source=post_page---byline--26308db615c3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--26308db615c3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26308db615c3--------------------------------) [Hampus Gustavsson](https://medium.com/@hampusg?source=post_page---byline--26308db615c3--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26308db615c3--------------------------------) ·阅读时间：7 分钟·2024年8月15日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26308db615c3--------------------------------) ·阅读时间：7 分钟·2024 年 8 月 15 日
 
 --
 
@@ -28,15 +28,15 @@
 
 数据包含了很多特征，包括分类特征和数值特征。在此用例中，需要预测具有动态时间范围的使用情况，即需要对未来不同时间段的使用情况进行预测。还需要预测许多相关和不相关的值。
 
-这些多变量时间序列使得关注点主要集中在基于时间序列的模型实验上。但最终，Tabnet被采纳为处理表格数据的模型。
+这些多变量时间序列使得关注点主要集中在基于时间序列的模型实验上。但最终，Tabnet 被采纳为处理表格数据的模型。
 
-Tabnet架构中有几个有趣的特性。本文不会深入探讨模型细节，但我建议进行一些相关的理论研究。如果找不到合适的资源，我认为[这篇文章](https://medium.com/@turkishtechnology/deep-learning-with-tabnet-b881236e28c1)是一个很好的概述，或者可以参考[这篇论文](https://arxiv.org/abs/1908.07442)进行更深入的探索。
+Tabnet 架构中有几个有趣的特性。本文不会深入探讨模型细节，但我建议进行一些相关的理论研究。如果找不到合适的资源，我认为[这篇文章](https://medium.com/@turkishtechnology/deep-learning-with-tabnet-b881236e28c1)是一个很好的概述，或者可以参考[这篇论文](https://arxiv.org/abs/1908.07442)进行更深入的探索。
 
-作为超参数调优框架，使用了Optuna。虽然Python中还有其他框架可供选择，但我至今没有找到不使用Optuna的理由。Optuna被用作贝叶斯超参数调优，并保存到磁盘。其他功能包括提前停止和热启动。提前停止用于节省资源，防止没有前景的实验运行过长时间。热启动则是从先前的实验开始调整。我觉得当新数据到来时，这一点非常有用，可以避免从头开始调优。
+作为超参数调优框架，使用了 Optuna。虽然 Python 中还有其他框架可供选择，但我至今没有找到不使用 Optuna 的理由。Optuna 被用作贝叶斯超参数调优，并保存到磁盘。其他功能包括提前停止和热启动。提前停止用于节省资源，防止没有前景的实验运行过长时间。热启动则是从先前的实验开始调整。我觉得当新数据到来时，这一点非常有用，可以避免从头开始调优。
 
-初始参数宽度将根据[Tabnet文档](https://github.com/dreamquark-ai/tabnet)中的建议或[Tabnet论文](https://arxiv.org/abs/1908.07442)中讨论的参数范围进行设置。
+初始参数宽度将根据[Tabnet 文档](https://github.com/dreamquark-ai/tabnet)中的建议或[Tabnet 论文](https://arxiv.org/abs/1908.07442)中讨论的参数范围进行设置。
 
-为了表达残差的异方差性，采用了Tabnet作为分位回归模型。为此，或者说为了以这种方式实现任何模型，使用了*弹球损失函数*，并设置了适当的上下分位点。该损失函数具有偏斜性，根据误差是正值还是负值不平等地惩罚误差。
+为了表达残差的异方差性，采用了 Tabnet 作为分位回归模型。为此，或者说为了以这种方式实现任何模型，使用了*弹球损失函数*，并设置了适当的上下分位点。该损失函数具有偏斜性，根据误差是正值还是负值不平等地惩罚误差。
 
 **代码演示**
 
@@ -125,7 +125,7 @@ def fit(self, training_dir, train_date_split):
    # Dict of feature importance and importance score, ordered.
 ```
 
-作为数据处理框架，使用了Pandas。我还推荐使用Polars，它是一个更高效的框架。
+作为数据处理框架，使用了 Pandas。我还推荐使用 Polars，它是一个更高效的框架。
 
 Tabnet 实现包含了预构建的局部和全局特征重要性属性，已附加到拟合模型中。这方面的内部工作可以在之前发布的文章中进行研究，但就商业用例而言，这有两个目的：
 
@@ -195,15 +195,15 @@ study.optimize(objective,
 
 数据正在被分割为训练集、验证集和测试集。不同数据集的用途如下：
 
-+   训练集。是模型学习的基准数据集。本项目中占数据的80%。
++   训练集。是模型学习的基准数据集。本项目中占数据的 80%。
 
-+   验证集。是Optuna计算其指标的数据集，因此该指标是优化的目标。本项目中占数据的10%。
++   验证集。是 Optuna 计算其指标的数据集，因此该指标是优化的目标。本项目中占数据的 10%。
 
-+   测试集。这个数据集用于确定模型的真实表现。如果该指标不够好，可能值得回去调查其他模型。这个数据集还用于决定何时停止超参数调优。KPI的推导以及与利益相关者共享的可视化图表也是基于这个数据集。
++   测试集。这个数据集用于确定模型的真实表现。如果该指标不够好，可能值得回去调查其他模型。这个数据集还用于决定何时停止超参数调优。KPI 的推导以及与利益相关者共享的可视化图表也是基于这个数据集。
 
-最后需要注意的是，为了尽可能模拟模型部署时的行为，数据集是按时间分割的。这意味着，周期的前80%的数据用于训练部分，接下来的10%用于验证，最近的10%用于测试。
+最后需要注意的是，为了尽可能模拟模型部署时的行为，数据集是按时间分割的。这意味着，周期的前 80%的数据用于训练部分，接下来的 10%用于验证，最近的 10%用于测试。
 
-![](../Images/457c9b60de76deafea9d022d15c28ab4.png)
+![](img/457c9b60de76deafea9d022d15c28ab4.png)
 
 时间序列数据分割的示意图。图表由作者创建。
 
@@ -223,7 +223,7 @@ optuna-dashboard sqlite:///db.sqlite3
 
 这里是一些结果的可视化。
 
-![](../Images/2aa2d5280c0f9aebe258635ec2917aba.png)![](../Images/fa264aa50a22d3afb54580c6f7c987a0.png)![](../Images/5a099d16c8bb0be766afb92ee9ce6adf.png)
+![](img/2aa2d5280c0f9aebe258635ec2917aba.png)![](img/fa264aa50a22d3afb54580c6f7c987a0.png)![](img/5a099d16c8bb0be766afb92ee9ce6adf.png)
 
 模型表现的可视化。图表由作者创建。
 
@@ -233,7 +233,7 @@ optuna-dashboard sqlite:///db.sqlite3
 
 如所注意到的，模型在识别不寻常的峰值时遇到了困难。在实际使用案例中，努力的重点是寻找更多的数据源，看看模型是否能够更好地预测这些异常值。
 
-在最终产品中，还引入了对预测数据点的新颖性评分，使用了Deepchecks库。这是在与客户的讨论中提出的，目的是检测数据漂移，并为用户提供数据的见解。在另一篇文章中，会深入探讨如何开发这一功能。
+在最终产品中，还引入了对预测数据点的新颖性评分，使用了 Deepchecks 库。这是在与客户的讨论中提出的，目的是检测数据漂移，并为用户提供数据的见解。在另一篇文章中，会深入探讨如何开发这一功能。
 
 **感谢阅读！**
 

@@ -1,16 +1,16 @@
 # 模型漂移介绍与概念
 
-> 原文：[https://towardsdatascience.com/model-drift-introduction-and-concepts-e32c5305da2a?source=collection_archive---------3-----------------------#2024-06-22](https://towardsdatascience.com/model-drift-introduction-and-concepts-e32c5305da2a?source=collection_archive---------3-----------------------#2024-06-22)
+> 原文：[`towardsdatascience.com/model-drift-introduction-and-concepts-e32c5305da2a?source=collection_archive---------3-----------------------#2024-06-22`](https://towardsdatascience.com/model-drift-introduction-and-concepts-e32c5305da2a?source=collection_archive---------3-----------------------#2024-06-22)
 
-## 了解机器学习模型漂移背后的一些概念，并理解为什么MLOps在今天的世界中如此重要。
+## 了解机器学习模型漂移背后的一些概念，并理解为什么 MLOps 在今天的世界中如此重要。
 
-[](https://ivopbernardo.medium.com/?source=post_page---byline--e32c5305da2a--------------------------------)[![Ivo Bernardo](../Images/39887b6f3e63a67c0545e87962ad5df0.png)](https://ivopbernardo.medium.com/?source=post_page---byline--e32c5305da2a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e32c5305da2a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e32c5305da2a--------------------------------) [Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--e32c5305da2a--------------------------------)
+[](https://ivopbernardo.medium.com/?source=post_page---byline--e32c5305da2a--------------------------------)![Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--e32c5305da2a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e32c5305da2a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e32c5305da2a--------------------------------) [Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--e32c5305da2a--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e32c5305da2a--------------------------------) ·6分钟阅读·2024年6月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e32c5305da2a--------------------------------) ·6 分钟阅读·2024 年 6 月 22 日
 
 --
 
-![](../Images/0b9938407dfc9c98df78699e1a26ccce.png)
+![](img/0b9938407dfc9c98df78699e1a26ccce.png)
 
 模型会发生变化，因为世界在变化——图片来源：[arptrastogi](https://unsplash.com/pt-br/@arptrastogi) 通过 Unsplash.com
 

@@ -1,18 +1,18 @@
 # 多模态 RAG：用 AI 处理任何文件类型
 
-> 原文：[https://towardsdatascience.com/multimodal-rag-process-any-file-type-with-ai-e6921342c903?source=collection_archive---------1-----------------------#2024-12-05](https://towardsdatascience.com/multimodal-rag-process-any-file-type-with-ai-e6921342c903?source=collection_archive---------1-----------------------#2024-12-05)
+> 原文：[`towardsdatascience.com/multimodal-rag-process-any-file-type-with-ai-e6921342c903?source=collection_archive---------1-----------------------#2024-12-05`](https://towardsdatascience.com/multimodal-rag-process-any-file-type-with-ai-e6921342c903?source=collection_archive---------1-----------------------#2024-12-05)
 
 ## 适合初学者的指南，包含示例（Python）代码
 
-[](https://shawhin.medium.com/?source=post_page---byline--e6921342c903--------------------------------)[![Shaw Talebi](../Images/1449cc7c08890e2078f9e5d07897e3df.png)](https://shawhin.medium.com/?source=post_page---byline--e6921342c903--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e6921342c903--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e6921342c903--------------------------------) [Shaw Talebi](https://shawhin.medium.com/?source=post_page---byline--e6921342c903--------------------------------)
+[](https://shawhin.medium.com/?source=post_page---byline--e6921342c903--------------------------------)![Shaw Talebi](https://shawhin.medium.com/?source=post_page---byline--e6921342c903--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e6921342c903--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e6921342c903--------------------------------) [Shaw Talebi](https://shawhin.medium.com/?source=post_page---byline--e6921342c903--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e6921342c903--------------------------------) ·12分钟阅读·2024年12月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e6921342c903--------------------------------) ·12 分钟阅读·2024 年 12 月 5 日
 
 --
 
-这是关于[多模态 AI](https://shawhin.medium.com/list/multimodal-ai-fe9521d0e77a)系列文章的第三篇。在之前的文章中，我们分别讨论了[多模态 LLMs](/multimodal-models-llms-that-can-see-and-hear-5c6737c981d3)和[嵌入模型](/multimodal-embeddings-an-introduction-5dc36975966f)。在本文中，我们将结合这些理念，推动多模态 RAG 系统的开发。我将首先回顾关键概念，然后分享实现该系统的示例代码。
+这是关于[多模态 AI](https://shawhin.medium.com/list/multimodal-ai-fe9521d0e77a)系列文章的第三篇。在之前的文章中，我们分别讨论了多模态 LLMs 和嵌入模型。在本文中，我们将结合这些理念，推动多模态 RAG 系统的开发。我将首先回顾关键概念，然后分享实现该系统的示例代码。
 
-![](../Images/646324391e6c96935ae763319c252c85.png)
+![](img/646324391e6c96935ae763319c252c85.png)
 
 图片来自 Canva。
 

@@ -1,18 +1,18 @@
 # 在图表中致谢的四种方式
 
-> 原文：[https://towardsdatascience.com/four-ways-to-credit-a-source-in-a-chart-2d01e25ebbe4?source=collection_archive---------8-----------------------#2024-09-23](https://towardsdatascience.com/four-ways-to-credit-a-source-in-a-chart-2d01e25ebbe4?source=collection_archive---------8-----------------------#2024-09-23)
+> 原文：[`towardsdatascience.com/four-ways-to-credit-a-source-in-a-chart-2d01e25ebbe4?source=collection_archive---------8-----------------------#2024-09-23`](https://towardsdatascience.com/four-ways-to-credit-a-source-in-a-chart-2d01e25ebbe4?source=collection_archive---------8-----------------------#2024-09-23)
 
 ## 数据可视化，数据讲故事
 
 ## 关于在下一个数据可视化中应该如何放置致谢的实用教程
 
-[](https://alod83.medium.com/?source=post_page---byline--2d01e25ebbe4--------------------------------)[![Angelica Lo Duca](../Images/45aa2e2e504bb3af6d3b8009dc6f030e.png)](https://alod83.medium.com/?source=post_page---byline--2d01e25ebbe4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2d01e25ebbe4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2d01e25ebbe4--------------------------------) [Angelica Lo Duca](https://alod83.medium.com/?source=post_page---byline--2d01e25ebbe4--------------------------------)
+[](https://alod83.medium.com/?source=post_page---byline--2d01e25ebbe4--------------------------------)![Angelica Lo Duca](https://alod83.medium.com/?source=post_page---byline--2d01e25ebbe4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2d01e25ebbe4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2d01e25ebbe4--------------------------------) [Angelica Lo Duca](https://alod83.medium.com/?source=post_page---byline--2d01e25ebbe4--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2d01e25ebbe4--------------------------------) ·5分钟阅读·2024年9月23日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2d01e25ebbe4--------------------------------) ·5 分钟阅读·2024 年 9 月 23 日
 
 --
 
-![](../Images/8329e7cb01d54944ef622d99192b51dd.png)
+![](img/8329e7cb01d54944ef622d99192b51dd.png)
 
 图片由[Lukas Blazek](https://unsplash.com/@goumbik?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -32,7 +32,7 @@
 
 将致谢放置在标题/副标题下，可以从故事一开始就为观众建立信任感。下图展示了将致谢放在标题/副标题下的示例。
 
-![](../Images/b52e13b4d39b08c6bfa23b489508343a.png)
+![](img/b52e13b4d39b08c6bfa23b489508343a.png)
 
 图片由作者提供
 
@@ -42,7 +42,7 @@
 
 将致谢放置在主图表下，涉及到为故事的重点内容添加细节，这有助于加强故事的核心要点。下图展示了将致谢放在主图表下的示例。
 
-![](../Images/3cb1cdf0e2457aaaf1e3dfacf579cd2f.png)
+![](img/3cb1cdf0e2457aaaf1e3dfacf579cd2f.png)
 
 图片由作者提供
 
@@ -52,7 +52,7 @@
 
 在这种情况下，将数据来源作为故事的附录，放在故事的最后部分，与接下来的步骤一起呈现，如下图所示。
 
-![](../Images/d08aa342c2e6bc1839f1988635ca2b1f.png)
+![](img/d08aa342c2e6bc1839f1988635ca2b1f.png)
 
 图片由作者提供
 
@@ -62,7 +62,7 @@
 
 横向放置信用来源意味着将它们视为图表的外部部分。你可以将信用来源放在左侧或右侧，如下图所示。
 
-![](../Images/749b74f7a49295ef11e5bc3bb04bd3e6.png)
+![](img/749b74f7a49295ef11e5bc3bb04bd3e6.png)
 
 图片由作者提供
 
@@ -92,19 +92,19 @@
 
 # 你可能还感兴趣……
 
-[](https://www.amazon.com/Data-Storytelling-Altair-Angelica-Duca/dp/1633437922?source=post_page-----2d01e25ebbe4--------------------------------) [## 数据故事讲述：与Altair和AI的结合
+[](https://www.amazon.com/Data-Storytelling-Altair-Angelica-Duca/dp/1633437922?source=post_page-----2d01e25ebbe4--------------------------------) [## 数据故事讲述：与 Altair 和 AI 的结合
 
-### 《数据故事讲述：与Altair和AI的结合》 [Lo Duca, Angelica]，可在Amazon.com购买。*免费*送货（符合条件的订单）。数据……
+### 《数据故事讲述：与 Altair 和 AI 的结合》 [Lo Duca, Angelica]，可在 Amazon.com 购买。*免费*送货（符合条件的订单）。数据……
 
-[www.amazon.com](https://www.amazon.com/Data-Storytelling-Altair-Angelica-Duca/dp/1633437922?source=post_page-----2d01e25ebbe4--------------------------------) [](/four-ways-to-explain-insights-extracted-from-data-7163a2f6270d?source=post_page-----2d01e25ebbe4--------------------------------) [## 四种解释从数据中提取的洞察力的方法
+[www.amazon.com](https://www.amazon.com/Data-Storytelling-Altair-Angelica-Duca/dp/1633437922?source=post_page-----2d01e25ebbe4--------------------------------) [](/four-ways-to-explain-insights-extracted-from-data-7163a2f6270d?source=post_page-----2d01e25ebbe4--------------------------------) ## 四种解释从数据中提取的洞察力的方法
 
 ### 一个关于连接、巧合、好奇心和矛盾的教程，这些策略可以用来解释从数据中提取的洞察力。
 
-towardsdatascience.com](/four-ways-to-explain-insights-extracted-from-data-7163a2f6270d?source=post_page-----2d01e25ebbe4--------------------------------) [](/how-to-tailor-a-chart-to-an-audience-of-professionals-51bd3198ac03?source=post_page-----2d01e25ebbe4--------------------------------) [## 如何为专业观众定制图表
+towardsdatascience.com [](/how-to-tailor-a-chart-to-an-audience-of-professionals-51bd3198ac03?source=post_page-----2d01e25ebbe4--------------------------------) ## 如何为专业观众定制图表
 
 ### 一个即刻可用的教程，展示如何为专业观众量身定制全球温度异常数据集……
 
-towardsdatascience.com](/how-to-tailor-a-chart-to-an-audience-of-professionals-51bd3198ac03?source=post_page-----2d01e25ebbe4--------------------------------)
+towardsdatascience.com
 
 # 额外奖励…
 
@@ -112,12 +112,12 @@ towardsdatascience.com](/how-to-tailor-a-chart-to-an-audience-of-professionals-5
 
 在过去的几年里，得益于我孩子们的创造力和工作，我培养了对**折纸**的热情。这份热情激发我创造了一个实用的金字塔，作为桌面小工具。
 
-在DIKW折纸金字塔中，你会以简洁的方式找到：
+在 DIKW 折纸金字塔中，你会以简洁的方式找到：
 
 +   从数据到智慧的步骤
 
 +   如何使用它们将数据转化为故事
 
-+   如何使用生成式AI来帮助你构建故事
++   如何使用生成式 AI 来帮助你构建故事
 
-在下面的视频中，我解释了如何创建一个DIKW金字塔小工具，并演示如何利用它将数据转化为故事。你可以在[这里](https://github.com/alod83/origami/blob/73fd37d280fce002cb99450bc7360f71a8f2750f/DIKW.pdf)下载DIKW金字塔折纸模板。
+在下面的视频中，我解释了如何创建一个 DIKW 金字塔小工具，并演示如何利用它将数据转化为故事。你可以在[这里](https://github.com/alod83/origami/blob/73fd37d280fce002cb99450bc7360f71a8f2750f/DIKW.pdf)下载 DIKW 金字塔折纸模板。

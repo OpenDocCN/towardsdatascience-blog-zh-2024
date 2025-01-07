@@ -1,36 +1,36 @@
 # 如何从单张图像中估计深度
 
-> 原文：[https://towardsdatascience.com/how-to-estimate-depth-from-a-single-image-7f421d86b22d?source=collection_archive---------0-----------------------#2024-01-25](https://towardsdatascience.com/how-to-estimate-depth-from-a-single-image-7f421d86b22d?source=collection_archive---------0-----------------------#2024-01-25)
+> 原文：[`towardsdatascience.com/how-to-estimate-depth-from-a-single-image-7f421d86b22d?source=collection_archive---------0-----------------------#2024-01-25`](https://towardsdatascience.com/how-to-estimate-depth-from-a-single-image-7f421d86b22d?source=collection_archive---------0-----------------------#2024-01-25)
 
-## 使用Hugging Face和FiftyOne运行并评估单目深度估计模型
+## 使用 Hugging Face 和 FiftyOne 运行并评估单目深度估计模型
 
-[](https://medium.com/@jacob_marks?source=post_page---byline--7f421d86b22d--------------------------------)[![Jacob Marks, Ph.D.](../Images/94d9832b8706d1044e3195386613bfab.png)](https://medium.com/@jacob_marks?source=post_page---byline--7f421d86b22d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7f421d86b22d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7f421d86b22d--------------------------------) [Jacob Marks, Ph.D.](https://medium.com/@jacob_marks?source=post_page---byline--7f421d86b22d--------------------------------)
+[](https://medium.com/@jacob_marks?source=post_page---byline--7f421d86b22d--------------------------------)![Jacob Marks, Ph.D.](https://medium.com/@jacob_marks?source=post_page---byline--7f421d86b22d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7f421d86b22d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7f421d86b22d--------------------------------) [Jacob Marks, Ph.D.](https://medium.com/@jacob_marks?source=post_page---byline--7f421d86b22d--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7f421d86b22d--------------------------------) ·10分钟阅读·2024年1月25日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7f421d86b22d--------------------------------) ·10 分钟阅读·2024 年 1 月 25 日
 
 --
 
-![](../Images/0d3b08d99c0c36b77d0d0c0bb16c53f4.png)
+![](img/0d3b08d99c0c36b77d0d0c0bb16c53f4.png)
 
-使用Marigold在NYU深度v2图像上生成的单目深度热图。图片由作者提供。
+使用 Marigold 在 NYU 深度 v2 图像上生成的单目深度热图。图片由作者提供。
 
 人类通过两只眼睛看世界。双眼视力的一个主要优点是能够感知*深度*——物体离近还是远。人脑通过比较左眼和右眼同时捕捉到的图像，并解释这些差异，从而推断物体的深度。这个过程被称为[立体视觉](https://en.wikipedia.org/wiki/Stereopsis)。
 
 就像深度感知在人类视觉和导航中发挥着关键作用一样，估计深度的能力对于广泛的计算机视觉应用也至关重要，从自动驾驶到机器人，再到增强现实。然而，由于空间限制和预算约束等一系列实际考虑，常常使这些应用仅限于单一摄像头。
 
-[单目深度估计](https://paperswithcode.com/task/monocular-depth-estimation)（MDE）是从单张图像中预测场景深度的任务。由于从单张图像计算深度本质上是模糊的，因为同一个3D场景可以有多种方式投影到图像的2D平面上，因此MDE是一项具有挑战性的任务，需要（显式或隐式）考虑许多线索，如物体大小、遮挡和透视。
+[单目深度估计](https://paperswithcode.com/task/monocular-depth-estimation)（MDE）是从单张图像中预测场景深度的任务。由于从单张图像计算深度本质上是模糊的，因为同一个 3D 场景可以有多种方式投影到图像的 2D 平面上，因此 MDE 是一项具有挑战性的任务，需要（显式或隐式）考虑许多线索，如物体大小、遮挡和透视。
 
 在这篇文章中，我们将展示如何加载和可视化深度图数据，运行单目深度估计模型，并评估深度预测。我们将使用来自 [SUN RGB-D](https://rgbd.cs.princeton.edu/) 数据集的数据进行演示。
 
 具体来说，我们将涵盖以下内容：
 
-+   [加载和可视化SUN-RGBD真实深度图](#15fc)
++   加载和可视化 SUN-RGBD 真实深度图
 
-+   [使用Marigold和DPT进行推理](#fd8c)
++   使用 Marigold 和 DPT 进行推理
 
-+   [评估相对深度预测](#1924)
++   评估相对深度预测
 
-我们将使用Hugging Face的[transformers](https://huggingface.co/docs/transformers/index)和[diffusers](https://huggingface.co/docs/diffusers/index)库进行推理，使用[FiftyOne](https://github.com/voxel51/fiftyone)进行数据管理和可视化，使用[scikit-image](https://scikit-image.org/)进行评估指标。所有这些库都是开源的，可以免费使用。*免责声明：我在Voxel51工作，该公司是这些库之一（FiftyOne）的主要维护者。*
+我们将使用 Hugging Face 的[transformers](https://huggingface.co/docs/transformers/index)和[diffusers](https://huggingface.co/docs/diffusers/index)库进行推理，使用[FiftyOne](https://github.com/voxel51/fiftyone)进行数据管理和可视化，使用[scikit-image](https://scikit-image.org/)进行评估指标。所有这些库都是开源的，可以免费使用。*免责声明：我在 Voxel51 工作，该公司是这些库之一（FiftyOne）的主要维护者。*
 
 在开始之前，确保你已经安装了所有必要的库：
 
@@ -52,15 +52,15 @@ import fiftyone.brain as fob
 from fiftyone import ViewField as F
 ```
 
-# 加载和可视化SUN-RGBD深度数据
+# 加载和可视化 SUN-RGBD 深度数据
 
-[SUN RGB-D数据集](https://rgbd.cs.princeton.edu/)包含10,335张RGB-D图像，每张图像都有对应的RGB图像、深度图像和相机内参。它包含来自[NYU Depth v2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html)、伯克利[B3DO](http://kinectdata.com/)和[SUN3D](https://sun3d.cs.princeton.edu/)数据集的图像。SUN RGB-D是[最受欢迎的](https://paperswithcode.com/dataset/sun-rgb-d)单目深度估计和语义分割任务数据集之一！
+[SUN RGB-D 数据集](https://rgbd.cs.princeton.edu/)包含 10,335 张 RGB-D 图像，每张图像都有对应的 RGB 图像、深度图像和相机内参。它包含来自[NYU Depth v2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html)、伯克利[B3DO](http://kinectdata.com/)和[SUN3D](https://sun3d.cs.princeton.edu/)数据集的图像。SUN RGB-D 是[最受欢迎的](https://paperswithcode.com/dataset/sun-rgb-d)单目深度估计和语义分割任务数据集之一！
 
-💡对于本教程，我们只使用NYU Depth v2部分。NYU Depth v2是[允许商业使用的许可](https://github.com/dwofk/fast-depth/blob/master/LICENSE)（MIT许可证），可以直接[从Hugging Face下载](https://huggingface.co/datasets/sayakpaul/nyu_depth_v2)。
+💡对于本教程，我们只使用 NYU Depth v2 部分。NYU Depth v2 是[允许商业使用的许可](https://github.com/dwofk/fast-depth/blob/master/LICENSE)（MIT 许可证），可以直接[从 Hugging Face 下载](https://huggingface.co/datasets/sayakpaul/nyu_depth_v2)。
 
 ## 下载原始数据
 
-首先，从[这里](https://rgbd.cs.princeton.edu/)下载SUN RGB-D数据集并解压，或者使用以下命令直接下载：
+首先，从[这里](https://rgbd.cs.princeton.edu/)下载 SUN RGB-D 数据集并解压，或者使用以下命令直接下载：
 
 ```py
 curl -o sunrgbd.zip https://rgbd.cs.princeton.edu/data/SUNRGBD.zip
@@ -72,11 +72,11 @@ curl -o sunrgbd.zip https://rgbd.cs.princeton.edu/data/SUNRGBD.zip
 unzip sunrgbd.zip
 ```
 
-如果你想将数据集用于其他任务，你可以完全转换注释并加载到你的`fiftyone.Dataset`中。但是，对于本教程，我们只使用深度图像，所以我们只会使用RGB图像和深度图像（存储在`depth_bfx`子目录中）。
+如果你想将数据集用于其他任务，你可以完全转换注释并加载到你的`fiftyone.Dataset`中。但是，对于本教程，我们只使用深度图像，所以我们只会使用 RGB 图像和深度图像（存储在`depth_bfx`子目录中）。
 
 ## 创建数据集
 
-因为我们只关注传达核心内容，所以我们将限制在前20个样本，这些样本都来自NYU Depth v2数据集部分：
+因为我们只关注传达核心内容，所以我们将限制在前 20 个样本，这些样本都来自 NYU Depth v2 数据集部分：
 
 ```py
 ## create, name, and persist the dataset
@@ -109,7 +109,7 @@ for scene_dir in scene_dirs:
 dataset.add_samples(samples);
 ```
 
-这里我们将深度图像存储为[热图](https://docs.voxel51.com/user_guide/using_datasets.html#heatmaps)。所有内容都以标准化的*相对*距离表示，其中255代表场景中的最大距离，0代表场景中的最小距离。这是表示深度图像的常见方式，尽管这不是唯一的方式。如果我们关注*绝对*距离，我们可以存储每个样本的最小和最大距离参数，并使用这些参数从相对距离中重建绝对距离。
+这里我们将深度图像存储为[热图](https://docs.voxel51.com/user_guide/using_datasets.html#heatmaps)。所有内容都以标准化的*相对*距离表示，其中 255 代表场景中的最大距离，0 代表场景中的最小距离。这是表示深度图像的常见方式，尽管这不是唯一的方式。如果我们关注*绝对*距离，我们可以存储每个样本的最小和最大距离参数，并使用这些参数从相对距离中重建绝对距离。
 
 ## 可视化真实数据
 
@@ -120,51 +120,51 @@ session = fo.launch_app(dataset, auto=False)
 ## then open tab to localhost:5151 in browser
 ```
 
-![](../Images/e13d2736bd24bfe61ef3629acc934b4a.png)
+![](img/e13d2736bd24bfe61ef3629acc934b4a.png)
 
-来自SUN RGB-D数据集的样本的地面真实深度图。图片由作者提供。
+来自 SUN RGB-D 数据集的样本的地面真实深度图。图片由作者提供。
 
 在处理深度图时，热图的色彩方案和透明度非常重要。我是色盲，因此我发现[viridis](https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html)色图并将透明度调到最大最适合我。
 
-![](../Images/bcf625a36ee7d97a1afe4d32d72d2046.png)
+![](img/bcf625a36ee7d97a1afe4d32d72d2046.png)
 
 热图的可视化设置。图片由作者提供。
 
 ## 地面真实值？
 
-通过检查这些RGB图像和深度图，我们可以看到地面真实深度图中存在一些不准确之处。例如，在这张图像中，图像中心的深色裂缝实际上是场景中最*远*的部分，但地面真实深度图却显示它是场景中*最近*的部分：
+通过检查这些 RGB 图像和深度图，我们可以看到地面真实深度图中存在一些不准确之处。例如，在这张图像中，图像中心的深色裂缝实际上是场景中最*远*的部分，但地面真实深度图却显示它是场景中*最近*的部分：
 
-![](../Images/5089c29d7fffe32d2eb44bb9fba5f018.png)
+![](img/5089c29d7fffe32d2eb44bb9fba5f018.png)
 
-来自SUN RGB-D数据集的样本的地面真实深度数据问题。图片由作者提供。
+来自 SUN RGB-D 数据集的样本的地面真实深度数据问题。图片由作者提供。
 
-这是MDE任务中的一个关键挑战：地面真实数据很难获得，而且通常存在噪声！在评估你的MDE模型时，了解这一点至关重要。
+这是 MDE 任务中的一个关键挑战：地面真实数据很难获得，而且通常存在噪声！在评估你的 MDE 模型时，了解这一点至关重要。
 
 # 运行单目深度估计模型
 
-现在我们已经加载了数据集，可以对我们的RGB图像运行单目深度估计模型！
+现在我们已经加载了数据集，可以对我们的 RGB 图像运行单目深度估计模型！
 
 长时间以来，像[DORN](https://github.com/hufu6371/DORN)和[DenseDepth](https://github.com/ialhashim/DenseDepth)这样的单目深度估计的最先进模型都是基于卷积神经网络构建的。然而，最近，基于变换器的模型，如[DPT](https://huggingface.co/docs/transformers/model_doc/dpt)和[GLPN](https://huggingface.co/docs/transformers/model_doc/glpn)，以及基于扩散的模型，如[Marigold](https://huggingface.co/Bingxin/Marigold)，都取得了显著的成果！
 
-在本节中，我们将展示如何使用DPT和Marigold生成MDE深度图预测。在这两种情况下，你可以选择使用各自的Hugging Face库在本地运行模型，或者通过[Replicate](https://replicate.com/)进行远程运行。
+在本节中，我们将展示如何使用 DPT 和 Marigold 生成 MDE 深度图预测。在这两种情况下，你可以选择使用各自的 Hugging Face 库在本地运行模型，或者通过[Replicate](https://replicate.com/)进行远程运行。
 
-要通过Replicate运行，请安装Python客户端：
+要通过 Replicate 运行，请安装 Python 客户端：
 
 ```py
 pip install replicate
 ```
 
-并导出你的Replicate API令牌：
+并导出你的 Replicate API 令牌：
 
 ```py
 export REPLICATE_API_TOKEN=r8_<your_token_here>
 ```
 
-💡 使用Replicate时，模型加载到服务器内存可能需要一些时间（冷启动问题），但一旦加载完成，预测应该只需几秒钟。根据你的本地计算资源，与本地运行相比，使用服务器运行可能会大大提高速度，特别是对于Marigold和其他基于扩散的深度估计方法。
+💡 使用 Replicate 时，模型加载到服务器内存可能需要一些时间（冷启动问题），但一旦加载完成，预测应该只需几秒钟。根据你的本地计算资源，与本地运行相比，使用服务器运行可能会大大提高速度，特别是对于 Marigold 和其他基于扩散的深度估计方法。
 
-## 使用DPT进行单目深度估计
+## 使用 DPT 进行单目深度估计
 
-我们将首先运行一个密集预测变换器（DPT）。DPT模型在单目深度估计（MDE）和语义分割等任务中非常有用，这些任务需要“密集”的像素级预测。
+我们将首先运行一个密集预测变换器（DPT）。DPT 模型在单目深度估计（MDE）和语义分割等任务中非常有用，这些任务需要“密集”的像素级预测。
 
 以下的检查点使用了[MiDaS](https://github.com/isl-org/MiDaS/tree/master)，它返回的是[反向深度图](https://pyimagesearch.com/2022/01/17/torch-hub-series-5-midas-model-on-depth-estimation/)，因此我们需要将其反转回来，以获得可比较的深度图。
 
@@ -221,11 +221,11 @@ for sample in dataset.iter_samples(autosave=True, progress=True):
 session = fo.launch_app(dataset)
 ```
 
-![](../Images/92fca2436322f33052cdabbccf4c1a59.png)
+![](img/92fca2436322f33052cdabbccf4c1a59.png)
 
-使用混合MiDaS DPT模型在SUN RGB-D样本图像上预测的相对深度图。图片由作者提供。
+使用混合 MiDaS DPT 模型在 SUN RGB-D 样本图像上预测的相对深度图。图片由作者提供。
 
-要使用Replicate运行，你可以使用[这个](https://replicate.com/cjwbw/midas)模型。以下是API的样式：
+要使用 Replicate 运行，你可以使用[这个](https://replicate.com/cjwbw/midas)模型。以下是 API 的样式：
 
 ```py
 import replicate
@@ -243,17 +243,17 @@ output = replicate.run(
 print(output)
 ```
 
-## 使用Marigold进行单目深度估计
+## 使用 Marigold 进行单目深度估计
 
 源于在文本到图像领域的巨大成功，扩散模型正在被应用于越来越广泛的问题。[Marigold](https://huggingface.co/Bingxin/Marigold) “重新利用”基于扩散的图像生成模型进行单目深度估计。
 
-要在本地运行Marigold，你需要克隆这个git仓库：
+要在本地运行 Marigold，你需要克隆这个 git 仓库：
 
 ```py
 git clone https://github.com/prs-eth/Marigold.git
 ```
 
-这个仓库介绍了一个新的扩散器管道`MarigoldPipeline`，使得应用Marigold变得更加简单：
+这个仓库介绍了一个新的扩散器管道`MarigoldPipeline`，使得应用 Marigold 变得更加简单：
 
 ```py
 ## load model
@@ -268,7 +268,7 @@ depth_image = output['depth_colored']
 
 接下来需要对输出的深度图像进行后处理。
 
-如果改为通过Replicate运行，我们可以创建一个`apply_marigold_model()`函数，类似于上面的DPT案例，并遍历数据集中的样本：
+如果改为通过 Replicate 运行，我们可以创建一个`apply_marigold_model()`函数，类似于上面的 DPT 案例，并遍历数据集中的样本：
 
 ```py
 import replicate
@@ -300,15 +300,15 @@ for sample in dataset.iter_samples(autosave=True, progress=True):
 session = fo.launch_app(dataset)
 ```
 
-![](../Images/0d3b08d99c0c36b77d0d0c0bb16c53f4.png)
+![](img/0d3b08d99c0c36b77d0d0c0bb16c53f4.png)
 
-使用Marigold端点在SUN RGB-D样本图像上预测的相对深度图。图片由作者提供。
+使用 Marigold 端点在 SUN RGB-D 样本图像上预测的相对深度图。图片由作者提供。
 
 # 评估单目深度估计模型
 
 现在我们有了多个模型的预测结果，让我们来评估它们！我们将利用`scikit-image`来应用三个常用于单目深度估计的简单指标：[均方根误差](https://en.wikipedia.org/wiki/Root-mean-square_deviation)（RMSE）、[峰值信噪比](https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio)（PSNR）和[结构相似性指数](https://en.wikipedia.org/wiki/Structural_similarity)（SSIM）。
 
-💡较高的PSNR和SSIM分数表示更好的预测，而较低的RMSE分数表示更好的预测。
+💡较高的 PSNR 和 SSIM 分数表示更好的预测，而较低的 RMSE 分数表示更好的预测。
 
 请注意，我得到的具体数值是我在此过程中执行的特定前后处理步骤的结果。重要的是相对性能！
 
@@ -371,7 +371,7 @@ Mean ssim for marigold: 0.42766803372861134
 
 最后，切换遮罩的开关是可视化真实值与模型预测差异的好方法：
 
-![](../Images/9cc8c71a8a38c238f74bdcfea80a543b.png)
+![](img/9cc8c71a8a38c238f74bdcfea80a543b.png)
 
 由两种 MDE 模型预测的热力图与真实值的视觉对比。图片由作者提供。
 

@@ -1,16 +1,16 @@
 # 喜马拉雅山的死亡事件
 
-> 原文：[https://towardsdatascience.com/death-in-the-himalayas-cdb931228ca7?source=collection_archive---------10-----------------------#2024-01-23](https://towardsdatascience.com/death-in-the-himalayas-cdb931228ca7?source=collection_archive---------10-----------------------#2024-01-23)
+> 原文：[`towardsdatascience.com/death-in-the-himalayas-cdb931228ca7?source=collection_archive---------10-----------------------#2024-01-23`](https://towardsdatascience.com/death-in-the-himalayas-cdb931228ca7?source=collection_archive---------10-----------------------#2024-01-23)
 
 ## 一个完整的数据可视化项目：使用 Python、D3 和 Illustrator。
 
-[](https://medium.com/@karlahrnndz?source=post_page---byline--cdb931228ca7--------------------------------)[![Karla Hernández](../Images/c28ce71cde4f9dd97bf76f215f66882d.png)](https://medium.com/@karlahrnndz?source=post_page---byline--cdb931228ca7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cdb931228ca7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cdb931228ca7--------------------------------) [Karla Hernández](https://medium.com/@karlahrnndz?source=post_page---byline--cdb931228ca7--------------------------------)
+[](https://medium.com/@karlahrnndz?source=post_page---byline--cdb931228ca7--------------------------------)![Karla Hernández](https://medium.com/@karlahrnndz?source=post_page---byline--cdb931228ca7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cdb931228ca7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdb931228ca7--------------------------------) [Karla Hernández](https://medium.com/@karlahrnndz?source=post_page---byline--cdb931228ca7--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cdb931228ca7--------------------------------) ·20 分钟阅读·2024 年 1 月 23 日
 
 --
 
-![](../Images/b874bb25e7a5380a12de56e8877a4ac4.png)
+![](img/b874bb25e7a5380a12de56e8877a4ac4.png)
 
 所有图片由作者提供。
 

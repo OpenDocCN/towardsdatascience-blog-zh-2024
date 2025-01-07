@@ -1,34 +1,34 @@
-# 使用Metaflow、AWS和Weights & Biases优化物体检测
+# 使用 Metaflow、AWS 和 Weights & Biases 优化物体检测
 
-> 原文：[https://towardsdatascience.com/streamlining-object-detection-with-metaflow-aws-and-weights-biases-b44a14cb2e11?source=collection_archive---------1-----------------------#2024-07-19](https://towardsdatascience.com/streamlining-object-detection-with-metaflow-aws-and-weights-biases-b44a14cb2e11?source=collection_archive---------1-----------------------#2024-07-19)
+> 原文：[`towardsdatascience.com/streamlining-object-detection-with-metaflow-aws-and-weights-biases-b44a14cb2e11?source=collection_archive---------1-----------------------#2024-07-19`](https://towardsdatascience.com/streamlining-object-detection-with-metaflow-aws-and-weights-biases-b44a14cb2e11?source=collection_archive---------1-----------------------#2024-07-19)
 
 ## 如何为物体检测创建生产级管道
 
-[](https://medium.com/@ed.izaguirre?source=post_page---byline--b44a14cb2e11--------------------------------)[![Ed Izaguirre](../Images/c9eded1f06c47571baa662107428483f.png)](https://medium.com/@ed.izaguirre?source=post_page---byline--b44a14cb2e11--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b44a14cb2e11--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b44a14cb2e11--------------------------------) [Ed Izaguirre](https://medium.com/@ed.izaguirre?source=post_page---byline--b44a14cb2e11--------------------------------)
+[](https://medium.com/@ed.izaguirre?source=post_page---byline--b44a14cb2e11--------------------------------)![Ed Izaguirre](https://medium.com/@ed.izaguirre?source=post_page---byline--b44a14cb2e11--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b44a14cb2e11--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b44a14cb2e11--------------------------------) [Ed Izaguirre](https://medium.com/@ed.izaguirre?source=post_page---byline--b44a14cb2e11--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b44a14cb2e11--------------------------------) ·14分钟阅读·2024年7月19日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b44a14cb2e11--------------------------------) ·14 分钟阅读·2024 年 7 月 19 日
 
 --
 
-![](../Images/c157f2b7af842d1ff59de906324c2968.png)
+![](img/c157f2b7af842d1ff59de906324c2968.png)
 
 项目流程概述。图片来自作者。
 
 **目录**
 
-1.  [介绍（或标题中的内容）](#ed7d)
+1.  介绍（或标题中的内容）
 
-1.  [没有Ops的MLOps现实](#658e)
+1.  没有 Ops 的 MLOps 现实
 
-1.  [有效管理依赖关系](#5cc4)
+1.  有效管理依赖关系
 
-1.  [如何调试生产流程](#04ab)
+1.  如何调试生产流程
 
-1.  [找到合适的步长](#de07)
+1.  找到合适的步长
 
-1.  [要点总结](#1c44)
+1.  要点总结
 
-1.  [参考文献](#d14a)
+1.  参考文献
 
 **相关链接**
 
@@ -38,13 +38,13 @@
 
 # 介绍（或标题中的内容）
 
-在数据科学职位名称的世界中导航可能令人不知所措。以下是我最近在LinkedIn上看到的一些例子：
+在数据科学职位名称的世界中导航可能令人不知所措。以下是我最近在 LinkedIn 上看到的一些例子：
 
 +   数据科学家
 
 +   机器学习工程师
 
-+   MLOps工程师
++   MLOps 工程师
 
 +   数据科学家/机器学习工程师
 
@@ -52,17 +52,17 @@
 
 +   …
 
-话题还可以继续深入。让我们关注两个关键角色：**数据科学家**和**机器学习工程师**。根据Chip Huyen在她的书《*Introduction to Machine Learning Interviews*》中的描述[1]：
+话题还可以继续深入。让我们关注两个关键角色：**数据科学家**和**机器学习工程师**。根据 Chip Huyen 在她的书《*Introduction to Machine Learning Interviews*》中的描述[1]：
 
 > 数据科学的目标是**生成商业洞察**，而机器学习工程的目标是**将数据转化为产品**。这意味着数据科学家往往更擅长统计学，而机器学习工程师则通常是更优秀的工程师。机器学习工程师肯定需要了解机器学习算法，而许多数据科学家则可以在不涉及机器学习的情况下完成他们的工作。
 
-明白了。所以数据科学家必须懂得统计学，而机器学习工程师则必须了解机器学习算法。但如果数据科学的目标是产生商业洞察，并且到2024年，最强大的算法，特别是深度学习，往往能够产生最佳洞察，那么两者之间的界限就变得模糊了。或许这也能解释我们之前看到的*数据科学家/机器学习工程师*这一职位的结合？
+明白了。所以数据科学家必须懂得统计学，而机器学习工程师则必须了解机器学习算法。但如果数据科学的目标是产生商业洞察，并且到 2024 年，最强大的算法，特别是深度学习，往往能够产生最佳洞察，那么两者之间的界限就变得模糊了。或许这也能解释我们之前看到的*数据科学家/机器学习工程师*这一职位的结合？
 
 Huyen 接着说：
 
 > 随着公司对机器学习的采用逐步成熟，可能希望拥有一个专门的机器学习工程团队。然而，随着越来越多的预构建和预训练模型可以即插即用，开发机器学习模型可能不再需要那么多的机器学习知识，机器学习工程与数据科学将更加统一。
 
-这是2020年写的。到2024年，机器学习工程和数据科学之间的界限确实变得模糊了。那么，如果实现机器学习模型的能力不是分界线，那么究竟是什么呢？
+这是 2020 年写的。到 2024 年，机器学习工程和数据科学之间的界限确实变得模糊了。那么，如果实现机器学习模型的能力不是分界线，那么究竟是什么呢？
 
 这一界限因实践者而异。如今，典型的数据科学家和机器学习工程师的区别如下：
 
@@ -189,7 +189,7 @@ def augment_data_train_model(self):
 
 类似地，在机器学习中，依赖管理有不同的层次：
 
-+   使用`requirements.txt`文件。这种简单的方式列出了所有带有固定版本的Python包。它工作得相当不错，但也有局限性：虽然你可以固定这些高层依赖，但无法固定任何传递依赖（依赖的依赖）。这使得创建可重复的环境变得非常困难，并且因为包被下载和安装，运行时也会变慢。例如：
++   使用`requirements.txt`文件。这种简单的方式列出了所有带有固定版本的 Python 包。它工作得相当不错，但也有局限性：虽然你可以固定这些高层依赖，但无法固定任何传递依赖（依赖的依赖）。这使得创建可重复的环境变得非常困难，并且因为包被下载和安装，运行时也会变慢。例如：
 
 ```py
 pinecone==4.0.0
@@ -206,17 +206,17 @@ langchain-pinecone==0.1.1
 
 这工作得相当不错，但也有局限性：虽然你可以固定这些高层依赖，但无法固定任何传递依赖（依赖的依赖）。这使得创建可重复的环境变得非常困难，并且因为包被下载和安装，运行时也会变慢。
 
-+   使用Docker容器。这是黄金标准。它封装了整个环境，包括操作系统、库、依赖项和配置文件，使其非常一致且可重复。不幸的是，使用Docker容器可能会比较复杂，尤其是当数据科学家没有平台使用经验时。
++   使用 Docker 容器。这是黄金标准。它封装了整个环境，包括操作系统、库、依赖项和配置文件，使其非常一致且可重复。不幸的是，使用 Docker 容器可能会比较复杂，尤其是当数据科学家没有平台使用经验时。
 
 [Metaflow](https://docs.metaflow.org/scaling/dependencies/libraries) `[@pypi/@conda](https://docs.metaflow.org/scaling/dependencies/libraries)` [装饰器](https://docs.metaflow.org/scaling/dependencies/libraries)在这两种选项之间找到了一个折中方案，既轻量且简单，便于数据科学家使用，同时比`requirements.txt`文件更具鲁棒性和可重复性。这些装饰器基本上执行以下操作：
 
 +   为流程中的每一步创建独立的虚拟环境。
 
-+   锁定Python解释器版本，而简单的`requirements.txt`文件做不到这一点。
++   锁定 Python 解释器版本，而简单的`requirements.txt`文件做不到这一点。
 
 +   为每一步解析完整的依赖图，并将其锁定以确保稳定性和可重复性。这个锁定的图被存储为元数据，便于审计和一致的环境重建。
 
-+   将本地解析的环境传输到远程执行，即使远程环境的操作系统和CPU架构与客户端不同。
++   将本地解析的环境传输到远程执行，即使远程环境的操作系统和 CPU 架构与客户端不同。
 
 这比仅仅使用`requirements.txt`文件要好得多，而且不需要数据科学家额外学习任何内容。
 
@@ -237,7 +237,7 @@ def augment_data_train_model(self):
   """
 ```
 
-我们所要做的就是指定库和版本，Metaflow会处理剩下的部分。
+我们所要做的就是指定库和版本，Metaflow 会处理剩下的部分。
 
 不幸的是，事情并非完全顺利。我的个人笔记本电脑是 Mac，但 AWS Batch 中的计算实例采用的是 Linux 架构。这意味着我们必须为 Linux 机器创建隔离的虚拟环境，而不是 Mac。这就需要所谓的**交叉编译**。我们只有在处理 `.whl`（二进制）包时才能进行交叉编译。我们不能在尝试交叉编译时使用 `.tar.gz` 或其他源代码发行版。这是 `pip` 的一个特点，而不是 Metaflow 的问题。使用 `@conda` 装饰器是有效的（`conda` 似乎能够解决 `pip` 不能解决的问题），但如果我想利用 GPU 进行计算，则必须使用 conda 中的 `tensorflow-gpu` 包，这也带来了自己的问题。虽然有一些解决方法，但它们为我希望保持简洁的教程增加了太多复杂性。因此，我实际上不得不选择了 `pip install -r requirements.txt`（使用了自定义 Python `@pip` 装饰器来实现）。虽然不太理想，但它确实有效。
 
@@ -281,11 +281,11 @@ plt.show()
 
 在这里，我们获取流程的最新运行，并通过在 Flow 调用中指定 `main_flow` 来确保获取到流程的信息。我存储的工件来自 `evaluate_model` 步骤，因此我指定了这一步骤。我通过调用 `.data.image` 获取图像数据。最后，我们可以绘制图像来检查并查看我们的测试图像是否有效，或者是否在管道的某个环节被破坏了：
 
-![](../Images/190557d883fea877399a116a9732e6e1.png)
+![](img/190557d883fea877399a116a9732e6e1.png)
 
 在我的 Jupyter notebook 中输出的图像。图像来源：作者。
 
-很棒，这和从PlantDoc数据集中下载的原始图像一致（尽管颜色看起来有些奇怪）。为了查看我们物体检测模型的预测结果，我们可以使用以下代码：
+很棒，这和从 PlantDoc 数据集中下载的原始图像一致（尽管颜色看起来有些奇怪）。为了查看我们物体检测模型的预测结果，我们可以使用以下代码：
 
 ```py
 latest_run = Flow('main_flow').latest_run
@@ -294,25 +294,25 @@ y_pred = step.task.data.y_pred
 print(y_pred)
 ```
 
-![](../Images/8d79e9da2d852fa191d977303249ae23.png)
+![](img/8d79e9da2d852fa191d977303249ae23.png)
 
 来自物体检测模型的预测。图片由作者提供。
 
 输出结果似乎表明这个图像没有预测的边界框。这一点很有意思，可能有助于解释某个步骤为何表现异常或出现错误。
 
-所有这些都可以通过一个简单的Jupyter笔记本完成，这是所有数据科学家都很熟悉的。那么，何时应将变量作为工件存储在Metaflow中呢？Ville Tuulos给出了一个启发式的方法[2]：
+所有这些都可以通过一个简单的 Jupyter 笔记本完成，这是所有数据科学家都很熟悉的。那么，何时应将变量作为工件存储在 Metaflow 中呢？Ville Tuulos 给出了一个启发式的方法[2]：
 
-> 一条经验法则：使用实例变量（例如self）来存储任何可能在步骤外部有用的数据和对象。仅将本地变量用于中间的临时数据。如果不确定，使用实例变量，因为它们使调试更加容易。
+> 一条经验法则：使用实例变量（例如 self）来存储任何可能在步骤外部有用的数据和对象。仅将本地变量用于中间的临时数据。如果不确定，使用实例变量，因为它们使调试更加容易。
 
-如果你在使用Metaflow，请从我的经验中吸取教训：**充分利用工件和Jupyter笔记本，使调试在生产级项目中变得轻松。**
+如果你在使用 Metaflow，请从我的经验中吸取教训：**充分利用工件和 Jupyter 笔记本，使调试在生产级项目中变得轻松。**
 
-关于调试的另一个注意事项：如果一个流程在某个特定步骤失败，且你希望从该失败步骤重新运行流程，可以在Metaflow中使用`resume`命令。这样可以加载之前步骤的所有相关输出，而无需重新执行它们，从而节省时间。直到我尝试了[Prefect](https://docs.prefect.io/latest/)，才意识到那里并没有一个简单的方法来做到这一点。
+关于调试的另一个注意事项：如果一个流程在某个特定步骤失败，且你希望从该失败步骤重新运行流程，可以在 Metaflow 中使用`resume`命令。这样可以加载之前步骤的所有相关输出，而无需重新执行它们，从而节省时间。直到我尝试了[Prefect](https://docs.prefect.io/latest/)，才意识到那里并没有一个简单的方法来做到这一点。
 
 # 寻找合适的步骤大小
 
 [Goldilocks](https://en.wikipedia.org/wiki/Goldilocks_and_the_Three_Bears)步骤的大小应该是多少？理论上，你可以把整个脚本塞进一个巨大的`pull_and_augment_data_and_train_model_and_evaluate_model_and_deploy`步骤中，但这样并不可取。如果流程中的某个部分失败，你就不能轻松使用`resume`功能跳过重新运行整个流程。
 
-相反，将脚本拆分为一百个微小步骤也是可能的，但这同样不推荐。存储工件和管理步骤会带来一定的开销，拥有一百个步骤会占据大部分执行时间。为了找到一个合适的步骤大小，Tuulos告诉我们：
+相反，将脚本拆分为一百个微小步骤也是可能的，但这同样不推荐。存储工件和管理步骤会带来一定的开销，拥有一百个步骤会占据大部分执行时间。为了找到一个合适的步骤大小，Tuulos 告诉我们：
 
 > 一条经验法则：将工作流结构化为逻辑清晰、容易解释和理解的步骤。如果不确定，倾向于选择较小的步骤。小步骤往往比大步骤更容易理解和调试。
 
@@ -326,9 +326,9 @@ print(y_pred)
 
 +   部署模型
 
-在增强数据后，我需要将数据上传到一个S3存储桶，然后在`train`步骤中下载增强后的数据，用于模型训练，原因有两个：
+在增强数据后，我需要将数据上传到一个 S3 存储桶，然后在`train`步骤中下载增强后的数据，用于模型训练，原因有两个：
 
-+   `augment`步骤将在我的本地笔记本上进行，而`train`步骤则会发送到云端的GPU实例。
++   `augment`步骤将在我的本地笔记本上进行，而`train`步骤则会发送到云端的 GPU 实例。
 
 +   Metaflow 的工件通常用于在步骤之间传递数据，但它无法处理 TensorFlow 数据集对象，因为它们不能被 pickle。于是我将它们转换为 `tfrecords` 格式并上传到 S3。
 

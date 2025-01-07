@@ -1,12 +1,12 @@
 # 大型语言模型中的可解释特征
 
-> 原文：[https://towardsdatascience.com/interpretable-features-in-large-language-models-377fb25c72eb?source=collection_archive---------4-----------------------#2024-05-30](https://towardsdatascience.com/interpretable-features-in-large-language-models-377fb25c72eb?source=collection_archive---------4-----------------------#2024-05-30)
+> 原文：[`towardsdatascience.com/interpretable-features-in-large-language-models-377fb25c72eb?source=collection_archive---------4-----------------------#2024-05-30`](https://towardsdatascience.com/interpretable-features-in-large-language-models-377fb25c72eb?source=collection_archive---------4-----------------------#2024-05-30)
 
-## 来自新的Anthropic论文的其他有趣小贴士
+## 来自新的 Anthropic 论文的其他有趣小贴士
 
-[](https://medium.com/@jereminuerofficial?source=post_page---byline--377fb25c72eb--------------------------------)[![Jeremi Nuer](../Images/abed1f5ba89dea142ecf957899dae065.png)](https://medium.com/@jereminuerofficial?source=post_page---byline--377fb25c72eb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--377fb25c72eb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--377fb25c72eb--------------------------------) [Jeremi Nuer](https://medium.com/@jereminuerofficial?source=post_page---byline--377fb25c72eb--------------------------------)
+[](https://medium.com/@jereminuerofficial?source=post_page---byline--377fb25c72eb--------------------------------)![Jeremi Nuer](https://medium.com/@jereminuerofficial?source=post_page---byline--377fb25c72eb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--377fb25c72eb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--377fb25c72eb--------------------------------) [Jeremi Nuer](https://medium.com/@jereminuerofficial?source=post_page---byline--377fb25c72eb--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--377fb25c72eb--------------------------------) ·阅读时间8分钟·2024年5月30日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--377fb25c72eb--------------------------------) ·阅读时间 8 分钟·2024 年 5 月 30 日
 
 --
 
@@ -14,27 +14,27 @@
 > 
 > — 詹姆斯·哈灵顿
 
-大型语言模型令人惊叹——但它们也以难以理解著称。我们已经非常擅长让我们喜爱的LLM生成我们想要的输出。然而，当谈到理解*LLM是如何*生成这些输出时，我们基本上束手无策。
+大型语言模型令人惊叹——但它们也以难以理解著称。我们已经非常擅长让我们喜爱的 LLM 生成我们想要的输出。然而，当谈到理解*LLM 是如何*生成这些输出时，我们基本上束手无策。
 
-**机制可解释性**的研究正是这个——试图解开环绕大型语言模型的黑盒。而[这篇Anthropic的最新论文](https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html)是实现这一目标的重要一步。
+**机制可解释性**的研究正是这个——试图解开环绕大型语言模型的黑盒。而[这篇 Anthropic 的最新论文](https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html)是实现这一目标的重要一步。
 
 以下是几个关键要点。
 
 # 这个主张
 
-这篇论文基于Anthropic之前的一篇论文：[叠加的玩具模型](https://transformer-circuits.pub/2022/toy_model/index.html#motivation)。在那里，他们提出了一个主张：
+这篇论文基于 Anthropic 之前的一篇论文：[叠加的玩具模型](https://transformer-circuits.pub/2022/toy_model/index.html#motivation)。在那里，他们提出了一个主张：
 
 **神经网络*确实*代表了有意义的概念——即*可解释的特征*——它们通过激活空间中的方向来实现这一点。**
 
 这到底意味着什么？这意味着神经网络某一层的输出（实际上就是一串数字），可以被看作是在激活空间中的一个向量/点。
 
-关于这个激活空间的特点是，它具有极高的维度。对于激活空间中的任何“点”，你不仅仅是在X方向上走2步，在Y方向上走4步，在Z方向上走3步。**你还在数百个其他方向上迈步。**
+关于这个激活空间的特点是，它具有极高的维度。对于激活空间中的任何“点”，你不仅仅是在 X 方向上走 2 步，在 Y 方向上走 4 步，在 Z 方向上走 3 步。**你还在数百个其他方向上迈步。**
 
 关键是，**每个方向**（虽然它可能并不直接对应某个基本方向）**都与一个有意义的概念相关联**。我们的“点”在该方向上走得越远，模型认为输入中这一概念的存在就越强。
 
 这不是一个简单的说法。但有证据表明，这可能确实是如此。并不仅仅在神经网络中；[这篇论文](https://aclanthology.org/N13-1090.pdf)发现，词嵌入有一些方向与有意义的语义概念相关。我确实想强调的是——这只是一个假设，并非事实。
 
-Anthropic的研究目的是验证这一说法——可解释的特征与方向相关——是否适用于大型语言模型。结果相当令人信服。
+Anthropic 的研究目的是验证这一说法——可解释的特征与方向相关——是否适用于大型语言模型。结果相当令人信服。
 
 # 证据
 
@@ -48,9 +48,9 @@ Anthropic的研究目的是验证这一说法——可解释的特征与方向�
 
 ## 策略 1
 
-Anthropic在论文中给出的例子是一个与*金门大桥*相关的特征。这意味着，当输入中提到金门大桥时，这一特征应该是激活的。
+Anthropic 在论文中给出的例子是一个与*金门大桥*相关的特征。这意味着，当输入中提到金门大桥时，这一特征应该是激活的。
 
-*快速说明：Anthropic论文的重点是模型的中间层，研究该过程中特定部分的激活空间（即中间层的输出）。*
+*快速说明：Anthropic 论文的重点是模型的中间层，研究该过程中特定部分的激活空间（即中间层的输出）。*
 
 因此，第一种策略很简单。如果输入中提到金门大桥，那么这个特征应该是激活的。如果没有提到金门大桥，那么这个特征不应该被激活。
 
@@ -96,13 +96,13 @@ Anthropic 提供的例子（我认为这非常不可思议）如下。他们向�
 
 我将简要解释叠加，以帮助激发接下来要讲解的内容。
 
-![](../Images/2e627aa7d7922f29449f4ffb600fadcd.png)
+![](img/2e627aa7d7922f29449f4ffb600fadcd.png)
 
 （图片来源：作者）激活空间：黄色和绿色代表特征“方向”。箭头代表特定的点。
 
 在这张图中，我们有**正交基**。如果绿色特征是*激活的*（沿该方向有一个向量），我们可以表示这一点，同时将黄色特征表示为*不激活*。
 
-![](../Images/e2720205c2be445be1a8900bd8813400.png)
+![](img/e2720205c2be445be1a8900bd8813400.png)
 
 （图片来源：作者）现在有三个特征方向：绿色、黄色和蓝色。我们的激活空间只有二维。
 
@@ -144,13 +144,13 @@ SAE 是通过 LLM 中间层的输出进行训练的。它接收模型的激活�
 
 我们希望能够对 LLMs 进行更精细的*控制*。能够在生成输出的过程中检测某些特征是否激活，并调节它们的激活程度，这是我们工具箱中一个非常有用的工具。
 
-最后，从哲学的角度来看，我相信这对于*提升*LLM的性能将变得重要。直到现在，情况并非如此。我们能够使LLM表现良好，而无需理解它们。
+最后，从哲学的角度来看，我相信这对于*提升*LLM 的性能将变得重要。直到现在，情况并非如此。我们能够使 LLM 表现良好，而无需理解它们。
 
 但我相信，随着改进的瓶颈逐渐显现，且大规模语言模型（LLM）变得越来越难以扩展，真正理解它们如何运作将变得至关重要，如果我们想在性能上实现下一次飞跃的话。
 
 ## 来源
 
-[1] Adly Templeton, Tom Conerly, [扩展单一语义性：从Claude 3 Sonnet提取可解释特征](https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html), Anthropic
+[1] Adly Templeton, Tom Conerly, [扩展单一语义性：从 Claude 3 Sonnet 提取可解释特征](https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html), Anthropic
 
 [2] Nelson Elhage, Tristan Hume, [叠加的玩具模型](https://transformer-circuits.pub/2022/toy_model/index.html#motivation), Anthropic
 

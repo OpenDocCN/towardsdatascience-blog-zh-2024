@@ -1,16 +1,16 @@
 # 构建 Tableau 径向图所需了解的一切
 
-> 原文：[https://towardsdatascience.com/all-you-need-to-know-to-build-radial-charts-in-tableau-686efc218c9c?source=collection_archive---------12-----------------------#2024-10-17](https://towardsdatascience.com/all-you-need-to-know-to-build-radial-charts-in-tableau-686efc218c9c?source=collection_archive---------12-----------------------#2024-10-17)
+> 原文：[`towardsdatascience.com/all-you-need-to-know-to-build-radial-charts-in-tableau-686efc218c9c?source=collection_archive---------12-----------------------#2024-10-17`](https://towardsdatascience.com/all-you-need-to-know-to-build-radial-charts-in-tableau-686efc218c9c?source=collection_archive---------12-----------------------#2024-10-17)
 
 ## 你看完之后肯定永远不会忘记它！
 
-[](https://ishagarg2010.medium.com/?source=post_page---byline--686efc218c9c--------------------------------)[![Isha Garg](../Images/bb9632981e38c7bb4f3df7f812e548e4.png)](https://ishagarg2010.medium.com/?source=post_page---byline--686efc218c9c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--686efc218c9c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--686efc218c9c--------------------------------) [Isha Garg](https://ishagarg2010.medium.com/?source=post_page---byline--686efc218c9c--------------------------------)
+[](https://ishagarg2010.medium.com/?source=post_page---byline--686efc218c9c--------------------------------)![Isha Garg](https://ishagarg2010.medium.com/?source=post_page---byline--686efc218c9c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--686efc218c9c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--686efc218c9c--------------------------------) [Isha Garg](https://ishagarg2010.medium.com/?source=post_page---byline--686efc218c9c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--686efc218c9c--------------------------------) ·8 分钟阅读·2024年10月17日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--686efc218c9c--------------------------------) ·8 分钟阅读·2024 年 10 月 17 日
 
 --
 
-![](../Images/7ddf9bbf9c045b023875da19e96e60bc.png)
+![](img/7ddf9bbf9c045b023875da19e96e60bc.png)
 
 径向图一直让我感到畏惧，因为我认为它们很难——可能是因为我遇到的所有教程都提到过复制粘贴一些计算公式，却没有任何逻辑解释。我每次需要使用径向图时都应该去查找吗？！
 

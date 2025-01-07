@@ -1,16 +1,16 @@
 # 5 款令人惊艳的插件，让你的 Visual Studio Code 界面更具吸引力
 
-> 原文：[https://towardsdatascience.com/5-amazing-plugins-for-an-eye-catching-visual-studio-code-ui-ebce393a5e8c?source=collection_archive---------0-----------------------#2024-10-05](https://towardsdatascience.com/5-amazing-plugins-for-an-eye-catching-visual-studio-code-ui-ebce393a5e8c?source=collection_archive---------0-----------------------#2024-10-05)
+> 原文：[`towardsdatascience.com/5-amazing-plugins-for-an-eye-catching-visual-studio-code-ui-ebce393a5e8c?source=collection_archive---------0-----------------------#2024-10-05`](https://towardsdatascience.com/5-amazing-plugins-for-an-eye-catching-visual-studio-code-ui-ebce393a5e8c?source=collection_archive---------0-----------------------#2024-10-05)
 
 ## 通过将 IDE 转变为一个令人惊叹的编码环境，让你的代码焕发光彩
 
-[](https://medium.com/@slavahead?source=post_page---byline--ebce393a5e8c--------------------------------)[![Vyacheslav Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--ebce393a5e8c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ebce393a5e8c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ebce393a5e8c--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--ebce393a5e8c--------------------------------)
+[](https://medium.com/@slavahead?source=post_page---byline--ebce393a5e8c--------------------------------)![Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--ebce393a5e8c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ebce393a5e8c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ebce393a5e8c--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--ebce393a5e8c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ebce393a5e8c--------------------------------) ·阅读时间：6分钟·2024年10月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ebce393a5e8c--------------------------------) ·阅读时间：6 分钟·2024 年 10 月 5 日
 
 --
 
-![](../Images/426f1e6f035823d64e912ed05b4e9df5.png)
+![](img/426f1e6f035823d64e912ed05b4e9df5.png)
 
 # 介绍
 

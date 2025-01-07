@@ -1,40 +1,40 @@
-# 揭示LLM的内部工作原理：奇异值视角
+# 揭示 LLM 的内部工作原理：奇异值视角
 
-> 原文：[https://towardsdatascience.com/unveiling-the-inner-workings-of-llms-a-singular-value-perspective-74c0c831e819?source=collection_archive---------5-----------------------#2024-06-14](https://towardsdatascience.com/unveiling-the-inner-workings-of-llms-a-singular-value-perspective-74c0c831e819?source=collection_archive---------5-----------------------#2024-06-14)
+> 原文：[`towardsdatascience.com/unveiling-the-inner-workings-of-llms-a-singular-value-perspective-74c0c831e819?source=collection_archive---------5-----------------------#2024-06-14`](https://towardsdatascience.com/unveiling-the-inner-workings-of-llms-a-singular-value-perspective-74c0c831e819?source=collection_archive---------5-----------------------#2024-06-14)
 
-## 对Llama3–8B投影矩阵的奇异值分析
+## 对 Llama3–8B 投影矩阵的奇异值分析
 
-[](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)[![Louis Owen](../Images/88faba8be8c36bf7e62233e7b78fbaae.png)](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------) [Louis Owen](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)
+[](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)![Louis Owen](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------) [Louis Owen](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------) ·9分钟阅读·2024年6月14日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------) ·9 分钟阅读·2024 年 6 月 14 日
 
 --
 
-![](../Images/d185588d8f57d93c7b3f9cd3a737c399.png)
+![](img/d185588d8f57d93c7b3f9cd3a737c399.png)
 
 由[Afif Ramdhasuma](https://unsplash.com/@javaistan?utm_source=medium&utm_medium=referral)拍摄，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-你是否曾经想过，一个大型语言模型（LLM）训练得有多好？考虑到巨大的参数量，这些参数是否最大限度地捕捉了训练数据中的信息或知识？如果没有，我们是否可以从LLM中移除那些无用的参数，使其更高效？
+你是否曾经想过，一个大型语言模型（LLM）训练得有多好？考虑到巨大的参数量，这些参数是否最大限度地捕捉了训练数据中的信息或知识？如果没有，我们是否可以从 LLM 中移除那些无用的参数，使其更高效？
 
-在本文中，我们将尝试通过从奇异值的角度对Llama-3–8B模型进行深入分析，来回答这些问题。现在，让我们舒适地坐好，准备好应用SVD分析Llama-3–8B矩阵的质量！
+在本文中，我们将尝试通过从奇异值的角度对 Llama-3–8B 模型进行深入分析，来回答这些问题。现在，让我们舒适地坐好，准备好应用 SVD 分析 Llama-3–8B 矩阵的质量！
 
-# SVD重新审视
+# SVD 重新审视
 
-在奇异值分解（SVD）中，一个矩阵A被分解为三个其他矩阵：
+在奇异值分解（SVD）中，一个矩阵 A 被分解为三个其他矩阵：
 
 > A=U Σ V_t
 
 其中：
 
-+   A是原始矩阵。
++   A 是原始矩阵。
 
-+   U是一个矩阵，其列是A的左奇异向量。
++   U 是一个矩阵，其列是 A 的左奇异向量。
 
-+   Σ是一个对角矩阵，包含A的奇异值。这些值始终是非负的，通常按从大到小的顺序排列。
++   Σ是一个对角矩阵，包含 A 的奇异值。这些值始终是非负的，通常按从大到小的顺序排列。
 
-+   V_t是V的转置矩阵，其中V的列是A的右奇异向量。
++   V_t 是 V 的转置矩阵，其中 V 的列是 A 的右奇异向量。
 
-简而言之，SVD将矩阵的复杂变换分解为更简单、易于理解的步骤，这些步骤涉及旋转和缩放。Σ中的奇异值告诉我们缩放因子，而U和V_t中的奇异向量告诉我们应用矩阵前后这些缩放的方向。
+简而言之，SVD 将矩阵的复杂变换分解为更简单、易于理解的步骤，这些步骤涉及旋转和缩放。Σ中的奇异值告诉我们缩放因子，而 U 和 V_t 中的奇异向量告诉我们应用矩阵前后这些缩放的方向。
 
 我们可以将奇异值视为衡量矩阵在空间中不同方向上拉伸或收缩程度的方式。每个奇异值对应一对奇异向量：一个右奇异向量（输入空间中的方向）和一个左奇异向量（输出空间中的方向）。
 
@@ -191,13 +191,13 @@ def get_singular_values(model_path, matrix_type, layer_number, head_number):
 
 值得注意的是，由于 [HuggingFace](https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py#L262-L264) 的实现方式，我们可以通过行切片提取指定头部的 K、Q 和 V 矩阵的权重。
 
-![](../Images/7d918b9dcef2b68bd73db2bbc0666d63.png)
+![](img/7d918b9dcef2b68bd73db2bbc0666d63.png)
 
 HuggingFace 中的 Q, K, V 矩阵实现。请注意，在 PyTorch 中，矩阵的维度将是 `(d_out,d_in)`。来源：图片由作者提供。
 
 至于 O 矩阵，我们可以通过列切片提取指定头的 O 权重，这要归功于线性代数！详细信息可以参见下图。
 
-![](../Images/7b6f2589f4a2b568f84d4478ede921d8.png)
+![](img/7b6f2589f4a2b568f84d4478ede921d8.png)
 
 为什么我们可以通过列切片提取指定头的 O 权重矩阵。来源：图片由作者提供。
 
@@ -213,7 +213,7 @@ HuggingFace 中的 Q, K, V 矩阵实现。请注意，在 PyTorch 中，矩阵�
 
 **(第 0 层，第 0 头) 分析**
 
-![](../Images/ad046ce133b1148b8e7ce45d84f05143.png)
+![](img/ad046ce133b1148b8e7ce45d84f05143.png)
 
 第 0 层第 0 头的奇异值分布。来源：图片由作者提供。
 
@@ -225,7 +225,7 @@ HuggingFace 中的 Q, K, V 矩阵实现。请注意，在 PyTorch 中，矩阵�
 
 **(第 0 层，多个头部) 分析**
 
-![](../Images/97770dcd424cc5927921570cbbbb5237.png)
+![](img/97770dcd424cc5927921570cbbbb5237.png)
 
 不同头部下第 0 层的奇异值分布。来源：图片由作者提供。
 
@@ -235,7 +235,7 @@ HuggingFace 中的 Q, K, V 矩阵实现。请注意，在 PyTorch 中，矩阵�
 
 **跨层分析**
 
-![](../Images/f9b3d7c725d1844704e1269635ae0e3d.png)
+![](img/f9b3d7c725d1844704e1269635ae0e3d.png)
 
 不同层次和头部之间的奇异值分布。来源：作者提供的图片。
 
@@ -245,7 +245,7 @@ HuggingFace 中的 Q, K, V 矩阵实现。请注意，在 PyTorch 中，矩阵�
 
 > 然而，在第 1 层发现一个异常，Q 和 K 矩阵的 `First/Last 比率` 非常高，没有遵循我们在更深层次中发现的下降趋势。
 
-![](../Images/e7e76f1ada578ebe62b7acb6aa3969c2.png)
+![](img/e7e76f1ada578ebe62b7acb6aa3969c2.png)
 
 不同头部和层次之间的奇异值分布。来源：作者提供的图片。
 
@@ -261,7 +261,7 @@ HuggingFace 中的 Q, K, V 矩阵实现。请注意，在 PyTorch 中，矩阵�
 
 # 结语
 
-![](../Images/9c5497365494cd53d20f0be96f3f4967.png)
+![](img/9c5497365494cd53d20f0be96f3f4967.png)
 
 照片由 [Quino Al](https://unsplash.com/@quinoal?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)。
 
@@ -273,4 +273,4 @@ HuggingFace 中的 Q, K, V 矩阵实现。请注意，在 PyTorch 中，矩阵�
 
 [Louis Owen](https://louisowen6.github.io/)是来自印尼的数据科学家/人工智能研究工程师，他总是渴望获得新知识。在他的职业生涯中，他在多个行业领域工作过，包括非政府组织、电子商务、对话式人工智能、在线旅游代理、智慧城市和金融科技。在工作之外，他喜欢通过自己的文章或辅导课程，帮助数据科学爱好者成为数据科学家。
 
-目前，Louis 是Yellow.ai*的自然语言处理研究工程师，Yellow.ai*是全球领先的客户体验自动化平台。访问[Louis的个人网站](http://louisowen6.github.io/)以了解更多关于他的信息！最后，如果你有任何问题或需要讨论的话题，请通过[LinkedIn](https://www.linkedin.com/in/louisowen/)联系Louis。
+目前，Louis 是 Yellow.ai*的自然语言处理研究工程师，Yellow.ai*是全球领先的客户体验自动化平台。访问[Louis 的个人网站](http://louisowen6.github.io/)以了解更多关于他的信息！最后，如果你有任何问题或需要讨论的话题，请通过[LinkedIn](https://www.linkedin.com/in/louisowen/)联系 Louis。

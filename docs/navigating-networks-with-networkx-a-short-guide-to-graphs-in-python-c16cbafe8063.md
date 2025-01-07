@@ -1,16 +1,16 @@
 # 使用 NetworkX 浏览网络：Python 中图形的简短指南
 
-> 原文：[https://towardsdatascience.com/navigating-networks-with-networkx-a-short-guide-to-graphs-in-python-c16cbafe8063?source=collection_archive---------1-----------------------#2024-11-18](https://towardsdatascience.com/navigating-networks-with-networkx-a-short-guide-to-graphs-in-python-c16cbafe8063?source=collection_archive---------1-----------------------#2024-11-18)
+> 原文：[`towardsdatascience.com/navigating-networks-with-networkx-a-short-guide-to-graphs-in-python-c16cbafe8063?source=collection_archive---------1-----------------------#2024-11-18`](https://towardsdatascience.com/navigating-networks-with-networkx-a-short-guide-to-graphs-in-python-c16cbafe8063?source=collection_archive---------1-----------------------#2024-11-18)
 
-![](../Images/e8bb442e9e37d2c3417e291b25f19312.png)
+![](img/e8bb442e9e37d2c3417e291b25f19312.png)
 
 由 [Alina Grubnyak](https://unsplash.com/@alinnnaaaa?utm_source=medium&utm_medium=referral) 提供的照片，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 探索 NetworkX，构建、分析和可视化 Python 中的图形。发现关联数据中的洞察。
 
-[](https://medium.com/@technologger?source=post_page---byline--c16cbafe8063--------------------------------)[![Diego Penilla](../Images/aa69a740a3b915e5548219fe762dd2ae.png)](https://medium.com/@technologger?source=post_page---byline--c16cbafe8063--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c16cbafe8063--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c16cbafe8063--------------------------------) [Diego Penilla](https://medium.com/@technologger?source=post_page---byline--c16cbafe8063--------------------------------)
+[](https://medium.com/@technologger?source=post_page---byline--c16cbafe8063--------------------------------)![Diego Penilla](https://medium.com/@technologger?source=post_page---byline--c16cbafe8063--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c16cbafe8063--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c16cbafe8063--------------------------------) [Diego Penilla](https://medium.com/@technologger?source=post_page---byline--c16cbafe8063--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c16cbafe8063--------------------------------) ·14 分钟阅读·2024年11月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c16cbafe8063--------------------------------) ·14 分钟阅读·2024 年 11 月 18 日
 
 --
 
@@ -20,7 +20,7 @@
 
 NetworkX 允许我们以传统表格方式难以实现的形式来表示数据，而图形格式使得这种表示变得既简便又自然。那些在电子表格中需要许多行和列才能定义的关系，可以通过直观的可视化方式捕捉，从而帮助我们理解和解读复杂数据。
 
-![](../Images/1485ea18d9293697705cd993ec0707fe.png)
+![](img/1485ea18d9293697705cd993ec0707fe.png)
 
 由 [Terry Vlisidis](https://unsplash.com/@vlisidis?utm_source=medium&utm_medium=referral) 提供的照片，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -97,7 +97,7 @@ plt.title("NetworkX Graph with Node and Edge Attributes")
 plt.show()
 ```
 
-![](../Images/31f6d8dffd659af64706b7862af9d16f.png)
+![](img/31f6d8dffd659af64706b7862af9d16f.png)
 
 图 1：一个带权重的图，节点为 1 到 4。图片来源：作者。
 
@@ -119,7 +119,7 @@ plt.show()
 
 ## 空手道俱乐部网络
 
-网络科学中最著名的例子之一是[*扎卡里空手道俱乐部*](https://en.wikipedia.org/wiki/Zachary's_karate_club)，它常常用于说明社交网络分析和社区检测。该数据集是公有领域的，并且默认包含在networkx中。您可以按以下方式访问：
+网络科学中最著名的例子之一是[*扎卡里空手道俱乐部*](https://en.wikipedia.org/wiki/Zachary's_karate_club)，它常常用于说明社交网络分析和社区检测。该数据集是公有领域的，并且默认包含在 networkx 中。您可以按以下方式访问：
 
 ```py
 # Load the  Karate Club
@@ -133,11 +133,11 @@ plt.title("Zachary's Karate Club Network")
 plt.show()
 ```
 
-![](../Images/37559d2c05050146006e7e491f775bf6.png)
+![](img/37559d2c05050146006e7e491f775bf6.png)
 
-图2：扎卡里空手道俱乐部网络。图片来自作者。
+图 2：扎卡里空手道俱乐部网络。图片来自作者。
 
-该网络代表了空手道俱乐部34名成员之间的友谊，它因两个派别之间的分裂而闻名，每个派别都有一个中心人物——`Mr. Hi`和`Officer`。
+该网络代表了空手道俱乐部 34 名成员之间的友谊，它因两个派别之间的分裂而闻名，每个派别都有一个中心人物——`Mr. Hi`和`Officer`。
 
 让我们来看看节点数据中包含的属性：
 
@@ -214,9 +214,9 @@ plt.title("Zachary's Karate Club Network with Ground Truth Communities")
 plt.show()
 ```
 
-![](../Images/b3706bc713c845290a772d81cf771a9e.png)
+![](img/b3706bc713c845290a772d81cf771a9e.png)
 
-图3：空手道俱乐部网络中的“`Mr. Hi`”与“`Officer`”社区。图片来自作者。
+图 3：空手道俱乐部网络中的“`Mr. Hi`”与“`Officer`”社区。图片来自作者。
 
 图例说明，俱乐部的教练“`Mr. Hi`”与俱乐部的管理员“`Officer`”之间发生了冲突。这场分裂最终导致俱乐部分成了两个不同的团体，每个团体的中心人物分别是这两位领导者。
 
@@ -275,19 +275,19 @@ Top 5 nodes by Betweenness Centrality: [0, 33, 32, 2, 31]
 Top 5 nodes by Closeness Centrality: [0, 2, 33, 31, 8]
 ```
 
-![](../Images/c2f6342dc1490a55efdca0cfa0684d04.png)
+![](img/c2f6342dc1490a55efdca0cfa0684d04.png)
 
-图4：空手道俱乐部网络中中心性最高的节点。图片来自作者。
+图 4：空手道俱乐部网络中中心性最高的节点。图片来自作者。
 
 对于节点`0`和`33`，我们看到这些节点在网络中最为中心，具有较高的度数、介数和紧密中心性。
 
 它们在网络中的核心作用表明它们是高度连接的枢纽，通常充当其他成员之间的桥梁，并能够快速触及网络中的其他节点。这一定位使它们成为关键角色，在网络的流动性和结构中具有重要意义。
 
-# [使用Girvan-Newman算法进行社区检测](https://www.google.com/url?q=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FGirvan%25E2%2580%2593Newman_algorithm)
+# [使用 Girvan-Newman 算法进行社区检测](https://www.google.com/url?q=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FGirvan%25E2%2580%2593Newman_algorithm)
 
-*一个社区C是一个节点集合（例如，社交网络中的个体、通过超链接连接的网页等），这些节点之间的连接比与网络中其他部分的连接更强。*
+*一个社区 C 是一个节点集合（例如，社交网络中的个体、通过超链接连接的网页等），这些节点之间的连接比与网络中其他部分的连接更强。*
 
-在考虑中心性的可视化表示时，让我们将Girvan-Newman算法应用于此图。
+在考虑中心性的可视化表示时，让我们将 Girvan-Newman 算法应用于此图。
 
 +   该算法通过逐步移除具有最高介数中心性的边缘，生成一系列社区划分。
 
@@ -317,9 +317,9 @@ plt.show()
 print("Detected Communities:", first_level_communities)
 ```
 
-![](../Images/bdb890e21aaf06f875e267e1260c4b0c.png)
+![](img/bdb890e21aaf06f875e267e1260c4b0c.png)
 
-图5：Girvan-Newman算法在空手道俱乐部网络中的第一次划分。图像来自作者。
+图 5：Girvan-Newman 算法在空手道俱乐部网络中的第一次划分。图像来自作者。
 
 +   由于`girvan_newman(G)`返回一个迭代器`comp`，调用`next(comp)`可以让你检索到第一个划分，即将网络分成两个社区的第一次划分。
 
@@ -347,13 +347,13 @@ Mr. Hi's Community: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 16, 17, 19, 21]
 Officer's Community: [9, 14, 15, 18, 20, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
 ```
 
-Girvan-Newman算法检测到的社区*与实际的Hi先生和警官社区相似，但并不完全匹配*。这是因为Girvan-Newman算法仅基于边缘的介数中心性来划分网络，而不依赖任何预定义的社区标签。
+Girvan-Newman 算法检测到的社区*与实际的 Hi 先生和警官社区相似，但并不完全匹配*。这是因为 Girvan-Newman 算法仅基于边缘的介数中心性来划分网络，而不依赖任何预定义的社区标签。
 
 这种方法在没有标签的非结构化数据集中尤其有用，因为它揭示了基于网络结构特性的有意义的分组。这突出了社区检测中的一个关键问题：什么构成一个社区并没有严格的定义。
 
 结果是，没有单一的“正确”方式来划分一个网络。不同的方法，由不同的度量驱动，可以得出不同的结果，每种结果根据具体的上下文提供有价值的见解。
 
-![](../Images/22467af082bfdb6ed871e214c41385c4.png)
+![](img/22467af082bfdb6ed871e214c41385c4.png)
 
 [来源](https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)
 
@@ -399,9 +399,9 @@ plt.title("Karate Club Network with Largest Clique Highlighted")
 plt.show()
 ```
 
-![](../Images/6ed6565bd4b26fac324ca4c6d6de509f.png)
+![](img/6ed6565bd4b26fac324ca4c6d6de509f.png)
 
-图6：空手道俱乐部网络中的最大团体，节点0、1、2、3和13相互连接。图片由作者提供。
+图 6：空手道俱乐部网络中的最大团体，节点 0、1、2、3 和 13 相互连接。图片由作者提供。
 
 尽管在网络科学中定义“社区”存在挑战，但团体提供了一个具体且明确的概念，用于识别那些完全互联的群体，从而为结构化和非结构化网络提供有意义的见解。
 
@@ -411,7 +411,7 @@ plt.show()
 
 NetworkX 提供了几种算法来计算最短路径，例如用于加权图的 Dijkstra 算法和用于无权图的广度优先搜索（BFS）。
 
-![](../Images/51cc5e26a2bcbc16ddfb596244abe583.png)
+![](img/51cc5e26a2bcbc16ddfb596244abe583.png)
 
 图片来源：[Ed 259](https://unsplash.com/@ed259?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -455,11 +455,11 @@ plt.title("Expanded Transportation Network with Travel Times")
 plt.show()
 ```
 
-![](../Images/8f261cc230e141c399330c326b939259.png)
+![](img/8f261cc230e141c399330c326b939259.png)
 
-图7：示例运输网络，其中节点代表车站，边代表时间或长度。图片由作者提供。
+图 7：示例运输网络，其中节点代表车站，边代表时间或长度。图片由作者提供。
 
-在这个例子中，我们使用 Dijkstra 算法来计算从车站A到车站H的最短路径，其中边的权重代表旅行时间。最短路径及其总旅行时间会被打印出来，路径在图中以红色突出显示，边的权重显示以指示车站之间的旅行时间。
+在这个例子中，我们使用 Dijkstra 算法来计算从车站 A 到车站 H 的最短路径，其中边的权重代表旅行时间。最短路径及其总旅行时间会被打印出来，路径在图中以红色突出显示，边的权重显示以指示车站之间的旅行时间。
 
 ```py
 # Compute the shortest path using Dijkstra's algorithm (considering the travel time as weight)
@@ -493,21 +493,21 @@ Shortest path from A to H: ['A', 'B', 'E', 'G', 'H']
 Total travel time from A to H: 45 minutes
 ```
 
-![](../Images/8ce1d37688551b9219a4ecc9dc8ad390.png)
+![](img/8ce1d37688551b9219a4ecc9dc8ad390.png)
 
-图8：给定图中输入节点A和H之间的最短路径—45分钟。图片由作者提供。
+图 8：给定图中输入节点 A 和 H 之间的最短路径—45 分钟。图片由作者提供。
 
-该算法计算了最短路径及其总旅行时间，然后将其显示出来。从A到H的最短路径在图中以红色高亮显示，边的权重表示每个连接站点之间的时间，总和为45。
+该算法计算了最短路径及其总旅行时间，然后将其显示出来。从 A 到 H 的最短路径在图中以红色高亮显示，边的权重表示每个连接站点之间的时间，总和为 45。
 
 尽管这只是一个简单的计算，但最短路径算法有着广泛的应用。在交通运输中，它们优化路线并减少旅行时间；在数字通信中，它们有效地路由数据。它们在物流中至关重要，用于降低成本，在供应链中确保及时交货，在社交网络中衡量个体之间的亲密度。理解最短路径使得各领域可以基于数据做出决策——从城市规划到网络基础设施——使其成为高效导航复杂系统的关键工具。
 
 ## 感谢阅读
 
-我们已经使用NetworkX探索了网络科学中的几个基本概念，如最短路径算法、社区检测以及图论在建模和分析复杂系统中的强大能力。
+我们已经使用 NetworkX 探索了网络科学中的几个基本概念，如最短路径算法、社区检测以及图论在建模和分析复杂系统中的强大能力。
 
-如果你想继续学习，下面我放了一些链接供你参考 :) 如果你想深入了解社区检测算法，可以查看CDLib库。
+如果你想继续学习，下面我放了一些链接供你参考 :) 如果你想深入了解社区检测算法，可以查看 CDLib 库。
 
-1.  [Networkx教程](https://networkx.org/documentation/stable/tutorial.html)
+1.  [Networkx 教程](https://networkx.org/documentation/stable/tutorial.html)
 
 1.  [CDLib,](https://cdlib.readthedocs.io/en/latest/) 一个用于社区检测的库
 

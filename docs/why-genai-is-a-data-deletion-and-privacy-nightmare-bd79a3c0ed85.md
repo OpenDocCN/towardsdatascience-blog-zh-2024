@@ -1,12 +1,12 @@
 # 为什么 GenAI 是数据删除和隐私的噩梦
 
-> 原文：[https://towardsdatascience.com/why-genai-is-a-data-deletion-and-privacy-nightmare-bd79a3c0ed85?source=collection_archive---------0-----------------------#2024-09-20](https://towardsdatascience.com/why-genai-is-a-data-deletion-and-privacy-nightmare-bd79a3c0ed85?source=collection_archive---------0-----------------------#2024-09-20)
+> 原文：[`towardsdatascience.com/why-genai-is-a-data-deletion-and-privacy-nightmare-bd79a3c0ed85?source=collection_archive---------0-----------------------#2024-09-20`](https://towardsdatascience.com/why-genai-is-a-data-deletion-and-privacy-nightmare-bd79a3c0ed85?source=collection_archive---------0-----------------------#2024-09-20)
 
 ## 理解 LinkedIn OptOut 丑闻的关键线索
 
-[](https://kozyrkov.medium.com/?source=post_page---byline--bd79a3c0ed85--------------------------------)[![Cassie Kozyrkov](../Images/ad18dd12979a4a3ec130bdf8b889af23.png)](https://kozyrkov.medium.com/?source=post_page---byline--bd79a3c0ed85--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bd79a3c0ed85--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bd79a3c0ed85--------------------------------) [Cassie Kozyrkov](https://kozyrkov.medium.com/?source=post_page---byline--bd79a3c0ed85--------------------------------)
+[](https://kozyrkov.medium.com/?source=post_page---byline--bd79a3c0ed85--------------------------------)![Cassie Kozyrkov](https://kozyrkov.medium.com/?source=post_page---byline--bd79a3c0ed85--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bd79a3c0ed85--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bd79a3c0ed85--------------------------------) [Cassie Kozyrkov](https://kozyrkov.medium.com/?source=post_page---byline--bd79a3c0ed85--------------------------------)
 
-·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--bd79a3c0ed85--------------------------------) ·阅读时间13分钟·2024年9月20日
+·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--bd79a3c0ed85--------------------------------) ·阅读时间 13 分钟·2024 年 9 月 20 日
 
 --
 

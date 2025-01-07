@@ -1,16 +1,16 @@
-# 如何在不到5分钟内提升任何提示（聊天界面与代码）
+# 如何在不到 5 分钟内提升任何提示（聊天界面与代码）
 
-> 原文：[https://towardsdatascience.com/how-to-improve-any-prompt-in-less-than-5-minutes-chat-ui-and-code-8a819e2fa2ba?source=collection_archive---------5-----------------------#2024-02-05](https://towardsdatascience.com/how-to-improve-any-prompt-in-less-than-5-minutes-chat-ui-and-code-8a819e2fa2ba?source=collection_archive---------5-----------------------#2024-02-05)
+> 原文：[`towardsdatascience.com/how-to-improve-any-prompt-in-less-than-5-minutes-chat-ui-and-code-8a819e2fa2ba?source=collection_archive---------5-----------------------#2024-02-05`](https://towardsdatascience.com/how-to-improve-any-prompt-in-less-than-5-minutes-chat-ui-and-code-8a819e2fa2ba?source=collection_archive---------5-----------------------#2024-02-05)
 
 ## 将半成品的句子转化为专家级的提示
 
-[](https://nabil-alouani.medium.com/?source=post_page---byline--8a819e2fa2ba--------------------------------)[![Nabil Alouani](../Images/8ceea018e9b15413d318bfb710bb0011.png)](https://nabil-alouani.medium.com/?source=post_page---byline--8a819e2fa2ba--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8a819e2fa2ba--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8a819e2fa2ba--------------------------------) [Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--8a819e2fa2ba--------------------------------)
+[](https://nabil-alouani.medium.com/?source=post_page---byline--8a819e2fa2ba--------------------------------)![Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--8a819e2fa2ba--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8a819e2fa2ba--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8a819e2fa2ba--------------------------------) [Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--8a819e2fa2ba--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8a819e2fa2ba--------------------------------) ·9分钟阅读·2024年2月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8a819e2fa2ba--------------------------------) ·9 分钟阅读·2024 年 2 月 5 日
 
 --
 
-![](../Images/2cc7128506d363e353a1614e53d43ac2.png)
+![](img/2cc7128506d363e353a1614e53d43ac2.png)
 
 所有图片均由作者通过手机、Midjourney 和 Canva 提供。
 

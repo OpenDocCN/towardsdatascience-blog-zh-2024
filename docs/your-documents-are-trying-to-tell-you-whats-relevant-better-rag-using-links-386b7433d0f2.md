@@ -1,16 +1,16 @@
 # 你的文档正在告诉你什么是相关的：通过链接实现更好的 RAG
 
-> 原文：[https://towardsdatascience.com/your-documents-are-trying-to-tell-you-whats-relevant-better-rag-using-links-386b7433d0f2?source=collection_archive---------3-----------------------#2024-09-21](https://towardsdatascience.com/your-documents-are-trying-to-tell-you-whats-relevant-better-rag-using-links-386b7433d0f2?source=collection_archive---------3-----------------------#2024-09-21)
+> 原文：[`towardsdatascience.com/your-documents-are-trying-to-tell-you-whats-relevant-better-rag-using-links-386b7433d0f2?source=collection_archive---------3-----------------------#2024-09-21`](https://towardsdatascience.com/your-documents-are-trying-to-tell-you-whats-relevant-better-rag-using-links-386b7433d0f2?source=collection_archive---------3-----------------------#2024-09-21)
 
 ## 文档数据集本身已经具有结构，应该加以利用。
 
-[](https://medium.com/@briangodsey?source=post_page---byline--386b7433d0f2--------------------------------)[![Brian Godsey](../Images/1a657e68741618b79bf470f34f9f3b26.png)](https://medium.com/@briangodsey?source=post_page---byline--386b7433d0f2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--386b7433d0f2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--386b7433d0f2--------------------------------) [Brian Godsey](https://medium.com/@briangodsey?source=post_page---byline--386b7433d0f2--------------------------------)
+[](https://medium.com/@briangodsey?source=post_page---byline--386b7433d0f2--------------------------------)![Brian Godsey](https://medium.com/@briangodsey?source=post_page---byline--386b7433d0f2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--386b7433d0f2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--386b7433d0f2--------------------------------) [Brian Godsey](https://medium.com/@briangodsey?source=post_page---byline--386b7433d0f2--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--386b7433d0f2--------------------------------) ·13 分钟阅读·2024年9月21日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--386b7433d0f2--------------------------------) ·13 分钟阅读·2024 年 9 月 21 日
 
 --
 
-![](../Images/bb16a49705e46a551ca67dcf91e7de42.png)
+![](img/bb16a49705e46a551ca67dcf91e7de42.png)
 
 图片由 [Jayne Harris](https://unsplash.com/@jayneharr33?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -24,15 +24,15 @@ RAG 系统很难找到与微妙输入提示相关的最佳文档集，特别是�
 
 一个常被低估的事实：在解析、分块和嵌入文本的过程中，很多文档信息都会丢失。文档结构——包括章节层级、标题、脚注、交叉引用、引文和超链接——几乎在典型的文本到向量工作流程中完全丧失，除非我们采取特定的措施来保留它们。当结构和元数据告诉我们哪些文档与我们正在阅读的内容直接相关时，为什么我们不保留这些信息？
 
-特别地，在典型的分块和嵌入过程中，链接和引用通常会被忽略，这意味着它们无法被AI用来帮助回答查询。但是，链接和引用是有价值的信息片段，通常指向更有用的文档和文本——那么，为什么我们不在查询时检查这些目标文档，以防它们有用呢？
+特别地，在典型的分块和嵌入过程中，链接和引用通常会被忽略，这意味着它们无法被 AI 用来帮助回答查询。但是，链接和引用是有价值的信息片段，通常指向更有用的文档和文本——那么，为什么我们不在查询时检查这些目标文档，以防它们有用呢？
 
-程序化解析和跟随链接与引用并不困难，在本文中我们展示了一种简单而强大的实现，专为RAG系统设计。我们展示了如何使用**文档链接**来保留文档片段之间已知的连接，而这些连接通常是向量嵌入和检索无法实现的。
+程序化解析和跟随链接与引用并不困难，在本文中我们展示了一种简单而强大的实现，专为 RAG 系统设计。我们展示了如何使用**文档链接**来保留文档片段之间已知的连接，而这些连接通常是向量嵌入和检索无法实现的。
 
 # 文档连接在向量空间中丢失
 
-向量存储中的文档本质上是嵌入到高维向量空间中的知识片段。这些向量本质上是LLM的内部“语言”——给定一个LLM及其所有的内部参数值，包括先前的上下文和状态，一个向量是模型生成文本的起点。因此，向量存储中的所有向量都是LLM可能用来生成响应的嵌入文档，同样，我们也将提示嵌入到向量中，然后用它们在语义向量空间中搜索最近的邻居。这些最近的邻居对应的文档很可能包含能够回答提示的信息。
+向量存储中的文档本质上是嵌入到高维向量空间中的知识片段。这些向量本质上是 LLM 的内部“语言”——给定一个 LLM 及其所有的内部参数值，包括先前的上下文和状态，一个向量是模型生成文本的起点。因此，向量存储中的所有向量都是 LLM 可能用来生成响应的嵌入文档，同样，我们也将提示嵌入到向量中，然后用它们在语义向量空间中搜索最近的邻居。这些最近的邻居对应的文档很可能包含能够回答提示的信息。
 
-在向量存储中，向量的相似度在语义上表示文档的相似性，但除了相似性之外，并没有真正的连接概念。然而，彼此接近的文档（通常是一起检索的）可以被视为这些知识片段之间的一种连接，形成一个隐式的知识图谱，其中每个文本片段与其最近的邻居相连接。从这个意义上构建的图谱不会像大多数知识图谱那样是静态或僵化的；它会随着新文档的添加或搜索参数的调整而变化。因此，这并不是一个完美的比较，但这个隐式图谱可以作为一个有用的概念框架，帮助我们理解在RAG系统中，文档检索是如何运作的。
+在向量存储中，向量的相似度在语义上表示文档的相似性，但除了相似性之外，并没有真正的连接概念。然而，彼此接近的文档（通常是一起检索的）可以被视为这些知识片段之间的一种连接，形成一个隐式的知识图谱，其中每个文本片段与其最近的邻居相连接。从这个意义上构建的图谱不会像大多数知识图谱那样是静态或僵化的；它会随着新文档的添加或搜索参数的调整而变化。因此，这并不是一个完美的比较，但这个隐式图谱可以作为一个有用的概念框架，帮助我们理解在 RAG 系统中，文档检索是如何运作的。
 
 就现实世界的知识而言——与向量表示相比——语义相似性只是文本片段可能相关的许多方式之一。即使在计算机和数字数据表示出现之前，我们也已经将知识连接了几个世纪：词汇表、索引、目录、目录表、字典和交叉引用都是连接知识片段的方式。在软件中实现这些非常简单，但它们通常没有包含在向量存储、RAG 系统和其他生成 AI 应用中。我们的文档正在告诉我们其他哪些知识是重要且相关的；我们只需要为我们的知识库提供理解和跟随这些连接的能力。
 
@@ -64,7 +64,7 @@ RAG 系统中检索过程的主要目标是找到一组足够回答给定查询�
 
 为了说明文档链接是如何工作的，以及它如何在其他情况下可能会被遗漏的情况下，建立文档与知识之间的联系，我们来看一个简单的例子。
 
-我们将从包含维基百科页面文本的两个相关文档开始：一个是[太空针塔](https://en.wikipedia.org/wiki/Space_Needle)页面的文档，另一个是太空针塔所在的[Lower Queen Anne](https://en.wikipedia.org/wiki/Lower_Queen_Anne,_Seattle)社区页面的文档。太空针塔文档中有一个指向Lower Queen Anne文档的HTML链接，但反过来没有链接。太空针塔文档的内容如下：
+我们将从包含维基百科页面文本的两个相关文档开始：一个是[太空针塔](https://en.wikipedia.org/wiki/Space_Needle)页面的文档，另一个是太空针塔所在的[Lower Queen Anne](https://en.wikipedia.org/wiki/Lower_Queen_Anne,_Seattle)社区页面的文档。太空针塔文档中有一个指向 Lower Queen Anne 文档的 HTML 链接，但反过来没有链接。太空针塔文档的内容如下：
 
 ```py
 'url': 'https://en.wikipedia.org/wiki/Space_Needle'
@@ -76,15 +76,15 @@ neighborhood, it was built in the Seattle Center for the 1962
 World's Fair, which drew over 2.3 million visitors...
 ```
 
-除了这两个来自真实、信息丰富的源文档外，我们还添加了四个非常简短、无信息量的文档 —— 两个提到太空针塔，两个没有提到。这些文档（及其虚假的URL）旨在成为无关或不具信息量的文档，例如仅仅评论太空针塔和西雅图的社交媒体帖子，内容如下：
+除了这两个来自真实、信息丰富的源文档外，我们还添加了四个非常简短、无信息量的文档 —— 两个提到太空针塔，两个没有提到。这些文档（及其虚假的 URL）旨在成为无关或不具信息量的文档，例如仅仅评论太空针塔和西雅图的社交媒体帖子，内容如下：
 
 > “太空针塔很高。”
 
 并且
 
-> “Queen Anne是一个人。”
+> “Queen Anne 是一个人。”
 
-完整的文档集包含在[Colab笔记本](https://drive.google.com/file/d/1Fhf92TXCCtj7IUf8Vg4xLxhExN1zcliW/view?usp=sharing)中。这些是HTML文档，我们使用[BeautifulSoup4](https://beautiful-soup-4.readthedocs.io/en/latest/)以及[LangChain的`HtmlLinkExtractor`](https://python.langchain.com/v0.2/api_reference/community/graph_vectorstores/langchain_community.graph_vectorstores.extractors.html_link_extractor.HtmlLinkExtractor.html)进行处理，将这些链接通过`add_links`函数添加回`Document`对象，专门用于在`GraphVectorStore`中使用它们，这是[LangChain代码库](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.graph_vectorstores)中的相对较新功能，[由我在DataStax的同事们贡献](https://www.datastax.com/blog/now-in-langchain-graph-vector-store-add-structured-data-to-rag-apps)。所有这些都是开源的。
+完整的文档集包含在[Colab 笔记本](https://drive.google.com/file/d/1Fhf92TXCCtj7IUf8Vg4xLxhExN1zcliW/view?usp=sharing)中。这些是 HTML 文档，我们使用[BeautifulSoup4](https://beautiful-soup-4.readthedocs.io/en/latest/)以及[LangChain 的`HtmlLinkExtractor`](https://python.langchain.com/v0.2/api_reference/community/graph_vectorstores/langchain_community.graph_vectorstores.extractors.html_link_extractor.HtmlLinkExtractor.html)进行处理，将这些链接通过`add_links`函数添加回`Document`对象，专门用于在`GraphVectorStore`中使用它们，这是[LangChain 代码库](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.graph_vectorstores)中的相对较新功能，[由我在 DataStax 的同事们贡献](https://www.datastax.com/blog/now-in-langchain-graph-vector-store-add-structured-data-to-rag-apps)。所有这些都是开源的。
 
 每个文档的处理流程如下：
 
@@ -113,11 +113,11 @@ EMBEDDING = 'text-embedding-3-small'
 gvstore = CassandraGraphVectorStore(OpenAIEmbeddings(model=EMBEDDING)) 
 ```
 
-我们以标准方式为RAG链设置了LLM和其他助手 — [查看笔记本以了解详细信息](https://drive.google.com/file/d/1Fhf92TXCCtj7IUf8Vg4xLxhExN1zcliW/view?usp=sharing)。请注意，虽然这里使用的几乎所有内容都是开源的，但在笔记本中我们使用了两个SaaS产品，OpenAI和DataStax的*Astra* — 分别是LLM和向量数据存储 — 它们都有免费的使用层级。详情请参考[LangChain文档](https://python.langchain.com/docs/integrations/text_embedding/)以了解替代方案。
+我们以标准方式为 RAG 链设置了 LLM 和其他助手 — [查看笔记本以了解详细信息](https://drive.google.com/file/d/1Fhf92TXCCtj7IUf8Vg4xLxhExN1zcliW/view?usp=sharing)。请注意，虽然这里使用的几乎所有内容都是开源的，但在笔记本中我们使用了两个 SaaS 产品，OpenAI 和 DataStax 的*Astra* — 分别是 LLM 和向量数据存储 — 它们都有免费的使用层级。详情请参考[LangChain 文档](https://python.langchain.com/docs/integrations/text_embedding/)以了解替代方案。
 
-# 使用默认设置运行RAG
+# 使用默认设置运行 RAG
 
-我们可以使用`depth=0`的图形检索器端到端运行RAG系统 —— 这意味着完全不进行图遍历 —— 并使用其他默认参数如下：
+我们可以使用`depth=0`的图形检索器端到端运行 RAG 系统 —— 这意味着完全不进行图遍历 —— 并使用其他默认参数如下：
 
 ```py
 retriever = gvstore.as_retriever(
@@ -192,7 +192,7 @@ LLM response:
 
 1.  关于太空针塔的主要文档直接链接到*Lower Queen Anne*，任何好奇的人可能都会点击这个链接来了解该地区。
 
-1.  如果没有任何链接或图遍历的意识，这个RAG系统会检索最语义相似的文档——包括两份信息量较少的文档——并错过了那篇包含最多信息来回答查询的文章。
+1.  如果没有任何链接或图遍历的意识，这个 RAG 系统会检索最语义相似的文档——包括两份信息量较少的文档——并错过了那篇包含最多信息来回答查询的文章。
 
 现在，让我们看看文档链接如何影响结果。
 
@@ -231,28 +231,28 @@ LLM response:
  'avant-garde theater and music.')
 ```
 
-我们可以看到，通过向量搜索检索到的前`k`个文档与之前一样是那三篇文档，但设置`depth=1`指示系统跟踪这三篇文档的链接，并将这些链接的文档也包含进来。因此，从*太空针塔*文档到*Lower Queen Anne*的直接链接也包括了该文档，这使得LLM能够获得其正确回答查询所需的邻近信息。
+我们可以看到，通过向量搜索检索到的前`k`个文档与之前一样是那三篇文档，但设置`depth=1`指示系统跟踪这三篇文档的链接，并将这些链接的文档也包含进来。因此，从*太空针塔*文档到*Lower Queen Anne*的直接链接也包括了该文档，这使得 LLM 能够获得其正确回答查询所需的邻近信息。
 
-# 文档链接可以提升RAG应用程序的效果。
+# 文档链接可以提升 RAG 应用程序的效果。
 
-这种向量和图检索的混合方法可以显著增强RAG应用程序结果的上下文相关性和多样性。通过确保系统检索到最符合上下文且多样化的内容，能够减少幻觉现象，并提高结果的质量。
+这种向量和图检索的混合方法可以显著增强 RAG 应用程序结果的上下文相关性和多样性。通过确保系统检索到最符合上下文且多样化的内容，能够减少幻觉现象，并提高结果的质量。
 
-除了提高RAG系统的响应质量外，文档链接在生产系统中的实现还具有一些优势。其有利的特性包括：
+除了提高 RAG 系统的响应质量外，文档链接在生产系统中的实现还具有一些优势。其有利的特性包括：
 
-1.  **无损** — 原始内容在节点中保持完整，确保在图形创建过程中不会丢失任何信息。这保留了数据的完整性，减少了随着需求变化而频繁重新索引的需要，并且利用了LLM从上下文线索中提取答案的优势。
+1.  **无损** — 原始内容在节点中保持完整，确保在图形创建过程中不会丢失任何信息。这保留了数据的完整性，减少了随着需求变化而频繁重新索引的需要，并且利用了 LLM 从上下文线索中提取答案的优势。
 
 1.  **无需人工干预** — 该方法不需要专家介入来完善知识提取。相反，通过在现有的向量搜索管道中添加基于关键词、超链接或其他文档属性的边缘提取功能，可以实现自动添加链接。
 
-1.  **可扩展** — 图形创建过程涉及对内容的直接操作，而无需使用LLM来生成知识图谱。
+1.  **可扩展** — 图形创建过程涉及对内容的直接操作，而无需使用 LLM 来生成知识图谱。
 
 性能基准和更详细的文档链接扩展分析可参考[之前提到的文章](https://thenewstack.io/scaling-knowledge-graphs-by-eliminating-edges/)。
 
-一如既往地，这里也存在一些限制。如果您的文档集确实没有链接或其他结构，本文所提出的策略效果会很有限。此外，尽管构建和遍历图形连接可以非常强大，但它也会增加检索过程的复杂性，可能会带来调试和优化上的挑战，尤其是在图形遍历深度达到2层或更多时。
+一如既往地，这里也存在一些限制。如果您的文档集确实没有链接或其他结构，本文所提出的策略效果会很有限。此外，尽管构建和遍历图形连接可以非常强大，但它也会增加检索过程的复杂性，可能会带来调试和优化上的挑战，尤其是在图形遍历深度达到 2 层或更多时。
 
-总体而言，将文档链接纳入RAG系统结合了传统的确定性软件方法、图算法和现代AI技术的优势。通过明确地定义文档之间的链接，我们增强了AI像人类研究者一样浏览知识的能力，不仅提高了检索的准确性，还增加了响应的上下文深度。这种方法创造了更为强大、能够更好适应复杂人类求知方式的系统。
+总体而言，将文档链接纳入 RAG 系统结合了传统的确定性软件方法、图算法和现代 AI 技术的优势。通过明确地定义文档之间的链接，我们增强了 AI 像人类研究者一样浏览知识的能力，不仅提高了检索的准确性，还增加了响应的上下文深度。这种方法创造了更为强大、能够更好适应复杂人类求知方式的系统。
 
 # 开始使用文档链接
 
-本文的完整代码可以在[此Colab笔记本](https://drive.google.com/file/d/1Fhf92TXCCtj7IUf8Vg4xLxhExN1zcliW/view?usp=sharing)中找到。另外，查看我在DataStax的同事发布的[这篇介绍性博客文章](https://www.datastax.com/blog/now-in-langchain-graph-vector-store-add-structured-data-to-rag-apps?utm_medium=byline&utm_source=tds&utm_campaign=graph&utm_content=doc-linking)，或者查看LangChain中[GraphVectorStore](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.graph_vectorstores)的[文档](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.graph_vectorstores)，了解详细的API信息以及如何使用文档链接增强你的RAG应用，并推动知识系统的能力边界。
+本文的完整代码可以在[此 Colab 笔记本](https://drive.google.com/file/d/1Fhf92TXCCtj7IUf8Vg4xLxhExN1zcliW/view?usp=sharing)中找到。另外，查看我在 DataStax 的同事发布的[这篇介绍性博客文章](https://www.datastax.com/blog/now-in-langchain-graph-vector-store-add-structured-data-to-rag-apps?utm_medium=byline&utm_source=tds&utm_campaign=graph&utm_content=doc-linking)，或者查看 LangChain 中[GraphVectorStore](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.graph_vectorstores)的[文档](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.graph_vectorstores)，了解详细的 API 信息以及如何使用文档链接增强你的 RAG 应用，并推动知识系统的能力边界。
 
 *作者：Brian Godsey，博士（*[*LinkedIn*](https://bit.ly/4enqFRa)*)——数学家、数据科学家和工程师 // 在* [*DataStax*](https://www.datastax.com/) *从事人工智能产品工作* // 编写了书籍* [*像数据科学家一样思考*](https://manning.com/books/think-like-a-data-scientist?a_aid=thinklikeadatascientist&a_bid=eb49dc22)

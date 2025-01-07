@@ -1,16 +1,16 @@
 # 使用 Snowflake 的数据指标函数监控数据管道
 
-> 原文：[https://towardsdatascience.com/monitor-data-pipelines-using-snowflakes-data-metric-functions-0df71c46f04a?source=collection_archive---------8-----------------------#2024-04-15](https://towardsdatascience.com/monitor-data-pipelines-using-snowflakes-data-metric-functions-0df71c46f04a?source=collection_archive---------8-----------------------#2024-04-15)
+> 原文：[`towardsdatascience.com/monitor-data-pipelines-using-snowflakes-data-metric-functions-0df71c46f04a?source=collection_archive---------8-----------------------#2024-04-15`](https://towardsdatascience.com/monitor-data-pipelines-using-snowflakes-data-metric-functions-0df71c46f04a?source=collection_archive---------8-----------------------#2024-04-15)
 
 ## 使用谷歌 SRE 原则构建可信的数据平台
 
-[](https://medium.com/@jesszhangcyz?source=post_page---byline--0df71c46f04a--------------------------------)[![Jess.Z](../Images/ae9505d75966ab9fb60a64366c24e4de.png)](https://medium.com/@jesszhangcyz?source=post_page---byline--0df71c46f04a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0df71c46f04a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0df71c46f04a--------------------------------) [Jess.Z](https://medium.com/@jesszhangcyz?source=post_page---byline--0df71c46f04a--------------------------------)
+[](https://medium.com/@jesszhangcyz?source=post_page---byline--0df71c46f04a--------------------------------)![Jess.Z](https://medium.com/@jesszhangcyz?source=post_page---byline--0df71c46f04a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0df71c46f04a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0df71c46f04a--------------------------------) [Jess.Z](https://medium.com/@jesszhangcyz?source=post_page---byline--0df71c46f04a--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0df71c46f04a--------------------------------) ·阅读时间 6 分钟·2024年4月15日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0df71c46f04a--------------------------------) ·阅读时间 6 分钟·2024 年 4 月 15 日
 
 --
 
-![](../Images/dd9da14923ac82a0d2d10724afb39253.png)
+![](img/dd9da14923ac82a0d2d10724afb39253.png)
 
 由 Dall-E 生成的图像
 
@@ -28,23 +28,23 @@
 
 我们在软件领域常见的指标有吞吐量、延迟和正常运行时间（可用性）。这些用于衡量应用程序或网站的可靠性。
 
-![](../Images/2a926ac827c514fef839a09eae44bb4a.png)
+![](img/2a926ac827c514fef839a09eae44bb4a.png)
 
 典型事件
 
 然后，这些指标被转化为受*阈值*限制的目标。软件应用的健康状况现在是“可度量的”，我们可以与客户沟通应用的状态。
 
-> **服务水平目标**：由SLI衡量的服务水平的目标值或范围。
+> **服务水平目标**：由 SLI 衡量的服务水平的目标值或范围。
 
 我们直观地理解这些定量衡量标准和指标在典型用户应用中的必要性，以减少摩擦并建立与客户的信任。在构建数据管道时，我们需要采用类似的思维方式。
 
 ## 数据质量维度转化为服务水平术语
 
-![](../Images/55c5bc0af80a676b7e2b04d71b53f3c5.png)
+![](img/55c5bc0af80a676b7e2b04d71b53f3c5.png)
 
 数据系统故障
 
-假设用户与我们的应用程序互动并每小时生成X量的数据进入我们的数据仓库，如果进入仓库的行数突然大幅下降，我们可以将其标记为问题。然后，我们可以追踪管道中的时间戳来诊断并解决问题。
+假设用户与我们的应用程序互动并每小时生成 X 量的数据进入我们的数据仓库，如果进入仓库的行数突然大幅下降，我们可以将其标记为问题。然后，我们可以追踪管道中的时间戳来诊断并解决问题。
 
 我们希望捕获进入我们系统的数据的足够信息，以便在发生异常时能够检测到。大多数数据团队倾向于从**数据及时性**开始。预期的数据是否在正确的时间到达？
 
@@ -54,9 +54,9 @@
 
 +   数据新鲜度——新的数据是否按预期时间到达？
 
-![](../Images/57963d8ebfec1d046bd5532fc3ac9ba4.png)
+![](img/57963d8ebfec1d046bd5532fc3ac9ba4.png)
 
-数据质量维度转化为SLIs和SLOs
+数据质量维度转化为 SLIs 和 SLOs
 
 一旦系统稳定，保持与客户的良好关系就变得重要，以便设定对利益相关者有价值的正确目标。
 
@@ -64,9 +64,9 @@
 
 我们如何实际确定期望多少数据以及何时到达？对于我们所有不同的数据集，正确的数据量是多少？这时我们需要关注**阈值**概念，因为它确实比较复杂。
 
-假设我们有一个应用程序，用户主要在工作时间登录系统。我们预计每天9点到下午5点之间大约会有2000次USER_LOGIN事件，而在其他时间则有100次。如果我们为一天使用一个单一的阈值，它会得出错误的结论。在晚上8点接收120个事件是完全合理的，但如果我们在下午2点只接收了120个事件，那就值得关注，并且应该进一步调查。
+假设我们有一个应用程序，用户主要在工作时间登录系统。我们预计每天 9 点到下午 5 点之间大约会有 2000 次 USER_LOGIN 事件，而在其他时间则有 100 次。如果我们为一天使用一个单一的阈值，它会得出错误的结论。在晚上 8 点接收 120 个事件是完全合理的，但如果我们在下午 2 点只接收了 120 个事件，那就值得关注，并且应该进一步调查。
 
-![](../Images/735733c28a94f26393e0e1e0ae938481.png)
+![](img/735733c28a94f26393e0e1e0ae938481.png)
 
 显示阈值线的图表，绿色
 
@@ -84,13 +84,13 @@
 
 数据度量函数是我们可能写的一些查询的包装器，用来洞察我们的数据系统。我们可以从系统 DMF 开始。
 
-![](../Images/215c9afdc5449c2e9be8cca9b2d89f55.png)
+![](img/215c9afdc5449c2e9be8cca9b2d89f55.png)
 
 Snowflake 系统 DMF
 
 我们首先需要整理一些权限…
 
-![](../Images/6b46f55238e93746721c47cdf7ffc705.png)
+![](img/6b46f55238e93746721c47cdf7ffc705.png)
 
 DMF 访问控制文档
 

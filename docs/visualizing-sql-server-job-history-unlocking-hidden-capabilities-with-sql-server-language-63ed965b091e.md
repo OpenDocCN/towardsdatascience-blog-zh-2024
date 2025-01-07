@@ -1,16 +1,16 @@
 # 可视化 SQL Server 作业历史：利用 SQL Server 语言扩展解锁隐藏功能
 
-> 原文：[https://towardsdatascience.com/visualizing-sql-server-job-history-unlocking-hidden-capabilities-with-sql-server-language-63ed965b091e?source=collection_archive---------3-----------------------#2024-05-21](https://towardsdatascience.com/visualizing-sql-server-job-history-unlocking-hidden-capabilities-with-sql-server-language-63ed965b091e?source=collection_archive---------3-----------------------#2024-05-21)
+> 原文：[`towardsdatascience.com/visualizing-sql-server-job-history-unlocking-hidden-capabilities-with-sql-server-language-63ed965b091e?source=collection_archive---------3-----------------------#2024-05-21`](https://towardsdatascience.com/visualizing-sql-server-job-history-unlocking-hidden-capabilities-with-sql-server-language-63ed965b091e?source=collection_archive---------3-----------------------#2024-05-21)
 
 ## 轻松通过用户友好的互动时间线可视化来导航和分析作业工作负载
 
-[](https://lucazavarella.medium.com/?source=post_page---byline--63ed965b091e--------------------------------)[![Luca Zavarella](../Images/6af72e50d79498ac378e2f1e469a0e65.png)](https://lucazavarella.medium.com/?source=post_page---byline--63ed965b091e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--63ed965b091e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--63ed965b091e--------------------------------) [Luca Zavarella](https://lucazavarella.medium.com/?source=post_page---byline--63ed965b091e--------------------------------)
+[](https://lucazavarella.medium.com/?source=post_page---byline--63ed965b091e--------------------------------)![Luca Zavarella](https://lucazavarella.medium.com/?source=post_page---byline--63ed965b091e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--63ed965b091e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--63ed965b091e--------------------------------) [Luca Zavarella](https://lucazavarella.medium.com/?source=post_page---byline--63ed965b091e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--63ed965b091e--------------------------------) ·18 分钟阅读·2024年5月21日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--63ed965b091e--------------------------------) ·18 分钟阅读·2024 年 5 月 21 日
 
 --
 
-![](../Images/32717005f5aaf99ecedf5aa2c620170d.png)
+![](img/32717005f5aaf99ecedf5aa2c620170d.png)
 
 （图片由 ChatGPT 提供）
 

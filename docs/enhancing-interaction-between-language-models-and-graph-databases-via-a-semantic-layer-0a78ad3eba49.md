@@ -1,20 +1,20 @@
 # 通过语义层增强语言模型与图数据库之间的交互
 
-> 原文：[https://towardsdatascience.com/enhancing-interaction-between-language-models-and-graph-databases-via-a-semantic-layer-0a78ad3eba49?source=collection_archive---------0-----------------------#2024-01-18](https://towardsdatascience.com/enhancing-interaction-between-language-models-and-graph-databases-via-a-semantic-layer-0a78ad3eba49?source=collection_archive---------0-----------------------#2024-01-18)
+> 原文：[`towardsdatascience.com/enhancing-interaction-between-language-models-and-graph-databases-via-a-semantic-layer-0a78ad3eba49?source=collection_archive---------0-----------------------#2024-01-18`](https://towardsdatascience.com/enhancing-interaction-between-language-models-and-graph-databases-via-a-semantic-layer-0a78ad3eba49?source=collection_archive---------0-----------------------#2024-01-18)
 
-## 为LLM代理提供一套强大的工具，以便其与图数据库进行交互
+## 为 LLM 代理提供一套强大的工具，以便其与图数据库进行交互
 
-[](https://bratanic-tomaz.medium.com/?source=post_page---byline--0a78ad3eba49--------------------------------)[![Tomaz Bratanic](../Images/d5821aa70918fcb3fc1ff0013497b3d5.png)](https://bratanic-tomaz.medium.com/?source=post_page---byline--0a78ad3eba49--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0a78ad3eba49--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0a78ad3eba49--------------------------------) [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--0a78ad3eba49--------------------------------)
+[](https://bratanic-tomaz.medium.com/?source=post_page---byline--0a78ad3eba49--------------------------------)![Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--0a78ad3eba49--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0a78ad3eba49--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0a78ad3eba49--------------------------------) [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--0a78ad3eba49--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0a78ad3eba49--------------------------------) ·阅读时长11分钟·2024年1月18日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0a78ad3eba49--------------------------------) ·阅读时长 11 分钟·2024 年 1 月 18 日
 
 --
 
-知识图谱通过灵活的数据模式提供了对数据的出色表示，能够存储[结构化和非结构化信息](https://medium.com/neo4j/using-a-knowledge-graph-to-implement-a-devops-rag-application-b6ba24831b16)。你可以使用Cypher语句从图数据库（如Neo4j）中检索信息。一种选择是使用大型语言模型（LLMs）生成Cypher语句。虽然这种方式提供了极大的灵活性，但事实是，基础LLMs在始终如一地生成精确的Cypher语句方面仍然不够稳定。因此，我们需要寻找一种替代方案，以确保一致性和稳健性。那么，如果LLM从用户输入中提取参数，而不是直接开发Cypher语句，并根据用户意图使用预定义的函数或Cypher模板呢？简而言之，你可以为LLM提供一套预定义的工具和使用指令，指示何时以及如何基于用户输入使用它们，这也被称为语义层。
+知识图谱通过灵活的数据模式提供了对数据的出色表示，能够存储[结构化和非结构化信息](https://medium.com/neo4j/using-a-knowledge-graph-to-implement-a-devops-rag-application-b6ba24831b16)。你可以使用 Cypher 语句从图数据库（如 Neo4j）中检索信息。一种选择是使用大型语言模型（LLMs）生成 Cypher 语句。虽然这种方式提供了极大的灵活性，但事实是，基础 LLMs 在始终如一地生成精确的 Cypher 语句方面仍然不够稳定。因此，我们需要寻找一种替代方案，以确保一致性和稳健性。那么，如果 LLM 从用户输入中提取参数，而不是直接开发 Cypher 语句，并根据用户意图使用预定义的函数或 Cypher 模板呢？简而言之，你可以为 LLM 提供一套预定义的工具和使用指令，指示何时以及如何基于用户输入使用它们，这也被称为语义层。
 
-![](../Images/aeeb64a2a96d1a41bf353ad6817a5d4e.png)
+![](img/aeeb64a2a96d1a41bf353ad6817a5d4e.png)
 
-语义层是一个中间步骤，提供了一种更精确、更稳健的方式，使LLMs与知识图谱进行交互。图片来自作者。灵感来源于[这张图片](https://cube.dev/blog/semantic-layer-the-backbone-of-ai-powered-data-experiences)。
+语义层是一个中间步骤，提供了一种更精确、更稳健的方式，使 LLMs 与知识图谱进行交互。图片来自作者。灵感来源于[这张图片](https://cube.dev/blog/semantic-layer-the-backbone-of-ai-powered-data-experiences)。
 
 语义层由多个暴露给大语言模型的工具组成，它可以用来与知识图谱进行互动。这些工具的复杂性各异。你可以将语义层中的每个工具看作一个函数。例如，看看以下这个函数。
 
@@ -41,13 +41,13 @@ def get_information(entity: str, type: str) -> str:
 
 在这篇博客文章中，我们将展示如何实现一个语义层，使大语言模型代理能够与包含演员、电影及其评分信息的知识图谱进行互动。
 
-![](../Images/e04d930fdbbd3e70efc04a3060abfcff.png)
+![](img/e04d930fdbbd3e70efc04a3060abfcff.png)
 
 电影代理架构。图像由作者提供。
 
 取自文档（同样由我编写）：
 
-> 代理利用多种工具有效地与Neo4j图数据库进行交互。
+> 代理利用多种工具有效地与 Neo4j 图数据库进行交互。
 > 
 > *** 信息工具**：检索有关电影或个人的数据，确保代理能够访问最新和最相关的信息。
 > 
@@ -61,11 +61,11 @@ def get_information(entity: str, type: str) -> str:
 
 这种预定义方法通过减少大语言模型的艺术自由度，从而增强了系统的稳健性，确保回应更加结构化，并与预定的用户流程对齐，从而改善了整体的用户体验。
 
-电影代理的语义层后端已经实现，并作为一个[LangChain模板](https://github.com/langchain-ai/langchain/tree/master/templates/neo4j-semantic-layer)可用。我使用了这个模板构建了一个简单的Streamlit聊天应用程序。
+电影代理的语义层后端已经实现，并作为一个[LangChain 模板](https://github.com/langchain-ai/langchain/tree/master/templates/neo4j-semantic-layer)可用。我使用了这个模板构建了一个简单的 Streamlit 聊天应用程序。
 
-![](../Images/8e94a84617ebaa1796729ef1cae7a77d.png)
+![](img/8e94a84617ebaa1796729ef1cae7a77d.png)
 
-Streamlit聊天界面。图像由作者提供。
+Streamlit 聊天界面。图像由作者提供。
 
 代码可在[GitHub](https://github.com/tomasonjo/llm-movieagent)上获取。你可以通过定义环境变量并执行以下命令来启动项目：
 
@@ -75,9 +75,9 @@ docker-compose up
 
 ## 图模型
 
-该图基于[MovieLens](https://grouplens.org/datasets/movielens/)数据集。它包含有关演员、电影和10万条电影评分的信息。
+该图基于[MovieLens](https://grouplens.org/datasets/movielens/)数据集。它包含有关演员、电影和 10 万条电影评分的信息。
 
-![](../Images/1498878706b68d43ef3619c7bbbec6a1.png)
+![](img/1498878706b68d43ef3619c7bbbec6a1.png)
 
 图谱架构。图像由作者提供。
 
@@ -203,7 +203,7 @@ def recommend_movie(movie: Optional[str] = None, genre: Optional[str] = None) ->
         return "Something went wrong"
 ```
 
-首先需要注意的是，这两个输入参数都是可选的。因此，我们需要引入处理所有可能输入参数组合和缺失情况的工作流。为了生成个性化推荐，我们首先获取`user_id`，然后将其传递到下游的Cypher推荐语句中。
+首先需要注意的是，这两个输入参数都是可选的。因此，我们需要引入处理所有可能输入参数组合和缺失情况的工作流。为了生成个性化推荐，我们首先获取`user_id`，然后将其传递到下游的 Cypher 推荐语句中。
 
 与之前一样，我们需要向代理呈现函数的输入。
 
@@ -217,7 +217,7 @@ class RecommenderInput(BaseModel):
     )
 ```
 
-由于只有20种可用的电影类型，我们将它们的值作为提示的一部分提供。为了避免电影歧义，我们再次在函数内部使用全文索引。像之前一样，我们以工具定义结束，以通知LLM何时使用它。
+由于只有 20 种可用的电影类型，我们将它们的值作为提示的一部分提供。为了避免电影歧义，我们再次在函数内部使用全文索引。像之前一样，我们以工具定义结束，以通知 LLM 何时使用它。
 
 ```py
 class RecommenderTool(BaseTool):
@@ -263,11 +263,11 @@ class MemoryInput(BaseModel):
     )
 ```
 
-记忆工具有两个强制性的输入参数，用于定义电影及其评分。这是一个简单的工具。我需要提到的一点是，在我的测试中，我注意到可能需要提供何时给出特定评分的示例，因为LLM开箱即用时并不是最擅长这方面的处理。
+记忆工具有两个强制性的输入参数，用于定义电影及其评分。这是一个简单的工具。我需要提到的一点是，在我的测试中，我注意到可能需要提供何时给出特定评分的示例，因为 LLM 开箱即用时并不是最擅长这方面的处理。
 
 ## 代理
 
-现在让我们通过使用[LangChain表达式语言](https://python.langchain.com/docs/expression_language/)（LCEL）来定义一个代理，把所有内容整合在一起。
+现在让我们通过使用[LangChain 表达式语言](https://python.langchain.com/docs/expression_language/)（LCEL）来定义一个代理，把所有内容整合在一起。
 
 ```py
 llm = ChatOpenAI(temperature=0, model="gpt-4", streaming=True)
@@ -311,13 +311,13 @@ agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True).with_type
 )
 ```
 
-LangChain表达式语言使得定义代理并暴露其所有功能变得非常方便。我们不会深入探讨LCEL语法，因为那超出了本博客的范围。
+LangChain 表达式语言使得定义代理并暴露其所有功能变得非常方便。我们不会深入探讨 LCEL 语法，因为那超出了本博客的范围。
 
-电影代理后台作为API端点通过[LangServe](https://www.langchain.com/langserve)暴露。
+电影代理后台作为 API 端点通过[LangServe](https://www.langchain.com/langserve)暴露。
 
-## Streamlit聊天应用
+## Streamlit 聊天应用
 
-现在我们只需要实现一个Streamlit应用，它连接到LangServe API端点，就可以开始使用了。我们将看看用于检索代理响应的异步函数。
+现在我们只需要实现一个 Streamlit 应用，它连接到 LangServe API 端点，就可以开始使用了。我们将看看用于检索代理响应的异步函数。
 
 ```py
 async def get_agent_response(
@@ -339,11 +339,11 @@ async def get_agent_response(
             stream_handler.new_token(value)
 ```
 
-函数`get_agent_response`旨在与电影代理API进行交互。它向API发送包含用户输入和聊天历史的请求，然后异步处理API的响应。该函数处理不同类型的响应，更新流处理器的新状态，并将生成的文本附加到会话状态中，从而使我们能够将结果流式传输给用户。
+函数`get_agent_response`旨在与电影代理 API 进行交互。它向 API 发送包含用户输入和聊天历史的请求，然后异步处理 API 的响应。该函数处理不同类型的响应，更新流处理器的新状态，并将生成的文本附加到会话状态中，从而使我们能够将结果流式传输给用户。
 
 现在让我们进行测试。
 
-![](../Images/bce1fd1386d8ea222ccafa7738aa6b16.png)
+![](img/bce1fd1386d8ea222ccafa7738aa6b16.png)
 
 电影代理在运行中。图像由作者提供。
 
@@ -351,7 +351,7 @@ async def get_agent_response(
 
 ## 结论
 
-总结来说，在语言模型与图数据库交互中引入语义层，如我们在电影代理（Movie Agent）中所示，代表了提升用户体验和数据交互效率的一次重大飞跃。通过将重点从生成任意的Cypher语句转移到利用结构化、预定义的工具和功能套件，语义层为语言模型的交互带来了一个新的精确性和一致性水平。这种方法不仅简化了从知识图谱中提取相关信息的过程，还确保了一个更具目标导向和用户中心的体验。
+总结来说，在语言模型与图数据库交互中引入语义层，如我们在电影代理（Movie Agent）中所示，代表了提升用户体验和数据交互效率的一次重大飞跃。通过将重点从生成任意的 Cypher 语句转移到利用结构化、预定义的工具和功能套件，语义层为语言模型的交互带来了一个新的精确性和一致性水平。这种方法不仅简化了从知识图谱中提取相关信息的过程，还确保了一个更具目标导向和用户中心的体验。
 
 语义层充当着桥梁的角色，将用户意图转换为具体、可执行的查询，语言模型能够准确可靠地执行这些查询。因此，用户受益于一个不仅能够更有效理解他们查询的系统，而且还能更轻松、减少歧义地引导他们朝着预期的结果前进。此外，通过将语言模型的响应限制在这些预定义工具的范围内，我们降低了错误或无关输出的风险，从而增强了系统的可信度和可靠性。
 
@@ -359,4 +359,4 @@ async def get_agent_response(
 
 ## 数据集
 
-F. Maxwell Harper 和 Joseph A. Konstan. 2015. 《MovieLens数据集：历史与背景》。ACM交互智能系统交易（TiiS）5, 4: 19:1–19:19. [https://doi.org/10.1145/2827872](https://doi.org/10.1145/2827872)
+F. Maxwell Harper 和 Joseph A. Konstan. 2015. 《MovieLens 数据集：历史与背景》。ACM 交互智能系统交易（TiiS）5, 4: 19:1–19:19. [`doi.org/10.1145/2827872`](https://doi.org/10.1145/2827872)

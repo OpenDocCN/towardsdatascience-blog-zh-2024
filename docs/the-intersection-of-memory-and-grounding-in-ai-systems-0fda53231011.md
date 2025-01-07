@@ -1,10 +1,10 @@
 # AI 系统中记忆与基础构建的交集
 
-> 原文：[https://towardsdatascience.com/the-intersection-of-memory-and-grounding-in-ai-systems-0fda53231011?source=collection_archive---------8-----------------------#2024-07-24](https://towardsdatascience.com/the-intersection-of-memory-and-grounding-in-ai-systems-0fda53231011?source=collection_archive---------8-----------------------#2024-07-24)
+> 原文：[`towardsdatascience.com/the-intersection-of-memory-and-grounding-in-ai-systems-0fda53231011?source=collection_archive---------8-----------------------#2024-07-24`](https://towardsdatascience.com/the-intersection-of-memory-and-grounding-in-ai-systems-0fda53231011?source=collection_archive---------8-----------------------#2024-07-24)
 
-[](https://medium.com/@sandibesen?source=post_page---byline--0fda53231011--------------------------------)[![Sandi Besen](../Images/97361d97f50269f70b6621da2256bc29.png)](https://medium.com/@sandibesen?source=post_page---byline--0fda53231011--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0fda53231011--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0fda53231011--------------------------------) [Sandi Besen](https://medium.com/@sandibesen?source=post_page---byline--0fda53231011--------------------------------)
+[](https://medium.com/@sandibesen?source=post_page---byline--0fda53231011--------------------------------)![Sandi Besen](https://medium.com/@sandibesen?source=post_page---byline--0fda53231011--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0fda53231011--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0fda53231011--------------------------------) [Sandi Besen](https://medium.com/@sandibesen?source=post_page---byline--0fda53231011--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0fda53231011--------------------------------) ·阅读时间：6 分钟·2024年7月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0fda53231011--------------------------------) ·阅读时间：6 分钟·2024 年 7 月 24 日
 
 --
 
@@ -12,7 +12,7 @@
 
 在语言模型和智能体 AI 的背景下，记忆和基础知识是两个热门且新兴的研究领域。尽管它们通常在句子中紧密相连且常常相关，但在实际应用中，它们的功能是不同的。在本文中，我希望能澄清这两个术语之间的混淆，并展示记忆在模型的整体基础构建中所起的作用。
 
-![](../Images/0e36dde5c62d9f8a01a89f42a1c0ca99.png)
+![](img/0e36dde5c62d9f8a01a89f42a1c0ca99.png)
 
 来源：Dalle3，描述：分割的大脑部分呈现记忆和基础构建，以友好的卡通风格展现
 
@@ -26,7 +26,7 @@
 
 STM（短期记忆）保留信息的时间非常短，可能是几秒到几分钟。如果你问一个语言模型一个问题，它需要保持你的消息足够长的时间，以便生成对你的问题的回答。就像人类一样，语言模型也难以同时记住太多的事物。
 
-> [米勒定律](https://www.simplypsychology.org/short-term-memory.html)指出，“短期记忆是记忆的一个组成部分，它在一个活跃、随时可用的状态下保持少量信息，通常为几秒钟到一分钟。短期记忆的持续时间似乎在15到30秒之间，短期记忆的容量是有限的，通常认为大约为7±2项。”
+> [米勒定律](https://www.simplypsychology.org/short-term-memory.html)指出，“短期记忆是记忆的一个组成部分，它在一个活跃、随时可用的状态下保持少量信息，通常为几秒钟到一分钟。短期记忆的持续时间似乎在 15 到 30 秒之间，短期记忆的容量是有限的，通常认为大约为 7±2 项。”
 
 所以，如果你问一个语言模型“我在之前的消息中提到的那本书是哪种类型？”它需要使用它的短期记忆来参考最近的消息并生成相关的回应。
 
@@ -36,7 +36,7 @@ STM（短期记忆）保留信息的时间非常短，可能是几秒到几分�
 
 ## **短期长时记忆（SLTM）：**
 
-短期长时记忆（SLTM）保留信息的时间为中等时长，从几分钟到几个小时。例如，在同一会话中，你可以继续未完成的对话，而无需重复上下文，因为它已经作为SLTM被存储。这个过程也是外部过程，而不是语言模型本身的一部分。
+短期长时记忆（SLTM）保留信息的时间为中等时长，从几分钟到几个小时。例如，在同一会话中，你可以继续未完成的对话，而无需重复上下文，因为它已经作为 SLTM 被存储。这个过程也是外部过程，而不是语言模型本身的一部分。
 
 **实现：**
 
@@ -44,7 +44,7 @@ STM（短期记忆）保留信息的时间非常短，可能是几秒到几分�
 
 ## **长期记忆（LTM）：**
 
-长期记忆（LTM）保留信息的时间为管理员定义的时间段，这段时间可以是无限的。例如，如果我们要构建一个AI导师，语言模型需要理解学生在哪些科目上表现好，在哪些方面仍然挣扎，哪种学习方式最适合他们，等等。这样，模型可以召回相关信息，以指导未来的教学计划。[松鼠AI](https://squirrelai.com/#/products/technology)就是一个使用长期记忆来“制定个性化学习路径，进行有针对性的教学，并在需要时提供情感干预”的平台示例。
+长期记忆（LTM）保留信息的时间为管理员定义的时间段，这段时间可以是无限的。例如，如果我们要构建一个 AI 导师，语言模型需要理解学生在哪些科目上表现好，在哪些方面仍然挣扎，哪种学习方式最适合他们，等等。这样，模型可以召回相关信息，以指导未来的教学计划。[松鼠 AI](https://squirrelai.com/#/products/technology)就是一个使用长期记忆来“制定个性化学习路径，进行有针对性的教学，并在需要时提供情感干预”的平台示例。
 
 **实现：**
 
@@ -52,15 +52,15 @@ STM（短期记忆）保留信息的时间非常短，可能是几秒到几分�
 
 ## **工作记忆：**
 
-工作记忆是语言模型本身的一个组成部分（不同于其他类型的记忆，它们是外部过程）。它使语言模型能够保持信息、操作信息并进行改进——从而提高模型的推理能力。这一点非常重要，因为当模型处理用户的请求时，它对任务的理解及执行任务所需采取的步骤可能会发生变化。你可以把工作记忆看作是模型思维的草稿本。例如，当提供一个多步骤的数学问题，如(5 + 3) * 2时，语言模型需要能够计算括号中的(5 + 3)并存储该信息，然后再将两数之和乘以2。如果你有兴趣深入了解这个话题，[论文](https://arxiv.org/abs/2404.09173)《TransformerFAM: 反馈注意力是工作记忆》提供了一种新的方法来扩展工作记忆，使语言模型能够处理无限长度的输入/上下文窗口。
+工作记忆是语言模型本身的一个组成部分（不同于其他类型的记忆，它们是外部过程）。它使语言模型能够保持信息、操作信息并进行改进——从而提高模型的推理能力。这一点非常重要，因为当模型处理用户的请求时，它对任务的理解及执行任务所需采取的步骤可能会发生变化。你可以把工作记忆看作是模型思维的草稿本。例如，当提供一个多步骤的数学问题，如(5 + 3) * 2 时，语言模型需要能够计算括号中的(5 + 3)并存储该信息，然后再将两数之和乘以 2。如果你有兴趣深入了解这个话题，[论文](https://arxiv.org/abs/2404.09173)《TransformerFAM: 反馈注意力是工作记忆》提供了一种新的方法来扩展工作记忆，使语言模型能够处理无限长度的输入/上下文窗口。
 
 **实现：**
 
 像变换器中的注意力层或循环神经网络（RNNs）中的隐藏状态这样的机制负责保持中间计算，并提供在同一推理会话中操作中间结果的能力。随着模型处理输入，它更新内部状态，这使得推理能力更强。
 
-*所有4种类型的记忆都是创建一个能够有效管理和利用跨越不同时间框架和上下文信息的人工智能系统的重要组成部分。*
+*所有 4 种类型的记忆都是创建一个能够有效管理和利用跨越不同时间框架和上下文信息的人工智能系统的重要组成部分。*
 
-![](../Images/d7e13a9ce7878b0823aa6f457e6eeb6e.png)
+![](img/d7e13a9ce7878b0823aa6f457e6eeb6e.png)
 
 人工智能系统中的记忆类型表，来源：Sandi Besen
 
@@ -74,7 +74,7 @@ STM（短期记忆）保留信息的时间非常短，可能是几秒到几分�
 
 ## **外部上下文**
 
-为模型提供实时或最新的上下文信息有助于其保持基础性。实现这一目标的方法有很多，比如将其与外部知识库、API和实时数据集成。这种方法也被称为检索增强生成（RAG）。
+为模型提供实时或最新的上下文信息有助于其保持基础性。实现这一目标的方法有很多，比如将其与外部知识库、API 和实时数据集成。这种方法也被称为检索增强生成（RAG）。
 
 ## **记忆系统**
 
@@ -90,6 +90,6 @@ STM（短期记忆）保留信息的时间非常短，可能是几秒到几分�
 
 参考文献：
 
-[https://openreview.net/pdf?id=QNW1OrjynpT](https://openreview.net/pdf?id=QNW1OrjynpT)
+[`openreview.net/pdf?id=QNW1OrjynpT`](https://openreview.net/pdf?id=QNW1OrjynpT)
 
-[https://www.simplypsychology.org/short-term-memory.html](https://www.simplypsychology.org/short-term-memory.html)
+[`www.simplypsychology.org/short-term-memory.html`](https://www.simplypsychology.org/short-term-memory.html)

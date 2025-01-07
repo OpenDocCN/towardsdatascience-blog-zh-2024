@@ -1,16 +1,16 @@
 # 将 LLM 聊天机器人集成到您的网页应用程序中，使用 OpenAI、Python 和 Shiny
 
-> 原文：[https://towardsdatascience.com/incorporate-an-llm-chatbot-into-your-web-application-with-openai-python-and-shiny-fe78673a5d26?source=collection_archive---------13-----------------------#2024-06-18](https://towardsdatascience.com/incorporate-an-llm-chatbot-into-your-web-application-with-openai-python-and-shiny-fe78673a5d26?source=collection_archive---------13-----------------------#2024-06-18)
+> 原文：[`towardsdatascience.com/incorporate-an-llm-chatbot-into-your-web-application-with-openai-python-and-shiny-fe78673a5d26?source=collection_archive---------13-----------------------#2024-06-18`](https://towardsdatascience.com/incorporate-an-llm-chatbot-into-your-web-application-with-openai-python-and-shiny-fe78673a5d26?source=collection_archive---------13-----------------------#2024-06-18)
 
 ## 将 AI 聊天机器人一步步集成到 Shiny for Python 应用程序中：从 API 设置到用户互动
 
-[](https://medium.com/@menghani.deepsha?source=post_page---byline--fe78673a5d26--------------------------------)[![Deepsha Menghani](../Images/56a6ed8597c36e8c76d8a29a449325a4.png)](https://medium.com/@menghani.deepsha?source=post_page---byline--fe78673a5d26--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fe78673a5d26--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fe78673a5d26--------------------------------) [Deepsha Menghani](https://medium.com/@menghani.deepsha?source=post_page---byline--fe78673a5d26--------------------------------)
+[](https://medium.com/@menghani.deepsha?source=post_page---byline--fe78673a5d26--------------------------------)![Deepsha Menghani](https://medium.com/@menghani.deepsha?source=post_page---byline--fe78673a5d26--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fe78673a5d26--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fe78673a5d26--------------------------------) [Deepsha Menghani](https://medium.com/@menghani.deepsha?source=post_page---byline--fe78673a5d26--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fe78673a5d26--------------------------------) ·阅读时间：8分钟·2024年6月18日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fe78673a5d26--------------------------------) ·阅读时间：8 分钟·2024 年 6 月 18 日
 
 --
 
-![](../Images/7285be0ede88d7ab8f66ec5ea5c19a6c.png)
+![](img/7285be0ede88d7ab8f66ec5ea5c19a6c.png)
 
 由[BoliviaInteligente](https://unsplash.com/@boliviainteligente?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，照片来源于[Unsplash](https://unsplash.com/photos/a-close-up-of-a-keyboard-with-a-blue-button-DEci5GH0r0k?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

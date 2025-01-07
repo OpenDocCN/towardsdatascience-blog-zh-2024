@@ -1,18 +1,18 @@
 # 亲身体验 OpenAI 的 Swarm 多代理框架
 
-> 原文：[https://towardsdatascience.com/hands-on-with-openai-swam-bbbffaa833e5?source=collection_archive---------4-----------------------#2024-11-05](https://towardsdatascience.com/hands-on-with-openai-swam-bbbffaa833e5?source=collection_archive---------4-----------------------#2024-11-05)
+> 原文：[`towardsdatascience.com/hands-on-with-openai-swam-bbbffaa833e5?source=collection_archive---------4-----------------------#2024-11-05`](https://towardsdatascience.com/hands-on-with-openai-swam-bbbffaa833e5?source=collection_archive---------4-----------------------#2024-11-05)
 
 ## AI 代理编排
 
 ## 使用 Swarm，一个回归基础的框架构建多代理系统
 
-[](https://medium.com/@alan-jones?source=post_page---byline--bbbffaa833e5--------------------------------)[![Alan Jones](../Images/359379fab1d6685ff08080b98173e67c.png)](https://medium.com/@alan-jones?source=post_page---byline--bbbffaa833e5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bbbffaa833e5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bbbffaa833e5--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--bbbffaa833e5--------------------------------)
+[](https://medium.com/@alan-jones?source=post_page---byline--bbbffaa833e5--------------------------------)![Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--bbbffaa833e5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bbbffaa833e5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bbbffaa833e5--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--bbbffaa833e5--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bbbffaa833e5--------------------------------) ·14分钟阅读·2024年11月5日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bbbffaa833e5--------------------------------) ·14 分钟阅读·2024 年 11 月 5 日
 
 --
 
-![](../Images/170fb750ca017ecbff10102a07609277.png)
+![](img/170fb750ca017ecbff10102a07609277.png)
 
 图片由作者和 Bing 图像创作工具提供
 

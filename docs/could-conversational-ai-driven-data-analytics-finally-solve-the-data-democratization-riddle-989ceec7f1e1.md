@@ -1,16 +1,16 @@
 # 会话式人工智能驱动的数据分析是否终于能够解决数据民主化的难题？
 
-> 原文：[https://towardsdatascience.com/could-conversational-ai-driven-data-analytics-finally-solve-the-data-democratization-riddle-989ceec7f1e1?source=collection_archive---------11-----------------------#2024-10-01](https://towardsdatascience.com/could-conversational-ai-driven-data-analytics-finally-solve-the-data-democratization-riddle-989ceec7f1e1?source=collection_archive---------11-----------------------#2024-10-01)
+> 原文：[`towardsdatascience.com/could-conversational-ai-driven-data-analytics-finally-solve-the-data-democratization-riddle-989ceec7f1e1?source=collection_archive---------11-----------------------#2024-10-01`](https://towardsdatascience.com/could-conversational-ai-driven-data-analytics-finally-solve-the-data-democratization-riddle-989ceec7f1e1?source=collection_archive---------11-----------------------#2024-10-01)
 
-![](../Images/89af9b5d198fef6b1eb1c52d1f313c88.png)
+![](img/89af9b5d198fef6b1eb1c52d1f313c88.png)
 
-艺术作品由Galen Okazaki使用Midjourney创作
+艺术作品由 Galen Okazaki 使用 Midjourney 创作
 
 ## *数据领导者的现实评估*
 
-[](https://medium.com/@kingkoa96746?source=post_page---byline--989ceec7f1e1--------------------------------)[![Galen Okazaki](../Images/6a96d075ba546f59b677b802b3f31232.png)](https://medium.com/@kingkoa96746?source=post_page---byline--989ceec7f1e1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--989ceec7f1e1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--989ceec7f1e1--------------------------------) [Galen Okazaki](https://medium.com/@kingkoa96746?source=post_page---byline--989ceec7f1e1--------------------------------)
+[](https://medium.com/@kingkoa96746?source=post_page---byline--989ceec7f1e1--------------------------------)![Galen Okazaki](https://medium.com/@kingkoa96746?source=post_page---byline--989ceec7f1e1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--989ceec7f1e1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--989ceec7f1e1--------------------------------) [Galen Okazaki](https://medium.com/@kingkoa96746?source=post_page---byline--989ceec7f1e1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--989ceec7f1e1--------------------------------) ·阅读时长：7分钟·2024年10月1日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--989ceec7f1e1--------------------------------) ·阅读时长：7 分钟·2024 年 10 月 1 日
 
 --
 
@@ -18,7 +18,7 @@
 
 一间宽敞现代的办公室。落地窗提供了下方繁忙城市的全景。空间既简洁又优雅，配有光滑的极简主义家具和几件精心挑选的艺术作品挂在墙上。
 
-一位穿着得体的40多岁女高管专注于她的电脑屏幕，并问道：“请显示上个月的收入。” 她瞥了一眼屏幕，面无表情，接着问道：“按销售区域划分收入。” 此时，她皱着眉头，带着疑惑的神情问道：“按区域显示净利润率。” 在长时间凝视之后，她慢慢地叹了口气，拿起了手机……
+一位穿着得体的 40 多岁女高管专注于她的电脑屏幕，并问道：“请显示上个月的收入。” 她瞥了一眼屏幕，面无表情，接着问道：“按销售区域划分收入。” 此时，她皱着眉头，带着疑惑的神情问道：“按区域显示净利润率。” 在长时间凝视之后，她慢慢地叹了口气，拿起了手机……
 
 > ***数据民主化 -*** *使组织中的每个人都能访问数据的过程，无论其技术能力如何。*
 
@@ -28,35 +28,35 @@
 
 ## 一线希望？
 
-2022年11月下旬，OpenAI发布的ChatGPT使得普通大众（即：非技术人员）只需输入自然语言的请求***(prompt)***，就能与大型语言模型（LLM）进行互动。通过这个对话式用户界面，用户可以向LLM提问，LLM会根据其“训练”过的数据回答问题。以ChatGPT为例，它的训练数据来源，嗯……互联网。
+2022 年 11 月下旬，OpenAI 发布的 ChatGPT 使得普通大众（即：非技术人员）只需输入自然语言的请求***(prompt)***，就能与大型语言模型（LLM）进行互动。通过这个对话式用户界面，用户可以向 LLM 提问，LLM 会根据其“训练”过的数据回答问题。以 ChatGPT 为例，它的训练数据来源，嗯……互联网。
 
-ChatGPT将强大的数据处理能力带到了任何有权限访问它的人手中。当我们意识到这一机制的潜力时，许多数据分析领域的从业者开始思考它对我们领域可能带来的影响。
+ChatGPT 将强大的数据处理能力带到了任何有权限访问它的人手中。当我们意识到这一机制的潜力时，许多数据分析领域的从业者开始思考它对我们领域可能带来的影响。
 
 我们并没有思考太久……
 
-在ChatGPT首次面向公众发布仅四个月后，OpenAI发布了一个名为[***Code Interpreter***](https://platform.openai.com/docs/assistants/tools/code-interpreter)的ChatGPT插件的alpha版本。通过这个插件，任何人都可以将数据集加载到ChatGPT中，输入几个提示语，并调用Python执行回归分析、描述性分析，甚至创建可视化图表。所有这些都不需要写任何代码！
+在 ChatGPT 首次面向公众发布仅四个月后，OpenAI 发布了一个名为[***Code Interpreter***](https://platform.openai.com/docs/assistants/tools/code-interpreter)的 ChatGPT 插件的 alpha 版本。通过这个插件，任何人都可以将数据集加载到 ChatGPT 中，输入几个提示语，并调用 Python 执行回归分析、描述性分析，甚至创建可视化图表。所有这些都不需要写任何代码！
 
-Code Interpreter的发布让我们初步看到了由对话式AI驱动的数据分析可能是如何工作的。***这简直令人震惊！***
+Code Interpreter 的发布让我们初步看到了由对话式 AI 驱动的数据分析可能是如何工作的。***这简直令人震惊！***
 
-不久之后，鉴于ChatGPT已经具备了编写代码（例如SQL、R、Python等）的能力，再加上Code Interpreter的初步功能，许多人开始预测数据分析师角色最终将被取代。（**当时，我不同意这个观点，甚至还写了一篇文章反驳它**）。***
+不久之后，鉴于 ChatGPT 已经具备了编写代码（例如 SQL、R、Python 等）的能力，再加上 Code Interpreter 的初步功能，许多人开始预测数据分析师角色最终将被取代。（**当时，我不同意这个观点，甚至还写了一篇文章反驳它**）。***
 
-![](../Images/0fbbde7bff609592183f856bd338daaf.png)
+![](img/0fbbde7bff609592183f856bd338daaf.png)
 
-艺术作品由Galen Okazaki使用Midjourney创作
+艺术作品由 Galen Okazaki 使用 Midjourney 创作
 
-> [**生成型AI会取代数据分析师的需求吗？**](/will-generative-ai-replace-the-need-for-data-analysts-6b6807599d00)Galen Okazaki为《Towards Data Science》撰写
+> **生成型 AI 会取代数据分析师的需求吗？**Galen Okazaki 为《Towards Data Science》撰写
 
 当然，当你考虑到即便是你公司里技术能力最弱的人也能够仅凭输入文字或甚至口头提问就从数据中提取见解时，这种预测看起来并不难以接受。
 
-***那么，对话式AI驱动的数据分析，是否真的能成为弥合数据与其民主化之间技术鸿沟的关键？***
+***那么，对话式 AI 驱动的数据分析，是否真的能成为弥合数据与其民主化之间技术鸿沟的关键？***
 
 让我们仔细看看。
 
-## 对话式AI驱动的数据分析的现状
+## 对话式 AI 驱动的数据分析的现状
 
-所以……从Code Interpreter的alpha版本发布到现在已经快一年半了，我们在对话式AI驱动的数据分析方面取得了多少进展？可能没有你预期的那么多。
+所以……从 Code Interpreter 的 alpha 版本发布到现在已经快一年半了，我们在对话式 AI 驱动的数据分析方面取得了多少进展？可能没有你预期的那么多。
 
-例如：在2023年7月，ChatGPT的Code Interpreter被重新命名并作为***高级数据分析***重新发布。Code Interpreter不仅名称被更改了，而且……嗯……呃……好吧，至少新名称更准确地描述了它的实际功能。🤷‍♂️
+例如：在 2023 年 7 月，ChatGPT 的 Code Interpreter 被重新命名并作为***高级数据分析***重新发布。Code Interpreter 不仅名称被更改了，而且……嗯……呃……好吧，至少新名称更准确地描述了它的实际功能。🤷‍♂️
 
 公平地说，代码解释器/高级数据分析是一个很好的工具，但它从未旨在成为企业范围的分析解决方案。它仍然只能处理您上传到其中的静态文件，因为您无法将其连接到数据库。
 
@@ -64,19 +64,19 @@ Code Interpreter的发布让我们初步看到了由对话式AI驱动的数据�
 
 ## Power BI Q&A
 
-第一次尝试实施对话式数据分析早于ChatGPT发布。在2019年，微软广泛使用的***Power BI***发布了一个名为“Q&A”的功能。它允许用户用他们的自然语言输入关于他们数据的问题，只要是英语（目前是唯一支持的语言）。
+第一次尝试实施对话式数据分析早于 ChatGPT 发布。在 2019 年，微软广泛使用的***Power BI***发布了一个名为“Q&A”的功能。它允许用户用他们的自然语言输入关于他们数据的问题，只要是英语（目前是唯一支持的语言）。
 
-这是通过嵌入在现有仪表板或报告中的文本框界面完成的。通过这个界面，用户用自然语言提出关于特定仪表板或报告背后数据集的问题。Power BI利用***自然语言查询（NLQ）***将文本问题转换为查询。响应以可视化方式呈现。
+这是通过嵌入在现有仪表板或报告中的文本框界面完成的。通过这个界面，用户用自然语言提出关于特定仪表板或报告背后数据集的问题。Power BI 利用***自然语言查询（NLQ）***将文本问题转换为查询。响应以可视化方式呈现。
 
-尽管这个功能有其用途，但它有一个重要的限制。Power BI Q&A仅限于查询查看的报告或仪表板背后的数据集，如果您的最终目标是公司范围内数据的民主化，这一范围就太窄了。
+尽管这个功能有其用途，但它有一个重要的限制。Power BI Q&A 仅限于查询查看的报告或仪表板背后的数据集，如果您的最终目标是公司范围内数据的民主化，这一范围就太窄了。
 
 ## Snowflake Cortex Analyst
 
-一个更合适的对话式人工智能驱动数据分析的例子，可能支持数据民主化的是[***Snowflake的Cortex Analyst***](https://www.snowflake.com/en/blog/cortex-analyst-ai-self-service-analytics/)。
+一个更合适的对话式人工智能驱动数据分析的例子，可能支持数据民主化的是[***Snowflake 的 Cortex Analyst***](https://www.snowflake.com/en/blog/cortex-analyst-ai-self-service-analytics/)。
 
-简而言之，Snowflake本身是一个不断增长的SaaS、基于云的数据仓库和分析平台，为客户提供了根据需要扩展其存储和/或计算的选项。其架构还支持高速数据处理和查询。
+简而言之，Snowflake 本身是一个不断增长的 SaaS、基于云的数据仓库和分析平台，为客户提供了根据需要扩展其存储和/或计算的选项。其架构还支持高速数据处理和查询。
 
-Cortex Analyst是Snowflake的对话式人工智能驱动数据分析版本。一开始，它在一个方面远远优于Power BI的Q&A，即不仅允许用户对现有报告或仪表板背后的数据集进行查询，而且Cortex Analyst将允许用户对整个基础数据库进行查询。它通过***依赖语义层和模型来解释用户请求***来实现这一点。
+Cortex Analyst 是 Snowflake 的对话式人工智能驱动数据分析版本。一开始，它在一个方面远远优于 Power BI 的 Q&A，即不仅允许用户对现有报告或仪表板背后的数据集进行查询，而且 Cortex Analyst 将允许用户对整个基础数据库进行查询。它通过***依赖语义层和模型来解释用户请求***来实现这一点。
 
 这带我们来到一个关键点。
 
@@ -92,7 +92,7 @@ Cortex Analyst是Snowflake的对话式人工智能驱动数据分析版本。一
 
 这对于数据素养尤为重要。
 
-也就是说，尽管92%的企业决策者认为数据素养很重要，但目前只有34%的公司提供数据素养培训（来源：[**数据素养指数，沃顿商学院**](https://thedataliteracyproject.org/wp-content/uploads/2022/11/Qlik-The_Data_Literacy_Index_October-2018.pdf)）。
+也就是说，尽管 92%的企业决策者认为数据素养很重要，但目前只有 34%的公司提供数据素养培训（来源：[**数据素养指数，沃顿商学院**](https://thedataliteracyproject.org/wp-content/uploads/2022/11/Qlik-The_Data_Literacy_Index_October-2018.pdf)）。
 
 另一个挑战是我在整个数据分析职业生涯中一直看到的。在我的经验中，总是有一部分用户（其中一些是 C 级高管），由于各种原因，拒绝使用我们为他们创建的商业智能界面。虽然他们通常是少数人，但这提醒我们，尽管花哨的功能很吸引人，但许多人仍然固执地只愿意使用他们最熟悉的工具。
 

@@ -1,16 +1,16 @@
 # 数据破坏以提升实体嵌入
 
-> 原文：[https://towardsdatascience.com/data-disruptions-to-elevate-entity-embeddings-b1ddf86a3c95?source=collection_archive---------7-----------------------#2024-06-04](https://towardsdatascience.com/data-disruptions-to-elevate-entity-embeddings-b1ddf86a3c95?source=collection_archive---------7-----------------------#2024-06-04)
+> 原文：[`towardsdatascience.com/data-disruptions-to-elevate-entity-embeddings-b1ddf86a3c95?source=collection_archive---------7-----------------------#2024-06-04`](https://towardsdatascience.com/data-disruptions-to-elevate-entity-embeddings-b1ddf86a3c95?source=collection_archive---------7-----------------------#2024-06-04)
 
 ## 在神经网络训练过程中注入随机值可以帮助你从类别特征中获得更多信息。
 
-[](https://medium.com/@vla6?source=post_page---byline--b1ddf86a3c95--------------------------------)[![Valerie Carey](../Images/9ef394fe5a6a5439521c1905e0195751.png)](https://medium.com/@vla6?source=post_page---byline--b1ddf86a3c95--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b1ddf86a3c95--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b1ddf86a3c95--------------------------------) [Valerie Carey](https://medium.com/@vla6?source=post_page---byline--b1ddf86a3c95--------------------------------)
+[](https://medium.com/@vla6?source=post_page---byline--b1ddf86a3c95--------------------------------)![Valerie Carey](https://medium.com/@vla6?source=post_page---byline--b1ddf86a3c95--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b1ddf86a3c95--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b1ddf86a3c95--------------------------------) [Valerie Carey](https://medium.com/@vla6?source=post_page---byline--b1ddf86a3c95--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b1ddf86a3c95--------------------------------) ·阅读时长 11 分钟·2024年6月4日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b1ddf86a3c95--------------------------------) ·阅读时长 11 分钟·2024 年 6 月 4 日
 
 --
 
-![](../Images/65a2fea5cd298a5eeaefac2afe531fcc.png)
+![](img/65a2fea5cd298a5eeaefac2afe531fcc.png)
 
 图片来源：[dylan nolte](https://unsplash.com/@dylan_nolte?utm_source=medium&utm_medium=referral) 于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,16 +1,16 @@
-# 7个帮助我作为数据科学家的订阅服务
+# 7 个帮助我作为数据科学家的订阅服务
 
-> 原文：[https://towardsdatascience.com/7-subscriptions-that-help-me-as-a-data-scientist-995bf36766c8?source=collection_archive---------1-----------------------#2024-04-19](https://towardsdatascience.com/7-subscriptions-that-help-me-as-a-data-scientist-995bf36766c8?source=collection_archive---------1-----------------------#2024-04-19)
+> 原文：[`towardsdatascience.com/7-subscriptions-that-help-me-as-a-data-scientist-995bf36766c8?source=collection_archive---------1-----------------------#2024-04-19`](https://towardsdatascience.com/7-subscriptions-that-help-me-as-a-data-scientist-995bf36766c8?source=collection_archive---------1-----------------------#2024-04-19)
 
 ## 提升我作为一名在职数据科学家的生产力、知识和专注力的订阅服务
 
-[](https://medium.com/@egorhowell?source=post_page---byline--995bf36766c8--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--995bf36766c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--995bf36766c8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--995bf36766c8--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--995bf36766c8--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--995bf36766c8--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--995bf36766c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--995bf36766c8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--995bf36766c8--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--995bf36766c8--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--995bf36766c8--------------------------------) ·阅读时长8分钟·2024年4月19日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--995bf36766c8--------------------------------) ·阅读时长 8 分钟·2024 年 4 月 19 日
 
 --
 
-![](../Images/0ddabb7ad59460667d51cb9c2854431b.png)
+![](img/0ddabb7ad59460667d51cb9c2854431b.png)
 
 由[Chase Chappell](https://unsplash.com/@chappelldigitalmarketing?utm_source=medium&utm_medium=referral)拍摄，图片来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -20,7 +20,7 @@
 
 # ChatGPT
 
-这不足为奇，但我推荐给数据科学家的头号订阅服务是ChatGPT。
+这不足为奇，但我推荐给数据科学家的头号订阅服务是 ChatGPT。
 
 [](https://openai.com/chatgpt?source=post_page-----995bf36766c8--------------------------------) [## ChatGPT
 
@@ -28,4 +28,4 @@
 
 [openai.com](https://openai.com/chatgpt?source=post_page-----995bf36766c8--------------------------------)
 
-尽管有免费版本，但每月多花20美元完全值得。你将获得……
+尽管有免费版本，但每月多花 20 美元完全值得。你将获得……

@@ -1,16 +1,16 @@
 # R 中的二项逻辑回归
 
-> 原文：[https://towardsdatascience.com/binary-logistic-regression-in-r-dff4e1dc093b?source=collection_archive---------12-----------------------#2024-01-30](https://towardsdatascience.com/binary-logistic-regression-in-r-dff4e1dc093b?source=collection_archive---------12-----------------------#2024-01-30)
+> 原文：[`towardsdatascience.com/binary-logistic-regression-in-r-dff4e1dc093b?source=collection_archive---------12-----------------------#2024-01-30`](https://towardsdatascience.com/binary-logistic-regression-in-r-dff4e1dc093b?source=collection_archive---------12-----------------------#2024-01-30)
 
 ## 学习何时以及如何在 R 中使用（单变量和多变量）二项逻辑回归。还要学习如何解释、可视化和报告结果。
 
-[](https://antoinesoetewey.medium.com/?source=post_page---byline--dff4e1dc093b--------------------------------)[![Antoine Soetewey](../Images/51d7837d18ff15a62cac2343a485e35d.png)](https://antoinesoetewey.medium.com/?source=post_page---byline--dff4e1dc093b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dff4e1dc093b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dff4e1dc093b--------------------------------) [Antoine Soetewey](https://antoinesoetewey.medium.com/?source=post_page---byline--dff4e1dc093b--------------------------------)
+[](https://antoinesoetewey.medium.com/?source=post_page---byline--dff4e1dc093b--------------------------------)![Antoine Soetewey](https://antoinesoetewey.medium.com/?source=post_page---byline--dff4e1dc093b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dff4e1dc093b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dff4e1dc093b--------------------------------) [Antoine Soetewey](https://antoinesoetewey.medium.com/?source=post_page---byline--dff4e1dc093b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dff4e1dc093b--------------------------------) ·46分钟阅读·2024年1月30日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dff4e1dc093b--------------------------------) ·46 分钟阅读·2024 年 1 月 30 日
 
 --
 
-![](../Images/b1d5aed06f84dbc785fc29a71a31f32a.png)
+![](img/b1d5aed06f84dbc785fc29a71a31f32a.png)
 
 图片来源：[Annie Spratt](https://unsplash.com/@anniespratt?utm_source=medium&utm_medium=referral)
 

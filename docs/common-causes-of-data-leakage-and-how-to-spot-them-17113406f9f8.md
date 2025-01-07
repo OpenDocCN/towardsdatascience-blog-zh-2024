@@ -1,16 +1,16 @@
 # 数据泄露的常见原因及如何识别
 
-> 原文：[https://towardsdatascience.com/common-causes-of-data-leakage-and-how-to-spot-them-17113406f9f8?source=collection_archive---------7-----------------------#2024-05-17](https://towardsdatascience.com/common-causes-of-data-leakage-and-how-to-spot-them-17113406f9f8?source=collection_archive---------7-----------------------#2024-05-17)
+> 原文：[`towardsdatascience.com/common-causes-of-data-leakage-and-how-to-spot-them-17113406f9f8?source=collection_archive---------7-----------------------#2024-05-17`](https://towardsdatascience.com/common-causes-of-data-leakage-and-how-to-spot-them-17113406f9f8?source=collection_archive---------7-----------------------#2024-05-17)
 
 ## 让我们来学习如何识别并处理机器学习模型中常见的数据泄露原因
 
-[](https://ivopbernardo.medium.com/?source=post_page---byline--17113406f9f8--------------------------------)[![Ivo Bernardo](../Images/39887b6f3e63a67c0545e87962ad5df0.png)](https://ivopbernardo.medium.com/?source=post_page---byline--17113406f9f8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--17113406f9f8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--17113406f9f8--------------------------------) [Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--17113406f9f8--------------------------------)
+[](https://ivopbernardo.medium.com/?source=post_page---byline--17113406f9f8--------------------------------)![Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--17113406f9f8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--17113406f9f8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--17113406f9f8--------------------------------) [Ivo Bernardo](https://ivopbernardo.medium.com/?source=post_page---byline--17113406f9f8--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--17113406f9f8--------------------------------) ·阅读时间：8分钟·2024年5月17日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--17113406f9f8--------------------------------) ·阅读时间：8 分钟·2024 年 5 月 17 日
 
 --
 
-![](../Images/d8825e42f7b4f0a70e19b30eaddab533.png)
+![](img/d8825e42f7b4f0a70e19b30eaddab533.png)
 
 图片来自 [realaxer](https://unsplash.com/pt-br/@realaxer) @Unsplash.com
 

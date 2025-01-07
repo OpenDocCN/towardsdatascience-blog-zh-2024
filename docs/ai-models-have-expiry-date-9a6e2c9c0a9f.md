@@ -1,18 +1,18 @@
-# AI模型有过期日期——持续学习可能是答案
+# AI 模型有过期日期——持续学习可能是答案
 
-> 原文：[https://towardsdatascience.com/ai-models-have-expiry-date-9a6e2c9c0a9f?source=collection_archive---------5-----------------------#2024-07-26](https://towardsdatascience.com/ai-models-have-expiry-date-9a6e2c9c0a9f?source=collection_archive---------5-----------------------#2024-07-26)
+> 原文：[`towardsdatascience.com/ai-models-have-expiry-date-9a6e2c9c0a9f?source=collection_archive---------5-----------------------#2024-07-26`](https://towardsdatascience.com/ai-models-have-expiry-date-9a6e2c9c0a9f?source=collection_archive---------5-----------------------#2024-07-26)
 
-## 为什么在这个唯一不变的就是变化的世界里，我们需要一种**持续学习**的方法来处理AI模型。
+## 为什么在这个唯一不变的就是变化的世界里，我们需要一种**持续学习**的方法来处理 AI 模型。
 
-[](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--9a6e2c9c0a9f--------------------------------)[![Alicja Dobrzeniecka](../Images/b731eb2bb8fde56e84273af8050b59e4.png)](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--9a6e2c9c0a9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9a6e2c9c0a9f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9a6e2c9c0a9f--------------------------------) [Alicja Dobrzeniecka](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--9a6e2c9c0a9f--------------------------------)
+[](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--9a6e2c9c0a9f--------------------------------)![Alicja Dobrzeniecka](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--9a6e2c9c0a9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9a6e2c9c0a9f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9a6e2c9c0a9f--------------------------------) [Alicja Dobrzeniecka](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--9a6e2c9c0a9f--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9a6e2c9c0a9f--------------------------------) ·阅读时长7分钟·2024年7月26日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9a6e2c9c0a9f--------------------------------) ·阅读时长 7 分钟·2024 年 7 月 26 日
 
 --
 
-![](../Images/a30f4c8693a444a23e937f1d298ffc5c.png)
+![](img/a30f4c8693a444a23e937f1d298ffc5c.png)
 
-图片由作者在Midjourney生成
+图片由作者在 Midjourney 生成
 
 想象一下，你有一个小型机器人，它被设计用来在你的花园里走动并浇水。最初，你花费了几周的时间收集数据来训练和测试机器人，投入了相当多的时间和资源。当花园的地面覆盖着草和裸土时，机器人学会了高效地导航。
 
@@ -68,33 +68,33 @@
 
 +   **例如，参数分配，** 在训练过程中，每个新任务都会在网络中分配一个专用的子空间，这解决了参数冲突干扰的问题。然而，如果网络不是固定的，其规模会随着新任务数量的增加而增长。
 
-## 那么，如何评估CL模型的性能呢？
+## 那么，如何评估 CL 模型的性能呢？
 
-CL模型的基本性能可以从多个角度来衡量[3]：
+CL 模型的基本性能可以从多个角度来衡量[3]：
 
 +   **总体性能评估：** 所有任务的平均性能
 
 +   **记忆稳定性评估：** 计算给定任务在持续训练前的最大性能与当前性能之间的差异
 
-+   **学习可塑性评估：** 衡量联合训练性能（如果在所有数据上训练）与使用CL训练时的性能差异
++   **学习可塑性评估：** 衡量联合训练性能（如果在所有数据上训练）与使用 CL 训练时的性能差异
 
-## 那么，为什么并不是所有AI研究人员都立刻转向持续学习呢？
+## 那么，为什么并不是所有 AI 研究人员都立刻转向持续学习呢？
 
 如果你可以访问历史训练数据并且不担心计算成本，那么从头开始训练似乎更容易。
 
-其中一个原因是，模型在持续训练过程中发生的事情的可解释性仍然有限。如果从头开始训练能够得到与持续训练相同或更好的结果，那么人们可能更倾向于选择更简单的方法，即从头开始重新训练，而不是花时间去理解CL方法的性能问题。
+其中一个原因是，模型在持续训练过程中发生的事情的可解释性仍然有限。如果从头开始训练能够得到与持续训练相同或更好的结果，那么人们可能更倾向于选择更简单的方法，即从头开始重新训练，而不是花时间去理解 CL 方法的性能问题。
 
 此外，当前的研究往往集中在模型和框架的评估上，这可能无法很好地反映出商业可能面临的实际使用案例。正如[6]中所提到的，有许多合成增量基准测试并没有很好地反映出现实世界中任务自然演变的情况。
 
-最后，正如在[4]中所指出的，许多关于CL的论文关注的是存储问题而非计算成本，实际上，存储历史数据比重新训练模型要便宜且耗能更少。
+最后，正如在[4]中所指出的，许多关于 CL 的论文关注的是存储问题而非计算成本，实际上，存储历史数据比重新训练模型要便宜且耗能更少。
 
-> 如果更多地关注模型重新训练中计算和环境成本的包含，可能会有更多的人对改进当前的CL方法感兴趣，因为他们会看到可衡量的收益。例如，正如[4]中提到的，模型重新训练可能超过**10,000 GPU天**的训练时间，尤其是在最近的大型模型中。
+> 如果更多地关注模型重新训练中计算和环境成本的包含，可能会有更多的人对改进当前的 CL 方法感兴趣，因为他们会看到可衡量的收益。例如，正如[4]中提到的，模型重新训练可能超过**10,000 GPU 天**的训练时间，尤其是在最近的大型模型中。
 
-## 为什么我们需要致力于改进CL模型？
+## 为什么我们需要致力于改进 CL 模型？
 
-持续学习旨在解决当前AI模型最具挑战性的瓶颈之一——数据分布随时间变化的事实。重新训练成本高，且需要大量计算，这在经济和环境角度来看并不是一种可持续的方法。因此，在未来，发展完善的CL方法可能使得模型变得更加可接入且可重用，供更广泛的社区使用。
+持续学习旨在解决当前 AI 模型最具挑战性的瓶颈之一——数据分布随时间变化的事实。重新训练成本高，且需要大量计算，这在经济和环境角度来看并不是一种可持续的方法。因此，在未来，发展完善的 CL 方法可能使得模型变得更加可接入且可重用，供更广泛的社区使用。
 
-正如在[4]中发现并总结的那样，有一系列应用天生需要或能够从完善的CL方法中受益：
+正如在[4]中发现并总结的那样，有一系列应用天生需要或能够从完善的 CL 方法中受益：
 
 1.  **模型编辑**
 
@@ -120,7 +120,7 @@ CL模型的基本性能可以从多个角度来衡量[3]：
 
 如你所见，**持续学习方法领域仍然有很大的提升空间**。如果你感兴趣，可以从以下材料开始：
 
-+   入门课程：*【持续学习课程】第1讲：介绍与动机* 来自ContinualAI在YouTube上的视频 [https://youtu.be/z9DDg2CJjeE?si=j57_qLNmpRWcmXtP](https://youtu.be/z9DDg2CJjeE?si=j57_qLNmpRWcmXtP)
++   入门课程：*【持续学习课程】第 1 讲：介绍与动机* 来自 ContinualAI 在 YouTube 上的视频 [`youtu.be/z9DDg2CJjeE?si=j57_qLNmpRWcmXtP`](https://youtu.be/z9DDg2CJjeE?si=j57_qLNmpRWcmXtP)
 
 +   讲述持续学习动机的论文：*持续学习：应用与前进的道路* [4]
 
@@ -130,20 +130,20 @@ CL模型的基本性能可以从多个角度来衡量[3]：
 
 干杯！
 
-![](../Images/e1e87ef455f4ecbab117a49cda5e832d.png)
+![](img/e1e87ef455f4ecbab117a49cda5e832d.png)
 
-图片由作者在Midjourney生成
+图片由作者在 Midjourney 生成
 
 # 参考文献
 
-[1] Awasthi, A., & Sarawagi, S. (2019). *使用神经网络的持续学习：综述*。发表于ACM印度联合国际数据科学与数据管理会议论文集（第362-365页）。计算机协会。
+[1] Awasthi, A., & Sarawagi, S. (2019). *使用神经网络的持续学习：综述*。发表于 ACM 印度联合国际数据科学与数据管理会议论文集（第 362-365 页）。计算机协会。
 
-[2] Continual AI Wiki *持续学习简介* [https://wiki.continualai.org/the-continualai-wiki/introduction-to-continual-learning](https://wiki.continualai.org/the-continualai-wiki/introduction-to-continual-learning)
+[2] Continual AI Wiki *持续学习简介* [`wiki.continualai.org/the-continualai-wiki/introduction-to-continual-learning`](https://wiki.continualai.org/the-continualai-wiki/introduction-to-continual-learning)
 
-[3] Wang, L., Zhang, X., Su, H., & Zhu, J. (2024). **持续学习的综合调查：理论、方法与应用**。IEEE模式分析与机器智能学报, 46(8), 5362–5383。
+[3] Wang, L., Zhang, X., Su, H., & Zhu, J. (2024). **持续学习的综合调查：理论、方法与应用**。IEEE 模式分析与机器智能学报, 46(8), 5362–5383。
 
-[4] Eli Verwimp, Rahaf Aljundi, Shai Ben-David, Matthias Bethge, Andrea Cossu, Alexander Gepperth, Tyler L. Hayes, Eyke Hüllermeier, Christopher Kanan, Dhireesha Kudithipudi, Christoph H. Lampert, Martin Mundt, Razvan Pascanu, Adrian Popescu, Andreas S. Tolias, Joost van de Weĳer, Bing Liu, Vincenzo Lomonaco, Tinne Tuytelaars, & Gido M. van de Ven. (2024). *持续学习：应用与未来发展之路* [https://arxiv.org/abs/2311.11908](https://arxiv.org/abs/2311.11908)
+[4] Eli Verwimp, Rahaf Aljundi, Shai Ben-David, Matthias Bethge, Andrea Cossu, Alexander Gepperth, Tyler L. Hayes, Eyke Hüllermeier, Christopher Kanan, Dhireesha Kudithipudi, Christoph H. Lampert, Martin Mundt, Razvan Pascanu, Adrian Popescu, Andreas S. Tolias, Joost van de Weĳer, Bing Liu, Vincenzo Lomonaco, Tinne Tuytelaars, & Gido M. van de Ven. (2024). *持续学习：应用与未来发展之路* [`arxiv.org/abs/2311.11908`](https://arxiv.org/abs/2311.11908)
 
-[5] Awasthi, A., & Sarawagi, S. (2019). 神经网络的持续学习：综述。收录于 *ACM印度联合国际数据科学与数据管理会议论文集*（第362–365页）。计算机协会。
+[5] Awasthi, A., & Sarawagi, S. (2019). 神经网络的持续学习：综述。收录于 *ACM 印度联合国际数据科学与数据管理会议论文集*（第 362–365 页）。计算机协会。
 
-[6] Saurabh Garg, Mehrdad Farajtabar, Hadi Pouransari, Raviteja Vemulapalli, Sachin Mehta, Oncel Tuzel, Vaishaal Shankar, & Fartash Faghri. (2024). TiC-CLIP：CLIP模型的持续训练。
+[6] Saurabh Garg, Mehrdad Farajtabar, Hadi Pouransari, Raviteja Vemulapalli, Sachin Mehta, Oncel Tuzel, Vaishaal Shankar, & Fartash Faghri. (2024). TiC-CLIP：CLIP 模型的持续训练。

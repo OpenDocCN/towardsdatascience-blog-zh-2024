@@ -1,16 +1,16 @@
 # Cramér–Rao 界限
 
-> 原文：[https://towardsdatascience.com/the-cram%C3%A9r-rao-bound-d971ec0b641c?source=collection_archive---------2-----------------------#2024-10-22](https://towardsdatascience.com/the-cram%C3%A9r-rao-bound-d971ec0b641c?source=collection_archive---------2-----------------------#2024-10-22)
+> 原文：[`towardsdatascience.com/the-cram%C3%A9r-rao-bound-d971ec0b641c?source=collection_archive---------2-----------------------#2024-10-22`](https://towardsdatascience.com/the-cram%C3%A9r-rao-bound-d971ec0b641c?source=collection_archive---------2-----------------------#2024-10-22)
 
-![](../Images/817a8f4946ea9493af1b74d88e04652a.png)
+![](img/817a8f4946ea9493af1b74d88e04652a.png)
 
 （[CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:%D0%97%D0%B8%D0%BC%D1%81%D0%BA%D0%B0_%D1%83%D1%82%D1%80%D0%B8%D0%BD%D1%81%D0%BA%D0%B0_%D0%B8%D0%B7%D0%BC%D0%B0%D0%B3%D0%BB%D0%B8%D1%86%D0%B0_%D0%B2%D0%BE_%D0%B4%D0%BE%D0%BB%D0%B8%D0%BD%D0%B0%D1%82%D0%B0_%D0%BD%D0%B0_%D0%91%D0%BE%D0%B3%D0%BE%D0%BC%D0%B8%D0%BB%D0%B0.JPG))
 
 ## 你并不总能得到你想要的
 
-[](https://timeseriesreasoning.medium.com/?source=post_page---byline--d971ec0b641c--------------------------------)[![Sachin Date](../Images/bd023298b414caf88f79b00ef032d065.png)](https://timeseriesreasoning.medium.com/?source=post_page---byline--d971ec0b641c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d971ec0b641c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d971ec0b641c--------------------------------) [Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--d971ec0b641c--------------------------------)
+[](https://timeseriesreasoning.medium.com/?source=post_page---byline--d971ec0b641c--------------------------------)![Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--d971ec0b641c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d971ec0b641c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d971ec0b641c--------------------------------) [Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--d971ec0b641c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d971ec0b641c--------------------------------) ·阅读时间 17 分钟·2024年10月22日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d971ec0b641c--------------------------------) ·阅读时间 17 分钟·2024 年 10 月 22 日
 
 --
 

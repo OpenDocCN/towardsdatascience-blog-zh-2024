@@ -1,12 +1,12 @@
 # TE2Rules：解释“为什么我的模型这么说？”
 
-> 原文：[https://towardsdatascience.com/te2rules-explaining-why-did-my-model-say-that-54214941075b?source=collection_archive---------14-----------------------#2024-01-05](https://towardsdatascience.com/te2rules-explaining-why-did-my-model-say-that-54214941075b?source=collection_archive---------14-----------------------#2024-01-05)
+> 原文：[`towardsdatascience.com/te2rules-explaining-why-did-my-model-say-that-54214941075b?source=collection_archive---------14-----------------------#2024-01-05`](https://towardsdatascience.com/te2rules-explaining-why-did-my-model-say-that-54214941075b?source=collection_archive---------14-----------------------#2024-01-05)
 
 ## 将模型可解释性拓展到图像和文本之外
 
-[](https://groshanlal.medium.com/?source=post_page---byline--54214941075b--------------------------------)[![G Roshan Lal](../Images/1a7f79310f75c32124a152fc36027bf4.png)](https://groshanlal.medium.com/?source=post_page---byline--54214941075b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--54214941075b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--54214941075b--------------------------------) [G Roshan Lal](https://groshanlal.medium.com/?source=post_page---byline--54214941075b--------------------------------)
+[](https://groshanlal.medium.com/?source=post_page---byline--54214941075b--------------------------------)![G Roshan Lal](https://groshanlal.medium.com/?source=post_page---byline--54214941075b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--54214941075b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54214941075b--------------------------------) [G Roshan Lal](https://groshanlal.medium.com/?source=post_page---byline--54214941075b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54214941075b--------------------------------) ·阅读时间8分钟·2024年1月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54214941075b--------------------------------) ·阅读时间 8 分钟·2024 年 1 月 5 日
 
 --
 
@@ -32,62 +32,62 @@
 
 在这篇博客文章中，我们将解释 XGBoost 模型所做的二元分类决策。解释这类模型的一种直观方法是使用人类可以理解的规则。例如，考虑一个模型用来判断一个用户账户是否属于机器人。如果模型将一个用户标记为“机器人”，那么基于模型特征的可解释性说明可能是“与其他机器人的连接数量 ≥ 100 且每日 API 调用次数 ≥ 10k”。
 
-[TE2Rules](https://arxiv.org/abs/2206.14359)是专门为此目的设计的算法。TE2Rules代表树集成到规则（Tree Ensembles to Rules），其主要功能是通过生成从输入特征组合中衍生的规则，来解释任何面向二分类的树集成模型。该算法结合了从XGBoost模型中的多棵树提取的决策路径，使用的是未标记数据的子集。从XGBoost模型中提取规则所使用的数据不必与训练数据相同，也不需要任何真实标签。该算法利用这些数据揭示数据集中隐含的相关性。值得注意的是，TE2Rules提取的规则在模型预测中具有很高的精度（默认值为95%）。该算法系统地识别出XGBoost模型中的所有潜在规则，以解释正例实例，并随后将其浓缩为一组简明的规则，能够有效地覆盖数据中的大多数正例。这组简化的规则作为模型的全面全局解释器。此外，TE2Rules保留了所有可能规则的较长规则集，可以通过使用简洁规则来解释特定实例。
+[TE2Rules](https://arxiv.org/abs/2206.14359)是专门为此目的设计的算法。TE2Rules 代表树集成到规则（Tree Ensembles to Rules），其主要功能是通过生成从输入特征组合中衍生的规则，来解释任何面向二分类的树集成模型。该算法结合了从 XGBoost 模型中的多棵树提取的决策路径，使用的是未标记数据的子集。从 XGBoost 模型中提取规则所使用的数据不必与训练数据相同，也不需要任何真实标签。该算法利用这些数据揭示数据集中隐含的相关性。值得注意的是，TE2Rules 提取的规则在模型预测中具有很高的精度（默认值为 95%）。该算法系统地识别出 XGBoost 模型中的所有潜在规则，以解释正例实例，并随后将其浓缩为一组简明的规则，能够有效地覆盖数据中的大多数正例。这组简化的规则作为模型的全面全局解释器。此外，TE2Rules 保留了所有可能规则的较长规则集，可以通过使用简洁规则来解释特定实例。
 
 # 演示：展示与讲解
 
-TE2Rules通过提供模型决策过程的洞见，展示了其在各个医学领域的有效性。以下是一些实例：
+TE2Rules 通过提供模型决策过程的洞见，展示了其在各个医学领域的有效性。以下是一些实例：
 
-+   多发性硬化症： [使用临床数据和脑部MRI病变纹理特征评估多发性硬化症的可解释AI模型](https://ieeexplore.ieee.org/abstract/document/10313379)
++   多发性硬化症： [使用临床数据和脑部 MRI 病变纹理特征评估多发性硬化症的可解释 AI 模型](https://ieeexplore.ieee.org/abstract/document/10313379)
 
 +   抑郁症：[使用机器学习识别抑郁症个体的特征](https://sol.sbc.org.br/index.php/kdmile/article/view/25576)
 
-在本节中，我们展示了如何使用TE2Rules解释一个预测个人收入是否超过50,000美元的模型。该模型使用了来自UCI库的[成人收入数据集](https://archive.ics.uci.edu/dataset/2/adult)进行训练。此博客中使用的Jupyter笔记本可以在此处获取：[XGBoost-Model-Explanation-Demo](https://github.com/groshanlal/XGBoost-Model-Explanation-Demo)。该数据集受CC BY 4.0许可协议保护，允许学术和商业用途。
+在本节中，我们展示了如何使用 TE2Rules 解释一个预测个人收入是否超过 50,000 美元的模型。该模型使用了来自 UCI 库的[成人收入数据集](https://archive.ics.uci.edu/dataset/2/adult)进行训练。此博客中使用的 Jupyter 笔记本可以在此处获取：[XGBoost-Model-Explanation-Demo](https://github.com/groshanlal/XGBoost-Model-Explanation-Demo)。该数据集受 CC BY 4.0 许可协议保护，允许学术和商业用途。
 
-## 步骤1：训练XGBoost模型
+## 步骤 1：训练 XGBoost 模型
 
-![](../Images/6a1348e8c92cf549cb9eb29043d485d9.png)
+![](img/6a1348e8c92cf549cb9eb29043d485d9.png)
 
-我们在成人收入数据集上训练了一个具有50棵深度为3的树的XGBoost模型。我们注意到，训练完成后，XGBoost模型在训练和测试数据集上的准确率约为86%，AUC为0.91。这证明了模型的有效训练及其在测试数据上良好的泛化能力。
+我们在成人收入数据集上训练了一个具有 50 棵深度为 3 的树的 XGBoost 模型。我们注意到，训练完成后，XGBoost 模型在训练和测试数据集上的准确率约为 86%，AUC 为 0.91。这证明了模型的有效训练及其在测试数据上良好的泛化能力。
 
-## 步骤2：使用TE2Rules解释模型
+## 步骤 2：使用 TE2Rules 解释模型
 
-![](../Images/b594c7076834270f8d7fa9a8a4d4fe0f.png)
+![](img/b594c7076834270f8d7fa9a8a4d4fe0f.png)
 
-使用TE2Rules，我们从训练好的XGBoost模型中推导出规则。为了引导TE2Rules生成解释规则，我们使用了10%的训练数据。值得注意的是，TE2Rules总共识别出1138条规则，其中每条规则在满足时确保模型的正类预测。为了提高可用性，TE2Rules将这些规则整合为一组简洁的16条规则，有效地用50棵树（每棵树的深度为3）解释模型。
+使用 TE2Rules，我们从训练好的 XGBoost 模型中推导出规则。为了引导 TE2Rules 生成解释规则，我们使用了 10%的训练数据。值得注意的是，TE2Rules 总共识别出 1138 条规则，其中每条规则在满足时确保模型的正类预测。为了提高可用性，TE2Rules 将这些规则整合为一组简洁的 16 条规则，有效地用 50 棵树（每棵树的深度为 3）解释模型。
 
-以下是完整解释该模型的16条规则：
+以下是完整解释该模型的 16 条规则：
 
-![](../Images/1974b25efde23d30f3b59caa5e0200e7.png)
+![](img/1974b25efde23d30f3b59caa5e0200e7.png)
 
-每条规则的精度超过95%。这些规则按在数据中的支持度降序排列。
+每条规则的精度超过 95%。这些规则按在数据中的支持度降序排列。
 
-## 第3步：使用TE2Rules解释特定输入
+## 第 3 步：使用 TE2Rules 解释特定输入
 
-![](../Images/882135baffdc5a88a8f67d17d9fe0200.png)
+![](img/882135baffdc5a88a8f67d17d9fe0200.png)
 
-使用TE2Rules，我们通过收集所有满足输入的1138条规则来解释一个特定的正类实例，从而解释该正类实例。在这些规则中，我们使用自定义逻辑对可能的解释进行排序，并选择最易理解的规则作为解释。
+使用 TE2Rules，我们通过收集所有满足输入的 1138 条规则来解释一个特定的正类实例，从而解释该正类实例。在这些规则中，我们使用自定义逻辑对可能的解释进行排序，并选择最易理解的规则作为解释。
 
-可解释性是高度主观的，因使用场景的不同而有所不同。在本示例中，我们使用规则中所使用特征的数量作为该规则可解释性的衡量标准。我们选择使用最少特征的规则作为最易理解的解释。以下是一个正类模型预测的示例输入，以及TE2Rules生成的关于该预测的解释：
+可解释性是高度主观的，因使用场景的不同而有所不同。在本示例中，我们使用规则中所使用特征的数量作为该规则可解释性的衡量标准。我们选择使用最少特征的规则作为最易理解的解释。以下是一个正类模型预测的示例输入，以及 TE2Rules 生成的关于该预测的解释：
 
-![](../Images/64031e557e745d25e4b29d7134210ac8.png)
+![](img/64031e557e745d25e4b29d7134210ac8.png)
 
-我们注意到，在上面的示例中，模型使用12个特征将输入分类为正类。TE2Rules通过一个只包含3个特征的规则来解释这一预测：“capital_gain > 543 且 education = 专业学校 且 occupation != 管理职位”。任何其他满足此规则的输入（来自相同的数据分布）都可以确保模型以超过95%的概率将其分类为正类。
+我们注意到，在上面的示例中，模型使用 12 个特征将输入分类为正类。TE2Rules 通过一个只包含 3 个特征的规则来解释这一预测：“capital_gain > 543 且 education = 专业学校 且 occupation != 管理职位”。任何其他满足此规则的输入（来自相同的数据分布）都可以确保模型以超过 95%的概率将其分类为正类。
 
-## 第4步：使用TE2Rules进行反事实解释
+## 第 4 步：使用 TE2Rules 进行反事实解释
 
-TE2Rules提取出满足时能导致模型作出正类预测的规则。这些规则可以用来指出需要对负类分类输入进行的最小修改，以确保模型将其分类为正类。因此，TE2Rules在生成反事实解释时非常有价值，反事实解释以规则的形式呈现，指定将负实例转化为正实例所需的条件。
+TE2Rules 提取出满足时能导致模型作出正类预测的规则。这些规则可以用来指出需要对负类分类输入进行的最小修改，以确保模型将其分类为正类。因此，TE2Rules 在生成反事实解释时非常有价值，反事实解释以规则的形式呈现，指定将负实例转化为正实例所需的条件。
 
 与前一个场景类似，可接受的最小修改因上下文而异。在本示例中，某些特征（如年龄、关系状态和性别）被视为不可改变，而其他特征（如教育、职业和资本收益/损失）则被视为可改变的。对于任何负类实例，我们指出在这些可改变特征中单一的特征，展示所需的调整，以促使模型将该实例评分为正类。
 
-![](../Images/f5f01524737d20b0bd8ede79ca1395dd.png)![](../Images/ff4c72f2a1476e5bf6be1dca49e7ddc3.png)
+![](img/f5f01524737d20b0bd8ede79ca1395dd.png)![](img/ff4c72f2a1476e5bf6be1dca49e7ddc3.png)
 
-我们注意到，在上述示例中，模型将输入分类为负面。TE2Rules识别出5条不同的规则，只要满足其中任何一条规则，就足以使模型将预测从负面转为正面。接受不同教育背景，如职业学校、硕士或博士学位，或获得更多资本收益，都有助于个人赚取更多的钱。然而，令人惊讶的是，模型已经学会了即使资本损失很大，这个人仍然会变得富有！这可能是因为这样的变化会导致数据样本与训练数据的分布差异很大，使得模型在这种情况下的可靠性降低。
+我们注意到，在上述示例中，模型将输入分类为负面。TE2Rules 识别出 5 条不同的规则，只要满足其中任何一条规则，就足以使模型将预测从负面转为正面。接受不同教育背景，如职业学校、硕士或博士学位，或获得更多资本收益，都有助于个人赚取更多的钱。然而，令人惊讶的是，模型已经学会了即使资本损失很大，这个人仍然会变得富有！这可能是因为这样的变化会导致数据样本与训练数据的分布差异很大，使得模型在这种情况下的可靠性降低。
 
 # 结论
 
-可解释性对于建立对AI模型的信任至关重要，特别是在高风险场景中，模型的决策可能对人们的生活产生深远影响，比如在医疗、法律和金融领域。许多这些关键的应用场景都涉及基于表格格式的数据做出决策。XGBoost通常是表格数据中最受欢迎的AI模型选择。
+可解释性对于建立对 AI 模型的信任至关重要，特别是在高风险场景中，模型的决策可能对人们的生活产生深远影响，比如在医疗、法律和金融领域。许多这些关键的应用场景都涉及基于表格格式的数据做出决策。XGBoost 通常是表格数据中最受欢迎的 AI 模型选择。
 
-TE2Rules作为一种多功能工具，用于解释XGBoost模型。TE2Rules在医学领域已经获得了广泛关注，并且逐渐在其他领域也开始受到欢迎。在这篇博客中，我们展示了TE2Rules如何有效地解释“为什么我的模型会这么说？”
+TE2Rules 作为一种多功能工具，用于解释 XGBoost 模型。TE2Rules 在医学领域已经获得了广泛关注，并且逐渐在其他领域也开始受到欢迎。在这篇博客中，我们展示了 TE2Rules 如何有效地解释“为什么我的模型会这么说？”
 
-作为一个由作者共同创建的开源研究项目，TE2Rules的源代码可以在[[https://github.com/linkedin/TE2Rules](https://github.com/linkedin/TE2Rules)]找到。我们鼓励用户将TE2Rules集成到他们的可解释性项目中。如果你发现TE2Rules对你的项目有帮助，请通过给仓库加星来表达支持。如果在使用TE2Rules过程中遇到任何问题，请通过[[https://github.com/linkedin/TE2Rules/issues](https://github.com/linkedin/TE2Rules/issues)]联系我们，我们会尽力解决你的问题。
+作为一个由作者共同创建的开源研究项目，TE2Rules 的源代码可以在[[`github.com/linkedin/TE2Rules`](https://github.com/linkedin/TE2Rules)]找到。我们鼓励用户将 TE2Rules 集成到他们的可解释性项目中。如果你发现 TE2Rules 对你的项目有帮助，请通过给仓库加星来表达支持。如果在使用 TE2Rules 过程中遇到任何问题，请通过[[`github.com/linkedin/TE2Rules/issues`](https://github.com/linkedin/TE2Rules/issues)]联系我们，我们会尽力解决你的问题。

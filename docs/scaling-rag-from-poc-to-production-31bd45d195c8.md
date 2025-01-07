@@ -1,48 +1,48 @@
-# 将RAG从概念验证（POC）扩展到生产
+# 将 RAG 从概念验证（POC）扩展到生产
 
-> 原文：[https://towardsdatascience.com/scaling-rag-from-poc-to-production-31bd45d195c8?source=collection_archive---------0-----------------------#2024-10-07](https://towardsdatascience.com/scaling-rag-from-poc-to-production-31bd45d195c8?source=collection_archive---------0-----------------------#2024-10-07)
+> 原文：[`towardsdatascience.com/scaling-rag-from-poc-to-production-31bd45d195c8?source=collection_archive---------0-----------------------#2024-10-07`](https://towardsdatascience.com/scaling-rag-from-poc-to-production-31bd45d195c8?source=collection_archive---------0-----------------------#2024-10-07)
 
 ## 启动和扩展的常见挑战与架构组件
 
-[](https://medium.com/@bhagatanurag03?source=post_page---byline--31bd45d195c8--------------------------------)[![Anurag Bhagat](../Images/3711a1fce6e2a45d649e534f08c3d0ca.png)](https://medium.com/@bhagatanurag03?source=post_page---byline--31bd45d195c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--31bd45d195c8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--31bd45d195c8--------------------------------) [Anurag Bhagat](https://medium.com/@bhagatanurag03?source=post_page---byline--31bd45d195c8--------------------------------)
+[](https://medium.com/@bhagatanurag03?source=post_page---byline--31bd45d195c8--------------------------------)![Anurag Bhagat](https://medium.com/@bhagatanurag03?source=post_page---byline--31bd45d195c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--31bd45d195c8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31bd45d195c8--------------------------------) [Anurag Bhagat](https://medium.com/@bhagatanurag03?source=post_page---byline--31bd45d195c8--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31bd45d195c8--------------------------------) ·阅读时长7分钟·2024年10月7日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31bd45d195c8--------------------------------) ·阅读时长 7 分钟·2024 年 10 月 7 日
 
 --
 
-![](../Images/ee14c78dc3f1d708f7e587a83fe8d0db.png)
+![](img/ee14c78dc3f1d708f7e587a83fe8d0db.png)
 
-*来源：在AI（OpenAI的Dall-E模型）的帮助下生成*
+*来源：在 AI（OpenAI 的 Dall-E 模型）的帮助下生成*
 
 # 1\. 引言
 
-## 1.1\. RAG概述
+## 1.1\. RAG 概述
 
-那些沉浸于生成性AI及其在个人生产力应用之外的大规模应用的朋友们，可能已经接触过检索增强生成（RAG）的概念。RAG架构由两个关键组件组成——检索组件，它使用向量数据库对大量文档进行基于索引的搜索，然后将其传送给大语言模型（LLM）以生成基于提示中更丰富上下文的有依据的响应。
+那些沉浸于生成性 AI 及其在个人生产力应用之外的大规模应用的朋友们，可能已经接触过检索增强生成（RAG）的概念。RAG 架构由两个关键组件组成——检索组件，它使用向量数据库对大量文档进行基于索引的搜索，然后将其传送给大语言模型（LLM）以生成基于提示中更丰富上下文的有依据的响应。
 
-无论你是在构建面向客户的聊天机器人以回答重复性问题并减少客户服务代表的工作负担，还是在为工程师构建一款协同助手，帮助他们一步步浏览复杂的用户手册，RAG已经成为大语言模型（LLMs）应用的关键原型。这使得LLM能够根据成千上万的文档的事实基础，提供上下文相关的响应，从而减少幻觉现象并提高基于LLM的应用的可靠性。
+无论你是在构建面向客户的聊天机器人以回答重复性问题并减少客户服务代表的工作负担，还是在为工程师构建一款协同助手，帮助他们一步步浏览复杂的用户手册，RAG 已经成为大语言模型（LLMs）应用的关键原型。这使得 LLM 能够根据成千上万的文档的事实基础，提供上下文相关的响应，从而减少幻觉现象并提高基于 LLM 的应用的可靠性。
 
 ## 1.2\. 为什么要从概念验证（POC）扩展到生产
 
-如果你在问这个问题，我可能会挑战你回答：如果没有打算将其投入生产，为什么要构建一个POC（概念验证）？“试点地狱”是组织在开始实验时常见的风险，之后却陷入了实验模式。请记住，POC是昂贵的，真正的价值实现只有在进入生产并按规模执行时才会发生——无论是释放资源、提高效率，还是创造额外的收入流。
+如果你在问这个问题，我可能会挑战你回答：如果没有打算将其投入生产，为什么要构建一个 POC（概念验证）？“试点地狱”是组织在开始实验时常见的风险，之后却陷入了实验模式。请记住，POC 是昂贵的，真正的价值实现只有在进入生产并按规模执行时才会发生——无论是释放资源、提高效率，还是创造额外的收入流。
 
-# 2\. 扩展RAG的关键挑战
+# 2\. 扩展 RAG 的关键挑战
 
 ## 2.1. 性能
 
-RAG中的性能挑战有很多种形式。检索速度通常不是主要挑战，除非你的知识库有数百万份文档，即便如此，这个问题也可以通过搭建合适的基础设施来解决——当然，我们也受到推理时间的限制。我们遇到的第二个性能问题是如何获取“正确”的文段，以便传递给大语言模型（LLM）进行生成，且要保证高精度和高召回率。检索过程越差，LLM的回应就越缺乏上下文相关性。
+RAG 中的性能挑战有很多种形式。检索速度通常不是主要挑战，除非你的知识库有数百万份文档，即便如此，这个问题也可以通过搭建合适的基础设施来解决——当然，我们也受到推理时间的限制。我们遇到的第二个性能问题是如何获取“正确”的文段，以便传递给大语言模型（LLM）进行生成，且要保证高精度和高召回率。检索过程越差，LLM 的回应就越缺乏上下文相关性。
 
 ## 2.2. 数据管理
 
-我们都听过那句古老的谚语“垃圾进，垃圾出（GIGO）”。RAG不过是我们手头的一组工具，真正的价值来自于实际数据。由于RAG系统处理的是非结构化数据，因此它有自己的一系列挑战，包括但不限于——文档版本控制和格式转换（例如从PDF到文本），等等。
+我们都听过那句古老的谚语“垃圾进，垃圾出（GIGO）”。RAG 不过是我们手头的一组工具，真正的价值来自于实际数据。由于 RAG 系统处理的是非结构化数据，因此它有自己的一系列挑战，包括但不限于——文档版本控制和格式转换（例如从 PDF 到文本），等等。
 
 ## 2.3. 风险
 
-企业从试水到全面投入的最大犹豫之一，是使用基于AI的系统可能带来的风险。尽管使用RAG可以显著减少幻觉现象，但它们仍然存在非零的可能性。还有其他相关的风险，包括偏见、毒性、合规性风险等，这些风险可能带来长期的影响。
+企业从试水到全面投入的最大犹豫之一，是使用基于 AI 的系统可能带来的风险。尽管使用 RAG 可以显著减少幻觉现象，但它们仍然存在非零的可能性。还有其他相关的风险，包括偏见、毒性、合规性风险等，这些风险可能带来长期的影响。
 
 ## 2.4. 集成到现有工作流程中
 
-构建离线解决方案比较容易，但引入最终用户的视角至关重要，以确保解决方案不会让用户觉得负担重。没有用户愿意为了使用“新AI功能”而切换到另一个屏幕——用户希望AI功能能够内嵌到现有工作流程中，这样技术就能成为一种辅助工具，而不是日常工作中的干扰。
+构建离线解决方案比较容易，但引入最终用户的视角至关重要，以确保解决方案不会让用户觉得负担重。没有用户愿意为了使用“新 AI 功能”而切换到另一个屏幕——用户希望 AI 功能能够内嵌到现有工作流程中，这样技术就能成为一种辅助工具，而不是日常工作中的干扰。
 
 ## 2.5. 成本
 
@@ -54,21 +54,21 @@ RAG中的性能挑战有很多种形式。检索速度通常不是主要挑战�
 
 ## 3.1. 可扩展的向量数据库
 
-许多团队通常会首先使用开源向量数据库，如[ChromaDB](https://www.trychroma.com/)，因为它们易于使用和定制，非常适合概念验证（POC）。然而，它在大规模部署中可能会面临挑战。这时，可扩展的向量数据库就发挥了作用（例如，[Pinecone](https://www.pinecone.io/)，[Weaviate](https://weaviate.io/platform)，[Milvus](https://milvus.io/)等），这些数据库针对高维向量搜索进行了优化，能够实现快速（亚毫秒级）、准确的检索，即使数据集的大小增加到百万或十亿向量，它们仍然能够高效运作，因为它们使用[近似最近邻](https://www.mongodb.com/resources/basics/ann-search)搜索技术。这些向量数据库提供API、插件和SDK，方便与现有工作流集成，同时支持横向扩展。根据平台的不同，可能需要探索[Databricks](https://www.databricks.com/product/machine-learning/vector-search)或[AWS](https://aws.amazon.com/opensearch-service/)提供的向量数据库。
+许多团队通常会首先使用开源向量数据库，如[ChromaDB](https://www.trychroma.com/)，因为它们易于使用和定制，非常适合概念验证（POC）。然而，它在大规模部署中可能会面临挑战。这时，可扩展的向量数据库就发挥了作用（例如，[Pinecone](https://www.pinecone.io/)，[Weaviate](https://weaviate.io/platform)，[Milvus](https://milvus.io/)等），这些数据库针对高维向量搜索进行了优化，能够实现快速（亚毫秒级）、准确的检索，即使数据集的大小增加到百万或十亿向量，它们仍然能够高效运作，因为它们使用[近似最近邻](https://www.mongodb.com/resources/basics/ann-search)搜索技术。这些向量数据库提供 API、插件和 SDK，方便与现有工作流集成，同时支持横向扩展。根据平台的不同，可能需要探索[Databricks](https://www.databricks.com/product/machine-learning/vector-search)或[AWS](https://aws.amazon.com/opensearch-service/)提供的向量数据库。
 
-![](../Images/6f8562c4e112308a47a06f348db3715d.png)
+![](img/6f8562c4e112308a47a06f348db3715d.png)
 
-*来源：借助AI（OpenAI的Dall-E模型）生成*
+*来源：借助 AI（OpenAI 的 Dall-E 模型）生成*
 
 ## 3.2\. 缓存机制
 
-缓存的概念几乎与互联网的诞生一样久远，[可以追溯到](https://cacm.acm.org/opinion/ibms-single-processor-supercomputer-efforts/#:~:text=a.,computer%20system%20to%20use%20cache)20世纪60年代。这个概念同样适用于生成型AI——如果有大量查询，可能达到数百万（在客户服务功能中非常常见），很可能许多查询是相同的或极为相似的。缓存技术可以避免向LLM发送请求，如果可以从最近的缓存响应中返回结果，这样不仅能减少成本，还能提高常见查询的响应速度。
+缓存的概念几乎与互联网的诞生一样久远，[可以追溯到](https://cacm.acm.org/opinion/ibms-single-processor-supercomputer-efforts/#:~:text=a.,computer%20system%20to%20use%20cache)20 世纪 60 年代。这个概念同样适用于生成型 AI——如果有大量查询，可能达到数百万（在客户服务功能中非常常见），很可能许多查询是相同的或极为相似的。缓存技术可以避免向 LLM 发送请求，如果可以从最近的缓存响应中返回结果，这样不仅能减少成本，还能提高常见查询的响应速度。
 
-这可以通过内存缓存（如[Redis](https://redis.io/)或[Memcached](https://memcached.org/)）来实现，针对较少的查询使用磁盘缓存，或使用分布式缓存（如Redis集群）。一些模型提供商（如Anthropic）提供[提示缓存](https://www.anthropic.com/news/prompt-caching)作为其API的一部分。
+这可以通过内存缓存（如[Redis](https://redis.io/)或[Memcached](https://memcached.org/)）来实现，针对较少的查询使用磁盘缓存，或使用分布式缓存（如 Redis 集群）。一些模型提供商（如 Anthropic）提供[提示缓存](https://www.anthropic.com/news/prompt-caching)作为其 API 的一部分。
 
-![](../Images/eb99db871ae334a898f3493fc951fc01.png)
+![](img/eb99db871ae334a898f3493fc951fc01.png)
 
-*来源：借助AI（OpenAI的Dall-E模型）生成*
+*来源：借助 AI（OpenAI 的 Dall-E 模型）生成*
 
 # 3.3\. 高级搜索技术
 
@@ -78,7 +78,7 @@ RAG中的性能挑战有很多种形式。检索速度通常不是主要挑战�
 
 +   **重新排序：** 使用 LLM 或 SLM 计算查询与每个搜索结果的相关性得分，并重新排序，从而仅提取并分享最相关的结果。这对于复杂领域或有许多文档返回的领域尤其有用。一个例子是 [Cohere’s Rerank](https://aws.amazon.com/marketplace/pp/prodview-pf7d2umihcseq)。
 
-![](../Images/10211b4b3b6985b8800c7a4427794dc8.png)
+![](img/10211b4b3b6985b8800c7a4427794dc8.png)
 
 *来源：通过 AI（OpenAI 的 Dall-E 模型）生成*
 
@@ -92,7 +92,7 @@ RAG中的性能挑战有很多种形式。检索速度通常不是主要挑战�
 
 这些检查可以作为小型可重用模块启用，您可以从外部提供商购买，或者根据自己的需求进行构建/定制。组织通常采用的一种方式是使用精心设计的提示和基础模型来编排工作流程，确保结果在通过所有检查之前不会呈现给最终用户。
 
-![](../Images/184aa917e7c7eebc06ae752d9ef78de8.png)
+![](img/184aa917e7c7eebc06ae752d9ef78de8.png)
 
 *来源：通过 AI（OpenAI 的 Dall-E 模型）生成*
 
@@ -108,7 +108,7 @@ API 网关可以发挥多种作用，帮助管理成本以及负责任的人工�
 
 +   启用审计追踪和访问控制
 
-![](../Images/cb937658eacc1f107b854540ff8edb4e.png)
+![](img/cb937658eacc1f107b854540ff8edb4e.png)
 
 *来源：通过 AI（OpenAI 的 Dall-E 模型）生成*
 
@@ -128,6 +128,6 @@ API 网关可以发挥多种作用，帮助管理成本以及负责任的人工�
 
 # 5. 结论
 
-RAG 是一个典型的使用案例原型，也是组织首次尝试实施的几个用例之一。从POC到生产环境的 RAG 扩展面临诸多挑战，但通过精心的规划和执行，许多挑战是可以克服的。其中一些可以通过在架构和技术上的战术性投资来解决，而另一些则需要更好的战略方向和巧妙的规划。随着大语言模型（LLM）推理成本的不断下降，无论是由于推理成本的降低，还是开源模型的广泛采用，许多新用例的成本壁垒可能不再是问题。
+RAG 是一个典型的使用案例原型，也是组织首次尝试实施的几个用例之一。从 POC 到生产环境的 RAG 扩展面临诸多挑战，但通过精心的规划和执行，许多挑战是可以克服的。其中一些可以通过在架构和技术上的战术性投资来解决，而另一些则需要更好的战略方向和巧妙的规划。随着大语言模型（LLM）推理成本的不断下降，无论是由于推理成本的降低，还是开源模型的广泛采用，许多新用例的成本壁垒可能不再是问题。
 
 *本文中的所有观点仅代表作者个人意见，并不代表对任何产品或服务的认可。*

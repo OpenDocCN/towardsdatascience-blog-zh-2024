@@ -1,20 +1,20 @@
-# 我做过80多次数据科学面试——以下是有效的方法
+# 我做过 80 多次数据科学面试——以下是有效的方法
 
-> 原文：[https://towardsdatascience.com/ive-done-80-data-science-interviews-here-s-what-works-ae8053f79a6d?source=collection_archive---------2-----------------------#2024-12-24](https://towardsdatascience.com/ive-done-80-data-science-interviews-here-s-what-works-ae8053f79a6d?source=collection_archive---------2-----------------------#2024-12-24)
+> 原文：[`towardsdatascience.com/ive-done-80-data-science-interviews-here-s-what-works-ae8053f79a6d?source=collection_archive---------2-----------------------#2024-12-24`](https://towardsdatascience.com/ive-done-80-data-science-interviews-here-s-what-works-ae8053f79a6d?source=collection_archive---------2-----------------------#2024-12-24)
 
-## 3年的数据科学面试经验
+## 3 年的数据科学面试经验
 
-[](https://medium.com/@egorhowell?source=post_page---byline--ae8053f79a6d--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--ae8053f79a6d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ae8053f79a6d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ae8053f79a6d--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--ae8053f79a6d--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--ae8053f79a6d--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--ae8053f79a6d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ae8053f79a6d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ae8053f79a6d--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--ae8053f79a6d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ae8053f79a6d--------------------------------) ·6分钟阅读·2024年12月24日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ae8053f79a6d--------------------------------) ·6 分钟阅读·2024 年 12 月 24 日
 
 --
 
-![](../Images/f0fa4b06d5afb829bba1e9375f635c06.png)
+![](img/f0fa4b06d5afb829bba1e9375f635c06.png)
 
 图片由 [Sebastian Herrmann](https://unsplash.com/@officestock?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-我已经进行过超过30次数据科学面试，也亲自面试过50多次，所以我想从两方的角度给出我最好的建议。
+我已经进行过超过 30 次数据科学面试，也亲自面试过 50 多次，所以我想从两方的角度给出我最好的建议。
 
 # 面试是一个数字游戏
 

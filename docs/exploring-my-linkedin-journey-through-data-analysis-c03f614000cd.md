@@ -1,16 +1,16 @@
 # 通过数据分析探索我的 LinkedIn 之旅
 
-> 原文：[https://towardsdatascience.com/exploring-my-linkedin-journey-through-data-analysis-c03f614000cd?source=collection_archive---------4-----------------------#2024-03-02](https://towardsdatascience.com/exploring-my-linkedin-journey-through-data-analysis-c03f614000cd?source=collection_archive---------4-----------------------#2024-03-02)
+> 原文：[`towardsdatascience.com/exploring-my-linkedin-journey-through-data-analysis-c03f614000cd?source=collection_archive---------4-----------------------#2024-03-02`](https://towardsdatascience.com/exploring-my-linkedin-journey-through-data-analysis-c03f614000cd?source=collection_archive---------4-----------------------#2024-03-02)
 
 ## 揭示我的帖子与互动模式 — **一个与数据相关的一年旅程**
 
-[](https://medium.com/@stephanhausberg?source=post_page---byline--c03f614000cd--------------------------------)[![Stephan Hausberg](../Images/30cc456efbdf6cfdf3e8ba0bc8bd779d.png)](https://medium.com/@stephanhausberg?source=post_page---byline--c03f614000cd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c03f614000cd--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c03f614000cd--------------------------------) [Stephan Hausberg](https://medium.com/@stephanhausberg?source=post_page---byline--c03f614000cd--------------------------------)
+[](https://medium.com/@stephanhausberg?source=post_page---byline--c03f614000cd--------------------------------)![Stephan Hausberg](https://medium.com/@stephanhausberg?source=post_page---byline--c03f614000cd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c03f614000cd--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c03f614000cd--------------------------------) [Stephan Hausberg](https://medium.com/@stephanhausberg?source=post_page---byline--c03f614000cd--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c03f614000cd--------------------------------) ·13分钟阅读·2024年3月2日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c03f614000cd--------------------------------) ·13 分钟阅读·2024 年 3 月 2 日
 
 --
 
-![](../Images/e197523bb112196a3ceddc4b3823090a.png)
+![](img/e197523bb112196a3ceddc4b3823090a.png)
 
 标签网络图可视化 — 图片由作者提供
 

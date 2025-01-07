@@ -1,22 +1,22 @@
 # 如何在数据科学家面试中脱颖而出
 
-> 原文：[https://towardsdatascience.com/how-to-stand-out-in-your-data-scientist-interview-f3cbaddbbae4?source=collection_archive---------7-----------------------#2024-07-29](https://towardsdatascience.com/how-to-stand-out-in-your-data-scientist-interview-f3cbaddbbae4?source=collection_archive---------7-----------------------#2024-07-29)
+> 原文：[`towardsdatascience.com/how-to-stand-out-in-your-data-scientist-interview-f3cbaddbbae4?source=collection_archive---------7-----------------------#2024-07-29`](https://towardsdatascience.com/how-to-stand-out-in-your-data-scientist-interview-f3cbaddbbae4?source=collection_archive---------7-----------------------#2024-07-29)
 
-![](../Images/4f0435b688808a2e9e2df29be2a73431.png)
+![](img/4f0435b688808a2e9e2df29be2a73431.png)
 
 图片由 [Tim Gouw](https://unsplash.com/@punttim?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 来自我在招聘数据科学家的经验的一个建议，甚至一些经验丰富的专业人士也未曾意识到这一点
 
-[](https://medium.com/@bl3e967?source=post_page---byline--f3cbaddbbae4--------------------------------)[![Benjamin Lee](../Images/a369931c73019143609812354c773151.png)](https://medium.com/@bl3e967?source=post_page---byline--f3cbaddbbae4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f3cbaddbbae4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f3cbaddbbae4--------------------------------) [Benjamin Lee](https://medium.com/@bl3e967?source=post_page---byline--f3cbaddbbae4--------------------------------)
+[](https://medium.com/@bl3e967?source=post_page---byline--f3cbaddbbae4--------------------------------)![Benjamin Lee](https://medium.com/@bl3e967?source=post_page---byline--f3cbaddbbae4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f3cbaddbbae4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f3cbaddbbae4--------------------------------) [Benjamin Lee](https://medium.com/@bl3e967?source=post_page---byline--f3cbaddbbae4--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f3cbaddbbae4--------------------------------) ·阅读时间：8分钟·2024年7月29日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f3cbaddbbae4--------------------------------) ·阅读时间：8 分钟·2024 年 7 月 29 日
 
 --
 
 ## **TL;DR**
 
-**最好的面试是你和面试官之间的对话，而不是FBI审讯。像下面的例子一样构建你的回答，以操控面试的动态，让面试官感觉他们只是和同事进行了一场知识性的对话。**
+**最好的面试是你和面试官之间的对话，而不是 FBI 审讯。像下面的例子一样构建你的回答，以操控面试的动态，让面试官感觉他们只是和同事进行了一场知识性的对话。**
 
 ## 为什么你需要阅读这篇文章
 

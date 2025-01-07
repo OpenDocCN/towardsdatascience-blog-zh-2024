@@ -1,42 +1,42 @@
-# LLM代理揭秘
+# LLM 代理揭秘
 
-> 原文：[https://towardsdatascience.com/llm-agents-demystified-8e2a62c185fa?source=collection_archive---------1-----------------------#2024-07-14](https://towardsdatascience.com/llm-agents-demystified-8e2a62c185fa?source=collection_archive---------1-----------------------#2024-07-14)
+> 原文：[`towardsdatascience.com/llm-agents-demystified-8e2a62c185fa?source=collection_archive---------1-----------------------#2024-07-14`](https://towardsdatascience.com/llm-agents-demystified-8e2a62c185fa?source=collection_archive---------1-----------------------#2024-07-14)
 
-## 使用AdalFlow库实现ReAct代理
+## 使用 AdalFlow 库实现 ReAct 代理
 
-[](https://liyin2015.medium.com/?source=post_page---byline--8e2a62c185fa--------------------------------)[![Li Yin](../Images/ef856165bfb90c952ed7d16da42e28ee.png)](https://liyin2015.medium.com/?source=post_page---byline--8e2a62c185fa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8e2a62c185fa--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8e2a62c185fa--------------------------------) [Li Yin](https://liyin2015.medium.com/?source=post_page---byline--8e2a62c185fa--------------------------------)
+[](https://liyin2015.medium.com/?source=post_page---byline--8e2a62c185fa--------------------------------)![Li Yin](https://liyin2015.medium.com/?source=post_page---byline--8e2a62c185fa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8e2a62c185fa--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8e2a62c185fa--------------------------------) [Li Yin](https://liyin2015.medium.com/?source=post_page---byline--8e2a62c185fa--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8e2a62c185fa--------------------------------) ·14分钟阅读·2024年7月14日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8e2a62c185fa--------------------------------) ·14 分钟阅读·2024 年 7 月 14 日
 
 --
 
-![](../Images/377c1a54d2816cd3209bda5a881ca73e.png)
+![](img/377c1a54d2816cd3209bda5a881ca73e.png)
 
 [图片来源](https://unsplash.com/photos/an-abstract-image-of-a-sphere-with-dots-and-lines-nGoCBxiaRO0)，感谢[Growtika](https://unsplash.com/@growtika)
 
-AdalFlow库：[https://github.com/SylphAI-Inc/AdalFlow](https://github.com/SylphAI-Inc/AdalFlow)
+AdalFlow 库：[`github.com/SylphAI-Inc/AdalFlow`](https://github.com/SylphAI-Inc/AdalFlow)
 
-[**Colab笔记本**](https://colab.research.google.com/drive/1mpocvG8lPyW1ISOK7SJ4bCt9KmQCP0SJ?usp=sharing)
+[**Colab 笔记本**](https://colab.research.google.com/drive/1mpocvG8lPyW1ISOK7SJ4bCt9KmQCP0SJ?usp=sharing)
 
 *“自主代理是一个位于环境中的系统，能够感知该环境并在其中行动，随着时间推移，为了追求自己的目标，进而影响它所感知到的未来。”*
 
 *— Franklin and Graesser (1997)*
 
-除了广为人知的RAGs（检索增强生成模型），代理[[1]](https://lightrag.sylph.ai/tutorials/agent.html#id3)是另一类受欢迎的LLM应用。使代理与众不同的是它们能够通过可访问的工具进行推理、规划和行动。在实现方面，AdalFlow将其简化为一个生成器，能够使用工具，采取多步骤（顺序或并行）来完成用户查询。
+除了广为人知的 RAGs（检索增强生成模型），代理[[1]](https://lightrag.sylph.ai/tutorials/agent.html#id3)是另一类受欢迎的 LLM 应用。使代理与众不同的是它们能够通过可访问的工具进行推理、规划和行动。在实现方面，AdalFlow 将其简化为一个生成器，能够使用工具，采取多步骤（顺序或并行）来完成用户查询。
 
-# 什么是ReAct代理？
+# 什么是 ReAct 代理？
 
-我们将首先介绍ReAct[[2]](https://lightrag.sylph.ai/tutorials/agent.html#id4)，这是构建代理的一种通用范式，包含一系列交替的思考、行动和观察步骤。
+我们将首先介绍 ReAct[[2]](https://lightrag.sylph.ai/tutorials/agent.html#id4)，这是构建代理的一种通用范式，包含一系列交替的思考、行动和观察步骤。
 
 +   **思考**：采取行动的推理过程。
 
 +   **行动**：从预定义的行动集合中采取的行动。特别地，这些是我们在[工具](https://lightrag.sylph.ai/tutorials/tool_helper.html)部分介绍的工具/功能工具。
 
-+   **观察**：最简单的场景是以字符串格式呈现的执行结果。为了更强的鲁棒性，可以通过任何提供足够执行信息的方式来定义，从而让LLM能够规划下一步。
++   **观察**：最简单的场景是以字符串格式呈现的执行结果。为了更强的鲁棒性，可以通过任何提供足够执行信息的方式来定义，从而让 LLM 能够规划下一步。
 
 # 提示和数据模型
 
-[**DEFAULT_REACT_AGENT_SYSTEM_PROMPT**](https://lightrag.sylph.ai/apis/components/components.agent.react.html#components.agent.react.DEFAULT_REACT_AGENT_SYSTEM_PROMPT)是React代理LLM规划器的默认提示。我们可以将提示模板分为四个部分：
+[**DEFAULT_REACT_AGENT_SYSTEM_PROMPT**](https://lightrag.sylph.ai/apis/components/components.agent.react.html#components.agent.react.DEFAULT_REACT_AGENT_SYSTEM_PROMPT)是 React 代理 LLM 规划器的默认提示。我们可以将提示模板分为四个部分：
 
 1.  任务描述
 
@@ -126,9 +126,9 @@ def finish(answer: str) -> str:
    return answer
 ```
 
-简单地返回一个字符串可能无法满足所有场景，我们未来可能会考虑允许用户为更复杂的情况定义自己的finish函数。
+简单地返回一个字符串可能无法满足所有场景，我们未来可能会考虑允许用户为更复杂的情况定义自己的 finish 函数。
 
-此外，由于提供的工具不能总是解决用户查询，我们允许用户配置是否应该使用LLM模型来解决子查询，方法是通过`add_llm_as_fallback`参数进行配置。这个LLM将使用与代理规划器相同的模型客户端和模型参数。以下是我们指定回退LLM工具的代码：
+此外，由于提供的工具不能总是解决用户查询，我们允许用户配置是否应该使用 LLM 模型来解决子查询，方法是通过`add_llm_as_fallback`参数进行配置。这个 LLM 将使用与代理规划器相同的模型客户端和模型参数。以下是我们指定回退 LLM 工具的代码：
 
 ```py
 _additional_llm_tool = (
@@ -158,11 +158,11 @@ def llm_tool(input: str) -> str:
 
 +   `planner`：一个`Generator`，与`JsonOutputParser`配合使用，解析输出格式并提供`FunctionExpression`函数调用的示例。
 
-+   `ToolManager`：管理给定的工具列表、finish函数和LLM工具。它负责解析和执行这些函数。
++   `ToolManager`：管理给定的工具列表、finish 函数和 LLM 工具。它负责解析和执行这些函数。
 
 此外，它还管理 step_history 作为 `StepOutput` 实例的列表，用于代理的内部状态。
 
-![](../Images/f1e51b6cfadc9c78c5729ddecc0c5b9d.png)
+![](img/f1e51b6cfadc9c78c5729ddecc0c5b9d.png)
 
 提供输入查询并处理步骤以生成响应。
 
@@ -334,7 +334,7 @@ test_react_agent(ModelClientType.OPENAI(), gpt_model_kwargs)
 
 我们的代理将通过有色打印输出展示开发者的核心步骤，包括输入查询、步骤和最终答案。以下是使用 llama3 的第一个查询打印输出（这里没有颜色）：
 
-![](../Images/2ee8fc221d212043565747fa5e693db2.png)
+![](img/2ee8fc221d212043565747fa5e693db2.png)
 
 ```py
 2024-07-10 16:48:47 - [react.py:287:call] - input_query: What is the capital of France? and what is 465 times 321 then add 95297 and then divide by 13.2
@@ -482,7 +482,7 @@ ________
 
 [1] 关于基于大语言模型的自主代理的调查：[Paitesanshi/LLM-Agent-Survey](https://github.com/Paitesanshi/LLM-Agent-Survey)
 
-**[**[**2**](https://lightrag.sylph.ai/tutorials/agent.html#id2)**]** ReAct: [https://arxiv.org/abs/2210.03629](https://arxiv.org/abs/2210.03629)
+**[**[**2**](https://lightrag.sylph.ai/tutorials/agent.html#id2)**]** ReAct: [`arxiv.org/abs/2210.03629`](https://arxiv.org/abs/2210.03629)
 
 # API 参考
 

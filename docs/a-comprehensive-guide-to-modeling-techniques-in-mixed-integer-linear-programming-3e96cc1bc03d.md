@@ -1,16 +1,16 @@
 # 混合整数线性规划建模技术的全面指南
 
-> 原文：[https://towardsdatascience.com/a-comprehensive-guide-to-modeling-techniques-in-mixed-integer-linear-programming-3e96cc1bc03d?source=collection_archive---------0-----------------------#2024-03-11](https://towardsdatascience.com/a-comprehensive-guide-to-modeling-techniques-in-mixed-integer-linear-programming-3e96cc1bc03d?source=collection_archive---------0-----------------------#2024-03-11)
+> 原文：[`towardsdatascience.com/a-comprehensive-guide-to-modeling-techniques-in-mixed-integer-linear-programming-3e96cc1bc03d?source=collection_archive---------0-----------------------#2024-03-11`](https://towardsdatascience.com/a-comprehensive-guide-to-modeling-techniques-in-mixed-integer-linear-programming-3e96cc1bc03d?source=collection_archive---------0-----------------------#2024-03-11)
 
 ## 将想法转化为数学表达式，以解决运筹学问题。
 
-[](https://medium.com/@bruscalia12?source=post_page---byline--3e96cc1bc03d--------------------------------)[![Bruno Scalia C. F. Leite](../Images/1042cd04be047c0811fef79ecd04e69c.png)](https://medium.com/@bruscalia12?source=post_page---byline--3e96cc1bc03d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3e96cc1bc03d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3e96cc1bc03d--------------------------------) [Bruno Scalia C. F. Leite](https://medium.com/@bruscalia12?source=post_page---byline--3e96cc1bc03d--------------------------------)
+[](https://medium.com/@bruscalia12?source=post_page---byline--3e96cc1bc03d--------------------------------)![Bruno Scalia C. F. Leite](https://medium.com/@bruscalia12?source=post_page---byline--3e96cc1bc03d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3e96cc1bc03d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e96cc1bc03d--------------------------------) [Bruno Scalia C. F. Leite](https://medium.com/@bruscalia12?source=post_page---byline--3e96cc1bc03d--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e96cc1bc03d--------------------------------) ·13分钟阅读·2024年3月11日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e96cc1bc03d--------------------------------) ·13 分钟阅读·2024 年 3 月 11 日
 
 --
 
-![](../Images/3d230ce2da990f4028cfa3593b0eb7f1.png)
+![](img/3d230ce2da990f4028cfa3593b0eb7f1.png)
 
 摄影：来自[Aaron Lefler](https://unsplash.com/@alefler?utm_source=medium&utm_medium=referral)的照片，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -20,35 +20,35 @@
 
 数学模型通常需要将离散决策和整数值纳入其中。这些问题特别在线性模型的背景下进行了探索，因为多年来提出了高效的算法。当*线性规划*（LP）包含整数约束时，它被归类为*整数规划*或*混合整数线性规划*（MILP）。幸运的是，我们有多种求解器可以解决这些问题，包括开源的替代方案，如[HiGHS](https://highs.dev/#top)和[SCIP](https://www.scipopt.org/)。
 
-尽管数学模型是对现实的近似表示，但它们在指导决策方面仍然有用。因此，本文旨在阐述如何用数学术语描述在MILP中常见的公式和表达式。
+尽管数学模型是对现实的近似表示，但它们在指导决策方面仍然有用。因此，本文旨在阐述如何用数学术语描述在 MILP 中常见的公式和表达式。
 
 接下来的部分将涵盖：
 
-+   [逻辑语句](#5120)
++   逻辑语句
 
-+   [设立成本和批量大小](#86a6)
++   设立成本和批量大小
 
-+   [条件表达式](#a5a0)
++   条件表达式
 
-+   [离散规划时域](#1226)
++   离散规划时域
 
-+   [线性化技术](#8559)
++   线性化技术
 
-+   [进一步阅读](#b8cc)
++   进一步阅读
 
-+   [结论](#f9ce)
++   结论
 
-+   [参考文献](#6f3f)
++   参考文献
 
-本文将是一个更抽象的数学模型文本，而不是一个代码应用指南。然而，你可能会在我的[GitHub仓库](https://github.com/bruscalia/optimization-demo-files)中找到一些关于如何解决数值优化模型的实际例子。
+本文将是一个更抽象的数学模型文本，而不是一个代码应用指南。然而，你可能会在我的[GitHub 仓库](https://github.com/bruscalia/optimization-demo-files)中找到一些关于如何解决数值优化模型的实际例子。
 
 在开始之前，请记住，如果你已经熟悉*线性规划*，你可能会更好地理解这篇文章。你可以在我之前的文章中找到该主题的有趣概述。
 
-[](/linear-programming-theory-and-applications-c67600591612?source=post_page-----3e96cc1bc03d--------------------------------) [## 线性规划：理论与应用
+[](/linear-programming-theory-and-applications-c67600591612?source=post_page-----3e96cc1bc03d--------------------------------) ## 线性规划：理论与应用
 
-### 线性优化的主要概念及其在Python中的实现
+### 线性优化的主要概念及其在 Python 中的实现
 
-towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612?source=post_page-----3e96cc1bc03d--------------------------------)
+towardsdatascience.com
 
 现在让我们深入了解！
 
@@ -58,31 +58,31 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 ## 蕴涵
 
-让我们从“如果*x*则*y*”这一语句开始。它必须确保如果*x*为真（值为1），则*y*也必须为真。否则，*y*可以是0或1。可以通过一个简单的不等式来描述，即*y*大于或等于*x*。
+让我们从“如果*x*则*y*”这一语句开始。它必须确保如果*x*为真（值为 1），则*y*也必须为真。否则，*y*可以是 0 或 1。可以通过一个简单的不等式来描述，即*y*大于或等于*x*。
 
-![](../Images/72c1cdc05a9dd0626160348cd7d4b475.png)
+![](img/72c1cdc05a9dd0626160348cd7d4b475.png)
 
 在整数规划中的蕴涵约束。（图片来源：作者）
 
 ## 逻辑非
 
-“not *y*”的表达式必须返回其相反值。所以，当*y*为1时，它必须返回0。否则，它应该返回1。
+“not *y*”的表达式必须返回其相反值。所以，当*y*为 1 时，它必须返回 0。否则，它应该返回 1。
 
-![](../Images/9574a64e4a75e2d5c02139eb7a972dd4.png)
+![](img/9574a64e4a75e2d5c02139eb7a972dd4.png)
 
 在整数规划中的逻辑非。（图片来源：作者）
 
-“not”语句可以与蕴涵约束结合，例如，“如果*x*则not *y*”。
+“not”语句可以与蕴涵约束结合，例如，“如果*x*则 not *y*”。
 
-![](../Images/eae727558113d7483f7309905691a629.png)
+![](img/eae727558113d7483f7309905691a629.png)
 
 在整数规划中结合逻辑非的蕴涵约束。（图片来源：作者）
 
 ## 逻辑与
 
-为了计算逻辑“与”，我们引入一个变量 *z*，当 *x* 和 *y* 都为真时，*z* 为真。这些规则与描述两个二进制变量之间乘积的规则相同，因为 *x* 乘以 *y* 仅在两者都等于 1 时才等于 1。这在计算连接两个节点的活动边时出现在[设施分配问题](/the-facility-dispersion-problem-mixed-integer-programming-models-98ffdb56cd26)中。
+为了计算逻辑“与”，我们引入一个变量 *z*，当 *x* 和 *y* 都为真时，*z* 为真。这些规则与描述两个二进制变量之间乘积的规则相同，因为 *x* 乘以 *y* 仅在两者都等于 1 时才等于 1。这在计算连接两个节点的活动边时出现在设施分配问题中。
 
-![](../Images/763a823045320cb0d5cea853face4e91.png)
+![](img/763a823045320cb0d5cea853face4e91.png)
 
 整数规划中的逻辑与约束。（图片来自作者）。
 
@@ -90,7 +90,7 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 现在，要计算逻辑“或”时，*z* 必须为真，如果 *x* 或 *y* 其中之一为真。我们必须确保它大于或等于它们中的每一个，并且小于它们的和。
 
-![](../Images/fca970d70ed3fc4da15e99a5068922b7.png)
+![](img/fca970d70ed3fc4da15e99a5068922b7.png)
 
 整数规划中的逻辑或约束。（图片来自作者）。
 
@@ -98,13 +98,13 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 接下来，我们引入 *设置成本* 和 *批量大小*，它们类似于隐含约束，但在具有实数值和整数/二进制变量的上下文中。考虑一个非负变量 *x*，并且在 *x* 大于零时应用设置成本。为了数学表示这一点，我们声明 *y* 乘以一个大值 *M* 应该大于或等于 *x*。
 
-![](../Images/87a937f3659e87657899339f4e2a91c9.png)
+![](img/87a937f3659e87657899339f4e2a91c9.png)
 
 混合整数线性规划中的设置成本隐含约束。（图片来自作者）。
 
 如果 *x* 大于零，则不等式仅在 *y* 等于 1 时满足。例如，在[动态批量问题](https://medium.com/towards-data-science/the-dynamic-lot-size-model-a-mixed-integer-programming-approach-4a9440ba124e)中，我们在平衡设置成本和库存持有成本时会遇到这种情况。
 
-![](../Images/ba135ac31c0e6d07e281602bcbd92858.png)
+![](img/ba135ac31c0e6d07e281602bcbd92858.png)
 
 为生产一个或多个项目而产生的机器设置成本。（图片来自作者）。
 
@@ -112,7 +112,7 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 对于涉及多个整数批次且每个批次有有限容量的场景（例如，向客户提供供应的运输任务），我们可以使用类似的表达式。现在假设 *y* 是一个整数变量，表示执行的批次数量，*Q* 是每个批次的容量。决策变量 *x* 仍然表示一个非负的实数值。我们可以写出相同的方程式来捕捉我们的决策规则。
 
-![](../Images/77f2703044f43788a4ea1e054b17ea83.png)
+![](img/77f2703044f43788a4ea1e054b17ea83.png)
 
 混合整数线性规划中的批量大小约束。（图片来自作者）。
 
@@ -120,15 +120,15 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 现在假设我们希望当二进制变量 *y* 为 1 时，不等式成立，否则不成立。我们可以再次引入一个大值 *M* 来捕捉这种条件。
 
-![](../Images/2ef6f26882b461f3cc54999e0e793fe2.png)
+![](img/2ef6f26882b461f3cc54999e0e793fe2.png)
 
 混合整数线性规划中的条件表达式。（图片来源：作者）
 
-当*y*等于1时，乘以*M*的项变为零，原始约束是紧约束。否则，*M*乘以1，因此它假定一个任意大的值，使得在考虑问题背景下，原始约束对于任何可行的*x*值都是非紧约束。
+当*y*等于 1 时，乘以*M*的项变为零，原始约束是紧约束。否则，*M*乘以 1，因此它假定一个任意大的值，使得在考虑问题背景下，原始约束对于任何可行的*x*值都是非紧约束。
 
-![](../Images/519c8abefacdaf0d994e5d5d92b5b5b0.png)
+![](img/519c8abefacdaf0d994e5d5d92b5b5b0.png)
 
-当*y*等于1时必须满足的条件表达式（不等式）。（图片来源：作者）
+当*y*等于 1 时必须满足的条件表达式（不等式）。（图片来源：作者）
 
 这些表达式在混合整数规划模型中会经常出现，以下是一些最常见的应用。
 
@@ -136,23 +136,23 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 分支约束是一系列连接的“如果-那么”约束。额外的规则确保要么一个满足，要么另一个满足。
 
-![](../Images/f97b2ca63bdf98604385117f96a51c95.png)
+![](img/f97b2ca63bdf98604385117f96a51c95.png)
 
 混合整数线性规划中的分支表达式。（图片来源：作者）
 
 ## 优先级和序列
 
-现在考虑一个决策，确定哪个操作，*i* 还是 *j*，先执行。在一些调度模型中，我们可以为每个操作的开始设置一个实数决策变量*x*，另一个变量或固定参数表示它的持续时间*d*，以及一个二进制决策变量（优先级）*y*，当*i*在*j*之前发生时，*y*为1。
+现在考虑一个决策，确定哪个操作，*i* 还是 *j*，先执行。在一些调度模型中，我们可以为每个操作的开始设置一个实数决策变量*x*，另一个变量或固定参数表示它的持续时间*d*，以及一个二进制决策变量（优先级）*y*，当*i*在*j*之前发生时，*y*为 1。
 
-![](../Images/5bfe8cebeb5ce4b98416bf3d5c652948.png)
+![](img/5bfe8cebeb5ce4b98416bf3d5c652948.png)
 
 混合整数线性规划中的优先约束。（图片来源：作者）
 
-这些表达式将在[分支作业车间调度模型](https://medium.com/towards-data-science/the-job-shop-scheduling-problem-mixed-integer-programming-models-4bbee83d16ab)和[旅行商问题](https://doi.org/10.1145/321043.321046)中使用MTZ公式（Miller等，1960）。
+这些表达式将在[分支作业车间调度模型](https://medium.com/towards-data-science/the-job-shop-scheduling-problem-mixed-integer-programming-models-4bbee83d16ab)和[旅行商问题](https://doi.org/10.1145/321043.321046)中使用 MTZ 公式（Miller 等，1960）。
 
-![](../Images/0e19e0dcfd2d1b10209af2245b4ca03c.png)
+![](img/0e19e0dcfd2d1b10209af2245b4ca03c.png)
 
-10个作业和10台机器的作业车间调度问题的最优解的甘特图。（图片来源：作者）
+10 个作业和 10 台机器的作业车间调度问题的最优解的甘特图。（图片来源：作者）
 
 ## 最小-最大和最大-最小目标
 
@@ -160,19 +160,19 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 在最小-最大表达式的情况下，我们可以创建一个标量决策变量*z*，并确保当选择相应的项目*i*时，它始终大于或等于一组选项*I*中的属性*d*。
 
-![](../Images/2efba647bf990dee686a57b36b114d73.png)
+![](img/2efba647bf990dee686a57b36b114d73.png)
 
 混合整数线性规划中的最小-最大表达式。（图片来源：作者）
 
 在处理最大最小表达式时，现在考虑*z*为小于或等于所有选定项属性的标量。在这两种情况下，我们引入大*M*来确保，如果某个项没有被选择，约束就不再起作用。一个好的*M*选择是* d*（来自整个项集合的最大值）与项*i*的属性之间的差值。
 
-![](../Images/34dc2552f72a48a295c1c795564c7329.png)
+![](img/34dc2552f72a48a295c1c795564c7329.png)
 
 混合整数线性规划中的最大最小表达式。（图像由作者提供）
 
 这些表达式例如出现在考虑使用二进制变量来表示给定弧或边是否激活的[设施分散问题](https://medium.com/towards-data-science/the-facility-dispersion-problem-mixed-integer-programming-models-98ffdb56cd26)中。
 
-![](../Images/34cc5b0b6d3d09c37bc224f87a870e5f.png)
+![](img/34cc5b0b6d3d09c37bc224f87a870e5f.png)
 
 在欧几里得实例中最大化任何五个选定点之间的最小距离，属于*p-分散问题*。（图像由作者提供）
 
@@ -184,7 +184,7 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 为了计算库存平衡，首先定义一个离散规划时段*T*，包含时刻*t*。给定时刻的库存将是一个决策变量*I*，其索引由集合*T*的元素组成。如果我们将某一时刻的输入（例如生产的物品数量）和输出（相应的需求或运输的物品）分别定义为*x*和*d*，那么我们可以通过以下公式计算给定时刻的最终库存：上一个时刻的最终库存加上输入减去输出。
 
-![](../Images/c8edf40221bf031ffda8a2fa2401a64c.png)
+![](img/c8edf40221bf031ffda8a2fa2401a64c.png)
 
 离散规划时段中库存平衡的图形表示。（图像由作者提供）
 
@@ -192,7 +192,7 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 我们可以将其表示为以下方程。
 
-![](../Images/6eee187c5acfb70b3458df5cf1418c8f.png)
+![](img/6eee187c5acfb70b3458df5cf1418c8f.png)
 
 简单的库存平衡方程。（图像由作者提供）
 
@@ -202,7 +202,7 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 现在假设我们有每个时刻 *t* 的确定性需求 *d*，但我们可能决定推迟其中一些需求以减少成本（例如设置成本或运输系统中的固定费用）。这些可能会成为库存平衡方程中的*积压*，通常在目标函数中带有一些相关的成本。再一次，假设我们的输入由 *x* 表示，但现在我们还将包含一个非负的决策变量来表示积压 *b*，它也由 *t* 索引。新的库存平衡方程变为以下形式。
 
-![](../Images/9dfb930493fd827feb77eb7d5a5e0de1.png)
+![](img/9dfb930493fd827feb77eb7d5a5e0de1.png)
 
 带有积压的库存平衡。（图片由作者提供）。
 
@@ -214,7 +214,7 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 为了更好地理解建模表达式，我们可以直观地表示一个活动，它在某个时刻开始，在规划范围内的若干时刻处于活动状态，然后结束。
 
-![](../Images/a5ccc5bc6c989a0d9c8369d21616157a.png)
+![](img/a5ccc5bc6c989a0d9c8369d21616157a.png)
 
 在离散规划范围内调度的活动。（图片由作者提供）。
 
@@ -226,13 +226,13 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 为了识别开始：
 
-![](../Images/773225db0127830409a0c4398ee9cec7.png)
+![](img/773225db0127830409a0c4398ee9cec7.png)
 
 一组约束，用于识别活动在离散规划范围内的开始。（图片由作者提供）。
 
 并且为了识别结束：
 
-![](../Images/60b3b9e8b8fb46b41df7a14f06b3b568.png)
+![](img/60b3b9e8b8fb46b41df7a14f06b3b568.png)
 
 一组约束，用于识别活动在离散规划范围内的结束。（图片由作者提供）。
 
@@ -240,29 +240,29 @@ towardsdatascience.com](/linear-programming-theory-and-applications-c67600591612
 
 # 线性化技术
 
-一些问题包括无法直接纳入MILP模型的非线性表达式。幸运的是，有一些策略利用二进制变量使我们能够线性化某些非线性表达式。接下来将介绍两个常见的应用。
+一些问题包括无法直接纳入 MILP 模型的非线性表达式。幸运的是，有一些策略利用二进制变量使我们能够线性化某些非线性表达式。接下来将介绍两个常见的应用。
 
 ## 实值与二进制变量的乘积
 
-现在，假设我们有一个连续的决策变量*x*，其值在可行范围*L*和*U*之间。假设还有一个二进制决策变量*y*和一个支持决策变量*z*，它应该计算*x*和*y*之间的乘积。当*y*为1时，*z*应该取*x*的值，否则为0。
+现在，假设我们有一个连续的决策变量*x*，其值在可行范围*L*和*U*之间。假设还有一个二进制决策变量*y*和一个支持决策变量*z*，它应该计算*x*和*y*之间的乘积。当*y*为 1 时，*z*应该取*x*的值，否则为 0。
 
-![](../Images/dcdfef51018431a2d7634200ae80bfbe.png)
+![](img/dcdfef51018431a2d7634200ae80bfbe.png)
 
-如果*y*为1，*z*必须大于或等于*x*（及其自然下限），并且小于或等于*x*（及其自然上限）。因此，满足这些不等式的唯一方法是，*z*等于*x*。
+如果*y*为 1，*z*必须大于或等于*x*（及其自然下限），并且小于或等于*x*（及其自然上限）。因此，满足这些不等式的唯一方法是，*z*等于*x*。
 
-现在，如果*y*为0，最后两个不等式确保*z*等于0，而前两个不等式确保任何在自然界限内的*x*值都是可行的。
+现在，如果*y*为 0，最后两个不等式确保*z*等于 0，而前两个不等式确保任何在自然界限内的*x*值都是可行的。
 
 因此，利用这些不等式，可以将二进制和实值决策变量之间的乘积线性化。
 
 ## 分段线性近似
 
-现在假设我们要计算在分段线性区间中定义的函数值。这可以是一般非线性表达式的近似，或者仅仅是计算分段线性表达式的一种策略，例如在具有不同单位成本水平的合同中，成本水平根据交易量的变化而变化。下面的图示通过5个线性区间近似Sigmoid函数来展示这个思想。
+现在假设我们要计算在分段线性区间中定义的函数值。这可以是一般非线性表达式的近似，或者仅仅是计算分段线性表达式的一种策略，例如在具有不同单位成本水平的合同中，成本水平根据交易量的变化而变化。下面的图示通过 5 个线性区间近似 Sigmoid 函数来展示这个思想。
 
-![](../Images/63db3ad761e683b5dcdaabf4aa5ad760.png)
+![](img/63db3ad761e683b5dcdaabf4aa5ad760.png)
 
-Sigmoid函数及其通过5个区间的分段线性近似。（图片来自作者）
+Sigmoid 函数及其通过 5 个区间的分段线性近似。（图片来自作者）
 
-考虑一个通用函数*f*(*x*)，定义在一个实值变量*x*的给定区间[l, u]上。现在，假设该函数在*N*个任意大小的区间上进行了离散化。每个索引为*i*的区间位于插值点*x*的索引*i*和*i*+1之间，且总共有*N*+1个插值点。我们现在加入参数来定义每个区间的线性方程：
+考虑一个通用函数*f*(*x*)，定义在一个实值变量*x*的给定区间[l, u]上。现在，假设该函数在*N*个任意大小的区间上进行了离散化。每个索引为*i*的区间位于插值点*x*的索引*i*和*i*+1 之间，且总共有*N*+1 个插值点。我们现在加入参数来定义每个区间的线性方程：
 
 +   *aᵢ*：第*i*个线性区间的斜率
 
@@ -276,13 +276,13 @@ Sigmoid函数及其通过5个区间的分段线性近似。（图片来自作者
 
 变量*x*应该位于所创建的一个区间内，因此必须有一个约束确保恰好有一个*z*变量是活动的。
 
-![](../Images/8733623f6db0c296bbfb686038318ee7.png)
+![](img/8733623f6db0c296bbfb686038318ee7.png)
 
 约束确保在分段线性函数中有一个分段处于激活状态。（图片由作者提供）
 
 现在我们必须确保当 *zᵢ* 等于 1 时，*sᵢ* 等于 *x*，并且基于 *sᵢ* 的值和每个分段对应的参数计算 *y*。
 
-![](../Images/442341a65ccd210bc7f28a59c36f6f16.png)
+![](img/442341a65ccd210bc7f28a59c36f6f16.png)
 
 分段线性函数约束。（图片由作者提供）
 
@@ -292,32 +292,32 @@ Sigmoid函数及其通过5个区间的分段线性近似。（图片来自作者
 
 大多数 MILP 求解器核心算法被称为*分支定界*。它通过高效地探索离散决策的根搜索树，避免了枚举所有可能性。你可以在我之前的文章中找到关于这个主题的详细介绍。
 
-[](/a-gentle-introduction-to-branch-bound-d00a4ee1cad?source=post_page-----3e96cc1bc03d--------------------------------) [## 分支定界的简明介绍
+[](/a-gentle-introduction-to-branch-bound-d00a4ee1cad?source=post_page-----3e96cc1bc03d--------------------------------) ## 分支定界的简明介绍
 
 ### 解释最基本的整数与混合整数规划算法，使用 Python 实现
 
-[towardsdatascience.com](/a-gentle-introduction-to-branch-bound-d00a4ee1cad?source=post_page-----3e96cc1bc03d--------------------------------)
+[towardsdatascience.com
 
 一些模型可能会采用其他技术，例如*延迟列生成*，这种方法旨在解决决策变量过多，无法一开始就显式枚举的模型。关于这一主题的介绍和代码示例可以在之前的文章中找到。
 
-[](/column-generation-in-linear-programming-and-the-cutting-stock-problem-3c697caf4e2b?source=post_page-----3e96cc1bc03d--------------------------------) [## 线性规划中的列生成与切割库存问题
+[](/column-generation-in-linear-programming-and-the-cutting-stock-problem-3c697caf4e2b?source=post_page-----3e96cc1bc03d--------------------------------) ## 线性规划中的列生成与切割库存问题
 
 ### 如何使用 Python 示例解决具有大量决策变量的线性问题
 
-[towardsdatascience.com](/column-generation-in-linear-programming-and-the-cutting-stock-problem-3c697caf4e2b?source=post_page-----3e96cc1bc03d--------------------------------)
+[towardsdatascience.com
 
 现在，参考传统书籍，感兴趣的读者可以参考*《数值优化》*（Nocedal & Wright, 2006）和*《线性与非线性规划》*（Luenberger & Ye, 2008），以深入理解连续域上的优化算法——这些算法通常是整数规划中求解的子模型的组成部分。*《整数规划》*（Wolsey, 2020）一书常被称为该领域的“圣经”。这是一本极好的参考书，能够帮助更好地理解如何设计离散搜索空间上的精确算法，深入探讨*分支定界*、割平面等内容。*《运筹学：应用与算法》*（Winston & Goldberg, 2004）是另一本很好的替代书籍，对于那些渴望看到更多实际应用示例的读者，它也提供了很好的理论概述。
 
 # 结论
 
-混合整数线性规划（MILP）是数值优化中的一个相关领域，具有重要的应用，特别是在管理科学和运筹学中。本文介绍了MILP的关键表达式，包括逻辑语句、设置成本、条件表达式、离散规划时间范围和线性化技术。通过结合这些元素，读者应该能够将现实世界中的问题转化为可以通过MILP求解器解决的优化模型。
+混合整数线性规划（MILP）是数值优化中的一个相关领域，具有重要的应用，特别是在管理科学和运筹学中。本文介绍了 MILP 的关键表达式，包括逻辑语句、设置成本、条件表达式、离散规划时间范围和线性化技术。通过结合这些元素，读者应该能够将现实世界中的问题转化为可以通过 MILP 求解器解决的优化模型。
 
 # 参考文献
 
-Luenberger, D. G. & Ye, Y., 2008. *线性与非线性规划.* 第3版. 斯坦福：施普林格。
+Luenberger, D. G. & Ye, Y., 2008. *线性与非线性规划.* 第 3 版. 斯坦福：施普林格。
 
-Nocedal, J. & Wright, S. J., 2006. *数值优化.* 第2版. 纽约：施普林格·纽约。
+Nocedal, J. & Wright, S. J., 2006. *数值优化.* 第 2 版. 纽约：施普林格·纽约。
 
-Winston, W. L. & Goldberg, J. B., 2004. *运筹学：应用与算法.* 第4版. 加利福尼亚州贝尔蒙特：汤姆森·布鲁克斯/科尔贝尔蒙特。
+Winston, W. L. & Goldberg, J. B., 2004. *运筹学：应用与算法.* 第 4 版. 加利福尼亚州贝尔蒙特：汤姆森·布鲁克斯/科尔贝尔蒙特。
 
-Wolsey, L. A., 2020. *整数规划.* 第2版. 约翰·威利与 sons 出版公司。
+Wolsey, L. A., 2020. *整数规划.* 第 2 版. 约翰·威利与 sons 出版公司。

@@ -1,16 +1,16 @@
-# 如何使用Llama 3构建本地文件的生成式搜索引擎
+# 如何使用 Llama 3 构建本地文件的生成式搜索引擎
 
-> 原文：[https://towardsdatascience.com/how-to-build-a-generative-search-engine-for-your-local-files-using-llama-3-399551786965?source=collection_archive---------0-----------------------#2024-06-08](https://towardsdatascience.com/how-to-build-a-generative-search-engine-for-your-local-files-using-llama-3-399551786965?source=collection_archive---------0-----------------------#2024-06-08)
+> 原文：[`towardsdatascience.com/how-to-build-a-generative-search-engine-for-your-local-files-using-llama-3-399551786965?source=collection_archive---------0-----------------------#2024-06-08`](https://towardsdatascience.com/how-to-build-a-generative-search-engine-for-your-local-files-using-llama-3-399551786965?source=collection_archive---------0-----------------------#2024-06-08)
 
-## 使用Qdrant、NVIDIA NIM API或Llama 3 8B在本地构建您的本地GenAI助手
+## 使用 Qdrant、NVIDIA NIM API 或 Llama 3 8B 在本地构建您的本地 GenAI 助手
 
-[](https://datawarrior.medium.com/?source=post_page---byline--399551786965--------------------------------)[![Nikola Milosevic (Data Warrior)](../Images/ebea6501c00030561a59a4a12ab7a79a.png)](https://datawarrior.medium.com/?source=post_page---byline--399551786965--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--399551786965--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--399551786965--------------------------------) [Nikola Milosevic (Data Warrior)](https://datawarrior.medium.com/?source=post_page---byline--399551786965--------------------------------)
+[](https://datawarrior.medium.com/?source=post_page---byline--399551786965--------------------------------)![Nikola Milosevic (Data Warrior)](https://datawarrior.medium.com/?source=post_page---byline--399551786965--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--399551786965--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--399551786965--------------------------------) [Nikola Milosevic (Data Warrior)](https://datawarrior.medium.com/?source=post_page---byline--399551786965--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--399551786965--------------------------------) ·阅读时间：12分钟·2024年6月8日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--399551786965--------------------------------) ·阅读时间：12 分钟·2024 年 6 月 8 日
 
 --
 
-5月23日，我收到了一封来自Nvidia的邮件，邀请我参加[NVIDIA和LangChain的生成式AI代理开发者大赛](https://www.nvidia.com/en-us/ai-data-science/generative-ai/developer-contest-with-langchain/?ncid=em-anno-571922&DkwibgoBGQo58Ndn2XA_QZk4Oek6oAyhMHrbuo7f2iF8fmTr0phnYJSKrENRDiGu3MOeEry08HydZtz_EiC0eg=&mkt_tok=MTU2LU9GTi03NDIAAAGTQxOVSz583h1Gr6TvRfnNz4TJLyss1TypLIotdWccXzlkMpJ8mAtsKiyWooZ5pnhPM3ALyJdxJh6gpak9YASo8xEIOWv-5FZaaptj4FmiBLsaCVMdI5w)。我第一反应是时间太紧，考虑到我们最近有了孩子，而且我的父母也正好要来，我应该没时间参与。但接着我又有了第二个想法，我决定可以编写一些代码并提交。我思考了几天应该做什么，最终有一个想法深深打动了我——一个开源生成式搜索引擎，允许你与本地文件进行交互。微软Copilot已经提供了类似的功能，但我想我可以做一个开源版本，出于兴趣，并分享我在快速编码系统过程中收获的一些经验。
+5 月 23 日，我收到了一封来自 Nvidia 的邮件，邀请我参加[NVIDIA 和 LangChain 的生成式 AI 代理开发者大赛](https://www.nvidia.com/en-us/ai-data-science/generative-ai/developer-contest-with-langchain/?ncid=em-anno-571922&DkwibgoBGQo58Ndn2XA_QZk4Oek6oAyhMHrbuo7f2iF8fmTr0phnYJSKrENRDiGu3MOeEry08HydZtz_EiC0eg=&mkt_tok=MTU2LU9GTi03NDIAAAGTQxOVSz583h1Gr6TvRfnNz4TJLyss1TypLIotdWccXzlkMpJ8mAtsKiyWooZ5pnhPM3ALyJdxJh6gpak9YASo8xEIOWv-5FZaaptj4FmiBLsaCVMdI5w)。我第一反应是时间太紧，考虑到我们最近有了孩子，而且我的父母也正好要来，我应该没时间参与。但接着我又有了第二个想法，我决定可以编写一些代码并提交。我思考了几天应该做什么，最终有一个想法深深打动了我——一个开源生成式搜索引擎，允许你与本地文件进行交互。微软 Copilot 已经提供了类似的功能，但我想我可以做一个开源版本，出于兴趣，并分享我在快速编码系统过程中收获的一些经验。
 
 # 系统设计
 
@@ -24,9 +24,9 @@
 
 下面的图表展示了各个组件如何交互。
 
-![](../Images/93ac4331f5c89da60084b967ac949115.png)
+![](img/93ac4331f5c89da60084b967ac949115.png)
 
-系统设计与架构。Qdrant用于向量存储，而Streamlit用于用户界面。Llama 3通过Nvidia NIM API（70B版本）或通过HuggingFace下载（8B版本）使用。文档切块使用Langchain完成。图像由作者提供。
+系统设计与架构。Qdrant 用于向量存储，而 Streamlit 用于用户界面。Llama 3 通过 Nvidia NIM API（70B 版本）或通过 HuggingFace 下载（8B 版本）使用。文档切块使用 Langchain 完成。图像由作者提供。
 
 首先，我们需要将本地文件编入可以查询本地文件内容的索引。然后，当用户提问时，我们将使用创建的索引，以及一些非对称的段落或文档嵌入来检索可能包含答案的最相关文档。这些文档的内容和问题将传递给部署的大型语言模型，模型将使用这些文档内容生成答案。在指令提示中，我们会要求大型语言模型还返回使用文档的参考资料。最终，所有内容将通过用户界面展示给用户。
 
@@ -34,9 +34,9 @@
 
 # 语义索引
 
-我们正在构建一个语义索引，它将根据文件内容的相似性和给定查询提供最相关的文档。为了创建这样的索引，我们将使用Qdrant作为向量存储。值得注意的是，[Qdrant客户端库](https://github.com/qdrant/qdrant-client)不需要完整安装[Qdrant服务器](https://qdrant.tech/)，并且可以进行文档相似性匹配，只要文档能够适应工作内存（RAM）。因此，我们所需要做的就是通过pip安装Qdrant客户端。
+我们正在构建一个语义索引，它将根据文件内容的相似性和给定查询提供最相关的文档。为了创建这样的索引，我们将使用 Qdrant 作为向量存储。值得注意的是，[Qdrant 客户端库](https://github.com/qdrant/qdrant-client)不需要完整安装[Qdrant 服务器](https://qdrant.tech/)，并且可以进行文档相似性匹配，只要文档能够适应工作内存（RAM）。因此，我们所需要做的就是通过 pip 安装 Qdrant 客户端。
 
-我们可以通过以下方式初始化Qdrant（请注意，hf参数稍后根据故事流程定义，但在使用Qdrant客户端时，您已经需要定义所使用的向量化方法和度量标准）：
+我们可以通过以下方式初始化 Qdrant（请注意，hf 参数稍后根据故事流程定义，但在使用 Qdrant 客户端时，您已经需要定义所使用的向量化方法和度量标准）：
 
 ```py
 from qdrant_client import QdrantClient
@@ -52,7 +52,7 @@ qdrant = Qdrant(client, collection_name, hf)
 
 为了创建一个向量索引，我们需要将文档嵌入硬盘中。对于嵌入，我们需要选择合适的嵌入方法和向量比较度量。有几种段落、句子或单词的嵌入方法可以使用，结果各不相同。基于文档创建向量搜索的主要问题是非对称搜索问题。非对称搜索问题在信息检索中很常见，当查询较短而文档较长时就会发生。单词或句子嵌入通常会进行微调，以根据相似大小的文档（句子或段落）提供相似度评分。一旦情况发生变化，正确的信息检索可能会失败。
 
-然而，我们可以找到一种适用于非对称搜索问题的嵌入方法。例如，在MSMARCO数据集上微调的模型通常效果不错。MSMARCO数据集基于Bing搜索查询和文档，由微软发布。因此，它非常适合我们正在处理的问题。
+然而，我们可以找到一种适用于非对称搜索问题的嵌入方法。例如，在 MSMARCO 数据集上微调的模型通常效果不错。MSMARCO 数据集基于 Bing 搜索查询和文档，由微软发布。因此，它非常适合我们正在处理的问题。
 
 对于这个特定的实现，我选择了一个已经微调过的模型，名为：
 
@@ -60,7 +60,7 @@ qdrant = Qdrant(client, collection_name, hf)
 sentence-transformers/msmarco-bert-base-dot-v5
 ```
 
-该模型基于BERT，并使用点积作为相似度度量进行了微调。我们已经初始化了qdrant客户端，以便在线使用点积作为相似度度量（请注意该模型的维度为768）：
+该模型基于 BERT，并使用点积作为相似度度量进行了微调。我们已经初始化了 qdrant 客户端，以便在线使用点积作为相似度度量（请注意该模型的维度为 768）：
 
 ```py
 client.create_collection(collection_name,vectors_config=VectorParams(size=768, distance=Distance.DOT))
@@ -68,7 +68,7 @@ client.create_collection(collection_name,vectors_config=VectorParams(size=768, d
 
 我们可以使用其他度量标准，如余弦相似度，然而，鉴于该模型是使用点积微调的，我们使用该度量标准能获得最佳性能。此外，从几何角度来看：余弦相似度仅关注角度差异，而点积则同时考虑了角度和幅度。通过将数据归一化为具有相同幅度，两个度量标准变得等效。在忽略幅度有利的情况下，余弦相似度是有用的。然而，如果幅度重要，点积是更合适的相似度度量。
 
-初始化MSMarco模型的代码如下（如果您有可用的GPU，请使用它。无论如何）：
+初始化 MSMarco 模型的代码如下（如果您有可用的 GPU，请使用它。无论如何）：
 
 ```py
  model_name = "sentence-transformers/msmarco-bert-base-dot-v5"
@@ -81,7 +81,7 @@ client.create_collection(collection_name,vectors_config=VectorParams(size=768, d
     )
 ```
 
-下一个问题是：我们需要处理的是BERT类模型的上下文大小受限，由于变换器模型的二次内存需求。在许多BERT类模型中，这个上下文大小被设置为512个标记。有两个选项：（1）我们可以仅根据前512个标记生成答案，忽略文档的其余部分，或（2）创建一个索引，其中一个文档会被拆分成多个块，并作为块存储在索引中。在第一种情况下，我们将失去大量重要信息，因此我们选择了第二种方案。为了拆分文档，我们可以使用LangChain中的预构建拆分器：
+下一个问题是：我们需要处理的是 BERT 类模型的上下文大小受限，由于变换器模型的二次内存需求。在许多 BERT 类模型中，这个上下文大小被设置为 512 个标记。有两个选项：（1）我们可以仅根据前 512 个标记生成答案，忽略文档的其余部分，或（2）创建一个索引，其中一个文档会被拆分成多个块，并作为块存储在索引中。在第一种情况下，我们将失去大量重要信息，因此我们选择了第二种方案。为了拆分文档，我们可以使用 LangChain 中的预构建拆分器：
 
 ```py
 from langchain_text_splitters import TokenTextSplitter
@@ -93,9 +93,9 @@ for i in range(0,len(texts)):
 qdrant.add_texts(texts,metadatas=metadata)
 ```
 
-在提供的代码部分中，我们将文本拆分为500个标记的块，每个块有50个重叠的标记。这样，我们在块的结束或开始处保留了一些上下文。在代码的其余部分，我们创建了带有文档路径的元数据，并将这些块和元数据添加到索引中。
+在提供的代码部分中，我们将文本拆分为 500 个标记的块，每个块有 50 个重叠的标记。这样，我们在块的结束或开始处保留了一些上下文。在代码的其余部分，我们创建了带有文档路径的元数据，并将这些块和元数据添加到索引中。
 
-然而，在我们将文件内容添加到索引之前，需要先读取它。甚至在读取文件之前，我们需要获取所有需要索引的文件。为了简化，在此项目中，用户可以定义他/她希望索引的文件夹。索引器将递归地从该文件夹及其子文件夹中检索所有文件，并索引支持的文件（我们将探讨如何支持PDF、Word、PPT和TXT文件）。
+然而，在我们将文件内容添加到索引之前，需要先读取它。甚至在读取文件之前，我们需要获取所有需要索引的文件。为了简化，在此项目中，用户可以定义他/她希望索引的文件夹。索引器将递归地从该文件夹及其子文件夹中检索所有文件，并索引支持的文件（我们将探讨如何支持 PDF、Word、PPT 和 TXT 文件）。
 
 我们可以以递归方式检索给定文件夹及其子文件夹中的所有文件：
 
@@ -110,9 +110,9 @@ def get_files(dir):
     return file_list
 ```
 
-一旦所有文件都被检索到列表中，我们就可以读取包含文本的文件内容。在这个工具中，初始支持MS Word文档（扩展名为“.docx”）、PDF文档、MS PowerPoint演示文稿（扩展名为“.pptx”）和纯文本文件（扩展名为“.txt”）。
+一旦所有文件都被检索到列表中，我们就可以读取包含文本的文件内容。在这个工具中，初始支持 MS Word 文档（扩展名为“.docx”）、PDF 文档、MS PowerPoint 演示文稿（扩展名为“.pptx”）和纯文本文件（扩展名为“.txt”）。
 
-为了读取MS Word文档，我们可以使用docx-python库。将文档读取为字符串变量的函数大致如下所示：
+为了读取 MS Word 文档，我们可以使用 docx-python 库。将文档读取为字符串变量的函数大致如下所示：
 
 ```py
 import docx
@@ -124,7 +124,7 @@ def getTextFromWord(filename):
     return '\n'.join(fullText)
 ```
 
-对于MS PowerPoint文件，也可以做类似的操作。为此，我们需要下载并安装pptx-python库，并编写一个类似这样的函数：
+对于 MS PowerPoint 文件，也可以做类似的操作。为此，我们需要下载并安装 pptx-python 库，并编写一个类似这样的函数：
 
 ```py
 from pptx import Presentation
@@ -145,7 +145,7 @@ file_content = f.read()
 f.close()
 ```
 
-对于PDF文件，在这种情况下我们将使用PyPDF2库：
+对于 PDF 文件，在这种情况下我们将使用 PyPDF2 库：
 
 ```py
 reader = PyPDF2.PdfReader(file)
@@ -187,11 +187,11 @@ file_content = ""
     print("Finished indexing!")
 ```
 
-正如我们所说，我们使用LangChain中的TokenTextSplitter将文本分割成每个包含500个令牌并有50个令牌重叠的片段。现在，当我们创建了索引后，可以创建一个Web服务来查询索引并生成答案。
+正如我们所说，我们使用 LangChain 中的 TokenTextSplitter 将文本分割成每个包含 500 个令牌并有 50 个令牌重叠的片段。现在，当我们创建了索引后，可以创建一个 Web 服务来查询索引并生成答案。
 
-# 生成式搜索API。
+# 生成式搜索 API。
 
-我们将使用FastAPI创建一个Web服务来托管我们的生成式搜索引擎。该API将访问我们在上一节中创建的索引数据，使用向量相似度度量进行搜索，使用最相关的片段与Llama 3模型生成答案，并最终将答案返回给用户。
+我们将使用 FastAPI 创建一个 Web 服务来托管我们的生成式搜索引擎。该 API 将访问我们在上一节中创建的索引数据，使用向量相似度度量进行搜索，使用最相关的片段与 Llama 3 模型生成答案，并最终将答案返回给用户。
 
 为了初始化和导入生成式搜索组件的库，我们可以使用以下代码：
 
@@ -213,9 +213,9 @@ class Item(BaseModel):
         super().__init__(query=query)
 ```
 
-如前所述，我们使用FastAPI来创建API接口。我们将利用qdrant_client库访问我们创建的索引数据，并使用langchain_qdrant库提供额外支持。对于嵌入和本地加载Llama 3模型，我们将使用PyTorch和Transformers库。此外，我们还将使用OpenAI库调用NVIDIA NIM API，API密钥存储在我们创建的environment_var（包括Nvidia和HuggingFace）文件中。
+如前所述，我们使用 FastAPI 来创建 API 接口。我们将利用 qdrant_client 库访问我们创建的索引数据，并使用 langchain_qdrant 库提供额外支持。对于嵌入和本地加载 Llama 3 模型，我们将使用 PyTorch 和 Transformers 库。此外，我们还将使用 OpenAI 库调用 NVIDIA NIM API，API 密钥存储在我们创建的 environment_var（包括 Nvidia 和 HuggingFace）文件中。
 
-我们创建了一个Item类，继承自Pydantic中的BaseModel，用于作为请求函数的参数传递。它将包含一个字段，名为query。
+我们创建了一个 Item 类，继承自 Pydantic 中的 BaseModel，用于作为请求函数的参数传递。它将包含一个字段，名为 query。
 
 现在，我们可以开始初始化我们的机器学习模型。
 
@@ -256,11 +256,11 @@ else:
     )
 ```
 
-在前几行代码中，我们加载了针对MSMARCO数据进行微调的基于BERT的模型权重，这个模型也用于索引我们的文档。
+在前几行代码中，我们加载了针对 MSMARCO 数据进行微调的基于 BERT 的模型权重，这个模型也用于索引我们的文档。
 
-然后，我们检查是否提供了nvidia_key，如果提供了，我们使用OpenAI库调用NVIDIA NIM API。当我们使用NVIDIA NIM API时，可以使用一个大版本的Llama 3指令模型，拥有70B参数。如果未提供nvidia_key，我们将本地加载Llama 3。然而，在本地环境下，至少对于大多数消费电子产品，无法加载70B参数模型。因此，我们将加载Llama 3 8B参数模型或已量化的Llama 3 8B参数模型。通过量化，我们节省了空间，并使模型能够在较少的RAM上运行。例如，Llama 3 8B通常需要大约14GB的GPU RAM，而量化后的Llama 3 8B则可以在6GB的GPU RAM上运行。因此，我们将根据参数加载完整模型或量化模型。
+然后，我们检查是否提供了 nvidia_key，如果提供了，我们使用 OpenAI 库调用 NVIDIA NIM API。当我们使用 NVIDIA NIM API 时，可以使用一个大版本的 Llama 3 指令模型，拥有 70B 参数。如果未提供 nvidia_key，我们将本地加载 Llama 3。然而，在本地环境下，至少对于大多数消费电子产品，无法加载 70B 参数模型。因此，我们将加载 Llama 3 8B 参数模型或已量化的 Llama 3 8B 参数模型。通过量化，我们节省了空间，并使模型能够在较少的 RAM 上运行。例如，Llama 3 8B 通常需要大约 14GB 的 GPU RAM，而量化后的 Llama 3 8B 则可以在 6GB 的 GPU RAM 上运行。因此，我们将根据参数加载完整模型或量化模型。
 
-现在，我们可以初始化Qdrant客户端。
+现在，我们可以初始化 Qdrant 客户端。
 
 ```py
 client = QdrantClient(path="qdrant/")
@@ -268,7 +268,7 @@ collection_name = "MyCollection"
 qdrant = Qdrant(client, collection_name, hf)
 ```
 
-同时，使用FastAPI并创建第一个模拟GET函数。
+同时，使用 FastAPI 并创建第一个模拟 GET 函数。
 
 ```py
 app = FastAPI()
@@ -278,9 +278,9 @@ async def root():
     return {"message": "Hello World"}
 ```
 
-这个函数将返回JSON格式的数据 {“message”:”Hello World”}
+这个函数将返回 JSON 格式的数据 {“message”:”Hello World”}
 
-然而，为了使这个API能够正常工作，我们将创建两个功能，一个仅执行语义搜索，另一个则执行搜索并将前10个片段作为上下文生成答案，并引用它使用的文档。
+然而，为了使这个 API 能够正常工作，我们将创建两个功能，一个仅执行语义搜索，另一个则执行搜索并将前 10 个片段作为上下文生成答案，并引用它使用的文档。
 
 ```py
 @app.post("/search")
@@ -352,17 +352,17 @@ async def ask_localai(Item:Item):
     return {"context":list_res,"answer":response}
 ```
 
-两个功能都是POST方法，我们使用我们的Item类通过JSON体传递查询。第一个方法返回10个最相似的文档片段，包含路径，并分配文档ID从0到9。因此，它仅执行使用点积作为相似度度量的简单语义搜索（这一点在Qdrant的索引过程中定义——记住那一行包含distance=Distance.DOT）。
+两个功能都是 POST 方法，我们使用我们的 Item 类通过 JSON 体传递查询。第一个方法返回 10 个最相似的文档片段，包含路径，并分配文档 ID 从 0 到 9。因此，它仅执行使用点积作为相似度度量的简单语义搜索（这一点在 Qdrant 的索引过程中定义——记住那一行包含 distance=Distance.DOT）。
 
-第二个功能叫做ask_localai，稍微复杂一些。它包含来自第一个方法的搜索机制（因此可以更容易地通过代码理解语义搜索），但增加了生成部分。它为Llama 3生成了一个提示，包含一个系统提示消息，内容如下：
+第二个功能叫做 ask_localai，稍微复杂一些。它包含来自第一个方法的搜索机制（因此可以更容易地通过代码理解语义搜索），但增加了生成部分。它为 Llama 3 生成了一个提示，包含一个系统提示消息，内容如下：
 
-> 使用上下文中提供的文档回答用户的问题。在上下文中是应该包含答案的文档。请始终引用用于做出声明的文档ID（用方括号表示，例如[0]、[1]）。根据需要使用足够多的引用和文档来回答问题。
+> 使用上下文中提供的文档回答用户的问题。在上下文中是应该包含答案的文档。请始终引用用于做出声明的文档 ID（用方括号表示，例如[0]、[1]）。根据需要使用足够多的引用和文档来回答问题。
 
-用户的消息包含一个文档列表，结构为ID（0–9），后跟文档片段在下一行。为了保持ID与文档路径之间的映射，我们创建了一个名为list_res的列表，其中包含ID、路径和内容。用户提示以“Question”一词结束，后面跟着用户的查询。
+用户的消息包含一个文档列表，结构为 ID（0–9），后跟文档片段在下一行。为了保持 ID 与文档路径之间的映射，我们创建了一个名为 list_res 的列表，其中包含 ID、路径和内容。用户提示以“Question”一词结束，后面跟着用户的查询。
 
-响应包含上下文和生成的答案。然而，答案是由Llama 3 70B模型（使用NVIDIA NIM API）、本地Llama 3 8B或本地量化的Llama 3 8B生成的，这取决于传递的参数。
+响应包含上下文和生成的答案。然而，答案是由 Llama 3 70B 模型（使用 NVIDIA NIM API）、本地 Llama 3 8B 或本地量化的 Llama 3 8B 生成的，这取决于传递的参数。
 
-API可以从一个包含以下代码行的单独文件中启动（假设我们的生成组件位于名为api.py的文件中，Uvicorn的第一个参数映射到文件名）：
+API 可以从一个包含以下代码行的单独文件中启动（假设我们的生成组件位于名为 api.py 的文件中，Uvicorn 的第一个参数映射到文件名）：
 
 ```py
 import uvicorn
@@ -375,7 +375,7 @@ if __name__=="__main__":
 
 我们的本地生成搜索引擎的最终组件是用户界面。我们将使用[Streamlit](https://streamlit.io/)构建一个简单的用户界面，包含一个输入框、一个搜索按钮、一个显示生成答案的区域，以及一个可以打开或下载的参考文档列表。
 
-Streamlit中用户界面的全部代码不到45行（准确来说是44行）：
+Streamlit 中用户界面的全部代码不到 45 行（准确来说是 44 行）：
 
 ```py
 import re
@@ -424,16 +424,16 @@ if st.button("Ask a question"):
 
 最终效果将是这样的：
 
-![](../Images/a81808986db73b743ff6767665018ad7.png)
+![](img/a81808986db73b743ff6767665018ad7.png)
 
 用户界面中已回答问题的示例。截图由作者提供。
 
 # 可用性
 
-该项目的完整代码可以在GitHub上找到，网址为[https://github.com/nikolamilosevic86/local-genAI-search](https://github.com/nikolamilosevic86/local-genAI-search)。过去，我曾参与多个生成式搜索项目，并且也有一些相关的出版物。你可以查看[https://www.thinkmind.org/library/INTERNET/INTERNET_2024/internet_2024_1_10_48001.html](https://www.thinkmind.org/library/INTERNET/INTERNET_2024/internet_2024_1_10_48001.html)或[https://arxiv.org/abs/2402.18589](https://arxiv.org/abs/2402.18589)。
+该项目的完整代码可以在 GitHub 上找到，网址为[`github.com/nikolamilosevic86/local-genAI-search`](https://github.com/nikolamilosevic86/local-genAI-search)。过去，我曾参与多个生成式搜索项目，并且也有一些相关的出版物。你可以查看[`www.thinkmind.org/library/INTERNET/INTERNET_2024/internet_2024_1_10_48001.html`](https://www.thinkmind.org/library/INTERNET/INTERNET_2024/internet_2024_1_10_48001.html)或[`arxiv.org/abs/2402.18589`](https://arxiv.org/abs/2402.18589)。
 
 # 结论
 
-本文展示了如何利用生成式AI结合Qdrant进行语义搜索。它通常是一个检索增强生成（RAG）管道，作用于本地文件，并提供引用本地文档声明的指令。整个代码大约有300行，我们甚至增加了复杂性，给用户提供了在3个不同的Llama 3模型之间选择的选项。对于这个使用案例，8B和70B参数模型都能很好地工作。
+本文展示了如何利用生成式 AI 结合 Qdrant 进行语义搜索。它通常是一个检索增强生成（RAG）管道，作用于本地文件，并提供引用本地文档声明的指令。整个代码大约有 300 行，我们甚至增加了复杂性，给用户提供了在 3 个不同的 Llama 3 模型之间选择的选项。对于这个使用案例，8B 和 70B 参数模型都能很好地工作。
 
 我想解释一下我所做的步骤，希望这能对将来某些人有所帮助。不过，如果你想使用这个特定的工具，最简单的方式就是直接从[GitHub](https://github.com/nikolamilosevic86/local-genAI-search)获取，它是完全开源的！

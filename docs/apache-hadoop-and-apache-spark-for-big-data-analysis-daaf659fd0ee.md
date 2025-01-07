@@ -1,30 +1,30 @@
 # Apache Hadoop 和 Apache Spark 用于大数据分析
 
-> 原文：[https://towardsdatascience.com/apache-hadoop-and-apache-spark-for-big-data-analysis-daaf659fd0ee?source=collection_archive---------5-----------------------#2024-05-08](https://towardsdatascience.com/apache-hadoop-and-apache-spark-for-big-data-analysis-daaf659fd0ee?source=collection_archive---------5-----------------------#2024-05-08)
+> 原文：[`towardsdatascience.com/apache-hadoop-and-apache-spark-for-big-data-analysis-daaf659fd0ee?source=collection_archive---------5-----------------------#2024-05-08`](https://towardsdatascience.com/apache-hadoop-and-apache-spark-for-big-data-analysis-daaf659fd0ee?source=collection_archive---------5-----------------------#2024-05-08)
 
-## 一份完整的指南，介绍如何使用Apache Hadoop（HDFS）和Python中的PySpark库进行大数据分析，以分析Steam游戏平台上的游戏评论。
+## 一份完整的指南，介绍如何使用 Apache Hadoop（HDFS）和 Python 中的 PySpark 库进行大数据分析，以分析 Steam 游戏平台上的游戏评论。
 
-[](https://medium.com/@rindhuj1?source=post_page---byline--daaf659fd0ee--------------------------------)[![Rindhuja Treesa Johnson](../Images/15d2bfb802395968ea23faff62cc623a.png)](https://medium.com/@rindhuj1?source=post_page---byline--daaf659fd0ee--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--daaf659fd0ee--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--daaf659fd0ee--------------------------------) [Rindhuja Treesa Johnson](https://medium.com/@rindhuj1?source=post_page---byline--daaf659fd0ee--------------------------------)
+[](https://medium.com/@rindhuj1?source=post_page---byline--daaf659fd0ee--------------------------------)![Rindhuja Treesa Johnson](https://medium.com/@rindhuj1?source=post_page---byline--daaf659fd0ee--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--daaf659fd0ee--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--daaf659fd0ee--------------------------------) [Rindhuja Treesa Johnson](https://medium.com/@rindhuj1?source=post_page---byline--daaf659fd0ee--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--daaf659fd0ee--------------------------------) ·14分钟阅读·2024年5月8日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--daaf659fd0ee--------------------------------) ·14 分钟阅读·2024 年 5 月 8 日
 
 --
 
-全球每年生产超过100个泽字节（= 10¹²GB）的[数据](https://www.statista.com/statistics/871513/worldwide-data-created/)，因此处理大数据的能力是今天最为关键的技能之一。数据分析本身可以定义为处理大数据并从无止境、指数增长的数据中提取洞察力的能力。Apache Hadoop 和 Apache Spark 是帮助我们解开大型数据集中无限可能性的两个基本工具。[Apache Hadoop](https://hadoop.apache.org/) 通过其分布式文件系统（HDFS）和基于 MapReduce 的数据并行处理，帮助我们简化数据存储和分布式计算。[Apache Spark](https://spark.apache.org/) 是一个大数据分析引擎，能够进行EDA、SQL分析、流处理、机器学习和图处理，并通过其API与主要编程语言兼容。两者结合起来，构成了一个出色的大数据处理环境，并且在大多数情况下，只需要一台个人电脑即可完成！
+全球每年生产超过 100 个泽字节（= 10¹²GB）的[数据](https://www.statista.com/statistics/871513/worldwide-data-created/)，因此处理大数据的能力是今天最为关键的技能之一。数据分析本身可以定义为处理大数据并从无止境、指数增长的数据中提取洞察力的能力。Apache Hadoop 和 Apache Spark 是帮助我们解开大型数据集中无限可能性的两个基本工具。[Apache Hadoop](https://hadoop.apache.org/) 通过其分布式文件系统（HDFS）和基于 MapReduce 的数据并行处理，帮助我们简化数据存储和分布式计算。[Apache Spark](https://spark.apache.org/) 是一个大数据分析引擎，能够进行 EDA、SQL 分析、流处理、机器学习和图处理，并通过其 API 与主要编程语言兼容。两者结合起来，构成了一个出色的大数据处理环境，并且在大多数情况下，只需要一台个人电脑即可完成！
 
-让我们通过一个简单的分析项目，利用Apache Spark在Python中实现，来展开[大数据和Apache Hadoop](https://medium.com/@roshmitadey/a-beginners-guide-to-big-data-and-hadoop-distributed-file-system-hdfs-b5c324d3c722)的强大功能。
+让我们通过一个简单的分析项目，利用 Apache Spark 在 Python 中实现，来展开[大数据和 Apache Hadoop](https://medium.com/@roshmitadey/a-beginners-guide-to-big-data-and-hadoop-distributed-file-system-hdfs-b5c324d3c722)的强大功能。
 
-首先，让我们深入了解如何在MacOS上安装Hadoop分布式文件系统和Apache Spark。我使用的是一台配备M1芯片的MacBook Air，操作系统为macOS Sonoma。
+首先，让我们深入了解如何在 MacOS 上安装 Hadoop 分布式文件系统和 Apache Spark。我使用的是一台配备 M1 芯片的 MacBook Air，操作系统为 macOS Sonoma。
 
 **跳转到章节 —**
 
-1.  [安装Hadoop分布式文件系统](#b292)
+1.  安装 Hadoop 分布式文件系统
 
-1.  [安装 Apache Spark](#2773)
+1.  安装 Apache Spark
 
-1.  [使用 PySpark 进行 Steam 评论分析](#32ea)
+1.  使用 PySpark 进行 Steam 评论分析
 
-1.  [接下来做什么？](#2580)
+1.  接下来做什么？
 
 ## 1. 安装 Hadoop 分布式文件系统
 
@@ -44,13 +44,13 @@
 brew --version
 ```
 
-![](../Images/c0f0f02df5fc0a74936bb9fba42d896e.png)
+![](img/c0f0f02df5fc0a74936bb9fba42d896e.png)
 
 图 1：作者提供的图片
 
 然而，你可能会遇到一个错误，提示`command not found`，这是因为 Homebrew 会被安装在不同的位置（如图 2 所示），并且无法从当前目录执行。为了使其正常工作，我们需要为 brew 添加一个路径环境变量，即将 Homebrew 添加到 `.bash_profile` 中。
 
-![](../Images/594e71aa1c71a70fe1615dba45a9b210.png)
+![](img/594e71aa1c71a70fe1615dba45a9b210.png)
 
 图 2：作者提供的图片
 
@@ -86,7 +86,7 @@ cd /opt/homebrew/Cellar/hadoop/3.3.6/libexec/etc/hadoop
 
 你可以使用 `ls` 命令查看该文件夹中的文件。我们将编辑 `hadoop-env.sh` 以确保 Hadoop 在系统上正确运行。
 
-![](../Images/c9433c954e59f2cbaaf96c35b2a1fcac.png)
+![](img/c9433c954e59f2cbaaf96c35b2a1fcac.png)
 
 图 3：作者提供的图片
 
@@ -96,13 +96,13 @@ cd /opt/homebrew/Cellar/hadoop/3.3.6/libexec/etc/hadoop
 /usr/libexec/java_home
 ```
 
-![](../Images/e3082e79171b59a742c2462151b8efa3.png)
+![](img/e3082e79171b59a742c2462151b8efa3.png)
 
 图 4：图片来自作者
 
 我们可以在任何文本编辑器中打开 `hadoop-env.sh` 文件。我使用了 VI 编辑器，您可以使用任何编辑器。我们可以将路径 `Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home` 复制并粘贴到 `export JAVA_HOME =` 位置。
 
-![](../Images/bbeff2e0db5eba54d035987932f6209a.png)
+![](img/bbeff2e0db5eba54d035987932f6209a.png)
 
 图 5：在 VI 文本编辑器中打开的 hadoop-env.sh 文件
 
@@ -166,7 +166,7 @@ JAVA_HOME,HADOOP_COMMON_HOME,HADOOP_HDFS_HOME,HADOOP_CONF_DIR,CLASSPATH_PREPEND_
 
 至此，我们已经成功完成了在本地安装和配置 HDFS。为了使 Hadoop 上的数据可以通过远程登录访问，我们可以在常规设置中的共享部分启用 `远程登录`。您可以通过点击信息图标编辑用户访问权限。
 
-![](../Images/b09bae4523e0679b1275c841247e5aff.png)
+![](img/b09bae4523e0679b1275c841247e5aff.png)
 
 图 6：启用远程访问。图片来自作者
 
@@ -186,7 +186,7 @@ hadoop namenode -format
 % jps 
 ```
 
-![](../Images/fb2fa78c2639a628f5ee27da07acfa27.png)
+![](img/fb2fa78c2639a628f5ee27da07acfa27.png)
 
 图 7：启动 Hadoop 并查看运行中的节点和资源。图片来自作者
 
@@ -217,15 +217,15 @@ hadoop fs -mkdir /user/steam_analysis
 hadoop fs -put /Users/rindhujajohnson/local_file_path/steam_reviews.csv /user/steam_analysis
 ```
 
-Apache Hadoop 还提供一个用户界面，可以通过 [http://localhost:9870/](http://localhost:9870/) 访问。
+Apache Hadoop 还提供一个用户界面，可以通过 [`localhost:9870/`](http://localhost:9870/) 访问。
 
-![](../Images/a158c45d8a4f833962c62d1c16d19215.png)
+![](img/a158c45d8a4f833962c62d1c16d19215.png)
 
 图 8：localhost:9870 上的 HDFS 用户界面。图片来自作者
 
 我们可以看到上传的文件，如下所示。
 
-![](../Images/b57932add5847d2cf0d9f63a7bfad1cd.png)
+![](img/b57932add5847d2cf0d9f63a7bfad1cd.png)
 
 图 10：在 HDFS 中浏览文件。图片来自作者
 
@@ -235,9 +235,9 @@ Apache Hadoop 还提供一个用户界面，可以通过 [http://localhost:9870/
 
 ## 2\. 安装 Apache Spark
 
-Apache Hadoop负责数据存储（HDFS）和数据的并行处理（MapReduce），以加速执行。[Apache Spark](https://spark.apache.org/)是一个多语言兼容的分析引擎，旨在处理大数据分析。我们将在Jupyter IDE中使用Python运行Apache Spark。
+Apache Hadoop 负责数据存储（HDFS）和数据的并行处理（MapReduce），以加速执行。[Apache Spark](https://spark.apache.org/)是一个多语言兼容的分析引擎，旨在处理大数据分析。我们将在 Jupyter IDE 中使用 Python 运行 Apache Spark。
 
-在安装并运行HDFS之后，安装Apache Spark for Python轻松得多。PySpark是Apache Spark的Python API，可以通过在Jupyter Notebook中使用`pip`方法进行安装。PySpark是Spark Core API，包含四个组件——Spark SQL、Spark ML库、Spark Streaming和GraphX。此外，我们可以通过初始化安装并指定所需的Hadoop版本，使用PySpark访问Hadoop文件。
+在安装并运行 HDFS 之后，安装 Apache Spark for Python 轻松得多。PySpark 是 Apache Spark 的 Python API，可以通过在 Jupyter Notebook 中使用`pip`方法进行安装。PySpark 是 Spark Core API，包含四个组件——Spark SQL、Spark ML 库、Spark Streaming 和 GraphX。此外，我们可以通过初始化安装并指定所需的 Hadoop 版本，使用 PySpark 访问 Hadoop 文件。
 
 ```py
 # By default, the Hadoop version considered will be 3 here.
@@ -246,13 +246,13 @@ PYSPARK_HADOOP_VERSION=3 pip install pyspark
 
 让我们开始大数据分析吧！
 
-## 3. 使用PySpark进行Steam评论分析
+## 3. 使用 PySpark 进行 Steam 评论分析
 
-[Steam](https://store.steampowered.com/about/)是一个在线游戏平台，全球拥有超过100百万玩家，平台上托管着超过30,000款游戏。除了游戏，平台还允许玩家为他们玩的游戏提供评论，这为平台改进客户体验和游戏公司保持玩家活跃提供了重要资源。我们使用了平台上公开提供的[Kaggle](https://www.kaggle.com/datasets/najzeko/steam-reviews-2021)上的评论数据。
+[Steam](https://store.steampowered.com/about/)是一个在线游戏平台，全球拥有超过 100 百万玩家，平台上托管着超过 30,000 款游戏。除了游戏，平台还允许玩家为他们玩的游戏提供评论，这为平台改进客户体验和游戏公司保持玩家活跃提供了重要资源。我们使用了平台上公开提供的[Kaggle](https://www.kaggle.com/datasets/najzeko/steam-reviews-2021)上的评论数据。
 
-**3. a. 从HDFS提取数据**
+**3. a. 从 HDFS 提取数据**
 
-我们将使用PySpark库来访问、清理和分析数据。首先，我们通过本地主机地址将PySpark会话连接到Hadoop。
+我们将使用 PySpark 库来访问、清理和分析数据。首先，我们通过本地主机地址将 PySpark 会话连接到 Hadoop。
 
 ```py
 from pyspark.sql import SparkSession
@@ -276,7 +276,7 @@ data_csv.count() # 40,848,659
 
 **3. b. 数据清理与预处理**
 
-我们可以先看看数据集。与Pandas中的pandas.head()函数类似，PySpark提供了SparkSession.show()函数，能够展示数据集的一部分。
+我们可以先看看数据集。与 Pandas 中的 pandas.head()函数类似，PySpark 提供了 SparkSession.show()函数，能够展示数据集的一部分。
 
 在此之前，我们将删除数据集中的评论列，因为我们不打算对数据集进行任何自然语言处理（NLP）。此外，评论使用了不同的语言，这使得基于评论进行情感分析变得困难。
 
@@ -288,11 +288,11 @@ data = data_csv.drop("review")
 data.show() 
 ```
 
-![](../Images/52636915bc9dc3c68b59c2d3238eeb54.png)
+![](img/52636915bc9dc3c68b59c2d3238eeb54.png)
 
-图11：模式的结构
+图 11：模式的结构
 
-我们有一个庞大的数据集，包含23个属性，其中有不同属性的NULL值，这使得考虑进行插补变得不合适。因此，我已删除了包含NULL值的记录。然而，这不是推荐的方法。您可以评估可用属性的重要性，删除无关的属性，然后尝试对NULL值进行插补。
+我们有一个庞大的数据集，包含 23 个属性，其中有不同属性的 NULL 值，这使得考虑进行插补变得不合适。因此，我已删除了包含 NULL 值的记录。然而，这不是推荐的方法。您可以评估可用属性的重要性，删除无关的属性，然后尝试对 NULL 值进行插补。
 
 ```py
 # Drops all the records with NULL values
@@ -302,9 +302,9 @@ data = data.na.drop(how = "any")
 data.count() # 16,876,852
 ```
 
-数据集中仍然有接近1700万条记录！
+数据集中仍然有接近 1700 万条记录！
 
-现在，我们集中关注数据集中的变量名，如图11所示。我们可以看到某些属性包含像点（.）这样的字符，这些字符不符合Python标识符的命名规则。同时，我们还需要更改日期和时间属性的数据类型。因此，我们使用以下代码进行更改——
+现在，我们集中关注数据集中的变量名，如图 11 所示。我们可以看到某些属性包含像点（.）这样的字符，这些字符不符合 Python 标识符的命名规则。同时，我们还需要更改日期和时间属性的数据类型。因此，我们使用以下代码进行更改——
 
 ```py
 from pyspark.sql.types import *
@@ -326,15 +326,15 @@ data = data.withColumn("timestamp_created", from_unixtime("timestamp_created").c
             withColumn("timestamp_updated", from_unixtime(data["timestamp_updated"]).cast(TimestampType()))
 ```
 
-![](../Images/a42764009ddbe5123c2a75a7f5cf4e0f.png)
+![](img/a42764009ddbe5123c2a75a7f5cf4e0f.png)
 
-图12：Steam评论分析数据集的简要概览。图像来自作者
+图 12：Steam 评论分析数据集的简要概览。图像来自作者
 
 数据集已经清理完毕，准备好进行分析！
 
 **3\. c. 探索性数据分析**
 
-数据集包含超过20个变量，信息丰富。我们可以从不同的角度分析数据。因此，我们将把数据拆分成不同的PySpark数据框，并进行缓存，以加快分析速度。
+数据集包含超过 20 个变量，信息丰富。我们可以从不同的角度分析数据。因此，我们将把数据拆分成不同的 PySpark 数据框，并进行缓存，以加快分析速度。
 
 ```py
 # Grouping the columns for each analysis
@@ -408,13 +408,13 @@ plt.title("The Most Recommended Games")
 plt.show()
 ```
 
-![](../Images/b62fe5c6d97a4793d51ff4f7c653c876.png)![](../Images/405b141436af05e056a8c5953a809287.png)
+![](img/b62fe5c6d97a4793d51ff4f7c653c876.png)![](img/405b141436af05e056a8c5953a809287.png)
 
-图13：显示了受欢迎和推荐游戏的饼图。图片来源：作者
+图 13：显示了受欢迎和推荐游戏的饼图。图片来源：作者
 
 ***洞察***
 
-+   《绝地求生》（PUBG）是2021年最受欢迎和最推荐的游戏。
++   《绝地求生》（PUBG）是 2021 年最受欢迎和最推荐的游戏。
 
 +   然而，在这两个类别中，第二的位置分别由《侠盗猎车手 V》（GTA V）和《星露谷物语》占据。这表明，受欢迎并不意味着所有玩家都会向其他玩家推荐该游戏。
 
@@ -459,9 +459,9 @@ plt.ylabel('Count')
 plt.show()
 ```
 
-![](../Images/45704b3736bfb990e3200b620c4af498.png)![](../Images/da796a9979022ac0928317fb693f394f.png)
+![](img/45704b3736bfb990e3200b620c4af498.png)![](img/da796a9979022ac0928317fb693f394f.png)
 
-图14：语言流行度；受欢迎游戏中的语言流行度。图片来源：作者
+图 14：语言流行度；受欢迎游戏中的语言流行度。图片来源：作者
 
 ***洞察***
 
@@ -471,9 +471,9 @@ plt.show()
 
 +   游戏的受欢迎程度似乎与其来源地有关。[PUBG](https://letsuncoverhistory.blogspot.com/2023/06/History-and-The-Future-of-PubG.html)是由一家韩国游戏公司开发的，我们观察到它的评论中有韩语，这是使用频率较高的语言之一。
 
-对该数据也进行了时间、作者和评论分析，但并未提供任何可操作的洞察。欢迎访问[GitHub仓库，查看完整项目](https://github.com/Rindhujatreesa/Big_Data_Processing_Projects/tree/main/Steam_Review_Analysis_with_HDFS_%26_PySpark)文档。
+对该数据也进行了时间、作者和评论分析，但并未提供任何可操作的洞察。欢迎访问[GitHub 仓库，查看完整项目](https://github.com/Rindhujatreesa/Big_Data_Processing_Projects/tree/main/Steam_Review_Analysis_with_HDFS_%26_PySpark)文档。
 
-**3\. d. 使用Spark ML库进行游戏推荐**
+**3\. d. 使用 Spark ML 库进行游戏推荐**
 
 我们已经进入项目的最后阶段，在这里我们将实现 [交替最小二乘法（ALS）](https://spark.apache.org/docs/latest/ml-collaborative-filtering.html) 机器学习算法，来自 Spark ML 库。该模型利用协同过滤技术，根据玩家的行为（即他们之前玩的游戏）来推荐游戏。这个算法识别出那些在 Steam 应用中玩过每个可用游戏的玩家的游戏选择模式。
 
@@ -501,14 +501,14 @@ new_pair = author_indexer.transform(app_indexer.transform(new_pair_games))
 new_pair.show()
 ```
 
-![](../Images/84c72ca4d73022d09883d5a231ebc3bb.png)
+![](img/84c72ca4d73022d09883d5a231ebc3bb.png)
 
 ```py
 # The reference chart for games
 games = new_pair.select("app_index","app_name").distinct().orderBy("app_index")
 ```
 
-![](../Images/c613673f7ba9009d76ebd17d9d48ec25.png)
+![](img/c613673f7ba9009d76ebd17d9d48ec25.png)
 
 图 16：带有相应索引的游戏列表，供参考。图片来源：作者
 
@@ -528,7 +528,7 @@ app_recommendations = model.recommendForAllItems(5)  # Number of recommendations
 app_recommendations.show(truncate=False)
 ```
 
-![](../Images/3362790f58d8e6be83a3fdd37556267f.png)
+![](img/3362790f58d8e6be83a3fdd37556267f.png)
 
 图 17：根据每位作者的游戏历史生成的推荐和评分。图片来源：作者
 
@@ -550,7 +550,7 @@ app_recommendations.show(truncate=False)
 
 +   在评论列中实现自然语言处理技术，处理不同语言的评论，以提取评论的精髓并改善游戏体验。
 
-+   Steam可以根据评论报告游戏中的bug。开发一种能够捕捉评论内容、进行分类并将其发送给相关人员的AI算法，将对平台产生巨大帮助。
++   Steam 可以根据评论报告游戏中的 bug。开发一种能够捕捉评论内容、进行分类并将其发送给相关人员的 AI 算法，将对平台产生巨大帮助。
 
 +   评论告诉我你认为还可以做些什么！
 
@@ -558,15 +558,15 @@ app_recommendations.show(truncate=False)
 
 +   Apache Hadoop. [Apache Hadoop](https://hadoop.apache.org/)。*Apache Hadoop*
 
-+   Statista. (2021). [2010年至2020年全球创建、捕获、复制和消费的数据/信息量，以及2021年至2025年的预测](https://www.statista.com/statistics/871513/worldwide-data-created/)。*statista*
++   Statista. (2021). [2010 年至 2020 年全球创建、捕获、复制和消费的数据/信息量，以及 2021 年至 2025 年的预测](https://www.statista.com/statistics/871513/worldwide-data-created/)。*statista*
 
-+   Dey, R. (2023). [大数据和Hadoop分布式文件系统（HDFS）初学者指南](https://medium.com/@roshmitadey/a-beginners-guide-to-big-data-and-hadoop-distributed-file-system-hdfs-b5c324d3c722)。*Medium*
++   Dey, R. (2023). [大数据和 Hadoop 分布式文件系统（HDFS）初学者指南](https://medium.com/@roshmitadey/a-beginners-guide-to-big-data-and-hadoop-distributed-file-system-hdfs-b5c324d3c722)。*Medium*
 
-+   Code with Arjun (2021). [在Mac OS（MacBook M1）上安装Hadoop](https://codewitharjun.medium.com/install-hadoop-on-macos-efe7c860c3ed)。*Medium*
++   Code with Arjun (2021). [在 Mac OS（MacBook M1）上安装 Hadoop](https://codewitharjun.medium.com/install-hadoop-on-macos-efe7c860c3ed)。*Medium*
 
-+   Apache Spark. [PySpark安装指南](https://spark.apache.org/docs/latest/api/python/getting_started/install.html)。*Apache Spark*
++   Apache Spark. [PySpark 安装指南](https://spark.apache.org/docs/latest/api/python/getting_started/install.html)。*Apache Spark*
 
-+   Apache Spark. [使用ALS进行协同过滤](https://spark.apache.org/docs/latest/ml-collaborative-filtering.html)。*Apache Spark*
++   Apache Spark. [使用 ALS 进行协同过滤](https://spark.apache.org/docs/latest/ml-collaborative-filtering.html)。*Apache Spark*
 
 +   Let’s Uncover it. (2023). [PUBG](https://letsuncoverhistory.blogspot.com/2023/06/History-and-The-Future-of-PubG.html)。*Let’s Uncover It*
 

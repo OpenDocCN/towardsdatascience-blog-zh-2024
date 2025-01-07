@@ -1,16 +1,16 @@
 # Azure 数据平台在云中的着陆区
 
-> 原文：[https://towardsdatascience.com/adapting-the-azure-landing-zone-for-a-data-platform-in-the-cloud-f1c405c0d638?source=collection_archive---------4-----------------------#2024-08-16](https://towardsdatascience.com/adapting-the-azure-landing-zone-for-a-data-platform-in-the-cloud-f1c405c0d638?source=collection_archive---------4-----------------------#2024-08-16)
+> 原文：[`towardsdatascience.com/adapting-the-azure-landing-zone-for-a-data-platform-in-the-cloud-f1c405c0d638?source=collection_archive---------4-----------------------#2024-08-16`](https://towardsdatascience.com/adapting-the-azure-landing-zone-for-a-data-platform-in-the-cloud-f1c405c0d638?source=collection_archive---------4-----------------------#2024-08-16)
 
-[](https://medium.com/@mariusz_kujawski?source=post_page---byline--f1c405c0d638--------------------------------)[![Mariusz Kujawski](../Images/72a2dafb84cabfd54b0ef54a6689a001.png)](https://medium.com/@mariusz_kujawski?source=post_page---byline--f1c405c0d638--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f1c405c0d638--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f1c405c0d638--------------------------------) [Mariusz Kujawski](https://medium.com/@mariusz_kujawski?source=post_page---byline--f1c405c0d638--------------------------------)
+[](https://medium.com/@mariusz_kujawski?source=post_page---byline--f1c405c0d638--------------------------------)![Mariusz Kujawski](https://medium.com/@mariusz_kujawski?source=post_page---byline--f1c405c0d638--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f1c405c0d638--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f1c405c0d638--------------------------------) [Mariusz Kujawski](https://medium.com/@mariusz_kujawski?source=post_page---byline--f1c405c0d638--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f1c405c0d638--------------------------------) ·7 分钟阅读·2024年8月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f1c405c0d638--------------------------------) ·7 分钟阅读·2024 年 8 月 16 日
 
 --
 
 处理敏感数据或在高度监管的环境中工作需要为数据处理提供安全的云基础设施。云可能看起来像是互联网中的一个开放环境，因此会引发安全问题。当你开始使用 Azure 且没有足够的资源配置经验时，很容易犯设计和实施的错误，这些错误可能会影响新数据平台的安全性和灵活性。在这篇文章中，我将描述为 Azure 中的数据平台设计云适配框架时最重要的方面。
 
-![](../Images/a1cffa88118419c1a8483f9d0f25c1ed.png)
+![](img/a1cffa88118419c1a8483f9d0f25c1ed.png)
 
 作者插图
 
@@ -26,7 +26,7 @@ Azure 着陆区是一个遵循关键设计原则的环境，用于支持应用�
 
 这些设计原则帮助组织在云环境中成功运营并扩展平台。
 
-![](../Images/d5aa2a8ba79baf849f5eb0241a67fa94.png)
+![](img/d5aa2a8ba79baf849f5eb0241a67fa94.png)
 
 图像来自作者
 
@@ -48,7 +48,7 @@ Azure 着陆区是一个遵循关键设计原则的环境，用于支持应用�
 
 我们可以使用 Apache Spark 和 Python，或者低代码的拖放工具。通过这些工具的不同组合，我们可以根据我们的技能、使用案例和能力创建最合适的架构。
 
-![](../Images/a7a39144cc6fa06c688b079a56460b2a.png)
+![](img/a7a39144cc6fa06c688b079a56460b2a.png)
 
 高级架构（图像来自作者）
 
@@ -72,43 +72,43 @@ Azure 还允许您使用其他组件，如 Snowflake，或者使用开源软件�
 
 +   对于 Apache Spark：Databricks、Azure Synapse Spark 池和 MS Fabric Notebooks，
 
-+   对于基于SQL的转换，我们可以在Databricks、Azure Synapse或MS Fabric中使用Spark SQL，在SQL Server、MS Fabric或Synapse Dedicated Pool中使用T-SQL。或者，Snowflake提供所有SQL功能。
++   对于基于 SQL 的转换，我们可以在 Databricks、Azure Synapse 或 MS Fabric 中使用 Spark SQL，在 SQL Server、MS Fabric 或 Synapse Dedicated Pool 中使用 T-SQL。或者，Snowflake 提供所有 SQL 功能。
 
 ## 订阅
 
 平台设计的一个重要方面是根据业务单元和软件开发生命周期规划订阅和资源组的分割。可以为生产环境和非生产环境使用不同的订阅。通过这种区分，我们可以实现更灵活的安全模型，为生产和测试环境分别设定策略，并避免配额限制。
 
-![](../Images/743e0ce5cb61f33b39db73066f5d755e.png)
+![](img/743e0ce5cb61f33b39db73066f5d755e.png)
 
 订阅组织（图像由作者提供）
 
 ## 网络
 
-虚拟网络类似于在数据中心中运行的传统网络。Azure虚拟网络（VNet）为您的平台提供了基础安全层，禁用资源的公共端点将大大降低丢失密钥或密码时发生数据泄漏的风险。如果没有公共端点，存储在Azure存储帐户中的数据只有在连接到您的VNet时才可以访问。
+虚拟网络类似于在数据中心中运行的传统网络。Azure 虚拟网络（VNet）为您的平台提供了基础安全层，禁用资源的公共端点将大大降低丢失密钥或密码时发生数据泄漏的风险。如果没有公共端点，存储在 Azure 存储帐户中的数据只有在连接到您的 VNet 时才可以访问。
 
-与本地网络的连接支持Azure资源与本地数据源之间的直接连接。根据连接类型，通信流量可能通过互联网的加密隧道或专用连接进行传输。
+与本地网络的连接支持 Azure 资源与本地数据源之间的直接连接。根据连接类型，通信流量可能通过互联网的加密隧道或专用连接进行传输。
 
-为了提高虚拟网络内的安全性，您可以使用网络安全组（NSG）和防火墙来管理进出流量规则。这些规则允许您根据IP地址、端口和协议来过滤流量。此外，Azure还支持在子网、虚拟网络和本地网络以及互联网之间路由流量。使用自定义路由表可以控制流量的路由方向。
+为了提高虚拟网络内的安全性，您可以使用网络安全组（NSG）和防火墙来管理进出流量规则。这些规则允许您根据 IP 地址、端口和协议来过滤流量。此外，Azure 还支持在子网、虚拟网络和本地网络以及互联网之间路由流量。使用自定义路由表可以控制流量的路由方向。
 
-![](../Images/0361b2b23a55fcc24c95f54aa419a295.png)
+![](img/0361b2b23a55fcc24c95f54aa419a295.png)
 
 网络配置（图像由作者提供）
 
 ## **命名规范**
 
-命名规范为平台资源的名称建立了标准化，使其更加自我描述并易于管理。这种标准化有助于在Azure门户中浏览不同的资源并进行过滤。一个明确的命名规范可以让您快速识别资源的类型、目的、环境和Azure区域。这种一致性在您的CI/CD流程中可能非常有利，因为可预测的名称更容易参数化。
+命名规范为平台资源的名称建立了标准化，使其更加自我描述并易于管理。这种标准化有助于在 Azure 门户中浏览不同的资源并进行过滤。一个明确的命名规范可以让您快速识别资源的类型、目的、环境和 Azure 区域。这种一致性在您的 CI/CD 流程中可能非常有利，因为可预测的名称更容易参数化。
 
 考虑到命名规范，您应该考虑需要捕捉的信息。标准应易于遵循、一致且实用。值得包括的元素有：组织、业务单元或项目、资源类型、环境、区域和实例编号。您还应该考虑资源的范围，以确保在其上下文中名称是唯一的。对于某些资源，如存储帐户，名称必须在全球范围内唯一。
 
 例如，Databricks 工作区的命名格式可以如下所示：
 
-![](../Images/256541a8549031815164176cda8b89c1.png)
+![](img/256541a8549031815164176cda8b89c1.png)
 
 命名约定（图片由作者提供）
 
 示例缩写：
 
-![](../Images/263833137400a9fa78e1788bd3e0ecb2.png)
+![](img/263833137400a9fa78e1788bd3e0ecb2.png)
 
 图片由作者提供
 

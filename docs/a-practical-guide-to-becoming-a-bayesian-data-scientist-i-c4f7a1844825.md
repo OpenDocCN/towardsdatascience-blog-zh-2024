@@ -1,18 +1,18 @@
 # 贝叶斯数据科学：什么，为什么，以及如何
 
-> 原文：[https://towardsdatascience.com/a-practical-guide-to-becoming-a-bayesian-data-scientist-i-c4f7a1844825?source=collection_archive---------1-----------------------#2024-04-18](https://towardsdatascience.com/a-practical-guide-to-becoming-a-bayesian-data-scientist-i-c4f7a1844825?source=collection_archive---------1-----------------------#2024-04-18)
+> 原文：[`towardsdatascience.com/a-practical-guide-to-becoming-a-bayesian-data-scientist-i-c4f7a1844825?source=collection_archive---------1-----------------------#2024-04-18`](https://towardsdatascience.com/a-practical-guide-to-becoming-a-bayesian-data-scientist-i-c4f7a1844825?source=collection_archive---------1-----------------------#2024-04-18)
 
 ## 选择频率派和贝叶斯方法之间的争论是上世纪的大辩论之一，近期贝叶斯方法在科学领域的应用有了激增。
 
-[](https://medium.com/@samvardhanvishnoi2026?source=post_page---byline--c4f7a1844825--------------------------------)[![Samvardhan Vishnoi](../Images/a99d8db797d6ff346aed66cc84f0f32e.png)](https://medium.com/@samvardhanvishnoi2026?source=post_page---byline--c4f7a1844825--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4f7a1844825--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c4f7a1844825--------------------------------) [Samvardhan Vishnoi](https://medium.com/@samvardhanvishnoi2026?source=post_page---byline--c4f7a1844825--------------------------------)
+[](https://medium.com/@samvardhanvishnoi2026?source=post_page---byline--c4f7a1844825--------------------------------)![Samvardhan Vishnoi](https://medium.com/@samvardhanvishnoi2026?source=post_page---byline--c4f7a1844825--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4f7a1844825--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4f7a1844825--------------------------------) [Samvardhan Vishnoi](https://medium.com/@samvardhanvishnoi2026?source=post_page---byline--c4f7a1844825--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4f7a1844825--------------------------------) ·阅读时长：5分钟·2024年4月18日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4f7a1844825--------------------------------) ·阅读时长：5 分钟·2024 年 4 月 18 日
 
 --
 
-![](../Images/a74b40af39819f23169df290f1ed1fb9.png)
+![](img/a74b40af39819f23169df290f1ed1fb9.png)
 
-在 [sciencedirect.com](http://sciencedirect.com) 上提到贝叶斯统计的文章数量（2024年4月）——图表由作者提供
+在 [sciencedirect.com](http://sciencedirect.com) 上提到贝叶斯统计的文章数量（2024 年 4 月）——图表由作者提供
 
 ## 这有什么不同？
 
@@ -22,11 +22,11 @@
 
 频率派统计学家专注于描述数据的精确分布，而贝叶斯观点则更**主观**。主观性和统计学？没错，它们实际上是兼容的。
 
-让我们从简单的例子开始，比如掷硬币。假设你掷硬币10次，得到正面7次。那么，得到正面的概率是多少？
+让我们从简单的例子开始，比如掷硬币。假设你掷硬币 10 次，得到正面 7 次。那么，得到正面的概率是多少？
 
 P(正面) = 7/10 (0.7)?
 
-显然，这里我们遇到了低样本量的问题。然而，从贝叶斯的角度来看，我们可以直接编码我们的信念，假设如果硬币是公平的，那么正面和反面的概率必须相等，即1/2。虽然在这个例子中选择似乎非常明显，但当我们面对更复杂、不太显而易见的现象时，讨论会更加微妙。
+显然，这里我们遇到了低样本量的问题。然而，从贝叶斯的角度来看，我们可以直接编码我们的信念，假设如果硬币是公平的，那么正面和反面的概率必须相等，即 1/2。虽然在这个例子中选择似乎非常明显，但当我们面对更复杂、不太显而易见的现象时，讨论会更加微妙。
 
 *然而*，这个简单的例子是一个强有力的起点，突出了贝叶斯分析的最大**优点**和**缺点**：
 
@@ -38,9 +38,9 @@ P(正面) = 7/10 (0.7)?
 
 那么这一切在数学上看起来是什么样的呢？贝叶斯定理为此奠定了基础。假设我们有一个参数 θ，它定义了某个模型，能够描述我们的数据（例如，θ 可能代表均值、方差、相对于协变量的斜率等）。贝叶斯定理表明
 
-![](../Images/4096bb1ae456a9797d7d597f809a1d59.png)
+![](img/4096bb1ae456a9797d7d597f809a1d59.png)
 
-托马斯·贝叶斯在1700年代提出了贝叶斯定理，并在去世后发布。[[*图片*](https://commons.wikimedia.org/wiki/File:ThomasBayes.png) *通过维基共享资源，依据* [知识共享](https://en.wikipedia.org/wiki/en:Creative_Commons) [署名-相同方式共享 4.0 国际](https://creativecommons.org/licenses/by-sa/4.0/deed.en)，未经改动]
+托马斯·贝叶斯在 1700 年代提出了贝叶斯定理，并在去世后发布。[[*图片*](https://commons.wikimedia.org/wiki/File:ThomasBayes.png) *通过维基共享资源，依据* [知识共享](https://en.wikipedia.org/wiki/en:Creative_Commons) [署名-相同方式共享 4.0 国际](https://creativecommons.org/licenses/by-sa/4.0/deed.en)，未经改动]
 
 **P (θ = t|data) ∝ P (data|θ = t) * P (θ=t)**
 
@@ -64,7 +64,7 @@ P(正面) = 7/10 (0.7)?
 
 从图形上看，结果大致如下：
 
-![](../Images/ebb505109267dff5a20a1368a71bfc28.png)
+![](img/ebb505109267dff5a20a1368a71bfc28.png)
 
 **先验（左）**与**似然（中）**的结合形成了**后验（右）**（图像改编自 Andrew Gelman 的书籍）。这里，θ 编码了飞机的东西向位置坐标。先验信念认为飞机偏向东部而不是西部。数据挑战了这一先验，因此后验位于两者之间。[图片使用作者生成的数据]
 

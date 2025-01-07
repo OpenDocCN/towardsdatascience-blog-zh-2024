@@ -1,16 +1,16 @@
 # PySpark 解析：用户定义函数
 
-> 原文：[https://towardsdatascience.com/pyspark-explained-user-defined-functions-40a71f924b1a?source=collection_archive---------6-----------------------#2024-07-15](https://towardsdatascience.com/pyspark-explained-user-defined-functions-40a71f924b1a?source=collection_archive---------6-----------------------#2024-07-15)
+> 原文：[`towardsdatascience.com/pyspark-explained-user-defined-functions-40a71f924b1a?source=collection_archive---------6-----------------------#2024-07-15`](https://towardsdatascience.com/pyspark-explained-user-defined-functions-40a71f924b1a?source=collection_archive---------6-----------------------#2024-07-15)
 
-![](../Images/54123ff2074aa3399ee679449273534e.png)
+![](img/54123ff2074aa3399ee679449273534e.png)
 
 图片由 AI（Dalle-3）生成
 
 ## 它们是什么？你又该如何使用它们呢？
 
-[](https://medium.com/@thomas_reid?source=post_page---byline--40a71f924b1a--------------------------------)[![Thomas Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--40a71f924b1a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--40a71f924b1a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--40a71f924b1a--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--40a71f924b1a--------------------------------)
+[](https://medium.com/@thomas_reid?source=post_page---byline--40a71f924b1a--------------------------------)![Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--40a71f924b1a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--40a71f924b1a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40a71f924b1a--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--40a71f924b1a--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40a71f924b1a--------------------------------) ·阅读时间 10 分钟·2024年7月15日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40a71f924b1a--------------------------------) ·阅读时间 10 分钟·2024 年 7 月 15 日
 
 --
 

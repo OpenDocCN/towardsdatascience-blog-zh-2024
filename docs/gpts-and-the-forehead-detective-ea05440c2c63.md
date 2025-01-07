@@ -1,16 +1,16 @@
 # GPT 与额头侦探
 
-> 原文：[https://towardsdatascience.com/gpts-and-the-forehead-detective-ea05440c2c63?source=collection_archive---------7-----------------------#2024-09-05](https://towardsdatascience.com/gpts-and-the-forehead-detective-ea05440c2c63?source=collection_archive---------7-----------------------#2024-09-05)
+> 原文：[`towardsdatascience.com/gpts-and-the-forehead-detective-ea05440c2c63?source=collection_archive---------7-----------------------#2024-09-05`](https://towardsdatascience.com/gpts-and-the-forehead-detective-ea05440c2c63?source=collection_archive---------7-----------------------#2024-09-05)
 
 ## OpenAI LLMs 的推理能力足够好，可以玩经典的猜谜游戏吗？
 
-[](https://medium.com/@krzysztof.kornel?source=post_page---byline--ea05440c2c63--------------------------------)[![Krzysztof K. Zdeb](../Images/4531b37707bf6a01ef635e4b9ecfc03f.png)](https://medium.com/@krzysztof.kornel?source=post_page---byline--ea05440c2c63--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ea05440c2c63--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ea05440c2c63--------------------------------) [Krzysztof K. Zdeb](https://medium.com/@krzysztof.kornel?source=post_page---byline--ea05440c2c63--------------------------------)
+[](https://medium.com/@krzysztof.kornel?source=post_page---byline--ea05440c2c63--------------------------------)![Krzysztof K. Zdeb](https://medium.com/@krzysztof.kornel?source=post_page---byline--ea05440c2c63--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ea05440c2c63--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ea05440c2c63--------------------------------) [Krzysztof K. Zdeb](https://medium.com/@krzysztof.kornel?source=post_page---byline--ea05440c2c63--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ea05440c2c63--------------------------------) ·11分钟阅读·2024年9月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ea05440c2c63--------------------------------) ·11 分钟阅读·2024 年 9 月 5 日
 
 --
 
-![](../Images/336d8233221306b9c75d08de4698da39.png)
+![](img/336d8233221306b9c75d08de4698da39.png)
 
 GPT 玩“额头侦探”游戏 | 图片来自 DALL·E
 

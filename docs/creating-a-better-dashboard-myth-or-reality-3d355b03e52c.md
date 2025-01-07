@@ -1,32 +1,32 @@
 # 创建一个更好的仪表板——神话还是现实？
 
-> 原文：[https://towardsdatascience.com/creating-a-better-dashboard-myth-or-reality-3d355b03e52c?source=collection_archive---------2-----------------------#2024-02-17](https://towardsdatascience.com/creating-a-better-dashboard-myth-or-reality-3d355b03e52c?source=collection_archive---------2-----------------------#2024-02-17)
+> 原文：[`towardsdatascience.com/creating-a-better-dashboard-myth-or-reality-3d355b03e52c?source=collection_archive---------2-----------------------#2024-02-17`](https://towardsdatascience.com/creating-a-better-dashboard-myth-or-reality-3d355b03e52c?source=collection_archive---------2-----------------------#2024-02-17)
 
-![](../Images/2b09fa069ec35f8a21dd1160b25338d0.png)
+![](img/2b09fa069ec35f8a21dd1160b25338d0.png)
 
 由 [Lukas Blazek](https://unsplash.com/@goumbik?utm_source=medium&utm_medium=referral) 提供的照片，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-## 我的2.0版本Beta版使用Dash和Plotly构建，而不是Matplotlib
+## 我的 2.0 版本 Beta 版使用 Dash 和 Plotly 构建，而不是 Matplotlib
 
-[](https://radmilamandzhi.medium.com/?source=post_page---byline--3d355b03e52c--------------------------------)[![Radmila M.](../Images/f3722a0ca0c96b5f6abb8f23a1162488.png)](https://radmilamandzhi.medium.com/?source=post_page---byline--3d355b03e52c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3d355b03e52c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3d355b03e52c--------------------------------) [Radmila M.](https://radmilamandzhi.medium.com/?source=post_page---byline--3d355b03e52c--------------------------------)
+[](https://radmilamandzhi.medium.com/?source=post_page---byline--3d355b03e52c--------------------------------)![Radmila M.](https://radmilamandzhi.medium.com/?source=post_page---byline--3d355b03e52c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3d355b03e52c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d355b03e52c--------------------------------) [Radmila M.](https://radmilamandzhi.medium.com/?source=post_page---byline--3d355b03e52c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d355b03e52c--------------------------------) ·9分钟阅读·2024年2月17日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d355b03e52c--------------------------------) ·9 分钟阅读·2024 年 2 月 17 日
 
 --
 
 # 介绍
 
-2023年2月，我写了我的第一篇Medium文章：
+2023 年 2 月，我写了我的第一篇 Medium 文章：
 
-[](https://medium.com/geekculture/how-to-customize-infographics-in-python-tips-and-tricks-e1818aac180f?source=post_page-----3d355b03e52c--------------------------------) [## 如何在Python中自定义信息图表：技巧与窍门
+[](https://medium.com/geekculture/how-to-customize-infographics-in-python-tips-and-tricks-e1818aac180f?source=post_page-----3d355b03e52c--------------------------------) [## 如何在 Python 中自定义信息图表：技巧与窍门
 
-### 在Matplotlib中绘制图表的ABC
+### 在 Matplotlib 中绘制图表的 ABC
 
 medium.com](https://medium.com/geekculture/how-to-customize-infographics-in-python-tips-and-tricks-e1818aac180f?source=post_page-----3d355b03e52c--------------------------------)
 
-在这里，我解释了如何使用各种图表创建一个简化的仪表板，包括折线图、饼图和条形图，以及一张分布图。为了绘制这些图表，我使用了“老朋友”Matplotlib [1]，因为我熟悉它的关键字和主要函数。我仍然认为，Matplotlib是开始Python数据之旅的一个伟大库，因为它有一个庞大的集体知识库。如果你在使用Matplotlib时遇到不清楚的地方，可以谷歌你的问题，很可能会找到答案。
+在这里，我解释了如何使用各种图表创建一个简化的仪表板，包括折线图、饼图和条形图，以及一张分布图。为了绘制这些图表，我使用了“老朋友”Matplotlib [1]，因为我熟悉它的关键字和主要函数。我仍然认为，Matplotlib 是开始 Python 数据之旅的一个伟大库，因为它有一个庞大的集体知识库。如果你在使用 Matplotlib 时遇到不清楚的地方，可以谷歌你的问题，很可能会找到答案。
 
-然而，Matplotlib在创建交互式和基于网页的可视化时可能会遇到一些困难。对于后者，Plotly [2] 可以是一个不错的替代方案，它允许你创建不寻常的交互式仪表板。另一方面，Matplotlib是一个功能强大的库，提供了更好的绘图定制控制，适合用于创建发布级别的可视化。
+然而，Matplotlib 在创建交互式和基于网页的可视化时可能会遇到一些困难。对于后者，Plotly [2] 可以是一个不错的替代方案，它允许你创建不寻常的交互式仪表板。另一方面，Matplotlib 是一个功能强大的库，提供了更好的绘图定制控制，适合用于创建发布级别的可视化。
 
 在这篇文章中，我将尝试用**基于 Plotly 的代码**（2）替代**使用 Matlab 的代码**（1）。结构将重复初始的文章，因为图表类型和输入数据[3]是相同的。然而，在这里我将为每种图表类型添加一些关于（1）和（2）相似程度的评论。我写这篇文章的主要目的是回顾我的第一篇文章，并尝试用我当前的知识水平重新制作它。
 
@@ -74,7 +74,7 @@ fig.show()
 
 结果如下所示：
 
-![](../Images/ebd64c831277ebf8c188774261ffe38e.png)
+![](img/ebd64c831277ebf8c188774261ffe38e.png)
 
 使用 Plotly 构建的线图。图片来自作者。
 
@@ -118,7 +118,7 @@ fig.show()
 
 下面给出了最终的可视化项（顺便说一下，它也是一个互动图表！）：
 
-![](../Images/78a806740ccdd823e9d94be75762aeff.png)
+![](img/78a806740ccdd823e9d94be75762aeff.png)
 
 使用 Plotly 构建的饼图。图片来自作者。
 
@@ -157,7 +157,7 @@ fig.update_layout(title='Top-8 stadiums on capacity (in thousands)',
 fig.show()
 ```
 
-![](../Images/86073cfb93a505f1e64359d6019d7bab.png)
+![](img/86073cfb93a505f1e64359d6019d7bab.png)
 
 使用 Plotly 构建的水平条形图。图片由作者提供。
 
@@ -190,7 +190,7 @@ fig = px.choropleth(df, locations='team_code', color='count',
 fig.show()
 ```
 
-![](../Images/368ffd2d6e5bf5dd497e0fd844931940.png)
+![](img/368ffd2d6e5bf5dd497e0fd844931940.png)
 
 使用 Plotly 构建的分级图。图片由作者提供。
 
@@ -341,9 +341,9 @@ if __name__ == "__main__":
 
 +   然后，我们创建 2 行 `html.Div` 组件，每行包含 2 个图表。此外，可以使用带有 `style` 属性的简单 CSS 来显示仪表盘的标题，并将其放入 `layout` 字符串中。此布局被设置为之前初始化的应用布局。
 
-+   最后，最后一段代码允许在本地运行应用（`app.run_server(debug=False)`）。要查看仪表盘，只需点击链接 [http://127.0.0.1:8050/](http://127.0.0.1:8050/)，你会看到如下图所示的界面。
++   最后，最后一段代码允许在本地运行应用（`app.run_server(debug=False)`）。要查看仪表盘，只需点击链接 [`127.0.0.1:8050/`](http://127.0.0.1:8050/)，你会看到如下图所示的界面。
 
-![](../Images/01ebaa70f9ad2d6dc3768e593faad6a3.png)
+![](img/01ebaa70f9ad2d6dc3768e593faad6a3.png)
 
 使用 Dash 构建的最终仪表盘。图片来源：作者。
 
@@ -361,8 +361,8 @@ if __name__ == "__main__":
 
 # 参考文献
 
-1.  Matplotlib 库的主页：[https://matplotlib.org/stable/](https://matplotlib.org/stable/)
+1.  Matplotlib 库的主页：[`matplotlib.org/stable/`](https://matplotlib.org/stable/)
 
-1.  Plotly 库的主页：[https://plotly.com/python/](https://plotly.com/python/)
+1.  Plotly 库的主页：[`plotly.com/python/`](https://plotly.com/python/)
 
-1.  Fjelstul, Joshua C. “The Fjelstul World Cup Database v.1.0.” 2022年7月8日。[https://www.github.com/jfjelstul/worldcup](https://www.github.com/jfjelstul/worldcup)
+1.  Fjelstul, Joshua C. “The Fjelstul World Cup Database v.1.0.” 2022 年 7 月 8 日。[`www.github.com/jfjelstul/worldcup`](https://www.github.com/jfjelstul/worldcup)

@@ -1,16 +1,16 @@
 # 在 Power BI 中使用行级安全计算总百分比
 
-> 原文：[https://towardsdatascience.com/calculate-the-percentage-of-the-total-with-rls-in-place-in-power-bi-1ea5c3ab1fac?source=collection_archive---------13-----------------------#2024-02-05](https://towardsdatascience.com/calculate-the-percentage-of-the-total-with-rls-in-place-in-power-bi-1ea5c3ab1fac?source=collection_archive---------13-----------------------#2024-02-05)
+> 原文：[`towardsdatascience.com/calculate-the-percentage-of-the-total-with-rls-in-place-in-power-bi-1ea5c3ab1fac?source=collection_archive---------13-----------------------#2024-02-05`](https://towardsdatascience.com/calculate-the-percentage-of-the-total-with-rls-in-place-in-power-bi-1ea5c3ab1fac?source=collection_archive---------13-----------------------#2024-02-05)
 
 ## *大多数数据模型都有行级安全（RLS）机制，某些用户只能看到整个数据集的部分内容。但当他们必须看到与总体结果进行比较的结果时，情况就不那么简单了。*
 
-[](https://medium.com/@salvatorecagliari?source=post_page---byline--1ea5c3ab1fac--------------------------------)[![Salvatore Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--1ea5c3ab1fac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ea5c3ab1fac--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1ea5c3ab1fac--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--1ea5c3ab1fac--------------------------------)
+[](https://medium.com/@salvatorecagliari?source=post_page---byline--1ea5c3ab1fac--------------------------------)![Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--1ea5c3ab1fac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ea5c3ab1fac--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ea5c3ab1fac--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--1ea5c3ab1fac--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ea5c3ab1fac--------------------------------) ·阅读时间 11 分钟·2024年2月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ea5c3ab1fac--------------------------------) ·阅读时间 11 分钟·2024 年 2 月 5 日
 
 --
 
-![](../Images/a3c8d15eb058fbe11d3711d926e9fa1b.png)
+![](img/a3c8d15eb058fbe11d3711d926e9fa1b.png)
 
 图片来自 [Wim van 't Einde](https://unsplash.com/@wimvanteinde?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -44,37 +44,37 @@ www.sqlbi.com](https://www.sqlbi.com/articles/computing-accurate-percentages-wit
 
 不要那么快，我的小马。
 
-虽然Alberto已经使用DAX构建了解决方案，但我更愿意在数据模型之前尽早创建附加表，最好是在源（数据库）或Power Query中创建。
+虽然 Alberto 已经使用 DAX 构建了解决方案，但我更愿意在数据模型之前尽早创建附加表，最好是在源（数据库）或 Power Query 中创建。
 
-由于并非每个人都将数据存储在数据库中，我不想深入SQL代码来构建必要的表，尽管在SQL中创建解决方案是相当直接的。
+由于并非每个人都将数据存储在数据库中，我不想深入 SQL 代码来构建必要的表，尽管在 SQL 中创建解决方案是相当直接的。
 
-所以，我去Power Query中创建解决方案。
+所以，我去 Power Query 中创建解决方案。
 
 就像我之前的文章一样：
 
-[](/converting-a-flat-table-to-a-good-data-model-in-power-query-46208215f17a?source=post_page-----1ea5c3ab1fac--------------------------------) [## 在Power Query中将扁平表转换为良好的数据模型
+[](/converting-a-flat-table-to-a-good-data-model-in-power-query-46208215f17a?source=post_page-----1ea5c3ab1fac--------------------------------) ## 在 Power Query 中将扁平表转换为良好的数据模型
 
-### 当将一个宽表的Excel文件加载到Power BI中时，我们最终会得到一个不理想的数据模型。我们可以做些什么来创建一个好的...
+### 当将一个宽表的 Excel 文件加载到 Power BI 中时，我们最终会得到一个不理想的数据模型。我们可以做些什么来创建一个好的...
 
-[towardsdatascience.com](/converting-a-flat-table-to-a-good-data-model-in-power-query-46208215f17a?source=post_page-----1ea5c3ab1fac--------------------------------)
+[towardsdatascience.com
 
 好的，我们开始吧。
 
 # 第一步 — 创建没有客户的事实表
 
-我将采用上述SQLBI文章中描述的相同场景和方法。
+我将采用上述 SQLBI 文章中描述的相同场景和方法。
 
-由于RLS规则已设置在客户表上，我创建了一个“在线销售”事实表的副本，但没有引用客户表。
+由于 RLS 规则已设置在客户表上，我创建了一个“在线销售”事实表的副本，但没有引用客户表。
 
-如果没有这个参考，客户表上的RLS规则将不适用，我可以根据需要计算结果。
+如果没有这个参考，客户表上的 RLS 规则将不适用，我可以根据需要计算结果。
 
-打开Power Query后，我创建了在线销售表的引用：
+打开 Power Query 后，我创建了在线销售表的引用：
 
-![](../Images/10f54184f0be788adb2bd41b105c245b.png)
+![](img/10f54184f0be788adb2bd41b105c245b.png)
 
-图1 — 从在线销售表创建引用（图由作者提供）
+图 1 — 从在线销售表创建引用（图由作者提供）
 
-通过创建引用，我不会在Power Query中重新读取源数据，而是重用原始在线销售表的结果。
+通过创建引用，我不会在 Power Query 中重新读取源数据，而是重用原始在线销售表的结果。
 
 我将表重命名为“在线销售（无客户）”。
 
@@ -140,7 +140,7 @@ www.sqlbi.com](https://www.sqlbi.com/articles/computing-accurate-percentages-wit
 
 此外，我还可以通过客户键添加不同的计数，以分析数据中的客户数量。
 
-![](../Images/9a9c653c646619a796e7c5b2f8e743a2.png)
+![](img/9a9c653c646619a796e7c5b2f8e743a2.png)
 
 图 2 — 新表的分组和汇总（作者制作的图）
 
@@ -152,7 +152,7 @@ www.sqlbi.com](https://www.sqlbi.com/articles/computing-accurate-percentages-wit
 
 下一步是将所有关系添加到新创建的表中：
 
-![](../Images/1513d253cf98be2cbe4cf2226450171e.png)
+![](img/1513d253cf98be2cbe4cf2226450171e.png)
 
 图 3 — 新表的数据模型（作者制作的图）
 
@@ -160,13 +160,13 @@ www.sqlbi.com](https://www.sqlbi.com/articles/computing-accurate-percentages-wit
 
 这是没有 RLS 时原始数据的起点：
 
-![](../Images/581efb487f85b21e7cf1de5b31ffde50.png)
+![](img/581efb487f85b21e7cf1de5b31ffde50.png)
 
 图 4 — 没有 RLS 时的初始结果（作者制作的图）
 
 现在，让我们为亚洲和澳大利亚应用 RLS 角色：
 
-![](../Images/ea7b0c2b9b365072a3a4cf20aab1cfb9.png)
+![](img/ea7b0c2b9b365072a3a4cf20aab1cfb9.png)
 
 图 5 — 应用 RLS 角色后的初始结果（作者制作的图）
 
@@ -176,7 +176,7 @@ www.sqlbi.com](https://www.sqlbi.com/articles/computing-accurate-percentages-wit
 
 现在，我可以通过将大陆移到切片器，并将产品品牌添加到矩阵中来更改报告：
 
-![](../Images/b6b8253ac062266f765d32b7556b2d73.png)
+![](img/b6b8253ac062266f765d32b7556b2d73.png)
 
 图 6 — 更改后的报告，带有大陆切片器和品牌（作者制作的图）
 
@@ -184,7 +184,7 @@ www.sqlbi.com](https://www.sqlbi.com/articles/computing-accurate-percentages-wit
 
 现在的问题是，激活 RLS 角色后的结果是错误的：
 
-![](../Images/ee731f09a32902f8c64588de1723aced.png)
+![](img/ee731f09a32902f8c64588de1723aced.png)
 
 图 7 — 应用 RLS 后按品牌错误的结果（作者制作的图）
 
@@ -202,7 +202,7 @@ DIVIDE([Online Sales (By Order Date)]
 
 而结果（带有 RLS）是这样的：
 
-![](../Images/7b4f41e728dd213e4717ba1ad1b91c2d.png)
+![](img/7b4f41e728dd213e4717ba1ad1b91c2d.png)
 
 图 8 — 在新表和 RLS 下的新度量值结果（作者制作的图）
 
@@ -216,9 +216,9 @@ DIVIDE([Online Sales (By Order Date)]
 
 为了简化这个过程，我们可以添加一个新的客户属性表。
 
-# 步骤2 — 基于客户属性的报告
+# 步骤 2 — 基于客户属性的报告
 
-正如SQL文章中所描述的那样，可能存在一种情况，需要基于某些客户属性（如性别、教育或其他属性）创建报告。
+正如 SQL 文章中所描述的那样，可能存在一种情况，需要基于某些客户属性（如性别、教育或其他属性）创建报告。
 
 在这种情况下，我必须为这些属性创建一个表，并使用这个表扩展我们的数据模型。
 
@@ -252,9 +252,9 @@ DIVIDE([Online Sales (By Order Date)]
 
 一条简短的说明：由于我必须将不包含不需要的客户属性的表合并到原始客户表中，因此无法创建引用，因为这会引入循环依赖。因此，我必须复制客户表：
 
-![](../Images/b45ed1d09fccb86be53e32c515712485.png)
+![](img/b45ed1d09fccb86be53e32c515712485.png)
 
-图9 — 复制客户表（图源自作者）
+图 9 — 复制客户表（图源自作者）
 
 我将重复的表重命名为“客户属性”。
 
@@ -266,19 +266,19 @@ DIVIDE([Online Sales (By Order Date)]
 
 接下来，我添加索引列：
 
-![](../Images/e3b648c321795449f0785ee4fe57f80d.png)
+![](img/e3b648c321795449f0785ee4fe57f80d.png)
 
-图10 — 添加索引列（图源自作者）
+图 10 — 添加索引列（图源自作者）
 
 索引列被重命名为“CustomerAttributesKey”。
 
 我使用合并功能将新键传输到原始客户表中：
 
-![](../Images/17823dcb5738502dfee214d9d73d9a0e.png)
+![](img/17823dcb5738502dfee214d9d73d9a0e.png)
 
-图11 — 将新的客户属性表合并到原始客户表中（图源自作者）
+图 11 — 将新的客户属性表合并到原始客户表中（图源自作者）
 
-我必须选择所有匹配的列，同时按住Ctrl键，确保所有列被合并，以合并正确的行。
+我必须选择所有匹配的列，同时按住 Ctrl 键，确保所有列被合并，以合并正确的行。
 
 存在不匹配的行问题。
 
@@ -290,13 +290,13 @@ DIVIDE([Online Sales (By Order Date)]
 
 现在，我可以扩展合并后的表以提取 CustomerAttributesKey：
 
-![](../Images/c31f8568f440de8189fbde7fada04825.png)
+![](img/c31f8568f440de8189fbde7fada04825.png)
 
 图 12 — 扩展新的 Key 列（图示作者提供）
 
 可以通过“替换值”功能，将 Key 列中不匹配的值填充为虚拟 Key -1：
 
-![](../Images/370de1eb79e764c9ff249e441abaf13f.png)
+![](img/370de1eb79e764c9ff249e441abaf13f.png)
 
 图 13 — 用虚拟 Key “-1” 替换不匹配的 Key（图示作者提供）
 
@@ -304,7 +304,7 @@ DIVIDE([Online Sales (By Order Date)]
 
 我再次使用合并和扩展功能将列添加到“在线销售”表中：
 
-![](../Images/6d5ebc81f51364982dff127222852d60.png)
+![](img/6d5ebc81f51364982dff127222852d60.png)
 
 图 14 — 将在线销售表与客户表合并（图示作者提供）
 
@@ -312,7 +312,7 @@ CustomerAttributeyKey 列的扩展方式与之前展示的相同。
 
 最后，我需要将新的 CustomerAttributeKey 作为分组列添加到“无客户在线销售”表中：
 
-![](../Images/46ba5f5acc005f2be989f3804761712b.png)
+![](img/46ba5f5acc005f2be989f3804761712b.png)
 
 图 15 — 将 CustomerAttributeKey 添加为分组列（图示作者提供）
 
@@ -332,7 +332,7 @@ CustomerAttributeyKey 列的扩展方式与之前展示的相同。
 
 这里是两种选项并排显示：
 
-![](../Images/785bb68292b2b140ca85a535e8c9e800.png)
+![](img/785bb68292b2b140ca85a535e8c9e800.png)
 
 图 16 — 客户属性表的数据模型变体（图示作者提供）
 
@@ -356,7 +356,7 @@ CustomerAttributeyKey 列的扩展方式与之前展示的相同。
 
 +   是否有清晰的星型架构（Star Schema）？
 
-我会选择变体2，因为我希望消除在某些特定计算中RLS规则的影响，这样可以开启更多的可能性。
+我会选择变体 2，因为我希望消除在某些特定计算中 RLS 规则的影响，这样可以开启更多的可能性。
 
 但这是针对每种情况的决策。
 
@@ -366,31 +366,31 @@ CustomerAttributeyKey 列的扩展方式与之前展示的相同。
 
 例如，当我将两个表中的性别字段添加到一开始展示的矩阵中时，结果如下：
 
-![](../Images/be416d063c6be8e6c9db671680b59f68.png)
+![](img/be416d063c6be8e6c9db671680b59f68.png)
 
-图17 — 各表格中按性别分类的结果比较（图由作者提供）
+图 17 — 各表格中按性别分类的结果比较（图由作者提供）
 
 虽然右侧按性别分类的结果可以总结为上面的品牌，但左侧的结果无法如此总结。
 
-这些结果是非视觉总计（Non-Visual-Totals），如上文SQLBI文章中所述，可能会引起混淆且难以理解，尽管它们在数学上是正确的。
+这些结果是非视觉总计（Non-Visual-Totals），如上文 SQLBI 文章中所述，可能会引起混淆且难以理解，尽管它们在数学上是正确的。
 
 我强烈建议阅读本文，以更好地理解这个复杂的话题。
 
-主要问题是：使用DAX还是Power Query来准备数据，哪个更好？
+主要问题是：使用 DAX 还是 Power Query 来准备数据，哪个更好？
 
-严格从数据工程师的角度来看，我会说，在源头或Power Query中进行转换，避免在Power BI中使用DAX进行数据处理。
+严格从数据工程师的角度来看，我会说，在源头或 Power Query 中进行转换，避免在 Power BI 中使用 DAX 进行数据处理。
 
-这将遵循[Roche的准则](https://ssbipolar.com/2021/05/31/roches-maxim/)：
+这将遵循[Roche 的准则](https://ssbipolar.com/2021/05/31/roches-maxim/)：
 
 *尽早进行数据转换，并尽可能晚地进行必要的转换。*
 
-使用Power Query的另一个理由是效率。
+使用 Power Query 的另一个理由是效率。
 
-当数据在源头或Power Query中准备好时，Power BI会比使用DAX表时更有效地压缩和优化数据存储。
+当数据在源头或 Power Query 中准备好时，Power BI 会比使用 DAX 表时更有效地压缩和优化数据存储。
 
 这段非常技术性的视频详细解释了这一点：
 
-然而，进行这种转换的复杂性大于SQLBI文章中展示的方法。
+然而，进行这种转换的复杂性大于 SQLBI 文章中展示的方法。
 
 在为我的客户开发解决方案时，我会问以下问题：
 
@@ -404,25 +404,25 @@ CustomerAttributeyKey 列的扩展方式与之前展示的相同。
 
 我曾经遇到过这样的情况：当客户无法或不愿学习我首次方法中使用的技术时，我不得不以不同的方法重建解决方案。
 
-所以，像往常一样，问题“使用Power Query还是DAX”的答案是：这取决于……
+所以，像往常一样，问题“使用 Power Query 还是 DAX”的答案是：这取决于……
 
 本文的目标是向你展示一种替代的解决方案构建方式，这种方式可以在你决定哪个方法最适合你的时候提供更多的灵活性。
 
 我希望我能够实现这一点，并且你学到了新的东西。
 
-![](../Images/5c3c4eb830fdce30f0dd68f36dd39cef.png)
+![](img/5c3c4eb830fdce30f0dd68f36dd39cef.png)
 
 图片由[Brett Jordan](https://unsplash.com/@brett_jordan?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 参考文献
 
-我写了一篇关于如何使用Power Query将平面表转换为星型架构的文章，并在其中使用了一些这里描述的技术。你可以在这里找到它：
+我写了一篇关于如何使用 Power Query 将平面表转换为星型架构的文章，并在其中使用了一些这里描述的技术。你可以在这里找到它：
 
-[](/converting-a-flat-table-to-a-good-data-model-in-power-query-46208215f17a?source=post_page-----1ea5c3ab1fac--------------------------------) [## 在 Power Query 中将平面表转换为良好的数据模型
+[](/converting-a-flat-table-to-a-good-data-model-in-power-query-46208215f17a?source=post_page-----1ea5c3ab1fac--------------------------------) ## 在 Power Query 中将平面表转换为良好的数据模型
 
 ### 当将一个宽的 Excel 表格加载到 Power BI 时，我们最终会得到一个次优的数据模型。我们能做些什么来创建一个好的模型呢……
 
-towardsdatascience.com](/converting-a-flat-table-to-a-good-data-model-in-power-query-46208215f17a?source=post_page-----1ea5c3ab1fac--------------------------------)
+towardsdatascience.com
 
 我使用的是 Contoso 示例数据集，像我之前的文章中一样。你可以从微软[这里](https://www.microsoft.com/en-us/download/details.aspx?id=18279)免费下载 ContosoRetailDW 数据集。
 
@@ -430,11 +430,11 @@ Contoso 数据可以在 MIT 许可证下自由使用，详情请见[这里](http
 
 你可以通过以下方式支持我的工作，这是我在空闲时间进行的工作：
 
-[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)
+[`buymeacoffee.com/salvatorecagliari`](https://buymeacoffee.com/salvatorecagliari)
 
 或扫描此二维码：
 
-![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)
+![](img/e7ac062070dcd7a00dcf995ad7e95434.png)
 
 任何支持都将不胜感激，并帮助我腾出更多时间为您创作更多内容。
 

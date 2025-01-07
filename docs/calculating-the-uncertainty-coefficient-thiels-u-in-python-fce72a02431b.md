@@ -1,12 +1,12 @@
 # 使用 Python 计算不确定性系数（Theil's U）
 
-> 原文：[https://towardsdatascience.com/calculating-the-uncertainty-coefficient-thiels-u-in-python-fce72a02431b?source=collection_archive---------6-----------------------#2024-10-18](https://towardsdatascience.com/calculating-the-uncertainty-coefficient-thiels-u-in-python-fce72a02431b?source=collection_archive---------6-----------------------#2024-10-18)
+> 原文：[`towardsdatascience.com/calculating-the-uncertainty-coefficient-thiels-u-in-python-fce72a02431b?source=collection_archive---------6-----------------------#2024-10-18`](https://towardsdatascience.com/calculating-the-uncertainty-coefficient-thiels-u-in-python-fce72a02431b?source=collection_archive---------6-----------------------#2024-10-18)
 
-![](../Images/04c7e4f655a5a8582663e539e22a9b4a.png)
+![](img/04c7e4f655a5a8582663e539e22a9b4a.png)
 
 ## **离散（分类）变量之间的相关度量**
 
-[](https://medium.com/@marclinder?source=post_page---byline--fce72a02431b--------------------------------)[![Marc Linder](../Images/3da574ad381525d372edc33359314aeb.png)](https://medium.com/@marclinder?source=post_page---byline--fce72a02431b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fce72a02431b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fce72a02431b--------------------------------) [Marc Linder](https://medium.com/@marclinder?source=post_page---byline--fce72a02431b--------------------------------)
+[](https://medium.com/@marclinder?source=post_page---byline--fce72a02431b--------------------------------)![Marc Linder](https://medium.com/@marclinder?source=post_page---byline--fce72a02431b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fce72a02431b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fce72a02431b--------------------------------) [Marc Linder](https://medium.com/@marclinder?source=post_page---byline--fce72a02431b--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fce72a02431b--------------------------------) ·6 分钟阅读·2024 年 10 月 18 日
 
@@ -22,33 +22,33 @@ Theil's U 是基于信息熵概念的名义关联度量。假设我们有来自�
 
 然后，**X 的熵** 定义为：
 
-![](../Images/a463881597607b27f2ea05ce643aa028.png)
+![](img/a463881597607b27f2ea05ce643aa028.png)
 
 单一分布 X 的熵
 
 并且 **给定 Y 的 X 的条件熵** 定义为：
 
-![](../Images/5c0abd5d3ac3a97c71028eaa8da49c91.png)
+![](img/5c0abd5d3ac3a97c71028eaa8da49c91.png)
 
 给定 Y 的 X 的条件熵
 
 然后，我们可以使用联合分布（分子）与 X 或 Y 的边际概率结合，分别计算条件分布：给定 Y 的 X 的条件分布（分母）或给定 X 的 Y 的条件分布，如下所示：
 
-![](../Images/207fe2a6272788408489805ef17fe7f9.png)
+![](img/207fe2a6272788408489805ef17fe7f9.png)
 
 给定 y 的 x 的条件分布
 
-![](../Images/53579c2995913f0471bf8794fff6c6bc.png)
+![](img/53579c2995913f0471bf8794fff6c6bc.png)
 
 给定 x 的 y 的条件分布
 
-结果捕捉了一个变量在给定另一个变量值时的概率变化。我们可以通过使用X和Y的联合概率——即X和Y的不同组合的概率——以及Y的边际概率来计算给定Y的X的概率。然后，我们将它们的商代入H(X)公式，得到：
+结果捕捉了一个变量在给定另一个变量值时的概率变化。我们可以通过使用 X 和 Y 的联合概率——即 X 和 Y 的不同组合的概率——以及 Y 的边际概率来计算给定 Y 的 X 的概率。然后，我们将它们的商代入 H(X)公式，得到：
 
-![](../Images/74029c0a61945811f742ead740ab1c3d.png)
+![](img/74029c0a61945811f742ead740ab1c3d.png)
 
-给定Y的X的条件熵
+给定 Y 的 X 的条件熵
 
-理论讲解到此为止；接下来我们展示如何在Python中计算给定Y的X的条件熵。
+理论讲解到此为止；接下来我们展示如何在 Python 中计算给定 Y 的 X 的条件熵。
 
 ```py
 from typing import List, Union
@@ -83,13 +83,13 @@ def conditional_entropy(
     return -entropy
 ```
 
-一旦我们计算出给定Y的X的条件熵，我们就可以计算Theil’s U。最后一步是计算X的熵，这是我们在本文开始时定义的。然后，不确定系数或熟练度可以按如下方式计算：
+一旦我们计算出给定 Y 的 X 的条件熵，我们就可以计算 Theil’s U。最后一步是计算 X 的熵，这是我们在本文开始时定义的。然后，不确定系数或熟练度可以按如下方式计算：
 
-![](../Images/e6aee30b9c16631e93a038b158183f0d.png)
+![](img/e6aee30b9c16631e93a038b158183f0d.png)
 
 Theil’s U — 不确定系数或熟练度
 
-从理论到实践，这可以通过以下Python代码来实现：
+从理论到实践，这可以通过以下 Python 代码来实现：
 
 ```py
 import scipy.stats as ss
@@ -118,7 +118,7 @@ def theil_u(
     return (H_x - H_xy) / H_x if H_x != 0 else 0
 ```
 
-最后，我们可以定义一个函数，计算给定数据集中每个特征组合的Theil值。我们可以使用以下Python代码来实现：
+最后，我们可以定义一个函数，计算给定数据集中每个特征组合的 Theil 值。我们可以使用以下 Python 代码来实现：
 
 ```py
 import itertools
@@ -150,7 +150,7 @@ def get_theils_u_for_df(df: pd.DataFrame) -> pd.DataFrame:
 
 ## 代码示例
 
-我们将使用著名的**鸢尾花数据集**演示代码的功能。除了数字变量外，该数据集还包含一个分类变量“物种”。传统的相关性度量方法，如皮尔逊相关性，限制了在捕捉分类和数值特征之间的关系方面的应用。然而，Theil’s U可以有效地衡量“物种”与其他数值特征之间的关联。
+我们将使用著名的**鸢尾花数据集**演示代码的功能。除了数字变量外，该数据集还包含一个分类变量“物种”。传统的相关性度量方法，如皮尔逊相关性，限制了在捕捉分类和数值特征之间的关系方面的应用。然而，Theil’s U 可以有效地衡量“物种”与其他数值特征之间的关联。
 
 ```py
 import pandas as pd
@@ -171,17 +171,17 @@ plt.title('Heatmap of Theil\'s U for all variable pairs')
 plt.show()
 ```
 
-结果是所有变量对的Theil’s U热图。请注意，这个度量的优点在于它是非对称的，这意味着两个变量之间的关系可能因分析方向不同而有所不同。例如，Theil’s U可以量化X提供多少关于Y的信息，而这可能与Y提供多少关于X的信息不同。
+结果是所有变量对的 Theil’s U 热图。请注意，这个度量的优点在于它是非对称的，这意味着两个变量之间的关系可能因分析方向不同而有所不同。例如，Theil’s U 可以量化 X 提供多少关于 Y 的信息，而这可能与 Y 提供多少关于 X 的信息不同。
 
-![](../Images/7b5e01021d8e96fa823b04594537fd82.png)
+![](img/7b5e01021d8e96fa823b04594537fd82.png)
 
-所有变量对的Theil’s U值热图
+所有变量对的 Theil’s U 值热图
 
-结果的解释相对直接：花瓣长度和花瓣宽度与分类变量“物种”的关联最强，两者的值均为0.91。这表明，知道花瓣的尺寸能够提供关于花卉物种的高度信息。萼片长度与物种的关系也适中，值为0.55，这意味着它提供了一些物种信息，尽管不如花瓣尺寸信息丰富。萼片宽度与物种的关联最弱，值为0.33，表明它提供的关于花卉类型的信息相对较少。萼片尺寸与物种之间较低的值突显了花瓣尺寸在预测物种时提供的信息更多，这与著名的鸢尾花数据集的已知特性一致。
+结果的解释相对直接：花瓣长度和花瓣宽度与分类变量“物种”的关联最强，两者的值均为 0.91。这表明，知道花瓣的尺寸能够提供关于花卉物种的高度信息。萼片长度与物种的关系也适中，值为 0.55，这意味着它提供了一些物种信息，尽管不如花瓣尺寸信息丰富。萼片宽度与物种的关联最弱，值为 0.33，表明它提供的关于花卉类型的信息相对较少。萼片尺寸与物种之间较低的值突显了花瓣尺寸在预测物种时提供的信息更多，这与著名的鸢尾花数据集的已知特性一致。
 
 ## 结论
 
-在本文中，我们展示了如何计算Theil’s U来评估分类变量和数值变量之间的关联。通过将这一度量应用于Iris数据集，我们展示了花瓣尺寸在预测花卉物种中的重要性，突显了Theil’s U相比传统相关方法的有效性。
+在本文中，我们展示了如何计算 Theil’s U 来评估分类变量和数值变量之间的关联。通过将这一度量应用于 Iris 数据集，我们展示了花瓣尺寸在预测花卉物种中的重要性，突显了 Theil’s U 相比传统相关方法的有效性。
 
 *来源*
 
@@ -189,6 +189,6 @@ plt.show()
 
 +   Theil, H. (1966): *应用经济预测*. 芝加哥: Rand McNally.
 
-+   Bliemel, F. (1973): Theil的预测准确度系数：澄清，*市场研究杂志* 10(4)，第444-446页
++   Bliemel, F. (1973): Theil 的预测准确度系数：澄清，*市场研究杂志* 10(4)，第 444-446 页
 
 注：除非另有说明，所有图片均由作者提供。

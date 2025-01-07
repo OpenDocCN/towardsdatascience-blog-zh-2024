@@ -1,16 +1,16 @@
 # 中心极限定理的新视角
 
-> 原文：[https://towardsdatascience.com/a-new-look-at-the-central-limit-theorem-d80735682f90?source=collection_archive---------6-----------------------#2024-01-08](https://towardsdatascience.com/a-new-look-at-the-central-limit-theorem-d80735682f90?source=collection_archive---------6-----------------------#2024-01-08)
+> 原文：[`towardsdatascience.com/a-new-look-at-the-central-limit-theorem-d80735682f90?source=collection_archive---------6-----------------------#2024-01-08`](https://towardsdatascience.com/a-new-look-at-the-central-limit-theorem-d80735682f90?source=collection_archive---------6-----------------------#2024-01-08)
 
-![](../Images/b856aef7ebc8ef5b83dc3964c2e84cc6.png)
+![](img/b856aef7ebc8ef5b83dc3964c2e84cc6.png)
 
 [公有领域](https://commons.wikimedia.org/wiki/File:Jakob_Bernoulli.jpg)/[公有领域](https://picryl.com/media/bernoulli-ars-conjectandi-1713-058b-fba7d8)/图片来源/ [公有领域](https://commons.wikimedia.org/wiki/File:Octobre_1793,_supplice_de_9_%C3%A9migr%C3%A9s.jpg)/[公有领域](https://archive.org/details/thorieanalytiqu01laplgoog/page/n6/mode/2up)/[CC BY-SA 4.0](https://commons.wikimedia.org/wiki/File:Pierre-Simon_de_Laplace_by_Johann_Ernst_Heinsius_(1775).jpg)
 
 ## 它的定义、众多应用、与逆概率的深刻关联，以及它的历史一瞥
 
-[](https://timeseriesreasoning.medium.com/?source=post_page---byline--d80735682f90--------------------------------)[![Sachin Date](../Images/bd023298b414caf88f79b00ef032d065.png)](https://timeseriesreasoning.medium.com/?source=post_page---byline--d80735682f90--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d80735682f90--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d80735682f90--------------------------------) [Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--d80735682f90--------------------------------)
+[](https://timeseriesreasoning.medium.com/?source=post_page---byline--d80735682f90--------------------------------)![Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--d80735682f90--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d80735682f90--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d80735682f90--------------------------------) [Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--d80735682f90--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d80735682f90--------------------------------) ·11分钟阅读·2024年1月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d80735682f90--------------------------------) ·11 分钟阅读·2024 年 1 月 8 日
 
 --
 
@@ -18,13 +18,13 @@
 
 中心极限定理定义的简洁明了掩盖了其多种不同的用途，这些用途只有在你仔细解构其定义中的词汇并加以应用时才会显现出来。
 
-中心极限定理的定义背后还隐藏着一条长达三百多年的发现之路。在众多数学家的贡献下，中心极限定理在17、18、19和20世纪间掀起了一场研究人员的淘金热。
+中心极限定理的定义背后还隐藏着一条长达三百多年的发现之路。在众多数学家的贡献下，中心极限定理在 17、18、19 和 20 世纪间掀起了一场研究人员的淘金热。
 
 在数学思想的发展历史中，很少有那么多的研究人员在如此多的世纪中对单一思想作出如此重大的贡献。但中心极限定理（CLT）并非普通的思想。它是统计学的金标准。
 
 # 中心极限定理的应用
 
-看到中心极限定理（CLT）的作用时，可能会感到十分吸引人。在接下来的这个视频中，你将看到CLT如何作用于从一个指数分布的总体中抽取的大小为n的随机样本。这个模拟生成了1000个不同的大小为10的随机样本。它计算了每个样本的均值，并绘制了这1000个均值的频率分布图。这种分布看起来完全不像正态分布。但一旦样本大小从10增加到20、30、40、50等，你将看到样本均值是如何迫不及待地排列成一个正态分布的。
+看到中心极限定理（CLT）的作用时，可能会感到十分吸引人。在接下来的这个视频中，你将看到 CLT 如何作用于从一个指数分布的总体中抽取的大小为 n 的随机样本。这个模拟生成了 1000 个不同的大小为 10 的随机样本。它计算了每个样本的均值，并绘制了这 1000 个均值的频率分布图。这种分布看起来完全不像正态分布。但一旦样本大小从 10 增加到 20、30、40、50 等，你将看到样本均值是如何迫不及待地排列成一个正态分布的。
 
 中心极限定理的应用（作者视频）
 
@@ -32,19 +32,19 @@
 
 中心极限定理有着不断变化的定义，通常会根据具体背景进行调整。让我们拆解它的定义。
 
-我们将从一个熟悉的随机样本开始。让我们使用符号(**X_**1, **X_**2, …, **X_**n)表示从一个基础总体中随机抽取（有放回）大小为n的样本。由于每个样本元素**X**_i是独立且随机地（有放回）从总体中选择的，(**X**_1, **X**_2, …, **X**_n)是一组n个独立同分布的（[i.i.d.](https://en.m.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables)）随机变量。我们进一步假设总体的均值为μ，且方差σ²是有限且正的。
+我们将从一个熟悉的随机样本开始。让我们使用符号(**X_**1, **X_**2, …, **X_**n)表示从一个基础总体中随机抽取（有放回）大小为 n 的样本。由于每个样本元素**X**_i 是独立且随机地（有放回）从总体中选择的，(**X**_1, **X**_2, …, **X**_n)是一组 n 个独立同分布的（[i.i.d.](https://en.m.wikipedia.org/wiki/Independent_and_identically_distributed_random_variables)）随机变量。我们进一步假设总体的均值为μ，且方差σ²是有限且正的。
 
-设**X**_bar_n为**样本均值**或**样本和**。它的定义如下：
+设**X**_bar_n 为**样本均值**或**样本和**。它的定义如下：
 
-![](../Images/b1d321ed5409e8d507c4c9cd5628ad03.png)
+![](img/b1d321ed5409e8d507c4c9cd5628ad03.png)
 
-n个i.i.d.随机变量的均值或和（作者图片）
+n 个 i.i.d.随机变量的均值或和（作者图片）
 
-一些统计学教材用**X**_bar_n表示样本均值，用**S**_n表示样本和。
+一些统计学教材用**X**_bar_n 表示样本均值，用**S**_n 表示样本和。
 
-由于**X**_bar_n是n个随机变量的函数，**X**_bar_n本身是一个随机变量，具有自己的均值和方差，分别用符号E(**X**_bar_n)和Var(**X**_bar_n)表示。
+由于**X**_bar_n 是 n 个随机变量的函数，**X**_bar_n 本身是一个随机变量，具有自己的均值和方差，分别用符号 E(**X**_bar_n)和 Var(**X**_bar_n)表示。
 
-假设**X**_bar_n是均值。由于**(X**_1, **X**_2, …, **X**_n)是i.i.d.变量，可以证明：
+假设**X**_bar_n 是均值。由于**(X**_1, **X**_2, …, **X**_n)是 i.i.d.变量，可以证明：
 
 E(**X**_bar_n) = μ
 
@@ -52,35 +52,35 @@ Var(**X**_bar_n) = σ²/n
 
 现在让我们定义一个新的随机变量**Z**_n，如下所示：
 
-![](../Images/f856bee1e8af8e91eedcfa274c912cd5.png)
+![](img/f856bee1e8af8e91eedcfa274c912cd5.png)
 
 **X**的标准化版本（作者图片）
 
-**Z**_n，在此定义下，称为**标准化样本均值**。它是样本均值与总体均值之间的距离，以（可能是分数）标准差的数量表示。你还可以通过另一种方法计算**Z**_n。如果你使用公式（**X**_i — μ）/（σ/√n）对原始样本的每个数据点**X**_i进行变换，并取变换后样本的简单均值，你将得到标准化样本均值**Z**_n。
+**Z**_n，在此定义下，称为**标准化样本均值**。它是样本均值与总体均值之间的距离，以（可能是分数）标准差的数量表示。你还可以通过另一种方法计算**Z**_n。如果你使用公式（**X**_i — μ）/（σ/√n）对原始样本的每个数据点**X**_i 进行变换，并取变换后样本的简单均值，你将得到标准化样本均值**Z**_n。
 
 根据上述装置，**中心极限定理**对于**Z**_n**做出了以下所有等价的陈述：**
 
-> 随着样本大小的增加，Z_n的累积分布函数（CDF）开始越来越像标准正态随机变量N(0,1)的CDF，并且当样本大小趋近于∞时，它与N(0,1)的CDF完全一致。
+> 随着样本大小的增加，Z_n 的累积分布函数（CDF）开始越来越像标准正态随机变量 N(0,1)的 CDF，并且当样本大小趋近于∞时，它与 N(0,1)的 CDF 完全一致。
 > 
-> 随着样本大小无限增大，Z_n的CDF趋近于N(0,1)的CDF。
+> 随着样本大小无限增大，Z_n 的 CDF 趋近于 N(0,1)的 CDF。
 > 
-> 对于大样本量，Z_n大致是一个标准正态N(0,1)随机变量。
+> 对于大样本量，Z_n 大致是一个标准正态 N(0,1)随机变量。
 
 以方程形式表示，三个陈述如下：
 
-![](../Images/bfc66516e58584cac1d998713e195f16.png)
+![](img/bfc66516e58584cac1d998713e195f16.png)
 
 中心极限定理以几种不同的等价方式表达（图源：作者）
 
-在（a）中，左边的积分是**Z**_n的CDF，而右边的积分是N(0, 1)的CDF。
+在（a）中，左边的积分是**Z**_n 的 CDF，而右边的积分是 N(0, 1)的 CDF。
 
-在（b）和（c）中，P(**Z**_n ≤ z)只是表示**Z**_n的CDF的另一种方式。**Φ**(z)是标准正态随机变量N(0, 1)的CDF常用的表示法。
+在（b）和（c）中，P(**Z**_n ≤ z)只是表示**Z**_n 的 CDF 的另一种方式。**Φ**(z)是标准正态随机变量 N(0, 1)的 CDF 常用的表示法。
 
 在（c）中，波浪等号（或半等号‘ ≃’）表示渐近相等。
 
 在（d）中，箭头上的‘*d*’表示分布收敛。
 
-请注意，中心极限定理并不假设**X**_1、**X**_2、……、**X**_n的概率分布。它们不需要服从正态分布，而这一点大大扩展了中心极限定理的适用性。**X**_1、**X**_2、……、**X**_n只需是独立同分布的，甚至在某些特殊版本的中心极限定理中，这两个限制条件也有所放宽。
+请注意，中心极限定理并不假设**X**_1、**X**_2、……、**X**_n 的概率分布。它们不需要服从正态分布，而这一点大大扩展了中心极限定理的适用性。**X**_1、**X**_2、……、**X**_n 只需是独立同分布的，甚至在某些特殊版本的中心极限定理中，这两个限制条件也有所放宽。
 
 # 你可以用中心极限定理做什么？
 
@@ -92,7 +92,7 @@ Var(**X**_bar_n) = σ²/n
 
 这是一个中心极限定理的简单应用。我将通过一个例子来说明。假设你的宽带连接平均速度为 400 Mbps，方差为 100 Mbps。即 μ=400 Mbps 和 σ²=100 Mbps。如果你在一天的 25 个随机时刻测量宽带速度，样本均值落在 395 Mbps 和 405 Mbps 之间的概率是多少？即，以下这个概率是多少：
 
-![](../Images/2b9a6c150d1f4886fdbbf907eb09b3ba.png)
+![](img/2b9a6c150d1f4886fdbbf907eb09b3ba.png)
 
 样本带宽均值落在 395 和 405 Mbps 之间的概率是多少？（图片来自作者）
 
@@ -100,13 +100,13 @@ Var(**X**_bar_n) = σ²/n
 
 解决方案在于这样的洞察：根据中心极限定理（CLT），标准化的样本均值大致服从标准正态分布。
 
-![](../Images/092999607f550d618df57bf543edfb10.png)
+![](img/092999607f550d618df57bf543edfb10.png)
 
 标准化均值在分布上收敛于 N(0,1)（图片来自作者）
 
 你可以利用这个事实，通过以下步骤来计算解决方案：
 
-![](../Images/69bf90fb15ee0bc7bcca32db37e50744.png)
+![](img/69bf90fb15ee0bc7bcca32db37e50744.png)
 
 (图片来自作者)
 
@@ -120,7 +120,7 @@ Var(**X**_bar_n) = σ²/n
 
 这里 n = 25, **X**_bar_n = 398.5, S = 85。未知数是 μ 和 σ²。你需要找到一个区间 [μ_low, μ_high]，使得：
 
-![](../Images/e84cc80b911433a0b6798e4c3ad782bd.png)
+![](img/e84cc80b911433a0b6798e4c3ad782bd.png)
 
 总体均值的 95% 置信区间（图片来自作者）
 
@@ -132,17 +132,17 @@ P(μ|n,X_bar_n, σ²) 或简称 P(μ|**X**_bar_n)，被称为**逆概率**。顺
 
 是的，这正是我们所说的。如果这个问题开始让你联想到量子力学的[**多世界解释**](https://plato.stanford.edu/entries/qm-manyworlds/)，你并不孤单！
 
-如果你对**逆概率**感到困惑，不要太自责。这确实是一个深奥的概念。数学家们在逆概率问题上钻研了一个多世纪，直到法国数学家[**皮埃尔-西蒙·拉普拉斯**](https://en.wikipedia.org/wiki/Pierre-Simon_Laplace)和英国长老会牧师[**托马斯·贝叶斯**](https://en.wikipedia.org/wiki/Thomas_Bayes)在18世纪末独立地解开了这个难题（显然是指问题，而不是他们的脑袋）。在这篇文章的续集中，我将详细介绍拉普拉斯对逆概率的精彩解决方法，他在量子力学的多世界解释首次[出现在科学期刊上](https://journals.aps.org/rmp/abstract/10.1103/RevModPhys.29.454)之前，就已经提出了这一方法，足足有两个世纪之久。拉普拉斯被称为“法国牛顿”绝非偶然。
+如果你对**逆概率**感到困惑，不要太自责。这确实是一个深奥的概念。数学家们在逆概率问题上钻研了一个多世纪，直到法国数学家[**皮埃尔-西蒙·拉普拉斯**](https://en.wikipedia.org/wiki/Pierre-Simon_Laplace)和英国长老会牧师[**托马斯·贝叶斯**](https://en.wikipedia.org/wiki/Thomas_Bayes)在 18 世纪末独立地解开了这个难题（显然是指问题，而不是他们的脑袋）。在这篇文章的续集中，我将详细介绍拉普拉斯对逆概率的精彩解决方法，他在量子力学的多世界解释首次[出现在科学期刊上](https://journals.aps.org/rmp/abstract/10.1103/RevModPhys.29.454)之前，就已经提出了这一方法，足足有两个世纪之久。拉普拉斯被称为“法国牛顿”绝非偶然。
 
-![](../Images/2c6c89837abe654b54a131c49e45a44a.png)
+![](img/2c6c89837abe654b54a131c49e45a44a.png)
 
 [皮埃尔-西蒙·拉普拉斯](https://commons.wikimedia.org/wiki/File:Laplace,_Pierre-Simon,_marquis_de.jpg)（1749–1827），和[托马斯·贝叶斯](https://commons.wikimedia.org/wiki/File:Thomas_Bayes.gif)（1701–1761）（公有领域图片）
 
-顺便提一下，提到头部受伤，拉普拉斯的大部分工作发生在18世纪中叶到19世纪初的法国社会剧变的背景下。尽管拉普拉斯巧妙地保持了自己免受动荡和法国[1789–1799年革命](https://en.wikipedia.org/wiki/French_Revolution)后随之而来的不断变化的权力格局的影响，但许多他的同行科学家却不自觉地被解除了一切世俗责任。
+顺便提一下，提到头部受伤，拉普拉斯的大部分工作发生在 18 世纪中叶到 19 世纪初的法国社会剧变的背景下。尽管拉普拉斯巧妙地保持了自己免受动荡和法国[1789–1799 年革命](https://en.wikipedia.org/wiki/French_Revolution)后随之而来的不断变化的权力格局的影响，但许多他的同行科学家却不自觉地被解除了一切世俗责任。
 
-![](../Images/85804feb3747fa8c5e6fa17c4c8795d4.png)
+![](img/85804feb3747fa8c5e6fa17c4c8795d4.png)
 
-1793年11月12日：[**让·西尔万·巴耶**](https://en.wikipedia.org/wiki/Jean_Sylvain_Bailly)——法国天文学家、数学家、自由石匠、政治领袖——凝视着他眼前的[未来](https://commons.wikimedia.org/wiki/File:Death_of_Bailly.jpg)（公有领域图片）。
+1793 年 11 月 12 日：[**让·西尔万·巴耶**](https://en.wikipedia.org/wiki/Jean_Sylvain_Bailly)——法国天文学家、数学家、自由石匠、政治领袖——凝视着他眼前的[未来](https://commons.wikimedia.org/wiki/File:Death_of_Bailly.jpg)（公有领域图片）。
 
 拉普拉斯对逆概率的解答提供了一个非常自然且令人满意的理由，用以围绕未知的总体均值构建置信区间——你猜对了——就是**中心极限定理**。
 
@@ -152,9 +152,9 @@ P(μ|n,X_bar_n, σ²) 或简称 P(μ|**X**_bar_n)，被称为**逆概率**。顺
 
 ## 误差的正态性和最小二乘估计的合理性
 
-在19世纪初，拉普拉斯利用中心极限定理来论证测量误差服从正态分布。回顾起来，他的论证异常简单。可以把测量误差看作是无数原因的效果之和。拉普拉斯假设这些原因是独立的、均匀分布的随机变量。如果某一测量的误差是若干原因的随机样本之和，那么根据中心极限定理，它们的标准化和必须在分布上收敛于标准正态分布。这就是[**基本误差假设**](https://link.springer.com/chapter/10.1007/978-0-387-87857-7_3)。
+在 19 世纪初，拉普拉斯利用中心极限定理来论证测量误差服从正态分布。回顾起来，他的论证异常简单。可以把测量误差看作是无数原因的效果之和。拉普拉斯假设这些原因是独立的、均匀分布的随机变量。如果某一测量的误差是若干原因的随机样本之和，那么根据中心极限定理，它们的标准化和必须在分布上收敛于标准正态分布。这就是[**基本误差假设**](https://link.springer.com/chapter/10.1007/978-0-387-87857-7_3)。
 
-与此同时，在1809年，[**约翰·卡尔·弗里德里希·高斯**](https://en.wikipedia.org/wiki/Carl_Friedrich_Gauss)(1777–1855)在现今的德国提出了**最小二乘估计法**。他的整个方法依赖于一个假设，即测量误差服从正态分布；一个高斯自己甚至都不信的假设，但他为此提供了一个非常复杂的论证。随后，拉普拉斯及时伸出援手，提出了他的“基本误差假设”，以此来证明高斯的假设，即误差服从正态分布，从而使高斯的**最小二乘估计法**得到了合法性。
+与此同时，在 1809 年，[**约翰·卡尔·弗里德里希·高斯**](https://en.wikipedia.org/wiki/Carl_Friedrich_Gauss)(1777–1855)在现今的德国提出了**最小二乘估计法**。他的整个方法依赖于一个假设，即测量误差服从正态分布；一个高斯自己甚至都不信的假设，但他为此提供了一个非常复杂的论证。随后，拉普拉斯及时伸出援手，提出了他的“基本误差假设”，以此来证明高斯的假设，即误差服从正态分布，从而使高斯的**最小二乘估计法**得到了合法性。
 
 ## 在时间序列模型中的应用
 
@@ -166,23 +166,23 @@ P(μ|n,X_bar_n, σ²) 或简称 P(μ|**X**_bar_n)，被称为**逆概率**。顺
 
 在这种情况下，均值的实际值——如果它确实存在——是无法测量的。没有人——至少在地球上的任何人——能够知道真实的值是什么。但是，我们是否有办法让大自然揭示出真实的值呢？只要我们有某种方式来衡量该估计值的准确性，我们甚至会乐于知道真实值的估计。
 
-1687年，一位非常著名的科学家思考了这样的问题。他的思考使他发现了**（弱）大数法则**。这也引发了一系列研究，持续了一个多世纪，最终导致了**德莫伊夫定理**、**正态曲线**、拉普拉斯的**逆概率方法**，以及最终的**中心极限定理**。这位科学家是**雅各布·伯努利**。
+1687 年，一位非常著名的科学家思考了这样的问题。他的思考使他发现了**（弱）大数法则**。这也引发了一系列研究，持续了一个多世纪，最终导致了**德莫伊夫定理**、**正态曲线**、拉普拉斯的**逆概率方法**，以及最终的**中心极限定理**。这位科学家是**雅各布·伯努利**。
 
-下周加入我，我将讨论**雅各布·伯努利**发现的**弱大数法则**。WLLN是**中心极限定理**的基石。拔掉WLLN，CLT的庞大建筑物就会崩塌成一堆废墟。我们将看看是如何发生的。敬请期待。
+下周加入我，我将讨论**雅各布·伯努利**发现的**弱大数法则**。WLLN 是**中心极限定理**的基石。拔掉 WLLN，CLT 的庞大建筑物就会崩塌成一堆废墟。我们将看看是如何发生的。敬请期待。
 
 # 参考文献和版权
 
 ## 书籍和论文
 
-Bernoulli, Jakob (2005) [1713]，*大数法则，第四部分《猜想的艺术》（英文翻译）*，Oscar Sheynin 翻译，柏林：NG Verlag，ISBN 978–3–938417–14–0 [**PDF下载**](http://www.sheynin.de/download/bernoulli.pdf)
+Bernoulli, Jakob (2005) [1713]，*大数法则，第四部分《猜想的艺术》（英文翻译）*，Oscar Sheynin 翻译，柏林：NG Verlag，ISBN 978–3–938417–14–0 [**PDF 下载**](http://www.sheynin.de/download/bernoulli.pdf)
 
-Seneta, Eugene. *大数法则的三百年历史*。Bernoulli 19 (4) 1088–1121，2013年9月。[https://doi.org/10.3150/12-BEJSP12](https://doi.org/10.3150/12-BEJSP12) [**PDF下载**](https://arxiv.org/pdf/1309.6488)
+Seneta, Eugene. *大数法则的三百年历史*。Bernoulli 19 (4) 1088–1121，2013 年 9 月。[`doi.org/10.3150/12-BEJSP12`](https://doi.org/10.3150/12-BEJSP12) [**PDF 下载**](https://arxiv.org/pdf/1309.6488)
 
-Fischer, H., [*中心极限定理的历史：从经典到现代概率论*](https://books.google.com/books?id=v7kTwafIiPsC&redir_esc=y)，Springer 科学与商业媒体，2010年10月
+Fischer, H., [*中心极限定理的历史：从经典到现代概率论*](https://books.google.com/books?id=v7kTwafIiPsC&redir_esc=y)，Springer 科学与商业媒体，2010 年 10 月
 
 Hald, A., [*从伯努利到费舍尔的参数统计推断历史，1713–1935*](https://link.springer.com/book/10.1007/978-0-387-46409-1)，Springer，2006
 
-Stigler, S. M., [*统计学的历史：1900年前不确定性的测量*](https://books.google.com/books/about/The_History_of_Statistics.html?id=-LXuAAAAMAAJ&redir_esc=y)，哈佛大学出版社，1986年9月
+Stigler, S. M., [*统计学的历史：1900 年前不确定性的测量*](https://books.google.com/books/about/The_History_of_Statistics.html?id=-LXuAAAAMAAJ&redir_esc=y)，哈佛大学出版社，1986 年 9 月
 
 ## 图像和视频
 

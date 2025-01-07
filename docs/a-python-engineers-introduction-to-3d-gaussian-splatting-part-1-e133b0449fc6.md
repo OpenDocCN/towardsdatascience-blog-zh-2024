@@ -1,20 +1,20 @@
-# 《Python工程师的3D高斯溅射入门（第一部分）》
+# 《Python 工程师的 3D 高斯溅射入门（第一部分）》
 
-> 原文：[https://towardsdatascience.com/a-python-engineers-introduction-to-3d-gaussian-splatting-part-1-e133b0449fc6?source=collection_archive---------2-----------------------#2024-06-11](https://towardsdatascience.com/a-python-engineers-introduction-to-3d-gaussian-splatting-part-1-e133b0449fc6?source=collection_archive---------2-----------------------#2024-06-11)
+> 原文：[`towardsdatascience.com/a-python-engineers-introduction-to-3d-gaussian-splatting-part-1-e133b0449fc6?source=collection_archive---------2-----------------------#2024-06-11`](https://towardsdatascience.com/a-python-engineers-introduction-to-3d-gaussian-splatting-part-1-e133b0449fc6?source=collection_archive---------2-----------------------#2024-06-11)
 
-## 从Python工程师的角度理解和编码高斯溅射
+## 从 Python 工程师的角度理解和编码高斯溅射
 
-[](https://medium.com/@dcaustin33?source=post_page---byline--e133b0449fc6--------------------------------)[![Derek Austin](../Images/1bcc5955f32cb798988af5713baae212.png)](https://medium.com/@dcaustin33?source=post_page---byline--e133b0449fc6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e133b0449fc6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e133b0449fc6--------------------------------) [Derek Austin](https://medium.com/@dcaustin33?source=post_page---byline--e133b0449fc6--------------------------------)
+[](https://medium.com/@dcaustin33?source=post_page---byline--e133b0449fc6--------------------------------)![Derek Austin](https://medium.com/@dcaustin33?source=post_page---byline--e133b0449fc6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e133b0449fc6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e133b0449fc6--------------------------------) [Derek Austin](https://medium.com/@dcaustin33?source=post_page---byline--e133b0449fc6--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e133b0449fc6--------------------------------) ·阅读时长7分钟·2024年6月11日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e133b0449fc6--------------------------------) ·阅读时长 7 分钟·2024 年 6 月 11 日
 
 --
 
-![](../Images/813c95a2e396af5470c94772b24a2b06.png)
+![](img/813c95a2e396af5470c94772b24a2b06.png)
 
 图片来自[rivage](https://unsplash.com/@sigmund?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)于[Unsplash](https://unsplash.com/photos/white-and-blue-box-on-white-table-KznImGeQGWE?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
-2023年初，来自法国蔚蓝海岸大学和德国马克斯·普朗克计算机研究所的作者们发表了一篇题为《用于实时场景渲染的3D高斯溅射》的论文¹。该论文提出了一项在实时神经渲染领域的重要进展，超越了像NeRF这样的先前方法的实用性²。高斯溅射不仅减少了延迟，还在渲染质量上与NeRF相当，甚至超越了它，迅速在神经渲染领域引起了轰动。
+2023 年初，来自法国蔚蓝海岸大学和德国马克斯·普朗克计算机研究所的作者们发表了一篇题为《用于实时场景渲染的 3D 高斯溅射》的论文¹。该论文提出了一项在实时神经渲染领域的重要进展，超越了像 NeRF 这样的先前方法的实用性²。高斯溅射不仅减少了延迟，还在渲染质量上与 NeRF 相当，甚至超越了它，迅速在神经渲染领域引起了轰动。
 
 高斯喷洒虽然有效，但对于那些不熟悉相机矩阵和图形渲染的人员来说，可能很难理解。此外，我发现 Python 中实现高斯喷洒的资源稀缺，因为即使是作者的源代码也是用 CUDA 编写的！本教程旨在弥补这一空白，为精通 Python 和机器学习但对图形渲染经验较少的工程师提供基于 Python 的高斯喷洒入门教程。随附的 [GitHub](https://github.com/dcaustin33/intro_to_gaussian_splatting) 代码演示了如何初始化并渲染 COLMAP 扫描中的点，最终生成一个类似于喷洒应用中的前向传播图像（对于有兴趣的人，还包括一些 CUDA 代码）。本教程还提供了一个伴随的 Jupyter Notebook（[part_1.ipynb](https://github.com/dcaustin33/intro_to_gaussian_splatting/blob/main/part_1.ipynb) 在 GitHub 上），其中包含了所有跟随教程所需的代码。虽然我们不会构建一个完整的高斯喷洒场景，但如果按步骤操作，本教程应能为读者提供深入了解喷洒技术的基础知识。
 
@@ -22,7 +22,7 @@
 
 在本教程中，我们将使用一个预构建的 COLMAP 扫描，该扫描可在 [此处下载](https://storage.googleapis.com/gresearch/refraw360/360_extra_scenes.zip)（Apache 2.0 许可证）。具体来说，我们将使用下载数据集中的 Treehill 文件夹。
 
-![](../Images/b16ab5f5a417adfd630e37b233a4855e.png)
+![](img/b16ab5f5a417adfd630e37b233a4855e.png)
 
 图像以及从所有输入到 COLMAP 的图像中提取的所有点。请参阅下面的示例代码或 part_1.ipynb 文件以了解该过程。Apache 2.0 许可证。
 
@@ -30,23 +30,23 @@
 
 点文件包含成千上万个 3D 点及其相关颜色。这些点围绕所谓的世界原点进行定位，基本上它们的 x、y 或 z 坐标是基于它们相对于这个世界原点被观察到的位置。世界原点的确切位置对于我们的目的并不重要，因此我们不会专注于它，因为它可以是空间中的任何一个任意点。相反，了解自己在世界中相对于该原点的位置才是至关重要的。这就是图像文件发挥作用的地方！
 
-广义而言，图像文件告诉我们图像的拍摄位置以及相机的朝向，都是相对于世界原点的。因此，我们关心的关键参数是四元数向量和平移向量。四元数向量使用4个不同的浮动值描述相机在空间中的旋转，这些值可以用来形成一个旋转矩阵（3Blue1Brown有一个很好的视频解释四元数的概念，[观看视频](https://www.youtube.com/watch?v=d4EgbgTm0Bg)）。然后，平移向量告诉我们相机相对于原点的位置。这些参数共同构成外参矩阵，其中四元数值用于计算一个3x3的旋转矩阵（[公式](https://automaticaddison.com/how-to-convert-a-quaternion-to-a-rotation-matrix/)），平移向量则附加到该矩阵上。
+广义而言，图像文件告诉我们图像的拍摄位置以及相机的朝向，都是相对于世界原点的。因此，我们关心的关键参数是四元数向量和平移向量。四元数向量使用 4 个不同的浮动值描述相机在空间中的旋转，这些值可以用来形成一个旋转矩阵（3Blue1Brown 有一个很好的视频解释四元数的概念，[观看视频](https://www.youtube.com/watch?v=d4EgbgTm0Bg)）。然后，平移向量告诉我们相机相对于原点的位置。这些参数共同构成外参矩阵，其中四元数值用于计算一个 3x3 的旋转矩阵（[公式](https://automaticaddison.com/how-to-convert-a-quaternion-to-a-rotation-matrix/)），平移向量则附加到该矩阵上。
 
-![](../Images/09cc599d85fe8a84a64ec9deea9f4c11.png)
+![](img/09cc599d85fe8a84a64ec9deea9f4c11.png)
 
-典型的“外参”矩阵。通过结合一个3x3的旋转矩阵和一个3x1的平移向量，我们能够将坐标从世界坐标系转换到相机坐标系。图片来源：作者。
+典型的“外参”矩阵。通过结合一个 3x3 的旋转矩阵和一个 3x1 的平移向量，我们能够将坐标从世界坐标系转换到相机坐标系。图片来源：作者。
 
-外参矩阵将点从世界空间（点文件中的坐标）转换到相机空间，使得相机成为世界的新中心。例如，如果相机在y方向上移动了2个单位而没有任何旋转，我们只需从所有点的y坐标中减去2个单位，以便获得在新坐标系中的点。
+外参矩阵将点从世界空间（点文件中的坐标）转换到相机空间，使得相机成为世界的新中心。例如，如果相机在 y 方向上移动了 2 个单位而没有任何旋转，我们只需从所有点的 y 坐标中减去 2 个单位，以便获得在新坐标系中的点。
 
-当我们将坐标从世界空间转换到相机空间时，依然得到一个三维向量，其中z坐标表示相机视图中的深度。这个深度信息对于确定光点的顺序至关重要，后续渲染时需要用到。
+当我们将坐标从世界空间转换到相机空间时，依然得到一个三维向量，其中 z 坐标表示相机视图中的深度。这个深度信息对于确定光点的顺序至关重要，后续渲染时需要用到。
 
-我们通过解释相机参数文件来结束对COLMAP的讨论。相机文件提供了如高度、宽度、焦距（x和y方向）以及偏移量（x和y）等参数。通过这些参数，我们可以构建内参矩阵，它表示x和y方向的焦距以及主点坐标。
+我们通过解释相机参数文件来结束对 COLMAP 的讨论。相机文件提供了如高度、宽度、焦距（x 和 y 方向）以及偏移量（x 和 y）等参数。通过这些参数，我们可以构建内参矩阵，它表示 x 和 y 方向的焦距以及主点坐标。
 
-如果你对相机矩阵完全陌生，我推荐你参考Shree Nayar讲授的[计算机视觉基础课程](https://fpcv.cs.columbia.edu/)，特别是关于针孔和透视投影的[讲座](https://youtu.be/_EhY31MSbNM)，然后是关于内外参数矩阵的[讲座](https://www.youtube.com/watch?v=2XM2Rb2pfyQ&t=66s)。
+如果你对相机矩阵完全陌生，我推荐你参考 Shree Nayar 讲授的[计算机视觉基础课程](https://fpcv.cs.columbia.edu/)，特别是关于针孔和透视投影的[讲座](https://youtu.be/_EhY31MSbNM)，然后是关于内外参数矩阵的[讲座](https://www.youtube.com/watch?v=2XM2Rb2pfyQ&t=66s)。
 
-![](../Images/b73bd7d9026d6ff1f86e406c282d2570.png)
+![](img/b73bd7d9026d6ff1f86e406c282d2570.png)
 
-典型的内参矩阵。表示x和y方向的焦距以及主点坐标。图片来源：作者。
+典型的内参矩阵。表示 x 和 y 方向的焦距以及主点坐标。图片来源：作者。
 
 内参矩阵用于将点从相机坐标（通过外参矩阵获得）转换到二维图像平面，也就是你所看到的“图像”。单独的相机坐标不能表明其在图像中的外观，因为必须反映深度信息才能准确评估相机看到的内容。
 

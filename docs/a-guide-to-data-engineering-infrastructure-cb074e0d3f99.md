@@ -1,16 +1,16 @@
 # 数据工程基础设施指南
 
-> 原文：[https://towardsdatascience.com/a-guide-to-data-engineering-infrastructure-cb074e0d3f99?source=collection_archive---------5-----------------------#2024-01-20](https://towardsdatascience.com/a-guide-to-data-engineering-infrastructure-cb074e0d3f99?source=collection_archive---------5-----------------------#2024-01-20)
+> 原文：[`towardsdatascience.com/a-guide-to-data-engineering-infrastructure-cb074e0d3f99?source=collection_archive---------5-----------------------#2024-01-20`](https://towardsdatascience.com/a-guide-to-data-engineering-infrastructure-cb074e0d3f99?source=collection_archive---------5-----------------------#2024-01-20)
 
 ## 使用现代工具自动化资源配置
 
-[](https://mshakhomirov.medium.com/?source=post_page---byline--cb074e0d3f99--------------------------------)[![💡Mike Shakhomirov](../Images/bc6895c7face3244d488feb97ba0f68e.png)](https://mshakhomirov.medium.com/?source=post_page---byline--cb074e0d3f99--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cb074e0d3f99--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cb074e0d3f99--------------------------------) [💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--cb074e0d3f99--------------------------------)
+[](https://mshakhomirov.medium.com/?source=post_page---byline--cb074e0d3f99--------------------------------)![💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--cb074e0d3f99--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cb074e0d3f99--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb074e0d3f99--------------------------------) [💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--cb074e0d3f99--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb074e0d3f99--------------------------------) ·12 分钟阅读·2024年1月20日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb074e0d3f99--------------------------------) ·12 分钟阅读·2024 年 1 月 20 日
 
 --
 
-![](../Images/9cc6d3f789ddc67f30dece40ff6ce671.png)
+![](img/9cc6d3f789ddc67f30dece40ff6ce671.png)
 
 图片来源：[Ehud Neuhaus](https://unsplash.com/@paramir?utm_source=medium&utm_medium=referral) 由 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral) 提供
 

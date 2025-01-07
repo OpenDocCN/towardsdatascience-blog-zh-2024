@@ -1,16 +1,16 @@
 # 数据科学家的鲁棒统计学 第一部分：中央趋势与离散度的韧性度量
 
-> 原文：[https://towardsdatascience.com/robust-statistics-for-data-scientists-part-1-resilient-measures-of-central-tendency-and-67e5a60b8bf1?source=collection_archive---------14-----------------------#2024-01-30](https://towardsdatascience.com/robust-statistics-for-data-scientists-part-1-resilient-measures-of-central-tendency-and-67e5a60b8bf1?source=collection_archive---------14-----------------------#2024-01-30)
+> 原文：[`towardsdatascience.com/robust-statistics-for-data-scientists-part-1-resilient-measures-of-central-tendency-and-67e5a60b8bf1?source=collection_archive---------14-----------------------#2024-01-30`](https://towardsdatascience.com/robust-statistics-for-data-scientists-part-1-resilient-measures-of-central-tendency-and-67e5a60b8bf1?source=collection_archive---------14-----------------------#2024-01-30)
 
 ## 构建基础：理解和应用数据分析中的鲁棒性度量
 
-[](https://medium.com/@le_Tomassini?source=post_page---byline--67e5a60b8bf1--------------------------------)[![Alessandro Tomassini](../Images/e5bf527fafd933239bff6b87005ba457.png)](https://medium.com/@le_Tomassini?source=post_page---byline--67e5a60b8bf1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--67e5a60b8bf1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--67e5a60b8bf1--------------------------------) [Alessandro Tomassini](https://medium.com/@le_Tomassini?source=post_page---byline--67e5a60b8bf1--------------------------------)
+[](https://medium.com/@le_Tomassini?source=post_page---byline--67e5a60b8bf1--------------------------------)![Alessandro Tomassini](https://medium.com/@le_Tomassini?source=post_page---byline--67e5a60b8bf1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--67e5a60b8bf1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--67e5a60b8bf1--------------------------------) [Alessandro Tomassini](https://medium.com/@le_Tomassini?source=post_page---byline--67e5a60b8bf1--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--67e5a60b8bf1--------------------------------) ·阅读时间 10 分钟·2024年1月30日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--67e5a60b8bf1--------------------------------) ·阅读时间 10 分钟·2024 年 1 月 30 日
 
 --
 
-![](../Images/768cfc2134084b1fe15efc68c7cc3270.png)
+![](img/768cfc2134084b1fe15efc68c7cc3270.png)
 
 图像由 DALL-E 生成
 

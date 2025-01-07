@@ -1,16 +1,16 @@
 # 使用 Neo4j 和 LangGraph 实现 GraphReader
 
-> 原文：[https://towardsdatascience.com/implementing-graphreader-with-neo4j-and-langgraph-e4c73826a8b7?source=collection_archive---------1-----------------------#2024-09-21](https://towardsdatascience.com/implementing-graphreader-with-neo4j-and-langgraph-e4c73826a8b7?source=collection_archive---------1-----------------------#2024-09-21)
+> 原文：[`towardsdatascience.com/implementing-graphreader-with-neo4j-and-langgraph-e4c73826a8b7?source=collection_archive---------1-----------------------#2024-09-21`](https://towardsdatascience.com/implementing-graphreader-with-neo4j-and-langgraph-e4c73826a8b7?source=collection_archive---------1-----------------------#2024-09-21)
 
 ## 通过将长文档结构化为可探索的图形，并实现基于图形的智能体系统，提升 RAG 的准确性和性能
 
-[](https://bratanic-tomaz.medium.com/?source=post_page---byline--e4c73826a8b7--------------------------------)[![Tomaz Bratanic](../Images/d5821aa70918fcb3fc1ff0013497b3d5.png)](https://bratanic-tomaz.medium.com/?source=post_page---byline--e4c73826a8b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e4c73826a8b7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e4c73826a8b7--------------------------------) [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--e4c73826a8b7--------------------------------)
+[](https://bratanic-tomaz.medium.com/?source=post_page---byline--e4c73826a8b7--------------------------------)![Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--e4c73826a8b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e4c73826a8b7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e4c73826a8b7--------------------------------) [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--e4c73826a8b7--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e4c73826a8b7--------------------------------) ·23分钟阅读·2024年9月21日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e4c73826a8b7--------------------------------) ·23 分钟阅读·2024 年 9 月 21 日
 
 --
 
-![](../Images/fc66a01ca45698bc7ef7f7bcc2dbeed9.png)
+![](img/fc66a01ca45698bc7ef7f7bcc2dbeed9.png)
 
 一个 AI 智能体在图谱中遍历，如 ChatGPT 所想象的那样
 
@@ -18,29 +18,29 @@
 
 在这篇博客文章中，我们将探索 [GraphReader 智能体](https://arxiv.org/abs/2406.14550)的实现。该智能体旨在从遵循预定义模式的结构化知识图谱中检索信息。与您在演示中可能看到的典型图谱不同，这种图谱更接近于文档或**词汇图谱**，包含文档、它们的片段和以原子事实形式表示的相关元数据。
 
-![](../Images/71b960bfb63594c2d88dfcb91c5ccafb.png)
+![](img/71b960bfb63594c2d88dfcb91c5ccafb.png)
 
 在实现 GraphReader 后生成的知识图谱。图片由作者提供。
 
 上面的图片展示了一个知识图谱，从顶部开始是一个名为*贞德*的文档节点。这个文档被分解成文本块，以编号的圆形节点（0、1、2、3）表示，并通过*NEXT*关系按顺序连接，表示文本块在文档中的出现顺序。在文本块下方，图谱进一步分解成原子事实，具体内容的陈述通过节点表示。最后，在图谱的底层，我们看到关键元素，这些元素以圆形节点的形式呈现，主题包括*历史人物*、*丹麦*、*法国民族*和*法国*。这些元素充当元数据，将事实与文档相关的更广泛的主题和概念联系起来。
 
-一旦我们构建了知识图谱，就会按照[GraphReader论文](https://arxiv.org/abs/2406.14550)中提供的实现进行操作。
+一旦我们构建了知识图谱，就会按照[GraphReader 论文](https://arxiv.org/abs/2406.14550)中提供的实现进行操作。
 
-![](../Images/fc1f216a8c0999ddf602d0b3abc21211.png)
+![](img/fc1f216a8c0999ddf602d0b3abc21211.png)
 
-GraphReader智能体的实现。图片来自[论文](https://arxiv.org/abs/2406.14550)，经作者许可使用。
+GraphReader 智能体的实现。图片来自[论文](https://arxiv.org/abs/2406.14550)，经作者许可使用。
 
 智能体探索过程包括初始化智能体并制定理性计划，然后选择初始节点开始在图中搜索。智能体通过首先收集原子事实、然后读取相关的文本块，并更新其笔记本来探索这些节点。智能体可以决定是否探索更多的块、邻近节点，或根据已收集的信息终止。当智能体决定终止时，会执行答案推理步骤来生成最终的答案。
 
-在这篇博客文章中，我们将使用[Neo4j](https://neo4j.com/)作为存储层，并结合[LangChain](https://www.langchain.com/)和[LangGraph](https://langchain-ai.github.io/langgraph/)来定义智能体及其流程，实现GraphReader论文中的内容。
+在这篇博客文章中，我们将使用[Neo4j](https://neo4j.com/)作为存储层，并结合[LangChain](https://www.langchain.com/)和[LangGraph](https://langchain-ai.github.io/langgraph/)来定义智能体及其流程，实现 GraphReader 论文中的内容。
 
 代码可以在[GitHub](https://github.com/tomasonjo/blogs/tree/master/graphreader)上找到。
 
 # 环境设置
 
-你需要设置一个Neo4j实例，以便跟随本博客文章中的示例。最简单的方法是通过[Neo4j Aura](https://neo4j.com/cloud/platform/aura-graph-database/)启动一个免费的Neo4j云实例，该平台提供Neo4j数据库的云实例。或者，你也可以通过下载[Neo4j Desktop](https://neo4j.com/download/)应用程序并创建本地数据库实例来设置一个本地的Neo4j实例。
+你需要设置一个 Neo4j 实例，以便跟随本博客文章中的示例。最简单的方法是通过[Neo4j Aura](https://neo4j.com/cloud/platform/aura-graph-database/)启动一个免费的 Neo4j 云实例，该平台提供 Neo4j 数据库的云实例。或者，你也可以通过下载[Neo4j Desktop](https://neo4j.com/download/)应用程序并创建本地数据库实例来设置一个本地的 Neo4j 实例。
 
-以下代码将实例化一个LangChain包装器，以连接到Neo4j数据库。
+以下代码将实例化一个 LangChain 包装器，以连接到 Neo4j 数据库。
 
 ```py
 os.environ["NEO4J_URI"] = "bolt://localhost:7687"
@@ -56,7 +56,7 @@ graph.query("CREATE CONSTRAINT IF NOT EXISTS FOR (c:KeyElement) REQUIRE c.id IS 
 
 此外，我们还为将使用的节点类型添加了[约束](https://neo4j.com/docs/cypher-manual/current/constraints/)。这些约束确保了更快的导入和检索性能。
 
-此外，你还需要一个OpenAI的API密钥，并在以下代码中传入该密钥：
+此外，你还需要一个 OpenAI 的 API 密钥，并在以下代码中传入该密钥：
 
 ```py
 os.environ["OPENAI_API_KEY"] = getpass.getpass("OpenAI API Key:")
@@ -64,7 +64,7 @@ os.environ["OPENAI_API_KEY"] = getpass.getpass("OpenAI API Key:")
 
 # 图谱构建
 
-在这个例子中，我们将使用[贞德](https://en.wikipedia.org/wiki/Joan_of_Arc)的维基百科页面。我们将使用LangChain内置的工具来检索文本。
+在这个例子中，我们将使用[贞德](https://en.wikipedia.org/wiki/Joan_of_Arc)的维基百科页面。我们将使用 LangChain 内置的工具来检索文本。
 
 ```py
 wikipedia = WikipediaQueryRun(
@@ -73,25 +73,25 @@ wikipedia = WikipediaQueryRun(
 text = wikipedia.run("Joan of Arc")
 ```
 
-如前所述，GraphReader代理需要包含区块、相关的原子事实和关键元素的知识图谱。
+如前所述，GraphReader 代理需要包含区块、相关的原子事实和关键元素的知识图谱。
 
-![](../Images/ab7091ef9ac06f48d9e80d51b203a06b.png)
+![](img/ab7091ef9ac06f48d9e80d51b203a06b.png)
 
-GraphReader知识图谱构建。图片来自[论文](https://arxiv.org/abs/2406.14550)，并获得作者的许可。
+GraphReader 知识图谱构建。图片来自[论文](https://arxiv.org/abs/2406.14550)，并获得作者的许可。
 
 首先，文档被拆分成区块。在论文中，他们在拆分时保持了段落结构。然而，这在通用方式下很难实现。因此，我们将在此使用简单的区块拆分方法。
 
-接下来，每个区块都由LLM处理，以识别**原子事实**，它们是捕捉核心细节的最小、不可分割的信息单元。例如，从句子“Neo4j的CEO，在瑞典，是Emil Eifrem”中，一个原子事实可以被拆分为“Neo4j的CEO是Emil Eifrem”和“Neo4j位于瑞典”。每个原子事实聚焦于一个清晰、独立的信息单元。
+接下来，每个区块都由 LLM 处理，以识别**原子事实**，它们是捕捉核心细节的最小、不可分割的信息单元。例如，从句子“Neo4j 的 CEO，在瑞典，是 Emil Eifrem”中，一个原子事实可以被拆分为“Neo4j 的 CEO 是 Emil Eifrem”和“Neo4j 位于瑞典”。每个原子事实聚焦于一个清晰、独立的信息单元。
 
-从这些原子事实中，**关键元素**被识别出来。对于第一个事实，“Neo4j的CEO是Emil Eifrem”，关键元素是“CEO”、“Neo4j”和“Emil Eifrem”。对于第二个事实，“Neo4j位于瑞典”，关键元素是“Neo4j”和“瑞典”。这些关键元素是能够捕捉每个原子事实核心意义的关键名词和专有名词。
+从这些原子事实中，**关键元素**被识别出来。对于第一个事实，“Neo4j 的 CEO 是 Emil Eifrem”，关键元素是“CEO”、“Neo4j”和“Emil Eifrem”。对于第二个事实，“Neo4j 位于瑞典”，关键元素是“Neo4j”和“瑞典”。这些关键元素是能够捕捉每个原子事实核心意义的关键名词和专有名词。
 
 提取图形所用的提示在论文的附录中提供。
 
-![](../Images/84336de7edc06097874bf0b875122f95.png)
+![](img/84336de7edc06097874bf0b875122f95.png)
 
 提取关键元素和原子事实的提示。摘自[论文](https://arxiv.org/abs/2406.14550)，并获得作者的许可。
 
-作者们使用了基于提示的提取方法，您指示LLM它应该输出什么，然后实现一个函数，按结构化方式解析信息。我更倾向于使用LangChain中的`with_structured_output`方法来提取结构化信息，该方法利用工具功能来提取结构化信息。这样，我们就可以跳过定义自定义解析函数的步骤。
+作者们使用了基于提示的提取方法，您指示 LLM 它应该输出什么，然后实现一个函数，按结构化方式解析信息。我更倾向于使用 LangChain 中的`with_structured_output`方法来提取结构化信息，该方法利用工具功能来提取结构化信息。这样，我们就可以跳过定义自定义解析函数的步骤。
 
 这是我们可以用于提取的提示。
 
@@ -137,7 +137,7 @@ construction_prompt = ChatPromptTemplate.from_messages(
 
 我们将指令放在系统提示中，然后在用户消息中提供需要处理的相关文本区块。
 
-要定义期望的输出，我们可以使用Pydantic对象定义。
+要定义期望的输出，我们可以使用 Pydantic 对象定义。
 
 ```py
 class AtomicFact(BaseModel):
@@ -162,7 +162,7 @@ structured_llm = model.with_structured_output(Extraction)
 construction_chain = construction_prompt | structured_llm
 ```
 
-为了将所有内容结合起来，我们将创建一个函数，该函数接受单个文档，将其拆分为区块，提取原子事实和关键元素，并将结果存储到Neo4j中。
+为了将所有内容结合起来，我们将创建一个函数，该函数接受单个文档，将其拆分为区块，提取原子事实和关键元素，并将结果存储到 Neo4j 中。
 
 ```py
 async def process_document(text, document_name, chunk_size=2000, chunk_overlap=200):
@@ -198,11 +198,11 @@ MERGE (start)-[:NEXT]->(end)
     print(f"Finished import at: {datetime.now() - start}")
 ```
 
-从高层次来看，这段代码通过将文档拆分为区块、使用AI模型从每个区块提取信息，并将结果存储在图形数据库中来处理文档。以下是总结：
+从高层次来看，这段代码通过将文档拆分为区块、使用 AI 模型从每个区块提取信息，并将结果存储在图形数据库中来处理文档。以下是总结：
 
-1.  它将文档文本拆分为指定大小的块，并允许一些重叠。作者在论文中使用了2000个标记的块大小。
+1.  它将文档文本拆分为指定大小的块，并允许一些重叠。作者在论文中使用了 2000 个标记的块大小。
 
-1.  对于每个块，它异步地将文本发送给LLM（大语言模型）以提取原子事实和关键元素。
+1.  对于每个块，它异步地将文本发送给 LLM（大语言模型）以提取原子事实和关键元素。
 
 1.  每个块和事实都使用*md5*编码函数分配一个唯一的标识符。
 
@@ -214,9 +214,9 @@ MERGE (start)-[:NEXT]->(end)
 await process_document(text, "Joan of Arc", chunk_size=500, chunk_overlap=100)
 ```
 
-我们使用了较小的块大小，因为这是一个小文档，而且我们希望有几个块来进行演示。如果你在Neo4j浏览器中探索图表，你应该会看到类似的可视化效果。
+我们使用了较小的块大小，因为这是一个小文档，而且我们希望有几个块来进行演示。如果你在 Neo4j 浏览器中探索图表，你应该会看到类似的可视化效果。
 
-![](../Images/c7d1df64f44e006c2f1a15fe931a071c.png)
+![](img/c7d1df64f44e006c2f1a15fe931a071c.png)
 
 生成的图表可视化。图片来自作者。
 
@@ -241,11 +241,11 @@ sns.histplot(df["tokens"])
 
 *结果*
 
-![](../Images/f0a07fc6b51842c42a43c28cada39f49.png)
+![](img/f0a07fc6b51842c42a43c28cada39f49.png)
 
 原子事实的标记计数分布。图片来自作者。
 
-原子事实相对较短，最长的也只有大约50个标记。让我们检查几个，以更好地理解。
+原子事实相对较短，最长的也只有大约 50 个标记。让我们检查几个，以更好地理解。
 
 ```py
 graph.query("""MATCH (a:AtomicFact) 
@@ -259,7 +259,7 @@ ORDER BY size(text) DESC LIMIT 3""")
 
 *结果*
 
-![](../Images/54adffdbe7154d75edeaaf6756f05ac0.png)
+![](img/54adffdbe7154d75edeaaf6756f05ac0.png)
 
 原子事实
 
@@ -279,21 +279,21 @@ sns.barplot(df, x='key', y='connections')
 
 *结果*
 
-![](../Images/addf379cd500eae452e4e83e3a21be08.png)
+![](img/addf379cd500eae452e4e83e3a21be08.png)
 
 提及次数最多的前五个关键元素。图片来自作者。
 
 毋庸置疑，贞德是最常被提及的关键词或元素。接下来是一些广泛的关键词，如电影、英语和法国。我怀疑如果我们解析了许多文档，这些广泛的关键词会有很多连接，这可能导致一些下游问题，而这些问题在原始实现中并未处理。另一个小问题是提取的非确定性，因为每次运行的结果会略有不同。
 
-此外，作者们采用了[Lu等人（2023）](https://arxiv.org/pdf/2308.07074)中描述的关键元素规范化方法，具体使用了频率过滤、规则、语义和关联聚合。在这个实现中，我们跳过了这一步。
+此外，作者们采用了[Lu 等人（2023）](https://arxiv.org/pdf/2308.07074)中描述的关键元素规范化方法，具体使用了频率过滤、规则、语义和关联聚合。在这个实现中，我们跳过了这一步。
 
 # GraphReader 代理
 
-我们已经准备好实现GraphReader，一个基于图的代理系统。代理从几个预定义的步骤开始，随后进入自主遍历图的步骤，意味着代理决定接下来的步骤以及如何遍历图。
+我们已经准备好实现 GraphReader，一个基于图的代理系统。代理从几个预定义的步骤开始，随后进入自主遍历图的步骤，意味着代理决定接下来的步骤以及如何遍历图。
 
-这是我们将实现的代理的LangGraph可视化。
+这是我们将实现的代理的 LangGraph 可视化。
 
-![](../Images/b24f71a840150b0590f2177624343f1c.png)
+![](img/b24f71a840150b0590f2177624343f1c.png)
 
 LangGraph 中的代理工作流实现。图片由作者提供。
 
@@ -345,7 +345,7 @@ class OverallState(TypedDict):
 
 尽管代码不可用，但所有的提示都在附录中，因此我们可以轻松地复制它们。
 
-![](../Images/e33bbce0019256b2aad5cbb955cecfd0.png)
+![](img/e33bbce0019256b2aad5cbb955cecfd0.png)
 
 理性计划的提示。取自作者授权的[论文](https://arxiv.org/abs/2406.14550)。
 
@@ -385,7 +385,7 @@ rational_prompt = ChatPromptTemplate.from_messages(
 rational_chain = rational_prompt | model | StrOutputParser()
 ```
 
-现在，我们可以使用这个链来定义一个理性计划节点。LangGraph中的节点是一个函数，它将状态作为输入并更新为输出。
+现在，我们可以使用这个链来定义一个理性计划节点。LangGraph 中的节点是一个函数，它将状态作为输入并更新为输出。
 
 ```py
 def rational_plan_node(state: InputState) -> OverallState:
@@ -399,17 +399,17 @@ def rational_plan_node(state: InputState) -> OverallState:
     }
 ```
 
-该函数首先调用LLM链，产生理性计划。我们进行一些调试输出，然后将函数的输出作为更新的状态。我喜欢这种方法的简洁性。
+该函数首先调用 LLM 链，产生理性计划。我们进行一些调试输出，然后将函数的输出作为更新的状态。我喜欢这种方法的简洁性。
 
 ## 初始节点选择
 
 在下一步中，我们根据问题和理性计划选择初始节点。提示如下：
 
-![](../Images/e1462c0d6a9382ff40e6b394531bd9f7.png)
+![](img/e1462c0d6a9382ff40e6b394531bd9f7.png)
 
 初始节点选择的提示。取自作者授权的[论文](https://arxiv.org/abs/2406.14550)。
 
-提示首先给LLM一些关于整体代理系统的上下文，然后是任务指令。目的是让LLM选择最相关的前10个节点并对其进行评分。作者只是将数据库中的所有关键元素放入提示中，供LLM选择。但我认为这种方法并不具备可扩展性。因此，我们将创建并使用一个向量索引来为提示检索输入节点列表。
+提示首先给 LLM 一些关于整体代理系统的上下文，然后是任务指令。目的是让 LLM 选择最相关的前 10 个节点并对其进行评分。作者只是将数据库中的所有关键元素放入提示中，供 LLM 选择。但我认为这种方法并不具备可扩展性。因此，我们将创建并使用一个向量索引来为提示检索输入节点列表。
 
 ```py
 neo4j_vector = Neo4jVector.from_existing_graph(
@@ -476,7 +476,7 @@ Nodes: {nodes}"""
 )
 ```
 
-同样，我们将大部分指令作为系统消息。由于我们有多个输入，可以在用户消息中定义它们。然而，这次我们需要更结构化的输出。我们可以通过简单使用`use_structured_output`方法来定义所需的输出结构，而不是编写一个解析函数来接受文本并输出JSON。
+同样，我们将大部分指令作为系统消息。由于我们有多个输入，可以在用户消息中定义它们。然而，这次我们需要更结构化的输出。我们可以通过简单使用`use_structured_output`方法来定义所需的输出结构，而不是编写一个解析函数来接受文本并输出 JSON。
 
 ```py
 class Node(BaseModel):
@@ -491,7 +491,7 @@ class InitialNodes(BaseModel):
 initial_nodes_chain = initial_node_prompt | model.with_structured_output(InitialNodes)
 ```
 
-我们希望输出一个包含关键元素和得分的节点列表。我们可以使用Pydantic模型轻松定义输出。此外，添加每个字段的描述至关重要，这样我们可以尽可能多地引导LLM。
+我们希望输出一个包含关键元素和得分的节点列表。我们可以使用 Pydantic 模型轻松定义输出。此外，添加每个字段的描述至关重要，这样我们可以尽可能多地引导 LLM。
 
 这一步的最后一项是将节点定义为一个函数。
 
@@ -520,19 +520,19 @@ def initial_node_selection(state: OverallState) -> OverallState:
     }
 ```
 
-在初步节点选择中，我们首先通过基于输入的向量相似性搜索来获取潜在节点的列表。一个选项是使用理性规划替代。LLM被提示输出10个最相关的节点。然而，作者表示我们应当只使用5个初步节点。因此，我们只是按分数对节点进行排序，并选择前5个节点。然后，我们通过选定的初始关键元素更新`check_atomic_facts_queue`。
+在初步节点选择中，我们首先通过基于输入的向量相似性搜索来获取潜在节点的列表。一个选项是使用理性规划替代。LLM 被提示输出 10 个最相关的节点。然而，作者表示我们应当只使用 5 个初步节点。因此，我们只是按分数对节点进行排序，并选择前 5 个节点。然后，我们通过选定的初始关键元素更新`check_atomic_facts_queue`。
 
 ## 原子事实检查
 
 在这一步，我们获取初步的关键元素并检查链接的原子事实。提示如下：
 
-![](../Images/b0bf14319eb92e8c735c357ce95cf88f.png)
+![](img/b0bf14319eb92e8c735c357ce95cf88f.png)
 
 探索原子事实的提示。取自[论文](https://arxiv.org/abs/2406.14550)，已获得作者许可。
 
-所有提示首先为LLM提供一些上下文，然后是任务指令。LLM被指示读取原子事实，并决定是阅读链接的文本块，还是如果原子事实不相关，则通过探索邻居来搜索更多信息。提示的最后部分是输出指令。我们将再次使用结构化输出方法，以避免手动解析和结构化输出。
+所有提示首先为 LLM 提供一些上下文，然后是任务指令。LLM 被指示读取原子事实，并决定是阅读链接的文本块，还是如果原子事实不相关，则通过探索邻居来搜索更多信息。提示的最后部分是输出指令。我们将再次使用结构化输出方法，以避免手动解析和结构化输出。
 
-由于链条在实现上非常相似，仅通过提示有所不同，我们将避免在这篇博客文章中展示每一个定义。然而，我们将查看LangGraph节点定义，以更好地理解流程。
+由于链条在实现上非常相似，仅通过提示有所不同，我们将避免在这篇博客文章中展示每一个定义。然而，我们将查看 LangGraph 节点定义，以更好地理解流程。
 
 ```py
 def atomic_fact_check(state: OverallState) -> OverallState:
@@ -576,19 +576,19 @@ def atomic_fact_check(state: OverallState) -> OverallState:
     return response
 ```
 
-原子事实检查节点通过调用LLM来评估所选节点的原子事实。由于我们使用了`use_structured_output`，我们可以直接解析更新后的笔记本和选定的操作输出。如果选定的操作是通过检查邻居来获取更多信息，我们使用一个函数来查找这些邻居，并将其添加到`check_atomic_facts_queue`。否则，我们将选定的文本块添加到`check_chunks_queue`。我们通过更新笔记本、队列和选定操作来更新整体状态。
+原子事实检查节点通过调用 LLM 来评估所选节点的原子事实。由于我们使用了`use_structured_output`，我们可以直接解析更新后的笔记本和选定的操作输出。如果选定的操作是通过检查邻居来获取更多信息，我们使用一个函数来查找这些邻居，并将其添加到`check_atomic_facts_queue`。否则，我们将选定的文本块添加到`check_chunks_queue`。我们通过更新笔记本、队列和选定操作来更新整体状态。
 
 ## 文本块检查
 
-正如你从LangGraph节点的名称可以想象的那样，在这一步中，LLM读取选定的文本块，并根据提供的信息决定最佳的下一步。提示如下：
+正如你从 LangGraph 节点的名称可以想象的那样，在这一步中，LLM 读取选定的文本块，并根据提供的信息决定最佳的下一步。提示如下：
 
-![](../Images/fad9ce6c214faf445fa5e129744e7154.png)
+![](img/fad9ce6c214faf445fa5e129744e7154.png)
 
 探索文本块的提示。取自[论文](https://arxiv.org/abs/2406.14550)，已获得作者许可。
 
-LLM被指示读取文本块并决定最佳处理方法。我的直觉是，有时相关信息可能出现在文本块的开始或结尾，而由于块化过程，部分信息可能缺失。因此，作者决定给LLM一个选项，允许其读取前一个或下一个文本块。如果LLM认为信息足够，它可以跳到最后一步。否则，它可以选择使用`search_more`函数搜索更多细节。
+LLM 被指示读取文本块并决定最佳处理方法。我的直觉是，有时相关信息可能出现在文本块的开始或结尾，而由于块化过程，部分信息可能缺失。因此，作者决定给 LLM 一个选项，允许其读取前一个或下一个文本块。如果 LLM 认为信息足够，它可以跳到最后一步。否则，它可以选择使用`search_more`函数搜索更多细节。
 
-再次，我们只查看LangGraph节点函数。
+再次，我们只查看 LangGraph 节点函数。
 
 ```py
 def chunk_check(state: OverallState) -> OverallState:
@@ -645,7 +645,7 @@ def chunk_check(state: OverallState) -> OverallState:
 
 论文对 `search_more` 函数有所疑虑。一方面，它指出 `search_more` 函数只能读取队列中的其他块。另一方面，在附录中的示例中，该函数显然探索了邻居。
 
-![](../Images/6f7ac4164fc9cba89c57eb2e6ac9d0b2.png)
+![](img/6f7ac4164fc9cba89c57eb2e6ac9d0b2.png)
 
 示例操作历史。来自[论文](https://arxiv.org/abs/2406.14550)，经作者许可。
 
@@ -655,7 +655,7 @@ def chunk_check(state: OverallState) -> OverallState:
 
 当 LLM 决定探索邻居时，我们有辅助函数来寻找潜在的关键元素进行探索。然而，我们并不会探索所有邻居。相反，LLM 会决定哪些是值得探索的（如果有的话）。提示如下：
 
-![](../Images/f9aadd49fa519cb33b6f7a786876a749.png)
+![](img/f9aadd49fa519cb33b6f7a786876a749.png)
 
 探索邻居的提示。来自[论文](https://arxiv.org/abs/2406.14550)，经作者许可。
 
@@ -703,7 +703,7 @@ def neighbor_select(state: OverallState) -> OverallState:
 
 我们流程的最后一步是要求 LLM 根据笔记本中收集的信息构建最终答案。提示如下：
 
-![](../Images/52228770f9c551cbed8ed9778f3e14f7.png)
+![](img/52228770f9c551cbed8ed9778f3e14f7.png)
 
 回答推理的提示。来自[论文](https://arxiv.org/abs/2406.14550)，经作者许可。
 
@@ -758,7 +758,7 @@ langgraph.add_edge("answer_reasoning", END)
 langgraph = langgraph.compile()
 ```
 
-我们从定义状态图对象开始，在这个图中我们可以定义LangGraph中传递的信息。每个节点都可以简单地通过`add_node`方法添加。正常的边缘（一个步骤总是跟着另一个步骤）可以通过`add_edge`方法添加。另一方面，如果遍历依赖于之前的动作，我们可以使用`add_conditional_edge`并传入选择下一个节点的函数。例如，`atomic_fact_condition`看起来是这样的：
+我们从定义状态图对象开始，在这个图中我们可以定义 LangGraph 中传递的信息。每个节点都可以简单地通过`add_node`方法添加。正常的边缘（一个步骤总是跟着另一个步骤）可以通过`add_edge`方法添加。另一方面，如果遍历依赖于之前的动作，我们可以使用`add_conditional_edge`并传入选择下一个节点的函数。例如，`atomic_fact_condition`看起来是这样的：
 
 ```py
 def atomic_fact_condition(
@@ -782,7 +782,7 @@ langgraph.invoke({"question":"Did Joan of Arc lose any battles?"})
 
 *结果*
 
-![](../Images/19397837792c7ab4322659d6ef31586e.png)
+![](img/19397837792c7ab4322659d6ef31586e.png)
 
 图片来自作者。
 
@@ -796,11 +796,11 @@ langgraph.invoke({"question":"What is the weather in Spain?"})
 
 *结果*
 
-![](../Images/00214edcb3f1a075f88bcac01ca2a835.png)
+![](img/00214edcb3f1a075f88bcac01ca2a835.png)
 
 图片来自作者。
 
-在制定合理计划后，代理选择了最初的关键元素进行探索。然而，问题在于，这些关键元素在数据库中并不存在，LLM直接凭空生成了它们。也许一些提示工程可以解决幻觉问题，但我还没有尝试。需要注意的是，这并不算太糟糕，因为这些关键元素确实不存在于数据库中，所以我们无法提取相关信息。由于代理没有获得任何相关数据，它开始搜索更多信息。然而，邻近的节点也都不相关，因此流程被停止，并告知用户信息不可用。
+在制定合理计划后，代理选择了最初的关键元素进行探索。然而，问题在于，这些关键元素在数据库中并不存在，LLM 直接凭空生成了它们。也许一些提示工程可以解决幻觉问题，但我还没有尝试。需要注意的是，这并不算太糟糕，因为这些关键元素确实不存在于数据库中，所以我们无法提取相关信息。由于代理没有获得任何相关数据，它开始搜索更多信息。然而，邻近的节点也都不相关，因此流程被停止，并告知用户信息不可用。
 
 现在让我们尝试一个多跳问题。
 
@@ -811,21 +811,21 @@ langgraph.invoke(
 
 *结果*
 
-![](../Images/1694c03f212a1965a9d92ae832f1a378.png)
+![](img/1694c03f212a1965a9d92ae832f1a378.png)
 
 图片来自作者。
 
-复制整个流程有点太多了，所以我只复制了答案部分。这个问题的流程非常不确定，并且很依赖所使用的模型。有点好笑的是，当我测试模型越新，性能反而越差。所以GPT-4表现最好（本示例中使用的就是它），其次是GPT-4-turbo，最后一名是GPT-4o。
+复制整个流程有点太多了，所以我只复制了答案部分。这个问题的流程非常不确定，并且很依赖所使用的模型。有点好笑的是，当我测试模型越新，性能反而越差。所以 GPT-4 表现最好（本示例中使用的就是它），其次是 GPT-4-turbo，最后一名是 GPT-4o。
 
 # 摘要
 
-我对GraphReader及类似的方法感到非常兴奋，特别是因为我认为这种方法（Graph）RAG可以相当通用，且能够应用于任何领域。此外，你可以避免整个图形建模部分，因为图形模式是静态的，允许图形代理使用预定义的函数进行遍历。
+我对 GraphReader 及类似的方法感到非常兴奋，特别是因为我认为这种方法（Graph）RAG 可以相当通用，且能够应用于任何领域。此外，你可以避免整个图形建模部分，因为图形模式是静态的，允许图形代理使用预定义的函数进行遍历。
 
 在这个实现过程中，我们讨论了一些问题。例如，在许多文档上进行图形构建可能会导致广泛的关键元素最终成为超级节点，有时原子事实没有包含完整的上下文。
 
 检索器部分非常依赖于提取和选择的关键元素。在原始实现中，他们将所有关键元素都放入提示中供选择。然而，我怀疑这种方法能否良好扩展。也许我们还需要一个额外的功能，允许代理以除了探索邻居关键元素以外的方式搜索更多信息。
 
-最后，代理系统在很大程度上依赖于LLM的性能。根据我的测试，OpenAI的最佳模型是原始的GPT-4，虽然有趣的是它是最古老的。我还没有测试o1。
+最后，代理系统在很大程度上依赖于 LLM 的性能。根据我的测试，OpenAI 的最佳模型是原始的 GPT-4，虽然有趣的是它是最古老的。我还没有测试 o1。
 
 总的来说，我很高兴能探索更多的这些文档图实现，其中元数据是从文本块中提取并用于更好地导航信息。如果你有任何改进此实现的想法，或者有其他你喜欢的方法，告诉我。
 

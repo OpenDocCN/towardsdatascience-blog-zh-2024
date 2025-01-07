@@ -1,16 +1,16 @@
 # Dask DataFrame 现在非常快速
 
-> 原文：[https://towardsdatascience.com/dask-dataframe-is-fast-now-ec930181c97a?source=collection_archive---------4-----------------------#2024-05-27](https://towardsdatascience.com/dask-dataframe-is-fast-now-ec930181c97a?source=collection_archive---------4-----------------------#2024-05-27)
+> 原文：[`towardsdatascience.com/dask-dataframe-is-fast-now-ec930181c97a?source=collection_archive---------4-----------------------#2024-05-27`](https://towardsdatascience.com/dask-dataframe-is-fast-now-ec930181c97a?source=collection_archive---------4-----------------------#2024-05-27)
 
 ## Dask 如何高效地在 TB 级别处理数据
 
-[](https://medium.com/@patrick_hoefler?source=post_page---byline--ec930181c97a--------------------------------)[![Patrick Hoefler](../Images/35ca9ef1100d8c93dbadd374f0569fe1.png)](https://medium.com/@patrick_hoefler?source=post_page---byline--ec930181c97a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ec930181c97a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ec930181c97a--------------------------------) [Patrick Hoefler](https://medium.com/@patrick_hoefler?source=post_page---byline--ec930181c97a--------------------------------)
+[](https://medium.com/@patrick_hoefler?source=post_page---byline--ec930181c97a--------------------------------)![Patrick Hoefler](https://medium.com/@patrick_hoefler?source=post_page---byline--ec930181c97a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ec930181c97a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ec930181c97a--------------------------------) [Patrick Hoefler](https://medium.com/@patrick_hoefler?source=post_page---byline--ec930181c97a--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ec930181c97a--------------------------------) ·阅读时间 9 分钟·2024年5月27日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ec930181c97a--------------------------------) ·阅读时间 9 分钟·2024 年 5 月 27 日
 
 --
 
-![](../Images/308b0407b24987f46372d5b56e3cf07d.png)
+![](img/308b0407b24987f46372d5b56e3cf07d.png)
 
 `Performance Improvements for Dask DataFrames — 所有图片由作者创建`
 
@@ -34,7 +34,7 @@ Dask DataFrame 由多个 pandas DataFrame 组成。历史上，pandas 使用 Num
 
 pandas 2.0 发布时引入了对通用 Arrow 数据类型的支持，因此 Dask 现在默认使用 PyArrow 支持的字符串。这些字符串*要好得多*。PyArrow 字符串将内存使用量减少了多达 80%，并且解锁了字符串操作的多线程功能。以前因内存不足而遇到问题的工作负载，现在能够在更少的内存中顺利运行，而且速度更快，因为它们不再不断将多余的数据溢写到磁盘。
 
-![](../Images/d84c32d3800a76ea017400b5c0439f0a.png)
+![](img/d84c32d3800a76ea017400b5c0439f0a.png)
 
 `与 Arrow 字符串相比，传统 DataFrame 的内存使用`
 
@@ -48,7 +48,7 @@ pandas 2.0 发布时引入了对通用 Arrow 数据类型的支持，因此 Dask
 
 Dask 引入了一种新的 P2P（点对点）洗牌方法，将任务复杂度降低到了 `O(n)`，并且随着数据集大小和集群规模的增长呈线性扩展。它还集成了高效的磁盘功能，使得可以轻松地洗牌大于内存的数据集。新系统极其稳定，并且在任何规模的数据上都能“正常工作”。
 
-![](../Images/06eeae42ba346f26d229371a3f1d9e2c.png)
+![](img/06eeae42ba346f26d229371a3f1d9e2c.png)
 
 `与 P2P 相比，传统洗牌的内存使用`
 
@@ -70,7 +70,7 @@ Dask 本身是惰性计算的，这意味着它会在执行任何实际工作之
 
 优化器查看查询并确定每个操作所需的列。我们可以将其想象成从查询的最终步骤开始，然后一步步回溯到数据源，并注入丢弃操作以去除不必要的列。
 
-![](../Images/a84cc99cdcd2f59bd804a4137b77b521.png)
+![](img/a84cc99cdcd2f59bd804a4137b77b521.png)
 
 `最终我们只需要一个子集的列。替换操作不需要访问所有列，因此我们可以在 IO 步骤中直接丢弃不必要的列。`
 
@@ -80,51 +80,51 @@ Dask 本身是惰性计算的，这意味着它会在执行任何实际工作之
 
 优化器识别我们查询中的每个过滤器，并查看之前的操作，判断是否可以将过滤器移得更靠近数据源。它会重复这一过程，直到找到一个不能与过滤器交换的操作。这比列投影要难一些，因为我们需要确保这些操作不会改变数据框的值。例如，交换过滤器和合并操作是可以的（值不变），但交换过滤器和替换操作是无效的，因为我们的值可能会改变，原本会被过滤掉的行现在可能不会被过滤掉，反之亦然。
 
-![](../Images/cf3fab96fed4a7b19ba76286970b9b3c.png)
+![](img/cf3fab96fed4a7b19ba76286970b9b3c.png)
 
-`最初，过滤操作发生在Dropna之后，但我们可以在不改变结果的情况下，在Dropna之前执行过滤操作。这允许我们将过滤器推送到IO步骤中。`
+`最初，过滤操作发生在 Dropna 之后，但我们可以在不改变结果的情况下，在 Dropna 之前执行过滤操作。这允许我们将过滤器推送到 IO 步骤中。`
 
-此外，如果我们的过滤器足够强大，那么我们可能在IO步骤中直接丢弃完整的文件。这是最佳情况，其中早期的过滤操作带来了巨大的性能提升，甚至需要从远程存储读取更少的数据。
+此外，如果我们的过滤器足够强大，那么我们可能在 IO 步骤中直接丢弃完整的文件。这是最佳情况，其中早期的过滤操作带来了巨大的性能提升，甚至需要从远程存储读取更少的数据。
 
 ## 3.3 自动调整分区大小
 
-除了实现上述常见的优化技术外，我们还改进了一个普遍存在的痛点，特别是对于分布式系统和Dask用户：最佳分区大小。
+除了实现上述常见的优化技术外，我们还改进了一个普遍存在的痛点，特别是对于分布式系统和 Dask 用户：最佳分区大小。
 
-Dask DataFrame由许多称为*分区*的小型pandas DataFrame组成。通常，分区的数量是由系统决定的，Dask用户被建议在减少或扩展数据后手动“重新分区”（例如通过删除列、过滤数据或通过连接操作进行扩展）（参见[Dask文档](https://docs.dask.org/en/stable/dataframe-best-practices.html#repartition-to-reduce-overhead)）。如果没有这一步，Dask的（通常很小的）开销可能会成为瓶颈，特别是当pandas DataFrame变得过小时，这会使Dask的工作流变得非常缓慢。
+Dask DataFrame 由许多称为*分区*的小型 pandas DataFrame 组成。通常，分区的数量是由系统决定的，Dask 用户被建议在减少或扩展数据后手动“重新分区”（例如通过删除列、过滤数据或通过连接操作进行扩展）（参见[Dask 文档](https://docs.dask.org/en/stable/dataframe-best-practices.html#repartition-to-reduce-overhead)）。如果没有这一步，Dask 的（通常很小的）开销可能会成为瓶颈，特别是当 pandas DataFrame 变得过小时，这会使 Dask 的工作流变得非常缓慢。
 
-手动控制分区大小是一项困难的任务，我们作为Dask用户不应该为此担忧。这也很慢，因为它需要通过网络传输一些分区。现在，Dask DataFrame会自动做两件事来帮助处理当分区变得过小的情况：
+手动控制分区大小是一项困难的任务，我们作为 Dask 用户不应该为此担忧。这也很慢，因为它需要通过网络传输一些分区。现在，Dask DataFrame 会自动做两件事来帮助处理当分区变得过小的情况：
 
-+   保持每个分区的大小恒定，基于你想要计算的数据与原始文件大小的比例。例如，如果你筛选掉原始数据集的80%，Dask会自动将结果中较小的分区合并成更少、更大的分区。
++   保持每个分区的大小恒定，基于你想要计算的数据与原始文件大小的比例。例如，如果你筛选掉原始数据集的 80%，Dask 会自动将结果中较小的分区合并成更少、更大的分区。
 
-+   基于绝对最小值（默认为75MB），将过小的分区合并为更大的分区。例如，如果你的原始数据集被拆分成许多很小的文件，Dask会自动将它们合并。
++   基于绝对最小值（默认为 75MB），将过小的分区合并为更大的分区。例如，如果你的原始数据集被拆分成许多很小的文件，Dask 会自动将它们合并。
 
-![](../Images/29a069b1cef38c8590db87fd8c1d8acc.png)
+![](img/29a069b1cef38c8590db87fd8c1d8acc.png)
 
-`我们从整个文件的200MB中选择了两个占用40MB内存的列。`
+`我们从整个文件的 200MB 中选择了两个占用 40MB 内存的列。`
 
 优化器会查看列的数量以及这些列中的数据大小。它会计算一个比率，用于将多个文件合并为一个分区。
 
-![](../Images/34dd0149f27adf9b8b3dc472e87ba4a2.png)
+![](img/34dd0149f27adf9b8b3dc472e87ba4a2.png)
 
-`40/200的比率导致将五个文件合并为一个分区。`
+`40/200 的比率导致将五个文件合并为一个分区。`
 
-目前，这一步骤仅限于IO操作（如读取Parquet数据集），但我们计划将其扩展到其他允许廉价合并分区的操作。
+目前，这一步骤仅限于 IO 操作（如读取 Parquet 数据集），但我们计划将其扩展到其他允许廉价合并分区的操作。
 
 ## 3.4 简单的合并和连接操作
 
-在单机上使用Pandas时，合并和连接操作通常是便宜的，但在分布式环境中则很昂贵。在共享内存中合并数据是便宜的，而通过网络合并数据则非常慢，因为前面提到的洗牌操作。
+在单机上使用 Pandas 时，合并和连接操作通常是便宜的，但在分布式环境中则很昂贵。在共享内存中合并数据是便宜的，而通过网络合并数据则非常慢，因为前面提到的洗牌操作。
 
-这是分布式系统中最昂贵的操作之一。传统实现每次合并操作都会触发输入DataFrame的网络传输。这在某些情况下是必要的，但代价高昂。
+这是分布式系统中最昂贵的操作之一。传统实现每次合并操作都会触发输入 DataFrame 的网络传输。这在某些情况下是必要的，但代价高昂。
 
-![](../Images/a51a432975c2076cfb5712349c8db866.png)
+![](img/a51a432975c2076cfb5712349c8db866.png)
 
-`两个连接操作都是在同一列上进行的。左侧的DataFrame在第一次连接后已经正确分区，因此我们可以避免在新实现中再次进行洗牌操作。`
+`两个连接操作都是在同一列上进行的。左侧的 DataFrame 在第一次连接后已经正确分区，因此我们可以避免在新实现中再次进行洗牌操作。`
 
 优化器将判断何时需要洗牌，何时仅仅是简单的连接足够，因为数据已经对齐。这可以使个别合并操作变得更快。这个原则同样适用于其他通常需要洗牌的操作，如`groupby().apply()`。
 
-Dask的合并操作曾经效率低下，导致运行时间过长。优化器解决了这些操作在彼此之后发生时的简单情况，但该技术目前还不够先进。仍然有很大的改进空间。
+Dask 的合并操作曾经效率低下，导致运行时间过长。优化器解决了这些操作在彼此之后发生时的简单情况，但该技术目前还不够先进。仍然有很大的改进空间。
 
-![](../Images/cc5ea176270a4da971f228de933a3f7a.png)
+![](img/cc5ea176270a4da971f228de933a3f7a.png)
 
 `当前的实现会对来自同一表的两个分支进行洗牌。通过在更高层次插入一个洗牌节点，可以避免其中一个昂贵的操作。`
 
@@ -132,32 +132,32 @@ Dask的合并操作曾经效率低下，导致运行时间过长。优化器解�
 
 ## 相较于传统实现，这些改进的效果如何？
 
-Dask现在比以前快了20倍。这个改进适用于整个DataFrame API（不仅仅是某些独立的组件），且没有已知的性能回归。Dask现在能够运行以前无法在可接受的时间内完成的工作负载。这个性能提升是由于多个改进的叠加。它不是做一件事情特别好，而是避免做任何事情特别差。
+Dask 现在比以前快了 20 倍。这个改进适用于整个 DataFrame API（不仅仅是某些独立的组件），且没有已知的性能回归。Dask 现在能够运行以前无法在可接受的时间内完成的工作负载。这个性能提升是由于多个改进的叠加。它不是做一件事情特别好，而是避免做任何事情特别差。
 
-![](../Images/308b0407b24987f46372d5b56e3cf07d.png)
+![](img/308b0407b24987f46372d5b56e3cf07d.png)
 
-`TPC-H基准测试中的查询3性能提升，来自[https://github.com/coiled/benchmarks/tree/main/tests/tpch](https://github.com/coiled/benchmarks/tree/main/tests/tpch_)`
+`TPC-H 基准测试中的查询 3 性能提升，来自[`github.com/coiled/benchmarks/tree/main/tests/tpch`](https://github.com/coiled/benchmarks/tree/main/tests/tpch_)`
 
-性能虽然是最吸引人的改进，但并不是唯一得到改善的地方。优化器隐藏了很多复杂性，使得用户从pandas迁移到Dask变得更加容易，因为现在写出性能差的代码变得更加困难。整个系统变得更加健壮。
+性能虽然是最吸引人的改进，但并不是唯一得到改善的地方。优化器隐藏了很多复杂性，使得用户从 pandas 迁移到 Dask 变得更加容易，因为现在写出性能差的代码变得更加困难。整个系统变得更加健壮。
 
-新的API架构也更容易使用。旧版实现将许多内部复杂性泄露到高层API中，导致更改变得繁琐。现在，改进几乎是轻松易行的。
+新的 API 架构也更容易使用。旧版实现将许多内部复杂性泄露到高层 API 中，导致更改变得繁琐。现在，改进几乎是轻松易行的。
 
 ## 接下来会发生什么？
 
-在过去18个月中，Dask DataFrame发生了很大变化。旧版API通常难以使用，且在扩展性方面表现较差。新的实现去除了不奏效的部分，并改进了现有实现。现在，繁重的工作已经完成，这使得加快迭代周期、改进现状成为可能。增量改进现在变得轻而易举。
+在过去 18 个月中，Dask DataFrame 发生了很大变化。旧版 API 通常难以使用，且在扩展性方面表现较差。新的实现去除了不奏效的部分，并改进了现有实现。现在，繁重的工作已经完成，这使得加快迭代周期、改进现状成为可能。增量改进现在变得轻而易举。
 
 一些即将实施的事项：
 
 +   **自动重新分区：** 这部分已经实现，但在优化过程中仍有更多潜力选择更高效的分区大小。
 
-+   **更快的连接：** 这里仍有很多精细调整的空间。例如，我们有一个PR正在进行，其中带来了30-40%的性能提升。
++   **更快的连接：** 这里仍有很多精细调整的空间。例如，我们有一个 PR 正在进行，其中带来了 30-40%的性能提升。
 
 +   **连接重排序：** 我们还没有做到这一点，但它在即将实施的事项中。
 
 # **了解更多**
 
-本文重点介绍了对Dask DataFrame的多个改进，以及这些改进带来了更快、更可靠的表现。如果你在选择Dask和其他流行的DataFrame工具时，可能还需要考虑：
+本文重点介绍了对 Dask DataFrame 的多个改进，以及这些改进带来了更快、更可靠的表现。如果你在选择 Dask 和其他流行的 DataFrame 工具时，可能还需要考虑：
 
-+   [**大规模数据框比较：** TPC-H](https://docs.coiled.io/blog/tpch.html)，该报告比较了Dask、Spark、Polars和DuckDB在从10 GB到10 TB的数据集上的性能，涵盖本地和云端。
++   [**大规模数据框比较：** TPC-H](https://docs.coiled.io/blog/tpch.html)，该报告比较了 Dask、Spark、Polars 和 DuckDB 在从 10 GB 到 10 TB 的数据集上的性能，涵盖本地和云端。
 
 感谢阅读。欢迎随时联系我们，分享您的想法和反馈。

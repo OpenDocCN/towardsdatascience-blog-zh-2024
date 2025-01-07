@@ -1,16 +1,16 @@
 # 如何选择最佳的机器学习部署策略：云端 vs. 边缘
 
-> 原文：[https://towardsdatascience.com/how-to-choose-the-best-ml-deployment-strategy-cloud-vs-edge-7b62d9db9b20?source=collection_archive---------3-----------------------#2024-10-14](https://towardsdatascience.com/how-to-choose-the-best-ml-deployment-strategy-cloud-vs-edge-7b62d9db9b20?source=collection_archive---------3-----------------------#2024-10-14)
+> 原文：[`towardsdatascience.com/how-to-choose-the-best-ml-deployment-strategy-cloud-vs-edge-7b62d9db9b20?source=collection_archive---------3-----------------------#2024-10-14`](https://towardsdatascience.com/how-to-choose-the-best-ml-deployment-strategy-cloud-vs-edge-7b62d9db9b20?source=collection_archive---------3-----------------------#2024-10-14)
 
 ## 选择云端还是边缘部署可能决定了你的项目成败
 
-[](https://medium.com/@vincent.vandenbussche?source=post_page---byline--7b62d9db9b20--------------------------------)[![Vincent Vandenbussche](../Images/b2febfc63ca0efbda0af5501f6080ab7.png)](https://medium.com/@vincent.vandenbussche?source=post_page---byline--7b62d9db9b20--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7b62d9db9b20--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7b62d9db9b20--------------------------------) [Vincent Vandenbussche](https://medium.com/@vincent.vandenbussche?source=post_page---byline--7b62d9db9b20--------------------------------)
+[](https://medium.com/@vincent.vandenbussche?source=post_page---byline--7b62d9db9b20--------------------------------)![Vincent Vandenbussche](https://medium.com/@vincent.vandenbussche?source=post_page---byline--7b62d9db9b20--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7b62d9db9b20--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7b62d9db9b20--------------------------------) [Vincent Vandenbussche](https://medium.com/@vincent.vandenbussche?source=post_page---byline--7b62d9db9b20--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7b62d9db9b20--------------------------------) ·14分钟阅读·2024年10月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7b62d9db9b20--------------------------------) ·14 分钟阅读·2024 年 10 月 14 日
 
 --
 
-![](../Images/670dca37200cce7a7304957e014758b6.png)
+![](img/670dca37200cce7a7304957e014758b6.png)
 
 照片由[Jakob Owens](https://unsplash.com/@jakobowens1?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -28,7 +28,7 @@
 
 这听起来可能很简单，但实际上有一个陷阱。对于这两大类部署，实际上还有很多子类别。以下是我们将在本文中探讨的一个非详尽的部署图示：
 
-![](../Images/70f0d9d6cbcae7b724cde834f082013a.png)
+![](img/70f0d9d6cbcae7b724cde834f082013a.png)
 
 本文中探讨的部署子类别图示。图像来自作者。
 
@@ -58,7 +58,7 @@ curl -X GET https://pokeapi.co/api/v2/pokemon
 
 在幕后，当调用一个 API 时，实际发生的可能更为复杂。API 部署通常涉及包括负载均衡器、自动扩展器和与数据库交互的标准技术栈：
 
-![](../Images/e6dd59aa3082e1c70e16efd4f871e817.png)
+![](img/e6dd59aa3082e1c70e16efd4f871e817.png)
 
 这是在云基础设施中进行 API 部署的典型示例。图片由作者提供。
 
@@ -82,9 +82,9 @@ API 部署因几个原因而流行：
 
 总结来说，**API 部署在许多初创公司和技术公司中被广泛使用**，**因为它的灵活性**和较短的市场投入时间。然而，**对于高流量，成本可能会迅速上升**，维护成本也可能相当高。
 
-关于技术栈：开发API有很多方式，但在机器学习中最常见的可能是[FastAPI](https://fastapi.tiangolo.com/)和[Flask](https://flask.palletsprojects.com/en/3.0.x/)。然后，它们可以通过docker镜像非常容易地部署到主要的云提供商（AWS、GCP、Azure等）。可以通过托管服务或Kubernetes进行编排，具体取决于团队的选择、规模和技能。
+关于技术栈：开发 API 有很多方式，但在机器学习中最常见的可能是[FastAPI](https://fastapi.tiangolo.com/)和[Flask](https://flask.palletsprojects.com/en/3.0.x/)。然后，它们可以通过 docker 镜像非常容易地部署到主要的云提供商（AWS、GCP、Azure 等）。可以通过托管服务或 Kubernetes 进行编排，具体取决于团队的选择、规模和技能。
 
-作为一个API云部署的例子，我曾经为一个面向客户的网页应用部署了一个机器学习解决方案，用来自动化电动汽车充电站的定价。如果你想了解更多，可以在这里查看这个项目：
+作为一个 API 云部署的例子，我曾经为一个面向客户的网页应用部署了一个机器学习解决方案，用来自动化电动汽车充电站的定价。如果你想了解更多，可以在这里查看这个项目：
 
 [如何利用机器学习助力雷诺提升电动汽车销售](https://pub.towardsai.net/how-renault-leveraged-machine-learning-to-scale-electric-vehicles-sales-4f42bee34a12?source=post_page-----7b62d9db9b20--------------------------------)
 
@@ -92,9 +92,9 @@ API 部署因几个原因而流行：
 
 [pub.towardsai.net](https://pub.towardsai.net/how-renault-leveraged-machine-learning-to-scale-electric-vehicles-sales-4f42bee34a12?source=post_page-----7b62d9db9b20--------------------------------)
 
-即使这篇文章没有涉及代码，它也能让你对API部署能做些什么有一个很好的了解。
+即使这篇文章没有涉及代码，它也能让你对 API 部署能做些什么有一个很好的了解。
 
-API部署因其易于集成到任何项目中而非常流行。但有些项目可能需要更多的灵活性和更低的维护成本：这时无服务器部署可能是一种解决方案。
+API 部署因其易于集成到任何项目中而非常流行。但有些项目可能需要更多的灵活性和更低的维护成本：这时无服务器部署可能是一种解决方案。
 
 ## 无服务器部署
 
@@ -110,25 +110,25 @@ API部署因其易于集成到任何项目中而非常流行。但有些项目�
 
 但它也有一些局限性：
 
-+   与托管API相比，它通常不适用于大量查询时的成本效益。
++   与托管 API 相比，它通常不适用于大量查询时的成本效益。
 
 +   冷启动延迟是一个潜在问题，因为服务器可能需要启动，从而导致延迟。
 
 +   内存占用通常是按设计限制的：你不能总是运行大型模型。
 
-+   执行时间也有限：不可能运行超过几分钟的任务（例如AWS Lambda限制为15分钟）。
++   执行时间也有限：不可能运行超过几分钟的任务（例如 AWS Lambda 限制为 15 分钟）。
 
 总的来说，我认为无服务器部署是一个**在你启动新项目时，流量不大且不想在基础设施管理上花费太多的好选择**。
 
 所有主要的云提供商都以不同的名称提供无服务器计算：最受欢迎的有[AWS Lambda](https://aws.amazon.com/lambda/)、[Azure Functions](https://azure.microsoft.com/en-us/products/functions/)和[Google Cloud Functions](https://cloud.google.com/functions)。
 
-就我个人而言，我从未部署过无服务器解决方案（由于我主要从事深度学习工作，通常会受到上述无服务器限制的制约），但有很多文档可以帮助你正确地进行部署，例如[AWS的这篇文章](https://aws.amazon.com/blogs/compute/deploying-machine-learning-models-with-serverless-templates/)。
+就我个人而言，我从未部署过无服务器解决方案（由于我主要从事深度学习工作，通常会受到上述无服务器限制的制约），但有很多文档可以帮助你正确地进行部署，例如[AWS 的这篇文章](https://aws.amazon.com/blogs/compute/deploying-machine-learning-models-with-serverless-templates/)。
 
 虽然无服务器部署提供了一种灵活的按需解决方案，但某些应用可能需要更有计划的方法，比如批处理。
 
 ## 批处理
 
-另一种在云上部署的方式是通过定时批处理。虽然无服务器架构和API通常用于实时预测，但在某些情况下，批量预测更有意义。
+另一种在云上部署的方式是通过定时批处理。虽然无服务器架构和 API 通常用于实时预测，但在某些情况下，批量预测更有意义。
 
 无论是数据库更新、仪表盘更新、缓存预测……只要**没有实时预测的需求，批处理通常是最好的选择**：
 
@@ -144,29 +144,29 @@ API部署因其易于集成到任何项目中而非常流行。但有些项目�
 
 **对于任何不需要实时结果的任务，都应该考虑批处理**：通常它更加具有成本效益。但当然，对于任何实时应用，它并不是一个可行的选择。
 
-它在许多公司中得到了广泛应用，主要是在ETL（提取、转换、加载）管道中，这些管道可能包含机器学习，也可能不包含。以下是一些最流行的工具：
+它在许多公司中得到了广泛应用，主要是在 ETL（提取、转换、加载）管道中，这些管道可能包含机器学习，也可能不包含。以下是一些最流行的工具：
 
 +   Apache Airflow，用于工作流编排和任务调度
 
 +   Apache Spark，用于快速、大规模数据处理
 
-作为批处理的一个例子，我曾经从事YouTube视频收入预测的工作。根据视频收入的初始数据点，我们会预测未来最多5年的收入，使用多目标回归和曲线拟合：
+作为批处理的一个例子，我曾经从事 YouTube 视频收入预测的工作。根据视频收入的初始数据点，我们会预测未来最多 5 年的收入，使用多目标回归和曲线拟合：
 
-![](../Images/5e891c0b723fb52a7b5e9269012dfedd.png)
+![](img/5e891c0b723fb52a7b5e9269012dfedd.png)
 
 表示初始数据、多目标回归预测和曲线拟合的图表。图像来源：作者。
 
-对于这个项目，我们需要每月重新进行所有数据的重新预测，以确保我们的初始预测与最新预测之间没有偏差。为此，我们使用了托管的Airflow，每月会自动根据最新的数据触发新的预测，并将这些数据存储到我们的数据库中。如果你想了解更多关于这个项目的信息，可以查看这篇文章：
+对于这个项目，我们需要每月重新进行所有数据的重新预测，以确保我们的初始预测与最新预测之间没有偏差。为此，我们使用了托管的 Airflow，每月会自动根据最新的数据触发新的预测，并将这些数据存储到我们的数据库中。如果你想了解更多关于这个项目的信息，可以查看这篇文章：
 
-[## 如何预测YouTube视频收入](https://medium.datadriveninvestor.com/how-to-forecast-youtube-video-revenue-e35c60bd1105?source=post_page-----7b62d9db9b20--------------------------------)
+[## 如何预测 YouTube 视频收入](https://medium.datadriveninvestor.com/how-to-forecast-youtube-video-revenue-e35c60bd1105?source=post_page-----7b62d9db9b20--------------------------------)
 
-### 该方法在对数十个YouTuber的收入预测中取得了低于6%的错误率
+### 该方法在对数十个 YouTuber 的收入预测中取得了低于 6%的错误率
 
 [medium.datadriveninvestor.com](https://medium.datadriveninvestor.com/how-to-forecast-youtube-video-revenue-e35c60bd1105?source=post_page-----7b62d9db9b20--------------------------------)
 
 在探索了用于云部署的各种策略和工具后，显然这种方法提供了显著的灵活性和可扩展性。然而，云部署并不总是每个机器学习应用的最佳选择，特别是当实时处理、隐私问题或财务资源限制成为因素时。
 
-![](../Images/578ee44791128a7decddea53afe8da55.png)
+![](img/578ee44791128a7decddea53afe8da55.png)
 
 云部署的优缺点列表。图片由作者提供。
 
@@ -188,15 +188,15 @@ API部署因其易于集成到任何项目中而非常流行。但有些项目�
 
 ## 原生应用
 
-我们现在看到越来越多的智能手机应用集成了AI，未来这种趋势可能会进一步增长。虽然一些大科技公司如OpenAI或谷歌为他们的大型语言模型（LLM）选择了API部署方式，但苹果目前正在通过像[OpenELM](https://machinelearning.apple.com/research/openelm)这样的解决方案，专注于iOS应用部署模型，这是一种小型LLM。实际上，这种方式有几个优点：
+我们现在看到越来越多的智能手机应用集成了 AI，未来这种趋势可能会进一步增长。虽然一些大科技公司如 OpenAI 或谷歌为他们的大型语言模型（LLM）选择了 API 部署方式，但苹果目前正在通过像[OpenELM](https://machinelearning.apple.com/research/openelm)这样的解决方案，专注于 iOS 应用部署模型，这是一种小型 LLM。实际上，这种方式有几个优点：
 
 +   基础设施成本几乎为零：无需维护云端，一切都在设备上运行
 
-+   更好的隐私：你不需要将任何数据发送到API，所有计算都可以在本地完成
++   更好的隐私：你不需要将任何数据发送到 API，所有计算都可以在本地完成
 
 +   你的模型直接集成到你的应用中，无需维护多个代码库
 
-*此外，苹果为iOS上的模型部署打造了一个极好的生态系统：你可以在他们的Apple芯片（如M1、M2等）上高效运行机器学习模型，并利用神经引擎进行非常快速的推理。据我所知，安卓略微落后，但也有一个出色的生态系统。*
+*此外，苹果为 iOS 上的模型部署打造了一个极好的生态系统：你可以在他们的 Apple 芯片（如 M1、M2 等）上高效运行机器学习模型，并利用神经引擎进行非常快速的推理。据我所知，安卓略微落后，但也有一个出色的生态系统。*
 
 虽然在许多情况下这可能是一个非常有益的方法，但仍然存在一些限制：
 
@@ -204,43 +204,43 @@ API部署因其易于集成到任何项目中而非常流行。但有些项目�
 
 +   重型模型可能会很快消耗电池，这可能会对用户体验产生误导性影响
 
-+   设备碎片化，以及iOS和Android应用使得覆盖整个市场变得困难
++   设备碎片化，以及 iOS 和 Android 应用使得覆盖整个市场变得困难
 
 +   与云部署相比，去中心化的模型更新可能会更加具有挑战性
 
 尽管存在一些缺点，但原生应用部署通常是针对在应用中运行的机器学习解决方案的一个强有力的选择。**在开发阶段看起来可能更复杂**，但一旦部署，相比云部署，它将**便宜得多**。
 
-在技术栈方面，实际上有两种主要的部署方式：iOS和Android。它们各自有自己的栈，但共享相同的属性：
+在技术栈方面，实际上有两种主要的部署方式：iOS 和 Android。它们各自有自己的栈，但共享相同的属性：
 
-+   应用开发：iOS使用Swift，Android使用Kotlin
++   应用开发：iOS 使用 Swift，Android 使用 Kotlin
 
-+   模型格式：iOS使用Core ML，Android使用TensorFlow Lite
++   模型格式：iOS 使用 Core ML，Android 使用 TensorFlow Lite
 
-+   硬件加速器：iOS的Apple Neural Engine，Android的Neural Network API
++   硬件加速器：iOS 的 Apple Neural Engine，Android 的 Neural Network API
 
 *注意：这只是对技术栈的简化描述。这个不完全的概述旨在覆盖要点，并让你如果有兴趣，可以进一步深入了解。*
 
-作为这种部署的个人例子，我曾经参与过一个Android平台的图书阅读应用，在这个应用中，他们希望让用户通过手机的运动来浏览书籍。例如，左摇动手机翻到上一页，右摇动翻到下一页，其他特定的动作执行特定的命令。为此，我训练了一个模型，使用手机加速度计的特征来识别运动，并且使用了一个相对较小的模型。然后，这个模型直接作为TensorFlow Lite模型部署到应用中。
+作为这种部署的个人例子，我曾经参与过一个 Android 平台的图书阅读应用，在这个应用中，他们希望让用户通过手机的运动来浏览书籍。例如，左摇动手机翻到上一页，右摇动翻到下一页，其他特定的动作执行特定的命令。为此，我训练了一个模型，使用手机加速度计的特征来识别运动，并且使用了一个相对较小的模型。然后，这个模型直接作为 TensorFlow Lite 模型部署到应用中。
 
-原生应用具有强大的优势，但仅限于一种类型的设备，例如在笔记本电脑上无法运行。Web应用可以克服这些局限。
+原生应用具有强大的优势，但仅限于一种类型的设备，例如在笔记本电脑上无法运行。Web 应用可以克服这些局限。
 
-## Web应用
+## Web 应用
 
-Web应用部署意味着在客户端运行模型。基本上，它意味着**在浏览器使用的设备上运行模型推理**，无论是平板电脑、智能手机还是笔记本电脑（等等）。这种部署方式非常方便：
+Web 应用部署意味着在客户端运行模型。基本上，它意味着**在浏览器使用的设备上运行模型推理**，无论是平板电脑、智能手机还是笔记本电脑（等等）。这种部署方式非常方便：
 
-+   你的部署可以在任何能够运行Web浏览器的设备上工作
++   你的部署可以在任何能够运行 Web 浏览器的设备上工作
 
 +   推理成本几乎为零：无需服务器，无需维护基础设施……只需要客户的设备
 
-+   所有设备只需一个代码库：无需同时维护iOS应用和Android应用
++   所有设备只需一个代码库：无需同时维护 iOS 应用和 Android 应用
 
 *注意：在服务器端运行模型将等同于上面提到的云部署选项之一。*
 
-虽然Web部署提供了诱人的好处，但它也有显著的局限性：
+虽然 Web 部署提供了诱人的好处，但它也有显著的局限性：
 
-+   使用TensorFlow.js时，合理利用资源，尤其是GPU推理，可能会面临挑战
++   使用 TensorFlow.js 时，合理利用资源，尤其是 GPU 推理，可能会面临挑战
 
-+   你的Web应用必须能够在所有设备和浏览器上运行：无论是否有GPU，使用Safari还是Chrome，是否有Apple M1芯片等等……这可能是一个很重的负担，且维护成本较高
++   你的 Web 应用必须能够在所有设备和浏览器上运行：无论是否有 GPU，使用 Safari 还是 Chrome，是否有 Apple M1 芯片等等……这可能是一个很重的负担，且维护成本较高
 
 +   你可能需要为较慢和较老的设备准备一个备份方案：如果设备太慢而无法处理你的模型怎么办？
 
@@ -248,15 +248,15 @@ Web应用部署意味着在客户端运行模型。基本上，它意味着**在
 
 总结来说，虽然网页部署功能强大，但它有显著的局限性，必须谨慎使用。另一个优点是，它可能是我未提及的另一种部署方式的入口：微信小程序。
 
-技术栈通常与网页开发相同：HTML、CSS、JavaScript（以及你想要的任何框架），当然还有用于模型部署的TensorFlow Lite。如果你对如何在浏览器中部署机器学习感兴趣，可以看看这篇文章，我从零开始在浏览器中运行了一个实时人脸识别模型：
+技术栈通常与网页开发相同：HTML、CSS、JavaScript（以及你想要的任何框架），当然还有用于模型部署的 TensorFlow Lite。如果你对如何在浏览器中部署机器学习感兴趣，可以看看这篇文章，我从零开始在浏览器中运行了一个实时人脸识别模型：
 
-[](/blazeface-how-to-run-real-time-object-detection-in-the-browser-66c2ac9acd75?source=post_page-----7b62d9db9b20--------------------------------) [## BlazeFace：如何在浏览器中运行实时物体检测
+[](/blazeface-how-to-run-real-time-object-detection-in-the-browser-66c2ac9acd75?source=post_page-----7b62d9db9b20--------------------------------) ## BlazeFace：如何在浏览器中运行实时物体检测
 
-### BlazeFace模型训练的逐步指南，从Python训练管道到JavaScript演示，详细介绍了整个过程……
+### BlazeFace 模型训练的逐步指南，从 Python 训练管道到 JavaScript 演示，详细介绍了整个过程……
 
-[towardsdatascience.com](/blazeface-how-to-run-real-time-object-detection-in-the-browser-66c2ac9acd75?source=post_page-----7b62d9db9b20--------------------------------)
+[towardsdatascience.com
 
-本文从PyTorch中的模型训练讲起，最终实现了一个可工作的网页应用，可能对这种特定类型的部署有所启发。
+本文从 PyTorch 中的模型训练讲起，最终实现了一个可工作的网页应用，可能对这种特定类型的部署有所启发。
 
 在某些情况下，原生应用和网页应用都不是可行的选择：我们可能没有合适的设备，无法联网，或者受到其他限制。这时，边缘服务器和特定设备就派上了用场。
 
@@ -264,15 +264,15 @@ Web应用部署意味着在客户端运行模型。基本上，它意味着**在
 
 除了原生应用和网页应用，边缘部署还包括其他情况：
 
-+   在边缘服务器上的部署：在某些情况下，会有本地服务器运行模型，例如某些工厂生产线、CCTV等…由于隐私要求，这种解决方案有时是唯一可用的。
++   在边缘服务器上的部署：在某些情况下，会有本地服务器运行模型，例如某些工厂生产线、CCTV 等…由于隐私要求，这种解决方案有时是唯一可用的。
 
 +   在特定设备上的部署：无论是传感器、微控制器、智能手表、耳塞、自动驾驶汽车等，都可能内部运行机器学习模型。
 
-在边缘服务器上的部署可以与云端API部署非常接近，技术栈也可能非常相似。
+在边缘服务器上的部署可以与云端 API 部署非常接近，技术栈也可能非常相似。
 
 *备注：也可以在边缘服务器上运行批处理，或者使用一个单一的脚本来完成所有任务。*
 
-但在特定设备上的部署可能涉及使用[FPGA](https://en.wikipedia.org/wiki/Field-programmable_gate_array)或低级语言。这是另一种完全不同的技能集，针对每种设备类型可能有所不同。这个领域有时被称为TinyML，是一个非常有趣且不断发展的话题。
+但在特定设备上的部署可能涉及使用[FPGA](https://en.wikipedia.org/wiki/Field-programmable_gate_array)或低级语言。这是另一种完全不同的技能集，针对每种设备类型可能有所不同。这个领域有时被称为 TinyML，是一个非常有趣且不断发展的话题。
 
 在这两种情况下，它们面临与其他边缘部署方法相同的一些挑战：
 
@@ -286,7 +286,7 @@ Web应用部署意味着在客户端运行模型。基本上，它意味着**在
 
 总结一下，以下是主要的部署类型及其优缺点：
 
-![](../Images/03465e3c6a42058a4aafcc2c9d2269fc.png)
+![](img/03465e3c6a42058a4aafcc2c9d2269fc.png)
 
 云部署的优缺点列表。图片来自作者。
 
@@ -298,7 +298,7 @@ Web应用部署意味着在客户端运行模型。基本上，它意味着**在
 
 选择合适的部署方式需要理解具体的需求和限制，通常需要与利益相关者进行讨论。记住，每个案例都是特定的，可能是一个边缘案例。但在下面的图表中，我试图概括出最常见的情况，帮助你做出决策：
 
-![](../Images/6f7ccb5214d4bfecc3380b38a08cf0ea.png)
+![](img/6f7ccb5214d4bfecc3380b38a08cf0ea.png)
 
 部署决策图。请注意，每个使用场景都是特定的。图片来自作者。
 

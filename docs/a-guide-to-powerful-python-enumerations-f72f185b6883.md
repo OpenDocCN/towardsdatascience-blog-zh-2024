@@ -1,18 +1,18 @@
 # 强大的 Python 枚举指南
 
-> 原文：[https://towardsdatascience.com/a-guide-to-powerful-python-enumerations-f72f185b6883?source=collection_archive---------2-----------------------#2024-05-20](https://towardsdatascience.com/a-guide-to-powerful-python-enumerations-f72f185b6883?source=collection_archive---------2-----------------------#2024-05-20)
+> 原文：[`towardsdatascience.com/a-guide-to-powerful-python-enumerations-f72f185b6883?source=collection_archive---------2-----------------------#2024-05-20`](https://towardsdatascience.com/a-guide-to-powerful-python-enumerations-f72f185b6883?source=collection_archive---------2-----------------------#2024-05-20)
 
 ## PYTHON 编程
 
 ## 通过简单、易读且高效的枚举来改进数据科学中的 Python 代码
 
-[](https://medium.com/@nyggus?source=post_page---byline--f72f185b6883--------------------------------)[![Marcin Kozak](../Images/d7faf62e48ed81dab5d8ad92819fff54.png)](https://medium.com/@nyggus?source=post_page---byline--f72f185b6883--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f72f185b6883--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f72f185b6883--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--f72f185b6883--------------------------------)
+[](https://medium.com/@nyggus?source=post_page---byline--f72f185b6883--------------------------------)![Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--f72f185b6883--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f72f185b6883--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f72f185b6883--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--f72f185b6883--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f72f185b6883--------------------------------) ·阅读时间 23 分钟·2024年5月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f72f185b6883--------------------------------) ·阅读时间 23 分钟·2024 年 5 月 20 日
 
 --
 
-![](../Images/7a7c2ad5c5e03ba5cf64f32629c38a70.png)
+![](img/7a7c2ad5c5e03ba5cf64f32629c38a70.png)
 
 Python 枚举提供了有用的数据类型。图片来源：[Waldemar](https://unsplash.com/@waldemarbrandt67w?utm_source=medium&utm_medium=referral) via [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

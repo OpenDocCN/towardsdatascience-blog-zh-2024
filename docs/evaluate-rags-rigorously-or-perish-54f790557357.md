@@ -1,30 +1,30 @@
-# 严格评估RAG，或者失败
+# 严格评估 RAG，或者失败
 
-> 原文：[https://towardsdatascience.com/evaluate-rags-rigorously-or-perish-54f790557357?source=collection_archive---------6-----------------------#2024-04-26](https://towardsdatascience.com/evaluate-rags-rigorously-or-perish-54f790557357?source=collection_archive---------6-----------------------#2024-04-26)
+> 原文：[`towardsdatascience.com/evaluate-rags-rigorously-or-perish-54f790557357?source=collection_archive---------6-----------------------#2024-04-26`](https://towardsdatascience.com/evaluate-rags-rigorously-or-perish-54f790557357?source=collection_archive---------6-----------------------#2024-04-26)
 
-## 使用RAGAs框架和超参数优化提升你RAG系统的质量。
+## 使用 RAGAs 框架和超参数优化提升你 RAG 系统的质量。
 
-[](https://medium.com/@jgrygolec?source=post_page---byline--54f790557357--------------------------------)[![Jarek Grygolec, Ph.D.](../Images/a7982bd8f5ced5b36d4196f45102e59d.png)](https://medium.com/@jgrygolec?source=post_page---byline--54f790557357--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--54f790557357--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--54f790557357--------------------------------) [Jarek Grygolec, Ph.D.](https://medium.com/@jgrygolec?source=post_page---byline--54f790557357--------------------------------)
+[](https://medium.com/@jgrygolec?source=post_page---byline--54f790557357--------------------------------)![Jarek Grygolec, Ph.D.](https://medium.com/@jgrygolec?source=post_page---byline--54f790557357--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--54f790557357--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54f790557357--------------------------------) [Jarek Grygolec, Ph.D.](https://medium.com/@jgrygolec?source=post_page---byline--54f790557357--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54f790557357--------------------------------) ·11分钟阅读·2024年4月26日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54f790557357--------------------------------) ·11 分钟阅读·2024 年 4 月 26 日
 
 --
 
-![](../Images/63cee95bd64080c5b1373fcf47e8460f.png)
+![](img/63cee95bd64080c5b1373fcf47e8460f.png)
 
-这是一幅展示“LLMs评估RAG”的图示。作者使用Canva中的AI生成了该图。
+这是一幅展示“LLMs 评估 RAG”的图示。作者使用 Canva 中的 AI 生成了该图。
 
 **简而言之**
 
-如果你开发一个RAG系统，你必须在不同的设计选项之间做出选择。ragas库可以通过生成基于你文档的答案的合成评估数据来帮助你。这使得可能对RAG系统进行严格评估，采用经典的训练/验证/测试数据集划分，从而提升RAG系统的质量。
+如果你开发一个 RAG 系统，你必须在不同的设计选项之间做出选择。ragas 库可以通过生成基于你文档的答案的合成评估数据来帮助你。这使得可能对 RAG 系统进行严格评估，采用经典的训练/验证/测试数据集划分，从而提升 RAG 系统的质量。
 
 **引言**
 
-在实际操作中，开发一个检索增强生成（RAG）系统需要做出许多决定，这些决定会直接影响其最终质量，例如关于文本分割器、块大小、重叠大小、嵌入模型、存储的元数据、语义搜索的距离度量、用于重排的top-k、重排模型、上下文的top-k、提示工程等。
+在实际操作中，开发一个检索增强生成（RAG）系统需要做出许多决定，这些决定会直接影响其最终质量，例如关于文本分割器、块大小、重叠大小、嵌入模型、存储的元数据、语义搜索的距离度量、用于重排的 top-k、重排模型、上下文的 top-k、提示工程等。
 
 **现实情况：** 在大多数情况下，这类决策并没有基于方法论上严谨的评估实践，而是由开发人员和产品负责人做出的临时判断，这些人往往面临截止日期的压力。
 
-**黄金标准：** 相比之下，RAG系统的严格评估应包括：
+**黄金标准：** 相比之下，RAG 系统的严格评估应包括：
 
 +   一个大型评估集，以便能够以较低的置信区间估算性能指标
 
@@ -34,47 +34,47 @@
 
 +   检索和生成的独立评估
 
-+   对整个RAG系统的评估
++   对整个 RAG 系统的评估
 
 +   训练/验证/测试数据集划分，以确保良好的泛化能力
 
 +   超参数优化
 
-> 由于缺乏基于私有文档的答案评估集，大多数RAG系统未能达到黄金标准进行严格评估！
+> 由于缺乏基于私有文档的答案评估集，大多数 RAG 系统未能达到黄金标准进行严格评估！
 
-通用的大型语言模型（LLM）基准（如GLUE、SuperGlue、MMLU、BIG-Bench、HELM等）对于评估RAG系统的相关性不大，因为RAG的本质在于从LLM无法知晓的内部文档中提取信息。如果你坚持使用LLM基准来评估RAG系统，一种方法是选择与你领域特定的任务，并量化在这个选定任务上，RAG系统相较于基础LLM所增加的价值。
+通用的大型语言模型（LLM）基准（如 GLUE、SuperGlue、MMLU、BIG-Bench、HELM 等）对于评估 RAG 系统的相关性不大，因为 RAG 的本质在于从 LLM 无法知晓的内部文档中提取信息。如果你坚持使用 LLM 基准来评估 RAG 系统，一种方法是选择与你领域特定的任务，并量化在这个选定任务上，RAG 系统相较于基础 LLM 所增加的价值。
 
-通用LLM基准的替代方案是基于内部文档创建人工标注的测试集，使得问题的解答需要访问这些内部文档才能正确回答。这种解决方案通常成本高昂。此外，外包标注可能对内部文档造成问题，因为这些文档可能包含敏感或私人信息，不能与外部方共享。
+通用 LLM 基准的替代方案是基于内部文档创建人工标注的测试集，使得问题的解答需要访问这些内部文档才能正确回答。这种解决方案通常成本高昂。此外，外包标注可能对内部文档造成问题，因为这些文档可能包含敏感或私人信息，不能与外部方共享。
 
-这里是[RAGAs框架](https://arxiv.org/abs/2309.15217)（检索增强生成评估）[1]，用于无参考的RAG评估，并提供了**ragas**包的Python实现：
+这里是[RAGAs 框架](https://arxiv.org/abs/2309.15217)（检索增强生成评估）[1]，用于无参考的 RAG 评估，并提供了**ragas**包的 Python 实现：
 
 ```py
 pip install ragas
 ```
 
-它提供了**严格RAG评估所需的工具**：
+它提供了**严格 RAG 评估所需的工具**：
 
 +   合成评估集的生成
 
-+   专门用于RAG评估的度量标准
++   专门用于 RAG 评估的度量标准
 
 +   针对非英语语言的提示调整
 
-+   与LangChain和Llama-Index的集成
++   与 LangChain 和 Llama-Index 的集成
 
 **合成评估集**
 
-LLM爱好者，包括我自己，建议使用LLM作为解决许多问题的方案。这里的意思是：
+LLM 爱好者，包括我自己，建议使用 LLM 作为解决许多问题的方案。这里的意思是：
 
-> LLM并非自主的，但可能是有用的。RAGAs利用LLM生成合成评估集来评估RAG系统。
+> LLM 并非自主的，但可能是有用的。RAGAs 利用 LLM 生成合成评估集来评估 RAG 系统。
 
-RAGAs框架继承了Evol-Instruct框架，该框架使用LLM在演化过程中生成多样化的指令数据集（即问题—答案对，QA）。
+RAGAs 框架继承了 Evol-Instruct 框架，该框架使用 LLM 在演化过程中生成多样化的指令数据集（即问题—答案对，QA）。
 
-![](../Images/b5af66112472251a8a853e06f092dc1a.png)
+![](img/b5af66112472251a8a853e06f092dc1a.png)
 
-图1：描绘了RAGAs中问题演化的过程。作者在Canva和draw.io中创建了这张图。
+图 1：描绘了 RAGAs 中问题演化的过程。作者在 Canva 和 draw.io 中创建了这张图。
 
-在Evol-Instruct框架中，LLM从一组简单的初始指令开始，逐渐将其改写为更复杂的指令，创造多样化的指令数据。Can Xu等人[2]认为，指令数据的逐步、增量演化会产生高质量的结果。在RAGAs框架中，由LLM生成并演化的指令数据是基于现有文档的。ragas库目前实现了三种不同类型的指令数据演化方式，按深度演化，起始于简单问题：
+在 Evol-Instruct 框架中，LLM 从一组简单的初始指令开始，逐渐将其改写为更复杂的指令，创造多样化的指令数据。Can Xu 等人[2]认为，指令数据的逐步、增量演化会产生高质量的结果。在 RAGAs 框架中，由 LLM 生成并演化的指令数据是基于现有文档的。ragas 库目前实现了三种不同类型的指令数据演化方式，按深度演化，起始于简单问题：
 
 +   **推理：** 重写问题以增加推理的需求。
 
@@ -82,7 +82,7 @@ RAGAs框架继承了Evol-Instruct框架，该框架使用LLM在演化过程中�
 
 +   **多上下文：** 重写问题，要求多份文档或多个部分来回答。
 
-此外，ragas库还提供了生成对话的选项。现在，让我们来看一下ragas在实践中的应用。
+此外，ragas 库还提供了生成对话的选项。现在，让我们来看一下 ragas 在实践中的应用。
 
 **问题演化的示例**
 
@@ -92,7 +92,7 @@ RAGAs框架继承了Evol-Instruct框架，该框架使用LLM在演化过程中�
 
 [](https://github.com/gox6/colab-demos/blob/main/rags/evaluate-rags-rigorously-or-perish.ipynb?source=post_page-----54f790557357--------------------------------) [## colab-demos/rags/evaluate-rags-rigorously-or-perish.ipynb at main · gox6/colab-demos
 
-### 在博客中讨论的数据科学和人工智能主题的 Colab 笔记本：[https://medium.com/@jgrygolec](https://medium.com/@jgrygolec) …
+### 在博客中讨论的数据科学和人工智能主题的 Colab 笔记本：[`medium.com/@jgrygolec`](https://medium.com/@jgrygolec) …
 
 [github.com](https://github.com/gox6/colab-demos/blob/main/rags/evaluate-rags-rigorously-or-perish.ipynb?source=post_page-----54f790557357--------------------------------)
 
@@ -191,7 +191,7 @@ examples
 
 运行上述代码后，我基于前述的 Wikipedia 页面 [3] 收到了以下合成问答对。
 
-![](../Images/1783cb7ec307e72fbe43b1371ae8015b.png)
+![](img/1783cb7ec307e72fbe43b1371ae8015b.png)
 
 表 1：使用 ragas 库和 GPT-3.5-turbo 从 Wikipedia 页面生成的合成问答对 [3]。
 
@@ -201,7 +201,7 @@ examples
 
 ragas 库不仅能够生成合成评估集，还为我们提供了内置的指标，用于按组件评估以及对 RAG 的端到端评估。
 
-![](../Images/3d5919921c133036f027312376838865.png)
+![](img/3d5919921c133036f027312376838865.png)
 
 图片 2: [RAGAS 中的 RAG 评估指标](https://docs.ragas.io/en/latest/concepts/metrics/index.html)。图像由作者在 draw.io 中创建。
 
@@ -209,15 +209,15 @@ ragas 库不仅能够生成合成评估集，还为我们提供了内置的指�
 
 > ***答案正确性***— 端到端指标，得分介于 0 到 1 之间，分数越高越好，衡量生成答案与真实答案的准确度。
 
-专注于一个端到端的指标有助于尽快开始优化你的RAG系统。一旦你在质量上取得了一些进展，就可以查看各个组件的指标，专注于每个RAG组件最重要的指标：
+专注于一个端到端的指标有助于尽快开始优化你的 RAG 系统。一旦你在质量上取得了一些进展，就可以查看各个组件的指标，专注于每个 RAG 组件最重要的指标：
 
-> ***准确性*** — 生成指标，得分范围为0到1，分数越高越好，衡量生成答案相对于提供的上下文的事实一致性。它旨在尽可能多地将生成的答案与提供的上下文相结合，从而防止幻觉生成。
+> ***准确性*** — 生成指标，得分范围为 0 到 1，分数越高越好，衡量生成答案相对于提供的上下文的事实一致性。它旨在尽可能多地将生成的答案与提供的上下文相结合，从而防止幻觉生成。
 > 
-> ***上下文相关性*** — 检索指标，得分范围为0到1，得分越高越好，衡量检索到的上下文相对于问题的相关性。
+> ***上下文相关性*** — 检索指标，得分范围为 0 到 1，得分越高越好，衡量检索到的上下文相对于问题的相关性。
 
-**RAG工厂**
+**RAG 工厂**
 
-好的，RAG已经准备好进行优化了……但不要太快，这还不够。为了优化RAG，我们需要一个工厂函数来生成具有给定RAG超参数的RAG链。在这里，我们将这个工厂函数分为2个步骤来定义：
+好的，RAG 已经准备好进行优化了……但不要太快，这还不够。为了优化 RAG，我们需要一个工厂函数来生成具有给定 RAG 超参数的 RAG 链。在这里，我们将这个工厂函数分为 2 个步骤来定义：
 
 **步骤 1**：一个用于将文档存储到向量数据库中的函数。
 
@@ -262,7 +262,7 @@ def get_vectordb_collection(chroma_client,
     return langchain_chroma
 ```
 
-**步骤 2**：一个用于在LangChain中生成RAG的函数，使用文档集合或合适的RAG工厂函数。
+**步骤 2**：一个用于在 LangChain 中生成 RAG 的函数，使用文档集合或合适的 RAG 工厂函数。
 
 ```py
 # Defininig a function to get a simple RAG as Langchain chain with given hyperparemeters
@@ -314,7 +314,7 @@ def get_chain(chroma_client,
     return chain_with_context_and_ground_truth
 ```
 
-之前的函数*get_vectordb_collection*已合并到后者函数*get_chain*中，该函数为给定参数集（即：embedding_model、llm_model、chunk_size、overlap_size、top_k、lambda_mult）生成我们的RAG链。通过我们的工厂函数，我们仅仅触及到优化我们RAG系统超参数的可能性。另请注意，RAG链将需要2个参数：*question*和*ground_truth*，其中后者将作为评估时所需的输入通过RAG链传递。
+之前的函数*get_vectordb_collection*已合并到后者函数*get_chain*中，该函数为给定参数集（即：embedding_model、llm_model、chunk_size、overlap_size、top_k、lambda_mult）生成我们的 RAG 链。通过我们的工厂函数，我们仅仅触及到优化我们 RAG 系统超参数的可能性。另请注意，RAG 链将需要 2 个参数：*question*和*ground_truth*，其中后者将作为评估时所需的输入通过 RAG 链传递。
 
 ```py
 # Setting up a ChromaDB client
@@ -332,9 +332,9 @@ rag_prototype.invoke({"question": 'What happened in Minneapolis to the bridge?',
                       "ground_truth": "x"})["answer"]
 ```
 
-**RAG评估**
+**RAG 评估**
 
-为了评估我们的RAG，我们将使用来自CNN和Daily Mail的多样化新闻文章数据集，该数据集可在Hugging Face [4] 上获得。该数据集中的大多数文章少于1000字。此外，我们将使用该数据集中的一个小片段，仅包含100篇新闻文章。所有这些都是为了限制运行演示所需的成本和时间。
+为了评估我们的 RAG，我们将使用来自 CNN 和 Daily Mail 的多样化新闻文章数据集，该数据集可在 Hugging Face [4] 上获得。该数据集中的大多数文章少于 1000 字。此外，我们将使用该数据集中的一个小片段，仅包含 100 篇新闻文章。所有这些都是为了限制运行演示所需的成本和时间。
 
 ```py
 # Getting the tiny extract of CCN Daily Mail dataset
@@ -356,7 +356,7 @@ train, test = (shuffled.head(-test_n),
                shuffled.head( test_n))
 ```
 
-由于我们将考虑多个不同的RAG原型，而不仅仅是上面定义的那个，我们需要一个函数来收集RAG在我们的合成评估集上生成的答案：
+由于我们将考虑多个不同的 RAG 原型，而不仅仅是上面定义的那个，我们需要一个函数来收集 RAG 在我们的合成评估集上生成的答案：
 
 ```py
 # We create the helper function to generate the RAG ansers together with Ground Truth based on synthetic evaluation set
@@ -380,11 +380,11 @@ def generate_rag_answers_for_synthetic_questions(chain,
   return df
 ```
 
-**RAG优化与RAGAs和Optuna**
+**RAG 优化与 RAGAs 和 Optuna**
 
-首先，值得强调的是，RAG系统的适当优化应该涉及全局优化，其中所有参数同时优化。这与顺序或贪婪方法相对立，后者是逐个优化参数。顺序方法忽略了参数之间可能存在的相互作用，而这些相互作用可能导致次优解。
+首先，值得强调的是，RAG 系统的适当优化应该涉及全局优化，其中所有参数同时优化。这与顺序或贪婪方法相对立，后者是逐个优化参数。顺序方法忽略了参数之间可能存在的相互作用，而这些相互作用可能导致次优解。
 
-现在，我们已经准备好优化我们的RAG系统。我们将使用超参数优化框架[Optuna](https://optuna.org/)。为此，我们定义Optuna研究的目标函数，指定允许的超参数空间并计算评估指标。请参见下面的代码：
+现在，我们已经准备好优化我们的 RAG 系统。我们将使用超参数优化框架[Optuna](https://optuna.org/)。为此，我们定义 Optuna 研究的目标函数，指定允许的超参数空间并计算评估指标。请参见下面的代码：
 
 ```py
 def objective(trial):
@@ -495,6 +495,6 @@ Hyper-parameters for the best trial: {'embedding_model': 'text-embedding-ada-002
 
 [2] C. Xu, Q. Sun, K. Zheng, X. Geng, P. Zhao, J. Feng, C. Tao, D. Jiang, WizardLM：赋能大型语言模型以执行复杂指令（2023），[arXiv:2304.12244](https://arxiv.org/abs/2304.12244)
 
-[3] Community, Large Language Models, 维基百科（2024），[https://en.wikipedia.org/wiki/Large_language_model](https://en.wikipedia.org/wiki/Large_language_model)
+[3] Community, Large Language Models, 维基百科（2024），[`en.wikipedia.org/wiki/Large_language_model`](https://en.wikipedia.org/wiki/Large_language_model)
 
-[4] CNN 和 Daily Mail 数据集可在 Hugging Face 上获取，更多信息请见：[https://huggingface.co/datasets/cnn_dailymail](https://huggingface.co/datasets/cnn_dailymail)
+[4] CNN 和 Daily Mail 数据集可在 Hugging Face 上获取，更多信息请见：[`huggingface.co/datasets/cnn_dailymail`](https://huggingface.co/datasets/cnn_dailymail)

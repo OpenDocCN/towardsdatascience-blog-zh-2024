@@ -1,30 +1,30 @@
-# 优化生成式AI以满足业务需求的框架
+# 优化生成式 AI 以满足业务需求的框架
 
-> 原文：[https://towardsdatascience.com/framework-for-optimizing-generative-ai-to-meet-business-needs-02ac6932d55d?source=collection_archive---------2-----------------------#2024-03-04](https://towardsdatascience.com/framework-for-optimizing-generative-ai-to-meet-business-needs-02ac6932d55d?source=collection_archive---------2-----------------------#2024-03-04)
+> 原文：[`towardsdatascience.com/framework-for-optimizing-generative-ai-to-meet-business-needs-02ac6932d55d?source=collection_archive---------2-----------------------#2024-03-04`](https://towardsdatascience.com/framework-for-optimizing-generative-ai-to-meet-business-needs-02ac6932d55d?source=collection_archive---------2-----------------------#2024-03-04)
 
 ## 选择正确优化策略的手册，旨在通过明确的业务目标更好地满足客户需求。
 
-[](https://medium.com/@sarthakh330?source=post_page---byline--02ac6932d55d--------------------------------)[![Sarthak Handa](../Images/0c75ba0f085fdb22a221705450047c40.png)](https://medium.com/@sarthakh330?source=post_page---byline--02ac6932d55d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--02ac6932d55d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--02ac6932d55d--------------------------------) [Sarthak Handa](https://medium.com/@sarthakh330?source=post_page---byline--02ac6932d55d--------------------------------)
+[](https://medium.com/@sarthakh330?source=post_page---byline--02ac6932d55d--------------------------------)![Sarthak Handa](https://medium.com/@sarthakh330?source=post_page---byline--02ac6932d55d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--02ac6932d55d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02ac6932d55d--------------------------------) [Sarthak Handa](https://medium.com/@sarthakh330?source=post_page---byline--02ac6932d55d--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02ac6932d55d--------------------------------) ·阅读时间11分钟·2024年3月4日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02ac6932d55d--------------------------------) ·阅读时间 11 分钟·2024 年 3 月 4 日
 
 --
 
-![](../Images/087c9599cd2cdaa90b7b4119bf0d4642.png)
+![](img/087c9599cd2cdaa90b7b4119bf0d4642.png)
 
 来源：Dalle3
 
-生成类人文本和语音曾经仅存在于科幻小说中。但像GPT-3和PaLM这样的语言大模型的快速发展，将这一愿景拉近了现实，解锁了一系列有前景的商业应用，从聊天机器人到内容创作。
+生成类人文本和语音曾经仅存在于科幻小说中。但像 GPT-3 和 PaLM 这样的语言大模型的快速发展，将这一愿景拉近了现实，解锁了一系列有前景的商业应用，从聊天机器人到内容创作。
 
-然而，通用基础模型通常无法满足行业应用的需求。企业在生成式AI应用上有不同的要求——从**性能**、**成本**、**延迟**到**可解释性**。此外，用于模型训练的数据的性质和数量可能会有很大不同。因此，产品团队需要明确生成式AI应用的关键业务标准，并选择合适的优化技术工具包，以满足这些需求。
+然而，通用基础模型通常无法满足行业应用的需求。企业在生成式 AI 应用上有不同的要求——从**性能**、**成本**、**延迟**到**可解释性**。此外，用于模型训练的数据的性质和数量可能会有很大不同。因此，产品团队需要明确生成式 AI 应用的关键业务标准，并选择合适的优化技术工具包，以满足这些需求。
 
-在本文中，我们概述了一个框架，用于识别和优先考虑生成式AI应用的战略重点领域。我们还将探讨流行的优化方法，并讨论它们在满足应用需求时的独特优势、理想应用场景和权衡取舍。在明确的业务目标指导下，采用正确的优化策略，企业可以开发定制的AI解决方案，平衡成功所需的关键优先事项。让我们开始吧！
+在本文中，我们概述了一个框架，用于识别和优先考虑生成式 AI 应用的战略重点领域。我们还将探讨流行的优化方法，并讨论它们在满足应用需求时的独特优势、理想应用场景和权衡取舍。在明确的业务目标指导下，采用正确的优化策略，企业可以开发定制的 AI 解决方案，平衡成功所需的关键优先事项。让我们开始吧！
 
 # 评估业务需求和约束的框架
 
 为了有效地量身定制优化大型语言模型的策略，产品团队应该首先深入了解业务目标以及操作的约束条件。评估并优先考虑以下列出的关键维度，适用于您的业务场景：
 
-![](../Images/9208171a2136d7bb407d35336b95456d.png)
+![](img/9208171a2136d7bb407d35336b95456d.png)
 
 来源：作者
 
@@ -54,7 +54,7 @@
 
 以下是一个表格，概述了生成性 AI 应用的**三个不同使用场景**，并对每个维度在框架中的优先级进行了相应评估：
 
-![](../Images/68e86d6781466a2dd27403007758c812.png)
+![](img/68e86d6781466a2dd27403007758c812.png)
 
 来源：作者
 
@@ -66,13 +66,13 @@
 
 对与用例相关的战略优先事项和限制有清晰的理解，有助于团队制定量身定制的策略，优化大规模语言模型（LLMs）以满足用户的独特需求。
 
-# 深入探索LLM优化技术
+# 深入探索 LLM 优化技术
 
 本节探讨了各种优化技术，突出了它们的目标、理想的使用场景以及固有的权衡，特别是在平衡上述业务目标的背景下。
 
 **技术表格解析：**
 
-![](../Images/b2a403e1382512ae0bca1ffd4ed8cd8d.png)
+![](img/b2a403e1382512ae0bca1ffd4ed8cd8d.png)
 
 来源：作者
 
@@ -196,7 +196,7 @@
 
 让我们重新审视构建客户支持聊天机器人以减轻人工支持工作人员工作量的用例。
 
-![](../Images/a9afcbd5ed94718665a3356efa82af4f.png)
+![](img/a9afcbd5ed94718665a3356efa82af4f.png)
 
 来源：Dalle
 

@@ -1,18 +1,18 @@
 # 理解神经网络中的抽象
 
-> 原文：[https://towardsdatascience.com/understanding-abstractions-in-neural-networks-22cc2cd54597?source=collection_archive---------2-----------------------#2024-05-14](https://towardsdatascience.com/understanding-abstractions-in-neural-networks-22cc2cd54597?source=collection_archive---------2-----------------------#2024-05-14)
+> 原文：[`towardsdatascience.com/understanding-abstractions-in-neural-networks-22cc2cd54597?source=collection_archive---------2-----------------------#2024-05-14`](https://towardsdatascience.com/understanding-abstractions-in-neural-networks-22cc2cd54597?source=collection_archive---------2-----------------------#2024-05-14)
 
 ## 思维机器如何实现认知中最重要的功能之一
 
-[](https://yujen-lin.medium.com/?source=post_page---byline--22cc2cd54597--------------------------------)[![林育任 (Yu-Jen Lin)](../Images/f25866ce1f8173a31ee769858156b564.png)](https://yujen-lin.medium.com/?source=post_page---byline--22cc2cd54597--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--22cc2cd54597--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--22cc2cd54597--------------------------------) [林育任 (Yu-Jen Lin)](https://yujen-lin.medium.com/?source=post_page---byline--22cc2cd54597--------------------------------)
+[](https://yujen-lin.medium.com/?source=post_page---byline--22cc2cd54597--------------------------------)![林育任 (Yu-Jen Lin)](https://yujen-lin.medium.com/?source=post_page---byline--22cc2cd54597--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--22cc2cd54597--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--22cc2cd54597--------------------------------) [林育任 (Yu-Jen Lin)](https://yujen-lin.medium.com/?source=post_page---byline--22cc2cd54597--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--22cc2cd54597--------------------------------) ·阅读时间 12 分钟 ·2024年5月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--22cc2cd54597--------------------------------) ·阅读时间 12 分钟 ·2024 年 5 月 14 日
 
 --
 
 长久以来，人们一直认为神经网络具备抽象能力。当输入特征经过神经网络的各层时，输入特征会转变为越来越抽象的特征。例如，一个处理图像的模型接收到的只是低层次的像素输入，但较低的层可以学习构建表示边缘存在的抽象特征，而更高的层甚至可以编码人脸或物体。这些说法已经通过各种研究成果，展示了在卷积神经网络中学习到的特征。然而，这些深层特征到底在何种意义上比浅层特征“更加抽象”呢？在本文中，我将提供一个关于抽象的理解，不仅回答这个问题，还将解释神经网络中不同组件如何促成抽象的形成。在这个过程中，我还将揭示抽象与泛化之间有趣的二元性，从而展示抽象对于机器和我们人类来说有多么重要。
 
-![](../Images/8a9b78e68c086c27897a5e97e2d994c4.png)
+![](img/8a9b78e68c086c27897a5e97e2d994c4.png)
 
 [图片](https://pixabay.com/illustrations/organization-chart-executive-staff-5957122/) 作者：[Gerd Altmann](https://pixabay.com/users/geralt-9301/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=5957122) 来自 [Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=5957122)
 
@@ -50,7 +50,7 @@
 
 当然，特征往往不是以简单丢弃输入特征的形式呈现的，这样我们才能得到有用的抽象。例如，简单地丢弃输入图像中的一个固定像素可能并没有用。幸运的是，神经网络能够构建有用的特征，同时丢弃其他无关细节。一般来说，给定任何权重*w*，输入空间可以被分成一个与权重*w*平行的一维子空间，以及一个与*w*正交的其他(*D*−1)维子空间。其结果是，平行于该(*D*−1)维子空间的任何变化都不会影响输出，因此会被“抽象掉”。例如，一个检测边缘的卷积滤波器，同时忽略颜色或光照的均匀变化，可能就算是这种形式的抽象。
 
-除了点积，激活函数也可能在抽象中发挥作用，因为它们中的大多数都是（或接近）非单射的。以ReLU为例，所有负输入值都会被映射为零，这意味着这些差异被忽略了。至于其他软激活函数，如sigmoid或tanh，虽然在技术上是单射的，但饱和区域将不同的输入映射到非常接近的值，达到了类似的效果。
+除了点积，激活函数也可能在抽象中发挥作用，因为它们中的大多数都是（或接近）非单射的。以 ReLU 为例，所有负输入值都会被映射为零，这意味着这些差异被忽略了。至于其他软激活函数，如 sigmoid 或 tanh，虽然在技术上是单射的，但饱和区域将不同的输入映射到非常接近的值，达到了类似的效果。
 
 从上面的讨论中，我们可以看到，点积和激活函数都可以在单个神经元执行的抽象中发挥作用。然而，单个神经元未捕捉到的信息仍然可以被同一层中的其他神经元捕捉到。为了判断某一信息是否真的被忽略，我们还必须查看整个层的设计。对于一个线性层，有一种简单的设计能够强制执行抽象：降低维度。其原因类似于点积，实际上相当于将数据投影到一维空间。当一层*N*个神经元从上一层接收*M* > *N*个输入时，它涉及到矩阵乘法：
 
@@ -96,16 +96,16 @@
 
 [1] R. Shwartz-Ziv 和 N. Tishby, [通过信息开启深度神经网络的黑箱](https://arxiv.org/abs/1703.00810)（2017）。arXiv。
 
-[2] A. M. Saxe 等人, [深度学习的信息瓶颈理论](https://iopscience.iop.org/article/10.1088/1742-5468/ab3985)（2019年），《统计力学杂志：理论与实验》 12:124020
+[2] A. M. Saxe 等人, [深度学习的信息瓶颈理论](https://iopscience.iop.org/article/10.1088/1742-5468/ab3985)（2019 年），《统计力学杂志：理论与实验》 12:124020
 
-[3] Z. Goldfeld 等人, [估计深度神经网络中的信息流](https://proceedings.mlr.press/v97/goldfeld19a.html)（2019年），收录于第36届国际机器学习大会论文集，PMLR 97:2299–2308
+[3] Z. Goldfeld 等人, [估计深度神经网络中的信息流](https://proceedings.mlr.press/v97/goldfeld19a.html)（2019 年），收录于第 36 届国际机器学习大会论文集，PMLR 97:2299–2308
 
-[4] K. Wickstrøm, S. Løkse, M. Kampffmeyer, S. Yu, J. Principe 和 R. Jenssen, [通过基于矩阵的Renyi熵和张量核的深度神经网络信息平面分析](https://arxiv.org/abs/1909.11396)（2019年）。arXiv。
+[4] K. Wickstrøm, S. Løkse, M. Kampffmeyer, S. Yu, J. Principe 和 R. Jenssen, [通过基于矩阵的 Renyi 熵和张量核的深度神经网络信息平面分析](https://arxiv.org/abs/1909.11396)（2019 年）。arXiv。
 
-[5] A. Achille 和 S. Soatto, [深度表示中的不变性与解缠的出现](https://www.jmlr.org/papers/v19/17-646.html)（2018年），《机器学习研究杂志》，19(50):1−34。
+[5] A. Achille 和 S. Soatto, [深度表示中的不变性与解缠的出现](https://www.jmlr.org/papers/v19/17-646.html)（2018 年），《机器学习研究杂志》，19(50):1−34。
 
-[6] A. Rangamani, M. Lindegaard, T. Galanti 和 T. A. Poggio, [通过中间神经崩溃进行深度分类器的特征学习](https://proceedings.mlr.press/v202/rangamani23a.html)（2023年），收录于第40届国际机器学习大会论文集，PMLR 202:28729–28745。
+[6] A. Rangamani, M. Lindegaard, T. Galanti 和 T. A. Poggio, [通过中间神经崩溃进行深度分类器的特征学习](https://proceedings.mlr.press/v202/rangamani23a.html)（2023 年），收录于第 40 届国际机器学习大会论文集，PMLR 202:28729–28745。
 
-[7] D. R. Hofstadter, [尾声：类比作为认知的核心](https://mitpress.mit.edu/9780262571395/the-analogical-mind/)（2001年）。《类比心智》。麻省理工学院出版社。
+[7] D. R. Hofstadter, [尾声：类比作为认知的核心](https://mitpress.mit.edu/9780262571395/the-analogical-mind/)（2001 年）。《类比心智》。麻省理工学院出版社。
 
-[8] P. Taylor, J. N. Hobbs, J. Burroni 和 H. T. Siegelmann, [认知的全球景观：层次聚合作为人类皮层网络和功能的组织原则](https://www.nature.com/articles/srep18112)（2015年），《科学报告》，第5卷，第1期，文章编号18112。
+[8] P. Taylor, J. N. Hobbs, J. Burroni 和 H. T. Siegelmann, [认知的全球景观：层次聚合作为人类皮层网络和功能的组织原则](https://www.nature.com/articles/srep18112)（2015 年），《科学报告》，第 5 卷，第 1 期，文章编号 18112。

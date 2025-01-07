@@ -1,16 +1,16 @@
 # 大语言模型比家猫更笨
 
-> 原文：[https://towardsdatascience.com/llms-are-dumber-than-a-house-cat-81e7b3d63190?source=collection_archive---------9-----------------------#2024-01-09](https://towardsdatascience.com/llms-are-dumber-than-a-house-cat-81e7b3d63190?source=collection_archive---------9-----------------------#2024-01-09)
+> 原文：[`towardsdatascience.com/llms-are-dumber-than-a-house-cat-81e7b3d63190?source=collection_archive---------9-----------------------#2024-01-09`](https://towardsdatascience.com/llms-are-dumber-than-a-house-cat-81e7b3d63190?source=collection_archive---------9-----------------------#2024-01-09)
 
 ## 它们真的能取代你吗？
 
-[](https://nabil-alouani.medium.com/?source=post_page---byline--81e7b3d63190--------------------------------)[![Nabil Alouani](../Images/8ceea018e9b15413d318bfb710bb0011.png)](https://nabil-alouani.medium.com/?source=post_page---byline--81e7b3d63190--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--81e7b3d63190--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--81e7b3d63190--------------------------------) [Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--81e7b3d63190--------------------------------)
+[](https://nabil-alouani.medium.com/?source=post_page---byline--81e7b3d63190--------------------------------)![Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--81e7b3d63190--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--81e7b3d63190--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--81e7b3d63190--------------------------------) [Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--81e7b3d63190--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--81e7b3d63190--------------------------------) ·13分钟阅读·2024年1月9日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--81e7b3d63190--------------------------------) ·13 分钟阅读·2024 年 1 月 9 日
 
 --
 
-![](../Images/10dfc4f3f26f8b39e708fc77e10b688f.png)
+![](img/10dfc4f3f26f8b39e708fc77e10b688f.png)
 
 所有的图片均来自作者，通过 Midjourney 和 DALL-E 制作。
 

@@ -1,16 +1,16 @@
 # 一种机器学习莫比乌斯环：模型能够相互学习吗？
 
-> 原文：[https://towardsdatascience.com/a-machine-learning-m%C3%B6bius-can-models-learn-from-each-other-44f792ec0426?source=collection_archive---------3-----------------------#2024-08-27](https://towardsdatascience.com/a-machine-learning-m%C3%B6bius-can-models-learn-from-each-other-44f792ec0426?source=collection_archive---------3-----------------------#2024-08-27)
+> 原文：[`towardsdatascience.com/a-machine-learning-m%C3%B6bius-can-models-learn-from-each-other-44f792ec0426?source=collection_archive---------3-----------------------#2024-08-27`](https://towardsdatascience.com/a-machine-learning-m%C3%B6bius-can-models-learn-from-each-other-44f792ec0426?source=collection_archive---------3-----------------------#2024-08-27)
 
 ## 合成数据和学习范式中的新颖转折
 
-[](https://blog.heilmela.eu/?source=post_page---byline--44f792ec0426--------------------------------)[![Laurin Heilmeyer](../Images/bf503815c37deba7a84ae313530f20e6.png)](https://blog.heilmela.eu/?source=post_page---byline--44f792ec0426--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--44f792ec0426--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--44f792ec0426--------------------------------) [Laurin Heilmeyer](https://blog.heilmela.eu/?source=post_page---byline--44f792ec0426--------------------------------)
+[](https://blog.heilmela.eu/?source=post_page---byline--44f792ec0426--------------------------------)![Laurin Heilmeyer](https://blog.heilmela.eu/?source=post_page---byline--44f792ec0426--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--44f792ec0426--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--44f792ec0426--------------------------------) [Laurin Heilmeyer](https://blog.heilmela.eu/?source=post_page---byline--44f792ec0426--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--44f792ec0426--------------------------------) ·14分钟阅读·2024年8月27日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--44f792ec0426--------------------------------) ·14 分钟阅读·2024 年 8 月 27 日
 
 --
 
-![](../Images/9772b6c0f9ca50eda94290a426a22f3c.png)
+![](img/9772b6c0f9ca50eda94290a426a22f3c.png)
 
 一颗金属之心 — 图片来源：[Leonardo.ai](https://leonardo.ai)
 

@@ -1,16 +1,16 @@
 # 使用 vLLM 同时服务多个 LoRA 适配器
 
-> 原文：[https://towardsdatascience.com/serve-multiple-lora-adapters-with-vllm-5323b0425b82?source=collection_archive---------6-----------------------#2024-08-03](https://towardsdatascience.com/serve-multiple-lora-adapters-with-vllm-5323b0425b82?source=collection_archive---------6-----------------------#2024-08-03)
+> 原文：[`towardsdatascience.com/serve-multiple-lora-adapters-with-vllm-5323b0425b82?source=collection_archive---------6-----------------------#2024-08-03`](https://towardsdatascience.com/serve-multiple-lora-adapters-with-vllm-5323b0425b82?source=collection_archive---------6-----------------------#2024-08-03)
 
 ## 不增加延迟
 
-[](https://medium.com/@bnjmn_marie?source=post_page---byline--5323b0425b82--------------------------------)[![本杰明·玛丽](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--5323b0425b82--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5323b0425b82--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5323b0425b82--------------------------------) [本杰明·玛丽](https://medium.com/@bnjmn_marie?source=post_page---byline--5323b0425b82--------------------------------)
+[](https://medium.com/@bnjmn_marie?source=post_page---byline--5323b0425b82--------------------------------)![本杰明·玛丽](https://medium.com/@bnjmn_marie?source=post_page---byline--5323b0425b82--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5323b0425b82--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5323b0425b82--------------------------------) [本杰明·玛丽](https://medium.com/@bnjmn_marie?source=post_page---byline--5323b0425b82--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5323b0425b82--------------------------------) ·阅读时间 6 分钟·2024年8月3日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5323b0425b82--------------------------------) ·阅读时间 6 分钟·2024 年 8 月 3 日
 
 --
 
-![](../Images/49568640e65f99e6f16e6765da72f2a4.png)
+![](img/49568640e65f99e6f16e6765da72f2a4.png)
 
 由 DALL-E 生成
 

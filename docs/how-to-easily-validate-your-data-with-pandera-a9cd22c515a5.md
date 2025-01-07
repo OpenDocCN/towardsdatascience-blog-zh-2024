@@ -1,16 +1,16 @@
-# 如何轻松使用Pandera验证数据
+# 如何轻松使用 Pandera 验证数据
 
-> 原文：[https://towardsdatascience.com/how-to-easily-validate-your-data-with-pandera-a9cd22c515a5?source=collection_archive---------7-----------------------#2024-08-14](https://towardsdatascience.com/how-to-easily-validate-your-data-with-pandera-a9cd22c515a5?source=collection_archive---------7-----------------------#2024-08-14)
+> 原文：[`towardsdatascience.com/how-to-easily-validate-your-data-with-pandera-a9cd22c515a5?source=collection_archive---------7-----------------------#2024-08-14`](https://towardsdatascience.com/how-to-easily-validate-your-data-with-pandera-a9cd22c515a5?source=collection_archive---------7-----------------------#2024-08-14)
 
 ## 学习如何构建一个简单的数据模型，通过类型提示来验证数据
 
-[](https://medium.com/@conalhenderson?source=post_page---byline--a9cd22c515a5--------------------------------)[![Conal Henderson](../Images/e10624264efc3861a2384493fa5ee55a.png)](https://medium.com/@conalhenderson?source=post_page---byline--a9cd22c515a5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a9cd22c515a5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a9cd22c515a5--------------------------------) [Conal Henderson](https://medium.com/@conalhenderson?source=post_page---byline--a9cd22c515a5--------------------------------)
+[](https://medium.com/@conalhenderson?source=post_page---byline--a9cd22c515a5--------------------------------)![Conal Henderson](https://medium.com/@conalhenderson?source=post_page---byline--a9cd22c515a5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a9cd22c515a5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a9cd22c515a5--------------------------------) [Conal Henderson](https://medium.com/@conalhenderson?source=post_page---byline--a9cd22c515a5--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a9cd22c515a5--------------------------------) ·阅读时间：6分钟·2024年8月14日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a9cd22c515a5--------------------------------) ·阅读时间：6 分钟·2024 年 8 月 14 日
 
 --
 
-![](../Images/9cb51cb89dabc5e3cfd2ce6056273fff.png)
+![](img/9cb51cb89dabc5e3cfd2ce6056273fff.png)
 
 图片来自[Christina Morillo](https://www.pexels.com/@divinetechygirl/)在[Pixels](https://www.pexels.com/photo/man-standing-infront-of-white-board-1181345/)
 
@@ -24,13 +24,13 @@
 
 忽视数据验证会对分析和建模产生下游影响，因为数据质量差会导致**偏差、噪声和不准确性增加**。
 
-最近一个数据验证不当的例子是[Zillow的房价算法](https://insideainews.com/2021/12/13/the-500mm-debacle-at-zillow-offers-what-went-wrong-with-the-ai-models/)，其高估了Zillow所购买的2/3的房产，导致2021年第三季度和第四季度Zillow房产估值下降了5亿美元。
+最近一个数据验证不当的例子是[Zillow 的房价算法](https://insideainews.com/2021/12/13/the-500mm-debacle-at-zillow-offers-what-went-wrong-with-the-ai-models/)，其高估了 Zillow 所购买的 2/3 的房产，导致 2021 年第三季度和第四季度 Zillow 房产估值下降了 5 亿美元。
 
-这表明，你不仅需要关注数据是否符合验证标准，还需要关注数据是否反映了现实情况，而在Zillow的案例中，数据并未做到这一点。
+这表明，你不仅需要关注数据是否符合验证标准，还需要关注数据是否反映了现实情况，而在 Zillow 的案例中，数据并未做到这一点。
 
-# 什么是Pandera？
+# 什么是 Pandera？
 
-`[Pandera](https://pandera.readthedocs.io/en/stable/index.html)`是一个Python包，提供了一个文档齐全且灵活的API，能够与`pandas`和`polars`这两个主要的Python数据库进行集成。
+`[Pandera](https://pandera.readthedocs.io/en/stable/index.html)`是一个 Python 包，提供了一个文档齐全且灵活的 API，能够与`pandas`和`polars`这两个主要的 Python 数据库进行集成。
 
 我们可以使用`pandera`通过**业务逻辑和领域知识**来验证数据框架的数据类型和属性。
 
@@ -55,13 +55,13 @@ pip install pandera
 
 ## 数据
 
-本文使用的数据是通过Claude.ai生成的假足球市场数据。
+本文使用的数据是通过 Claude.ai 生成的假足球市场数据。
 
 # 定义验证模型
 
 该包允许你定义验证模式或数据验证模型，后者与另一个很棒的数据验证包`[Pydantic](https://docs.pydantic.dev/latest/)`非常相似。
 
-对于本次练习，我们将专注于验证模型，因为它允许**与我们的Python代码集成类型提示**，并且我发现它比验证模式稍微更易于阅读。然而，如果你想利用验证模式，模型也有方法将其转换为模式。
+对于本次练习，我们将专注于验证模型，因为它允许**与我们的 Python 代码集成类型提示**，并且我发现它比验证模式稍微更易于阅读。然而，如果你想利用验证模式，模型也有方法将其转换为模式。
 
 你可以在这里找到关于两种验证方法的信息：
 
@@ -91,7 +91,7 @@ data = {
 df = pd.DataFrame(data)
 ```
 
-![](../Images/e3e1bc6302c113c4e0752e131a944a58.png)
+![](img/e3e1bc6302c113c4e0752e131a944a58.png)
 
 图片来自作者
 
@@ -101,7 +101,7 @@ df = pd.DataFrame(data)
 data.types
 ```
 
-![](../Images/6e878c39c8dda42332ac60e5846fe134.png)
+![](img/6e878c39c8dda42332ac60e5846fe134.png)
 
 图片来自作者
 
@@ -129,11 +129,11 @@ class PlayerSchema(pa.DataFrameModel):
 
 上面，我们通过子类化`pa.DataFrameModel`定义了一个模式，这与在`[Pydantic](https://docs.pydantic.dev/latest/)`中子类化`BaseModel`的方式相同。然后，我们用相应的**数据集中的列**填充了该模式，提供了每列的**预期数据类型**，并使用`pa.Field`方法**定义了边界**。
 
-`Pandera`与`pandas`的集成非常好，意味着你可以使用`pandas`数据类型（例如`pd.Timestamp`）以及pandera数据类型（例如`pa.Int64`）来定义每一列。
+`Pandera`与`pandas`的集成非常好，意味着你可以使用`pandas`数据类型（例如`pd.Timestamp`）以及 pandera 数据类型（例如`pa.Int64`）来定义每一列。
 
 ## 重用字段
 
-为了避免重复字段，我们可以通过使用内建的Python库`functools`中的`partial`来重用字段。
+为了避免重复字段，我们可以通过使用内建的 Python 库`functools`中的`partial`来重用字段。
 
 ```py
 from functools import partial
@@ -192,19 +192,19 @@ validate_data(df)
 # error in check_types decorator of function 'load_data': Column 'height' failed element-wise validator number 1: less_than_or_equal_to(210) failure cases: 300
 ```
 
-通过使用try-except块，我们可以**捕获加载和验证数据时抛出的任何错误**。结果显示，‘height’列**未通过小于或等于测试**，其中一个标记为300cm的身高是不正确的。
+通过使用 try-except 块，我们可以**捕获加载和验证数据时抛出的任何错误**。结果显示，‘height’列**未通过小于或等于测试**，其中一个标记为 300cm 的身高是不正确的。
 
 ## 清理数据
 
 清理数据有很多策略，其中一些我在之前的文章中已详细介绍。
 
-[](https://medium.com/@conalhenderson/master-pandas-to-build-modular-and-reusable-data-pipelines-1d12b003a423?source=post_page-----a9cd22c515a5--------------------------------) [## 精通Pandas构建模块化和可重用的数据管道
+[](https://medium.com/@conalhenderson/master-pandas-to-build-modular-and-reusable-data-pipelines-1d12b003a423?source=post_page-----a9cd22c515a5--------------------------------) [## 精通 Pandas 构建模块化和可重用的数据管道
 
-### 通过利用pandas实现关键的数据处理策略，构建模块化、可重用且高效的数据管道。
+### 通过利用 pandas 实现关键的数据处理策略，构建模块化、可重用且高效的数据管道。
 
 medium.com](https://medium.com/@conalhenderson/master-pandas-to-build-modular-and-reusable-data-pipelines-1d12b003a423?source=post_page-----a9cd22c515a5--------------------------------)
 
-为了简化处理，我将使用人口的中位数身高来填补所有大于210cm的值。
+为了简化处理，我将使用人口的中位数身高来填补所有大于 210cm 的值。
 
 ```py
 def clean_height(df: DataFrame) -> DataFrame[PlayerSchema]:
@@ -219,7 +219,7 @@ df = clean_height(df)
 
 ## 重新验证
 
-由于我们的数据已经被加载进来，我们可以调整之前的函数，使其接受数据框作为输入，运行数据框并通过try-except块进行评估，并使用装饰器和类型提示。
+由于我们的数据已经被加载进来，我们可以调整之前的函数，使其接受数据框作为输入，运行数据框并通过 try-except 块进行评估，并使用装饰器和类型提示。
 
 ```py
 validate_data_2(df)
@@ -231,7 +231,7 @@ validate_data_2(df)
 
 # 结论
 
-这篇文章概述了为什么验证数据非常重要，以确保数据**与业务逻辑一致并反映现实世界**，以Zillow为例，说明了缺乏数据验证可能带来的严重后果。
+这篇文章概述了为什么验证数据非常重要，以确保数据**与业务逻辑一致并反映现实世界**，以 Zillow 为例，说明了缺乏数据验证可能带来的严重后果。
 
 使用了`Pandera`来展示如何轻松地将数据验证与`pandas`集成，以快速**验证一个架构**，该架构与`Pydantic`非常相似，使用了**装饰器**和**类型提示**。还展示了如何使用`pa.Field`来**设置数据的边界**，并且当与`partial`一起使用时，可以创建可重用字段，从而提高代码的可读性。
 

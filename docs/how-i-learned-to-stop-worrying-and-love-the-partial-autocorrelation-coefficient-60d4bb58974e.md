@@ -1,16 +1,16 @@
 # 我如何学会停止担忧并爱上偏自相关系数
 
-> 原文：[https://towardsdatascience.com/how-i-learned-to-stop-worrying-and-love-the-partial-autocorrelation-coefficient-60d4bb58974e?source=collection_archive---------4-----------------------#2024-06-26](https://towardsdatascience.com/how-i-learned-to-stop-worrying-and-love-the-partial-autocorrelation-coefficient-60d4bb58974e?source=collection_archive---------4-----------------------#2024-06-26)
+> 原文：[`towardsdatascience.com/how-i-learned-to-stop-worrying-and-love-the-partial-autocorrelation-coefficient-60d4bb58974e?source=collection_archive---------4-----------------------#2024-06-26`](https://towardsdatascience.com/how-i-learned-to-stop-worrying-and-love-the-partial-autocorrelation-coefficient-60d4bb58974e?source=collection_archive---------4-----------------------#2024-06-26)
 
-![](../Images/111071cc8a5218d7ca171d13e8e9b5d1.png)
+![](img/111071cc8a5218d7ca171d13e8e9b5d1.png)
 
-2015年8月，太平洋是地球上你最不想待的地方。向[厄尔尼诺](https://www.climate.gov/enso)致敬！来源：[NOAA](https://www.climate.gov/media/6413)
+2015 年 8 月，太平洋是地球上你最不想待的地方。向[厄尔尼诺](https://www.climate.gov/enso)致敬！来源：[NOAA](https://www.climate.gov/media/6413)
 
 ## 除了显而易见的对《奇爱博士》的致敬之外，我们将学习如何使用 PACF 精准地选择最具影响力的回归变量。
 
-[](https://timeseriesreasoning.medium.com/?source=post_page---byline--60d4bb58974e--------------------------------)[![Sachin Date](../Images/bd023298b414caf88f79b00ef032d065.png)](https://timeseriesreasoning.medium.com/?source=post_page---byline--60d4bb58974e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--60d4bb58974e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--60d4bb58974e--------------------------------) [Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--60d4bb58974e--------------------------------)
+[](https://timeseriesreasoning.medium.com/?source=post_page---byline--60d4bb58974e--------------------------------)![Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--60d4bb58974e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--60d4bb58974e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--60d4bb58974e--------------------------------) [Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--60d4bb58974e--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--60d4bb58974e--------------------------------) ·阅读时长21分钟·2024年6月26日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--60d4bb58974e--------------------------------) ·阅读时长 21 分钟·2024 年 6 月 26 日
 
 --
 

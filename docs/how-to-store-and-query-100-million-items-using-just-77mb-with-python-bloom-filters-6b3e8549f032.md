@@ -1,16 +1,16 @@
 # 如何使用 Python 布隆过滤器仅用 77MB 存储和查询 1 亿项数据
 
-> 原文：[https://towardsdatascience.com/how-to-store-and-query-100-million-items-using-just-77mb-with-python-bloom-filters-6b3e8549f032?source=collection_archive---------2-----------------------#2024-02-08](https://towardsdatascience.com/how-to-store-and-query-100-million-items-using-just-77mb-with-python-bloom-filters-6b3e8549f032?source=collection_archive---------2-----------------------#2024-02-08)
+> 原文：[`towardsdatascience.com/how-to-store-and-query-100-million-items-using-just-77mb-with-python-bloom-filters-6b3e8549f032?source=collection_archive---------2-----------------------#2024-02-08`](https://towardsdatascience.com/how-to-store-and-query-100-million-items-using-just-77mb-with-python-bloom-filters-6b3e8549f032?source=collection_archive---------2-----------------------#2024-02-08)
 
 ## 使用这个必备的数据结构，在 Python 中执行极速且内存高效的成员资格检查
 
-[](https://mikehuls.medium.com/?source=post_page---byline--6b3e8549f032--------------------------------)[![Mike Huls](../Images/8f9f55a0d25db00799c5d37383b7f5b6.png)](https://mikehuls.medium.com/?source=post_page---byline--6b3e8549f032--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6b3e8549f032--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6b3e8549f032--------------------------------) [Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--6b3e8549f032--------------------------------)
+[](https://mikehuls.medium.com/?source=post_page---byline--6b3e8549f032--------------------------------)![Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--6b3e8549f032--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6b3e8549f032--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6b3e8549f032--------------------------------) [Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--6b3e8549f032--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6b3e8549f032--------------------------------) ·阅读时长 11 分钟·2024年2月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6b3e8549f032--------------------------------) ·阅读时长 11 分钟·2024 年 2 月 8 日
 
 --
 
-![](../Images/97200918356e1b6e481565d52747e46a.png)
+![](img/97200918356e1b6e481565d52747e46a.png)
 
 带有视图的编程（图片来源：ChatGPT）
 

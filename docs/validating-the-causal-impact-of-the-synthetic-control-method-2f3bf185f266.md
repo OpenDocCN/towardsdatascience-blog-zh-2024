@@ -1,32 +1,32 @@
 # 验证合成控制方法的因果影响
 
-> 原文：[https://towardsdatascience.com/validating-the-causal-impact-of-the-synthetic-control-method-2f3bf185f266?source=collection_archive---------6-----------------------#2024-06-08](https://towardsdatascience.com/validating-the-causal-impact-of-the-synthetic-control-method-2f3bf185f266?source=collection_archive---------6-----------------------#2024-06-08)
+> 原文：[`towardsdatascience.com/validating-the-causal-impact-of-the-synthetic-control-method-2f3bf185f266?source=collection_archive---------6-----------------------#2024-06-08`](https://towardsdatascience.com/validating-the-causal-impact-of-the-synthetic-control-method-2f3bf185f266?source=collection_archive---------6-----------------------#2024-06-08)
 
-## 因果AI，探索因果推理与机器学习的结合
+## 因果 AI，探索因果推理与机器学习的结合
 
-[](https://medium.com/@raz1470?source=post_page---byline--2f3bf185f266--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--2f3bf185f266--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2f3bf185f266--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2f3bf185f266--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--2f3bf185f266--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--2f3bf185f266--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--2f3bf185f266--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2f3bf185f266--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2f3bf185f266--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--2f3bf185f266--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2f3bf185f266--------------------------------) ·10分钟阅读·2024年6月8日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2f3bf185f266--------------------------------) ·10 分钟阅读·2024 年 6 月 8 日
 
 --
 
-![](../Images/242fd31202ca191c89090516f0165385.png)
+![](img/242fd31202ca191c89090516f0165385.png)
 
 图片由[Irina Inga](https://unsplash.com/@irinainga05?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 这系列文章是关于什么的？
 
-欢迎来到我的因果AI系列，在这里我们将探讨因果推理如何与机器学习模型集成。预计会探索多个在不同商业环境中的实际应用。
+欢迎来到我的因果 AI 系列，在这里我们将探讨因果推理如何与机器学习模型集成。预计会探索多个在不同商业环境中的实际应用。
 
 在上一篇文章中，我们讨论了*测量您的营销活动的内在因果影响*。在本文中，我们将继续探讨*验证合成控制的因果影响*。
 
 如果你错过了上一篇关于内在因果影响的文章，可以在这里查看：
 
-[](/measuring-the-intrinsic-causal-influence-of-your-marketing-campaigns-aa8354c26b7b?source=post_page-----2f3bf185f266--------------------------------) [## 测量您的营销活动的内在因果影响
+[](/measuring-the-intrinsic-causal-influence-of-your-marketing-campaigns-aa8354c26b7b?source=post_page-----2f3bf185f266--------------------------------) ## 测量您的营销活动的内在因果影响
 
-### 因果AI，探索因果推理与机器学习的结合
+### 因果 AI，探索因果推理与机器学习的结合
 
-towardsdatascience.com](/measuring-the-intrinsic-causal-influence-of-your-marketing-campaigns-aa8354c26b7b?source=post_page-----2f3bf185f266--------------------------------)
+towardsdatascience.com
 
 # 引言
 
@@ -56,9 +56,9 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/synthetic%2
 
 合成控制方法是一种因果技术，可以在无法进行随机对照试验（RCT）或 A/B 测试时，评估干预或治疗的因果影响。该方法最早由 Abadie 和 Gardezabal 于 2003 年提出。以下论文包含了一个很好的案例研究，帮助你理解该方法：
 
-[https://web.stanford.edu/~jhain/Paper/JASA2010.pdf](https://web.stanford.edu/~jhain/Paper/JASA2010.pdf)
+[`web.stanford.edu/~jhain/Paper/JASA2010.pdf`](https://web.stanford.edu/~jhain/Paper/JASA2010.pdf)
 
-![](../Images/4876ac9837822ae299d7afa75560fe05.png)
+![](img/4876ac9837822ae299d7afa75560fe05.png)
 
 用户生成的图像
 
@@ -94,7 +94,7 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/synthetic%2
 
 +   限制权重 ≥ 0
 
-![](../Images/ab8a2f8a1d158f245bef617fcefd96b5.png)
+![](img/ab8a2f8a1d158f245bef617fcefd96b5.png)
 
 用户生成的图像
 
@@ -138,7 +138,7 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/synthetic%2
 
 下面我们可以看到数据框架。我们有过去 3 年中 50 个欧洲国家的销售数据。市场团队计划在英国开展他们的电视广告活动。
 
-![](../Images/38a31d9ec200cba9a45b6c09bc9347b3.png)
+![](img/38a31d9ec200cba9a45b6c09bc9347b3.png)
 
 用户生成的图像
 
@@ -192,7 +192,7 @@ def synth_plot(df, counterfactual):
 synth_plot(df, 'GB')
 ```
 
-![](../Images/4876ac9837822ae299d7afa75560fe05.png)
+![](img/4876ac9837822ae299d7afa75560fe05.png)
 
 用户生成的图像
 
@@ -260,7 +260,7 @@ def train_reg(df, start_index, reg_class):
 df_lin_reg_100, pred_lift_lin_reg_100 = train_reg(df, 100, LinearRegression())
 ```
 
-![](../Images/e48bd5832d392f66cc7bd5be1945b135.png)
+![](img/e48bd5832d392f66cc7bd5be1945b135.png)
 
 用户生成的图像
 
@@ -270,7 +270,7 @@ df_lin_reg_100, pred_lift_lin_reg_100 = train_reg(df, 100, LinearRegression())
 synth_plot(df_lin_reg_100, 'pred')
 ```
 
-![](../Images/5995e5ef2df8c9ec4a57f4df245e8be3.png)
+![](img/5995e5ef2df8c9ec4a57f4df245e8be3.png)
 
 用户生成的图像
 
@@ -343,7 +343,7 @@ def train_synth(df, start_index):
 df_synth_100, pred_lift_synth_100 = train_synth(df, 100)
 ```
 
-![](../Images/bb483c51df63e0e5df556624775d4e4e.png)
+![](img/bb483c51df63e0e5df556624775d4e4e.png)
 
 用户生成图像
 
@@ -353,7 +353,7 @@ df_synth_100, pred_lift_synth_100 = train_synth(df, 100)
 synth_plot(df_synth_100, 'pred')
 ```
 
-![](../Images/8593cd13b5533eec365a1c92006b5ca2.png)
+![](img/8593cd13b5533eec365a1c92006b5ca2.png)
 
 用户生成图像
 
@@ -403,7 +403,7 @@ plt.legend(title="Data Size")
 plt.show()
 ```
 
-![](../Images/36d5fbbe62a6070db05e30c377ffbfe3.png)
+![](img/36d5fbbe62a6070db05e30c377ffbfe3.png)
 
 用户生成图像
 
@@ -417,16 +417,16 @@ plt.show()
 
 今天我们探讨了合成控制方法以及如何验证因果影响。我将留下几个最后的想法：
 
-+   合成控制方法的简单性使其成为因果AI工具箱中最广泛使用的技术之一。
++   合成控制方法的简单性使其成为因果 AI 工具箱中最广泛使用的技术之一。
 
-+   不幸的是，这也是最常被滥用的——让我们运行R的CausalImpact包，调整干预前期，直到我们看到一个满意的提升。 😭
++   不幸的是，这也是最常被滥用的——让我们运行 R 的 CausalImpact 包，调整干预前期，直到我们看到一个满意的提升。 😭
 
 +   在这里，我强烈建议进行干预前的模拟，以便事先确定测试设计。
 
-+   合成控制方法是一个被广泛研究的领域。值得查看提出的改进方法：增强型SC、稳健型SC和惩罚型SC。
++   合成控制方法是一个被广泛研究的领域。值得查看提出的改进方法：增强型 SC、稳健型 SC 和惩罚型 SC。
 
 # 资源
 
 *Alberto Abadie, Alexis Diamond & Jens Hainmueller (2010) Synthetic Control Methods for Comparative Case Studies: Estimating the Effect of California’s Tobacco Control Program, Journal of the American Statistical Association, 105:490, 493–505, DOI: 10.1198/jasa.2009.ap08746*
 
-如果你想继续探索因果AI的旅程，欢迎关注我——在下一篇文章中，我们将探讨如何利用因果AI提升市场营销组合建模。
+如果你想继续探索因果 AI 的旅程，欢迎关注我——在下一篇文章中，我们将探讨如何利用因果 AI 提升市场营销组合建模。

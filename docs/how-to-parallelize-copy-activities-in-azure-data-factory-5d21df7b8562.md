@@ -1,16 +1,16 @@
 # 如何在 Azure 数据工厂中并行化复制活动
 
-> 原文：[https://towardsdatascience.com/how-to-parallelize-copy-activities-in-azure-data-factory-5d21df7b8562?source=collection_archive---------10-----------------------#2024-10-10](https://towardsdatascience.com/how-to-parallelize-copy-activities-in-azure-data-factory-5d21df7b8562?source=collection_archive---------10-----------------------#2024-10-10)
+> 原文：[`towardsdatascience.com/how-to-parallelize-copy-activities-in-azure-data-factory-5d21df7b8562?source=collection_archive---------10-----------------------#2024-10-10`](https://towardsdatascience.com/how-to-parallelize-copy-activities-in-azure-data-factory-5d21df7b8562?source=collection_archive---------10-----------------------#2024-10-10)
 
 ## 优化企业数据湖的数据传输
 
-[](https://rebremer.medium.com/?source=post_page---byline--5d21df7b8562--------------------------------)[![René Bremer](../Images/e422c4b84e225d2a949251ebc24dbd2c.png)](https://rebremer.medium.com/?source=post_page---byline--5d21df7b8562--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5d21df7b8562--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5d21df7b8562--------------------------------) [René Bremer](https://rebremer.medium.com/?source=post_page---byline--5d21df7b8562--------------------------------)
+[](https://rebremer.medium.com/?source=post_page---byline--5d21df7b8562--------------------------------)![René Bremer](https://rebremer.medium.com/?source=post_page---byline--5d21df7b8562--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5d21df7b8562--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d21df7b8562--------------------------------) [René Bremer](https://rebremer.medium.com/?source=post_page---byline--5d21df7b8562--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d21df7b8562--------------------------------) ·阅读时间：7分钟·2024年10月10日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d21df7b8562--------------------------------) ·阅读时间：7 分钟·2024 年 10 月 10 日
 
 --
 
-![](../Images/4de18df463f08ff5d5c76c52f55ae36d.png)
+![](img/4de18df463f08ff5d5c76c52f55ae36d.png)
 
 数据分布不均 - 图片来自 [Vackground.com 在 Unsplash](https://unsplash.com/@vackground)
 
@@ -20,7 +20,7 @@ Azure 数据工厂（ADF）是一个广泛使用的数据迁移工具，特别�
 
 这意味着 ADF 被用来迁移大量数据，通常是 TB 级，有时甚至是 PB 级。因此，优化复制性能至关重要，以缩短吞吐时间。一种常见的提升 ADF 性能的方法是并行化复制活动。然而，应该在数据量最多的地方进行并行化，当数据湖的数据分布不均时，这可能会成为一个挑战。
 
-在这篇博客文章中，讨论了不同的 ADF 并行化策略，适用于数据湖，并且一个项目被部署。可以在以下链接中找到 ADF 解决方案项目：[https://github.com/rebremer/data-factory-copy-skewed-data-lake](https://github.com/rebremer/data-factory-copy-skewed-data-lake)。
+在这篇博客文章中，讨论了不同的 ADF 并行化策略，适用于数据湖，并且一个项目被部署。可以在以下链接中找到 ADF 解决方案项目：[`github.com/rebremer/data-factory-copy-skewed-data-lake`](https://github.com/rebremer/data-factory-copy-skewed-data-lake)。
 
 # 2. 数据湖数据分布
 
@@ -34,7 +34,7 @@ Azure 数据工厂（ADF）是一个广泛使用的数据迁移工具，特别�
 
 参见下图：
 
-![](../Images/c936540c36846cda676a41e772e8bf64.png)
+![](img/c936540c36846cda676a41e772e8bf64.png)
 
 2.1 数据湖与均匀分布的数据 — 图片由作者提供
 
@@ -42,7 +42,7 @@ Azure 数据工厂（ADF）是一个广泛使用的数据迁移工具，特别�
 
 现在考虑以下极端情况：最后一个文件夹 Nk 和 Mk 拥有 99% 的数据，见下图：
 
-![](../Images/9ab71d065115517c8f4f210c011abeab.png)
+![](img/9ab71d065115517c8f4f210c011abeab.png)
 
 2.2 数据湖与倾斜分布的数据 — 图片由作者提供
 
@@ -50,19 +50,19 @@ Azure 数据工厂（ADF）是一个广泛使用的数据迁移工具，特别�
 
 # 3\. ADF 项目中的并行化策略
 
-在本部分中，将部署项目并运行并讨论复制测试。整个项目可以在项目中找到：[https://github.com/rebremer/data-factory-copy-skewed-data-lake](https://github.com/rebremer/data-factory-copy-skewed-data-lake)。
+在本部分中，将部署项目并运行并讨论复制测试。整个项目可以在项目中找到：[`github.com/rebremer/data-factory-copy-skewed-data-lake`](https://github.com/rebremer/data-factory-copy-skewed-data-lake)。
 
 ## **3.1 部署项目**
 
 运行脚本 `[deploy_adf.ps1](https://github.com/rebremer/data-factory-copy-skewed-data-lake/blob/main/deploy_adf.ps1)`。如果 ADF 成功部署，将会部署两个管道：
 
-![](../Images/33e2f24a37024fac1c86bfb1020eb5c8.png)
+![](img/33e2f24a37024fac1c86bfb1020eb5c8.png)
 
 3.1.1 包含根管道和子管道的数据工厂项目 — 图片由作者提供
 
 随后，运行脚本 `[deploy_azurefunction.ps1](https://github.com/rebremer/data-factory-copy-skewed-data-lake/blob/main/deploy_azurefunction.ps1)`。如果 Azure Function 成功部署，以下代码将被部署。
 
-![](../Images/b5c986bba658ee55871cf44775f6d265.png)
+![](img/b5c986bba658ee55871cf44775f6d265.png)
 
 3.1.2 使用 Azure Function 查找“数据口袋”，以便 ADF 可以更好地进行并行化
 
@@ -76,55 +76,55 @@ Azure 数据工厂（ADF）是一个广泛使用的数据迁移工具，特别�
 
 +   **子管道：** 列出容器中文件夹 M 并为每个文件夹触发递归复制活动的子管道。
 
-+   **Switch**：子管道使用开关决定如何确定列出文件夹。对于“default”（均匀）情况，使用Get Metadata；对于“uneven”（不均匀）情况，使用Azure Function。
++   **Switch**：子管道使用开关决定如何确定列出文件夹。对于“default”（均匀）情况，使用 Get Metadata；对于“uneven”（不均匀）情况，使用 Azure Function。
 
-+   **Get Metadata**：列出给定容器N中的所有根文件夹M。
++   **Get Metadata**：列出给定容器 N 中的所有根文件夹 M。
 
-+   **Azure Function**：列出所有包含不超过X GB数据的文件夹及子文件夹，并作为一个整体进行复制。
++   **Azure Function**：列出所有包含不超过 X GB 数据的文件夹及子文件夹，并作为一个整体进行复制。
 
 +   **复制活动**：递归地复制给定文件夹中的所有数据。
 
-+   **DIU**：每个复制活动的Data Integration Units（数据集成单元）数量。
++   **DIU**：每个复制活动的 Data Integration Units（数据集成单元）数量。
 
-+   **复制并行化**：*在*复制活动中，可以启动的并行复制线程数。每个线程可以复制一个文件，最大可支持50个线程。
++   **复制并行化**：*在*复制活动中，可以启动的并行复制线程数。每个线程可以复制一个文件，最大可支持 50 个线程。
 
-在均匀分布的数据湖中，数据在N个容器和M个文件夹中均匀分布。在这种情况下，复制活动可以仅在每个文件夹M上进行并行化。这可以通过使用Get Metadata列出文件夹M，使用For Each遍历文件夹并对每个文件夹执行复制活动来完成。另见下图。
+在均匀分布的数据湖中，数据在 N 个容器和 M 个文件夹中均匀分布。在这种情况下，复制活动可以仅在每个文件夹 M 上进行并行化。这可以通过使用 Get Metadata 列出文件夹 M，使用 For Each 遍历文件夹并对每个文件夹执行复制活动来完成。另见下图。
 
-![](../Images/066f8e743fc246708fa65ffd7ccac3ba.png)
+![](img/066f8e743fc246708fa65ffd7ccac3ba.png)
 
 3.2.1 关注均匀分布数据的子管道结构
 
-使用这种策略意味着每个复制活动将复制相等数量的数据。总共将运行N*M个复制活动。
+使用这种策略意味着每个复制活动将复制相等数量的数据。总共将运行 N*M 个复制活动。
 
-在偏斜分布的数据湖中，数据在N个容器和M个文件夹中分布不均。在这种情况下，复制活动应动态确定。可以使用Azure Function列出数据量大的文件夹，然后通过For Each遍历文件夹并进行每个文件夹的复制活动。另见下图。
+在偏斜分布的数据湖中，数据在 N 个容器和 M 个文件夹中分布不均。在这种情况下，复制活动应动态确定。可以使用 Azure Function 列出数据量大的文件夹，然后通过 For Each 遍历文件夹并进行每个文件夹的复制活动。另见下图。
 
-![](../Images/b7d66e1c87a3a493ed1c279bf3a525e6.png)
+![](img/b7d66e1c87a3a493ed1c279bf3a525e6.png)
 
 3.2.2 关注偏斜分布数据的子管道结构
 
-使用这种策略，复制活动将在数据湖中动态扩展，数据可以找到的地方，最需要并行化。尽管该解决方案比前一个更复杂，因为它需要Azure Function，但它可以用于复制偏斜分布的数据。
+使用这种策略，复制活动将在数据湖中动态扩展，数据可以找到的地方，最需要并行化。尽管该解决方案比前一个更复杂，因为它需要 Azure Function，但它可以用于复制偏斜分布的数据。
 
 ## 3.3：并行化性能测试
 
 为了比较不同并行化选项的性能，设置了如下简单测试：
 
-+   使用两个存储帐户和1个ADF实例，在westeurope区域使用Azure IR。数据从源存储帐户复制到目标存储帐户。
++   使用两个存储帐户和 1 个 ADF 实例，在 westeurope 区域使用 Azure IR。数据从源存储帐户复制到目标存储帐户。
 
-+   源存储帐户包含三个容器，每个容器有0.72 TB的数据，数据分布在多个文件夹和子文件夹中。
++   源存储帐户包含三个容器，每个容器有 0.72 TB 的数据，数据分布在多个文件夹和子文件夹中。
 
 +   数据在容器中均匀分布，没有偏斜数据。
 
-测试A：使用32 DIU和16个线程（均设置为自动）复制1个容器，1个复制活动 => 复制0.72 TB数据，复制时间12分27秒，平均吞吐量为0.99 GB/s
+测试 A：使用 32 DIU 和 16 个线程（均设置为自动）复制 1 个容器，1 个复制活动 => 复制 0.72 TB 数据，复制时间 12 分 27 秒，平均吞吐量为 0.99 GB/s
 
-测试B：使用128 DIU和32个线程（在复制活动中）复制1个容器，1个复制活动 => 复制0.72 TB数据，复制时间06分19秒，平均吞吐量为1.95 GB/s。
+测试 B：使用 128 DIU 和 32 个线程（在复制活动中）复制 1 个容器，1 个复制活动 => 复制 0.72 TB 数据，复制时间 06 分 19 秒，平均吞吐量为 1.95 GB/s。
 
-测试C：使用200 DIU和50个线程（最大）复制1个容器，1个复制活动 => 测试因限流被中止，与测试B相比没有性能提升。
+测试 C：使用 200 DIU 和 50 个线程（最大）复制 1 个容器，1 个复制活动 => 测试因限流被中止，与测试 B 相比没有性能提升。
 
 测试 D：使用 128 DIU 和每个复制活动 32 个线程并行复制 2 个容器 => 复制了 1.44 TB 的数据，复制时间 07 分钟 00 秒，平均吞吐量为 3.53 GB/s。
 
 测试 E：使用 128 DIU 和每个复制活动 32 个线程并行复制 3 个容器 => 复制了 2.17 TB 的数据，复制时间 08 分钟 07 秒，平均吞吐量为 4.56 GB/s。请参见下方截图。
 
-![](../Images/40bcd1131e29b613192084883172f6ef.png)
+![](img/40bcd1131e29b613192084883172f6ef.png)
 
 3.3 测试 E：3 个并行复制活动的复制吞吐量，使用 128 DIU 和 32 个线程，数据大小为 3*0.72TB
 

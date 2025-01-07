@@ -1,16 +1,16 @@
 # 每个数据科学家应该学习的五项工程技能
 
-> 原文：[https://towardsdatascience.com/five-engineering-skills-every-data-scientist-should-learn-e7a347fada6f?source=collection_archive---------6-----------------------#2024-10-01](https://towardsdatascience.com/five-engineering-skills-every-data-scientist-should-learn-e7a347fada6f?source=collection_archive---------6-----------------------#2024-10-01)
+> 原文：[`towardsdatascience.com/five-engineering-skills-every-data-scientist-should-learn-e7a347fada6f?source=collection_archive---------6-----------------------#2024-10-01`](https://towardsdatascience.com/five-engineering-skills-every-data-scientist-should-learn-e7a347fada6f?source=collection_archive---------6-----------------------#2024-10-01)
 
 ## 完善帮助你保持竞争力的策略，成为“全栈”数据科学家
 
-[](https://dkhundley.medium.com/?source=post_page---byline--e7a347fada6f--------------------------------)[![David Hundley](../Images/1779ef96ec3d338f8fe4a9567ba7b194.png)](https://dkhundley.medium.com/?source=post_page---byline--e7a347fada6f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e7a347fada6f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e7a347fada6f--------------------------------) [David Hundley](https://dkhundley.medium.com/?source=post_page---byline--e7a347fada6f--------------------------------)
+[](https://dkhundley.medium.com/?source=post_page---byline--e7a347fada6f--------------------------------)![David Hundley](https://dkhundley.medium.com/?source=post_page---byline--e7a347fada6f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e7a347fada6f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e7a347fada6f--------------------------------) [David Hundley](https://dkhundley.medium.com/?source=post_page---byline--e7a347fada6f--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e7a347fada6f--------------------------------) ·5分钟阅读·2024年10月1日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e7a347fada6f--------------------------------) ·5 分钟阅读·2024 年 10 月 1 日
 
 --
 
-![](../Images/6c2e1b2cf7ce42fc45b2ac907e99a9a5.png)
+![](img/6c2e1b2cf7ce42fc45b2ac907e99a9a5.png)
 
 由作者创建的标题卡片
 

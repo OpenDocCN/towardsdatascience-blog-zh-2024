@@ -1,16 +1,16 @@
 # 情感分析模板：一个完整的数据科学项目
 
-> 原文：[https://towardsdatascience.com/sentiment-analysis-template-a-complete-data-science-project-7065cc48aff2?source=collection_archive---------3-----------------------#2024-12-12](https://towardsdatascience.com/sentiment-analysis-template-a-complete-data-science-project-7065cc48aff2?source=collection_archive---------3-----------------------#2024-12-12)
+> 原文：[`towardsdatascience.com/sentiment-analysis-template-a-complete-data-science-project-7065cc48aff2?source=collection_archive---------3-----------------------#2024-12-12`](https://towardsdatascience.com/sentiment-analysis-template-a-complete-data-science-project-7065cc48aff2?source=collection_archive---------3-----------------------#2024-12-12)
 
-## 10个关键步骤，从数据探索到模型部署。
+## 10 个关键步骤，从数据探索到模型部署。
 
-[](https://medium.com/@panData?source=post_page---byline--7065cc48aff2--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--7065cc48aff2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7065cc48aff2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7065cc48aff2--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--7065cc48aff2--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--7065cc48aff2--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--7065cc48aff2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7065cc48aff2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7065cc48aff2--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--7065cc48aff2--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7065cc48aff2--------------------------------) ·阅读时间47分钟·2024年12月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7065cc48aff2--------------------------------) ·阅读时间 47 分钟·2024 年 12 月 12 日
 
 --
 
-![](../Images/0eb95530516a8bca28e1c8a0037d3287.png)
+![](img/0eb95530516a8bca28e1c8a0037d3287.png)
 
 图片来源：[Glenn Carstens-Peters](https://unsplash.com/@glenncarstenspeters?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,16 +1,16 @@
 # 使用神经网络求解微分方程
 
-> 原文：[https://towardsdatascience.com/solving-differential-equations-with-neural-networks-4c6aa7b31c51?source=collection_archive---------2-----------------------#2024-02-06](https://towardsdatascience.com/solving-differential-equations-with-neural-networks-4c6aa7b31c51?source=collection_archive---------2-----------------------#2024-02-06)
+> 原文：[`towardsdatascience.com/solving-differential-equations-with-neural-networks-4c6aa7b31c51?source=collection_archive---------2-----------------------#2024-02-06`](https://towardsdatascience.com/solving-differential-equations-with-neural-networks-4c6aa7b31c51?source=collection_archive---------2-----------------------#2024-02-06)
 
 ## 神经网络如何成为解决微分方程的强大工具，无需使用训练数据
 
-[](https://medium.com/@rodrigopesilva?source=post_page---byline--4c6aa7b31c51--------------------------------)[![Rodrigo Silva](../Images/d260f05ed9887c5072e0590db1481be2.png)](https://medium.com/@rodrigopesilva?source=post_page---byline--4c6aa7b31c51--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4c6aa7b31c51--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4c6aa7b31c51--------------------------------) [Rodrigo Silva](https://medium.com/@rodrigopesilva?source=post_page---byline--4c6aa7b31c51--------------------------------)
+[](https://medium.com/@rodrigopesilva?source=post_page---byline--4c6aa7b31c51--------------------------------)![Rodrigo Silva](https://medium.com/@rodrigopesilva?source=post_page---byline--4c6aa7b31c51--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4c6aa7b31c51--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c6aa7b31c51--------------------------------) [Rodrigo Silva](https://medium.com/@rodrigopesilva?source=post_page---byline--4c6aa7b31c51--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c6aa7b31c51--------------------------------) ·阅读时间：8分钟·2024年2月6日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c6aa7b31c51--------------------------------) ·阅读时间：8 分钟·2024 年 2 月 6 日
 
 --
 
-![](../Images/8dd6dcc5577d527b7f03e38984b6ec26.png)
+![](img/8dd6dcc5577d527b7f03e38984b6ec26.png)
 
 图片由[Linus Mimietz](https://unsplash.com/@linusmimietz?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源于[Unsplash](https://unsplash.com/photos/water-drops-macro-photography-XSQHuGGRO3g?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -34,25 +34,25 @@
 
 希望我已经说服你，值得费心让模型意识到支配我们系统的基本方程。然而，我们如何做到这一点呢？有几种方法，但主要的一种是调整损失函数，使其包含一个额外的项，用于表示控制方程，除了通常与数据相关的部分。也就是说，损失函数 *L* 将由以下和构成：
 
-![](../Images/dcc1113601f71c77b0fa9933bacd9824.png)
+![](img/dcc1113601f71c77b0fa9933bacd9824.png)
 
 这里，数据损失是通常的形式：均方差，或者是其他合适的损失函数形式；但方程部分才是最吸引人的部分。假设你的系统由以下微分方程支配：
 
-![](../Images/47f34c0f8617929070a5eca85e17a597.png)
+![](img/47f34c0f8617929070a5eca85e17a597.png)
 
 我们如何将其纳入损失函数呢？嗯，由于训练神经网络的任务是最小化损失函数，我们希望最小化以下表达式：
 
-![](../Images/6808838b818b5eea8947e358a9851645.png)
+![](img/6808838b818b5eea8947e358a9851645.png)
 
 所以，我们的方程相关损失函数最终变成了
 
-![](../Images/7c629affee0d0c244f4cac4841b471ab.png)
+![](img/7c629affee0d0c244f4cac4841b471ab.png)
 
 也就是说，它是我们微分方程的均方差。如果我们能够最小化这个（也就是让这个项尽可能接近零），我们就自动满足了系统的控制方程。相当聪明，对吧？
 
 现在，损失函数中的额外项 *L_IC* 需要被处理：它考虑了系统的初始条件。如果一个系统的初始条件未给出，那么该微分方程将有无穷多解。例如，从地面上抛出的球的轨迹与从 10 楼抛出的球轨迹由相同的微分方程决定；然而，我们知道这两个球的轨迹不会相同。这里变化的是系统的初始条件。我们的模型如何知道我们指的是哪些初始条件呢？此时，自然可以通过损失函数项来强制这一点！对于我们的微分方程，我们规定当 *t = 0* 时，*y = 1*。因此，我们希望最小化一个初始条件损失函数，表达式如下：
 
-![](../Images/5a6c9d547fb8fbe2346528fa9fad2675.png)
+![](img/5a6c9d547fb8fbe2346528fa9fad2675.png)
 
 如果我们最小化这一项，就能自动满足系统的初始条件。现在，剩下需要理解的是如何利用这个方法来求解微分方程。
 
@@ -60,7 +60,7 @@
 
 如果一个神经网络既可以通过损失函数中的数据相关项进行训练（这通常是在经典架构中进行的），也可以通过数据和方程相关项同时训练（这就是我刚刚提到的物理信息神经网络），那么它一定也可以被训练来最小化*仅仅*方程相关的项。这正是我们将要做的！这里使用的唯一损失函数将是 *L_equation*。希望下面的图示能帮助说明我刚才说的内容：今天我们目标是右下角类型的模型，即我们的微分方程求解神经网络。
 
-![](../Images/b5397415a3249d038332a3d4300f1e2f.png)
+![](img/b5397415a3249d038332a3d4300f1e2f.png)
 
 图 1：展示不同神经网络类型与其损失函数关系的图示。在本文中，我们的目标是右下角的模型。图片由作者提供。
 
@@ -168,23 +168,23 @@ for epoch in range(num_epochs):
 
 训练后，我们可以看到损失函数迅速收敛。图 2 显示了损失函数随训练轮数变化的图像，插图展示了损失函数下降最快的区域。
 
-![](../Images/84b3cb68272023de4d8a4d0c14124f5b.png)
+![](img/84b3cb68272023de4d8a4d0c14124f5b.png)
 
-图2：按历时（epochs）变化的损失函数。在插图中，我们可以看到收敛最为迅速的区域。图像来源：作者。
+图 2：按历时（epochs）变化的损失函数。在插图中，我们可以看到收敛最为迅速的区域。图像来源：作者。
 
-你可能已经注意到，这个神经网络并不是一个常规的神经网络。它没有训练数据（我们的训练数据是一个手工制作的时间戳向量，简单来说就是我们希望研究的时间域），因此它从系统中获得的所有信息都以损失函数的形式呈现。它唯一的目的就是在它被设计用来解决的时间域内求解微分方程。因此，要测试它，公正的方法是使用它训练时的时间域。图3显示了神经网络预测与理论答案（即解析解）之间的对比。
+你可能已经注意到，这个神经网络并不是一个常规的神经网络。它没有训练数据（我们的训练数据是一个手工制作的时间戳向量，简单来说就是我们希望研究的时间域），因此它从系统中获得的所有信息都以损失函数的形式呈现。它唯一的目的就是在它被设计用来解决的时间域内求解微分方程。因此，要测试它，公正的方法是使用它训练时的时间域。图 3 显示了神经网络预测与理论答案（即解析解）之间的对比。
 
-![](../Images/d6fa652093b89341224469a1ca0dfa2d.png)
+![](img/d6fa652093b89341224469a1ca0dfa2d.png)
 
-图3：神经网络预测与微分方程解析解的预测对比。图像来源：作者。
+图 3：神经网络预测与微分方程解析解的预测对比。图像来源：作者。
 
 我们可以看到两者之间的高度一致性，这对于神经网络来说非常好。
 
-这种方法的一个警告是，它对于未来的时间不太适用。图4显示了如果我们将时间数据点向前滑动五步会发生什么，结果就是一片混乱。
+这种方法的一个警告是，它对于未来的时间不太适用。图 4 显示了如果我们将时间数据点向前滑动五步会发生什么，结果就是一片混乱。
 
-![](../Images/47df1064835a3b04232af56c64966f12.png)
+![](img/47df1064835a3b04232af56c64966f12.png)
 
-图4：神经网络和解析解对于未见数据点的预测。图像来源：作者。
+图 4：神经网络和解析解对于未见数据点的预测。图像来源：作者。
 
 因此，这里得到的教训是，这种方法是作为一个数值解法器，用于在时间域内解决微分方程，不能被当作常规神经网络用来对未见的、超出训练域的数据进行预测并期望它能很好地泛化。
 
@@ -200,6 +200,6 @@ for epoch in range(num_epochs):
 
 # 参考文献
 
-[1] Marios Mattheakis 等，[用于求解运动方程的哈密顿神经网络](https://arxiv.org/abs/2001.11107)，*arXiv预印本 arXiv:2001.11107v5*，2022年。
+[1] Marios Mattheakis 等，[用于求解运动方程的哈密顿神经网络](https://arxiv.org/abs/2001.11107)，*arXiv 预印本 arXiv:2001.11107v5*，2022 年。
 
-[2] Mario Dagrada, [介绍物理信息神经网络](/solving-differential-equations-with-neural-networks-afdcf7b8bcc4)，2022年。
+[2] Mario Dagrada, 介绍物理信息神经网络，2022 年。

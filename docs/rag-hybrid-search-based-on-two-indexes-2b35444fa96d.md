@@ -1,12 +1,12 @@
 # RAG：基于两个索引的混合搜索
 
-> 原文：[https://towardsdatascience.com/rag-hybrid-search-based-on-two-indexes-2b35444fa96d?source=collection_archive---------7-----------------------#2024-03-29](https://towardsdatascience.com/rag-hybrid-search-based-on-two-indexes-2b35444fa96d?source=collection_archive---------7-----------------------#2024-03-29)
+> 原文：[`towardsdatascience.com/rag-hybrid-search-based-on-two-indexes-2b35444fa96d?source=collection_archive---------7-----------------------#2024-03-29`](https://towardsdatascience.com/rag-hybrid-search-based-on-two-indexes-2b35444fa96d?source=collection_archive---------7-----------------------#2024-03-29)
 
 ## 本文中我将讨论的提议是我已经实现并且目前正在个人项目中进行测试的内容。
 
-[](https://medium.com/@jerome.o.diaz?source=post_page---byline--2b35444fa96d--------------------------------)[![Jérôme DIAZ](../Images/da46d0d03587e88ec5bb56b7a997ec24.png)](https://medium.com/@jerome.o.diaz?source=post_page---byline--2b35444fa96d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2b35444fa96d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2b35444fa96d--------------------------------) [Jérôme DIAZ](https://medium.com/@jerome.o.diaz?source=post_page---byline--2b35444fa96d--------------------------------)
+[](https://medium.com/@jerome.o.diaz?source=post_page---byline--2b35444fa96d--------------------------------)![Jérôme DIAZ](https://medium.com/@jerome.o.diaz?source=post_page---byline--2b35444fa96d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2b35444fa96d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2b35444fa96d--------------------------------) [Jérôme DIAZ](https://medium.com/@jerome.o.diaz?source=post_page---byline--2b35444fa96d--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2b35444fa96d--------------------------------) ·阅读时长 3 分钟·2024年3月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2b35444fa96d--------------------------------) ·阅读时长 3 分钟·2024 年 3 月 29 日
 
 --
 

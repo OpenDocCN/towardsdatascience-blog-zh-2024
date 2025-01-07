@@ -1,46 +1,46 @@
-# 使用Prefect、Weave和RAGAS实现RAG应用的生产化
+# 使用 Prefect、Weave 和 RAGAS 实现 RAG 应用的生产化
 
-> 原文：[https://towardsdatascience.com/productionizing-a-rag-app-04c857e0966e?source=collection_archive---------7-----------------------#2024-08-03](https://towardsdatascience.com/productionizing-a-rag-app-04c857e0966e?source=collection_archive---------7-----------------------#2024-08-03)
+> 原文：[`towardsdatascience.com/productionizing-a-rag-app-04c857e0966e?source=collection_archive---------7-----------------------#2024-08-03`](https://towardsdatascience.com/productionizing-a-rag-app-04c857e0966e?source=collection_archive---------7-----------------------#2024-08-03)
 
 ## 添加评估、自动化数据提取及其他改进。
 
-[](https://medium.com/@ed.izaguirre?source=post_page---byline--04c857e0966e--------------------------------)[![Ed Izaguirre](../Images/c9eded1f06c47571baa662107428483f.png)](https://medium.com/@ed.izaguirre?source=post_page---byline--04c857e0966e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04c857e0966e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--04c857e0966e--------------------------------) [Ed Izaguirre](https://medium.com/@ed.izaguirre?source=post_page---byline--04c857e0966e--------------------------------)
+[](https://medium.com/@ed.izaguirre?source=post_page---byline--04c857e0966e--------------------------------)![Ed Izaguirre](https://medium.com/@ed.izaguirre?source=post_page---byline--04c857e0966e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04c857e0966e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04c857e0966e--------------------------------) [Ed Izaguirre](https://medium.com/@ed.izaguirre?source=post_page---byline--04c857e0966e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04c857e0966e--------------------------------) ·阅读时长12分钟·2024年8月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04c857e0966e--------------------------------) ·阅读时长 12 分钟·2024 年 8 月 3 日
 
 --
 
-![](../Images/105f6f4816994872796a36639b99148d.png)
+![](img/105f6f4816994872796a36639b99148d.png)
 
-从电影搜索到“玫瑰bud”🌹。图片来自Unsplash。
+从电影搜索到“玫瑰 bud”🌹。图片来自 Unsplash。
 
 **目录**
 
-1.  [介绍](#d4f8)
+1.  介绍
 
-1.  [离线评估](#fdde)
+1.  离线评估
 
-1.  [在线评估](#9988)
+1.  在线评估
 
-1.  [使用Prefect进行自动化数据提取](#690c)
+1.  使用 Prefect 进行自动化数据提取
 
-1.  [摘要](#0875)
+1.  摘要
 
 **相关链接**
 
-+   [GitHub仓库](https://github.com/EdIzaguirre/Rosebud)
++   [GitHub 仓库](https://github.com/EdIzaguirre/Rosebud)
 
 +   [链接到之前讨论电影搜索的文章，这是该项目的开发版](https://medium.com/towards-data-science/how-to-build-a-rag-system-with-a-self-querying-retriever-in-langchain-16b4fa23e9ad)
 
-+   [尝试该应用](https://filmsearch.azurewebsites.net/)（现在100%免费！🤑）
++   [尝试该应用](https://filmsearch.azurewebsites.net/)（现在 100%免费！🤑）
 
 # 介绍
 
-几个月前，我发布了*电影搜索*应用，这是一个基于用户查询推荐电影的检索增强生成（RAG）应用程序。例如，用户可能会问：“*帮我找到少于2小时、英语电影并且有狗的剧情片*。”然后会收到类似的推荐：
+几个月前，我发布了*电影搜索*应用，这是一个基于用户查询推荐电影的检索增强生成（RAG）应用程序。例如，用户可能会问：“*帮我找到少于 2 小时、英语电影并且有狗的剧情片*。”然后会收到类似的推荐：
 
 > 电影标题：《忠犬八公的故事》
 > 
-> 运行时：93分钟
+> 运行时：93 分钟
 > 
 > 发行年份：2009
 > 
@@ -76,7 +76,7 @@
 
 对于 Rosebud🌹，我决定处理被称为 [RAG 三合一方法](https://www.trulens.org/trulens_eval/getting_started/core_concepts/rag_triad/) 的问题。这种方法是由 TruLens 推广的，这是一个评估和跟踪 LLM 应用的平台。
 
-![](../Images/d536e3e20215d54bdf6e350f4f06a994.png)
+![](img/d536e3e20215d54bdf6e350f4f06a994.png)
 
 RAG 三合一方法。图片由作者提供。
 
@@ -86,7 +86,7 @@ RAG 三合一方法。图片由作者提供。
 
 +   **准确性**：模型的回答是否确实基于检索到的文档？你不希望模型编造事实；RAG 的关键就在于通过使用检索到的文档来减少幻觉。
 
-+   **回答相关性**：模型的回答是否真的解答了用户的查询？如果用户询问“*1990年代的喜剧电影*”，模型的回答最好只包含1990年代的喜剧电影。
++   **回答相关性**：模型的回答是否真的解答了用户的查询？如果用户询问“*1990 年代的喜剧电影*”，模型的回答最好只包含 1990 年代的喜剧电影。
 
 评估 RAG 应用的这三个功能有几种方式。一种方法是使用人类专家评估员。不幸的是，这样做会很昂贵，并且难以扩展。对于 Rosebud🌹，我决定使用 **LLMs 作为评审员**。这意味着使用聊天模型来查看上述三个标准中的每一个，并为每个标准打分，范围从 0 到 1。这种方法的优点是成本低且易于扩展。为此，我使用了 [RAGAS](https://github.com/explodinggradients/ragas)，这是一个流行的框架，帮助你评估 RAG 应用。RAGAS 框架包括上面提到的三个指标，并使你能够相对容易地使用它们来评估应用。下面是我进行离线评估时使用的代码片段：
 
@@ -157,17 +157,17 @@ if __name__ == "__main__":
 
 +   注意使用的 `weave.init` 和 `@weave.op` 装饰器。这些是来自 Weights & Biases (W&B) 的新 [Weave 库](https://wandb.ai/site/weave/) 的一部分。Weave 是传统 W&B 库的补充，专注于 LLM 应用。它通过简单的 `@weave.op` 装饰器，允许你捕获 LLM 的输入和输出。它还允许你使用 `weave.Evaluation(…)` 捕获评估结果。通过集成 RAGAS 进行评估，并使用 Weave 捕获和记录这些评估，我们得到了一个强大的组合，帮助 GenAI 开发者逐步改进他们的应用。你还可以记录模型的延迟、成本等信息。
 
-![](../Images/ec7f61849ae276bbcc97508920e22e5b.png)
+![](img/ec7f61849ae276bbcc97508920e22e5b.png)
 
 Weave + RAGAS 集成示例。图片由作者提供。
 
-理论上，现在可以调整一个超参数（例如温度），重新运行评估，然后查看调整是否产生正面或负面影响。不幸的是，实际操作中我发现LLM判断有些挑剔，我[并非唯一一个](https://x.com/aparnadhinak/status/1748368364395721128)。LLM评判似乎很难使用浮点值来评估这些指标。相反，它们似乎在分类任务上表现得更好，例如赞或踩。RAGAS尚不支持LLM评判进行分类。手动编写这个功能似乎不难，也许在未来的更新中，我会尝试自己实现。
+理论上，现在可以调整一个超参数（例如温度），重新运行评估，然后查看调整是否产生正面或负面影响。不幸的是，实际操作中我发现 LLM 判断有些挑剔，我[并非唯一一个](https://x.com/aparnadhinak/status/1748368364395721128)。LLM 评判似乎很难使用浮点值来评估这些指标。相反，它们似乎在分类任务上表现得更好，例如赞或踩。RAGAS 尚不支持 LLM 评判进行分类。手动编写这个功能似乎不难，也许在未来的更新中，我会尝试自己实现。
 
 # **在线评估**
 
-离线评估有助于查看调整超参数如何影响性能，但在我看来，在线评估要更有用。在Rosebud🌹中，我现在已经在每个响应的底部加入了👍/👎按钮来提供反馈。
+离线评估有助于查看调整超参数如何影响性能，但在我看来，在线评估要更有用。在 Rosebud🌹中，我现在已经在每个响应的底部加入了👍/👎按钮来提供反馈。
 
-![](../Images/c9351c7a2914be0e13e6295426c304fd.png)
+![](img/c9351c7a2914be0e13e6295426c304fd.png)
 
 在线反馈示例。图像由作者提供。
 
@@ -200,13 +200,13 @@ def log_feedback(sentiment, query, query_constructor, context, response):
     wandb.finish()
 ```
 
-请注意，发送反馈到W&B的过程是通过一个独立的线程执行的，而不是在主线程上运行。这是为了避免用户在等待日志完成时被卡住。
+请注意，发送反馈到 W&B 的过程是通过一个独立的线程执行的，而不是在主线程上运行。这是为了避免用户在等待日志完成时被卡住。
 
-使用W&B表格来存储反馈。表格中记录了五个数量：
+使用 W&B 表格来存储反馈。表格中记录了五个数量：
 
 +   **情感:** 用户点击了赞还是踩
 
-+   **查询:** 用户的查询，例如 *找我一些英文的狗狗题材的剧情片，时长不到2小时。*
++   **查询:** 用户的查询，例如 *找我一些英文的狗狗题材的剧情片，时长不到 2 小时。*
 
 +   **查询构造器:** 查询构造器的结果，它重写了用户的查询，并在必要时包括元数据过滤，例如
 
@@ -235,17 +235,17 @@ def log_feedback(sentiment, query, query_constructor, context, response):
 
 +   **响应:** 模型的响应
 
-所有这些都方便地记录在与先前展示的Weave评估相同的项目中。现在，当查询出错时，只需点击踩按钮，就可以看到具体发生了什么。这将大大加速Rosebud🌹推荐应用的迭代和改进。
+所有这些都方便地记录在与先前展示的 Weave 评估相同的项目中。现在，当查询出错时，只需点击踩按钮，就可以看到具体发生了什么。这将大大加速 Rosebud🌹推荐应用的迭代和改进。
 
-![](../Images/f1ec5605b853d379a932d40b1012a4c2.png)
+![](img/f1ec5605b853d379a932d40b1012a4c2.png)
 
-显示模型响应可观察性的图像。注意左侧如何在W&B和Weave之间无缝切换。图像由作者提供。
+显示模型响应可观察性的图像。注意左侧如何在 W&B 和 Weave 之间无缝切换。图像由作者提供。
 
-# **使用Prefect自动化数据拉取**
+# **使用 Prefect 自动化数据拉取**
 
-为了确保Rosebud🌹的推荐持续准确，自动化拉取数据并上传到Pinecone的过程变得尤为重要。为此，我选择了[Prefect](https://www.prefect.io/)。Prefect是一个流行的工作流编排工具。我正在寻找一个轻量、易学且符合Python风格的工具，而Prefect正符合这些要求。
+为了确保 Rosebud🌹的推荐持续准确，自动化拉取数据并上传到 Pinecone 的过程变得尤为重要。为此，我选择了[Prefect](https://www.prefect.io/)。Prefect 是一个流行的工作流编排工具。我正在寻找一个轻量、易学且符合 Python 风格的工具，而 Prefect 正符合这些要求。
 
-![](../Images/74bf21e667d7580aa0f0a410a2ac3d9f.png)
+![](img/74bf21e667d7580aa0f0a410a2ac3d9f.png)
 
 Prefect 提供的自动化流程用于拉取和更新 Pinecone 向量存储。图片由作者提供。
 
@@ -417,32 +417,32 @@ prefect deployment run 'get_repo_info/my-deployment'
 
 这些命令将自动配置 Azure 上所需的所有基础设施。其中包括一个 Azure 容器注册表 (ACR)，它将保存包含您目录中所有文件的 Docker 镜像以及在 `requirements.txt` 中列出的任何必要库。它还将包括一个 Azure 容器实例 (ACI) 身份，该身份将具有部署上述 Docker 镜像容器所需的权限。最后，`deployment run` 命令将每周调度一次代码运行。您可以查看 Prefect 仪表板，查看您的工作流运行情况：
 
-![](../Images/fd1b54cdc71bbf012184a5f21cddd770.png)
+![](img/fd1b54cdc71bbf012184a5f21cddd770.png)
 
-Prefect流程成功运行的图像。图像由作者提供。
+Prefect 流程成功运行的图像。图像由作者提供。
 
-通过每周更新我的Pinecone向量存储，我可以确保Rosebud 🌹的推荐结果保持准确。
+通过每周更新我的 Pinecone 向量存储，我可以确保 Rosebud 🌹的推荐结果保持准确。
 
 # 摘要
 
-在本文中，我讨论了我在改进Rosebud 🌹应用程序方面的经验。这包括了整合离线和在线评估的过程，以及自动更新我的Pinecone向量存储。
+在本文中，我讨论了我在改进 Rosebud 🌹应用程序方面的经验。这包括了整合离线和在线评估的过程，以及自动更新我的 Pinecone 向量存储。
 
 其他一些未在本文中提及的改进：
 
-+   在电影数据中加入了[电影数据库](https://www.themoviedb.org/?language=en-US)的评分。现在你可以要求“*高评分电影*”，聊天模型将筛选出评分高于7/10的电影。
++   在电影数据中加入了[电影数据库](https://www.themoviedb.org/?language=en-US)的评分。现在你可以要求“*高评分电影*”，聊天模型将筛选出评分高于 7/10 的电影。
 
 +   升级版聊天模型。现在查询和摘要模型使用的是`gpt-4o-mini`。请记住，LLM 判断模型也在使用`gpt-4o-mini`。
 
 +   嵌入模型已从`text-embedding-ada-002`升级为`text-embedding-3-small`。
 
-+   现在的年份跨度为1950–2023年，而不是从1920年开始。1920–1950年的电影数据质量较差，只会导致推荐结果混乱。
++   现在的年份跨度为 1950–2023 年，而不是从 1920 年开始。1920–1950 年的电影数据质量较差，只会导致推荐结果混乱。
 
 +   用户界面更加简洁，所有项目相关的细节都被移到了侧边栏。
 
-+   GitHub上的文档大幅改进。
++   GitHub 上的文档大幅改进。
 
 +   错误修复。
 
-如本文开头所述，该应用现在完全免费使用！我将在可预见的未来承担查询费用（因此选择了`gpt-4o-mini`而不是更昂贵的`gpt-4o`）。我非常希望能够获得运营一个生产环境应用的经验，让读者们试用Rosebud🌹是一个很好的方式。如果应用真的爆火，尽管这不太可能，我将需要找到其他的资金模式。但如果真有这种问题，那将是一个很好的问题。
+如本文开头所述，该应用现在完全免费使用！我将在可预见的未来承担查询费用（因此选择了`gpt-4o-mini`而不是更昂贵的`gpt-4o`）。我非常希望能够获得运营一个生产环境应用的经验，让读者们试用 Rosebud🌹是一个很好的方式。如果应用真的爆火，尽管这不太可能，我将需要找到其他的资金模式。但如果真有这种问题，那将是一个很好的问题。
 
 享受发现精彩电影的乐趣！🎥

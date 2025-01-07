@@ -1,26 +1,26 @@
-# 数据与分析中的AI助手、协作伙伴和代理：有什么区别？
+# 数据与分析中的 AI 助手、协作伙伴和代理：有什么区别？
 
-> 原文：[https://towardsdatascience.com/ai-assistants-copilots-and-agents-in-data-analytics-whats-the-difference-2e63f8fb2384?source=collection_archive---------6-----------------------#2024-06-07](https://towardsdatascience.com/ai-assistants-copilots-and-agents-in-data-analytics-whats-the-difference-2e63f8fb2384?source=collection_archive---------6-----------------------#2024-06-07)
+> 原文：[`towardsdatascience.com/ai-assistants-copilots-and-agents-in-data-analytics-whats-the-difference-2e63f8fb2384?source=collection_archive---------6-----------------------#2024-06-07`](https://towardsdatascience.com/ai-assistants-copilots-and-agents-in-data-analytics-whats-the-difference-2e63f8fb2384?source=collection_archive---------6-----------------------#2024-06-07)
 
-## 理解AI自主性：助手、协作伙伴、代理及其对商业价值的影响
+## 理解 AI 自主性：助手、协作伙伴、代理及其对商业价值的影响
 
-[](https://medium.com/@louise.de.leyritz?source=post_page---byline--2e63f8fb2384--------------------------------)[![Louise de Leyritz](../Images/7223761fa288aa730d1bb5751f29e8ce.png)](https://medium.com/@louise.de.leyritz?source=post_page---byline--2e63f8fb2384--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e63f8fb2384--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2e63f8fb2384--------------------------------) [Louise de Leyritz](https://medium.com/@louise.de.leyritz?source=post_page---byline--2e63f8fb2384--------------------------------)
+[](https://medium.com/@louise.de.leyritz?source=post_page---byline--2e63f8fb2384--------------------------------)![Louise de Leyritz](https://medium.com/@louise.de.leyritz?source=post_page---byline--2e63f8fb2384--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e63f8fb2384--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e63f8fb2384--------------------------------) [Louise de Leyritz](https://medium.com/@louise.de.leyritz?source=post_page---byline--2e63f8fb2384--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e63f8fb2384--------------------------------) ·阅读时长7分钟·2024年6月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e63f8fb2384--------------------------------) ·阅读时长 7 分钟·2024 年 6 月 7 日
 
 --
 
-![](../Images/f7d233055c6318deb5a2ed7f4f3d929b.png)
+![](img/f7d233055c6318deb5a2ed7f4f3d929b.png)
 
 图片来源：CastorDoc
 
-在过去的一年里，供应商已经将AI助手、协作伙伴和代理集成到他们的工具中，特别是在数据和分析领域。如果你在LinkedIn（或任何地方）浏览得足够长，你可能已经遇到这些术语，它们通常被交替使用。
+在过去的一年里，供应商已经将 AI 助手、协作伙伴和代理集成到他们的工具中，特别是在数据和分析领域。如果你在 LinkedIn（或任何地方）浏览得足够长，你可能已经遇到这些术语，它们通常被交替使用。
 
-如果你发现自己对这些术语的确切含义感到不确定，你并不孤单。然而，当你考虑将这些AI驱动的系统引入你的组织时，清楚地了解它们各自的能力和应用场景是至关重要的。通过花时间了解这三种概念之间的区别，你将能更好地选择合适的技术。
+如果你发现自己对这些术语的确切含义感到不确定，你并不孤单。然而，当你考虑将这些 AI 驱动的系统引入你的组织时，清楚地了解它们各自的能力和应用场景是至关重要的。通过花时间了解这三种概念之间的区别，你将能更好地选择合适的技术。
 
-最近，我遇到了一种有趣的思维模型，来自贝恩资本风险投资公司。他们研究了AI驱动工具中的不同自主性层级，以理解助手、协作伙伴和代理的区别。他们发现，关键的区别在于一个变量——自主性水平。AI助手的自主性和主动性较低，AI代理是主动且具有自主性的，而协作伙伴则介于两者之间。下图展示了这些差异。
+最近，我遇到了一种有趣的思维模型，来自贝恩资本风险投资公司。他们研究了 AI 驱动工具中的不同自主性层级，以理解助手、协作伙伴和代理的区别。他们发现，关键的区别在于一个变量——自主性水平。AI 助手的自主性和主动性较低，AI 代理是主动且具有自主性的，而协作伙伴则介于两者之间。下图展示了这些差异。
 
-![](../Images/b5d940eee26c8f83739fbaa8bf799df4.png)
+![](img/b5d940eee26c8f83739fbaa8bf799df4.png)
 
 三个自主性层级 — 图片改编自 [贝恩资本风险投资](https://baincapitalventures.com/insight/how-ai-powered-work-is-moving-from-copilot-to-autopilot/)
 
@@ -54,35 +54,35 @@ AI 助手可以使**已经从事分析工作的人**更加高效。它们简化�
 
 “副驾驶”这一术语暗示着有一位主驾驶员在掌控方向，他/她通过提出正确的问题来决定方向。它表明利益相关者与机器之间存在合作关系，而这正是副驾驶所实现的目标。
 
-那么，在分析领域，你能从AI助手中预期什么呢？
+那么，在分析领域，你能从 AI 助手中预期什么呢？
 
-+   **自然语言查询：** AI助手使用户能够使用日常语言提出关于数据的问题。然后，AI根据用户的查询提供推荐和建议，帮助非技术用户轻松与数据互动并从中提取见解。
++   **自然语言查询：** AI 助手使用户能够使用日常语言提出关于数据的问题。然后，AI 根据用户的查询提供推荐和建议，帮助非技术用户轻松与数据互动并从中提取见解。
 
-+   **数据分析：** AI助手通过提出公式并根据数据模式提供见解和建议来帮助用户分析数据。
++   **数据分析：** AI 助手通过提出公式并根据数据模式提供见解和建议来帮助用户分析数据。
 
-+   **数据可视化：** AI助手根据数据和用户的目标推荐最合适的图表、图形和可视化方式。
++   **数据可视化：** AI 助手根据数据和用户的目标推荐最合适的图表、图形和可视化方式。
 
-+   **最佳下一步行动：** 从数据中获得的见解出发，AI助手建议用户采取最有效的下一步措施。例如，在客户流失分析中，AI可能会为被识别为高风险的客户提出具体的留存策略。
++   **最佳下一步行动：** 从数据中获得的见解出发，AI 助手建议用户采取最有效的下一步措施。例如，在客户流失分析中，AI 可能会为被识别为高风险的客户提出具体的留存策略。
 
-AI助手代表了进化的更高级阶段，因为它们积极参与提出建议，为用户带来更大的商业价值。它们使用户能够更高效地工作，并做出更明智的决策，但它们仍然依赖于利益相关者提出正确的问题并确定所需的分析。
+AI 助手代表了进化的更高级阶段，因为它们积极参与提出建议，为用户带来更大的商业价值。它们使用户能够更高效地工作，并做出更明智的决策，但它们仍然依赖于利益相关者提出正确的问题并确定所需的分析。
 
-**如何一眼认出AI助手：** 它们通过推荐来增强决策过程，并与人类协同工作。
+**如何一眼认出 AI 助手：** 它们通过推荐来增强决策过程，并与人类协同工作。
 
-# III — AI代理：自主决策者
+# III — AI 代理：自主决策者
 
-> *“AI代理是自主或半自主的软件实体，使用AI技术感知、做出决策、采取行动并在其数字或物理环境中实现目标。” Gartner*
+> *“AI 代理是自主或半自主的软件实体，使用 AI 技术感知、做出决策、采取行动并在其数字或物理环境中实现目标。” Gartner*
 
-AI代理代表了AI最具自主性的形式。与AI助手和副驾驶不同，AI代理可以独立操作，基于处理的数据做出决策，并从经验中学习。
+AI 代理代表了 AI 最具自主性的形式。与 AI 助手和副驾驶不同，AI 代理可以独立操作，基于处理的数据做出决策，并从经验中学习。
 
-AI代理的独特之处在于它们的自主性。它们能够通过传感器感知环境，并通过执行器对其作出反应，使其能够在无需人工监督的情况下朝着实现特定目标的方向努力。
+AI 代理的独特之处在于它们的自主性。它们能够通过传感器感知环境，并通过执行器对其作出反应，使其能够在无需人工监督的情况下朝着实现特定目标的方向努力。
 
-![](../Images/e2fb9047dc15ab5144d33b72d8ebfb4e.png)
+![](img/e2fb9047dc15ab5144d33b72d8ebfb4e.png)
 
-AI代理与其环境进行互动 — 图片来自[CastorDoc](https://www.castordoc.com)
+AI 代理与其环境进行互动 — 图片来自[CastorDoc](https://www.castordoc.com)
 
 在语言模型的上下文中，代理的概念是指使模型能够将复杂的任务分解成更小、更易管理的步骤，然后顺序地执行这些步骤。在这一领域的一个重大突破是“[思维链提示](https://arxiv.org/abs/2201.11903)”的引入。这种方法使语言模型能够将多步骤问题分解成中间阶段，模拟“思考过程”来解决问题。
 
-那么，在数据与分析领域，你可以期待从一个AI代理中获得什么呢？以下是一些关键能力。
+那么，在数据与分析领域，你可以期待从一个 AI 代理中获得什么呢？以下是一些关键能力。
 
 +   **数据分析与决策**：AI 代理可以分析大量数据，识别模式，并做出符合特定目标的明智决策。它们可以应用机器学习技术从数据中提取洞察，支持并增强决策过程。
 
@@ -104,26 +104,26 @@ AI 助手、AI 副驾驶和 AI 代理这三个术语常常被交替使用，可�
 
 沿着这个光谱，我们可以找到 AI 副驾驶，它们具有更高的自主性。它们可以与利益相关者合作，并提供建议来指导决策过程，充当过程中的可信顾问。
 
-![](../Images/57f5e080108bfe040ea0c4fe9988aa4c.png)
+![](img/57f5e080108bfe040ea0c4fe9988aa4c.png)
 
 AI 代理谱系：从助手到自主代理 —— 图片由 [CastorDoc](https://www.castordoc.com) 提供
 
-在谱系的最远端，AI代理是完全自主的实体，能够根据对环境和目标的分析来指示最佳行动方案。
+在谱系的最远端，AI 代理是完全自主的实体，能够根据对环境和目标的分析来指示最佳行动方案。
 
 作为买方，评估您组织中各个角色的自动化最佳程度非常重要。在审查潜在供应商时，要求他们明确指出其技术在自主性谱系中的位置。这将帮助您理解每个解决方案的能力和局限性，从而帮助您找到最佳解决方案。
 
-追求具有更高自主性的AI系统可以带来更高的投资回报和更简单的实施。然而，这也需要对AI在准确理解您的用例方面有更高的信任。
+追求具有更高自主性的 AI 系统可以带来更高的投资回报和更简单的实施。然而，这也需要对 AI 在准确理解您的用例方面有更高的信任。
 
 **来源**
 
-1.  Gartner. “创新指南：AI代理。” [[链接](https://www.gartner.com/document/5332663?ref=solrAll&refval=413947133)]
+1.  Gartner. “创新指南：AI 代理。” [[链接](https://www.gartner.com/document/5332663?ref=solrAll&refval=413947133)]
 
-1.  Simform. “AI代理的类型。” [Simform Blog](https://www.simform.com/blog/types-of-ai-agents/)。
+1.  Simform. “AI 代理的类型。” [Simform Blog](https://www.simform.com/blog/types-of-ai-agents/)。
 
-1.  Towards Data Science. “LLM代理的直观和全面解释。” [Medium](/llm-agents-intuitively-and-exhaustively-explained-8905858e18e2)。
+1.  Towards Data Science. “LLM 代理的直观和全面解释。” Medium。
 
 1.  Geeks for Geeks. “人工智能中的代理。” [Geeks for Geeks](https://www.geeksforgeeks.org/agents-artificial-intelligence/)。
 
-1.  AWS. “什么是AI代理？” [AWS](https://aws.amazon.com/what-is/ai-agents/)。
+1.  AWS. “什么是 AI 代理？” [AWS](https://aws.amazon.com/what-is/ai-agents/)。
 
 *最初发布于* [*https://www.castordoc.com*](https://www.castordoc.com/blog/ai-assistants-copilots-and-agents-in-data-analytics)*。*

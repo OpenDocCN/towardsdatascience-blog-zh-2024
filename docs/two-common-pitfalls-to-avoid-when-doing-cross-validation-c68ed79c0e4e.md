@@ -1,12 +1,12 @@
 # 做交叉验证时需要避免的两个常见陷阱
 
-> 原文：[https://towardsdatascience.com/two-common-pitfalls-to-avoid-when-doing-cross-validation-c68ed79c0e4e?source=collection_archive---------1-----------------------#2024-05-24](https://towardsdatascience.com/two-common-pitfalls-to-avoid-when-doing-cross-validation-c68ed79c0e4e?source=collection_archive---------1-----------------------#2024-05-24)
+> 原文：[`towardsdatascience.com/two-common-pitfalls-to-avoid-when-doing-cross-validation-c68ed79c0e4e?source=collection_archive---------1-----------------------#2024-05-24`](https://towardsdatascience.com/two-common-pitfalls-to-avoid-when-doing-cross-validation-c68ed79c0e4e?source=collection_archive---------1-----------------------#2024-05-24)
 
 ## 以及你需要用来应对这些问题的技巧
 
-[](https://medium.com/@mattchapmanmsc?source=post_page---byline--c68ed79c0e4e--------------------------------)[![Matt Chapman](../Images/7511deb8d9ed408ece21031f6614c532.png)](https://medium.com/@mattchapmanmsc?source=post_page---byline--c68ed79c0e4e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c68ed79c0e4e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c68ed79c0e4e--------------------------------) [Matt Chapman](https://medium.com/@mattchapmanmsc?source=post_page---byline--c68ed79c0e4e--------------------------------)
+[](https://medium.com/@mattchapmanmsc?source=post_page---byline--c68ed79c0e4e--------------------------------)![Matt Chapman](https://medium.com/@mattchapmanmsc?source=post_page---byline--c68ed79c0e4e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c68ed79c0e4e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c68ed79c0e4e--------------------------------) [Matt Chapman](https://medium.com/@mattchapmanmsc?source=post_page---byline--c68ed79c0e4e--------------------------------)
 
-·发布于[数据科学进阶](https://towardsdatascience.com/?source=post_page---byline--c68ed79c0e4e--------------------------------) ·阅读时长8分钟·2024年5月24日
+·发布于[数据科学进阶](https://towardsdatascience.com/?source=post_page---byline--c68ed79c0e4e--------------------------------) ·阅读时长 8 分钟·2024 年 5 月 24 日
 
 --
 

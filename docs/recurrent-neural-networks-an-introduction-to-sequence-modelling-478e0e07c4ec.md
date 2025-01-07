@@ -1,18 +1,18 @@
 # 循环神经网络：序列建模简介
 
-> 原文：[https://towardsdatascience.com/recurrent-neural-networks-an-introduction-to-sequence-modelling-478e0e07c4ec?source=collection_archive---------7-----------------------#2024-05-08](https://towardsdatascience.com/recurrent-neural-networks-an-introduction-to-sequence-modelling-478e0e07c4ec?source=collection_archive---------7-----------------------#2024-05-08)
+> 原文：[`towardsdatascience.com/recurrent-neural-networks-an-introduction-to-sequence-modelling-478e0e07c4ec?source=collection_archive---------7-----------------------#2024-05-08`](https://towardsdatascience.com/recurrent-neural-networks-an-introduction-to-sequence-modelling-478e0e07c4ec?source=collection_archive---------7-----------------------#2024-05-08)
 
 ## 循环神经网络是什么，通过图示和实例进行演示
 
-[](https://medium.com/@egorhowell?source=post_page---byline--478e0e07c4ec--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--478e0e07c4ec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--478e0e07c4ec--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--478e0e07c4ec--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--478e0e07c4ec--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--478e0e07c4ec--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--478e0e07c4ec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--478e0e07c4ec--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--478e0e07c4ec--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--478e0e07c4ec--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--478e0e07c4ec--------------------------------) ·阅读时间9分钟·2024年5月8日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--478e0e07c4ec--------------------------------) ·阅读时间 9 分钟·2024 年 5 月 8 日
 
 --
 
-![](../Images/ee76515d7e9c035ad7f216454da34a6b.png)
+![](img/ee76515d7e9c035ad7f216454da34a6b.png)
 
-”[https://www.flaticon.com/free-icons/connection](https://www.flaticon.com/free-icons/connection)" title="连接图标">连接图标由Freepik创建 — Flaticon.
+”[`www.flaticon.com/free-icons/connection`](https://www.flaticon.com/free-icons/connection)" title="连接图标">连接图标由 Freepik 创建 — Flaticon.
 
 许多问题和现象是基于序列的。常见的例子包括语音、天气模式和时间序列。这些系统的下一个状态取决于先前的状态。
 

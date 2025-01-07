@@ -1,20 +1,20 @@
 # 乡村的气候变化
 
-> 原文：[https://towardsdatascience.com/climate-change-in-the-countryside-93e5ca66868b?source=collection_archive---------7-----------------------#2024-08-28](https://towardsdatascience.com/climate-change-in-the-countryside-93e5ca66868b?source=collection_archive---------7-----------------------#2024-08-28)
+> 原文：[`towardsdatascience.com/climate-change-in-the-countryside-93e5ca66868b?source=collection_archive---------7-----------------------#2024-08-28`](https://towardsdatascience.com/climate-change-in-the-countryside-93e5ca66868b?source=collection_archive---------7-----------------------#2024-08-28)
 
 ## 快速成功的数据科学
 
-## 气候战士的Python项目
+## 气候战士的 Python 项目
 
-[](https://medium.com/@lee_vaughan?source=post_page---byline--93e5ca66868b--------------------------------)[![Lee Vaughan](../Images/9f6b90bb76102f438ab0b9a4a62ffa3f.png)](https://medium.com/@lee_vaughan?source=post_page---byline--93e5ca66868b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--93e5ca66868b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--93e5ca66868b--------------------------------) [Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--93e5ca66868b--------------------------------)
+[](https://medium.com/@lee_vaughan?source=post_page---byline--93e5ca66868b--------------------------------)![Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--93e5ca66868b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--93e5ca66868b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--93e5ca66868b--------------------------------) [Lee Vaughan](https://medium.com/@lee_vaughan?source=post_page---byline--93e5ca66868b--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--93e5ca66868b--------------------------------) ·阅读时长11分钟·2024年8月28日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--93e5ca66868b--------------------------------) ·阅读时长 11 分钟·2024 年 8 月 28 日
 
 --
 
-![](../Images/3ac67dd6bf0dcc6c31aa82e086deb552.png)
+![](img/3ac67dd6bf0dcc6c31aa82e086deb552.png)
 
-DALL-E3展示的城市和乡村景观
+DALL-E3 展示的城市和乡村景观
 
 我有一个亲戚，他认为温度上升只是“热岛效应”。也就是说，快速增长的钢铁水泥城市比绿色乡村地区加热得更快，保持热量的时间也更长。他说：“如果你只关注在较凉的乡村地区进行的温度测量，全球变暖的现象就会消失很多。” 
 

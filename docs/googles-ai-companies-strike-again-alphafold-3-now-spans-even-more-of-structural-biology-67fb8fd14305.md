@@ -1,12 +1,12 @@
 # 谷歌的 AI 子公司再次发力：AlphaFold 3 现在涵盖了更多的结构生物学领域
 
-> 原文：[https://towardsdatascience.com/googles-ai-companies-strike-again-alphafold-3-now-spans-even-more-of-structural-biology-67fb8fd14305?source=collection_archive---------4-----------------------#2024-05-10](https://towardsdatascience.com/googles-ai-companies-strike-again-alphafold-3-now-spans-even-more-of-structural-biology-67fb8fd14305?source=collection_archive---------4-----------------------#2024-05-10)
+> 原文：[`towardsdatascience.com/googles-ai-companies-strike-again-alphafold-3-now-spans-even-more-of-structural-biology-67fb8fd14305?source=collection_archive---------4-----------------------#2024-05-10`](https://towardsdatascience.com/googles-ai-companies-strike-again-alphafold-3-now-spans-even-more-of-structural-biology-67fb8fd14305?source=collection_archive---------4-----------------------#2024-05-10)
 
 ## DeepMind 和 Isomorphic Labs 最近发布了一篇新论文，应用了新的 AI 概念和方法，创造了一种新的工具，承诺再次带来革命性的变革
 
-[](https://lucianosphere.medium.com/?source=post_page---byline--67fb8fd14305--------------------------------)[![LucianoSphere (Luciano Abriata, PhD)](../Images/a8ae3085d094749bbdd1169cca672b86.png)](https://lucianosphere.medium.com/?source=post_page---byline--67fb8fd14305--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--67fb8fd14305--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--67fb8fd14305--------------------------------) [LucianoSphere (Luciano Abriata, PhD)](https://lucianosphere.medium.com/?source=post_page---byline--67fb8fd14305--------------------------------)
+[](https://lucianosphere.medium.com/?source=post_page---byline--67fb8fd14305--------------------------------)![LucianoSphere (Luciano Abriata, PhD)](https://lucianosphere.medium.com/?source=post_page---byline--67fb8fd14305--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--67fb8fd14305--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--67fb8fd14305--------------------------------) [LucianoSphere (Luciano Abriata, PhD)](https://lucianosphere.medium.com/?source=post_page---byline--67fb8fd14305--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--67fb8fd14305--------------------------------) ·阅读时间9分钟·2024年5月10日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--67fb8fd14305--------------------------------) ·阅读时间 9 分钟·2024 年 5 月 10 日
 
 --
 

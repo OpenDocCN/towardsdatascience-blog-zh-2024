@@ -1,18 +1,18 @@
 # 足球与几何学 — 传球网络
 
-> 原文：[https://towardsdatascience.com/football-and-geometry-passing-networks-6e201ceff6ef?source=collection_archive---------12-----------------------#2024-09-16](https://towardsdatascience.com/football-and-geometry-passing-networks-6e201ceff6ef?source=collection_archive---------12-----------------------#2024-09-16)
+> 原文：[`towardsdatascience.com/football-and-geometry-passing-networks-6e201ceff6ef?source=collection_archive---------12-----------------------#2024-09-16`](https://towardsdatascience.com/football-and-geometry-passing-networks-6e201ceff6ef?source=collection_archive---------12-----------------------#2024-09-16)
 
 ## 足球分析
 
 ## 通过分析拜耳勒沃库森的传球网络来理解网络
 
-[](https://polmarin.medium.com/?source=post_page---byline--6e201ceff6ef--------------------------------)[![Pol Marin](../Images/a4f69a96717d453db9791f27b8f85e86.png)](https://polmarin.medium.com/?source=post_page---byline--6e201ceff6ef--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6e201ceff6ef--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6e201ceff6ef--------------------------------) [Pol Marin](https://polmarin.medium.com/?source=post_page---byline--6e201ceff6ef--------------------------------)
+[](https://polmarin.medium.com/?source=post_page---byline--6e201ceff6ef--------------------------------)![Pol Marin](https://polmarin.medium.com/?source=post_page---byline--6e201ceff6ef--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6e201ceff6ef--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e201ceff6ef--------------------------------) [Pol Marin](https://polmarin.medium.com/?source=post_page---byline--6e201ceff6ef--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e201ceff6ef--------------------------------) ·10分钟阅读·2024年9月16日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e201ceff6ef--------------------------------) ·10 分钟阅读·2024 年 9 月 16 日
 
 --
 
-![](../Images/6527465fc26c9ff2f885cb81b4cbbab0.png)
+![](img/6527465fc26c9ff2f885cb81b4cbbab0.png)
 
 图片来源：[Clint Adair](https://unsplash.com/@clintadair?utm_source=medium&utm_medium=referral) 来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

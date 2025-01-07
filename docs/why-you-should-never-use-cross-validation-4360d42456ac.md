@@ -1,16 +1,16 @@
 # 为什么你永远不应该使用交叉验证
 
-> 原文：[https://towardsdatascience.com/why-you-should-never-use-cross-validation-4360d42456ac?source=collection_archive---------0-----------------------#2024-03-27](https://towardsdatascience.com/why-you-should-never-use-cross-validation-4360d42456ac?source=collection_archive---------0-----------------------#2024-03-27)
+> 原文：[`towardsdatascience.com/why-you-should-never-use-cross-validation-4360d42456ac?source=collection_archive---------0-----------------------#2024-03-27`](https://towardsdatascience.com/why-you-should-never-use-cross-validation-4360d42456ac?source=collection_archive---------0-----------------------#2024-03-27)
 
 ## 在真实世界的应用中，使用随机交叉验证始终是一个错误的选择。以下是原因。
 
-[](https://medium.com/@mazzanti.sam?source=post_page---byline--4360d42456ac--------------------------------)[![Samuele Mazzanti](../Images/432477d6418a3f79bf25dec42755d364.png)](https://medium.com/@mazzanti.sam?source=post_page---byline--4360d42456ac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4360d42456ac--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4360d42456ac--------------------------------) [Samuele Mazzanti](https://medium.com/@mazzanti.sam?source=post_page---byline--4360d42456ac--------------------------------)
+[](https://medium.com/@mazzanti.sam?source=post_page---byline--4360d42456ac--------------------------------)![Samuele Mazzanti](https://medium.com/@mazzanti.sam?source=post_page---byline--4360d42456ac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4360d42456ac--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4360d42456ac--------------------------------) [Samuele Mazzanti](https://medium.com/@mazzanti.sam?source=post_page---byline--4360d42456ac--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4360d42456ac--------------------------------) ·12分钟阅读·2024年3月27日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4360d42456ac--------------------------------) ·12 分钟阅读·2024 年 3 月 27 日
 
 --
 
-![](../Images/9859c7e698f3b6ef46b648a9c319e548.png)
+![](img/9859c7e698f3b6ef46b648a9c319e548.png)
 
 [作者插图]
 
@@ -26,4 +26,4 @@
 
 交叉验证是一种模型验证技术，用于估算在一个数据集上训练的模型在新（未见过的）数据集上的表现。
 
-> 注：交叉验证有很多种类型。在本文中，为了简单起见，**当我们说“交叉验证”时，我们指的是随机K折交叉验证**，这是迄今为止最常用的……
+> 注：交叉验证有很多种类型。在本文中，为了简单起见，**当我们说“交叉验证”时，我们指的是随机 K 折交叉验证**，这是迄今为止最常用的……

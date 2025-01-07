@@ -1,24 +1,24 @@
 # 人机交互（HCI）与设计研究论文发表指南
 
-> 原文：[https://towardsdatascience.com/a-design-researchers-guide-to-publishing-151b0b70d80d?source=collection_archive---------1-----------------------#2024-12-15](https://towardsdatascience.com/a-design-researchers-guide-to-publishing-151b0b70d80d?source=collection_archive---------1-----------------------#2024-12-15)
+> 原文：[`towardsdatascience.com/a-design-researchers-guide-to-publishing-151b0b70d80d?source=collection_archive---------1-----------------------#2024-12-15`](https://towardsdatascience.com/a-design-researchers-guide-to-publishing-151b0b70d80d?source=collection_archive---------1-----------------------#2024-12-15)
 
 ## *将“发表或消亡”转变为“学习、写作和分享”*
 
-[](https://medium.com/@malaksadekIC?source=post_page---byline--151b0b70d80d--------------------------------)[![Malak Sadek](../Images/e787445ba9d880bd50a6b96c0a06dc33.png)](https://medium.com/@malaksadekIC?source=post_page---byline--151b0b70d80d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--151b0b70d80d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--151b0b70d80d--------------------------------) [Malak Sadek](https://medium.com/@malaksadekIC?source=post_page---byline--151b0b70d80d--------------------------------)
+[](https://medium.com/@malaksadekIC?source=post_page---byline--151b0b70d80d--------------------------------)![Malak Sadek](https://medium.com/@malaksadekIC?source=post_page---byline--151b0b70d80d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--151b0b70d80d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--151b0b70d80d--------------------------------) [Malak Sadek](https://medium.com/@malaksadekIC?source=post_page---byline--151b0b70d80d--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--151b0b70d80d--------------------------------) ·阅读时长9分钟·2024年12月15日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--151b0b70d80d--------------------------------) ·阅读时长 9 分钟·2024 年 12 月 15 日
 
 --
 
-当我三年前开始我的博士学位时，我对学术界以及在期刊和会议上发表论文的过程都非常陌生。由于我来自计算机工程领域，我的博士研究涉及设计研究，我感觉在人机交互、设计、设计工程、设计研究以及其他相关领域的发表过程，比计算机科学或其他纯粹的STEM学科更加模糊。
+当我三年前开始我的博士学位时，我对学术界以及在期刊和会议上发表论文的过程都非常陌生。由于我来自计算机工程领域，我的博士研究涉及设计研究，我感觉在人机交互、设计、设计工程、设计研究以及其他相关领域的发表过程，比计算机科学或其他纯粹的 STEM 学科更加模糊。
 
 尽管我当时还不懂很多，但有一件事很快变得清晰，那就是许多人将发表论文与作为研究者的成功联系在一起。发表似乎很重要，甚至是关键，不仅对博士学位至关重要，对我作为学术研究者或研究人员的职业生涯也是如此（即使是一些行业岗位也如此）。
 
 现在，三年过去了，拥有[七篇第一作者的发表论文](https://scholar.google.com/citations?user=-0Sh_uAAAAAJ&hl=en&authuser=1)的我，来分享我在第一年时希望自己知道的所有事情。
 
-![](../Images/4ad6958041fa5f80abe9464a353813f1.png)
+![](img/4ad6958041fa5f80abe9464a353813f1.png)
 
-2022年，我在荷兰埃因霍温的ACM对话式用户界面（CUI）会议上展示了我的研究成果。
+2022 年，我在荷兰埃因霍温的 ACM 对话式用户界面（CUI）会议上展示了我的研究成果。
 
 # 发表到底是什么？
 
@@ -36,7 +36,7 @@
 
 *这种类型的论文通常只会在期刊上接受，较少在会议上接受，后者通常更侧重于下面提到的第二种类型。*
 
-![](../Images/1c7732eecf7abe9685885c70c7cadcc9.png)
+![](img/1c7732eecf7abe9685885c70c7cadcc9.png)
 
 图片由[Kelly Sikkema](https://unsplash.com/@kellysikkema?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -46,7 +46,7 @@
 
 *这种类型的论文通常在会议和期刊上都会被接受。*
 
-![](../Images/9325f6ac96f3446c97e65371f3005ec4.png)
+![](img/9325f6ac96f3446c97e65371f3005ec4.png)
 
 由[Vanilla Bear Films](https://unsplash.com/@vanillabearfilms?utm_source=medium&utm_medium=referral)拍摄，图片来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -60,13 +60,13 @@
 
 另一种获得出版物的方式是与其他研究人员合作参与他们的项目和研究。这可能不会让你获得**第一作者**的身份，因为第一作者通常是做了大部分工作的那个人，但它可以增加你的整体出版数量，并展示你与他人的合作能力。根据我的经验，你的第一作者文章是最具影响力的，其他作者通常按贡献大小排序，最后一个作者通常是研究的导师或最资深的人员。
 
-![](../Images/3d0871073afd5f67322492f23b443694.png)
+![](img/3d0871073afd5f67322492f23b443694.png)
 
 由[Jo Szczepanska](https://unsplash.com/@joszczepanska?utm_source=medium&utm_medium=referral)拍摄，图片来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 2\. 确定出版场所
 
-下一步是选择你希望发表工作的地方。以下是一些有影响力的设计期刊和会议，但一个好的经验法则是查看你在论文中引用的文献来自哪里。如果你发现自己多次引用了某个期刊或会议，这通常是你研究可能适合在那里发表的一个良好指标。否则，检查不同出版场所的**影响因子**也非常重要。这个数字表示在该出版场所发表的论文有多么有影响力（这是引用次数和其他指标的综合）。一般来说，设计和人机交互领域的影响因子低于医学领域，后者的论文通常影响力更大。根据我的经验，设计领域影响因子3算是相当不错了。
+下一步是选择你希望发表工作的地方。以下是一些有影响力的设计期刊和会议，但一个好的经验法则是查看你在论文中引用的文献来自哪里。如果你发现自己多次引用了某个期刊或会议，这通常是你研究可能适合在那里发表的一个良好指标。否则，检查不同出版场所的**影响因子**也非常重要。这个数字表示在该出版场所发表的论文有多么有影响力（这是引用次数和其他指标的综合）。一般来说，设计和人机交互领域的影响因子低于医学领域，后者的论文通常影响力更大。根据我的经验，设计领域影响因子 3 算是相当不错了。
 
 与此同时，如果你有参会的目标，必须查看会议的截止日期。虽然期刊通常全年接受投稿，但会议会有投稿截止日期，这可能与你的计划相距太远。
 
@@ -74,15 +74,15 @@
 
 **优秀的设计/人机交互期刊**
 
-《设计研究》, 《ACM人机交互学报》, 《共同设计》, 《国际设计期刊》。
+《设计研究》, 《ACM 人机交互学报》, 《共同设计》, 《国际设计期刊》。
 
 **优秀的设计/人机交互会议**
 
-ACM计算机系统人因会议（CHI）、交互系统设计会议（DIS）、设计研究学会（DRS）会议、DESIGN、国际人机交互理论与应用会议（HUCAPP）、ACM社会公益信息技术会议。
+ACM 计算机系统人因会议（CHI）、交互系统设计会议（DIS）、设计研究学会（DRS）会议、DESIGN、国际人机交互理论与应用会议（HUCAPP）、ACM 社会公益信息技术会议。
 
-*根据你的研究领域，还可以查看更多特定领域的期刊和会议。例如，《AI伦理学》和《AI与社会》是很好的AI专注期刊，而在医学/医学研究领域也有其他优秀的期刊。*
+*根据你的研究领域，还可以查看更多特定领域的期刊和会议。例如，《AI 伦理学》和《AI 与社会》是很好的 AI 专注期刊，而在医学/医学研究领域也有其他优秀的期刊。*
 
-![](../Images/683313b01a636f768ac93973f90b9aa4.png)
+![](img/683313b01a636f768ac93973f90b9aa4.png)
 
 摄影：由[Antenna](https://unsplash.com/@antenna?utm_source=medium&utm_medium=referral)拍摄，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -92,7 +92,7 @@ ACM计算机系统人因会议（CHI）、交互系统设计会议（DIS）、�
 
 尽可能多地从同事和导师那里获取反馈，不要害怕删掉某些部分并重新开始！写一篇好的论文需要时间，你不应该急于完成。
 
-![](../Images/4726283e04b427840c6a816ac978759f.png)
+![](img/4726283e04b427840c6a816ac978759f.png)
 
 摄影：由[Annie Spratt](https://unsplash.com/@anniespratt?utm_source=medium&utm_medium=referral)拍摄，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -104,7 +104,7 @@ ACM计算机系统人因会议（CHI）、交互系统设计会议（DIS）、�
 
 ⏳ **接受并进行小幅修改** — 如果你根据审稿人给出的反馈进行一些修改，通常会给你一个月左右的时间来完成。
 
-⚠️ **接受并大幅修改/修改后重新提交** —— 这意味着评审认为你的论文有潜力和价值，但需要进行重大修改。这可能意味着需要重做某部分研究或收集更多数据，或者可能意味着需要对论文本身进行大幅重写。通常你会有大约3个月的时间来完成这些修改。根据我的经验，这个决定是件好事。这意味着论文并没有致命的缺陷，不需要被拒绝。通过一些努力和一封好的**回复信**，详细解释你如何根据评审反馈进行修改，你就能成功升级为接受或接受并作小修。
+⚠️ **接受并大幅修改/修改后重新提交** —— 这意味着评审认为你的论文有潜力和价值，但需要进行重大修改。这可能意味着需要重做某部分研究或收集更多数据，或者可能意味着需要对论文本身进行大幅重写。通常你会有大约 3 个月的时间来完成这些修改。根据我的经验，这个决定是件好事。这意味着论文并没有致命的缺陷，不需要被拒绝。通过一些努力和一封好的**回复信**，详细解释你如何根据评审反馈进行修改，你就能成功升级为接受或接受并作小修。
 
 🛑 **拒绝** —— 这意味着论文存在致命缺陷，或与所选的会议完全不相关。我也曾经历过完全被拒的情况，这种情况确实让人沮丧。一个好的起点是查看评审的详细反馈，了解如何改进研究或论文。我曾经遇到过被拒绝但最终被接受的情况，所以不要因为拒绝而轻易放弃工作！
 
@@ -112,7 +112,7 @@ ACM计算机系统人因会议（CHI）、交互系统设计会议（DIS）、�
 
 拒绝是正常的，迭代是正常的，这都是过程的一部分！我大部分的论文都是在博士第二年末和第三年期间完成的。如果你刚刚开始，不妨把出版作为一个长期目标，首先专注于合理安排学位结构，做好各项研究任务。提交不同研究的论文也是一个获取反馈和及早发现问题的好方法，而不是等到答辩/口试时才遭遇麻烦，或者当已经无法重复某项研究时才发现问题。**将其视为一个学习和获取反馈的机会，你会发现提交论文总是有益的，即使结果是暂时的拒绝。**
 
-![](../Images/67c0dfa114a8d5334818d72c981b4a7a.png)
+![](img/67c0dfa114a8d5334818d72c981b4a7a.png)
 
 要想写出一篇被接受的论文，需要经过大量的草稿和迭代！
 
@@ -122,4 +122,4 @@ ACM计算机系统人因会议（CHI）、交互系统设计会议（DIS）、�
 
 你可以查看我项目的官方页面，访问[帝国理工学院官网](https://www.imperial.ac.uk/design-engineering/study/phd/malak/)。你也可以阅读我写的另一篇文章，解释[我的博士项目的细节](https://medium.com/@malaksadekIC/introducing-my-phd-project-to-make-ai-design-more-inclusive-80d0edf70378)。
 
-我创建了这个Medium账号，用于发布我在攻读博士项目过程中学到的有趣经验和研究摘录。我的目标是以一种任何人都能理解的方式传播有关我的工作的信息。
+我创建了这个 Medium 账号，用于发布我在攻读博士项目过程中学到的有趣经验和研究摘录。我的目标是以一种任何人都能理解的方式传播有关我的工作的信息。

@@ -1,16 +1,16 @@
 # 地图语言：地理空间数据格式与坐标指南
 
-> 原文：[https://towardsdatascience.com/the-language-of-maps-a-guide-to-geospatial-data-formats-and-coordinates-06382df7db36?source=collection_archive---------11-----------------------#2024-01-17](https://towardsdatascience.com/the-language-of-maps-a-guide-to-geospatial-data-formats-and-coordinates-06382df7db36?source=collection_archive---------11-----------------------#2024-01-17)
+> 原文：[`towardsdatascience.com/the-language-of-maps-a-guide-to-geospatial-data-formats-and-coordinates-06382df7db36?source=collection_archive---------11-----------------------#2024-01-17`](https://towardsdatascience.com/the-language-of-maps-a-guide-to-geospatial-data-formats-and-coordinates-06382df7db36?source=collection_archive---------11-----------------------#2024-01-17)
 
 ## 从 GeoJSON 到 UTM，这些工具帮助我们绘制世界地图！
 
-[](https://bench-5.medium.com/?source=post_page---byline--06382df7db36--------------------------------)[![Ben Chamblee](../Images/ef3b7fe41dafe7ddec2dc877387f9f21.png)](https://bench-5.medium.com/?source=post_page---byline--06382df7db36--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--06382df7db36--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--06382df7db36--------------------------------) [Ben Chamblee](https://bench-5.medium.com/?source=post_page---byline--06382df7db36--------------------------------)
+[](https://bench-5.medium.com/?source=post_page---byline--06382df7db36--------------------------------)![Ben Chamblee](https://bench-5.medium.com/?source=post_page---byline--06382df7db36--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--06382df7db36--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--06382df7db36--------------------------------) [Ben Chamblee](https://bench-5.medium.com/?source=post_page---byline--06382df7db36--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--06382df7db36--------------------------------) ·阅读时间：6 分钟 ·2024年1月17日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--06382df7db36--------------------------------) ·阅读时间：6 分钟 ·2024 年 1 月 17 日
 
 --
 
-![](../Images/50943faa7cd07ddab36c996ea10cfdd1.png)
+![](img/50943faa7cd07ddab36c996ea10cfdd1.png)
 
 图片来自[KOBU Agency](https://unsplash.com/@kobuagency)，图片来源：[Unsplash](https://unsplash.com/)
 

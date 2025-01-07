@@ -1,16 +1,16 @@
 # 时间序列 — ARIMA vs. SARIMA vs. LSTM：实践教程
 
-> 原文：[https://towardsdatascience.com/time-series-arima-vs-sarima-vs-lstm-hands-on-tutorial-bd5630298da3?source=collection_archive---------5-----------------------#2024-10-03](https://towardsdatascience.com/time-series-arima-vs-sarima-vs-lstm-hands-on-tutorial-bd5630298da3?source=collection_archive---------5-----------------------#2024-10-03)
+> 原文：[`towardsdatascience.com/time-series-arima-vs-sarima-vs-lstm-hands-on-tutorial-bd5630298da3?source=collection_archive---------5-----------------------#2024-10-03`](https://towardsdatascience.com/time-series-arima-vs-sarima-vs-lstm-hands-on-tutorial-bd5630298da3?source=collection_archive---------5-----------------------#2024-10-03)
 
 ## 让我们一步步预测未来。
 
-[](https://medium.com/@fmnobar?source=post_page---byline--bd5630298da3--------------------------------)[![Farzad Nobar](../Images/2d75209693b712300e6f0796bd2487d0.png)](https://medium.com/@fmnobar?source=post_page---byline--bd5630298da3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bd5630298da3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bd5630298da3--------------------------------) [Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--bd5630298da3--------------------------------)
+[](https://medium.com/@fmnobar?source=post_page---byline--bd5630298da3--------------------------------)![Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--bd5630298da3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bd5630298da3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bd5630298da3--------------------------------) [Farzad Nobar](https://medium.com/@fmnobar?source=post_page---byline--bd5630298da3--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bd5630298da3--------------------------------) ·14分钟阅读·2024年10月3日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bd5630298da3--------------------------------) ·14 分钟阅读·2024 年 10 月 3 日
 
 --
 
-![](../Images/dc5baac7ed9ed6903a0138beeb84101b.png)
+![](img/dc5baac7ed9ed6903a0138beeb84101b.png)
 
 图片来自[Djim Loic](https://unsplash.com/@loic?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)在[Unsplash](https://unsplash.com/photos/analog-clock-at-12-am-ft0-Xu4nTvA?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

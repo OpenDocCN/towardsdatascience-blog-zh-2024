@@ -1,12 +1,12 @@
 # 使用阻塞分割减少时间序列交叉验证中的偏差
 
-> 原文：[https://towardsdatascience.com/reduce-bias-in-time-series-cross-validation-with-blocked-split-4ecbfc88f5a4?source=collection_archive---------5-----------------------#2024-01-18](https://towardsdatascience.com/reduce-bias-in-time-series-cross-validation-with-blocked-split-4ecbfc88f5a4?source=collection_archive---------5-----------------------#2024-01-18)
+> 原文：[`towardsdatascience.com/reduce-bias-in-time-series-cross-validation-with-blocked-split-4ecbfc88f5a4?source=collection_archive---------5-----------------------#2024-01-18`](https://towardsdatascience.com/reduce-bias-in-time-series-cross-validation-with-blocked-split-4ecbfc88f5a4?source=collection_archive---------5-----------------------#2024-01-18)
 
 ## 当 TimeSeriesSplit 发生过拟合时
 
-[](https://medium.com/@pelletierhaden?source=post_page---byline--4ecbfc88f5a4--------------------------------)[![Haden Pelletier](../Images/8f73fc8222e783883c4ebcaee14513e0.png)](https://medium.com/@pelletierhaden?source=post_page---byline--4ecbfc88f5a4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4ecbfc88f5a4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4ecbfc88f5a4--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--4ecbfc88f5a4--------------------------------)
+[](https://medium.com/@pelletierhaden?source=post_page---byline--4ecbfc88f5a4--------------------------------)![Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--4ecbfc88f5a4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4ecbfc88f5a4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4ecbfc88f5a4--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--4ecbfc88f5a4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4ecbfc88f5a4--------------------------------) ·阅读时间 3 分钟 ·2024年1月18日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4ecbfc88f5a4--------------------------------) ·阅读时间 3 分钟 ·2024 年 1 月 18 日
 
 --
 
@@ -22,6 +22,6 @@
 
 **阻塞时间序列分割**提供了一种解决方案——它仍然保持数据的时间顺序，但训练/测试组合从不重叠。
 
-![](../Images/cd08d7cb437a6aed02e3d957cae5bb41.png)
+![](img/cd08d7cb437a6aed02e3d957cae5bb41.png)
 
 阻塞时间序列分割。图片来源：作者

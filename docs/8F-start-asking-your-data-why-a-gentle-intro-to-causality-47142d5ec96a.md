@@ -1,18 +1,18 @@
 # 开始问你的数据“为什么？”——因果关系的温和入门
 
-> 原文：[https://towardsdatascience.com/%EF%B8%8F-start-asking-your-data-why-a-gentle-intro-to-causality-47142d5ec96a?source=collection_archive---------2-----------------------#2024-09-12](https://towardsdatascience.com/%EF%B8%8F-start-asking-your-data-why-a-gentle-intro-to-causality-47142d5ec96a?source=collection_archive---------2-----------------------#2024-09-12)
+> 原文：[`towardsdatascience.com/%EF%B8%8F-start-asking-your-data-why-a-gentle-intro-to-causality-47142d5ec96a?source=collection_archive---------2-----------------------#2024-09-12`](https://towardsdatascience.com/%EF%B8%8F-start-asking-your-data-why-a-gentle-intro-to-causality-47142d5ec96a?source=collection_archive---------2-----------------------#2024-09-12)
 
 ## 一份关于超越相关性思维的初学者指南。
 
-[](https://eyal-kazin.medium.com/?source=post_page---byline--47142d5ec96a--------------------------------)[![Eyal Kazin](../Images/3860e6f1f63d732ce3af939d6681f542.png)](https://eyal-kazin.medium.com/?source=post_page---byline--47142d5ec96a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--47142d5ec96a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--47142d5ec96a--------------------------------) [Eyal Kazin](https://eyal-kazin.medium.com/?source=post_page---byline--47142d5ec96a--------------------------------)
+[](https://eyal-kazin.medium.com/?source=post_page---byline--47142d5ec96a--------------------------------)![Eyal Kazin](https://eyal-kazin.medium.com/?source=post_page---byline--47142d5ec96a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--47142d5ec96a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--47142d5ec96a--------------------------------) [Eyal Kazin](https://eyal-kazin.medium.com/?source=post_page---byline--47142d5ec96a--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--47142d5ec96a--------------------------------) ·阅读时间：16分钟·2024年9月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--47142d5ec96a--------------------------------) ·阅读时间：16 分钟·2024 年 9 月 12 日
 
 --
 
 > 因果关系不仅仅是统计学的一个方面——它是对统计学的补充——Judea Pearl
 
-![](../Images/9d0fa0d5064478ceb43e8d2095fa85dc.png)
+![](img/9d0fa0d5064478ceb43e8d2095fa85dc.png)
 
 牛顿摆。图片来源：[Pickpik](https://www.pickpik.com/newton-s-cradle-balls-sphere-action-reaction-illustration-806)。
 

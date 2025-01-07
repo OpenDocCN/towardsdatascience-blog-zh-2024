@@ -1,16 +1,16 @@
 # 在 Google Cloud 上大规模部署 dbt 项目
 
-> 原文：[https://towardsdatascience.com/dbt-deployment-gcp-a350074e3377?source=collection_archive---------3-----------------------#2024-07-29](https://towardsdatascience.com/dbt-deployment-gcp-a350074e3377?source=collection_archive---------3-----------------------#2024-07-29)
+> 原文：[`towardsdatascience.com/dbt-deployment-gcp-a350074e3377?source=collection_archive---------3-----------------------#2024-07-29`](https://towardsdatascience.com/dbt-deployment-gcp-a350074e3377?source=collection_archive---------3-----------------------#2024-07-29)
 
 ## 使用 Artifact Registry、Cloud Composer、GitHub Actions 和 dbt-airflow 容器化并运行 dbt 项目
 
-[](https://gmyrianthous.medium.com/?source=post_page---byline--a350074e3377--------------------------------)[![Giorgos Myrianthous](../Images/ff4b116e4fb9a095ce45eb064fde5af3.png)](https://gmyrianthous.medium.com/?source=post_page---byline--a350074e3377--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a350074e3377--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a350074e3377--------------------------------) [Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--a350074e3377--------------------------------)
+[](https://gmyrianthous.medium.com/?source=post_page---byline--a350074e3377--------------------------------)![Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--a350074e3377--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a350074e3377--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a350074e3377--------------------------------) [Giorgos Myrianthous](https://gmyrianthous.medium.com/?source=post_page---byline--a350074e3377--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a350074e3377--------------------------------) ·阅读时间 11 分钟·2024年7月29日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a350074e3377--------------------------------) ·阅读时间 11 分钟·2024 年 7 月 29 日
 
 --
 
-![](../Images/abb51128060c153a45de8f3dcb7a5f56.png)
+![](img/abb51128060c153a45de8f3dcb7a5f56.png)
 
 图片由 [Photo Boards](https://unsplash.com/@createandbloom?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源 [Unsplash](https://unsplash.com/photos/an-orange-and-blue-wall-with-peeling-paint-OiV3i01sLqE?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

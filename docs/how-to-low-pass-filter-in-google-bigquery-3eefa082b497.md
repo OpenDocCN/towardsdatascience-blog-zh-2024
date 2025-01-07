@@ -1,12 +1,12 @@
 # 如何在 Google BigQuery 中进行低通滤波
 
-> 原文：[https://towardsdatascience.com/how-to-low-pass-filter-in-google-bigquery-3eefa082b497?source=collection_archive---------6-----------------------#2024-01-21](https://towardsdatascience.com/how-to-low-pass-filter-in-google-bigquery-3eefa082b497?source=collection_archive---------6-----------------------#2024-01-21)
+> 原文：[`towardsdatascience.com/how-to-low-pass-filter-in-google-bigquery-3eefa082b497?source=collection_archive---------6-----------------------#2024-01-21`](https://towardsdatascience.com/how-to-low-pass-filter-in-google-bigquery-3eefa082b497?source=collection_archive---------6-----------------------#2024-01-21)
 
 ## 在处理时间序列数据时，应用滤波器去除噪声可能非常重要。本篇文章展示了如何在 SQL / BigQuery 中实现低通滤波，这对于改进机器学习特征非常有用。
 
-[](https://medium.com/@benjamin.thuerer?source=post_page---byline--3eefa082b497--------------------------------)[![Benjamin Thürer](../Images/b4c49698c7270c592bf992fc47f75765.png)](https://medium.com/@benjamin.thuerer?source=post_page---byline--3eefa082b497--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3eefa082b497--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3eefa082b497--------------------------------) [Benjamin Thürer](https://medium.com/@benjamin.thuerer?source=post_page---byline--3eefa082b497--------------------------------)
+[](https://medium.com/@benjamin.thuerer?source=post_page---byline--3eefa082b497--------------------------------)![Benjamin Thürer](https://medium.com/@benjamin.thuerer?source=post_page---byline--3eefa082b497--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3eefa082b497--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3eefa082b497--------------------------------) [Benjamin Thürer](https://medium.com/@benjamin.thuerer?source=post_page---byline--3eefa082b497--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3eefa082b497--------------------------------) ·阅读时间：9分钟·2024年1月21日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3eefa082b497--------------------------------) ·阅读时间：9 分钟·2024 年 1 月 21 日
 
 --
 

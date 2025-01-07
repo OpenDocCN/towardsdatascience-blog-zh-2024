@@ -1,16 +1,16 @@
-# 数据模型设计101：复合键与代理键
+# 数据模型设计 101：复合键与代理键
 
-> 原文：[https://towardsdatascience.com/data-model-design-101-composite-vs-surrogate-keys-032d8e1defe1?source=collection_archive---------7-----------------------#2024-02-09](https://towardsdatascience.com/data-model-design-101-composite-vs-surrogate-keys-032d8e1defe1?source=collection_archive---------7-----------------------#2024-02-09)
+> 原文：[`towardsdatascience.com/data-model-design-101-composite-vs-surrogate-keys-032d8e1defe1?source=collection_archive---------7-----------------------#2024-02-09`](https://towardsdatascience.com/data-model-design-101-composite-vs-surrogate-keys-032d8e1defe1?source=collection_archive---------7-----------------------#2024-02-09)
 
 ## 何时知道在数据模型中使用哪种类型的键
 
-[](https://madison-schott.medium.com/?source=post_page---byline--032d8e1defe1--------------------------------)[![Madison Schott](../Images/0b82d0dd48629641abb439cef23ebe04.png)](https://madison-schott.medium.com/?source=post_page---byline--032d8e1defe1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--032d8e1defe1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--032d8e1defe1--------------------------------) [Madison Schott](https://madison-schott.medium.com/?source=post_page---byline--032d8e1defe1--------------------------------)
+[](https://madison-schott.medium.com/?source=post_page---byline--032d8e1defe1--------------------------------)![Madison Schott](https://madison-schott.medium.com/?source=post_page---byline--032d8e1defe1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--032d8e1defe1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--032d8e1defe1--------------------------------) [Madison Schott](https://madison-schott.medium.com/?source=post_page---byline--032d8e1defe1--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--032d8e1defe1--------------------------------) ·阅读时长4分钟·2024年2月9日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--032d8e1defe1--------------------------------) ·阅读时长 4 分钟·2024 年 2 月 9 日
 
 --
 
-![](../Images/397a0c7af89858dec3a702bfa17c10f5.png)
+![](img/397a0c7af89858dec3a702bfa17c10f5.png)
 
 图片由[Jason D](https://unsplash.com/@jasondeblooisphotography?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

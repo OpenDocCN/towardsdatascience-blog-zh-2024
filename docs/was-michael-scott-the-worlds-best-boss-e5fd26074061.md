@@ -1,16 +1,16 @@
 # 迈克尔·斯科特是世界上最好的老板吗？
 
-> 原文：[https://towardsdatascience.com/was-michael-scott-the-worlds-best-boss-e5fd26074061?source=collection_archive---------4-----------------------#2024-07-29](https://towardsdatascience.com/was-michael-scott-the-worlds-best-boss-e5fd26074061?source=collection_archive---------4-----------------------#2024-07-29)
+> 原文：[`towardsdatascience.com/was-michael-scott-the-worlds-best-boss-e5fd26074061?source=collection_archive---------4-----------------------#2024-07-29`](https://towardsdatascience.com/was-michael-scott-the-worlds-best-boss-e5fd26074061?source=collection_archive---------4-----------------------#2024-07-29)
 
 ## 使用 SchrutePy、NLTK 和 Hugging Face Transformers 🤗 对《办公室》电视剧进行情感分析
 
-[](https://medium.com/@m.mouschoutzi?source=post_page---byline--e5fd26074061--------------------------------)[![Maria Mouschoutzi, PhD](../Images/66f8cf036b6e4db2e24eae3e9f492db8.png)](https://medium.com/@m.mouschoutzi?source=post_page---byline--e5fd26074061--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e5fd26074061--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e5fd26074061--------------------------------) [Maria Mouschoutzi, PhD](https://medium.com/@m.mouschoutzi?source=post_page---byline--e5fd26074061--------------------------------)
+[](https://medium.com/@m.mouschoutzi?source=post_page---byline--e5fd26074061--------------------------------)![Maria Mouschoutzi, PhD](https://medium.com/@m.mouschoutzi?source=post_page---byline--e5fd26074061--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e5fd26074061--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e5fd26074061--------------------------------) [Maria Mouschoutzi, PhD](https://medium.com/@m.mouschoutzi?source=post_page---byline--e5fd26074061--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e5fd26074061--------------------------------) ·15 分钟阅读·2024年7月29日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e5fd26074061--------------------------------) ·15 分钟阅读·2024 年 7 月 29 日
 
 --
 
-![](../Images/ea71488bb73406bf8727b937faf6732e.png)
+![](img/ea71488bb73406bf8727b937faf6732e.png)
 
 图片来自 [Anthony A](https://unsplash.com/@antyn?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

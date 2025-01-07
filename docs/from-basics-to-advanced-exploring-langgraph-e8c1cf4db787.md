@@ -1,26 +1,26 @@
-# 从基础到进阶：探索LangGraph
+# 从基础到进阶：探索 LangGraph
 
-> 原文：[https://towardsdatascience.com/from-basics-to-advanced-exploring-langgraph-e8c1cf4db787?source=collection_archive---------0-----------------------#2024-08-15](https://towardsdatascience.com/from-basics-to-advanced-exploring-langgraph-e8c1cf4db787?source=collection_archive---------0-----------------------#2024-08-15)
+> 原文：[`towardsdatascience.com/from-basics-to-advanced-exploring-langgraph-e8c1cf4db787?source=collection_archive---------0-----------------------#2024-08-15`](https://towardsdatascience.com/from-basics-to-advanced-exploring-langgraph-e8c1cf4db787?source=collection_archive---------0-----------------------#2024-08-15)
 
 ## 构建单智能体和多智能体工作流，包含人机协作交互
 
-[](https://miptgirl.medium.com/?source=post_page---byline--e8c1cf4db787--------------------------------)[![Mariya Mansurova](../Images/b1dd377b0a1887db900cc5108bca8ea8.png)](https://miptgirl.medium.com/?source=post_page---byline--e8c1cf4db787--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e8c1cf4db787--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e8c1cf4db787--------------------------------) [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--e8c1cf4db787--------------------------------)
+[](https://miptgirl.medium.com/?source=post_page---byline--e8c1cf4db787--------------------------------)![Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--e8c1cf4db787--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e8c1cf4db787--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e8c1cf4db787--------------------------------) [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--e8c1cf4db787--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e8c1cf4db787--------------------------------) ·21分钟阅读·2024年8月15日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e8c1cf4db787--------------------------------) ·21 分钟阅读·2024 年 8 月 15 日
 
 --
 
-![](../Images/9be549ca0d6991e179d95d55d5d5388d.png)
+![](img/9be549ca0d6991e179d95d55d5d5388d.png)
 
 图片来源：DALL-E 3
 
-[LangChain](https://www.langchain.com/) 是构建大型语言模型驱动应用程序的领先框架之一。借助 [LangChain表达式语言](https://python.langchain.com/v0.1/docs/expression_language/)（LCEL），定义和执行逐步行动序列——也就是所谓的链——变得更加简便。从更技术性的角度来看，LangChain 允许我们创建DAG（有向无环图）。
+[LangChain](https://www.langchain.com/) 是构建大型语言模型驱动应用程序的领先框架之一。借助 [LangChain 表达式语言](https://python.langchain.com/v0.1/docs/expression_language/)（LCEL），定义和执行逐步行动序列——也就是所谓的链——变得更加简便。从更技术性的角度来看，LangChain 允许我们创建 DAG（有向无环图）。
 
-随着LLM应用，特别是LLM智能体的发展，我们开始不仅将LLM用于执行任务，还用作推理引擎。这一转变引入了频繁涉及重复（循环）和复杂条件的交互。在这种情况下，LCEL不足以应对，因此LangChain实现了一个新模块——[LangGraph](https://langchain-ai.github.io/langgraph/)。
+随着 LLM 应用，特别是 LLM 智能体的发展，我们开始不仅将 LLM 用于执行任务，还用作推理引擎。这一转变引入了频繁涉及重复（循环）和复杂条件的交互。在这种情况下，LCEL 不足以应对，因此 LangChain 实现了一个新模块——[LangGraph](https://langchain-ai.github.io/langgraph/)。
 
 LangGraph（正如你从名字中可以猜到的）将所有交互建模为循环图。这些图使得开发具有多个循环和条件判断的高级工作流和交互成为可能，因此它成为了创建智能体和多智能体工作流的便捷工具。
 
-在本文中，我将探索LangGraph的关键特性和功能，包括多智能体应用。我们将构建一个可以回答不同类型问题的系统，并深入了解如何实现人机协作的设置。
+在本文中，我将探索 LangGraph 的关键特性和功能，包括多智能体应用。我们将构建一个可以回答不同类型问题的系统，并深入了解如何实现人机协作的设置。
 
 在[上一篇文章](https://medium.com/towards-data-science/multi-ai-agent-systems-101-bac58e3bcc47)中，我们尝试使用了 CrewAI，这是另一个流行的多代理系统框架。然而，LangGraph 采取了不同的方法。CrewAI 是一个高层框架，具有许多预定义的功能和现成的组件，而 LangGraph 在较低层次操作，提供广泛的定制和控制。
 
@@ -65,7 +65,7 @@ def get_clickhouse_data(query, host = CH_HOST, connection_timeout = 1500):
 
 使 LLM 工具可靠且减少错误至关重要。如果数据库返回错误，我会将反馈传递给 LLM，而不是抛出异常并停止执行。这样，LLM 代理就有机会修复错误并重新调用该函数。
 
-我们定义了一个名为`execute_sql`的工具，它使得能够执行任何SQL查询。我们使用`pydantic`来指定工具的结构，确保LLM代理能够有效地使用该工具。
+我们定义了一个名为`execute_sql`的工具，它使得能够执行任何 SQL 查询。我们使用`pydantic`来指定工具的结构，确保 LLM 代理能够有效地使用该工具。
 
 ```py
 from langchain_core.tools import tool
@@ -81,7 +81,7 @@ def execute_sql(query: str) -> str:
   return get_clickhouse_data(query)
 ```
 
-我们可以打印出创建的工具的参数，看看传递给LLM的信息是什么。
+我们可以打印出创建的工具的参数，看看传递给 LLM 的信息是什么。
 
 ```py
 print(f'''
@@ -96,7 +96,7 @@ arguments: {execute_sql.args}
 #   'SQL query to execute', 'type': 'string'}}
 ```
 
-一切看起来都很好。我们已经设置好了必要的工具，现在可以继续定义LLM代理。如上所述，LangGraph中代理的基石是其状态，它使得我们图中不同部分之间可以共享信息。
+一切看起来都很好。我们已经设置好了必要的工具，现在可以继续定义 LLM 代理。如上所述，LangGraph 中代理的基石是其状态，它使得我们图中不同部分之间可以共享信息。
 
 我们当前的例子相对简单。因此，我们只需要存储消息的历史记录。让我们定义代理状态。
 
@@ -145,11 +145,11 @@ class SQLAgent:
 
 在初始化函数中，我们概述了图的结构，其中包括两个节点：`llm`和`action`。节点是实际的操作，因此我们有与之关联的函数。稍后我们将定义这些函数。
 
-此外，我们还有一条条件边，决定是否需要执行函数或生成最终答案。对于这条边，我们需要指定前一个节点（在我们的例子中是`llm`）、一个决定下一步的函数，以及基于该函数输出的后续步骤映射（格式为字典）。如果`exists_function_calling`返回True，我们会进入函数节点。否则，执行将在特殊的`END`节点处结束，标志着过程的结束。
+此外，我们还有一条条件边，决定是否需要执行函数或生成最终答案。对于这条边，我们需要指定前一个节点（在我们的例子中是`llm`）、一个决定下一步的函数，以及基于该函数输出的后续步骤映射（格式为字典）。如果`exists_function_calling`返回 True，我们会进入函数节点。否则，执行将在特殊的`END`节点处结束，标志着过程的结束。
 
 我们在`function`和`llm`之间添加了一条边。这条边仅仅将这两个步骤连接起来，并且会在没有任何条件的情况下执行。
 
-定义了主要结构后，接下来是创建上述列出的所有函数。第一个是`call_llm`。这个函数将执行LLM并返回结果。
+定义了主要结构后，接下来是创建上述列出的所有函数。第一个是`call_llm`。这个函数将执行 LLM 并返回结果。
 
 代理状态将自动传递给函数，因此我们可以使用其中保存的系统提示和模型。
 
@@ -171,7 +171,7 @@ class SQLAgent:
 
 结果是，我们的函数返回一个字典，这个字典将用于更新代理状态。由于我们使用了`operator.add`作为状态的累加器，返回的消息会被附加到存储在状态中的消息列表中。
 
-我们需要的下一个函数是`execute_function`，它将运行我们的工具。如果LLM代理决定调用某个工具，我们将在`message.tool_calls`参数中看到它。
+我们需要的下一个函数是`execute_function`，它将运行我们的工具。如果 LLM 代理决定调用某个工具，我们将在`message.tool_calls`参数中看到它。
 
 ```py
 class SQLAgent:
@@ -253,7 +253,7 @@ from IPython.display import Image
 Image(doc_agent.graph.get_graph().draw_png())
 ```
 
-![](../Images/accdadbbf3700cb7f49695388ad48fb0.png)
+![](img/accdadbbf3700cb7f49695388ad48fb0.png)
 
 如你所见，我们的图表有环。用 LCEL 实现类似的功能会相当具有挑战性。
 
@@ -631,7 +631,7 @@ builder.add_edge('general_assistant', END)
 graph = builder.compile(checkpointer=memory)
 ```
 
-![](../Images/211fb819f5f309883906e7f790e155b4.png)
+![](img/211fb819f5f309883906e7f790e155b4.png)
 
 现在，我们可以通过几个问题来测试该设置，看看它的表现如何。
 
@@ -767,7 +767,7 @@ builder.add_edge('editor', END)
 graph = builder.compile(checkpointer=memory, interrupt_before = ['human'])
 ```
 
-![](../Images/4087a0dfd9d81b876f3270713c20e8ac.png)
+![](img/4087a0dfd9d81b876f3270713c20e8ac.png)
 
 现在，当我们运行图时，执行将在“人类”节点之前停止。
 
@@ -864,7 +864,7 @@ print(editor_result['messages'][-1].content)
 # If you have any more questions, feel free to ask!
 ```
 
-所以，编辑向人类提问：“草稿中的回答是否完整且准确地回答了关于ecommerce_db.users表中字段类型的问题？”在收到反馈后，编辑修改了答案，使其更易于理解。
+所以，编辑向人类提问：“草稿中的回答是否完整且准确地回答了关于 ecommerce_db.users 表中字段类型的问题？”在收到反馈后，编辑修改了答案，使其更易于理解。
 
 让我们更新我们的主图，合并新的代理，而不是使用两个独立的节点。采用这种方法后，我们不再需要中断。
 
@@ -918,17 +918,17 @@ for event in graph.stream({
 
 # 总结
 
-在本文中，我们探讨了LangGraph库及其在构建单一和多代理工作流中的应用。我们审视了其一系列功能，现在是总结其优缺点的时候了。同时，比较LangGraph和我在[上一篇文章](https://medium.com/towards-data-science/multi-ai-agent-systems-101-bac58e3bcc47)中讨论的CrewAI也会很有用。
+在本文中，我们探讨了 LangGraph 库及其在构建单一和多代理工作流中的应用。我们审视了其一系列功能，现在是总结其优缺点的时候了。同时，比较 LangGraph 和我在[上一篇文章](https://medium.com/towards-data-science/multi-ai-agent-systems-101-bac58e3bcc47)中讨论的 CrewAI 也会很有用。
 
-总体而言，我认为LangGraph是一个相当强大的框架，用于构建复杂的LLM应用：
+总体而言，我认为 LangGraph 是一个相当强大的框架，用于构建复杂的 LLM 应用：
 
-+   LangGraph是一个低级框架，提供了广泛的自定义选项，使你能够构建出精确所需的内容。
++   LangGraph 是一个低级框架，提供了广泛的自定义选项，使你能够构建出精确所需的内容。
 
-+   由于LangGraph建立在LangChain之上，它与LangChain的生态系统无缝集成，使得利用现有工具和组件变得更加容易。
++   由于 LangGraph 建立在 LangChain 之上，它与 LangChain 的生态系统无缝集成，使得利用现有工具和组件变得更加容易。
 
-然而，LangGraph还有一些可以改进的地方：
+然而，LangGraph 还有一些可以改进的地方：
 
-+   LangGraph的灵活性带来了较高的入门门槛。虽然你可以在15至30分钟内理解CrewAI的概念，但要真正熟悉并跟上LangGraph的节奏则需要一些时间。
++   LangGraph 的灵活性带来了较高的入门门槛。虽然你可以在 15 至 30 分钟内理解 CrewAI 的概念，但要真正熟悉并跟上 LangGraph 的节奏则需要一些时间。
 
 +   LangGraph 为你提供了更高的控制水平，但它缺少 CrewAI 一些很酷的预构建功能，比如[协作](https://docs.crewai.com/core-concepts/Collaboration/)或现成的[检索增强生成（RAG）](https://docs.crewai.com/core-concepts/Tools/#available-crewai-tools)工具。
 
@@ -942,4 +942,4 @@ for event in graph.stream({
 
 # 参考资料
 
-本文灵感来源于 DeepLearning.AI 的[“LangGraph中的AI代理”](https://www.deeplearning.ai/short-courses/ai-agents-in-langgraph/)短期课程。
+本文灵感来源于 DeepLearning.AI 的[“LangGraph 中的 AI 代理”](https://www.deeplearning.ai/short-courses/ai-agents-in-langgraph/)短期课程。

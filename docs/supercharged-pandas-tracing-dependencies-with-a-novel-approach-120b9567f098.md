@@ -1,16 +1,16 @@
 # 超级增强的 Pandas：用新颖的方法追踪依赖关系
 
-> 原文：[https://towardsdatascience.com/supercharged-pandas-tracing-dependencies-with-a-novel-approach-120b9567f098?source=collection_archive---------5-----------------------#2024-03-11](https://towardsdatascience.com/supercharged-pandas-tracing-dependencies-with-a-novel-approach-120b9567f098?source=collection_archive---------5-----------------------#2024-03-11)
+> 原文：[`towardsdatascience.com/supercharged-pandas-tracing-dependencies-with-a-novel-approach-120b9567f098?source=collection_archive---------5-----------------------#2024-03-11`](https://towardsdatascience.com/supercharged-pandas-tracing-dependencies-with-a-novel-approach-120b9567f098?source=collection_archive---------5-----------------------#2024-03-11)
 
 ## 一种面向对象的方法，用于管理多个文件和数据框，以及追踪依赖关系。
 
-[](https://jiweiliew.medium.com/?source=post_page---byline--120b9567f098--------------------------------)[![Ji Wei Liew](../Images/f1b7267530b9a97106e6464b7b45ed85.png)](https://jiweiliew.medium.com/?source=post_page---byline--120b9567f098--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--120b9567f098--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--120b9567f098--------------------------------) [Ji Wei Liew](https://jiweiliew.medium.com/?source=post_page---byline--120b9567f098--------------------------------)
+[](https://jiweiliew.medium.com/?source=post_page---byline--120b9567f098--------------------------------)![Ji Wei Liew](https://jiweiliew.medium.com/?source=post_page---byline--120b9567f098--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--120b9567f098--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--120b9567f098--------------------------------) [Ji Wei Liew](https://jiweiliew.medium.com/?source=post_page---byline--120b9567f098--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--120b9567f098--------------------------------) ·阅读时长7分钟·2024年3月11日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--120b9567f098--------------------------------) ·阅读时长 7 分钟·2024 年 3 月 11 日
 
 --
 
-![](../Images/ffb40d7bb751829cffac88c7ba2def2c.png)
+![](img/ffb40d7bb751829cffac88c7ba2def2c.png)
 
 图片由[Sibel Yıldırım](https://unsplash.com/@sibelle?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源于[Unsplash](https://unsplash.com/photos/red-maple-leaf-and-eyeglasses-with-black-frames-on-white-bookpage-J6YInqMXD6c?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -44,7 +44,7 @@
 
 # 单体脚本：它是如何开始的
 
-假设你有3个csv文件：`file1.csv`、`file2.csv`、`file3.csv`。你编写了一些代码来读取它们中的每一个，然后按特定顺序将它们合并。
+假设你有 3 个 csv 文件：`file1.csv`、`file2.csv`、`file3.csv`。你编写了一些代码来读取它们中的每一个，然后按特定顺序将它们合并。
 
 ```py
 df1 = pd.read_csv('file1.csv')
@@ -135,9 +135,9 @@ class Reports:
 
 你深深地吸了一口气，心想……代码能否搞明白，如果`self.df1_2`没有被设置，那么它应该调用`self.get_df1_2()`？更普遍地说，当访问的属性不存在时，能否识别出哪个方法负责设置它，然后调用这个方法？如果能做到这一点，那么你可以通过`x=Reports(); x.df1_2_3`在一个命令中得到所需的数据框。
 
-> 这难道不值得为之奋斗吗？这难道不值得为之牺牲吗？——摩菲斯，《黑客帝国：重装上阵》，2003年
+> 这难道不值得为之奋斗吗？这难道不值得为之牺牲吗？——摩菲斯，《黑客帝国：重装上阵》，2003 年
 
-就像一个疯狂的科学家在工作，你开始猛击键盘，偶尔抬头，用手指在空中画出编程抽象图，并将它们连接起来。从眼角的余光中，你注意到一个你从未见过的同事露出困惑的表情——或者可能是厌恶的表情，但你无法确定。你把所有的注意力都集中在进入心流状态，完全忽视了周围发生的一切。大楼可能着火了，但只要你可靠的Notepad++继续显示你输入的每一个键，你根本不会察觉。
+就像一个疯狂的科学家在工作，你开始猛击键盘，偶尔抬头，用手指在空中画出编程抽象图，并将它们连接起来。从眼角的余光中，你注意到一个你从未见过的同事露出困惑的表情——或者可能是厌恶的表情，但你无法确定。你把所有的注意力都集中在进入心流状态，完全忽视了周围发生的一切。大楼可能着火了，但只要你可靠的 Notepad++继续显示你输入的每一个键，你根本不会察觉。
 
 ```py
 files = {'df1': 'file1.csv', 'df2': 'file2.csv',
@@ -242,9 +242,9 @@ class Reports:
 
 我强烈建议你在下次需要分析涉及多个数据框的数据时尝试这种方法。
 
-+   对于Python新手，你只需复制粘贴`Reports`类、`__init__`、`__getattr__`和`_build_shortcuts`方法。显然，你需要编写自己的方法并更新`_build_shortcuts`中的`dict0`。
++   对于 Python 新手，你只需复制粘贴`Reports`类、`__init__`、`__getattr__`和`_build_shortcuts`方法。显然，你需要编写自己的方法并更新`_build_shortcuts`中的`dict0`。
 
-+   对于Python专家，我很想听听你对我的方法的看法，如果你正在做类似的事情，或做得更好，请分享。
++   对于 Python 专家，我很想听听你对我的方法的看法，如果你正在做类似的事情，或做得更好，请分享。
 
 ## 免责声明
 

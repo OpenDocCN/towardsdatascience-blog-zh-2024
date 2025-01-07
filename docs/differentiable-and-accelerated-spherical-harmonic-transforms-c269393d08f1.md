@@ -1,18 +1,18 @@
 # 可微分且加速的球面调和变换
 
-> 原文：[https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1?source=collection_archive---------12-----------------------#2024-03-14](https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1?source=collection_archive---------12-----------------------#2024-03-14)
+> 原文：[`towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1?source=collection_archive---------12-----------------------#2024-03-14`](https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1?source=collection_archive---------12-----------------------#2024-03-14)
 
-## 在JAX和PyTorch中
+## 在 JAX 和 PyTorch 中
 
-[](https://jasonmcewen.medium.com/?source=post_page---byline--c269393d08f1--------------------------------)[![Jason McEwen](../Images/794e7e6546ed049860dab5e294535880.png)](https://jasonmcewen.medium.com/?source=post_page---byline--c269393d08f1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c269393d08f1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c269393d08f1--------------------------------) [Jason McEwen](https://jasonmcewen.medium.com/?source=post_page---byline--c269393d08f1--------------------------------)
+[](https://jasonmcewen.medium.com/?source=post_page---byline--c269393d08f1--------------------------------)![Jason McEwen](https://jasonmcewen.medium.com/?source=post_page---byline--c269393d08f1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c269393d08f1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c269393d08f1--------------------------------) [Jason McEwen](https://jasonmcewen.medium.com/?source=post_page---byline--c269393d08f1--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c269393d08f1--------------------------------) ·阅读时间7分钟·2024年3月14日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c269393d08f1--------------------------------) ·阅读时间 7 分钟·2024 年 3 月 14 日
 
 --
 
-*许多科学和工程领域都涉及定义在球面上的数据。对这些数据的建模和分析通常需要傅里叶变换的球面对应物——球面调和变换。我们简要概述了球面调和变换，并提出了一种新型的可微分算法，旨在加速GPU运算[1]。该算法已在最近发布的* [*S2FFT*](https://pypi.org/project/s2fft/) *Python包中实现，支持JAX和PyTorch。*
+*许多科学和工程领域都涉及定义在球面上的数据。对这些数据的建模和分析通常需要傅里叶变换的球面对应物——球面调和变换。我们简要概述了球面调和变换，并提出了一种新型的可微分算法，旨在加速 GPU 运算[1]。该算法已在最近发布的* [*S2FFT*](https://pypi.org/project/s2fft/) *Python 包中实现，支持 JAX 和 PyTorch。*
 
-![](../Images/7e7c243f31089774071add693cce6378.png)
+![](img/7e7c243f31089774071add693cce6378.png)
 
 图片由[Szilvia Basso](https://unsplash.com/@szilviabasso?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -20,19 +20,19 @@
 
 在物理科学中，尤其是在大气科学、地球物理建模和天体物理学中，球面数据是最常见的。
 
-![](../Images/ddf5911d3de49554421ad6bc18a1cecf.png)
+![](img/ddf5911d3de49554421ad6bc18a1cecf.png)
 
 *球面数据中最广为人知的案例，如地球（左）和天文观测的艺术印象（右）。[地球图片来源于* [*维基百科*](https://en.wikipedia.org/wiki/Earth#/media/File:The_Blue_Marble_(remastered).jpg)*；天体物理学图像来源于* [*维基百科*](https://commons.wikimedia.org/wiki/File:Observable_sphere_for_3d.png)*。]*
 
-这些问题天生具有球面性质，因为观察是在球面上的每一点进行的：地球表面用于地球物理学，天空用于天体物理学。其他例子来自于计算机图形学和视觉应用，其中360°全景摄像头可以捕捉你周围环境的每一个方向。
+这些问题天生具有球面性质，因为观察是在球面上的每一点进行的：地球表面用于地球物理学，天空用于天体物理学。其他例子来自于计算机图形学和视觉应用，其中 360°全景摄像头可以捕捉你周围环境的每一个方向。
 
 在许多情况下，问题的球面性质是比较容易看出的；然而，这并非总是如此。或许令人惊讶的是，球面数据在生物学领域中经常出现，尽管球面特性往往不太显而易见！由于我们在生物学研究中通常关注局部方向，例如水在大脑中的扩散方向，因此我们会遇到球面数据。
 
-![](../Images/e0dac82e7963d830f7a0aee8ffcf6c7c.png)
+![](img/e0dac82e7963d830f7a0aee8ffcf6c7c.png)
 
 人类大脑神经连接的扩散张量成像。每个体素中的神经元可以自由地朝任何方向移动，因此问题本质上是球面的。[动画由[Alfred Anwander](https://www.youtube.com/watch?v=jrC8iY6_aZQ)制作，CC-BY 许可。]
 
-鉴于此类数据的普遍存在，许多球面分析技术应运而生，频率分析常常能为数据提供有价值的见解，通常有助于提供统计摘要或有效的表示形式，用于进一步的分析或建模。最近，几何深度学习技术在复杂领域的数据分析中已被证明非常有效，尤其是在分子建模和蛋白质相互作用等高度复杂的问题中（请参阅我们之前关于[几何深度学习简介](/a-brief-introduction-to-geometric-deep-learning-dae114923ddb)的文章）。
+鉴于此类数据的普遍存在，许多球面分析技术应运而生，频率分析常常能为数据提供有价值的见解，通常有助于提供统计摘要或有效的表示形式，用于进一步的分析或建模。最近，几何深度学习技术在复杂领域的数据分析中已被证明非常有效，尤其是在分子建模和蛋白质相互作用等高度复杂的问题中（请参阅我们之前关于几何深度学习简介的文章）。
 
 # 傅里叶遇见勒让德
 
@@ -40,29 +40,29 @@
 
 傅里叶变换提供了一种频率分解，常用于计算数据中的统计相关性。许多物理系统也可以在频率空间中更直接地描述，因为每个频率可能独立演变。
 
-要将标准傅里叶变换扩展到球面，我们需要两位17世纪法国数学家的共同努力：约瑟夫·傅里叶和阿德里安-玛丽·勒让德。
+要将标准傅里叶变换扩展到球面，我们需要两位 17 世纪法国数学家的共同努力：约瑟夫·傅里叶和阿德里安-玛丽·勒让德。
 
-![](../Images/e6febed8df967a8920340d59a729ddb3.png)
+![](img/e6febed8df967a8920340d59a729ddb3.png)
 
 *约瑟夫·傅里叶（左）和阿德里安-玛丽·勒让德（右）。不幸的是，勒让德的漫画是唯一已知的他的形象。[傅里叶图像来源于* [*维基百科*](https://en.wikipedia.org/wiki/Joseph_Fourier#/media/File:Fourier2_-_restoration1.jpg)*。勒让德图像来源于* [*维基百科*](https://en.wikipedia.org/wiki/Adrien-Marie_Legendre#/media/File:Legendre.jpg)*。]*
 
 首先，让我们考虑如何将欧几里得数据分解成不同的频率。这种数据变换最初由约瑟夫·傅里叶推导出来，公式如下：
 
-![](../Images/8f4bec303a92c421588d95ccd18b3c39.png)
+![](img/8f4bec303a92c421588d95ccd18b3c39.png)
 
 这种方法几乎无处不在，且成为本科物理课程中的基础！它通过将我们的数据 *f(x)* 投影到一组三角函数上，称为 *基函数*。在球面上也可以做到类似的事情，但基函数现在由球面调和函数 *Y*ₗₘ 给出：
 
-![](../Images/141c7fe048f6d114981acce3a02afecf.png)
+![](img/141c7fe048f6d114981acce3a02afecf.png)
 
 *(θ, ϕ)* 是通常的球面坐标。
 
-![](../Images/3f74cf4e9478035b41c9cd47006913c1.png)
+![](img/3f74cf4e9478035b41c9cd47006913c1.png)
 
 *球面调和基函数（实部）。[来源自* [*维基百科*](https://en.wikipedia.org/wiki/Spherical_harmonics#/media/File:Rotating_spherical_harmonics.gif)*.]*
 
 球面调和函数（如上图所示）可以进一步分解为指数和勒让德多项式的乘积——按照阿德里安-玛丽·勒让德的方式——如
 
-![](../Images/8c018bd30e66612955ad031cd008a6b9.png)
+![](img/8c018bd30e66612955ad031cd008a6b9.png)
 
 因此，球面调和变换可以写成先进行傅里叶变换，然后是伴随的勒让德变换。真正的难点在于评估变换中的勒让德部分：这取决于所选方法，它要么计算开销大，要么占用大量内存。
 
@@ -84,7 +84,7 @@
 
 S2FFT 是用 Google 开发的可微编程语言 [JAX](https://jax.readthedocs.io/en/latest/) 实现的，并且还包括一个 [PyTorch](https://pytorch.org) 前端。
 
-![](../Images/1d5e836033551ce7e77b706564bc752c.png)
+![](img/1d5e836033551ce7e77b706564bc752c.png)
 
 [*S2FFT*](https://github.com/astro-informatics/s2fft) *是一个实现可微分和加速的球面调和变换的 Python 包，支持 JAX 和 PyTorch 接口。[图像由作者创建。]*
 
@@ -94,7 +94,7 @@ S2FFT 提供了两种操作模式：预计算关联的勒让德函数，然后�
 
 该软件包旨在支持球面上多种不同的采样方案。在发布时，支持等角度（[McEwen & Wiaux](https://arxiv.org/abs/1110.6298) [9]，[Driscoll & Healy](https://www.sciencedirect.com/science/article/pii/S0196885884710086) [10]）、高斯-勒让德和 [HEALPix](https://healpix.jpl.nasa.gov/) [11] 采样方案，未来也可以轻松添加其他方案。
 
-![](../Images/5ff8eb88b0cdba3b35cfad460f1af674.png)
+![](img/5ff8eb88b0cdba3b35cfad460f1af674.png)
 
 *支持球面上不同采样方案的* [*S2FFT*](https://github.com/astro-informatics/s2fft)*。 [原始图由作者创建。]*
 
@@ -146,7 +146,7 @@ f = s2fft.inverse_jax(flm, L)
 
 [7] Karniadakis 等，*物理启发的机器学习*， [Nature Reviews Physics](https://www.nature.com/articles/s42254-021-00314-5) (2021)。
 
-[8] Campagne 等，*Jax-cosmo：一个端到端可微分的、GPU加速的宇宙学库*， [arXiv:2302.05163](https://arxiv.org/abs/2302.05163) (2023)。
+[8] Campagne 等，*Jax-cosmo：一个端到端可微分的、GPU 加速的宇宙学库*， [arXiv:2302.05163](https://arxiv.org/abs/2302.05163) (2023)。
 
 [9] McEwen & Wiaux，*球面上的一种新型采样定理*， [IEEE TSP](https://arxiv.org/abs/1110.6298) (2012)。
 

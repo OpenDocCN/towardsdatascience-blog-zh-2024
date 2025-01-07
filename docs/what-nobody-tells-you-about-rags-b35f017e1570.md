@@ -1,16 +1,16 @@
 # 关于 RAG 的那些事，没有人告诉你
 
-> 原文：[https://towardsdatascience.com/what-nobody-tells-you-about-rags-b35f017e1570?source=collection_archive---------0-----------------------#2024-08-23](https://towardsdatascience.com/what-nobody-tells-you-about-rags-b35f017e1570?source=collection_archive---------0-----------------------#2024-08-23)
+> 原文：[`towardsdatascience.com/what-nobody-tells-you-about-rags-b35f017e1570?source=collection_archive---------0-----------------------#2024-08-23`](https://towardsdatascience.com/what-nobody-tells-you-about-rags-b35f017e1570?source=collection_archive---------0-----------------------#2024-08-23)
 
 ## 深入探讨为什么 RAG 并不总是按预期工作：概述其背后的商业价值、数据和技术。
 
-[](https://ahmedbesbes.medium.com/?source=post_page---byline--b35f017e1570--------------------------------)[![Ahmed Besbes](../Images/93804d9291439715e578f204b79c9bdd.png)](https://ahmedbesbes.medium.com/?source=post_page---byline--b35f017e1570--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b35f017e1570--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b35f017e1570--------------------------------) [Ahmed Besbes](https://ahmedbesbes.medium.com/?source=post_page---byline--b35f017e1570--------------------------------)
+[](https://ahmedbesbes.medium.com/?source=post_page---byline--b35f017e1570--------------------------------)![Ahmed Besbes](https://ahmedbesbes.medium.com/?source=post_page---byline--b35f017e1570--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b35f017e1570--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b35f017e1570--------------------------------) [Ahmed Besbes](https://ahmedbesbes.medium.com/?source=post_page---byline--b35f017e1570--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b35f017e1570--------------------------------) ·阅读时间 11 分钟·2024年8月23日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b35f017e1570--------------------------------) ·阅读时间 11 分钟·2024 年 8 月 23 日
 
 --
 
-![](../Images/e654c21fcb441774831125c79a5f377d.png)
+![](img/e654c21fcb441774831125c79a5f377d.png)
 
 图片来源：[Lisa Boonaerts](https://unsplash.com/@lisaboonaerts?utm_source=medium&utm_medium=referral) 来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,12 +1,12 @@
 # 启动你的数据科学之旅——数据科学家入门指南
 
-> 原文：[https://towardsdatascience.com/kickstart-your-data-science-journey-a-guide-for-aspiring-data-scientists-96e5072bd19a?source=collection_archive---------3-----------------------#2024-11-06](https://towardsdatascience.com/kickstart-your-data-science-journey-a-guide-for-aspiring-data-scientists-96e5072bd19a?source=collection_archive---------3-----------------------#2024-11-06)
+> 原文：[`towardsdatascience.com/kickstart-your-data-science-journey-a-guide-for-aspiring-data-scientists-96e5072bd19a?source=collection_archive---------3-----------------------#2024-11-06`](https://towardsdatascience.com/kickstart-your-data-science-journey-a-guide-for-aspiring-data-scientists-96e5072bd19a?source=collection_archive---------3-----------------------#2024-11-06)
 
 ## 启动数据科学职业生涯所需的关键技术技能
 
-[](https://saankhya.medium.com/?source=post_page---byline--96e5072bd19a--------------------------------)[![Saankhya Mondal](../Images/b22ffe3b52c6c3bcfafaeed3812811d8.png)](https://saankhya.medium.com/?source=post_page---byline--96e5072bd19a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--96e5072bd19a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--96e5072bd19a--------------------------------) [Saankhya Mondal](https://saankhya.medium.com/?source=post_page---byline--96e5072bd19a--------------------------------)
+[](https://saankhya.medium.com/?source=post_page---byline--96e5072bd19a--------------------------------)![Saankhya Mondal](https://saankhya.medium.com/?source=post_page---byline--96e5072bd19a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--96e5072bd19a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--96e5072bd19a--------------------------------) [Saankhya Mondal](https://saankhya.medium.com/?source=post_page---byline--96e5072bd19a--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--96e5072bd19a--------------------------------) ·15分钟阅读·2024年11月6日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--96e5072bd19a--------------------------------) ·15 分钟阅读·2024 年 11 月 6 日
 
 --
 
@@ -18,7 +18,7 @@
 
 数据科学应用于多个行业，如金融、医疗、社交媒体、旅游、电子商务、机器人、军事和间谍活动。
 
-![](../Images/1effa0f4b75d9cdedf11a89673fc04c7.png)
+![](img/1effa0f4b75d9cdedf11a89673fc04c7.png)
 
 使用 GPT 4o 生成的图像
 

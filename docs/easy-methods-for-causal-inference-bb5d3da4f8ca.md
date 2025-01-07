@@ -1,16 +1,16 @@
 # 因果推断的简单方法
 
-> 原文：[https://towardsdatascience.com/easy-methods-for-causal-inference-bb5d3da4f8ca?source=collection_archive---------2-----------------------#2024-02-20](https://towardsdatascience.com/easy-methods-for-causal-inference-bb5d3da4f8ca?source=collection_archive---------2-----------------------#2024-02-20)
+> 原文：[`towardsdatascience.com/easy-methods-for-causal-inference-bb5d3da4f8ca?source=collection_archive---------2-----------------------#2024-02-20`](https://towardsdatascience.com/easy-methods-for-causal-inference-bb5d3da4f8ca?source=collection_archive---------2-----------------------#2024-02-20)
 
 ## 将你最喜欢的模型与元学习者结合起来，做出有效的因果推断
 
-[](https://dr-robert-kuebler.medium.com/?source=post_page---byline--bb5d3da4f8ca--------------------------------)[![Dr. Robert Kübler](../Images/3b8d8b88f76c0c43d9c305e3885e7ab9.png)](https://dr-robert-kuebler.medium.com/?source=post_page---byline--bb5d3da4f8ca--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bb5d3da4f8ca--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bb5d3da4f8ca--------------------------------) [Dr. Robert Kübler](https://dr-robert-kuebler.medium.com/?source=post_page---byline--bb5d3da4f8ca--------------------------------)
+[](https://dr-robert-kuebler.medium.com/?source=post_page---byline--bb5d3da4f8ca--------------------------------)![Dr. Robert Kübler](https://dr-robert-kuebler.medium.com/?source=post_page---byline--bb5d3da4f8ca--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bb5d3da4f8ca--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb5d3da4f8ca--------------------------------) [Dr. Robert Kübler](https://dr-robert-kuebler.medium.com/?source=post_page---byline--bb5d3da4f8ca--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb5d3da4f8ca--------------------------------) ·阅读时间10分钟·2024年2月20日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb5d3da4f8ca--------------------------------) ·阅读时间 10 分钟·2024 年 2 月 20 日
 
 --
 
-![](../Images/b4c61e7acf7579403b0c0d5dcd23d636.png)
+![](img/b4c61e7acf7579403b0c0d5dcd23d636.png)
 
 图片由[Mika Baumeister](https://unsplash.com/@kommumikation?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

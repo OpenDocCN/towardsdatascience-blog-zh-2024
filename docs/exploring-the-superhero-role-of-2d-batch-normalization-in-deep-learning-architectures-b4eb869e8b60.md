@@ -1,56 +1,56 @@
 # 探索二维批量归一化在深度学习架构中的超级英雄角色
 
-> 原文：[https://towardsdatascience.com/exploring-the-superhero-role-of-2d-batch-normalization-in-deep-learning-architectures-b4eb869e8b60?source=collection_archive---------9-----------------------#2024-01-12](https://towardsdatascience.com/exploring-the-superhero-role-of-2d-batch-normalization-in-deep-learning-architectures-b4eb869e8b60?source=collection_archive---------9-----------------------#2024-01-12)
+> 原文：[`towardsdatascience.com/exploring-the-superhero-role-of-2d-batch-normalization-in-deep-learning-architectures-b4eb869e8b60?source=collection_archive---------9-----------------------#2024-01-12`](https://towardsdatascience.com/exploring-the-superhero-role-of-2d-batch-normalization-in-deep-learning-architectures-b4eb869e8b60?source=collection_archive---------9-----------------------#2024-01-12)
 
 ## 通过简单的例子来解释内部工作原理和直觉
 
-[](https://murali-kashaboina.medium.com/?source=post_page---byline--b4eb869e8b60--------------------------------)[![Murali Kashaboina](../Images/ff1118f3c317dab87fe4b625a614fb93.png)](https://murali-kashaboina.medium.com/?source=post_page---byline--b4eb869e8b60--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b4eb869e8b60--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b4eb869e8b60--------------------------------) [Murali Kashaboina](https://murali-kashaboina.medium.com/?source=post_page---byline--b4eb869e8b60--------------------------------)
+[](https://murali-kashaboina.medium.com/?source=post_page---byline--b4eb869e8b60--------------------------------)![Murali Kashaboina](https://murali-kashaboina.medium.com/?source=post_page---byline--b4eb869e8b60--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b4eb869e8b60--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4eb869e8b60--------------------------------) [Murali Kashaboina](https://murali-kashaboina.medium.com/?source=post_page---byline--b4eb869e8b60--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4eb869e8b60--------------------------------) ·10分钟阅读·2024年1月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4eb869e8b60--------------------------------) ·10 分钟阅读·2024 年 1 月 12 日
 
 --
 
-![](../Images/4e13dca13cb4875088d4c47bef20965f.png)
+![](img/4e13dca13cb4875088d4c47bef20965f.png)
 
 图像由作者创建
 
-深度学习（DL）在卷积神经网络（CNN）和生成式人工智能（Gen AI）的发展中起到了革命性的作用。这样的深度学习模型能够从多维空间数据（如图像）中提取复杂的模式和特征，并进行预测。输入数据中的模式越复杂，模型架构也可以越复杂。有很多方法可以加速模型训练的收敛速度并提升模型推理性能，但二维批量归一化（BN2D）已经成为该领域的“超级英雄”。本文旨在展示将BN2D集成到深度学习架构中如何带来更快的收敛速度和更好的推理效果。
+深度学习（DL）在卷积神经网络（CNN）和生成式人工智能（Gen AI）的发展中起到了革命性的作用。这样的深度学习模型能够从多维空间数据（如图像）中提取复杂的模式和特征，并进行预测。输入数据中的模式越复杂，模型架构也可以越复杂。有很多方法可以加速模型训练的收敛速度并提升模型推理性能，但二维批量归一化（BN2D）已经成为该领域的“超级英雄”。本文旨在展示将 BN2D 集成到深度学习架构中如何带来更快的收敛速度和更好的推理效果。
 
-## 了解BN2D
+## 了解 BN2D
 
-BN2D是一种归一化技术，应用于批量处理的多维空间输入（如图像），通过归一化它们的维度（通道）值，使得这些批次中的各维度具有均值为0，方差为1的分布。
+BN2D 是一种归一化技术，应用于批量处理的多维空间输入（如图像），通过归一化它们的维度（通道）值，使得这些批次中的各维度具有均值为 0，方差为 1 的分布。
 
-引入BN2D组件的主要目的是防止输入数据在网络中前一层的维度或通道之间出现内部协变量偏移。维度之间的内部协变量偏移发生在训练周期中，由于网络参数的更新，维度数据的分布发生变化。例如，卷积层中的N个滤波器会产生N维的激活作为输出。该层为其滤波器维护权重和偏差参数，这些参数会在每个训练周期中逐步更新。
+引入 BN2D 组件的主要目的是防止输入数据在网络中前一层的维度或通道之间出现内部协变量偏移。维度之间的内部协变量偏移发生在训练周期中，由于网络参数的更新，维度数据的分布发生变化。例如，卷积层中的 N 个滤波器会产生 N 维的激活作为输出。该层为其滤波器维护权重和偏差参数，这些参数会在每个训练周期中逐步更新。
 
 由于这些更新，来自一个滤波器的激活可能与来自同一卷积层的另一个滤波器的激活有明显不同的分布。这种分布差异表明，一个滤波器的激活与另一个滤波器的激活处于完全不同的尺度。当这样的维度数据以相差悬殊的尺度输入到网络的下一个层时，网络该层的可学习性会受到影响，因为尺度较大的维度在梯度下降时需要较大的更新，而尺度较小的维度则需要较小的更新。
 
-另一种可能的后果是，尺度较小的权重梯度可能会消失，而尺度较大的权重梯度可能会爆炸。当网络遇到这种学习障碍时，梯度下降将在较大尺度的维度之间震荡，严重阻碍学习收敛和训练稳定性。BN2D通过将维度数据标准化为均值为0、标准差为1的标准尺度，有效缓解了这种现象，并促进了训练期间的更快收敛，减少了达到最佳性能所需的训练周期数。因此，通过简化网络的训练过程，该技术确保网络可以集中精力学习更复杂、更抽象的特征，从输入数据中提取更丰富的表示。
+另一种可能的后果是，尺度较小的权重梯度可能会消失，而尺度较大的权重梯度可能会爆炸。当网络遇到这种学习障碍时，梯度下降将在较大尺度的维度之间震荡，严重阻碍学习收敛和训练稳定性。BN2D 通过将维度数据标准化为均值为 0、标准差为 1 的标准尺度，有效缓解了这种现象，并促进了训练期间的更快收敛，减少了达到最佳性能所需的训练周期数。因此，通过简化网络的训练过程，该技术确保网络可以集中精力学习更复杂、更抽象的特征，从输入数据中提取更丰富的表示。
 
-在标准实践中，BN2D实例被插入在卷积层后，但在激活层之前，如图1所示的示例深度学习网络中。
+在标准实践中，BN2D 实例被插入在卷积层后，但在激活层之前，如图 1 所示的示例深度学习网络中。
 
-![](../Images/cfa49a7a52a210f3ec43e17f7ad888cd.png)
+![](img/cfa49a7a52a210f3ec43e17f7ad888cd.png)
 
-图1：一个示例深度卷积神经网络（图片由作者创建）
+图 1：一个示例深度卷积神经网络（图片由作者创建）
 
-## BN2D的内部工作原理
+## BN2D 的内部工作原理
 
-图2展示了一个简单的多维空间数据批次（如3通道图像），用来说明BN2D技术的内部工作原理。
+图 2 展示了一个简单的多维空间数据批次（如 3 通道图像），用来说明 BN2D 技术的内部工作原理。
 
-![](../Images/e9409d2f31f38493938b0732c1cc2d97.png)
+![](img/e9409d2f31f38493938b0732c1cc2d97.png)
 
-图2：BN2D的内部工作原理（图片由作者创建）
+图 2：BN2D 的内部工作原理（图片由作者创建）
 
-如图2所示，BN2D通过在每个维度或通道上处理一个批次来工作。如果输入批次有N个维度或通道，则该BN2D实例将具有N个BN2D层。示例中对红色、绿色和蓝色通道的独立处理意味着相应的BN2D实例具有3个BN2D层。
+如图 2 所示，BN2D 通过在每个维度或通道上处理一个批次来工作。如果输入批次有 N 个维度或通道，则该 BN2D 实例将具有 N 个 BN2D 层。示例中对红色、绿色和蓝色通道的独立处理意味着相应的 BN2D 实例具有 3 个 BN2D 层。
 
-![](../Images/71f2e87fc6285cac9df0f5a7a429c310.png)
+![](img/71f2e87fc6285cac9df0f5a7a429c310.png)
 
-图3：BN2D使用的公式（图片由作者创建）
+图 3：BN2D 使用的公式（图片由作者创建）
 
 在训练过程中，BN2D 为每个批次维度计算均值和方差，并按照图 2 所示的方式进行归一化，使用图 3 所示的训练时公式。预设的 epsilon（ε）是分母中的常数，用于避免除以零的情况。BN2D 实例为每个维度或 BN2D 层维护可学习的缩放（γ）和平移（β）参数，这些参数在训练优化过程中进行更新。BN2D 实例还维护每个 BN2D 层的移动平均和方差，如图 2 所示，这些值在训练过程中根据图 3 所示的公式进行更新。预设的动量（α）作为指数平均因子使用。
 
 在推理过程中，使用图 3 所示的推理时公式，BN2D 实例会为每个维度使用维度特定的移动平均、移动方差以及学习到的缩放（γ）和平移（β）参数来归一化数值。图 2 显示了每个批次输入维度的示例训练时批量归一化计算。图 2 中的示例还展示了 BN2D 实例的输出，包含整个批次的独立维度或通道归一化。用于演示图 2 中示例的 PyTorch Jupyter Notebook 可通过以下 GitHub 仓库访问。
 
-[https://github.com/kbmurali/hindi_hw_digits/blob/main/how_batch_norm2d_works.ipynb](https://github.com/kbmurali/hindi_hw_digits/blob/main/how_batch_norm2d_works.ipynb)
+[`github.com/kbmurali/hindi_hw_digits/blob/main/how_batch_norm2d_works.ipynb`](https://github.com/kbmurali/hindi_hw_digits/blob/main/how_batch_norm2d_works.ipynb)
 
 ## BN2D 的应用
 
@@ -64,11 +64,11 @@ BN2D是一种归一化技术，应用于批量处理的多维空间输入（如�
 
 ## 示例数据集
 
-印地语手写数字（0–9）数据由 Kaggle 发布，数据链接为 [https://www.kaggle.com/datasets/suvooo/hindi-character-recognition/data](https://www.kaggle.com/datasets/suvooo/hindi-character-recognition/data)（GNU 许可证），用于训练和测试包含和不包含 BN2D 的卷积深度学习模型。请参考本文顶部的横幅图片，查看印地语数字的书写方式。深度学习模型的网络使用 PyTorch 深度学习模块构建。选择印地语手写数字而非英语手写数字，是因为前者的复杂度高于后者。由于印地语数字中的曲线比直线更多，因此在印地语数字中的边缘检测比在英语数字中更具挑战性。此外，由于书写风格的不同，同一个数字的书写方式可能会有更多变化。
+印地语手写数字（0–9）数据由 Kaggle 发布，数据链接为 [`www.kaggle.com/datasets/suvooo/hindi-character-recognition/data`](https://www.kaggle.com/datasets/suvooo/hindi-character-recognition/data)（GNU 许可证），用于训练和测试包含和不包含 BN2D 的卷积深度学习模型。请参考本文顶部的横幅图片，查看印地语数字的书写方式。深度学习模型的网络使用 PyTorch 深度学习模块构建。选择印地语手写数字而非英语手写数字，是因为前者的复杂度高于后者。由于印地语数字中的曲线比直线更多，因此在印地语数字中的边缘检测比在英语数字中更具挑战性。此外，由于书写风格的不同，同一个数字的书写方式可能会有更多变化。
 
 开发了一个实用的 Python 函数，使得访问数字数据更加符合 PyTorch 数据集/数据加载器的标准，如下代码片段所示。训练数据集包含 17000 个样本，测试数据集包含 3000 个样本。请注意，在加载图像为 PyTorch 张量时，应用了 PyTorch 灰度图像转换器。一个名为‘ml_utils.py’的实用模块专门用于封装函数，以使用 PyTorch 张量操作运行迭代周期，训练和测试深度学习模型。训练和测试函数还会捕获模型的指标，以帮助评估模型的表现。Python 笔记本和实用模块可以在作者的公开 GitHub 仓库中找到，链接如下所示。
 
-[https://github.com/kbmurali/hindi_hw_digits](https://github.com/kbmurali/hindi_hw_digits)
+[`github.com/kbmurali/hindi_hw_digits`](https://github.com/kbmurali/hindi_hw_digits)
 
 ```py
 import torch
@@ -105,7 +105,7 @@ test_loader = DataLoader( test_dataset, batch_size=batch_size )
 
 第一个深度学习（DL）模型包含三个卷积层，每个卷积层有 16 个滤波器，卷积核大小为 3，填充为 1，从而实现‘Same’卷积。每个卷积层的激活函数是修正线性单元（ReLU）。最大池化层的池大小为 2，位于全连接层之前，最终通过 softmax 层输出 10 类结果。该模型的网络架构如图 4 所示。相应的 PyTorch 模型定义如下代码片段所示。
 
-![](../Images/79421bd55a1a4a869202dca57b2c0c89.png)
+![](img/79421bd55a1a4a869202dca57b2c0c89.png)
 
 图 4：没有 BN2D 的卷积网络（图片由作者创建）
 
@@ -136,7 +136,7 @@ three_convs_model = nn.Sequential(
 
 第二个深度学习（DL）模型与第一个模型结构类似，但在卷积后和激活前引入了 BN2D 实例。该模型的网络架构如图 5 所示。相应的 PyTorch 模型定义如下代码片段所示。
 
-![](../Images/4c7125aa3003cee916a07be5148fd8e8.png)
+![](img/4c7125aa3003cee916a07be5148fd8e8.png)
 
 图 5：带 BN2D 的卷积网络（图片由作者创建）
 
@@ -202,48 +202,48 @@ three_convs_wth_bn_model_results_df = train_model(
                                                  )
 ```
 
-## 发现1：更高的测试准确度
+## 发现 1：更高的测试准确度
 
-使用BN2D实例时，DL模型的测试准确度更高，如图6所示。使用BN2D的模型在训练轮次中测试准确度逐渐提高，而没有BN2D的模型则在训练轮次中出现波动。在第30个训练轮次结束时，使用BN2D的模型测试准确度为99.1%，而没有BN2D的模型为92.4%。这些结果表明，加入BN2D实例对模型的表现有积极影响，显著提高了测试准确度。
+使用 BN2D 实例时，DL 模型的测试准确度更高，如图 6 所示。使用 BN2D 的模型在训练轮次中测试准确度逐渐提高，而没有 BN2D 的模型则在训练轮次中出现波动。在第 30 个训练轮次结束时，使用 BN2D 的模型测试准确度为 99.1%，而没有 BN2D 的模型为 92.4%。这些结果表明，加入 BN2D 实例对模型的表现有积极影响，显著提高了测试准确度。
 
 ```py
 sns.lineplot( x='epoch', y='test accuracy', data=three_convs_model_results_df, label="Three Convs Without BN2D Model" )
 sns.lineplot( x='epoch', y='test accuracy', data=three_convs_wth_bn_model_results_df, label="Three Convs Wth BN2D Model" )
 ```
 
-![](../Images/50762ac4b67a6cc01a89757113068d2e.png)
+![](img/50762ac4b67a6cc01a89757113068d2e.png)
 
-图6：测试准确度与训练轮次的关系（作者制作的图像）
+图 6：测试准确度与训练轮次的关系（作者制作的图像）
 
-## 发现2：更快的收敛
+## 发现 2：更快的收敛
 
-如图7所示，使用BN2D实例时，DL模型的训练损失显著较低。在大约第3个训练轮次时，使用BN2D的模型比没有BN2D的模型表现出较低的训练损失。较低的训练损失表明，BN2D有助于训练过程中更快的收敛，可能减少了合理收敛所需的训练轮次。
+如图 7 所示，使用 BN2D 实例时，DL 模型的训练损失显著较低。在大约第 3 个训练轮次时，使用 BN2D 的模型比没有 BN2D 的模型表现出较低的训练损失。较低的训练损失表明，BN2D 有助于训练过程中更快的收敛，可能减少了合理收敛所需的训练轮次。
 
 ```py
 sns.lineplot( x='epoch', y='train loss', data=three_convs_model_results_df, label="Three Convs Without BN2D Model" )
 sns.lineplot( x='epoch', y='train loss', data=three_convs_wth_bn_model_results_df, label="Three Convs Wth BN2D Model" )
 ```
 
-![](../Images/6f6fc394b8216181c525f7b720591c9f.png)
+![](img/6f6fc394b8216181c525f7b720591c9f.png)
 
-图7：训练损失与训练轮次的关系（作者制作的图像）
+图 7：训练损失与训练轮次的关系（作者制作的图像）
 
-## 发现3：更平滑的梯度下降
+## 发现 3：更平滑的梯度下降
 
-如图8所示，使用BN2D的模型在最后一个卷积层的两个样本权重上的损失函数呈现出比没有BN2D时更平滑的梯度下降。没有BN2D的模型的损失函数则表现为较为锯齿状的梯度下降。BN2D带来的更平滑的梯度下降表明，将维度数据归一化为均值为0、标准差为1的标准尺度，使得不同维度的权重可能处于类似的尺度，从而减少梯度下降过程中的波动。
+如图 8 所示，使用 BN2D 的模型在最后一个卷积层的两个样本权重上的损失函数呈现出比没有 BN2D 时更平滑的梯度下降。没有 BN2D 的模型的损失函数则表现为较为锯齿状的梯度下降。BN2D 带来的更平滑的梯度下降表明，将维度数据归一化为均值为 0、标准差为 1 的标准尺度，使得不同维度的权重可能处于类似的尺度，从而减少梯度下降过程中的波动。
 
 ```py
 fig1 = draw_loss_descent( three_convs_model_results_df, title='Three Convs Model Without BN2D Training Loss' )
 fig2 = draw_loss_descent( three_convs_wth_bn_model_results_df, title='Three Convs With BN2D Model Training Loss' )
 ```
 
-![](../Images/9094c7646a7ecb72dd92a28bb0925bc3.png)
+![](img/9094c7646a7ecb72dd92a28bb0925bc3.png)
 
-图8：样本权重上的损失函数梯度下降（作者制作的图像）
+图 8：样本权重上的损失函数梯度下降（作者制作的图像）
 
 ## 实际考虑
 
-虽然BN2D的好处显而易见，但其实现需要谨慎考虑。权重的正确初始化、合适的学习率以及BN2D层在DL网络中的位置都是最大化其效果的关键因素。尽管BN2D通常能防止过拟合，但在某些情况下，它可能反而促成过拟合。例如，当BN2D与另一种叫做Dropout的技术一起使用时，根据具体配置和数据集的不同，二者的组合可能对过拟合产生不同的影响。同样，在小批量数据的情况下，批量的均值和方差可能无法准确代表整个数据集的统计特性，这可能导致噪声归一化，从而无法有效防止过拟合。
+虽然 BN2D 的好处显而易见，但其实现需要谨慎考虑。权重的正确初始化、合适的学习率以及 BN2D 层在 DL 网络中的位置都是最大化其效果的关键因素。尽管 BN2D 通常能防止过拟合，但在某些情况下，它可能反而促成过拟合。例如，当 BN2D 与另一种叫做 Dropout 的技术一起使用时，根据具体配置和数据集的不同，二者的组合可能对过拟合产生不同的影响。同样，在小批量数据的情况下，批量的均值和方差可能无法准确代表整个数据集的统计特性，这可能导致噪声归一化，从而无法有效防止过拟合。
 
 ## 结论
 

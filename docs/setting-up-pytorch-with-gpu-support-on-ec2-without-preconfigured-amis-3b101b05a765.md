@@ -1,16 +1,16 @@
 # 在 EC2 上设置带 GPU 支持的 PyTorch，无需预配置的 AMI
 
-> 原文：[https://towardsdatascience.com/setting-up-pytorch-with-gpu-support-on-ec2-without-preconfigured-amis-3b101b05a765?source=collection_archive---------10-----------------------#2024-03-09](https://towardsdatascience.com/setting-up-pytorch-with-gpu-support-on-ec2-without-preconfigured-amis-3b101b05a765?source=collection_archive---------10-----------------------#2024-03-09)
+> 原文：[`towardsdatascience.com/setting-up-pytorch-with-gpu-support-on-ec2-without-preconfigured-amis-3b101b05a765?source=collection_archive---------10-----------------------#2024-03-09`](https://towardsdatascience.com/setting-up-pytorch-with-gpu-support-on-ec2-without-preconfigured-amis-3b101b05a765?source=collection_archive---------10-----------------------#2024-03-09)
 
 ## 一种具有成本效益的方法
 
-[](https://medium.com/@raicik.zach?source=post_page---byline--3b101b05a765--------------------------------)[![Zachary Raicik](../Images/860760b53fcc75013007067190e8ca65.png)](https://medium.com/@raicik.zach?source=post_page---byline--3b101b05a765--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3b101b05a765--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3b101b05a765--------------------------------) [Zachary Raicik](https://medium.com/@raicik.zach?source=post_page---byline--3b101b05a765--------------------------------)
+[](https://medium.com/@raicik.zach?source=post_page---byline--3b101b05a765--------------------------------)![Zachary Raicik](https://medium.com/@raicik.zach?source=post_page---byline--3b101b05a765--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3b101b05a765--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3b101b05a765--------------------------------) [Zachary Raicik](https://medium.com/@raicik.zach?source=post_page---byline--3b101b05a765--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3b101b05a765--------------------------------) ·阅读时间：7分钟·2024年3月9日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3b101b05a765--------------------------------) ·阅读时间：7 分钟·2024 年 3 月 9 日
 
 --
 
-![](../Images/611620a8c0e388194e057b4bafa6a9c0.png)
+![](img/611620a8c0e388194e057b4bafa6a9c0.png)
 
 图片来源：[Adi Goldstein](https://unsplash.com/@adigold1?utm_source=medium&utm_medium=referral) 通过 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

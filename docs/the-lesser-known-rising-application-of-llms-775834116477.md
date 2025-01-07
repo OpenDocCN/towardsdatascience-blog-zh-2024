@@ -1,46 +1,46 @@
-# LLM的（较少为人知的）崛起应用
+# LLM 的（较少为人知的）崛起应用
 
-> 原文：[https://towardsdatascience.com/the-lesser-known-rising-application-of-llms-775834116477?source=collection_archive---------3-----------------------#2024-05-13](https://towardsdatascience.com/the-lesser-known-rising-application-of-llms-775834116477?source=collection_archive---------3-----------------------#2024-05-13)
+> 原文：[`towardsdatascience.com/the-lesser-known-rising-application-of-llms-775834116477?source=collection_archive---------3-----------------------#2024-05-13`](https://towardsdatascience.com/the-lesser-known-rising-application-of-llms-775834116477?source=collection_archive---------3-----------------------#2024-05-13)
 
-[](https://medium.com/@vianney.mixtur_39698?source=post_page---byline--775834116477--------------------------------)[![Vianney Mixtur](../Images/a97e69c63123e450910f6887b7c0813d.png)](https://medium.com/@vianney.mixtur_39698?source=post_page---byline--775834116477--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--775834116477--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--775834116477--------------------------------) [Vianney Mixtur](https://medium.com/@vianney.mixtur_39698?source=post_page---byline--775834116477--------------------------------)
+[](https://medium.com/@vianney.mixtur_39698?source=post_page---byline--775834116477--------------------------------)![Vianney Mixtur](https://medium.com/@vianney.mixtur_39698?source=post_page---byline--775834116477--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--775834116477--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--775834116477--------------------------------) [Vianney Mixtur](https://medium.com/@vianney.mixtur_39698?source=post_page---byline--775834116477--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--775834116477--------------------------------) ·8分钟阅读·2024年5月13日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--775834116477--------------------------------) ·8 分钟阅读·2024 年 5 月 13 日
 
 --
 
 # 概述
 
-**大语言模型**（LLMs）通常被称为**生成型人工智能**（GenAI），因为它们确实具有生成文本的能力。LLM的第一个流行应用是聊天机器人，其中ChatGPT走在前列。随后，我们将其应用范围扩展到其他任务，如[**语义搜索**](https://vianmixt.notion.site/Practical-Semantic-Search-with-MongoDB-and-OpenAI-451692801b41465fae1bea5f70238279)和**检索增强生成**（RAG）。今天，我想谈谈LLM的一个崛起应用，即**结构化无结构数据**，我将通过将原始文本结构化为JSON数据来展示一个例子。
+**大语言模型**（LLMs）通常被称为**生成型人工智能**（GenAI），因为它们确实具有生成文本的能力。LLM 的第一个流行应用是聊天机器人，其中 ChatGPT 走在前列。随后，我们将其应用范围扩展到其他任务，如[**语义搜索**](https://vianmixt.notion.site/Practical-Semantic-Search-with-MongoDB-and-OpenAI-451692801b41465fae1bea5f70238279)和**检索增强生成**（RAG）。今天，我想谈谈 LLM 的一个崛起应用，即**结构化无结构数据**，我将通过将原始文本结构化为 JSON 数据来展示一个例子。
 
-使用LLM（大语言模型）进行**数据结构化和提取**是一个非常有前景的应用，具有很大的潜力。以下是原因：
+使用 LLM（大语言模型）进行**数据结构化和提取**是一个非常有前景的应用，具有很大的潜力。以下是原因：
 
-+   **提高准确性：** LLM能够理解人类语言的细微差别。这使得它们能够比传统的基于规则的系统更准确地从杂乱、无结构的文本中识别关键信息。
++   **提高准确性：** LLM 能够理解人类语言的细微差别。这使得它们能够比传统的基于规则的系统更准确地从杂乱、无结构的文本中识别关键信息。
 
-+   **自动化潜力：** 从无结构数据中提取信息可能是一项耗时且劳动密集的任务。LLM可以自动化这个过程，从而释放人力资源用于其他任务，并加速对更大数据集的分析。
++   **自动化潜力：** 从无结构数据中提取信息可能是一项耗时且劳动密集的任务。LLM 可以自动化这个过程，从而释放人力资源用于其他任务，并加速对更大数据集的分析。
 
-+   **适应性和学习能力：** LLM则可以持续进行微调，并适应处理新的数据源和信息类型。随着它们接触到更多的无结构数据，它们能够学习并提高识别模式和提取相关信息的能力。
++   **适应性和学习能力：** LLM 则可以持续进行微调，并适应处理新的数据源和信息类型。随着它们接触到更多的无结构数据，它们能够学习并提高识别模式和提取相关信息的能力。
 
-+   **业务成果：** 大量宝贵信息存在于诸如电子邮件、客户评论、社交媒体对话和内部文档等非结构化文本数据源中。然而，这些数据通常难以分析。大语言模型（LLM）可以通过将非结构化数据转换为结构化格式，解锁这些隐藏的潜力。这使得企业能够利用强大的分析工具来识别趋势并获取洞察。实质上，通过使用LLM将非结构化数据进行结构化，企业可以将一种负担（不可用的数据）转变为一种资产（有价值的洞察），从而推动更好的决策并提升整体业务成果。
++   **业务成果：** 大量宝贵信息存在于诸如电子邮件、客户评论、社交媒体对话和内部文档等非结构化文本数据源中。然而，这些数据通常难以分析。大语言模型（LLM）可以通过将非结构化数据转换为结构化格式，解锁这些隐藏的潜力。这使得企业能够利用强大的分析工具来识别趋势并获取洞察。实质上，通过使用 LLM 将非结构化数据进行结构化，企业可以将一种负担（不可用的数据）转变为一种资产（有价值的洞察），从而推动更好的决策并提升整体业务成果。
 
 # 一个例子
 
-最近，我在为个人项目寻找开源食谱数据集时，除了[这个GitHub仓库](https://github.com/ronaldlong46/public-domain-recipes)外，什么也没找到，该仓库包含了在[publicdomainrecipes.com](https://publicdomainrecipes.com/)上显示的食谱。
+最近，我在为个人项目寻找开源食谱数据集时，除了[这个 GitHub 仓库](https://github.com/ronaldlong46/public-domain-recipes)外，什么也没找到，该仓库包含了在[publicdomainrecipes.com](https://publicdomainrecipes.com/)上显示的食谱。
 
-![](../Images/04ad1e467b2d1359d7502b35c19f079e.png)
+![](img/04ad1e467b2d1359d7502b35c19f079e.png)
 
 照片由[Jeff Sheldon](https://unsplash.com/@ugmonk?utm_source=medium&utm_medium=referral)拍摄，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-不幸的是，我需要一个更具可操作性的数据集，即更接近**表格数据**或**NoSQL文档**的东西。这就是我开始考虑找到一种方法，将原始数据转换成更适合我需求的东西，而不需要花费数小时、数天甚至数周手动完成的原因。
+不幸的是，我需要一个更具可操作性的数据集，即更接近**表格数据**或**NoSQL 文档**的东西。这就是我开始考虑找到一种方法，将原始数据转换成更适合我需求的东西，而不需要花费数小时、数天甚至数周手动完成的原因。
 
 让我展示一下我如何利用大语言模型的强大能力来自动化将原始文本转换为结构化文档的过程。
 
 ## 数据集
 
-原始数据集是一个markdown文件的集合，每个文件代表一个食谱。
+原始数据集是一个 markdown 文件的集合，每个文件代表一个食谱。
 
-一个描述如何制作法式可丽饼的食谱的markdown文件示例。
+一个描述如何制作法式可丽饼的食谱的 markdown 文件示例。
 
-如你所见，这并非完全无结构，文件顶部有一些漂亮的表格元数据，接下来有4个不同的部分：
+如你所见，这并非完全无结构，文件顶部有一些漂亮的表格元数据，接下来有 4 个不同的部分：
 
 +   一个介绍，
 
@@ -50,9 +50,9 @@
 
 +   一些提示。
 
-基于这个观察，[Sebastian Bahr](https://www.linkedin.com/in/sebastianbahr/)开发了一个解析器，将markdown文件转换为JSON格式，[在这里](https://github.com/sebastianbahr/RecipeRecommender)。
+基于这个观察，[Sebastian Bahr](https://www.linkedin.com/in/sebastianbahr/)开发了一个解析器，将 markdown 文件转换为 JSON 格式，[在这里](https://github.com/sebastianbahr/RecipeRecommender)。
 
-解析器的输出已经变得更具可操作性，此外，Sebastian利用它[构建了一个食谱推荐聊天机器人](/build-a-recipe-recommender-chatbot-using-rag-and-hybrid-search-part-i-c4aa07d14dcf)。然而，仍然存在一些缺点。食材和步骤的键包含了原始文本，这些文本可以做得更有结构。
+解析器的输出已经变得更具可操作性，此外，Sebastian 利用它构建了一个食谱推荐聊天机器人。然而，仍然存在一些缺点。食材和步骤的键包含了原始文本，这些文本可以做得更有结构。
 
 按原样，某些有用的信息被隐藏了。
 
@@ -60,7 +60,7 @@
 
 ## 代码
 
-在本文的剩余部分，我将展示我采取的步骤，以便得到像下面这样的JSON文档。
+在本文的剩余部分，我将展示我采取的步骤，以便得到像下面这样的 JSON 文档。
 
 ```py
 {
@@ -131,13 +131,13 @@
 }
 ```
 
-复现教程的代码在GitHub[这里](https://github.com/VianneyMI/baker)。
+复现教程的代码在 GitHub[这里](https://github.com/VianneyMI/baker)。
 
-我依赖了两个强大的库——用于与LLM提供商通信的`[langchain](https://www.langchain.com/)`，以及用于格式化LLM输出的`[pydantic](https://docs.pydantic.dev/latest/)`。
+我依赖了两个强大的库——用于与 LLM 提供商通信的`[langchain](https://www.langchain.com/)`，以及用于格式化 LLM 输出的`[pydantic](https://docs.pydantic.dev/latest/)`。
 
 首先，我定义了食谱的两个主要组成部分——`Ingredient`类和`Step`类。
 
-在每个类中，我定义了相关的属性，并提供了字段描述和示例。然后这些内容通过`langchain`传递给LLM，从而获得更好的结果。
+在每个类中，我定义了相关的属性，并提供了字段描述和示例。然后这些内容通过`langchain`传递给 LLM，从而获得更好的结果。
 
 ```py
 """`schemas.py`"""
@@ -250,9 +250,9 @@ class Recipe(BaseModel):
 
 **技术细节**
 
-+   这里需要注意不要使用过于严格的模型，否则LLM输出的JSON会失败Pydantic验证。一个好的方法是提供一些灵活性，比如根据目标输出类型，提供默认值如`None`或空列表`[]`。
++   这里需要注意不要使用过于严格的模型，否则 LLM 输出的 JSON 会失败 Pydantic 验证。一个好的方法是提供一些灵活性，比如根据目标输出类型，提供默认值如`None`或空列表`[]`。
 
-+   注意`Ingredient`类中`quantity`属性上的`field_validator`，它帮助引擎解析数量。最初没有这个，但通过一些实验，我发现LLM经常将数量作为字符串提供，例如`1/3`或`1/2`。
++   注意`Ingredient`类中`quantity`属性上的`field_validator`，它帮助引擎解析数量。最初没有这个，但通过一些实验，我发现 LLM 经常将数量作为字符串提供，例如`1/3`或`1/2`。
 
 +   `used_ingredients`用于正式地将食材与食谱的相关步骤联系起来。
 
@@ -289,7 +289,7 @@ Make sure to provide a valid and well-formatted JSON.
 """
 ```
 
-与LLM逻辑的通信是在`core.py`文件的`run`函数中定义的，我这里为了简洁没有展示。
+与 LLM 逻辑的通信是在`core.py`文件的`run`函数中定义的，我这里为了简洁没有展示。
 
 最后，我将所有这些组件结合在我的`demo.ipynb`笔记本中，以下是其内容。
 
@@ -337,7 +337,7 @@ example = await run(llm, prompt, parser)
  # End of fifth cell
 ```
 
-我使用了[MistralAI](https://mistral.ai/)作为LLM提供商，采用他们的`open-mixtral-8x7b`模型，这是一个非常好的开源替代方案，相较于[OpenAI](https://openai.com/)。`langchain`让你可以轻松切换提供商，只要你在提供商平台上创建了账户。
+我使用了[MistralAI](https://mistral.ai/)作为 LLM 提供商，采用他们的`open-mixtral-8x7b`模型，这是一个非常好的开源替代方案，相较于[OpenAI](https://openai.com/)。`langchain`让你可以轻松切换提供商，只要你在提供商平台上创建了账户。
 
 如果你试图复现这些结果：
 
@@ -345,16 +345,16 @@ example = await run(llm, prompt, parser)
 
 +   (#2) — 请小心数据的路径。如果你克隆了我的仓库，这将不是问题。
 
-在整个数据集上运行代码的费用不到2€。
+在整个数据集上运行代码的费用不到 2€。
 
 通过此代码生成的结构化数据集可以在我的仓库中[这里](https://github.com/VianneyMI/baker/blob/main/data/output/parsed_recipes_all_8x7b.json)找到。
 
-我对结果很满意，但仍然可以尝试对提示语、字段描述或所使用的模型进行迭代，以进一步改进它们。我可能会尝试MistralAI的最新模型`open-mixtral-8x22b`，或者通过简单地修改2到3行代码，借助`langchain`尝试另一个LLM提供商。
+我对结果很满意，但仍然可以尝试对提示语、字段描述或所使用的模型进行迭代，以进一步改进它们。我可能会尝试 MistralAI 的最新模型`open-mixtral-8x22b`，或者通过简单地修改 2 到 3 行代码，借助`langchain`尝试另一个 LLM 提供商。
 
 当我准备好时，我可以回到我的原始项目。如果你想知道它是什么，敬请关注。同时，如果你有任何想法，欢迎在评论中告诉我，你会如何利用最终的数据集？
 
 # 结论
 
-大型语言模型（LLMs）为结构化非结构化数据提供了强大的工具。它们理解和解释人类语言细微差别的能力、自动化繁琐任务的能力，以及适应不断变化的数据的能力，使它们成为数据分析中无价的资源。通过发掘非结构化文本数据中的潜在价值，企业可以将这些数据转化为有价值的洞察，推动更好的决策和商业成果。提供的例子——将原始食谱数据转化为结构化格式——只是LLMs所能提供的无数可能性中的一个。
+大型语言模型（LLMs）为结构化非结构化数据提供了强大的工具。它们理解和解释人类语言细微差别的能力、自动化繁琐任务的能力，以及适应不断变化的数据的能力，使它们成为数据分析中无价的资源。通过发掘非结构化文本数据中的潜在价值，企业可以将这些数据转化为有价值的洞察，推动更好的决策和商业成果。提供的例子——将原始食谱数据转化为结构化格式——只是 LLMs 所能提供的无数可能性中的一个。
 
-随着我们继续探索和开发这些模型，未来我们可以预见到更多创新应用的出现。充分发挥LLMs潜力的旅程才刚刚开始，未来的道路充满了激动人心的前景。
+随着我们继续探索和开发这些模型，未来我们可以预见到更多创新应用的出现。充分发挥 LLMs 潜力的旅程才刚刚开始，未来的道路充满了激动人心的前景。

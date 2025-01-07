@@ -1,16 +1,16 @@
 # 适用于 Python 中数值变量的特征工程技术
 
-> 原文：[https://towardsdatascience.com/feature-engineering-techniques-for-numerical-variables-in-python-4bd42e8bded7?source=collection_archive---------2-----------------------#2024-09-24](https://towardsdatascience.com/feature-engineering-techniques-for-numerical-variables-in-python-4bd42e8bded7?source=collection_archive---------2-----------------------#2024-09-24)
+> 原文：[`towardsdatascience.com/feature-engineering-techniques-for-numerical-variables-in-python-4bd42e8bded7?source=collection_archive---------2-----------------------#2024-09-24`](https://towardsdatascience.com/feature-engineering-techniques-for-numerical-variables-in-python-4bd42e8bded7?source=collection_archive---------2-----------------------#2024-09-24)
 
 ## *学习如何使用 Sklearn、Numpy 和 Python，将数值转化为对预测模型有用的信息，掌握最有用的特征工程技术*
 
-[](https://medium.com/@theDrewDag?source=post_page---byline--4bd42e8bded7--------------------------------)[![Andrea D'Agostino](../Images/58c7c218815f25278aae59cea44d8771.png)](https://medium.com/@theDrewDag?source=post_page---byline--4bd42e8bded7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4bd42e8bded7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4bd42e8bded7--------------------------------) [Andrea D'Agostino](https://medium.com/@theDrewDag?source=post_page---byline--4bd42e8bded7--------------------------------)
+[](https://medium.com/@theDrewDag?source=post_page---byline--4bd42e8bded7--------------------------------)![Andrea D'Agostino](https://medium.com/@theDrewDag?source=post_page---byline--4bd42e8bded7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4bd42e8bded7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4bd42e8bded7--------------------------------) [Andrea D'Agostino](https://medium.com/@theDrewDag?source=post_page---byline--4bd42e8bded7--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4bd42e8bded7--------------------------------) ·阅读时间：18分钟·2024年9月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4bd42e8bded7--------------------------------) ·阅读时间：18 分钟·2024 年 9 月 24 日
 
 --
 
-![](../Images/87c17e4e9a7ed1dc6f5c12abd384f7cd.png)
+![](img/87c17e4e9a7ed1dc6f5c12abd384f7cd.png)
 
 图片来源：[ThisisEngineering](https://unsplash.com/@thisisengineering?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

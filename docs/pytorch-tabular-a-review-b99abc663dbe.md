@@ -1,44 +1,44 @@
 # PyTorch Tabular：一项评测
 
-> 原文：[https://towardsdatascience.com/pytorch-tabular-a-review-b99abc663dbe?source=collection_archive---------6-----------------------#2024-07-16](https://towardsdatascience.com/pytorch-tabular-a-review-b99abc663dbe?source=collection_archive---------6-----------------------#2024-07-16)
+> 原文：[`towardsdatascience.com/pytorch-tabular-a-review-b99abc663dbe?source=collection_archive---------6-----------------------#2024-07-16`](https://towardsdatascience.com/pytorch-tabular-a-review-b99abc663dbe?source=collection_archive---------6-----------------------#2024-07-16)
 
 ## 快速上手并避免混淆的概览
 
-[](https://medium.com/@s.kirmer?source=post_page---byline--b99abc663dbe--------------------------------)[![Stephanie Kirmer](../Images/f9d9ef9167febde974c223dd4d8d6293.png)](https://medium.com/@s.kirmer?source=post_page---byline--b99abc663dbe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b99abc663dbe--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b99abc663dbe--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--b99abc663dbe--------------------------------)
+[](https://medium.com/@s.kirmer?source=post_page---byline--b99abc663dbe--------------------------------)![Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--b99abc663dbe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b99abc663dbe--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b99abc663dbe--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--b99abc663dbe--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b99abc663dbe--------------------------------) ·阅读时间：7分钟·2024年7月16日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b99abc663dbe--------------------------------) ·阅读时间：7 分钟·2024 年 7 月 16 日
 
 --
 
-![](../Images/c5c6675af28ac52feb539471f8608a15.png)
+![](img/c5c6675af28ac52feb539471f8608a15.png)
 
 摄影：由[Pao Dayag](https://unsplash.com/@wisdomsky?utm_source=medium&utm_medium=referral)拍摄，发布于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-我们时常会考虑是否尝试新的工具或实验一个包，然而这样做也存在一定的风险。如果工具无法完成我的需求，或者需要几天才能运行，或者需要我没有的复杂知识该怎么办？今天，我将分享自己使用PyTorch Tabular搭建模型并成功运行的经验，并提供代码示例，帮助其他考虑使用这个工具的用户，快速开始并避免不必要的麻烦。
+我们时常会考虑是否尝试新的工具或实验一个包，然而这样做也存在一定的风险。如果工具无法完成我的需求，或者需要几天才能运行，或者需要我没有的复杂知识该怎么办？今天，我将分享自己使用 PyTorch Tabular 搭建模型并成功运行的经验，并提供代码示例，帮助其他考虑使用这个工具的用户，快速开始并避免不必要的麻烦。
 
-这个项目最初是基于一个高维度的CatBoost模型，这是一个具有多类分类结果的监督学习用例。数据集大约有30个高度不平衡的类别，我将在未来的文章中详细描述。我想尝试将神经网络应用于相同的用例，看看性能上会有哪些变化，于是我发现PyTorch Tabular是一个不错的选择。当然，应用神经网络到表格数据上还有其他的选择，包括直接使用基础的PyTorch，但在此基础上添加一个专门设计以适应特定问题的层，通常能让开发更加容易和快速。PyTorch Tabular让你不用去考虑如何将数据框转换为张量，并提供了一个简单的接口，方便进行模型自定义。
+这个项目最初是基于一个高维度的 CatBoost 模型，这是一个具有多类分类结果的监督学习用例。数据集大约有 30 个高度不平衡的类别，我将在未来的文章中详细描述。我想尝试将神经网络应用于相同的用例，看看性能上会有哪些变化，于是我发现 PyTorch Tabular 是一个不错的选择。当然，应用神经网络到表格数据上还有其他的选择，包括直接使用基础的 PyTorch，但在此基础上添加一个专门设计以适应特定问题的层，通常能让开发更加容易和快速。PyTorch Tabular 让你不用去考虑如何将数据框转换为张量，并提供了一个简单的接口，方便进行模型自定义。
 
 # 入门指南
 
-[https://pytorch-tabular.readthedocs.io/en/latest/](https://pytorch-tabular.readthedocs.io/en/latest/)上的文档非常易读且易于理解，尽管主页会引导你到文档的开发版本，因此如果你是从pypi安装的，请记得这一点。
+[`pytorch-tabular.readthedocs.io/en/latest/`](https://pytorch-tabular.readthedocs.io/en/latest/)上的文档非常易读且易于理解，尽管主页会引导你到文档的开发版本，因此如果你是从 pypi 安装的，请记得这一点。
 
-我使用poetry来管理我的工作环境和库，而poetry和PyTorch有时并不完全兼容，所以这是需要考虑的一点。的确，我花了几个小时才将所有东西安装并顺利运行，但这并不是PyTorch Tabular开发者的错。
+我使用 poetry 来管理我的工作环境和库，而 poetry 和 PyTorch 有时并不完全兼容，所以这是需要考虑的一点。的确，我花了几个小时才将所有东西安装并顺利运行，但这并不是 PyTorch Tabular 开发者的错。
 
-如你所猜测的，这一切都是针对表格数据进行优化的，因此我将我的工程化特征数据集以pandas格式带入。正如你稍后将看到的，只要我的字段是数字型或布尔型，我可以直接将数据帧传递到训练函数中，无需重新格式化。
+如你所猜测的，这一切都是针对表格数据进行优化的，因此我将我的工程化特征数据集以 pandas 格式带入。正如你稍后将看到的，只要我的字段是数字型或布尔型，我可以直接将数据帧传递到训练函数中，无需重新格式化。
 
 # 设置
 
-当你开始构建代码时，你将创建一些PyTorch Tabular训练函数所需的对象：
+当你开始构建代码时，你将创建一些 PyTorch Tabular 训练函数所需的对象：
 
 +   **DataConfig**：准备数据加载器，包括设置加载的并行性。
 
-+   **TrainerConfig**：设置批次大小和周期数，还可以让你确定将使用哪个处理器，比如是否使用GPU。
++   **TrainerConfig**：设置批次大小和周期数，还可以让你确定将使用哪个处理器，比如是否使用 GPU。
 
 +   **OptimizerConfig**：允许你添加任何你喜欢的优化器，还可以设置学习率调度器，以及每个优化器的参数。我没有为我的使用场景自定义这一部分，它[默认为](https://pytorch-tabular.readthedocs.io/en/latest/tutorials/02-Exploring%20Advanced%20Features%20with%20PyTorch%20Tabular/#3-optimizerconfig) `Adam`。
 
 +   **LinearHeadConfig**：如果你想自定义模型头部，它可以让你创建模型头部。我在这里不需要添加任何特别的内容。
 
-+   然后你还需要创建一个模型配置，但基础类会根据你打算创建的模型类型而有所不同。我为我的模型使用了基本的CategoryEmbeddingModelConfig，这里是你将分配所有模型架构项的地方，例如层大小、顺序、激活函数、学习率和指标。
++   然后你还需要创建一个模型配置，但基础类会根据你打算创建的模型类型而有所不同。我为我的模型使用了基本的 CategoryEmbeddingModelConfig，这里是你将分配所有模型架构项的地方，例如层大小、顺序、激活函数、学习率和指标。
 
 ```py
 data_config = DataConfig(
@@ -89,7 +89,7 @@ metrics_prob_input=[
 
 在这里你可以看到我返回了四个指标，每个指标有不同的实现要求，因此每个列表表示这四个指标及其属性。例如，平均精度需要一些参数来指示这是一个多类问题，并且需要提供涉及的类别数量。与准确率不同，它还要求输入概率结果，而不是原始模型输出。
 
-一旦你完成了所有这些配置，事情就变得非常简单——你只需要将每个对象传递到TabularModel模块中。
+一旦你完成了所有这些配置，事情就变得非常简单——你只需要将每个对象传递到 TabularModel 模块中。
 
 ```py
 tabular_model = TabularModel(

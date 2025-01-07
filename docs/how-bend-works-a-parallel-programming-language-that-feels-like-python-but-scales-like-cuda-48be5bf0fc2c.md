@@ -1,16 +1,16 @@
 # Bend 如何工作：一种“感觉像 Python，但扩展性像 CUDA”的并行编程语言
 
-> 原文：[https://towardsdatascience.com/how-bend-works-a-parallel-programming-language-that-feels-like-python-but-scales-like-cuda-48be5bf0fc2c?source=collection_archive---------1-----------------------#2024-06-26](https://towardsdatascience.com/how-bend-works-a-parallel-programming-language-that-feels-like-python-but-scales-like-cuda-48be5bf0fc2c?source=collection_archive---------1-----------------------#2024-06-26)
+> 原文：[`towardsdatascience.com/how-bend-works-a-parallel-programming-language-that-feels-like-python-but-scales-like-cuda-48be5bf0fc2c?source=collection_archive---------1-----------------------#2024-06-26`](https://towardsdatascience.com/how-bend-works-a-parallel-programming-language-that-feels-like-python-but-scales-like-cuda-48be5bf0fc2c?source=collection_archive---------1-----------------------#2024-06-26)
 
 ## Lambda 演算、交互组合子以及它们如何用于在 Bend / HVM 上并行化操作的简要介绍。
 
-[](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)[![Lucas de Lima Nogueira](../Images/76edd8ee4005d4c0b8bd476261eb06ae.png)](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------) [Lucas de Lima Nogueira](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)
+[](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)![Lucas de Lima Nogueira](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------) [Lucas de Lima Nogueira](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------) ·阅读时间：22 分钟·2024年6月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------) ·阅读时间：22 分钟·2024 年 6 月 26 日
 
 --
 
-![](../Images/398ffec82c1dd32cf300f28b5c5ae933.png)
+![](img/398ffec82c1dd32cf300f28b5c5ae933.png)
 
 图片来自作者
 
@@ -24,7 +24,7 @@
 
 立刻，我就想了解所有 HVM 魔法是如何发生的。如何才能做到这一切？经过一些阅读，我了解到 HVM 背后的魔法主要基于交互组合子（Interaction Combinators），这是一种基于图形和图形规则的计算模型，由 Yves Lafont 在 1990 年代开发。因此，我打开了 Lafont 的[论文](https://core.ac.uk/download/pdf/81113716.pdf)，翻了几页，看到了这一部分：
 
-![](../Images/8dd7792bc5d746abcd3c81f8bbbb06bf.png)
+![](img/8dd7792bc5d746abcd3c81f8bbbb06bf.png)
 
 ???? 交互组合子外星代码。图像来源于作者，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
@@ -337,7 +337,7 @@ background_color = 如果 red_theme 为真，则为 red，否则为 white。
 
 因此，我们从布尔值中需要的只是某种条件选择两个选项的方式。
 
-基于此，在λ演算中，*true*和*false*的Church定义被定义为两个参数的函数：
+基于此，在λ演算中，*true*和*false*的 Church 定义被定义为两个参数的函数：
 
 +   *true*选择第一个参数。
 
@@ -355,7 +355,7 @@ background_color = 如果 red_theme 为真，则为 red，否则为 white。
 
 这意味着：“取一个布尔函数`p`。将`p`应用到两个参数`FALSE`和`TRUE`。”
 
-还记得Church编码中的布尔值定义吗？*TRUE*返回第一个参数，*FALSE*返回第二个参数？因此：
+还记得 Church 编码中的布尔值定义吗？*TRUE*返回第一个参数，*FALSE*返回第二个参数？因此：
 
 → 如果`p`是`TRUE`，则返回`FALSE`。
 
@@ -379,7 +379,7 @@ background_color = 如果 red_theme 为真，则为 red，否则为 white。
 
 *λx.λy.x FALSE TRUE = FALSE*
 
-其他布尔操作如OR、XOR等的定义遵循相同的思路。
+其他布尔操作如 OR、XOR 等的定义遵循相同的思路。
 
 ## 实践
 
@@ -431,31 +431,31 @@ assert church_equal(MUL(church_two)(church_three), church_six)
 print("All tests passed.")
 ```
 
-如你所见，我们只使用λ函数执行数值操作！！此外，通过扩展这个方法并结合λ布尔逻辑，我们甚至可以仅使用λ函数实现if/else、循环，甚至整个编程语言！是不是很神奇？
+如你所见，我们只使用λ函数执行数值操作！！此外，通过扩展这个方法并结合λ布尔逻辑，我们甚至可以仅使用λ函数实现 if/else、循环，甚至整个编程语言！是不是很神奇？
 
 好的，在简要介绍完λ演算之后，我们可以进入我们旅程的下一个话题。
 
 # 交互网
 
-在直接进入交互组合子之前，我们先学习一下Yves Lafont的另一项早期工作：交互网。这一基础将使理解交互组合子变得更加容易。
+在直接进入交互组合子之前，我们先学习一下 Yves Lafont 的另一项早期工作：交互网。这一基础将使理解交互组合子变得更加容易。
 
-交互网是由Yves Lafont在1990年创建的一种计算模型。它们使用类似图形的结构和一组交互规则来表示算法。
+交互网是由 Yves Lafont 在 1990 年创建的一种计算模型。它们使用类似图形的结构和一组交互规则来表示算法。
 
-我们需要定义的第一件事是一个*单元*。它由某个符号*例如α*，一个主端口和n个辅助端口组成，如下图所示：
+我们需要定义的第一件事是一个*单元*。它由某个符号*例如α*，一个主端口和 n 个辅助端口组成，如下图所示：
 
-![](../Images/ba40de956a0e60e58c173fb65fa5a68b.png)
+![](img/ba40de956a0e60e58c173fb65fa5a68b.png)
 
 单元 — 图片由作者提供
 
-当一个*单元*的辅助端口数n = 0时，它的表示如下：
+当一个*单元*的辅助端口数 n = 0 时，它的表示如下：
 
-![](../Images/8e7e876645ce29028268c7ee95d7299e.png)
+![](img/8e7e876645ce29028268c7ee95d7299e.png)
 
-arity n=0的单元 — 图片由作者提供
+arity n=0 的单元 — 图片由作者提供
 
-通过将一组*单元*通过它们的*端口*用*电线*连接，我们构造一个*网络*。例如，一个包含*单元α, β*和*γ*的网络，其中[arity](https://en.wikipedia.org/wiki/Arity)分别为n = 2, 1和0。
+通过将一组*单元*通过它们的*端口*用*电线*连接，我们构造一个*网络*。例如，一个包含*单元α, β*和*γ*的网络，其中[arity](https://en.wikipedia.org/wiki/Arity)分别为 n = 2, 1 和 0。
 
-![](../Images/93ad5ba679bdd192864241e7bc4f7d17.png)
+![](img/93ad5ba679bdd192864241e7bc4f7d17.png)
 
 图片由作者提供，灵感来自[Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
@@ -465,7 +465,7 @@ arity n=0的单元 — 图片由作者提供
 
 在前面的例子中，第一轮有两个可能的*交互*（*活动对*）。
 
-![](../Images/5c5f9513d5084292e2586a53b4e278a6.png)
+![](img/5c5f9513d5084292e2586a53b4e278a6.png)
 
 作者图像，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
@@ -477,7 +477,7 @@ arity n=0的单元 — 图片由作者提供
 
 ## *构建一个算术交互系统*
 
-让我们构建一个用于做算术的交互系统。为了创建它，我们首先要忘记关于数字的基本直觉，尝试创建一个能够建模自然数的系统。在1889年，Giuseppe Peano提出了五条公理来形式化自然数，这类似于欧几里得为几何定义的公理。Peano的公理使得一个有限符号集和规则可以生成一个无限的集合。通过这些公理，Peano为自然数及其算术性质定义了一些规则：
+让我们构建一个用于做算术的交互系统。为了创建它，我们首先要忘记关于数字的基本直觉，尝试创建一个能够建模自然数的系统。在 1889 年，Giuseppe Peano 提出了五条公理来形式化自然数，这类似于欧几里得为几何定义的公理。Peano 的公理使得一个有限符号集和规则可以生成一个无限的集合。通过这些公理，Peano 为自然数及其算术性质定义了一些规则：
 
 ***0 → 表示数字零***
 
@@ -527,13 +527,13 @@ a + 3：
 
 首先，他为**s**和**0**符号定义了*单元*：
 
-![](../Images/4ea3ec73a34ccf2d96466542da9acaa7.png)
+![](img/4ea3ec73a34ccf2d96466542da9acaa7.png)
 
 作者图像，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
 然后，定义加法运算的*单元*：
 
-![](../Images/d95bc121072804cd7d37597788eb8880.png)
+![](img/d95bc121072804cd7d37597788eb8880.png)
 
 作者图像，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
@@ -541,7 +541,7 @@ a + 3：
 
 如果所有自然数都可以仅使用符号 **0** 和后继 **s** 来表示，那么对于加法，我们只需要定义两个 *交互* 规则：加法如何与后继和 **0** 进行交互。因此，Lafont 提出了以下两个 *交互* 规则：
 
-![](../Images/889329bea2557cffd9453a2471b0bbfe.png)
+![](img/889329bea2557cffd9453a2471b0bbfe.png)
 
 图像来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
@@ -553,7 +553,7 @@ s(x) + y = s(x+y)
 
 现在，让我们理解乘法的 *交互* 规则。乘法的 *单元格* 定义如下：
 
-![](../Images/8fd1125c9726eca7ace99e90589b24b7.png)
+![](img/8fd1125c9726eca7ace99e90589b24b7.png)
 
 图像来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
@@ -567,13 +567,13 @@ s(x) × y = (x × y) + y
 
 因此，还需要另外两个符号：*ε (抹除器)* 和 *δ (复制器)*。
 
-![](../Images/ad52d6c71df9df7fbe0efef5b4b1d0ec.png)
+![](img/ad52d6c71df9df7fbe0efef5b4b1d0ec.png)
 
 图像来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
 这些符号的思想是，表示自然数的网络在连接到 *ε* 的主端口时会被抹除，而连接到 *δ* 的主端口时则会被复制。现在，乘法规则可以表示为：
 
-![](../Images/5edbb6983572225d6bf4503b71f98e38.png)
+![](img/5edbb6983572225d6bf4503b71f98e38.png)
 
 图像来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
@@ -585,41 +585,41 @@ y × **0** = **0**
 
 *交互* 规则对于 *复制器* 和 *抹除器* 与 *后继* 和 0 的定义如下：
 
-![](../Images/1fee674e8bd92a26f2008a095ee6487f.png)
+![](img/1fee674e8bd92a26f2008a095ee6487f.png)
 
 图像来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
 因此，我们有一组六个符号 **{0, s, +**, ×, *δ, ε*} 和以下八个 *交互* 规则：**{(s**, +), **(0, +)**, **(s**, ×), **(0**, ×), **(s***, δ*)*,* **(*0****, δ*)*,* **(*s****, ε*)*,* **(*0****, ε*)}。让我们通过操作 2 × 2 来实际分析它们。
 
-![](../Images/7761269faea0c99e55e76dd3028a0622.png)
+![](img/7761269faea0c99e55e76dd3028a0622.png)
 
 2 x 2。图像来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
 如果你仔细看，会发现有一个活跃的对 (**s**, ×)，我们可以应用规则 #3。
 
-![](../Images/4d416f15180cb9da8b6cf32136505daf.png)
+![](img/4d416f15180cb9da8b6cf32136505daf.png)
 
 应用*交互规则#3*。图片来源：作者，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
 因此，运算通过应用*交互*规则来解决，直到我们得到一个不可约的形式：
 
-![](../Images/67e138061a4d076406a1a498898e633e.png)
+![](img/67e138061a4d076406a1a498898e633e.png)
 
 2x2 = 4。图片来源：作者，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
 看看我们已经得到的最终形式：**s**(**s**(**s**(**s** **0**))).
 
-![](../Images/5ada222ea12c2d41ccfdf3c448047307.png)
+![](img/5ada222ea12c2d41ccfdf3c448047307.png)
 
 图片来源：作者，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
-这正是数字4的定义，2 × 2的结果！令人惊讶，对吧？经过一些奇怪符号的操作后，我们竟然能解出一个算术运算！😀
+这正是数字 4 的定义，2 × 2 的结果！令人惊讶，对吧？经过一些奇怪符号的操作后，我们竟然能解出一个算术运算！😀
 
 那么，为什么要做这么复杂的事情呢？使用这些操作来解决问题有什么优势呢？
 
-Lafont的网络有一个有趣的性质：如果一个网络*μ*能在一步内减少到两个不同的可能网络*v*或*v’*，那么*v*和*v’*都能在一步内减少到一个共同的网络ξ。
+Lafont 的网络有一个有趣的性质：如果一个网络*μ*能在一步内减少到两个不同的可能网络*v*或*v’*，那么*v*和*v’*都能在一步内减少到一个共同的网络ξ。
 
-![](../Images/e93f8e38d3ba54b98c86d32876d794d3.png)
+![](img/e93f8e38d3ba54b98c86d32876d794d3.png)
 
 图片来源：作者，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
@@ -627,21 +627,21 @@ Lafont的网络有一个有趣的性质：如果一个网络*μ*能在一步内�
 
 你感受到这种性质的力量了吗？基本上，如果交互的顺序无关紧要，我们就可以并行应用它们！🤯
 
-例如，在我们之前的2 × 2运算中，我们可以在类似的时刻并行应用这些规则，而不是一条条逐个应用：
+例如，在我们之前的 2 × 2 运算中，我们可以在类似的时刻并行应用这些规则，而不是一条条逐个应用：
 
-![](../Images/9025d9f135f76590a34ec27617ad153c.png)
+![](img/9025d9f135f76590a34ec27617ad153c.png)
 
 图片来源：作者，灵感来自于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
-在实际执行中，这两条规则可以通过在两个独立的线程中并行运行，从而避免线程冲突和其他与并行性相关的常见问题。这也是HVM/Bend所基于的核心原则之一！基于这一点，所有可以并行化的操作都将被本质地并行化！
+在实际执行中，这两条规则可以通过在两个独立的线程中并行运行，从而避免线程冲突和其他与并行性相关的常见问题。这也是 HVM/Bend 所基于的核心原则之一！基于这一点，所有可以并行化的操作都将被本质地并行化！
 
-现在我们已经理解了交互网络，让我们再迈进一步。之前在本文中，我提到HVM是基于交互组合子的，那么让我们来理解这些概念之间的关系。
+现在我们已经理解了交互网络，让我们再迈进一步。之前在本文中，我提到 HVM 是基于交互组合子的，那么让我们来理解这些概念之间的关系。
 
 # 交互组合子
 
-基于他早期的交互网工作，Yves Lafont创建了交互组合子。这个思想是使用一个最小的基本符号集（称为组合子）来创建计算的表示。虽然交互网通过图重写显式地建模计算，交互组合子则通过专注于基本的组合逻辑来改进这一点。这一转变提供了一个更加抽象但更强大的框架，用于表达计算过程。
+基于他早期的交互网工作，Yves Lafont 创建了交互组合子。这个思想是使用一个最小的基本符号集（称为组合子）来创建计算的表示。虽然交互网通过图重写显式地建模计算，交互组合子则通过专注于基本的组合逻辑来改进这一点。这一转变提供了一个更加抽象但更强大的框架，用于表达计算过程。
 
-对于交互组合子，Lafont定义了三个符号（也称为组合子）：γ（*构造子*），*δ*（*复制子*）和*ε*（*擦除子*）。
+对于交互组合子，Lafont 定义了三个符号（也称为组合子）：γ（*构造子*），*δ*（*复制子*）和*ε*（*擦除子*）。
 
 使用这三个组合子，总共创建了仅六条规则。这些规则分为：
 
@@ -651,29 +651,29 @@ Lafont的网络有一个有趣的性质：如果一个网络*μ*能在一步内�
 
 规则如下所定义：
 
-![](../Images/3aa98d277576638e82070613893d2955.png)
+![](img/3aa98d277576638e82070613893d2955.png)
 
 交换规则。图片来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
-![](../Images/97e11564dd402b1e26d0184ab2c06034.png)
+![](img/97e11564dd402b1e26d0184ab2c06034.png)
 
 湮灭规则。图片来自作者，灵感来源于 [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
 
 因此，仅使用这六条规则，你就可以建模任何可计算的算法！惊人吧，对吧？
 
-然而，HVM运行时使用的是Lafont的交互组合子的一个变体，称为[对称交互组合子 (SIC) (Mazza, 2007)](https://lipn.univ-paris13.fr/~mazza/papers/CombSem-MSCS.pdf)。这个变体是一个简化版，它对所有符号使用相同的重写规则：
+然而，HVM 运行时使用的是 Lafont 的交互组合子的一个变体，称为[对称交互组合子 (SIC) (Mazza, 2007)](https://lipn.univ-paris13.fr/~mazza/papers/CombSem-MSCS.pdf)。这个变体是一个简化版，它对所有符号使用相同的重写规则：
 
-![](../Images/0d41aba45a4959823ee000d41ec2d648.png)
+![](img/0d41aba45a4959823ee000d41ec2d648.png)
 
 对称交互组合子规则。图片来自作者，灵感来源于 [Mazza, 2007](https://lipn.univ-paris13.fr/~mazza/papers/CombSem-MSCS.pdf)
 
 如你所见，唯一的区别是规则γγ和*δδ*现在是相似的*。* 关键的汇聚性质得以保持，保留了其并行化能力。
 
-*从现在开始，我们将使用SIC规则进行示例，因此请专注于它们。*
+*从现在开始，我们将使用 SIC 规则进行示例，因此请专注于它们。*
 
 ## Lambda 演算 → 对称交互组合子
 
-现在你可能会问：“我该如何使用这些写程序？如何将我的Python函数转换为交互组合子图形？”
+现在你可能会问：“我该如何使用这些写程序？如何将我的 Python 函数转换为交互组合子图形？”
 
 我之前提到过，你可以使用λ演算表示任何可计算的算法，对吧？
 
@@ -681,7 +681,7 @@ Lafont的网络有一个有趣的性质：如果一个网络*μ*能在一步内�
 
 因此，任何程序都可以转换为λ演算，然后转换为交互组合子，进行并行运行，再转换回来！
 
-![](../Images/e076537acd1508b1239640bb52df6823.png)
+![](img/e076537acd1508b1239640bb52df6823.png)
 
 图片来自作者
 
@@ -689,25 +689,25 @@ Lafont的网络有一个有趣的性质：如果一个网络*μ*能在一步内�
 
 Lambda *表达式 ( λ )* 和 *应用*（@）可以通过构造子γ表示。例如，lambda *表达式 λx.y* 可以表示为：
 
-![](../Images/c58777ecbcf6e4a9491e3330b3b727ff.png)
+![](img/c58777ecbcf6e4a9491e3330b3b727ff.png)
 
 使用 SIC 的 Lambda 表达式。作者提供的图片
 
 对于给定的 *应用 f x*，我们可以将其表示为：
 
-![](../Images/ebe37c5809c0a8c423f30e0b0fd100aa.png)
+![](img/ebe37c5809c0a8c423f30e0b0fd100aa.png)
 
 使用 SIC 的 Lambda 应用。作者提供的图片
 
 使用这些表示法，我们可以表达恒等式 *表达式 λx.x（*给定 *x*，返回 *x* 本身*）：*
 
-![](../Images/e373013cf236a706a208fb551c9163fb.png)
+![](img/e373013cf236a706a208fb551c9163fb.png)
 
 *λx.x。作者提供的图片*
 
 现在，假设我们想进行 *应用*（*λx.x)y*：
 
-![](../Images/a35facf020a380ffda8f89664bb32938.png)
+![](img/a35facf020a380ffda8f89664bb32938.png)
 
 *(λx.x)y* 作者提供的图片
 
@@ -715,7 +715,7 @@ Lambda *表达式 ( λ )* 和 *应用*（@）可以通过构造子γ表示。例
 
 请注意，当一个 *应用* 应用于一个 lambda *表达式* 时，会有一个 *活动对*，我们可以简化它！在这种情况下，我们将应用交互规则 γγ。同时，从现在开始，我们将使用圆圈来标识我们感兴趣的最终计算结果。
 
-![](../Images/cc9a7092abf3788fcfe1de34ad230f0f.png)
+![](img/cc9a7092abf3788fcfe1de34ad230f0f.png)
 
 作者提供的图片
 
@@ -723,33 +723,33 @@ Lambda *表达式 ( λ )* 和 *应用*（@）可以通过构造子γ表示。例
 
 现在，假设我们想表达 *λf.ff（*给定 *f*，将 *f* 应用到它自身）。正如你所注意到的，参数 *f* 在主体部分是 *重复* 的。这时，*复制器*（*δ）就派上用场了！我们可以使用 *复制器* 来复制（重复）值：
 
-![](../Images/278b9ee8e57d4cb0d5631b5852fa73f1.png)
+![](img/278b9ee8e57d4cb0d5631b5852fa73f1.png)
 
 作者提供的图片
 
 让我们回到我们的表达式 *λf.ff*。首先，确认这是一个 *表达式*，它接受输入 *f*，并输出 *f 应用到它自身*。因此，它可以表示为：
 
-![](../Images/0ce8478c7bffeffd294cca11cf909fd5.png)
+![](img/0ce8478c7bffeffd294cca11cf909fd5.png)
 
 “给定 *f*，输出 *f* 应用到 *f*”。作者提供的图片*
 
 除了复制，变量也可以消失。例如，我们来看看教堂数字 **0 :=** *λf.λx.x*。这个表达式可以解读为“给定两个变量 *f* 和 *x*，返回 *x*”。正如你所注意到的，变量 *f* 在输出中没有被使用。如果我们试图用当前的 SIC 知识表示它，我们将得到：
 
-![](../Images/9ae939db655d63c9f4ebd1d9413bd566.png)
+![](img/9ae939db655d63c9f4ebd1d9413bd566.png)
 
 作者提供的图片
 
 *f* 线漂浮着。似乎有点问题，对吧？这就是我们需要 *橡皮擦 ε* 的原因！为了表示这个变量的消失，我们这样做：
 
-![](../Images/6040c5d8fa64b89e2b89de2eb863ec5c.png)
+![](img/6040c5d8fa64b89e2b89de2eb863ec5c.png)
 
 作者提供的图片。
 
 总结一下，我们可以通过以下方式使用对称交互组合子处理 Lambda 演算：
 
-![](../Images/069a7921a0fe243a1b2ec902d8e22bc4.png)
+![](img/069a7921a0fe243a1b2ec902d8e22bc4.png)
 
-作者提供的图片。灵感来源于 [https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/](https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/)
+作者提供的图片。灵感来源于 [`zicklag.katharos.group/blog/interaction-nets-combinators-calculus/`](https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/)
 
 # 示例
 
@@ -759,7 +759,7 @@ Lambda *表达式 ( λ )* 和 *应用*（@）可以通过构造子γ表示。例
 
 让我们画一些乔治·教堂数字！
 
-![](../Images/71ff48be81fb16b7f945787eb7255ece.png)
+![](img/71ff48be81fb16b7f945787eb7255ece.png)
 
 作者提供的图片
 
@@ -767,25 +767,25 @@ Lambda *表达式 ( λ )* 和 *应用*（@）可以通过构造子γ表示。例
 
 我画的东西是外部的 lambda 表达式 *λf.____*
 
-![](../Images/4baf00423b2cde5b9974dbf4bd517d25.png)
+![](img/4baf00423b2cde5b9974dbf4bd517d25.png)
 
 给定 f，输出 *λ*x.f(f(f(f x)))。图片由作者提供
 
 然后，第二个 lambda 表达式 __.*λx.*____：
 
-![](../Images/888164d02fd47ceb1a2abb3a2ff90029.png)
+![](img/888164d02fd47ceb1a2abb3a2ff90029.png)
 
 给定 x，输出 f(f(f(f x)))。图片由作者提供
 
 现在，我们需要绘制 *应用*（@）。但首先，请注意我们有 *f* 重复了四次。因此，我们需要复制（重复） *f* 三次（所以我们需要三个连续的复制器）：
 
-![](../Images/35deea54aa6b8d04016bec1d7ed8b016.png)
+![](img/35deea54aa6b8d04016bec1d7ed8b016.png)
 
 f 的复制。图片由作者提供
 
 现在我们有了四个 *f* 的副本，我们可以按顺序绘制 *f* 到 *f* 的 *应用*！
 
-![](../Images/5669ee7a20e95e2d0fd88ff9ed37c799.png)
+![](img/5669ee7a20e95e2d0fd88ff9ed37c799.png)
 
 使用 SIC 表示法的教会数 4。图片由作者提供
 
@@ -795,25 +795,25 @@ f 的复制。图片由作者提供
 
 让我们实现后继函数。它表示为 *λn.λf.λx.f((n f) x)。*
 
-![](../Images/91eb0ac0fbac96178e46ccddbf24a7b5.png)
+![](img/91eb0ac0fbac96178e46ccddbf24a7b5.png)
 
 后继函数。图片由作者提供
 
 让我们将后继函数应用于数字 *0* 并分析得到的结果。
 
-![](../Images/73bd398bd363b80c9d6693a543157c27.png)
+![](img/73bd398bd363b80c9d6693a543157c27.png)
 
 SUCC 0。图片由作者提供
 
 让我们应用交互规则。为了便于阅读，我将 *复制器* δ 画为黑色单元，而 *构造器* γ 画为白色单元：
 
-![](../Images/7483476d2c7eba05287c470db99a8219.png)
+![](img/7483476d2c7eba05287c470db99a8219.png)
 
 SUCC 0 的简化。图片由作者提供
 
 好吧，我们应该已经得到了教会数 1，对吧？出了什么问题？看看与复制器 δ（黑色）辅助端口连接的 *橡皮擦 ε*：
 
-![](../Images/8cc2c94526e90cb7650bcd2f8a8b940b.png)
+![](img/8cc2c94526e90cb7650bcd2f8a8b940b.png)
 
 图片由作者提供
 
@@ -821,7 +821,7 @@ SUCC 0 的简化。图片由作者提供
 
 因此，我们可以去除这个多余的 *复制器*，并直接连接 *电线*：
 
-![](../Images/e662d51b21d3f99a9bf46d1bdad4415a.png)
+![](img/e662d51b21d3f99a9bf46d1bdad4415a.png)
 
 图片由作者提供。
 
@@ -829,11 +829,11 @@ SUCC 0 的简化。图片由作者提供
 
 让我们再次将 SUCC 应用到数字 1 上，看看我们能否得到数字 2：
 
-![](../Images/ff417ab383f7dcf4fa7f00fbfc20c8f3.png)
+![](img/ff417ab383f7dcf4fa7f00fbfc20c8f3.png)
 
 SUCC 1。图片由作者提供
 
-![](../Images/1c554d864f027d5ae5fd12834413a298.png)
+![](img/1c554d864f027d5ae5fd12834413a298.png)
 
 SUCC 1 = 2。图片由作者提供
 
@@ -843,19 +843,19 @@ SUCC 1 = 2。图片由作者提供
 
 到目前为止，我们只进行了顺序化简。让我们做一个更复杂的操作，例如加法，来可视化交互组合器的完整并行化潜力。下面是加法的 SIC 表示法： *ADD(m, n) = λm.λn.λf.λx.(m f)((n f) x)。*
 
-![](../Images/07cb4ec55cf4a0856b417a91a615ad90.png)
+![](img/07cb4ec55cf4a0856b417a91a615ad90.png)
 
 加法。图片由作者提供
 
 让我们计算 ADD 1 1：
 
-![](../Images/46ca9526345dc51c5260799e471fea3b.png)
+![](img/46ca9526345dc51c5260799e471fea3b.png)
 
 ADD 1 1。图片由作者提供
 
 执行简化操作：
 
-![](../Images/05ad0dece29ad44eb9b72af6669863e0.png)
+![](img/05ad0dece29ad44eb9b72af6669863e0.png)
 
 图片由作者提供
 
@@ -863,27 +863,27 @@ ADD 1 1。图片由作者提供
 
 让我们继续：
 
-![](../Images/0a3e0763cf67f8158a12daa49fcfac41.png)
+![](img/0a3e0763cf67f8158a12daa49fcfac41.png)
 
 ADD 1 1 = 2\. 图片由作者提供
 
-在简化ADD 1 1之后，我们得到了恰好是教堂数字2的表示！
+在简化 ADD 1 1 之后，我们得到了恰好是教堂数字 2 的表示！
 
 这就是如何使用交互组合子并行化操作的过程。在每一步，如果有多个活跃的配对，它们都会在不同的线程中运行。
 
 # 结论
 
-在这篇文章中，我们涵盖了λ演算的基本概念、交互组合子以及它们如何结合以并行化操作。我希望我能简要地解释Bend/HVM是如何工作的，更多信息，请访问他们的[网站](https://higherorderco.com/)。
+在这篇文章中，我们涵盖了λ演算的基本概念、交互组合子以及它们如何结合以并行化操作。我希望我能简要地解释 Bend/HVM 是如何工作的，更多信息，请访问他们的[网站](https://higherorderco.com/)。
 
-同时，关注我在这里和我的[LinkedIn个人资料](https://www.linkedin.com/in/lucas-de-lima-nogueira/)，以便及时了解我的最新文章！
+同时，关注我在这里和我的[LinkedIn 个人资料](https://www.linkedin.com/in/lucas-de-lima-nogueira/)，以便及时了解我的最新文章！
 
 # 参考文献
 
-[HigherOrderCO网站](https://higherorderco.com/)
+[HigherOrderCO 网站](https://higherorderco.com/)
 
-[Lafont的交互组合子论文](https://core.ac.uk/download/pdf/81113716.pdf)
+[Lafont 的交互组合子论文](https://core.ac.uk/download/pdf/81113716.pdf)
 
-[HVM工作原理视频](https://www.youtube.com/watch?v=sDPuQ-UjhVQ&t=1591s)
+[HVM 工作原理视频](https://www.youtube.com/watch?v=sDPuQ-UjhVQ&t=1591s)
 
 [交互组合子教程 1](https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/)
 

@@ -1,16 +1,16 @@
 # 使用 Bitsandbytes 对 Llama 3 8B 进行量化以保持其准确性
 
-> 原文：[https://towardsdatascience.com/quantize-llama-3-8b-with-bitsandbytes-to-preserve-its-accuracy-e84283b233f7?source=collection_archive---------3-----------------------#2024-05-27](https://towardsdatascience.com/quantize-llama-3-8b-with-bitsandbytes-to-preserve-its-accuracy-e84283b233f7?source=collection_archive---------3-----------------------#2024-05-27)
+> 原文：[`towardsdatascience.com/quantize-llama-3-8b-with-bitsandbytes-to-preserve-its-accuracy-e84283b233f7?source=collection_archive---------3-----------------------#2024-05-27`](https://towardsdatascience.com/quantize-llama-3-8b-with-bitsandbytes-to-preserve-its-accuracy-e84283b233f7?source=collection_archive---------3-----------------------#2024-05-27)
 
 ## Llama 2 vs. Llama 3 vs. Mistral 7B，使用 GPTQ 和 Bitsandbytes 进行量化
 
-[](https://medium.com/@bnjmn_marie?source=post_page---byline--e84283b233f7--------------------------------)[![本杰明·马里](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--e84283b233f7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e84283b233f7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e84283b233f7--------------------------------) [本杰明·马里](https://medium.com/@bnjmn_marie?source=post_page---byline--e84283b233f7--------------------------------)
+[](https://medium.com/@bnjmn_marie?source=post_page---byline--e84283b233f7--------------------------------)![本杰明·马里](https://medium.com/@bnjmn_marie?source=post_page---byline--e84283b233f7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e84283b233f7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e84283b233f7--------------------------------) [本杰明·马里](https://medium.com/@bnjmn_marie?source=post_page---byline--e84283b233f7--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e84283b233f7--------------------------------) ·6分钟阅读·2024年5月27日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e84283b233f7--------------------------------) ·6 分钟阅读·2024 年 5 月 27 日
 
 --
 
-![](../Images/43ed7ac2dae5a741ff7449a9bf0ea60b.png)
+![](img/43ed7ac2dae5a741ff7449a9bf0ea60b.png)
 
 由 DALL-E 生成
 

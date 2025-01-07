@@ -1,16 +1,16 @@
 # 如何使用 GitHub API 获取拉取请求数据
 
-> 原文：[https://towardsdatascience.com/how-to-get-pull-request-data-using-github-api-b91891cbd54c?source=collection_archive---------3-----------------------#2024-09-29](https://towardsdatascience.com/how-to-get-pull-request-data-using-github-api-b91891cbd54c?source=collection_archive---------3-----------------------#2024-09-29)
+> 原文：[`towardsdatascience.com/how-to-get-pull-request-data-using-github-api-b91891cbd54c?source=collection_archive---------3-----------------------#2024-09-29`](https://towardsdatascience.com/how-to-get-pull-request-data-using-github-api-b91891cbd54c?source=collection_archive---------3-----------------------#2024-09-29)
 
 ## 获取任意两次提交之间的差异
 
-[](https://sonery.medium.com/?source=post_page---byline--b91891cbd54c--------------------------------)[![Soner Yıldırım](../Images/c589572e9d1ee176cd4f5a0008173f1b.png)](https://sonery.medium.com/?source=post_page---byline--b91891cbd54c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b91891cbd54c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b91891cbd54c--------------------------------) [Soner Yıldırım](https://sonery.medium.com/?source=post_page---byline--b91891cbd54c--------------------------------)
+[](https://sonery.medium.com/?source=post_page---byline--b91891cbd54c--------------------------------)![Soner Yıldırım](https://sonery.medium.com/?source=post_page---byline--b91891cbd54c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b91891cbd54c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b91891cbd54c--------------------------------) [Soner Yıldırım](https://sonery.medium.com/?source=post_page---byline--b91891cbd54c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b91891cbd54c--------------------------------) ·阅读时间 5 分钟·2024年9月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b91891cbd54c--------------------------------) ·阅读时间 5 分钟·2024 年 9 月 29 日
 
 --
 
-![](../Images/3b97d7d9bf4b8ff4610839f9d49b67b8.png)
+![](img/3b97d7d9bf4b8ff4610839f9d49b67b8.png)
 
 [照片由 Bofu Shaw](https://unsplash.com/@hikeshaw?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来自 [Unsplash](https://unsplash.com/photos/three-white-and-red-ceramic-owl-figurines-ntdr0AMZdvw?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

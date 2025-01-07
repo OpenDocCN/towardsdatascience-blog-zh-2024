@@ -1,16 +1,16 @@
 # 停止被数据驱动
 
-> 原文：[https://towardsdatascience.com/stop-being-data-driven-583b5e7abe7b?source=collection_archive---------5-----------------------#2024-08-30](https://towardsdatascience.com/stop-being-data-driven-583b5e7abe7b?source=collection_archive---------5-----------------------#2024-08-30)
+> 原文：[`towardsdatascience.com/stop-being-data-driven-583b5e7abe7b?source=collection_archive---------5-----------------------#2024-08-30`](https://towardsdatascience.com/stop-being-data-driven-583b5e7abe7b?source=collection_archive---------5-----------------------#2024-08-30)
 
 ## 为什么我们会被数据误导以及如何避免
 
-[](https://medium.com/@caiparryjones96?source=post_page---byline--583b5e7abe7b--------------------------------)[![Cai Parry-Jones](../Images/60b83f5167651f9621a3e73b8d72ccae.png)](https://medium.com/@caiparryjones96?source=post_page---byline--583b5e7abe7b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--583b5e7abe7b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--583b5e7abe7b--------------------------------) [Cai Parry-Jones](https://medium.com/@caiparryjones96?source=post_page---byline--583b5e7abe7b--------------------------------)
+[](https://medium.com/@caiparryjones96?source=post_page---byline--583b5e7abe7b--------------------------------)![Cai Parry-Jones](https://medium.com/@caiparryjones96?source=post_page---byline--583b5e7abe7b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--583b5e7abe7b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--583b5e7abe7b--------------------------------) [Cai Parry-Jones](https://medium.com/@caiparryjones96?source=post_page---byline--583b5e7abe7b--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--583b5e7abe7b--------------------------------) ·10分钟阅读·2024年8月30日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--583b5e7abe7b--------------------------------) ·10 分钟阅读·2024 年 8 月 30 日
 
 --
 
-![](../Images/8aa344db27c41a9269e41baa5731db40.png)
+![](img/8aa344db27c41a9269e41baa5731db40.png)
 
 来源：[unsplash.com](https://unsplash.com/)
 
@@ -46,11 +46,11 @@
 
 # 问题一——数据来自哪里？
 
-下面是《旁观者》杂志上一篇文章的摘录，标题是：[关于骚乱的非流行真相](https://www.spectator.co.uk/article/the-unfashionable-truth-about-the-riots/)。文章的主题是2024年英国反移民骚乱。
+下面是《旁观者》杂志上一篇文章的摘录，标题是：[关于骚乱的非流行真相](https://www.spectator.co.uk/article/the-unfashionable-truth-about-the-riots/)。文章的主题是 2024 年英国反移民骚乱。
 
-> …我决定查一下上周发生最严重骚乱的一些北部城镇的就业统计数据。我还查了2011年的统计数据，并将两者进行了对比。提前提醒你，如果你容易感到沮丧，现在最好别继续看下去。
+> …我决定查一下上周发生最严重骚乱的一些北部城镇的就业统计数据。我还查了 2011 年的统计数据，并将两者进行了对比。提前提醒你，如果你容易感到沮丧，现在最好别继续看下去。
 > 
-> 2011年，桑德兰的失业福利（包括伤残福利）占比为18%；如今是19%。2011年，罗瑟汉姆的失业率为16%；今天是18%。哈特尔浦的失业率为21%；如今是23%。
+> 2011 年，桑德兰的失业福利（包括伤残福利）占比为 18%；如今是 19%。2011 年，罗瑟汉姆的失业率为 16%；今天是 18%。哈特尔浦的失业率为 21%；如今是 23%。
 > 
 > — [关于骚乱的非流行真相](https://www.spectator.co.uk/article/the-unfashionable-truth-about-the-riots/)，《旁观者》
 
@@ -58,7 +58,7 @@
 
 在这个例子中，我们看到的只是“就业统计数据”……那到底意味着什么呢？在英国，并没有一个集中收集就业统计数据的地方，因此作者所指的数据并不显而易见。你可能会选择直接忽视这些数据，从而也忽视文章的其余部分，因为文章的前提就是基于这些数据。然而，我是个不甘心的人，于是我戴上了最好的福尔摩斯帽，开始寻找没有引用的数据。
 
-遗憾的是，我不是福尔摩斯。尽管我进行了大量的网络侦查，还是找不到与文章相匹配的数据。然而，我确实找到了其他的“就业统计数据”。具体来说，我找到了国家统计局（ONS）发布的[按地区划分的失业率](https://www.ons.gov.uk/employmentandlabourmarket/peoplenotinwork/unemployment)。它描绘了一幅完全不同的图景。事实上，完全相反的图景！文章中提到的三个自2011年以来就业减少的地区，ONS实际上发现它们的就业率都有所增加！*我恐怕这篇文章揭示的唯一一个非流行的真相，就是新闻媒体的退化。（或者这一直就是这样的吗？）
+遗憾的是，我不是福尔摩斯。尽管我进行了大量的网络侦查，还是找不到与文章相匹配的数据。然而，我确实找到了其他的“就业统计数据”。具体来说，我找到了国家统计局（ONS）发布的[按地区划分的失业率](https://www.ons.gov.uk/employmentandlabourmarket/peoplenotinwork/unemployment)。它描绘了一幅完全不同的图景。事实上，完全相反的图景！文章中提到的三个自 2011 年以来就业减少的地区，ONS 实际上发现它们的就业率都有所增加！*我恐怕这篇文章揭示的唯一一个非流行的真相，就是新闻媒体的退化。（或者这一直就是这样的吗？）
 
 **数据链接：**[*桑德兰*](https://www.nomisweb.co.uk/reports/lmp/la/1946157068/subreports/ea_time_series/report.aspx?)*，* [*罗瑟勒姆*](https://www.nomisweb.co.uk/reports/lmp/la/1946157122/subreports/ea_time_series/report.aspx?)*，以及* [*哈特尔浦*](https://www.nomisweb.co.uk/reports/lmp/la/1946157059/subreports/ea_time_series/report.aspx?) *就业统计数据。*
 
@@ -84,29 +84,29 @@
 
 如果你想避免自己偏见的陷阱，以及数据呈现者的偏见，你不仅需要问：“如果结果相反，数据还会这样呈现吗？”还要问：“如果结果相反，我会考虑这些数据吗？”这可能是一颗难以下咽的药丸，但克服自己的偏见，可能会比全世界的研究更能启发你。
 
-***[*可能包含谎言*](https://maycontainlies.com/)*，亚历克斯·埃德曼斯。第130页。*
+***[*可能包含谎言*](https://maycontainlies.com/)*，亚历克斯·埃德曼斯。第 130 页。*
 
 # 第三个问题 — 从数据到洞察的跃迁是否存在缺陷？
 
 > 对于大多数大学毕业生来说，拥有学位是有回报的。
 > 
-> 根据估算，女性一生中如果拥有学位，收入可能会增加约25万英镑，而男性这一数字大约是17万英镑。
+> 根据估算，女性一生中如果拥有学位，收入可能会增加约 25 万英镑，而男性这一数字大约是 17 万英镑。
 > 
-> — [让你致富的学位…和那些不能的](https://www.bbc.co.uk/news/education-41693230)，BBC新闻
+> — [让你致富的学位…和那些不能的](https://www.bbc.co.uk/news/education-41693230)，BBC 新闻
 
 这个引用来自英国广播公司（BBC）新闻部。具体来说，来自他们的文章《‘[让你致富的学位…和那些不能的](https://www.bbc.co.uk/news/education-41693230)’》。首先，最重要的问题是：是否有可靠的数据来源？
 
-![](../Images/2a16f65feb320ed96af8aab24e41caf5.png)
+![](img/2a16f65feb320ed96af8aab24e41caf5.png)
 
-数据来源：BBC新闻，[让你致富的学位…和那些不能的](https://www.bbc.co.uk/news/education-41693230)
+数据来源：BBC 新闻，[让你致富的学位…和那些不能的](https://www.bbc.co.uk/news/education-41693230)
 
 好消息是，答案是（可能*）是的！文章引用了另一个著名机构——财政研究所的数据。你可能想深入研究数据来源的具体报告，但从表面分析来看，我对这份原始数据的来源感到满意。
 
-其次，我们要问自己，“如果结果正好相反，这些信息还会被呈现出来吗？”考虑到BBC（据我所知）没有支持高等教育机构的理由，合理的假设是，如果数据表明没有经济效益，BBC也会发布一篇文章指出上大学并没有经济上的好处。
+其次，我们要问自己，“如果结果正好相反，这些信息还会被呈现出来吗？”考虑到 BBC（据我所知）没有支持高等教育机构的理由，合理的假设是，如果数据表明没有经济效益，BBC 也会发布一篇文章指出上大学并没有经济上的好处。
 
-然而，不幸的是，我们仍然不能完全相信BBC的发现。我们还需要问一个最终的重要问题：“这个分析是否合理？”在查看了[文章](https://www.bbc.co.uk/news/education-41693230)中关于各学科平均收入的图表后，请尝试在继续下一段之前回答以下问题：“既然拥有医学学位的人收入高于平均水平，假设医学学位是更高薪水的原因是否合理？”
+然而，不幸的是，我们仍然不能完全相信 BBC 的发现。我们还需要问一个最终的重要问题：“这个分析是否合理？”在查看了[文章](https://www.bbc.co.uk/news/education-41693230)中关于各学科平均收入的图表后，请尝试在继续下一段之前回答以下问题：“既然拥有医学学位的人收入高于平均水平，假设医学学位是更高薪水的原因是否合理？”
 
-我的回答是：医学学位对于成为合格的医生是必需的，而医生通常收入较高。这支持了医学学位是未来较高收入的主要原因这一观点。另一方面，你不仅需要选择医学，还需要被选中去学医学。考虑到英国医学毕业生的平均A-Level成绩为杰出的[AAA](https://www.medify.co.uk/blog/a-level-requirements#:~:text=Most%20medical%20schools%20require%20AAA,each%20medical%20school%20requires%20below.&text=A*AA%20(AAA%20considered%20if,biology%20and%20EPQ%20grade%20B))，你可以说，高薪的原因是因为平均医学专业学生在学术上具有卓越的认知能力，这与他们是否选择医学专业无关。
+我的回答是：医学学位对于成为合格的医生是必需的，而医生通常收入较高。这支持了医学学位是未来较高收入的主要原因这一观点。另一方面，你不仅需要选择医学，还需要被选中去学医学。考虑到英国医学毕业生的平均 A-Level 成绩为杰出的[AAA](https://www.medify.co.uk/blog/a-level-requirements#:~:text=Most%20medical%20schools%20require%20AAA,each%20medical%20school%20requires%20below.&text=A*AA%20(AAA%20considered%20if,biology%20and%20EPQ%20grade%20B))，你可以说，高薪的原因是因为平均医学专业学生在学术上具有卓越的认知能力，这与他们是否选择医学专业无关。
 
 那么，第二高平均薪资的学位——经济学呢？与医学不同，你并不需要经济学学位才能获得任何特定的高薪工作。我认为，经济学学位不太可能直接增加毕业生未来的薪水。例如，一个真正对钱感兴趣的学生，可能更倾向于根据薪资高低来做职业决策。这个人也可能更倾向于选择大学里的经济学专业。** 如果这是真的，那么让一个对钱不感兴趣的人去学经济学，可能并不会像文章所暗示的那样，对他们未来的职业或财务前景有太大帮助。
 

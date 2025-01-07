@@ -1,16 +1,16 @@
 # 数据工程师的 Pandas
 
-> 原文：[https://towardsdatascience.com/pandas-for-data-engineers-a191965ac538?source=collection_archive---------0-----------------------#2024-02-10](https://towardsdatascience.com/pandas-for-data-engineers-a191965ac538?source=collection_archive---------0-----------------------#2024-02-10)
+> 原文：[`towardsdatascience.com/pandas-for-data-engineers-a191965ac538?source=collection_archive---------0-----------------------#2024-02-10`](https://towardsdatascience.com/pandas-for-data-engineers-a191965ac538?source=collection_archive---------0-----------------------#2024-02-10)
 
 ## 高级技巧：高效处理和加载数据
 
-[](https://mshakhomirov.medium.com/?source=post_page---byline--a191965ac538--------------------------------)[![💡Mike Shakhomirov](../Images/bc6895c7face3244d488feb97ba0f68e.png)](https://mshakhomirov.medium.com/?source=post_page---byline--a191965ac538--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a191965ac538--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a191965ac538--------------------------------) [💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--a191965ac538--------------------------------)
+[](https://mshakhomirov.medium.com/?source=post_page---byline--a191965ac538--------------------------------)![💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--a191965ac538--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a191965ac538--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a191965ac538--------------------------------) [💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--a191965ac538--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a191965ac538--------------------------------) ·阅读时间 9 分钟·2024年2月10日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a191965ac538--------------------------------) ·阅读时间 9 分钟·2024 年 2 月 10 日
 
 --
 
-![](../Images/fb218af19db1bade44b449337950a32c.png)
+![](img/fb218af19db1bade44b449337950a32c.png)
 
 使用 [Kandinsky](https://github.com/ai-forever/Kandinsky-2) 生成的 AI 图像
 

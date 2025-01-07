@@ -1,20 +1,20 @@
-# 你可以用Python的textwrap模块做的一切
+# 你可以用 Python 的 textwrap 模块做的一切
 
-> 原文：[https://towardsdatascience.com/everything-you-can-do-with-pythons-textwrap-module-0d82c377a4c8?source=collection_archive---------2-----------------------#2024-02-07](https://towardsdatascience.com/everything-you-can-do-with-pythons-textwrap-module-0d82c377a4c8?source=collection_archive---------2-----------------------#2024-02-07)
+> 原文：[`towardsdatascience.com/everything-you-can-do-with-pythons-textwrap-module-0d82c377a4c8?source=collection_archive---------2-----------------------#2024-02-07`](https://towardsdatascience.com/everything-you-can-do-with-pythons-textwrap-module-0d82c377a4c8?source=collection_archive---------2-----------------------#2024-02-07)
 
-## 了解你可以用Python的`textwrap`模块做的所有事情，包括格式化、文本换行、修剪等等。
+## 了解你可以用 Python 的`textwrap`模块做的所有事情，包括格式化、文本换行、修剪等等。
 
-[](https://medium.com/@martin.heinz?source=post_page---byline--0d82c377a4c8--------------------------------)[![Martin Heinz](../Images/a8d1540fd32998ee9bda4af0f0232f7d.png)](https://medium.com/@martin.heinz?source=post_page---byline--0d82c377a4c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0d82c377a4c8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0d82c377a4c8--------------------------------) [Martin Heinz](https://medium.com/@martin.heinz?source=post_page---byline--0d82c377a4c8--------------------------------)
+[](https://medium.com/@martin.heinz?source=post_page---byline--0d82c377a4c8--------------------------------)![Martin Heinz](https://medium.com/@martin.heinz?source=post_page---byline--0d82c377a4c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0d82c377a4c8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0d82c377a4c8--------------------------------) [Martin Heinz](https://medium.com/@martin.heinz?source=post_page---byline--0d82c377a4c8--------------------------------)
 
-·发布在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0d82c377a4c8--------------------------------) ·阅读时长5分钟·2024年2月7日
+·发布在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0d82c377a4c8--------------------------------) ·阅读时长 5 分钟·2024 年 2 月 7 日
 
 --
 
-![](../Images/c3d8bf462ca3ad135cf342ed93cd2b6f.png)
+![](img/c3d8bf462ca3ad135cf342ed93cd2b6f.png)
 
 图片来自[Hello Sunday](https://unsplash.com/@hello_sunday?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)，[Unsplash](https://unsplash.com/photos/black-white-blue-and-pink-floral-textile-COFQgC0V4ks?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
-Python有许多格式化字符串和文本的选项，包括f-string、`format()`函数、模板等等。然而，有一个模块很少有人知道，它叫做`textwrap`。
+Python 有许多格式化字符串和文本的选项，包括 f-string、`format()`函数、模板等等。然而，有一个模块很少有人知道，它叫做`textwrap`。
 
 本模块专门为帮助你处理换行、缩进、修剪等任务而构建，在本文中，我们将探讨你可以用它做的所有事情。
 
@@ -60,7 +60,7 @@ wrap(s, 3, drop_whitespace=False, tabsize=1)
 # ['12 ', '3  ', '456', '78 ', '9 0']
 ```
 
-使用`wrap`时，您应该小心空格——上面您可以看到换行符、制表符和空格字符的行为。您可以看到第一个元素（`12`）*"包含"*换行符，第4个元素（`78`）*"包含"*制表符，但这些默认会被丢弃，因此这些元素的字符数只有2个，而不是3个。
+使用`wrap`时，您应该小心空格——上面您可以看到换行符、制表符和空格字符的行为。您可以看到第一个元素（`12`）*"包含"*换行符，第 4 个元素（`78`）*"包含"*制表符，但这些默认会被丢弃，因此这些元素的字符数只有 2 个，而不是 3 个。
 
 我们可以指定`drop_whitespace`关键字参数来保留它们并保持块的适当长度。
 
@@ -178,7 +178,7 @@ cleandoc(multiline_string)
 # 'First line\nSecond line\nThird line'
 ```
 
-默认情况下，Python中的多行字符串会保留字符串中使用的任何缩进，因此我们需要使用上面片段中第一个变量所示的丑陋格式。但我们可以使用`dedent`函数来改善格式——我们只需按自己喜欢的方式缩进变量值，然后在使用它之前调用`dedent`。
+默认情况下，Python 中的多行字符串会保留字符串中使用的任何缩进，因此我们需要使用上面片段中第一个变量所示的丑陋格式。但我们可以使用`dedent`函数来改善格式——我们只需按自己喜欢的方式缩进变量值，然后在使用它之前调用`dedent`。
 
 另外，我们也可以使用`inspect.cleandoc`，它也会去除前导换行符。然而，这个函数会将空格编码为特殊字符（`\n`和`\t`），因此您可能需要重新格式化它。
 
@@ -190,11 +190,11 @@ from textwrap import indent
 indented = indent(text, "    ", lambda x: not text.splitlines()[0] in x)
 ```
 
-我们只需提供文本和每行将缩进的字符串（这里是4个空格，我们可以——例如——使用`>>>`使其看起来像REPL）。此外，我们还可以提供一个谓词，用来决定该行是否应该缩进。在上面的例子中，`lambda`函数使得字符串的第一行（段落）不被缩进。
+我们只需提供文本和每行将缩进的字符串（这里是 4 个空格，我们可以——例如——使用`>>>`使其看起来像 REPL）。此外，我们还可以提供一个谓词，用来决定该行是否应该缩进。在上面的例子中，`lambda`函数使得字符串的第一行（段落）不被缩进。
 
 # 结束语
 
-`textwrap` 是一个简单的模块，只有少数几个函数/方法，但它再次证明了Python确实为那些不一定需要标准库的功能提供了*"开箱即用"*的支持，当你恰好需要它们时，它们能为你节省大量时间。
+`textwrap` 是一个简单的模块，只有少数几个函数/方法，但它再次证明了 Python 确实为那些不一定需要标准库的功能提供了*"开箱即用"*的支持，当你恰好需要它们时，它们能为你节省大量时间。
 
 如果你恰好做很多文本处理工作，那么我也推荐你查看一下专门处理文本的[整个文档部分](https://docs.python.org/3/library/text.html)。这里有许多你可能没意识到需要的模块和小功能。😉
 
@@ -202,8 +202,8 @@ indented = indent(text, "    ", lambda x: not text.splitlines()[0] in x)
 
 你可能还喜欢…
 
-[](https://betterprogramming.pub/everything-you-can-do-with-pythons-bisect-module-40bdaadbc22f?source=post_page-----0d82c377a4c8--------------------------------) [## 你可以用Python的Bisect模块做的一切
+[](https://betterprogramming.pub/everything-you-can-do-with-pythons-bisect-module-40bdaadbc22f?source=post_page-----0d82c377a4c8--------------------------------) [## 你可以用 Python 的 Bisect 模块做的一切
 
-### 学习如何使用Python的“bisect”模块来优化搜索并保持数据排序
+### 学习如何使用 Python 的“bisect”模块来优化搜索并保持数据排序
 
 [betterprogramming.pub](https://betterprogramming.pub/everything-you-can-do-with-pythons-bisect-module-40bdaadbc22f?source=post_page-----0d82c377a4c8--------------------------------)

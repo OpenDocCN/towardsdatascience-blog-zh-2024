@@ -1,16 +1,16 @@
 # 使用因果图回答因果问题
 
-> 原文：[https://towardsdatascience.com/using-causal-graphs-to-answer-causal-questions-5fd1dd82fa90?source=collection_archive---------1-----------------------#2024-01-31](https://towardsdatascience.com/using-causal-graphs-to-answer-causal-questions-5fd1dd82fa90?source=collection_archive---------1-----------------------#2024-01-31)
+> 原文：[`towardsdatascience.com/using-causal-graphs-to-answer-causal-questions-5fd1dd82fa90?source=collection_archive---------1-----------------------#2024-01-31`](https://towardsdatascience.com/using-causal-graphs-to-answer-causal-questions-5fd1dd82fa90?source=collection_archive---------1-----------------------#2024-01-31)
 
 ## 因果 AI，探讨因果推理与机器学习的融合
 
-[](https://medium.com/@raz1470?source=post_page---byline--5fd1dd82fa90--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--5fd1dd82fa90--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5fd1dd82fa90--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5fd1dd82fa90--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--5fd1dd82fa90--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--5fd1dd82fa90--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--5fd1dd82fa90--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5fd1dd82fa90--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5fd1dd82fa90--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--5fd1dd82fa90--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5fd1dd82fa90--------------------------------) ·阅读时间 9分钟·2024年1月31日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5fd1dd82fa90--------------------------------) ·阅读时间 9 分钟·2024 年 1 月 31 日
 
 --
 
-![](../Images/de2d3dc8860ce785769383e679f20d22.png)
+![](img/de2d3dc8860ce785769383e679f20d22.png)
 
 图片由[GuerrillaBuzz](https://unsplash.com/@guerrillabuzz?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -44,7 +44,7 @@
 
 因果图帮助我们区分因果关系与相关性。它们是因果推理/因果机器学习/因果 AI 工具箱的关键部分，可用于回答因果问题。
 
-因果图通常被称为DAG（有向无环图），它包含节点和边——边连接的是具有因果关系的节点。
+因果图通常被称为 DAG（有向无环图），它包含节点和边——边连接的是具有因果关系的节点。
 
 确定因果图的方式有两种：
 
@@ -70,9 +70,9 @@
 
 # **结构因果模型**
 
-给定已知的因果图和观察数据，我们可以训练一个结构因果模型（SCM）。一个SCM可以看作是一系列因果模型，每个节点一个模型。每个模型使用一个节点作为目标，并使用其直接父节点作为特征。如果我们观察数据中的关系是线性的，SCM将是一个线性方程组。这可以通过一系列线性回归模型来建模。如果我们观察数据中的关系是非线性的，可以通过一系列增强树来建模。
+给定已知的因果图和观察数据，我们可以训练一个结构因果模型（SCM）。一个 SCM 可以看作是一系列因果模型，每个节点一个模型。每个模型使用一个节点作为目标，并使用其直接父节点作为特征。如果我们观察数据中的关系是线性的，SCM 将是一个线性方程组。这可以通过一系列线性回归模型来建模。如果我们观察数据中的关系是非线性的，可以通过一系列增强树来建模。
 
-与传统机器学习的关键区别在于，SCM建模的是因果关系，并考虑了假相关、混杂因子、冲突变量和中介变量。
+与传统机器学习的关键区别在于，SCM 建模的是因果关系，并考虑了假相关、混杂因子、冲突变量和中介变量。
 
 通常为每个非根节点使用加性噪声模型（ANM）（意味着它至少有一个父节点）。这使我们能够使用一系列机器学习算法（加上噪声项）来估计每个非根节点。
 
@@ -86,9 +86,9 @@ Y := f(X) + N
 
 结构因果模型的价值在于，它通过计算反事实和模拟干预来回答因果问题：
 
-+   反事实：使用历史观测数据计算如果我们改变了x，y会发生什么。例如，如果我们上个月将呼叫等待时间减少20%，客户流失数量会有什么变化？
++   反事实：使用历史观测数据计算如果我们改变了 x，y 会发生什么。例如，如果我们上个月将呼叫等待时间减少 20%，客户流失数量会有什么变化？
 
-+   干预：与反事实非常相似（且常常互换使用），但干预模拟的是未来可能发生的情况。例如，如果明年我们将呼叫等待时间减少20%，客户流失数量会有什么变化？
++   干预：与反事实非常相似（且常常互换使用），但干预模拟的是未来可能发生的情况。例如，如果明年我们将呼叫等待时间减少 20%，客户流失数量会有什么变化？
 
 # **呼叫中心案例研究**
 
@@ -102,7 +102,7 @@ Y := f(X) + N
 
 关注的群体是拨打进线电话的客户。以下是每天收集的时间序列数据：
 
-![](../Images/ea95f2a517a5ea6c23b1cc89cb028263.png)
+![](img/ea95f2a517a5ea6c23b1cc89cb028263.png)
 
 图片由作者提供
 
@@ -138,7 +138,7 @@ graph_actual[3, 5] = 1.0 # Reported problems -> Churn
 graph_actual[4, 5] = 1.0 # Discount sent -> Churn
 ```
 
-![](../Images/7f87d73da2c5be5e5e94137445c52f12.png)
+![](img/7f87d73da2c5be5e5e94137445c52f12.png)
 
 图片由作者提供
 
@@ -184,13 +184,13 @@ df = data_generator(max_call_waiting=600, inbound_calls=10000, call_reduction=1.
 sns.pairplot(df)
 ```
 
-![](../Images/9922931040e9b9c7d7029dbe255b01bf.png)
+![](img/9922931040e9b9c7d7029dbe255b01bf.png)
 
 图片由作者提供
 
-# **训练SCM**
+# **训练 SCM**
 
-现在我们有了表示因果图的邻接矩阵和一些数据。我们使用来自dowhy Python包的gcm模块来训练SCM。
+现在我们有了表示因果图的邻接矩阵和一些数据。我们使用来自 dowhy Python 包的 gcm 模块来训练 SCM。
 
 考虑选择何种因果机制用于根节点和非根节点是非常重要的。如果你查看我们的数据生成函数，你会看到所有的关系都是线性的。因此，选择岭回归应该足够了。
 
@@ -212,11 +212,11 @@ gcm.fit(causal_model, df)
 
 你也可以使用自动分配功能，自动分配因果机制，而不是手动分配。
 
-关于gcm包的更多信息，请参阅文档：
+关于 gcm 包的更多信息，请参阅文档：
 
-[## DoWhy文档 - DoWhy文档](https://www.pywhy.org/dowhy/v0.11.1/?source=post_page-----5fd1dd82fa90--------------------------------)
+[## DoWhy 文档 - DoWhy 文档](https://www.pywhy.org/dowhy/v0.11.1/?source=post_page-----5fd1dd82fa90--------------------------------)
 
-### 日期：2023年12月25日 版本：v0.11.1 相关资源：源代码仓库 | 问题与建议 | PyWhy组织 | DoWhy…
+### 日期：2023 年 12 月 25 日 版本：v0.11.1 相关资源：源代码仓库 | 问题与建议 | PyWhy 组织 | DoWhy…
 
 [www.pywhy.org](https://www.pywhy.org/dowhy/v0.11.1/?source=post_page-----5fd1dd82fa90--------------------------------)
 
@@ -224,7 +224,7 @@ gcm.fit(causal_model, df)
 
 我们还使用岭回归来帮助创建基准比较。我们可以回顾数据生成器，看到它正确估算了每个变量的系数。然而，除了直接影响客户流失外，通话等待时间还通过弃单、报告问题和发送折扣间接影响客户流失。
 
-当涉及到估计反事实时，看看SCM与岭回归的比较将会很有趣。
+当涉及到估计反事实时，看看 SCM 与岭回归的比较将会很有趣。
 
 ```py
 # Ridge regression
@@ -239,13 +239,13 @@ print(f'Coefficient: {model.coef_}')
 # Ground truth[0.10 0.30 0.15 -0.20]
 ```
 
-![](../Images/8bdef4723a46a3c0aaec5a3a2a4d6f89.png)
+![](img/8bdef4723a46a3c0aaec5a3a2a4d6f89.png)
 
 图片来源：作者
 
 # **估计真实情况**
 
-在我们继续使用因果图和岭回归计算反事实之前，我们需要一个真实情况基准。我们可以使用数据生成器，在将通话等待时间减少20%之后，创建反事实样本。
+在我们继续使用因果图和岭回归计算反事实之前，我们需要一个真实情况基准。我们可以使用数据生成器，在将通话等待时间减少 20%之后，创建反事实样本。
 
 我们无法在现实世界问题中做到这一点，但这种方法允许我们评估因果图和岭回归的有效性。
 
@@ -261,7 +261,7 @@ df_cf = data_generator(max_call_waiting=600, inbound_calls=10000, call_reduction
 
 # **估计反事实**
 
-我们现在可以使用我们的三种方法估计如果我们将通话等待时间减少20%会发生什么：
+我们现在可以使用我们的三种方法估计如果我们将通话等待时间减少 20%会发生什么：
 
 +   真实情况（来自数据生成器）
 
@@ -283,7 +283,7 @@ causal_graph = round((df['Churn'].sum() - df_counterfactual['Churn'].sum()) / (d
 ridge_regression = round((df['Call waiting time'].sum() * 1.0 * model.coef_[0] - (df['Call waiting time'].sum() * call_reduction * model.coef_[0])) / (df['Churn'].sum()), 3)
 ```
 
-![](../Images/0da8f6eb1bd4a932cc8e7626cb4e0046.png)
+![](img/0da8f6eb1bd4a932cc8e7626cb4e0046.png)
 
 图片来源：作者
 
@@ -309,20 +309,20 @@ ridge_regression = round((df['Call waiting time'].sum() * 1.0 * model.coef_[0] -
 
 # **资源**
 
-如果你有兴趣进一步了解因果AI，我强烈推荐以下资源：
+如果你有兴趣进一步了解因果 AI，我强烈推荐以下资源：
 
-[](https://www.packtpub.com/product/causal-inference-and-discovery-in-python/9781804612989?source=post_page-----5fd1dd82fa90--------------------------------) [## Python中的因果推断与发现 | Packt
+[](https://www.packtpub.com/product/causal-inference-and-discovery-in-python/9781804612989?source=post_page-----5fd1dd82fa90--------------------------------) [## Python 中的因果推断与发现 | Packt
 
 ### 通过揭示因果原理并将其与强大的机器学习方法结合，解开因果推断与因果发现的神秘面纱…
 
-www.packtpub.com](https://www.packtpub.com/product/causal-inference-and-discovery-in-python/9781804612989?source=post_page-----5fd1dd82fa90--------------------------------) [](https://www.oreilly.com/library/view/causal-inference-in/9781098140243/?source=post_page-----5fd1dd82fa90--------------------------------) [## Python中的因果推断
+www.packtpub.com](https://www.packtpub.com/product/causal-inference-and-discovery-in-python/9781804612989?source=post_page-----5fd1dd82fa90--------------------------------) [](https://www.oreilly.com/library/view/causal-inference-in/9781098140243/?source=post_page-----5fd1dd82fa90--------------------------------) [## Python 中的因果推断
 
 ### 在线营销增加一美元会带来多少买家？哪些客户只有在提供某些条件时才会购买…
 
 [www.oreilly.com](https://www.oreilly.com/library/view/causal-inference-in/9781098140243/?source=post_page-----5fd1dd82fa90--------------------------------)
 
-# ChatGPT对作者有什么评价呢？😊
+# ChatGPT 对作者有什么评价呢？😊
 
-“认识一下Ryan，一位经验丰富的首席数据科学家，专注于在商业环境中运用因果分析技术，涵盖营销、运营和客户服务等领域。他的专长在于揭示因果关系的复杂性，从而推动明智的决策和战略改进，服务于不同的组织职能。”
+“认识一下 Ryan，一位经验丰富的首席数据科学家，专注于在商业环境中运用因果分析技术，涵盖营销、运营和客户服务等领域。他的专长在于揭示因果关系的复杂性，从而推动明智的决策和战略改进，服务于不同的组织职能。”
 
 如果你想继续探索因果人工智能，请关注我——在下一篇文章中，我们将回顾一步，深入探讨如何在缺乏专家领域知识的情况下，利用因果发现来估计因果图。

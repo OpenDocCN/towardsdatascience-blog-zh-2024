@@ -1,16 +1,16 @@
 # 如何自学数据科学
 
-> 原文：[https://towardsdatascience.com/how-i-self-study-data-science-7fa0c5ec58b5?source=collection_archive---------3-----------------------#2024-04-12](https://towardsdatascience.com/how-i-self-study-data-science-7fa0c5ec58b5?source=collection_archive---------3-----------------------#2024-04-12)
+> 原文：[`towardsdatascience.com/how-i-self-study-data-science-7fa0c5ec58b5?source=collection_archive---------3-----------------------#2024-04-12`](https://towardsdatascience.com/how-i-self-study-data-science-7fa0c5ec58b5?source=collection_archive---------3-----------------------#2024-04-12)
 
 ## 我的数据科学和技术领域学习技巧与方法
 
-[](https://medium.com/@egorhowell?source=post_page---byline--7fa0c5ec58b5--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--7fa0c5ec58b5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7fa0c5ec58b5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7fa0c5ec58b5--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--7fa0c5ec58b5--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--7fa0c5ec58b5--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--7fa0c5ec58b5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7fa0c5ec58b5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7fa0c5ec58b5--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--7fa0c5ec58b5--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7fa0c5ec58b5--------------------------------) ·阅读时间：8分钟·2024年4月12日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7fa0c5ec58b5--------------------------------) ·阅读时间：8 分钟·2024 年 4 月 12 日
 
 --
 
-![](../Images/5c8bbb073d3c3bd6a8982bfcde0545de.png)
+![](img/5c8bbb073d3c3bd6a8982bfcde0545de.png)
 
 图片由 [Firmbee.com](https://unsplash.com/@firmbee?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

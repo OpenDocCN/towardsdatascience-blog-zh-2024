@@ -1,16 +1,16 @@
 # Plotly 中交互式日历的逐步构建指南
 
-> 原文：[https://towardsdatascience.com/step-by-step-guide-for-building-interactive-calendars-in-plotly-277053f6ee7c?source=collection_archive---------9-----------------------#2024-08-16](https://towardsdatascience.com/step-by-step-guide-for-building-interactive-calendars-in-plotly-277053f6ee7c?source=collection_archive---------9-----------------------#2024-08-16)
+> 原文：[`towardsdatascience.com/step-by-step-guide-for-building-interactive-calendars-in-plotly-277053f6ee7c?source=collection_archive---------9-----------------------#2024-08-16`](https://towardsdatascience.com/step-by-step-guide-for-building-interactive-calendars-in-plotly-277053f6ee7c?source=collection_archive---------9-----------------------#2024-08-16)
 
 ## 使用 Plotly 创建带热图的交互式日历
 
-[](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--277053f6ee7c--------------------------------)[![Amanda Iglesias Moreno](../Images/9cff03d0c0caaa9a8aa53c4c34c90cac.png)](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--277053f6ee7c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--277053f6ee7c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--277053f6ee7c--------------------------------) [Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--277053f6ee7c--------------------------------)
+[](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--277053f6ee7c--------------------------------)![Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--277053f6ee7c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--277053f6ee7c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--277053f6ee7c--------------------------------) [Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--277053f6ee7c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--277053f6ee7c--------------------------------) ·阅读时长 7 分钟·2024年8月16日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--277053f6ee7c--------------------------------) ·阅读时长 7 分钟·2024 年 8 月 16 日
 
 --
 
-![](../Images/f2a5033f07429bdc68baacb410c05865.png)
+![](img/f2a5033f07429bdc68baacb410c05865.png)
 
 [**Debby Hudson**](https://unsplash.com/es/@hudsoncrafted) **在 Unsplash**
 

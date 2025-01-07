@@ -1,24 +1,24 @@
 # 一种非传统的训练-测试-验证集划分方法
 
-> 原文：[https://towardsdatascience.com/an-off-beat-approach-to-train-test-validation-split-your-dataset-esp-small-ones-650492b735fb?source=collection_archive---------2-----------------------#2024-07-07](https://towardsdatascience.com/an-off-beat-approach-to-train-test-validation-split-your-dataset-esp-small-ones-650492b735fb?source=collection_archive---------2-----------------------#2024-07-07)
+> 原文：[`towardsdatascience.com/an-off-beat-approach-to-train-test-validation-split-your-dataset-esp-small-ones-650492b735fb?source=collection_archive---------2-----------------------#2024-07-07`](https://towardsdatascience.com/an-off-beat-approach-to-train-test-validation-split-your-dataset-esp-small-ones-650492b735fb?source=collection_archive---------2-----------------------#2024-07-07)
 
 ## 确保在小数据集划分中的分布一致性
 
-[](https://medium.com/@soniamarpreet17?source=post_page---byline--650492b735fb--------------------------------)[![Amarpreet Singh](../Images/eaa74303ea5583d1bfb44364883ef53f.png)](https://medium.com/@soniamarpreet17?source=post_page---byline--650492b735fb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--650492b735fb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--650492b735fb--------------------------------) [Amarpreet Singh](https://medium.com/@soniamarpreet17?source=post_page---byline--650492b735fb--------------------------------)
+[](https://medium.com/@soniamarpreet17?source=post_page---byline--650492b735fb--------------------------------)![Amarpreet Singh](https://medium.com/@soniamarpreet17?source=post_page---byline--650492b735fb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--650492b735fb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--650492b735fb--------------------------------) [Amarpreet Singh](https://medium.com/@soniamarpreet17?source=post_page---byline--650492b735fb--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--650492b735fb--------------------------------) ·阅读时长8分钟·2024年7月7日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--650492b735fb--------------------------------) ·阅读时长 8 分钟·2024 年 7 月 7 日
 
 --
 
-![](../Images/fa894c871e506a99304ada5e4808197d.png)
+![](img/fa894c871e506a99304ada5e4808197d.png)
 
-使用Microsoft Designer生成
+使用 Microsoft Designer 生成
 
 我们都需要对总体进行抽样，以进行**统计分析**并获得洞见。当我们这样做时，目标是确保我们的样本分布尽可能接近总体分布。
 
-为此，我们有多种方法：**简单随机采样**（每个样本在总体中被选中的概率相等），**分层采样**（将总体划分为子组，并从每个子组中进行采样），**聚类采样**（将总体分为若干簇，并随机选取整簇），**系统采样**（每隔n个样本选择一个样本），等等。每种方法都有其优点，并根据研究的具体需求和特征进行选择。
+为此，我们有多种方法：**简单随机采样**（每个样本在总体中被选中的概率相等），**分层采样**（将总体划分为子组，并从每个子组中进行采样），**聚类采样**（将总体分为若干簇，并随机选取整簇），**系统采样**（每隔 n 个样本选择一个样本），等等。每种方法都有其优点，并根据研究的具体需求和特征进行选择。
 
-在本文中，我们不会专注于采样方法本身，而是会介绍如何利用这些概念将用于机器学习方法的数据集划分为**训练-测试-验证**集。这些方法适用于所有类型的**表格数据**。我们将在这里使用Python进行演示。
+在本文中，我们不会专注于采样方法本身，而是会介绍如何利用这些概念将用于机器学习方法的数据集划分为**训练-测试-验证**集。这些方法适用于所有类型的**表格数据**。我们将在这里使用 Python 进行演示。
 
 以下是您可能已经了解的一些方法：
 
@@ -47,9 +47,9 @@ X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.4, stratif
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, stratify=y_temp, random_state=42)
 ```
 
-# 3\. K折交叉验证
+# 3\. K 折交叉验证
 
-在K折交叉验证中，数据集被切分为`k`个子集（折）。模型在`k-1`个折上训练，在剩余的一个折上测试。这个过程会重复`k`次。
+在 K 折交叉验证中，数据集被切分为`k`个子集（折）。模型在`k-1`个折上训练，在剩余的一个折上测试。这个过程会重复`k`次。
 
 ```py
 from sklearn.model_selection import KFold, train_test_split
@@ -67,9 +67,9 @@ for train_index, test_index in kf.split(X):
     # You can now train and evaluate your model using these sets
 ```
 
-# 4\. 分层K折交叉验证
+# 4\. 分层 K 折交叉验证
 
-如名称所示，这是分层抽样和K折交叉验证的结合。
+如名称所示，这是分层抽样和 K 折交叉验证的结合。
 
 ```py
 from sklearn.model_selection import StratifiedKFold, train_test_split
@@ -144,7 +144,7 @@ print(f"\nAverage Test Scores across all folds - Accuracy: {sum(accuracy_scores)
 
 +   ***随机训练-测试-验证切分****:* 这种方法无法确保切分后的数据具有**相似的** **分布**，尤其是在数据集不够大或目标变量存在不平衡时。
 
-+   ***分层切分****:* 这种方法仅在目标变量（y）是**非连续的**时有效。虽然对于连续目标变量也有一些解决方法（例如通过某些条件将连续变量转换为类别变量，比如如果 y ≥ 四分位数1 → 1，否则为0），但这些方法仍然不能确保切分后的数据具有相似的分布。
++   ***分层切分****:* 这种方法仅在目标变量（y）是**非连续的**时有效。虽然对于连续目标变量也有一些解决方法（例如通过某些条件将连续变量转换为类别变量，比如如果 y ≥ 四分位数 1 → 1，否则为 0），但这些方法仍然不能确保切分后的数据具有相似的分布。
 
 现在，假设你的数据集中总的观测数**较小**，并且很难确保切分后的数据分布相似。在这种情况下，你可以结合**聚类**和**随机抽样（或分层抽样）**。
 
@@ -201,7 +201,7 @@ def get_clusters(df):
   return df
 ```
 
-根据你的问题，你也可以使用其他聚类方法，例如***K均值聚类***：
+根据你的问题，你也可以使用其他聚类方法，例如***K 均值聚类***：
 
 ```py
 import matplotlib.pyplot as plt
@@ -333,7 +333,7 @@ X_val, y_val = X[val_indices], y[val_indices]
 X_test, y_test = X[test_indices], y[test_indices]
 ```
 
-根据**我的使用案例**，将目标变量y排序，然后选择每个**第1、第2和第3**个索引作为训练、测试和验证集，分别为（互斥的），即所谓的**系统性随机抽样**，如下所示：
+根据**我的使用案例**，将目标变量 y 排序，然后选择每个**第 1、第 2 和第 3**个索引作为训练、测试和验证集，分别为（互斥的），即所谓的**系统性随机抽样**，如下所示：
 
 ```py
 def get_indices(df):

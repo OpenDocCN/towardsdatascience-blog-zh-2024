@@ -1,16 +1,16 @@
 # 系统设计：四叉树与 GeoHash
 
-> 原文：[https://towardsdatascience.com/system-design-quadtrees-geohash-5b896b975262?source=collection_archive---------1-----------------------#2024-05-08](https://towardsdatascience.com/system-design-quadtrees-geohash-5b896b975262?source=collection_archive---------1-----------------------#2024-05-08)
+> 原文：[`towardsdatascience.com/system-design-quadtrees-geohash-5b896b975262?source=collection_archive---------1-----------------------#2024-05-08`](https://towardsdatascience.com/system-design-quadtrees-geohash-5b896b975262?source=collection_archive---------1-----------------------#2024-05-08)
 
 ## 现实世界应用中优化搜索的高效地理数据管理
 
-[](https://medium.com/@slavahead?source=post_page---byline--5b896b975262--------------------------------)[![Vyacheslav Efimov](../Images/441e600862b2b93564c6cd81abb0092d.png)](https://medium.com/@slavahead?source=post_page---byline--5b896b975262--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5b896b975262--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5b896b975262--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--5b896b975262--------------------------------)
+[](https://medium.com/@slavahead?source=post_page---byline--5b896b975262--------------------------------)![Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--5b896b975262--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5b896b975262--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5b896b975262--------------------------------) [Vyacheslav Efimov](https://medium.com/@slavahead?source=post_page---byline--5b896b975262--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5b896b975262--------------------------------) ·阅读时间：6分钟·2024年5月8日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5b896b975262--------------------------------) ·阅读时间：6 分钟·2024 年 5 月 8 日
 
 --
 
-![](../Images/4953d153e80e31607f6d049670119d1b.png)
+![](img/4953d153e80e31607f6d049670119d1b.png)
 
 # 引言
 

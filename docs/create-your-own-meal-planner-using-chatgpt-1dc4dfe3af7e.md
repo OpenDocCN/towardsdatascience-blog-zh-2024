@@ -1,18 +1,18 @@
-# 使用ChatGPT创建你自己的餐单计划器
+# 使用 ChatGPT 创建你自己的餐单计划器
 
-> 原文：[https://towardsdatascience.com/create-your-own-meal-planner-using-chatgpt-1dc4dfe3af7e?source=collection_archive---------4-----------------------#2024-09-02](https://towardsdatascience.com/create-your-own-meal-planner-using-chatgpt-1dc4dfe3af7e?source=collection_archive---------4-----------------------#2024-09-02)
+> 原文：[`towardsdatascience.com/create-your-own-meal-planner-using-chatgpt-1dc4dfe3af7e?source=collection_archive---------4-----------------------#2024-09-02`](https://towardsdatascience.com/create-your-own-meal-planner-using-chatgpt-1dc4dfe3af7e?source=collection_archive---------4-----------------------#2024-09-02)
 
 ## 提示工程简要指南
 
-[](https://medium.com/@cornederuijt?source=post_page---byline--1dc4dfe3af7e--------------------------------)[![Corné de Ruijt](../Images/0e2b618b404bc65a8b4c8acc1c9c3d69.png)](https://medium.com/@cornederuijt?source=post_page---byline--1dc4dfe3af7e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1dc4dfe3af7e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1dc4dfe3af7e--------------------------------) [Corné de Ruijt](https://medium.com/@cornederuijt?source=post_page---byline--1dc4dfe3af7e--------------------------------)
+[](https://medium.com/@cornederuijt?source=post_page---byline--1dc4dfe3af7e--------------------------------)![Corné de Ruijt](https://medium.com/@cornederuijt?source=post_page---byline--1dc4dfe3af7e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1dc4dfe3af7e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1dc4dfe3af7e--------------------------------) [Corné de Ruijt](https://medium.com/@cornederuijt?source=post_page---byline--1dc4dfe3af7e--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1dc4dfe3af7e--------------------------------) ·16分钟阅读·2024年9月2日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1dc4dfe3af7e--------------------------------) ·16 分钟阅读·2024 年 9 月 2 日
 
 --
 
-![](../Images/2be06bae37516bbfff869c7ec305a2fa.png)
+![](img/2be06bae37516bbfff869c7ec305a2fa.png)
 
-通过DALL-E 3生成，使用的提示是“卡通风格的餐桌上的披萨卡尔佐内”。生成日期：2024年5月10日。
+通过 DALL-E 3 生成，使用的提示是“卡通风格的餐桌上的披萨卡尔佐内”。生成日期：2024 年 5 月 10 日。
 
 # 1\. 引言
 
@@ -20,45 +20,45 @@
 
 幸运的是，已经有了解决方案：餐单规划。提前决定一周的餐食，采购一周的食材，并在一周开始之前就准备好（部分）餐食，这有助于更健康地饮食。但这仍然需要大量的工作：决定吃什么，列出购物清单，决定是订购食材还是去超市更合适。幸运的是，我们现在有了这样一个“魔法棒”来完成这些任务：ChatGPT。
 
-简而言之，在本教程中，我们将引导你使用ChatGPT创建自己的餐单计划器。你将对常见的提示工程技巧（那些引导ChatGPT回答的技巧）有所了解，并学习如何在Python中使用这些技巧。
+简而言之，在本教程中，我们将引导你使用 ChatGPT 创建自己的餐单计划器。你将对常见的提示工程技巧（那些引导 ChatGPT 回答的技巧）有所了解，并学习如何在 Python 中使用这些技巧。
 
-准备好了吗？让我们开始吧！如果你想使用/下载本教程的笔记本版本，可以在Github上找到：
+准备好了吗？让我们开始吧！如果你想使用/下载本教程的笔记本版本，可以在 Github 上找到：
 
-[](https://github.com/cornederuijt/LLM-workshop/blob/main/scripts/%5BJNB_11_03_24_04_01_e_a_04_a%5D%20Create%20you%20own%20meal%20planner%2C%20using%20ChatGPT.ipynb?source=post_page-----1dc4dfe3af7e--------------------------------) [## LLM-workshop/scripts/[JNB_11_03_24_04_01_e_a_04_a] 使用ChatGPT创建你自己的餐单计划器.ipynb…
+[](https://github.com/cornederuijt/LLM-workshop/blob/main/scripts/%5BJNB_11_03_24_04_01_e_a_04_a%5D%20Create%20you%20own%20meal%20planner%2C%20using%20ChatGPT.ipynb?source=post_page-----1dc4dfe3af7e--------------------------------) [## LLM-workshop/scripts/[JNB_11_03_24_04_01_e_a_04_a] 使用 ChatGPT 创建你自己的餐单计划器.ipynb…
 
 [github.com](https://github.com/cornederuijt/LLM-workshop/blob/main/scripts/%5BJNB_11_03_24_04_01_e_a_04_a%5D%20Create%20you%20own%20meal%20planner%2C%20using%20ChatGPT.ipynb?source=post_page-----1dc4dfe3af7e--------------------------------)
 
 ## 1.2\. 前提条件
 
-在本教程中，我们将使用一些Python代码和OpenAI API来调用ChatGPT。理论上，您可以不编写Python代码，直接在ChatGPT网站上进行提示，但在超越本教程所解释的基础知识时，结合Python或Python LLM包（如LangChain [1]）使用提示将变得非常强大。
+在本教程中，我们将使用一些 Python 代码和 OpenAI API 来调用 ChatGPT。理论上，您可以不编写 Python 代码，直接在 ChatGPT 网站上进行提示，但在超越本教程所解释的基础知识时，结合 Python 或 Python LLM 包（如 LangChain [1]）使用提示将变得非常强大。
 
-如果您看到“LLM”并想知道：“什么是‘LLM’？”，不用担心。LLM是大语言模型（Large Language Model）的缩写，基本上是一个更大的模型类别，其工作原理类似于ChatGPT。因此，在本教程中，您遇到“LLM”时，只需理解为“ChatGPT或类似的东西”，就可以了。
+如果您看到“LLM”并想知道：“什么是‘LLM’？”，不用担心。LLM 是大语言模型（Large Language Model）的缩写，基本上是一个更大的模型类别，其工作原理类似于 ChatGPT。因此，在本教程中，您遇到“LLM”时，只需理解为“ChatGPT 或类似的东西”，就可以了。
 
 要开始，我们需要以下内容：
 
-1\. 对Python有一些基本了解。我将以[“Python入门”](https://app.datacamp.com/learn/courses/intro-to-python-for-data-science)（Python基础、Python列表、函数和包）DataCamp教程的前三章为参考点[2]。
+1\. 对 Python 有一些基本了解。我将以[“Python 入门”](https://app.datacamp.com/learn/courses/intro-to-python-for-data-science)（Python 基础、Python 列表、函数和包）DataCamp 教程的前三章为参考点[2]。
 
-2\. 一个OpenAI帐户。如果您没有帐户，请访问[ChatGPT网站](https://chatgpt.com) [3]，点击右上角的“登录”，然后选择“注册”创建帐户。
+2\. 一个 OpenAI 帐户。如果您没有帐户，请访问[ChatGPT 网站](https://chatgpt.com) [3]，点击右上角的“登录”，然后选择“注册”创建帐户。
 
-3\. OpenAI的API密钥，我们将在接下来的步骤中简要指导您。
+3\. OpenAI 的 API 密钥，我们将在接下来的步骤中简要指导您。
 
-**1.2.1 申请OpenAI密钥**
+**1.2.1 申请 OpenAI 密钥**
 
-*要使用OpenAI API，您需要提供一些信用卡信息，并且根据OpenAI计算免费额度的方式，您可能会因使用API而产生费用。按照本教程进行操作的成本应该是最小的（几分钱）[4]。*
+*要使用 OpenAI API，您需要提供一些信用卡信息，并且根据 OpenAI 计算免费额度的方式，您可能会因使用 API 而产生费用。按照本教程进行操作的成本应该是最小的（几分钱）[4]。*
 
-要通过编程与OpenAI进行交互，我们需要申请一个API密钥，您可以按照以下步骤进行操作：
+要通过编程与 OpenAI 进行交互，我们需要申请一个 API 密钥，您可以按照以下步骤进行操作：
 
-1\. 访问[https://platform.openai.com](https://platform.openai.com)，并使用您的帐户登录。
+1\. 访问[`platform.openai.com`](https://platform.openai.com)，并使用您的帐户登录。
 
-2\. 访问[https://platform.openai.com/account/billing/overview](https://platform.openai.com/account/billing/overview)，并添加您的信用卡信息。
+2\. 访问[`platform.openai.com/account/billing/overview`](https://platform.openai.com/account/billing/overview)，并添加您的信用卡信息。
 
-3\. 前往API密钥：[https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)。
+3\. 前往 API 密钥：[`platform.openai.com/api-keys`](https://platform.openai.com/api-keys)。
 
-4\. 选择“创建新的密钥”，OpenAI将生成一串长文本（字符串），它将作为您的API密钥。**请注意不要共享API密钥！**
+4\. 选择“创建新的密钥”，OpenAI 将生成一串长文本（字符串），它将作为您的 API 密钥。**请注意不要共享 API 密钥！**
 
 5\. 将密钥保存在方便的位置。
 
-为了简便起见，我们假设您已经将API密钥保存在工作目录中的keys.yaml文件中。该文件内容如下：
+为了简便起见，我们假设您已经将 API 密钥保存在工作目录中的 keys.yaml 文件中。该文件内容如下：
 
 ```py
 openai_key: "<your key string>"
@@ -66,13 +66,13 @@ openai_key: "<your key string>"
 
 **1.2.2 安装包**
 
-在本教程中，我们将使用OpenAI API，它有一个Python包，可以通过pip安装。
+在本教程中，我们将使用 OpenAI API，它有一个 Python 包，可以通过 pip 安装。
 
 ```py
 ! pip install openai
 ```
 
-除OpenAI外，我们假设常用的数据包（如pandas、numpy）已安装。
+除 OpenAI 外，我们假设常用的数据包（如 pandas、numpy）已安装。
 
 **1.2.3 一些安全防护措施**
 
@@ -188,21 +188,21 @@ pprint(response.choices[0].message.content)
 
 那么，如何将 ChatGPT 的回应引导到正确的方向呢？让我们来看看。
 
-> ***练习 1*** 调整用于创建餐单的代码中的用户提示。尝试将餐单调整到更符合你自己喜好的方向。这会如何改变ChatGPT的回答？
+> ***练习 1*** 调整用于创建餐单的代码中的用户提示。尝试将餐单调整到更符合你自己喜好的方向。这会如何改变 ChatGPT 的回答？
 
 # 3\. 提示
 
 ## 3.1 用户与系统提示
 
-或许最重要的技巧之一是通过使用提示来引导ChatGPT的回答。自从ChatGPT-3发布以来，关于如何使用提示的很多内容变得更加清晰。OpenAI本身提供了一个详尽的指南[[6]](https://platform.openai.com/docs/guides/prompt-engineering/prompt-engineering)，并且对于一些特定任务，比如生成特定目的的文本（如社交媒体帖子），还有其他的参考资料（例如，[[7]](https://medium.com/towards-data-science/how-i-won-singapores-gpt-4-prompt-engineering-competition-34c195a93d41)）。
+或许最重要的技巧之一是通过使用提示来引导 ChatGPT 的回答。自从 ChatGPT-3 发布以来，关于如何使用提示的很多内容变得更加清晰。OpenAI 本身提供了一个详尽的指南[[6]](https://platform.openai.com/docs/guides/prompt-engineering/prompt-engineering)，并且对于一些特定任务，比如生成特定目的的文本（如社交媒体帖子），还有其他的参考资料（例如，[[7]](https://medium.com/towards-data-science/how-i-won-singapores-gpt-4-prompt-engineering-competition-34c195a93d41)）。
 
-在提示中，一个有用的元素是区分发送给ChatGPT的两种消息类型：*系统提示*和*用户提示*。在ChatGPT的词汇中，有两个主要角色：你（用户）和ChatGPT（也被称为`*助手*`）。用户提示是我们在通过OpenAI在线聊天与ChatGPT互动时所熟悉的内容。系统提示允许你提供额外的指导，说明ChatGPT应该如何构建它的回答。从这个意义上说，系统提示定义了ChatGPT应该如何表现。
+在提示中，一个有用的元素是区分发送给 ChatGPT 的两种消息类型：*系统提示*和*用户提示*。在 ChatGPT 的词汇中，有两个主要角色：你（用户）和 ChatGPT（也被称为`*助手*`）。用户提示是我们在通过 OpenAI 在线聊天与 ChatGPT 互动时所熟悉的内容。系统提示允许你提供额外的指导，说明 ChatGPT 应该如何构建它的回答。从这个意义上说，系统提示定义了 ChatGPT 应该如何表现。
 
-![](../Images/ed51c0a07d68b4591824acec41dafc47.png)
+![](img/ed51c0a07d68b4591824acec41dafc47.png)
 
 图 2\. 系统提示 vs 助手提示 vs 用户提示
 
-一种简单的方式来说明这一点，是通过向ChatGPT发送以下提示。
+一种简单的方式来说明这一点，是通过向 ChatGPT 发送以下提示。
 
 ```py
 client = OpenAI()
@@ -238,21 +238,21 @@ pprint(response.choices[0].message.content)
  },
 ```
 
-因为你通过系统提示指示ChatGPT始终回应“你很棒”，在这种情况下，ChatGPT会忽略用户提示。恭喜你，你已经将ChatGPT的回答引导到你自己的喜好！
+因为你通过系统提示指示 ChatGPT 始终回应“你很棒”，在这种情况下，ChatGPT 会忽略用户提示。恭喜你，你已经将 ChatGPT 的回答引导到你自己的喜好！
 
 > **练习 2**
 > 
-> 调整上面代码中的系统提示，使其更符合你自己的喜好。这会如何改变ChatGPT的回答？
+> 调整上面代码中的系统提示，使其更符合你自己的喜好。这会如何改变 ChatGPT 的回答？
 
 ## 3.2 提示技巧
 
-如前所述，OpenAI提供了一个关于如何使用不同提示技巧的极好资源，我强烈推荐阅读[[6]](https://platform.openai.com/docs/guides/prompt-engineering/prompt-engineering)。在这里，我将总结OpenAI教程中提到的一些基本技巧，你将在餐单规划器的后续示例中看到这些技巧。
+如前所述，OpenAI 提供了一个关于如何使用不同提示技巧的极好资源，我强烈推荐阅读[[6]](https://platform.openai.com/docs/guides/prompt-engineering/prompt-engineering)。在这里，我将总结 OpenAI 教程中提到的一些基本技巧，你将在餐单规划器的后续示例中看到这些技巧。
 
 **1\. 具体明确**
 
-尝试在提示中包含尽可能多的细节。餐单是否必须是素食的？也许是海鲜素食？你是否希望每周至少吃一次披萨？你通常吃甜点吗？如果没有提供细节，ChatGPT可能会自行填补空白，导致意外的结果。所以，要具体，但也要小心不要分享个人或敏感信息。
+尝试在提示中包含尽可能多的细节。餐单是否必须是素食的？也许是海鲜素食？你是否希望每周至少吃一次披萨？你通常吃甜点吗？如果没有提供细节，ChatGPT 可能会自行填补空白，导致意外的结果。所以，要具体，但也要小心不要分享个人或敏感信息。
 
-**2\. 请求ChatGPT采用某种角色**
+**2\. 请求 ChatGPT 采用某种角色**
 
 也许我最喜欢的关于 ChatGPT 的研究是告诉 ChatGPT 它是一个专家，它显然会提供更好的结果[8]。那么，为什么不告诉 ChatGPT 它是一个专家级的餐单规划师呢？或者说，它是一个擅长规划意大利菜肴的专家呢？
 
@@ -546,7 +546,7 @@ pprint(response.choices[0].message.content)
 pd.read_json(response.choices[0].message.content.replace('\n', ''))
 ```
 
-![](../Images/c03a45d518be4aef82b94e99da8453da.png)
+![](img/c03a45d518be4aef82b94e99da8453da.png)
 
 然后我们将其结构化为更方便的格式。
 
@@ -585,7 +585,7 @@ all_ingredients = (pd.DataFrame({"ingredients": ingredients,
 )
 ```
 
-![](../Images/aef750a1eb8fe229956698c229595798.png)
+![](img/aef750a1eb8fe229956698c229595798.png)
 
 > **练习 4**
 > 
@@ -599,28 +599,28 @@ all_ingredients = (pd.DataFrame({"ingredients": ingredients,
 
 所有日期均采用 dd-mm-YYYY 格式。
 
-[1] [https://langchain.com](https://langchain.com/)。最后访问时间：10–05–2024。
+[1] [`langchain.com`](https://langchain.com/)。最后访问时间：10–05–2024。
 
-[2] [https://app.datacamp.com/learn/courses/intro-to-python-for-data-science](https://app.datacamp.com/learn/courses/intro-to-python-for-data-science)。最后访问时间：10–05–2024。
+[2] [`app.datacamp.com/learn/courses/intro-to-python-for-data-science`](https://app.datacamp.com/learn/courses/intro-to-python-for-data-science)。最后访问时间：10–05–2024。
 
-[3] [https://chatgpt.com](https://chatgpt.com/)。最后访问时间：10–05–2024。
+[3] [`chatgpt.com`](https://chatgpt.com/)。最后访问时间：10–05–2024。
 
 [4] 本文作者对读者在遵循本教程步骤时可能产生的任何费用（无论是预期的还是意外的）不承担责任。
 
-[5] Maximilian Vogel. (2023). ChatGPT, 下一步：认识 10 位自主 AI 代理：Auto-GPT, BabyAGI, AgentGPT, Microsoft Jarvis, ChaosGPT 等朋友。 [https://medium.com/the-generator/chatgpts-next-level-is-agent-ai-auto-gpt-babyagi-agentgpt-microsoft-jarvis-friends-d354aa18f21](https://medium.com/the-generator/chatgpts-next-level-is-agent-ai-auto-gpt-babyagi-agentgpt-microsoft-jarvis-friends-d354aa18f21) 最后访问时间：11–07–2024。
+[5] Maximilian Vogel. (2023). ChatGPT, 下一步：认识 10 位自主 AI 代理：Auto-GPT, BabyAGI, AgentGPT, Microsoft Jarvis, ChaosGPT 等朋友。 [`medium.com/the-generator/chatgpts-next-level-is-agent-ai-auto-gpt-babyagi-agentgpt-microsoft-jarvis-friends-d354aa18f21`](https://medium.com/the-generator/chatgpts-next-level-is-agent-ai-auto-gpt-babyagi-agentgpt-microsoft-jarvis-friends-d354aa18f21) 最后访问时间：11–07–2024。
 
-[6] [https://platform.openai.com/docs/guides/prompt-engineering/prompt-engineering](https://platform.openai.com/docs/guides/prompt-engineering/prompt-engineering)。最后访问时间：10–05–2024。
+[6] [`platform.openai.com/docs/guides/prompt-engineering/prompt-engineering`](https://platform.openai.com/docs/guides/prompt-engineering/prompt-engineering)。最后访问时间：10–05–2024。
 
-[7] Teo S.（2023）。我如何赢得新加坡的GPT-4提示工程竞赛。 [https://medium.com/towards-data-science/how-i-won-singapores-gpt-4-prompt-engineering-competition-34c195a93d41](https://medium.com/towards-data-science/how-i-won-singapores-gpt-4-prompt-engineering-competition-34c195a93d41)。最后访问时间：2024年5月10日
+[7] Teo S.（2023）。我如何赢得新加坡的 GPT-4 提示工程竞赛。 [`medium.com/towards-data-science/how-i-won-singapores-gpt-4-prompt-engineering-competition-34c195a93d41`](https://medium.com/towards-data-science/how-i-won-singapores-gpt-4-prompt-engineering-competition-34c195a93d41)。最后访问时间：2024 年 5 月 10 日
 
-[8] Xu, Benfeng 等（2023）。Expertprompting: 指导大型语言模型成为杰出专家。 *arXiv预印本arXiv:2305.14688*。
+[8] Xu, Benfeng 等（2023）。Expertprompting: 指导大型语言模型成为杰出专家。 *arXiv 预印本 arXiv:2305.14688*。
 
-[9] [https://python.langchain.com/v0.1/docs/modules/model_io/output_parsers/](https://python.langchain.com/v0.1/docs/modules/model_io/output_parsers/)。最后访问时间：2024年7月12日。
+[9] [`python.langchain.com/v0.1/docs/modules/model_io/output_parsers/`](https://python.langchain.com/v0.1/docs/modules/model_io/output_parsers/)。最后访问时间：2024 年 7 月 12 日。
 
-[10] [https://nos.nl/artikel/2221580-willem-alexander-en-maxima-in-de-keuken-wie-bakt-de-beste-pannenkoeken](https://nos.nl/artikel/2221580-willem-alexander-en-maxima-in-de-keuken-wie-bakt-de-beste-pannenkoeken)。最后访问时间：2024年9月19日
+[10] [`nos.nl/artikel/2221580-willem-alexander-en-maxima-in-de-keuken-wie-bakt-de-beste-pannenkoeken`](https://nos.nl/artikel/2221580-willem-alexander-en-maxima-in-de-keuken-wie-bakt-de-beste-pannenkoeken)。最后访问时间：2024 年 9 月 19 日
 
-[11] [https://community.openai.com/t/incorrect-count-of-r-characters-in-the-word-strawberry/829618](https://community.openai.com/t/incorrect-count-of-r-characters-in-the-word-strawberry/829618)。最后访问时间：2024年9月20日
+[11] [`community.openai.com/t/incorrect-count-of-r-characters-in-the-word-strawberry/829618`](https://community.openai.com/t/incorrect-count-of-r-characters-in-the-word-strawberry/829618)。最后访问时间：2024 年 9 月 20 日
 
-[12] 例如最近的o1模型：[https://openai.com/o1/](https://openai.com/o1/)。最后访问时间：2024年9月23日
+[12] 例如最近的 o1 模型：[`openai.com/o1/`](https://openai.com/o1/)。最后访问时间：2024 年 9 月 23 日
 
-[13] Brown, Tom B. 等（2020）“语言模型是少样本学习者。” *arXiv预印本arXiv:2005.14165*。
+[13] Brown, Tom B. 等（2020）“语言模型是少样本学习者。” *arXiv 预印本 arXiv:2005.14165*。

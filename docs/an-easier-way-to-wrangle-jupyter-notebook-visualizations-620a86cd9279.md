@@ -1,12 +1,12 @@
 # 组织 Jupyter Notebook 可视化的技巧与窍门
 
-> 原文：[https://towardsdatascience.com/an-easier-way-to-wrangle-jupyter-notebook-visualizations-620a86cd9279?source=collection_archive---------2-----------------------#2024-01-22](https://towardsdatascience.com/an-easier-way-to-wrangle-jupyter-notebook-visualizations-620a86cd9279?source=collection_archive---------2-----------------------#2024-01-22)
+> 原文：[`towardsdatascience.com/an-easier-way-to-wrangle-jupyter-notebook-visualizations-620a86cd9279?source=collection_archive---------2-----------------------#2024-01-22`](https://towardsdatascience.com/an-easier-way-to-wrangle-jupyter-notebook-visualizations-620a86cd9279?source=collection_archive---------2-----------------------#2024-01-22)
 
 ## 通过自动化 matplotlib 输出，优化你的数据科学工作流程——只需要一行代码。下面是具体做法。
 
-[](https://medium.com/@mmore500?source=post_page---byline--620a86cd9279--------------------------------)[![Matthew Andres Moreno](../Images/ca7da9fd9e5c744ee0ebd2aa5d979eb5.png)](https://medium.com/@mmore500?source=post_page---byline--620a86cd9279--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--620a86cd9279--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--620a86cd9279--------------------------------) [Matthew Andres Moreno](https://medium.com/@mmore500?source=post_page---byline--620a86cd9279--------------------------------)
+[](https://medium.com/@mmore500?source=post_page---byline--620a86cd9279--------------------------------)![Matthew Andres Moreno](https://medium.com/@mmore500?source=post_page---byline--620a86cd9279--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--620a86cd9279--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--620a86cd9279--------------------------------) [Matthew Andres Moreno](https://medium.com/@mmore500?source=post_page---byline--620a86cd9279--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--620a86cd9279--------------------------------) ·阅读时间 6 分钟·2024年1月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--620a86cd9279--------------------------------) ·阅读时间 6 分钟·2024 年 1 月 22 日
 
 --
 
@@ -34,7 +34,7 @@ tp.tee(sns.scatterplot,
    data=sns.load_data("tips"), x="total_bill", y="tip", hue="time")
 ```
 
-![](../Images/2ff934bb137db56e6f6e5497ab52e969.png)
+![](img/2ff934bb137db56e6f6e5497ab52e969.png)
 
 > teeplots/hue=time+viz=scatterplot+x=total-bill+y=tip+ext=.eps
 > 
@@ -50,7 +50,7 @@ tp.tee(sns.scatterplot,
 
 ***teeplot*** 旨在简化与使用 *matplotlib*、*seaborn* 和 *pandas* 等库创建的数据可视化的工作。它作为您的绘图调用的封装器，帮助您处理输出管理。
 
-![](../Images/947b3f58acf23f40400530b4c26d3d85.png)
+![](img/947b3f58acf23f40400530b4c26d3d85.png)
 
 teeplot 工作流示例
 
@@ -85,7 +85,7 @@ tp.tee(df.plot.box,  # plotter...
 > 
 > teeplots/by=gender+column=age+viz=box+ext=.png
 
-![](../Images/020f0d97db5ab73a7ef2c6468a875d52.png)
+![](img/020f0d97db5ab73a7ef2c6468a875d52.png)
 
 # 示例 2：使用 Matplotlib 进行手动调整
 
@@ -123,7 +123,7 @@ saveit()  # dispatch output callback
 
 > teeplots/c=profit+s=carbon+viz=scatter+x=weight+y=price+ext=.eps
 
-![](../Images/ff2943c73549e3d6bd14cb4efc52cfdc.png)
+![](img/ff2943c73549e3d6bd14cb4efc52cfdc.png)
 
 请注意从上面的 `tp.tee` 调用中解包的 `__` 值。这是因为 `plt.scatter` 的返回值是一个线条集合，对我们的调整没有用处。
 
@@ -150,7 +150,7 @@ tp.tee(cuteplot,  # plotter
 > 
 > teeplots/amount=4+descriptor=good+subject=who+viz=cuteplot+ext=.pdf
 
-![](../Images/93d5c7a746f966f71dc9282d108a9152.png)
+![](img/93d5c7a746f966f71dc9282d108a9152.png)
 
 通过 seaborn-data，BSD 许可证/版权 © 2012–2023, Michael L. Waskom
 
@@ -158,13 +158,13 @@ tp.tee(cuteplot,  # plotter
 
 # 进一步信息
 
-![](../Images/637567441a096bd6d8840f8f4185fc29.png)
+![](img/637567441a096bd6d8840f8f4185fc29.png)
 
 就这么简单！
 
 我过去两年一直在定期使用这个工具，最近决定花时间将其打包并分享。希望它能成为社区的一个资产。
 
-*teeplot*库具有一些额外的高级功能，超出了本文的讨论内容，例如通过环境变量进行配置（在CI中非常有用！）。您可以在项目的[*使用指南*](https://github.com/mmore500/teeplot/blob/master/README.rst#usage)和[*API列表*](https://github.com/mmore500/teeplot/blob/master/README.rst#api)中了解更多信息。该项目是一个开源项目，托管在GitHub上的[*mmore500/teeplot*](https://github.com/mmore500/teeplot)*，请考虑留下一个⭐️！*
+*teeplot*库具有一些额外的高级功能，超出了本文的讨论内容，例如通过环境变量进行配置（在 CI 中非常有用！）。您可以在项目的[*使用指南*](https://github.com/mmore500/teeplot/blob/master/README.rst#usage)和[*API 列表*](https://github.com/mmore500/teeplot/blob/master/README.rst#api)中了解更多信息。该项目是一个开源项目，托管在 GitHub 上的[*mmore500/teeplot*](https://github.com/mmore500/teeplot)*，请考虑留下一个⭐️！*
 
 可以通过`python3 -m pip install teeplot`安装*teeplot*。
 
@@ -172,21 +172,21 @@ tp.tee(cuteplot,  # plotter
 
 本教程由我贡献，[Matthew Andres Moreno](https://mmore500.com/)。
 
-![](../Images/6a74bc3879e65ad0ded64e1e434af933.png)
+![](img/6a74bc3879e65ad0ded64e1e434af933.png)
 
-我目前在[密歇根大学](https://umich.edu)担任博士后研究员，我的工作得到了Eric和Wendy Schmidt AI in Science博士后奖学金的资助，这是一个Schmidt Futures项目。
+我目前在[密歇根大学](https://umich.edu)担任博士后研究员，我的工作得到了 Eric 和 Wendy Schmidt AI in Science 博士后奖学金的资助，这是一个 Schmidt Futures 项目。
 
 我的任命分配在大学的生态与进化生物学系、复杂性研究中心和密歇根数据科学研究所。
 
-在Twitter上找到我 [@MorenoMatthewA](https://twitter.com/morenomatthewa)，在GitHub上找到我 [@mmore500](https://github.com/mmore500/)。
+在 Twitter 上找到我 [@MorenoMatthewA](https://twitter.com/morenomatthewa)，在 GitHub 上找到我 [@mmore500](https://github.com/mmore500/)。
 
 *免责声明*：我就是`teeplot`库的作者。
 
 # 引用
 
-*J. D. Hunter，“Matplotlib：二维图形环境”，《计算科学与工程》，第9卷，第3期，90–95页，2007年\。* [*https://doi.org/10.1109/MCSE.2007.55*](https://doi.org/10.1109/MCSE.2007.55)
+*J. D. Hunter，“Matplotlib：二维图形环境”，《计算科学与工程》，第 9 卷，第 3 期，90–95 页，2007 年\。* [*https://doi.org/10.1109/MCSE.2007.55*](https://doi.org/10.1109/MCSE.2007.55)
 
-*数据结构用于python中的统计计算，McKinney，《第9届科学会议中的Python》，第445卷，2010年\。* [*https://doi.org/*](https://doi.org/) *10.25080/Majora-92bf1922–00a*
+*数据结构用于 python 中的统计计算，McKinney，《第 9 届科学会议中的 Python》，第 445 卷，2010 年\。* [*https://doi.org/*](https://doi.org/) *10.25080/Majora-92bf1922–00a*
 
 *Matthew Andres Moreno。（2023）。mmore500/teeplot。Zenodo。* [*https://doi.org/10.5281/zenodo.10440670*](https://doi.org/10.5281/zenodo.10440670)
 
@@ -205,4 +205,4 @@ python3 -m pip install \
     seaborn `# ==0.13.0`
 ```
 
-*除非另有说明，所有图片均为作者作品。“dogplot”图片来自seaborn，您可以在此查看seaborn的许可* [*here*](https://github.com/mwaskom/seaborn/blob/master/LICENSE.md)*。*
+*除非另有说明，所有图片均为作者作品。“dogplot”图片来自 seaborn，您可以在此查看 seaborn 的许可* [*here*](https://github.com/mwaskom/seaborn/blob/master/LICENSE.md)*。*

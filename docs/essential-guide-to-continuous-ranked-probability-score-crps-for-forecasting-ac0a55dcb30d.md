@@ -1,16 +1,16 @@
 # 连续排名概率分数（CRPS）用于预测的基本指南
 
-> 原文：[https://towardsdatascience.com/essential-guide-to-continuous-ranked-probability-score-crps-for-forecasting-ac0a55dcb30d?source=collection_archive---------4-----------------------#2024-08-31](https://towardsdatascience.com/essential-guide-to-continuous-ranked-probability-score-crps-for-forecasting-ac0a55dcb30d?source=collection_archive---------4-----------------------#2024-08-31)
+> 原文：[`towardsdatascience.com/essential-guide-to-continuous-ranked-probability-score-crps-for-forecasting-ac0a55dcb30d?source=collection_archive---------4-----------------------#2024-08-31`](https://towardsdatascience.com/essential-guide-to-continuous-ranked-probability-score-crps-for-forecasting-ac0a55dcb30d?source=collection_archive---------4-----------------------#2024-08-31)
 
-![](../Images/e435885a12392409123f076d51ebcb66.png)
+![](img/e435885a12392409123f076d51ebcb66.png)
 
 图像由 Midjourney 生成
 
 ## 学习如何评估概率预测，以及 CRPS 如何与其他指标相关
 
-[](https://eryk-lewinson.medium.com/?source=post_page---byline--ac0a55dcb30d--------------------------------)[![Eryk Lewinson](../Images/56e09e19c0bbfecc582da58761d15078.png)](https://eryk-lewinson.medium.com/?source=post_page---byline--ac0a55dcb30d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ac0a55dcb30d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ac0a55dcb30d--------------------------------) [Eryk Lewinson](https://eryk-lewinson.medium.com/?source=post_page---byline--ac0a55dcb30d--------------------------------)
+[](https://eryk-lewinson.medium.com/?source=post_page---byline--ac0a55dcb30d--------------------------------)![Eryk Lewinson](https://eryk-lewinson.medium.com/?source=post_page---byline--ac0a55dcb30d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ac0a55dcb30d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ac0a55dcb30d--------------------------------) [Eryk Lewinson](https://eryk-lewinson.medium.com/?source=post_page---byline--ac0a55dcb30d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ac0a55dcb30d--------------------------------) ·7 分钟阅读·2024年8月31日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ac0a55dcb30d--------------------------------) ·7 分钟阅读·2024 年 8 月 31 日
 
 --
 

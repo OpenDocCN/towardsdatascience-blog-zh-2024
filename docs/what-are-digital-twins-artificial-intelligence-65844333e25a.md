@@ -1,18 +1,18 @@
 # 什么是数字双胞胎？
 
-> 原文：[https://towardsdatascience.com/what-are-digital-twins-artificial-intelligence-65844333e25a?source=collection_archive---------7-----------------------#2024-10-18](https://towardsdatascience.com/what-are-digital-twins-artificial-intelligence-65844333e25a?source=collection_archive---------7-----------------------#2024-10-18)
+> 原文：[`towardsdatascience.com/what-are-digital-twins-artificial-intelligence-65844333e25a?source=collection_archive---------7-----------------------#2024-10-18`](https://towardsdatascience.com/what-are-digital-twins-artificial-intelligence-65844333e25a?source=collection_archive---------7-----------------------#2024-10-18)
 
 ## 桥接物理世界和数字世界
 
-[](https://medium.com/@andvalenzuela?source=post_page---byline--65844333e25a--------------------------------)[![Andrea Valenzuela](../Images/ddfc1534af92413fd91076f826cc49b6.png)](https://medium.com/@andvalenzuela?source=post_page---byline--65844333e25a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--65844333e25a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--65844333e25a--------------------------------) [Andrea Valenzuela](https://medium.com/@andvalenzuela?source=post_page---byline--65844333e25a--------------------------------)
+[](https://medium.com/@andvalenzuela?source=post_page---byline--65844333e25a--------------------------------)![Andrea Valenzuela](https://medium.com/@andvalenzuela?source=post_page---byline--65844333e25a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--65844333e25a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--65844333e25a--------------------------------) [Andrea Valenzuela](https://medium.com/@andvalenzuela?source=post_page---byline--65844333e25a--------------------------------)
 
-·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--65844333e25a--------------------------------) ·阅读时间：6分钟·2024年10月18日
+·发表于[数据科学前沿](https://towardsdatascience.com/?source=post_page---byline--65844333e25a--------------------------------) ·阅读时间：6 分钟·2024 年 10 月 18 日
 
 --
 
-![](../Images/ad91d8f3767cde54117fcaf745bbb19d.png)
+![](img/ad91d8f3767cde54117fcaf745bbb19d.png)
 
-AI生成的图像，使用DALL-E3。
+AI 生成的图像，使用 DALL-E3。
 
 你听说过“数字双胞胎”这个术语吗？还是我只是自从在一次会议全体报告中接触到它之后，就一直不断听到它的提法？
 

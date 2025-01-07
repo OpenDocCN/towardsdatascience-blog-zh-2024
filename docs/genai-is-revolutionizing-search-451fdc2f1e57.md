@@ -1,16 +1,16 @@
 # 生成式人工智能正在革新搜索
 
-> 原文：[https://towardsdatascience.com/genai-is-revolutionizing-search-451fdc2f1e57?source=collection_archive---------8-----------------------#2024-07-30](https://towardsdatascience.com/genai-is-revolutionizing-search-451fdc2f1e57?source=collection_archive---------8-----------------------#2024-07-30)
+> 原文：[`towardsdatascience.com/genai-is-revolutionizing-search-451fdc2f1e57?source=collection_archive---------8-----------------------#2024-07-30`](https://towardsdatascience.com/genai-is-revolutionizing-search-451fdc2f1e57?source=collection_archive---------8-----------------------#2024-07-30)
 
 ## 以及为什么你和你的公司应该关注这一变化
 
-[](https://annaviaba.medium.com/?source=post_page---byline--451fdc2f1e57--------------------------------)[![Anna Via](../Images/7e8fe5c1a485a789edad3a6d118bcf45.png)](https://annaviaba.medium.com/?source=post_page---byline--451fdc2f1e57--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--451fdc2f1e57--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--451fdc2f1e57--------------------------------) [安娜·维亚](https://annaviaba.medium.com/?source=post_page---byline--451fdc2f1e57--------------------------------)
+[](https://annaviaba.medium.com/?source=post_page---byline--451fdc2f1e57--------------------------------)![Anna Via](https://annaviaba.medium.com/?source=post_page---byline--451fdc2f1e57--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--451fdc2f1e57--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--451fdc2f1e57--------------------------------) [安娜·维亚](https://annaviaba.medium.com/?source=post_page---byline--451fdc2f1e57--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--451fdc2f1e57--------------------------------) ·阅读时间：7分钟·2024年7月30日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--451fdc2f1e57--------------------------------) ·阅读时间：7 分钟·2024 年 7 月 30 日
 
 --
 
-![](../Images/77590475aa56a985d69cbea98ea51299.png)
+![](img/77590475aa56a985d69cbea98ea51299.png)
 
 图片由 [Agnieszka Boeske](https://unsplash.com/es/@kundeleknabiegunie) 提供，发布在 [Unsplash](https://unsplash.com/)
 
@@ -24,7 +24,7 @@
 
 +   [**Perplexity**](https://www.perplexity.ai/) **—** “*知识的起点*”：基于生成式人工智能的搜索工具，具备如链接到来源、相关问题、图片展示和图像生成等附加功能。
 
-![](../Images/6a33a6cb60d145ad2fa819c75a1486e0.png)
+![](img/6a33a6cb60d145ad2fa819c75a1486e0.png)
 
 Perplexity 的用户界面，展示了“什么是搜索引擎”的问题示例
 

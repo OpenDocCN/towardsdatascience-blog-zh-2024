@@ -1,10 +1,10 @@
 # 使用 dbt_set_similarity 测量跨产品采纳情况
 
-> 原文：[https://towardsdatascience.com/measuring-cross-product-adoption-using-dbt-set-similarity-fdf7c1f88bc2?source=collection_archive---------1-----------------------#2024-12-28](https://towardsdatascience.com/measuring-cross-product-adoption-using-dbt-set-similarity-fdf7c1f88bc2?source=collection_archive---------1-----------------------#2024-12-28)
+> 原文：[`towardsdatascience.com/measuring-cross-product-adoption-using-dbt-set-similarity-fdf7c1f88bc2?source=collection_archive---------1-----------------------#2024-12-28`](https://towardsdatascience.com/measuring-cross-product-adoption-using-dbt-set-similarity-fdf7c1f88bc2?source=collection_archive---------1-----------------------#2024-12-28)
 
 ## 在 dbt 工作流中增强跨产品洞察
 
-[](https://medium.com/@senick.matthew?source=post_page---byline--fdf7c1f88bc2--------------------------------)[![Matthew Senick](../Images/8415150b912990541bf3b53c112c7cef.png)](https://medium.com/@senick.matthew?source=post_page---byline--fdf7c1f88bc2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fdf7c1f88bc2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fdf7c1f88bc2--------------------------------) [Matthew Senick](https://medium.com/@senick.matthew?source=post_page---byline--fdf7c1f88bc2--------------------------------)
+[](https://medium.com/@senick.matthew?source=post_page---byline--fdf7c1f88bc2--------------------------------)![Matthew Senick](https://medium.com/@senick.matthew?source=post_page---byline--fdf7c1f88bc2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fdf7c1f88bc2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fdf7c1f88bc2--------------------------------) [Matthew Senick](https://medium.com/@senick.matthew?source=post_page---byline--fdf7c1f88bc2--------------------------------)
 
 ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fdf7c1f88bc2--------------------------------) ·5 分钟阅读·2024 年 12 月 28 日
 
@@ -34,7 +34,7 @@ packages:
 
 从数学角度来看，它可以表示为：
 
-![](../Images/b852489e4adafbcf4e5142059b2563f2.png)
+![](img/b852489e4adafbcf4e5142059b2563f2.png)
 
 杰卡德指数表示两个集合的“交集”与它们的“并集”的比值（图由作者提供）
 
@@ -46,7 +46,7 @@ packages:
 
 +   分母表示两个集合中所有不同元素的总数
 
-![](../Images/a162cf1562e9ce0ccb3f78452c055ad4.png)
+![](img/a162cf1562e9ce0ccb3f78452c055ad4.png)
 
 （图像由作者提供）
 
@@ -94,13 +94,13 @@ select
 from product_users
 ```
 
-![](../Images/529e9b291bf1faf07a77a46845db4c94.png)
+![](img/529e9b291bf1faf07a77a46845db4c94.png)
 
 来自上述 dbt 模型的输出（图像由作者提供）
 
 如我们所见，**似乎超过一半（60%）的采用了任何一个产品的用户，也采用了两个产品。** 我们可以通过将用户 ID 集合放入维恩图中来图形化验证我们的结果，在那里我们看到三位用户同时采用了这两个产品，在五位用户中占比为 3/5 = 0.6。
 
-![](../Images/3c4bc717a8204033fd7e53e5b3fac24b.png)
+![](img/3c4bc717a8204033fd7e53e5b3fac24b.png)
 
 用户 ID 和产品采用的集合是什么样的，验证我们的结果（图像由作者提供）
 
@@ -133,7 +133,7 @@ select
 from product_users
 ```
 
-![](../Images/17ee449e92cd117d800aa2f482a6bba5.png)
+![](img/17ee449e92cd117d800aa2f482a6bba5.png)
 
 来自上述 dbt 模型的输出（图像由作者提供）
 
@@ -141,7 +141,7 @@ from product_users
 
 我们可以通过再次绘制韦恩图来图形化验证输出结果：
 
-![](../Images/19568107b9ad9d3a3154ca096d7158ff.png)
+![](img/19568107b9ad9d3a3154ca096d7158ff.png)
 
 按照两个细分市场划分的韦恩图（图片由作者提供）
 
@@ -161,7 +161,7 @@ from product_users
 
 ## 参考文献
 
-[1] Sean Ellis 和 Morgan Brown， [Hacking Growth](https://www.amazon.ca/Hacking-Growth-Fastest-Growing-Companies-Breakout/dp/045149721X)（2017年）
+[1] Sean Ellis 和 Morgan Brown， [Hacking Growth](https://www.amazon.ca/Hacking-Growth-Fastest-Growing-Companies-Breakout/dp/045149721X)（2017 年）
 
 ## 资源
 

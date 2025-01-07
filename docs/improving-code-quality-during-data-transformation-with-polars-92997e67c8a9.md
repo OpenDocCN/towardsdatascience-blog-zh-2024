@@ -1,20 +1,20 @@
-# 使用Polars提高数据转换过程中的代码质量
+# 使用 Polars 提高数据转换过程中的代码质量
 
-> 原文：[https://towardsdatascience.com/improving-code-quality-during-data-transformation-with-polars-92997e67c8a9?source=collection_archive---------10-----------------------#2024-08-09](https://towardsdatascience.com/improving-code-quality-during-data-transformation-with-polars-92997e67c8a9?source=collection_archive---------10-----------------------#2024-08-09)
+> 原文：[`towardsdatascience.com/improving-code-quality-during-data-transformation-with-polars-92997e67c8a9?source=collection_archive---------10-----------------------#2024-08-09`](https://towardsdatascience.com/improving-code-quality-during-data-transformation-with-polars-92997e67c8a9?source=collection_archive---------10-----------------------#2024-08-09)
 
-[](https://medium.com/@npotapov?source=post_page---byline--92997e67c8a9--------------------------------)[![Nikolai Potapov](../Images/d2ac4b8c12c0cf70df05b8908b875a19.png)](https://medium.com/@npotapov?source=post_page---byline--92997e67c8a9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--92997e67c8a9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--92997e67c8a9--------------------------------) [Nikolai Potapov](https://medium.com/@npotapov?source=post_page---byline--92997e67c8a9--------------------------------)
+[](https://medium.com/@npotapov?source=post_page---byline--92997e67c8a9--------------------------------)![Nikolai Potapov](https://medium.com/@npotapov?source=post_page---byline--92997e67c8a9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--92997e67c8a9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--92997e67c8a9--------------------------------) [Nikolai Potapov](https://medium.com/@npotapov?source=post_page---byline--92997e67c8a9--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--92997e67c8a9--------------------------------) ·阅读时长6分钟·2024年8月9日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--92997e67c8a9--------------------------------) ·阅读时长 6 分钟·2024 年 8 月 9 日
 
 --
 
-![](../Images/32683c335dbe8f17d37fc6ceaac04d46.png)
+![](img/32683c335dbe8f17d37fc6ceaac04d46.png)
 
-由Dall-E AI生成的图片
+由 Dall-E AI 生成的图片
 
-在我们作为数据/分析工程师的日常工作中，编写ETL/ELT工作流和管道（或者你所在的公司使用其他术语）是我们工作中常规且重要的一部分。然而，在这篇文章中，我将只关注转换阶段。为什么？因为在这一阶段，来自不同来源和不同类型的数据获得了对公司有意义的商业价值。这个阶段非常重要，而且极其微妙，因为一个错误可能会瞬间误导用户，导致他们失去对数据的信任。
+在我们作为数据/分析工程师的日常工作中，编写 ETL/ELT 工作流和管道（或者你所在的公司使用其他术语）是我们工作中常规且重要的一部分。然而，在这篇文章中，我将只关注转换阶段。为什么？因为在这一阶段，来自不同来源和不同类型的数据获得了对公司有意义的商业价值。这个阶段非常重要，而且极其微妙，因为一个错误可能会瞬间误导用户，导致他们失去对数据的信任。
 
-为了说明提高代码质量的过程，让我们考虑一个假设的例子。假设有一个网站，我们记录用户的行为，例如他们查看了什么和购买了什么。我们将使用`user_id`表示用户ID，`product_id`表示产品，`action_type`表示行为类型（可以是查看或购买），`action_dt`表示行为的时间戳。
+为了说明提高代码质量的过程，让我们考虑一个假设的例子。假设有一个网站，我们记录用户的行为，例如他们查看了什么和购买了什么。我们将使用`user_id`表示用户 ID，`product_id`表示产品，`action_type`表示行为类型（可以是查看或购买），`action_dt`表示行为的时间戳。
 
 ```py
 from dataclasses import dataclass
@@ -50,7 +50,7 @@ product_catalog_data = {"product_id": ["0001", "0002", "0003"], "price": [10, 30
 product_catalog_df = pl.DataFrame(product_catalog_data)
 ```
 
-现在，让我们处理第一个任务：创建一个报告，其中包含每个用户在前一天的总购买金额以及购买商品数量与查看商品数量的比例。这个任务并不复杂，可以快速实现。以下是使用Polars的实现方式：
+现在，让我们处理第一个任务：创建一个报告，其中包含每个用户在前一天的总购买金额以及购买商品数量与查看商品数量的比例。这个任务并不复杂，可以快速实现。以下是使用 Polars 的实现方式：
 
 ```py
 yesterday = base_time - timedelta(days=1)
@@ -147,7 +147,7 @@ class DailyUserPurchaseReport:
         return result
 ```
 
-> *建议在管道操作时使用LazyFrame，以充分利用查询优化和并行化。*
+> *建议在管道操作时使用 LazyFrame，以充分利用查询优化和并行化。*
 
 最终代码：
 
@@ -289,11 +289,11 @@ df: pl.DataFrame = DailyUserPurchaseReport(
 
 # 奖励
 
-对于使用测试驱动开发（TDD）的人来说，这种方法尤为有益。TDD强调在实际实现之前编写测试。通过定义清晰的小函数，你可以为每个转换过程编写精确的测试，确保每个函数按预期行为运行。这不仅使过程更加顺畅，还确保了你的转换在每个步骤都经过充分验证。
+对于使用测试驱动开发（TDD）的人来说，这种方法尤为有益。TDD 强调在实际实现之前编写测试。通过定义清晰的小函数，你可以为每个转换过程编写精确的测试，确保每个函数按预期行为运行。这不仅使过程更加顺畅，还确保了你的转换在每个步骤都经过充分验证。
 
 # 结论
 
-在本文中，我概述了一种使用Polars改善数据工作流代码质量的结构化方法。通过将转换步骤隔离并将过程拆分为独立的、可管理的部分，我们确保了我们的代码既稳健又易于维护。通过使用`pl.LazyFrame`和`pipe`函数，我们充分利用了Polars在查询优化和并行化方面的能力。这种方法不仅提高了数据转换的效率，还确保了我们处理的数据的完整性和业务相关性。通过遵循这些步骤，你可以创建更可靠、可扩展的数据工作流，最终推动更好的数据驱动决策。
+在本文中，我概述了一种使用 Polars 改善数据工作流代码质量的结构化方法。通过将转换步骤隔离并将过程拆分为独立的、可管理的部分，我们确保了我们的代码既稳健又易于维护。通过使用`pl.LazyFrame`和`pipe`函数，我们充分利用了 Polars 在查询优化和并行化方面的能力。这种方法不仅提高了数据转换的效率，还确保了我们处理的数据的完整性和业务相关性。通过遵循这些步骤，你可以创建更可靠、可扩展的数据工作流，最终推动更好的数据驱动决策。
 
 # 分享您的经验
 

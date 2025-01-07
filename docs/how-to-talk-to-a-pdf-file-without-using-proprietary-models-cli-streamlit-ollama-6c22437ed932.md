@@ -1,20 +1,20 @@
-# 如何与PDF文件对话而不使用专有模型：CLI + Streamlit + Ollama
+# 如何与 PDF 文件对话而不使用专有模型：CLI + Streamlit + Ollama
 
-> 原文：[https://towardsdatascience.com/how-to-talk-to-a-pdf-file-without-using-proprietary-models-cli-streamlit-ollama-6c22437ed932?source=collection_archive---------4-----------------------#2024-08-14](https://towardsdatascience.com/how-to-talk-to-a-pdf-file-without-using-proprietary-models-cli-streamlit-ollama-6c22437ed932?source=collection_archive---------4-----------------------#2024-08-14)
+> 原文：[`towardsdatascience.com/how-to-talk-to-a-pdf-file-without-using-proprietary-models-cli-streamlit-ollama-6c22437ed932?source=collection_archive---------4-----------------------#2024-08-14`](https://towardsdatascience.com/how-to-talk-to-a-pdf-file-without-using-proprietary-models-cli-streamlit-ollama-6c22437ed932?source=collection_archive---------4-----------------------#2024-08-14)
 
-![](../Images/5bbf5cec507aee72cad3963558d8f2d7.png)
+![](img/5bbf5cec507aee72cad3963558d8f2d7.png)
 
-与PDF文件对话 *(GIF由作者提供)*
+与 PDF 文件对话 *(GIF 由作者提供)*
 
-## 一项关于使用Streamlit和Meta AI的LLaMA模型创建本地执行的、免费的PDF聊天应用程序的贡献，没有API限制。
+## 一项关于使用 Streamlit 和 Meta AI 的 LLaMA 模型创建本地执行的、免费的 PDF 聊天应用程序的贡献，没有 API 限制。
 
-[](https://medium.com/@stefanpietrusky?source=post_page---byline--6c22437ed932--------------------------------)[![Stefan Pietrusky](../Images/f5abf75db277f3aec8d8e56877daafe4.png)](https://medium.com/@stefanpietrusky?source=post_page---byline--6c22437ed932--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6c22437ed932--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6c22437ed932--------------------------------) [Stefan Pietrusky](https://medium.com/@stefanpietrusky?source=post_page---byline--6c22437ed932--------------------------------)
+[](https://medium.com/@stefanpietrusky?source=post_page---byline--6c22437ed932--------------------------------)![Stefan Pietrusky](https://medium.com/@stefanpietrusky?source=post_page---byline--6c22437ed932--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6c22437ed932--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6c22437ed932--------------------------------) [Stefan Pietrusky](https://medium.com/@stefanpietrusky?source=post_page---byline--6c22437ed932--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6c22437ed932--------------------------------) ·阅读时间14分钟·2024年8月14日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6c22437ed932--------------------------------) ·阅读时间 14 分钟·2024 年 8 月 14 日
 
 --
 
-我已经阅读了互联网上的各种文章，了解如何将开源框架Streamlit与机器学习结合使用，快速而轻松地创建有趣的交互式网页应用程序。这对于在没有广泛前端开发的情况下开发实验性应用程序非常有用。某篇文章展示了如何使用OpenAI语言模型创建一个对话链并执行它。创建了一个聊天模型实例*“gpt-3.5-turbo”*，定义了参数*“temperature”*，并设置其值为0，使模型以确定性的方式响应，最后实现了API密钥的占位符。后者在使用时需要进行身份验证。
+我已经阅读了互联网上的各种文章，了解如何将开源框架 Streamlit 与机器学习结合使用，快速而轻松地创建有趣的交互式网页应用程序。这对于在没有广泛前端开发的情况下开发实验性应用程序非常有用。某篇文章展示了如何使用 OpenAI 语言模型创建一个对话链并执行它。创建了一个聊天模型实例*“gpt-3.5-turbo”*，定义了参数*“temperature”*，并设置其值为 0，使模型以确定性的方式响应，最后实现了 API 密钥的占位符。后者在使用时需要进行身份验证。
 
 ```py
 llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, api_key="")
@@ -24,35 +24,35 @@ llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, api_key="")
 
 *RateLimitError: 错误代码：429 — {‘error’: {‘message’: ‘您已超出当前配额，请检查您的计划和账单详情。有关此错误的更多信息，请阅读文档：* [*https://platform.openai.com/docs/guides/error-codes/api-errors.',*](https://platform.openai.com/docs/guides/error-codes/api-errors.',) *‘type’: ‘insufficient_quota’, ‘param’: None, ‘code’: ‘insufficient_quota’}}*
 
-错误429表示发送到OpenAI API的请求超出了当前的使用配额。某个时间段内的可用API调用次数或订阅的一般使用限制已达到。这个错误很容易解决。你只需购买相应服务提供商的付费订阅，从而增加你的使用配额。这让我产生了一个想法：为什么不能简单地使用本地运行的开源模型，从而绕过这些限制，而无需支付任何费用。
+错误 429 表示发送到 OpenAI API 的请求超出了当前的使用配额。某个时间段内的可用 API 调用次数或订阅的一般使用限制已达到。这个错误很容易解决。你只需购买相应服务提供商的付费订阅，从而增加你的使用配额。这让我产生了一个想法：为什么不能简单地使用本地运行的开源模型，从而绕过这些限制，而无需支付任何费用。
 
-在本文中，我将展示如何使用Streamlit创建一个应用程序，允许用户上传PDF文件，并根据文件内容提出问题，答案由集成的LLM生成。使用该应用时没有任何限制或费用。响应时间（输入-输出）可能会稍微延长，具体取决于系统，但仍然在合理的范围内。首先，我们来处理我们将使用的LLM。
+在本文中，我将展示如何使用 Streamlit 创建一个应用程序，允许用户上传 PDF 文件，并根据文件内容提出问题，答案由集成的 LLM 生成。使用该应用时没有任何限制或费用。响应时间（输入-输出）可能会稍微延长，具体取决于系统，但仍然在合理的范围内。首先，我们来处理我们将使用的 LLM。
 
 ## 一个为**美洲驼**而设的王国
 
-我们将使用Meta AI的开源语言模型Llama。作为大型语言模型领域最近发展的一个部分，它将被应用在应用程序中，以理解和生成自然语言（NLP）。为了在本地使用LLM，我们首先需要在系统上安装Ollama。为此，我们访问以下[**官方网站**](https://ollama.com/)，下载开源平台。安装后，系统可能需要重启。
+我们将使用 Meta AI 的开源语言模型 Llama。作为大型语言模型领域最近发展的一个部分，它将被应用在应用程序中，以理解和生成自然语言（NLP）。为了在本地使用 LLM，我们首先需要在系统上安装 Ollama。为此，我们访问以下[**官方网站**](https://ollama.com/)，下载开源平台。安装后，系统可能需要重启。
 
-![](../Images/b2e80402088c8e5141c11a64a52bea18.png)
+![](img/b2e80402088c8e5141c11a64a52bea18.png)
 
-下载Ollama ([Public Domain](https://ollama.com/))
+下载 Ollama ([Public Domain](https://ollama.com/))
 
-安装完Ollama后，我们点击*“Models”*，并在打开的概览中选择*“llama3.1”*模型。Llama基于Transformer架构，已在大规模且多样化的数据集上进行训练，提供不同大小的版本，并由于其开放性和可访问性，特别适合开发实际应用程序。在本文中，使用了最小的版本*“8B”*，以确保应用程序在性能较低的系统上也能运行。一旦选择了正确的模型，复制显示的命令并在终端中执行。
+安装完 Ollama 后，我们点击*“Models”*，并在打开的概览中选择*“llama3.1”*模型。Llama 基于 Transformer 架构，已在大规模且多样化的数据集上进行训练，提供不同大小的版本，并由于其开放性和可访问性，特别适合开发实际应用程序。在本文中，使用了最小的版本*“8B”*，以确保应用程序在性能较低的系统上也能运行。一旦选择了正确的模型，复制显示的命令并在终端中执行。
 
-![](../Images/6bbb1a1ecbe418de4246df8470fddfcd.png)
+![](img/6bbb1a1ecbe418de4246df8470fddfcd.png)
 
-在Ollama平台上的LLama3.1概述 ([Public Domain](https://ollama.com/library/llama3.1))
+在 Ollama 平台上的 LLama3.1 概述 ([Public Domain](https://ollama.com/library/llama3.1))
 
 ```py
 ollama run llama3.1
 ```
 
-一旦模型下载完成，你可以通过终端与其进行交互。接下来，我们进入应用程序的设置部分。简而言之，流程如下：PDF文件被上传并提取其中的文本。提取的文本被划分为更小的块，并存储在向量存储中。用户输入问题。问题，即输入，结合问题和上下文为模型准备。查询LLM并生成答案。
+一旦模型下载完成，你可以通过终端与其进行交互。接下来，我们进入应用程序的设置部分。简而言之，流程如下：PDF 文件被上传并提取其中的文本。提取的文本被划分为更小的块，并存储在向量存储中。用户输入问题。问题，即输入，结合问题和上下文为模型准备。查询 LLM 并生成答案。
 
-![](../Images/f6c3884b08f96c6d4738e89ed1795425.png)
+![](img/f6c3884b08f96c6d4738e89ed1795425.png)
 
 应用程序流程 (*图片来自作者*)
 
-## PDF聊天应用程序 [所需库]
+## PDF 聊天应用程序 [所需库]
 
 该应用程序需要各种库才能正常运行，以下是简要说明。Python 中通过*“subprocess”*执行系统命令并与之通信。我们需要*“streamlit”*来创建 Web 应用。*“PyPDF2”* 用于读取 PDF 文档。文本的拆分由*“langchain.text_splitter.RecursiveCharacterTextSplitter”*完成。*“langchain_community.embeddings.SpacyEmbeddings”*库用于使用 Spacy 模型生成文本嵌入。向量存储*“langchain_community.vectorstores.FAISS”*使得高效保存和检索嵌入成为可能。聊天交互的提示模板定义使用了*“langchain_core.prompts.ChatPromptTemplate”*。通过*“os”* 获取操作系统功能，*“re”* 用于识别字符字符串中的模式。系统上还需要安装 Python。根据操作系统的不同，所需的执行文件可以从[**官方网站**](https://www.python.org/downloads/)下载。安装完成后，可以通过终端使用以下命令检查安装是否成功。
 
@@ -144,7 +144,7 @@ embeddings = SpacyEmbeddings(model_name="en_core_web_sm")
 
 *“vector_store()”* 函数使用前面提到的 FAISS 来存储文本块的嵌入。向量存储能够基于现有的嵌入加速文本的检索和搜索。向量存储被保存在本地，以便以后可以访问。
 
-![](../Images/fa02e6bddbeb2ed4097a99f593e4d89c.png)
+![](img/fa02e6bddbeb2ed4097a99f593e4d89c.png)
 
 从 PDF 到向量存储 *(图片由作者提供)*
 
@@ -199,9 +199,9 @@ def query_llama_via_cli(input_text):
 
 以下是该功能的更详细解释。该过程由 *“subprocess.Popen()”* 启动。启动 LLM 的命令是 [“ollama”, “run”, “llama3.1”]。通过参数 *“stdin”*、*“stdout”* 和 *“stderr”*，可以访问进程的输入和输出流（发送数据和接收结果）。通信以 UTF-8 编码文本 *encoding=’utf-8'* 进行。为了提高交互性，I/O 操作的缓冲区大小设置为行缓冲 *“bufsize=1”*。
 
-输入*“input_text”*被传递给进程，特别是LLM，在此生成响应*“stdout”*。最大等待时间（秒）直到进程必须返回响应是30秒“timeout=30”。如果超过该时间，超时错误将被触发*“stderr”*。返回码检查进程是否成功*“returncode == 0”*。如果不是，则返回错误信息。应用不会花费太长时间来返回响应。最后，响应“stdout”被处理。去除不需要的字符，并从输出中删除ANSI颜色和格式代码*“response = re.sub(r’\x1b\[.*?m’, ‘’, stdout)”*。为了从完整的模块响应中提取和格式化相关的响应，调用*“extract_relevant_answer”*。如果超时超过30秒，进程将通过*“process.kill()”*终止。通信过程中发生的错误会被拦截并作为通用错误信息返回。
+输入*“input_text”*被传递给进程，特别是 LLM，在此生成响应*“stdout”*。最大等待时间（秒）直到进程必须返回响应是 30 秒“timeout=30”。如果超过该时间，超时错误将被触发*“stderr”*。返回码检查进程是否成功*“returncode == 0”*。如果不是，则返回错误信息。应用不会花费太长时间来返回响应。最后，响应“stdout”被处理。去除不需要的字符，并从输出中删除 ANSI 颜色和格式代码*“response = re.sub(r’\x1b\[.*?m’, ‘’, stdout)”*。为了从完整的模块响应中提取和格式化相关的响应，调用*“extract_relevant_answer”*。如果超时超过 30 秒，进程将通过*“process.kill()”*终止。通信过程中发生的错误会被拦截并作为通用错误信息返回。
 
-## PDF聊天应用[提取相关答案]
+## PDF 聊天应用[提取相关答案]
 
 通过*“extract_relevant_answer()”*函数从整个模型响应中提取相关响应。与此同时，该函数还会去除一些简单的格式问题，特别是去掉形成响应的复合字符串两端的空格*“strip()”*。根据应用的具体需求，该函数可以扩展以返回特定的关键词或句子（标记）。也可以集成额外的规则用于清理和格式化。
 
@@ -218,9 +218,9 @@ def extract_relevant_answer(full_response):
     return "No answer received"
 ```
 
-## PDF聊天应用[对话链]
+## PDF 聊天应用[对话链]
 
-对话链由函数*“get_conversational_chain()”*创建。该函数通过将特定的提示和上下文与用户的问题结合起来，为LLM准备输入。为了提供最佳答案，模型应该接收到清晰且结构化的输入。一个多级提示模式（系统消息、人类消息*“{input}”*和占位符）由*“ChatPromptTemplate.from_message()”*定义。模型的角色由系统消息“system”定义。人类消息包含用户的问题。提示（模型的行为）、上下文（PDF文件的内容）和问题（应用的用户）被结合到*“input_text”*中。准备好的输入通过CLI使用函数*“query_llama_via_cli(input_text)”*发送给LLM。输出作为*“response”*保存，并通过*“st.write(“PDF: “, response)”*在Streamlit应用中显示。
+对话链由函数*“get_conversational_chain()”*创建。该函数通过将特定的提示和上下文与用户的问题结合起来，为 LLM 准备输入。为了提供最佳答案，模型应该接收到清晰且结构化的输入。一个多级提示模式（系统消息、人类消息*“{input}”*和占位符）由*“ChatPromptTemplate.from_message()”*定义。模型的角色由系统消息“system”定义。人类消息包含用户的问题。提示（模型的行为）、上下文（PDF 文件的内容）和问题（应用的用户）被结合到*“input_text”*中。准备好的输入通过 CLI 使用函数*“query_llama_via_cli(input_text)”*发送给 LLM。输出作为*“response”*保存，并通过*“st.write(“PDF: “, response)”*在 Streamlit 应用中显示。
 
 ```py
 def get_conversational_chain(context, ques):
@@ -248,9 +248,9 @@ def get_conversational_chain(context, ques):
     st.write("PDF: ", response)  # The answer is displayed here
 ```
 
-## PDF聊天应用[用户输入处理]
+## PDF 聊天应用[用户输入处理]
 
-用户输入通过*“user_input()”*函数处理并转发给LLM。具体来说，上传的PDF文件的整个文本作为上下文使用。调用对话链函数*“get_conversational_chain”*，最终使用上下文*“context”*回答用户的问题*“user_question”*。换句话说，用户和模型之间的交互由此函数启用。
+用户输入通过*“user_input()”*函数处理并转发给 LLM。具体来说，上传的 PDF 文件的整个文本作为上下文使用。调用对话链函数*“get_conversational_chain”*，最终使用上下文*“context”*回答用户的问题*“user_question”*。换句话说，用户和模型之间的交互由此函数启用。
 
 ```py
 def user_input(user_question, pdf_text):
@@ -262,7 +262,7 @@ def user_input(user_question, pdf_text):
     get_conversational_chain(context, user_question)
 ```
 
-## PDF聊天应用[主脚本]
+## PDF 聊天应用[主脚本]
 
 Streamlit web 应用的主要逻辑由 *“main()”* 函数定义。具体来说，Streamlit 页面被设置并定义了布局。目前，布局仅包括上传 PDF 文件的选项 *“st.file_uploader”* 和一个输入框 *“st.text_input”*。用户的问题会在后者中输入。用户界面允许与模型进行交互。如果上传了 PDF 文件，它会被读取 *“pdf_text = pdf_read(pdf_doc)”*。如果还有问题并且输入已确认，则处理请求 *“user_input(user_question, pdf_text)”*。
 
@@ -298,7 +298,7 @@ if __name__ == "__main__":
 streamlit run pca1.py
 ```
 
-![](../Images/f88464f892b955054d9be41ba9dffbd8.png)
+![](img/f88464f892b955054d9be41ba9dffbd8.png)
 
 Streamlit PDF 聊天应用 1 *图片来源：作者*
 
@@ -320,13 +320,13 @@ Streamlit PDF 聊天应用 1 *图片来源：作者*
 
 另一个定制选项是替换当前使用的 LLM Llama3.1。OLLAMA 上提供了各种不同大小（例如 2B、8B、70B 等）的模型（如 gemma2、mistral、phi3、qwen2 等）。为了使用不同的模型，必须先下载该模型，然后在 Python 脚本中调整 *“query_llama_via_cli()”* 函数。具体来说，需要更改启动 LLM 的命令 *[“ollama”, “run”, “llama3.1”]*。
 
-![](../Images/2f06154b207a96a2797fd38a6ce31ed9.png)
+![](img/2f06154b207a96a2797fd38a6ce31ed9.png)
 
 一些 Ollama 模型 *(图片来源：作者)*
 
 使用其他模型时，必须确保可用的计算能力足以支持本地使用。你还需要考虑模型是在 GPU 还是 CPU 上执行。以下示例可以作为评估模型是否能在你自己的计算机上运行的经验法则：一个具有 10 亿参数（1B）的模型大约需要 2 到 3 GB 的内存（每个参数约 2–3 字节）。可以使用任务管理器（Windows）来检查应用程序执行对系统性能的影响。
 
-![](../Images/409ebb2896dcb3a0f74598467322cb3a.png)
+![](img/409ebb2896dcb3a0f74598467322cb3a.png)
 
 Windows 任务管理器 (*图片来源：作者)*
 
@@ -341,7 +341,7 @@ Windows 任务管理器 (*图片来源：作者)*
 
 还可以自定义应用程序的布局和功能。例如，主要逻辑，特别是 *“main()”* 函数，可以扩展以允许同时上传多个 PDF 文件 *“accept_multiple_files=True”*。然后，文件会以列表形式显示，用户可以选择 *“selected_pdf_file”*。接着，处理照常进行。根据所选文件，提取的内容将与用户的问题一起转发给 LLM。定制的代码可以在 *“pca2.py”* 文件中找到。  
 
-![](../Images/b7d2661ffafe3abed3580dd73f52935c.png)  
+![](img/b7d2661ffafe3abed3580dd73f52935c.png)  
 
 Streamlit PDF 聊天应用 2 *(图片由作者提供)*  
 
@@ -349,7 +349,7 @@ Streamlit PDF 聊天应用 2 *(图片由作者提供)*
 
 点击文件夹下载包含两个应用程序的压缩文件！  
 
-[![](../Images/495251495ae1862c340639d9f89f25d4.png)](https://drive.google.com/file/d/15x3i1ov7GkOGWbml3LY_Os-DVR8kN98C/view?usp=sharing)  
+![](https://drive.google.com/file/d/15x3i1ov7GkOGWbml3LY_Os-DVR8kN98C/view?usp=sharing)  
 
 点击文件夹加载 Python 脚本 (*图片由作者提供*)  
 
@@ -357,10 +357,10 @@ Streamlit PDF 聊天应用 2 *(图片由作者提供)*
 
 本文展示了如何将 Python 与 Streamlit、FAISS、Spacy、CLI、OLLAMA 以及 LLM Llama3.1 等工具结合使用，创建一个 Web 应用程序，允许用户从 PDF 文件中提取文本，保存为嵌入格式，并通过 AI 模型提问文件内容。通过进一步优化脚本（例如提示语）、使用其他模型并调整布局以加入附加功能，该应用程序可以在日常生活中提供额外价值，同时无需增加额外成本。享受定制和使用该应用程序的乐趣。  
 
-![](../Images/6986252b10d7723e67c0529d265a19a5.png)  
+![](img/6986252b10d7723e67c0529d265a19a5.png)  
 
 你最多可以点击 50 次！  
 
-![](../Images/127ee9bba2f9b657ec9f4cb2b3c1f6ed.png)  
+![](img/127ee9bba2f9b657ec9f4cb2b3c1f6ed.png)  
 
 仅用于缩略图（图片由作者提供）

@@ -1,12 +1,12 @@
 # 理解 PyTorch 中的主成分分析
 
-> 原文：[https://towardsdatascience.com/differentiable-principal-component-analysis-in-pytorch-using-power-iteration-ee93ac9fa2c4?source=collection_archive---------6-----------------------#2024-02-18](https://towardsdatascience.com/differentiable-principal-component-analysis-in-pytorch-using-power-iteration-ee93ac9fa2c4?source=collection_archive---------6-----------------------#2024-02-18)
+> 原文：[`towardsdatascience.com/differentiable-principal-component-analysis-in-pytorch-using-power-iteration-ee93ac9fa2c4?source=collection_archive---------6-----------------------#2024-02-18`](https://towardsdatascience.com/differentiable-principal-component-analysis-in-pytorch-using-power-iteration-ee93ac9fa2c4?source=collection_archive---------6-----------------------#2024-02-18)
 
 ## 内置函数与数值方法
 
-[](https://medium.com/@nikolaus.correll?source=post_page---byline--ee93ac9fa2c4--------------------------------)[![Nikolaus Correll](../Images/948c44fe797b8057e20b39023c30027b.png)](https://medium.com/@nikolaus.correll?source=post_page---byline--ee93ac9fa2c4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ee93ac9fa2c4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ee93ac9fa2c4--------------------------------) [Nikolaus Correll](https://medium.com/@nikolaus.correll?source=post_page---byline--ee93ac9fa2c4--------------------------------)
+[](https://medium.com/@nikolaus.correll?source=post_page---byline--ee93ac9fa2c4--------------------------------)![Nikolaus Correll](https://medium.com/@nikolaus.correll?source=post_page---byline--ee93ac9fa2c4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ee93ac9fa2c4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ee93ac9fa2c4--------------------------------) [Nikolaus Correll](https://medium.com/@nikolaus.correll?source=post_page---byline--ee93ac9fa2c4--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ee93ac9fa2c4--------------------------------) ·8 分钟阅读·2024年2月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ee93ac9fa2c4--------------------------------) ·8 分钟阅读·2024 年 2 月 18 日
 
 --
 
@@ -16,7 +16,7 @@
 
 主成分分析（PCA）广泛应用于数据分析和机器学习中，以减少数据集的维度。目标是找到一组线性不相关（正交）的变量，称为*主成分*，它们能够捕捉数据中的最大方差。第一个主成分代表最大方差的方向，第二个主成分与第一个主成分正交，代表下一个最大方差的方向，依此类推。PCA 还被用于*机器人操作*中，用于找到点云的主轴，然后可以用来定向夹爪。
 
-![](../Images/706102bd80688e62167884f91e4edd9a.png)
+![](img/706102bd80688e62167884f91e4edd9a.png)
 
 桌子上的一罐汽水的点云。抓取汽水罐需要将夹爪与汽水罐的主轴对齐。图像来源：作者。
 

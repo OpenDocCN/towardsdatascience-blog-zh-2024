@@ -1,98 +1,98 @@
 # 创建一个具有 OpenAI 函数调用功能的代理
 
-> 原文：[https://towardsdatascience.com/create-an-agent-with-openai-function-calling-capabilities-ad52122c3d12?source=collection_archive---------3-----------------------#2024-03-31](https://towardsdatascience.com/create-an-agent-with-openai-function-calling-capabilities-ad52122c3d12?source=collection_archive---------3-----------------------#2024-03-31)
+> 原文：[`towardsdatascience.com/create-an-agent-with-openai-function-calling-capabilities-ad52122c3d12?source=collection_archive---------3-----------------------#2024-03-31`](https://towardsdatascience.com/create-an-agent-with-openai-function-calling-capabilities-ad52122c3d12?source=collection_archive---------3-----------------------#2024-03-31)
 
 ## 2024 年的 OpenAI 函数调用
 
-[](https://medium.com/@bianbianzhu123?source=post_page---byline--ad52122c3d12--------------------------------)[![Tianyi Li](../Images/40fce472f42c650daa1433641bf732df.png)](https://medium.com/@bianbianzhu123?source=post_page---byline--ad52122c3d12--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ad52122c3d12--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ad52122c3d12--------------------------------) [Tianyi Li](https://medium.com/@bianbianzhu123?source=post_page---byline--ad52122c3d12--------------------------------)
+[](https://medium.com/@bianbianzhu123?source=post_page---byline--ad52122c3d12--------------------------------)![Tianyi Li](https://medium.com/@bianbianzhu123?source=post_page---byline--ad52122c3d12--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ad52122c3d12--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ad52122c3d12--------------------------------) [Tianyi Li](https://medium.com/@bianbianzhu123?source=post_page---byline--ad52122c3d12--------------------------------)
 
 · 发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ad52122c3d12--------------------------------) · 阅读时间 15 分钟 · 2024 年 3 月 31 日
 
 --
 
-![](../Images/c3386f14f9203c4c638eb602716bc548.png)
+![](img/c3386f14f9203c4c638eb602716bc548.png)
 
 由 [DALL·E 3](https://openai.com/dall-e-3) 生成的图像
 
 **作者**： [Tianyi Li](https://medium.com/u/4092d7367010?source=post_page---user_mention--ad52122c3d12--------------------------------), [Selina Li](https://medium.com/u/7b9ea39b0d79?source=post_page---user_mention--ad52122c3d12--------------------------------)
 
-· [介绍](#bd50)
+· 介绍
 
-· [人工智能能做什么](#8727)
+· 人工智能能做什么
 
-· [当前挑战](#77ee)
+· 当前挑战
 
-· [它是如何工作的](#d52b)
+· 它是如何工作的
 
-∘ [四个可能让人困惑的关键概念：](#cfee)
+∘ 四个可能让人困惑的关键概念：
 
-· [逐步构建代理指南](#98f6)
+· 逐步构建代理指南
 
-∘ [商业案例：开发一个农场旅行助手代理](#4c18)
+∘ 商业案例：开发一个农场旅行助手代理
 
-∘ [应用架构](#6729)
+∘ 应用架构
 
-∘ [前提条件：](#6df5)
+∘ 前提条件：
 
-∘ [步骤 1：准备调用模型](#b04f)
+∘ 步骤 1：准备调用模型
 
-∘ [步骤 2：定义工具](#d998)
+∘ 步骤 2：定义工具
 
-∘ [步骤 3：使用消息和工具调用模型](#0df9)
+∘ 步骤 3：使用消息和工具调用模型
 
-∘ [步骤 4：处理模型响应](#5cd8)
+∘ 步骤 4：处理模型响应
 
-∘ [步骤 5：执行函数并再次调用模型](#de43)
+∘ 步骤 5：执行函数并再次调用模型
 
-∘ [步骤 6：将结果总结反馈给用户](#0f4e)
+∘ 步骤 6：将结果总结反馈给用户
 
-· [结论](#dbba)
+· 结论
 
-· [喜欢这个故事吗？](#1c90)
+· 喜欢这个故事吗？
 
-随着我们进入2024年，开发 AI 驱动应用程序的热潮显而易见，因为它们具有明显的优势。
+随着我们进入 2024 年，开发 AI 驱动应用程序的热潮显而易见，因为它们具有明显的优势。
 
 传统上，创建一个应用程序涉及为每个功能编写独立的函数或服务，例如用户登录或票务预订。这个过程通常需要用户填写表格，勾选框并输入数据，这些数据随后必须通过各种验证检查，以确保数据可用。尤其是在涉及多个步骤时，这种方法显著削弱了用户体验。
 
 假设你计划为复活节安排一次为期一天的农场之旅。你尚未确定日期，但有一些特定的要求：农场必须在两小时车程内，提供某些活动，天气要阴天（因为你的孩子对阳光过敏），并且在做决定之前需要和伴侣商量。传统的方法将涉及多次浏览不同的页面、步骤和表单——这反映了日常决策的复杂性。这种复杂性是一个关键原因，尽管现在有许多预订网站，很多人仍然更倾向于通过旅行代理人来规划旅行。
 
-# AI能做什么
+# AI 能做什么
 
-AI通过以下方式带来了显著的改进：
+AI 通过以下方式带来了显著的改进：
 
 1.  提供对话式体验，使互动更加自然、用户友好。
 
-1.  将应用程序功能整合到一个单一的入口点。与传统应用程序不同，传统应用需要不同的页面和表单来执行不同的功能，而AI可以解释用户输入，顺利选择并执行所需功能，甚至可以一步步处理复杂的请求。
+1.  将应用程序功能整合到一个单一的入口点。与传统应用程序不同，传统应用需要不同的页面和表单来执行不同的功能，而 AI 可以解释用户输入，顺利选择并执行所需功能，甚至可以一步步处理复杂的请求。
 
-然而，一个主要挑战依然存在：处理AI模型返回的非结构化文本数据。
+然而，一个主要挑战依然存在：处理 AI 模型返回的非结构化文本数据。
 
-传统上，从模型输出中提取结构化数据（如JSON）需要复杂的提示工程或正则表达式（RegEx），由于AI模型的不可预测性和用户输入的多样性，这种方法容易出错且不一致。
+传统上，从模型输出中提取结构化数据（如 JSON）需要复杂的提示工程或正则表达式（RegEx），由于 AI 模型的不可预测性和用户输入的多样性，这种方法容易出错且不一致。
 
-为了解决这个问题，OpenAI推出了两项创新功能：`Json模式`和`函数调用`。本文将深入探讨函数调用功能，说明它如何简化从模型输出中提取结构化数据的过程，并附有TypeScript代码示例。
+为了解决这个问题，OpenAI 推出了两项创新功能：`Json 模式`和`函数调用`。本文将深入探讨函数调用功能，说明它如何简化从模型输出中提取结构化数据的过程，并附有 TypeScript 代码示例。
 
-在这个[Github代码库](https://github.com/bianbianzhu/openai-function-calling)中发现所有代码示例，如果您觉得有用，可以考虑给它点个星。
+在这个[Github 代码库](https://github.com/bianbianzhu/openai-function-calling)中发现所有代码示例，如果您觉得有用，可以考虑给它点个星。
 
 # 当前的挑战
 
-+   结构化数据处理：以前，开发人员依赖正则表达式或复杂的提示工程来解析文本数据，这个过程充满了复杂性和错误。函数调用通过允许模型处理用户定义的函数，简化了这一过程，使模型能够生成如JSON等结构化输出，而不需要繁琐的技术手段。
++   结构化数据处理：以前，开发人员依赖正则表达式或复杂的提示工程来解析文本数据，这个过程充满了复杂性和错误。函数调用通过允许模型处理用户定义的函数，简化了这一过程，使模型能够生成如 JSON 等结构化输出，而不需要繁琐的技术手段。
 
-+   一致性和可预测性：函数调用通过允许定义自定义函数来精确提取信息，从而确保AI模型输出的一致性和可预测性。这保证了在各种输入下生成结构化且可靠的输出，对于需要可靠数据提取的应用至关重要，例如文本摘要、文档分析以及与外部API或数据库的集成。
++   一致性和可预测性：函数调用通过允许定义自定义函数来精确提取信息，从而确保 AI 模型输出的一致性和可预测性。这保证了在各种输入下生成结构化且可靠的输出，对于需要可靠数据提取的应用至关重要，例如文本摘要、文档分析以及与外部 API 或数据库的集成。
 
 # 它是如何工作的
 
-根据[OpenAI的文档](https://platform.openai.com/docs/guides/function-calling)，函数调用的基本步骤如下：
+根据[OpenAI 的文档](https://platform.openai.com/docs/guides/function-calling)，函数调用的基本步骤如下：
 
-1.  使用用户查询和在functions（工具）参数中定义的一组函数来调用模型。
+1.  使用用户查询和在 functions（工具）参数中定义的一组函数来调用模型。
 
-1.  模型可以选择调用一个或多个函数；如果选择调用，内容将是一个符合您自定义架构的字符串化JSON对象（注意：模型可能会产生虚假的参数）。
+1.  模型可以选择调用一个或多个函数；如果选择调用，内容将是一个符合您自定义架构的字符串化 JSON 对象（注意：模型可能会产生虚假的参数）。
 
-1.  在代码中将字符串解析为JSON，并在提供的参数存在时调用相应的函数。
+1.  在代码中将字符串解析为 JSON，并在提供的参数存在时调用相应的函数。
 
 1.  通过将函数响应作为新消息附加来再次调用模型，让模型将结果总结并反馈给用户。
 
-![](../Images/2f7e826c238feb17d00a04b394e00016.png)
+![](img/2f7e826c238feb17d00a04b394e00016.png)
 
-OpenAI函数调用工作原理的序列图
+OpenAI 函数调用工作原理的序列图
 
 ## 四个可能一开始会让人困惑的关键概念：
 
@@ -122,7 +122,7 @@ OpenAI函数调用工作原理的序列图
 
 这个流程图展示了应用程序的架构：
 
-![](../Images/41b3331d39fbdf6b9b01c9b61286959c.png)
+![](img/41b3331d39fbdf6b9b01c9b61286959c.png)
 
 代理的流程图
 
@@ -223,7 +223,7 @@ export const FunctionPrompts: Record<FunctionPromptKey, FunctionPromptValue> = {
 };
 ```
 
-## 第2步：定义工具
+## 第 2 步：定义工具
 
 如前所述，`tools`本质上是模型可以调用的函数描述。在这种情况下，我们定义了四个工具来满足农场旅行助手代理的需求：
 
@@ -423,19 +423,19 @@ export const tools = Object.values(
 
 引入新功能，请按以下步骤进行：
 
-1.  扩展DescribedFunctionName，添加一个新枚举，例如`DoNewThings`。
+1.  扩展 DescribedFunctionName，添加一个新枚举，例如`DoNewThings`。
 
-1.  为参数定义一个Props类型，例如`DoNewThingsProps`。
+1.  为参数定义一个 Props 类型，例如`DoNewThingsProps`。
 
 1.  在*FunctionDescriptions*对象中插入一个新条目。
 
 1.  在函数目录中实现新功能，并根据枚举值命名它。
 
-## 第3步：使用消息和工具调用模型
+## 第 3 步：使用消息和工具调用模型
 
 设置好消息和工具后，我们就可以使用它们来调用模型。
 
-需要注意的是，直到2024年3月，只有`gpt-3.5-turbo-0125`和`gpt-4-turbo-preview`模型支持函数调用。
+需要注意的是，直到 2024 年 3 月，只有`gpt-3.5-turbo-0125`和`gpt-4-turbo-preview`模型支持函数调用。
 
 代码实现：
 
@@ -474,7 +474,7 @@ export const startChat = async (messages: ChatCompletionMessageParam[]) => {
 
 模型的回应大致可分为两类，同时可能存在错误，需要回退消息：
 
-![](../Images/1d5be5b5218c97887adba782d1ee01a1.png)
+![](img/1d5be5b5218c97887adba782d1ee01a1.png)
 
 1.  **函数调用请求**: 模型表明希望调用一个或多个函数。这是函数调用的真正潜力。模型会根据上下文和用户查询智能选择需要执行的函数。例如，如果用户请求农场推荐，模型可能会建议调用 `get_farms` 函数。
 
@@ -579,9 +579,9 @@ if (!result) {
   for (const item of result) {
     const { tool_call_id, function_name, arguments: function_arguments } = item;
     // Execute the function and get the function return
-    const functionReturn = await AvailableFunctions[
+    const functionReturn = await AvailableFunctions
       function_name as keyof typeof AvailableFunctions
-    ](function_arguments);
+    ;
     // Add the function output back to the messages with a role of "tool", the id of the tool call, and the function return as the content
     messages.push(
       FunctionPrompts.function_response({
@@ -611,9 +611,9 @@ for (const item of result) {
     )}`
   );
   // Available functions are stored in an object for easy access
-  const functionReturn = await AvailableFunctions[
+  const functionReturn = await AvailableFunctions
     function_name as keyof typeof AvailableFunctions
-  ](function_arguments);
+  ;
 }
 ```
 
@@ -628,9 +628,9 @@ for (const item of result) {
       function_arguments
     )}`
   );
-  const functionReturn = await AvailableFunctions[
+  const functionReturn = await AvailableFunctions
     function_name as keyof typeof AvailableFunctions
-  ](function_arguments);
+  ;
   // Add the function output back to the messages with a role of "tool", the id of the tool call, and the function return as the content
   messages.push(
     FunctionPrompts.function_response({
@@ -694,7 +694,7 @@ export async function get_farms(
 }
 ```
 
-## 第6步：总结结果并反馈给用户
+## 第 6 步：总结结果并反馈给用户
 
 在运行函数并更新消息数组后，我们通过重新调用这些更新的消息来重新激活模型，以向用户简要介绍结果。这涉及通过循环反复调用***startChat***函数。
 
@@ -748,7 +748,7 @@ function includeSignal(content: string, signal: string) {
 
 # 结论
 
-OpenAI的函数调用代表了人工智能的一大进步，允许模型根据用户查询执行自定义函数。此功能简化了从输出中获取结构化数据的过程，改善了用户交互，并支持更复杂的交流。
+OpenAI 的函数调用代表了人工智能的一大进步，允许模型根据用户查询执行自定义函数。此功能简化了从输出中获取结构化数据的过程，改善了用户交互，并支持更复杂的交流。
 
 # 喜欢这个故事吗？
 

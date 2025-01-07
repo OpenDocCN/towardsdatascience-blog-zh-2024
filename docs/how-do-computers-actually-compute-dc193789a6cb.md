@@ -1,12 +1,12 @@
 # 计算机究竟是如何进行计算的？
 
-> 原文：[https://towardsdatascience.com/how-do-computers-actually-compute-dc193789a6cb?source=collection_archive---------5-----------------------#2024-06-10](https://towardsdatascience.com/how-do-computers-actually-compute-dc193789a6cb?source=collection_archive---------5-----------------------#2024-06-10)
+> 原文：[`towardsdatascience.com/how-do-computers-actually-compute-dc193789a6cb?source=collection_archive---------5-----------------------#2024-06-10`](https://towardsdatascience.com/how-do-computers-actually-compute-dc193789a6cb?source=collection_archive---------5-----------------------#2024-06-10)
 
 ## 数据科学新手的计算机硬件入门
 
-[](https://medium.com/@cadenhamrick?source=post_page---byline--dc193789a6cb--------------------------------)[![W. Caden Hamrick](../Images/1674ac4b1c844f3aff37b8e3083764da.png)](https://medium.com/@cadenhamrick?source=post_page---byline--dc193789a6cb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dc193789a6cb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dc193789a6cb--------------------------------) [W. Caden Hamrick](https://medium.com/@cadenhamrick?source=post_page---byline--dc193789a6cb--------------------------------)
+[](https://medium.com/@cadenhamrick?source=post_page---byline--dc193789a6cb--------------------------------)![W. Caden Hamrick](https://medium.com/@cadenhamrick?source=post_page---byline--dc193789a6cb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dc193789a6cb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc193789a6cb--------------------------------) [W. Caden Hamrick](https://medium.com/@cadenhamrick?source=post_page---byline--dc193789a6cb--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc193789a6cb--------------------------------) ·9分钟阅读·2024年6月10日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc193789a6cb--------------------------------) ·9 分钟阅读·2024 年 6 月 10 日
 
 --
 
@@ -14,7 +14,7 @@
 
 你常常听到计算机被称为“数字计算机”。它们以远远超过人类能力的速度处理数据，并能每秒做出成千上万次逻辑决策。但它们是如何实现这一点的呢？这些非常昂贵的“石块盒子”有什么特别之处，竟能在某些方面超越其创造者的思维？这就是我们在本文中要解答的问题。
 
-![](../Images/251a483957f2a35db5d364b2c8b9b267.png)
+![](img/251a483957f2a35db5d364b2c8b9b267.png)
 
 图片来源：[Clément Hélardot](https://unsplash.com/@clemhlrdt?utm_source=medium&utm_medium=referral) 于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

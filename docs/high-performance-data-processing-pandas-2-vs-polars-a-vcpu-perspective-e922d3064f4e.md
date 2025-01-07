@@ -1,16 +1,16 @@
 # 高性能 Python 数据处理：pandas 2 与 Polars，从 vCPU 视角看
 
-> 原文：[https://towardsdatascience.com/high-performance-data-processing-pandas-2-vs-polars-a-vcpu-perspective-e922d3064f4e?source=collection_archive---------1-----------------------#2024-08-07](https://towardsdatascience.com/high-performance-data-processing-pandas-2-vs-polars-a-vcpu-perspective-e922d3064f4e?source=collection_archive---------1-----------------------#2024-08-07)
+> 原文：[`towardsdatascience.com/high-performance-data-processing-pandas-2-vs-polars-a-vcpu-perspective-e922d3064f4e?source=collection_archive---------1-----------------------#2024-08-07`](https://towardsdatascience.com/high-performance-data-processing-pandas-2-vs-polars-a-vcpu-perspective-e922d3064f4e?source=collection_archive---------1-----------------------#2024-08-07)
 
 ## Polars 承诺其多线程能力优于 pandas。但在单个 vCore 上是否也是如此？
 
-[](https://medium.com/@saarb?source=post_page---byline--e922d3064f4e--------------------------------)[![Saar Berkovich](../Images/8a834597e8c6cce1b948f6aa17bfe8be.png)](https://medium.com/@saarb?source=post_page---byline--e922d3064f4e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e922d3064f4e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e922d3064f4e--------------------------------) [Saar Berkovich](https://medium.com/@saarb?source=post_page---byline--e922d3064f4e--------------------------------)
+[](https://medium.com/@saarb?source=post_page---byline--e922d3064f4e--------------------------------)![Saar Berkovich](https://medium.com/@saarb?source=post_page---byline--e922d3064f4e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e922d3064f4e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e922d3064f4e--------------------------------) [Saar Berkovich](https://medium.com/@saarb?source=post_page---byline--e922d3064f4e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e922d3064f4e--------------------------------) ·阅读时长7分钟·2024年8月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e922d3064f4e--------------------------------) ·阅读时长 7 分钟·2024 年 8 月 7 日
 
 --
 
-![](../Images/e29e365ebffa968cd44d28f9b23dc0fb.png)
+![](img/e29e365ebffa968cd44d28f9b23dc0fb.png)
 
 图片由作者生成，使用 DALL-E
 
@@ -20,7 +20,7 @@ pandas 长期以来作为表格数据分析的冠军，目前正面临着一个�
 
 ## 它到底快多少？
 
-查看[这个图表](https://pola.rs/_astro/perf-illustration.jHjw6PiD_165TDG.svg)（发布于[Polars主页](https://pola.rs/) 2024年4月24日），该图表展示了在不同的 Python 数据分析生态系统下，TPC-H 基准测试的运行时间（单位：秒）。一眼看上去，Polars 的速度比 pandas 快 25 倍。深入了解后，我们发现这些基准测试是在一台拥有 22 个 vCPU 的虚拟机上收集的。Polars 被设计为擅长并行处理，因此，当然可以从拥有如此多 vCPU 的系统中受益。而 pandas 则完全不支持多线程，因此可能仅使用了这台机器的 1 个 vCPU。换句话说，Polars 用 1/25 的时间完成了 pandas 的工作，但它也使用了 22 倍的计算资源。
+查看[这个图表](https://pola.rs/_astro/perf-illustration.jHjw6PiD_165TDG.svg)（发布于[Polars 主页](https://pola.rs/) 2024 年 4 月 24 日），该图表展示了在不同的 Python 数据分析生态系统下，TPC-H 基准测试的运行时间（单位：秒）。一眼看上去，Polars 的速度比 pandas 快 25 倍。深入了解后，我们发现这些基准测试是在一台拥有 22 个 vCPU 的虚拟机上收集的。Polars 被设计为擅长并行处理，因此，当然可以从拥有如此多 vCPU 的系统中受益。而 pandas 则完全不支持多线程，因此可能仅使用了这台机器的 1 个 vCPU。换句话说，Polars 用 1/25 的时间完成了 pandas 的工作，但它也使用了 22 倍的计算资源。
 
 ## vCore 的问题
 
@@ -56,41 +56,41 @@ session_duration（浮动类型）
 
 ## 前提
 
-给定数据集，我们想要根据用户的平均会话时长找到前10%最活跃的用户。因此，我们首先需要计算每个用户的平均会话时长（分组与聚合），然后找到第90百分位数（百分位数计算），选择所有位于该百分位数以上的用户（筛选），并确保列表按平均会话时长排序（排序）。
+给定数据集，我们想要根据用户的平均会话时长找到前 10%最活跃的用户。因此，我们首先需要计算每个用户的平均会话时长（分组与聚合），然后找到第 90 百分位数（百分位数计算），选择所有位于该百分位数以上的用户（筛选），并确保列表按平均会话时长排序（排序）。
 
 ## 测试
 
-每个操作都运行了200次（使用[timeit](https://docs.python.org/3/library/timeit.html)），每次取平均运行时间，并用标准误差作为测量误差。[代码可以在这里找到](https://gist.github.com/Berkodev/68d45dfbffeeb820033f6927e34c0f97)。
+每个操作都运行了 200 次（使用[timeit](https://docs.python.org/3/library/timeit.html)），每次取平均运行时间，并用标准误差作为测量误差。[代码可以在这里找到](https://gist.github.com/Berkodev/68d45dfbffeeb820033f6927e34c0f97)。
 
 ## 关于急切执行与懒执行的说明
 
-pandas和Polars之间的另一个区别是，前者默认使用急切执行（语句按书写顺序执行），而后者使用懒执行（语句在需要时编译并执行）。Polars的懒执行帮助它优化[查询](https://docs.pola.rs/user-guide/lazy/query-plan/)，这在大数据分析任务中是一个非常好的特性。我们选择将任务拆分，查看四个操作，目的是排除这一方面，专注于比较更基本的性能方面。
+pandas 和 Polars 之间的另一个区别是，前者默认使用急切执行（语句按书写顺序执行），而后者使用懒执行（语句在需要时编译并执行）。Polars 的懒执行帮助它优化[查询](https://docs.pola.rs/user-guide/lazy/query-plan/)，这在大数据分析任务中是一个非常好的特性。我们选择将任务拆分，查看四个操作，目的是排除这一方面，专注于比较更基本的性能方面。
 
 # 结果
 
 ## 分组 + 聚合
 
-![](../Images/7359c686432a3b97f6043764e030cff4.png)
+![](img/7359c686432a3b97f6043764e030cff4.png)
 
-按库和vCore进行的分组和聚合操作的平均执行时间。图像和数据由作者提供。
+按库和 vCore 进行的分组和聚合操作的平均执行时间。图像和数据由作者提供。
 
-我们可以看到，pandas在vCore的扩展上没有表现出预期的效果。这个趋势在整个测试过程中都会保持。我决定保留图表中的这一部分，但之后我们将不再提及它。
+我们可以看到，pandas 在 vCore 的扩展上没有表现出预期的效果。这个趋势在整个测试过程中都会保持。我决定保留图表中的这一部分，但之后我们将不再提及它。
 
-polars的结果相当令人印象深刻——在1vCore配置下，它比pandas快了三分之一的时间，而随着vCore数量增加到2核和4核时，它分别快了约35%和50%。
+polars 的结果相当令人印象深刻——在 1vCore 配置下，它比 pandas 快了三分之一的时间，而随着 vCore 数量增加到 2 核和 4 核时，它分别快了约 35%和 50%。
 
 ## 百分位数计算
 
-![](../Images/20b2f53f53b7a2b5cb16441c6d97d3ed.png)
+![](img/20b2f53f53b7a2b5cb16441c6d97d3ed.png)
 
-按库和vCore进行的百分位数计算操作的平均执行时间。图像和数据由作者提供。
+按库和 vCore 进行的百分位数计算操作的平均执行时间。图像和数据由作者提供。
 
-这个结果很有趣。在所有vCore配置中，polars的执行速度是pandas的5倍。在1vCore配置下，平均执行时间为0.2ms，但标准误差较大（意味着有时操作完成的时间会明显超过0.2ms，而有时则会明显低于0.2ms）。当扩展到多个vCore时，执行时间更加稳定——2vCore配置为0.21ms，4vCore配置为0.19ms（大约快10%）。
+这个结果很有趣。在所有 vCore 配置中，polars 的执行速度是 pandas 的 5 倍。在 1vCore 配置下，平均执行时间为 0.2ms，但标准误差较大（意味着有时操作完成的时间会明显超过 0.2ms，而有时则会明显低于 0.2ms）。当扩展到多个 vCore 时，执行时间更加稳定——2vCore 配置为 0.21ms，4vCore 配置为 0.19ms（大约快 10%）。
 
 ## 筛选
 
-![](../Images/a56070692a047244138f5934f1674c14.png)
+![](img/a56070692a047244138f5934f1674c14.png)
 
-按库和vCore进行的筛选操作的平均执行时间。图像和数据由作者提供。
+按库和 vCore 进行的筛选操作的平均执行时间。图像和数据由作者提供。
 
 在所有情况下，Polars 的完成速度都比 pandas 快（最差的运行时间仍然是 pandas 的两倍）。然而，我们在这里看到了一种非常不寻常的趋势 —— 运行时间随着 vCore 增加而增加（我们原本期望它会减少）。4vCore 的操作运行时间大约比 1vCore 的慢 35%。尽管并行化为你提供了更多的计算能力，但它通常伴随有一定的开销 —— 管理和协调并行进程通常是非常困难的。
 
@@ -100,7 +100,7 @@ polars的结果相当令人印象深刻——在1vCore配置下，它比pandas�
 
 ## 排序
 
-![](../Images/f64ac7d234a1f9f8ccb325be256f7696.png)
+![](img/f64ac7d234a1f9f8ccb325be256f7696.png)
 
 排序操作的平均执行时间，按库和 vCore 分类。图片和数据来源：作者。
 
@@ -112,7 +112,7 @@ polars的结果相当令人印象深刻——在1vCore配置下，它比pandas�
 
 ## 排序（multithreading=False）
 
-![](../Images/6e729e639be15093fcff0752aa065de3.png)
+![](img/6e729e639be15093fcff0752aa065de3.png)
 
 排序操作的平均执行时间（multithreading=False），按库和 vCore 分类。图片和数据来源：作者。
 

@@ -1,22 +1,22 @@
 # 认识 Git Stash：你未完成代码的秘密宝箱
 
-> 原文：[https://towardsdatascience.com/meet-git-stash-your-secret-chest-of-unfinished-code-6da48da15413?source=collection_archive---------5-----------------------#2024-10-26](https://towardsdatascience.com/meet-git-stash-your-secret-chest-of-unfinished-code-6da48da15413?source=collection_archive---------5-----------------------#2024-10-26)
+> 原文：[`towardsdatascience.com/meet-git-stash-your-secret-chest-of-unfinished-code-6da48da15413?source=collection_archive---------5-----------------------#2024-10-26`](https://towardsdatascience.com/meet-git-stash-your-secret-chest-of-unfinished-code-6da48da15413?source=collection_archive---------5-----------------------#2024-10-26)
 
-![](../Images/f8a6b702d18b279ba798f5fa87716556.png)
+![](img/f8a6b702d18b279ba798f5fa87716556.png)
 
 图片由[Stefan Steinbauer](https://unsplash.com/@usinglight?utm_source=medium&utm_medium=referral)拍摄，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## 精通 Git
 
-## Git的一个强大功能，用于临时保存正在进行的代码
+## Git 的一个强大功能，用于临时保存正在进行的代码
 
-[](https://zluvsand.medium.com/?source=post_page---byline--6da48da15413--------------------------------)[![Zolzaya Luvsandorj](../Images/dd3bb91f8625a6fbe8fd26e56036ad29.png)](https://zluvsand.medium.com/?source=post_page---byline--6da48da15413--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6da48da15413--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6da48da15413--------------------------------) [Zolzaya Luvsandorj](https://zluvsand.medium.com/?source=post_page---byline--6da48da15413--------------------------------)
+[](https://zluvsand.medium.com/?source=post_page---byline--6da48da15413--------------------------------)![Zolzaya Luvsandorj](https://zluvsand.medium.com/?source=post_page---byline--6da48da15413--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6da48da15413--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6da48da15413--------------------------------) [Zolzaya Luvsandorj](https://zluvsand.medium.com/?source=post_page---byline--6da48da15413--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6da48da15413--------------------------------) ·阅读时间：6分钟·2024年10月26日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6da48da15413--------------------------------) ·阅读时间：6 分钟·2024 年 10 月 26 日
 
 --
 
-假设你在进行代码更改时发现了一个需要立即修复的严重bug。你试图切换分支，但由于当前功能分支有未提交的更改，切换失败。这些更改还没有准备好提交，但又太重要，不能丢弃。在这种需要快速切换上下文的情况下，`git stash`提供了一种优雅的解决方案，可以在不提交的情况下临时安全地存储未完成的代码。本文将探讨如何有效使用`git stash`。
+假设你在进行代码更改时发现了一个需要立即修复的严重 bug。你试图切换分支，但由于当前功能分支有未提交的更改，切换失败。这些更改还没有准备好提交，但又太重要，不能丢弃。在这种需要快速切换上下文的情况下，`git stash`提供了一种优雅的解决方案，可以在不提交的情况下临时安全地存储未完成的代码。本文将探讨如何有效使用`git stash`。
 
 # 📍 1\. 暂存
 

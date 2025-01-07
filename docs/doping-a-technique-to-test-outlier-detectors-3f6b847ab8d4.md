@@ -1,16 +1,16 @@
 # 掺假：测试异常值检测器的技术
 
-> 原文：[https://towardsdatascience.com/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4?source=collection_archive---------2-----------------------#2024-07-09](https://towardsdatascience.com/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4?source=collection_archive---------2-----------------------#2024-07-09)
+> 原文：[`towardsdatascience.com/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4?source=collection_archive---------2-----------------------#2024-07-09`](https://towardsdatascience.com/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4?source=collection_archive---------2-----------------------#2024-07-09)
 
 ## 使用精心制作的合成数据比较和评估异常值检测器
 
-[](https://medium.com/@wkennedy934?source=post_page---byline--3f6b847ab8d4--------------------------------)[![W Brett Kennedy](../Images/b3ce55ffd028167326c117d47c64c467.png)](https://medium.com/@wkennedy934?source=post_page---byline--3f6b847ab8d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f6b847ab8d4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3f6b847ab8d4--------------------------------) [W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--3f6b847ab8d4--------------------------------)
+[](https://medium.com/@wkennedy934?source=post_page---byline--3f6b847ab8d4--------------------------------)![W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--3f6b847ab8d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f6b847ab8d4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f6b847ab8d4--------------------------------) [W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--3f6b847ab8d4--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f6b847ab8d4--------------------------------) ·14分钟阅读·2024年7月9日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f6b847ab8d4--------------------------------) ·14 分钟阅读·2024 年 7 月 9 日
 
 --
 
-本文是我关于异常值检测系列文章的一部分，之前发布过关于[计数异常值检测器](https://medium.com/towards-data-science/counts-outlier-detector-interpretable-outlier-detection-ead0d469557a)和[频繁模式异常值因子](https://medium.com/towards-data-science/interpretable-outlier-detection-frequent-patterns-outlier-factor-fpof-0d9cbf51b17a)的文章，并提供了我书籍[Python中的异常值检测](https://www.manning.com/books/outlier-detection-in-python)的另一个摘录。
+本文是我关于异常值检测系列文章的一部分，之前发布过关于[计数异常值检测器](https://medium.com/towards-data-science/counts-outlier-detector-interpretable-outlier-detection-ead0d469557a)和[频繁模式异常值因子](https://medium.com/towards-data-science/interpretable-outlier-detection-frequent-patterns-outlier-factor-fpof-0d9cbf51b17a)的文章，并提供了我书籍[Python 中的异常值检测](https://www.manning.com/books/outlier-detection-in-python)的另一个摘录。
 
 本文探讨了测试和评估异常值检测器的问题，这是一个众所周知的难题，并提出了一种解决方案，有时被称为*掺假*。通过掺假，真实数据行会被修改（通常是随机的），但修改的方式确保它们在某些方面很可能是异常值，因此应该被异常值检测器检测到。然后，我们可以通过评估检测器检测掺假记录的能力来评估它们的表现。
 
@@ -54,15 +54,15 @@
 
 以及一些其他特征。
 
-一条典型记录可能包含如下四个特征的值：20岁，5年与当前所有者的合作，去年10,000笔独特销售，总销售额为500,000美元。
+一条典型记录可能包含如下四个特征的值：20 岁，5 年与当前所有者的合作，去年 10,000 笔独特销售，总销售额为 500,000 美元。
 
-我们可以通过调整某个值为一个罕见的值来创建该记录的掺毒版本，例如，将特许经营的年龄设置为100年。这是可以做到的，并且可以对正在测试的检测器进行快速的烟雾测试——很可能任何检测器都会识别出这个值是异常的（假设100是一个罕见的值），虽然我们可能能够排除一些无法可靠检测到这种修改记录的检测器。
+我们可以通过调整某个值为一个罕见的值来创建该记录的掺毒版本，例如，将特许经营的年龄设置为 100 年。这是可以做到的，并且可以对正在测试的检测器进行快速的烟雾测试——很可能任何检测器都会识别出这个值是异常的（假设 100 是一个罕见的值），虽然我们可能能够排除一些无法可靠检测到这种修改记录的检测器。
 
-我们不一定会排除某种异常值检测器（例如kNN、Entropy或Isolation Forest）的使用，而是会排除异常值检测器的类型、预处理方法、超参数以及检测器的其他特性。例如，我们可能会发现，某些超参数下的kNN检测器表现良好，而其他超参数下的kNN检测器则表现不好（至少对于我们测试的掺毒记录来说是这样）。
+我们不一定会排除某种异常值检测器（例如 kNN、Entropy 或 Isolation Forest）的使用，而是会排除异常值检测器的类型、预处理方法、超参数以及检测器的其他特性。例如，我们可能会发现，某些超参数下的 kNN 检测器表现良好，而其他超参数下的 kNN 检测器则表现不好（至少对于我们测试的掺毒记录来说是这样）。
 
-然而，通常大部分测试都会创建更微妙的异常值。在这个例子中，我们可以将总销售额从500,000美元改为100,000美元，虽然100,000美元仍然可能是一个典型值，但10,000笔独特销售与100,000美元的总销售额的组合对于这个数据集来说可能是异常的。也就是说，在掺毒时，我们通常创建的是具有异常值组合的记录，尽管有时也会创建单个异常值。
+然而，通常大部分测试都会创建更微妙的异常值。在这个例子中，我们可以将总销售额从 500,000 美元改为 100,000 美元，虽然 100,000 美元仍然可能是一个典型值，但 10,000 笔独特销售与 100,000 美元的总销售额的组合对于这个数据集来说可能是异常的。也就是说，在掺毒时，我们通常创建的是具有异常值组合的记录，尽管有时也会创建单个异常值。
 
-在记录中更改一个值时，具体如何使该行成为离群值（假设它确实成为了离群值）并不明确，但我们可以假设大多数表格之间的特征是有联系的。在此示例中，将美元值改为100,000，可能（以及创造一个异常的销售数量和销售额组合）很可能会由于特许经营的年龄或当前拥有者的年限，创造出一个不寻常的组合。
+在记录中更改一个值时，具体如何使该行成为离群值（假设它确实成为了离群值）并不明确，但我们可以假设大多数表格之间的特征是有联系的。在此示例中，将美元值改为 100,000，可能（以及创造一个异常的销售数量和销售额组合）很可能会由于特许经营的年龄或当前拥有者的年限，创造出一个不寻常的组合。
 
 然而，对于某些表格来说，特征之间没有关联，或者仅有少数且较弱的关联。这种情况较为罕见，但确实可能发生。对于这种类型的数据，没有异常值组合的概念，只有异常单一值。尽管这种情况罕见，但实际上它是一个更简单的处理案例：检测离群值更容易（我们只需检查单一的异常值），评估检测器也更容易（我们只需检查我们是否能检测到异常单一值）。不过，本文的其余部分将假设特征之间存在某些关联，并且大多数异常情况将是值的异常组合。
 
@@ -98,7 +98,7 @@
 
 # 创建掺杂数据的算法
 
-有多种方法可以创建掺杂数据，包括在[《Python中的异常值检测》](https://www.manning.com/books/outlier-detection-in-python)中介绍的几种方法，每种方法都有其优缺点。为了简化，在本文中我们只介绍一种方法，其中数据是以相当随机的方式进行修改的：修改的单元格是随机选择的，替代原始值的新值是随机创建的。
+有多种方法可以创建掺杂数据，包括在[《Python 中的异常值检测》](https://www.manning.com/books/outlier-detection-in-python)中介绍的几种方法，每种方法都有其优缺点。为了简化，在本文中我们只介绍一种方法，其中数据是以相当随机的方式进行修改的：修改的单元格是随机选择的，替代原始值的新值是随机创建的。
 
 这样做时，某些掺杂记录可能并不真正是异常的，但在大多数情况下，随机赋值会破坏特征之间的一个或多个关联。尽管如此，我们可以假设掺杂记录大多是异常的，尽管根据其创建方式，可能只是轻微异常。
 
@@ -106,13 +106,13 @@
 
 在这里，我们通过一个例子，使用真实的数据集，修改它并进行测试，以查看修改的检测效果。
 
-在这个例子中，我们使用了一个在OpenML上可用的数据集，名为abalone（[https://www.openml.org/search?type=data&sort=runs&id=42726&status=active](https://www.openml.org/search?type=data&sort=runs&id=42726&status=active)，该数据集在公共许可证下可用）。
+在这个例子中，我们使用了一个在 OpenML 上可用的数据集，名为 abalone（[`www.openml.org/search?type=data&sort=runs&id=42726&status=active`](https://www.openml.org/search?type=data&sort=runs&id=42726&status=active)，该数据集在公共许可证下可用）。
 
-尽管可以进行其他预处理，但在这个例子中，我们对分类特征进行独热编码，并使用RobustScaler对数值特征进行缩放。
+尽管可以进行其他预处理，但在这个例子中，我们对分类特征进行独热编码，并使用 RobustScaler 对数值特征进行缩放。
 
-我们使用了三种离群点检测器进行测试：Isolation Forest、LOF 和 ECOD，这些检测器都可以在流行的[PyOD](https://github.com/yzhao062/pyod)库中找到（必须先通过pip安装才能执行）。
+我们使用了三种离群点检测器进行测试：Isolation Forest、LOF 和 ECOD，这些检测器都可以在流行的[PyOD](https://github.com/yzhao062/pyod)库中找到（必须先通过 pip 安装才能执行）。
 
-我们还使用Isolation Forest来清理数据（去除任何强烈的离群点），以便在进行任何训练或测试之前进行处理。这个步骤并非必须，但在离群点检测中通常是有用的。
+我们还使用 Isolation Forest 来清理数据（去除任何强烈的离群点），以便在进行任何训练或测试之前进行处理。这个步骤并非必须，但在离群点检测中通常是有用的。
 
 这是上述两种方法中的第二种方法的例子，我们在原始数据上进行训练，并用原始数据和掺假数据进行测试。
 
@@ -175,13 +175,13 @@ plt.tight_layout()
 plt.show()
 ```
 
-![](../Images/592ffaafb6f576b9d48038f97e15cbc7.png)
+![](img/592ffaafb6f576b9d48038f97e15cbc7.png)
 
 在这里，为了创建掺假记录，我们复制了完整的原始记录集，因此掺假记录与原始记录的数量相等。对于每个掺假记录，我们随机选择一个特征进行修改。如果原始值低于中位数，我们创建一个高于中位数的随机值；如果原始值高于中位数，我们创建一个低于中位数的随机值。
 
-在这个例子中，我们看到，虽然IF确实对掺假记录的评分较高，但差异并不显著。LOF在区分掺假记录方面表现出色，至少对于这种掺假方式来说是这样。ECOD是一个仅检测异常小值或异常大值的检测器，它不测试异常组合。由于这个例子中的掺假并没有创建极端值，只是一些不寻常的组合，因此ECOD无法区分掺假记录和原始记录。
+在这个例子中，我们看到，虽然 IF 确实对掺假记录的评分较高，但差异并不显著。LOF 在区分掺假记录方面表现出色，至少对于这种掺假方式来说是这样。ECOD 是一个仅检测异常小值或异常大值的检测器，它不测试异常组合。由于这个例子中的掺假并没有创建极端值，只是一些不寻常的组合，因此 ECOD 无法区分掺假记录和原始记录。
 
-这个例子使用箱形图来比较检测器，但通常我们会使用一个客观评分，通常是AUROC（接收者操作特征曲线下面积）得分来评估每个检测器。我们通常还会测试多种模型类型、预处理方法和参数组合。
+这个例子使用箱形图来比较检测器，但通常我们会使用一个客观评分，通常是 AUROC（接收者操作特征曲线下面积）得分来评估每个检测器。我们通常还会测试多种模型类型、预处理方法和参数组合。
 
 # 替代性掺假方法
 
@@ -197,7 +197,7 @@ plt.show()
 
 1.  新值与根据行中其他值预测的值处于不同的四分位数
 
-例如，如果原值在Q1，而预测值在Q2，那么我们可以随机选择Q3或Q4中的值。这样，新值很可能会违反特征之间的正常关系。
+例如，如果原值在 Q1，而预测值在 Q2，那么我们可以随机选择 Q3 或 Q4 中的值。这样，新值很可能会违反特征之间的正常关系。
 
 # 创建测试数据集套件
 

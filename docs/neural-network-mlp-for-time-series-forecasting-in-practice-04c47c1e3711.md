@@ -1,10 +1,10 @@
 # 神经网络（MLP）在时间序列预测中的实践应用
 
-> 原文：[https://towardsdatascience.com/neural-network-mlp-for-time-series-forecasting-in-practice-04c47c1e3711?source=collection_archive---------0-----------------------#2024-07-08](https://towardsdatascience.com/neural-network-mlp-for-time-series-forecasting-in-practice-04c47c1e3711?source=collection_archive---------0-----------------------#2024-07-08)
+> 原文：[`towardsdatascience.com/neural-network-mlp-for-time-series-forecasting-in-practice-04c47c1e3711?source=collection_archive---------0-----------------------#2024-07-08`](https://towardsdatascience.com/neural-network-mlp-for-time-series-forecasting-in-practice-04c47c1e3711?source=collection_archive---------0-----------------------#2024-07-08)
 
 ## 特征工程和构建 MLP 模型的实用示例
 
-[](https://tothjd.medium.com/?source=post_page---byline--04c47c1e3711--------------------------------)[![Daniel J. TOTH](../Images/a7fd7d723abdba92c493c3dd9aeb2273.png)](https://tothjd.medium.com/?source=post_page---byline--04c47c1e3711--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04c47c1e3711--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--04c47c1e3711--------------------------------) [Daniel J. TOTH](https://tothjd.medium.com/?source=post_page---byline--04c47c1e3711--------------------------------)
+[](https://tothjd.medium.com/?source=post_page---byline--04c47c1e3711--------------------------------)![Daniel J. TOTH](https://tothjd.medium.com/?source=post_page---byline--04c47c1e3711--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04c47c1e3711--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04c47c1e3711--------------------------------) [Daniel J. TOTH](https://tothjd.medium.com/?source=post_page---byline--04c47c1e3711--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04c47c1e3711--------------------------------) ·阅读时长 16 分钟·2024 年 7 月 8 日
 
@@ -32,11 +32,11 @@
 
 1.  如何为捕捉时间模式工程化时间序列特征
 
-1.  构建一个能够利用混合变量（浮动和整数，通过嵌入处理为类别变量）的MLP模型
+1.  构建一个能够利用混合变量（浮动和整数，通过嵌入处理为类别变量）的 MLP 模型
 
-1.  使用MLP进行点预测
+1.  使用 MLP 进行点预测
 
-1.  使用MLP进行多步预测
+1.  使用 MLP 进行多步预测
 
 1.  使用置换特征重要性方法评估特征重要性
 
@@ -82,7 +82,7 @@
 
 # **数据探索**
 
-在分析过程中使用的核心包包括：用于数据处理的`numpy`和`pandas`，用于交互式图表的`plotly`，用于统计和状态空间建模的`statsmodels`，以及用于MLP架构的`tensorflow`。
+在分析过程中使用的核心包包括：用于数据处理的`numpy`和`pandas`，用于交互式图表的`plotly`，用于统计和状态空间建模的`statsmodels`，以及用于 MLP 架构的`tensorflow`。
 
 *注意：由于技术限制，我将提供交互式绘图的代码片段，但此处展示的图表将是静态的。*
 
@@ -125,7 +125,7 @@ df.sort_index(inplace = True)
 
 1.  将数据框的索引频率设置为每小时，因为这是进一步处理的要求
 
-在准备好数据后，我们通过绘制5个随机时间戳样本来探索数据，并比较不同尺度下的时间序列。
+在准备好数据后，我们通过绘制 5 个随机时间戳样本来探索数据，并比较不同尺度下的时间序列。
 
 ```py
 fig = make_subplots(rows=5, cols=4, shared_yaxes=True, horizontal_spacing=0.01, vertical_spacing=0.04)
@@ -160,7 +160,7 @@ fig.update_xaxes(griddash="dot", gridcolor="#808080")
 fig.update_yaxes(griddash="dot", gridcolor="#808080")
 ```
 
-![](../Images/0a11e7108055273a11e5804af3946d3c.png)
+![](img/0a11e7108055273a11e5804af3946d3c.png)
 
 数据集的随机抽样和不同时间尺度的可视化。来源：作者
 
@@ -174,7 +174,7 @@ fig.update_yaxes(griddash="dot", gridcolor="#808080")
 
 1.  在夜间有一个每日最低值，白天有一个每日最高值。
 
-进一步分析会揭示，数据集的年度模式有2个谐波，因为冬季和夏季的峰值水平不同。因此，考虑了以下状态空间模型，其中周期以小时为单位（见下文模型总结）：
+进一步分析会揭示，数据集的年度模式有 2 个谐波，因为冬季和夏季的峰值水平不同。因此，考虑了以下状态空间模型，其中周期以小时为单位（见下文模型总结）：
 
 ```py
 # splitting time series to train and test subsets
@@ -228,11 +228,11 @@ Warnings:
 [1] Covariance matrix calculated using the outer product of gradients (complex-step).
 ```
 
-在不提前过多展开的情况下，我想指出，模型近似了过去365天的总能源消耗，误差约为~2%，从商业角度来看，我认为这是相当准确的。下面构建的MLP模型将通过与上述状态空间模型的比较来评估。
+在不提前过多展开的情况下，我想指出，模型近似了过去 365 天的总能源消耗，误差约为~2%，从商业角度来看，我认为这是相当准确的。下面构建的 MLP 模型将通过与上述状态空间模型的比较来评估。
 
 # 特征工程
 
-在构建MLP模型之前，我们应使模型能够学习到独特的趋势和季节性效应。这可以通过向数据集添加新特征来实现，这些特征是从原始的1D时间序列数据派生而来的。为捕捉已经识别或未识别的模式，派生特征包括：
+在构建 MLP 模型之前，我们应使模型能够学习到独特的趋势和季节性效应。这可以通过向数据集添加新特征来实现，这些特征是从原始的 1D 时间序列数据派生而来的。为捕捉已经识别或未识别的模式，派生特征包括：
 
 1.  滞后
 
@@ -281,13 +281,13 @@ fig.update_yaxes(griddash="dot", gridcolor="#808080", title_text="Autocorrelatio
 fig.update_yaxes(griddash="dot", gridcolor="#808080", title_text="Partial Autocorrelation", row=2, col=1)
 ```
 
-![](../Images/2db5e7d8a24a253430c45eadd4fb3031.png)
+![](img/2db5e7d8a24a253430c45eadd4fb3031.png)
 
 时间序列的自相关和部分自相关图。来源：作者
 
-数据集具有很高的自相关性，这很合理，因为值大多在10K MW到20K MW之间波动，且从一个小时到下一个小时的过渡平滑。然而，专注于下图所示的部分自相关性，似乎在24小时的倍数以及最后几个小时中存在显著的相关性。因此，派生特征主要可以分类为：
+数据集具有很高的自相关性，这很合理，因为值大多在 10K MW 到 20K MW 之间波动，且从一个小时到下一个小时的过渡平滑。然而，专注于下图所示的部分自相关性，似乎在 24 小时的倍数以及最后几个小时中存在显著的相关性。因此，派生特征主要可以分类为：
 
-1.  每日（24小时的倍数），
+1.  每日（24 小时的倍数），
 
 1.  每小时（专注于最后几个小时）和
 
@@ -331,13 +331,13 @@ hourly_rolling_stds = [col for col in dff.columns if all(["rolling_std_" in col,
 categoricals = ["hour_of_day", "day_of_week", "is_weekend"]
 ```
 
-# **构建MLP模型**
+# **构建 MLP 模型**
 
-生成上述详细特征后，输入形状已知，可以构建MLP模型。需要注意的是，我们处理的是混合数据类型：浮动型和整数型。还请注意，尽管所有特征都是数值类型，整数型输入本质上是分类特征，应当视为分类特征来处理。
+生成上述详细特征后，输入形状已知，可以构建 MLP 模型。需要注意的是，我们处理的是混合数据类型：浮动型和整数型。还请注意，尽管所有特征都是数值类型，整数型输入本质上是分类特征，应当视为分类特征来处理。
 
 有一种方法可以使用例如独热编码技术对类别进行编码，但这会显著增加特征的数量，因为每个类别列都应该扩展为与类别数相等的列数（减去一个）[12]。我故意选择了嵌入方法，以限制特征数量，虽然这样做会使得模型的输入层更加复杂，因为类别数据首先通过嵌入转换为向量，再与浮动输入结合。
 
-请查看代码部分后的图表以获得更清晰的理解。该架构是使用经验法则构建的，因为超参数调优不在本文范围内。然而，如果你对如何进行超参数调优的通用框架感兴趣，请查看📰☛ [我之前的文章](https://medium.com/towards-data-science/binary-classification-xgboost-hyperparameter-tuning-scenarios-by-non-exhaustive-grid-search-and-c261f4ce098d)（在这篇文章中，我使用Optuna作为贝叶斯搜索工具调优了XGBoost模型的最佳超参数）。
+请查看代码部分后的图表以获得更清晰的理解。该架构是使用经验法则构建的，因为超参数调优不在本文范围内。然而，如果你对如何进行超参数调优的通用框架感兴趣，请查看📰☛ [我之前的文章](https://medium.com/towards-data-science/binary-classification-xgboost-hyperparameter-tuning-scenarios-by-non-exhaustive-grid-search-and-c261f4ce098d)（在这篇文章中，我使用 Optuna 作为贝叶斯搜索工具调优了 XGBoost 模型的最佳超参数）。
 
 ```py
 # segmenting last year as test data
@@ -377,17 +377,17 @@ model_NN_baseline.fit(
 )
 ```
 
-![](../Images/d1e93289f78adc2ad27fe54af42aa5d8.png)
+![](img/d1e93289f78adc2ad27fe54af42aa5d8.png)
 
-使用Tensorflow/Keras创建的MLP架构。来源：作者
+使用 Tensorflow/Keras 创建的 MLP 架构。来源：作者
 
 就点预测而言，结果非常准确。这是一个好兆头，说明所应用的特征工程原则正确地捕捉了数据中的潜在模式，模型能够将其泛化。
 
-![](../Images/181dd0c122d63276258e6f6f5576e070.png)
+![](img/181dd0c122d63276258e6f6f5576e070.png)
 
-基准MLP模型的点预测与测试数据对比。来源：作者
+基准 MLP 模型的点预测与测试数据对比。来源：作者
 
-点预测与测试集重叠，且两个图形轨迹几乎无法区分。更精确地说，预测（训练集）和预测值（测试集）的RMSE分别约为19.3和18.9（相对误差约为0.1%）。
+点预测与测试集重叠，且两个图形轨迹几乎无法区分。更精确地说，预测（训练集）和预测值（测试集）的 RMSE 分别约为 19.3 和 18.9（相对误差约为 0.1%）。
 
 # **特征重要性**
 
@@ -401,7 +401,7 @@ model_NN_baseline.fit(
 
 > 模型解释技术仅仅是在特定范围内解释模型，而不一定是解释其背后的过程。现实可能与特征重要性分析大相径庭，因此不应将其视为自变量与目标变量之间因果关系的最终真相。
 
-让我用我的分析结果来解释这一点。逐一置换特征，重新计算RMSE得分并记录相对于使用原始数据的预测RMSE的相对变化，将给出特征的相对重要性[13]。
+让我用我的分析结果来解释这一点。逐一置换特征，重新计算 RMSE 得分并记录相对于使用原始数据的预测 RMSE 的相对变化，将给出特征的相对重要性[13]。
 
 ```py
 # permutation feature importance
@@ -440,7 +440,7 @@ fig3.update_xaxes(griddash="dot", gridcolor="#808080", row=1, col=1)
 fig3.update_yaxes(griddash="dot", gridcolor="#808080", row=1, col=1)
 ```
 
-![](../Images/2564e8b61f4fb48c7d19a4b671007da9.png)
+![](img/2564e8b61f4fb48c7d19a4b671007da9.png)
 
 置换特征重要性直方图。来源：作者
 
@@ -448,9 +448,9 @@ fig3.update_yaxes(griddash="dot", gridcolor="#808080", row=1, col=1)
 
 处理这种情况的一种可能方式是遵循`scikit learn`的指导：
 
-> 对Spearman等级顺序相关性执行层次聚类，选择一个阈值，并从每个簇中保留一个特征。[13]
+> 对 Spearman 等级顺序相关性执行层次聚类，选择一个阈值，并从每个簇中保留一个特征。[13]
 
-然而，我想专注于突出不准确之处，并通过逐一训练替代模型以分组特征来为数据集添加更多洞见。为此使用了相同的MLP架构，仅对输入层进行了调整，以适应数据的子集。以下组在特征工程部分创建并在此测试（训练/测试数据集的RMSE结果也分别报告）：
+然而，我想专注于突出不准确之处，并通过逐一训练替代模型以分组特征来为数据集添加更多洞见。为此使用了相同的 MLP 架构，仅对输入层进行了调整，以适应数据的子集。以下组在特征工程部分创建并在此测试（训练/测试数据集的 RMSE 结果也分别报告）：
 
 1.  每日滞后（942 和 994）
 
@@ -462,33 +462,33 @@ fig3.update_yaxes(griddash="dot", gridcolor="#808080", row=1, col=1)
 
 1.  每小时滚动均值和标准差（84.4 和 75.5）
 
-显然，替代模型显示的结果与简单的置换特征重要性分析预期不同，且未处理多重共线性：例如，每日滚动特征的得分优于每日差异，且训练于每小时滚动特征的模型在所有替代模型中表现最佳，接近基线模型（RMSE分别为百分比~0.5%和~0.1%）。
+显然，替代模型显示的结果与简单的置换特征重要性分析预期不同，且未处理多重共线性：例如，每日滚动特征的得分优于每日差异，且训练于每小时滚动特征的模型在所有替代模型中表现最佳，接近基线模型（RMSE 分别为百分比~0.5%和~0.1%）。
 
 # 数据中的特定异常说明
 
-我想强调2008年10月20日14:00观察到的一个非常特殊的异常情况。 这是有史以来记录的最高值，且没有明显的原因，数据集中之前和之后没有类似的数据点。
+我想强调 2008 年 10 月 20 日 14:00 观察到的一个非常特殊的异常情况。 这是有史以来记录的最高值，且没有明显的原因，数据集中之前和之后没有类似的数据点。
 
 > 然而，由特征工程驱动的基线模型能够预测该数据点，并且不被认为是异常值！
 
-![](../Images/fe5663c1e874d9c4bcbf0d8dd541ab3c.png)
+![](img/fe5663c1e874d9c4bcbf0d8dd541ab3c.png)
 
-基线MLP模型的点预测和观察到的潜在异常。来源：作者
+基线 MLP 模型的点预测和观察到的潜在异常。来源：作者
 
 模型是如何预测该数据点的呢？让我们使用替代模型进行推理。最佳的替代模型（每小时滚动特征）在该点附近似乎非常准确，但只能部分解释这一现象：
 
-![](../Images/1d891089cfb4b6494f8ac7e5afc5959e.png)
+![](img/1d891089cfb4b6494f8ac7e5afc5959e.png)
 
 替代的 MLP 模型（利用每小时滚动特征）点预测和观察到的潜在异常。来源：作者
 
 第二好的替代方案是利用每小时滞后的模型，但它完全没有解释为何会发生这种情况：
 
-![](../Images/4d699078a9afb2b07b740af85194b30d.png)
+![](img/4d699078a9afb2b07b740af85194b30d.png)
 
 替代的 MLP 模型（利用每小时滞后特征）点预测和观察到的潜在异常。来源：作者
 
 简而言之，每日差异可能包含有关潜在模式的重要信息。尽管单独使用每日差异组会给出更高的预测值，但基准模型似乎找到了特征权重的良好平衡。
 
-![](../Images/c0f627ebf8eb29789a55dda1e01f9faf.png)
+![](img/c0f627ebf8eb29789a55dda1e01f9faf.png)
 
 替代的 MLP 模型（利用每日差异特征）点预测和观察到的潜在异常。来源：作者
 
@@ -547,7 +547,7 @@ model_NN_multistep.fit(
 
 对于可视化评估，可以看出模型试图对模式进行泛化：
 
-![](../Images/2c6c7c1d334527dfc742b07d89445916.png)
+![](img/2c6c7c1d334527dfc742b07d89445916.png)
 
 多步 MLP 模型的预测与原始数据的对比。来源：作者
 
@@ -579,7 +579,7 @@ Forecast yearly energy demand: 1.283e+08 MWh
 Forecast error of yearly energy demand: -2.832e+06 MWh or -2.159 %
 ```
 
-对于MLP模型：
+对于 MLP 模型：
 
 ```py
 y_test = dff.dropna().iloc[-8766:-1, 1].values
@@ -602,7 +602,7 @@ Forecast yearly energy demand: 1.286e+08 MWh
 Forecast error of yearly energy demand: -2.508e+06 MWh or -1.912 %
 ```
 
-简而言之：它是-1.912% vs. -2.159%，偏向于MLP模型。请注意，这是通过使用MLP架构并结合一些简单的经验法则实现的，甚至没有考虑超参数调优或某些有效的模型训练特征，例如在评估指标达到平台期时减少学习率或提前停止。
+简而言之：它是-1.912% vs. -2.159%，偏向于 MLP 模型。请注意，这是通过使用 MLP 架构并结合一些简单的经验法则实现的，甚至没有考虑超参数调优或某些有效的模型训练特征，例如在评估指标达到平台期时减少学习率或提前停止。
 
 结果应该是相当令人信服的，确实，通过利用相对简单的神经网络架构结合强大的特征工程技术，准确的预测工具已经在数据科学家的初级阶段触手可得。
 
@@ -610,36 +610,36 @@ Forecast error of yearly energy demand: -2.508e+06 MWh or -1.912 %
 
 数据来源：
 
-[https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption/](https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption/) (CC0)
+[`www.kaggle.com/datasets/robikscube/hourly-energy-consumption/`](https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption/) (CC0)
 
-笔记本（仅代码，不包含输出）：[https://gist.github.com/danielandthelions/2e6f0edd30902113ad10fd9f20bda215](https://gist.github.com/danielandthelions/2e6f0edd30902113ad10fd9f20bda215)
+笔记本（仅代码，不包含输出）：[`gist.github.com/danielandthelions/2e6f0edd30902113ad10fd9f20bda215`](https://gist.github.com/danielandthelions/2e6f0edd30902113ad10fd9f20bda215)
 
 # 参考文献
 
-[1] [https://preset.io/blog/time-series-forecasting-a-complete-guide/](https://preset.io/blog/time-series-forecasting-a-complete-guide/)
+[1] [`preset.io/blog/time-series-forecasting-a-complete-guide/`](https://preset.io/blog/time-series-forecasting-a-complete-guide/)
 
-[2] [https://www.ibm.com/topics/recurrent-neural-networks](https://www.ibm.com/topics/recurrent-neural-networks)
+[2] [`www.ibm.com/topics/recurrent-neural-networks`](https://www.ibm.com/topics/recurrent-neural-networks)
 
-[3] [https://www.timescale.com/blog/time-series-analysis-what-is-it-how-to-use-it/](https://www.timescale.com/blog/time-series-analysis-what-is-it-how-to-use-it/)
+[3] [`www.timescale.com/blog/time-series-analysis-what-is-it-how-to-use-it/`](https://www.timescale.com/blog/time-series-analysis-what-is-it-how-to-use-it/)
 
-[4] [https://plat.ai/blog/difference-between-prediction-and-forecast/](https://plat.ai/blog/difference-between-prediction-and-forecast/)
+[4] [`plat.ai/blog/difference-between-prediction-and-forecast/`](https://plat.ai/blog/difference-between-prediction-and-forecast/)
 
-[5] [https://dotdata.com/blog/practical-guide-for-feature-engineering-of-time-series-data/](https://dotdata.com/blog/practical-guide-for-feature-engineering-of-time-series-data/)
+[5] [`dotdata.com/blog/practical-guide-for-feature-engineering-of-time-series-data/`](https://dotdata.com/blog/practical-guide-for-feature-engineering-of-time-series-data/)
 
-[6] [https://statisticsbyjim.com/time-series/autocorrelation-partial-autocorrelation/](https://statisticsbyjim.com/time-series/autocorrelation-partial-autocorrelation/)
+[6] [`statisticsbyjim.com/time-series/autocorrelation-partial-autocorrelation/`](https://statisticsbyjim.com/time-series/autocorrelation-partial-autocorrelation/)
 
-[7] [https://www.sciencedirect.com/topics/computer-science/multilayer-perceptron](https://www.sciencedirect.com/topics/computer-science/multilayer-perceptron)
+[7] [`www.sciencedirect.com/topics/computer-science/multilayer-perceptron`](https://www.sciencedirect.com/topics/computer-science/multilayer-perceptron)
 
-[8] [https://jina.ai/news/embeddings-in-depth/](https://jina.ai/news/embeddings-in-depth/)
+[8] [`jina.ai/news/embeddings-in-depth/`](https://jina.ai/news/embeddings-in-depth/)
 
-[9] Hyndman, R.J., & Athanasopoulos, G. (2021) 《Forecasting: principles and practice》，第三版，OTexts：澳大利亚墨尔本。OTexts.com/fpp3。访问时间：2024年7月7日
+[9] Hyndman, R.J., & Athanasopoulos, G. (2021) 《Forecasting: principles and practice》，第三版，OTexts：澳大利亚墨尔本。OTexts.com/fpp3。访问时间：2024 年 7 月 7 日
 
-[10] [https://statisticsbyjim.com/regression/root-mean-square-error-rmse/](https://statisticsbyjim.com/regression/root-mean-square-error-rmse/)
+[10] [`statisticsbyjim.com/regression/root-mean-square-error-rmse/`](https://statisticsbyjim.com/regression/root-mean-square-error-rmse/)
 
-[11] [https://christophm.github.io/interpretable-ml-book/](https://christophm.github.io/interpretable-ml-book/)
+[11] [`christophm.github.io/interpretable-ml-book/`](https://christophm.github.io/interpretable-ml-book/)
 
-[12] [https://scikit-learn.org/stable/modules/preprocessing.html](https://scikit-learn.org/stable/modules/preprocessing.html)
+[12] [`scikit-learn.org/stable/modules/preprocessing.html`](https://scikit-learn.org/stable/modules/preprocessing.html)
 
-[13] [https://scikit-learn.org/stable/modules/permutation_importance.html#permutation-feature-importance](https://scikit-learn.org/stable/modules/permutation_importance.html#permutation-feature-importance)
+[13] [`scikit-learn.org/stable/modules/permutation_importance.html#permutation-feature-importance`](https://scikit-learn.org/stable/modules/permutation_importance.html#permutation-feature-importance)
 
-[14] [https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption/](https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption/)
+[14] [`www.kaggle.com/datasets/robikscube/hourly-energy-consumption/`](https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption/)

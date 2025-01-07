@@ -1,40 +1,40 @@
-# 完整指南：编写你自己的Transformer
+# 完整指南：编写你自己的 Transformer
 
-> 原文：[https://towardsdatascience.com/a-complete-guide-to-write-your-own-transformers-29e23f371ddd?source=collection_archive---------1-----------------------#2024-02-24](https://towardsdatascience.com/a-complete-guide-to-write-your-own-transformers-29e23f371ddd?source=collection_archive---------1-----------------------#2024-02-24)
+> 原文：[`towardsdatascience.com/a-complete-guide-to-write-your-own-transformers-29e23f371ddd?source=collection_archive---------1-----------------------#2024-02-24`](https://towardsdatascience.com/a-complete-guide-to-write-your-own-transformers-29e23f371ddd?source=collection_archive---------1-----------------------#2024-02-24)
 
-## 这是一个端到端的Pytorch Transformer实现，在这个过程中我们将涵盖诸如自注意力（self-attention）、编码器（encoders）、解码器（decoders）等关键概念，以及更多内容。
+## 这是一个端到端的 Pytorch Transformer 实现，在这个过程中我们将涵盖诸如自注意力（self-attention）、编码器（encoders）、解码器（decoders）等关键概念，以及更多内容。
 
-[](https://medium.com/@benjamin_47408?source=post_page---byline--29e23f371ddd--------------------------------)[![Benjamin Etienne](../Images/cad8bc2d4b900575e76b7cf9debc9eea.png)](https://medium.com/@benjamin_47408?source=post_page---byline--29e23f371ddd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--29e23f371ddd--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--29e23f371ddd--------------------------------) [Benjamin Etienne](https://medium.com/@benjamin_47408?source=post_page---byline--29e23f371ddd--------------------------------)
+[](https://medium.com/@benjamin_47408?source=post_page---byline--29e23f371ddd--------------------------------)![Benjamin Etienne](https://medium.com/@benjamin_47408?source=post_page---byline--29e23f371ddd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--29e23f371ddd--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29e23f371ddd--------------------------------) [Benjamin Etienne](https://medium.com/@benjamin_47408?source=post_page---byline--29e23f371ddd--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29e23f371ddd--------------------------------) ·阅读时间18分钟·2024年2月24日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29e23f371ddd--------------------------------) ·阅读时间 18 分钟·2024 年 2 月 24 日
 
 --
 
-![](../Images/fd0bb4ec869d59ea716cca7fc1928d2f.png)
+![](img/fd0bb4ec869d59ea716cca7fc1928d2f.png)
 
 图片由[Susan Holt Simpson](https://unsplash.com/@shs521?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)。
 
 # 我们自己编写
 
-当我决定深入研究Transformer架构时，在阅读或观看在线教程时，我常常感到沮丧，因为我觉得它们总是遗漏了一些内容：
+当我决定深入研究 Transformer 架构时，在阅读或观看在线教程时，我常常感到沮丧，因为我觉得它们总是遗漏了一些内容：
 
-+   Tensorflow或Pytorch的官方教程使用了它们自己的API，因此保持在高层次，迫使我必须进入它们的代码库去查看底层实现。这样非常耗时，而且阅读成千上万行代码并不总是容易的。
++   Tensorflow 或 Pytorch 的官方教程使用了它们自己的 API，因此保持在高层次，迫使我必须进入它们的代码库去查看底层实现。这样非常耗时，而且阅读成千上万行代码并不总是容易的。
 
 +   我找到的其他带有自定义代码的教程（文章末尾有链接）通常过于简化了使用场景，并且没有涉及如变长序列批处理的遮蔽等概念。
 
-所以我决定自己写一个Transformer，以确保我理解这些概念，并能够在任何数据集上使用它。
+所以我决定自己写一个 Transformer，以确保我理解这些概念，并能够在任何数据集上使用它。
 
 因此，在本文中，我们将采取一种系统的方法，逐层逐块地实现一个变换器（Transformer）。
 
-显然，已经有许多不同的实现，以及来自Pytorch或Tensorflow的高级API可以直接使用——我相信它们的性能比我们将要构建的模型更好。
+显然，已经有许多不同的实现，以及来自 Pytorch 或 Tensorflow 的高级 API 可以直接使用——我相信它们的性能比我们将要构建的模型更好。
 
-***“好吧，那为什么不使用TF/Pytorch的实现呢？”***
+***“好吧，那为什么不使用 TF/Pytorch 的实现呢？”***
 
 本文的目的是为了教育目的，我并不打算超过 Pytorch 或 Tensorflow 的实现。我确实相信，Transformer 背后的理论和代码并不简单直接，这也是为什么我希望通过这篇一步步的教程，帮助你更好地掌握这些概念，并在以后构建自己代码时更加得心应手。
 
 从头开始构建自己的 Transformer 还有一个原因，那就是它能帮助你完全理解如何使用上述的 API。如果我们查看 Pytorch 中 Transformer 类的 `forward()` 方法的实现，你会看到很多晦涩的关键词，比如：
 
-![](../Images/00baf4c1e185c524d03fd1440baf4db9.png)
+![](img/00baf4c1e185c524d03fd1440baf4db9.png)
 
 来源：[Pytorch 文档](https://pytorch.org/docs/stable/generated/torch.nn.Transformer.html)
 
@@ -48,7 +48,7 @@
 
 该架构首次由 Google 研究人员在 2017 年的《Attention is All you need》论文中提出。它具有革命性，因为以前的模型通常依赖于 RNNs 来进行序列到序列的学习（如机器翻译、语音转文本等），而 RNNs 在计算上是昂贵的，因为它们需要一步步地处理序列，而 Transformer 只需一次性查看整个序列，从而将时间复杂度从 O(n) 降低到 O(1)。
 
-![](../Images/7a4b8ca14307d51a11f291b0766a0cc4.png)
+![](img/7a4b8ca14307d51a11f291b0766a0cc4.png)
 
 [(Vaswani 等人, 2017)](https://arxiv.org/abs/1706.03762)
 
@@ -56,7 +56,7 @@ Transformer 在 NLP 领域的应用非常广泛，包括语言翻译、问答系
 
 Transformer 的整体架构如下：
 
-![](../Images/481fea3d28cd50a0773fafd6a1ef1366.png)
+![](img/481fea3d28cd50a0773fafd6a1ef1366.png)
 
 [来源](https://www.tensorflow.org/text/tutorials/transformer)
 
@@ -64,17 +64,17 @@ Transformer 的整体架构如下：
 
 我们将实现的第一个模块实际上是 Transformer 中最重要的部分，称为多头注意力机制。让我们来看一下它在整体架构中的位置。
 
-![](../Images/99b4662ef876d9ab107782fdfebad4b3.png)
+![](img/99b4662ef876d9ab107782fdfebad4b3.png)
 
 [来源](https://www.tensorflow.org/text/tutorials/transformer)
 
 注意力机制其实并不是 Transformer 所特有的，它早在 RNN 的序列到序列模型中就已经被使用过。
 
-![](../Images/c24820a0c6d6b508bdf72cfb69d2469f.png)
+![](img/c24820a0c6d6b508bdf72cfb69d2469f.png)
 
 Transformer 中的注意力机制（来源：Tensorflow [文档](https://www.tensorflow.org/text/tutorials/transformer)）
 
-![](../Images/6b88cb8f3f37ee9819f5aed4b9578e0d.png)
+![](img/6b88cb8f3f37ee9819f5aed4b9578e0d.png)
 
 Transformer 中的注意力机制（来源：Tensorflow [文档](https://www.tensorflow.org/text/tutorials/transformer)）
 
@@ -247,7 +247,7 @@ if attention_mask is not None:
 
 它对应于 Transformer 的以下部分：
 
-![](../Images/4c54461de6e757740b7df62624b38aab.png)
+![](img/4c54461de6e757740b7df62624b38aab.png)
 
 当接收和处理输入时，Transformer 没有顺序感知，因为它将序列视为整体，这与 RNN 的做法不同。因此，我们需要加入一些时间顺序的提示，以便 Transformer 能学习依赖关系。
 
@@ -284,7 +284,7 @@ class PositionalEncoding(nn.Module):
 
 我们即将完成一个完整的编码器！编码器是 Transformer 的左侧部分
 
-![](../Images/8dea9506d84ec2bd26bf1791cd078aa8.png)
+![](img/8dea9506d84ec2bd26bf1791cd078aa8.png)
 
 我们将向代码中添加一个小部分，即前馈部分：
 
@@ -362,9 +362,9 @@ class Encoder(nn.Module):
 
 解码器部分是左侧部分，需要更多的构建工作。
 
-![](../Images/e186299bbdb37043d1147a94c8bdde42.png)
+![](img/e186299bbdb37043d1147a94c8bdde42.png)
 
-有一种叫做*掩蔽多头注意力*的机制。还记得我们之前说过的*因果掩蔽*吗？这里也会用到。我们将使用多头注意力模块的attention_mask参数来表示这一点（更多关于如何计算掩蔽的细节在最后）：
+有一种叫做*掩蔽多头注意力*的机制。还记得我们之前说过的*因果掩蔽*吗？这里也会用到。我们将使用多头注意力模块的 attention_mask 参数来表示这一点（更多关于如何计算掩蔽的细节在最后）：
 
 ```py
  # Stuff before
@@ -491,11 +491,11 @@ class Decoder(nn.Module):
 
 记得在多头注意力部分，我们提到过在做注意力计算时，排除输入的某些部分。
 
-在训练过程中，我们会考虑输入和目标的批次，其中每个实例可能具有不同的长度。考虑以下示例，我们将四个单词批处理在一起：banana, watermelon, pear, blueberry。为了将它们作为一个批次处理，我们需要将所有单词对齐到最长单词的长度（watermelon）。因此，我们将为每个单词添加一个额外的标记，PAD，使它们都达到与watermelon相同的长度。
+在训练过程中，我们会考虑输入和目标的批次，其中每个实例可能具有不同的长度。考虑以下示例，我们将四个单词批处理在一起：banana, watermelon, pear, blueberry。为了将它们作为一个批次处理，我们需要将所有单词对齐到最长单词的长度（watermelon）。因此，我们将为每个单词添加一个额外的标记，PAD，使它们都达到与 watermelon 相同的长度。
 
 在下面的图中，上表表示原始数据，下表表示编码后的版本：
 
-![](../Images/13b635dfa9a7c67680987264e66197b9.png)
+![](img/13b635dfa9a7c67680987264e66197b9.png)
 
 （图片来源：作者）
 
@@ -505,9 +505,9 @@ class Decoder(nn.Module):
 padding_mask = (x == PAD_IDX)
 ```
 
-那么因果掩蔽怎么办？如果我们希望模型在每个时间步只关注过去的步骤，这意味着对于每个时间步T，模型只能关注t在1…T范围内的每个步骤。这是一个双重for循环，因此我们可以使用矩阵来计算这一点：
+那么因果掩蔽怎么办？如果我们希望模型在每个时间步只关注过去的步骤，这意味着对于每个时间步 T，模型只能关注 t 在 1…T 范围内的每个步骤。这是一个双重 for 循环，因此我们可以使用矩阵来计算这一点：
 
-![](../Images/887c940f4c6dafa57ca2f5a0d50ce1f8.png)
+![](img/887c940f4c6dafa57ca2f5a0d50ce1f8.png)
 
 （图片来源：作者）
 
@@ -519,17 +519,17 @@ def generate_square_subsequent_mask(size: int):
       return mask
 ```
 
-# 案例研究：一个单词反转Transformer
+# 案例研究：一个单词反转 Transformer
 
-现在让我们将各个部分整合起来，构建我们的Transformer！
+现在让我们将各个部分整合起来，构建我们的 Transformer！
 
-在我们的使用案例中，我们将使用一个非常简单的数据集来展示Transformer是如何学习的。
+在我们的使用案例中，我们将使用一个非常简单的数据集来展示 Transformer 是如何学习的。
 
-***“但是为什么要使用Transformer来反转单词？我已经知道如何在Python中使用word[::-1]来做了！”***
+***“但是为什么要使用 Transformer 来反转单词？我已经知道如何在 Python 中使用 word[::-1]来做了！”***
 
-这里的目标是观察Transformer的注意力机制是否有效。我们期望看到的是，当给定一个输入序列时，注意力权重会从右向左移动。如果是这样，这意味着我们的Transformer已经学会了一种非常简单的语法，即从右到左阅读，并且在进行实际的语言翻译时，能够推广到更复杂的语法。
+这里的目标是观察 Transformer 的注意力机制是否有效。我们期望看到的是，当给定一个输入序列时，注意力权重会从右向左移动。如果是这样，这意味着我们的 Transformer 已经学会了一种非常简单的语法，即从右到左阅读，并且在进行实际的语言翻译时，能够推广到更复杂的语法。
 
-让我们首先从我们自定义的Transformer类开始：
+让我们首先从我们自定义的 Transformer 类开始：
 
 ```py
 import torch
@@ -879,7 +879,7 @@ for epoch in range(1, 4):
     print((f"Epoch: {epoch}, Train loss: {train_loss:.3f}, Train acc: {train_acc:.3f}, Val loss: {val_loss:.3f}, Val acc: {val_acc:.3f} "f"Epoch time = {(end_time - start_time):.3f}s"))
 ```
 
-![](../Images/9f7afec6c69db6a3ed76a02e7ce64609.png)
+![](img/9f7afec6c69db6a3ed76a02e7ce64609.png)
 
 ## 可视化注意力
 
@@ -898,7 +898,7 @@ for ax, im in zip(grid, images):
     ax.imshow(im)
 ```
 
-![](../Images/58dc28e4552c6a895877083d7b02629a.png)
+![](img/58dc28e4552c6a895877083d7b02629a.png)
 
 作者提供的图片
 
@@ -950,7 +950,7 @@ translator = Translator(model)
 
 你应该能看到以下内容：
 
-![](../Images/0a1a3a1b926b437cfc76477fd3c99811.png)
+![](img/0a1a3a1b926b437cfc76477fd3c99811.png)
 
 如果我们打印注意力头，我们将观察到以下内容：
 
@@ -970,7 +970,7 @@ ax.set_yticklabels([f"step {i}" for i in range(len(out))])
 ax.imshow(images)
 ```
 
-![](../Images/8481c6a87c9210c958afdf396844f629.png)
+![](img/8481c6a87c9210c958afdf396844f629.png)
 
 作者提供的图片
 
@@ -994,8 +994,8 @@ ax.imshow(images)
 
 (+) [“使用 Transformer 和 Keras 的神经机器翻译”](https://www.tensorflow.org/text/tutorials/transformer)
 
-(+) [“图解Transformer”](https://jalammar.github.io/illustrated-transformer/)
+(+) [“图解 Transformer”](https://jalammar.github.io/illustrated-transformer/)
 
 (+) [阿姆斯特丹大学深度学习教程](https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial6/Transformers_and_MHAttention.html)
 
-(+) [Pytorch关于Transformer的教程](https://pytorch.org/tutorials/beginner/translation_transformer.html)
+(+) [Pytorch 关于 Transformer 的教程](https://pytorch.org/tutorials/beginner/translation_transformer.html)

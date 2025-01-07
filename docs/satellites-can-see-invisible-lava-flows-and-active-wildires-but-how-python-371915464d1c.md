@@ -1,16 +1,16 @@
 # 卫星如何看见不可见的熔岩流和活跃的野火？（Python）
 
-> 原文：[https://towardsdatascience.com/satellites-can-see-invisible-lava-flows-and-active-wildires-but-how-python-371915464d1c?source=collection_archive---------5-----------------------#2024-02-20](https://towardsdatascience.com/satellites-can-see-invisible-lava-flows-and-active-wildires-but-how-python-371915464d1c?source=collection_archive---------5-----------------------#2024-02-20)
+> 原文：[`towardsdatascience.com/satellites-can-see-invisible-lava-flows-and-active-wildires-but-how-python-371915464d1c?source=collection_archive---------5-----------------------#2024-02-20`](https://towardsdatascience.com/satellites-can-see-invisible-lava-flows-and-active-wildires-but-how-python-371915464d1c?source=collection_archive---------5-----------------------#2024-02-20)
 
 ## 可视化捕捉到的卫星图像，显示火山和野火的不同光谱带
 
-[](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--371915464d1c--------------------------------)[![Mahyar Aboutalebi, Ph.D. 🎓](../Images/83d62352800f8a2932db8a07997c8059.png)](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--371915464d1c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--371915464d1c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--371915464d1c--------------------------------) [Mahyar Aboutalebi, Ph.D. 🎓](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--371915464d1c--------------------------------)
+[](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--371915464d1c--------------------------------)![Mahyar Aboutalebi, Ph.D. 🎓](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--371915464d1c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--371915464d1c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--371915464d1c--------------------------------) [Mahyar Aboutalebi, Ph.D. 🎓](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--371915464d1c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--371915464d1c--------------------------------) ·14 分钟阅读·2024年2月20日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--371915464d1c--------------------------------) ·14 分钟阅读·2024 年 2 月 20 日
 
 --
 
-![](../Images/918c9757e72e85c28e41df9219a86e97.png)
+![](img/918c9757e72e85c28e41df9219a86e97.png)
 
 作者使用不同光谱带可视化捕捉到的卫星图像，显示火山和野火的情况
 

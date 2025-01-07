@@ -1,26 +1,26 @@
 # 如何通过两个小习惯提高我的数据科学家工作效率
 
-> 原文：[https://towardsdatascience.com/how-i-improved-my-productivity-as-a-data-scientist-with-two-small-habits-de09854d553c?source=collection_archive---------0-----------------------#2024-10-31](https://towardsdatascience.com/how-i-improved-my-productivity-as-a-data-scientist-with-two-small-habits-de09854d553c?source=collection_archive---------0-----------------------#2024-10-31)
+> 原文：[`towardsdatascience.com/how-i-improved-my-productivity-as-a-data-scientist-with-two-small-habits-de09854d553c?source=collection_archive---------0-----------------------#2024-10-31`](https://towardsdatascience.com/how-i-improved-my-productivity-as-a-data-scientist-with-two-small-habits-de09854d553c?source=collection_archive---------0-----------------------#2024-10-31)
 
 ## 如何将这些习惯融入到日常生活中
 
-[](https://ostiguyphilippe.medium.com/?source=post_page---byline--de09854d553c--------------------------------)[![Philippe Ostiguy, M. Sc.](../Images/8b292bc1baa848a0c5de821dc9576534.png)](https://ostiguyphilippe.medium.com/?source=post_page---byline--de09854d553c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--de09854d553c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--de09854d553c--------------------------------) [Philippe Ostiguy, M. Sc.](https://ostiguyphilippe.medium.com/?source=post_page---byline--de09854d553c--------------------------------)
+[](https://ostiguyphilippe.medium.com/?source=post_page---byline--de09854d553c--------------------------------)![Philippe Ostiguy, M. Sc.](https://ostiguyphilippe.medium.com/?source=post_page---byline--de09854d553c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--de09854d553c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--de09854d553c--------------------------------) [Philippe Ostiguy, M. Sc.](https://ostiguyphilippe.medium.com/?source=post_page---byline--de09854d553c--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--de09854d553c--------------------------------) ·阅读时间：7分钟·2024年10月31日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--de09854d553c--------------------------------) ·阅读时间：7 分钟·2024 年 10 月 31 日
 
 --
 
-![](../Images/6d0d9c260a34505b3daeceac52373a02.png)
+![](img/6d0d9c260a34505b3daeceac52373a02.png)
 
 图片来源：[Surface](https://unsplash.com/@surface?utm_source=medium&utm_medium=referral) 由 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral) 提供。
 
-公司希望IT专家和数据科学家能迅速完成工作，无论是部署机器学习模型、修复重大漏洞，还是创建可扩展的数据管道。现在有了GenAI？那就更难了：要求更高了。
+公司希望 IT 专家和数据科学家能迅速完成工作，无论是部署机器学习模型、修复重大漏洞，还是创建可扩展的数据管道。现在有了 GenAI？那就更难了：要求更高了。
 
-但是事情是这样的。平均办公室员工每天真正工作的时间只有[不到4小时](https://www.inc.com/betsy-mikel/youre-really-only-productive-for-this-many-hours-in-an-8-hour-workday-study-finds.html)。没错，你没看错。我们每天坐在桌前八小时或更长时间，但很多时间都是在做与工作无关的事情，比如刷社交媒体或与同事聊天。即使我们试图专注，面对各种持续不断的干扰，也并不总是容易做到。
+但是事情是这样的。平均办公室员工每天真正工作的时间只有[不到 4 小时](https://www.inc.com/betsy-mikel/youre-really-only-productive-for-this-many-hours-in-an-8-hour-workday-study-finds.html)。没错，你没看错。我们每天坐在桌前八小时或更长时间，但很多时间都是在做与工作无关的事情，比如刷社交媒体或与同事聊天。即使我们试图专注，面对各种持续不断的干扰，也并不总是容易做到。
 
 你可能会有共鸣。你已经[将自己的热情与技能对齐](https://medium.com/towards-data-science/the-one-mindset-change-that-launched-me-into-data-science-3f72bd1df46f)。虽然这提高了你的工作效率，但并没有解决所有问题。然后你探索了各种技巧——从番茄工作法到小憩。尽管你付出了最大的努力，你仍然发现自己在拖延，或者对自己的工作效率不满意。
 
-我发现自己也处于类似的境地。我总是因为难以长时间集中注意力而感到烦恼。然后，我养成了两个简单的习惯，它们让我提高了50%以上的工作效率。这些习惯不仅容易实行，而且对数据科学家或任何长时间坐在电脑前的人来说都非常有效。
+我发现自己也处于类似的境地。我总是因为难以长时间集中注意力而感到烦恼。然后，我养成了两个简单的习惯，它们让我提高了 50%以上的工作效率。这些习惯不仅容易实行，而且对数据科学家或任何长时间坐在电脑前的人来说都非常有效。
 
 # 寻找能够断开连接并充电的活动
 
@@ -28,11 +28,11 @@
 > 
 > — 弗里德里希·尼采
 
-阿尔伯特·爱因斯坦被公认为是最著名的科学家之一。在1905年，26岁的他度过了他那令人称奇的[*奇迹年*](https://en.wikipedia.org/wiki/Annus_mirabilis_papers)(miraculous year)*.* 仅仅一年，他就发表了四篇具有开创性的论文，对现代物理学产生了深远的影响。在他的第四篇论文中，他提出了质量与能量等价的概念，这一公式通常被称为*E = mc²*。
+阿尔伯特·爱因斯坦被公认为是最著名的科学家之一。在 1905 年，26 岁的他度过了他那令人称奇的[*奇迹年*](https://en.wikipedia.org/wiki/Annus_mirabilis_papers)(miraculous year)*.* 仅仅一年，他就发表了四篇具有开创性的论文，对现代物理学产生了深远的影响。在他的第四篇论文中，他提出了质量与能量等价的概念，这一公式通常被称为*E = mc²*。
 
-他因其在理论物理学方面的重要贡献，尤其是发现光电效应定律，于1921年获得诺贝尔物理学奖。他的工作改变了科学家的思维方式，并使20世纪及以后的科技进步成为可能。
+他因其在理论物理学方面的重要贡献，尤其是发现光电效应定律，于 1921 年获得诺贝尔物理学奖。他的工作改变了科学家的思维方式，并使 20 世纪及以后的科技进步成为可能。
 
-爱因斯坦的生活并非全是工作。在1929年与《星期六晚邮报》的[采访](https://en.wikipedia.org/wiki/Imagination#cite_note-58)中，他曾著名地说过：“[想象力比知识更重要。知识是有限的，想象力包围着整个世界。](https://en.wikipedia.org/wiki/Imagination#cite_note-58)”他相信直觉和灵感。换句话说，他鼓励人们超越我们已知的边界，保持对未知的开放态度。
+爱因斯坦的生活并非全是工作。在 1929 年与《星期六晚邮报》的[采访](https://en.wikipedia.org/wiki/Imagination#cite_note-58)中，他曾著名地说过：“[想象力比知识更重要。知识是有限的，想象力包围着整个世界。](https://en.wikipedia.org/wiki/Imagination#cite_note-58)”他相信直觉和灵感。换句话说，他鼓励人们超越我们已知的边界，保持对未知的开放态度。
 
 他会从智力工作中休息，让自己的思维游走，滋养自己的想象力。他喜欢长时间散步、航行和拉小提琴。这些活动给了他放松和解放思维的机会。正是在这些时刻，他才常常找到最好的创意和灵感。
 
@@ -44,7 +44,7 @@
 
 从艺术到弹奏竖琴，[列奥纳多·达·芬奇](https://archive.org/details/noteboo00leon/page/n7/mode/2up)有着多种爱好和兴趣。这些兴趣使他能够从不同角度解决问题。他对鸟类及其飞行能力的痴迷促使他深入研究飞行的力学原理，最终画出了鸟型飞行器的草图，这是一种飞行装置。
 
-![](../Images/84e54bcd172bc6945b5c7d5860b71070.png)
+![](img/84e54bcd172bc6945b5c7d5860b71070.png)
 
 图片来自[克里斯蒂娜·戈塔尔迪](https://unsplash.com/@cristina_gottardi?utm_source=medium&utm_medium=referral)，发布于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)。
 
@@ -52,7 +52,7 @@
 
 在做我们喜欢的活动后，我们更放松，感觉充满能量。我们的工作效率也会更高，带来的新视角是我们长时间只工作时无法获得的。
 
-你不需要马上开始每天2小时的爱好。即使只有30分钟、20分钟，甚至10分钟，也是一个很好的开始。对我来说，每天至少花30分钟做一件能让我从工作中脱离的事情是理想的。重要的是你从某个地方开始。
+你不需要马上开始每天 2 小时的爱好。即使只有 30 分钟、20 分钟，甚至 10 分钟，也是一个很好的开始。对我来说，每天至少花 30 分钟做一件能让我从工作中脱离的事情是理想的。重要的是你从某个地方开始。
 
 数据科学家的工作具有挑战性。分析大型数据集和构建复杂模型需要长时间专注地面对计算机。因此，理想情况下你需要一些能让你远离计算机屏幕的活动。
 
@@ -70,11 +70,11 @@
 > 
 > ——老子
 
-詹森·黄（Jensen Huang）于1993年共同创立了NVIDIA，旨在创造突破性的图形处理技术。在人工智能的未来和潜力尚不明朗的时刻，NVIDIA在他的领导下大胆押注深度学习。
+詹森·黄（Jensen Huang）于 1993 年共同创立了 NVIDIA，旨在创造突破性的图形处理技术。在人工智能的未来和潜力尚不明朗的时刻，NVIDIA 在他的领导下大胆押注深度学习。
 
-这项赌注最终是成功的。从训练AI模型到推动自动驾驶汽车和基于云的AI服务，NVIDIA的GPU已成为行业标准。这些决策推动NVIDIA成为全球市值最大的公司之一。
+这项赌注最终是成功的。从训练 AI 模型到推动自动驾驶汽车和基于云的 AI 服务，NVIDIA 的 GPU 已成为行业标准。这些决策推动 NVIDIA 成为全球市值最大的公司之一。
 
-在[2024年SIEPR经济峰会](https://www.youtube.com/watch?v=cEg8cOx7UZk)上，黄先生被问到：“你会给斯坦福大学的学生什么建议，以提高他们成功的机会？”他没有给出常见的“追随梦想”回答，而是强调了韧性的必要性。伟大来自于面对挑战。他甚至幽默地祝愿学生们“充足的痛苦和苦难”来塑造他们的性格。
+在[2024 年 SIEPR 经济峰会](https://www.youtube.com/watch?v=cEg8cOx7UZk)上，黄先生被问到：“你会给斯坦福大学的学生什么建议，以提高他们成功的机会？”他没有给出常见的“追随梦想”回答，而是强调了韧性的必要性。伟大来自于面对挑战。他甚至幽默地祝愿学生们“充足的痛苦和苦难”来塑造他们的性格。
 
 黄先生的核心观点是什么？成功不仅仅在于聪明。真正能带来不同的是从挫折中恢复的能力。这种对韧性的强调突出了心理韧性在成功中的重要性。
 

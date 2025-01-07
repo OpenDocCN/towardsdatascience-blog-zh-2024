@@ -1,18 +1,18 @@
 # 使用 Taipy 在纯 Python 中创建数据仪表盘
 
-> 原文：[https://towardsdatascience.com/a-data-dashboard-in-pure-python-with-taipy-bdb164a62b8b?source=collection_archive---------2-----------------------#2024-06-25](https://towardsdatascience.com/a-data-dashboard-in-pure-python-with-taipy-bdb164a62b8b?source=collection_archive---------2-----------------------#2024-06-25)
+> 原文：[`towardsdatascience.com/a-data-dashboard-in-pure-python-with-taipy-bdb164a62b8b?source=collection_archive---------2-----------------------#2024-06-25`](https://towardsdatascience.com/a-data-dashboard-in-pure-python-with-taipy-bdb164a62b8b?source=collection_archive---------2-----------------------#2024-06-25)
 
 ## 数据可视化
 
 ## Taipy 是一个创新框架，旨在简化交互式和视觉吸引力强的数据科学应用程序的创建。
 
-[](https://medium.com/@alan-jones?source=post_page---byline--bdb164a62b8b--------------------------------)[![Alan Jones](../Images/359379fab1d6685ff08080b98173e67c.png)](https://medium.com/@alan-jones?source=post_page---byline--bdb164a62b8b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdb164a62b8b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bdb164a62b8b--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--bdb164a62b8b--------------------------------)
+[](https://medium.com/@alan-jones?source=post_page---byline--bdb164a62b8b--------------------------------)![Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--bdb164a62b8b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdb164a62b8b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdb164a62b8b--------------------------------) [Alan Jones](https://medium.com/@alan-jones?source=post_page---byline--bdb164a62b8b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdb164a62b8b--------------------------------) ·13 分钟阅读·2024年6月25日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdb164a62b8b--------------------------------) ·13 分钟阅读·2024 年 6 月 25 日
 
 --
 
-![](../Images/44424dcd6eaa742a3af20de0604ea6b1.png)
+![](img/44424dcd6eaa742a3af20de0604ea6b1.png)
 
 我笔记本上的 Taipy 仪表盘
 
@@ -22,7 +22,7 @@ Taipy 框架面向数据科学和数据可视化社区，因此与 Streamlit 处
 
 最终的应用程序将呈现如下截图所示的样式。
 
-![](../Images/28814632153cae48567cfaaba0a9f9c2.png)
+![](img/28814632153cae48567cfaaba0a9f9c2.png)
 
 仪表盘截图
 

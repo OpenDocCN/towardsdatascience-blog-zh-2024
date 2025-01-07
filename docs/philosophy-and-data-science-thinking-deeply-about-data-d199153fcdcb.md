@@ -1,18 +1,18 @@
 # 哲学与数据科学 — 深入思考数据
 
-> 原文：[https://towardsdatascience.com/philosophy-and-data-science-thinking-deeply-about-data-d199153fcdcb?source=collection_archive---------13-----------------------#2024-01-04](https://towardsdatascience.com/philosophy-and-data-science-thinking-deeply-about-data-d199153fcdcb?source=collection_archive---------13-----------------------#2024-01-04)
+> 原文：[`towardsdatascience.com/philosophy-and-data-science-thinking-deeply-about-data-d199153fcdcb?source=collection_archive---------13-----------------------#2024-01-04`](https://towardsdatascience.com/philosophy-and-data-science-thinking-deeply-about-data-d199153fcdcb?source=collection_archive---------13-----------------------#2024-01-04)
 
 ## 第三部分：因果关系
 
-[](https://medium.com/@jarom.hulet?source=post_page---byline--d199153fcdcb--------------------------------)[![Jarom Hulet](../Images/0fdeb1a2df90cccdd8f2f4b84d5e54eb.png)](https://medium.com/@jarom.hulet?source=post_page---byline--d199153fcdcb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d199153fcdcb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d199153fcdcb--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--d199153fcdcb--------------------------------)
+[](https://medium.com/@jarom.hulet?source=post_page---byline--d199153fcdcb--------------------------------)![Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--d199153fcdcb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d199153fcdcb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d199153fcdcb--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--d199153fcdcb--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d199153fcdcb--------------------------------) ·阅读时间12分钟·2024年1月4日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d199153fcdcb--------------------------------) ·阅读时间 12 分钟·2024 年 1 月 4 日
 
 --
 
-![](../Images/6a3fc17c8cadb9d39caf7279aa8086d5.png)
+![](img/6a3fc17c8cadb9d39caf7279aa8086d5.png)
 
-图片来源：Cottonbro Studios，来自Pexels.com
+图片来源：Cottonbro Studios，来自 Pexels.com
 
 我的希望是，通过本文的阅读，你能够很好地理解哲学思维中关于因果关系的观点是如何应用于你作为数据科学家的工作的。理想情况下，你将拥有更深的哲学视角，为你的工作提供更好的背景和上下文！
 
@@ -26,7 +26,7 @@
 
 ### 第二部分：认识论
 
-[towardsdatascience.com](/philosophy-and-data-science-thinking-deeply-about-data-222cc9fbdcc5?source=post_page-----d199153fcdcb--------------------------------)
+towardsdatascience.com
 
 **简介**
 

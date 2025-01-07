@@ -1,20 +1,20 @@
 # 自助式机器学习与关系型深度学习
 
-> 原文：[https://towardsdatascience.com/self-service-ml-with-relational-deep-learning-beb693a21d5b?source=collection_archive---------9-----------------------#2024-10-22](https://towardsdatascience.com/self-service-ml-with-relational-deep-learning-beb693a21d5b?source=collection_archive---------9-----------------------#2024-10-22)
+> 原文：[`towardsdatascience.com/self-service-ml-with-relational-deep-learning-beb693a21d5b?source=collection_archive---------9-----------------------#2024-10-22`](https://towardsdatascience.com/self-service-ml-with-relational-deep-learning-beb693a21d5b?source=collection_archive---------9-----------------------#2024-10-22)
 
 ## 直接在关系型数据库上进行机器学习
 
-[](https://medium.com/@brechterlaurin?source=post_page---byline--beb693a21d5b--------------------------------)[![Laurin Brechter](../Images/5a68b96bddf86846a2bef9d482ef9dd3.png)](https://medium.com/@brechterlaurin?source=post_page---byline--beb693a21d5b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--beb693a21d5b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--beb693a21d5b--------------------------------) [Laurin Brechter](https://medium.com/@brechterlaurin?source=post_page---byline--beb693a21d5b--------------------------------)
+[](https://medium.com/@brechterlaurin?source=post_page---byline--beb693a21d5b--------------------------------)![Laurin Brechter](https://medium.com/@brechterlaurin?source=post_page---byline--beb693a21d5b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--beb693a21d5b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--beb693a21d5b--------------------------------) [Laurin Brechter](https://medium.com/@brechterlaurin?source=post_page---byline--beb693a21d5b--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--beb693a21d5b--------------------------------) ·阅读时间7分钟·2024年10月22日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--beb693a21d5b--------------------------------) ·阅读时间 7 分钟·2024 年 10 月 22 日
 
 --
 
-![](../Images/fd3ee51120626ff5eccf5c3fc113c1db.png)
+![](img/fd3ee51120626ff5eccf5c3fc113c1db.png)
 
 我们数据集的关系模式，[来源](https://www.kaggle.com/datasets/mmohaiminulislam/ecommerce-data-analysis/data)；图像由作者提供
 
-在这篇博客中，我们将深入探讨一种有趣的新型深度学习（DL）方法——关系型深度学习（RDL）。我们还将通过在一个实际的电子商务公司数据库（而不是数据集！）上进行RDL，来获得一些实践经验。
+在这篇博客中，我们将深入探讨一种有趣的新型深度学习（DL）方法——关系型深度学习（RDL）。我们还将通过在一个实际的电子商务公司数据库（而不是数据集！）上进行 RDL，来获得一些实践经验。
 
 # 简介
 
@@ -26,9 +26,9 @@
 
 关系型深度学习（RDL）承诺为表格学习带来相同的效果。也就是说，它通过直接在关系型数据库上进行学习，去除了构建特征矩阵的额外步骤。它通过将数据库及其关系转化为图形来实现这一点，其中表格中的每一行成为一个节点，表格之间的关系成为边缘。行的值存储在节点内部，作为节点特征。
 
-*在这篇博客文章中，我们将使用来自Kaggle的这个* [*电子商务数据集*](https://www.kaggle.com/datasets/mmohaiminulislam/ecommerce-data-analysis/data) *，它包含了一个电子商务平台的交易数据，采用星型模式，中央事实表（交易）和一些维度表。完整的代码可以在这个* [*笔记本*](https://github.com/LaurinBrechter/GraphTheory/blob/main/rdl/rdl_ecommerce.ipynb)*中找到。*
+*在这篇博客文章中，我们将使用来自 Kaggle 的这个* [*电子商务数据集*](https://www.kaggle.com/datasets/mmohaiminulislam/ecommerce-data-analysis/data) *，它包含了一个电子商务平台的交易数据，采用星型模式，中央事实表（交易）和一些维度表。完整的代码可以在这个* [*笔记本*](https://github.com/LaurinBrechter/GraphTheory/blob/main/rdl/rdl_ecommerce.ipynb)*中找到。*
 
-在整篇博客文章中，我们将使用 [relbench](https://github.com/snap-stanford/relbench) 库来执行 [RDL](https://relbench.stanford.edu/)。在relbench中，我们必须做的第一件事是指定我们关系数据库的模式。下面是我们如何为数据库中的“transactions”表指定模式的一个示例。我们将表格作为pandas数据框传递，并指定主键和时间戳列。主键列用于唯一标识实体。时间戳确保当我们想要预测未来的交易时，我们只能从过去的交易中学习。在图中，这意味着信息只能从时间戳较低（即过去）的节点流向时间戳较高的节点。此外，我们还指定了关系中存在的外键。在本例中，“transactions”表有一列“customer_key”，它是一个指向“customer_dim”表的外键。
+在整篇博客文章中，我们将使用 [relbench](https://github.com/snap-stanford/relbench) 库来执行 [RDL](https://relbench.stanford.edu/)。在 relbench 中，我们必须做的第一件事是指定我们关系数据库的模式。下面是我们如何为数据库中的“transactions”表指定模式的一个示例。我们将表格作为 pandas 数据框传递，并指定主键和时间戳列。主键列用于唯一标识实体。时间戳确保当我们想要预测未来的交易时，我们只能从过去的交易中学习。在图中，这意味着信息只能从时间戳较低（即过去）的节点流向时间戳较高的节点。此外，我们还指定了关系中存在的外键。在本例中，“transactions”表有一列“customer_key”，它是一个指向“customer_dim”表的外键。
 
 ```py
 tables['transactions'] = Table(
@@ -43,7 +43,7 @@ tables['transactions'] = Table(
         )
 ```
 
-其余的表格需要以相同的方式进行定义。请注意，如果你已经有了数据库模式，这个过程也可以自动化。由于数据集来自Kaggle，我需要手动创建模式。我们还需要将日期列转换为实际的pandas日期时间对象，并去除任何NaN值。
+其余的表格需要以相同的方式进行定义。请注意，如果你已经有了数据库模式，这个过程也可以自动化。由于数据集来自 Kaggle，我需要手动创建模式。我们还需要将日期列转换为实际的 pandas 日期时间对象，并去除任何 NaN 值。
 
 ```py
 class EcommerceDataBase(Dataset):
@@ -111,7 +111,7 @@ class EcommerceDataBase(Dataset):
 
 至关重要的是，作者引入了训练表的概念。这个训练表本质上定义了机器学习任务。这里的思路是，我们希望预测数据库中某个实体的未来状态（即未来的值）。我们通过指定一个表来实现这一点，该表中的每一行都有一个时间戳、实体的标识符和我们希望预测的某些值。id 用于指定实体，时间戳则指定我们需要预测该实体的时间点。这也将限制可用于推断该实体值的数据（即仅限过去的数据）。值本身就是我们想要预测的内容（即真实值）。
 
-在我们的案例中，我们有一个在线平台和顾客。我们想要预测顾客在接下来的30天内的收入。我们可以通过执行DuckDB的SQL语句来创建训练表。这就是RDL的巨大优势，因为我们可以仅通过SQL创建任何类型的机器学习任务。例如，我们可以定义一个查询来选择买家在接下来的30天内的购买次数，从而做出客户流失预测。
+在我们的案例中，我们有一个在线平台和顾客。我们想要预测顾客在接下来的 30 天内的收入。我们可以通过执行 DuckDB 的 SQL 语句来创建训练表。这就是 RDL 的巨大优势，因为我们可以仅通过 SQL 创建任何类型的机器学习任务。例如，我们可以定义一个查询来选择买家在接下来的 30 天内的购买次数，从而做出客户流失预测。
 
 ```py
 df = duckdb.sql(f"""
@@ -130,9 +130,9 @@ df = duckdb.sql(f"""
         """).df().dropna()
 ```
 
-结果将是一个表格，其中卖家ID作为我们要预测的实体的键，收入作为目标，时间戳作为我们需要进行预测的时间（即我们只能使用直到这个时间点的数据来进行预测）。
+结果将是一个表格，其中卖家 ID 作为我们要预测的实体的键，收入作为目标，时间戳作为我们需要进行预测的时间（即我们只能使用直到这个时间点的数据来进行预测）。
 
-![](../Images/249add07383580218f2c4e9e3b3cf33d.png)
+![](img/249add07383580218f2c4e9e3b3cf33d.png)
 
 训练表格；图片来源：作者
 
@@ -182,9 +182,9 @@ class CustomerRevenueTask(EntityTask):
         )
 ```
 
-有了这些，我们已经完成了大部分工作。剩下的工作流程将是类似的，独立于ML任务。我能够从[示例笔记本](https://github.com/snap-stanford/relbench/blob/main/tutorials/train_model.ipynb)中复制大部分代码，这些代码是relbench提供的。
+有了这些，我们已经完成了大部分工作。剩下的工作流程将是类似的，独立于 ML 任务。我能够从[示例笔记本](https://github.com/snap-stanford/relbench/blob/main/tutorials/train_model.ipynb)中复制大部分代码，这些代码是 relbench 提供的。
 
-例如，我们需要对节点特征进行编码。在这里，我们可以使用GloVe嵌入来编码所有文本特征，如产品描述和产品名称。
+例如，我们需要对节点特征进行编码。在这里，我们可以使用 GloVe 嵌入来编码所有文本特征，如产品描述和产品名称。
 
 ```py
 from typing import List, Optional
@@ -223,24 +223,24 @@ data, col_stats_dict = make_pkey_fkey_graph(
 )
 ```
 
-剩下的代码将是从标准层构建GNN、编写训练循环以及进行一些评估。我会将这些代码省略在这篇博客中，因为它非常标准且在任务之间相同。你可以在[这里](https://github.com/LaurinBrechter/GraphTheory/tree/main/rdl)查看该笔记本。
+剩下的代码将是从标准层构建 GNN、编写训练循环以及进行一些评估。我会将这些代码省略在这篇博客中，因为它非常标准且在任务之间相同。你可以在[这里](https://github.com/LaurinBrechter/GraphTheory/tree/main/rdl)查看该笔记本。
 
-![](../Images/885dfaed5f9ea9705ffb86ecb8d1fca9.png)
+![](img/885dfaed5f9ea9705ffb86ecb8d1fca9.png)
 
 训练结果，图片来源：作者
 
-因此，我们可以训练这个GNN，使其达到大约0.3的r2和500的MAE。这意味着它预测卖家未来30天的收入时，平均误差为+-$500。当然，我们无法知道这是否算好，可能通过结合经典ML和特征工程，我们能够获得80%的r2。
+因此，我们可以训练这个 GNN，使其达到大约 0.3 的 r2 和 500 的 MAE。这意味着它预测卖家未来 30 天的收入时，平均误差为+-$500。当然，我们无法知道这是否算好，可能通过结合经典 ML 和特征工程，我们能够获得 80%的 r2。
 
 # 结论
 
-关系深度学习是一种有趣的新型ML方法，特别是在我们拥有复杂的关系模式时，人工特征工程会显得过于繁琐。它使我们能够仅通过SQL定义ML任务，这对于那些没有深入数据科学背景但懂一些SQL的人尤其有用。这也意味着我们可以快速迭代并进行大量不同任务的实验。
+关系深度学习是一种有趣的新型 ML 方法，特别是在我们拥有复杂的关系模式时，人工特征工程会显得过于繁琐。它使我们能够仅通过 SQL 定义 ML 任务，这对于那些没有深入数据科学背景但懂一些 SQL 的人尤其有用。这也意味着我们可以快速迭代并进行大量不同任务的实验。
 
-与此同时，这种方法也存在一些问题，例如训练GNN的难度和从关系模式构建图的复杂性。此外，问题在于RDL在性能上能否与经典的ML模型竞争。过去，我们已经看到像XGBoost这样的模型在表格预测问题上比神经网络更优。
+与此同时，这种方法也存在一些问题，例如训练 GNN 的难度和从关系模式构建图的复杂性。此外，问题在于 RDL 在性能上能否与经典的 ML 模型竞争。过去，我们已经看到像 XGBoost 这样的模型在表格预测问题上比神经网络更优。
 
 # 参考文献
 
-+   [1] Robinson, Joshua, 等. “RelBench: A Benchmark for Deep Learning on Relational Databases.” *arXiv*, 2024, [https://arxiv.org/abs/2407.20060](https://arxiv.org/abs/2407.20060)。
++   [1] Robinson, Joshua, 等. “RelBench: A Benchmark for Deep Learning on Relational Databases.” *arXiv*, 2024, [`arxiv.org/abs/2407.20060`](https://arxiv.org/abs/2407.20060)。
 
-+   [2] Fey, Matthias, 等. “Relational deep learning: Graph representation learning on relational databases.” *arXiv预印本 arXiv:2312.04615* (2023)。
++   [2] Fey, Matthias, 等. “Relational deep learning: Graph representation learning on relational databases.” *arXiv 预印本 arXiv:2312.04615* (2023)。
 
-+   [3] Schlichtkrull, Michael, 等. “使用图卷积网络对关系数据建模。” *语义网：第十五届国际会议，ESWC 2018，希腊克里特岛赫拉克利翁，2018年6月3日至7日，会议录 15*. 施普林格国际出版社，2018年。
++   [3] Schlichtkrull, Michael, 等. “使用图卷积网络对关系数据建模。” *语义网：第十五届国际会议，ESWC 2018，希腊克里特岛赫拉克利翁，2018 年 6 月 3 日至 7 日，会议录 15*. 施普林格国际出版社，2018 年。

@@ -1,18 +1,18 @@
 # 自动化提示工程
 
-> 原文：[https://towardsdatascience.com/automated-prompt-engineering-78678c6371b9?source=collection_archive---------0-----------------------#2024-03-10](https://towardsdatascience.com/automated-prompt-engineering-78678c6371b9?source=collection_archive---------0-----------------------#2024-03-10)
+> 原文：[`towardsdatascience.com/automated-prompt-engineering-78678c6371b9?source=collection_archive---------0-----------------------#2024-03-10`](https://towardsdatascience.com/automated-prompt-engineering-78678c6371b9?source=collection_archive---------0-----------------------#2024-03-10)
 
 ## 一些反思、文献综述以及关于大型语言模型自动化提示工程的实验
 
-[](https://ianhojy.medium.com/?source=post_page---byline--78678c6371b9--------------------------------)[![Ian Ho](../Images/1b56c25ee3bedfb5c7369d4bfc93aa91.png)](https://ianhojy.medium.com/?source=post_page---byline--78678c6371b9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--78678c6371b9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--78678c6371b9--------------------------------) [Ian Ho](https://ianhojy.medium.com/?source=post_page---byline--78678c6371b9--------------------------------)
+[](https://ianhojy.medium.com/?source=post_page---byline--78678c6371b9--------------------------------)![Ian Ho](https://ianhojy.medium.com/?source=post_page---byline--78678c6371b9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--78678c6371b9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--78678c6371b9--------------------------------) [Ian Ho](https://ianhojy.medium.com/?source=post_page---byline--78678c6371b9--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--78678c6371b9--------------------------------) ·13分钟阅读·2024年3月10日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--78678c6371b9--------------------------------) ·13 分钟阅读·2024 年 3 月 10 日
 
 --
 
-![](../Images/96397b85e75ec0cd1eb75dd91e92a951.png)
+![](img/96397b85e75ec0cd1eb75dd91e92a951.png)
 
-图片由作者在DALL-E的帮助下生成
+图片由作者在 DALL-E 的帮助下生成
 
 在过去几个月里，我一直在尝试构建各种基于大型语言模型的应用，事实上，花费了大量时间专门用于改进提示词，以便从大型语言模型中获得我想要的输出。
 

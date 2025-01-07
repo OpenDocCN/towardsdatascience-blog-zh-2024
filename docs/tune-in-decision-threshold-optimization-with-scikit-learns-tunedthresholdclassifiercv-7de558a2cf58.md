@@ -1,12 +1,12 @@
 # 调整：使用 scikit-learn 的 TunedThresholdClassifierCV 进行决策阈值优化
 
-> 原文：[https://towardsdatascience.com/tune-in-decision-threshold-optimization-with-scikit-learns-tunedthresholdclassifiercv-7de558a2cf58?source=collection_archive---------0-----------------------#2024-05-27](https://towardsdatascience.com/tune-in-decision-threshold-optimization-with-scikit-learns-tunedthresholdclassifiercv-7de558a2cf58?source=collection_archive---------0-----------------------#2024-05-27)
+> 原文：[`towardsdatascience.com/tune-in-decision-threshold-optimization-with-scikit-learns-tunedthresholdclassifiercv-7de558a2cf58?source=collection_archive---------0-----------------------#2024-05-27`](https://towardsdatascience.com/tune-in-decision-threshold-optimization-with-scikit-learns-tunedthresholdclassifiercv-7de558a2cf58?source=collection_archive---------0-----------------------#2024-05-27)
 
 ## 使用案例和代码来探索新类，帮助调整 scikit-learn 中的决策阈值
 
-[](https://medium.com/@arvkevi?source=post_page---byline--7de558a2cf58--------------------------------)[![Kevin Arvai](../Images/8ffd1f1983e911183009c9040f3dbf87.png)](https://medium.com/@arvkevi?source=post_page---byline--7de558a2cf58--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7de558a2cf58--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7de558a2cf58--------------------------------) [Kevin Arvai](https://medium.com/@arvkevi?source=post_page---byline--7de558a2cf58--------------------------------)
+[](https://medium.com/@arvkevi?source=post_page---byline--7de558a2cf58--------------------------------)![Kevin Arvai](https://medium.com/@arvkevi?source=post_page---byline--7de558a2cf58--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7de558a2cf58--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7de558a2cf58--------------------------------) [Kevin Arvai](https://medium.com/@arvkevi?source=post_page---byline--7de558a2cf58--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7de558a2cf58--------------------------------) ·阅读时间 10 分钟·2024年5月27日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7de558a2cf58--------------------------------) ·阅读时间 10 分钟·2024 年 5 月 27 日
 
 --
 
@@ -20,7 +20,7 @@ scikit-learn 1.5 版本引入了一个新类，[TunedThresholdClassifierCV](http
 
 1.  **成本敏感学习**：当误分类的假阳性成本与误分类的假阴性成本不相等，并且你有成本估计时，调整阈值。
 
-1.  **在约束下调优**：在ROC或精确度-召回曲线中优化操作点，以满足特定的性能约束。
+1.  **在约束下调优**：在 ROC 或精确度-召回曲线中优化操作点，以满足特定的性能约束。
 
 本文中使用的代码及数据集链接可以在[GitHub](https://github.com/arvkevi/tunein-blog)上找到。
 
@@ -53,9 +53,9 @@ RANDOM_STATE = 26120
 
 在任何机器学习项目中开始构建模型之前，与利益相关者一起确定需要优化的指标非常重要。提前做出这个决策能确保项目与其预期目标一致。
 
-在欺诈检测应用中使用准确率作为评估模型性能的指标并不理想，因为数据通常是不平衡的，大多数交易是非欺诈性的。F1得分是精确度和召回率的调和平均值，对于像欺诈检测这样的不平衡数据集来说，是一个更好的指标。让我们使用`TunedThresholdClassifierCV`类来优化逻辑回归模型的决策阈值，以最大化F1得分。
+在欺诈检测应用中使用准确率作为评估模型性能的指标并不理想，因为数据通常是不平衡的，大多数交易是非欺诈性的。F1 得分是精确度和召回率的调和平均值，对于像欺诈检测这样的不平衡数据集来说，是一个更好的指标。让我们使用`TunedThresholdClassifierCV`类来优化逻辑回归模型的决策阈值，以最大化 F1 得分。
 
-我们将使用[Kaggle信用卡欺诈检测数据集](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)来介绍我们需要调优决策阈值的第一个场景。首先，将数据划分为训练集和测试集，然后创建一个scikit-learn管道来缩放数据并训练一个逻辑回归模型。将管道拟合在训练数据上，以便我们可以将原始模型的表现与调优后的模型表现进行比较。
+我们将使用[Kaggle 信用卡欺诈检测数据集](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)来介绍我们需要调优决策阈值的第一个场景。首先，将数据划分为训练集和测试集，然后创建一个 scikit-learn 管道来缩放数据并训练一个逻辑回归模型。将管道拟合在训练数据上，以便我们可以将原始模型的表现与调优后的模型表现进行比较。
 
 ```py
 creditcard = pd.read_csv("data/creditcard.csv")
@@ -78,7 +78,7 @@ original_fraud_model = make_pipeline(
 original_fraud_model.fit(X_train, y_train)
 ```
 
-目前尚未进行调优，但将在下一个代码块中进行。`TunedThresholdClassifierCV`的参数与scikit-learn中的其他`CV`类类似，例如[GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html)。至少，用户只需传递原始估计器，`TunedThresholdClassifierCV`将使用5折分层K折交叉验证（默认）存储最大化平衡准确率的决策阈值（默认）。在调用`.predict()`时，它也会使用此阈值。然而，任何scikit-learn度量（或可调用对象）都可以作为`scoring`度量。此外，用户可以传递熟悉的`cv`参数来自定义交叉验证策略。
+目前尚未进行调优，但将在下一个代码块中进行。`TunedThresholdClassifierCV`的参数与 scikit-learn 中的其他`CV`类类似，例如[GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html)。至少，用户只需传递原始估计器，`TunedThresholdClassifierCV`将使用 5 折分层 K 折交叉验证（默认）存储最大化平衡准确率的决策阈值（默认）。在调用`.predict()`时，它也会使用此阈值。然而，任何 scikit-learn 度量（或可调用对象）都可以作为`scoring`度量。此外，用户可以传递熟悉的`cv`参数来自定义交叉验证策略。
 
 创建`TunedThresholdClassifierCV`实例并在训练数据上拟合模型。传递原始模型，并将评分设置为“f1”。我们还需要设置`store_cv_results=True`，以便在交叉验证期间访问评估的阈值，以便可视化。
 
@@ -110,7 +110,7 @@ F1 on the test set (original model): 0.733
 Threshold:  0.071
 ```
 
-现在我们已经找到了最大化F1得分的阈值，可以检查`tuned_fraud_model.best_score_`以了解交叉验证中折叠的最佳平均F1得分。我们还可以使用`tuned_fraud_model.best_threshold_`查看生成这些结果的阈值。您可以使用`objective_scores_`和`decision_thresholds_`属性可视化交叉验证过程中不同决策阈值下的度量得分：
+现在我们已经找到了最大化 F1 得分的阈值，可以检查`tuned_fraud_model.best_score_`以了解交叉验证中折叠的最佳平均 F1 得分。我们还可以使用`tuned_fraud_model.best_threshold_`查看生成这些结果的阈值。您可以使用`objective_scores_`和`decision_thresholds_`属性可视化交叉验证过程中不同决策阈值下的度量得分：
 
 ```py
 fig, ax = plt.subplots(figsize=(5, 5))
@@ -145,7 +145,7 @@ ax.set_ylabel("F1 score", fontsize=10)
 ax.set_title("F1 score vs. Decision threshold -- Cross-validation", fontsize=12)
 ```
 
-![](../Images/967d617803ff0bc789b203705c3f0314.png)
+![](img/967d617803ff0bc789b203705c3f0314.png)
 
 图片由作者创建。
 
@@ -161,7 +161,7 @@ assert (tuned_fraud_model.estimator_[-1].coef_ ==
 
 成本敏感学习是一种机器学习方法，它为每种类型的错误分类分配成本。这将模型性能转化为利益相关者能够理解的单位，比如节省的美元。
 
-我们将使用[TELCO客户流失数据集](https://accelerator.ca.analytics.ibm.com/bi/?perspective=authoring&pathRef=.public_folders%2FIBM%2BAccelerator%2BCatalog%2FContent%2FDAT00148&id=i9710CF25EF75468D95FFFC7D57D45204&objRef=i9710CF25EF75468D95FFFC7D57D45204&action=run&format=HTML&cmPropStr=%7B%22id%22%3A%22i9710CF25EF75468D95FFFC7D57D45204%22%2C%22type%22%3A%22reportView%22%2C%22defaultName%22%3A%22DAT00148%22%2C%22permissions%22%3A%5B%22execute%22%2C%22read%22%2C%22traverse%22%5D%7D)，这是一个二分类数据集，来展示成本敏感学习的价值。目标是根据客户的基本信息、合同详情及账户的其他技术信息预测客户是否会流失。使用这个数据集（以及部分代码）的动机来源于[Dan Becker的决策阈值优化课程](https://www.wandb.courses/courses/decision-optimization)。
+我们将使用[TELCO 客户流失数据集](https://accelerator.ca.analytics.ibm.com/bi/?perspective=authoring&pathRef=.public_folders%2FIBM%2BAccelerator%2BCatalog%2FContent%2FDAT00148&id=i9710CF25EF75468D95FFFC7D57D45204&objRef=i9710CF25EF75468D95FFFC7D57D45204&action=run&format=HTML&cmPropStr=%7B%22id%22%3A%22i9710CF25EF75468D95FFFC7D57D45204%22%2C%22type%22%3A%22reportView%22%2C%22defaultName%22%3A%22DAT00148%22%2C%22permissions%22%3A%5B%22execute%22%2C%22read%22%2C%22traverse%22%5D%7D)，这是一个二分类数据集，来展示成本敏感学习的价值。目标是根据客户的基本信息、合同详情及账户的其他技术信息预测客户是否会流失。使用这个数据集（以及部分代码）的动机来源于[Dan Becker 的决策阈值优化课程](https://www.wandb.courses/courses/decision-optimization)。
 
 ```py
 data = pd.read_excel("data/Telco_customer_churn.xlsx")
@@ -199,7 +199,7 @@ original_churn_model = make_pipeline(
 original_churn_model.fit(X_train.drop(columns=["customerID"]), y_train);
 ```
 
-对于本教程来说，预处理和模型类型的选择并不重要。公司希望向预测会流失的客户提供折扣。在与利益相关者的合作中，你了解到，给一个不会流失的客户（假阳性）提供折扣会花费80美元。你还了解到，向一个本来会流失的客户提供折扣价值200美元。你可以通过一个成本矩阵来表示这种关系：
+对于本教程来说，预处理和模型类型的选择并不重要。公司希望向预测会流失的客户提供折扣。在与利益相关者的合作中，你了解到，给一个不会流失的客户（假阳性）提供折扣会花费 80 美元。你还了解到，向一个本来会流失的客户提供折扣价值 200 美元。你可以通过一个成本矩阵来表示这种关系：
 
 ```py
 def cost_function(y, y_pred, neg_label, pos_label):
@@ -210,7 +210,7 @@ def cost_function(y, y_pred, neg_label, pos_label):
 cost_scorer = make_scorer(cost_function, neg_label=0, pos_label=1)
 ```
 
-我们还将成本函数包装在一个scikit-learn自定义评分器中。这个评分器将在TunedThresholdClassifierCV中作为`scoring`参数使用，并用于在测试集上评估利润。
+我们还将成本函数包装在一个 scikit-learn 自定义评分器中。这个评分器将在 TunedThresholdClassifierCV 中作为`scoring`参数使用，并用于在测试集上评估利润。
 
 ```py
 tuned_churn_model = TunedThresholdClassifierCV(
@@ -265,7 +265,7 @@ ax.set_ylabel("Objective score (using cost-matrix)")
 ax.set_title("Objective score as a function of the decision threshold")
 ```
 
-![](../Images/5d73ef40feb776f93b8e029027e09427.png)
+![](img/5d73ef40feb776f93b8e029027e09427.png)
 
 图片由作者创建。
 
@@ -370,7 +370,7 @@ disp.ax_.tick_params(labelsize=8)
 disp.ax_.legend(fontsize=7)
 ```
 
-![](../Images/a6f0205e940bce68a563041a655b45e6.png)
+![](img/a6f0205e940bce68a563041a655b45e6.png)
 
 图片由作者创建。
 
@@ -398,7 +398,7 @@ Specificity on the test set: 0.990
 
 ## 结论
 
-新的`TunedThresholdClassifierCV`类是一个强大的工具，可以帮助你通过向商业领导者展示你如何得出决策阈值，成为更好的数据科学家。你学习了如何使用新的scikit-learn `TunedThresholdClassifierCV`类来最大化一个指标，执行成本敏感学习，并在约束条件下调整指标。这个教程并不旨在全面或深入。我希望介绍这一新特性，并突出它在解决二分类问题时的强大功能和灵活性。请查阅scikit-learn文档、用户指南和示例，以获取详细的使用示例。
+新的`TunedThresholdClassifierCV`类是一个强大的工具，可以帮助你通过向商业领导者展示你如何得出决策阈值，成为更好的数据科学家。你学习了如何使用新的 scikit-learn `TunedThresholdClassifierCV`类来最大化一个指标，执行成本敏感学习，并在约束条件下调整指标。这个教程并不旨在全面或深入。我希望介绍这一新特性，并突出它在解决二分类问题时的强大功能和灵活性。请查阅 scikit-learn 文档、用户指南和示例，以获取详细的使用示例。
 
 特别感谢[Guillaume Lemaitre](https://github.com/glemaitre)为此功能所做的工作。
 

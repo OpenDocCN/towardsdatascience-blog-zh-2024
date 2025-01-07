@@ -1,20 +1,20 @@
 # 分类损失函数：直觉与应用
 
-> 原文：[https://towardsdatascience.com/classification-loss-functions-intuition-and-applications-cb75a3b03237?source=collection_archive---------3-----------------------#2024-06-27](https://towardsdatascience.com/classification-loss-functions-intuition-and-applications-cb75a3b03237?source=collection_archive---------3-----------------------#2024-06-27)
+> 原文：[`towardsdatascience.com/classification-loss-functions-intuition-and-applications-cb75a3b03237?source=collection_archive---------3-----------------------#2024-06-27`](https://towardsdatascience.com/classification-loss-functions-intuition-and-applications-cb75a3b03237?source=collection_archive---------3-----------------------#2024-06-27)
 
-## 一种更简洁的方式来理解分类损失函数的推导以及在PyTorch中何时/如何应用它们
+## 一种更简洁的方式来理解分类损失函数的推导以及在 PyTorch 中何时/如何应用它们
 
-[](https://medium.com/@rtdcunha?source=post_page---byline--cb75a3b03237--------------------------------)[![Ryan D'Cunha](../Images/7a39859e2b5e5b09ef2c60aaf6bb75ac.png)](https://medium.com/@rtdcunha?source=post_page---byline--cb75a3b03237--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cb75a3b03237--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cb75a3b03237--------------------------------) [Ryan D'Cunha](https://medium.com/@rtdcunha?source=post_page---byline--cb75a3b03237--------------------------------)
+[](https://medium.com/@rtdcunha?source=post_page---byline--cb75a3b03237--------------------------------)![Ryan D'Cunha](https://medium.com/@rtdcunha?source=post_page---byline--cb75a3b03237--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cb75a3b03237--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb75a3b03237--------------------------------) [Ryan D'Cunha](https://medium.com/@rtdcunha?source=post_page---byline--cb75a3b03237--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb75a3b03237--------------------------------) ·阅读时间：9分钟·2024年6月27日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb75a3b03237--------------------------------) ·阅读时间：9 分钟·2024 年 6 月 27 日
 
 --
 
-![](../Images/8799dde9d8c2ba105f0d95e98464eb61.png)
+![](img/8799dde9d8c2ba105f0d95e98464eb61.png)
 
-来源：GPT4o生成
+来源：GPT4o 生成
 
-无论你是刚开始探索神经网络的新手，还是经验丰富的专家，这篇文章都将是一次有益的阅读，可以帮助你更好地理解损失函数。作为一个在模型训练过程中测试多种不同损失函数的人，我常常因为函数之间的小细节而卡住。我花了很多时间查阅教科书、研究论文和视频，以寻找一种直观的损失函数描述。我想与大家分享不仅是帮助我理解这些概念的**推导**过程，还有在PyTorch中使用**分类**损失函数时常见的陷阱和应用场景。
+无论你是刚开始探索神经网络的新手，还是经验丰富的专家，这篇文章都将是一次有益的阅读，可以帮助你更好地理解损失函数。作为一个在模型训练过程中测试多种不同损失函数的人，我常常因为函数之间的小细节而卡住。我花了很多时间查阅教科书、研究论文和视频，以寻找一种直观的损失函数描述。我想与大家分享不仅是帮助我理解这些概念的**推导**过程，还有在 PyTorch 中使用**分类**损失函数时常见的陷阱和应用场景。
 
 # 术语
 
@@ -46,21 +46,21 @@
 
 *G*回到传统的损失函数定义，我们需要从模型中获得一个可用的输出。从我们的概率分布来看，选择*φ*来产生每个*xᵢ*的最大概率似乎是合乎逻辑的。因此，我们需要得到在所有训练点*I*上产生最大概率的总体*φ*（所有推导都来自《理解深度学习》[1]）：
 
-![](../Images/522fceb7fdc7af4df7531a2c5537250e.png)
+![](img/522fceb7fdc7af4df7531a2c5537250e.png)
 
 最大化输出模型概率分布的参数 [1]
 
-我们将每个分布生成的概率相乘，以找到产生最大概率的*φ*（称为**最大似然**）。为了做到这一点，我们必须假设数据是独立且同分布的。但现在我们遇到了一个问题：如果概率非常小怎么办？我们的乘积结果将接近于0（类似于梯度消失问题）。此外，我们的程序可能无法处理如此小的数字。
+我们将每个分布生成的概率相乘，以找到产生最大概率的*φ*（称为**最大似然**）。为了做到这一点，我们必须假设数据是独立且同分布的。但现在我们遇到了一个问题：如果概率非常小怎么办？我们的乘积结果将接近于 0（类似于梯度消失问题）。此外，我们的程序可能无法处理如此小的数字。
 
 为了解决这个问题，我们引入了对数函数！利用对数的特性，我们可以将概率相加，而不是相乘。我们知道，对数是一个单调递增的函数，因此我们的原始输出被保留并通过对数进行了缩放。
 
-![](../Images/e9d290f8114504d063ca077dce4382fa.png)
+![](img/e9d290f8114504d063ca077dce4382fa.png)
 
 使用对数加法概率 [1]
 
 我们需要做的最后一件事是获取我们传统的负对数似然，即最小化输出。我们现在是在最大化输出，所以只需要乘以负数并取最小值（考虑一些图形示例来帮助自己理解这一点）：
 
-![](../Images/fc1c7cee0ae2ea2d49a9ef2760b133ec.png)
+![](img/fc1c7cee0ae2ea2d49a9ef2760b133ec.png)
 
 负对数似然 [1]
 
@@ -68,7 +68,7 @@
 
 如果你想知道在**推断**过程中，模型是如何生成标量输出的，那就是分布的最大值：
 
-![](../Images/77d8057be79a86e22f7758dac179cbec.png)
+![](img/77d8057be79a86e22f7758dac179cbec.png)
 
 从推断生成输出[1]
 
@@ -84,37 +84,37 @@
 
 二分类的目标是将输入*x*分配到两个类别标签之一，*y* ∈ {0, 1}。我们将使用伯努利分布作为我们选择的概率分布。
 
-![](../Images/64d8d4c8478ea774fceb1a8d84d5c783.png)
+![](img/64d8d4c8478ea774fceb1a8d84d5c783.png)
 
 伯努利分布的数学表示。图片来源：作者
 
-这只是一个花哨的说法，表示输出为真的概率，但这个方程是推导损失函数所必需的。我们需要模型*f[x, φ]*输出*p*来生成预测的输出概率。然而，在我们将*p*输入到伯努利分布之前，我们需要确保它在0和1之间（因为它是一个概率）。用于此的函数是sigmoid：σ(*z*)
+这只是一个花哨的说法，表示输出为真的概率，但这个方程是推导损失函数所必需的。我们需要模型*f[x, φ]*输出*p*来生成预测的输出概率。然而，在我们将*p*输入到伯努利分布之前，我们需要确保它在 0 和 1 之间（因为它是一个概率）。用于此的函数是 sigmoid：σ(*z*)
 
-![](../Images/9716980d8305f8ba0fce144f11ee2f0d.png)
+![](img/9716980d8305f8ba0fce144f11ee2f0d.png)
 
-来源：[https://en.wikipedia.org/wiki/Sigmoid_function](https://en.wikipedia.org/wiki/Sigmoid_function)
+来源：[`en.wikipedia.org/wiki/Sigmoid_function`](https://en.wikipedia.org/wiki/Sigmoid_function)
 
-Sigmoid会将输出*p*压缩到0和1之间。因此，我们输入伯努利分布的值是*p =* σ(*f[x, φ])*。这使我们的概率分布变为：
+Sigmoid 会将输出*p*压缩到 0 和 1 之间。因此，我们输入伯努利分布的值是*p =* σ(*f[x, φ])*。这使我们的概率分布变为：
 
-![](../Images/32e05e638cc53e6838db0a7dcaeeb77c.png)
+![](img/32e05e638cc53e6838db0a7dcaeeb77c.png)
 
-带有Sigmoid和伯努利分布的新概率分布。图片来源：作者
+带有 Sigmoid 和伯努利分布的新概率分布。图片来源：作者
 
 回到负对数似然，我们得到如下结果：
 
-![](../Images/f2e36bf555c46b78ee8cac481211a9c6.png)
+![](img/f2e36bf555c46b78ee8cac481211a9c6.png)
 
 二元交叉熵。图片来源：作者
 
-看起来很熟悉吧？这就是二元交叉熵（BCE）损失函数！理解这一点的关键是理解为什么使用sigmoid。我们有一个标量输出，它需要被缩放到0和1之间。虽然也有其他函数能做到这一点，但sigmoid是最常用的。
+看起来很熟悉吧？这就是二元交叉熵（BCE）损失函数！理解这一点的关键是理解为什么使用 sigmoid。我们有一个标量输出，它需要被缩放到 0 和 1 之间。虽然也有其他函数能做到这一点，但 sigmoid 是最常用的。
 
-## PyTorch中的BCE
+## PyTorch 中的 BCE
 
-在PyTorch中实现BCE时，需要注意一些技巧。PyTorch中有两个不同的BCE函数：*BCELoss()*和*BCEWithLogitsLoss()*。一个常见的错误（我也犯过）是错误地交换了它们的使用场景。
+在 PyTorch 中实现 BCE 时，需要注意一些技巧。PyTorch 中有两个不同的 BCE 函数：*BCELoss()*和*BCEWithLogitsLoss()*。一个常见的错误（我也犯过）是错误地交换了它们的使用场景。
 
-**BCELoss()：** 这个torch函数输出的是已经应用了SIGMOID的损失值。输出将是一个**概率**。
+**BCELoss()：** 这个 torch 函数输出的是已经应用了 SIGMOID 的损失值。输出将是一个**概率**。
 
-**BCEWithLogitsLoss()：** 这个torch函数输出的是logits，即模型的**原始输出**。没有应用SIGMOID。当使用这个函数时，你需要对输出应用*torch.sigmoid()*。
+**BCEWithLogitsLoss()：** 这个 torch 函数输出的是 logits，即模型的**原始输出**。没有应用 SIGMOID。当使用这个函数时，你需要对输出应用*torch.sigmoid()*。
 
 > 这对于迁移学习尤为重要，因为即使你知道模型是使用 BCE 训练的，也要确保使用正确的损失函数。如果没有这样做，可能会在 BCELoss() 后意外地应用 sigmoid，导致网络无法学习……
 
@@ -124,19 +124,19 @@ Sigmoid会将输出*p*压缩到0和1之间。因此，我们输入伯努利分�
 
 多类分类的目标是将输入 *x* 分配给 *K* > 2 个类别标签 *y* ∈ {1, 2, …, *K*} 中的一个。我们将使用分类分布作为我们的概率分布选择。
 
-![](../Images/0a232fbe9bf6255a4b73db74c8d240e9.png)
+![](img/0a232fbe9bf6255a4b73db74c8d240e9.png)
 
 分类分布。图片来源：作者
 
 这只是为给定输出的每个类别分配一个概率，且所有概率的总和必须为 1。我们需要模型 *f[x, φ]* 输出 *p*，以生成预测的输出概率。和二分类一样，这里也会遇到总和问题。在将 *p* 输入到伯努利分布之前，我们需要确保它是一个介于 0 和 1 之间的概率。sigmoid 不再适用，因为它会将每个类别的分数缩放为一个概率，但不能保证所有概率的总和为 1。这点可能不容易发现，但可以通过一个例子来说明：
 
-![](../Images/83affdb6b334591ba290ca2a040054c9.png)
+![](img/83affdb6b334591ba290ca2a040054c9.png)
 
 Sigmoid 在多类分类中无法生成概率分布。图片来源：作者
 
 我们需要一个函数来确保满足这两个约束条件。因此，选择了 softmax。softmax 是 sigmoid 的扩展，它会确保所有概率的总和为 1。
 
-![](../Images/94e889be5ace748c47a8fb0ce491f38a.png)
+![](img/94e889be5ace748c47a8fb0ce491f38a.png)
 
 Softmax 函数。图片来源：作者
 
@@ -144,21 +144,21 @@ Softmax 函数。图片来源：作者
 
 为了推导多类分类的损失函数，我们可以将 softmax 和模型输出代入负对数似然损失中：
 
-![](../Images/bfcc77f988d2af066f4750c5d37ad78d.png)
+![](img/bfcc77f988d2af066f4750c5d37ad78d.png)
 
 多类交叉熵。图片来源：作者
 
-这是多类别交叉熵的推导。需要记住，唯一对损失函数有贡献的项是正确类别的概率。如果你见过交叉熵，你会更熟悉一个包含 *p(x)* 和 *q(x)* 的函数。这个公式与交叉熵损失方程是相同的，其中 *p(x) = 1* 表示正确类别，其他类别的值为0。*q(x)* 是模型输出的softmax。交叉熵的另一个推导来源于使用KL散度，你可以通过将一个项视为Dirac delta函数（其中包含真实输出）并将另一个项视为模型输出（应用softmax）来推导出相同的损失函数。需要注意的是，这两种推导方式都得出相同的损失函数。
+这是多类别交叉熵的推导。需要记住，唯一对损失函数有贡献的项是正确类别的概率。如果你见过交叉熵，你会更熟悉一个包含 *p(x)* 和 *q(x)* 的函数。这个公式与交叉熵损失方程是相同的，其中 *p(x) = 1* 表示正确类别，其他类别的值为 0。*q(x)* 是模型输出的 softmax。交叉熵的另一个推导来源于使用 KL 散度，你可以通过将一个项视为 Dirac delta 函数（其中包含真实输出）并将另一个项视为模型输出（应用 softmax）来推导出相同的损失函数。需要注意的是，这两种推导方式都得出相同的损失函数。
 
-## PyTorch中的交叉熵
+## PyTorch 中的交叉熵
 
-与二元交叉熵不同，PyTorch中的交叉熵损失只有一个损失函数。*nn.CrossEntropyLoss* 返回已经应用softmax的模型输出。推断可以通过选择最大概率的softmax模型输出（选择最高概率的输出）来进行。
+与二元交叉熵不同，PyTorch 中的交叉熵损失只有一个损失函数。*nn.CrossEntropyLoss* 返回已经应用 softmax 的模型输出。推断可以通过选择最大概率的 softmax 模型输出（选择最高概率的输出）来进行。
 
 # 应用
 
 这些是两个研究得比较深入的分类例子。对于更复杂的任务，可能需要一些时间来决定使用哪个损失函数和概率分布。有很多图表可以帮助将概率分布与目标任务匹配，但总有空间可以进一步探索。
 
-对于某些任务，将损失函数组合起来可能会有帮助。一个常见的应用场景是在分类任务中，可能有助于将[二元]交叉熵损失与修改过的Dice系数损失结合使用。大多数时候，损失函数会被加在一起，并通过某个超参数进行缩放，以控制每个函数对总损失的贡献。
+对于某些任务，将损失函数组合起来可能会有帮助。一个常见的应用场景是在分类任务中，可能有助于将[二元]交叉熵损失与修改过的 Dice 系数损失结合使用。大多数时候，损失函数会被加在一起，并通过某个超参数进行缩放，以控制每个函数对总损失的贡献。
 
 希望这个关于负对数似然损失及其应用的推导对你有所帮助！
 
@@ -166,6 +166,6 @@ Softmax 函数。图片来源：作者
 
 [1] Prince, Simon J.D., [理解深度学习](https://mitpress.mit.edu/9780262048644/understanding-deep-learning/)。
 
-[2] [斯坦福CS231n](https://cs231n.github.io/)。
+[2] [斯坦福 CS231n](https://cs231n.github.io/)。
 
-[3] P. Bosman, D. Thierens, [负对数似然与统计假设检验作为IDEAs中模型选择的基础](https://homepages.cwi.nl/~bosman/publications/2000_negativeloglikelihood.pdf)（2000年）。
+[3] P. Bosman, D. Thierens, [负对数似然与统计假设检验作为 IDEAs 中模型选择的基础](https://homepages.cwi.nl/~bosman/publications/2000_negativeloglikelihood.pdf)（2000 年）。

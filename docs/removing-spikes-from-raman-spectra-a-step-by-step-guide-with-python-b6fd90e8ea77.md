@@ -1,30 +1,30 @@
-# 使用Python去除拉曼光谱中的尖峰：一步步指南
+# 使用 Python 去除拉曼光谱中的尖峰：一步步指南
 
-> 原文：[https://towardsdatascience.com/removing-spikes-from-raman-spectra-a-step-by-step-guide-with-python-b6fd90e8ea77?source=collection_archive---------4-----------------------#2024-11-06](https://towardsdatascience.com/removing-spikes-from-raman-spectra-a-step-by-step-guide-with-python-b6fd90e8ea77?source=collection_archive---------4-----------------------#2024-11-06)
+> 原文：[`towardsdatascience.com/removing-spikes-from-raman-spectra-a-step-by-step-guide-with-python-b6fd90e8ea77?source=collection_archive---------4-----------------------#2024-11-06`](https://towardsdatascience.com/removing-spikes-from-raman-spectra-a-step-by-step-guide-with-python-b6fd90e8ea77?source=collection_archive---------4-----------------------#2024-11-06)
 
 ## 查找、移除并用插值值替换尖峰
 
-[](https://medium.com/@nicopez?source=post_page---byline--b6fd90e8ea77--------------------------------)[![尼古拉斯·可卡博士](../Images/548630c393526a802cf560344990a1e3.png)](https://medium.com/@nicopez?source=post_page---byline--b6fd90e8ea77--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b6fd90e8ea77--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b6fd90e8ea77--------------------------------) [尼古拉斯·可卡博士](https://medium.com/@nicopez?source=post_page---byline--b6fd90e8ea77--------------------------------)
+[](https://medium.com/@nicopez?source=post_page---byline--b6fd90e8ea77--------------------------------)![尼古拉斯·可卡博士](https://medium.com/@nicopez?source=post_page---byline--b6fd90e8ea77--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b6fd90e8ea77--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b6fd90e8ea77--------------------------------) [尼古拉斯·可卡博士](https://medium.com/@nicopez?source=post_page---byline--b6fd90e8ea77--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b6fd90e8ea77--------------------------------) ·7分钟阅读·2024年11月6日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b6fd90e8ea77--------------------------------) ·7 分钟阅读·2024 年 11 月 6 日
 
 --
 
-本教程是系列文章的一部分，系列文章题为[使用Python进行拉曼光谱的数据科学](https://towardsdatascience.com/data-science-for-raman-spectroscopy-a-practical-example-e81c56cf25f)，该系列在[Towards Data Science](https://towardsdatascience.com/)上发布。它基于在《Analytica Chimica Acta》期刊上发布的[这篇文章](https://doi.org/10.1016/j.aca.2024.342312)。通过跟随本教程，您将为您的数据分析工具包添加一项宝贵工具——一种已经在公开研究中使用的有效方法，用于清理拉曼光谱。
+本教程是系列文章的一部分，系列文章题为[使用 Python 进行拉曼光谱的数据科学](https://towardsdatascience.com/data-science-for-raman-spectroscopy-a-practical-example-e81c56cf25f)，该系列在[Towards Data Science](https://towardsdatascience.com/)上发布。它基于在《Analytica Chimica Acta》期刊上发布的[这篇文章](https://doi.org/10.1016/j.aca.2024.342312)。通过跟随本教程，您将为您的数据分析工具包添加一项宝贵工具——一种已经在公开研究中使用的有效方法，用于清理拉曼光谱。
 
-![](../Images/7b4c0ebe0c2398f9f9dbcf05ecffd68a.png)
+![](img/7b4c0ebe0c2398f9f9dbcf05ecffd68a.png)
 
 去除石墨烯拉曼光谱中的尖峰。图片由作者提供。
 
 # **简介**
 
-尖峰去除是拉曼数据预处理中的一个重要步骤。尖峰是由宇宙射线撞击探测器引起的，它们表现为强烈、狭窄的峰值，可能会扭曲分析结果。这些能量爆发撞击电荷耦合设备（CCD）摄像头，产生尖锐、高强度的峰值，如果不加以修正，可能会干扰进一步的处理步骤，如归一化、光谱搜索或多元数据分析。因此，清除这些伪影是一个优先事项。本教程将介绍一种实用的算法，用于去除拉曼光谱中的尖峰。我们将使用Python，逐步演示一种用户友好、可定制的尖峰检测与修正方法，确保拉曼数据的准确性和可靠性。
+尖峰去除是拉曼数据预处理中的一个重要步骤。尖峰是由宇宙射线撞击探测器引起的，它们表现为强烈、狭窄的峰值，可能会扭曲分析结果。这些能量爆发撞击电荷耦合设备（CCD）摄像头，产生尖锐、高强度的峰值，如果不加以修正，可能会干扰进一步的处理步骤，如归一化、光谱搜索或多元数据分析。因此，清除这些伪影是一个优先事项。本教程将介绍一种实用的算法，用于去除拉曼光谱中的尖峰。我们将使用 Python，逐步演示一种用户友好、可定制的尖峰检测与修正方法，确保拉曼数据的准确性和可靠性。
 
-图1展示了一个含有峰值的石墨烯拉曼光谱示例。石墨烯的卓越物理特性——如其电导率和热导率——使其成为一个备受研究的材料。其拉曼光谱包含反映结构特征的峰值，揭示有关掺杂、应变和晶界的信息。因此，拉曼光谱技术广泛用于表征石墨烯。然而，为了充分利用这一工具，必须事先去除峰值。
+图 1 展示了一个含有峰值的石墨烯拉曼光谱示例。石墨烯的卓越物理特性——如其电导率和热导率——使其成为一个备受研究的材料。其拉曼光谱包含反映结构特征的峰值，揭示有关掺杂、应变和晶界的信息。因此，拉曼光谱技术广泛用于表征石墨烯。然而，为了充分利用这一工具，必须事先去除峰值。
 
-![](../Images/0de7cbb79612e8ba4c036fcb4f2ef06f.png)
+![](img/0de7cbb79612e8ba4c036fcb4f2ef06f.png)
 
-图1\. 含峰值的石墨烯拉曼光谱。生成此图的代码如下所示。图片来自作者。
+图 1\. 含峰值的石墨烯拉曼光谱。生成此图的代码如下所示。图片来自作者。
 
 ```py
 import numpy as np
@@ -58,7 +58,7 @@ plt.show()
 
 **4\. 光谱校正**
 
-让我们来看一下包含Python代码片段的不同步骤：
+让我们来看一下包含 Python 代码片段的不同步骤：
 
 **1\. 峰值寻找：** 首先，算法通过检查局部最大值，设置最小突出度阈值来识别显著的峰值。添加突出度阈值有助于排除由噪声生成的小峰值，因为我们并不打算修正所有噪声。请参见下图进行对比。
 
@@ -76,11 +76,11 @@ ax[1].scatter(ramanshift[peaks_w_p], intensity[peaks_w_p], marker ='.', color = 
 plt.show()
 ```
 
-![](../Images/df05fdd0e60900a17df9f01be6273e5a.png)
+![](img/df05fdd0e60900a17df9f01be6273e5a.png)
 
-第1步：在光谱中找到峰值。图片来自作者。
+第 1 步：在光谱中找到峰值。图片来自作者。
 
-**2\. 峰值检测：** 接下来，根据峰值的特征窄宽度进行标记。这一点可能有助于大型光谱数据集的自动化。如果我们知道光谱中存在的拉曼带的宽度，我们可以选择低于该值的阈值。例如，在我们的系统分辨率下，我们不预期出现宽度小于10 cm-1的石墨烯拉曼带。
+**2\. 峰值检测：** 接下来，根据峰值的特征窄宽度进行标记。这一点可能有助于大型光谱数据集的自动化。如果我们知道光谱中存在的拉曼带的宽度，我们可以选择低于该值的阈值。例如，在我们的系统分辨率下，我们不预期出现宽度小于 10 cm-1 的石墨烯拉曼带。
 
 ```py
 from scipy.signal import peak_widths
@@ -93,9 +93,9 @@ ax2.scatter(ramanshift[peaks_w_p], widths, marker ='+', color = 'red',label='Pea
 plt.show()
 ```
 
-![](../Images/2ac54ea631976e354b792ba9f176db79.png)
+![](img/2ac54ea631976e354b792ba9f176db79.png)
 
-第2步：寻找峰值的宽度。图片来自作者。
+第 2 步：寻找峰值的宽度。图片来自作者。
 
 **3\. 峰值标记** 接下来，任何受峰值影响的数据点都会被标记，标记范围是根据峰值的突出程度计算的，从而有效地隔离损坏的像素。换句话说，我们选择必须修正的窗口。
 
@@ -127,9 +127,9 @@ plt.axvline(x = ramanshift[int(widths_ext_b[a]) + 1], linestyle = '--', color = 
 plt.show()
 ```
 
-![](../Images/6ca5b8f53884b5222fac8b105f5c4608.png)
+![](img/6ca5b8f53884b5222fac8b105f5c4608.png)
 
-第3步：标记损坏的箱体。图片来自作者。
+第 3 步：标记损坏的箱体。图片来自作者。
 
 **4\. 光谱校正** 最后，这些点通过插值方法与邻近值进行修正，保持光谱的完整性，以便进行后续分析。
 
@@ -154,11 +154,11 @@ plt.plot(ramanshift, intensity_out, zorder=0, label='Corrected spectrum')
 plt.show()
 ```
 
-![](../Images/1a41d905031018d2af7adab04d555510.png)
+![](img/1a41d905031018d2af7adab04d555510.png)
 
-第4步：光谱校正。图片来自作者。
+第 4 步：光谱校正。图片来自作者。
 
-# Python中的完整峰值移除功能
+# Python 中的完整峰值移除功能
 
 所有这些代码片段可以汇总成一个单独的函数。该函数被设计为根据特定的数据需求进行定制，具有调整突出度和宽度的参数：
 
@@ -237,7 +237,7 @@ ax[1].plot(ramanshift, intensity_despiked)
 plt.show()
 ```
 
-![](../Images/f9d4520f321b03ec94650f47c718108d.png)
+![](img/f9d4520f321b03ec94650f47c718108d.png)
 
 拉曼光谱中峰值移除的示例。图片来自作者。
 
@@ -245,4 +245,4 @@ plt.show()
 
 希望你喜欢这个教程。如果有任何问题，或者想分享你自己的拉曼数据挑战，欢迎在评论中留言——我很想听听这个算法如何帮助你的项目！
 
-准备好尝试一下吗？你可以在[这里](https://github.com/nicocopez/pyspikes/blob/main/Tutorial%20to%20remove%20spikes%20from%20Raman%20spectra%20-%20A%20step%20by%20step%20guide.ipynb)下载Jupyter Notebook。如果你觉得这对你有帮助，请记得引用[原始工作](https://doi.org/10.1016/j.aca.2024.342312)，这对我会有很大帮助！:)
+准备好尝试一下吗？你可以在[这里](https://github.com/nicocopez/pyspikes/blob/main/Tutorial%20to%20remove%20spikes%20from%20Raman%20spectra%20-%20A%20step%20by%20step%20guide.ipynb)下载 Jupyter Notebook。如果你觉得这对你有帮助，请记得引用[原始工作](https://doi.org/10.1016/j.aca.2024.342312)，这对我会有很大帮助！:)

@@ -1,16 +1,16 @@
 # 强化学习：深度 Q 网络
 
-> 原文：[https://towardsdatascience.com/reinforcement-learning-from-scratch-deep-q-networks-0a8d33ce165b?source=collection_archive---------1-----------------------#2024-05-23](https://towardsdatascience.com/reinforcement-learning-from-scratch-deep-q-networks-0a8d33ce165b?source=collection_archive---------1-----------------------#2024-05-23)
+> 原文：[`towardsdatascience.com/reinforcement-learning-from-scratch-deep-q-networks-0a8d33ce165b?source=collection_archive---------1-----------------------#2024-05-23`](https://towardsdatascience.com/reinforcement-learning-from-scratch-deep-q-networks-0a8d33ce165b?source=collection_archive---------1-----------------------#2024-05-23)
 
 ## 使用深度 Q 网络在 Python 中教一艘航天飞机降落在月球上：强化学习的数学深度解析
 
-[](https://medium.com/@cristianleo120?source=post_page---byline--0a8d33ce165b--------------------------------)[![Cristian Leo](../Images/99074292e7dfda50cf50a790b8deda79.png)](https://medium.com/@cristianleo120?source=post_page---byline--0a8d33ce165b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0a8d33ce165b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0a8d33ce165b--------------------------------) [Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--0a8d33ce165b--------------------------------)
+[](https://medium.com/@cristianleo120?source=post_page---byline--0a8d33ce165b--------------------------------)![Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--0a8d33ce165b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0a8d33ce165b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0a8d33ce165b--------------------------------) [Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--0a8d33ce165b--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0a8d33ce165b--------------------------------) ·28分钟阅读·2024年5月23日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0a8d33ce165b--------------------------------) ·28 分钟阅读·2024 年 5 月 23 日
 
 --
 
-![](../Images/38970589a005da7933deef0ef58bbb32.png)
+![](img/38970589a005da7933deef0ef58bbb32.png)
 
 由 DALL-E 生成的图像
 

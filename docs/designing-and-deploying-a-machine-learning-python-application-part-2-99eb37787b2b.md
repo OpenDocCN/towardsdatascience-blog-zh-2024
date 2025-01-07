@@ -1,16 +1,16 @@
 # 设计与部署机器学习 Python 应用程序（第二部分）
 
-> 原文：[https://towardsdatascience.com/designing-and-deploying-a-machine-learning-python-application-part-2-99eb37787b2b?source=collection_archive---------4-----------------------#2024-02-24](https://towardsdatascience.com/designing-and-deploying-a-machine-learning-python-application-part-2-99eb37787b2b?source=collection_archive---------4-----------------------#2024-02-24)
+> 原文：[`towardsdatascience.com/designing-and-deploying-a-machine-learning-python-application-part-2-99eb37787b2b?source=collection_archive---------4-----------------------#2024-02-24`](https://towardsdatascience.com/designing-and-deploying-a-machine-learning-python-application-part-2-99eb37787b2b?source=collection_archive---------4-----------------------#2024-02-24)
 
 ## 你不需要是 Atlas 就能将你的模型部署到云端
 
-[](https://medium.com/@noahhaglund?source=post_page---byline--99eb37787b2b--------------------------------)[![Noah Haglund](../Images/edfcc90677444ebced16549a1524d7fe.png)](https://medium.com/@noahhaglund?source=post_page---byline--99eb37787b2b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--99eb37787b2b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--99eb37787b2b--------------------------------) [Noah Haglund](https://medium.com/@noahhaglund?source=post_page---byline--99eb37787b2b--------------------------------)
+[](https://medium.com/@noahhaglund?source=post_page---byline--99eb37787b2b--------------------------------)![Noah Haglund](https://medium.com/@noahhaglund?source=post_page---byline--99eb37787b2b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--99eb37787b2b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99eb37787b2b--------------------------------) [Noah Haglund](https://medium.com/@noahhaglund?source=post_page---byline--99eb37787b2b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99eb37787b2b--------------------------------) ·阅读时间 16 分钟 ·2024年2月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99eb37787b2b--------------------------------) ·阅读时间 16 分钟 ·2024 年 2 月 24 日
 
 --
 
-![](../Images/ea381d092591530df711ecba890d8217.png)
+![](img/ea381d092591530df711ecba890d8217.png)
 
 图像来自 Midjourney
 
@@ -36,11 +36,11 @@
 
 ## 问题 1：内存
 
-从[第 1 部分](https://medium.com/towards-data-science/training-and-deploying-a-custom-detectron2-model-for-object-detection-using-pdf-documents-part-1-c724f61d8b4b)保存的机器学习模型，命名为 model_final.pth，起始大小为大约 325MB。此外，基于（1）Python 运行时、（2）Detectron2、（3）大型依赖项如 Torch 和（4）Django Web 框架的应用程序在部署时将使用约 150MB 的内存。
+从[第一部分](https://medium.com/towards-data-science/training-and-deploying-a-custom-detectron2-model-for-object-detection-using-pdf-documents-part-1-c724f61d8b4b)保存的机器学习模型，命名为 model_final.pth，起始大小为大约 325MB。此外，基于（1）Python 运行时、（2）Detectron2、（3）大型依赖项如 Torch 和（4）Django Web 框架的应用程序在部署时将使用约 150MB 的内存。
 
 > 因此，至少我们一开始就需要大约 475MB 的内存。
 
-我们可以仅在机器学习（ML）过程需要运行时加载 Detectron2 模型，但这仍然意味着我们的应用最终会占用约475MB的内存。如果你的预算有限，并且无法垂直扩展应用程序，那么内存就会成为许多托管平台上的一个重要限制。例如，Heroku 提供了名为“dynos”的容器来运行应用程序，基础支付计划的 dynos 起始内存为 512MB，当内存超过 512MB 时，会开始写入磁盘，并且当内存使用达到 250%（1280MB）时，dyno 会崩溃并重启。
+我们可以仅在机器学习（ML）过程需要运行时加载 Detectron2 模型，但这仍然意味着我们的应用最终会占用约 475MB 的内存。如果你的预算有限，并且无法垂直扩展应用程序，那么内存就会成为许多托管平台上的一个重要限制。例如，Heroku 提供了名为“dynos”的容器来运行应用程序，基础支付计划的 dynos 起始内存为 512MB，当内存超过 512MB 时，会开始写入磁盘，并且当内存使用达到 250%（1280MB）时，dyno 会崩溃并重启。
 
 关于内存，Detectron2 推理将根据图像中检测到的物体数量引发内存使用的波动，因此确保在此过程中内存可用非常重要。
 
@@ -170,7 +170,7 @@ gunicorn <DJANGO_APP_NAME_HERE>.wsgi:application --threads=2 --worker-class=gthr
 
 ## Django 设置
 
-继续创建一个文件夹用于 Django 项目并进入该目录。激活您正在使用的虚拟环境/conda 环境，确保按照 [第 1 部分](https://medium.com/towards-data-science/training-and-deploying-a-custom-detectron2-model-for-object-detection-using-pdf-documents-part-1-c724f61d8b4b) 中的安装说明安装 Detectron2，并安装相关的要求。
+继续创建一个文件夹用于 Django 项目并进入该目录。激活您正在使用的虚拟环境/conda 环境，确保按照 [第一部分](https://medium.com/towards-data-science/training-and-deploying-a-custom-detectron2-model-for-object-detection-using-pdf-documents-part-1-c724f61d8b4b) 中的安装说明安装 Detectron2，并安装相关的要求。
 
 在终端中执行以下命令：
 
@@ -282,7 +282,7 @@ urlpatterns = [
 ]
 ```
 
-在docreader应用目录中创建urls.py并写入：
+在 docreader 应用目录中创建 urls.py 并写入：
 
 ```py
 from django.urls import path
@@ -294,11 +294,11 @@ urlpatterns = [
 ]
 ```
 
-现在，我们已经准备好在/api/create/端点保存一个包含标题和字段的文档条目，保存后将调用mltask()！所以，让我们测试一下。
+现在，我们已经准备好在/api/create/端点保存一个包含标题和字段的文档条目，保存后将调用 mltask()！所以，让我们测试一下。
 
-为了帮助可视化测试，让我们将Document模型注册到Django的[管理员界面](https://docs.djangoproject.com/en/5.0/ref/contrib/admin/)，这样我们就可以看到新条目何时被创建。
+为了帮助可视化测试，让我们将 Document 模型注册到 Django 的[管理员界面](https://docs.djangoproject.com/en/5.0/ref/contrib/admin/)，这样我们就可以看到新条目何时被创建。
 
-在docreader/admin.py中编写：
+在 docreader/admin.py 中编写：
 
 ```py
 from django.contrib import admin
@@ -307,7 +307,7 @@ from .models import Document
 admin.site.register(Document)
 ```
 
-创建一个可以登录Django管理员界面的用户，使用：
+创建一个可以登录 Django 管理员界面的用户，使用：
 
 ```py
 python manage.py createsuperuser
@@ -315,21 +315,21 @@ python manage.py createsuperuser
 
 现在，让我们测试我们暴露的端点。
 
-如果没有前端，可以运行Django服务器并打开Postman。发送以下POST请求，附带PDF文件：
+如果没有前端，可以运行 Django 服务器并打开 Postman。发送以下 POST 请求，附带 PDF 文件：
 
-![](../Images/b9a6e26e977b4778e759baa5aca0f5fa.png)
+![](img/b9a6e26e977b4778e759baa5aca0f5fa.png)
 
-如果我们检查Django日志，应该会看到文件路径被打印出来，如在保存后调用mltask()函数中所指定的。
+如果我们检查 Django 日志，应该会看到文件路径被打印出来，如在保存后调用 mltask()函数中所指定的。
 
-## AWS设置
+## AWS 设置
 
-你会注意到PDF已保存到项目的根目录。让我们确保将媒体文件保存到AWS S3中，为部署做好准备。
+你会注意到 PDF 已保存到项目的根目录。让我们确保将媒体文件保存到 AWS S3 中，为部署做好准备。
 
-转到[S3控制台](https://s3.console.aws.amazon.com/)（如果你还没有账号，请创建一个并获取你的账号[访问密钥和秘密密钥](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html)）。创建一个新的存储桶，这里我们将命名为“djangomltest”。更新权限，确保存储桶对测试是公开的（并根据需要恢复，以便用于生产环境）。
+转到[S3 控制台](https://s3.console.aws.amazon.com/)（如果你还没有账号，请创建一个并获取你的账号[访问密钥和秘密密钥](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html)）。创建一个新的存储桶，这里我们将命名为“djangomltest”。更新权限，确保存储桶对测试是公开的（并根据需要恢复，以便用于生产环境）。
 
-现在，让我们配置Django以与AWS配合使用。
+现在，让我们配置 Django 以与 AWS 配合使用。
 
-将你在[第1部分](https://medium.com/towards-data-science/training-and-deploying-a-custom-detectron2-model-for-object-detection-using-pdf-documents-part-1-c724f61d8b4b)中训练好的model_final.pth文件放入docreader目录。在根目录创建一个.env文件，并写入以下内容：
+将你在[第一部分](https://medium.com/towards-data-science/training-and-deploying-a-custom-detectron2-model-for-object-detection-using-pdf-documents-part-1-c724f61d8b4b)中训练好的 model_final.pth 文件放入 docreader 目录。在根目录创建一个.env 文件，并写入以下内容：
 
 ```py
 AWS_ACCESS_KEY_ID = <Add your Access Key Here>
@@ -339,7 +339,7 @@ AWS_STORAGE_BUCKET_NAME = 'djangomltest'
 MODEL_PATH = './docreader/model_final.pth'
 ```
 
-更新settings.py以包括AWS配置：
+更新 settings.py 以包括 AWS 配置：
 
 ```py
 import os
@@ -365,7 +365,7 @@ STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 ```
 
-可选地，如果AWS为我们的静态和媒体文件提供服务，你将需要运行以下命令，以通过S3将静态资源提供给管理员界面：
+可选地，如果 AWS 为我们的静态和媒体文件提供服务，你将需要运行以下命令，以通过 S3 将静态资源提供给管理员界面：
 
 ```py
 python manage.py collectstatic
@@ -373,24 +373,24 @@ python manage.py collectstatic
 
 如果我们再次运行服务器，我们的管理员界面应该与本地提供静态文件时一样显示。
 
-再次让我们运行Django服务器，并测试端点，确保文件现在已保存到S3。
+再次让我们运行 Django 服务器，并测试端点，确保文件现在已保存到 S3。
 
-## ML任务设置与部署
+## ML 任务设置与部署
 
-在Django和AWS配置正确后，让我们在mltask.py中设置我们的机器学习过程。由于文件较长，请参考此[repo](https://github.com/nzh2534/mltutorial/blob/main/docreader/mltask.py)（已添加注释以帮助理解各个代码块）。
+在 Django 和 AWS 配置正确后，让我们在 mltask.py 中设置我们的机器学习过程。由于文件较长，请参考此[repo](https://github.com/nzh2534/mltutorial/blob/main/docreader/mltask.py)（已添加注释以帮助理解各个代码块）。
 
-重要的是要看到，Detectron2仅在函数被调用时才会导入，并且模型在调用时才会加载。在这里，我们将仅通过Celery任务调用该函数，确保推理过程中使用的内存将仅限于Heroku工作进程。
+重要的是要看到，Detectron2 仅在函数被调用时才会导入，并且模型在调用时才会加载。在这里，我们将仅通过 Celery 任务调用该函数，确保推理过程中使用的内存将仅限于 Heroku 工作进程。
 
-最后，让我们设置Celery并将其部署到Heroku。
+最后，让我们设置 Celery 并将其部署到 Heroku。
 
-在mltutorial/_init__.py中编写：
+在 mltutorial/_init__.py 中编写：
 
 ```py
 from .celery import app as celery_app
 __all__ = ('celery_app',)
 ```
 
-在mltutorial目录中创建celery.py并编写：
+在 mltutorial 目录中创建 celery.py 并编写：
 
 ```py
 import os
@@ -417,7 +417,7 @@ def debug_task(self):
     print(f'Request: {self.request!r}')
 ```
 
-最后，在docreader中创建tasks.py并编写：
+最后，在 docreader 中创建 tasks.py 并编写：
 
 ```py
 from celery import shared_task
@@ -429,7 +429,7 @@ def ml_celery_task(file_path):
     return "DONE"
 ```
 
-现在，这个Celery任务ml_celery_task()应该被导入到models.py中，并与post save信号一起使用，而不是直接从mltask.py中拉取的mltask函数。将post_save信号块更新为以下内容：
+现在，这个 Celery 任务 ml_celery_task()应该被导入到 models.py 中，并与 post save 信号一起使用，而不是直接从 mltask.py 中拉取的 mltask 函数。将 post_save 信号块更新为以下内容：
 
 ```py
 @receiver(post_save, sender=Document)
@@ -437,11 +437,11 @@ def user_created_handler(sender, instance, *args, **kwargs):
     ml_celery_task.delay(str(instance.file.file))
 ```
 
-为了测试Celery，让我们进行部署！
+为了测试 Celery，让我们进行部署！
 
-在项目根目录下，包含一个Dockerfile和heroku.yml文件，二者在[仓库](https://github.com/nzh2534/mltutorial/tree/main)中有指定。最重要的是，编辑heroku.yml中的*commands*，可以让你配置gunicorn web进程和Celery工作进程，这将有助于进一步减少潜在问题。
+在项目根目录下，包含一个 Dockerfile 和 heroku.yml 文件，二者在[仓库](https://github.com/nzh2534/mltutorial/tree/main)中有指定。最重要的是，编辑 heroku.yml 中的*commands*，可以让你配置 gunicorn web 进程和 Celery 工作进程，这将有助于进一步减少潜在问题。
 
-创建一个Heroku账户，并创建一个名为“mlapp”的新应用，同时将.env文件加入.gitignore。然后，在项目的根目录初始化git，并将Heroku应用的堆栈更改为容器（以便使用Docker进行部署）：
+创建一个 Heroku 账户，并创建一个名为“mlapp”的新应用，同时将.env 文件加入.gitignore。然后，在项目的根目录初始化 git，并将 Heroku 应用的堆栈更改为容器（以便使用 Docker 进行部署）：
 
 ```py
 $ heroku login
@@ -453,13 +453,13 @@ $ heroku stack:set container
 $ git push heroku master
 ```
 
-一旦推送完成，我们只需要将环境变量添加到Heroku应用程序中。
+一旦推送完成，我们只需要将环境变量添加到 Heroku 应用程序中。
 
-进入在线界面的设置，滚动到配置变量（Config Vars）部分，点击“显示配置变量”（Reveal Config Vars），并添加.env文件中列出的每一行。
+进入在线界面的设置，滚动到配置变量（Config Vars）部分，点击“显示配置变量”（Reveal Config Vars），并添加.env 文件中列出的每一行。
 
-![](../Images/0cb721c6c2ac8c4e9fbadf33d1aa882f.png)
+![](img/0cb721c6c2ac8c4e9fbadf33d1aa882f.png)
 
-你可能已经注意到在celery.py中指定了一个CLOUDAMQP_URL变量。我们需要在Heroku上配置一个Celery Broker，针对这个需求有多种选择。我将使用[CloudAMQP](https://elements.heroku.com/addons/cloudamqp)，它提供了一个免费的层级。请继续并将其添加到你的应用程序中。添加后，CLOUDAMQP_URL环境变量将会自动包含在配置变量中。
+你可能已经注意到在 celery.py 中指定了一个 CLOUDAMQP_URL 变量。我们需要在 Heroku 上配置一个 Celery Broker，针对这个需求有多种选择。我将使用[CloudAMQP](https://elements.heroku.com/addons/cloudamqp)，它提供了一个免费的层级。请继续并将其添加到你的应用程序中。添加后，CLOUDAMQP_URL 环境变量将会自动包含在配置变量中。
 
 最后，让我们测试最终产品。
 
@@ -469,15 +469,15 @@ $ git push heroku master
 $ heroku logs --tail
 ```
 
-对Heroku应用的URL发送另一个Postman POST请求，使用/api/create/端点。你会看到POST请求传输过来，Celery接收任务，加载模型并开始运行页面：
+对 Heroku 应用的 URL 发送另一个 Postman POST 请求，使用/api/create/端点。你会看到 POST 请求传输过来，Celery 接收任务，加载模型并开始运行页面：
 
-![](../Images/96ab69c4cda3ae0833d35f08f528b544.png)
+![](img/96ab69c4cda3ae0833d35f08f528b544.png)
 
-我们将在整个过程结束之前继续看到“Running for page...”，你可以在此过程中检查AWS S3桶的状态。
+我们将在整个过程结束之前继续看到“Running for page...”，你可以在此过程中检查 AWS S3 桶的状态。
 
-恭喜！你现在已经成功部署并运行了一个使用机器学习的Python后端，该后端作为分布式任务队列的一部分，与主Web进程并行运行！
+恭喜！你现在已经成功部署并运行了一个使用机器学习的 Python 后端，该后端作为分布式任务队列的一部分，与主 Web 进程并行运行！
 
-如前所述，你需要调整heroku.yml中的*commands*以包含gunicorn线程和/或工作进程，并对celery进行微调。如果需要进一步学习，这里有一篇[优秀文章](https://medium.com/building-the-system/gunicorn-3-means-of-concurrency-efbb547674b7)，讲解如何配置gunicorn以满足你的应用需求；还有一篇关于[生产环境中使用Celery](https://progressstory.com/tech/python/production-ready-celery-configuration/)的文章，以及另一篇关于探索Celery[工作池](https://celery.school/celery-worker-pools)的文章，可以帮助你更好地管理资源。
+如前所述，你需要调整 heroku.yml 中的*commands*以包含 gunicorn 线程和/或工作进程，并对 celery 进行微调。如果需要进一步学习，这里有一篇[优秀文章](https://medium.com/building-the-system/gunicorn-3-means-of-concurrency-efbb547674b7)，讲解如何配置 gunicorn 以满足你的应用需求；还有一篇关于[生产环境中使用 Celery](https://progressstory.com/tech/python/production-ready-celery-configuration/)的文章，以及另一篇关于探索 Celery[工作池](https://celery.school/celery-worker-pools)的文章，可以帮助你更好地管理资源。
 
 编程愉快！
 

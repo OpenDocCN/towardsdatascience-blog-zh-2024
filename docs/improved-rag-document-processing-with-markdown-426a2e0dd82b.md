@@ -1,16 +1,16 @@
 # 使用 Markdown 改进 RAG 文档处理
 
-> 原文：[https://towardsdatascience.com/improved-rag-document-processing-with-markdown-426a2e0dd82b?source=collection_archive---------0-----------------------#2024-11-19](https://towardsdatascience.com/improved-rag-document-processing-with-markdown-426a2e0dd82b?source=collection_archive---------0-----------------------#2024-11-19)
+> 原文：[`towardsdatascience.com/improved-rag-document-processing-with-markdown-426a2e0dd82b?source=collection_archive---------0-----------------------#2024-11-19`](https://towardsdatascience.com/improved-rag-document-processing-with-markdown-426a2e0dd82b?source=collection_archive---------0-----------------------#2024-11-19)
 
 ## 如何阅读和转换 PDF 为 Markdown，以便在 LLMs 中获得更好的 RAG 结果
 
-[](https://medium.com/@leoneversberg?source=post_page---byline--426a2e0dd82b--------------------------------)[![Dr. Leon Eversberg](../Images/56dc3579a29933f7047a9ce60be4697a.png)](https://medium.com/@leoneversberg?source=post_page---byline--426a2e0dd82b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--426a2e0dd82b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--426a2e0dd82b--------------------------------) [Dr. Leon Eversberg](https://medium.com/@leoneversberg?source=post_page---byline--426a2e0dd82b--------------------------------)
+[](https://medium.com/@leoneversberg?source=post_page---byline--426a2e0dd82b--------------------------------)![Dr. Leon Eversberg](https://medium.com/@leoneversberg?source=post_page---byline--426a2e0dd82b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--426a2e0dd82b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--426a2e0dd82b--------------------------------) [Dr. Leon Eversberg](https://medium.com/@leoneversberg?source=post_page---byline--426a2e0dd82b--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--426a2e0dd82b--------------------------------) ·10 分钟阅读·2024年11月19日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--426a2e0dd82b--------------------------------) ·10 分钟阅读·2024 年 11 月 19 日
 
 --
 
-![](../Images/ac75eb85d3ffb2ce31541c2d36d448da.png)
+![](img/ac75eb85d3ffb2ce31541c2d36d448da.png)
 
 图片来源：[insung yoon](https://unsplash.com/@insungpandora?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

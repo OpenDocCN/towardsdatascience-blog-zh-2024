@@ -1,20 +1,20 @@
 # 《在自定义数据集上训练和运行 YOLOv8 模型的全面指南》
 
-> 原文：[https://towardsdatascience.com/the-comprehensive-guide-to-training-and-running-yolov8-models-on-custom-datasets-22946da259c3?source=collection_archive---------2-----------------------#2024-10-02](https://towardsdatascience.com/the-comprehensive-guide-to-training-and-running-yolov8-models-on-custom-datasets-22946da259c3?source=collection_archive---------2-----------------------#2024-10-02)
+> 原文：[`towardsdatascience.com/the-comprehensive-guide-to-training-and-running-yolov8-models-on-custom-datasets-22946da259c3?source=collection_archive---------2-----------------------#2024-10-02`](https://towardsdatascience.com/the-comprehensive-guide-to-training-and-running-yolov8-models-on-custom-datasets-22946da259c3?source=collection_archive---------2-----------------------#2024-10-02)
 
 ## 现在，通过 Python、命令行或 Google Colab 在自定义数据集上训练自己的计算机视觉模型比以往任何时候都更加容易。
 
-[](https://medium.com/@oliverma.california?source=post_page---byline--22946da259c3--------------------------------)[![Oliver Ma](../Images/02280890ed87239c75cbcbfa7c5d686c.png)](https://medium.com/@oliverma.california?source=post_page---byline--22946da259c3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--22946da259c3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--22946da259c3--------------------------------) [Oliver Ma](https://medium.com/@oliverma.california?source=post_page---byline--22946da259c3--------------------------------)
+[](https://medium.com/@oliverma.california?source=post_page---byline--22946da259c3--------------------------------)![Oliver Ma](https://medium.com/@oliverma.california?source=post_page---byline--22946da259c3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--22946da259c3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--22946da259c3--------------------------------) [Oliver Ma](https://medium.com/@oliverma.california?source=post_page---byline--22946da259c3--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--22946da259c3--------------------------------) ·阅读时长：15分钟·2024年10月2日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--22946da259c3--------------------------------) ·阅读时长：15 分钟·2024 年 10 月 2 日
 
 --
 
-![](../Images/a6b9123219a8ae3b5339064876987f85.png)
+![](img/a6b9123219a8ae3b5339064876987f85.png)
 
 图片由作者使用 ChatGPT Auto 创建。
 
-Ultralytics 的前沿**YOLOv8**模型是解决计算机视觉问题的最佳方法之一，同时最小化麻烦。它是 Ultralytics 的 **YOLO (You Only Look Once)** 系列模型的第八个也是最新的版本，像其他版本一样，使用**卷积神经网络 (CNN)** 来预测物体类别及其边界框。YOLO系列物体检测器因其高准确度和快速性而广为人知，并提供了一个基于 **PyTorch** 的平台，简化了从头开始创建模型的过程。
+Ultralytics 的前沿**YOLOv8**模型是解决计算机视觉问题的最佳方法之一，同时最小化麻烦。它是 Ultralytics 的 **YOLO (You Only Look Once)** 系列模型的第八个也是最新的版本，像其他版本一样，使用**卷积神经网络 (CNN)** 来预测物体类别及其边界框。YOLO 系列物体检测器因其高准确度和快速性而广为人知，并提供了一个基于 **PyTorch** 的平台，简化了从头开始创建模型的过程。
 
 重要的是，YOLOv8 也是一个非常灵活的模型。也就是说，它可以在各种平台上进行训练，使用你选择的任何数据集，且预测模型可以从多个来源运行。本指南将作为一个全面的教程，涵盖训练和运行 YOLOv8 模型的多种方式，以及每种方法的优缺点，这些内容将帮助你根据硬件和数据集选择最合适的流程。
 
@@ -26,25 +26,25 @@ Ultralytics 的前沿**YOLOv8**模型是解决计算机视觉问题的最佳方�
 
 我们可以选择的环境大致可以分为两类：**本地环境**和**云环境**。
 
-在本地训练中，我们实际上是在直接使用设备的物理硬件运行训练过程。在本地训练中，YOLOv8为我们提供了两种选择：**Python API**和**CLI**。这两种选择在结果和速度上没有真正的区别，因为它们背后运行的是相同的过程；唯一的区别在于训练的设置和执行方式。
+在本地训练中，我们实际上是在直接使用设备的物理硬件运行训练过程。在本地训练中，YOLOv8 为我们提供了两种选择：**Python API**和**CLI**。这两种选择在结果和速度上没有真正的区别，因为它们背后运行的是相同的过程；唯一的区别在于训练的设置和执行方式。
 
 另一方面，基于云的训练允许你利用云服务器的硬件。通过使用互联网，你可以连接到云运行时并执行代码，就像在本地机器上一样，只不过现在是在云硬件上运行。
 
-到目前为止，最受欢迎的机器学习云平台是**Google Colab**。它使用Jupyter笔记本格式，允许用户创建**“单元”**，在其中编写和运行代码片段，并提供与Google Drive和Github的强大集成。
+到目前为止，最受欢迎的机器学习云平台是**Google Colab**。它使用 Jupyter 笔记本格式，允许用户创建**“单元”**，在其中编写和运行代码片段，并提供与 Google Drive 和 Github 的强大集成。
 
-你决定使用哪个环境主要取决于你所拥有的硬件。如果你拥有一台配备高端NVIDIA GPU的强大系统，本地训练可能会非常适合你。如果你的本地机器硬件不符合机器学习的要求，或者你只是需要比本地硬件更多的计算能力，那么Google Colab可能是一个不错的选择。
+你决定使用哪个环境主要取决于你所拥有的硬件。如果你拥有一台配备高端 NVIDIA GPU 的强大系统，本地训练可能会非常适合你。如果你的本地机器硬件不符合机器学习的要求，或者你只是需要比本地硬件更多的计算能力，那么 Google Colab 可能是一个不错的选择。
 
-Google Colab的一个最大优势是它提供了一些免费的计算资源，并且还具有简单的升级路径，允许你利用更快的计算硬件。即使你已经有了一台强大的系统，如果Google Colab在其高阶计划中提供的更快GPU相比现有硬件能带来显著的性能提升，你也可以考虑使用Google Colab。在免费计划中，你只能使用NVIDIA T4，其性能大致相当于RTX 2070。更高阶的计划中提供L4（性能约等于4090）和A100（性能约等于两块4090）。在比较GPU时，请记住**VRAM**的大小是机器学习性能的主要决定因素。
+Google Colab 的一个最大优势是它提供了一些免费的计算资源，并且还具有简单的升级路径，允许你利用更快的计算硬件。即使你已经有了一台强大的系统，如果 Google Colab 在其高阶计划中提供的更快 GPU 相比现有硬件能带来显著的性能提升，你也可以考虑使用 Google Colab。在免费计划中，你只能使用 NVIDIA T4，其性能大致相当于 RTX 2070。更高阶的计划中提供 L4（性能约等于 4090）和 A100（性能约等于两块 4090）。在比较 GPU 时，请记住**VRAM**的大小是机器学习性能的主要决定因素。
 
 # 数据集
 
 为了开始训练一个模型，你需要大量的数据来训练它。目标检测**数据集**通常由各种物体的图像集合组成，此外还包括指示物体在图像中位置的**“边界框”**。
 
-![](../Images/be9bea36e381b5db08f5ee1263ebf970.png)
+![](img/be9bea36e381b5db08f5ee1263ebf970.png)
 
 被检测物体周围的边界框示例。图片来源：作者。
 
-YOLOv8兼容的数据集有特定的结构。它们主要分为**valid**、**train**和**test**文件夹，分别用于模型的**验证**、**训练**和**测试**（*验证*和*测试*的区别在于，验证过程中使用结果来调整模型以提高其准确性，而测试过程中，结果仅用于提供模型在现实世界中的准确性度量）。
+YOLOv8 兼容的数据集有特定的结构。它们主要分为**valid**、**train**和**test**文件夹，分别用于模型的**验证**、**训练**和**测试**（*验证*和*测试*的区别在于，验证过程中使用结果来调整模型以提高其准确性，而测试过程中，结果仅用于提供模型在现实世界中的准确性度量）。
 
 在这些文件夹中，数据集进一步分为两个文件夹：`images`和`labels`文件夹。这两个文件夹的内容是紧密相关的。
 
@@ -65,15 +65,15 @@ YOLOv8兼容的数据集有特定的结构。它们主要分为**valid**、**tra
 2 0.26322115384615385 0.3713942307692308 0.02403846153846154 0.007211538461538462
 ```
 
-每一行代表图像中存在的一个独立物体。在每一行中，第一个数字表示物体的**类别**，第二和第三个数字表示**边界框中心的x和y坐标**，第四和第五个数字表示**边界框的宽度和高度**。
+每一行代表图像中存在的一个独立物体。在每一行中，第一个数字表示物体的**类别**，第二和第三个数字表示**边界框中心的 x 和 y 坐标**，第四和第五个数字表示**边界框的宽度和高度**。
 
 `images`和`labels`文件夹中的数据通过文件名相互关联。`images`文件夹中的每张图像都有一个在`labels`文件夹中对应的文件，文件名相同，扩展名不同。数据集中，`images`和`labels`文件夹中总是有成对的文件，**它们的文件名相同，但扩展名不同；** `.jpg`用于图像，`.txt`用于标签。每个`.jpg`图片中物体的边界框数据包含在相应的`.txt`文件中。
 
-![](../Images/6c9f69516362ab97198fbaa292a2d689.png)
+![](img/6c9f69516362ab97198fbaa292a2d689.png)
 
-YOLOv8兼容数据集的典型文件结构。来源：Ultralytics YOLO文档（[https://docs.ultralytics.com/datasets/detect/#ultralytics-yolo-format](https://docs.ultralytics.com/datasets/detect/#ultralytics-yolo-format)）
+YOLOv8 兼容数据集的典型文件结构。来源：Ultralytics YOLO 文档（[`docs.ultralytics.com/datasets/detect/#ultralytics-yolo-format`](https://docs.ultralytics.com/datasets/detect/#ultralytics-yolo-format)）
 
-有几种方法可以获取YOLOv8兼容的数据集来开始训练模型。你可以**创建自己的数据集**或**使用互联网中的预配置数据集**。为了本教程的目的，我们将使用[**CVAT**](https://www.cvat.ai)来创建自己的数据集，并使用[**Kaggle**](https://www.kaggle.com)来查找一个预配置的数据集。
+有几种方法可以获取 YOLOv8 兼容的数据集来开始训练模型。你可以**创建自己的数据集**或**使用互联网中的预配置数据集**。为了本教程的目的，我们将使用[**CVAT**](https://www.cvat.ai)来创建自己的数据集，并使用[**Kaggle**](https://www.kaggle.com)来查找一个预配置的数据集。
 
 ## CVAT
 
@@ -81,41 +81,41 @@ CVAT（[cvat.ai](https://www.cvat.ai)）是一款标注工具，允许你通过�
 
 创建账户并登录后，开始标注的过程很简单。只需创建一个**项目**，为其取一个合适的名字，并添加你希望标注的物体类型/类别的标签。
 
-![](../Images/66545aacff5ffc39ba7ee3ef5fdfdd10.png)
+![](img/66545aacff5ffc39ba7ee3ef5fdfdd10.png)
 
-在cvat.ai上创建新项目和标签，视频由作者提供。
+在 cvat.ai 上创建新项目和标签，视频由作者提供。
 
 创建一个新任务并上传你希望包含在数据集中的所有图像。点击“Submit & Open”，一个新的**任务**将在项目下创建，并附带一个**工作**。
 
-![](../Images/88f64ea615d0116d65026515abf1c224.png)
+![](img/88f64ea615d0116d65026515abf1c224.png)
 
-在cvat.ai上创建新任务和工作，视频由作者提供。
+在 cvat.ai 上创建新任务和工作，视频由作者提供。
 
 打开此任务将允许你开始标注过程。使用**矩形工具**为数据集中的每张图像创建边界框和标签。
 
-![](../Images/8429aa65679bfb6eab9da9f7685eda75.png)
+![](img/8429aa65679bfb6eab9da9f7685eda75.png)
 
-在cvat.ai上使用矩形工具创建边界框，视频由作者提供。
+在 cvat.ai 上使用矩形工具创建边界框，视频由作者提供。
 
-在标注完所有图像后，返回任务页面，选择“Actions” → “Export task dataset”，并选择**YOLOv8 Detection 1.0**作为导出格式。下载任务数据集后，你会发现它只包含*labels*文件夹，而没有*images*文件夹（除非在导出时选择了“保存图像”选项）。你需要手动创建*images*文件夹并将图像移动到其中（你可能想先将图像压缩到较低的分辨率，例如640x640）。记住不要更改文件名，因为它们必须与*labels*文件夹中的.txt文件的文件名匹配。你还需要决定如何将图像分配到`valid`、`train`和`test`文件夹中（其中`train`是最重要的）。
+在标注完所有图像后，返回任务页面，选择“Actions” → “Export task dataset”，并选择**YOLOv8 Detection 1.0**作为导出格式。下载任务数据集后，你会发现它只包含*labels*文件夹，而没有*images*文件夹（除非在导出时选择了“保存图像”选项）。你需要手动创建*images*文件夹并将图像移动到其中（你可能想先将图像压缩到较低的分辨率，例如 640x640）。记住不要更改文件名，因为它们必须与*labels*文件夹中的.txt 文件的文件名匹配。你还需要决定如何将图像分配到`valid`、`train`和`test`文件夹中（其中`train`是最重要的）。
 
-![](../Images/3c462e59f50cbba681575cae8e7cbf29.png)
+![](img/3c462e59f50cbba681575cae8e7cbf29.png)
 
-从cvat.ai导出的数据集示例，图片由作者提供。
+从 cvat.ai 导出的数据集示例，图片由作者提供。
 
 你的数据集已经完成并准备好使用！
 
 ## Kaggle
 
-Kaggle ([kaggle.com](https://kaggle.com/)) 是最大的在线数据科学社区之一，也是探索数据集的最佳网站之一。你可以通过简单地搜索他们的网站来查找所需的数据集，除非你在寻找非常具体的内容，否则很有可能会找到。然而，Kaggle上的许多数据集并不符合YOLOv8兼容格式和/或与计算机视觉无关，因此你可能需要在查询中加入“YOLOv8”来优化搜索结果。
+Kaggle ([kaggle.com](https://kaggle.com/)) 是最大的在线数据科学社区之一，也是探索数据集的最佳网站之一。你可以通过简单地搜索他们的网站来查找所需的数据集，除非你在寻找非常具体的内容，否则很有可能会找到。然而，Kaggle 上的许多数据集并不符合 YOLOv8 兼容格式和/或与计算机视觉无关，因此你可能需要在查询中加入“YOLOv8”来优化搜索结果。
 
-你可以通过数据集的**数据资源管理器**（页面右侧）中的文件结构判断一个数据集是否为YOLOv8兼容格式。
+你可以通过数据集的**数据资源管理器**（页面右侧）中的文件结构判断一个数据集是否为 YOLOv8 兼容格式。
 
-![](../Images/26abb66176e709df39df24c94e9a8db2.png)
+![](img/26abb66176e709df39df24c94e9a8db2.png)
 
-一个YOLOv8兼容格式的数据集示例，图片由作者提供。
+一个 YOLOv8 兼容格式的数据集示例，图片由作者提供。
 
-如果数据集相对较小（几MB）和/或你在本地训练，你可以直接从Kaggle下载数据集。然而，如果你计划在Google Colab上训练一个大型数据集，最好从notebook本身获取数据集（更多信息见下文）。
+如果数据集相对较小（几 MB）和/或你在本地训练，你可以直接从 Kaggle 下载数据集。然而，如果你计划在 Google Colab 上训练一个大型数据集，最好从 notebook 本身获取数据集（更多信息见下文）。
 
 # 训练
 
@@ -125,7 +125,7 @@ Kaggle ([kaggle.com](https://kaggle.com/)) 是最大的在线数据科学社区�
 
 创建一个用于存放所有训练文件的项目文件夹。本教程中我们将其命名为`yolov8-project`。将数据集移动/复制到此文件夹。
 
-设置一个包含YOLOv8所需依赖项的Python虚拟环境：
+设置一个包含 YOLOv8 所需依赖项的 Python 虚拟环境：
 
 ```py
 python3 -m venv venv
@@ -150,7 +150,7 @@ names:
 
 在`test`、`train`和`val`中，填写用于测试、训练和验证的图像位置（如果你只有`train`图像，可以将所有三个位置都设置为`train/images`）。
 
-在`names`下，指定每个类别的名称。这些信息通常可以在任何YOLOv8数据集的`data.yaml`文件中找到。
+在`names`下，指定每个类别的名称。这些信息通常可以在任何 YOLOv8 数据集的`data.yaml`文件中找到。
 
 如前所述，可以使用**Python API**或**CLI**进行本地训练。
 
@@ -168,23 +168,23 @@ model.train(data="config.yaml", epochs=100)
 
 通过将模型初始化为`YOLO("yolov8n.yaml")`，我们实际上是从头创建一个新模型。我们使用`yolov8n`是因为它是最快的模型，但你也可以根据自己的使用情况选择其他模型。
 
-![](../Images/52d48d4b1cb5bbaf7e1c47d9f4a23f0f.png)
+![](img/52d48d4b1cb5bbaf7e1c47d9f4a23f0f.png)
 
-YOLOv8变体的性能指标。来源：Ultralytics YOLO文档（[https://docs.ultralytics.com/models/yolov8/#performance-metrics](https://docs.ultralytics.com/models/yolov8/#performance-metrics)）
+YOLOv8 变体的性能指标。来源：Ultralytics YOLO 文档（[`docs.ultralytics.com/models/yolov8/#performance-metrics`](https://docs.ultralytics.com/models/yolov8/#performance-metrics)）
 
-最后，我们训练模型并传入配置文件和**epochs**（训练轮次）。一个好的基准是300个epochs，但你可能需要根据数据集的大小和硬件的速度调整这个数字。
+最后，我们训练模型并传入配置文件和**epochs**（训练轮次）。一个好的基准是 300 个 epochs，但你可能需要根据数据集的大小和硬件的速度调整这个数字。
 
 还有一些有用的设置你可能想要包含：
 
-+   `imgsz`：将所有图像调整为指定的大小。例如，`imgsz=640`将所有图像调整为640x640。这在你创建了自己的数据集并且没有调整图像大小的情况下非常有用。
++   `imgsz`：将所有图像调整为指定的大小。例如，`imgsz=640`将所有图像调整为 640x640。这在你创建了自己的数据集并且没有调整图像大小的情况下非常有用。
 
-+   `device`：指定要训练的设备。默认情况下，YOLOv8尝试在GPU上进行训练，并使用CPU训练作为后备，但如果你在M系列Mac上进行训练，你必须使用`device="mps"`，以便通过Apple的**Metal性能着色器（MPS）**后端进行GPU加速。
++   `device`：指定要训练的设备。默认情况下，YOLOv8 尝试在 GPU 上进行训练，并使用 CPU 训练作为后备，但如果你在 M 系列 Mac 上进行训练，你必须使用`device="mps"`，以便通过 Apple 的**Metal 性能着色器（MPS）**后端进行 GPU 加速。
 
-有关所有训练参数的更多信息，请访问 [https://docs.ultralytics.com/modes/train/#train-settings](https://docs.ultralytics.com/modes/train/#train-settings)。
+有关所有训练参数的更多信息，请访问 [`docs.ultralytics.com/modes/train/#train-settings`](https://docs.ultralytics.com/modes/train/#train-settings)。
 
 你的项目目录现在应该类似于以下结构：
 
-![](../Images/381dd501e838530b79c2f06e6f3eb6a7.png)
+![](img/381dd501e838530b79c2f06e6f3eb6a7.png)
 
 项目目录的示例文件结构。图片由作者提供。
 
@@ -194,15 +194,15 @@ YOLOv8变体的性能指标。来源：Ultralytics YOLO文档（[https://docs.ul
 python3 main.py
 ```
 
-终端将显示每个epoch的训练进度信息。
+终端将显示每个 epoch 的训练进度信息。
 
-![](../Images/ef2b4c1a094f37cf27f77f9c1ea3b9a5.png)
+![](img/ef2b4c1a094f37cf27f77f9c1ea3b9a5.png)
 
-每个epoch的训练进度将在终端显示。图片由作者提供。
+每个 epoch 的训练进度将在终端显示。图片由作者提供。
 
 训练结果将保存在 `runs/detect/train`（或 `train2`、`train3` 等）中。包括 **权重**（扩展名为 `.pt` 的文件），这些将对稍后运行模型非常重要，以及 `results.png`，其中显示了包含相关训练统计信息的多张图表。
 
-![](../Images/96cd51726353cefbcc09089e6ed6bfa3.png)
+![](img/96cd51726353cefbcc09089e6ed6bfa3.png)
 
 来自 results.png 的示例图表。图像由作者提供。
 
@@ -224,11 +224,11 @@ yolo detect train data=config.yaml model=yolov8n.yaml epochs=300 imgsz=640 devic
 
 ## Google Colab
 
-访问 [https://colab.research.google.com/](https://colab.research.google.com/) 并创建一个新的训练笔记本。
+访问 [`colab.research.google.com/`](https://colab.research.google.com/) 并创建一个新的训练笔记本。
 
 在训练之前，确保通过在右上角选择 **更改运行时类型** 来连接到 GPU 运行时。在 CPU 运行时上，训练将非常缓慢。
 
-![](../Images/3e4126352e3072779e670e5c6d788f12.png)
+![](img/3e4126352e3072779e670e5c6d788f12.png)
 
 将笔记本运行时从 CPU 更改为 T4 GPU。视频由作者提供。
 
@@ -306,7 +306,7 @@ results = model.train(data="config.yaml", epochs=100)
 
 如果你在本地训练，移动 `best.pt` 到一个方便的位置（例如我们的项目文件夹 `yolov8-project`）以便运行预测。如果你在云端训练，将 `best.pt` 下载到你的设备上。在 Google Colab 上，右击文件浏览器中的文件并选择 **下载**。
 
-![](../Images/8e49ce892006ea4c4bb92290abf0513b.png)
+![](img/8e49ce892006ea4c4bb92290abf0513b.png)
 
 在 Google Colab 上下载权重。视频由作者提供。
 
@@ -336,7 +336,7 @@ results = model(source=0, show=True, conf=0.25, save=True)
 
 +   `device`: 如前所述，在 M 系列 Mac 上使用 `device="mps"`。
 
-要查看完整的预测参数列表，请访问 [https://docs.ultralytics.com/modes/predict/#inference-arguments](https://docs.ultralytics.com/modes/predict/#inference-arguments)。
+要查看完整的预测参数列表，请访问 [`docs.ultralytics.com/modes/predict/#inference-arguments`](https://docs.ultralytics.com/modes/predict/#inference-arguments)。
 
 ## CLI
 
@@ -346,7 +346,7 @@ results = model(source=0, show=True, conf=0.25, save=True)
 python3 predict.py
 ```
 
-![](../Images/74b8a60dea9072833c12d524f9918642.png)
+![](img/74b8a60dea9072833c12d524f9918642.png)
 
 通过实时摄像头视频流运行 YOLOv8 模型预测。视频由作者提供。
 
@@ -377,7 +377,7 @@ results = model(source="path/to/dir/**/*.jpg", show=True, conf=0.25, save=True) 
 results = model(source="https://www.youtube.com/watch?v=dQw4w9WgXcQ", show=True, conf=0.25, save=True) # YouTube video URL
 ```
 
-要查看完整的预测源和输入选项列表，请访问 [https://docs.ultralytics.com/modes/predict/#inference-sources](https://docs.ultralytics.com/modes/predict/#inference-sources)。
+要查看完整的预测源和输入选项列表，请访问 [`docs.ultralytics.com/modes/predict/#inference-sources`](https://docs.ultralytics.com/modes/predict/#inference-sources)。
 
 每当我们运行预测时，YOLOv8 会返回大量有价值的数据，这些数据以 `Results` 对象列表的形式呈现，包含关于**边界框、分割掩码、关键点、类别概率和定向边界框（OBB）**的信息。
 
@@ -403,18 +403,18 @@ for r in results:
   print(r.boxes.cls)
 ```
 
-由于输出结果的类型繁多，无法在本教程中全部涵盖，但你可以通过访问[https://docs.ultralytics.com/modes/predict/#working-with-results](https://docs.ultralytics.com/modes/predict/#working-with-results)了解更多内容。
+由于输出结果的类型繁多，无法在本教程中全部涵盖，但你可以通过访问[`docs.ultralytics.com/modes/predict/#working-with-results`](https://docs.ultralytics.com/modes/predict/#working-with-results)了解更多内容。
 
-这只是你可以使用YOLOv8模型输出的一个非常基础的示例，实际上有无数种方法可以将模型应用到你自己的项目中。
+这只是你可以使用 YOLOv8 模型输出的一个非常基础的示例，实际上有无数种方法可以将模型应用到你自己的项目中。
 
 # 结论
 
 恭喜你坚持到最后！
 
-在本文中，我们能够从零开始，制作自己的YOLOv8兼容数据集，从Kaggle导入数据集，使用包括Python API、CLI和Google Colab在内的多个环境训练模型，运行本地模型，并探索许多输入/输出方法，使我们能够在自己的项目中利用YOLOv8模型。
+在本文中，我们能够从零开始，制作自己的 YOLOv8 兼容数据集，从 Kaggle 导入数据集，使用包括 Python API、CLI 和 Google Colab 在内的多个环境训练模型，运行本地模型，并探索许多输入/输出方法，使我们能够在自己的项目中利用 YOLOv8 模型。
 
-请记住，本教程的目的是作为YOLOv8或计算机视觉的入门点或介绍。我们只是略微触及了YOLOv8模型的复杂性，随着你对YOLOv8和计算机视觉的进一步了解，深入探索这一主题绝对是明智之举。互联网上有大量的文章，Medium上也有很多内容，专门为此目的而写。
+请记住，本教程的目的是作为 YOLOv8 或计算机视觉的入门点或介绍。我们只是略微触及了 YOLOv8 模型的复杂性，随着你对 YOLOv8 和计算机视觉的进一步了解，深入探索这一主题绝对是明智之举。互联网上有大量的文章，Medium 上也有很多内容，专门为此目的而写。
 
-话虽如此，如果你跟随本教程并完成了最后的部分，这仍然是一个伟大的成就。我希望这篇文章能帮助你对机器学习、计算机视觉以及YOLOv8模型有一个基本的理解。也许你已经对这个主题产生了兴趣，并将在未来继续学习更深入的内容，挑战更高阶的课题。
+话虽如此，如果你跟随本教程并完成了最后的部分，这仍然是一个伟大的成就。我希望这篇文章能帮助你对机器学习、计算机视觉以及 YOLOv8 模型有一个基本的理解。也许你已经对这个主题产生了兴趣，并将在未来继续学习更深入的内容，挑战更高阶的课题。
 
 感谢阅读，祝你度过愉快的一天！

@@ -1,16 +1,16 @@
 # 深度学习与数据科学：谁将胜出？
 
-> 原文：[https://towardsdatascience.com/deep-learning-vs-data-science-who-will-win-103bfbad0a65?source=collection_archive---------0-----------------------#2024-10-22](https://towardsdatascience.com/deep-learning-vs-data-science-who-will-win-103bfbad0a65?source=collection_archive---------0-----------------------#2024-10-22)
+> 原文：[`towardsdatascience.com/deep-learning-vs-data-science-who-will-win-103bfbad0a65?source=collection_archive---------0-----------------------#2024-10-22`](https://towardsdatascience.com/deep-learning-vs-data-science-who-will-win-103bfbad0a65?source=collection_archive---------0-----------------------#2024-10-22)
 
 ## 更重要的是，你的数据还是你的模型？
 
-[](https://medium.com/@benjybo7?source=post_page---byline--103bfbad0a65--------------------------------)[![Benjamin Bodner](../Images/f66d5ba5b80455f8a0cd198499e8f4c2.png)](https://medium.com/@benjybo7?source=post_page---byline--103bfbad0a65--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--103bfbad0a65--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--103bfbad0a65--------------------------------) [Benjamin Bodner](https://medium.com/@benjybo7?source=post_page---byline--103bfbad0a65--------------------------------)
+[](https://medium.com/@benjybo7?source=post_page---byline--103bfbad0a65--------------------------------)![Benjamin Bodner](https://medium.com/@benjybo7?source=post_page---byline--103bfbad0a65--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--103bfbad0a65--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--103bfbad0a65--------------------------------) [Benjamin Bodner](https://medium.com/@benjybo7?source=post_page---byline--103bfbad0a65--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--103bfbad0a65--------------------------------) ·12分钟阅读·2024年10月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--103bfbad0a65--------------------------------) ·12 分钟阅读·2024 年 10 月 22 日
 
 --
 
-![](../Images/ea8e74349534cd596f260277defb4e0e.png)
+![](img/ea8e74349534cd596f260277defb4e0e.png)
 
 来源：作者提供的图片
 

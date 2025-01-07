@@ -1,16 +1,16 @@
 # 超越预测：提升模型与影响力科学（第一部分）
 
-> 原文：[https://towardsdatascience.com/beyond-predictions-uplift-modeling-the-science-of-influence-part-i-cb28c47d1b04?source=collection_archive---------1-----------------------#2024-01-03](https://towardsdatascience.com/beyond-predictions-uplift-modeling-the-science-of-influence-part-i-cb28c47d1b04?source=collection_archive---------1-----------------------#2024-01-03)
+> 原文：[`towardsdatascience.com/beyond-predictions-uplift-modeling-the-science-of-influence-part-i-cb28c47d1b04?source=collection_archive---------1-----------------------#2024-01-03`](https://towardsdatascience.com/beyond-predictions-uplift-modeling-the-science-of-influence-part-i-cb28c47d1b04?source=collection_archive---------1-----------------------#2024-01-03)
 
-![](../Images/591483adbad52cbeeaa74d528e4f5af1.png)
+![](img/591483adbad52cbeeaa74d528e4f5af1.png)
 
 作者插图
 
 ## 基于树模型的提升方法
 
-[](https://linafaik.medium.com/?source=post_page---byline--cb28c47d1b04--------------------------------)[![Lina Faik](../Images/24a3aa67a2d9dc3e074ceead04ab4cc8.png)](https://linafaik.medium.com/?source=post_page---byline--cb28c47d1b04--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cb28c47d1b04--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cb28c47d1b04--------------------------------) [Lina Faik](https://linafaik.medium.com/?source=post_page---byline--cb28c47d1b04--------------------------------)
+[](https://linafaik.medium.com/?source=post_page---byline--cb28c47d1b04--------------------------------)![Lina Faik](https://linafaik.medium.com/?source=post_page---byline--cb28c47d1b04--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cb28c47d1b04--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb28c47d1b04--------------------------------) [Lina Faik](https://linafaik.medium.com/?source=post_page---byline--cb28c47d1b04--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb28c47d1b04--------------------------------) ·阅读时间：14分钟·2024年1月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb28c47d1b04--------------------------------) ·阅读时间：14 分钟·2024 年 1 月 3 日
 
 --
 

@@ -1,16 +1,16 @@
 # 使用聊天格式的评估
 
-> 原文：[https://towardsdatascience.com/evaluations-with-chat-formats-7604067023c9?source=collection_archive---------6-----------------------#2024-02-21](https://towardsdatascience.com/evaluations-with-chat-formats-7604067023c9?source=collection_archive---------6-----------------------#2024-02-21)
+> 原文：[`towardsdatascience.com/evaluations-with-chat-formats-7604067023c9?source=collection_archive---------6-----------------------#2024-02-21`](https://towardsdatascience.com/evaluations-with-chat-formats-7604067023c9?source=collection_archive---------6-----------------------#2024-02-21)
 
 ## 将聊天模板应用于生成式语言模型的评估测试
 
-[](https://medium.com/@daniel_furman?source=post_page---byline--7604067023c9--------------------------------)[![Daniel Furman](../Images/f7a1b4c6239ede8bb01e50f167931719.png)](https://medium.com/@daniel_furman?source=post_page---byline--7604067023c9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7604067023c9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7604067023c9--------------------------------) [Daniel Furman](https://medium.com/@daniel_furman?source=post_page---byline--7604067023c9--------------------------------)
+[](https://medium.com/@daniel_furman?source=post_page---byline--7604067023c9--------------------------------)![Daniel Furman](https://medium.com/@daniel_furman?source=post_page---byline--7604067023c9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7604067023c9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7604067023c9--------------------------------) [Daniel Furman](https://medium.com/@daniel_furman?source=post_page---byline--7604067023c9--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7604067023c9--------------------------------) ·7分钟阅读·2024年2月21日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7604067023c9--------------------------------) ·7 分钟阅读·2024 年 2 月 21 日
 
 --
 
-![](../Images/a8e714bc5984165c0816edc5f138bd2f.png)
+![](img/a8e714bc5984165c0816edc5f138bd2f.png)
 
 图片由 [Google DeepMind](https://unsplash.com/@googledeepmind) 提供，来源于 [Unsplash](https://unsplash.com/photos/a-close-up-of-a-metal-structure-made-of-wood-and-metal-pyET8SQTc0A)
 
@@ -76,13 +76,13 @@ tokenizer.apply_chat_template(chat, tokenize=False)
 
 # 语言模型评估
 
-评估用于衡量AI/ML模型的性能，它们可以有许多不同的形式和大小。评估包括两个核心组件：针对特定任务策划的数据集和与之相关的衡量模型性能的指标。
+评估用于衡量 AI/ML 模型的性能，它们可以有许多不同的形式和大小。评估包括两个核心组件：针对特定任务策划的数据集和与之相关的衡量模型性能的指标。
 
 生成性语言模型评估包含一些额外的细节。例如，不同的框架以不同方式衡量文本生成性能——即使是相同的评估也会有所不同（[参考](https://huggingface.co/blog/evaluating-mmlu-leaderboard)）。因此，在跨研究比较分数时，非常重要的一点是要确认结果是使用相同的代码和配置计算的，以避免错误分析。
 
-超级的指令遵循评估（[IFEval](https://arxiv.org/abs/2311.07911)）[2]在这里用于我们的测试。该评估包括541个提示，用来衡量语言模型遵循可验证自然语言指令的能力。这些可验证指令的示例包括：
+超级的指令遵循评估（[IFEval](https://arxiv.org/abs/2311.07911)）[2]在这里用于我们的测试。该评估包括 541 个提示，用来衡量语言模型遵循可验证自然语言指令的能力。这些可验证指令的示例包括：
 
-> “写450到500字”，“你的所有输出应该是JSON格式”，“包括一个标题，并将其放入两个方括号中，例如[[ title ]]”
+> “写 450 到 500 字”，“你的所有输出应该是 JSON 格式”，“包括一个标题，并将其放入两个方括号中，例如[[ title ]]”
 
 对于给定的响应和可验证指令，我们使用以下四个指标来检查该指令是否已被遵循：
 
@@ -94,13 +94,13 @@ tokenizer.apply_chat_template(chat, tokenize=False)
 > 
 > 4\. **指令级宽松准确度**：使用宽松标准计算的指令级准确度。
 
-这四个指标的平均值在此计算（表格1），主要目的是使用一个捕捉最广泛信号的单一指标。
+这四个指标的平均值在此计算（表格 1），主要目的是使用一个捕捉最广泛信号的单一指标。
 
-IFEval是探索聊天模板影响的理想测试，因为该测试专门设计用来衡量在聊天数据上的指令遵循能力。另一个有趣的问题是，聊天模板是否对那些不太适合聊天数据的评估产生积极影响——这是一个留待未来研究的话题。
+IFEval 是探索聊天模板影响的理想测试，因为该测试专门设计用来衡量在聊天数据上的指令遵循能力。另一个有趣的问题是，聊天模板是否对那些不太适合聊天数据的评估产生积极影响——这是一个留待未来研究的话题。
 
-# IFEval的聊天模板
+# IFEval 的聊天模板
 
-Eleuther.AI的[lm-eval](https://github.com/EleutherAI/lm-evaluation-harness)是事实上的开源语言模型评估工具包。由于更多模型的聊天模板功能是用户常请求的新增功能，因此我们很容易与其他开发者协作，专注于在🤗模型类中实现这一功能。目前，开发工作正在`add-chat-templating`分支中进行（[链接](https://github.com/EleutherAI/lm-evaluation-harness/tree/add-chat-templating)），由问题#1098（[链接](https://github.com/EleutherAI/lm-evaluation-harness/issues/1098#issuecomment-1947116099)）和#1209（[链接](https://github.com/EleutherAI/lm-evaluation-harness/issues/1209#issuecomment-1879966071)）推动。当使用此分支时，我们可以按如下方式将聊天格式应用于评估：
+Eleuther.AI 的[lm-eval](https://github.com/EleutherAI/lm-evaluation-harness)是事实上的开源语言模型评估工具包。由于更多模型的聊天模板功能是用户常请求的新增功能，因此我们很容易与其他开发者协作，专注于在🤗模型类中实现这一功能。目前，开发工作正在`add-chat-templating`分支中进行（[链接](https://github.com/EleutherAI/lm-evaluation-harness/tree/add-chat-templating)），由问题#1098（[链接](https://github.com/EleutherAI/lm-evaluation-harness/issues/1098#issuecomment-1947116099)）和#1209（[链接](https://github.com/EleutherAI/lm-evaluation-harness/issues/1209#issuecomment-1879966071)）推动。当使用此分支时，我们可以按如下方式将聊天格式应用于评估：
 
 ```py
 !lm_eval --model hf \
@@ -124,15 +124,15 @@ Eleuther.AI的[lm-eval](https://github.com/EleutherAI/lm-evaluation-harness)是�
 
 输出已采用所需的聊天模板！
 
-我们现在准备进行A/B测试，评估聊天模板对IFEval的影响。我们为实验选择了一些流行的LLM，每个模型都有自己独特的聊天模板。在较大的模型方面，我们选择了70B参数的`Llama-2–70b-chat`，两种47B参数模型的变体，`Mixtral-8x7B-Instruct-v0.1`和`Nous-Hermes-2-Mixtral-8x7B-DPO`，以及34B参数的`Nous-Hermes-2-Yi-34B`。在较小的模型方面，我们有三个7B参数的模型：`Mistral-Instruct-7B-v0.2`、`Zephyr-7b-beta`和`Starling-LM-7B-alpha`。至于系统提示，兼容模型使用了简单的提示“你是一个有帮助的助手。”更多关于这七个模型的详细信息请参见下文[3]。
+我们现在准备进行 A/B 测试，评估聊天模板对 IFEval 的影响。我们为实验选择了一些流行的 LLM，每个模型都有自己独特的聊天模板。在较大的模型方面，我们选择了 70B 参数的`Llama-2–70b-chat`，两种 47B 参数模型的变体，`Mixtral-8x7B-Instruct-v0.1`和`Nous-Hermes-2-Mixtral-8x7B-DPO`，以及 34B 参数的`Nous-Hermes-2-Yi-34B`。在较小的模型方面，我们有三个 7B 参数的模型：`Mistral-Instruct-7B-v0.2`、`Zephyr-7b-beta`和`Starling-LM-7B-alpha`。至于系统提示，兼容模型使用了简单的提示“你是一个有帮助的助手。”更多关于这七个模型的详细信息请参见下文[3]。
 
 现在，毫不拖延，我们的结果：
 
-![](../Images/89bcb4f71233c0c5252237b46374b882.png)
+![](img/89bcb4f71233c0c5252237b46374b882.png)
 
-**表1**：来自IFEval的A/B测试结果，按模型大小降序排列（[链接](https://docs.google.com/spreadsheets/d/1Tawz9IHH2B-_XWj-JjeVGmu-og60lgSSpMywrGxcj6Q/edit?usp=sharing)）。有关更多详细信息，请参见下面的“附加说明”部分，例如运行日志的链接。为了保证可重复性，实验在半精度bfloat16模型上执行，工作站配置了2个H100 80GB SXM5芯片，并使用了`lm-eval`包的分支，哈希值为[0c0c314c0df4c10f35bf7c17dc80f745f8027e9b](https://github.com/EleutherAI/lm-evaluation-harness/tree/0c0c314c0df4c10f35bf7c17dc80f745f8027e9b)。
+**表 1**：来自 IFEval 的 A/B 测试结果，按模型大小降序排列（[链接](https://docs.google.com/spreadsheets/d/1Tawz9IHH2B-_XWj-JjeVGmu-og60lgSSpMywrGxcj6Q/edit?usp=sharing)）。有关更多详细信息，请参见下面的“附加说明”部分，例如运行日志的链接。为了保证可重复性，实验在半精度 bfloat16 模型上执行，工作站配置了 2 个 H100 80GB SXM5 芯片，并使用了`lm-eval`包的分支，哈希值为[0c0c314c0df4c10f35bf7c17dc80f745f8027e9b](https://github.com/EleutherAI/lm-evaluation-harness/tree/0c0c314c0df4c10f35bf7c17dc80f745f8027e9b)。
 
-🔥 聊天模板对 IFEval 评分产生了重大影响！`Nous-Hermes-2-Mixtral-8x7B-DPO` 作为测试中表现最好的模型，平均得分约为 63%。相比之下，`Zephyr-7b-beta` 是表现最差的模型，但却从聊天模板中获得了最大的提升——惊人的 +39%！作为参考，IFEval 论文中报告的 `gpt-4`（2023年11月）平均得分约为 81%，`PaLM 2S`（2023年8月）为约 51% [2]。
+🔥 聊天模板对 IFEval 评分产生了重大影响！`Nous-Hermes-2-Mixtral-8x7B-DPO` 作为测试中表现最好的模型，平均得分约为 63%。相比之下，`Zephyr-7b-beta` 是表现最差的模型，但却从聊天模板中获得了最大的提升——惊人的 +39%！作为参考，IFEval 论文中报告的 `gpt-4`（2023 年 11 月）平均得分约为 81%，`PaLM 2S`（2023 年 8 月）为约 51% [2]。
 
 总结来说，这些结果揭示了几个关键的洞察：
 
@@ -146,7 +146,7 @@ Eleuther.AI的[lm-eval](https://github.com/EleutherAI/lm-evaluation-harness)是�
 
 +   更多类似 IFEval 的指令跟随评估
 
-+   一般用途评估，例如 🤗 的[开放LLM排行榜](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard)
++   一般用途评估，例如 🤗 的[开放 LLM 排行榜](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard)
 
 +   上下文检索评估，例如“[Needle in a Haystack](https://github.com/Arize-ai/LLMTest_NeedleInAHaystack2)”
 
@@ -182,8 +182,8 @@ Eleuther.AI的[lm-eval](https://github.com/EleutherAI/lm-evaluation-harness)是�
 
 +   查看用于运行实验的代码，可以在[这里](https://github.com/daniel-furman/evals-with-chat-formats)找到。
 
-+   要审计结果，请查看每次运行的输出，[这里](https://github.com/daniel-furman/evals-with-chat-formats/tree/main/assets/IFEval_results)，以及Zeno日志，[这里](https://hub.zenoml.com/project/79b4684d-0f4e-48f4-b739-ba4e0bd63ee8/IFEval-chat-templating-experiments-run-1)和[这里](https://hub.zenoml.com/project/548fcb7a-52cf-4c60-aaf7-13d6b03343fd/IFEval-chat-templating-experiments-run-2)（模型在2个批次中运行）。请注意，Zeno日志尚未捕捉到聊天模板应用于提示的过程——这是开发待办事项中的一项内容。
++   要审计结果，请查看每次运行的输出，[这里](https://github.com/daniel-furman/evals-with-chat-formats/tree/main/assets/IFEval_results)，以及 Zeno 日志，[这里](https://hub.zenoml.com/project/79b4684d-0f4e-48f4-b739-ba4e0bd63ee8/IFEval-chat-templating-experiments-run-1)和[这里](https://hub.zenoml.com/project/548fcb7a-52cf-4c60-aaf7-13d6b03343fd/IFEval-chat-templating-experiments-run-2)（模型在 2 个批次中运行）。请注意，Zeno 日志尚未捕捉到聊天模板应用于提示的过程——这是开发待办事项中的一项内容。
 
-+   在计算方面，使用了RunPod ([链接](https://www.runpod.io/)) 访问带有Nvidia GPU芯片的工作站——特别是一个拥有2个H100 80 GB SXM5芯片的集群。总的来说，实验包括了14次IFEval的运行，总共积累了约6小时的集群运行时间。
++   在计算方面，使用了 RunPod ([链接](https://www.runpod.io/)) 访问带有 Nvidia GPU 芯片的工作站——特别是一个拥有 2 个 H100 80 GB SXM5 芯片的集群。总的来说，实验包括了 14 次 IFEval 的运行，总共积累了约 6 小时的集群运行时间。
 
-+   通过置信区间估计我们的结果中的统计不确定性（使用了自助法重抽样方法）。这些95%的置信区间大约在+/- 2.75%到4.25%之间——相对于聊天模板应用的测量效果来说，这个范围较小。
++   通过置信区间估计我们的结果中的统计不确定性（使用了自助法重抽样方法）。这些 95%的置信区间大约在+/- 2.75%到 4.25%之间——相对于聊天模板应用的测量效果来说，这个范围较小。

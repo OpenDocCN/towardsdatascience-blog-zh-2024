@@ -1,16 +1,16 @@
-# 56步，1个完整的营销项目：从数据到战略
+# 56 步，1 个完整的营销项目：从数据到战略
 
-> 原文：[https://towardsdatascience.com/56-steps-1-complete-marketing-project-from-data-to-strategy-20c0ce995f1b?source=collection_archive---------8-----------------------#2024-08-20](https://towardsdatascience.com/56-steps-1-complete-marketing-project-from-data-to-strategy-20c0ce995f1b?source=collection_archive---------8-----------------------#2024-08-20)
+> 原文：[`towardsdatascience.com/56-steps-1-complete-marketing-project-from-data-to-strategy-20c0ce995f1b?source=collection_archive---------8-----------------------#2024-08-20`](https://towardsdatascience.com/56-steps-1-complete-marketing-project-from-data-to-strategy-20c0ce995f1b?source=collection_archive---------8-----------------------#2024-08-20)
 
 ## 构建一个完整的营销项目，从数据分析和特征工程到假设检验和商业洞察。
 
-[](https://medium.com/@panData?source=post_page---byline--20c0ce995f1b--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--20c0ce995f1b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--20c0ce995f1b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--20c0ce995f1b--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--20c0ce995f1b--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--20c0ce995f1b--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--20c0ce995f1b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--20c0ce995f1b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--20c0ce995f1b--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--20c0ce995f1b--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--20c0ce995f1b--------------------------------) ·78分钟阅读·2024年8月20日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--20c0ce995f1b--------------------------------) ·78 分钟阅读·2024 年 8 月 20 日
 
 --
 
-![](../Images/1c86960ded068bbb935987469943560f.png)
+![](img/1c86960ded068bbb935987469943560f.png)
 
 照片由[Kalen Emsley](https://unsplash.com/@kalenemsley?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

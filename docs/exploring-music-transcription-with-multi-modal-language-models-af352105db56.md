@@ -1,40 +1,40 @@
 # 探索多模态语言模型在音乐转录中的应用
 
-> 原文：[https://towardsdatascience.com/exploring-music-transcription-with-multi-modal-language-models-af352105db56?source=collection_archive---------1-----------------------#2024-11-17](https://towardsdatascience.com/exploring-music-transcription-with-multi-modal-language-models-af352105db56?source=collection_archive---------1-----------------------#2024-11-17)
+> 原文：[`towardsdatascience.com/exploring-music-transcription-with-multi-modal-language-models-af352105db56?source=collection_archive---------1-----------------------#2024-11-17`](https://towardsdatascience.com/exploring-music-transcription-with-multi-modal-language-models-af352105db56?source=collection_archive---------1-----------------------#2024-11-17)
 
-## 使用Qwen2-Audio将音乐转录为乐谱
+## 使用 Qwen2-Audio 将音乐转录为乐谱
 
-[](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)[![Jon Flynn](../Images/492cef280f4ea0b002e5d00ad2e083a5.png)](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------) [Jon Flynn](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)
+[](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)![Jon Flynn](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------) [Jon Flynn](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------) ·17分钟阅读·2024年11月17日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------) ·17 分钟阅读·2024 年 11 月 17 日
 
 --
 
-![](../Images/1c1e9d05246384c1d3a88590ce3d7033.png)
+![](img/1c1e9d05246384c1d3a88590ce3d7033.png)
 
 作者提供的图片
 
-自动音乐转录是将音频文件（如MP3和WAV）转换为乐谱、吉他谱或任何音乐家希望用来学习歌曲的格式的过程。
+自动音乐转录是将音频文件（如 MP3 和 WAV）转换为乐谱、吉他谱或任何音乐家希望用来学习歌曲的格式的过程。
 
 我们将介绍目前最好的工具，它们基于深度学习，并且有一种新的方法来处理这个问题。
 
 # 当前的最先进技术
 
-当前这一任务的最先进技术来自于[Magenta](https://magenta.tensorflow.org/)，这是一个由现已解散（截至2023年4月）Google Brain团队开发的开源研究项目。
+当前这一任务的最先进技术来自于[Magenta](https://magenta.tensorflow.org/)，这是一个由现已解散（截至 2023 年 4 月）Google Brain 团队开发的开源研究项目。
 
-他们于2021年发布了一篇论文[Sequence-to-Sequence Piano Transcription with Transformers](https://arxiv.org/abs/2107.09142)，使用了一种受T5启发的变换器模型（类似于["t5-small"](https://huggingface.co/google-t5/t5-small)），该模型有5400万个参数，并使用[Maestro数据集](https://magenta.tensorflow.org/datasets/maestro)，取得了很好的成果。该问题被视为一个序列到序列的任务，使用编码器-解码器Transformer架构。编码器处理梅尔频谱图帧作为输入并生成嵌入，解码器则通过交叉注意力使用这些嵌入自回归地生成一系列MIDI样式的标记。他们的词汇表包括四种类型的标记：
+他们于 2021 年发布了一篇论文[Sequence-to-Sequence Piano Transcription with Transformers](https://arxiv.org/abs/2107.09142)，使用了一种受 T5 启发的变换器模型（类似于["t5-small"](https://huggingface.co/google-t5/t5-small)），该模型有 5400 万个参数，并使用[Maestro 数据集](https://magenta.tensorflow.org/datasets/maestro)，取得了很好的成果。该问题被视为一个序列到序列的任务，使用编码器-解码器 Transformer 架构。编码器处理梅尔频谱图帧作为输入并生成嵌入，解码器则通过交叉注意力使用这些嵌入自回归地生成一系列 MIDI 样式的标记。他们的词汇表包括四种类型的标记：
 
-+   音符标记（128个MIDI音高值）
++   音符标记（128 个 MIDI 音高值）
 
-+   音量标记（128个值，包括零表示音符关闭）
++   音量标记（128 个值，包括零表示音符关闭）
 
-+   时间标记（6,000个值，10毫秒为单位的绝对时间）
++   时间标记（6,000 个值，10 毫秒为单位的绝对时间）
 
-+   EOS标记（用于标记序列结束）
++   EOS 标记（用于标记序列结束）
 
-请参见下图，了解架构的可视化以及他们自定义的MIDI标记的示例序列：
+请参见下图，了解架构的可视化以及他们自定义的 MIDI 标记的示例序列：
 
-![](../Images/67b417bfc9720edd402c1c002ca058f8.png)
+![](img/67b417bfc9720edd402c1c002ca058f8.png)
 
 图 1 来自 [基于 Transformer 的序列到序列钢琴转录](https://arxiv.org/abs/2107.09142) 论文
 
@@ -66,7 +66,7 @@ MT3 论文没有提供具体的训练细节，仅说明他们训练了 100 万�
 
 [GPT-4o](https://openai.com/index/hello-gpt-4o/) 设计用于“原生”处理文本、音频和图像。尽管 OpenAI 尚未发布相关技术细节，但可以推测，网络中的某些权重会处理所有模态。也有可能该模型使用类似语言 GPT 模型的解码器架构，而不需要编码器组件将不同模态转换为密集表示。这种设计使得模型能够无缝处理和理解文本与图像的输入，从而在计算上和模型理解上可能带来性能提升。
 
-许多多模态模型采取一种更简单的方式，类似于编码器-解码器架构：它们结合了两个预训练模型——一个用于特定输入模态（如视觉的 [ViT](https://huggingface.co/docs/transformers/main/en/model_doc/vit) 或音频的音频编码器）的编码器，以及一个大型语言模型（如 LLaMA、Gemma 或 Qwen）。这些模型通过投影层连接起来，投影层将它们的表示对齐到共享的潜在空间中，通常只使用一个线性层。这些投影层学习将编码器的输出转换为与 LLM 预期输入维度和特征匹配的格式。投影层从输入模态中创建新的嵌入/标记，然后可以将这些嵌入注入到 LLM 的输入序列中。[LLaVA](https://llava-vl.github.io/) 是一个典型的用于视觉-语言任务的架构示例，而 [Spotify的Llark](https://research.atspotify.com/2023/10/llark-a-multimodal-foundation-model-for-music/) 和 [Qwen-Audio](https://github.com/QwenLM/Qwen2-Audio) 则使用音频编码器代替视觉编码器，应用相同的原理。
+许多多模态模型采取一种更简单的方式，类似于编码器-解码器架构：它们结合了两个预训练模型——一个用于特定输入模态（如视觉的 [ViT](https://huggingface.co/docs/transformers/main/en/model_doc/vit) 或音频的音频编码器）的编码器，以及一个大型语言模型（如 LLaMA、Gemma 或 Qwen）。这些模型通过投影层连接起来，投影层将它们的表示对齐到共享的潜在空间中，通常只使用一个线性层。这些投影层学习将编码器的输出转换为与 LLM 预期输入维度和特征匹配的格式。投影层从输入模态中创建新的嵌入/标记，然后可以将这些嵌入注入到 LLM 的输入序列中。[LLaVA](https://llava-vl.github.io/) 是一个典型的用于视觉-语言任务的架构示例，而 [Spotify 的 Llark](https://research.atspotify.com/2023/10/llark-a-multimodal-foundation-model-for-music/) 和 [Qwen-Audio](https://github.com/QwenLM/Qwen2-Audio) 则使用音频编码器代替视觉编码器，应用相同的原理。
 
 下面是模型如何结合的伪代码：
 
@@ -95,11 +95,11 @@ output = llm(combined_input)
 
 ## 架构概述
 
-Llark 使用 [OpenAI的Jukebox](https://research.atspotify.com/2023/10/llark-a-multimodal-foundation-model-for-music/) 作为音频塔，而 Qwen2-Audio 使用 [OpenAI的Whisper](https://openai.com/index/whisper/) 作为音频塔。Jukebox 是一个音乐生成模型，但它也可以接收音频片段作为输入，并输出音频片段的延续。Whisper 用于将语音转录为文本。
+Llark 使用 [OpenAI 的 Jukebox](https://research.atspotify.com/2023/10/llark-a-multimodal-foundation-model-for-music/) 作为音频塔，而 Qwen2-Audio 使用 [OpenAI 的 Whisper](https://openai.com/index/whisper/) 作为音频塔。Jukebox 是一个音乐生成模型，但它也可以接收音频片段作为输入，并输出音频片段的延续。Whisper 用于将语音转录为文本。
 
 根据其用途，音频模块的选择是明确的：Llark 专注于音乐分析，而 Qwen2Audio 主要专注于响应语音指令，并具备一些基本的音频和音乐分析能力。
 
-确定从大型预训练模型中提取嵌入的最佳来源需要研究和实验。此外，决定是微调整个模块还是冻结其部分模块是一个至关重要的设计选择。例如，LlaVa的训练策略包括冻结视觉塔，并专注于微调投影层和语言模型。我们将在下面逐一介绍每个模型的这个方面。
+确定从大型预训练模型中提取嵌入的最佳来源需要研究和实验。此外，决定是微调整个模块还是冻结其部分模块是一个至关重要的设计选择。例如，LlaVa 的训练策略包括冻结视觉塔，并专注于微调投影层和语言模型。我们将在下面逐一介绍每个模型的这个方面。
 
 ## Llark: 为什么选择 Jukebox？这些嵌入在 2024 年 9 月时是最好的吗？
 
@@ -137,45 +137,45 @@ Qwen2Audio 的嵌入提取在论文中没有详细提及。Whisper 是一种编�
 
 他们使用了以下数据集：
 
-+   MusicCaps（Agostinelli等，2023）
++   MusicCaps（Agostinelli 等，2023）
 
-+   YouTube8M-MusicTextClips（McKee等，2023）
++   YouTube8M-MusicTextClips（McKee 等，2023）
 
-+   MusicNet（Thickstun等，2017）
++   MusicNet（Thickstun 等，2017）
 
-+   FMA（Defferrard等，2017）
++   FMA（Defferrard 等，2017）
 
-+   MTG-Jamendo（Bogdanov等，2019）
++   MTG-Jamendo（Bogdanov 等，2019）
 
-+   MagnaTagATune（Law等，2009）
++   MagnaTagATune（Law 等，2009）
 
-Llark在以下摘录中详细说明了其训练数据生成过程：
+Llark 在以下摘录中详细说明了其训练数据生成过程：
 
-> “我们使用ChatGPT的变体来提取所有实验的指令调优数据。然而，使用的具体语言模型根据数据集不同而有所不同。我们选择了OpenAI模型，如下所示：我们在所有推理任务中使用GPT-4。我们发现GPT-4在执行推理任务系列中的复杂指令时更加得心应手。对于样本超过25k的数据集，我们将推理数据限制为25k条随机子样本。”
+> “我们使用 ChatGPT 的变体来提取所有实验的指令调优数据。然而，使用的具体语言模型根据数据集不同而有所不同。我们选择了 OpenAI 模型，如下所示：我们在所有推理任务中使用 GPT-4。我们发现 GPT-4 在执行推理任务系列中的复杂指令时更加得心应手。对于样本超过 25k 的数据集，我们将推理数据限制为 25k 条随机子样本。”
 
 这会产生如下的问答数据：
 
-![](../Images/aeb50a9a892d9ed3b78415702057fc99.png)
+![](img/aeb50a9a892d9ed3b78415702057fc99.png)
 
-*LLark提供的示例文本输入和输出，针对提供的音频。*
+*LLark 提供的示例文本输入和输出，针对提供的音频。*
 
-用于训练Qwen2Audio的数据集也没有公开，但训练好的模型广泛可用，并且已在`transformers`库中实现：
+用于训练 Qwen2Audio 的数据集也没有公开，但训练好的模型广泛可用，并且已在`transformers`库中实现：
 
-+   [Qwen2-Audio官方GitHub仓库](https://github.com/QwenLM/Qwen2-Audio)
++   [Qwen2-Audio 官方 GitHub 仓库](https://github.com/QwenLM/Qwen2-Audio)
 
-+   [Qwen2-Audio变换器文档](https://huggingface.co/docs/transformers/main/en/model_doc/qwen2_audio)
++   [Qwen2-Audio 变换器文档](https://huggingface.co/docs/transformers/main/en/model_doc/qwen2_audio)
 
-对于这个项目，基于一个预训练的Llark模型进行微调将是最佳选择，因为据报道它在Spotify在论文中提出的评估基准上表现良好。
+对于这个项目，基于一个预训练的 Llark 模型进行微调将是最佳选择，因为据报道它在 Spotify 在论文中提出的评估基准上表现良好。
 
-然而，由于它没有公开权重，从零开始训练这样一个模型既不可行，也需要相当的专业知识和资金。Spotify在以下数据集上进行了训练：
+然而，由于它没有公开权重，从零开始训练这样一个模型既不可行，也需要相当的专业知识和资金。Spotify 在以下数据集上进行了训练：
 
-> 我们的模型在4个80GB的NVIDIA A100 GPU上进行训练。训练大约需要54小时。
+> 我们的模型在 4 个 80GB 的 NVIDIA A100 GPU 上进行训练。训练大约需要 54 小时。
 
-通过像LambdaLabs这样的提供商，这将花费大约700美元。
+通过像 LambdaLabs 这样的提供商，这将花费大约 700 美元。
 
-由于上述原因，我选择了Qwen。然而，Qwen2-Audio在一些基本的音乐任务（如节奏和乐器检测）上的表现不佳。我在评估部分详细说明了这一点。这意味着模型可能不够大，或者预训练不足以完成该任务，但我的希望是至少能为未来在该任务上的微调设定一个起点和框架。正如阿里巴巴在他们的Qwen2-Audio [博客文章](https://qwenlm.github.io/blog/qwen2-audio/)中所述：
+由于上述原因，我选择了 Qwen。然而，Qwen2-Audio 在一些基本的音乐任务（如节奏和乐器检测）上的表现不佳。我在评估部分详细说明了这一点。这意味着模型可能不够大，或者预训练不足以完成该任务，但我的希望是至少能为未来在该任务上的微调设定一个起点和框架。正如阿里巴巴在他们的 Qwen2-Audio [博客文章](https://qwenlm.github.io/blog/qwen2-audio/)中所述：
 
-> 我们还计划构建更大的Qwen2-Audio模型，以探索音频语言模型的规模定律。
+> 我们还计划构建更大的 Qwen2-Audio 模型，以探索音频语言模型的规模定律。
 
 然而，为了我自己的学习，我尝试使用`torch`和`transformers`库中的预训练模型重新创建了这个模型。
 
@@ -200,19 +200,19 @@ Q:67
 
 V:1 name="Electric Bass (finger)"
 %%octave-default C4
-GAA^2E3A2<A^2 | D^D^2E2A2A^4 A^2E2 | A2A^4A^2E2 A2A^4 | A^2E2A2A^4A^2E2A2 |
-A^4 A^2E2 A2A^4A^2 E2 | A2A^4 |
+GAA²E3A2<A² | D^D²E2A2A⁴ A²E2 | A2A⁴A²E2 A2A⁴ | A²E2A2A⁴A²E2A2 |
+A⁴ A²E2 A2A⁴A² E2 | A2A⁴ |
 
 V:2 name="Bright Acoustic Piano"
 %%octave-default C5
-[E3C3][E3C3][E3C3] [E3C3][A^,2E2A^2] | [E3A^3][E3A^3][E3A^3][E3A^3][E3A^3] |
-[E3A^3][E3A^3][E3A^3] [E3A^3][E3A^3] | [E3A^3][E3A^3][E3A^3][E3A^3][E3A^3] |
-[E3A^3][E3A^3][E3A^3] [E3A^3][E3A^3] | [E3A^3] |
+[E3C3][E3C3][E3C3] [E3C3][A^,2E2A²] | [E3A³][E3A³][E3A³][E3A³][E3A³] |
+[E3A³][E3A³][E3A³] [E3A³][E3A³] | [E3A³][E3A³][E3A³][E3A³][E3A³] |
+[E3A³][E3A³][E3A³] [E3A³][E3A³] | [E3A³] |
 
 V:3 name="Electric Guitar (jazz)"
 %%octave-default C5
-E'3C'3A^4E'3C'3 | A^4E'3 C'3A^4E'3C'3 | A^4 E'3C'3A^4 E'3C'3 | A^4E'3C'3A^4E'3C'3 |
-A^4E'3C'3 A^4E'3C'3 | A^4 |
+E'3C'3A⁴E'3C'3 | A⁴E'3 C'3A⁴E'3C'3 | A⁴ E'3C'3A⁴ E'3C'3 | A⁴E'3C'3A⁴E'3C'3 |
+A⁴E'3C'3 A⁴E'3C'3 | A⁴ |
 ```
 
 在这种符号中，我们在顶部定义了拍号和节奏，用 ‘M’ 和 ‘Q’ 表示。‘L’ 表示符号的默认音符长度，在此案例中为十六分音符，这是常规格式。接着，我们定义每个乐器及其在写作音符时应遵循的默认八度。以下是编写 ABC 音乐符号时一些关键语法点的总结：
@@ -253,7 +253,7 @@ A^4E'3C'3 A^4E'3C'3 | A^4 |
 
 为了评估原始模型和我之后进行的每一阶段微调，我从 URMP 数据集中随机选择了 30 个复杂度不同的样本，并在每个样本上运行了模型三次，手动检查所有响应。
 
-通过手动测试，我发现最优的解码参数是温度为0.7，top_p为1.2。返回的最大标记数量被限制为2048。调整最大值似乎对性能几乎没有影响。
+通过手动测试，我发现最优的解码参数是温度为 0.7，top_p 为 1.2。返回的最大标记数量被限制为 2048。调整最大值似乎对性能几乎没有影响。
 
 原始模型在这个评估集上的表现较差。尽管它偶尔能够正确预测节奏和乐器，但大部分时间都未能做到这一点。评估结果的文本文件可以在[这里](https://drive.google.com/file/d/1-0XgJDOhnj1kbffeHcQutgZ1td59WQjI/view?usp=drive_link)查看。
 
@@ -261,7 +261,7 @@ A^4E'3C'3 A^4E'3C'3 | A^4 |
 
 # 微调策略
 
-我首先尝试了使用基础的交叉熵损失进行微调。使用交叉熵损失进行监督式微调是开始教导模型的快捷方式，但正如我们下面所看到的，这种基本的损失函数有其局限性。这个训练阶段的直觉是，它可以将模型推向正确的方向，让它从数据集中捕捉到任何模式或任何自定义的ABC符号表示，而这些是模型之前可能未曾见过的。
+我首先尝试了使用基础的交叉熵损失进行微调。使用交叉熵损失进行监督式微调是开始教导模型的快捷方式，但正如我们下面所看到的，这种基本的损失函数有其局限性。这个训练阶段的直觉是，它可以将模型推向正确的方向，让它从数据集中捕捉到任何模式或任何自定义的 ABC 符号表示，而这些是模型之前可能未曾见过的。
 
 ## 使用教师强制的交叉熵损失
 
@@ -273,21 +273,21 @@ A^4E'3C'3 A^4E'3C'3 | A^4 |
 
 1.  在下一个预测中，模型被提供了实际的正确标记（真实值），而不是它自己的预测结果。这被称为教师强制，它有助于稳定训练，并显著加速训练，特别是在早期阶段。
 
-这次训练阶段的结果较差。它降低了原模型的性能。原本能够很好地处理节奏和乐器识别的模型，现在大多错误地识别这些内容。它还开始输出乱码文本，并出现无休止的重复现象。即使设置了较低的学习率、应用了梯度裁剪，并使用了低的LoRA秩来减少对模型的大幅度调整，这些问题依然存在。总体而言，似乎模型对所应用的训练非常敏感。
+这次训练阶段的结果较差。它降低了原模型的性能。原本能够很好地处理节奏和乐器识别的模型，现在大多错误地识别这些内容。它还开始输出乱码文本，并出现无休止的重复现象。即使设置了较低的学习率、应用了梯度裁剪，并使用了低的 LoRA 秩来减少对模型的大幅度调整，这些问题依然存在。总体而言，似乎模型对所应用的训练非常敏感。
 
-然而，虽然这个训练阶段可能带来一些改进，但由于我们基本的损失函数存在局限性，它不会导致最佳性能。这个函数难以完全捕捉模型性能的细微差别。例如，在使用教师强制时，某些标记部分的乐器预测可能会导致 deceptively low loss（表面上较低的损失）。如果一个乐器名称以“V”开头，模型可能会基于我们的数据集自信地预测“Violin”或“Viola”，无论准确性如何。此外，损失函数可能无法准确反映接近错失的情况，例如预测195的节奏而不是200——这个小差异在合理的范围内，但可能会因为logits中概率分布的不同而受到严重惩罚。邻近的数字也可能具有较高的概率。
+然而，虽然这个训练阶段可能带来一些改进，但由于我们基本的损失函数存在局限性，它不会导致最佳性能。这个函数难以完全捕捉模型性能的细微差别。例如，在使用教师强制时，某些标记部分的乐器预测可能会导致 deceptively low loss（表面上较低的损失）。如果一个乐器名称以“V”开头，模型可能会基于我们的数据集自信地预测“Violin”或“Viola”，无论准确性如何。此外，损失函数可能无法准确反映接近错失的情况，例如预测 195 的节奏而不是 200——这个小差异在合理的范围内，但可能会因为 logits 中概率分布的不同而受到严重惩罚。邻近的数字也可能具有较高的概率。
 
-## 使用PPO的RLHF
+## 使用 PPO 的 RLHF
 
-由于这些局限性，我们可以创建我们自己的自定义损失函数，更准确地评估模型的响应。也就是说，对于模型预测的序列，损失函数可以根据好坏为其打分，分数在0到1之间。
+由于这些局限性，我们可以创建我们自己的自定义损失函数，更准确地评估模型的响应。也就是说，对于模型预测的序列，损失函数可以根据好坏为其打分，分数在 0 到 1 之间。
 
 然而，将这个自定义损失函数集成到监督微调中是一个重大挑战。问题源于自定义损失函数引入的非线性，这使得无法直接计算梯度。让我们来分解一下：
 
-在传统的SFT与交叉熵损失中：
+在传统的 SFT 与交叉熵损失中：
 
-+   模型输出每个标记的logits（原始分数）
++   模型输出每个标记的 logits（原始分数）
 
-+   这些logits直接表示模型的预测概率
++   这些 logits 直接表示模型的预测概率
 
 +   损失函数将这些概率与真实值进行比较
 
@@ -303,15 +303,15 @@ A^4E'3C'3 A^4E'3C'3 | A^4 |
 
 +   然后我们的损失函数分析这个文本输出（检查节奏、音符等）
 
-+   这在模型的logits与我们的损失计算之间创建了一个不可微分的步骤
++   这在模型的 logits 与我们的损失计算之间创建了一个不可微分的步骤
 
 +   采样和文本分析步骤打破了反向传播所需的梯度链
 
-为了克服这个问题，可以采用强化学习技术，如近端策略优化（PPO）。PPO专门设计用来处理不可微分的损失函数，并可以通过考虑整个策略（模型的输出分布）来优化模型，而不是依赖于logits的梯度信息。
+为了克服这个问题，可以采用强化学习技术，如近端策略优化（PPO）。PPO 专门设计用来处理不可微分的损失函数，并可以通过考虑整个策略（模型的输出分布）来优化模型，而不是依赖于 logits 的梯度信息。
 
-*注意，这里有很多很棒的文章* [*解释了PPO*](https://medium.com/search?q=PPO+explained) *！*
+*注意，这里有很多很棒的文章* [*解释了 PPO*](https://medium.com/search?q=PPO+explained) *！*
 
-PPO的关键洞察在于，与其直接通过不可微分步骤反向传播，它：
+PPO 的关键洞察在于，与其直接通过不可微分步骤反向传播，它：
 
 1.  将模型的输出视为强化学习框架中的动作
 
@@ -321,9 +321,9 @@ PPO的关键洞察在于，与其直接通过不可微分步骤反向传播，�
 
 1.  在确保更新的策略不会偏离当前策略太远的同时进行此操作
 
-这种方法使我们能够有效地使用自定义损失函数训练模型，确保在不破坏核心训练动态的情况下提高性能。PPO算法的保守更新策略有助于在训练过程中保持稳定性，这在处理大型语言模型时尤为重要。
+这种方法使我们能够有效地使用自定义损失函数训练模型，确保在不破坏核心训练动态的情况下提高性能。PPO 算法的保守更新策略有助于在训练过程中保持稳定性，这在处理大型语言模型时尤为重要。
 
-通常，这种评分函数会作为一个单独的LLM以“奖励模型”的形式实现，常用于通过RLHF微调模型时，这是在ChatGPT发布时首次引入的突破。由于该任务的性质，我们可以手动编写代码来评分响应，这样可以减少资源使用并加快速度。
+通常，这种评分函数会作为一个单独的 LLM 以“奖励模型”的形式实现，常用于通过 RLHF 微调模型时，这是在 ChatGPT 发布时首次引入的突破。由于该任务的性质，我们可以手动编写代码来评分响应，这样可以减少资源使用并加快速度。
 
 对于时间签名和节奏识别，这很容易计算。我们通过正则表达式提取所有预测项，例如提取拍子：
 
@@ -332,7 +332,7 @@ def extract_metre(self, abc_string):
   return re.search(r'M:(\S+)', abc_string).group(1)
 ```
 
-模型应该在SFT阶段学习我们希望其输出的语法和结构。如果它输出的内容导致我们的正则表达式无法找到任何内容或发生错误，我们可以跳过该样本，假设它只是数据集中的少数情况。
+模型应该在 SFT 阶段学习我们希望其输出的语法和结构。如果它输出的内容导致我们的正则表达式无法找到任何内容或发生错误，我们可以跳过该样本，假设它只是数据集中的少数情况。
 
 我们提取预测的节奏并编写一个函数，它对小错误更宽容，但对较大错误惩罚更重：
 
@@ -340,7 +340,7 @@ def extract_metre(self, abc_string):
 
 +   对于较大的差异，它切换到指数缩放。
 
-+   最终的损失值被限制在0和1之间。
++   最终的损失值被限制在 0 和 1 之间。
 
 让我们来分解这个自定义损失的关键组成部分：
 
@@ -350,7 +350,7 @@ def extract_metre(self, abc_string):
 
 拍子损失专注于作品的时间签名。它将预测的拍子与真实值进行比较，分别考虑分子和分母，以及它们的比率。这种方法允许进行细致的评估，可以准确处理各种时间签名。
 
-拍子损失使用线性和指数缩放的组合来惩罚差异。较小的差异会导致损失线性增加，而较大的差异则会导致损失指数增加，最大值为1。
+拍子损失使用线性和指数缩放的组合来惩罚差异。较小的差异会导致损失线性增加，而较大的差异则会导致损失指数增加，最大值为 1。
 
 **2\. 节奏损失**
 
@@ -360,7 +360,7 @@ def extract_metre(self, abc_string):
 
 **3\. 音高损失**
 
-音高损失可能是最关键的组件，因为它评估转录音符的准确性。此函数使用Levenshtein距离比较每个声部中的音符序列。
+音高损失可能是最关键的组件，因为它评估转录音符的准确性。此函数使用 Levenshtein 距离比较每个声部中的音符序列。
 
 音高损失计算考虑了多个声部，将每个预测声部与最接近的真实声部进行匹配。这种方法允许在保持整体音高内容准确性的同时，对声部的顺序保持灵活性。
 
@@ -385,27 +385,27 @@ total_loss = (0.5 * pitch_loss +
 
 # 训练与超参数
 
-由于几个原因，PPO训练通常需要比SFT更多的内存：
+由于几个原因，PPO 训练通常需要比 SFT 更多的内存：
 
-1.  多个策略评估——PPO需要同时保持当前策略（模型权重）和“旧”策略，以计算它们之间的概率比。这实际上使得内存中的模型参数翻倍。
+1.  多个策略评估——PPO 需要同时保持当前策略（模型权重）和“旧”策略，以计算它们之间的概率比。这实际上使得内存中的模型参数翻倍。
 
-1.  经验缓冲区——PPO存储一组经验（状态、动作、奖励等）以进行小批量更新。该缓冲区可能非常大，占用大量内存。
+1.  经验缓冲区——PPO 存储一组经验（状态、动作、奖励等）以进行小批量更新。该缓冲区可能非常大，占用大量内存。
 
 1.  优势估计——计算优势需要跟踪整个轨迹中的价值估计和回报，从而增加了额外的内存开销。
 
-1.  附加优化目标——PPO跟踪多个损失组件（策略损失、价值损失、熵奖励）及其梯度，而SFT只有一个损失。
+1.  附加优化目标——PPO 跟踪多个损失组件（策略损失、价值损失、熵奖励）及其梯度，而 SFT 只有一个损失。
 
-由于上述原因，我们在训练模型的大小和成本上比SFT更受限制。虽然上述训练我可以在Colab的A100 40GB上完成，但对于PPO训练，我需要更多内存。我使用H100 80GB进行训练，这可以训练一个秩为128、批量大小为8的LoRA。
+由于上述原因，我们在训练模型的大小和成本上比 SFT 更受限制。虽然上述训练我可以在 Colab 的 A100 40GB 上完成，但对于 PPO 训练，我需要更多内存。我使用 H100 80GB 进行训练，这可以训练一个秩为 128、批量大小为 8 的 LoRA。
 
-我的超参数搜索范围较窄，选择了看起来最直观的设置，批量大小从1到16，学习率从2e-5到2e-4。
+我的超参数搜索范围较窄，选择了看起来最直观的设置，批量大小从 1 到 16，学习率从 2e-5 到 2e-4。
 
 模型未对任务做出任何改进。结果的文本文件可以在[这里](http://asdf)找到。
 
-我使用Weights & Biases（WandB）跟踪了各种训练指标。关键指标包括策略损失、价值损失、总损失、KL散度以及奖励模型的得分。
+我使用 Weights & Biases（WandB）跟踪了各种训练指标。关键指标包括策略损失、价值损失、总损失、KL 散度以及奖励模型的得分。
 
-对所有超参数运行，日志显示奖励和损失随时间推移没有改善。KL散度保持在预定义的阈值内。
+对所有超参数运行，日志显示奖励和损失随时间推移没有改善。KL 散度保持在预定义的阈值内。
 
-![](../Images/891e605d5da483ab80fff11d72e18d8b.png)![](../Images/de9c931b5e76c6c8b11bbaa5f855d234.png)
+![](img/891e605d5da483ab80fff11d72e18d8b.png)![](img/de9c931b5e76c6c8b11bbaa5f855d234.png)
 
 # 结论
 
@@ -419,4 +419,4 @@ total_loss = (0.5 * pitch_loss +
 
 +   探索结合传统音乐处理技术与语言模型能力的混合方法
 
-[这是我的笔记本](https://colab.research.google.com/drive/1lpPfn9EFE2rBsasIJNv8Cy9qTvtfXzq-) 用于运行这些与Qwen2-Audio的实验！另外，这是[我的GitHub](https://github.com/jonflynng)链接，里面包含所有的笔记本。
+[这是我的笔记本](https://colab.research.google.com/drive/1lpPfn9EFE2rBsasIJNv8Cy9qTvtfXzq-) 用于运行这些与 Qwen2-Audio 的实验！另外，这是[我的 GitHub](https://github.com/jonflynng)链接，里面包含所有的笔记本。

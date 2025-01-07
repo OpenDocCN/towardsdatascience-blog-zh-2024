@@ -1,22 +1,22 @@
-# 数据科学面试的8个收获
+# 数据科学面试的 8 个收获
 
-> 原文：[https://towardsdatascience.com/8-takeaways-from-data-science-interviews-9945aa3745b3?source=collection_archive---------5-----------------------#2024-01-08](https://towardsdatascience.com/8-takeaways-from-data-science-interviews-9945aa3745b3?source=collection_archive---------5-----------------------#2024-01-08)
+> 原文：[`towardsdatascience.com/8-takeaways-from-data-science-interviews-9945aa3745b3?source=collection_archive---------5-----------------------#2024-01-08`](https://towardsdatascience.com/8-takeaways-from-data-science-interviews-9945aa3745b3?source=collection_archive---------5-----------------------#2024-01-08)
 
-[](https://medium.com/@_kaparker?source=post_page---byline--9945aa3745b3--------------------------------)[![Kerry Parker](../Images/3e26b068009837eb4d37ee9250e4a8a1.png)](https://medium.com/@_kaparker?source=post_page---byline--9945aa3745b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9945aa3745b3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9945aa3745b3--------------------------------) [Kerry Parker](https://medium.com/@_kaparker?source=post_page---byline--9945aa3745b3--------------------------------)
+[](https://medium.com/@_kaparker?source=post_page---byline--9945aa3745b3--------------------------------)![Kerry Parker](https://medium.com/@_kaparker?source=post_page---byline--9945aa3745b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9945aa3745b3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9945aa3745b3--------------------------------) [Kerry Parker](https://medium.com/@_kaparker?source=post_page---byline--9945aa3745b3--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9945aa3745b3--------------------------------) ·8分钟阅读·2024年1月8日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9945aa3745b3--------------------------------) ·8 分钟阅读·2024 年 1 月 8 日
 
 --
 
-![](../Images/58bc10ba96ec1c58648c3caeba83b27c.png)
+![](img/58bc10ba96ec1c58648c3caeba83b27c.png)
 
 图片来源：[Christin Hume](https://unsplash.com/@christinhumephoto?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)在[Unsplash](https://unsplash.com/photos/person-using-laptop-computer-Hcfwew744z4?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)上
 
 好久没分享文章了，大家好！
 
-> 免责声明：本文写于2021年8月，尽管所述原则依然适用，但其中提到的一些网站和功能可能已发生变化！
+> 免责声明：本文写于 2021 年 8 月，尽管所述原则依然适用，但其中提到的一些网站和功能可能已发生变化！
 
-我很高兴在2024年写更多的文章，并分享我从数据科学转向数据工程的过程！
+我很高兴在 2024 年写更多的文章，并分享我从数据科学转向数据工程的过程！
 
 申请工作可能是一个耗时的过程，在这篇文章中，我总结了在最近求职过程中学到的一些经验。
 
@@ -30,7 +30,7 @@
 
 # **1\. 找一个简历伙伴**
 
-![](../Images/e8f109769930d571cfe546fcc1af6c68.png)
+![](img/e8f109769930d571cfe546fcc1af6c68.png)
 
 摄影师 [João Ferrão](https://unsplash.com/@joaoscferrao?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在 [Unsplash](https://unsplash.com/photos/white-printer-paper-on-macbook-pro-4YzrcDNcRVg?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供的照片
 
@@ -40,13 +40,13 @@
 
 # **2. 从共享资源开始**
 
-在几个申请过程中，招聘人员提供了对准备面试有帮助的资源链接。我简要浏览了这些资源，并花时间在我认为最相关的部分上，但有一次，我把一个1.5小时的YouTube视频留到后面看，因为它的长度让我觉得有点压倒性，加上其他许多我自己收集的资源。当我最终观看时，内容非常有用，我后悔没有早点看！
+在几个申请过程中，招聘人员提供了对准备面试有帮助的资源链接。我简要浏览了这些资源，并花时间在我认为最相关的部分上，但有一次，我把一个 1.5 小时的 YouTube 视频留到后面看，因为它的长度让我觉得有点压倒性，加上其他许多我自己收集的资源。当我最终观看时，内容非常有用，我后悔没有早点看！
 
 # **3. 研究公司和面试流程**
 
 另外，查看 Glassdoor 也是值得的，因为许多人会分享他们的面试经历和在面试中被问到的类型问题。我记下了很多这些问题，以确保自己能回答它们，这些问题在我大声练习回答时也派上了用场。Medium 上也有许多文章，人们分享了他们的数据科学面试准备经验，或者是针对特定公司的准备。我希望工作过的资源清单远比我准备的时间长，所以需要优先排序。如上所述，事后看来，我应该从招聘人员分享的资源开始，但我花更多时间在技术性较强的文章和教程上，以确保我掌握了这些技能，这些技能因为需要细致的理解，所以非常耗时！
 
-![](../Images/921aa17d20c272a5322632ee2e6f0214.png)
+![](img/921aa17d20c272a5322632ee2e6f0214.png)
 
 摄影作品来自 [Jason Goodman](https://unsplash.com/@jasongoodman_youxventures?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 在 [Unsplash](https://unsplash.com/photos/paper-on-wall-m2TU2gfqSeE?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -70,25 +70,25 @@
 
 ## **统计学**
 
-[Brilliant](https://brilliant.org/courses/) 提供了广泛的统计学和数学课程，我非常喜欢它们提问的方式，不过某些课程确实有内容重叠，因此值得选择性地完成某些部分，以免浪费时间。我还报名参加了7天的免费试用，这对访问更多内容非常有帮助，但也需要在这7天内专注于统计学。
+[Brilliant](https://brilliant.org/courses/) 提供了广泛的统计学和数学课程，我非常喜欢它们提问的方式，不过某些课程确实有内容重叠，因此值得选择性地完成某些部分，以免浪费时间。我还报名参加了 7 天的免费试用，这对访问更多内容非常有帮助，但也需要在这 7 天内专注于统计学。
 
 ## **SQL**
 
-[Mode](https://mode.com/sql-tutorial/introduction-to-sql/) 提供了一个互动教程，可以访问SQL数据库，供你练习查询。
+[Mode](https://mode.com/sql-tutorial/introduction-to-sql/) 提供了一个互动教程，可以访问 SQL 数据库，供你练习查询。
 
-![](../Images/25a981432c9a48525e5fa9649fe17740.png)
+![](img/25a981432c9a48525e5fa9649fe17740.png)
 
 图片由 [Justin Morgan](https://unsplash.com/@justin_morgan?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 ## **案例分析**
 
-与SQL重叠的，[Mode](https://mode.com/sql-tutorial/sql-business-analytics-training/) 提供了一些值得做的案例分析示例，并且包括了可以与自己答案对比的潜在解决方案。
+与 SQL 重叠的，[Mode](https://mode.com/sql-tutorial/sql-business-analytics-training/) 提供了一些值得做的案例分析示例，并且包括了可以与自己答案对比的潜在解决方案。
 
 ## **常见问题**
 
-[Interview query](https://www.interviewquery.com/blog) 的博客包含了一些有用的SQL、统计学和案例分析问题，可以进行练习。我也尝试完成网站上的一些问题，但即便注册了账户，你也仅能执行1个SQL查询，并查看少量的解决方案，因此在我看来，博客会更有价值。
+[Interview query](https://www.interviewquery.com/blog) 的博客包含了一些有用的 SQL、统计学和案例分析问题，可以进行练习。我也尝试完成网站上的一些问题，但即便注册了账户，你也仅能执行 1 个 SQL 查询，并查看少量的解决方案，因此在我看来，博客会更有价值。
 
-Medium上有很多关于数据科学职位面试准备的文章！许多包含示例问题和主题的文章可能会出现，我觉得这些文章在练习问题时很有用，但它们有时也可能包含太多细节。例如，有一篇文章列出了大量数据科学和机器学习的概念，并附上了资源链接，这些对理解有很大帮助，但你不太可能需要学习所有这些概念来参加面试。
+Medium 上有很多关于数据科学职位面试准备的文章！许多包含示例问题和主题的文章可能会出现，我觉得这些文章在练习问题时很有用，但它们有时也可能包含太多细节。例如，有一篇文章列出了大量数据科学和机器学习的概念，并附上了资源链接，这些对理解有很大帮助，但你不太可能需要学习所有这些概念来参加面试。
 
 要实际评估准备时间、你已经拥有的知识基础，以及你对下一个职位的期望！
 
@@ -96,7 +96,7 @@ Medium上有很多关于数据科学职位面试准备的文章！许多包含�
 
 就像写简历时一样，在准备面试时一起合作也很有帮助。如果你的朋友申请的是类似类型的职位，为什么不一起练习一些技术性问题呢——可以选择一个话题，互相提问面试式问题，或者一起做案例分析，准备各自的答案——你会惊讶于你们能从彼此身上学到多少东西！
 
-如果你的朋友不在相似的行业中，仍然可以一起练习行为类问题，或者找一份相关的面试问题清单，让别人问你这些问题，这样你就可以练习大声思考并清晰表达答案（例如，使用STAR方法）！
+如果你的朋友不在相似的行业中，仍然可以一起练习行为类问题，或者找一份相关的面试问题清单，让别人问你这些问题，这样你就可以练习大声思考并清晰表达答案（例如，使用 STAR 方法）！
 
 拥有在找工作时的朋友支持也很棒，他们可以在你面试时互相分享经历，彼此加油！我很喜欢听到我的朋友们在面试中大获全胜，并找到可以学习和成长的新职位！
 

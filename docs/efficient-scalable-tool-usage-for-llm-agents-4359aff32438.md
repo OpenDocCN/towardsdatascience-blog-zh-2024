@@ -1,16 +1,16 @@
 # 高效且可扩展的工具使用——LLM 代理
 
-> 原文：[https://towardsdatascience.com/efficient-scalable-tool-usage-for-llm-agents-4359aff32438?source=collection_archive---------4-----------------------#2024-06-06](https://towardsdatascience.com/efficient-scalable-tool-usage-for-llm-agents-4359aff32438?source=collection_archive---------4-----------------------#2024-06-06)
+> 原文：[`towardsdatascience.com/efficient-scalable-tool-usage-for-llm-agents-4359aff32438?source=collection_archive---------4-----------------------#2024-06-06`](https://towardsdatascience.com/efficient-scalable-tool-usage-for-llm-agents-4359aff32438?source=collection_archive---------4-----------------------#2024-06-06)
 
 ## 利用干净的抽象层次，避免工具膨胀提示大小，并提升代理的性能
 
-[](https://medium.com/@janekmajewski?source=post_page---byline--4359aff32438--------------------------------)[![Jan Majewski](../Images/2d06418ffe9f14cb558ebaec7f871cf0.png)](https://medium.com/@janekmajewski?source=post_page---byline--4359aff32438--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4359aff32438--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4359aff32438--------------------------------) [Jan Majewski](https://medium.com/@janekmajewski?source=post_page---byline--4359aff32438--------------------------------)
+[](https://medium.com/@janekmajewski?source=post_page---byline--4359aff32438--------------------------------)![Jan Majewski](https://medium.com/@janekmajewski?source=post_page---byline--4359aff32438--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4359aff32438--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4359aff32438--------------------------------) [Jan Majewski](https://medium.com/@janekmajewski?source=post_page---byline--4359aff32438--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4359aff32438--------------------------------) ·阅读时间9分钟·2024年6月6日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4359aff32438--------------------------------) ·阅读时间 9 分钟·2024 年 6 月 6 日
 
 --
 
-![](../Images/fb43bbebee338aa4be5201cff5434221.png)
+![](img/fb43bbebee338aa4be5201cff5434221.png)
 
 图片来自[马丁·桑切斯](https://unsplash.com/@martinsanchez?utm_source=medium&utm_medium=referral)在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

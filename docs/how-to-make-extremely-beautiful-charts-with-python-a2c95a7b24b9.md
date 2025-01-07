@@ -1,18 +1,18 @@
-# 如何使用Python制作极美的图表
+# 如何使用 Python 制作极美的图表
 
-> 原文：[https://towardsdatascience.com/how-to-make-extremely-beautiful-charts-with-python-a2c95a7b24b9?source=collection_archive---------1-----------------------#2024-12-16](https://towardsdatascience.com/how-to-make-extremely-beautiful-charts-with-python-a2c95a7b24b9?source=collection_archive---------1-----------------------#2024-12-16)
+> 原文：[`towardsdatascience.com/how-to-make-extremely-beautiful-charts-with-python-a2c95a7b24b9?source=collection_archive---------1-----------------------#2024-12-16`](https://towardsdatascience.com/how-to-make-extremely-beautiful-charts-with-python-a2c95a7b24b9?source=collection_archive---------1-----------------------#2024-12-16)
 
 ## 大多数数据可视化图表仍然平平无奇。通过一些小的调整，可以大大提升它们的效果。
 
-[](https://arijoury.medium.com/?source=post_page---byline--a2c95a7b24b9--------------------------------)[![Ari Joury, PhD](../Images/5b9e49279fb3f26373b393f29a4daaf7.png)](https://arijoury.medium.com/?source=post_page---byline--a2c95a7b24b9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a2c95a7b24b9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a2c95a7b24b9--------------------------------) [Ari Joury, PhD](https://arijoury.medium.com/?source=post_page---byline--a2c95a7b24b9--------------------------------)
+[](https://arijoury.medium.com/?source=post_page---byline--a2c95a7b24b9--------------------------------)![Ari Joury, PhD](https://arijoury.medium.com/?source=post_page---byline--a2c95a7b24b9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a2c95a7b24b9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a2c95a7b24b9--------------------------------) [Ari Joury, PhD](https://arijoury.medium.com/?source=post_page---byline--a2c95a7b24b9--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a2c95a7b24b9--------------------------------) ·阅读时长8分钟·2024年12月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a2c95a7b24b9--------------------------------) ·阅读时长 8 分钟·2024 年 12 月 16 日
 
 --
 
-![](../Images/f64b3d99856c3b92ffebc2aab8c02563.png)
+![](img/f64b3d99856c3b92ffebc2aab8c02563.png)
 
-通过一些简单的调整，你可以让你的图表看起来更加令人印象深刻。图像由Leonardo AI生成。
+通过一些简单的调整，你可以让你的图表看起来更加令人印象深刻。图像由 Leonardo AI 生成。
 
 大多数图表都不值得一看。无论你在哪个行业工作，或者你的职位级别如何——事实上，你很可能会在工作中遇到大量平庸的数据可视化图表。
 

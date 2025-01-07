@@ -1,16 +1,16 @@
 # 使用 MediaPipe 进行实时手部追踪和手势识别：Rerun 展示
 
-> 原文：[https://towardsdatascience.com/real-time-hand-tracking-and-gesture-recognition-with-mediapipe-rerun-showcase-9ec57cb0c831?source=collection_archive---------4-----------------------#2024-03-05](https://towardsdatascience.com/real-time-hand-tracking-and-gesture-recognition-with-mediapipe-rerun-showcase-9ec57cb0c831?source=collection_archive---------4-----------------------#2024-03-05)
+> 原文：[`towardsdatascience.com/real-time-hand-tracking-and-gesture-recognition-with-mediapipe-rerun-showcase-9ec57cb0c831?source=collection_archive---------4-----------------------#2024-03-05`](https://towardsdatascience.com/real-time-hand-tracking-and-gesture-recognition-with-mediapipe-rerun-showcase-9ec57cb0c831?source=collection_archive---------4-----------------------#2024-03-05)
 
 ## 如何使用 Rerun 可视化 MediaPipe 的手部追踪与手势识别
 
-[](https://andreasnaoum.medium.com/?source=post_page---byline--9ec57cb0c831--------------------------------)[![Andreas Naoum](../Images/e14d545f270170877e0af31572275e17.png)](https://andreasnaoum.medium.com/?source=post_page---byline--9ec57cb0c831--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ec57cb0c831--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9ec57cb0c831--------------------------------) [Andreas Naoum](https://andreasnaoum.medium.com/?source=post_page---byline--9ec57cb0c831--------------------------------)
+[](https://andreasnaoum.medium.com/?source=post_page---byline--9ec57cb0c831--------------------------------)![Andreas Naoum](https://andreasnaoum.medium.com/?source=post_page---byline--9ec57cb0c831--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ec57cb0c831--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ec57cb0c831--------------------------------) [Andreas Naoum](https://andreasnaoum.medium.com/?source=post_page---byline--9ec57cb0c831--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ec57cb0c831--------------------------------) ·8 分钟阅读·2024年3月5日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ec57cb0c831--------------------------------) ·8 分钟阅读·2024 年 3 月 5 日
 
 --
 
-![](../Images/8ec748453f3b800b051414e9d6c7ca7b.png)
+![](img/8ec748453f3b800b051414e9d6c7ca7b.png)
 
 手部追踪与手势识别 | 作者提供的图片
 
@@ -70,7 +70,7 @@ pip install -r examples/python/gesture_detection/requirements.txt
 
 # 使用 MediaPipe 进行手部追踪和手势识别
 
-![](../Images/47ff9b3771ef5e9e98811c796da311bf.png)
+![](img/47ff9b3771ef5e9e98811c796da311bf.png)
 
 图片来自 [手势识别任务指南](https://developers.google.com/mediapipe/solutions/vision/gesture_recognizer) 由 [Google](https://about.google/brand-resource-center/) 提供
 
@@ -118,7 +118,7 @@ class GestureDetectorLogger:
 
 `GestureDetectorLogger`类中的`detect`函数接受一张图片作为参数，并打印模型结果，突出显示识别出的手势及检测到的手部地标。有关模型的更多细节，请参考其[模型卡片](https://storage.googleapis.com/mediapipe-assets/gesture_recognizer/model_card_hand_gesture_classification_with_faireness_2022.pdf)。
 
-![](../Images/af87cc0b5c9dacee7900b4dab9433aee.png)
+![](img/af87cc0b5c9dacee7900b4dab9433aee.png)
 
 图片来源：[手势识别任务指南](https://developers.google.com/mediapipe/solutions/vision/gesture_recognizer) 由[Google](https://about.google/brand-resource-center/)提供
 
@@ -135,31 +135,31 @@ def run_from_sample_image(path)-> None:
 run_from_sample_image(SAMPLE_IMAGE_PATH)
 ```
 
-# 使用Rerun进行验证、调试和演示
+# 使用 Rerun 进行验证、调试和演示
 
-这一步骤帮助你确保解决方案的可靠性和有效性。现在模型已经准备好，接下来可视化结果以验证准确性，调试潜在问题，并展示其功能。使用Rerun SDK，可以简单快速地实现结果的可视化。
+这一步骤帮助你确保解决方案的可靠性和有效性。现在模型已经准备好，接下来可视化结果以验证准确性，调试潜在问题，并展示其功能。使用 Rerun SDK，可以简单快速地实现结果的可视化。
 
-## 我们如何使用Rerun？
+## 我们如何使用 Rerun？
 
-![](../Images/dd9474d4f31555cc7fc2c9f655597e18.png)
+![](img/dd9474d4f31555cc7fc2c9f655597e18.png)
 
-图片来源：[Rerun文档](https://www.rerun.io/docs) 由[Rerun](https://www.rerun.io)提供
+图片来源：[Rerun 文档](https://www.rerun.io/docs) 由[Rerun](https://www.rerun.io)提供
 
-1.  通过使用Rerun SDK记录数据，将多模态数据从代码流式传输
+1.  通过使用 Rerun SDK 记录数据，将多模态数据从代码流式传输
 
 1.  可视化并与**实时或录制的流**进行交互，无论是本地的还是远程的
 
 1.  互动式构建布局并自定义可视化
 
-1.  在需要时扩展Rerun
+1.  在需要时扩展 Rerun
 
-在进入代码之前，你应该访问页面[安装Rerun查看器](https://www.rerun.io/docs/getting-started/installing-viewer)来安装查看器。然后，我强烈建议通过阅读以下指南来熟悉Rerun SDK：[Python快速入门](https://www.rerun.io/docs/getting-started/python)和[在Python中记录数据](https://www.rerun.io/docs/getting-started/logging-python)。这些初始步骤将确保顺利设置，并帮助你开始接下来的代码实现。
+在进入代码之前，你应该访问页面[安装 Rerun 查看器](https://www.rerun.io/docs/getting-started/installing-viewer)来安装查看器。然后，我强烈建议通过阅读以下指南来熟悉 Rerun SDK：[Python 快速入门](https://www.rerun.io/docs/getting-started/python)和[在 Python 中记录数据](https://www.rerun.io/docs/getting-started/logging-python)。这些初始步骤将确保顺利设置，并帮助你开始接下来的代码实现。
 
 ## 从视频或实时运行
 
-对于视频流，使用了OpenCV。你可以选择特定视频的文件路径，或者通过提供参数0或1来访问你自己的摄像头（使用0为默认摄像头；在Mac上，你可以使用1）。
+对于视频流，使用了 OpenCV。你可以选择特定视频的文件路径，或者通过提供参数 0 或 1 来访问你自己的摄像头（使用 0 为默认摄像头；在 Mac 上，你可以使用 1）。
 
-值得注意的是，要强调[时间轴](https://www.rerun.io/docs/concepts/timelines)的介绍。Rerun时间轴的功能使得可以将数据与一个或多个时间轴关联。因此，视频的每一帧都与其对应的时间戳相关联。
+值得注意的是，要强调[时间轴](https://www.rerun.io/docs/concepts/timelines)的介绍。Rerun 时间轴的功能使得可以将数据与一个或多个时间轴关联。因此，视频的每一帧都与其对应的时间戳相关联。
 
 ```py
 def run_from_video_capture(vid: int | str, max_frame_count: int | None) -> None:
@@ -212,9 +212,9 @@ def run_from_video_capture(vid: int | str, max_frame_count: int | None) -> None:
 
 ## 为可视化记录数据
 
-![](../Images/669757c874516e02624cf43b52a69a60.png)
+![](img/669757c874516e02624cf43b52a69a60.png)
 
-使用Rerun SDK记录2D数据 | 图片来源：作者
+使用 Rerun SDK 记录 2D 数据 | 图片来源：作者
 
 要在 Rerun 查看器中可视化数据，必须使用 Rerun SDK 记录数据。前面提到的指南提供了关于这一过程的深入见解。在这个上下文中，我们提取手部地标点作为归一化值，然后利用图像的宽度和高度将其转换为图像坐标。这些坐标随后作为[2D 点](https://www.rerun.io/docs/reference/types/archetypes/points2d)记录到 Rerun SDK 中。此外，我们识别地标之间的连接，并将其作为[2D 线段](https://www.rerun.io/docs/reference/types/archetypes/line_strips2d)记录。
 
@@ -277,7 +277,7 @@ class GestureDetectorLogger:
 
 最后，我们研究如何将手部地标呈现为 3D 点。我们首先在初始化函数中使用来自[注释上下文](https://www.rerun.io/docs/concepts/annotation-context)的关键点定义点之间的连接，然后将它们作为[3D 点](https://www.rerun.io/docs/reference/types/archetypes/points3d)进行记录。
 
-![](../Images/140447578f2915dba04718f2d11f1588.png)
+![](img/140447578f2915dba04718f2d11f1588.png)
 
 使用 Rerun SDK 记录 3D 数据 | 图片来自作者
 
@@ -332,7 +332,7 @@ run_from_video_capture(0) # mac may need 1
 
 # 超越手部跟踪与手势识别
 
-![](../Images/e3e98cf7eca2c494781c91cf7e150a09.png)
+![](img/e3e98cf7eca2c494781c91cf7e150a09.png)
 
 Rerun 示例 | 图片来自 [Rerun](https://www.rerun.io)
 
@@ -348,10 +348,10 @@ Rerun 示例 | 图片来自 [Rerun](https://www.rerun.io)
 
 ### 如何轻松地在 2D 和 3D 中可视化 MediaPipe 的人脸和人脸地标检测，使用 Rerun
 
-ai.gopubby.com](https://ai.gopubby.com/real-time-face-and-face-landmark-detection-with-mediapipe-rerun-showcase-40481baa1763?source=post_page-----9ec57cb0c831--------------------------------) [](/human-pose-tracking-with-mediapipe-rerun-showcase-125053cfe64f?source=post_page-----9ec57cb0c831--------------------------------) [## 使用MediaPipe进行2D和3D人体姿态跟踪：Rerun展示
+ai.gopubby.com](https://ai.gopubby.com/real-time-face-and-face-landmark-detection-with-mediapipe-rerun-showcase-40481baa1763?source=post_page-----9ec57cb0c831--------------------------------) [](/human-pose-tracking-with-mediapipe-rerun-showcase-125053cfe64f?source=post_page-----9ec57cb0c831--------------------------------) ## 使用 MediaPipe 进行 2D 和 3D 人体姿态跟踪：Rerun 展示
 
-### 如何轻松地通过Rerun可视化MediaPipe的人体姿态跟踪
+### 如何轻松地通过 Rerun 可视化 MediaPipe 的人体姿态跟踪
 
-towardsdatascience.com](/human-pose-tracking-with-mediapipe-rerun-showcase-125053cfe64f?source=post_page-----9ec57cb0c831--------------------------------)
+towardsdatascience.com
 
-> 本页面的部分内容转载自[Google](https://developers.google.com/readme/policies)创建并分享的作品，并根据[创意共享4.0署名许可协议](https://creativecommons.org/licenses/by/4.0/)中的条款使用。
+> 本页面的部分内容转载自[Google](https://developers.google.com/readme/policies)创建并分享的作品，并根据[创意共享 4.0 署名许可协议](https://creativecommons.org/licenses/by/4.0/)中的条款使用。

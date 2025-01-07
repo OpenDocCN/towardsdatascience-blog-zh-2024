@@ -1,16 +1,16 @@
 # 理解何时以及如何实现 FastAPI 中间件（示例和使用案例）
 
-> 原文：[https://towardsdatascience.com/understanding-when-and-how-to-implement-fastapi-middleware-examples-and-use-cases-c2bd37cb4ffe?source=collection_archive---------1-----------------------#2024-12-25](https://towardsdatascience.com/understanding-when-and-how-to-implement-fastapi-middleware-examples-and-use-cases-c2bd37cb4ffe?source=collection_archive---------1-----------------------#2024-12-25)
+> 原文：[`towardsdatascience.com/understanding-when-and-how-to-implement-fastapi-middleware-examples-and-use-cases-c2bd37cb4ffe?source=collection_archive---------1-----------------------#2024-12-25`](https://towardsdatascience.com/understanding-when-and-how-to-implement-fastapi-middleware-examples-and-use-cases-c2bd37cb4ffe?source=collection_archive---------1-----------------------#2024-12-25)
 
 ## 通过中间件增强你的 FastAPI：实用使用案例和示例
 
-[](https://mikehuls.medium.com/?source=post_page---byline--c2bd37cb4ffe--------------------------------)[![Mike Huls](../Images/8f9f55a0d25db00799c5d37383b7f5b6.png)](https://mikehuls.medium.com/?source=post_page---byline--c2bd37cb4ffe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c2bd37cb4ffe--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c2bd37cb4ffe--------------------------------) [Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--c2bd37cb4ffe--------------------------------)
+[](https://mikehuls.medium.com/?source=post_page---byline--c2bd37cb4ffe--------------------------------)![Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--c2bd37cb4ffe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c2bd37cb4ffe--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c2bd37cb4ffe--------------------------------) [Mike Huls](https://mikehuls.medium.com/?source=post_page---byline--c2bd37cb4ffe--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c2bd37cb4ffe--------------------------------) ·阅读时间 4 分钟·2024年12月25日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c2bd37cb4ffe--------------------------------) ·阅读时间 4 分钟·2024 年 12 月 25 日
 
 --
 
-![](../Images/83504ecc1edcb903ad4358a9edf9521b.png)
+![](img/83504ecc1edcb903ad4358a9edf9521b.png)
 
 图片来自 ChatGPT
 

@@ -1,22 +1,22 @@
-# LLM中的温度缩放与束搜索文本生成，面向机器学习相关领域的人
+# LLM 中的温度缩放与束搜索文本生成，面向机器学习相关领域的人
 
-> 原文：[https://towardsdatascience.com/temperature-scaling-and-beam-search-text-generation-in-llms-for-the-ml-adjacent-21212cc5dddb?source=collection_archive---------1-----------------------#2024-04-26](https://towardsdatascience.com/temperature-scaling-and-beam-search-text-generation-in-llms-for-the-ml-adjacent-21212cc5dddb?source=collection_archive---------1-----------------------#2024-04-26)
+> 原文：[`towardsdatascience.com/temperature-scaling-and-beam-search-text-generation-in-llms-for-the-ml-adjacent-21212cc5dddb?source=collection_archive---------1-----------------------#2024-04-26`](https://towardsdatascience.com/temperature-scaling-and-beam-search-text-generation-in-llms-for-the-ml-adjacent-21212cc5dddb?source=collection_archive---------1-----------------------#2024-04-26)
 
-## “温度”是什么，它如何工作，它与束搜索启发式算法的关系，以及LLM输出生成如何可能出错
+## “温度”是什么，它如何工作，它与束搜索启发式算法的关系，以及 LLM 输出生成如何可能出错
 
-[](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)[![Mike Cvet](../Images/93545a0c873515a599ba094ad51ee915.png)](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------) [Mike Cvet](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)
+[](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)![Mike Cvet](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------) [Mike Cvet](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------) ·阅读时长19分钟·2024年4月26日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------) ·阅读时长 19 分钟·2024 年 4 月 26 日
 
 --
 
-![](../Images/48deee7f0c8dc77db834aa1f4a6bc09a.png)
+![](img/48deee7f0c8dc77db834aa1f4a6bc09a.png)
 
 由[Paul Green](https://unsplash.com/@pgreen1983?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)拍摄，图片来源于[Unsplash](https://unsplash.com/photos/photography-of-spot-light-turned-on-mln2ExJIkfc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)；除非另有说明，否则所有其他图片由作者提供
 
-如果你曾使用过[OpenAI](https://platform.openai.com/docs/api-reference/chat/create)或[Anthropic](https://docs.anthropic.com/claude/reference/messages_post)等LLM的API，你会看到API中有一个`temperature`设置。这个参数是如何使用的，如何工作的呢？
+如果你曾使用过[OpenAI](https://platform.openai.com/docs/api-reference/chat/create)或[Anthropic](https://docs.anthropic.com/claude/reference/messages_post)等 LLM 的 API，你会看到 API 中有一个`temperature`设置。这个参数是如何使用的，如何工作的呢？
 
-来自[Anthropic聊天API文档](https://docs.anthropic.com/claude/reference/messages_post)：
+来自[Anthropic 聊天 API 文档](https://docs.anthropic.com/claude/reference/messages_post)：
 
 ```py
 temperature (number)
@@ -31,37 +31,37 @@ Note that even with temperature of 0.0, the results will not be
 fully deterministic.
 ```
 
-温度（按通常的实现方式）并不会真正*注入随机性*到响应中。在这篇文章中，我将讲解这个设置的作用，以及它如何在束搜索中使用，束搜索是LLM中最常用的文本生成技术，并通过[GitHub上的参考实现](https://github.com/mikecvet/beam/tree/main)展示一些输出生成的例子（包括失败和成功的案例）。
+温度（按通常的实现方式）并不会真正*注入随机性*到响应中。在这篇文章中，我将讲解这个设置的作用，以及它如何在束搜索中使用，束搜索是 LLM 中最常用的文本生成技术，并通过[GitHub 上的参考实现](https://github.com/mikecvet/beam/tree/main)展示一些输出生成的例子（包括失败和成功的案例）。
 
 你将要了解的内容：
 
-+   [重新审视LLM推理与Token预测](#84c0)
++   重新审视 LLM 推理与 Token 预测
 
-+   [贪婪搜索](#d2c9)
++   贪婪搜索
 
-+   [束搜索](#e148)
++   束搜索
 
-+   [温度](#4e6e)
++   温度
 
-+   [实现细节](#e9f6)
++   实现细节
 
-+   [贪婪搜索与束搜索生成示例](#db73)
++   贪婪搜索与束搜索生成示例
 
-    - [贪婪搜索](#4100)
+    - 贪婪搜索
 
-    - [束搜索](#45c4)
+    - 束搜索
 
-    - [带温度的束搜索](#3289)
+    - 带温度的束搜索
 
-    - [水牛水牛水牛水牛水牛水牛水牛水牛与得分处罚](#f0e1)
+    - 水牛水牛水牛水牛水牛水牛水牛水牛与得分处罚
 
-+   [结论](#f732)
++   结论
 
-# 重访LLM推理和标记预测
+# 重访 LLM 推理和标记预测
 
-如果你在这里，你可能对LLM是如何工作的有*一些*了解。
+如果你在这里，你可能对 LLM 是如何工作的有*一些*了解。
 
-从高层次来看，LLM文本生成涉及预测序列中的下一个标记，这取决于前面标记的累积概率。这个过程利用了由以下因素塑造的内部概率分布：
+从高层次来看，LLM 文本生成涉及预测序列中的下一个标记，这取决于前面标记的累积概率。这个过程利用了由以下因素塑造的内部概率分布：
 
 +   模型的内部学习权重，通过在庞大的数据集上进行广泛的训练得到了精细化。
 
@@ -69,9 +69,9 @@ fully deterministic.
 
 +   到目前为止生成的标记集
 
-基于[Transformer](https://en.wikipedia.org/wiki/Transformer_(deep_learning_architecture))的生成模型通过[自注意力机制](/illustrated-self-attention-2d627e33b20a)构建输入上下文的表示，从而使它们能够动态评估并优先考虑输入的不同部分，基于这些部分与当前预测点的相关性。在序列解码过程中，这些模型评估*每个部分*如何影响正在生成的序列，确保每一个新的标记都能反映输入和不断演变的输出的整合（主要通过[交叉注意力](https://vaclavkosar.com/ml/cross-attention-in-transformer-architecture)实现）。
+基于[Transformer](https://en.wikipedia.org/wiki/Transformer_(deep_learning_architecture))的生成模型通过自注意力机制构建输入上下文的表示，从而使它们能够动态评估并优先考虑输入的不同部分，基于这些部分与当前预测点的相关性。在序列解码过程中，这些模型评估*每个部分*如何影响正在生成的序列，确保每一个新的标记都能反映输入和不断演变的输出的整合（主要通过[交叉注意力](https://vaclavkosar.com/ml/cross-attention-in-transformer-architecture)实现）。
 
-[斯坦福CS224N课程资料](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1194/readings/cs224n-2019-notes06-NMT_seq2seq_attention.pdf)是理解这些概念的极好资源。
+[斯坦福 CS224N 课程资料](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1194/readings/cs224n-2019-notes06-NMT_seq2seq_attention.pdf)是理解这些概念的极好资源。
 
 我在这里想要强调的关键点是，当模型决定选择概率上最优的标记时，它通常是在评估*整个*输入上下文，以及*整个*正在生成的序列。然而，使用这些预测来迭代构建文本序列的最直观过程是简化的：一个[贪心算法](https://en.wikipedia.org/wiki/Greedy_algorithm)，它在每一步基于最可能的标记构建输出文本。
 
@@ -79,7 +79,7 @@ fully deterministic.
 
 # 贪心搜索
 
-使用模型构建输出序列的最自然方法是逐渐预测下一个最佳标记，将其附加到已生成的序列中，并继续直到生成结束。这叫做*贪心搜索*，是从LLM（或其他模型）生成文本的最简单和最高效的方式。在最基本的形式下，它大致如下：
+使用模型构建输出序列的最自然方法是逐渐预测下一个最佳标记，将其附加到已生成的序列中，并继续直到生成结束。这叫做*贪心搜索*，是从 LLM（或其他模型）生成文本的最简单和最高效的方式。在最基本的形式下，它大致如下：
 
 ```py
 sequence = ["<start>"]
@@ -89,13 +89,13 @@ while sequence[-1] != "<end>":
 return "".join(sequence)
 ```
 
-本科计算机科学算法课程中有一节关于[图遍历](https://en.wikipedia.org/wiki/Graph_traversal)算法的内容。如果你将潜在的LLM输出序列的宇宙建模为标记的图形，那么在给定输入上下文的情况下寻找最优输出序列的问题，便与遍历加权图的问题相似。在这种情况下，边的“权重”是由注意力分数生成的概率，而遍历的目标是最小化从头到尾的总体成本（最大化总体概率）。
+本科计算机科学算法课程中有一节关于[图遍历](https://en.wikipedia.org/wiki/Graph_traversal)算法的内容。如果你将潜在的 LLM 输出序列的宇宙建模为标记的图形，那么在给定输入上下文的情况下寻找最优输出序列的问题，便与遍历加权图的问题相似。在这种情况下，边的“权重”是由注意力分数生成的概率，而遍历的目标是最小化从头到尾的总体成本（最大化总体概率）。
 
-![](../Images/e5446cdc7c9cecce5286dafcf4ec74aa.png)
+![](img/e5446cdc7c9cecce5286dafcf4ec74aa.png)
 
 贪心最佳优先搜索通过在每一步做出看似最佳的决定，以仅向前的方向遍历概念图标记。
 
-在所有可能的文本生成方法中，这是最具计算效率的——推理次数与输出标记的数量是1:1的关系。然而，仍然存在一些问题。
+在所有可能的文本生成方法中，这是最具计算效率的——推理次数与输出标记的数量是 1:1 的关系。然而，仍然存在一些问题。
 
 在每一步的标记生成中，算法会根据目前为止的输出序列选择具有最高概率的标记，并将其附加到该序列中。这就是这种方法的简便之处，也是其缺陷，与所有其他贪心算法一样——它会陷入[局部最小值](https://en.wikipedia.org/wiki/Maximum_and_minimum)。也就是说，看似当前最好的标记*现在*可能实际上不是生成输出*整体*上最好的标记。
 
@@ -112,31 +112,31 @@ return "".join(sequence)
 
 # 束搜索（Beam Search）
 
-回到图搜索的类比，为了生成任何给定查询和上下文的最优文本，我们必须完全探索潜在的标记序列的宇宙。这个解决方案类似于[A*搜索算法](https://en.wikipedia.org/wiki/A*_search_algorithm)（比[Dijkstra算法](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)更接近，因为我们不一定要最短路径，而是最低成本/最高可能性）。
+回到图搜索的类比，为了生成任何给定查询和上下文的最优文本，我们必须完全探索潜在的标记序列的宇宙。这个解决方案类似于[A*搜索算法](https://en.wikipedia.org/wiki/A*_search_algorithm)（比[Dijkstra 算法](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)更接近，因为我们不一定要最短路径，而是最低成本/最高可能性）。
 
-![](../Images/6fc0bbc1ddd5079610f4145be84f080c.png)
+![](img/6fc0bbc1ddd5079610f4145be84f080c.png)
 
-A*搜索示意图由[Wgullyn](https://commons.wikimedia.org/w/index.php?title=User%3AWgullyn&action=edit&redlink=1)提供，来源于[https://en.wikipedia.org/wiki/A*_search_algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
+A*搜索示意图由[Wgullyn](https://commons.wikimedia.org/w/index.php?title=User%3AWgullyn&action=edit&redlink=1)提供，来源于[`en.wikipedia.org/wiki/A*_search_algorithm`](https://en.wikipedia.org/wiki/A*_search_algorithm)
 
 由于我们处理的是自然语言，涉及的复杂性太高，以至于在大多数情况下无法穷尽所有查询的搜索空间。解决方案是将搜索空间缩减到一个合理数量的候选路径；比如可能只有 4、8 或 12 条。
 
 [Beam search](https://en.wikipedia.org/wiki/Beam_search) 是一种通常用于逼近理想 A* 搜索结果的启发式方法。该技术保持 `k` 个 *候选序列*，这些序列是通过分别选择 *top-k* 最可能的标记逐步构建的。每个标记都会贡献到整个序列的得分，在每一步后，所有候选序列会被修剪，只保留得分最高的前 `k` 个序列。
 
-![](../Images/e81d6f9091c89b995172fb8fb2992900.png)
+![](img/e81d6f9091c89b995172fb8fb2992900.png)
 
 与 A* 搜索类似，Beam search 会保持从开始到结束的多条路径，评估有限数量候选序列的整体得分。这个数量被称为“beam width”。
 
 Beam search 中的“beam” [借用了手电筒的类比](https://web.stanford.edu/%7Ejurafsky/slp3/ed3book.pdf)，手电筒的光束可以被加宽或缩小。以生成 *the quick brown fox jumps over the lazy dog* 为例，假设 beam width 为 `2`，整个过程大致如下：
 
-![](../Images/357234441d2c6f0bc675c925594f8b71.png)
+![](img/357234441d2c6f0bc675c925594f8b71.png)
 
 在这一阶段，正在维护两个候选序列：“*the*” 和 “*a*”。这两个序列各自需要评估接下来最可能的两个标记。
 
-![](../Images/1d20191c70190ef7f97d32413b19b63f.png)
+![](img/1d20191c70190ef7f97d32413b19b63f.png)
 
 下一步后，“*the speedy*” 被淘汰，“*the quick*” 被选为第一个候选序列。对于第二个候选序列，“*a lazy*” 被淘汰，“*a quick*” 被选中，因为它具有更高的累积概率。需要注意的是，如果线上两个候选的概率高于线下两个候选的概率，它们将代表下一步的两个候选序列。
 
-![](../Images/e85a3ab3d02ab9a852646a3c3eaacd42.png)
+![](img/e85a3ab3d02ab9a852646a3c3eaacd42.png)
 
 这个过程会一直继续，直到达到最大标记长度限制，或者所有候选序列都已经添加了结束标记，意味着我们已经完成了该序列的文本生成。
 
@@ -146,21 +146,21 @@ Beam search 中的“beam” [借用了手电筒的类比](https://web.stanford.
 
 那么，`temperature` 与这一切有什么关系呢？正如我上面提到的，这个参数并不会真正的 `注入随机性` 到生成的文本序列中，但它确实会修改输出序列的 *可预测性*。借用 [信息论](https://en.wikipedia.org/wiki/Information_theory)的概念：temperature 可以增加或减少与标记预测相关的 [熵](https://en.wikipedia.org/wiki/Entropy_(information_theory))。
 
-[Softmax](https://en.wikipedia.org/wiki/Softmax_function) [激活函数](https://en.wikipedia.org/wiki/Activation_function)通常用于将模型（包括LLM）的原始输出（即[logits](https://deepai.org/machine-learning-glossary-and-terms/logit)）转换为概率分布（我稍微讲解了一下[这里](https://betterprogramming.pub/word2vec-embeddings-from-the-ground-up-for-the-ml-adjacent-8d8c484e7cb5)）。该函数定义如下，给定一个包含`n`个元素的向量`Z`：
+[Softmax](https://en.wikipedia.org/wiki/Softmax_function) [激活函数](https://en.wikipedia.org/wiki/Activation_function)通常用于将模型（包括 LLM）的原始输出（即[logits](https://deepai.org/machine-learning-glossary-and-terms/logit)）转换为概率分布（我稍微讲解了一下[这里](https://betterprogramming.pub/word2vec-embeddings-from-the-ground-up-for-the-ml-adjacent-8d8c484e7cb5)）。该函数定义如下，给定一个包含`n`个元素的向量`Z`：
 
-![](../Images/17663ffca4ce96dfc2648f4c52fa803c.png)
+![](img/17663ffca4ce96dfc2648f4c52fa803c.png)
 
-Sigma通常用于指代softmax函数。
+Sigma 通常用于指代 softmax 函数。
 
 该函数输出一个概率向量（或[张量](https://en.wikipedia.org/wiki/Tensor)），其总和为`1.0`，可以用来清晰地评估模型在类别预测中的信心，且结果是人类可解释的。
 
-可以引入一个“温度”缩放参数`T`，该参数在应用softmax之前对logit值进行缩放。
+可以引入一个“温度”缩放参数`T`，该参数在应用 softmax 之前对 logit 值进行缩放。
 
-![](../Images/325914dbd49526f978ec826d353b6761.png)
+![](img/325914dbd49526f978ec826d353b6761.png)
 
-温度缩放参数T应用于softmax函数的输入。
+温度缩放参数 T 应用于 softmax 函数的输入。
 
-应用`T > 1.0`的温度效果是*缩小*logit值，并且产生了减弱不同类别之间概率最大差异的效果（它增加了模型预测中的熵）。
+应用`T > 1.0`的温度效果是*缩小*logit 值，并且产生了减弱不同类别之间概率最大差异的效果（它增加了模型预测中的熵）。
 
 使用`T < 1.0`的温度会产生相反的效果；它*放大*了差异，这意味着最有信心的预测会比其他预测更加突出。这减少了模型预测中的熵。
 
@@ -171,9 +171,9 @@ scaled_logits = logits_tensor / temperature
 probs = torch.softmax(scaled_logits, dim=-1)
 ```
 
-看看给定一些手写logit值时，8个可能类别的效果：
+看看给定一些手写 logit 值时，8 个可能类别的效果：
 
-![](../Images/138299975434200047e05f840538fd66.png)
+![](img/138299975434200047e05f840538fd66.png)
 
 通过我链接的仓库中的脚本生成
 
@@ -185,9 +185,9 @@ logits = torch.tensor([3.123, 5.0, 3.234, 2.642, 2.466, 3.3532, 3.8, 2.911])
 probs  = [torch.softmax(logits / t, dim=-1) for t in ts]
 ```
 
-条形图表示logit值（模型预测的输出），而线条表示这些类别的概率分布，概率值定义在右侧标签上。粗红线表示期望的分布，温度为`T=1.0`，而其他线条则演示了在`0.5`到`8.0`的温度范围内，相对可能性变化的情况。
+条形图表示 logit 值（模型预测的输出），而线条表示这些类别的概率分布，概率值定义在右侧标签上。粗红线表示期望的分布，温度为`T=1.0`，而其他线条则演示了在`0.5`到`8.0`的温度范围内，相对可能性变化的情况。
 
-你可以清楚地看到，`T=0.5`强调了最大幅度logit索引的可能性，而`T=8.0`则将类别之间的概率差异缩小到几乎为零。
+你可以清楚地看到，`T=0.5`强调了最大幅度 logit 索引的可能性，而`T=8.0`则将类别之间的概率差异缩小到几乎为零。
 
 ```py
 >>> [print(f' t={t}\n l={(logits/t)}\n p={p}\n') for p,t in zip(probs, ts)]
@@ -227,7 +227,7 @@ probs  = [torch.softmax(logits / t, dim=-1) for t in ts]
 
 # 实现细节
 
-束搜索实现通常使用[对数概率](https://en.wikipedia.org/wiki/Log_probability)来处理softmax概率，这在机器学习领域及其他许多领域中都很常见。其原因包括：
+束搜索实现通常使用[对数概率](https://en.wikipedia.org/wiki/Log_probability)来处理 softmax 概率，这在机器学习领域及其他许多领域中都很常见。其原因包括：
 
 +   使用的概率通常极其小；使用对数概率可以改善[数值稳定性](https://en.wikipedia.org/wiki/Numerical_stability)。
 
@@ -235,7 +235,7 @@ probs  = [torch.softmax(logits / t, dim=-1) for t in ts]
 
 +   优化器，如[梯度下降](https://en.wikipedia.org/wiki/Gradient_descent)，在处理对数概率时更为简单，这使得导数计算更加简便，而交叉熵损失等损失函数已经涉及了对数计算。
 
-这也意味着我们作为评分使用的对数概率值是负实数。由于softmax产生的概率分布的总和为`1.0`，因此任何类别的概率的对数值都将`≤ 1.0`，从而产生负值。这有些烦人，但它与高评分值更好这一特性一致，而极其负的评分则反映了极不可能的结果：
+这也意味着我们作为评分使用的对数概率值是负实数。由于 softmax 产生的概率分布的总和为`1.0`，因此任何类别的概率的对数值都将`≤ 1.0`，从而产生负值。这有些烦人，但它与高评分值更好这一特性一致，而极其负的评分则反映了极不可能的结果：
 
 ```py
 >>> math.log(3)
@@ -330,7 +330,7 @@ return candidate_sequences
 
 # 贪婪搜索和束搜索生成示例
 
-正如我提到的，[我已经将一些示例代码发布到Github](https://github.com/mikecvet/beam)，该代码使用了`t5-small`[Hugging Face的transformer模型](https://huggingface.co/docs/transformers/en/model_doc/t5)及其对应的[T5Tokenizer](https://huggingface.co/docs/transformers/v4.40.0/en/model_doc/t5#transformers.T5Tokenizer)。下面的示例是通过T5模型运行的，使用了[quick brown fox 等](https://en.wikipedia.org/wiki/The_quick_brown_fox_jumps_over_the_lazy_dog)维基百科页面，经过[提取脚本](https://github.com/mikecvet/beam/blob/main/wiki-extract.py)的清洗。
+正如我提到的，[我已经将一些示例代码发布到 Github](https://github.com/mikecvet/beam)，该代码使用了`t5-small`[Hugging Face 的 transformer 模型](https://huggingface.co/docs/transformers/en/model_doc/t5)及其对应的[T5Tokenizer](https://huggingface.co/docs/transformers/v4.40.0/en/model_doc/t5#transformers.T5Tokenizer)。下面的示例是通过 T5 模型运行的，使用了[quick brown fox 等](https://en.wikipedia.org/wiki/The_quick_brown_fox_jumps_over_the_lazy_dog)维基百科页面，经过[提取脚本](https://github.com/mikecvet/beam/blob/main/wiki-extract.py)的清洗。
 
 ## 贪婪搜索
 
@@ -449,7 +449,7 @@ beam search (k=4, t=4.0) generation results:
 ]
 ```
 
-这个输出正确地生成了“*测试打字机*”而不是“*打字打字机*”，并且明确指定了“*计算机键盘*”。有趣的是，它选择了历史事实，即这个短语最初以“**一只**快速的棕色狐狸”开始，而不是上面提到的Zaner-Bloser竞赛事实。完整的输出也可以在[这里](https://github.com/mikecvet/beam/blob/main/example_runs/fox_b_4.out)找到。
+这个输出正确地生成了“*测试打字机*”而不是“*打字打字机*”，并且明确指定了“*计算机键盘*”。有趣的是，它选择了历史事实，即这个短语最初以“**一只**快速的棕色狐狸”开始，而不是上面提到的 Zaner-Bloser 竞赛事实。完整的输出也可以在[这里](https://github.com/mikecvet/beam/blob/main/example_runs/fox_b_4.out)找到。
 
 这个输出是否更好是一个主观的看法问题。它在一些细微的方面有所不同，温度值的使用和设置会因应用而异。我认为它更好，而且有趣的是，获得这个输出时没有改变任何模型权重、模型架构或提示。
 
@@ -579,8 +579,8 @@ next step candidates:
 
 # 结论
 
-这篇文章比我原本计划写的要长很多；希望你能从中得到一些启示。除了单纯理解束搜索（beam search）和温度（temperature）是如何工作的之外，我认为最有趣的例子是，即使考虑到LLM的巨大复杂性和能力，影响它们预测结果使用方式的实现选择，仍然对输出质量产生了巨大影响。将简单的本科计算机科学概念应用于序列构建，可以导致显著不同的LLM输出，即使其他所有输入完全相同。
+这篇文章比我原本计划写的要长很多；希望你能从中得到一些启示。除了单纯理解束搜索（beam search）和温度（temperature）是如何工作的之外，我认为最有趣的例子是，即使考虑到 LLM 的巨大复杂性和能力，影响它们预测结果使用方式的实现选择，仍然对输出质量产生了巨大影响。将简单的本科计算机科学概念应用于序列构建，可以导致显著不同的 LLM 输出，即使其他所有输入完全相同。
 
-当我们在使用LLM时遇到幻觉、错误或其他怪癖时，完全有可能（也许很可能）这些问题是由输出序列构建算法的怪癖引起的，而不是训练模型本身的“故障”。对于API的用户来说，几乎不可能分辨出差异。
+当我们在使用 LLM 时遇到幻觉、错误或其他怪癖时，完全有可能（也许很可能）这些问题是由输出序列构建算法的怪癖引起的，而不是训练模型本身的“故障”。对于 API 的用户来说，几乎不可能分辨出差异。
 
-我认为这是一个有趣的例子，展示了LLM背后复杂的机制，使它们成为今天如此强大的工具和产品。
+我认为这是一个有趣的例子，展示了 LLM 背后复杂的机制，使它们成为今天如此强大的工具和产品。

@@ -1,16 +1,16 @@
 # 为什么“统计显著性”是毫无意义的
 
-> 原文：[https://towardsdatascience.com/why-statistical-significance-is-pointless-a7644be30266?source=collection_archive---------0-----------------------#2024-12-01](https://towardsdatascience.com/why-statistical-significance-is-pointless-a7644be30266?source=collection_archive---------0-----------------------#2024-12-01)
+> 原文：[`towardsdatascience.com/why-statistical-significance-is-pointless-a7644be30266?source=collection_archive---------0-----------------------#2024-12-01`](https://towardsdatascience.com/why-statistical-significance-is-pointless-a7644be30266?source=collection_archive---------0-----------------------#2024-12-01)
 
 ## 这是一个更好的数据驱动决策框架
 
-[](https://medium.com/@mazzanti.sam?source=post_page---byline--a7644be30266--------------------------------)[![Samuele Mazzanti](../Images/432477d6418a3f79bf25dec42755d364.png)](https://medium.com/@mazzanti.sam?source=post_page---byline--a7644be30266--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a7644be30266--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a7644be30266--------------------------------) [Samuele Mazzanti](https://medium.com/@mazzanti.sam?source=post_page---byline--a7644be30266--------------------------------)
+[](https://medium.com/@mazzanti.sam?source=post_page---byline--a7644be30266--------------------------------)![Samuele Mazzanti](https://medium.com/@mazzanti.sam?source=post_page---byline--a7644be30266--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a7644be30266--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a7644be30266--------------------------------) [Samuele Mazzanti](https://medium.com/@mazzanti.sam?source=post_page---byline--a7644be30266--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a7644be30266--------------------------------) ·9分钟阅读·2024年12月1日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a7644be30266--------------------------------) ·9 分钟阅读·2024 年 12 月 1 日
 
 --
 
-![](../Images/1d2a800b6973bde6d6421d04ec461387.png)
+![](img/1d2a800b6973bde6d6421d04ec461387.png)
 
 [图片来源：作者]
 
@@ -24,6 +24,6 @@
 
 # 1\. 从一个例子开始
 
-假设我们刚刚进行了一个A/B测试，评估一个旨在提高用户在我们网站上停留时间的新功能——从而提高他们的消费。
+假设我们刚刚进行了一个 A/B 测试，评估一个旨在提高用户在我们网站上停留时间的新功能——从而提高他们的消费。
 
-控制组包含了5,000名用户，治疗组包括另外5,000名用户。这为我们提供了两个数组，分别命名为`treatment`和`control`，每个数组包含5,000个值，代表各自组内用户的消费情况。
+控制组包含了 5,000 名用户，治疗组包括另外 5,000 名用户。这为我们提供了两个数组，分别命名为`treatment`和`control`，每个数组包含 5,000 个值，代表各自组内用户的消费情况。

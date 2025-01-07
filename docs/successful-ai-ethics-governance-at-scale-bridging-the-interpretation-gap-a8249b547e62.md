@@ -1,22 +1,22 @@
 # 成功的人工智能伦理与治理：弥合解释鸿沟
 
-> 原文：[https://towardsdatascience.com/successful-ai-ethics-governance-at-scale-bridging-the-interpretation-gap-a8249b547e62?source=collection_archive---------7-----------------------#2024-10-24](https://towardsdatascience.com/successful-ai-ethics-governance-at-scale-bridging-the-interpretation-gap-a8249b547e62?source=collection_archive---------7-----------------------#2024-10-24)
+> 原文：[`towardsdatascience.com/successful-ai-ethics-governance-at-scale-bridging-the-interpretation-gap-a8249b547e62?source=collection_archive---------7-----------------------#2024-10-24`](https://towardsdatascience.com/successful-ai-ethics-governance-at-scale-bridging-the-interpretation-gap-a8249b547e62?source=collection_archive---------7-----------------------#2024-10-24)
 
 ## 一般化的原则需要专业人员来执行
 
-[](https://jasontwidjaja.medium.com/?source=post_page---byline--a8249b547e62--------------------------------)[![Jason Tamara Widjaja](../Images/0a38accc2804954a1eaa620b4212d55b.png)](https://jasontwidjaja.medium.com/?source=post_page---byline--a8249b547e62--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a8249b547e62--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a8249b547e62--------------------------------) [Jason Tamara Widjaja](https://jasontwidjaja.medium.com/?source=post_page---byline--a8249b547e62--------------------------------)
+[](https://jasontwidjaja.medium.com/?source=post_page---byline--a8249b547e62--------------------------------)![Jason Tamara Widjaja](https://jasontwidjaja.medium.com/?source=post_page---byline--a8249b547e62--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a8249b547e62--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a8249b547e62--------------------------------) [Jason Tamara Widjaja](https://jasontwidjaja.medium.com/?source=post_page---byline--a8249b547e62--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a8249b547e62--------------------------------) ·5分钟阅读·2024年10月24日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a8249b547e62--------------------------------) ·5 分钟阅读·2024 年 10 月 24 日
 
 --
 
-![](../Images/973097c4992ec789ae08c5b5221a084e.png)
+![](img/973097c4992ec789ae08c5b5221a084e.png)
 
 图片来源：[Una Laurencic](https://www.pexels.com/photo/woman-sitting-on-ottoman-in-front-of-three-paintings-20967/)
 
 人工智能伦理与治理已成为一个喧嚣的领域。
 
-根据最新统计，[OECD追踪器](https://oecd.ai/en/dashboards/overview/policy)显示，截至2024年9月，已有超过1,800个*国家级文件*涉及有关倡议、政策、框架和战略（而且似乎每一项都有人在发表评论）。
+根据最新统计，[OECD 追踪器](https://oecd.ai/en/dashboards/overview/policy)显示，截至 2024 年 9 月，已有超过 1,800 个*国家级文件*涉及有关倡议、政策、框架和战略（而且似乎每一项都有人在发表评论）。
 
 然而，正如 [Mittelstadt (2021)](https://www.nature.com/articles/s42256-019-0114-4) 简明扼要地指出的，只有**原则**本身无法保证伦理人工智能的实现。
 

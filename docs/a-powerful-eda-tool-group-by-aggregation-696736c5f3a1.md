@@ -1,16 +1,16 @@
-# 一种强大的EDA工具：分组聚合
+# 一种强大的 EDA 工具：分组聚合
 
-> 原文：[https://towardsdatascience.com/a-powerful-eda-tool-group-by-aggregation-696736c5f3a1?source=collection_archive---------5-----------------------#2024-07-04](https://towardsdatascience.com/a-powerful-eda-tool-group-by-aggregation-696736c5f3a1?source=collection_archive---------5-----------------------#2024-07-04)
+> 原文：[`towardsdatascience.com/a-powerful-eda-tool-group-by-aggregation-696736c5f3a1?source=collection_archive---------5-----------------------#2024-07-04`](https://towardsdatascience.com/a-powerful-eda-tool-group-by-aggregation-696736c5f3a1?source=collection_archive---------5-----------------------#2024-07-04)
 
-![](../Images/691a811bf777523ac010794feed190fa.png)
+![](img/691a811bf777523ac010794feed190fa.png)
 
 照片由[Mourizal Zativa](https://unsplash.com/@mourimoto?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)提供，来自[Unsplash](https://unsplash.com/s/photos/lego-pieces?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)
 
 ## 学习如何使用分组聚合从数据中发现洞察
 
-[](https://medium.com/@pararawendy19?source=post_page---byline--696736c5f3a1--------------------------------)[![Pararawendy Indarjo](../Images/afba0cb7f3af9554a187bbc7a3c00e60.png)](https://medium.com/@pararawendy19?source=post_page---byline--696736c5f3a1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--696736c5f3a1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--696736c5f3a1--------------------------------) [Pararawendy Indarjo](https://medium.com/@pararawendy19?source=post_page---byline--696736c5f3a1--------------------------------)
+[](https://medium.com/@pararawendy19?source=post_page---byline--696736c5f3a1--------------------------------)![Pararawendy Indarjo](https://medium.com/@pararawendy19?source=post_page---byline--696736c5f3a1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--696736c5f3a1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--696736c5f3a1--------------------------------) [Pararawendy Indarjo](https://medium.com/@pararawendy19?source=post_page---byline--696736c5f3a1--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--696736c5f3a1--------------------------------) ·阅读时间：7分钟·2024年7月4日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--696736c5f3a1--------------------------------) ·阅读时间：7 分钟·2024 年 7 月 4 日
 
 --
 
@@ -20,7 +20,7 @@
 
 为此，本文的其余部分将按以下方式安排：
 
-1.  在Pandas中进行分组聚合的解释
+1.  在 Pandas 中进行分组聚合的解释
 
 1.  数据集：地铁州际交通
 
@@ -32,7 +32,7 @@
 
 分组聚合在数据粒度较细时尤其有用，典型的如事实表（交易数据）和间隔较窄的时间序列数据。通过在比原始数据粒度更高的层次进行聚合，我们可以以更紧凑的方式表示数据——并且可能在此过程中提炼出有用的洞察。
 
-在pandas中，我们可以使用以下通用语法形式进行分组聚合。
+在 pandas 中，我们可以使用以下通用语法形式进行分组聚合。
 
 ```py
 df.groupby(['base_col']).agg(
@@ -53,13 +53,13 @@ titanic = sns.load_dataset("titanic")
 titanic.head()
 ```
 
-![](../Images/4868ab3226336b94d70b44529881f531.png)
+![](img/4868ab3226336b94d70b44529881f531.png)
 
-泰坦尼克号数据的前5行（作者提供的图片）
+泰坦尼克号数据的前 5 行（作者提供的图片）
 
 我们可以通过`survived`列对这些数据进行分组，然后通过计算`fare`列的中位数来聚合，得到以下结果。
 
-![](../Images/11515715275245f95bac895b569a7168.png)
+![](img/11515715275245f95bac895b569a7168.png)
 
 按生存状态划分的泰坦尼克号乘客票价中位数（作者提供的图片）
 
@@ -69,9 +69,9 @@ titanic.head()
 
 # 数据集
 
-我们将使用地铁州际交通量数据集。这是一个公开可用的数据集，具有[创意共享4.0许可证](https://archive.ics.uci.edu/dataset/492/metro+interstate+traffic+volume)（允许以任何目的共享和修改数据集）。
+我们将使用地铁州际交通量数据集。这是一个公开可用的数据集，具有[创意共享 4.0 许可证](https://archive.ics.uci.edu/dataset/492/metro+interstate+traffic+volume)（允许以任何目的共享和修改数据集）。
 
-该数据集包含2012-2018年间明尼阿波利斯-圣保罗，明尼苏达州I-94西行的每小时交通量数据，同时也包含天气详情。数据字典信息可以在其[UCI机器学习库](https://archive.ics.uci.edu/dataset/492/metro+interstate+traffic+volume)页面找到。
+该数据集包含 2012-2018 年间明尼阿波利斯-圣保罗，明尼苏达州 I-94 西行的每小时交通量数据，同时也包含天气详情。数据字典信息可以在其[UCI 机器学习库](https://archive.ics.uci.edu/dataset/492/metro+interstate+traffic+volume)页面找到。
 
 ```py
 import pandas as pd
@@ -86,13 +86,13 @@ df['date_time'] = pd.to_datetime(df['date_time'])
 df.head()
 ```
 
-![](../Images/32fdeb6df51b8acd7fcde2589ae5b6ff.png)
+![](img/32fdeb6df51b8acd7fcde2589ae5b6ff.png)
 
 交通数据（df）头部（作者提供的图片）
 
-对于这个博客示例，我们将仅使用2016年及之后的数据，因为早期的交通数据缺失（自己尝试检查一下，作为练习！）。
+对于这个博客示例，我们将仅使用 2016 年及之后的数据，因为早期的交通数据缺失（自己尝试检查一下，作为练习！）。
 
-此外，我们将添加一个新的列`is_congested`，如果`traffic_volume`超过5000，则值为1，否则为0。
+此外，我们将添加一个新的列`is_congested`，如果`traffic_volume`超过 5000，则值为 1，否则为 0。
 
 ```py
 # only consider 2016 onwards data
@@ -102,7 +102,7 @@ df = df.loc[df['date_time']>="2016-01-01",:]
 df['is_congested'] = df['traffic_volume'].apply(lambda x: 1 if x > 5000 else 0)
 ```
 
-# 地铁交通EDA
+# 地铁交通 EDA
 
 以分组聚合作为主要方法，我们将尝试回答以下分析问题。
 
@@ -110,7 +110,7 @@ df['is_congested'] = df['traffic_volume'].apply(lambda x: 1 if x > 5000 else 0)
 
 1.  一周内每天的交通概况如何（星期一、星期二等）？
 
-1.  典型的24小时交通量是如何变化的，按工作日与周末进行区分？
+1.  典型的 24 小时交通量是如何变化的，按工作日与周末进行区分？
 
 1.  哪些天气条件与更高的拥堵率相关？
 
@@ -136,7 +136,7 @@ monthly_traffic['month'] = monthly_traffic['month'].astype(str)
 monthly_traffic.head()
 ```
 
-![](../Images/dae775c6786baf7cb6a9c5ecad22263a.png)
+![](img/dae775c6786baf7cb6a9c5ecad22263a.png)
 
 月度交通头部（作者提供的图片）
 
@@ -151,7 +151,7 @@ plt.title("Monthly Traffic Volume")
 plt.show()
 ```
 
-![](../Images/6ab9165cf2cfe4d78db6ad1b200f250b.png)
+![](img/6ab9165cf2cfe4d78db6ad1b200f250b.png)
 
 月度交通量（作者提供的图片）
 
@@ -194,9 +194,9 @@ daily_traffic = daily_traffic.sort_values(by='dayname_index')
 daily_traffic.head()
 ```
 
-![](../Images/276b382c99b6e35b87a65c410af1b682.png)
+![](img/276b382c99b6e35b87a65c410af1b682.png)
 
-daily_traffic头部数据（图像来源：作者）
+daily_traffic 头部数据（图像来源：作者）
 
 上表包含了按星期名称划分的每日总交通量的不同表现形式。箱形图可有效展示这些交通量的变化，让我们能够理解星期一、星期二等的交通量差异。
 
@@ -209,7 +209,7 @@ plt.title("Daily Traffic Volume")
 plt.show()
 ```
 
-![](../Images/f16f99935a28b55c6b2cb92e791c7921.png)
+![](img/f16f99935a28b55c6b2cb92e791c7921.png)
 
 上图显示，所有工作日（周一至周五）的交通密度大致相同。周末（周六和周日）的交通较少，其中周日的交通最少。
 
@@ -235,9 +235,9 @@ hourly_traffic = df.groupby(['is_weekend','hour'], as_index=False).agg(
 hourly_traffic.head()
 ```
 
-![](../Images/d375c70aabf7ca5a524c4d0c70828ef4.png)
+![](img/d375c70aabf7ca5a524c4d0c70828ef4.png)
 
-hourly_traffic头部数据（图像来源：作者）
+hourly_traffic 头部数据（图像来源：作者）
 
 对于可视化，我们可以使用条形图，并按照`is_weekend`标志进行细分。
 
@@ -249,15 +249,15 @@ plt.title("Average Hourly Traffic Volume: Weekdays (blue) vs Weekend (orange)", 
 plt.show()
 ```
 
-![](../Images/c34979eebbbc1661a4b9e0f846e0921b.png)
+![](img/c34979eebbbc1661a4b9e0f846e0921b.png)
 
 按周末状态划分的小时交通模式（图像来源：作者）
 
 非常有趣且丰富的可视化！观察结果：
 
-1.  工作日的交通呈双峰分布模式。它在早上6点到8点和下午4点到5点之间达到交通量的峰值。这是直观的，因为这些时间段代表着人们上下班的时间。
+1.  工作日的交通呈双峰分布模式。它在早上 6 点到 8 点和下午 4 点到 5 点之间达到交通量的峰值。这是直观的，因为这些时间段代表着人们上下班的时间。
 
-1.  周末的交通遵循完全不同的模式。它呈单峰形状，且有一个较大的高峰区间（12–17点）。尽管总体上（交通量较少）低于工作日的同一时段，但值得注意的是，周末的深夜时段（22–2点）交通实际上更高。这可能是因为人们在周末晚上待得更晚。
+1.  周末的交通遵循完全不同的模式。它呈单峰形状，且有一个较大的高峰区间（12–17 点）。尽管总体上（交通量较少）低于工作日的同一时段，但值得注意的是，周末的深夜时段（22–2 点）交通实际上更高。这可能是因为人们在周末晚上待得更晚。
 
 ## 与拥堵相关的天气类型
 
@@ -276,7 +276,7 @@ congested_weather = df.groupby('weather_description', as_index=False).agg(
 congested_weather.head()
 ```
 
-![](../Images/dcb0a5842e7936cb2dee5f7fa295da63.png)
+![](img/dcb0a5842e7936cb2dee5f7fa295da63.png)
 
 拥堵天气头（图片由作者提供）
 
@@ -289,7 +289,7 @@ plt.title('Top Weather with High Congestion Rates')
 plt.show()
 ```
 
-![](../Images/b7b2ea4c435d20fdc4c0983da5822c05.png)
+![](img/b7b2ea4c435d20fdc4c0983da5822c05.png)
 
 基于拥堵率的天气排行（图片由作者提供）
 
@@ -301,6 +301,6 @@ plt.show()
 
 # 结尾
 
-在这篇博客文章中，我们介绍了如何在EDA练习中使用分组聚合。正如我们所看到的，这项技术在从数据中揭示有趣且有用的见解时非常有效，尤其是在处理粒度数据时。
+在这篇博客文章中，我们介绍了如何在 EDA 练习中使用分组聚合。正如我们所看到的，这项技术在从数据中揭示有趣且有用的见解时非常有效，尤其是在处理粒度数据时。
 
-希望你能在下一个EDA项目中练习使用分组聚合！总的来说，感谢你的阅读，欢迎在[LinkedIn](https://www.linkedin.com/in/pararawendy-indarjo/)上与我联系！👋
+希望你能在下一个 EDA 项目中练习使用分组聚合！总的来说，感谢你的阅读，欢迎在[LinkedIn](https://www.linkedin.com/in/pararawendy-indarjo/)上与我联系！👋

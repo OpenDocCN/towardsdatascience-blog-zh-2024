@@ -1,10 +1,10 @@
 # 如何自学 AI（自学指南）
 
-> 原文：[https://towardsdatascience.com/how-to-learn-ai-on-your-own-a-self-study-guide-a67e23350c24?source=collection_archive---------0-----------------------#2024-01-05](https://towardsdatascience.com/how-to-learn-ai-on-your-own-a-self-study-guide-a67e23350c24?source=collection_archive---------0-----------------------#2024-01-05)
+> 原文：[`towardsdatascience.com/how-to-learn-ai-on-your-own-a-self-study-guide-a67e23350c24?source=collection_archive---------0-----------------------#2024-01-05`](https://towardsdatascience.com/how-to-learn-ai-on-your-own-a-self-study-guide-a67e23350c24?source=collection_archive---------0-----------------------#2024-01-05)
 
-[](https://medium.com/@vuthihienthu.ueb?source=post_page---byline--a67e23350c24--------------------------------)[![Thu Vu](../Images/d5d1b5895e241983b5853cb22583b6bf.png)](https://medium.com/@vuthihienthu.ueb?source=post_page---byline--a67e23350c24--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a67e23350c24--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a67e23350c24--------------------------------) [Thu Vu](https://medium.com/@vuthihienthu.ueb?source=post_page---byline--a67e23350c24--------------------------------)
+[](https://medium.com/@vuthihienthu.ueb?source=post_page---byline--a67e23350c24--------------------------------)![Thu Vu](https://medium.com/@vuthihienthu.ueb?source=post_page---byline--a67e23350c24--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a67e23350c24--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a67e23350c24--------------------------------) [Thu Vu](https://medium.com/@vuthihienthu.ueb?source=post_page---byline--a67e23350c24--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a67e23350c24--------------------------------) ·阅读时间 12 分钟·2024年1月5日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a67e23350c24--------------------------------) ·阅读时间 12 分钟·2024 年 1 月 5 日
 
 --
 
@@ -20,6 +20,6 @@
 
 # 为什么你应该学习 AI？
 
-人工智能、机器学习和深度学习自1950年代以来就已存在。由于算法、计算能力的进步，尤其是数据的丰富，这一领域在过去十年（尤其是近几年）飞速发展。
+人工智能、机器学习和深度学习自 1950 年代以来就已存在。由于算法、计算能力的进步，尤其是数据的丰富，这一领域在过去十年（尤其是近几年）飞速发展。
 
 我们今天常谈的 AI 是生成式 AI，它是机器学习和深度学习的一个子集。

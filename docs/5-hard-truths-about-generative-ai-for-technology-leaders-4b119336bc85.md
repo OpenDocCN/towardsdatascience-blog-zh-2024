@@ -1,16 +1,16 @@
 # 5 个关于生成式 AI 的严峻真相，科技领导者必看
 
-> 原文：[https://towardsdatascience.com/5-hard-truths-about-generative-ai-for-technology-leaders-4b119336bc85?source=collection_archive---------1-----------------------#2024-01-04](https://towardsdatascience.com/5-hard-truths-about-generative-ai-for-technology-leaders-4b119336bc85?source=collection_archive---------1-----------------------#2024-01-04)
+> 原文：[`towardsdatascience.com/5-hard-truths-about-generative-ai-for-technology-leaders-4b119336bc85?source=collection_archive---------1-----------------------#2024-01-04`](https://towardsdatascience.com/5-hard-truths-about-generative-ai-for-technology-leaders-4b119336bc85?source=collection_archive---------1-----------------------#2024-01-04)
 
 ## 产生真正商业价值的 GenAI 需要真正的努力。但这是值得的。
 
-[](https://barrmoses.medium.com/?source=post_page---byline--4b119336bc85--------------------------------)[![Barr Moses](../Images/4c74558ee692a85196d5a55ac1920718.png)](https://barrmoses.medium.com/?source=post_page---byline--4b119336bc85--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4b119336bc85--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4b119336bc85--------------------------------) [Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--4b119336bc85--------------------------------)
+[](https://barrmoses.medium.com/?source=post_page---byline--4b119336bc85--------------------------------)![Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--4b119336bc85--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4b119336bc85--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b119336bc85--------------------------------) [Barr Moses](https://barrmoses.medium.com/?source=post_page---byline--4b119336bc85--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b119336bc85--------------------------------) ·8 分钟阅读·2024年1月4日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b119336bc85--------------------------------) ·8 分钟阅读·2024 年 1 月 4 日
 
 --
 
-![](../Images/aebacd9bb52572b68e0d4abb2ced0bcb.png)
+![](img/aebacd9bb52572b68e0d4abb2ced0bcb.png)
 
 原始图片来自 [The Everett Collection](https://www.shutterstock.com/g/everett?q=) 在 [Shutterstock](https://www.shutterstock.com/image-photo/defendants-lawyer-jury-95079523) 上。图片由作者编辑。
 
@@ -42,7 +42,7 @@ GenAI 无处不在，来自各行各业的组织都在施加压力，要求他�
 
 也许团队决定购买一些 AI 信用点，或者他们只需切换到 [另一个标签页并向 ChatGPT 提问](https://thomasjfrank.com/how-to-transcribe-audio-to-text-with-chatgpt-and-notion/#summarize-the-transcript-with-chatgpt-1)。我不想完全忽视或低估不将专有数据暴露给 ChatGPT 的好处，但这也是一种较小的解决方案和愿景，而非那些在全国各地的财报电话会议中描绘的愿景。
 
-![](../Images/06363a5bf16d8650ff55b20495bbfe5b.png)
+![](img/06363a5bf16d8650ff55b20495bbfe5b.png)
 
 *从概念到价值的那个恼人的中间步骤。图片由* [*Joe Reis 在 Substack*](https://joereis.substack.com/p/ai-underpants-gnomes-c-suite-edition)*提供。*
 
@@ -56,7 +56,7 @@ GenAI 无处不在，来自各行各业的组织都在施加压力，要求他�
 
 当然，你可以将你的 AI 模型更深入地整合到你所在组织的流程中，但这感觉风险很大。让我们面对现实：ChatGPT 会产生幻觉，而且是不可预测的。它存在知识截止的问题，使得用户容易得到过时的输出。数据处理不当和向消费者提供错误信息的法律后果，即使是无意的，也是存在的。
 
-![](../Images/a6059b1245525c2b30d0246bd96d9440.png)
+![](img/a6059b1245525c2b30d0246bd96d9440.png)
 
 *听起来足够真实，对吧？Llama 2 确实这么认为。图片由* [*Pinecone*](https://www.pinecone.io/learn/options-for-solving-hallucinations-in-generative-ai/)*提供。*
 
@@ -68,25 +68,25 @@ GenAI 无处不在，来自各行各业的组织都在施加压力，要求他�
 
 这些是真实的风险，需要解决方案，但你不能通过袖手旁观来解决它们。还有一个实际的风险，就是眼睁睁看着你的业务被率先解决这些问题的团队彻底颠覆。
 
-通过微调和RAG将大型语言模型（LLMs）与你的专有数据结合，是这个难题中的一大关键部分，但这并不容易……
+通过微调和 RAG 将大型语言模型（LLMs）与你的专有数据结合，是这个难题中的一大关键部分，但这并不容易……
 
-# 严峻的事实#3：RAG很难。
+# 严峻的事实#3：RAG 很难。
 
-我相信RAG（检索增强生成）和微调是企业生成型人工智能未来的核心组成部分。但尽管在大多数情况下RAG是较为简单的方法，开发RAG应用仍然可能很复杂。
+我相信 RAG（检索增强生成）和微调是企业生成型人工智能未来的核心组成部分。但尽管在大多数情况下 RAG 是较为简单的方法，开发 RAG 应用仍然可能很复杂。
 
-![](../Images/36663639e58011f8e281f8c3f60091db.png)
+![](img/36663639e58011f8e281f8c3f60091db.png)
 
-*我们就不能直接开始使用RAG吗？这有何大不了的？图片来源于* [*Reddit*](https://www.reddit.com/r/datascience/comments/16bja0s/why_is_retrieval_augmented_generation_rag_not/?onetap_auto=true)*。*
+*我们就不能直接开始使用 RAG 吗？这有何大不了的？图片来源于* [*Reddit*](https://www.reddit.com/r/datascience/comments/16bja0s/why_is_retrieval_augmented_generation_rag_not/?onetap_auto=true)*。*
 
-RAG看起来可能是定制大型语言模型（LLM）的显而易见解决方案。但即使对于最优秀的数据工程师来说，RAG的开发也伴随着学习曲线。他们需要了解[提示工程](https://www.promptingguide.ai/techniques/rag)、向量数据库与嵌入向量、数据建模、数据编排、数据管道……这些都是为了RAG而需要掌握的。而且，因为它是新的（[Meta AI于2020年提出](https://ai.meta.com/blog/retrieval-augmented-generation-streamlining-the-creation-of-intelligent-natural-language-processing-models/)），许多公司尚未积累足够的经验，无法建立最佳实践。
+RAG 看起来可能是定制大型语言模型（LLM）的显而易见解决方案。但即使对于最优秀的数据工程师来说，RAG 的开发也伴随着学习曲线。他们需要了解[提示工程](https://www.promptingguide.ai/techniques/rag)、向量数据库与嵌入向量、数据建模、数据编排、数据管道……这些都是为了 RAG 而需要掌握的。而且，因为它是新的（[Meta AI 于 2020 年提出](https://ai.meta.com/blog/retrieval-augmented-generation-streamlining-the-creation-of-intelligent-natural-language-processing-models/)），许多公司尚未积累足够的经验，无法建立最佳实践。
 
-![](../Images/5f344840f79178db81ad9e24fcfecf51.png)
+![](img/5f344840f79178db81ad9e24fcfecf51.png)
 
-*RAG应用架构。图片来源于* [*Databricks*](https://docs.databricks.com/en/generative-ai/retrieval-augmented-generation.html)*。*
+*RAG 应用架构。图片来源于* [*Databricks*](https://docs.databricks.com/en/generative-ai/retrieval-augmented-generation.html)*。*
 
-以下是RAG应用架构的过度简化版：
+以下是 RAG 应用架构的过度简化版：
 
-1.  RAG架构将信息检索与文本生成模型结合，因此它可以在尝试回答用户问题时访问你的数据库。
+1.  RAG 架构将信息检索与文本生成模型结合，因此它可以在尝试回答用户问题时访问你的数据库。
 
 1.  数据库必须是一个**可信**的来源，包含专有数据，并允许模型将**最新**且**可靠**的信息纳入其回答和推理过程中。
 
@@ -104,7 +104,7 @@ RAG看起来可能是定制大型语言模型（LLM）的显而易见解决方�
 
 [Snowflake Cortex](https://www.snowflake.com/blog/use-ai-snowflake-cortex/) 现在使组织能够直接在 Snowflake 中快速分析数据并构建 AI 应用程序。Databricks 新发布的 [Foundation Model APIs](https://www.databricks.com/blog/build-genai-apps-faster-new-foundation-model-capabilities) 提供了直接在 Databricks 内访问 LLM 的即时能力。微软发布了 Microsoft Azure [OpenAI 服务](https://azure.microsoft.com/en-us/products/ai-services/openai-service/)，而亚马逊最近推出了 [Amazon Redshift 查询编辑器](https://aws.amazon.com/blogs/aws/amazon-redshift-adds-new-ai-capabilities-to-boost-efficiency-and-productivity/)。
 
-![](../Images/88ebfcd611239e014bbd1cd1401120f4.png)
+![](img/88ebfcd611239e014bbd1cd1401120f4.png)
 
 *Snowflake 数据云。图片来自 Umesh Patel，来源于* [*Medium*](https://medium.com/snowflake/snowflake-unlock-the-power-of-openai-using-snowpark-ebfb19437087)*。*
 

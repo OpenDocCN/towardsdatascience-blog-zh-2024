@@ -1,12 +1,12 @@
 # 从太空观察风暴：一个用于创建惊人视图的 Python 脚本
 
-> 原文：[https://towardsdatascience.com/watching-storms-from-space-a-python-script-for-creating-an-amazing-view-79d8bb2f5ff1?source=collection_archive---------4-----------------------#2024-02-06](https://towardsdatascience.com/watching-storms-from-space-a-python-script-for-creating-an-amazing-view-79d8bb2f5ff1?source=collection_archive---------4-----------------------#2024-02-06)
+> 原文：[`towardsdatascience.com/watching-storms-from-space-a-python-script-for-creating-an-amazing-view-79d8bb2f5ff1?source=collection_archive---------4-----------------------#2024-02-06`](https://towardsdatascience.com/watching-storms-from-space-a-python-script-for-creating-an-amazing-view-79d8bb2f5ff1?source=collection_archive---------4-----------------------#2024-02-06)
 
 ## 使用 Python 和 Google Colab 从静止卫星图像创建动画，实时动态监控风暴（大气河流）
 
-[](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--79d8bb2f5ff1--------------------------------)[![Mahyar Aboutalebi, Ph.D. 🎓](../Images/83d62352800f8a2932db8a07997c8059.png)](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--79d8bb2f5ff1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--79d8bb2f5ff1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--79d8bb2f5ff1--------------------------------) [Mahyar Aboutalebi, Ph.D. 🎓](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--79d8bb2f5ff1--------------------------------)
+[](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--79d8bb2f5ff1--------------------------------)![Mahyar Aboutalebi, Ph.D. 🎓](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--79d8bb2f5ff1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--79d8bb2f5ff1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79d8bb2f5ff1--------------------------------) [Mahyar Aboutalebi, Ph.D. 🎓](https://medium.com/@mahyar.aboutalebi?source=post_page---byline--79d8bb2f5ff1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79d8bb2f5ff1--------------------------------) ·13分钟阅读·2024年2月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79d8bb2f5ff1--------------------------------) ·13 分钟阅读·2024 年 2 月 6 日
 
 --
 

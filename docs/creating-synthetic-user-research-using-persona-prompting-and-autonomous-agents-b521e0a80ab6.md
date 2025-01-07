@@ -1,58 +1,58 @@
 # 创建合成用户研究：使用人物角色提示和自主代理
 
-> 原文：[https://towardsdatascience.com/creating-synthetic-user-research-using-persona-prompting-and-autonomous-agents-b521e0a80ab6?source=collection_archive---------0-----------------------#2024-03-25](https://towardsdatascience.com/creating-synthetic-user-research-using-persona-prompting-and-autonomous-agents-b521e0a80ab6?source=collection_archive---------0-----------------------#2024-03-25)
+> 原文：[`towardsdatascience.com/creating-synthetic-user-research-using-persona-prompting-and-autonomous-agents-b521e0a80ab6?source=collection_archive---------0-----------------------#2024-03-25`](https://towardsdatascience.com/creating-synthetic-user-research-using-persona-prompting-and-autonomous-agents-b521e0a80ab6?source=collection_archive---------0-----------------------#2024-03-25)
 
-## 使用生成性AI和大语言模型解锁模拟客户和市场研究的深度分析
+## 使用生成性 AI 和大语言模型解锁模拟客户和市场研究的深度分析
 
-[](https://medium.com/@vincentkoc?source=post_page---byline--b521e0a80ab6--------------------------------)[![Vincent Koc](../Images/6cbe2dab3c452384057fbdb7a16506be.png)](https://medium.com/@vincentkoc?source=post_page---byline--b521e0a80ab6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b521e0a80ab6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b521e0a80ab6--------------------------------) [Vincent Koc](https://medium.com/@vincentkoc?source=post_page---byline--b521e0a80ab6--------------------------------)
+[](https://medium.com/@vincentkoc?source=post_page---byline--b521e0a80ab6--------------------------------)![Vincent Koc](https://medium.com/@vincentkoc?source=post_page---byline--b521e0a80ab6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b521e0a80ab6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b521e0a80ab6--------------------------------) [Vincent Koc](https://medium.com/@vincentkoc?source=post_page---byline--b521e0a80ab6--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b521e0a80ab6--------------------------------) ·阅读时长15分钟·2024年3月25日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b521e0a80ab6--------------------------------) ·阅读时长 15 分钟·2024 年 3 月 25 日
 
 --
 
-![](../Images/5cc94d1b8a0053781af2f0a81236e9a3.png)
+![](img/5cc94d1b8a0053781af2f0a81236e9a3.png)
 
 用户研究是验证任何假设是否符合实际用户群体的重要组成部分，旨在收集有关消费者行为和偏好的宝贵市场研究数据。尽管传统的用户研究方法不可或缺，但它们存在固有的局限性，包括可扩展性、资源密集性以及接触多样化用户群体的挑战。本文概述了如何通过引入一种新颖的合成用户研究方法来克服这些局限。
 
-合成用户研究的力量，由自主代理推动，成为一项变革性的技术。**通过利用生成性AI创建并与数字客户人物角色在模拟研究情境中进行互动，我们可以解锁前所未有的消费者行为和偏好洞察**。将生成性AI提示技术与自主代理的力量融合。
+合成用户研究的力量，由自主代理推动，成为一项变革性的技术。**通过利用生成性 AI 创建并与数字客户人物角色在模拟研究情境中进行互动，我们可以解锁前所未有的消费者行为和偏好洞察**。将生成性 AI 提示技术与自主代理的力量融合。
 
 # 人物角色提示——模拟人类
 
 在深入了解自主代理之前，让我们先理解人物角色或个性提示的概念，它旨在捕捉挫折感、行为、目标、个性特征、人口统计信息等元素。
 
-![](../Images/8559d60d7973286e078bcd97ad0700a2.png)
+![](img/8559d60d7973286e078bcd97ad0700a2.png)
 
-研究：人物角色生成的适应性——来源：[Stefano De Paoli (arXiv 2023年10月)](https://arxiv.org/abs/2310.06391)
+研究：人物角色生成的适应性——来源：[Stefano De Paoli (arXiv 2023 年 10 月)](https://arxiv.org/abs/2310.06391)
 
 我们使用提示要求语言模型*假设*一个角色，并尽可能提供深度上下文。我使用以下提示，可以根据你的需求进行调整，同时也包括其他多种人口统计和行为评估/特征。
 
 **示例人物生成系统提示**
 
-> 你是一个专家级的机器学习研究员和提示工程师。你被要求创建一个提示，用来模拟特定品牌和服务的虚拟用户。这个提示需要包含人物的姓名、年龄、人口统计、个性（包括大五人格和DISC）、个性特征、挫折、价值观、目标、挑战以及任何与上下文相关的其他信息——根据需要尽可能详细。你将生成一个以“你是”为开头的一行提示。这个提示是为了模拟悉尼、澳大利亚一家大型超市的顾客。请只返回可以使用的提示。
+> 你是一个专家级的机器学习研究员和提示工程师。你被要求创建一个提示，用来模拟特定品牌和服务的虚拟用户。这个提示需要包含人物的姓名、年龄、人口统计、个性（包括大五人格和 DISC）、个性特征、挫折、价值观、目标、挑战以及任何与上下文相关的其他信息——根据需要尽可能详细。你将生成一个以“你是”为开头的一行提示。这个提示是为了模拟悉尼、澳大利亚一家大型超市的顾客。请只返回可以使用的提示。
 
 **语言模型的示例输出**
 
-> 你是Mia，一位34岁的市场营销经理，住在澳大利亚悉尼。你属于富裕的城市人群，十分关注健康和可持续性。你的个性表现出高度的开放性、责任感和宜人性，外向性和神经质的水平适中。根据DISC评估，你在影响力和稳定性方面得分较高。你是一个善于交际、注重细节的人，重视和谐。你主要的挫折包括超市中缺乏有机和本地采购的产品，你高度重视可持续性、社区和健康。你的目标是维持一个平衡且环保的生活方式，而你的挑战则是找到一个符合你道德和健康标准的超市。你寻求便利，但不愿在价值观上妥协。
+> 你是 Mia，一位 34 岁的市场营销经理，住在澳大利亚悉尼。你属于富裕的城市人群，十分关注健康和可持续性。你的个性表现出高度的开放性、责任感和宜人性，外向性和神经质的水平适中。根据 DISC 评估，你在影响力和稳定性方面得分较高。你是一个善于交际、注重细节的人，重视和谐。你主要的挫折包括超市中缺乏有机和本地采购的产品，你高度重视可持续性、社区和健康。你的目标是维持一个平衡且环保的生活方式，而你的挑战则是找到一个符合你道德和健康标准的超市。你寻求便利，但不愿在价值观上妥协。
 
 正如上面提示示例所示，**我们能够迅速生成具有丰富*个性*的、为特定场景精确定义的合成用户**。
 
 ## 将自主代理与数字人物融合
 
-合成用户研究的核心是自主代理和合成人物的融合——模拟的实体，模仿人类的互动和行为。可以把自主代理想象成在一个复杂剧本中的个体，每个个体都由生成式AI精心设计了一个角色。这些角色在模拟环境中互动，提供关于消费者行为和偏好的见解，涵盖各种场景。通过使用自主代理，我们几乎可以在模拟中赋予这些人物生命。
+合成用户研究的核心是自主代理和合成人物的融合——模拟的实体，模仿人类的互动和行为。可以把自主代理想象成在一个复杂剧本中的个体，每个个体都由生成式 AI 精心设计了一个角色。这些角色在模拟环境中互动，提供关于消费者行为和偏好的见解，涵盖各种场景。通过使用自主代理，我们几乎可以在模拟中赋予这些人物生命。
 
-这种将技术（自主代理框架）和语言学（个性和人物提示）结合的方式，是利用生成式AI自主代理的多种先进方法之一，以独特的方式获得期望的结果。
+这种将技术（自主代理框架）和语言学（个性和人物提示）结合的方式，是利用生成式 AI 自主代理的多种先进方法之一，以独特的方式获得期望的结果。
 
 ## 代理框架的关键作用
 
-为了将这一愿景变为现实，自主智能体的架构发挥着关键作用。像[Autogen](https://microsoft.github.io/autogen/)、[BabyAGI](https://github.com/yoheinakajima/babyagi)和[CrewAI](https://www.crewai.io/)这样的框架简化了AI智能体的创建和管理，抽象化了它们架构的复杂性。**这些框架使得能够*模拟*复杂的人类行为和互动，为生成能够像真实客户一样行动、思考和回应的数字角色提供了基础**。
+为了将这一愿景变为现实，自主智能体的架构发挥着关键作用。像[Autogen](https://microsoft.github.io/autogen/)、[BabyAGI](https://github.com/yoheinakajima/babyagi)和[CrewAI](https://www.crewai.io/)这样的框架简化了 AI 智能体的创建和管理，抽象化了它们架构的复杂性。**这些框架使得能够*模拟*复杂的人类行为和互动，为生成能够像真实客户一样行动、思考和回应的数字角色提供了基础**。
 
 在幕后，这些自主智能体架构实际上是非常智能的路由器（*像交通指挥员一样*），它们通过提示、缓存（*记忆*）和检查点（*验证*）与现有的大型语言模型结合，为多智能体与语言模型之间的对话提供高层次的抽象。
 
-![](../Images/a1e662b575ac91c59ad00b24c2a4b3a3.png)
+![](img/a1e662b575ac91c59ad00b24c2a4b3a3.png)
 
 各种类型的智能体互动——来源：[Autogen Microsoft](https://microsoft.github.io/autogen/docs/Getting-Started)
 
-我们将使用Autogen（由Microsoft发布）作为我们的框架，利用示例中所描绘的*灵活对话模式*，在该模式下智能体可以相互互动。智能体还可以被赋予“工具”来执行“任务”，但在这个示例中，我们将纯粹集中于对话。
+我们将使用 Autogen（由 Microsoft 发布）作为我们的框架，利用示例中所描绘的*灵活对话模式*，在该模式下智能体可以相互互动。智能体还可以被赋予“工具”来执行“任务”，但在这个示例中，我们将纯粹集中于对话。
 
 ## 创建复杂的互动
 
@@ -60,13 +60,13 @@
 
 # 实施合成用户研究的方式
 
-这个过程从使用Autogen构建自主智能体开始，Autogen是一个简化创建和协调这些数字角色的工具。我们可以使用py安装autogen的pypi包。
+这个过程从使用 Autogen 构建自主智能体开始，Autogen 是一个简化创建和协调这些数字角色的工具。我们可以使用 py 安装 autogen 的 pypi 包。
 
 ```py
 pip install pyautogen
 ```
 
-**格式化输出（可选）**——这是为了确保在使用诸如Google Collab之类的IDE运行笔记本时，能够根据需要自动换行，方便阅读。
+**格式化输出（可选）**——这是为了确保在使用诸如 Google Collab 之类的 IDE 运行笔记本时，能够根据需要自动换行，方便阅读。
 
 ```py
 from IPython.display import HTML, display
@@ -82,9 +82,9 @@ def set_css():
 get_ipython().events.register('pre_run_cell', set_css)
 ```
 
-**现在我们开始通过导入包并设置Autogen配置来设置我们的环境**——同时配置我们的LLM（大型语言模型）和API密钥。你也可以使用与OpenAI REST服务兼容的本地LLM服务——[LocalAI](https://localai.io/)是一个可以作为本地运行开源LLM的网关的服务。
+**现在我们开始通过导入包并设置 Autogen 配置来设置我们的环境**——同时配置我们的 LLM（大型语言模型）和 API 密钥。你也可以使用与 OpenAI REST 服务兼容的本地 LLM 服务——[LocalAI](https://localai.io/)是一个可以作为本地运行开源 LLM 的网关的服务。
 
-我已经在OpenAI的GPT3.5 `gpt-3.5-turbo`和GPT4 `gpt-4-turbo-preview`上测试过此项。你需要考虑GPT4可能会给出更深入的回答，但查询时间较长。
+我已经在 OpenAI 的 GPT3.5 `gpt-3.5-turbo`和 GPT4 `gpt-4-turbo-preview`上测试过此项。你需要考虑 GPT4 可能会给出更深入的回答，但查询时间较长。
 
 ```py
 import json
@@ -112,7 +112,7 @@ config_list = autogen.config_list_from_json(
 )
 ```
 
-**然后我们需要配置我们的LLM实例** —— 我们将其与每个代理绑定。如果需要，我们可以为每个代理生成独特的LLM配置，即如果我们希望为不同的代理使用不同的模型。
+**然后我们需要配置我们的 LLM 实例** —— 我们将其与每个代理绑定。如果需要，我们可以为每个代理生成独特的 LLM 配置，即如果我们希望为不同的代理使用不同的模型。
 
 ```py
 # Define the LLM configuration settings
@@ -128,7 +128,7 @@ llm_config = {
 
 **定义我们的研究员** —— 这是在这个模拟用户研究场景中将主持会议的人物角色。为该角色设定的系统提示包括几个关键内容：
 
-+   目的：*你的角色是提问关于产品的问题并从像Emily这样的个别客户身上获取见解。*
++   目的：*你的角色是提问关于产品的问题并从像 Emily 这样的个别客户身上获取见解。*
 
 +   为模拟奠定基础：*在你开始任务之前，列出小组成员及其发言顺序，避免小组成员之间相互交谈并产生确认偏差。*
 
@@ -180,7 +180,7 @@ researcher = autogen.AssistantAgent(
 
 **定义我们的个体** —— 以便将其纳入研究中，借鉴先前的过程，我们可以使用生成的角色。为了这篇文章，我手动调整了提示，去除了本次模拟中使用的主要超市品牌的提及。
 
-我还在每个系统提示的末尾加入了“*在回答查询、提供反馈或参与讨论时充当Emily*”的样式提示，以确保合成角色始终保持在任务上，该提示是通过`generate_notice`函数生成的。
+我还在每个系统提示的末尾加入了“*在回答查询、提供反馈或参与讨论时充当 Emily*”的样式提示，以确保合成角色始终保持在任务上，该提示是通过`generate_notice`函数生成的。
 
 ```py
 # Emily - Customer Persona
@@ -275,7 +275,7 @@ groupchat = autogen.GroupChat(
 )
 ```
 
-**定义经理以传达指令并管理我们的模拟** —— 当我们开始时，我们将只与经理沟通，经理再与研究员和小组成员交流。这使用了Autogen中的`GroupChatManager`。
+**定义经理以传达指令并管理我们的模拟** —— 当我们开始时，我们将只与经理沟通，经理再与研究员和小组成员交流。这使用了 Autogen 中的`GroupChatManager`。
 
 ```py
 # Initialise the manager
@@ -310,11 +310,11 @@ Gather customer insights on a supermarket grocery delivery services. Identify pa
 )
 ```
 
-一旦我们运行上述内容，我们将获得在Python环境中实时可用的输出，你将看到各个代理之间传递的消息。
+一旦我们运行上述内容，我们将获得在 Python 环境中实时可用的输出，你将看到各个代理之间传递的消息。
 
-![](../Images/88570c1caea393dd25005ca1af3977f4.png)
+![](img/88570c1caea393dd25005ca1af3977f4.png)
 
-实时Python输出 — 我们的研究人员与小组成员互动
+实时 Python 输出 — 我们的研究人员与小组成员互动
 
 # 创建可操作的结果 — 总结代理
 
@@ -382,21 +382,21 @@ summary_proxy.initiate_chat(
 
 这将为我们提供以报告卡形式输出的结果，此外，还可以基于发现以问答风格的聊天机器人进行进一步提问。
 
-![](../Images/dccde1f0763cc049df7ec11acc83daca.png)
+![](img/dccde1f0763cc049df7ec11acc83daca.png)
 
 总结代理的报告卡实时输出，随后是开放的问答环节
 
 # 下一步 — 我们还能做什么
 
-这项练习是更大规模自主代理架构的一部分，也是我系列[关于新型生成性AI和代理架构的实验](/generative-ai-design-patterns-a-comprehensive-guide-41425a40d7d0)的一部分。以下是一些思路启动器，如果你希望继续扩展这项工作，我已经探索的一些领域：
+这项练习是更大规模自主代理架构的一部分，也是我系列关于新型生成性 AI 和代理架构的实验的一部分。以下是一些思路启动器，如果你希望继续扩展这项工作，我已经探索的一些领域：
 
-+   **进一步的基础支持** — 通过与人口普查数据、内部CRM数据，甚至是实时客户转录的连接，创建更具代表性的用户画像样本。
++   **进一步的基础支持** — 通过与人口普查数据、内部 CRM 数据，甚至是实时客户转录的连接，创建更具代表性的用户画像样本。
 
-+   **与多模态结合** — 现在我们可以将视觉输入与生成性AI混合，这使我们能够提供营销材料和网站截图等作为输入，开始带有视觉刺激的模拟。
++   **与多模态结合** — 现在我们可以将视觉输入与生成性 AI 混合，这使我们能够提供营销材料和网站截图等作为输入，开始带有视觉刺激的模拟。
 
-+   **赋予代理访问工具的权限** — 通过提供对其他API和工具的访问，你可以创造一些独特的体验，比如将个性化客户角色代理集成到你的企业Slack、Teams、Miro中，进行标签标记并回答问题。也许最后的总结代理可以将一些用户故事加载到你的工单系统中，比如JIRA？
++   **赋予代理访问工具的权限** — 通过提供对其他 API 和工具的访问，你可以创造一些独特的体验，比如将个性化客户角色代理集成到你的企业 Slack、Teams、Miro 中，进行标签标记并回答问题。也许最后的总结代理可以将一些用户故事加载到你的工单系统中，比如 JIRA？
 
-加入我，一起塑造用户研究的未来。探索[GitHub上的项目](https://github.com/koconder/synthetic-user-research)，贡献你的见解，让我们一起创新。
+加入我，一起塑造用户研究的未来。探索[GitHub 上的项目](https://github.com/koconder/synthetic-user-research)，贡献你的见解，让我们一起创新。
 
 # 用户研究的未来
 
@@ -408,12 +408,12 @@ summary_proxy.initiate_chat(
 
 [Vincent Koc](https://vincentkoc.com/) 是一位非常成功、以商业为导向的技术专家和未来学家，拥有丰富的人工智能领域经验。
 
-[免费订阅](https://medium.com/subscribe/@vkoc)，在Vincent发布新故事时第一时间获得通知。或者关注他在[LinkedIn](https://www.linkedin.com/in/koconder/)和[X](https://twitter.com/koconder)。
+[免费订阅](https://medium.com/subscribe/@vkoc)，在 Vincent 发布新故事时第一时间获得通知。或者关注他在[LinkedIn](https://www.linkedin.com/in/koconder/)和[X](https://twitter.com/koconder)。
 
-[](https://medium.com/subscribe/@vkoc?source=post_page-----b521e0a80ab6--------------------------------) [## 每当Vincent Koc发布文章时，您将收到电子邮件通知。
+[](https://medium.com/subscribe/@vkoc?source=post_page-----b521e0a80ab6--------------------------------) [## 每当 Vincent Koc 发布文章时，您将收到电子邮件通知。
 
-### 每当Vincent Koc发布文章时，您将收到电子邮件通知。通过注册，如果你还没有Medium账号，将为你创建一个…
+### 每当 Vincent Koc 发布文章时，您将收到电子邮件通知。通过注册，如果你还没有 Medium 账号，将为你创建一个…
 
 medium.com](https://medium.com/subscribe/@vkoc?source=post_page-----b521e0a80ab6--------------------------------)
 
-*除非另有说明，所有图像均由作者提供，并借助生成式AI进行插图设计。*
+*除非另有说明，所有图像均由作者提供，并借助生成式 AI 进行插图设计。*

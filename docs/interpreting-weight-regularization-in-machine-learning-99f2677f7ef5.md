@@ -1,16 +1,16 @@
 # 机器学习中的权重正则化解释
 
-> 原文：[https://towardsdatascience.com/interpreting-weight-regularization-in-machine-learning-99f2677f7ef5?source=collection_archive---------7-----------------------#2024-08-23](https://towardsdatascience.com/interpreting-weight-regularization-in-machine-learning-99f2677f7ef5?source=collection_archive---------7-----------------------#2024-08-23)
+> 原文：[`towardsdatascience.com/interpreting-weight-regularization-in-machine-learning-99f2677f7ef5?source=collection_archive---------7-----------------------#2024-08-23`](https://towardsdatascience.com/interpreting-weight-regularization-in-machine-learning-99f2677f7ef5?source=collection_archive---------7-----------------------#2024-08-23)
 
 ## 为什么 L1 和 L2 正则化会导致模型稀疏和权重收缩？L3 正则化又会怎样呢？继续阅读，了解更多！
 
-[](https://medium.com/@dhruvbird?source=post_page---byline--99f2677f7ef5--------------------------------)[![Dhruv Matani](../Images/d63bf7776c28a29c02b985b1f64abdd3.png)](https://medium.com/@dhruvbird?source=post_page---byline--99f2677f7ef5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--99f2677f7ef5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--99f2677f7ef5--------------------------------) [Dhruv Matani](https://medium.com/@dhruvbird?source=post_page---byline--99f2677f7ef5--------------------------------)
+[](https://medium.com/@dhruvbird?source=post_page---byline--99f2677f7ef5--------------------------------)![Dhruv Matani](https://medium.com/@dhruvbird?source=post_page---byline--99f2677f7ef5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--99f2677f7ef5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99f2677f7ef5--------------------------------) [Dhruv Matani](https://medium.com/@dhruvbird?source=post_page---byline--99f2677f7ef5--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99f2677f7ef5--------------------------------) ·阅读时长 9 分钟·2024年8月23日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99f2677f7ef5--------------------------------) ·阅读时长 9 分钟·2024 年 8 月 23 日
 
 --
 
-![](../Images/cfdaa36493feb5a8a12b275a6bd01de6.png)
+![](img/cfdaa36493feb5a8a12b275a6bd01de6.png)
 
 图片来自 [D koi](https://unsplash.com/@dkoi?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -42,7 +42,7 @@
 
 通常，正则化损失会在训练过程中添加到模型的损失中。它允许我们在训练过程中控制模型的权重。公式如下所示：
 
-![](../Images/a90e3dad21a91d2138379b77ff6d1722.png)
+![](img/a90e3dad21a91d2138379b77ff6d1722.png)
 
 *图-1：总损失是模型损失和正则化损失的总和。k 是一个浮动值，表示正则化范数。Alpha 是正则化损失的加权因子。*
 
@@ -58,13 +58,13 @@
 
 L1 正则化通过将权重的绝对值的平均值加起来作为正则化损失。
 
-![](../Images/a84db670c58566cdf15db472a25fe29e.png)
+![](img/a84db670c58566cdf15db472a25fe29e.png)
 
 *图-2：L1 正则化损失及其对每个权重 Wi 的偏导数。*
 
 它通过一个常数（在此情况下为 alpha 乘以学习率）来调整权重，方向是最小化损失的方向。图 3 显示了该函数及其导数的图示。
 
-![](../Images/35237be3c01400c997680a60a2efce90.png)
+![](img/35237be3c01400c997680a60a2efce90.png)
 
 *图-3：蓝线表示 |w|，红线表示 |w| 的导数。*
 
@@ -76,15 +76,15 @@ L1 正则化通过将权重的绝对值的平均值加起来作为正则化损�
 
 L2 正则化将权重绝对值的平方的平均值加总作为正则化损失。
 
-![](../Images/be2f17e6a46e85c79baec3a21ab72ff2.png)
+![](img/be2f17e6a46e85c79baec3a21ab72ff2.png)
 
-*图4：L2 正则化损失及其相对于每个权重 Wi 的偏导数。*
+*图 4：L2 正则化损失及其相对于每个权重 Wi 的偏导数。*
 
-它有助于在使损失最小化的方向上，通过权重本身的倍数调整每个权重。图5展示了该函数及其导数的图形表示。
+它有助于在使损失最小化的方向上，通过权重本身的倍数调整每个权重。图 5 展示了该函数及其导数的图形表示。
 
-![](../Images/a227e0b16c814d3b10454ca35b0f1c79.png)
+![](img/a227e0b16c814d3b10454ca35b0f1c79.png)
 
-*图5：蓝线是 pow(|w|, 2)，红线是 pow(|w|, 2) 的导数。*
+*图 5：蓝线是 pow(|w|, 2)，红线是 pow(|w|, 2) 的导数。*
 
 你可以看到，L2 范数的导数只是该范数本身的符号调整后的平方根。L2 范数的梯度依赖于权重的符号和大小。
 
@@ -96,77 +96,77 @@ L2 正则化将权重绝对值的平方的平均值加总作为正则化损失�
 
 L0.5 正则化将权重绝对值的平方根的平均值加总作为正则化损失。
 
-![](../Images/8501ea9721f5d5a6de06bb936551ff76.png)
+![](img/8501ea9721f5d5a6de06bb936551ff76.png)
 
-*图6：L0.5 正则化损失及其相对于每个权重 Wi 的偏导数。*
+*图 6：L0.5 正则化损失及其相对于每个权重 Wi 的偏导数。*
 
-这意味着在每次反向传播步骤中，权重将通过一个常数倍（在此情况下为 alpha 乘以学习率）调整，调整的方向是使损失最小化，并且调整量是权重自身的平方根的倒数。图7展示了该函数及其导数的图形。
+这意味着在每次反向传播步骤中，权重将通过一个常数倍（在此情况下为 alpha 乘以学习率）调整，调整的方向是使损失最小化，并且调整量是权重自身的平方根的倒数。图 7 展示了该函数及其导数的图形。
 
-![](../Images/ae7d191a6f2b39386785954cf1368a2a.png)
+![](img/ae7d191a6f2b39386785954cf1368a2a.png)
 
-*图7：蓝线是 pow(|w|, 0.5)，红线是 pow(|w|, 0.5) 的导数。*
+*图 7：蓝线是 pow(|w|, 0.5)，红线是 pow(|w|, 0.5) 的导数。*
 
 你可以看到，L0.5 范数的导数是一个不连续的函数，在接近零的正值 w 处达到峰值，并且在接近零的负值 w 处达到负无穷大。此外，我们可以从图中得出以下结论：
 
-1.  当|w|趋近于0时，梯度的大小趋向于无穷大。在反向传播过程中，这些w值会迅速跳过0，因为大的梯度会导致w值发生剧烈变化。换句话说，负的w将变为正，反之亦然。这种反转的循环会持续重复。
+1.  当|w|趋近于 0 时，梯度的大小趋向于无穷大。在反向传播过程中，这些 w 值会迅速跳过 0，因为大的梯度会导致 w 值发生剧烈变化。换句话说，负的 w 将变为正，反之亦然。这种反转的循环会持续重复。
 
-1.  当|w|增加时，梯度的大小会减小。这些w值是稳定的，因为梯度较小。然而，每一次反向传播步骤后，w的值都会被拉向0。
+1.  当|w|增加时，梯度的大小会减小。这些 w 值是稳定的，因为梯度较小。然而，每一次反向传播步骤后，w 的值都会被拉向 0。
 
-这种情况几乎不是人们希望从权重正则化过程中得到的结果，因此可以安全地说L0.5不是一个好的权重正则化器。接下来我们考虑L3正则化。
+这种情况几乎不是人们希望从权重正则化过程中得到的结果，因此可以安全地说 L0.5 不是一个好的权重正则化器。接下来我们考虑 L3 正则化。
 
-## L3正则化
+## L3 正则化
 
-L3正则化将权重绝对值的立方的平均值作为正则化损失进行求和。
+L3 正则化将权重绝对值的立方的平均值作为正则化损失进行求和。
 
-![](../Images/6b8d495a27d3a0632a9fde9d0cebc941.png)
+![](img/6b8d495a27d3a0632a9fde9d0cebc941.png)
 
-*图8：L3正则化损失及其相对于每个权重Wi的偏导数。*
+*图 8：L3 正则化损失及其相对于每个权重 Wi 的偏导数。*
 
-这会通过一个倍数（在这种情况下是alpha倍学习率）调整每个权重的平方值，朝着最小化损失的方向进行调整。
+这会通过一个倍数（在这种情况下是 alpha 倍学习率）调整每个权重的平方值，朝着最小化损失的方向进行调整。
 
 从图形上看，这就是函数及其导数的样子。
 
-![](../Images/2e6f04cb8b21dd0b936850641a9544a4.png)
+![](img/2e6f04cb8b21dd0b936850641a9544a4.png)
 
-*图9：蓝线表示pow(|w|, 3)，红线表示pow(|w|, 3)的导数。*
+*图 9：蓝线表示 pow(|w|, 3)，红线表示 pow(|w|, 3)的导数。*
 
-为了真正理解这里发生了什么，我们需要放大w=0点附近的图表。
+为了真正理解这里发生了什么，我们需要放大 w=0 点附近的图表。
 
-![](../Images/c0a7a0ef895dae233cc3d4dea17b637e.png)
+![](img/c0a7a0ef895dae233cc3d4dea17b637e.png)
 
-*图10：蓝线表示pow(|w|, 3)，红线表示pow(|w|, 3)的导数，放大显示w值接近0.0时的情况。*
+*图 10：蓝线表示 pow(|w|, 3)，红线表示 pow(|w|, 3)的导数，放大显示 w 值接近 0.0 时的情况。*
 
-可以看到，L3范数的导数是一个连续且可微的函数（尽管导数中有|w|），它在大值w时具有较大的幅度，而在小值w时具有较小的幅度。
+可以看到，L3 范数的导数是一个连续且可微的函数（尽管导数中有|w|），它在大值 w 时具有较大的幅度，而在小值 w 时具有较小的幅度。
 
-有趣的是，对于非常小的w值，接近0.0时，梯度几乎为零。
+有趣的是，对于非常小的 w 值，接近 0.0 时，梯度几乎为零。
 
-L3的梯度解释很有趣。
+L3 的梯度解释很有趣。
 
-1.  对于较大的w值，梯度的大小很大。在反向传播过程中，这些值将被推向0。
+1.  对于较大的 w 值，梯度的大小很大。在反向传播过程中，这些值将被推向 0。
 
-1.  一旦权重w达到拐点（接近0.0），梯度几乎消失，权重将停止更新。
+1.  一旦权重 w 达到拐点（接近 0.0），梯度几乎消失，权重将停止更新。
 
-其效果是将大幅度的权重拉近0，但不会完全变为0。
+其效果是将大幅度的权重拉近 0，但不会完全变为 0。
 
 让我们考虑更高的范数，看看在极限情况下会发生什么。
 
-## 超越L3正则化
+## 超越 L3 正则化
 
-要理解Linfinity的情况，我们需要看看L10正则化的情况。
+要理解 Linfinity 的情况，我们需要看看 L10 正则化的情况。
 
-![](../Images/55222800c0aa95904a497c6587a5d7cd.png)
+![](img/55222800c0aa95904a497c6587a5d7cd.png)
 
-*图11：蓝线表示pow(|w|, 10)，红线表示pow(|w|, 10)的导数，放大显示w值接近0.0时的情况。*
+*图 11：蓝线表示 pow(|w|, 10)，红线表示 pow(|w|, 10)的导数，放大显示 w 值接近 0.0 时的情况。*
 
-可以看出，当|w| < 0.5时，梯度非常小，这意味着对于这些w值，正则化将不会起作用。
+可以看出，当|w| < 0.5 时，梯度非常小，这意味着对于这些 w 值，正则化将不会起作用。
 
 ## 练习
 
 基于我们上述的所有观察，L1 和 L2 正则化根据你想要实现的目标是相当实用的。作为一个练习，尝试推理一下 L1.5 正则化的行为，其图表如下所示。
 
-![](../Images/b9e04e33914d0b5caa9b6d71ee0ec907.png)
+![](img/b9e04e33914d0b5caa9b6d71ee0ec907.png)
 
-*图12：蓝线是 pow(|w|, 1.5)，红线是 pow(|w|, 1.5) 的导数。*
+*图 12：蓝线是 pow(|w|, 1.5)，红线是 pow(|w|, 1.5) 的导数。*
 
 # 结论
 
@@ -186,7 +186,7 @@ L3的梯度解释很有趣。
 
 1.  [Stackexchange 讨论](https://stats.stackexchange.com/questions/269298/why-do-we-only-see-l-1-and-l-2-regularization-but-not-other-norms)
 
-1.  [TDS: 解密 L1 和 L2 正则化（第 3 部分）](/courage-to-learn-ml-demystifying-l1-l2-regularization-part-3-ee27cd4b557a)
+1.  TDS: 解密 L1 和 L2 正则化（第三部分）
 
 1.  [L1 和 L2 正则化的视觉解释](https://www.linkedin.com/pulse/intuitive-visual-explanation-differences-between-l1-l2-xiaoli-chen/)
 

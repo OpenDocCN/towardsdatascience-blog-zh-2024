@@ -1,44 +1,44 @@
-# 通过因果AI提升营销组合建模
+# 通过因果 AI 提升营销组合建模
 
-> 原文：[https://towardsdatascience.com/enhancing-marketing-mix-modelling-with-causal-ai-77f638bce3a9?source=collection_archive---------4-----------------------#2024-06-21](https://towardsdatascience.com/enhancing-marketing-mix-modelling-with-causal-ai-77f638bce3a9?source=collection_archive---------4-----------------------#2024-06-21)
+> 原文：[`towardsdatascience.com/enhancing-marketing-mix-modelling-with-causal-ai-77f638bce3a9?source=collection_archive---------4-----------------------#2024-06-21`](https://towardsdatascience.com/enhancing-marketing-mix-modelling-with-causal-ai-77f638bce3a9?source=collection_archive---------4-----------------------#2024-06-21)
 
-## 因果AI，探索因果推理与机器学习的整合
+## 因果 AI，探索因果推理与机器学习的整合
 
-[](https://medium.com/@raz1470?source=post_page---byline--77f638bce3a9--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--77f638bce3a9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77f638bce3a9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--77f638bce3a9--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--77f638bce3a9--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--77f638bce3a9--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--77f638bce3a9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77f638bce3a9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77f638bce3a9--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--77f638bce3a9--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77f638bce3a9--------------------------------) ·阅读时间：8分钟·2024年6月21日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77f638bce3a9--------------------------------) ·阅读时间：8 分钟·2024 年 6 月 21 日
 
 --
 
-![](../Images/ba87b7898135052179d91cc352ccb0d1.png)
+![](img/ba87b7898135052179d91cc352ccb0d1.png)
 
 图片来源：[Alexey Ruban](https://unsplash.com/@intelligenciya?utm_source=medium&utm_medium=referral) 通过 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 这系列文章讲的是什么？
 
-欢迎来到我的因果AI系列文章，我们将在这里探讨因果推理与机器学习模型的整合。你将会看到多个在不同商业场景中的实践应用。
+欢迎来到我的因果 AI 系列文章，我们将在这里探讨因果推理与机器学习模型的整合。你将会看到多个在不同商业场景中的实践应用。
 
-在上一篇文章中，我们介绍了*验证合成控制方法的因果影响*。在本文中，我们将继续探讨*通过因果AI提升营销组合建模*。
+在上一篇文章中，我们介绍了*验证合成控制方法的因果影响*。在本文中，我们将继续探讨*通过因果 AI 提升营销组合建模*。
 
 如果你错过了上一篇关于合成控制的文章，可以在这里查看：
 
-[](/validating-the-causal-impact-of-the-synthetic-control-method-2f3bf185f266?source=post_page-----77f638bce3a9--------------------------------) [## 验证合成控制方法的因果影响
+[](/validating-the-causal-impact-of-the-synthetic-control-method-2f3bf185f266?source=post_page-----77f638bce3a9--------------------------------) ## 验证合成控制方法的因果影响
 
-### 因果AI，探索因果推理与机器学习的整合
+### 因果 AI，探索因果推理与机器学习的整合
 
-towardsdatascience.com](/validating-the-causal-impact-of-the-synthetic-control-method-2f3bf185f266?source=post_page-----77f638bce3a9--------------------------------)
+towardsdatascience.com
 
 # 介绍
 
-数字跟踪的持续挑战促使了营销组合建模（MMM）的新一轮复兴。在最近的因果AI大会上，Judea Pearl表示，营销可能是第一个采纳因果AI的行业。因此，我决定是时候开始撰写我在过去7年里有关MMM、因果AI和实验交集的学习成果了。
+数字跟踪的持续挑战促使了营销组合建模（MMM）的新一轮复兴。在最近的因果 AI 大会上，Judea Pearl 表示，营销可能是第一个采纳因果 AI 的行业。因此，我决定是时候开始撰写我在过去 7 年里有关 MMM、因果 AI 和实验交集的学习成果了。
 
-![](../Images/ea63f8de5bb6afdf127ae21ac6377379.png)
+![](img/ea63f8de5bb6afdf127ae21ac6377379.png)
 
 用户生成的图片
 
 **以下领域将被探讨：**
 
-+   什么是MMM？
++   什么是 MMM？
 
 +   因果 AI 如何增强 MMM？
 
@@ -62,7 +62,7 @@ MMM 是一种统计框架，用于估算每个营销渠道对销售的贡献。�
 
 构建回归模型，其中因变量/目标（通常是销售）是基于多个自变量/特征预测的 —— 这些通常包括在不同营销渠道上的支出和可能影响需求的外部因素。
 
-![](../Images/919e8bfda9b3518d2649e67e58379f6b.png)
+![](img/919e8bfda9b3518d2649e67e58379f6b.png)
 
 用户生成的图片
 
@@ -80,7 +80,7 @@ www.pymc-marketing.io](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm
 
 广告存量指的是营销支出（或广告支出）对消费者行为的持久影响。它有助于建模营销的长期效果。通常，第一次听说某个品牌时，人们不会急于购买该产品 —— 广告存量的理念是，营销的效果是累积的。
 
-![](../Images/a0ee219560d16686c9f7cfdc78d4cea9.png)
+![](img/a0ee219560d16686c9f7cfdc78d4cea9.png)
 
 用户生成的图片
 
@@ -96,7 +96,7 @@ www.pymc-marketing.io](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm
 
 在营销的语境下，饱和度指的是收益递减的概念。增加营销投入可以提高客户获取，但随着时间的推移，影响新受众变得更加困难。
 
-![](../Images/e5564cac2316d5b85b67bdc6fdd2318c.png)
+![](img/e5564cac2316d5b85b67bdc6fdd2318c.png)
 
 用户生成的图像
 
@@ -130,23 +130,23 @@ towardsdatascience.com](/using-causal-graphs-to-answer-causal-questions-5fd1dd82
 
 [](/making-causal-discovery-work-in-real-world-business-settings-80e80c5f66b8?source=post_page-----77f638bce3a9--------------------------------) [## 让因果发现在人类商业环境中发挥作用]
 
-### 因果AI，探索因果推理与机器学习的结合
+### 因果 AI，探索因果推理与机器学习的结合
 
-[towardsdatascience.com](/making-causal-discovery-work-in-real-world-business-settings-80e80c5f66b8?source=post_page-----77f638bce3a9--------------------------------)
+towardsdatascience.com
 
 因果发现有其局限性，应该仅用于为图形创建初始假设。幸运的是，关于营销渠道如何相互作用的领域知识非常丰富，我们可以将其纳入其中！
 
 在这里，我分享我多年来与营销专家合作中积累的知识…
 
-![](../Images/5db89e3e17d839acfaba055af0159779.png)
+![](img/5db89e3e17d839acfaba055af0159779.png)
 
 用户生成图像
 
-+   **PPC**（付费搜索）对SEO（自然搜索）有负面影响。我们在PPC上的花费越多，SEO点击量就越少。然而，我们有一个重要的混杂因素……需求！一个简单的回归模型通常无法捕捉到这一复杂性，往往导致PPC的过度估计。
++   **PPC**（付费搜索）对 SEO（自然搜索）有负面影响。我们在 PPC 上的花费越多，SEO 点击量就越少。然而，我们有一个重要的混杂因素……需求！一个简单的回归模型通常无法捕捉到这一复杂性，往往导致 PPC 的过度估计。
 
-+   **社交支出**对社交点击有很强的影响，我们花费越多，潜在客户点击社交广告的次数就越多。然而，一些潜在客户可能会先看到社交广告，然后在第二天通过PPC、SEO或直接访问你的站点。一个简单的回归模型无法捕捉到这种光环效应。
++   **社交支出**对社交点击有很强的影响，我们花费越多，潜在客户点击社交广告的次数就越多。然而，一些潜在客户可能会先看到社交广告，然后在第二天通过 PPC、SEO 或直接访问你的站点。一个简单的回归模型无法捕捉到这种光环效应。
 
-+   对于**品牌支出**，也可以做类似的分析，你通过长期的品牌信息来吸引潜在客户，但没有直接的点击行动号召。这些潜在客户可能在意识到你的品牌后，通过PPC、SEO或直接访问你的站点。
++   对于**品牌支出**，也可以做类似的分析，你通过长期的品牌信息来吸引潜在客户，但没有直接的点击行动号召。这些潜在客户可能在意识到你的品牌后，通过 PPC、SEO 或直接访问你的站点。
 
 +   **点击量**是中介变量。如果我们运行一个简单的回归模型并包括中介变量，这在估计因果效应时可能会引发问题。我在这里不会详细讨论这个话题，但使用因果图使我们能够在估计因果效应时仔细控制正确的变量。
 
@@ -160,17 +160,17 @@ towardsdatascience.com](/using-causal-graphs-to-answer-causal-questions-5fd1dd82
 
 ## 转化提升测试
 
-社交平台如Facebook和Snapchat允许你进行转化提升测试。这是一种AB测试，我们通过治疗组与对照组的对比来衡量转化的提升。这对于评估因果图中社交支出的反事实（counterfactual）非常有用。
+社交平台如 Facebook 和 Snapchat 允许你进行转化提升测试。这是一种 AB 测试，我们通过治疗组与对照组的对比来衡量转化的提升。这对于评估因果图中社交支出的反事实（counterfactual）非常有用。
 
 ## 地理位置提升测试
 
 地理提升测试可以用来估算营销暂停期间或你开始使用新渠道时的效果。这对于品牌数字广告和电视广告特别有用，因为它们没有直接的行动号召来衡量。我在上一篇文章中详细讲解了这一点：
 
-[](/validating-the-causal-impact-of-the-synthetic-control-method-2f3bf185f266?source=post_page-----77f638bce3a9--------------------------------) [## 验证合成控制方法的因果影响
+[](/validating-the-causal-impact-of-the-synthetic-control-method-2f3bf185f266?source=post_page-----77f638bce3a9--------------------------------) ## 验证合成控制方法的因果影响
 
 ### 因果 AI，探索将因果推理集成到机器学习中的方法
 
-[towardsdatascience.com](/validating-the-causal-impact-of-the-synthetic-control-method-2f3bf185f266?source=post_page-----77f638bce3a9--------------------------------)
+[towardsdatascience.com
 
 ## 切换回测
 
@@ -188,7 +188,7 @@ PPC（按点击付费）广告系列可以设置为每小时开启和关闭。�
 
 今天我讲解了如何利用因果 AI 来提升 MMM（营销混合建模）。然而，因果 AI 并不能解决获取营销中的所有挑战——不幸的是，这些挑战非常多！
 
-![](../Images/9d36431f028cc976e4f7cb30399c0326.png)
+![](img/9d36431f028cc976e4f7cb30399c0326.png)
 
 用户生成的图片
 
@@ -204,4 +204,4 @@ PPC（按点击付费）广告系列可以设置为每小时开启和关闭。�
 
 我就先说到这里——很希望听听你在评论中的看法！
 
-如果你想继续深入了解因果AI，记得关注我——在下一篇文章中，我们将探讨因果AI是否能够改进我们的预测。
+如果你想继续深入了解因果 AI，记得关注我——在下一篇文章中，我们将探讨因果 AI 是否能够改进我们的预测。

@@ -1,12 +1,12 @@
 # 构建一个伟大图表需要什么
 
-> 原文：[https://towardsdatascience.com/what-it-takes-to-build-a-great-graph-79dfcb715df4?source=collection_archive---------1-----------------------#2024-08-22](https://towardsdatascience.com/what-it-takes-to-build-a-great-graph-79dfcb715df4?source=collection_archive---------1-----------------------#2024-08-22)
+> 原文：[`towardsdatascience.com/what-it-takes-to-build-a-great-graph-79dfcb715df4?source=collection_archive---------1-----------------------#2024-08-22`](https://towardsdatascience.com/what-it-takes-to-build-a-great-graph-79dfcb715df4?source=collection_archive---------1-----------------------#2024-08-22)
 
 ## *在一个网络化的世界中的知识表示*
 
-[](https://medium.com/@mel.merigold?source=post_page---byline--79dfcb715df4--------------------------------)[![Mel Richey, PhD](../Images/bff93b69f1444a57539e643be559d38d.png)](https://medium.com/@mel.merigold?source=post_page---byline--79dfcb715df4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--79dfcb715df4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--79dfcb715df4--------------------------------) [Mel Richey, PhD](https://medium.com/@mel.merigold?source=post_page---byline--79dfcb715df4--------------------------------)
+[](https://medium.com/@mel.merigold?source=post_page---byline--79dfcb715df4--------------------------------)![Mel Richey, PhD](https://medium.com/@mel.merigold?source=post_page---byline--79dfcb715df4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--79dfcb715df4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79dfcb715df4--------------------------------) [Mel Richey, PhD](https://medium.com/@mel.merigold?source=post_page---byline--79dfcb715df4--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79dfcb715df4--------------------------------) ·阅读时长7分钟·2024年8月22日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--79dfcb715df4--------------------------------) ·阅读时长 7 分钟·2024 年 8 月 22 日
 
 --
 
@@ -14,7 +14,7 @@
 
 从分析的角度来看，知识图谱提供了最直观的方式来综合和表示数据集内部以及跨数据集的连接关系，供分析使用。知识图谱是一个技术产物，“[以实体及其相互关系的形式将数据以视觉方式呈现](https://medium.com/towards-data-science/entity-resolved-knowledge-graphs-6b22c09a1442)”。它为分析师提供了一个数字化的问题模型。它大概是这样的……
 
-![](../Images/a9251087d60c1a50689f965376db934b.png)
+![](img/a9251087d60c1a50689f965376db934b.png)
 
 图片来源：作者
 
@@ -22,7 +22,7 @@
 
 图表几乎可以表示任何存在互动或交换的事物。实体（或节点）可以是人、公司、文档、地理位置、银行账户、加密钱包、实物资产等。边（或链接）可以表示对话、电话、电子邮件、学术引用、网络数据包传输、广告展示与转化、金融交易、个人关系等。
 
-![](../Images/c56007b3e18f06d68183783bded26496.png)
+![](img/c56007b3e18f06d68183783bded26496.png)
 
 图片来源：作者
 
@@ -34,7 +34,7 @@
 
 +   **图是特定领域的。**
 
-实现基于图形的解决方案时，可能最大的错误就是试图创建一个主图——一个“统治一切的图”。换句话说，就是将所有企业数据放入一个图中。图并不是主数据管理（MDM）解决方案，也不是数据仓库的替代品，即使组织已经有一个可扩展的图数据库。最成功的图通常代表一个特定的分析领域。例如，财务情报图可能包含公司、受益所有权结构、财务交易、金融机构和高净值个人。生活模式定位图可能包含大量信号数据，如IP地址和手机数据，以及物理位置、技术资产和个人数据。一旦图的目的和领域明确，架构师就可以着手准备构建图所需的可用数据和/或必需数据。
+实现基于图形的解决方案时，可能最大的错误就是试图创建一个主图——一个“统治一切的图”。换句话说，就是将所有企业数据放入一个图中。图并不是主数据管理（MDM）解决方案，也不是数据仓库的替代品，即使组织已经有一个可扩展的图数据库。最成功的图通常代表一个特定的分析领域。例如，财务情报图可能包含公司、受益所有权结构、财务交易、金融机构和高净值个人。生活模式定位图可能包含大量信号数据，如 IP 地址和手机数据，以及物理位置、技术资产和个人数据。一旦图的目的和领域明确，架构师就可以着手准备构建图所需的可用数据和/或必需数据。
 
 +   **图有清晰的模式。**
 
@@ -42,7 +42,7 @@
 
 考虑下面图片中的示例架构。这里有五种实体类型：人（黄色）、物理和虚拟位置（蓝色）、文档（灰色）、公司（粉色）和金融账户（绿色）。实体之间允许多种关系类型，例如，“is_related_to”（相关）、“mentions”（提到）和“invests_in”（投资）。这是一个有向图，意味着关系的方向性是有意义的，即，两个人是彼此的婚姻关系（双向链接），而一个人住在某个地方（有向链接）。
 
-![](../Images/05a2973e9378db5416a8404e2d36df99.png)
+![](img/05a2973e9378db5416a8404e2d36df99.png)
 
 图片由作者提供
 
@@ -50,11 +50,11 @@
 
 跨数据集的实体之间的连接可能并不总是在数据中显式存在。仅仅将两个数据集导入图环境中，可能会导致许多节点之间没有任何连接。
 
-考虑一个医疗数据集，其中有一个汤姆·马沃洛·里德尔（Tom Marvolo Riddle）条目，以及一个选民注册数据集，其中有一个T.M.里德尔条目和一个梅罗普·里德尔·高恩（Merope Riddle Gaunt）条目。在医疗数据集中，梅罗普·高恩被列为汤姆·里德尔的母亲。在选民注册数据集中，没有描述家庭成员。如何在合并数据集时消除汤姆·马沃洛·里德尔和T.M.里德尔条目的重复？即，图中不应有两个独立的节点代表汤姆·里德尔和T.M.里德尔，因为他们是同一个人。如何将汤姆·里德尔和梅罗普·高恩连接起来，如何像下面的图片那样指定它们的连接关系？例如，连接、相关、母子关系？这种关系是否加权？
+考虑一个医疗数据集，其中有一个汤姆·马沃洛·里德尔（Tom Marvolo Riddle）条目，以及一个选民注册数据集，其中有一个 T.M.里德尔条目和一个梅罗普·里德尔·高恩（Merope Riddle Gaunt）条目。在医疗数据集中，梅罗普·高恩被列为汤姆·里德尔的母亲。在选民注册数据集中，没有描述家庭成员。如何在合并数据集时消除汤姆·马沃洛·里德尔和 T.M.里德尔条目的重复？即，图中不应有两个独立的节点代表汤姆·里德尔和 T.M.里德尔，因为他们是同一个人。如何将汤姆·里德尔和梅罗普·高恩连接起来，如何像下面的图片那样指定它们的连接关系？例如，连接、相关、母子关系？这种关系是否加权？
 
-这些问题不仅需要数据工程团队来指定图的架构并实现图的设计，还需要某种实体解析过程，[我曾经写过相关内容](/entity-resolved-knowledge-graphs-6b22c09a1442)。
+这些问题不仅需要数据工程团队来指定图的架构并实现图的设计，还需要某种实体解析过程，我曾经写过相关内容。
 
-![](../Images/328a58d9220abdc60a10210ae628fb80.png)
+![](img/328a58d9220abdc60a10210ae628fb80.png)
 
 图片由作者提供
 

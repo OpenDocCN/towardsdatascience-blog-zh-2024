@@ -1,16 +1,16 @@
 # 作为数据工程师，我如何使用生成型 AI
 
-> 原文：[https://towardsdatascience.com/how-i-use-gen-ai-as-a-data-engineer-6a686a921c7b?source=collection_archive---------3-----------------------#2024-03-26](https://towardsdatascience.com/how-i-use-gen-ai-as-a-data-engineer-6a686a921c7b?source=collection_archive---------3-----------------------#2024-03-26)
+> 原文：[`towardsdatascience.com/how-i-use-gen-ai-as-a-data-engineer-6a686a921c7b?source=collection_archive---------3-----------------------#2024-03-26`](https://towardsdatascience.com/how-i-use-gen-ai-as-a-data-engineer-6a686a921c7b?source=collection_archive---------3-----------------------#2024-03-26)
 
-![](../Images/6c7e3a1a5ad9dd2a13163f07ad41b854.png)
+![](img/6c7e3a1a5ad9dd2a13163f07ad41b854.png)
 
 我使用 AI。图片由作者提供
 
 ## 生成型 AI 目前非常流行。在本文中，我们深入探讨了一些数据工程师的实际应用示例。
 
-[](https://medium.com/@hugolu87?source=post_page---byline--6a686a921c7b--------------------------------)[![Hugo Lu](../Images/045de11463bb16ea70a816ba89118a9e.png)](https://medium.com/@hugolu87?source=post_page---byline--6a686a921c7b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a686a921c7b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6a686a921c7b--------------------------------) [Hugo Lu](https://medium.com/@hugolu87?source=post_page---byline--6a686a921c7b--------------------------------)
+[](https://medium.com/@hugolu87?source=post_page---byline--6a686a921c7b--------------------------------)![Hugo Lu](https://medium.com/@hugolu87?source=post_page---byline--6a686a921c7b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a686a921c7b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a686a921c7b--------------------------------) [Hugo Lu](https://medium.com/@hugolu87?source=post_page---byline--6a686a921c7b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a686a921c7b--------------------------------) ·阅读时长 6 分钟·2024年3月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a686a921c7b--------------------------------) ·阅读时长 6 分钟·2024 年 3 月 26 日
 
 --
 

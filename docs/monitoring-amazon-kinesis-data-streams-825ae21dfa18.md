@@ -1,10 +1,10 @@
 # 监控 Amazon Kinesis 数据流
 
-> 原文：[https://towardsdatascience.com/monitoring-amazon-kinesis-data-streams-825ae21dfa18?source=collection_archive---------11-----------------------#2024-09-04](https://towardsdatascience.com/monitoring-amazon-kinesis-data-streams-825ae21dfa18?source=collection_archive---------11-----------------------#2024-09-04)
+> 原文：[`towardsdatascience.com/monitoring-amazon-kinesis-data-streams-825ae21dfa18?source=collection_archive---------11-----------------------#2024-09-04`](https://towardsdatascience.com/monitoring-amazon-kinesis-data-streams-825ae21dfa18?source=collection_archive---------11-----------------------#2024-09-04)
 
 ## 探索可观察性功能并提出改进建议
 
-[](https://trrhodes.medium.com/?source=post_page---byline--825ae21dfa18--------------------------------)[![Ross Rhodes](../Images/3e3b13c125093030615cc6114f0f18f7.png)](https://trrhodes.medium.com/?source=post_page---byline--825ae21dfa18--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--825ae21dfa18--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--825ae21dfa18--------------------------------) [Ross Rhodes](https://trrhodes.medium.com/?source=post_page---byline--825ae21dfa18--------------------------------)
+[](https://trrhodes.medium.com/?source=post_page---byline--825ae21dfa18--------------------------------)![Ross Rhodes](https://trrhodes.medium.com/?source=post_page---byline--825ae21dfa18--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--825ae21dfa18--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--825ae21dfa18--------------------------------) [Ross Rhodes](https://trrhodes.medium.com/?source=post_page---byline--825ae21dfa18--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--825ae21dfa18--------------------------------) ·阅读时长 8 分钟·2024 年 9 月 4 日
 
@@ -18,7 +18,7 @@
 
 目前已有大量在线文档深入探讨 Kinesis 的工作原理。[亚马逊官方文档](https://aws.amazon.com/kinesis/) 是一个很好的参考起点。在这篇博客文章中，我们将重点介绍 Kinesis 数据流监控，格式与 [我之前关于 EventBridge 规则的文章](https://medium.com/towards-data-science/monitoring-amazon-eventbridge-rules-127434c58984)类似。
 
-![](../Images/365b841585229829870ac8ac6c5fac06.png)
+![](img/365b841585229829870ac8ac6c5fac06.png)
 
 图片来源：[Rob Laughter via Unsplash](https://unsplash.com/photos/closeup-photo-of-telescope-facing-water-b4l3Mn4pRKk)。
 

@@ -1,40 +1,40 @@
-# 提升代码质量：数组和DataFrame类型提示
+# 提升代码质量：数组和 DataFrame 类型提示
 
-> 原文：[https://towardsdatascience.com/improving-code-quality-with-array-and-dataframe-type-hints-cac0fb75cc11?source=collection_archive---------5-----------------------#2024-09-19](https://towardsdatascience.com/improving-code-quality-with-array-and-dataframe-type-hints-cac0fb75cc11?source=collection_archive---------5-----------------------#2024-09-19)
+> 原文：[`towardsdatascience.com/improving-code-quality-with-array-and-dataframe-type-hints-cac0fb75cc11?source=collection_archive---------5-----------------------#2024-09-19`](https://towardsdatascience.com/improving-code-quality-with-array-and-dataframe-type-hints-cac0fb75cc11?source=collection_archive---------5-----------------------#2024-09-19)
 
 ## 泛型类型规范如何实现强大的静态分析和运行时验证
 
-[](https://medium.com/@flexatone?source=post_page---byline--cac0fb75cc11--------------------------------)[![Christopher Ariza](../Images/35208ace15080724e4cd6690e43d6502.png)](https://medium.com/@flexatone?source=post_page---byline--cac0fb75cc11--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cac0fb75cc11--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cac0fb75cc11--------------------------------) [Christopher Ariza](https://medium.com/@flexatone?source=post_page---byline--cac0fb75cc11--------------------------------)
+[](https://medium.com/@flexatone?source=post_page---byline--cac0fb75cc11--------------------------------)![Christopher Ariza](https://medium.com/@flexatone?source=post_page---byline--cac0fb75cc11--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cac0fb75cc11--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cac0fb75cc11--------------------------------) [Christopher Ariza](https://medium.com/@flexatone?source=post_page---byline--cac0fb75cc11--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cac0fb75cc11--------------------------------) ·10分钟阅读·2024年9月19日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cac0fb75cc11--------------------------------) ·10 分钟阅读·2024 年 9 月 19 日
 
 --
 
-![](../Images/a75b36f65c66b95f33aea2faefea4dbb.png)
+![](img/a75b36f65c66b95f33aea2faefea4dbb.png)
 
 作者照片
 
-随着Python类型注解（或类型提示）工具的发展，越来越复杂的数据结构可以被指定类型，从而提高了代码的可维护性和静态分析能力。数组和DataFrame作为复杂的数据容器，直到最近才开始在Python中支持完整的类型注解。NumPy 1.22引入了数组和数据类型（dtypes）的通用规格。在NumPy的基础上，[StaticFrame](https://github.com/static-frame/static-frame) 2.0引入了DataFrame的完整类型规格，采用了NumPy原语和可变泛型。本文展示了对数组和DataFrame进行完全类型提示的实际方法，并展示了如何通过静态分析和运行时验证来提高代码质量。
+随着 Python 类型注解（或类型提示）工具的发展，越来越复杂的数据结构可以被指定类型，从而提高了代码的可维护性和静态分析能力。数组和 DataFrame 作为复杂的数据容器，直到最近才开始在 Python 中支持完整的类型注解。NumPy 1.22 引入了数组和数据类型（dtypes）的通用规格。在 NumPy 的基础上，[StaticFrame](https://github.com/static-frame/static-frame) 2.0 引入了 DataFrame 的完整类型规格，采用了 NumPy 原语和可变泛型。本文展示了对数组和 DataFrame 进行完全类型提示的实际方法，并展示了如何通过静态分析和运行时验证来提高代码质量。
 
-[StaticFrame](https://github.com/static-frame/static-frame)是一个开源的DataFrame库，我是该库的作者之一。
+[StaticFrame](https://github.com/static-frame/static-frame)是一个开源的 DataFrame 库，我是该库的作者之一。
 
 # 类型提示提升代码质量
 
-类型提示（参见[PEP 484](https://peps.python.org/pep-0484/)）通过多种方式提升代码质量。与使用变量名或注释来传达类型不同，基于Python对象的类型注解提供了可维护且富有表现力的工具用于类型规范。这些类型注解可以通过类型检查工具（如`mypy`或`pyright`）进行测试，能够在不执行代码的情况下迅速发现潜在的bug。
+类型提示（参见[PEP 484](https://peps.python.org/pep-0484/)）通过多种方式提升代码质量。与使用变量名或注释来传达类型不同，基于 Python 对象的类型注解提供了可维护且富有表现力的工具用于类型规范。这些类型注解可以通过类型检查工具（如`mypy`或`pyright`）进行测试，能够在不执行代码的情况下迅速发现潜在的 bug。
 
-相同的注解可以用于运行时验证。虽然在Python中依赖鸭子类型（duck-typing）而非运行时验证较为常见，但对于复杂数据结构（如数组和DataFrame），往往更需要运行时验证。例如，期望DataFrame作为参数的接口，如果传入一个Series，可能不需要显式验证，因为错误类型的使用很可能会引发异常。然而，期望二维浮点数组的接口，如果传入一个布尔值数组，则可能受益于验证，因为错误类型的使用可能不会引发异常。
+相同的注解可以用于运行时验证。虽然在 Python 中依赖鸭子类型（duck-typing）而非运行时验证较为常见，但对于复杂数据结构（如数组和 DataFrame），往往更需要运行时验证。例如，期望 DataFrame 作为参数的接口，如果传入一个 Series，可能不需要显式验证，因为错误类型的使用很可能会引发异常。然而，期望二维浮点数组的接口，如果传入一个布尔值数组，则可能受益于验证，因为错误类型的使用可能不会引发异常。
 
-许多重要的类型工具仅在最新版本的Python中可用。幸运的是，`typing-extensions`包为较旧版本的Python提供了标准库工具的后向移植。一个相关的挑战是，类型检查器可能需要一些时间才能完全支持新特性：这里展示的许多示例至少需要`mypy` 1.9.0。
+许多重要的类型工具仅在最新版本的 Python 中可用。幸运的是，`typing-extensions`包为较旧版本的 Python 提供了标准库工具的后向移植。一个相关的挑战是，类型检查器可能需要一些时间才能完全支持新特性：这里展示的许多示例至少需要`mypy` 1.9.0。
 
 # 基本类型注解
 
-如果没有类型注解，Python函数签名无法指示期望的类型。例如，下面的函数可能接受和返回任何类型：
+如果没有类型注解，Python 函数签名无法指示期望的类型。例如，下面的函数可能接受和返回任何类型：
 
 ```py
 def process0(v, q): ... # no type information
 ```
 
-通过添加类型注解，函数签名向读者表明期望的类型。在现代Python中，可以使用用户定义的类和内置类来指定类型，更多的资源（如`Any`、`Iterator`、`cast()`和`Annotated`）可以在标准库`typing`模块中找到。例如，下面的接口通过明确指定期望类型来改进上述接口：
+通过添加类型注解，函数签名向读者表明期望的类型。在现代 Python 中，可以使用用户定义的类和内置类来指定类型，更多的资源（如`Any`、`Iterator`、`cast()`和`Annotated`）可以在标准库`typing`模块中找到。例如，下面的接口通过明确指定期望类型来改进上述接口：
 
 ```py
 def process0(v: int, q: bool) -> list[float]: ...
@@ -48,9 +48,9 @@ x = process0(v=5, q=20)
 # has incompatible type "int"; expected "bool"  [arg-type]
 ```
 
-静态分析只能验证静态定义的类型。运行时输入和输出的完整范围通常更加多样化，这意味着需要某种形式的运行时验证。通过重复使用类型注解进行运行时验证，可以实现两全其美。虽然有一些库可以做到这一点（例如，`typeguard`和`beartype`），但StaticFrame提供了专门用于全面数组和DataFrame类型注解验证的工具`CallGuard`。
+静态分析只能验证静态定义的类型。运行时输入和输出的完整范围通常更加多样化，这意味着需要某种形式的运行时验证。通过重复使用类型注解进行运行时验证，可以实现两全其美。虽然有一些库可以做到这一点（例如，`typeguard`和`beartype`），但 StaticFrame 提供了专门用于全面数组和 DataFrame 类型注解验证的工具`CallGuard`。
 
-Python装饰器非常适合利用注解进行运行时验证。`CallGuard`提供了两个装饰器：`[@CallGuard](http://twitter.com/CallGuard).check`，在出错时抛出详细的`Exception`，或者`[@CallGuard](http://twitter.com/CallGuard).warn`，在出错时发出警告。
+Python 装饰器非常适合利用注解进行运行时验证。`CallGuard`提供了两个装饰器：`[@CallGuard](http://twitter.com/CallGuard).check`，在出错时抛出详细的`Exception`，或者`[@CallGuard](http://twitter.com/CallGuard).warn`，在出错时发出警告。
 
 通过在上面的`process0`函数中扩展`[@CallGuard](http://twitter.com/CallGuard).check`，可以使用相同的类型注解，当运行时对象违反类型注解的要求时，抛出`Exception`（如评论中再次显示）：
 

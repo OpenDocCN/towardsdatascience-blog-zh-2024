@@ -1,16 +1,16 @@
 # 你应该如何测试你的机器学习项目？初学者指南
 
-> 原文：[https://towardsdatascience.com/how-should-you-test-your-machine-learning-project-a-beginners-guide-2e22da5a9bfc?source=collection_archive---------7-----------------------#2024-07-04](https://towardsdatascience.com/how-should-you-test-your-machine-learning-project-a-beginners-guide-2e22da5a9bfc?source=collection_archive---------7-----------------------#2024-07-04)
+> 原文：[`towardsdatascience.com/how-should-you-test-your-machine-learning-project-a-beginners-guide-2e22da5a9bfc?source=collection_archive---------7-----------------------#2024-07-04`](https://towardsdatascience.com/how-should-you-test-your-machine-learning-project-a-beginners-guide-2e22da5a9bfc?source=collection_archive---------7-----------------------#2024-07-04)
 
 ## 通过使用标准库如 Pytest 和 Pytest-cov，为你提供友好的机器学习项目测试入门介绍
 
-[](https://medium.com/@francoisporcher?source=post_page---byline--2e22da5a9bfc--------------------------------)[![François Porcher](../Images/9ddb233f8cadbd69026bd79e2bd62dea.png)](https://medium.com/@francoisporcher?source=post_page---byline--2e22da5a9bfc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e22da5a9bfc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2e22da5a9bfc--------------------------------) [François Porcher](https://medium.com/@francoisporcher?source=post_page---byline--2e22da5a9bfc--------------------------------)
+[](https://medium.com/@francoisporcher?source=post_page---byline--2e22da5a9bfc--------------------------------)![François Porcher](https://medium.com/@francoisporcher?source=post_page---byline--2e22da5a9bfc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e22da5a9bfc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e22da5a9bfc--------------------------------) [François Porcher](https://medium.com/@francoisporcher?source=post_page---byline--2e22da5a9bfc--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e22da5a9bfc--------------------------------) ·10分钟阅读·2024年7月4日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e22da5a9bfc--------------------------------) ·10 分钟阅读·2024 年 7 月 4 日
 
 --
 
-![](../Images/28fa8005ee119a68e15ed559ea097fa8.png)
+![](img/28fa8005ee119a68e15ed559ea097fa8.png)
 
 代码测试，图像由作者提供
 

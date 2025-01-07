@@ -1,12 +1,12 @@
 # 构建受利益相关者喜爱的商业仪表盘的五个必备技巧
 
-> 原文：[https://towardsdatascience.com/5-essential-tips-to-build-business-dashboards-stakeholders-love-3312c8a94b6c?source=collection_archive---------5-----------------------#2024-12-11](https://towardsdatascience.com/5-essential-tips-to-build-business-dashboards-stakeholders-love-3312c8a94b6c?source=collection_archive---------5-----------------------#2024-12-11)
+> 原文：[`towardsdatascience.com/5-essential-tips-to-build-business-dashboards-stakeholders-love-3312c8a94b6c?source=collection_archive---------5-----------------------#2024-12-11`](https://towardsdatascience.com/5-essential-tips-to-build-business-dashboards-stakeholders-love-3312c8a94b6c?source=collection_archive---------5-----------------------#2024-12-11)
 
 ## 一本关于设计清晰、有效且可操作的决策支持仪表盘的实用指南
 
-[](https://ydong029.medium.com/?source=post_page---byline--3312c8a94b6c--------------------------------)[![Yu Dong](../Images/55c3c11c76cde72c65eb81a60384a436.png)](https://ydong029.medium.com/?source=post_page---byline--3312c8a94b6c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3312c8a94b6c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3312c8a94b6c--------------------------------) [Yu Dong](https://ydong029.medium.com/?source=post_page---byline--3312c8a94b6c--------------------------------)
+[](https://ydong029.medium.com/?source=post_page---byline--3312c8a94b6c--------------------------------)![Yu Dong](https://ydong029.medium.com/?source=post_page---byline--3312c8a94b6c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3312c8a94b6c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3312c8a94b6c--------------------------------) [Yu Dong](https://ydong029.medium.com/?source=post_page---byline--3312c8a94b6c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3312c8a94b6c--------------------------------) ·阅读时间7分钟·2024年12月11日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3312c8a94b6c--------------------------------) ·阅读时间 7 分钟·2024 年 12 月 11 日
 
 --
 

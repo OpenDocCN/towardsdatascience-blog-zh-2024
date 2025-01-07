@@ -1,16 +1,16 @@
 # 加泰罗尼亚语言灭绝建模
 
-> 原文：[https://towardsdatascience.com/modeling-the-extinction-of-the-catalan-language-01eda1527f5d?source=collection_archive---------9-----------------------#2024-06-28](https://towardsdatascience.com/modeling-the-extinction-of-the-catalan-language-01eda1527f5d?source=collection_archive---------9-----------------------#2024-06-28)
+> 原文：[`towardsdatascience.com/modeling-the-extinction-of-the-catalan-language-01eda1527f5d?source=collection_archive---------9-----------------------#2024-06-28`](https://towardsdatascience.com/modeling-the-extinction-of-the-catalan-language-01eda1527f5d?source=collection_archive---------9-----------------------#2024-06-28)
 
 ## 将现有文献应用于实际案例
 
-[](https://polmarin.medium.com/?source=post_page---byline--01eda1527f5d--------------------------------)[![Pol Marin](../Images/a4f69a96717d453db9791f27b8f85e86.png)](https://polmarin.medium.com/?source=post_page---byline--01eda1527f5d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--01eda1527f5d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--01eda1527f5d--------------------------------) [Pol Marin](https://polmarin.medium.com/?source=post_page---byline--01eda1527f5d--------------------------------)
+[](https://polmarin.medium.com/?source=post_page---byline--01eda1527f5d--------------------------------)![Pol Marin](https://polmarin.medium.com/?source=post_page---byline--01eda1527f5d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--01eda1527f5d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--01eda1527f5d--------------------------------) [Pol Marin](https://polmarin.medium.com/?source=post_page---byline--01eda1527f5d--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--01eda1527f5d--------------------------------) ·9分钟阅读·2024年6月28日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--01eda1527f5d--------------------------------) ·9 分钟阅读·2024 年 6 月 28 日
 
 --
 
-![](../Images/21dba3761d4913aefc8562520491c987.png)
+![](img/21dba3761d4913aefc8562520491c987.png)
 
 图片来自[Brett Jordan](https://unsplash.com/@brett_jordan?utm_source=medium&utm_medium=referral)，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

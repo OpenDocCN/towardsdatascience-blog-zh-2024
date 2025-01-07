@@ -1,32 +1,32 @@
 # 使用双重机器学习和线性规划优化治疗策略
 
-> 原文：[https://towardsdatascience.com/using-double-machine-learning-and-linear-programming-to-optimise-treatment-strategies-920c20a29553?source=collection_archive---------2-----------------------#2024-04-26](https://towardsdatascience.com/using-double-machine-learning-and-linear-programming-to-optimise-treatment-strategies-920c20a29553?source=collection_archive---------2-----------------------#2024-04-26)
+> 原文：[`towardsdatascience.com/using-double-machine-learning-and-linear-programming-to-optimise-treatment-strategies-920c20a29553?source=collection_archive---------2-----------------------#2024-04-26`](https://towardsdatascience.com/using-double-machine-learning-and-linear-programming-to-optimise-treatment-strategies-920c20a29553?source=collection_archive---------2-----------------------#2024-04-26)
 
-## 因果AI，探讨将因果推理融入机器学习
+## 因果 AI，探讨将因果推理融入机器学习
 
-[](https://medium.com/@raz1470?source=post_page---byline--920c20a29553--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--920c20a29553--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--920c20a29553--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--920c20a29553--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--920c20a29553--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--920c20a29553--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--920c20a29553--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--920c20a29553--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--920c20a29553--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--920c20a29553--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--920c20a29553--------------------------------) ·阅读时间：11分钟·2024年4月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--920c20a29553--------------------------------) ·阅读时间：11 分钟·2024 年 4 月 26 日
 
 --
 
-![](../Images/5253ef494d83fe5dc0bb6e3962eda71c.png)
+![](img/5253ef494d83fe5dc0bb6e3962eda71c.png)
 
 图片由 [Jordan McDonald](https://unsplash.com/@jordanmcdonald?utm_source=medium&utm_medium=referral) 提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 本系列文章的主题是什么？
 
-欢迎来到我的因果AI系列文章，我们将探讨因果推理如何融入机器学习模型。预计我们将深入探索在不同商业场景中的多种实际应用。
+欢迎来到我的因果 AI 系列文章，我们将探讨因果推理如何融入机器学习模型。预计我们将深入探索在不同商业场景中的多种实际应用。
 
 在上一篇文章中，我们探讨了*使用双重机器学习消除治疗效应偏差*。这次，我们将进一步深入探讨双重机器学习的潜力，重点是*使用双重机器学习和线性规划优化治疗策略*。
 
 如果你错过了上一篇关于双重机器学习的文章，可以在这里查看：
 
-[](/de-biasing-treatment-effects-with-double-machine-learning-63b16fcb3e97?source=post_page-----920c20a29553--------------------------------) [## 使用双重机器学习消除治疗效应偏差
+[](/de-biasing-treatment-effects-with-double-machine-learning-63b16fcb3e97?source=post_page-----920c20a29553--------------------------------) ## 使用双重机器学习消除治疗效应偏差
 
-### 因果AI，探讨将因果推理融入机器学习
+### 因果 AI，探讨将因果推理融入机器学习
 
-towardsdatascience.com](/de-biasing-treatment-effects-with-double-machine-learning-63b16fcb3e97?source=post_page-----920c20a29553--------------------------------)
+towardsdatascience.com
 
 # 介绍
 
@@ -40,7 +40,7 @@ towardsdatascience.com](/de-biasing-treatment-effects-with-double-machine-learni
 
 +   线性规划如何在预算约束下优化治疗分配。
 
-+   一个Python案例研究，演示了我们如何使用双重机器学习估计 CATE，以及如何使用线性规划优化治疗策略。
++   一个 Python 案例研究，演示了我们如何使用双重机器学习估计 CATE，以及如何使用线性规划优化治疗策略。
 
 完整的笔记本可以在这里找到：
 
@@ -96,9 +96,9 @@ CATE 是治疗或干预对不同子群体的平均影响。ATE 主要关注“�
 
 +   处理模型的残差用于预测结果模型的残差。
 
-我们可以使用双重机器学习，通过将控制特征（X）与第二阶段模型中的处理效应交互来估计CATE。
+我们可以使用双重机器学习，通过将控制特征（X）与第二阶段模型中的处理效应交互来估计 CATE。
 
-![](../Images/ac0f8e512d75a84ea1fecff41c663885.png)
+![](img/ac0f8e512d75a84ea1fecff41c663885.png)
 
 用户生成的图像
 
@@ -116,7 +116,7 @@ CATE 是治疗或干预对不同子群体的平均影响。ATE 主要关注“�
 
 +   ***目标函数：*** 我们试图最小化或最大化的线性方程——营销投资回报率（ROI）。
 
-+   ***约束条件：*** 对决策变量的一些限制，通常通过线性不等式表示——总营销支出介于£100,000和£500,000之间。
++   ***约束条件：*** 对决策变量的一些限制，通常通过线性不等式表示——总营销支出介于£100,000 和£500,000 之间。
 
 所有约束条件的交集形成了一个可行区域，这是满足给定约束条件的所有可能解的集合。线性规划的目标是找到可行区域内的点，以优化目标函数。
 
@@ -124,29 +124,29 @@ CATE 是治疗或干预对不同子群体的平均影响。ATE 主要关注“�
 
 分配问题是线性规划问题的一种特定类型，目标是将一组“任务”分配给一组“代理”。让我们通过一个例子来生动展示：
 
-你进行了一项实验，将不同的折扣发送给4个随机分配的现有客户组（其中第4组实际上没有收到任何折扣）。你建立了2个CATE模型——（1）估计优惠价值如何影响订单金额，（2）估计优惠价值如何影响成本。
+你进行了一项实验，将不同的折扣发送给 4 个随机分配的现有客户组（其中第 4 组实际上没有收到任何折扣）。你建立了 2 个 CATE 模型——（1）估计优惠价值如何影响订单金额，（2）估计优惠价值如何影响成本。
 
 +   代理：你的现有客户群体
 
-+   任务：是否向他们发送10%、20%或50%的折扣
++   任务：是否向他们发送 10%、20%或 50%的折扣
 
 +   决策变量：二元决策变量
 
 +   目标函数：总订单金额减去成本
 
-+   约束条件1：每个代理最多被分配1个任务
++   约束条件 1：每个代理最多被分配 1 个任务
 
-+   约束条件2：成本 ≥ £10,000
++   约束条件 2：成本 ≥ £10,000
 
-+   约束条件3：成本 ≤ £100,000
++   约束条件 3：成本 ≤ £100,000
 
-![](../Images/6936fdca2a707a249350cd61af92f284.png)
+![](img/6936fdca2a707a249350cd61af92f284.png)
 
 用户生成的图像
 
 我们基本上想要在给定的整体成本约束下，找出每个客户的最优处理方式。线性规划可以帮助我们做到这一点！
 
-值得注意的是，这个问题是“NP难”的，属于一类问题，这类问题至少和 NP（非确定性多项式时间）中最难的问题一样难。
+值得注意的是，这个问题是“NP 难”的，属于一类问题，这类问题至少和 NP（非确定性多项式时间）中最难的问题一样难。
 
 线性规划是一个非常棘手但富有回报的话题。我已尝试介绍基本概念以帮助我们入门——如果你想了解更多，推荐这个资源：
 
@@ -182,13 +182,13 @@ developers.google.com](https://developers.google.com/optimization?source=post_pa
 
 X 特征是治疗前获取的客户特征：
 
-![](../Images/8afb0c2d4588af0545c01cc9248d533d.png)
+![](img/8afb0c2d4588af0545c01cc9248d533d.png)
 
 用户生成的图像
 
 T 是一个二进制标志，表示客户是否接受了优惠。我们创建了三种不同的处理交互，以便模拟不同的治疗效果。
 
-![](../Images/0c53dd6127d10b58a8b3d16279cac3b3.png)
+![](img/0c53dd6127d10b58a8b3d16279cac3b3.png)
 
 用户生成的图像
 
@@ -239,7 +239,7 @@ def data_generator(tau_weight, interaction_num):
 
 我们可以使用数据生成器来模拟三种不同的治疗，每种治疗都有不同的治疗效果。
 
-![](../Images/73cd2e166adf8aa3eaade2a83fa22f4a.png)
+![](img/73cd2e166adf8aa3eaade2a83fa22f4a.png)
 
 用户生成的图像
 
@@ -264,7 +264,7 @@ github.com](https://github.com/uber/causalml/blob/master/causalml/dataset/regres
 
 我们接着使用 LightGBM 训练了三种 DML 模型作为灵活的第一阶段模型。这应该能帮助我们捕捉困难的干扰参数，同时正确计算治疗效果。
 
-注意我们是如何通过X而不是W传递X特征的（与上一篇文章中通过W传递X特征不同）。通过X传递的特征将在第一阶段和第二阶段模型中都使用——在第二阶段模型中，这些特征用来与治疗残差创建交互项。
+注意我们是如何通过 X 而不是 W 传递 X 特征的（与上一篇文章中通过 W 传递 X 特征不同）。通过 X 传递的特征将在第一阶段和第二阶段模型中都使用——在第二阶段模型中，这些特征用来与治疗残差创建交互项。
 
 ```py
 np.random.seed(123)
@@ -282,7 +282,7 @@ dml3 = LinearDML(model_y=LGBMRegressor(), model_t=LGBMClassifier(), discrete_tre
 dml3.fit(y3, T=T3, X=X3, W=None)
 ```
 
-当我们绘制实际值与估计CATE时，可以看到模型表现得相当不错。
+当我们绘制实际值与估计 CATE 时，可以看到模型表现得相当不错。
 
 ```py
 # Create a figure and subplots
@@ -311,7 +311,7 @@ fig.suptitle('Actual vs Estimated')
 plt.show()
 ```
 
-![](../Images/1c1e7cd98de1b3a24a3dacbe62241ee3.png)
+![](img/1c1e7cd98de1b3a24a3dacbe62241ee3.png)
 
 用户生成的图片
 
@@ -327,7 +327,7 @@ cost_dict = {'T1': 0.1, 'T2': 0.2, 'T3': 0.3}
 max_cost = 3000
 ```
 
-我们可以估计每个客户的CATE，然后初步选择每个客户的最佳治疗方法。然而，选择最佳治疗方法并不能使我们保持在最大成本约束内。因此，我们将选择CATE最高的客户，直到达到最大成本约束。
+我们可以估计每个客户的 CATE，然后初步选择每个客户的最佳治疗方法。然而，选择最佳治疗方法并不能使我们保持在最大成本约束内。因此，我们将选择 CATE 最高的客户，直到达到最大成本约束。
 
 ```py
 # Concatenate features
@@ -360,7 +360,7 @@ naive_cost_check = round(best_df_cum.iloc[opt_index]['cost'], 0)
 print(f'The total order value from the naive treatment strategy is {naive_order_value} with a cost of {naive_cost_check}')
 ```
 
-![](../Images/a46b695da116108f0e4be158e342bb1e.png)
+![](img/a46b695da116108f0e4be158e342bb1e.png)
 
 用户生成的图片
 
@@ -378,7 +378,7 @@ cost_mapping = {'T1': [cost_dict["T1"]] * 30000,
 df_costs = pd.DataFrame(cost_mapping)
 ```
 
-现在是时候使用OR工具包来解决这个分配问题了！代码接受以下输入：
+现在是时候使用 OR 工具包来解决这个分配问题了！代码接受以下输入：
 
 +   成本约束
 
@@ -446,11 +446,11 @@ df['order_value'] = [x[2] for x in values]
 df
 ```
 
-![](../Images/58259d64a587b13f48a54939e79ab795.png)
+![](img/58259d64a587b13f48a54939e79ab795.png)
 
 用户生成的图片
 
-在保持£3k成本约束的同时，我们可以使用优化后的治疗策略产生£18k的订单价值。这比朴素方法高出36%！
+在保持£3k 成本约束的同时，我们可以使用优化后的治疗策略产生£18k 的订单价值。这比朴素方法高出 36%！
 
 ```py
 opt_order_value = round(df['order_value'][df['assigned'] == 1].sum(), 0)
@@ -459,7 +459,7 @@ opt_cost_check = round(df['cost'][df['assigned'] == 1].sum(), 0)
 print(f'The total order value from the optimised treatment strategy is {opt_order_value} with a cost of {opt_cost_check}')
 ```
 
-![](../Images/b2a5b7d0562553c7365d3dbd6f3a9ffb.png)
+![](img/b2a5b7d0562553c7365d3dbd6f3a9ffb.png)
 
 用户生成的图片
 
@@ -475,12 +475,12 @@ print(f'The total order value from the optimised treatment strategy is {opt_orde
 
 [github.com](https://github.com/py-why/EconML/blob/main/notebooks/Double%20Machine%20Learning%20Examples.ipynb?source=post_page-----920c20a29553--------------------------------)
 
-+   但也要记住，你不一定非得使用双重机器学习（DML），像T-Learner或DR-Learner这样的其他方法也可以使用。
++   但也要记住，你不一定非得使用双重机器学习（DML），像 T-Learner 或 DR-Learner 这样的其他方法也可以使用。
 
 +   为了让这篇文章简洁易读，我没有调整超参数 — 随着问题和方法复杂性的增加，我们需要更加关注这一部分。
 
-+   线性规划/分配问题是NP难题，因此如果你有大量的客户群和/或多个处理方案，这部分代码可能需要很长时间才能运行。
++   线性规划/分配问题是 NP 难题，因此如果你有大量的客户群和/或多个处理方案，这部分代码可能需要很长时间才能运行。
 
 +   将线性规划/分配问题应用到日常工作流中可能具有挑战性 — 一种替代方法是定期运行优化，并根据结果学习最优策略，从而创建一个细分，用于日常工作流。
 
-如果你想继续探索因果AI，**请关注我** — 在下一篇文章中，我们将探讨如何在定价和营销优化问题中估计非线性处理效应。
+如果你想继续探索因果 AI，**请关注我** — 在下一篇文章中，我们将探讨如何在定价和营销优化问题中估计非线性处理效应。

@@ -1,30 +1,30 @@
 # 有效的管理机器学习项目的策略
 
-> 原文：[https://towardsdatascience.com/effective-strategies-for-managing-ml-initiatives-21c6f7432436?source=collection_archive---------8-----------------------#2024-06-04](https://towardsdatascience.com/effective-strategies-for-managing-ml-initiatives-21c6f7432436?source=collection_archive---------8-----------------------#2024-06-04)
+> 原文：[`towardsdatascience.com/effective-strategies-for-managing-ml-initiatives-21c6f7432436?source=collection_archive---------8-----------------------#2024-06-04`](https://towardsdatascience.com/effective-strategies-for-managing-ml-initiatives-21c6f7432436?source=collection_archive---------8-----------------------#2024-06-04)
 
 ## 接受不确定性、合适的人才以及从数据中学习
 
-[](https://annaviaba.medium.com/?source=post_page---byline--21c6f7432436--------------------------------)[![Anna Via](../Images/7e8fe5c1a485a789edad3a6d118bcf45.png)](https://annaviaba.medium.com/?source=post_page---byline--21c6f7432436--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--21c6f7432436--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--21c6f7432436--------------------------------) [Anna Via](https://annaviaba.medium.com/?source=post_page---byline--21c6f7432436--------------------------------)
+[](https://annaviaba.medium.com/?source=post_page---byline--21c6f7432436--------------------------------)![Anna Via](https://annaviaba.medium.com/?source=post_page---byline--21c6f7432436--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--21c6f7432436--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--21c6f7432436--------------------------------) [Anna Via](https://annaviaba.medium.com/?source=post_page---byline--21c6f7432436--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--21c6f7432436--------------------------------) ·6分钟阅读·2024年6月4日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--21c6f7432436--------------------------------) ·6 分钟阅读·2024 年 6 月 4 日
 
 --
 
-![](../Images/ee9148215face5995ec3499341e27238.png)
+![](img/ee9148215face5995ec3499341e27238.png)
 
 图片来源：[Cottonbro](https://www.pexels.com/es-es/@cottonbro/)，来自[Pexels](https://www.pexels.com/)
 
-*这篇博客文章是我去年在GOTO阿姆斯特丹会议上所做部分演讲的更新版本。该演讲也可以* [*在线观看*](https://www.youtube.com/watch?v=dFxFYukNmvE)*。*
+*这篇博客文章是我去年在 GOTO 阿姆斯特丹会议上所做部分演讲的更新版本。该演讲也可以* [*在线观看*](https://www.youtube.com/watch?v=dFxFYukNmvE)*。*
 
 通过机器学习产品项目提供价值和积极影响并非易事。造成这种复杂性的主要原因之一是，在为数字产品开发的机器学习项目中，有两个不确定性来源相交。首先，是与机器学习解决方案本身相关的不确定性（*我们能否以足够好的质量预测我们需要预测的内容？*）。其次，是与整个系统可能提供的影响相关的不确定性（*用户会喜欢这个新功能吗？它真的能解决我们试图解决的问题吗？*）。
 
-所有这些不确定性意味着，在机器学习（ML）产品项目中，失败是相对常见的。然而，仍然有一些策略可以帮助管理并提高成功的概率（*或者至少让我们在面对失败时保持尊严生存下来！*）。从正确的起点开始ML项目至关重要。我在之前的一篇文章中讨论了这个领域的主要经验：从问题入手（并从一开始就定义预测如何使用），从小做起（如果可以，保持小规模），并优先考虑正确的数据（质量、数量、历史）。
+所有这些不确定性意味着，在机器学习（ML）产品项目中，失败是相对常见的。然而，仍然有一些策略可以帮助管理并提高成功的概率（*或者至少让我们在面对失败时保持尊严生存下来！*）。从正确的起点开始 ML 项目至关重要。我在之前的一篇文章中讨论了这个领域的主要经验：从问题入手（并从一开始就定义预测如何使用），从小做起（如果可以，保持小规模），并优先考虑正确的数据（质量、数量、历史）。
 
-[](/starting-ml-product-initiatives-on-the-right-foot-cf24cbe163b3?source=post_page-----21c6f7432436--------------------------------) [## 从正确的起点开始ML产品项目
+[](/starting-ml-product-initiatives-on-the-right-foot-cf24cbe163b3?source=post_page-----21c6f7432436--------------------------------) ## 从正确的起点开始 ML 产品项目
 
 ### 三大经验教训：问题、规模和数据
 
-[towardsdatascience.com](/starting-ml-product-initiatives-on-the-right-foot-cf24cbe163b3?source=post_page-----21c6f7432436--------------------------------)
+[towardsdatascience.com
 
 然而，启动一个项目仅仅是开始。成功管理一个机器学习项目并在整个项目生命周期内提供积极影响的挑战将持续存在。在这篇文章中，我将分享我在机器学习项目中生存和成功的三大心得：
 
@@ -40,7 +40,7 @@
 
 最受欢迎的机器学习项目计划是***ML 生命周期***，它将机器学习项目的阶段分为业务理解、数据理解、数据准备、建模、评估和部署。尽管这些阶段通常被视为连续步骤，但在许多生命周期的表示中，你会看到箭头指向后方：在项目的任何阶段，你可能会学到一些东西，这迫使你回到前一个阶段。
 
-![](../Images/ac523d07c10f1e9919ddc168430e4fe7.png)
+![](img/ac523d07c10f1e9919ddc168430e4fe7.png)
 
 机器学习生命周期（及其指向后方的箭头），图像来源：作者
 
@@ -56,7 +56,7 @@
 
 # 与合适的人为伍
 
-![](../Images/05cc761bbe3fbc9e9d145c9491dab134.png)
+![](img/05cc761bbe3fbc9e9d145c9491dab134.png)
 
 图片由[Fauxels](https://www.pexels.com/es-es/@fauxels/)提供，来源于[Pexels](https://www.pexels.com/)
 
@@ -74,9 +74,9 @@
 
 在机器学习的各项工作中，有三个主要的指标和度量可以在学习和洞察方面带来巨大价值：模型性能监控、服务性能和最终影响监控。在之前的文章中，我深入探讨了这个话题。
 
-[](https://levelup.gitconnected.com/ml-systems-monitoring-from-service-performance-to-positive-business-impact-b40dbbd31927?source=post_page-----21c6f7432436--------------------------------) [## ML系统监控：从服务性能到正向业务影响
+[](https://levelup.gitconnected.com/ml-systems-monitoring-from-service-performance-to-positive-business-impact-b40dbbd31927?source=post_page-----21c6f7432436--------------------------------) [## ML 系统监控：从服务性能到正向业务影响
 
-### 对机器学习系统在生产环境中进行360度监控的方式
+### 对机器学习系统在生产环境中进行 360 度监控的方式
 
 levelup.gitconnected.com](https://levelup.gitconnected.com/ml-systems-monitoring-from-service-performance-to-positive-business-impact-b40dbbd31927?source=post_page-----21c6f7432436--------------------------------)
 
@@ -84,7 +84,7 @@ levelup.gitconnected.com](https://levelup.gitconnected.com/ml-systems-monitoring
 
 +   **确保朝着正确的方向前进：** 这包括从解决方案的正确设计或选择合适的特征，到了解是否需要调整方向甚至停止项目的多个方面。
 
-+   **了解如何改进：** 了解是否达成了预期的结果目标（例如通过实验或A/B测试），深入分析哪些做得好，哪些没有做好，以及如何继续提供价值。
++   **了解如何改进：** 了解是否达成了预期的结果目标（例如通过实验或 A/B 测试），深入分析哪些做得好，哪些没有做好，以及如何继续提供价值。
 
 +   **及时发现失败并制定计划：** 以便快速响应问题，理想情况下是在它们影响业务之前。如果问题已经影响到业务，拥有正确的指标应该能让你理解失败背后的原因，保持事情在可控范围内，并制定前进的计划（同时维护利益相关者的信任）。
 

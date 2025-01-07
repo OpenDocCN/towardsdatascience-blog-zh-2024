@@ -1,48 +1,48 @@
-# 用AI彻底改变网页浏览
+# 用 AI 彻底改变网页浏览
 
-> 原文：[https://towardsdatascience.com/revolutionize-web-browsing-with-ai-5d5f6ce5f5df?source=collection_archive---------4-----------------------#2024-03-10](https://towardsdatascience.com/revolutionize-web-browsing-with-ai-5d5f6ce5f5df?source=collection_archive---------4-----------------------#2024-03-10)
+> 原文：[`towardsdatascience.com/revolutionize-web-browsing-with-ai-5d5f6ce5f5df?source=collection_archive---------4-----------------------#2024-03-10`](https://towardsdatascience.com/revolutionize-web-browsing-with-ai-5d5f6ce5f5df?source=collection_archive---------4-----------------------#2024-03-10)
 
-## 使用GPT-4V和Puppeteer解锁互动在线体验
+## 使用 GPT-4V 和 Puppeteer 解锁互动在线体验
 
-[](https://medium.com/@bianbianzhu123?source=post_page---byline--5d5f6ce5f5df--------------------------------)[![Tianyi Li](../Images/40fce472f42c650daa1433641bf732df.png)](https://medium.com/@bianbianzhu123?source=post_page---byline--5d5f6ce5f5df--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5d5f6ce5f5df--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5d5f6ce5f5df--------------------------------) [Tianyi Li](https://medium.com/@bianbianzhu123?source=post_page---byline--5d5f6ce5f5df--------------------------------)
+[](https://medium.com/@bianbianzhu123?source=post_page---byline--5d5f6ce5f5df--------------------------------)![Tianyi Li](https://medium.com/@bianbianzhu123?source=post_page---byline--5d5f6ce5f5df--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5d5f6ce5f5df--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d5f6ce5f5df--------------------------------) [Tianyi Li](https://medium.com/@bianbianzhu123?source=post_page---byline--5d5f6ce5f5df--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d5f6ce5f5df--------------------------------) ·23分钟阅读·2024年3月10日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d5f6ce5f5df--------------------------------) ·23 分钟阅读·2024 年 3 月 10 日
 
 --
 
 作者：[Tianyi Li](https://medium.com/u/4092d7367010?source=post_page---user_mention--5d5f6ce5f5df--------------------------------)，[Selina Li](https://medium.com/u/7b9ea39b0d79?source=post_page---user_mention--5d5f6ce5f5df--------------------------------)
 
-![](../Images/5534a8ac0a28ede1472534e7d922e9d6.png)
+![](img/5534a8ac0a28ede1472534e7d922e9d6.png)
 
-图片由作者使用DALL·E生成
+图片由作者使用 DALL·E 生成
 
-· [介绍](#ced3)
+· 介绍
 
-· [潜在的使用案例](#b5c4)
+· 潜在的使用案例
 
-· [高级工作流](#efe3)
+· 高级工作流
 
-· [架构](#2455)
+· 架构
 
-∘ [开始使用](#1813)
+∘ 开始使用
 
-∘ [选择正确的路径](#3fd7)
+∘ 选择正确的路径
 
-∘ [这是一个循环！](#ce07)
+∘ 这是一个循环！
 
-∘ [目录结构](#30b8)
+∘ 目录结构
 
-∘ [浏览器控制服务](#c456)
+∘ 浏览器控制服务
 
-∘ [元素注释服务](#d19c)
+∘ 元素注释服务
 
-· [结论](#b379)
+· 结论
 
 # 介绍
 
-假设你非常想参加本月在你所在城市举办的AI活动，但你心中有一些特定的标准，可能与活动的时间安排或重点内容有关。通常，这将涉及以下过程：
+假设你非常想参加本月在你所在城市举办的 AI 活动，但你心中有一些特定的标准，可能与活动的时间安排或重点内容有关。通常，这将涉及以下过程：
 
-+   使用诸如“本月[你的城市]的AI事件”之类的关键词启动网络搜索。
++   使用诸如“本月[你的城市]的 AI 事件”之类的关键词启动网络搜索。
 
 +   从搜索结果中筛选出看起来有潜力的链接。
 
@@ -58,23 +58,23 @@
 
 1.  根据页面内容做出决策，例如确定哪个链接与你的查询相关。
 
-通过利用新兴的大型语言模型（LLM）技术，我们现在可以通过一个**LLM驱动的AI代理自动化整个过程**。
+通过利用新兴的大型语言模型（LLM）技术，我们现在可以通过一个**LLM 驱动的 AI 代理自动化整个过程**。
 
-进入AI代理，它正如我们上面所描述的那样，做着你所做的一切。
+进入 AI 代理，它正如我们上面所描述的那样，做着你所做的一切。
 
-1.  **浏览器控制**：AI使用像`Puppeteer`这样的工具来浏览互联网。可以把Puppeteer看作是AI的双手，它能轻松地打开标签页、点击链接，并在网页之间导航。
+1.  **浏览器控制**：AI 使用像`Puppeteer`这样的工具来浏览互联网。可以把 Puppeteer 看作是 AI 的双手，它能轻松地打开标签页、点击链接，并在网页之间导航。
 
-1.  **内容浏览**：可以把这个看作是AI的眼睛。`Puppeteer`能够拍摄网页截图，并将其传递给AI。
+1.  **内容浏览**：可以把这个看作是 AI 的眼睛。`Puppeteer`能够拍摄网页截图，并将其传递给 AI。
 
-1.  **决策制定**：这是AI的大脑发挥作用的地方，借助大型语言模型（LLM）。它评估每个页面的截图，分析图像，判断相关性并决定下一步，模拟人类判断。
+1.  **决策制定**：这是 AI 的大脑发挥作用的地方，借助大型语言模型（LLM）。它评估每个页面的截图，分析图像，判断相关性并决定下一步，模拟人类判断。
 
-在本文中，我们将探索并构建一个利用OpenAI的`gpt-4-vision-preview`模型的AI代理。该模型可以**分析图像**并提供文本回复。
+在本文中，我们将探索并构建一个利用 OpenAI 的`gpt-4-vision-preview`模型的 AI 代理。该模型可以**分析图像**并提供文本回复。
 
 这个代理将能够与用户互动，控制网页浏览器，并处理数据。我们将探讨它的结构以及如何工作。
 
-本文的灵感来源于一个YouTube视频 [GPT4V + Puppeteer = AI代理像人类一样浏览网页？🤖](https://www.youtube.com/watch?v=IXRkmqEYGZA&t=184s)，由[AI Jason](https://www.youtube.com/@AIJasonZ)发布。
+本文的灵感来源于一个 YouTube 视频 [GPT4V + Puppeteer = AI 代理像人类一样浏览网页？🤖](https://www.youtube.com/watch?v=IXRkmqEYGZA&t=184s)，由[AI Jason](https://www.youtube.com/@AIJasonZ)发布。
 
-**本文中展示的所有代码都可以在这个Github仓库中找到** [**AI Web Agent**](https://github.com/bianbianzhu/ai-web-agent/tree/main/agent)**.**
+**本文中展示的所有代码都可以在这个 Github 仓库中找到** [**AI Web Agent**](https://github.com/bianbianzhu/ai-web-agent/tree/main/agent)**.**
 
 # 潜在的使用案例
 
@@ -96,19 +96,19 @@
 
 # 高层次工作流程
 
-![](../Images/586a1f94e2d077c069b61fadefe44de0.png)
+![](img/586a1f94e2d077c069b61fadefe44de0.png)
 
 显示代理高层次工作流程的流程图。
 
 首先，用户向代理提出问题。
 
-在接收到问题后，GPT-4V将返回一个URL作为网页搜索的入口。该URL可以由用户在问题中指定；如果未指定，默认情况下，它将是GPT从用户问题中提取的关键词进行Google搜索。
+在接收到问题后，GPT-4V 将返回一个 URL 作为网页搜索的入口。该 URL 可以由用户在问题中指定；如果未指定，默认情况下，它将是 GPT 从用户问题中提取的关键词进行 Google 搜索。
 
-在接收到URL后，Puppeteer将打开该URL的网页。它会高亮显示页面上的所有互动元素，如链接、点击、按钮，然后截图并返回。
+在接收到 URL 后，Puppeteer 将打开该 URL 的网页。它会高亮显示页面上的所有互动元素，如链接、点击、按钮，然后截图并返回。
 
-在接收到截图后，GPT-4V将查看页面并处理高亮显示的信息。作为大脑，GPT将决定是否已经得到了一个好的答案来回答用户的问题。
+在接收到截图后，GPT-4V 将查看页面并处理高亮显示的信息。作为大脑，GPT 将决定是否已经得到了一个好的答案来回答用户的问题。
 
-如果有一个好的答案，GPT会将答案返回给用户。
+如果有一个好的答案，GPT 会将答案返回给用户。
 
 如果没有，GPT-4V 将决定下一个步骤应访问哪个 URL 或点击哪个元素。Puppeteer 将再次打开新的 URL，突出显示交互元素，并截取屏幕截图以供进一步处理。
 
@@ -118,7 +118,7 @@
 
 既然我们现在已经了解了 AI 代理是如何工作的，接下来让我们看看代理的架构。代理的结构如下：
 
-![](../Images/5a8375fa18a3f3434a9572dbdf104d0b.png)
+![](img/5a8375fa18a3f3434a9572dbdf104d0b.png)
 
 代理架构概览
 
@@ -130,7 +130,7 @@
 
 这是起始点的一个简单视图：
 
-![](../Images/fffb4608e71295968f9cdae12e5bada0.png)
+![](img/fffb4608e71295968f9cdae12e5bada0.png)
 
 初始步骤
 
@@ -142,7 +142,7 @@ I'm looking for AI events in Melbourne this month. Please prioritize events that
 
 这是系统提示可能的样子：
 
-![](../Images/dd728c47d52c1476b78ddd1a127ed3d6.png)
+![](img/dd728c47d52c1476b78ddd1a127ed3d6.png)
 
 一个典型的系统提示，提供代理的上下文。
 
@@ -222,9 +222,9 @@ export const promptMap = {
 };
 ```
 
-一个重要的注意事项是，为了让LLM能够记住对话的`memory`，我们需要始终将新的提示推送到消息数组中，并将整个数组发送给LLM。这可能会导致令牌数暴增。使用`max_tokens`参数来建立安全网。
+一个重要的注意事项是，为了让 LLM 能够记住对话的`memory`，我们需要始终将新的提示推送到消息数组中，并将整个数组发送给 LLM。这可能会导致令牌数暴增。使用`max_tokens`参数来建立安全网。
 
-下面是如何使用openai服务生成响应的方法。
+下面是如何使用 openai 服务生成响应的方法。
 
 ```py
 const taskFlow = async (): Promise<void> => {
@@ -254,7 +254,7 @@ const taskFlow = async (): Promise<void> => {
 await taskFlow();
 ```
 
-当然，要使用`openai`服务，你需要安装`openai`包并配置API密钥。这里有一个单独的文件来处理openai服务。
+当然，要使用`openai`服务，你需要安装`openai`包并配置 API 密钥。这里有一个单独的文件来处理 openai 服务。
 
 ```py
 import dotenv from "dotenv";
@@ -272,13 +272,13 @@ export const openai = new OpenAI({
 
 ## 选择正确的路径
 
-如前所述，LLM响应将仅被塑造成三种类型中的一种。每种类型都会触发不同的浏览器控制服务进行相应的操作。
+如前所述，LLM 响应将仅被塑造成三种类型中的一种。每种类型都会触发不同的浏览器控制服务进行相应的操作。
 
-![](../Images/6ca654ab4349b5e66c39e9985ead90bc.png)
+![](img/6ca654ab4349b5e66c39e9985ead90bc.png)
 
-代理程序根据LLM的反馈选择最佳路径。
+代理程序根据 LLM 的反馈选择最佳路径。
 
-**URL响应流**
+**URL 响应流**
 
 +   **响应格式 { “url”: “**[**https://www.example.com**](https://www.example.com)**" }**
 
@@ -286,13 +286,13 @@ export const openai = new OpenAI({
 
 +   **此响应将触发脚本中的以下步骤：**
 
-1.  从响应中提取URL
+1.  从响应中提取 URL
 
-1.  使用Puppeteer打开浏览器并导航到URL
+1.  使用 Puppeteer 打开浏览器并导航到 URL
 
-1.  然后，代理程序会截图并通过另一个特殊指令提示发送给LLM，分析页面内容并决定下一步操作。
+1.  然后，代理程序会截图并通过另一个特殊指令提示发送给 LLM，分析页面内容并决定下一步操作。
 
-![](../Images/97229ad5607b2a6fcf9d24c47a1fe5a3.png)
+![](img/97229ad5607b2a6fcf9d24c47a1fe5a3.png)
 
 ‘url’响应消息的处理流程。
 
@@ -306,21 +306,21 @@ export const openai = new OpenAI({
 
 1.  从响应中提取链接文本
 
-1.  然后，代理程序使用Puppeteer查找匹配文本的元素并点击它
+1.  然后，代理程序使用 Puppeteer 查找匹配文本的元素并点击它
 
-1.  代理程序会截图并通过另一个特殊指令提示发送给LLM，分析页面内容并决定下一步操作。
+1.  代理程序会截图并通过另一个特殊指令提示发送给 LLM，分析页面内容并决定下一步操作。
 
-![](../Images/a2d29ca66285afcabd6ea669bf885bc1.png)
+![](img/a2d29ca66285afcabd6ea669bf885bc1.png)
 
 ‘click’响应消息的处理流程。
 
-让我们来看看代理程序在截图页面后发送给LLM的`特殊指令提示`。
+让我们来看看代理程序在截图页面后发送给 LLM 的`特殊指令提示`。
 
-![](../Images/ff292db3f933db519ba4f04613fe2010.png)
+![](img/ff292db3f933db519ba4f04613fe2010.png)
 
 来源：[JayZeeDesign](https://github.com/JayZeeDesign/Scrape-anything---Web-AI-agent)
 
-这个提示基本上告诉大语言模型（LLM）分析页面的截图并决定下一步操作。响应格式应该与我们在系统提示中提到的完全一致。对于LLM，通常需要反复说明规则或指南，以确保一致的表现。
+这个提示基本上告诉大语言模型（LLM）分析页面的截图并决定下一步操作。响应格式应该与我们在系统提示中提到的完全一致。对于 LLM，通常需要反复说明规则或指南，以确保一致的表现。
 
 **常规消息流 — 常规消息**
 
@@ -354,7 +354,7 @@ export type ResponseMessage =
     };
 ```
 
-一个将LLM的**纯文本响应**转换为定义类型的函数。
+一个将 LLM 的**纯文本响应**转换为定义类型的函数。
 
 ```py
 export const convertTextToResponseMessage = (text: string): ResponseMessage => {
@@ -447,7 +447,7 @@ if (responseMessage.type === ResponseMessageCategory.CLICK) {
 
 循环的示例如下：
 
-![](../Images/cece81855a5ee85556bb1ccc9b2efffb.png)
+![](img/cece81855a5ee85556bb1ccc9b2efffb.png)
 
 代理工作流是一个循环！
 
@@ -619,7 +619,7 @@ utils.ts
 
 1.  截取页面截图
 
-![](../Images/3a30655d1ff49b52ff7e6a8eaa31cb5f.png)
+![](img/3a30655d1ff49b52ff7e6a8eaa31cb5f.png)
 
 Puppeteer 在工作流程中执行的任务。
 
@@ -737,13 +737,13 @@ const waitAndScreenshot = async (page: Page) => {
 
 以下流程图展示了`waitTillHTMLRendered`函数的逻辑：
 
-![](../Images/5620f6b1b199b44699cdf9b89410420e.png)
+![](img/5620f6b1b199b44699cdf9b89410420e.png)
 
 `waitTillHTMLRendered`函数的流程图。
 
 为了更好地理解`waitAndScreenshot`函数，我们来看看该函数运行时的日志：
 
-![](../Images/76781d17a83b9de376b0b37229a00f7c.png)
+![](img/76781d17a83b9de376b0b37229a00f7c.png)
 
 捕获动态内容渲染的日志。
 
@@ -851,7 +851,7 @@ export const clickNavigationAndScreenshot = async (
 
 `clickOnLink`函数
 
-这个功能会遍历所有带有`gpt-link-text`属性的元素（这是元素注释过程中获得的唯一标识符），并点击与LLM提供的链接文本匹配的元素。
+这个功能会遍历所有带有`gpt-link-text`属性的元素（这是元素注释过程中获得的唯一标识符），并点击与 LLM 提供的链接文本匹配的元素。
 
 ```py
 const clickOnLink = async (linkText: string, page: Page) => {
@@ -907,9 +907,9 @@ const clickOnLink = async (linkText: string, page: Page) => {
 
 让我们更深入地了解`highlightInteractiveElements`函数，它在`waitAndScreenshot`内部被调用。
 
-这是一个为代理注释交互式HTML元素的服务。它可以用`红色边框`突出显示元素，并为它们添加唯一标识符。
+这是一个为代理注释交互式 HTML 元素的服务。它可以用`红色边框`突出显示元素，并为它们添加唯一标识符。
 
-想象一下，给你的AI代理配上一副特殊的眼镜，让它能看到网站上的交互点——按钮、链接和字段——就像宝藏图上的发光宝藏一样。
+想象一下，给你的 AI 代理配上一副特殊的眼镜，让它能看到网站上的交互点——按钮、链接和字段——就像宝藏图上的发光宝藏一样。
 
 这基本上就是`highlightInteractiveElements`函数的作用。它就像数字世界中的荧光笔，在可点击的项目周围画上红框，并用数字标签标记它们。
 
@@ -917,21 +917,21 @@ const clickOnLink = async (linkText: string, page: Page) => {
 
 这是注释截图的一个示例：
 
-![](../Images/b85a7f190d2179f011cdda31a784a805.png)
+![](img/b85a7f190d2179f011cdda31a784a805.png)
 
-电子商务网站，交互元素被红色高亮显示。图像来自Officeworks网站。
+电子商务网站，交互元素被红色高亮显示。图像来自 Officeworks 网站。
 
 有一篇研究论文详细讨论了这个话题的重要性：[Set-of-Mark Prompting](https://arxiv.org/abs/2310.11441)。
 
 以下是它的执行方式：
 
-1.  它首先移除可能会混淆我们AI的旧数字标签（html属性`gpt-link-text`）。
+1.  它首先移除可能会混淆我们 AI 的旧数字标签（html 属性`gpt-link-text`）。
 
-1.  然后，它会用红色轮廓突出显示它发现的每个可点击的内容，帮助AI识别应该“点击”哪里。
+1.  然后，它会用红色轮廓突出显示它发现的每个可点击的内容，帮助 AI 识别应该“点击”哪里。
 
-1.  每个交互元素都会有一个独特的标签。这个标签/属性将用于标识Puppeteer稍后可以与之互动的元素。
+1.  每个交互元素都会有一个独特的标签。这个标签/属性将用于标识 Puppeteer 稍后可以与之互动的元素。
 
-需要记住的一个关键细节是，当处理Puppeteer或任何其他以编程方式与网页交互的测试框架时，带有链接文本的元素可能不可见。这里是一个简单的例子：
+需要记住的一个关键细节是，当处理 Puppeteer 或任何其他以编程方式与网页交互的测试框架时，带有链接文本的元素可能不可见。这里是一个简单的例子：
 
 ```py
 <div style="display: none">
@@ -941,9 +941,9 @@ const clickOnLink = async (linkText: string, page: Page) => {
 </div>
 ```
 
-父div被隐藏，所以链接不可见。这个元素应该被排除。需要递归检查父元素以确保该元素可见。请参见下图中的逻辑：
+父 div 被隐藏，所以链接不可见。这个元素应该被排除。需要递归检查父元素以确保该元素可见。请参见下图中的逻辑：
 
-![](../Images/171f42e9c803a67604cb42a80db2a9c2.png)
+![](img/171f42e9c803a67604cb42a80db2a9c2.png)
 
 `isElementVisible`函数的流程图。
 
@@ -1063,7 +1063,7 @@ export const highlightInteractiveElements = async (page: Page) => {
 
 # 结论
 
-在本文中，我们探讨了AI代理的架构、每个步骤的代码实现以及设计背后的某些概念，如Set-of-Mark Prompting。该代理是一个优雅的系统，需要精心协调不同的服务才能有效运行，目前仍存在许多问题和局限性。如果您有任何问题或建议，请随时与我联系。我很愿意进一步讨论这个话题。
+在本文中，我们探讨了 AI 代理的架构、每个步骤的代码实现以及设计背后的某些概念，如 Set-of-Mark Prompting。该代理是一个优雅的系统，需要精心协调不同的服务才能有效运行，目前仍存在许多问题和局限性。如果您有任何问题或建议，请随时与我联系。我很愿意进一步讨论这个话题。
 
 # 喜欢这个故事吗？
 

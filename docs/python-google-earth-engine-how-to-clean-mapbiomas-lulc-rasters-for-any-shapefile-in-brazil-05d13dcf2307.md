@@ -1,18 +1,18 @@
 # Python + Google Earth Engine
 
-> 原文：[https://towardsdatascience.com/python-google-earth-engine-how-to-clean-mapbiomas-lulc-rasters-for-any-shapefile-in-brazil-05d13dcf2307?source=collection_archive---------6-----------------------#2024-07-10](https://towardsdatascience.com/python-google-earth-engine-how-to-clean-mapbiomas-lulc-rasters-for-any-shapefile-in-brazil-05d13dcf2307?source=collection_archive---------6-----------------------#2024-07-10)
+> 原文：[`towardsdatascience.com/python-google-earth-engine-how-to-clean-mapbiomas-lulc-rasters-for-any-shapefile-in-brazil-05d13dcf2307?source=collection_archive---------6-----------------------#2024-07-10`](https://towardsdatascience.com/python-google-earth-engine-how-to-clean-mapbiomas-lulc-rasters-for-any-shapefile-in-brazil-05d13dcf2307?source=collection_archive---------6-----------------------#2024-07-10)
 
 ## 如何清理巴西任何形状文件的 MapBiomas LULC 光栅图像
 
-[](https://medium.com/@HecVini?source=post_page---byline--05d13dcf2307--------------------------------)[![Vinícius Hector](../Images/ac360b1e6a3748cf4b27be380e738d76.png)](https://medium.com/@HecVini?source=post_page---byline--05d13dcf2307--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--05d13dcf2307--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--05d13dcf2307--------------------------------) [Vinícius Hector](https://medium.com/@HecVini?source=post_page---byline--05d13dcf2307--------------------------------)
+[](https://medium.com/@HecVini?source=post_page---byline--05d13dcf2307--------------------------------)![Vinícius Hector](https://medium.com/@HecVini?source=post_page---byline--05d13dcf2307--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--05d13dcf2307--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05d13dcf2307--------------------------------) [Vinícius Hector](https://medium.com/@HecVini?source=post_page---byline--05d13dcf2307--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05d13dcf2307--------------------------------) ·阅读时长 21 分钟·2024年7月10日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05d13dcf2307--------------------------------) ·阅读时长 21 分钟·2024 年 7 月 10 日
 
 --
 
-![](../Images/7822848d8ba780656641f63147518ca4.png)
+![](img/7822848d8ba780656641f63147518ca4.png)
 
-图1：巴西阿克里州波尔图阿克里市的土地利用与土地覆盖（1985–2022）。自制，使用 MapBiomas LULC 集合 8。
+图 1：巴西阿克里州波尔图阿克里市的土地利用与土地覆盖（1985–2022）。自制，使用 MapBiomas LULC 集合 8。
 
 如果你曾经处理过巴西的土地利用数据，你一定接触过**MapBiomas**²。它们的遥感团队开发了一种 [算法](https://brasil.mapbiomas.org/en/visao-geral-da-metodologia/) 用于对巴西各地每个 30m x 30m 的地块进行土地利用分类（现在也涵盖了南美洲和印尼的大片地区）。九年后，他们提供了多种产品，包括 MapBiomas LCLU（我们将在这里探讨的）、MapBiomas Fire、MapBiomas Water、MapBiomas Irrigation、MapBiomas Infrastructure 等。
 
@@ -34,7 +34,7 @@
 
 +   **(4) 标准化函数：** 我们将构建通用函数来执行步骤 2 和 3，适用于任何地点和任何年份。然后，我们将使用循环依次运行算法，并查看自 1985 年以来在亚马逊 AMACRO 区域中，另一座城市 Porto Acre（AC）土地利用/覆盖变化的演变——这是另一个森林砍伐急剧上升的城市。
 
-欢迎发表评论！如果你发现任何错误或有建议，请通过 [电子邮件](mailto:vinicius.hector@outlook.com) 或 [X](https://x.com/hec_vini) 联系我。希望这对你有所帮助！
+欢迎发表评论！如果你发现任何错误或有建议，请通过 电子邮件 或 [X](https://x.com/hec_vini) 联系我。希望这对你有所帮助！
 
 ## **# 1. 项目设置**
 
@@ -163,7 +163,7 @@ bbox # See bbox around Acrelândia shape
 plot_geometries_on_osm([bbox, city_geom], zoom_start=10) 
 ```
 
-![](../Images/2ea9855047684a05c8a08518efb74cfb.png)
+![](img/2ea9855047684a05c8a08518efb74cfb.png)
 
 图 2：Acrelândia，AC 及其周围的边界框绘制在 OSM 上。
 
@@ -241,7 +241,7 @@ with rasterio.open(file_path) as src:
     show(data)
 ```
 
-![](../Images/06524a8466bf3e0a10ce156aa89dc35c.png)
+![](img/06524a8466bf3e0a10ce156aa89dc35c.png)
 
 图 3：围绕 ROI 的边界框裁剪的栅格。由作者制作，使用 MapBiomas LULC 集合 8。
 
@@ -265,7 +265,7 @@ pixel_counts['share'] = (pixel_counts['count'] / pixel_counts['count'].sum())*10
 pixel_counts 
 ```
 
-![](../Images/1a4ff0903bb69502b4321c0381323bb0.png)
+![](img/1a4ff0903bb69502b4321c0381323bb0.png)
 
 图 4：ROI 周围边界框中的像素占比（不包括 0 = 无数据）。
 
@@ -349,7 +349,7 @@ with rasterio.open(reassigned_raster_path) as src:
             print(f"Value: {value}, Count: {count}, Share: {share}") 
 ```
 
-![](../Images/5ed3ab6e51acc626ccb0055fa89bfb54.png)
+![](img/5ed3ab6e51acc626ccb0055fa89bfb54.png)
 
 图 5：ROI 中的像素占比（不包括 255 = 无数据）。
 
@@ -374,13 +374,13 @@ with rasterio.open(reassigned_raster_path) as src:
     plt.show()
 ```
 
-![](../Images/6f14dd03ef5f7bb566bdff487ded6666.png)
+![](img/6f14dd03ef5f7bb566bdff487ded6666.png)
 
 图 6：ROI 中的 LULC。自制，使用 MapBiomas LULC 第 8 版。
 
 现在是时候创建一个漂亮的地图了。我选择了 Matplotlib，因为我想要静态地图。如果你更喜欢交互式的分层地图，可以使用 [Plotly](https://plotly.com/python/choropleth-maps/)。
 
-有关使用Matplotlib进行区域图绘制的更多详情，请查看[其文档](https://matplotlib.org/stable/users/index.html)、[GeoPandas指南](https://geopandas.org/en/stable/docs/user_guide/mapping.html)，以及著名的Yan Holtz的[Python图形库](https://python-graph-gallery.com)——我从中获得了很多Python数据可视化的灵感和工具。此外，关于美丽的配色方案，[coolors.co](https://coolors.co/)是一个极好的资源。
+有关使用 Matplotlib 进行区域图绘制的更多详情，请查看[其文档](https://matplotlib.org/stable/users/index.html)、[GeoPandas 指南](https://geopandas.org/en/stable/docs/user_guide/mapping.html)，以及著名的 Yan Holtz 的[Python 图形库](https://python-graph-gallery.com)——我从中获得了很多 Python 数据可视化的灵感和工具。此外，关于美丽的配色方案，[coolors.co](https://coolors.co/)是一个极好的资源。
 
 确保所有数据可视化库已正确加载，以便运行下面的代码。我也尝试过更改补丁的顺序，但我不知道如何做。*如果你知道怎么做，请告诉我。*
 
@@ -416,17 +416,17 @@ plt.savefig('figures/acrelandia_ac_2022.pdf', format='pdf', dpi=1800) # Save it 
 plt.show()
 ```
 
-![](../Images/8c0bb758d78565f910f15ea165941f47.png)
+![](img/8c0bb758d78565f910f15ea165941f47.png)
 
-图7：ROI区域内LULC的最终地图。自制，使用MapBiomas LULC第8版。
+图 7：ROI 区域内 LULC 的最终地图。自制，使用 MapBiomas LULC 第 8 版。
 
 ## **4\. 标准化函数**
 
-现在我们已经构建了如何下载、保存、清理和绘制MapBiomas LULC栅格的直觉，是时候**概括这一过程**了。
+现在我们已经构建了如何下载、保存、清理和绘制 MapBiomas LULC 栅格的直觉，是时候**概括这一过程**了。
 
-在本节中，我们将定义函数，以自动化这些步骤，适用于任何形状和任何年份。然后，我们将在循环中执行这些函数，分析1985年至2022年间的特定城市——阿克雷州的波尔图·阿克雷市。最后，我们将制作一个视频，展示该地区在指定时间段内的LULC（土地利用/土地覆盖）演变。
+在本节中，我们将定义函数，以自动化这些步骤，适用于任何形状和任何年份。然后，我们将在循环中执行这些函数，分析 1985 年至 2022 年间的特定城市——阿克雷州的波尔图·阿克雷市。最后，我们将制作一个视频，展示该地区在指定时间段内的 LULC（土地利用/土地覆盖）演变。
 
-首先，保存一个围绕感兴趣区域（ROI）的边界框（bbox）。你只需要输入所需的几何形状并指定年份。此功能将把围绕ROI的bbox栅格保存到你的Google Drive中。
+首先，保存一个围绕感兴趣区域（ROI）的边界框（bbox）。你只需要输入所需的几何形状并指定年份。此功能将把围绕 ROI 的 bbox 栅格保存到你的 Google Drive 中。
 
 ```py
 ## 4.1 For a generic geometry in any year, save a bbox around the geometry to Google Drive
@@ -478,7 +478,7 @@ teste1 = get_mapbiomas_lulc_raster(rio_de_janeiro_geom, 'rio_de_janeiro', 2022, 
 
 其次，裁剪栅格，只保留几何形状内的像素，并将其保存为新的栅格。
 
-我选择将其保存到Google Drive，但你可以更改`reassigned_raster_path`将其保存到其他位置。如果更改了路径，请确保相应地更新代码的其余部分。
+我选择将其保存到 Google Drive，但你可以更改`reassigned_raster_path`将其保存到其他位置。如果更改了路径，请确保相应地更新代码的其余部分。
 
 此外，你可以通过修改`mapbiomas_categories`字典来重新分配像素。左侧数字表示原始像素值，右侧数字表示重新分配后的（新）像素值。
 
@@ -563,7 +563,7 @@ def pixel_freq_mapbiomas_lulc_raster(geom_name, year, folder_in_google_drive):
 teste3 = pixel_freq_mapbiomas_lulc_raster('rio_de_janeiro', 2022, folder_in_google_drive)
 ```
 
-最后，我们将其绘制到地图上。你可以更改下面的参数来调整颜色、标签、图例位置、字体大小等特征。此外，还有一个选项让你选择保存数据的格式（通常是PDF或PNG）。PDF较大并且能够保持分辨率，而PNG较轻但分辨率较低。
+最后，我们将其绘制到地图上。你可以更改下面的参数来调整颜色、标签、图例位置、字体大小等特征。此外，还有一个选项让你选择保存数据的格式（通常是 PDF 或 PNG）。PDF 较大并且能够保持分辨率，而 PNG 较轻但分辨率较低。
 
 ```py
 ## 4.4 Plot the cropped raster
@@ -608,7 +608,7 @@ def plot_mapbiomas_lulc_raster(geom_name, year, folder_in_google_drive,driver):
 teste4 = plot_mapbiomas_lulc_raster('rio_de_janeiro', 2022, folder_in_google_drive, 'png')
 ```
 
-最后，这是一个示例，展示如何使用函数并创建循环，以获取自1985年以来波尔图·阿克雷（AC）市的LULC演变。那是AMACRO地区另一个森林砍伐率飙升的城市。
+最后，这是一个示例，展示如何使用函数并创建循环，以获取自 1985 年以来波尔图·阿克雷（AC）市的 LULC 演变。那是 AMACRO 地区另一个森林砍伐率飙升的城市。
 
 ```py
 ## 4.5 Do it in just one function - recall to save rasters (4.1) before
@@ -671,14 +671,14 @@ output_file = 'figures/clips/porto_acre_lulc.mp4' # Save clip at the clips folde
 clip.write_videofile(output_file, codec='libx264') # It takes a while to create the video (3m30s in my pc)
 ```
 
-![](../Images/7822848d8ba780656641f63147518ca4.png)
+![](img/7822848d8ba780656641f63147518ca4.png)
 
-图8：1985年至2022年间波尔图·阿克雷（AC）的LULC变化。自制，使用MapBiomas LULC第8次数据集。
+图 8：1985 年至 2022 年间波尔图·阿克雷（AC）的 LULC 变化。自制，使用 MapBiomas LULC 第 8 次数据集。
 
-我希望本教程能为你在使用MapBiomas LULC数据时节省大量时间。记住，你可以扩展此分析以覆盖多个区域，并根据需要选择特定年份。随时根据你的具体需求自定义算法！
+我希望本教程能为你在使用 MapBiomas LULC 数据时节省大量时间。记住，你可以扩展此分析以覆盖多个区域，并根据需要选择特定年份。随时根据你的具体需求自定义算法！
 
 ## **参考文献**
 
-[1] MapBiomas项目 — 巴西年度土地利用与土地覆盖图的第8次数据集，访问日期：2024年7月10日，链接：[https://brasil.mapbiomas.org/en/#](https://brasil.mapbiomas.org/en/#)
+[1] MapBiomas 项目 — 巴西年度土地利用与土地覆盖图的第 8 次数据集，访问日期：2024 年 7 月 10 日，链接：[`brasil.mapbiomas.org/en/#`](https://brasil.mapbiomas.org/en/#)
 
-[2] 巴西地理与统计研究所（IBGE）。(2024)。土地网格 [数据集]。检索自[https://www.ibge.gov.br/geociencias/organizacao-do-territorio/malhas-territoriais/15774-malhas.html?=&t=acesso-ao-produto](https://www.ibge.gov.br/geociencias/organizacao-do-territorio/malhas-territoriais/15774-malhas.html?=&t=acesso-ao-produto)，访问日期：2024年7月10日。
+[2] 巴西地理与统计研究所（IBGE）。(2024)。土地网格 [数据集]。检索自[`www.ibge.gov.br/geociencias/organizacao-do-territorio/malhas-territoriais/15774-malhas.html?=&t=acesso-ao-produto`](https://www.ibge.gov.br/geociencias/organizacao-do-territorio/malhas-territoriais/15774-malhas.html?=&t=acesso-ao-produto)，访问日期：2024 年 7 月 10 日。

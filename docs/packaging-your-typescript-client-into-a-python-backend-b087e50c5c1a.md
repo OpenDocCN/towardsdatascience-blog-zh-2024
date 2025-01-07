@@ -1,8 +1,8 @@
 # 将你的 TypeScript 客户端打包成 Python 后端
 
-> 原文：[https://towardsdatascience.com/packaging-your-typescript-client-into-a-python-backend-b087e50c5c1a?source=collection_archive---------6-----------------------#2024-04-05](https://towardsdatascience.com/packaging-your-typescript-client-into-a-python-backend-b087e50c5c1a?source=collection_archive---------6-----------------------#2024-04-05)
+> 原文：[`towardsdatascience.com/packaging-your-typescript-client-into-a-python-backend-b087e50c5c1a?source=collection_archive---------6-----------------------#2024-04-05`](https://towardsdatascience.com/packaging-your-typescript-client-into-a-python-backend-b087e50c5c1a?source=collection_archive---------6-----------------------#2024-04-05)
 
-![](../Images/b458042bef9c23c961a0c8f73536f6cc.png)
+![](img/b458042bef9c23c961a0c8f73536f6cc.png)
 
 图片由 [Markus Spiske](https://unsplash.com/@markusspiske?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -10,9 +10,9 @@
 
 ## 将你的 React 应用与 FastAPI Web 服务器结合
 
-[](https://itay-bittan.medium.com/?source=post_page---byline--b087e50c5c1a--------------------------------)[![Itay Bittan](../Images/328e4d9b0b98b65e59e42983e9d1afaa.png)](https://itay-bittan.medium.com/?source=post_page---byline--b087e50c5c1a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b087e50c5c1a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b087e50c5c1a--------------------------------) [Itay Bittan](https://itay-bittan.medium.com/?source=post_page---byline--b087e50c5c1a--------------------------------)
+[](https://itay-bittan.medium.com/?source=post_page---byline--b087e50c5c1a--------------------------------)![Itay Bittan](https://itay-bittan.medium.com/?source=post_page---byline--b087e50c5c1a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b087e50c5c1a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b087e50c5c1a--------------------------------) [Itay Bittan](https://itay-bittan.medium.com/?source=post_page---byline--b087e50c5c1a--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b087e50c5c1a--------------------------------) ·阅读时间 6 分钟·2024年4月5日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b087e50c5c1a--------------------------------) ·阅读时间 6 分钟·2024 年 4 月 5 日
 
 --
 
@@ -26,13 +26,13 @@
 
 换句话说，你有两个不同的服务器在本地运行。每当你想调用 FastAPI 服务器时，浏览器需要与两个不同的服务器进行交互。
 
-![](../Images/ddea8edae4c7663617a54bd567a9a9d5.png)
+![](img/ddea8edae4c7663617a54bd567a9a9d5.png)
 
 本地开发（图示来自作者）
 
 虽然在本地（`localhost`）运行时一切正常，但当你将代码部署到生产环境时，浏览器会遇到“跨源请求被阻止”的错误。在将代码部署到生产环境之前，最佳实践是将客户端页面和 REST API 都从同一个后端 Web 服务器提供服务。这样浏览器将只与一个后端交互，这对安全性、性能和简洁性更有益。
 
-![](../Images/9b7ad97acecff8862df24587b69f1b25.png)
+![](img/9b7ad97acecff8862df24587b69f1b25.png)
 
 准备上线（图示来自作者）
 
@@ -47,7 +47,7 @@
 ✔ Select a variant: › TypeScript
 ```
 
-然后，进入新的项目目录，安装依赖并运行应用程序（[http://localhost:5173](http://localhost:5174/)）：
+然后，进入新的项目目录，安装依赖并运行应用程序（[`localhost:5173`](http://localhost:5174/)）：
 
 ```py
 ~/workspace ➜ cd vite-project
@@ -57,7 +57,7 @@
 
 你应该会看到类似的内容：
 
-![](../Images/a3d3ba1a5cafb7f5ac88a61678ae6210.png)
+![](img/a3d3ba1a5cafb7f5ac88a61678ae6210.png)
 
 第一个 Vite React 模板（图片来自作者）
 
@@ -94,7 +94,7 @@ function App() {
 
 现在我们应该能看到类似这样的结果：
 
-![](../Images/fbc82ab99eee369cf0e6acce971c153d.png)
+![](img/fbc82ab99eee369cf0e6acce971c153d.png)
 
 使用后端调用（图片来自作者）
 
@@ -247,20 +247,20 @@ async def liveness() -> ReturnHealthcheckStruct:
 
 现在，如果我们访问 [localhost:8080](http://localhost:8080)，我们可以看到我们的客户端正在运行。注意下面的 **后端状态**，现在它是 `success`（而不是 `unknown`）。
 
-![](../Images/dcee5308f6c616195bfc292a2ea1e253.png)
+![](img/dcee5308f6c616195bfc292a2ea1e253.png)
 
 同时运行 Python 服务器与 React 应用程序（图片来自作者）
 
 # 总结
 
-在本教程中，我们创建了一个简单的React应用程序，该应用程序向后端发出单个请求。我们将这个客户端应用程序封装为一个Python包，并通过我们的FastAPI Python Web服务器提供服务。
+在本教程中，我们创建了一个简单的 React 应用程序，该应用程序向后端发出单个请求。我们将这个客户端应用程序封装为一个 Python 包，并通过我们的 FastAPI Python Web 服务器提供服务。
 
-采用这种方法可以让你在两个领域中利用最好的工具：前端使用TypeScript和React，后端使用Python和FastAPI。然而，我们希望保持这两个组件之间的高度内聚和低耦合。这样，你将获得所有的好处：
+采用这种方法可以让你在两个领域中利用最好的工具：前端使用 TypeScript 和 React，后端使用 Python 和 FastAPI。然而，我们希望保持这两个组件之间的高度内聚和低耦合。这样，你将获得所有的好处：
 
 +   效率，通过将前端和后端分离到不同的代码库，每个部分可以由不同的团队进行开发。
 
 +   稳定性和质量，通过锁定版本化的客户端包，并仅在服务器准备好支持新客户端版本时才进行更新。
 
-+   安全性——浏览器仅与一个后端服务器进行交互。我们无需启用CORS或任何其他可能妥协安全性的解决方法。
++   安全性——浏览器仅与一个后端服务器进行交互。我们无需启用 CORS 或任何其他可能妥协安全性的解决方法。
 
 +   简单性——通过使用单一服务器进行工作

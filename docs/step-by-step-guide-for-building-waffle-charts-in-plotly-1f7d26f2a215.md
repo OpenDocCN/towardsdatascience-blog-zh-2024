@@ -1,16 +1,16 @@
 # 步骤指南：如何在 Plotly 中构建 Waffle 图表
 
-> 原文：[https://towardsdatascience.com/step-by-step-guide-for-building-waffle-charts-in-plotly-1f7d26f2a215?source=collection_archive---------5-----------------------#2024-11-25](https://towardsdatascience.com/step-by-step-guide-for-building-waffle-charts-in-plotly-1f7d26f2a215?source=collection_archive---------5-----------------------#2024-11-25)
+> 原文：[`towardsdatascience.com/step-by-step-guide-for-building-waffle-charts-in-plotly-1f7d26f2a215?source=collection_archive---------5-----------------------#2024-11-25`](https://towardsdatascience.com/step-by-step-guide-for-building-waffle-charts-in-plotly-1f7d26f2a215?source=collection_archive---------5-----------------------#2024-11-25)
 
 ## 学习如何使用 Plotly 在 Python 中创建自定义 Waffle 图表进行数据可视化
 
-[](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--1f7d26f2a215--------------------------------)[![Amanda Iglesias Moreno](../Images/9cff03d0c0caaa9a8aa53c4c34c90cac.png)](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--1f7d26f2a215--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1f7d26f2a215--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1f7d26f2a215--------------------------------) [Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--1f7d26f2a215--------------------------------)
+[](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--1f7d26f2a215--------------------------------)![Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--1f7d26f2a215--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1f7d26f2a215--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1f7d26f2a215--------------------------------) [Amanda Iglesias Moreno](https://amandaiglesiasmoreno.medium.com/?source=post_page---byline--1f7d26f2a215--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1f7d26f2a215--------------------------------) ·11 分钟阅读·2024年11月25日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1f7d26f2a215--------------------------------) ·11 分钟阅读·2024 年 11 月 25 日
 
 --
 
-![](../Images/e71973276740c2b0d03ca11271ee5fea.png)
+![](img/e71973276740c2b0d03ca11271ee5fea.png)
 
 Waffle 图表在 Plotly 中（图像来源：作者）
 

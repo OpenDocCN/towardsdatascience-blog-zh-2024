@@ -1,12 +1,12 @@
 # 从零到应用：使用 Python 构建数据库驱动的 Streamlit 应用
 
-> 原文：[https://towardsdatascience.com/from-zero-to-app-building-a-database-driven-streamlit-app-with-python-4c3f64fa4770?source=collection_archive---------6-----------------------#2024-09-26](https://towardsdatascience.com/from-zero-to-app-building-a-database-driven-streamlit-app-with-python-4c3f64fa4770?source=collection_archive---------6-----------------------#2024-09-26)
+> 原文：[`towardsdatascience.com/from-zero-to-app-building-a-database-driven-streamlit-app-with-python-4c3f64fa4770?source=collection_archive---------6-----------------------#2024-09-26`](https://towardsdatascience.com/from-zero-to-app-building-a-database-driven-streamlit-app-with-python-4c3f64fa4770?source=collection_archive---------6-----------------------#2024-09-26)
 
 ## 构建一个功能性 Streamlit 应用并集成 SQLite 的初学者指南
 
-[](https://alle-sravani.medium.com/?source=post_page---byline--4c3f64fa4770--------------------------------)[![Alle Sravani](../Images/64909a4d45cb2569175f0feb5dc552f7.png)](https://alle-sravani.medium.com/?source=post_page---byline--4c3f64fa4770--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4c3f64fa4770--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4c3f64fa4770--------------------------------) [Alle Sravani](https://alle-sravani.medium.com/?source=post_page---byline--4c3f64fa4770--------------------------------)
+[](https://alle-sravani.medium.com/?source=post_page---byline--4c3f64fa4770--------------------------------)![Alle Sravani](https://alle-sravani.medium.com/?source=post_page---byline--4c3f64fa4770--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4c3f64fa4770--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c3f64fa4770--------------------------------) [Alle Sravani](https://alle-sravani.medium.com/?source=post_page---byline--4c3f64fa4770--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c3f64fa4770--------------------------------) ·阅读时间：5 分钟·2024年9月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c3f64fa4770--------------------------------) ·阅读时间：5 分钟·2024 年 9 月 26 日
 
 --
 

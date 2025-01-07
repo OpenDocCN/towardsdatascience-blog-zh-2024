@@ -1,16 +1,16 @@
 # 结合讲故事与设计，打造令人难忘的演示文稿
 
-> 原文：[https://towardsdatascience.com/combining-storytelling-and-design-for-unforgettable-presentations-e9751e0d90d3?source=collection_archive---------5-----------------------#2024-04-18](https://towardsdatascience.com/combining-storytelling-and-design-for-unforgettable-presentations-e9751e0d90d3?source=collection_archive---------5-----------------------#2024-04-18)
+> 原文：[`towardsdatascience.com/combining-storytelling-and-design-for-unforgettable-presentations-e9751e0d90d3?source=collection_archive---------5-----------------------#2024-04-18`](https://towardsdatascience.com/combining-storytelling-and-design-for-unforgettable-presentations-e9751e0d90d3?source=collection_archive---------5-----------------------#2024-04-18)
 
-![](../Images/20016172484dbbad89c8aa4d02498a43.png)
+![](img/20016172484dbbad89c8aa4d02498a43.png)
 
-这张图片由作者使用Dall·E创作。
+这张图片由作者使用 Dall·E 创作。
 
 ## 如何制作引人注目的幻灯片
 
-[](https://hennie-de-harder.medium.com/?source=post_page---byline--e9751e0d90d3--------------------------------)[![Hennie de Harder](../Images/20a1be0ed2ac4b535397973ad6148e6b.png)](https://hennie-de-harder.medium.com/?source=post_page---byline--e9751e0d90d3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e9751e0d90d3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e9751e0d90d3--------------------------------) [Hennie de Harder](https://hennie-de-harder.medium.com/?source=post_page---byline--e9751e0d90d3--------------------------------)
+[](https://hennie-de-harder.medium.com/?source=post_page---byline--e9751e0d90d3--------------------------------)![Hennie de Harder](https://hennie-de-harder.medium.com/?source=post_page---byline--e9751e0d90d3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e9751e0d90d3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e9751e0d90d3--------------------------------) [Hennie de Harder](https://hennie-de-harder.medium.com/?source=post_page---byline--e9751e0d90d3--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e9751e0d90d3--------------------------------) ·9分钟阅读·2024年4月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e9751e0d90d3--------------------------------) ·9 分钟阅读·2024 年 4 月 18 日
 
 --
 

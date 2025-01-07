@@ -1,16 +1,16 @@
 # SQL 用户定义函数（UDFs）
 
-> 原文：[https://towardsdatascience.com/sql-user-defined-functions-udfs-e385f2887386?source=collection_archive---------10-----------------------#2024-08-22](https://towardsdatascience.com/sql-user-defined-functions-udfs-e385f2887386?source=collection_archive---------10-----------------------#2024-08-22)
+> 原文：[`towardsdatascience.com/sql-user-defined-functions-udfs-e385f2887386?source=collection_archive---------10-----------------------#2024-08-22`](https://towardsdatascience.com/sql-user-defined-functions-udfs-e385f2887386?source=collection_archive---------10-----------------------#2024-08-22)
 
 ## 一篇关于掌握 SQL UDF 的教程：类别、用例及与存储过程的区别
 
-[](https://medium.com/@jiayanyin.simba?source=post_page---byline--e385f2887386--------------------------------)[![Jiayan Yin](../Images/1a67e16a388877478366a8c6b2736dda.png)](https://medium.com/@jiayanyin.simba?source=post_page---byline--e385f2887386--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e385f2887386--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e385f2887386--------------------------------) [Jiayan Yin](https://medium.com/@jiayanyin.simba?source=post_page---byline--e385f2887386--------------------------------)
+[](https://medium.com/@jiayanyin.simba?source=post_page---byline--e385f2887386--------------------------------)![Jiayan Yin](https://medium.com/@jiayanyin.simba?source=post_page---byline--e385f2887386--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e385f2887386--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e385f2887386--------------------------------) [Jiayan Yin](https://medium.com/@jiayanyin.simba?source=post_page---byline--e385f2887386--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e385f2887386--------------------------------) ·9 分钟阅读·2024年8月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e385f2887386--------------------------------) ·9 分钟阅读·2024 年 8 月 22 日
 
 --
 
-![](../Images/5183fbd783d523b464e33d6a34c8a723.png)
+![](img/5183fbd783d523b464e33d6a34c8a723.png)
 
 图片来自 [Rubaitul Azad](https://unsplash.com/@rubaitulazad?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,12 +1,12 @@
 # 机器学习中的线性与非线性指南
 
-> 原文：[https://towardsdatascience.com/a-guide-to-linearity-and-nonlinearity-in-machine-learning-0c22845fdff3?source=collection_archive---------0-----------------------#2024-10-28](https://towardsdatascience.com/a-guide-to-linearity-and-nonlinearity-in-machine-learning-0c22845fdff3?source=collection_archive---------0-----------------------#2024-10-28)
+> 原文：[`towardsdatascience.com/a-guide-to-linearity-and-nonlinearity-in-machine-learning-0c22845fdff3?source=collection_archive---------0-----------------------#2024-10-28`](https://towardsdatascience.com/a-guide-to-linearity-and-nonlinearity-in-machine-learning-0c22845fdff3?source=collection_archive---------0-----------------------#2024-10-28)
 
 ## …以及它们在决策边界、嵌入、动力学系统和下一代大语言模型中的作用
 
-[](https://manuel-brenner.medium.com/?source=post_page---byline--0c22845fdff3--------------------------------)[![Manuel Brenner](../Images/f62843c79a9b378494cb83caf3ddc792.png)](https://manuel-brenner.medium.com/?source=post_page---byline--0c22845fdff3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0c22845fdff3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0c22845fdff3--------------------------------) [Manuel Brenner](https://manuel-brenner.medium.com/?source=post_page---byline--0c22845fdff3--------------------------------)
+[](https://manuel-brenner.medium.com/?source=post_page---byline--0c22845fdff3--------------------------------)![Manuel Brenner](https://manuel-brenner.medium.com/?source=post_page---byline--0c22845fdff3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0c22845fdff3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0c22845fdff3--------------------------------) [Manuel Brenner](https://manuel-brenner.medium.com/?source=post_page---byline--0c22845fdff3--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0c22845fdff3--------------------------------) ·阅读时间：21分钟·2024年10月28日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0c22845fdff3--------------------------------) ·阅读时间：21 分钟·2024 年 10 月 28 日
 
 --
 

@@ -1,30 +1,30 @@
 # 带强制函数的物理信息神经网络
 
-> 原文：[https://towardsdatascience.com/physics-informed-neural-network-with-forcing-function-81f59aa24c39?source=collection_archive---------1-----------------------#2024-05-27](https://towardsdatascience.com/physics-informed-neural-network-with-forcing-function-81f59aa24c39?source=collection_archive---------1-----------------------#2024-05-27)
+> 原文：[`towardsdatascience.com/physics-informed-neural-network-with-forcing-function-81f59aa24c39?source=collection_archive---------1-----------------------#2024-05-27`](https://towardsdatascience.com/physics-informed-neural-network-with-forcing-function-81f59aa24c39?source=collection_archive---------1-----------------------#2024-05-27)
 
 ## **直接使用神经网络解微分方程*(附代码)***
 
-[](https://medium.com/@john_morrow?source=post_page---byline--81f59aa24c39--------------------------------)[![John Morrow](../Images/4a8ce62a0b4e1eb1cf77ecaba6b7ddcc.png)](https://medium.com/@john_morrow?source=post_page---byline--81f59aa24c39--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--81f59aa24c39--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--81f59aa24c39--------------------------------) [John Morrow](https://medium.com/@john_morrow?source=post_page---byline--81f59aa24c39--------------------------------)
+[](https://medium.com/@john_morrow?source=post_page---byline--81f59aa24c39--------------------------------)![John Morrow](https://medium.com/@john_morrow?source=post_page---byline--81f59aa24c39--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--81f59aa24c39--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--81f59aa24c39--------------------------------) [John Morrow](https://medium.com/@john_morrow?source=post_page---byline--81f59aa24c39--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--81f59aa24c39--------------------------------) ·阅读时长7分钟·2024年5月27日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--81f59aa24c39--------------------------------) ·阅读时长 7 分钟·2024 年 5 月 27 日
 
 --
 
-![](../Images/606da5e15190e1076896e6f2b0203807.png)
+![](img/606da5e15190e1076896e6f2b0203807.png)
 
-图片由agsandrew提供，来自iStock
+图片由 agsandrew 提供，来自 iStock
 
 在物理学、数学、经济学、工程学以及许多其他领域，微分方程通过变量的导数来描述一个函数。简单来说，当一个变量相对于其他变量的变化率涉及其中时，通常会遇到微分方程。许多[例子](https://en.wikipedia.org/wiki/List_of_named_differential_equations)描述了这些关系。微分方程的解通常通过解析或数值方法推导得出。
 
 在推导解析解时，可能会遇到繁琐甚至在某些情况下无法完成的任务，而物理信息神经网络（PINN）则直接从微分方程中得到解，绕过了解析过程。这种解微分方程的创新方法是该领域的重要发展。
 
-作者的[上一篇文章](https://medium.com/towards-data-science/inverse-physics-informed-neural-net-3b636efeb37e)中，使用PINN找到了解一个描述简单电子电路的微分方程的解。本文探讨了在通过强制函数驱动电路时，寻找解的更具挑战性的任务。考虑下列串联电子电路，其中包含电阻*R*、电容*C*、电感*L*，以及一个正弦电压源*V sin(ωt)*。该电路中电流* i(t)* 的行为由方程1描述，这是一个带有强制函数*Vω/L cos(ωt)*的二阶非齐次微分方程。
+作者的[上一篇文章](https://medium.com/towards-data-science/inverse-physics-informed-neural-net-3b636efeb37e)中，使用 PINN 找到了解一个描述简单电子电路的微分方程的解。本文探讨了在通过强制函数驱动电路时，寻找解的更具挑战性的任务。考虑下列串联电子电路，其中包含电阻*R*、电容*C*、电感*L*，以及一个正弦电压源*V sin(ωt)*。该电路中电流* i(t)* 的行为由方程 1 描述，这是一个带有强制函数*Vω/L cos(ωt)*的二阶非齐次微分方程。
 
-![](../Images/db0fbad3f8570d544e8cd6e091cc7384.png)
+![](img/db0fbad3f8570d544e8cd6e091cc7384.png)
 
 图 1: **带正弦电压源的 RLC 电路**
 
-![](../Images/b214ed62114f959ed2d5f400852f2ac1.png)
+![](img/b214ed62114f959ed2d5f400852f2ac1.png)
 
 **方程 1**
 
@@ -38,7 +38,7 @@
 
 阻尼指的是电路从初始过渡到平衡状态的速度。欠阻尼响应试图快速过渡，但通常会经历过度和欠调的周期性波动，才最终达到平衡。
 
-![](../Images/c338c1f20f47e542a90500e04b389766.png)
+![](img/c338c1f20f47e542a90500e04b389766.png)
 
 **方程 2**
 
@@ -46,7 +46,7 @@
 
 过阻尼响应会从初始过渡缓慢地过渡到平衡状态，而不会经历过度和欠调的周期性波动。
 
-![](../Images/fc2cb05714bb5c7684e505a7173cea54.png)
+![](img/fc2cb05714bb5c7684e505a7173cea54.png)
 
 **方程 3**
 
@@ -54,7 +54,7 @@
 
 临界阻尼响应介于欠阻尼和过阻尼之间，提供了从初始过渡到平衡状态的最快响应。
 
-![](../Images/bdd758e22d8b82a78a8828fa598e6fcb.png)
+![](img/bdd758e22d8b82a78a8828fa598e6fcb.png)
 
 **方程 4**
 
@@ -66,11 +66,11 @@ PyTorch 代码可在[此处](https://github.com/jmorrow1000/PINN-with-forcing-fu
 
 相比之下，PINN 的目标函数需要三个分量：残差分量（*obj* *ᵣₑₛ*）和两个初始条件分量（*obj ᵢₙᵢₜ₁* 和 *obj* *ᵢₙᵢₜ*₂）。这些分量结合起来构成目标函数：
 
-![](../Images/19c6a8727252c5abf6ea24df3a4a16c7.png)
+![](img/19c6a8727252c5abf6ea24df3a4a16c7.png)
 
 **方程 5**
 
-![](../Images/fff0ab3129a246ee2670d6d090921c40.png)
+![](img/fff0ab3129a246ee2670d6d090921c40.png)
 
 **PINN 目标函数**
 
@@ -78,13 +78,13 @@ PyTorch 代码可在[此处](https://github.com/jmorrow1000/PINN-with-forcing-fu
 
 残差分量是*物理信息*的关键所在。这个分量包含了输出的导数，约束网络必须符合定义的微分方程。残差方程（方程 6）是通过重新排列方程 1 得到的。
 
-![](../Images/df65ffa7c3d425398f069611eb792afb.png)
+![](img/df65ffa7c3d425398f069611eb792afb.png)
 
 **方程 6**
 
 在训练过程中，*t* 的值被输入到神经网络中，产生一个残差。然后反向传播将目标函数的残差部分减少到接近 *0* 的最小值，涵盖所有训练点。残差部分由以下公式给出：
 
-![](../Images/f2d90cb6e39531082d56833d1673b0bb.png)
+![](img/f2d90cb6e39531082d56833d1673b0bb.png)
 
 **方程 7**
 
@@ -94,7 +94,7 @@ PyTorch 代码可在[此处](https://github.com/jmorrow1000/PINN-with-forcing-fu
 
 在这个电路示例中，第一个初始条件要求当输入 *t = 0* 时，PINN 的输出为 *i(t) = 0*。这是因为在 *t = 0* 时，正弦源 *V sin(t) = 0*，导致电路中没有电流流动。初始条件 1 的目标部分由方程 8 给出。在训练过程中，反向传播将减少该部分到接近 *0* 的值。
 
-![](../Images/915dca72ab9b43afd54a753c473d2a35.png)
+![](img/915dca72ab9b43afd54a753c473d2a35.png)
 
 **方程 8**
 
@@ -114,7 +114,7 @@ PyTorch 代码可在[此处](https://github.com/jmorrow1000/PINN-with-forcing-fu
 
 初始条件 2 的目标部分由方程 9 给出。反向传播将减少该部分到接近 0 的值。
 
-![](../Images/4c670e274daa775038f59303a0f9ebca.png)
+![](img/4c670e274daa775038f59303a0f9ebca.png)
 
 **方程 9**
 
@@ -122,7 +122,7 @@ PyTorch 代码可在[此处](https://github.com/jmorrow1000/PINN-with-forcing-fu
 
 以下图显示了训练过程中目标值的减少：
 
-![](../Images/073cb167d96415af82c2757de2813a30.png)
+![](img/073cb167d96415af82c2757de2813a30.png)
 
 **目标图**
 
@@ -132,19 +132,19 @@ PyTorch 代码可在[此处](https://github.com/jmorrow1000/PINN-with-forcing-fu
 
 **欠阻尼** (*R = 1.2 欧姆*)
 
-![](../Images/bebbbf47fa38540073e17b1920b45faa.png)
+![](img/bebbbf47fa38540073e17b1920b45faa.png)
 
 **欠阻尼测试案例**
 
 **过阻尼** (*R = 6.0 欧姆*)
 
-![](../Images/c951ac3a6978e890f3fd2e6443e3e9c0.png)
+![](img/c951ac3a6978e890f3fd2e6443e3e9c0.png)
 
 **过阻尼测试案例**
 
 **临界阻尼** (*R = 4.487 欧姆*)
 
-![](../Images/be7a71c2f40b4bd4d3523ea3ffdadfc4.png)
+![](img/be7a71c2f40b4bd4d3523ea3ffdadfc4.png)
 
 **临界阻尼测试案例**
 
@@ -152,26 +152,26 @@ PyTorch 代码可在[此处](https://github.com/jmorrow1000/PINN-with-forcing-fu
 
 本文使用具有自定义目标函数的神经网络成功解决了描述正弦源驱动电子电路的微分方程。通常，微分方程的解是通过繁琐的解析过程或数值方法推导出来的。这里提供的示例展示了神经网络能够以直接和高效的方式准确解决这些方程。如三个测试案例所示，神经网络的响应与解析解完全一致。
 
-## 附录：PINN训练笔记
+## 附录：PINN 训练笔记
 
-+   PINN结构：
++   PINN 结构：
 
-    - 输入层，1个输入
+    - 输入层，1 个输入
 
-    - 隐藏层，128个神经元，使用GELU激活函数
+    - 隐藏层，128 个神经元，使用 GELU 激活函数
 
-    - 隐藏层，128个神经元，使用GELU激活函数
+    - 隐藏层，128 个神经元，使用 GELU 激活函数
 
-    - 输出层，1个神经元，使用线性激活函数
+    - 输出层，1 个神经元，使用线性激活函数
 
-+   PINN在0到20秒的时间域内使用220个点进行训练。点的数量由域的持续时间和每秒点数的超参数控制，测试案例中每秒设置为11个点。这个值为每个正弦驱动源周期提供了足够的训练点，*ω = 1.8*。对于更高的*ω*值，需要更多的点每秒，例如，*ω = 4.0*需要25个点/秒。
++   PINN 在 0 到 20 秒的时间域内使用 220 个点进行训练。点的数量由域的持续时间和每秒点数的超参数控制，测试案例中每秒设置为 11 个点。这个值为每个正弦驱动源周期提供了足够的训练点，*ω = 1.8*。对于更高的*ω*值，需要更多的点每秒，例如，*ω = 4.0*需要 25 个点/秒。
 
-+   PINN在每次从所有训练点中采样32个点的批次中进行训练。训练点在每个epoch都会随机打乱。
++   PINN 在每次从所有训练点中采样 32 个点的批次中进行训练。训练点在每个 epoch 都会随机打乱。
 
-+   学习率在训练开始时设置为0.01，并且每2000个epoch减少0.75倍。
++   学习率在训练开始时设置为 0.01，并且每 2000 个 epoch 减少 0.75 倍。
 
-+   目标图是成功训练的重要指标。随着训练的进行，目标值应该下降几个数量级，并在接近0的一个小值处达到最低。如果训练没有产生这个结果，则需要调整超参数。建议首先尝试增加epoch数量，然后增加每秒训练点数。
++   目标图是成功训练的重要指标。随着训练的进行，目标值应该下降几个数量级，并在接近 0 的一个小值处达到最低。如果训练没有产生这个结果，则需要调整超参数。建议首先尝试增加 epoch 数量，然后增加每秒训练点数。
 
-**本文的PDF版本可通过** [**此处**](https://github.com/jmorrow1000/PINN-with-forcing-function)**获取。**
+**本文的 PDF 版本可通过** [**此处**](https://github.com/jmorrow1000/PINN-with-forcing-function)**获取。**
 
 *除非另有说明，所有图片均由作者提供。*

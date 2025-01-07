@@ -1,10 +1,10 @@
 # 在开始使用 AI 代理之前掌握机器人：使用 Python 创建 Mastodon 机器人简单步骤
 
-> 原文：[https://towardsdatascience.com/master-bots-before-starting-with-ai-agents-simple-steps-to-create-a-mastodon-bot-with-python-cce4f9ed24ee?source=collection_archive---------2-----------------------#2024-12-27](https://towardsdatascience.com/master-bots-before-starting-with-ai-agents-simple-steps-to-create-a-mastodon-bot-with-python-cce4f9ed24ee?source=collection_archive---------2-----------------------#2024-12-27)
+> 原文：[`towardsdatascience.com/master-bots-before-starting-with-ai-agents-simple-steps-to-create-a-mastodon-bot-with-python-cce4f9ed24ee?source=collection_archive---------2-----------------------#2024-12-27`](https://towardsdatascience.com/master-bots-before-starting-with-ai-agents-simple-steps-to-create-a-mastodon-bot-with-python-cce4f9ed24ee?source=collection_archive---------2-----------------------#2024-12-27)
 
-[](https://medium.com/@schuerch_sarah?source=post_page---byline--cce4f9ed24ee--------------------------------)[![Sarah Lea](../Images/09c9fa20016d1439b70b9fb6670b57a9.png)](https://medium.com/@schuerch_sarah?source=post_page---byline--cce4f9ed24ee--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cce4f9ed24ee--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cce4f9ed24ee--------------------------------) [Sarah Lea](https://medium.com/@schuerch_sarah?source=post_page---byline--cce4f9ed24ee--------------------------------)
+[](https://medium.com/@schuerch_sarah?source=post_page---byline--cce4f9ed24ee--------------------------------)![Sarah Lea](https://medium.com/@schuerch_sarah?source=post_page---byline--cce4f9ed24ee--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cce4f9ed24ee--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cce4f9ed24ee--------------------------------) [Sarah Lea](https://medium.com/@schuerch_sarah?source=post_page---byline--cce4f9ed24ee--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cce4f9ed24ee--------------------------------) ·阅读时间 11 分钟·2024年12月27日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cce4f9ed24ee--------------------------------) ·阅读时间 11 分钟·2024 年 12 月 27 日
 
 --
 
@@ -16,15 +16,15 @@ Mastodon 目前正在快速增长，作为 X（前身为 Twitter）的去中心�
 
 > **目录**
 > 
-> [1 — 为什么 Mastodon 和技术机器人存在？](#7ab4)
+> 1 — 为什么 Mastodon 和技术机器人存在？
 > 
-> [2 — 社交网络上的机器人技术基础](#2d2a)
+> 2 — 社交网络上的机器人技术基础
 > 
-> [3 — 机器人：效益与风险之间的平衡](#2333)
+> 3 — 机器人：效益与风险之间的平衡
 > 
-> [4 — 如何创建一个 Mastodon 机器人：逐步 Python 指南](#f5bb)
+> 4 — 如何创建一个 Mastodon 机器人：逐步 Python 指南
 > 
-> [最后思考](#926e)
+> 最后思考
 
 # 1 — 为什么 Mastodon 和技术机器人存在？
 

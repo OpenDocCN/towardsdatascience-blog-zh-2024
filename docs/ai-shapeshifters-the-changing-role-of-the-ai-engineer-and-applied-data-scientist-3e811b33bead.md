@@ -1,24 +1,24 @@
-# AI变形者：AI工程师与应用数据科学家角色的变化
+# AI 变形者：AI 工程师与应用数据科学家角色的变化
 
-> 原文：[https://towardsdatascience.com/ai-shapeshifters-the-changing-role-of-the-ai-engineer-and-applied-data-scientist-3e811b33bead?source=collection_archive---------6-----------------------#2024-08-07](https://towardsdatascience.com/ai-shapeshifters-the-changing-role-of-the-ai-engineer-and-applied-data-scientist-3e811b33bead?source=collection_archive---------6-----------------------#2024-08-07)
+> 原文：[`towardsdatascience.com/ai-shapeshifters-the-changing-role-of-the-ai-engineer-and-applied-data-scientist-3e811b33bead?source=collection_archive---------6-----------------------#2024-08-07`](https://towardsdatascience.com/ai-shapeshifters-the-changing-role-of-the-ai-engineer-and-applied-data-scientist-3e811b33bead?source=collection_archive---------6-----------------------#2024-08-07)
 
-## AI工程师和应用数据科学家的角色经历了显著的变化。那么它将走向何方，我们又该如何准备？
+## AI 工程师和应用数据科学家的角色经历了显著的变化。那么它将走向何方，我们又该如何准备？
 
-[](https://medium.com/@sandibesen?source=post_page---byline--3e811b33bead--------------------------------)[![Sandi Besen](../Images/97361d97f50269f70b6621da2256bc29.png)](https://medium.com/@sandibesen?source=post_page---byline--3e811b33bead--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3e811b33bead--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3e811b33bead--------------------------------) [Sandi Besen](https://medium.com/@sandibesen?source=post_page---byline--3e811b33bead--------------------------------)
+[](https://medium.com/@sandibesen?source=post_page---byline--3e811b33bead--------------------------------)![Sandi Besen](https://medium.com/@sandibesen?source=post_page---byline--3e811b33bead--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3e811b33bead--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e811b33bead--------------------------------) [Sandi Besen](https://medium.com/@sandibesen?source=post_page---byline--3e811b33bead--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e811b33bead--------------------------------) ·阅读时间4分钟·2024年8月7日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e811b33bead--------------------------------) ·阅读时间 4 分钟·2024 年 8 月 7 日
 
 --
 
-在过去的一年里，AI工程师和应用数据科学家的角色发生了显著的变化。作为一个亲身经历过这些变化的人，我想分享一下它是如何发展的，以及可能的未来趋势。
+在过去的一年里，AI 工程师和应用数据科学家的角色发生了显著的变化。作为一个亲身经历过这些变化的人，我想分享一下它是如何发展的，以及可能的未来趋势。
 
-![](../Images/06507817b7cb11146e462e457bf42357.png)
+![](img/06507817b7cb11146e462e457bf42357.png)
 
 图片来源：Sandi Besen
 
 # 提示工程与聊天机器人时代
 
-2023年，重点主要放在开发基于聊天的解决方案。人类与AI之间的典型互动非常直接：提问和回答，或呼叫与响应。这样的互动模式通常如下所示：
+2023 年，重点主要放在开发基于聊天的解决方案。人类与 AI 之间的典型互动非常直接：提问和回答，或呼叫与响应。这样的互动模式通常如下所示：
 
 1.  用户任务
 
@@ -30,9 +30,9 @@
 
 1.  （依此类推）
 
-无论是应用数据科学家还是AI工程师，都花费了大量时间学习那种变化莫测的提示工程技术，监控幻觉问题，并调整如温度等参数以优化性能。
+无论是应用数据科学家还是 AI 工程师，都花费了大量时间学习那种变化莫测的提示工程技术，监控幻觉问题，并调整如温度等参数以优化性能。
 
-公司感受到立即采纳AI的需求，原因可能是对其能带来的竞争优势的纯粹兴奋，也可能是来自高层管理者和投资者的健康鼓励。然而，现成的模型缺乏对公司流程、领域知识、商业规则和文档的细致理解和把握。检索增强生成（RAG）应运而生，旨在弥补这一空白，并提供一种方法，防止语言模型所需的上下文信息过时。
+公司感受到立即采纳 AI 的需求，原因可能是对其能带来的竞争优势的纯粹兴奋，也可能是来自高层管理者和投资者的健康鼓励。然而，现成的模型缺乏对公司流程、领域知识、商业规则和文档的细致理解和把握。检索增强生成（RAG）应运而生，旨在弥补这一空白，并提供一种方法，防止语言模型所需的上下文信息过时。
 
 > 应用数据科学家的角色从专注于构建定制模型，转变为学习如何从最新的尖端技术中提取最佳性能。
 
@@ -60,13 +60,13 @@
 
 +   如何分解任务，以确保代理能够准确且一致地响应
 
-通常，这类设计选择（系统架构设计）发生在AI工程师/数据科学家层级之上，复杂的设计选择由管理层甚至高级管理层处理。然而，成功的代理系统所需的创造性自由度导致了工程师在设计自由和责任方面的下移。
+通常，这类设计选择（系统架构设计）发生在 AI 工程师/数据科学家层级之上，复杂的设计选择由管理层甚至高级管理层处理。然而，成功的代理系统所需的创造性自由度导致了工程师在设计自由和责任方面的下移。
 
-> “应用数据科学家/AI工程师的角色正在变成开发与创造性问题解决的独特融合。实验、批判性思维以及设计可扩展AI系统团队所需的创造性思维应该改变公司对AI岗位招聘的看法。”
+> “应用数据科学家/AI 工程师的角色正在变成开发与创造性问题解决的独特融合。实验、批判性思维以及设计可扩展 AI 系统团队所需的创造性思维应该改变公司对 AI 岗位招聘的看法。”
 
-# 对应用数据科学家和AI工程师未来技能的预测
+# 对应用数据科学家和 AI 工程师未来技能的预测
 
-在我看来，AI工程的未来在于我们快速适应和创造性解决问题的能力。最成功的AI工程师将不是那些开发能力最强的人，而是能够：
+在我看来，AI 工程的未来在于我们快速适应和创造性解决问题的能力。最成功的 AI 工程师将不是那些开发能力最强的人，而是能够：
 
 +   快速掌握新话题并加以应用
 

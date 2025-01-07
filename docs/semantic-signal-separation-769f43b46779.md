@@ -1,16 +1,16 @@
 # 语义信号分离
 
-> 原文：[https://towardsdatascience.com/semantic-signal-separation-769f43b46779?source=collection_archive---------2-----------------------#2024-02-11](https://towardsdatascience.com/semantic-signal-separation-769f43b46779?source=collection_archive---------2-----------------------#2024-02-11)
+> 原文：[`towardsdatascience.com/semantic-signal-separation-769f43b46779?source=collection_archive---------2-----------------------#2024-02-11`](https://towardsdatascience.com/semantic-signal-separation-769f43b46779?source=collection_archive---------2-----------------------#2024-02-11)
 
 ## 使用变换器和主题建模理解语义结构
 
-[](https://medium.com/@power.up1163?source=post_page---byline--769f43b46779--------------------------------)[![Márton Kardos](../Images/8c86c5ea10391a0031cdc18bb77b0736.png)](https://medium.com/@power.up1163?source=post_page---byline--769f43b46779--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--769f43b46779--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--769f43b46779--------------------------------) [Márton Kardos](https://medium.com/@power.up1163?source=post_page---byline--769f43b46779--------------------------------)
+[](https://medium.com/@power.up1163?source=post_page---byline--769f43b46779--------------------------------)![Márton Kardos](https://medium.com/@power.up1163?source=post_page---byline--769f43b46779--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--769f43b46779--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--769f43b46779--------------------------------) [Márton Kardos](https://medium.com/@power.up1163?source=post_page---byline--769f43b46779--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--769f43b46779--------------------------------) ·阅读时间10分钟·2024年2月11日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--769f43b46779--------------------------------) ·阅读时间 10 分钟·2024 年 2 月 11 日
 
 --
 
-我们生活在大数据的时代。现在说数据是21世纪的石油已经成了一个陈词滥调，但它确实如此。数据收集的做法使得几乎每个人手中都堆积了大量数据。
+我们生活在大数据的时代。现在说数据是 21 世纪的石油已经成了一个陈词滥调，但它确实如此。数据收集的做法使得几乎每个人手中都堆积了大量数据。
 
 然而，解释数据并非易事，许多行业和学术界仍然依赖于那些提供极少解释的解决方案。虽然深度学习对于预测非常有用，但它很少能让从业者理解数据背后的机制和结构。
 
@@ -26,7 +26,7 @@
 
 嗯，这并没有让我们更接近可以用计算术语表述的内容。请注意，“主题”一词被用来掩盖所有复杂的细节。然而，这不应使我们气馁，我们当然可以做得更好。
 
-![](../Images/e55cad0c3a012ccf0ae4434f56e7cff2.png)
+![](img/e55cad0c3a012ccf0ae4434f56e7cff2.png)
 
 学科的语义空间
 
@@ -36,7 +36,7 @@
 
 一种直观的概念化是将主题视为语义空间中相互紧密相关的段落/概念组，而这些组与其他文本的相关性较低。顺便提一下，这意味着一个段落*只能属于一个主题*。
 
-![](../Images/c31b1056a21c843dbb872df50db92b77.png)
+![](img/c31b1056a21c843dbb872df50db92b77.png)
 
 学科的语义聚类
 
@@ -48,7 +48,7 @@
 
 我们还可以将主题视为语料库中语义空间的潜在维度。换句话说：我们不是描述有哪些文档群组，而是通过寻找潜在的**语义信号**来解释文档中的变化。
 
-![](../Images/c4da83966529469b816a55f35a1f4079.png)
+![](img/c4da83966529469b816a55f35a1f4079.png)
 
 学科语义空间中的潜在轴
 
@@ -76,9 +76,9 @@
 
 目前在主题建模社区中最广泛使用的模型（如[Top2Vec](https://github.com/ddangelov/Top2Vec), [BERTopic](https://maartengr.github.io/BERTopic/index.html)）是基于聚类的主题概念化方法。
 
-![](../Images/0778eab83605e5441f6000960fd4a37e.png)
+![](img/0778eab83605e5441f6000960fd4a37e.png)
 
-BERTopic发现的语义空间中的集群（图源自BERTopic文档）
+BERTopic 发现的语义空间中的集群（图源自 BERTopic 文档）
 
 他们在以下步骤中发现主题：
 
@@ -98,7 +98,7 @@ BERTopic发现的语义空间中的集群（图源自BERTopic文档）
 
 如果我们要在语料库中发现语义轴线，我们将需要一个新的统计模型。
 
-我们可以从经典的主题模型中汲取灵感，例如**潜在语义分配（LSA）**。LSA利用矩阵分解技术，在*词袋模型*表示中找到潜在的成分。LSA的主要目标是找出高度相关的词汇，并将它们的共现解释为一个潜在的语义成分。
+我们可以从经典的主题模型中汲取灵感，例如**潜在语义分配（LSA）**。LSA 利用矩阵分解技术，在*词袋模型*表示中找到潜在的成分。LSA 的主要目标是找出高度相关的词汇，并将它们的共现解释为一个潜在的语义成分。
 
 由于我们不再处理词袋模型，单纯解释相关性可能不是最优策略。正交性并不等于统计独立性。换句话说：仅仅因为两个组件不相关，并不意味着它们在统计上是独立的。
 
@@ -106,9 +106,9 @@ BERTopic发现的语义空间中的集群（图源自BERTopic文档）
 
 其他学科幸运地提出了分解模型，可以发现最大程度上独立的组件。**独立成分分析**已经广泛应用于神经科学中，用于从脑电图数据中发现并去除噪声信号。
 
-![](../Images/372ef543b05df8a239baf1738c27f957.png)
+![](img/372ef543b05df8a239baf1738c27f957.png)
 
-使用PCA和ICA演示正交性与独立性的区别（图源自scikit-learn的文档）
+使用 PCA 和 ICA 演示正交性与独立性的区别（图源自 scikit-learn 的文档）
 
 语义信号分离的主要思想是，我们可以通过使用独立成分分析（ICA）分解表示，发现语料库中文本的最大独立语义信号。
 
@@ -116,17 +116,17 @@ BERTopic发现的语义空间中的集群（图源自BERTopic文档）
 
 # 案例研究：机器学习论文
 
-为了展示语义信号分离在理解语料库中语义变化方面的有效性，我们将在一个大约118k机器学习摘要的数据集上拟合一个模型。
+为了展示语义信号分离在理解语料库中语义变化方面的有效性，我们将在一个大约 118k 机器学习摘要的数据集上拟合一个模型。
 
 再次重申我们这里要实现的目标：我们希望建立所有机器学习论文分布的维度。换句话说，我们想为这个语料库建立一个语义空间理论。
 
-为此，我们将使用我开发的一个Python库，叫做[Turftopic](https://x-tabdeveloping.github.io/turftopic/)，它实现了大多数使用transformer表示的主题模型，包括语义信号分离。此外，我们还将安装HuggingFace数据集库，以便下载当前的语料库。
+为此，我们将使用我开发的一个 Python 库，叫做[Turftopic](https://x-tabdeveloping.github.io/turftopic/)，它实现了大多数使用 transformer 表示的主题模型，包括语义信号分离。此外，我们还将安装 HuggingFace 数据集库，以便下载当前的语料库。
 
 ```py
 pip install turftopic datasets
 ```
 
-让我们从HuggingFace下载数据：
+让我们从 HuggingFace 下载数据：
 
 ```py
 from datasets import load_dataset
@@ -145,17 +145,17 @@ model.fit(ds["abstract"])
 model.print_topics()
 ```
 
-![](../Images/beadaa38e648757caad11a37033a9f36.png)
+![](img/beadaa38e648757caad11a37033a9f36.png)
 
 语义信号分离在摘要中找到的主题
 
 这些是我们在语料库中找到的十个维度的最高排名关键词。你可以看到，大多数这些关键词相当容易理解，并且已经帮助你看出机器学习论文中的差异背后的根本原因。
 
-我将集中讨论三个维度，稍微随意一些，因为我发现它们很有趣。我是一个贝叶斯信徒，所以主题7看起来很有意思，因为它似乎描述了概率性、基于模型和因果性的论文。主题6似乎与噪声检测和去除有关，而主题1主要涉及测量设备。
+我将集中讨论三个维度，稍微随意一些，因为我发现它们很有趣。我是一个贝叶斯信徒，所以主题 7 看起来很有意思，因为它似乎描述了概率性、基于模型和因果性的论文。主题 6 似乎与噪声检测和去除有关，而主题 1 主要涉及测量设备。
 
 我们将生成一个图表，展示词汇的一个子集，并显示每个术语在这些组成部分上的排名。
 
-首先，让我们从模型中提取词汇，并选择一些词汇显示在我们的图表上。我选择了基于频率处于99百分位数的词汇（这样它们仍然能在散点图上保持一定的可见性）。
+首先，让我们从模型中提取词汇，并选择一些词汇显示在我们的图表上。我选择了基于频率处于 99 百分位数的词汇（这样它们仍然能在散点图上保持一定的可见性）。
 
 ```py
 import numpy as np
@@ -188,7 +188,7 @@ terms_with_axes = pd.DataFrame({
  })
 ```
 
-我们将使用Plotly图形库创建一个交互式散点图进行解释。X轴将是推断/贝叶斯主题，Y轴将是噪声主题，点的颜色将由测量设备主题决定。
+我们将使用 Plotly 图形库创建一个交互式散点图进行解释。X 轴将是推断/贝叶斯主题，Y 轴将是噪声主题，点的颜色将由测量设备主题决定。
 
 ```py
 import plotly.express as px
@@ -210,7 +210,7 @@ px.scatter(
 )
 ```
 
-![](../Images/dfbbf0f51c7a2c319fd967e2dc0c5534.png)
+![](img/dfbbf0f51c7a2c319fd967e2dc0c5534.png)
 
 按语义轴分布的语料库中最常见术语的图
 
@@ -222,13 +222,13 @@ px.scatter(
 
 另外，我们可能观察到的一个有趣模式是噪声轴与测量设备之间的关系。术语“图像”、“图像”、“检测”和“鲁棒”在我们的测量轴上得分非常高。这些词汇也位于图表中噪声检测/去除较高的区域，而统计推断的讨论较少。这向我们表明，测量设备捕获了大量噪声，而文献试图解决这些问题，但主要不是通过将噪声纳入统计模型，而是通过预处理。这是非常有道理的，因为例如，神经科学以其非常广泛的预处理流程而著称，而且许多神经科学模型在处理噪声时遇到困难。
 
-![](../Images/3692b4bfdb6d3e852f642633f9bee09b.png)
+![](img/3692b4bfdb6d3e852f642633f9bee09b.png)
 
 测量设备输出中的噪声通过预处理来应对
 
 我们还可以观察到，在测量设备上的得分最低的术语是“文本”和“语言”。这似乎表明，自然语言处理和机器学习研究并不太关注语言的神经学基础和心理语言学。注意，“潜在”和“表示”在测量设备上的得分也相对较低，这表明神经科学中的机器学习研究并不特别关注表示学习。
 
-![](../Images/d20b1791c23bc4bb5681298be1936119.png)
+![](img/d20b1791c23bc4bb5681298be1936119.png)
 
 文本和语言与测量设备的关系很少
 

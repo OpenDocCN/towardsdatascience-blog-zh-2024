@@ -1,68 +1,68 @@
-# 2024年构建数据平台
+# 2024 年构建数据平台
 
-> 原文：[https://towardsdatascience.com/building-a-data-platform-in-2024-d63c736cccef?source=collection_archive---------0-----------------------#2024-02-05](https://towardsdatascience.com/building-a-data-platform-in-2024-d63c736cccef?source=collection_archive---------0-----------------------#2024-02-05)
+> 原文：[`towardsdatascience.com/building-a-data-platform-in-2024-d63c736cccef?source=collection_archive---------0-----------------------#2024-02-05`](https://towardsdatascience.com/building-a-data-platform-in-2024-d63c736cccef?source=collection_archive---------0-----------------------#2024-02-05)
 
 ## 如何构建现代化、可扩展的数据平台，以支持您的分析和数据科学项目（更新版）
 
-[](https://data-dave.medium.com/?source=post_page---byline--d63c736cccef--------------------------------)[![Dave Melillo](../Images/1c55bfa70d7a0e5d736bf3c5a8046650.png)](https://data-dave.medium.com/?source=post_page---byline--d63c736cccef--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d63c736cccef--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d63c736cccef--------------------------------) [Dave Melillo](https://data-dave.medium.com/?source=post_page---byline--d63c736cccef--------------------------------)
+[](https://data-dave.medium.com/?source=post_page---byline--d63c736cccef--------------------------------)![Dave Melillo](https://data-dave.medium.com/?source=post_page---byline--d63c736cccef--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d63c736cccef--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d63c736cccef--------------------------------) [Dave Melillo](https://data-dave.medium.com/?source=post_page---byline--d63c736cccef--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d63c736cccef--------------------------------) ·阅读时间9分钟·2024年2月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d63c736cccef--------------------------------) ·阅读时间 9 分钟·2024 年 2 月 5 日
 
 --
 
 ## **目录：**
 
-+   [发生了什么变化？](#ea8a)
++   发生了什么变化？
 
-+   [平台](#2bbc)
++   平台
 
-+   [集成](#ea0a)
++   集成
 
 +   [数据存储](http://fc3d)
 
-+   [转型](#0152)
++   转型
 
-+   [编排](#a4be)
++   编排
 
-+   [展示](#4e44)
++   展示
 
-+   [运输](#b6da)
++   运输
 
 +   [可观察性](http://36c0)
 
-+   [关闭](#b55a)
++   关闭
 
 ## 发生了什么变化？
 
-自2021年以来，也许更好的问题是，什么没有发生变化？
+自 2021 年以来，也许更好的问题是，什么没有发生变化？
 
-在摆脱COVID的阴影后，我们的社会面临了无数挑战——政治和社会动荡、金融市场波动、人工智能的迅速发展，泰勒·斯威夫特（Taylor Swift）成为了…… **查阅笔记** …… ***国家橄榄球联盟**！？！
+在摆脱 COVID 的阴影后，我们的社会面临了无数挑战——政治和社会动荡、金融市场波动、人工智能的迅速发展，泰勒·斯威夫特（Taylor Swift）成为了…… **查阅笔记** …… ***国家橄榄球联盟**！？！
 
 在过去三年中，我的生活也发生了变化。我在不同行业的数据信息挑战中摸索，凭借我的专业知识，在大公司和灵活的初创公司之间提供工作和咨询支持。
 
 与此同时，我也花了大量精力塑造自己作为数据教育者的身份，与全球一些最著名的公司和顶级大学合作。
 
-因此，以下是激励我撰写对原始[2021年文章](https://medium.com/towards-data-science/building-a-data-platform-in-2021-b759f6470426)进行修订的简短清单：
+因此，以下是激励我撰写对原始[2021 年文章](https://medium.com/towards-data-science/building-a-data-platform-in-2021-b759f6470426)进行修订的简短清单：
 
 +   **规模**
 
-大大小小的公司正在开始达到以前仅限于Netflix、Uber、Spotify等巨头的规模，这些公司利用数据创造独特的服务。单纯地将数据管道和定时任务拼凑在一起，跨越不同的应用程序，已经不再有效，因此在讨论大规模数据平台时，出现了新的考量。
+大大小小的公司正在开始达到以前仅限于 Netflix、Uber、Spotify 等巨头的规模，这些公司利用数据创造独特的服务。单纯地将数据管道和定时任务拼凑在一起，跨越不同的应用程序，已经不再有效，因此在讨论大规模数据平台时，出现了新的考量。
 
 +   **流媒体**
 
-尽管我在2021年的文章中简要提到了流处理，但在2024年的版本中，你将看到更多的关注。我坚信**数据必须跟上商业的速度**，而要在现代实现这一目标，唯一的途径就是通过数据流处理。
+尽管我在 2021 年的文章中简要提到了流处理，但在 2024 年的版本中，你将看到更多的关注。我坚信**数据必须跟上商业的速度**，而要在现代实现这一目标，唯一的途径就是通过数据流处理。
 
 +   **编排**
 
-我在2021年的文章中提到了模块化是构建现代数据平台的核心概念，但我未能强调数据编排的重要性。这一次，我专门有一整节讨论编排，以及它为何成为现代数据堆栈的自然补充。
+我在 2021 年的文章中提到了模块化是构建现代数据平台的核心概念，但我未能强调数据编排的重要性。这一次，我专门有一整节讨论编排，以及它为何成为现代数据堆栈的自然补充。
 
 ## 平台
 
-![](../Images/47d8e86ba0b04d9c2ed768892961122f.png)
+![](img/47d8e86ba0b04d9c2ed768892961122f.png)
 
-令我惊讶的是，目前仍没有单一的供应商能够主宰整个数据领域，尽管Snowflake通过[收购](https://www.snowflake.com/blog/snowflake-to-acquire-streamlit/)和开发工作（如Snowpipe、Snowpark、Snowplow）在尽力争取。Databricks也在其平台上取得了显著的进展，特别是在ML/AI领域。
+令我惊讶的是，目前仍没有单一的供应商能够主宰整个数据领域，尽管 Snowflake 通过[收购](https://www.snowflake.com/blog/snowflake-to-acquire-streamlit/)和开发工作（如 Snowpipe、Snowpark、Snowplow）在尽力争取。Databricks 也在其平台上取得了显著的进展，特别是在 ML/AI 领域。
 
-2021年文章中的所有组件都进入了2024年，但即便是熟悉的条目，3年后看起来也有些不同：
+2021 年文章中的所有组件都进入了 2024 年，但即便是熟悉的条目，3 年后看起来也有些不同：
 
 +   源
 
@@ -82,7 +82,7 @@
 
 ## 集成
 
-集成类别在2024年获得了最大升级，分为三个逻辑子类别：
+集成类别在 2024 年获得了最大升级，分为三个逻辑子类别：
 
 +   批处理
 
@@ -94,19 +94,19 @@
 
 能够以日常或每小时的间隔处理来自不同来源的输入数据流是任何数据平台的基础。
 
-[Fivetran](https://www.fivetran.com/)仍然是托管ETL领域无可争议的领导者，但它面临着[Airbyte](https://airbyte.com/)等新兴竞争者，以及通过加强平台功能的大型云服务商的激烈竞争。
+[Fivetran](https://www.fivetran.com/)仍然是托管 ETL 领域无可争议的领导者，但它面临着[Airbyte](https://airbyte.com/)等新兴竞争者，以及通过加强平台功能的大型云服务商的激烈竞争。
 
-在过去的3年中，Fivetran显著改进了其核心产品，扩展了连接器库，甚至开始在轻量级编排方面有所突破，推出了像他们的[dbt集成](https://www.fivetran.com/connectors/dbt-cloud)这样的功能。
+在过去的 3 年中，Fivetran 显著改进了其核心产品，扩展了连接器库，甚至开始在轻量级编排方面有所突破，推出了像他们的[dbt 集成](https://www.fivetran.com/connectors/dbt-cloud)这样的功能。
 
-值得一提的是，许多供应商，如Fivetran，已经将开源软件（OSS）和风险投资的最佳元素融合成一种名为“产品驱动增长”的模式，通过在产品中提供免费层，降低了进入企业级平台的门槛。
+值得一提的是，许多供应商，如 Fivetran，已经将开源软件（OSS）和风险投资的最佳元素融合成一种名为“产品驱动增长”的模式，通过在产品中提供免费层，降低了进入企业级平台的门槛。
 
-**即使你解决的问题需要许多自定义的源集成，使用托管ETL提供商来处理大部分工作，其余部分使用自定义Python代码，并通过编排将所有内容整合在一起，仍然是有意义的。**
+**即使你解决的问题需要许多自定义的源集成，使用托管 ETL 提供商来处理大部分工作，其余部分使用自定义 Python 代码，并通过编排将所有内容整合在一起，仍然是有意义的。**
 
 **流处理**
 
 Kafka/[Confluent](https://www.confluent.io/)在数据流处理方面占据主导地位，但处理流数据引入了许多新的考虑因素，除了主题、生产者、消费者和代理之外，还涉及序列化、模式注册表、流处理/转化以及流式分析。
 
-Confluent在将成功的数据流处理所需的所有组件聚集在一个平台上做得很好，但我将指出数据平台其他层次中的流处理注意事项。
+Confluent 在将成功的数据流处理所需的所有组件聚集在一个平台上做得很好，但我将指出数据平台其他层次中的流处理注意事项。
 
 **数据流处理的引入本身并不要求彻底改造数据平台的结构。实际上，批处理和流处理管道之间的协同作用对于应对数据平台在大规模应用中面临的各种挑战至关重要。解决这些挑战的关键，毫无疑问，在于数据编排。**
 
@@ -118,17 +118,17 @@ Confluent在将成功的数据流处理所需的所有组件聚集在一个平�
 
 +   **变更数据捕获** — CDC
 
-CDC的基本要点是将数据库的CRUD命令本身作为数据流来使用。我第一次接触到的CDC平台是一个名为[Debezium](https://debezium.io/)的开源项目，目前有许多大大小小的公司在这一新兴领域中争夺市场份额。
+CDC 的基本要点是将数据库的 CRUD 命令本身作为数据流来使用。我第一次接触到的 CDC 平台是一个名为[Debezium](https://debezium.io/)的开源项目，目前有许多大大小小的公司在这一新兴领域中争夺市场份额。
 
 +   **点击流** — Segment/Snowplow
 
-构建遥测以捕捉网站或应用程序上客户活动的方式就是我所指的**点击流**。Segment借助点击流的浪潮实现了[十亿美元收购](https://techcrunch.com/2020/11/02/twilio-wraps-3-2b-purchase-of-segment-after-warp-speed-courtship/)，[Amplitude](https://amplitude.com/)将点击流构建成了一个完整的分析平台，而[Snowplow](https://snowplow.io/)最近通过其开源方法大幅增长，展示了这一领域适合持续创新并最终标准化。
+构建遥测以捕捉网站或应用程序上客户活动的方式就是我所指的**点击流**。Segment 借助点击流的浪潮实现了[十亿美元收购](https://techcrunch.com/2020/11/02/twilio-wraps-3-2b-purchase-of-segment-after-warp-speed-courtship/)，[Amplitude](https://amplitude.com/)将点击流构建成了一个完整的分析平台，而[Snowplow](https://snowplow.io/)最近通过其开源方法大幅增长，展示了这一领域适合持续创新并最终标准化。
 
-AWS在数据流处理方面一直处于领先地位，提供了建立[外部箱模式](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html)的模板，并构建了如[MSK](https://aws.amazon.com/msk/)、[SQS](https://aws.amazon.com/sqs/)、[SNS](https://aws.amazon.com/sns/)、[Lambdas](https://aws.amazon.com/lambda/)、[DynamoDB](https://aws.amazon.com/dynamodb/)等数据流处理产品。
+AWS 在数据流处理方面一直处于领先地位，提供了建立[外部箱模式](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html)的模板，并构建了如[MSK](https://aws.amazon.com/msk/)、[SQS](https://aws.amazon.com/sqs/)、[SNS](https://aws.amazon.com/sns/)、[Lambdas](https://aws.amazon.com/lambda/)、[DynamoDB](https://aws.amazon.com/dynamodb/)等数据流处理产品。
 
 ## 数据存储
 
-从2021年到2024年的另一个重大变化是从“数据仓库”到“数据存储”的转变，承认数据库视野的扩展，包括数据湖的兴起。
+从 2021 年到 2024 年的另一个重大变化是从“数据仓库”到“数据存储”的转变，承认数据库视野的扩展，包括数据湖的兴起。
 
 将数据湖视为战略而非产品，强调其作为结构化和非结构化数据的暂存区的角色，可能与数据仓库交互。为数据湖的每个方面选择合适的数据存储解决方案至关重要，**但更大的技术决策是将这些存储结合起来并探索它们，以将原始数据转化为下游洞察。**
 
@@ -194,11 +194,11 @@ Streamlit 给人的印象极为深刻，以至于 Snowflake 在 2022 年以近 1
 
 本文 2021 版本字数为 1,278 字。
 
-本文的2024年版本在结尾之前已经超过了2000字。
+本文的 2024 年版本在结尾之前已经超过了 2000 字。
 
 我猜这意味着我应该简短一些。
 
-构建一个既足够快速满足当今需求，又足够灵活以应对未来挑战的平台，从**模块化**开始，并由**编排**实现。为了采用最具创新性的解决方案来解决你的具体问题，你的平台必须为各种形式和大小的数据解决方案腾出空间，无论它是一个开源项目、新的托管服务，还是AWS提供的一整套产品。
+构建一个既足够快速满足当今需求，又足够灵活以应对未来挑战的平台，从**模块化**开始，并由**编排**实现。为了采用最具创新性的解决方案来解决你的具体问题，你的平台必须为各种形式和大小的数据解决方案腾出空间，无论它是一个开源项目、新的托管服务，还是 AWS 提供的一整套产品。
 
 这篇文章有很多观点，但最终的选择还是取决于你。我很期待听到这能如何激励人们探索新的可能性，并创造新的数据问题解决方式。
 

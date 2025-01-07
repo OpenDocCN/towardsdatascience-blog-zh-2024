@@ -1,28 +1,28 @@
-# 对原始文本数据进行微调以训练Instruct模型
+# 对原始文本数据进行微调以训练 Instruct 模型
 
-> 原文：[https://towardsdatascience.com/fine-tune-an-instruct-model-over-raw-text-data-6db654e7e2ed?source=collection_archive---------1-----------------------#2024-03-26](https://towardsdatascience.com/fine-tune-an-instruct-model-over-raw-text-data-6db654e7e2ed?source=collection_archive---------1-----------------------#2024-03-26)
+> 原文：[`towardsdatascience.com/fine-tune-an-instruct-model-over-raw-text-data-6db654e7e2ed?source=collection_archive---------1-----------------------#2024-03-26`](https://towardsdatascience.com/fine-tune-an-instruct-model-over-raw-text-data-6db654e7e2ed?source=collection_archive---------1-----------------------#2024-03-26)
 
-## 用少量的对话数据将现代聊天机器人微调至不到10美元
+## 用少量的对话数据将现代聊天机器人微调至不到 10 美元
 
-[](https://medium.com/@jon.flynn2?source=post_page---byline--6db654e7e2ed--------------------------------)[![Jon Flynn](../Images/492cef280f4ea0b002e5d00ad2e083a5.png)](https://medium.com/@jon.flynn2?source=post_page---byline--6db654e7e2ed--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6db654e7e2ed--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6db654e7e2ed--------------------------------) [Jon Flynn](https://medium.com/@jon.flynn2?source=post_page---byline--6db654e7e2ed--------------------------------)
+[](https://medium.com/@jon.flynn2?source=post_page---byline--6db654e7e2ed--------------------------------)![Jon Flynn](https://medium.com/@jon.flynn2?source=post_page---byline--6db654e7e2ed--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6db654e7e2ed--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6db654e7e2ed--------------------------------) [Jon Flynn](https://medium.com/@jon.flynn2?source=post_page---byline--6db654e7e2ed--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6db654e7e2ed--------------------------------) ·阅读时长12分钟·2024年3月26日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6db654e7e2ed--------------------------------) ·阅读时长 12 分钟·2024 年 3 月 26 日
 
 --
 
-![](../Images/dd30580c003c480f51f17dc52b585116.png)
+![](img/dd30580c003c480f51f17dc52b585116.png)
 
 图片来自作者
 
 # **目的**
 
-使现代聊天机器人能够在你自己的数据上保持其能力仍然是一个复杂的任务。随着Gemini 1.5 Pro和Claude 3等领先产品将上下文窗口的大小快速扩展到100万个token，产品的进步可谓飞速。然而，像我目前所在的The Guardian这样的公司，拥有无数代码库，包含数亿个token的数据。
+使现代聊天机器人能够在你自己的数据上保持其能力仍然是一个复杂的任务。随着 Gemini 1.5 Pro 和 Claude 3 等领先产品将上下文窗口的大小快速扩展到 100 万个 token，产品的进步可谓飞速。然而，像我目前所在的 The Guardian 这样的公司，拥有无数代码库，包含数亿个 token 的数据。
 
-[最近发布的Devin](https://twitter.com/cognition_labs/status/1767548763134964000)由Cognition Labs开发，可能使用了巧妙的RAG技术来完成任务，但将所有信息注入上下文窗口可能会带来问题。社区中的共识似乎是，GPT-4 128k在大约60K tokens的范围内仍能保持出色的性能，但这并不多。即便如此，随着token数量的增加，保持卓越性能需要更好且更复杂的提示。由于这些限制，看来未来最强大的模型可能会结合良好的提示、RAG和微调技术。例如，对于代码助手工具，可以通过RAG管道检索最新的代码。然后，微调后的模型可以比未微调的模型更有效地分析和推理这些代码，指出其中可能存在的边缘案例和风险。此外，微调后的模型将采用组织的编码规范和最佳实践，从而为员工提供更具洞察力的指导。
+[最近发布的 Devin](https://twitter.com/cognition_labs/status/1767548763134964000)由 Cognition Labs 开发，可能使用了巧妙的 RAG 技术来完成任务，但将所有信息注入上下文窗口可能会带来问题。社区中的共识似乎是，GPT-4 128k 在大约 60K tokens 的范围内仍能保持出色的性能，但这并不多。即便如此，随着 token 数量的增加，保持卓越性能需要更好且更复杂的提示。由于这些限制，看来未来最强大的模型可能会结合良好的提示、RAG 和微调技术。例如，对于代码助手工具，可以通过 RAG 管道检索最新的代码。然后，微调后的模型可以比未微调的模型更有效地分析和推理这些代码，指出其中可能存在的边缘案例和风险。此外，微调后的模型将采用组织的编码规范和最佳实践，从而为员工提供更具洞察力的指导。
 
-我在网上找到关于在较小数据集上微调的高效聊天机器人的资源有限。相反，大多数研究介绍了像[BioMistral](https://arxiv.org/abs/2402.10373)这样的模型，这些模型通过使用大约30亿个标记的数据集取得成功，要求有显著的预算和专业知识。
+我在网上找到关于在较小数据集上微调的高效聊天机器人的资源有限。相反，大多数研究介绍了像[BioMistral](https://arxiv.org/abs/2402.10373)这样的模型，这些模型通过使用大约 30 亿个标记的数据集取得成功，要求有显著的预算和专业知识。
 
-这个实验旨在发现一种更轻量级的方法，在128K上下文窗口的限制和在数十亿个标记上微调的模型的复杂性之间找到平衡，可能更接近数千万个标记的范围。对于较小规模的测试，我将对Mistral的[7B Instruct v0.2模型](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)进行微调，数据集来自[《卫报》管理前端仓库](https://github.com/guardian/manage-frontend)（该数据集包含160万个标记）。
+这个实验旨在发现一种更轻量级的方法，在 128K 上下文窗口的限制和在数十亿个标记上微调的模型的复杂性之间找到平衡，可能更接近数千万个标记的范围。对于较小规模的测试，我将对 Mistral 的[7B Instruct v0.2 模型](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)进行微调，数据集来自[《卫报》管理前端仓库](https://github.com/guardian/manage-frontend)（该数据集包含 160 万个标记）。
 
 本文的目标是创建一套可重复的指导方案，用于使用易于获取的硬件进行具有成本效益的模型微调。重点放在易用性上，尽量减少试错过程，并最大化使用原始文本数据，而非标注的对话数据。希望任何软件开发人员，即使没有深度学习工程经验，也能轻松使用[该笔记本](https://colab.research.google.com/drive/11X5ptOe3zbFE2s1AeHu-gynwAbkE-7Zn#scrollTo=eWE0W7YSVTmx)并训练自己的模型。
 
@@ -32,15 +32,15 @@
 
 ## **A100 40GB**
 
-除了一次使用H100 80GB的训练过程外，我所有的训练都使用了Colab提供的Nvidia A100 40GB。
+除了一次使用 H100 80GB 的训练过程外，我所有的训练都使用了 Colab 提供的 Nvidia A100 40GB。
 
 ## Unsloth
 
-我使用了Unsloth库以提高训练速度并减少内存消耗。[这篇博客文章](https://huggingface.co/blog/unsloth-trl)很好地总结了[Unsloth库](https://github.com/unslothai/unsloth)的工作原理，并展示了训练速度提升和内存节省的基准测试。
+我使用了 Unsloth 库以提高训练速度并减少内存消耗。[这篇博客文章](https://huggingface.co/blog/unsloth-trl)很好地总结了[Unsloth 库](https://github.com/unslothai/unsloth)的工作原理，并展示了训练速度提升和内存节省的基准测试。
 
 ## 与现有微调模型的训练方法的不同
 
-现代的微调示例，用于教授模型新的领域特定知识，包括[BioMistral](https://arxiv.org/abs/2402.10373)和[xFinance](https://www.stochastic.ai/blog/xfinance-vs-bloomberg-gpt)。xFinance继续对Llama 7B基础模型进行预训练，即非指令版本。它使用LoRA。该模型首先在超过216,626个文档上进行训练，总计236亿个标记。然后，它在25,000个金融领域对话数据样本上进一步微调。与标准的聊天机器人训练类似，这种方法首先在原始文本数据上进行训练，缺少指令标记或结构化的对话元素，然后转向专门在对话数据上进行训练。BioMistral采用类似的方法，但有趣的是，它从Mistral 7B Instruct v0.2模型开始微调。
+现代的微调示例，用于教授模型新的领域特定知识，包括[BioMistral](https://arxiv.org/abs/2402.10373)和[xFinance](https://www.stochastic.ai/blog/xfinance-vs-bloomberg-gpt)。xFinance 继续对 Llama 7B 基础模型进行预训练，即非指令版本。它使用 LoRA。该模型首先在超过 216,626 个文档上进行训练，总计 236 亿个标记。然后，它在 25,000 个金融领域对话数据样本上进一步微调。与标准的聊天机器人训练类似，这种方法首先在原始文本数据上进行训练，缺少指令标记或结构化的对话元素，然后转向专门在对话数据上进行训练。BioMistral 采用类似的方法，但有趣的是，它从 Mistral 7B Instruct v0.2 模型开始微调。
 
 我的方案将原始数据集和注释数据集结合在同一个训练过程中，因为这种方法产生了最佳的结果。只进行了一个训练过程。
 
@@ -107,34 +107,34 @@ Changes: @@ -0,0 +1,5 @@
 
 1.  对于每个 Wiki 页面，我使用了 GPT-4 Turbo API 根据提供的文本生成了一些问答样本。最终得到了大约 300 对问答。
 
-1.  对于每个Wiki页面，我创建了一个特定的指令或问题。例如，在‘[Fastly & Caching](https://github.com/guardian/manage-frontend/wiki/Fastly-&-Caching)’页面，指令可能是‘带我了解Fastly在`manage-frontend`中的使用方式’。然后，回答就是该Wiki页面的内容。
+1.  对于每个 Wiki 页面，我创建了一个特定的指令或问题。例如，在‘[Fastly & Caching](https://github.com/guardian/manage-frontend/wiki/Fastly-&-Caching)’页面，指令可能是‘带我了解 Fastly 在`manage-frontend`中的使用方式’。然后，回答就是该 Wiki 页面的内容。
 
-1.  类似于前一步，我为代码库中的每个文件创建了一个问题。例如：“`manage-frontend`仓库中的`package.json`文件是什么样子的？”然后，我会在每个代码文件前加上用于训练的代码库快照日期，即：“截至2023年12月，`package.json`文件如下：<package.json代码在此>”
+1.  类似于前一步，我为代码库中的每个文件创建了一个问题。例如：“`manage-frontend`仓库中的`package.json`文件是什么样子的？”然后，我会在每个代码文件前加上用于训练的代码库快照日期，即：“截至 2023 年 12 月，`package.json`文件如下：<package.json 代码在此>”
 
-QA数据已导出为JSONL文件，建议使用以下格式，因为许多分词器[具有名为](https://colab.research.google.com/drive/11X5ptOe3zbFE2s1AeHu-gynwAbkE-7Zn#scrollTo=jSpOjMopIRWk) `[apply_chat_template](https://colab.research.google.com/drive/11X5ptOe3zbFE2s1AeHu-gynwAbkE-7Zn#scrollTo=jSpOjMopIRWk)`的功能，该功能接收每行中`messages`属性内的列表。以下是推荐的格式示例：
+QA 数据已导出为 JSONL 文件，建议使用以下格式，因为许多分词器[具有名为](https://colab.research.google.com/drive/11X5ptOe3zbFE2s1AeHu-gynwAbkE-7Zn#scrollTo=jSpOjMopIRWk) `[apply_chat_template](https://colab.research.google.com/drive/11X5ptOe3zbFE2s1AeHu-gynwAbkE-7Zn#scrollTo=jSpOjMopIRWk)`的功能，该功能接收每行中`messages`属性内的列表。以下是推荐的格式示例：
 
 ```py
 {"messages":[{"role":"user","content":"What is the capital of France?"},{"role":"assistant","content":"The capital of France is Paris."}]}
 {"messages":[{"role":"user","content":"What is the capital of England?"},{"role":"assistant","content":"The capital of England is London."}]}
 ```
 
-我正在使用10%的对话数据作为验证数据集。
+我正在使用 10%的对话数据作为验证数据集。
 
 # 训练模型
 
 ## **超参数搜索**
 
-我使用了手动搜索。我的直觉是，LoRA的秩（rank）、批量大小（batch size）和学习率（learning rate）会对模型性能产生最大影响。因此，我从这些超参数的广泛范围开始，然后根据初步搜索的性能逐步缩小搜索空间。学习率为2e-5似乎是最优的，这似乎是微调Mistral时的标准设置。[BioMistral](https://arxiv.org/abs/2402.10373)继续使用0热身、余弦调度器和学习率为2e-5微调指令模型v0.2。当我提高秩并降低批量大小时，评估损失（eval loss）有所改善。然而，需要注意的是，仅仅通过降低评估批量大小就可以自然地改善验证损失，因为每次验证的样本较少，因此在训练完成后，手动检查模型总是很重要的！
+我使用了手动搜索。我的直觉是，LoRA 的秩（rank）、批量大小（batch size）和学习率（learning rate）会对模型性能产生最大影响。因此，我从这些超参数的广泛范围开始，然后根据初步搜索的性能逐步缩小搜索空间。学习率为 2e-5 似乎是最优的，这似乎是微调 Mistral 时的标准设置。[BioMistral](https://arxiv.org/abs/2402.10373)继续使用 0 热身、余弦调度器和学习率为 2e-5 微调指令模型 v0.2。当我提高秩并降低批量大小时，评估损失（eval loss）有所改善。然而，需要注意的是，仅仅通过降低评估批量大小就可以自然地改善验证损失，因为每次验证的样本较少，因此在训练完成后，手动检查模型总是很重要的！
 
-下图中的所有搜索都使用了秩为512或768的设置，具有不同的alpha值；alpha值为秩的1倍、1.5倍或2倍。批量大小为1、2或4。您可以在[此处](https://colab.research.google.com/drive/11X5ptOe3zbFE2s1AeHu-gynwAbkE-7Zn#scrollTo=IpcbWcAZgaq9)查看我使用的最终超参数。
+下图中的所有搜索都使用了秩为 512 或 768 的设置，具有不同的 alpha 值；alpha 值为秩的 1 倍、1.5 倍或 2 倍。批量大小为 1、2 或 4。您可以在[此处](https://colab.research.google.com/drive/11X5ptOe3zbFE2s1AeHu-gynwAbkE-7Zn#scrollTo=IpcbWcAZgaq9)查看我使用的最终超参数。
 
 一旦找到最优的超参数，我就重新进行了训练，包含了所有数据，以最大限度地利用我所拥有的少量数据，这是常见的做法。这些训练通过在搜索名称末尾添加`All-Data`标签来标注。
 
-每次搜索都用了不到3小时，只用了Colab上的几磅费用。所有的搜索大约花费了我40到50英镑之间。
+每次搜索都用了不到 3 小时，只用了 Colab 上的几磅费用。所有的搜索大约花费了我 40 到 50 英镑之间。
 
 *备注:* 我不小心将我的问答验证数据包含在了原始文本数据中（我忘记了自己把它复制粘贴到我的一个文本文件中了 🙃）。然而，在没有这些数据的情况下重新运行几次，确认了选定的超参数仍然稳定，验证损失并没有显著增加，最佳运行的评估损失约为 0.12。这仍然非常低，表明几乎完美的性能，但这并非事实。因此，评估策略需要一些调查和改进。
 
-![](../Images/028b7f558b63b4647ec774872d581054.png)
+![](img/028b7f558b63b4647ec774872d581054.png)
 
 # 预期
 
@@ -148,21 +148,21 @@ QA数据已导出为JSONL文件，建议使用以下格式，因为许多分词�
 
 以下对关于“产品切换”的问题的回答令人印象深刻，尽管 Wiki 或 PR 描述中没有自然语言的参考。这里大多数变量名和条件判断是正确的：
 
-![](../Images/8ed834c84e888fff580e96d3c2a42be7.png)
+![](img/8ed834c84e888fff580e96d3c2a42be7.png)
 
 像以下这样的提问再次没有自然语言参考，实际上需要深入代码才能意识到我们不允许切换到 Paypal，只允许卡片和 DD。它几乎正确地回答了。
 
-![](../Images/f6eeb3a6bba78a008ed832087d37404a.png)
+![](img/f6eeb3a6bba78a008ed832087d37404a.png)
 
 当明确要求时，它可以完美地回忆起一些代码：
 
-![](../Images/898498e072bc190a08d4506db23df827.png)
+![](img/898498e072bc190a08d4506db23df827.png)
 
 ## 那么在我们的数据集中关于冲突的信息怎么办？
 
 部分 Wiki 内容已经过时（[示例](https://github.com/guardian/manage-frontend/wiki/Client-side-routing)），包括对我们旧的 CI 平台 TeamCity 以及使用 Reach Router 的旧路由解决方案的引用。在询问聊天机器人这些问题时，它的回答是正确的，但需要注意的是，这些问题更加常见，且预训练模型可能更倾向于推荐这些：
 
-![](../Images/b660fb57680057ec05f13ed231328a3b.png)![](../Images/f22cb846041fdd0a12eae39776d6b56e.png)
+![](img/b660fb57680057ec05f13ed231328a3b.png)![](img/f22cb846041fdd0a12eae39776d6b56e.png)
 
 ## **灾难性遗忘**
 
@@ -170,15 +170,15 @@ QA数据已导出为JSONL文件，建议使用以下格式，因为许多分词�
 
 在询问涉及 JavaScript 和 Typescript 的问题时，这些语言在 `manage-frontend` 中很常见（例如：“写一个做 x 和 y 的 Typescript 函数”），模型可能会将 `manage-frontend` 代码库中使用的一些模式加入到回答中。例如：
 
-![](../Images/1fbbe0a9001803401e9d00a8185f04cc.png)
+![](img/1fbbe0a9001803401e9d00a8185f04cc.png)
 
 给定编写一些 Python 代码的指令，我们不会从 `manage-frontend` 中得到这种知识注入到响应中：
 
-![](../Images/d512fc85f7f2d33d22383a871a6a9788.png)
+![](img/d512fc85f7f2d33d22383a871a6a9788.png)
 
 对于非代码相关的问题，存在细微的差异和性能下降。请注意以下响应中的错误：“229,792 公里每 *小时*”，而不是每秒钟。原始模型在 16 位下，使用相同的推理设置并不会犯这个错误。
 
-![](../Images/171d86d8c9f86703fb7500dd9288a3b4.png)
+![](img/171d86d8c9f86703fb7500dd9288a3b4.png)
 
 ## **文本生成策略**
 

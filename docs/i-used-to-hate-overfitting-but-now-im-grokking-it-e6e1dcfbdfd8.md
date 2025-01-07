@@ -1,16 +1,16 @@
 # 我曾经讨厌过拟合，但现在我已经彻底理解它
 
-> 原文：[https://towardsdatascience.com/i-used-to-hate-overfitting-but-now-im-grokking-it-e6e1dcfbdfd8?source=collection_archive---------3-----------------------#2024-07-23](https://towardsdatascience.com/i-used-to-hate-overfitting-but-now-im-grokking-it-e6e1dcfbdfd8?source=collection_archive---------3-----------------------#2024-07-23)
+> 原文：[`towardsdatascience.com/i-used-to-hate-overfitting-but-now-im-grokking-it-e6e1dcfbdfd8?source=collection_archive---------3-----------------------#2024-07-23`](https://towardsdatascience.com/i-used-to-hate-overfitting-but-now-im-grokking-it-e6e1dcfbdfd8?source=collection_archive---------3-----------------------#2024-07-23)
 
 ## 超越过拟合的惊人泛化
 
-[](https://blog.heilmela.eu/?source=post_page---byline--e6e1dcfbdfd8--------------------------------)[![Laurin Heilmeyer](../Images/bf503815c37deba7a84ae313530f20e6.png)](https://blog.heilmela.eu/?source=post_page---byline--e6e1dcfbdfd8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e6e1dcfbdfd8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e6e1dcfbdfd8--------------------------------) [Laurin Heilmeyer](https://blog.heilmela.eu/?source=post_page---byline--e6e1dcfbdfd8--------------------------------)
+[](https://blog.heilmela.eu/?source=post_page---byline--e6e1dcfbdfd8--------------------------------)![Laurin Heilmeyer](https://blog.heilmela.eu/?source=post_page---byline--e6e1dcfbdfd8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e6e1dcfbdfd8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e6e1dcfbdfd8--------------------------------) [Laurin Heilmeyer](https://blog.heilmela.eu/?source=post_page---byline--e6e1dcfbdfd8--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e6e1dcfbdfd8--------------------------------) ·阅读时长：8分钟·2024年7月23日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e6e1dcfbdfd8--------------------------------) ·阅读时长：8 分钟·2024 年 7 月 23 日
 
 --
 
-![](../Images/37cabc7cc6b5c1869d4806c226047caf.png)
+![](img/37cabc7cc6b5c1869d4806c226047caf.png)
 
 图片由[DALL-E](https://openai.com/index/dall-e-2/)提供
 

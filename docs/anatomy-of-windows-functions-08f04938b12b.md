@@ -1,16 +1,16 @@
 # 窗口函数的结构
 
-> 原文：[https://towardsdatascience.com/anatomy-of-windows-functions-08f04938b12b?source=collection_archive---------11-----------------------#2024-06-11](https://towardsdatascience.com/anatomy-of-windows-functions-08f04938b12b?source=collection_archive---------11-----------------------#2024-06-11)
+> 原文：[`towardsdatascience.com/anatomy-of-windows-functions-08f04938b12b?source=collection_archive---------11-----------------------#2024-06-11`](https://towardsdatascience.com/anatomy-of-windows-functions-08f04938b12b?source=collection_archive---------11-----------------------#2024-06-11)
 
 ## 一个被低估的 SQL 操作的理论与实践
 
-[](https://joaopedro214.medium.com/?source=post_page---byline--08f04938b12b--------------------------------)[![João Pedro](../Images/64a0e14527be213e5fde0a02439fbfa7.png)](https://joaopedro214.medium.com/?source=post_page---byline--08f04938b12b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--08f04938b12b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--08f04938b12b--------------------------------) [João Pedro](https://joaopedro214.medium.com/?source=post_page---byline--08f04938b12b--------------------------------)
+[](https://joaopedro214.medium.com/?source=post_page---byline--08f04938b12b--------------------------------)![João Pedro](https://joaopedro214.medium.com/?source=post_page---byline--08f04938b12b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--08f04938b12b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--08f04938b12b--------------------------------) [João Pedro](https://joaopedro214.medium.com/?source=post_page---byline--08f04938b12b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--08f04938b12b--------------------------------) ·12分钟阅读·2024年6月11日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--08f04938b12b--------------------------------) ·12 分钟阅读·2024 年 6 月 11 日
 
 --
 
-![](../Images/372d1f6e1d8557debca3c91f47c3198b.png)
+![](img/372d1f6e1d8557debca3c91f47c3198b.png)
 
 图片来源：[Marcus Woodbridge](https://unsplash.com/@marcuswoodbridge?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -18,7 +18,7 @@
 
 IT 领域以其不断变化而闻名，每天都有新的工具、新的框架、新的云服务提供商和新的大语言模型（LLMs）被创造出来。然而，即便在这个忙碌的世界中，一些原则、范式和工具似乎在挑战 *现状*——“没有什么是永恒不变的”。而在数据领域，没有什么能像 SQL 语言一样，给人留下如此深刻的印象。
 
-自从它在80年代诞生以来，SQL 穿越了数据仓库的时代，实现在 Hadoop/数据湖/大数据中如 Hive 的形式，直到今天，作为 Spark API 之一仍然存在。世界变化了很多，但 SQL 不仅依然存在，而且非常重要和广泛应用。
+自从它在 80 年代诞生以来，SQL 穿越了数据仓库的时代，实现在 Hadoop/数据湖/大数据中如 Hive 的形式，直到今天，作为 Spark API 之一仍然存在。世界变化了很多，但 SQL 不仅依然存在，而且非常重要和广泛应用。
 
 但是 SQL 就像国际象棋，理解基本规则很容易，但要精通却很难！它是一种有着众多可能性、解决同一问题的多种方式、许多函数和关键字的语言，遗憾的是，它还有许多被低估的功能。如果这些功能被更好地了解，可能在构建查询时能为我们带来很大的帮助。
 
@@ -54,9 +54,9 @@ SELECT *, SUM(value) OVER() FROM myTable
 
 下图显示了结果：
 
-![](../Images/515a0dd1db51ff15a16402b7e56af807.png)
+![](img/515a0dd1db51ff15a16402b7e56af807.png)
 
-图1\. 传统的 Group By 与窗口函数。
+图 1\. 传统的 Group By 与窗口函数。
 
 与其创建一个新表，它将在一个新列中返回聚合值。请注意，值是相同的，但表并没有被“*汇总*”，原始的行被保留——我们只是进行了一个*无聚合的聚合* ;)
 
@@ -64,7 +64,7 @@ OVER 子句是我们创建窗口函数的标志。该子句定义了计算将在
 
 当我们需要基于列的总计（或平均值、最小值、最大值）进行计算时，这非常有用。例如，要计算每项支出相对于总支出的百分比。
 
-在实际案例中，我们可能还希望按某些类别查看详细信息，就像图2中的例子那样，其中列出了按部门划分的公司支出。同样，我们可以通过简单的 GROUP BY 来获得每个部门的总支出：
+在实际案例中，我们可能还希望按某些类别查看详细信息，就像图 2 中的例子那样，其中列出了按部门划分的公司支出。同样，我们可以通过简单的 GROUP BY 来获得每个部门的总支出：
 
 ```py
 SELECT depto, sum(value) FROM myTable GROUP BY depto
@@ -78,9 +78,9 @@ SELECT *, SUM(value) OVER(PARTITION BY depto) FROM myTable
 
 查看结果：
 
-![](../Images/0947321d3d95e41d31ad0db854d715d5.png)
+![](img/0947321d3d95e41d31ad0db854d715d5.png)
 
-图2\. 传统的 Group By 与窗口函数 II。
+图 2\. 传统的 Group By 与窗口函数 II。
 
 这个例子有助于理解为什么该操作被称为“窗口”函数——OVER 子句定义了一组行，函数将在这些行上执行操作，表中的一个“窗口”。
 
@@ -94,7 +94,7 @@ SELECT *, SUM(value) OVER(PARTITION BY depto) FROM myTable
 
 但是，窗口函数使得这一过程变得简单，见下图（表格记录了某些孩子的身高）：
 
-![](../Images/d21d9b89afae09daf771815ebdbfa173.png)
+![](img/d21d9b89afae09daf771815ebdbfa173.png)
 
 图像 3\. 分析函数示例。
 
@@ -140,41 +140,41 @@ FROM ...
 SELECT 1-height/LAG(height) OVER (ORDER BY year PARTITION BY name) ...
 ```
 
-![](../Images/922cd5ae7576c1932396cd98d0439a81.png)
+![](img/922cd5ae7576c1932396cd98d0439a81.png)
 
 图像 4\. ORDER BY + PARTITION BY
 
-上述查询执行以下操作——按子项对表进行分区，并在每个分区中按年份对值进行排序，随后用当前年份的高度值除以前一年的值（并从结果中减去1）。
+上述查询执行以下操作——按子项对表进行分区，并在每个分区中按年份对值进行排序，随后用当前年份的高度值除以前一年的值（并从结果中减去 1）。
 
-我们正逐渐接近‘窗口’的完整概念！它是一个表切片，是一组按PARTITION BY中定义的列分组的行，按ORDER BY中的字段排序，其中所有计算仅考虑同一组（分区）中的行以及特定的排序。
+我们正逐渐接近‘窗口’的完整概念！它是一个表切片，是一组按 PARTITION BY 中定义的列分组的行，按 ORDER BY 中的字段排序，其中所有计算仅考虑同一组（分区）中的行以及特定的排序。
 
 **4-排名与位置**
 
-窗口函数可以分为三类，其中两类我们已经讨论过：聚合函数（COUNT、SUM、AVG、MAX等）和分析函数（LAG、LEAD、FIRST_VALUE、LAST_VALUE等）。
+窗口函数可以分为三类，其中两类我们已经讨论过：聚合函数（COUNT、SUM、AVG、MAX 等）和分析函数（LAG、LEAD、FIRST_VALUE、LAST_VALUE 等）。
 
-第三组是最简单的——排名函数，其中最常用的函数是row_number()，它返回一个整数，表示行在分组中的位置（基于定义的顺序）。
+第三组是最简单的——排名函数，其中最常用的函数是 row_number()，它返回一个整数，表示行在分组中的位置（基于定义的顺序）。
 
 ```py
 SELECT row_number() OVER(ORDER BY score)
 ```
 
-排名函数，顾名思义，根据行在分组中的位置返回值，该位置由排序标准定义。ROW_NUMBER、RANK和NTILE是最常用的几个函数。
+排名函数，顾名思义，根据行在分组中的位置返回值，该位置由排序标准定义。ROW_NUMBER、RANK 和 NTILE 是最常用的几个函数。
 
-![](../Images/48c1e37784164faa6c962419619ba7d5.png)
+![](img/48c1e37784164faa6c962419619ba7d5.png)
 
-图片5：排名函数示例
+图片 5：排名函数示例
 
 在上面的图片中，行号是根据每个玩家的得分生成的。
 
-…是的，它犯了一个可怕的编程错误，那就是从1开始。
+…是的，它犯了一个可怕的编程错误，那就是从 1 开始。
 
 **5-窗口大小**
 
-到目前为止，所有展示的函数在计算结果时都会考虑分区/组中的**所有行**。例如，第一示例中描述的SUM()函数会考虑所有部门的行来计算总和。
+到目前为止，所有展示的函数在计算结果时都会考虑分区/组中的**所有行**。例如，第一示例中描述的 SUM()函数会考虑所有部门的行来计算总和。
 
 但可以指定一个更小的窗口大小，也就是计算时需要考虑当前行前后多少行。这是一个有用的功能，用于计算移动平均/滚动窗口。
 
-让我们考虑以下示例，表格中包含某种疾病的每日病例数，我们需要计算考虑当前日期和前两天的平均病例数。请注意，可以使用之前展示的LAG函数来解决这个问题：
+让我们考虑以下示例，表格中包含某种疾病的每日病例数，我们需要计算考虑当前日期和前两天的平均病例数。请注意，可以使用之前展示的 LAG 函数来解决这个问题：
 
 ```py
 SELECT
@@ -210,9 +210,9 @@ ROWS BETWEEN UNBOUDED PRECEDING AND CURRENT ROW
 -- ALL THE PREVIOUS ROWS + THE CURRENT ROW
 ```
 
-![](../Images/63a58c1627d3e6cb5a9756f33d45be17.png)
+![](img/63a58c1627d3e6cb5a9756f33d45be17.png)
 
-图片6：探索窗口大小定义
+图片 6：探索窗口大小定义
 
 我希望这段介绍能帮助你更好地理解什么是窗口函数，它们是如何工作的，以及它们在实际中的语法。自然，窗口函数可以添加更多的关键字，但我认为这段介绍已经涵盖了你在日常工作中很可能使用的许多命令。接下来，让我们看一些我在日常工作中用来解决问题的有趣实际应用 —— 有些是非常有趣的！
 
@@ -224,7 +224,7 @@ ROWS BETWEEN UNBOUDED PRECEDING AND CURRENT ROW
 
 假设有一张表，记录了你每个月的工资，并且你想知道每个月的累计收入（考虑到所有之前的月份），它是这样工作的：
 
-![](../Images/8c463284ee60b1bc1514217408428556.png)
+![](img/8c463284ee60b1bc1514217408428556.png)
 
 图 7\. 实际示例 — 累积和
 
@@ -234,11 +234,11 @@ ROWS BETWEEN UNBOUDED PRECEDING AND CURRENT ROW
 
 ## 日志表中事件的持续时间
 
-我最近在我的文章[**我在 DuckDB 中的第一亿行（数据）**](/my-first-billion-of-rows-in-duckdb-11873e5edbb5)中使用了这个方法，在文章中我处理了来自巴西电子投票机的日志数据，如果你对处理大数据量感兴趣，这篇文章值得一读。
+我最近在我的文章**我在 DuckDB 中的第一亿行（数据）**中使用了这个方法，在文章中我处理了来自巴西电子投票机的日志数据，如果你对处理大数据量感兴趣，这篇文章值得一读。
 
 总结来说，假设有一个日志表，每个事件都由一个时间戳组成，表示事件的开始时间、事件的名称以及一个唯一标识符。考虑到每个事件只有在前一个事件结束后才开始，我们可以轻松地添加一个表示事件持续时间的列，如下所示：
 
-![](../Images/c1bd06a9e78748dcf647153074683b60.png)
+![](img/c1bd06a9e78748dcf647153074683b60.png)
 
 图 8\. 实际示例 — 日志中的事件持续时间
 
@@ -248,7 +248,7 @@ ROWS BETWEEN UNBOUDED PRECEDING AND CURRENT ROW
 
 如何在 SQL 中做到这一点？很简单！
 
-![](../Images/f641b9eb882d0002c966009bd0bf68da.png)
+![](img/f641b9eb882d0002c966009bd0bf68da.png)
 
 图 8\. 实际示例 — 填充缺失值 I
 
@@ -258,7 +258,7 @@ ROWS BETWEEN UNBOUDED PRECEDING AND CURRENT ROW
 
 填充空值的稍微复杂一点的方法，但依然简单！
 
-![](../Images/7c734d992b57a4881e1a4b9376119521.png)
+![](img/7c734d992b57a4881e1a4b9376119521.png)
 
 图 8\. 实际示例 — 填充缺失值 II
 
@@ -275,7 +275,7 @@ WHERE SUM() OVER() > 10 -- This is not possible in postgres
 
 当然，在 SQL 中我们有 DISTINCT 子句，但它仅在整行重复时有效。如果一个表中有多行 ID 列相同但其他列的值不同的记录，可以通过以下逻辑来去重：
 
-![](../Images/0419e5ca21c880e1c1b1b7585aad7f1d.png)
+![](img/0419e5ca21c880e1c1b1b7585aad7f1d.png)
 
 图 9. 实际例子 — 去重
 
@@ -307,7 +307,7 @@ WHERE row_number = 1
 
 假设有一个列出了各种宠物的表，这些宠物可以是狗、猫或鸟。我们需要为每一行添加一列，表示每种宠物类型占所有宠物总数的百分比。这个任务通过使用不仅仅一个，而是两个窗口函数来解决！
 
-![](../Images/9510c84678562ece6e866050e410dbb8.png)
+![](img/9510c84678562ece6e866050e410dbb8.png)
 
 图 10. 实际例子 — 出现百分比
 
@@ -327,22 +327,22 @@ WHERE row_number = 1
 
 # 参考文献
 
-> 所有代码均可在[这个GitHub仓库](https://github.com/jaumpedro214/posts/tree/main/sql_window_functions)中找到。
+> 所有代码均可在[这个 GitHub 仓库](https://github.com/jaumpedro214/posts/tree/main/sql_window_functions)中找到。
 > 
 > 对这类作品感兴趣吗？请访问我的[帖子仓库](https://github.com/jaumpedro214/posts)。
 
-[1] *使用PostgreSQL窗口函数进行数据处理*。(n.d.)。Timescale。[Link](https://www.timescale.com/learn/postgresql-window-functions)。
+[1] *使用 PostgreSQL 窗口函数进行数据处理*。(n.d.)。Timescale。[Link](https://www.timescale.com/learn/postgresql-window-functions)。
 
-[2] Kho, J. (2022年6月5日). 高级SQL窗口函数简易指南 — 朝向数据科学。[*Medium*](/a-guide-to-advanced-sql-window-functions-f63f2642cbf9)。
+[2] Kho, J. (2022 年 6 月 5 日). 高级 SQL 窗口函数简易指南 — 朝向数据科学。*Medium*。
 
-[3] Markingmyname. (2023年11月16日). *分析函数 (Transact-SQL) — SQL Server*。[Microsoft Learn](https://learn.microsoft.com/pt-br/sql/t-sql/functions/analytic-functions-transact-sql?view=sql-server-ver16)。
+[3] Markingmyname. (2023 年 11 月 16 日). *分析函数 (Transact-SQL) — SQL Server*。[Microsoft Learn](https://learn.microsoft.com/pt-br/sql/t-sql/functions/analytic-functions-transact-sql?view=sql-server-ver16)。
 
-[4] PostgreSQL教程。(2021年4月27日). *PostgreSQL窗口函数：终极指南*。[Link](https://www.postgresqltutorial.com/postgresql-window-function/)。
+[4] PostgreSQL 教程。(2021 年 4 月 27 日). *PostgreSQL 窗口函数：终极指南*。[Link](https://www.postgresqltutorial.com/postgresql-window-function/)。
 
-[5] VanMSFT. (2023年5月23日). *OVER子句 (Transact-SQL) — SQL Server*。[Microsoft Learn](https://learn.microsoft.com/en-us/sql/t-sql/queries/select-over-clause-transact-sql?view=sql-server-ver16)。
+[5] VanMSFT. (2023 年 5 月 23 日). *OVER 子句 (Transact-SQL) — SQL Server*。[Microsoft Learn](https://learn.microsoft.com/en-us/sql/t-sql/queries/select-over-clause-transact-sql?view=sql-server-ver16)。
 
-[6] *窗口函数*。(n.d.)。[SQLite官方文档](https://www.sqlite.org/draft/windowfunctions.html)。
+[6] *窗口函数*。(n.d.)。[SQLite 官方文档](https://www.sqlite.org/draft/windowfunctions.html)。
 
-[7] *窗口函数*。(2014年7月24日)。[PostgreSQL文档](https://www.postgresql.org/docs/8.4/functions-window.html)。
+[7] *窗口函数*。(2014 年 7 月 24 日)。[PostgreSQL 文档](https://www.postgresql.org/docs/8.4/functions-window.html)。
 
 *本文中的所有图片均由作者制作。*

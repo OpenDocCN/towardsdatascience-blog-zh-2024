@@ -1,16 +1,16 @@
 # 使用 Hugging Face 代码代理的多代理 RAG 系统
 
-> 原文：[https://towardsdatascience.com/multi-agentic-rag-with-hugging-face-code-agents-005822122930?source=collection_archive---------0-----------------------#2024-12-31](https://towardsdatascience.com/multi-agentic-rag-with-hugging-face-code-agents-005822122930?source=collection_archive---------0-----------------------#2024-12-31)
+> 原文：[`towardsdatascience.com/multi-agentic-rag-with-hugging-face-code-agents-005822122930?source=collection_archive---------0-----------------------#2024-12-31`](https://towardsdatascience.com/multi-agentic-rag-with-hugging-face-code-agents-005822122930?source=collection_archive---------0-----------------------#2024-12-31)
 
 ## 使用 *Qwen2.5–7B-Instruct* 驱动的代码代理创建一个本地的、开源的多代理 RAG 系统
 
-[](https://medium.com/@gabrielesgroi94?source=post_page---byline--005822122930--------------------------------)[![Gabriele Sgroi, 博士](../Images/b81978d35e6238d160457de2affc2b0e.png)](https://medium.com/@gabrielesgroi94?source=post_page---byline--005822122930--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--005822122930--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--005822122930--------------------------------) [Gabriele Sgroi, 博士](https://medium.com/@gabrielesgroi94?source=post_page---byline--005822122930--------------------------------)
+[](https://medium.com/@gabrielesgroi94?source=post_page---byline--005822122930--------------------------------)![Gabriele Sgroi, 博士](https://medium.com/@gabrielesgroi94?source=post_page---byline--005822122930--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--005822122930--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--005822122930--------------------------------) [Gabriele Sgroi, 博士](https://medium.com/@gabrielesgroi94?source=post_page---byline--005822122930--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--005822122930--------------------------------) ·阅读时长：61分钟 ·4天前
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--005822122930--------------------------------) ·阅读时长：61 分钟 ·4 天前
 
 --
 
-![](../Images/1ff9aca5ba93aaf9ae77e0a74be9e734.png)
+![](img/1ff9aca5ba93aaf9ae77e0a74be9e734.png)
 
 图片来自 [Jaredd Craig](https://unsplash.com/@jaredd?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral) 上
 
@@ -30,57 +30,57 @@ ReAct，提出于[ReAct: Synergizing Reasoning and Acting in Language Models](ht
 
 以下是 ReACT 框架的示例。
 
-![](../Images/bb48e73b9eeef9ce664171f66c3b531d.png)
+![](img/bb48e73b9eeef9ce664171f66c3b531d.png)
 
 ReACT、思维链和仅行动框架在问答任务中的比较。图片来源于[ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629)。
 
 # 代码代理
 
-代码代理是一种特定类型的LLM代理，使用可执行的Python代码与环境进行交互。它们基于论文[可执行代码操作能激发更好的LLM代理](https://arxiv.org/abs/2402.01030)中提出的CodeAct框架。CodeAct与ReAct框架非常相似，不同之处在于每个操作都由任意可执行代码组成，可以执行多个操作。手工制作的工具作为常规Python函数提供给代理，代理可以在代码中调用这些函数。
+代码代理是一种特定类型的 LLM 代理，使用可执行的 Python 代码与环境进行交互。它们基于论文[可执行代码操作能激发更好的 LLM 代理](https://arxiv.org/abs/2402.01030)中提出的 CodeAct 框架。CodeAct 与 ReAct 框架非常相似，不同之处在于每个操作都由任意可执行代码组成，可以执行多个操作。手工制作的工具作为常规 Python 函数提供给代理，代理可以在代码中调用这些函数。
 
-代码代理相较于使用JSON或其他文本格式执行操作的传统代理具有一系列独特的优势：
+代码代理相较于使用 JSON 或其他文本格式执行操作的传统代理具有一系列独特的优势：
 
 +   它们可以结合现有的软件包和手工制作的特定任务工具来使用。
 
 +   它们可以通过使用在发生错误后返回的错误信息来进行自我调试。
 
-+   LLMs熟悉编写代码，因为代码通常广泛出现在它们的预训练数据中，使其成为编写操作的更自然格式。
++   LLMs 熟悉编写代码，因为代码通常广泛出现在它们的预训练数据中，使其成为编写操作的更自然格式。
 
-+   代码自然允许存储中间结果并在一次操作中组合多个操作，而JSON或其他文本格式可能需要多次操作才能完成相同的任务。
++   代码自然允许存储中间结果并在一次操作中组合多个操作，而 JSON 或其他文本格式可能需要多次操作才能完成相同的任务。
 
-基于这些原因，代码代理能够比使用JSON或其他文本格式执行操作的代理提供更好的性能和更快的执行速度。
+基于这些原因，代码代理能够比使用 JSON 或其他文本格式执行操作的代理提供更好的性能和更快的执行速度。
 
-![](../Images/a67f4047cd5299419a6fe7f81077f750.png)
+![](img/a67f4047cd5299419a6fe7f81077f750.png)
 
-代码代理与使用JSON或文本作为操作的代理对比。图片来源：[可执行代码操作能激发更好的LLM代理](https://arxiv.org/abs/2402.01030)。
+代码代理与使用 JSON 或文本作为操作的代理对比。图片来源：[可执行代码操作能激发更好的 LLM 代理](https://arxiv.org/abs/2402.01030)。
 
 以下是原始论文中的一个具体例子，展示了代码代理如何在解决某些任务时需要更少的操作。
 
-![](../Images/0a96c18b5be55a21b4f23952aefcad2e.png)
+![](img/0a96c18b5be55a21b4f23952aefcad2e.png)
 
-代码代理与使用JSON/文本操作格式的代理对比。代码代理可以在一次操作中执行多个操作。图片来源：[可执行代码操作能激发更好的LLM代理](https://arxiv.org/abs/2402.01030)。[RIVEDERE]
+代码代理与使用 JSON/文本操作格式的代理对比。代码代理可以在一次操作中执行多个操作。图片来源：[可执行代码操作能激发更好的 LLM 代理](https://arxiv.org/abs/2402.01030)。[RIVEDERE]
 
-Hugging Face的transformers库提供了构建代理，特别是代码代理的有用模块。Hugging Face的transformer代理框架将清晰性和模块化作为核心设计原则。这些原则在构建代理系统时尤为重要：由于工作流的复杂性，必须对架构中的所有相互关联的部分进行控制。这些设计选择使得Hugging Face代理成为构建自定义和灵活代理系统的优秀工具。当使用开源模型为代理引擎提供支持时，Hugging Face代理框架还有一个额外的优势，即可以轻松访问Hugging Face生态系统中现有的模型和工具。
+Hugging Face 的 transformers 库提供了构建代理，特别是代码代理的有用模块。Hugging Face 的 transformer 代理框架将清晰性和模块化作为核心设计原则。这些原则在构建代理系统时尤为重要：由于工作流的复杂性，必须对架构中的所有相互关联的部分进行控制。这些设计选择使得 Hugging Face 代理成为构建自定义和灵活代理系统的优秀工具。当使用开源模型为代理引擎提供支持时，Hugging Face 代理框架还有一个额外的优势，即可以轻松访问 Hugging Face 生态系统中现有的模型和工具。
 
-Hugging Face代码代理还解决了不安全代码执行的问题。事实上，让LLM不加限制地生成代码可能会带来严重风险，因为它可能执行不希望发生的操作。例如，一个幻觉可能导致代理删除重要文件。为了减轻这种风险，Hugging Face代码代理实现采用了从头开始的安全代码执行方法：代码解释器只能执行明确授权的操作。这与通常的自上而下的范式不同，后者从一个完全功能的Python解释器开始，然后禁止可能危险的操作。Hugging Face的实现包括一个可以执行的安全授权函数列表，并提供了一个可以导入的安全模块列表。除非已被用户预先授权，否则其他任何操作都不可执行。你可以在他们的博客文章中阅读更多关于Hugging Face（代码）代理的内容：
+Hugging Face 代码代理还解决了不安全代码执行的问题。事实上，让 LLM 不加限制地生成代码可能会带来严重风险，因为它可能执行不希望发生的操作。例如，一个幻觉可能导致代理删除重要文件。为了减轻这种风险，Hugging Face 代码代理实现采用了从头开始的安全代码执行方法：代码解释器只能执行明确授权的操作。这与通常的自上而下的范式不同，后者从一个完全功能的 Python 解释器开始，然后禁止可能危险的操作。Hugging Face 的实现包括一个可以执行的安全授权函数列表，并提供了一个可以导入的安全模块列表。除非已被用户预先授权，否则其他任何操作都不可执行。你可以在他们的博客文章中阅读更多关于 Hugging Face（代码）代理的内容：
 
-+   [许可调用：介绍Transformers Agents 2.0](https://huggingface.co/blog/agents)
++   [许可调用：介绍 Transformers Agents 2.0](https://huggingface.co/blog/agents)
 
-+   [我们的Transformers代码代理打破GAIA基准！](https://huggingface.co/blog/beating-gaia)
++   [我们的 Transformers 代码代理打破 GAIA 基准！](https://huggingface.co/blog/beating-gaia)
 
-# 代理RAG
+# 代理 RAG
 
-检索增强生成（RAG）已成为涉及大型语言模型（LLM）信息检索任务的事实标准。它可以帮助保持LLM的信息更新，提供特定信息的访问权限，并减少幻觉（hallucinations）。它还可以通过返回模型用来生成答案的来源，增强人类可解释性和监督性。传统的RAG工作流程包括基于与用户查询语义相似度的检索过程以及通过检索到的信息增强模型上下文，但这种方法无法解决一些特定任务。一些不适合传统RAG的情况包括需要与信息来源互动的任务、需要多个信息片段才能回答的查询以及需要复杂操作才能与来源中的实际信息连接的复杂查询。
+检索增强生成（RAG）已成为涉及大型语言模型（LLM）信息检索任务的事实标准。它可以帮助保持 LLM 的信息更新，提供特定信息的访问权限，并减少幻觉（hallucinations）。它还可以通过返回模型用来生成答案的来源，增强人类可解释性和监督性。传统的 RAG 工作流程包括基于与用户查询语义相似度的检索过程以及通过检索到的信息增强模型上下文，但这种方法无法解决一些特定任务。一些不适合传统 RAG 的情况包括需要与信息来源互动的任务、需要多个信息片段才能回答的查询以及需要复杂操作才能与来源中的实际信息连接的复杂查询。
 
-对于传统RAG系统的一个具体挑战性示例是多跳问答（MHQA）。它涉及提取和组合多个信息片段，可能需要多次迭代推理过程，以处理提取的信息和仍然缺失的部分。例如，如果模型被问到“桦木胶合板在乙醇中会浮吗？”，即使用于RAG的来源包含关于这两种材料密度的信息，如果这两条信息没有直接关联，标准的RAG框架也可能失败。
+对于传统 RAG 系统的一个具体挑战性示例是多跳问答（MHQA）。它涉及提取和组合多个信息片段，可能需要多次迭代推理过程，以处理提取的信息和仍然缺失的部分。例如，如果模型被问到“桦木胶合板在乙醇中会浮吗？”，即使用于 RAG 的来源包含关于这两种材料密度的信息，如果这两条信息没有直接关联，标准的 RAG 框架也可能失败。
 
-一种常见的方式来增强RAG以避免上述不足，是使用代理系统。一个LLM代理可以将原始查询拆解成一系列子查询，然后使用语义搜索作为工具来检索这些生成的子查询的段落，随着更多信息的收集，它可以改变和调整计划。它可以自主决定是否已经收集到足够的信息来回答每个查询，或者是否应该继续搜索。代理RAG框架还可以通过扩展为多代理系统进一步增强，在该系统中，每个代理都有自己的任务和职责。这使得，例如，可以将高层任务规划与与文档源的交互分开。在下一节中，我将描述这种系统的实际实现。
+一种常见的方式来增强 RAG 以避免上述不足，是使用代理系统。一个 LLM 代理可以将原始查询拆解成一系列子查询，然后使用语义搜索作为工具来检索这些生成的子查询的段落，随着更多信息的收集，它可以改变和调整计划。它可以自主决定是否已经收集到足够的信息来回答每个查询，或者是否应该继续搜索。代理 RAG 框架还可以通过扩展为多代理系统进一步增强，在该系统中，每个代理都有自己的任务和职责。这使得，例如，可以将高层任务规划与与文档源的交互分开。在下一节中，我将描述这种系统的实际实现。
 
-# 带有代码代理的多代理RAG
+# 带有代码代理的多代理 RAG
 
-在这一节中，我将讨论我用来基于代码代理实现多代理RAG系统的一般架构选择，该系统遵循ReAct框架。你可以在以下[GitHub仓库](https://github.com/GabrieleSgroi/multiagentic_rag)中找到完整代码实现的剩余细节。
+在这一节中，我将讨论我用来基于代码代理实现多代理 RAG 系统的一般架构选择，该系统遵循 ReAct 框架。你可以在以下[GitHub 仓库](https://github.com/GabrieleSgroi/multiagentic_rag)中找到完整代码实现的剩余细节。
 
-多代理系统的目标是通过在维基百科上搜索必要的信息来回答一个问题。它由3个代理组成：
+多代理系统的目标是通过在维基百科上搜索必要的信息来回答一个问题。它由 3 个代理组成：
 
 +   一个管理代理，其工作是将任务拆解成子任务，并利用它们的输出提供最终答案。
 
@@ -90,9 +90,9 @@ Hugging Face代码代理还解决了不安全代码执行的问题。事实上�
 
 这三个代理以分层方式组织：每个代理可以将位于层次结构下方的代理作为工具使用。特别是，管理代理可以调用维基百科搜索代理来查找查询信息，而后者又可以使用页面搜索代理从维基百科页面中提取特定信息。
 
-以下是架构图，指定了每个代理可以调用的手工工具（包括包装其他代理的工具）。请注意，由于代码代理通过代码执行来操作，这些并不是它们唯一可以使用的工具，因为任何本地Python操作和函数（只要获得授权）也可以使用。
+以下是架构图，指定了每个代理可以调用的手工工具（包括包装其他代理的工具）。请注意，由于代码代理通过代码执行来操作，这些并不是它们唯一可以使用的工具，因为任何本地 Python 操作和函数（只要获得授权）也可以使用。
 
-![](../Images/54e5a02732eb01048ba8b64cc5648fc5.png)
+![](img/54e5a02732eb01048ba8b64cc5648fc5.png)
 
 显示代理和手工工具的架构图。图片由作者提供。
 
@@ -102,7 +102,7 @@ Hugging Face代码代理还解决了不安全代码执行的问题。事实上�
 
 这是顶层代理，它接收用户的提问并负责返回答案。它可以通过向维基百科搜索代理发送查询并接收搜索的最终结果来使用该工具。它的目的是通过将用户问题拆解成一系列子查询并将搜索结果汇总，收集来自维基百科的必要信息。
 
-以下是为此代理使用的系统提示符。它建立在默认的Hugging Face提示符模板之上。请注意，提示符中提供的示例遵循了支持此代理的模型的聊天模板，在这种情况下是*Qwen2.5–7B-Instruct*。
+以下是为此代理使用的系统提示符。它建立在默认的 Hugging Face 提示符模板之上。请注意，提示符中提供的示例遵循了支持此代理的模型的聊天模板，在这种情况下是*Qwen2.5–7B-Instruct*。
 
 ```py
 You are an expert assistant who can find answer on the internet using code blobs and tools. To do so, you have been given access to a list of tools: these tools are basically Python functions which you can call with code.
@@ -150,7 +150,7 @@ Thought: Now that I have retrieved the relevant information, I can use the `fina
 Code:
 ```py
 
-final_answer("根据传说，罗马是在公元前753年4月21日建立的，但考古证据表明其发展可以追溯到青铜时代。")
+final_answer("根据传说，罗马是在公元前 753 年 4 月 21 日建立的，但考古证据表明其发展可以追溯到青铜时代。")
 
 ```py<end_action><|im_end|>
 ---
@@ -208,7 +208,7 @@ Now start and solve the task!
 
 这个代理收集信息以回答查询，将其分解为更小的子查询，并在需要时结合多个页面的信息。这是通过使用维基百科包的搜索工具来识别可能包含必要信息的页面来实现的：代理可以使用报告的页面摘要或调用页面搜索代理，从特定页面提取更多信息。收集到足够的数据后，它会返回答案给经理代理。
 
-系统提示符再次是对Hugging Face默认提示符的轻微修改，后面跟随了一些具体示例，遵循模型的聊天模板。
+系统提示符再次是对 Hugging Face 默认提示符的轻微修改，后面跟随了一些具体示例，遵循模型的聊天模板。
 
 ```py
 You are an expert assistant that retrieves information from Wikipedia using code blobs and tools. To do so, you have been given access to a list of tools: these tools are basically Python functions which you can call with code.
@@ -295,7 +295,7 @@ Thought: I have found that Mauna Kea is the world's tallest mountain rising abou
 Code:
 ```py
 
-final_answer("茂纳基阿是世界上最高的山脉，从太平洋海底升起约10,203米（33,474英尺）。")
+final_answer("茂纳基阿是世界上最高的山脉，从太平洋海底升起约 10,203 米（33,474 英尺）。")
 
 ```py<end_action><|im_end|>
 ___
@@ -311,9 +311,9 @@ Now start and solve the task!
 
 ## 页面搜索代理
 
-这个代理报告给维基百科搜索代理，后者为其提供查询和维基百科页面的标题，任务是从该页面中检索相关信息以回答查询。 本质上，这是一个单代理的RAG系统。 为了执行该任务，这个代理生成自定义查询，并使用语义搜索工具来检索与查询更为相似的段落。 语义搜索工具的实现非常简单，将页面内容拆分成块，并使用LangChain提供的FAISS向量数据库进行嵌入。
+这个代理报告给维基百科搜索代理，后者为其提供查询和维基百科页面的标题，任务是从该页面中检索相关信息以回答查询。 本质上，这是一个单代理的 RAG 系统。 为了执行该任务，这个代理生成自定义查询，并使用语义搜索工具来检索与查询更为相似的段落。 语义搜索工具的实现非常简单，将页面内容拆分成块，并使用 LangChain 提供的 FAISS 向量数据库进行嵌入。
 
-以下是系统提示，仍然基于Hugging Face默认提供的提示构建
+以下是系统提示，仍然基于 Hugging Face 默认提供的提示构建
 
 ```py
 You are an expert assistant that finds answers to questions by consulting Wikipedia, using code blobs and tools. To do so, you have been given access to a list of tools: these tools are basically Python functions which you can call with code.
@@ -360,7 +360,7 @@ Thought: From the summary of the page "", I can see that Seneca was born in . I 
 Code:
 ```py
 
-final_answer("根据维基百科页面《年轻塞内卡》中的内容，塞内卡生于公元前4年。")
+final_answer("根据维基百科页面《年轻塞内卡》中的内容，塞内卡生于公元前 4 年。")
 
 ```py<end_action><|im_end|>
 ---
@@ -426,9 +426,9 @@ Now start and solve the task!
 
 ## 实现选择
 
-在本小节中，我将概述与使用Hugging Face代理的架构进行直观实现时的主要区别。这些是有限试错后得到的结果，解决方案效果尚可，但我尚未进行大量测试和消融，因此这些选择可能不是最优的。
+在本小节中，我将概述与使用 Hugging Face 代理的架构进行直观实现时的主要区别。这些是有限试错后得到的结果，解决方案效果尚可，但我尚未进行大量测试和消融，因此这些选择可能不是最优的。
 
-+   **提示：** 如前所述，每个代理都有自己的专用系统提示，与Hugging Face代码代理提供的默认提示不同。我观察到，可能由于所使用的模型大小有限，一般的标准系统提示并没有给出好的结果。该模型似乎在系统提示 closely 反映任务时效果最佳，包括量身定制的重大用例示例。由于我使用了一个聊天模型，旨在改善指令跟随行为，提供的示例遵循模型的聊天模板，尽可能接近运行时遇到的格式。
++   **提示：** 如前所述，每个代理都有自己的专用系统提示，与 Hugging Face 代码代理提供的默认提示不同。我观察到，可能由于所使用的模型大小有限，一般的标准系统提示并没有给出好的结果。该模型似乎在系统提示 closely 反映任务时效果最佳，包括量身定制的重大用例示例。由于我使用了一个聊天模型，旨在改善指令跟随行为，提供的示例遵循模型的聊天模板，尽可能接近运行时遇到的格式。
 
 +   **历史总结：** 长时间的执行历史对执行速度和任务表现都有不利影响。后者可能是由于模型从长上下文中提取必要信息的能力有限。此外，极长的执行历史可能超出引擎模型的最大上下文长度。为了缓解这些问题并加速执行，我选择不显示之前思考-行动-观察步骤的所有细节，而是仅收集之前的观察记录。更具体地说，在每一步中，模型只接收以下聊天历史：系统消息、包含任务的第一条消息、其最后一项行动和所有之前观察的历史。此外，执行错误仅在最后一步发生时出现在观察历史中，之前已经解决的错误会被丢弃。
 
@@ -440,7 +440,7 @@ Now start and solve the task!
 
 # 示例
 
-在这一部分，我将收集一些使用所述架构生成的示例。我还将提供所有参与任务的代理的详细执行过程，以展示它们在一些实际案例中的互动。你可以使用插图[Colab笔记本](https://colab.research.google.com/drive/1ZxF-Fkv4QV31uo79FagZWFm8tvXgCtBN)探索更多示例。所有提取的段落都来自执行中指定的维基百科页面。
+在这一部分，我将收集一些使用所述架构生成的示例。我还将提供所有参与任务的代理的详细执行过程，以展示它们在一些实际案例中的互动。你可以使用插图[Colab 笔记本](https://colab.research.google.com/drive/1ZxF-Fkv4QV31uo79FagZWFm8tvXgCtBN)探索更多示例。所有提取的段落都来自执行中指定的维基百科页面。
 
 让我们开始探索一个简单的示例，它需要结合来自多个来源的信息并进行一些基本的算术理解。
 
@@ -525,7 +525,7 @@ AGENT:  Thought: From the summary of the page 'Eiffel Tower', I can see that the
 Code:
 ```py
 
-final_answer("根据从维基百科页面 '埃菲尔铁塔' 提取的信息，埃菲尔铁塔的建设发生在1887年至1889年之间。")
+final_answer("根据从维基百科页面 '埃菲尔铁塔' 提取的信息，埃菲尔铁塔的建设发生在 1887 年至 1889 年之间。")
 
 ```py<end_action>
 OBSERVATIONS:  Print outputs:
@@ -561,7 +561,7 @@ AGENT:  Thought: From the summary of the page "Empire State Building", I can see
 Code:
 ```py
 
-final_answer("根据从维基百科页面 '帝国大厦' 提取的信息，帝国大厦的建设始于1930年，结束于1931年。")
+final_answer("根据从维基百科页面 '帝国大厦' 提取的信息，帝国大厦的建设始于 1930 年，结束于 1931 年。")
 
 ```py<end_action>
 OBSERVATIONS:  Print outputs:
@@ -654,7 +654,7 @@ AGENT:  Thought: I have found the density of birch plywood from the Wikipedia pa
 Code:
 ```py
 
-final_answer("桦木胶合板的密度大约是680 kg/m³。")
+final_answer("桦木胶合板的密度大约是 680 kg/m³。")
 
 ```py<end_action>
 OBSERVATION:  Print outputs:
@@ -705,7 +705,7 @@ AGENT:  Thought: I have found the density of ethanol from the Wikipedia page 'Et
 Code:
 ```py
 
-final_answer("乙醇在20°C时的密度大约是0.7894 g/cm³。")
+final_answer("乙醇在 20°C 时的密度大约是 0.7894 g/cm³。")
 
 ```py<end_action>
 OBSERVATION:  Print outputs:
@@ -749,7 +749,7 @@ AGENT:  Thought: From the passages, I can see that the density of birch plywood 
 Code:
 ```py
 
-final_answer("桦木胶合板的密度约为680 kg/m³。")
+final_answer("桦木胶合板的密度约为 680 kg/m³。")
 
 ```py<end_action>
 OBSERVATION:  Print outputs:
@@ -815,7 +815,7 @@ a = -8.461834e-4
 
 b = 0.8063372
 
-# 计算特定温度下的密度，我们以20°C为例
+# 计算特定温度下的密度，我们以 20°C 为例
 
 temperature = 20
 
@@ -831,7 +831,7 @@ AGENT:  Thought: The passage provides a linear equation to calculate the density
 Code:
 ```py
 
-final_answer(f"20°C下乙醇的密度约为{round(0.789413532, 4)} g/cm³。")
+final_answer(f"20°C 下乙醇的密度约为{round(0.789413532, 4)} g/cm³。")
 
 ```py<end_action>
 OBSERVATION:  Print outputs:
@@ -845,7 +845,7 @@ The density of ethanol at 20°C is approximately 0.7894 g/cm³.
 
 讨论的系统具有令人印象深刻的能力，特别是考虑到使用的引擎模型的有限规模，但当然，它也有自己的局限性。最大的局限似乎与引擎模型本身的能力有关：虽然它似乎能够理解并执行复杂且冗长的指令，以及正确使用提供的工具，但有时它未能遵循简单的指南，并且往往会重复无效的操作而没有变化。当代理寻找的信息不存在（或无法通过语义搜索工具轻松提取）时，这种情况尤为突出。
 
-另一个缺点是，代理系统本身固有的，尤其是在多代理系统中更为突出的是，各个代理执行所需的计算时间。在一些简单的案例中，标准的RAG工作流足以回答问题，但这可能会产生不必要的计算开销。
+另一个缺点是，代理系统本身固有的，尤其是在多代理系统中更为突出的是，各个代理执行所需的计算时间。在一些简单的案例中，标准的 RAG 工作流足以回答问题，但这可能会产生不必要的计算开销。
 
 最后，多个代理之间的相互作用可能会放大幻觉的风险，因为一个代理产生的幻觉可能会在执行链中传播，使得追踪变得非常困难。
 
@@ -872,7 +872,7 @@ Agent:  Thought: From the previous search, we know that Constantinople fell in 1
 Code:
 ```py
 
-wikipedia_search_agent(query="1453年中国朝代")
+wikipedia_search_agent(query="1453 年中国朝代")
 
 ```py<end_action>
 Observation:  Print outputs:
@@ -882,7 +882,7 @@ Agent:  Thought: Based on the information provided, the Ming dynasty was in full
 Code:
 ```py
 
-final_answer("1453年君士坦丁堡陷落时，中国的统治朝代是明朝。")
+final_answer("1453 年君士坦丁堡陷落时，中国的统治朝代是明朝。")
 
 ```py<end_action>
 Observation:  Print outputs:
@@ -936,7 +936,7 @@ AGENT:  Thought: I have found that the leader of the Ottoman Empire in 1453 was 
 Code:
 ```py
 
-final_answer("1453年，君士坦丁堡陷落时，奥斯曼帝国的领导人是穆罕默德二世，也称为征服者穆罕默德。")
+final_answer("1453 年，君士坦丁堡陷落时，奥斯曼帝国的领导人是穆罕默德二世，也称为征服者穆罕默德。")
 
 ```py<end_action>
 OBSERVATIONS:  Print outputs:
@@ -1022,7 +1022,7 @@ AGENT:  Thought: The information provided does not specifically mention any even
 Code:
 ```py
 
-final_answer("1453年，明朝完全控制了中国。提供的信息中没有提及与1453年相关的具体事件。")
+final_answer("1453 年，明朝完全控制了中国。提供的信息中没有提及与 1453 年相关的具体事件。")
 
 ```py<end_action>
 OBSERVATIONS:  Print outputs:
@@ -1060,7 +1060,7 @@ AGENT:  Thought: From the passages, it seems that the leader of the Ottoman Empi
 Code:
 ```py
 
-final_answer("1453年，奥斯曼帝国的领导人是穆罕默德二世，也称为征服者穆罕默德。")
+final_answer("1453 年，奥斯曼帝国的领导人是穆罕默德二世，也称为征服者穆罕默德。")
 
 ```py<end_action>
 OBSERVATIONS:  Print outputs:
@@ -1092,7 +1092,7 @@ AGENT:  Thought: The passages do not directly mention the year 1453\. However, I
 Code:
 ```py
 
-final_answer("1453年属于明朝时期，明朝统治时间为1368年到1644年。在这段时间里，明朝完全控制了中国，并经历了如紫禁城的建造和长城扩建等重要发展。")
+final_answer("1453 年属于明朝时期，明朝统治时间为 1368 年到 1644 年。在这段时间里，明朝完全控制了中国，并经历了如紫禁城的建造和长城扩建等重要发展。")
 
 ```py<end_action>
 OBSERVATIONS:  Print outputs:
@@ -1124,7 +1124,7 @@ AGENT:  Thought: The passages do not directly mention the year 1453\. However, I
 Code:
 ```py
 
-final_answer("1453年属于明朝时期，明朝统治时间为1368年到1644年。在这段时间里，明朝完全控制了中国，并经历了如紫禁城的建造和长城扩建等重要发展。")
+final_answer("1453 年属于明朝时期，明朝统治时间为 1368 年到 1644 年。在这段时间里，明朝完全控制了中国，并经历了如紫禁城的建造和长城扩建等重要发展。")
 
 ```py<end_action>
 OBSERVATIONS:  Print outputs:
@@ -1156,7 +1156,7 @@ AGENT:  Thought: The passages do not directly mention the year 1453\. However, I
 Code:
 ```py
 
-final_answer("1453年属于明朝时期，明朝统治时间为1368年到1644年。在这段时间里，明朝完全控制了中国，并经历了如紫禁城的建造和长城扩建等重要发展。")
+final_answer("1453 年属于明朝时期，明朝统治时间为 1368 年到 1644 年。在这段时间里，明朝完全控制了中国，并经历了如紫禁城的建造和长城扩建等重要发展。")
 
 ```py<end_action>
 OBSERVATIONS:  Print outputs:
@@ -1188,7 +1188,7 @@ AGENT:  Thought: The passages do not directly mention the year 1453\. However, I
 Code:
 ```py
 
-final_answer("1453年属于明朝时期，明朝自1368年到1644年统治中国。在此期间，明朝完全控制了中国，并经历了重要的历史发展，例如紫禁城的建设和长城的扩展。")
+final_answer("1453 年属于明朝时期，明朝自 1368 年到 1644 年统治中国。在此期间，明朝完全控制了中国，并经历了重要的历史发展，例如紫禁城的建设和长城的扩展。")
 
 ```py<end_action>
 OBSERVATIONS:  Print outputs:
@@ -1198,7 +1198,7 @@ The year 1453 falls within the period of the Ming dynasty, which ruled from 1368
 
 # 结论
 
-在这篇博客中，我解释了如何使用代码智能体和一个“小型”开源LLM（如*Qwen2.5–7B-Instruct*）创建一个多智能体RAG系统。我讨论了主要的架构特征以及我在实现Hugging Face代码智能体时做出的一些具体选择，以提高结果。完整的代码细节可在以下[GitHub仓库](https://github.com/GabrieleSgroi/multiagentic_rag)中找到。
+在这篇博客中，我解释了如何使用代码智能体和一个“小型”开源 LLM（如*Qwen2.5–7B-Instruct*）创建一个多智能体 RAG 系统。我讨论了主要的架构特征以及我在实现 Hugging Face 代码智能体时做出的一些具体选择，以提高结果。完整的代码细节可在以下[GitHub 仓库](https://github.com/GabrieleSgroi/multiagentic_rag)中找到。
 
 尽管该多智能体系统由一个运行在消费级硬件上的小型模型驱动，但它能够解决与复杂查询相关的多跳问答任务。特别是：
 
@@ -1216,9 +1216,9 @@ The year 1453 falls within the period of the Ming dynasty, which ruled from 1368
 
 我还概述了该系统的一些局限性，例如增加的计算时间、重复的操作以及潜在的幻觉传播。后者可以通过在系统中加入一个“校对员”智能体来缓解，确保报告的信息与检索到的来源一致。
 
-还值得注意的是，由于该智能体系统的核心采用了标准的RAG方法，因此可以在框架中实现所有通常用于提高RAG效率和准确性的技术。
+还值得注意的是，由于该智能体系统的核心采用了标准的 RAG 方法，因此可以在框架中实现所有通常用于提高 RAG 效率和准确性的技术。
 
-另一个可能的改进是使用技术来增加测试时间计算，给予模型更多的“思考时间”，类似于OpenAI的o1/o3模型。然而，值得注意的是，这一修改将进一步增加执行时间。
+另一个可能的改进是使用技术来增加测试时间计算，给予模型更多的“思考时间”，类似于 OpenAI 的 o1/o3 模型。然而，值得注意的是，这一修改将进一步增加执行时间。
 
 最后，由于多智能体系统由专注于单一任务的智能体组成，因此为每个智能体使用不同的模型引擎可能会提升性能。特别是，可以针对系统中的每个任务对不同的模型进行微调，从而进一步提高性能。这对于小型模型尤其有利。值得一提的是，微调数据可以通过在一组预定任务上运行系统并保存智能体在系统给出正确答案时的输出，从而收集，这样可以避免昂贵的人工数据标注。
 

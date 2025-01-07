@@ -1,12 +1,12 @@
-# 使用Airflow和Mlflow构建机器学习管道：预订取消预测
+# 使用 Airflow 和 Mlflow 构建机器学习管道：预订取消预测
 
-> 原文：[https://towardsdatascience.com/build-machine-learning-pipelines-with-airflow-and-mlflow-reservation-cancellation-forecasting-da675d409842?source=collection_archive---------1-----------------------#2024-01-12](https://towardsdatascience.com/build-machine-learning-pipelines-with-airflow-and-mlflow-reservation-cancellation-forecasting-da675d409842?source=collection_archive---------1-----------------------#2024-01-12)
+> 原文：[`towardsdatascience.com/build-machine-learning-pipelines-with-airflow-and-mlflow-reservation-cancellation-forecasting-da675d409842?source=collection_archive---------1-----------------------#2024-01-12`](https://towardsdatascience.com/build-machine-learning-pipelines-with-airflow-and-mlflow-reservation-cancellation-forecasting-da675d409842?source=collection_archive---------1-----------------------#2024-01-12)
 
 ## 通过高级机器学习任务学习如何创建可复现的、适用于生产环境的机器学习管道
 
-[](https://medium.com/@jeremyarancio?source=post_page---byline--da675d409842--------------------------------)[![Jeremy Arancio](../Images/37c4c41e71eb91cfffc7e4ff2bb4394a.png)](https://medium.com/@jeremyarancio?source=post_page---byline--da675d409842--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--da675d409842--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--da675d409842--------------------------------) [Jeremy Arancio](https://medium.com/@jeremyarancio?source=post_page---byline--da675d409842--------------------------------)
+[](https://medium.com/@jeremyarancio?source=post_page---byline--da675d409842--------------------------------)![Jeremy Arancio](https://medium.com/@jeremyarancio?source=post_page---byline--da675d409842--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--da675d409842--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da675d409842--------------------------------) [Jeremy Arancio](https://medium.com/@jeremyarancio?source=post_page---byline--da675d409842--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da675d409842--------------------------------) ·21分钟阅读·2024年1月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da675d409842--------------------------------) ·21 分钟阅读·2024 年 1 月 12 日
 
 --
 
@@ -20,8 +20,8 @@
 
 [](https://github.com/jeremyarancio/reservation_cancellation_prediction?source=post_page-----da675d409842--------------------------------) [## GitHub - jeremyarancio/reservation_cancellation_prediction: 预测预订是否会被取消…
 
-### 通过Airflow和Mlflow的强大机器学习管道预测预订是否会被取消 - GitHub …
+### 通过 Airflow 和 Mlflow 的强大机器学习管道预测预订是否会被取消 - GitHub …
 
-github.com](https://github.com/jeremyarancio/reservation_cancellation_prediction?source=post_page-----da675d409842--------------------------------) ![](../Images/474f0e53e92347d888f1255e2ef23cfa.png)
+github.com](https://github.com/jeremyarancio/reservation_cancellation_prediction?source=post_page-----da675d409842--------------------------------) ![](img/474f0e53e92347d888f1255e2ef23cfa.png)
 
 照片来源：[EJ Strat](https://unsplash.com/@xoforoct?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)

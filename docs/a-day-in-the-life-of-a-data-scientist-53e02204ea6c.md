@@ -1,16 +1,16 @@
 # 数据科学家的一天
 
-> 原文：[https://towardsdatascience.com/a-day-in-the-life-of-a-data-scientist-53e02204ea6c?source=collection_archive---------7-----------------------#2024-06-08](https://towardsdatascience.com/a-day-in-the-life-of-a-data-scientist-53e02204ea6c?source=collection_archive---------7-----------------------#2024-06-08)
+> 原文：[`towardsdatascience.com/a-day-in-the-life-of-a-data-scientist-53e02204ea6c?source=collection_archive---------7-----------------------#2024-06-08`](https://towardsdatascience.com/a-day-in-the-life-of-a-data-scientist-53e02204ea6c?source=collection_archive---------7-----------------------#2024-06-08)
 
 ## 我到底整天都在做些什么呢？
 
-[](https://medium.com/@pelletierhaden?source=post_page---byline--53e02204ea6c--------------------------------)[![Haden Pelletier](../Images/8f73fc8222e783883c4ebcaee14513e0.png)](https://medium.com/@pelletierhaden?source=post_page---byline--53e02204ea6c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--53e02204ea6c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--53e02204ea6c--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--53e02204ea6c--------------------------------)
+[](https://medium.com/@pelletierhaden?source=post_page---byline--53e02204ea6c--------------------------------)![Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--53e02204ea6c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--53e02204ea6c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--53e02204ea6c--------------------------------) [Haden Pelletier](https://medium.com/@pelletierhaden?source=post_page---byline--53e02204ea6c--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--53e02204ea6c--------------------------------) ·阅读时长7分钟·2024年6月8日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--53e02204ea6c--------------------------------) ·阅读时长 7 分钟·2024 年 6 月 8 日
 
 --
 
-![](../Images/02e85cc58c660407c20b093a20f6c42f.png)
+![](img/02e85cc58c660407c20b093a20f6c42f.png)
 
 图片由[ThisisEngineering](https://unsplash.com/@thisisengineering?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,7 +22,7 @@
 
 # 检查我的模型
 
-![](../Images/bf141c6a0ffd08b861f2ab2bcd28d2a0.png)
+![](img/bf141c6a0ffd08b861f2ab2bcd28d2a0.png)
 
 图片由[Luke Chesser](https://unsplash.com/@lukechesser?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

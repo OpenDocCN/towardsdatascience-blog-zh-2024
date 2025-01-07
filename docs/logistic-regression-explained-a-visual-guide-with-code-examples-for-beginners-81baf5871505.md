@@ -1,38 +1,38 @@
 # 逻辑回归解析：带代码示例的可视化指南，适合初学者
 
-> 原文：[https://towardsdatascience.com/logistic-regression-explained-a-visual-guide-with-code-examples-for-beginners-81baf5871505?source=collection_archive---------0-----------------------#2024-09-10](https://towardsdatascience.com/logistic-regression-explained-a-visual-guide-with-code-examples-for-beginners-81baf5871505?source=collection_archive---------0-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/logistic-regression-explained-a-visual-guide-with-code-examples-for-beginners-81baf5871505?source=collection_archive---------0-----------------------#2024-09-10`](https://towardsdatascience.com/logistic-regression-explained-a-visual-guide-with-code-examples-for-beginners-81baf5871505?source=collection_archive---------0-----------------------#2024-09-10)
 
 ## 分类算法
 
 ## 找到适合数据的最佳权重
 
-[](https://medium.com/@samybaladram?source=post_page---byline--81baf5871505--------------------------------)[![Samy Baladram](../Images/715cb7af97c57601966c5d2f9edd0066.png)](https://medium.com/@samybaladram?source=post_page---byline--81baf5871505--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--81baf5871505--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--81baf5871505--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--81baf5871505--------------------------------)
+[](https://medium.com/@samybaladram?source=post_page---byline--81baf5871505--------------------------------)![Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--81baf5871505--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--81baf5871505--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--81baf5871505--------------------------------) [Samy Baladram](https://medium.com/@samybaladram?source=post_page---byline--81baf5871505--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--81baf5871505--------------------------------) ·10分钟阅读·2024年9月10日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--81baf5871505--------------------------------) ·10 分钟阅读·2024 年 9 月 10 日
 
 --
 
-![](../Images/08286a411c63fdbe68e056f07d6540a2.png)
+![](img/08286a411c63fdbe68e056f07d6540a2.png)
 
-`⛳️ 更多[分类算法](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c)解析：· [虚拟分类器](/dummy-classifier-explained-a-visual-guide-with-code-examples-for-beginners-009ff95fc86e) · [K近邻分类器](/k-nearest-neighbor-classifier-explained-a-visual-guide-with-code-examples-for-beginners-a3d85cad00e1) · [伯努利朴素贝叶斯](/bernoulli-naive-bayes-explained-a-visual-guide-with-code-examples-for-beginners-aec39771ddd6) · [高斯朴素贝叶斯](/gaussian-naive-bayes-explained-a-visual-guide-with-code-examples-for-beginners-04949cef383c) · [决策树分类器](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e) ▶ [逻辑回归](/logistic-regression-explained-a-visual-guide-with-code-examples-for-beginners-81baf5871505) · [支持向量分类器](/support-vector-classifier-explained-a-visual-guide-with-mini-2d-dataset-62e831e7b9e9) · [多层感知器](/multilayer-perceptron-explained-a-visual-guide-with-mini-2d-dataset-0ae8100c5d1c)`
+`⛳️ 更多[分类算法](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c)解析：· 虚拟分类器 · K 近邻分类器 · 伯努利朴素贝叶斯 · 高斯朴素贝叶斯 · 决策树分类器 ▶ 逻辑回归 · 支持向量分类器 · 多层感知器`
 
-尽管一些基于概率的机器学习模型（如[朴素贝叶斯](/bernoulli-naive-bayes-explained-a-visual-guide-with-code-examples-for-beginners-aec39771ddd6)）对特征独立性做出大胆假设，但逻辑回归采用了更为谨慎的方法。可以把它看作是绘制一条（或一平面）将两种结果分开的线，这样我们就可以以更大的灵活性预测概率。
+尽管一些基于概率的机器学习模型（如朴素贝叶斯）对特征独立性做出大胆假设，但逻辑回归采用了更为谨慎的方法。可以把它看作是绘制一条（或一平面）将两种结果分开的线，这样我们就可以以更大的灵活性预测概率。
 
-![](../Images/add544fe281d9cac3d807605d793740a.png)
+![](img/add544fe281d9cac3d807605d793740a.png)
 
-所有视觉效果：作者使用Canva Pro创建。针对移动设备进行了优化；在桌面端可能会显得过大。
+所有视觉效果：作者使用 Canva Pro 创建。针对移动设备进行了优化；在桌面端可能会显得过大。
 
 # 定义
 
-逻辑回归是一种用于预测二元结果的统计方法。尽管名字中有“回归”，但它实际上用于分类而非回归。它估计实例属于某个特定类别的概率。如果估计的概率大于50%，模型预测该实例属于该类别（反之亦然）。
+逻辑回归是一种用于预测二元结果的统计方法。尽管名字中有“回归”，但它实际上用于分类而非回归。它估计实例属于某个特定类别的概率。如果估计的概率大于 50%，模型预测该实例属于该类别（反之亦然）。
 
 # 📊 使用的数据集
 
 在本文中，我们将使用这个人工高尔夫数据集（灵感来自[1]）作为示例。该数据集根据天气条件预测一个人是否会打高尔夫。
 
-[与KNN类似](/k-nearest-neighbor-classifier-explained-a-visual-guide-with-code-examples-for-beginners-a3d85cad00e1)，逻辑回归也要求先对数据进行缩放。[将类别列转换](/encoding-categorical-data-explained-a-visual-guide-with-code-example-for-beginners-b169ac4193ae)为0和1，同时[缩放数值特征](/scaling-numerical-data-explained-a-visual-guide-with-code-examples-for-beginners-11676cdb45cb)，以避免某一特征主导距离度量。
+与 KNN 类似，逻辑回归也要求先对数据进行缩放。将类别列转换为 0 和 1，同时缩放数值特征，以避免某一特征主导距离度量。
 
-![](../Images/be47d8fc7fb892e46cc3ac4f26cdf8f5.png)
+![](img/be47d8fc7fb892e46cc3ac4f26cdf8f5.png)
 
 列：‘Outlook’（天气状况）、‘Temperature’（温度）、‘Humidity’（湿度）、‘Wind’（风速）和‘Play’（目标特征）。类别列（Outlook 和 Windy）使用独热编码（one-hot encoding）进行编码，而数值列则使用标准缩放（z-标准化）进行缩放。
 
@@ -87,13 +87,13 @@ print(pd.concat([X_test, y_test], axis=1))
 
 1.  计算输入特征的加权和（类似于线性回归）。
 
-1.  对这个和应用逻辑函数（也称为Sigmoid函数），它将任何实数映射到0和1之间的值。
+1.  对这个和应用逻辑函数（也称为 Sigmoid 函数），它将任何实数映射到 0 和 1 之间的值。
 
 1.  将此值解释为属于正类的概率。
 
-1.  使用阈值（通常是0.5）做出最终的分类决策。
+1.  使用阈值（通常是 0.5）做出最终的分类决策。
 
-![](../Images/a7075b4e966c4487e4ddf0397a705947.png)
+![](img/a7075b4e966c4487e4ddf0397a705947.png)
 
 对于我们的高尔夫数据集，逻辑回归可能会将天气因素合并为一个单一的分数，然后将此分数转换为打高尔夫的概率。
 
@@ -103,7 +103,7 @@ print(pd.concat([X_test, y_test], axis=1))
 
 1.  初始化权重（通常为小的随机值）。
 
-![](../Images/3b3d36e76e221058bfb5bdef6dbcb540.png)
+![](img/3b3d36e76e221058bfb5bdef6dbcb540.png)
 
 ```py
 # Initialize weights (including bias) to 0.1
@@ -117,7 +117,7 @@ print(f"Initial Weights: {initial_weights}")
 
 a. 使用当前的权重计算预测概率。
 
-![](../Images/7ad914e2c81f2ef22d3423c61b065128.png)
+![](img/7ad914e2c81f2ef22d3423c61b065128.png)
 
 ```py
 def sigmoid(z):
@@ -162,11 +162,11 @@ print(f"\nAverage Log Loss: {calculate_average_log_loss(X_train_np, y_train_np, 
 
 b. 通过计算其对数损失，将该概率与实际类别标签进行比较。
 
-![](../Images/d03bec8cdef352fdd52c9e1cf0a8985b.png)
+![](img/d03bec8cdef352fdd52c9e1cf0a8985b.png)
 
 3\. 更新权重以最小化损失（通常使用一些优化算法，如梯度下降。这包括反复进行步骤 2，直到对数损失无法进一步减小）。
 
-![](../Images/7970c48934b6717e83f2f94d7f770846.png)
+![](img/7970c48934b6717e83f2f94d7f770846.png)
 
 ```py
 def gradient_descent_step(X, y, weights, learning_rate):
@@ -216,9 +216,9 @@ print("Loss Final:", loss.round(3))
 
 1\. 对于新实例，使用最终权重（也称为系数）计算概率，就像训练步骤中一样。
 
-2\. 通过查看概率来解释输出：如果 *p* ≥ 0.5，预测为类别1；否则，预测为类别0
+2\. 通过查看概率来解释输出：如果 *p* ≥ 0.5，预测为类别 1；否则，预测为类别 0
 
-![](../Images/99a363cd8b98d3754e27643122b7c9c7.png)
+![](img/99a363cd8b98d3754e27643122b7c9c7.png)
 
 ```py
 # Calculate prediction probability
@@ -241,7 +241,7 @@ print(y_pred)
 
 ## 评估步骤
 
-![](../Images/c7574523a49fa326eb623dcf5cf0d23c.png)
+![](img/c7574523a49fa326eb623dcf5cf0d23c.png)
 
 ```py
 result_df = pd.DataFrame({
@@ -260,7 +260,7 @@ print(result_df)
 
 **1.惩罚项**：使用的正则化类型（‘l1’，‘l2’，‘elasticnet’ 或 ‘none’）。逻辑回归中的正则化通过在模型的损失函数中加入惩罚项，防止过拟合，并鼓励简化模型。
 
-![](../Images/d6388db7b9a3516fa793253062783429.png)
+![](img/d6388db7b9a3516fa793253062783429.png)
 
 ```py
 from sklearn.linear_model import LogisticRegression
@@ -290,9 +290,9 @@ for reg, vals in coeff_dict.items():
     print(f"{reg}: Coeff: {vals['Coefficients'][0].round(2)}, Intercept: {vals['Intercept'].round(2)}, Loss: {vals['Loss'].round(3)}, Accuracy: {vals['Accuracy'].round(3)}")
 ```
 
-**2.正则化强度（C）**：控制拟合训练数据与保持模型简洁之间的权衡。较小的C意味着更强的正则化。
+**2.正则化强度（C）**：控制拟合训练数据与保持模型简洁之间的权衡。较小的 C 意味着更强的正则化。
 
-![](../Images/b456b69f56e095c9ced88959e77bab79.png)
+![](img/b456b69f56e095c9ced88959e77bab79.png)
 
 ```py
 # List of regularization strengths to try for L1
@@ -355,7 +355,7 @@ print(pd.DataFrame(coeff_dict).T)
 
 **4.最大迭代次数**：求解器收敛的最大迭代次数。
 
-对于我们的高尔夫数据集，我们可能以‘l2’惩罚项、‘liblinear’求解器和C=1.0作为基准进行尝试。
+对于我们的高尔夫数据集，我们可能以‘l2’惩罚项、‘liblinear’求解器和 C=1.0 作为基准进行尝试。
 
 # 优点与缺点
 
@@ -385,7 +385,7 @@ print(pd.DataFrame(coeff_dict).T)
 
 # 最后备注
 
-逻辑回归作为一种强大而简洁的分类工具脱颖而出。它的优势在于能够处理复杂数据的同时保持易于解释。与[一些其他基础模型](/decision-tree-classifier-explained-a-visual-guide-with-code-examples-for-beginners-7c863f06a71e)不同，它提供平滑的概率估计，并且能很好地处理多个特征。在现实世界中，从预测客户行为到医学诊断，逻辑回归往往表现出惊人的效果。它不仅仅是一个过渡工具——它是一个可靠的模型，在许多情况下能与更复杂的模型匹敌。
+逻辑回归作为一种强大而简洁的分类工具脱颖而出。它的优势在于能够处理复杂数据的同时保持易于解释。与一些其他基础模型不同，它提供平滑的概率估计，并且能很好地处理多个特征。在现实世界中，从预测客户行为到医学诊断，逻辑回归往往表现出惊人的效果。它不仅仅是一个过渡工具——它是一个可靠的模型，在许多情况下能与更复杂的模型匹敌。
 
 # 🌟 逻辑回归代码总结
 
@@ -435,46 +435,46 @@ print(f"Accuracy: {accuracy_score(y_test, y_pred)}")
 
 ## 进一步阅读
 
-关于[逻辑回归](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html)及其在scikit-learn中的实现，读者可以参考官方文档[2]，该文档提供了关于其使用和参数的全面信息。
+关于[逻辑回归](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html)及其在 scikit-learn 中的实现，读者可以参考官方文档[2]，该文档提供了关于其使用和参数的全面信息。
 
 ## 技术环境
 
-本文使用Python 3.7和scikit-learn 1.5版本。虽然所讨论的概念一般适用，但具体的代码实现可能会因版本不同而略有差异。
+本文使用 Python 3.7 和 scikit-learn 1.5 版本。虽然所讨论的概念一般适用，但具体的代码实现可能会因版本不同而略有差异。
 
 ## 关于插图
 
-除非另有说明，所有图片均由作者创作，采用了来自Canva Pro的授权设计元素。
+除非另有说明，所有图片均由作者创作，采用了来自 Canva Pro 的授权设计元素。
 
-![](../Images/3954bb576147e89326d88edd83f57b51.png)
+![](img/3954bb576147e89326d88edd83f57b51.png)
 
 获取简洁的视觉总结，请查看[Instagram 相关帖子](https://www.instagram.com/p/C_viu8bSXJ8/)。
 
 ## 参考文献
 
-[1] T. M. Mitchell, [机器学习](https://www.cs.cmu.edu/afs/cs.cmu.edu/user/mitchell/ftp/mlbook.html)（1997），McGraw-Hill 科学/工程/数学，第59页
+[1] T. M. Mitchell, [机器学习](https://www.cs.cmu.edu/afs/cs.cmu.edu/user/mitchell/ftp/mlbook.html)（1997），McGraw-Hill 科学/工程/数学，第 59 页
 
 𝙎𝙚𝙚 𝙢𝙤𝙧𝙚 𝘾𝙡𝙖𝙨𝙨𝙞𝙛𝙞𝙘𝙖𝙩𝙞𝙤𝙣 𝘼𝙡𝙜𝙤𝙧𝙞𝙩𝙝𝙢𝙨 𝙝𝙚𝙧𝙚:
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----81baf5871505--------------------------------)
 
 ## 分类算法
 
-[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----81baf5871505--------------------------------)8个故事！[](../Images/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](../Images/6ea70d9d2d9456e0c221388dbb253be8.png)![](../Images/7221f0777228e7bcf08c1adb44a8eb76.png)
+[查看列表](https://medium.com/@samybaladram/list/classification-algorithms-b3586f0a772c?source=post_page-----81baf5871505--------------------------------)8 个故事！[](../Images/f95c1a80b88fe6220b18cd3b2a83a30d.png)![](img/6ea70d9d2d9456e0c221388dbb253be8.png)![](img/7221f0777228e7bcf08c1adb44a8eb76.png)
 
 𝙔𝙤𝙪 𝙢𝙞𝙜𝙝𝙩 𝙖𝙡𝙨𝙤 𝙡𝙞𝙠𝙚:
 
-![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----81baf5871505--------------------------------)
 
 ## 回归算法
 
-[查看列表](https://medium.com/@samybaladram/list/regression-algorithms-b0b6959f1b39?source=post_page-----81baf5871505--------------------------------)5个故事！[一个戴着粉色帽子的双马尾卡通娃娃。这个“假人”娃娃，通过其基本的设计和心形装饰的衬衫，直观地呈现了机器学习中“假回归器”的概念。就像这个玩具般的形象是一个简化、静态的人的代表一样，假回归器是作为基准的基本模型，用于更复杂的分析。](../Images/aa7eeaa18e4bb093f5ce4ab9b93a8a27.png)![](../Images/44e6d84e61c895757ff31e27943ee597.png)![](../Images/7f3e5f3e2aca2feec035ca92e1bc440a.png)![Samy Baladram](../Images/835013c69e08fec04ad9ca465c2adf6c.png)
+[查看列表](https://medium.com/@samybaladram/list/regression-algorithms-b0b6959f1b39?source=post_page-----81baf5871505--------------------------------)5 个故事！一个戴着粉色帽子的双马尾卡通娃娃。这个“假人”娃娃，通过其基本的设计和心形装饰的衬衫，直观地呈现了机器学习中“假回归器”的概念。就像这个玩具般的形象是一个简化、静态的人的代表一样，假回归器是作为基准的基本模型，用于更复杂的分析。![](img/44e6d84e61c895757ff31e27943ee597.png)![](img/7f3e5f3e2aca2feec035ca92e1bc440a.png)![Samy Baladram](img/835013c69e08fec04ad9ca465c2adf6c.png)
 
 [Samy Baladram](https://medium.com/@samybaladram?source=post_page-----81baf5871505--------------------------------)
 
 ## 集成学习
 
-[查看列表](https://medium.com/@samybaladram/list/ensemble-learning-673fc83cd7db?source=post_page-----81baf5871505--------------------------------)4个故事！[](../Images/1bd2995b5cb6dcc956ceadadc5ee3036.png)![](../Images/22a5d43568e70222eb89fd36789a9333.png)![](../Images/8ea1a2f29053080a5feffc709f5b8669.png)
+[查看列表](https://medium.com/@samybaladram/list/ensemble-learning-673fc83cd7db?source=post_page-----81baf5871505--------------------------------)4 个故事！[](../Images/1bd2995b5cb6dcc956ceadadc5ee3036.png)![](img/22a5d43568e70222eb89fd36789a9333.png)![](img/8ea1a2f29053080a5feffc709f5b8669.png)

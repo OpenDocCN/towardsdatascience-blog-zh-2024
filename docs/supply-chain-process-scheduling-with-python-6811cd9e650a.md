@@ -1,24 +1,24 @@
-# 使用Python进行供应链过程调度
+# 使用 Python 进行供应链过程调度
 
-> 原文：[https://towardsdatascience.com/supply-chain-process-scheduling-with-python-6811cd9e650a?source=collection_archive---------6-----------------------#2024-05-24](https://towardsdatascience.com/supply-chain-process-scheduling-with-python-6811cd9e650a?source=collection_archive---------6-----------------------#2024-05-24)
+> 原文：[`towardsdatascience.com/supply-chain-process-scheduling-with-python-6811cd9e650a?source=collection_archive---------6-----------------------#2024-05-24`](https://towardsdatascience.com/supply-chain-process-scheduling-with-python-6811cd9e650a?source=collection_archive---------6-----------------------#2024-05-24)
 
 ## 使用线性规划来提高奢侈产品仓库中增值服务的生产能力。
 
-[](https://s-saci95.medium.com/?source=post_page---byline--6811cd9e650a--------------------------------)[![Samir Saci](../Images/722d1f56a3308f6527d82b5ab97064ec.png)](https://s-saci95.medium.com/?source=post_page---byline--6811cd9e650a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6811cd9e650a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6811cd9e650a--------------------------------) [Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--6811cd9e650a--------------------------------)
+[](https://s-saci95.medium.com/?source=post_page---byline--6811cd9e650a--------------------------------)![Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--6811cd9e650a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6811cd9e650a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6811cd9e650a--------------------------------) [Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--6811cd9e650a--------------------------------)
 
-·发布于[《数据科学前沿》](https://towardsdatascience.com/?source=post_page---byline--6811cd9e650a--------------------------------) ·阅读时间8分钟·2024年5月24日
+·发布于[《数据科学前沿》](https://towardsdatascience.com/?source=post_page---byline--6811cd9e650a--------------------------------) ·阅读时间 8 分钟·2024 年 5 月 24 日
 
 --
 
-![](../Images/7f0b7af4b75efdd3e24c74f4db80f4f5.png)
+![](img/7f0b7af4b75efdd3e24c74f4db80f4f5.png)
 
-使用Python优化仓库过程调度 — （作者图片）
+使用 Python 优化仓库过程调度 — （作者图片）
 
 根据我的经验，奢侈品牌在分销中心面临的主要挑战与入库物流有关。
 
 收到后，物品必须经过多次**增值服务**才能完成**入库流程**并返回库存。
 
-![](../Images/a39ff6f1b0841c6090fe0e695629677b.png)
+![](img/a39ff6f1b0841c6090fe0e695629677b.png)
 
 增值服务要求示例 — （作者图片）
 
@@ -30,7 +30,7 @@
 
 在本文中，我们将使用**作业车间问题**来优化这些过程的调度，并最大化整体的入库生产力。
 
-我将使用Google OR工具提供一种最佳过程调度解决方案，以将**入库能力提升多达48%**。
+我将使用 Google OR 工具提供一种最佳过程调度解决方案，以将**入库能力提升多达 48%**。
 
 ```py
 Summary 
@@ -45,25 +45,25 @@ III. Conclusion
 
 我所进行的大多数重组项目是为了零售、快速消费品（FMCG）或汽车行业，通过**最小化劳动力和设备的使用**来降低成本。
 
-![](../Images/c552c0d4a9de5f85eda6562d4ee7a29f.png)
+![](img/c552c0d4a9de5f85eda6562d4ee7a29f.png)
 
 降低成本的重组项目示例 [查看更多: [链接](https://medium.com/@s-saci95/welcome-to-my-profile-5011f02dfbf3)] — （作者图片）
 
 对于奢侈品牌，优先考虑的是不同的因素，考虑到商品的价值和需求的变动性。
 
-> 门店团队：“SS2024系列需要在6月的第一周之前送达门店。”
+> 门店团队：“SS2024 系列需要在 6 月的第一周之前送达门店。”
 
 物流团队面临压力，必须确保产品及时接收、准备并发货，以满足门店的需求。
 
-为了说明这一点，我将以一个实际的例子来讲解：一家法国奢侈品牌在上海运营配送中心，向**中国的35家门店**进行配送。
+为了说明这一点，我将以一个实际的例子来讲解：一家法国奢侈品牌在上海运营配送中心，向**中国的 35 家门店**进行配送。
 
-![](../Images/b627f6512114d5e654d6c664743e71e6.png)
+![](img/b627f6512114d5e654d6c664743e71e6.png)
 
 奢侈品牌的配送中心 — （图片来源：作者）
 
 这个配送中心接收从法国进口到本地市场的商品（*服装、包包和配饰*）。
 
-![](../Images/51ca132c6ff8e87a7b107db1580b535b.png)
+![](img/51ca132c6ff8e87a7b107db1580b535b.png)
 
 仓库中的产品流动 — （图片来源：作者）
 
@@ -83,19 +83,19 @@ III. Conclusion
 
 +   **操作 1 — 防盗标签**：操作员为商品贴上自报警标签，防止在门店被盗
 
-![](../Images/9f2994e8c9b3cf9b82323690950b4c6f.png)
+![](img/9f2994e8c9b3cf9b82323690950b4c6f.png)
 
 防盗标签 - （图片来源：作者）
 
 +   **操作 2 — 贴标签**：操作员打印本地语言标签并进行标签缝制
 
-![](../Images/ba3354f86de77f3fbb6647811824b5b4.png)
+![](img/ba3354f86de77f3fbb6647811824b5b4.png)
 
 标签示例 — （图片来源：作者）
 
 +   **操作 3 — 配件与重新包装**：操作员将商品放入销售包装，并添加赠品（GWP）、个人说明和正品证书
 
-![](../Images/9e71b1ee6689ef8992658450c836c34b.png)
+![](img/9e71b1ee6689ef8992658450c836c34b.png)
 
 赠品包装和证书示例 — （CAD 模型来源：作者）
 
@@ -115,55 +115,55 @@ III. Conclusion
 
 她的团队每天接收**数千件成衣**（成品服装），包括：
 
-+   需要**贴标签**和**重新包装**的**1件女装**
++   需要**贴标签**和**重新包装**的**1 件女装**
 
 +   需要**贴标签**、**防盗标签**和**重新包装**的**手袋**
 
-+   需要防盗标签、**贴标签**和**重新包装**的**1条皮带**
++   需要防盗标签、**贴标签**和**重新包装**的**1 条皮带**
 
 由于这些物品是一起销售的，它们需要在完成以下步骤后同时准备好：
 
 +   接收团队将托盘从卡车上卸下，并将其放入**暂存区**。
 
-![](../Images/8063071cfbe607372ae092572885ed1e.png)
+![](img/8063071cfbe607372ae092572885ed1e.png)
 
-卸货并将托盘转移到暂存区 — （CAD模型由作者提供）
+卸货并将托盘转移到暂存区 — （CAD 模型由作者提供）
 
-+   **机器1 — 防盗标签：** 操作员为每个手袋和皮带放置防盗标签。
++   **机器 1 — 防盗标签：** 操作员为每个手袋和皮带放置防盗标签。
 
-![](../Images/71322424dc103ed766359fdc550b522c.png)
+![](img/71322424dc103ed766359fdc550b522c.png)
 
-2个工作站，操作员在每个手袋和皮带上放置防盗标签 — （CAD模型由作者提供）
+2 个工作站，操作员在每个手袋和皮带上放置防盗标签 — （CAD 模型由作者提供）
 
-+   **机器2—标签：** 在专用区域打印标签后，标签会被缝制到皮带、手袋和裙子上。
++   **机器 2—标签：** 在专用区域打印标签后，标签会被缝制到皮带、手袋和裙子上。
 
-![](../Images/08bb490dbf68609b2a4a24e98515f186.png)
+![](img/08bb490dbf68609b2a4a24e98515f186.png)
 
-4个工作站，操作员执行标签缝制工作 — （CAD模型由作者提供）
+4 个工作站，操作员执行标签缝制工作 — （CAD 模型由作者提供）
 
-+   **机器3 — 配套和重新包装：** 操作员为每个物品添加认证证书并进行精细包装。
++   **机器 3 — 配套和重新包装：** 操作员为每个物品添加认证证书并进行精细包装。
 
-![](../Images/671540aa157ac9d195fd6a216536b758.png)
+![](img/671540aa157ac9d195fd6a216536b758.png)
 
-4个工作站，操作员执行重新包装工作 — （CAD模型由作者提供）
+4 个工作站，操作员执行重新包装工作 — （CAD 模型由作者提供）
 
-完成这些步骤后，货物被转移到最终暂存区等待发货（流向1），或被放入库存区（流向2）。
+完成这些步骤后，货物被转移到最终暂存区等待发货（流向 1），或被放入库存区（流向 2）。
 
 **目标：** 达到每小时组装的最大生产率（套数/小时）。
 
 ## 问题描述：作业车间问题
 
-**作业车间调度问题（JSSP）** 是一个NP难问题，由一组作业定义，机器必须按照每个作业的特定顺序执行。
+**作业车间调度问题（JSSP）** 是一个 NP 难问题，由一组作业定义，机器必须按照每个作业的特定顺序执行。
 
 在我们的例子中，每个项目都有一个作业，并且它们必须（可以）同时执行。
 
-![](../Images/ae4bb341aa8cabee4c28f1e1d1090852.png)
+![](img/ae4bb341aa8cabee4c28f1e1d1090852.png)
 
-一个包含3个作业和3台机器的例子 — （图片由作者提供）
+一个包含 3 个作业和 3 台机器的例子 — （图片由作者提供）
 
 上表定义了每个作业的执行时间（分钟）和机器处理顺序。
 
-例如，**作业2（手袋）** 从使用机器1放置**防盗标签**开始（6分钟），然后是使用机器2进行标签缝制**（4分钟）**，最后以使用机器3进行**配套和包装**结束（3分钟）。
+例如，**作业 2（手袋）** 从使用机器 1 放置**防盗标签**开始（6 分钟），然后是使用机器 2 进行标签缝制**（4 分钟）**，最后以使用机器 3 进行**配套和包装**结束（3 分钟）。
 
 我们在如何使用机器方面有一些约束：
 
@@ -177,17 +177,17 @@ III. Conclusion
 
 ## **朴素解法：一次执行一个作业周期**
 
-![](../Images/8ba8fa92122764e17ff1bc487dd12b87.png)
+![](img/8ba8fa92122764e17ff1bc487dd12b87.png)
 
 第一个朴素方法 — （图片由作者提供）
 
-我们假设VAS团队负责人将作业按顺序安排，并避免并行执行任何作业。
+我们假设 VAS 团队负责人将作业按顺序安排，并避免并行执行任何作业。
 
 **结果**
 
-+   完工时间：**30分钟**
++   完工时间：**30 分钟**
 
-+   生产率：**2套/小时**
++   生产率：**2 套/小时**
 
 **评论**
 
@@ -197,29 +197,29 @@ III. Conclusion
 
 ## **最优解**
 
-这个例子适用于使用Google OR-Tools解决的作业车间调度问题。
+这个例子适用于使用 Google OR-Tools 解决的作业车间调度问题。
 
-OR-Tools是Google提供的一个开源工具集合 [](https://developers.google.com/optimization)，用于组合优化。
+OR-Tools 是 Google 提供的一个开源工具集合 [](https://developers.google.com/optimization)，用于组合优化。
 
 目标是从众多可能的解决方案中找到最佳方案。
 
 我已经使用它进行了多个案例研究。
 
-+   [Samir Saci](https://medium.com/u/bb0f26d52754?source=post_page---user_mention--6811cd9e650a--------------------------------)，使用Google AI设计路径规划算法以提高仓库生产率
++   [Samir Saci](https://medium.com/u/bb0f26d52754?source=post_page---user_mention--6811cd9e650a--------------------------------)，使用 Google AI 设计路径规划算法以提高仓库生产率
 
-[](/optimizing-warehouse-operations-with-python-part-3-google-ai-for-sprp-308c258cb66f?source=post_page-----6811cd9e650a--------------------------------) [## 使用Python的路径规划算法提高仓库生产率
+[](/optimizing-warehouse-operations-with-python-part-3-google-ai-for-sprp-308c258cb66f?source=post_page-----6811cd9e650a--------------------------------) ## 使用 Python 的路径规划算法提高仓库生产率
 
-### 基于旅行商问题设计的路径规划算法，结合Google AI线性优化进行实现……
+### 基于旅行商问题设计的路径规划算法，结合 Google AI 线性优化进行实现……
 
-[towardsdatascience.com](/optimizing-warehouse-operations-with-python-part-3-google-ai-for-sprp-308c258cb66f?source=post_page-----6811cd9e650a--------------------------------)
+[towardsdatascience.com
 
-+   [Samir Saci](https://medium.com/u/bb0f26d52754?source=post_page---user_mention--6811cd9e650a--------------------------------)，使用Python的线性规划优化劳动力规划
++   [Samir Saci](https://medium.com/u/bb0f26d52754?source=post_page---user_mention--6811cd9e650a--------------------------------)，使用 Python 的线性规划优化劳动力规划
 
-[](/optimize-workforce-planning-using-linear-programming-with-python-47a0b5f89a6f?source=post_page-----6811cd9e650a--------------------------------) [## 使用Python的线性规划优化劳动力规划
+[](/optimize-workforce-planning-using-linear-programming-with-python-47a0b5f89a6f?source=post_page-----6811cd9e650a--------------------------------) ## 使用 Python 的线性规划优化劳动力规划
 
 ### 你需要雇佣多少临时工来消化你的每周工作量，同时确保……
 
-towardsdatascience.com](/optimize-workforce-planning-using-linear-programming-with-python-47a0b5f89a6f?source=post_page-----6811cd9e650a--------------------------------)
+towardsdatascience.com
 
 让我们使用这个库来找到优化的排序，以减少这个特定流程集的**完工时间**。
 
@@ -227,33 +227,33 @@ towardsdatascience.com](/optimize-workforce-planning-using-linear-programming-wi
 
 ## 结果：优化方案 vs. 朴素方案
 
-![](../Images/f310bb830990be43e6571d26031f2c27.png)
+![](img/f310bb830990be43e6571d26031f2c27.png)
 
 第一个朴素方法 — （图像由作者提供）
 
-![](../Images/f6c283e52e2439baae15cf627ff567d0.png)
+![](img/f6c283e52e2439baae15cf627ff567d0.png)
 
-使用Google OR-Tools的优化方案 — （图像由作者提供）
+使用 Google OR-Tools 的优化方案 — （图像由作者提供）
 
-上面的两张图分别代表了初始方案（朴素方案：一次处理1个工作）和优化方案（并行任务处理）。
+上面的两张图分别代表了初始方案（朴素方案：一次处理 1 个工作）和优化方案（并行任务处理）。
 
 **结果**
 
-+   **总完工时间：** 16分钟 **(-47%)**
++   **总完工时间：** 16 分钟 **(-47%)**
 
-+   **生产率：** 3.75套/小时 **(+85%)**
++   **生产率：** 3.75 套/小时 **(+85%)**
 
-+   **每周期空闲时间：** 18分钟 **(-71.4%)**
++   **每周期空闲时间：** 18 分钟 **(-71.4%)**
 
 结果令人满意。
 
 > 如何获得这些结果？
 
-## 使用Python构建优化模型
+## 使用 Python 构建优化模型
 
 **初始化你的线性规划模型**
 
-在列表jobs_data中，你定义了每个工作的操作，包括与其相关的机器和时间安排。
+在列表 jobs_data 中，你定义了每个工作的操作，包括与其相关的机器和时间安排。
 
 **初始化变量并创建序列**
 
@@ -275,9 +275,9 @@ Machine 3: job_1_2   job_3_3   job_2_3
 
 根据这个输出，我们可以绘制更新后的时间表：
 
-![](../Images/eaf95c8720ade176135e2013f395560e.png)
+![](img/eaf95c8720ade176135e2013f395560e.png)
 
-使用Google OR-Tools的优化方案 — （图像由作者提供）
+使用 Google OR-Tools 的优化方案 — （图像由作者提供）
 
 考虑到约束条件，这个解决方案最大限度地减少了机器的空闲时间，并提供了最高的生产力（台数/小时）。
 
@@ -285,21 +285,21 @@ Machine 3: job_1_2   job_3_3   job_2_3
 
 通过实施一个智能调度解决方案，我们将生产力提高了+48%，最大化了资源利用率。
 
-该解决方案基于一个简单的场景，使用了一个单一的装配线（每种类型1台机器）。
+该解决方案基于一个简单的场景，使用了一个单一的装配线（每种类型 1 台机器）。
 
 > 我们能通过改变条件来提高生产力吗？
 
-![](../Images/9fe74e48d4a9ff2ef8460df71d5792fc.png)
+![](img/9fe74e48d4a9ff2ef8460df71d5792fc.png)
 
 使用空闲序列（黄色）优化的解决方案——（图片来源：作者）
 
 在上面的图表中，我已经标出了我们可以在空闲时间添加的潜在额外工作：
 
-+   **机器 1：1个序列**，持续4分钟，相当于工作3的时间
++   **机器 1：1 个序列**，持续 4 分钟，相当于工作 3 的时间
 
-+   **机器 2：1个序列**，持续4分钟，相当于工作1和工作2的时间
++   **机器 2：1 个序列**，持续 4 分钟，相当于工作 1 和工作 2 的时间
 
-+   **机器 3：2个序列**，持续4分钟，相当于工作1、2和3的时间
++   **机器 3：2 个序列**，持续 4 分钟，相当于工作 1、2 和 3 的时间
 
 **问题：**
 
@@ -309,23 +309,23 @@ Machine 3: job_1_2   job_3_3   job_2_3
 
 如果我们为标签缝纫设置平行工作站，整体生产力会受到什么影响？
 
-[![](../Images/5f111c5f5652ce083db7b1882aebe17e.png)](https://towardsdatascience.com/supply-chain-process-design-using-the-queueing-theory-2ad75e58d1f3)
+![](https://towardsdatascience.com/supply-chain-process-design-using-the-queueing-theory-2ad75e58d1f3)
 
 排队理论的过程定义——（图片来源：作者）
 
 这个问题可以通过排队理论来解答。
 
-![](../Images/5fb18c9430418a6062fc73042b3b703d.png)
+![](img/5fb18c9430418a6062fc73042b3b703d.png)
 
 使用排队理论设计打包站——（图片来源：Samir Saci）
 
 在这篇文章中了解更多，
 
-[](/supply-chain-process-design-using-the-queueing-theory-2ad75e58d1f3?source=post_page-----6811cd9e650a--------------------------------) [## 使用排队理论进行供应链过程设计
+[](/supply-chain-process-design-using-the-queueing-theory-2ad75e58d1f3?source=post_page-----6811cd9e650a--------------------------------) ## 使用排队理论进行供应链过程设计
 
-### 使用Python应用排队理论的多个原则来设计电商包裹打包过程……
+### 使用 Python 应用排队理论的多个原则来设计电商包裹打包过程……
 
-towardsdatascience.com](/supply-chain-process-design-using-the-queueing-theory-2ad75e58d1f3?source=post_page-----6811cd9e650a--------------------------------)
+towardsdatascience.com
 
 # 关于我
 
@@ -347,4 +347,4 @@ samirsaci.com](https://samirsaci.com/?source=post_page-----6811cd9e650a---------
 
 # 参考文献
 
-+   Google AI, Google OR-Tools库, [链接](https://developers.google.com/optimization)
++   Google AI, Google OR-Tools 库, [链接](https://developers.google.com/optimization)

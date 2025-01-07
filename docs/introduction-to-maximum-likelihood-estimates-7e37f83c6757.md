@@ -1,16 +1,16 @@
 # 最大似然估计介绍
 
-> 原文：[https://towardsdatascience.com/introduction-to-maximum-likelihood-estimates-7e37f83c6757?source=collection_archive---------4-----------------------#2024-09-18](https://towardsdatascience.com/introduction-to-maximum-likelihood-estimates-7e37f83c6757?source=collection_archive---------4-----------------------#2024-09-18)
+> 原文：[`towardsdatascience.com/introduction-to-maximum-likelihood-estimates-7e37f83c6757?source=collection_archive---------4-----------------------#2024-09-18`](https://towardsdatascience.com/introduction-to-maximum-likelihood-estimates-7e37f83c6757?source=collection_archive---------4-----------------------#2024-09-18)
 
 ## 通过其在下一个单词预测中的应用来了解最大似然估计
 
-[](https://medium.com/@rishabh_misra_?source=post_page---byline--7e37f83c6757--------------------------------)[![Rishabh Misra](../Images/7614340aa676f8c88d57521e2293027d.png)](https://medium.com/@rishabh_misra_?source=post_page---byline--7e37f83c6757--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7e37f83c6757--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7e37f83c6757--------------------------------) [Rishabh Misra](https://medium.com/@rishabh_misra_?source=post_page---byline--7e37f83c6757--------------------------------)
+[](https://medium.com/@rishabh_misra_?source=post_page---byline--7e37f83c6757--------------------------------)![Rishabh Misra](https://medium.com/@rishabh_misra_?source=post_page---byline--7e37f83c6757--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7e37f83c6757--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e37f83c6757--------------------------------) [Rishabh Misra](https://medium.com/@rishabh_misra_?source=post_page---byline--7e37f83c6757--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e37f83c6757--------------------------------) ·阅读时间9分钟·2024年9月18日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e37f83c6757--------------------------------) ·阅读时间 9 分钟·2024 年 9 月 18 日
 
 --
 
-![](../Images/e57b1b0c6f06dfc383ae7b277f354474.png)
+![](img/e57b1b0c6f06dfc383ae7b277f354474.png)
 
 图片由[freestocks](https://unsplash.com/@freestocks?utm_source=medium&utm_medium=referral)提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

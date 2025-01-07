@@ -1,32 +1,32 @@
-# 在WASM WASI上运行Rust的九条规则
+# 在 WASM WASI 上运行 Rust 的九条规则
 
-> 原文：[https://towardsdatascience.com/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a?source=collection_archive---------1-----------------------#2024-09-28](https://towardsdatascience.com/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a?source=collection_archive---------1-----------------------#2024-09-28)
+> 原文：[`towardsdatascience.com/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a?source=collection_archive---------1-----------------------#2024-09-28`](https://towardsdatascience.com/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a?source=collection_archive---------1-----------------------#2024-09-28)
 
 ## 将`range-set-blaze`移植到这种容器化环境中的实践经验
 
-[](https://medium.com/@carlmkadie?source=post_page---byline--550cd14c252a--------------------------------)[![Carl M. Kadie](../Images/9dbe27c76e9567136e5a7dc587f1fb15.png)](https://medium.com/@carlmkadie?source=post_page---byline--550cd14c252a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--550cd14c252a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--550cd14c252a--------------------------------) [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--550cd14c252a--------------------------------)
+[](https://medium.com/@carlmkadie?source=post_page---byline--550cd14c252a--------------------------------)![Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--550cd14c252a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--550cd14c252a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--550cd14c252a--------------------------------) [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--550cd14c252a--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--550cd14c252a--------------------------------) ·13分钟阅读·2024年9月28日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--550cd14c252a--------------------------------) ·13 分钟阅读·2024 年 9 月 28 日
 
 --
 
-![](../Images/b2aeccd7db0b3d1c20858eb872f60daf.png)
+![](img/b2aeccd7db0b3d1c20858eb872f60daf.png)
 
-在类似容器的环境中运行Rust —— 来源：[https://openai.com/dall-e-2/](https://openai.com/dall-e-2/)。其他所有图表来自作者。
+在类似容器的环境中运行 Rust —— 来源：[`openai.com/dall-e-2/`](https://openai.com/dall-e-2/)。其他所有图表来自作者。
 
-你想让你的Rust代码在任何地方运行吗——从大型服务器到网页、机器人，甚至是手表？在这三篇文章中的第一篇[[1](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a), [2](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1), [3](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)]，我将详细描述实现这一目标的步骤。
+你想让你的 Rust 代码在任何地方运行吗——从大型服务器到网页、机器人，甚至是手表？在这三篇文章中的第一篇[[1](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a), [2](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1), [3](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)]，我将详细描述实现这一目标的步骤。
 
-在受限环境中运行Rust会遇到许多挑战。你的代码可能无法访问完整的操作系统，如Linux、Windows或macOS。你可能无法（或根本无法）访问文件、网络、时间、随机数，甚至是内存。我们将探讨一些解决方法和应对策略。
+在受限环境中运行 Rust 会遇到许多挑战。你的代码可能无法访问完整的操作系统，如 Linux、Windows 或 macOS。你可能无法（或根本无法）访问文件、网络、时间、随机数，甚至是内存。我们将探讨一些解决方法和应对策略。
 
-这篇文章的重点是如何在“WASM WASI”这个类似容器的环境中运行代码。我们将看到，WASM WASI可能（也可能不）在自身上具有实际用途。然而，它作为在浏览器或嵌入式系统中运行Rust的第一步，仍然具有价值。
+这篇文章的重点是如何在“WASM WASI”这个类似容器的环境中运行代码。我们将看到，WASM WASI 可能（也可能不）在自身上具有实际用途。然而，它作为在浏览器或嵌入式系统中运行 Rust 的第一步，仍然具有价值。
 
-将代码移植到WASM WASI上需要许多步骤和选择。做出这些选择可能非常耗时。错过一个步骤可能导致失败。我们将通过提供九条规则来简化这一过程，我们将在接下来的内容中详细探讨这些规则：
+将代码移植到 WASM WASI 上需要许多步骤和选择。做出这些选择可能非常耗时。错过一个步骤可能导致失败。我们将通过提供九条规则来简化这一过程，我们将在接下来的内容中详细探讨这些规则：
 
-1.  为失望做好准备：WASM WASI很简单，但——目前——基本无用——除非作为一个垫脚石。
+1.  为失望做好准备：WASM WASI 很简单，但——目前——基本无用——除非作为一个垫脚石。
 
-1.  理解Rust的目标平台。
+1.  理解 Rust 的目标平台。
 
-1.  安装`wasm32-wasip1`目标和WASMTIME，然后创建“Hello, WebAssembly！”。
+1.  安装`wasm32-wasip1`目标和 WASMTIME，然后创建“Hello, WebAssembly！”。
 
 1.  理解条件编译。
 
@@ -34,7 +34,7 @@
 
 1.  理解 Cargo 特性。
 
-1.  改变你能改变的事物：通过选择 Cargo 特性解决依赖问题，64位/32位问题。
+1.  改变你能改变的事物：通过选择 Cargo 特性解决依赖问题，64 位/32 位问题。
 
 1.  接受你不能改变一切：网络、Tokio、Rayon 等等。
 
@@ -58,19 +58,19 @@
 
 有了这些术语，我们可以将代码运行的环境想象成一个渐进收紧约束的维恩图。本文详细介绍了如何从本地环境迁移到 WASM WASI。[第二篇文章](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1) 讲述了如何进一步迁移到浏览器中的 WASM。[最后一篇文章](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e) 涵盖了在 `no_std` 环境中运行 Rust 的方法，包括带有和不带 `alloc` 的情况，非常适合嵌入式系统。
 
-![](../Images/867094390e12910af5d9c304494db513.png)
+![](img/867094390e12910af5d9c304494db513.png)
 
 根据我在数据结构项目 [range-set-blaze](https://github.com/CarlKCarlK/range-set-blaze) 的经验，以下是我推荐的决策，逐条描述。为了避免模糊不清，我将它们表述为规则。
 
 # 规则 1：为失望做好准备：WASM WASI 很简单，但——目前——大多数情况下没什么用——除非作为一个跳板。
 
-2019年，Docker 联合创始人 Solomon Hykes [在推特上发文](https://x.com/solomonstre/status/1111004913222324225)：
+2019 年，Docker 联合创始人 Solomon Hykes [在推特上发文](https://x.com/solomonstre/status/1111004913222324225)：
 
-> 如果2008年就有WASM+WASI，我们就不需要创建Docker了。这就是它的重要性。服务器上的WebAssembly是计算的未来。一个标准化的系统接口是缺失的环节。希望WASI能胜任这一任务。
+> 如果 2008 年就有 WASM+WASI，我们就不需要创建 Docker 了。这就是它的重要性。服务器上的 WebAssembly 是计算的未来。一个标准化的系统接口是缺失的环节。希望 WASI 能胜任这一任务。
 
 今天，如果你关注技术新闻，你会看到像这样的乐观标题：
 
-![](../Images/480c34163ac2f64c108340b17c9a2b74.png)
+![](img/480c34163ac2f64c108340b17c9a2b74.png)
 
 如果 WASM WASI 真的是已经准备好并且有用，大家早就已经在使用它了。我们不断看到这些标题，表明它还没有准备好。换句话说，如果 WASM WASI 真的是准备好的，他们就不需要一直坚持说它准备好了。
 
@@ -105,7 +105,7 @@ rustc --print target-list
 
 目标名称包含最多四个部分：CPU 系列、厂商、操作系统和环境（例如，GNU 与 LVMM）：
 
-![](../Images/106509d86795e2a7eb85e55a4162ad49.png)
+![](img/106509d86795e2a7eb85e55a4162ad49.png)
 
 目标名称部分 — 图示来自作者
 
@@ -258,7 +258,7 @@ cargo_bench_support = []
 #...
 # Optional dependencies
 rayon = { version = "1.3", optional = true }
-plotters = { version = "^0.3.1", optional = true, default-features = false, features = [
+plotters = { version = "⁰.3.1", optional = true, default-features = false, features = [
     "svg_backend",
     "area_series",
     "line_series",
@@ -288,20 +288,20 @@ cargo check --no-default-features --features html_reports
 SOME_CODE_ITEM
 ```
 
-通过对Cargo特性的理解，我们现在可以尝试修复在WASM WASI上运行测试时遇到的`Rayon`错误。
+通过对 Cargo 特性的理解，我们现在可以尝试修复在 WASM WASI 上运行测试时遇到的`Rayon`错误。
 
-# 规则7：改变你能改变的事情：通过选择Cargo特性来解决依赖问题，64位/32位问题。
+# 规则 7：改变你能改变的事情：通过选择 Cargo 特性来解决依赖问题，64 位/32 位问题。
 
-当我们尝试运行`cargo test --target wasm32-wasip1`时，错误信息的部分内容是：`Criterion ... Rayon cannot be used when targeting wasi32\. Try disabling default features.` 这表明我们应该在针对WASM WASI时禁用Criterion的`rayon` Cargo特性。
+当我们尝试运行`cargo test --target wasm32-wasip1`时，错误信息的部分内容是：`Criterion ... Rayon cannot be used when targeting wasi32\. Try disabling default features.` 这表明我们应该在针对 WASM WASI 时禁用 Criterion 的`rayon` Cargo 特性。
 
-为了实现这一点，我们需要在`Cargo.toml`中进行两个更改。首先，我们需要在`[dev-dependencies]`部分禁用Criterion的`rayon`特性。所以，这个初始配置：
+为了实现这一点，我们需要在`Cargo.toml`中进行两个更改。首先，我们需要在`[dev-dependencies]`部分禁用 Criterion 的`rayon`特性。所以，这个初始配置：
 
 ```py
 [dev-dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }
 ```
 
-变成这样，我们显式地关闭了Criterion的默认特性，然后启用了除了`rayon`以外的所有Cargo特性。
+变成这样，我们显式地关闭了 Criterion 的默认特性，然后启用了除了`rayon`以外的所有 Cargo 特性。
 
 ```py
 [dev-dependencies]
@@ -312,14 +312,14 @@ criterion = { version = "0.5.1", features = [
       default-features = false }
 ```
 
-接下来，为了确保`rayon`在非WASM目标下仍然可用，我们通过在`Cargo.toml`中添加条件依赖来将其重新启用，如下所示：
+接下来，为了确保`rayon`在非 WASM 目标下仍然可用，我们通过在`Cargo.toml`中添加条件依赖来将其重新启用，如下所示：
 
 ```py
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 criterion = { version = "0.5.1", features = ["rayon"] }
 ```
 
-通常，当目标是WASM WASI时，你可能需要修改依赖项及其Cargo特性以确保兼容性。有时这个过程很简单，但有时也会充满挑战——甚至是无法解决的，正如我们将在第8条规则中讨论的那样。
+通常，当目标是 WASM WASI 时，你可能需要修改依赖项及其 Cargo 特性以确保兼容性。有时这个过程很简单，但有时也会充满挑战——甚至是无法解决的，正如我们将在第 8 条规则中讨论的那样。
 
 > 旁注：在本系列的[第三篇文章](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)中——关于`no_std`和嵌入式——我们深入探讨了修复依赖项的策略。
 
@@ -334,13 +334,13 @@ fn test_demo_i32_len() {
 }
 ```
 
-编译器抱怨`u32::MAX as usize + 1`溢出。在64位Windows上，这个表达式不会溢出，因为`usize`与`u64`相同，能够容纳`u32::MAX as usize + 1`。然而，WASM是一个32位环境，所以`usize`与`u32`相同，导致表达式超出了限制。
+编译器抱怨`u32::MAX as usize + 1`溢出。在 64 位 Windows 上，这个表达式不会溢出，因为`usize`与`u64`相同，能够容纳`u32::MAX as usize + 1`。然而，WASM 是一个 32 位环境，所以`usize`与`u32`相同，导致表达式超出了限制。
 
-这里的修复是将`usize`替换为`u64`，确保表达式不会溢出。更一般来说，编译器不会总是捕捉到这些问题，因此审查你使用`usize`和`isize`是很重要的。如果你在引用Rust数据结构的大小或索引，`usize`是正确的。然而，如果你处理的是超过32位限制的值，应该使用`u64`或`i64`。
+这里的修复是将`usize`替换为`u64`，确保表达式不会溢出。更一般来说，编译器不会总是捕捉到这些问题，因此审查你使用`usize`和`isize`是很重要的。如果你在引用 Rust 数据结构的大小或索引，`usize`是正确的。然而，如果你处理的是超过 32 位限制的值，应该使用`u64`或`i64`。
 
-> **旁注**：在32位环境中，Rust数组、`Vec`、`BTreeSet`等理论上可以容纳最多2³²−1 = 4,294,967,295个元素。然而，这只是基于可寻址内存的理论限制。
+> **旁注**：在 32 位环境中，Rust 数组、`Vec`、`BTreeSet`等理论上可以容纳最多 2³²−1 = 4,294,967,295 个元素。然而，这只是基于可寻址内存的理论限制。
 > 
-> **旁注 旁注**：实际的最大元素数量更加有限。[Rust将我们的分配限制为](https://doc.rust-lang.org/std/primitive.pointer.html#method.offset)一个`[isize](https://doc.rust-lang.org/std/primitive.pointer.html#method.offset)`，因此是2³¹−1（大约20亿）字节。如果每个元素是例如2字节，我们最多可以有约10亿个元素。
+> **旁注 旁注**：实际的最大元素数量更加有限。[Rust 将我们的分配限制为](https://doc.rust-lang.org/std/primitive.pointer.html#method.offset)一个`[isize](https://doc.rust-lang.org/std/primitive.pointer.html#method.offset)`，因此是 2³¹−1（大约 20 亿）字节。如果每个元素是例如 2 字节，我们最多可以有约 10 亿个元素。
 
 所以，我们修复了依赖项问题并解决了`usize`溢出问题。但是，我们能修复所有问题吗？不幸的是，答案是否定的。
 
@@ -413,6 +413,6 @@ fn main() {
 
 +   `.cargo/config.toml` 文件和 Rust 的 `--target` 选项使得在不同的目标平台上配置和运行代码变得异常简单，包括 WASM WASI。
 
-敬请关注！在[下一篇文章](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)中，你将看到如何将Rust代码移植到浏览器中的WASM运行——这项能力我觉得非常有用。之后，[最后一篇文章](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)将讲解如何将代码移植到嵌入式系统，我觉得这非常酷。
+敬请关注！在[下一篇文章](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)中，你将看到如何将 Rust 代码移植到浏览器中的 WASM 运行——这项能力我觉得非常有用。之后，[最后一篇文章](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)将讲解如何将代码移植到嵌入式系统，我觉得这非常酷。
 
-*附注：* 对未来的文章感兴趣吗？*请* [*在Medium上关注我*](https://medium.com/@carlmkadie)*。我写关于Rust和Python、科学编程、机器学习和统计学的文章。我通常每月写一篇文章。*
+*附注：* 对未来的文章感兴趣吗？*请* [*在 Medium 上关注我*](https://medium.com/@carlmkadie)*。我写关于 Rust 和 Python、科学编程、机器学习和统计学的文章。我通常每月写一篇文章。*

@@ -1,50 +1,50 @@
-# 构建一个自定义AI Jira代理
+# 构建一个自定义 AI Jira 代理
 
-> 原文：[https://towardsdatascience.com/custom-ai-jira-agent-google-mesop-django-langchain-agent-co-star-chain-of-thought-cot-and-fb903468bff6?source=collection_archive---------0-----------------------#2024-12-25](https://towardsdatascience.com/custom-ai-jira-agent-google-mesop-django-langchain-agent-co-star-chain-of-thought-cot-and-fb903468bff6?source=collection_archive---------0-----------------------#2024-12-25)
+> 原文：[`towardsdatascience.com/custom-ai-jira-agent-google-mesop-django-langchain-agent-co-star-chain-of-thought-cot-and-fb903468bff6?source=collection_archive---------0-----------------------#2024-12-25`](https://towardsdatascience.com/custom-ai-jira-agent-google-mesop-django-langchain-agent-co-star-chain-of-thought-cot-and-fb903468bff6?source=collection_archive---------0-----------------------#2024-12-25)
 
-## 我是如何使用Google Mesop、Django、LangChain Agents、CO-STAR以及链式思维（CoT）提示结合Jira API来更好地自动化Jira的。
+## 我是如何使用 Google Mesop、Django、LangChain Agents、CO-STAR 以及链式思维（CoT）提示结合 Jira API 来更好地自动化 Jira 的。
 
-[](https://medium.com/@ljamesdatascience?source=post_page---byline--fb903468bff6--------------------------------)[![Lewis James | 数据科学](../Images/fdbb8a326f6873a9776725ffaa0b4309.png)](https://medium.com/@ljamesdatascience?source=post_page---byline--fb903468bff6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fb903468bff6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fb903468bff6--------------------------------) [Lewis James | 数据科学](https://medium.com/@ljamesdatascience?source=post_page---byline--fb903468bff6--------------------------------)
+[](https://medium.com/@ljamesdatascience?source=post_page---byline--fb903468bff6--------------------------------)![Lewis James | 数据科学](https://medium.com/@ljamesdatascience?source=post_page---byline--fb903468bff6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fb903468bff6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb903468bff6--------------------------------) [Lewis James | 数据科学](https://medium.com/@ljamesdatascience?source=post_page---byline--fb903468bff6--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb903468bff6--------------------------------) ·阅读时间19分钟·2024年12月25日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb903468bff6--------------------------------) ·阅读时间 19 分钟·2024 年 12 月 25 日
 
 --
 
-![](../Images/3244eeafdbf9aec0882a5238b4395036.png)
+![](img/3244eeafdbf9aec0882a5238b4395036.png)
 
 图片由[Google DeepMind](https://unsplash.com/@googledeepmind?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源于[Unsplash](https://unsplash.com/photos/a-bonsai-tree-growing-out-of-a-concrete-block-K2V_fqM2RY8?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
-这个项目的灵感来自于我为内部用户开发的一个Web应用程序中托管的Jira工单创建工具。我还在系统错误时加入了自动创建Jira工单的功能。
+这个项目的灵感来自于我为内部用户开发的一个 Web 应用程序中托管的 Jira 工单创建工具。我还在系统错误时加入了自动创建 Jira 工单的功能。
 
-用户和系统错误通常会创建类似的工单，因此我想看看LLM的推理能力是否可以用来通过链接相关问题、创建用户故事、验收标准和优先级，自动分流工单。
+用户和系统错误通常会创建类似的工单，因此我想看看 LLM 的推理能力是否可以用来通过链接相关问题、创建用户故事、验收标准和优先级，自动分流工单。
 
-此外，给用户和产品/管理利益相关者提供更便捷的方式，通过自然语言直接与Jira互动，而无需任何技术能力，也是一个很有趣的前景。
+此外，给用户和产品/管理利益相关者提供更便捷的方式，通过自然语言直接与 Jira 互动，而无需任何技术能力，也是一个很有趣的前景。
 
 [Jira](https://www.atlassian.com/software/jira)已经在软件开发中无处不在，现在已成为项目管理的领先工具。
 
 具体来说，大型语言模型（LLM）和智能代理研究的进展表明，在这一领域有机会实现显著的生产力提升。
 
-与Jira相关的任务非常适合自动化，因为这些任务以文本形式呈现，具有高度重复性，风险较低，复杂性也较低。
+与 Jira 相关的任务非常适合自动化，因为这些任务以文本形式呈现，具有高度重复性，风险较低，复杂性也较低。
 
-在下文中，我将展示我的开源项目——AI Jira助手：一个与Jira交互的聊天界面，通过自定义AI代理工具来分诊新创建的Jira票据。
+在下文中，我将展示我的开源项目——AI Jira 助手：一个与 Jira 交互的聊天界面，通过自定义 AI 代理工具来分诊新创建的 Jira 票据。
 
-所有代码都已通过文章末尾的GitHub仓库提供。
+所有代码都已通过文章末尾的 GitHub 仓库提供。
 
-该项目利用LangChain代理，通过Django（配合PostgreSQL）和Google Mesop提供服务。服务在Docker中运行，以便本地使用。
+该项目利用 LangChain 代理，通过 Django（配合 PostgreSQL）和 Google Mesop 提供服务。服务在 Docker 中运行，以便本地使用。
 
-提示策略包括CO-STAR系统提示、链式思维（CoT）推理和少量示例提示。
+提示策略包括 CO-STAR 系统提示、链式思维（CoT）推理和少量示例提示。
 
 本文将包括以下章节。
 
 1.  定义
 
-1.  Mesop接口：Streamlit还是Mesop？
+1.  Mesop 接口：Streamlit 还是 Mesop？
 
-1.  Django REST框架
+1.  Django REST 框架
 
-1.  自定义LangChain代理工具和提示
+1.  自定义 LangChain 代理工具和提示
 
-1.  Jira API示例
+1.  Jira API 示例
 
 1.  下一步
 
@@ -52,7 +52,7 @@
 
 首先，我想介绍一些对项目至关重要的高层定义。
 
-## AI Jira助手
+## AI Jira 助手
 
 本文展示的开源项目，在本地运行时如下所示。
 
@@ -60,73 +60,73 @@
 
 讨论了项目中各个技术难题的代码片段。
 
-![](../Images/536a02c183e1a1f86064776e5afc3c97.png)
+![](img/536a02c183e1a1f86064776e5afc3c97.png)
 
-AI Jira助手（图像由作者提供）
+AI Jira 助手（图像由作者提供）
 
-## **什么是Google Mesop？**
+## **什么是 Google Mesop？**
 
-Mesop是一个相对较新的（2023年）Python web框架，Google用于快速AI应用程序开发。
+Mesop 是一个相对较新的（2023 年）Python web 框架，Google 用于快速 AI 应用程序开发。
 
-> “Mesop提供30个多功能组件，从低级构建模块到高级AI聚焦组件。这个灵活性使您能够快速原型化机器学习应用程序或构建自定义UI，所有这些都在一个适应您项目用例的单一框架内进行。” — [Mesop首页](https://google.github.io/mesop/)
+> “Mesop 提供 30 个多功能组件，从低级构建模块到高级 AI 聚焦组件。这个灵活性使您能够快速原型化机器学习应用程序或构建自定义 UI，所有这些都在一个适应您项目用例的单一框架内进行。” — [Mesop 首页](https://google.github.io/mesop/)
 
-## 什么是AI代理？
+## 什么是 AI 代理？
 
 代理软件范式的起源来自“代理”一词，指的是一种能够观察其环境并采取行动的软件程序。
 
 > “人工智能（AI）代理是一种能够与其环境交互、收集数据并使用这些数据执行自我决定任务以实现预定目标的软件程序。”
 > 
-> “人类设定目标，但AI代理独立选择为实现这些目标所需执行的最佳行动。”
+> “人类设定目标，但 AI 代理独立选择为实现这些目标所需执行的最佳行动。”
 > 
-> AI代理是理性代理。它们基于感知和数据做出理性决策，以产生最佳表现和结果。
+> AI 代理是理性代理。它们基于感知和数据做出理性决策，以产生最佳表现和结果。
 > 
-> “AI代理通过物理或软件接口感知其环境。” — [AWS官网](https://aws.amazon.com/what-is/ai-agents/)
+> “AI 代理通过物理或软件接口感知其环境。” — [AWS 官网](https://aws.amazon.com/what-is/ai-agents/)
 
-## 什么是CO-STAR提示？
+## 什么是 CO-STAR 提示？
 
 本文是一个提示格式指南，要求包含以下标题：上下文、目标、风格、语气、受众和回应。广泛接受这种格式，以提升大型语言模型（LLM）的输出质量。
 
-> “CO-STAR框架是GovTech新加坡的数据科学与AI团队的创意，是一个便捷的模板，用于构建提示结构。”
+> “CO-STAR 框架是 GovTech 新加坡的数据科学与 AI 团队的创意，是一个便捷的模板，用于构建提示结构。”
 > 
-> 它考虑了所有影响LLM响应效果和相关性的关键因素，从而生成更优化的响应。” — [Sheila Teo的Medium文章](/how-i-won-singapores-gpt-4-prompt-engineering-competition-34c195a93d41)
+> 它考虑了所有影响 LLM 响应效果和相关性的关键因素，从而生成更优化的响应。” — Sheila Teo 的 Medium 文章
 
 ## 什么是链式思维（CoT）提示？
 
-最初由谷歌的一篇论文提出；[Wei等人（2022年）](https://arxiv.org/pdf/2201.11903)，链式思维（CoT）提示意味着提供少量示例的中间推理步骤。这被证明能够改善模型输出的常识推理能力。
+最初由谷歌的一篇论文提出；[Wei 等人（2022 年）](https://arxiv.org/pdf/2201.11903)，链式思维（CoT）提示意味着提供少量示例的中间推理步骤。这被证明能够改善模型输出的常识推理能力。
 
-## 什么是Django？
+## 什么是 Django？
 
-Django是一个广泛使用的复杂Python框架之一。
+Django 是一个广泛使用的复杂 Python 框架之一。
 
-> “Django是一个高级Python Web框架，鼓励快速开发和干净、务实的设计。它是免费的，也是开源的。” — [Django官网](https://www.djangoproject.com/)
+> “Django 是一个高级 Python Web 框架，鼓励快速开发和干净、务实的设计。它是免费的，也是开源的。” — [Django 官网](https://www.djangoproject.com/)
 
-## 什么是LangChain？
+## 什么是 LangChain？
 
-LangChain是支持LLM应用程序的更为知名的开源库之一，包括与本项目相关的代理和提示。
+LangChain 是支持 LLM 应用程序的更为知名的开源库之一，包括与本项目相关的代理和提示。
 
-> “LangChain的灵活抽象和以AI为先的工具包使其成为开发者在构建生成式AI时的首选工具。”
+> “LangChain 的灵活抽象和以 AI 为先的工具包使其成为开发者在构建生成式 AI 时的首选工具。”
 > 
-> 加入超过1百万的构建者，在LangChain的Python和JavaScript框架中标准化他们的LLM应用开发。” — [LangChain官网](https://www.langchain.com/langchain)
+> 加入超过 1 百万的构建者，在 LangChain 的 Python 和 JavaScript 框架中标准化他们的 LLM 应用开发。” — [LangChain 官网](https://www.langchain.com/langchain)
 
-# 2\. Mesop接口：Streamlit还是Mesop？
+# 2\. Mesop 接口：Streamlit 还是 Mesop？
 
-![](../Images/f457d98dc5446aeb5960d0d8e95a50c9.png)
+![](img/f457d98dc5446aeb5960d0d8e95a50c9.png)
 
 图片由[Konsepta Studio](https://unsplash.com/@konseptastudio?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，发布于[Unsplash](https://unsplash.com/photos/black-framed-eyeglasses-on-white-surface-DSW79QZtjGM?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
-我在专业工作中广泛使用了[Streamlit](https://streamlit.io/)来托管生成式AI应用，我的一个工作示例可以在[这里](https://wan-ifra.org/2024/10/how-uks-reach-is-using-ai-to-help-produce-more-content-faster/)找到。
+我在专业工作中广泛使用了[Streamlit](https://streamlit.io/)来托管生成式 AI 应用，我的一个工作示例可以在[这里](https://wan-ifra.org/2024/10/how-uks-reach-is-using-ai-to-help-produce-more-content-faster/)找到。
 
-从高层次来看，Streamlit是一个类似的开源Python Web框架。
+从高层次来看，Streamlit 是一个类似的开源 Python Web 框架。
 
-关于Streamlit的更多信息，请参见我在Medium上的另一篇文章，那里详细讨论了这一话题。
+关于 Streamlit 的更多信息，请参见我在 Medium 上的另一篇文章，那里详细讨论了这一话题。
 
-[](https://medium.com/@ljamesdatascience/ai-grant-application-writer-autogen-postgresql-rag-langchain-fastapi-and-streamlit-93ba439dcb7d?source=post_page-----fb903468bff6--------------------------------) [## AI资助申请写作工具 — AutoGen, PostgreSQL RAG, LangChain, FastAPI和Streamlit]
+[](https://medium.com/@ljamesdatascience/ai-grant-application-writer-autogen-postgresql-rag-langchain-fastapi-and-streamlit-93ba439dcb7d?source=post_page-----fb903468bff6--------------------------------) [## AI 资助申请写作工具 — AutoGen, PostgreSQL RAG, LangChain, FastAPI 和 Streamlit]
 
-### 写资助申请可能是一个既耗时又乏味的工作，生成式AI似乎是一个自然的解决方案，尽管它可能显得有些天真……
+### 写资助申请可能是一个既耗时又乏味的工作，生成式 AI 似乎是一个自然的解决方案，尽管它可能显得有些天真……
 
 [medium.com](https://medium.com/@ljamesdatascience/ai-grant-application-writer-autogen-postgresql-rag-langchain-fastapi-and-streamlit-93ba439dcb7d?source=post_page-----fb903468bff6--------------------------------)
 
-这是第一次在实际使用中应用Mesop——所以我认为做个比较可能会很有用。
+这是第一次在实际使用中应用 Mesop——所以我认为做个比较可能会很有用。
 
 Mesop 旨在提供对组件的 CSS 样式更精细的控制，并且原生集成了 JS Web 评论。Mesop 还提供了有用的调试工具，可以在本地运行时使用。从经验来看，我还想说，多个页面应用功能的使用要更为便捷。
 
@@ -193,7 +193,7 @@ def error(security_policy=me.SecurityPolicy(dangerously_disable_trusted_types=Tr
 
 错误页面包含一个按钮，用于重定向到主页。
 
-![](../Images/a62ff27dc85ddaa92e445800afda8b06.png)
+![](img/a62ff27dc85ddaa92e445800afda8b06.png)
 
 AI Jira 助手错误页面（图片来自作者）
 
@@ -300,7 +300,7 @@ def click_prompt_box(e: me.ClickEvent):
     config.State.input = e.key
 ```
 
-类似地，要向 Django 服务发送请求，我们使用以下代码片段。我们使用[海象运算符](https://www.geeksforgeeks.org/walrus-operator-in-python-3-8/) (:=) 来判断请求是否收到了有效的响应（即状态码为200且非 None），并将输出追加到状态中，以便在 UI 中渲染，否则我们会将用户重定向到前面讨论的错误页面。
+类似地，要向 Django 服务发送请求，我们使用以下代码片段。我们使用[海象运算符](https://www.geeksforgeeks.org/walrus-operator-in-python-3-8/) (:=) 来判断请求是否收到了有效的响应（即状态码为 200 且非 None），并将输出追加到状态中，以便在 UI 中渲染，否则我们会将用户重定向到前面讨论的错误页面。
 
 ```py
 def chat_input():
@@ -395,7 +395,7 @@ DOCKER_RUNNING=true 环境变量是一种约定，用于简单地判断应用程
 
 # 3\. Django REST 框架
 
-![](../Images/e4bf7b8e0f7357749d194a4ed4c9ca64.png)
+![](img/e4bf7b8e0f7357749d194a4ed4c9ca64.png)
 
 图片由 [Faisal](https://unsplash.com/@faisaldada?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源于 [Unsplash](https://unsplash.com/photos/black-and-yellow-box-on-white-table-BI465ksrlWs?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -446,31 +446,31 @@ class GetRecords(APIView):
         return Response({'result': str(data)})
 ```
 
-> “模型是关于你的数据的唯一、权威的信息来源。它包含了你存储的数据的基本字段和行为。通常，每个模型对应一个数据库表。” — [Django官网](https://docs.djangoproject.com/en/5.1/topics/db/models/#:~:text=A%20model%20is%20the%20single,.db.models.Model%20.)
+> “模型是关于你的数据的唯一、权威的信息来源。它包含了你存储的数据的基本字段和行为。通常，每个模型对应一个数据库表。” — [Django 官网](https://docs.djangoproject.com/en/5.1/topics/db/models/#:~:text=A%20model%20is%20the%20single,.db.models.Model%20.)
 
 我们的模型对于这个项目来说很简单，因为我们只需要存储用户请求和最终模型输出，这两个字段都是文本字段。
 
-__str__ 方法是Python中的一个常见约定，例如，它在print函数中默认被调用。该方法的目的是返回对象的可读字符串表示。
+__str__ 方法是 Python 中的一个常见约定，例如，它在 print 函数中默认被调用。该方法的目的是返回对象的可读字符串表示。
 
-序列化器将模型中的字段映射到验证输入和输出，并将更复杂的数据类型转换为Python数据类型。这可以在之前详细介绍的views.py中看到。
+序列化器将模型中的字段映射到验证输入和输出，并将更复杂的数据类型转换为 Python 数据类型。这可以在之前详细介绍的 views.py 中看到。
 
-> “ModelSerializer通常指的是Django REST框架(DRF)中的一个组件。Django REST框架是一个用于在Django应用中构建Web API的流行工具包。它提供了一组工具和库，以简化构建API的过程，其中包括序列化器。”
+> “ModelSerializer 通常指的是 Django REST 框架(DRF)中的一个组件。Django REST 框架是一个用于在 Django 应用中构建 Web API 的流行工具包。它提供了一组工具和库，以简化构建 API 的过程，其中包括序列化器。”
 > 
-> ModelSerializer类提供了一种快捷方式，允许你自动创建一个Serializer类，该类的字段与Model字段相对应。
+> ModelSerializer 类提供了一种快捷方式，允许你自动创建一个 Serializer 类，该类的字段与 Model 字段相对应。
 > 
 > ModelSerializer 类与常规的 Serializer 类相同，不同之处在于：
 > 
 > 它将基于模型自动生成一组字段。
 > 
-> 它将自动为序列化器生成验证器，如unique_together验证器。
+> 它将自动为序列化器生成验证器，如 unique_together 验证器。
 > 
 > 它包括.create()和.update()的简单默认实现。” — [Geeks for geeks](https://www.geeksforgeeks.org/serializers-django-rest-framework/)
 
-项目的完整serializers.py文件如下所示。
+项目的完整 serializers.py 文件如下所示。
 
-对于PostgreSQL数据库集成，settings.py文件中的配置必须与database.ini文件匹配。
+对于 PostgreSQL 数据库集成，settings.py 文件中的配置必须与 database.ini 文件匹配。
 
-默认的数据库设置必须更改为指向PostgreSQL数据库，因为这不是Django的默认数据库集成。
+默认的数据库设置必须更改为指向 PostgreSQL 数据库，因为这不是 Django 的默认数据库集成。
 
 ```py
 DATABASES = {
@@ -485,15 +485,15 @@ DATABASES = {
 }
 ```
 
-database.ini 文件在初始化时定义了PostgreSQL数据库的配置。
+database.ini 文件在初始化时定义了 PostgreSQL 数据库的配置。
 
-为确保在Docker容器启动后应用数据库迁移，我们可以使用bash脚本来应用迁移，然后启动服务器。自动运行迁移将意味着每当Django源代码中的定义发生变化时，数据库总是会被修改，这从长远来看能节省时间。
+为确保在 Docker 容器启动后应用数据库迁移，我们可以使用 bash 脚本来应用迁移，然后启动服务器。自动运行迁移将意味着每当 Django 源代码中的定义发生变化时，数据库总是会被修改，这从长远来看能节省时间。
 
-Dockerfile的入口点然后通过CMD指令修改为指向bash脚本。
+Dockerfile 的入口点然后通过 CMD 指令修改为指向 bash 脚本。
 
-# 4\. 自定义LangChain代理工具和提示
+# 4\. 自定义 LangChain 代理工具和提示
 
-![](../Images/8c59bb257dfadce27140c4cfc1f3da92.png)
+![](img/8c59bb257dfadce27140c4cfc1f3da92.png)
 
 照片由 [Vlad Tchompalov](https://unsplash.com/@tchompalov?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源于 [Unsplash](https://unsplash.com/photos/green-bird-kuTZUOVRpOo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 
@@ -708,25 +708,25 @@ def llm_check_ticket_match(ticket1, ticket2):
 
 工具的一个示例工作流程：创建工单并进行分诊。
 
-![](../Images/0f3c81d705a4d1f7191dadb25d8da9e7.png)
+![](img/0f3c81d705a4d1f7191dadb25d8da9e7.png)
 
 工作工单创建和分诊（图片由作者提供）
 
 这些操作的结果被记录在 Jira 工单中。相关的工单已被自动链接，用户故事、验收标准、优先级和思考过程已作为 Jira 评论进行记录。
 
-![](../Images/c890e01fb7882abe71c735539126e3e9.png)
+![](img/c890e01fb7882abe71c735539126e3e9.png)
 
 已链接的工单、用户故事、验收标准和优先级（图片由作者提供）
 
 我们可以在 Docker 容器的打印语句中看到代理的中间步骤。
 
-![](../Images/b69b00afcdbde221f214e9a7692fac6c.png)
+![](img/b69b00afcdbde221f214e9a7692fac6c.png)
 
 代理输出的分诊步骤（图片由作者提供）
 
 # 5. Jira API 示例
 
-![](../Images/4a8dc1971040892936d3712169b7fea6.png)
+![](img/4a8dc1971040892936d3712169b7fea6.png)
 
 AI Jira 助手正在寻找进行中的工单（图片由作者提供）
 
@@ -744,18 +744,18 @@ AI Jira 助手正在寻找进行中的工单（图片由作者提供）
 
 [](https://uk.pcmag.com/ai/155094/ai-now-writes-over-25-of-code-at-google?source=post_page-----fb903468bff6--------------------------------) [## AI 现在在 Google 写超过 25% 的代码
 
-### 谷歌CEO桑达尔·皮查伊表示，公司正在使用AI编写代码，然后由工程师进行审核。但这会如何发展……
+### 谷歌 CEO 桑达尔·皮查伊表示，公司正在使用 AI 编写代码，然后由工程师进行审核。但这会如何发展……
 
-[https://uk.pcmag.com/ai/155094/ai-now-writes-over-25-of-code-at-google?source=post_page-----fb903468bff6--------------------------------](https://uk.pcmag.com/ai/155094/ai-now-writes-over-25-of-code-at-google?source=post_page-----fb903468bff6--------------------------------)
+[`uk.pcmag.com/ai/155094/ai-now-writes-over-25-of-code-at-google?source=post_page-----fb903468bff6--------------------------------`](https://uk.pcmag.com/ai/155094/ai-now-writes-over-25-of-code-at-google?source=post_page-----fb903468bff6--------------------------------)
 
-我希望你觉得这篇文章有启发性，正如承诺的那样——你可以在Github仓库[这里](https://github.com/lewisExternal/Custom-AI-Jira-Agent/tree/main)找到所有代码，也可以随时在[LinkedIn](https://www.linkedin.com/in/lewisjames1/)上与我联系。
+我希望你觉得这篇文章有启发性，正如承诺的那样——你可以在 Github 仓库[这里](https://github.com/lewisExternal/Custom-AI-Jira-Agent/tree/main)找到所有代码，也可以随时在[LinkedIn](https://www.linkedin.com/in/lewisjames1/)上与我联系。
 
 # 参考资料
 
-+   [https://google.github.io/mesop/getting-started/quickstart/#starter-kit](https://google.github.io/mesop/getting-started/quickstart/#starter-kit)
++   [`google.github.io/mesop/getting-started/quickstart/#starter-kit`](https://google.github.io/mesop/getting-started/quickstart/#starter-kit)
 
-+   [https://www.django-rest-framework.org/#example](https://www.django-rest-framework.org/#example)
++   [`www.django-rest-framework.org/#example`](https://www.django-rest-framework.org/#example)
 
-+   [https://blog.logrocket.com/dockerizing-django-app/](https://blog.logrocket.com/dockerizing-django-app/)
++   [`blog.logrocket.com/dockerizing-django-app/`](https://blog.logrocket.com/dockerizing-django-app/)
 
 *除非另有说明，所有图片均由作者提供。*

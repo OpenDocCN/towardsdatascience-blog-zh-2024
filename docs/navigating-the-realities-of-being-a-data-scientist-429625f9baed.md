@@ -1,18 +1,18 @@
 # 探索作为数据科学家的现实
 
-> 原文：[https://towardsdatascience.com/navigating-the-realities-of-being-a-data-scientist-429625f9baed?source=collection_archive---------8-----------------------#2024-02-24](https://towardsdatascience.com/navigating-the-realities-of-being-a-data-scientist-429625f9baed?source=collection_archive---------8-----------------------#2024-02-24)
+> 原文：[`towardsdatascience.com/navigating-the-realities-of-being-a-data-scientist-429625f9baed?source=collection_archive---------8-----------------------#2024-02-24`](https://towardsdatascience.com/navigating-the-realities-of-being-a-data-scientist-429625f9baed?source=collection_archive---------8-----------------------#2024-02-24)
 
 ## 作为数据科学家，我经常面临的一些挑战
 
-[](https://medium.com/@egorhowell?source=post_page---byline--429625f9baed--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--429625f9baed--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--429625f9baed--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--429625f9baed--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--429625f9baed--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--429625f9baed--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--429625f9baed--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--429625f9baed--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--429625f9baed--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--429625f9baed--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--429625f9baed--------------------------------) ·9分钟阅读·2024年2月24日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--429625f9baed--------------------------------) ·9 分钟阅读·2024 年 2 月 24 日
 
 --
 
-![](../Images/96ef7018570a5205b78d665e662adc13.png)
+![](img/96ef7018570a5205b78d665e662adc13.png)
 
-由 ThisIsEngineering 提供的照片，来自 Pexels：[https://www.pexels.com/photo/female-software-engineer-coding-on-computer-3861972/](https://www.pexels.com/photo/female-software-engineer-coding-on-computer-3861972/)
+由 ThisIsEngineering 提供的照片，来自 Pexels：[`www.pexels.com/photo/female-software-engineer-coding-on-computer-3861972/`](https://www.pexels.com/photo/female-software-engineer-coding-on-computer-3861972/)
 
 表面上看，成为数据科学家似乎一切都很美好（至少我觉得这是我从我的文章中给出的印象！）。高薪、优厚的福利、灵活的工作时间和有趣的工作内容是人们在想到数据科学工作时常常浮现的几个方面。
 

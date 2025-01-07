@@ -1,16 +1,16 @@
 # 如何持续发展为数据科学家
 
-> 原文：[https://towardsdatascience.com/how-to-keep-on-developing-as-a-data-scientist-3b33cdda853a?source=collection_archive---------2-----------------------#2024-04-25](https://towardsdatascience.com/how-to-keep-on-developing-as-a-data-scientist-3b33cdda853a?source=collection_archive---------2-----------------------#2024-04-25)
+> 原文：[`towardsdatascience.com/how-to-keep-on-developing-as-a-data-scientist-3b33cdda853a?source=collection_archive---------2-----------------------#2024-04-25`](https://towardsdatascience.com/how-to-keep-on-developing-as-a-data-scientist-3b33cdda853a?source=collection_archive---------2-----------------------#2024-04-25)
 
-![](../Images/161647a502459e32814d6c9f4d6ae58c.png)
+![](img/161647a502459e32814d6c9f4d6ae58c.png)
 
 图片由 Midjourney 生成
 
 ## 关于如何在日常工作中持续学习的几个实用建议
 
-[](https://eryk-lewinson.medium.com/?source=post_page---byline--3b33cdda853a--------------------------------)[![Eryk Lewinson](../Images/56e09e19c0bbfecc582da58761d15078.png)](https://eryk-lewinson.medium.com/?source=post_page---byline--3b33cdda853a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3b33cdda853a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3b33cdda853a--------------------------------) [Eryk Lewinson](https://eryk-lewinson.medium.com/?source=post_page---byline--3b33cdda853a--------------------------------)
+[](https://eryk-lewinson.medium.com/?source=post_page---byline--3b33cdda853a--------------------------------)![Eryk Lewinson](https://eryk-lewinson.medium.com/?source=post_page---byline--3b33cdda853a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3b33cdda853a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3b33cdda853a--------------------------------) [Eryk Lewinson](https://eryk-lewinson.medium.com/?source=post_page---byline--3b33cdda853a--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3b33cdda853a--------------------------------) ·12分钟阅读·2024年4月25日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3b33cdda853a--------------------------------) ·12 分钟阅读·2024 年 4 月 25 日
 
 --
 

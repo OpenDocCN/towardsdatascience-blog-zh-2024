@@ -1,16 +1,16 @@
-# 地理编码与艺术的交集：利用开放街图和Networkx
+# 地理编码与艺术的交集：利用开放街图和 Networkx
 
-> 原文：[https://towardsdatascience.com/the-intersection-of-geocoding-and-art-with-open-street-map-and-networkx-d3cff5a56200?source=collection_archive---------7-----------------------#2024-01-16](https://towardsdatascience.com/the-intersection-of-geocoding-and-art-with-open-street-map-and-networkx-d3cff5a56200?source=collection_archive---------7-----------------------#2024-01-16)
+> 原文：[`towardsdatascience.com/the-intersection-of-geocoding-and-art-with-open-street-map-and-networkx-d3cff5a56200?source=collection_archive---------7-----------------------#2024-01-16`](https://towardsdatascience.com/the-intersection-of-geocoding-and-art-with-open-street-map-and-networkx-d3cff5a56200?source=collection_archive---------7-----------------------#2024-01-16)
 
 ## 使用 Python 绘图和网络指标分析城市街道地图
 
-[](https://sejaldua.medium.com/?source=post_page---byline--d3cff5a56200--------------------------------)[![Sejal Dua](../Images/b9ec1f4907da5e6dfa1c922caa5b326d.png)](https://sejaldua.medium.com/?source=post_page---byline--d3cff5a56200--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d3cff5a56200--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d3cff5a56200--------------------------------) [Sejal Dua](https://sejaldua.medium.com/?source=post_page---byline--d3cff5a56200--------------------------------)
+[](https://sejaldua.medium.com/?source=post_page---byline--d3cff5a56200--------------------------------)![Sejal Dua](https://sejaldua.medium.com/?source=post_page---byline--d3cff5a56200--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d3cff5a56200--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d3cff5a56200--------------------------------) [Sejal Dua](https://sejaldua.medium.com/?source=post_page---byline--d3cff5a56200--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d3cff5a56200--------------------------------) ·8 分钟阅读·2024年1月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d3cff5a56200--------------------------------) ·8 分钟阅读·2024 年 1 月 16 日
 
 --
 
-![](../Images/3382145714d93a1928f643d6c16e938e.png)
+![](img/3382145714d93a1928f643d6c16e938e.png)
 
 图片由 [Logan Armstrong](https://unsplash.com/@loganstrongarms?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

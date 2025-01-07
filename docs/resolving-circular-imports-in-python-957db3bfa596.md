@@ -1,18 +1,18 @@
 # 解决 Python 中的循环导入问题
 
-> 原文：[https://towardsdatascience.com/resolving-circular-imports-in-python-957db3bfa596?source=collection_archive---------5-----------------------#2024-04-25](https://towardsdatascience.com/resolving-circular-imports-in-python-957db3bfa596?source=collection_archive---------5-----------------------#2024-04-25)
+> 原文：[`towardsdatascience.com/resolving-circular-imports-in-python-957db3bfa596?source=collection_archive---------5-----------------------#2024-04-25`](https://towardsdatascience.com/resolving-circular-imports-in-python-957db3bfa596?source=collection_archive---------5-----------------------#2024-04-25)
 
 ## PYTHON 编程
 
 ## 了解并解决循环导入问题，这是当两个模块相互导入时常见的错误。
 
-[](https://medium.com/@nyggus?source=post_page---byline--957db3bfa596--------------------------------)[![Marcin Kozak](../Images/d7faf62e48ed81dab5d8ad92819fff54.png)](https://medium.com/@nyggus?source=post_page---byline--957db3bfa596--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--957db3bfa596--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--957db3bfa596--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--957db3bfa596--------------------------------)
+[](https://medium.com/@nyggus?source=post_page---byline--957db3bfa596--------------------------------)![Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--957db3bfa596--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--957db3bfa596--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--957db3bfa596--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--957db3bfa596--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--957db3bfa596--------------------------------) ·阅读时间 7 分钟·2024年4月25日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--957db3bfa596--------------------------------) ·阅读时间 7 分钟·2024 年 4 月 25 日
 
 --
 
-![](../Images/17cfc72a6324bc236ca2020fc41b2bd6.png)
+![](img/17cfc72a6324bc236ca2020fc41b2bd6.png)
 
 循环导入会导致一个永无止境的循环。照片来自[Matt Seymour](https://unsplash.com/@mattseymour?utm_source=medium&utm_medium=referral)在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)上。
 

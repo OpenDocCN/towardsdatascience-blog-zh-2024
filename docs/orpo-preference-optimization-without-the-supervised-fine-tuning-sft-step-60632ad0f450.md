@@ -1,16 +1,16 @@
 # ORPO：无监督微调（SFT）步骤的偏好优化
 
-> 原文：[https://towardsdatascience.com/orpo-preference-optimization-without-the-supervised-fine-tuning-sft-step-60632ad0f450?source=collection_archive---------4-----------------------#2024-04-10](https://towardsdatascience.com/orpo-preference-optimization-without-the-supervised-fine-tuning-sft-step-60632ad0f450?source=collection_archive---------4-----------------------#2024-04-10)
+> 原文：[`towardsdatascience.com/orpo-preference-optimization-without-the-supervised-fine-tuning-sft-step-60632ad0f450?source=collection_archive---------4-----------------------#2024-04-10`](https://towardsdatascience.com/orpo-preference-optimization-without-the-supervised-fine-tuning-sft-step-60632ad0f450?source=collection_archive---------4-----------------------#2024-04-10)
 
 ## 一种比 DPO 更便宜的对齐方法，性能相当
 
-[](https://medium.com/@bnjmn_marie?source=post_page---byline--60632ad0f450--------------------------------)[![Benjamin Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--60632ad0f450--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--60632ad0f450--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--60632ad0f450--------------------------------) [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--60632ad0f450--------------------------------)
+[](https://medium.com/@bnjmn_marie?source=post_page---byline--60632ad0f450--------------------------------)![Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--60632ad0f450--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--60632ad0f450--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--60632ad0f450--------------------------------) [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--60632ad0f450--------------------------------)
 
 ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--60632ad0f450--------------------------------) ·阅读时长 7 分钟·2024 年 4 月 10 日
 
 --
 
-![](../Images/4d246d66e25e62577f87b7c194f20d7b.png)
+![](img/4d246d66e25e62577f87b7c194f20d7b.png)
 
 由 DALL-E 生成
 

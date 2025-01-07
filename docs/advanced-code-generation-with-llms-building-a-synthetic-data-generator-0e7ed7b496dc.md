@@ -1,16 +1,16 @@
 # 高级代码生成与大语言模型 — 构建一个合成数据生成器
 
-> 原文：[https://towardsdatascience.com/advanced-code-generation-with-llms-building-a-synthetic-data-generator-0e7ed7b496dc?source=collection_archive---------4-----------------------#2024-04-14](https://towardsdatascience.com/advanced-code-generation-with-llms-building-a-synthetic-data-generator-0e7ed7b496dc?source=collection_archive---------4-----------------------#2024-04-14)
+> 原文：[`towardsdatascience.com/advanced-code-generation-with-llms-building-a-synthetic-data-generator-0e7ed7b496dc?source=collection_archive---------4-----------------------#2024-04-14`](https://towardsdatascience.com/advanced-code-generation-with-llms-building-a-synthetic-data-generator-0e7ed7b496dc?source=collection_archive---------4-----------------------#2024-04-14)
 
 ## 应用 INSPIRe 框架的六个步骤来加速你的代码生成（ChatGPT-4 — Claude 3 — Gemini）
 
-[](https://nabil-alouani.medium.com/?source=post_page---byline--0e7ed7b496dc--------------------------------)[![Nabil Alouani](../Images/8ceea018e9b15413d318bfb710bb0011.png)](https://nabil-alouani.medium.com/?source=post_page---byline--0e7ed7b496dc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e7ed7b496dc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0e7ed7b496dc--------------------------------) [Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--0e7ed7b496dc--------------------------------)
+[](https://nabil-alouani.medium.com/?source=post_page---byline--0e7ed7b496dc--------------------------------)![Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--0e7ed7b496dc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e7ed7b496dc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e7ed7b496dc--------------------------------) [Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--0e7ed7b496dc--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e7ed7b496dc--------------------------------) ·31分钟阅读·2024年4月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e7ed7b496dc--------------------------------) ·31 分钟阅读·2024 年 4 月 14 日
 
 --
 
-![](../Images/798531da216cd7dd21305d6d865eb150.png)
+![](img/798531da216cd7dd21305d6d865eb150.png)
 
 由作者构思的图像。
 
@@ -32,4 +32,4 @@
 
 如果你在想 INSPIRe 到底是什么，应该先读一下[本系列的第一部分](https://medium.com/@nabil-alouani/6-practical-steps-to-make-ai-write-your-python-code-for-you-2b3c6a35f174)。你将会了解该框架的介绍以及如何应用它。不过，如果你感觉冒险，接下来的简短回顾应该足够了。
 
-[https://medium.com/@nabil-alouani/6-practical-steps-to-make-ai-write-your-python-code-for-you-2b3c6a35f174](https://medium.com/@nabil-alouani/6-practical-steps-to-make-ai-write-your-python-code-for-you-2b3c6a35f174)
+[`medium.com/@nabil-alouani/6-practical-steps-to-make-ai-write-your-python-code-for-you-2b3c6a35f174`](https://medium.com/@nabil-alouani/6-practical-steps-to-make-ai-write-your-python-code-for-you-2b3c6a35f174)

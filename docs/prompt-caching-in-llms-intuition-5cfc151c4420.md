@@ -1,16 +1,16 @@
 # LLMs 中的提示缓存：直觉
 
-> 原文：[https://towardsdatascience.com/prompt-caching-in-llms-intuition-5cfc151c4420?source=collection_archive---------4-----------------------#2024-10-04](https://towardsdatascience.com/prompt-caching-in-llms-intuition-5cfc151c4420?source=collection_archive---------4-----------------------#2024-10-04)
+> 原文：[`towardsdatascience.com/prompt-caching-in-llms-intuition-5cfc151c4420?source=collection_archive---------4-----------------------#2024-10-04`](https://towardsdatascience.com/prompt-caching-in-llms-intuition-5cfc151c4420?source=collection_archive---------4-----------------------#2024-10-04)
 
 ## 介绍缓存在基于注意力的模型中的工作原理
 
-[](https://medium.com/@rodrigonader?source=post_page---byline--5cfc151c4420--------------------------------)[![Rodrigo Nader](../Images/c1715d46ef7939ff85fc7c908e92b2f1.png)](https://medium.com/@rodrigonader?source=post_page---byline--5cfc151c4420--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5cfc151c4420--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5cfc151c4420--------------------------------) [Rodrigo Nader](https://medium.com/@rodrigonader?source=post_page---byline--5cfc151c4420--------------------------------)
+[](https://medium.com/@rodrigonader?source=post_page---byline--5cfc151c4420--------------------------------)![Rodrigo Nader](https://medium.com/@rodrigonader?source=post_page---byline--5cfc151c4420--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5cfc151c4420--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5cfc151c4420--------------------------------) [Rodrigo Nader](https://medium.com/@rodrigonader?source=post_page---byline--5cfc151c4420--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5cfc151c4420--------------------------------) ·阅读时间 4 分钟·2024年10月4日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5cfc151c4420--------------------------------) ·阅读时间 4 分钟·2024 年 10 月 4 日
 
 --
 
-![](../Images/9da5fcfecad7b9e5ffa7ce5a6172ef0b.png)
+![](img/9da5fcfecad7b9e5ffa7ce5a6172ef0b.png)
 
 图片由作者使用 ChatGPT 制作
 
@@ -46,9 +46,9 @@
 
 1.  在缓存命中时，缓存的部分被检索，跳过了标记化和完整模型推理的过程。
 
-![](../Images/e7f90c2a611b4e1abbbfd64dac73e832.png)
+![](img/e7f90c2a611b4e1abbbfd64dac73e832.png)
 
-[https://aclanthology.org/2023.nlposs-1.24.pdf](https://aclanthology.org/2023.nlposs-1.24.pdf)
+[`aclanthology.org/2023.nlposs-1.24.pdf`](https://aclanthology.org/2023.nlposs-1.24.pdf)
 
 # 那么……到底是什么被缓存了呢？
 
@@ -72,32 +72,32 @@
 
 `["Harry", "Potter"], ["Harry", "a"], ["Harry", "wizard"]，等等…`
 
-# KV提示缓存如何工作
+# KV 提示缓存如何工作
 
-1.  **预计算并缓存KV状态**：模型计算并存储常用提示的KV对，允许跳过重新计算，从缓存中检索这些对，以提高效率。
+1.  **预计算并缓存 KV 状态**：模型计算并存储常用提示的 KV 对，允许跳过重新计算，从缓存中检索这些对，以提高效率。
 
-1.  **合并缓存和新上下文**：在新的提示中，模型检索之前使用过的句子的缓存KV对，同时计算任何新句子的KV对。
+1.  **合并缓存和新上下文**：在新的提示中，模型检索之前使用过的句子的缓存 KV 对，同时计算任何新句子的 KV 对。
 
-1.  **跨句KV计算**：模型计算新的KV对，将缓存的令牌从一个句子链接到另一个句子的新的令牌，从而实现对它们关系的整体理解。
+1.  **跨句 KV 计算**：模型计算新的 KV 对，将缓存的令牌从一个句子链接到另一个句子的新的令牌，从而实现对它们关系的整体理解。
 
-![](../Images/46f1763f48212864ed71f0fe6cb78be1.png)
+![](img/46f1763f48212864ed71f0fe6cb78be1.png)
 
-[https://arxiv.org/abs/2311.04934](https://arxiv.org/abs/2311.04934)
+[`arxiv.org/abs/2311.04934`](https://arxiv.org/abs/2311.04934)
 
 **总结：**
 
-> 缓存的提示中，所有标记之间的关系已经计算完毕。只有NEW-OLD或NEW-NEW标记之间的新关系需要重新计算。
+> 缓存的提示中，所有标记之间的关系已经计算完毕。只有 NEW-OLD 或 NEW-NEW 标记之间的新关系需要重新计算。
 
-# 这意味着RAG的终结吗？
+# 这意味着 RAG 的终结吗？
 
 随着模型上下文大小的增加，提示缓存将通过避免重复处理带来很大的差异。因此，一些人可能倾向于只使用庞大的提示，并完全跳过检索过程。
 
 但问题是：随着上下文的增长，模型会失去焦点。这不是因为模型表现不佳，而是因为在一大块数据中寻找答案是一个主观任务，取决于具体的使用案例需求。
 
-能够存储和管理大量向量的系统仍然至关重要，而RAG通过提供一些关键功能，超越了缓存提示：控制。
+能够存储和管理大量向量的系统仍然至关重要，而 RAG 通过提供一些关键功能，超越了缓存提示：控制。
 
-使用RAG，你可以从数据中筛选并仅检索最相关的部分，而不必依赖模型处理所有内容。模块化、分离的方法减少了噪音，比起全上下文输入，它能为你提供更多的透明度和精确度。
+使用 RAG，你可以从数据中筛选并仅检索最相关的部分，而不必依赖模型处理所有内容。模块化、分离的方法减少了噪音，比起全上下文输入，它能为你提供更多的透明度和精确度。
 
 最后，出现的更大上下文模型可能会要求更好的提示向量存储，而不是简单的缓存。这是否意味着我们回到了……向量存储？
 
-在Langflow，我们正在打造从RAG原型到生产的最快路径。它是开源的，并且提供免费的云服务！快来看看 [https://github.com/langflow-ai/langflow](https://github.com/langflow-ai/langflow) ✨
+在 Langflow，我们正在打造从 RAG 原型到生产的最快路径。它是开源的，并且提供免费的云服务！快来看看 [`github.com/langflow-ai/langflow`](https://github.com/langflow-ai/langflow) ✨

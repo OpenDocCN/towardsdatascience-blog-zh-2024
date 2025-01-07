@@ -1,18 +1,18 @@
 # 在 Python 中覆盖对象：棘手、危险且强大
 
-> 原文：[https://towardsdatascience.com/overwriting-in-python-tricky-dangerous-powerful-04b12a9b1a7e?source=collection_archive---------3-----------------------#2024-04-10](https://towardsdatascience.com/overwriting-in-python-tricky-dangerous-powerful-04b12a9b1a7e?source=collection_archive---------3-----------------------#2024-04-10)
+> 原文：[`towardsdatascience.com/overwriting-in-python-tricky-dangerous-powerful-04b12a9b1a7e?source=collection_archive---------3-----------------------#2024-04-10`](https://towardsdatascience.com/overwriting-in-python-tricky-dangerous-powerful-04b12a9b1a7e?source=collection_archive---------3-----------------------#2024-04-10)
 
 ## PYTHON 编程
 
 ## 虽然覆盖对象是 Python 编程中的典型技巧，但它可能会导致意想不到的效果。你需要了解如何使用它，才能发挥其优势。
 
-[](https://medium.com/@nyggus?source=post_page---byline--04b12a9b1a7e--------------------------------)[![Marcin Kozak](../Images/d7faf62e48ed81dab5d8ad92819fff54.png)](https://medium.com/@nyggus?source=post_page---byline--04b12a9b1a7e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04b12a9b1a7e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--04b12a9b1a7e--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--04b12a9b1a7e--------------------------------)
+[](https://medium.com/@nyggus?source=post_page---byline--04b12a9b1a7e--------------------------------)![Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--04b12a9b1a7e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04b12a9b1a7e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04b12a9b1a7e--------------------------------) [Marcin Kozak](https://medium.com/@nyggus?source=post_page---byline--04b12a9b1a7e--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04b12a9b1a7e--------------------------------) ·27分钟阅读·2024年4月10日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04b12a9b1a7e--------------------------------) ·27 分钟阅读·2024 年 4 月 10 日
 
 --
 
-![](../Images/24603710e2708d773ede8bac7ae78647.png)
+![](img/24603710e2708d773ede8bac7ae78647.png)
 
 在 Python 中覆盖对象可能是危险的：不要在未深思熟虑的情况下进行操作。照片由[Raúl Nájera](https://unsplash.com/@reinf?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,16 +1,16 @@
 # 深度学习在作物产量预测中的应用（第一部分 — 模型）
 
-> 原文：[https://towardsdatascience.com/deep-learning-for-crop-yield-prediction-pt-1-model-5414fd42b06b?source=collection_archive---------2-----------------------#2024-09-11](https://towardsdatascience.com/deep-learning-for-crop-yield-prediction-pt-1-model-5414fd42b06b?source=collection_archive---------2-----------------------#2024-09-11)
+> 原文：[`towardsdatascience.com/deep-learning-for-crop-yield-prediction-pt-1-model-5414fd42b06b?source=collection_archive---------2-----------------------#2024-09-11`](https://towardsdatascience.com/deep-learning-for-crop-yield-prediction-pt-1-model-5414fd42b06b?source=collection_archive---------2-----------------------#2024-09-11)
 
 ## 提高作物产量并优化灌溉：一种基于深度学习的多变量分析方法
 
-[](https://medium.com/@panData?source=post_page---byline--5414fd42b06b--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--5414fd42b06b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5414fd42b06b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5414fd42b06b--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--5414fd42b06b--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--5414fd42b06b--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--5414fd42b06b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5414fd42b06b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5414fd42b06b--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--5414fd42b06b--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5414fd42b06b--------------------------------) ·21分钟阅读·2024年9月11日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5414fd42b06b--------------------------------) ·21 分钟阅读·2024 年 9 月 11 日
 
 --
 
-![](../Images/1b6ae6af2c44cf0337f1859a80970a09.png)
+![](img/1b6ae6af2c44cf0337f1859a80970a09.png)
 
 图片来源：[Lumin Osity](https://unsplash.com/@lumin_osity?utm_source=medium&utm_medium=referral) 于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,16 +1,16 @@
 # 数据科学家应在工作中融入的四个职业救星
 
-> 原文：[https://towardsdatascience.com/four-career-savers-data-scientists-should-incorporate-into-their-work-c95e78dab625?source=collection_archive---------4-----------------------#2024-12-17](https://towardsdatascience.com/four-career-savers-data-scientists-should-incorporate-into-their-work-c95e78dab625?source=collection_archive---------4-----------------------#2024-12-17)
+> 原文：[`towardsdatascience.com/four-career-savers-data-scientists-should-incorporate-into-their-work-c95e78dab625?source=collection_archive---------4-----------------------#2024-12-17`](https://towardsdatascience.com/four-career-savers-data-scientists-should-incorporate-into-their-work-c95e78dab625?source=collection_archive---------4-----------------------#2024-12-17)
 
 ## 你可能在不知情的情况下损害了数据科学职业的进展，但避免这种命运并不难
 
-[](https://medium.com/@egorhowell?source=post_page---byline--c95e78dab625--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--c95e78dab625--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c95e78dab625--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c95e78dab625--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--c95e78dab625--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--c95e78dab625--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--c95e78dab625--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c95e78dab625--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c95e78dab625--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--c95e78dab625--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c95e78dab625--------------------------------) ·阅读时间6分钟·2024年12月17日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c95e78dab625--------------------------------) ·阅读时间 6 分钟·2024 年 12 月 17 日
 
 --
 
-![](../Images/da55943044dde924e52eceb44fc4e058.png)
+![](img/da55943044dde924e52eceb44fc4e058.png)
 
 图片由[Matias Malka](https://unsplash.com/@matiasmalka?utm_source=medium&utm_medium=referral)拍摄，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -20,7 +20,7 @@
 
 大多数初级和入门级的数据科学家过于关注技术细节。我自己也曾这样做过。
 
-我曾更关注如何利用神经网络解决*X*，或如何通过XGBoost对*Y*进行建模。拥有这种热情和兴奋感是非常好的，这意味着你对这个领域感兴趣，并且愿意学习。
+我曾更关注如何利用神经网络解决*X*，或如何通过 XGBoost 对*Y*进行建模。拥有这种热情和兴奋感是非常好的，这意味着你对这个领域感兴趣，并且愿意学习。
 
 *然而，这种兴趣方向并不完全正确。*
 

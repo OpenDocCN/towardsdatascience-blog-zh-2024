@@ -1,32 +1,32 @@
-# 市场营销科学101：如何使用合成控制分析基于地理的活动
+# 市场营销科学 101：如何使用合成控制分析基于地理的活动
 
-> 原文：[https://towardsdatascience.com/how-to-analyze-geo-based-campaigns-with-synthetic-control-a90b839479a8?source=collection_archive---------8-----------------------#2024-05-22](https://towardsdatascience.com/how-to-analyze-geo-based-campaigns-with-synthetic-control-a90b839479a8?source=collection_archive---------8-----------------------#2024-05-22)
+> 原文：[`towardsdatascience.com/how-to-analyze-geo-based-campaigns-with-synthetic-control-a90b839479a8?source=collection_archive---------8-----------------------#2024-05-22`](https://towardsdatascience.com/how-to-analyze-geo-based-campaigns-with-synthetic-control-a90b839479a8?source=collection_archive---------8-----------------------#2024-05-22)
 
-## 使用Meta的GeoLift库
+## 使用 Meta 的 GeoLift 库
 
-[](https://medium.com/@mandymliu?source=post_page---byline--a90b839479a8--------------------------------)[![Mandy Liu](../Images/ca4530dd41121dc7ab6d1ec9134bb08d.png)](https://medium.com/@mandymliu?source=post_page---byline--a90b839479a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a90b839479a8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a90b839479a8--------------------------------) [Mandy Liu](https://medium.com/@mandymliu?source=post_page---byline--a90b839479a8--------------------------------)
+[](https://medium.com/@mandymliu?source=post_page---byline--a90b839479a8--------------------------------)![Mandy Liu](https://medium.com/@mandymliu?source=post_page---byline--a90b839479a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a90b839479a8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a90b839479a8--------------------------------) [Mandy Liu](https://medium.com/@mandymliu?source=post_page---byline--a90b839479a8--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a90b839479a8--------------------------------) ·6分钟阅读·2024年5月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a90b839479a8--------------------------------) ·6 分钟阅读·2024 年 5 月 22 日
 
 --
 
-![](../Images/35d2615d2d8eab8cdb7d716962c85c55.png)
+![](img/35d2615d2d8eab8cdb7d716962c85c55.png)
 
 图片来自 [Z](https://unsplash.com/@dead____artist?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-*(如果你不是Medium会员，可以在* [*这里*](https://medium.com/towards-data-science/how-to-analyze-geo-based-campaigns-with-synthetic-control-a90b839479a8?sk=41d22feddba967359a2c1471215a6212)*) 阅读完整文章*
+*(如果你不是 Medium 会员，可以在* [*这里*](https://medium.com/towards-data-science/how-to-analyze-geo-based-campaigns-with-synthetic-control-a90b839479a8?sk=41d22feddba967359a2c1471215a6212)*) 阅读完整文章*
 
 导航基于位置的测试的复杂性可能是一个挑战。
 
 幸运的是，[GeoLift](https://facebookincubator.github.io/GeoLift/docs/intro) 在这里可以优化这个过程。
 
-由Meta的市场营销科学团队开发，这个开源库旨在进行基于地理位置的实验。它使我们能够：
+由 Meta 的市场营销科学团队开发，这个开源库旨在进行基于地理位置的实验。它使我们能够：
 
 1.  轻松选择测试市场，且
 
 1.  生成一个合成控制市场，用来与选定的测试地点进行基准对比
 
-虽然GeoLift文档提供了关于选择测试市场的全面指南，但本文将重点介绍**如何创建和使用合成控制市场**。
+虽然 GeoLift 文档提供了关于选择测试市场的全面指南，但本文将重点介绍**如何创建和使用合成控制市场**。
 
 让我们深入了解。
 
@@ -34,15 +34,15 @@
 
 这些图表展示了“差异中的差异”方法与合成控制方法（SCM）之间的比较。
 
-![](../Images/0e3507b10492d1be57b427f2fb35c480.png)![](../Images/374975efcbf4583aa6c8008deaaf0a9f.png)
+![](img/0e3507b10492d1be57b427f2fb35c480.png)![](img/374975efcbf4583aa6c8008deaaf0a9f.png)
 
-由作者使用ChatGPT x Wolfram生成
+由作者使用 ChatGPT x Wolfram 生成
 
 根据维基百科，SCM
 
-> 该方法旨在估算在没有实施干预的情况下，处理组可能的结果。与差异中的差异方法不同，SCM通过加权控制组，使其在干预前尽可能接近处理组，从而调整时间变化的混杂因素。
+> 该方法旨在估算在没有实施干预的情况下，处理组可能的结果。与差异中的差异方法不同，SCM 通过加权控制组，使其在干预前尽可能接近处理组，从而调整时间变化的混杂因素。
 
-简单来说，SCM构建了一个“平行宇宙”，使您能够**观察如果没有启动活动，潜在的结果会是什么**，从而清晰地比较和衡量活动的真实增量效果。
+简单来说，SCM 构建了一个“平行宇宙”，使您能够**观察如果没有启动活动，潜在的结果会是什么**，从而清晰地比较和衡量活动的真实增量效果。
 
 # 精简版合成对照创建指南
 
@@ -54,11 +54,11 @@
 
 **4\. 测量增量效果**
 
-前两步在GeoLift文档中有详细说明。为了保持一致性，我会在这里包括代码和输出。
+前两步在 GeoLift 文档中有详细说明。为了保持一致性，我会在这里包括代码和输出。
 
-我们将在R中执行初步步骤，并在Python中执行最后两步。
+我们将在 R 中执行初步步骤，并在 Python 中执行最后两步。
 
-如果您主要使用Python，请不要担心——R代码简单易懂，我保证这将非常容易跟随！
+如果您主要使用 Python，请不要担心——R 代码简单易懂，我保证这将非常容易跟随！
 
 # 1\. 处理数据
 
@@ -66,21 +66,21 @@
 
 +   日常或每周粒度
 
-+   至少是测试持续时间的4-5倍的前期活动历史数据
++   至少是测试持续时间的 4-5 倍的前期活动历史数据
 
-+   至少20个或更多的地理单元
++   至少 20 个或更多的地理单元
 
 +   更多[最佳实践](https://facebookincubator.github.io/GeoLift/docs/Best%20Practices/BestPractices)
 
 **安装包：**
 
-+   安装R和RStudio [这里](https://posit.co/download/rstudio-desktop/)
++   安装 R 和 RStudio [这里](https://posit.co/download/rstudio-desktop/)
 
-+   安装GeoLift包 [这里](https://facebookincubator.github.io/GeoLift/docs/GettingStarted/InstallingR)
++   安装 GeoLift 包 [这里](https://facebookincubator.github.io/GeoLift/docs/GettingStarted/InstallingR)
 
 **加载数据：**
 
-+   将GeoLift包中包含的GeoLift数据加载到R中。这些数据是基于40个美国城市在90天内的模拟数据，时间范围是2021年1月1日到2021年3月31日。
++   将 GeoLift 包中包含的 GeoLift 数据加载到 R 中。这些数据是基于 40 个美国城市在 90 天内的模拟数据，时间范围是 2021 年 1 月 1 日到 2021 年 3 月 31 日。
 
 ```py
 library(GeoLift)
@@ -142,7 +142,7 @@ weights <- GetWeights(Y_id = "Y",
                           fixed_effects = TRUE)
 ```
 
-+   *pretreatment_end_time = 90* 使用测试开始前90天的历史数据来合成对照城市。根据需要调整此持续时间以适应您的实验。
++   *pretreatment_end_time = 90* 使用测试开始前 90 天的历史数据来合成对照城市。根据需要调整此持续时间以适应您的实验。
 
 +   要在多个城市进行测试，请在*locations*中指定它们，例如，*locations = c(“austin”, “dallas”)*
 
@@ -168,7 +168,7 @@ GeoTestData_PreTest_Excl <- subset(GeoTestData_PreTest, !location %in% exclude_m
 6 san antonio 0.01844960
 ```
 
-**下载权重和市场数据到csv：**
+**下载权重和市场数据到 csv：**
 
 ```py
 write.csv(weights, "/Users/mandyliu/Documents/R/geolift_weights.csv", row.names=FALSE)
@@ -181,7 +181,7 @@ write.csv(GeoLift_PreTest, "/Users/mandyliu/Documents/R/market_data.csv", row.na
 
 **设置：**
 
-+   在Python中导入包
++   在 Python 中导入包
 
 ```py
 import pandas as pd
@@ -197,9 +197,9 @@ df_weights = pd.read_csv('/Users/mandyliu/Documents/R/geolift_weights.csv')
 df_markets = pd.read_csv('/Users/mandyliu/Documents/R/market_data.csv')
 ```
 
-![](../Images/cac3289e17affc0face75ec36d0a873f.png)![](../Images/cdf25bd7dfd363629c72bd8b784ac7c2.png)
+![](img/cac3289e17affc0face75ec36d0a873f.png)![](img/cdf25bd7dfd363629c72bd8b784ac7c2.png)
 
-作者在Jupyter notebook中创建
+作者在 Jupyter notebook 中创建
 
 **将权重和城市结合在一起，创建一个单一的对照：**
 
@@ -228,9 +228,9 @@ sns.lineplot(data=df_syn_control_austin, x="date", y="Y",hue = 'location',palett
 plt.xticks(rotation=45)
 ```
 
-![](../Images/ab8e346385d8339fdfa3a609e2d6e775.png)
+![](img/ab8e346385d8339fdfa3a609e2d6e775.png)
 
-作者在Jupyter notebook中创建
+作者在 Jupyter notebook 中创建
 
 **检查相关性：**
 
@@ -263,7 +263,7 @@ M = austin_Y/syn_control_Y
 
 **模拟启动后的数据：**
 
-+   在2021年4月1日启动日期后创建两周的数据
++   在 2021 年 4 月 1 日启动日期后创建两周的数据
 
 ```py
 # create a list of dates
@@ -310,9 +310,9 @@ ax.axvline(x = date(2021,3,31),c='b', linestyle = "dashed")
 plt.xticks(rotation=45)
 ```
 
-![](../Images/e0032aafd669b12d6e589c5163de86f1.png)
+![](img/e0032aafd669b12d6e589c5163de86f1.png)
 
-作者在Jupyter notebook中创建
+作者在 Jupyter notebook 中创建
 
 我们创建了一张引人注目的图表，完美展示了启动前后的不同！
 
@@ -334,10 +334,10 @@ plt.xticks(rotation=45)
 
 你可能也会喜欢这个：
 
-[](/3-painful-mistakes-i-made-as-a-junior-data-scientist-df06b9513b47?source=post_page-----a90b839479a8--------------------------------) [## 我作为初级数据科学家犯的3个痛苦错误
+[](/3-painful-mistakes-i-made-as-a-junior-data-scientist-df06b9513b47?source=post_page-----a90b839479a8--------------------------------) ## 我作为初级数据科学家犯的 3 个痛苦错误
 
 ### 今天就从他们那里学习，快速推进你的职业生涯
 
-towardsdatascience.com](/3-painful-mistakes-i-made-as-a-junior-data-scientist-df06b9513b47?source=post_page-----a90b839479a8--------------------------------)
+towardsdatascience.com
 
 *联系我：* [*Twitter/X*](https://x.com/Mandy_L_) *|* [*LinkedIn*](https://www.linkedin.com/in/mandy-liu-2551724a/)

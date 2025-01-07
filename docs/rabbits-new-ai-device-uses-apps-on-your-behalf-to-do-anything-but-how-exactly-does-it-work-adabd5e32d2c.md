@@ -1,16 +1,16 @@
 # Rabbit 的新 AI 设备可以通过使用应用程序为你“做任何事情”——但它究竟是如何工作的呢？
 
-> 原文：[https://towardsdatascience.com/rabbits-new-ai-device-uses-apps-on-your-behalf-to-do-anything-but-how-exactly-does-it-work-adabd5e32d2c?source=collection_archive---------2-----------------------#2024-01-17](https://towardsdatascience.com/rabbits-new-ai-device-uses-apps-on-your-behalf-to-do-anything-but-how-exactly-does-it-work-adabd5e32d2c?source=collection_archive---------2-----------------------#2024-01-17)
+> 原文：[`towardsdatascience.com/rabbits-new-ai-device-uses-apps-on-your-behalf-to-do-anything-but-how-exactly-does-it-work-adabd5e32d2c?source=collection_archive---------2-----------------------#2024-01-17`](https://towardsdatascience.com/rabbits-new-ai-device-uses-apps-on-your-behalf-to-do-anything-but-how-exactly-does-it-work-adabd5e32d2c?source=collection_archive---------2-----------------------#2024-01-17)
 
 ## 让我们反向解析 “r1” 及其大型行动模型
 
-[](https://nabil-alouani.medium.com/?source=post_page---byline--adabd5e32d2c--------------------------------)[![Nabil Alouani](../Images/8ceea018e9b15413d318bfb710bb0011.png)](https://nabil-alouani.medium.com/?source=post_page---byline--adabd5e32d2c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--adabd5e32d2c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--adabd5e32d2c--------------------------------) [Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--adabd5e32d2c--------------------------------)
+[](https://nabil-alouani.medium.com/?source=post_page---byline--adabd5e32d2c--------------------------------)![Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--adabd5e32d2c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--adabd5e32d2c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--adabd5e32d2c--------------------------------) [Nabil Alouani](https://nabil-alouani.medium.com/?source=post_page---byline--adabd5e32d2c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--adabd5e32d2c--------------------------------) ·12分钟阅读·2024年1月17日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--adabd5e32d2c--------------------------------) ·12 分钟阅读·2024 年 1 月 17 日
 
 --
 
-![](../Images/1fc872e02d19cd90f97daeb09359711b.png)
+![](img/1fc872e02d19cd90f97daeb09359711b.png)
 
 所有图片由作者通过 Midjourney 和 DALL-E 提供。
 

@@ -1,12 +1,12 @@
-# 确保人工智能不会夺走你工作的5种强大策略——一名Spotify数据科学家的生存指南
+# 确保人工智能不会夺走你工作的 5 种强大策略——一名 Spotify 数据科学家的生存指南
 
-> 原文：[https://towardsdatascience.com/5-powerful-strategies-to-make-sure-ai-doesnt-steal-your-job-a-spotify-data-scientist-s-survival-52e6a353c4f6?source=collection_archive---------1-----------------------#2024-04-07](https://towardsdatascience.com/5-powerful-strategies-to-make-sure-ai-doesnt-steal-your-job-a-spotify-data-scientist-s-survival-52e6a353c4f6?source=collection_archive---------1-----------------------#2024-04-07)
+> 原文：[`towardsdatascience.com/5-powerful-strategies-to-make-sure-ai-doesnt-steal-your-job-a-spotify-data-scientist-s-survival-52e6a353c4f6?source=collection_archive---------1-----------------------#2024-04-07`](https://towardsdatascience.com/5-powerful-strategies-to-make-sure-ai-doesnt-steal-your-job-a-spotify-data-scientist-s-survival-52e6a353c4f6?source=collection_archive---------1-----------------------#2024-04-07)
 
 ## 为什么我不再担心人工智能会取代我，而是做了这些事情
 
-[](https://medium.com/@elalamik?source=post_page---byline--52e6a353c4f6--------------------------------)[![Khouloud El Alami](../Images/58840bfe28a60892b51d40ad6ba7f5e8.png)](https://medium.com/@elalamik?source=post_page---byline--52e6a353c4f6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--52e6a353c4f6--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--52e6a353c4f6--------------------------------) [Khouloud El Alami](https://medium.com/@elalamik?source=post_page---byline--52e6a353c4f6--------------------------------)
+[](https://medium.com/@elalamik?source=post_page---byline--52e6a353c4f6--------------------------------)![Khouloud El Alami](https://medium.com/@elalamik?source=post_page---byline--52e6a353c4f6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--52e6a353c4f6--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--52e6a353c4f6--------------------------------) [Khouloud El Alami](https://medium.com/@elalamik?source=post_page---byline--52e6a353c4f6--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--52e6a353c4f6--------------------------------) ·14分钟阅读·2024年4月7日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--52e6a353c4f6--------------------------------) ·14 分钟阅读·2024 年 4 月 7 日
 
 --
 
@@ -22,7 +22,7 @@
 
 最近，这个问题一直在我的脑海中萦绕，我对此进行了很多反思。
 
-![](../Images/a5686eb2b960c50da694654474e18f8e.png)
+![](img/a5686eb2b960c50da694654474e18f8e.png)
 
 作者图片
 

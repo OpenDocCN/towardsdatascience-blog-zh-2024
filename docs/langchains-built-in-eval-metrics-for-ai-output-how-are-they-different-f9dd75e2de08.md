@@ -1,10 +1,10 @@
 # LangChain 的内置 AI 输出评估指标：它们有何不同？
 
-> 原文：[https://towardsdatascience.com/langchains-built-in-eval-metrics-for-ai-output-how-are-they-different-f9dd75e2de08?source=collection_archive---------9-----------------------#2024-05-22](https://towardsdatascience.com/langchains-built-in-eval-metrics-for-ai-output-how-are-they-different-f9dd75e2de08?source=collection_archive---------9-----------------------#2024-05-22)
+> 原文：[`towardsdatascience.com/langchains-built-in-eval-metrics-for-ai-output-how-are-they-different-f9dd75e2de08?source=collection_archive---------9-----------------------#2024-05-22`](https://towardsdatascience.com/langchains-built-in-eval-metrics-for-ai-output-how-are-they-different-f9dd75e2de08?source=collection_archive---------9-----------------------#2024-05-22)
 
-[](https://medium.com/@jonathan.bennion?source=post_page---byline--f9dd75e2de08--------------------------------)[![Jonathan Bennion](../Images/e2d9add564ee2ac0deb7863537b0ee73.png)](https://medium.com/@jonathan.bennion?source=post_page---byline--f9dd75e2de08--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f9dd75e2de08--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f9dd75e2de08--------------------------------) [Jonathan Bennion](https://medium.com/@jonathan.bennion?source=post_page---byline--f9dd75e2de08--------------------------------)
+[](https://medium.com/@jonathan.bennion?source=post_page---byline--f9dd75e2de08--------------------------------)![Jonathan Bennion](https://medium.com/@jonathan.bennion?source=post_page---byline--f9dd75e2de08--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f9dd75e2de08--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f9dd75e2de08--------------------------------) [Jonathan Bennion](https://medium.com/@jonathan.bennion?source=post_page---byline--f9dd75e2de08--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f9dd75e2de08--------------------------------) ·5 分钟阅读·2024年5月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f9dd75e2de08--------------------------------) ·5 分钟阅读·2024 年 5 月 22 日
 
 --
 
@@ -18,7 +18,7 @@
 
 +   ***一致性与深度：*** *尽管一致性与有用性相关，但深度并不相关。这可能意味着用户（再次假设用户偏好固有于大型语言模型的输出中——这一点本身是一个假设，并且是一种偏见，需要保持警觉）可能更倾向于简明扼要的回答，而不是详细的回答，尤其是在那些快速解决方案比全面解决方案更被看重的情境下。*
 
-![](../Images/2934a7023672ad3ffd5a80c6b8bfbe3a.png)
+![](img/2934a7023672ad3ffd5a80c6b8bfbe3a.png)
 
 内置指标可以在这里找到（移除一个与地面真相相关且更适合在其他地方处理的指标）：
 
@@ -63,7 +63,7 @@ new_criteria_list
 
 > 第二，一些这些似乎相似和/或模糊——那么它们是如何区分的呢？
 
-我使用了标准的SQuAD数据集作为基准，评估OpenAI的GPT-3-Turbo模型输出与该数据集中的真实值之间的差异（如果有的话），并进行比较。
+我使用了标准的 SQuAD 数据集作为基准，评估 OpenAI 的 GPT-3-Turbo 模型输出与该数据集中的真实值之间的差异（如果有的话），并进行比较。
 
 ```py
 # Import a standard SQUAD dataset from HuggingFace (ran in colab)
@@ -83,7 +83,7 @@ validation_df = validation_data.to_pandas()
 sample_df = validation_df.sample(n=100, replace=False)
 ```
 
-我定义了一个LLM，使用了ChatGPT 3.5 Turbo（为了节省成本，这个过程很快）。
+我定义了一个 LLM，使用了 ChatGPT 3.5 Turbo（为了节省成本，这个过程很快）。
 
 ```py
 import os
@@ -95,7 +95,7 @@ os.environ['OPENAI_API_KEY'] = userdata.get('OPENAI_API_KEY')
 llm = ChatOpenAI(model_name='gpt-3.5-turbo', openai_api_key=OPENAI_API_KEY)
 ```
 
-然后迭代遍历抽样行以进行比较——LangChain在评估标准中使用了未知的‘评分’阈值，但假设这些阈值在所有度量中是相同的。
+然后迭代遍历抽样行以进行比较——LangChain 在评估标准中使用了未知的‘评分’阈值，但假设这些阈值在所有度量中是相同的。
 
 ```py
 # Loop through each question in random sample
@@ -124,7 +124,7 @@ for index, row in sample_df.iterrows():
         print(f"TypeError: {e} in row {index}")
 ```
 
-然后，我计算了均值和95%置信区间的置信区间。
+然后，我计算了均值和 95%置信区间的置信区间。
 
 ```py
 # Calculate means and confidence intervals at 95%
@@ -158,9 +158,9 @@ plt.legend()
 plt.show()
 ```
 
-可能直观地认为‘相关性’比其他指标要高得多，但有趣的是，总体而言它们都很低（可能要感谢GPT 3.5！），而‘有用性’是下一个最高的指标（可能反映了强化学习技术和优化）。
+可能直观地认为‘相关性’比其他指标要高得多，但有趣的是，总体而言它们都很低（可能要感谢 GPT 3.5！），而‘有用性’是下一个最高的指标（可能反映了强化学习技术和优化）。
 
-![](../Images/06c0aec539a408ad7380c763433a4d69.png)
+![](img/06c0aec539a408ad7380c763433a4d69.png)
 
 为了回答我关于相关性的问题，我计算了一个简单的相关矩阵，使用了原始的比较数据框。
 
@@ -177,7 +177,7 @@ filtered_df = df.drop(columns=[col for col in df.columns if 'MALICIOUSNESS' in c
 correlation_matrix = filtered_df.corr()
 ```
 
-然后绘制了结果（p值是通过[我的代码中的进一步部分](https://github.com/j-space-b/eval_analysis/blob/main/evaluation_metrics_corrplot.ipynb)创建的，且均小于0.05）
+然后绘制了结果（p 值是通过[我的代码中的进一步部分](https://github.com/j-space-b/eval_analysis/blob/main/evaluation_metrics_corrplot.ipynb)创建的，且均小于 0.05）
 
 ```py
 # Plot corr matrix
@@ -191,9 +191,9 @@ plt.yticks(rotation=0)
 plt.show()
 ```
 
-令人惊讶的是，大多数没有相关性，考虑到LangChain代码库中描述的性质——这表明这些内容是经过深思熟虑的，我很高兴这些是内建的可以使用的。
+令人惊讶的是，大多数没有相关性，考虑到 LangChain 代码库中描述的性质——这表明这些内容是经过深思熟虑的，我很高兴这些是内建的可以使用的。
 
-![](../Images/2934a7023672ad3ffd5a80c6b8bfbe3a.png)
+![](img/2934a7023672ad3ffd5a80c6b8bfbe3a.png)
 
 从相关矩阵中，显现出一些显著的关系：
 
@@ -207,6 +207,6 @@ plt.show()
 
 1.  **利用争议性：** 争议性与犯罪性之间的正相关关系提出了一个有趣的问题：是否可以以非犯罪的方式讨论争议话题？这可能在不牺牲内容质量的情况下增加用户参与度。
 
-1.  **偏见与模型选择的影响：** 使用GPT-3.5 Turbo以及度量设计中固有的偏见可能会影响这些相关性。承认这些偏见对于准确解读和应用这些度量标准至关重要。
+1.  **偏见与模型选择的影响：** 使用 GPT-3.5 Turbo 以及度量设计中固有的偏见可能会影响这些相关性。承认这些偏见对于准确解读和应用这些度量标准至关重要。
 
 除非另有说明，本文中的所有图片均由作者创作。

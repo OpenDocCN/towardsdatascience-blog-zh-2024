@@ -1,18 +1,18 @@
 # 长短期记忆（LSTM）—— 改进 RNNs
 
-> 原文：[https://towardsdatascience.com/long-short-term-memory-lstm-improving-rnns-40323d1c05f8?source=collection_archive---------5-----------------------#2024-05-31](https://towardsdatascience.com/long-short-term-memory-lstm-improving-rnns-40323d1c05f8?source=collection_archive---------5-----------------------#2024-05-31)
+> 原文：[`towardsdatascience.com/long-short-term-memory-lstm-improving-rnns-40323d1c05f8?source=collection_archive---------5-----------------------#2024-05-31`](https://towardsdatascience.com/long-short-term-memory-lstm-improving-rnns-40323d1c05f8?source=collection_archive---------5-----------------------#2024-05-31)
 
 ## 最先进的 RNNs 如何工作
 
-[](https://medium.com/@egorhowell?source=post_page---byline--40323d1c05f8--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--40323d1c05f8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--40323d1c05f8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--40323d1c05f8--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--40323d1c05f8--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--40323d1c05f8--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--40323d1c05f8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--40323d1c05f8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40323d1c05f8--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--40323d1c05f8--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40323d1c05f8--------------------------------) ·阅读时长 9 分钟 ·2024年5月31日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--40323d1c05f8--------------------------------) ·阅读时长 9 分钟 ·2024 年 5 月 31 日
 
 --
 
-![](../Images/f6f8a3bcbebfcdf3bcb18428e3166a5d.png)
+![](img/f6f8a3bcbebfcdf3bcb18428e3166a5d.png)
 
-"[https://www.flaticon.com/free-icons/neural-network](https://www.flaticon.com/free-icons/neural-network)" 标题为“neural network icons”的图标由 Freepik 创建 — Flaticon。
+"[`www.flaticon.com/free-icons/neural-network`](https://www.flaticon.com/free-icons/neural-network)" 标题为“neural network icons”的图标由 Freepik 创建 — Flaticon。
 
 在本文中，我们将介绍长短期记忆网络（LSTMs），它们是常规的 vanilla 循环神经网络（RNNs）的变种，在处理长期依赖问题上表现更好。
 

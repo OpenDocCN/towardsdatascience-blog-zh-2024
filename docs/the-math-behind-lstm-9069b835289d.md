@@ -1,60 +1,60 @@
-# LSTM背后的数学
+# LSTM 背后的数学
 
-> 原文：[https://towardsdatascience.com/the-math-behind-lstm-9069b835289d?source=collection_archive---------4-----------------------#2024-05-01](https://towardsdatascience.com/the-math-behind-lstm-9069b835289d?source=collection_archive---------4-----------------------#2024-05-01)
+> 原文：[`towardsdatascience.com/the-math-behind-lstm-9069b835289d?source=collection_archive---------4-----------------------#2024-05-01`](https://towardsdatascience.com/the-math-behind-lstm-9069b835289d?source=collection_archive---------4-----------------------#2024-05-01)
 
-## 深入了解LSTM，理解其数学原理，并从零开始实现它们
+## 深入了解 LSTM，理解其数学原理，并从零开始实现它们
 
-[](https://medium.com/@cristianleo120?source=post_page---byline--9069b835289d--------------------------------)[![Cristian Leo](../Images/99074292e7dfda50cf50a790b8deda79.png)](https://medium.com/@cristianleo120?source=post_page---byline--9069b835289d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9069b835289d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9069b835289d--------------------------------) [Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--9069b835289d--------------------------------)
+[](https://medium.com/@cristianleo120?source=post_page---byline--9069b835289d--------------------------------)![Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--9069b835289d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9069b835289d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9069b835289d--------------------------------) [Cristian Leo](https://medium.com/@cristianleo120?source=post_page---byline--9069b835289d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9069b835289d--------------------------------) ·阅读时间25分钟·2024年5月1日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9069b835289d--------------------------------) ·阅读时间 25 分钟·2024 年 5 月 1 日
 
 --
 
-![](../Images/40ce1511d5d70098a51d624ac0316c41.png)
+![](img/40ce1511d5d70098a51d624ac0316c41.png)
 
-图像由DALL-E生成
+图像由 DALL-E 生成
 
 **索引**
 
-[**1: 介绍**](#41e5)
+**1: 介绍**
 
-[**2: LSTM的架构**](#6b2f)
+**2: LSTM 的架构**
 
-∘ [2.1: LSTM门控](#f510)
+∘ 2.1: LSTM 门控
 
-∘ [2.2: 信息流管理](#6fc4)
+∘ 2.2: 信息流管理
 
-[**3: LSTM背后的数学**](#ae46)
+**3: LSTM 背后的数学**
 
-∘ [3.1\. LSTM单元中的数学](#a8be)
+∘ 3.1\. LSTM 单元中的数学
 
-∘ [3.2: 门控机制](#eba4)
+∘ 3.2: 门控机制
 
-∘ [3.3: 与基本RNN单元操作的对比](#bc48)
+∘ 3.3: 与基本 RNN 单元操作的对比
 
-[**4: 使用Python从零构建LSTM**](#42fc)
+**4: 使用 Python 从零构建 LSTM**
 
-∘ [4.1: 导入和初步设置](#074b)
+∘ 4.1: 导入和初步设置
 
-∘ [4:2: LSTM类](#d45c)
+∘ 4:2: LSTM 类
 
-∘ [4.3: 训练与验证](#9cb3)
+∘ 4.3: 训练与验证
 
-∘ [4.4: 数据预处理](#fe87)
+∘ 4.4: 数据预处理
 
-∘ [4.5: 模型训练](#1ac1)
+∘ 4.5: 模型训练
 
-[**5: 高级LSTM模型**](#218e)
+**5: 高级 LSTM 模型**
 
-∘ [5.1: 双向LSTM](#d622)
+∘ 5.1: 双向 LSTM
 
-∘ [5.2: 堆叠LSTM](#c75d)
+∘ 5.2: 堆叠 LSTM
 
-∘ [5.3: 窥视孔连接](#dd62)
+∘ 5.3: 窥视孔连接
 
-[**6: 结论**](#39a1)
+**6: 结论**
 
-[参考文献](#2068)
+参考文献
 
 # 1: 介绍
 

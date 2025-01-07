@@ -1,16 +1,16 @@
 # 如何使用 iPhone 与任何开源 LLM 免费聊天
 
-> 原文：[https://towardsdatascience.com/how-to-chat-with-any-open-source-llm-for-free-with-your-iphone-5fa7549efa9a?source=collection_archive---------8-----------------------#2024-02-05](https://towardsdatascience.com/how-to-chat-with-any-open-source-llm-for-free-with-your-iphone-5fa7549efa9a?source=collection_archive---------8-----------------------#2024-02-05)
+> 原文：[`towardsdatascience.com/how-to-chat-with-any-open-source-llm-for-free-with-your-iphone-5fa7549efa9a?source=collection_archive---------8-----------------------#2024-02-05`](https://towardsdatascience.com/how-to-chat-with-any-open-source-llm-for-free-with-your-iphone-5fa7549efa9a?source=collection_archive---------8-----------------------#2024-02-05)
 
 ## 使用 Ollama 和 Google Colab 免费 T4 GPU 在 iPhone 上构建开源“ChatGPT”应用
 
-[](https://medium.com/@yanli.liu?source=post_page---byline--5fa7549efa9a--------------------------------)[![Yanli Liu](../Images/31342655ab635eb38e3ce501235f1b89.png)](https://medium.com/@yanli.liu?source=post_page---byline--5fa7549efa9a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5fa7549efa9a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5fa7549efa9a--------------------------------) [Yanli Liu](https://medium.com/@yanli.liu?source=post_page---byline--5fa7549efa9a--------------------------------)
+[](https://medium.com/@yanli.liu?source=post_page---byline--5fa7549efa9a--------------------------------)![Yanli Liu](https://medium.com/@yanli.liu?source=post_page---byline--5fa7549efa9a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5fa7549efa9a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5fa7549efa9a--------------------------------) [Yanli Liu](https://medium.com/@yanli.liu?source=post_page---byline--5fa7549efa9a--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5fa7549efa9a--------------------------------) ·阅读时间：6 分钟·2024年2月5日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5fa7549efa9a--------------------------------) ·阅读时间：6 分钟·2024 年 2 月 5 日
 
 --
 
-![](../Images/ab9e0c9fccde9a832ffd2ed22d756102.png)
+![](img/ab9e0c9fccde9a832ffd2ed22d756102.png)
 
 开源“ChatGPT” UI 演示。图像由作者提供。
 

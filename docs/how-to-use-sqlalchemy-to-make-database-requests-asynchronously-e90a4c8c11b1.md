@@ -1,16 +1,16 @@
 # 如何使用 SQLAlchemy 异步进行数据库请求
 
-> 原文：[https://towardsdatascience.com/how-to-use-sqlalchemy-to-make-database-requests-asynchronously-e90a4c8c11b1?source=collection_archive---------5-----------------------#2024-03-05](https://towardsdatascience.com/how-to-use-sqlalchemy-to-make-database-requests-asynchronously-e90a4c8c11b1?source=collection_archive---------5-----------------------#2024-03-05)
+> 原文：[`towardsdatascience.com/how-to-use-sqlalchemy-to-make-database-requests-asynchronously-e90a4c8c11b1?source=collection_archive---------5-----------------------#2024-03-05`](https://towardsdatascience.com/how-to-use-sqlalchemy-to-make-database-requests-asynchronously-e90a4c8c11b1?source=collection_archive---------5-----------------------#2024-03-05)
 
 ## 学习如何在不同场景下异步使用 SQLAlchemy
 
-[](https://lynn-kwong.medium.com/?source=post_page---byline--e90a4c8c11b1--------------------------------)[![Lynn G. Kwong](../Images/253fd9755da04beb974f234898f8d2dd.png)](https://lynn-kwong.medium.com/?source=post_page---byline--e90a4c8c11b1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e90a4c8c11b1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e90a4c8c11b1--------------------------------) [Lynn G. Kwong](https://lynn-kwong.medium.com/?source=post_page---byline--e90a4c8c11b1--------------------------------)
+[](https://lynn-kwong.medium.com/?source=post_page---byline--e90a4c8c11b1--------------------------------)![Lynn G. Kwong](https://lynn-kwong.medium.com/?source=post_page---byline--e90a4c8c11b1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e90a4c8c11b1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e90a4c8c11b1--------------------------------) [Lynn G. Kwong](https://lynn-kwong.medium.com/?source=post_page---byline--e90a4c8c11b1--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e90a4c8c11b1--------------------------------) ·阅读时间 8 分钟 ·2024年3月5日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e90a4c8c11b1--------------------------------) ·阅读时间 8 分钟 ·2024 年 3 月 5 日
 
 --
 
-![](../Images/97cf8a290b960f29d08d66f3cb914f28.png)
+![](img/97cf8a290b960f29d08d66f3cb914f28.png)
 
 图片来自 WilliamsCreativity (Server Data) 来自 Pixabay
 

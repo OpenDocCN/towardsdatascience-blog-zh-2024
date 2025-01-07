@@ -1,18 +1,18 @@
 # 数据工程：增量数据加载策略
 
-> 原文：[https://towardsdatascience.com/data-engineering-incremental-data-loading-strategies-b4d62f9dab28?source=collection_archive---------1-----------------------#2024-03-17](https://towardsdatascience.com/data-engineering-incremental-data-loading-strategies-b4d62f9dab28?source=collection_archive---------1-----------------------#2024-03-17)
+> 原文：[`towardsdatascience.com/data-engineering-incremental-data-loading-strategies-b4d62f9dab28?source=collection_archive---------1-----------------------#2024-03-17`](https://towardsdatascience.com/data-engineering-incremental-data-loading-strategies-b4d62f9dab28?source=collection_archive---------1-----------------------#2024-03-17)
 
 ## 制定策略和解决方案架构，以实现从各种数据源逐步加载数据。
 
-[](https://husseinjundi.medium.com/?source=post_page---byline--b4d62f9dab28--------------------------------)[![Hussein Jundi](../Images/721d74f2b902cff791715ffad7a8791f.png)](https://husseinjundi.medium.com/?source=post_page---byline--b4d62f9dab28--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b4d62f9dab28--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b4d62f9dab28--------------------------------) [Hussein Jundi](https://husseinjundi.medium.com/?source=post_page---byline--b4d62f9dab28--------------------------------)
+[](https://husseinjundi.medium.com/?source=post_page---byline--b4d62f9dab28--------------------------------)![Hussein Jundi](https://husseinjundi.medium.com/?source=post_page---byline--b4d62f9dab28--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b4d62f9dab28--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4d62f9dab28--------------------------------) [Hussein Jundi](https://husseinjundi.medium.com/?source=post_page---byline--b4d62f9dab28--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4d62f9dab28--------------------------------) ·阅读时间：10分钟·2024年3月17日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4d62f9dab28--------------------------------) ·阅读时间：10 分钟·2024 年 3 月 17 日
 
 --
 
 大数据时代需要高效且具成本效益的数据处理策略。在处理各类关键数据源时，增量数据摄取成为了首选方案，尤其是在这些数据源以高速度和低延迟生成数据的情况下。
 
-![](../Images/509d5ee99926c4520bd602d0d447c354.png)
+![](img/509d5ee99926c4520bd602d0d447c354.png)
 
 图片由[Santshree Sinha](https://unsplash.com/@alphayaatri?utm_source=medium&utm_medium=referral)提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,20 +1,20 @@
 # Python 十亿行挑战——从 10 分钟到 4 秒
 
-> 原文：[https://towardsdatascience.com/python-one-billion-row-challenge-from-10-minutes-to-4-seconds-0718662b303e?source=collection_archive---------0-----------------------#2024-05-08](https://towardsdatascience.com/python-one-billion-row-challenge-from-10-minutes-to-4-seconds-0718662b303e?source=collection_archive---------0-----------------------#2024-05-08)
+> 原文：[`towardsdatascience.com/python-one-billion-row-challenge-from-10-minutes-to-4-seconds-0718662b303e?source=collection_archive---------0-----------------------#2024-05-08`](https://towardsdatascience.com/python-one-billion-row-challenge-from-10-minutes-to-4-seconds-0718662b303e?source=collection_archive---------0-----------------------#2024-05-08)
 
 ## 十亿行挑战正在迅速流行。那么 Python 的表现如何呢？
 
-[](https://medium.com/@radecicdario?source=post_page---byline--0718662b303e--------------------------------)[![Dario Radečić](../Images/41882a3b30bab9da43d66a59f1df366b.png)](https://medium.com/@radecicdario?source=post_page---byline--0718662b303e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0718662b303e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0718662b303e--------------------------------) [Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--0718662b303e--------------------------------)
+[](https://medium.com/@radecicdario?source=post_page---byline--0718662b303e--------------------------------)![Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--0718662b303e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0718662b303e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0718662b303e--------------------------------) [Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--0718662b303e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0718662b303e--------------------------------) ·10 分钟阅读 ·2024年5月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0718662b303e--------------------------------) ·10 分钟阅读 ·2024 年 5 月 8 日
 
 --
 
-![](../Images/5a1a30d771e7c1dbc76b57b76b2635ac.png)
+![](img/5a1a30d771e7c1dbc76b57b76b2635ac.png)
 
 图片由[Alina Grubnyak](https://unsplash.com/@alinnnaaaa?utm_source=medium&utm_medium=referral)提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-关于编程语言处理和聚合[10亿行](https://1brc.dev)数据的速度问题，最近引起了广泛关注。**Python** 并不是最具性能的语言，因此自然**没有机会**——尤其是目前[表现最优秀的 Java 实现](https://www.morling.dev/blog/1brc-results-are-in/)仅需 1.535 秒！
+关于编程语言处理和聚合[10 亿行](https://1brc.dev)数据的速度问题，最近引起了广泛关注。**Python** 并不是最具性能的语言，因此自然**没有机会**——尤其是目前[表现最优秀的 Java 实现](https://www.morling.dev/blog/1brc-results-are-in/)仅需 1.535 秒！
 
 挑战的基本[规则](https://1brc.dev/#rules-and-limits)是**不允许使用外部库**。我今天的目标是首先遵守规则，然后看看如果使用外部库和更合适的文件格式会发生什么。
 

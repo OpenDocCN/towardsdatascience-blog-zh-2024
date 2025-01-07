@@ -1,16 +1,16 @@
 # 2025 年数据科学家成功所需的 12 项技能
 
-> 原文：[https://towardsdatascience.com/top-12-skills-data-scientists-need-to-succeed-in-2025-c80f54cf227a?source=collection_archive---------1-----------------------#2024-12-31](https://towardsdatascience.com/top-12-skills-data-scientists-need-to-succeed-in-2025-c80f54cf227a?source=collection_archive---------1-----------------------#2024-12-31)
+> 原文：[`towardsdatascience.com/top-12-skills-data-scientists-need-to-succeed-in-2025-c80f54cf227a?source=collection_archive---------1-----------------------#2024-12-31`](https://towardsdatascience.com/top-12-skills-data-scientists-need-to-succeed-in-2025-c80f54cf227a?source=collection_archive---------1-----------------------#2024-12-31)
 
 ## 这并不是全部关于 LLMs 和 AI 工具
 
-[](https://medium.com/@benjybo7?source=post_page---byline--c80f54cf227a--------------------------------)[![Benjamin Bodner](../Images/f66d5ba5b80455f8a0cd198499e8f4c2.png)](https://medium.com/@benjybo7?source=post_page---byline--c80f54cf227a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c80f54cf227a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c80f54cf227a--------------------------------) [Benjamin Bodner](https://medium.com/@benjybo7?source=post_page---byline--c80f54cf227a--------------------------------)
+[](https://medium.com/@benjybo7?source=post_page---byline--c80f54cf227a--------------------------------)![Benjamin Bodner](https://medium.com/@benjybo7?source=post_page---byline--c80f54cf227a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c80f54cf227a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c80f54cf227a--------------------------------) [Benjamin Bodner](https://medium.com/@benjybo7?source=post_page---byline--c80f54cf227a--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c80f54cf227a--------------------------------) ·22 分钟阅读·4 天前
 
 --
 
-![](../Images/29e32648639f9e829f6002aa7b783d91.png)
+![](img/29e32648639f9e829f6002aa7b783d91.png)
 
 来源：图像由作者制作，Claude 协助。
 

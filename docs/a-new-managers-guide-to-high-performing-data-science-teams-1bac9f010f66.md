@@ -1,16 +1,16 @@
 # 高绩效数据科学团队新经理指南
 
-> 原文：[https://towardsdatascience.com/a-new-managers-guide-to-high-performing-data-science-teams-1bac9f010f66?source=collection_archive---------4-----------------------#2024-04-16](https://towardsdatascience.com/a-new-managers-guide-to-high-performing-data-science-teams-1bac9f010f66?source=collection_archive---------4-----------------------#2024-04-16)
+> 原文：[`towardsdatascience.com/a-new-managers-guide-to-high-performing-data-science-teams-1bac9f010f66?source=collection_archive---------4-----------------------#2024-04-16`](https://towardsdatascience.com/a-new-managers-guide-to-high-performing-data-science-teams-1bac9f010f66?source=collection_archive---------4-----------------------#2024-04-16)
 
 ## 从管理八人团队的人那里学到的经验教训
 
-[](https://medium.com/@raicik.zach?source=post_page---byline--1bac9f010f66--------------------------------)[![Zachary Raicik](../Images/860760b53fcc75013007067190e8ca65.png)](https://medium.com/@raicik.zach?source=post_page---byline--1bac9f010f66--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1bac9f010f66--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1bac9f010f66--------------------------------) [Zachary Raicik](https://medium.com/@raicik.zach?source=post_page---byline--1bac9f010f66--------------------------------)
+[](https://medium.com/@raicik.zach?source=post_page---byline--1bac9f010f66--------------------------------)![Zachary Raicik](https://medium.com/@raicik.zach?source=post_page---byline--1bac9f010f66--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1bac9f010f66--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1bac9f010f66--------------------------------) [Zachary Raicik](https://medium.com/@raicik.zach?source=post_page---byline--1bac9f010f66--------------------------------)
 
-·发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1bac9f010f66--------------------------------) ·阅读时间14分钟·2024年4月16日
+·发表在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1bac9f010f66--------------------------------) ·阅读时间 14 分钟·2024 年 4 月 16 日
 
 --
 
-![](../Images/5c5b90f78f3914daa88f909e48ee9f53.png)
+![](img/5c5b90f78f3914daa88f909e48ee9f53.png)
 
 照片由[John Schnobrich](https://unsplash.com/@johnishappysometimes?utm_source=medium&utm_medium=referral)拍摄，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

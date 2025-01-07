@@ -1,32 +1,32 @@
 # 优化定价和促销中的非线性处理效应
 
-> 原文：[https://towardsdatascience.com/optimising-non-linear-treatment-effects-in-pricing-and-promotions-011ce140d180?source=collection_archive---------2-----------------------#2024-05-24](https://towardsdatascience.com/optimising-non-linear-treatment-effects-in-pricing-and-promotions-011ce140d180?source=collection_archive---------2-----------------------#2024-05-24)
+> 原文：[`towardsdatascience.com/optimising-non-linear-treatment-effects-in-pricing-and-promotions-011ce140d180?source=collection_archive---------2-----------------------#2024-05-24`](https://towardsdatascience.com/optimising-non-linear-treatment-effects-in-pricing-and-promotions-011ce140d180?source=collection_archive---------2-----------------------#2024-05-24)
 
-## 因果AI，探索因果推理与机器学习的结合
+## 因果 AI，探索因果推理与机器学习的结合
 
-[](https://medium.com/@raz1470?source=post_page---byline--011ce140d180--------------------------------)[![Ryan O'Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--011ce140d180--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--011ce140d180--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--011ce140d180--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--011ce140d180--------------------------------)
+[](https://medium.com/@raz1470?source=post_page---byline--011ce140d180--------------------------------)![Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--011ce140d180--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--011ce140d180--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--011ce140d180--------------------------------) [Ryan O'Sullivan](https://medium.com/@raz1470?source=post_page---byline--011ce140d180--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--011ce140d180--------------------------------) ·12分钟阅读·2024年5月24日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--011ce140d180--------------------------------) ·12 分钟阅读·2024 年 5 月 24 日
 
 --
 
-![](../Images/10380a5d9fbe3aded646019e930eb6a1.png)
+![](img/10380a5d9fbe3aded646019e930eb6a1.png)
 
-由[Ernest Ojeh](https://unsplash.com/@namzo?utm_source=medium&utm_medium=referral)拍摄，[图片来源于Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+由[Ernest Ojeh](https://unsplash.com/@namzo?utm_source=medium&utm_medium=referral)拍摄，[图片来源于 Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 这系列文章讲了什么？
 
-欢迎来到我的因果AI系列文章，在这里我们将探索因果推理与机器学习模型的结合。你将看到多个不同业务情境下的实际应用。
+欢迎来到我的因果 AI 系列文章，在这里我们将探索因果推理与机器学习模型的结合。你将看到多个不同业务情境下的实际应用。
 
 在上一篇文章中，我们讨论了*使用双重机器学习和线性规划来优化处理策略*。这次我们将继续优化的主题，探讨*优化定价与促销中的非线性处理效应*。
 
 如果你错过了上一篇关于双重机器学习和线性规划的文章，可以在这里查看：
 
-[](/using-double-machine-learning-and-linear-programming-to-optimise-treatment-strategies-920c20a29553?source=post_page-----011ce140d180--------------------------------) [## 使用双重机器学习和线性规划优化处理策略
+[](/using-double-machine-learning-and-linear-programming-to-optimise-treatment-strategies-920c20a29553?source=post_page-----011ce140d180--------------------------------) ## 使用双重机器学习和线性规划优化处理策略
 
-### 因果AI，探索因果推理与机器学习的结合
+### 因果 AI，探索因果推理与机器学习的结合
 
-towardsdatascience.com](/using-double-machine-learning-and-linear-programming-to-optimise-treatment-strategies-920c20a29553?source=post_page-----011ce140d180--------------------------------)
+towardsdatascience.com
 
 # 介绍
 
@@ -40,7 +40,7 @@ towardsdatascience.com](/using-double-machine-learning-and-linear-programming-to
 
 +   非线性编程如何用于优化定价？
 
-+   一个使用Python的案例研究，展示了我们如何结合因果人工智能工具箱和非线性编程来优化定价预算。
++   一个使用 Python 的案例研究，展示了我们如何结合因果人工智能工具箱和非线性编程来优化定价预算。
 
 完整的笔记本可以在这里找到：
 
@@ -56,7 +56,7 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/using%20dml
 
 让我们以零售商调整产品价格为例。最初，降低价格可能会导致销售量显著增加。然而，随着价格继续降低，销售的增长可能会开始趋于平稳。我们称之为递减收益。如下面所示，递减收益的效果通常是非线性的。
 
-![](../Images/00d137dc0252c7fe3a474395358fd7c8.png)
+![](img/00d137dc0252c7fe3a474395358fd7c8.png)
 
 用户生成的图片
 
@@ -86,7 +86,7 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/using%20dml
 
 +   倾向得分逆向匹配（IPSM）— 处理需要是二元的 ❌
 
-+   T学习者（T-Learner）— 处理需要是二元的 ❌
++   T 学习者（T-Learner）— 处理需要是二元的 ❌
 
 +   双重机器学习（DML）— 处理效应是线性的 ❌
 
@@ -96,9 +96,9 @@ github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/using%20dml
 
 ## S-Learner
 
-S-Learner中的“S”来自于它是一个“单一模型”。一个任意的机器学习模型被用来预测结果，使用处理、混杂因素和其他协变量作为特征。这个模型随后被用来估计在不同处理条件下潜在结果的差异（从而给我们带来处理效应）。
+S-Learner 中的“S”来自于它是一个“单一模型”。一个任意的机器学习模型被用来预测结果，使用处理、混杂因素和其他协变量作为特征。这个模型随后被用来估计在不同处理条件下潜在结果的差异（从而给我们带来处理效应）。
 
-S-Learner有许多优点：
+S-Learner 有许多优点：
 
 +   它可以处理二元和连续性处理。
 
@@ -106,46 +106,46 @@ S-Learner有许多优点：
 
 一个警告：正则化偏差！现代机器学习算法使用正则化来防止过拟合——但这可能对因果问题产生负面影响。以梯度提升树方法中的超参数*max features*为例——在多个树中，可能会出现处理未被包含在模型中的情况。这会削弱处理效应。
 
-在使用S-Learner时，我建议仔细考虑正则化参数，例如将*max features*设置为1.0（有效地关闭特征正则化）。
+在使用 S-Learner 时，我建议仔细考虑正则化参数，例如将*max features*设置为 1.0（有效地关闭特征正则化）。
 
 # 如何使用非线性编程来优化定价？
 
 ## 价格优化
 
-假设我们有多种产品，并且想要在给定的促销预算下优化它们的价格。对于每个产品，我们训练一个S-Learner（使用梯度提升），将处理设置为折扣水平，将结果设置为总订单数。我们的S-Learner输出一个复杂模型，可以用来估计不同折扣水平的效应。那么我们如何优化每个产品的折扣水平呢？
+假设我们有多种产品，并且想要在给定的促销预算下优化它们的价格。对于每个产品，我们训练一个 S-Learner（使用梯度提升），将处理设置为折扣水平，将结果设置为总订单数。我们的 S-Learner 输出一个复杂模型，可以用来估计不同折扣水平的效应。那么我们如何优化每个产品的折扣水平呢？
 
 ## 响应曲线
 
-优化技术，如线性（甚至非线性）编程，依赖于响应的清晰函数形式。像随机森林和梯度提升这样的机器学习技术并不会给我们提供这个（与线性回归不同）。然而，响应曲线可以将S-Learner的输出转化为一种综合形式，展示结果如何响应处理。
+优化技术，如线性（甚至非线性）编程，依赖于响应的清晰函数形式。像随机森林和梯度提升这样的机器学习技术并不会给我们提供这个（与线性回归不同）。然而，响应曲线可以将 S-Learner 的输出转化为一种综合形式，展示结果如何响应处理。
 
-如果你还不太能想象我们如何创建响应曲线，别担心，我们将在Python案例研究中详细讲解！
+如果你还不太能想象我们如何创建响应曲线，别担心，我们将在 Python 案例研究中详细讲解！
 
 ## 米哈利斯-门农方程
 
-有几种方程可以用来将S-Learner映射到响应曲线。其中之一就是米哈利斯-门农方程。
+有几种方程可以用来将 S-Learner 映射到响应曲线。其中之一就是米哈利斯-门农方程。
 
 米哈利斯-门农方程通常用于酶动力学（研究酶催化化学反应的速率）中，用来描述酶促反应的速率。
 
-![](../Images/103dde2faf7a1ea73b0d3fe4dd0b2798.png)
+![](img/103dde2faf7a1ea73b0d3fe4dd0b2798.png)
 
 用户生成的图片
 
 +   v — 是反应速度（这是我们转化后的响应，所以在我们的定价示例中是订单的总数）
 
-+   Vmax — 是最大反应速度（我们称之为alpha，这是一个我们需要学习的参数）
++   Vmax — 是最大反应速度（我们称之为 alpha，这是一个我们需要学习的参数）
 
-+   Km — 是底物浓度（我们称之为lambda，这是一个我们需要学习的参数）
++   Km — 是底物浓度（我们称之为 lambda，这是一个我们需要学习的参数）
 
 +   S — 是迈克利斯常数（这是我们的处理变量，所以在定价示例中是折扣水平）
 
-它的原理也可以应用于其他领域，特别是在处理那些由于饱和因素导致输入增加不能按比例增加输出的系统时。下面我们展示不同的alpha和lambda值如何影响曲线：
+它的原理也可以应用于其他领域，特别是在处理那些由于饱和因素导致输入增加不能按比例增加输出的系统时。下面我们展示不同的 alpha 和 lambda 值如何影响曲线：
 
 ```py
 def michaelis_menten(x, alpha, lam):
     return alpha * x / (lam + x)
 ```
 
-![](../Images/339c252eb69c29a11f08f39d2b0e2cbd.png)
+![](img/339c252eb69c29a11f08f39d2b0e2cbd.png)
 
 用户生成的图像
 
@@ -159,29 +159,29 @@ def michaelis_menten(x, alpha, lam):
 
 +   等式约束，例如总促销预算等于£100k
 
-+   不等式约束，例如每个产品的折扣在£1到£10之间
++   不等式约束，例如每个产品的折扣在£1 到£10 之间
 
 SciPy 提供了一个易于使用的 SLSQP 实现：
 
 [](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-slsqp.html?source=post_page-----011ce140d180--------------------------------) [## minimize(method='SLSQP') - SciPy v1.13.0 Manual
 
-### 如果jac在['2-point', '3-point', 'cs']中，使用相对步长进行数值近似jac。绝对…
+### 如果 jac 在['2-point', '3-point', 'cs']中，使用相对步长进行数值近似 jac。绝对…
 
 [docs.scipy.org](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-slsqp.html?source=post_page-----011ce140d180--------------------------------)
 
-接下来，我们将展示S-Learner、迈克利斯-孟东方程和非线性规划结合的强大威力！
+接下来，我们将展示 S-Learner、迈克利斯-孟东方程和非线性规划结合的强大威力！
 
 # 案例研究
 
 ## 背景
 
-历史上，促销团队一直依靠他们的专家判断来为他们的三大主打产品设置折扣。考虑到当前的经济状况，他们被迫将整体促销预算削减20%。于是，他们求助于数据科学团队，咨询如何在减少订单量损失的同时做到这一点。
+历史上，促销团队一直依靠他们的专家判断来为他们的三大主打产品设置折扣。考虑到当前的经济状况，他们被迫将整体促销预算削减 20%。于是，他们求助于数据科学团队，咨询如何在减少订单量损失的同时做到这一点。
 
 ## 数据生成过程
 
 我们设置了一个具有以下特点的数据生成过程：
 
-+   4个与订单数量有复杂关系的特征
++   4 个与订单数量有复杂关系的特征
 
 +   一个遵循迈克利斯-孟东方程的处理效果
 
@@ -215,9 +215,9 @@ def data_generator(n, tau_weight, alpha, lam):
     return y_train, X_train, T_mm, tau
 ```
 
-X特征是混杂变量：
+X 特征是混杂变量：
 
-![](../Images/070ded84b57d5cde15c71bc2917b0210.png)
+![](img/070ded84b57d5cde15c71bc2917b0210.png)
 
 用户生成的图像
 
@@ -235,7 +235,7 @@ y_train_3, X_train_3, T_mm_3, tau_3 = data_generator(n, 2.00, 2, 5000)
 
 ## S-Learner
 
-我们可以通过使用任何机器学习算法，并将处理和协变量作为特征来训练一个S-Learner：
+我们可以通过使用任何机器学习算法，并将处理和协变量作为特征来训练一个 S-Learner：
 
 ```py
 def train_slearner(X_train, y_train):
@@ -254,7 +254,7 @@ def train_slearner(X_train, y_train):
     return model, yhat_train
 ```
 
-我们为每个产品训练一个S-Learner：
+我们为每个产品训练一个 S-Learner：
 
 ```py
 np.random.seed(1234)
@@ -266,13 +266,13 @@ model_3, yhat_train_3 = train_slearner(X_train_3, y_train_3)
 
 目前这只是一个预测模型——下面我们可视化它在这项工作中的表现：
 
-![](../Images/633b5e5ab9af4aa5319a9f6e195fe89e.png)
+![](img/633b5e5ab9af4aa5319a9f6e195fe89e.png)
 
 用户生成的图像
 
 ## 提取处理效果
 
-接下来我们将使用我们的S-learner来提取整个处理值范围（折扣金额）的处理效果，同时将其他特征保持在其平均值。
+接下来我们将使用我们的 S-learner 来提取整个处理值范围（折扣金额）的处理效果，同时将其他特征保持在其平均值。
 
 我们首先提取整个处理值范围的预期结果（订单数量）：
 
@@ -305,7 +305,7 @@ treated_2, df_scoring_2 = extract_treated_effect(n, X_train_2, model_2)
 treated_3, df_scoring_3 = extract_treated_effect(n, X_train_3, model_3)
 ```
 
-然后我们提取当处理设置为0时的预期结果（订单数量）：
+然后我们提取当处理设置为 0 时的预期结果（订单数量）：
 
 ```py
 def extract_untreated_effect(n, X_train, model):
@@ -345,9 +345,9 @@ treatment_effect_2 = treated_2 - untreated_2
 treatment_effect_3 = treated_3 - untreated_3
 ```
 
-当我们将其与从数据生成器保存的实际处理效果进行比较时，我们可以看到S-Learner在估计整个处理值范围的处理效果方面非常有效：
+当我们将其与从数据生成器保存的实际处理效果进行比较时，我们可以看到 S-Learner 在估计整个处理值范围的处理效果方面非常有效：
 
-![](../Images/b97c0b95c35e52cf9b9fac26fa824876.png)
+![](img/b97c0b95c35e52cf9b9fac26fa824876.png)
 
 用户生成的图像
 
@@ -355,7 +355,7 @@ treatment_effect_3 = treated_3 - untreated_3
 
 ## 米氏-孟东方程（Michaelis-Menton）
 
-为了构建响应曲线，我们需要一个曲线拟合工具。SciPy有一个很好的实现，我们将使用它：
+为了构建响应曲线，我们需要一个曲线拟合工具。SciPy 有一个很好的实现，我们将使用它：
 
 [](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html?source=post_page-----011ce140d180--------------------------------) [## scipy.optimize.curve_fit - SciPy v1.13.0 手册]
 
@@ -370,7 +370,7 @@ def michaelis_menten(x, alpha, lam):
     return alpha * x / (lam + x)
 ```
 
-然后我们可以使用curve_fit来学习alpha和lambda参数：
+然后我们可以使用 curve_fit 来学习 alpha 和 lambda 参数：
 
 ```py
 def response_curves(treatment_effect, df_scoring):
@@ -403,11 +403,11 @@ treatment_effect_curve_3 = michaelis_menten(df_scoring_3['T'], popt_3[0], popt_3
 
 我们可以看到曲线拟合做得非常好！
 
-![](../Images/fd743bbd492a4de4bf9bc40f0b9d8ad4.png)
+![](img/fd743bbd492a4de4bf9bc40f0b9d8ad4.png)
 
 用户生成的图像
 
-现在我们拥有了每个产品的alpha和lambda参数，我们可以开始考虑非线性优化……
+现在我们拥有了每个产品的 alpha 和 lambda 参数，我们可以开始考虑非线性优化……
 
 ## 非线性编程
 
@@ -484,32 +484,32 @@ print(f'Optimal orders: {round(result.fun * -1, 2)}')
 
 输出向我们展示了每个产品的最优促销预算：
 
-![](../Images/7468ce2e35ed95ef3fdd0f6432967360.png)
+![](img/7468ce2e35ed95ef3fdd0f6432967360.png)
 
 用户生成的图像
 
 如果你仔细检查响应曲线，你会发现优化结果是直观的：
 
-+   稍微减少产品1的预算。
++   稍微减少产品 1 的预算。
 
-+   显著减少产品2的预算。
++   显著减少产品 2 的预算。
 
-+   显著增加产品3的预算。
++   显著增加产品 3 的预算。
 
 # 结语。
 
-今天我们讨论了S-Learner、Michaelis-Menten方程和非线性规划的强大结合！以下是一些结语：
+今天我们讨论了 S-Learner、Michaelis-Menten 方程和非线性规划的强大结合！以下是一些结语：
 
-+   如前所述，使用S-Learner时要小心正则化偏差！
++   如前所述，使用 S-Learner 时要小心正则化偏差！
 
-+   S-Learner的一个很好的替代方法是使用DML，但在训练模型之前对处理进行转换——然而，这意味着你需要对处理的函数形式有一定的先验知识。
++   S-Learner 的一个很好的替代方法是使用 DML，但在训练模型之前对处理进行转换——然而，这意味着你需要对处理的函数形式有一定的先验知识。
 
-+   我选择使用Michaelis-Menten方程来构建我的响应曲线——然而，这可能不适合你的问题，可以通过其他更合适的转换方法来替代。
++   我选择使用 Michaelis-Menten 方程来构建我的响应曲线——然而，这可能不适合你的问题，可以通过其他更合适的转换方法来替代。
 
-+   使用SLSQP来解决非线性规划问题可以让你灵活地使用等式和不等式约束。
++   使用 SLSQP 来解决非线性规划问题可以让你灵活地使用等式和不等式约束。
 
-+   你收集的数据很可能是观察性数据——这带来了一些挑战，尤其是在你将收集到的折扣值范围上——这些值可能会集中在一个特定的区域。使用某种Shapley方法来创建用于生成响应曲线的数据，在这种情况下可能更为合适。
++   你收集的数据很可能是观察性数据——这带来了一些挑战，尤其是在你将收集到的折扣值范围上——这些值可能会集中在一个特定的区域。使用某种 Shapley 方法来创建用于生成响应曲线的数据，在这种情况下可能更为合适。
 
 +   我选择专注于定价和促销，但这个框架可以扩展到营销预算。
 
-如果你想继续深入了解因果AI，关注我——在下一篇文章中，我们将讨论如何衡量营销活动的内在因果影响。
+如果你想继续深入了解因果 AI，关注我——在下一篇文章中，我们将讨论如何衡量营销活动的内在因果影响。

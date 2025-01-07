@@ -1,16 +1,16 @@
 # 有一种正确的犯错方式
 
-> 原文：[https://towardsdatascience.com/theres-a-right-way-to-be-wrong-05b5c0ece56c?source=collection_archive---------4-----------------------#2024-09-16](https://towardsdatascience.com/theres-a-right-way-to-be-wrong-05b5c0ece56c?source=collection_archive---------4-----------------------#2024-09-16)
+> 原文：[`towardsdatascience.com/theres-a-right-way-to-be-wrong-05b5c0ece56c?source=collection_archive---------4-----------------------#2024-09-16`](https://towardsdatascience.com/theres-a-right-way-to-be-wrong-05b5c0ece56c?source=collection_archive---------4-----------------------#2024-09-16)
 
 ## 如何通过结合业务背景和错误成本来做出更好的预测
 
-[](https://medium.com/@twalbaum?source=post_page---byline--05b5c0ece56c--------------------------------)[![Torsten Walbaum](../Images/27964d8095af45642f152a0ce4fa2681.png)](https://medium.com/@twalbaum?source=post_page---byline--05b5c0ece56c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--05b5c0ece56c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--05b5c0ece56c--------------------------------) [Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--05b5c0ece56c--------------------------------)
+[](https://medium.com/@twalbaum?source=post_page---byline--05b5c0ece56c--------------------------------)![Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--05b5c0ece56c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--05b5c0ece56c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05b5c0ece56c--------------------------------) [Torsten Walbaum](https://medium.com/@twalbaum?source=post_page---byline--05b5c0ece56c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05b5c0ece56c--------------------------------) ·阅读时长15分钟·2024年9月16日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05b5c0ece56c--------------------------------) ·阅读时长 15 分钟·2024 年 9 月 16 日
 
 --
 
-![](../Images/a463a735b1ad07ca0c1fd6a4f6e85d6d.png)
+![](img/a463a735b1ad07ca0c1fd6a4f6e85d6d.png)
 
 作者图片（通过 Midjourney）
 

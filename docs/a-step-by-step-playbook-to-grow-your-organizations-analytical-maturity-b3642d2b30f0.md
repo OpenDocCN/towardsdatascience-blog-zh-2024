@@ -1,12 +1,12 @@
 # 提升组织分析成熟度的逐步手册
 
-> 原文：[https://towardsdatascience.com/a-step-by-step-playbook-to-grow-your-organizations-analytical-maturity-b3642d2b30f0?source=collection_archive---------6-----------------------#2024-02-22](https://towardsdatascience.com/a-step-by-step-playbook-to-grow-your-organizations-analytical-maturity-b3642d2b30f0?source=collection_archive---------6-----------------------#2024-02-22)
+> 原文：[`towardsdatascience.com/a-step-by-step-playbook-to-grow-your-organizations-analytical-maturity-b3642d2b30f0?source=collection_archive---------6-----------------------#2024-02-22`](https://towardsdatascience.com/a-step-by-step-playbook-to-grow-your-organizations-analytical-maturity-b3642d2b30f0?source=collection_archive---------6-----------------------#2024-02-22)
 
 ## 在实际生活中实施我们所看到的各种框架
 
-[](https://medium.com/@jordangom?source=post_page---byline--b3642d2b30f0--------------------------------)[![Jordan Gomes](../Images/d08bb9fd8b084687599a67a2221ec68c.png)](https://medium.com/@jordangom?source=post_page---byline--b3642d2b30f0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b3642d2b30f0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b3642d2b30f0--------------------------------) [Jordan Gomes](https://medium.com/@jordangom?source=post_page---byline--b3642d2b30f0--------------------------------)
+[](https://medium.com/@jordangom?source=post_page---byline--b3642d2b30f0--------------------------------)![Jordan Gomes](https://medium.com/@jordangom?source=post_page---byline--b3642d2b30f0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b3642d2b30f0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b3642d2b30f0--------------------------------) [Jordan Gomes](https://medium.com/@jordangom?source=post_page---byline--b3642d2b30f0--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b3642d2b30f0--------------------------------) ·11分钟阅读·2024年2月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b3642d2b30f0--------------------------------) ·11 分钟阅读·2024 年 2 月 22 日
 
 --
 
@@ -14,15 +14,15 @@
 
 我们从第一步开始：闭嘴并倾听！
 
-![](../Images/928298fb284ce7fa0e136bdc3d71648e.png)
+![](img/928298fb284ce7fa0e136bdc3d71648e.png)
 
 一步一步的分析成熟度提升手册 — 图片来自作者
 
 # 第一步：闭嘴并倾听
 
-有一个很棒的 [TED 演讲](https://www.ted.com/talks/ernesto_sirolli_want_to_help_someone_shut_up_and_listen/transcript?language=en)，由恩尼斯托·西罗利（Ernesto Sirolli）主讲，标题为“想帮助别人？闭嘴并倾听”。在演讲中，他解释了当他21岁时，曾在一个意大利非政府组织工作，该组织试图“教赞比亚人如何种植食物”。他们成功地在赞比西河下游的山谷中种出了美丽的番茄——但正如西罗利用他自己的话所说：
+有一个很棒的 [TED 演讲](https://www.ted.com/talks/ernesto_sirolli_want_to_help_someone_shut_up_and_listen/transcript?language=en)，由恩尼斯托·西罗利（Ernesto Sirolli）主讲，标题为“想帮助别人？闭嘴并倾听”。在演讲中，他解释了当他 21 岁时，曾在一个意大利非政府组织工作，该组织试图“教赞比亚人如何种植食物”。他们成功地在赞比西河下游的山谷中种出了美丽的番茄——但正如西罗利用他自己的话所说：
 
-*当番茄又大又红，成熟了，隔夜，约200只河马从河里出来，把所有的番茄都吃光了。我们对赞比亚人说，‘天啊，河马！’而赞比亚人回答说，‘是的，这就是我们这里没有农业的原因。’*
+*当番茄又大又红，成熟了，隔夜，约 200 只河马从河里出来，把所有的番茄都吃光了。我们对赞比亚人说，‘天啊，河马！’而赞比亚人回答说，‘是的，这就是我们这里没有农业的原因。’*
 
 每当你想要提升组织的分析成熟度时，第一步就是闭嘴，静下心来倾听。你需要倾听并理解痛点、不同的工作职责、数据需求、过去为解决这些痛点所做的努力等。这样不仅能让你更好地了解全局，也能帮助你更好地理解那些组成你组织的人。
 
@@ -38,7 +38,7 @@
 
 使用这些不同的方法，你可以进行大量出色的倾听，帮助你全面了解你的组织在分析成熟度方面所处的位置，以及在哪些方面可以进行最有影响力的改进。这是一个非常基础的阶段——是诊断阶段的一部分，帮助你塑造你的战略。
 
-那么，你是否应该在任何地方、任何时间都去倾听一切？如果你不想像Jobu Tupaki那样，重要的是在探索过程中确保采用正确的视角。
+那么，你是否应该在任何地方、任何时间都去倾听一切？如果你不想像 Jobu Tupaki 那样，重要的是在探索过程中确保采用正确的视角。
 
 +   **在深度方面**，有些问题需要你使用显微镜（因为它们非常技术性、复杂且敏感），而有些问题则最好从远处观察（因为它们优先级较低，并不一定需要你亲自参与）。这里我没有现成的框架，但诊断阶段的一部分就是要获得这种理解。
 
@@ -46,7 +46,7 @@
 
 # 步骤#2a：优先排序，构建路线图并进行沟通
 
-一旦你对不同的组织痛点有了清晰的理解，并且知道它们为何存在，你就可以开始制定战略。如我在[a篇文章](https://medium.com/towards-data-science/building-analytically-mature-organizations-amo-b54f8243ef3a)中提到的——遵循理查德·鲁梅尔特的框架，一个好的战略由三个要素构成：诊断、指导方针和行动计划。
+一旦你对不同的组织痛点有了清晰的理解，并且知道它们为何存在，你就可以开始制定战略。如我在[a 篇文章](https://medium.com/towards-data-science/building-analytically-mature-organizations-amo-b54f8243ef3a)中提到的——遵循理查德·鲁梅尔特的框架，一个好的战略由三个要素构成：诊断、指导方针和行动计划。
 
 在这个阶段，感谢你在上一部分的倾听，你应该已经做好准备，开始记录需求，并且开始识别当前组织中存在的空白。希望在这一点上，创建以下“映射”应该不成问题：
 
@@ -66,7 +66,7 @@
 
 根据经验，当你整理这些不同的映射时，你将会开始获得关于团队和组织的有趣见解，更广泛地说，你将开始理解整个“系统”是如何协同工作的。通常，在这个阶段，你会意识到一些工具的使用是因为某些技能集不可用，某些流程是作为对有缺陷工具的替代解决方案存在的，等等。基本上，正是在这个步骤，你会发现一些小的低效环节。因此，希望通过这次详尽的映射练习，你能看到一些改进的领域——这也是你从探索转向行动的时候：
 
-+   **采用优先级排序过程：** 为你刚刚记录的需求建立一个清晰透明的优先级排序方法。这个过程可能涉及到影响业务目标的程度、问题发生的频率，或者实施的难易程度等标准。可以考虑像MoSCoW（必须有、应该有、可以有、不需要有）或ICE评分（影响力、信心、难易度）这样的框架，来系统地评估每一个需求。
++   **采用优先级排序过程：** 为你刚刚记录的需求建立一个清晰透明的优先级排序方法。这个过程可能涉及到影响业务目标的程度、问题发生的频率，或者实施的难易程度等标准。可以考虑像 MoSCoW（必须有、应该有、可以有、不需要有）或 ICE 评分（影响力、信心、难易度）这样的框架，来系统地评估每一个需求。
 
 +   **相应地优先排序：** 使用你选择的优先级排序方法，将需求从最关键到最不重要进行排序。这个步骤确保资源能够有效分配到对组织的分析成熟度影响最大的领域。
 
@@ -88,7 +88,7 @@
 
 +   **识别低垂果实：** 寻找可以快速实施并产生明显影响的项目或改进。这些可能是简单的数据质量修复、自动化重复的手动报告，或提供访问新的、宝贵的数据源。目标是找到那些需要最小努力却能带来显著收益的变化。
 
-+   **利用现有工具和资源**：利用你所在组织中已有的工具和平台来实现这些快速成功。这可能意味着在现有的BI工具中创建新仪表盘、使用数据平台中的自动化功能，或仅仅通过更好的实践优化当前的数据流程。
++   **利用现有工具和资源**：利用你所在组织中已有的工具和平台来实现这些快速成功。这可能意味着在现有的 BI 工具中创建新仪表盘、使用数据平台中的自动化功能，或仅仅通过更好的实践优化当前的数据流程。
 
 +   **庆祝并传播成功**：一旦你实现了这些快速成功，确保它们得到了良好的传播和庆祝。使用内部新闻通讯、会议或任何公司范围的沟通渠道来突出所做的改进。分享成功故事不仅能建立你的信誉，还能向整个组织展示数据驱动决策的价值。
 
@@ -98,7 +98,7 @@
 
 通过专注于快速成功，你可以迅速展示数据项目的价值，赢得信任和支持，为应对更具雄心的项目打下基础，进而提升组织的分析成熟度。
 
-# 第3步：把事情做完，沟通，记录一切并培训每个人
+# 第 3 步：把事情做完，沟通，记录一切并培训每个人
 
 现在你的策略已经设定好，是时候放弃“旁观者”模式，转向“执行模式”了。
 
@@ -108,7 +108,7 @@
 
 通过高效地执行计划、保持畅通的沟通渠道，并投资于文档和培训，你为可持续的数据驱动增长奠定了基础。这种方法不仅提升了组织的分析能力，还嵌入了持续学习和改进的文化。
 
-# 第4步：重新开始（但在实施过程中不断改进）
+# 第 4 步：重新开始（但在实施过程中不断改进）
 
 因为生活就是一个永恒的循环：
 
@@ -136,18 +136,18 @@
 
 **如果你想阅读更多我的文章，以下是一些你可能会喜欢的文章**：
 
-[](/how-to-build-a-successful-dashboard-359c8cb0f610?source=post_page-----b3642d2b30f0--------------------------------) [## 如何构建一个成功的仪表盘
+[](/how-to-build-a-successful-dashboard-359c8cb0f610?source=post_page-----b3642d2b30f0--------------------------------) ## 如何构建一个成功的仪表盘
 
 ### 来自一个做过几个失败项目的人的检查清单
 
-[towardsdatascience.com](/how-to-build-a-successful-dashboard-359c8cb0f610?source=post_page-----b3642d2b30f0--------------------------------) [](/building-analytically-mature-organizations-amo-b54f8243ef3a?source=post_page-----b3642d2b30f0--------------------------------) [## 构建数据分析成熟组织（AMO）
+[towardsdatascience.com [](/building-analytically-mature-organizations-amo-b54f8243ef3a?source=post_page-----b3642d2b30f0--------------------------------) ## 构建数据分析成熟组织（AMO）
 
 ### 一些简单的框架，帮助你明确组织的分析需求是什么，如何提升其…
 
-[towardsdatascience.com](/building-analytically-mature-organizations-amo-b54f8243ef3a?source=post_page-----b3642d2b30f0--------------------------------) [](/what-sets-great-data-analysts-apart-c91bbaff67aa?source=post_page-----b3642d2b30f0--------------------------------) [## 什么使优秀的数据分析师与众不同
+[towardsdatascience.com [](/what-sets-great-data-analysts-apart-c91bbaff67aa?source=post_page-----b3642d2b30f0--------------------------------) ## 什么使优秀的数据分析师与众不同
 
-### 还在寻找新年的决心吗？这里有6项技能，帮助你和你的团队变得极其高效。
+### 还在寻找新年的决心吗？这里有 6 项技能，帮助你和你的团队变得极其高效。
 
-[towardsdatascience.com](/what-sets-great-data-analysts-apart-c91bbaff67aa?source=post_page-----b3642d2b30f0--------------------------------)
+[towardsdatascience.com
 
 *PS：这篇文章也在* [*Analytics Explained*](https://analyticsexplained.substack.com/)*上发布，这是一个我总结在各种分析角色中所学到的内容的新闻通讯（从新加坡的初创公司到旧金山的大型科技公司），并回答读者关于分析、增长和职业发展的提问。*

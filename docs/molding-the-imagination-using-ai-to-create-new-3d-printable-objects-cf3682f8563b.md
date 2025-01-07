@@ -1,16 +1,16 @@
 # 塑造想象力：使用 AI 创建新的 3D 可打印物体
 
-> 原文：[https://towardsdatascience.com/molding-the-imagination-using-ai-to-create-new-3d-printable-objects-cf3682f8563b?source=collection_archive---------8-----------------------#2024-02-13](https://towardsdatascience.com/molding-the-imagination-using-ai-to-create-new-3d-printable-objects-cf3682f8563b?source=collection_archive---------8-----------------------#2024-02-13)
+> 原文：[`towardsdatascience.com/molding-the-imagination-using-ai-to-create-new-3d-printable-objects-cf3682f8563b?source=collection_archive---------8-----------------------#2024-02-13`](https://towardsdatascience.com/molding-the-imagination-using-ai-to-create-new-3d-printable-objects-cf3682f8563b?source=collection_archive---------8-----------------------#2024-02-13)
 
 ## 将你的创意转化为具体的物品，使用 Midjourney 和开源项目：Shap-E、MVDream 和 threestudio
 
-[](https://robgon.medium.com/?source=post_page---byline--cf3682f8563b--------------------------------)[![Robert A. Gonsalves](../Images/96b4da0f602a1cd9d1e1d2917868cbee.png)](https://robgon.medium.com/?source=post_page---byline--cf3682f8563b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cf3682f8563b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cf3682f8563b--------------------------------) [Robert A. Gonsalves](https://robgon.medium.com/?source=post_page---byline--cf3682f8563b--------------------------------)
+[](https://robgon.medium.com/?source=post_page---byline--cf3682f8563b--------------------------------)![Robert A. Gonsalves](https://robgon.medium.com/?source=post_page---byline--cf3682f8563b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cf3682f8563b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cf3682f8563b--------------------------------) [Robert A. Gonsalves](https://robgon.medium.com/?source=post_page---byline--cf3682f8563b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cf3682f8563b--------------------------------) ·21 分钟阅读·2024年2月13日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cf3682f8563b--------------------------------) ·21 分钟阅读·2024 年 2 月 13 日
 
 --
 
-![](../Images/2caf9a013805f0440a8433cbcf189c76.png)
+![](img/2caf9a013805f0440a8433cbcf189c76.png)
 
 **AI 系统根据文本提示生成的 3D 打印物体**，图片由作者提供
 

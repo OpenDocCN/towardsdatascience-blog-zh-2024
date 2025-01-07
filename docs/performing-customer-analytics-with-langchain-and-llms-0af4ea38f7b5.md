@@ -1,32 +1,32 @@
-# 使用LangChain和LLM进行客户分析
+# 使用 LangChain 和 LLM 进行客户分析
 
-> 原文：[https://towardsdatascience.com/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=collection_archive---------6-----------------------#2024-02-13](https://towardsdatascience.com/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=collection_archive---------6-----------------------#2024-02-13)
+> 原文：[`towardsdatascience.com/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=collection_archive---------6-----------------------#2024-02-13`](https://towardsdatascience.com/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=collection_archive---------6-----------------------#2024-02-13)
 
-## 发现LangChain在统计计算、洞察生成、可视化以及为客户分析进行对话中的潜力与限制——包括实现代码
+## 发现 LangChain 在统计计算、洞察生成、可视化以及为客户分析进行对话中的潜力与限制——包括实现代码
 
-[](https://medium.com/@johnleungTJ?source=post_page---byline--0af4ea38f7b5--------------------------------)[![John Leung](../Images/ef45063e759e3450fa7f3c32b2f292c3.png)](https://medium.com/@johnleungTJ?source=post_page---byline--0af4ea38f7b5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0af4ea38f7b5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0af4ea38f7b5--------------------------------) [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--0af4ea38f7b5--------------------------------)
+[](https://medium.com/@johnleungTJ?source=post_page---byline--0af4ea38f7b5--------------------------------)![John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--0af4ea38f7b5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0af4ea38f7b5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0af4ea38f7b5--------------------------------) [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--0af4ea38f7b5--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0af4ea38f7b5--------------------------------) ·阅读时长11分钟·2024年2月13日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0af4ea38f7b5--------------------------------) ·阅读时长 11 分钟·2024 年 2 月 13 日
 
 --
 
 许多企业拥有大量存储在数据库中的专有数据。然而，这些数据复杂且难以被用户接触，因此他们常常难以识别趋势并提取可操作的洞察。这就是商业智能（BI）仪表盘发挥重要作用的地方，它是用户与数据汇总视图互动的起点。
 
-## BI仪表盘的瓶颈
+## BI 仪表盘的瓶颈
 
-一个有效的BI仪表盘[/how-to-build-effective-and-useful-dashboards-711759534639]应该只包含对目标受众相关的信息，避免将杂乱的视觉元素堆砌在一起。但这并不能很好地解决一个挑战。有时候，用户可能突然有了额外的查询，或者希望探索仪表盘上没有显示的新分析视角。如果他们没有任何技术背景，无法动态调整可视化的底层逻辑，那么仪表盘可能无法满足他们的需求。
+一个有效的 BI 仪表盘[/how-to-build-effective-and-useful-dashboards-711759534639]应该只包含对目标受众相关的信息，避免将杂乱的视觉元素堆砌在一起。但这并不能很好地解决一个挑战。有时候，用户可能突然有了额外的查询，或者希望探索仪表盘上没有显示的新分析视角。如果他们没有任何技术背景，无法动态调整可视化的底层逻辑，那么仪表盘可能无法满足他们的需求。
 
-![](../Images/0e4b6e426628a25f509d7e9dfd59374d.png)
+![](img/0e4b6e426628a25f509d7e9dfd59374d.png)
 
 图片由[Emily Morter](https://unsplash.com/@emilymorter?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 最近的框架[LangChain](https://www.langchain.com/)通过其先进的语言处理能力，降低了与数据交互的技术门槛，从而为企业提供了潜在的新机遇。让我们来探讨一下它的基本工作原理。
 
-## LangChain的工作原理
+## LangChain 的工作原理
 
-大语言模型（LLMs），如[ChatGPT](/how-chatgpt-works-the-models-behind-the-bot-1ce5fca96286)和[Llama](/mistral-ai-vs-meta-comparing-top-open-source-llms-565c1bc1516e)，具有强大的语言理解和文本生成能力。作为一个开源库，LangChain将LLMs集成到应用程序中。它提供了多个模块，以便高效交互和简化工作流，例如：
+大语言模型（LLMs），如 ChatGPT 和 Llama，具有强大的语言理解和文本生成能力。作为一个开源库，LangChain 将 LLMs 集成到应用程序中。它提供了多个模块，以便高效交互和简化工作流，例如：
 
-+   [**文档加载器:**](https://python.langchain.com/docs/modules/data_connection/document_loaders/) 促进从各种来源加载数据，包括CSV文件、SQL数据库和公共数据集（如Wikipedia）。
++   [**文档加载器:**](https://python.langchain.com/docs/modules/data_connection/document_loaders/) 促进从各种来源加载数据，包括 CSV 文件、SQL 数据库和公共数据集（如 Wikipedia）。
 
 +   [**代理:**](https://python.langchain.com/docs/modules/agents/) 使用语言模型作为推理引擎，决定采取哪些行动以及行动的顺序。它通过不断循环思考-行动-观察，直到任务完成。
 
@@ -36,23 +36,23 @@
 
 以这些模块为基础，我们将开始编写一个简单的应用程序，利用大语言模型（LLM）。在这个实践过程中，我们将扮演商业用户的角色，尝试通过输入自然语言查询来进行探索性数据分析。
 
-![](../Images/4a1935229d65ad2facd8159084fcd6f6.png)
+![](img/4a1935229d65ad2facd8159084fcd6f6.png)
 
-LLM驱动的应用程序工作流程（图片来自作者）
+LLM 驱动的应用程序工作流程（图片来自作者）
 
-假设你计划为一家零售店进行客户分析，因此你收集了过去12个月的销售数据。你的目标是更好地了解客户的不同方面，如人口统计、消费行为和产品类别。
+假设你计划为一家零售店进行客户分析，因此你收集了过去 12 个月的销售数据。你的目标是更好地了解客户的不同方面，如人口统计、消费行为和产品类别。
 
-从Kaggle获得的[数据集](https://www.kaggle.com/datasets/mohammadtalib786/retail-sales-dataset/data)，其许可证为[CC0: 公共领域](https://creativecommons.org/publicdomain/zero/1.0/)，包含多个字段，包括交易ID、交易日期、客户ID、性别、年龄、产品类别、购买的产品单位数、单价以及交易的总金额。我们可以开始分析了。
+从 Kaggle 获得的[数据集](https://www.kaggle.com/datasets/mohammadtalib786/retail-sales-dataset/data)，其许可证为[CC0: 公共领域](https://creativecommons.org/publicdomain/zero/1.0/)，包含多个字段，包括交易 ID、交易日期、客户 ID、性别、年龄、产品类别、购买的产品单位数、单价以及交易的总金额。我们可以开始分析了。
 
 ## 初始设置
 
-我们需要正确设置环境和配置，才能在Python中使用LangChain。
+我们需要正确设置环境和配置，才能在 Python 中使用 LangChain。
 
-1.  配置Python环境，并安装LangChain库以及其他必要的依赖项，如[SQLite](https://docs.python.org/3/library/sqlite3.html)和Pandas
+1.  配置 Python 环境，并安装 LangChain 库以及其他必要的依赖项，如[SQLite](https://docs.python.org/3/library/sqlite3.html)和 Pandas
 
-1.  [配置OpenAI密钥](https://platform.openai.com/docs/quickstart?context=python)以查询GPT模型
+1.  [配置 OpenAI 密钥](https://platform.openai.com/docs/quickstart?context=python)以查询 GPT 模型
 
-1.  将CSV文件‘retail_sales_dataset.csv’导入SQLite数据库中的表格
+1.  将 CSV 文件‘retail_sales_dataset.csv’导入 SQLite 数据库中的表格
 
 ```py
 # Import necessary libraries and modules
@@ -73,13 +73,13 @@ connection = sqlite3.connect("customer.db")
 df.to_sql("RetailSalesTable", connection, if_exists='replace')
 ```
 
-## 创建一个LangChain应用程序
+## 创建一个 LangChain 应用程序
 
 ## #1 生成基础统计数据
 
 > 每年每月的交易数量是多少**？
 
-要查询与销售SQL表相关的基本统计数据，我们使用`create_sql_agent`代理助手。两个参数`verbose`和`return_intermediate_steps`都设置为True，以便在执行过程中显示内部状态和步骤。这将帮助我们迭代评估并优化与代理的沟通方式。
+要查询与销售 SQL 表相关的基本统计数据，我们使用`create_sql_agent`代理助手。两个参数`verbose`和`return_intermediate_steps`都设置为 True，以便在执行过程中显示内部状态和步骤。这将帮助我们迭代评估并优化与代理的沟通方式。
 
 ```py
 # Import necessary libraries and modules
@@ -110,15 +110,15 @@ agent_executor.run(user_inquiry)
 
 输出的完整内容如下所示。
 
-![](../Images/bad38dc35915f2c73dadda0eb4efd523.png)
+![](img/bad38dc35915f2c73dadda0eb4efd523.png)
 
 代理的输出步骤——基础统计（1/2）（图由作者提供）
 
-![](../Images/a2921b9c569084cd7f01fec74e6255ce.png)
+![](img/a2921b9c569084cd7f01fec74e6255ce.png)
 
 代理的输出步骤——基础统计（2/2）（图由作者提供）
 
-代理编写了查询，包括纠正“日期”列的格式并生成正确的结果。它成功展示了从2023年1月到2024年1月的交易次数分解。
+代理编写了查询，包括纠正“日期”列的格式并生成正确的结果。它成功展示了从 2023 年 1 月到 2024 年 1 月的交易次数分解。
 
 ## #2 执行特征工程
 
@@ -126,7 +126,7 @@ agent_executor.run(user_inquiry)
 
 这一次，我们稍微修改了查询，重点关注“年龄组”维度。这旨在评估代理生成不直接来自数据集的新特征的能力。应用类似的概念，您还可以探索按工作日/周末分类的交易日期、购买频率等维度的统计信息。
 
-![](../Images/4fce5e101ed1a96cd92a54947c47a667.png)
+![](img/4fce5e101ed1a96cd92a54947c47a667.png)
 
 代理输出步骤的一部分——特征工程（图由作者提供）
 
@@ -163,7 +163,7 @@ agent_executor.run(template.format(background_info=background_info, user_inquiry
 
 以下是相应输出的关键亮点。
 
-![](../Images/3bb50f647dc9bc1c190b9a8db16a3fc0.png)
+![](img/3bb50f647dc9bc1c190b9a8db16a3fc0.png)
 
 代理的改进输出——特征工程（图由作者提供）
 
@@ -171,11 +171,11 @@ agent_executor.run(template.format(background_info=background_info, user_inquiry
 
 ## #3 为多维特征绘制图表
 
-我们使用`create_sql_agent`代理计算基本统计数据并生成洞察。通过提示设计的艺术，代理能够执行任务。为了支持提出SQL查询无法独立完成的新问题，我们需要开发我们的[自定义工具](https://python.langchain.com/docs/modules/agents/tools/custom_tools)。
+我们使用`create_sql_agent`代理计算基本统计数据并生成洞察。通过提示设计的艺术，代理能够执行任务。为了支持提出 SQL 查询无法独立完成的新问题，我们需要开发我们的[自定义工具](https://python.langchain.com/docs/modules/agents/tools/custom_tools)。
 
 > 显示一个**分组条形图**，可视化以下问题的答案：产品类别、平均总金额和性别之间的关系是什么？
 
-在这个例子中，查询涉及数据探索和可视化。我们将基于`create_sql_agent`创建我们的代理，并添加工具`PythonREPLTool`以执行Python命令，如使用`Matplotlib`进行可视化。
+在这个例子中，查询涉及数据探索和可视化。我们将基于`create_sql_agent`创建我们的代理，并添加工具`PythonREPLTool`以执行 Python 命令，如使用`Matplotlib`进行可视化。
 
 让我们看看这些工具在实践中的实现。
 
@@ -236,23 +236,23 @@ user_inquiry = "Use a grouped bar graph to visualize the result of the following
 agent_executor.run(user_inquiry)
 ```
 
-SQL代理输出的流程与我们之前讲解的例子相似，因此在此省略。接下来的Python REPL工具的输出如下所示。
+SQL 代理输出的流程与我们之前讲解的例子相似，因此在此省略。接下来的 Python REPL 工具的输出如下所示。
 
-![](../Images/2374f89484dacd6394cd1b6ecdfb387a.png)
+![](img/2374f89484dacd6394cd1b6ecdfb387a.png)
 
 代理的输出 — 绘图（1/2）（图片由作者提供）
 
-![](../Images/c6ccbc8e867b34bf3a2caa369c2a718a.png)
+![](img/c6ccbc8e867b34bf3a2caa369c2a718a.png)
 
 代理的输出 — 绘图（2/2）（图片由作者提供）
 
-自定义工具组合成功地将自然语言查询转化为SQL查询。然后，汇总的查询结果用于生成分组条形图，通过x轴、y轴和图例清晰有效地展示关系。
+自定义工具组合成功地将自然语言查询转化为 SQL 查询。然后，汇总的查询结果用于生成分组条形图，通过 x 轴、y 轴和图例清晰有效地展示关系。
 
-尽管整体设计和执行过程看起来顺利，但当前设计确实存在一些限制。例如，假设我们想要生成一个包含大多数交易数据点的散点图，那么执行过程应该生成一个长查询输出，涵盖所有相关信息。然而，代理的输出可能并不理想，因为代理偶尔会使用`LIMIT`子句（该子句限制元组的数量），或者查询结果超出最大令牌限制（在我们的案例中为4096个令牌）。因此，生成的可视化种类可能会受到限制。
+尽管整体设计和执行过程看起来顺利，但当前设计确实存在一些限制。例如，假设我们想要生成一个包含大多数交易数据点的散点图，那么执行过程应该生成一个长查询输出，涵盖所有相关信息。然而，代理的输出可能并不理想，因为代理偶尔会使用`LIMIT`子句（该子句限制元组的数量），或者查询结果超出最大令牌限制（在我们的案例中为 4096 个令牌）。因此，生成的可视化种类可能会受到限制。
 
 ## #4 进行连贯对话
 
-实际上，业务用户在收到客户分析结果后通常会有后续问题。为了解决这些情况，我们需要增强现有的基本LLM应用，使其更具对话性。我们添加了内存缓冲区以保留过去的互动，使LLM能够生成针对当前对话上下文的响应。这通过不断存储LLM输出并在生成响应前引用内存存储来实现。
+实际上，业务用户在收到客户分析结果后通常会有后续问题。为了解决这些情况，我们需要增强现有的基本 LLM 应用，使其更具对话性。我们添加了内存缓冲区以保留过去的互动，使 LLM 能够生成针对当前对话上下文的响应。这通过不断存储 LLM 输出并在生成响应前引用内存存储来实现。
 
 > 初始问题：顾客在不同季节如何调整他们的购物习惯？
 > 
@@ -300,11 +300,11 @@ agent_executor.run(user_inquiry)
 
 代理的回答：
 
-![](../Images/c4c4102f9a2c4a12b9b29c4e85b9729a.png)
+![](img/c4c4102f9a2c4a12b9b29c4e85b9729a.png)
 
 代理的输出 — 初始问题（1/2）（图片由作者提供）
 
-![](../Images/e6d8a6f9d9700b85a1f484aab55b6fcd.png)
+![](img/e6d8a6f9d9700b85a1f484aab55b6fcd.png)
 
 代理的输出 —— 后续问题（2/2）（图片由作者提供）
 
@@ -312,7 +312,7 @@ agent_executor.run(user_inquiry)
 
 ## 总结
 
-我们进行了实验，探索了LangChain在基于LLM开发客户分析应用中的关键功能和潜在方法：
+我们进行了实验，探索了 LangChain 在基于 LLM 开发客户分析应用中的关键功能和潜在方法：
 
 +   通过使用`create_sql_agent`代理查询数据库并获取相关的统计信息来计算统计数据。
 
@@ -322,20 +322,20 @@ agent_executor.run(user_inquiry)
 
 +   会话功能，通过添加内存缓冲区来存储和检索聊天历史。
 
-自然语言查询中的措辞选择通常与数据库模式中的措辞不完全一致。观察发现，LangChain执行器有时不能按预期工作，甚至可能会[hypothesize](https://www.pinecone.io/learn/series/langchain/langchain-retrieval-augmentation/)，特别是在识别数据关系以生成图表时。因此，代码开发需要反复调试。虽然LangChain框架在处理多样化的客户分析任务时可能仅能提供有限的可靠性和效果，但当用户有迫切需求从传统分析仪表板之外发现洞察时，它仍然能提供一些边际优势。
+自然语言查询中的措辞选择通常与数据库模式中的措辞不完全一致。观察发现，LangChain 执行器有时不能按预期工作，甚至可能会[hypothesize](https://www.pinecone.io/learn/series/langchain/langchain-retrieval-augmentation/)，特别是在识别数据关系以生成图表时。因此，代码开发需要反复调试。虽然 LangChain 框架在处理多样化的客户分析任务时可能仅能提供有限的可靠性和效果，但当用户有迫切需求从传统分析仪表板之外发现洞察时，它仍然能提供一些边际优势。
 
-这个应用程序的设计只是初步阶段，还有更多的可能性等待发掘。例如，客户数据有时以文本格式存在，如客户评论或产品描述。LangChain提供了[tagging function](https://python.langchain.com/docs/use_cases/tagging)，我们可以通过标注情感、语言、风格等，进行全面分析。
+这个应用程序的设计只是初步阶段，还有更多的可能性等待发掘。例如，客户数据有时以文本格式存在，如客户评论或产品描述。LangChain 提供了[tagging function](https://python.langchain.com/docs/use_cases/tagging)，我们可以通过标注情感、语言、风格等，进行全面分析。
 
 ## 在你离开之前
 
-如果你喜欢这篇文章，邀请你关注我的[Medium页面](https://medium.com/@johnleungTJ)和[LinkedIn页面](https://www.linkedin.com/in/john-leung-639800115/)。这样，你可以保持对数据科学副项目、机器学习运维（MLOps）演示和项目管理方法论相关精彩内容的更新。
+如果你喜欢这篇文章，邀请你关注我的[Medium 页面](https://medium.com/@johnleungTJ)和[LinkedIn 页面](https://www.linkedin.com/in/john-leung-639800115/)。这样，你可以保持对数据科学副项目、机器学习运维（MLOps）演示和项目管理方法论相关精彩内容的更新。
 
-[](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----0af4ea38f7b5--------------------------------) [## 管理机器学习系统的技术债务
+[](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----0af4ea38f7b5--------------------------------) ## 管理机器学习系统的技术债务
 
 ### 探索通过实现代码可持续减轻快速交付成本的实践
 
-towardsdatascience.com](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----0af4ea38f7b5--------------------------------) [](/monitoring-machine-learning-models-in-production-why-and-how-13d07a5ff0c6?source=post_page-----0af4ea38f7b5--------------------------------) [## 在生产环境中监控机器学习模型：为何以及如何？
+towardsdatascience.com [](/monitoring-machine-learning-models-in-production-why-and-how-13d07a5ff0c6?source=post_page-----0af4ea38f7b5--------------------------------) ## 在生产环境中监控机器学习模型：为何以及如何？
 
-### 我们的模型在不断变化的世界中如何受到影响？这是一篇聚焦于漂移示例的分析，并实现了基于Python的…
+### 我们的模型在不断变化的世界中如何受到影响？这是一篇聚焦于漂移示例的分析，并实现了基于 Python 的…
 
-towardsdatascience.com](/monitoring-machine-learning-models-in-production-why-and-how-13d07a5ff0c6?source=post_page-----0af4ea38f7b5--------------------------------)
+towardsdatascience.com

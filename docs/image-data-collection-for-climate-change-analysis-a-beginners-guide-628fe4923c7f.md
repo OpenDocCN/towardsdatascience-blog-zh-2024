@@ -1,18 +1,18 @@
 # 气候变化分析的图像数据收集
 
-> 原文：[https://towardsdatascience.com/image-data-collection-for-climate-change-analysis-a-beginners-guide-628fe4923c7f?source=collection_archive---------12-----------------------#2024-10-22](https://towardsdatascience.com/image-data-collection-for-climate-change-analysis-a-beginners-guide-628fe4923c7f?source=collection_archive---------12-----------------------#2024-10-22)
+> 原文：[`towardsdatascience.com/image-data-collection-for-climate-change-analysis-a-beginners-guide-628fe4923c7f?source=collection_archive---------12-----------------------#2024-10-22`](https://towardsdatascience.com/image-data-collection-for-climate-change-analysis-a-beginners-guide-628fe4923c7f?source=collection_archive---------12-----------------------#2024-10-22)
 
 ## 初学者指南
 
-[](https://medium.com/@pazmid?source=post_page---byline--628fe4923c7f--------------------------------)[![Daniel Pazmiño Vernaza](../Images/2b2dff776ab94ba90e3ec91f92c0222e.png)](https://medium.com/@pazmid?source=post_page---byline--628fe4923c7f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--628fe4923c7f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--628fe4923c7f--------------------------------) [Daniel Pazmiño Vernaza](https://medium.com/@pazmid?source=post_page---byline--628fe4923c7f--------------------------------)
+[](https://medium.com/@pazmid?source=post_page---byline--628fe4923c7f--------------------------------)![Daniel Pazmiño Vernaza](https://medium.com/@pazmid?source=post_page---byline--628fe4923c7f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--628fe4923c7f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--628fe4923c7f--------------------------------) [Daniel Pazmiño Vernaza](https://medium.com/@pazmid?source=post_page---byline--628fe4923c7f--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--628fe4923c7f--------------------------------) ·阅读时间 8 分钟·2024年10月22日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--628fe4923c7f--------------------------------) ·阅读时间 8 分钟·2024 年 10 月 22 日
 
 --
 
-![](../Images/a22960b7de8d42cd8debde5e65a17257.png)
+![](img/a22960b7de8d42cd8debde5e65a17257.png)
 
-埃特纳山卫星图像。来源：美国地质调查局（USGS）提供的 Unsplash 照片。链接：[https://unsplash.com/es/fotos/una-imagen-satelital-de-un-area-roja-y-blanca-ZvLvu1gUcYA](https://unsplash.com/es/fotos/una-imagen-satelital-de-un-area-roja-y-blanca-ZvLvu1gUcYA)
+埃特纳山卫星图像。来源：美国地质调查局（USGS）提供的 Unsplash 照片。链接：[`unsplash.com/es/fotos/una-imagen-satelital-de-un-area-roja-y-blanca-ZvLvu1gUcYA`](https://unsplash.com/es/fotos/una-imagen-satelital-de-un-area-roja-y-blanca-ZvLvu1gUcYA)
 
 **I. 引言**
 
@@ -26,7 +26,7 @@
 
 [在我上一篇文章](https://medium.com/towards-data-science/introduction-to-computer-vision-for-climate-change-81d888f471bd)中，我探讨了计算机视觉如何改变我们应对气候变化的方式。由于选择地球观测（EO）数据的挑战，本篇文章的必要性应运而生。我希望简化这一重要的第一步，帮助我们更好地利用人工智能的力量造福社会。
 
-本文将回答以下问题：我需要了解哪些关于EO数据的知识，以便在海量数据资源中找到我需要的信息？在众多资源中，我应该从哪里开始搜索？哪些是最具成本效益的解决方案？如果我有资源投资高质量数据或计算能力，应该选择哪些？哪些资源能加速我的结果？如何最有效地投资我的学习时间在数据获取和处理上？我们将首先解决以下问题：我应该专注于哪种类型的图像数据来分析气候变化？
+本文将回答以下问题：我需要了解哪些关于 EO 数据的知识，以便在海量数据资源中找到我需要的信息？在众多资源中，我应该从哪里开始搜索？哪些是最具成本效益的解决方案？如果我有资源投资高质量数据或计算能力，应该选择哪些？哪些资源能加速我的结果？如何最有效地投资我的学习时间在数据获取和处理上？我们将首先解决以下问题：我应该专注于哪种类型的图像数据来分析气候变化？
 
 **II. 遥感数据的力量**
 
@@ -36,7 +36,7 @@
 
 除了反射率之外，还有一些其他的遥感概念我们需要理解。
 
-**空间分辨率：**是场景中可观察到的最小物体的大小。换句话说，我们将无法看到比图像分辨率更小的物体。例如，假设我们有一张城市的卫星图像，分辨率为1公里。这意味着图像中的每个像素代表城市区域1公里乘1公里的面积。如果场景中有一个比这个区域更小的公园，我们将无法看到它。至少不会很清晰地看到。但我们仍然能看到道路和大型建筑物。
+**空间分辨率：**是场景中可观察到的最小物体的大小。换句话说，我们将无法看到比图像分辨率更小的物体。例如，假设我们有一张城市的卫星图像，分辨率为 1 公里。这意味着图像中的每个像素代表城市区域 1 公里乘 1 公里的面积。如果场景中有一个比这个区域更小的公园，我们将无法看到它。至少不会很清晰地看到。但我们仍然能看到道路和大型建筑物。
 
 **光谱分辨率**：指传感器所测量的波段数量。这些波段与电磁辐射的所有可能频率相关。光谱分辨率有三种主要类型。全色数据捕捉可见光范围内的波段，也叫光学数据。多光谱数据同时收集多个波段的数据。色彩图像就是使用这些数据。高光谱数据有数百个波段，这种分辨率可以在图像中提供更多的光谱细节。
 
@@ -50,9 +50,9 @@
 
 **III. 地理空间数据平台**
 
-如今，地理空间数据无处不在。下表描述了据我所知最有用的地理空间数据平台。该表优先列出了开源数据，同时也包括了一些商业平台。这些商业数据集可能价格昂贵，但值得了解。它们可以为许多应用提供高空间分辨率（范围从31到72厘米）。
+如今，地理空间数据无处不在。下表描述了据我所知最有用的地理空间数据平台。该表优先列出了开源数据，同时也包括了一些商业平台。这些商业数据集可能价格昂贵，但值得了解。它们可以为许多应用提供高空间分辨率（范围从 31 到 72 厘米）。
 
-![](../Images/65417cd9e92accdcc833136d47f253c7.png)
+![](img/65417cd9e92accdcc833136d47f253c7.png)
 
 **流行的地理空间数据平台**
 
@@ -66,41 +66,41 @@
 
 该平台提供了多个应用程序编程接口（API）供我们交互。主要的 API 使用两种编程语言：JavaScript 和 Python。原始的 API 使用 JavaScript。由于我是一个更偏向 Python 的用户，这在开始时让我感到有些畏惧。尽管实际上你必须掌握的 JavaScript 知识非常少。更重要的是掌握 GEE 内置的函数，它们非常直观。Python API 的开发稍后才出现。在这里，我们可以释放 GEE 平台的全部潜力。这个 API 使我们能够利用 Python 的机器学习库。该平台还允许我们开发 Web 应用程序，部署我们的地理空间分析。尽管 Web 应用功能相对基础，作为一名数据科学家，我更倾向于使用 Streamlit 来构建和部署我的 Web 应用，至少对于最简可行产品来说。
 
-![](../Images/a1f4e9773533c865fea4ca33ffdfa00f.png)
+![](img/a1f4e9773533c865fea4ca33ffdfa00f.png)
 
-Google Earth Engine 代码编辑器（JavaScript API）。来源：[https://code.earthengine.google.com/](https://code.earthengine.google.com/)
+Google Earth Engine 代码编辑器（JavaScript API）。来源：[`code.earthengine.google.com/`](https://code.earthengine.google.com/)
 
 **2\.** [**亚马逊 Web 服务（AWS）**](https://aws.amazon.com/?nc1=h_ls)
 
 AWS 提供了一系列功能。首先，它提供了对许多地理空间数据源的访问。这些数据源包括开放数据和来自商业第三方提供者的数据。此外，AWS 可以集成我们自己的卫星影像或地图数据。此外，该平台还促进了协作。它使我们能够与团队共享数据。此外，AWS 强大的计算能力使我们能够高效处理大规模的地理空间数据集。处理发生在一个标准化的环境中，并由现有的开源库支持。同样重要的是，它通过提供预训练的机器学习模型加速模型构建。此外，在 AWS 环境中，我们可以生成高质量的标签。我们还可以部署我们的模型或容器来启动预测。进一步而言，AWS 通过其全面的可视化工具，促进了预测结果的探索。
 
-![](../Images/61c6c7ff3817921e192fc5056d743a65.png)
+![](img/61c6c7ff3817921e192fc5056d743a65.png)
 
-亚马逊 Web 服务地理空间能力。来源：[https://aws.amazon.com/es/sagemaker/geospatial/](https://aws.amazon.com/es/sagemaker/geospatial/)
+亚马逊 Web 服务地理空间能力。来源：[`aws.amazon.com/es/sagemaker/geospatial/`](https://aws.amazon.com/es/sagemaker/geospatial/)
 
 [**3\. 气候引擎**](https://www.climateengine.org/)
 
 我几天前遇到了这个平台。该平台展示了多个具有不同空间和时间分辨率的地理空间数据集。此外，它相对于 GEE 和 AWS 具有一个优势，即不需要编程。我们可以在平台上进行分析和可视化，并下载结果。分析的范围有些有限，因为它不需要编程，这也可以理解。然而，对于许多研究或至少快速的初步分析来说，它已经足够了。
 
-![](../Images/46485804c8856a7e47c5251b5c311ee2.png)
+![](img/46485804c8856a7e47c5251b5c311ee2.png)
 
-气候引擎门户网站。来源：[https://app.climateengine.org/climateEngine](https://app.climateengine.org/climateEngine)
+气候引擎门户网站。来源：[`app.climateengine.org/climateEngine`](https://app.climateengine.org/climateEngine)
 
 **4\.** [**Colab**](https://colab.google/)
 
-这是另一个迷人的Google产品。如果你曾经在本地计算机上使用过Jupyter Notebook，你一定会喜欢Colab。和Jupyter Notebook一样，它允许我们用Python进行交互式分析。然而，Colab在云端实现了相同的功能。我认为使用Google Colab进行地理空间分析有三个主要优点。首先，Colab提供了图形计算单元（GPU）功能，GPU在处理图形相关任务时非常高效。其次，Colab提供了最新版本的数据科学库（例如scikit-learn、Tensorflow等）。最后，它允许我们连接到GEE。因此，我们可以利用GEE的计算资源和数据目录。
+这是另一个迷人的 Google 产品。如果你曾经在本地计算机上使用过 Jupyter Notebook，你一定会喜欢 Colab。和 Jupyter Notebook 一样，它允许我们用 Python 进行交互式分析。然而，Colab 在云端实现了相同的功能。我认为使用 Google Colab 进行地理空间分析有三个主要优点。首先，Colab 提供了图形计算单元（GPU）功能，GPU 在处理图形相关任务时非常高效。其次，Colab 提供了最新版本的数据科学库（例如 scikit-learn、Tensorflow 等）。最后，它允许我们连接到 GEE。因此，我们可以利用 GEE 的计算资源和数据目录。
 
-![](../Images/5ba6943ca46559747bc7e2e89332d97f.png)
+![](img/5ba6943ca46559747bc7e2e89332d97f.png)
 
-Google Colab中的地理空间分析
+Google Colab 中的地理空间分析
 
 **5\.** [**Kaggle**](https://www.kaggle.com/)
 
-这个著名的数据科学竞赛平台也提供类似于Colab的功能。拥有Kaggle账户后，我们可以在云端交互式运行Python笔记本。它也支持GPU功能。与Colab相比，Kaggle的优势在于它提供了卫星图像数据集。
+这个著名的数据科学竞赛平台也提供类似于 Colab 的功能。拥有 Kaggle 账户后，我们可以在云端交互式运行 Python 笔记本。它也支持 GPU 功能。与 Colab 相比，Kaggle 的优势在于它提供了卫星图像数据集。
 
-![](../Images/44ccd87685406aaa7c41f0882d653ef8.png)
+![](img/44ccd87685406aaa7c41f0882d653ef8.png)
 
-Kaggle中的地理空间数据集搜索结果
+Kaggle 中的地理空间数据集搜索结果
 
 **V. 结论**
 
@@ -112,6 +112,6 @@ Kaggle中的地理空间数据集搜索结果
 
 **参考文献**
 
-+   Lavender, S., & Lavender, A. (2023). *遥感实用手册*. CRC出版社。
++   Lavender, S., & Lavender, A. (2023). *遥感实用手册*. CRC 出版社。
 
-+   Schmitt, M., Ahmadi, S. A., Xu, Y., Taşkın, G., Verma, U., Sica, F., & Hänsch, R. (2023). 没有什么比更多的数据更重要：地球观测中深度学习数据集的应用。 *IEEE地球科学与遥感杂志*。
++   Schmitt, M., Ahmadi, S. A., Xu, Y., Taşkın, G., Verma, U., Sica, F., & Hänsch, R. (2023). 没有什么比更多的数据更重要：地球观测中深度学习数据集的应用。 *IEEE 地球科学与遥感杂志*。

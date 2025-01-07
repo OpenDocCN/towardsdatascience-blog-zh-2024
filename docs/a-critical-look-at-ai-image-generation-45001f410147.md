@@ -1,22 +1,22 @@
-# 对AI图像生成的批判性审视
+# 对 AI 图像生成的批判性审视
 
-> 原文：[https://towardsdatascience.com/a-critical-look-at-ai-image-generation-45001f410147?source=collection_archive---------4-----------------------#2024-10-17](https://towardsdatascience.com/a-critical-look-at-ai-image-generation-45001f410147?source=collection_archive---------4-----------------------#2024-10-17)
+> 原文：[`towardsdatascience.com/a-critical-look-at-ai-image-generation-45001f410147?source=collection_archive---------4-----------------------#2024-10-17`](https://towardsdatascience.com/a-critical-look-at-ai-image-generation-45001f410147?source=collection_archive---------4-----------------------#2024-10-17)
 
-## 图像生成型AI究竟能告诉我们关于这个世界什么？
+## 图像生成型 AI 究竟能告诉我们关于这个世界什么？
 
-[](https://medium.com/@s.kirmer?source=post_page---byline--45001f410147--------------------------------)[![Stephanie Kirmer](../Images/f9d9ef9167febde974c223dd4d8d6293.png)](https://medium.com/@s.kirmer?source=post_page---byline--45001f410147--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--45001f410147--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--45001f410147--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--45001f410147--------------------------------)
+[](https://medium.com/@s.kirmer?source=post_page---byline--45001f410147--------------------------------)![Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--45001f410147--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--45001f410147--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--45001f410147--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--45001f410147--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--45001f410147--------------------------------) ·阅读时间9分钟·2024年10月17日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--45001f410147--------------------------------) ·阅读时间 9 分钟·2024 年 10 月 17 日
 
 --
 
-![](../Images/6acab230e5de0801ddad5c6b19f9ddfe.png)
+![](img/6acab230e5de0801ddad5c6b19f9ddfe.png)
 
 图片来源：[Math](https://unsplash.com/@builtbymath?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 我最近有机会对[一个有趣的项目](https://bit.ly/genaiSK)进行分析，并且我有更多的想法，超出了那篇文章所能包含的内容，所以今天我将进一步讨论我对这个项目的看法。
 
-研究人员在这个项目中的方法是向不同的生成型AI图像生成工具提供一系列提示词：Stable Diffusion、Midjourney、YandexART 和 ERNIE-ViLG（由百度开发）。这些提示词特别围绕不同的代际群体——婴儿潮一代、X世代、千禧一代和Z世代，要求生成这些群体在不同场景下的图像，如“与家人在一起”，“度假”或“在工作中”。
+研究人员在这个项目中的方法是向不同的生成型 AI 图像生成工具提供一系列提示词：Stable Diffusion、Midjourney、YandexART 和 ERNIE-ViLG（由百度开发）。这些提示词特别围绕不同的代际群体——婴儿潮一代、X 世代、千禧一代和 Z 世代，要求生成这些群体在不同场景下的图像，如“与家人在一起”，“度假”或“在工作中”。
 
 尽管这些结果非常有趣，或许能揭示一些关于视觉表现的见解，但我认为我们也应该注意到这些图像无法告诉我们什么，或者它们的局限性在哪里。我将把我的讨论分为审美（图像的外观）和表现（图像中实际呈现的内容）两部分，并稍微偏离一下，谈谈这些图像是如何生成的，因为这一点对这两个话题都非常重要。
 
@@ -28,7 +28,7 @@
 
 # 训练数据
 
-这里一个重要的框架是，训练数据——那些与文本描述配对的大型图像集——是模型试图复制的对象。所以，我们应该对训练数据及其来源提出更多问题。为了训练这些模型，所需的图像数据量是巨大的。Midjourney 就是在 [https://laion.ai/](https://laion.ai/) 上进行训练的，该平台的更大数据集包含了跨多种语言的 50 亿对图像-文本配对，我们可以假设其他模型的内容量也相似。这意味着工程师不能对用于训练的图像挑剔太多，因为他们基本上需要尽可能多的内容。
+这里一个重要的框架是，训练数据——那些与文本描述配对的大型图像集——是模型试图复制的对象。所以，我们应该对训练数据及其来源提出更多问题。为了训练这些模型，所需的图像数据量是巨大的。Midjourney 就是在 [`laion.ai/`](https://laion.ai/) 上进行训练的，该平台的更大数据集包含了跨多种语言的 50 亿对图像-文本配对，我们可以假设其他模型的内容量也相似。这意味着工程师不能对用于训练的图像挑剔太多，因为他们基本上需要尽可能多的内容。
 
 好的，那么我们从哪里获取图像呢？它们是如何生成的？嗯，我们自己制作图像并通过社交媒体大量发布，所以这无疑会占据其中一部分。（从这些平台上获取也很容易。）媒体和广告也创造了大量的图像，从电影到广告，再到杂志等等。许多其他图像永远无法被这些模型访问，比如你奶奶的照片专辑没人数字化过，但可以用于训练的图像主要来自这两个来源：独立/个人创作者和媒体/广告。
 
@@ -52,13 +52,13 @@
 
 ## 局限性
 
-模型的能力将受限于它们的训练现实。这些模型是基于过去的图像进行训练的——一些是最近的图像，但有些则是更久远的图像。例如，考虑到：随着时间的推移，年轻一代的整个生活都将在线上有图像，但对于年长的群体来说，他们年轻或青少年时期的图像并没有大量数字化（或者是高质量的）可用于训练数据，因此我们可能永远不会看到这些模型将他们展现为年轻人。在这个项目中，这一点非常明显：对于Z世代和千禧一代，在这些数据中我们看到模型在输出中很难适当地“衰老”这些人像，以符合当今这些群体的实际年龄范围。大多数情况下，这两代人看起来年龄相仿，Z世代有时在（比如和学校相关的提示）中被展示为孩子。相比之下，婴儿潮一代和X世代主要显示为中年或老年，因为现有的训练数据不太可能有他们年轻时的照片扫描副本，这些照片大多来自1960年代到1990年代。如果你从训练数据的背景来看，这完全是合理的。
+模型的能力将受限于它们的训练现实。这些模型是基于过去的图像进行训练的——一些是最近的图像，但有些则是更久远的图像。例如，考虑到：随着时间的推移，年轻一代的整个生活都将在线上有图像，但对于年长的群体来说，他们年轻或青少年时期的图像并没有大量数字化（或者是高质量的）可用于训练数据，因此我们可能永远不会看到这些模型将他们展现为年轻人。在这个项目中，这一点非常明显：对于 Z 世代和千禧一代，在这些数据中我们看到模型在输出中很难适当地“衰老”这些人像，以符合当今这些群体的实际年龄范围。大多数情况下，这两代人看起来年龄相仿，Z 世代有时在（比如和学校相关的提示）中被展示为孩子。相比之下，婴儿潮一代和 X 世代主要显示为中年或老年，因为现有的训练数据不太可能有他们年轻时的照片扫描副本，这些照片大多来自 1960 年代到 1990 年代。如果你从训练数据的背景来看，这完全是合理的。
 
 > [随着时间的推移，年轻一代的整个生活将在线上有图像，但对于年长的群体来说，他们年轻或青少年时期的图像并没有数字化用于训练数据，因此我们可能永远不会看到这些模型将他们展现为年轻人。]
 
 ## 身份
 
-有鉴于此，我认为如果我们调查这些图像，能够从中得到的印象是A.不同年龄群体如何在图像中展示自己，尤其是年轻人自拍照的表现，B.这些群体在媒体中的表现如何。（有时很难将这两者分开，因为媒体和青少年文化是相互对立的。）
+有鉴于此，我认为如果我们调查这些图像，能够从中得到的印象是 A.不同年龄群体如何在图像中展示自己，尤其是年轻人自拍照的表现，B.这些群体在媒体中的表现如何。（有时很难将这两者分开，因为媒体和青少年文化是相互对立的。）
 
 训练数据并非凭空产生——人类选择了创建、分享、标注和策划这些图像，因此这些人的选择影响了图像的所有内容。模型获取的是这些世代中有人选择展示的图像，且在所有情况下，这些展示背后都有原因和意图。
 
@@ -84,12 +84,12 @@
 
 # 深入阅读
 
-[](/seeing-our-reflection-in-llms-7b9505e901fd?source=post_page-----45001f410147--------------------------------) [## 在LLMs中看到我们的倒影
+[](/seeing-our-reflection-in-llms-7b9505e901fd?source=post_page-----45001f410147--------------------------------) ## 在 LLMs 中看到我们的倒影
 
-### 当LLMs给我们呈现出揭示人类社会缺陷的结果时，我们能否选择倾听它们所告诉我们的？
+### 当 LLMs 给我们呈现出揭示人类社会缺陷的结果时，我们能否选择倾听它们所告诉我们的？
 
-[towardsdatascience.com](/seeing-our-reflection-in-llms-7b9505e901fd?source=post_page-----45001f410147--------------------------------)
+[towardsdatascience.com
 
-[https://www.theverge.com/2024/2/21/24079371/google-ai-gemini-generative-inaccurate-historical](https://www.theverge.com/2024/2/21/24079371/google-ai-gemini-generative-inaccurate-historical)
+[`www.theverge.com/2024/2/21/24079371/google-ai-gemini-generative-inaccurate-historical`](https://www.theverge.com/2024/2/21/24079371/google-ai-gemini-generative-inaccurate-historical)
 
-项目：[https://bit.ly/genaiSK](https://bit.ly/genaiSK)
+项目：[`bit.ly/genaiSK`](https://bit.ly/genaiSK)

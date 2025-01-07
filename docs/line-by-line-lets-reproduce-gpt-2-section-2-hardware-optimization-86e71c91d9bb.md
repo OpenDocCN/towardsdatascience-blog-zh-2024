@@ -1,20 +1,20 @@
-# 逐行分析，让我们重现 GPT-2：第2节 — 硬件优化
+# 逐行分析，让我们重现 GPT-2：第二部分 — 硬件优化
 
-> 原文：[https://towardsdatascience.com/line-by-line-lets-reproduce-gpt-2-section-2-hardware-optimization-86e71c91d9bb?source=collection_archive---------15-----------------------#2024-07-31](https://towardsdatascience.com/line-by-line-lets-reproduce-gpt-2-section-2-hardware-optimization-86e71c91d9bb?source=collection_archive---------15-----------------------#2024-07-31)
+> 原文：[`towardsdatascience.com/line-by-line-lets-reproduce-gpt-2-section-2-hardware-optimization-86e71c91d9bb?source=collection_archive---------15-----------------------#2024-07-31`](https://towardsdatascience.com/line-by-line-lets-reproduce-gpt-2-section-2-hardware-optimization-86e71c91d9bb?source=collection_archive---------15-----------------------#2024-07-31)
 
-## 本文将逐行分析 Andrej Karpathy 在《让我们重现 GPT-2（124M）》第2节中的硬件优化内容。
+## 本文将逐行分析 Andrej Karpathy 在《让我们重现 GPT-2（124M）》第二部分中的硬件优化内容。
 
-[](https://medium.com/@mgunton7?source=post_page---byline--86e71c91d9bb--------------------------------)[![Matthew Gunton](../Images/6f5a9530ad5252aa3f2fae87b3f272b1.png)](https://medium.com/@mgunton7?source=post_page---byline--86e71c91d9bb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--86e71c91d9bb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--86e71c91d9bb--------------------------------) [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--86e71c91d9bb--------------------------------)
+[](https://medium.com/@mgunton7?source=post_page---byline--86e71c91d9bb--------------------------------)![Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--86e71c91d9bb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--86e71c91d9bb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--86e71c91d9bb--------------------------------) [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--86e71c91d9bb--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--86e71c91d9bb--------------------------------) ·阅读时间：11分钟·2024年7月31日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--86e71c91d9bb--------------------------------) ·阅读时间：11 分钟·2024 年 7 月 31 日
 
 --
 
-![](../Images/6eaae334a9023076271e9cf731d1385a.png)
+![](img/6eaae334a9023076271e9cf731d1385a.png)
 
 图片来源 — SDXL
 
-快速回顾一下，[在第1节](https://medium.com/towards-data-science/line-by-line-lets-reproduce-gpt-2-section-1-b26684f98492)中，我们逐行分析了 Karpathy 编写的代码，目的是原始地训练 GPT-2。现在我们已经有了我们的设置，Karpathy 向我们展示了如何在我们的 NVIDIA GPU 上加速模型训练！虽然我们知道训练一个好的模型需要花费大量时间，但通过优化每次运行，我们可以节省数天甚至数周的训练时间。这自然为我们提供了更多的迭代次数来改善模型。在本文的最后，你将看到如何通过使用 Ampere 系列的 Nvidia GPU 来大幅加速训练（提高 10 倍）。
+快速回顾一下，[在第一部分](https://medium.com/towards-data-science/line-by-line-lets-reproduce-gpt-2-section-1-b26684f98492)中，我们逐行分析了 Karpathy 编写的代码，目的是原始地训练 GPT-2。现在我们已经有了我们的设置，Karpathy 向我们展示了如何在我们的 NVIDIA GPU 上加速模型训练！虽然我们知道训练一个好的模型需要花费大量时间，但通过优化每次运行，我们可以节省数天甚至数周的训练时间。这自然为我们提供了更多的迭代次数来改善模型。在本文的最后，你将看到如何通过使用 Ampere 系列的 Nvidia GPU 来大幅加速训练（提高 10 倍）。
 
 为了写这篇博客文章，我在 Google Colab 提供的免费 NVIDIA T4 GPU 和 Lambda Labs 的 NVIDIA A100 40GB SXM4 GPU 上进行了优化。Karpathy 提到的大多数优化方法专为 A100 或更强大的显卡设计，但在较弱的 GPU 上仍然可以获得一些性能提升。
 
@@ -55,11 +55,11 @@ train_loader = DataLoaderLite(B=16, T=1024)
 
 在 A100 和 T4 上运行时，我得到了以下图表，显示了开始训练的时间（平均大约在 T4 上是 1100ms，A100 上是 1040ms）
 
-![](../Images/4982d21ba78b861a4b97a097448bf3a7.png)
+![](img/4982d21ba78b861a4b97a097448bf3a7.png)
 
 作者提供的图像 — A100 训练未进行优化
 
-![](../Images/ffb306ee31f999c89ad7ab83e1e33a44.png)
+![](img/ffb306ee31f999c89ad7ab83e1e33a44.png)
 
 作者提供的图像 — T4 训练未进行优化
 
@@ -69,39 +69,39 @@ train_loader = DataLoaderLite(B=16, T=1024)
 
 如果你查看我们在第一节代码中权重的 `dtype`，你会看到我们默认使用 32 位浮点数（fp32）。Fp32 表示我们使用 32 位表示数字，遵循下面的 IEEE 浮动点标准：
 
-![](../Images/dc819a07b517ac882a19fa1a53a3de13.png)
+![](img/dc819a07b517ac882a19fa1a53a3de13.png)
 
 作者提供的图像 — IEEE 浮动点 32（FP32）表示
 
 正如 Karpathy 在视频中所说，我们通过实验证明，fp32 并不是训练高质量模型所必需的——我们可以使用更少的数据来表示每个权重，并且仍然得到高质量的输出。加速计算的一种方法是使用 NVIDIA 的 TensorCore 指令。它将通过将操作数转换为下面所示的 Tensor Float 32（TF32）格式来处理矩阵乘法：
 
-![](../Images/b15aba27d3e3263698eb170290bd1844.png)
+![](img/b15aba27d3e3263698eb170290bd1844.png)
 
 作者提供的图像 — Tensor Float 32（TF32）
 
-![](../Images/eddcc5b41eeeae51b530a74cb8e2ec35.png)
+![](img/eddcc5b41eeeae51b530a74cb8e2ec35.png)
 
 作者提供的图像 — TF32 数据流通过 Tensor Core 经过优化
 
-从代码角度来看，我们所有的变量（输入、输出）都是FP32格式，但NVIDIA GPU会将中间矩阵转换为TF32格式以加速。根据NVIDIA的说法，这能带来8倍的加速[相对于FFMA指令](https://docs.nvidia.com/gameworks/content/developertools/desktop/analysis/report/cudaexperiments/kernellevel/achievedflops.htm)。要在PyTorch中启用TF32，我们只需要添加以下代码行（high = TF32, highest = FP32, medium = BF16（稍后会详细介绍））：
+从代码角度来看，我们所有的变量（输入、输出）都是 FP32 格式，但 NVIDIA GPU 会将中间矩阵转换为 TF32 格式以加速。根据 NVIDIA 的说法，这能带来 8 倍的加速[相对于 FFMA 指令](https://docs.nvidia.com/gameworks/content/developertools/desktop/analysis/report/cudaexperiments/kernellevel/achievedflops.htm)。要在 PyTorch 中启用 TF32，我们只需要添加以下代码行（high = TF32, highest = FP32, medium = BF16（稍后会详细介绍））：
 
 ```py
 torch.set_float32_matmul_precision("high")
 ```
 
-TensorCore是NVIDIA独有的功能，您只能在A100 GPU或更高版本上运行TF32，因此一些开发者使用浮点16（FP16）作为训练方式。这种表示法的问题在于，FP16能够表示的数据范围比FP32要小，导致无法表示训练所需的相同数据范围。虽然通过梯度扩展可以绕过这一点，但这会增加更多的计算，因此最终会陷入“前进一步，退两步”的困境。
+TensorCore 是 NVIDIA 独有的功能，您只能在 A100 GPU 或更高版本上运行 TF32，因此一些开发者使用浮点 16（FP16）作为训练方式。这种表示法的问题在于，FP16 能够表示的数据范围比 FP32 要小，导致无法表示训练所需的相同数据范围。虽然通过梯度扩展可以绕过这一点，但这会增加更多的计算，因此最终会陷入“前进一步，退两步”的困境。
 
-![](../Images/c607218da80ec3a96abac4629db209e6.png)
+![](img/c607218da80ec3a96abac4629db209e6.png)
 
-作者提供的图片 — IEEE浮点16（FP16）表示法
+作者提供的图片 — IEEE 浮点 16（FP16）表示法
 
-但在他的演示视频中，Karpathy使用的数据优化方法是脑浮点（BF16）。在这种表示法中，我们与FP32有相同数量的指数位，因此可以表示相同的范围，但尾数位较少。这意味着尽管我们有较少的位数，表示数字的精度较低。通过经验来看，这并没有导致性能大幅下降，所以这是一个我们愿意接受的折衷。要在NVIDIA芯片上使用此格式，您需要具备A100。
+但在他的演示视频中，Karpathy 使用的数据优化方法是脑浮点（BF16）。在这种表示法中，我们与 FP32 有相同数量的指数位，因此可以表示相同的范围，但尾数位较少。这意味着尽管我们有较少的位数，表示数字的精度较低。通过经验来看，这并没有导致性能大幅下降，所以这是一个我们愿意接受的折衷。要在 NVIDIA 芯片上使用此格式，您需要具备 A100。
 
-![](../Images/0d7891f96b11cdaa642777ec0cf19edb.png)
+![](img/0d7891f96b11cdaa642777ec0cf19edb.png)
 
-作者提供的图片 — 脑浮点16（BF16）
+作者提供的图片 — 脑浮点 16（BF16）
 
-使用PyTorch时，我们不需要大幅修改代码就可以使用新的数据类型。文档建议我们只在模型的前向传递和损失计算过程中使用这些数据类型。由于我们的代码在1行中完成了这两个操作，我们可以按如下方式修改代码：
+使用 PyTorch 时，我们不需要大幅修改代码就可以使用新的数据类型。文档建议我们只在模型的前向传递和损失计算过程中使用这些数据类型。由于我们的代码在 1 行中完成了这两个操作，我们可以按如下方式修改代码：
 
 ```py
 for i in range(50):
@@ -120,17 +120,17 @@ for i in range(50):
     loss_arr.append(loss.item())
 ```
 
-就这样，我们的代码现在已经开始使用BF16运行。
+就这样，我们的代码现在已经开始使用 BF16 运行。
 
-在我们的A100上运行时，现在平均每步大约需要330毫秒！我们已经将运行时间减少了大约70%，而且我们才刚刚开始！
+在我们的 A100 上运行时，现在平均每步大约需要 330 毫秒！我们已经将运行时间减少了大约 70%，而且我们才刚刚开始！
 
-![](../Images/a2fd83867ed991a7df45314ca29e3492.png)
+![](img/a2fd83867ed991a7df45314ca29e3492.png)
 
-作者提供的图片 — 数据类型优化后的A100训练
+作者提供的图片 — 数据类型优化后的 A100 训练
 
 # Torch Compile
 
-我们可以通过利用PyTorch Compile功能进一步改善训练时间。这样可以在不调整代码的情况下大幅提升性能。
+我们可以通过利用 PyTorch Compile 功能进一步改善训练时间。这样可以在不调整代码的情况下大幅提升性能。
 
 从高层次来看，每个计算机程序都是以二进制执行的。因为大多数人觉得用二进制编程很困难，所以我们创建了更高层次的语言，让我们能以更容易理解的方式编写代码。当我们编译这些语言时，它们会被转换回我们实际运行的二进制代码。有时，在这种转换过程中，我们可以找到更快的方式来完成相同的计算——比如重用某个变量，甚至干脆跳过某些操作。
 
@@ -160,7 +160,7 @@ PyTorch 编译让我们能够看到像这样的低效，并且更加小心地控
 
 当我们现在运行上面的代码时，我们会看到每一步大约需要 145 毫秒（比之前减少了 50%，比原始版本减少了约 86%）。我们为此付出了第一轮大约 40,000 毫秒的代价！由于大多数训练序列的步骤数远超过 50，这个权衡是我们愿意做出的。
 
-![](../Images/77e1cd818db8c6ec28081e44b6f4e121.png)
+![](img/77e1cd818db8c6ec28081e44b6f4e121.png)
 
 作者提供的图片 — A100 训练在 Torch Compile 优化后的运行结果
 
@@ -174,7 +174,7 @@ y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
 
 类似于我们如何将 `TanhGELU` 类压缩成尽可能少的内核，我们也将相同的思维方式应用于注意力机制。在他们的论文《[“FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness”](https://arxiv.org/pdf/2205.14135)》中，作者展示了如何通过融合内核实现 7.6 倍的加速。虽然理论上 `torch compile` 应该能够找到类似的优化，但在实践中我们尚未看到它找到这一点。
 
-![](../Images/0a620953fcf8999cd84bae98c7f64114.png)
+![](img/0a620953fcf8999cd84bae98c7f64114.png)
 
 图 1 来自《[“FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness”](https://arxiv.org/pdf/2205.14135)》
 
@@ -182,7 +182,7 @@ y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
 
 实施了这个优化后，我们发现现在每一步的平均时间约为 104 毫秒。
 
-![](../Images/a1f72e2c0244950e414977351ca9932a.png)
+![](img/a1f72e2c0244950e414977351ca9932a.png)
 
 作者提供的图像 — Flash Attention 优化后的 A100 训练
 
@@ -198,7 +198,7 @@ model = GPT(GPTConfig(vocab_size=50304))
 
 通过最后的优化，我们现在每一步的平均时间大约是 100 毫秒。
 
-![](../Images/6e684ff36d2019e35a382dc8544b893e.png)
+![](img/6e684ff36d2019e35a382dc8544b893e.png)
 
 作者提供的图像 — 词汇大小优化后的 A100 训练
 
@@ -210,7 +210,7 @@ model = GPT(GPTConfig(vocab_size=50304))
 
 从下图中我们可以看到，尽管第一次运行 torch compile 确实需要很长时间，但接下来的几轮与未优化版本相比并没有显著提高（在 T4 上大约下降了 8%，而在 A100 上下降了 90%）。
 
-![](../Images/f95034c6a9cd38614158cf644977592e.png)
+![](img/f95034c6a9cd38614158cf644977592e.png)
 
 作者提供的图像 — 在 T4 GPU 上优化运行
 

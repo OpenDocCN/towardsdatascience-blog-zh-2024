@@ -1,20 +1,20 @@
 # 我们仍然不理解的机器学习问题
 
-> 原文：[https://towardsdatascience.com/what-we-still-dont-understand-about-machine-learning-699e0002a057?source=collection_archive---------1-----------------------#2024-07-26](https://towardsdatascience.com/what-we-still-dont-understand-about-machine-learning-699e0002a057?source=collection_archive---------1-----------------------#2024-07-26)
+> 原文：[`towardsdatascience.com/what-we-still-dont-understand-about-machine-learning-699e0002a057?source=collection_archive---------1-----------------------#2024-07-26`](https://towardsdatascience.com/what-we-still-dont-understand-about-machine-learning-699e0002a057?source=collection_archive---------1-----------------------#2024-07-26)
 
-## 机器学习中的未知问题，研究人员难以理解——从批量归一化到SGD隐藏的奥秘
+## 机器学习中的未知问题，研究人员难以理解——从批量归一化到 SGD 隐藏的奥秘
 
-[](https://medium.com/@itshesamsheikh?source=post_page---byline--699e0002a057--------------------------------)[![Hesam Sheikh](../Images/b8d5f4f285eef77634e4c1d4321580ed.png)](https://medium.com/@itshesamsheikh?source=post_page---byline--699e0002a057--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--699e0002a057--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--699e0002a057--------------------------------) [Hesam Sheikh](https://medium.com/@itshesamsheikh?source=post_page---byline--699e0002a057--------------------------------)
+[](https://medium.com/@itshesamsheikh?source=post_page---byline--699e0002a057--------------------------------)![Hesam Sheikh](https://medium.com/@itshesamsheikh?source=post_page---byline--699e0002a057--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--699e0002a057--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--699e0002a057--------------------------------) [Hesam Sheikh](https://medium.com/@itshesamsheikh?source=post_page---byline--699e0002a057--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--699e0002a057--------------------------------) ·阅读时间12分钟·2024年7月26日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--699e0002a057--------------------------------) ·阅读时间 12 分钟·2024 年 7 月 26 日
 
 --
 
-![](../Images/1a58ae922fc1a99ffd5a8d87485bad57.png)
+![](img/1a58ae922fc1a99ffd5a8d87485bad57.png)
 
 我们仍然不理解的机器学习问题。（作者）
 
-> 如果你还不是会员，[点击这里免费阅读](/what-we-still-dont-understand-about-machine-learning-699e0002a057?sk=e2498900bd4ada1e8abe37e056f6ebc9) 👈
+> 如果你还不是会员，点击这里免费阅读 👈
 
 令人惊讶的是，机器学习中的一些基础主题至今仍然是研究人员未解之谜，尽管它们是基本的且常用的，但似乎仍然神秘莫测。机器学习的一个有趣之处在于，我们构建了有效的系统，然后才去弄清楚它们为何有效！
 
@@ -30,47 +30,47 @@
 
 +   最后，我们讨论了彩票票假说（Lottery Ticket Hypothesis），该假说提出，大型神经网络包含较小的子网络，当它们被单独训练时，能够实现**相当的性能**。
 
-*本文包含4个部分，它们之间没有直接关联，所以可以随意跳到你更感兴趣的部分。*
+*本文包含 4 个部分，它们之间没有直接关联，所以可以随意跳到你更感兴趣的部分。*
 
-· [1\. 批量归一化](#de8b)
+· 1\. 批量归一化
 
-∘ [我们不理解的东西](#95c8)
+∘ 我们不理解的东西
 
-∘ [批量归一化的注意事项](#ec44)
+∘ 批量归一化的注意事项
 
-· [2\. 过度参数化与泛化](#82b3)
+· 2\. 过度参数化与泛化
 
-∘ [理解深度学习需要重新思考泛化](#6185)
+∘ 理解深度学习需要重新思考泛化
 
-· [3\. 神经网络中的隐式正则化](#f626)
+· 3\. 神经网络中的隐式正则化
 
-∘ [实验 1](#2783)
+∘ 实验 1
 
-∘ [实验 2](#ff53)
+∘ 实验 2
 
-∘ [梯度下降作为一种自然正则化器](#85f8)
+∘ 梯度下降作为一种自然正则化器
 
-· [4\. 彩票票假设](#b35e)
+· 4\. 彩票票假设
 
-· [最后的话。](#821e)
+· 最后的话。
 
-∘ [让我们连接！](#03ee)
+∘ 让我们连接！
 
-· [进一步阅读](#397f)
+· 进一步阅读
 
-· [参考文献](#f3e3)
+· 参考文献
 
 # 1\. 批量归一化
 
-由*谢尔盖·约夫*和*克里斯蒂安·谢格迪*于2015年提出的[1]，批量归一化是一种加速神经网络训练并提高其稳定性的方法。之前已知，将输入数据的均值调整为零、方差调整为一，可以实现更快的收敛。作者进一步使用这一思想，提出了**批量归一化**，以使隐藏层的输入具有零均值和单位方差。
+由*谢尔盖·约夫*和*克里斯蒂安·谢格迪*于 2015 年提出的[1]，批量归一化是一种加速神经网络训练并提高其稳定性的方法。之前已知，将输入数据的均值调整为零、方差调整为一，可以实现更快的收敛。作者进一步使用这一思想，提出了**批量归一化**，以使隐藏层的输入具有零均值和单位方差。
 
-![](../Images/3d64e4c77a25558d72ba330536db8ba1.png)
+![](img/3d64e4c77a25558d72ba330536db8ba1.png)
 
-一个概述ResNet中使用的残差块以及其中批量归一化的应用。（作者提供）
+一个概述 ResNet 中使用的残差块以及其中批量归一化的应用。（作者提供）
 
-自其提出以来，批量归一化在神经网络中变得十分常见。其中一个例子，就是它在著名的ResNet架构中的应用。因此我们可以自信地说，它的有效性是毋庸置疑的。
+自其提出以来，批量归一化在神经网络中变得十分常见。其中一个例子，就是它在著名的 ResNet 架构中的应用。因此我们可以自信地说，它的有效性是毋庸置疑的。
 
-一项有趣的研究[2]表明，尽管训练完整的ResNet-866网络达到了**93**%的准确率，但冻结所有参数，仅训练批量归一化层的参数，结果只达到了**83**%的准确率——仅有10%的差异。
+一项有趣的研究[2]表明，尽管训练完整的 ResNet-866 网络达到了**93**%的准确率，但冻结所有参数，仅训练批量归一化层的参数，结果只达到了**83**%的准确率——仅有 10%的差异。
 
 批量归一化有三个方面的好处：
 
@@ -94,7 +94,7 @@
 
 原始批量归一化论文的作者认为，其有效性的原因在于缓解了内部协变量偏移问题。然而，后来的一篇论文[3]认为，批量归一化的成功与内部协变量偏移无关，而是由于**平滑优化景观**的作用。
 
-![](../Images/2f88c5bb3a672aa66fcd7373c0c431a1.png)
+![](img/2f88c5bb3a672aa66fcd7373c0c431a1.png)
 
 两种损失景观的比较：一个是高度粗糙和陡峭的损失表面（左），另一个是较为平滑的损失表面（右）。([Source](https://arxiv.org/abs/1712.09913))
 
@@ -116,7 +116,7 @@
 
 # 2\. 过度参数化与泛化
 
-![](../Images/c4c6c3f08203f8d9473bd7ce0197c417.png)
+![](img/c4c6c3f08203f8d9473bd7ce0197c417.png)
 
 面部识别实验表明，网络中权重的最优数量可以远大于数据点的数量。([source](https://clgiles.ist.psu.edu/papers/UMD-CS-TR-3617.what.size.neural.net.to.use.pdf))
 
@@ -124,11 +124,11 @@
 
 传统上认为，使用过度参数化的模型会导致过拟合。因此，解决方案通常是限制网络的大小，或添加正则化以防止过拟合训练数据。
 
-出人意料的是，在神经网络的情况下，使用更大的网络可能会改善**泛化误差**（|训练误差 - 测试误差|）。换句话说，更大的网络有更好的泛化能力。[7] 这与传统的复杂度度量标准（如[VC维度](https://en.wikipedia.org/wiki/Vapnik%E2%80%93Chervonenkis_dimension)——一个量化从样本中学习难度的指标）所宣称的内容相矛盾。[8]
+出人意料的是，在神经网络的情况下，使用更大的网络可能会改善**泛化误差**（|训练误差 - 测试误差|）。换句话说，更大的网络有更好的泛化能力。[7] 这与传统的复杂度度量标准（如[VC 维度](https://en.wikipedia.org/wiki/Vapnik%E2%80%93Chervonenkis_dimension)——一个量化从样本中学习难度的指标）所宣称的内容相矛盾。[8]
 
 这一理论还挑战了一个关于深度神经网络（DNN）是否通过*记忆*训练数据来实现其性能的辩论。[9] 如果它们是通过记忆数据来做的，那它们怎么可能泛化到预测未见过的数据呢？如果它们不记忆数据，而只是学习数据中的潜在模式，那它们又是如何预测正确的标签，即使我们给标签引入了一定的噪声？
 
-![](../Images/d8dbde067c84e6356a774b2dcf646f1f.png)
+![](img/d8dbde067c84e6356a774b2dcf646f1f.png)
 
 分类器的过拟合。（放大图——[来源](https://commons.wikimedia.org/wiki/File:Overfitting.svg)）
 
@@ -138,11 +138,11 @@
 
 本文的一部分重点解释了**显式正则化**（如权重衰减、丢弃法和数据增强）在泛化误差中的作用：
 
-> 显式正则化可能会改善泛化性能，但既不是必要的，也不是单独足以控制泛化误差。L2正则化（权重衰减）有时甚至有助于优化，说明它在深度学习中的理解仍然不完全。[10]
+> 显式正则化可能会改善泛化性能，但既不是必要的，也不是单独足以控制泛化误差。L2 正则化（权重衰减）有时甚至有助于优化，说明它在深度学习中的理解仍然不完全。[10]
 
-即使使用了丢弃法和权重衰减，InceptionV3仍然能够非常好地拟合**随机**训练集，超出了预期。这一含义并不是贬低正则化，而是更强调通过改变模型**架构**可以获得更大的收益。
+即使使用了丢弃法和权重衰减，InceptionV3 仍然能够非常好地拟合**随机**训练集，超出了预期。这一含义并不是贬低正则化，而是更强调通过改变模型**架构**可以获得更大的收益。
 
-![](../Images/e203216819fb3accb40cefdf6557f216.png)
+![](img/e203216819fb3accb40cefdf6557f216.png)
 
 正则化对泛化能力的影响。[10]
 
@@ -150,11 +150,11 @@
 
 +   我们对模型**有效容量**的理解。
 
-+   我们对模型复杂度和大小的衡量。模型参数或FLOP是否仅仅是好的度量标准？显然不是。
++   我们对模型复杂度和大小的衡量。模型参数或 FLOP 是否仅仅是好的度量标准？显然不是。
 
 +   泛化能力的定义以及如何衡量它。
 
-![](../Images/cd130cd6128053c768b899942736cb1f.png)
+![](img/cd130cd6128053c768b899942736cb1f.png)
 
 随着网络规模（H）的不断增大，训练误差和测试误差持续下降，并且没有发生过拟合。[11]
 
@@ -170,27 +170,27 @@
 
 神经网络是否从梯度下降的隐式正则化中受益，这种正则化推动它们找到*更简单*和*更通用*的解决方案？这是否是之前提到的过参数化网络能够泛化的原因？
 
-![](../Images/304be222467e499f2e5c6c5d56844e50.png)
+![](img/304be222467e499f2e5c6c5d56844e50.png)
 
 二维中的梯度下降。（来源：[Wikimedia Commons](https://en.wikipedia.org/wiki/File:Gradient_Descent_in_2D.webm)）
 
 有两个实验需要特别注意：
 
-## 实验1
+## 实验 1
 
-当[11]的作者使用SGD并且没有显式正则化，训练CIFAR-10和MNIST数据集的模型时，他们得出结论：随着网络大小的增加，测试和训练误差不断减少。这与认为较大的网络由于过拟合而有更高测试误差的观点相悖。即使在网络中添加更多的参数，泛化误差也没有增加。随后，他们通过添加随机标签噪声强制网络过拟合。如下面的图所示，即使标签随机噪声达到5%，测试误差仍然进一步降低，而且没有明显的过拟合迹象。
+当[11]的作者使用 SGD 并且没有显式正则化，训练 CIFAR-10 和 MNIST 数据集的模型时，他们得出结论：随着网络大小的增加，测试和训练误差不断减少。这与认为较大的网络由于过拟合而有更高测试误差的观点相悖。即使在网络中添加更多的参数，泛化误差也没有增加。随后，他们通过添加随机标签噪声强制网络过拟合。如下面的图所示，即使标签随机噪声达到 5%，测试误差仍然进一步降低，而且没有明显的过拟合迹象。
 
-![](../Images/99f78afda3879ffd5d8b592f2199a524.png)
+![](img/99f78afda3879ffd5d8b592f2199a524.png)
 
-网络随着大小（H）增加并且标签噪声为5%的测试和训练误差。左侧是MNIST，右侧是CIFAR-10。[11]
+网络随着大小（H）增加并且标签噪声为 5%的测试和训练误差。左侧是 MNIST，右侧是 CIFAR-10。[11]
 
-## 实验2
+## 实验 2
 
-一篇重要的论文，*寻找真实的归纳偏置* [12]，通过拟合一个使用线性可分数据集的预测器进行实验。作者展示了如何在没有正则化的情况下，使用梯度下降的逻辑回归本能地将解偏向于最大间隔分离器（也称为硬间隔SVM）。这是梯度下降的一个有趣且令人惊讶的行为。因为即使损失和优化**并未直接涉及**任何鼓励最大化间隔的项（比如在支持向量机中找到的那些项），梯度下降本能地将解偏向于最大间隔分类器。
+一篇重要的论文，*寻找真实的归纳偏置* [12]，通过拟合一个使用线性可分数据集的预测器进行实验。作者展示了如何在没有正则化的情况下，使用梯度下降的逻辑回归本能地将解偏向于最大间隔分离器（也称为硬间隔 SVM）。这是梯度下降的一个有趣且令人惊讶的行为。因为即使损失和优化**并未直接涉及**任何鼓励最大化间隔的项（比如在支持向量机中找到的那些项），梯度下降本能地将解偏向于最大间隔分类器。
 
-![](../Images/67d2bde1fbdf0706ff73b0f3baeddee9.png)
+![](img/67d2bde1fbdf0706ff73b0f3baeddee9.png)
 
-H3表示硬间隔支持向量机（SVM）如何对数据集进行分类。（来源：[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Svm_separating_hyperplanes_(SVG).svg)）
+H3 表示硬间隔支持向量机（SVM）如何对数据集进行分类。（来源：[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Svm_separating_hyperplanes_(SVG).svg)）
 
 ## 梯度下降作为一种自然的正则化方法
 
@@ -198,15 +198,15 @@ H3表示硬间隔支持向量机（SVM）如何对数据集进行分类。（来
 
 或许这篇文章也会对你有趣，讲述了深度神经网络是如何以及为何趋向于统一的现实表示：
 
-[](/platonic-representation-hypothesis-c812813d7248?source=post_page-----699e0002a057--------------------------------) [## 柏拉图表示法：AI深度网络模型是否正在趋同？
+[](/platonic-representation-hypothesis-c812813d7248?source=post_page-----699e0002a057--------------------------------) ## 柏拉图表示法：AI 深度网络模型是否正在趋同？
 
 ### 人工智能模型是否正在朝向统一的现实表示发展？柏拉图表示法……
 
-[towardsdatascience.com](/platonic-representation-hypothesis-c812813d7248?source=post_page-----699e0002a057--------------------------------)
+[towardsdatascience.com
 
 # 4. 彩票票据假说
 
-模型剪枝可以通过减少训练好的神经网络的参数达到90%。如果操作得当，可以在不降低准确度的情况下实现这一点。但你只能在模型训练完成后**进行**剪枝。如果我们能够在训练前移除多余的参数，这意味着可以使用更少的时间和资源。
+模型剪枝可以通过减少训练好的神经网络的参数达到 90%。如果操作得当，可以在不降低准确度的情况下实现这一点。但你只能在模型训练完成后**进行**剪枝。如果我们能够在训练前移除多余的参数，这意味着可以使用更少的时间和资源。
 
 彩票票据假说[13]认为，神经网络包含一些子网络，当它们单独训练时，可以达到与原始网络相当的测试准确度。这些子网络——*中奖的票据*，拥有使其训练成功的初始权重——*彩票*。
 
@@ -222,13 +222,13 @@ H3表示硬间隔支持向量机（SVM）如何对数据集进行分类。（来
 
 +   **重复**：直到达到原始网络期望的稀疏度，或者剪枝后的网络无法再与未剪枝网络匹敌时，才会停止此过程。
 
-![](../Images/40897b86443a85999f980a18cdfaea41.png)
+![](img/40897b86443a85999f980a18cdfaea41.png)
 
 迭代剪枝在《彩票票据假说》论文中的应用。（作者）
 
-提出的迭代训练方法在计算上非常昂贵，要求在多个实验中训练一个网络15次或更多次。
+提出的迭代训练方法在计算上非常昂贵，要求在多个实验中训练一个网络 15 次或更多次。
 
-为什么在神经网络中会出现这种现象仍是一个研究领域。是否有可能是SGD在训练网络时只关注成功的网络部分，而不是网络的全部？为什么某些随机初始化会包含如此高效的子网络？如果你想深入探讨这个理论，不要错过[13]和[14]。
+为什么在神经网络中会出现这种现象仍是一个研究领域。是否有可能是 SGD 在训练网络时只关注成功的网络部分，而不是网络的全部？为什么某些随机初始化会包含如此高效的子网络？如果你想深入探讨这个理论，不要错过[13]和[14]。
 
 # 最后的话。
 
@@ -242,17 +242,17 @@ H3表示硬间隔支持向量机（SVM）如何对数据集进行分类。（来
 
 如果你已经看到这里，你可能也会对以下文章感兴趣：
 
-[](https://pub.towardsai.net/learn-anything-with-ai-and-the-feynman-technique-00a33f6a02bc?source=post_page-----699e0002a057--------------------------------) [## 利用AI和费曼技巧学习任何东西
+[](https://pub.towardsai.net/learn-anything-with-ai-and-the-feynman-technique-00a33f6a02bc?source=post_page-----699e0002a057--------------------------------) [## 利用 AI 和费曼技巧学习任何东西
 
-### 通过应用AI和诺贝尔奖得主的方法，分四个简单步骤学习任何概念
+### 通过应用 AI 和诺贝尔奖得主的方法，分四个简单步骤学习任何概念
 
-[pub.towardsai.net](https://pub.towardsai.net/learn-anything-with-ai-and-the-feynman-technique-00a33f6a02bc?source=post_page-----699e0002a057--------------------------------) [](/a-comprehensive-guide-to-collaborative-ai-agents-in-practice-1f4048947d9c?source=post_page-----699e0002a057--------------------------------) [## 实践中的协作AI代理全面指南
+[pub.towardsai.net](https://pub.towardsai.net/learn-anything-with-ai-and-the-feynman-technique-00a33f6a02bc?source=post_page-----699e0002a057--------------------------------) [](/a-comprehensive-guide-to-collaborative-ai-agents-in-practice-1f4048947d9c?source=post_page-----699e0002a057--------------------------------) ## 实践中的协作 AI 代理全面指南
 
 ### 定义，并建立一个代理团队，精炼你的简历和求职信
 
-[towardsdatascience.com](/a-comprehensive-guide-to-collaborative-ai-agents-in-practice-1f4048947d9c?source=post_page-----699e0002a057--------------------------------) [](https://pub.towardsai.net/chatgpt-as-a-game-engine-to-play-flappy-bird-ee4adff46f48?source=post_page-----699e0002a057--------------------------------) [## 我在ChatGPT中玩了Flappy Bird
+[towardsdatascience.com [](https://pub.towardsai.net/chatgpt-as-a-game-engine-to-play-flappy-bird-ee4adff46f48?source=post_page-----699e0002a057--------------------------------) [## 我在 ChatGPT 中玩了 Flappy Bird
 
-### GPT-4非常棒，但它足够好，能够作为游戏引擎吗？我用一个简单的LangChain尝试了这个，做了一个Flappy Bird的游戏……
+### GPT-4 非常棒，但它足够好，能够作为游戏引擎吗？我用一个简单的 LangChain 尝试了这个，做了一个 Flappy Bird 的游戏……
 
 [pub.towardsai.net](https://pub.towardsai.net/chatgpt-as-a-game-engine-to-play-flappy-bird-ee4adff46f48?source=post_page-----699e0002a057--------------------------------)
 
@@ -262,17 +262,17 @@ H3表示硬间隔支持向量机（SVM）如何对数据集进行分类。（来
 
 [2] [超出常规](https://www.deeplearning.ai/the-batch/outside-the-norm/)，DeepLearning.AI
 
-[3] Santurkar, Shibani; Tsipras, Dimitris; Ilyas, Andrew; Madry, Aleksander (2018年5月29日)。 “批量归一化如何帮助优化？” arXiv：[1805.11604](https://arxiv.org/abs/1805.11604)
+[3] Santurkar, Shibani; Tsipras, Dimitris; Ilyas, Andrew; Madry, Aleksander (2018 年 5 月 29 日)。 “批量归一化如何帮助优化？” arXiv：[1805.11604](https://arxiv.org/abs/1805.11604)
 
 [4] Li, H., Xu, Z., Taylor, G., Studer, C., & Goldstein, T. (2018). 可视化神经网络的损失景观。[arXiv](https://arxiv.org/abs/1712.09913)
 
 [5] [批归一化的危险](https://www.alexirpan.com/2017/04/26/perils-batch-norm.html)
 
-[6] [https://x.com/svpino/status/1588501331316121601](https://x.com/svpino/status/1588501331316121601)
+[6] [`x.com/svpino/status/1588501331316121601`](https://x.com/svpino/status/1588501331316121601)
 
 [7] Neyshabur, B., Li, Z., Bhojanapalli, S., LeCun, Y., & Srebro, N. (2018). 朝着理解过度参数化在神经网络泛化中的作用迈进。[arXiv](https://arxiv.org/abs/1805.12076)
 
-[8] [为什么深度学习在糟糕的VC维度下仍然被炒作？](https://cs.stackexchange.com/questions/75327/why-is-deep-learning-hyped-despite-bad-vc-dimension)
+[8] [为什么深度学习在糟糕的 VC 维度下仍然被炒作？](https://cs.stackexchange.com/questions/75327/why-is-deep-learning-hyped-despite-bad-vc-dimension)
 
 [9] [深度网络不是通过记忆化学习的](https://openreview.net/pdf?id=rJv6ZgHYg)
 
@@ -284,4 +284,4 @@ H3表示硬间隔支持向量机（SVM）如何对数据集进行分类。（来
 
 [13] Frankle, J., & Carbin, M. (2019). 彩票票假设：寻找稀疏的、可训练的神经网络。*arXiv:1803.03635*
 
-[14] [https://www.lesswrong.com/posts/Z7R6jFjce3J2Ryj44/exploring-the-lottery-ticket-hypothesis](https://www.lesswrong.com/posts/Z7R6jFjce3J2Ryj44/exploring-the-lottery-ticket-hypothesis)
+[14] [`www.lesswrong.com/posts/Z7R6jFjce3J2Ryj44/exploring-the-lottery-ticket-hypothesis`](https://www.lesswrong.com/posts/Z7R6jFjce3J2Ryj44/exploring-the-lottery-ticket-hypothesis)

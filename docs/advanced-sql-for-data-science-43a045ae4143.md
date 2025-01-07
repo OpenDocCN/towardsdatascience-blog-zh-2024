@@ -1,16 +1,16 @@
 # 高级 SQL 用于数据科学
 
-> 原文：[https://towardsdatascience.com/advanced-sql-for-data-science-43a045ae4143?source=collection_archive---------1-----------------------#2024-08-24](https://towardsdatascience.com/advanced-sql-for-data-science-43a045ae4143?source=collection_archive---------1-----------------------#2024-08-24)
+> 原文：[`towardsdatascience.com/advanced-sql-for-data-science-43a045ae4143?source=collection_archive---------1-----------------------#2024-08-24`](https://towardsdatascience.com/advanced-sql-for-data-science-43a045ae4143?source=collection_archive---------1-----------------------#2024-08-24)
 
 ## 提升你分析能力的专家技术
 
-[](https://mshakhomirov.medium.com/?source=post_page---byline--43a045ae4143--------------------------------)[![💡Mike Shakhomirov](../Images/bc6895c7face3244d488feb97ba0f68e.png)](https://mshakhomirov.medium.com/?source=post_page---byline--43a045ae4143--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--43a045ae4143--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--43a045ae4143--------------------------------) [💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--43a045ae4143--------------------------------)
+[](https://mshakhomirov.medium.com/?source=post_page---byline--43a045ae4143--------------------------------)![💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--43a045ae4143--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--43a045ae4143--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43a045ae4143--------------------------------) [💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--43a045ae4143--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43a045ae4143--------------------------------) ·14 分钟阅读·2024年8月24日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43a045ae4143--------------------------------) ·14 分钟阅读·2024 年 8 月 24 日
 
 --
 
-![](../Images/868611f75741a42c9a61eb026995c2ba.png)
+![](img/868611f75741a42c9a61eb026995c2ba.png)
 
 AI 生成的图像，使用 [Kandinsky](https://github.com/ai-forever/Kandinsky-2)
 

@@ -1,16 +1,16 @@
 # 演示错误检查和复审的必备指南
 
-> 原文：[https://towardsdatascience.com/the-essential-guide-to-error-checking-and-reviewing-presentations-03bcf5f51548?source=collection_archive---------12-----------------------#2024-08-29](https://towardsdatascience.com/the-essential-guide-to-error-checking-and-reviewing-presentations-03bcf5f51548?source=collection_archive---------12-----------------------#2024-08-29)
+> 原文：[`towardsdatascience.com/the-essential-guide-to-error-checking-and-reviewing-presentations-03bcf5f51548?source=collection_archive---------12-----------------------#2024-08-29`](https://towardsdatascience.com/the-essential-guide-to-error-checking-and-reviewing-presentations-03bcf5f51548?source=collection_archive---------12-----------------------#2024-08-29)
 
 ## 数据科学家（不仅仅是他们）常常忽视的技能
 
-[](https://dpanagop-53386.medium.com/?source=post_page---byline--03bcf5f51548--------------------------------)[![Dimitris Panagopoulos](../Images/437f218b1a27ed01a98270817c76729f.png)](https://dpanagop-53386.medium.com/?source=post_page---byline--03bcf5f51548--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03bcf5f51548--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--03bcf5f51548--------------------------------) [Dimitris Panagopoulos](https://dpanagop-53386.medium.com/?source=post_page---byline--03bcf5f51548--------------------------------)
+[](https://dpanagop-53386.medium.com/?source=post_page---byline--03bcf5f51548--------------------------------)![Dimitris Panagopoulos](https://dpanagop-53386.medium.com/?source=post_page---byline--03bcf5f51548--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03bcf5f51548--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03bcf5f51548--------------------------------) [Dimitris Panagopoulos](https://dpanagop-53386.medium.com/?source=post_page---byline--03bcf5f51548--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03bcf5f51548--------------------------------) ·6分钟阅读·2024年8月29日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03bcf5f51548--------------------------------) ·6 分钟阅读·2024 年 8 月 29 日
 
 --
 
-![](../Images/25ef48852aca945b2ddb046c15f5f649.png)
+![](img/25ef48852aca945b2ddb046c15f5f649.png)
 
 图片由[Campaign Creators](https://unsplash.com/@campaign_creators?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,16 +1,16 @@
 # 如何设计 X（Twitter）首页时间线 API：值得借鉴的经验
 
-> 原文：[https://towardsdatascience.com/api-design-of-x-twitter-home-timeline-da426f19edfe?source=collection_archive---------7-----------------------#2024-12-12](https://towardsdatascience.com/api-design-of-x-twitter-home-timeline-da426f19edfe?source=collection_archive---------7-----------------------#2024-12-12)
+> 原文：[`towardsdatascience.com/api-design-of-x-twitter-home-timeline-da426f19edfe?source=collection_archive---------7-----------------------#2024-12-12`](https://towardsdatascience.com/api-design-of-x-twitter-home-timeline-da426f19edfe?source=collection_archive---------7-----------------------#2024-12-12)
 
 ## 详细了解 X 的 API：获取数据、链接实体，并解决数据获取不足的问题。
 
-[](https://trekhleb.medium.com/?source=post_page---byline--da426f19edfe--------------------------------)[![Oleksii Trekhleb](../Images/9419c8111bc8907db115c822b2d11773.png)](https://trekhleb.medium.com/?source=post_page---byline--da426f19edfe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--da426f19edfe--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--da426f19edfe--------------------------------) [Oleksii Trekhleb](https://trekhleb.medium.com/?source=post_page---byline--da426f19edfe--------------------------------)
+[](https://trekhleb.medium.com/?source=post_page---byline--da426f19edfe--------------------------------)![Oleksii Trekhleb](https://trekhleb.medium.com/?source=post_page---byline--da426f19edfe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--da426f19edfe--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da426f19edfe--------------------------------) [Oleksii Trekhleb](https://trekhleb.medium.com/?source=post_page---byline--da426f19edfe--------------------------------)
 
 ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da426f19edfe--------------------------------) ·17 分钟阅读·2024 年 12 月 12 日
 
 --
 
-![](../Images/d08c0fd3e725c601bde9d1ec4e754bf2.png)
+![](img/d08c0fd3e725c601bde9d1ec4e754bf2.png)
 
 在设计系统的 API 时，软件工程师通常会评估各种方法，如 [REST 与 RPC 与 GraphQL](https://okso.app/showcase/system-design/page/0d03d895-b5b1-40c6-3549-945df9d98dcd)，或者混合模型，以确定最适合特定任务或项目的方法。这些方法定义了数据如何在后端和前端之间流动，以及响应数据的结构：
 
@@ -36,7 +36,7 @@
 
 我们的重点将放在 API 设计和功能上，将后端视为黑箱，因为其实现无法访问。
 
-![](../Images/1ff17b3000177d4493d993014e3ce514.png)
+![](img/1ff17b3000177d4493d993014e3ce514.png)
 
 X 首页时间线示例
 
@@ -231,19 +231,19 @@ type TimelineCursor = {
 
 每一页都包含推文列表，以及“顶部”和“底部”游标：
 
-![](../Images/e7fccea0dff69df5fc3f4350d2e732eb.png)
+![](img/e7fccea0dff69df5fc3f4350d2e732eb.png)
 
 游标与推文一同传递的示例
 
 数据加载后，我们可以从当前页面向两个方向移动，使用“底部”游标获取“之前/更旧”的推文，或使用“顶部”游标获取“下一条/更新”的推文。我猜测，使用“顶部”游标获取“下一条”推文有两种情况：一是当用户仍在浏览当前页面时，新推文已被添加，二是当用户开始向上滚动动态时（如果没有缓存条目，或之前的条目由于性能原因被删除）。
 
-X的游标本身可能看起来是这样的：`DAABCgABGemI6Mk__9sKAAIZ6MSYG9fQGwgAAwAAAAIAAA`。在一些API设计中，游标可能是一个Base64编码的字符串，包含列表中最后一项的ID，或者是最后一项的时间戳。例如：`eyJpZCI6ICIxMjM0NTY3ODkwIn0= --> {"id": "1234567890"}`，然后这些数据会用于相应地查询数据库。在X API的情况下，游标看起来像是被Base64解码成某种自定义的二进制序列，可能需要进一步解码才能得到有意义的内容（例如，通过Protobuf消息定义）。由于我们不知道它是否是`.proto`编码，也不知道`.proto`的消息定义，我们只能假设后端知道如何根据游标字符串查询下一批推文。
+X 的游标本身可能看起来是这样的：`DAABCgABGemI6Mk__9sKAAIZ6MSYG9fQGwgAAwAAAAIAAA`。在一些 API 设计中，游标可能是一个 Base64 编码的字符串，包含列表中最后一项的 ID，或者是最后一项的时间戳。例如：`eyJpZCI6ICIxMjM0NTY3ODkwIn0= --> {"id": "1234567890"}`，然后这些数据会用于相应地查询数据库。在 X API 的情况下，游标看起来像是被 Base64 解码成某种自定义的二进制序列，可能需要进一步解码才能得到有意义的内容（例如，通过 Protobuf 消息定义）。由于我们不知道它是否是`.proto`编码，也不知道`.proto`的消息定义，我们只能假设后端知道如何根据游标字符串查询下一批推文。
 
 `TimelineResponse.variables.seenTweetIds`参数用于通知服务器客户端当前活动页面中已经查看过的推文（来自无限滚动）。这很可能有助于确保服务器在后续的结果页面中不包含重复的推文。
 
 # 链接/层级实体
 
-像主页时间线（或主页动态）这样的API面临的挑战之一是如何返回链接或层级实体（即`tweet → user`、`tweet → media`、`media → author`等）：
+像主页时间线（或主页动态）这样的 API 面临的挑战之一是如何返回链接或层级实体（即`tweet → user`、`tweet → media`、`media → author`等）：
 
 +   我们是否应该先仅返回推文列表，然后根据需求通过一系列单独的查询获取依赖的实体（如用户详情）？
 
@@ -253,7 +253,7 @@ X的游标本身可能看起来是这样的：`DAABCgABGemI6Mk__9sKAAIZ6MSYG9fQG
 
 +   还是应该是上述方法的组合？
 
-我们来看一下X是如何处理的。
+我们来看一下 X 是如何处理的。
 
 在`TimelineTweet`类型中，早些时候使用了`Tweet`子类型。我们来看一下它的样子：
 
@@ -409,15 +409,15 @@ type TimelineModule = {
 
 +   **提取时间戳：**
 
-+   时间戳通过将Snowflake ID右移22位（以去掉数据中心、工作者ID和序列的低22位）得出：`1867231621095096312 → 445182709954`
++   时间戳通过将 Snowflake ID 右移 22 位（以去掉数据中心、工作者 ID 和序列的低 22 位）得出：`1867231621095096312 → 445182709954`
 
-+   **添加Twitter的纪元：**
++   **添加 Twitter 的纪元：**
 
-+   将Twitter的自定义纪元（1288834974657）添加到此时间戳中，得到UNIX时间戳的毫秒数：`445182709954 + 1288834974657 → 1734017684611ms`
++   将 Twitter 的自定义纪元（1288834974657）添加到此时间戳中，得到 UNIX 时间戳的毫秒数：`445182709954 + 1288834974657 → 1734017684611ms`
 
 +   **转换为人类可读的日期：**
 
-+   将UNIX时间戳转换为UTC日期时间：`1734017684611ms → 2024-12-12 15:34:44.611 (UTC)`
++   将 UNIX 时间戳转换为 UTC 日期时间：`1734017684611ms → 2024-12-12 15:34:44.611 (UTC)`
 
 因此，我们可以在这里假设，首页时间线中的推文是按时间顺序排序的。
 
@@ -425,7 +425,7 @@ type TimelineModule = {
 
 每条推文都有一个“操作”菜单。
 
-![](../Images/99e8c98d9b3e8ea09c2e5906f3a0ee5e.png)
+![](img/99e8c98d9b3e8ea09c2e5906f3a0ee5e.png)
 
 推文操作示例
 
@@ -481,7 +481,7 @@ type TimelineAction = {
 GET https://x.com/i/api/graphql/{query-id}/TweetDetail?variables={"focalTweetId":"1867231621095096312","referrer":"home","controller_data":"DACABBSQ","rankingMode":"Relevance","includePromotedContent":true,"withCommunity":true}&features={"articles_preview_enabled":true}
 ```
 
-我在这里很好奇，为什么推文列表是通过`POST`请求获取的，而每条推文的详情是通过`GET`请求获取的。这似乎不一致。特别是考虑到类似`query-id`、`features`等查询参数这次是通过URL传递的，而不是通过请求体传递的。响应格式也类似，并且重用了列表调用中的类型。我不确定为什么会这样。但再次强调，我肯定可能会错过一些背景复杂性。
+我在这里很好奇，为什么推文列表是通过`POST`请求获取的，而每条推文的详情是通过`GET`请求获取的。这似乎不一致。特别是考虑到类似`query-id`、`features`等查询参数这次是通过 URL 传递的，而不是通过请求体传递的。响应格式也类似，并且重用了列表调用中的类型。我不确定为什么会这样。但再次强调，我肯定可能会错过一些背景复杂性。
 
 这里是简化后的响应体类型：
 
@@ -520,7 +520,7 @@ type TimelineModule = {
 
 响应在类型上与列表响应非常相似，因此我们不会在这里停留太久。
 
-一个有趣的细节是，每条推文的“评论”（或对话）实际上是其他推文（参见`TimelineModule`类型）。因此，推文线程看起来与首页时间线的推送非常相似，通过显示`TimelineTweet`条目的列表来呈现。这看起来非常优雅。一个很好的例子，展示了API设计中通用且可复用的方法。
+一个有趣的细节是，每条推文的“评论”（或对话）实际上是其他推文（参见`TimelineModule`类型）。因此，推文线程看起来与首页时间线的推送非常相似，通过显示`TimelineTweet`条目的列表来呈现。这看起来非常优雅。一个很好的例子，展示了 API 设计中通用且可复用的方法。
 
 # 点赞推文
 
@@ -551,13 +551,13 @@ type FavoriteTweetResponse = {
 }
 ```
 
-看起来很直接，也类似于RPC风格的API设计方法。
+看起来很直接，也类似于 RPC 风格的 API 设计方法。
 
 # 结论
 
-我们通过查看X的API示例，已经涉及了一些家庭时间线API设计的基本部分。在这个过程中，我尽量根据我的知识做出了一些假设。我相信我可能有一些地方理解得不准确，也可能错过了一些复杂的细微差别。但即便如此，我希望你能从这份高层次的概述中获得一些有用的见解，这些见解可以应用到你下次的API设计会议中。
+我们通过查看 X 的 API 示例，已经涉及了一些家庭时间线 API 设计的基本部分。在这个过程中，我尽量根据我的知识做出了一些假设。我相信我可能有一些地方理解得不准确，也可能错过了一些复杂的细微差别。但即便如此，我希望你能从这份高层次的概述中获得一些有用的见解，这些见解可以应用到你下次的 API 设计会议中。
 
-起初，我计划通过浏览一些顶级技术网站，获取来自Facebook、Reddit、YouTube等的见解，并收集经过实践验证的最佳做法和解决方案。我不确定是否能找到时间去做这件事。到时再看看。但这可能是一个有趣的练习。
+起初，我计划通过浏览一些顶级技术网站，获取来自 Facebook、Reddit、YouTube 等的见解，并收集经过实践验证的最佳做法和解决方案。我不确定是否能找到时间去做这件事。到时再看看。但这可能是一个有趣的练习。
 
 # 附录：所有类型汇总
 

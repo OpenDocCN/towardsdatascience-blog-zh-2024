@@ -1,10 +1,10 @@
 # 从洞察到影响：每个数据科学家都需要的演讲技巧
 
-> 原文：[https://towardsdatascience.com/from-insights-to-impact-presentation-skills-every-data-scientist-needs-045945a681f2?source=collection_archive---------6-----------------------#2024-10-28](https://towardsdatascience.com/from-insights-to-impact-presentation-skills-every-data-scientist-needs-045945a681f2?source=collection_archive---------6-----------------------#2024-10-28)
+> 原文：[`towardsdatascience.com/from-insights-to-impact-presentation-skills-every-data-scientist-needs-045945a681f2?source=collection_archive---------6-----------------------#2024-10-28`](https://towardsdatascience.com/from-insights-to-impact-presentation-skills-every-data-scientist-needs-045945a681f2?source=collection_archive---------6-----------------------#2024-10-28)
 
 ## **如何构建、设计和呈现能够赢得利益相关者支持的数据演示文稿**
 
-[](https://ydong029.medium.com/?source=post_page---byline--045945a681f2--------------------------------)[![Yu Dong](../Images/55c3c11c76cde72c65eb81a60384a436.png)](https://ydong029.medium.com/?source=post_page---byline--045945a681f2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--045945a681f2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--045945a681f2--------------------------------) [Yu Dong](https://ydong029.medium.com/?source=post_page---byline--045945a681f2--------------------------------)
+[](https://ydong029.medium.com/?source=post_page---byline--045945a681f2--------------------------------)![Yu Dong](https://ydong029.medium.com/?source=post_page---byline--045945a681f2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--045945a681f2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--045945a681f2--------------------------------) [Yu Dong](https://ydong029.medium.com/?source=post_page---byline--045945a681f2--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--045945a681f2--------------------------------) ·阅读时长 7 分钟·2024 年 10 月 28 日
 
@@ -16,7 +16,7 @@
 
 请注意，本文专注于演示步骤，假设你已经有了扎实的分析或模型 :)
 
-![](../Images/32c0734f1fed48c47f2f103b1b669dd0.png)
+![](img/32c0734f1fed48c47f2f103b1b669dd0.png)
 
 图像由 DALL·E 创建
 

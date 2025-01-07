@@ -1,16 +1,16 @@
 # 你的数据是在提升你，还是在拖累你？
 
-> 原文：[https://towardsdatascience.com/is-your-data-lifting-you-up-or-letting-you-down-e2fd7cc75513?source=collection_archive---------9-----------------------#2024-05-09](https://towardsdatascience.com/is-your-data-lifting-you-up-or-letting-you-down-e2fd7cc75513?source=collection_archive---------9-----------------------#2024-05-09)
+> 原文：[`towardsdatascience.com/is-your-data-lifting-you-up-or-letting-you-down-e2fd7cc75513?source=collection_archive---------9-----------------------#2024-05-09`](https://towardsdatascience.com/is-your-data-lifting-you-up-or-letting-you-down-e2fd7cc75513?source=collection_archive---------9-----------------------#2024-05-09)
 
 ## 理解并避免数据的负面回报
 
-[](https://medium.com/@elliottstam?source=post_page---byline--e2fd7cc75513--------------------------------)[![Elliott Stam](../Images/5469da79b12b9d5842df36d381415033.png)](https://medium.com/@elliottstam?source=post_page---byline--e2fd7cc75513--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2fd7cc75513--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e2fd7cc75513--------------------------------) [Elliott Stam](https://medium.com/@elliottstam?source=post_page---byline--e2fd7cc75513--------------------------------)
+[](https://medium.com/@elliottstam?source=post_page---byline--e2fd7cc75513--------------------------------)![Elliott Stam](https://medium.com/@elliottstam?source=post_page---byline--e2fd7cc75513--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2fd7cc75513--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2fd7cc75513--------------------------------) [Elliott Stam](https://medium.com/@elliottstam?source=post_page---byline--e2fd7cc75513--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2fd7cc75513--------------------------------) ·阅读时长12分钟·2024年5月9日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2fd7cc75513--------------------------------) ·阅读时长 12 分钟·2024 年 5 月 9 日
 
 --
 
-![](../Images/23e6e7dbcba52d8905e574dc0b14721e.png)
+![](img/23e6e7dbcba52d8905e574dc0b14721e.png)
 
 坏数据？照片来源：[Giuseppe CUZZOCREA](https://unsplash.com/@kuzzogiu?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

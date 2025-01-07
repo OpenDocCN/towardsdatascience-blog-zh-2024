@@ -1,18 +1,18 @@
 # 具有可学习条件嵌入的条件变分自编码器
 
-> 原文：[https://towardsdatascience.com/conditional-variational-autoencoders-with-learnable-conditional-embeddings-e22ee5359a2a?source=collection_archive---------1-----------------------#2024-01-08](https://towardsdatascience.com/conditional-variational-autoencoders-with-learnable-conditional-embeddings-e22ee5359a2a?source=collection_archive---------1-----------------------#2024-01-08)
+> 原文：[`towardsdatascience.com/conditional-variational-autoencoders-with-learnable-conditional-embeddings-e22ee5359a2a?source=collection_archive---------1-----------------------#2024-01-08`](https://towardsdatascience.com/conditional-variational-autoencoders-with-learnable-conditional-embeddings-e22ee5359a2a?source=collection_archive---------1-----------------------#2024-01-08)
 
 ## 一种向 CVAE 模型中添加条件而不需要重新训练的方法
 
-[](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[![Tim Rose](../Images/12bcd585b5dad388dad140b4ca049392.png)](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------) [Tim Rose](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)
+[](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)![Tim Rose](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------) [Tim Rose](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------) ·阅读时长 11 分钟 ·2024年1月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------) ·阅读时长 11 分钟 ·2024 年 1 月 8 日
 
 --
 
 # 要求
 
-本文介绍了条件变分自编码器（CVAE），需要对这种模型有基本的理解。如果你不熟悉 CVAE，我推荐你阅读以下文章：[使用 PyTorch 的 VAE](https://avandekleut.github.io/vae/)、[理解 CVAE](/understanding-conditional-variational-autoencoders-cd62b4f57bf8)。在阅读本文之前，请先了解 CVAE。我所提供的代码示例使用 Python 编写，并基于[PyTorch](https://pytorch.org/)和[PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/)。
+本文介绍了条件变分自编码器（CVAE），需要对这种模型有基本的理解。如果你不熟悉 CVAE，我推荐你阅读以下文章：[使用 PyTorch 的 VAE](https://avandekleut.github.io/vae/)、理解 CVAE。在阅读本文之前，请先了解 CVAE。我所提供的代码示例使用 Python 编写，并基于[PyTorch](https://pytorch.org/)和[PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/)。
 
 # 引言
 
@@ -217,13 +217,13 @@ model = model.to(device)
 plot_reconstructed(model.cvae, number=8, device=device)
 ```
 
-![](../Images/0082c26ff50997ffdd2d5e627ddf604d.png)
+![](img/0082c26ff50997ffdd2d5e627ddf604d.png)
 
-从潜在空间的网格上推断出数字8的图像。图像由作者创建。
+从潜在空间的网格上推断出数字 8 的图像。图像由作者创建。
 
 特别是在潜在空间的中心，数字非常清晰（尝试使用其他数字作为条件并自行绘制）。总体而言，解码器能够为训练期间提供的所有数字生成可读的手写数字图像。
 
-我们还对训练数据中所有数字的潜在空间表示感兴趣。正如之前提到的，我们希望模型能够去除潜在空间中的与数字相关的差异，因此，例如，不会出现同一数字的图像聚类。下面，我们可以可视化二维潜在空间，并按数字标签为其着色。此外，我们期望潜在空间围绕零正态分布（这是由于我们的KL损失项）。
+我们还对训练数据中所有数字的潜在空间表示感兴趣。正如之前提到的，我们希望模型能够去除潜在空间中的与数字相关的差异，因此，例如，不会出现同一数字的图像聚类。下面，我们可以可视化二维潜在空间，并按数字标签为其着色。此外，我们期望潜在空间围绕零正态分布（这是由于我们的 KL 损失项）。
 
 ```py
 def plot_latent_cvae(autoencoder, data, num_batches=100, device='cpu'):
@@ -240,9 +240,9 @@ model = model.to(device)
 plot_latent_cvae(model.cvae, data, device=device)
 ```
 
-![](../Images/b31dbe1d53e4a044e4e51587f5943a22.png)
+![](img/b31dbe1d53e4a044e4e51587f5943a22.png)
 
-在训练数据上的CVAE模型的潜在空间，按条件着色。图像由作者创建。
+在训练数据上的 CVAE 模型的潜在空间，按条件着色。图像由作者创建。
 
 # 可学习的条件嵌入
 
@@ -250,7 +250,7 @@ plot_latent_cvae(model.cvae, data, device=device)
 
 因此，我们不仅拥有图像的潜在空间，还有条件（数字）的嵌入空间。本文的一个核心观点是，模型将（在我们示例中）条件的信息编码在嵌入向量中。这意味着我们可以将新的数字添加到模型中，即使它们在训练过程中没有被包含，模型也有可能仅通过新的调整后的条件嵌入来推断出正确的数字。为此，所有模型权重都被冻结，只有需要添加到模型中的新数字的嵌入会被优化。在出版物中，作者计划将新的条件添加到潜在空间中，但在本文中，我们将检查模型生成看不见的数字图像的能力。
 
-首先，我们在所有数字上训练模型，以检查CVAE模型使用可学习嵌入进行训练的通用能力。为此，我们定义一个新的Lightning模块，但在这种情况下，加入了一个嵌入变量，它存储嵌入并在前向传递中提供它们：
+首先，我们在所有数字上训练模型，以检查 CVAE 模型使用可学习嵌入进行训练的通用能力。为此，我们定义一个新的 Lightning 模块，但在这种情况下，加入了一个嵌入变量，它存储嵌入并在前向传递中提供它们：
 
 ```py
 class eCVAEModel(pl.LightningModule):
@@ -318,16 +318,16 @@ def plot_reconstructed_ecvae(model, r0=(-3, 3), r1=(-3, 3),
     plt.show()
 ```
 
-我们最终可以生成新的图像。我们再次绘制数字8的图像，可以看到模型同样能够生成该数字。
+我们最终可以生成新的图像。我们再次绘制数字 8 的图像，可以看到模型同样能够生成该数字。
 
 ```py
 emodel = emodel.to(device)
 plot_reconstructed_ecvae(emodel, number=8, device=device)
 ```
 
-![](../Images/eecb76b70fc22020189c4b8555bb9534.png)
+![](img/eecb76b70fc22020189c4b8555bb9534.png)
 
-从潜在空间的网格上推断出数字8的图像，使用可学习的条件嵌入。图像由作者创建。
+从潜在空间的网格上推断出数字 8 的图像，使用可学习的条件嵌入。图像由作者创建。
 
 为了可视化潜在空间，我们还需要稍微更新绘图函数：
 
@@ -346,15 +346,15 @@ model = model.to(device)
 plot_latent_ecvae(emodel, data, device=device)
 ```
 
-![](../Images/39195f96429cbe2746e91b97cedfcd2f.png)
+![](img/39195f96429cbe2746e91b97cedfcd2f.png)
 
-在训练数据上，带有可学习条件嵌入的CVAE模型的潜在空间，条件通过颜色进行标记。图像由作者创建。
+在训练数据上，带有可学习条件嵌入的 CVAE 模型的潜在空间，条件通过颜色进行标记。图像由作者创建。
 
-尽管我们可以看到分布略有变化，但我们没有看到明显与数字相关的聚类。这表明，使用可学习嵌入的模型能够像使用独热编码模型一样，基于数字进行条件设置（虽然该模型实际上使用了更少的参数，因为我们只用了大小为5的嵌入，而不是独热编码中的10个参数）。
+尽管我们可以看到分布略有变化，但我们没有看到明显与数字相关的聚类。这表明，使用可学习嵌入的模型能够像使用独热编码模型一样，基于数字进行条件设置（虽然该模型实际上使用了更少的参数，因为我们只用了大小为 5 的嵌入，而不是独热编码中的 10 个参数）。
 
 # 为模型添加新条件
 
-最后，我们将仅在数字0-7的图像上训练模型。训练完成后，我们将优化数字8和9的条件嵌入，同时冻结所有其他模型权重。这使得我们能够将这些条件添加到潜在空间中（并生成新图像），而无需重新训练整个模型。为此，我们创建了两个新的数据加载器，一个用于提供数字0-7的图像（**datatrain**），另一个用于提供数字8和9的图像（**data89**）：
+最后，我们将仅在数字 0-7 的图像上训练模型。训练完成后，我们将优化数字 8 和 9 的条件嵌入，同时冻结所有其他模型权重。这使得我们能够将这些条件添加到潜在空间中（并生成新图像），而无需重新训练整个模型。为此，我们创建了两个新的数据加载器，一个用于提供数字 0-7 的图像（**datatrain**），另一个用于提供数字 8 和 9 的图像（**data89**）：
 
 ```py
 # Creating dataloaders excluding 8 & 9 digits
@@ -384,7 +384,7 @@ datatrain = torch.utils.data.DataLoader(dstrain, batch_size=128, shuffle=True)
 data89 = torch.utils.data.DataLoader(ds89, batch_size=128, shuffle=True)
 ```
 
-然后，我们首先在0-7数字的图像上训练模型：
+然后，我们首先在 0-7 数字的图像上训练模型：
 
 ```py
 emodel89 = eCVAEModel(latent_dims=latent_dims, n_classes=10, embedding_dims=5)
@@ -393,7 +393,7 @@ trainer = pl.Trainer(devices=1, accelerator='gpu', max_epochs=10)
 trainer.fit(emodel89, datatrain)
 ```
 
-然后，我们将冻结所有模型参数，除了条件嵌入。接下来，我们只针对数字8和9的图像优化嵌入：
+然后，我们将冻结所有模型参数，除了条件嵌入。接下来，我们只针对数字 8 和 9 的图像优化嵌入：
 
 ```py
 # Freeze model parameters
@@ -410,32 +410,32 @@ trainer89 = pl.Trainer(devices=1, accelerator='gpu', max_epochs=10)
 trainer89.fit(emodel89, data89)
 ```
 
-让我们可视化生成的数字和潜在空间。下面我们可以看到，尽管该模型并未在这些图像上训练，仅更新了条件嵌入向量，但它能够像我们之前的模型一样生成数字8的图像。
+让我们可视化生成的数字和潜在空间。下面我们可以看到，尽管该模型并未在这些图像上训练，仅更新了条件嵌入向量，但它能够像我们之前的模型一样生成数字 8 的图像。
 
 ```py
 emodel89 = emodel.to(device)
 plot_reconstructed_ecvae(emodel89, number=8, device=device)
 ```
 
-![](../Images/eecb76b70fc22020189c4b8555bb9534.png)
+![](img/eecb76b70fc22020189c4b8555bb9534.png)
 
-使用可学习条件嵌入从潜在空间的网格上推断出数字8的图像，这些条件并未参与整个模型的训练。图像由作者创建。
+使用可学习条件嵌入从潜在空间的网格上推断出数字 8 的图像，这些条件并未参与整个模型的训练。图像由作者创建。
 
-如果我们可视化潜在空间，我们既看不到8和9的数字聚类，也没有看到分布中的明显异常值。
+如果我们可视化潜在空间，我们既看不到 8 和 9 的数字聚类，也没有看到分布中的明显异常值。
 
 ```py
 emodel89 = emodel89.to(device)
 plot_latent_ecvae(emodel89, data, device=device)
 ```
 
-![](../Images/36c1a488d22e9868c97c4d16c51529d3.png)
+![](img/36c1a488d22e9868c97c4d16c51529d3.png)
 
-在训练数据上，带有可学习条件嵌入的CVAE模型的潜在空间，条件通过颜色进行标记，其中数字8和9在不重新训练模型的情况下被添加进来。图像由作者创建。
+在训练数据上，带有可学习条件嵌入的 CVAE 模型的潜在空间，条件通过颜色进行标记，其中数字 8 和 9 在不重新训练模型的情况下被添加进来。图像由作者创建。
 
-尽管我们在本文中没有对模型性能进行系统的评估，但我们可以看到，学习到的嵌入可以非常有效地为CVAE模型添加新条件，而无需重新训练整个模型。
+尽管我们在本文中没有对模型性能进行系统的评估，但我们可以看到，学习到的嵌入可以非常有效地为 CVAE 模型添加新条件，而无需重新训练整个模型。
 
-独热编码在机器学习中被广泛使用，但我希望能够向你展示一种有趣的替代方法，在CVAE模型中应用这种方法。如果你对这种方法的应用（例如在生物学领域）感兴趣，我推荐阅读这篇发表的文章 [“Population-level integration of single-cell datasets enables multi-scale analysis across samples”](https://doi.org/10.1038/s41592-023-02035-2)，这篇文章是本文的基础。它还包含了将CVAE模型定制化应用于特定领域的其他一些有趣想法。
+独热编码在机器学习中被广泛使用，但我希望能够向你展示一种有趣的替代方法，在 CVAE 模型中应用这种方法。如果你对这种方法的应用（例如在生物学领域）感兴趣，我推荐阅读这篇发表的文章 [“Population-level integration of single-cell datasets enables multi-scale analysis across samples”](https://doi.org/10.1038/s41592-023-02035-2)，这篇文章是本文的基础。它还包含了将 CVAE 模型定制化应用于特定领域的其他一些有趣想法。
 
-感谢阅读，欢迎自由探索本文的源代码并尝试模型。你可以在 GitHub 上找到所有代码：[https://github.com/tdrose/blogpost-subfigures-code](https://github.com/tdrose/blogpost-subfigures-code) [https://github.com/tdrose/medium-articles-code](https://github.com/tdrose/medium-articles-code)[.](https://github.com/tdrose/lightning-cvae.)
+感谢阅读，欢迎自由探索本文的源代码并尝试模型。你可以在 GitHub 上找到所有代码：[`github.com/tdrose/blogpost-subfigures-code`](https://github.com/tdrose/blogpost-subfigures-code) [`github.com/tdrose/medium-articles-code`](https://github.com/tdrose/medium-articles-code)[.](https://github.com/tdrose/lightning-cvae.)
 
 所有图像均由作者创建。

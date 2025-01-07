@@ -1,16 +1,16 @@
 # 揭开欧盟人工智能法案的面纱
 
-> 原文：[https://towardsdatascience.com/uncovering-the-eu-ai-act-22b10f946174?source=collection_archive---------7-----------------------#2024-03-14](https://towardsdatascience.com/uncovering-the-eu-ai-act-22b10f946174?source=collection_archive---------7-----------------------#2024-03-14)
+> 原文：[`towardsdatascience.com/uncovering-the-eu-ai-act-22b10f946174?source=collection_archive---------7-----------------------#2024-03-14`](https://towardsdatascience.com/uncovering-the-eu-ai-act-22b10f946174?source=collection_archive---------7-----------------------#2024-03-14)
 
 ## 欧盟已经开始规范机器学习。这个新法案对数据科学家意味着什么？
 
-[](https://medium.com/@s.kirmer?source=post_page---byline--22b10f946174--------------------------------)[![Stephanie Kirmer](../Images/f9d9ef9167febde974c223dd4d8d6293.png)](https://medium.com/@s.kirmer?source=post_page---byline--22b10f946174--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--22b10f946174--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--22b10f946174--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--22b10f946174--------------------------------)
+[](https://medium.com/@s.kirmer?source=post_page---byline--22b10f946174--------------------------------)![Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--22b10f946174--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--22b10f946174--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--22b10f946174--------------------------------) [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--22b10f946174--------------------------------)
 
-·发布于[数据科学之路](https://towardsdatascience.com/?source=post_page---byline--22b10f946174--------------------------------) ·9分钟阅读·2024年3月14日
+·发布于[数据科学之路](https://towardsdatascience.com/?source=post_page---byline--22b10f946174--------------------------------) ·9 分钟阅读·2024 年 3 月 14 日
 
 --
 
-![](../Images/2c2abb2e138e0fc7cc74086f14e9acca.png)
+![](img/2c2abb2e138e0fc7cc74086f14e9acca.png)
 
 图片由[Hansjörg Keller](https://unsplash.com/@kel_foto?utm_source=medium&utm_medium=referral)提供，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -84,7 +84,7 @@
 
 ## 其他
 
-剩下的两个类别是“低风险人工智能系统”和“通用人工智能模型”。通用模型比如GPT-4、Claude或者Gemini——这些系统有着非常广泛的应用场景，通常会被用于其他下游产品中。因此，GPT-4本身并不属于高风险或禁用类别，但你将其嵌入使用的方式受到此处描述的其他规则的限制。你不能将GPT-4用于预测性警务，但GPT-4可以用于低风险场景。
+剩下的两个类别是“低风险人工智能系统”和“通用人工智能模型”。通用模型比如 GPT-4、Claude 或者 Gemini——这些系统有着非常广泛的应用场景，通常会被用于其他下游产品中。因此，GPT-4 本身并不属于高风险或禁用类别，但你将其嵌入使用的方式受到此处描述的其他规则的限制。你不能将 GPT-4 用于预测性警务，但 GPT-4 可以用于低风险场景。
 
 # 透明度与审查
 
@@ -114,11 +114,11 @@
 
 该法律有分阶段实施：
 
-+   6个月后，对不可接受风险的人工智能的禁令生效
++   6 个月后，对不可接受风险的人工智能的禁令生效
 
-+   12个月后，通用人工智能治理生效
++   12 个月后，通用人工智能治理生效
 
-+   24个月后，法律中的所有剩余规则生效
++   24 个月后，法律中的所有剩余规则生效
 
 注意：该法律不涵盖纯粹的个人非职业活动，除非它们属于前面列出的禁用类型，所以你的小型开源副项目不太可能构成风险。
 
@@ -128,15 +128,15 @@
 
 如果你做了上述描述的禁用形式的人工智能：
 
-+   最高**3500万欧元**的罚款，或者如果你是企业，**上年度全球收入的7%**（以较高者为准）
++   最高**3500 万欧元**的罚款，或者如果你是企业，**上年度全球收入的 7%**（以较高者为准）
 
 不在禁用范围内的其他违规行为：
 
-+   最高**1500万欧元**的罚款，或者如果你是企业，**上年度全球收入的3%**（以较高者为准）
++   最高**1500 万欧元**的罚款，或者如果你是企业，**上年度全球收入的 3%**（以较高者为准）
 
 对当局就以下事项撒谎：
 
-+   最高**750万欧元**的罚款，或者如果你是企业，**上年度全球收入的1%**（以较高者为准）
++   最高**750 万欧元**的罚款，或者如果你是企业，**上年度全球收入的 1%**（以较高者为准）
 
 注意：对于中小型企业，包括初创公司，罚款将以较低者为准，而非较高者。
 
@@ -146,31 +146,31 @@
 
 然后，注意你自己企业或组织中可能的违规行为。你有时间发现并修正问题，但被禁的人工智能形式将首先生效。在大型企业中，你可能会有法务团队，但不要认为他们会为你处理所有这些事情。你是机器学习方面的专家，因此你是企业发现和避免违规行为的重要一环。你可以使用[欧盟人工智能法案网站上的合规检查工具](https://artificialintelligenceact.eu/assessment/eu-ai-act-compliance-checker/)来帮助你。
 
-今天在企业和组织中使用的许多AI形式是新法律所不允许的。我在上文提到过Clearview AI，以及预测性警务。情感测试也是一个非常真实的现象，求职面试过程中人们常常会受到这种测试（我邀请你搜索“情感测试求职”并看到众多公司提供此服务），此外，还有高频率的面部或其他生物特征数据收集。我们所有人都将非常关注这个问题，看到执法如何展开，一旦法律全面生效，情况将非常有趣且重要。
+今天在企业和组织中使用的许多 AI 形式是新法律所不允许的。我在上文提到过 Clearview AI，以及预测性警务。情感测试也是一个非常真实的现象，求职面试过程中人们常常会受到这种测试（我邀请你搜索“情感测试求职”并看到众多公司提供此服务），此外，还有高频率的面部或其他生物特征数据收集。我们所有人都将非常关注这个问题，看到执法如何展开，一旦法律全面生效，情况将非常有趣且重要。
 
-我想花一点时间说几句，关于我一位亲爱的朋友，他在这周与癌症进行了艰苦的斗争后去世。Ed Visel，在线昵称为`alistaire`，是一位杰出的数据科学家，他将大量的时间和才华奉献给了更广泛的数据科学社区。[如果你在过去十年里在StackOverflow上问过R问题，可能他曾帮助过你](https://stackoverflow.com/users/4497050/alistaire)。他总是耐心和善良，因为像我一样，作为一名自学成才的数据科学家，他深知从零开始学习这些东西的艰难，因此始终保持着同理心。
+我想花一点时间说几句，关于我一位亲爱的朋友，他在这周与癌症进行了艰苦的斗争后去世。Ed Visel，在线昵称为`alistaire`，是一位杰出的数据科学家，他将大量的时间和才华奉献给了更广泛的数据科学社区。[如果你在过去十年里在 StackOverflow 上问过 R 问题，可能他曾帮助过你](https://stackoverflow.com/users/4497050/alistaire)。他总是耐心和善良，因为像我一样，作为一名自学成才的数据科学家，他深知从零开始学习这些东西的艰难，因此始终保持着同理心。
 
-![](../Images/29104dd21d0af55f5b74cbfb872b7176.png)
+![](img/29104dd21d0af55f5b74cbfb872b7176.png)
 
 作者照片
 
-我有幸与Ed共事了几年，并且成为了他的朋友多年。我们失去了他，实在是太早了。我请求你们在他的记忆中帮助一位朋友或同事解决一个技术问题。没有他，数据科学社区将变得不再那么友好。
+我有幸与 Ed 共事了几年，并且成为了他的朋友多年。我们失去了他，实在是太早了。我请求你们在他的记忆中帮助一位朋友或同事解决一个技术问题。没有他，数据科学社区将变得不再那么友好。
 
-此外，如果你曾在线或亲自认识Ed，家属已请求捐款给[Severson Dells自然中心](https://www.seversondells.com/)，这是一个对他意义非凡的地方。
+此外，如果你曾在线或亲自认识 Ed，家属已请求捐款给[Severson Dells 自然中心](https://www.seversondells.com/)，这是一个对他意义非凡的地方。
 
 *在此阅读更多我的内容* [*www.stephaniekirmer.com.*](http://www.stephaniekirmer.com.)
 
 # 参考文献和进一步阅读
 
-[](https://artificialintelligenceact.eu/ai-act-explorer/?source=post_page-----22b10f946174--------------------------------) [## AI法案探索器
+[](https://artificialintelligenceact.eu/ai-act-explorer/?source=post_page-----22b10f946174--------------------------------) [## AI 法案探索器
 
-### 已将所有“章节”添加到AI法案探索器中。添加了缺失的条款：3、66、68、68a（1）、68f、68g、68h、68i、68j、68k……
+### 已将所有“章节”添加到 AI 法案探索器中。添加了缺失的条款：3、66、68、68a（1）、68f、68g、68h、68i、68j、68k……
 
 artificialintelligenceact.eu](https://artificialintelligenceact.eu/ai-act-explorer/?source=post_page-----22b10f946174--------------------------------)
 
-[https://www.theverge.com/23919134/kashmir-hill-your-face-belongs-to-us-clearview-ai-facial-recognition-privacy-decoder](https://www.theverge.com/23919134/kashmir-hill-your-face-belongs-to-us-clearview-ai-facial-recognition-privacy-decoder)
+[`www.theverge.com/23919134/kashmir-hill-your-face-belongs-to-us-clearview-ai-facial-recognition-privacy-decoder`](https://www.theverge.com/23919134/kashmir-hill-your-face-belongs-to-us-clearview-ai-facial-recognition-privacy-decoder)
 
-[](https://artificialintelligenceact.eu/assessment/eu-ai-act-compliance-checker/?source=post_page-----22b10f946174--------------------------------) [## 欧盟AI法案合规检查器
+[](https://artificialintelligenceact.eu/assessment/eu-ai-act-compliance-checker/?source=post_page-----22b10f946174--------------------------------) [## 欧盟 AI 法案合规检查器
 
 ### 欧盟委员会现在正在支持欧盟理事会和欧洲议会完成……
 

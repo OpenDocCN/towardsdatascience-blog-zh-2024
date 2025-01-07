@@ -1,16 +1,16 @@
 # 利用 Apple Silicon 的 GPU 进行深度学习的 3 种方法
 
-> 原文：[https://towardsdatascience.com/3-ways-to-leverage-apple-silicons-gpu-for-deep-learning-2cbb5b268b76?source=collection_archive---------3-----------------------#2024-03-01](https://towardsdatascience.com/3-ways-to-leverage-apple-silicons-gpu-for-deep-learning-2cbb5b268b76?source=collection_archive---------3-----------------------#2024-03-01)
+> 原文：[`towardsdatascience.com/3-ways-to-leverage-apple-silicons-gpu-for-deep-learning-2cbb5b268b76?source=collection_archive---------3-----------------------#2024-03-01`](https://towardsdatascience.com/3-ways-to-leverage-apple-silicons-gpu-for-deep-learning-2cbb5b268b76?source=collection_archive---------3-----------------------#2024-03-01)
 
 ## Apple Silicon 提供了令人印象深刻的性能提升，并且具有极好的功率效率。我们可以将这些芯片用于深度学习吗？
 
-[](https://medium.com/@jiri.moravcik?source=post_page---byline--2cbb5b268b76--------------------------------)[![Jiří Moravčík](../Images/2056f2f3f5b40732d5891a5d91b6a9d0.png)](https://medium.com/@jiri.moravcik?source=post_page---byline--2cbb5b268b76--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2cbb5b268b76--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2cbb5b268b76--------------------------------) [Jiří Moravčík](https://medium.com/@jiri.moravcik?source=post_page---byline--2cbb5b268b76--------------------------------)
+[](https://medium.com/@jiri.moravcik?source=post_page---byline--2cbb5b268b76--------------------------------)![Jiří Moravčík](https://medium.com/@jiri.moravcik?source=post_page---byline--2cbb5b268b76--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2cbb5b268b76--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2cbb5b268b76--------------------------------) [Jiří Moravčík](https://medium.com/@jiri.moravcik?source=post_page---byline--2cbb5b268b76--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2cbb5b268b76--------------------------------) ·阅读时间 4 分钟·2024年3月1日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2cbb5b268b76--------------------------------) ·阅读时间 4 分钟·2024 年 3 月 1 日
 
 --
 
-![](../Images/bf7f41b799bfdffb1f7d5364a694b3ad.png)
+![](img/bf7f41b799bfdffb1f7d5364a694b3ad.png)
 
 作者提供的图片
 

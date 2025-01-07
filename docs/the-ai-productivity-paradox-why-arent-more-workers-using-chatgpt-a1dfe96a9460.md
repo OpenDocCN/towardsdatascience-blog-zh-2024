@@ -1,30 +1,30 @@
-# AI生产力悖论：为什么更多的工人没有使用ChatGPT？
+# AI 生产力悖论：为什么更多的工人没有使用 ChatGPT？
 
-> 原文：[https://towardsdatascience.com/the-ai-productivity-paradox-why-arent-more-workers-using-chatgpt-a1dfe96a9460?source=collection_archive---------0-----------------------#2024-10-27](https://towardsdatascience.com/the-ai-productivity-paradox-why-arent-more-workers-using-chatgpt-a1dfe96a9460?source=collection_archive---------0-----------------------#2024-10-27)
+> 原文：[`towardsdatascience.com/the-ai-productivity-paradox-why-arent-more-workers-using-chatgpt-a1dfe96a9460?source=collection_archive---------0-----------------------#2024-10-27`](https://towardsdatascience.com/the-ai-productivity-paradox-why-arent-more-workers-using-chatgpt-a1dfe96a9460?source=collection_archive---------0-----------------------#2024-10-27)
 
 ## 真正的障碍不是技术技能——而是思考的时间
 
-[](https://medium.com/@4thewinn?source=post_page---byline--a1dfe96a9460--------------------------------)[![Julia Winn](../Images/9ca44e7be7c308a0bcaf797c6fa76a8c.png)](https://medium.com/@4thewinn?source=post_page---byline--a1dfe96a9460--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a1dfe96a9460--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a1dfe96a9460--------------------------------) [Julia Winn](https://medium.com/@4thewinn?source=post_page---byline--a1dfe96a9460--------------------------------)
+[](https://medium.com/@4thewinn?source=post_page---byline--a1dfe96a9460--------------------------------)![Julia Winn](https://medium.com/@4thewinn?source=post_page---byline--a1dfe96a9460--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a1dfe96a9460--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a1dfe96a9460--------------------------------) [Julia Winn](https://medium.com/@4thewinn?source=post_page---byline--a1dfe96a9460--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a1dfe96a9460--------------------------------) ·6分钟阅读·2024年10月27日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a1dfe96a9460--------------------------------) ·6 分钟阅读·2024 年 10 月 27 日
 
 --
 
-尽管[像ChatGPT这样的工具具有变革性潜力](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4573321)，我与大多数知识工作者交谈后发现，他们根本不使用它。那些使用的人主要停留在像总结这样的基础任务上。[仅有超过5%的ChatGPT用户付费购买Plus服务](https://www.theinformation.com/articles/openai-coo-says-chatgpt-passed-11-million-paying-subscribers)——这是潜在职业用户的一个小部分——这表明，专业用户在利用AI进行复杂、高价值工作方面仍然很少。
+尽管[像 ChatGPT 这样的工具具有变革性潜力](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4573321)，我与大多数知识工作者交谈后发现，他们根本不使用它。那些使用的人主要停留在像总结这样的基础任务上。[仅有超过 5%的 ChatGPT 用户付费购买 Plus 服务](https://www.theinformation.com/articles/openai-coo-says-chatgpt-passed-11-million-paying-subscribers)——这是潜在职业用户的一个小部分——这表明，专业用户在利用 AI 进行复杂、高价值工作方面仍然很少。
 
-在谷歌大脑到Shopify广告等公司，从事AI产品研发已有十多年，我亲眼见证了这一领域的发展。随着ChatGPT的崛起，AI已从像照片整理这类“锦上添花”的工具，发展为为所有知识工作者提供重要生产力提升的工具。
+在谷歌大脑到 Shopify 广告等公司，从事 AI 产品研发已有十多年，我亲眼见证了这一领域的发展。随着 ChatGPT 的崛起，AI 已从像照片整理这类“锦上添花”的工具，发展为为所有知识工作者提供重要生产力提升的工具。
 
-大多数高管都明白，如今的热议不仅仅是炒作——他们迫切希望让公司朝着AI发展，因为他们知道AI比以往任何时候都更强大、更易于使用。那么，尽管有潜力和热情，为什么广泛的应用进展缓慢呢？真正的障碍在于组织如何看待工作本身。系统性的问题使得这些工具无法成为我们日常工作的一部分。
+大多数高管都明白，如今的热议不仅仅是炒作——他们迫切希望让公司朝着 AI 发展，因为他们知道 AI 比以往任何时候都更强大、更易于使用。那么，尽管有潜力和热情，为什么广泛的应用进展缓慢呢？真正的障碍在于组织如何看待工作本身。系统性的问题使得这些工具无法成为我们日常工作的一部分。
 
-最终，高管们需要问的问题不是“我们如何使用AI来做得更快？或者这个功能能否用AI构建？”而是“我们如何使用AI创造更多价值？我们应该问哪些问题，但却没有问？”
+最终，高管们需要问的问题不是“我们如何使用 AI 来做得更快？或者这个功能能否用 AI 构建？”而是“我们如何使用 AI 创造更多价值？我们应该问哪些问题，但却没有问？”
 
 # 现实世界的影响
 
-最近，我利用大语言模型（LLMs）——类似于ChatGPT这类工具背后的技术——来处理一个复杂的数据结构化和分析任务，这个任务在传统情况下需要跨职能团队的数据分析师和内容设计师花费一个月或更长时间来完成。
+最近，我利用大语言模型（LLMs）——类似于 ChatGPT 这类工具背后的技术——来处理一个复杂的数据结构化和分析任务，这个任务在传统情况下需要跨职能团队的数据分析师和内容设计师花费一个月或更长时间来完成。
 
-![](../Images/0bc40a2e316b9f3266f401cb114c77eb.png)
+![](img/0bc40a2e316b9f3266f401cb114c77eb.png)
 
-由作者使用Midjourney生成的图像
+由作者使用 Midjourney 生成的图像
 
 这是我使用[Google AI Studio](https://aistudio.google.com/)在*一天*内完成的工作：
 
@@ -44,13 +44,13 @@
 
 # 反直觉的真相
 
-关键在这里——理解我们AI生产力悖论的关键：我的AI成功依赖于得到领导层支持，专门腾出一天时间，与AI作为我的思维伙伴，一起重新思考我们的数据处理流程。
+关键在这里——理解我们 AI 生产力悖论的关键：我的 AI 成功依赖于得到领导层支持，专门腾出一天时间，与 AI 作为我的思维伙伴，一起重新思考我们的数据处理流程。
 
 这使得深入的战略性思考成为可能——探索那些原本需要数周才能发现的联系和可能性。
 
 这种专注于质量的工作通常会在赶工期的过程中被牺牲，然而，它正是推动突破性创新的动力。悖论的是，大多数人没有时间去弄明白他们如何节省时间。
 
-用于探索的专门时间是大多数产品经理无法承受的奢侈。在不断的压力下要求立即交付结果，大多数人几乎没有一个小时的时间来进行这种战略性工作——许多人能挤出时间做这类探索性工作，唯一的办法就是假装生病。他们被高层指令和紧急的客户需求压得喘不过气来，导致他们对战略方向缺乏掌控力。此外，近期的裁员和行业内的其他削减措施加重了工作负担，许多产品经理不得不每天工作12小时，仅仅为了跟上基本任务的进度。
+用于探索的专门时间是大多数产品经理无法承受的奢侈。在不断的压力下要求立即交付结果，大多数人几乎没有一个小时的时间来进行这种战略性工作——许多人能挤出时间做这类探索性工作，唯一的办法就是假装生病。他们被高层指令和紧急的客户需求压得喘不过气来，导致他们对战略方向缺乏掌控力。此外，近期的裁员和行业内的其他削减措施加重了工作负担，许多产品经理不得不每天工作 12 小时，仅仅为了跟上基本任务的进度。
 
 这种持续的压力也阻碍了 AI 在改进执行方面的应用。制定稳健的测试计划或主动识别 AI 可能出现的问题，往往被视为奢侈，而非必需。这种情况会形成一种适得其反的动态：如果修复问题会延迟发布，为什么要用 AI 来识别文档中的问题？如果方向已经从上层设定，为什么还要做额外的研究，了解用户和问题领域？
 
@@ -70,14 +70,14 @@
 
 一旦你识别出这些内部专家，邀请他们进行一到两小时的“AI 审计”，审查你团队当前的工作流程，并识别需要改进的地方。他们还可以帮助创建针对特定用例的起始提示，分享他们的 AI 工作流程，并提供关于如何排除故障和未来评估的建议。
 
-除了节省外部顾问的费用——这些专家更有可能理解你公司系统和目标，因此更容易发现切实且相关的机会。那些犹豫不决的人在看到同事使用这些技术时，也更有可能进行尝试，而不是看到“AI专家”在使用。
+除了节省外部顾问的费用——这些专家更有可能理解你公司系统和目标，因此更容易发现切实且相关的机会。那些犹豫不决的人在看到同事使用这些技术时，也更有可能进行尝试，而不是看到“AI 专家”在使用。
 
-除了确保人们有学习的空间外，一旦他们理解了AI工具的能力，还需要确保他们有时间在自己的领域中探索和实验这些工具。公司不能仅仅告诉员工“用AI创新”，同时又要求他们在周五下午5点之前交出下一个月的功能。确保你的团队每月有几个小时用于探索。
+除了确保人们有学习的空间外，一旦他们理解了 AI 工具的能力，还需要确保他们有时间在自己的领域中探索和实验这些工具。公司不能仅仅告诉员工“用 AI 创新”，同时又要求他们在周五下午 5 点之前交出下一个月的功能。确保你的团队每月有几个小时用于探索。
 
-一旦你克服了AI采用的第一个障碍，你的团队应该能够识别出最具潜力的投资领域。此时，你将能够更好地评估是否需要任何额外的、更专业的培训。
+一旦你克服了 AI 采用的第一个障碍，你的团队应该能够识别出最具潜力的投资领域。此时，你将能够更好地评估是否需要任何额外的、更专业的培训。
 
 # 结论
 
-AI生产力悖论并不在于技术的复杂性，而在于组织如何看待工作和创新。驾驭AI的力量比“AI影响者”推销最新认证时所说的要简单——通常只需几分钟的有针对性训练。但这要求领导者思维方式的根本转变。高管们不应再堆积短期交付任务，而应为探索和深度、开放性、目标驱动的工作创造空间。真正的挑战不是教员工使用AI，而是给他们时间和自由，重新定义他们的工作方式。
+AI 生产力悖论并不在于技术的复杂性，而在于组织如何看待工作和创新。驾驭 AI 的力量比“AI 影响者”推销最新认证时所说的要简单——通常只需几分钟的有针对性训练。但这要求领导者思维方式的根本转变。高管们不应再堆积短期交付任务，而应为探索和深度、开放性、目标驱动的工作创造空间。真正的挑战不是教员工使用 AI，而是给他们时间和自由，重新定义他们的工作方式。
 
-想深入了解有效的AI实施吗？请查看[我们需要提高AI产品经理的标准](https://medium.com/towards-data-science/we-need-to-raise-the-bar-for-ai-product-managers-ae0f3f933910)和[什么才是一个真正的AI代理？重新思考自主性的追求](https://medium.com/towards-data-science/what-makes-a-true-ai-agent-rethinking-the-pursuit-of-autonomy-547ab54f4995)。
+想深入了解有效的 AI 实施吗？请查看[我们需要提高 AI 产品经理的标准](https://medium.com/towards-data-science/we-need-to-raise-the-bar-for-ai-product-managers-ae0f3f933910)和[什么才是一个真正的 AI 代理？重新思考自主性的追求](https://medium.com/towards-data-science/what-makes-a-true-ai-agent-rethinking-the-pursuit-of-autonomy-547ab54f4995)。

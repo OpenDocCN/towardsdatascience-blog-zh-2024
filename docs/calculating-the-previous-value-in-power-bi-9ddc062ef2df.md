@@ -1,18 +1,18 @@
 # 在 Power BI 中计算前一个值
 
-> 原文：[https://towardsdatascience.com/calculating-the-previous-value-in-power-bi-9ddc062ef2df?source=collection_archive---------8-----------------------#2024-04-19](https://towardsdatascience.com/calculating-the-previous-value-in-power-bi-9ddc062ef2df?source=collection_archive---------8-----------------------#2024-04-19)
+> 原文：[`towardsdatascience.com/calculating-the-previous-value-in-power-bi-9ddc062ef2df?source=collection_archive---------8-----------------------#2024-04-19`](https://towardsdatascience.com/calculating-the-previous-value-in-power-bi-9ddc062ef2df?source=collection_archive---------8-----------------------#2024-04-19)
 
 ## 基于仪表数据计算消耗量看起来很简单。然而，复杂的情况可能会带来挑战。让我们看看如何解决这个问题。
 
-[](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)[![Salvatore Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)
+[](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)![Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------) ·10 分钟阅读·2024年4月19日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------) ·10 分钟阅读·2024 年 4 月 19 日
 
 --
 
 *当我们拥有仪表数据时，就像我们从家里的能源或水表中获得的数据一样，我们想计算这些值随时间的消耗量。在一个仪表的情况下非常简单，但如果我们有多个仪表，涉及不同区域、值等情况，就可能变得复杂。让我们看看如何在 Power BI 中解决这个问题。*
 
-![](../Images/3c6e4c7004e145b72d8aa37563ad2bf9.png)
+![](img/3c6e4c7004e145b72d8aa37563ad2bf9.png)
 
 照片由 [Doris Morgan](https://unsplash.com/@d_morgan?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -65,7 +65,7 @@ SELECT [DateKey]
 
 结果是每个 Meter ID 随时间变化的值列表：
 
-![](../Images/5985f0a4a1189c4861ee7337c03921a8.png)
+![](img/5985f0a4a1189c4861ee7337c03921a8.png)
 
 图 1 — 我的场景数据（图源自作者）
 
@@ -91,7 +91,7 @@ SELECT [DateKey]
 
 这是排序后的数据结果：
 
-![](../Images/9e78062f3cb7c7d6315884599e506a86.png)
+![](img/9e78062f3cb7c7d6315884599e506a86.png)
 
 图 2 — 排序操作后的表格（图源自作者）
 
@@ -99,19 +99,19 @@ SELECT [DateKey]
 
 现在，我在 Power Query 中使用 Group By 转换，将每个 House 和 Meter 的组合的所有行分组在一起：
 
-![](../Images/deeb6dbcce7b185f1cbb7cb2deac4b43.png)
+![](img/deeb6dbcce7b185f1cbb7cb2deac4b43.png)
 
 图 3 — 将所有的 Value 行组合在一起（图源自作者）
 
 现在数据看起来是这样的：
 
-![](../Images/44b1ee9245b7ef3ed438a36444cd8871.png)
+![](img/44b1ee9245b7ef3ed438a36444cd8871.png)
 
 图 4 — 分组后的数据（图源自作者）
 
 当我点击 ValueTable 列的某个单元格时，我看到与该行关联的所有行作为嵌套表呈现：
 
-![](../Images/f0f169a45083a598f1429d07338f5a74.png)
+![](img/f0f169a45083a598f1429d07338f5a74.png)
 
 图 5 — 每个 House 和 Meter 组合的嵌套表（图源自作者）
 
@@ -119,7 +119,7 @@ SELECT [DateKey]
 
 因此，我必须将连续的转换作为手动步骤添加：
 
-![](../Images/41492a771947706e023b3bb290dffdd6.png)
+![](img/41492a771947706e023b3bb290dffdd6.png)
 
 图 6 — 向 Power Query 添加新步骤（图源自作者）
 
@@ -134,7 +134,7 @@ SELECT [DateKey]
 
 这是嵌套表中的结果：
 
-![](../Images/19de2020f63559739873d351d4d3ca84.png)
+![](img/19de2020f63559739873d351d4d3ca84.png)
 
 图 7 — 向嵌套表添加索引（图源自作者）
 
@@ -158,13 +158,13 @@ SELECT [DateKey]
 
 嵌套表中新增列的结果如下：
 
-![](../Images/b3b5feae21e9f5649ea202f6ec16a599.png)
+![](img/b3b5feae21e9f5649ea202f6ec16a599.png)
 
 图 8 — 带有前一个值的嵌套表（图源自作者）
 
 接下来，我使用 Drill Down 转换，将嵌套表展开为原始表格：
 
-![](../Images/3035522d1db3a924ac7b05912dd631bc.png)
+![](img/3035522d1db3a924ac7b05912dd631bc.png)
 
 图 9 — 深入嵌套表格（图由作者提供）
 
@@ -180,7 +180,7 @@ SELECT [DateKey]
 
 为了完成任务，我可以添加一个新的计算列，将“PrevValue”从“Value”中减去，以得到所需的消耗量：
 
-![](../Images/60ca6527aa9b504749742dd31b31a5b7.png)
+![](img/60ca6527aa9b504749742dd31b31a5b7.png)
 
 图 10 — 计算消耗量（图由作者提供）
 
@@ -188,7 +188,7 @@ SELECT [DateKey]
 
 在将结果加载到 Power BI 后，我可以为每个仪表和房屋创建一个消耗图表：
 
-![](../Images/9d8a80dc192911b8397dbe3c08e17c39.png)
+![](img/9d8a80dc192911b8397dbe3c08e17c39.png)
 
 图 11 — 每个房屋和仪表的时间消耗（图由作者提供）
 
@@ -275,7 +275,7 @@ RETURN
 
 这是这三个表达式的结果：
 
-![](../Images/cb4137e6b5e1349ad635af58eb5841e8.png)
+![](img/cb4137e6b5e1349ad635af58eb5841e8.png)
 
 图 12 — 按天读取的前值结果（图由作者提供）
 
@@ -283,7 +283,7 @@ RETURN
 
 当我查看我的数据（包括房屋数据）时，我看到这样的情况：
 
-![](../Images/7171389c369957350f0fa35e028c4160.png)
+![](img/7171389c369957350f0fa35e028c4160.png)
 
 图 13 — 按房屋和仪表筛选的读数视图（图由作者提供）
 
@@ -320,9 +320,9 @@ RETURN
 
 但结果符合需求：
 
-![](../Images/7c80c9686a15771fcbcaeb48b5d471ca.png)
+![](img/7c80c9686a15771fcbcaeb48b5d471ca.png)
 
-图14 — 用于获取上次读取日期的度量结果（图由作者提供）
+图 14 — 用于获取上次读取日期的度量结果（图由作者提供）
 
 通过使用上下文转换，我可以使用这个度量创建一个新的“前键”列版本（我也在当前键列的表达式中包括了房屋）：
 
@@ -337,15 +337,15 @@ RETURN
 
 现在，我可以使用与之前相同的表达式，根据两个键列获取所需结果：
 
-![](../Images/ebc4b0ccf9beab330741d3c60766193e.png)
+![](img/ebc4b0ccf9beab330741d3c60766193e.png)
 
-图15 — 使用变量间隔计算前值的结果（图由作者提供）
+图 15 — 使用变量间隔计算前值的结果（图由作者提供）
 
 在加入与之前相同的视觉效果后，结果与我通过 Power Query 操作数据得到的结果相同：
 
-![](../Images/2a179c0eff88350824620d1e49c07a33.png)
+![](img/2a179c0eff88350824620d1e49c07a33.png)
 
-图16 — 使用 DAX 计算的2024年图表（图由作者提供）
+图 16 — 使用 DAX 计算的 2024 年图表（图由作者提供）
 
 最后，我可以通过直接在一个压缩且自包含的“前值”列版本中计算它们，从而摆脱中间的键列：
 
@@ -363,9 +363,9 @@ RETURN
 
 这里是结果并排显示，它们是完全相同的：
 
-![](../Images/0f8354093ce3feb4ac0dd1c3d1e005ec.png)
+![](img/0f8354093ce3feb4ac0dd1c3d1e005ec.png)
 
-图17 — 使用中间键列和压缩（自包含）版本计算前值的结果（图由作者提供）
+图 17 — 使用中间键列和压缩（自包含）版本计算前值的结果（图由作者提供）
 
 现在我们有了多种解决方案，哪个是更好的呢？
 
@@ -401,9 +401,9 @@ RETURN
 
 我得到以下信息：
 
-![](../Images/807bf8c298739f4f278c0617b8647399.png)
+![](img/807bf8c298739f4f278c0617b8647399.png)
 
-图18 — 数据模型的度量，包含两张表（图由作者提供）
+图 18 — 数据模型的度量，包含两张表（图由作者提供）
 
 我可以看到，使用 DAX 中计算列的方法比 Power Query 方法占用更多内存。
 
@@ -423,7 +423,7 @@ RETURN
 
 现在你已经有了两种解决方案的信息，轮到你选择最合适的一个了。
 
-![](../Images/c9e479b08dbd0f22ce24e760264d3437.png)
+![](img/c9e479b08dbd0f22ce24e760264d3437.png)
 
 图片由[Brendan Church](https://unsplash.com/@bdchu614?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -433,15 +433,15 @@ RETURN
 
 使用 Power Query 的方法源自这篇博客文章和视频：
 
-[https://gorilla.bi/power-query/get-previous-row-value/#:~:text=The%20earlier%20row%20has%20an,a%20table%20to%20merge%20with](https://gorilla.bi/power-query/get-previous-row-value/#:~:text=The%20earlier%20row%20has%20an,a%20table%20to%20merge%20with).
+[`gorilla.bi/power-query/get-previous-row-value/#:~:text=The%20earlier%20row%20has%20an,a%20table%20to%20merge%20with`](https://gorilla.bi/power-query/get-previous-row-value/#:~:text=The%20earlier%20row%20has%20an,a%20table%20to%20merge%20with).
 
 这里是我关于上下文转换的文章：
 
-[](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----9ddc062ef2df--------------------------------) [## DAX 中的上下文转换有什么特别之处
+[](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----9ddc062ef2df--------------------------------) ## DAX 中的上下文转换有什么特别之处
 
 ### 行上下文和筛选上下文是 DAX 中的常见概念。但我们可以通过上下文转换在这两者之间切换。
 
-towardsdatascience.com](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----9ddc062ef2df--------------------------------)
+towardsdatascience.com
 
 其他解决方案和方法包括在 Power Query 中使用单一的 M 表达式。我决定使用这个方法，因为它实现起来简单，而且很容易理解发生了什么。
 
@@ -457,11 +457,11 @@ medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page----
 
 你可以通过以下方式支持我在空闲时间进行的工作：
 
-[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)
+[`buymeacoffee.com/salvatorecagliari`](https://buymeacoffee.com/salvatorecagliari)
 
 或扫描此二维码：
 
-![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)
+![](img/e7ac062070dcd7a00dcf995ad7e95434.png)
 
 任何支持都非常感激，这将帮助我找到更多时间为你创作更多内容。
 

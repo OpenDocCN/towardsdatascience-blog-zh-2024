@@ -1,16 +1,16 @@
-# 我是如何在没有“完美”学位的情况下成为Meta的数据科学家的
+# 我是如何在没有“完美”学位的情况下成为 Meta 的数据科学家的
 
-> 原文：[https://towardsdatascience.com/how-i-became-a-data-scientist-at-meta-no-stats-degree-no-bootcamp-4aa07494d117?source=collection_archive---------1-----------------------#2024-08-06](https://towardsdatascience.com/how-i-became-a-data-scientist-at-meta-no-stats-degree-no-bootcamp-4aa07494d117?source=collection_archive---------1-----------------------#2024-08-06)
+> 原文：[`towardsdatascience.com/how-i-became-a-data-scientist-at-meta-no-stats-degree-no-bootcamp-4aa07494d117?source=collection_archive---------1-----------------------#2024-08-06`](https://towardsdatascience.com/how-i-became-a-data-scientist-at-meta-no-stats-degree-no-bootcamp-4aa07494d117?source=collection_archive---------1-----------------------#2024-08-06)
 
-## 4份工作和2次职业转型
+## 4 份工作和 2 次职业转型
 
-[](https://medium.com/@mandymliu?source=post_page---byline--4aa07494d117--------------------------------)[![Mandy Liu](../Images/ca4530dd41121dc7ab6d1ec9134bb08d.png)](https://medium.com/@mandymliu?source=post_page---byline--4aa07494d117--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4aa07494d117--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4aa07494d117--------------------------------) [Mandy Liu](https://medium.com/@mandymliu?source=post_page---byline--4aa07494d117--------------------------------)
+[](https://medium.com/@mandymliu?source=post_page---byline--4aa07494d117--------------------------------)![Mandy Liu](https://medium.com/@mandymliu?source=post_page---byline--4aa07494d117--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4aa07494d117--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4aa07494d117--------------------------------) [Mandy Liu](https://medium.com/@mandymliu?source=post_page---byline--4aa07494d117--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4aa07494d117--------------------------------) ·阅读时间：13分钟·2024年8月6日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4aa07494d117--------------------------------) ·阅读时间：13 分钟·2024 年 8 月 6 日
 
 --
 
-![](../Images/494575bd0aab9df3e574a3884f536f68.png)
+![](img/494575bd0aab9df3e574a3884f536f68.png)
 
 图片由 [Muhammad Asyfaul](https://mandyliu.substack.com/p/true) 提供，来自 [Unsplash](https://unsplash.com/)
 
@@ -42,4 +42,4 @@
 
 ## 你好！
 
-我是 [Mandy Liu](https://www.linkedin.com/in/mandy-liu-2551724a/)，曾是Meta的数据科学家，拥有8年行业经验 :)
+我是 [Mandy Liu](https://www.linkedin.com/in/mandy-liu-2551724a/)，曾是 Meta 的数据科学家，拥有 8 年行业经验 :)

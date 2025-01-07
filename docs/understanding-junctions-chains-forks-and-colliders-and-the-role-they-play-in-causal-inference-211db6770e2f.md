@@ -1,16 +1,16 @@
 # 理解交点（链条、分叉和碰撞器）及其在因果推断中的作用
 
-> 原文：[https://towardsdatascience.com/understanding-junctions-chains-forks-and-colliders-and-the-role-they-play-in-causal-inference-211db6770e2f?source=collection_archive---------7-----------------------#2024-01-31](https://towardsdatascience.com/understanding-junctions-chains-forks-and-colliders-and-the-role-they-play-in-causal-inference-211db6770e2f?source=collection_archive---------7-----------------------#2024-01-31)
+> 原文：[`towardsdatascience.com/understanding-junctions-chains-forks-and-colliders-and-the-role-they-play-in-causal-inference-211db6770e2f?source=collection_archive---------7-----------------------#2024-01-31`](https://towardsdatascience.com/understanding-junctions-chains-forks-and-colliders-and-the-role-they-play-in-causal-inference-211db6770e2f?source=collection_archive---------7-----------------------#2024-01-31)
 
 ## 通过相关性、独立性和回归来解释交点，从而理解它们在因果推断中的关键重要性
 
-[](https://grahamharrison-86487.medium.com/?source=post_page---byline--211db6770e2f--------------------------------)[![Graham Harrison](../Images/c6bfe00c6e0cfcdf3bd042c7fdc03554.png)](https://grahamharrison-86487.medium.com/?source=post_page---byline--211db6770e2f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--211db6770e2f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--211db6770e2f--------------------------------) [Graham Harrison](https://grahamharrison-86487.medium.com/?source=post_page---byline--211db6770e2f--------------------------------)
+[](https://grahamharrison-86487.medium.com/?source=post_page---byline--211db6770e2f--------------------------------)![Graham Harrison](https://grahamharrison-86487.medium.com/?source=post_page---byline--211db6770e2f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--211db6770e2f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--211db6770e2f--------------------------------) [Graham Harrison](https://grahamharrison-86487.medium.com/?source=post_page---byline--211db6770e2f--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--211db6770e2f--------------------------------) ·阅读时间：25分钟·2024年1月31日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--211db6770e2f--------------------------------) ·阅读时间：25 分钟·2024 年 1 月 31 日
 
 --
 
-![](../Images/aaa98ea140f0391773854c84544eb5cc.png)
+![](img/aaa98ea140f0391773854c84544eb5cc.png)
 
 图片由[Ricardo Gomez Angel](https://unsplash.com/@rgaleriacom?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)提供，来源于[Unsplash](https://unsplash.com/photos/stainless-steel-and-red-industrial-machine-41X6FwTwPh4?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

@@ -1,8 +1,8 @@
 # 构建并部署一个多文件、多格式的 RAG 应用到 Web
 
-> 原文：[https://towardsdatascience.com/build-and-deploy-a-multi-file-multi-format-rag-app-to-the-web-910b7ac5eb6d?source=collection_archive---------2-----------------------#2024-10-24](https://towardsdatascience.com/build-and-deploy-a-multi-file-multi-format-rag-app-to-the-web-910b7ac5eb6d?source=collection_archive---------2-----------------------#2024-10-24)
+> 原文：[`towardsdatascience.com/build-and-deploy-a-multi-file-multi-format-rag-app-to-the-web-910b7ac5eb6d?source=collection_archive---------2-----------------------#2024-10-24`](https://towardsdatascience.com/build-and-deploy-a-multi-file-multi-format-rag-app-to-the-web-910b7ac5eb6d?source=collection_archive---------2-----------------------#2024-10-24)
 
-![](../Images/73c107381cbd02c4aa7182ffb023d1ed.png)
+![](img/73c107381cbd02c4aa7182ffb023d1ed.png)
 
 图像由 AI（Dalle-3）生成
 
@@ -10,9 +10,9 @@
 
 ## 第一部分 — 使用 Python、Gradio、GROQ 和 LlamaIndex 开发代码
 
-[](https://medium.com/@thomas_reid?source=post_page---byline--910b7ac5eb6d--------------------------------)[![Thomas Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--910b7ac5eb6d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--910b7ac5eb6d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--910b7ac5eb6d--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--910b7ac5eb6d--------------------------------)
+[](https://medium.com/@thomas_reid?source=post_page---byline--910b7ac5eb6d--------------------------------)![Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--910b7ac5eb6d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--910b7ac5eb6d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--910b7ac5eb6d--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--910b7ac5eb6d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--910b7ac5eb6d--------------------------------) ·阅读时间 11 分钟·2024年10月24日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--910b7ac5eb6d--------------------------------) ·阅读时间 11 分钟·2024 年 10 月 24 日
 
 --
 

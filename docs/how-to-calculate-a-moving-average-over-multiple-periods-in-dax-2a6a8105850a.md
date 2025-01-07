@@ -1,16 +1,16 @@
 # 如何计算 DAX 中多个周期的移动平均
 
-> 原文：[https://towardsdatascience.com/how-to-calculate-a-moving-average-over-multiple-periods-in-dax-2a6a8105850a?source=collection_archive---------13-----------------------#2024-10-01](https://towardsdatascience.com/how-to-calculate-a-moving-average-over-multiple-periods-in-dax-2a6a8105850a?source=collection_archive---------13-----------------------#2024-10-01)
+> 原文：[`towardsdatascience.com/how-to-calculate-a-moving-average-over-multiple-periods-in-dax-2a6a8105850a?source=collection_archive---------13-----------------------#2024-10-01`](https://towardsdatascience.com/how-to-calculate-a-moving-average-over-multiple-periods-in-dax-2a6a8105850a?source=collection_archive---------13-----------------------#2024-10-01)
 
 ## *在 DAX 中计算移动聚合是很简单的。然而，当计算跨时间的移动平均时，会有一些陷阱。由于其中一些陷阱涉及定义的问题，我们必须小心不要选择错误的方法。让我们来看看具体细节。*
 
-[](https://medium.com/@salvatorecagliari?source=post_page---byline--2a6a8105850a--------------------------------)[![Salvatore Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--2a6a8105850a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2a6a8105850a--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2a6a8105850a--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--2a6a8105850a--------------------------------)
+[](https://medium.com/@salvatorecagliari?source=post_page---byline--2a6a8105850a--------------------------------)![Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--2a6a8105850a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2a6a8105850a--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2a6a8105850a--------------------------------) [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--2a6a8105850a--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2a6a8105850a--------------------------------) ·8分钟阅读·2024年10月1日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2a6a8105850a--------------------------------) ·8 分钟阅读·2024 年 10 月 1 日
 
 --
 
-![](../Images/7302237dcc3ebd4223716fd99aa0982c.png)
+![](img/7302237dcc3ebd4223716fd99aa0982c.png)
 
 图片由 [Antoine Dautry](https://unsplash.com/@antoine1003?utm_source=medium&utm_medium=referral) 提供，来源 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,7 +22,7 @@
 
 例如，让我们看一下以下的表格：
 
-![](../Images/e823e254f4774c82fcf9f9152255ce0b.png)
+![](img/e823e254f4774c82fcf9f9152255ce0b.png)
 
 图 1 — 数字列表（图源：作者）
 
@@ -32,7 +32,7 @@
 
 现在，让我们删除一个值，这会改变结果。
 
-![](../Images/3f55fc4390557dacc0c69ebcf2253745.png)
+![](img/3f55fc4390557dacc0c69ebcf2253745.png)
 
 图 2 — 带有间隙的数字列表（图源：作者）
 
@@ -96,7 +96,7 @@ RETURN
 
 这是结果：
 
-![](../Images/f74e57bca2c2fb4c51a08e5621c5e4a6.png)
+![](img/f74e57bca2c2fb4c51a08e5621c5e4a6.png)
 
 图 3 — 四个月移动总和的表格（图由作者提供）
 
@@ -126,11 +126,11 @@ RETURN
 
 你可以在这里阅读更多关于在 Power BI 中衡量性能的内容：
 
-[](/how-to-get-performance-data-from-power-bi-with-dax-studio-b7f11b9dd9f9?source=post_page-----2a6a8105850a--------------------------------) [## 如何通过 DAX Studio 从 Power BI 获取性能数据
+[](/how-to-get-performance-data-from-power-bi-with-dax-studio-b7f11b9dd9f9?source=post_page-----2a6a8105850a--------------------------------) ## 如何通过 DAX Studio 从 Power BI 获取性能数据
 
 ### 有时我们会遇到报告加载缓慢的情况，我们需要找出原因。接下来我们将看到如何收集性能数据，以及……
 
-[towardsdatascience.com](/how-to-get-performance-data-from-power-bi-with-dax-studio-b7f11b9dd9f9?source=post_page-----2a6a8105850a--------------------------------)
+[towardsdatascience.com
 
 # 我们来做平均值
 
@@ -146,7 +146,7 @@ Average Online Sales = AVERAGEX('Online Sales'
 
 接下来，我复制了上述度量值来计算销售移动平均值，结果如下：
 
-![](../Images/68a11c25a254d6ac8343512c4a3dcd29.png)
+![](img/68a11c25a254d6ac8343512c4a3dcd29.png)
 
 图 4 — 基本平均值和移动平均值的结果（图由作者提供）
 
@@ -176,7 +176,7 @@ VAR Result = CALCULATE([Sum Online Sales] / [Count Online Sales]
 
 毫不奇怪，每个都得出了不同的结果：
 
-![](../Images/813bde70d788d62be9a52ccab2bd4a81.png)
+![](img/813bde70d788d62be9a52ccab2bd4a81.png)
 
 图 5 — 所有变体的平均值结果（图表由作者提供）
 
@@ -192,7 +192,7 @@ VAR Result = CALCULATE([Sum Online Sales] / [Count Online Sales]
 
 让我们再看一下包含月度销售额的结果：
 
-![](../Images/32643cadbfedf8807b3a6c869a8ece00.png)
+![](img/32643cadbfedf8807b3a6c869a8ece00.png)
 
 图 6 — 仅月度销售额（图表由作者提供）
 
@@ -257,7 +257,7 @@ RETURN
 
 结果如下：
 
-![](../Images/c43bd7dbe2d5df7b7757915109037d8b.png)
+![](img/c43bd7dbe2d5df7b7757915109037d8b.png)
 
 图 7 — 按月平均值的结果（图表由作者提供）
 
@@ -287,7 +287,7 @@ RETURN
 
 下次见。
 
-![](../Images/c8f7f0a0de78dae8db3e34fce94e1731.png)
+![](img/c8f7f0a0de78dae8db3e34fce94e1731.png)
 
 图片由[Tim Mossholder](https://unsplash.com/@timmossholder?utm_source=medium&utm_medium=referral)拍摄，来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -311,11 +311,11 @@ medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page----
 
 你可以通过以下方式支持我的工作：
 
-[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)
+[`buymeacoffee.com/salvatorecagliari`](https://buymeacoffee.com/salvatorecagliari)
 
 或扫描此二维码：
 
-![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)
+![](img/e7ac062070dcd7a00dcf995ad7e95434.png)
 
 任何支持都将不胜感激，并帮助我找到更多时间为你创作更多内容。
 

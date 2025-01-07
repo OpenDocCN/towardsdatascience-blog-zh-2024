@@ -1,16 +1,16 @@
 # 数据科学的常见误解
 
-> 原文：[https://towardsdatascience.com/common-misconceptions-about-data-science-4978963ba98c?source=collection_archive---------3-----------------------#2024-10-11](https://towardsdatascience.com/common-misconceptions-about-data-science-4978963ba98c?source=collection_archive---------3-----------------------#2024-10-11)
+> 原文：[`towardsdatascience.com/common-misconceptions-about-data-science-4978963ba98c?source=collection_archive---------3-----------------------#2024-10-11`](https://towardsdatascience.com/common-misconceptions-about-data-science-4978963ba98c?source=collection_archive---------3-----------------------#2024-10-11)
 
 ## 你应该质疑的数据科学建议
 
-[](https://medium.com/@egorhowell?source=post_page---byline--4978963ba98c--------------------------------)[![Egor Howell](../Images/1f796e828f1625440467d01dcc3e40cd.png)](https://medium.com/@egorhowell?source=post_page---byline--4978963ba98c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4978963ba98c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4978963ba98c--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--4978963ba98c--------------------------------)
+[](https://medium.com/@egorhowell?source=post_page---byline--4978963ba98c--------------------------------)![Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--4978963ba98c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4978963ba98c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4978963ba98c--------------------------------) [Egor Howell](https://medium.com/@egorhowell?source=post_page---byline--4978963ba98c--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4978963ba98c--------------------------------) ·阅读时间：6分钟·2024年10月11日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4978963ba98c--------------------------------) ·阅读时间：6 分钟·2024 年 10 月 11 日
 
 --
 
-![](../Images/efaeaec4875a273bcd95ef2c84096ee5.png)
+![](img/efaeaec4875a273bcd95ef2c84096ee5.png)
 
 图片由[ThisisEngineering](https://unsplash.com/@thisisengineering?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

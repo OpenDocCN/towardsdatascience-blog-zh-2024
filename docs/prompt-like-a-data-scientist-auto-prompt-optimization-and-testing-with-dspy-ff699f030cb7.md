@@ -1,48 +1,48 @@
-# 像数据科学家一样构建提示：使用DSPy进行自动提示优化和测试
+# 像数据科学家一样构建提示：使用 DSPy 进行自动提示优化和测试
 
-> 原文：[https://towardsdatascience.com/prompt-like-a-data-scientist-auto-prompt-optimization-and-testing-with-dspy-ff699f030cb7?source=collection_archive---------0-----------------------#2024-05-05](https://towardsdatascience.com/prompt-like-a-data-scientist-auto-prompt-optimization-and-testing-with-dspy-ff699f030cb7?source=collection_archive---------0-----------------------#2024-05-05)
+> 原文：[`towardsdatascience.com/prompt-like-a-data-scientist-auto-prompt-optimization-and-testing-with-dspy-ff699f030cb7?source=collection_archive---------0-----------------------#2024-05-05`](https://towardsdatascience.com/prompt-like-a-data-scientist-auto-prompt-optimization-and-testing-with-dspy-ff699f030cb7?source=collection_archive---------0-----------------------#2024-05-05)
 
 ## 应用机器学习方法构建提示
 
-[](https://medium.com/@jyipkl?source=post_page---byline--ff699f030cb7--------------------------------)[![Julian Yip](../Images/2afc0ac6c4dcccaa57ffe70b2f5a14d0.png)](https://medium.com/@jyipkl?source=post_page---byline--ff699f030cb7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ff699f030cb7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ff699f030cb7--------------------------------) [Julian Yip](https://medium.com/@jyipkl?source=post_page---byline--ff699f030cb7--------------------------------)
+[](https://medium.com/@jyipkl?source=post_page---byline--ff699f030cb7--------------------------------)![Julian Yip](https://medium.com/@jyipkl?source=post_page---byline--ff699f030cb7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ff699f030cb7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ff699f030cb7--------------------------------) [Julian Yip](https://medium.com/@jyipkl?source=post_page---byline--ff699f030cb7--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ff699f030cb7--------------------------------) ·40分钟阅读·2024年5月5日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ff699f030cb7--------------------------------) ·40 分钟阅读·2024 年 5 月 5 日
 
 --
 
-![](../Images/266f734fa2fbe701359eb41fa9d06e9d.png)
+![](img/266f734fa2fbe701359eb41fa9d06e9d.png)
 
 作者绘制
 
-LLMs的基础是数据科学，但我们对提示工程的处理方式可能显得不够科学：
+LLMs 的基础是数据科学，但我们对提示工程的处理方式可能显得不够科学：
 
 1.  **不易泛化的手动提示工程**：大型语言模型（LLMs）对每个任务的提示非常敏感，因此我们需要手工编写长字符串的指令和示范。这不仅需要耗时的提示写作过程，而且给定的字符串提示可能无法在不同的管道、不同的语言模型（LMs）、数据领域甚至输入之间泛化。为了应对新问题，我们通常需要手工编写新的提示。
 
-1.  **缺乏进行测试的框架**：与典型数据科学应用中的常规训练-测试模式不同，通常是通过选择最大化某个指标（如AUC）的模型，而在LLMs中，我们是通过反复试验找到最佳提示，通常没有客观指标来评估我们的模型表现如何。因此，无论我们如何尝试改进提示，都无法自信地说我们的应用有多可靠。
+1.  **缺乏进行测试的框架**：与典型数据科学应用中的常规训练-测试模式不同，通常是通过选择最大化某个指标（如 AUC）的模型，而在 LLMs 中，我们是通过反复试验找到最佳提示，通常没有客观指标来评估我们的模型表现如何。因此，无论我们如何尝试改进提示，都无法自信地说我们的应用有多可靠。
 
-为了解决这些问题，斯坦福NLP发布了一篇[论文](https://arxiv.org/abs/2310.03714)，介绍了一种新的提示编写方法：我们不再操作自由格式的字符串，而是通过模块化编程生成提示。相关库DSPy可以在[这里](https://github.com/stanfordnlp/dspy)找到。
+为了解决这些问题，斯坦福 NLP 发布了一篇[论文](https://arxiv.org/abs/2310.03714)，介绍了一种新的提示编写方法：我们不再操作自由格式的字符串，而是通过模块化编程生成提示。相关库 DSPy 可以在[这里](https://github.com/stanfordnlp/dspy)找到。
 
 本文旨在展示如何进行这种“提示编程”，并深入解释优化过程背后发生的事情。代码也可以在[这里](https://github.com/yip-kl/llm_dspy_tutorial)找到。
 
-*(说到这，你可能会发现让LLM输出格式正确的JSON也非常不科学，我也写了一篇关于如何通过函数调用解决这个问题的文章。快去看看吧！)*
+*(说到这，你可能会发现让 LLM 输出格式正确的 JSON 也非常不科学，我也写了一篇关于如何通过函数调用解决这个问题的文章。快去看看吧！)*
 
-[](/build-autonomous-ai-agents-with-function-calling-0bb483753975?source=post_page-----ff699f030cb7--------------------------------) [## 使用函数调用构建自主AI代理
+[](/build-autonomous-ai-agents-with-function-calling-0bb483753975?source=post_page-----ff699f030cb7--------------------------------) ## 使用函数调用构建自主 AI 代理
 
-### 将你的聊天机器人转变为一个能够与外部API交互的代理
+### 将你的聊天机器人转变为一个能够与外部 API 交互的代理
 
-towardsdatascience.com](/build-autonomous-ai-agents-with-function-calling-0bb483753975?source=post_page-----ff699f030cb7--------------------------------)
+towardsdatascience.com
 
 我们将花些时间来讲解环境准备。之后，本文分为三个部分：
 
-1.  ***DSPy的基本概念：签名和模块***
+1.  ***DSPy 的基本概念：签名和模块***
 
-    用于描述任务的DSPy基本构建模块，以及使用的提示技术
+    用于描述任务的 DSPy 基本构建模块，以及使用的提示技术
 
 1.  ***优化器：像机器学习一样训练我们的提示***
 
-    DSPy如何通过自举优化你的提示
+    DSPy 如何通过自举优化你的提示
 
-1.  ***完整示例：与LLM的提示比较***
+1.  ***完整示例：与 LLM 的提示比较***
 
     将传统机器学习的严谨性应用于提示测试和选择
 
@@ -50,19 +50,19 @@ towardsdatascience.com](/build-autonomous-ai-agents-with-function-calling-0bb483
 
 # 准备工作
 
-1.  前往[Github](https://github.com/yip-kl/llm_dspy_tutorial)克隆我的代码。我的文章中的内容可以在`dspy_tutorial` Notebook中找到。
+1.  前往[Github](https://github.com/yip-kl/llm_dspy_tutorial)克隆我的代码。我的文章中的内容可以在`dspy_tutorial` Notebook 中找到。
 
-1.  请同时创建并激活一个虚拟环境，然后运行`pip install -r requirements.txt`来安装所需的包。如果你在Windows系统上，还请安装Windows C++构建工具，这对于我们将要使用的`phoneix`库是必需的，它能帮助我们观察DSPy的工作方式。
+1.  请同时创建并激活一个虚拟环境，然后运行`pip install -r requirements.txt`来安装所需的包。如果你在 Windows 系统上，还请安装 Windows C++构建工具，这对于我们将要使用的`phoneix`库是必需的，它能帮助我们观察 DSPy 的工作方式。
 
-1.  我的代码使用了OpenRouter，这使我们能够在封锁地区访问OpenAI API。请将你的`OPENROUTER_API_KEY`设置为环境变量，并在“准备”块下执行代码。或者，你也可以直接使用`dspy.OpenAI`类并定义OpenAI API密钥，如果它适合你。
+1.  我的代码使用了 OpenRouter，这使我们能够在封锁地区访问 OpenAI API。请将你的`OPENROUTER_API_KEY`设置为环境变量，并在“准备”块下执行代码。或者，你也可以直接使用`dspy.OpenAI`类并定义 OpenAI API 密钥，如果它适合你。
 
-# DSPy的基本概念：签名和模块
+# DSPy 的基本概念：签名和模块
 
-它们是DSPy提示编程的构建块。让我们深入了解它们的内容吧！
+它们是 DSPy 提示编程的构建块。让我们深入了解它们的内容吧！
 
 ## **签名：输入/输出的规范**
 
-签名是DSPy提示编程中最基本的构建模块，它是对DSPy模块输入/输出行为的声明性规范。签名允许你告诉语言模型**需要**做什么，而不是指定如何请求语言模型去做。
+签名是 DSPy 提示编程中最基本的构建模块，它是对 DSPy 模块输入/输出行为的声明性规范。签名允许你告诉语言模型**需要**做什么，而不是指定如何请求语言模型去做。
 
 假设我们想要获取一句话的情感，传统上我们可能会写出这样的提示：
 
@@ -70,9 +70,9 @@ towardsdatascience.com](/build-autonomous-ai-agents-with-function-calling-0bb483
 Given a sentence {the_sentence_itself}, deduce its sentiment.
 ```
 
-但是在DSPy中，我们可以通过如下定义一个`签名`来实现相同的效果。最基本的形式，签名只是一个简单的字符串，用`->`分隔输入和输出。
+但是在 DSPy 中，我们可以通过如下定义一个`签名`来实现相同的效果。最基本的形式，签名只是一个简单的字符串，用`->`分隔输入和输出。
 
-*注意：本节代码包含了来自DSPy文档中* [*签名*](https://dspy-docs.vercel.app/docs/building-blocks/signatures) 的相关内容。
+*注意：本节代码包含了来自 DSPy 文档中* [*签名*](https://dspy-docs.vercel.app/docs/building-blocks/signatures) 的相关内容。
 
 ```py
 # Define signature
@@ -113,9 +113,9 @@ Sentence: it's a charming and often affecting journey.
 Sentiment: I'm sorry, but I am unable to determine the sentiment of the sentence without additional context or information. If you provide me with more details or specific criteria for determining sentiment, I would be happy to assist you further.
 ```
 
-我们可以看到，上面的提示是从`sentence -> sentiment`签名拼接而来的。但DSPy是如何得出提示中的`Given the fields…`部分的呢？
+我们可以看到，上面的提示是从`sentence -> sentiment`签名拼接而来的。但 DSPy 是如何得出提示中的`Given the fields…`部分的呢？
 
-检查`dspy.Predict()`类时，我们看到当我们将签名传递给它时，签名会被解析为该类的`signature`属性，随后被组装成提示。`instructions`是DSPy库中硬编码的默认值。
+检查`dspy.Predict()`类时，我们看到当我们将签名传递给它时，签名会被解析为该类的`signature`属性，随后被组装成提示。`instructions`是 DSPy 库中硬编码的默认值。
 
 ```py
 # Check the variables of the `classify` object,
@@ -134,9 +134,9 @@ vars(classify)
  'some_other_attributes': 'xxx'}
 ```
 
-如果我们想要向LLM提供更详细的目标描述，而不仅仅是基本的`sentence -> sentiment`签名，怎么办？为此，我们需要提供更详细的签名，形式为**基于类的DSPy签名**。
+如果我们想要向 LLM 提供更详细的目标描述，而不仅仅是基本的`sentence -> sentiment`签名，怎么办？为此，我们需要提供更详细的签名，形式为**基于类的 DSPy 签名**。
 
-请注意，我们没有明确指示LLM应如何获取情感。我们只是描述了当前的任务，以及预期的输出。
+请注意，我们没有明确指示 LLM 应如何获取情感。我们只是描述了当前的任务，以及预期的输出。
 
 ```py
 # Define signature in Class-based form
@@ -160,7 +160,7 @@ Sentence: It's a charming and often affecting journey.
 Sentiment: **joy**
 ```
 
-它现在输出了一个更好的预测！我们再次看到，在定义基于类的DSPy签名时，我们所做的描述被组装成了提示。
+它现在输出了一个更好的预测！我们再次看到，在定义基于类的 DSPy 签名时，我们所做的描述被组装成了提示。
 
 ```py
 **Classify emotions in a sentence.**
@@ -179,11 +179,11 @@ Sentiment: Sentence: It's a charming and often affecting journey.
 Sentiment: joy
 ```
 
-这对于简单任务可能足够了，但高级应用可能需要复杂的提示技巧，如Chain of Thought或ReAct。在DSPy中，这些都作为**模块**实现。
+这对于简单任务可能足够了，但高级应用可能需要复杂的提示技巧，如 Chain of Thought 或 ReAct。在 DSPy 中，这些都作为**模块**实现。
 
 ## **模块：抽象提示技巧**
 
-我们可能已经习惯通过硬编码诸如`let’s think step by step`这样的短语来应用“提示技巧”在我们的提示中。在DSPy中，这些提示技巧被抽象为**模块**。下面我们来看一个将基于类的签名应用于`dspy.ChainOfThought`模块的示例。
+我们可能已经习惯通过硬编码诸如`let’s think step by step`这样的短语来应用“提示技巧”在我们的提示中。在 DSPy 中，这些提示技巧被抽象为**模块**。下面我们来看一个将基于类的签名应用于`dspy.ChainOfThought`模块的示例。
 
 ```py
 # Apply the class-based signature to Chain of Thought
@@ -218,17 +218,17 @@ Sentiment: Joy, love
 
 请注意，“推理：让我们逐步思考...”这一短语是如何添加到我们的提示中的，现在我们的预测质量更高了。
 
-根据DSPy的[文档](https://dspy-docs.vercel.app/docs/building-blocks/modules)，截至本文写作时，DSPy提供了以下形式为模块的提示技巧。请注意，我们在初始示例中使用的`dspy.Predict`也是一个模块，代表没有提示技巧！
+根据 DSPy 的[文档](https://dspy-docs.vercel.app/docs/building-blocks/modules)，截至本文写作时，DSPy 提供了以下形式为模块的提示技巧。请注意，我们在初始示例中使用的`dspy.Predict`也是一个模块，代表没有提示技巧！
 
-1.  `dspy.Predict`：基本的预测器。不会修改签名。处理学习的关键形式（即存储指令和示范以及对LM的更新）。
+1.  `dspy.Predict`：基本的预测器。不会修改签名。处理学习的关键形式（即存储指令和示范以及对 LM 的更新）。
 
-1.  `dspy.ChainOfThought`：教会LM在给出签名的回应之前，逐步思考。
+1.  `dspy.ChainOfThought`：教会 LM 在给出签名的回应之前，逐步思考。
 
-1.  `dspy.ProgramOfThought`：教会LM输出代码，其执行结果将决定响应。
+1.  `dspy.ProgramOfThought`：教会 LM 输出代码，其执行结果将决定响应。
 
 1.  `dspy.ReAct`：一个可以使用工具来执行给定签名的智能体。
 
-1.  `dspy.MultiChainComparison`：可以比较ChainOfThought的多个输出，以产生最终预测。
+1.  `dspy.MultiChainComparison`：可以比较 ChainOfThought 的多个输出，以产生最终预测。
 
 它也有一些类似函数的模块：
 
@@ -238,9 +238,9 @@ Sentiment: Joy, love
 
 ## 链接模块
 
-另一方面，RAG怎么办？我们可以将模块串联在一起，处理更大的问题！
+另一方面，RAG 怎么办？我们可以将模块串联在一起，处理更大的问题！
 
-首先，我们定义一个检索器，在我们的示例中，我们使用ColBERT检索器从维基百科摘要2017年中获取信息。
+首先，我们定义一个检索器，在我们的示例中，我们使用 ColBERT 检索器从维基百科摘要 2017 年中获取信息。
 
 ```py
 # Configure retriever
@@ -254,7 +254,7 @@ dspy.settings.configure(rm = rm)
 
 +   `forward`方法将描述使用我们已有的模块来回答问题的控制流程。
 
-*注意：本部分的代码借用自* [*DSPy简介笔记本*](https://github.com/stanfordnlp/dspy/blob/main/intro.ipynb)
+*注意：本部分的代码借用自* [*DSPy 简介笔记本*](https://github.com/stanfordnlp/dspy/blob/main/intro.ipynb)
 
 ```py
 # Define a class-based signature
@@ -278,7 +278,7 @@ class RAG(dspy.Module):
         return answer
 ```
 
-然后，我们利用这个类来执行RAG。
+然后，我们利用这个类来执行 RAG。
 
 ```py
 # Initilize our RAG class
@@ -294,7 +294,7 @@ rag(question=my_question).answer
 '1930'
 ```
 
-检查提示时，我们发现从维基百科摘要2017年中检索的三段文本被交替作为链式思维生成的上下文。
+检查提示时，我们发现从维基百科摘要 2017 年中检索的三段文本被交替作为链式思维生成的上下文。
 
 ```py
 Answer questions with short factoid answers.
@@ -325,15 +325,15 @@ Reasoning: Let's think step by step in order to Answer: 1930
 Answer: 1930
 ```
 
-上面的例子看起来可能不算什么。在最基本的应用中，DSPy似乎只是做了一些用f-string也能做到的事情，但实际上，它为提示写作带来了范式的转变，因为它为提示组成引入了**模块化**！
+上面的例子看起来可能不算什么。在最基本的应用中，DSPy 似乎只是做了一些用 f-string 也能做到的事情，但实际上，它为提示写作带来了范式的转变，因为它为提示组成引入了**模块化**！
 
-首先，我们用`Signature`描述我们的目标，然后使用`Modules`应用不同的提示技巧。为了测试不同的提示技巧，我们可以简单地切换使用的模块并比较它们的结果，而不是硬编码“让我们一步步思考……”（对于链式思维）或“你将交替进行思考、行动和观察步骤”（对于ReAct）这样的短语。模块化的好处将在本文后面通过一个完整的示例进行演示。
+首先，我们用`Signature`描述我们的目标，然后使用`Modules`应用不同的提示技巧。为了测试不同的提示技巧，我们可以简单地切换使用的模块并比较它们的结果，而不是硬编码“让我们一步步思考……”（对于链式思维）或“你将交替进行思考、行动和观察步骤”（对于 ReAct）这样的短语。模块化的好处将在本文后面通过一个完整的示例进行演示。
 
-DSPy的强大之处不仅限于模块化，它还可以根据训练样本优化我们的提示，并系统地进行测试。我们将在下一部分深入探讨！
+DSPy 的强大之处不仅限于模块化，它还可以根据训练样本优化我们的提示，并系统地进行测试。我们将在下一部分深入探讨！
 
 # **优化器：像机器学习一样训练我们的提示**
 
-在本节中，我们尝试使用DSPy优化我们的提示，以便应用于RAG（检索增强生成）应用。
+在本节中，我们尝试使用 DSPy 优化我们的提示，以便应用于 RAG（检索增强生成）应用。
 
 以链式思维为例，除了仅仅添加“让我们一步步思考”这句话外，我们还可以通过一些调整来提升其表现：
 
@@ -341,11 +341,11 @@ DSPy的强大之处不仅限于模块化，它还可以根据训练样本优化�
 
 1.  此外，我们还可以**启动推理演示**，教导大规模语言模型如何应用恰当的推理来处理当前任务。
 
-手动执行这个过程将非常耗时，且无法推广到不同的问题，但借助DSPy，这一切都可以自动完成。让我们深入了解一下！
+手动执行这个过程将非常耗时，且无法推广到不同的问题，但借助 DSPy，这一切都可以自动完成。让我们深入了解一下！
 
 ## 准备工作
 
-**#1：加载测试数据**：像机器学习一样，为了训练我们的提示，我们需要准备训练数据和测试数据集。最初，这个单元大约需要20分钟才能运行完毕。
+**#1：加载测试数据**：像机器学习一样，为了训练我们的提示，我们需要准备训练数据和测试数据集。最初，这个单元大约需要 20 分钟才能运行完毕。
 
 ```py
 from dspy.datasets.hotpotqa import HotPotQA
@@ -364,15 +364,15 @@ len(trainset), len(testset)
 Example({'question': 'At My Window was released by which American singer-songwriter?', 'answer': 'John Townes Van Zandt'}) (input_keys={'question'})
 ```
 
-**#2 设置Phoenix以进行可观察性**：为了便于理解优化过程，我们启动**Phoenix**来观察我们的DSPy应用，这是一个非常适合大规模语言模型（LLM）可观察性的工具！我将跳过在这里粘贴代码，但你可以在笔记本中执行它。
+**#2 设置 Phoenix 以进行可观察性**：为了便于理解优化过程，我们启动**Phoenix**来观察我们的 DSPy 应用，这是一个非常适合大规模语言模型（LLM）可观察性的工具！我将跳过在这里粘贴代码，但你可以在笔记本中执行它。
 
 注意：如果你使用的是 Windows，请同时安装 Windows C++ Build Tools，[点击这里](https://visualstudio.microsoft.com/visual-cpp-build-tools/)，这是 Phoenix 所必需的。
 
 ## 提示优化
 
-然后我们准备好看看这个优化到底是什么！为了“训练”我们的提示，我们需要3样东西：
+然后我们准备好看看这个优化到底是什么！为了“训练”我们的提示，我们需要 3 样东西：
 
-1.  一个训练集。我们将只使用来自`trainset`的20个问答示例。
+1.  一个训练集。我们将只使用来自`trainset`的 20 个问答示例。
 
 1.  一个验证指标。这里我们使用原生的`dspy.evaluate.answer_exact_match`，它检查预测的答案是否完全匹配正确答案（虽然值得怀疑，但足以用于演示）。对于实际应用，你可以定义自己的评估标准。
 
@@ -397,13 +397,13 @@ Bootstrapped 4 full traces after n examples in round 0
 
 在使用`compiled_rag`回答问题之前，让我们看看在训练过程中（即编译过程中）发生了什么。我们通过在浏览器中访问`http://localhost:6006/`来启动 Phoenix 控制台。
 
-![](../Images/d94f1dbe53ce5b4aef6a0ea2796a406a.png)
+![](img/d94f1dbe53ce5b4aef6a0ea2796a406a.png)
 
-在“编译”过程中进行了14次调用。
+在“编译”过程中进行了 14 次调用。
 
-在我的运行中，我使用`RAG`类进行了14次调用，每次调用时我们都会向语言模型发送一个问题以获取预测结果。
+在我的运行中，我使用`RAG`类进行了 14 次调用，每次调用时我们都会向语言模型发送一个问题以获取预测结果。
 
-请参阅我的笔记本中的结果摘要表，从这14个样本中得出了4个正确答案，因此达到了我们的`max_bootstrapped_demos`参数，并停止了调用。
+请参阅我的笔记本中的结果摘要表，从这 14 个样本中得出了 4 个正确答案，因此达到了我们的`max_bootstrapped_demos`参数，并停止了调用。
 
 那么，DSPy 发出的提示是什么，用以获得引导的演示？这是问题 #14 的提示。我们可以看到，当 DSPy 尝试生成一个引导演示时，它会随机从我们的`trainset`中添加样本进行少量学习。
 
@@ -497,7 +497,7 @@ Answer: Self
 
 所以下面的内容基本上是在编译过程中，`BootstrapFewShot`在后台完成的工作：
 
-![](../Images/843ab35d315078ee9a3d523c13b6f5a5.png)
+![](img/843ab35d315078ee9a3d523c13b6f5a5.png)
 
 引导演示以增强提示
 
@@ -505,21 +505,21 @@ Answer: Self
 
 理想情况下，像传统机器学习一样，我们应该定义几个候选模型，查看它们在测试集上的表现，并选择表现最好的那个。这就是我们接下来要做的！
 
-# **完整示例：与LLM的提示比较**
+# **完整示例：与 LLM 的提示比较**
 
 ## 这个示例的目的是
 
-在本节中，我们希望评估**（通过模块与优化器组合的方式）**哪个是进行RAG的“最佳提示”，并使用我们所用的语言模型（GPT 3.5 Turbo），对[HotpotQA数据集](https://hotpotqa.github.io/)（按[CC BY-SA 4.0许可证](http://creativecommons.org/licenses/by-sa/4.0/)分发）进行评估。
+在本节中，我们希望评估**（通过模块与优化器组合的方式）**哪个是进行 RAG 的“最佳提示”，并使用我们所用的语言模型（GPT 3.5 Turbo），对[HotpotQA 数据集](https://hotpotqa.github.io/)（按[CC BY-SA 4.0 许可证](http://creativecommons.org/licenses/by-sa/4.0/)分发）进行评估。
 
 正在评估的模块如下：
 
-+   **原生**：基于检索的上下文回答问题的单跳RAG，没有像“让我们一步一步思考”这样的关键短语
++   **原生**：基于检索的上下文回答问题的单跳 RAG，没有像“让我们一步一步思考”这样的关键短语
 
-+   **COT**：带有思维链的单跳RAG
++   **COT**：带有思维链的单跳 RAG
 
-+   **ReAct**：带有ReAct提示的单跳RAG
++   **ReAct**：带有 ReAct 提示的单跳 RAG
 
-+   **BasicMultiHop**：带有思维链的2跳RAG
++   **BasicMultiHop**：带有思维链的 2 跳 RAG
 
 优化器候选项如下：
 
@@ -527,7 +527,7 @@ Answer: Self
 
 +   **标注少样本**：仅通过提供的标注问答对构造少样本示例
 
-+   **Bootstrap少样本**：如我们所示，为我们模块的每个阶段自生成完整的示范。如果示范通过了评估指标，我们将直接使用这些生成的示范（无需进一步优化）。对于`原生`来说，它就等同于“标注少样本”
++   **Bootstrap 少样本**：如我们所示，为我们模块的每个阶段自生成完整的示范。如果示范通过了评估指标，我们将直接使用这些生成的示范（无需进一步优化）。对于`原生`来说，它就等同于“标注少样本”
 
 至于评估指标，我们再次使用精确匹配作为标准（`dspy.evaluate.metrics.answer_exact_match`）对测试集进行评估。
 
@@ -609,7 +609,7 @@ optimizers = {
 
 然后我定义了一个帮助类来简化评估过程。代码稍长，所以我没有在这里粘贴，但它可以在我的笔记本中找到。它的作用是对每个优化器与模块组合进行应用，编译提示，然后在测试集上进行评估。
 
-我们现在准备开始评估，预计大约需要20分钟完成
+我们现在准备开始评估，预计大约需要 20 分钟完成
 
 ```py
 # Compile the models
@@ -621,19 +621,19 @@ ms.evaluate(testset=testset)
 
 这是评估结果。我们可以看到，`COT`模块与`BootstrapFewShot`优化器的表现最佳。分数表示测试集中正确答案的百分比（通过精确匹配判断）。
 
-![](../Images/5d270eb34c7f0f594923555c9e6499f9.png)
+![](img/5d270eb34c7f0f594923555c9e6499f9.png)
 
-但在我们得出结论之前，可能需要更深入地检查结果：**Multihop与BootstrapFewShot**，据说比**COT与BootstrapFewShot**提供更多相关上下文，但其表现更差，真是奇怪！
+但在我们得出结论之前，可能需要更深入地检查结果：**Multihop 与 BootstrapFewShot**，据说比**COT 与 BootstrapFewShot**提供更多相关上下文，但其表现更差，真是奇怪！
 
 ## 调试并微调我们的提示
 
-现在前往Phoenix控制台，看看发生了什么。我们选择一个随机问题`William Hughes Miller出生在一个有多少居民的城市？`，并检查COT、ReAct、BasicMultiHop与BootstrapFewShot优化器是如何得出答案的。你可以在搜索栏中输入以下内容进行筛选：`"""William Hughes Miller出生在一个有多少居民的城市？""" in input.value`
+现在前往 Phoenix 控制台，看看发生了什么。我们选择一个随机问题`William Hughes Miller 出生在一个有多少居民的城市？`，并检查 COT、ReAct、BasicMultiHop 与 BootstrapFewShot 优化器是如何得出答案的。你可以在搜索栏中输入以下内容进行筛选：`"""William Hughes Miller 出生在一个有多少居民的城市？""" in input.value`
 
-![](../Images/588fb6cbfd28970cd79b6918e2a6f614.png)
+![](img/588fb6cbfd28970cd79b6918e2a6f614.png)
 
-调用按顺序进行，因此对于每个模块，我们可以通过选择第三个调用来选择BootstrapFewShot变体
+调用按顺序进行，因此对于每个模块，我们可以通过选择第三个调用来选择 BootstrapFewShot 变体
 
-这些是我运行过程中3个模型提供的答案：
+这些是我运行过程中 3 个模型提供的答案：
 
 +   **Multihop with BootstrapFewShot**: `答案将根据 William Hughes Miller 出生城市的具体情况而有所不同。`
 
@@ -641,11 +641,11 @@ ms.evaluate(testset=testset)
 
 +   **COT with BootstrapFewShot**: `Kosciusko, Mississippi 市的人口大约为 7,402 人。`
 
-正确答案是 `2010年普查时为7,402人`。**ReAct with BootstrapFewShot** 和 **COT with BootstrapFewShot** 都提供了相关答案，但 **Multihop with BootstrapFewShot** 简直没有提供任何答案。
+正确答案是 `2010 年普查时为 7,402 人`。**ReAct with BootstrapFewShot** 和 **COT with BootstrapFewShot** 都提供了相关答案，但 **Multihop with BootstrapFewShot** 简直没有提供任何答案。
 
 在 Phoenix 中检查 Multihop with BootstrapFewShot 的执行轨迹，似乎语言模型无法理解在**签名**中指定的 `search_query` 所期望的内容。
 
-![](../Images/0e1e7217ff54735470d988cac17fea8f.png)
+![](img/0e1e7217ff54735470d988cac17fea8f.png)
 
 在第一次跳跃期间，语言模型无法生成 search_query。
 
@@ -684,7 +684,7 @@ ms_revised.evaluate(testset=testset)
 ms_revised.evaluation_matrix
 ```
 
-![](../Images/09f52de40780a66ef1cad4de15b306b6.png)
+![](img/09f52de40780a66ef1cad4de15b306b6.png)
 
 更新签名后，性能有所提升。
 
@@ -771,7 +771,7 @@ ms_gpt4_teacher.evaluate(testset=testset)
 ms_gpt4_teacher.evaluation_matrix
 ```
 
-![](../Images/4d747518e8a217acfc20102d3ffef23c.png)
+![](img/4d747518e8a217acfc20102d3ffef23c.png)
 
 使用 GPT-4 作为教师的结果
 
@@ -981,9 +981,9 @@ Answer: 7,402
 
 # 结论
 
-目前，我们常常依赖于手动的提示工程，通常以f-string的形式进行抽象。此外，在语言模型（LM）对比时，我们经常提出一些不够明确的问题，比如“不同的语言模型在某个问题上的表现如何”，这个问题来源于[斯坦福NLP论文](https://arxiv.org/abs/2310.03714)中的说法。
+目前，我们常常依赖于手动的提示工程，通常以 f-string 的形式进行抽象。此外，在语言模型（LM）对比时，我们经常提出一些不够明确的问题，比如“不同的语言模型在某个问题上的表现如何”，这个问题来源于[斯坦福 NLP 论文](https://arxiv.org/abs/2310.03714)中的说法。
 
-但正如上面的示例所展示的，通过DSPy的模块化、可组合程序和优化器，我们现在能够回答**“在与优化器Y编译后的模块X进行对比时，它们在某个问题上的表现如何”**，这是一个定义明确且可重复的运行，从而减少了在现代AI中巧妙提示构建的作用。
+但正如上面的示例所展示的，通过 DSPy 的模块化、可组合程序和优化器，我们现在能够回答**“在与优化器 Y 编译后的模块 X 进行对比时，它们在某个问题上的表现如何”**，这是一个定义明确且可重复的运行，从而减少了在现代 AI 中巧妙提示构建的作用。
 
 就这些！希望你喜欢这篇文章。
 

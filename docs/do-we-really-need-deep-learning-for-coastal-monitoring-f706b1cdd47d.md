@@ -1,16 +1,16 @@
 # 我们真的需要深度学习来进行海岸监测吗？
 
-> 原文：[https://towardsdatascience.com/do-we-really-need-deep-learning-for-coastal-monitoring-f706b1cdd47d?source=collection_archive---------9-----------------------#2024-09-10](https://towardsdatascience.com/do-we-really-need-deep-learning-for-coastal-monitoring-f706b1cdd47d?source=collection_archive---------9-----------------------#2024-09-10)
+> 原文：[`towardsdatascience.com/do-we-really-need-deep-learning-for-coastal-monitoring-f706b1cdd47d?source=collection_archive---------9-----------------------#2024-09-10`](https://towardsdatascience.com/do-we-really-need-deep-learning-for-coastal-monitoring-f706b1cdd47d?source=collection_archive---------9-----------------------#2024-09-10)
 
 ## 深入探讨机器学习与传统海岸侵蚀监测方法的比较
 
-[](https://conorosullyds.medium.com/?source=post_page---byline--f706b1cdd47d--------------------------------)[![Conor O'Sullivan](../Images/2dc50a24edb12e843651d01ed48a3c3f.png)](https://conorosullyds.medium.com/?source=post_page---byline--f706b1cdd47d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f706b1cdd47d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f706b1cdd47d--------------------------------) [Conor O'Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--f706b1cdd47d--------------------------------)
+[](https://conorosullyds.medium.com/?source=post_page---byline--f706b1cdd47d--------------------------------)![Conor O'Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--f706b1cdd47d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f706b1cdd47d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f706b1cdd47d--------------------------------) [Conor O'Sullivan](https://conorosullyds.medium.com/?source=post_page---byline--f706b1cdd47d--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f706b1cdd47d--------------------------------) ·14分钟阅读·2024年9月10日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f706b1cdd47d--------------------------------) ·14 分钟阅读·2024 年 9 月 10 日
 
 --
 
-![](../Images/df2fff716690ef400de5642d8e0f909e.png)
+![](img/df2fff716690ef400de5642d8e0f909e.png)
 
 照片由 [thiago japyassu](https://unsplash.com/@thiagojapyassu?utm_source=medium&utm_medium=referral) 提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

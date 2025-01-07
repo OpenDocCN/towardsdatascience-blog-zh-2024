@@ -1,16 +1,16 @@
 # 数据仓库设计模式
 
-> 原文：[https://towardsdatascience.com/data-warehouse-design-patterns-d7c1c140c18b?source=collection_archive---------2-----------------------#2024-01-29](https://towardsdatascience.com/data-warehouse-design-patterns-d7c1c140c18b?source=collection_archive---------2-----------------------#2024-01-29)
+> 原文：[`towardsdatascience.com/data-warehouse-design-patterns-d7c1c140c18b?source=collection_archive---------2-----------------------#2024-01-29`](https://towardsdatascience.com/data-warehouse-design-patterns-d7c1c140c18b?source=collection_archive---------2-----------------------#2024-01-29)
 
 ## 我如何在我的新数据仓库中组织一切
 
-[](https://mshakhomirov.medium.com/?source=post_page---byline--d7c1c140c18b--------------------------------)[![💡Mike Shakhomirov](../Images/bc6895c7face3244d488feb97ba0f68e.png)](https://mshakhomirov.medium.com/?source=post_page---byline--d7c1c140c18b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d7c1c140c18b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d7c1c140c18b--------------------------------) [💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--d7c1c140c18b--------------------------------)
+[](https://mshakhomirov.medium.com/?source=post_page---byline--d7c1c140c18b--------------------------------)![💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--d7c1c140c18b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d7c1c140c18b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d7c1c140c18b--------------------------------) [💡Mike Shakhomirov](https://mshakhomirov.medium.com/?source=post_page---byline--d7c1c140c18b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d7c1c140c18b--------------------------------) ·阅读时间11分钟·2024年1月29日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d7c1c140c18b--------------------------------) ·阅读时间 11 分钟·2024 年 1 月 29 日
 
 --
 
-![](../Images/8a97891cc8b0a162dbc219aa47d103e3.png)
+![](img/8a97891cc8b0a162dbc219aa47d103e3.png)
 
 图片来源：[Lidia Nikole](https://unsplash.com/@lidia_nikole?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

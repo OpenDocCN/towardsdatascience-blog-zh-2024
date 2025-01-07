@@ -1,16 +1,16 @@
 # 终于是时候记住那些该死的分类指标了！
 
-> 原文：[https://towardsdatascience.com/its-time-to-finally-memorize-those-dang-classification-metrics-bdeb99e64de2?source=collection_archive---------3-----------------------#2024-06-10](https://towardsdatascience.com/its-time-to-finally-memorize-those-dang-classification-metrics-bdeb99e64de2?source=collection_archive---------3-----------------------#2024-06-10)
+> 原文：[`towardsdatascience.com/its-time-to-finally-memorize-those-dang-classification-metrics-bdeb99e64de2?source=collection_archive---------3-----------------------#2024-06-10`](https://towardsdatascience.com/its-time-to-finally-memorize-those-dang-classification-metrics-bdeb99e64de2?source=collection_archive---------3-----------------------#2024-06-10)
 
 ## **这些指标背后的直觉以及我如何最终记住它们**
 
-[](https://medium.com/@jarom.hulet?source=post_page---byline--bdeb99e64de2--------------------------------)[![Jarom Hulet](../Images/0fdeb1a2df90cccdd8f2f4b84d5e54eb.png)](https://medium.com/@jarom.hulet?source=post_page---byline--bdeb99e64de2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdeb99e64de2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bdeb99e64de2--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--bdeb99e64de2--------------------------------)
+[](https://medium.com/@jarom.hulet?source=post_page---byline--bdeb99e64de2--------------------------------)![Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--bdeb99e64de2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdeb99e64de2--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdeb99e64de2--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--bdeb99e64de2--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdeb99e64de2--------------------------------) ·10分钟阅读·2024年6月10日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdeb99e64de2--------------------------------) ·10 分钟阅读·2024 年 6 月 10 日
 
 --
 
-![](../Images/8bc4d8e1c0f410ab9d84780f392d3bf5.png)
+![](img/8bc4d8e1c0f410ab9d84780f392d3bf5.png)
 
 图片来自 Pexels.com，作者：cottonbro studio
 

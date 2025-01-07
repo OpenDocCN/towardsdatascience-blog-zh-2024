@@ -1,72 +1,72 @@
-# 构建语义图书搜索：使用Apache Spark和AWS EMR Serverless扩展嵌入管道
+# 构建语义图书搜索：使用 Apache Spark 和 AWS EMR Serverless 扩展嵌入管道
 
-> 原文：[https://towardsdatascience.com/building-a-semantic-book-search-part-2-scaling-the-embedding-pipeline-with-apache-spark-and-aws-1d074ee9cb55?source=collection_archive---------8-----------------------#2024-01-31](https://towardsdatascience.com/building-a-semantic-book-search-part-2-scaling-the-embedding-pipeline-with-apache-spark-and-aws-1d074ee9cb55?source=collection_archive---------8-----------------------#2024-01-31)
+> 原文：[`towardsdatascience.com/building-a-semantic-book-search-part-2-scaling-the-embedding-pipeline-with-apache-spark-and-aws-1d074ee9cb55?source=collection_archive---------8-----------------------#2024-01-31`](https://towardsdatascience.com/building-a-semantic-book-search-part-2-scaling-the-embedding-pipeline-with-apache-spark-and-aws-1d074ee9cb55?source=collection_archive---------8-----------------------#2024-01-31)
 
-![](../Images/c41e10bbe243304d42ff3cdf276f15b0.png)
+![](img/c41e10bbe243304d42ff3cdf276f15b0.png)
 
 图片来源：Unsplash
 
-## 使用OpenAI的Clip模型支持对70,000本书封面的自然语言搜索
+## 使用 OpenAI 的 Clip 模型支持对 70,000 本书封面的自然语言搜索
 
-[](https://medium.com/@erevear?source=post_page---byline--1d074ee9cb55--------------------------------)[![Eva Revear](../Images/675266fccb503690d50d83b8c92f48b8.png)](https://medium.com/@erevear?source=post_page---byline--1d074ee9cb55--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1d074ee9cb55--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1d074ee9cb55--------------------------------) [Eva Revear](https://medium.com/@erevear?source=post_page---byline--1d074ee9cb55--------------------------------)
+[](https://medium.com/@erevear?source=post_page---byline--1d074ee9cb55--------------------------------)![Eva Revear](https://medium.com/@erevear?source=post_page---byline--1d074ee9cb55--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1d074ee9cb55--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1d074ee9cb55--------------------------------) [Eva Revear](https://medium.com/@erevear?source=post_page---byline--1d074ee9cb55--------------------------------)
 
-·发布在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1d074ee9cb55--------------------------------) ·阅读时长8分钟·2024年1月31日
+·发布在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1d074ee9cb55--------------------------------) ·阅读时长 8 分钟·2024 年 1 月 31 日
 
 --
 
-在[上一篇文章](https://medium.com/@erevear/building-semantic-book-search-with-openais-clip-model-b7c3dafa2bea)中，我做了一个小的PoC，看看能否使用OpenAI的Clip模型来构建语义图书搜索。依我看，效果出乎意料地好，但我不禁想，是否有更多数据会更好。之前的版本仅使用了大约3.5千本书，但在[Openlibrary数据集](https://openlibrary.org/data)中有数百万本书，我觉得尝试添加更多的搜索选项是值得的。
+在[上一篇文章](https://medium.com/@erevear/building-semantic-book-search-with-openais-clip-model-b7c3dafa2bea)中，我做了一个小的 PoC，看看能否使用 OpenAI 的 Clip 模型来构建语义图书搜索。依我看，效果出乎意料地好，但我不禁想，是否有更多数据会更好。之前的版本仅使用了大约 3.5 千本书，但在[Openlibrary 数据集](https://openlibrary.org/data)中有数百万本书，我觉得尝试添加更多的搜索选项是值得的。
 
-然而，完整的数据集大约有40GB，试图在我的小笔记本电脑上，甚至在Colab笔记本中处理这么多数据有点困难，所以我不得不想办法构建一个管道来处理过滤和嵌入更大的数据集。
+然而，完整的数据集大约有 40GB，试图在我的小笔记本电脑上，甚至在 Colab 笔记本中处理这么多数据有点困难，所以我不得不想办法构建一个管道来处理过滤和嵌入更大的数据集。
 
-TLDR; 它改善了搜索吗？我认为是的！我们将数据量增加了15倍，这为搜索提供了更多可用数据。它还不完美，但我觉得结果相当有趣；虽然我没有做正式的准确度评测。
+TLDR; 它改善了搜索吗？我认为是的！我们将数据量增加了 15 倍，这为搜索提供了更多可用数据。它还不完美，但我觉得结果相当有趣；虽然我没有做正式的准确度评测。
 
 这是一个无论如何表述都无法在上一版本中运行的例子，但在使用更多数据的版本中效果相当不错。
 
-![](../Images/607d576fe9f3cd3c251f1adee292b71f.png)
+![](img/607d576fe9f3cd3c251f1adee292b71f.png)
 
 作者图片
 
 如果你感兴趣，可以在[Colab](https://colab.research.google.com/drive/1QH_ZlDKAJ9I5yEitew6X_ZJWIvcmsqfv?usp=sharing)上试试看！
 
-总体来说，这是一次有趣的技术旅程，过程中遇到了许多障碍和学习机会。技术栈仍然包括OpenAI的Clip模型，但这次我使用了Apache Spark和AWS EMR来运行嵌入管道。
+总体来说，这是一次有趣的技术旅程，过程中遇到了许多障碍和学习机会。技术栈仍然包括 OpenAI 的 Clip 模型，但这次我使用了 Apache Spark 和 AWS EMR 来运行嵌入管道。
 
 # **技术栈**
 
-![](../Images/23511f9399b09dea8df6e74c8f6e841d.png)
+![](img/23511f9399b09dea8df6e74c8f6e841d.png)
 
 图片由作者提供
 
-这似乎是一个使用Spark的好机会，因为它允许我们将嵌入计算并行化。
+这似乎是一个使用 Spark 的好机会，因为它允许我们将嵌入计算并行化。
 
-我决定在EMR Serverless中运行管道，这是AWS提供的一项相对较新的服务，提供了一个无服务器环境来运行EMR并自动管理资源的扩展。我认为这对于这个用例很合适——而不是在EC2集群上启动EMR——因为这是一个相对临时的项目，我对集群成本很敏感，而且最初我不确定这个作业需要什么资源。EMR Serverless使得实验作业参数变得非常简单。
+我决定在 EMR Serverless 中运行管道，这是 AWS 提供的一项相对较新的服务，提供了一个无服务器环境来运行 EMR 并自动管理资源的扩展。我认为这对于这个用例很合适——而不是在 EC2 集群上启动 EMR——因为这是一个相对临时的项目，我对集群成本很敏感，而且最初我不确定这个作业需要什么资源。EMR Serverless 使得实验作业参数变得非常简单。
 
 以下是我完成一切并使其运行的完整过程。我想可能有更好的方法来管理某些步骤，这只是对我有效的方式，如果你有想法或意见，请一定分享！
 
-## 使用Spark构建嵌入管道作业
+## 使用 Spark 构建嵌入管道作业
 
-初步步骤是编写Spark作业。整个管道分为两个阶段，第一个阶段获取初始数据集并筛选出近十年内的小说（过去10年）。这导致了大约25万本书籍，其中约7万本有封面图片可以下载并嵌入到第二阶段中。
+初步步骤是编写 Spark 作业。整个管道分为两个阶段，第一个阶段获取初始数据集并筛选出近十年内的小说（过去 10 年）。这导致了大约 25 万本书籍，其中约 7 万本有封面图片可以下载并嵌入到第二阶段中。
 
 首先，我们从原始数据文件中提取相关列。
 
-然后对数据类型进行一些通用的数据转换，并筛选出除英文小说（超过100页）以外的所有数据。
+然后对数据类型进行一些通用的数据转换，并筛选出除英文小说（超过 100 页）以外的所有数据。
 
-第二阶段获取第一阶段的输出数据集，并通过从Hugging Face下载的Clip模型处理图片。这里的关键步骤是将我们需要应用于数据的各种函数转化为Spark UDF。最关键的函数是get_image_embedding，它接受图片并返回嵌入信息。
+第二阶段获取第一阶段的输出数据集，并通过从 Hugging Face 下载的 Clip 模型处理图片。这里的关键步骤是将我们需要应用于数据的各种函数转化为 Spark UDF。最关键的函数是 get_image_embedding，它接受图片并返回嵌入信息。
 
-我们将其注册为UDF：
+我们将其注册为 UDF：
 
-然后在数据集上调用UDF：
+然后在数据集上调用 UDF：
 
 ## 设置向量数据库
 
-作为代码中的最后一个可选步骤，我们可以设置一个向量数据库，在这个案例中是Milvus，用于加载和查询。请注意，我没有在此项目的云作业中执行此操作，因为我将我的嵌入数据序列化存储，以便不需要保持集群长时间运行。然而，设置Milvus并将Spark DataFrame加载到集合中是相当简单的。
+作为代码中的最后一个可选步骤，我们可以设置一个向量数据库，在这个案例中是 Milvus，用于加载和查询。请注意，我没有在此项目的云作业中执行此操作，因为我将我的嵌入数据序列化存储，以便不需要保持集群长时间运行。然而，设置 Milvus 并将 Spark DataFrame 加载到集合中是相当简单的。
 
 首先，创建一个集合，并在图像嵌入列上创建索引，数据库可以用来进行搜索。
 
-然后我们可以在Spark脚本中访问该集合，并从最终的DataFrame中将嵌入加载到其中。
+然后我们可以在 Spark 脚本中访问该集合，并从最终的 DataFrame 中将嵌入加载到其中。
 
-最后，我们可以使用与上述UDF相同的方法将搜索文本嵌入，并使用嵌入信息查询数据库。数据库负责进行繁重的匹配工作，找出最佳匹配。
+最后，我们可以使用与上述 UDF 相同的方法将搜索文本嵌入，并使用嵌入信息查询数据库。数据库负责进行繁重的匹配工作，找出最佳匹配。
 
-## 在AWS中设置管道
+## 在 AWS 中设置管道
 
 **前提条件**
 
@@ -92,7 +92,7 @@ AWS 文档中有关于角色和权限策略的详细描述，以及如何开始�
 
 无论如何，允许 Spark 作业运行的机器访问互联网需要配置具有 NAT 网关的私有子网的 VPC。所有这些设置都从访问 AWS VPC 界面开始 -> 创建 VPC -> 选择 VPC 和更多选项 -> 选择至少一个 NAT 网关选项 -> 点击创建 VPC。
 
-![](../Images/c949e2d8bba19e439972c50c44e0575e.png)
+![](img/c949e2d8bba19e439972c50c44e0575e.png)
 
 图像由作者提供
 
@@ -102,7 +102,7 @@ VPC 设置需要几分钟。一旦完成，我们还需要在安全组界面中�
 
 现在，来看看将提交作业的 EMR Serverless 应用程序！创建并启动一个 EMR Studio 应该会打开一个界面，提供几个选项，包括创建应用程序。在创建应用程序的 UI 中，选择使用自定义设置 -> 网络设置。在这里，VPC、两个私有子网和安全组将发挥作用。
 
-![](../Images/ecdc638917b82e45aa67258591d2a561.png)
+![](img/ecdc638917b82e45aa67258591d2a561.png)
 
 图像由作者提供
 

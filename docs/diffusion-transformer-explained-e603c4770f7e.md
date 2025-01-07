@@ -1,16 +1,16 @@
 # 扩散 Transformer 解析
 
-> 原文：[https://towardsdatascience.com/diffusion-transformer-explained-e603c4770f7e?source=collection_archive---------2-----------------------#2024-02-28](https://towardsdatascience.com/diffusion-transformer-explained-e603c4770f7e?source=collection_archive---------2-----------------------#2024-02-28)
+> 原文：[`towardsdatascience.com/diffusion-transformer-explained-e603c4770f7e?source=collection_archive---------2-----------------------#2024-02-28`](https://towardsdatascience.com/diffusion-transformer-explained-e603c4770f7e?source=collection_archive---------2-----------------------#2024-02-28)
 
 ## 探索将 Transformer 引入图像生成领域的架构
 
-[](https://mnslarcher.medium.com/?source=post_page---byline--e603c4770f7e--------------------------------)[![马里奥·拉尔切尔](../Images/57a031fe2a1931c9cdd63b9f35f3d136.png)](https://mnslarcher.medium.com/?source=post_page---byline--e603c4770f7e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e603c4770f7e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e603c4770f7e--------------------------------) [马里奥·拉尔切尔](https://mnslarcher.medium.com/?source=post_page---byline--e603c4770f7e--------------------------------)
+[](https://mnslarcher.medium.com/?source=post_page---byline--e603c4770f7e--------------------------------)![马里奥·拉尔切尔](https://mnslarcher.medium.com/?source=post_page---byline--e603c4770f7e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e603c4770f7e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e603c4770f7e--------------------------------) [马里奥·拉尔切尔](https://mnslarcher.medium.com/?source=post_page---byline--e603c4770f7e--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e603c4770f7e--------------------------------) ·12 分钟阅读·2024年2月28日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e603c4770f7e--------------------------------) ·12 分钟阅读·2024 年 2 月 28 日
 
 --
 
-![](../Images/d6f5ca3c1cb0d9569dfd8b8ce4a076be.png)
+![](img/d6f5ca3c1cb0d9569dfd8b8ce4a076be.png)
 
 使用 DALL·E 生成的图像。
 

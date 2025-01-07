@@ -1,16 +1,16 @@
 # 提高生产力的 5 种高级数据科学家常用习惯
 
-> 原文：[https://towardsdatascience.com/5-habits-spotify-senior-data-scientists-use-to-boost-their-productivity-1ae29451253f?source=collection_archive---------3-----------------------#2024-02-05](https://towardsdatascience.com/5-habits-spotify-senior-data-scientists-use-to-boost-their-productivity-1ae29451253f?source=collection_archive---------3-----------------------#2024-02-05)
+> 原文：[`towardsdatascience.com/5-habits-spotify-senior-data-scientists-use-to-boost-their-productivity-1ae29451253f?source=collection_archive---------3-----------------------#2024-02-05`](https://towardsdatascience.com/5-habits-spotify-senior-data-scientists-use-to-boost-their-productivity-1ae29451253f?source=collection_archive---------3-----------------------#2024-02-05)
 
 ## 在你的每个数据科学项目步骤中都应用这些实践
 
-[](https://medium.com/@elalamik?source=post_page---byline--1ae29451253f--------------------------------)[![Khouloud El Alami](../Images/58840bfe28a60892b51d40ad6ba7f5e8.png)](https://medium.com/@elalamik?source=post_page---byline--1ae29451253f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ae29451253f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1ae29451253f--------------------------------) [Khouloud El Alami](https://medium.com/@elalamik?source=post_page---byline--1ae29451253f--------------------------------)
+[](https://medium.com/@elalamik?source=post_page---byline--1ae29451253f--------------------------------)![Khouloud El Alami](https://medium.com/@elalamik?source=post_page---byline--1ae29451253f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ae29451253f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ae29451253f--------------------------------) [Khouloud El Alami](https://medium.com/@elalamik?source=post_page---byline--1ae29451253f--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ae29451253f--------------------------------) ·阅读时间 15 分钟·2024年2月5日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ae29451253f--------------------------------) ·阅读时间 15 分钟·2024 年 2 月 5 日
 
 --
 
-![](../Images/9415faff8cf20f95c91f894185cd19f3.png)
+![](img/9415faff8cf20f95c91f894185cd19f3.png)
 
 图片来自作者（同时也是作者本人）
 

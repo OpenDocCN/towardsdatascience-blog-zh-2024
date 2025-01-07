@@ -1,10 +1,10 @@
 # 聚类算法指南
 
-> 原文：[https://towardsdatascience.com/a-guide-to-clustering-algorithms-e28af85da0b7?source=collection_archive---------4-----------------------#2024-09-06](https://towardsdatascience.com/a-guide-to-clustering-algorithms-e28af85da0b7?source=collection_archive---------4-----------------------#2024-09-06)
+> 原文：[`towardsdatascience.com/a-guide-to-clustering-algorithms-e28af85da0b7?source=collection_archive---------4-----------------------#2024-09-06`](https://towardsdatascience.com/a-guide-to-clustering-algorithms-e28af85da0b7?source=collection_archive---------4-----------------------#2024-09-06)
 
-[](https://medium.com/@adavis08?source=post_page---byline--e28af85da0b7--------------------------------)[![Alex Davis](../Images/f773cce9438a68856cb8ba486ac8b051.png)](https://medium.com/@adavis08?source=post_page---byline--e28af85da0b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e28af85da0b7--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e28af85da0b7--------------------------------) [Alex Davis](https://medium.com/@adavis08?source=post_page---byline--e28af85da0b7--------------------------------)
+[](https://medium.com/@adavis08?source=post_page---byline--e28af85da0b7--------------------------------)![Alex Davis](https://medium.com/@adavis08?source=post_page---byline--e28af85da0b7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e28af85da0b7--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e28af85da0b7--------------------------------) [Alex Davis](https://medium.com/@adavis08?source=post_page---byline--e28af85da0b7--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e28af85da0b7--------------------------------) ·阅读时间：6分钟·2024年9月6日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e28af85da0b7--------------------------------) ·阅读时间：6 分钟·2024 年 9 月 6 日
 
 --
 
@@ -14,7 +14,7 @@
 
 聚类是一种流行的无监督学习技术，旨在根据对象或观测值之间的相似性将它们分组。聚类有许多有用的应用，如市场细分、推荐系统、探索性分析等。
 
-![](../Images/3aa1508082c9b47231972b9af15633a8.png)
+![](img/3aa1508082c9b47231972b9af15633a8.png)
 
 图片由作者提供
 
@@ -34,9 +34,9 @@ K-Means 是最广泛使用的聚类算法，它可能是你作为数据科学家
 
 1.  质心会移动到它们所分配的数据点的均值位置。
 
-1.  步骤2-3会反复执行，直到生成“最佳”聚类。
+1.  步骤 2-3 会反复执行，直到生成“最佳”聚类。
 
-![](../Images/228afd72b5c9d40421a55f06880992fe.png)
+![](img/228afd72b5c9d40421a55f06880992fe.png)
 
 图片由作者提供
 
@@ -59,7 +59,7 @@ kmeans.cluster_centers_
 
 ## K-Means ++
 
-K-Means ++是K-Means初始化步骤的改进版。由于质心是随机选择的，因此可能会有多个质心初始化到同一个聚类中，导致结果不理想。
+K-Means ++是 K-Means 初始化步骤的改进版。由于质心是随机选择的，因此可能会有多个质心初始化到同一个聚类中，导致结果不理想。
 
 然而，K-Means ++通过随机分配第一个质心来解决这个问题，最终找到最大的聚类。然后，其他质心会被放置在与初始聚类一定距离的位置。K-Means ++的目标是使质心之间的距离尽可能远。这种方式可以得到高质量的聚类，且这些聚类是独立且明确定义的。
 
@@ -86,21 +86,21 @@ kmeans.cluster_centers_
 
 虽然基于质心的算法在处理球形聚类时表现更好，但基于密度的算法可以处理任意形状的聚类，并且更具灵活性。它们还不会将离群点包括在聚类中，因此具有较强的鲁棒性。然而，这些算法在面对具有不同密度和高维度的数据时可能会遇到困难。
 
-![](../Images/900c97181437cb771ab90dc1c2a7240b.png)
+![](img/900c97181437cb771ab90dc1c2a7240b.png)
 
 图片由作者提供
 
 ## DBSCAN
 
-DBSCAN是最流行的基于密度的算法。DBSCAN的工作原理如下：
+DBSCAN 是最流行的基于密度的算法。DBSCAN 的工作原理如下：
 
-1.  DBSCAN随机选择一个数据点，并检查它是否在指定的半径内有足够的邻居。
+1.  DBSCAN 随机选择一个数据点，并检查它是否在指定的半径内有足够的邻居。
 
 1.  如果某个点有足够的邻居，它将被标记为聚类的一部分。
 
-1.  DBSCAN会递归检查邻居是否也在半径内有足够的邻居，直到聚类中的所有点都被访问过。
+1.  DBSCAN 会递归检查邻居是否也在半径内有足够的邻居，直到聚类中的所有点都被访问过。
 
-1.  重复步骤1-3，直到剩余的数据点在半径内没有足够的邻居。
+1.  重复步骤 1-3，直到剩余的数据点在半径内没有足够的邻居。
 
 1.  剩余的数据点被标记为离群点。
 
@@ -123,11 +123,11 @@ clustering.labels_
 
 接下来，我们来讲解层次聚类。这种方法首先通过从原始数据计算一个距离矩阵开始。这个距离矩阵最好且通常通过树状图（见下文）进行可视化。数据点通过找到最近的邻居，一一连接，最终形成一个巨大的聚类。因此，可以通过设置一个截断点，停止所有数据点的连接，从而识别出不同的聚类。
 
-![](../Images/e180fc95c23f18fec38023cc80147e63.png)
+![](img/e180fc95c23f18fec38023cc80147e63.png)
 
 图片由作者提供
 
-通过使用这种方法，数据科学家可以通过定义离群点并将其排除在其他聚类之外，构建一个鲁棒的模型。这种方法在处理层次结构数据（如分类法）时效果极佳。聚类的数量取决于深度参数，范围可以是1到n。
+通过使用这种方法，数据科学家可以通过定义离群点并将其排除在其他聚类之外，构建一个鲁棒的模型。这种方法在处理层次结构数据（如分类法）时效果极佳。聚类的数量取决于深度参数，范围可以是 1 到 n。
 
 ```py
 from scipy.cluster.hierarchy import dendrogram, linkage
@@ -152,7 +152,7 @@ clusters = fcluster(linkage_data, 2.5, criterion = 'inconsistent', depth = 5)
 
 最后，基于分布的聚类考虑了除距离和密度之外的度量标准，即概率。基于分布的聚类假设数据由概率分布组成，例如正态分布。该算法创建了“带状”区域，表示置信区间。数据点距离聚类中心越远，我们就越不确定该数据点是否属于该聚类。
 
-![](../Images/b9c66c47eb6422b7014a43d6bd01a57b.png)
+![](img/b9c66c47eb6422b7014a43d6bd01a57b.png)
 
 作者提供的图片
 

@@ -1,18 +1,18 @@
 # 为了更安全的代码更改创建自定义预提交钩子
 
-> 原文：[https://towardsdatascience.com/custom-pre-commit-hooks-for-safer-code-changes-d8b8aa1b2ebb?source=collection_archive---------5-----------------------#2024-03-14](https://towardsdatascience.com/custom-pre-commit-hooks-for-safer-code-changes-d8b8aa1b2ebb?source=collection_archive---------5-----------------------#2024-03-14)
+> 原文：[`towardsdatascience.com/custom-pre-commit-hooks-for-safer-code-changes-d8b8aa1b2ebb?source=collection_archive---------5-----------------------#2024-03-14`](https://towardsdatascience.com/custom-pre-commit-hooks-for-safer-code-changes-d8b8aa1b2ebb?source=collection_archive---------5-----------------------#2024-03-14)
 
 ## 编写你的第一个预提交钩子的逐步指南
 
-[](https://medium.com/@thijean?source=post_page---byline--d8b8aa1b2ebb--------------------------------)[![Thierry Jean](../Images/697a9c45220735ab2fcb0d9b57cd20f2.png)](https://medium.com/@thijean?source=post_page---byline--d8b8aa1b2ebb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d8b8aa1b2ebb--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d8b8aa1b2ebb--------------------------------) [Thierry Jean](https://medium.com/@thijean?source=post_page---byline--d8b8aa1b2ebb--------------------------------)
+[](https://medium.com/@thijean?source=post_page---byline--d8b8aa1b2ebb--------------------------------)![Thierry Jean](https://medium.com/@thijean?source=post_page---byline--d8b8aa1b2ebb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d8b8aa1b2ebb--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8b8aa1b2ebb--------------------------------) [Thierry Jean](https://medium.com/@thijean?source=post_page---byline--d8b8aa1b2ebb--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8b8aa1b2ebb--------------------------------) ·8分钟阅读·2024年3月14日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8b8aa1b2ebb--------------------------------) ·8 分钟阅读·2024 年 3 月 14 日
 
 --
 
-![](../Images/e7c8a7d092e2b255b1a68b28a2abf755.png)
+![](img/e7c8a7d092e2b255b1a68b28a2abf755.png)
 
-预提交运行结果，包括我们的Hamilton钩子！
+预提交运行结果，包括我们的 Hamilton 钩子！
 
 大多数软件使用`git`版本控制系统来更新和分发代码。一个协作编写代码的挑战是，在每个贡献者有自己关于什么是干净代码的风格和看法时，如何确保遵循特定的标准。
 
@@ -20,7 +20,7 @@
 
 # 为什么要创建自定义的预提交钩子？
 
-我想创建预提交钩子来验证Python库[Hamilton](https://github.com/dagworks-inc/hamilton)的数据流定义，但我发现大多数在线资源分散且仅限于基本用法。
+我想创建预提交钩子来验证 Python 库[Hamilton](https://github.com/dagworks-inc/hamilton)的数据流定义，但我发现大多数在线资源分散且仅限于基本用法。
 
 在这篇文章中，你将找到：
 
@@ -28,19 +28,19 @@
 
 1.  开发自定义预提交钩子的逐步教程
 
-为了引导讨论，我将通过[这个GitHub仓库](https://github.com/DAGWorks-Inc/hamilton-pre-commit)介绍我为Hamilton开发的预提交钩子。
+为了引导讨论，我将通过[这个 GitHub 仓库](https://github.com/DAGWorks-Inc/hamilton-pre-commit)介绍我为 Hamilton 开发的预提交钩子。
 
 # 开始使用预提交钩子
 
-钩子是直接内嵌在`git`版本控制系统中的机制。你可以在`.git/hooks`目录下找到项目的钩子（该目录默认可能是隐藏的）。虽然通常称之为“预提交钩子”，但git钩子涵盖了整个[git生命周期](https://pre-commit.com/#supported-git-hooks)。例如，你可以在提交后或推送前触发钩子。此外，钩子可以用任何编程语言编写。特别地，[Ruff](https://github.com/astral-sh/ruff)库为了性能提升，使用Rust重新实现了许多基于Python的钩子。
+钩子是直接内嵌在`git`版本控制系统中的机制。你可以在`.git/hooks`目录下找到项目的钩子（该目录默认可能是隐藏的）。虽然通常称之为“预提交钩子”，但 git 钩子涵盖了整个[git 生命周期](https://pre-commit.com/#supported-git-hooks)。例如，你可以在提交后或推送前触发钩子。此外，钩子可以用任何编程语言编写。特别地，[Ruff](https://github.com/astral-sh/ruff)库为了性能提升，使用 Rust 重新实现了许多基于 Python 的钩子。
 
 与专注于代码行为的软件测试不同，钩子可以看作是你在每次保存文件时执行的轻量级检查。虽然你可以预期测试会随着代码库的变化而变化，但你的代码编写指南和预提交钩子可能会保持不变。
 
 ## 项目设置
 
-假设我们在目录`/my-project`中开始一个新的Python项目（或使用一个现有项目）。与预提交钩子协作的推荐方式是通过[pre-commit](https://github.com/pre-commit/pre-commithttps://github.com/pre-commit/pre-commit) Python库。我们可以通过以下步骤进行设置：
+假设我们在目录`/my-project`中开始一个新的 Python 项目（或使用一个现有项目）。与预提交钩子协作的推荐方式是通过[pre-commit](https://github.com/pre-commit/pre-commithttps://github.com/pre-commit/pre-commit) Python 库。我们可以通过以下步骤进行设置：
 
-1.  使用`git init`为你的项目创建一个git仓库
+1.  使用`git init`为你的项目创建一个 git 仓库
 
 1.  使用`pip install pre-commit`安装预提交库
 
@@ -71,9 +71,9 @@ repos:
 
 # 创建一个自定义的预提交钩子
 
-[社区维护的钩子](https://pre-commit.com/hooks.html)提供了灵活性，可以根据你的编码规范进行定制。它们通常能满足你98%的需求。然而，现成的解决方案并不了解你使用的具体工具或团队的内部惯例。例如，你可能希望验证内部配置或强制执行项目的目录结构。
+[社区维护的钩子](https://pre-commit.com/hooks.html)提供了灵活性，可以根据你的编码规范进行定制。它们通常能满足你 98%的需求。然而，现成的解决方案并不了解你使用的具体工具或团队的内部惯例。例如，你可能希望验证内部配置或强制执行项目的目录结构。
 
-在我们的案例中，我们希望创建一个钩子来验证Python代码中的Hamilton数据流定义。我们的钩子脚本将利用`[hamilton](https://blog.dagworks.io/p/a-command-line-tool-to-improve-your)` [CLI工具](https://blog.dagworks.io/p/a-command-line-tool-to-improve-your)来进行验证，这将为我们提供一个简单的代码示例。
+在我们的案例中，我们希望创建一个钩子来验证 Python 代码中的 Hamilton 数据流定义。我们的钩子脚本将利用`[hamilton](https://blog.dagworks.io/p/a-command-line-tool-to-improve-your)` [CLI 工具](https://blog.dagworks.io/p/a-command-line-tool-to-improve-your)来进行验证，这将为我们提供一个简单的代码示例。
 
 ## 1\. 设置你的预提交钩子仓库
 
@@ -81,7 +81,7 @@ repos:
 
 之前，我们在项目目录`/my-project`中定义了`.pre-commit-config.yaml`并安装了钩子。现在，我们将创建一个`/my-hooks`目录，在其中定义我们自定义的钩子。你可以参考我们的`[hamilton-pre-commit](https://github.com/DAGWorks-Inc/hamilton-pre-commit)` [仓库](https://github.com/DAGWorks-Inc/hamilton-pre-commit)查看整体结构。
 
-![](../Images/166a5ca7285e66ff4c4dd89f6f0b0b6e.png)
+![](img/166a5ca7285e66ff4c4dd89f6f0b0b6e.png)
 
 [hamilton-pre-commit 仓库的截图](https://github.com/dagworks-inc/hamilton-pre-commit)
 
@@ -160,15 +160,15 @@ cli-command = "hooks.cli_command:main"
 
 ## 4\. 本地测试你的钩子
 
-首先，你应该通过单元测试验证钩子逻辑。然而，我们不会深入讨论测试，因为它值得单独的一篇文章。我们的`hamilton-pre-commit`仓库目前没有测试，因为底层CLI在主Hamilton仓库中已进行测试。你可以访问[官方维护的pre-commit钩子](https://github.com/pre-commit/pre-commit-hooks/tree/main/tests)查看测试示例。
+首先，你应该通过单元测试验证钩子逻辑。然而，我们不会深入讨论测试，因为它值得单独的一篇文章。我们的`hamilton-pre-commit`仓库目前没有测试，因为底层 CLI 在主 Hamilton 仓库中已进行测试。你可以访问[官方维护的 pre-commit 钩子](https://github.com/pre-commit/pre-commit-hooks/tree/main/tests)查看测试示例。
 
-其次，你应该通过在本地尝试运行你的pre-commit钩子来验证`.pre-commit-hooks.yaml`和入口点是否正确配置。理想情况下，你应该避免每次想测试更改时都添加提交来触发钩子。pre-commit库提供了一些工具来简化这个过程，但它需要一些手动步骤，详细步骤可以参考[pre-commit GitHub问题](https://github.com/pre-commit/pre-commit/issues/850)。
+其次，你应该通过在本地尝试运行你的 pre-commit 钩子来验证`.pre-commit-hooks.yaml`和入口点是否正确配置。理想情况下，你应该避免每次想测试更改时都添加提交来触发钩子。pre-commit 库提供了一些工具来简化这个过程，但它需要一些手动步骤，详细步骤可以参考[pre-commit GitHub 问题](https://github.com/pre-commit/pre-commit/issues/850)。
 
 1.  转到你希望测试钩子的目录`/my-project`。
 
 1.  执行`pre-commit try-repo ../LOCAL/PATH/TO/my-hooks`，然后你应该会看到一个本地初始化消息。
 
-![](../Images/3b0b7c51f01500026015f0abc28eae0a.png)
+![](img/3b0b7c51f01500026015f0abc28eae0a.png)
 
 一个限制是，你不能通过此命令直接将`args`传递给钩子。
 
@@ -188,33 +188,33 @@ repos:
 
 4\. 使用本地钩子通过`pre-commit run --config .local-pre-commit-config.yaml --all-files`。`--all-files`标志会将钩子应用到仓库中的所有文件，而不是仅应用于当前暂存的文件。
 
-![](../Images/7f26ca2ae6b9ab675d6ea632e3925a27.png)
+![](img/7f26ca2ae6b9ab675d6ea632e3925a27.png)
 
 > 添加测试时，始终从让测试失败开始。你可不想添加一个总是成功的测试`(:^)`
 
-## 5\. 发布你的pre-commit钩子
+## 5\. 发布你的 pre-commit 钩子
 
-你快完成了！你有一个工作的钩子脚本，已经在git仓库中进行了测试和打包。现在，你只需将它发布到线上即可。我们将展示GitHub托管项目的步骤，但你的pre-commit钩子可以放在任何可以通过`git clone`访问的地方。
+你快完成了！你有一个工作的钩子脚本，已经在 git 仓库中进行了测试和打包。现在，你只需将它发布到线上即可。我们将展示 GitHub 托管项目的步骤，但你的 pre-commit 钩子可以放在任何可以通过`git clone`访问的地方。
 
-1.  从你的GitHub仓库，进入**发布**部分
+1.  从你的 GitHub 仓库，进入**发布**部分
 
-![](../Images/56f353c45e92f3b91e8680fa8826a653.png)
+![](img/56f353c45e92f3b91e8680fa8826a653.png)
 
-GitHub仓库的主页。
+GitHub 仓库的主页。
 
 2\. 点击**草拟新版本**
 
-![](../Images/74b19fc73cfe7dace94e8d01408d0cdf.png)
+![](img/74b19fc73cfe7dace94e8d01408d0cdf.png)
 
-GitHub仓库的**发布**部分
+GitHub 仓库的**发布**部分
 
-3\. 在新发布页面上，你需要添加版本标签、标题和描述。如果这是你的第一次发布，我建议将标签设置为`v0.1.0`，以[遵循语义版本控制](https://semver.org/)，这是GitHub推荐的做法。
+3\. 在新发布页面上，你需要添加版本标签、标题和描述。如果这是你的第一次发布，我建议将标签设置为`v0.1.0`，以[遵循语义版本控制](https://semver.org/)，这是 GitHub 推荐的做法。
 
 当你在进行更改并想要发布实验版本时，你可以将版本设置为`v0.1.1-rc`（即“发布候选版”），并使用复选框将其标记为预发布版本。
 
-![](../Images/bbf212038a852dbff5ac65cc2800eb47.png)
+![](img/bbf212038a852dbff5ac65cc2800eb47.png)
 
-GitHub上的**新版本**表单。
+GitHub 上的**新版本**表单。
 
 `.pre-commit-config.yaml`文件中的`rev`值需要与你设置的**版本标签**匹配。
 
@@ -231,8 +231,8 @@ repos:
 
 恭喜！你已经完成了这篇文章！现在，你可以使用 pre-commit 钩子来提高你项目中的代码质量。了解了它们的内部机制后，你可以开始编写自己的钩子了！
 
-在重新发明轮子之前，不要忘记查看社区维护的许多钩子：[https://pre-commit.com/hooks.html](https://pre-commit.com/hooks.html)
+在重新发明轮子之前，不要忘记查看社区维护的许多钩子：[`pre-commit.com/hooks.html`](https://pre-commit.com/hooks.html)
 
-查看[Hamilton](https://github.com/DAGWorks-Inc/hamilton)库，以便用Python编写数据流！
+查看[Hamilton](https://github.com/DAGWorks-Inc/hamilton)库，以便用 Python 编写数据流！
 
 在[LinkedIn](https://www.linkedin.com/in/thierry-jean/)上找到我，并查看我在[DAGWorks 博客](https://blog.dagworks.io/)上的更多文章

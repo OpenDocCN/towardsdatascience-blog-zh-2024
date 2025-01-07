@@ -1,20 +1,20 @@
 # 从正确的起点启动机器学习产品项目
 
-> 原文：[https://towardsdatascience.com/starting-ml-product-initiatives-on-the-right-foot-cf24cbe163b3?source=collection_archive---------7-----------------------#2024-05-02](https://towardsdatascience.com/starting-ml-product-initiatives-on-the-right-foot-cf24cbe163b3?source=collection_archive---------7-----------------------#2024-05-02)
+> 原文：[`towardsdatascience.com/starting-ml-product-initiatives-on-the-right-foot-cf24cbe163b3?source=collection_archive---------7-----------------------#2024-05-02`](https://towardsdatascience.com/starting-ml-product-initiatives-on-the-right-foot-cf24cbe163b3?source=collection_archive---------7-----------------------#2024-05-02)
 
 ## 学到的三大教训：问题、规模和数据
 
-[](https://annaviaba.medium.com/?source=post_page---byline--cf24cbe163b3--------------------------------)[![Anna Via](../Images/7e8fe5c1a485a789edad3a6d118bcf45.png)](https://annaviaba.medium.com/?source=post_page---byline--cf24cbe163b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cf24cbe163b3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cf24cbe163b3--------------------------------) [Anna Via](https://annaviaba.medium.com/?source=post_page---byline--cf24cbe163b3--------------------------------)
+[](https://annaviaba.medium.com/?source=post_page---byline--cf24cbe163b3--------------------------------)![Anna Via](https://annaviaba.medium.com/?source=post_page---byline--cf24cbe163b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cf24cbe163b3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cf24cbe163b3--------------------------------) [Anna Via](https://annaviaba.medium.com/?source=post_page---byline--cf24cbe163b3--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cf24cbe163b3--------------------------------) ·9 分钟阅读·2024年5月2日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cf24cbe163b3--------------------------------) ·9 分钟阅读·2024 年 5 月 2 日
 
 --
 
-![](../Images/e36df53a10143bc46a22e23ced3b2392.png)
+![](img/e36df53a10143bc46a22e23ced3b2392.png)
 
 *图片由*[](https://unsplash.com/es/@theyshane)[*Snapwire*](https://www.pexels.com/es-es/@snapwire/)*提供，来源于* [*Pexels*](https://www.pexels.com/)
 
-*这篇博客文章是我去年在GOTO阿姆斯特丹的会议演讲部分内容的更新版本。演讲也可以在* [*这里观看*](https://www.youtube.com/watch?v=dFxFYukNmvE)*。*
+*这篇博客文章是我去年在 GOTO 阿姆斯特丹的会议演讲部分内容的更新版本。演讲也可以在* [*这里观看*](https://www.youtube.com/watch?v=dFxFYukNmvE)*。*
 
 作为一名机器学习产品经理，我对机器学习与产品管理的交集深感兴趣，尤其是在创造能够为产品、公司和用户带来价值和积极影响的解决方案时。然而，能够提供这种价值和积极影响并不是一项简单的工作。造成这种复杂性的一个主要原因是，在为数字产品开发的机器学习项目中，存在两个不确定性的来源相互交织。
 
@@ -32,7 +32,7 @@
 
 # **从问题开始（并定义如何使用预测结果）**
 
-![](../Images/45f503eef49b87c80d62825a075db218.png)
+![](img/45f503eef49b87c80d62825a075db218.png)
 
 从正确的问题开始，[Steve Johnson](https://www.pexels.com/es-es/@steve/) @ [Pexels](https://www.pexels.com/)
 
@@ -54,13 +54,13 @@
 
 # **从小做起（如果可能，保持小规模）**
 
-艰难的经历也带来了这些学习。这些经历的共同点是，一个大型的机器学习项目以瀑布式方式定义。这种项目通常预计持续6个月，并按照机器学习生命周期逐步推进。
+艰难的经历也带来了这些学习。这些经历的共同点是，一个大型的机器学习项目以瀑布式方式定义。这种项目通常预计持续 6 个月，并按照机器学习生命周期逐步推进。
 
-![](../Images/341dd62046b3c92675775d17c5e303d8.png)
+![](img/341dd62046b3c92675775d17c5e303d8.png)
 
 遵循机器学习生命周期阶段的瀑布式项目规划，图像来自作者
 
-这有什么可能出错呢，对吧？让我提醒你我之前的话 *“通过预测模型，目标是预测那些你不知道能预测的事情”*! 在这种情况下，可能会发生这样的情况：你在项目的第5个月时进行模型评估，意识到模型无法以足够好的质量预测任何它需要预测的内容。或者更糟糕的是，你在第6个月时，拥有一个已经部署到生产环境中的超级模型，却意识到它没有带来任何价值。
+这有什么可能出错呢，对吧？让我提醒你我之前的话 *“通过预测模型，目标是预测那些你不知道能预测的事情”*! 在这种情况下，可能会发生这样的情况：你在项目的第 5 个月时进行模型评估，意识到模型无法以足够好的质量预测任何它需要预测的内容。或者更糟糕的是，你在第 6 个月时，拥有一个已经部署到生产环境中的超级模型，却意识到它没有带来任何价值。
 
 这种风险与与产品相关的不确定性结合在一起，迫使我们尽可能避免大型瀑布式项目。这不仅仅是 ML 项目所特有的问题，也并非新鲜事物，因此我们可以从传统软件开发、敏捷开发、精益方法及其他方法论和思维方式中学到很多。通过从小规模开始，快速验证假设并持续进行实验和扩展，我们可以有效地规避这一风险，适应洞察并提高成本效益。
 
@@ -80,25 +80,25 @@
 
 # 数据、数据和数据（质量、量、历史）
 
-![](../Images/4241612c7a1a70ec4a38941ac0460f1f.png)
+![](img/4241612c7a1a70ec4a38941ac0460f1f.png)
 
 图片来源：[Tima Miroshnichenko](https://www.pexels.com/es-es/@tima-miroshnichenko/)，来自 [Pexels](https://www.pexels.com/)
 
 数据是数据科学家和机器学习团队在启动机器学习项目时遇到的**反复出现的问题**。你是否曾被重复的数据、错误、缺失的批次、奇怪的值……所惊讶？这与你在在线课程中看到的玩具数据集有多大的不同！
 
-也有可能是你需要的数据根本不存在：某些特定事件的跟踪从未被实现，收集和适当的ETL最近才实施……我曾经历过这样的情况：为了获得足够的历史数据和数据量，不得不等待几个月才能启动一个项目。
+也有可能是你需要的数据根本不存在：某些特定事件的跟踪从未被实现，收集和适当的 ETL 最近才实施……我曾经历过这样的情况：为了获得足够的历史数据和数据量，不得不等待几个月才能启动一个项目。
 
-所有这一切都与“*垃圾进，垃圾出*”这句格言相关：机器学习模型的效果取决于它们所训练的数据。很多时候，通过改善数据而非模型来提高解决方案的潜力更大（[数据中心化AI](https://datacentricai.org/)）。数据需要在数量、历史（多年生成的数据比在短短一周内生成的数据更有价值）和质量上都足够。为了实现这一点，成熟的数据治理、收集、清洗和预处理至关重要。
+所有这一切都与“*垃圾进，垃圾出*”这句格言相关：机器学习模型的效果取决于它们所训练的数据。很多时候，通过改善数据而非模型来提高解决方案的潜力更大（[数据中心化 AI](https://datacentricai.org/)）。数据需要在数量、历史（多年生成的数据比在短短一周内生成的数据更有价值）和质量上都足够。为了实现这一点，成熟的数据治理、收集、清洗和预处理至关重要。
 
-从**伦理AI**的角度来看，数据也是偏见和歧视的主要来源，因此认识到这一点并采取行动来减轻这些风险至关重要。考虑数据治理原则、隐私和合规性（例如欧盟的*GDPR*）也是确保负责任使用数据的关键（尤其是在处理个人数据时）。
+从**伦理 AI**的角度来看，数据也是偏见和歧视的主要来源，因此认识到这一点并采取行动来减轻这些风险至关重要。考虑数据治理原则、隐私和合规性（例如欧盟的*GDPR*）也是确保负责任使用数据的关键（尤其是在处理个人数据时）。
 
-使用**GenAI模型**时，这一情况发生了转变：大量数据已经被用于训练这些模型。在使用这些类型的模型时，我们可能不需要大量和高质量的数据进行训练，但可能需要它们来进行微调（见[优质数据 = 优质GenAI](https://medium.com/mit-initiative-on-the-digital-economy/good-data-good-genai-930c7ff83fe1)），或者构建提示（培养上下文、少量示例学习、检索增强生成……—我在[之前的文章](https://medium.com/towards-data-science/the-4-new-trendy-ai-concepts-and-their-potential-in-digital-products-cf5e1b85bff9)中解释了所有这些概念！）。
+使用**GenAI 模型**时，这一情况发生了转变：大量数据已经被用于训练这些模型。在使用这些类型的模型时，我们可能不需要大量和高质量的数据进行训练，但可能需要它们来进行微调（见[优质数据 = 优质 GenAI](https://medium.com/mit-initiative-on-the-digital-economy/good-data-good-genai-930c7ff83fe1)），或者构建提示（培养上下文、少量示例学习、检索增强生成……—我在[之前的文章](https://medium.com/towards-data-science/the-4-new-trendy-ai-concepts-and-their-potential-in-digital-products-cf5e1b85bff9)中解释了所有这些概念！）。
 
-需要注意的是，通过使用这些模型，我们正在失去对用于训练它们的数据的控制，我们可能会受到使用的数据的质量或类型的影响：有很多已知的偏见和歧视的例子，这些例子会对我们的解决方案产生负面影响。一个很好的例子是彭博社的文章“[ChatGPT如何成为招聘人员的梦想工具——测试显示存在种族偏见](https://www.bloomberg.com/graphics/2024-openai-gpt-hiring-racial-discrimination/)”。[LLM排行榜测试偏见](https://ai-sandbox.list.lu/llm-leaderboard/)，或[专门训练以避免这些偏见的LLM](https://www.latimer.ai/)在这方面可能会有所帮助。
+需要注意的是，通过使用这些模型，我们正在失去对用于训练它们的数据的控制，我们可能会受到使用的数据的质量或类型的影响：有很多已知的偏见和歧视的例子，这些例子会对我们的解决方案产生负面影响。一个很好的例子是彭博社的文章“[ChatGPT 如何成为招聘人员的梦想工具——测试显示存在种族偏见](https://www.bloomberg.com/graphics/2024-openai-gpt-hiring-racial-discrimination/)”。[LLM 排行榜测试偏见](https://ai-sandbox.list.lu/llm-leaderboard/)，或[专门训练以避免这些偏见的 LLM](https://www.latimer.ai/)在这方面可能会有所帮助。
 
-![](../Images/a00a75709821c3066751fe9a165e9cbb.png)
+![](img/a00a75709821c3066751fe9a165e9cbb.png)
 
-关于ChatGPT的性别偏见示例（2024年5月1日的提示）
+关于 ChatGPT 的性别偏见示例（2024 年 5 月 1 日的提示）
 
 # 总结
 

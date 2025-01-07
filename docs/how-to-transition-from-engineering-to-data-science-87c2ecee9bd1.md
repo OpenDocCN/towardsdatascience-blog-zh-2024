@@ -1,16 +1,16 @@
 # 如何从工程转型到数据科学
 
-> 原文：[https://towardsdatascience.com/how-to-transition-from-engineering-to-data-science-87c2ecee9bd1?source=collection_archive---------11-----------------------#2024-11-27](https://towardsdatascience.com/how-to-transition-from-engineering-to-data-science-87c2ecee9bd1?source=collection_archive---------11-----------------------#2024-11-27)
+> 原文：[`towardsdatascience.com/how-to-transition-from-engineering-to-data-science-87c2ecee9bd1?source=collection_archive---------11-----------------------#2024-11-27`](https://towardsdatascience.com/how-to-transition-from-engineering-to-data-science-87c2ecee9bd1?source=collection_archive---------11-----------------------#2024-11-27)
 
-## 工程师的AI经验：一位工程毕业生的经验
+## 工程师的 AI 经验：一位工程毕业生的经验
 
-[](https://danpietrow.medium.com/?source=post_page---byline--87c2ecee9bd1--------------------------------)[![Dan Pietrow, 工程博士](../Images/9729e237a24f29d3c794e9308fc3ba82.png)](https://danpietrow.medium.com/?source=post_page---byline--87c2ecee9bd1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--87c2ecee9bd1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--87c2ecee9bd1--------------------------------) [Dan Pietrow, 工程博士](https://danpietrow.medium.com/?source=post_page---byline--87c2ecee9bd1--------------------------------)
+[](https://danpietrow.medium.com/?source=post_page---byline--87c2ecee9bd1--------------------------------)![Dan Pietrow, 工程博士](https://danpietrow.medium.com/?source=post_page---byline--87c2ecee9bd1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--87c2ecee9bd1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87c2ecee9bd1--------------------------------) [Dan Pietrow, 工程博士](https://danpietrow.medium.com/?source=post_page---byline--87c2ecee9bd1--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87c2ecee9bd1--------------------------------) ·6分钟阅读·2024年11月27日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--87c2ecee9bd1--------------------------------) ·6 分钟阅读·2024 年 11 月 27 日
 
 --
 
-![](../Images/2d61291fc43e7454e23571f729a06984.png)
+![](img/2d61291fc43e7454e23571f729a06984.png)
 
 图片来源：[Cash Macanaya](https://unsplash.com/@cashmacanaya?utm_source=medium&utm_medium=referral) 来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -26,7 +26,7 @@
 
 +   或者出于好奇学习这些技能
 
-...这份指南就是为你准备的。它基于我的个人经历，旨在帮助你自信地进入AI和数据科学的世界。
+...这份指南就是为你准备的。它基于我的个人经历，旨在帮助你自信地进入 AI 和数据科学的世界。
 
 # 为什么工程师在数据岗位上表现出色
 

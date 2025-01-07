@@ -1,20 +1,20 @@
-# 在Google Colab上训练语言模型
+# 在 Google Colab 上训练语言模型
 
-> 原文：[https://towardsdatascience.com/training-language-models-on-google-colab-6e145ff092bf?source=collection_archive---------6-----------------------#2024-12-04](https://towardsdatascience.com/training-language-models-on-google-colab-6e145ff092bf?source=collection_archive---------6-----------------------#2024-12-04)
+> 原文：[`towardsdatascience.com/training-language-models-on-google-colab-6e145ff092bf?source=collection_archive---------6-----------------------#2024-12-04`](https://towardsdatascience.com/training-language-models-on-google-colab-6e145ff092bf?source=collection_archive---------6-----------------------#2024-12-04)
 
 ## 迭代微调与序列化指南
 
-[](https://john-hawkins.medium.com/?source=post_page---byline--6e145ff092bf--------------------------------)[![John Hawkins](../Images/4c36312a7b99f0b1b2575fd7184d60b5.png)](https://john-hawkins.medium.com/?source=post_page---byline--6e145ff092bf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6e145ff092bf--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6e145ff092bf--------------------------------) [John Hawkins](https://john-hawkins.medium.com/?source=post_page---byline--6e145ff092bf--------------------------------)
+[](https://john-hawkins.medium.com/?source=post_page---byline--6e145ff092bf--------------------------------)![John Hawkins](https://john-hawkins.medium.com/?source=post_page---byline--6e145ff092bf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6e145ff092bf--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e145ff092bf--------------------------------) [John Hawkins](https://john-hawkins.medium.com/?source=post_page---byline--6e145ff092bf--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e145ff092bf--------------------------------) ·阅读时间5分钟·2024年12月4日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e145ff092bf--------------------------------) ·阅读时间 5 分钟·2024 年 12 月 4 日
 
 --
 
-![](../Images/059f892fb6a9dc178619df35de9be181.png)
+![](img/059f892fb6a9dc178619df35de9be181.png)
 
 图片由[Shio Yang](https://unsplash.com/@shioyang?utm_source=medium&utm_medium=referral)提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-所以，你最近发现了[Hugging Face](https://huggingface.co/)和一系列开源模型，如BERT、Llama、BART，以及由[Mistral AI](https://mistral.ai/)、[Facebook](http://facebook.com)、[Salesforce](https://www.salesforce.com/)等公司推出的众多生成性语言模型。现在你想为自己的副项目尝试微调一些大型语言模型。一开始一切都很顺利，但接着你发现这些模型计算资源消耗巨大，而你手头并没有GPU处理器。
+所以，你最近发现了[Hugging Face](https://huggingface.co/)和一系列开源模型，如 BERT、Llama、BART，以及由[Mistral AI](https://mistral.ai/)、[Facebook](http://facebook.com)、[Salesforce](https://www.salesforce.com/)等公司推出的众多生成性语言模型。现在你想为自己的副项目尝试微调一些大型语言模型。一开始一切都很顺利，但接着你发现这些模型计算资源消耗巨大，而你手头并没有 GPU 处理器。
 
 [Google Colab](https://colab.google/)慷慨地为你提供了免费计算资源，帮助你解决这个问题。缺点是，你需要在一个过渡性的基于浏览器的环境中完成所有操作。更糟的是，整个环境是有时间限制的，所以似乎不管你做什么，最终都会在内核关闭并且环境被清除时失去你珍贵的微调模型和所有结果。
 
@@ -108,6 +108,6 @@ for exp in experiments:
 
 上面的核心训练循环允许我们重用整体代码结构，以训练并序列化这些模型，确保每个模型都能完成所需的训练轮次。如果我们重新启动该过程，它会再次遍历实验列表，但会放弃那些已经达到最大训练轮次的实验。
 
-希望你能使用这个样板代码，在Google Colab中设置自己的深度学习语言模型训练实验流程。请发表评论并告诉我你正在构建什么以及如何使用这段代码。
+希望你能使用这个样板代码，在 Google Colab 中设置自己的深度学习语言模型训练实验流程。请发表评论并告诉我你正在构建什么以及如何使用这段代码。
 
 非常感谢[Aditya Pramar](https://medium.com/@adityapramar15)提供的初始脚本，正是这些脚本促成了这篇作品的诞生。

@@ -1,26 +1,26 @@
-# PyTorch中的数据集和数据加载器完整指南
+# PyTorch 中的数据集和数据加载器完整指南
 
-> 原文：[https://towardsdatascience.com/comprehensive-guide-to-datasets-and-dataloaders-in-pytorch-4d20f973d5d5?source=collection_archive---------6-----------------------#2024-06-15](https://towardsdatascience.com/comprehensive-guide-to-datasets-and-dataloaders-in-pytorch-4d20f973d5d5?source=collection_archive---------6-----------------------#2024-06-15)
+> 原文：[`towardsdatascience.com/comprehensive-guide-to-datasets-and-dataloaders-in-pytorch-4d20f973d5d5?source=collection_archive---------6-----------------------#2024-06-15`](https://towardsdatascience.com/comprehensive-guide-to-datasets-and-dataloaders-in-pytorch-4d20f973d5d5?source=collection_archive---------6-----------------------#2024-06-15)
 
-## 完整指南：如何为PyTorch中的不同模型创建自定义数据集和数据加载器
+## 完整指南：如何为 PyTorch 中的不同模型创建自定义数据集和数据加载器
 
-[](https://medium.com/@rtdcunha?source=post_page---byline--4d20f973d5d5--------------------------------)[![Ryan D'Cunha](../Images/7a39859e2b5e5b09ef2c60aaf6bb75ac.png)](https://medium.com/@rtdcunha?source=post_page---byline--4d20f973d5d5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4d20f973d5d5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4d20f973d5d5--------------------------------) [Ryan D'Cunha](https://medium.com/@rtdcunha?source=post_page---byline--4d20f973d5d5--------------------------------)
+[](https://medium.com/@rtdcunha?source=post_page---byline--4d20f973d5d5--------------------------------)![Ryan D'Cunha](https://medium.com/@rtdcunha?source=post_page---byline--4d20f973d5d5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4d20f973d5d5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4d20f973d5d5--------------------------------) [Ryan D'Cunha](https://medium.com/@rtdcunha?source=post_page---byline--4d20f973d5d5--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4d20f973d5d5--------------------------------) ·阅读时间：5分钟·2024年6月15日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4d20f973d5d5--------------------------------) ·阅读时间：5 分钟·2024 年 6 月 15 日
 
 --
 
-![](../Images/6e4efac0de583f1e865e0158db53f194.png)
+![](img/6e4efac0de583f1e865e0158db53f194.png)
 
 来源：GPT4o 生成
 
-在构建机器学习模型之前，您需要将数据加载到数据集中。幸运的是，PyTorch提供了许多命令来帮助完成整个过程（如果你不熟悉PyTorch，建议先复习基础知识[这里](https://medium.com/@rtdcunha/a-beginners-guide-to-pytorch-6bc600ca4b8d)）。
+在构建机器学习模型之前，您需要将数据加载到数据集中。幸运的是，PyTorch 提供了许多命令来帮助完成整个过程（如果你不熟悉 PyTorch，建议先复习基础知识[这里](https://medium.com/@rtdcunha/a-beginners-guide-to-pytorch-6bc600ca4b8d)）。
 
-PyTorch提供了丰富的文档来帮助完成这个过程，但我没有找到任何关于自定义数据集的全面文档或教程。首先，我将从创建基本的现成数据集开始，然后逐步学习如何为不同的模型从头开始创建数据集！
+PyTorch 提供了丰富的文档来帮助完成这个过程，但我没有找到任何关于自定义数据集的全面文档或教程。首先，我将从创建基本的现成数据集开始，然后逐步学习如何为不同的模型从头开始创建数据集！
 
 # 什么是数据集和数据加载器？
 
-在我们深入探讨不同使用案例的代码之前，首先让我们理解这两个术语之间的区别。通常，你首先创建数据集，然后创建数据加载器。**数据集**包含将输入模型的每个数据点的特征和标签。**数据加载器**是一个自定义的PyTorch可迭代对象，它使得加载数据并附加额外功能变得更加容易。
+在我们深入探讨不同使用案例的代码之前，首先让我们理解这两个术语之间的区别。通常，你首先创建数据集，然后创建数据加载器。**数据集**包含将输入模型的每个数据点的特征和标签。**数据加载器**是一个自定义的 PyTorch 可迭代对象，它使得加载数据并附加额外功能变得更加容易。
 
 ```py
 DataLoader(dataset, batch_size=1, shuffle=False, sampler=None,
@@ -30,9 +30,9 @@ DataLoader(dataset, batch_size=1, shuffle=False, sampler=None,
            persistent_workers=False)
 ```
 
-数据加载器中最常见的参数有*batch_size*、*shuffle*（通常仅用于训练数据）、*num_workers*（用于多进程加载数据）和*pin_memory*（将获取的数据张量放入固定内存中，从而加快数据传输到支持CUDA的GPU的速度）。
+数据加载器中最常见的参数有*batch_size*、*shuffle*（通常仅用于训练数据）、*num_workers*（用于多进程加载数据）和*pin_memory*（将获取的数据张量放入固定内存中，从而加快数据传输到支持 CUDA 的 GPU 的速度）。
 
-> 建议设置pin_memory = True，而不是指定num_workers，因为CUDA的多进程处理会引发一些复杂问题。
+> 建议设置 pin_memory = True，而不是指定 num_workers，因为 CUDA 的多进程处理会引发一些复杂问题。
 
 # 加载现成数据集
 

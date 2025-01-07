@@ -1,16 +1,16 @@
 # 时间序列分析要点
 
-> 原文：[https://towardsdatascience.com/9-essential-prompts-for-time-series-analysis-with-chatgpt-meticulously-detailed-9baa268cd773?source=collection_archive---------8-----------------------#2024-08-13](https://towardsdatascience.com/9-essential-prompts-for-time-series-analysis-with-chatgpt-meticulously-detailed-9baa268cd773?source=collection_archive---------8-----------------------#2024-08-13)
+> 原文：[`towardsdatascience.com/9-essential-prompts-for-time-series-analysis-with-chatgpt-meticulously-detailed-9baa268cd773?source=collection_archive---------8-----------------------#2024-08-13`](https://towardsdatascience.com/9-essential-prompts-for-time-series-analysis-with-chatgpt-meticulously-detailed-9baa268cd773?source=collection_archive---------8-----------------------#2024-08-13)
 
 ## 通过 ChatGPT 详细解释的趋势分析和预测高级技术
 
-[](https://medium.com/@panData?source=post_page---byline--9baa268cd773--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--9baa268cd773--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9baa268cd773--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9baa268cd773--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--9baa268cd773--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--9baa268cd773--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--9baa268cd773--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9baa268cd773--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9baa268cd773--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--9baa268cd773--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9baa268cd773--------------------------------) ·阅读时间31分钟·2024年8月13日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9baa268cd773--------------------------------) ·阅读时间 31 分钟·2024 年 8 月 13 日
 
 --
 
-![](../Images/f41521ed5b4ad8fddfb732e75c9b50c5.png)
+![](img/f41521ed5b4ad8fddfb732e75c9b50c5.png)
 
 **DALL-E 3**
 

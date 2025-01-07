@@ -1,8 +1,8 @@
 # 使用 MongoDB 构建 RAG 流水线：个性化推荐的向量搜索
 
-> 原文：[https://towardsdatascience.com/building-a-rag-pipeline-with-mongodb-vector-search-for-personalized-movie-picks-46a58a2aaac9?source=collection_archive---------8-----------------------#2024-08-01](https://towardsdatascience.com/building-a-rag-pipeline-with-mongodb-vector-search-for-personalized-movie-picks-46a58a2aaac9?source=collection_archive---------8-----------------------#2024-08-01)
+> 原文：[`towardsdatascience.com/building-a-rag-pipeline-with-mongodb-vector-search-for-personalized-movie-picks-46a58a2aaac9?source=collection_archive---------8-----------------------#2024-08-01`](https://towardsdatascience.com/building-a-rag-pipeline-with-mongodb-vector-search-for-personalized-movie-picks-46a58a2aaac9?source=collection_archive---------8-----------------------#2024-08-01)
 
-[](https://medium.com/@pablomerchanrivera?source=post_page---byline--46a58a2aaac9--------------------------------)[![Pablo Merchán-Rivera, Ph.D.](../Images/a560330911c7ba23fd4839e33e528f5a.png)](https://medium.com/@pablomerchanrivera?source=post_page---byline--46a58a2aaac9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--46a58a2aaac9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--46a58a2aaac9--------------------------------) [Pablo Merchán-Rivera, Ph.D.](https://medium.com/@pablomerchanrivera?source=post_page---byline--46a58a2aaac9--------------------------------)
+[](https://medium.com/@pablomerchanrivera?source=post_page---byline--46a58a2aaac9--------------------------------)![Pablo Merchán-Rivera, Ph.D.](https://medium.com/@pablomerchanrivera?source=post_page---byline--46a58a2aaac9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--46a58a2aaac9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--46a58a2aaac9--------------------------------) [Pablo Merchán-Rivera, Ph.D.](https://medium.com/@pablomerchanrivera?source=post_page---byline--46a58a2aaac9--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--46a58a2aaac9--------------------------------) ·7 分钟阅读·2024 年 8 月 1 日
 
@@ -12,41 +12,41 @@
 
 在本文结束时，你将能够构建一个功能完整的电影推荐系统。该系统能够接受用户的查询，如 *“我想看一部探讨人工智能的科幻电影”* 或 *“什么是适合成人也能欣赏的好动画电影？为什么你的建议适合？”* 并返回相关的电影建议及选择理由。
 
-![](../Images/a1cde82c3c844d5926591d0148cf5a4f.png)
+![](img/a1cde82c3c844d5926591d0148cf5a4f.png)
 
 图片由 [Alexandr Popadin](https://unsplash.com/@irrabagon?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 什么是 RAG 流水线？
 
-RAG管道指的是数据通过一系列处理步骤的顺序流动，结合了大型语言模型（LLM）与结构化数据检索的优势。它的工作原理是首先从知识库中检索相关信息，然后利用这些信息增强大型语言模型的输入，从而生成最终的输出。此类管道的主要目标是生成更准确、更具上下文相关性且更具个性化的响应，以回答用户针对庞大数据库提出的查询。
+RAG 管道指的是数据通过一系列处理步骤的顺序流动，结合了大型语言模型（LLM）与结构化数据检索的优势。它的工作原理是首先从知识库中检索相关信息，然后利用这些信息增强大型语言模型的输入，从而生成最终的输出。此类管道的主要目标是生成更准确、更具上下文相关性且更具个性化的响应，以回答用户针对庞大数据库提出的查询。
 
-# 为什么选择MongoDB？
+# 为什么选择 MongoDB？
 
-MongoDB是一个开源的NoSQL数据库，它以灵活的、类似JSON的文档形式存储数据，允许轻松扩展，并能处理多种数据类型和结构。MongoDB在这个项目中扮演了重要角色。它的文档模型与我们的电影数据非常契合，而它的向量搜索功能可以对我们的嵌入（即电影内容的数字表示）进行相似度搜索。我们还可以利用索引和查询优化功能，以保持即使数据集扩展时也能快速检索数据。
+MongoDB 是一个开源的 NoSQL 数据库，它以灵活的、类似 JSON 的文档形式存储数据，允许轻松扩展，并能处理多种数据类型和结构。MongoDB 在这个项目中扮演了重要角色。它的文档模型与我们的电影数据非常契合，而它的向量搜索功能可以对我们的嵌入（即电影内容的数字表示）进行相似度搜索。我们还可以利用索引和查询优化功能，以保持即使数据集扩展时也能快速检索数据。
 
 # 我们的项目
 
 我们的管道流程如下所示：
 
-1.  设置环境并从Hugging Face加载电影数据
+1.  设置环境并从 Hugging Face 加载电影数据
 
-1.  使用Pydantic对数据进行建模
+1.  使用 Pydantic 对数据进行建模
 
 1.  为电影信息生成嵌入
 
-1.  将数据导入MongoDB数据库
+1.  将数据导入 MongoDB 数据库
 
-1.  在MongoDB Atlas中创建向量搜索索引
+1.  在 MongoDB Atlas 中创建向量搜索索引
 
 1.  执行向量搜索操作，找到相关电影
 
-1.  使用LLM模型处理用户查询
+1.  使用 LLM 模型处理用户查询
 
-1.  使用RAG管道获取电影推荐
+1.  使用 RAG 管道获取电影推荐
 
 ## 第一步：设置环境并加载数据集
 
-首先，我们需要导入必要的库并设置我们的环境。这还包括设置API密钥和应用程序用于连接MongoDB数据库的连接字符串：
+首先，我们需要导入必要的库并设置我们的环境。这还包括设置 API 密钥和应用程序用于连接 MongoDB 数据库的连接字符串：
 
 ```py
 import warnings
@@ -77,11 +77,11 @@ dataset = dataset.take(200)  # 200 movies for the sake of simplicity
 dataset_df = pd.DataFrame(dataset)
 ```
 
-数据集包含超过9000条记录。然而，在这个练习中，我们将数据集限制为200部电影，使用`dataset.take(200)`。在实际应用中，您可能会使用更大的数据集。
+数据集包含超过 9000 条记录。然而，在这个练习中，我们将数据集限制为 200 部电影，使用`dataset.take(200)`。在实际应用中，您可能会使用更大的数据集。
 
-## 第二步：使用Pydantic对数据建模
+## 第二步：使用 Pydantic 对数据建模
 
-数据建模对于确保我们应用程序的一致性和类型安全至关重要。因此，我们使用Pydantic来实现这一目的：
+数据建模对于确保我们应用程序的一致性和类型安全至关重要。因此，我们使用 Pydantic 来实现这一目的：
 
 ```py
 class Movie(BaseModel):
@@ -97,11 +97,11 @@ class Movie(BaseModel):
     text_embeddings: List[float]
 ```
 
-使用Pydantic提供了多个好处，例如自动数据验证、类型检查和简便的序列化/反序列化。注意，我们还创建了一个`text_embeddings`字段，用于存储我们生成的嵌入，作为浮动点数列表。
+使用 Pydantic 提供了多个好处，例如自动数据验证、类型检查和简便的序列化/反序列化。注意，我们还创建了一个`text_embeddings`字段，用于存储我们生成的嵌入，作为浮动点数列表。
 
 ## 第三步：嵌入生成
 
-现在，我们可以使用OpenAI API，并编写一个生成嵌入的函数，如下所示：
+现在，我们可以使用 OpenAI API，并编写一个生成嵌入的函数，如下所示：
 
 ```py
 def get_embedding(text):
@@ -117,7 +117,7 @@ def get_embedding(text):
         return None
 ```
 
-在之前的代码行中，我们首先检查输入是否有效（非空字符串）。然后，我们使用OpenAI的embeddings.create方法生成嵌入，采用“text-embedding-3-small”模型，该模型生成1536维的嵌入。
+在之前的代码行中，我们首先检查输入是否有效（非空字符串）。然后，我们使用 OpenAI 的 embeddings.create 方法生成嵌入，采用“text-embedding-3-small”模型，该模型生成 1536 维的嵌入。
 
 现在，我们可以处理每条记录并使用之前的函数生成嵌入。我们还添加了一些代码来处理 `'Genre'` 字段，将其从字符串（如果存在）转换为一组类型列表。
 
@@ -316,8 +316,8 @@ for your movie night.
 
 # 结论
 
-构建一个RAG管道涉及多个步骤，从数据加载和建模到嵌入生成和向量搜索。这个示例展示了如何通过将我们数据库中的特定电影数据与语言模型的自然语言理解和生成能力结合，来提供信息丰富、上下文感知的回答。在此基础上，我们使用MongoDB，因为它具有原生向量搜索功能、灵活的文档模型和可扩展性，非常适合这种工作流程。
+构建一个 RAG 管道涉及多个步骤，从数据加载和建模到嵌入生成和向量搜索。这个示例展示了如何通过将我们数据库中的特定电影数据与语言模型的自然语言理解和生成能力结合，来提供信息丰富、上下文感知的回答。在此基础上，我们使用 MongoDB，因为它具有原生向量搜索功能、灵活的文档模型和可扩展性，非常适合这种工作流程。
 
 你可以通过添加更多数据、微调你的嵌入，或实现更复杂的推荐算法来扩展这个系统。
 
-*有关完整代码和更多资源，请查看* [*GitHub 仓库*](https://github.com/mr-pablinho/rag-mongodb-moviepl)*。此项目使用的数据集来源于* [*Kaggle*](https://www.kaggle.com/datasets/disham993/9000-movies-dataset/data) *，并已获得原作者授予的CC0 1.0 通用公共领域授权（CC0 1.0）。你可以在* [*这里*](https://huggingface.co/datasets/Pablinho/movies-dataset) *找到数据集和更多信息*。
+*有关完整代码和更多资源，请查看* [*GitHub 仓库*](https://github.com/mr-pablinho/rag-mongodb-moviepl)*。此项目使用的数据集来源于* [*Kaggle*](https://www.kaggle.com/datasets/disham993/9000-movies-dataset/data) *，并已获得原作者授予的 CC0 1.0 通用公共领域授权（CC0 1.0）。你可以在* [*这里*](https://huggingface.co/datasets/Pablinho/movies-dataset) *找到数据集和更多信息*。

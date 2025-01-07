@@ -1,14 +1,14 @@
 # 精简数据管道：如何使用 PySpark 和 WhyLogs 进行高效的数据分析和验证
 
-> 原文：[https://towardsdatascience.com/streamline-data-pipelines-how-to-use-whylogs-with-pyspark-for-data-profiling-and-validation-544efa36c5ad?source=collection_archive---------3-----------------------#2024-01-07](https://towardsdatascience.com/streamline-data-pipelines-how-to-use-whylogs-with-pyspark-for-data-profiling-and-validation-544efa36c5ad?source=collection_archive---------3-----------------------#2024-01-07)
+> 原文：[`towardsdatascience.com/streamline-data-pipelines-how-to-use-whylogs-with-pyspark-for-data-profiling-and-validation-544efa36c5ad?source=collection_archive---------3-----------------------#2024-01-07`](https://towardsdatascience.com/streamline-data-pipelines-how-to-use-whylogs-with-pyspark-for-data-profiling-and-validation-544efa36c5ad?source=collection_archive---------3-----------------------#2024-01-07)
 
-[](https://medium.com/@sarbahi.sarthak?source=post_page---byline--544efa36c5ad--------------------------------)[![Sarthak Sarbahi](../Images/b2ee093e0bcb95d515f10eac906f9890.png)](https://medium.com/@sarbahi.sarthak?source=post_page---byline--544efa36c5ad--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--544efa36c5ad--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--544efa36c5ad--------------------------------) [Sarthak Sarbahi](https://medium.com/@sarbahi.sarthak?source=post_page---byline--544efa36c5ad--------------------------------)
+[](https://medium.com/@sarbahi.sarthak?source=post_page---byline--544efa36c5ad--------------------------------)![Sarthak Sarbahi](https://medium.com/@sarbahi.sarthak?source=post_page---byline--544efa36c5ad--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--544efa36c5ad--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--544efa36c5ad--------------------------------) [Sarthak Sarbahi](https://medium.com/@sarbahi.sarthak?source=post_page---byline--544efa36c5ad--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--544efa36c5ad--------------------------------) ·阅读时间：9分钟·2024年1月7日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--544efa36c5ad--------------------------------) ·阅读时间：9 分钟·2024 年 1 月 7 日
 
 --
 
-![](../Images/30d8f37b895178790b25f83e1ab4662b.png)
+![](img/30d8f37b895178790b25f83e1ab4662b.png)
 
 图片来自[Evan Dennis](https://unsplash.com/@evan__bray?utm_source=medium&utm_medium=referral)提供的[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -22,51 +22,51 @@
 
 ## 目录
 
-1.  [whylogs 的组件](#01be)
+1.  whylogs 的组件
 
-1.  [环境设置](#9222)
+1.  环境设置
 
-1.  [理解数据集](#c70c)
+1.  理解数据集
 
-1.  [开始使用 PySpark](#5554)
+1.  开始使用 PySpark
 
-1.  [使用 whylogs 进行数据分析](#81e9)
+1.  使用 whylogs 进行数据分析
 
-1.  [使用 whylogs 进行数据验证](#4b1f)
+1.  使用 whylogs 进行数据验证
 
 ## whylogs 的组件
 
 让我们首先理解 whylogs 的重要特性。
 
-+   **数据记录**：whylogs的核心是其记录数据的功能。可以把它想象成记录数据特征的详细日记。它会记录数据的各个方面，比如有多少行、每列的值范围以及其他统计细节。
++   **数据记录**：whylogs 的核心是其记录数据的功能。可以把它想象成记录数据特征的详细日记。它会记录数据的各个方面，比如有多少行、每列的值范围以及其他统计细节。
 
-+   **Whylogs简介**：一旦数据被记录，whylogs会创建“简介”。这些简介就像是数据的快照，概括了数据的情况。它们包括诸如平均值、计数和分布等统计信息。这对于快速理解数据并追踪数据随时间的变化非常有用。
++   **Whylogs 简介**：一旦数据被记录，whylogs 会创建“简介”。这些简介就像是数据的快照，概括了数据的情况。它们包括诸如平均值、计数和分布等统计信息。这对于快速理解数据并追踪数据随时间的变化非常有用。
 
-+   **数据追踪**：使用whylogs，你可以追踪数据随时间的变化。这一点非常重要，因为数据通常会发生变化，上个月的情况可能今天就不再适用。追踪有助于你捕捉到这些变化，并理解它们的影响。
++   **数据追踪**：使用 whylogs，你可以追踪数据随时间的变化。这一点非常重要，因为数据通常会发生变化，上个月的情况可能今天就不再适用。追踪有助于你捕捉到这些变化，并理解它们的影响。
 
-+   **数据验证**：Whylogs允许你设置规则或约束，以确保数据符合预期。例如，如果你知道某一列应该只有正数，你可以为此设置规则。如果某些数据不符合你的规则，你将能够发现可能存在的问题。
++   **数据验证**：Whylogs 允许你设置规则或约束，以确保数据符合预期。例如，如果你知道某一列应该只有正数，你可以为此设置规则。如果某些数据不符合你的规则，你将能够发现可能存在的问题。
 
-+   **数据可视化**：通过可视化方式理解数据更加容易。Whylogs可以创建图形和图表，帮助你更清楚地看到数据的动态，特别是对于那些不是数据专家的人来说，这使得数据更加易于访问。
++   **数据可视化**：通过可视化方式理解数据更加容易。Whylogs 可以创建图形和图表，帮助你更清楚地看到数据的动态，特别是对于那些不是数据专家的人来说，这使得数据更加易于访问。
 
-+   **集成**：Whylogs支持与多种工具、框架和语言的集成——如Spark、Kafka、Pandas、MLFlow、GitHub actions、RAPIDS、Java、Docker、AWS S3等。
++   **集成**：Whylogs 支持与多种工具、框架和语言的集成——如 Spark、Kafka、Pandas、MLFlow、GitHub actions、RAPIDS、Java、Docker、AWS S3 等。
 
-这些就是我们需要了解的关于whylogs的所有信息。如果你想了解更多，我鼓励你查看[文档](https://docs.whylabs.ai/docs/whylogs-overview/)。接下来，让我们开始为教程设置环境。
+这些就是我们需要了解的关于 whylogs 的所有信息。如果你想了解更多，我鼓励你查看[文档](https://docs.whylabs.ai/docs/whylogs-overview/)。接下来，让我们开始为教程设置环境。
 
 ## 环境设置
 
-我们将在本教程中使用Jupyter notebook。为了让我们的代码在任何地方都能运行，我们将在Docker中使用JupyterLab。这个设置会安装所有所需的库，并准备好示例数据。如果你是Docker新手并想学习如何设置Docker，请查看这个[链接](/seamless-data-analytics-workflow-from-dockerized-jupyterlab-and-minio-to-insights-with-spark-sql-3c5556a18ce6#fa16)。
+我们将在本教程中使用 Jupyter notebook。为了让我们的代码在任何地方都能运行，我们将在 Docker 中使用 JupyterLab。这个设置会安装所有所需的库，并准备好示例数据。如果你是 Docker 新手并想学习如何设置 Docker，请查看这个链接。
 
 [## GitHub - sarthak-sarbahi/whylogs-pyspark
 
-### 通过在GitHub上创建账户，贡献于sarthak-sarbahi/whylogs-pyspark的开发。
+### 通过在 GitHub 上创建账户，贡献于 sarthak-sarbahi/whylogs-pyspark 的开发。
 
 github.com](https://github.com/sarthak-sarbahi/whylogs-pyspark/tree/main?source=post_page-----544efa36c5ad--------------------------------)
 
-从[这里](https://github.com/sarthak-sarbahi/whylogs-pyspark/blob/main/data/patient_data.csv)下载示例数据（CSV）。这些数据将用于数据简介和验证。创建一个`data`文件夹在项目的根目录下，并将CSV文件保存到该文件夹中。接下来，在相同的根目录下创建一个`Dockerfile`。
+从[这里](https://github.com/sarthak-sarbahi/whylogs-pyspark/blob/main/data/patient_data.csv)下载示例数据（CSV）。这些数据将用于数据简介和验证。创建一个`data`文件夹在项目的根目录下，并将 CSV 文件保存到该文件夹中。接下来，在相同的根目录下创建一个`Dockerfile`。
 
-本教程的Dockerfile（图片来自作者）
+本教程的 Dockerfile（图片来自作者）
 
-这个Dockerfile是一组创建特定环境的指令，用于本教程。我们来逐步解析它：
+这个 Dockerfile 是一组创建特定环境的指令，用于本教程。我们来逐步解析它：
 
 +   第一行`FROM quay.io/jupyter/pyspark-notebook`告诉 Docker 使用一个现有镜像作为起点。这个镜像是一个已经配置了 PySpark 的 Jupyter notebook。
 
@@ -76,7 +76,7 @@ github.com](https://github.com/sarthak-sarbahi/whylogs-pyspark/tree/main?source=
 
 到目前为止，你的项目目录应该是这样的。
 
-![](../Images/d46865880372332c87ffd2efd2e6fc44.png)
+![](img/d46865880372332c87ffd2efd2e6fc44.png)
 
 在 VS Code 中的项目目录（图源：作者）
 
@@ -88,7 +88,7 @@ docker build -t pyspark-whylogs .
 
 这个命令创建了一个名为`pyspark-whylogs`的 Docker 镜像。你可以在**Docker Desktop**应用的“镜像”标签中看到它。
 
-![](../Images/b227c143a7d68aa6f704308ea8bb051f.png)
+![](img/b227c143a7d68aa6f704308ea8bb051f.png)
 
 构建的 Docker 镜像（图源：作者）
 
@@ -102,7 +102,7 @@ docker run -p 8888:8888 pyspark-whylogs
 
 运行这个命令后，你会在日志中看到一个类似于这样的 URL：`http://127.0.0.1:8888/lab?token=your_token`。点击该链接以打开 JupyterLab Web 界面。
 
-![](../Images/a6b6590371d0150b205222e6f1e10cf7.png)
+![](img/a6b6590371d0150b205222e6f1e10cf7.png)
 
 Docker 容器日志（图源：作者）
 
@@ -285,7 +285,7 @@ constraints = builder.build()
 constraints.generate_constraints_report()
 ```
 
-我们还可以使用whylogs生成这些检查的报告。
+我们还可以使用 whylogs 生成这些检查的报告。
 
 ```py
 # Visualize constraints report using Notebook Profile Visualizer
@@ -293,11 +293,11 @@ visualization = NotebookProfileVisualizer()
 visualization.constraints_report(constraints, cell_height=300)
 ```
 
-它将生成一个HTML报告，显示哪些检查通过，哪些失败。
+它将生成一个 HTML 报告，显示哪些检查通过，哪些失败。
 
-![](../Images/92e9b55579654c4f34af3e2310e9ad42.png)
+![](img/92e9b55579654c4f34af3e2310e9ad42.png)
 
-whylogs约束报告（图片来源：作者）
+whylogs 约束报告（图片来源：作者）
 
 这是我们发现的内容：
 
@@ -307,7 +307,7 @@ whylogs约束报告（图片来源：作者）
 
 +   一些`weight`值为零。
 
-让我们再次检查数据框中的这些发现。首先，我们用PySpark代码检查`visit_date`格式。
+让我们再次检查数据框中的这些发现。首先，我们用 PySpark 代码检查`visit_date`格式。
 
 ```py
 # Validate visit_date column
@@ -326,7 +326,7 @@ df \
 +----------+-----+
 ```
 
-它显示，100,000行中有1023行不符合我们的日期格式。接下来是`weight`列。
+它显示，100,000 行中有 1023 行不符合我们的日期格式。接下来是`weight`列。
 
 ```py
 # Validate weight column
@@ -345,22 +345,22 @@ df \
 +------+-----+
 ```
 
-再次，我们的发现与whylogs一致。几乎有2,000行的权重为零。这也结束了我们的教程。你可以在[这里](https://github.com/sarthak-sarbahi/whylogs-pyspark/blob/main/whylogs_pyspark.ipynb)找到本教程的笔记本。
+再次，我们的发现与 whylogs 一致。几乎有 2,000 行的权重为零。这也结束了我们的教程。你可以在[这里](https://github.com/sarthak-sarbahi/whylogs-pyspark/blob/main/whylogs_pyspark.ipynb)找到本教程的笔记本。
 
 ## 结论
 
-在本教程中，我们介绍了如何在PySpark中使用whylogs。我们首先使用Docker准备了环境，然后对我们的数据集进行了数据分析和验证。记住，这只是开始。Whylogs提供了更多功能，从机器学习中的数据变化（数据漂移）追踪，到实时流中的数据质量检查。
+在本教程中，我们介绍了如何在 PySpark 中使用 whylogs。我们首先使用 Docker 准备了环境，然后对我们的数据集进行了数据分析和验证。记住，这只是开始。Whylogs 提供了更多功能，从机器学习中的数据变化（数据漂移）追踪，到实时流中的数据质量检查。
 
 我真诚地希望这篇指南对你有所帮助。如果你有任何问题，请随时在下面的评论中提出。
 
 ## 参考文献
 
-+   本教程的GitHub仓库: [https://github.com/sarthak-sarbahi/whylogs-pyspark/tree/main](https://github.com/sarthak-sarbahi/whylogs-pyspark/tree/main)
++   本教程的 GitHub 仓库: [`github.com/sarthak-sarbahi/whylogs-pyspark/tree/main`](https://github.com/sarthak-sarbahi/whylogs-pyspark/tree/main)
 
-+   Whylogs文档: [https://docs.whylabs.ai/docs/whylogs-overview/](https://docs.whylabs.ai/docs/whylogs-overview/)
++   Whylogs 文档: [`docs.whylabs.ai/docs/whylogs-overview/`](https://docs.whylabs.ai/docs/whylogs-overview/)
 
-+   GitHub for whylogs: [https://github.com/whylabs/whylogs/tree/mainline](https://github.com/whylabs/whylogs/tree/mainline)
++   GitHub for whylogs: [`github.com/whylabs/whylogs/tree/mainline`](https://github.com/whylabs/whylogs/tree/mainline)
 
-+   PySpark中的数据分析: [https://github.com/whylabs/whylogs/blob/mainline/python/examples/integrations/Pyspark_Profiling.ipynb](https://github.com/whylabs/whylogs/blob/mainline/python/examples/integrations/Pyspark_Profiling.ipynb)
++   PySpark 中的数据分析: [`github.com/whylabs/whylogs/blob/mainline/python/examples/integrations/Pyspark_Profiling.ipynb`](https://github.com/whylabs/whylogs/blob/mainline/python/examples/integrations/Pyspark_Profiling.ipynb)
 
-+   Whylogs约束在PySpark中的使用: [https://github.com/whylabs/whylogs/blob/mainline/python/examples/tutorials/Pyspark_and_Constraints.ipynb](https://github.com/whylabs/whylogs/blob/mainline/python/examples/tutorials/Pyspark_and_Constraints.ipynb)
++   Whylogs 约束在 PySpark 中的使用: [`github.com/whylabs/whylogs/blob/mainline/python/examples/tutorials/Pyspark_and_Constraints.ipynb`](https://github.com/whylabs/whylogs/blob/mainline/python/examples/tutorials/Pyspark_and_Constraints.ipynb)

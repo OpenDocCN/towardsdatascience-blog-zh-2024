@@ -1,18 +1,18 @@
 # 稳健的独热编码
 
-> 原文：[https://towardsdatascience.com/robust-one-hot-encoding-930b5f8943af?source=collection_archive---------4-----------------------#2024-04-26](https://towardsdatascience.com/robust-one-hot-encoding-930b5f8943af?source=collection_archive---------4-----------------------#2024-04-26)
+> 原文：[`towardsdatascience.com/robust-one-hot-encoding-930b5f8943af?source=collection_archive---------4-----------------------#2024-04-26`](https://towardsdatascience.com/robust-one-hot-encoding-930b5f8943af?source=collection_archive---------4-----------------------#2024-04-26)
 
-## Python和R中的生产级独热编码技术
+## Python 和 R 中的生产级独热编码技术
 
-[](https://medium.com/@hc.ekne?source=post_page---byline--930b5f8943af--------------------------------)[![Hans Christian Ekne](../Images/c85483d8b5dd89584b996b321b7f4a45.png)](https://medium.com/@hc.ekne?source=post_page---byline--930b5f8943af--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--930b5f8943af--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--930b5f8943af--------------------------------) [Hans Christian Ekne](https://medium.com/@hc.ekne?source=post_page---byline--930b5f8943af--------------------------------)
+[](https://medium.com/@hc.ekne?source=post_page---byline--930b5f8943af--------------------------------)![Hans Christian Ekne](https://medium.com/@hc.ekne?source=post_page---byline--930b5f8943af--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--930b5f8943af--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--930b5f8943af--------------------------------) [Hans Christian Ekne](https://medium.com/@hc.ekne?source=post_page---byline--930b5f8943af--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--930b5f8943af--------------------------------) ·阅读时间11分钟·2024年4月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--930b5f8943af--------------------------------) ·阅读时间 11 分钟·2024 年 4 月 26 日
 
 --
 
-![](../Images/3b472814a17418f0804ebfbcc8a1e9db.png)
+![](img/3b472814a17418f0804ebfbcc8a1e9db.png)
 
-图像由作者使用DALL-E生成/还是Dali？;)
+图像由作者使用 DALL-E 生成/还是 Dali？;)
 
 你是否在机器学习生产环境中遇到过崩溃？
 
@@ -22,7 +22,7 @@
 
 ## 什么是独热编码？
 
-独热编码是将存储在一列中的因子变量转化为多个列中的虚拟变量，并以0和1的形式表示的做法。一个简单的例子说明了这个概念。
+独热编码是将存储在一列中的因子变量转化为多个列中的虚拟变量，并以 0 和 1 的形式表示的做法。一个简单的例子说明了这个概念。
 
 例如，考虑这个包含一些数字和颜色列的数据集：
 
@@ -41,13 +41,13 @@ training_data = pd.DataFrame({
 
 或者更直观地展示：
 
-![](../Images/de251ce1de486b95f24cf64ab9c324bd.png)
+![](img/de251ce1de486b95f24cf64ab9c324bd.png)
 
-训练数据，包含3列/图像由作者提供
+训练数据，包含 3 列/图像由作者提供
 
 `color_1_`列也可以像下面的表格一样表示：
 
-![](../Images/17f1d9b0fd2a6e5438855cd8aa8dbabf.png)
+![](img/17f1d9b0fd2a6e5438855cd8aa8dbabf.png)
 
 “color_1_”的独热编码表示 / 图像由作者提供
 
@@ -57,7 +57,7 @@ training_data = pd.DataFrame({
 
 使用独热编码有多个原因。它们可能与避免隐含排序、提高模型性能，或只是使数据与各种算法兼容有关。
 
-例如，当你将一个类别变量（如颜色）编码成数值结构时（例如：黑色为1，绿色为2，红色为3），如果不将其转换为虚拟变量，模型可能会错误地将数据误解为存在顺序关系（黑色 < 绿色 < 红色），而实际上并不存在这种顺序。
+例如，当你将一个类别变量（如颜色）编码成数值结构时（例如：黑色为 1，绿色为 2，红色为 3），如果不将其转换为虚拟变量，模型可能会错误地将数据误解为存在顺序关系（黑色 < 绿色 < 红色），而实际上并不存在这种顺序。
 
 此外，在训练神经网络时，最佳实践是在将数据输入神经网络之前对数据进行标准化，对于类别变量，独热编码是一种不错的方法。其他线性模型，如逻辑回归和线性回归，假设输入是线性关系和数值型数据，因此对于这一类模型，独热编码也是一个好方法。
 
@@ -73,7 +73,7 @@ training_data = pd.DataFrame({
 
 对于以下示例，假设你使用上面的数据集来训练机器学习模型。你将数据集进行独热编码转换成虚拟变量，并且你的完全转换后的训练数据如下所示：
 
-![](../Images/3838878fe8c718db9f2226fa542dc159.png)
+![](img/3838878fe8c718db9f2226fa542dc159.png)
 
 使用`pd.get_dummies`转换后的训练数据集 / 图片来自作者
 
@@ -90,9 +90,9 @@ inference_data = pd.DataFrame({
 })
 ```
 
-![](../Images/9647cc2c91077b979ff0ab9f045c0c76.png)
+![](img/9647cc2c91077b979ff0ab9f045c0c76.png)
 
-推理数据集（包含3列）/ 图片来自作者
+推理数据集（包含 3 列）/ 图片来自作者
 
 使用我们上面使用的简单独热编码策略（`pd.get_dummies`）
 
@@ -105,7 +105,7 @@ inference_data_dummies = pd.get_dummies(inference_data,
 
 这将以相同的方式转换你的推理数据集，你会得到如下的数据集：
 
-![](../Images/beb8f6bd286cd54bd9ff34350c8cefda.png)
+![](img/beb8f6bd286cd54bd9ff34350c8cefda.png)
 
 使用`pd.get_dummies`转换后的推理数据集 / 图片来自作者
 
@@ -164,7 +164,7 @@ final_df = pd.concat([training_data[['numerical_1']],
 
 这将生成一个最终的 `DataFrame`，如下面所示：
 
-![](../Images/f305e941d89808c5f5ac9eb6977727f2.png)
+![](img/f305e941d89808c5f5ac9eb6977727f2.png)
 
 使用 sklearn 转化后的训练数据集 / 作者提供的图片
 
@@ -189,7 +189,7 @@ final_inference_df = pd.concat([inference_data[['numerical_1']],
 
 与之前我们使用简单的`pandas.get_dummies`时不同，现在我们看到我们的新数据集`final_inference_df`具有与训练数据集相同的列。
 
-![](../Images/cd25ea429be35479ec782fb89827e12e.png)
+![](img/cd25ea429be35479ec782fb89827e12e.png)
 
 转换后的推断数据集，具有正确的列 / 图片来源：作者
 
@@ -201,13 +201,13 @@ final_inference_df = pd.concat([inference_data[['numerical_1']],
 
 [](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html?source=post_page-----930b5f8943af--------------------------------#sklearn.preprocessing.OneHotEncoder) [## sklearn.preprocessing.OneHotEncoder
 
-### 使用sklearn.preprocessing.OneHotEncoder的示例：scikit-learn 1.4版本发布亮点……
+### 使用 sklearn.preprocessing.OneHotEncoder 的示例：scikit-learn 1.4 版本发布亮点……
 
 scikit-learn.org](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html?source=post_page-----930b5f8943af--------------------------------#sklearn.preprocessing.OneHotEncoder)
 
-## 在R中
+## 在 R 中
 
-我的几个客户使用R在生产环境中运行机器学习模型——而且R有很多优秀的功能。在`polars`发布之前，R的`data.table`包在速度和效率上优于`pandas`所能提供的。然而，R无法访问像Python中`scikit-learn`这样的生产级别的包。（虽然有一些库，但它们不像`scikit-learn`那样成熟。）此外，尽管某些包可能具有所需的功能，但它们需要大量其他包的支持，并可能会引入依赖冲突。考虑在使用r-base镜像构建的docker容器中运行下面的命令：
+我的几个客户使用 R 在生产环境中运行机器学习模型——而且 R 有很多优秀的功能。在`polars`发布之前，R 的`data.table`包在速度和效率上优于`pandas`所能提供的。然而，R 无法访问像 Python 中`scikit-learn`这样的生产级别的包。（虽然有一些库，但它们不像`scikit-learn`那样成熟。）此外，尽管某些包可能具有所需的功能，但它们需要大量其他包的支持，并可能会引入依赖冲突。考虑在使用 r-base 镜像构建的 docker 容器中运行下面的命令：
 
 ```py
 RUN R -e "install.packages('recipes', dependencies=TRUE, repos='https://cran.rstudio.com/')"
@@ -317,7 +317,7 @@ transformed_training_data = encoder$transform(training_data)
 
 现在我们得到了与之前完全相同的数据集：
 
-![](../Images/f305e941d89808c5f5ac9eb6977727f2.png)
+![](img/f305e941d89808c5f5ac9eb6977727f2.png)
 
 使用 R 算法转换的训练数据集 / 作者提供的图片
 

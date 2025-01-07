@@ -1,16 +1,16 @@
-# 细看 Scipy 的 Stats 模块 — 第 1 部分
+# 细看 Scipy 的 Stats 模块 — 第一部分
 
-> 原文：[https://towardsdatascience.com/a-closer-look-at-scipys-stats-module-part-1-5071858f32c1?source=collection_archive---------9-----------------------#2024-09-19](https://towardsdatascience.com/a-closer-look-at-scipys-stats-module-part-1-5071858f32c1?source=collection_archive---------9-----------------------#2024-09-19)
+> 原文：[`towardsdatascience.com/a-closer-look-at-scipys-stats-module-part-1-5071858f32c1?source=collection_archive---------9-----------------------#2024-09-19`](https://towardsdatascience.com/a-closer-look-at-scipys-stats-module-part-1-5071858f32c1?source=collection_archive---------9-----------------------#2024-09-19)
 
 ## 让我们学习 Python 中 `scipy.stats` 模块的主要方法。
 
-[](https://gustavorsantos.medium.com/?source=post_page---byline--5071858f32c1--------------------------------)[![Gustavo R Santos](../Images/a19a9f4525cdeb6e7a76cd05246aa622.png)](https://gustavorsantos.medium.com/?source=post_page---byline--5071858f32c1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5071858f32c1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5071858f32c1--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--5071858f32c1--------------------------------)
+[](https://gustavorsantos.medium.com/?source=post_page---byline--5071858f32c1--------------------------------)![Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--5071858f32c1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5071858f32c1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5071858f32c1--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--5071858f32c1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5071858f32c1--------------------------------) ·阅读时间 7 分钟 ·2024年9月19日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5071858f32c1--------------------------------) ·阅读时间 7 分钟 ·2024 年 9 月 19 日
 
 --
 
-![](../Images/5ec650274c219deb0fc184845acdc08a.png)
+![](img/5ec650274c219deb0fc184845acdc08a.png)
 
 图片由 [Алекс Арцибашев](https://unsplash.com/@lxrcbsv?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来自 [Unsplash](https://unsplash.com/photos/a-bar-chart-is-shown-on-a-blue-background-vVHXeu0YNbk?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

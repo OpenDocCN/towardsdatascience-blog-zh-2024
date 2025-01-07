@@ -1,16 +1,16 @@
 # 使用信用卡欺诈数据的模型可解释性
 
-> 原文：[https://towardsdatascience.com/model-interpretability-using-credit-card-fraud-data-f219ff7ec89d?source=collection_archive---------4-----------------------#2024-06-12](https://towardsdatascience.com/model-interpretability-using-credit-card-fraud-data-f219ff7ec89d?source=collection_archive---------4-----------------------#2024-06-12)
+> 原文：[`towardsdatascience.com/model-interpretability-using-credit-card-fraud-data-f219ff7ec89d?source=collection_archive---------4-----------------------#2024-06-12`](https://towardsdatascience.com/model-interpretability-using-credit-card-fraud-data-f219ff7ec89d?source=collection_archive---------4-----------------------#2024-06-12)
 
 ## 为什么模型可解释性很重要
 
-[](https://dan-to.medium.com/?source=post_page---byline--f219ff7ec89d--------------------------------)[![Danila Morozovskii](../Images/d53b987de52b8c2d4ce264b142b05950.png)](https://dan-to.medium.com/?source=post_page---byline--f219ff7ec89d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f219ff7ec89d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f219ff7ec89d--------------------------------) [Danila Morozovskii](https://dan-to.medium.com/?source=post_page---byline--f219ff7ec89d--------------------------------)
+[](https://dan-to.medium.com/?source=post_page---byline--f219ff7ec89d--------------------------------)![Danila Morozovskii](https://dan-to.medium.com/?source=post_page---byline--f219ff7ec89d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f219ff7ec89d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f219ff7ec89d--------------------------------) [Danila Morozovskii](https://dan-to.medium.com/?source=post_page---byline--f219ff7ec89d--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f219ff7ec89d--------------------------------) ·17分钟阅读·2024年6月12日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f219ff7ec89d--------------------------------) ·17 分钟阅读·2024 年 6 月 12 日
 
 --
 
-最近，我偶然发现了一本在线书籍，书中描述了可用于机器学习模型可解释性的不同工具（[https://christophm.github.io/interpretable-ml-book/](https://christophm.github.io/interpretable-ml-book/)）。机器学习模型不应该是黑箱，并且可以解释的这一想法让我非常着迷，我决定深入研究这个话题。之前，当我开始进行一个新的机器学习项目时，我会遵循相同的程序：识别问题、熟悉数据集、特征工程、选择模型、训练/测试和超参数调优，以及结果分析。然而，我没有意识到自己漏掉了最关键的一步：模型可解释性。
+最近，我偶然发现了一本在线书籍，书中描述了可用于机器学习模型可解释性的不同工具（[`christophm.github.io/interpretable-ml-book/`](https://christophm.github.io/interpretable-ml-book/)）。机器学习模型不应该是黑箱，并且可以解释的这一想法让我非常着迷，我决定深入研究这个话题。之前，当我开始进行一个新的机器学习项目时，我会遵循相同的程序：识别问题、熟悉数据集、特征工程、选择模型、训练/测试和超参数调优，以及结果分析。然而，我没有意识到自己漏掉了最关键的一步：模型可解释性。
 
 ## 什么是模型可解释性？
 

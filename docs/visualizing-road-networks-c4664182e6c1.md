@@ -1,14 +1,14 @@
 # 可视化道路网络
 
-> 原文：[https://towardsdatascience.com/visualizing-road-networks-c4664182e6c1?source=collection_archive---------6-----------------------#2024-07-26](https://towardsdatascience.com/visualizing-road-networks-c4664182e6c1?source=collection_archive---------6-----------------------#2024-07-26)
+> 原文：[`towardsdatascience.com/visualizing-road-networks-c4664182e6c1?source=collection_archive---------6-----------------------#2024-07-26`](https://towardsdatascience.com/visualizing-road-networks-c4664182e6c1?source=collection_archive---------6-----------------------#2024-07-26)
 
-![](../Images/be9d8e4dc50c46b9eecc7dfc1deac5d9.png)
+![](img/be9d8e4dc50c46b9eecc7dfc1deac5d9.png)
 
 ## 如何使用 Python 和 OSMnx 创建全球城市道路网络的美丽可视化。
 
-[](https://medium.com/@janosovm?source=post_page---byline--c4664182e6c1--------------------------------)[![Milan Janosov](../Images/b7ede67b165cdd368d96f13f46c68ccb.png)](https://medium.com/@janosovm?source=post_page---byline--c4664182e6c1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4664182e6c1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c4664182e6c1--------------------------------) [Milan Janosov](https://medium.com/@janosovm?source=post_page---byline--c4664182e6c1--------------------------------)
+[](https://medium.com/@janosovm?source=post_page---byline--c4664182e6c1--------------------------------)![Milan Janosov](https://medium.com/@janosovm?source=post_page---byline--c4664182e6c1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4664182e6c1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4664182e6c1--------------------------------) [Milan Janosov](https://medium.com/@janosovm?source=post_page---byline--c4664182e6c1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4664182e6c1--------------------------------) ·7分钟阅读·2024年7月26日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4664182e6c1--------------------------------) ·7 分钟阅读·2024 年 7 月 26 日
 
 --
 

@@ -1,16 +1,16 @@
 # 我的《前后处理测试简明指南》
 
-> 原文：[https://towardsdatascience.com/my-easy-guide-to-pre-vs-post-treatment-tests-0206f56f83a4?source=collection_archive---------4-----------------------#2024-06-13](https://towardsdatascience.com/my-easy-guide-to-pre-vs-post-treatment-tests-0206f56f83a4?source=collection_archive---------4-----------------------#2024-06-13)
+> 原文：[`towardsdatascience.com/my-easy-guide-to-pre-vs-post-treatment-tests-0206f56f83a4?source=collection_archive---------4-----------------------#2024-06-13`](https://towardsdatascience.com/my-easy-guide-to-pre-vs-post-treatment-tests-0206f56f83a4?source=collection_archive---------4-----------------------#2024-06-13)
 
 ## 《前后测试简介与代码示例》
 
-[](https://gustavorsantos.medium.com/?source=post_page---byline--0206f56f83a4--------------------------------)[![Gustavo R Santos](../Images/a19a9f4525cdeb6e7a76cd05246aa622.png)](https://gustavorsantos.medium.com/?source=post_page---byline--0206f56f83a4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0206f56f83a4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0206f56f83a4--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--0206f56f83a4--------------------------------)
+[](https://gustavorsantos.medium.com/?source=post_page---byline--0206f56f83a4--------------------------------)![Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--0206f56f83a4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0206f56f83a4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0206f56f83a4--------------------------------) [Gustavo R Santos](https://gustavorsantos.medium.com/?source=post_page---byline--0206f56f83a4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0206f56f83a4--------------------------------) ·13分钟阅读·2024年6月13日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0206f56f83a4--------------------------------) ·13 分钟阅读·2024 年 6 月 13 日
 
 --
 
-![](../Images/5293904f7a64b21dd61ad915a9623a1b.png)
+![](img/5293904f7a64b21dd61ad915a9623a1b.png)
 
 图片来自 [Towfiqu barbhuiya](https://unsplash.com/@towfiqu999999?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 于 [Unsplash](https://unsplash.com/photos/a-calendar-with-red-push-buttons-pinned-to-it-bwOAixLG0uc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

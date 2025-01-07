@@ -1,16 +1,16 @@
 # 使你的 Matplotlib 图表达到出版水平的 3 个关键调整
 
-> 原文：[https://towardsdatascience.com/3-key-tweaks-that-will-make-your-matplotlib-charts-publication-ready-18e41eaac589?source=collection_archive---------3-----------------------#2024-08-08](https://towardsdatascience.com/3-key-tweaks-that-will-make-your-matplotlib-charts-publication-ready-18e41eaac589?source=collection_archive---------3-----------------------#2024-08-08)
+> 原文：[`towardsdatascience.com/3-key-tweaks-that-will-make-your-matplotlib-charts-publication-ready-18e41eaac589?source=collection_archive---------3-----------------------#2024-08-08`](https://towardsdatascience.com/3-key-tweaks-that-will-make-your-matplotlib-charts-publication-ready-18e41eaac589?source=collection_archive---------3-----------------------#2024-08-08)
 
 ## Matplotlib 图表默认看起来很难看——这是该怎么解决。
 
-[](https://medium.com/@radecicdario?source=post_page---byline--18e41eaac589--------------------------------)[![Dario Radečić](../Images/41882a3b30bab9da43d66a59f1df366b.png)](https://medium.com/@radecicdario?source=post_page---byline--18e41eaac589--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--18e41eaac589--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--18e41eaac589--------------------------------) [Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--18e41eaac589--------------------------------)
+[](https://medium.com/@radecicdario?source=post_page---byline--18e41eaac589--------------------------------)![Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--18e41eaac589--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--18e41eaac589--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--18e41eaac589--------------------------------) [Dario Radečić](https://medium.com/@radecicdario?source=post_page---byline--18e41eaac589--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--18e41eaac589--------------------------------) ·阅读时间 5 分钟·2024年8月8日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--18e41eaac589--------------------------------) ·阅读时间 5 分钟·2024 年 8 月 8 日
 
 --
 
-![](../Images/4800e476202ff22aec05ee97f5e4d5c2.png)
+![](img/4800e476202ff22aec05ee97f5e4d5c2.png)
 
 文章缩略图（作者提供的图片）
 

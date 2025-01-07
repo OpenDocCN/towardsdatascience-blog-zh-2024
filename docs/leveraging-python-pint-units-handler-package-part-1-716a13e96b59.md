@@ -1,16 +1,16 @@
-# 利用 Python Pint 单位处理包 — 第 1 部分
+# 利用 Python Pint 单位处理包 — 第一部分
 
-> 原文：[https://towardsdatascience.com/leveraging-python-pint-units-handler-package-part-1-716a13e96b59?source=collection_archive---------11-----------------------#2024-04-16](https://towardsdatascience.com/leveraging-python-pint-units-handler-package-part-1-716a13e96b59?source=collection_archive---------11-----------------------#2024-04-16)
+> 原文：[`towardsdatascience.com/leveraging-python-pint-units-handler-package-part-1-716a13e96b59?source=collection_archive---------11-----------------------#2024-04-16`](https://towardsdatascience.com/leveraging-python-pint-units-handler-package-part-1-716a13e96b59?source=collection_archive---------11-----------------------#2024-04-16)
 
 ## 在 Python 中操作和处理物理量
 
-[](https://medium.com/@jodhernandezbemj?source=post_page---byline--716a13e96b59--------------------------------)[![Jose D. Hernandez-Betancur](../Images/fc2be8064501a06c2e363f6fb7d93be7.png)](https://medium.com/@jodhernandezbemj?source=post_page---byline--716a13e96b59--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--716a13e96b59--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--716a13e96b59--------------------------------) [Jose D. Hernandez-Betancur](https://medium.com/@jodhernandezbemj?source=post_page---byline--716a13e96b59--------------------------------)
+[](https://medium.com/@jodhernandezbemj?source=post_page---byline--716a13e96b59--------------------------------)![Jose D. Hernandez-Betancur](https://medium.com/@jodhernandezbemj?source=post_page---byline--716a13e96b59--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--716a13e96b59--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--716a13e96b59--------------------------------) [Jose D. Hernandez-Betancur](https://medium.com/@jodhernandezbemj?source=post_page---byline--716a13e96b59--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--716a13e96b59--------------------------------) ·阅读时间：8 分钟·2024 年 4 月 16 日
 
 --
 
-![](../Images/2dd3881c7290d53918a0c30a6f497785.png)
+![](img/2dd3881c7290d53918a0c30a6f497785.png)
 
 图片由作者使用 Gencraft 生成。
 

@@ -1,18 +1,18 @@
 # 使用代理和工具构建你的个人助手
 
-> 原文：[https://towardsdatascience.com/build-your-personal-assistant-with-agents-and-tools-048637ac308e?source=collection_archive---------0-----------------------#2024-11-24](https://towardsdatascience.com/build-your-personal-assistant-with-agents-and-tools-048637ac308e?source=collection_archive---------0-----------------------#2024-11-24)
+> 原文：[`towardsdatascience.com/build-your-personal-assistant-with-agents-and-tools-048637ac308e?source=collection_archive---------0-----------------------#2024-11-24`](https://towardsdatascience.com/build-your-personal-assistant-with-agents-and-tools-048637ac308e?source=collection_archive---------0-----------------------#2024-11-24)
 
-## 单独的LLM无法访问外部或实时数据。了解如何通过将LLM与外部资源结合，使用LangChain代理和Gemini构建个人助手。
+## 单独的 LLM 无法访问外部或实时数据。了解如何通过将 LLM 与外部资源结合，使用 LangChain 代理和 Gemini 构建个人助手。
 
-[](https://medium.com/@benjamin_47408?source=post_page---byline--048637ac308e--------------------------------)[![Benjamin Etienne](../Images/cad8bc2d4b900575e76b7cf9debc9eea.png)](https://medium.com/@benjamin_47408?source=post_page---byline--048637ac308e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--048637ac308e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--048637ac308e--------------------------------) [Benjamin Etienne](https://medium.com/@benjamin_47408?source=post_page---byline--048637ac308e--------------------------------)
+[](https://medium.com/@benjamin_47408?source=post_page---byline--048637ac308e--------------------------------)![Benjamin Etienne](https://medium.com/@benjamin_47408?source=post_page---byline--048637ac308e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--048637ac308e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--048637ac308e--------------------------------) [Benjamin Etienne](https://medium.com/@benjamin_47408?source=post_page---byline--048637ac308e--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--048637ac308e--------------------------------)·14分钟阅读·2024年11月24日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--048637ac308e--------------------------------)·14 分钟阅读·2024 年 11 月 24 日
 
 --
 
 ## 总结：
 
-1.  LLM的问题
+1.  LLM 的问题
 
 1.  代理、工具和链是什么？
 
@@ -20,7 +20,7 @@
 
 1.  向我们的聊天添加工具：谷歌式的函数调用方式
 
-1.  向我们的聊天添加工具：Langchain方式与代理
+1.  向我们的聊天添加工具：Langchain 方式与代理
 
 1.  向我们的代理添加记忆
 
@@ -28,7 +28,7 @@
 
 1.  使用搜索工具
 
-## 1. LLM的问题
+## 1. LLM 的问题
 
 所以你有了你最喜欢的聊天机器人，你用它来提升工作效率。它可以翻译文本、写漂亮的邮件、讲笑话等。然后有一天，你的同事走到你面前，问道：
 
@@ -44,7 +44,7 @@ like exchange rates.
 
 *这里的问题是什么？*
 
-问题在于，你已经碰到了LLM的一个短板。大型语言模型（LLM）在解决许多类型的问题时非常强大，例如问题解决、文本摘要、生成等。
+问题在于，你已经碰到了 LLM 的一个短板。大型语言模型（LLM）在解决许多类型的问题时非常强大，例如问题解决、文本摘要、生成等。
 
 然而，它们受到以下限制的约束：
 
@@ -52,7 +52,7 @@ like exchange rates.
 
 +   **它们无法查询或修改外部数据。**
 
-就像我们每天使用搜索引擎、阅读书籍和文档或查询数据库一样，我们理想中希望将这些知识提供给我们的LLM，以提高其效率。
+就像我们每天使用搜索引擎、阅读书籍和文档或查询数据库一样，我们理想中希望将这些知识提供给我们的 LLM，以提高其效率。
 
 幸运的是，有一种方法可以做到：工具和代理。
 
@@ -82,13 +82,13 @@ like exchange rates.
 
 +   模型：我们智能体的大脑是大语言模型（LLM）。它将理解查询（目标），并浏览其可用工具以选择最佳工具。
 
-+   一个或多个*工具*：这些是函数或API，负责执行特定的操作（例如：检索美元与欧元的当前汇率、加法等）。
++   一个或多个*工具*：这些是函数或 API，负责执行特定的操作（例如：检索美元与欧元的当前汇率、加法等）。
 
-+   一个协调过程：这就是模型在被要求解决任务时的行为方式。它是一个认知过程，定义了模型如何分析问题、完善输入、选择工具等。此类过程的示例有ReAct、CoT（思维链）、ToT（思维树）
++   一个协调过程：这就是模型在被要求解决任务时的行为方式。它是一个认知过程，定义了模型如何分析问题、完善输入、选择工具等。此类过程的示例有 ReAct、CoT（思维链）、ToT（思维树）
 
 下面是一个工作流说明
 
-![](../Images/85a293f46127b027cf0d29236c2e7d04.png)
+![](img/85a293f46127b027cf0d29236c2e7d04.png)
 
 图片由作者提供
 
@@ -96,7 +96,7 @@ like exchange rates.
 
 ## 3\. 创建一个没有工具的简单聊天
 
-为了说明我们的观点，我们将首先看到没有任何帮助的情况下，我们的LLM如何表现。
+为了说明我们的观点，我们将首先看到没有任何帮助的情况下，我们的 LLM 如何表现。
 
 让我们安装所需的库：
 
@@ -109,7 +109,7 @@ langchain-google-community==1.0.8
 langchain-google-vertexai==1.0.6
 ```
 
-并使用谷歌的Gemini大语言模型创建我们非常简单的聊天：
+并使用谷歌的 Gemini 大语言模型创建我们非常简单的聊天：
 
 ```py
 from vertexai.generative_models import (
@@ -137,7 +137,7 @@ answer = response.candidates[0].content.parts[0].text
 
 并不奇怪，因为我们知道大语言模型（LLMs）无法访问实时数据。
 
-让我们为此添加一个工具。我们的工具将是一个调用API以实时检索汇率数据的小功能。
+让我们为此添加一个工具。我们的工具将是一个调用 API 以实时检索汇率数据的小功能。
 
 ```py
 def get_exchange_rate_from_api(params):
@@ -152,15 +152,15 @@ get_exchange_rate_from_api({'currency_from': 'USD', 'currency_to': 'EUR'})
 '{"amount":1.0,"base":"USD","date":"2024-11-20","rates":{"EUR":0.94679}}'
 ```
 
-现在我们知道了工具的工作原理，我们希望告诉我们的聊天LLM使用这个功能来回答问题。因此，我们将创建一个单工具智能体。为此，我们有几个选项，我将在此列出：
+现在我们知道了工具的工作原理，我们希望告诉我们的聊天 LLM 使用这个功能来回答问题。因此，我们将创建一个单工具智能体。为此，我们有几个选项，我将在此列出：
 
-+   使用谷歌的Gemini聊天API与功能调用
++   使用谷歌的 Gemini 聊天 API 与功能调用
 
-+   使用LangChain的API与智能体和工具
++   使用 LangChain 的 API 与智能体和工具
 
 两者各有优缺点。本文的目的是展示这些可能性，让您决定更喜欢哪一种方式。
 
-## 4\. 向我们的聊天添加工具：使用Google的函数调用方式
+## 4\. 向我们的聊天添加工具：使用 Google 的函数调用方式
 
 创建工具的基本方法有两种。
 
@@ -168,9 +168,9 @@ get_exchange_rate_from_api({'currency_from': 'USD', 'currency_to': 'EUR'})
 
 +   函数的名称（请明确）
 
-+   描述：在这里要详细说明，因为一个扎实且详尽的描述将帮助LLM选择正确的工具
++   描述：在这里要详细说明，因为一个扎实且详尽的描述将帮助 LLM 选择正确的工具
 
-+   参数：这是您指定参数的位置（类型和描述）。同样，请在描述参数时进行详细说明，帮助LLM了解如何将值传递给您的函数
++   参数：这是您指定参数的位置（类型和描述）。同样，请在描述参数时进行详细说明，帮助 LLM 了解如何将值传递给您的函数
 
 ```py
 import requests
@@ -200,7 +200,7 @@ get_exchange_rate_func = FunctionDeclaration(
 )
 ```
 
-使用Google SDK添加工具的第二种方式是通过`from_func`实例化。这需要我们修改原始函数，使其更加明确，并添加文档字符串等内容。与工具创建时冗长不同，我们是在函数创建时进行详细描述。
+使用 Google SDK 添加工具的第二种方式是通过`from_func`实例化。这需要我们修改原始函数，使其更加明确，并添加文档字符串等内容。与工具创建时冗长不同，我们是在函数创建时进行详细描述。
 
 ```py
 # Edit our function
@@ -222,7 +222,7 @@ get_exchange_rate_func = FunctionDeclaration.from_func(
 )
 ```
 
-下一步实际上是创建工具。为此，我们将把我们的FunctionDeclaration添加到列表中，以创建我们的Tool对象：
+下一步实际上是创建工具。为此，我们将把我们的 FunctionDeclaration 添加到列表中，以创建我们的 Tool 对象：
 
 ```py
 from vertexai.generative_models import Tool as VertexTool
@@ -237,9 +237,9 @@ tool = VertexTool(
 
 现在让我们将其传递给我们的聊天，看看它是否能够回答我们关于汇率的查询！记住，如果没有工具，我们的聊天回答是：
 
-![](../Images/8206400b049669a30d50ea74965d1d7a.png)
+![](img/8206400b049669a30d50ea74965d1d7a.png)
 
-让我们尝试Google的函数调用工具，看看这是否有帮助！首先，让我们将查询发送给聊天：
+让我们尝试 Google 的函数调用工具，看看这是否有帮助！首先，让我们将查询发送给聊天：
 
 ```py
 from vertexai.generative_models import GenerativeModel
@@ -281,7 +281,7 @@ args {
 }""" 
 ```
 
-LLM正确猜测它需要使用`get_exchange_rate`函数，并且也正确猜测两个参数是`USD`和`EUR`。
+LLM 正确猜测它需要使用`get_exchange_rate`函数，并且也正确猜测两个参数是`USD`和`EUR`。
 
 但这还不够。我们现在想要的是实际运行这个函数以获得我们的结果！
 
@@ -301,7 +301,7 @@ params = {key: value for key, value in function_call.args.items()}
 print("#### Predicted function parameters")
 print(params, "\n")
 
-function_api_response = function_handler[function_name](params)
+function_api_response = function_handlerfunction_name
 print("#### API response")
 print(function_api_response)
 response = chat.send_message(
@@ -335,17 +335,17 @@ The current exchange rate for USD vs EUR is 0.94679\. This means that 1 USD is e
 
 +   正确分配了调用函数的参数`{'currency_from': 'USD', 'currency_to': 'EUR'}`
 
-+   从API获取结果
++   从 API 获取结果
 
 +   并且格式化答案，使其易于人类阅读！
 
-现在让我们看看另一种使用LangChain的方法。
+现在让我们看看另一种使用 LangChain 的方法。
 
-## 5\. 向我们的聊天添加工具：使用Langchain的代理方式
+## 5\. 向我们的聊天添加工具：使用 Langchain 的代理方式
 
-LangChain是一个可组合的框架，用于与LLM一起构建。它是用于可控代理工作流的编排框架。
+LangChain 是一个可组合的框架，用于与 LLM 一起构建。它是用于可控代理工作流的编排框架。
 
-与我们之前采用的“Google”方式类似，我们将使用Langchain的方式构建工具。让我们从定义函数开始。与Google一样，我们需要在文档字符串中详尽且冗长地描述：
+与我们之前采用的“Google”方式类似，我们将使用 Langchain 的方式构建工具。让我们从定义函数开始。与 Google 一样，我们需要在文档字符串中详尽且冗长地描述：
 
 ```py
 from langchain_core.tools import tool
@@ -363,7 +363,7 @@ def get_exchange_rate_from_api(currency_from: str, currency_to: str) -> str:
     return api_response.text
 ```
 
-为了让事情更加有趣，我将添加另一个可以列出BigQuery数据集中的表的工具。以下是代码：
+为了让事情更加有趣，我将添加另一个可以列出 BigQuery 数据集中的表的工具。以下是代码：
 
 ```py
 @tool
@@ -382,7 +382,7 @@ def list_tables(project: str, dataset_id: str) -> list:
         return f"The dataset {params['dataset_id']} is not found in the {params['project']} project, please specify the dataset and project"
 ```
 
-一旦完成，我们将我们的函数添加到LangChain工具箱中！
+一旦完成，我们将我们的函数添加到 LangChain 工具箱中！
 
 ```py
 langchain_tool = [
@@ -391,7 +391,7 @@ langchain_tool = [
 ]
 ```
 
-为了构建我们的代理，我们将使用LangChain的`AgentExecutor`对象。这个对象基本上将使用之前定义的三个组件：
+为了构建我们的代理，我们将使用 LangChain 的`AgentExecutor`对象。这个对象基本上将使用之前定义的三个组件：
 
 +   LLM
 
@@ -399,7 +399,7 @@ langchain_tool = [
 
 +   以及工具。
 
-让我们首先选择我们的LLM：
+让我们首先选择我们的 LLM：
 
 ```py
 gemini_llm = ChatVertexAI(model="gemini-1.5-flash")
@@ -447,11 +447,11 @@ agent_executor.invoke({"input": f"Project id is bigquery-public-data"})
 """ 
 ```
 
-好像我们又回到了原点。虽然已经告诉了LLM项目ID，但它忘记了问题。我们的代理似乎缺乏记忆，无法记住之前的问题和答案。也许我们应该考虑……
+好像我们又回到了原点。虽然已经告诉了 LLM 项目 ID，但它忘记了问题。我们的代理似乎缺乏记忆，无法记住之前的问题和答案。也许我们应该考虑……
 
 ## 6\. 为我们的代理添加记忆
 
-记忆是代理中的另一个概念，它基本上帮助系统记住对话历史，避免像上述情况那样的无休止循环。可以把记忆看作是一个记事本，LLM用它来跟踪之前的问题和答案，从而构建对话的上下文。
+记忆是代理中的另一个概念，它基本上帮助系统记住对话历史，避免像上述情况那样的无休止循环。可以把记忆看作是一个记事本，LLM 用它来跟踪之前的问题和答案，从而构建对话的上下文。
 
 我们将修改我们的提示（指令），让模型包含记忆：
 
@@ -506,7 +506,7 @@ agent_with_chat_history.invoke({
 """
 ```
 
-在没有聊天历史的情况下，模型仍然要求提供项目ID。这与之前没有记忆的代理行为一致。我们来回应代理并补充缺失的信息：
+在没有聊天历史的情况下，模型仍然要求提供项目 ID。这与之前没有记忆的代理行为一致。我们来回应代理并补充缺失的信息：
 
 ```py
 reply = "Project id is bigquery-public-data"
@@ -537,11 +537,11 @@ agent_with_chat_history.invoke({"input": reply}, config)
 
 ## 7\. 创建一个包含人工验证步骤的链
 
-链与代理有所不同。代理可以决定是否使用工具，而链则更为静态。它是一个步骤序列，我们仍然可以在其中加入一个步骤，让LLM从一组工具中选择。
+链与代理有所不同。代理可以决定是否使用工具，而链则更为静态。它是一个步骤序列，我们仍然可以在其中加入一个步骤，让 LLM 从一组工具中选择。
 
-在LangChain中构建链时，我们使用LCEL。
+在 LangChain 中构建链时，我们使用 LCEL。
 
-LangChain表达式语言（LCEL）是一种声明式的方法，可以轻松地将链式操作组合在一起。在LangChain中，链使用管道符号`|`表示步骤的执行顺序，如`step 1 | step 2 | step 3 等`。与代理的不同之处在于，链始终会按照这些步骤执行，而代理可以“自行决定”并在决策过程中具有自主性。
+LangChain 表达式语言（LCEL）是一种声明式的方法，可以轻松地将链式操作组合在一起。在 LangChain 中，链使用管道符号`|`表示步骤的执行顺序，如`step 1 | step 2 | step 3 等`。与代理的不同之处在于，链始终会按照这些步骤执行，而代理可以“自行决定”并在决策过程中具有自主性。
 
 在我们的例子中，我们将按照以下方式构建一个简单的`prompt | llm`链。
 
@@ -607,7 +607,7 @@ additional_kwargs={
 """ 
 ```
 
-与代理不同，链在没有明确告诉它的情况下不会提供答案。在我们的例子中，它停留在LLM返回需要调用的功能的步骤上。
+与代理不同，链在没有明确告诉它的情况下不会提供答案。在我们的例子中，它停留在 LLM 返回需要调用的功能的步骤上。
 
 我们需要添加一个额外的步骤来实际*调用*工具。让我们添加另一个函数来调用这些工具：
 
@@ -635,7 +635,7 @@ chain_with_history = RunnableWithMessageHistory(
 chain_with_history.invoke({"input": "What is the current CHF EUR exchange rate ?"}, config)
 ```
 
-现在我们得到以下输出，显示API已成功调用：
+现在我们得到以下输出，显示 API 已成功调用：
 
 ```py
 [{'name': 'get_exchange_rate_from_api',
@@ -693,7 +693,7 @@ chain_with_history.invoke({"input": "What is the current CHF EUR exchange rate ?
 
 然后你将被要求确认 LLM 是否正确理解：
 
-![](../Images/5028f700edfcffd815b18eeb32e9da41.png)
+![](img/5028f700edfcffd815b18eeb32e9da41.png)
 
 这个“人类在环”步骤对于关键工作流非常有帮助，因为 LLM 的误解可能会造成严重后果。
 

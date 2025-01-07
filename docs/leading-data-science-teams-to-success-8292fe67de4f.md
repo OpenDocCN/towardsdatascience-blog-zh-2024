@@ -1,20 +1,20 @@
 # 带领数据科学团队走向成功
 
-> 原文：[https://towardsdatascience.com/leading-data-science-teams-to-success-8292fe67de4f?source=collection_archive---------8-----------------------#2024-07-31](https://towardsdatascience.com/leading-data-science-teams-to-success-8292fe67de4f?source=collection_archive---------8-----------------------#2024-07-31)
+> 原文：[`towardsdatascience.com/leading-data-science-teams-to-success-8292fe67de4f?source=collection_archive---------8-----------------------#2024-07-31`](https://towardsdatascience.com/leading-data-science-teams-to-success-8292fe67de4f?source=collection_archive---------8-----------------------#2024-07-31)
 
 ## [数据科学咨询](https://medium.com/@hc.ekne/list/data-science-consulting-bcf6e4b59652)
 
 ## 在充满挑战的协作环境中成功交付项目的实用策略
 
-[](https://medium.com/@hc.ekne?source=post_page---byline--8292fe67de4f--------------------------------)[![Hans Christian Ekne](../Images/c85483d8b5dd89584b996b321b7f4a45.png)](https://medium.com/@hc.ekne?source=post_page---byline--8292fe67de4f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8292fe67de4f--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8292fe67de4f--------------------------------) [Hans Christian Ekne](https://medium.com/@hc.ekne?source=post_page---byline--8292fe67de4f--------------------------------)
+[](https://medium.com/@hc.ekne?source=post_page---byline--8292fe67de4f--------------------------------)![Hans Christian Ekne](https://medium.com/@hc.ekne?source=post_page---byline--8292fe67de4f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8292fe67de4f--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8292fe67de4f--------------------------------) [Hans Christian Ekne](https://medium.com/@hc.ekne?source=post_page---byline--8292fe67de4f--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8292fe67de4f--------------------------------) ·阅读时间11分钟·2024年7月31日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8292fe67de4f--------------------------------) ·阅读时间 11 分钟·2024 年 7 月 31 日
 
 --
 
-![](../Images/914a124920536007aa78fba006cba089.png)
+![](img/914a124920536007aa78fba006cba089.png)
 
-图片由作者使用DALL-E生成
+图片由作者使用 DALL-E 生成
 
 # 引言
 
@@ -22,13 +22,13 @@
 
 与团队一起交付产品有时会充满挑战，而如果你是团队的领导者，那么克服这些挑战并确保项目成功就是你的责任。这在数据科学咨询项目中尤为艰巨，因为与客户资源的协作至关重要。
 
-此外，在提供端到端数据科学解决方案时，由于需要与客户基础设施的紧密集成、访问数据以及频繁的利益相关者反馈，意味着你通常需要与跨职能团队合作。这个团队可能包括业务分析师、数据科学家、DevOps工程师、数据工程师、项目协调员和领域专家。每个成员都带来独特的技能和视角，但他们也面临各自的挑战。
+此外，在提供端到端数据科学解决方案时，由于需要与客户基础设施的紧密集成、访问数据以及频繁的利益相关者反馈，意味着你通常需要与跨职能团队合作。这个团队可能包括业务分析师、数据科学家、DevOps 工程师、数据工程师、项目协调员和领域专家。每个成员都带来独特的技能和视角，但他们也面临各自的挑战。
 
 克服这些问题的关键在于了解每个团队成员的能力、弱点和优势，做好规划并专注于目标的实现。作为团队领导者，你必须灵活，基于团队的优势和弱点调整计划，但有时也需要评估自己的行为，看看自己的行动是如何被感知的。下面，我将探讨数据科学项目中常见的一些团队挑战，并提供一些关键要点，确保项目的成功交付。
 
 # 挑战与干预
 
-![](../Images/8ced522f154ca3d0ce92868d842409db.png)
+![](img/8ced522f154ca3d0ce92868d842409db.png)
 
 图片由作者使用 DALL-E 生成
 
@@ -56,7 +56,7 @@
 
 **挑战**：并非所有团队成员在项目初期都能按预期产出结果。然而，作为顾问，你经常需要制定能够整合客户人员的开发计划——尽管事先无法评估他们的生产力。各种因素，比如项目过多或处理个人问题，可能会导致生产力降低。要警惕在不了解可用资源的情况下制定过于详细的计划，因为这可能会成为一个陷阱。
 
-在一个项目中，客户方告知我他们将为我提供2名数据科学家全职员工（FTEs）、1名业务分析师全职员工和1名数据工程师全职员工，帮助我交付项目。基于此，我尝试规划如何在给定的时间框架内交付项目。然而，到了交付时，我发现其中一名数据科学家全职员工有几周的计划假期，且没有人能够替代他。结果还发现，数据工程师全职员工的表现并不理想，无法产出我们项目所需的工作量。
+在一个项目中，客户方告知我他们将为我提供 2 名数据科学家全职员工（FTEs）、1 名业务分析师全职员工和 1 名数据工程师全职员工，帮助我交付项目。基于此，我尝试规划如何在给定的时间框架内交付项目。然而，到了交付时，我发现其中一名数据科学家全职员工有几周的计划假期，且没有人能够替代他。结果还发现，数据工程师全职员工的表现并不理想，无法产出我们项目所需的工作量。
 
 **干预**：上述情况通过**短期规划周期**和快速适应变化的条件得以解决。我指派了一位更高效的全职数据科学团队成员来弥补空缺，并且我自己也变得非常**亲自上阵**。如果是长期且不易调整的计划，这种灵活性将会很难实现。
 
@@ -72,11 +72,11 @@
 
 # 关键要点和指导原则
 
-![](../Images/7e84fec36de7719517f40c89d168ae36.png)
+![](img/7e84fec36de7719517f40c89d168ae36.png)
 
-由作者使用DALL-E生成的图片
+由作者使用 DALL-E 生成的图片
 
-这可能不会让人感到意外；事实证明，我们上面讨论的许多干预措施与敏捷软件开发运动背后的原始原则有很多相似之处。在“[敏捷宣言背后的12项原则](https://agilemanifesto.org/)”中，我们可以看到清晰地强调了“*更倾向于较短的时间周期……*”，同时也有关于反思的理念：“*……反思如何变得更高效，并根据情况调整行为。*”此外，还强调了与人见面和交流：“*向开发团队传达信息的最有效方法是面对面的交谈。*”由于敏捷最初是作为一种方法帮助软件团队改善开发流程，旨在响应当时流行的瀑布开发方法，因此它的许多原则也适用于数据科学项目。
+这可能不会让人感到意外；事实证明，我们上面讨论的许多干预措施与敏捷软件开发运动背后的原始原则有很多相似之处。在“[敏捷宣言背后的 12 项原则](https://agilemanifesto.org/)”中，我们可以看到清晰地强调了“*更倾向于较短的时间周期……*”，同时也有关于反思的理念：“*……反思如何变得更高效，并根据情况调整行为。*”此外，还强调了与人见面和交流：“*向开发团队传达信息的最有效方法是面对面的交谈。*”由于敏捷最初是作为一种方法帮助软件团队改善开发流程，旨在响应当时流行的瀑布开发方法，因此它的许多原则也适用于数据科学项目。
 
 我已尝试将我的干预措施整合为几个指导原则，当然，本文讨论的一些策略也适用于许多不同类型的项目，而不仅仅是数据科学项目。
 

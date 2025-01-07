@@ -1,16 +1,16 @@
 # 中心极限定理的证明
 
-> 原文：[https://towardsdatascience.com/a-proof-of-the-central-limit-theorem-8be40324da83?source=collection_archive---------2-----------------------#2024-04-02](https://towardsdatascience.com/a-proof-of-the-central-limit-theorem-8be40324da83?source=collection_archive---------2-----------------------#2024-04-02)
+> 原文：[`towardsdatascience.com/a-proof-of-the-central-limit-theorem-8be40324da83?source=collection_archive---------2-----------------------#2024-04-02`](https://towardsdatascience.com/a-proof-of-the-central-limit-theorem-8be40324da83?source=collection_archive---------2-----------------------#2024-04-02)
 
-![](../Images/ca2fe597566482068a4bebeca042a52b.png)
+![](img/ca2fe597566482068a4bebeca042a52b.png)
 
 图片由作者提供
 
-## 如果你喜欢巧克力，这个证明将像是一块Mars巧克力棒的多层魔力。
+## 如果你喜欢巧克力，这个证明将像是一块 Mars 巧克力棒的多层魔力。
 
-[](https://timeseriesreasoning.medium.com/?source=post_page---byline--8be40324da83--------------------------------)[![Sachin Date](../Images/bd023298b414caf88f79b00ef032d065.png)](https://timeseriesreasoning.medium.com/?source=post_page---byline--8be40324da83--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8be40324da83--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8be40324da83--------------------------------) [Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--8be40324da83--------------------------------)
+[](https://timeseriesreasoning.medium.com/?source=post_page---byline--8be40324da83--------------------------------)![Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--8be40324da83--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8be40324da83--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8be40324da83--------------------------------) [Sachin Date](https://timeseriesreasoning.medium.com/?source=post_page---byline--8be40324da83--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8be40324da83--------------------------------) ·阅读时间 24 分钟 ·2024年4月2日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8be40324da83--------------------------------) ·阅读时间 24 分钟 ·2024 年 4 月 2 日
 
 --
 

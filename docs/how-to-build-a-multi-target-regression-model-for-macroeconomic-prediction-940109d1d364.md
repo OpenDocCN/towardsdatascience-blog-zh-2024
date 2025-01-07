@@ -1,16 +1,16 @@
 # 如何构建一个多目标回归模型进行宏观经济预测
 
-> 原文：[https://towardsdatascience.com/how-to-build-a-multi-target-regression-model-for-macroeconomic-prediction-940109d1d364?source=collection_archive---------3-----------------------#2024-10-16](https://towardsdatascience.com/how-to-build-a-multi-target-regression-model-for-macroeconomic-prediction-940109d1d364?source=collection_archive---------3-----------------------#2024-10-16)
+> 原文：[`towardsdatascience.com/how-to-build-a-multi-target-regression-model-for-macroeconomic-prediction-940109d1d364?source=collection_archive---------3-----------------------#2024-10-16`](https://towardsdatascience.com/how-to-build-a-multi-target-regression-model-for-macroeconomic-prediction-940109d1d364?source=collection_archive---------3-----------------------#2024-10-16)
 
 ## **逐步指南：预测多个经济指标。**
 
-[](https://medium.com/@panData?source=post_page---byline--940109d1d364--------------------------------)[![Leo Anello 💡](../Images/635ecdec15cda7864d92bf0f1496b6fa.png)](https://medium.com/@panData?source=post_page---byline--940109d1d364--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--940109d1d364--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--940109d1d364--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--940109d1d364--------------------------------)
+[](https://medium.com/@panData?source=post_page---byline--940109d1d364--------------------------------)![Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--940109d1d364--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--940109d1d364--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--940109d1d364--------------------------------) [Leo Anello 💡](https://medium.com/@panData?source=post_page---byline--940109d1d364--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--940109d1d364--------------------------------) ·21分钟阅读·2024年10月16日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--940109d1d364--------------------------------) ·21 分钟阅读·2024 年 10 月 16 日
 
 --
 
-![](../Images/c90ccffd6a6a9c93fd392143707d7770.png)
+![](img/c90ccffd6a6a9c93fd392143707d7770.png)
 
 图片来源：[Joachim Schnürle](https://unsplash.com/@joa70?utm_source=medium&utm_medium=referral) via [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

@@ -1,22 +1,22 @@
 # 为什么批量归一化对深度学习至关重要
 
-> 原文：[https://towardsdatascience.com/why-batch-normalization-matters-for-deep-learning-3e5f4d71f567?source=collection_archive---------7-----------------------#2024-11-25](https://towardsdatascience.com/why-batch-normalization-matters-for-deep-learning-3e5f4d71f567?source=collection_archive---------7-----------------------#2024-11-25)
+> 原文：[`towardsdatascience.com/why-batch-normalization-matters-for-deep-learning-3e5f4d71f567?source=collection_archive---------7-----------------------#2024-11-25`](https://towardsdatascience.com/why-batch-normalization-matters-for-deep-learning-3e5f4d71f567?source=collection_archive---------7-----------------------#2024-11-25)
 
 ## 探索批量归一化在简化神经网络训练和提高模型性能中的作用
 
-[](https://medium.com/@niklas_lang?source=post_page---byline--3e5f4d71f567--------------------------------)[![Niklas Lang](../Images/5fa71386db00d248438c588c5ae79c67.png)](https://medium.com/@niklas_lang?source=post_page---byline--3e5f4d71f567--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3e5f4d71f567--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3e5f4d71f567--------------------------------) [Niklas Lang](https://medium.com/@niklas_lang?source=post_page---byline--3e5f4d71f567--------------------------------)
+[](https://medium.com/@niklas_lang?source=post_page---byline--3e5f4d71f567--------------------------------)![Niklas Lang](https://medium.com/@niklas_lang?source=post_page---byline--3e5f4d71f567--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3e5f4d71f567--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e5f4d71f567--------------------------------) [Niklas Lang](https://medium.com/@niklas_lang?source=post_page---byline--3e5f4d71f567--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e5f4d71f567--------------------------------) ·阅读时间11分钟·2024年11月25日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e5f4d71f567--------------------------------) ·阅读时间 11 分钟·2024 年 11 月 25 日
 
 --
 
-![](../Images/841e3523b94cac1fefe7a3667b750797.png)
+![](img/841e3523b94cac1fefe7a3667b750797.png)
 
 照片来自[Petra Reid](https://unsplash.com/@createinme_nz?utm_source=medium&utm_medium=referral)在[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)上的作品
 
 批量归一化（Batch normalization）近年来已成为训练神经网络的重要技术。它使训练过程更加高效和稳定，这是一个关键因素，特别是在处理大型和深度网络时。最初它是为了解决内部协方差偏移问题而提出的。
 
-本文将探讨训练神经网络过程中所涉及的问题，以及批量归一化如何解决这些问题。我们将详细描述其过程，并展示如何在Python中实现批量归一化并将其集成到现有模型中。我们还将考虑该方法的优缺点，以判断是否值得使用。
+本文将探讨训练神经网络过程中所涉及的问题，以及批量归一化如何解决这些问题。我们将详细描述其过程，并展示如何在 Python 中实现批量归一化并将其集成到现有模型中。我们还将考虑该方法的优缺点，以判断是否值得使用。
 
 # 训练深度神经网络时会出现哪些问题？
 

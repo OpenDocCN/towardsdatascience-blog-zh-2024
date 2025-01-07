@@ -1,16 +1,16 @@
 # 模拟数据，真实学习：第一部分
 
-> 原文：[https://towardsdatascience.com/simulated-data-real-learnings-part-1-dccb52667e32?source=collection_archive---------4-----------------------#2024-03-12](https://towardsdatascience.com/simulated-data-real-learnings-part-1-dccb52667e32?source=collection_archive---------4-----------------------#2024-03-12)
+> 原文：[`towardsdatascience.com/simulated-data-real-learnings-part-1-dccb52667e32?source=collection_archive---------4-----------------------#2024-03-12`](https://towardsdatascience.com/simulated-data-real-learnings-part-1-dccb52667e32?source=collection_archive---------4-----------------------#2024-03-12)
 
 ## 使用模拟测试机器学习方法
 
-[](https://medium.com/@jarom.hulet?source=post_page---byline--dccb52667e32--------------------------------)[![Jarom Hulet](../Images/0fdeb1a2df90cccdd8f2f4b84d5e54eb.png)](https://medium.com/@jarom.hulet?source=post_page---byline--dccb52667e32--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dccb52667e32--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dccb52667e32--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--dccb52667e32--------------------------------)
+[](https://medium.com/@jarom.hulet?source=post_page---byline--dccb52667e32--------------------------------)![Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--dccb52667e32--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dccb52667e32--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dccb52667e32--------------------------------) [Jarom Hulet](https://medium.com/@jarom.hulet?source=post_page---byline--dccb52667e32--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dccb52667e32--------------------------------) ·16分钟阅读·2024年3月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dccb52667e32--------------------------------) ·16 分钟阅读·2024 年 3 月 12 日
 
 --
 
-![](../Images/a2b8131597accb8bddd94fdf2f603e35.png)
+![](img/a2b8131597accb8bddd94fdf2f603e35.png)
 
 模型估计系数在模拟数据上的分布——作者提供的图片
 
@@ -32,4 +32,4 @@
 
 我们什么时候需要模拟数据？
 
-+   当我们需要得到那些在现实世界中无法观察到的‘答案’时——也就是说，使用现实世界的数据，我们只能推断X与y之间的关系；但通过模拟数据，我们可以*创建*X与y之间的关系——有了这个‘答案’，我们就可以测试我们的……
++   当我们需要得到那些在现实世界中无法观察到的‘答案’时——也就是说，使用现实世界的数据，我们只能推断 X 与 y 之间的关系；但通过模拟数据，我们可以*创建*X 与 y 之间的关系——有了这个‘答案’，我们就可以测试我们的……

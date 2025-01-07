@@ -1,16 +1,16 @@
 # PySpark 解析：创建和填充 DataFrame 的四种方式
 
-> 原文：[https://towardsdatascience.com/pyspark-explained-four-ways-to-create-and-populate-dataframes-31f3e4322ad9?source=collection_archive---------3-----------------------#2024-07-04](https://towardsdatascience.com/pyspark-explained-four-ways-to-create-and-populate-dataframes-31f3e4322ad9?source=collection_archive---------3-----------------------#2024-07-04)
+> 原文：[`towardsdatascience.com/pyspark-explained-four-ways-to-create-and-populate-dataframes-31f3e4322ad9?source=collection_archive---------3-----------------------#2024-07-04`](https://towardsdatascience.com/pyspark-explained-four-ways-to-create-and-populate-dataframes-31f3e4322ad9?source=collection_archive---------3-----------------------#2024-07-04)
 
-![](../Images/49e4e3686f9183a0297651c636080f94.png)
+![](img/49e4e3686f9183a0297651c636080f94.png)
 
 图像由 AI（Dalle-3）生成
 
 ## 从 CSV 到数据库：将数据加载到 PySpark DataFrame 中
 
-[](https://medium.com/@thomas_reid?source=post_page---byline--31f3e4322ad9--------------------------------)[![Thomas Reid](../Images/c1b4e5f577272633ba07e5dbfd21c02d.png)](https://medium.com/@thomas_reid?source=post_page---byline--31f3e4322ad9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--31f3e4322ad9--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--31f3e4322ad9--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--31f3e4322ad9--------------------------------)
+[](https://medium.com/@thomas_reid?source=post_page---byline--31f3e4322ad9--------------------------------)![Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--31f3e4322ad9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--31f3e4322ad9--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31f3e4322ad9--------------------------------) [Thomas Reid](https://medium.com/@thomas_reid?source=post_page---byline--31f3e4322ad9--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31f3e4322ad9--------------------------------) ·11分钟阅读·2024年7月4日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--31f3e4322ad9--------------------------------) ·11 分钟阅读·2024 年 7 月 4 日
 
 --
 

@@ -1,16 +1,16 @@
 # 使用 IPython Jupyter 魔法命令改善笔记本体验
 
-> 原文：[https://towardsdatascience.com/using-ipython-jupyter-magic-commands-to-improve-the-notebook-experience-f2c870cab356?source=collection_archive---------2-----------------------#2024-02-19](https://towardsdatascience.com/using-ipython-jupyter-magic-commands-to-improve-the-notebook-experience-f2c870cab356?source=collection_archive---------2-----------------------#2024-02-19)
+> 原文：[`towardsdatascience.com/using-ipython-jupyter-magic-commands-to-improve-the-notebook-experience-f2c870cab356?source=collection_archive---------2-----------------------#2024-02-19`](https://towardsdatascience.com/using-ipython-jupyter-magic-commands-to-improve-the-notebook-experience-f2c870cab356?source=collection_archive---------2-----------------------#2024-02-19)
 
 ## 创建自定义 IPython Jupyter 魔法命令的帖子
 
-[](https://medium.com/@stefan.krawczyk?source=post_page---byline--f2c870cab356--------------------------------)[![Stefan Krawczyk](../Images/150405abaad9590e1dc2589168ed2fa3.png)](https://medium.com/@stefan.krawczyk?source=post_page---byline--f2c870cab356--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f2c870cab356--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f2c870cab356--------------------------------) [Stefan Krawczyk](https://medium.com/@stefan.krawczyk?source=post_page---byline--f2c870cab356--------------------------------)
+[](https://medium.com/@stefan.krawczyk?source=post_page---byline--f2c870cab356--------------------------------)![Stefan Krawczyk](https://medium.com/@stefan.krawczyk?source=post_page---byline--f2c870cab356--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f2c870cab356--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f2c870cab356--------------------------------) [Stefan Krawczyk](https://medium.com/@stefan.krawczyk?source=post_page---byline--f2c870cab356--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f2c870cab356--------------------------------) ·12分钟阅读·2024年2月19日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f2c870cab356--------------------------------) ·12 分钟阅读·2024 年 2 月 19 日
 
 --
 
-![](../Images/2795ea522a2ce09a38aa5c62dc372b90.png)
+![](img/2795ea522a2ce09a38aa5c62dc372b90.png)
 
 学会在你的笔记本中施展一些魔法。图像由作者使用 DALL-E-3 创建。此帖的一个版本最初发布在[这里](https://blog.dagworks.io/p/using-ipython-jupyter-magic-commands)。
 
@@ -22,15 +22,15 @@ Jupyter 笔记本在数据科学中已经很常见。它们允许在一个地方
 
 然而，进行这项操作并不总是能改善笔记本的体验。例如，你仍然需要在整个笔记本中导入并调用这些函数，这样并不会显著改变笔记本的体验。那么，如何增强笔记本开发体验呢？[IPython Jupyter 魔法命令](https://ipython.readthedocs.io/en/stable/interactive/magics.html)。
 
-IPython Jupyter魔法命令（例如，笔记本单元中以`%`或`%%`开头的行）可以修饰笔记本单元或行，以修改其行为。许多魔法命令是默认提供的，包括`%timeit`用于测量单元的执行时间，`%bash`用于执行Shell命令，还有一些命令由扩展提供，[例如](https://pypi.org/project/ipython-sql/) `%sql` [可以直接在笔记本单元中编写SQL查询](https://pypi.org/project/ipython-sql/)。
+IPython Jupyter 魔法命令（例如，笔记本单元中以`%`或`%%`开头的行）可以修饰笔记本单元或行，以修改其行为。许多魔法命令是默认提供的，包括`%timeit`用于测量单元的执行时间，`%bash`用于执行 Shell 命令，还有一些命令由扩展提供，[例如](https://pypi.org/project/ipython-sql/) `%sql` [可以直接在笔记本单元中编写 SQL 查询](https://pypi.org/project/ipython-sql/)。
 
-在本文中，我们将展示如何让你的团队将任何实用函数转化为可重用的IPython Jupyter魔法，以提供更好的笔记本体验。作为示例，我们将使用我们创建的开源库[Hamilton](https://github.com/dagworks-inc/hamilton)，来促使我们创建一个魔法，帮助改进开发中的使用体验。你不需要了解Hamilton是什么，就能理解本文的内容。
+在本文中，我们将展示如何让你的团队将任何实用函数转化为可重用的 IPython Jupyter 魔法，以提供更好的笔记本体验。作为示例，我们将使用我们创建的开源库[Hamilton](https://github.com/dagworks-inc/hamilton)，来促使我们创建一个魔法，帮助改进开发中的使用体验。你不需要了解 Hamilton 是什么，就能理解本文的内容。
 
-> *注意：如今，有许多种类的笔记本（如[*Jupyter*](https://jupyter.org/)、[*VSCode*](https://code.visualstudio.com/docs/datascience/jupyter-notebooks)、[*Databricks*](https://docs.databricks.com/en/notebooks/index.html)等），但它们都是建立在IPython之上的。因此，开发的Magics应该可以跨环境重用。*
+> *注意：如今，有许多种类的笔记本（如[*Jupyter*](https://jupyter.org/)、[*VSCode*](https://code.visualstudio.com/docs/datascience/jupyter-notebooks)、[*Databricks*](https://docs.databricks.com/en/notebooks/index.html)等），但它们都是建立在 IPython 之上的。因此，开发的 Magics 应该可以跨环境重用。*
 
-# 理解IPython Jupyter Magics
+# 理解 IPython Jupyter Magics
 
-IPython Jupyter Magics（我们简称为Magics）是可以动态加载到笔记本中的代码片段。它们有两种类型，单行魔法和单元魔法。
+IPython Jupyter Magics（我们简称为 Magics）是可以动态加载到笔记本中的代码片段。它们有两种类型，单行魔法和单元魔法。
 
 ***单行魔法***，顾名思义，作用于单独的一行。也就是说，它只处理该行上指定的输入。它们通过命令前的单个`%`表示。
 
@@ -49,9 +49,9 @@ print("hello")
 print("world")
 ```
 
-Jupyter自带[一些内置魔法命令](https://ipython.readthedocs.io/en/stable/interactive/magics.html)。你可以将它们看作是“命令行”工具，可以访问整个笔记本的上下文。这使得它们不仅能够与笔记本的输出进行交互（例如，打印结果、显示PNG、渲染HTML），还可以修改现有变量的状态，并写入其他代码和Markdown单元！
+Jupyter 自带[一些内置魔法命令](https://ipython.readthedocs.io/en/stable/interactive/magics.html)。你可以将它们看作是“命令行”工具，可以访问整个笔记本的上下文。这使得它们不仅能够与笔记本的输出进行交互（例如，打印结果、显示 PNG、渲染 HTML），还可以修改现有变量的状态，并写入其他代码和 Markdown 单元！
 
-这对于开发内部工具非常有用，因为它可以抽象并隐藏不必要的复杂性，给用户带来“神奇”的体验。这是开发你自己“平台工作”的强大工具，特别适用于MLOps和LLMOps目的，因为你可以将集成的内容隐藏，不需要在笔记本中暴露。因此，这也意味着如果这些抽象代码在幕后发生变化，笔记本不需要更新，因为所有内容都可以隐藏在Python依赖项的升级中。
+这对于开发内部工具非常有用，因为它可以抽象并隐藏不必要的复杂性，给用户带来“神奇”的体验。这是开发你自己“平台工作”的强大工具，特别适用于 MLOps 和 LLMOps 目的，因为你可以将集成的内容隐藏，不需要在笔记本中暴露。因此，这也意味着如果这些抽象代码在幕后发生变化，笔记本不需要更新，因为所有内容都可以隐藏在 Python 依赖项的升级中。
 
 # 工作流示例
 
@@ -65,7 +65,7 @@ Jupyter自带[一些内置魔法命令](https://ipython.readthedocs.io/en/stable
 
 # 一个 Hamilton 魔法命令
 
-*对于那些不熟悉 Hamilton 的读者，我们建议阅读许多相关的 TDS 文章（例如* [*起源故事*](/functions-dags-introducing-hamilton-a-microframework-for-dataframe-generation-more-8e34b84efc1d)*，* [*生产提示工程*](/llmops-production-prompt-engineering-patterns-with-hamilton-5c3a20178ad2)*，* [*简化 Airflow DAG 创建与维护*](https://medium.com/towards-data-science/simplify-airflow-dag-creation-and-maintenance-with-hamilton-in-8-minutes-e6e48c9c2cb0)，[*整洁的生产 Pandas*](https://medium.com/towards-data-science/tidy-production-pandas-with-hamilton-3b759a2bf562)，*等等。）以及* [*https://www.tryhamilton.dev/*](https://www.tryhamilton.dev/)*。*
+*对于那些不熟悉 Hamilton 的读者，我们建议阅读许多相关的 TDS 文章（例如* *起源故事**，* *生产提示工程**，* [*简化 Airflow DAG 创建与维护*](https://medium.com/towards-data-science/simplify-airflow-dag-creation-and-maintenance-with-hamilton-in-8-minutes-e6e48c9c2cb0)，[*整洁的生产 Pandas*](https://medium.com/towards-data-science/tidy-production-pandas-with-hamilton-3b759a2bf562)，*等等。）以及* [*https://www.tryhamilton.dev/*](https://www.tryhamilton.dev/)*。*
 
 [Hamilton](https://github.com/dagworks-inc/hamilton) 是我们在 2019 年在 Stitch Fix 创建的一个开源工具。Hamilton 帮助数据科学家和工程师定义可测试、模块化、自文档化的数据流，并对其进行血统追踪和元数据编码。Hamilton 通过要求 Python 函数被整理成模块来实现这些特性。
 
@@ -75,7 +75,7 @@ Jupyter自带[一些内置魔法命令](https://ipython.readthedocs.io/en/stable
 
 Hamilton 开发循环如下所示：
 
-![](../Images/b08c25854dbcff9a783f416a19bac357.png)
+![](img/b08c25854dbcff9a783f416a19bac357.png)
 
 Hamilton 开发循环。图像来自作者。
 
@@ -83,7 +83,7 @@ Hamilton 开发循环。图像来自作者。
 
 这是我们如何使用魔法命令来改进这个循环：
 
-1.  从单元格中定义的函数创建一个“临时”Python模块，并直接在笔记本中导入这个新模块。
+1.  从单元格中定义的函数创建一个“临时”Python 模块，并直接在笔记本中导入这个新模块。
 
 1.  自动可视化函数定义的有向无环图（DAG），减少可视化样板代码。
 
@@ -149,9 +149,9 @@ class MyMagic(magic.Magics):
 
 对于有状态的魔法命令，添加 `__init__()` 方法（即构造函数）可能很有用。但在我们的情况下并不需要。
 
-通过继承自`magic.Magics`，此类可以访问多个重要字段，包括self.shell，这是支撑笔记本的[IPython InteractiveShell](https://ipython.readthedocs.io/en/stable/api/generated/IPython.core.interactiveshell.html#IPython.core.interactiveshell.InteractiveShell)。使用它可以让你提取并检查当前Jupyter笔记本中加载的变量。
+通过继承自`magic.Magics`，此类可以访问多个重要字段，包括 self.shell，这是支撑笔记本的[IPython InteractiveShell](https://ipython.readthedocs.io/en/stable/api/generated/IPython.core.interactiveshell.html#IPython.core.interactiveshell.InteractiveShell)。使用它可以让你提取并检查当前 Jupyter 笔记本中加载的变量。
 
-我们的Hamilton Magic命令将首先如下所示：
+我们的 Hamilton Magic 命令将首先如下所示：
 
 ```py
 from IPython.core import magic
@@ -167,7 +167,7 @@ class HamiltonMagics(magic.Magics):
     ...
 ```
 
-# 步骤3：解析输入参数
+# 步骤 3：解析输入参数
 
 接下来，我们指定将传递哪些参数以及如何解析它们。对于每个参数，添加`@argument`，并在顶部添加`@magic_arguments()`装饰器。如果你熟悉[argparse](https://docs.python.org/3/library/argparse.html)参数，它们遵循类似的模式，但功能不完全一样。在函数内部，你需要调用*parse_argstring()*函数。它接收函数本身以读取来自装饰器的指令，以及`*line*`（包含`%`或`%%`）其中包含参数值。
 
@@ -186,7 +186,7 @@ def a_cell_magic_command(self, line, cell):
 
 注意，对于必需的参数，*magic_arguments()*中没有为此提供设施，因此你需要在函数体内手动检查正确性等。
 
-继续解析Hamilton Magic示例，类中的方法现在看起来如下；我们使用了许多可选参数：
+继续解析 Hamilton Magic 示例，类中的方法现在看起来如下；我们使用了许多可选参数：
 
 ```py
 @magic_arguments()  # needed on top to enable parsing
@@ -218,19 +218,19 @@ def cell_to_module(self, line, cell):
     # now use args for logic ...
 ```
 
-注意，额外的`@argument`参数对于当有人使用`?`查询Magic的功能时非常有用。例如，`?%%cell_to_module`将显示文档。
+注意，额外的`@argument`参数对于当有人使用`?`查询 Magic 的功能时非常有用。例如，`?%%cell_to_module`将显示文档。
 
-# 步骤4：实现命令的逻辑
+# 步骤 4：实现命令的逻辑
 
-现在我们已经解析了参数，可以实现Magic命令的逻辑。这里没有特别的限制，你可以编写任何Python代码。跳过一个通用的示例（你已经有足够的内容可以从前一步开始），让我们深入探讨Hamilton Magic示例。对于它，我们希望使用参数来决定命令的期望行为：
+现在我们已经解析了参数，可以实现 Magic 命令的逻辑。这里没有特别的限制，你可以编写任何 Python 代码。跳过一个通用的示例（你已经有足够的内容可以从前一步开始），让我们深入探讨 Hamilton Magic 示例。对于它，我们希望使用参数来决定命令的期望行为：
 
-1.  创建Python模块，命名为*module_name*。
+1.  创建 Python 模块，命名为*module_name*。
 
 1.  如果*— rebuild-driver*，重建驱动程序，并传递详细信息。
 
 1.  如果*— config*存在，准备好它。
 
-1.  如果*— display*，显示DAG。
+1.  如果*— display*，显示 DAG。
 
 请参阅代码中的注释以获取解释：
 
@@ -294,11 +294,11 @@ if args.display:
 
 注意我们是如何使用`self.shell`的。这允许我们更新并注入变量到笔记本中。函数返回的值将作为“单元输出”使用（即你看到打印值的地方）。
 
-# 步骤5：注册你的Magic命令
+# 步骤 5：注册你的 Magic 命令
 
-最后，我们需要告知IPython和笔记本关于Magic命令的信息。我们定义Magic的模块必须具备以下功能来注册Magic类，并能够加载我们的扩展。如果涉及任何有状态的操作，应该在这里实例化它。
+最后，我们需要告知 IPython 和笔记本关于 Magic 命令的信息。我们定义 Magic 的模块必须具备以下功能来注册 Magic 类，并能够加载我们的扩展。如果涉及任何有状态的操作，应该在这里实例化它。
 
-请注意，这里`ipython`参数与我们定义的类方法中`self.shell`所提供的InteractiveShell是相同的。
+请注意，这里`ipython`参数与我们定义的类方法中`self.shell`所提供的 InteractiveShell 是相同的。
 
 ```py
 def load_ipython_extension(ipython: InteractiveShell):
@@ -311,7 +311,7 @@ def load_ipython_extension(ipython: InteractiveShell):
   ipython.register_magics(HamiltonMagics)
 ```
 
-请参阅完整的[Hamilton Magic命令](https://github.com/DAGWorks-Inc/hamilton/blob/main/hamilton/plugins/jupyter_magic.py)。
+请参阅完整的[Hamilton Magic 命令](https://github.com/DAGWorks-Inc/hamilton/blob/main/hamilton/plugins/jupyter_magic.py)。
 
 # 尝试一下
 
@@ -333,11 +333,11 @@ def load_ipython_extension(ipython: InteractiveShell):
 
 这是一个使用示例，展示了它如何注入可视化内容：
 
-![](../Images/d7005592ce1910bd5c6144271f319361.png)
+![](img/d7005592ce1910bd5c6144271f319361.png)
 
 展示魔法命令实际应用的示例。
 
-![](../Images/678f3c262e4d8d42f81b65d8bcee585f.png)
+![](img/678f3c262e4d8d42f81b65d8bcee585f.png)
 
 动画 GIF，展示如何添加函数并按回车刷新图像。
 

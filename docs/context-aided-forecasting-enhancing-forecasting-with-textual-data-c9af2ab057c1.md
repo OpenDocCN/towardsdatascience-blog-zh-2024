@@ -1,16 +1,16 @@
 # 上下文辅助预测：利用文本数据提升预测准确性
 
-> 原文：[https://towardsdatascience.com/context-aided-forecasting-enhancing-forecasting-with-textual-data-c9af2ab057c1?source=collection_archive---------7-----------------------#2024-12-02](https://towardsdatascience.com/context-aided-forecasting-enhancing-forecasting-with-textual-data-c9af2ab057c1?source=collection_archive---------7-----------------------#2024-12-02)
+> 原文：[`towardsdatascience.com/context-aided-forecasting-enhancing-forecasting-with-textual-data-c9af2ab057c1?source=collection_archive---------7-----------------------#2024-12-02`](https://towardsdatascience.com/context-aided-forecasting-enhancing-forecasting-with-textual-data-c9af2ab057c1?source=collection_archive---------7-----------------------#2024-12-02)
 
 ## 一种有前景的替代方法，用于改善预测
 
-[](https://medium.com/@nikoskafritsas?source=post_page---byline--c9af2ab057c1--------------------------------)[![Nikos Kafritsas](../Images/de965cfcd8fbd8e1baf849017d365cbb.png)](https://medium.com/@nikoskafritsas?source=post_page---byline--c9af2ab057c1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c9af2ab057c1--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c9af2ab057c1--------------------------------) [Nikos Kafritsas](https://medium.com/@nikoskafritsas?source=post_page---byline--c9af2ab057c1--------------------------------)
+[](https://medium.com/@nikoskafritsas?source=post_page---byline--c9af2ab057c1--------------------------------)![Nikos Kafritsas](https://medium.com/@nikoskafritsas?source=post_page---byline--c9af2ab057c1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c9af2ab057c1--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c9af2ab057c1--------------------------------) [Nikos Kafritsas](https://medium.com/@nikoskafritsas?source=post_page---byline--c9af2ab057c1--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c9af2ab057c1--------------------------------) ·阅读时长：8分钟·2024年12月2日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c9af2ab057c1--------------------------------) ·阅读时长：8 分钟·2024 年 12 月 2 日
 
 --
 
-![](../Images/34fc66f975796666886b91967daef31d.png)
+![](img/34fc66f975796666886b91967daef31d.png)
 
 图片来源 [1]
 
@@ -26,6 +26,6 @@
 
 +   **上下文至关重要（CiK）数据集**：一个将数值数据与相应文本信息配对的预测任务数据集。
 
-+   **感兴趣区域CRPS (RCRPS)**：一种为评估概率预测而设计的修改版CRPS指标，专注于上下文敏感窗口。
++   **感兴趣区域 CRPS (RCRPS)**：一种为评估概率预测而设计的修改版 CRPS 指标，专注于上下文敏感窗口。
 
 +   **上下文至关重要基准**：一种新的评估框架，展示了外部文本信息如何提升流行的时间序列模型。

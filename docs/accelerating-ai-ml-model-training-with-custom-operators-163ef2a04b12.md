@@ -1,20 +1,20 @@
-# 加速AI/ML模型训练的自定义操作符
+# 加速 AI/ML 模型训练的自定义操作符
 
-> 原文：[https://towardsdatascience.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12?source=collection_archive---------1-----------------------#2024-08-11](https://towardsdatascience.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12?source=collection_archive---------1-----------------------#2024-08-11)
+> 原文：[`towardsdatascience.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12?source=collection_archive---------1-----------------------#2024-08-11`](https://towardsdatascience.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12?source=collection_archive---------1-----------------------#2024-08-11)
 
-## 关于创建特定模型GPU内核的潜在好处及其在优化动态形状张量使用中的应用
+## 关于创建特定模型 GPU 内核的潜在好处及其在优化动态形状张量使用中的应用
 
-[](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)[![Chaim Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------) [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)
+[](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)![Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------) [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------) ·阅读时长15分钟·2024年8月11日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------) ·阅读时长 15 分钟·2024 年 8 月 11 日
 
 --
 
-![](../Images/85652d4b9d9dc933840a03993bb7ae6b.png)
+![](img/85652d4b9d9dc933840a03993bb7ae6b.png)
 
 图片由[David Marioni](https://unsplash.com/@dgeneva68?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
-本文是关于分析和优化AI/ML模型训练运行时性能的长篇[系列文章](/pytorch-model-performance-analysis-and-optimization-10c3c5822869)的延续。文章本可以标题为“PyTorch模型性能分析与优化——第七部分”，但考虑到当前主题的重要性，我们认为需要为此专门撰写一篇（或多篇）文章。在我们之前的文章中，我们详细讨论了分析和优化AI/ML工作负载的重要性，以及它对AI/ML模型开发的速度和成本可能产生的重大影响。我们提倡使用多种工具和技术来分析和优化训练性能，并且已经展示了许多实际应用。本文将讨论一种更为先进的优化技术——这项技术能够将真正的高手与普通业余者区分开来——在C++和CUDA中创建自定义的PyTorch操作符。
+本文是关于分析和优化 AI/ML 模型训练运行时性能的长篇系列文章的延续。文章本可以标题为“PyTorch 模型性能分析与优化——第七部分”，但考虑到当前主题的重要性，我们认为需要为此专门撰写一篇（或多篇）文章。在我们之前的文章中，我们详细讨论了分析和优化 AI/ML 工作负载的重要性，以及它对 AI/ML 模型开发的速度和成本可能产生的重大影响。我们提倡使用多种工具和技术来分析和优化训练性能，并且已经展示了许多实际应用。本文将讨论一种更为先进的优化技术——这项技术能够将真正的高手与普通业余者区分开来——在 C++和 CUDA 中创建自定义的 PyTorch 操作符。
 
 流行的机器学习框架，如 PyTorch、TensorFlow 和 JAX，通常使用为底层硬件（无论是 CPU、GPU，还是像 Google TPU 这样的 AI 专用 ASIC）优化的软硬件组件构建。然而，不可避免地，你可能会发现组成模型的某些计算模块的性能不尽如人意或不够优化。通常，调整低级代码模块——通常被称为 *内核（kernels）*——以满足 AI/ML 模型的特定需求，能够显著加速模型训练和推理的运行时性能。这样的加速可以通过实现之前不支持的功能（例如，先进的注意力模块）、将独立操作融合在一起（例如，参见[PyTorch 的乘加融合教程](https://pytorch.org/tutorials/advanced/cpp_custom_ops.html#cpp-custom-ops-tutorial)），和/或根据当前模型的特定属性优化现有内核来实现。重要的是，执行此类定制的能力依赖于 AI 硬件和 ML 框架的支持。尽管我们在本文中的重点是 NVIDIA GPU 和 PyTorch 框架，但应该注意，其他 AI 专用 ASIC 和 ML 框架也提供类似的定制内核功能。NVIDIA 通过其[CUDA 工具包](https://developer.nvidia.com/cuda-toolkit)支持开发自定义内核。PyTorch 也提供了专用的[API](https://pytorch.org/docs/stable/cpp_extension.html#torch.utils.cpp_extension.CUDAExtension)和[教程](https://pytorch.org/tutorials/advanced/cpp_custom_ops.html#cpp-custom-ops-tutorial)，用于公开这一功能并将其集成到模型设计中。  
 
@@ -22,7 +22,7 @@
 
 # 玩具模型 — 动态形状张量的挑战  
 
-AI模型中动态形状张量的普遍存在可能会在性能优化方面带来独特且令人兴奋的挑战。我们已经在[上一篇文章](/pytorch-model-performance-analysis-and-optimization-part-3-1c5876d78fe2)中看到过一个例子，展示了如何使用布尔掩码触发不希望发生的CPU-GPU同步事件，并且我们提倡避免使用它们。一般来说，AI加速器倾向于偏好固定形状的张量，而不是动态形状的张量。这不仅简化了内存资源的管理，还能为性能优化提供更大的空间（例如，使用[torch.compile](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)）。下面的玩具示例展示了这一挑战。
+AI 模型中动态形状张量的普遍存在可能会在性能优化方面带来独特且令人兴奋的挑战。我们已经在上一篇文章中看到过一个例子，展示了如何使用布尔掩码触发不希望发生的 CPU-GPU 同步事件，并且我们提倡避免使用它们。一般来说，AI 加速器倾向于偏好固定形状的张量，而不是动态形状的张量。这不仅简化了内存资源的管理，还能为性能优化提供更大的空间（例如，使用[torch.compile](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)）。下面的玩具示例展示了这一挑战。
 
 假设我们的任务是为下一代数码相机创建一个人脸检测模型。为了训练这个模型，我们提供了一个包含一百万张 *256*×*256* 灰度图像的训练集，以及每张图像的对应地面真实框。自然，每张图像中的人脸数量可能会有很大差异，大多数图像包含五个或更少的人脸，只有少数图像包含数十个甚至数百个。我们的模型要求支持所有这些变化。具体来说，我们的模型需要支持在图像中检测最多 *256* 张人脸。
 
@@ -90,7 +90,7 @@ def loss_fn(pred, targets_list):
     return loss_sum / max(total_boxes, 1)
 ```
 
-由于每个图像中面部的数量不同，损失是针对每个单独样本分别计算的，而不是一次性（针对整个批次）计算。具体来说，CPU将启动与损失函数相关的每个GPU内核，*B*次，其中 *B* 是选择的批量大小。根据批次的大小，这可能会带来显著的开销，正如我们下面所看到的那样。
+由于每个图像中面部的数量不同，损失是针对每个单独样本分别计算的，而不是一次性（针对整个批次）计算。具体来说，CPU 将启动与损失函数相关的每个 GPU 内核，*B*次，其中 *B* 是选择的批量大小。根据批次的大小，这可能会带来显著的开销，正如我们下面所看到的那样。
 
 在下面的代码块中，我们定义了一个生成随机图像和相关边界框的数据集。由于每张图像中人脸的数量不同，我们需要一个[自定义聚合函数](https://pytorch.org/docs/stable/data.html#working-with-collate-fn)来将样本分组为批次：
 
@@ -206,7 +206,7 @@ Self CUDA time total: 10.107s
 
 尽管损失函数的操作要少得多，但它完全主导了整体步骤时间。每个批次中样本的底层 GPU 核心反复调用的开销在 [TensorBoard](https://pytorch.org/tutorials/intermediate/tensorboard_profiler_tutorial.html#use-tensorboard-to-view-results-and-analyze-model-performance) 的*Trace*视图中非常明显：
 
-![](../Images/adbbc45d08a2f4f6b3d425b40a66e026.png)
+![](img/adbbc45d08a2f4f6b3d425b40a66e026.png)
 
 每个批次样本调用损失函数的影响，如在 TensorBoard 中所见（作者）
 
@@ -240,15 +240,15 @@ Self CPU time total: 396.674ms
 Self CUDA time total: 1.871s
 ```
 
-串联优化使得损失函数的速度提高了37倍（！！）。然而，请注意，它并没有解决每个主机到设备的样本真值数据拷贝的开销。这个开销可以在下面的TensorBoard的*Trace*视图截图中看到：
+串联优化使得损失函数的速度提高了 37 倍（！！）。然而，请注意，它并没有解决每个主机到设备的样本真值数据拷贝的开销。这个开销可以在下面的 TensorBoard 的*Trace*视图截图中看到：
 
-![](../Images/f360f4261cdc01a8d47bd17bf7273872.png)
+![](img/f360f4261cdc01a8d47bd17bf7273872.png)
 
 如 TensorBoard 中所见的每个批次样本的主机到设备拷贝的影响（作者）
 
 ## 通过填充优化
 
-避免使用动态形状张量的一种常见方法是填充。在以下代码块中，我们修改了合并函数，将每个数据样本的真值边界框用零填充，直到最大支持的框数，即256个。（请注意，填充也可以在 Dataset 类中完成。）
+避免使用动态形状张量的一种常见方法是填充。在以下代码块中，我们修改了合并函数，将每个数据样本的真值边界框用零填充，直到最大支持的框数，即 256 个。（请注意，填充也可以在 Dataset 类中完成。）
 
 ```py
 def collate_with_padding(batch):
@@ -447,7 +447,7 @@ Self CUDA time total: 1.380s
 
 尽管我们的内核（以及我们在 CUDA 上的经验不足）非常简单，我们还是将损失函数的性能提高了大约 3 倍（628 微秒与 1.8 毫秒相比）。如上所述，这在不费太多力气的情况下还可以进一步改善。
 
-## 第2步 — 条件执行
+## 第 2 步 — 条件执行
 
 CUDA 提供的线程级控制使我们能够添加一个条件语句，避免在无效的边界框上进行计算：
 
@@ -472,7 +472,7 @@ __global__ void giou_kernel(const float* boxes1,
 }
 ```
 
-就我们的内核而言，它对运行时性能的影响可以忽略不计。其原因（推测）是我们的内核相对较小，以至于其运行时间与加载和实例化所需的时间相比，可以忽略不计。我们的条件执行的影响可能只有在更大的内核中才会显现。（作为一个练习，评估内核大小对影响的函数，可以通过让我们的GIOU输出依赖于我们为固定步数运行的*for*循环来进行。这一点我们也留给你作为练习：)。）同样重要的是要考虑在CUDA的[SIMT架构](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#simt-architecture)上，条件执行流的表现，特别是当属于同一*warp*的线程发生分歧时，可能会带来的性能损失。
+就我们的内核而言，它对运行时性能的影响可以忽略不计。其原因（推测）是我们的内核相对较小，以至于其运行时间与加载和实例化所需的时间相比，可以忽略不计。我们的条件执行的影响可能只有在更大的内核中才会显现。（作为一个练习，评估内核大小对影响的函数，可以通过让我们的 GIOU 输出依赖于我们为固定步数运行的*for*循环来进行。这一点我们也留给你作为练习：)。）同样重要的是要考虑在 CUDA 的[SIMT 架构](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#simt-architecture)上，条件执行流的表现，特别是当属于同一*warp*的线程发生分歧时，可能会带来的性能损失。
 
 ```py
 -------------  ------------  ------------
@@ -490,7 +490,7 @@ Self CUDA time total: 1.371s
 
 我们在下表中总结了实验结果。
 
-![](../Images/705347a88876ca779d62ab6e9af3704e.png)
+![](img/705347a88876ca779d62ab6e9af3704e.png)
 
 损失运行时的平均总结（按作者）
 
@@ -498,16 +498,16 @@ Self CUDA time total: 1.371s
 
 1.  为了在训练中使用我们的自定义内核，我们需要实现反向传播。通常，这可能比正向传播稍微复杂一些。
 
-1.  我们已将张量类型固定为float32，并将张量形状固定为每个样本256个框。理想情况下，我们希望有一个更健壮的解决方案，支持不同的输入类型和形状。
+1.  我们已将张量类型固定为 float32，并将张量形状固定为每个样本 256 个框。理想情况下，我们希望有一个更健壮的解决方案，支持不同的输入类型和形状。
 
-1.  我们将实验限制在了一种GPU类型上。实际上，我们希望我们的实现能够支持（并且在）多种GPU上进行测试。
+1.  我们将实验限制在了一种 GPU 类型上。实际上，我们希望我们的实现能够支持（并且在）多种 GPU 上进行测试。
 
-1.  我们完全忽视了内核优化的机会——其中一些可能需要比我们在此所展示的更高深的CUDA专业知识。
+1.  我们完全忽视了内核优化的机会——其中一些可能需要比我们在此所展示的更高深的 CUDA 专业知识。
 
 # 总结
 
-在这篇文章中，我们展示了自定义CUDA内核在AI/ML应用程序运行时性能中的潜力。我们特别尝试利用CUDA提供的低级控制，介绍条件流，以限制动态形状输入情况下冗余算术操作的数量。尽管通过融合多个内核操作带来的性能提升显著，但我们发现内核的大小太小，无法从条件执行流中获益。
+在这篇文章中，我们展示了自定义 CUDA 内核在 AI/ML 应用程序运行时性能中的潜力。我们特别尝试利用 CUDA 提供的低级控制，介绍条件流，以限制动态形状输入情况下冗余算术操作的数量。尽管通过融合多个内核操作带来的性能提升显著，但我们发现内核的大小太小，无法从条件执行流中获益。
 
-在我们许多的文章中，我们一直强调拥有多种工具和技术来优化机器学习（ML）并降低其成本的重要性。自定义内核开发是我们可用的最强大技术之一。然而，对于许多AI/ML工程师来说，它也是最具挑战性的技术之一。我们希望已经成功地说服你，这个机会对于任何ML开发者来说都是触手可及的，并且它并不需要对CUDA有深度的专业化理解。
+在我们许多的文章中，我们一直强调拥有多种工具和技术来优化机器学习（ML）并降低其成本的重要性。自定义内核开发是我们可用的最强大技术之一。然而，对于许多 AI/ML 工程师来说，它也是最具挑战性的技术之一。我们希望已经成功地说服你，这个机会对于任何 ML 开发者来说都是触手可及的，并且它并不需要对 CUDA 有深度的专业化理解。
 
-近年来，引入了新的框架，旨在使AI/ML开发人员更容易进行自定义内核开发和优化。其中最受欢迎的框架之一是[Triton](https://triton-lang.org/main/index.html)。在我们的[下一篇文章](https://chaimrand.medium.com/unleashing-the-power-of-triton-mastering-gpu-kernel-optimization-in-python-160a3f52701e)中，我们将继续探讨自定义内核开发的主题，评估开发Triton内核的能力和潜在影响。
+近年来，引入了新的框架，旨在使 AI/ML 开发人员更容易进行自定义内核开发和优化。其中最受欢迎的框架之一是[Triton](https://triton-lang.org/main/index.html)。在我们的[下一篇文章](https://chaimrand.medium.com/unleashing-the-power-of-triton-mastering-gpu-kernel-optimization-in-python-160a3f52701e)中，我们将继续探讨自定义内核开发的主题，评估开发 Triton 内核的能力和潜在影响。

@@ -1,16 +1,16 @@
 # 用 60 行代码训练/微调 Segment Anything 2 (SAM 2)
 
-> 原文：[https://towardsdatascience.com/train-fine-tune-segment-anything-2-sam-2-in-60-lines-of-code-928dd29a63b3?source=collection_archive---------0-----------------------#2024-08-03](https://towardsdatascience.com/train-fine-tune-segment-anything-2-sam-2-in-60-lines-of-code-928dd29a63b3?source=collection_archive---------0-----------------------#2024-08-03)
+> 原文：[`towardsdatascience.com/train-fine-tune-segment-anything-2-sam-2-in-60-lines-of-code-928dd29a63b3?source=collection_archive---------0-----------------------#2024-08-03`](https://towardsdatascience.com/train-fine-tune-segment-anything-2-sam-2-in-60-lines-of-code-928dd29a63b3?source=collection_archive---------0-----------------------#2024-08-03)
 
 ## 一步步的教程，教你如何微调 SAM2 以完成自定义分割任务
 
-[](https://medium.com/@sagieppel?source=post_page---byline--928dd29a63b3--------------------------------)[![Sagi eppel](../Images/7f02c03dbfb21891b95ddb8c52cb5fff.png)](https://medium.com/@sagieppel?source=post_page---byline--928dd29a63b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--928dd29a63b3--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--928dd29a63b3--------------------------------) [Sagi eppel](https://medium.com/@sagieppel?source=post_page---byline--928dd29a63b3--------------------------------)
+[](https://medium.com/@sagieppel?source=post_page---byline--928dd29a63b3--------------------------------)![Sagi eppel](https://medium.com/@sagieppel?source=post_page---byline--928dd29a63b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--928dd29a63b3--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--928dd29a63b3--------------------------------) [Sagi eppel](https://medium.com/@sagieppel?source=post_page---byline--928dd29a63b3--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--928dd29a63b3--------------------------------) ·13 分钟阅读·2024年8月3日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--928dd29a63b3--------------------------------) ·13 分钟阅读·2024 年 8 月 3 日
 
 --
 
-[SAM2 (Segment Anything 2)](https://ai.meta.com/blog/segment-anything-2/) 是 Meta 推出的一款新模型，旨在对图像中的任何内容进行分割，而不局限于特定类别或领域。该模型的独特之处在于它的训练数据规模：1100万张图片和110亿个掩码。这种广泛的训练使得 SAM2 成为一个强大的起点，可以用于新的图像分割任务的训练。
+[SAM2 (Segment Anything 2)](https://ai.meta.com/blog/segment-anything-2/) 是 Meta 推出的一款新模型，旨在对图像中的任何内容进行分割，而不局限于特定类别或领域。该模型的独特之处在于它的训练数据规模：1100 万张图片和 110 亿个掩码。这种广泛的训练使得 SAM2 成为一个强大的起点，可以用于新的图像分割任务的训练。
 
 你可能会问，如果 SAM 可以分割任何东西，为什么还需要重新训练它？答案是，SAM 在处理常见物体时表现优异，但在处理稀有或特定领域的任务时，效果可能较差。
 
@@ -24,49 +24,49 @@
 
 ### 该代码库提供了训练/微调 Meta Segment Anything Model 2 (SAM 2) 的代码……
 
-github.com](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TRAIN.py?source=post_page-----928dd29a63b3--------------------------------) ![](../Images/1bd74d767271c35cc608b7b62e43607d.png)
+github.com](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TRAIN.py?source=post_page-----928dd29a63b3--------------------------------) ![](img/1bd74d767271c35cc608b7b62e43607d.png)
 
-SAM2网络结构图，来自[SAM2 GIT页面](https://github.com/facebookresearch/segment-anything-2)
+SAM2 网络结构图，来自[SAM2 GIT 页面](https://github.com/facebookresearch/segment-anything-2)
 
-# **Segment Anything的工作原理**
+# **Segment Anything 的工作原理**
 
-SAM的主要工作原理是通过获取图像和图像中的一个点，预测包含该点的分割区域的掩膜。该方法能够在没有人工干预的情况下进行完整的图像分割，并且不受类别或分割类型的限制（如在[上一篇文章](https://faun.pub/train-pointer-net-for-segmenting-objects-parts-and-materials-in-60-lines-of-code-ca328be8cef2)中所讨论的）。
+SAM 的主要工作原理是通过获取图像和图像中的一个点，预测包含该点的分割区域的掩膜。该方法能够在没有人工干预的情况下进行完整的图像分割，并且不受类别或分割类型的限制（如在[上一篇文章](https://faun.pub/train-pointer-net-for-segmenting-objects-parts-and-materials-in-60-lines-of-code-ca328be8cef2)中所讨论的）。
 
-使用SAM进行完整图像分割的步骤：
+使用 SAM 进行完整图像分割的步骤：
 
 1.  在图像中选择一组点
 
-1.  使用SAM预测包含每个点的分割区域
+1.  使用 SAM 预测包含每个点的分割区域
 
 1.  将生成的分割区域合并成一个单一的地图
 
-虽然SAM也可以利用其他输入，如掩膜或边界框，但这些主要适用于涉及人工输入的交互式分割。对于本教程，我们将专注于完全自动化的分割，并仅考虑单点输入。
+虽然 SAM 也可以利用其他输入，如掩膜或边界框，但这些主要适用于涉及人工输入的交互式分割。对于本教程，我们将专注于完全自动化的分割，并仅考虑单点输入。
 
 有关该模型的更多细节，请访问[项目网站](https://ai.meta.com/blog/segment-anything-2/)
 
-# **下载SAM2并设置环境**
+# **下载 SAM2 并设置环境**
 
-SAM2可以从以下链接下载：
+SAM2 可以从以下链接下载：
 
 [](https://github.com/facebookresearch/segment-anything-2?source=post_page-----928dd29a63b3--------------------------------) [## GitHub - facebookresearch/segment-anything-2: 该仓库提供了用于运行推理的代码…
 
-### 该仓库提供了用于运行Meta Segment Anything Model 2（SAM 2）推理的代码，链接如下…
+### 该仓库提供了用于运行 Meta Segment Anything Model 2（SAM 2）推理的代码，链接如下…
 
 github.com](https://github.com/facebookresearch/segment-anything-2?source=post_page-----928dd29a63b3--------------------------------)
 
-如果你不想复制训练代码，你也可以下载我已经包含TRAIN.py脚本的fork版本。
+如果你不想复制训练代码，你也可以下载我已经包含 TRAIN.py 脚本的 fork 版本。
 
 [](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code?source=post_page-----928dd29a63b3--------------------------------) [## GitHub - sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code: 该仓库提供了…
 
-### 该仓库提供了用于训练/微调Meta Segment Anything Model 2（SAM 2）的代码…
+### 该仓库提供了用于训练/微调 Meta Segment Anything Model 2（SAM 2）的代码…
 
 github.com](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code?source=post_page-----928dd29a63b3--------------------------------)
 
-请按照GitHub仓库中的安装说明进行操作。
+请按照 GitHub 仓库中的安装说明进行操作。
 
-通常，你需要Python >=3.11和[PyTorch](https://pytorch.org/)
+通常，你需要 Python >=3.11 和[PyTorch](https://pytorch.org/)
 
-此外，我们将使用OpenCV，可以通过以下命令进行安装：
+此外，我们将使用 OpenCV，可以通过以下命令进行安装：
 
 *pip install opencv-python*
 
@@ -80,9 +80,9 @@ github.com](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_6
 
 # 下载训练数据
 
-对于本教程，我们将使用[LabPics1数据集](https://zenodo.org/records/3697452/files/LabPicsV1.zip?download=1)来分割材料和液体。你可以从这个网址下载数据集：
+对于本教程，我们将使用[LabPics1 数据集](https://zenodo.org/records/3697452/files/LabPicsV1.zip?download=1)来分割材料和液体。你可以从这个网址下载数据集：
 
-[https://zenodo.org/records/3697452/files/LabPicsV1.zip?download=1](https://zenodo.org/records/3697452/files/LabPicsV1.zip?download=1)
+[`zenodo.org/records/3697452/files/LabPicsV1.zip?download=1`](https://zenodo.org/records/3697452/files/LabPicsV1.zip?download=1)
 
 # **准备数据读取器**
 
@@ -161,9 +161,9 @@ Img = cv2.imread(ent["image"])[...,::-1]  # read image
 ann_map = cv2.imread(ent["annotation"]) # read annotation
 ```
 
-请注意，OpenCV读取图像时是BGR格式，而SAM期望的是RGB格式。通过使用*[…,::-1]*，我们将图像从BGR转换为RGB。
+请注意，OpenCV 读取图像时是 BGR 格式，而 SAM 期望的是 RGB 格式。通过使用*[…,::-1]*，我们将图像从 BGR 转换为 RGB。
 
-SAM期望图像大小不超过1024，因此我们将把图像和注释图调整为此大小。
+SAM 期望图像大小不超过 1024，因此我们将把图像和注释图调整为此大小。
 
 ```py
 r = np.min([1024 / Img.shape[1], 1024 / Img.shape[0]]) # scalling factor
@@ -173,7 +173,7 @@ ann_map = cv2.resize(ann_map, (int(ann_map.shape[1] * r), int(ann_map.shape[0] *
 
 这里一个重要的点是，在调整注释图(*ann_map*)大小时，我们使用*INTER_NEAREST*模式（最近邻）。在注释图中，每个像素值是其所属分割区域的索引。因此，使用不会引入新值的调整方法非常重要。
 
-下一个代码块特定于LabPics1数据集的格式。注释图(*ann_map*)包含图像中血管的分割图（一个通道），另一个通道则用于材料注释图。我们将把它们合并为一张单一的图。
+下一个代码块特定于 LabPics1 数据集的格式。注释图(*ann_map*)包含图像中血管的分割图（一个通道），另一个通道则用于材料注释图。我们将把它们合并为一张单一的图。
 
 ```py
  mat_map = ann_map[:,:,0] # material annotation map
@@ -181,7 +181,7 @@ ann_map = cv2.resize(ann_map, (int(ann_map.shape[1] * r), int(ann_map.shape[0] *
   mat_map[mat_map==0] = ves_map[mat_map==0]*(mat_map.max()+1) # merged map
 ```
 
-这将为我们提供一个地图(*mat_map*)，其中每个像素的值是它所属的分割区域的索引（例如：所有值为3的像素属于分割区域3）。我们希望将其转换为一组二进制掩膜（0/1），每个掩膜对应一个不同的分割区域。此外，我们还希望从每个掩膜中提取一个单一的点。
+这将为我们提供一个地图(*mat_map*)，其中每个像素的值是它所属的分割区域的索引（例如：所有值为 3 的像素属于分割区域 3）。我们希望将其转换为一组二进制掩膜（0/1），每个掩膜对应一个不同的分割区域。此外，我们还希望从每个掩膜中提取一个单一的点。
 
 ```py
 inds = np.unique(mat_map)[1:] # list of all indices in map
@@ -198,11 +198,11 @@ return Img,np.array(masks),np.array(points), np.ones([len(masks),1])
 
 我们得到了图像(*Img*)，一个与图像中各个分割区域对应的二进制掩膜列表(*masks*)，以及每个掩膜内部的一个点的坐标(*points*)。
 
-![](../Images/29c072b8bda93b285bb87851fd68ae8f.png)
+![](img/29c072b8bda93b285bb87851fd68ae8f.png)
 
-一批训练数据的示例：1) 一张图像。2) 分割掩膜列表。3) 对于每个掩膜，掩膜内的一个单一点（标记为红色）。数据来自LabPics数据集。
+一批训练数据的示例：1) 一张图像。2) 分割掩膜列表。3) 对于每个掩膜，掩膜内的一个单一点（标记为红色）。数据来自 LabPics 数据集。
 
-# 加载SAM模型
+# 加载 SAM 模型
 
 现在让我们加载网络：
 
@@ -215,15 +215,15 @@ predictor = SAM2ImagePredictor(sam2_model) # load net
 
 首先，我们设置模型权重的路径：*sam2_checkpoint*参数。我们之前从[这里](https://github.com/facebookresearch/segment-anything-2?tab=readme-ov-file#download-checkpoints)下载了权重。**“sam2_hiera_small.pt”**指的是[小模型](https://dl.fbaipublicfiles.com/segment_anything_2/072824/sam2_hiera_small.pt)，但是代码对任何模型都有效。无论你选择哪个模型，都需要在*model_cfg*参数中设置相应的配置文件。这些配置文件位于主存储库中的子文件夹***“*sam2_configs/”**。
 
-# Segment Anything的总体结构
+# Segment Anything 的总体结构
 
 在开始训练之前，我们需要了解模型的结构。
 
-SAM由三个部分组成：
+SAM 由三个部分组成：
 
 1）图像编码器，2）提示编码器，3）掩码解码器。
 
-图像编码器负责处理图像并创建图像嵌入。这是最大的组件，训练它将需要强大的GPU。
+图像编码器负责处理图像并创建图像嵌入。这是最大的组件，训练它将需要强大的 GPU。
 
 提示编码器处理输入的提示，在我们的例子中就是输入的点。
 
@@ -240,9 +240,9 @@ predictor.model.sam_prompt_encoder.train(True) # enable training of prompt encod
 
 你可以通过使用“***predictor.model.image_encoder.train(True)”***来启用图像编码器的训练。
 
-这需要更强大的GPU，但会给网络提供更多的改进空间。如果你选择训练图像编码器，必须扫描SAM2代码中的“***no_grad”***命令并将其删除。（***no_grad***会阻止梯度收集，虽然可以节省内存，但会阻止训练）。
+这需要更强大的 GPU，但会给网络提供更多的改进空间。如果你选择训练图像编码器，必须扫描 SAM2 代码中的“***no_grad”***命令并将其删除。（***no_grad***会阻止梯度收集，虽然可以节省内存，但会阻止训练）。
 
-接下来，我们定义标准的adamW优化器：
+接下来，我们定义标准的 adamW 优化器：
 
 ```py
 optimizer=torch.optim.AdamW(params=predictor.model.parameters(),lr=1e-5,weight_decay=4e-5)
@@ -302,7 +302,7 @@ low_res_masks, prd_scores, _, _ = predictor.model.sam_mask_decoder(image_embeddi
 prd_masks = predictor._transforms.postprocess_masks(low_res_masks, predictor._orig_hw[-1])# Upscale the masks to the original image resolution
 ```
 
-这段代码的主要部分是***model.sam_mask_decoder***，它运行网络的mask_decoder部分并生成分割掩码（*low_res_masks*）及其分数（*prd_scores*）。
+这段代码的主要部分是***model.sam_mask_decoder***，它运行网络的 mask_decoder 部分并生成分割掩码（*low_res_masks*）及其分数（*prd_scores*）。
 
 这些掩码的分辨率低于原始输入图像，并且会在***postprocess_masks***函数中被调整到原始输入大小。
 
@@ -395,7 +395,7 @@ print("step)",itr, "Accuracy(IOU)=",mean_iou)
 
 [](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TRAIN.py?source=post_page-----928dd29a63b3--------------------------------) [## fine-tune-train_segment_anything_2_in_60_lines_of_code/TRAIN.py at main ·…
 
-### 该仓库提供了用于训练/微调Meta Segment Anything Model 2 (SAM 2)的代码……
+### 该仓库提供了用于训练/微调 Meta Segment Anything Model 2 (SAM 2)的代码……
 
 [github.com](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TRAIN.py?source=post_page-----928dd29a63b3--------------------------------)
 
@@ -419,11 +419,11 @@ print("step)",itr, "Accuracy(IOU)=",mean_iou)
 
 [](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TEST_Net.py?source=post_page-----928dd29a63b3--------------------------------) [## fine-tune-train_segment_anything_2_in_60_lines_of_code/TEST_Net.py at main ·…
 
-### 该仓库提供了用于训练/微调Meta Segment Anything Model 2 (SAM 2)的代码……
+### 该仓库提供了用于训练/微调 Meta Segment Anything Model 2 (SAM 2)的代码……
 
 [github.com](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TEST_Net.py?source=post_page-----928dd29a63b3--------------------------------)
 
-首先，我们加载依赖项并将权重转换为float16格式，这使得模型运行速度更快（仅在推理时可行）。
+首先，我们加载依赖项并将权重转换为 float16 格式，这使得模型运行速度更快（仅在推理时可行）。
 
 ```py
 import numpy as np
@@ -454,7 +454,7 @@ def read_image(image_path, mask_path): # read and resize image and mask
 image,mask = read_image(image_path, mask_path)
 ```
 
-在我们想要分割的区域内随机采样30个点：
+在我们想要分割的区域内随机采样 30 个点：
 
 ```py
 num_samples = 30 # number of points/segment to sample
@@ -468,7 +468,7 @@ def get_points(mask,num_points): # Sample points inside the input mask
 input_points = get_points(mask,num_samples)
 ```
 
-加载标准的SAM模型（与训练时相同）
+加载标准的 SAM 模型（与训练时相同）
 
 ```py
 # Load model you need to have pretrained model already made
@@ -513,7 +513,7 @@ seg_map = np.zeros_like(shorted_masks[0],dtype=np.uint8)
 occupancy_mask = np.zeros_like(shorted_masks[0],dtype=bool)
 ```
 
-接下来，我们将按顺序（从高到低分数）将掩模添加到分割图中。只有当掩模与之前添加的掩模一致时，我们才会添加它，这意味着只有当我们想要添加的掩模与已占用区域的重叠部分小于15%时，才会添加。
+接下来，我们将按顺序（从高到低分数）将掩模添加到分割图中。只有当掩模与之前添加的掩模一致时，我们才会添加它，这意味着只有当我们想要添加的掩模与已占用区域的重叠部分小于 15%时，才会添加。
 
 ```py
 for i in range(shorted_masks.shape[0]):
@@ -526,7 +526,7 @@ for i in range(shorted_masks.shape[0]):
 
 就这样。
 
-*seg_mask*现在包含了预测的分割图，每个分割区域有不同的值，背景为0。
+*seg_mask*现在包含了预测的分割图，每个分割区域有不同的值，背景为 0。
 
 我们可以使用以下方法将其转换为颜色图：
 
@@ -545,22 +545,22 @@ cv2.imshow("image",image)
 cv2.waitKey()
 ```
 
-![](../Images/9e5af0c935665898307a0372f325bb5b.png)
+![](img/9e5af0c935665898307a0372f325bb5b.png)
 
-使用微调后的SAM2进行分割结果的示例。图像来自LabPics数据集。
+使用微调后的 SAM2 进行分割结果的示例。图像来自 LabPics 数据集。
 
 完整的推理代码可以在以下位置找到：
 
 [](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TEST_Net.py?source=post_page-----928dd29a63b3--------------------------------) [## fine-tune-train_segment_anything_2_in_60_lines_of_code/TEST_Net.py at main ·…
 
-### 该代码库提供了用于训练/微调Meta Segment Anything Model 2（SAM 2）的代码……
+### 该代码库提供了用于训练/微调 Meta Segment Anything Model 2（SAM 2）的代码……
 
 github.com](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TEST_Net.py?source=post_page-----928dd29a63b3--------------------------------)
 
 # 结论：
 
-就是这样，我们已经在自定义数据集上训练和测试了SAM2。除了更改数据读取器外，这应该适用于任何数据集。在许多情况下，这应该足以显著提高性能。
+就是这样，我们已经在自定义数据集上训练和测试了 SAM2。除了更改数据读取器外，这应该适用于任何数据集。在许多情况下，这应该足以显著提高性能。
 
-最后，SAM2还可以在视频中对物体进行分割和跟踪，但微调这一部分内容将在另一个时刻讨论。
+最后，SAM2 还可以在视频中对物体进行分割和跟踪，但微调这一部分内容将在另一个时刻讨论。
 
-**版权声明：** 本文中的所有图像均来自[SAM2 GIT](https://github.com/facebookresearch/segment-anything-2)代码库（采用Apache许可证），以及[LabPics](https://zenodo.org/records/3697452)数据集（采用MIT许可证）。本教程的代码和网络模型可在Apache许可证下使用。
+**版权声明：** 本文中的所有图像均来自[SAM2 GIT](https://github.com/facebookresearch/segment-anything-2)代码库（采用 Apache 许可证），以及[LabPics](https://zenodo.org/records/3697452)数据集（采用 MIT 许可证）。本教程的代码和网络模型可在 Apache 许可证下使用。

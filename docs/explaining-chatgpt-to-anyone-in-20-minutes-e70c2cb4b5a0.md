@@ -1,16 +1,16 @@
 # 在 <20 分钟内向任何人解释 ChatGPT
 
-> 原文：[https://towardsdatascience.com/explaining-chatgpt-to-anyone-in-20-minutes-e70c2cb4b5a0?source=collection_archive---------11-----------------------#2024-03-14](https://towardsdatascience.com/explaining-chatgpt-to-anyone-in-20-minutes-e70c2cb4b5a0?source=collection_archive---------11-----------------------#2024-03-14)
+> 原文：[`towardsdatascience.com/explaining-chatgpt-to-anyone-in-20-minutes-e70c2cb4b5a0?source=collection_archive---------11-----------------------#2024-03-14`](https://towardsdatascience.com/explaining-chatgpt-to-anyone-in-20-minutes-e70c2cb4b5a0?source=collection_archive---------11-----------------------#2024-03-14)
 
 ## 将生成型大语言模型的核心组成部分提炼成一个易于理解的框架…
 
-[](https://wolfecameron.medium.com/?source=post_page---byline--e70c2cb4b5a0--------------------------------)[![Cameron R. Wolfe, Ph.D.](../Images/52bb88d7cf1105501be2fae5ccbe7a03.png)](https://wolfecameron.medium.com/?source=post_page---byline--e70c2cb4b5a0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e70c2cb4b5a0--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e70c2cb4b5a0--------------------------------) [Cameron R. Wolfe, Ph.D.](https://wolfecameron.medium.com/?source=post_page---byline--e70c2cb4b5a0--------------------------------)
+[](https://wolfecameron.medium.com/?source=post_page---byline--e70c2cb4b5a0--------------------------------)![Cameron R. Wolfe, Ph.D.](https://wolfecameron.medium.com/?source=post_page---byline--e70c2cb4b5a0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e70c2cb4b5a0--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e70c2cb4b5a0--------------------------------) [Cameron R. Wolfe, Ph.D.](https://wolfecameron.medium.com/?source=post_page---byline--e70c2cb4b5a0--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e70c2cb4b5a0--------------------------------) ·阅读时间 14 分钟·2024年3月14日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e70c2cb4b5a0--------------------------------) ·阅读时间 14 分钟·2024 年 3 月 14 日
 
 --
 
-![](../Images/9a470d5ce35da59c990d833660858b2f.png)
+![](img/9a470d5ce35da59c990d833660858b2f.png)
 
 （照片由 [Possessed Photography](https://unsplash.com/@possessedphotography?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源于 [Unsplash](https://unsplash.com/photos/closeup-photo-of-white-robot-arm-jIBMSMs4_kA?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)）
 

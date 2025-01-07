@@ -1,16 +1,16 @@
 # 如何通过 REST API 暴露 Delta 表
 
-> 原文：[https://towardsdatascience.com/how-to-expose-delta-tables-via-rest-apis-53b4dd7afa4e?source=collection_archive---------0-----------------------#2024-05-06](https://towardsdatascience.com/how-to-expose-delta-tables-via-rest-apis-53b4dd7afa4e?source=collection_archive---------0-----------------------#2024-05-06)
+> 原文：[`towardsdatascience.com/how-to-expose-delta-tables-via-rest-apis-53b4dd7afa4e?source=collection_archive---------0-----------------------#2024-05-06`](https://towardsdatascience.com/how-to-expose-delta-tables-via-rest-apis-53b4dd7afa4e?source=collection_archive---------0-----------------------#2024-05-06)
 
 ## 三种架构讨论并测试用于服务 Delta 表
 
-[](https://rebremer.medium.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)[![René Bremer](../Images/e422c4b84e225d2a949251ebc24dbd2c.png)](https://rebremer.medium.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--53b4dd7afa4e--------------------------------) [René Bremer](https://rebremer.medium.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)
+[](https://rebremer.medium.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)![René Bremer](https://rebremer.medium.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--53b4dd7afa4e--------------------------------) [René Bremer](https://rebremer.medium.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--53b4dd7afa4e--------------------------------) ·7分钟阅读·2024年5月6日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--53b4dd7afa4e--------------------------------) ·7 分钟阅读·2024 年 5 月 6 日
 
 --
 
-![](../Images/1c9e1d23ea5b1cf0a55e7475f13b53a9.png)
+![](img/1c9e1d23ea5b1cf0a55e7475f13b53a9.png)
 
 通过内外数据暴露——图片由 [Joshua Sortino on Unsplash](https://unsplash.com/@sortino) 提供
 
@@ -26,7 +26,7 @@
 
 为了深入探讨这些问题，评估了三种架构，如下所示：架构 A——API 中的库，架构 B——计算层，架构 C——存储层。请参阅下图。
 
-![](../Images/4660f725419bf5d6260407749ecb8d6f.png)
+![](img/4660f725419bf5d6260407749ecb8d6f.png)
 
 三种架构用于暴露 Delta 表——图片由作者提供
 
@@ -38,7 +38,7 @@
 
 在此架构中，API 直接连接到 delta 表，中间没有计算层。这意味着数据通过 API 本身的内存和计算进行分析。为了提高性能，使用了[嵌入式数据库 DuckDB](https://duckdb.org/why_duckdb#simple)和[PyArrow](https://pyarrow.readthedocs.io/en/latest/)的 Python 库。这些库确保只加载相关的数据（例如，只加载 API 所需的列）。
 
-![](../Images/60464d2733670c853ce8caa4d24451df.png)
+![](img/60464d2733670c853ce8caa4d24451df.png)
 
 架构 A：API 中的库 — 作者提供的图像
 
@@ -50,7 +50,7 @@
 
 在此架构中，API 连接到计算层，而不是直接连接到 delta 表。计算层从 delta 表中获取数据并进行分析。计算层可以是[Azure Synapse](https://learn.microsoft.com/en-us/azure/synapse-analytics/overview-what-is)、[Azure Databricks](https://learn.microsoft.com/en-us/azure/databricks/introduction/)或[Microsoft Fabric](https://learn.microsoft.com/en-us/fabric/get-started/microsoft-fabric-overview)，并且通常能够很好地扩展。数据不会复制到计算层，但可以在计算层应用缓存。在本文的剩余部分中，测试使用了[Synapse 无服务器](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview)。
 
-![](../Images/dfc98b85a7d99735689388832e72f6e6.png)
+![](img/dfc98b85a7d99735689388832e72f6e6.png)
 
 架构 B：计算层 — 作者提供的图像
 
@@ -62,7 +62,7 @@
 
 在此架构中，API 不是连接到 delta 表，而是连接到另一个存储层，在该存储层中，delta 表被复制。不同的存储层可以是 Azure SQL 或 Cosmos DB。存储层可以针对快速检索数据进行优化。本文的其余部分中，测试使用了 Azure SQL。
 
-![](../Images/84a687b97eb88e5346449d5e6a4704fb.png)
+![](img/84a687b97eb88e5346449d5e6a4704fb.png)
 
 架构 C：优化存储层 — 作者提供的图像
 
@@ -136,7 +136,7 @@ HAVING COUNT(CityKey) > 10
 
 部署并测试架构后，可以获得结果。这是结果的总结：
 
-![](../Images/0881c24c646ce4ade82355446a0f7a03.png)
+![](img/0881c24c646ce4ade82355446a0f7a03.png)
 
 测试结果总结
 

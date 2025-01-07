@@ -1,16 +1,16 @@
 # 如何创建成功的数据演示
 
-> 原文：[https://towardsdatascience.com/how-to-create-a-successful-data-presentation-dbaf0f55bbb8?source=collection_archive---------3-----------------------#2024-03-11](https://towardsdatascience.com/how-to-create-a-successful-data-presentation-dbaf0f55bbb8?source=collection_archive---------3-----------------------#2024-03-11)
+> 原文：[`towardsdatascience.com/how-to-create-a-successful-data-presentation-dbaf0f55bbb8?source=collection_archive---------3-----------------------#2024-03-11`](https://towardsdatascience.com/how-to-create-a-successful-data-presentation-dbaf0f55bbb8?source=collection_archive---------3-----------------------#2024-03-11)
 
 ## 在六个简单步骤中像专业人士一样展示你的数据……
 
-[](https://rashidesai2424.medium.com/?source=post_page---byline--dbaf0f55bbb8--------------------------------)[![Rashi Desai](../Images/0a706eb6bb2407c83c67a874e3747e36.png)](https://rashidesai2424.medium.com/?source=post_page---byline--dbaf0f55bbb8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dbaf0f55bbb8--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dbaf0f55bbb8--------------------------------) [Rashi Desai](https://rashidesai2424.medium.com/?source=post_page---byline--dbaf0f55bbb8--------------------------------)
+[](https://rashidesai2424.medium.com/?source=post_page---byline--dbaf0f55bbb8--------------------------------)![Rashi Desai](https://rashidesai2424.medium.com/?source=post_page---byline--dbaf0f55bbb8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dbaf0f55bbb8--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dbaf0f55bbb8--------------------------------) [Rashi Desai](https://rashidesai2424.medium.com/?source=post_page---byline--dbaf0f55bbb8--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dbaf0f55bbb8--------------------------------) ·6分钟阅读·2024年3月11日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dbaf0f55bbb8--------------------------------) ·6 分钟阅读·2024 年 3 月 11 日
 
 --
 
-![](../Images/07611a0dad1373559340e35c9a42129b.png)
+![](img/07611a0dad1373559340e35c9a42129b.png)
 
 图片由 [Teemu Paananen](https://unsplash.com/@xteemu?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源于 [Unsplash](https://unsplash.com/photos/person-discussing-while-standing-in-front-of-a-large-screen-in-front-of-people-inside-dim-lighted-room-bzdhc5b3Bxs?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

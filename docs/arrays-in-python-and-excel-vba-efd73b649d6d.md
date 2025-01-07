@@ -1,10 +1,10 @@
 # Python 和 Excel VBA 中的数组
 
-> 原文：[https://towardsdatascience.com/arrays-in-python-and-excel-vba-efd73b649d6d?source=collection_archive---------14-----------------------#2024-01-23](https://towardsdatascience.com/arrays-in-python-and-excel-vba-efd73b649d6d?source=collection_archive---------14-----------------------#2024-01-23)
+> 原文：[`towardsdatascience.com/arrays-in-python-and-excel-vba-efd73b649d6d?source=collection_archive---------14-----------------------#2024-01-23`](https://towardsdatascience.com/arrays-in-python-and-excel-vba-efd73b649d6d?source=collection_archive---------14-----------------------#2024-01-23)
 
 ## 通过简单的例子学习数组
 
-[](https://medium.com/@himalaya.birshrestha?source=post_page---byline--efd73b649d6d--------------------------------)[![Himalaya Bir Shrestha](../Images/9766140c1c44381029d0a78154217775.png)](https://medium.com/@himalaya.birshrestha?source=post_page---byline--efd73b649d6d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--efd73b649d6d--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--efd73b649d6d--------------------------------) [Himalaya Bir Shrestha](https://medium.com/@himalaya.birshrestha?source=post_page---byline--efd73b649d6d--------------------------------)
+[](https://medium.com/@himalaya.birshrestha?source=post_page---byline--efd73b649d6d--------------------------------)![Himalaya Bir Shrestha](https://medium.com/@himalaya.birshrestha?source=post_page---byline--efd73b649d6d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--efd73b649d6d--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--efd73b649d6d--------------------------------) [Himalaya Bir Shrestha](https://medium.com/@himalaya.birshrestha?source=post_page---byline--efd73b649d6d--------------------------------)
 
 ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--efd73b649d6d--------------------------------) ·阅读时间 8 分钟·2024 年 1 月 23 日
 
@@ -12,7 +12,7 @@
 
 作为一个没有接受过正式编程教育的人，我的编程旅程一直由自学塑造。意识到回顾基础编程概念的重要性，我发现扎实的基础能够提升整体编程体验。在本教程中，我们将深入探讨一个基本概念——数组。具体来说，我们将通过简单的例子，探讨 Python 和 Excel VBA 中的数组概念。让我们开始吧。
 
-![](../Images/f66043ed20c7b741ea145dcadfe8031d.png)
+![](img/f66043ed20c7b741ea145dcadfe8031d.png)
 
 图片由 [Nathan Dumlao](https://unsplash.com/@nate_dumlao?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -124,11 +124,11 @@ Dim countries(1 to 4) as String
 Dim capitals(4) as String
 ```
 
-在上述示例中，数组的大小也被指定。指定1到4或仅指定4都表示数组的大小为4。
+在上述示例中，数组的大小也被指定。指定 1 到 4 或仅指定 4 都表示数组的大小为 4。
 
 **2.2 一维数组**
 
-一维数组是通过声明行数（例如，从1到5），即数组包含的元素数量来赋值的。下面给出了一个创建我曾经居住过的四个国家的一维数组的示例。它将把这些国家的名称打印到Excel文件工作表的A列中。
+一维数组是通过声明行数（例如，从 1 到 5），即数组包含的元素数量来赋值的。下面给出了一个创建我曾经居住过的四个国家的一维数组的示例。它将把这些国家的名称打印到 Excel 文件工作表的 A 列中。
 
 ```py
 Option Base 1
@@ -152,9 +152,9 @@ End Sub
 
 运行`array_1d`子程序的输出如下：
 
-![](../Images/98813e9fa922046d745c6bd04c89ee36.png)
+![](img/98813e9fa922046d745c6bd04c89ee36.png)
 
-array_1d子程序的输出。图片来源：作者。
+array_1d 子程序的输出。图片来源：作者。
 
 **2.2 二维数组**
 
@@ -187,13 +187,13 @@ End Sub
 
 运行此子程序返回以下结果：
 
-![](../Images/bf21b342e5a6abf274ac8e8deed484e9.png)
+![](img/bf21b342e5a6abf274ac8e8deed484e9.png)
 
-array_2d子程序的输出。图片来源：作者。
+array_2d 子程序的输出。图片来源：作者。
 
 **2.3 动态数组**
 
-动态数组在无法确定数组大小并且数组大小可能在未来发生变化的情况下非常有用。在下面的代码中，我声明了两个数组`countries_visited`和`population`，但没有指定数组的大小。在`dynamic_array`子程序内，我通过使用`ReDim`语句将这两个数组的大小指定为4。接下来，我根据我访问过的四个国家及其人口分别指定了数组的每个元素。
+动态数组在无法确定数组大小并且数组大小可能在未来发生变化的情况下非常有用。在下面的代码中，我声明了两个数组`countries_visited`和`population`，但没有指定数组的大小。在`dynamic_array`子程序内，我通过使用`ReDim`语句将这两个数组的大小指定为 4。接下来，我根据我访问过的四个国家及其人口分别指定了数组的每个元素。
 
 ```py
 Option Base 1
@@ -226,7 +226,7 @@ population(4) = 274
 End Sub 
 ```
 
-一段时间后，我意识到我还访问了一个新国家（葡萄牙）。我在保留这些数组原始内容/元素的情况下重新定义了数组的大小。我通过增加数组的大小1来进行操作。为此，我使用了`ReDim Preserve`语句，如下所示。
+一段时间后，我意识到我还访问了一个新国家（葡萄牙）。我在保留这些数组原始内容/元素的情况下重新定义了数组的大小。我通过增加数组的大小 1 来进行操作。为此，我使用了`ReDim Preserve`语句，如下所示。
 
 ```py
 ReDim Preserve countries_visited(1 to 5)
@@ -284,15 +284,15 @@ End Sub
 
 上述代码的输出如下所示：
 
-![](../Images/53b0ee04a2d02ab0aaa51c25d3e5f899.png)
+![](img/53b0ee04a2d02ab0aaa51c25d3e5f899.png)
 
 动态数组子程序的输出。图片来源：作者。
 
 **2.4 声明数组以存储不同数据类型的变量**
 
-在上面的章节中，`countries_visited`数组声明用于存储*String*数据类型的变量，`population`数组声明用于存储*Long*数据类型的变量。与Python的numpy数组类似，在Excel VBA中也可以在数组中存储不同数据类型的变量。在这种情况下，数组必须声明为`Variant`类型。
+在上面的章节中，`countries_visited`数组声明用于存储*String*数据类型的变量，`population`数组声明用于存储*Long*数据类型的变量。与 Python 的 numpy 数组类似，在 Excel VBA 中也可以在数组中存储不同数据类型的变量。在这种情况下，数组必须声明为`Variant`类型。
 
-在下面的示例中，声明了一个名为`test`的数组作为*Variant*。其大小通过`ReDim`语句指定为3。`test`中的三个元素分别为*String*、*Integer*和*Date*类型。通过将变量传递给`TypeName()`函数，可以识别这些数据类型。
+在下面的示例中，声明了一个名为`test`的数组作为*Variant*。其大小通过`ReDim`语句指定为 3。`test`中的三个元素分别为*String*、*Integer*和*Date*类型。通过将变量传递给`TypeName()`函数，可以识别这些数据类型。
 
 ```py
 Option Base 0
@@ -314,12 +314,12 @@ End Sub
 
 输出如下所示：
 
-![](../Images/11ecf26f56ad68da974831b0b645b8b2.png)
+![](img/11ecf26f56ad68da974831b0b645b8b2.png)
 
 variant_test 子程序的输出。图片由作者提供。
 
 ## 结论
 
-数组是由一个或多个数据类型的值/变量组成的集合。每个变量都与数组中的特定索引号相关联。数组可以是单维的、二维的或多维的。在Python中，没有内建的数组支持，但可以使用numpy包创建数组。除了存储值，numpy数组在进行矩阵运算时也非常有用。在Excel VBA中，数组在处理大型数据元素数据库时非常有用。在Excel VBA中，数组可以是静态的，即数组的大小是预定义的。或者，数组也可以是动态的，即数组的大小不是预定义的，但我们可以在使用过程中指定其大小，甚至在保持已存储元素的情况下调整数组大小。
+数组是由一个或多个数据类型的值/变量组成的集合。每个变量都与数组中的特定索引号相关联。数组可以是单维的、二维的或多维的。在 Python 中，没有内建的数组支持，但可以使用 numpy 包创建数组。除了存储值，numpy 数组在进行矩阵运算时也非常有用。在 Excel VBA 中，数组在处理大型数据元素数据库时非常有用。在 Excel VBA 中，数组可以是静态的，即数组的大小是预定义的。或者，数组也可以是动态的，即数组的大小不是预定义的，但我们可以在使用过程中指定其大小，甚至在保持已存储元素的情况下调整数组大小。
 
-这个 [GitHub 仓库](https://github.com/hbshrestha/Data_Analytics)提供了Python笔记本、Excel工作簿以及VBA脚本。感谢阅读！
+这个 [GitHub 仓库](https://github.com/hbshrestha/Data_Analytics)提供了 Python 笔记本、Excel 工作簿以及 VBA 脚本。感谢阅读！

@@ -1,12 +1,12 @@
-# AI Agents——从概念到Python中的实际实现
+# AI Agents——从概念到 Python 中的实际实现
 
-> 原文：[https://towardsdatascience.com/ai-agents-from-concepts-to-practical-implementation-in-python-fb26789b1560?source=collection_archive---------0-----------------------#2024-08-12](https://towardsdatascience.com/ai-agents-from-concepts-to-practical-implementation-in-python-fb26789b1560?source=collection_archive---------0-----------------------#2024-08-12)
+> 原文：[`towardsdatascience.com/ai-agents-from-concepts-to-practical-implementation-in-python-fb26789b1560?source=collection_archive---------0-----------------------#2024-08-12`](https://towardsdatascience.com/ai-agents-from-concepts-to-practical-implementation-in-python-fb26789b1560?source=collection_archive---------0-----------------------#2024-08-12)
 
-## 这将改变你对AI及其能力的看法
+## 这将改变你对 AI 及其能力的看法
 
-[](https://zoumanakeita.medium.com/?source=post_page---byline--fb26789b1560--------------------------------)[![Zoumana Keita](../Images/34a15c1d03687816dbdbc065f5719f80.png)](https://zoumanakeita.medium.com/?source=post_page---byline--fb26789b1560--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fb26789b1560--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fb26789b1560--------------------------------) [Zoumana Keita](https://zoumanakeita.medium.com/?source=post_page---byline--fb26789b1560--------------------------------)
+[](https://zoumanakeita.medium.com/?source=post_page---byline--fb26789b1560--------------------------------)![Zoumana Keita](https://zoumanakeita.medium.com/?source=post_page---byline--fb26789b1560--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fb26789b1560--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb26789b1560--------------------------------) [Zoumana Keita](https://zoumanakeita.medium.com/?source=post_page---byline--fb26789b1560--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb26789b1560--------------------------------) ·阅读时长10分钟·2024年8月12日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb26789b1560--------------------------------) ·阅读时长 10 分钟·2024 年 8 月 12 日
 
 --
 
@@ -18,7 +18,7 @@
 
 这也与这样一个观点相关：没有人可以在每个领域都是专家。团队合作和有效的任务分配对于实现伟大的目标至关重要。
 
-相似的原则适用于大语言模型（LLMs）。我们可以将多个LLM或`AI Agents`组合起来，每个LLM或`AI Agent`专注于特定领域，而不是让单个LLM处理复杂任务。
+相似的原则适用于大语言模型（LLMs）。我们可以将多个 LLM 或`AI Agents`组合起来，每个 LLM 或`AI Agent`专注于特定领域，而不是让单个 LLM 处理复杂任务。
 
 这一策略可以打造出更强大的系统，提供更高质量的结果。
 
@@ -34,8 +34,8 @@
 
 在开始任何编码之前，我们先清楚地了解本文中构建的系统的主要组成部分。
 
-![](../Images/94476f4ed5ca9edc3015ab03077a6b46.png)
+![](img/94476f4ed5ca9edc3015ab03077a6b46.png)
 
-自主AI代理的工作流程（图：作者）
+自主 AI 代理的工作流程（图：作者）
 
 +   该工作流程总体…

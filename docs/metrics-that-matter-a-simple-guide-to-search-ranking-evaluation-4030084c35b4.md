@@ -1,16 +1,16 @@
 # 如何评估搜索相关性和排名
 
-> 原文：[https://towardsdatascience.com/metrics-that-matter-a-simple-guide-to-search-ranking-evaluation-4030084c35b4?source=collection_archive---------8-----------------------#2024-05-30](https://towardsdatascience.com/metrics-that-matter-a-simple-guide-to-search-ranking-evaluation-4030084c35b4?source=collection_archive---------8-----------------------#2024-05-30)
+> 原文：[`towardsdatascience.com/metrics-that-matter-a-simple-guide-to-search-ranking-evaluation-4030084c35b4?source=collection_archive---------8-----------------------#2024-05-30`](https://towardsdatascience.com/metrics-that-matter-a-simple-guide-to-search-ranking-evaluation-4030084c35b4?source=collection_archive---------8-----------------------#2024-05-30)
 
 ## 优化搜索引擎的关键指标
 
-[](https://medium.com/@akchay_srivastava?source=post_page---byline--4030084c35b4--------------------------------)[![Akchay Srivastava](../Images/2948bc0588017121409d264835a3068f.png)](https://medium.com/@akchay_srivastava?source=post_page---byline--4030084c35b4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4030084c35b4--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4030084c35b4--------------------------------) [Akchay Srivastava](https://medium.com/@akchay_srivastava?source=post_page---byline--4030084c35b4--------------------------------)
+[](https://medium.com/@akchay_srivastava?source=post_page---byline--4030084c35b4--------------------------------)![Akchay Srivastava](https://medium.com/@akchay_srivastava?source=post_page---byline--4030084c35b4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4030084c35b4--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4030084c35b4--------------------------------) [Akchay Srivastava](https://medium.com/@akchay_srivastava?source=post_page---byline--4030084c35b4--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4030084c35b4--------------------------------) ·阅读时间：6分钟·2024年5月30日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4030084c35b4--------------------------------) ·阅读时间：6 分钟·2024 年 5 月 30 日
 
 --
 
-![](../Images/dd4ca57f7090c47971c84ed838098923.png)
+![](img/dd4ca57f7090c47971c84ed838098923.png)
 
 图片来自 [Markus Winkler](https://unsplash.com/@markuswinkler?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -42,9 +42,9 @@
 
 本文探讨了用于评估搜索相关性和排名的关键指标，帮助您优化搜索引擎并提供卓越的用户体验。
 
-为了以实际方式展示搜索相关性的概念，假设用户在搜索引擎中搜索“意大利面菜肴”。为简化分析，我们将分析引擎返回的前五个结果。相关的结果用绿色表示，而不相关的结果用红色标出（参见图1）。我们将使用Rn表示第n个结果。
+为了以实际方式展示搜索相关性的概念，假设用户在搜索引擎中搜索“意大利面菜肴”。为简化分析，我们将分析引擎返回的前五个结果。相关的结果用绿色表示，而不相关的结果用红色标出（参见图 1）。我们将使用 Rn 表示第 n 个结果。
 
-![](../Images/0d5c17bbe30ba5f53ace96eadb634ffe.png)
+![](img/0d5c17bbe30ba5f53ace96eadb634ffe.png)
 
 图 1：一个有序的搜索结果列表
 
@@ -60,7 +60,7 @@ Precision@3 = 1/3
 
 Precision@5 = 2/5
 
-![](../Images/0ba61ecbf66262be248e3031e4361f9a.png)
+![](img/0ba61ecbf66262be248e3031e4361f9a.png)
 
 图 2：Precision@K
 
@@ -72,7 +72,7 @@ MAP 考虑相关结果的排名顺序。
 
 为了更深入地了解 MAP 如何评估排名效果，我们将通过三个不同的搜索查询进行说明。这些示例将突出展示结果的呈现顺序如何影响 MAP 得分。
 
-![](../Images/44949b807bde8f6453a2f4f617b9ad6a.png)
+![](img/44949b807bde8f6453a2f4f617b9ad6a.png)
 
 图 3：查询 1 中每个相关结果的 Precision@K
 
@@ -80,7 +80,7 @@ AP@5_Query_1 = (Precision@1 + Precision@3 + Precision@5) / 3
 
 AP@5_Query_1 = (1 + 0.67 + 0.6) / 3 = 0.76
 
-![](../Images/8da0eeaad298366ff46268b8ee7199a9.png)
+![](img/8da0eeaad298366ff46268b8ee7199a9.png)
 
 图 4：查询 2 中每个相关结果的 Precision@K
 
@@ -88,7 +88,7 @@ AP@5_Query_2 = (Precision@1 + Precision@2 + Precision@5) / 3
 
 AP@5_Query_2 = (1 + 1 + 0.6) / 3 = 0.87
 
-![](../Images/6fe7f4ead42b1572918240b2e46e8108.png)
+![](img/6fe7f4ead42b1572918240b2e46e8108.png)
 
 图 5：查询 3 中每个相关结果的 Precision@K
 
@@ -116,7 +116,7 @@ K = 第一个相关结果的排名
 
 MRR 是多个查询的平均倒数得分。如果没有相关结果，则第一个相关结果的排名视为无限大，因此倒数得分为 0。
 
-![](../Images/2ad9599ba656f953430615e816251169.png)
+![](img/2ad9599ba656f953430615e816251169.png)
 
 图 6：每个查询的倒数得分（蓝色）
 
@@ -126,49 +126,49 @@ MRR 是多个查询的平均倒数得分。如果没有相关结果，则第一�
 
 # **5. 归一化折扣累计增益（NDCG）**
 
-NDCG考虑了结果的分级相关性。每个结果的相关性由一个分数（也称为“等级”）表示。NDCG的值通过比较搜索引擎返回的结果与**假设的“理想”搜索引擎所返回结果的相关性**来确定。
+NDCG 考虑了结果的分级相关性。每个结果的相关性由一个分数（也称为“等级”）表示。NDCG 的值通过比较搜索引擎返回的结果与**假设的“理想”搜索引擎所返回结果的相关性**来确定。
 
-假设我们有一个1到5的相关性/评分尺度，其中5是最高分，1是最低分。我们搜索“意大利面菜肴”并手动对搜索结果进行评分，如图7所示。在我们的示例中，R3是最相关的结果，得分为5。
+假设我们有一个 1 到 5 的相关性/评分尺度，其中 5 是最高分，1 是最低分。我们搜索“意大利面菜肴”并手动对搜索结果进行评分，如图 7 所示。在我们的示例中，R3 是最相关的结果，得分为 5。
 
-![](../Images/1035da10055f8e313e45a142662ac947.png)
+![](img/1035da10055f8e313e45a142662ac947.png)
 
-图7：按相关性分数排序的搜索结果列表
+图 7：按相关性分数排序的搜索结果列表
 
 累积增益@5 = 4 + 1 + 5 + 1 + 3 = 14
 
 累积增益不考虑排名顺序。
 
-折扣累计增益@K = 施加了一个**对数折扣**，当相关项出现在排名列表的较低位置时，帮助赋予较低的增益，如图8所示。
+折扣累计增益@K = 施加了一个**对数折扣**，当相关项出现在排名列表的较低位置时，帮助赋予较低的增益，如图 8 所示。
 
-![](../Images/a27130cd1dd4538d1945d1c824b9bdba.png)
+![](img/a27130cd1dd4538d1945d1c824b9bdba.png)
 
-图8：DCG@K公式
+图 8：DCG@K 公式
 
-其中，rel(i)是第i个位置上结果的相关性分数。
+其中，rel(i)是第 i 个位置上结果的相关性分数。
 
 DCG@K = 4/1 + 1/1.585 + 5/2 + 1/2.322 + 3/2.585 = 8.72
 
-DCG的绝对值取决于列表中的结果数量以及分配的相关性分数。为了解决这个问题，可以对DCG进行归一化处理。为了得到归一化的DCG（NDCG），我们将DCG除以给定结果集的理想DCG（IDCG），如图9所示。IDCG考虑了相同的相关性分数，但假设按照这些结果的最佳排名顺序来计算DCG。上述示例的最佳排名顺序是：R3 → R1 → R5 → R2 → R4。
+DCG 的绝对值取决于列表中的结果数量以及分配的相关性分数。为了解决这个问题，可以对 DCG 进行归一化处理。为了得到归一化的 DCG（NDCG），我们将 DCG 除以给定结果集的理想 DCG（IDCG），如图 9 所示。IDCG 考虑了相同的相关性分数，但假设按照这些结果的最佳排名顺序来计算 DCG。上述示例的最佳排名顺序是：R3 → R1 → R5 → R2 → R4。
 
 IDCG@K = 5/1 + 4/1.585 + 3/2 + 1/2.322 + 1/2.585 = 9.83
 
-![](../Images/859184e63318ed59a25f5e5adc9b0fd6.png)
+![](img/859184e63318ed59a25f5e5adc9b0fd6.png)
 
-图9：NDCG@K公式
+图 9：NDCG@K 公式
 
 NDCG@K = 8.72/9.83 = 0.88
 
-> ***NDCG考虑了结果的分级相关性，提供了对搜索排名质量更为细致的理解。***
+> ***NDCG 考虑了结果的分级相关性，提供了对搜索排名质量更为细致的理解。***
 
 # **6. 比较分析**
 
-![](../Images/f9792d300e683ba1f6e70d059e481f04.png)
+![](img/f9792d300e683ba1f6e70d059e481f04.png)
 
 除了上述指标之外，**斯皮尔曼相关系数**和**肯德尔τ距离**也可以用来评估排名列表的相似性。为了衡量用户参与度，**点击率（CTR）**是一个关键指标，反映了在结果展示后点击该结果的用户百分比。有关这些指标的更多信息，请参考参考文献中的维基百科资源。
 
 # **7. 总结**
 
-![](../Images/5b3e00948e36d78a92695abdd6b68fff.png)
+![](img/5b3e00948e36d78a92695abdd6b68fff.png)
 
 照片来源：[Alexander Schimmeck](https://unsplash.com/@alschim?utm_source=medium&utm_medium=referral) 于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
@@ -178,26 +178,26 @@ NDCG@K = 8.72/9.83 = 0.88
 
 如果你觉得这篇文章有用，请引用以下文献：
 
-> *Srivastava, Akchay. (2024年5月). 如何评估搜索相关性和排名。* [*https://towardsdatascience.com/metrics-that-matter-a-simple-guide-to-search-ranking-evaluation-4030084c35b4*](/metrics-that-matter-a-simple-guide-to-search-ranking-evaluation-4030084c35b4)
+> *Srivastava, Akchay. (2024 年 5 月). 如何评估搜索相关性和排名。* *https://towardsdatascience.com/metrics-that-matter-a-simple-guide-to-search-ranking-evaluation-4030084c35b4*
 
 # **8\. 参考文献：**
 
-1.  [https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval)](https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval))
+1.  [`en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval)`](https://en.wikipedia.org/wiki/Evaluation_measures_(information_retrieval))
 
-1.  [https://en.wikipedia.org/wiki/Mean_reciprocal_rank](https://en.wikipedia.org/wiki/Mean_reciprocal_rank)
+1.  [`en.wikipedia.org/wiki/Mean_reciprocal_rank`](https://en.wikipedia.org/wiki/Mean_reciprocal_rank)
 
-1.  [https://en.wikipedia.org/wiki/Kendall_tau_distance](https://en.wikipedia.org/wiki/Kendall_tau_distance)
+1.  [`en.wikipedia.org/wiki/Kendall_tau_distance`](https://en.wikipedia.org/wiki/Kendall_tau_distance)
 
-1.  [https://en.wikipedia.org/wiki/Discounted_cumulative_gain](https://en.wikipedia.org/wiki/Discounted_cumulative_gain)
+1.  [`en.wikipedia.org/wiki/Discounted_cumulative_gain`](https://en.wikipedia.org/wiki/Discounted_cumulative_gain)
 
-1.  [https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient](https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient)
+1.  [`en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient`](https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient)
 
-1.  [https://web.stanford.edu/class/cs276/handouts/EvaluationNew-handout-6-per.pdf](https://web.stanford.edu/class/cs276/handouts/EvaluationNew-handout-6-per.pdf)
+1.  [`web.stanford.edu/class/cs276/handouts/EvaluationNew-handout-6-per.pdf`](https://web.stanford.edu/class/cs276/handouts/EvaluationNew-handout-6-per.pdf)
 
-1.  [https://www.coursera.org/lecture/recommender-metrics/rank-aware-top-n-metrics-Wk98r](https://www.coursera.org/lecture/recommender-metrics/rank-aware-top-n-metrics-Wk98r)
+1.  [`www.coursera.org/lecture/recommender-metrics/rank-aware-top-n-metrics-Wk98r`](https://www.coursera.org/lecture/recommender-metrics/rank-aware-top-n-metrics-Wk98r)
 
-1.  [https://www.evidentlyai.com/ranking-metrics/ndcg-metric](https://www.evidentlyai.com/ranking-metrics/ndcg-metric)
+1.  [`www.evidentlyai.com/ranking-metrics/ndcg-metric`](https://www.evidentlyai.com/ranking-metrics/ndcg-metric)
 
-1.  [https://en.wikipedia.org/wiki/Inter-rater_reliability](https://en.wikipedia.org/wiki/Inter-rater_reliability)
+1.  [`en.wikipedia.org/wiki/Inter-rater_reliability`](https://en.wikipedia.org/wiki/Inter-rater_reliability)
 
-1.  [https://en.wikipedia.org/wiki/Click-through_rate](https://en.wikipedia.org/wiki/Click-through_rate)
+1.  [`en.wikipedia.org/wiki/Click-through_rate`](https://en.wikipedia.org/wiki/Click-through_rate)

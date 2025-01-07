@@ -1,16 +1,16 @@
 # 如何测试机器学习系统
 
-> 原文：[https://towardsdatascience.com/how-to-test-machine-learning-systems-d53623d32797?source=collection_archive---------4-----------------------#2024-07-10](https://towardsdatascience.com/how-to-test-machine-learning-systems-d53623d32797?source=collection_archive---------4-----------------------#2024-07-10)
+> 原文：[`towardsdatascience.com/how-to-test-machine-learning-systems-d53623d32797?source=collection_archive---------4-----------------------#2024-07-10`](https://towardsdatascience.com/how-to-test-machine-learning-systems-d53623d32797?source=collection_archive---------4-----------------------#2024-07-10)
 
 ## **从概念到有效测试的实用代码片段**
 
-[](https://medium.com/@Eyaltra?source=post_page---byline--d53623d32797--------------------------------)[![Eyal Trabelsi](../Images/60562caa76b824eac9e21f1c0a2933fc.png)](https://medium.com/@Eyaltra?source=post_page---byline--d53623d32797--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d53623d32797--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d53623d32797--------------------------------) [Eyal Trabelsi](https://medium.com/@Eyaltra?source=post_page---byline--d53623d32797--------------------------------)
+[](https://medium.com/@Eyaltra?source=post_page---byline--d53623d32797--------------------------------)![Eyal Trabelsi](https://medium.com/@Eyaltra?source=post_page---byline--d53623d32797--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d53623d32797--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d53623d32797--------------------------------) [Eyal Trabelsi](https://medium.com/@Eyaltra?source=post_page---byline--d53623d32797--------------------------------)
 
-·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d53623d32797--------------------------------) ·14分钟阅读·2024年7月10日
+·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d53623d32797--------------------------------) ·14 分钟阅读·2024 年 7 月 10 日
 
 --
 
-![](../Images/86f08b665dafcd4e8acdc7008bd32c24.png)
+![](img/86f08b665dafcd4e8acdc7008bd32c24.png)
 
 图片由作者提供
 
@@ -18,11 +18,11 @@
 
 为了实现持续交付，我们必须定义成功、精心策划数据，然后训练并部署我们的模型，同时不断监控和测试我们的工作。**机器学习系统中的“信任”不仅仅需要测试；它必须被整合到整个生命周期中**（如我另一篇博客所示）。
 
-![](../Images/c52c3c0fb594e33d68cd59bc020d2b0f.png)
+![](img/c52c3c0fb594e33d68cd59bc020d2b0f.png)
 
-TRUST的机器学习流程可以在[“如何以理性方式建立机器学习中的信任”](https://medium.com/bigabids-dataverse/how-to-build-trust-in-machine-learning-the-sane-way-39d879f22e69)中描述（图片由作者提供）。
+TRUST 的机器学习流程可以在[“如何以理性方式建立机器学习中的信任”](https://medium.com/bigabids-dataverse/how-to-build-trust-in-machine-learning-the-sane-way-39d879f22e69)中描述（图片由作者提供）。
 
-在深入详细章节之前，这里有一个简短的TL;DR，接下来是为机器学习从业者量身定制的更深入信息。
+在深入详细章节之前，这里有一个简短的 TL;DR，接下来是为机器学习从业者量身定制的更深入信息。
 
 # TL;DR
 
@@ -62,7 +62,7 @@ TRUST的机器学习流程可以在[“如何以理性方式建立机器学习�
 
 +   **专业硬件需求：** 机器学习系统通常需要先进的硬件配置，例如 GPU。
 
-![](../Images/f0273c16788ad1270d7e97ee6948f503.png)
+![](img/f0273c16788ad1270d7e97ee6948f503.png)
 
 传统系统测试与机器学习项目测试的对比 ([来源](https://research.google/pubs/the-ml-test-score-a-rubric-for-ml-production-readiness-and-technical-debt-reduction/))
 
@@ -168,7 +168,7 @@ TRUST的机器学习流程可以在[“如何以理性方式建立机器学习�
 
 ## 数据创建 **组件测试**
 
-组件测试验证软件系统的各个部分是否正确运行，确保它们在集成之前能够正常工作。Excel有助于发现单元测试和属性测试可能遗漏的异常用户行为和边缘情况，能更接近地反映系统的状态并预测“创造性”的用户交互。
+组件测试验证软件系统的各个部分是否正确运行，确保它们在集成之前能够正常工作。Excel 有助于发现单元测试和属性测试可能遗漏的异常用户行为和边缘情况，能更接近地反映系统的状态并预测“创造性”的用户交互。
 
 为了保持这些测试的可维护性和高效性，使用了数据样本。应选择合适的源数据和所需的样本大小。
 
@@ -182,9 +182,9 @@ TRUST的机器学习流程可以在[“如何以理性方式建立机器学习�
 
 **选择预发布环境进行更可控、较小规模的测试通常是最佳方案**。该环境提供了更易复现性和更少的隐私问题。然而，由于它不是生产环境，**你必须验证预发布和生产环境的模式是否一致**。
 
-以下代码片段验证生产环境中的Athena表与预发布环境中的Athena表模式是否一致。
+以下代码片段验证生产环境中的 Athena 表与预发布环境中的 Athena 表模式是否一致。
 
-验证Athena模式对于两个表是一致的，也就是说，预发布环境没有过时。
+验证 Athena 模式对于两个表是一致的，也就是说，预发布环境没有过时。
 
 选择生产环境以查看功能如何与真实用户数据一起运行。这个环境提供了系统性能和用户交互的完整视图。
 
@@ -246,9 +246,9 @@ TRUST的机器学习流程可以在[“如何以理性方式建立机器学习�
 
 确保模型在不同计算平台上提供一致的输出和性能对可靠性和可重复性至关重要。这可以确保模型在各种环境中按预期运行，维护用户信任，并提供强大的机器学习解决方案。
 
-以下代码片段验证模型在CPU和GPU版本上是否给出相同的预测：
+以下代码片段验证模型在 CPU 和 GPU 版本上是否给出相同的预测：
 
-验证模型在GPU或CPU上运行时是否能产生一致的预测，通过比较它们在相同输入数据上的输出。
+验证模型在 GPU 或 CPU 上运行时是否能产生一致的预测，通过比较它们在相同输入数据上的输出。
 
 验证正确训练的相同策略适用于不同的模态，如自然语言处理（NLP）、大语言模型（LLM）和视觉模型。
 
@@ -292,7 +292,7 @@ TRUST的机器学习流程可以在[“如何以理性方式建立机器学习�
 
 以下代码片段验证模型延迟是否在可接受范围内：
 
-该测试断言已训练模型的推理延迟在200毫秒内。
+该测试断言已训练模型的推理延迟在 200 毫秒内。
 
 验证正确训练的相同策略适用于不同的模式，如自然语言处理（NLP）、大语言模型（LLM）和视觉模型。
 
@@ -322,7 +322,7 @@ TRUST的机器学习流程可以在[“如何以理性方式建立机器学习�
 
 以下验证模型性能的代码片段是可接受的：
 
-该测试断言模型的性能达到了大于0.8的AUC评分。
+该测试断言模型的性能达到了大于 0.8 的 AUC 评分。
 
 高优先级的部分通常需要针对性的测试，以确保全面评估模型。识别重要的使用场景并单独测试它们至关重要，以确保模型更新不会影响这些场景。例如，在癌症检测场景中，某些类型的癌症（如侵袭性癌症或晚期癌症）可能比其他类型的癌症更为关键，需要更精确的检测。
 
@@ -338,17 +338,17 @@ TRUST的机器学习流程可以在[“如何以理性方式建立机器学习�
 
 +   **不要测试外部库**
 
-+   **可配置参数**：代码应具备可组合性。为了测试代码，您希望能够将DataFrame注入到测试中，等等。
++   **可配置参数**：代码应具备可组合性。为了测试代码，您希望能够将 DataFrame 注入到测试中，等等。
 
 +   **测试应在合理的时间内运行**：使用小型、简单的数据样本。如果您的测试需要大量时间，请考虑何时运行它。例如，创建可以手动执行或安排的测试是有用的。
 
-    以下代码片段使得CI可以按需运行，并且每天运行一次：
+    以下代码片段使得 CI 可以按需运行，并且每天运行一次：
 
 添加触发工作流的能力，在每天午夜按计划运行，并通过工作流调度手动触发。
 
 +   **契约验证与文档：** 增加代码中断言的使用，主动检查预期条件（主动注释），减少对大量单元测试的依赖。
 
-+   **优先考虑集成测试：** 虽然单元测试至关重要，但集成测试确保各个组件能够顺利协同工作。记住，软件开发中最大的谎言是：“我完成了99%的代码，只需要进行集成。”
++   **优先考虑集成测试：** 虽然单元测试至关重要，但集成测试确保各个组件能够顺利协同工作。记住，软件开发中最大的谎言是：“我完成了 99%的代码，只需要进行集成。”
 
 +   **持续改进：** 当你在生产环境或手动测试中遇到错误时，将其纳入测试套件。
 
@@ -386,4 +386,4 @@ TRUST的机器学习流程可以在[“如何以理性方式建立机器学习�
 
 - [有效的机器学习系统测试](https://www.jeremyjordan.me/testing-ml/)
 
-- [机器学习系统的变异测试](/metamorphic-testing-of-machine-learning-based-systems-e1fe13baf048)
+- 机器学习系统的变异测试

@@ -1,16 +1,16 @@
 # 使用 Llama 3 构建 AI 代理
 
-> 原文：[https://towardsdatascience.com/using-llama-3-for-building-ai-agents-7e74f79d1ccc?source=collection_archive---------3-----------------------#2024-07-31](https://towardsdatascience.com/using-llama-3-for-building-ai-agents-7e74f79d1ccc?source=collection_archive---------3-----------------------#2024-07-31)
+> 原文：[`towardsdatascience.com/using-llama-3-for-building-ai-agents-7e74f79d1ccc?source=collection_archive---------3-----------------------#2024-07-31`](https://towardsdatascience.com/using-llama-3-for-building-ai-agents-7e74f79d1ccc?source=collection_archive---------3-----------------------#2024-07-31)
 
 ## 使用 Llama 3 的功能调用能力构建 AI 代理的综合指南。
 
-[](https://ransakaravihara.medium.com/?source=post_page---byline--7e74f79d1ccc--------------------------------)[![Ransaka Ravihara](../Images/ac09746938c10ad8f157d46ea0de27ca.png)](https://ransakaravihara.medium.com/?source=post_page---byline--7e74f79d1ccc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7e74f79d1ccc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7e74f79d1ccc--------------------------------) [Ransaka Ravihara](https://ransakaravihara.medium.com/?source=post_page---byline--7e74f79d1ccc--------------------------------)
+[](https://ransakaravihara.medium.com/?source=post_page---byline--7e74f79d1ccc--------------------------------)![Ransaka Ravihara](https://ransakaravihara.medium.com/?source=post_page---byline--7e74f79d1ccc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7e74f79d1ccc--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e74f79d1ccc--------------------------------) [Ransaka Ravihara](https://ransakaravihara.medium.com/?source=post_page---byline--7e74f79d1ccc--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e74f79d1ccc--------------------------------) ·阅读时间 10 分钟·2024年7月31日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e74f79d1ccc--------------------------------) ·阅读时间 10 分钟·2024 年 7 月 31 日
 
 --
 
-![](../Images/869e4b150e9bf1a4b0c518954878e232.png)
+![](img/869e4b150e9bf1a4b0c518954878e232.png)
 
 图片由作者提供，通过 [Canva](https://www.canva.com/ai-image-generator/)
 
@@ -20,11 +20,11 @@
 
 让我们先看一些示例。
 
-![](../Images/587a116069f2044362336f9b0c25b862.png)
+![](img/587a116069f2044362336f9b0c25b862.png)
 
 用户一次请求多个商品
 
-![](../Images/0b528b272bafed8c70176722d8e4391c.png)
+![](img/0b528b272bafed8c70176722d8e4391c.png)
 
 用户正在寻求最具性价比的购买选项。
 

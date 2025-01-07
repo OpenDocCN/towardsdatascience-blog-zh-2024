@@ -1,16 +1,16 @@
 # 如何在 Python 中编写干净的代码
 
-> 原文：[https://towardsdatascience.com/how-to-write-clean-code-in-python-d1ffb9d9f042?source=collection_archive---------2-----------------------#2024-02-24](https://towardsdatascience.com/how-to-write-clean-code-in-python-d1ffb9d9f042?source=collection_archive---------2-----------------------#2024-02-24)
+> 原文：[`towardsdatascience.com/how-to-write-clean-code-in-python-d1ffb9d9f042?source=collection_archive---------2-----------------------#2024-02-24`](https://towardsdatascience.com/how-to-write-clean-code-in-python-d1ffb9d9f042?source=collection_archive---------2-----------------------#2024-02-24)
 
 ## 《Clean Code》一书中的主要收获
 
-[](https://brus-patrick63.medium.com/?source=post_page---byline--d1ffb9d9f042--------------------------------)[![Patrick Brus](../Images/a252fe1c4f7a9ed2225d415571137e45.png)](https://brus-patrick63.medium.com/?source=post_page---byline--d1ffb9d9f042--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d1ffb9d9f042--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d1ffb9d9f042--------------------------------) [Patrick Brus](https://brus-patrick63.medium.com/?source=post_page---byline--d1ffb9d9f042--------------------------------)
+[](https://brus-patrick63.medium.com/?source=post_page---byline--d1ffb9d9f042--------------------------------)![Patrick Brus](https://brus-patrick63.medium.com/?source=post_page---byline--d1ffb9d9f042--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d1ffb9d9f042--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d1ffb9d9f042--------------------------------) [Patrick Brus](https://brus-patrick63.medium.com/?source=post_page---byline--d1ffb9d9f042--------------------------------)
 
-·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d1ffb9d9f042--------------------------------) ·阅读时间 21 分钟 ·2024年2月24日
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d1ffb9d9f042--------------------------------) ·阅读时间 21 分钟 ·2024 年 2 月 24 日
 
 --
 
-![](../Images/104da44f0a669f93dd5c82cdbb5e996d.png)
+![](img/104da44f0a669f93dd5c82cdbb5e996d.png)
 
 图片由[Christopher Gower](https://unsplash.com/@cgower?utm_source=medium&utm_medium=referral)提供，来源于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 

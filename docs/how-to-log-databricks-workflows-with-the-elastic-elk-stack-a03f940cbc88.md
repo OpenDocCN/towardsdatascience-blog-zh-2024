@@ -1,22 +1,22 @@
 # 如何使用 Elastic (ELK) Stack 记录 Databricks 工作流
 
-> 原文：[https://towardsdatascience.com/how-to-log-databricks-workflows-with-the-elastic-elk-stack-a03f940cbc88?source=collection_archive---------7-----------------------#2024-07-30](https://towardsdatascience.com/how-to-log-databricks-workflows-with-the-elastic-elk-stack-a03f940cbc88?source=collection_archive---------7-----------------------#2024-07-30)
+> 原文：[`towardsdatascience.com/how-to-log-databricks-workflows-with-the-elastic-elk-stack-a03f940cbc88?source=collection_archive---------7-----------------------#2024-07-30`](https://towardsdatascience.com/how-to-log-databricks-workflows-with-the-elastic-elk-stack-a03f940cbc88?source=collection_archive---------7-----------------------#2024-07-30)
 
 ## 一个使用软件工程世界最佳实践来设置数据管道可观察性的实际示例
 
-[](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)[![Yury Kalbaska](../Images/d07ddfd82b958b22fba3cbda925d1cb0.png)](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------) [Yury Kalbaska](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)
+[](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)![Yury Kalbaska](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------) [Yury Kalbaska](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------) ·阅读时间：8分钟 ·2024年7月30日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------) ·阅读时间：8 分钟 ·2024 年 7 月 30 日
 
 --
 
-![](../Images/4152c7a9407ea80e056dfcd8ed7c1a1d.png)
+![](img/4152c7a9407ea80e056dfcd8ed7c1a1d.png)
 
 图片由 [ThisisEngineering](https://unsplash.com/@thisisengineering?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
 # 介绍
 
-在本文撰写时（2024年7月），Databricks 已成为云端数据工程的标准平台，这一崛起突显了支持强大数据操作（DataOps）功能的重要性。在这些功能中，可观察性能力——日志记录、监控和警报——对一个成熟且适用于生产环境的数据工程工具至关重要。
+在本文撰写时（2024 年 7 月），Databricks 已成为云端数据工程的标准平台，这一崛起突显了支持强大数据操作（DataOps）功能的重要性。在这些功能中，可观察性能力——日志记录、监控和警报——对一个成熟且适用于生产环境的数据工程工具至关重要。
 
 有许多工具可以记录、监控和警报 Databricks 工作流，包括内建的原生 Databricks 仪表板、Azure Monitor、DataDog 等。
 
@@ -54,7 +54,7 @@ ELK 代表 Elasticsearch、Logstash 和 Kibana —— 这是 Elastic 提供的�
 curl -X PUT "http://localhost:9200/logs_index?pretty"
 ```
 
-可以根据需要进一步自定义索引。有关详细的配置选项，请参考 REST API 参考文档：[https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html)
+可以根据需要进一步自定义索引。有关详细的配置选项，请参考 REST API 参考文档：[`www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html`](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html)
 
 一旦索引设置完毕，可以通过以下命令添加文档：
 
@@ -271,7 +271,7 @@ class NDJSONFormatter(logging.Formatter):
 
 1.  点击**创建索引模式**。
 
-![](../Images/26cdd8d0af5b3c2eef5a551b8b5ce17d.png)
+![](img/26cdd8d0af5b3c2eef5a551b8b5ce17d.png)
 
 Kibana 索引模式创建界面
 
@@ -279,7 +279,7 @@ Kibana 会智能地建议索引模式的可用数据源名称。输入一个能�
 
 选择后，进入 Discover 菜单，选择左侧下拉菜单中的新建索引模式，调整时间间隔（一个常见的陷阱——默认设置为 15 分钟），然后开始输入你自己的第一个 KQL 查询以检索日志。
 
-![](../Images/4bfda8d3fb470c7a06ffb5a585baa0cb.png)
+![](img/4bfda8d3fb470c7a06ffb5a585baa0cb.png)
 
 在 Kibana 中可视化的日志流
 

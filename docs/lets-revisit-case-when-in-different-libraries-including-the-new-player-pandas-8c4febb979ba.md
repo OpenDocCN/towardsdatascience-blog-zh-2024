@@ -1,16 +1,16 @@
 # 让我们重新审视不同库中的 case-when，包括新玩家：Pandas
 
-> 原文：[https://towardsdatascience.com/lets-revisit-case-when-in-different-libraries-including-the-new-player-pandas-8c4febb979ba?source=collection_archive---------17-----------------------#2024-06-18](https://towardsdatascience.com/lets-revisit-case-when-in-different-libraries-including-the-new-player-pandas-8c4febb979ba?source=collection_archive---------17-----------------------#2024-06-18)
+> 原文：[`towardsdatascience.com/lets-revisit-case-when-in-different-libraries-including-the-new-player-pandas-8c4febb979ba?source=collection_archive---------17-----------------------#2024-06-18`](https://towardsdatascience.com/lets-revisit-case-when-in-different-libraries-including-the-new-player-pandas-8c4febb979ba?source=collection_archive---------17-----------------------#2024-06-18)
 
 ## 如何使用不同工具创建条件列。
 
-[](https://sonery.medium.com/?source=post_page---byline--8c4febb979ba--------------------------------)[![Soner Yıldırım](../Images/c589572e9d1ee176cd4f5a0008173f1b.png)](https://sonery.medium.com/?source=post_page---byline--8c4febb979ba--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8c4febb979ba--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8c4febb979ba--------------------------------) [Soner Yıldırım](https://sonery.medium.com/?source=post_page---byline--8c4febb979ba--------------------------------)
+[](https://sonery.medium.com/?source=post_page---byline--8c4febb979ba--------------------------------)![Soner Yıldırım](https://sonery.medium.com/?source=post_page---byline--8c4febb979ba--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8c4febb979ba--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8c4febb979ba--------------------------------) [Soner Yıldırım](https://sonery.medium.com/?source=post_page---byline--8c4febb979ba--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8c4febb979ba--------------------------------) ·6 分钟阅读·2024年6月18日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8c4febb979ba--------------------------------) ·6 分钟阅读·2024 年 6 月 18 日
 
 --
 
-![](../Images/bc06ef7c7230f619353bf30c88265be0.png)
+![](img/bc06ef7c7230f619353bf30c88265be0.png)
 
 图片由 [JESHOOTS.COM](https://unsplash.com/@jeshoots?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源于 [Unsplash](https://unsplash.com/photos/three-black-handled-pliers-on-brown-surface-VdOO4_HFTWM?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 

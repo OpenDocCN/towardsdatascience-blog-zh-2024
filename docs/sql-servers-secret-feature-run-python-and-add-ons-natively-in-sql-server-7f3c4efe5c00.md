@@ -1,12 +1,12 @@
 # SQL Server 的秘密功能 — 在 SQL Server 中本地运行 Python 和附加组件
 
-> 原文：[https://towardsdatascience.com/sql-servers-secret-feature-run-python-and-add-ons-natively-in-sql-server-7f3c4efe5c00?source=collection_archive---------2-----------------------#2024-05-15](https://towardsdatascience.com/sql-servers-secret-feature-run-python-and-add-ons-natively-in-sql-server-7f3c4efe5c00?source=collection_archive---------2-----------------------#2024-05-15)
+> 原文：[`towardsdatascience.com/sql-servers-secret-feature-run-python-and-add-ons-natively-in-sql-server-7f3c4efe5c00?source=collection_archive---------2-----------------------#2024-05-15`](https://towardsdatascience.com/sql-servers-secret-feature-run-python-and-add-ons-natively-in-sql-server-7f3c4efe5c00?source=collection_archive---------2-----------------------#2024-05-15)
 
 ## 导入 Python 库，操作和输出 SQL 表等，一切都可以在 SQL Server 中完成，无需离开 SQL Server。
 
-[](https://medium.com/@sasha.korovkina2003?source=post_page---byline--7f3c4efe5c00--------------------------------)[![Sasha Korovkina](../Images/14eac2bafa3c5b417b8aecdef61e6ac3.png)](https://medium.com/@sasha.korovkina2003?source=post_page---byline--7f3c4efe5c00--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7f3c4efe5c00--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7f3c4efe5c00--------------------------------) [Sasha Korovkina](https://medium.com/@sasha.korovkina2003?source=post_page---byline--7f3c4efe5c00--------------------------------)
+[](https://medium.com/@sasha.korovkina2003?source=post_page---byline--7f3c4efe5c00--------------------------------)![Sasha Korovkina](https://medium.com/@sasha.korovkina2003?source=post_page---byline--7f3c4efe5c00--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7f3c4efe5c00--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7f3c4efe5c00--------------------------------) [Sasha Korovkina](https://medium.com/@sasha.korovkina2003?source=post_page---byline--7f3c4efe5c00--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7f3c4efe5c00--------------------------------) ·阅读时长 8 分钟·2024年5月15日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7f3c4efe5c00--------------------------------) ·阅读时长 8 分钟·2024 年 5 月 15 日
 
 --
 
@@ -18,7 +18,7 @@
 
 本文的目标是教你如何在 Microsoft SQL Server 中本地运行 Python。使用附加组件和外部库，以及对生成的表进行进一步的 SQL 处理。
 
-![](../Images/48680f2725a6dfcc1b493153fd74a2e8.png)
+![](img/48680f2725a6dfcc1b493153fd74a2e8.png)
 
 图片来源：[Christin Hume](https://unsplash.com/@christinhumephoto?utm_source=medium&utm_medium=referral) 在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral) 上
 
@@ -34,9 +34,9 @@
 
 ## 阻塞
 
-我的数据集非常不平衡——我在一个表中有1,361,373个实体，在第二个表中只有37,171个公司名称。如果我试图在未经处理的表上进行匹配，算法将需要非常长的时间。
+我的数据集非常不平衡——我在一个表中有 1,361,373 个实体，在第二个表中只有 37,171 个公司名称。如果我试图在未经处理的表上进行匹配，算法将需要非常长的时间。
 
-为了封锁表，我们需要查看2个数据集之间的共同特征。在我的案例中，公司都与内部项目相关。因此，我将执行以下操作：
+为了封锁表，我们需要查看 2 个数据集之间的共同特征。在我的案例中，公司都与内部项目相关。因此，我将执行以下操作：
 
 1.  从较小的表中提取唯一的公司名称和项目代码。
 
@@ -54,13 +54,13 @@
 
 基于项目代码过滤表的代码示例。
 
-通过这种方法，我们的小表格仅包含406行项目“ABC”的数据来进行映射，而大表格则有15,973行数据需要匹配。这是从原始表格中大幅度减少的数据量。
+通过这种方法，我们的小表格仅包含 406 行项目“ABC”的数据来进行映射，而大表格则有 15,973 行数据需要匹配。这是从原始表格中大幅度减少的数据量。
 
 ## 程序结构
 
-该项目将包含Python和SQL函数，运行在SQL服务器上；以下是一个程序如何工作的简要概述，旨在帮助更清晰地理解每个步骤：
+该项目将包含 Python 和 SQL 函数，运行在 SQL 服务器上；以下是一个程序如何工作的简要概述，旨在帮助更清晰地理解每个步骤：
 
-![](../Images/8c0b4c640314563a02be34915c0316ca.png)
+![](img/8c0b4c640314563a02be34915c0316ca.png)
 
 程序结构。图片由作者创建。
 
@@ -70,25 +70,25 @@
 
 递归打印公司名称的代码。
 
-很快就可以看出SQL游标消耗了过多的资源。简而言之，这是因为游标是在行级别操作的，并且会遍历每一行以执行操作。
+很快就可以看出 SQL 游标消耗了过多的资源。简而言之，这是因为游标是在行级别操作的，并且会遍历每一行以执行操作。
 
-> 关于为什么SQL中的游标效率低，最好避免使用它们的更多信息可以在这里找到：[https://stackoverflow.com/questions/4568464/sql-server-temporary-tables-vs-cursors](https://stackoverflow.com/questions/4568464/sql-server-temporary-tables-vs-cursors)（答案2）
+> 关于为什么 SQL 中的游标效率低，最好避免使用它们的更多信息可以在这里找到：[`stackoverflow.com/questions/4568464/sql-server-temporary-tables-vs-cursors`](https://stackoverflow.com/questions/4568464/sql-server-temporary-tables-vs-cursors)（答案 2）
 
 为了提高性能，我将使用临时表并移除游标。以下是得到的函数：
 
 一个函数，用于根据项目代码从大型映射表中选择所有值。
 
-现在，每个项目需要大约3秒钟的时间来选择项目代码及其相关数据，并从大型映射表中过滤出该项目的数据。
+现在，每个项目需要大约 3 秒钟的时间来选择项目代码及其相关数据，并从大型映射表中过滤出该项目的数据。
 
-为了演示，我将只关注2个项目，然而，在生产环境中，我会在所有项目上运行该函数。
+为了演示，我将只关注 2 个项目，然而，在生产环境中，我会在所有项目上运行该函数。
 
 我们将使用的最终函数如下所示：
 
-我已注释掉函数定义，以便让代码更容易调试，并且限制为前2个项目
+我已注释掉函数定义，以便让代码更容易调试，并且限制为前 2 个项目
 
 ## 映射表准备
 
-下一步是为Python预处理和映射函数准备数据，为此我们将需要2个数据集：
+下一步是为 Python 预处理和映射函数准备数据，为此我们将需要 2 个数据集：
 
 1.  来自大映射表按项目代码过滤的数据
 
@@ -98,7 +98,7 @@
 
 从数据库中选择小型公司表和大映射表。
 
-> 重要提示：SQL 中的 Python 函数只接受**1个表格输入**。确保在将数据输入 SQL 中的 Python 函数之前，将数据放入**单一宽表**中。
+> 重要提示：SQL 中的 Python 函数只接受**1 个表格输入**。确保在将数据输入 SQL 中的 Python 函数之前，将数据放入**单一宽表**中。
 
 带有来源的表格
 
@@ -116,7 +116,7 @@
 
 *多酷啊！*
 
-来自 [https://learn.microsoft.com/en-us/sql/machine-learning/tutorials/quickstart-python-create-script?view=sql-server-ver16](https://learn.microsoft.com/en-us/sql/machine-learning/tutorials/quickstart-python-create-script?view=sql-server-ver16) 的简单示例
+来自 [`learn.microsoft.com/en-us/sql/machine-learning/tutorials/quickstart-python-create-script?view=sql-server-ver16`](https://learn.microsoft.com/en-us/sql/machine-learning/tutorials/quickstart-python-create-script?view=sql-server-ver16) 的简单示例
 
 在 SQL 中运行 Python 时有几个重要事项需要注意：
 
@@ -126,7 +126,7 @@
 
 1.  你可以使用 `print` 语句进行调试，并查看结果在 SQL 服务器的“消息”选项卡中打印出来。如下所示：
 
-![](../Images/eabb77002323fc84ca4d5e14307e5c1b.png)
+![](img/eabb77002323fc84ca4d5e14307e5c1b.png)
 
 图像由作者制作。
 
@@ -138,7 +138,7 @@
 
 下面是输出的样子：
 
-![](../Images/a0005c7da80a325bcfebd4fd488fa4f0.png)
+![](img/a0005c7da80a325bcfebd4fd488fa4f0.png)
 
 你可以像在普通 Python 脚本中一样导入这些包（import ...）。图像由作者制作。
 
@@ -146,19 +146,19 @@
 
 回到我们生成的表格，现在我们可以使用 Python 匹配来自不同来源的公司名称。我们的 Python 程序将接受长表并输出一个包含映射实体的表。它应该显示它认为最有可能匹配的小公司表中的每个记录旁边的大映射表中的匹配项。
 
-![](../Images/3faaa5ea0e419159d1b79f2598c15a7e.png)
+![](img/3faaa5ea0e419159d1b79f2598c15a7e.png)
 
 假设公司 1.1 是公司 1 的最接近匹配项，输出应该看起来像上面的输出。图像由作者制作。
 
-为了实现这个目标，首先让我们向SQL过程添加一个Python函数。第一步是将数据集简单地输入到Python中，我将使用一个示例数据集，然后再使用我们的数据，以下是代码：
+为了实现这个目标，首先让我们向 SQL 过程添加一个 Python 函数。第一步是将数据集简单地输入到 Python 中，我将使用一个示例数据集，然后再使用我们的数据，以下是代码：
 
-将数据输入到数据库中的代码——这两个表都存在于Python函数中。
+将数据输入到数据库中的代码——这两个表都存在于 Python 函数中。
 
-该系统允许我们将两个表都作为输入传递给Python函数，然后它会将两个表作为输出打印出来。
+该系统允许我们将两个表都作为输入传递给 Python 函数，然后它会将两个表作为输出打印出来。
 
-## Python中的预处理
+## Python 中的预处理
 
-为了有效地匹配字符串，我们必须在Python中进行一些预处理，这包括：
+为了有效地匹配字符串，我们必须在 Python 中进行一些预处理，这包括：
 
 1.  去除重音符号和其他语言特有的特殊字符
 
@@ -166,29 +166,29 @@
 
 1.  去除标点符号
 
-第一步将通过SQL中的排序完成，而其他两步将在Python函数的预处理步骤中完成。
+第一步将通过 SQL 中的排序完成，而其他两步将在 Python 函数的预处理步骤中完成。
 
 这是带有预处理的函数样子：
 
 结果是三个列，一个是小写且无空格的公司名称，第二列是项目列，第三列是来源列。
 
-## 在Python中匹配字符串
+## 在 Python 中匹配字符串
 
 在这里我们需要发挥创意，因为我们可以使用的库数量非常有限。因此，让我们首先确定输出应该是什么样子的。
 
-我们希望将来自来源2的数据与来源1中的数据进行匹配。因此，对于来源2中的每个值，我们应该有一堆来自来源1的匹配值，并附带得分表示匹配的紧密度。
+我们希望将来自来源 2 的数据与来源 1 中的数据进行匹配。因此，对于来源 2 中的每个值，我们应该有一堆来自来源 1 的匹配值，并附带得分表示匹配的紧密度。
 
-![](../Images/4657f47f36ebc80037d84480da67c89d.png)
+![](img/4657f47f36ebc80037d84480da67c89d.png)
 
 输出表结构。图像由作者创建。
 
-我们将首先使用**Python内置库**，以避免需要导入外部库，从而简化工作。
+我们将首先使用**Python 内置库**，以避免需要导入外部库，从而简化工作。
 
 逻辑：
 
 1.  遍历每个项目
 
-1.  根据资金来源制作一个表格，其中来源1是带有映射数据的大表，来源2是最初的公司数据集
+1.  根据资金来源制作一个表格，其中来源 1 是带有映射数据的大表，来源 2 是最初的公司数据集
 
 1.  从小型数据集中选择数据并将其放入数组
 
@@ -202,11 +202,11 @@
 
 这是最终的输出：
 
-![](../Images/8e758c53c4c91f9cf28880d0f716c184.png)
+![](img/8e758c53c4c91f9cf28880d0f716c184.png)
 
 这是为了演示结果而创建的虚拟数据，然而结构应该与你的数据集相同。图像由作者生成。
 
-在这个表格中，我们有每个公司名称、它所属的项目以及来源——无论是来自大的映射表还是小的公司表。右侧的得分表示来源2中的公司名称与来源1之间的相似度度量。需要注意的是，来自来源2的company4将始终有一个1的得分——100%的匹配度，因为它与自身进行匹配。
+在这个表格中，我们有每个公司名称、它所属的项目以及来源——无论是来自大的映射表还是小的公司表。右侧的得分表示来源 2 中的公司名称与来源 1 之间的相似度度量。需要注意的是，来自来源 2 的 company4 将始终有一个 1 的得分——100%的匹配度，因为它与自身进行匹配。
 
 通过机器学习服务在 SQL Server 中执行 Python 脚本是一个强大的功能，允许在数据库内进行分析和机器学习任务。此集成使得数据可以直接访问，无需数据迁移，从而显著优化性能和数据密集型操作的安全性。
 
@@ -226,4 +226,4 @@
 
 总之，虽然在 SQL Server 中执行 Python 存在一些挑战，但它也为在数据库环境中直接增强和简化数据处理、分析和预测建模开辟了丰富的可能性。
 
-> 若要查看更多我的文章，可以在 LinkedIn 上关注我：[https://www.linkedin.com/in/sasha-korovkina-5b992019b/](https://www.linkedin.com/in/sasha-korovkina-5b992019b/)
+> 若要查看更多我的文章，可以在 LinkedIn 上关注我：[`www.linkedin.com/in/sasha-korovkina-5b992019b/`](https://www.linkedin.com/in/sasha-korovkina-5b992019b/)

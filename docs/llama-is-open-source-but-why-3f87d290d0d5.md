@@ -1,18 +1,18 @@
 # Llama 是开源的，但为什么？
 
-> 原文：[https://towardsdatascience.com/llama-is-open-source-but-why-3f87d290d0d5?source=collection_archive---------5-----------------------#2024-06-25](https://towardsdatascience.com/llama-is-open-source-but-why-3f87d290d0d5?source=collection_archive---------5-----------------------#2024-06-25)
+> 原文：[`towardsdatascience.com/llama-is-open-source-but-why-3f87d290d0d5?source=collection_archive---------5-----------------------#2024-06-25`](https://towardsdatascience.com/llama-is-open-source-but-why-3f87d290d0d5?source=collection_archive---------5-----------------------#2024-06-25)
 
 ## 观点
 
 ## Meta 开源大模型战略分析
 
-[](https://haifeng-jin.medium.com/?source=post_page---byline--3f87d290d0d5--------------------------------)[![Haifeng Jin](../Images/705d6ecaed975b6376fac19087f2c02c.png)](https://haifeng-jin.medium.com/?source=post_page---byline--3f87d290d0d5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f87d290d0d5--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3f87d290d0d5--------------------------------) [Haifeng Jin](https://haifeng-jin.medium.com/?source=post_page---byline--3f87d290d0d5--------------------------------)
+[](https://haifeng-jin.medium.com/?source=post_page---byline--3f87d290d0d5--------------------------------)![Haifeng Jin](https://haifeng-jin.medium.com/?source=post_page---byline--3f87d290d0d5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f87d290d0d5--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f87d290d0d5--------------------------------) [Haifeng Jin](https://haifeng-jin.medium.com/?source=post_page---byline--3f87d290d0d5--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f87d290d0d5--------------------------------) ·6分钟阅读·2024年6月25日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f87d290d0d5--------------------------------) ·6 分钟阅读·2024 年 6 月 25 日
 
 --
 
-![](../Images/9f9d46a904ceb1062f3aa0c3d67d63d6.png)
+![](img/9f9d46a904ceb1062f3aa0c3d67d63d6.png)
 
 图片由作者使用 DALL-E 创建
 
@@ -38,7 +38,7 @@
 
 成为开源模型的领导者有许多好处，但最重要的就是吸引人才。
 
-GenAI 的战争是被计算能力瓶颈限制的人才竞争。你获得多少计算能力在很大程度上取决于你与 Nvidia 的现金流关系，[除了谷歌](/tpus-are-not-for-sale-but-why-5964f87f7a15)。然而，拥有多少人才则是另一个问题。
+GenAI 的战争是被计算能力瓶颈限制的人才竞争。你获得多少计算能力在很大程度上取决于你与 Nvidia 的现金流关系，除了谷歌。然而，拥有多少人才则是另一个问题。
 
 根据[埃隆·马斯克](https://youtu.be/2BfMuHDfGJI?t=2748)的说法，谷歌拥有三分之二的 AI 人才，为了对抗谷歌的力量，他们创办了 OpenAI。随后，一些最顶尖的人才离开了 OpenAI，创办了 Anthropic，专注于 AI 安全。因此，目前市场上这三家公司拥有最优秀、最多的 AI 专家。其他公司都急需更多的 AI 专家。
 
@@ -70,7 +70,7 @@ Llama 在 Meta 和社区之间建立了一个飞轮。Meta 从社区引入最新
 
 ## 这就像开源软件，但又不完全是。
 
-情况与传统的开源软件非常相似。"[免费代码，付费服务](/tensorflow-is-open-source-but-why-512d849f59d2)" 这一框架依然适用。代码或模型是免费的，用来吸引更多用户加入生态系统。随着生态系统的扩大，拥有者能收获更多的利益。建立在免费代码之上的服务则是为了盈利。
+情况与传统的开源软件非常相似。"免费代码，付费服务" 这一框架依然适用。代码或模型是免费的，用来吸引更多用户加入生态系统。随着生态系统的扩大，拥有者能收获更多的利益。建立在免费代码之上的服务则是为了盈利。
 
 然而，它也并不像开源软件。主要的区别可以总结为低用户留存率和一种新型的生态系统。
 

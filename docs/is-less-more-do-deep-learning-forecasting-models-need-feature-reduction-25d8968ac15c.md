@@ -1,16 +1,16 @@
 # 少即是多？深度学习预测模型需要特征减少吗？
 
-> 原文：[https://towardsdatascience.com/is-less-more-do-deep-learning-forecasting-models-need-feature-reduction-25d8968ac15c?source=collection_archive---------7-----------------------#2024-09-30](https://towardsdatascience.com/is-less-more-do-deep-learning-forecasting-models-need-feature-reduction-25d8968ac15c?source=collection_archive---------7-----------------------#2024-09-30)
+> 原文：[`towardsdatascience.com/is-less-more-do-deep-learning-forecasting-models-need-feature-reduction-25d8968ac15c?source=collection_archive---------7-----------------------#2024-09-30`](https://towardsdatascience.com/is-less-more-do-deep-learning-forecasting-models-need-feature-reduction-25d8968ac15c?source=collection_archive---------7-----------------------#2024-09-30)
 
 ## 是否需要筛选特征，这是一个问题
 
-[](https://ostiguyphilippe.medium.com/?source=post_page---byline--25d8968ac15c--------------------------------)[![Philippe Ostiguy, M. Sc.](../Images/8b292bc1baa848a0c5de821dc9576534.png)](https://ostiguyphilippe.medium.com/?source=post_page---byline--25d8968ac15c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--25d8968ac15c--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--25d8968ac15c--------------------------------) [Philippe Ostiguy, M. Sc.](https://ostiguyphilippe.medium.com/?source=post_page---byline--25d8968ac15c--------------------------------)
+[](https://ostiguyphilippe.medium.com/?source=post_page---byline--25d8968ac15c--------------------------------)![Philippe Ostiguy, M. Sc.](https://ostiguyphilippe.medium.com/?source=post_page---byline--25d8968ac15c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--25d8968ac15c--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--25d8968ac15c--------------------------------) [Philippe Ostiguy, M. Sc.](https://ostiguyphilippe.medium.com/?source=post_page---byline--25d8968ac15c--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--25d8968ac15c--------------------------------) ·12 分钟阅读·2024年9月30日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--25d8968ac15c--------------------------------) ·12 分钟阅读·2024 年 9 月 30 日
 
 --
 
-![](../Images/d06437fd932d3128b235a26000f217c7.png)
+![](img/d06437fd932d3128b235a26000f217c7.png)
 
 AI 图像由作者在 MidJourney V6.1 上创建。
 
@@ -24,7 +24,7 @@ AI 图像由作者在 MidJourney V6.1 上创建。
 
 +   **时间序列中的特征减少** — *我们将解释时间序列分析中特征减少的概念以及它的重要性。*
 
-+   **实际实施指南** — *通过使用Python，我们将逐步讲解如何评估和选择时间序列模型的特征，提供优化你方法的实用工具。我们还将评估是否需要削减特征以优化我们的预测模型。*
++   **实际实施指南** — *通过使用 Python，我们将逐步讲解如何评估和选择时间序列模型的特征，提供优化你方法的实用工具。我们还将评估是否需要削减特征以优化我们的预测模型。*
 
 一旦你熟悉了像平稳性和特征减少这样的技术，并且想进一步提升你的模型？可以查看这篇关于[在深度学习模型中使用自定义验证损失](https://medium.com/@ostiguyphilippe/enhancing-deep-learning-model-evaluation-for-stock-market-forecasting-bea30b905b80)的文章，以获得更好的股票预测——这是一个很好的下一步！
 
@@ -42,9 +42,9 @@ AI 图像由作者在 MidJourney V6.1 上创建。
 
 +   **计算效率**：较少的特征需要更少的内存和处理能力，这对于大数据集或实时应用至关重要。
 
-还需要注意的是，大多数用于时间序列预测的Python包并不会自动进行特征减少。这是你通常需要在使用这些包之前自行处理的一个步骤。
+还需要注意的是，大多数用于时间序列预测的 Python 包并不会自动进行特征减少。这是你通常需要在使用这些包之前自行处理的一个步骤。
 
-为了更好地理解这些概念，让我们通过一个实际的例子来使用来自美国联邦储备经济数据（FRED）数据库的真实世界日数据。我们在这里跳过数据获取的过程，因为我们已经在[上一篇文章](https://levelup.gitconnected.com/get-free-and-reliable-financial-market-data-machine-learning-ready-246e59b00cea)中详细介绍了如何通过FRED API获取免费的可靠数据。你可以通过[这个脚本](https://github.com/philippe-ostiguy/free-fin-data)获取我们将使用的数据。一旦你获取了数据：
+为了更好地理解这些概念，让我们通过一个实际的例子来使用来自美国联邦储备经济数据（FRED）数据库的真实世界日数据。我们在这里跳过数据获取的过程，因为我们已经在[上一篇文章](https://levelup.gitconnected.com/get-free-and-reliable-financial-market-data-machine-learning-ready-246e59b00cea)中详细介绍了如何通过 FRED API 获取免费的可靠数据。你可以通过[这个脚本](https://github.com/philippe-ostiguy/free-fin-data)获取我们将使用的数据。一旦你获取了数据：
 
 +   在当前目录中创建一个`data`目录
 
@@ -60,7 +60,7 @@ cp -R /path/to/fetcher_directory /path/to/current_directory/data
 
 现在我们有了数据，让我们深入探讨特征减少的示例。
 
-我们之前在[另一篇文章](https://levelup.gitconnected.com/get-free-and-reliable-financial-market-data-machine-learning-ready-246e59b00cea)中展示了如何清理从FRED API获取的每日数据，因此我们在这里跳过该过程，直接使用文章中步骤得到的`processed_dataframes`（数据框列表）。
+我们之前在[另一篇文章](https://levelup.gitconnected.com/get-free-and-reliable-financial-market-data-machine-learning-ready-246e59b00cea)中展示了如何清理从 FRED API 获取的每日数据，因此我们在这里跳过该过程，直接使用文章中步骤得到的`processed_dataframes`（数据框列表）。
 
 ```py
 import pandas as pd
@@ -104,9 +104,9 @@ combined_df_train = combined_df_all[:train_size]
 
 你可能会问，为什么我们将数据划分为训练集和测试集？原因是为了确保在应用任何转换或降维技术之前不会发生数据泄漏。
 
-`initial_model_data`包含标准普尔500的每日价格（最初存储在`processed_dataframes`中），这将是我们尝试预测的数据。
+`initial_model_data`包含标准普尔 500 的每日价格（最初存储在`processed_dataframes`中），这将是我们尝试预测的数据。
 
-接下来，我们需要确保我们的数据是平稳的。关于如何自动使数据平稳并提高20%模型表现的详细解释，请参阅[这篇文章](https://levelup.gitconnected.com/want-to-decrease-your-models-prediction-errors-by-20-follow-this-simple-trick-97354102098e)。
+接下来，我们需要确保我们的数据是平稳的。关于如何自动使数据平稳并提高 20%模型表现的详细解释，请参阅[这篇文章](https://levelup.gitconnected.com/want-to-decrease-your-models-prediction-errors-by-20-follow-this-simple-trick-97354102098e)。
 
 ```py
 import numpy as np
@@ -196,7 +196,7 @@ stationary_df_test = stationary_df_test.loc[last_train_index + 1:].reset_index(d
 initial_model_test = initial_model_test.loc[last_train_index + 1:].reset_index(drop=True)
 ```
 
-然后，我们将统计至少与另一个变量有95%相关系数的变量数量。
+然后，我们将统计至少与另一个变量有 95%相关系数的变量数量。
 
 ```py
 CORR_COFF = .95
@@ -211,11 +211,11 @@ print(f"\n{num_high_corr_cols}/{stationary_df_train.shape[1]} variables have ≥
       f"correlation with another variable.\n")
 ```
 
-![](../Images/3e88d562d5f155546e490822fecc2ca8.png)
+![](img/3e88d562d5f155546e490822fecc2ca8.png)
 
 高度相关的变量数量。图像由作者提供。
 
-如果438个变量中有260个变量与至少另一个变量的相关性达到95%或更高，这可能是一个问题。这表明数据集中存在显著的多重共线性。这种冗余可能会导致以下几个问题：
+如果 438 个变量中有 260 个变量与至少另一个变量的相关性达到 95%或更高，这可能是一个问题。这表明数据集中存在显著的多重共线性。这种冗余可能会导致以下几个问题：
 
 +   使模型变得复杂，但并未增加实质性的新信息
 
@@ -229,7 +229,7 @@ print(f"\n{num_high_corr_cols}/{stationary_df_train.shape[1]} variables have ≥
 
 我们理解特征降维可能很重要，但我们该如何进行呢？我们应该使用哪些技术？这些是我们现在要探讨的问题。
 
-我们将要探讨的第一种技术是主成分分析（PCA）。这是一种常见且有效的降维技术。PCA识别特征之间的线性关系，并保留解释原始数据集中预定百分比方差的主成分。在我们的使用案例中，我们将`EXPLAINED_VARIANCE`阈值设置为90%。
+我们将要探讨的第一种技术是主成分分析（PCA）。这是一种常见且有效的降维技术。PCA 识别特征之间的线性关系，并保留解释原始数据集中预定百分比方差的主成分。在我们的使用案例中，我们将`EXPLAINED_VARIANCE`阈值设置为 90%。
 
 ```py
 from sklearn.preprocessing import StandardScaler
@@ -266,15 +266,15 @@ print(f"\nOriginal number of features: {stationary_df_train.shape[1]}")
 print(f"Number of components after PCA: {pca_df_train.shape[1]}\n")
 ```
 
-![](../Images/5544416f6efe78886454deea283a782d.png)
+![](img/5544416f6efe78886454deea283a782d.png)
 
 使用主成分分析进行特征降维。图像由作者提供。
 
-令人印象深刻的是：在降维后，438个特征中只剩下76个成分，同时保持了90%的方差解释！接下来我们将转向一种非线性降维技术。
+令人印象深刻的是：在降维后，438 个特征中只剩下 76 个成分，同时保持了 90%的方差解释！接下来我们将转向一种非线性降维技术。
 
 [时间序列融合变换器（TFT）](https://arxiv.org/pdf/1912.09363.pdf)是一种用于时间序列预测的先进模型。它包含变量选择网络（VSN），这是模型的一个关键组件。它专门设计用于自动识别和关注数据集中的最相关特征。通过为每个输入变量分配学习到的权重，它有效地突出哪些特征对预测任务的贡献最大。
 
-基于VSN的方法将是我们第二种降维技术。我们将使用[PyTorch Forecasting](https://pytorch-forecasting.readthedocs.io/en/stable/)来实现，它允许我们利用TFT模型中的变量选择网络。
+基于 VSN 的方法将是我们第二种降维技术。我们将使用[PyTorch Forecasting](https://pytorch-forecasting.readthedocs.io/en/stable/)来实现，它允许我们利用 TFT 模型中的变量选择网络。
 
 我们将使用一个基础配置。我们的目标不是创建性能最强的模型，而是识别最相关的特征，同时尽量减少资源使用。
 
@@ -322,9 +322,9 @@ training_ts = TimeSeriesDataSet(
 )
 ```
 
-`VARIABLES_IMPORTANCE`阈值设置为0.8，这意味着我们将保留由变量选择网络（VSN）确定的排名前80%的重要特征。有关时间序列融合变换器（TFT）及其参数的更多信息，请参考[文档](https://pytorch-forecasting.readthedocs.io/en/stable/api/pytorch_forecasting.models.temporal_fusion_transformer.TemporalFusionTransformer.html#pytorch_forecasting.models.temporal_fusion_transformer.TemporalFusionTransformer)。
+`VARIABLES_IMPORTANCE`阈值设置为 0.8，这意味着我们将保留由变量选择网络（VSN）确定的排名前 80%的重要特征。有关时间序列融合变换器（TFT）及其参数的更多信息，请参考[文档](https://pytorch-forecasting.readthedocs.io/en/stable/api/pytorch_forecasting.models.temporal_fusion_transformer.TemporalFusionTransformer.html#pytorch_forecasting.models.temporal_fusion_transformer.TemporalFusionTransformer)。
 
-接下来，我们将训练TFT模型。
+接下来，我们将训练 TFT 模型。
 
 ```py
 if torch.cuda.is_available():
@@ -358,9 +358,9 @@ trainer.fit(
 )
 ```
 
-我们故意设置了`max_epochs=20`，以避免模型训练时间过长。此外，我们还实现了`early_stop_callback`，如果模型在连续5个epoch中没有改善，将停止训练（`patience=5`）。
+我们故意设置了`max_epochs=20`，以避免模型训练时间过长。此外，我们还实现了`early_stop_callback`，如果模型在连续 5 个 epoch 中没有改善，将停止训练（`patience=5`）。
 
-最后，使用获得的最佳模型，我们选择由VSN确定的最重要特征的80百分位。
+最后，使用获得的最佳模型，我们选择由 VSN 确定的最重要特征的 80 百分位。
 
 ```py
 best_model_path = trainer.checkpoint_callback.best_model_path
@@ -385,11 +385,11 @@ print(f"\nOriginal number of features: {stationary_df_train.shape[1]}")
 print(f"Number of features after Variable Selection Network (VSN): {len(top_encoder_vars)}\n")
 ```
 
-![](../Images/752a7a4f43f1726c1de6b2236a68e5c7.png)
+![](img/752a7a4f43f1726c1de6b2236a68e5c7.png)
 
 使用变量选择网络进行特征降维。图片由作者提供。
 
-原始数据集包含438个特征，在应用VSN方法后，仅剩下1个特征！这种剧烈的降维暗示了几种可能性：
+原始数据集包含 438 个特征，在应用 VSN 方法后，仅剩下 1 个特征！这种剧烈的降维暗示了几种可能性：
 
 1.  许多原始特征可能是冗余的。
 
@@ -401,9 +401,9 @@ print(f"Number of features after Variable Selection Network (VSN): {len(top_enco
 
 在最后一节中，我们将比较应用于模型的降维技术。每种方法在保持相同模型配置的同时进行测试，唯一区别是所选特征的降维处理。
 
-我们将使用[TiDE](https://arxiv.org/pdf/2304.08424.pdf)，这是一种基于Transformer的小型最先进模型。我们将使用[NeuralForecast](https://nixtlaverse.nixtla.io/neuralforecast/models.tide.html)提供的实现。只要它允许外生历史变量，NeuralForecast的任何模型[这里](https://nixtlaverse.nixtla.io/neuralforecast/docs/capabilities/overview.html)都可以使用。
+我们将使用[TiDE](https://arxiv.org/pdf/2304.08424.pdf)，这是一种基于 Transformer 的小型最先进模型。我们将使用[NeuralForecast](https://nixtlaverse.nixtla.io/neuralforecast/models.tide.html)提供的实现。只要它允许外生历史变量，NeuralForecast 的任何模型[这里](https://nixtlaverse.nixtla.io/neuralforecast/docs/capabilities/overview.html)都可以使用。
 
-我们将使用每日SPY（标普500ETF）数据训练和测试两个模型。两个模型将具有相同的：
+我们将使用每日 SPY（标普 500ETF）数据训练和测试两个模型。两个模型将具有相同的：
 
 1.  训练-测试分割比例
 
@@ -417,9 +417,9 @@ print(f"Number of features after Variable Selection Network (VSN): {len(top_enco
 
 1.  第一个模型：原始特征（没有特征减少）
 
-1.  第二个模型：使用PCA进行特征减少
+1.  第二个模型：使用 PCA 进行特征减少
 
-1.  第三个模型：使用VSN进行特征减少
+1.  第三个模型：使用 VSN 进行特征减少
 
 该设置使我们能够隔离每种特征减少技术对模型性能的影响。
 
@@ -530,17 +530,17 @@ with open("prediction_errors_comparison.txt", "w") as f:
 
 我们使用模型预测每日回报，然后将这些回报转换为价格。这种方法使我们能够通过价格计算预测误差，并将实际价格与预测价格进行比较，呈现在图表中。
 
-![](../Images/269abd534c5abdfe8194df39136fd090.png)
+![](img/269abd534c5abdfe8194df39136fd090.png)
 
 使用不同特征减少技术的预测误差比较。图片由作者提供。
 
-TiDE模型在原始和减少特征集上表现相似，揭示了一个关键的见解：特征减少并没有像预期那样提高预测精度。这表明可能存在一些关键问题：
+TiDE 模型在原始和减少特征集上表现相似，揭示了一个关键的见解：特征减少并没有像预期那样提高预测精度。这表明可能存在一些关键问题：
 
 +   信息损失：尽管目的是保留重要数据，但降维技术丢弃了与预测任务相关的信息，这解释了在减少特征时预测没有改进。
 
 +   泛化困难：不同特征集之间的一致表现表明模型在捕捉潜在模式方面存在困难，无论特征数量多少。
 
-+   复杂性过度：使用较少特征获得类似结果表明，TiDE的复杂架构可能过于复杂。一种更简单的模型，例如ARIMA，可能表现得同样好。
++   复杂性过度：使用较少特征获得类似结果表明，TiDE 的复杂架构可能过于复杂。一种更简单的模型，例如 ARIMA，可能表现得同样好。
 
 然后，让我们查看图表，看看是否能观察到三种预测方法与实际价格之间有任何显著差异。
 
@@ -581,17 +581,17 @@ plt.savefig('spy_forecast_chart_vsn.png', dpi=300, bbox_inches='tight')
 plt.close()
 ```
 
-![](../Images/198959fd7771ea78751d923086b0820d.png)
+![](img/198959fd7771ea78751d923086b0820d.png)
 
-使用所有原始特征的SPY价格预测。图片由作者提供。
+使用所有原始特征的 SPY 价格预测。图片由作者提供。
 
-![](../Images/12c100de5f3352051765fbd2db5be6e0.png)
+![](img/12c100de5f3352051765fbd2db5be6e0.png)
 
-使用PCA的SPY价格预测。图片由作者提供。
+使用 PCA 的 SPY 价格预测。图片由作者提供。
 
-![](../Images/ba26bb6bbb1727805ee38cd8788db4cd.png)
+![](img/ba26bb6bbb1727805ee38cd8788db4cd.png)
 
-使用VSN的SPY价格预测。图片由作者提供。
+使用 VSN 的 SPY 价格预测。图片由作者提供。
 
 真实价格与预测价格之间的差异在三个模型中看起来一致，性能之间没有明显的差异。
 
@@ -601,15 +601,15 @@ plt.close()
 
 +   特征降维的目标是简化模型，同时保持预测能力。其好处包括减少复杂性、提高泛化能力、简化解释和计算效率。
 
-+   我们使用FRED数据演示了两种降维技术：
++   我们使用 FRED 数据演示了两种降维技术：
 
-1.  主成分分析（PCA），一种线性降维方法，将特征从438个减少到76个，同时保留了90%的解释方差。
+1.  主成分分析（PCA），一种线性降维方法，将特征从 438 个减少到 76 个，同时保留了 90%的解释方差。
 
-1.  来自时序融合变换器（Temporal Fusion Transformers）的变量选择网络（VSN），一种非线性方法，通过设置80百分位重要性阈值，将特征大幅减少到仅剩1个。
+1.  来自时序融合变换器（Temporal Fusion Transformers）的变量选择网络（VSN），一种非线性方法，通过设置 80 百分位重要性阈值，将特征大幅减少到仅剩 1 个。
 
-+   使用TiDE模型进行的评估表明，原始特征集和降维后的特征集在性能上相似，这表明特征降维并不总是能提升预测性能。这可能是由于降维过程中信息丢失、模型难以捕捉潜在模式，或可能是对于这个特定的预测任务，更简单的模型同样有效。
++   使用 TiDE 模型进行的评估表明，原始特征集和降维后的特征集在性能上相似，这表明特征降维并不总是能提升预测性能。这可能是由于降维过程中信息丢失、模型难以捕捉潜在模式，或可能是对于这个特定的预测任务，更简单的模型同样有效。
 
-最后一点，我们并没有探索所有的特征降维技术，例如SHAP（SHapley Additive exPlanations），它提供了跨多种模型类型的统一特征重要性度量。即使我们没有改进模型，进行特征筛选并比较不同降维方法的性能仍然是值得的。这种方法有助于确保在优化模型效率和可解释性的同时，不丢失有价值的信息。
+最后一点，我们并没有探索所有的特征降维技术，例如 SHAP（SHapley Additive exPlanations），它提供了跨多种模型类型的统一特征重要性度量。即使我们没有改进模型，进行特征筛选并比较不同降维方法的性能仍然是值得的。这种方法有助于确保在优化模型效率和可解释性的同时，不丢失有价值的信息。
 
 在未来的文章中，我们将把这些特征降维技术应用于更复杂的模型，比较它们对性能和可解释性的影响。敬请关注！
 
@@ -617,7 +617,7 @@ plt.close()
 
 # 喜欢这篇文章吗？表示你的支持！
 
-👏 鼓掌50次
+👏 鼓掌 50 次
 
 🤝 通过[LinkedIn](https://www.linkedin.com/in/philippe-ostiguy/)向我发送连接请求，保持联系
 

@@ -1,22 +1,22 @@
 # 通过 API 使用 Docker 进行 YOLO 推理
 
-> 原文：[https://towardsdatascience.com/yolo-inference-with-docker-via-api-cd6757ba614b?source=collection_archive---------2-----------------------#2024-07-19](https://towardsdatascience.com/yolo-inference-with-docker-via-api-cd6757ba614b?source=collection_archive---------2-----------------------#2024-07-19)
+> 原文：[`towardsdatascience.com/yolo-inference-with-docker-via-api-cd6757ba614b?source=collection_archive---------2-----------------------#2024-07-19`](https://towardsdatascience.com/yolo-inference-with-docker-via-api-cd6757ba614b?source=collection_archive---------2-----------------------#2024-07-19)
 
 ## 学习如何通过 API 与 Docker 协同进行物体检测推理
 
-[](https://medium.com/@JavierMtz5?source=post_page---byline--cd6757ba614b--------------------------------)[![Javier Martínez Ojeda](../Images/5b5df4220fa64c13232c29de9b4177af.png)](https://medium.com/@JavierMtz5?source=post_page---byline--cd6757ba614b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cd6757ba614b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cd6757ba614b--------------------------------) [Javier Martínez Ojeda](https://medium.com/@JavierMtz5?source=post_page---byline--cd6757ba614b--------------------------------)
+[](https://medium.com/@JavierMtz5?source=post_page---byline--cd6757ba614b--------------------------------)![Javier Martínez Ojeda](https://medium.com/@JavierMtz5?source=post_page---byline--cd6757ba614b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cd6757ba614b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd6757ba614b--------------------------------) [Javier Martínez Ojeda](https://medium.com/@JavierMtz5?source=post_page---byline--cd6757ba614b--------------------------------)
 
-·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd6757ba614b--------------------------------) ·12 分钟阅读·2024年7月19日
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd6757ba614b--------------------------------) ·12 分钟阅读·2024 年 7 月 19 日
 
 --
 
-![](../Images/a66a644b8d2d01a642d8feea6dfac0f8.png)
+![](img/a66a644b8d2d01a642d8feea6dfac0f8.png)
 
 “通过 API 使用 Docker 进行 YOLO 推理”项目结构。图片来源：作者。
 
 > 如果你想在没有 Premium Medium 账户的情况下阅读这篇文章，可以通过这个朋友链接进行阅读 :)
 > 
-> [https://www.learnml.wiki/yolo-inference-with-docker-via-api/](https://www.learnml.wiki/yolo-inference-with-docker-via-api/)
+> [`www.learnml.wiki/yolo-inference-with-docker-via-api/`](https://www.learnml.wiki/yolo-inference-with-docker-via-api/)
 
 # 引言
 

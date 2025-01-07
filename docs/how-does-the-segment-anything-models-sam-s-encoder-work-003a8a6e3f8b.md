@@ -1,16 +1,16 @@
 # Segment-Anything 模型（SAM）的编码器是如何工作的？
 
-> 原文：[https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-encoder-work-003a8a6e3f8b?source=collection_archive---------5-----------------------#2024-05-14](https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-encoder-work-003a8a6e3f8b?source=collection_archive---------5-----------------------#2024-05-14)
+> 原文：[`towardsdatascience.com/how-does-the-segment-anything-models-sam-s-encoder-work-003a8a6e3f8b?source=collection_archive---------5-----------------------#2024-05-14`](https://towardsdatascience.com/how-does-the-segment-anything-models-sam-s-encoder-work-003a8a6e3f8b?source=collection_archive---------5-----------------------#2024-05-14)
 
 ## 深入探讨图像内容嵌入、正弦和余弦位置嵌入、引导点击嵌入以及密集掩码嵌入是如何生成的
 
-[](https://jasonweiyi.medium.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)[![魏毅](../Images/24b7a438912082519f24d18e11ac9638.png)](https://jasonweiyi.medium.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--003a8a6e3f8b--------------------------------) [魏毅](https://jasonweiyi.medium.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)
+[](https://jasonweiyi.medium.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)![魏毅](https://jasonweiyi.medium.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)![Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--003a8a6e3f8b--------------------------------) [魏毅](https://jasonweiyi.medium.com/?source=post_page---byline--003a8a6e3f8b--------------------------------)
 
-·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--003a8a6e3f8b--------------------------------) ·阅读时间 16 分钟 ·2024年5月14日
+·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--003a8a6e3f8b--------------------------------) ·阅读时间 16 分钟 ·2024 年 5 月 14 日
 
 --
 
-![](../Images/b8fa7cce26e763966c76f98d3a33a940.png)
+![](img/b8fa7cce26e763966c76f98d3a33a940.png)
 
 照片由 [benjamin lehman](https://unsplash.com/@abject?utm_source=medium&utm_medium=referral) 提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 
